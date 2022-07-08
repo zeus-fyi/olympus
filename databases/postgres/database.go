@@ -7,8 +7,8 @@ import (
 )
 
 // InitPG Make sure you defer dbClose
-func InitPG(connStr string) (*pgxpool.Pool, error) {
-	conn, err := pgxpool.Connect(context.Background(), connStr)
+func InitPG(ctx context.Context, connStr string) (*pgxpool.Pool, error) {
+	conn, err := pgxpool.Connect(ctx, connStr)
 	if err != nil {
 		return nil, err
 	}

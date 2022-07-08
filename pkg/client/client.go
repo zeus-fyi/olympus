@@ -6,8 +6,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"path"
-	"strings"
 )
 
 type Client struct {
@@ -19,11 +17,6 @@ type Reply struct {
 	Status    string
 	Err       error
 	BodyBytes []byte
-}
-
-func (c Client) AppendURL(url string, paths ...string) string {
-	p := path.Join(paths...)
-	return fmt.Sprintf("%s/%s", strings.TrimRight(url, "/"), strings.TrimLeft(p, "/"))
 }
 
 func (c Client) AddHeader(req *http.Request, header, value string) *http.Request {
@@ -82,6 +75,7 @@ func (c Client) respParser(resp *http.Response) Reply {
 		r.Err = err
 		fmt.Printf("%v", err)
 	}
+	r.Status = resp.Status
 	r.BodyBytes = body
 	r.Body = fmt.Sprintf("%s", body)
 	return r

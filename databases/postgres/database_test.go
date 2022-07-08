@@ -4,28 +4,21 @@ import (
 	"context"
 	"testing"
 
-	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/suite"
-
-	"bitbucket.org/zeus/eth-indexer/pkg/test_utils"
+	"github.com/zeus-fyi/olympus/pkg/test_utils/test_suites"
 )
 
-var localConnPG *pgxpool.Pool
-
-type PGTestSuite struct {
-	suite.Suite
+type PostgresTestSuite struct {
+	test_suites.BaseTestSuite
 }
 
-func (s *PGTestSuite) SetupTest() {
-	test_utils.InitLocalConfigs()
-	localConnPG = test_utils.InitLocalTestDBConn()
+func (s *PostgresTestSuite) TestConnPG() {
+	conn, err := InitPG(context.Background(), s.Tc.TEST_DB_PGCONN)
+	s.Require().Nil(err)
+	s.Assert().NotNil(conn)
+	defer conn.Close()
 }
 
-func (s *PGTestSuite) TestConnPG() {
-	ctx := context.Background()
-	localConnPG.QueryRow(ctx, "SELECT id FROM validator WHERE id > 0")
-}
-
-func TestPGTestSuite(t *testing.T) {
-	suite.Run(t, new(PGTestSuite))
+func TestPostgresTestSuite(t *testing.T) {
+	suite.Run(t, new(PostgresTestSuite))
 }

@@ -3,6 +3,7 @@
 # Learn more about .gitignore:
 #     https://www.atlassian.com/git/tutorials/saving-changes/gitignore
 
+TODO.txt
 bin/
 configs/config.yaml
 # Node artifact files

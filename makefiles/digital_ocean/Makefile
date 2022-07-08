@@ -10,3 +10,4 @@ vpc.list:
 
 docker.login:
 	doctl registry login
+

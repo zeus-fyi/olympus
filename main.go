@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bitbucket.org/zeus/eth-indexer/cmd"
+	"github.com/zeus-fyi/olympus/cmd"
 )
 
 func main() {

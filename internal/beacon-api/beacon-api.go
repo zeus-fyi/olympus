@@ -7,6 +7,10 @@ import (
 
 var c client.Client
 
+func init() {
+	c.EnableBytesStrDecode = false
+}
+
 const getBlockByID = "eth/v2/beacon/blocks"
 const getValidatorsByState = "eth/v1/beacon/states"
 

@@ -9,7 +9,8 @@ import (
 )
 
 type Client struct {
-	C http.Client
+	C                    http.Client
+	EnableBytesStrDecode bool
 }
 
 type Reply struct {
@@ -77,6 +78,8 @@ func (c Client) respParser(resp *http.Response) Reply {
 	}
 	r.Status = resp.Status
 	r.BodyBytes = body
-	r.Body = fmt.Sprintf("%s", body)
+	if c.EnableBytesStrDecode {
+		r.Body = fmt.Sprintf("%s", body)
+	}
 	return r
 }

@@ -13,8 +13,8 @@ type PostgresTestSuite struct {
 }
 
 func (s *PostgresTestSuite) TestConnPG() {
-	conn, err := InitPG(context.Background(), s.Tc.TEST_DB_PGCONN)
-	s.Require().Nil(err)
+	var PgTestDB Db
+	conn := PgTestDB.InitPG(context.Background(), s.Tc.TEST_DB_PGCONN)
 	s.Assert().NotNil(conn)
 	defer conn.Close()
 }

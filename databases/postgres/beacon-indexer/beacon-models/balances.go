@@ -49,23 +49,42 @@ func (vb *ValidatorBalancesEpoch) getNewBalanceValues() postgres.RowValues {
 	return pgValues
 }
 
-// InsertValidatorBalancesForNextEpoch TODO filter out any new adds that aren't at epoch +1 and at epochs not -2 from head
-// InsertValidatorBalancesForNextEpoch gets max epoch and then take diff of total balance - previous at last max epoch
+func (vb *ValidatorBalancesEpoch) getEpochValues() postgres.RowValues {
+	pgValues := make(postgres.RowValues, len(vb.ValidatorBalance))
+	for i, val := range vb.ValidatorBalance {
+		pgValues[i] = val.Epoch
+	}
+	return pgValues
+}
+
+// InsertValidatorBalancesForNextEpoch
+/*
+	1. gets max stored epoch for each validator, and filters out validators that are already at the max finalized epoch
+	2. compares the proposed new_epoch to validate it is +1 to the previous, otherwise filters them out to
+	   ensure data consistency epoch to epoch. exception for epoch 0
+	3. compares new to old balance to generate the diff yield for the latest epoch and inserts new data into balances
+*/
 func (vb *ValidatorBalancesEpoch) InsertValidatorBalancesForNextEpoch(ctx context.Context) error {
+	epochs := strings.ArraySliceStrBuilderSQL(vb.getEpochValues())
 	valIndexes := strings.ArraySliceStrBuilderSQL(vb.getIndexValues())
 	newBalance := strings.ArraySliceStrBuilderSQL(vb.getNewBalanceValues())
 	query := fmt.Sprintf(`
 		WITH validator_max_relative_epoch_balances AS (
-			SELECT COALESCE(MAX(epoch), 0) as max_epoch, validator_index FROM validator_balances_at_epoch WHERE validator_index = ANY(%s) GROUP BY validator_index
+			SELECT COALESCE(MAX(epoch), 0) as max_epoch, validator_index
+			FROM validator_balances_at_epoch
+			WHERE validator_index = ANY(%s) AND epoch < (SELECT current_mainnet_finalized_epoch())
+			GROUP BY validator_index
 		), new_balances AS (
-			SELECT * FROM UNNEST(%s, %s) AS x(validator_index, new_balance)
+			SELECT * FROM UNNEST(%s, %s, %s) AS x(v_index, new_balance, new_epoch)
+			JOIN validator_max_relative_epoch_balances on validator_max_relative_epoch_balances.validator_index = v_index
+			WHERE validator_max_relative_epoch_balances.max_epoch = new_epoch-1 OR validator_max_relative_epoch_balances.max_epoch = 0
 		)
 		INSERT INTO validator_balances_at_epoch (epoch, validator_index, total_balance_gwei, current_epoch_yield_gwei)
-    	SELECT vm.max_epoch+1, vm.validator_index, nb.new_balance, nb.new_balance - vb.total_balance_gwei
+    	SELECT nb.new_epoch, vm.validator_index, nb.new_balance, nb.new_balance - vb.total_balance_gwei
 		FROM validator_max_relative_epoch_balances vm
 		JOIN validator_balances_at_epoch vb ON vb.epoch = vm.max_epoch AND vb.validator_index = vm.validator_index
-		JOIN new_balances nb ON nb.validator_index = vm.validator_index 
-	`, valIndexes, valIndexes, newBalance)
+		JOIN new_balances nb ON nb.v_index = vm.validator_index 
+	`, valIndexes, valIndexes, newBalance, epochs)
 
 	_, err := postgres.Pg.Query(ctx, query)
 	return err

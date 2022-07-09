@@ -11,32 +11,56 @@ type ValidatorBalancesTestSuite struct {
 	BeaconBaseTestSuite
 }
 
-func (s *ValidatorBalancesTestSuite) TestInsertAndSelectValidatorBalances() {
-	vs := createFakeValidators(3)
+func (s *ValidatorBalancesTestSuite) TestInsertValidatorBalancesForNextEpoch() {
 	ctx := context.Background()
-	err := vs.InsertValidators(ctx)
-	s.Require().Nil(err)
+	vs := seedValidators(2)
 
-	expVBs := make(map[int64]ValidatorBalanceEpoch, 3)
+	epoch0Balance := int64(32000000000)
+	s.insertEpochVBFromGivenValidatorsAndValidate(ctx, vs, int64(0), epoch0Balance, epoch0Balance)
 
-	var vbs ValidatorBalancesEpoch
-	for i, v := range vs.Validators {
-		var vb ValidatorBalanceEpoch
-		vb.Epoch = int64(i)
-		vb.Validator = v
-		vb.TotalBalanceGwei = int64(32000000001 - i)
-		vbs.ValidatorBalance = append(vbs.ValidatorBalance, vb)
-		expVBs[vb.Index] = vb
+	epoch1Balance := int64(32000000010)
+	s.insertEpochVBFromGivenValidatorsAndValidate(ctx, vs, int64(1), epoch1Balance, epoch0Balance)
+
+	epoch2Balance := int64(32000000008)
+	s.insertEpochVBFromGivenValidatorsAndValidate(ctx, vs, int64(2), epoch2Balance, epoch1Balance)
+}
+
+func (s *ValidatorBalancesTestSuite) TestInsertValidatorBalancesForNextEpochEdgeCases() {
+	ctx := context.Background()
+	vs := seedValidators(1)
+
+	// test when validator not in validator table
+	for _, v := range vs.Validators {
+		v.Index = int64(0)
 	}
 
-	err = vbs.InsertValidatorBalances(ctx)
+	epoch0Balance := int64(32000000000)
+	vbsEpoch, _ := seedAndInsertNewValidatorBalances(ctx, vs, int64(0), epoch0Balance)
+	selectedVbsEpoch0, err := vbsEpoch.SelectValidatorBalances(ctx)
+	s.Require().Nil(err)
+	s.Assert().Empty(selectedVbsEpoch0)
+
+	// test when trying to add >1 epoch ahead not in validator table
+	vs = seedValidators(2)
+	vbsEpoch, _ = seedAndInsertNewValidatorBalances(ctx, vs, int64(3), epoch0Balance)
+	selectedVbsEpoch3, err := vbsEpoch.SelectValidatorBalances(ctx)
+	s.Require().Nil(err)
+	s.Assert().Empty(selectedVbsEpoch3)
+}
+
+func (s *ValidatorBalancesTestSuite) TestInsertAndSelectValidatorBalances() {
+	vs := seedValidators(3)
+	ctx := context.Background()
+
+	vbsEpoch0, exp0VBs := seedValidatorEpochBalancesStructFromValidators(vs, int64(0), int64(32000000000))
+	err := vbsEpoch0.InsertValidatorBalances(ctx)
 	s.Require().Nil(err)
 
-	selectedVBs, err := vbs.SelectValidatorBalances(ctx)
+	selectedVBs, err := vbsEpoch0.SelectValidatorBalances(ctx)
 	s.Require().Nil(err)
 
 	for _, testVB := range selectedVBs.ValidatorBalance {
-		expVB := expVBs[testVB.Index]
+		expVB := exp0VBs[testVB.Index]
 		s.Require().NotEmpty(expVB)
 		s.Assert().Equal(expVB.Index, testVB.Index)
 		s.Assert().Equal(expVB.TotalBalanceGwei, testVB.TotalBalanceGwei, "validator_index %s total balance expected to be %s, but was %s", expVB.Index, expVB.TotalBalanceGwei, testVB.TotalBalanceGwei)
@@ -44,70 +68,61 @@ func (s *ValidatorBalancesTestSuite) TestInsertAndSelectValidatorBalances() {
 	}
 }
 
-func (s *ValidatorBalancesTestSuite) TestInsertValidatorBalancesForNextEpoch() {
-	vs := createFakeValidators(2)
-	ctx := context.Background()
-	err := vs.InsertValidators(ctx)
+func (s *ValidatorBalancesTestSuite) insertEpochVBFromGivenValidatorsAndValidate(ctx context.Context, vs Validators, epoch, epochTotalBalance, prevEpochTotalBalance int64) {
+	vbsEpoch, expVbsEpoch := seedAndInsertNewValidatorBalances(ctx, vs, epoch, epochTotalBalance)
+	selectedVbsEpoch0, err := vbsEpoch.SelectValidatorBalances(ctx)
 	s.Require().Nil(err)
+	s.Require().NotNil(selectedVbsEpoch0)
+	s.compareExpectedToActualValBalanceEntries(*selectedVbsEpoch0, expVbsEpoch, epochTotalBalance, prevEpochTotalBalance)
+}
 
-	expVBs := make(map[int64]ValidatorBalanceEpoch, 2)
-
-	var vbsInitial ValidatorBalancesEpoch
-	for _, v := range vs.Validators {
-		var vb ValidatorBalanceEpoch
-		vb.Epoch = int64(0)
-		vb.Validator = v
-		vb.TotalBalanceGwei = int64(32000000000)
-		vbsInitial.ValidatorBalance = append(vbsInitial.ValidatorBalance, vb)
-		expVBs[vb.Index] = vb
-	}
-
-	err = vbsInitial.InsertValidatorBalances(ctx)
-	s.Require().Nil(err)
-
-	selectedVBs, err := vbsInitial.SelectValidatorBalances(ctx)
-	s.Require().Nil(err)
-
+func (s *ValidatorBalancesTestSuite) compareExpectedToActualValBalanceEntries(selectedVBs ValidatorBalancesEpoch, expVBs map[int64]ValidatorBalanceEpoch, startingTotalBalance, prevTotalBalanceGwei int64) {
 	for _, testVB := range selectedVBs.ValidatorBalance {
 		expVB := expVBs[testVB.Index]
 		s.Require().NotEmpty(expVB)
 		s.Assert().Equal(expVB.Index, testVB.Index)
+		// Total Balance
 		s.Assert().Equal(expVB.TotalBalanceGwei, testVB.TotalBalanceGwei, "validator_index %s total balance expected to be %s, but was %s", expVB.Index, expVB.TotalBalanceGwei, testVB.TotalBalanceGwei)
-		s.Assert().Equal(expVB.TotalBalanceGwei-32000000000, testVB.YieldToDateGwei, "validator_index %s yield_to_date_gwei expected to be %s, but was %s", expVB.Index, expVB.YieldToDateGwei, testVB.TotalBalanceGwei)
-		s.Assert().Equal(int64(0), testVB.CurrentEpochYieldGwei, "validator_index %s yield_to_date_gwei expected to be %s, but was %s", expVB.Index, 0, testVB.TotalBalanceGwei)
+		// Yield To Date Gwei
+		yieldToDateGwei := expVB.TotalBalanceGwei - startingTotalBalance
+		s.Assert().Equal(yieldToDateGwei, testVB.YieldToDateGwei, "validator_index %s yield_to_date_gwei expected to be %s, but was %s", expVB.Index, yieldToDateGwei, testVB.YieldToDateGwei)
+		// Epoch Yield Gwei
+		epochYieldGwei := expVB.TotalBalanceGwei - prevTotalBalanceGwei
+		s.Assert().Equal(epochYieldGwei, testVB.CurrentEpochYieldGwei, "validator_index %s epoch_yield_gwei expected to be %s, but was %s", expVB.Index, epochYieldGwei, testVB.CurrentEpochYieldGwei)
+	}
+}
+
+func seedAndInsertNewValidatorBalances(ctx context.Context, vs Validators, epoch, epochTotalBalance int64) (ValidatorBalancesEpoch, map[int64]ValidatorBalanceEpoch) {
+	vbsEpoch, expVbsMapEpoch := seedValidatorEpochBalancesStructFromValidators(vs, epoch, epochTotalBalance)
+	err := vbsEpoch.InsertValidatorBalancesForNextEpoch(ctx)
+	if err != nil {
+		panic(err)
 	}
 
-	var vbsNextEpoch ValidatorBalancesEpoch
-	expVBs = make(map[int64]ValidatorBalanceEpoch, 2)
+	return vbsEpoch, expVbsMapEpoch
+}
+func seedValidators(numValidators int) Validators {
+	vs := createFakeValidators(numValidators)
+	ctx := context.Background()
+	err := vs.InsertValidators(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return vs
+}
+
+func seedValidatorEpochBalancesStructFromValidators(vs Validators, epoch, newGweiBalance int64) (ValidatorBalancesEpoch, map[int64]ValidatorBalanceEpoch) {
+	var valExpBalancesAtEpoch ValidatorBalancesEpoch
+	expVbsMap := make(map[int64]ValidatorBalanceEpoch, len(vs.Validators)-1)
 	for _, v := range vs.Validators {
 		var vb ValidatorBalanceEpoch
-		vb.Epoch = int64(1)
+		vb.Epoch = epoch
 		vb.Validator = v
-		vb.TotalBalanceGwei = int64(32000000010)
-		vbsNextEpoch.ValidatorBalance = append(vbsNextEpoch.ValidatorBalance, vb)
-		expVBs[vb.Index] = vb
+		vb.TotalBalanceGwei = newGweiBalance
+		valExpBalancesAtEpoch.ValidatorBalance = append(valExpBalancesAtEpoch.ValidatorBalance, vb)
+		expVbsMap[vb.Index] = vb
 	}
-
-	err = vbsNextEpoch.InsertValidatorBalancesForNextEpoch(ctx)
-	s.Require().Nil(err)
-
-	selectedVBs, err = vbsNextEpoch.SelectValidatorBalances(ctx)
-	s.Require().Nil(err)
-
-	for _, testVB := range selectedVBs.ValidatorBalance {
-		if testVB.Epoch > 0 {
-			expVB := expVBs[testVB.Index]
-			s.Require().NotEmpty(expVB)
-			s.Assert().Equal(expVB.Index, testVB.Index)
-			s.Assert().Equal(expVB.Epoch, testVB.Epoch)
-			s.Assert().Equal(int64(1), testVB.Epoch)
-			expBalance := int64(32000000010)
-			expYieldDiff := int64(32000000010 - 32000000000)
-			s.Assert().Equal(expBalance, testVB.TotalBalanceGwei, "validator_index %s total balance expected to be %s, but was %s", expVB.Index, expVB.TotalBalanceGwei, testVB.TotalBalanceGwei)
-			s.Assert().Equal(expYieldDiff, testVB.YieldToDateGwei, "validator_index %s yield_to_date_gwei expected to be %s, but was %s", expVB.Index, expVB.YieldToDateGwei, testVB.TotalBalanceGwei)
-			s.Assert().Equal(expYieldDiff, testVB.CurrentEpochYieldGwei, "validator_index %s yield_to_date_gwei expected to be %s, but was %s", expVB.Index, expYieldDiff, testVB.TotalBalanceGwei)
-		}
-	}
+	return valExpBalancesAtEpoch, expVbsMap
 }
 
 func TestValidatorBalancesTestSuite(t *testing.T) {

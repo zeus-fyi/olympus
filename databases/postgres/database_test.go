@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/test_utils/test_suites"
+	"github.com/zeus-fyi/olympus/internal/test_utils/test_suites"
 )
 
 type PostgresTestSuite struct {

@@ -64,14 +64,3 @@ END;
 $BODY$
 LANGUAGE plpgsql VOLATILE
 COST 100;
-
---
--- CREATE OR REPLACE FUNCTION "public"."diff_balance"("new_balance" int8, "ind" int4)
--- RETURNS "pg_catalog"."bool" AS
--- $BODY$
--- BEGIN
---     RETURN SELECT diff FROM (SELECT new_balance - balance AS diff FROM balances WHERE MAX(epoch) AND validator_index=ind);
--- END;
--- $BODY$
--- LANGUAGE plpgsql
--- COST 100

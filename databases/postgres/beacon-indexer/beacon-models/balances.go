@@ -49,6 +49,7 @@ func (vb *ValidatorBalancesEpoch) getNewBalanceValues() postgres.RowValues {
 	return pgValues
 }
 
+// InsertValidatorBalancesForNextEpoch TODO filter out any new adds that aren't at epoch +1 and at epochs not -2 from head
 // InsertValidatorBalancesForNextEpoch gets max epoch and then take diff of total balance - previous at last max epoch
 func (vb *ValidatorBalancesEpoch) InsertValidatorBalancesForNextEpoch(ctx context.Context) error {
 	valIndexes := strings.ArraySliceStrBuilderSQL(vb.getIndexValues())
@@ -79,26 +80,6 @@ func (vb *ValidatorBalancesEpoch) InsertValidatorBalances(ctx context.Context) e
 }
 
 func (vb *ValidatorBalancesEpoch) SelectValidatorBalances(ctx context.Context) (*ValidatorBalancesEpoch, error) {
-	params := strings.AnyArraySliceStrBuilderSQL(vb.getIndexValues())
-	query := fmt.Sprintf("SELECT epoch, validator_index, total_balance_gwei, current_epoch_yield_gwei, yield_to_date_gwei FROM validator_balances_at_epoch WHERE validator_index = %s", params)
-
-	rows, err := postgres.Pg.Query(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	var selectedValidatorBalances ValidatorBalancesEpoch
-	for rows.Next() {
-		var val ValidatorBalanceEpoch
-		rowErr := rows.Scan(&val.Epoch, &val.Index, &val.TotalBalanceGwei, &val.CurrentEpochYieldGwei, &val.YieldToDateGwei)
-		if rowErr != nil {
-			return nil, rowErr
-		}
-		selectedValidatorBalances.ValidatorBalance = append(selectedValidatorBalances.ValidatorBalance, val)
-	}
-	return &selectedValidatorBalances, err
-}
-
-func (vb *ValidatorBalancesEpoch) SelectValidatorBalancesAtMax(ctx context.Context) (*ValidatorBalancesEpoch, error) {
 	params := strings.AnyArraySliceStrBuilderSQL(vb.getIndexValues())
 	query := fmt.Sprintf("SELECT epoch, validator_index, total_balance_gwei, current_epoch_yield_gwei, yield_to_date_gwei FROM validator_balances_at_epoch WHERE validator_index = %s", params)
 

@@ -42,7 +42,7 @@ CREATE OR REPLACE FUNCTION "public"."mainnet_head_slot"()
 $BODY$
 DECLARE
     unix_utc_now numeric := (SELECT EXTRACT(epoch FROM NOW() at TIME ZONE ('UTC')));
-    unix_time_from_genesis int8 := (unix_utc_now - 1606824023);
+    unix_time_from_genesis numeric := (unix_utc_now - 1606824023);
 BEGIN
     RETURN unix_time_from_genesis/12;
 END;
@@ -55,7 +55,7 @@ CREATE OR REPLACE FUNCTION "public"."mainnet_finalized_slot"()
 $BODY$
 DECLARE
     unix_utc_now numeric := (SELECT EXTRACT(epoch FROM NOW() at TIME ZONE ('UTC')));
-    unix_time_from_genesis int8 := (unix_utc_now - 1606824023);
+    unix_time_from_genesis numeric := (unix_utc_now - 1606824023);
     two_epoch_delay_seconds int8 := 12*64;
     unix_time_from_genesis_behind_slot int8 := unix_time_from_genesis - two_epoch_delay_seconds;
 BEGIN
@@ -64,3 +64,26 @@ END;
 $BODY$
 LANGUAGE plpgsql VOLATILE
 COST 100;
+
+CREATE OR REPLACE FUNCTION "public"."current_mainnet_finalized_epoch"()
+    RETURNS "pg_catalog"."int8" AS
+$BODY$
+DECLARE
+BEGIN
+    RETURN (SELECT mainnet_finalized_slot()/32)-1;
+END;
+$BODY$
+LANGUAGE plpgsql VOLATILE
+COST 100;
+
+CREATE OR REPLACE FUNCTION "public"."is_mainnet_finalized_epoch"(epoch int8)
+    RETURNS "pg_catalog"."bool" AS
+$BODY$
+DECLARE
+BEGIN
+    RETURN epoch < (SELECT current_mainnet_finalized_epoch());
+END;
+$BODY$
+LANGUAGE plpgsql VOLATILE
+COST 100;
+

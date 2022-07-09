@@ -57,9 +57,13 @@ func (s *UtilTestSuite) TestSQLDelimitedStrBuilder() {
 func (s *UtilTestSuite) TestSQLArrayListStrBuilder() {
 	genSlice := makeGeneralSlice(2)
 	rowValues := genSlice.GetManyRowValuesFlattened()
-	query := ArraySliceStrBuilderSQL(rowValues)
+	query := AnyArraySliceStrBuilderSQL(rowValues)
 	sqlStrExpected := "ANY(ARRAY['0','1','1','2'])"
 	s.Assert().Equal(sqlStrExpected, query)
+
+	onlyArrayQuery := ArraySliceStrBuilderSQL(rowValues)
+	sqlArrayStrExpected := "ARRAY['0','1','1','2']"
+	s.Assert().Equal(sqlArrayStrExpected, onlyArrayQuery)
 }
 
 func makeGeneralSlice(len int) Wrapper {

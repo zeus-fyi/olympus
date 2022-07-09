@@ -49,12 +49,22 @@ func DelimitedSliceStrBuilderSQLRows(prefix string, entries postgres.RowEntries)
 	return sb.String()
 }
 
-func ArraySliceStrBuilderSQL(entries postgres.RowValues) string {
+func AnyArraySliceStrBuilderSQL(entries postgres.RowValues) string {
 	var sb strings.Builder
 
 	sb.WriteString("ANY(ARRAY[")
 	StringDelimitedSliceBuilderSQL(&sb, ",", entries)
 	sb.WriteString("])")
+
+	return sb.String()
+}
+
+func ArraySliceStrBuilderSQL(entries postgres.RowValues) string {
+	var sb strings.Builder
+
+	sb.WriteString("ARRAY[")
+	StringDelimitedSliceBuilderSQL(&sb, ",", entries)
+	sb.WriteString("]")
 
 	return sb.String()
 }

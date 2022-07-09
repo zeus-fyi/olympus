@@ -53,7 +53,7 @@ func (vs *Validators) InsertValidators(ctx context.Context) error {
 }
 
 func (vs *Validators) SelectValidators(ctx context.Context) (*Validators, error) {
-	validators := strings.ArraySliceStrBuilderSQL(vs.GetManyRowValuesFlattened())
+	validators := strings.AnyArraySliceStrBuilderSQL(vs.GetManyRowValuesFlattened())
 	query := fmt.Sprintf("SELECT index, pubkey FROM validators WHERE index = %s", validators)
 
 	rows, err := postgres.Pg.Query(ctx, query)

@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/labstack/gommon/random"
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/test_utils/test_suites"
+	"github.com/zeus-fyi/olympus/internal/test_utils/test_suites"
 )
 
 type BeaconBaseTestSuite struct {

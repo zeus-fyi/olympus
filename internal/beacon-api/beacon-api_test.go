@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/internal/beacon-api/api_types"
-	"github.com/zeus-fyi/olympus/pkg/test_utils/test_suites"
+	"github.com/zeus-fyi/olympus/internal/test_utils/test_suites"
 )
 
 const disableHighDataAPITests = true

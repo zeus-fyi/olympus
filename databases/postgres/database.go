@@ -13,10 +13,11 @@ type Db struct {
 
 type Model interface {
 	GetRowValues() RowValues
+	GetManyRowValuesFlattened() RowValues
 	GetManyRowValues() RowEntries
 }
 
-type RowValues []string
+type RowValues []interface{}
 
 type RowEntries struct {
 	Rows []RowValues

@@ -4,23 +4,20 @@ import (
 	"context"
 	"testing"
 
-	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/suite"
+
 	"github.com/zeus-fyi/olympus/configs"
+	"github.com/zeus-fyi/olympus/databases/postgres"
 )
 
 type PGTestSuite struct {
 	BaseTestSuite
-	P *pgxpool.Pool
+	Pg postgres.Db
 }
 
 func (s *PGTestSuite) SetupTest() {
 	s.Tc = configs.InitLocalTestConfigs()
-	conn, err := pgxpool.Connect(context.Background(), s.Tc.TEST_DB_PGCONN)
-	if err != nil {
-		panic(err)
-	}
-	s.P = conn
+	s.Pg.InitPG(context.Background(), s.Tc.TEST_DB_PGCONN)
 }
 
 func TestPGTestSuite(t *testing.T) {

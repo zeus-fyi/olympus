@@ -40,18 +40,34 @@ func (s *ValidatorsTestSuite) TestInsertAndSelectPendingQueueValidators() {
 }
 
 func (s *ValidatorsTestSuite) TestInsertAndSelectActiveOnGoingValidators() {
+	ctx := context.Background()
 	vs := createFakeValidatorsByStatus(1, "active_ongoing")
-	err := vs.InsertValidatorsPendingQueue(context.Background())
+	err := vs.InsertValidatorsPendingQueue(ctx)
 	s.Require().Nil(err)
 
-	selectedVs, err := vs.SelectValidatorsPendingQueue(context.Background())
+	selectedVs, err := vs.SelectValidatorsPendingQueue(ctx)
 	s.Require().Nil(err)
 	s.Assert().Len(selectedVs.Validators, 1)
+
+	var valExpBalancesAtEpoch ValidatorBalancesEpoch
+
 	for _, val := range selectedVs.Validators {
 		s.Require().NotNil(val.Status)
 		s.Assert().Equal("active", *val.Status)
 		s.Require().NotNil(val.SubStatus)
 		s.Assert().Equal("active_ongoing", *val.SubStatus)
+		var vb ValidatorBalanceEpoch
+		vb.Validator = val
+		vb.Epoch = int64(*val.ActivationEpoch)
+		valExpBalancesAtEpoch.ValidatorBalance = append(valExpBalancesAtEpoch.ValidatorBalance, vb)
+	}
+	selectedVBs, err := valExpBalancesAtEpoch.SelectValidatorBalances(ctx)
+	s.Require().Nil(err)
+	s.Assert().Len(selectedVBs.ValidatorBalance, 1)
+
+	for _, vbal := range selectedVBs.ValidatorBalance {
+		s.Assert().Equal(int64(66906), vbal.Epoch)
+		s.Assert().Equal(int64(32000000000), vbal.TotalBalanceGwei)
 	}
 }
 

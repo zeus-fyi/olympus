@@ -99,6 +99,7 @@ func seedAndInsertNewValidatorBalances(ctx context.Context, vs Validators, epoch
 
 	return vbsEpoch, expVbsMapEpoch
 }
+
 func seedValidators(numValidators int) Validators {
 	vs := createFakeValidators(numValidators)
 	ctx := context.Background()

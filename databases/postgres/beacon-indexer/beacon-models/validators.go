@@ -9,8 +9,18 @@ import (
 )
 
 type Validator struct {
-	Index  int64
-	Pubkey string
+	Index                      int64
+	Pubkey                     string
+	Balance                    int64
+	EffectiveBalance           int64
+	ActivationEligibilityEpoch int64
+	ActivationEpoch            int64
+	ExitEpoch                  int64
+	WithdrawableEpoch          int64
+	Slashed                    bool
+	Status                     string
+
+	Network string
 }
 
 type Validators struct {
@@ -19,6 +29,7 @@ type Validators struct {
 
 func (v *Validator) GetRowValues() postgres.RowValues {
 	pgValues := postgres.RowValues{v.Index, v.Pubkey}
+	// TODO full row v.ActivationEligibilityEpoch, v.ActivationEpoch, v.ExitEpoch, v.WithdrawableEpoch, v.Slashed, v.Status, v.EffectiveBalance, v.Balance
 	return pgValues
 }
 
@@ -44,7 +55,7 @@ func (vs *Validators) GetManyRowValuesFlattened() postgres.RowValues {
 	return pgRows
 }
 
-var insertValidators = "INSERT INTO validators (index, pubkey) VALUES "
+var insertValidators = `INSERT INTO validators (index, pubkey) VALUES `
 
 func (vs *Validators) InsertValidators(ctx context.Context) error {
 	query := strings.DelimitedSliceStrBuilderSQLRows(insertValidators, vs.GetManyRowValues())
@@ -53,8 +64,9 @@ func (vs *Validators) InsertValidators(ctx context.Context) error {
 }
 
 func (vs *Validators) SelectValidators(ctx context.Context) (*Validators, error) {
+	limit := 10000
 	validators := strings.AnyArraySliceStrBuilderSQL(vs.GetManyRowValuesFlattened())
-	query := fmt.Sprintf("SELECT index, pubkey FROM validators WHERE index = %s", validators)
+	query := fmt.Sprintf(`SELECT index, pubkey FROM validators WHERE index = %s LIMIT %d`, validators, limit)
 
 	rows, err := postgres.Pg.Query(ctx, query)
 	if err != nil {

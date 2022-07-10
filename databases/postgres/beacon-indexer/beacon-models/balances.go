@@ -100,7 +100,9 @@ func (vb *ValidatorBalancesEpoch) InsertValidatorBalances(ctx context.Context) e
 
 func (vb *ValidatorBalancesEpoch) SelectValidatorBalances(ctx context.Context) (*ValidatorBalancesEpoch, error) {
 	params := strings.AnyArraySliceStrBuilderSQL(vb.getIndexValues())
-	query := fmt.Sprintf("SELECT epoch, validator_index, total_balance_gwei, current_epoch_yield_gwei, yield_to_date_gwei FROM validator_balances_at_epoch WHERE validator_index = %s", params)
+	query := fmt.Sprintf(`SELECT epoch, validator_index, total_balance_gwei, current_epoch_yield_gwei, yield_to_date_gwei
+								 FROM validator_balances_at_epoch
+								 WHERE validator_index = %s`, params)
 
 	rows, err := postgres.Pg.Query(ctx, query)
 	if err != nil {
@@ -116,4 +118,28 @@ func (vb *ValidatorBalancesEpoch) SelectValidatorBalances(ctx context.Context) (
 		selectedValidatorBalances.ValidatorBalance = append(selectedValidatorBalances.ValidatorBalance, val)
 	}
 	return &selectedValidatorBalances, err
+}
+
+func (vs *Validators) SelectValidatorsToQueryBeacon(ctx context.Context) (*ValidatorBalancesEpoch, error) {
+	limit := 10000
+	query := fmt.Sprintf(`SELECT MAX(epoch) as max_epoch, validator_index
+								 FROM validator_balances_at_epoch
+								 WHERE epoch + 1 < (SELECT current_mainnet_finalized_epoch())
+					             GROUP by validator_index
+								 LIMIT %d`, limit)
+
+	rows, err := postgres.Pg.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	var selectedValidatorBalances ValidatorBalancesEpoch
+	for rows.Next() {
+		var vb ValidatorBalanceEpoch
+		rowErr := rows.Scan(&vb.Epoch, &vb.Index)
+		if rowErr != nil {
+			return nil, rowErr
+		}
+		selectedValidatorBalances.ValidatorBalance = append(selectedValidatorBalances.ValidatorBalance, vb)
+	}
+	return &selectedValidatorBalances, nil
 }

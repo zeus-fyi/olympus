@@ -34,7 +34,8 @@ func (vb *ValidatorBalancesEpoch) InsertValidatorBalancesForNextEpoch(ctx contex
     	SELECT nb.new_epoch, vm.validator_index, nb.new_balance, nb.new_balance - vb.total_balance_gwei
 		FROM validator_max_relative_epoch_balances vm
 		JOIN validator_balances_at_epoch vb ON vb.epoch = vm.max_epoch AND vb.validator_index = vm.validator_index
-		JOIN new_balances nb ON nb.v_index = vm.validator_index 
+		JOIN new_balances nb ON nb.v_index = vm.validator_index
+		ON CONFLICT ON CONSTRAINT validator_balances_at_epoch_pkey DO NOTHING
 	`, valIndexes, valIndexes, newBalance, epochs)
 
 	_, err := postgres.Pg.Query(ctx, query)

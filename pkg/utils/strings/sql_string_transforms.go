@@ -32,6 +32,31 @@ func StringDelimitedSliceBuilderSQL(sb *strings.Builder, delimiter string, value
 	return sb
 }
 
+func PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(prefix string, entries postgres.RowEntries, suffix string) string {
+	var sb strings.Builder
+	if len(prefix) > 0 {
+		sb.WriteString(prefix)
+	}
+
+	for count, row := range entries.Rows {
+
+		sb.WriteString("(")
+		StringDelimitedSliceBuilderSQL(&sb, ",", row)
+		sb.WriteString(")")
+
+		if len(entries.Rows)-1 == count {
+			return sb.String()
+		}
+		sb.WriteString(",")
+	}
+
+	if len(suffix) > 0 {
+		sb.WriteString(suffix)
+	}
+
+	return sb.String()
+}
+
 func DelimitedSliceStrBuilderSQLRows(prefix string, entries postgres.RowEntries) string {
 	var sb strings.Builder
 	if len(prefix) > 0 {

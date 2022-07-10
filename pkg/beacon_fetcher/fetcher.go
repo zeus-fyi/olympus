@@ -9,6 +9,9 @@ import (
 	beacon_models "github.com/zeus-fyi/olympus/databases/postgres/beacon-indexer/beacon-models"
 )
 
+// temp value 406,180 number of validataors
+var numValidators int64 = 406180
+
 func FetchBeaconState() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	sleepBetweenFetches := time.Second * 10

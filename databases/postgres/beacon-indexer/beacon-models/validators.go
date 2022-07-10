@@ -20,7 +20,8 @@ var insertValidatorPendingQueue = `INSERT INTO validators (index, pubkey, balanc
 
 func (vs *Validators) InsertValidatorsPendingQueue(ctx context.Context) error {
 	vs.RowSetting.RowsToInclude = "all"
-	query := strings.DelimitedSliceStrBuilderSQLRows(insertValidatorPendingQueue, vs.GetManyRowValues())
+	querySuffix := ` ON CONFLICT (index) DO NOTHING`
+	query := strings.PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(insertValidatorPendingQueue, vs.GetManyRowValues(), querySuffix)
 	_, err := postgres.Pg.Query(ctx, query)
 	return err
 }

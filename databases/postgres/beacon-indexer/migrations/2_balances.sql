@@ -6,5 +6,5 @@ CREATE TABLE "public"."validator_balances_at_epoch" (
  "yield_to_date_gwei" int8 NOT NULL GENERATED ALWAYS AS (total_balance_gwei - 32000000000) STORED
 )
 ;
-CREATE INDEX scans_epoch_val_range_idx ON validator_balances_at_epoch (validator_index, epoch);
-
+ALTER TABLE "public"."validator_balances_at_epoch" ADD CONSTRAINT "validator_balances_at_epoch_pkey" PRIMARY KEY ("validator_index","epoch");
+ALTER TABLE "public"."validator_balances_at_epoch" ADD CONSTRAINT "validator_balances_at_epoch_validator_index_fkey" FOREIGN KEY ("validator_index") REFERENCES "public"."validators" ("index") ON DELETE NO ACTION ON UPDATE NO ACTION;

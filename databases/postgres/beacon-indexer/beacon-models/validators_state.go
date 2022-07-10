@@ -62,7 +62,9 @@ var insertValidatorsFromBeaconAPI = `INSERT INTO validators (index, pubkey, bala
 
 func InsertValidatorsFromBeaconAPI(ctx context.Context, vs Validators) error {
 	vs.RowSetting.RowsToInclude = "beacon_state"
-	query := strings.DelimitedSliceStrBuilderSQLRows(insertValidatorsFromBeaconAPI, vs.GetManyRowValues())
+
+	querySuffix := ` ON CONFLICT ON CONSTRAINT validators_pkey DO NOTHING`
+	query := strings.PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(insertValidatorsFromBeaconAPI, vs.GetManyRowValues(), querySuffix)
 	_, err := postgres.Pg.Query(ctx, query)
 	return err
 }

@@ -45,7 +45,7 @@ type UtilTestSuite struct {
 func (s *UtilTestSuite) SetupTest() {
 }
 
-func (s *UtilTestSuite) TestSQLDelimitedStrBuilder() {
+func (s *UtilTestSuite) TestDelimitedStrBuilderSQL() {
 	genSlice := makeGeneralSlice(2)
 	sql := "INSERT INTO table (id, column) VALUES "
 	rowValues := genSlice.GetManyRowValues()
@@ -54,7 +54,7 @@ func (s *UtilTestSuite) TestSQLDelimitedStrBuilder() {
 	s.Assert().Equal(sqlExpected, query)
 }
 
-func (s *UtilTestSuite) TestSQLArrayListStrBuilder() {
+func (s *UtilTestSuite) TestArrayListStrBuilderSQL() {
 	genSlice := makeGeneralSlice(2)
 	rowValues := genSlice.GetManyRowValuesFlattened()
 	query := AnyArraySliceStrBuilderSQL(rowValues)
@@ -64,6 +64,14 @@ func (s *UtilTestSuite) TestSQLArrayListStrBuilder() {
 	onlyArrayQuery := ArraySliceStrBuilderSQL(rowValues)
 	sqlArrayStrExpected := "ARRAY['0','1','1','2']"
 	s.Assert().Equal(sqlArrayStrExpected, onlyArrayQuery)
+}
+
+func (s *UtilTestSuite) TestMultiArraySliceStrBuilderSQL() {
+	genSlice := makeGeneralSlice(2)
+	rowValues := genSlice.GetManyRowValues()
+	query := MultiArraySliceStrBuilderSQL(rowValues)
+	sqlStrExpected := "ARRAY['0','1'],ARRAY['1','2']"
+	s.Assert().Equal(sqlStrExpected, query)
 }
 
 func makeGeneralSlice(len int) Wrapper {

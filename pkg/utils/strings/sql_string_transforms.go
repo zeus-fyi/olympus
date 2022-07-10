@@ -68,3 +68,20 @@ func ArraySliceStrBuilderSQL(entries postgres.RowValues) string {
 
 	return sb.String()
 }
+
+func MultiArraySliceStrBuilderSQL(r postgres.RowEntries) string {
+	var sb strings.Builder
+
+	for count, row := range r.Rows {
+		sb.WriteString("ARRAY[")
+		StringDelimitedSliceBuilderSQL(&sb, ",", row)
+		sb.WriteString("]")
+
+		if len(r.Rows)-1 == count {
+			return sb.String()
+		}
+		sb.WriteString(",")
+	}
+
+	return sb.String()
+}

@@ -5,17 +5,17 @@ import "github.com/zeus-fyi/olympus/databases/postgres"
 type Validator struct {
 	Index                      int64
 	Pubkey                     string
-	Balance                    *int64
-	EffectiveBalance           *int64
-	ActivationEligibilityEpoch *uint64
-	ActivationEpoch            *uint64
-	ExitEpoch                  *uint64
-	WithdrawableEpoch          *uint64
+	Balance                    int64
+	EffectiveBalance           int64
+	ActivationEligibilityEpoch int64
+	ActivationEpoch            int64
+	ExitEpoch                  int64
+	WithdrawableEpoch          int64
 	Slashed                    bool
-	Status                     *string
-	WithdrawalCredentials      *string
+	Status                     string
+	WithdrawalCredentials      string
 
-	SubStatus  *string
+	SubStatus  string
 	Network    string
 	RowSetting ValidatorRowValuesForQuery
 }
@@ -28,9 +28,9 @@ func (v *Validator) GetRowValues() postgres.RowValues {
 	pgValues := postgres.RowValues{v.Index, v.Pubkey}
 	switch v.RowSetting.RowsToInclude {
 	case "all":
-		if v.Balance != nil && v.EffectiveBalance != nil && v.ActivationEligibilityEpoch != nil && v.ActivationEpoch != nil {
-			pgValues = postgres.RowValues{v.Index, v.Pubkey, *v.Balance, *v.EffectiveBalance, *v.ActivationEligibilityEpoch, *v.ActivationEpoch}
-		}
+		pgValues = postgres.RowValues{v.Index, v.Pubkey, v.Balance, v.EffectiveBalance, v.ActivationEligibilityEpoch, v.ActivationEpoch}
+	case "beacon_state":
+		pgValues = postgres.RowValues{v.Index, v.Pubkey, v.Balance, v.EffectiveBalance, v.ActivationEligibilityEpoch, v.ActivationEpoch, v.ExitEpoch, v.WithdrawableEpoch, v.Slashed, v.WithdrawalCredentials}
 	default:
 		pgValues = postgres.RowValues{v.Index, v.Pubkey}
 	}

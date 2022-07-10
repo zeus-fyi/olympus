@@ -2,6 +2,7 @@ package beacon_api
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -9,7 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/internal/test_utils/test_suites"
 )
 
-const disableHighDataAPITests = true
+const disableHighDataAPITests = false
 
 type BeaconAPITestSuite struct {
 	test_suites.BaseTestSuite
@@ -21,6 +22,12 @@ func (s *BeaconAPITestSuite) TestGetValidatorsByState() {
 
 	r := GetValidatorsByState(s.Tc.BEACON_NODE_INFURA, state)
 	s.Require().Nil(r.Err)
+	var vs interface{}
+	err := json.Unmarshal(r.BodyBytes, &vs)
+	s.Require().Nil(err)
+	file, _ := json.Marshal(vs)
+
+	_ = ioutil.WriteFile("validators.json", file, 0644)
 }
 
 func (s *BeaconAPITestSuite) TestGetValidatorsByStateFilter() {

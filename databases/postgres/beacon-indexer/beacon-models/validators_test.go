@@ -13,6 +13,14 @@ type ValidatorsTestSuite struct {
 	BeaconBaseTestSuite
 }
 
+const eth32Gwei = 32000000000
+
+func (s *ValidatorsTestSuite) TestInsertValidatorsFromBeaconAPI() {
+	var vs Validators
+	err := vs.InsertValidatorsFromBeaconAPI(context.Background())
+	s.Require().Nil(err)
+}
+
 func (s *ValidatorsTestSuite) TestInsertAndSelectValidatorsIndexPubkey() {
 	vs := createFakeValidators(2)
 	err := vs.InsertValidatorsOnlyIndexPubkey(context.Background())
@@ -32,10 +40,9 @@ func (s *ValidatorsTestSuite) TestInsertAndSelectPendingQueueValidators() {
 	s.Require().Nil(err)
 	s.Assert().Len(selectedVs.Validators, 1)
 	for _, val := range selectedVs.Validators {
-		s.Require().NotNil(val.Status)
-		s.Assert().Equal("pending", *val.Status)
+		s.Assert().Equal("pending", val.Status)
 		s.Require().NotNil(val.SubStatus)
-		s.Assert().Equal("pending_queued", *val.SubStatus)
+		s.Assert().Equal("pending_queued", val.SubStatus)
 	}
 }
 
@@ -52,13 +59,11 @@ func (s *ValidatorsTestSuite) TestInsertAndSelectActiveOnGoingValidators() {
 	var valExpBalancesAtEpoch ValidatorBalancesEpoch
 
 	for _, val := range selectedVs.Validators {
-		s.Require().NotNil(val.Status)
-		s.Assert().Equal("active", *val.Status)
-		s.Require().NotNil(val.SubStatus)
-		s.Assert().Equal("active_ongoing", *val.SubStatus)
+		s.Assert().Equal("active", val.Status)
+		s.Assert().Equal("active_ongoing", val.SubStatus)
 		var vb ValidatorBalanceEpoch
 		vb.Validator = val
-		vb.Epoch = int64(*val.ActivationEpoch)
+		vb.Epoch = int64(val.ActivationEpoch)
 		valExpBalancesAtEpoch.ValidatorBalance = append(valExpBalancesAtEpoch.ValidatorBalance, vb)
 	}
 	selectedVBs, err := valExpBalancesAtEpoch.SelectValidatorBalances(ctx)
@@ -77,28 +82,28 @@ func createFakeValidatorsByStatus(validatorNum int, status string) Validators {
 		var v Validator
 		v.Index = rand.Int63n(100000)
 		v.Pubkey = "0x" + random.String(96)
-		var actEligEpoch, actEpoch uint64
+		var actEligEpoch, actEpoch int64
 		var balance, effBalance int64
 
 		switch status {
 		case "pending_queued":
 			actEligEpoch = 24252100
-			v.ActivationEligibilityEpoch = &actEligEpoch
+			v.ActivationEligibilityEpoch = actEligEpoch
 			actEpoch = 24253110
-			v.ActivationEpoch = &actEpoch
-			effBalance = 32000000000
-			v.EffectiveBalance = &effBalance
-			balance = 32000000000
-			v.Balance = &balance
+			v.ActivationEpoch = actEpoch
+			effBalance = eth32Gwei
+			v.EffectiveBalance = effBalance
+			balance = eth32Gwei
+			v.Balance = balance
 		case "active_ongoing":
 			balance = 33435937841
-			v.Balance = &balance
-			effBalance = 32000000000
-			v.EffectiveBalance = &effBalance
+			v.Balance = balance
+			effBalance = eth32Gwei
+			v.EffectiveBalance = effBalance
 			actEligEpoch = 66850
-			v.ActivationEligibilityEpoch = &actEligEpoch
+			v.ActivationEligibilityEpoch = actEligEpoch
 			actEpoch = 66906
-			v.ActivationEpoch = &actEpoch
+			v.ActivationEpoch = actEpoch
 		}
 		vs.Validators = append(vs.Validators, v)
 

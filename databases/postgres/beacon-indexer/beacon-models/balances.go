@@ -70,27 +70,3 @@ func (vb *ValidatorBalancesEpoch) SelectValidatorBalances(ctx context.Context) (
 	}
 	return &selectedValidatorBalances, err
 }
-
-func (vs *Validators) SelectValidatorsToQueryBeacon(ctx context.Context) (*ValidatorBalancesEpoch, error) {
-	limit := 10000
-	query := fmt.Sprintf(`SELECT MAX(epoch) as max_epoch, validator_index
-								 FROM validator_balances_at_epoch
-								 WHERE epoch + 1 < (SELECT current_mainnet_finalized_epoch())
-					             GROUP by validator_index
-								 LIMIT %d`, limit)
-
-	rows, err := postgres.Pg.Query(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	var selectedValidatorBalances ValidatorBalancesEpoch
-	for rows.Next() {
-		var vb ValidatorBalanceEpoch
-		rowErr := rows.Scan(&vb.Epoch, &vb.Index)
-		if rowErr != nil {
-			return nil, rowErr
-		}
-		selectedValidatorBalances.ValidatorBalance = append(selectedValidatorBalances.ValidatorBalance, vb)
-	}
-	return &selectedValidatorBalances, nil
-}

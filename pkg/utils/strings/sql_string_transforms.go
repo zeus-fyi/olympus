@@ -17,6 +17,8 @@ func StringDelimitedSliceBuilderSQL(sb *strings.Builder, delimiter string, value
 			sb.WriteString("'")
 		case int, int64:
 			sb.WriteString(fmt.Sprintf("%d", val.(int64)))
+		case uint64:
+			sb.WriteString(fmt.Sprintf("%d", val.(uint64)))
 		default:
 		}
 

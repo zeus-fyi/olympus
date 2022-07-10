@@ -72,7 +72,7 @@ func (vb *ValidatorBalancesEpoch) InsertValidatorBalancesForNextEpoch(ctx contex
 		WITH validator_max_relative_epoch_balances AS (
 			SELECT COALESCE(MAX(epoch), 0) as max_epoch, validator_index
 			FROM validator_balances_at_epoch
-			WHERE validator_index = ANY(%s) AND epoch < (SELECT current_mainnet_finalized_epoch())
+			WHERE validator_index = ANY(%s) AND epoch < (SELECT mainnet_finalized_epoch())
 			GROUP BY validator_index
 		), new_balances AS (
 			SELECT * FROM UNNEST(%s, %s, %s) AS x(v_index, new_balance, new_epoch)

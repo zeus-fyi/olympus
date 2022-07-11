@@ -7,4 +7,3 @@ CREATE TABLE "public"."validator_balances_at_epoch" (
 )
 ;
 ALTER TABLE "public"."validator_balances_at_epoch" ADD CONSTRAINT "validator_balances_at_epoch_pkey" PRIMARY KEY ("validator_index","epoch");
-ALTER TABLE "public"."validator_balances_at_epoch" ADD CONSTRAINT "validator_balances_at_epoch_validator_index_fkey" FOREIGN KEY ("validator_index") REFERENCES "public"."validators" ("index") ON DELETE NO ACTION ON UPDATE NO ACTION;

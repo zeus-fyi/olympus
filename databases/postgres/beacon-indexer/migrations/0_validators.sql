@@ -28,8 +28,9 @@ CREATE TABLE "public"."validators" (
    "activation_epoch" int8 CHECK (activation_epoch >= activation_eligibility_epoch) NOT NULL DEFAULT (9223372036854775807),
    "exit_epoch" int8 NOT NULL DEFAULT (9223372036854775807),
    "withdrawable_epoch" int8 NOT NULL DEFAULT (9223372036854775807),
+   "updated_at" timestamptz  NOT NULL DEFAULT NOW(),
    "slashed" bool NOT NULL DEFAULT false,
-   "pubkey" char(98) COLLATE "pg_catalog"."default" NOT NULL,
+   "pubkey" text NOT NULL CHECK(LENGTH(pubkey)=98),
    "status" text CHECK (status IN ('pending', 'active', 'exited', 'withdrawal', 'unknown')) NOT NULL DEFAULT 'unknown',
    "substatus" text CHECK (substatus IN ('pending_initialized', 'pending_queued', 'active_ongoing', 'active_exiting', 'active_slashed','exited_unslashed', 'exited_slashed', 'withdrawal_possible', 'withdrawal_done', 'unknown')) DEFAULT 'unknown',
    "network" network NOT NULL DEFAULT 'mainnet',
@@ -49,5 +50,5 @@ CREATE UNIQUE INDEX "pubkey_index" ON "public"."validators" USING btree (
 -- Primary Key structure for table validators
 -- ----------------------------
 ALTER TABLE "public"."validators" ADD CONSTRAINT "validators_pkey" PRIMARY KEY ("index");
-
+CREATE INDEX "last_updated_at_index" ON "public"."validators" (updated_at ASC);
 

@@ -81,3 +81,16 @@ CREATE TRIGGER trigger_update_validator_status
 AFTER INSERT OR UPDATE OF balance, effective_balance, activation_eligibility_epoch, activation_epoch, exit_epoch, withdrawable_epoch, slashed
 ON validators
 FOR EACH ROW EXECUTE PROCEDURE update_or_insert_validator_status();
+
+CREATE OR REPLACE FUNCTION trigger_set_timestamp()
+    RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER set_timestamp
+BEFORE UPDATE ON validators
+FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();

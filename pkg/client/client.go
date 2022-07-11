@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -14,6 +15,7 @@ type Client struct {
 }
 
 type Reply struct {
+	Ctx       context.Context
 	Body      string
 	Status    string
 	Err       error
@@ -25,35 +27,35 @@ func (c Client) AddHeader(req *http.Request, header, value string) *http.Request
 	return req
 }
 
-func (c Client) Get(url string) Reply {
+func (c Client) Get(ctx context.Context, url string) Reply {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		fmt.Printf("%v", err)
 		return Reply{Err: err}
 	}
-	return c.Do(req)
+	return c.Do(ctx, req)
 }
 
-func (c Client) GetWithPayload(url string, payload []byte) Reply {
+func (c Client) GetWithPayload(ctx context.Context, url string, payload []byte) Reply {
 	req, err := http.NewRequest("GET", url, bytes.NewBuffer(payload))
 	if err != nil {
 		fmt.Printf("%v", err)
 		return Reply{Err: err}
 	}
-	return c.Do(req)
+	return c.Do(ctx, req)
 }
 
-func (c Client) Post(url string, payload []byte) Reply {
+func (c Client) Post(ctx context.Context, url string, payload []byte) Reply {
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	req.Header.Set("Content-Type", "application/json")
 	if err != nil {
 		fmt.Printf("%v", err)
 		return Reply{Err: err}
 	}
-	return c.Do(req)
+	return c.Do(ctx, req)
 }
 
-func (c Client) Do(req *http.Request) Reply {
+func (c Client) Do(ctx context.Context, req *http.Request) Reply {
 	resp, err := c.C.Do(req)
 	if err != nil {
 		fmt.Printf("%v", err)

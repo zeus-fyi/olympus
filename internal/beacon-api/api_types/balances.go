@@ -1,5 +1,14 @@
 package api_types
 
+import (
+	"context"
+	"encoding/json"
+
+	"github.com/rs/zerolog/log"
+	beacon_api "github.com/zeus-fyi/olympus/internal/beacon-api"
+	"github.com/zeus-fyi/olympus/pkg/client"
+)
+
 type ValidatorBalances struct {
 	ExecutionOptimistic bool `json:"execution_optimistic"`
 	Data                []struct {
@@ -8,23 +17,21 @@ type ValidatorBalances struct {
 	} `json:"data"`
 }
 
-type ValidatorsStateBeacon struct {
-	ExecutionOptimistic bool `json:"execution_optimistic"`
-	Data                []struct {
-		Index     string               `json:"index"`
-		Balance   string               `json:"balance"`
-		Status    string               `json:"status"`
-		Validator ValidatorStateBeacon `json:"validator"`
-	} `json:"data"`
+func (b *ValidatorBalances) FetchStateAndDecode(ctx context.Context, beaconNode, stateID string, encodedQueryURL string) error {
+	r := beacon_api.GetValidatorsBalancesByStateFilter(ctx, beaconNode, stateID, encodedQueryURL)
+
+	if r.Err != nil {
+		log.Error().Err(r.Err).Msg("FetchStateAndDecode: FetchStateAndDecode")
+	}
+
+	return b.DecodeValidatorsBalancesBeacon(r)
 }
 
-type ValidatorStateBeacon struct {
-	Pubkey                     string `json:"pubkey"`
-	WithdrawalCredentials      string `json:"withdrawal_credentials"`
-	EffectiveBalance           string `json:"effective_balance"`
-	Slashed                    bool   `json:"slashed"`
-	ActivationEligibilityEpoch string `json:"activation_eligibility_epoch"`
-	ActivationEpoch            string `json:"activation_epoch"`
-	ExitEpoch                  string `json:"exit_epoch"`
-	WithdrawableEpoch          string `json:"withdrawable_epoch"`
+func (b *ValidatorBalances) DecodeValidatorsBalancesBeacon(r client.Reply) error {
+	err := json.Unmarshal(r.BodyBytes, &b)
+
+	if err != nil {
+		log.Error().Err(err).Msg("ValidatorBalances: DecodeValidatorsBalancesBeacon")
+	}
+	return err
 }

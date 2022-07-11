@@ -1,6 +1,8 @@
 package beacon_models
 
 import (
+	"strconv"
+
 	"github.com/zeus-fyi/olympus/databases/postgres"
 	"github.com/zeus-fyi/olympus/internal/beacon-api/api_types"
 	"github.com/zeus-fyi/olympus/pkg/utils/strings"
@@ -54,4 +56,15 @@ func singleValidatorStructToBeaconModelFormat(v api_types.ValidatorStateBeacon, 
 	mv.ExitEpoch = strings.FarFutureEpoch(v.ExitEpoch)
 	mv.WithdrawableEpoch = strings.FarFutureEpoch(v.WithdrawableEpoch)
 	return mv
+}
+
+func (vs *Validators) formatValidatorStateIndexesToURLList() string {
+	var indexes []string
+	indexes = make([]string, len(vs.Validators))
+	for i, v := range vs.Validators {
+		indexes[i] = strconv.FormatInt(v.Index, 10)
+
+	}
+	indexString := strings.UrlEncodeQueryParamList("", indexes...)
+	return indexString
 }

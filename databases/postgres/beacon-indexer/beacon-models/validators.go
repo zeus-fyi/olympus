@@ -96,7 +96,7 @@ func (vs *Validators) UpdateValidatorBalancesAndActivationEligibility(ctx contex
 		SELECT * FROM UNNEST(%s) AS x(index, balance, effective_balance, activation_eligibility_epoch, activation_epoch)
 	) 
 	UPDATE validators
-	SET balance = validator_updatebalance, effective_balance = validator_update.effective_balance, activation_eligibility_epoch = validator_update.activation_eligibility_epoch, activation_epoch = validator_update.activation_epoch
+	SET balance = validator_update.balance, effective_balance = validator_update.effective_balance, activation_eligibility_epoch = validator_update.activation_eligibility_epoch, activation_epoch = validator_update.activation_epoch
 	JOIN validators ON validator_update.index = validators.index`, validators)
 
 	rows, err := postgres.Pg.Query(ctx, query)

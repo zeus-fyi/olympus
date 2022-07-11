@@ -1,6 +1,8 @@
 package beacon_api
 
 import (
+	"context"
+
 	"github.com/zeus-fyi/olympus/pkg/client"
 	"github.com/zeus-fyi/olympus/pkg/utils/strings"
 )
@@ -14,18 +16,23 @@ func init() {
 const getBlockByID = "eth/v2/beacon/blocks"
 const getValidatorsByState = "eth/v1/beacon/states"
 
-func GetValidatorsByState(beaconNode, stateID string) client.Reply {
+func GetValidatorsByState(ctx context.Context, beaconNode, stateID string) client.Reply {
 	url := strings.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validators")
-	return c.Get(url)
+	return c.Get(ctx, url)
 }
 
-func GetValidatorsBalancesByStateFilter(beaconNode, stateID string, valIndexes ...string) client.Reply {
+func GetValidatorsByStateFilter(ctx context.Context, beaconNode, stateID string, encodedQueryURL string) client.Reply {
+	url := strings.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validators?="+encodedQueryURL)
+	return c.Get(ctx, url)
+}
+
+func GetValidatorsBalancesByStateFilter(ctx context.Context, beaconNode, stateID string, valIndexes ...string) client.Reply {
 	url := strings.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validator_balances?id=")
 	url = strings.UrlEncodeQueryParamList(url, valIndexes...)
-	return c.Get(url)
+	return c.Get(ctx, url)
 }
 
-func GetBlockByID(beaconNode, blockID string) client.Reply {
+func GetBlockByID(ctx context.Context, beaconNode, blockID string) client.Reply {
 	url := strings.UrlPathStrBuilder(beaconNode, getBlockByID, blockID)
-	return c.Get(url)
+	return c.Get(ctx, url)
 }

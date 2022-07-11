@@ -2,69 +2,52 @@ package beacon_models
 
 import (
 	"context"
-	"encoding/json"
-	"io/ioutil"
-	"os"
-	"time"
+	"fmt"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/databases/postgres"
-	"github.com/zeus-fyi/olympus/internal/beacon-api/api_types"
 	"github.com/zeus-fyi/olympus/pkg/utils/strings"
 )
 
-func readBeaconValidatorsJSON() (api_types.ValidatorsStateBeacon, error) {
-	var vsb api_types.ValidatorsStateBeacon
-	jsonFile, err := os.Open("/Users/alex/Desktop/Zeus/olympus/configs/validators.json")
-	if err != nil {
-		return vsb, err
-	}
-
-	defer jsonFile.Close()
-	byteValue, _ := ioutil.ReadAll(jsonFile)
-	err = json.Unmarshal(byteValue, &vsb)
-	return vsb, err
-}
-
-func (vs *Validators) InsertValidatorsFromBeaconAPI(ctx context.Context) error {
-	vsb, err := readBeaconValidatorsJSON()
-	if err != nil {
-		return err
-	}
-	apiValidatorStates := ToBeaconModelFormat(vsb)
-	tmp := Validators{}
-	for _, valState := range apiValidatorStates.Validators {
-		if len(valState.Pubkey) >= 0 {
-			val := Validator{Index: valState.Index,
-				Pubkey:                     valState.Pubkey,
-				Balance:                    valState.Balance,
-				EffectiveBalance:           valState.EffectiveBalance,
-				ActivationEligibilityEpoch: valState.ActivationEligibilityEpoch,
-				ActivationEpoch:            valState.ActivationEpoch,
-				ExitEpoch:                  valState.ExitEpoch,
-				WithdrawableEpoch:          valState.WithdrawableEpoch,
-				Slashed:                    valState.Slashed,
-				WithdrawalCredentials:      valState.WithdrawalCredentials,
-			}
-			tmp.Validators = append(tmp.Validators, val)
-		}
-
-		if len(tmp.Validators) > 0 && len(tmp.Validators)%100 == 0 {
-			err = InsertValidatorsFromBeaconAPI(ctx, tmp)
-			tmp = Validators{}
-		}
-		time.Sleep(time.Second)
-	}
-	err = InsertValidatorsFromBeaconAPI(ctx, tmp)
-	return err
-}
-
 var insertValidatorsFromBeaconAPI = `INSERT INTO validators (index, pubkey, balance, effective_balance, activation_eligibility_epoch, activation_epoch, exit_epoch, withdrawable_epoch, slashed, withdrawal_credentials) VALUES `
 
-func InsertValidatorsFromBeaconAPI(ctx context.Context, vs Validators) error {
+func (vs *Validators) InsertValidatorsFromBeaconAPI(ctx context.Context) error {
+	log.Info().Msg("Validators: InsertValidatorsFromBeaconAPI")
+
 	vs.RowSetting.RowsToInclude = "beacon_state"
 
 	querySuffix := ` ON CONFLICT ON CONSTRAINT validators_pkey DO NOTHING`
 	query := strings.PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(insertValidatorsFromBeaconAPI, vs.GetManyRowValues(), querySuffix)
 	_, err := postgres.Pg.Query(ctx, query)
+	if err != nil {
+		log.Error().Err(err).Msg("InsertValidatorsFromBeaconAPI: InsertValidatorsFromBeaconAPI")
+	}
 	return err
+}
+
+func (vs *Validators) UpdateValidatorsFromBeaconAPI(ctx context.Context) (Validators, error) {
+	validators := strings.MultiArraySliceStrBuilderSQL(vs.GetManyRowValues())
+	vs.RowSetting.RowsToInclude = "beacon_state_update"
+	query := fmt.Sprintf(`
+	WITH validator_update AS (
+		SELECT * FROM UNNEST(%s) AS x(index, balance, effective_balance, activation_eligibility_epoch, activation_epoch, exit_epoch, withdrawable_epoch, slashed)
+	) 
+	UPDATE validators
+	SET balance = validator_update.balance, effective_balance = validator_update.effective_balance, activation_eligibility_epoch = validator_update.activation_eligibility_epoch, activation_epoch = validator_update.activation_epoch, exit_epoch = validator_update.exit_epoch, withdrawable_epoch = validator_update.withdrawable_epoch, slashed = validator_update.slashed
+	JOIN validators ON validator_update.index = validators.index`, validators)
+
+	var selectedValidators Validators
+	rows, err := postgres.Pg.Query(ctx, query)
+	if err != nil {
+		return selectedValidators, err
+	}
+	for rows.Next() {
+		var v Validator
+		rowErr := rows.Scan(&v.Index, &v.Balance, &v.EffectiveBalance, &v.ActivationEpoch, &v.ActivationEpoch, &v.ExitEpoch, &v.WithdrawableEpoch, &v.Slashed)
+		if rowErr != nil {
+			return selectedValidators, rowErr
+		}
+		selectedValidators.Validators = append(selectedValidators.Validators, v)
+	}
+	return selectedValidators, nil
 }

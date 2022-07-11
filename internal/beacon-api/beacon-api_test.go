@@ -1,6 +1,7 @@
 package beacon_api
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"testing"
@@ -12,6 +13,8 @@ import (
 
 const disableHighDataAPITests = false
 
+var ctx context.Context
+
 type BeaconAPITestSuite struct {
 	test_suites.BaseTestSuite
 }
@@ -20,9 +23,9 @@ func (s *BeaconAPITestSuite) TestGetValidatorsByState() {
 	s.SkipTest(disableHighDataAPITests)
 	state := "finalized"
 
-	r := GetValidatorsByState(s.Tc.BEACON_NODE_INFURA, state)
+	r := GetValidatorsByState(ctx, s.Tc.BEACON_NODE_INFURA, state)
 	s.Require().Nil(r.Err)
-	var vs interface{}
+	var vs api_types.ValidatorsStateBeacon
 	err := json.Unmarshal(r.BodyBytes, &vs)
 	s.Require().Nil(err)
 	file, _ := json.Marshal(vs)
@@ -34,7 +37,7 @@ func (s *BeaconAPITestSuite) TestGetValidatorsByStateFilter() {
 	s.T().Parallel()
 	state := "head"
 	valIndexes := []string{"242521", "67596"}
-	r := GetValidatorsBalancesByStateFilter(s.Tc.BEACON_NODE_INFURA, state, valIndexes...)
+	r := GetValidatorsBalancesByStateFilter(ctx, s.Tc.BEACON_NODE_INFURA, state, valIndexes...)
 	s.Require().Nil(r.Err)
 
 	var vb api_types.ValidatorBalances
@@ -46,7 +49,7 @@ func (s *BeaconAPITestSuite) TestGetValidatorsByStateFilter() {
 
 func (s *BeaconAPITestSuite) TestGetBlockByID() {
 	s.T().Parallel()
-	r := GetBlockByID(s.Tc.BEACON_NODE_INFURA, "head")
+	r := GetBlockByID(ctx, s.Tc.BEACON_NODE_INFURA, "head")
 	s.Require().Nil(r.Err)
 }
 

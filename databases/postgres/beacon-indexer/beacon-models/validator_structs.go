@@ -31,6 +31,8 @@ func (v *Validator) GetRowValues() postgres.RowValues {
 		pgValues = postgres.RowValues{v.Index, v.Pubkey, v.Balance, v.EffectiveBalance, v.ActivationEligibilityEpoch, v.ActivationEpoch}
 	case "beacon_state":
 		pgValues = postgres.RowValues{v.Index, v.Pubkey, v.Balance, v.EffectiveBalance, v.ActivationEligibilityEpoch, v.ActivationEpoch, v.ExitEpoch, v.WithdrawableEpoch, v.Slashed, v.WithdrawalCredentials}
+	case "beacon_state_update":
+		pgValues = postgres.RowValues{v.Index, v.Balance, v.EffectiveBalance, v.ActivationEligibilityEpoch, v.ActivationEpoch, v.ExitEpoch, v.WithdrawableEpoch, v.Slashed}
 	default:
 		pgValues = postgres.RowValues{v.Index, v.Pubkey}
 	}

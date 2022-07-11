@@ -12,13 +12,13 @@ type BeaconFetchingTestSuite struct {
 }
 
 func (f *BeaconFetchingTestSuite) TestSelectValidatorsFromBeaconAPI() {
-	v, err := SelectValidatorsToQueryBeacon(context.Background(), 100)
+	v, err := SelectValidatorsToQueryBeaconForBalanceUpdates(context.Background(), 100)
 	f.Require().Nil(err)
 	f.Assert().NotEmpty(v)
 }
 
 func (f *BeaconFetchingTestSuite) TestSelectValidatorIndexesInStrArrayForQueryURL() {
-	v, err := SelectValidatorIndexesInStrArrayForQueryURL(context.Background(), 100)
+	v, err := SelectValidatorsQueryOngoingStates(context.Background(), 100)
 	f.Require().Nil(err)
 	f.Assert().NotEmpty(v)
 }

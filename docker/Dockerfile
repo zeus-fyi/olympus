@@ -9,9 +9,9 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o eth_indexer
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o olympus
 
 FROM ubuntu:22.04
-COPY --from=builder /app/eth_indexer /app/
+COPY --from=builder /app/olympus /app/
 EXPOSE 8080
-ENTRYPOINT ["/app/eth_indexer"]
+ENTRYPOINT ["/app/olympus"]

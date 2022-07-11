@@ -21,6 +21,7 @@ func (b *ValidatorBalances) FetchStateAndDecode(ctx context.Context, beaconNode,
 	log.Info().Msg("ValidatorBalances: FetchStateAndDecode")
 	r := beacon_api.GetValidatorsBalancesByStateFilter(ctx, beaconNode, stateID, encodedQueryURL)
 
+	log.Info().Interface("GetValidatorsBalancesByStateFilter: Status Code Response: ", r.Status)
 	if r.Err != nil {
 		log.Error().Err(r.Err).Msg("FetchStateAndDecode: FetchStateAndDecode")
 	}
@@ -33,7 +34,8 @@ func (b *ValidatorBalances) DecodeValidatorsBalancesBeacon(r client.Reply) error
 	err := json.Unmarshal(r.BodyBytes, &b)
 
 	if err != nil {
-		log.Info().Interface("ValidatorBalances: ", b)
+		log.Info().Bytes("ValidatorBalances: DecodeValidatorsBalancesBeacon ", r.BodyBytes)
+		log.Info().Interface("ValidatorBalances: DecodeValidatorsBalancesBeacon ", &b)
 		log.Error().Err(err).Msg("ValidatorBalances: DecodeValidatorsBalancesBeacon")
 	}
 	return err

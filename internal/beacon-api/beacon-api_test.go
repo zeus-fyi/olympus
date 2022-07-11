@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/internal/beacon-api/api_types"
 	"github.com/zeus-fyi/olympus/internal/test_utils/test_suites"
+	"github.com/zeus-fyi/olympus/pkg/utils/strings"
 )
 
 const disableHighDataAPITests = false
@@ -37,7 +38,8 @@ func (s *BeaconAPITestSuite) TestGetValidatorsByStateFilter() {
 	s.T().Parallel()
 	state := "head"
 	valIndexes := []string{"242521", "67596"}
-	r := GetValidatorsBalancesByStateFilter(ctx, s.Tc.BEACON_NODE_INFURA, state, valIndexes...)
+	encodedURLparams := strings.UrlEncodeQueryParamList("", valIndexes...)
+	r := GetValidatorsBalancesByStateFilter(ctx, s.Tc.BEACON_NODE_INFURA, state, encodedURLparams)
 	s.Require().Nil(r.Err)
 
 	var vb api_types.ValidatorBalances

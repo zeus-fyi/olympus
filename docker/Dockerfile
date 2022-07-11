@@ -9,9 +9,9 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o olympus
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o main
 
 FROM ubuntu:22.04
-COPY --from=builder /app/olympus /app/
-EXPOSE 8080
-ENTRYPOINT ["/app/olympus"]
+RUN apt-get update && apt-get install -y ca-certificates
+COPY --from=builder /app/main /usr/bin/olympus
+EXPOSE 9000

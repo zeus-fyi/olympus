@@ -18,6 +18,7 @@ var batchSize = 100
 
 func (s *FetcherBaseTestSuite) TestBeaconFindNewAndMissingValidatorIndexes() {
 	var f BeaconFetcher
+	f.NodeEndpoint = s.Tc.BEACON_NODE_INFURA
 	ctx := context.Background()
 	err := f.BeaconFindNewAndMissingValidatorIndexes(ctx, batchSize)
 	s.Require().Nil(err)
@@ -25,6 +26,7 @@ func (s *FetcherBaseTestSuite) TestBeaconFindNewAndMissingValidatorIndexes() {
 
 func (s *FetcherBaseTestSuite) TestFindAndQueryAndUpdateValidatorBalances() {
 	var f BeaconFetcher
+	f.NodeEndpoint = s.Tc.BEACON_NODE_INFURA
 	ctx := context.Background()
 	err := f.FindAndQueryAndUpdateValidatorBalances(ctx, batchSize)
 	s.Require().Nil(err)
@@ -32,6 +34,7 @@ func (s *FetcherBaseTestSuite) TestFindAndQueryAndUpdateValidatorBalances() {
 
 func (s *FetcherBaseTestSuite) TestBeaconUpdateValidatorStates() {
 	var f BeaconFetcher
+	f.NodeEndpoint = s.Tc.BEACON_NODE_INFURA
 	ctx := context.Background()
 	err := f.BeaconUpdateValidatorStates(ctx, batchSize)
 	s.Require().Nil(err)

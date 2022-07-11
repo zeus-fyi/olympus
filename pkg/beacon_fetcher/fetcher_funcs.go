@@ -7,6 +7,7 @@ import (
 	beacon_models "github.com/zeus-fyi/olympus/databases/postgres/beacon-indexer/beacon-models"
 	"github.com/zeus-fyi/olympus/internal/beacon-api/api_types"
 	"github.com/zeus-fyi/olympus/pkg/utils"
+	"github.com/zeus-fyi/olympus/pkg/utils/strings"
 )
 
 func (f *BeaconFetcher) BeaconFindNewAndMissingValidatorIndexes(ctx context.Context, batchSize int) (err error) {
@@ -87,11 +88,25 @@ func (f *BeaconFetcher) FindAndQueryAndUpdateValidatorBalances(ctx context.Conte
 		valBalances.ValidatorBalance = vbs
 		var beaconAPI api_types.ValidatorBalances
 		slot := utils.ConvertEpochToSlot(epoch)
+		log.Info().Interface("BeaconFetcher: Fetching Data at Slot:", slot)
 		log.Info().Msg("BeaconFetcher: FetchStateAndDecode")
 		err = beaconAPI.FetchStateAndDecode(ctx, f.NodeEndpoint, slot, valBalances.FormatValidatorBalancesEpochIndexesToURLList())
 		if err != nil {
 			log.Error().Err(err).Msg("FindAndQueryAndUpdateValidatorBalances: FetchStateAndDecode")
 			return err
+		}
+		if len(beaconAPI.Data) <= 0 {
+			log.Info().Interface("BeaconFetcher: FetchStateAndDecode returned zero balances for ", valBalances.FormatValidatorBalancesEpochIndexesToURLList())
+			return nil
+		}
+		log.Info().Msg("BeaconFetcher: Convert API data to model format")
+		valBalances.ValidatorBalance = make([]beacon_models.ValidatorBalanceEpoch, len(beaconAPI.Data))
+		for i, beaconBalanceResult := range beaconAPI.Data {
+			var epochResult beacon_models.ValidatorBalanceEpoch
+			epochResult.Epoch = epoch
+			epochResult.Index = strings.Int64StringParser(beaconBalanceResult.Index)
+			epochResult.TotalBalanceGwei = strings.Int64StringParser(beaconBalanceResult.Balance)
+			valBalances.ValidatorBalance[i] = epochResult
 		}
 		log.Info().Msg("BeaconFetcher: InsertValidatorBalancesForNextEpoch")
 		err = valBalances.InsertValidatorBalancesForNextEpoch(ctx)

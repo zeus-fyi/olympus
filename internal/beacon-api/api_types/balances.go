@@ -18,6 +18,7 @@ type ValidatorBalances struct {
 }
 
 func (b *ValidatorBalances) FetchStateAndDecode(ctx context.Context, beaconNode, stateID string, encodedQueryURL string) error {
+	log.Info().Msg("ValidatorBalances: FetchStateAndDecode")
 	r := beacon_api.GetValidatorsBalancesByStateFilter(ctx, beaconNode, stateID, encodedQueryURL)
 
 	if r.Err != nil {
@@ -28,9 +29,11 @@ func (b *ValidatorBalances) FetchStateAndDecode(ctx context.Context, beaconNode,
 }
 
 func (b *ValidatorBalances) DecodeValidatorsBalancesBeacon(r client.Reply) error {
+	log.Info().Msg("ValidatorBalances: DecodeValidatorsBalancesBeacon")
 	err := json.Unmarshal(r.BodyBytes, &b)
 
 	if err != nil {
+		log.Info().Interface("ValidatorBalances: ", b)
 		log.Error().Err(err).Msg("ValidatorBalances: DecodeValidatorsBalancesBeacon")
 	}
 	return err

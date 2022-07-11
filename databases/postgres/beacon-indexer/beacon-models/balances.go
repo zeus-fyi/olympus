@@ -16,7 +16,7 @@ import (
 	3. compares new to old balance to generate the diff yield for the latest epoch and inserts new data into balances
 */
 func (vb *ValidatorBalancesEpoch) InsertValidatorBalancesForNextEpoch(ctx context.Context) error {
-	epochs := strings.ArraySliceStrBuilderSQL(vb.getEpochValues())
+	epochs := strings.ArraySliceStrBuilderSQL(vb.getNextEpochValues())
 	valIndexes := strings.ArraySliceStrBuilderSQL(vb.getIndexValues())
 	newBalance := strings.ArraySliceStrBuilderSQL(vb.getNewBalanceValues())
 	query := fmt.Sprintf(`

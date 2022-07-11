@@ -3,6 +3,7 @@ package beacon_models
 import (
 	"strconv"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/databases/postgres"
 	"github.com/zeus-fyi/olympus/pkg/utils/strings"
 )
@@ -33,22 +34,41 @@ func (vb *ValidatorBalancesEpoch) getIndexValues() postgres.RowValues {
 }
 
 func (vb *ValidatorBalancesEpoch) getNewBalanceValues() postgres.RowValues {
+	log.Info().Msg("ValidatorBalancesEpoch: getNewBalanceValues")
+
 	pgValues := make(postgres.RowValues, len(vb.ValidatorBalance))
 	for i, val := range vb.ValidatorBalance {
 		pgValues[i] = val.TotalBalanceGwei
 	}
+	log.Debug().Interface("ValidatorBalancesEpoch: getNewBalanceValues", pgValues)
 	return pgValues
 }
 
 func (vb *ValidatorBalancesEpoch) getEpochValues() postgres.RowValues {
+	log.Info().Msg("ValidatorBalancesEpoch: getEpochValues")
+
 	pgValues := make(postgres.RowValues, len(vb.ValidatorBalance))
 	for i, val := range vb.ValidatorBalance {
 		pgValues[i] = val.Epoch
 	}
+	log.Debug().Interface("ValidatorBalancesEpoch: pgValues", pgValues)
+	return pgValues
+}
+
+func (vb *ValidatorBalancesEpoch) getNextEpochValues() postgres.RowValues {
+	log.Info().Msg("ValidatorBalancesEpoch: getNextEpochValues")
+
+	pgValues := make(postgres.RowValues, len(vb.ValidatorBalance))
+	for i, val := range vb.ValidatorBalance {
+		pgValues[i] = val.Epoch + 1
+	}
+	log.Debug().Interface("ValidatorBalancesEpoch: pgValues", pgValues)
 	return pgValues
 }
 
 func (vb *ValidatorBalancesEpoch) FormatValidatorBalancesEpochIndexesToURLList() string {
+	log.Info().Msg("ValidatorBalancesEpoch: FormatValidatorBalancesEpochIndexesToURLList")
+
 	var indexes []string
 	indexes = make([]string, len(vb.ValidatorBalance))
 	for i, v := range vb.ValidatorBalance {
@@ -56,5 +76,6 @@ func (vb *ValidatorBalancesEpoch) FormatValidatorBalancesEpochIndexesToURLList()
 
 	}
 	indexString := strings.UrlEncodeQueryParamList("", indexes...)
+	log.Debug().Interface("ValidatorBalancesEpoch: indexString", indexString)
 	return indexString
 }

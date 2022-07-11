@@ -37,9 +37,9 @@ func FindValidatorIndexes(ctx context.Context, batchSize int) (Validators, error
 	query := fmt.Sprintf(`
 	SELECT
 	generate_series FROM GENERATE_SERIES(
-		(SELECT MIN(index) from validators), (SELECT MAX(index)+%d from validators)
+		(SELECT COALESCE(MIN(index),0) from validators), (SELECT COALESCE(MAX(index)+%d,+%d) from validators)
 	)
-	WHERE NOT EXISTS(SELECT index FROM validators WHERE index = generate_series)`, batchSize)
+	WHERE NOT EXISTS(SELECT index FROM validators WHERE index = generate_series)`, batchSize, batchSize)
 
 	var validatorsToQueryState Validators
 	rows, err := postgres.Pg.Query(ctx, query)

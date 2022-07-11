@@ -1,11 +1,13 @@
 package main
 
 import (
+	"log"
+
 	"github.com/zeus-fyi/olympus/cmd"
 )
 
 func main() {
-	if err := cmd.Api(); err != nil {
-		panic(err)
+	if err := cmd.ApiCmd.Execute(); err != nil {
+		log.Fatal(err)
 	}
 }

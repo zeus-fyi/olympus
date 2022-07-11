@@ -28,7 +28,7 @@ func Api() {
 	e.Use(middleware.Recover())
 
 	// Routes
-	e.GET("/", health)
+	e.GET("/health", health)
 
 	postgres.Pg = postgres.Db{}
 	postgres.Pg.InitPG(context.Background(), PGConnStr)

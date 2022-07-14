@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -35,7 +36,14 @@ func (d *Db) pool(ctx context.Context) *pgxpool.Pool {
 }
 
 func (d *Db) InitPG(ctx context.Context, connStr string) *pgxpool.Pool {
-	c, err := pgxpool.Connect(ctx, connStr)
+	config, err := pgxpool.ParseConfig(connStr)
+	if err != nil {
+		panic(err)
+	}
+	config.MinConns = 5
+	config.MaxConnLifetime = 5 * time.Minute
+
+	c, err := pgxpool.Connect(ctx, config.ConnString())
 	if err != nil {
 		panic(err)
 	}

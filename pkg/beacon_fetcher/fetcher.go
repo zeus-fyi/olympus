@@ -16,8 +16,8 @@ func InitFetcherService(nodeURL string) {
 	fetcher.NodeEndpoint = nodeURL
 	fetchNewValidatorTimeout := time.Minute * 5
 	go FetchNewOrMissingValidators(10000, fetchNewValidatorTimeout)
-	fetchUpdateTimeout := time.Second * 5
-	go FetchFindAndQueryAndUpdateValidatorBalances(100000, fetchUpdateTimeout)
+	fetchUpdateTimeout := time.Second * 20
+	go FetchFindAndQueryAndUpdateValidatorBalances(10000, fetchUpdateTimeout)
 }
 
 func FetchNewOrMissingValidators(batchSize int, sleepTime time.Duration) {

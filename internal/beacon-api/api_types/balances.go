@@ -34,7 +34,7 @@ func (b *ValidatorBalances) DecodeValidatorsBalancesBeacon(r client.Reply) error
 	err := json.Unmarshal(r.BodyBytes, &b)
 
 	if err != nil {
-		log.Info().Bytes("ValidatorBalances: DecodeValidatorsBalancesBeacon ", r.BodyBytes)
+		log.Info().Str("DecodeValidatorsBalancesBeacon STATUS CODE ", r.Status)
 		log.Info().Interface("ValidatorBalances: DecodeValidatorsBalancesBeacon ", &b)
 		log.Error().Err(err).Msg("ValidatorBalances: DecodeValidatorsBalancesBeacon")
 	}

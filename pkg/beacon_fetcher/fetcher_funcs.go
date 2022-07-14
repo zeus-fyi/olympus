@@ -92,6 +92,7 @@ func (f *BeaconFetcher) FindAndQueryAndUpdateValidatorBalances(ctx context.Conte
 		log.Info().Msg("BeaconFetcher: FetchStateAndDecode")
 		err = beaconAPI.FetchStateAndDecode(ctx, f.NodeEndpoint, slot, valBalances.FormatValidatorBalancesEpochIndexesToURLList())
 		if err != nil {
+			log.Info().Interface("FormatValidatorBalancesEpochIndexesToURLList: ", valBalances.FormatValidatorBalancesEpochIndexesToURLList())
 			log.Error().Err(err).Msg("FindAndQueryAndUpdateValidatorBalances: FetchStateAndDecode")
 			return err
 		}

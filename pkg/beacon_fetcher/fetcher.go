@@ -14,33 +14,45 @@ func InitFetcherService(nodeURL string) {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 
 	fetcher.NodeEndpoint = nodeURL
-
-	go FetchNewOrMissingValidators()
-	go FetchFindAndQueryAndUpdateValidatorBalances()
+	fetchNewValidatorTimeout := time.Minute * 5
+	go FetchNewOrMissingValidators(10000, fetchNewValidatorTimeout)
+	fetchUpdateTimeout := time.Second * 5
+	go FetchFindAndQueryAndUpdateValidatorBalances(200000, fetchUpdateTimeout)
 }
 
-func FetchNewOrMissingValidators() {
+func FetchNewOrMissingValidators(batchSize int, sleepTime time.Duration) {
 	log.Info().Msg("FetchNewOrMissingValidators")
 
-	sleepBetweenFetches := time.Minute * 5
-	batchSize := 1000
 	for {
 		ctx := context.Background()
-		err := fetcher.BeaconFindNewAndMissingValidatorIndexes(ctx, batchSize)
-		log.Info().Err(err).Msg("FetchNewOrMissingValidators")
-		time.Sleep(sleepBetweenFetches)
+		fetchValidatorsToInsert(ctx, batchSize, sleepTime)
+		time.Sleep(sleepTime)
 	}
 }
 
-func FetchFindAndQueryAndUpdateValidatorBalances() {
+func fetchValidatorsToInsert(ctx context.Context, batchSize int, contextTimeout time.Duration) {
+	ctxTimeout, cancel := context.WithTimeout(ctx, contextTimeout)
+	defer cancel()
+
+	err := fetcher.BeaconFindNewAndMissingValidatorIndexes(ctxTimeout, batchSize)
+	log.Info().Err(err).Msg("FetchNewOrMissingValidators")
+}
+
+func FetchFindAndQueryAndUpdateValidatorBalances(batchSize int, sleepTime time.Duration) {
 	log.Info().Msg("FetchFindAndQueryAndUpdateValidatorBalances")
 
-	sleepBetweenFetches := time.Second * 20
-	batchSize := 10000
 	for {
 		ctx := context.Background()
-		err := fetcher.FindAndQueryAndUpdateValidatorBalances(ctx, batchSize)
-		log.Info().Err(err).Msg("FetchNewOrMissingValidators")
-		time.Sleep(sleepBetweenFetches)
+		fetchAndUpdateValidatorBalances(ctx, batchSize, sleepTime)
+		time.Sleep(sleepTime)
+
 	}
+}
+
+func fetchAndUpdateValidatorBalances(ctx context.Context, batchSize int, contextTimeout time.Duration) {
+	ctxTimeout, cancel := context.WithTimeout(ctx, contextTimeout)
+	defer cancel()
+
+	err := fetcher.FindAndQueryAndUpdateValidatorBalances(ctxTimeout, batchSize)
+	log.Info().Err(err).Msg("FetchNewOrMissingValidators")
 }

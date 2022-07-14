@@ -17,8 +17,10 @@ func SelectValidatorsToQueryBeaconForBalanceUpdates(ctx context.Context, batchSi
 								 WHERE epoch + 1 < (SELECT mainnet_finalized_epoch())
 					             GROUP by validator_index
 								 LIMIT %d`, batchSize)
+	log.Debug().Interface("SelectValidatorsToQueryBeaconForBalanceUpdates: Query: ", query)
 
 	rows, err := postgres.Pg.Query(ctx, query)
+	log.Err(err).Interface("SelectValidatorsToQueryBeaconForBalanceUpdates: Query: ", query)
 	if err != nil {
 		return selectedValidatorBalances, err
 	}
@@ -26,6 +28,7 @@ func SelectValidatorsToQueryBeaconForBalanceUpdates(ctx context.Context, batchSi
 		var vb ValidatorBalanceEpoch
 		rowErr := rows.Scan(&vb.Epoch, &vb.Index)
 		if rowErr != nil {
+			log.Err(rowErr).Interface("SelectValidatorsToQueryBeaconForBalanceUpdates: Query: ", query)
 			return selectedValidatorBalances, rowErr
 		}
 		selectedValidatorBalances.ValidatorBalance = append(selectedValidatorBalances.ValidatorBalance, vb)
@@ -34,6 +37,8 @@ func SelectValidatorsToQueryBeaconForBalanceUpdates(ctx context.Context, batchSi
 }
 
 func FindValidatorIndexes(ctx context.Context, batchSize int) (Validators, error) {
+	log.Info().Msg("FindValidatorIndexes")
+
 	query := fmt.Sprintf(`
 	SELECT
 	generate_series FROM GENERATE_SERIES(
@@ -42,6 +47,7 @@ func FindValidatorIndexes(ctx context.Context, batchSize int) (Validators, error
 	WHERE NOT EXISTS(SELECT index FROM validators WHERE index = generate_series)`, batchSize, batchSize)
 
 	var validatorsToQueryState Validators
+	log.Debug().Interface("FindValidatorIndexes: Query: ", query)
 	rows, err := postgres.Pg.Query(ctx, query)
 	if err != nil {
 		return validatorsToQueryState, err
@@ -50,16 +56,21 @@ func FindValidatorIndexes(ctx context.Context, batchSize int) (Validators, error
 		var validator Validator
 		rowErr := rows.Scan(&validator.Index)
 		if rowErr != nil {
+			log.Err(rowErr).Interface("FindValidatorIndexes: Query: ", query)
 			return validatorsToQueryState, rowErr
 		}
 		validatorsToQueryState.Validators = append(validatorsToQueryState.Validators, validator)
 	}
+	log.Err(err).Interface("FindValidatorIndexes: Query: ", query)
 	return validatorsToQueryState, err
 }
 
 func SelectValidatorsQueryOngoingStates(ctx context.Context, batchSize int) (Validators, error) {
+	log.Info().Msg("SelectValidatorsQueryOngoingStates")
+
 	query := fmt.Sprintf(`
 	SELECT index FROM validators ORDER BY updated_at LIMIT %d `, batchSize)
+	log.Debug().Interface("SelectValidatorsQueryOngoingStates: Query: ", query)
 
 	var validatorsToQueryState Validators
 	rows, err := postgres.Pg.Query(ctx, query)
@@ -70,10 +81,12 @@ func SelectValidatorsQueryOngoingStates(ctx context.Context, batchSize int) (Val
 		var validator Validator
 		rowErr := rows.Scan(&validator.Index)
 		if rowErr != nil {
+			log.Err(err).Interface("SelectValidatorsQueryOngoingStates: Query: ", query)
 			return validatorsToQueryState, rowErr
 		}
 		validatorsToQueryState.Validators = append(validatorsToQueryState.Validators, validator)
 	}
+	log.Err(err).Interface("SelectValidatorsQueryOngoingStates: Query: ", query)
 	return validatorsToQueryState, err
 }
 

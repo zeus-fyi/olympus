@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/databases/postgres"
 	"github.com/zeus-fyi/olympus/pkg/utils/strings"
 )
@@ -16,6 +17,7 @@ import (
 	3. compares new to old balance to generate the diff yield for the latest epoch and inserts new data into balances
 */
 func (vb *ValidatorBalancesEpoch) InsertValidatorBalancesForNextEpoch(ctx context.Context) error {
+	log.Info().Msg("ValidatorBalancesEpoch: InsertValidatorBalancesForNextEpoch")
 	epochs := strings.ArraySliceStrBuilderSQL(vb.getNextEpochValues())
 	valIndexes := strings.ArraySliceStrBuilderSQL(vb.getIndexValues())
 	newBalance := strings.ArraySliceStrBuilderSQL(vb.getNewBalanceValues())
@@ -38,7 +40,10 @@ func (vb *ValidatorBalancesEpoch) InsertValidatorBalancesForNextEpoch(ctx contex
 		ON CONFLICT ON CONSTRAINT validator_balances_at_epoch_pkey DO NOTHING
 	`, valIndexes, valIndexes, newBalance, epochs)
 
+	log.Debug().Interface("InsertValidatorBalancesForNextEpoch: ", query)
+
 	_, err := postgres.Pg.Query(ctx, query)
+	log.Error().Err(err).Interface("InsertValidatorBalancesForNextEpoch", query)
 	return err
 }
 

@@ -17,7 +17,7 @@ func InitFetcherService(nodeURL string) {
 	fetchNewValidatorTimeout := time.Minute * 5
 	go FetchNewOrMissingValidators(10000, fetchNewValidatorTimeout)
 	fetchUpdateTimeout := time.Second * 5
-	go FetchFindAndQueryAndUpdateValidatorBalances(200000, fetchUpdateTimeout)
+	go FetchFindAndQueryAndUpdateValidatorBalances(100000, fetchUpdateTimeout)
 }
 
 func FetchNewOrMissingValidators(batchSize int, sleepTime time.Duration) {
@@ -25,7 +25,9 @@ func FetchNewOrMissingValidators(batchSize int, sleepTime time.Duration) {
 
 	for {
 		ctx := context.Background()
+		timeBegin := time.Now()
 		fetchValidatorsToInsert(ctx, batchSize, sleepTime)
+		log.Info().Interface("FetchNewOrMissingValidators took this many seconds to complete: ", time.Now().Sub(timeBegin))
 		time.Sleep(sleepTime)
 	}
 }
@@ -43,7 +45,9 @@ func FetchFindAndQueryAndUpdateValidatorBalances(batchSize int, sleepTime time.D
 
 	for {
 		ctx := context.Background()
+		timeBegin := time.Now()
 		fetchAndUpdateValidatorBalances(ctx, batchSize, sleepTime)
+		log.Info().Interface("FetchFindAndQueryAndUpdateValidatorBalances took this many seconds to complete: ", time.Now().Sub(timeBegin))
 		time.Sleep(sleepTime)
 
 	}

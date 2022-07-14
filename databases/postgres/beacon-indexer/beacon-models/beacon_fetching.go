@@ -91,10 +91,12 @@ func SelectValidatorsQueryOngoingStates(ctx context.Context, batchSize int) (Val
 }
 
 func SelectValidatorsToQueryBalancesByEpoch(ctx context.Context, batchSize int) (map[int64][]ValidatorBalanceEpoch, error) {
+	log.Info().Msg("SelectValidatorsToQueryBalancesByEpoch")
+
 	epochMap := make(map[int64][]ValidatorBalanceEpoch, 1)
 	vbal, err := SelectValidatorsToQueryBeaconForBalanceUpdates(ctx, batchSize)
+	log.Ctx(ctx).Err(err).Interface("SelectValidatorsToQueryBalancesByEpoch", epochMap)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("SelectValidatorsToQueryBalancesURL: had nil ValidatorBalancesEpoch")
 		return epochMap, err
 	}
 	for _, vb := range vbal.ValidatorBalance {

@@ -1,0 +1,15 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: GitRepository
+metadata:
+  name: eth-indexer
+  namespace: flux-system
+spec:
+  interval: 1m
+  url: ssh://git@github.com/zeus-fyi/olympus
+  ref:
+    branch: main
+  ignore: |
+    # exclude all
+    /*
+    # include eth-indexer helm chart directory
+    !./helm/eth-indexer

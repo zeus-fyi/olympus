@@ -25,3 +25,22 @@ k8s.pod:
 
 k8s.delete:
 	kubectl delete deployment indexer-deployment
+
+helm.add:
+	helm repo add ../../devops/helm/eth-indexer/ chartmuseum
+
+helm.push:
+	helm cm-push ../../devops/helm/eth-indexer/ chartmuseum -f
+
+helm.push.url:
+	helm cm-push ../../devops/helm/eth-indexer/ http://localhost:8080
+
+helm.list:
+	helm list
+
+helm.search:
+	helm search repo
+
+chart.pf:
+	kubectl port-forward chartmuseum-7c75f78c87-dk959 8080:8080
+

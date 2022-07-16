@@ -1,0 +1,30 @@
+apiVersion: v1
+stringData:
+    PGPOOL_PROD_CONN_STR: ENC[AES256_GCM,data:5MwE+AJte5kpoY0vIuWWuh+AWCs3ewPW7BO6NkHLcUqcEKIvu3Zycf4c2i4Qsq2jtTm+enZ4dTjGsBC7D60r53UNVAmcwfpTrOj2ubfUXO6j9bgT+IAS2Hg4/Nl2xORZ3OEZPF7IbgmMueviY/tWBEnNUd7tH0ZzL+R78J2G+DuV7M1Veu82B9eyNgn6OfgxlKVtLu0a48IUSxf3ircmQbHXPh47nq/A5jpGk1r6OYOz6NX7IrLC/Dbu2r8gcq1DPzNxUTKbQhe8+vxCOfj2zARTMNX6gKs4lG7iIAq9a/MNnjcUZUwwpNaS39ZO6d7FP0c5lGqfRkLencLNUfVxsNsNwNYR71NXi0pnSYDUus5OdrYspqdZWDBH9EgFfBsSNUjoGE9mWiI=,iv:vv3Y424XyUL/0l+U8kIlshj1lRG1Ca2WIkajhrxaljM=,tag:qlemGWkXukQ6BR9jwXe32A==,type:str]
+kind: Secret
+metadata:
+    creationTimestamp: null
+    name: postgres-auth
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2022-07-15T02:49:44Z"
+    mac: ENC[AES256_GCM,data:MkTH3trlTmWM3MbTni3zLKqpBzk8bCxvYUHRTl4oJf95/8eve+QMh+WM2U4CpXsuds/zelUIU87QrSQApROHLeVLYYmX591PgReqObb2mEaIDNaaCs47Z0c7PwqAAl6EtBv8bUzG7ZevOybiV2mppj4qmh4k0E53dZPm0z0Pj8k=,iv:VjnVFbBqM5+B7PaEaA4JTDSwCpDb18P7hF4mYozTgN4=,tag:dEufMzAIjCgdUsKDwGWmHg==,type:str]
+    pgp:
+        - created_at: "2022-07-15T02:49:43Z"
+          enc: |
+            -----BEGIN PGP MESSAGE-----
+
+            hF4DoBxvd+FtCAoSAQdAq3k0avOaL3V3wtsyjjGHEG3VEeWj2ZT6qWNAw27zQ0Ew
+            /Csdels9p9pz0RjO+QjuGdlZ0ub+DNt7QAQifV4M5JFjFtG3vwaHd7xrD+nTJifQ
+            1GgBCQIQO1z+5xlJxFY1Y94/OIdmytYl2uEjdv57rwjvL3wtqn/meiFlggR2BCWS
+            FrVywBQWXhLqrpuEUC/D7/opiDBTxGmAhGLr1lxoqnbkO9qN3u6fvjTxYX9gheT8
+            UXQZZCUMo10uLQ==
+            =BIcg
+            -----END PGP MESSAGE-----
+          fp: 7C417BF72F7500DBE82B5C5269090D0D4093C215
+    encrypted_regex: ^(data|stringData)$
+    version: 3.7.3

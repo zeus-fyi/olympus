@@ -11,3 +11,8 @@ vpc.list:
 docker.login:
 	doctl registry login
 
+chart.upgrade:
+	helm upgrade chartmuseum ../../chartmuseum -f ../../chartmuseum/values.yaml
+
+repo.add:
+	helm repo add chartmuseum zeus-fyi.sfo3.digitaloceanspaces.com -u "" -p ""

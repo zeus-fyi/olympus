@@ -1,0 +1,12 @@
+apiVersion: source.toolkit.fluxcd.io/v2beta1
+kind: HelmChart
+metadata:
+  name: eth-indexer
+  namespace: eth-indexer
+spec:
+  chart: ./helm/eth-indexer
+  sourceRef:
+    name: eth-indexer
+    kind: GitRepository
+  interval: 10m
+  reconcileStrategy: Revision

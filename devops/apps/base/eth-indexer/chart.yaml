@@ -5,7 +5,6 @@ metadata:
 spec:
   chart: ./helm/eth-indexer
   sourceRef:
-    name: flux-system
     namespace: flux-system
     kind: GitRepository
   interval: 10m

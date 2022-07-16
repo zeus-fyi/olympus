@@ -1,7 +1,5 @@
 apiVersion: source.toolkit.fluxcd.io/v2beta1
 kind: HelmChart
-metadata:
-  name: eth-indexer
 spec:
   chart: ./helm/eth-indexer
   sourceRef:

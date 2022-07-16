@@ -5,12 +5,14 @@ metadata:
   namespace: eth-indexer
 spec:
   releaseName: eth-indexer
-  chart: ./helm/eth-indexer
-  sourceRef:
-    kind: GitRepository
-    name: eth-indexer
-    namespace: flux-system
+  chart:
+    spec:
+      chart: ./helm/eth-indexer
+      sourceRef:
+        kind: GitRepository
+        name: eth-indexer
+        namespace: flux-system
+  interval: 5m
   install:
-    createNamespace: true
     remediation:
       retries: 3

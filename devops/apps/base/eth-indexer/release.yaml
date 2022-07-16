@@ -10,7 +10,7 @@ spec:
       chart: ./helm/eth-indexer
       sourceRef:
         kind: GitRepository
-        name: eth-indexer
+        name: flux-system
         namespace: flux-system
   interval: 5m
   install:

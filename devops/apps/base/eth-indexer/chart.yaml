@@ -6,7 +6,8 @@ metadata:
 spec:
   chart: ./helm/eth-indexer
   sourceRef:
-    name: eth-indexer
+    name: flux-system
+    namespace: flux-system
     kind: GitRepository
   interval: 10m
   reconcileStrategy: Revision

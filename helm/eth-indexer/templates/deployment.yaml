@@ -37,7 +37,7 @@ spec:
             - name: PG_CONN_STR
               valueFrom:
                 secretKeyRef:
-                  name: postgres-auth
+                  name: postgres-conn-str
                   key: PGPOOL_CONN_STR
                   optional: false # same as default; "mysecret" must exist
                   # and include a key named "username"

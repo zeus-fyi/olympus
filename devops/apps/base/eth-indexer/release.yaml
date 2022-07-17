@@ -9,6 +9,6 @@ spec:
       reconcileStrategy: Revision
       sourceRef:
         kind: GitRepository
-        name: eth-indexer
+        name: olympus
         namespace: flux-system
   interval: 1m0s

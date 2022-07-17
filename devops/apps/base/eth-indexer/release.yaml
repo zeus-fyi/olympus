@@ -9,6 +9,10 @@ spec:
       reconcileStrategy: Revision
       sourceRef:
         kind: GitRepository
-        name: olympus
+        name: eth-indexer
         namespace: flux-system
+      version: 0.1.0
+  install:
+    createNamespace: true
   interval: 1m0s
+  targetNamespace: eth-indexer

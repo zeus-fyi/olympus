@@ -1,0 +1,29 @@
+apiVersion: v1
+stringData:
+    BEACON_AUTH: ENC[AES256_GCM,data:s+8VjUlS/cNMcqdWkWQhuZgEe29v4/WRwBYVAZihru4nl41zg4bcNVLkgkfa5+WVZ+HLzL3fELjIu3cBSeVrUvq8OTONTrvUqFFh2U67GiYqkJc9auPDobdyfl9oc7qpBluSB705EsNsbesq8BHupUvfuKJw2/viWJNkpg5u4DaGTQjS,iv:hOAL6kB9KePWtaxkV9snAYj1gJ2xLiuJkmsDJm6mapo=,tag:kgXRbz2z/PkKwsFrg9xTnw==,type:str]
+kind: Secret
+metadata:
+    name: beacon-auth
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age: []
+    lastmodified: "2022-07-17T04:59:43Z"
+    mac: ENC[AES256_GCM,data:WaTlNSOyF652cZssvmJX0m0h0ru2DDEQ0HBJA9ybJTgTKSzr7Q+Ka1qAJJQcdQ1QJZozl4flEtMRiPGk4SCdW495oFjjKT3B8/xkn68qcxrQbn2vZZMPjw9BHZxHMC4AgF7jfPlIxBDA0gwpQk2LmxaAE8t/LO8WQ+EggERrWfw=,iv:Jt5lO1FjaSyEv9gH+JC/zccJqSryLQgIzUZnnt/yvLw=,tag:bpALwPQDHCLFuaMl22eCTw==,type:str]
+    pgp:
+        - created_at: "2022-07-17T04:59:42Z"
+          enc: |
+            -----BEGIN PGP MESSAGE-----
+
+            hF4DoBxvd+FtCAoSAQdA0szN0hhxWf3YcQZGWa0+1IplXH9EeL+EA6wSICX36AEw
+            FiTuTRMKpLuPGKKohOBLqZCGgUUG113UiBNdewJi8VR9EutMtyLUcMQmIKavl47g
+            1GgBCQIQVjy8N1gtSuzzKrCxn4pjZfbRwaWetnJ47SLohckPwjhjGc0hfhhWg9QX
+            BIa1Nc12Azue3n71a8Yrnf3W/G8SA94yyLuDOVjdLWm5izfOegfEUvsVR3OCIQ1I
+            3KRM+BfeGlN9Zw==
+            =72ez
+            -----END PGP MESSAGE-----
+          fp: 7C417BF72F7500DBE82B5C5269090D0D4093C215
+    encrypted_regex: ^(data|stringData)$
+    version: 3.7.3

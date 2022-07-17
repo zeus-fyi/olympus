@@ -48,6 +48,11 @@ spec:
                   key: BEACON_AUTH
                   optional: false # same as default; "mysecret" must exist
                   # and include a key named "password"
+          command:
+            - sh
+            - -c
+            - |
+              olympus --postgres-conn-str=${PGPOOL_CONN_STR} --beacon-endpoint=${BEACON_AUTH}
           ports:
             - name: http
               containerPort: 9000

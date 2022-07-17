@@ -6,7 +6,7 @@ metadata:
 spec:
   chart:
     spec:
-      chart: helm/eth-indexer
+      chart: ./helm/eth-indexer
       reconcileStrategy: ChartVersion
       sourceRef:
         kind: GitRepository

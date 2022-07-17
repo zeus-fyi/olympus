@@ -1,9 +1,8 @@
 apiVersion: v1
 stringData:
-    PGPOOL_PROD_CONN_STR: ENC[AES256_GCM,data:5MwE+AJte5kpoY0vIuWWuh+AWCs3ewPW7BO6NkHLcUqcEKIvu3Zycf4c2i4Qsq2jtTm+enZ4dTjGsBC7D60r53UNVAmcwfpTrOj2ubfUXO6j9bgT+IAS2Hg4/Nl2xORZ3OEZPF7IbgmMueviY/tWBEnNUd7tH0ZzL+R78J2G+DuV7M1Veu82B9eyNgn6OfgxlKVtLu0a48IUSxf3ircmQbHXPh47nq/A5jpGk1r6OYOz6NX7IrLC/Dbu2r8gcq1DPzNxUTKbQhe8+vxCOfj2zARTMNX6gKs4lG7iIAq9a/MNnjcUZUwwpNaS39ZO6d7FP0c5lGqfRkLencLNUfVxsNsNwNYR71NXi0pnSYDUus5OdrYspqdZWDBH9EgFfBsSNUjoGE9mWiI=,iv:vv3Y424XyUL/0l+U8kIlshj1lRG1Ca2WIkajhrxaljM=,tag:qlemGWkXukQ6BR9jwXe32A==,type:str]
+    PGPOOL_CONN_STR: ENC[AES256_GCM,data:5MwE+AJte5kpoY0vIuWWuh+AWCs3ewPW7BO6NkHLcUqcEKIvu3Zycf4c2i4Qsq2jtTm+enZ4dTjGsBC7D60r53UNVAmcwfpTrOj2ubfUXO6j9bgT+IAS2Hg4/Nl2xORZ3OEZPF7IbgmMueviY/tWBEnNUd7tH0ZzL+R78J2G+DuV7M1Veu82B9eyNgn6OfgxlKVtLu0a48IUSxf3ircmQbHXPh47nq/A5jpGk1r6OYOz6NX7IrLC/Dbu2r8gcq1DPzNxUTKbQhe8+vxCOfj2zARTMNX6gKs4lG7iIAq9a/MNnjcUZUwwpNaS39ZO6d7FP0c5lGqfRkLencLNUfVxsNsNwNYR71NXi0pnSYDUus5OdrYspqdZWDBH9EgFfBsSNUjoGE9mWiI=,iv:vv3Y424XyUL/0l+U8kIlshj1lRG1Ca2WIkajhrxaljM=,tag:qlemGWkXukQ6BR9jwXe32A==,type:str]
 kind: Secret
 metadata:
-    creationTimestamp: null
     name: postgres-auth
 sops:
     kms: []

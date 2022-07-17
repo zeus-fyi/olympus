@@ -44,3 +44,5 @@ helm.search:
 chart.pf:
 	kubectl port-forward chartmuseum-7c75f78c87-dk959 8080:8080
 
+helm.install:
+	helm install eth-indexer ../../helm/eth-indexer/ --values ../../helm/eth-indexer/values.yaml

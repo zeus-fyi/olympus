@@ -1,0 +1,14 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: GitRepository
+metadata:
+  name: eth-indexer
+  namespace: flux-system
+spec:
+  gitImplementation: go-git
+  interval: 1m0s
+  ref:
+    branch: main
+  secretRef:
+    name: eth-indexer-auth
+  timeout: 60s
+  url: ssh://git@github.com/zeus-fyi/olympus

@@ -1,9 +1,0 @@
-apiVersion: source.toolkit.fluxcd.io/v2beta1
-kind: HelmChart
-spec:
-  chart: ./helm/eth-indexer
-  sourceRef:
-    namespace: flux-system
-    kind: GitRepository
-  interval: 10m
-  reconcileStrategy: Revision

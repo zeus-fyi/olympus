@@ -2,13 +2,14 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   name: eth-indexer
+  namespace: eth-indexer
 spec:
   chart:
     spec:
       chart: ./helm/eth-indexer
       sourceRef:
         kind: GitRepository
-        name: flux-system
+        name: eth-indexer
         namespace: flux-system
   interval: 5m
   install:

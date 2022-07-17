@@ -4,6 +4,7 @@ stringData:
 kind: Secret
 metadata:
     name: postgres-auth
+    namespace: eth-indexer
 sops:
     kms: []
     gcp_kms: []

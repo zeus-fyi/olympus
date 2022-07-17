@@ -3,6 +3,7 @@ stringData:
     BEACON_AUTH: ENC[AES256_GCM,data:s+8VjUlS/cNMcqdWkWQhuZgEe29v4/WRwBYVAZihru4nl41zg4bcNVLkgkfa5+WVZ+HLzL3fELjIu3cBSeVrUvq8OTONTrvUqFFh2U67GiYqkJc9auPDobdyfl9oc7qpBluSB705EsNsbesq8BHupUvfuKJw2/viWJNkpg5u4DaGTQjS,iv:hOAL6kB9KePWtaxkV9snAYj1gJ2xLiuJkmsDJm6mapo=,tag:kgXRbz2z/PkKwsFrg9xTnw==,type:str]
 kind: Secret
 metadata:
+    creationTimestamp: null
     name: beacon-auth
     namespace: eth-indexer
 sops:

@@ -3,4 +3,3 @@ kind: Kustomization
 namespace: flux-system
 resources:
   - eth-indexer.yaml
-  - postgres-auth.yaml

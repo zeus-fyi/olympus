@@ -1,6 +1,6 @@
 apiVersion: v1
-stringData:
-    BEACON_AUTH: ENC[AES256_GCM,data:s+8VjUlS/cNMcqdWkWQhuZgEe29v4/WRwBYVAZihru4nl41zg4bcNVLkgkfa5+WVZ+HLzL3fELjIu3cBSeVrUvq8OTONTrvUqFFh2U67GiYqkJc9auPDobdyfl9oc7qpBluSB705EsNsbesq8BHupUvfuKJw2/viWJNkpg5u4DaGTQjS,iv:hOAL6kB9KePWtaxkV9snAYj1gJ2xLiuJkmsDJm6mapo=,tag:kgXRbz2z/PkKwsFrg9xTnw==,type:str]
+data:
+    beacon-auth: ENC[AES256_GCM,data:/djCNgcE3wSuyq8XqDe+8H7nPvsku5IuJOgIiYZZxwEgVHBYKsKaVJOQchB4ZMouORCmwp4wYK/lA2MKRQgdbuAsKGGN9Wl5IexstRN2gQmtsoWi91MlnZP/D0Q18rLG8SGL51TS/Ld5DBqDWT15gczubcKFKJp8j4SKMPMllHVTx8Lt,iv:QzhkfeQlA8fH3pBLQ/SZU6d7UOrK1TUPQlqnvSSaIqE=,tag:dW+TnVJZfpzV5nG/1Uuosg==,type:str]
 kind: Secret
 metadata:
     creationTimestamp: null
@@ -12,19 +12,19 @@ sops:
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2022-07-17T04:59:43Z"
-    mac: ENC[AES256_GCM,data:WaTlNSOyF652cZssvmJX0m0h0ru2DDEQ0HBJA9ybJTgTKSzr7Q+Ka1qAJJQcdQ1QJZozl4flEtMRiPGk4SCdW495oFjjKT3B8/xkn68qcxrQbn2vZZMPjw9BHZxHMC4AgF7jfPlIxBDA0gwpQk2LmxaAE8t/LO8WQ+EggERrWfw=,iv:Jt5lO1FjaSyEv9gH+JC/zccJqSryLQgIzUZnnt/yvLw=,tag:bpALwPQDHCLFuaMl22eCTw==,type:str]
+    lastmodified: "2022-07-17T05:30:39Z"
+    mac: ENC[AES256_GCM,data:8+KbyNtJ8BtrOvxCIk6lN7R6jA6CXG9b+tvuEFLSWTcsoqf0XtQfLS5MwjAvYagPx30ygva8KKRl2XqgRzgS/9OJbKr5hEFJSWu31ZgLeykGJvrhl32MIV9U/n2iD1X3Fhl1A6CbTLihccppwAWtCjEyzVqnDfws+trMPotKET0=,iv:FqqZz7Uw+ysZOAyIcWEovunzG8QEmzu+XnHnNiyjFew=,tag:hzsQ2Lkl+s3A4k1CXUSLhQ==,type:str]
     pgp:
-        - created_at: "2022-07-17T04:59:42Z"
+        - created_at: "2022-07-17T05:30:38Z"
           enc: |
             -----BEGIN PGP MESSAGE-----
 
-            hF4DoBxvd+FtCAoSAQdA0szN0hhxWf3YcQZGWa0+1IplXH9EeL+EA6wSICX36AEw
-            FiTuTRMKpLuPGKKohOBLqZCGgUUG113UiBNdewJi8VR9EutMtyLUcMQmIKavl47g
-            1GgBCQIQVjy8N1gtSuzzKrCxn4pjZfbRwaWetnJ47SLohckPwjhjGc0hfhhWg9QX
-            BIa1Nc12Azue3n71a8Yrnf3W/G8SA94yyLuDOVjdLWm5izfOegfEUvsVR3OCIQ1I
-            3KRM+BfeGlN9Zw==
-            =72ez
+            hF4DoBxvd+FtCAoSAQdAMBU1A5cahtY71S5R5F5hWctT0eyVXwDf2ydkN/Hn3kww
+            ljTdl6wWevzFj1T8bqN+zRpYqxVrk3/Xg/yDYcNOvF9uNkKz2aiPDKEvj98qjb5a
+            1GgBCQIQ9Jb9xszttmw0qRXifis40pVPyRY6R/TREPT3RVRRc2zFPSqScD5ZraXZ
+            YRQ86vyjMeCLyGYzsEs0GR6BVyFYYwETmtcLpjgpIYtC143PBasuQVV6dt7Yb0I2
+            FGDh2znlFGQ/7w==
+            =JS8M
             -----END PGP MESSAGE-----
           fp: 7C417BF72F7500DBE82B5C5269090D0D4093C215
     encrypted_regex: ^(data|stringData)$

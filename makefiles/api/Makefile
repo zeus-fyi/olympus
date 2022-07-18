@@ -5,9 +5,6 @@ GIT_SHA := $(shell git rev-parse HEAD)
 IMG     := ${REPO}/${NAME}:${GIT_SHA}
 LATEST  := ${REPO}/${NAME}:latest
 
-docker.buildx:
-	@ docker buildx build -t ${IMG} -t ${LATEST} -f ../../docker/Dockerfile ../../ --push
-
 docker.print:
 	echo ${IMG} ${LATEST}
 
@@ -18,8 +15,8 @@ docker.push:
 	@ docker push ${IMG}
 	@ docker push ${LATEST}
 
-docker.publish:
-	@ docker buildx build -t ${IMG} -t ${LATEST} --platform=linux/amd64 -f ../../docker/Dockerfile ../../
+docker.pubbuildx:
+	@ docker buildx build -t ${IMG} -t ${LATEST} --platform=linux/amd64 -f ../../docker/Dockerfile ../../ --push
 
 docker.run:
 	docker run -it -p 9000:9000 registry.digitalocean.com/zeus-fyi/zeus-indexer sh -c "olympus --postgres-conn-str='' --beacon-endpoint=''"

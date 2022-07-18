@@ -1,12 +1,25 @@
-GIT_REF ?= $(shell git rev-parse HEAD)
 
-VERSION=latest-2
+REPO	:= registry.digitalocean.com/zeus-fyi
+NAME    := zeus-indexer
+GIT_SHA := $(shell git rev-parse HEAD)
+IMG     := ${REPO}/${NAME}:${GIT_SHA}
+LATEST  := ${REPO}/${NAME}:latest
+
+docker.buildx:
+	@ docker buildx build -t ${IMG} -t ${LATEST} -f ../../docker/Dockerfile ../../ --push
+
+docker.print:
+	echo ${IMG} ${LATEST}
 
 docker.build:
-	docker buildx build --platform=linux/amd64 --tag registry.digitalocean.com/zeus-fyi/zeus-indexer:${VERSION} -f ../../docker/Dockerfile ../../
+	@ docker build -t ${IMG} -t ${LATEST} -f ../../docker/Dockerfile ../../
 
 docker.push:
-	docker push registry.digitalocean.com/zeus-fyi/zeus-indexer:${VERSION}
+	@ docker push ${IMG}
+	@ docker push ${LATEST}
+
+docker.publish:
+	@ docker buildx build -t ${IMG} -t ${LATEST} --platform=linux/amd64 -f ../../docker/Dockerfile ../../
 
 docker.run:
 	docker run -it -p 9000:9000 registry.digitalocean.com/zeus-fyi/zeus-indexer sh -c "olympus --postgres-conn-str='' --beacon-endpoint=''"

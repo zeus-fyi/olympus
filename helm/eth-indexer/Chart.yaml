@@ -1,6 +1,6 @@
 apiVersion: v2
 name: eth-indexer
-description: A Helm chart for Kubernetes
+description: An consensus layer indexer for Ethereum
 
 # A chart can be either an 'application' or a 'library' chart.
 #

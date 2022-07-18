@@ -1,3 +1,39 @@
 # CircleCI configuration file
 
 version: 2.1
+
+executors:
+  docker-publisher:
+    docker:
+      - image: cimg/go:1.18.0
+
+jobs:
+  build:
+    description: Build, tag, and push eth-indexer docker image to dockerhub on digitalocean
+    executor: docker-publisher
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.14
+          docker_layer_caching: true
+      - run:
+          name: Install dependencies
+          command: |
+            mkdir -p /home/circleci/bin
+            wget https://github.com/digitalocean/doctl/releases/download/v1.78.0/doctl-1.78.0-linux-amd64.tar.gz -O doctl.tar.gz
+            tar xf doctl.tar.gz -C /home/circleci/bin
+      - run:
+          name: Build and publish eth2-indexer image
+          working_directory: makefiles/api
+          command: |
+            doctl registry login -t ${DIGITALOCEAN_ACCESS_TOKEN}
+            GIT_SHA=$CIRCLE_SHA1
+          
+            make docker.build
+            make docker.push
+workflows:
+  version: 2
+  docker_builder:
+    jobs:
+      - build:
+          context: zeus

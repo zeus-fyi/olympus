@@ -34,7 +34,7 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["/bin/sh"]
-          args: [ "-c","olympus --postgres-conn-str=${PGPOOL_CONN_STR} --beacon-endpoint=${BEACON_AUTH}"]
+          args: [ "-c","olympus --postgres-conn-str=$(PGPOOL_CONN_STR) --beacon-endpoint=$(BEACON_AUTH}"]
           env:
             - name: PG_CONN_STR
               valueFrom:

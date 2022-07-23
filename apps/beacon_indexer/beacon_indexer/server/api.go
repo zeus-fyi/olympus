@@ -3,12 +3,11 @@ package server
 import (
 	"context"
 	"log"
-	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	v1 "github.com/zeus-fyi/olympus/beacon-indexer/api/v1"
 	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_fetcher"
 	"github.com/zeus-fyi/olympus/pkg/databases/postgres"
 )
@@ -21,14 +20,7 @@ var (
 func Api() {
 	// Echo instance
 	e := echo.New()
-
-	// Middleware
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
-
-	// Routes
-	e.GET("/health", health)
-
+	e = v1.Routes(e)
 	postgres.Pg = postgres.Db{}
 	postgres.Pg.InitPG(context.Background(), PGConnStr)
 	beacon_fetcher.InitFetcherService(BeaconEndpointURL)
@@ -37,11 +29,6 @@ func Api() {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-// Handler
-func health(c echo.Context) error {
-	return c.String(http.StatusOK, "Healthy")
 }
 
 func init() {

@@ -10,24 +10,39 @@ import (
 
 var fetcher BeaconFetcher
 
+var NewValidatorBatchSize = 1000
+var NewValidatorBalancesBatchSize = 1000
+
 func InitFetcherService(nodeURL string) {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 
 	fetcher.NodeEndpoint = nodeURL
 	fetchNewValidatorTimeout := time.Minute * 5
-	go FetchNewOrMissingValidators(10000, fetchNewValidatorTimeout)
+	go FetchNewOrMissingValidators(fetchNewValidatorTimeout)
 	fetchUpdateTimeout := time.Second * 20
-	go FetchFindAndQueryAndUpdateValidatorBalances(10000, fetchUpdateTimeout)
+	go FetchFindAndQueryAndUpdateValidatorBalances(fetchUpdateTimeout)
 }
 
-func FetchNewOrMissingValidators(batchSize int, sleepTime time.Duration) {
+func FetchNewOrMissingValidators(sleepTime time.Duration) {
 	log.Info().Msg("FetchNewOrMissingValidators")
 
 	for {
 		ctx := context.Background()
 		timeBegin := time.Now()
-		fetchValidatorsToInsert(ctx, batchSize, sleepTime)
+		fetchValidatorsToInsert(ctx, NewValidatorBatchSize, sleepTime)
 		log.Info().Interface("FetchNewOrMissingValidators took this many seconds to complete: ", time.Now().Sub(timeBegin))
+		time.Sleep(sleepTime)
+	}
+}
+
+func FetchFindAndQueryAndUpdateValidatorBalances(sleepTime time.Duration) {
+	log.Info().Msg("FetchFindAndQueryAndUpdateValidatorBalances")
+
+	for {
+		ctx := context.Background()
+		timeBegin := time.Now()
+		fetchAndUpdateValidatorBalances(ctx, NewValidatorBalancesBatchSize, sleepTime)
+		log.Info().Interface("FetchFindAndQueryAndUpdateValidatorBalances took this many seconds to complete: ", time.Now().Sub(timeBegin))
 		time.Sleep(sleepTime)
 	}
 }
@@ -38,19 +53,6 @@ func fetchValidatorsToInsert(ctx context.Context, batchSize int, contextTimeout 
 
 	err := fetcher.BeaconFindNewAndMissingValidatorIndexes(ctxTimeout, batchSize)
 	log.Info().Err(err).Msg("FetchNewOrMissingValidators")
-}
-
-func FetchFindAndQueryAndUpdateValidatorBalances(batchSize int, sleepTime time.Duration) {
-	log.Info().Msg("FetchFindAndQueryAndUpdateValidatorBalances")
-
-	for {
-		ctx := context.Background()
-		timeBegin := time.Now()
-		fetchAndUpdateValidatorBalances(ctx, batchSize, sleepTime)
-		log.Info().Interface("FetchFindAndQueryAndUpdateValidatorBalances took this many seconds to complete: ", time.Now().Sub(timeBegin))
-		time.Sleep(sleepTime)
-
-	}
 }
 
 func fetchAndUpdateValidatorBalances(ctx context.Context, batchSize int, contextTimeout time.Duration) {

@@ -1,0 +1,33 @@
+package v1
+
+import (
+	"net/http"
+
+	"github.com/labstack/echo/v4"
+	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_fetcher"
+	"github.com/zeus-fyi/olympus/pkg/logging"
+	"github.com/zeus-fyi/olympus/pkg/utils/strings"
+)
+
+func Health(c echo.Context) error {
+	return c.String(http.StatusOK, "Healthy")
+}
+
+func SetLogLevel(c echo.Context) error {
+	level := c.QueryParam("level")
+	return c.String(http.StatusOK, "Set logging level to : "+logging.SetLoggerLevel(level))
+}
+
+func SetNewValidatorBatchSize(c echo.Context) error {
+	batchSize := c.QueryParam("batchSize")
+	querySize := strings.IntStringParser(batchSize)
+	beacon_fetcher.NewValidatorBatchSize = querySize
+	return c.String(http.StatusOK, "SetNewValidatorBatchSize: "+batchSize)
+}
+
+func SetNewValidatorBalanceBatchSize(c echo.Context) error {
+	batchSize := c.QueryParam("batchSize")
+	querySize := strings.IntStringParser(batchSize)
+	beacon_fetcher.NewValidatorBalancesBatchSize = querySize
+	return c.String(http.StatusOK, "SetNewValidatorBatchSize: "+batchSize)
+}

@@ -33,26 +33,19 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command:
-            - sh
-            - -c
-            - |
-              olympus --postgres-conn-str=${PGPOOL_CONN_STR} --beacon-endpoint=${BEACON_AUTH}
+          command: ["/bin/sh"]
+          args: [ "-c","olympus --postgres-conn-str=${PGPOOL_CONN_STR} --beacon-endpoint=${BEACON_AUTH}"]
           env:
             - name: PG_CONN_STR
               valueFrom:
                 secretKeyRef:
                   name: postgres-auth
                   key: postgres-conn-str
-                  optional: false # same as default; "mysecret" must exist
-                  # and include a key named "username"
             - name: BEACON_NODE
               valueFrom:
                 secretKeyRef:
                   name: beacon-auth
                   key: beacon-conn-str
-                  optional: false # same as default; "mysecret" must exist
-                  # and include a key named "password"
           ports:
             - name: http
               containerPort: 9000

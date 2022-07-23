@@ -32,6 +32,9 @@ spec:
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          volumeMounts:
+            - mountPath: /scripts
+              name: cm-eth-indexer
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: [ "/bin/sh" ]
           args: [ "-c","/scripts/start.sh" ]
@@ -50,9 +53,6 @@ spec:
             - name: http
               containerPort: 9000
               protocol: TCP
-          volumeMounts:
-            - mountPath: /scripts
-              name: cm-eth-indexer
           livenessProbe:
             httpGet:
               path: /health
@@ -63,12 +63,12 @@ spec:
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
       volumes:
         - name: cm-eth-indexer
           configMap:
             name: cm-eth-indexer
             defaultMode: 0744
+      {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}

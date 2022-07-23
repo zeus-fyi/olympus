@@ -24,13 +24,13 @@ jobs:
             tar xf doctl.tar.gz -C /home/circleci/bin
       - run:
           name: Build and publish eth2-indexer image
-          working_directory: .
+          working_directory: makefiles/api
           command: |
             doctl registry login -t ${DIGITALOCEAN_ACCESS_TOKEN}
             GIT_SHA=$CIRCLE_SHA1
           
-            cd makefiles/api && make docker.build
-            cd makefiles/api && make docker.push
+            make docker.build
+            make docker.push
 workflows:
   version: 2
   docker_builder:

@@ -96,7 +96,8 @@ func podsPortForwardRequest(c echo.Context, request *PodActionRequest) error {
 		if request.EndpointHeaders != nil {
 			cli.Headers = *request.EndpointHeaders
 		}
-		r := cli.Get(ctx, endpoint)
+
+		r := cli.Get(ctx, string(cli.E)+"/"+endpoint)
 		close(stopChan)
 		log.Ctx(ctx).Debug().Msg("end port-forwarded commands")
 		return c.JSON(http.StatusOK, r.Body)

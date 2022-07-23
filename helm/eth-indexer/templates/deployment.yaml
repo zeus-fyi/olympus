@@ -42,15 +42,15 @@ spec:
             - name: PG_CONN_STR
               valueFrom:
                 secretKeyRef:
-                  name: indexer-secrets
+                  name: postgres-auth
                   key: postgres-conn-str
                   optional: false # same as default; "mysecret" must exist
                   # and include a key named "username"
             - name: BEACON_NODE
               valueFrom:
                 secretKeyRef:
-                  name: indexer-secrets
-                  key: beacon-endpoint
+                  name: beacon-auth
+                  key: beacon-conn-str
                   optional: false # same as default; "mysecret" must exist
                   # and include a key named "password"
           ports:

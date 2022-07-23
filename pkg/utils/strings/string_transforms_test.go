@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/databases/postgres"
+	"github.com/zeus-fyi/olympus/pkg/databases/postgres"
 )
 
 type General struct {

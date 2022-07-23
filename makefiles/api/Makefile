@@ -5,18 +5,21 @@ GIT_SHA := $(shell git rev-parse HEAD)
 IMG     := ${REPO}/${NAME}:${GIT_SHA}
 LATEST  := ${REPO}/${NAME}:latest
 
+app.indexer:
+	go run ../../cmd/beacon_indexer
+
 docker.print:
 	echo ${IMG} ${LATEST}
 
 docker.build:
-	@ docker build -t ${IMG} -t ${LATEST} -f ../../docker/Dockerfile ../../
+	@ docker build -t ${IMG} -t ${LATEST} -f ../../docker/beacon_indexer/Dockerfile ../../
 
 docker.push:
 	@ docker push ${IMG}
 	@ docker push ${LATEST}
 
 docker.pubbuildx:
-	@ docker buildx build -t ${IMG} -t ${LATEST} --platform=linux/amd64 -f ../../docker/Dockerfile ../../ --push
+	@ docker buildx build -t ${IMG} -t ${LATEST} --platform=linux/amd64 -f ../../docker/beacon_indexer/Dockerfile ../../ --push
 
 docker.run:
 	docker run -it -p 9000:9000 registry.digitalocean.com/zeus-fyi/zeus-indexer sh -c "olympus --postgres-conn-str='' --beacon-endpoint=''"

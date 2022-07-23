@@ -3,11 +3,10 @@
 # Learn more about .gitignore:
 #     https://www.atlassian.com/git/tutorials/saving-changes/gitignore
 
-databases/postgres/beacon-indexer/beacon-models/zzz.go
+pkg/databases/postgres/beacon-indexer/beacon-models/zzz.go
 TODO.txt
 bin/
 configs/config.yaml
-chartmuseum/
 
 # Node artifact files
 node_modules/

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/zeus-fyi/olympus/databases/postgres"
+	"github.com/zeus-fyi/olympus/pkg/databases/postgres"
 )
 
 func StringDelimitedSliceBuilderSQL(sb *strings.Builder, delimiter string, values postgres.RowValues) *strings.Builder {

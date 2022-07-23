@@ -51,8 +51,8 @@ spec:
               containerPort: 9000
               protocol: TCP
           volumeMounts:
-            - name: cm-eth-indexer
-              mountPath: /scripts
+            - mountPath: /scripts
+              name: cm-eth-indexer
           livenessProbe:
             httpGet:
               path: /health

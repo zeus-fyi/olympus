@@ -79,3 +79,4 @@ flux.all:
 
 flux.rec.git:
 	 flux reconcile source git ${NAMESPACE}
+	 flux reconcile source git flux-system

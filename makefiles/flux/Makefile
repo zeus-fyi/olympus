@@ -65,3 +65,9 @@ flux.all.sources:
 
 flux.not.ready:
 	flux get all -A --status-selector ready=false
+
+flux.all:
+	flux get all
+
+flux.rec.git:
+	 flux reconcile source git ${NAMESPACE}

@@ -38,7 +38,7 @@ type KubeCtxNs struct {
 }
 
 func (kCtx *KubeCtxNs) GetCtxName(env string) string {
-	return fmt.Sprintf("%s.%s.%s.%s", env, kCtx.CloudProvider, kCtx.Region, kCtx.CtxType)
+	return fmt.Sprintf("%s-%s-%s", kCtx.CloudProvider, kCtx.Region, kCtx.CtxType)
 }
 
 func (k *K8Util) GetNamespaces() (*v1.NamespaceList, error) {

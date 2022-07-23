@@ -8,6 +8,7 @@ TODO.txt
 bin/
 configs/config.yaml
 configs/age.agekey
+makefiles/flux/age.agekey
 # Node artifact files
 node_modules/
 dist/

@@ -1,4 +1,5 @@
 
+CONFIGS_PATH=../../configs
 PROD_FLUX_PATH=../../devops/apps/production
 NAMESPACE=eth-indexer
 
@@ -7,7 +8,6 @@ BEACON_SECRET_NAME=beacon-auth
 PG_SECRET_NAME=postgres-auth
 BEACON_SECRET=
 PG_SECRET=
-
 # git repo source, adding ssh key
 REPO_SSH_URL=ssh://git@github.com/zeus-fyi/olympus
 GIT_REPO_SSH_SECRET_NAME=eth-indexer-auth
@@ -46,7 +46,13 @@ flux.age:
 	cat age.agekey | \
     kubectl create secret generic sops-age \
     --namespace=flux-system \
-    --from-file=../../configs/age.agekey=/dev/stdin
+    --from-file=age.agekey=/dev/stdin
+
+flux.age.namespace:
+	cat age.agekey | \
+    kubectl create secret generic sops-age \
+    --namespace=${NAMESPACE} \
+    --from-file=age.agekey=/dev/stdin
 
 flux.watch:
 	flux get kustomizations --watch

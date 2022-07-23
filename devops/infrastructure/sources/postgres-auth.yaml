@@ -1,31 +1,28 @@
 apiVersion: v1
 data:
-    postgres-conn-str: ENC[AES256_GCM,data:Gq2yZ7J2qKWnF09XYzzDWJYfhbQaiCtIJKBamjdfhiLzdOj71hoDhTjIvbe3gKYzqTLKECJFFdh39APyuWG7TTZBLaUaHRfwHoddX3Me9JgD8jzR4CqZftMRN4J+lbFJKQA/NghHBTcb/6heKHdA8NXn2sLJEQmyG9SJyKt8Tbjo5tbe+eAkW4Ol/k8/P7X+6ndEfabPj6KqluVjKKqeSrqTZhIicVH1Tjh3Nvt3eo8RBvQErTgOysiQJk0yVhsMjdYrVeQPO4L5Cpis7hLXeEWQVwMUd4arflisvHXn/TDoWw1L5xlrmjZ7d99Y2OsJ4+PEr5kSX8I1GwqFoX/7c3D9+fKZ5F9INoF/zvHJI0G2vHZ0Ald8mk3ScquC/3/1o9LuF7b5K5Q=,iv:fhPpofmbR21mtBj0gKSuQnwjJr1lqAJGRONIjnEPGsc=,tag:iPnTQ/2tVktbXWtlXA17kQ==,type:str]
+  postgres-conn-str: ENC[AES256_GCM,data:EqX1mr7mHaUbtW3gt45Su/P6OAyMO6Sl9ZjfSOkHLZbPn1bWQLGQD8PAcENMDU5aQKwVA6cx2BPx+XxeOoIv0cxveFMS+X3f1pidgXXGGFN5ZqgVtklHchDEz42OFCvy1BxcrJct9S+DojHu8l7IGK9irndZtFBcTggUT7n/HshLV3m7DKhiARtMjZ5oVSn96Foo81fgRgS4sx2wqxKNi5/ANkaGK8mc0z8iaWNhvMCSzP6FNtyXtUnYG2+R58s2g17tk312h6YR6CUcLE+7QCIk+CtBCrWubVAajTSWCxQGpt6SXBabPmQaLuuvK81yAKJb0jK41TzynXE88xUaQP6iezPC3VCZRTbRSz3Z6ng6VJYyE5XXssGSNQYlNxeb59/vuDoEquE=,iv:AcwZtzRpRownpNCInpAllGMuc9/e69/OhMeiPwyiTug=,tag:+w9YUVST55gKVvmPZdOO9A==,type:str]
 kind: Secret
 metadata:
-    creationTimestamp: null
-    name: postgres-auth
-    namespace: eth-indexer
+  creationTimestamp: null
+  name: postgres-auth
+  namespace: eth-indexer
 sops:
-    kms: []
-    gcp_kms: []
-    azure_kv: []
-    hc_vault: []
-    age: []
-    lastmodified: "2022-07-17T05:41:22Z"
-    mac: ENC[AES256_GCM,data:yUhZDl5Zzp9VzrKyDw93tLYuACNezf91QDMT90vLsceCh6IYOQUec5MiaPD0hCr84dlX4g4aLvP/hWp+7lJOoaBt6VQI4hxaf/wt93mHcFi7w5sLgkeak0Pz1WS6X/hLYhyJADmm/6/QH4mdfjon9ELUw1JOkddGflmCqcFrR5Q=,iv:u4nAmnY7JhRQBcZZEi+a9/ZOB/kJNida4/ZOigA6FnQ=,tag:JNwBw7NGXjXlGoXhuvnInQ==,type:str]
-    pgp:
-        - created_at: "2022-07-17T05:41:21Z"
-          enc: |
-            -----BEGIN PGP MESSAGE-----
-
-            hF4DoBxvd+FtCAoSAQdACQTfwZ1uSkrOm0nIlf8vhqTE0QMhDI0MaNQ6Wx6WCTIw
-            yxTILMlYvHNm9ZEOwKgxLD9Dy2Xuz7Q9OXNtDG8lw1Uj9bwpqs+722DMdeufF0Rz
-            1GgBCQIQriAvOlfBQWXWYSHhnkt+bYLapvHX0u9X5FTDMKqkIntXm5xNxp3AlX0Q
-            QmOTxzz6iGfBRewVEfgLo23kPh/VnoSEt0bkEZqfzz/Wykyb0XjxF3bTsdlOyfSV
-            2VC269/gmXb+xA==
-            =I0K9
-            -----END PGP MESSAGE-----
-          fp: 7C417BF72F7500DBE82B5C5269090D0D4093C215
-    encrypted_regex: ^(data|stringData)$
-    version: 3.7.3
+  kms: []
+  gcp_kms: []
+  azure_kv: []
+  hc_vault: []
+  age:
+    - recipient: age14h7yvfgkcdat8kdk2wl7gmxjw6a9j32yn2zhz2e4fgercv5gnf0s4svmu8
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBCajdIbjgwZ3VpdWQ3SWh5
+        ajFjMWh4UktGd1NFUW5CbWQ0NHkxSlk4RVdNClloUFVYc3ozWTRXcStZNTZTQU13
+        aCs0S3ZaeXE4QUZLQ3l5SUdSZzhUZDAKLS0tIHAvUFlZRno5d3c3Vjl2V2xpVitU
+        ZmdyenE0dzVwdlhyL29zaW02eE81TGsKZEdSjhpRrTnojycJviMvrQNzjIgs2O8x
+        2YsFOnNIOFi0Wg9Q9z1bTduBPj+H77u3LbQsQ5NGcp6lfUHJnRGLmg==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2022-07-23T20:14:26Z"
+  mac: ENC[AES256_GCM,data:pgKorSA7vGw07sf9fsyIo9OTk9hAUIgejrysC6jRFN3ecFoONzTj/DhX+jK8m9fp7hWTVSptrcDQ+cS2sWRSvOTxxNnudew4a1MBV1taCFjnBL12abyqk4uoTuutpYxNuXu2jRWdYh41EwhHOGLuRjGNf4hR8YWCMqWG0KuSunE=,iv:1HApdZWzWNuGl4UbblQ80SAPvWzcY663RO7b8tkZU9M=,tag:MyoM+Raab8ZIw0gSAXEJZg==,type:str]
+  pgp: []
+  encrypted_regex: ^(data|stringData)$
+  version: 3.7.3

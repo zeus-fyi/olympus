@@ -94,6 +94,7 @@ func (c Client) respParser(resp *http.Response) Reply {
 	}
 	r.Status = resp.Status
 	r.BodyBytes = body
+	r.StatusCode = resp.StatusCode
 	if c.EnableBytesStrDecode {
 		r.Body = fmt.Sprintf("%s", body)
 	}

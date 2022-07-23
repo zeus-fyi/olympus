@@ -7,7 +7,7 @@ pkg/databases/postgres/beacon-indexer/beacon-models/zzz.go
 TODO.txt
 bin/
 configs/config.yaml
-
+configs/age.agekey
 # Node artifact files
 node_modules/
 dist/

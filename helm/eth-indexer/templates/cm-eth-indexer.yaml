@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-eth-indexer
+data:
+  start.sh: |-
+    #!/bin/sh
+    exec olympus --postgres-conn-str="${PG_CONN_STR}" --beacon-endpoint="${BEACON_NODE}"

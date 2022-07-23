@@ -9,7 +9,7 @@ COPY configs/ca-certificate.crt .
 
 RUN go mod download
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o beacon_indexer apps/beacon_indexer/main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o beacon_indexer beacon_indexer/main.go
 
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates

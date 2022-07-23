@@ -6,7 +6,7 @@ IMG     := ${REPO}/${NAME}:${GIT_SHA}
 LATEST  := ${REPO}/${NAME}:latest
 
 app.indexer:
-	go run ../../cmd/beacon_indexer
+	go run ../../apps/beacon_indexer
 
 docker.print:
 	echo ${IMG} ${LATEST}

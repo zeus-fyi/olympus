@@ -6,7 +6,7 @@ IMG     := ${REPO}/${NAME}:${GIT_SHA}
 LATEST  := ${REPO}/${NAME}:latest
 
 app.indexer:
-	go run ../../cmd/autok8s
+	go run ../../apps/autok8s
 
 docker.build:
 	@ docker build -t ${IMG} -t ${LATEST} -f ../../docker/autok8s/Dockerfile ../../

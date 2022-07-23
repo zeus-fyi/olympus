@@ -2,6 +2,6 @@ go 1.18
 
 use (
 	.
-	./cmd/autok8s
-	./cmd/beacon_indexer
+	./apps/autok8s
+	./apps/beacon_indexer
 )

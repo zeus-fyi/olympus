@@ -27,3 +27,15 @@ flux.age:
     kubectl create secret generic sops-age \
     --namespace=flux-system \
     --from-file=../../configs/age.agekey=/dev/stdin
+
+flux.watch:
+	flux get kustomizations --watch
+
+flux.check:
+	flux check
+
+flux.all.sources:
+	flux get sources all -A
+
+flux.not.ready:
+	flux get all -A --status-selector ready=false

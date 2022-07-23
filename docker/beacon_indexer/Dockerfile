@@ -9,8 +9,6 @@ COPY configs/ca-certificate.crt .
 
 RUN go mod download
 
-COPY .. .
-
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o beacon_indexer apps/beacon_indexer/main.go
 
 FROM ubuntu:22.04

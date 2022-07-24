@@ -22,10 +22,10 @@ docker.pubbuildx:
 	@ docker buildx build -t ${IMG} -t ${LATEST} --platform=linux/amd64 -f ../../docker/beacon_indexer/Dockerfile ../../ --push
 
 docker.run:
-	docker run -it -p 9000:9000 registry.digitalocean.com/zeus-fyi/zeus-indexer sh -c "olympus --postgres-conn-str='' --beacon-endpoint=''"
+	docker run -it -p 9000:9000 registry.digitalocean.com/zeus-fyi/zeus-indexer:latest sh -c "beacon_indexer --postgres-conn-str='' --beacon-endpoint=''"
 
 docker.debug:
-	docker run -it --entrypoint /bin/bash registry.digitalocean.com/zeus-fyi/zeus-indexer
+	docker run -it --entrypoint /bin/bash registry.digitalocean.com/zeus-fyi/zeus-indexer:latest
 
 k8s.upgrade:
 	kubectl set image deployment.v1.apps/indexer-deployment zeus-indexer=registry.digitalocean.com/zeus-fyi/zeus-indexer:${VERSION}

@@ -15,26 +15,26 @@ func Health(c echo.Context) error {
 }
 
 func SetLogLevel(c echo.Context) error {
-	level := c.QueryParam("level")
+	level := c.Param("level")
 	return c.String(http.StatusOK, "Set logging level to : "+logging.SetLoggerLevel(level))
 }
 
 func SetNewValidatorBatchSize(c echo.Context) error {
-	batchSize := c.QueryParam("batchSize")
+	batchSize := c.Param("batchSize")
 	querySize := strings.IntStringParser(batchSize)
 	beacon_fetcher.NewValidatorBatchSize = querySize
 	return c.String(http.StatusOK, "SetNewValidatorBatchSize: "+batchSize)
 }
 
 func SetNewValidatorBalanceBatchSize(c echo.Context) error {
-	batchSize := c.QueryParam("batchSize")
+	batchSize := c.Param("batchSize")
 	querySize := strings.IntStringParser(batchSize)
 	beacon_fetcher.NewValidatorBalancesBatchSize = querySize
 	return c.String(http.StatusOK, "SetNewValidatorBatchSize: "+batchSize)
 }
 
 func SetNewValidatorBalanceFetchTimeout(c echo.Context) error {
-	seconds := c.QueryParam("seconds")
+	seconds := c.Param("seconds")
 	beacon_fetcher.NewValidatorBalancesTimeout = time.Duration(strings.Int64StringParser(seconds)) * time.Second
 	return c.String(http.StatusOK, "SetNewValidatorBalanceFetchTimeout: "+seconds)
 }

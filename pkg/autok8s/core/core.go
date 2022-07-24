@@ -93,6 +93,15 @@ func (k *K8Util) ConnectToK8sFromConfig(dir string) {
 	k.SetContext("")
 }
 
+func (k *K8Util) DefaultK8sCfgPath() string {
+	home, exists := os.LookupEnv("HOME")
+	if !exists {
+		home = "/root"
+	}
+
+	return filepath.Join(home, ".kube", "config")
+}
+
 func (k *K8Util) K8Printer(v interface{}, env string) (interface{}, error) {
 	if k.PrintOn && k.FileName != "" {
 		if k.PrintPath == "" && env != "" {

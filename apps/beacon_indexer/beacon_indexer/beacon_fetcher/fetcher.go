@@ -12,6 +12,7 @@ var fetcher BeaconFetcher
 
 var NewValidatorBatchSize = 1000
 var NewValidatorBalancesBatchSize = 1000
+var NewValidatorBalancesTimeout = time.Second * 20
 
 func InitFetcherService(nodeURL string) {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
@@ -19,8 +20,7 @@ func InitFetcherService(nodeURL string) {
 	fetcher.NodeEndpoint = nodeURL
 	fetchNewValidatorTimeout := time.Minute * 5
 	go FetchNewOrMissingValidators(fetchNewValidatorTimeout)
-	fetchUpdateTimeout := time.Second * 20
-	go FetchFindAndQueryAndUpdateValidatorBalances(fetchUpdateTimeout)
+	go FetchFindAndQueryAndUpdateValidatorBalances()
 }
 
 func FetchNewOrMissingValidators(sleepTime time.Duration) {
@@ -35,15 +35,15 @@ func FetchNewOrMissingValidators(sleepTime time.Duration) {
 	}
 }
 
-func FetchFindAndQueryAndUpdateValidatorBalances(sleepTime time.Duration) {
+func FetchFindAndQueryAndUpdateValidatorBalances() {
 	log.Info().Msg("FetchFindAndQueryAndUpdateValidatorBalances")
 
 	for {
 		ctx := context.Background()
 		timeBegin := time.Now()
-		fetchAndUpdateValidatorBalances(ctx, NewValidatorBalancesBatchSize, sleepTime)
+		fetchAndUpdateValidatorBalances(ctx, NewValidatorBalancesBatchSize, NewValidatorBalancesTimeout)
 		log.Info().Interface("FetchFindAndQueryAndUpdateValidatorBalances took this many seconds to complete: ", time.Now().Sub(timeBegin))
-		time.Sleep(sleepTime)
+		time.Sleep(NewValidatorBalancesTimeout)
 	}
 }
 

@@ -15,5 +15,7 @@ func Routes(e *echo.Echo) *echo.Echo {
 	e.GET("/log/:level", SetLogLevel)
 	e.GET("/validator/new/:batchSize", SetNewValidatorBatchSize)
 	e.GET("/validator/balances/:batchSize", SetNewValidatorBalanceBatchSize)
+	e.GET("/validator/balances/timeout/:seconds", SetNewValidatorBalanceFetchTimeout)
+
 	return e
 }

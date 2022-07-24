@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -36,6 +37,10 @@ type ClientRequest struct {
 	EndpointHeaders map[string]string
 }
 
+type ClientResp struct {
+	ReplyBodies map[string]string
+}
+
 func HandlePodActionRequest(c echo.Context) error {
 	request := new(PodActionRequest)
 	if err := c.Bind(request); err != nil {
@@ -54,12 +59,43 @@ func HandlePodActionRequest(c echo.Context) error {
 		return podsDeleteAllRequest(c, request)
 	}
 	if request.Action == "port-forward" {
-		return podsPortForwardRequest(c, request)
+		bytesResp, err := podsPortForwardRequest(request)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, bytesResp)
+		}
+		return c.JSON(http.StatusOK, bytesResp)
+	}
+	if request.Action == "port-forward-all" {
+		return podsPortForwardRequestToAllPods(c, request)
 	}
 	return c.JSON(http.StatusBadRequest, nil)
 }
 
-func podsPortForwardRequest(c echo.Context, request *PodActionRequest) error {
+func podsPortForwardRequestToAllPods(c echo.Context, request *PodActionRequest) error {
+	ctx := context.Background()
+	log.Ctx(ctx).Debug().Msg("start podsPortForwardRequestToAllPods")
+
+	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, nil)
+	if err != nil {
+		return err
+	}
+	var respBody ClientResp
+	respBody.ReplyBodies = make(map[string]string, len(pods.Items))
+	for _, pod := range pods.Items {
+		name := pod.ObjectMeta.Name
+		if strings.Contains(name, request.PodName) {
+			bytesResp, reqErr := podsPortForwardRequest(request)
+			if reqErr != nil {
+				log.Err(reqErr).Msgf("port-forwarded request to pod %s failed", pod.GetName())
+				return c.JSON(http.StatusBadRequest, "port-forwarded request failed")
+			}
+			respBody.ReplyBodies[pod.GetName()] = string(bytesResp)
+		}
+	}
+	return c.JSON(http.StatusOK, respBody)
+}
+
+func podsPortForwardRequest(request *PodActionRequest) ([]byte, error) {
 	ctx := context.Background()
 	log.Ctx(ctx).Debug().Msg("start podsPortForwardRequest")
 
@@ -69,8 +105,9 @@ func podsPortForwardRequest(c echo.Context, request *PodActionRequest) error {
 	startChan := make(chan struct{}, 1)
 	stopChan := make(chan struct{}, 1)
 
+	var emptyBytes []byte
 	if request.ClientReq == nil {
-		return c.JSON(http.StatusBadRequest, "no client request info provided")
+		return emptyBytes, errors.New("no client request info provided")
 	}
 	clientReq := *request.ClientReq
 	go func() {
@@ -115,7 +152,7 @@ func podsPortForwardRequest(c echo.Context, request *PodActionRequest) error {
 	switch clientReq.MethodHTTP {
 	case http.MethodPost:
 		if finalPayload == nil {
-			return c.JSON(http.StatusBadRequest, "no payload supplied for POST request")
+			return emptyBytes, errors.New("no payload supplied for POST request")
 		}
 		r = cli.Post(ctx, string(cli.E)+"/"+clientReq.Endpoint, finalPayload)
 	default:
@@ -126,8 +163,7 @@ func podsPortForwardRequest(c echo.Context, request *PodActionRequest) error {
 		}
 	}
 	log.Ctx(ctx).Debug().Msg("end port-forwarded commands")
-	return c.JSON(http.StatusOK, string(r.BodyBytes))
-
+	return r.BodyBytes, nil
 }
 
 func podsDeleteRequest(c echo.Context, request *PodActionRequest) error {

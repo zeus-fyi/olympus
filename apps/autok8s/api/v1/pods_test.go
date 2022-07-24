@@ -49,6 +49,26 @@ func (p *PodsHandlerTestSuite) TestPodPortForwardGET() {
 	p.Require().NotEmpty(podPortForwardReq.logs)
 }
 
+func (p *PodsHandlerTestSuite) TestPodPortForwardAll() {
+	var kns = autok8s_core.KubeCtxNs{CloudProvider: "do", Region: "sfo3", CtxType: "zeus-k8s-blockchain", Namespace: "eth-indexer"}
+
+	cliReq := ClientRequest{
+		MethodHTTP:      "GET",
+		Endpoint:        "health",
+		Ports:           []string{"9000:9000"},
+		Payload:         nil,
+		EndpointHeaders: nil,
+	}
+	podActionRequest := PodActionRequest{
+		Action:     "port-forward-all",
+		PodName:    "eth-indexer-eth-indexer",
+		ClientReq:  &cliReq,
+		K8sRequest: K8sRequest{kns},
+	}
+	podPortForwardReq := p.postK8Request(podActionRequest, http.StatusOK, false)
+	p.Require().NotEmpty(podPortForwardReq.logs)
+}
+
 type AdminConfig struct {
 	LogLevel *zerolog.Level
 

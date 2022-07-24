@@ -40,7 +40,7 @@ func (d *Db) InitPG(ctx context.Context, connStr string) *pgxpool.Pool {
 	if err != nil {
 		panic(err)
 	}
-	config.MinConns = 5
+	config.MinConns = 3
 	config.MaxConnLifetime = 5 * time.Minute
 
 	c, err := pgxpool.Connect(ctx, config.ConnString())

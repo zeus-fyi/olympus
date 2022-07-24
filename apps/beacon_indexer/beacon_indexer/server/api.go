@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	v1 "github.com/zeus-fyi/olympus/beacon-indexer/api/v1"
@@ -25,6 +26,7 @@ func Api() {
 	postgres.Pg.InitPG(context.Background(), PGConnStr)
 	beacon_fetcher.InitFetcherService(BeaconEndpointURL)
 	// Start server
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	err := e.Start(":9000")
 	if err != nil {
 		log.Fatal(err)

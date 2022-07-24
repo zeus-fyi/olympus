@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_fetcher"
+	beacon_models "github.com/zeus-fyi/olympus/pkg/databases/postgres/beacon-indexer/beacon-models"
 	"github.com/zeus-fyi/olympus/pkg/logging"
 )
 
@@ -83,6 +85,26 @@ func HandleAdminGetRequest(c echo.Context) error {
 		ValidatorBalancesTimeout:   beacon_fetcher.NewValidatorBalancesTimeout,
 	}
 	return c.JSON(http.StatusOK, cfgRead)
+}
+
+type DebugReader struct {
+	ValidatorCount               int
+	ValidatorBalanceEntriesCount int
+}
+
+func HandleDebugRequest(c echo.Context) (err error) {
+	log.Info().Msg("HandleDebugRequest")
+	ctx := context.Background()
+	var debug DebugReader
+	debug.ValidatorBalanceEntriesCount, err = beacon_models.SelectCountValidatorEpochBalanceEntries(ctx)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "SelectCountValidatorEpochBalanceEntries had an error")
+	}
+	debug.ValidatorCount, err = beacon_models.SelectCountValidatorEntries(ctx)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "SelectCountValidatorEntries had an error")
+	}
+	return c.JSON(http.StatusOK, debug)
 }
 
 func Health(c echo.Context) error {

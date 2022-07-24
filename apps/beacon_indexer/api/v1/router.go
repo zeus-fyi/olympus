@@ -14,5 +14,6 @@ func Routes(e *echo.Echo) *echo.Echo {
 	e.POST("/admin", HandleAdminConfigRequest)
 	e.GET("/admin", HandleAdminGetRequest)
 
+	e.GET("/debug", HandleDebugRequest)
 	return e
 }

@@ -114,3 +114,13 @@ func (vs *Validators) UpdateValidatorBalancesAndActivationEligibility(ctx contex
 	}
 	return &selectedValidators, nil
 }
+
+func SelectCountValidatorEntries(ctx context.Context) (int, error) {
+	var count int
+	query := `SELECT COUNT(*) FROM validators`
+	err := postgres.Pg.QueryRow(ctx, query).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}

@@ -76,3 +76,13 @@ func (vb *ValidatorBalancesEpoch) SelectValidatorBalances(ctx context.Context) (
 	}
 	return &selectedValidatorBalances, err
 }
+
+func SelectCountValidatorEpochBalanceEntries(ctx context.Context) (int, error) {
+	var count int
+	query := `SELECT COUNT(*) FROM validator_balances_at_epoch`
+	err := postgres.Pg.QueryRow(ctx, query).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}

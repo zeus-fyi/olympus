@@ -2,11 +2,12 @@ FROM golang:1.18-buster as builder
 
 WORKDIR /app
 
-COPY apps/beacon_indexer .
-# Download necessary Go modules
-COPY apps/beacon_indexer/go.mod .
-COPY apps/beacon_indexer/go.sum .
 COPY configs/ca-certificate.crt .
+
+RUN cd apps/beacon_indexer
+# Download necessary Go modules
+COPY go.mod .
+COPY go.sum .
 
 RUN go mod download
 COPY . .

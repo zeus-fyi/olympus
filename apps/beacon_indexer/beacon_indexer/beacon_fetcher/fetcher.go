@@ -12,7 +12,7 @@ var fetcher BeaconFetcher
 
 var NewValidatorBatchSize = 1000
 var NewValidatorBalancesBatchSize = 1000
-var NewValidatorBalancesTimeout = time.Second * 20
+var NewValidatorBalancesTimeout = time.Second * 60
 
 func InitFetcherService(nodeURL string) {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix

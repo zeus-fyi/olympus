@@ -61,9 +61,9 @@ func HandlePodActionRequest(c echo.Context) error {
 	if request.Action == "port-forward" {
 		bytesResp, err := podsPortForwardRequest(request)
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, bytesResp)
+			return c.JSON(http.StatusBadRequest, string(bytesResp))
 		}
-		return c.JSON(http.StatusOK, bytesResp)
+		return c.JSON(http.StatusOK, string(bytesResp))
 	}
 	if request.Action == "port-forward-all" {
 		return podsPortForwardRequestToAllPods(c, request)

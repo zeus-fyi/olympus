@@ -22,11 +22,16 @@ type PodActionRequest struct {
 	PodName       string
 	ContainerName string
 
-	Ports           *[]string
-	Endpoint        *string
-	EndpointHeaders *map[string]string
-	LogOpts         *v1.PodLogOptions
-	DeleteOpts      *metav1.DeleteOptions
+	ClientReq  *ClientRequest
+	LogOpts    *v1.PodLogOptions
+	DeleteOpts *metav1.DeleteOptions
+}
+
+type ClientRequest struct {
+	Endpoint        string
+	Ports           []string
+	Payload         []byte
+	EndpointHeaders map[string]string
 }
 
 func HandlePodActionRequest(c echo.Context) error {
@@ -66,9 +71,10 @@ func podsPortForwardRequest(c echo.Context, request *PodActionRequest) error {
 	stopChan := make(chan struct{}, 1)
 
 	var ports []string
-	if request.Ports != nil {
-		ports = *request.Ports
+	if request.ClientReq == nil {
+		return c.JSON(http.StatusBadRequest, "no client request info provided")
 	}
+	clientReq := *request.ClientReq
 	go func() {
 		log.Ctx(ctx).Debug().Msg("start port-forward thread")
 		address := "localhost"
@@ -79,6 +85,7 @@ func podsPortForwardRequest(c echo.Context, request *PodActionRequest) error {
 
 	log.Ctx(ctx).Debug().Msg("awaiting signal")
 	<-startChan
+	defer close(stopChan)
 	log.Ctx(ctx).Debug().Msg("port ready chan ok")
 	go func() {
 		sig := <-sigs
@@ -87,25 +94,18 @@ func podsPortForwardRequest(c echo.Context, request *PodActionRequest) error {
 	}()
 
 	log.Ctx(ctx).Debug().Msg("do port-forwarded commands")
-	if request.Endpoint != nil && request.Ports != nil {
-		endpoint := *request.Endpoint
-		cli := client.Client{}
-		port := ""
-		for _, po := range ports {
-			port, _, _ = strings.Cut(po, ":")
-		}
-		cli.E = client.Endpoint(fmt.Sprintf("http://localhost:%s", port))
-
-		if request.EndpointHeaders != nil {
-			cli.Headers = *request.EndpointHeaders
-		}
-
-		r := cli.Get(ctx, string(cli.E)+"/"+endpoint)
-		close(stopChan)
-		log.Ctx(ctx).Debug().Msg("end port-forwarded commands")
-		return c.JSON(http.StatusOK, string(r.BodyBytes))
+	cli := client.Client{}
+	port := ""
+	for _, po := range ports {
+		port, _, _ = strings.Cut(po, ":")
 	}
-	return c.JSON(http.StatusBadRequest, "")
+	cli.E = client.Endpoint(fmt.Sprintf("http://localhost:%s", port))
+	cli.Headers = clientReq.EndpointHeaders
+	r := cli.Get(ctx, string(cli.E)+"/"+clientReq.Endpoint)
+
+	log.Ctx(ctx).Debug().Msg("end port-forwarded commands")
+	return c.JSON(http.StatusOK, string(r.BodyBytes))
+
 }
 
 func podsDeleteRequest(c echo.Context, request *PodActionRequest) error {

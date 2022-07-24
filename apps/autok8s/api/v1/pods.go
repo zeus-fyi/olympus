@@ -28,10 +28,11 @@ type PodActionRequest struct {
 }
 
 type ClientRequest struct {
-	RequestType     string
+	MethodHTTP      string
 	Endpoint        string
 	Ports           []string
-	Payload         []byte
+	Payload         *string
+	PayloadBytes    *[]byte
 	EndpointHeaders map[string]string
 }
 
@@ -98,8 +99,32 @@ func podsPortForwardRequest(c echo.Context, request *PodActionRequest) error {
 	}
 	cli.E = client.Endpoint(fmt.Sprintf("http://localhost:%s", port))
 	cli.Headers = clientReq.EndpointHeaders
-	r := cli.Get(ctx, string(cli.E)+"/"+clientReq.Endpoint)
 
+	var r client.Reply
+	payloadBytes := clientReq.PayloadBytes
+	payload := clientReq.Payload
+	var finalPayload []byte
+
+	// prefer bytes, but use string if exists
+	if payloadBytes != nil {
+		finalPayload = *payloadBytes
+	} else if payload != nil {
+		finalPayload = []byte(*payload)
+	}
+
+	switch clientReq.MethodHTTP {
+	case http.MethodPost:
+		if finalPayload == nil {
+			return c.JSON(http.StatusBadRequest, "no payload supplied for POST request")
+		}
+		r = cli.Post(ctx, string(cli.E)+"/"+clientReq.Endpoint, finalPayload)
+	default:
+		if finalPayload != nil {
+			r = cli.GetWithPayload(ctx, string(cli.E)+"/"+clientReq.Endpoint, finalPayload)
+		} else {
+			r = cli.Get(ctx, string(cli.E)+"/"+clientReq.Endpoint)
+		}
+	}
 	log.Ctx(ctx).Debug().Msg("end port-forwarded commands")
 	return c.JSON(http.StatusOK, string(r.BodyBytes))
 

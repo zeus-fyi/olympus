@@ -57,8 +57,8 @@ $BODY$
 DECLARE
     unix_utc_now numeric := (SELECT EXTRACT(epoch FROM NOW() at TIME ZONE ('UTC')));
     unix_time_from_genesis numeric := (unix_utc_now - 1606824023);
-    two_epoch_delay_seconds numeric := 12*64;
-    unix_time_from_genesis_behind_slot numeric := unix_time_from_genesis - two_epoch_delay_seconds;
+    four_epoch_delay_seconds numeric := 12*32*4;
+    unix_time_from_genesis_behind_slot numeric := unix_time_from_genesis - four_epoch_delay_seconds;
 BEGIN
     RETURN unix_time_from_genesis_behind_slot/12;
 END;
@@ -71,7 +71,7 @@ CREATE OR REPLACE FUNCTION "public"."mainnet_finalized_epoch"()
 $BODY$
 DECLARE
 BEGIN
-    RETURN (SELECT mainnet_finalized_slot()/32)-1;
+    RETURN (SELECT mainnet_finalized_slot()/32);
 END;
 $BODY$
 LANGUAGE plpgsql VOLATILE

@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
@@ -22,11 +23,22 @@ func Api() {
 	// Echo instance
 	e := echo.New()
 	e = v1.Routes(e)
+	ctx := context.Background()
 	postgres.Pg = postgres.Db{}
-	postgres.Pg.InitPG(context.Background(), PGConnStr)
+	MinConn := int32(3)
+	MaxConnLifetime := 15 * time.Minute
+
+	pgCfg := postgres.ConfigChangePG{
+		MinConn:           &MinConn,
+		MaxConnLifetime:   &MaxConnLifetime,
+		HealthCheckPeriod: nil,
+	}
+	postgres.Pg.InitPG(ctx, PGConnStr)
+	_ = postgres.UpdateConfigPG(ctx, pgCfg)
 	beacon_fetcher.InitFetcherService(BeaconEndpointURL)
 	// Start server
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+
 	err := e.Start(":9000")
 	if err != nil {
 		log.Fatal(err)

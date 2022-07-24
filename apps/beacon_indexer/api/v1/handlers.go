@@ -9,12 +9,17 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_fetcher"
+	"github.com/zeus-fyi/olympus/pkg/databases/postgres"
 	beacon_models "github.com/zeus-fyi/olympus/pkg/databases/postgres/beacon-indexer/beacon-models"
 	"github.com/zeus-fyi/olympus/pkg/logging"
 )
 
 type AdminConfigRequest struct {
 	AdminConfig
+}
+
+type AdminDBConfigRequest struct {
+	postgres.ConfigChangePG
 }
 
 type AdminConfig struct {
@@ -105,6 +110,48 @@ func HandleDebugRequest(c echo.Context) (err error) {
 		return c.JSON(http.StatusInternalServerError, "SelectCountValidatorEntries had an error")
 	}
 	return c.JSON(http.StatusOK, debug)
+}
+
+func HandleDebugGetPgConfig(c echo.Context) (err error) {
+	log.Info().Msg("HandleDebugGetPgConfig")
+	ctx := context.Background()
+	cfg := postgres.ReadCfg(ctx)
+	return c.JSON(http.StatusOK, cfg)
+}
+
+func HandleDebugUpdatePgConfig(c echo.Context) (err error) {
+	log.Info().Msg("HandleDebugUpdatePgConfig")
+	request := new(AdminDBConfigRequest)
+	if err = c.Bind(request); err != nil {
+		return err
+	}
+	ctx := context.Background()
+	err = postgres.UpdateConfigPG(ctx, request.ConfigChangePG)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "error updating config")
+	}
+	return c.JSON(http.StatusOK, "updated db config")
+}
+
+func HandleDebugPgStats(c echo.Context) (err error) {
+	log.Info().Msg("HandleDebugPgStats")
+	ctx := context.Background()
+	stats := postgres.Pg.PoolStats(ctx)
+
+	if stats != nil {
+		return c.JSON(http.StatusOK, *stats)
+	}
+	return c.JSON(http.StatusInternalServerError, stats)
+}
+
+func HandlePingDB(c echo.Context) (err error) {
+	log.Info().Msg("HandleDebugPgStats")
+	ctx := context.Background()
+	err = postgres.Pg.Ping(ctx)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+	return c.JSON(http.StatusOK, "pinged db successfully")
 }
 
 func Health(c echo.Context) error {

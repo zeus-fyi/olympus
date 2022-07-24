@@ -14,6 +14,11 @@ func Routes(e *echo.Echo) *echo.Echo {
 	e.POST("/admin", HandleAdminConfigRequest)
 	e.GET("/admin", HandleAdminGetRequest)
 
-	e.GET("/debug", HandleDebugRequest)
+	e.GET("/debug/db/counts", HandleDebugRequest)
+	e.GET("/debug/db/stats", HandleDebugPgStats)
+	e.GET("/debug/db/ping", HandlePingDB)
+	e.GET("/debug/db/config", HandleDebugGetPgConfig)
+
+	e.POST("/debug/db/config", HandleDebugUpdatePgConfig)
 	return e
 }

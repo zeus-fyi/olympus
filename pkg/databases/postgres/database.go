@@ -6,10 +6,11 @@ import (
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/rs/zerolog/log"
 )
 
 type Db struct {
-	pgpool *pgxpool.Pool
+	Pgpool *pgxpool.Pool
 }
 
 type Model interface {
@@ -28,27 +29,25 @@ var connStr string
 var Pg Db
 
 func (d *Db) pool(ctx context.Context) *pgxpool.Pool {
-	if Pg.pgpool != nil {
-		return Pg.pgpool
+	if Pg.Pgpool != nil {
+		return Pg.Pgpool
 	}
-	Pg.pgpool = d.InitPG(ctx, connStr)
+	Pg.Pgpool = d.InitPG(ctx, connStr)
 	return d.InitPG(ctx, connStr)
 }
 
-func (d *Db) InitPG(ctx context.Context, connStr string) *pgxpool.Pool {
-	config, err := pgxpool.ParseConfig(connStr)
+func (d *Db) InitPG(ctx context.Context, pgConnStr string) *pgxpool.Pool {
+	config, err := pgxpool.ParseConfig(pgConnStr)
 	if err != nil {
 		panic(err)
 	}
-	config.MinConns = 3
-	config.MaxConnLifetime = 5 * time.Minute
-
-	c, err := pgxpool.Connect(ctx, config.ConnString())
+	connStr = config.ConnString()
+	c, err := pgxpool.Connect(ctx, connStr)
 	if err != nil {
 		panic(err)
 	}
-	Pg.pgpool = c
-	return Pg.pgpool
+	Pg.Pgpool = c
+	return Pg.Pgpool
 }
 
 func (d *Db) QueryRow(ctx context.Context, query string) pgx.Row {
@@ -57,4 +56,79 @@ func (d *Db) QueryRow(ctx context.Context, query string) pgx.Row {
 
 func (d *Db) Query(ctx context.Context, query string) (pgx.Rows, error) {
 	return Pg.pool(ctx).Query(ctx, query)
+}
+
+func (d *Db) PoolStats(ctx context.Context) *pgxpool.Stat {
+	stats := Pg.pool(ctx).Stat()
+	return stats
+}
+
+func (d *Db) Ping(ctx context.Context) error {
+	err := Pg.pool(ctx).Ping(ctx)
+	log.Err(err).Msg("Pinging DB failed")
+	return err
+}
+
+type ConfigChangePG struct {
+	MinConn           *int32
+	MaxConns          *int32
+	MaxConnLifetime   *time.Duration
+	HealthCheckPeriod *time.Duration
+}
+
+func UpdateConfigPG(ctx context.Context, cfg ConfigChangePG) error {
+	log.Ctx(ctx).Debug().Msg("UpdateConfigPG")
+	dbConfig, err := pgxpool.ParseConfig(connStr)
+	if err != nil {
+		panic(err)
+	}
+
+	if cfg.MinConn != nil {
+		log.Info().Msgf("min conn updated. was %s, is now %s", dbConfig.MinConns, *cfg.MinConn)
+		dbConfig.MinConns = *cfg.MinConn
+	}
+
+	if cfg.MaxConns != nil {
+		log.Info().Msgf("max conn updated. was %s, is now %s", dbConfig.MaxConns, *cfg.MaxConns)
+		dbConfig.MaxConns = *cfg.MaxConns
+	}
+
+	if cfg.MaxConnLifetime != nil {
+		log.Info().Msgf("max conn lifetime updated. was %s, is now %s", dbConfig.MaxConnLifetime, *cfg.MaxConnLifetime)
+		dbConfig.MaxConnLifetime = *cfg.MaxConnLifetime
+	}
+
+	if cfg.HealthCheckPeriod != nil {
+		log.Info().Msgf("max conn lifetime updated. was %s, is now %s", dbConfig.HealthCheckPeriod, *cfg.HealthCheckPeriod)
+		dbConfig.HealthCheckPeriod = *cfg.HealthCheckPeriod
+	}
+
+	connStr = dbConfig.ConnString()
+	return nil
+}
+
+func ReadCfg(ctx context.Context) ConfigChangePG {
+	log.Ctx(ctx).Debug().Msg("ReadCfg")
+	dbConfig, err := pgxpool.ParseConfig(connStr)
+	if err != nil {
+		panic(err)
+	}
+	var cfg ConfigChangePG
+	cfgCopy := dbConfig.Copy()
+	if cfg.MinConn != nil {
+		cfg.MinConn = &cfgCopy.MinConns
+	}
+
+	if cfg.MaxConns != nil {
+		cfg.MaxConns = &cfgCopy.MaxConns
+	}
+
+	if cfg.MaxConnLifetime != nil {
+		cfg.MaxConnLifetime = &cfgCopy.MaxConnLifetime
+	}
+
+	if cfg.HealthCheckPeriod != nil {
+		cfg.HealthCheckPeriod = &cfgCopy.HealthCheckPeriod
+	}
+	return cfg
 }

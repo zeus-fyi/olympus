@@ -31,7 +31,6 @@ func FetchNewOrMissingValidators(sleepTime time.Duration) {
 		timeBegin := time.Now()
 		fetchValidatorsToInsert(ctx, NewValidatorBatchSize, sleepTime)
 		log.Info().Interface("FetchNewOrMissingValidators took this many seconds to complete: ", time.Now().Sub(timeBegin))
-		time.Sleep(sleepTime)
 	}
 }
 
@@ -43,7 +42,6 @@ func FetchFindAndQueryAndUpdateValidatorBalances() {
 		timeBegin := time.Now()
 		fetchAndUpdateValidatorBalances(ctx, NewValidatorBalancesBatchSize, NewValidatorBalancesTimeout)
 		log.Info().Interface("FetchFindAndQueryAndUpdateValidatorBalances took this many seconds to complete: ", time.Now().Sub(timeBegin))
-		time.Sleep(NewValidatorBalancesTimeout)
 	}
 }
 

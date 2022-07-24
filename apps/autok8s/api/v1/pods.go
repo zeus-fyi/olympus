@@ -45,6 +45,9 @@ func HandlePodActionRequest(c echo.Context) error {
 	if request.Action == "delete" {
 		return podsDeleteRequest(c, request)
 	}
+	if request.Action == "delete-all" {
+		return podsDeleteAllRequest(c, request)
+	}
 	if request.Action == "port-forward" {
 		return podsPortForwardRequest(c, request)
 	}
@@ -107,25 +110,24 @@ func podsPortForwardRequest(c echo.Context, request *PodActionRequest) error {
 
 func podsDeleteRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
-	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, nil)
+	log.Ctx(ctx).Debug().Msg("podsDeleteRequest")
+	err := K8util.DeleteFirstPodLike(ctx, request.Kns, request.PodName, request.DeleteOpts)
 	if err != nil {
 		return err
 	}
 
-	p := v1.Pod{}
-	for _, pod := range pods.Items {
-		name := pod.ObjectMeta.Name
-		if strings.Contains(name, request.PodName) {
-			p = pod
-		}
-	}
+	return c.JSON(http.StatusOK, fmt.Sprintf("pod %s deleted", request.PodName))
+}
 
-	err = K8util.DeletePod(ctx, p.GetName(), request.Kns.Namespace, request.DeleteOpts)
+func podsDeleteAllRequest(c echo.Context, request *PodActionRequest) error {
+	ctx := context.Background()
+	log.Ctx(ctx).Debug().Msg("podsDeleteAllRequest")
+	err := K8util.DeleteAllPodsLike(ctx, request.Kns, request.PodName, request.DeleteOpts)
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, fmt.Sprintf("pod %s deleted", p.GetName()))
+	return c.JSON(http.StatusOK, fmt.Sprintf("pods with name like %s deleted", request.PodName))
 }
 
 func podsDescribeRequest(c echo.Context, request *PodActionRequest) error {
@@ -141,12 +143,11 @@ func podsDescribeRequest(c echo.Context, request *PodActionRequest) error {
 
 func podLogsActionRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
-
+	log.Ctx(ctx).Debug().Msg("podLogsActionRequest")
 	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, nil)
 	if err != nil {
 		return err
 	}
-
 	p := v1.Pod{}
 	for _, pod := range pods.Items {
 		name := pod.ObjectMeta.Name
@@ -158,6 +159,5 @@ func podLogsActionRequest(c echo.Context, request *PodActionRequest) error {
 	if err != nil {
 		return err
 	}
-
 	return c.JSON(http.StatusOK, string(logs))
 }

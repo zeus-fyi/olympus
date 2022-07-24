@@ -21,7 +21,7 @@ func (k *K8Util) PortForwardPod(ctx context.Context, kubeCtxNs KubeCtxNs, podNam
 	if err != nil {
 		return err
 	}
-	pod, err := k.getFilteredPod(podName, p)
+	pod, err := k.getFirstPodByPrefix(podName, p)
 	if err != nil {
 		return err
 	}
@@ -114,13 +114,72 @@ func (k *K8Util) DeletePod(ctx context.Context, name, ns string, deletePodOpts *
 	return err
 }
 
-func (k *K8Util) getFilteredPod(podName string, pl *v1.PodList) (*v1.Pod, error) {
+func (k *K8Util) DeleteFirstPodLike(ctx context.Context, kubeCtxNs KubeCtxNs, podName string, deletePodOpts *metav1.DeleteOptions) error {
+	log.Ctx(ctx).Debug().Msg("DeleteFirstPodLike")
+	p, err := k.GetFirstPodLike(ctx, kubeCtxNs, podName)
+	if err != nil {
+		return err
+	}
+	opts := metav1.DeleteOptions{}
+	if deletePodOpts == nil {
+		deletePodOpts = &opts
+	}
+	err = k.kc.CoreV1().Pods(kubeCtxNs.Namespace).Delete(ctx, p.GetName(), *deletePodOpts)
+	return err
+}
+
+func (k *K8Util) DeleteAllPodsLike(ctx context.Context, kubeCtxNs KubeCtxNs, podName string, deletePodOpts *metav1.DeleteOptions) error {
+	log.Ctx(ctx).Debug().Msg("DeleteAllPodsLike")
+
+	pods, err := k.GetPodsUsingCtxNs(ctx, kubeCtxNs, nil)
+	log.Ctx(ctx).Err(err).Msg("DeleteAllPodsLike")
+	if err != nil {
+		return err
+	}
+	opts := metav1.DeleteOptions{}
+	if deletePodOpts == nil {
+		deletePodOpts = &opts
+	}
+	p := v1.Pod{}
+	for _, pod := range pods.Items {
+		name := pod.ObjectMeta.Name
+		if strings.Contains(name, podName) {
+			p = pod
+			err = k.kc.CoreV1().Pods(kubeCtxNs.Namespace).Delete(ctx, p.GetName(), *deletePodOpts)
+			if err != nil {
+				log.Ctx(ctx).Err(err).Msg("DeleteAllPodsLike")
+				return err
+			}
+		}
+	}
+	return err
+}
+
+func (k *K8Util) GetFirstPodLike(ctx context.Context, kubeCtxNs KubeCtxNs, podName string) (*v1.Pod, error) {
+	pods, err := k.GetPodsUsingCtxNs(ctx, kubeCtxNs, nil)
+	if err != nil {
+		return nil, err
+	}
+	return k.getFirstPodLike(ctx, podName, pods)
+}
+
+func (k *K8Util) getFirstPodLike(ctx context.Context, podName string, pl *v1.PodList) (*v1.Pod, error) {
+	p := v1.Pod{}
+	for _, pod := range pl.Items {
+		name := pod.ObjectMeta.Name
+		if strings.Contains(name, podName) {
+			p = pod
+		}
+	}
+	return &p, errors.New("pod not found")
+}
+
+func (k *K8Util) getFirstPodByPrefix(podName string, pl *v1.PodList) (*v1.Pod, error) {
 	for _, pod := range pl.Items {
 		name := pod.ObjectMeta.Name
 		if strings.HasPrefix(name, podName) {
 			return &pod, nil
 		}
 	}
-
 	return nil, errors.New("pod not found")
 }

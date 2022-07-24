@@ -4,9 +4,9 @@ WORKDIR /app
 
 # Download necessary Go modules
 
-COPY cmd/autok8s/go.mod .
-COPY cmd/autok8s/go.sum .
-
+# Download necessary Go modules
+COPY apps/autok8s/go.mod .
+COPY apps/autok8s/go.sum .
 RUN go mod download
 
 COPY .. .

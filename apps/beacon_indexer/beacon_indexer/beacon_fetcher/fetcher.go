@@ -11,8 +11,8 @@ import (
 var fetcher BeaconFetcher
 
 var NewValidatorBatchSize = 1000
-var NewValidatorBalancesBatchSize = 1000
-var NewValidatorBalancesTimeout = time.Second * 60
+var NewValidatorBalancesBatchSize = 5000
+var NewValidatorBalancesTimeout = time.Second * 180
 
 func InitFetcherService(nodeURL string) {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
@@ -27,9 +27,9 @@ func FetchNewOrMissingValidators(sleepTime time.Duration) {
 	log.Info().Msg("FetchNewOrMissingValidators")
 
 	for {
-		ctx := context.Background()
 		timeBegin := time.Now()
-		fetchValidatorsToInsert(ctx, NewValidatorBatchSize, sleepTime)
+		err := fetchValidatorsToInsert(context.Background(), NewValidatorBatchSize, sleepTime)
+		log.Err(err)
 		log.Info().Interface("FetchNewOrMissingValidators took this many seconds to complete: ", time.Now().Sub(timeBegin))
 	}
 }
@@ -38,25 +38,26 @@ func FetchFindAndQueryAndUpdateValidatorBalances() {
 	log.Info().Msg("FetchFindAndQueryAndUpdateValidatorBalances")
 
 	for {
-		ctx := context.Background()
 		timeBegin := time.Now()
-		fetchAndUpdateValidatorBalances(ctx, NewValidatorBalancesBatchSize, NewValidatorBalancesTimeout)
+		err := fetchAndUpdateValidatorBalances(context.Background(), NewValidatorBalancesBatchSize, NewValidatorBalancesTimeout)
+		log.Err(err)
 		log.Info().Interface("FetchFindAndQueryAndUpdateValidatorBalances took this many seconds to complete: ", time.Now().Sub(timeBegin))
 	}
 }
 
-func fetchValidatorsToInsert(ctx context.Context, batchSize int, contextTimeout time.Duration) {
+func fetchValidatorsToInsert(ctx context.Context, batchSize int, contextTimeout time.Duration) error {
 	ctxTimeout, cancel := context.WithTimeout(ctx, contextTimeout)
 	defer cancel()
-
 	err := fetcher.BeaconFindNewAndMissingValidatorIndexes(ctxTimeout, batchSize)
 	log.Info().Err(err).Msg("FetchNewOrMissingValidators")
+	return err
 }
 
-func fetchAndUpdateValidatorBalances(ctx context.Context, batchSize int, contextTimeout time.Duration) {
+func fetchAndUpdateValidatorBalances(ctx context.Context, batchSize int, contextTimeout time.Duration) error {
 	ctxTimeout, cancel := context.WithTimeout(ctx, contextTimeout)
 	defer cancel()
 
 	err := fetcher.FindAndQueryAndUpdateValidatorBalances(ctxTimeout, batchSize)
 	log.Info().Err(err).Msg("FetchNewOrMissingValidators")
+	return err
 }

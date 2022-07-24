@@ -24,6 +24,7 @@ func SelectValidatorsToQueryBeaconForBalanceUpdates(ctx context.Context, batchSi
 	if err != nil {
 		return selectedValidatorBalances, err
 	}
+
 	for rows.Next() {
 		var vb ValidatorBalanceEpoch
 		rowErr := rows.Scan(&vb.Epoch, &vb.Index)
@@ -33,12 +34,12 @@ func SelectValidatorsToQueryBeaconForBalanceUpdates(ctx context.Context, batchSi
 		}
 		selectedValidatorBalances.ValidatorBalance = append(selectedValidatorBalances.ValidatorBalance, vb)
 	}
+	log.Info().Interface("SelectValidatorsToQueryBeaconForBalanceUpdates: selectedValidatorBalances: ", selectedValidatorBalances)
 	return selectedValidatorBalances, nil
 }
 
 func FindValidatorIndexes(ctx context.Context, batchSize int) (Validators, error) {
 	log.Info().Msg("FindValidatorIndexes")
-
 	query := fmt.Sprintf(`
 	SELECT
 	generate_series FROM GENERATE_SERIES(

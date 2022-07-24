@@ -11,7 +11,7 @@ import (
 var fetcher BeaconFetcher
 
 var NewValidatorBatchSize = 1000
-var NewValidatorBalancesBatchSize = 5000
+var NewValidatorBalancesBatchSize = 10000
 var NewValidatorBalancesTimeout = time.Second * 180
 
 func InitFetcherService(nodeURL string) {

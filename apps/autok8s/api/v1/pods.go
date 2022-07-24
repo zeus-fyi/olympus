@@ -81,9 +81,11 @@ func podsPortForwardRequestToAllPods(c echo.Context, request *PodActionRequest) 
 	}
 	var respBody ClientResp
 	respBody.ReplyBodies = make(map[string]string, len(pods.Items))
+
+	podNameFilter := request.PodName
 	for _, pod := range pods.Items {
-		name := pod.ObjectMeta.Name
-		if strings.Contains(name, request.PodName) {
+		if strings.Contains(pod.GetName(), podNameFilter) {
+			request.PodName = pod.GetName()
 			bytesResp, reqErr := podsPortForwardRequest(request)
 			if reqErr != nil {
 				log.Err(reqErr).Msgf("port-forwarded request to pod %s failed", pod.GetName())

@@ -32,6 +32,7 @@ type AdminConfigReader struct {
 }
 
 func HandleAdminConfigRequest(c echo.Context) error {
+	log.Info().Msg("HandleAdminConfigRequest")
 	request := new(AdminConfigRequest)
 	if err := c.Bind(request); err != nil {
 		return err
@@ -66,10 +67,11 @@ func HandleAdminConfigRequest(c echo.Context) error {
 		beacon_fetcher.NewValidatorBalancesTimeout = timeOut
 		log.Info().Msgf("Set ValidatorBalancesTimeout level to : %s", timeOut)
 	}
-	return c.JSON(http.StatusOK, nil)
+	return c.JSON(http.StatusOK, "successfully updated config values")
 }
 
 func HandleAdminGetRequest(c echo.Context) error {
+	log.Info().Msg("HandleAdminGetRequest")
 	request := new(AdminConfigRequest)
 	if err := c.Bind(request); err != nil {
 		return err

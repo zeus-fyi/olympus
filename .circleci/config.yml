@@ -33,7 +33,7 @@ jobs:
             IMG=${REPO}/${NAME}:${GIT_SHA}
             LATEST=${REPO}/${NAME}:latest
             
-            docker build -t ${IMG} -t ${LATEST} -f docker/beacon_indexer
+            docker build -t ${IMG} -t ${LATEST} -f docker/beacon_indexer .
             docker push ${IMG}
             docker push ${LATEST}
 workflows:

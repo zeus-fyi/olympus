@@ -8,7 +8,7 @@ COPY apps/beacon_indexer/go.mod .
 COPY apps/beacon_indexer/go.sum .
 COPY configs/ca-certificate.crt .
 
-RUN cd beacon_indexer && go mod download
+RUN go mod download
 COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o beacon_indexer apps/beacon_indexer/main.go

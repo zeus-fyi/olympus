@@ -122,7 +122,6 @@ func podsPortForwardRequest(request *PodActionRequest) ([]byte, error) {
 
 	log.Ctx(ctx).Debug().Msg("awaiting signal")
 	<-startChan
-	defer close(stopChan)
 	log.Ctx(ctx).Debug().Msg("port ready chan ok")
 	go func() {
 		sig := <-sigs
@@ -164,6 +163,7 @@ func podsPortForwardRequest(request *PodActionRequest) ([]byte, error) {
 			r = cli.Get(ctx, string(cli.E)+"/"+clientReq.Endpoint)
 		}
 	}
+	close(stopChan)
 	log.Ctx(ctx).Debug().Msg("end port-forwarded commands")
 	return r.BodyBytes, nil
 }

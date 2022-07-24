@@ -28,14 +28,6 @@ type RowEntries struct {
 var connStr string
 var Pg Db
 
-func (d *Db) pool(ctx context.Context) *pgxpool.Pool {
-	if Pg.Pgpool != nil {
-		return Pg.Pgpool
-	}
-	Pg.Pgpool = d.InitPG(ctx, connStr)
-	return d.InitPG(ctx, connStr)
-}
-
 func (d *Db) InitPG(ctx context.Context, pgConnStr string) *pgxpool.Pool {
 	config, err := pgxpool.ParseConfig(pgConnStr)
 	if err != nil {
@@ -51,20 +43,22 @@ func (d *Db) InitPG(ctx context.Context, pgConnStr string) *pgxpool.Pool {
 }
 
 func (d *Db) QueryRow(ctx context.Context, query string) pgx.Row {
-	return Pg.pool(ctx).QueryRow(ctx, query)
+	return Pg.Pgpool.QueryRow(ctx, query)
 }
 
 func (d *Db) Query(ctx context.Context, query string) (pgx.Rows, error) {
-	return Pg.pool(ctx).Query(ctx, query)
+	return Pg.Pgpool.Query(ctx, query)
 }
 
 func (d *Db) PoolStats(ctx context.Context) *pgxpool.Stat {
-	stats := Pg.pool(ctx).Stat()
+	log.Ctx(ctx).Info().Msg("Getting Pool Stats")
+	stats := Pg.Pgpool.Stat()
 	return stats
 }
 
 func (d *Db) Ping(ctx context.Context) error {
-	err := Pg.pool(ctx).Ping(ctx)
+	log.Ctx(ctx).Info().Msg("Pinging DB")
+	err := Pg.Pgpool.Ping(ctx)
 	log.Err(err).Msg("Pinging DB failed")
 	return err
 }
@@ -104,6 +98,7 @@ func UpdateConfigPG(ctx context.Context, cfg ConfigChangePG) error {
 	}
 
 	connStr = dbConfig.ConnString()
+	_ = Pg.InitPG(ctx, connStr)
 	return nil
 }
 

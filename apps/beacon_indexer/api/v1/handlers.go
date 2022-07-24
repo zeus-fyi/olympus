@@ -145,7 +145,7 @@ func HandleDebugPgStats(c echo.Context) (err error) {
 }
 
 func HandlePingDB(c echo.Context) (err error) {
-	log.Info().Msg("HandleDebugPgStats")
+	log.Info().Msg("HandlePingDB")
 	ctx := context.Background()
 	err = postgres.Pg.Ping(ctx)
 	if err != nil {

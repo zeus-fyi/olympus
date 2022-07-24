@@ -23,6 +23,14 @@ type AdminConfig struct {
 	ValidatorBalancesTimeout   *time.Duration
 }
 
+type AdminConfigReader struct {
+	LogLevel zerolog.Level
+
+	ValidatorBatchSize         int
+	ValidatorBalancesBatchSize int
+	ValidatorBalancesTimeout   time.Duration
+}
+
 func HandleAdminConfigRequest(c echo.Context) error {
 	request := new(AdminConfigRequest)
 	if err := c.Bind(request); err != nil {
@@ -59,6 +67,20 @@ func HandleAdminConfigRequest(c echo.Context) error {
 		log.Info().Msgf("Set ValidatorBalancesTimeout level to : %s", timeOut)
 	}
 	return c.JSON(http.StatusOK, nil)
+}
+
+func HandleAdminGetRequest(c echo.Context) error {
+	request := new(AdminConfigRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	cfgRead := AdminConfigReader{
+		LogLevel:                   zerolog.GlobalLevel(),
+		ValidatorBatchSize:         beacon_fetcher.NewValidatorBatchSize,
+		ValidatorBalancesBatchSize: beacon_fetcher.NewValidatorBalancesBatchSize,
+		ValidatorBalancesTimeout:   beacon_fetcher.NewValidatorBalancesTimeout,
+	}
+	return c.JSON(http.StatusOK, cfgRead)
 }
 
 func Health(c echo.Context) error {

@@ -12,5 +12,7 @@ func Routes(e *echo.Echo) *echo.Echo {
 	// Routes
 	e.GET("/health", Health)
 	e.POST("/admin", HandleAdminConfigRequest)
+	e.GET("/admin", HandleAdminGetRequest)
+
 	return e
 }

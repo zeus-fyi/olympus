@@ -39,6 +39,10 @@ func (s *HandlersTestSuite) TestAdminCfg() {
 	s.Assert().NotEmpty(resp)
 }
 
+func (s *HandlersTestSuite) TestGetAdminInfo() {
+	s.getRequest("http://localhost/admin", http.StatusOK)
+}
+
 func (s *HandlersTestSuite) TestSetLevel() {
 	s.getRequest("http://localhost/health", http.StatusOK)
 }

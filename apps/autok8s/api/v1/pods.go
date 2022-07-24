@@ -28,6 +28,7 @@ type PodActionRequest struct {
 }
 
 type ClientRequest struct {
+	RequestType     string
 	Endpoint        string
 	Ports           []string
 	Payload         []byte
@@ -36,11 +37,9 @@ type ClientRequest struct {
 
 func HandlePodActionRequest(c echo.Context) error {
 	request := new(PodActionRequest)
-
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-
 	if request.Action == "logs" {
 		return podLogsActionRequest(c, request)
 	}
@@ -56,8 +55,7 @@ func HandlePodActionRequest(c echo.Context) error {
 	if request.Action == "port-forward" {
 		return podsPortForwardRequest(c, request)
 	}
-
-	return c.JSON(http.StatusOK, nil)
+	return c.JSON(http.StatusBadRequest, nil)
 }
 
 func podsPortForwardRequest(c echo.Context, request *PodActionRequest) error {
@@ -70,7 +68,6 @@ func podsPortForwardRequest(c echo.Context, request *PodActionRequest) error {
 	startChan := make(chan struct{}, 1)
 	stopChan := make(chan struct{}, 1)
 
-	var ports []string
 	if request.ClientReq == nil {
 		return c.JSON(http.StatusBadRequest, "no client request info provided")
 	}
@@ -78,7 +75,7 @@ func podsPortForwardRequest(c echo.Context, request *PodActionRequest) error {
 	go func() {
 		log.Ctx(ctx).Debug().Msg("start port-forward thread")
 		address := "localhost"
-		err := K8util.PortForwardPod(ctx, request.Kns, request.PodName, address, ports, startChan, stopChan)
+		err := K8util.PortForwardPod(ctx, request.Kns, request.PodName, address, clientReq.Ports, startChan, stopChan)
 		log.Ctx(ctx).Err(err).Msg("error in port forwarding")
 		log.Ctx(ctx).Debug().Msg("done port-forward")
 	}()
@@ -96,7 +93,7 @@ func podsPortForwardRequest(c echo.Context, request *PodActionRequest) error {
 	log.Ctx(ctx).Debug().Msg("do port-forwarded commands")
 	cli := client.Client{}
 	port := ""
-	for _, po := range ports {
+	for _, po := range clientReq.Ports {
 		port, _, _ = strings.Cut(po, ":")
 	}
 	cli.E = client.Endpoint(fmt.Sprintf("http://localhost:%s", port))
@@ -126,18 +123,15 @@ func podsDeleteAllRequest(c echo.Context, request *PodActionRequest) error {
 	if err != nil {
 		return err
 	}
-
 	return c.JSON(http.StatusOK, fmt.Sprintf("pods with name like %s deleted", request.PodName))
 }
 
 func podsDescribeRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
-
 	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, nil)
 	if err != nil {
 		return err
 	}
-
 	return c.JSON(http.StatusOK, pods)
 }
 

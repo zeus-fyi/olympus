@@ -18,12 +18,13 @@ type PodsTestSuite struct {
 
 func (s *PodsTestSuite) TestPodPortForward() {
 	c := client.Client{}
+	c.E = "http://localhost:9000"
 
 	ctx := context.Background()
-	var kns = KubeCtxNs{Env: "", CloudProvider: "", Region: "", CtxType: "data", Namespace: "eth-indexer"}
+	var kns = KubeCtxNs{CloudProvider: "do", Region: "sfo3", CtxType: "zeus-k8s-blockchain", Namespace: "eth-indexer"}
 
 	address := "localhost"
-	ports := "8080:8080"
+	ports := "9000:9000"
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
@@ -33,13 +34,14 @@ func (s *PodsTestSuite) TestPodPortForward() {
 
 	go func() {
 		fmt.Println("start port-forward thread")
-		err := s.K.PortForwardPod(ctx, kns, "ethereum-qt-primary-beacon", address, []string{ports}, startChan, stopChan)
+		err := s.K.PortForwardPod(ctx, kns, "eth-indexer-eth-indexer", address, []string{ports}, startChan, stopChan)
 		fmt.Println(err)
 		fmt.Println("done port-forward")
 	}()
 
 	fmt.Println("awaiting signal")
 	<-startChan
+	defer close(stopChan)
 	fmt.Println("port ready chan ok")
 	go func() {
 		sig := <-sigs
@@ -48,8 +50,9 @@ func (s *PodsTestSuite) TestPodPortForward() {
 	}()
 
 	fmt.Println("do port-forwarded commands")
-	r := c.Get(ctx, "metrics")
+	r := c.Get(ctx, "http://localhost:9000/health")
 	s.Require().Nil(r.Err)
+
 	fmt.Println("end port-forwarded commands")
 	fmt.Println("exiting")
 }

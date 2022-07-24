@@ -3,19 +3,14 @@ package v1
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"os/signal"
 	"strings"
-	"syscall"
 	"testing"
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/suite"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/autok8s/core"
-	"github.com/zeus-fyi/olympus/pkg/client"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -34,44 +29,23 @@ func (p *PodsHandlerTestSuite) SetupTest() {
 }
 
 func (p *PodsHandlerTestSuite) TestPodPortForward() {
-	c := client.Client{}
-	c.E = "http://localhost:9000"
-
-	ctx := context.Background()
 	var kns = autok8s_core.KubeCtxNs{CloudProvider: "do", Region: "sfo3", CtxType: "zeus-k8s-blockchain", Namespace: "eth-indexer"}
 
-	address := "localhost"
-	ports := "9000:9000"
-
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-
-	startChan := make(chan struct{}, 1)
-	stopChan := make(chan struct{}, 1)
-
-	go func() {
-		fmt.Println("start port-forward thread")
-		err := p.K.PortForwardPod(ctx, kns, "eth-indexer-eth-indexer", address, []string{ports}, startChan, stopChan)
-		fmt.Println(err)
-		fmt.Println("done port-forward")
-	}()
-
-	fmt.Println("awaiting signal")
-	<-startChan
-	defer close(stopChan)
-	fmt.Println("port ready chan ok")
-	go func() {
-		sig := <-sigs
-		fmt.Println(sig)
-		close(stopChan)
-	}()
-
-	fmt.Println("do port-forwarded commands")
-	r := c.Get(ctx, "http://localhost:9000/health")
-	p.Require().Nil(r.Err)
-
-	fmt.Println("end port-forwarded commands")
-	fmt.Println("exiting")
+	cliReq := ClientRequest{
+		RequestType:     "GET",
+		Endpoint:        "health",
+		Ports:           []string{"9000:9000"},
+		Payload:         nil,
+		EndpointHeaders: nil,
+	}
+	podActionRequest := PodActionRequest{
+		Action:     "port-forward",
+		PodName:    "eth-indexer-eth-indexer",
+		ClientReq:  &cliReq,
+		K8sRequest: K8sRequest{kns},
+	}
+	podPortForwardReq := p.postK8Request(podActionRequest, http.StatusOK, false)
+	p.Require().NotEmpty(podPortForwardReq.logs)
 }
 
 func (p *PodsHandlerTestSuite) TestGetPods() {
@@ -122,6 +96,7 @@ func (p *PodsHandlerTestSuite) postK8Request(podActionRequest PodActionRequest, 
 func (p *PodsHandlerTestSuite) SetupTestServer() {
 	e := echo.New()
 	p.K.CfgPath = p.K.DefaultK8sCfgPath()
+	p.K.ConnectToK8s()
 	p.E = InitRouter(e, p.K)
 }
 

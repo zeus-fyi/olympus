@@ -24,13 +24,18 @@ jobs:
             tar xf doctl.tar.gz -C /home/circleci/bin
       - run:
           name: Build and publish eth2-indexer image
-          working_directory: makefiles/api
+          working_directory: .
           command: |
             doctl registry login -t ${DIGITALOCEAN_ACCESS_TOKEN}
             GIT_SHA=$CIRCLE_SHA1
-          
-            make docker.build
-            make docker.push
+            REPO=registry.digitalocean.com/zeus-fyi
+            NAME=zeus-indexer
+            IMG=${REPO}/${NAME}:${GIT_SHA}
+            LATEST=${REPO}/${NAME}:latest
+            
+            docker build -t ${IMG} -t ${LATEST} -f docker/beacon_indexer
+            docker push ${IMG}
+            docker push ${LATEST}
 workflows:
   version: 2
   docker_builder:

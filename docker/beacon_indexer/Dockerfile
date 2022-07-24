@@ -4,8 +4,8 @@ WORKDIR /app
 
 COPY configs/ca-certificate.crt .
 # Download necessary Go modules
-COPY go.mod .
-COPY go.sum .
+COPY apps/beacon_indexer/go.mod .
+COPY apps/beacon_indexer/go.sum .
 
 RUN go mod download
 COPY . .

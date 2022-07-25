@@ -41,11 +41,9 @@ func (d *Db) InitPG(ctx context.Context, pgConnStr string) *pgxpool.Pool {
 }
 
 func (d *Db) QueryRow(ctx context.Context, query string) pgx.Row {
-	defer Pg.Pgpool.Close()
 	return Pg.Pgpool.QueryRow(ctx, query)
 }
 
 func (d *Db) Query(ctx context.Context, query string) (pgx.Rows, error) {
-	defer Pg.Pgpool.Close()
 	return Pg.Pgpool.Query(ctx, query)
 }

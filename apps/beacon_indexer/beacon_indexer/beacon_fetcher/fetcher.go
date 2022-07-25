@@ -18,7 +18,7 @@ func InitFetcherService(nodeURL string) {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 
 	fetcher.NodeEndpoint = nodeURL
-	fetchNewValidatorTimeout := time.Minute * 5
+	fetchNewValidatorTimeout := time.Minute * 60
 	go FetchNewOrMissingValidators(fetchNewValidatorTimeout)
 	go FetchFindAndQueryAndUpdateValidatorBalances()
 }

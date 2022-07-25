@@ -83,21 +83,20 @@ func ReadCfg(ctx context.Context) ConfigChangePG {
 		panic(err)
 	}
 	var cfg ConfigChangePG
-	cfgCopy := dbConfig.Copy()
 	if cfg.MinConn != nil {
-		cfg.MinConn = &cfgCopy.MinConns
+		cfg.MinConn = &dbConfig.MinConns
 	}
 
 	if cfg.MaxConns != nil {
-		cfg.MaxConns = &cfgCopy.MaxConns
+		cfg.MaxConns = &dbConfig.MaxConns
 	}
 
 	if cfg.MaxConnLifetime != nil {
-		cfg.MaxConnLifetime = &cfgCopy.MaxConnLifetime
+		cfg.MaxConnLifetime = &dbConfig.MaxConnLifetime
 	}
 
 	if cfg.HealthCheckPeriod != nil {
-		cfg.HealthCheckPeriod = &cfgCopy.HealthCheckPeriod
+		cfg.HealthCheckPeriod = &dbConfig.HealthCheckPeriod
 	}
 	return cfg
 }

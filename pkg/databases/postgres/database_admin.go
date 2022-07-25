@@ -54,14 +54,11 @@ func (d *Db) Ping(ctx context.Context) error {
 
 func UpdateConfigPG(ctx context.Context, cfg ConfigChangePG) error {
 	log.Ctx(ctx).Debug().Msg("UpdateConfigPG")
-	dbConf, err := pgxpool.ParseConfig(connStr)
-	if err != nil {
-		panic(err)
-	}
-	if dbConf == nil {
+	cfgCopy := Pg.Pgpool.Config().Copy()
+	if cfgCopy == nil {
 		panic(errors.New("should be a connStr"))
 	}
-	dbConfig := *dbConf
+	dbConfig := *cfgCopy
 	if cfg.MinConn != nil {
 		log.Info().Msgf("min conn updated. was %s, is now %s", dbConfig.MinConns, *cfg.MinConn)
 		dbConfig.MinConns = *cfg.MinConn
@@ -82,8 +79,9 @@ func UpdateConfigPG(ctx context.Context, cfg ConfigChangePG) error {
 		dbConfig.HealthCheckPeriod = *cfg.HealthCheckPeriod
 	}
 
+	Pg.Pgpool.Close()
 	connStr = dbConfig.ConnString()
-	_ = Pg.InitPG(ctx, connStr)
+	Pg.Pgpool = Pg.InitPG(ctx, connStr)
 	return nil
 }
 

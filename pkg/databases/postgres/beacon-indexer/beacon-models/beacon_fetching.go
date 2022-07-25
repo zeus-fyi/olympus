@@ -12,7 +12,7 @@ func SelectValidatorsToQueryBeaconForBalanceUpdates(ctx context.Context, batchSi
 	log.Info().Msg("SelectValidatorsToQueryBeaconForBalanceUpdates")
 
 	var selectedValidatorBalances ValidatorBalancesEpoch
-	query := fmt.Sprintf(`SELECT MAX(epoch) as max_epoch, validator_index
+	query := fmt.Sprintf(`SELECT MAX(epoch) AS max_epoch, MAX(epoch)+1 AS next_epoch, 32*(MAX(epoch)+1) AS next_epoch_slot, validator_index
 								 FROM validator_balances_at_epoch
 								 WHERE epoch + 1 < (SELECT mainnet_finalized_epoch())
 					             GROUP by validator_index
@@ -27,7 +27,7 @@ func SelectValidatorsToQueryBeaconForBalanceUpdates(ctx context.Context, batchSi
 	defer rows.Close()
 	for rows.Next() {
 		var vb ValidatorBalanceEpoch
-		rowErr := rows.Scan(&vb.Epoch, &vb.Index)
+		rowErr := rows.Scan(&vb.Epoch, &vb.NextEpochToQuery, &vb.NextSlotToQuery, &vb.Index)
 		if rowErr != nil {
 			log.Err(rowErr).Interface("SelectValidatorsToQueryBeaconForBalanceUpdates: Query: ", query)
 			return selectedValidatorBalances, rowErr
@@ -94,19 +94,19 @@ func SelectValidatorsQueryOngoingStates(ctx context.Context, batchSize int) (Val
 	return validatorsToQueryState, err
 }
 
-func SelectValidatorsToQueryBalancesByEpoch(ctx context.Context, batchSize int) (map[int64][]ValidatorBalanceEpoch, error) {
-	log.Info().Msg("SelectValidatorsToQueryBalancesByEpoch")
+func SelectValidatorsToQueryBalancesByEpochSlot(ctx context.Context, batchSize int) (map[int64][]ValidatorBalanceEpoch, error) {
+	log.Info().Msg("SelectValidatorsToQueryBalancesByEpochSlot")
 
-	epochMap := make(map[int64][]ValidatorBalanceEpoch, 1)
+	nextEpochSlotMap := make(map[int64][]ValidatorBalanceEpoch, 1)
 	vbal, err := SelectValidatorsToQueryBeaconForBalanceUpdates(ctx, batchSize)
-	log.Ctx(ctx).Err(err).Interface("SelectValidatorsToQueryBalancesByEpoch", epochMap)
+	log.Ctx(ctx).Err(err).Interface("SelectValidatorsToQueryBalancesByEpochSlot", nextEpochSlotMap)
 	if err != nil {
-		return epochMap, err
+		return nextEpochSlotMap, err
 	}
 	for _, vb := range vbal.ValidatorBalance {
-		epochMap[vb.Epoch] = append(epochMap[vb.Epoch], vb)
+		nextEpochSlotMap[vb.NextEpochToQuery] = append(nextEpochSlotMap[vb.NextEpochToQuery], vb)
 	}
-	return epochMap, err
+	return nextEpochSlotMap, err
 }
 
 func SelectValidatorsToQueryBalancesURL(ctx context.Context, batchSize int) (string, error) {

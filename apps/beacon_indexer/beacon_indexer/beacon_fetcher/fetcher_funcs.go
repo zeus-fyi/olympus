@@ -5,7 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_api/api_types"
-	beacon_models2 "github.com/zeus-fyi/olympus/pkg/databases/postgres/beacon-indexer/beacon-models"
+	beacon_models "github.com/zeus-fyi/olympus/pkg/databases/postgres/beacon-indexer/beacon-models"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/strings"
 )
@@ -14,7 +14,7 @@ func (f *BeaconFetcher) BeaconFindNewAndMissingValidatorIndexes(ctx context.Cont
 	log.Info().Msg("BeaconFetcher: BeaconFindNewAndMissingValidatorIndexes")
 
 	log.Info().Msg("BeaconFindNewAndMissingValidatorIndexes: FindNewValidatorsToQueryBeaconURLEncoded")
-	indexes, err := beacon_models2.FindNewValidatorsToQueryBeaconURLEncoded(ctx, batchSize)
+	indexes, err := beacon_models.FindNewValidatorsToQueryBeaconURLEncoded(ctx, batchSize)
 	if err != nil {
 		log.Error().Err(err).Msg("BeaconStateUpdater: FindNewValidatorsToQueryBeaconURLEncoded")
 		return err
@@ -30,7 +30,7 @@ func (f *BeaconFetcher) BeaconFindNewAndMissingValidatorIndexes(ctx context.Cont
 		log.Error().Err(err).Msg("BeaconFindNewAndMissingValidatorIndexes: FetchStateAndDecode")
 		return err
 	}
-	f.Validators = beacon_models2.ToBeaconModelFormat(f.BeaconStateResults)
+	f.Validators = beacon_models.ToBeaconModelFormat(f.BeaconStateResults)
 	log.Info().Msg("BeaconFindNewAndMissingValidatorIndexes: InsertValidatorsFromBeaconAPI")
 	err = f.Validators.InsertValidatorsFromBeaconAPI(ctx)
 	if err != nil {
@@ -44,7 +44,7 @@ func (f *BeaconFetcher) BeaconUpdateValidatorStates(ctx context.Context, batchSi
 	log.Info().Msg("BeaconFetcher: BeaconUpdateValidatorStates")
 
 	log.Info().Msg("BeaconUpdateValidatorStates: SelectValidatorsQueryOngoingStatesIndexesURLEncoded")
-	indexes, err := beacon_models2.SelectValidatorsQueryOngoingStatesIndexesURLEncoded(ctx, batchSize)
+	indexes, err := beacon_models.SelectValidatorsQueryOngoingStatesIndexesURLEncoded(ctx, batchSize)
 	if err != nil {
 		log.Error().Err(err).Msg("BeaconUpdateValidatorStates: SelectValidatorsQueryOngoingStatesIndexesURLEncoded")
 		return err
@@ -60,7 +60,7 @@ func (f *BeaconFetcher) BeaconUpdateValidatorStates(ctx context.Context, batchSi
 		log.Error().Err(err).Msg("BeaconUpdateValidatorStates: FetchStateAndDecode")
 		return err
 	}
-	f.Validators = beacon_models2.ToBeaconModelFormat(f.BeaconStateResults)
+	f.Validators = beacon_models.ToBeaconModelFormat(f.BeaconStateResults)
 	log.Info().Msg("BeaconUpdateValidatorStates: UpdateValidatorsFromBeaconAPI")
 	vals, err := f.Validators.UpdateValidatorsFromBeaconAPI(ctx)
 	if err != nil {
@@ -77,20 +77,21 @@ func (f *BeaconFetcher) FindAndQueryAndUpdateValidatorBalances(ctx context.Conte
 	log.Info().Msg("BeaconFetcher: FindAndQueryAndUpdateValidatorBalances")
 
 	log.Info().Msg("FindAndQueryAndUpdateValidatorBalances: SelectValidatorsToQueryBeaconForBalanceUpdates")
-	epochMap, err := beacon_models2.SelectValidatorsToQueryBalancesByEpoch(ctx, batchSize)
+	nextEpochSlotMap, err := beacon_models.SelectValidatorsToQueryBalancesByEpochSlot(ctx, batchSize)
 	if err != nil {
 		log.Error().Err(err).Msg("FindAndQueryAndUpdateValidatorBalances: SelectValidatorsToQueryBeaconForBalanceUpdates")
 		return err
 	}
 
-	for epoch, vbs := range epochMap {
-		valBalances := beacon_models2.ValidatorBalancesEpoch{}
+	for nextEpoch, vbs := range nextEpochSlotMap {
+		valBalances := beacon_models.ValidatorBalancesEpoch{}
 		valBalances.ValidatorBalance = vbs
 		var beaconAPI api_types.ValidatorBalances
-		slot := misc.ConvertEpochToSlot(epoch)
-		log.Info().Interface("BeaconFetcher: Fetching Data at Slot:", slot)
+		nextEpochSlot := misc.ConvertEpochToSlot(nextEpoch)
+		beaconAPI.Epoch = nextEpoch
+		log.Info().Interface("BeaconFetcher: Fetching Data at Slot:", nextEpochSlot)
 		log.Info().Msg("BeaconFetcher: FetchStateAndDecode")
-		err = beaconAPI.FetchStateAndDecode(ctx, f.NodeEndpoint, slot, valBalances.FormatValidatorBalancesEpochIndexesToURLList())
+		err = beaconAPI.FetchStateAndDecode(ctx, f.NodeEndpoint, nextEpochSlot, valBalances.FormatValidatorBalancesEpochIndexesToURLList())
 		if err != nil {
 			log.Info().Interface("FormatValidatorBalancesEpochIndexesToURLList: ", valBalances.FormatValidatorBalancesEpochIndexesToURLList())
 			log.Error().Err(err).Msg("FindAndQueryAndUpdateValidatorBalances: FetchStateAndDecode")
@@ -100,8 +101,9 @@ func (f *BeaconFetcher) FindAndQueryAndUpdateValidatorBalances(ctx context.Conte
 			log.Info().Interface("BeaconFetcher: FetchStateAndDecode returned zero balances for ", valBalances.FormatValidatorBalancesEpochIndexesToURLList())
 			return nil
 		}
+
 		log.Info().Msg("BeaconFetcher: Convert API data to model format")
-		valBalances = convertBeaconAPIBalancesToModelBalance(epoch, beaconAPI, valBalances)
+		valBalances = convertBeaconAPIBalancesToModelBalance(beaconAPI, valBalances)
 		log.Info().Msg("BeaconFetcher: InsertValidatorBalancesForNextEpoch")
 		err = valBalances.InsertValidatorBalancesForNextEpoch(ctx)
 		if err != nil {
@@ -112,12 +114,12 @@ func (f *BeaconFetcher) FindAndQueryAndUpdateValidatorBalances(ctx context.Conte
 	return err
 }
 
-func convertBeaconAPIBalancesToModelBalance(epoch int64, beaconBalanceAPI api_types.ValidatorBalances, valBalances beacon_models2.ValidatorBalancesEpoch) beacon_models2.ValidatorBalancesEpoch {
+func convertBeaconAPIBalancesToModelBalance(beaconBalanceAPI api_types.ValidatorBalances, valBalances beacon_models.ValidatorBalancesEpoch) beacon_models.ValidatorBalancesEpoch {
 	log.Info().Msg("BeaconFetcher: convertBeaconAPIBalancesToModelBalance")
-	valBalances.ValidatorBalance = make([]beacon_models2.ValidatorBalanceEpoch, len(beaconBalanceAPI.Data))
+	valBalances.ValidatorBalance = make([]beacon_models.ValidatorBalanceEpoch, len(beaconBalanceAPI.Data))
 	for i, beaconBalanceResult := range beaconBalanceAPI.Data {
-		var epochResult beacon_models2.ValidatorBalanceEpoch
-		epochResult.Epoch = epoch
+		var epochResult beacon_models.ValidatorBalanceEpoch
+		epochResult.Epoch = beaconBalanceAPI.Epoch
 		epochResult.Index = strings.Int64StringParser(beaconBalanceResult.Index)
 		epochResult.TotalBalanceGwei = strings.Int64StringParser(beaconBalanceResult.Balance)
 		valBalances.ValidatorBalance[i] = epochResult

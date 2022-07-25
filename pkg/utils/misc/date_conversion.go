@@ -7,7 +7,7 @@ import (
 )
 
 func ConvertEpochToSlot(epoch int64) string {
-	return fmt.Sprintf("%d", epoch*32)
+	return fmt.Sprintf("%d", epoch*int64(32))
 }
 
 func SlotToEpoch(slot int64) string {

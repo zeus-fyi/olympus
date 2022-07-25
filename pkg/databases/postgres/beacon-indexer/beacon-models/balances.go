@@ -18,7 +18,7 @@ import (
 */
 func (vb *ValidatorBalancesEpoch) InsertValidatorBalancesForNextEpoch(ctx context.Context) error {
 	log.Info().Msg("ValidatorBalancesEpoch: InsertValidatorBalancesForNextEpoch")
-	epochs := strings.ArraySliceStrBuilderSQL(vb.getNextEpochValues())
+	epochs := strings.ArraySliceStrBuilderSQL(vb.getEpochValues())
 	valIndexes := strings.ArraySliceStrBuilderSQL(vb.getIndexValues())
 	newBalance := strings.ArraySliceStrBuilderSQL(vb.getNewBalanceValues())
 	query := fmt.Sprintf(`

@@ -10,6 +10,7 @@ import (
 )
 
 type ValidatorBalances struct {
+	Epoch               int64
 	ExecutionOptimistic bool `json:"execution_optimistic"`
 	Data                []struct {
 		Index   string `json:"index"`

@@ -55,17 +55,6 @@ func (vb *ValidatorBalancesEpoch) getEpochValues() postgres.RowValues {
 	return pgValues
 }
 
-func (vb *ValidatorBalancesEpoch) getNextEpochValues() postgres.RowValues {
-	log.Info().Msg("ValidatorBalancesEpoch: getNextEpochValues")
-
-	pgValues := make(postgres.RowValues, len(vb.ValidatorBalance))
-	for i, val := range vb.ValidatorBalance {
-		pgValues[i] = val.Epoch + 1
-	}
-	log.Debug().Interface("ValidatorBalancesEpoch: pgValues", pgValues)
-	return pgValues
-}
-
 func (vb *ValidatorBalancesEpoch) FormatValidatorBalancesEpochIndexesToURLList() string {
 	log.Info().Msg("ValidatorBalancesEpoch: FormatValidatorBalancesEpochIndexesToURLList")
 

@@ -42,8 +42,12 @@ func (vb *ValidatorBalancesEpoch) InsertValidatorBalancesForNextEpoch(ctx contex
 
 	log.Debug().Interface("InsertValidatorBalancesForNextEpoch: ", query)
 
-	_, err := postgres.Pg.Query(ctx, query)
+	r := postgres.Pg.QueryRow(ctx, query)
+	err := r.Scan()
 	log.Error().Err(err).Interface("InsertValidatorBalancesForNextEpoch", query)
+	if err != nil {
+		return err
+	}
 	return err
 }
 
@@ -51,7 +55,11 @@ var insertValidatorBalances = "INSERT INTO validator_balances_at_epoch (epoch, v
 
 func (vb *ValidatorBalancesEpoch) InsertValidatorBalances(ctx context.Context) error {
 	query := strings.DelimitedSliceStrBuilderSQLRows(insertValidatorBalances, vb.GetManyRowValues())
-	_, err := postgres.Pg.Query(ctx, query)
+	r := postgres.Pg.QueryRow(ctx, query)
+	err := r.Scan()
+	if err != nil {
+		return err
+	}
 	return err
 }
 
@@ -65,6 +73,7 @@ func (vb *ValidatorBalancesEpoch) SelectValidatorBalances(ctx context.Context) (
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	var selectedValidatorBalances ValidatorBalancesEpoch
 	for rows.Next() {
 		var val ValidatorBalanceEpoch

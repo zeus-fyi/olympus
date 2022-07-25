@@ -12,7 +12,11 @@ var insertValidatorsOnlyIndexPubkey = `INSERT INTO validators (index, pubkey) VA
 
 func (vs *Validators) InsertValidatorsOnlyIndexPubkey(ctx context.Context) error {
 	query := strings.DelimitedSliceStrBuilderSQLRows(insertValidatorsOnlyIndexPubkey, vs.GetManyRowValues())
-	_, err := postgres.Pg.Query(ctx, query)
+	r := postgres.Pg.QueryRow(ctx, query)
+	err := r.Scan()
+	if err != nil {
+		return err
+	}
 	return err
 }
 
@@ -22,7 +26,11 @@ func (vs *Validators) InsertValidatorsPendingQueue(ctx context.Context) error {
 	vs.RowSetting.RowsToInclude = "all"
 	querySuffix := ` ON CONFLICT (index) DO NOTHING`
 	query := strings.PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(insertValidatorPendingQueue, vs.GetManyRowValues(), querySuffix)
-	_, err := postgres.Pg.Query(ctx, query)
+	r := postgres.Pg.QueryRow(ctx, query)
+	err := r.Scan()
+	if err != nil {
+		return err
+	}
 	return err
 }
 
@@ -35,6 +43,7 @@ func (vs *Validators) SelectValidatorsPendingQueue(ctx context.Context) (*Valida
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	var selectedValidators Validators
 	for rows.Next() {
 		var v Validator
@@ -56,6 +65,7 @@ func (vs *Validators) SelectValidatorsOnlyIndexPubkey(ctx context.Context) (*Val
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	var selectedValidators Validators
 	for rows.Next() {
 		var validator Validator
@@ -77,6 +87,7 @@ func (vs *Validators) SelectValidators(ctx context.Context) (*Validators, error)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	var selectedValidators Validators
 	for rows.Next() {
 		var v Validator
@@ -103,6 +114,7 @@ func (vs *Validators) UpdateValidatorBalancesAndActivationEligibility(ctx contex
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	var selectedValidators Validators
 	for rows.Next() {
 		var v Validator

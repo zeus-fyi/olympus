@@ -24,7 +24,7 @@ func SelectValidatorsToQueryBeaconForBalanceUpdates(ctx context.Context, batchSi
 	if err != nil {
 		return selectedValidatorBalances, err
 	}
-
+	defer rows.Close()
 	for rows.Next() {
 		var vb ValidatorBalanceEpoch
 		rowErr := rows.Scan(&vb.Epoch, &vb.Index)
@@ -53,6 +53,7 @@ func FindValidatorIndexes(ctx context.Context, batchSize int) (Validators, error
 	if err != nil {
 		return validatorsToQueryState, err
 	}
+	defer rows.Close()
 	for rows.Next() {
 		var validator Validator
 		rowErr := rows.Scan(&validator.Index)
@@ -78,6 +79,7 @@ func SelectValidatorsQueryOngoingStates(ctx context.Context, batchSize int) (Val
 	if err != nil {
 		return validatorsToQueryState, err
 	}
+	defer rows.Close()
 	for rows.Next() {
 		var validator Validator
 		rowErr := rows.Scan(&validator.Index)

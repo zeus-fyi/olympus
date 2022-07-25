@@ -30,7 +30,7 @@ func (vb *ValidatorBalancesEpoch) InsertValidatorBalancesForNextEpoch(ctx contex
 		), new_balances AS (
 			SELECT * FROM UNNEST(%s, %s, %s) AS x(v_index, new_balance, new_epoch)
 			JOIN validator_max_relative_epoch_balances on validator_max_relative_epoch_balances.validator_index = v_index
-			WHERE validator_max_relative_epoch_balances.max_epoch = new_epoch-1 OR validator_max_relative_epoch_balances.max_epoch = 0
+			WHERE validator_max_relative_epoch_balances.max_epoch = new_epoch-1 AND new_epoch > 0
 		)
 		INSERT INTO validator_balances_at_epoch (epoch, validator_index, total_balance_gwei, current_epoch_yield_gwei)
     	SELECT nb.new_epoch, vm.validator_index, nb.new_balance, nb.new_balance - vb.total_balance_gwei

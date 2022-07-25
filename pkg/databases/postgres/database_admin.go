@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -13,6 +14,13 @@ type ConfigChangePG struct {
 	MaxConns          *int32
 	MaxConnLifetime   *time.Duration
 	HealthCheckPeriod *time.Duration
+}
+
+type ConfigReadPG struct {
+	MinConn           int32
+	MaxConns          int32
+	MaxConnLifetime   time.Duration
+	HealthCheckPeriod time.Duration
 }
 
 type PoolStats struct {
@@ -76,27 +84,20 @@ func UpdateConfigPG(ctx context.Context, cfg ConfigChangePG) error {
 	return nil
 }
 
-func ReadCfg(ctx context.Context) ConfigChangePG {
+func ReadCfg(ctx context.Context) ConfigReadPG {
 	log.Ctx(ctx).Debug().Msg("ReadCfg")
-	dbConfig, err := pgxpool.ParseConfig(connStr)
+	dbConf, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
 		panic(err)
 	}
-	var cfg ConfigChangePG
-	if cfg.MinConn != nil {
-		cfg.MinConn = &dbConfig.MinConns
+	if dbConf == nil {
+		panic(errors.New("should be a connStr"))
 	}
-
-	if cfg.MaxConns != nil {
-		cfg.MaxConns = &dbConfig.MaxConns
-	}
-
-	if cfg.MaxConnLifetime != nil {
-		cfg.MaxConnLifetime = &dbConfig.MaxConnLifetime
-	}
-
-	if cfg.HealthCheckPeriod != nil {
-		cfg.HealthCheckPeriod = &dbConfig.HealthCheckPeriod
-	}
+	dbConfig := *dbConf
+	var cfg ConfigReadPG
+	cfg.MinConn = dbConfig.MinConns
+	cfg.MaxConns = dbConfig.MaxConns
+	cfg.MaxConnLifetime = dbConfig.MaxConnLifetime
+	cfg.HealthCheckPeriod = dbConfig.HealthCheckPeriod
 	return cfg
 }

@@ -25,10 +25,12 @@ func Api() {
 	e = v1.Routes(e)
 	ctx := context.Background()
 	postgres.Pg = postgres.Db{}
+	MaxConn := int32(10)
 	MinConn := int32(3)
 	MaxConnLifetime := 15 * time.Minute
 
 	pgCfg := postgres.ConfigChangePG{
+		MaxConns:          &MaxConn,
 		MinConn:           &MinConn,
 		MaxConnLifetime:   &MaxConnLifetime,
 		HealthCheckPeriod: nil,

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/databases/postgres"
 	"github.com/zeus-fyi/olympus/pkg/utils/strings"
 )
@@ -40,6 +41,7 @@ func (vs *Validators) SelectValidatorsPendingQueue(ctx context.Context) (*Valida
 	query := fmt.Sprintf(`SELECT index, pubkey, balance, effective_balance, activation_eligibility_epoch, activation_epoch, status, substatus FROM validators WHERE index = %s LIMIT %d`, validators, limit)
 
 	rows, err := postgres.Pg.Query(ctx, query)
+	log.Err(err).Msg("SelectValidatorsPendingQueue")
 	if err != nil {
 		return nil, err
 	}
@@ -49,6 +51,7 @@ func (vs *Validators) SelectValidatorsPendingQueue(ctx context.Context) (*Valida
 		var v Validator
 		rowErr := rows.Scan(&v.Index, &v.Pubkey, &v.Balance, &v.EffectiveBalance, &v.ActivationEligibilityEpoch, &v.ActivationEpoch, &v.Status, &v.SubStatus)
 		if rowErr != nil {
+			log.Err(rowErr).Msg("SelectValidatorsPendingQueue")
 			return nil, rowErr
 		}
 		selectedValidators.Validators = append(selectedValidators.Validators, v)
@@ -62,6 +65,7 @@ func (vs *Validators) SelectValidatorsOnlyIndexPubkey(ctx context.Context) (*Val
 	query := fmt.Sprintf(`SELECT index, pubkey FROM validators WHERE index = %s LIMIT %d`, validators, limit)
 
 	rows, err := postgres.Pg.Query(ctx, query)
+	log.Err(err).Msg("SelectValidatorsOnlyIndexPubkey")
 	if err != nil {
 		return nil, err
 	}
@@ -71,6 +75,7 @@ func (vs *Validators) SelectValidatorsOnlyIndexPubkey(ctx context.Context) (*Val
 		var validator Validator
 		rowErr := rows.Scan(&validator.Index, &validator.Pubkey)
 		if rowErr != nil {
+			log.Err(rowErr).Msg("SelectValidatorsOnlyIndexPubkey")
 			return nil, rowErr
 		}
 		selectedValidators.Validators = append(selectedValidators.Validators, validator)
@@ -84,6 +89,7 @@ func (vs *Validators) SelectValidators(ctx context.Context) (*Validators, error)
 	query := fmt.Sprintf(`SELECT index, pubkey, balance, effective_balance, activation_eligibility_epoch, activation_epoch, exit_epoch, withdrawable_epoch, slashed, status, withdrawal_credentials, substatus FROM validators WHERE index = %s LIMIT %d`, validators, limit)
 
 	rows, err := postgres.Pg.Query(ctx, query)
+	log.Err(err).Msg("SelectValidators")
 	if err != nil {
 		return nil, err
 	}
@@ -93,6 +99,7 @@ func (vs *Validators) SelectValidators(ctx context.Context) (*Validators, error)
 		var v Validator
 		rowErr := rows.Scan(&v.Index, &v.Pubkey, &v.Balance, &v.EffectiveBalance, &v.ActivationEpoch, &v.ActivationEpoch, &v.ExitEpoch, &v.WithdrawableEpoch, &v.Slashed, &v.WithdrawalCredentials, &v.SubStatus)
 		if rowErr != nil {
+			log.Err(rowErr).Msg("SelectValidators")
 			return nil, rowErr
 		}
 		selectedValidators.Validators = append(selectedValidators.Validators, v)
@@ -111,6 +118,8 @@ func (vs *Validators) UpdateValidatorBalancesAndActivationEligibility(ctx contex
 	JOIN validators ON validator_update.index = validators.index`, validators)
 
 	rows, err := postgres.Pg.Query(ctx, query)
+	log.Err(err).Msg("UpdateValidatorBalancesAndActivationEligibility")
+
 	if err != nil {
 		return nil, err
 	}
@@ -120,6 +129,7 @@ func (vs *Validators) UpdateValidatorBalancesAndActivationEligibility(ctx contex
 		var v Validator
 		rowErr := rows.Scan(&v.Index, &v.Pubkey, &v.Balance, &v.EffectiveBalance, &v.ActivationEpoch, &v.ActivationEpoch, &v.ExitEpoch, &v.WithdrawableEpoch, &v.Slashed, &v.WithdrawalCredentials, &v.SubStatus)
 		if rowErr != nil {
+			log.Err(rowErr).Msg("UpdateValidatorBalancesAndActivationEligibility")
 			return nil, rowErr
 		}
 		selectedValidators.Validators = append(selectedValidators.Validators, v)
@@ -131,6 +141,7 @@ func SelectCountValidatorEntries(ctx context.Context) (int, error) {
 	var count int
 	query := `SELECT COUNT(*) FROM validators`
 	err := postgres.Pg.QueryRow(ctx, query).Scan(&count)
+	log.Err(err).Msg("SelectCountValidatorEntries")
 	if err != nil {
 		return 0, err
 	}

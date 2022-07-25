@@ -77,6 +77,7 @@ func SelectValidatorsQueryOngoingStates(ctx context.Context, batchSize int) (Val
 	var validatorsToQueryState Validators
 	rows, err := postgres.Pg.Query(ctx, query)
 	if err != nil {
+		log.Err(err).Msg("SelectValidatorsQueryOngoingStates")
 		return validatorsToQueryState, err
 	}
 	defer rows.Close()

@@ -41,7 +41,6 @@ func (vb *ValidatorBalancesEpoch) InsertValidatorBalancesForNextEpoch(ctx contex
 	`, valIndexes, valIndexes, newBalance, epochs)
 
 	log.Debug().Interface("InsertValidatorBalancesForNextEpoch: ", query)
-
 	r := postgres.Pg.QueryRow(ctx, query)
 	err := r.Scan()
 	log.Error().Err(err).Interface("InsertValidatorBalancesForNextEpoch", query)
@@ -57,6 +56,7 @@ func (vb *ValidatorBalancesEpoch) InsertValidatorBalances(ctx context.Context) e
 	query := strings.DelimitedSliceStrBuilderSQLRows(insertValidatorBalances, vb.GetManyRowValues())
 	r := postgres.Pg.QueryRow(ctx, query)
 	err := r.Scan()
+	log.Err(err).Msg("ValidatorBalancesEpoch: InsertValidatorBalances")
 	if err != nil {
 		return err
 	}
@@ -70,6 +70,7 @@ func (vb *ValidatorBalancesEpoch) SelectValidatorBalances(ctx context.Context) (
 								 WHERE validator_index = %s`, params)
 
 	rows, err := postgres.Pg.Query(ctx, query)
+	log.Err(err).Msg("ValidatorBalancesEpoch: SelectValidatorBalances")
 	if err != nil {
 		return nil, err
 	}
@@ -79,6 +80,7 @@ func (vb *ValidatorBalancesEpoch) SelectValidatorBalances(ctx context.Context) (
 		var val ValidatorBalanceEpoch
 		rowErr := rows.Scan(&val.Epoch, &val.Index, &val.TotalBalanceGwei, &val.CurrentEpochYieldGwei, &val.YieldToDateGwei)
 		if rowErr != nil {
+			log.Err(rowErr).Msg("ValidatorBalancesEpoch: SelectValidatorBalances")
 			return nil, rowErr
 		}
 		selectedValidatorBalances.ValidatorBalance = append(selectedValidatorBalances.ValidatorBalance, val)
@@ -90,6 +92,7 @@ func SelectCountValidatorEpochBalanceEntries(ctx context.Context) (int, error) {
 	var count int
 	query := `SELECT COUNT(*) FROM validator_balances_at_epoch`
 	err := postgres.Pg.QueryRow(ctx, query).Scan(&count)
+	log.Err(err).Msg("SelectCountValidatorEpochBalanceEntries")
 	if err != nil {
 		return 0, err
 	}

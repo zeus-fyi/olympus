@@ -10,7 +10,7 @@ import (
 
 var fetcher BeaconFetcher
 
-var NewValidatorBatchSize = 1000
+var NewValidatorBatchSize = 100
 var NewValidatorBalancesBatchSize = 1000
 var NewValidatorBalancesTimeout = time.Second * 180
 

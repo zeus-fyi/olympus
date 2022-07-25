@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -62,11 +63,13 @@ func UpdateConfigPG(ctx context.Context, cfg ConfigChangePG) error {
 	if cfg.MinConn != nil {
 		log.Info().Msgf("min conn updated. was %s, is now %s", dbConfig.MinConns, *cfg.MinConn)
 		dbConfig.MinConns = *cfg.MinConn
+		dbConfig.ConnConfig.Config.RuntimeParams["pool_min_conns"] = fmt.Sprintf("%d", *cfg.MinConn)
 	}
 
 	if cfg.MaxConns != nil {
 		log.Info().Msgf("max conn updated. was %s, is now %s", dbConfig.MaxConns, *cfg.MaxConns)
 		dbConfig.MaxConns = *cfg.MaxConns
+		dbConfig.ConnConfig.Config.RuntimeParams["pool_max_conns"] = fmt.Sprintf("%d", *cfg.MaxConns)
 	}
 
 	if cfg.MaxConnLifetime != nil {

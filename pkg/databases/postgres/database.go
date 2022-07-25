@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 
+	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -46,4 +47,8 @@ func (d *Db) QueryRow(ctx context.Context, query string) pgx.Row {
 
 func (d *Db) Query(ctx context.Context, query string) (pgx.Rows, error) {
 	return Pg.Pgpool.Query(ctx, query)
+}
+
+func (d *Db) Exec(ctx context.Context, query string, args ...interface{}) (pgconn.CommandTag, error) {
+	return Pg.Pgpool.Exec(ctx, query, args...)
 }

@@ -13,9 +13,11 @@ var insertValidatorsOnlyIndexPubkey = `INSERT INTO validators (index, pubkey) VA
 
 func (vs *Validators) InsertValidatorsOnlyIndexPubkey(ctx context.Context) error {
 	query := strings.DelimitedSliceStrBuilderSQLRows(insertValidatorsOnlyIndexPubkey, vs.GetManyRowValues())
-	r := postgres.Pg.QueryRow(ctx, query)
-	err := r.Scan()
+	r, err := postgres.Pg.Exec(ctx, query)
+	rowsAffected := r.RowsAffected()
+	log.Info().Int64("rows affected: ", rowsAffected)
 	if err != nil {
+		log.Err(err).Msg("InsertValidatorsOnlyIndexPubkey")
 		return err
 	}
 	return err
@@ -27,9 +29,11 @@ func (vs *Validators) InsertValidatorsPendingQueue(ctx context.Context) error {
 	vs.RowSetting.RowsToInclude = "all"
 	querySuffix := ` ON CONFLICT (index) DO NOTHING`
 	query := strings.PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(insertValidatorPendingQueue, vs.GetManyRowValues(), querySuffix)
-	r := postgres.Pg.QueryRow(ctx, query)
-	err := r.Scan()
+	r, err := postgres.Pg.Exec(ctx, query)
+	rowsAffected := r.RowsAffected()
+	log.Info().Int64("rows affected: ", rowsAffected)
 	if err != nil {
+		log.Err(err).Msg("InsertValidatorsPendingQueue")
 		return err
 	}
 	return err

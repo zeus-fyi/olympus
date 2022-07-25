@@ -41,10 +41,11 @@ func (vb *ValidatorBalancesEpoch) InsertValidatorBalancesForNextEpoch(ctx contex
 	`, valIndexes, valIndexes, newBalance, epochs)
 
 	log.Debug().Interface("InsertValidatorBalancesForNextEpoch: ", query)
-	r := postgres.Pg.QueryRow(ctx, query)
-	err := r.Scan()
-	log.Error().Err(err).Interface("InsertValidatorBalancesForNextEpoch", query)
+	r, err := postgres.Pg.Exec(ctx, query)
+	rowsAffected := r.RowsAffected()
+	log.Info().Int64("rows affected: ", rowsAffected)
 	if err != nil {
+		log.Error().Err(err).Interface("InsertValidatorBalancesForNextEpoch", query)
 		return err
 	}
 	return err
@@ -54,10 +55,11 @@ var insertValidatorBalances = "INSERT INTO validator_balances_at_epoch (epoch, v
 
 func (vb *ValidatorBalancesEpoch) InsertValidatorBalances(ctx context.Context) error {
 	query := strings.DelimitedSliceStrBuilderSQLRows(insertValidatorBalances, vb.GetManyRowValues())
-	r := postgres.Pg.QueryRow(ctx, query)
-	err := r.Scan()
-	log.Err(err).Msg("ValidatorBalancesEpoch: InsertValidatorBalances")
+	r, err := postgres.Pg.Exec(ctx, query)
+	rowsAffected := r.RowsAffected()
+	log.Info().Int64("rows affected: ", rowsAffected)
 	if err != nil {
+		log.Error().Err(err).Interface("InsertValidatorBalances", query)
 		return err
 	}
 	return err

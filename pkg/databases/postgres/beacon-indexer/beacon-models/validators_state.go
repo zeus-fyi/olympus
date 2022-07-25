@@ -18,12 +18,13 @@ func (vs *Validators) InsertValidatorsFromBeaconAPI(ctx context.Context) error {
 
 	querySuffix := ` ON CONFLICT ON CONSTRAINT validators_pkey DO NOTHING`
 	query := strings.PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(insertValidatorsFromBeaconAPI, vs.GetManyRowValues(), querySuffix)
-	r := postgres.Pg.QueryRow(ctx, query)
-	err := r.Scan()
+	r, err := postgres.Pg.Exec(ctx, query)
+	rowsAffected := r.RowsAffected()
+	log.Info().Int64("rows affected: ", rowsAffected)
 	if err != nil {
 		log.Error().Err(err).Msg("InsertValidatorsFromBeaconAPI: InsertValidatorsFromBeaconAPI")
+		return err
 	}
-
 	return err
 }
 

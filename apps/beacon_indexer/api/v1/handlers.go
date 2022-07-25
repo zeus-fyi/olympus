@@ -137,11 +137,7 @@ func HandleDebugPgStats(c echo.Context) (err error) {
 	log.Info().Msg("HandleDebugPgStats")
 	ctx := context.Background()
 	stats := postgres.Pg.PoolStats(ctx)
-
-	if stats != nil {
-		return c.JSON(http.StatusOK, *stats)
-	}
-	return c.JSON(http.StatusInternalServerError, stats)
+	return c.JSON(http.StatusOK, stats)
 }
 
 func HandlePingDB(c echo.Context) (err error) {

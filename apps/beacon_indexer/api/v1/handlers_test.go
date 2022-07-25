@@ -11,6 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/pkg/databases/postgres"
 )
 
 type HandlersTestSuite struct {
@@ -35,7 +36,19 @@ func (s *HandlersTestSuite) TestAdminCfg() {
 	}
 
 	adminReq := AdminConfigRequest{adminCfg}
-	resp := s.postAdminRequest(adminReq, http.StatusOK)
+	resp := s.postAdminRequest(adminReq, "debug/db/config", http.StatusOK)
+	s.Assert().NotEmpty(resp)
+}
+
+func (s *HandlersTestSuite) TestAdminDBCfg() {
+
+	maxConn := int32(10)
+	adminReq := AdminDBConfigRequest{
+		postgres.ConfigChangePG{
+			MaxConns: &maxConn,
+		},
+	}
+	resp := s.postAdminRequest(adminReq, "admin", http.StatusOK)
 	s.Assert().NotEmpty(resp)
 }
 
@@ -59,11 +72,11 @@ type TestResponse struct {
 	logs []byte
 }
 
-func (s *HandlersTestSuite) postAdminRequest(postRequest AdminConfigRequest, httpCode int) TestResponse {
+func (s *HandlersTestSuite) postAdminRequest(postRequest interface{}, endpoint string, httpCode int) TestResponse {
 	podActionRequestPayload, err := json.Marshal(postRequest)
 	s.Assert().Nil(err)
 
-	req := httptest.NewRequest(http.MethodPost, "/admin", strings.NewReader(string(podActionRequestPayload)))
+	req := httptest.NewRequest(http.MethodPost, endpoint, strings.NewReader(string(podActionRequestPayload)))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
 	rec := httptest.NewRecorder()

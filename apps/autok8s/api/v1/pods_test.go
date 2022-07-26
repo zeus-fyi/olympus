@@ -59,9 +59,12 @@ func (p *PodsHandlerTestSuite) TestPodPortForwardAll() {
 		Payload:         nil,
 		EndpointHeaders: nil,
 	}
+	filter := autok8s_core.FilterOpts{DoesNotInclude: []string{"beacon", "metrics"}}
+
 	podActionRequest := PodActionRequest{
 		Action:     "port-forward-all",
 		PodName:    "eth-indexer-eth-indexer",
+		FilterOpts: &filter,
 		ClientReq:  &cliReq,
 		K8sRequest: K8sRequest{kns},
 	}

@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_api/api_types"
-	"github.com/zeus-fyi/olympus/pkg/databases/postgres"
+	"github.com/zeus-fyi/olympus/pkg/datastores/postgres"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 

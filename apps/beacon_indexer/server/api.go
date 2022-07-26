@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/viper"
 	v1 "github.com/zeus-fyi/olympus/beacon-indexer/api/v1"
 	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_fetcher"
-	"github.com/zeus-fyi/olympus/pkg/databases/postgres"
+	"github.com/zeus-fyi/olympus/pkg/datastores/postgres"
 )
 
 var (

@@ -1,0 +1,20 @@
+version: '3.8'
+
+networks:
+  app-tier:
+    driver: bridge
+
+services:
+  redis:
+    image: 'bitnami/redis:latest'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - redis:/bitnami/redis/data
+    ports:
+      - '6379:6379'
+    restart: unless-stopped
+
+volumes:
+  redis:
+    driver: local

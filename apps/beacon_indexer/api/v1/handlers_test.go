@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/databases/postgres"
+	"github.com/zeus-fyi/olympus/pkg/datastores/postgres"
 )
 
 type HandlersTestSuite struct {

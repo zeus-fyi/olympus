@@ -9,8 +9,8 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_fetcher"
-	"github.com/zeus-fyi/olympus/pkg/databases/postgres"
-	beacon_models "github.com/zeus-fyi/olympus/pkg/databases/postgres/beacon_indexer/beacon_models"
+	"github.com/zeus-fyi/olympus/pkg/datastores/postgres"
+	beacon_models "github.com/zeus-fyi/olympus/pkg/datastores/postgres/beacon_indexer/beacon_models"
 	"github.com/zeus-fyi/olympus/pkg/logging"
 )
 

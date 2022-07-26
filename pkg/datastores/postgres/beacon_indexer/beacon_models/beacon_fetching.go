@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/databases/postgres"
+	"github.com/zeus-fyi/olympus/pkg/datastores/postgres"
 )
 
 func SelectValidatorsToQueryBeaconForBalanceUpdates(ctx context.Context, batchSize int) (ValidatorBalancesEpoch, error) {

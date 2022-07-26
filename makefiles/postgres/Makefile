@@ -5,13 +5,13 @@ CONTAINER_NAME=postgres
 ROOT_PATH=../../
 
 docker.compose.up:
-	docker-compose -f ${ROOT_PATH}pkg/databases/postgres_docker/docker-compose-postgres.yml up
+	docker-compose -f ${ROOT_PATH}pkg/datastores/postgres_docker/docker-compose-postgres.yml up
 
 docker.compose.down:
-	docker-compose -f ${ROOT_PATH}pkg/databases/postgres_docker/docker-compose-postgres.yml down
+	docker-compose -f ${ROOT_PATH}pkg/datastores/postgres_docker/docker-compose-postgres.yml down
 
-docker.pg.volume.rm:
+docker.volume.rm:
 	docker volume rm ${VOLUME_NAME}
 
-docker.pg.volume.ls:
+docker.volume.ls:
 	docker volume ls

@@ -10,7 +10,7 @@ import (
 )
 
 type GoWeb3BaseTestSuite struct {
-	base.BaseTestSuite
+	base.TestSuite
 }
 
 func (s *GoWeb3BaseTestSuite) TestGasPriceQuery() {

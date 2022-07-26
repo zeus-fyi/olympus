@@ -9,7 +9,7 @@ import (
 )
 
 type PostgresTestSuite struct {
-	base.BaseTestSuite
+	base.TestSuite
 }
 
 func (s *PostgresTestSuite) TestConnPG() {

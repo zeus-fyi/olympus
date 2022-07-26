@@ -8,7 +8,7 @@ import (
 )
 
 type K8TestSuite struct {
-	base.BaseTestSuite
+	base.TestSuite
 	K K8Util
 }
 

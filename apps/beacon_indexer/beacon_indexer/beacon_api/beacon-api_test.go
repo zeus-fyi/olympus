@@ -17,7 +17,7 @@ const disableHighDataAPITests = false
 var ctx context.Context
 
 type BeaconAPITestSuite struct {
-	base.BaseTestSuite
+	base.TestSuite
 }
 
 func (s *BeaconAPITestSuite) TestGetValidatorsByState() {

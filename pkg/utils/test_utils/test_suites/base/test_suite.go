@@ -8,20 +8,20 @@ import (
 	"github.com/zeus-fyi/olympus/configs"
 )
 
-type BaseTestSuite struct {
+type TestSuite struct {
 	suite.Suite
 	Tc configs.TestContainer
 }
 
-func (s *BaseTestSuite) SetupTest() {
+func (s *TestSuite) SetupTest() {
 	s.Tc = configs.InitLocalTestConfigs()
 }
 
-func (s *BaseTestSuite) SkipTest(b bool) {
+func (s *TestSuite) SkipTest(b bool) {
 	if b {
 		s.T().SkipNow()
 	}
 }
 func TestBaseTestSuite(t *testing.T) {
-	suite.Run(t, new(BaseTestSuite))
+	suite.Run(t, new(TestSuite))
 }

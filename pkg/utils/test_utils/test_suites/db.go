@@ -12,7 +12,7 @@ import (
 )
 
 type PGTestSuite struct {
-	base.BaseTestSuite
+	base.TestSuite
 	Pg postgres.Db
 }
 

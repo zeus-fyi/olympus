@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_api/api_types"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 )
 
 const disableHighDataAPITests = false
@@ -17,14 +17,14 @@ const disableHighDataAPITests = false
 var ctx context.Context
 
 type BeaconAPITestSuite struct {
-	test_suites.BaseTestSuite
+	base.BaseTestSuite
 }
 
 func (s *BeaconAPITestSuite) TestGetValidatorsByState() {
 	s.SkipTest(disableHighDataAPITests)
 	state := "finalized"
 
-	r := GetValidatorsByState(ctx, s.Tc.BEACON_NODE_INFURA, state)
+	r := GetValidatorsByState(ctx, s.Tc.BeaconNodeInfura, state)
 	s.Require().Nil(r.Err)
 	var vs api_types.ValidatorsStateBeacon
 	err := json.Unmarshal(r.BodyBytes, &vs)
@@ -39,7 +39,7 @@ func (s *BeaconAPITestSuite) TestGetValidatorsByStateFilter() {
 	state := "head"
 	valIndexes := []string{"242521", "67596"}
 	encodedURLparams := string_utils.UrlEncodeQueryParamList("", valIndexes...)
-	r := GetValidatorsBalancesByStateFilter(ctx, s.Tc.BEACON_NODE_INFURA, state, encodedURLparams)
+	r := GetValidatorsBalancesByStateFilter(ctx, s.Tc.BeaconNodeInfura, state, encodedURLparams)
 	s.Require().Nil(r.Err)
 
 	var vb api_types.ValidatorBalances
@@ -51,7 +51,7 @@ func (s *BeaconAPITestSuite) TestGetValidatorsByStateFilter() {
 
 func (s *BeaconAPITestSuite) TestGetBlockByID() {
 	s.T().Parallel()
-	r := GetBlockByID(ctx, s.Tc.BEACON_NODE_INFURA, "head")
+	r := GetBlockByID(ctx, s.Tc.BeaconNodeInfura, "head")
 	s.Require().Nil(r.Err)
 }
 

@@ -5,16 +5,16 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 )
 
 type PostgresTestSuite struct {
-	test_suites.BaseTestSuite
+	base.BaseTestSuite
 }
 
 func (s *PostgresTestSuite) TestConnPG() {
 	var PgTestDB Db
-	conn := PgTestDB.InitPG(context.Background(), s.Tc.TEST_DB_PGCONN)
+	conn := PgTestDB.InitPG(context.Background(), s.Tc.LocalDbPgconn)
 	s.Assert().NotNil(conn)
 	defer conn.Close()
 }

@@ -12,7 +12,9 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	autok8s_core "github.com/zeus-fyi/olympus/pkg/autok8s/core"
 	"github.com/zeus-fyi/olympus/pkg/client"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -23,6 +25,7 @@ type PodActionRequest struct {
 	PodName       string
 	ContainerName string
 
+	FilterOpts *autok8s_core.FilterOpts
 	ClientReq  *ClientRequest
 	LogOpts    *v1.PodLogOptions
 	DeleteOpts *metav1.DeleteOptions
@@ -75,7 +78,7 @@ func podsPortForwardRequestToAllPods(c echo.Context, request *PodActionRequest) 
 	ctx := context.Background()
 	log.Ctx(ctx).Debug().Msg("start podsPortForwardRequestToAllPods")
 
-	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, nil)
+	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, nil, request.FilterOpts)
 	if err != nil {
 		return err
 	}
@@ -83,8 +86,14 @@ func podsPortForwardRequestToAllPods(c echo.Context, request *PodActionRequest) 
 	respBody.ReplyBodies = make(map[string]string, len(pods.Items))
 
 	podNameFilter := request.PodName
+	var filterWords []string
+	if request.FilterOpts != nil {
+		filter := request.FilterOpts
+		filterMatches := *filter
+		filterWords = filterMatches.DoesNotInclude
+	}
 	for _, pod := range pods.Items {
-		if strings.Contains(pod.GetName(), podNameFilter) {
+		if string_utils.FilterString(pod.GetName(), podNameFilter, filterWords) {
 			request.PodName = pod.GetName()
 			bytesResp, reqErr := podsPortForwardRequest(request)
 			if reqErr != nil {
@@ -115,7 +124,7 @@ func podsPortForwardRequest(request *PodActionRequest) ([]byte, error) {
 	go func() {
 		log.Ctx(ctx).Debug().Msg("start port-forward thread")
 		address := "localhost"
-		err := K8util.PortForwardPod(ctx, request.Kns, request.PodName, address, clientReq.Ports, startChan, stopChan)
+		err := K8util.PortForwardPod(ctx, request.Kns, request.PodName, address, clientReq.Ports, startChan, stopChan, request.FilterOpts)
 		log.Ctx(ctx).Err(err).Msg("error in port forwarding")
 		log.Ctx(ctx).Debug().Msg("done port-forward")
 	}()
@@ -171,7 +180,7 @@ func podsPortForwardRequest(request *PodActionRequest) ([]byte, error) {
 func podsDeleteRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
 	log.Ctx(ctx).Debug().Msg("podsDeleteRequest")
-	err := K8util.DeleteFirstPodLike(ctx, request.Kns, request.PodName, request.DeleteOpts)
+	err := K8util.DeleteFirstPodLike(ctx, request.Kns, request.PodName, request.DeleteOpts, request.FilterOpts)
 	if err != nil {
 		return err
 	}
@@ -182,7 +191,7 @@ func podsDeleteRequest(c echo.Context, request *PodActionRequest) error {
 func podsDeleteAllRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
 	log.Ctx(ctx).Debug().Msg("podsDeleteAllRequest")
-	err := K8util.DeleteAllPodsLike(ctx, request.Kns, request.PodName, request.DeleteOpts)
+	err := K8util.DeleteAllPodsLike(ctx, request.Kns, request.PodName, request.DeleteOpts, request.FilterOpts)
 	if err != nil {
 		return err
 	}
@@ -191,7 +200,7 @@ func podsDeleteAllRequest(c echo.Context, request *PodActionRequest) error {
 
 func podsDescribeRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
-	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, nil)
+	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, nil, request.FilterOpts)
 	if err != nil {
 		return err
 	}
@@ -201,18 +210,26 @@ func podsDescribeRequest(c echo.Context, request *PodActionRequest) error {
 func podLogsActionRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
 	log.Ctx(ctx).Debug().Msg("podLogsActionRequest")
-	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, nil)
+	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, nil, request.FilterOpts)
 	if err != nil {
 		return err
 	}
+
+	podNameFilter := request.PodName
+	var filterWords []string
+	if request.FilterOpts != nil {
+		filter := request.FilterOpts
+		filterMatches := *filter
+		filterWords = filterMatches.DoesNotInclude
+	}
+
 	p := v1.Pod{}
 	for _, pod := range pods.Items {
-		name := pod.ObjectMeta.Name
-		if strings.Contains(name, request.PodName) {
+		if string_utils.FilterString(pod.GetName(), podNameFilter, filterWords) {
 			p = pod
 		}
 	}
-	logs, err := K8util.GetPodLogs(ctx, p.GetName(), request.Kns.Namespace, request.LogOpts)
+	logs, err := K8util.GetPodLogs(ctx, p.GetName(), request.Kns.Namespace, request.LogOpts, request.FilterOpts)
 	if err != nil {
 		return err
 	}

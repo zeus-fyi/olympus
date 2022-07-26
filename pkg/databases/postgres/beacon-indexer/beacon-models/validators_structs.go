@@ -5,7 +5,7 @@ import (
 
 	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_api/api_types"
 	"github.com/zeus-fyi/olympus/pkg/databases/postgres"
-	"github.com/zeus-fyi/olympus/pkg/utils/strings"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 type Validators struct {
@@ -44,17 +44,17 @@ func ToBeaconModelFormat(vs api_types.ValidatorsStateBeacon) (mvs Validators) {
 }
 
 func singleValidatorStructToBeaconModelFormat(v api_types.ValidatorStateBeacon, index, balance string) (mv Validator) {
-	mv.Index = strings.Int64StringParser(index)
-	mv.Balance = strings.Int64StringParser(balance)
+	mv.Index = string_utils.Int64StringParser(index)
+	mv.Balance = string_utils.Int64StringParser(balance)
 
 	mv.Pubkey = v.Pubkey
 	mv.WithdrawalCredentials = v.WithdrawalCredentials
-	mv.EffectiveBalance = strings.Int64StringParser(v.EffectiveBalance)
+	mv.EffectiveBalance = string_utils.Int64StringParser(v.EffectiveBalance)
 	mv.Slashed = v.Slashed
-	mv.ActivationEligibilityEpoch = strings.FarFutureEpoch(v.ActivationEligibilityEpoch)
-	mv.ActivationEpoch = strings.FarFutureEpoch(v.ActivationEpoch)
-	mv.ExitEpoch = strings.FarFutureEpoch(v.ExitEpoch)
-	mv.WithdrawableEpoch = strings.FarFutureEpoch(v.WithdrawableEpoch)
+	mv.ActivationEligibilityEpoch = string_utils.FarFutureEpoch(v.ActivationEligibilityEpoch)
+	mv.ActivationEpoch = string_utils.FarFutureEpoch(v.ActivationEpoch)
+	mv.ExitEpoch = string_utils.FarFutureEpoch(v.ExitEpoch)
+	mv.WithdrawableEpoch = string_utils.FarFutureEpoch(v.WithdrawableEpoch)
 	return mv
 }
 
@@ -65,6 +65,6 @@ func (vs *Validators) formatValidatorStateIndexesToURLList() string {
 		indexes[i] = strconv.FormatInt(v.Index, 10)
 
 	}
-	indexString := strings.UrlEncodeQueryParamList("", indexes...)
+	indexString := string_utils.UrlEncodeQueryParamList("", indexes...)
 	return indexString
 }

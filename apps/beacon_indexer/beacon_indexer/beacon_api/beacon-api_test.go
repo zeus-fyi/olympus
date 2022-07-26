@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_api/api_types"
-	"github.com/zeus-fyi/olympus/pkg/utils/strings"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
 )
 
@@ -38,7 +38,7 @@ func (s *BeaconAPITestSuite) TestGetValidatorsByStateFilter() {
 	s.T().Parallel()
 	state := "head"
 	valIndexes := []string{"242521", "67596"}
-	encodedURLparams := strings.UrlEncodeQueryParamList("", valIndexes...)
+	encodedURLparams := string_utils.UrlEncodeQueryParamList("", valIndexes...)
 	r := GetValidatorsBalancesByStateFilter(ctx, s.Tc.BEACON_NODE_INFURA, state, encodedURLparams)
 	s.Require().Nil(r.Err)
 

@@ -5,7 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/databases/postgres"
-	"github.com/zeus-fyi/olympus/pkg/utils/strings"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 type ValidatorBalancesEpoch struct {
@@ -64,7 +64,7 @@ func (vb *ValidatorBalancesEpoch) FormatValidatorBalancesEpochIndexesToURLList()
 		indexes[i] = strconv.FormatInt(v.Index, 10)
 
 	}
-	indexString := strings.UrlEncodeQueryParamList("", indexes...)
+	indexString := string_utils.UrlEncodeQueryParamList("", indexes...)
 	log.Debug().Interface("ValidatorBalancesEpoch: indexString", indexString)
 	return indexString
 }

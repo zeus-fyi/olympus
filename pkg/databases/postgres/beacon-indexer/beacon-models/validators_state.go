@@ -6,7 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/databases/postgres"
-	"github.com/zeus-fyi/olympus/pkg/utils/strings"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 var insertValidatorsFromBeaconAPI = `INSERT INTO validators (index, pubkey, balance, effective_balance, activation_eligibility_epoch, activation_epoch, exit_epoch, withdrawable_epoch, slashed, withdrawal_credentials) VALUES `
@@ -17,7 +17,7 @@ func (vs *Validators) InsertValidatorsFromBeaconAPI(ctx context.Context) error {
 	vs.RowSetting.RowsToInclude = "beacon_state"
 
 	querySuffix := ` ON CONFLICT ON CONSTRAINT validators_pkey DO NOTHING`
-	query := strings.PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(insertValidatorsFromBeaconAPI, vs.GetManyRowValues(), querySuffix)
+	query := string_utils.PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(insertValidatorsFromBeaconAPI, vs.GetManyRowValues(), querySuffix)
 	r, err := postgres.Pg.Exec(ctx, query)
 	rowsAffected := r.RowsAffected()
 	log.Info().Int64("rows affected: ", rowsAffected)
@@ -29,7 +29,7 @@ func (vs *Validators) InsertValidatorsFromBeaconAPI(ctx context.Context) error {
 }
 
 func (vs *Validators) UpdateValidatorsFromBeaconAPI(ctx context.Context) (Validators, error) {
-	validators := strings.MultiArraySliceStrBuilderSQL(vs.GetManyRowValues())
+	validators := string_utils.MultiArraySliceStrBuilderSQL(vs.GetManyRowValues())
 	vs.RowSetting.RowsToInclude = "beacon_state_update"
 	query := fmt.Sprintf(`
 	WITH validator_update AS (

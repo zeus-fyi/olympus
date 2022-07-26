@@ -1,4 +1,4 @@
-package strings
+package string_utils
 
 const farFutureEpochToInt64MAX = int64(9223372036854775807)
 const farFutureEpochToUINT64Postgres = uint64(9223372036854775807)

@@ -37,6 +37,10 @@ type KubeCtxNs struct {
 	Env           string
 }
 
+type FilterOpts struct {
+	DoesNotInclude []string
+}
+
 func (kCtx *KubeCtxNs) GetCtxName(env string) string {
 	return fmt.Sprintf("%s-%s-%s", kCtx.CloudProvider, kCtx.Region, kCtx.CtxType)
 }

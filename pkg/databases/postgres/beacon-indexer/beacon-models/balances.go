@@ -6,7 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/databases/postgres"
-	"github.com/zeus-fyi/olympus/pkg/utils/strings"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 // InsertValidatorBalancesForNextEpoch
@@ -18,9 +18,9 @@ import (
 */
 func (vb *ValidatorBalancesEpoch) InsertValidatorBalancesForNextEpoch(ctx context.Context) error {
 	log.Info().Msg("ValidatorBalancesEpoch: InsertValidatorBalancesForNextEpoch")
-	epochs := strings.ArraySliceStrBuilderSQL(vb.getEpochValues())
-	valIndexes := strings.ArraySliceStrBuilderSQL(vb.getIndexValues())
-	newBalance := strings.ArraySliceStrBuilderSQL(vb.getNewBalanceValues())
+	epochs := string_utils.ArraySliceStrBuilderSQL(vb.getEpochValues())
+	valIndexes := string_utils.ArraySliceStrBuilderSQL(vb.getIndexValues())
+	newBalance := string_utils.ArraySliceStrBuilderSQL(vb.getNewBalanceValues())
 	query := fmt.Sprintf(`
 		WITH validator_max_relative_epoch_balances AS (
 			SELECT COALESCE(MAX(epoch), 0) as max_epoch, validator_index
@@ -54,7 +54,7 @@ func (vb *ValidatorBalancesEpoch) InsertValidatorBalancesForNextEpoch(ctx contex
 var insertValidatorBalances = "INSERT INTO validator_balances_at_epoch (epoch, validator_index, total_balance_gwei, current_epoch_yield_gwei) VALUES "
 
 func (vb *ValidatorBalancesEpoch) InsertValidatorBalances(ctx context.Context) error {
-	query := strings.DelimitedSliceStrBuilderSQLRows(insertValidatorBalances, vb.GetManyRowValues())
+	query := string_utils.DelimitedSliceStrBuilderSQLRows(insertValidatorBalances, vb.GetManyRowValues())
 	r, err := postgres.Pg.Exec(ctx, query)
 	rowsAffected := r.RowsAffected()
 	log.Info().Int64("rows affected: ", rowsAffected)
@@ -66,7 +66,7 @@ func (vb *ValidatorBalancesEpoch) InsertValidatorBalances(ctx context.Context) e
 }
 
 func (vb *ValidatorBalancesEpoch) SelectValidatorBalances(ctx context.Context) (*ValidatorBalancesEpoch, error) {
-	params := strings.AnyArraySliceStrBuilderSQL(vb.getIndexValues())
+	params := string_utils.AnyArraySliceStrBuilderSQL(vb.getIndexValues())
 	query := fmt.Sprintf(`SELECT epoch, validator_index, total_balance_gwei, current_epoch_yield_gwei, yield_to_date_gwei
 								 FROM validator_balances_at_epoch
 								 WHERE validator_index = %s`, params)

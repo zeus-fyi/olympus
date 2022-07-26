@@ -7,7 +7,7 @@ import (
 	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_api/api_types"
 	beacon_models "github.com/zeus-fyi/olympus/pkg/databases/postgres/beacon-indexer/beacon-models"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
-	"github.com/zeus-fyi/olympus/pkg/utils/strings"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 func (f *BeaconFetcher) BeaconFindNewAndMissingValidatorIndexes(ctx context.Context, batchSize int) (err error) {
@@ -120,8 +120,8 @@ func convertBeaconAPIBalancesToModelBalance(beaconBalanceAPI api_types.Validator
 	for i, beaconBalanceResult := range beaconBalanceAPI.Data {
 		var epochResult beacon_models.ValidatorBalanceEpoch
 		epochResult.Epoch = beaconBalanceAPI.Epoch
-		epochResult.Index = strings.Int64StringParser(beaconBalanceResult.Index)
-		epochResult.TotalBalanceGwei = strings.Int64StringParser(beaconBalanceResult.Balance)
+		epochResult.Index = string_utils.Int64StringParser(beaconBalanceResult.Index)
+		epochResult.TotalBalanceGwei = string_utils.Int64StringParser(beaconBalanceResult.Balance)
 		valBalances.ValidatorBalance[i] = epochResult
 	}
 	return valBalances

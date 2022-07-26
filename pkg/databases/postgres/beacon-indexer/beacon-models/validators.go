@@ -6,13 +6,13 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/databases/postgres"
-	"github.com/zeus-fyi/olympus/pkg/utils/strings"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 var insertValidatorsOnlyIndexPubkey = `INSERT INTO validators (index, pubkey) VALUES `
 
 func (vs *Validators) InsertValidatorsOnlyIndexPubkey(ctx context.Context) error {
-	query := strings.DelimitedSliceStrBuilderSQLRows(insertValidatorsOnlyIndexPubkey, vs.GetManyRowValues())
+	query := string_utils.DelimitedSliceStrBuilderSQLRows(insertValidatorsOnlyIndexPubkey, vs.GetManyRowValues())
 	r, err := postgres.Pg.Exec(ctx, query)
 	rowsAffected := r.RowsAffected()
 	log.Info().Int64("rows affected: ", rowsAffected)
@@ -28,7 +28,7 @@ var insertValidatorPendingQueue = `INSERT INTO validators (index, pubkey, balanc
 func (vs *Validators) InsertValidatorsPendingQueue(ctx context.Context) error {
 	vs.RowSetting.RowsToInclude = "all"
 	querySuffix := ` ON CONFLICT (index) DO NOTHING`
-	query := strings.PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(insertValidatorPendingQueue, vs.GetManyRowValues(), querySuffix)
+	query := string_utils.PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(insertValidatorPendingQueue, vs.GetManyRowValues(), querySuffix)
 	r, err := postgres.Pg.Exec(ctx, query)
 	rowsAffected := r.RowsAffected()
 	log.Info().Int64("rows affected: ", rowsAffected)
@@ -41,7 +41,7 @@ func (vs *Validators) InsertValidatorsPendingQueue(ctx context.Context) error {
 
 func (vs *Validators) SelectValidatorsPendingQueue(ctx context.Context) (*Validators, error) {
 	limit := 10000
-	validators := strings.AnyArraySliceStrBuilderSQL(vs.GetManyRowValuesFlattened())
+	validators := string_utils.AnyArraySliceStrBuilderSQL(vs.GetManyRowValuesFlattened())
 	query := fmt.Sprintf(`SELECT index, pubkey, balance, effective_balance, activation_eligibility_epoch, activation_epoch, status, substatus FROM validators WHERE index = %s LIMIT %d`, validators, limit)
 
 	rows, err := postgres.Pg.Query(ctx, query)
@@ -65,7 +65,7 @@ func (vs *Validators) SelectValidatorsPendingQueue(ctx context.Context) (*Valida
 
 func (vs *Validators) SelectValidatorsOnlyIndexPubkey(ctx context.Context) (*Validators, error) {
 	limit := 10000
-	validators := strings.AnyArraySliceStrBuilderSQL(vs.GetManyRowValuesFlattened())
+	validators := string_utils.AnyArraySliceStrBuilderSQL(vs.GetManyRowValuesFlattened())
 	query := fmt.Sprintf(`SELECT index, pubkey FROM validators WHERE index = %s LIMIT %d`, validators, limit)
 
 	rows, err := postgres.Pg.Query(ctx, query)
@@ -89,7 +89,7 @@ func (vs *Validators) SelectValidatorsOnlyIndexPubkey(ctx context.Context) (*Val
 
 func (vs *Validators) SelectValidators(ctx context.Context) (*Validators, error) {
 	limit := 10000
-	validators := strings.AnyArraySliceStrBuilderSQL(vs.GetManyRowValuesFlattened())
+	validators := string_utils.AnyArraySliceStrBuilderSQL(vs.GetManyRowValuesFlattened())
 	query := fmt.Sprintf(`SELECT index, pubkey, balance, effective_balance, activation_eligibility_epoch, activation_epoch, exit_epoch, withdrawable_epoch, slashed, status, withdrawal_credentials, substatus FROM validators WHERE index = %s LIMIT %d`, validators, limit)
 
 	rows, err := postgres.Pg.Query(ctx, query)
@@ -112,7 +112,7 @@ func (vs *Validators) SelectValidators(ctx context.Context) (*Validators, error)
 }
 
 func (vs *Validators) UpdateValidatorBalancesAndActivationEligibility(ctx context.Context) (*Validators, error) {
-	validators := strings.MultiArraySliceStrBuilderSQL(vs.GetManyRowValues())
+	validators := string_utils.MultiArraySliceStrBuilderSQL(vs.GetManyRowValues())
 	query := fmt.Sprintf(`
 	WITH validator_update AS (
 		SELECT * FROM UNNEST(%s) AS x(index, balance, effective_balance, activation_eligibility_epoch, activation_epoch)

@@ -14,10 +14,10 @@ import (
 	"k8s.io/kubectl/pkg/cmd/portforward"
 )
 
-func (k *K8Util) PortForwardPod(ctx context.Context, kubeCtxNs KubeCtxNs, podName, address string, ports []string, readyChan, stopChan chan struct{}) error {
+func (k *K8Util) PortForwardPod(ctx context.Context, kubeCtxNs KubeCtxNs, podName, address string, ports []string, readyChan, stopChan chan struct{}, filter *FilterOpts) error {
 	log.Ctx(ctx).Debug().Msg("PortForwardPod")
 
-	p, err := k.GetPodsUsingCtxNs(ctx, kubeCtxNs, nil)
+	p, err := k.GetPodsUsingCtxNs(ctx, kubeCtxNs, nil, filter)
 	if err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ func (k *K8Util) GetPod(ctx context.Context, name, ns string) (*v1.Pod, error) {
 	return p, err
 }
 
-func (k *K8Util) GetPodLogs(ctx context.Context, name, ns string, logOpts *v1.PodLogOptions) ([]byte, error) {
+func (k *K8Util) GetPodLogs(ctx context.Context, name, ns string, logOpts *v1.PodLogOptions, filter *FilterOpts) ([]byte, error) {
 	log.Ctx(ctx).Debug().Msg("GetPodLogs")
 
 	if logOpts == nil {
@@ -87,7 +87,7 @@ func (k *K8Util) GetPods(ctx context.Context, ns string, opts metav1.ListOptions
 	return k.kc.CoreV1().Pods(ns).List(context.Background(), opts)
 }
 
-func (k *K8Util) GetPodsUsingCtxNs(ctx context.Context, kubeCtxNs KubeCtxNs, logOpts *v1.PodLogOptions) (*v1.PodList, error) {
+func (k *K8Util) GetPodsUsingCtxNs(ctx context.Context, kubeCtxNs KubeCtxNs, logOpts *v1.PodLogOptions, filter *FilterOpts) (*v1.PodList, error) {
 	log.Ctx(ctx).Debug().Msg("GetPodsUsingCtxNs")
 
 	if logOpts == nil {
@@ -99,6 +99,7 @@ func (k *K8Util) GetPodsUsingCtxNs(ctx context.Context, kubeCtxNs KubeCtxNs, log
 	if err != nil {
 		return pods, err
 	}
+
 	_, err = k.K8Printer(pods, kubeCtxNs.Env)
 	return pods, err
 }
@@ -114,9 +115,9 @@ func (k *K8Util) DeletePod(ctx context.Context, name, ns string, deletePodOpts *
 	return err
 }
 
-func (k *K8Util) DeleteFirstPodLike(ctx context.Context, kubeCtxNs KubeCtxNs, podName string, deletePodOpts *metav1.DeleteOptions) error {
+func (k *K8Util) DeleteFirstPodLike(ctx context.Context, kubeCtxNs KubeCtxNs, podName string, deletePodOpts *metav1.DeleteOptions, filter *FilterOpts) error {
 	log.Ctx(ctx).Debug().Msg("DeleteFirstPodLike")
-	p, err := k.GetFirstPodLike(ctx, kubeCtxNs, podName)
+	p, err := k.GetFirstPodLike(ctx, kubeCtxNs, podName, filter)
 	if err != nil {
 		return err
 	}
@@ -128,10 +129,10 @@ func (k *K8Util) DeleteFirstPodLike(ctx context.Context, kubeCtxNs KubeCtxNs, po
 	return err
 }
 
-func (k *K8Util) DeleteAllPodsLike(ctx context.Context, kubeCtxNs KubeCtxNs, podName string, deletePodOpts *metav1.DeleteOptions) error {
+func (k *K8Util) DeleteAllPodsLike(ctx context.Context, kubeCtxNs KubeCtxNs, podName string, deletePodOpts *metav1.DeleteOptions, filter *FilterOpts) error {
 	log.Ctx(ctx).Debug().Msg("DeleteAllPodsLike")
 
-	pods, err := k.GetPodsUsingCtxNs(ctx, kubeCtxNs, nil)
+	pods, err := k.GetPodsUsingCtxNs(ctx, kubeCtxNs, nil, filter)
 	log.Ctx(ctx).Err(err).Msg("DeleteAllPodsLike")
 	if err != nil {
 		return err
@@ -155,8 +156,8 @@ func (k *K8Util) DeleteAllPodsLike(ctx context.Context, kubeCtxNs KubeCtxNs, pod
 	return err
 }
 
-func (k *K8Util) GetFirstPodLike(ctx context.Context, kubeCtxNs KubeCtxNs, podName string) (*v1.Pod, error) {
-	pods, err := k.GetPodsUsingCtxNs(ctx, kubeCtxNs, nil)
+func (k *K8Util) GetFirstPodLike(ctx context.Context, kubeCtxNs KubeCtxNs, podName string, filter *FilterOpts) (*v1.Pod, error) {
+	pods, err := k.GetPodsUsingCtxNs(ctx, kubeCtxNs, nil, filter)
 	if err != nil {
 		return nil, err
 	}

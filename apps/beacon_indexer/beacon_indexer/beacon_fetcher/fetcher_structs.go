@@ -2,7 +2,7 @@ package beacon_fetcher
 
 import (
 	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_api/api_types"
-	beacon_models2 "github.com/zeus-fyi/olympus/pkg/databases/postgres/beacon-indexer/beacon-models"
+	beacon_models2 "github.com/zeus-fyi/olympus/pkg/databases/postgres/beacon_indexer/beacon_models"
 )
 
 type BeaconFetcher struct {

@@ -16,7 +16,7 @@
 */
 
 CREATE TYPE network AS ENUM ('mainnet', 'prater');
-
+CREATE ROLE "doadmin" SUPERUSER;
 -- ----------------------------
 -- Table structure for validators
 -- ----------------------------

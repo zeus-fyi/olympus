@@ -34,7 +34,7 @@ func (s *PodsTestSuite) TestPodPortForward() {
 
 	go func() {
 		fmt.Println("start port-forward thread")
-		err := s.K.PortForwardPod(ctx, kns, "eth-indexer-eth-indexer", address, []string{ports}, startChan, stopChan)
+		err := s.K.PortForwardPod(ctx, kns, "eth-indexer-eth-indexer", address, []string{ports}, startChan, stopChan, nil)
 		fmt.Println(err)
 		fmt.Println("done port-forward")
 	}()
@@ -61,7 +61,7 @@ func (s *PodsTestSuite) TestGetPods() {
 	ctx := context.Background()
 	var kns = KubeCtxNs{Env: "", CloudProvider: "", Region: "", CtxType: "data", Namespace: "eth-indexer"}
 
-	pods, err := s.K.GetPodsUsingCtxNs(ctx, kns, nil)
+	pods, err := s.K.GetPodsUsingCtxNs(ctx, kns, nil, nil)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(pods)
 }

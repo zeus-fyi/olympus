@@ -12,6 +12,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/suite"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/autok8s/core"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -29,8 +30,9 @@ func (p *PodsHandlerTestSuite) SetupTest() {
 	p.SetupTestServer()
 }
 
+var kns = autok8s_core.KubeCtxNs{CloudProvider: "do", Region: "sfo3", CtxType: "zeus-k8s-blockchain", Namespace: "eth-indexer"}
+
 func (p *PodsHandlerTestSuite) TestPodPortForwardGET() {
-	var kns = autok8s_core.KubeCtxNs{CloudProvider: "do", Region: "sfo3", CtxType: "zeus-k8s-blockchain", Namespace: "eth-indexer"}
 
 	cliReq := ClientRequest{
 		MethodHTTP:      "GET",
@@ -50,8 +52,6 @@ func (p *PodsHandlerTestSuite) TestPodPortForwardGET() {
 }
 
 func (p *PodsHandlerTestSuite) TestPodPortForwardAll() {
-	var kns = autok8s_core.KubeCtxNs{CloudProvider: "do", Region: "sfo3", CtxType: "zeus-k8s-blockchain", Namespace: "eth-indexer"}
-
 	cliReq := ClientRequest{
 		MethodHTTP:      "GET",
 		Endpoint:        "health",
@@ -59,7 +59,7 @@ func (p *PodsHandlerTestSuite) TestPodPortForwardAll() {
 		Payload:         nil,
 		EndpointHeaders: nil,
 	}
-	filter := autok8s_core.FilterOpts{DoesNotInclude: []string{"beacon", "metrics"}}
+	filter := string_utils.FilterOpts{DoesNotInclude: []string{"beacon", "metrics"}}
 
 	podActionRequest := PodActionRequest{
 		Action:     "port-forward-all",
@@ -81,8 +81,6 @@ type AdminConfig struct {
 }
 
 func (p *PodsHandlerTestSuite) TestPodPortForwardPOST() {
-	var kns = autok8s_core.KubeCtxNs{CloudProvider: "do", Region: "sfo3", CtxType: "zeus-k8s-blockchain", Namespace: "eth-indexer"}
-
 	ll := zerolog.DebugLevel
 	nvSize, nbSize := 100, 500
 	timeout := time.Second * 30
@@ -114,8 +112,6 @@ func (p *PodsHandlerTestSuite) TestPodPortForwardPOST() {
 }
 
 func (p *PodsHandlerTestSuite) TestDescribePods() {
-	var kns = autok8s_core.KubeCtxNs{CloudProvider: "do", Region: "sfo3", CtxType: "zeus-k8s-blockchain", Namespace: "eth-indexer"}
-
 	podActionRequest := PodActionRequest{
 		Action:     "describe",
 		K8sRequest: K8sRequest{kns},
@@ -125,8 +121,6 @@ func (p *PodsHandlerTestSuite) TestDescribePods() {
 }
 
 func (p *PodsHandlerTestSuite) TestGetPodLogs() {
-	var kns = autok8s_core.KubeCtxNs{CloudProvider: "do", Region: "sfo3", CtxType: "zeus-k8s-blockchain", Namespace: "eth-indexer"}
-
 	tailLines := int64(100)
 	podActionRequest := PodActionRequest{
 		Action:     "logs",
@@ -146,6 +140,23 @@ func (p *PodsHandlerTestSuite) TestDeletePod() {
 		K8sRequest: K8sRequest{kns},
 	}
 	p.postK8Request(podActionRequest, http.StatusOK, false)
+}
+
+func (p *PodsHandlerTestSuite) TestAuditPods() {
+	filter := string_utils.FilterOpts{StartsWith: "eth"}
+
+	podActionRequest := PodActionRequest{
+		Action:     "describe-audit",
+		K8sRequest: K8sRequest{Kns: kns},
+		FilterOpts: &filter,
+	}
+	podDescribeReq := p.postK8Request(podActionRequest, http.StatusOK, false)
+	resp := podDescribeReq.logs
+
+	var ps PodsSummary
+	err := json.Unmarshal(resp, &ps)
+	p.Require().NotEmpty(resp)
+	p.Assert().Nil(err)
 }
 
 func (p *PodsHandlerTestSuite) postK8Request(podActionRequest PodActionRequest, httpCode int, unmarshall bool) TestResponse {

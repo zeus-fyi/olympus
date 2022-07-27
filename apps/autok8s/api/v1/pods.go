@@ -12,37 +12,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	autok8s_core "github.com/zeus-fyi/olympus/pkg/autok8s/core"
 	"github.com/zeus-fyi/olympus/pkg/client"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-type PodActionRequest struct {
-	K8sRequest
-	Action        string
-	PodName       string
-	ContainerName string
-
-	FilterOpts *autok8s_core.FilterOpts
-	ClientReq  *ClientRequest
-	LogOpts    *v1.PodLogOptions
-	DeleteOpts *metav1.DeleteOptions
-}
-
-type ClientRequest struct {
-	MethodHTTP      string
-	Endpoint        string
-	Ports           []string
-	Payload         *string
-	PayloadBytes    *[]byte
-	EndpointHeaders map[string]string
-}
-
-type ClientResp struct {
-	ReplyBodies map[string]string
-}
 
 func HandlePodActionRequest(c echo.Context) error {
 	request := new(PodActionRequest)
@@ -50,16 +23,19 @@ func HandlePodActionRequest(c echo.Context) error {
 		return err
 	}
 	if request.Action == "logs" {
-		return podLogsActionRequest(c, request)
+		return PodLogsActionRequest(c, request)
 	}
 	if request.Action == "describe" {
-		return podsDescribeRequest(c, request)
+		return PodsDescribeRequest(c, request)
+	}
+	if request.Action == "describe-audit" {
+		return PodsAuditRequest(c, request)
 	}
 	if request.Action == "delete" {
-		return podsDeleteRequest(c, request)
+		return PodsDeleteRequest(c, request)
 	}
 	if request.Action == "delete-all" {
-		return podsDeleteAllRequest(c, request)
+		return PodsDeleteAllRequest(c, request)
 	}
 	if request.Action == "port-forward" {
 		bytesResp, err := podsPortForwardRequest(request)
@@ -85,23 +61,15 @@ func podsPortForwardRequestToAllPods(c echo.Context, request *PodActionRequest) 
 	var respBody ClientResp
 	respBody.ReplyBodies = make(map[string]string, len(pods.Items))
 
-	podNameFilter := request.PodName
-	var filterWords []string
-	if request.FilterOpts != nil {
-		filter := request.FilterOpts
-		filterMatches := *filter
-		filterWords = filterMatches.DoesNotInclude
-	}
 	for _, pod := range pods.Items {
-		if string_utils.FilterString(pod.GetName(), podNameFilter, filterWords) {
-			request.PodName = pod.GetName()
-			bytesResp, reqErr := podsPortForwardRequest(request)
-			if reqErr != nil {
-				log.Err(reqErr).Msgf("port-forwarded request to pod %s failed", pod.GetName())
-				return c.JSON(http.StatusBadRequest, "port-forwarded request failed")
-			}
-			respBody.ReplyBodies[pod.GetName()] = string(bytesResp)
+		request.PodName = pod.GetName()
+		bytesResp, reqErr := podsPortForwardRequest(request)
+		if reqErr != nil {
+			log.Err(reqErr).Msgf("port-forwarded request to pod %s failed", pod.GetName())
+			return c.JSON(http.StatusBadRequest, "port-forwarded request failed")
 		}
+		respBody.ReplyBodies[pod.GetName()] = string(bytesResp)
+
 	}
 	return c.JSON(http.StatusOK, respBody)
 }
@@ -177,9 +145,9 @@ func podsPortForwardRequest(request *PodActionRequest) ([]byte, error) {
 	return r.BodyBytes, nil
 }
 
-func podsDeleteRequest(c echo.Context, request *PodActionRequest) error {
+func PodsDeleteRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
-	log.Ctx(ctx).Debug().Msg("podsDeleteRequest")
+	log.Ctx(ctx).Debug().Msg("PodsDeleteRequest")
 	err := K8util.DeleteFirstPodLike(ctx, request.Kns, request.PodName, request.DeleteOpts, request.FilterOpts)
 	if err != nil {
 		return err
@@ -188,9 +156,9 @@ func podsDeleteRequest(c echo.Context, request *PodActionRequest) error {
 	return c.JSON(http.StatusOK, fmt.Sprintf("pod %s deleted", request.PodName))
 }
 
-func podsDeleteAllRequest(c echo.Context, request *PodActionRequest) error {
+func PodsDeleteAllRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
-	log.Ctx(ctx).Debug().Msg("podsDeleteAllRequest")
+	log.Ctx(ctx).Debug().Msg("PodsDeleteAllRequest")
 	err := K8util.DeleteAllPodsLike(ctx, request.Kns, request.PodName, request.DeleteOpts, request.FilterOpts)
 	if err != nil {
 		return err
@@ -198,7 +166,7 @@ func podsDeleteAllRequest(c echo.Context, request *PodActionRequest) error {
 	return c.JSON(http.StatusOK, fmt.Sprintf("pods with name like %s deleted", request.PodName))
 }
 
-func podsDescribeRequest(c echo.Context, request *PodActionRequest) error {
+func PodsDescribeRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
 	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, nil, request.FilterOpts)
 	if err != nil {
@@ -207,25 +175,17 @@ func podsDescribeRequest(c echo.Context, request *PodActionRequest) error {
 	return c.JSON(http.StatusOK, pods)
 }
 
-func podLogsActionRequest(c echo.Context, request *PodActionRequest) error {
+func PodLogsActionRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
-	log.Ctx(ctx).Debug().Msg("podLogsActionRequest")
+	log.Ctx(ctx).Debug().Msg("PodLogsActionRequest")
 	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, nil, request.FilterOpts)
 	if err != nil {
 		return err
 	}
 
-	podNameFilter := request.PodName
-	var filterWords []string
-	if request.FilterOpts != nil {
-		filter := request.FilterOpts
-		filterMatches := *filter
-		filterWords = filterMatches.DoesNotInclude
-	}
-
 	p := v1.Pod{}
 	for _, pod := range pods.Items {
-		if string_utils.FilterString(pod.GetName(), podNameFilter, filterWords) {
+		if string_utils.FilterStringWithOpts(pod.GetName(), request.FilterOpts) {
 			p = pod
 		}
 	}
@@ -234,4 +194,15 @@ func podLogsActionRequest(c echo.Context, request *PodActionRequest) error {
 		return err
 	}
 	return c.JSON(http.StatusOK, string(logs))
+}
+
+func PodsAuditRequest(c echo.Context, request *PodActionRequest) error {
+	ctx := context.Background()
+
+	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, nil, request.FilterOpts)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	parsedResp := parseResp(pods)
+	return c.JSON(http.StatusOK, parsedResp)
 }

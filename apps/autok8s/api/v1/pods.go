@@ -168,7 +168,7 @@ func PodsDeleteAllRequest(c echo.Context, request *PodActionRequest) error {
 
 func PodsDescribeRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
-	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, nil, request.FilterOpts)
+	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, request.LogOpts, request.FilterOpts)
 	if err != nil {
 		return err
 	}
@@ -199,7 +199,7 @@ func PodLogsActionRequest(c echo.Context, request *PodActionRequest) error {
 func PodsAuditRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
 
-	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, nil, request.FilterOpts)
+	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, request.LogOpts, request.FilterOpts)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}

@@ -104,6 +104,15 @@ func createFakeValidatorsByStatus(validatorNum int, status string) Validators {
 			v.ActivationEligibilityEpoch = actEligEpoch
 			actEpoch = 66906
 			v.ActivationEpoch = actEpoch
+		case "active_ongoing_genesis":
+			balance = eth32Gwei
+			v.Balance = balance
+			effBalance = eth32Gwei
+			v.EffectiveBalance = effBalance
+			actEligEpoch = 0
+			v.ActivationEligibilityEpoch = actEligEpoch
+			actEpoch = 0
+			v.ActivationEpoch = actEpoch
 		}
 		vs.Validators = append(vs.Validators, v)
 

@@ -12,7 +12,7 @@ RETURNS "pg_catalog"."int4" AS
 $BODY$
 DECLARE
 BEGIN
-    RETURN (SELECT COUNT(*) FROM validators WHERE validator.activation_epoch <= epoch AND epoch < validator.exit_epoch);
+    RETURN (SELECT COUNT(*) FROM validators WHERE validators.activation_epoch <= epoch AND epoch < validators.exit_epoch);
 END;
 $BODY$
 LANGUAGE plpgsql VOLATILE

@@ -14,11 +14,11 @@ type CheckpointTestSuite struct {
 	P *pgxpool.Pool
 }
 
-func (c *CheckpointTestSuite) InsertCheckpoint() {
+func (c *CheckpointTestSuite) TestInsertCheckpoint() {
 	ctx := context.Background()
 
 	validators := 10
-	vs := createFakeValidatorsByStatus(validators, "active_ongoing")
+	vs := createFakeValidatorsByStatus(validators, "active_ongoing_genesis")
 	err := vs.InsertValidatorsPendingQueue(ctx)
 	c.Require().Nil(err)
 

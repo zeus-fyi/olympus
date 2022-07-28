@@ -57,7 +57,7 @@ func (s *ValidatorBalancesTestSuite) TestInsertAndSelectValidatorBalances() {
 	selectedVBs, err := vbsEpoch0.SelectValidatorBalances(ctx)
 	s.Require().Nil(err)
 
-	for _, testVB := range selectedVBs.ValidatorBalance {
+	for _, testVB := range selectedVBs.ValidatorBalances {
 		expVB := exp0VBs[testVB.Index]
 		s.Require().NotEmpty(expVB)
 		s.Assert().Equal(expVB.Index, testVB.Index)
@@ -75,7 +75,7 @@ func (s *ValidatorBalancesTestSuite) insertEpochVBFromGivenValidatorsAndValidate
 }
 
 func (s *ValidatorBalancesTestSuite) compareExpectedToActualValBalanceEntries(selectedVBs ValidatorBalancesEpoch, expVBs map[int64]ValidatorBalanceEpoch, startingTotalBalance, prevTotalBalanceGwei int64) {
-	for _, testVB := range selectedVBs.ValidatorBalance {
+	for _, testVB := range selectedVBs.ValidatorBalances {
 		expVB := expVBs[testVB.Index]
 		s.Require().NotEmpty(expVB)
 		s.Assert().Equal(expVB.Index, testVB.Index)
@@ -118,7 +118,7 @@ func seedValidatorEpochBalancesStructFromValidators(vs Validators, epoch, newGwe
 		vb.Epoch = epoch
 		vb.Validator = v
 		vb.TotalBalanceGwei = newGweiBalance
-		valExpBalancesAtEpoch.ValidatorBalance = append(valExpBalancesAtEpoch.ValidatorBalance, vb)
+		valExpBalancesAtEpoch.ValidatorBalances = append(valExpBalancesAtEpoch.ValidatorBalances, vb)
 		expVbsMap[vb.Index] = vb
 	}
 	return valExpBalancesAtEpoch, expVbsMap

@@ -24,7 +24,7 @@ func (s *BeaconAPITestSuite) TestGetValidatorsByState() {
 	s.SkipTest(disableHighDataAPITests)
 	state := "finalized"
 
-	r := GetValidatorsByState(ctx, s.Tc.BeaconNodeInfura, state)
+	r := GetValidatorsByState(ctx, s.Tc.LocalBeaconConn, state)
 	s.Require().Nil(r.Err)
 	var vs api_types.ValidatorsStateBeacon
 	err := json.Unmarshal(r.BodyBytes, &vs)
@@ -39,7 +39,7 @@ func (s *BeaconAPITestSuite) TestGetValidatorsByStateFilter() {
 	state := "head"
 	valIndexes := []string{"242521", "67596"}
 	encodedURLparams := string_utils.UrlEncodeQueryParamList("", valIndexes...)
-	r := GetValidatorsBalancesByStateFilter(ctx, s.Tc.BeaconNodeInfura, state, encodedURLparams)
+	r := GetValidatorsBalancesByStateFilter(ctx, s.Tc.LocalBeaconConn, state, encodedURLparams)
 	s.Require().Nil(r.Err)
 
 	var vb api_types.ValidatorBalances
@@ -51,7 +51,7 @@ func (s *BeaconAPITestSuite) TestGetValidatorsByStateFilter() {
 
 func (s *BeaconAPITestSuite) TestGetBlockByID() {
 	s.T().Parallel()
-	r := GetBlockByID(ctx, s.Tc.BeaconNodeInfura, "head")
+	r := GetBlockByID(ctx, s.Tc.LocalBeaconConn, "head")
 	s.Require().Nil(r.Err)
 }
 

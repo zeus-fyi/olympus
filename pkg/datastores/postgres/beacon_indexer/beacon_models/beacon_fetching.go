@@ -32,7 +32,7 @@ func SelectValidatorsToQueryBeaconForBalanceUpdates(ctx context.Context, batchSi
 			log.Err(rowErr).Interface("SelectValidatorsToQueryBeaconForBalanceUpdates: Query: ", query)
 			return selectedValidatorBalances, rowErr
 		}
-		selectedValidatorBalances.ValidatorBalance = append(selectedValidatorBalances.ValidatorBalance, vb)
+		selectedValidatorBalances.ValidatorBalances = append(selectedValidatorBalances.ValidatorBalances, vb)
 	}
 	log.Info().Interface("SelectValidatorsToQueryBeaconForBalanceUpdates: selectedValidatorBalances: ", selectedValidatorBalances)
 	return selectedValidatorBalances, nil
@@ -103,7 +103,7 @@ func SelectValidatorsToQueryBalancesByEpochSlot(ctx context.Context, batchSize i
 	if err != nil {
 		return nextEpochSlotMap, err
 	}
-	for _, vb := range vbal.ValidatorBalance {
+	for _, vb := range vbal.ValidatorBalances {
 		nextEpochSlotMap[vb.NextEpochToQuery] = append(nextEpochSlotMap[vb.NextEpochToQuery], vb)
 	}
 	return nextEpochSlotMap, err

@@ -85,7 +85,7 @@ func (f *BeaconFetcher) FindAndQueryAndUpdateValidatorBalances(ctx context.Conte
 
 	for nextEpoch, vbs := range nextEpochSlotMap {
 		valBalances := beacon_models.ValidatorBalancesEpoch{}
-		valBalances.ValidatorBalance = vbs
+		valBalances.ValidatorBalances = vbs
 		var beaconAPI api_types.ValidatorBalances
 		nextEpochSlot := misc.ConvertEpochToSlot(nextEpoch)
 		beaconAPI.Epoch = nextEpoch
@@ -116,13 +116,42 @@ func (f *BeaconFetcher) FindAndQueryAndUpdateValidatorBalances(ctx context.Conte
 
 func convertBeaconAPIBalancesToModelBalance(beaconBalanceAPI api_types.ValidatorBalances, valBalances beacon_models.ValidatorBalancesEpoch) beacon_models.ValidatorBalancesEpoch {
 	log.Info().Msg("BeaconFetcher: convertBeaconAPIBalancesToModelBalance")
-	valBalances.ValidatorBalance = make([]beacon_models.ValidatorBalanceEpoch, len(beaconBalanceAPI.Data))
+	valBalances.ValidatorBalances = make([]beacon_models.ValidatorBalanceEpoch, len(beaconBalanceAPI.Data))
 	for i, beaconBalanceResult := range beaconBalanceAPI.Data {
 		var epochResult beacon_models.ValidatorBalanceEpoch
 		epochResult.Epoch = beaconBalanceAPI.Epoch
 		epochResult.Index = string_utils.Int64StringParser(beaconBalanceResult.Index)
 		epochResult.TotalBalanceGwei = string_utils.Int64StringParser(beaconBalanceResult.Balance)
-		valBalances.ValidatorBalance[i] = epochResult
+		valBalances.ValidatorBalances[i] = epochResult
 	}
 	return valBalances
+}
+
+func (f *BeaconFetcher) FetchAllValidatorBalances(ctx context.Context, slot int64) (beacon_models.ValidatorBalancesEpoch, error) {
+	log.Info().Msg("BeaconFetcher: FetchAllValidatorBalancesAtSlot")
+	var valBalances beacon_models.ValidatorBalancesEpoch
+	var beaconAPI api_types.ValidatorBalances
+
+	// TODO GET SLOT + ADD CHECKPOINT
+	slotToQuery := misc.ConvertEpochToSlot(slot)
+	epochToQuery := int64(0) // TODO
+	// TODO GET SLOT + ADD CHECKPOINT
+
+	err := beaconAPI.FetchAllValidatorBalancesAtStateAndDecode(ctx, f.NodeEndpoint, slotToQuery)
+	if err != nil {
+		log.Error().Err(err).Msg("BeaconFetcher: QueryAllValidatorBalancesAtSlot")
+		return valBalances, err
+	}
+	log.Info().Msg("BeaconFetcher: Convert API data to model format")
+	valBalances.ValidatorBalances = make([]beacon_models.ValidatorBalanceEpoch, len(beaconAPI.Data))
+	for i, vbFromAPI := range beaconAPI.Data {
+		vbForDataEntry := beacon_models.ValidatorBalanceEpoch{
+			Validator:        beacon_models.Validator{Index: string_utils.Int64StringParser(vbFromAPI.Index)},
+			Epoch:            epochToQuery,
+			TotalBalanceGwei: string_utils.Int64StringParser(vbFromAPI.Balance),
+		}
+		valBalances.ValidatorBalances[i] = vbForDataEntry
+	}
+
+	return valBalances, nil
 }

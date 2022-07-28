@@ -24,6 +24,13 @@ func GetValidatorsByState(ctx context.Context, beaconNode, stateID string) clien
 	return c.Get(ctx, url)
 }
 
+func GetAllValidatorBalancesByState(ctx context.Context, beaconNode, stateID string) client.Reply {
+	log.Info().Msg("BeaconAPI: GetAllValidatorBalancesByState")
+	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validator_balances")
+	log.Debug().Interface("BeaconAPI: url:", url)
+	return c.Get(ctx, url)
+}
+
 func GetValidatorsByStateFilter(ctx context.Context, beaconNode, stateID string, encodedQueryURL string) client.Reply {
 	log.Info().Msg("BeaconAPI: GetValidatorsByStateFilter")
 	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validators?id="+encodedQueryURL)

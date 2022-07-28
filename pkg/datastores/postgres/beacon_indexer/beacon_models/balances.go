@@ -85,7 +85,7 @@ func (vb *ValidatorBalancesEpoch) SelectValidatorBalances(ctx context.Context) (
 			log.Err(rowErr).Msg("ValidatorBalancesEpoch: SelectValidatorBalances")
 			return nil, rowErr
 		}
-		selectedValidatorBalances.ValidatorBalance = append(selectedValidatorBalances.ValidatorBalance, val)
+		selectedValidatorBalances.ValidatorBalances = append(selectedValidatorBalances.ValidatorBalances, val)
 	}
 	return &selectedValidatorBalances, err
 }

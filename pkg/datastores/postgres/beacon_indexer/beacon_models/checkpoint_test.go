@@ -22,7 +22,7 @@ func (c *CheckpointTestSuite) InsertCheckpoint() {
 	err := vs.InsertValidatorsPendingQueue(ctx)
 	c.Require().Nil(err)
 
-	cp := EpochCheckpoint{
+	cp := ValidatorsEpochCheckpoint{
 		Epoch: 0,
 	}
 	err = InsertEpochCheckpoint(ctx, cp.Epoch)

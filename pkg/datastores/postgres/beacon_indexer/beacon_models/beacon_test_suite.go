@@ -21,19 +21,21 @@ type BeaconBaseTestSuite struct {
 
 const eth32Gwei = 32000000000
 
-func createAndInsertFakeValidatorsByStatus(validatorNum int, status string) {
+func createAndInsertFakeValidatorsByStatus(validatorNum int, status string) Validators {
 	ctx := context.Background()
 	vs := createFakeValidatorsByStatus(validatorNum, status)
 	err := vs.InsertValidators(ctx)
 	if err != nil {
 		panic(err)
 	}
+	return vs
 }
 
 const farFutureEpochToInt64MAX = 9223372036854775807
 
 func createFakeValidatorsByStatus(validatorNum int, status string) Validators {
 	var vs Validators
+	vs.Validators = make([]Validator, validatorNum)
 	for i := 0; i < validatorNum; i++ {
 		var v Validator
 		v.Index = rand.Int63n(100000)
@@ -71,17 +73,35 @@ func createFakeValidatorsByStatus(validatorNum int, status string) Validators {
 			v.ActivationEligibilityEpoch = actEligEpoch
 			actEpoch = 0
 			v.ActivationEpoch = actEpoch
-		case "active_ongoing_genesis_second":
-			balance = eth32Gwei + 937841
+		case "active_ongoing_at_epoch_one":
+			balance = eth32Gwei
 			v.Balance = balance
 			effBalance = eth32Gwei
 			v.EffectiveBalance = effBalance
-			actEligEpoch = 0
+			actEligEpoch = 1
 			v.ActivationEligibilityEpoch = actEligEpoch
-			actEpoch = 0
+			actEpoch = 1
+			v.ActivationEpoch = actEpoch
+		case "active_ongoing_at_epoch_two":
+			balance = eth32Gwei
+			v.Balance = balance
+			effBalance = eth32Gwei
+			v.EffectiveBalance = effBalance
+			actEligEpoch = 2
+			v.ActivationEligibilityEpoch = actEligEpoch
+			actEpoch = 2
+			v.ActivationEpoch = actEpoch
+		case "active_ongoing_at_epoch_three":
+			balance = eth32Gwei
+			v.Balance = balance
+			effBalance = eth32Gwei
+			v.EffectiveBalance = effBalance
+			actEligEpoch = 3
+			v.ActivationEligibilityEpoch = actEligEpoch
+			actEpoch = 3
 			v.ActivationEpoch = actEpoch
 		}
-		vs.Validators = append(vs.Validators, v)
+		vs.Validators[i] = v
 	}
 	return vs
 }
@@ -112,7 +132,6 @@ func createFakeValidators(validatorNum int) Validators {
 	}
 	return vs
 }
-
 func TestBeaconBaseTestSuite(t *testing.T) {
 	suite.Run(t, new(BeaconBaseTestSuite))
 }

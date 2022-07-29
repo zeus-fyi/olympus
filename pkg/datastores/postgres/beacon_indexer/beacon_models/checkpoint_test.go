@@ -2,13 +2,10 @@ package beacon_models
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/datastores/postgres"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
 )
 
@@ -88,13 +85,4 @@ func (c *CheckpointTestSuite) TestInsertCheckpointWithDiffsAdded() {
 
 func TestCheckpointTestSuite(t *testing.T) {
 	suite.Run(t, new(CheckpointTestSuite))
-}
-
-func CleanupDb(ctx context.Context, tableName string) {
-	query := fmt.Sprintf(`DELETE FROM %s WHERE %s`, tableName, "true")
-	_, err := postgres.Pg.Exec(ctx, query)
-	log.Err(err).Interface("cleanupDb: %s", tableName)
-	if err != nil {
-		panic(err)
-	}
 }

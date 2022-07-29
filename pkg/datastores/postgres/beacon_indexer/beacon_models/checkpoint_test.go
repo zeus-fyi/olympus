@@ -16,23 +16,27 @@ type CheckpointTestSuite struct {
 
 func (c *CheckpointTestSuite) TestInsertCheckpoint() {
 	ctx := context.Background()
-
-	validators := 10
-	vs := createFakeValidatorsByStatus(validators, "active_ongoing_genesis")
-	err := vs.InsertValidatorsPendingQueue(ctx)
-	c.Require().Nil(err)
-
 	cp := ValidatorsEpochCheckpoint{
 		Epoch: 0,
 	}
+
+	numValidators := 3
+	beforeInsertCount, err := SelectCountValidatorActive(ctx, cp.Epoch)
+	c.Assert().Equal(0, beforeInsertCount)
+
+	createAndInsertFakeValidatorsByStatus(numValidators, "active_ongoing_genesis")
+	firstInsertCount, err := SelectCountValidatorActive(ctx, cp.Epoch)
+	c.Assert().Equal(numValidators, firstInsertCount)
+
 	err = InsertEpochCheckpoint(ctx, cp.Epoch)
 	c.Require().Nil(err)
 
 	err = cp.GetEpochCheckpoint(ctx, cp.Epoch)
 	c.Require().Nil(err)
-	c.Assert().Equal(validators, cp.ValidatorsActive)
-	c.Assert().Equal(0, cp.ValidatorsBalancesRecorded)
-	c.Assert().Equal(validators, cp.ValidatorsBalancesRemaining)
+
+	c.Assert().Equal(numValidators, cp.ValidatorsActive)
+	c.Assert().Equal(3, cp.ValidatorsBalancesRecorded)
+	c.Assert().Equal(0, cp.ValidatorsBalancesRemaining)
 }
 
 func TestCheckpointTestSuite(t *testing.T) {

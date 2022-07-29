@@ -105,12 +105,6 @@ func TestCheckpointTestSuite(t *testing.T) {
 	suite.Run(t, new(CheckpointTestSuite))
 }
 
-func CleanAll(ctx context.Context) {
-	CleanupDb(ctx, "validator_balances_at_epoch")
-	CleanupDb(ctx, "validators_epoch_checkpoint")
-	CleanupDb(ctx, "validators")
-}
-
 func CleanupDb(ctx context.Context, tableName string) {
 	query := fmt.Sprintf(`DELETE FROM %s WHERE %s`, tableName, "true")
 	_, err := postgres.Pg.Exec(ctx, query)

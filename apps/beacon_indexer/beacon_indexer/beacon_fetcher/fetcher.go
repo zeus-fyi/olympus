@@ -16,13 +16,13 @@ var NewValidatorBalancesBatchSize = 1000
 var NewValidatorBalancesTimeout = time.Second * 180
 
 var NewValidatorTimeout = 60 * time.Minute
-var UpdateValidatorTimeout = time.Minute * 5
+var UpdateValidatorTimeout = time.Minute * 10
 
-var FetchAllValidatorBalancesTimeout = time.Minute * 5
+var FetchAllValidatorBalancesTimeout = time.Minute * 10
 
 // Checkpoints
 
-var UpdateCheckpointsTimeout = 10 * time.Second
+var UpdateCheckpointsTimeout = 60 * time.Second
 var InsertCheckpointsTimeout = time.Minute * 2
 
 func InitFetcherService(nodeURL string) {

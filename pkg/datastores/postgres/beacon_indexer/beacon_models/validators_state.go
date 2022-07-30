@@ -41,6 +41,7 @@ func (vs *Validators) UpdateValidatorsFromBeaconAPI(ctx context.Context) (int64,
 
 	rows, err := postgres.Pg.Exec(ctx, query)
 	if err != nil {
+		log.Error().Err(err).Msgf("UpdateValidatorsFromBeaconAPI: Query %s", query)
 		return rows.RowsAffected(), err
 	}
 

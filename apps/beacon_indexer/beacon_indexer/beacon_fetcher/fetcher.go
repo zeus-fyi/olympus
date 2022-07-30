@@ -146,12 +146,17 @@ func checkpointUpdater(ctx context.Context, contextTimeout time.Duration) error 
 	ctxTimeout, cancel := context.WithTimeout(ctx, contextTimeout)
 	defer cancel()
 	chkPoint := beacon_models.ValidatorsEpochCheckpoint{}
-	err := beacon_models.UpdateEpochCheckpointBalancesRecordedAtEpoch(ctxTimeout, chkPoint.Epoch)
+	err := chkPoint.GetFirstEpochCheckpointWithBalancesRemaining(ctx)
+	if err != nil {
+		log.Info().Err(err).Msg("checkpointUpdater")
+		return err
+	}
+	log.Info().Msgf("UpdateEpochCheckpoint: checkpointUpdater at Epoch %d", chkPoint.Epoch)
+	err = beacon_models.UpdateEpochCheckpointBalancesRecordedAtEpoch(ctxTimeout, chkPoint.Epoch)
 	if err != nil {
 		log.Info().Err(err).Msg("fetchAllValidatorBalances: checkpointUpdater")
 		return err
 	}
-
 	return err
 }
 
@@ -171,7 +176,14 @@ func newCheckpoint(ctx context.Context, contextTimeout time.Duration) error {
 	ctxTimeout, cancel := context.WithTimeout(ctx, contextTimeout)
 	defer cancel()
 	chkPoint := beacon_models.ValidatorsEpochCheckpoint{}
-	_, err := beacon_models.InsertEpochCheckpoint(ctxTimeout, chkPoint.Epoch+1)
+	err := chkPoint.GetFirstEpochCheckpointWithBalancesRemaining(ctx)
+	if err != nil {
+		log.Info().Err(err).Msg("fetchAllValidatorBalances")
+		return err
+	}
+	log.Info().Msgf("InsertNewEpochCheckpoint: newCheckpoint at Epoch %d", chkPoint.Epoch+1)
+
+	_, err = beacon_models.InsertEpochCheckpoint(ctxTimeout, chkPoint.Epoch+1)
 	if err != nil {
 		log.Error().Err(err).Msg("InsertNewEpochCheckpoint: newCheckpoint")
 	}

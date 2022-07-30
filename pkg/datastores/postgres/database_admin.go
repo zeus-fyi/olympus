@@ -105,3 +105,12 @@ func ReadCfg(ctx context.Context) ConfigReadPG {
 	cfg.HealthCheckPeriod = dbConfig.HealthCheckPeriod
 	return cfg
 }
+
+func (d *Db) FetchTableSize(ctx context.Context, tableName string) (string, error) {
+	log.Ctx(ctx).Info().Msgf("FetchTableSize Table: %s", tableName)
+	var tableSize string
+	query := fmt.Sprintf(`SELECT pg_size_pretty(pg_total_relation_size('%s'))`, tableName)
+	err := Pg.Pgpool.QueryRow(ctx, query).Scan(&tableSize)
+	log.Err(err).Msg("Pinging DB failed")
+	return tableSize, err
+}

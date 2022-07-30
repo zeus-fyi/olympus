@@ -12,6 +12,7 @@ import (
 var testCont TestContainer
 
 type TestContainer struct {
+	Env             string
 	StagingDbPgconn string
 	LocalBeaconConn string
 	LocalDbPgconn   string
@@ -37,7 +38,7 @@ func InitEnvFromConfig(dir string) {
 
 func InitLocalTestConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
-
+	testCont.LocalDbPgconn = viper.GetString("ENV")
 	testCont.LocalDbPgconn = viper.GetString("LOCAL_DB_PGCONN")
 	testCont.StagingDbPgconn = viper.GetString("STAGING_DB_PGCONN")
 	testCont.LocalBeaconConn = viper.GetString("LOCAL_BEACON_CONN_STR")

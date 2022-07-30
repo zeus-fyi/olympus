@@ -42,13 +42,13 @@ func (c *CheckpointTestSuite) TestInsertCheckpoint() {
 	c.Assert().Equal(3, firstInsertCount)
 
 	// epoch 0
-	err = InsertEpochCheckpoint(ctx, epochZero)
+	_, err = InsertEpochCheckpoint(ctx, epochZero)
 	c.Require().Nil(err)
 	c.assertCheckpointValues(ctx, epochZero, 3, 3, 0)
 
 	// epoch 1
 	epochOne := 1
-	err = InsertEpochCheckpoint(ctx, epochOne)
+	_, err = InsertEpochCheckpoint(ctx, epochOne)
 	c.Require().Nil(err)
 	c.assertCheckpointValues(ctx, epochOne, 4, 0, 4)
 
@@ -61,12 +61,12 @@ func (c *CheckpointTestSuite) TestInsertCheckpoint() {
 
 	// epoch 2
 	epochTwo := 2
-	err = InsertEpochCheckpoint(ctx, epochTwo)
+	_, err = InsertEpochCheckpoint(ctx, epochTwo)
 	c.assertCheckpointValues(ctx, epochTwo, 5, 0, 5)
 
 	// epoch 3
 	epochThree := 3
-	err = InsertEpochCheckpoint(ctx, epochThree)
+	_, err = InsertEpochCheckpoint(ctx, epochThree)
 	c.assertCheckpointValues(ctx, epochThree, 6, 0, 6)
 
 	var fetchCheckpoint ValidatorsEpochCheckpoint

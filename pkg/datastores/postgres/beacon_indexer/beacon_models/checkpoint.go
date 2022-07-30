@@ -15,7 +15,7 @@ type ValidatorsEpochCheckpoint struct {
 	ValidatorsBalancesRemaining int
 }
 
-func InsertEpochCheckpoint(ctx context.Context, epoch int) error {
+func InsertEpochCheckpoint(ctx context.Context, epoch int) (int64, error) {
 	log.Info().Msg("ValidatorsEpochCheckpoint: InsertEpochCheckpoint")
 	query := fmt.Sprintf(`INSERT INTO validators_epoch_checkpoint (validators_balance_epoch, validators_active) VALUES (%d, (SELECT validators_active_at_epoch(%d)) )`, epoch, epoch)
 	if epoch == 0 {
@@ -26,9 +26,9 @@ func InsertEpochCheckpoint(ctx context.Context, epoch int) error {
 	log.Info().Int64("rows affected: ", rowsAffected)
 	if err != nil {
 		log.Err(err).Msg("ValidatorsEpochCheckpoint: InsertEpochCheckpoint")
-		return err
+		return rowsAffected, err
 	}
-	return err
+	return rowsAffected, err
 }
 
 func (e *ValidatorsEpochCheckpoint) GetEpochCheckpoint(ctx context.Context, epoch int) error {

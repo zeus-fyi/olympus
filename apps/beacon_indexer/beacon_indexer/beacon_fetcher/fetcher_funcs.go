@@ -60,15 +60,14 @@ func (f *BeaconFetcher) BeaconUpdateValidatorStates(ctx context.Context, batchSi
 		log.Error().Err(err).Msg("BeaconUpdateValidatorStates: FetchStateAndDecode")
 		return err
 	}
-	f.Validators = beacon_models.ToBeaconModelFormat(f.BeaconStateResults)
-	log.Info().Msg("BeaconUpdateValidatorStates: UpdateValidatorsFromBeaconAPI")
-	vals, err := f.Validators.UpdateValidatorsFromBeaconAPI(ctx)
+	rowsUpdated, err := f.Validators.UpdateValidatorsFromBeaconAPI(ctx)
+	log.Info().Msgf("BeaconFetcher: UpdateValidatorsFromBeaconAPI updated %d validators", rowsUpdated)
 	if err != nil {
-		log.Error().Err(err).Msg("BeaconUpdateValidatorStates: InsertValidatorsFromBeaconAPI")
+		log.Error().Err(err).Msg("BeaconFetcher: UpdateValidatorsFromBeaconAPI")
 		return err
 	}
-	if len(vals.Validators) <= 0 {
-		log.Info().Interface("No validators were returned", vals.Validators)
+	if rowsUpdated <= 0 {
+		log.Info().Msg("No validators were update")
 	}
 	return err
 }
@@ -127,15 +126,13 @@ func convertBeaconAPIBalancesToModelBalance(beaconBalanceAPI api_types.Validator
 	return valBalances
 }
 
-func (f *BeaconFetcher) FetchAllValidatorBalances(ctx context.Context, slot int64) (beacon_models.ValidatorBalancesEpoch, error) {
+func (f *BeaconFetcher) FetchAllValidatorBalances(ctx context.Context, epoch int64) (beacon_models.ValidatorBalancesEpoch, error) {
 	log.Info().Msg("BeaconFetcher: FetchAllValidatorBalancesAtSlot")
 	var valBalances beacon_models.ValidatorBalancesEpoch
 	var beaconAPI api_types.ValidatorBalances
 
-	// TODO GET SLOT + ADD CHECKPOINT
+	slot := epoch * 32
 	slotToQuery := misc.ConvertEpochToSlot(slot)
-	epochToQuery := int64(0) // TODO
-	// TODO GET SLOT + ADD CHECKPOINT
 
 	err := beaconAPI.FetchAllValidatorBalancesAtStateAndDecode(ctx, f.NodeEndpoint, slotToQuery)
 	if err != nil {
@@ -147,11 +144,32 @@ func (f *BeaconFetcher) FetchAllValidatorBalances(ctx context.Context, slot int6
 	for i, vbFromAPI := range beaconAPI.Data {
 		vbForDataEntry := beacon_models.ValidatorBalanceEpoch{
 			Validator:        beacon_models.Validator{Index: string_utils.Int64StringParser(vbFromAPI.Index)},
-			Epoch:            epochToQuery,
+			Epoch:            epoch,
 			TotalBalanceGwei: string_utils.Int64StringParser(vbFromAPI.Balance),
 		}
 		valBalances.ValidatorBalances[i] = vbForDataEntry
 	}
 
 	return valBalances, nil
+}
+
+func (f *BeaconFetcher) BeaconUpdateAllValidatorStates(ctx context.Context) (err error) {
+	log.Info().Msg("BeaconFetcher: BeaconUpdateAllValidatorStates")
+	err = f.BeaconStateResults.FetchAllStateAndDecode(ctx, f.NodeEndpoint, "finalized")
+	if err != nil {
+		log.Error().Err(err).Msg("BeaconUpdateValidatorStates: FetchStateAndDecode")
+		return err
+	}
+	f.Validators = beacon_models.ToBeaconModelFormat(f.BeaconStateResults)
+	log.Info().Msg("BeaconFetcher: ToBeaconModelFormat")
+	rowsUpdated, err := f.Validators.UpdateValidatorsFromBeaconAPI(ctx)
+	log.Info().Msgf("BeaconFetcher: UpdateValidatorsFromBeaconAPI updated %d validators", rowsUpdated)
+	if err != nil {
+		log.Error().Err(err).Msg("BeaconFetcher: UpdateValidatorsFromBeaconAPI")
+		return err
+	}
+	if rowsUpdated <= 0 {
+		log.Info().Msg("No validators were update")
+	}
+	return err
 }

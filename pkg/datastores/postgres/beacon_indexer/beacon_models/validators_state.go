@@ -28,7 +28,7 @@ func (vs *Validators) InsertValidatorsFromBeaconAPI(ctx context.Context) error {
 	return err
 }
 
-func (vs *Validators) UpdateValidatorsFromBeaconAPI(ctx context.Context) (Validators, error) {
+func (vs *Validators) UpdateValidatorsFromBeaconAPI(ctx context.Context) (int64, error) {
 	validators := string_utils.MultiArraySliceStrBuilderSQL(vs.GetManyRowValues())
 	vs.RowSetting.RowsToInclude = "beacon_state_update"
 	query := fmt.Sprintf(`
@@ -39,19 +39,10 @@ func (vs *Validators) UpdateValidatorsFromBeaconAPI(ctx context.Context) (Valida
 	SET balance = validator_update.balance, effective_balance = validator_update.effective_balance, activation_eligibility_epoch = validator_update.activation_eligibility_epoch, activation_epoch = validator_update.activation_epoch, exit_epoch = validator_update.exit_epoch, withdrawable_epoch = validator_update.withdrawable_epoch, slashed = validator_update.slashed
 	JOIN validators ON validator_update.index = validators.index`, validators)
 
-	var selectedValidators Validators
-	rows, err := postgres.Pg.Query(ctx, query)
+	rows, err := postgres.Pg.Exec(ctx, query)
 	if err != nil {
-		return selectedValidators, err
+		return rows.RowsAffected(), err
 	}
-	defer rows.Close()
-	for rows.Next() {
-		var v Validator
-		rowErr := rows.Scan(&v.Index, &v.Balance, &v.EffectiveBalance, &v.ActivationEpoch, &v.ActivationEpoch, &v.ExitEpoch, &v.WithdrawableEpoch, &v.Slashed)
-		if rowErr != nil {
-			return selectedValidators, rowErr
-		}
-		selectedValidators.Validators = append(selectedValidators.Validators, v)
-	}
-	return selectedValidators, nil
+
+	return rows.RowsAffected(), nil
 }

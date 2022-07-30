@@ -7,6 +7,8 @@ CREATE TABLE "public"."validators_epoch_checkpoint" (
 ;
 ALTER TABLE "public"."validators_epoch_checkpoint" ADD CONSTRAINT "validators_balance_epoch_pkey" PRIMARY KEY ("validators_balance_epoch");
 
+CREATE INDEX amount_not_zero_idx ON validators_epoch_checkpoint ((validators_balances_remaining <> 0)) WHERE validators_balances_remaining <> 0;
+
 CREATE OR REPLACE FUNCTION "public"."validators_active_at_epoch"(epoch int4)
 RETURNS "pg_catalog"."int4" AS
 $BODY$

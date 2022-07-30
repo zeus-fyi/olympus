@@ -6,6 +6,9 @@ IMG     := ${REPO}/${NAME}:${GIT_SHA}
 LATEST  := ${REPO}/${NAME}:latest
 DEPLOYMENT_NAME := eth-indexer-eth-indexer
 
+scale.zero:
+	kubectl scale deployment/${DEPLOYMENT_NAME} --replicas=0
+
 scale.down:
 	kubectl scale deployment/${DEPLOYMENT_NAME} --replicas=1
 

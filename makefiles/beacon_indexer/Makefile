@@ -4,6 +4,10 @@ NAME    := zeus-indexer
 GIT_SHA := $(shell git rev-parse HEAD)
 IMG     := ${REPO}/${NAME}:${GIT_SHA}
 LATEST  := ${REPO}/${NAME}:latest
+DEPLOYMENT_NAME := eth-indexer-eth-indexer
+
+scale.down:
+	kubectl scale deployment/${DEPLOYMENT_NAME} --replicas=1
 
 app.indexer:
 	go run ../../apps/beacon_indexer

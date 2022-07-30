@@ -68,6 +68,12 @@ func (c *CheckpointTestSuite) TestInsertCheckpoint() {
 	epochThree := 3
 	err = InsertEpochCheckpoint(ctx, epochThree)
 	c.assertCheckpointValues(ctx, epochThree, 6, 0, 6)
+
+	var fetchCheckpoint ValidatorsEpochCheckpoint
+	err = fetchCheckpoint.GetFirstEpochCheckpointWithBalancesRemaining(ctx)
+	c.Require().Nil(err)
+	c.Assert().Equal(1, fetchCheckpoint.Epoch)
+	c.assertCheckpointValues(ctx, epochOne, 4, 0, 4)
 }
 
 func (c *CheckpointTestSuite) assertCheckpointValues(ctx context.Context, epoch, expValsActive, expValBalancesRecorded, expValBalancesRemaining int) {

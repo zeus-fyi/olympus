@@ -17,9 +17,9 @@ type ValidatorsEpochCheckpoint struct {
 
 func InsertEpochCheckpoint(ctx context.Context, epoch int) error {
 	log.Info().Msg("ValidatorsEpochCheckpoint: InsertEpochCheckpoint")
-	query := fmt.Sprintf(`INSERT INTO validators_epoch_checkpoint (validator_balance_epoch, validators_active) VALUES (%d, (SELECT validators_active_at_epoch(%d)) )`, epoch, epoch)
+	query := fmt.Sprintf(`INSERT INTO validators_epoch_checkpoint (validators_balance_epoch, validators_active) VALUES (%d, (SELECT validators_active_at_epoch(%d)) )`, epoch, epoch)
 	if epoch == 0 {
-		query = fmt.Sprintf(`INSERT INTO validators_epoch_checkpoint (validator_balance_epoch, validators_active, validators_balances_recorded) VALUES (%d, (SELECT validators_active_at_epoch(%d)) , (SELECT validators_active_at_epoch(%d)))`, epoch, epoch, epoch)
+		query = fmt.Sprintf(`INSERT INTO validators_epoch_checkpoint (validators_balance_epoch, validators_active, validators_balances_recorded) VALUES (%d, (SELECT validators_active_at_epoch(%d)) , (SELECT validators_active_at_epoch(%d)))`, epoch, epoch, epoch)
 	}
 	r, err := postgres.Pg.Exec(ctx, query)
 	rowsAffected := r.RowsAffected()
@@ -33,7 +33,18 @@ func InsertEpochCheckpoint(ctx context.Context, epoch int) error {
 
 func (e *ValidatorsEpochCheckpoint) GetEpochCheckpoint(ctx context.Context, epoch int) error {
 	log.Info().Msg("ValidatorsEpochCheckpoint: InsertEpochCheckpoint")
-	query := fmt.Sprintf(`SELECT validator_balance_epoch, validators_active, validators_balances_recorded, validators_balances_remaining FROM validators_epoch_checkpoint WHERE validator_balance_epoch = %d`, epoch)
+	query := fmt.Sprintf(`SELECT validators_balance_epoch, validators_active, validators_balances_recorded, validators_balances_remaining FROM validators_epoch_checkpoint WHERE validators_balance_epoch = %d`, epoch)
+	err := postgres.Pg.QueryRow(ctx, query).Scan(&e.Epoch, &e.ValidatorsActive, &e.ValidatorsBalancesRecorded, &e.ValidatorsBalancesRemaining)
+	if err != nil {
+		log.Err(err).Msg("ValidatorsEpochCheckpoint: GetEpochCheckpoint")
+		return err
+	}
+	return err
+}
+
+func (e *ValidatorsEpochCheckpoint) GetFirstEpochCheckpointWithBalancesRemaining(ctx context.Context) error {
+	log.Info().Msg("ValidatorsEpochCheckpoint: InsertEpochCheckpoint")
+	query := `SELECT validators_balance_epoch, validators_active, validators_balances_recorded, validators_balances_remaining FROM validators_epoch_checkpoint WHERE validators_balances_remaining > 0 ORDER BY validators_balance_epoch LIMIT 1`
 	err := postgres.Pg.QueryRow(ctx, query).Scan(&e.Epoch, &e.ValidatorsActive, &e.ValidatorsBalancesRecorded, &e.ValidatorsBalancesRemaining)
 	if err != nil {
 		log.Err(err).Msg("ValidatorsEpochCheckpoint: GetEpochCheckpoint")
@@ -44,7 +55,7 @@ func (e *ValidatorsEpochCheckpoint) GetEpochCheckpoint(ctx context.Context, epoc
 
 func SelectCountValidatorActive(ctx context.Context, epoch int) (int, error) {
 	var count int
-	query := fmt.Sprintf(`SELECT COUNT(*) FROM validators WHERE validators.activation_epoch <= %d AND %d < validators.exit_epoch`, epoch, epoch)
+	query := fmt.Sprintf(`SELECT validators_active_at_epoch(%d)`, epoch)
 	err := postgres.Pg.QueryRow(ctx, query).Scan(&count)
 	log.Err(err).Msg("SelectCountValidatorEntries")
 	if err != nil {

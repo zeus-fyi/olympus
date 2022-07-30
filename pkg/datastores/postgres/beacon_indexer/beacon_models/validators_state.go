@@ -29,8 +29,8 @@ func (vs *Validators) InsertValidatorsFromBeaconAPI(ctx context.Context) error {
 }
 
 func (vs *Validators) UpdateValidatorsFromBeaconAPI(ctx context.Context) (int64, error) {
-	validators := string_utils.MultiArraySliceStrBuilderSQL(vs.GetManyRowValues())
 	vs.RowSetting.RowsToInclude = "beacon_state_update"
+	validators := string_utils.MultiArraySliceStrBuilderSQL(vs.GetManyRowValues())
 	query := fmt.Sprintf(`
 	WITH validator_update AS (
 		SELECT * FROM UNNEST(%s) AS x(index, balance, effective_balance, activation_eligibility_epoch, activation_epoch, exit_epoch, withdrawable_epoch, slashed)

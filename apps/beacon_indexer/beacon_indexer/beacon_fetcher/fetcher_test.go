@@ -14,7 +14,7 @@ type FetcherBaseTestSuite struct {
 	P *pgxpool.Pool
 }
 
-var batchSize = 100
+var batchSize = 10
 
 func (s *FetcherBaseTestSuite) TestBeaconFindNewAndMissingValidatorIndexes() {
 	var f BeaconFetcher

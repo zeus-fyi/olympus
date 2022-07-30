@@ -1,11 +1,10 @@
-package api_types
+package beacon_api
 
 import (
 	"context"
 	"encoding/json"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_api"
 	"github.com/zeus-fyi/olympus/pkg/client"
 )
 
@@ -31,7 +30,7 @@ type ValidatorStateBeacon struct {
 }
 
 func (b *ValidatorsStateBeacon) FetchStateAndDecode(ctx context.Context, beaconNode, stateID string, encodedQueryURL string) error {
-	r := beacon_api.GetValidatorsByStateFilter(ctx, beaconNode, stateID, encodedQueryURL)
+	r := GetValidatorsByStateFilter(ctx, beaconNode, stateID, encodedQueryURL)
 
 	if r.Err != nil {
 		log.Error().Err(r.Err).Msg("ValidatorsStateBeacon: FetchStateAndDecode")
@@ -41,7 +40,7 @@ func (b *ValidatorsStateBeacon) FetchStateAndDecode(ctx context.Context, beaconN
 }
 
 func (b *ValidatorsStateBeacon) FetchAllStateAndDecode(ctx context.Context, beaconNode, stateID string) error {
-	r := beacon_api.GetValidatorsByState(ctx, beaconNode, stateID)
+	r := GetValidatorsByState(ctx, beaconNode, stateID)
 
 	if r.Err != nil {
 		log.Error().Err(r.Err).Msg("ValidatorsStateBeacon: FetchAllStateAndDecode")

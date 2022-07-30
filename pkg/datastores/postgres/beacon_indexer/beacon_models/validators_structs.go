@@ -3,7 +3,7 @@ package beacon_models
 import (
 	"strconv"
 
-	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_api/api_types"
+	"github.com/zeus-fyi/olympus/pkg/beacon_api"
 	"github.com/zeus-fyi/olympus/pkg/datastores/postgres"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
@@ -35,7 +35,7 @@ func (vs *Validators) GetManyRowValuesFlattened() postgres.RowValues {
 	return pgRows
 }
 
-func ToBeaconModelFormat(vs api_types.ValidatorsStateBeacon) (mvs Validators) {
+func ToBeaconModelFormat(vs beacon_api.ValidatorsStateBeacon) (mvs Validators) {
 	mvs.Validators = make([]Validator, len(vs.Data))
 	for ind, val := range vs.Data {
 		mvs.Validators[ind] = singleValidatorStructToBeaconModelFormat(val.Validator, val.Index, val.Balance)
@@ -43,7 +43,7 @@ func ToBeaconModelFormat(vs api_types.ValidatorsStateBeacon) (mvs Validators) {
 	return mvs
 }
 
-func singleValidatorStructToBeaconModelFormat(v api_types.ValidatorStateBeacon, index, balance string) (mv Validator) {
+func singleValidatorStructToBeaconModelFormat(v beacon_api.ValidatorStateBeacon, index, balance string) (mv Validator) {
 	mv.Index = string_utils.Int64StringParser(index)
 	mv.Balance = string_utils.Int64StringParser(balance)
 

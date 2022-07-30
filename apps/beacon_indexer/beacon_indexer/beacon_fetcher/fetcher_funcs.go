@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_api/api_types"
-	beacon_models "github.com/zeus-fyi/olympus/pkg/datastores/postgres/beacon_indexer/beacon_models"
+	"github.com/zeus-fyi/olympus/pkg/beacon_api"
+	"github.com/zeus-fyi/olympus/pkg/datastores/postgres/beacon_indexer/beacon_models"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
@@ -85,7 +85,7 @@ func (f *BeaconFetcher) FindAndQueryAndUpdateValidatorBalances(ctx context.Conte
 	for nextEpoch, vbs := range nextEpochSlotMap {
 		valBalances := beacon_models.ValidatorBalancesEpoch{}
 		valBalances.ValidatorBalances = vbs
-		var beaconAPI api_types.ValidatorBalances
+		var beaconAPI beacon_api.ValidatorBalances
 		nextEpochSlot := misc.ConvertEpochToSlot(nextEpoch)
 		beaconAPI.Epoch = nextEpoch
 		log.Info().Interface("BeaconFetcher: Fetching Data at Slot:", nextEpochSlot)
@@ -113,7 +113,7 @@ func (f *BeaconFetcher) FindAndQueryAndUpdateValidatorBalances(ctx context.Conte
 	return err
 }
 
-func convertBeaconAPIBalancesToModelBalance(beaconBalanceAPI api_types.ValidatorBalances, valBalances beacon_models.ValidatorBalancesEpoch) beacon_models.ValidatorBalancesEpoch {
+func convertBeaconAPIBalancesToModelBalance(beaconBalanceAPI beacon_api.ValidatorBalances, valBalances beacon_models.ValidatorBalancesEpoch) beacon_models.ValidatorBalancesEpoch {
 	log.Info().Msg("BeaconFetcher: convertBeaconAPIBalancesToModelBalance")
 	valBalances.ValidatorBalances = make([]beacon_models.ValidatorBalanceEpoch, len(beaconBalanceAPI.Data))
 	for i, beaconBalanceResult := range beaconBalanceAPI.Data {
@@ -129,7 +129,7 @@ func convertBeaconAPIBalancesToModelBalance(beaconBalanceAPI api_types.Validator
 func (f *BeaconFetcher) FetchAllValidatorBalances(ctx context.Context, epoch int64) (beacon_models.ValidatorBalancesEpoch, error) {
 	log.Info().Msg("BeaconFetcher: FetchAllValidatorBalancesAtSlot")
 	var valBalances beacon_models.ValidatorBalancesEpoch
-	var beaconAPI api_types.ValidatorBalances
+	var beaconAPI beacon_api.ValidatorBalances
 
 	slot := epoch * 32
 	slotToQuery := misc.ConvertEpochToSlot(slot)

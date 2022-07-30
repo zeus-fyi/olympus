@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_api/api_types"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 )
@@ -26,7 +25,7 @@ func (s *BeaconAPITestSuite) TestGetValidatorsByState() {
 
 	r := GetValidatorsByState(ctx, s.Tc.LocalBeaconConn, state)
 	s.Require().Nil(r.Err)
-	var vs api_types.ValidatorsStateBeacon
+	var vs ValidatorsStateBeacon
 	err := json.Unmarshal(r.BodyBytes, &vs)
 	s.Require().Nil(err)
 	file, _ := json.Marshal(vs)
@@ -42,7 +41,7 @@ func (s *BeaconAPITestSuite) TestGetValidatorsByStateFilter() {
 	r := GetValidatorsBalancesByStateFilter(ctx, s.Tc.LocalBeaconConn, state, encodedURLparams)
 	s.Require().Nil(r.Err)
 
-	var vb api_types.ValidatorBalances
+	var vb ValidatorBalances
 	err := json.Unmarshal(r.BodyBytes, &vb)
 	s.Require().Nil(err)
 	s.Assert().Len(vb.Data, 2)

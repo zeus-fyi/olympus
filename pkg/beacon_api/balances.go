@@ -1,4 +1,4 @@
-package api_types
+package beacon_api
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_api"
 	"github.com/zeus-fyi/olympus/pkg/client"
 )
 
@@ -23,7 +22,7 @@ type ValidatorBalances struct {
 
 func (b *ValidatorBalances) FetchStateAndDecode(ctx context.Context, beaconNode, stateID string, encodedQueryURL string) error {
 	log.Info().Msg("ValidatorBalances: FetchStateAndDecode")
-	r := beacon_api.GetValidatorsBalancesByStateFilter(ctx, beaconNode, stateID, encodedQueryURL)
+	r := GetValidatorsBalancesByStateFilter(ctx, beaconNode, stateID, encodedQueryURL)
 
 	log.Info().Interface("GetValidatorsBalancesByStateFilter: Status Code Response: ", r.Status)
 	if r.Err != nil {
@@ -35,7 +34,7 @@ func (b *ValidatorBalances) FetchStateAndDecode(ctx context.Context, beaconNode,
 
 func (b *ValidatorBalances) FetchAllValidatorBalancesAtStateAndDecode(ctx context.Context, beaconNode, stateID string) error {
 	log.Info().Msg("ValidatorBalances: FetchAllValidatorBalancesAtStateAndDecode")
-	r := beacon_api.GetAllValidatorBalancesByState(ctx, beaconNode, stateID)
+	r := GetAllValidatorBalancesByState(ctx, beaconNode, stateID)
 
 	if r.StatusCode != http.StatusOK {
 		log.Info().Interface("FetchAllValidatorBalancesAtStateAndDecode: Status Code Response: ", r.Status)

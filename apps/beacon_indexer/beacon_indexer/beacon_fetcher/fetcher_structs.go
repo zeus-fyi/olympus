@@ -1,16 +1,16 @@
 package beacon_fetcher
 
 import (
-	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_api/api_types"
-	beacon_models2 "github.com/zeus-fyi/olympus/pkg/datastores/postgres/beacon_indexer/beacon_models"
+	"github.com/zeus-fyi/olympus/pkg/beacon_api"
+	"github.com/zeus-fyi/olympus/pkg/datastores/postgres/beacon_indexer/beacon_models"
 )
 
 type BeaconFetcher struct {
 	NodeEndpoint string
 
-	BeaconStateResults   api_types.ValidatorsStateBeacon
-	BeaconBalanceResults api_types.ValidatorBalances
+	BeaconStateResults   beacon_api.ValidatorsStateBeacon
+	BeaconBalanceResults beacon_api.ValidatorBalances
 
-	Validators beacon_models2.Validators
-	Balances   beacon_models2.ValidatorBalancesEpoch
+	Validators beacon_models.Validators
+	Balances   beacon_models.ValidatorBalancesEpoch
 }

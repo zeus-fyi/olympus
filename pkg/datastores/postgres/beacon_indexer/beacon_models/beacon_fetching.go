@@ -45,7 +45,7 @@ func FindValidatorIndexes(ctx context.Context, batchSize int) (Validators, error
 	generate_series FROM GENERATE_SERIES(
 		(SELECT COALESCE(MIN(index),0) from validators), (SELECT COALESCE(MAX(index)+%d,+%d) from validators)
 	)
-	WHERE NOT EXISTS(SELECT index FROM validators WHERE index = generate_series)`, batchSize, batchSize)
+	WHERE NOT EXISTS(SELECT index FROM validators WHERE index = generate_series) LIMIT %d`, batchSize, batchSize, batchSize)
 
 	var validatorsToQueryState Validators
 	log.Debug().Interface("FindValidatorIndexes: Query: ", query)

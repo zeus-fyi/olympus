@@ -1,8 +1,12 @@
 
-FOLDER_NAME=redis
+FOLDER_NAME=redis_docker
 VOLUME_NAME=${FOLDER_NAME}_redis
 CONTAINER_NAME=redis
 ROOT_PATH=../../
+
+redis.fresh:
+	docker volume rm ${VOLUME_NAME}
+	docker-compose -f ${ROOT_PATH}pkg/datastores/redis/docker-compose-redis.yml up
 
 docker.compose.up:
 	docker-compose -f ${ROOT_PATH}pkg/datastores/redis/docker-compose-redis.yml up

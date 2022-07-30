@@ -72,6 +72,7 @@ func fetchAllValidatorsToUpdate(ctx context.Context, contextTimeout time.Duratio
 // FetchAllValidatorBalances Routine THREE
 func FetchAllValidatorBalances() {
 	log.Info().Msg("FetchFindAndQueryAndUpdateValidatorBalances")
+
 	for {
 		timeBegin := time.Now()
 		err := fetchAllValidatorBalances(context.Background(), NewAllValidatorBalancesTimeout)
@@ -81,11 +82,17 @@ func FetchAllValidatorBalances() {
 }
 
 func fetchAllValidatorBalances(ctx context.Context, contextTimeout time.Duration) error {
+	log.Info().Msg("fetchAllValidatorBalances")
 	ctxTimeout, cancel := context.WithTimeout(ctx, contextTimeout)
 	defer cancel()
 
 	chkPoint := beacon_models.ValidatorsEpochCheckpoint{}
-	err := chkPoint.GetFirstEpochCheckpointWithBalancesRemaining(ctx)
+	err := beacon_models.UpdateEpochCheckpointBalancesRecordedAtEpoch(ctx, chkPoint.Epoch)
+	if err != nil {
+		log.Info().Err(err).Msg("fetchAllValidatorBalances: UpdateEpochCheckpointBalancesRecordedAtEpoch")
+		return err
+	}
+	err = chkPoint.GetFirstEpochCheckpointWithBalancesRemaining(ctx)
 	if err != nil {
 		log.Info().Err(err).Msg("fetchAllValidatorBalances")
 		return err

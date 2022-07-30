@@ -65,6 +65,7 @@ func UpdateEpochCheckpointBalancesRecordedAtEpoch(ctx context.Context, epoch int
 }
 
 func SelectCountValidatorActive(ctx context.Context, epoch int) (int, error) {
+	log.Info().Msg("SelectCountValidatorActive")
 	var count int
 	query := fmt.Sprintf(`SELECT validators_active_at_epoch(%d)`, epoch)
 	err := postgres.Pg.QueryRow(ctx, query).Scan(&count)

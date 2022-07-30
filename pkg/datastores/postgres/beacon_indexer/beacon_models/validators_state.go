@@ -30,14 +30,18 @@ func (vs *Validators) InsertValidatorsFromBeaconAPI(ctx context.Context) error {
 
 func (vs *Validators) UpdateValidatorsFromBeaconAPI(ctx context.Context) (int64, error) {
 	vs.RowSetting.RowsToInclude = "beacon_state_update"
-	validators := string_utils.MultiArraySliceStrBuilderSQL(vs.GetManyRowValues())
+	validators := string_utils.DelimitedSliceStrBuilderSQLRows("", vs.GetManyRowValues())
 	query := fmt.Sprintf(`
-	WITH validator_update AS (
-		SELECT * FROM UNNEST(%s) AS x(index, balance, effective_balance, activation_eligibility_epoch, activation_epoch, exit_epoch, withdrawable_epoch, slashed)
-	) 
-	UPDATE validators
-	SET balance = validator_update.balance, effective_balance = validator_update.effective_balance, activation_eligibility_epoch = validator_update.activation_eligibility_epoch, activation_epoch = validator_update.activation_epoch, exit_epoch = validator_update.exit_epoch, withdrawable_epoch = validator_update.withdrawable_epoch, slashed = validator_update.slashed
-	JOIN validators ON validator_update.index = validators.index`, validators)
+	UPDATE validators SET
+		balance = x.balance,
+		effective_balance = x.effective_balance,
+		activation_eligibility_epoch = x.activation_eligibility_epoch,
+		activation_epoch = x.activation_epoch,
+		exit_epoch = x.exit_epoch,
+		withdrawable_epoch = x.withdrawable_epoch,
+		slashed = x.slashed
+	FROM (VALUES %s ) AS x(index, balance, effective_balance, activation_eligibility_epoch, activation_epoch, exit_epoch, withdrawable_epoch, slashed)
+    WHERE x.index = validators.index `, validators)
 
 	rows, err := postgres.Pg.Exec(ctx, query)
 	if err != nil {

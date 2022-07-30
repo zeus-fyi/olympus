@@ -74,6 +74,15 @@ func (c *CheckpointTestSuite) TestInsertCheckpoint() {
 	c.Require().Nil(err)
 	c.Assert().Equal(1, fetchCheckpoint.Epoch)
 	c.assertCheckpointValues(ctx, epochOne, 4, 0, 4)
+
+	err = UpdateEpochCheckpointBalancesRecordedAtEpoch(ctx, 1)
+	c.Require().Nil(err)
+
+	var updatedCheckpoint ValidatorsEpochCheckpoint
+	err = updatedCheckpoint.GetEpochCheckpoint(ctx, epochOne)
+	c.Require().Nil(err)
+	// since trigger adds the first balance entry, this should be counted
+	c.assertCheckpointValues(ctx, epochOne, 4, 2, 2)
 }
 
 func (c *CheckpointTestSuite) assertCheckpointValues(ctx context.Context, epoch, expValsActive, expValBalancesRecorded, expValBalancesRemaining int) {

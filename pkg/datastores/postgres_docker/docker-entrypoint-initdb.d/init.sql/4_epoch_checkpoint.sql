@@ -17,3 +17,28 @@ END;
 $BODY$
 LANGUAGE plpgsql VOLATILE
 COST 100;
+
+CREATE OR REPLACE FUNCTION "public"."validators_balances_recorded_at_epoch"(vb_epoch int4)
+RETURNS "pg_catalog"."int4" AS
+$BODY$
+DECLARE
+BEGIN
+    RETURN (SELECT COUNT(*) FROM validator_balances_at_epoch vbe WHERE vbe.epoch = vb_epoch);
+END;
+$BODY$
+LANGUAGE plpgsql VOLATILE
+COST 100;
+
+CREATE OR REPLACE FUNCTION "public"."update_checkpoint_at_epoch"(checkpoint_epoch int4)
+RETURNS VOID AS
+$BODY$
+DECLARE
+BEGIN
+    UPDATE validators_epoch_checkpoint vc SET validators_balances_recorded = (SELECT validators_balances_recorded_at_epoch(checkpoint_epoch)) WHERE vc.validators_balance_epoch = checkpoint_epoch;
+END;
+$BODY$
+LANGUAGE plpgsql VOLATILE
+COST 100;
+
+
+INSERT INTO validators_epoch_checkpoint (validators_balance_epoch, validators_active) VALUES (0, (SELECT validators_active_at_epoch(0)))

@@ -19,6 +19,7 @@ type DatastoresTestSuite struct {
 }
 
 func (d *DatastoresTestSuite) SetupTest() {
+	d.InitConfigs()
 	d.RedisTest.SetupRedisConn()
 	d.Redis = d.RedisTest.Redis
 	d.PGTest.SetupPGConn()

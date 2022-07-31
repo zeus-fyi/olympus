@@ -33,6 +33,7 @@ func fetchAllValidatorBalances(ctx context.Context, contextTimeout time.Duration
 	if err != nil {
 		log.Info().Err(err).Msg("fetchAllValidatorBalances")
 	}
+
 	err = beacon_models.UpdateEpochCheckpointBalancesRecordedAtEpoch(ctxTimeout, chkPoint.Epoch)
 	if err != nil {
 		log.Info().Err(err).Msg("fetchAllValidatorBalances: UpdateEpochCheckpointBalancesRecordedAtEpoch")
@@ -43,6 +44,11 @@ func fetchAllValidatorBalances(ctx context.Context, contextTimeout time.Duration
 		return err
 	}
 	log.Info().Msgf("Fetching balances for all active validators at epoch %d", chkPoint.Epoch)
+
+	if fetcher.Cache.DoesCheckpointExist(ctx, chkPoint.Epoch) {
+		log.Info().Msgf("Fetching balances skipping api call since, checkpoint cache exists at epoch %d", chkPoint.Epoch)
+		return nil
+	}
 
 	balances, err := fetcher.FetchAllValidatorBalances(ctxTimeout, int64(chkPoint.Epoch))
 	if err != nil {
@@ -61,6 +67,7 @@ func fetchAllValidatorBalances(ctx context.Context, contextTimeout time.Duration
 		return err
 	}
 
+	fetcher.Cache.SetCheckpointCache(ctx, chkPoint.Epoch, 10*time.Minute)
 	log.Info().Err(err).Msg("fetchAllValidatorBalances")
 	return err
 }

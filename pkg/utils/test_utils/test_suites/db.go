@@ -20,6 +20,10 @@ type PGTestSuite struct {
 }
 
 func (s *PGTestSuite) SetupTest() {
+	s.SetupPGConn()
+}
+
+func (s *PGTestSuite) SetupPGConn() {
 	s.Tc = configs.InitLocalTestConfigs()
 	if len(s.Tc.LocalDbPgconn) > 0 {
 		// local
@@ -36,6 +40,18 @@ func (s *PGTestSuite) CleanupDb(ctx context.Context, tablesToCleanup []string) {
 		log.Info().Msg("not a local database, CleanupDb should only be used on a local database")
 		return
 	}
+
+	switch s.Tc.Env {
+	case "local":
+	case "staging":
+		log.Info().Msg("not a local database, CleanupDb should only be used on a local database")
+		return
+	case "production":
+		log.Info().Msg("not a local database, CleanupDb should only be used on a local database")
+		return
+	default:
+	}
+
 	for _, tableName := range tablesToCleanup {
 		query := fmt.Sprintf(`DELETE FROM %s WHERE %s`, tableName, "true")
 		_, err := postgres.Pg.Exec(ctx, query)

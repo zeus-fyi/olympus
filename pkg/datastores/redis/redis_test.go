@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/go-redis/redis/v9"
 	"github.com/stretchr/testify/suite"
@@ -21,7 +22,8 @@ func (r *RedisTestSuite) TestRedisConnection() {
 	}
 	rdb := InitRedis(ctx, redisOpts)
 
-	err := rdb.Set(ctx, "key", "value", 0).Err()
+	ttl := time.Second
+	err := rdb.Set(ctx, "key", "value", ttl).Err()
 	r.Require().Nil(err)
 }
 

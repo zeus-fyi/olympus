@@ -5,3 +5,4 @@ resources:
   - eth-indexer.yaml
   - beacon-auth.yaml
   - postgres-auth.yaml
+  - bitnami.yaml

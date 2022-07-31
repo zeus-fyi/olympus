@@ -15,6 +15,6 @@ type FetcherCache struct {
 func (f *FetcherCache) CheckpointCache(ctx context.Context) {
 
 	statusCmd := f.Set(ctx, "k", "vb", time.Second)
-	log.Ctx(ctx).Info().Msgf("statusCmd", statusCmd)
+	log.Ctx(ctx).Info().Msgf("statusCmd %s", statusCmd)
 
 }

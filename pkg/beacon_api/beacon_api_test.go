@@ -11,7 +11,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 )
 
-const disableHighDataAPITests = false
+const disableHighDataAPITests = true
 
 var ctx context.Context
 
@@ -22,8 +22,8 @@ type BeaconAPITestSuite struct {
 func (s *BeaconAPITestSuite) TestGetValidatorsByState() {
 	s.SkipTest(disableHighDataAPITests)
 	state := "finalized"
-
-	r := GetValidatorsByState(ctx, s.Tc.LocalBeaconConn, state)
+	status := "active_ongoing"
+	r := GetValidatorsByState(ctx, s.Tc.LocalBeaconConn, state, status)
 	s.Require().Nil(r.Err)
 	var vs ValidatorsStateBeacon
 	err := json.Unmarshal(r.BodyBytes, &vs)
@@ -37,7 +37,7 @@ func (s *BeaconAPITestSuite) TestGetValidatorsByStateFilter() {
 	s.T().Parallel()
 	state := "head"
 	valIndexes := []string{"242521", "67596"}
-	encodedURLparams := string_utils.UrlEncodeQueryParamList("", valIndexes...)
+	encodedURLparams := string_utils.UrlExplicitEncodeQueryParamList("id", valIndexes...)
 	r := GetValidatorsBalancesByStateFilter(ctx, s.Tc.LocalBeaconConn, state, encodedURLparams)
 	s.Require().Nil(r.Err)
 

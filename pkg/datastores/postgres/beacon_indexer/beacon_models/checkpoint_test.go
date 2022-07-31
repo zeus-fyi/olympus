@@ -53,7 +53,6 @@ func (c *CheckpointTestSuite) TestInsertCheckpoint() {
 	c.assertCheckpointValues(ctx, epochOne, 4, 0, 4)
 
 	// epoch 1 and new balance records
-	// TODO needs to update this, then check balances
 	seedAndInsertNewValidatorBalances(ctx, vsOne, int64(epochOne), 32000000000+43753)
 	err = cp.GetEpochCheckpoint(ctx, epochOne)
 	c.Require().Nil(err)
@@ -92,10 +91,6 @@ func (c *CheckpointTestSuite) assertCheckpointValues(ctx context.Context, epoch,
 	c.Assert().Equal(expValsActive, cp.ValidatorsActive)
 	c.Assert().Equal(expValBalancesRecorded, cp.ValidatorsBalancesRecorded)
 	c.Assert().Equal(expValBalancesRemaining, cp.ValidatorsBalancesRemaining)
-}
-
-func (c *CheckpointTestSuite) TestInsertCheckpointWithDiffsAdded() {
-	// TODO
 }
 
 func TestCheckpointTestSuite(t *testing.T) {

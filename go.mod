@@ -4,6 +4,8 @@ go 1.18
 
 require (
 	github.com/ethereum/go-ethereum v1.10.20
+	github.com/google/go-querystring v1.1.0
+	github.com/gorilla/schema v1.2.0
 	github.com/jackc/pgx/v4 v4.16.1
 	github.com/labstack/gommon v0.3.1
 	github.com/rs/zerolog v1.27.0
@@ -14,12 +16,6 @@ require (
 	k8s.io/cli-runtime v0.24.3
 	k8s.io/client-go v0.24.3
 	k8s.io/kubectl v0.24.3
-)
-
-require (
-	github.com/cespare/xxhash/v2 v2.1.2 // indirect
-	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/go-redis/redis/v9 v9.0.0-beta.2 // indirect
 )
 
 require (
@@ -45,7 +41,6 @@ require (
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.5 // indirect
 	github.com/go-openapi/swag v0.19.14 // indirect
-	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
@@ -61,7 +56,7 @@ require (
 	github.com/imdario/mergo v0.3.5 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
-	github.com/jackc/pgconn v1.12.1 // indirect
+	github.com/jackc/pgconn v1.12.1
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.3.0 // indirect

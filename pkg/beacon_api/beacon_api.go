@@ -2,6 +2,7 @@ package beacon_api
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/client"
@@ -17,9 +18,22 @@ func init() {
 const getBlockByID = "eth/v2/beacon/blocks"
 const getValidatorsByState = "eth/v1/beacon/states"
 
-func GetValidatorsByState(ctx context.Context, beaconNode, stateID string) client.Reply {
+func GetValidatorsByState(ctx context.Context, beaconNode, stateID, status string) client.Reply {
 	log.Info().Msg("BeaconAPI: GetValidatorsByState")
-	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validators")
+	if len(status) > 0 {
+		status = fmt.Sprintf("?status=%s", status)
+	}
+	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validators", status)
+	log.Debug().Interface("BeaconAPI: url:", url)
+	return c.Get(ctx, url)
+}
+
+func GetValidatorsByStateFilter(ctx context.Context, beaconNode, stateID string, encodedQueryURL, status string) client.Reply {
+	log.Info().Msg("BeaconAPI: GetValidatorsByStateFilter")
+	if len(status) > 0 {
+		status = fmt.Sprintf("&status=%s", status)
+	}
+	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validators?"+encodedQueryURL+status)
 	log.Debug().Interface("BeaconAPI: url:", url)
 	return c.Get(ctx, url)
 }
@@ -31,16 +45,10 @@ func GetAllValidatorBalancesByState(ctx context.Context, beaconNode, stateID str
 	return c.Get(ctx, url)
 }
 
-func GetValidatorsByStateFilter(ctx context.Context, beaconNode, stateID string, encodedQueryURL string) client.Reply {
-	log.Info().Msg("BeaconAPI: GetValidatorsByStateFilter")
-	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validators?id="+encodedQueryURL)
-	log.Debug().Interface("BeaconAPI: url:", url)
-	return c.Get(ctx, url)
-}
-
 func GetValidatorsBalancesByStateFilter(ctx context.Context, beaconNode, stateID string, encodedQueryURL string) client.Reply {
 	log.Info().Msg("BeaconAPI: GetValidatorsBalancesByStateFilter")
-	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validator_balances?id="+encodedQueryURL)
+
+	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validator_balances?"+encodedQueryURL)
 	log.Debug().Interface("BeaconAPI: url:", url)
 	return c.Get(ctx, url)
 }

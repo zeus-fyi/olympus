@@ -22,6 +22,7 @@ func (s *FetcherBaseTestSuite) TestBeaconFindNewAndMissingValidatorIndexes() {
 	ctx := context.Background()
 	err := f.BeaconFindNewAndMissingValidatorIndexes(ctx, batchSize)
 	s.Require().Nil(err)
+	s.Assert().Len(f.Validators.Validators, batchSize)
 }
 
 func (s *FetcherBaseTestSuite) TestFindAndQueryAndUpdateValidatorBalances() {
@@ -38,6 +39,7 @@ func (s *FetcherBaseTestSuite) TestBeaconUpdateValidatorStates() {
 	ctx := context.Background()
 	err := f.BeaconUpdateValidatorStates(ctx, batchSize)
 	s.Require().Nil(err)
+	s.Assert().Len(f.Validators.Validators, batchSize)
 }
 
 func TestFetcherBaseTestSuite(t *testing.T) {

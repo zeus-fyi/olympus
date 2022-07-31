@@ -1,6 +1,7 @@
 package string_utils
 
 import (
+	"net/url"
 	"strings"
 )
 
@@ -22,6 +23,14 @@ func DelimitedSliceStrBuilder(prefix, delimiter string, values ...string) string
 
 func UrlEncodeQueryParamList(prefix string, values ...string) string {
 	return DelimitedSliceStrBuilder(prefix, "%2C", values...)
+}
+
+func UrlExplicitEncodeQueryParamList(key string, values ...string) string {
+	u := url.Values{}
+	for _, val := range values {
+		u.Add(key, val)
+	}
+	return u.Encode()
 }
 
 func UrlPathStrBuilder(values ...string) string {

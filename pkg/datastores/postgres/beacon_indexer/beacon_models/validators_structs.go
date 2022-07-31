@@ -63,8 +63,7 @@ func (vs *Validators) formatValidatorStateIndexesToURLList() string {
 	indexes = make([]string, len(vs.Validators))
 	for i, v := range vs.Validators {
 		indexes[i] = strconv.FormatInt(v.Index, 10)
-
 	}
-	indexString := string_utils.UrlEncodeQueryParamList("", indexes...)
+	indexString := string_utils.UrlExplicitEncodeQueryParamList("id", indexes...)
 	return indexString
 }

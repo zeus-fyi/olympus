@@ -64,7 +64,7 @@ func (vb *ValidatorBalancesEpoch) FormatValidatorBalancesEpochIndexesToURLList()
 		indexes[i] = strconv.FormatInt(v.Index, 10)
 
 	}
-	indexString := string_utils.UrlEncodeQueryParamList("", indexes...)
+	indexString := string_utils.UrlExplicitEncodeQueryParamList("id", indexes...)
 	log.Debug().Interface("ValidatorBalancesEpoch: indexString", indexString)
 	return indexString
 }

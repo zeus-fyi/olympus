@@ -2,6 +2,7 @@ package beacon_models
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/rs/zerolog/log"
@@ -30,6 +31,9 @@ func (vs *Validators) InsertValidatorsFromBeaconAPI(ctx context.Context) error {
 
 func (vs *Validators) UpdateValidatorsFromBeaconAPI(ctx context.Context) (int64, error) {
 	vs.RowSetting.RowsToInclude = "beacon_state_update"
+	if len(vs.Validators) == 0 {
+		return 0, errors.New("no Validators were supplied")
+	}
 	validators := string_utils.DelimitedSliceStrBuilderSQLRows("", vs.GetManyRowValues())
 	query := fmt.Sprintf(`
 	UPDATE validators SET

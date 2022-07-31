@@ -29,7 +29,11 @@ func fetchAllValidatorBalances(ctx context.Context, contextTimeout time.Duration
 	defer cancel()
 
 	chkPoint := beacon_models.ValidatorsEpochCheckpoint{}
-	err := beacon_models.UpdateEpochCheckpointBalancesRecordedAtEpoch(ctxTimeout, chkPoint.Epoch)
+	err := chkPoint.GetNextEpochCheckpoint(ctx)
+	if err != nil {
+		log.Info().Err(err).Msg("fetchAllValidatorBalances")
+	}
+	err = beacon_models.UpdateEpochCheckpointBalancesRecordedAtEpoch(ctxTimeout, chkPoint.Epoch)
 	if err != nil {
 		log.Info().Err(err).Msg("fetchAllValidatorBalances: UpdateEpochCheckpointBalancesRecordedAtEpoch")
 	}

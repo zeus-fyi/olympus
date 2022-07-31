@@ -25,7 +25,7 @@ func (f *BeaconFetcher) BeaconFindNewAndMissingValidatorIndexes(ctx context.Cont
 	}
 
 	log.Info().Msg("BeaconFindNewAndMissingValidatorIndexes: FetchStateAndDecode")
-	err = f.BeaconStateResults.FetchStateAndDecode(ctx, f.NodeEndpoint, "finalized", indexes)
+	err = f.BeaconStateResults.FetchStateAndDecode(ctx, f.NodeEndpoint, "finalized", indexes, "")
 	if err != nil {
 		log.Error().Err(err).Msg("BeaconFindNewAndMissingValidatorIndexes: FetchStateAndDecode")
 		return err
@@ -55,7 +55,7 @@ func (f *BeaconFetcher) BeaconUpdateValidatorStates(ctx context.Context, batchSi
 	}
 
 	log.Info().Msg("BeaconUpdateValidatorStates: FetchStateAndDecode")
-	err = f.BeaconStateResults.FetchStateAndDecode(ctx, f.NodeEndpoint, "finalized", indexes)
+	err = f.BeaconStateResults.FetchStateAndDecode(ctx, f.NodeEndpoint, "finalized", indexes, "")
 	if err != nil {
 		log.Error().Err(err).Msg("BeaconUpdateValidatorStates: FetchStateAndDecode")
 		return err
@@ -155,7 +155,7 @@ func (f *BeaconFetcher) FetchAllValidatorBalances(ctx context.Context, epoch int
 
 func (f *BeaconFetcher) BeaconUpdateAllValidatorStates(ctx context.Context) (err error) {
 	log.Info().Msg("BeaconFetcher: BeaconUpdateAllValidatorStates")
-	err = f.BeaconStateResults.FetchAllStateAndDecode(ctx, f.NodeEndpoint, "finalized")
+	err = f.BeaconStateResults.FetchAllStateAndDecode(ctx, f.NodeEndpoint, "finalized", "")
 	if err != nil {
 		log.Error().Err(err).Msg("BeaconUpdateValidatorStates: FetchStateAndDecode")
 		return err

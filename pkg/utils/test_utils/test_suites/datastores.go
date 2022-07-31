@@ -30,5 +30,5 @@ func (d *DatastoresTestSuite) Cleanup() {
 	//d.CleanCache()
 }
 func TestDatastoresTestSuite(t *testing.T) {
-	suite.Run(t, new(RedisTestSuite))
+	suite.Run(t, new(DatastoresTestSuite))
 }

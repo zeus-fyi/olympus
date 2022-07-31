@@ -25,13 +25,19 @@ func (s *PGTestSuite) SetupTest() {
 
 func (s *PGTestSuite) SetupPGConn() {
 	s.Tc = configs.InitLocalTestConfigs()
-	if len(s.Tc.LocalDbPgconn) > 0 {
-		// local
+	switch s.Tc.Env {
+	case "local":
 		s.Pg.InitPG(context.Background(), s.Tc.LocalDbPgconn)
 		s.LocalDB = true
-	} else {
+	case "staging":
 		// staging
 		s.Pg.InitPG(context.Background(), s.Tc.StagingDbPgconn)
+	case "production":
+		log.Info().Msg("production db connection not implemented")
+		return
+	default:
+		s.Pg.InitPG(context.Background(), s.Tc.LocalDbPgconn)
+		s.LocalDB = true
 	}
 }
 

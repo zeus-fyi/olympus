@@ -13,8 +13,8 @@ import (
 )
 
 type RedisTestSuite struct {
-	Redis *redis.Client
 	base.TestSuite
+	Redis *redis.Client
 }
 
 func (r *RedisTestSuite) SetupTest() {

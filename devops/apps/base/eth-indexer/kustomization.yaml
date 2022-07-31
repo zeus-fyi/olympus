@@ -4,3 +4,4 @@ namespace: eth-indexer
 resources:
   - namespace.yaml
   - release.yaml
+  - redis_release.yaml

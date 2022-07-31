@@ -8,10 +8,10 @@ pg.fresh:
 	docker volume rm ${VOLUME_NAME}
 	docker-compose -f ${ROOT_PATH}pkg/datastores/postgres_docker/docker-compose-postgres.yml up
 
-docker.compose.up:
+pg.start:
 	docker-compose -f ${ROOT_PATH}pkg/datastores/postgres_docker/docker-compose-postgres.yml up
 
-docker.compose.down:
+pg.stop:
 	docker-compose -f ${ROOT_PATH}pkg/datastores/postgres_docker/docker-compose-postgres.yml down
 
 docker.volume.rm:

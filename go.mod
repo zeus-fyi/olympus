@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/ethereum/go-ethereum v1.10.20
+	github.com/go-redis/redis/v9 v9.0.0-beta.2
 	github.com/google/go-querystring v1.1.0
 	github.com/gorilla/schema v1.2.0
 	github.com/jackc/pgx/v4 v4.16.1
@@ -16,6 +17,11 @@ require (
 	k8s.io/cli-runtime v0.24.3
 	k8s.io/client-go v0.24.3
 	k8s.io/kubectl v0.24.3
+)
+
+require (
+	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 )
 
 require (
@@ -78,8 +84,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/onsi/ginkgo v1.16.5 // indirect
-	github.com/onsi/gomega v1.20.0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect

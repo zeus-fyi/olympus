@@ -111,6 +111,6 @@ func (d *Db) FetchTableSize(ctx context.Context, tableName string) (string, erro
 	var tableSize string
 	query := fmt.Sprintf(`SELECT pg_size_pretty(pg_total_relation_size('%s'))`, tableName)
 	err := Pg.Pgpool.QueryRow(ctx, query).Scan(&tableSize)
-	log.Err(err).Msg("Pinging DB failed")
+	log.Err(err).Msgf("FetchTableSize DB failed with response: %s", tableSize)
 	return tableSize, err
 }

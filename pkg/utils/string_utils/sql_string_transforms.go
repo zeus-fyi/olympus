@@ -39,17 +39,15 @@ func PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(prefix string, entries postg
 	if len(prefix) > 0 {
 		sb.WriteString(prefix)
 	}
-	returnStr := prefix
 
 	for count, row := range entries.Rows {
 
 		sb.WriteString("(")
 		sb.WriteString(StringDelimitedSliceBuilderSQL(",", row))
 		sb.WriteString(")")
-		returnStr += sb.String()
 
 		if len(entries.Rows)-1 == count {
-			return returnStr
+			return sb.String()
 		}
 		sb.WriteString(",")
 	}
@@ -57,8 +55,7 @@ func PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(prefix string, entries postg
 	if len(suffix) > 0 {
 		sb.WriteString(suffix)
 	}
-	returnStr += sb.String()
-	return returnStr
+	return sb.String()
 }
 
 func DelimitedSliceStrBuilderSQLRows(prefix string, entries postgres.RowEntries) string {

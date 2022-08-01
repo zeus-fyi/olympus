@@ -84,6 +84,16 @@ func (c *CheckpointTestSuite) TestInsertCheckpoint() {
 	c.assertCheckpointValues(ctx, epochOne, 4, 2, 2)
 }
 
+func (c *CheckpointTestSuite) TestGetFinalizedEpoch() {
+	ctx := context.Background()
+
+	cp := ValidatorsEpochCheckpoint{}
+	err := cp.GetCurrentFinalizedEpoch(ctx)
+	c.Require().Nil(err)
+
+	c.Assert().Greater(cp.Epoch, 130000)
+
+}
 func (c *CheckpointTestSuite) assertCheckpointValues(ctx context.Context, epoch, expValsActive, expValBalancesRecorded, expValBalancesRemaining int) {
 	cp := ValidatorsEpochCheckpoint{}
 	err := cp.GetEpochCheckpoint(ctx, epoch)

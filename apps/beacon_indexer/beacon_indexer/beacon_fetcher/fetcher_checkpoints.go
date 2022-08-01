@@ -65,7 +65,19 @@ func newCheckpoint(ctx context.Context, contextTimeout time.Duration) error {
 		return err
 	}
 	log.Info().Msgf("InsertNewEpochCheckpoint: newCheckpoint at Epoch %d", chkPoint.Epoch)
+	finalizedEpoch := beacon_models.ValidatorsEpochCheckpoint{}
 
+	err = finalizedEpoch.GetCurrentFinalizedEpoch(ctx)
+	if err != nil {
+		log.Info().Err(err).Msg("fetchAllValidatorBalances: GetCurrentFinalizedEpoch")
+		return err
+	}
+
+	if chkPoint.Epoch > finalizedEpoch.Epoch {
+		log.Info().Msg("fetchAllValidatorBalances: GetCurrentFinalizedEpoch, checkpoint epoch is up to date with finalized")
+		time.Sleep(time.Minute * 3)
+		return nil
+	}
 	_, err = beacon_models.InsertEpochCheckpoint(ctxTimeout, chkPoint.Epoch)
 	if err != nil {
 		log.Error().Err(err).Msg("InsertNewEpochCheckpoint: newCheckpoint")

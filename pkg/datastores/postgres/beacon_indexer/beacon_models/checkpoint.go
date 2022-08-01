@@ -53,6 +53,17 @@ func (e *ValidatorsEpochCheckpoint) GetFirstEpochCheckpointWithBalancesRemaining
 	return err
 }
 
+func (e *ValidatorsEpochCheckpoint) GetCurrentFinalizedEpoch(ctx context.Context) error {
+	log.Info().Msg("ValidatorsEpochCheckpoint: GetCurrentFinalizedEpoch")
+	query := "SELECT mainnet_finalized_epoch()"
+	err := postgres.Pg.QueryRow(ctx, query).Scan(&e.Epoch)
+	if err != nil {
+		log.Err(err).Msg("ValidatorsEpochCheckpoint: GetCurrentFinalizedEpoch")
+		return err
+	}
+	return err
+}
+
 func (e *ValidatorsEpochCheckpoint) GetNextEpochCheckpoint(ctx context.Context) error {
 	log.Info().Msg("ValidatorsEpochCheckpoint: GetFirstEpochCheckpointWithBalancesRemaining")
 	query := `SELECT COUNT(*) FROM validators_epoch_checkpoint`

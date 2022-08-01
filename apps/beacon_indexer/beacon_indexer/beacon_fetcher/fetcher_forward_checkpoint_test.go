@@ -21,28 +21,29 @@ func (f *BeaconFetcherTestSuite) TestForwardFetchCheckpoint() {
 	f.Require().Nil(err)
 	f.Assert().NotEmpty(vbForwardCheckpoint.ValidatorBalances)
 
-	checkpointMap := map[int64]int64{}
+	prevBalanceEpochMap := map[int64]int64{}
+	prevEpoch, err := fetcher.FetchAllValidatorBalances(ctx, epoch-1)
+
+	f.Require().Nil(err)
+	f.Assert().NotEmpty(prevEpoch.ValidatorBalances)
+
+	for _, balance := range prevEpoch.ValidatorBalances {
+		prevBalanceEpochMap[balance.Index] = balance.TotalBalanceGwei
+	}
+
 	currentEpoch, err := fetcher.FetchAllValidatorBalances(ctx, epoch)
 	f.Require().Nil(err)
 	f.Assert().NotEmpty(currentEpoch.ValidatorBalances)
-
 	for _, balance := range currentEpoch.ValidatorBalances {
-		checkpointMap[balance.Index] = balance.TotalBalanceGwei
-	}
-
-	prevEpoch, err := fetcher.FetchAllValidatorBalances(ctx, epoch-1)
-	f.Require().Nil(err)
-	f.Assert().NotEmpty(prevEpoch.ValidatorBalances)
-	for _, balance := range prevEpoch.ValidatorBalances {
-		if _, ok := checkpointMap[balance.Index]; ok {
-			checkpointMap[balance.Index] = balance.TotalBalanceGwei - checkpointMap[balance.Index]
+		if _, ok := prevBalanceEpochMap[balance.Index]; ok {
+			prevBalanceEpochMap[balance.Index] = balance.TotalBalanceGwei - prevBalanceEpochMap[balance.Index]
 		} else {
-			checkpointMap[balance.Index] = 0
+			prevBalanceEpochMap[balance.Index] = 0
 		}
 	}
 
 	for _, val := range vbForwardCheckpoint.ValidatorBalances {
-		f.Assert().Equal(checkpointMap[val.Index], val.CurrentEpochYieldGwei)
+		f.Assert().Equal(prevBalanceEpochMap[val.Index], val.CurrentEpochYieldGwei)
 	}
 }
 

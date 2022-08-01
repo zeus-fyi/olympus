@@ -47,6 +47,7 @@ func (b *ValidatorBalances) FetchAllValidatorBalancesAtStateAndDecode(ctx contex
 
 	return b.DecodeValidatorsBalancesBeacon(r)
 }
+
 func (b *ValidatorBalances) DecodeValidatorsBalancesBeacon(r client.Reply) error {
 	log.Info().Msg("ValidatorBalances: DecodeValidatorsBalancesBeacon")
 	err := json.Unmarshal(r.BodyBytes, &b)

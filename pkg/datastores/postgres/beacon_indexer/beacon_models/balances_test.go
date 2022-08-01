@@ -11,6 +11,26 @@ type ValidatorBalancesTestSuite struct {
 	BeaconBaseTestSuite
 }
 
+func (s *ValidatorBalancesTestSuite) TestInsertValidatorBalancesNoChecks() {
+	ctx := context.Background()
+
+	vs := createAndInsertFakeValidatorsByStatus(2, "active_ongoing_genesis")
+
+	vbe := ValidatorBalancesEpoch{}
+	vbe.ValidatorBalances = make([]ValidatorBalanceEpoch, len(vs.Validators))
+	for i, v := range vs.Validators {
+		var vbAtEpoch ValidatorBalanceEpoch
+		vbAtEpoch.Validator = v
+		vbAtEpoch.Epoch = 134000
+		vbAtEpoch.TotalBalanceGwei = eth32Gwei + 342355
+		vbAtEpoch.CurrentEpochYieldGwei = 0
+		vbe.ValidatorBalances[i] = vbAtEpoch
+	}
+
+	err := vbe.InsertValidatorBalances(ctx)
+	s.Require().Nil(err)
+}
+
 func (s *ValidatorBalancesTestSuite) TestInsertValidatorBalancesForNextEpoch() {
 	ctx := context.Background()
 	vs := seedValidators(2)

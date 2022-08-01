@@ -13,6 +13,7 @@ var testCont TestContainer
 
 type TestContainer struct {
 	Env             string
+	ProdDbPgconn    string
 	StagingDbPgconn string
 	LocalBeaconConn string
 	LocalDbPgconn   string
@@ -43,6 +44,7 @@ func InitLocalTestConfigs() TestContainer {
 	testCont.LocalRedisConn = viper.GetString("LOCAL_REDIS_CONN")
 	testCont.LocalDbPgconn = viper.GetString("LOCAL_DB_PGCONN")
 	testCont.StagingDbPgconn = viper.GetString("STAGING_DB_PGCONN")
+	testCont.ProdDbPgconn = viper.GetString("PROD_DB_PGCONN")
 	testCont.LocalBeaconConn = viper.GetString("LOCAL_BEACON_CONN_STR")
 	return testCont
 }

@@ -33,6 +33,7 @@ func (s *PGTestSuite) SetupPGConn() {
 		// staging
 		s.Pg.InitPG(context.Background(), s.Tc.StagingDbPgconn)
 	case "production":
+		s.Pg.InitPG(context.Background(), s.Tc.ProdDbPgconn)
 		log.Info().Msg("production db connection not implemented")
 		return
 	default:

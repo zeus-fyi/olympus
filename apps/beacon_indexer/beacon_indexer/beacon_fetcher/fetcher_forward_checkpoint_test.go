@@ -45,6 +45,9 @@ func (f *BeaconFetcherTestSuite) TestForwardFetchCheckpoint() {
 	for _, val := range vbForwardCheckpoint.ValidatorBalances {
 		f.Assert().Equal(prevBalanceEpochMap[val.Index], val.CurrentEpochYieldGwei)
 	}
+
+	err = vbForwardCheckpoint.InsertValidatorBalances(ctx)
+	f.Assert().Nil(err)
 }
 
 func TestBeaconForwardCheckpointFetcherTestSuite(t *testing.T) {

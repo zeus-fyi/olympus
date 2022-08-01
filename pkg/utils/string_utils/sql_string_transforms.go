@@ -7,7 +7,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/datastores/postgres"
 )
 
-func StringDelimitedSliceBuilderSQL(sb *strings.Builder, delimiter string, values postgres.RowValues) *strings.Builder {
+func StringDelimitedSliceBuilderSQL(sb *strings.Builder, delimiter string, values postgres.RowValues) {
 	for i, val := range values {
 
 		switch val.(type) {
@@ -25,11 +25,11 @@ func StringDelimitedSliceBuilderSQL(sb *strings.Builder, delimiter string, value
 		}
 
 		if len(values)-1 == i {
-			return sb
+			return
 		}
 		sb.WriteString(delimiter)
 	}
-	return sb
+	return
 }
 
 func PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(prefix string, entries postgres.RowEntries, suffix string) string {
@@ -45,7 +45,8 @@ func PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(prefix string, entries postg
 		sb.WriteString(")")
 
 		if len(entries.Rows)-1 == count {
-			return sb.String()
+			returnStr := sb.String()
+			return returnStr
 		}
 		sb.WriteString(",")
 	}
@@ -53,8 +54,8 @@ func PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(prefix string, entries postg
 	if len(suffix) > 0 {
 		sb.WriteString(suffix)
 	}
-
-	return sb.String()
+	returnStr := sb.String()
+	return returnStr
 }
 
 func DelimitedSliceStrBuilderSQLRows(prefix string, entries postgres.RowEntries) string {
@@ -70,12 +71,13 @@ func DelimitedSliceStrBuilderSQLRows(prefix string, entries postgres.RowEntries)
 		sb.WriteString(")")
 
 		if len(entries.Rows)-1 == count {
-			return sb.String()
+			returnStr := sb.String()
+			return returnStr
 		}
 		sb.WriteString(",")
 	}
-
-	return sb.String()
+	returnStr := sb.String()
+	return returnStr
 }
 
 func AnyArraySliceStrBuilderSQL(entries postgres.RowValues) string {

@@ -12,6 +12,9 @@ scale.zero:
 scale.down:
 	kubectl scale deployment/${DEPLOYMENT_NAME} --replicas=1
 
+scale.up:
+	kubectl scale deployment/${DEPLOYMENT_NAME} --replicas=5
+
 app.indexer:
 	go run ../../apps/beacon_indexer
 

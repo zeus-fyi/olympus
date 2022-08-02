@@ -463,7 +463,7 @@ master:
     ## NOTE: choose port between <30000-32767>
     ##
     nodePorts:
-      redis: ""
+      redis: "6379"
     ## @param master.service.externalTrafficPolicy Redis&reg; master service external traffic policy
     ## ref: https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
     ##

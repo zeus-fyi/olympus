@@ -12,7 +12,5 @@ spec:
         kind: GitRepository
         name: eth-indexer
         namespace: flux-system
-  install:
-    createNamespace: true
   interval: 1m0s
   targetNamespace: eth-indexer

@@ -43,7 +43,7 @@ func Api() {
 	_ = postgres.UpdateConfigPG(ctx, pgCfg)
 
 	redisOpts := redis.Options{
-		Addr: "localhost:6379",
+		Addr: "127.0.0.1:6379",
 	}
 	r := redis_app.InitRedis(ctx, redisOpts)
 	_, err := r.Ping(ctx).Result()

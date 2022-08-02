@@ -24,7 +24,8 @@ func InitFetcherService(nodeURL string) {
 	fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, r)
 
 	go FetchNewOrMissingValidators()
-	go FetchAllValidatorBalances()
+	// go FetchAllValidatorBalances()
+	go FetchAllValidatorBalancesAfterCheckpoint()
 	go UpdateAllValidators()
 	go UpdateEpochCheckpoint()
 	go InsertNewEpochCheckpoint()

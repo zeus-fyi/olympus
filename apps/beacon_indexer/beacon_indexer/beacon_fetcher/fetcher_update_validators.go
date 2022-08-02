@@ -8,7 +8,8 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/datastores/postgres/beacon_indexer/beacon_models"
 )
 
-var UpdateAllValidatorTimeout = time.Minute * 10
+var UpdateAllValidatorTimeout = time.Minute * 1
+var UpdateValidatorBatchSize = 1000
 
 // UpdateAllValidators Routine TWO
 func UpdateAllValidators() {
@@ -41,6 +42,61 @@ func (f *BeaconFetcher) BeaconUpdateAllValidatorStates(ctx context.Context) (err
 	}
 	f.Validators = beacon_models.ToBeaconModelFormat(f.BeaconStateResults)
 	log.Info().Msg("BeaconFetcher: ToBeaconModelFormat")
+	rowsUpdated, err := f.Validators.UpdateValidatorsFromBeaconAPI(ctx)
+	log.Info().Msgf("BeaconFetcher: UpdateValidatorsFromBeaconAPI updated %d validators", rowsUpdated)
+	if err != nil {
+		log.Error().Err(err).Msg("BeaconFetcher: UpdateValidatorsFromBeaconAPI")
+		return err
+	}
+	if rowsUpdated <= 0 {
+		log.Info().Msg("No validators were update")
+	}
+	return err
+}
+
+// FetchBeaconUpdateValidatorStates Routine ONE
+func FetchBeaconUpdateValidatorStates() {
+	log.Info().Msg("FetchBeaconUpdateValidatorStates")
+
+	for {
+		timeBegin := time.Now()
+		err := fetchValidatorsToUpdate(context.Background(), UpdateValidatorBatchSize, UpdateAllValidatorTimeout)
+		log.Err(err)
+		log.Info().Interface("FetchNewOrMissingValidators took this many seconds to complete: ", time.Now().Sub(timeBegin))
+		time.Sleep(1 * time.Second)
+	}
+}
+
+func fetchValidatorsToUpdate(ctx context.Context, batchSize int, contextTimeout time.Duration) error {
+	log.Info().Msg("fetchValidatorsToUpdate")
+
+	ctxTimeout, cancel := context.WithTimeout(ctx, contextTimeout)
+	defer cancel()
+	err := fetcher.BeaconUpdateValidatorStates(ctxTimeout, batchSize)
+	log.Info().Err(err).Msg("fetchValidatorsToUpdate")
+	return err
+}
+
+func (f *BeaconFetcher) BeaconUpdateValidatorStates(ctx context.Context, batchSize int) (err error) {
+	log.Info().Msg("BeaconFetcher: BeaconUpdateValidatorStates")
+
+	log.Info().Msg("BeaconUpdateValidatorStates: SelectValidatorsQueryOngoingStatesIndexesURLEncoded")
+	indexes, err := beacon_models.SelectValidatorsQueryOngoingStatesIndexesURLEncoded(ctx, batchSize)
+	if err != nil {
+		log.Error().Err(err).Msg("BeaconUpdateValidatorStates: SelectValidatorsQueryOngoingStatesIndexesURLEncoded")
+		return err
+	}
+	if len(indexes) <= 0 {
+		log.Info().Msg("BeaconUpdateValidatorStates: had no new indexes")
+		return nil
+	}
+
+	log.Info().Msg("BeaconUpdateValidatorStates: FetchStateAndDecode")
+	err = f.BeaconStateResults.FetchStateAndDecode(ctx, f.NodeEndpoint, "finalized", indexes, "")
+	if err != nil {
+		log.Error().Err(err).Msg("BeaconUpdateValidatorStates: FetchStateAndDecode")
+		return err
+	}
 	rowsUpdated, err := f.Validators.UpdateValidatorsFromBeaconAPI(ctx)
 	log.Info().Msgf("BeaconFetcher: UpdateValidatorsFromBeaconAPI updated %d validators", rowsUpdated)
 	if err != nil {

@@ -40,38 +40,6 @@ func (f *BeaconFetcher) BeaconFindNewAndMissingValidatorIndexes(ctx context.Cont
 	return err
 }
 
-func (f *BeaconFetcher) BeaconUpdateValidatorStates(ctx context.Context, batchSize int) (err error) {
-	log.Info().Msg("BeaconFetcher: BeaconUpdateValidatorStates")
-
-	log.Info().Msg("BeaconUpdateValidatorStates: SelectValidatorsQueryOngoingStatesIndexesURLEncoded")
-	indexes, err := beacon_models.SelectValidatorsQueryOngoingStatesIndexesURLEncoded(ctx, batchSize)
-	if err != nil {
-		log.Error().Err(err).Msg("BeaconUpdateValidatorStates: SelectValidatorsQueryOngoingStatesIndexesURLEncoded")
-		return err
-	}
-	if len(indexes) <= 0 {
-		log.Info().Msg("BeaconUpdateValidatorStates: had no new indexes")
-		return nil
-	}
-
-	log.Info().Msg("BeaconUpdateValidatorStates: FetchStateAndDecode")
-	err = f.BeaconStateResults.FetchStateAndDecode(ctx, f.NodeEndpoint, "finalized", indexes, "")
-	if err != nil {
-		log.Error().Err(err).Msg("BeaconUpdateValidatorStates: FetchStateAndDecode")
-		return err
-	}
-	rowsUpdated, err := f.Validators.UpdateValidatorsFromBeaconAPI(ctx)
-	log.Info().Msgf("BeaconFetcher: UpdateValidatorsFromBeaconAPI updated %d validators", rowsUpdated)
-	if err != nil {
-		log.Error().Err(err).Msg("BeaconFetcher: UpdateValidatorsFromBeaconAPI")
-		return err
-	}
-	if rowsUpdated <= 0 {
-		log.Info().Msg("No validators were update")
-	}
-	return err
-}
-
 func (f *BeaconFetcher) FindAndQueryAndUpdateValidatorBalances(ctx context.Context, batchSize int) error {
 	log.Info().Msg("BeaconFetcher: FindAndQueryAndUpdateValidatorBalances")
 

@@ -2,25 +2,29 @@ package server
 
 import (
 	"context"
-	"log"
 	"time"
 
+	"github.com/go-redis/redis/v9"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	v1 "github.com/zeus-fyi/olympus/beacon-indexer/api/v1"
 	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_fetcher"
 	"github.com/zeus-fyi/olympus/pkg/datastores/postgres"
+	"github.com/zeus-fyi/olympus/pkg/datastores/redis_app"
 )
 
 var (
+	RedisEndpointURL  string
 	BeaconEndpointURL string
 	PGConnStr         string
 )
 
 func Api() {
 	// Echo instance
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	e := echo.New()
 	e = v1.Routes(e)
 	ctx := context.Background()
@@ -37,13 +41,19 @@ func Api() {
 	}
 	postgres.Pg.InitPG(ctx, PGConnStr)
 	_ = postgres.UpdateConfigPG(ctx, pgCfg)
-	beacon_fetcher.InitFetcherService(BeaconEndpointURL)
+
+	redisOpts := redis.Options{
+		Addr: RedisEndpointURL,
+	}
+	r := redis_app.InitRedis(ctx, redisOpts)
+	beacon_fetcher.InitFetcherService(ctx, BeaconEndpointURL, r)
+
+	log.Info().Interface("redis conn", r.Conn())
 	// Start server
-	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 
 	err := e.Start(":9000")
 	if err != nil {
-		log.Fatal(err)
+		log.Err(err)
 	}
 }
 
@@ -51,6 +61,7 @@ func init() {
 	viper.AutomaticEnv()
 	ApiCmd.Flags().StringVar(&PGConnStr, "postgres-conn-str", "", "postgres connection string")
 	ApiCmd.Flags().StringVar(&BeaconEndpointURL, "beacon-endpoint", "", "beacon endpoint url")
+	ApiCmd.Flags().StringVar(&RedisEndpointURL, "redis-endpoint", "eth-indexer-redis-master:6379", "redis endpoint url")
 }
 
 // ApiCmd represents the base command when called without any subcommands

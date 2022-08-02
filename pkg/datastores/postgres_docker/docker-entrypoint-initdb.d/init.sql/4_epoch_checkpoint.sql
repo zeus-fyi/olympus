@@ -25,7 +25,7 @@ RETURNS "pg_catalog"."int4" AS
 $BODY$
 DECLARE
 BEGIN
-    RETURN (SELECT COUNT(*) FROM validator_balances_at_epoch vbe JOIN validators v ON v.index = vbe.validator_index WHERE vbe.epoch = vb_epoch AND v.activation_epoch <= vb_epoch AND vb_epoch < v.exit_epoch);
+    RETURN (SELECT COUNT(*) FROM validator_balances_at_epoch vbe JOIN validators v ON v.index = vbe.validator_index WHERE vbe.epoch = vb_epoch AND v.activation_epoch < vb_epoch AND vb_epoch < v.exit_epoch);
 END
 $BODY$
 LANGUAGE plpgsql VOLATILE

@@ -127,3 +127,38 @@ func (f *BeaconFetcher) FetchForwardCheckpointValidatorBalances(ctx context.Cont
 
 	return valBalances, nil
 }
+
+// Checkpoints
+
+var UpdateForwardCheckpointsTimeout = 60 * time.Second
+var InsertForwardCheckpointsTimeout = time.Minute * 2
+
+// UpdateForwardEpochCheckpoint // Routine FOUR
+func UpdateForwardEpochCheckpoint() {
+	log.Info().Msg("UpdateForwardEpochCheckpoint")
+	for {
+		timeBegin := time.Now()
+		err := checkpointForwardUpdater(context.Background(), UpdateCheckpointsTimeout)
+		log.Err(err)
+		log.Info().Interface("UpdateForwardEpochCheckpoint took this many seconds to complete: ", time.Now().Sub(timeBegin))
+		time.Sleep(UpdateCheckpointsTimeout)
+	}
+}
+
+func checkpointForwardUpdater(ctx context.Context, contextTimeout time.Duration) error {
+	ctxTimeout, cancel := context.WithTimeout(ctx, contextTimeout)
+	defer cancel()
+	chkPoint := beacon_models.ValidatorsEpochCheckpoint{}
+	err := chkPoint.GetAnyEpochCheckpointWithBalancesRemainingAfterEpoch(ctx, checkpointEpoch)
+	if err != nil {
+		log.Info().Err(err).Msg("checkpointForwardUpdater")
+		return err
+	}
+	log.Info().Msgf("UpdateForwardEpochCheckpoint: checkpointForwardUpdater at Epoch %d", chkPoint.Epoch)
+	err = beacon_models.UpdateEpochCheckpointBalancesRecordedAtEpoch(ctxTimeout, chkPoint.Epoch)
+	if err != nil {
+		log.Info().Err(err).Msg("fetchAllValidatorBalances: checkpointUpdater")
+		return err
+	}
+	return err
+}

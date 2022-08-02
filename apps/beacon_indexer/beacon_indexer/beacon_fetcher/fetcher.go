@@ -27,6 +27,7 @@ func InitFetcherService(nodeURL string) {
 	// go FetchAllValidatorBalances()
 	go FetchAllValidatorBalancesAfterCheckpoint()
 	go UpdateAllValidators()
-	go UpdateEpochCheckpoint()
+	//go UpdateEpochCheckpoint()
+	go UpdateForwardEpochCheckpoint()
 	go InsertNewEpochCheckpoint()
 }

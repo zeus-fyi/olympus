@@ -12,6 +12,7 @@ import (
 type DebugReader struct {
 	ValidatorCount               int
 	ValidatorBalanceEntriesCount int
+	ForwardCheckpointEpoch       int
 }
 
 func AdminGetRequestHandler(c echo.Context) error {

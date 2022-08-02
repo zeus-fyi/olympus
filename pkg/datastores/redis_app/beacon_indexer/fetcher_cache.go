@@ -26,7 +26,7 @@ func (f *FetcherCache) SetCheckpointCache(ctx context.Context, epoch int, ttl ti
 	statusCmd := f.Set(ctx, fmt.Sprintf("checkpoint-epoch-%d", epoch), epoch, ttl)
 	if statusCmd.Err() != nil {
 		log.Ctx(ctx).Err(statusCmd.Err()).Msgf("SetCheckpointCache: %s", key)
-		return "", statusCmd.Err()
+		return key, statusCmd.Err()
 	}
 	log.Ctx(ctx).Info().Msgf("set cache at epoch %d", epoch)
 	return key, nil
@@ -38,8 +38,9 @@ func (f *FetcherCache) DoesCheckpointExist(ctx context.Context, epoch int) (bool
 
 	chkPoint, err := f.Get(ctx, key).Int()
 	if err != nil {
+
 		log.Err(err).Msgf("DoesCheckpointExist: %s", key)
-		return false, err
+		return chkPoint == epoch, err
 	}
 
 	return chkPoint == epoch, err

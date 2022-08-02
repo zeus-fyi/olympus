@@ -99,8 +99,7 @@ image:
 ## @section Redis&reg; common configuration parameters
 ## https://github.com/bitnami/containers/tree/main/bitnami/redis#configuration
 ##
-  wget --spider --timeout=1 eth-indexer-redis-master
-  wget --spider --timeout=100 eth-indexer-redis-headless:6379
+
 ## @param architecture Redis&reg; architecture. Allowed values: `standalone` or `replication`
 ##
 architecture: standalone
@@ -514,7 +513,7 @@ master:
 replica:
   ## @param replica.replicaCount Number of Redis&reg; replicas to deploy
   ##
-  replicaCount: 3
+  replicaCount: 1
   ## @param replica.configuration Configuration for Redis&reg; replicas nodes
   ## ref: https://redis.io/topics/config
   ##
@@ -1191,7 +1190,7 @@ sentinel:
 networkPolicy:
   ## @param networkPolicy.enabled Enable creation of NetworkPolicy resources
   ##
-  enabled: true
+  enabled: false
   ## @param networkPolicy.allowExternal Don't require client label for connections
   ## When set to false, only pods with the correct client label will have network access to the ports
   ## Redis&reg; is listening on. When true, Redis&reg; will accept connections from any source

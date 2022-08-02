@@ -69,9 +69,8 @@ func fetchAllValidatorBalances(ctx context.Context, contextTimeout time.Duration
 		log.Info().Err(err).Msg("fetchAllValidatorBalances: UpdateEpochCheckpointBalancesRecordedAtEpoch")
 		return err
 	}
-
-	fetcher.Cache.SetCheckpointCache(ctx, chkPoint.Epoch, 10*time.Minute)
-	log.Info().Err(err).Msg("fetchAllValidatorBalances")
+	key, err := fetcher.Cache.SetCheckpointCache(ctx, chkPoint.Epoch, 10*time.Minute)
+	log.Info().Err(err).Msgf("fetchAllValidatorBalances: set key %s", key)
 	return err
 }
 

@@ -43,7 +43,7 @@ func Api() {
 	_ = postgres.UpdateConfigPG(ctx, pgCfg)
 
 	redisOpts := redis.Options{
-		Addr: RedisEndpointURL,
+		Addr: "eth-indexer-redis-master.eth-indexer.svc.cluster.local:6379",
 	}
 	r := redis_app.InitRedis(ctx, redisOpts)
 	_, err := r.Ping(ctx).Result()
@@ -65,7 +65,7 @@ func init() {
 	viper.AutomaticEnv()
 	ApiCmd.Flags().StringVar(&PGConnStr, "postgres-conn-str", "", "postgres connection string")
 	ApiCmd.Flags().StringVar(&BeaconEndpointURL, "beacon-endpoint", "", "beacon endpoint url")
-	ApiCmd.Flags().StringVar(&RedisEndpointURL, "redis-endpoint", "10.245.57.86:6379", "redis endpoint url")
+	ApiCmd.Flags().StringVar(&RedisEndpointURL, "redis-endpoint", "eth-indexer-redis-master.eth-indexer.svc.cluster.local", "redis endpoint url")
 }
 
 // ApiCmd represents the base command when called without any subcommands

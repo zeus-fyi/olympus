@@ -43,7 +43,7 @@ func (vb *ValidatorBalancesEpoch) InsertValidatorBalancesForNextEpoch(ctx contex
 	log.Debug().Interface("InsertValidatorBalancesForNextEpoch: ", query)
 	r, err := postgres.Pg.Exec(ctx, query)
 	rowsAffected := r.RowsAffected()
-	log.Info().Int64("rows affected: ", rowsAffected)
+	log.Info().Msgf("ValidatorBalancesEpoch: InsertValidatorBalancesForNextEpoch inserted %d balances", rowsAffected)
 	if err != nil {
 		log.Error().Err(err).Interface("InsertValidatorBalancesForNextEpoch", query)
 		return err

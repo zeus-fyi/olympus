@@ -513,7 +513,7 @@ master:
 replica:
   ## @param replica.replicaCount Number of Redis&reg; replicas to deploy
   ##
-  replicaCount: 1
+  replicaCount: 3
   ## @param replica.configuration Configuration for Redis&reg; replicas nodes
   ## ref: https://redis.io/topics/config
   ##
@@ -1190,7 +1190,7 @@ sentinel:
 networkPolicy:
   ## @param networkPolicy.enabled Enable creation of NetworkPolicy resources
   ##
-  enabled: false
+  enabled: true
   ## @param networkPolicy.allowExternal Don't require client label for connections
   ## When set to false, only pods with the correct client label will have network access to the ports
   ## Redis&reg; is listening on. When true, Redis&reg; will accept connections from any source

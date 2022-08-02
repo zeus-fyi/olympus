@@ -40,6 +40,8 @@ func (b *ValidatorsStateBeacon) FetchStateAndDecode(ctx context.Context, beaconN
 }
 
 func (b *ValidatorsStateBeacon) FetchAllStateAndDecode(ctx context.Context, beaconNode, stateID string, status string) error {
+	log.Info().Msg("ValidatorsStateBeacon: FetchAllStateAndDecode")
+
 	r := GetValidatorsByState(ctx, beaconNode, stateID, status)
 
 	if r.Err != nil {

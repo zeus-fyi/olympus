@@ -41,28 +41,3 @@ END;
 $BODY$
 LANGUAGE plpgsql VOLATILE
 COST 100;
-
-CREATE OR REPLACE FUNCTION update_validator_epoch_checkpoint()
-    RETURNS trigger AS $checkpoint_update$
-BEGIN
-    IF (TG_OP = 'INSERT') THEN
-        PERFORM (SELECT update_checkpoint_at_epoch(CAST(NEW.activation_epoch AS int4)));
-    ELSIF (TG_OP = 'UPDATE') THEN
-        CASE
-            WHEN (OLD.activation_epoch != NEW.activation_epoch) THEN
-                PERFORM (SELECT update_checkpoint_at_epoch(CAST(NEW.activation_epoch AS int4)));
-                PERFORM (SELECT update_checkpoint_at_epoch(CAST(OLD.activation_epoch AS int4)));
-            ELSE
-            END CASE;
-    END IF;
-    RETURN NEW;
-END;
-$checkpoint_update$ LANGUAGE 'plpgsql';
-
-
-CREATE TRIGGER trigger_update_validator_epoch_checkpoint
-AFTER INSERT OR UPDATE OF activation_eligibility_epoch, activation_epoch, exit_epoch, withdrawable_epoch, slashed
-ON validators
-FOR EACH ROW EXECUTE PROCEDURE update_validator_epoch_checkpoint();
-
-INSERT INTO validators_epoch_checkpoint (validators_balance_epoch, validators_active) VALUES (0, (SELECT validators_active_at_epoch(0)));

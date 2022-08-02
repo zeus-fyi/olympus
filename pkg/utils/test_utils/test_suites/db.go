@@ -32,9 +32,11 @@ func (s *PGTestSuite) SetupPGConn() {
 	case "staging":
 		// staging
 		s.Pg.InitPG(context.Background(), s.Tc.StagingDbPgconn)
+		s.LocalDB = false
 	case "production":
+		log.Warn().Msg("WARNING: production db connection")
 		s.Pg.InitPG(context.Background(), s.Tc.ProdDbPgconn)
-		log.Info().Msg("production db connection not implemented")
+		s.LocalDB = false
 		return
 	default:
 		s.Pg.InitPG(context.Background(), s.Tc.LocalDbPgconn)

@@ -67,8 +67,30 @@ func DelimitedSliceStrBuilderSQLRows(prefix string, entries postgres.RowEntries)
 	for count, row := range entries.Rows {
 
 		sb.WriteString("(")
-		tmp := StringDelimitedSliceBuilderSQL(",", row)
-		sb.WriteString(tmp)
+		// fucck this bullshit
+
+		for i, val := range row {
+			switch val.(type) {
+			case string:
+				sb.WriteString("'")
+				sb.WriteString(val.(string))
+				sb.WriteString("'")
+			case int, int64:
+				returnStr := fmt.Sprintf("%d", val.(int64))
+				sb.WriteString(returnStr)
+			case uint64:
+				returnStr := fmt.Sprintf("%d", val.(uint64))
+				sb.WriteString(returnStr)
+			case bool:
+				returnStr := fmt.Sprintf("%t", val.(bool))
+				sb.WriteString(returnStr)
+			default:
+			}
+			if len(row)-1 != i {
+				sb.WriteString(",")
+			}
+		}
+
 		sb.WriteString(")")
 		if len(entries.Rows)-1 == count {
 			return sb.String()
@@ -84,7 +106,6 @@ func AnyArraySliceStrBuilderSQL(entries postgres.RowValues) string {
 	sb.WriteString("ANY(ARRAY[")
 
 	for i, val := range entries {
-
 		switch val.(type) {
 		case string:
 			sb.WriteString("'")
@@ -93,15 +114,12 @@ func AnyArraySliceStrBuilderSQL(entries postgres.RowValues) string {
 		case int, int64:
 			returnStr := fmt.Sprintf("%d", val.(int64))
 			sb.WriteString(returnStr)
-
 		case uint64:
 			returnStr := fmt.Sprintf("%d", val.(uint64))
 			sb.WriteString(returnStr)
-
 		case bool:
 			returnStr := fmt.Sprintf("%t", val.(bool))
 			sb.WriteString(returnStr)
-
 		default:
 		}
 

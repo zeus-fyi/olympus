@@ -69,7 +69,8 @@ func (f *BeaconFetcherTestSuite) TestCache() {
 	key, err := fetcher.Cache.SetCheckpointCache(ctx, epoch, time.Minute)
 	f.Require().Nil(err)
 	f.Assert().NotEmpty(key)
-	doesExist := fetcher.Cache.DoesCheckpointExist(ctx, epoch)
+	doesExist, err := fetcher.Cache.DoesCheckpointExist(ctx, epoch)
+	f.Require().Nil(err)
 	f.Assert().True(doesExist)
 }
 func TestBeaconForwardCheckpointFetcherTestSuite(t *testing.T) {

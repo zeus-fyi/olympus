@@ -27,10 +27,12 @@ func (r *BeaconIndexerCacheTestSuite) TestCheckpointCache() {
 	r.Require().Nil(err)
 	r.Assert().Equal(epoch, val)
 
-	doesKeyExist := fc.DoesCheckpointExist(ctx, epoch)
+	doesKeyExist, err := fc.DoesCheckpointExist(ctx, epoch)
+	r.Require().Nil(err)
 	r.Assert().True(doesKeyExist)
 
-	doesKeyExist = fc.DoesCheckpointExist(ctx, epoch+1)
+	doesKeyExist, err = fc.DoesCheckpointExist(ctx, epoch+1)
+	r.Require().Nil(err)
 	r.Assert().False(doesKeyExist)
 
 	err = fc.DeleteCheckpoint(ctx, epoch)

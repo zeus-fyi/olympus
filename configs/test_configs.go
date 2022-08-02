@@ -12,12 +12,13 @@ import (
 var testCont TestContainer
 
 type TestContainer struct {
-	Env             string
-	ProdDbPgconn    string
-	StagingDbPgconn string
-	LocalBeaconConn string
-	LocalDbPgconn   string
-	LocalRedisConn  string
+	Env              string
+	ProdDbPgconn     string
+	StagingDbPgconn  string
+	LocalBeaconConn  string
+	LocalDbPgconn    string
+	LocalRedisConn   string
+	StagingRedisConn string
 }
 
 func forceDirToCallerLocation() string {
@@ -42,6 +43,7 @@ func InitLocalTestConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
 	testCont.Env = viper.GetString("ENV")
 	testCont.LocalRedisConn = viper.GetString("LOCAL_REDIS_CONN")
+	testCont.StagingRedisConn = viper.GetString("STAGING_REDIS_CONN")
 	testCont.LocalDbPgconn = viper.GetString("LOCAL_DB_PGCONN")
 	testCont.StagingDbPgconn = viper.GetString("STAGING_DB_PGCONN")
 	testCont.ProdDbPgconn = viper.GetString("PROD_DB_PGCONN")

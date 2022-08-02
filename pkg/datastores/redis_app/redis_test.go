@@ -18,7 +18,7 @@ func (r *RedisTestSuite) TestRedisConnection() {
 	ctx := context.Background()
 	redisOpts := redis.Options{
 		Network: "",
-		Addr:    "",
+		Addr:    "localhost:6379",
 	}
 	rdb := InitRedis(ctx, redisOpts)
 

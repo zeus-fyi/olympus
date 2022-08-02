@@ -20,8 +20,8 @@ func (r *BeaconIndexerCacheTestSuite) TestCheckpointCache() {
 
 	epoch := 1
 	ttl := time.Minute
-	key := fc.SetCheckpointCache(ctx, epoch, ttl)
-
+	key, err := fc.SetCheckpointCache(ctx, epoch, ttl)
+	r.Require().Nil(err)
 	chkPoint := fc.Get(ctx, key)
 	val, err := chkPoint.Int()
 	r.Require().Nil(err)

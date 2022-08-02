@@ -18,12 +18,15 @@ func NewFetcherCache(ctx context.Context, r *redis.Client) FetcherCache {
 	return FetcherCache{r}
 }
 
-func (f *FetcherCache) SetCheckpointCache(ctx context.Context, epoch int, ttl time.Duration) string {
+func (f *FetcherCache) SetCheckpointCache(ctx context.Context, epoch int, ttl time.Duration) (string, error) {
 	key := fmt.Sprintf("checkpoint-epoch-%d", epoch)
 	statusCmd := f.Set(ctx, fmt.Sprintf("checkpoint-epoch-%d", epoch), epoch, ttl)
-	log.Ctx(ctx).Err(statusCmd.Err())
+	if statusCmd.Err() != nil {
+		log.Ctx(ctx).Err(statusCmd.Err())
+		return "", statusCmd.Err()
+	}
 	log.Ctx(ctx).Info().Msgf("set cache at epoch %d", epoch)
-	return key
+	return key, nil
 }
 
 func (f *FetcherCache) DoesCheckpointExist(ctx context.Context, epoch int) bool {

@@ -31,6 +31,7 @@ func (r *RedisTestSuite) SetupRedisConn() {
 	case "local":
 		redisOpts.Addr = r.Tc.LocalRedisConn
 	case "staging":
+		redisOpts.Addr = r.Tc.StagingRedisConn
 	case "production":
 	default:
 		redisOpts.Addr = r.Tc.LocalRedisConn

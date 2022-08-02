@@ -11,11 +11,11 @@ redis.fresh:
 redis.start:
 	docker-compose -f ${ROOT_PATH}pkg/datastores/redis_docker/docker-compose-redis.yml up
 
-redis.strop:
+redis.stop:
 	docker-compose -f ${ROOT_PATH}pkg/datastores/redis_docker/docker-compose-redis.yml down
 
-docker.volume.rm:
+redis.volume.rm:
 	docker volume rm ${VOLUME_NAME}
 
-docker.volume.ls:
+redis.volume.ls:
 	docker volume ls

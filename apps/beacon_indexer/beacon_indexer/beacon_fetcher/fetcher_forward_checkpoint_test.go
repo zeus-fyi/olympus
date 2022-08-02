@@ -5,9 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-redis/redis/v9"
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/datastores/redis_app"
 	"github.com/zeus-fyi/olympus/pkg/datastores/redis_app/beacon_indexer"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
 )
@@ -57,16 +55,23 @@ func (f *BeaconFetcherTestSuite) TestForwardFetchCheckpoint() {
 func (f *BeaconFetcherTestSuite) TestForwardCheckpointBalanceUpdate() {
 	ctx := context.Background()
 	fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
-
-	redisOpts := redis.Options{
-		Addr: "localhost:6379",
-	}
-	r := redis_app.InitRedis(ctx, redisOpts)
-	fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, r)
+	fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, f.Redis)
 	err := fetchAllValidatorBalancesAfterCheckpoint(ctx, 10*time.Minute)
 	f.Require().Nil(err)
 }
 
+func (f *BeaconFetcherTestSuite) TestCache() {
+	ctx := context.Background()
+	fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
+	fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, f.Redis)
+	epoch := 5
+
+	key, err := fetcher.Cache.SetCheckpointCache(ctx, epoch, time.Minute)
+	f.Require().Nil(err)
+	f.Assert().NotEmpty(key)
+	doesExist := fetcher.Cache.DoesCheckpointExist(ctx, epoch)
+	f.Assert().True(doesExist)
+}
 func TestBeaconForwardCheckpointFetcherTestSuite(t *testing.T) {
 	suite.Run(t, new(BeaconForwardCheckpointFetcherTestSuite))
 }

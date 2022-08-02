@@ -88,7 +88,6 @@ func (f *BeaconFetcher) BeaconUpdateValidatorStates(ctx context.Context, batchSi
 	}
 
 	indexCount := len(indexes)
-	log.Info().Msgf("BeaconUpdateValidatorStates: SelectValidatorsQueryOngoingStatesIndexesURLEncoded: index count %d", indexCount)
 	if indexCount <= 0 {
 		log.Info().Msg("BeaconUpdateValidatorStates: had no new indexes")
 		return nil
@@ -100,6 +99,7 @@ func (f *BeaconFetcher) BeaconUpdateValidatorStates(ctx context.Context, batchSi
 		log.Error().Err(err).Msg("BeaconUpdateValidatorStates: FetchStateAndDecode")
 		return err
 	}
+	f.Validators = beacon_models.ToBeaconModelFormat(f.BeaconStateResults)
 	rowsUpdated, err := f.Validators.UpdateValidatorsFromBeaconAPI(ctx)
 	log.Info().Msgf("BeaconFetcher: UpdateValidatorsFromBeaconAPI updated %d validators", rowsUpdated)
 	if err != nil {

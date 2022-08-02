@@ -14,7 +14,7 @@ type ValidatorsStateBeacon struct {
 		Index     string               `json:"index"`
 		Balance   string               `json:"balance"`
 		Status    string               `json:"status"`
-		Validator ValidatorStateBeacon `json:"validator"`
+		Validator ValidatorStateBeacon `json:"validator,omitempty"`
 	} `json:"data"`
 }
 
@@ -30,6 +30,8 @@ type ValidatorStateBeacon struct {
 }
 
 func (b *ValidatorsStateBeacon) FetchStateAndDecode(ctx context.Context, beaconNode, stateID, encodedQueryURL, status string) error {
+	log.Info().Msg("ValidatorsStateBeacon: FetchStateAndDecode")
+
 	r := GetValidatorsByStateFilter(ctx, beaconNode, stateID, encodedQueryURL, status)
 
 	if r.Err != nil {

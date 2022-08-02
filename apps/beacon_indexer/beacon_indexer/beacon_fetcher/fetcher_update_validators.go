@@ -62,7 +62,7 @@ func FetchBeaconUpdateValidatorStates() {
 		timeBegin := time.Now()
 		err := fetchValidatorsToUpdate(context.Background(), UpdateValidatorBatchSize, UpdateAllValidatorTimeout)
 		log.Err(err)
-		log.Info().Interface("FetchNewOrMissingValidators took this many seconds to complete: ", time.Now().Sub(timeBegin))
+		log.Info().Interface("FetchBeaconUpdateValidatorStates took this many seconds to complete: ", time.Now().Sub(timeBegin))
 		time.Sleep(1 * time.Second)
 	}
 }
@@ -78,7 +78,7 @@ func fetchValidatorsToUpdate(ctx context.Context, batchSize int, contextTimeout 
 }
 
 func (f *BeaconFetcher) BeaconUpdateValidatorStates(ctx context.Context, batchSize int) (err error) {
-	log.Info().Msg("BeaconFetcher: BeaconUpdateValidatorStates")
+	log.Info().Msgf("BeaconFetcher: BeaconUpdateValidatorStates, batch size %d", batchSize)
 
 	log.Info().Msg("BeaconUpdateValidatorStates: SelectValidatorsQueryOngoingStatesIndexesURLEncoded")
 	indexes, err := beacon_models.SelectValidatorsQueryOngoingStatesIndexesURLEncoded(ctx, batchSize)
@@ -86,6 +86,8 @@ func (f *BeaconFetcher) BeaconUpdateValidatorStates(ctx context.Context, batchSi
 		log.Error().Err(err).Msg("BeaconUpdateValidatorStates: SelectValidatorsQueryOngoingStatesIndexesURLEncoded")
 		return err
 	}
+	log.Info().Msgf("BeaconUpdateValidatorStates: SelectValidatorsQueryOngoingStatesIndexesURLEncoded: index count %d", indexes)
+
 	if len(indexes) <= 0 {
 		log.Info().Msg("BeaconUpdateValidatorStates: had no new indexes")
 		return nil

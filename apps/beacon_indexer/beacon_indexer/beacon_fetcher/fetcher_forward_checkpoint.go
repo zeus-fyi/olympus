@@ -22,6 +22,7 @@ func FetchAllValidatorBalancesAfterCheckpoint() {
 		err := fetchAllValidatorBalancesAfterCheckpoint(context.Background(), FetchAllValidatorBalancesTimeoutFromCheckpoint)
 		log.Err(err)
 		log.Info().Interface("FetchFindAndQueryAndUpdateValidatorBalances took this many seconds to complete: ", time.Now().Sub(timeBegin))
+		time.Sleep(UpdateCheckpointsTimeout)
 	}
 }
 

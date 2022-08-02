@@ -14,6 +14,7 @@ type FetcherCache struct {
 }
 
 func NewFetcherCache(ctx context.Context, r *redis.Client) FetcherCache {
+	log.Ctx(ctx).Info().Msg("NewFetcherCache")
 	log.Info().Interface("redis", r)
 	return FetcherCache{r}
 }

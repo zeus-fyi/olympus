@@ -48,7 +48,7 @@ func Api() {
 	r := redis_app.InitRedis(ctx, redisOpts)
 	beacon_fetcher.InitFetcherService(ctx, BeaconEndpointURL, r)
 
-	log.Info().Interface("redis conn", r.Conn())
+	log.Info().Interface("redis conn", r.Conn()).Msg("started redis")
 	// Start server
 
 	err := e.Start(":9000")

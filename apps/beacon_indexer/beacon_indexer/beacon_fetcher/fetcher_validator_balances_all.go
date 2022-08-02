@@ -48,7 +48,9 @@ func fetchAllValidatorBalances(ctx context.Context, contextTimeout time.Duration
 	}
 	log.Info().Msgf("Fetching balances for all active validators at epoch %d", chkPoint.Epoch)
 
-	if fetcher.Cache.DoesCheckpointExist(ctx, chkPoint.Epoch) {
+	isCached, err := fetcher.Cache.DoesCheckpointExist(ctx, chkPoint.Epoch)
+	log.Info().Err(err).Msg("fetchAllValidatorBalances: DoesCheckpointExist")
+	if isCached {
 		log.Info().Msgf("Fetching balances skipping api call since, checkpoint cache exists at epoch %d", chkPoint.Epoch)
 		return nil
 	}

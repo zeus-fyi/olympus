@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/go-redis/redis/v9"
@@ -44,33 +43,10 @@ func Api() {
 	postgres.Pg.InitPG(ctx, PGConnStr)
 	_ = postgres.UpdateConfigPG(ctx, pgCfg)
 
-	redisHost := os.Getenv("ETH_INDEXER_REDIS_MASTER_SERVICE_HOST")
-	redisPort := os.Getenv("ETH_INDEXER_REDIS_MASTER_PORT_6379_TCP_PORT")
-	redisAddr := fmt.Sprintf("%s:%s", redisHost, redisPort)
+	redisAddr := fmt.Sprintf("%s:%s", "localhost", "6379")
 	redisOpts := redis.Options{
-		Network:             "",
-		Addr:                redisAddr,
-		Dialer:              nil,
-		OnConnect:           nil,
-		Username:            "",
-		Password:            "",
-		CredentialsProvider: nil,
-		DB:                  0,
-		MaxRetries:          0,
-		MinRetryBackoff:     0,
-		MaxRetryBackoff:     0,
-		DialTimeout:         0,
-		ReadTimeout:         0,
-		WriteTimeout:        0,
-		PoolFIFO:            false,
-		PoolSize:            0,
-		PoolTimeout:         0,
-		MinIdleConns:        0,
-		MaxIdleConns:        0,
-		ConnMaxIdleTime:     0,
-		ConnMaxLifetime:     0,
-		TLSConfig:           nil,
-		Limiter:             nil,
+		Network: "",
+		Addr:    redisAddr,
 	}
 	r := redis_app.InitRedis(ctx, redisOpts)
 	_, err := r.Ping(ctx).Result()

@@ -11,7 +11,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
-var FetchAllValidatorBalancesTimeoutFromCheckpoint = time.Minute * 10
+var FetchAllValidatorBalancesTimeoutFromCheckpoint = time.Minute * 5
 var checkpointEpoch = 134000
 
 func FetchAllValidatorBalancesAfterCheckpoint() {
@@ -22,7 +22,6 @@ func FetchAllValidatorBalancesAfterCheckpoint() {
 		err := fetchAllValidatorBalancesAfterCheckpoint(context.Background(), FetchAllValidatorBalancesTimeoutFromCheckpoint)
 		log.Err(err)
 		log.Info().Interface("FetchFindAndQueryAndUpdateValidatorBalances took this many seconds to complete: ", time.Now().Sub(timeBegin))
-		time.Sleep(UpdateCheckpointsTimeout)
 	}
 }
 

@@ -17,7 +17,7 @@ func InitFetcherService(ctx context.Context, nodeURL string, redis *redis.Client
 	fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, redis)
 
 	go FetchNewOrMissingValidators()
-	// go FetchAllValidatorBalances()
+	//go FetchAllValidatorBalances()
 	go FetchAllValidatorBalancesAfterCheckpoint()
 	go FetchBeaconUpdateValidatorStates()
 	//go UpdateAllValidators()

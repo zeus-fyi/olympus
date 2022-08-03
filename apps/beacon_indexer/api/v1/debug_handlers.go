@@ -14,14 +14,14 @@ func DebugRequestHandler(c echo.Context) (err error) {
 	log.Info().Msg("DebugRequestHandler")
 	ctx := context.Background()
 	var debug DebugReader
-	debug.ValidatorBalanceEntriesCount, err = beacon_models.SelectCountValidatorEpochBalanceEntries(ctx)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, "SelectCountValidatorEpochBalanceEntries had an error")
-	}
-	debug.ValidatorCount, err = beacon_models.SelectCountValidatorEntries(ctx)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, "SelectCountValidatorEntries had an error")
-	}
+	//debug.ValidatorBalanceEntriesCount, err = beacon_models.SelectCountValidatorEpochBalanceEntries(ctx)
+	//if err != nil {
+	//	return c.JSON(http.StatusInternalServerError, "SelectCountValidatorEpochBalanceEntries had an error")
+	//}
+	//debug.ValidatorCount, err = beacon_models.SelectCountValidatorEntries(ctx)
+	//if err != nil {
+	//	return c.JSON(http.StatusInternalServerError, "SelectCountValidatorEntries had an error")
+	//}
 
 	checkpointEpoch := 134000
 	chkPoint := beacon_models.ValidatorsEpochCheckpoint{}

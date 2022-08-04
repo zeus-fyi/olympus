@@ -37,12 +37,16 @@ func (f *FetcherCache) DoesCheckpointExist(ctx context.Context, epoch int) (bool
 	log.Info().Msgf("DoesCheckpointExist: %s", key)
 
 	chkPoint, err := f.Get(ctx, key).Int()
-	if err != nil {
-
+	switch {
+	case err == redis.Nil:
+		fmt.Println("DoesCheckpointExist: key does not exist")
+		return chkPoint == epoch, nil
+	case err != nil:
+		fmt.Println("DoesCheckpointExist: Get failed", err)
 		log.Err(err).Msgf("DoesCheckpointExist: %s", key)
-		return chkPoint == epoch, err
+	case chkPoint == 0:
+		fmt.Println("value is empty")
 	}
-
 	return chkPoint == epoch, err
 }
 

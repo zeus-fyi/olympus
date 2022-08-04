@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/go-redis/redis/v9"
@@ -43,10 +42,8 @@ func Api() {
 	postgres.Pg.InitPG(ctx, PGConnStr)
 	_ = postgres.UpdateConfigPG(ctx, pgCfg)
 
-	redisAddr := fmt.Sprintf("%s:%s", "localhost", "6379")
 	redisOpts := redis.Options{
-		Network: "",
-		Addr:    redisAddr,
+		Addr: RedisEndpointURL,
 	}
 	r := redis_app.InitRedis(ctx, redisOpts)
 	_, err := r.Ping(ctx).Result()

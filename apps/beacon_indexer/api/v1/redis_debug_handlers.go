@@ -38,6 +38,7 @@ func DebugRedisRequestHandler(c echo.Context) error {
 
 	err := beacon_fetcher.Fetcher.Cache.Ping(ctx).Err()
 	if err != nil {
+		log.Err(err)
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	log.Info().Interface("DebugRedisRequestHandler ping resp: %s", "ok")
@@ -56,6 +57,7 @@ func DebugReadRedisRequestHandler(c echo.Context) error {
 	log.Info().Interface("redis setting: ", beacon_fetcher.Fetcher.Cache.Info(ctx))
 	resp, err := beacon_fetcher.Fetcher.Cache.Ping(ctx).Result()
 	if err != nil {
+		log.Err(err)
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusOK, resp)

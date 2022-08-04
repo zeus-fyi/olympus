@@ -68,7 +68,7 @@ func init() {
 	viper.AutomaticEnv()
 	ApiCmd.Flags().StringVar(&PGConnStr, "postgres-conn-str", "", "postgres connection string")
 	ApiCmd.Flags().StringVar(&BeaconEndpointURL, "beacon-endpoint", "", "beacon endpoint url")
-	ApiCmd.Flags().StringVar(&RedisEndpointURL, "redis-endpoint", "eth-indexer-redis-master.eth-indexer.svc.cluster.local", "redis endpoint url")
+	ApiCmd.Flags().StringVar(&RedisEndpointURL, "redis-endpoint", "eth-indexer-redis-master:6379", "redis endpoint url")
 }
 
 // ApiCmd represents the base command when called without any subcommands

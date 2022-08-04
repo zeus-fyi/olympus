@@ -28,6 +28,7 @@ func (s *HandlersTestSuite) TestAdminRedisCfg() {
 		OsEnv:  "REDIS",
 		UseEnv: false,
 	}
+
 	resp := s.postAdminRequest(adminReq, "debug/redis", http.StatusOK)
 	s.Assert().NotEmpty(resp)
 }
@@ -82,6 +83,7 @@ type TestResponse struct {
 
 func (s *HandlersTestSuite) postAdminRequest(postRequest AdminRedisConfigRequest, endpoint string, httpCode int) TestResponse {
 	podActionRequestPayload, err := json.Marshal(postRequest)
+
 	s.Assert().Nil(err)
 
 	req := httptest.NewRequest(http.MethodPost, "http://localhost:9000/"+endpoint, strings.NewReader(string(podActionRequestPayload)))

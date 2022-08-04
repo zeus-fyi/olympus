@@ -9,8 +9,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_fetcher"
-	"github.com/zeus-fyi/olympus/pkg/datastores/redis_app"
-	"github.com/zeus-fyi/olympus/pkg/datastores/redis_app/beacon_indexer"
 )
 
 type AdminRedisConfigRequest struct {
@@ -27,6 +25,7 @@ func DebugRedisRequestHandler(c echo.Context) error {
 	}
 	val := os.Getenv(request.OsEnv)
 	log.Info().Msgf("logging env var: %s, value: %s", request.OsEnv, val)
+	log.Info().Msgf("logging addr: %s", request.Addr)
 
 	if request.UseEnv {
 		request.Addr = ""
@@ -37,7 +36,8 @@ func DebugRedisRequestHandler(c echo.Context) error {
 	}
 
 	log.Info().Interface("opts setting: ", opts)
-	beacon_fetcher.Fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, redis_app.InitRedis(ctx, opts))
+	log.Info().Msgf("logging addr: %s", request.Addr)
+
 	resp, err := beacon_fetcher.Fetcher.Cache.Ping(ctx).Result()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
@@ -64,6 +64,6 @@ func DebugReadRedisRequestHandler(c echo.Context) error {
 
 type DebugRedis struct {
 	Addr   string `json:"addr"`
-	OsEnv  string `json:"envs"`
-	UseEnv bool   `json:"enabledEnv"`
+	OsEnv  string `json:"envs,omitempty"`
+	UseEnv bool   `json:"enabledEnv,omitempty"`
 }

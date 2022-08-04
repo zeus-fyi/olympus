@@ -36,12 +36,12 @@ func DebugRedisRequestHandler(c echo.Context) error {
 	log.Info().Interface("opts setting: ", opts)
 	log.Info().Msgf("logging addr: %s", request.Addr)
 
-	resp, err := beacon_fetcher.Fetcher.Cache.Ping(ctx).Result()
+	err := beacon_fetcher.Fetcher.Cache.Ping(ctx).Err()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	log.Info().Interface("DebugRedisRequestHandler ping resp: %s", resp)
-	return c.JSON(http.StatusOK, string(resp))
+	log.Info().Interface("DebugRedisRequestHandler ping resp: %s", "ok")
+	return c.JSON(http.StatusOK, "ok")
 }
 
 func DebugReadRedisRequestHandler(c echo.Context) error {

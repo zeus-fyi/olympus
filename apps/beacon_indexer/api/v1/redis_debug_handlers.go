@@ -42,6 +42,7 @@ func DebugRedisRequestHandler(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
+	log.Info().Interface("DebugRedisRequestHandler ping resp: ", resp)
 	return c.JSON(http.StatusOK, resp)
 }
 

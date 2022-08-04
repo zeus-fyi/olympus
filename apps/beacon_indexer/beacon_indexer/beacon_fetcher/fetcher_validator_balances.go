@@ -26,7 +26,7 @@ func fetchAndUpdateValidatorBalances(ctx context.Context, batchSize int, context
 	ctxTimeout, cancel := context.WithTimeout(ctx, contextTimeout)
 	defer cancel()
 
-	err := fetcher.FindAndQueryAndUpdateValidatorBalances(ctxTimeout, batchSize)
+	err := Fetcher.FindAndQueryAndUpdateValidatorBalances(ctxTimeout, batchSize)
 	log.Info().Err(err).Msg("FetchNewOrMissingValidators")
 	return err
 }

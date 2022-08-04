@@ -47,13 +47,13 @@ func fetchAllValidatorBalancesAfterCheckpoint(ctx context.Context, contextTimeou
 	}
 	log.Info().Msgf("fetchAllValidatorBalancesAfterCheckpoint: Fetching balances for all active validators at epoch %d", chkPoint.Epoch)
 
-	if isCached, cacheErr := fetcher.Cache.DoesCheckpointExist(ctx, chkPoint.Epoch); cacheErr != nil {
+	if isCached, cacheErr := Fetcher.Cache.DoesCheckpointExist(ctx, chkPoint.Epoch); cacheErr != nil {
 		log.Error().Err(cacheErr).Msg("fetchAllValidatorBalancesAfterCheckpoint: DoesCheckpointExist")
 	} else if isCached {
 		log.Info().Msgf("fetchAllValidatorBalancesAfterCheckpoint: skipping fetch balance api call since, checkpoint cache exists at epoch %d", chkPoint.Epoch)
 	}
 
-	balances, err := fetcher.FetchAllValidatorBalances(ctxTimeout, int64(chkPoint.Epoch))
+	balances, err := Fetcher.FetchAllValidatorBalances(ctxTimeout, int64(chkPoint.Epoch))
 	if err != nil {
 		log.Info().Err(err).Msgf("fetchAllValidatorBalancesAfterCheckpoint: FetchAllValidatorBalances at Epoch: %d", chkPoint.Epoch)
 		return err
@@ -70,7 +70,7 @@ func fetchAllValidatorBalancesAfterCheckpoint(ctx context.Context, contextTimeou
 		return err
 	}
 
-	key, err := fetcher.Cache.SetCheckpointCache(ctx, chkPoint.Epoch, 1*time.Minute)
+	key, err := Fetcher.Cache.SetCheckpointCache(ctx, chkPoint.Epoch, 1*time.Minute)
 	log.Info().Err(err).Msgf("fetchAllValidatorBalancesAfterCheckpoint: set key failed %s", key)
 	return err
 }

@@ -16,15 +16,15 @@ type BeaconForwardCheckpointFetcherTestSuite struct {
 
 func (f *BeaconFetcherTestSuite) TestForwardFetchCheckpoint() {
 	ctx := context.Background()
-	fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
+	Fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
 
 	epoch := int64(134000)
-	vbForwardCheckpoint, err := fetcher.FetchForwardCheckpointValidatorBalances(ctx, epoch)
+	vbForwardCheckpoint, err := Fetcher.FetchForwardCheckpointValidatorBalances(ctx, epoch)
 	f.Require().Nil(err)
 	f.Assert().NotEmpty(vbForwardCheckpoint.ValidatorBalances)
 
 	prevBalanceEpochMap := map[int64]int64{}
-	prevEpoch, err := fetcher.FetchAllValidatorBalances(ctx, epoch-1)
+	prevEpoch, err := Fetcher.FetchAllValidatorBalances(ctx, epoch-1)
 
 	f.Require().Nil(err)
 	f.Assert().NotEmpty(prevEpoch.ValidatorBalances)
@@ -33,7 +33,7 @@ func (f *BeaconFetcherTestSuite) TestForwardFetchCheckpoint() {
 		prevBalanceEpochMap[balance.Index] = balance.TotalBalanceGwei
 	}
 
-	currentEpoch, err := fetcher.FetchAllValidatorBalances(ctx, epoch)
+	currentEpoch, err := Fetcher.FetchAllValidatorBalances(ctx, epoch)
 	f.Require().Nil(err)
 	f.Assert().NotEmpty(currentEpoch.ValidatorBalances)
 	for _, balance := range currentEpoch.ValidatorBalances {
@@ -54,22 +54,22 @@ func (f *BeaconFetcherTestSuite) TestForwardFetchCheckpoint() {
 
 func (f *BeaconFetcherTestSuite) TestForwardCheckpointBalanceUpdate() {
 	ctx := context.Background()
-	fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
-	fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, f.Redis)
+	Fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
+	Fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, f.Redis)
 	err := fetchAllValidatorBalancesAfterCheckpoint(ctx, 10*time.Minute)
 	f.Require().Nil(err)
 }
 
 func (f *BeaconFetcherTestSuite) TestCache() {
 	ctx := context.Background()
-	fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
-	fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, f.Redis)
+	Fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
+	Fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, f.Redis)
 	epoch := 5
 
-	key, err := fetcher.Cache.SetCheckpointCache(ctx, epoch, time.Minute)
+	key, err := Fetcher.Cache.SetCheckpointCache(ctx, epoch, time.Minute)
 	f.Require().Nil(err)
 	f.Assert().NotEmpty(key)
-	doesExist, err := fetcher.Cache.DoesCheckpointExist(ctx, epoch)
+	doesExist, err := Fetcher.Cache.DoesCheckpointExist(ctx, epoch)
 	f.Require().Nil(err)
 	f.Assert().True(doesExist)
 }

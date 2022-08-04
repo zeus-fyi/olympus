@@ -17,19 +17,19 @@ type BeaconFetcherTestSuite struct {
 
 func (f *BeaconFetcherTestSuite) TestCheckpointCache() {
 	ctx := context.Background()
-	fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
-	fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, f.Redis)
+	Fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
+	Fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, f.Redis)
 
 	chkPoint := beacon_models.ValidatorsEpochCheckpoint{}
 	err := chkPoint.GetFirstEpochCheckpointWithBalancesRemaining(ctx)
 	f.Require().Nil(err)
-	doesExist, err := fetcher.Cache.DoesCheckpointExist(ctx, chkPoint.Epoch)
+	doesExist, err := Fetcher.Cache.DoesCheckpointExist(ctx, chkPoint.Epoch)
 	f.Require().Nil(err)
 	f.Assert().False(doesExist)
 
 	err = fetchAllValidatorBalances(ctx, 5*time.Minute)
 
-	doesExist, err = fetcher.Cache.DoesCheckpointExist(ctx, chkPoint.Epoch)
+	doesExist, err = Fetcher.Cache.DoesCheckpointExist(ctx, chkPoint.Epoch)
 	f.Require().Nil(err)
 	f.Assert().True(doesExist)
 

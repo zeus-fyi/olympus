@@ -14,6 +14,9 @@ func Routes(e *echo.Echo) *echo.Echo {
 	e.POST("/admin", HandleAdminConfigRequest)
 	e.GET("/admin", AdminGetRequestHandler)
 
+	e.GET("/debug/redis", DebugReadRedisRequestHandler)
+	e.POST("/debug/redis", DebugRedisRequestHandler)
+
 	e.GET("/debug/db/counts", DebugRequestHandler)
 	e.GET("/debug/db/sizes", TableSizesHandler)
 	e.GET("/debug/db/stats", DebugPgStatsHandler)

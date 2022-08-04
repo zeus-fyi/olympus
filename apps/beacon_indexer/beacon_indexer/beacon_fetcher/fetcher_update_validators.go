@@ -28,7 +28,7 @@ func fetchAllValidatorsToUpdate(ctx context.Context, contextTimeout time.Duratio
 	ctxTimeout, cancel := context.WithTimeout(ctx, contextTimeout)
 	defer cancel()
 
-	err := fetcher.BeaconUpdateAllValidatorStates(ctxTimeout)
+	err := Fetcher.BeaconUpdateAllValidatorStates(ctxTimeout)
 	log.Info().Err(err).Msg("UpdateAllValidators: fetchAllValidatorsToUpdate")
 	return err
 }
@@ -72,7 +72,7 @@ func fetchValidatorsToUpdate(ctx context.Context, batchSize int, contextTimeout 
 
 	ctxTimeout, cancel := context.WithTimeout(ctx, contextTimeout)
 	defer cancel()
-	err := fetcher.BeaconUpdateValidatorStates(ctxTimeout, batchSize)
+	err := Fetcher.BeaconUpdateValidatorStates(ctxTimeout, batchSize)
 	log.Info().Err(err).Msg("fetchValidatorsToUpdate")
 	return err
 }

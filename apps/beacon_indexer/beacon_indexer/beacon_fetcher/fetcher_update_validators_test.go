@@ -14,22 +14,22 @@ type BeaconStatusUpdateFetcherTestSuite struct {
 
 func (f *BeaconFetcherTestSuite) TestFetcherUpdateAll() {
 	ctx := context.Background()
-	fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
+	Fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
 
-	err := fetcher.BeaconUpdateAllValidatorStates(ctx)
+	err := Fetcher.BeaconUpdateAllValidatorStates(ctx)
 	f.Require().Nil(err)
 
-	f.Assert().NotEmpty(fetcher.Validators)
+	f.Assert().NotEmpty(Fetcher.Validators)
 }
 
 func (f *BeaconFetcherTestSuite) TestFetcherUpdateBatch() {
 	ctx := context.Background()
-	fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
+	Fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
 
-	err := fetcher.BeaconUpdateValidatorStates(ctx, 100)
+	err := Fetcher.BeaconUpdateValidatorStates(ctx, 100)
 	f.Require().Nil(err)
 
-	f.Assert().NotEmpty(fetcher.Validators)
+	f.Assert().NotEmpty(Fetcher.Validators)
 }
 
 func TestBeaconStatusUpdateFetcherTestSuite(t *testing.T) {

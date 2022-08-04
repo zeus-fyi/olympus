@@ -9,11 +9,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_fetcher"
+	"github.com/zeus-fyi/olympus/pkg/datastores/redis_app/beacon_indexer"
 )
-
-type AdminRedisConfigRequest struct {
-	DebugRedis `json:"debug"`
-}
 
 func DebugRedisRequestHandler(c echo.Context) error {
 	log.Info().Msg("DebugRequestHandler")
@@ -34,6 +31,7 @@ func DebugRedisRequestHandler(c echo.Context) error {
 	opts := redis.Options{
 		Addr: request.Addr,
 	}
+	beacon_fetcher.Fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, redis.NewClient(&opts))
 
 	log.Info().Interface("opts setting: ", opts)
 	log.Info().Msgf("logging addr: %s", request.Addr)
@@ -42,8 +40,8 @@ func DebugRedisRequestHandler(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	log.Info().Interface("DebugRedisRequestHandler ping resp: ", resp)
-	return c.JSON(http.StatusOK, resp)
+	log.Info().Interface("DebugRedisRequestHandler ping resp: %s", resp)
+	return c.JSON(http.StatusOK, string(resp))
 }
 
 func DebugReadRedisRequestHandler(c echo.Context) error {
@@ -63,7 +61,7 @@ func DebugReadRedisRequestHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-type DebugRedis struct {
+type AdminRedisConfigRequest struct {
 	Addr   string `json:"addr"`
 	OsEnv  string `json:"envs,omitempty"`
 	UseEnv bool   `json:"enabledEnv,omitempty"`

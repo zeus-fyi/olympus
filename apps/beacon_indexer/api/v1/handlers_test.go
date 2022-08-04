@@ -24,11 +24,9 @@ func (s *HandlersTestSuite) SetupTest() {
 func (s *HandlersTestSuite) TestAdminRedisCfg() {
 
 	adminReq := AdminRedisConfigRequest{
-		DebugRedis{
-			Addr:   "localhost:6379",
-			OsEnv:  "REDIS",
-			UseEnv: false,
-		},
+		Addr:   "localhost:6379",
+		OsEnv:  "REDIS",
+		UseEnv: false,
 	}
 	resp := s.postAdminRequest(adminReq, "debug/redis", http.StatusOK)
 	s.Assert().NotEmpty(resp)

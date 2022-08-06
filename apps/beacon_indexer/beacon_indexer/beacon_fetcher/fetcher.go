@@ -19,9 +19,11 @@ func InitFetcherService(ctx context.Context, nodeURL string, redis *redis.Client
 	go FetchNewOrMissingValidators()
 	//go FetchAllValidatorBalances()
 	go FetchAllValidatorBalancesAfterCheckpoint()
+	go FetchAnyValidatorBalancesAfterCheckpoint()
 	go FetchBeaconUpdateValidatorStates()
 	//go UpdateAllValidators()
 	//go UpdateEpochCheckpoint()
 	go UpdateForwardEpochCheckpoint()
 	go InsertNewEpochCheckpoint()
+
 }

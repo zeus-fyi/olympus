@@ -81,8 +81,14 @@ func (f *BeaconFetcher) FetchAllValidatorBalances(ctx context.Context, epoch int
 	var valBalances beacon_models.ValidatorBalancesEpoch
 	var beaconAPI beacon_api.ValidatorBalances
 
+	vbe, err := Fetcher.Cache.GetBalanceCache(ctx, int(epoch))
+	if err != nil || len(vbe.ValidatorBalances) == 0 {
+		log.Err(err).Msg("balance cache not found, fetching from beacon")
+	} else {
+		return vbe, err
+	}
 	slotToQuery := misc.ConvertEpochToSlot(epoch)
-	err := beaconAPI.FetchAllValidatorBalancesAtStateAndDecode(ctx, f.NodeEndpoint, slotToQuery)
+	err = beaconAPI.FetchAllValidatorBalancesAtStateAndDecode(ctx, f.NodeEndpoint, slotToQuery)
 	if err != nil {
 		log.Error().Err(err).Msg("BeaconFetcher: QueryAllValidatorBalancesAtSlot")
 		return valBalances, err
@@ -98,5 +104,9 @@ func (f *BeaconFetcher) FetchAllValidatorBalances(ctx context.Context, epoch int
 		valBalances.ValidatorBalances[i] = vbForDataEntry
 	}
 
+	_, err = Fetcher.Cache.SetBalanceCache(ctx, int(epoch), valBalances, time.Hour*24*7)
+	if err != nil {
+		log.Err(err)
+	}
 	return valBalances, nil
 }

@@ -39,6 +39,15 @@ func (r *RedisTestSuite) SetupRedisConn() {
 
 	r.Redis = rdb.InitRedis(ctx, redisOpts)
 }
+
+func (r *RedisTestSuite) SetupRedisConnStaging() {
+	r.Tc = configs.InitLocalTestConfigs()
+	ctx := context.Background()
+	redisOpts := redis.Options{}
+	redisOpts.Addr = r.Tc.StagingRedisConn
+	r.Redis = rdb.InitRedis(ctx, redisOpts)
+}
+
 func (r *RedisTestSuite) CleanCache(ctx context.Context, keysToClear []string) {
 	switch r.Tc.Env {
 	case "local":

@@ -18,8 +18,9 @@ type StagingPrototypeTest struct {
 
 func (d *StagingPrototypeTest) SetupTest() {
 	d.InitStagingConfigs()
-	d.RedisTest.SetupRedisConn()
+	d.RedisTest.SetupRedisConnStaging()
+
 	d.Redis = d.RedisTest.Redis
-	d.PGTest.SetupPGConn()
+	d.PGTest.SetupStagingPGConn()
 	d.PG = d.PGTest.Pg
 }

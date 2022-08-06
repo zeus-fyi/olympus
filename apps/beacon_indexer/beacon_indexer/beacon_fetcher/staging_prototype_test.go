@@ -5,20 +5,41 @@ import (
 	"testing"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/datastores/redis_app/beacon_indexer"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
+	"github.com/zeus-fyi/olympus/pkg/utils/env"
 )
 
-type BeaconForwardCheckpointFetcherTestSuite struct {
-	test_suites.DatastoresTestSuite
+type StagingBeaconFetcherTestSuite struct {
+	env.StagingPrototypeTest
 }
 
-func (f *BeaconFetcherTestSuite) TestForwardFetchCheckpoint() {
+func (f *StagingBeaconFetcherTestSuite) TestSimulateAppOnStaging() {
 	ctx := context.Background()
 	Fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
+	InitFetcherService(ctx, f.Tc.LocalBeaconConn, f.Redis)
+	log.Info().Msg("will not return here")
+	for {
+		time.Sleep(10 * time.Minute)
+	}
+}
 
-	epoch := int64(134000)
+func (f *StagingBeaconFetcherTestSuite) TestFetchAndCacheAnyAfterCheckpoint() {
+	ctx := context.Background()
+	Fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
+	Fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, f.Redis)
+	err := fetchAnyValidatorBalancesAfterCheckpoint(ctx, 5*time.Minute)
+	f.Require().Nil(err)
+
+}
+
+func (f *StagingBeaconFetcherTestSuite) TestInsertForwardFetchCheckpoint() {
+	ctx := context.Background()
+	Fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
+	Fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, f.Redis)
+
+	epoch := int64(10)
 	vbForwardCheckpoint, err := Fetcher.FetchForwardCheckpointValidatorBalances(ctx, epoch)
 	f.Require().Nil(err)
 	f.Assert().NotEmpty(vbForwardCheckpoint.ValidatorBalances)
@@ -52,28 +73,22 @@ func (f *BeaconFetcherTestSuite) TestForwardFetchCheckpoint() {
 	f.Assert().Nil(err)
 }
 
-func (f *BeaconFetcherTestSuite) TestForwardCheckpointBalanceUpdate() {
+func (f *StagingBeaconFetcherTestSuite) TestCache() {
 	ctx := context.Background()
 	Fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
 	Fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, f.Redis)
-	err := fetchAllValidatorBalancesAfterCheckpoint(ctx, 10*time.Minute)
+
+	epoch := int64(10)
+	vbForwardCheckpoint, err := Fetcher.FetchForwardCheckpointValidatorBalances(ctx, epoch)
 	f.Require().Nil(err)
+	_, err = Fetcher.Cache.SetBalanceCache(ctx, int(epoch), vbForwardCheckpoint, time.Hour*24*7)
+	f.Require().Nil(err)
+
+	expVbeCache, err := Fetcher.Cache.GetBalanceCache(ctx, int(epoch))
+	f.Require().Nil(err)
+	f.Assert().NotEmpty(expVbeCache)
 }
 
-func (f *BeaconFetcherTestSuite) TestCache() {
-	ctx := context.Background()
-	Fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
-	Fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, f.Redis)
-	epoch := 5
-
-	key, err := Fetcher.Cache.SetCheckpointCache(ctx, epoch, time.Minute)
-	f.Require().Nil(err)
-	f.Assert().NotEmpty(key)
-	doesExist, err := Fetcher.Cache.DoesCheckpointExist(ctx, epoch)
-	f.Require().Nil(err)
-	f.Assert().True(doesExist)
-}
-
-func TestBeaconForwardCheckpointFetcherTestSuite(t *testing.T) {
-	suite.Run(t, new(BeaconForwardCheckpointFetcherTestSuite))
+func TestStagingBeaconFetcherTestSuite(t *testing.T) {
+	suite.Run(t, new(StagingBeaconFetcherTestSuite))
 }

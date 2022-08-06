@@ -35,6 +35,14 @@ func (f *BeaconFetcherTestSuite) TestCheckpointCache() {
 
 }
 
+func (f *BeaconFetcherTestSuite) TestFetchAndCacheAnyAfterCheckpoint() {
+	ctx := context.Background()
+	Fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
+	Fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, f.Redis)
+	err := fetchAnyValidatorBalancesAfterCheckpoint(ctx, 5*time.Minute)
+	f.Require().Nil(err)
+}
+
 func TestBeaconFetcherTestSuite(t *testing.T) {
 	suite.Run(t, new(BeaconFetcherTestSuite))
 }

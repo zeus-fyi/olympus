@@ -23,6 +23,13 @@ func (s *PGTestSuite) SetupTest() {
 	s.SetupPGConn()
 }
 
+func (s *PGTestSuite) SetupStagingPGConn() {
+	s.Tc = configs.InitStagingConfigs()
+	log.Warn().Msg("WARNING: staging db connection")
+	s.Pg.InitPG(context.Background(), s.Tc.StagingDbPgconn)
+	s.LocalDB = false
+}
+
 func (s *PGTestSuite) SetupPGConn() {
 	s.Tc = configs.InitLocalTestConfigs()
 	switch s.Tc.Env {

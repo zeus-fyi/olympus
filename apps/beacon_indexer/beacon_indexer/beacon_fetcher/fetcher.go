@@ -2,6 +2,8 @@ package beacon_fetcher
 
 import (
 	"context"
+	"math/rand"
+	"time"
 
 	"github.com/go-redis/redis/v9"
 	"github.com/rs/zerolog"
@@ -15,7 +17,10 @@ func InitFetcherService(ctx context.Context, nodeURL string, redis *redis.Client
 
 	Fetcher.NodeEndpoint = nodeURL
 	Fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, redis)
-
+	min := 1
+	max := 100
+	jitterStart := time.Duration(rand.Intn(max-min+1) + min)
+	time.Sleep(time.Second * jitterStart)
 	go FetchNewOrMissingValidators()
 	//go FetchAllValidatorBalances()
 	go FetchAllValidatorBalancesAfterCheckpoint()

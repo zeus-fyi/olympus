@@ -104,7 +104,7 @@ func (f *BeaconFetcher) FetchAllValidatorBalances(ctx context.Context, epoch int
 		valBalances.ValidatorBalances[i] = vbForDataEntry
 	}
 
-	_, err = Fetcher.Cache.SetBalanceCache(ctx, int(epoch), valBalances, time.Hour*24*7)
+	_, err = Fetcher.Cache.SetBalanceCache(ctx, int(epoch), valBalances, time.Hour*24*1)
 	if err != nil {
 		log.Err(err)
 	}

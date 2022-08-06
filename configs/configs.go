@@ -50,3 +50,27 @@ func InitLocalTestConfigs() TestContainer {
 	testCont.LocalBeaconConn = viper.GetString("LOCAL_BEACON_CONN_STR")
 	return testCont
 }
+
+func InitProductionConfigs() TestContainer {
+	InitEnvFromConfig(forceDirToCallerLocation())
+	testCont.Env = "production"
+	testCont.LocalRedisConn = viper.GetString("LOCAL_REDIS_CONN")
+	testCont.StagingRedisConn = viper.GetString("STAGING_REDIS_CONN")
+	testCont.LocalDbPgconn = viper.GetString("LOCAL_DB_PGCONN")
+	testCont.StagingDbPgconn = viper.GetString("STAGING_DB_PGCONN")
+	testCont.ProdDbPgconn = viper.GetString("PROD_DB_PGCONN")
+	testCont.LocalBeaconConn = viper.GetString("LOCAL_BEACON_CONN_STR")
+	return testCont
+}
+
+func InitStagingConfigs() TestContainer {
+	InitEnvFromConfig(forceDirToCallerLocation())
+	testCont.Env = "staging"
+	testCont.LocalRedisConn = viper.GetString("LOCAL_REDIS_CONN")
+	testCont.StagingRedisConn = viper.GetString("STAGING_REDIS_CONN")
+	testCont.LocalDbPgconn = viper.GetString("LOCAL_DB_PGCONN")
+	testCont.StagingDbPgconn = viper.GetString("STAGING_DB_PGCONN")
+	testCont.ProdDbPgconn = viper.GetString("PROD_DB_PGCONN")
+	testCont.LocalBeaconConn = viper.GetString("LOCAL_BEACON_CONN_STR")
+	return testCont
+}

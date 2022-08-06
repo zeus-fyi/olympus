@@ -21,6 +21,14 @@ func (s *TestSuite) InitConfigs() {
 	s.Tc = configs.InitLocalTestConfigs()
 }
 
+func (s *TestSuite) InitProductionConfig() {
+	s.Tc = configs.InitProductionConfigs()
+}
+
+func (s *TestSuite) InitStagingConfigs() {
+	s.Tc = configs.InitStagingConfigs()
+}
+
 func (s *TestSuite) SkipTest(b bool) {
 	if b {
 		s.T().SkipNow()

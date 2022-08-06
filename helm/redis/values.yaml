@@ -167,7 +167,7 @@ master:
   args: []
   ## @param master.preExecCmds Additional commands to run prior to starting Redis&reg; master
   ##
-  preExecCmds: ["maxmemory 1.5Gb", "maxmemory-policy allkeys-lru"]
+  preExecCmds: ["--maxmemory 1.5Gb", "--maxmemory-policy allkeys-lru"]
   ## @param master.extraFlags Array with additional command line flags for Redis&reg; master
   ## e.g:
   ## extraFlags:

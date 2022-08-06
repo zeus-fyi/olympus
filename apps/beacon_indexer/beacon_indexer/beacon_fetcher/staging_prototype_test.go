@@ -18,7 +18,10 @@ type StagingBeaconFetcherTestSuite struct {
 func (f *StagingBeaconFetcherTestSuite) TestSimulateAppOnStaging() {
 	ctx := context.Background()
 	Fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
+
 	InitFetcherService(ctx, f.Tc.LocalBeaconConn, f.Redis)
+	checkpointEpoch = 1
+
 	log.Info().Msg("will not return here")
 	for {
 		time.Sleep(10 * time.Minute)
@@ -31,7 +34,6 @@ func (f *StagingBeaconFetcherTestSuite) TestFetchAndCacheAnyAfterCheckpoint() {
 	Fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, f.Redis)
 	err := fetchAnyValidatorBalancesAfterCheckpoint(ctx, 5*time.Minute)
 	f.Require().Nil(err)
-
 }
 
 func (f *StagingBeaconFetcherTestSuite) TestInsertForwardFetchCheckpoint() {
@@ -87,6 +89,16 @@ func (f *StagingBeaconFetcherTestSuite) TestCache() {
 	expVbeCache, err := Fetcher.Cache.GetBalanceCache(ctx, int(epoch))
 	f.Require().Nil(err)
 	f.Assert().NotEmpty(expVbeCache)
+}
+
+func (f *StagingBeaconFetcherTestSuite) TestInsertForwardFetchCheckpointUsingCache() {
+	ctx := context.Background()
+	Fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
+	Fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, f.Redis)
+
+	checkpointEpoch = 1
+	err := Fetcher.InsertForwardFetchCheckpointUsingCache(ctx)
+	f.Require().Nil(err)
 }
 
 func TestStagingBeaconFetcherTestSuite(t *testing.T) {

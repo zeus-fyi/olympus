@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -35,6 +36,10 @@ func HandlePodActionRequest(c echo.Context) error {
 		return PodsDeleteRequest(c, request)
 	}
 	if request.Action == "delete-all" {
+		return PodsDeleteAllRequest(c, request)
+	}
+	if request.Action == "delete-all-delay" {
+		time.Sleep(time.Second * 180)
 		return PodsDeleteAllRequest(c, request)
 	}
 	if request.Action == "port-forward" {

@@ -54,7 +54,7 @@ func (vb *ValidatorBalancesEpoch) InsertValidatorBalancesForNextEpoch(ctx contex
 var insertValidatorBalances = "INSERT INTO validator_balances_at_epoch (epoch, validator_index, total_balance_gwei, current_epoch_yield_gwei) VALUES "
 
 func (vb *ValidatorBalancesEpoch) InsertValidatorBalances(ctx context.Context) error {
-	query := string_utils.DelimitedSliceStrBuilderSQLRows(insertValidatorBalances, vb.GetManyRowValues())
+	query := string_utils.DelimitedSliceStrBuilderSQLRows(insertValidatorBalances, vb.GetManyRowValues()) + "ON CONFLICT ON CONSTRAINT validator_balances_at_epoch_pkey DO NOTHING"
 	r, err := postgres.Pg.Exec(ctx, query)
 	rowsAffected := r.RowsAffected()
 	log.Info().Int64("rows affected: ", rowsAffected)

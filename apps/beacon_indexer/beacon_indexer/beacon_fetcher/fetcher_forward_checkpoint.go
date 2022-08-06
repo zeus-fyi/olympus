@@ -49,7 +49,7 @@ func fetchAnyValidatorBalancesAfterCheckpoint(ctx context.Context, contextTimeou
 		return err
 	}
 	min := 2
-	max := 500
+	max := 100
 	findEpoch := rand.Intn(max-min+1) + min
 	err = chkPoint.GetAnyEpochCheckpointWithBalancesRemainingAfterEpoch(ctx, chkPoint.Epoch+findEpoch)
 	if err != nil {

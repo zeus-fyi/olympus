@@ -45,6 +45,16 @@ func (s *ValidatorBalancesTestSuite) TestInsertValidatorBalancesForNextEpoch() {
 	s.insertEpochVBFromGivenValidatorsAndValidate(ctx, vs, int64(2), epoch2Balance, epoch1Balance)
 }
 
+func (s *ValidatorBalancesTestSuite) TestInsertValidatorBalancesForAnyEpoch() {
+	//ctx := context.Background()
+	//vs := seedValidators(2)
+	//
+	//epoch0Balance := int64(32000000000)
+	//vbsEpoch, _ := seedValidatorEpochBalancesStructFromValidators(vs, 100, epoch0Balance)
+	//err := vbsEpoch.InsertValidatorBalancesForAnyEpoch(ctx)
+	//s.Require().Nil(err)
+}
+
 func (s *ValidatorBalancesTestSuite) TestInsertValidatorBalancesForNextEpochEdgeCases() {
 	ctx := context.Background()
 	vs := seedValidators(1)

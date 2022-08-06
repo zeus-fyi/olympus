@@ -25,9 +25,9 @@ func DebugRequestHandler(c echo.Context) (err error) {
 
 	checkpointEpoch := 134000
 	chkPoint := beacon_models.ValidatorsEpochCheckpoint{}
-	err = chkPoint.GetAnyEpochCheckpointWithBalancesRemainingAfterEpoch(ctx, checkpointEpoch)
+	err = chkPoint.GetsOrderedNextEpochCheckpointWithBalancesRemainingAfterEpoch(ctx, checkpointEpoch)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, "GetAnyEpochCheckpointWithBalancesRemainingAfterEpoch had an error")
+		return c.JSON(http.StatusInternalServerError, "GetsOrderedNextEpochCheckpointWithBalancesRemainingAfterEpoch had an error")
 	}
 	debug.ForwardCheckpointEpoch = chkPoint.Epoch
 	return c.JSON(http.StatusOK, debug)

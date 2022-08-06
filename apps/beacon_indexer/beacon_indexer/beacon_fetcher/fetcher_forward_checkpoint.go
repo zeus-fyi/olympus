@@ -51,23 +51,24 @@ func fetchAnyValidatorBalancesAfterCheckpoint(ctx context.Context, contextTimeou
 	}
 	min := 2
 	max := 100
-	findEpoch := rand.Intn(max-min+1) + min
-	err = chkPoint.GetAnyEpochCheckpointWithBalancesRemainingAfterEpoch(ctx, chkPoint.Epoch+findEpoch)
+	findEpoch := (rand.Intn(max-min+1) + min) + chkPoint.Epoch
+
+	err = chkPoint.GetAnyEpochCheckpointWithBalancesRemainingAfterEpoch(ctx, findEpoch)
 	if err != nil {
 		log.Info().Err(err).Msg("fetchAnyValidatorBalancesAfterCheckpoint")
 		return err
 	}
-	log.Info().Msgf("fetchAnyValidatorBalancesAfterCheckpoint: Fetching balances for all active validators at epoch %d", chkPoint.Epoch)
+	log.Info().Msgf("fetchAnyValidatorBalancesAfterCheckpoint: Fetching balances for all active validators at epoch %d", findEpoch)
 
-	if isCached, cacheErr := Fetcher.Cache.DoesCheckpointExist(ctx, chkPoint.Epoch); cacheErr != nil {
+	if isCached, cacheErr := Fetcher.Cache.DoesCheckpointExist(ctx, findEpoch); cacheErr != nil {
 		log.Error().Err(cacheErr).Msg("fetchAnyValidatorBalancesAfterCheckpoint: DoesCheckpointExist")
 	} else if isCached {
-		log.Info().Msgf("fetchAnyValidatorBalancesAfterCheckpoint: skipping fetch balance api call since, checkpoint cache exists at epoch %d", chkPoint.Epoch)
+		log.Info().Msgf("fetchAnyValidatorBalancesAfterCheckpoint: skipping fetch balance api call since, checkpoint cache exists at epoch %d", findEpoch)
 	}
 
-	_, err = Fetcher.FetchAllValidatorBalances(ctxTimeout, int64(chkPoint.Epoch))
+	_, err = Fetcher.FetchAllValidatorBalances(ctxTimeout, int64(findEpoch))
 	if err != nil {
-		log.Info().Err(err).Msgf("fetchAnyValidatorBalancesAfterCheckpoint: FetchAllValidatorBalances at Epoch: %d", chkPoint.Epoch)
+		log.Info().Err(err).Msgf("fetchAnyValidatorBalancesAfterCheckpoint: FetchAllValidatorBalances at Epoch: %d", findEpoch)
 		return err
 	}
 	return err

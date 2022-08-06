@@ -35,7 +35,7 @@ func FetchAnyValidatorBalancesAfterCheckpoint() {
 		err := fetchAnyValidatorBalancesAfterCheckpoint(context.Background(), FetchAnyValidatorBalancesTimeoutFromCheckpoint)
 		log.Err(err)
 		log.Info().Interface("fetchAnyValidatorBalancesAfterCheckpoint took this many seconds to complete: ", time.Now().Sub(timeBegin))
-		time.Sleep(20 * time.Second)
+		time.Sleep(30 * time.Second)
 	}
 }
 func fetchAnyValidatorBalancesAfterCheckpoint(ctx context.Context, contextTimeout time.Duration) error {
@@ -55,7 +55,7 @@ func fetchAnyValidatorBalancesAfterCheckpoint(ctx context.Context, contextTimeou
 
 	err = chkPoint.GetAnyEpochCheckpointWithBalancesRemainingAfterEpoch(ctx, findEpoch)
 	if err != nil {
-		log.Info().Err(err).Msg("fetchAnyValidatorBalancesAfterCheckpoint")
+		log.Info().Err(err).Msg("fetchAnyValidatorBalancesAfterCheckpoint: GetAnyEpochCheckpointWithBalancesRemainingAfterEpoch")
 		return err
 	}
 	log.Info().Msgf("fetchAnyValidatorBalancesAfterCheckpoint: Fetching balances for all active validators at epoch %d", findEpoch)

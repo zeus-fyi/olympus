@@ -44,9 +44,9 @@ func fetchAnyValidatorBalancesAfterCheckpoint(ctx context.Context, contextTimeou
 	defer cancel()
 
 	chkPoint := beacon_models.ValidatorsEpochCheckpoint{}
-	err := chkPoint.GetNextEpochCheckpoint(ctx)
+	err := chkPoint.GetFirstEpochCheckpointWithBalancesRemaining(ctx)
 	if err != nil {
-		log.Info().Err(err).Msg("fetchAllValidatorBalancesAfterCheckpoint")
+		log.Info().Err(err).Msg("fetchAllValidatorBalancesAfterCheckpoint: GetFirstEpochCheckpointWithBalancesRemaining")
 		return err
 	}
 	min := 2

@@ -30,6 +30,13 @@ func (s *PGTestSuite) SetupStagingPGConn() {
 	s.LocalDB = false
 }
 
+func (s *PGTestSuite) SetupProductionPGConn() {
+	s.Tc = configs.InitProductionConfigs()
+	log.Warn().Msg("WARNING: production db connection")
+	s.Pg.InitPG(context.Background(), s.Tc.ProdDbPgconn)
+	s.LocalDB = false
+}
+
 func (s *PGTestSuite) SetupPGConn() {
 	s.Tc = configs.InitLocalTestConfigs()
 	switch s.Tc.Env {

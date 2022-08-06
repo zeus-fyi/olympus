@@ -19,6 +19,7 @@ type TestContainer struct {
 	LocalDbPgconn    string
 	LocalRedisConn   string
 	StagingRedisConn string
+	ProdRedisConn    string
 }
 
 func forceDirToCallerLocation() string {
@@ -44,6 +45,7 @@ func InitLocalTestConfigs() TestContainer {
 	testCont.Env = viper.GetString("ENV")
 	testCont.LocalRedisConn = viper.GetString("LOCAL_REDIS_CONN")
 	testCont.StagingRedisConn = viper.GetString("STAGING_REDIS_CONN")
+	testCont.ProdRedisConn = viper.GetString("PROD_REDIS_CONN")
 	testCont.LocalDbPgconn = viper.GetString("LOCAL_DB_PGCONN")
 	testCont.StagingDbPgconn = viper.GetString("STAGING_DB_PGCONN")
 	testCont.ProdDbPgconn = viper.GetString("PROD_DB_PGCONN")

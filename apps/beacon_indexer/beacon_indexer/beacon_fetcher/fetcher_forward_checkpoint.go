@@ -12,6 +12,7 @@ import (
 )
 
 var FetchAllValidatorBalancesTimeoutFromCheckpoint = time.Minute * 5
+var FetchAnyValidatorBalancesTimeoutFromCheckpoint = time.Minute * 3
 var checkpointEpoch = 134000
 
 func FetchAllValidatorBalancesAfterCheckpoint() {
@@ -26,17 +27,17 @@ func FetchAllValidatorBalancesAfterCheckpoint() {
 }
 
 func FetchAnyValidatorBalancesAfterCheckpoint() {
-	log.Info().Msg("FetchAllValidatorBalancesAfterCheckpoint")
+	log.Info().Msg("FetchAnyValidatorBalancesAfterCheckpoint")
 
 	for {
 		timeBegin := time.Now()
-		err := fetchAnyValidatorBalancesAfterCheckpoint(context.Background(), FetchAllValidatorBalancesTimeoutFromCheckpoint)
+		err := fetchAnyValidatorBalancesAfterCheckpoint(context.Background(), FetchAnyValidatorBalancesTimeoutFromCheckpoint)
 		log.Err(err)
-		log.Info().Interface("FetchFindAndQueryAndUpdateValidatorBalances took this many seconds to complete: ", time.Now().Sub(timeBegin))
+		log.Info().Interface("fetchAnyValidatorBalancesAfterCheckpoint took this many seconds to complete: ", time.Now().Sub(timeBegin))
 	}
 }
 func fetchAnyValidatorBalancesAfterCheckpoint(ctx context.Context, contextTimeout time.Duration) error {
-	log.Info().Msg("fetchAllValidatorBalancesAfterCheckpoint")
+	log.Info().Msg("fetchAnyValidatorBalancesAfterCheckpoint")
 	ctxTimeout, cancel := context.WithTimeout(ctx, contextTimeout)
 	defer cancel()
 

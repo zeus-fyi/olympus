@@ -18,8 +18,8 @@ type ProductionPrototypeTest struct {
 
 func (d *ProductionPrototypeTest) SetupTest() {
 	d.InitProductionConfig()
-	d.RedisTest.SetupRedisConn()
+	d.RedisTest.SetupRedisConnProduction()
 	d.Redis = d.RedisTest.Redis
-	d.PGTest.SetupPGConn()
+	d.PGTest.SetupProductionPGConn()
 	d.PG = d.PGTest.Pg
 }

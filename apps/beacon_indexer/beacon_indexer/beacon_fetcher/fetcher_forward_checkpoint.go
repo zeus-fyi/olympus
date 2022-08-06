@@ -2,6 +2,7 @@ package beacon_fetcher
 
 import (
 	"context"
+	"math/rand"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -42,7 +43,15 @@ func fetchAnyValidatorBalancesAfterCheckpoint(ctx context.Context, contextTimeou
 	defer cancel()
 
 	chkPoint := beacon_models.ValidatorsEpochCheckpoint{}
-	err := chkPoint.GetAnyEpochCheckpointWithBalancesRemainingAfterEpoch(ctx, checkpointEpoch)
+	err := chkPoint.GetNextEpochCheckpoint(ctx)
+	if err != nil {
+		log.Info().Err(err).Msg("fetchAllValidatorBalancesAfterCheckpoint")
+		return err
+	}
+	min := 2
+	max := 500
+	findEpoch := rand.Intn(max-min+1) + min
+	err = chkPoint.GetAnyEpochCheckpointWithBalancesRemainingAfterEpoch(ctx, chkPoint.Epoch+findEpoch)
 	if err != nil {
 		log.Info().Err(err).Msg("fetchAnyValidatorBalancesAfterCheckpoint")
 		return err

@@ -21,7 +21,7 @@ func (e *ValidatorsEpochCheckpoint) GetsOrderedNextEpochCheckpointWithBalancesRe
 
 func (e *ValidatorsEpochCheckpoint) GetAnyEpochCheckpointWithBalancesRemainingAfterEpoch(ctx context.Context, epoch int) error {
 	log.Info().Msg("ValidatorsEpochCheckpoint: GetsOrderedNextEpochCheckpointWithBalancesRemainingAfterEpoch")
-	query := fmt.Sprintf(`SELECT validators_balance_epoch FROM validators_epoch_checkpoint WHERE validators_balances_remaining <> 0 AND validators_balance_epoch > %d LIMIT 1`, epoch)
+	query := fmt.Sprintf(`SELECT validators_balance_epoch FROM validators_epoch_checkpoint WHERE validators_balances_remaining <> 0 AND validators_balance_epoch > %d ORDER BY validators_balance_epoch LIMIT 1`, epoch)
 	log.Info().Msgf("ValidatorsEpochCheckpoint: GetAnyEpochCheckpointWithBalancesRemainingAfterEpoch: %d", epoch)
 
 	err := postgres.Pg.QueryRow(ctx, query).Scan(&e.Epoch)

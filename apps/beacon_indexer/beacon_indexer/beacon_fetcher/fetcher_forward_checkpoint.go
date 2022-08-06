@@ -35,7 +35,7 @@ func FetchAnyValidatorBalancesAfterCheckpoint() {
 		err := fetchAnyValidatorBalancesAfterCheckpoint(context.Background(), FetchAnyValidatorBalancesTimeoutFromCheckpoint)
 		log.Err(err)
 		log.Info().Interface("fetchAnyValidatorBalancesAfterCheckpoint took this many seconds to complete: ", time.Now().Sub(timeBegin))
-		time.Sleep(10 * time.Second)
+		time.Sleep(20 * time.Second)
 	}
 }
 func fetchAnyValidatorBalancesAfterCheckpoint(ctx context.Context, contextTimeout time.Duration) error {

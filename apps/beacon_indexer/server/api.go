@@ -28,15 +28,6 @@ func Api() {
 	e := echo.New()
 	e = v1.Routes(e)
 	ctx := context.Background()
-
-	// make sure this doesn't fuck w/the health check bs
-	//e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(2)))
-	//e.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
-	//	AuthScheme: "Bearer",
-	//	Validator: func(key string, c echo.Context) (bool, error) {
-	//		return key == "bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB", nil
-	//	},
-	//}))
 	postgres.Pg = postgres.Db{}
 	MaxConn := int32(10)
 	MinConn := int32(3)

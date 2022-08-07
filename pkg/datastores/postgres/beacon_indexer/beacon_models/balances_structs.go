@@ -12,6 +12,14 @@ type ValidatorBalancesEpoch struct {
 	ValidatorBalances []ValidatorBalanceEpoch
 }
 
+func (vb *ValidatorBalancesEpoch) GetRawRowValues() []ValidatorBalanceEpochRow {
+	vbe := make([]ValidatorBalanceEpochRow, len(vb.ValidatorBalances))
+	for i, val := range vb.ValidatorBalances {
+		vbe[i] = val.GetRawRowValues()
+	}
+	return vbe
+}
+
 func (vb *ValidatorBalanceEpoch) GetRowValues() postgres.RowValues {
 	pgValues := postgres.RowValues{vb.Epoch, vb.Index, vb.TotalBalanceGwei, vb.CurrentEpochYieldGwei}
 	return pgValues
@@ -29,6 +37,14 @@ func (vb *ValidatorBalancesEpoch) getIndexValues() postgres.RowValues {
 	pgValues := make(postgres.RowValues, len(vb.ValidatorBalances))
 	for i, val := range vb.ValidatorBalances {
 		pgValues[i] = val.Index
+	}
+	return pgValues
+}
+
+func (vb *ValidatorBalancesEpoch) getIndexValuesPassed(indexes []int64) postgres.RowValues {
+	pgValues := make(postgres.RowValues, len(indexes))
+	for i, val := range indexes {
+		pgValues[i] = val
 	}
 	return pgValues
 }

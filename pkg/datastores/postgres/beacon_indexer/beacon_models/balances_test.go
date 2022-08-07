@@ -11,6 +11,8 @@ type ValidatorBalancesTestSuite struct {
 	BeaconBaseTestSuite
 }
 
+var le, he = 0, farFutureEpochToInt64MAX
+
 func (s *ValidatorBalancesTestSuite) TestInsertValidatorBalancesNoChecks() {
 	ctx := context.Background()
 
@@ -66,13 +68,13 @@ func (s *ValidatorBalancesTestSuite) TestInsertValidatorBalancesForNextEpochEdge
 
 	epoch0Balance := int64(32000000000)
 	vbsEpoch, _ := seedAndInsertNewValidatorBalances(ctx, vs, int64(0), epoch0Balance)
-	selectedVbsEpoch0, _ := vbsEpoch.SelectValidatorBalances(ctx)
+	selectedVbsEpoch0, _ := vbsEpoch.SelectValidatorBalances(ctx, le, he, []int64{})
 	s.Assert().Empty(selectedVbsEpoch0)
 
 	// test when trying to add >1 epoch ahead not in validator table
 	vs = seedValidators(2)
 	vbsEpoch, _ = seedAndInsertNewValidatorBalances(ctx, vs, int64(3), epoch0Balance)
-	selectedVbsEpoch3, _ := vbsEpoch.SelectValidatorBalances(ctx)
+	selectedVbsEpoch3, _ := vbsEpoch.SelectValidatorBalances(ctx, le, he, []int64{})
 	s.Assert().Empty(selectedVbsEpoch3)
 }
 
@@ -84,7 +86,7 @@ func (s *ValidatorBalancesTestSuite) TestInsertAndSelectValidatorBalances() {
 	err := vbsEpoch0.InsertValidatorBalances(ctx)
 	s.Require().Nil(err)
 
-	selectedVBs, err := vbsEpoch0.SelectValidatorBalances(ctx)
+	selectedVBs, err := vbsEpoch0.SelectValidatorBalances(ctx, le, he, []int64{})
 	s.Require().Nil(err)
 
 	for _, testVB := range selectedVBs.ValidatorBalances {
@@ -98,7 +100,7 @@ func (s *ValidatorBalancesTestSuite) TestInsertAndSelectValidatorBalances() {
 
 func (s *ValidatorBalancesTestSuite) insertEpochVBFromGivenValidatorsAndValidate(ctx context.Context, vs Validators, epoch, epochTotalBalance, prevEpochTotalBalance int64) {
 	vbsEpoch, expVbsEpoch := seedAndInsertNewValidatorBalances(ctx, vs, epoch, epochTotalBalance)
-	selectedVbsEpoch0, err := vbsEpoch.SelectValidatorBalances(ctx)
+	selectedVbsEpoch0, err := vbsEpoch.SelectValidatorBalances(ctx, le, he, []int64{})
 	s.Require().Nil(err)
 	s.Require().NotNil(selectedVbsEpoch0)
 	s.compareExpectedToActualValBalanceEntries(*selectedVbsEpoch0, expVbsEpoch, epochTotalBalance, prevEpochTotalBalance)

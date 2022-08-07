@@ -11,15 +11,24 @@ func Routes(e *echo.Echo) *echo.Echo {
 	e.Use(middleware.Recover())
 	// Routes
 	e.GET("/health", Health)
-	//e.POST("/admin", HandleAdminConfigRequest)
-	//e.GET("/admin", AdminGetRequestHandler)
+
+	v1Group := e.Group("/v1")
+	v1Group.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(2)))
+	v1Group.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+		AuthScheme: "Bearer",
+		Validator: func(key string, c echo.Context) (bool, error) {
+			return key == "bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB", nil
+		},
+	}))
+	v1Group.POST("/validator_balances", HandleValidatorBalancesRequest)
+	v1Group.POST("/validator_balances_sums", HandleValidatorBalancesSumRequest)
 
 	//e.GET("/debug/redis", DebugReadRedisRequestHandler)
 	//e.POST("/debug/redis", DebugRedisRequestHandler)
 
-	e.GET("/debug/db/counts", DebugRequestHandler)
-	e.GET("/debug/db/sizes", TableSizesHandler)
-	e.GET("/debug/db/stats", DebugPgStatsHandler)
+	//e.GET("/debug/db/counts", DebugRequestHandler)
+	//e.GET("/debug/db/sizes", TableSizesHandler)
+	//e.GET("/debug/db/stats", DebugPgStatsHandler)
 	//e.GET("/debug/db/ping", PingDBHandler)
 	//e.GET("/debug/db/config", DebugGetPgConfigHandler)
 

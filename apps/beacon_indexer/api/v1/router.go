@@ -17,16 +17,24 @@ func Routes(e *echo.Echo) *echo.Echo {
 	v1Group.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
 		AuthScheme: "Bearer",
 		Validator: func(key string, c echo.Context) (bool, error) {
-			return key == "bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB", nil
+			return key == "bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB" || key == "hQyPerNFu7C9wMYpzTtZubP9BnUTzpCV5", nil
 		},
 	}))
 	v1Group.POST("/validator_balances", HandleValidatorBalancesRequest)
 	v1Group.POST("/validator_balances_sums", HandleValidatorBalancesSumRequest)
 
+	debugGroup := e.Group("/debug")
+	debugGroup.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+		AuthScheme: "Bearer",
+		Validator: func(key string, c echo.Context) (bool, error) {
+			return key == "hQyPerNFu7C9wMYpzTtZubP9BnUTzpCV5", nil
+		},
+	}))
+
 	//e.GET("/debug/redis", DebugReadRedisRequestHandler)
 	//e.POST("/debug/redis", DebugRedisRequestHandler)
 
-	//e.GET("/debug/db/counts", DebugRequestHandler)
+	debugGroup.GET("/debug/db/counts", DebugRequestHandler)
 	//e.GET("/debug/db/sizes", TableSizesHandler)
 	//e.GET("/debug/db/stats", DebugPgStatsHandler)
 	//e.GET("/debug/db/ping", PingDBHandler)

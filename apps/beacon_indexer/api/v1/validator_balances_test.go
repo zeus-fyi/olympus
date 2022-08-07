@@ -28,7 +28,7 @@ func (s *ValidatorBalancesTestSuite) TestValidatorBalancesRequest() {
 		ValidatorIndexes: []int64{1, 2, 3, 4, 5},
 	}
 
-	tr := s.postValidatorBalancesRequest(vbr, "validator_balances", 200)
+	tr := s.postValidatorBalancesRequest(vbr, "v1/validator_balances", 200)
 	s.Assert().NotEmpty(tr.logs)
 }
 
@@ -43,7 +43,7 @@ func (s *ValidatorBalancesTestSuite) TestValidatorBalancesSumRequest() {
 		ValidatorIndexes: []int64{1, 2, 3, 4, 5},
 	}
 
-	tr := s.postValidatorBalancesRequest(vbr, "validator_balances_sums", 200)
+	tr := s.postValidatorBalancesRequest(vbr, "v1/validator_balances_sums", 200)
 	s.Assert().NotEmpty(tr.logs)
 }
 
@@ -62,6 +62,8 @@ func (s *ValidatorBalancesTestSuite) postValidatorBalancesRequest(postRequest Va
 
 	req := httptest.NewRequest(http.MethodPost, "http://localhost:9000/"+endpoint, strings.NewReader(string(podActionRequestPayload)))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	bearer := "Bearer bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
+	req.Header.Set(echo.HeaderAuthorization, bearer)
 
 	rec := httptest.NewRecorder()
 	s.E.ServeHTTP(rec, req)

@@ -62,7 +62,7 @@ func (s *ValidatorsTestSuite) TestInsertAndSelectActiveOnGoingValidators() {
 		vb.Epoch = int64(val.ActivationEpoch)
 		valExpBalancesAtEpoch.ValidatorBalances = append(valExpBalancesAtEpoch.ValidatorBalances, vb)
 	}
-	selectedVBs, err := valExpBalancesAtEpoch.SelectValidatorBalances(ctx)
+	selectedVBs, err := valExpBalancesAtEpoch.SelectValidatorBalances(ctx, le, he, []int64{})
 	s.Require().Nil(err)
 	s.Assert().Len(selectedVBs.ValidatorBalances, 1)
 

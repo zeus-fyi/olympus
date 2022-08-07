@@ -74,7 +74,7 @@ func (vb *ValidatorBalancesEpoch) SelectValidatorBalances(ctx context.Context, l
 	}
 	query := fmt.Sprintf(`SELECT epoch, validator_index, total_balance_gwei, current_epoch_yield_gwei, yield_to_date_gwei
 								 FROM validator_balances_at_epoch
-								 WHERE validator_index = %s AND epoch >= %d AND epoch <= %d
+								 WHERE validator_index = %s AND epoch >= %d AND epoch < %d
 								 LIMIT 10000`, params, lowerEpoch, higherEpoch)
 
 	rows, err := postgres.Pg.Query(ctx, query)
@@ -103,8 +103,11 @@ type ValidatorBalancesSum struct {
 }
 
 type ValidatorBalancesYieldIndex struct {
-	ValidatorIndex      int64
-	GweiYieldOverEpochs int64
+	ValidatorIndex                int64
+	GweiYieldOverEpochs           int64
+	GweiTotalYieldAtHigherEpoch   int64
+	GweiTotalBalanceAtLowerEpoch  int64
+	GweiTotalBalanceAtHigherEpoch int64
 }
 
 func (vb *ValidatorBalancesEpoch) SelectValidatorBalancesSum(ctx context.Context, lowerEpoch, higherEpoch int, validatorIndexes []int64) (ValidatorBalancesSum, error) {
@@ -114,10 +117,16 @@ func (vb *ValidatorBalancesEpoch) SelectValidatorBalancesSum(ctx context.Context
 	} else {
 		params = string_utils.AnyArraySliceStrBuilderSQL(vb.getIndexValues())
 	}
-	query := fmt.Sprintf(`SELECT validator_index, SUM(current_epoch_yield_gwei)
-								 FROM validator_balances_at_epoch
-								 WHERE validator_index = %s AND epoch >= %d AND epoch <= %d
-								 GROUP BY validator_index
+	query := fmt.Sprintf(`WITH cte_prev_balance AS (
+									SELECT validator_index AS prev_v_index, total_balance_gwei AS prev_total_bal
+									FROM validator_balances_at_epoch
+									WHERE validator_index = %s AND epoch = %d
+									LIMIT 10000
+								)
+								 SELECT vbe.validator_index, pb.prev_total_bal AS prev_bal, vbe.total_balance_gwei AS current_bal, (vbe.total_balance_gwei - pb.prev_total_bal) AS yield_over_range, vbe.yield_to_date_gwei AS yield_to_date
+							     FROM validator_balances_at_epoch vbe
+								 JOIN cte_prev_balance pb ON pb.prev_v_index = vbe.validator_index
+								 AND epoch = %d
 								 LIMIT 10000`, params, lowerEpoch, higherEpoch)
 
 	rows, err := postgres.Pg.Query(ctx, query)
@@ -131,7 +140,7 @@ func (vb *ValidatorBalancesEpoch) SelectValidatorBalancesSum(ctx context.Context
 	selectedValidatorBalances.LowerEpoch = lowerEpoch
 	for rows.Next() {
 		var val ValidatorBalancesYieldIndex
-		rowErr := rows.Scan(&val.ValidatorIndex, &val.GweiYieldOverEpochs)
+		rowErr := rows.Scan(&val.ValidatorIndex, &val.GweiTotalBalanceAtLowerEpoch, &val.GweiTotalBalanceAtHigherEpoch, &val.GweiYieldOverEpochs, &val.GweiTotalYieldAtHigherEpoch)
 		if rowErr != nil {
 			log.Err(rowErr).Msg("ValidatorBalancesEpoch: SelectValidatorBalancesSum")
 			return selectedValidatorBalances, rowErr

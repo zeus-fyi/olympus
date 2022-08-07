@@ -7,3 +7,4 @@ resources:
   - postgres-auth.yaml
   - bitnami.yaml
   - ingress-nginx.yaml
+  - jetstack.yaml

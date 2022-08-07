@@ -6,4 +6,3 @@ resources:
   - beacon-auth.yaml
   - postgres-auth.yaml
   - bitnami.yaml
-  - ingress-nginx.yaml

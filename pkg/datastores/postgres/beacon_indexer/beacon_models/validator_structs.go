@@ -20,10 +20,10 @@ type Validator struct {
 	WithdrawalCredentials      string
 
 	SubStatus string
-	Network   string
+	Network   string `json:"network,omitempty"`
 
 	UpdatedAt  time.Time
-	RowSetting ValidatorRowValuesForQuery
+	RowSetting ValidatorRowValuesForQuery `json:"-"`
 }
 
 type ValidatorRowValuesForQuery struct {

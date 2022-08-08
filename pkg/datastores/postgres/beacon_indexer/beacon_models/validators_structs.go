@@ -11,7 +11,7 @@ import (
 type Validators struct {
 	Validators []Validator
 
-	RowSetting ValidatorRowValuesForQuery
+	RowSetting ValidatorRowValuesForQuery `json:"-"`
 }
 
 func (vs *Validators) GetManyRowValues() postgres.RowEntries {

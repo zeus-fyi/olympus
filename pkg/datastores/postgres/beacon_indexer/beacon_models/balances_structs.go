@@ -9,7 +9,7 @@ import (
 )
 
 type ValidatorBalancesEpoch struct {
-	ValidatorBalances []ValidatorBalanceEpoch
+	ValidatorBalances []ValidatorBalanceEpoch `json:"validatorBalances"`
 }
 
 func (vb *ValidatorBalancesEpoch) GetRawRowValues() []ValidatorBalanceEpochRow {

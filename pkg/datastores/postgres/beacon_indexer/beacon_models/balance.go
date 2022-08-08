@@ -21,11 +21,11 @@ func (vb *ValidatorBalanceEpoch) GetRawRowValues() ValidatorBalanceEpochRow {
 }
 
 type ValidatorBalanceEpochRow struct {
-	Index                 int64
-	Epoch                 int64
-	TotalBalanceGwei      int64
-	CurrentEpochYieldGwei int64
-	YieldToDateGwei       int64
+	Index                 int64 `json:"index"`
+	Epoch                 int64 `json:"epoch"`
+	TotalBalanceGwei      int64 `json:"totalBalanceGwei"`
+	CurrentEpochYieldGwei int64 `json:"currentEpochYieldGwei"`
+	YieldToDateGwei       int64 `json:"yieldToDateGwei"`
 }
 
 type NextEpochQuery struct {

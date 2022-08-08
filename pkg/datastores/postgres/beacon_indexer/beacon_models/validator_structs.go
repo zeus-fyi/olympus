@@ -7,22 +7,22 @@ import (
 )
 
 type Validator struct {
-	Index                      int64
-	Pubkey                     string
-	Balance                    int64
-	EffectiveBalance           int64
-	ActivationEligibilityEpoch int64
-	ActivationEpoch            int64
-	ExitEpoch                  int64
-	WithdrawableEpoch          int64
-	Slashed                    bool
-	Status                     string
-	WithdrawalCredentials      string
+	Index                      int64  `json:"index"`
+	Pubkey                     string `json:"pubkey"`
+	Balance                    int64  `json:"balance"`
+	EffectiveBalance           int64  `json:"effectiveBalance"`
+	ActivationEligibilityEpoch int64  `json:"activationEligibilityEpoch"`
+	ActivationEpoch            int64  `json:"activationEpoch"`
+	ExitEpoch                  int64  `json:"exitEpoch"`
+	WithdrawableEpoch          int64  `json:"withdrawableEpoch"`
+	Slashed                    bool   `json:"slashed"`
+	Status                     string `json:"status"`
+	WithdrawalCredentials      string `json:"withdrawalCredentials"`
 
-	SubStatus string
+	SubStatus string `json:"subStatus"`
 	Network   string `json:"network,omitempty"`
 
-	UpdatedAt  time.Time
+	UpdatedAt  time.Time                  `json:"updatedAt"`
 	RowSetting ValidatorRowValuesForQuery `json:"-"`
 }
 

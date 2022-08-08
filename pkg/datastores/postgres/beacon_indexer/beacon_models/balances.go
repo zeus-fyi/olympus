@@ -97,17 +97,17 @@ func (vb *ValidatorBalancesEpoch) SelectValidatorBalances(ctx context.Context, l
 }
 
 type ValidatorBalancesSum struct {
-	LowerEpoch          int
-	HigherEpoch         int
-	ValidatorGweiYields []ValidatorBalancesYieldIndex
+	LowerEpoch          int                           `json:"lowerEpoch"`
+	HigherEpoch         int                           `json:"higherEpoch"`
+	ValidatorGweiYields []ValidatorBalancesYieldIndex `json:"validatorGweiYields"`
 }
 
 type ValidatorBalancesYieldIndex struct {
-	ValidatorIndex                int64
-	GweiYieldOverEpochs           int64
-	GweiTotalYieldAtHigherEpoch   int64
-	GweiTotalBalanceAtLowerEpoch  int64
-	GweiTotalBalanceAtHigherEpoch int64
+	ValidatorIndex                int64 `json:"validatorIndex"`
+	GweiYieldOverEpochs           int64 `json:"gweiYieldOverEpochs"`
+	GweiTotalYieldAtHigherEpoch   int64 `json:"gweiTotalYieldAtHigherEpoch"`
+	GweiTotalBalanceAtLowerEpoch  int64 `json:"gweiTotalBalanceAtLowerEpoch"`
+	GweiTotalBalanceAtHigherEpoch int64 `json:"gweiTotalBalanceAtHigherEpoch"`
 }
 
 func (vb *ValidatorBalancesEpoch) SelectValidatorBalancesSum(ctx context.Context, lowerEpoch, higherEpoch int, validatorIndexes []int64) (ValidatorBalancesSum, error) {

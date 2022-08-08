@@ -9,7 +9,7 @@ import (
 )
 
 type Validators struct {
-	Validators []Validator
+	Validators []Validator `json:"validators"`
 
 	RowSetting ValidatorRowValuesForQuery `json:"-"`
 }

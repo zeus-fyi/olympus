@@ -2,7 +2,6 @@ package v1
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -27,9 +26,5 @@ func HandleValidatorsRequest(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	s, err := json.Marshal(v.Validators)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
-	}
-	return c.JSON(http.StatusOK, string(s))
+	return c.JSON(http.StatusOK, v.Validators)
 }

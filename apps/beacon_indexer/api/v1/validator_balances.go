@@ -2,7 +2,6 @@ package v1
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -11,9 +10,9 @@ import (
 )
 
 type ValidatorBalancesRequest struct {
-	ValidatorIndexes []int64
-	LowerEpoch       int
-	HigherEpoch      int
+	ValidatorIndexes []int64 `json:"validatorIndexes"`
+	LowerEpoch       int     `json:"lowerEpoch"`
+	HigherEpoch      int     `json:"higherEpoch"`
 }
 
 func HandleValidatorBalancesRequest(c echo.Context) error {
@@ -29,11 +28,7 @@ func HandleValidatorBalancesRequest(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	s, err := json.Marshal(vb.GetRawRowValues())
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
-	}
-	return c.JSON(http.StatusOK, string(s))
+	return c.JSON(http.StatusOK, vb.GetRawRowValues())
 }
 
 func HandleValidatorBalancesSumRequest(c echo.Context) error {
@@ -50,9 +45,6 @@ func HandleValidatorBalancesSumRequest(c echo.Context) error {
 	}
 	vb.LowerEpoch = request.LowerEpoch
 	vb.HigherEpoch = request.HigherEpoch
-	s, err := json.Marshal(vb)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
-	}
-	return c.JSON(http.StatusOK, string(s))
+
+	return c.JSON(http.StatusOK, vb)
 }

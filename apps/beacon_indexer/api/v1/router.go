@@ -20,6 +20,7 @@ func Routes(e *echo.Echo) *echo.Echo {
 			return key == "bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB" || key == "hQyPerNFu7C9wMYpzTtZubP9BnUTzpCV5", nil
 		},
 	}))
+	v1Group.POST("/validators", HandleValidatorsRequest)
 	v1Group.POST("/validator_balances", HandleValidatorBalancesRequest)
 	v1Group.POST("/validator_balances_sums", HandleValidatorBalancesSumRequest)
 

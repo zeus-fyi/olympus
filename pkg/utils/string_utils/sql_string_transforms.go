@@ -111,7 +111,10 @@ func AnyArraySliceStrBuilderSQL(entries postgres.RowValues) string {
 			sb.WriteString("'")
 			sb.WriteString(val.(string))
 			sb.WriteString("'")
-		case int, int64:
+		case int:
+			returnStr := fmt.Sprintf("%d", val.(int))
+			sb.WriteString(returnStr)
+		case int64:
 			returnStr := fmt.Sprintf("%d", val.(int64))
 			sb.WriteString(returnStr)
 		case uint64:

@@ -1,6 +1,8 @@
 package beacon_models
 
 import (
+	"time"
+
 	"github.com/zeus-fyi/olympus/pkg/datastores/postgres"
 )
 
@@ -17,8 +19,10 @@ type Validator struct {
 	Status                     string
 	WithdrawalCredentials      string
 
-	SubStatus  string
-	Network    string
+	SubStatus string
+	Network   string
+
+	UpdatedAt  time.Time
 	RowSetting ValidatorRowValuesForQuery
 }
 
@@ -30,7 +34,7 @@ func (v *Validator) GetRowValues() postgres.RowValues {
 	pgValues := postgres.RowValues{v.Index, v.Pubkey}
 	switch v.RowSetting.RowsToInclude {
 	case "all":
-		pgValues = postgres.RowValues{v.Index, v.Pubkey, v.Balance, v.EffectiveBalance, v.ActivationEligibilityEpoch, v.ActivationEpoch}
+		pgValues = postgres.RowValues{v.Index, v.Pubkey, v.Balance, v.EffectiveBalance, v.ActivationEligibilityEpoch, v.ActivationEpoch, v.ExitEpoch, v.WithdrawableEpoch, v.Slashed, v.Status, v.WithdrawalCredentials, v.SubStatus, v.UpdatedAt}
 	case "beacon_state":
 		pgValues = postgres.RowValues{v.Index, v.Pubkey, v.Balance, v.EffectiveBalance, v.ActivationEligibilityEpoch, v.ActivationEpoch, v.ExitEpoch, v.WithdrawableEpoch, v.Slashed, v.WithdrawalCredentials}
 	case "beacon_state_update":
@@ -41,7 +45,7 @@ func (v *Validator) GetRowValues() postgres.RowValues {
 	return pgValues
 }
 
-func (v *Validator) getIndexValues() postgres.RowValues {
+func (v *Validator) GetIndexValues() postgres.RowValues {
 	pgValues := postgres.RowValues{v.Index}
 	return pgValues
 }

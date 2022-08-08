@@ -47,12 +47,44 @@ func (s *ValidatorBalancesTestSuite) TestValidatorBalancesSumRequest() {
 	s.Assert().NotEmpty(tr.logs)
 }
 
+func (s *ValidatorBalancesTestSuite) TestValidatorsRequest() {
+	s.E = echo.New()
+	s.E = Routes(s.E)
+
+	vbr := ValidatorsRequest{
+		ValidatorIndexes: []int64{1, 2, 3, 4, 5},
+	}
+
+	tr := s.postValidatorsRequest(vbr, "v1/validators", 200)
+	s.Assert().NotEmpty(tr.logs)
+}
+
 func (s *ValidatorBalancesTestSuite) getRequest(reqPath string, httpCode int) {
 	req := httptest.NewRequest(http.MethodGet, reqPath, nil)
 	rec := httptest.NewRecorder()
 	s.E.ServeHTTP(rec, req)
 	s.Equal(httpCode, rec.Code)
 	return
+}
+
+func (s *ValidatorBalancesTestSuite) postValidatorsRequest(postRequest ValidatorsRequest, endpoint string, httpCode int) TestResponse {
+	podActionRequestPayload, err := json.Marshal(postRequest)
+
+	s.Assert().Nil(err)
+
+	req := httptest.NewRequest(http.MethodPost, "http://localhost:9000/"+endpoint, strings.NewReader(string(podActionRequestPayload)))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	bearer := "Bearer bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
+	req.Header.Set(echo.HeaderAuthorization, bearer)
+
+	rec := httptest.NewRecorder()
+	s.E.ServeHTTP(rec, req)
+	s.Equal(httpCode, rec.Code)
+
+	var tr TestResponse
+	tr.logs = rec.Body.Bytes()
+
+	return tr
 }
 
 func (s *ValidatorBalancesTestSuite) postValidatorBalancesRequest(postRequest ValidatorBalancesRequest, endpoint string, httpCode int) TestResponse {

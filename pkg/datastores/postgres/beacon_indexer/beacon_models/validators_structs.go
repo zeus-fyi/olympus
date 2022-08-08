@@ -29,7 +29,7 @@ func (vs *Validators) GetManyRowValues() postgres.RowEntries {
 func (vs *Validators) GetManyRowValuesFlattened() postgres.RowValues {
 	var pgRows postgres.RowValues
 	for _, v := range vs.Validators {
-		pgRows = append(pgRows, v.getIndexValues()...)
+		pgRows = append(pgRows, v.GetIndexValues()...)
 	}
 
 	return pgRows

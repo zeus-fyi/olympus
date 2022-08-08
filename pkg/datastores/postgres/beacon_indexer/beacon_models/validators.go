@@ -26,7 +26,7 @@ func (vs *Validators) InsertValidatorsOnlyIndexPubkey(ctx context.Context) error
 var insertValidatorPendingQueue = `INSERT INTO validators (index, pubkey, balance, effective_balance, activation_eligibility_epoch, activation_epoch) VALUES `
 
 func (vs *Validators) InsertValidatorsPendingQueue(ctx context.Context) error {
-	vs.RowSetting.RowsToInclude = "all"
+	vs.RowSetting.RowsToInclude = "beacon_state"
 	querySuffix := ` ON CONFLICT (index) DO NOTHING`
 	query := string_utils.PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(insertValidatorPendingQueue, vs.GetManyRowValues(), querySuffix)
 	r, err := postgres.Pg.Exec(ctx, query)
@@ -87,28 +87,36 @@ func (vs *Validators) SelectValidatorsOnlyIndexPubkey(ctx context.Context) (*Val
 	return &selectedValidators, nil
 }
 
-func (vs *Validators) SelectValidators(ctx context.Context) (*Validators, error) {
+func (vs *Validators) SelectValidators(ctx context.Context, valIndexes []int64) (Validators, error) {
 	limit := 10000
+	vs.RowSetting.RowsToInclude = "all"
+	if len(valIndexes) > 0 {
+		vs.Validators = make([]Validator, len(valIndexes))
+		for i, valInd := range valIndexes {
+			vs.Validators[i] = Validator{Index: valInd}
+		}
+	}
 	validators := string_utils.AnyArraySliceStrBuilderSQL(vs.GetManyRowValuesFlattened())
-	query := fmt.Sprintf(`SELECT index, pubkey, balance, effective_balance, activation_eligibility_epoch, activation_epoch, exit_epoch, withdrawable_epoch, slashed, status, withdrawal_credentials, substatus FROM validators WHERE index = %s LIMIT %d`, validators, limit)
+	query := fmt.Sprintf(`SELECT index, pubkey, balance, effective_balance, activation_eligibility_epoch, activation_epoch, exit_epoch, withdrawable_epoch, slashed, status, withdrawal_credentials, substatus, updated_at FROM validators WHERE index = %s LIMIT %d`, validators, limit)
 
+	selectedValidators := Validators{}
 	rows, err := postgres.Pg.Query(ctx, query)
 	log.Err(err).Msg("SelectValidators")
 	if err != nil {
-		return nil, err
+		return selectedValidators, err
 	}
 	defer rows.Close()
-	var selectedValidators Validators
 	for rows.Next() {
 		var v Validator
-		rowErr := rows.Scan(&v.Index, &v.Pubkey, &v.Balance, &v.EffectiveBalance, &v.ActivationEpoch, &v.ActivationEpoch, &v.ExitEpoch, &v.WithdrawableEpoch, &v.Slashed, &v.WithdrawalCredentials, &v.SubStatus)
+		rowErr := rows.Scan(&v.Index, &v.Pubkey, &v.Balance, &v.EffectiveBalance, &v.ActivationEpoch, &v.ActivationEpoch, &v.ExitEpoch, &v.WithdrawableEpoch, &v.Slashed, &v.Status, &v.WithdrawalCredentials, &v.SubStatus, &v.UpdatedAt)
 		if rowErr != nil {
 			log.Err(rowErr).Msg("SelectValidators")
-			return nil, rowErr
+			return selectedValidators, rowErr
 		}
 		selectedValidators.Validators = append(selectedValidators.Validators, v)
 	}
-	return &selectedValidators, nil
+	vs.Validators = selectedValidators.Validators
+	return selectedValidators, nil
 }
 
 func (vs *Validators) UpdateValidatorBalancesAndActivationEligibility(ctx context.Context) (*Validators, error) {

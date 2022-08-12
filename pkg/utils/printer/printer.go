@@ -1,16 +1,20 @@
 package printer
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/zeus-fyi/olympus/pkg/utils/env"
 )
+
+var logLevelFilter = "error"
 
 type PrintPath string
 
@@ -57,8 +61,33 @@ func Printer(subDir, filename string, data []byte) {
 		_ = os.MkdirAll(folder, 0700) // Create your dir
 	}
 
-	err := ioutil.WriteFile(p, data, 0644)
+	err := ioutil.WriteFile(p, nil, 0644)
 	if err != nil {
 		log.Fatalf("error writing %s: %s", fn, err)
+	}
+	file, err := os.OpenFile(p, os.O_CREATE|os.O_WRONLY|os.O_APPEND, os.ModePerm)
+	if err != nil {
+		log.Fatalf("error writing %s: %s", fn, err)
+	}
+	defer file.Close()
+	writer := bufio.NewWriter(file)
+	linesToWrite := strings.Split(string(data), "time")
+	for _, line := range linesToWrite {
+		if !strings.Contains(line, "vendor") && loglevel(line, logLevelFilter) {
+			_, berr := writer.WriteString("time" + string(line))
+			if berr != nil {
+				log.Fatalf("Got error while writing to a file. Err: %s", berr.Error())
+			}
+		}
+		_ = writer.Flush()
+		return
+	}
+}
+
+func loglevel(line, level string) bool {
+	if level == "error" {
+		return strings.Contains(line, level) || strings.Contains(line, "warn")
+	} else {
+		return strings.Contains(line, level)
 	}
 }

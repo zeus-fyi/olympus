@@ -12,7 +12,9 @@ import (
 var insertValidatorsOnlyIndexPubkey = `INSERT INTO validators (index, pubkey) VALUES `
 
 func (vs *Validators) InsertValidatorsOnlyIndexPubkey(ctx context.Context) error {
-	query := string_utils.DelimitedSliceStrBuilderSQLRows(insertValidatorsOnlyIndexPubkey, vs.GetManyRowValues())
+	querySuffix := ` ON CONFLICT (index) DO UPDATE SET index = EXCLUDED.index, pubkey = EXCLUDED.pubkey `
+	query := string_utils.PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(insertValidatorsOnlyIndexPubkey, vs.GetManyRowValues(), querySuffix)
+
 	r, err := postgres.Pg.Exec(ctx, query)
 	rowsAffected := r.RowsAffected()
 	log.Info().Int64("rows affected: ", rowsAffected)
@@ -27,7 +29,7 @@ var insertValidatorPendingQueue = `INSERT INTO validators (index, pubkey, balanc
 
 func (vs *Validators) InsertValidatorsPendingQueue(ctx context.Context) error {
 	vs.RowSetting.RowsToInclude = "beacon_state"
-	querySuffix := ` ON CONFLICT (index) DO NOTHING`
+	querySuffix := ` ON CONFLICT (index) DO UPDATE SET index = EXCLUDED.index, pubkey = EXCLUDED.pubkey `
 	query := string_utils.PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(insertValidatorPendingQueue, vs.GetManyRowValues(), querySuffix)
 	r, err := postgres.Pg.Exec(ctx, query)
 	rowsAffected := r.RowsAffected()

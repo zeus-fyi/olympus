@@ -15,6 +15,9 @@ func (s *MainTestSuite) TestMainCodeGen() {
 	resp := genFile()
 	s.Assert().NotEmpty(resp)
 	fmt.Printf("%#v", resp)
+
+	err := resp.Save("m.go")
+	s.Assert().Nil(err)
 }
 func TestMainTestSuite(t *testing.T) {
 	suite.Run(t, new(MainTestSuite))

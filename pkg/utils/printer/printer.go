@@ -52,19 +52,13 @@ func Printer(subDir, filename string, data []byte) {
 	if env.Str == "development" {
 		envPrinter = "dev"
 	}
+
 	fn := fmt.Sprintf("%s.%s.%s", ts, envPrinter, filename)
 	folder := path.Join(env.SetEnvParam(pp), subDir)
 	p := path.Join(folder, fn)
 
-	// make path if it doesn't exist
-	if _, err := os.Stat(p); os.IsNotExist(err) {
-		_ = os.MkdirAll(folder, 0700) // Create your dir
-	}
+	CreateFile(p, fn, folder, nil)
 
-	err := ioutil.WriteFile(p, nil, 0644)
-	if err != nil {
-		log.Fatalf("error writing %s: %s", fn, err)
-	}
 	file, err := os.OpenFile(p, os.O_CREATE|os.O_WRONLY|os.O_APPEND, os.ModePerm)
 	if err != nil {
 		log.Fatalf("error writing %s: %s", fn, err)
@@ -90,4 +84,17 @@ func loglevel(line, level string) bool {
 	} else {
 		return strings.Contains(line, level)
 	}
+}
+
+func CreateFile(p, fn, folder string, data []byte) {
+	// make path if it doesn't exist
+	if _, err := os.Stat(p); os.IsNotExist(err) {
+		_ = os.MkdirAll(folder, 0700) // Create your dir
+	}
+
+	err := ioutil.WriteFile(p, data, 0644)
+	if err != nil {
+		log.Fatalf("error writing %s: %s", fn, err)
+	}
+
 }

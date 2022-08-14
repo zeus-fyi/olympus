@@ -9,7 +9,7 @@ import (
 )
 
 type TestSuite struct {
-	suite.Suite
+	CoreTestSuite
 	Tc configs.TestContainer
 }
 
@@ -34,6 +34,6 @@ func (s *TestSuite) SkipTest(b bool) {
 		s.T().SkipNow()
 	}
 }
-func TestBaseTestSuite(t *testing.T) {
+func TestTestSuite(t *testing.T) {
 	suite.Run(t, new(TestSuite))
 }

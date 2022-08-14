@@ -23,7 +23,9 @@ require (
 	github.com/IBM-Cloud/redli v0.5.2 // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
+	github.com/aloder/tojen v0.0.0-20200427151940-c77d77b33821 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/dave/jennifer v1.5.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/gomodule/redigo v1.8.9 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect

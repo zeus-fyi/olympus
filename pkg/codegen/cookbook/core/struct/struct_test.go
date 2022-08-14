@@ -5,10 +5,11 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/codegen/cookbook/core/primitives"
+	"github.com/zeus-fyi/olympus/pkg/codegen/cookbook/core/template_test"
 )
 
 type StructTestSuite struct {
-	suite.Suite
+	template_test.TemplateTestSuite
 }
 
 func (s *StructTestSuite) TestCodeGen() {
@@ -32,7 +33,12 @@ func (s *StructTestSuite) TestCodeGen() {
 
 	err := genFile(fw.PackageName, structToMake).Save(fw.FileName)
 	s.Require().Nil(err)
+
+	if s.Cleanup {
+		s.DeleteFile(fw.FileName)
+	}
 }
+
 func TestFuncTestSuite(t *testing.T) {
 	suite.Run(t, new(StructTestSuite))
 }

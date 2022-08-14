@@ -14,8 +14,8 @@ func genDeclAt18(structToWrite primitives.StructGen) jen.Code {
 	return _struct
 }
 
-func genFile(packageName string, structGen primitives.StructGen) *jen.File {
-	ret := jen.NewFile(packageName)
+func genFile(fw primitives.FileWrapper, structGen primitives.StructGen) *jen.File {
+	ret := jen.NewFile(fw.FileName)
 	ret.Add(genDeclAt18(structGen))
 	return ret
 }

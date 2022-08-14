@@ -1,22 +1,39 @@
 package _func
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/pkg/codegen/cookbook/core/primitives"
 )
 
 type FuncTestSuite struct {
 	suite.Suite
 }
 
-func (s *FuncTestSuite) TestMainCodeGen() {
-	resp := genFile()
-	s.Assert().NotEmpty(resp)
-	fmt.Printf("%#v", resp)
+func (s *FuncTestSuite) TestFuncCodeGen() {
+	fw := primitives.FileWrapper{PackageName: "_func", FileName: "func_example.go"}
 
-	err := resp.Save("function.go")
+	funcGen := primitives.FuncGen{
+		Name: "funcName",
+	}
+
+	fieldOne := primitives.Field{
+		Name: "stringParam",
+		Type: "string",
+	}
+	funcGen.AddField(fieldOne)
+
+	returnField := primitives.Field{
+		Name: "err",
+		Type: "error",
+	}
+	funcGen.AddReturnField(returnField)
+
+	resp := genFile(fw, funcGen)
+	s.Assert().NotEmpty(resp)
+
+	err := resp.Save(fw.FileName)
 	s.Assert().Nil(err)
 }
 func TestFuncTestSuite(t *testing.T) {

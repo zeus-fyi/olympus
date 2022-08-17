@@ -17,7 +17,7 @@ func Routes(e *echo.Echo) *echo.Echo {
 	v1Group.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
 		AuthScheme: "Bearer",
 		Validator: func(key string, c echo.Context) (bool, error) {
-			return key == "bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB" || key == "hQyPerNFu7C9wMYpzTtZubP9BnUTzpCV5", nil
+			return key == "hQyPerNFu7C9wMYpzTtZubP9BnUTzpCV5", nil
 		},
 	}))
 	v1Group.POST("/validators", HandleValidatorsRequest)

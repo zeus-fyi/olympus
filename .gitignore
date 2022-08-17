@@ -6,6 +6,7 @@
 pkg/databases/postgres/beacon-indexer/beacon-models/zzz.go
 TODO.txt
 bin/
+configs/Makefile
 configs/config.yaml
 configs/age.agekey
 makefiles/flux/age.agekey

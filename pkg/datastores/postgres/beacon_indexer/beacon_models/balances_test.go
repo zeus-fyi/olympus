@@ -13,6 +13,15 @@ type ValidatorBalancesTestSuite struct {
 
 var le, he = 0, farFutureEpochToInt64MAX
 
+func (s *ValidatorBalancesTestSuite) TestDumpValidatorBalancesAtEpochTable() {
+	ctx := context.Background()
+	le, he = 134000, 135000
+	so, se, err := DumpValidatorBalancesAtEpochTable(ctx, le, he)
+	s.Assert().NotEmpty(so)
+	s.Assert().NotEmpty(se)
+	s.Require().Nil(err)
+}
+
 func (s *ValidatorBalancesTestSuite) TestInsertValidatorBalancesNoChecks() {
 	ctx := context.Background()
 

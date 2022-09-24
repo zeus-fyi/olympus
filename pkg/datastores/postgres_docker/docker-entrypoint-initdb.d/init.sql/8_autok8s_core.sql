@@ -11,7 +11,8 @@ ALTER TABLE "public"."chart_component_kinds" ADD CONSTRAINT "chart_component_kin
 CREATE TABLE "public"."chart_packages" (
     "chart_package_id" int8 NOT NULL,
     "chart_name" text NOT NULL,
-    "chart_version" text NOT NULL
+    "chart_version" text NOT NULL,
+    "chart_description" text
 );
 ALTER TABLE "public"."chart_packages" ADD CONSTRAINT "chart_package_pk" PRIMARY KEY ("chart_package_id");
 ALTER TABLE "public"."chart_packages" ADD CONSTRAINT "chart_package_unique" UNIQUE("chart_name", "chart_version");

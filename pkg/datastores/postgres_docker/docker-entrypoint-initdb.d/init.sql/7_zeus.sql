@@ -28,16 +28,16 @@ CREATE TABLE "public"."topology_dependent_components" (
 );
 
 -- kns id table
-CREATE TABLE "public"."kns" (
+CREATE TABLE "public"."topologies_kns" (
     "topology_id" int8 NOT NULL REFERENCES topologies(topology_id),
     "context" text NOT NULL,
     "namespace" text NOT NULL,
     "env" text NOT NULL
 );
-ALTER TABLE "public"."kns" ADD CONSTRAINT "kns_pk" PRIMARY KEY ("context","namespace", "env");
+ALTER TABLE "public"."topologies_kns" ADD CONSTRAINT "kns_pk" PRIMARY KEY ("context","namespace", "env");
 
 -- specific deployed topology to user (statuses can be pending, terminated, etc)
-CREATE TABLE "public"."deployed_topologies" (
+CREATE TABLE "public"."topologies_deployed" (
    "topology_id" int8 NOT NULL REFERENCES topologies(topology_id),
    "org_id" int8 NOT NULL REFERENCES orgs(org_id),
    "user_id" int8 NOT NULL REFERENCES users(user_id),

@@ -13,7 +13,8 @@ CREATE TABLE "public"."chart_packages" (
     "chart_name" text NOT NULL,
     "chart_version" text NOT NULL
 );
-ALTER TABLE "public"."chart_packages" ADD CONSTRAINT "chart_package_pk" PRIMARY KEY ("chart_package_id", "chart_name");
+ALTER TABLE "public"."chart_packages" ADD CONSTRAINT "chart_package_pk" PRIMARY KEY ("chart_package_id");
+ALTER TABLE "public"."chart_packages" ADD CONSTRAINT "chart_package_unique" UNIQUE("chart_name", "chart_version");
 
 -- use naming to match k8s conventional naming: eg. StatefulSetSpec
 -- synthetic chart subcomponent classes, eg container, ports, volume_mounts, etc

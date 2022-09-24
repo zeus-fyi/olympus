@@ -36,10 +36,10 @@ CREATE TABLE "public"."kns" (
 );
 ALTER TABLE "public"."kns" ADD CONSTRAINT "kns_pk" PRIMARY KEY ("context","namespace", "env");
 
--- specific sw names. eg. prysm_validator_client
+-- specific deployed topology to user (statuses can be pending, terminated, etc)
 CREATE TABLE "public"."deployed_topologies" (
    "topology_id" int8 NOT NULL REFERENCES topologies(topology_id),
    "org_id" int8 NOT NULL REFERENCES orgs(org_id),
    "user_id" int8 NOT NULL REFERENCES users(user_id),
-   "name" text
+   "topology_status" text NOT NULL
 );

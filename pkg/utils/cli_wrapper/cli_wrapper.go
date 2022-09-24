@@ -133,7 +133,7 @@ func (t TaskCmd) ExecuteCmd() (string, string, error) {
 	}
 
 	if t.Print && t.PrintFilename != "" && t.PrintPath != "" && t.Environment != "" {
-		printer.Printer(t.PrintPath, t.PrintFilename, stdoutBuff.Bytes())
+		printer.Printer(t.PrintPath, t.PrintFilename, t.Environment, stdoutBuff.Bytes())
 	}
 	stdOut, stdErr := string(stdoutBuff.Bytes()), string(stderrBuff.Bytes())
 	return stdOut, stdErr, nil

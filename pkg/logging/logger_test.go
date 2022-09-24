@@ -3,6 +3,7 @@ package logging
 import (
 	"testing"
 
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -11,7 +12,7 @@ type LoggerTestSuite struct {
 }
 
 func (s *LoggerTestSuite) TestSetLevel() {
-	level := SetLoggerLevel("0")
+	level := SetLoggerLevel(zerolog.Level(0))
 	s.Assert().NotEmpty(level)
 }
 

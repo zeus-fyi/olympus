@@ -7,11 +7,10 @@ import (
 	"github.com/google/go-querystring/query"
 	"github.com/gorilla/schema"
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 )
 
 type ClientTestSuite struct {
-	base.TestSuite
+	suite.Suite
 }
 
 type Data struct {

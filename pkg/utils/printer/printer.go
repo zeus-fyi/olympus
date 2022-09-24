@@ -8,33 +8,29 @@ import (
 	"path"
 	"strings"
 	"time"
-
-	"github.com/zeus-fyi/olympus/pkg/utils/env"
 )
 
 var logLevelFilter = "error"
 
-func InterfacePrinter(path, fn string, v interface{}) (interface{}, error) {
+func InterfacePrinter(path, fn, env string, v interface{}) (interface{}, error) {
 	jsonParams, e := json.MarshalIndent(&v, "", " ")
 	if e != nil {
 		return v, e
 	}
-	Printer(path, fmt.Sprintf("%s.json", fn), jsonParams)
+	Printer(path, fmt.Sprintf("%s.json", fn), env, jsonParams)
 
 	return v, nil
 }
 
-func Printer(subDir, filename string, data []byte) {
-	var pp PrintPath
+func Printer(subDir, filename, env string, data []byte) {
 	ts := time.Now().Format(time.Stamp)
 
-	envPrinter := env.Str
-	if env.Str == "development" {
-		envPrinter = "dev"
+	if env == "development" {
+		env = "dev"
 	}
 
-	fn := fmt.Sprintf("%s.%s.%s", ts, envPrinter, filename)
-	folder := path.Join(env.SetEnvParam(pp), subDir)
+	fn := fmt.Sprintf("%s.%s.%s", ts, env, filename)
+	folder := path.Join(env, subDir)
 	p := path.Join(folder, fn)
 
 	CreateFile(p, fn, folder, nil)

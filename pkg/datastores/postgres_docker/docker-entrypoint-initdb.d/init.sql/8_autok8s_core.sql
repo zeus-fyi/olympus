@@ -67,6 +67,13 @@ CREATE TABLE "public"."chart_subcomponents_child_values" (
     "chart_subcomponent_value" text NOT NULL
 );
 
+-- for config maps, and exec commands, etc unstructured data
+CREATE TABLE "public"."chart_subcomponents_jsonb_child_values" (
+    "chart_subcomponent_child_class_type_id" int8 NOT NULL REFERENCES chart_subcomponent_child_class_types(chart_subcomponent_child_class_type_id),
+    "chart_subcomponent_chart_package_template_injection" bool NOT NULL DEFAULT false,
+    "chart_subcomponent_jsonb_key_values" jsonb NOT NULL
+);
+
 -- links topology to kubernetes package
 CREATE TABLE "public"."topology_infrastructure_components" (
     "topology_id" int8 NOT NULL REFERENCES topologies(topology_id),

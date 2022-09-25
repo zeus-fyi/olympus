@@ -37,6 +37,7 @@ flux.read.beacon.secret:
 	kubectl get secret ${BEACON_SECRET_NAME} -n ${NAMESPACE} -ojson \
         | jq -r '.data."beacon-conn-str"' | base64 -d
 
+# also needs to be re-installed for new flux install and then put in github
 flux.git.secret.create:
 	flux create secret git ${GIT_REPO_SSH_SECRET_NAME} --url=${REPO_SSH_URL} --ssh-key-algorithm=ecdsa --ssh-ecdsa-curve=p521
 
@@ -50,6 +51,7 @@ flux.git.secret.deploy:
 flux.git.repos:
 	 kubectl get gitrepository
 
+# needed if you re-install flux
 flux.age:
 	cat age.agekey | \
     kubectl create secret generic sops-age \
@@ -80,3 +82,11 @@ flux.all:
 flux.rec.git:
 	 flux reconcile source git ${NAMESPACE}
 	 flux reconcile source git flux-system
+
+flux.bootstrap.dev:
+	flux bootstrap github \
+        --owner=zeus-fyi \
+        --repository=${GITHUB_REPO} \
+        --branch=main \
+        --personal \
+        --path=devops/clusters/dev

@@ -37,7 +37,6 @@ CREATE TABLE "public"."validators" (
    "withdrawal_credentials" text
 )
 ;
-ALTER TABLE "public"."validators" OWNER TO "doadmin";
 
 -- ----------------------------
 -- Indexes structure for table validators

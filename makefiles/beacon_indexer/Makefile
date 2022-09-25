@@ -1,4 +1,4 @@
-
+AZURE_REPO := devzeus.azurecr.io
 REPO	:= registry.digitalocean.com/zeus-fyi
 NAME    := zeus-indexer
 GIT_SHA := $(shell git rev-parse HEAD)

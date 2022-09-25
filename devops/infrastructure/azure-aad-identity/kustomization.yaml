@@ -1,7 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+namespace: aad-pod-identity
 resources:
-  - sources
-  - nginx
-  - cert-manager
-  - azure-aad-identity
+  - namespace.yaml
+  - release.yaml

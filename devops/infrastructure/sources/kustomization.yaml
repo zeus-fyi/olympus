@@ -10,3 +10,4 @@ resources:
   - bitnami.yaml
   - ingress-nginx.yaml
   - jetstack.yaml
+  - azure-aad-identity.yaml

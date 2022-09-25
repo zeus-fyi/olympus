@@ -4,7 +4,9 @@ namespace: flux-system
 resources:
   - eth-indexer.yaml
   - beacon-auth.yaml
+  - beacon-dev-auth.yaml
   - postgres-auth.yaml
+  - postgres-dev-auth.yaml
   - bitnami.yaml
   - ingress-nginx.yaml
   - jetstack.yaml

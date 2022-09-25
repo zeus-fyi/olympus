@@ -4,7 +4,7 @@ data:
 kind: Secret
 metadata:
     creationTimestamp: null
-    name: postgres-dev-auth
+    name: postgres-auth
     namespace: eth-indexer
 sops:
     kms: []

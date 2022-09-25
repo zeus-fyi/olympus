@@ -4,4 +4,3 @@ resources:
   - sources
   - nginx
   - cert-manager
-  - azure-aad-identity

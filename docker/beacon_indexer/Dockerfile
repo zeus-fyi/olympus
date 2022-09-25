@@ -2,7 +2,7 @@ FROM golang:1.18-buster as builder
 
 WORKDIR /app
 
-COPY configs/ca-certificate.crt .
+COPY configs/DigiCertGlobalRootCA.crt.pem .
 # Download necessary Go modules
 COPY apps/beacon_indexer/go.mod .
 COPY apps/beacon_indexer/go.sum .

@@ -10,11 +10,7 @@ spec:
   sourceRef:
     kind: GitRepository
     name: flux-system
-  path: ./devops/apps/production
+  path: ./devops/apps/dev
   prune: true
   wait: true
   timeout: 5m0s
-  decryption:
-    provider: sops
-    secretRef:
-      name: sops-age

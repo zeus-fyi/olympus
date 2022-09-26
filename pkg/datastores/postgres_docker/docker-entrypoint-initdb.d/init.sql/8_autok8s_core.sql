@@ -71,7 +71,15 @@ CREATE TABLE "public"."chart_subcomponents_child_values" (
 CREATE TABLE "public"."chart_subcomponents_jsonb_child_values" (
     "chart_subcomponent_child_class_type_id" int8 NOT NULL REFERENCES chart_subcomponent_child_class_types(chart_subcomponent_child_class_type_id),
     "chart_subcomponent_chart_package_template_injection" bool NOT NULL DEFAULT false,
+    "chart_subcomponent_field_name" text NOT NULL,
     "chart_subcomponent_jsonb_key_values" jsonb NOT NULL
+);
+ALTER TABLE "public"."chart_subcomponent_child_class_types" ADD CONSTRAINT "chart_subcomponent_child_class_types_pk" PRIMARY KEY ("chart_subcomponent_child_class_type_id");
+
+-- links package to chart subcomponents
+CREATE TABLE "public"."chart_package_components" (
+   "chart_package_id" int8 NOT NULL REFERENCES chart_packages(chart_package_id),
+   "chart_subcomponent_parent_class_type_id" int8 NOT NULL REFERENCES chart_subcomponent_parent_class_types(chart_subcomponent_parent_class_type_id)
 );
 
 -- links topology to kubernetes package

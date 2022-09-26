@@ -26,6 +26,13 @@ func (s *ChartPackagesTestSuite) TestChartPackagesQuery() {
 	s.Require().NotEmpty(pkg)
 }
 
+func (s *ChartPackagesTestSuite) TestConvertYamlConfig() {
+	filepath := "/Users/alex/Desktop/Zeus/olympus/pkg/datastores/postgres/zeus/service.yaml"
+	err := ConvertYamlConfig(filepath)
+
+	s.Require().Nil(err)
+}
+
 func TestChartPackagesTestSuite(t *testing.T) {
 	suite.Run(t, new(ChartPackagesTestSuite))
 }

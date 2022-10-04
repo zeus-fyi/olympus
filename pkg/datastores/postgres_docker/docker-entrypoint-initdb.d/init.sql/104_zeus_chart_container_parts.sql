@@ -1,3 +1,8 @@
+---------------
+-- CONTAINERS--
+---------------
+-- for template podSpec in deploymentSpec, statefulsetSpec, etc
+
 CREATE TABLE "public"."containers" (
     "container_id" int8 NOT NULL,
     "container_name" text NOT NULL,
@@ -11,6 +16,7 @@ CREATE TABLE "public"."containers" (
 ALTER TABLE "public"."containers" ADD CONSTRAINT "containers_pk" PRIMARY KEY ("container_id");
 ALTER TABLE "public"."containers" ADD CONSTRAINT "containers_version_pk" UNIQUE ("container_name","container_image_id", "container_version_tag", "container_platform_os");
 
+-- lazy sort using time -> unique increased number on order input
 CREATE TABLE "public"."chart_subcomponent_spec_pod_template_containers" (
     "chart_subcomponent_child_class_type_id" int8 NOT NULL REFERENCES chart_subcomponent_child_class_types(chart_subcomponent_child_class_type_id),
     "container_id" int8 NOT NULL REFERENCES containers(container_id),
@@ -19,6 +25,9 @@ CREATE TABLE "public"."chart_subcomponent_spec_pod_template_containers" (
 );
 ALTER TABLE "public"."chart_subcomponent_spec_pod_template_containers" ADD CONSTRAINT "containers_order_pk" UNIQUE ("chart_subcomponent_child_class_type_id", "container_id", "is_init_container", "container_sort_order");
 
+------------
+-- PORTS----
+------------
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 CREATE TABLE "public"."container_ports" (
@@ -41,6 +50,9 @@ CREATE TABLE "public"."containers_ports" (
 -- lazy unique to all pods in spec chart
 ALTER TABLE "public"."containers_ports" ADD CONSTRAINT "containers_ports_pk" UNIQUE ("chart_subcomponent_child_class_type_id", "port_id");
 
+------------
+--ENV_VARS--
+------------
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 -- tables for env variables
@@ -60,6 +72,9 @@ CREATE TABLE "public"."containers_environmental_vars" (
 );
 ALTER TABLE "public"."containers_environmental_vars" ADD CONSTRAINT "container_env_pk" UNIQUE ("container_id", "env_id");
 
+------------------
+-- VOLUME_MOUNTS--
+------------------
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 -- tables for containers_volume_mounts
@@ -78,12 +93,35 @@ CREATE TABLE "public"."containers_volume_mounts" (
 );
 ALTER TABLE "public"."containers_volume_mounts" ADD CONSTRAINT "containers_volume_mounts_pk" UNIQUE ("container_id", "volume_mount_id");
 
+------------
+-- VOLUMES--
+------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- tables for volumes
+CREATE TABLE "public"."volumes" (
+    "volume_id" int8 NOT NULL,
+    "volume_name" text NOT NULL,
+    "volume_key_values_jsonb" jsonb NOT NULL DEFAULT '{}'::jsonb
+);
+ALTER TABLE "public"."volumes" ADD CONSTRAINT "volumes_pk" PRIMARY KEY ("volume_id");
+
+-- tables for containers_volumes links
+CREATE TABLE "public"."containers_volumes" (
+    "chart_subcomponent_child_class_type_id" int8 NOT NULL REFERENCES chart_subcomponent_child_class_types(chart_subcomponent_child_class_type_id),
+    "volume_id" int8 NOT NULL REFERENCES volumes(volume_id)
+);
+ALTER TABLE "public"."containers_volumes" ADD CONSTRAINT "containers_volumes_pk" UNIQUE ("chart_subcomponent_child_class_type_id", "volume_id");
+
+------------
+-- PROBES--
+------------
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 -- tables for container_probes
 CREATE TABLE "public"."container_probes" (
     "probe_id" int8 NOT NULL,
-    "probe_key_values_jsonb" jsonb NOT NULL
+    "probe_key_values_jsonb" jsonb NOT NULL DEFAULT '{}'::jsonb
 );
 ALTER TABLE "public"."container_probes" ADD CONSTRAINT "container_probes_pk" PRIMARY KEY ("probe_id");
 
@@ -95,6 +133,9 @@ CREATE TABLE "public"."containers_probes" (
 );
 ALTER TABLE "public"."containers_probes" ADD CONSTRAINT "containers_probes_pk" UNIQUE ("container_id", "probe_type");
 
+--------------
+-- RESOURCES--
+--------------
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 -- tables for resources

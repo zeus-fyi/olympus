@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
-	autok8s_core "github.com/zeus-fyi/olympus/pkg/autok8s/core"
+	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 )
 
 type Server struct {

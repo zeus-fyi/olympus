@@ -1,4 +1,4 @@
-package autok8s_core
+package zeus_core
 
 import (
 	"testing"

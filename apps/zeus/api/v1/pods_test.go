@@ -11,8 +11,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/suite"
-	autok8s_core "github.com/zeus-fyi/olympus/pkg/autok8s/core"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
+	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	v1 "k8s.io/api/core/v1"
 )
 

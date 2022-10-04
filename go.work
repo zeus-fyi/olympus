@@ -2,6 +2,6 @@ go 1.18
 
 use (
 	.
-	./apps/autok8s
+	./apps/zeus
 	./apps/beacon_indexer
 )

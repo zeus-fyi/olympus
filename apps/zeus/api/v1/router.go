@@ -3,7 +3,7 @@ package v1
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	autok8s_core "github.com/zeus-fyi/olympus/pkg/autok8s/core"
+	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 )
 
 var K8util autok8s_core.K8Util

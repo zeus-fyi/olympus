@@ -66,6 +66,6 @@ func (s *PodsTestSuite) TestGetPods() {
 	s.Require().NotEmpty(pods)
 }
 
-func TestKPodsTestSuite(t *testing.T) {
+func TestPodsTestSuite(t *testing.T) {
 	suite.Run(t, new(PodsTestSuite))
 }

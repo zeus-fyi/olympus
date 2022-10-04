@@ -119,7 +119,7 @@ func (k *K8Util) K8Printer(v interface{}, env string) (interface{}, error) {
 				k.PrintPath = printPath.Production()
 			}
 		}
-		return printer.InterfacePrinter(k.PrintPath, k.FileName, v)
+		return printer.InterfacePrinter(k.PrintPath, k.FileName, env, v)
 	}
 	return v, nil
 }

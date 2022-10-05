@@ -3,7 +3,7 @@ version: '3.8'
 services:
   postgres:
     container_name: postgres_local
-    image: "postgres:14.4-bullseye"
+    image: "postgres:13.4-bullseye"
     environment:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "postgres"

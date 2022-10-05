@@ -25,8 +25,8 @@ SQL_PORT=5432
 SQL_DB=postgres
 TLS_CRT_CERT_PATH=./DigiCertGlobalRootCA.crt.pem
 
-PKG_NAME=models
-PKG_DIR=../../datastores/postgres/zeus/charts/structs
+PKG_NAME=autogen_structs
+PKG_DIR=../../datastores/postgres/zeus/charts/structs/autogen
 # https://github.com/fraenky8/tables-to-go
 pg.gen.structs:
 	tables-to-go -h ${SQL_HOST} -u ${SQL_USER} -p ${SQL_PW} -pn ${PKG_NAME} -of ${PKG_DIR}

@@ -1,6 +1,6 @@
 module github.com/zeus-fyi/olympus/beacon-indexer
 
-go 1.18
+go 1.19
 
 require (
 	github.com/jackc/pgx/v4 v4.16.1

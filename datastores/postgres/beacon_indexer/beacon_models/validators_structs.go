@@ -4,8 +4,8 @@ import (
 	"strconv"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres"
-	"github.com/zeus-fyi/olympus/pkg/beacon_api"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
+	"github.com/zeus-fyi/olympus/pkg/web3/apollo/ethereum/beacon_api"
 )
 
 type Validators struct {

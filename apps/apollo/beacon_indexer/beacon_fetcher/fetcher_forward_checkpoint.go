@@ -7,9 +7,9 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/beacon_indexer/beacon_models"
-	"github.com/zeus-fyi/olympus/pkg/beacon_api"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
+	"github.com/zeus-fyi/olympus/pkg/web3/apollo/ethereum/beacon_api"
 )
 
 var FetchAllValidatorBalancesTimeoutFromCheckpoint = time.Minute * 5

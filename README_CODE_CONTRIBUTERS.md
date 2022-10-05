@@ -1,6 +1,6 @@
 ## Zeus Commandments
 
-Zeus has this issued a few default philosophy commandments to guide you.
+Zeus has issued a few default philosophy commandments to guide you.
 
 * Above all, the engineering UX should be considered first, and the consumer UX second.
   * Code should be modular, extensible, readable, and have the right amount of testing in them.

@@ -6,6 +6,7 @@ require (
 	github.com/confluentinc/confluent-kafka-go v1.9.2
 	github.com/dave/jennifer v1.5.1
 	github.com/ethereum/go-ethereum v1.10.20
+	github.com/ghodss/yaml v1.0.0
 	github.com/go-redis/redis/v9 v9.0.0-beta.2
 	github.com/google/go-querystring v1.1.0
 	github.com/gorilla/schema v1.2.0

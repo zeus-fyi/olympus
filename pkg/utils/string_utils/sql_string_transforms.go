@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/zeus-fyi/olympus/datastores/postgres"
+	"github.com/zeus-fyi/olympus/datastores/postgres_apps"
 )
 
-func StringDelimitedSliceBuilderSQL(delimiter string, values postgres.RowValues) string {
+func StringDelimitedSliceBuilderSQL(delimiter string, values postgres_apps.RowValues) string {
 	returnStr := ""
 	for i, val := range values {
 
@@ -34,7 +34,7 @@ func StringDelimitedSliceBuilderSQL(delimiter string, values postgres.RowValues)
 	return returnStr
 }
 
-func PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(prefix string, entries postgres.RowEntries, suffix string) string {
+func PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(prefix string, entries postgres_apps.RowEntries, suffix string) string {
 	sb := strings.Builder{}
 	if len(prefix) > 0 {
 		sb.WriteString(prefix)
@@ -58,7 +58,7 @@ func PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(prefix string, entries postg
 	return sb.String()
 }
 
-func DelimitedSliceStrBuilderSQLRows(prefix string, entries postgres.RowEntries) string {
+func DelimitedSliceStrBuilderSQLRows(prefix string, entries postgres_apps.RowEntries) string {
 	sb := strings.Builder{}
 	if len(prefix) > 0 {
 		sb.WriteString(prefix)
@@ -100,7 +100,7 @@ func DelimitedSliceStrBuilderSQLRows(prefix string, entries postgres.RowEntries)
 	return sb.String()
 }
 
-func AnyArraySliceStrBuilderSQL(entries postgres.RowValues) string {
+func AnyArraySliceStrBuilderSQL(entries postgres_apps.RowValues) string {
 	var sb strings.Builder
 
 	sb.WriteString("ANY(ARRAY[")
@@ -136,7 +136,7 @@ func AnyArraySliceStrBuilderSQL(entries postgres.RowValues) string {
 	return sb.String()
 }
 
-func ArraySliceStrBuilderSQL(entries postgres.RowValues) string {
+func ArraySliceStrBuilderSQL(entries postgres_apps.RowValues) string {
 	var sb strings.Builder
 
 	sb.WriteString("ARRAY[")
@@ -172,7 +172,7 @@ func ArraySliceStrBuilderSQL(entries postgres.RowValues) string {
 	return sb.String()
 }
 
-func MultiArraySliceStrBuilderSQL(r postgres.RowEntries) string {
+func MultiArraySliceStrBuilderSQL(r postgres_apps.RowEntries) string {
 	var sb strings.Builder
 
 	for count, row := range r.Rows {

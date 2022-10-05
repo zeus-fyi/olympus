@@ -1,9 +1,9 @@
 package beacon_fetcher
 
 import (
-	"github.com/zeus-fyi/olympus/datastores/postgres/beacon_indexer/beacon_models"
-	"github.com/zeus-fyi/olympus/datastores/redis_app/beacon_indexer"
-	"github.com/zeus-fyi/olympus/pkg/web3/apollo/ethereum/beacon_api"
+	"github.com/zeus-fyi/olympus/datastores/postgres_apps/beacon_indexer/beacon_models"
+	"github.com/zeus-fyi/olympus/datastores/redis_apps/beacon_indexer"
+	"github.com/zeus-fyi/olympus/pkg/apollo/ethereum/consensus_client_apis/beacon_api"
 )
 
 type BeaconFetcher struct {

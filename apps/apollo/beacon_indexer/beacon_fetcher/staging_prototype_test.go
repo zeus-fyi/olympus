@@ -7,7 +7,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/datastores/redis_app/beacon_indexer"
+	"github.com/zeus-fyi/olympus/datastores/redis_apps/beacon_indexer"
 	"github.com/zeus-fyi/olympus/pkg/utils/env"
 )
 

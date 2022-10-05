@@ -6,8 +6,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/datastores/postgres"
-	"github.com/zeus-fyi/olympus/datastores/postgres/beacon_indexer/beacon_models"
+	"github.com/zeus-fyi/olympus/datastores/postgres_apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres_apps/beacon_indexer/beacon_models"
 )
 
 func DebugRequestHandler(c echo.Context) (err error) {
@@ -36,7 +36,7 @@ func DebugRequestHandler(c echo.Context) (err error) {
 func DebugGetPgConfigHandler(c echo.Context) (err error) {
 	log.Info().Msg("DebugGetPgConfigHandler")
 	ctx := context.Background()
-	cfg := postgres.ReadCfg(ctx)
+	cfg := postgres_apps.ReadCfg(ctx)
 	return c.JSON(http.StatusOK, cfg)
 }
 
@@ -47,7 +47,7 @@ func DebugUpdatePgConfigHandler(c echo.Context) (err error) {
 		return err
 	}
 	ctx := context.Background()
-	err = postgres.UpdateConfigPG(ctx, request.ConfigChangePG)
+	err = postgres_apps.UpdateConfigPG(ctx, request.ConfigChangePG)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "error updating config")
 	}
@@ -57,14 +57,14 @@ func DebugUpdatePgConfigHandler(c echo.Context) (err error) {
 func DebugPgStatsHandler(c echo.Context) (err error) {
 	log.Info().Msg("DebugPgStatsHandler")
 	ctx := context.Background()
-	stats := postgres.Pg.PoolStats(ctx)
+	stats := postgres_apps.Pg.PoolStats(ctx)
 	return c.JSON(http.StatusOK, stats)
 }
 
 func PingDBHandler(c echo.Context) (err error) {
 	log.Info().Msg("PingDBHandler")
 	ctx := context.Background()
-	err = postgres.Pg.Ping(ctx)
+	err = postgres_apps.Pg.Ping(ctx)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
@@ -74,7 +74,7 @@ func PingDBHandler(c echo.Context) (err error) {
 func TableSizesHandler(c echo.Context) (err error) {
 	log.Info().Msg("HandleTableSizes")
 	ctx := context.Background()
-	tableSize, err := postgres.Pg.FetchTableSize(ctx, "validator_balances_at_epoch")
+	tableSize, err := postgres_apps.Pg.FetchTableSize(ctx, "validator_balances_at_epoch")
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}

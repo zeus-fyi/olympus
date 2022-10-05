@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/datastores/postgres/beacon_indexer/beacon_models"
+	"github.com/zeus-fyi/olympus/datastores/postgres_apps/beacon_indexer/beacon_models"
 )
 
 const InsertForwardFetchCheckpointUsingCache = "InsertForwardFetchCheckpointUsingCache"

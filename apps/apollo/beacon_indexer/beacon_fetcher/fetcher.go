@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-redis/redis/v9"
 	"github.com/rs/zerolog"
-	"github.com/zeus-fyi/olympus/datastores/redis_app/beacon_indexer"
+	"github.com/zeus-fyi/olympus/datastores/redis_apps/beacon_indexer"
 )
 
 var Fetcher BeaconFetcher

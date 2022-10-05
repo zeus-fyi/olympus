@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/datastores/postgres"
+	"github.com/zeus-fyi/olympus/datastores/postgres_apps"
 )
 
 type General struct {
@@ -17,21 +17,21 @@ type Wrapper struct {
 	Generals []General
 }
 
-func (g *General) GetRowValues() postgres.RowValues {
-	pgValues := postgres.RowValues{g.Index, fmt.Sprintf("%d", g.Pubkey)}
+func (g *General) GetRowValues() postgres_apps.RowValues {
+	pgValues := postgres_apps.RowValues{g.Index, fmt.Sprintf("%d", g.Pubkey)}
 	return pgValues
 }
 
-func (w *Wrapper) GetManyRowValues() postgres.RowEntries {
-	var pgRows postgres.RowEntries
+func (w *Wrapper) GetManyRowValues() postgres_apps.RowEntries {
+	var pgRows postgres_apps.RowEntries
 	for _, gen := range w.Generals {
 		pgRows.Rows = append(pgRows.Rows, gen.GetRowValues())
 	}
 	return pgRows
 }
 
-func (w *Wrapper) GetManyRowValuesFlattened() postgres.RowValues {
-	var pgRows postgres.RowValues
+func (w *Wrapper) GetManyRowValuesFlattened() postgres_apps.RowValues {
+	var pgRows postgres_apps.RowValues
 	for _, gen := range w.Generals {
 		pgRows = append(pgRows, gen.GetRowValues()...)
 	}

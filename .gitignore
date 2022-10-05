@@ -5,6 +5,8 @@
 
 pkg/databases/postgres/beacon-indexer/beacon-models/zzz.go
 TODO.txt
+SCRATCH_PAD.txt
+
 bin/
 configs/Makefile
 configs/config.yaml

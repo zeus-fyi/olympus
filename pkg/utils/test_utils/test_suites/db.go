@@ -7,7 +7,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/datastores/postgres"
+	"github.com/zeus-fyi/olympus/datastores/postgres_apps"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 
 	"github.com/zeus-fyi/olympus/configs"
@@ -15,7 +15,7 @@ import (
 
 type PGTestSuite struct {
 	base.TestSuite
-	Pg      postgres.Db
+	Pg      postgres_apps.Db
 	LocalDB bool
 }
 
@@ -77,7 +77,7 @@ func (s *PGTestSuite) CleanupDb(ctx context.Context, tablesToCleanup []string) {
 
 	for _, tableName := range tablesToCleanup {
 		query := fmt.Sprintf(`DELETE FROM %s WHERE %s`, tableName, "true")
-		_, err := postgres.Pg.Exec(ctx, query)
+		_, err := postgres_apps.Pg.Exec(ctx, query)
 		log.Err(err).Interface("cleanupDb: %s", tableName)
 		if err != nil {
 			panic(err)

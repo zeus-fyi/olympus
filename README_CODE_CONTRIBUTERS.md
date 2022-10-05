@@ -39,7 +39,7 @@ Zeus has issued a few default philosophy commandments to guide you.
     * Is this being used? 
     * Is this scalable, do costs go down per unit with scale by a lot? ideally it should be slightly linear
 * Don't use helm charts for mature internal apps, use Zeus
-* Don't use or add any terrible languages
+* Don't use or add any terrible languages like bash, jsonnet, php, etc.
     * Unless you can autogenerate it entirely from a structured language
 * Don't write ANY cli tooling, or Zeus WILL banish you from Olympus (exceptions rarely granted)
     * Cli tooling is dumb, don't be a dummy. Why is it dumb? Glad you asked, here's why.

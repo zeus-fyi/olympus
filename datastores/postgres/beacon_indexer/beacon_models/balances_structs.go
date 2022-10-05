@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/datastores/postgres"
+	"github.com/zeus-fyi/olympus/datastores/postgres"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 

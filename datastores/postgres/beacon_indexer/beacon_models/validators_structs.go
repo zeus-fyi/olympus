@@ -3,8 +3,8 @@ package beacon_models
 import (
 	"strconv"
 
+	"github.com/zeus-fyi/olympus/datastores/postgres"
 	"github.com/zeus-fyi/olympus/pkg/beacon_api"
-	"github.com/zeus-fyi/olympus/pkg/datastores/postgres"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 

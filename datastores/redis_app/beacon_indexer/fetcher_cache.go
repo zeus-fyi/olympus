@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-redis/redis/v9"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/datastores/postgres/beacon_indexer/beacon_models"
+	"github.com/zeus-fyi/olympus/datastores/postgres/beacon_indexer/beacon_models"
 )
 
 type FetcherCache struct {

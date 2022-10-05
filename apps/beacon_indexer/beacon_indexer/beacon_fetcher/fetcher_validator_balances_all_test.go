@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/datastores/postgres/beacon_indexer/beacon_models"
-	"github.com/zeus-fyi/olympus/pkg/datastores/redis_app/beacon_indexer"
+	"github.com/zeus-fyi/olympus/datastores/postgres/beacon_indexer/beacon_models"
+	"github.com/zeus-fyi/olympus/datastores/redis_app/beacon_indexer"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
 )
 

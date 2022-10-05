@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/datastores/postgres"
+	"github.com/zeus-fyi/olympus/datastores/postgres"
 )
 
 func (e *ValidatorsEpochCheckpoint) GetsOrderedNextEpochCheckpointWithBalancesRemainingAfterEpoch(ctx context.Context, epoch int) error {

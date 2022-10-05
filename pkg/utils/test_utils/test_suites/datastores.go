@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-redis/redis/v9"
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/datastores/postgres"
+	"github.com/zeus-fyi/olympus/datastores/postgres"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 )
 

@@ -6,13 +6,13 @@ ROOT_PATH=../../
 
 redis.fresh:
 	docker volume rm ${VOLUME_NAME}
-	docker-compose -f ${ROOT_PATH}pkg/datastores/redis_docker/docker-compose-redis.yml up
+	docker-compose -f ${ROOT_PATH}datastores/redis_docker/docker-compose-redis.yml up
 
 redis.start:
-	docker-compose -f ${ROOT_PATH}pkg/datastores/redis_docker/docker-compose-redis.yml up
+	docker-compose -f ${ROOT_PATH}datastores/redis_docker/docker-compose-redis.yml up
 
 redis.stop:
-	docker-compose -f ${ROOT_PATH}pkg/datastores/redis_docker/docker-compose-redis.yml down
+	docker-compose -f ${ROOT_PATH}datastores/redis_docker/docker-compose-redis.yml down
 
 redis.volume.rm:
 	docker volume rm ${VOLUME_NAME}

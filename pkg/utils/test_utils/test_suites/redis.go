@@ -8,7 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/configs"
-	rdb "github.com/zeus-fyi/olympus/pkg/datastores/redis_app"
+	rdb "github.com/zeus-fyi/olympus/datastores/redis_app"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 )
 

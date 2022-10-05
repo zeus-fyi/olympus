@@ -9,7 +9,7 @@ import (
 	"github.com/labstack/gommon/random"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/datastores/postgres"
+	"github.com/zeus-fyi/olympus/datastores/postgres"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
 )

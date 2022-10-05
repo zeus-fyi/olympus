@@ -3,7 +3,7 @@ package beacon_models
 import (
 	"time"
 
-	"github.com/zeus-fyi/olympus/pkg/datastores/postgres"
+	"github.com/zeus-fyi/olympus/datastores/postgres"
 )
 
 type Validator struct {

@@ -16,12 +16,12 @@ Zeus has issued a few default philosophy commandments to guide you.
         * Add a README to explain things further
 * Applications & modules should NOT be coupled to others without good reason
 * API first designs, everything should be programmable
-* Write code using meta programming
+* Strive to write code using meta programming, or templating
     * Meaning, if you can use a codegen toolkit use this because this allows you to
         * Refactor code instantly
         * Write code 1000x faster that is reliable, tested, pre-styled, and optimized
         * Write code on the fly, e.g. an application that can write code
-        * Autogenerate open api files, and api documentation
+        * Autogenerate open api files, and api documentation, etc
     * If the tooling to efficiently do this isn't available/mature enough, these tips will greatly assist you
         * Write code in a style that matches what you'd expect a computer to write.
         * Use common styling and naming conventions
@@ -31,6 +31,13 @@ Zeus has issued a few default philosophy commandments to guide you.
 * Codify complex steps using Iris (Temporal/Confluent Engines)
     * Eg build -> test -> message
 * Make everything cloud provider/vendor independent whenever possible, maximize portability.
+* Be efficient with infrastructure
+  * Questions to ask yourself
+    * Does this need this class of performance? 
+      * Example: I put this data in cold storage which is much, much cheaper since it's rarely accessed
+    * Does another cloud provider offer an equivalent for a lot less?
+    * Is this being used? 
+    * Is this scalable, do costs go down per unit with scale by a lot? ideally it should be slightly linear
 * Don't use helm charts for mature internal apps, use Zeus
 * Don't use or add any terrible languages
     * Unless you can autogenerate it entirely from a structured language

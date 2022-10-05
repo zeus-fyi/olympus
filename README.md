@@ -4,32 +4,34 @@ Olympus is built from many modules that work in cohesion as deployable microserv
 
 ### Cloud Providers
 
-Digital Ocean
+##### Digital Ocean
   * Kubernetes
   * Temporal
   * Blob Storage
   * Docker Image Registry
-Azure
+##### Azure
   * Postgres
   * Confluent
 
-### High Level Infrastructure Stack
+### High Level Technology Stack
 
-Infrastructure as Code
-  * Kubernetes
-    * Sources
-      * Olympus specific workloads for dynamic k8
-      * Helm
-  * Flux
+##### Infrastructure as Code
+* Kubernetes
+   * Sources
+     * Olympus specific workloads for dynamic k8
+     * Helm
+     * Docker Images
+   * CI/CD
+     * Flux
 
-Datastores
+##### Datastores
   * Postgres
   * Redis
 
-Orchestration
+##### Orchestration
   * Temporal
 
-Messaging/Streaming
+##### Messaging/Streaming
   * Confluent
 
 ### Configs

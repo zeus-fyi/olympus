@@ -1,4 +1,4 @@
-package go_web3
+package web3
 
 import (
 	"context"

@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/client"
+	"github.com/zeus-fyi/olympus/pkg/utils/client"
 )
 
 type ValidatorBalances struct {

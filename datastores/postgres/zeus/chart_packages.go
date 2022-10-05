@@ -1,10 +1,11 @@
-package postgres
+package zeus
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres"
 )
 
 func SelectPackageQuery(packageID int) string {
@@ -59,7 +60,7 @@ func FetchQueryPackage(ctx context.Context, packageID int) (PackageComponentMap,
 	parentChildMap := make(map[int][]PackageSubcomponent)
 
 	log.Debug().Interface("FetchQueryPackage: Query: ", query)
-	rows, err := Pg.Query(ctx, query)
+	rows, err := postgres.Pg.Query(ctx, query)
 	if err != nil {
 		return packageComponents, err
 	}

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/client"
+	"github.com/zeus-fyi/olympus/pkg/utils/client"
 )
 
 type PodsTestSuite struct {

@@ -9,7 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_fetcher"
 	"github.com/zeus-fyi/olympus/datastores/postgres"
-	"github.com/zeus-fyi/olympus/pkg/logging"
+	"github.com/zeus-fyi/olympus/pkg/utils/logging"
 )
 
 type AdminConfigRequest struct {

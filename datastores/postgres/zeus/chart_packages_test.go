@@ -1,10 +1,12 @@
-package postgres
+package zeus
 
 import (
 	"context"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+
+	"github.com/zeus-fyi/olympus/datastores/postgres"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 )
 
@@ -12,7 +14,7 @@ type ChartPackagesTestSuite struct {
 	base.TestSuite
 }
 
-var PgTestDB Db
+var PgTestDB postgres.Db
 
 func (s *ChartPackagesTestSuite) TestChartPackagesQuery() {
 	packageID := 0

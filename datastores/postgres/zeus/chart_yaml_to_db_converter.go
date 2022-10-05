@@ -1,4 +1,4 @@
-package postgres
+package zeus
 
 import (
 	"encoding/json"

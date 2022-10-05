@@ -18,6 +18,17 @@ func (s *PostgresTestSuite) TestConnPG() {
 	s.Assert().NotNil(conn)
 	defer conn.Close()
 }
+func (s *PostgresTestSuite) TestDumpValidatorBalancesAtEpochTable() {
+	ctx := context.Background()
+	var PgTestDB Db
+	conn := PgTestDB.InitPG(ctx, s.Tc.LocalDbPgconn)
+	s.Assert().NotNil(conn)
+	defer conn.Close()
+
+	le, he := 134000, 135000
+	_, _, err := DumpValidatorBalancesAtEpochTable(ctx, le, he)
+	s.Require().Nil(err)
+}
 
 func TestPostgresTestSuite(t *testing.T) {
 	suite.Run(t, new(PostgresTestSuite))

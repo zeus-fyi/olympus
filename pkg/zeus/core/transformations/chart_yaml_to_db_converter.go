@@ -1,4 +1,4 @@
-package zeus
+package transformations
 
 import (
 	"encoding/json"
@@ -8,7 +8,10 @@ import (
 	"github.com/ghodss/yaml"
 )
 
-func ConvertYamlConfig(filepath string) error {
+type YamlReader struct {
+}
+
+func (y *YamlReader) ReadYamlConfig(filepath string) ([]byte, error) {
 	// Open YAML file
 	jsonByteArray, err := ioutil.ReadFile(filepath)
 	if err != nil {
@@ -17,12 +20,12 @@ func ConvertYamlConfig(filepath string) error {
 	jsonBytes, err := yaml.YAMLToJSON(jsonByteArray)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
-		return err
+		return jsonBytes, err
 	}
 	m := make(map[string]interface{})
 
 	err = json.Unmarshal(jsonBytes, &m)
-	return err
+	return jsonBytes, err
 }
 
 // should match this format on query

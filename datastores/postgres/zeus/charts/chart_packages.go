@@ -1,4 +1,4 @@
-package zeus
+package charts
 
 import (
 	"context"

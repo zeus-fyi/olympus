@@ -4,7 +4,7 @@
 -- for template podSpec in deploymentSpec, statefulsetSpec, etc
 
 CREATE TABLE "public"."containers" (
-    "container_id" int8 NOT NULL,
+    "container_id" int8 DEFAULT next_id(),
     "container_name" text NOT NULL,
     "container_image_id" text NOT NULL,
     "container_version_tag" text NOT NULL DEFAULT 'latest',
@@ -21,7 +21,7 @@ CREATE TABLE "public"."chart_subcomponent_spec_pod_template_containers" (
     "chart_subcomponent_child_class_type_id" int8 NOT NULL REFERENCES chart_subcomponent_child_class_types(chart_subcomponent_child_class_type_id),
     "container_id" int8 NOT NULL REFERENCES containers(container_id),
     "is_init_container" bool NOT NULL DEFAULT false,
-    "container_sort_order" int8 NOT NULL DEFAULT 0
+    "container_sort_order" int8 NOT NULL DEFAULT next_id()
 );
 ALTER TABLE "public"."chart_subcomponent_spec_pod_template_containers" ADD CONSTRAINT "containers_order_pk" UNIQUE ("chart_subcomponent_child_class_type_id", "container_id", "is_init_container", "container_sort_order");
 
@@ -32,9 +32,9 @@ ALTER TABLE "public"."chart_subcomponent_spec_pod_template_containers" ADD CONST
 
 CREATE TABLE "public"."container_ports" (
     -- pk for table
-    "port_id" int8 NOT NULL,
+    "port_id" int8 NOT NULL DEFAULT next_id(),
     "port_name" text NOT NULL,
-    "container_port" int8 NOT NULL DEFAULT '',
+    "container_port" int8 NOT NULL,
     "host_ip" text NOT NULL DEFAULT '',
     "host_port" text NOT NULL DEFAULT '',
     "port_protocol" text CHECK (port_protocol IN ('UDP', 'TCP', 'SCTP')) NOT NULL DEFAULT 'TCP'
@@ -58,7 +58,7 @@ ALTER TABLE "public"."containers_ports" ADD CONSTRAINT "containers_ports_pk" UNI
 -- tables for env variables
 CREATE TABLE "public"."container_environmental_vars" (
     -- pk for table (maybe make it a hash of the key/value?)
-    "env_id" int8 NOT NULL,
+    "env_id" int8 NOT NULL DEFAULT next_id(),
     "name" text NOT NULL,
     "value" jsonb NOT NULL DEFAULT '{}'::jsonb
 );
@@ -79,7 +79,7 @@ ALTER TABLE "public"."containers_environmental_vars" ADD CONSTRAINT "container_e
 
 -- tables for containers_volume_mounts
 CREATE TABLE "public"."container_volume_mounts" (
-    "volume_mount_id" int8 NOT NULL,
+    "volume_mount_id" int8 DEFAULT next_id(),
     "volume_mount_path" text NOT NULL,
     "volume_name" text NOT NULL
 );
@@ -100,7 +100,7 @@ ALTER TABLE "public"."containers_volume_mounts" ADD CONSTRAINT "containers_volum
 
 -- tables for volumes
 CREATE TABLE "public"."volumes" (
-    "volume_id" int8 NOT NULL,
+    "volume_id" int8 NOT NULL DEFAULT next_id(),
     "volume_name" text NOT NULL,
     "volume_key_values_jsonb" jsonb NOT NULL DEFAULT '{}'::jsonb
 );
@@ -120,7 +120,7 @@ ALTER TABLE "public"."containers_volumes" ADD CONSTRAINT "containers_volumes_pk"
 
 -- tables for container_probes
 CREATE TABLE "public"."container_probes" (
-    "probe_id" int8 NOT NULL,
+    "probe_id" int8 NOT NULL DEFAULT next_id(),
     "probe_key_values_jsonb" jsonb NOT NULL DEFAULT '{}'::jsonb
 );
 ALTER TABLE "public"."container_probes" ADD CONSTRAINT "container_probes_pk" PRIMARY KEY ("probe_id");
@@ -140,7 +140,7 @@ ALTER TABLE "public"."containers_probes" ADD CONSTRAINT "containers_probes_pk" U
 
 -- tables for resources
 CREATE TABLE "public"."container_compute_resources" (
-    "compute_resources_id" int8 NOT NULL,
+    "compute_resources_id" int8 NOT NULL DEFAULT next_id(),
     "compute_resources_key_values_jsonb" jsonb NOT NULL DEFAULT '{}'::jsonb
 );
 ALTER TABLE "public"."container_compute_resources" ADD CONSTRAINT "container_compute_resources_pk" PRIMARY KEY ("compute_resources_id");

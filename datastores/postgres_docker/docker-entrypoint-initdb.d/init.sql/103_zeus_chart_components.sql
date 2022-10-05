@@ -1,6 +1,6 @@
 -- chart component kind: e.g. service, statefulset, etc
 CREATE TABLE "public".chart_component_resources(
-    "chart_component_resource_id" int8 NOT NULL,
+    "chart_component_resource_id" int8 NOT NULL DEFAULT next_id(),
     "chart_component_kind_name" text NOT NULL,
     "chart_component_api_version" text NOT NULL
 );
@@ -9,7 +9,7 @@ ALTER TABLE "public".chart_component_resources ADD CONSTRAINT "chart_component_k
 
 -- synthetic helm package, eg eth_validator_client_package
 CREATE TABLE "public"."chart_packages" (
-    "chart_package_id" int8 NOT NULL,
+    "chart_package_id" int8 NOT NULL DEFAULT next_id(),
     "chart_name" text NOT NULL,
     "chart_version" text NOT NULL,
     "chart_description" text
@@ -47,7 +47,7 @@ ALTER TABLE "public"."chart_packages" ADD CONSTRAINT "chart_package_unique" UNIQ
 CREATE TABLE "public"."chart_subcomponent_parent_class_types" (
     "chart_package_id" int8 NOT NULL REFERENCES chart_packages(chart_package_id),
     "chart_component_resource_id" int8 NOT NULL REFERENCES chart_component_resources(chart_component_resource_id),
-    "chart_subcomponent_parent_class_type_id" int8 NOT NULL,
+    "chart_subcomponent_parent_class_type_id" int8 DEFAULT next_id(),
     "chart_subcomponent_parent_class_type_name" text NOT NULL
 );
 ALTER TABLE "public"."chart_subcomponent_parent_class_types" ADD CONSTRAINT "chart_subcomponent_parent_class_types_pk" PRIMARY KEY ("chart_subcomponent_parent_class_type_id");
@@ -58,7 +58,7 @@ ALTER TABLE "public"."chart_subcomponent_parent_class_types" ADD CONSTRAINT "cha
 -- e.g. deploymentSpec, statefulSetSpec
 CREATE TABLE "public"."chart_subcomponent_child_class_types" (
     "chart_subcomponent_parent_class_type_id" int8 NOT NULL REFERENCES chart_subcomponent_parent_class_types(chart_subcomponent_parent_class_type_id),
-    "chart_subcomponent_child_class_type_id" int8 NOT NULL,
+    "chart_subcomponent_child_class_type_id" int8 DEFAULT next_id(),
     "chart_subcomponent_child_class_type_name" text NOT NULL
 );
 ALTER TABLE "public"."chart_subcomponent_child_class_types" ADD CONSTRAINT "chart_subcomponent_child_class_types_pk" PRIMARY KEY ("chart_subcomponent_child_class_type_id");
@@ -79,7 +79,6 @@ CREATE TABLE "public"."chart_subcomponents_jsonb_child_values" (
     "chart_subcomponent_field_name" text NOT NULL,
     "chart_subcomponent_jsonb_key_values" jsonb NOT NULL
 );
-ALTER TABLE "public"."chart_subcomponent_child_class_types" ADD CONSTRAINT "chart_subcomponent_child_class_types_pk" PRIMARY KEY ("chart_subcomponent_child_class_type_id");
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- tables to jump links

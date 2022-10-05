@@ -31,7 +31,7 @@ func (s *StructTestSuite) TestCodeGen() {
 	}
 	structToMake.AddField(fieldTwo)
 
-	err := genFile(fw.PackageName, structToMake).Save(fw.FileName)
+	err := genFile(fw, structToMake).Save(fw.FileName)
 	s.Require().Nil(err)
 
 	if s.Cleanup {

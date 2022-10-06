@@ -47,8 +47,8 @@ The traditional use of managers will not exist here for engineers. Many of those
 peer reviewable scorecards where engineers earn points linked to achievements, and how they achieved them, and the quality
 of the work, and we will use performance coaches to help our teams work in cohesion, help you resolve personal
 and work conflicts, and help us grow leaders and stronger characters. None of these coaches will be used for any
-secret messaging or gossiping, and unless otherwise stated by them all of your talks will be confidential
-barring only exceptional circumstances, unless you're explicitly told otherwise.
+secret messaging or gossiping, and unless otherwise explicitly stated by them all of your talks will be confidential
+barring only exceptional circumstances.
 
 ### How We Measure Success
 
@@ -84,11 +84,16 @@ and so forth. There will be no cap on variable pay in some cases.
 
 There's two main distinct classifications of engineering levels
 
-1. IC (typically L3-L5)
-2. Leadership (L6-L8)
-   a. Staff (L6)
-   b. Sr Staff(L7)
-   c. Director (L8)
+Classes
+   1. IC (L3-L5)
+   2. Leadership (L6-L8)
+Levels
+   3. Junior
+   4. Experienced
+   5. Senior
+   6. Staff (L6)
+   7. Sr Staff(L7)
+   8. Director (L8)
 
 ### Philosophy on Engineering Growth
 

@@ -94,9 +94,9 @@ Levels
    3. Junior
    4. Experienced
    5. Senior
-   6. Staff (L6)
-   7. Sr Staff(L7)
-   8. Director (L8)
+   6. Staff
+   7. Sr Staff
+   8. Director
 
 ### Philosophy on Engineering Growth
 

@@ -85,10 +85,12 @@ and so forth. There will be no cap on variable pay in some cases.
 There's two main distinct classifications of engineering levels
 
 Classes
+
    1. IC (L3-L5)
    2. Leadership (L6-L8)
 
 Levels
+
    3. Junior
    4. Experienced
    5. Senior

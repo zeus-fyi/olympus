@@ -1,17 +1,41 @@
-## Zeus Commandments
+## Zeus Technical Commandments
 
-Zeus has issued a few default philosophy commandments to guide you.
+Zeus has issued the following proclamations
 
 * Above all, the engineering UX should be considered first, and the consumer UX second.
   * Code should be modular, extensible, readable, and have the right amount of testing in them.
   * If your code is hard to use and understand, it isn't far from just being completely useless.
-  * General Guideline:
+  * If your code doesn't make it very easy for the engineers and outside consumers, it's not good enough.
+  * Architecture Principles:
+    * When architecting, or writing code, think about and consider how maintenance and testing will work
+      * Optimize UX, Maintaining
+        * Easy to maintain, and ideally should be able to self-maintain any non-novel issues with automation.
+        * Use automation liberally via Iris to automate fixing, upgrading, troubleshooting.
+      * Optimize being the base of the ecosystem pyramid when it's a core module component
+        * Meaning, always thing about how/what might be needed for others, and be flexible for unexpected needs
+        * Make it easy to build into/out of your designs
+        * Make it API first
+      * Make things stateless when you can, and for even better, use serverless functions whenever possible.
+      * Optimize tradeoffs
+        * Consider bottlenecks and costs.
+          * Eg. Cost CPU > RAM > SSD > HDD. 
+          * Latency. Resilient to failure. 
+          * Use performance data from the system to allow dynamic automated infrastructure changes to happen underneath. 
+  * Coding Principles:
+    * Avoid creating code file pages longer than 1 page when possible, be liberal with more pages and organizations.
+    * Functions should strive to be entirely visible without scrolling.
+    * Use naming pre-fixing to take advantage of filename sorting
+        * eg config-map-part1, config-map-part2
+    * Functions should only create one thing.
+        * Eg function that calls multiple other functions has created one thing. Use another function to mutate things.
     * If something is expected to take a long time to execute (eg a complex integration test)
       * It should strive to not block the user/engineer and should run async -> notify when done
     * Code should execute very fast when synchronous. So you aren't waiting around all day on this.
-      * Unless there's a very good reason, like some external blockchain interaction
-      * You should probably decompose your code if it's too slow
-    * Test suites for a directory should execute within 5 min, and be parallel when possible
+        * Unless there's a very good reason, like some external blockchain interaction
+        * You should probably decompose your code if it's too slow
+    * Test suites for a directory should execute within 5 min or less, and be parallel when possible
+        * Modules be fully testable (or at least 95%) within 15 minutes.
+        * Integration testing can take longer, just same concepts though.
     * If a Sr. Engineer can't figure out how to safely test, add, modify, delete a module within 3 days or less
         * Add a README to explain things further
 * Applications & modules should NOT be coupled to others without good reason

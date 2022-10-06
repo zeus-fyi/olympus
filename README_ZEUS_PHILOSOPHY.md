@@ -103,8 +103,7 @@ Levels
 There's an art to doing things well, those who can see the details and have the right passion and talent for
 engineering can reach their full potential in the right environment, and in some cases then go on to become Rembrandts,
 Mozarts, who then go on to make a lasting impact onto the world, and those who don't who are usually unhappy, unfilled,
-and dread mondays a bit too much. Those who don't are typically unhappy, unfulfilled, rarely compensated well, and dread
-mondays a bit too much.
+and dread mondays a bit too much. 
 
 IC level engineers will be brought on initially to support staff+ engineers who are implementing complex long-running
 projects. Things will look more like an apprenticeship, similar to how apprentices would study under the tutelage

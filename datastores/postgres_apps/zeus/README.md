@@ -16,9 +16,6 @@ High Level Explainer
     * Seeds Useful Default Template Values
 * Models
 * Structs
-
-
-
 * CI/CD
     * Flux
 

@@ -12,3 +12,11 @@ func ConvertMetadata(m metav1.ObjectMeta) common.Metadata {
 	dbMetaConfig.Labels = ConvertKeyValueToChildValues(m.Labels)
 	return dbMetaConfig
 }
+
+func CreateMetadataByFields(name string, annotations, labels map[string]string) common.Metadata {
+	dbMetaConfig := common.NewMetadata()
+	dbMetaConfig.Name = name
+	dbMetaConfig.Annotations = ConvertKeyValueToChildValues(annotations)
+	dbMetaConfig.Labels = ConvertKeyValueToChildValues(labels)
+	return dbMetaConfig
+}

@@ -1,20 +1,24 @@
 package conversions
 
 import (
-	"github.com/zeus-fyi/olympus/pkg/utils/dev_hacks"
+	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/structs/workloads"
 	v1 "k8s.io/api/apps/v1"
 )
 
-func ConvertDeploymentConfigToDB(d *v1.Deployment) error {
-	err := ConvertDeploymentSpec(&d.Spec)
-	return err
+func ConvertDeploymentConfigToDB(d *v1.Deployment) workloads.Deployment {
+	dbDeployment := workloads.NewDeployment()
+	dbDeployment.Metadata = CreateMetadataByFields(d.Name, d.Annotations, d.Labels)
+	dbDeployment.Spec = ConvertDeploymentSpec(d.Spec)
+	return dbDeployment
 }
 
-func ConvertDeploymentSpec(ds *v1.DeploymentSpec) error {
+func ConvertDeploymentSpec(ds v1.DeploymentSpec) workloads.DeploymentSpec {
 	deploymentTemplateSpec := ds.Template
 	podTemplateSpec := deploymentTemplateSpec.Spec
-
 	dbPodTemplateSpec := ConvertPodTemplateSpecConfigToDB(&podTemplateSpec)
-	err := dev_hacks.Use(dbPodTemplateSpec)
-	return err
+	dbDeploymentSpec := workloads.DeploymentSpec{
+		Replicas: 0,
+		Template: dbPodTemplateSpec,
+	}
+	return dbDeploymentSpec
 }

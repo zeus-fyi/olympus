@@ -5,12 +5,13 @@ import (
 )
 
 type Service struct {
-	ClassDefinition autogen_structs.ChartComponentKinds
+	KindDefinition        autogen_structs.ChartComponentKinds
+	ParentClassDefinition autogen_structs.ChartSubcomponentParentClassTypes
 }
 
 func NewService() Service {
 	s := Service{}
-	s.ClassDefinition = autogen_structs.ChartComponentKinds{
+	s.KindDefinition = autogen_structs.ChartComponentKinds{
 		ChartComponentKindName:   "Service",
 		ChartComponentApiVersion: "v1",
 	}

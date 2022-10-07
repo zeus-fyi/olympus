@@ -6,15 +6,34 @@ import (
 )
 
 type Deployment struct {
-	ClassDefinition autogen_structs.ChartComponentKinds
-	Metadata        common.Metadata
+	KindDefinition        autogen_structs.ChartComponentKinds
+	ParentClassDefinition autogen_structs.ChartSubcomponentParentClassTypes
+
+	Metadata common.Metadata
+	Spec     DeploymentSpec
+}
+
+type DeploymentSpec struct {
+	Replicas int
+	// TODO Selector
+
+	Template common.PodTemplateSpec
 }
 
 func NewDeployment() Deployment {
 	d := Deployment{}
-	d.ClassDefinition = autogen_structs.ChartComponentKinds{
+	d.KindDefinition = autogen_structs.ChartComponentKinds{
 		ChartComponentKindName:   "Deployment",
 		ChartComponentApiVersion: "apps/v1",
 	}
+	d.ParentClassDefinition = autogen_structs.ChartSubcomponentParentClassTypes{
+		ChartPackageID:                       0,
+		ChartComponentKindID:                 0,
+		ChartSubcomponentParentClassTypeID:   0,
+		ChartSubcomponentParentClassTypeName: "deploymentSpec",
+	}
+
+	d.Spec.Template = common.NewPodTemplateSpec()
+
 	return d
 }

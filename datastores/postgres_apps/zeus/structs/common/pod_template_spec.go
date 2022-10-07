@@ -1,15 +1,19 @@
-package structs
+package common
 
 import (
 	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/structs/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/structs/common"
 )
 
 type PodTemplateSpec struct {
+	Metadata Metadata
+	Spec     PodSpec
+}
+
+type PodSpec struct {
 	PodTemplateSpecClassDefinition    autogen_structs.ChartSubcomponentChildClassTypes
-	PodTemplateSpecClassGenericFields map[string]common.ChildValuesSlice
-	PodTemplateSpecVolumes            common.VolumesSlice
-	PodTemplateContainers             common.Containers
+	PodTemplateSpecClassGenericFields map[string]ChildValuesSlice
+	PodTemplateSpecVolumes            VolumesSlice
+	PodTemplateContainers             Containers
 }
 
 func NewPodTemplateSpec() PodTemplateSpec {
@@ -19,14 +23,15 @@ func NewPodTemplateSpec() PodTemplateSpec {
 		ChartSubcomponentChildClassTypeName: "PodTemplateSpec",
 	}
 
-	fields := common.ChildValuesSlice{}
-	genericFields := make(map[string]common.ChildValuesSlice)
-	// (volumes, nodeSelector, affinity, tolerations, etc)
-	genericFields["tbd"] = fields
-
-	pts := PodTemplateSpec{
+	ps := PodSpec{
 		PodTemplateSpecClassDefinition:    cd,
 		PodTemplateSpecClassGenericFields: nil,
 	}
+
+	pts := PodTemplateSpec{
+		Metadata: Metadata{},
+		Spec:     ps,
+	}
+
 	return pts
 }

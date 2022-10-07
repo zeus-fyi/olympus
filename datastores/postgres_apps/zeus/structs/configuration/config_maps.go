@@ -5,12 +5,13 @@ import (
 )
 
 type ConfigMap struct {
-	ClassDefinition autogen_structs.ChartComponentKinds
+	KindDefinition        autogen_structs.ChartComponentKinds
+	ParentClassDefinition autogen_structs.ChartSubcomponentParentClassTypes
 }
 
 func NewConfigMap() ConfigMap {
 	cm := ConfigMap{}
-	cm.ClassDefinition = autogen_structs.ChartComponentKinds{
+	cm.KindDefinition = autogen_structs.ChartComponentKinds{
 		ChartComponentKindName:   "ConfigMap",
 		ChartComponentApiVersion: "v1",
 	}

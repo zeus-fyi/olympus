@@ -24,8 +24,8 @@ func (s *DeploymentPackagesTestSuite) TestDeploymentPackagesConversion() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(d)
 
-	err = ConvertDeploymentConfigToDB(d)
-	s.Require().Nil(err)
+	dbDeploymentConfig := ConvertDeploymentConfigToDB(d)
+	s.Require().NotEmpty(dbDeploymentConfig)
 
 	_ = dev_hacks.Use(packageID)
 }

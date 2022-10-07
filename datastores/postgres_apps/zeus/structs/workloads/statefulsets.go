@@ -7,17 +7,34 @@ import (
 )
 
 type StatefulSet struct {
-	ClassDefinition autogen_structs.ChartComponentKinds
-	Metadata        common.Metadata
+	KindDefinition        autogen_structs.ChartComponentKinds
+	ParentClassDefinition autogen_structs.ChartSubcomponentParentClassTypes
 
+	Metadata common.Metadata
+	Spec     StatefulSetSpec
+
+	//Related Component Requirement
 	ServiceDefinition networking.Service
+}
+
+type StatefulSetSpec struct {
+	Replicas int
+	// TODO Selector, VolumeClaimTemplates, ServiceName
+
+	Template common.PodTemplateSpec
 }
 
 func NewStatefulSet() StatefulSet {
 	s := StatefulSet{}
-	s.ClassDefinition = autogen_structs.ChartComponentKinds{
+	s.KindDefinition = autogen_structs.ChartComponentKinds{
 		ChartComponentKindName:   "StatefulSet",
 		ChartComponentApiVersion: "apps/v1",
+	}
+	s.ParentClassDefinition = autogen_structs.ChartSubcomponentParentClassTypes{
+		ChartPackageID:                       0,
+		ChartComponentKindID:                 0,
+		ChartSubcomponentParentClassTypeID:   0,
+		ChartSubcomponentParentClassTypeName: "statefulSetSpec",
 	}
 
 	return s

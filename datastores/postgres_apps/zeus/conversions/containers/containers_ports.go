@@ -6,9 +6,9 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-func ContainerPortsToDB(cs *v1.Container) containers.ContainersPorts {
-	contPortsSlice := make([]autogen_structs.ContainerPorts, len(cs.Ports))
-	for i, p := range cs.Ports {
+func ContainerPortsToDB(cps []v1.ContainerPort) containers.ContainersPorts {
+	contPortsSlice := make(containers.ContainersPorts, len(cps))
+	for i, p := range cps {
 		port := ContainerPortToDB(p)
 		contPortsSlice[i] = port
 	}
@@ -25,4 +25,9 @@ func ContainerPortToDB(p v1.ContainerPort) autogen_structs.ContainerPorts {
 		PortProtocol:  "",
 	}
 	return dbPort
+}
+
+func ConvertContainerPortsToContainerDB(cs v1.Container, dbContainer containers.Container) containers.Container {
+	dbContainer.Ports = ContainerPortsToDB(cs.Ports)
+	return dbContainer
 }

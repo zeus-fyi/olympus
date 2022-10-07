@@ -3,6 +3,7 @@ package workloads
 import (
 	autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/structs/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/structs/common"
+	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/structs/containers"
 	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/structs/networking"
 )
 
@@ -25,7 +26,7 @@ type StatefulSetSpec struct {
 	Selector common.Selector
 	// TODO VolumeClaimTemplates, ServiceName
 
-	Template common.PodTemplateSpec
+	Template containers.PodTemplateSpec
 }
 
 func NewStatefulSet() StatefulSet {
@@ -48,6 +49,6 @@ func NewStatefulSet() StatefulSet {
 func NewStatefulSetSpec() StatefulSetSpec {
 	ss := StatefulSetSpec{}
 	ss.Selector = common.NewSelector()
-	ss.Template = common.NewPodTemplateSpec()
+	ss.Template = containers.NewPodTemplateSpec()
 	return ss
 }

@@ -3,6 +3,7 @@ package workloads
 import (
 	autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/structs/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/structs/common"
+	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/structs/containers"
 )
 
 type Deployment struct {
@@ -17,7 +18,7 @@ type DeploymentSpec struct {
 	Replicas int
 	Selector common.Selector
 
-	Template common.PodTemplateSpec
+	Template containers.PodTemplateSpec
 }
 
 func NewDeployment() Deployment {
@@ -41,7 +42,7 @@ func NewDeployment() Deployment {
 func NewDeploymentSpec() DeploymentSpec {
 	ds := DeploymentSpec{}
 	ds.Selector = common.NewSelector()
-	ds.Template = common.NewPodTemplateSpec()
+	ds.Template = containers.NewPodTemplateSpec()
 
 	return ds
 }

@@ -10,9 +10,9 @@ var PgTestDB postgres_apps.Db
 
 type ConversionsTestSuite struct {
 	base.TestSuite
-	yr transformations.YamlReader
+	Yr transformations.YamlReader
 }
 
 func (s *ConversionsTestSuite) SetupTest() {
-	s.yr = transformations.YamlReader{}
+	s.Yr = transformations.YamlReader{}
 }

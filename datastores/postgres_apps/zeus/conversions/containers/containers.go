@@ -2,11 +2,25 @@ package containers
 
 import (
 	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/structs/autogen"
+	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/structs/containers"
 	v1 "k8s.io/api/core/v1"
 )
 
-func ConvertContainerToDB(cs v1.Container) autogen_structs.Containers {
-	dbContainer := autogen_structs.Containers{
+func ConvertContainersToDB(cs []v1.Container) containers.Containers {
+	cl := make([]containers.Container, len(cs))
+	for i, c := range cs {
+		newContainer := containers.NewContainer()
+		newContainer = ConvertContainerInfoToDB(c, newContainer)
+		newContainer = ConvertContainerPortsToContainerDB(c, newContainer)
+		newContainer = ConvertContainerEnvVarsToDB(c, newContainer)
+		newContainer = ConvertContainerProbesToDB(c, newContainer)
+		cl[i] = newContainer
+	}
+	return cl
+}
+
+func ConvertContainerInfoToDB(cs v1.Container, dbContainer containers.Container) containers.Container {
+	dbContainer.Information = autogen_structs.Containers{
 		ContainerName:            cs.Name,
 		ContainerImageID:         cs.Image,
 		ContainerVersionTag:      "",
@@ -15,12 +29,4 @@ func ConvertContainerToDB(cs v1.Container) autogen_structs.Containers {
 		ContainerImagePullPolicy: string(cs.ImagePullPolicy),
 	}
 	return dbContainer
-}
-
-func ConvertContainersToDB(cs []v1.Container) []autogen_structs.Containers {
-	cl := make([]autogen_structs.Containers, len(cs))
-	for i, c := range cs {
-		cl[i] = ConvertContainerToDB(c)
-	}
-	return cl
 }

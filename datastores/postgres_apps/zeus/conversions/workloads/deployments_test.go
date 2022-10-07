@@ -4,20 +4,22 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/conversions"
-	"github.com/zeus-fyi/olympus/pkg/utils/dev_hacks"
 	v1 "k8s.io/api/apps/v1"
+
+	"github.com/stretchr/testify/suite"
+
+	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/conversions/test"
+	"github.com/zeus-fyi/olympus/pkg/utils/dev_hacks"
 )
 
 type DeploymentPackagesTestSuite struct {
-	conversions.ChartPackagesTestSuite
+	conversions_test.ConversionsTestSuite
 }
 
 func (s *DeploymentPackagesTestSuite) TestDeploymentPackagesConversion() {
 	packageID := 0
 	filepath := "/Users/alex/Desktop/Zeus/olympus/pkg/zeus/core/transformations/deployment.yaml"
-	jsonBytes, err := s.yr.ReadYamlConfig(filepath)
+	jsonBytes, err := s.Yr.ReadYamlConfig(filepath)
 
 	var d *v1.Deployment
 	err = json.Unmarshal(jsonBytes, &d)

@@ -5,8 +5,8 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/dev_hacks"
 )
 
-func InsertDeploymentDefinitions() error {
-	cck := workloads.NewDeployment()
+func InsertStatefulSetDefinitions() error {
+	cck := workloads.NewStatefulSet()
 
 	err := dev_hacks.Use(cck)
 	return err

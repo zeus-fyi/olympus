@@ -1,6 +1,8 @@
 package structs
 
-import autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/charts/structs/autogen"
+import (
+	autogen_structs2 "github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/structs/autogen"
+)
 
 type Package struct {
 	ChartComponentKindName   string
@@ -21,5 +23,5 @@ type PackageSubcomponent struct {
 
 type PackageComponentMap map[string]map[int][]PackageSubcomponent
 
-type ChildValuesSlice []autogen_structs.ChartSubcomponentsChildValues
-type VolumesSlice []autogen_structs.Volumes
+type ChildValuesSlice []autogen_structs2.ChartSubcomponentsChildValues
+type VolumesSlice []autogen_structs2.Volumes

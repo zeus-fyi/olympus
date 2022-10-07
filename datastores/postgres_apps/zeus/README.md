@@ -10,10 +10,17 @@ High Level Explainer
 
 * Postgres 13.4 (Temporal Dependency)
 
-### Table of Contents ###
-* Database
+### Directory
+* Conversions
+* Initializations
+    * Seeds Useful Default Template Values
+* Models
+* Structs
 
-## Database
+
+
+* CI/CD
+    * Flux
 
 ### Models
 

@@ -3,9 +3,10 @@
 # Learn more about .gitignore:
 #     https://www.atlassian.com/git/tutorials/saving-changes/gitignore
 
-pkg/databases/postgres/beacon-indexer/beacon-models/zzz.go
 TODO.txt
 SCRATCH_PAD.txt
+
+*scratch_pad.go
 
 bin/
 configs/Makefile

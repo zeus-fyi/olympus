@@ -1,6 +1,8 @@
 package structs
 
-import autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/charts/structs/autogen"
+import (
+	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/structs/autogen"
+)
 
 type PodTemplateSpec struct {
 	PodTemplateSpecClassDefinition    autogen_structs.ChartSubcomponentChildClassTypes

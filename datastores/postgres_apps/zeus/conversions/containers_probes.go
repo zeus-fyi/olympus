@@ -1,9 +1,8 @@
 package conversions
 
 import (
+	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/structs/autogen"
 	v1 "k8s.io/api/core/v1"
-
-	autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/charts/structs/autogen"
 )
 
 func ContainerProbesToDB(cs *v1.Container) []autogen_structs.ContainerProbes {

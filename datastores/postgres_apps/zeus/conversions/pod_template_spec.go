@@ -1,9 +1,8 @@
 package conversions
 
 import (
+	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/structs"
 	v1 "k8s.io/api/core/v1"
-
-	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/charts/structs"
 )
 
 // ConvertPodTemplateSpecConfigToDB PodTemplateSpecConfigToDB has a dependency on chart_subcomponent_child_class_types and containers

@@ -97,7 +97,8 @@ These files are .gitignored by default here, and meant for creating local notes
     * Use to store notes about dev plans
 * ****SCRATCH_PAD.txt****
     * Use to code, links, etc to quickly reference or store copy/paste examples
-
+* ****scratch_pad.go****
+    * Any go files that end in scratch_pad.go. Use this as a placeholder for ideas and code references
 ##### Environment Specific Interactions Setups
 
 Wrappers for env specific interactions from a local user should be done in `/pkg/utils/env`

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/charts/structs"
+	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/structs"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres_apps"
 )

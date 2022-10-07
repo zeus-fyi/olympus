@@ -36,7 +36,7 @@ CREATE TABLE "public"."container_ports" (
     "port_name" text NOT NULL,
     "container_port" int NOT NULL,
     "host_ip" text NOT NULL DEFAULT '',
-    "host_port" int NOT NULL DEFAULT '',
+    "host_port" int NOT NULL,
     "port_protocol" text CHECK (port_protocol IN ('UDP', 'TCP', 'SCTP')) NOT NULL DEFAULT 'TCP'
 );
 ALTER TABLE "public"."container_ports" ADD CONSTRAINT "container_ports_pk" PRIMARY KEY ("port_id");

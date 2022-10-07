@@ -6,7 +6,6 @@ import (
 
 type Selector struct {
 	ClassDefinition autogen_structs.ChartSubcomponentChildClassTypes
-	Name            string
 	MatchLabels     ChildValuesSlice
 }
 

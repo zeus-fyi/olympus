@@ -21,6 +21,7 @@ func ConvertDeploymentSpec(ds v1.DeploymentSpec) workloads.DeploymentSpec {
 	dbDeploymentSpec := workloads.DeploymentSpec{
 		Replicas: 0,
 		Template: dbPodTemplateSpec,
+		Selector: common.ConvertSelector(ds.Selector),
 	}
 	return dbDeploymentSpec
 }

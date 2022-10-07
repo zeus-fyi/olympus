@@ -18,7 +18,7 @@ type DeploymentPackagesTestSuite struct {
 
 func (s *DeploymentPackagesTestSuite) TestDeploymentPackagesConversion() {
 	packageID := 0
-	filepath := s.TestDirectory + "/mocks/test/deployment.yaml"
+	filepath := s.TestDirectory + "/mocks/test/deployment_eth_indexer.yaml"
 	jsonBytes, err := s.Yr.ReadYamlConfig(filepath)
 
 	var d *v1.Deployment

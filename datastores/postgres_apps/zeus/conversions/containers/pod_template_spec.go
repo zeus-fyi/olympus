@@ -15,5 +15,6 @@ func ConvertPodTemplateSpecConfigToDB(ps *v1.PodSpec) containers.PodTemplateSpec
 
 	dbContainers := ConvertContainersToDB(ps.Containers)
 	dbPodSpec.Spec.PodTemplateContainers = dbContainers
+
 	return dbPodSpec
 }

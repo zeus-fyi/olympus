@@ -15,7 +15,7 @@ type Deployment struct {
 
 type DeploymentSpec struct {
 	Replicas int
-	// TODO Selector
+	Selector common.Selector
 
 	Template common.PodTemplateSpec
 }
@@ -33,7 +33,15 @@ func NewDeployment() Deployment {
 		ChartSubcomponentParentClassTypeName: "deploymentSpec",
 	}
 
-	d.Spec.Template = common.NewPodTemplateSpec()
+	d.Spec = NewDeploymentSpec()
 
 	return d
+}
+
+func NewDeploymentSpec() DeploymentSpec {
+	ds := DeploymentSpec{}
+	ds.Selector = common.NewSelector()
+	ds.Template = common.NewPodTemplateSpec()
+
+	return ds
 }

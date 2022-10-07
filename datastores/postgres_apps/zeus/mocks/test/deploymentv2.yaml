@@ -1,0 +1,46 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "name"
+  labels:
+    app: "app"
+    instance: test
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: "app"
+      instance: test
+  template:
+    metadata:
+      labels:
+        app: "app"
+        instance: test
+    spec:
+      imagePullSecrets:
+        - name: gcr-pull-secret
+      containers:
+        - name: "name"
+          image: "image"
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          args:
+            [
+              "--users={{int .Values.cmd.users}}",
+              "--spawn-rate={{int .Values.cmd.rate}}",
+              "--host={{.Values.cmd.host}}",
+              "--logfile={{.Values.cmd.logfile}}",
+              "--{{.Values.cmd.role}}"]
+          ports:
+            - containerPort: 9001
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "2"
+            limits:
+              memory: "1Gi"
+              cpu: "2"

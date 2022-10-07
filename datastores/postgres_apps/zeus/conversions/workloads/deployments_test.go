@@ -1,16 +1,17 @@
-package conversions
+package workloads
 
 import (
 	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/conversions"
 	"github.com/zeus-fyi/olympus/pkg/utils/dev_hacks"
 	v1 "k8s.io/api/apps/v1"
 )
 
 type DeploymentPackagesTestSuite struct {
-	ChartPackagesTestSuite
+	conversions.ChartPackagesTestSuite
 }
 
 func (s *DeploymentPackagesTestSuite) TestDeploymentPackagesConversion() {

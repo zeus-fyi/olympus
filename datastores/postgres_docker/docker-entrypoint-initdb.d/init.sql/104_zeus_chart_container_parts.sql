@@ -34,9 +34,9 @@ CREATE TABLE "public"."container_ports" (
     -- pk for table
     "port_id" int8 NOT NULL DEFAULT next_id(),
     "port_name" text NOT NULL,
-    "container_port" int8 NOT NULL,
+    "container_port" int NOT NULL,
     "host_ip" text NOT NULL DEFAULT '',
-    "host_port" text NOT NULL DEFAULT '',
+    "host_port" int NOT NULL DEFAULT '',
     "port_protocol" text CHECK (port_protocol IN ('UDP', 'TCP', 'SCTP')) NOT NULL DEFAULT 'TCP'
 );
 ALTER TABLE "public"."container_ports" ADD CONSTRAINT "container_ports_pk" PRIMARY KEY ("port_id");

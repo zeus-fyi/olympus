@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "metadataNameValue"
+  labels:
+    app.kubernetes.io/instance:  "metadataLabelValue"
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance:  "s"
+  template:
+    metadata:
+      annotations:
+        app.kubernetes.io/instance:  "s"
+      labels:
+        app.kubernetes.io/instance:  "s"
+    spec:
+      containers:
+        - name: "containerName"
+          image: "image"
+          volumeMounts:
+            - mountPath: "mountPath"
+              name: "name"
+          imagePullPolicy: Always
+          command: [ "/bin/sh" ]
+          args: [ "-c","/scripts/start.sh" ]
+          env:
+            - name: PG_CONN_STR
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-auth
+                  key: postgres-conn-str
+            - name: "BEACON_NODE"
+              valueFrom:
+                secretKeyRef:
+                  name: "name"
+                  key: "key"
+          ports:
+            - name: "http"
+              containerPort: 9000
+              protocol: "TCP"
+          livenessProbe:
+            httpGet:
+              path: "/health"
+              port: "http"
+          readinessProbe:
+            httpGet:
+              path: "/health"
+              port: "http"
+          resources:
+            {}
+      volumes:
+        - name: cm-eth-indexer
+          configMap:
+            name: cm-eth-indexer
+            defaultMode: 0744
+      nodeSelector:
+        {}
+      affinity:
+        {}
+      tolerations:
+        []

@@ -1,13 +1,14 @@
-package conversions
+package workloads
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/conversions/test"
 )
 
 type TemplateSpecTestSuite struct {
-	ChartPackagesTestSuite
+	conversions_test.ConversionsTestSuite
 }
 
 func TestTemplateSpecTestSuite(t *testing.T) {

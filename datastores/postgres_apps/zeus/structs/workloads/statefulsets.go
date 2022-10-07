@@ -6,20 +6,24 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/structs/networking"
 )
 
+type StatefulSetAndChildServices struct {
+	StatefulSet StatefulSet
+	//Related Component Requirement
+	ServiceDefinition networking.Service
+}
+
 type StatefulSet struct {
 	KindDefinition        autogen_structs.ChartComponentKinds
 	ParentClassDefinition autogen_structs.ChartSubcomponentParentClassTypes
 
 	Metadata common.Metadata
 	Spec     StatefulSetSpec
-
-	//Related Component Requirement
-	ServiceDefinition networking.Service
 }
 
 type StatefulSetSpec struct {
 	Replicas int
-	// TODO Selector, VolumeClaimTemplates, ServiceName
+	Selector common.Selector
+	// TODO VolumeClaimTemplates, ServiceName
 
 	Template common.PodTemplateSpec
 }
@@ -37,5 +41,13 @@ func NewStatefulSet() StatefulSet {
 		ChartSubcomponentParentClassTypeName: "statefulSetSpec",
 	}
 
+	s.Spec = NewStatefulSetSpec()
 	return s
+}
+
+func NewStatefulSetSpec() StatefulSetSpec {
+	ss := StatefulSetSpec{}
+	ss.Selector = common.NewSelector()
+	ss.Template = common.NewPodTemplateSpec()
+	return ss
 }

@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/charts/structs"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres_apps"
-	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/charts/types"
 )
 
 func SelectPackageQuery(packageID int) string {
@@ -35,12 +35,12 @@ func SelectPackageQuery(packageID int) string {
 	return query
 }
 
-func FetchQueryPackage(ctx context.Context, packageID int) (types.PackageComponentMap, error) {
+func FetchQueryPackage(ctx context.Context, packageID int) (structs.PackageComponentMap, error) {
 	log.Info().Msg("FetchQueryPackage")
 
 	query := SelectPackageQuery(packageID)
-	packageComponents := make(types.PackageComponentMap)
-	parentChildMap := make(map[int][]types.PackageSubcomponent)
+	packageComponents := make(structs.PackageComponentMap)
+	parentChildMap := make(map[int][]structs.PackageSubcomponent)
 
 	log.Debug().Interface("FetchQueryPackage: Query: ", query)
 	rows, err := postgres_apps.Pg.Query(ctx, query)
@@ -49,8 +49,8 @@ func FetchQueryPackage(ctx context.Context, packageID int) (types.PackageCompone
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var pkg types.Package
-		var chartComp types.PackageSubcomponent
+		var pkg structs.Package
+		var chartComp structs.PackageSubcomponent
 		rowErr := rows.Scan(
 			&pkg.ChartComponentKindName,
 			&pkg.ChartComponentApiVersion,

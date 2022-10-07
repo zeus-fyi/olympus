@@ -1,21 +1,20 @@
 package conversions
 
 import (
-	"encoding/json"
-
+	"github.com/zeus-fyi/olympus/pkg/utils/dev_hacks"
 	v1 "k8s.io/api/apps/v1"
-
-	"github.com/zeus-fyi/olympus/pkg/zeus/core/transformations"
 )
 
-var yr = transformations.YamlReader{}
+func ConvertDeploymentConfigToDB(d *v1.Deployment) error {
+	err := ConvertDeploymentSpec(&d.Spec)
+	return err
+}
 
-func SaveDeploymentConfigToDB() error {
-	filepath := "/Users/alex/Desktop/Zeus/olympus/pkg/zeus/core/transformations/deployment.yaml"
-	jsonBytes, err := yr.ReadYamlConfig(filepath)
+func ConvertDeploymentSpec(ds *v1.DeploymentSpec) error {
+	deploymentTemplateSpec := ds.Template
+	podTemplateSpec := deploymentTemplateSpec.Spec
 
-	var d *v1.Deployment
-	err = json.Unmarshal(jsonBytes, &d)
-
+	dbPodTemplateSpec := ConvertPodTemplateSpecConfigToDB(&podTemplateSpec)
+	err := dev_hacks.Use(dbPodTemplateSpec)
 	return err
 }

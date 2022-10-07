@@ -6,7 +6,7 @@ import (
 	autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/charts/structs/autogen"
 )
 
-func ContainerToDB(cs *v1.Container) autogen_structs.Containers {
+func ConvertContainerToDB(cs v1.Container) autogen_structs.Containers {
 	dbContainer := autogen_structs.Containers{
 		ContainerName:            cs.Name,
 		ContainerImageID:         cs.Image,
@@ -18,11 +18,10 @@ func ContainerToDB(cs *v1.Container) autogen_structs.Containers {
 	return dbContainer
 }
 
-func ContainersToDB(cs []*v1.Container) []autogen_structs.Containers {
+func ConvertContainersToDB(cs []v1.Container) []autogen_structs.Containers {
 	cl := make([]autogen_structs.Containers, len(cs))
 	for i, c := range cs {
-		cl[i] = ContainerToDB(c)
-
+		cl[i] = ConvertContainerToDB(c)
 	}
 	return cl
 }

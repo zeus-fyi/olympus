@@ -17,11 +17,11 @@ var PgTestDB postgres_apps.Db
 
 type ChartPackagesTestSuite struct {
 	base.TestSuite
-	y transformations.YamlReader
+	yr transformations.YamlReader
 }
 
 func (s *ChartPackagesTestSuite) SetupTest() {
-	s.y = transformations.YamlReader{}
+	s.yr = transformations.YamlReader{}
 }
 
 func (s *ChartPackagesTestSuite) TestChartPackagesQuery() {
@@ -38,13 +38,12 @@ func (s *ChartPackagesTestSuite) TestChartPackagesQuery() {
 
 func (s *ChartPackagesTestSuite) TestConvertYamlConfig() {
 	filepath := "/Users/alex/Desktop/Zeus/olympus/pkg/zeus/core/transformations/deployment.yaml"
-	jsonBytes, err := s.y.ReadYamlConfig(filepath)
+	jsonBytes, err := s.yr.ReadYamlConfig(filepath)
 
 	var d *v1.Deployment
 	err = json.Unmarshal(jsonBytes, &d)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(d)
-
 }
 
 func TestChartPackagesTestSuite(t *testing.T) {

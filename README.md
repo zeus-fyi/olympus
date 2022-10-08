@@ -44,8 +44,13 @@ Where all configs should be placed by default. Uses gitignore to prevent commit 
 
 ### Apps
 
-Where full applications are built
+Where full applications are built. External apps are isolated from internal, and usually have their own git repo. This allos
+you to easily open source, or maintain external repos inside the monorepo
 
+External
+  * Observes and captures blockchain data
+  
+Olympus
 * Apollo
   * Observes and captures blockchain data
 * Zeus

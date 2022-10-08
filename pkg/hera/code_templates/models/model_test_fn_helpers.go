@@ -6,7 +6,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-func createTestQueryNameParams() sql_query_templates.QueryParams {
+func CreateTestQueryNameParams() sql_query_templates.QueryParams {
 	queryName := "queryName"
 	tableName := "tableName"
 	param := "param"

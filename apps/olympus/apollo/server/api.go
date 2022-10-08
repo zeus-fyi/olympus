@@ -12,9 +12,9 @@ import (
 	"github.com/spf13/viper"
 	v1 "github.com/zeus-fyi/olympus/beacon-indexer/api/v1"
 	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_fetcher"
-	"github.com/zeus-fyi/olympus/datastores/postgres_apps"
-	"github.com/zeus-fyi/olympus/datastores/postgres_apps/admin"
-	"github.com/zeus-fyi/olympus/datastores/redis_apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/admin"
+	"github.com/zeus-fyi/olympus/datastores/redis/apps"
 )
 
 var (
@@ -29,7 +29,7 @@ func Api() {
 	e := echo.New()
 	e = v1.Routes(e)
 	ctx := context.Background()
-	postgres_apps.Pg = postgres_apps.Db{}
+	apps.Pg = apps.Db{}
 	MaxConn := int32(10)
 	MinConn := int32(3)
 	MaxConnLifetime := 15 * time.Minute
@@ -40,13 +40,13 @@ func Api() {
 		MaxConnLifetime:   &MaxConnLifetime,
 		HealthCheckPeriod: nil,
 	}
-	postgres_apps.Pg.InitPG(ctx, PGConnStr)
+	apps.Pg.InitPG(ctx, PGConnStr)
 	_ = admin.UpdateConfigPG(ctx, pgCfg)
 
 	redisOpts := redis.Options{
 		Addr: RedisEndpointURL,
 	}
-	r := redis_apps.InitRedis(ctx, redisOpts)
+	r := apps.InitRedis(ctx, redisOpts)
 	_, err := r.Ping(ctx).Result()
 	if err != nil {
 		log.Err(err)

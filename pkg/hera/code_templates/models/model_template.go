@@ -1,6 +1,8 @@
 package models
 
-import "github.com/zeus-fyi/olympus/datastores/postgres_apps"
+import (
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+)
 
 const sn = "StructNameExample"
 
@@ -11,14 +13,14 @@ type StructNameExample struct {
 
 type StructNameExamples []StructNameExample
 
-func (v *StructNameExample) GetRowValues(queryName string) postgres_apps.RowValues {
-	pgValues := postgres_apps.RowValues{}
+func (v *StructNameExample) GetRowValues(queryName string) apps.RowValues {
+	pgValues := apps.RowValues{}
 	switch queryName {
 	case "fieldGroup1":
-		pgValues = postgres_apps.RowValues{v.Field}
+		pgValues = apps.RowValues{v.Field}
 	default:
 		// should default to all
-		pgValues = postgres_apps.RowValues{v.Field, v.FieldN}
+		pgValues = apps.RowValues{v.Field, v.FieldN}
 	}
 	return pgValues
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_fetcher"
-	"github.com/zeus-fyi/olympus/datastores/redis_apps/beacon_indexer"
+	"github.com/zeus-fyi/olympus/datastores/redis/apps/beacon_indexer"
 )
 
 func DebugRedisRequestHandler(c echo.Context) error {

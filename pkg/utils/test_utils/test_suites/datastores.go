@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-redis/redis/v9"
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/datastores/postgres_apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 )
 
@@ -13,7 +13,7 @@ type DatastoresTestSuite struct {
 	base.TestSuite
 
 	Redis     *redis.Client
-	PG        postgres_apps.Db
+	PG        apps.Db
 	PGTest    PGTestSuite
 	RedisTest RedisTestSuite
 }

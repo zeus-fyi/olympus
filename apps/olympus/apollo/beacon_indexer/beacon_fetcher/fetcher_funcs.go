@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/datastores/postgres_apps/beacon_indexer/beacon_models"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/beacon_indexer/beacon_models"
 	"github.com/zeus-fyi/olympus/pkg/apollo/ethereum/consensus_client_apis/beacon_api"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"

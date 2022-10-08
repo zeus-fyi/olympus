@@ -6,9 +6,9 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/datastores/postgres_apps"
-	"github.com/zeus-fyi/olympus/datastores/postgres_apps/admin"
-	"github.com/zeus-fyi/olympus/datastores/postgres_apps/beacon_indexer/beacon_models"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/admin"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/beacon_indexer/beacon_models"
 )
 
 func DebugRequestHandler(c echo.Context) (err error) {
@@ -58,14 +58,14 @@ func DebugUpdatePgConfigHandler(c echo.Context) (err error) {
 func DebugPgStatsHandler(c echo.Context) (err error) {
 	log.Info().Msg("DebugPgStatsHandler")
 	ctx := context.Background()
-	stats := postgres_apps.Pg.PoolStats(ctx)
+	stats := apps.Pg.PoolStats(ctx)
 	return c.JSON(http.StatusOK, stats)
 }
 
 func PingDBHandler(c echo.Context) (err error) {
 	log.Info().Msg("PingDBHandler")
 	ctx := context.Background()
-	err = postgres_apps.Pg.Ping(ctx)
+	err = apps.Pg.Ping(ctx)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
@@ -75,7 +75,7 @@ func PingDBHandler(c echo.Context) (err error) {
 func TableSizesHandler(c echo.Context) (err error) {
 	log.Info().Msg("HandleTableSizes")
 	ctx := context.Background()
-	tableSize, err := postgres_apps.Pg.FetchTableSize(ctx, "validator_balances_at_epoch")
+	tableSize, err := apps.Pg.FetchTableSize(ctx, "validator_balances_at_epoch")
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}

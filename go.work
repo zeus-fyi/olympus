@@ -2,7 +2,6 @@ go 1.19
 
 use (
 	.
-	./apps/external/ethereum-helm-charts
 	./apps/external/tojen
 	./apps/olympus/zeus
 	./apps/olympus/apollo

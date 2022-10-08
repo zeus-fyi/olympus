@@ -4,7 +4,7 @@ type ServicePort struct {
 	Name       string
 	Protocol   string
 	Port       int
-	TargetPort int
+	TargetPort string
 	NodePort   int
 }
 

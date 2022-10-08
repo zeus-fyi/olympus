@@ -8,7 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/beacon_indexer/beacon_models"
 	"github.com/zeus-fyi/olympus/pkg/apollo/ethereum/consensus_client_apis/beacon_api"
-	"github.com/zeus-fyi/olympus/pkg/utils/misc"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos/v0"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
@@ -130,7 +130,7 @@ func (f *BeaconFetcher) FetchForwardCheckpointValidatorBalances(ctx context.Cont
 	var beaconAPI beacon_api.ValidatorBalances
 
 	// previous
-	slotToQuery := misc.ConvertEpochToSlot(epoch - 1)
+	slotToQuery := v0.ConvertEpochToSlot(epoch - 1)
 	err := beaconAPI.FetchAllValidatorBalancesAtStateAndDecode(ctx, f.NodeEndpoint, slotToQuery)
 	if err != nil {
 		log.Error().Err(err).Msg("BeaconFetcher: QueryAllValidatorBalancesAtSlot")
@@ -149,7 +149,7 @@ func (f *BeaconFetcher) FetchForwardCheckpointValidatorBalances(ctx context.Cont
 	}
 
 	// checkpoint
-	slotCheckpointToQuery := misc.ConvertEpochToSlot(epoch)
+	slotCheckpointToQuery := v0.ConvertEpochToSlot(epoch)
 	err = beaconAPI.FetchAllValidatorBalancesAtStateAndDecode(ctx, f.NodeEndpoint, slotCheckpointToQuery)
 	if err != nil {
 		log.Error().Err(err).Msg("BeaconFetcher: QueryAllValidatorBalancesAtSlot")

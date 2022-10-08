@@ -34,6 +34,7 @@ func (s *TestSuite) SkipTest(b bool) {
 		s.T().SkipNow()
 	}
 }
+
 func TestTestSuite(t *testing.T) {
 	suite.Run(t, new(TestSuite))
 }

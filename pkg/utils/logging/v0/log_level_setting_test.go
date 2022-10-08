@@ -1,4 +1,4 @@
-package logging
+package v0
 
 import (
 	"testing"
@@ -12,7 +12,9 @@ type LoggerTestSuite struct {
 }
 
 func (s *LoggerTestSuite) TestSetLevel() {
-	level := SetLoggerLevel(zerolog.Level(0))
+	l := LibV0{}
+
+	level := l.SetLoggerLevel(zerolog.Level(0))
 	s.Assert().NotEmpty(level)
 }
 

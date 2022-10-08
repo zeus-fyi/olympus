@@ -1,25 +1,15 @@
 package readers
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"path"
 )
 
-func ReadJsonFile(subDir, fn string) []byte {
-	jsonFile := path.Join(subDir, fn)
-	jsonByteArray, err := ioutil.ReadFile(jsonFile)
+func ReadFile(subDir, fn string) []byte {
+	file := path.Join(subDir, fn)
+	byteArray, err := ioutil.ReadFile(file)
 	if err != nil {
 		panic(err)
 	}
-	return jsonByteArray
-}
-
-func ReadJsonObject(subDir, fn string, obj interface{}) interface{} {
-	jsonByteArray := ReadJsonFile(subDir, fn)
-	err := json.Unmarshal(jsonByteArray, &obj)
-	if err != nil {
-		panic(err)
-	}
-	return obj
+	return byteArray
 }

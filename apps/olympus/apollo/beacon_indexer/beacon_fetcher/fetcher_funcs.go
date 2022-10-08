@@ -6,7 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/beacon_indexer/beacon_models"
 	"github.com/zeus-fyi/olympus/pkg/apollo/ethereum/consensus_client_apis/beacon_api"
-	"github.com/zeus-fyi/olympus/pkg/utils/misc"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos/v0"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
@@ -54,7 +54,7 @@ func (f *BeaconFetcher) FindAndQueryAndUpdateValidatorBalances(ctx context.Conte
 		valBalances := beacon_models.ValidatorBalancesEpoch{}
 		valBalances.ValidatorBalances = vbs
 		var beaconAPI beacon_api.ValidatorBalances
-		nextEpochSlot := misc.ConvertEpochToSlot(nextEpoch)
+		nextEpochSlot := v0.ConvertEpochToSlot(nextEpoch)
 		beaconAPI.Epoch = nextEpoch
 		log.Info().Interface("BeaconFetcher: Fetching Data at Slot:", nextEpochSlot)
 		log.Info().Msg("BeaconFetcher: FetchStateAndDecode")

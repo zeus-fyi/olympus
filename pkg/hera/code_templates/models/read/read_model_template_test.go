@@ -5,16 +5,16 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/hera/code_templates/models"
+	"github.com/zeus-fyi/olympus/pkg/hera/code_templates/models/test"
 )
 
 type ReadStructNameExampleTestSuite struct {
-	models.StructNameExampleTestSuite
+	test.StructNameExampleTestSuite
 }
 
 func (s *ReadStructNameExampleTestSuite) TestSelectQueryName() {
 	ctx := context.Background()
-	qp := models.CreateTestQueryNameParams()
+	qp := test.CreateTestQueryNameParams()
 
 	structExamples := StructNameExamples{}
 	err := structExamples.StructNameExamplesFieldCase(ctx, qp)

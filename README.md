@@ -48,7 +48,8 @@ Where full applications are built. External apps are isolated from internal, and
 you to easily open source, or maintain external repos inside the monorepo
 
 External
-  * Observes and captures blockchain data
+  * ethereum-helm-charts
+  * tojen
   
 Olympus
 * Apollo

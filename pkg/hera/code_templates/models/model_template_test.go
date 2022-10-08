@@ -4,15 +4,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/hera/codegen/cookbook/core/template_test"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
 )
 
 type StructNameExampleTestSuite struct {
-	template_test.TemplateTestSuite
-}
-
-type Setup struct {
-	template_test.TemplateTestSuite
+	test_suites.PGTestSuite
 }
 
 func TestStructNameExampleTestSuite(t *testing.T) {

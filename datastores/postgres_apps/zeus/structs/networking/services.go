@@ -13,16 +13,12 @@ type Service struct {
 	ServiceSpec
 }
 
-type ServiceSpec struct {
-	Selector common.Selector
-	Ports    ServicePorts
-}
-
 func NewService() Service {
 	s := Service{}
 	s.KindDefinition = autogen_structs.ChartComponentKinds{
 		ChartComponentKindName:   "Service",
 		ChartComponentApiVersion: "v1",
 	}
+	s.ServiceSpec = NewServiceSpec()
 	return s
 }

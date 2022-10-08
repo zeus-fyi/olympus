@@ -33,9 +33,7 @@ func NewDeployment() Deployment {
 		ChartSubcomponentParentClassTypeID:   0,
 		ChartSubcomponentParentClassTypeName: "deploymentSpec",
 	}
-
 	d.Spec = NewDeploymentSpec()
-
 	return d
 }
 
@@ -43,6 +41,5 @@ func NewDeploymentSpec() DeploymentSpec {
 	ds := DeploymentSpec{}
 	ds.Selector = common.NewSelector()
 	ds.Template = containers.NewPodTemplateSpec()
-
 	return ds
 }

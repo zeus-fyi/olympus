@@ -14,23 +14,31 @@ func (l *Lib) CleanUpPaths(paths ...structs.Path) error {
 func (l *Lib) NewPkgPath(pkg, dir, fn string) structs.Path {
 	return structs.Path{
 		PackageName: pkg,
-		Dir:         dir,
+		DirIn:       dir,
 		Fn:          fn,
 	}
 }
 
 func (l *Lib) NewPath(dir, fn string) structs.Path {
 	return structs.Path{
-		Dir: dir,
-		Fn:  fn,
+		DirIn: dir,
+		Fn:    fn,
 	}
 }
 
-func (l *Lib) NewFullPathDefinition(env, pkg, dir, fn string) structs.Path {
+func (l *Lib) NewPathInOut(dirIn, dirOut, fn string) structs.Path {
+	return structs.Path{
+		DirIn:  dirIn,
+		DirOut: dirOut,
+		Fn:     fn,
+	}
+}
+func (l *Lib) NewFullPathDefinition(env, pkg, dirIn, dirOut, fn string) structs.Path {
 	return structs.Path{
 		Env:         env,
 		PackageName: pkg,
-		Dir:         dir,
+		DirIn:       dirIn,
+		DirOut:      dirOut,
 		Fn:          fn,
 	}
 }

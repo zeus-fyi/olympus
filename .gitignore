@@ -18,6 +18,9 @@ makefiles/flux/age.agekey
 node_modules/
 dist/
 
+# Preview autogen'd code
+/pkg/hera/code_templates/autogen_preview/
+
 # Compiled Java class files
 *.class
 
@@ -58,4 +61,4 @@ Thumbs.db
 *.flv
 *.mov
 *.wmv
-
+/pkg/hera/code_templates/autogen_preview/

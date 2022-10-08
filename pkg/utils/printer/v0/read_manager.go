@@ -8,7 +8,7 @@ import (
 )
 
 func (l *Lib) ReadFile(p structs.Path) []byte {
-	byteArray, err := ioutil.ReadFile(p.FilePath())
+	byteArray, err := ioutil.ReadFile(p.FileInPath())
 	if err != nil {
 		panic(err)
 	}

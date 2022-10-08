@@ -6,15 +6,26 @@ import (
 
 type Path struct {
 	PackageName string
-	Dir         string
+	DirIn       string
+	DirOut      string
 	Fn          string
 	Env         string
 }
 
-type Paths []Path
+type Paths struct {
+	Slice []Path
+}
 
-func (p *Path) FilePath() string {
-	return path.Join(p.Dir, p.Fn)
+func (ps *Paths) AddPathToSlice(p Path) {
+	ps.Slice = append(ps.Slice, p)
+}
+
+func (p *Path) FileOutPath() string {
+	return path.Join(p.DirOut, p.Fn)
+}
+
+func (p *Path) FileInPath() string {
+	return path.Join(p.DirIn, p.Fn)
 }
 
 func (p Path) Local() string {

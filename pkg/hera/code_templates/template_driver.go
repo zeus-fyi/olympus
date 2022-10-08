@@ -10,11 +10,22 @@ import (
 var l = logging.Logger{}
 var p = printer.Printer{}
 
-func CreateJenFile(pathIn, pathOut structs.Path) error {
-	retBytes, err := gen.GenerateFileBytes(p.ReadFile(pathIn), pathIn.PackageName, false, true)
+func CreateJenFile(path structs.Path) error {
+	retBytes, err := gen.GenerateFileBytes(p.ReadFile(path), path.PackageName, false, true)
 	if l.ErrHandler(err) != nil {
 		return err
 	}
-	err = p.CreateFile(pathOut, retBytes)
+	err = p.CreateFile(path, retBytes)
 	return l.ErrHandler(err)
+}
+
+func CreateJenFilesFromDir(path structs.Path) error {
+	pathsIn := p.BuildPathsFromDirInPath(path, ".go")
+	for _, pathIn := range pathsIn.Slice {
+		err := CreateJenFile(pathIn)
+		if l.ErrHandler(err) != nil {
+			return err
+		}
+	}
+	return nil
 }

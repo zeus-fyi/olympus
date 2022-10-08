@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/utils/printer"
+	"github.com/zeus-fyi/olympus/pkg/utils/printer/v0/structs"
 )
 
 type TemplateTestSuite struct {
@@ -17,8 +18,9 @@ func (s *TemplateTestSuite) SetupTest() {
 }
 
 func (s *TemplateTestSuite) DeleteFile(fn string) {
-	err := printer.DeleteFile(fn)
-	s.Require().Nil(err)
+	path := structs.Path{Fn: fn}
+	p := printer.Printer{}
+	s.Require().Nil(p.DeleteFile(path))
 }
 
 func TestTemplateTestSuite(t *testing.T) {

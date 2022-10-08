@@ -1,9 +1,6 @@
 package code_templates
 
 import (
-	"os"
-	"path"
-	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -13,42 +10,34 @@ import (
 
 type ToJenDriverTestSuite struct {
 	base.TestSuite
-	cleanUp bool
 }
 
 func (s *ToJenDriverTestSuite) SetupTest() {
-	ForceDirToCallerLocation()
-	s.cleanUp = false
 }
 
 func pathCreationForTemplateTest() structs.Path {
 	dirIn := "models"
+	dirOut := "autogen_preview"
 	fn := "model_template.go"
 	pkgName := "models"
-	pathIn := p.NewPkgPath(pkgName, dirIn, fn)
+	env := "test"
+	pathIn := p.NewFullPathDefinition(env, pkgName, dirIn, dirOut, fn)
 	return pathIn
 }
-func (s *ToJenDriverTestSuite) TestTemplateGeneration() {
+func (s *ToJenDriverTestSuite) TestSingleFileTemplateGeneration() {
 	pathIn := pathCreationForTemplateTest()
-	pathOut := pathIn
-	pathOut.Dir = "autogen"
-	s.Require().Nil(CreateJenFile(pathIn, pathOut))
+	s.Require().Nil(CreateJenFile(pathIn))
+	pathIn.DirOut = "autogen"
+	//s.Require().Nil(p.CleanUpPaths(pathIn))
+}
 
-	if s.cleanUp {
-		s.Require().Nil(p.CleanUpPaths(pathOut))
-	}
+func (s *ToJenDriverTestSuite) TestDirectoryTemplateGeneration() {
+	pathIn := pathCreationForTemplateTest()
+	s.Require().Nil(CreateJenFilesFromDir(pathIn))
+	pathIn.DirOut = "autogen"
+	//s.Require().Nil(p.CleanUpPaths(pathIn))
 }
 
 func TestToJenDriverTestSuite(t *testing.T) {
 	suite.Run(t, new(ToJenDriverTestSuite))
-}
-
-func ForceDirToCallerLocation() string {
-	_, filename, _, _ := runtime.Caller(0)
-	dir := path.Join(path.Dir(filename), "")
-	err := os.Chdir(dir)
-	if err != nil {
-		panic(err.Error())
-	}
-	return dir
 }

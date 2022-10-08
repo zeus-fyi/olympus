@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/hera/code_templates/models/test"
+	"github.com/zeus-fyi/olympus/pkg/hera/cookbook/code_templates/models/test"
 )
 
 type CreateStructNameExampleTestSuite struct {

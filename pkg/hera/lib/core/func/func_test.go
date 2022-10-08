@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/hera/codegen/cookbook/core/primitives"
+	"github.com/zeus-fyi/olympus/pkg/hera/lib/core/primitives"
 )
 
 type FuncTestSuite struct {

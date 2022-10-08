@@ -26,11 +26,12 @@ func (l *Lib) NewPath(dir, fn string) structs.Path {
 	}
 }
 
-func (l *Lib) NewPathInOut(dirIn, dirOut, fn string) structs.Path {
+func (l *Lib) NewPkgPathInOut(pkgName, dirIn, dirOut, fn string) structs.Path {
 	return structs.Path{
-		DirIn:  dirIn,
-		DirOut: dirOut,
-		Fn:     fn,
+		PackageName: pkgName,
+		DirIn:       dirIn,
+		DirOut:      dirOut,
+		Fn:          fn,
 	}
 }
 func (l *Lib) NewFullPathDefinition(env, pkg, dirIn, dirOut, fn string) structs.Path {

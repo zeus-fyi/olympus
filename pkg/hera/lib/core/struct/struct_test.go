@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	primitives2 "github.com/zeus-fyi/olympus/pkg/hera/codegen/cookbook/core/primitives"
-	"github.com/zeus-fyi/olympus/pkg/hera/codegen/cookbook/core/template_test"
+	primitives2 "github.com/zeus-fyi/olympus/pkg/hera/lib/core/primitives"
+	"github.com/zeus-fyi/olympus/pkg/hera/lib/core/template_test"
 )
 
 type StructTestSuite struct {

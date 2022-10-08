@@ -19,7 +19,7 @@ node_modules/
 dist/
 
 # Preview autogen'd code
-/pkg/hera/code_templates/autogen_preview/
+/pkg/hera/cookbook/autogen/code_preview/
 
 # Compiled Java class files
 *.class
@@ -61,4 +61,7 @@ Thumbs.db
 *.flv
 *.mov
 *.wmv
-/pkg/hera/code_templates/autogen_preview/
+/pkg/hera/cookbook/autogen/code_preview/
+/pkg/hera/cookbook/autogen/code_preview/
+/pkg/hera/cookbook/autogen/template_preview/
+/pkg/hera/cookbook/autogen/code_preview/

@@ -1,4 +1,4 @@
-package code_templates
+package template
 
 import (
 	"github.com/zeus-fyi/olympus/pkg/utils/logging"
@@ -15,7 +15,8 @@ func CreateJenFile(path structs.Path) error {
 	if l.ErrHandler(err) != nil {
 		return err
 	}
-	err = p.CreateFile(path, retBytes)
+	f := gen.GenerateFile(retBytes, path.PackageName, false)
+	err = f.Save(path.FileOutPath())
 	return l.ErrHandler(err)
 }
 

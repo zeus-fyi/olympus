@@ -28,6 +28,16 @@ func (p *Path) FileInPath() string {
 	return path.Join(p.DirIn, p.Fn)
 }
 
+func (p *Path) LeftExtendDirInPath(dirExtend string) string {
+	p.DirIn = path.Join(dirExtend, p.DirIn)
+	return p.DirIn
+}
+
+func (p *Path) LeftExtendDirOutPath(dirExtend string) string {
+	p.DirOut = path.Join(dirExtend, p.DirOut)
+	return p.DirOut
+}
+
 func (p Path) Local() string {
 	return "artifacts/local/"
 }

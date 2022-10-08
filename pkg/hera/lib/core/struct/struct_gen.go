@@ -2,7 +2,7 @@ package _struct
 
 import (
 	jen "github.com/dave/jennifer/jen"
-	primitives "github.com/zeus-fyi/olympus/pkg/hera/codegen/cookbook/core/primitives"
+	"github.com/zeus-fyi/olympus/pkg/hera/lib/core/primitives"
 )
 
 func genDeclAt18(structToWrite primitives.StructGen) jen.Code {

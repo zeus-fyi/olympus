@@ -2,7 +2,7 @@ package _func
 
 import (
 	jen "github.com/dave/jennifer/jen"
-	primitives2 "github.com/zeus-fyi/olympus/pkg/hera/codegen/cookbook/core/primitives"
+	primitives2 "github.com/zeus-fyi/olympus/pkg/hera/lib/core/primitives"
 )
 
 func genFunctemplateFunc(fg primitives2.FuncGen) jen.Code {

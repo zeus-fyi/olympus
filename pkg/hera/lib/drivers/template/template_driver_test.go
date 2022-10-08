@@ -1,4 +1,4 @@
-package code_templates
+package template
 
 import (
 	"testing"
@@ -17,7 +17,7 @@ func (s *ToJenDriverTestSuite) SetupTest() {
 
 func pathCreationForTemplateTest() structs.Path {
 	dirIn := "models"
-	dirOut := "autogen_preview"
+	dirOut := "autogen_template_preview"
 	fn := "model_template.go"
 	pkgName := "models"
 	env := "test"

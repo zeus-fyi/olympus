@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/autok8s/server"
+	"github.com/zeus-fyi/olympus/zeus/server"
 )
 
 func main() {

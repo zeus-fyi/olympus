@@ -1,4 +1,4 @@
-module github.com/zeus-fyi/olympus/autok8s
+module github.com/zeus-fyi/olympus/zeus
 
 go 1.18
 

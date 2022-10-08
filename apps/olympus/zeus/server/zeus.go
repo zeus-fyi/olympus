@@ -5,7 +5,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/zeus-fyi/olympus/autok8s/api/v1"
+	"github.com/zeus-fyi/olympus/zeus/api/v1"
 )
 
 var cfg = Config{}

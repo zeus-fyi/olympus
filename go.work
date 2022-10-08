@@ -2,6 +2,6 @@ go 1.19
 
 use (
 	.
-	./apps/zeus
-	./apps/apollo
+	./apps/olympus/zeus
+	./apps/olympus/apollo
 )

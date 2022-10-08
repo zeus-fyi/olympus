@@ -12,11 +12,11 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/dev_hacks"
 )
 
-type DeploymentPackagesTestSuite struct {
+type ConvertDeploymentPackagesTestSuite struct {
 	conversions_test.ConversionsTestSuite
 }
 
-func (s *DeploymentPackagesTestSuite) TestDeploymentPackagesConversion() {
+func (s *ConvertDeploymentPackagesTestSuite) TestConvertDeployment() {
 	packageID := 0
 	filepath := s.TestDirectory + "/mocks/test/deployment_eth_indexer.yaml"
 	jsonBytes, err := s.Yr.ReadYamlConfig(filepath)
@@ -33,6 +33,6 @@ func (s *DeploymentPackagesTestSuite) TestDeploymentPackagesConversion() {
 	_ = dev_hacks.Use(packageID)
 }
 
-func TestDeploymentPackagesTestSuite(t *testing.T) {
-	suite.Run(t, new(DeploymentPackagesTestSuite))
+func TestConvertDeploymentPackagesTestSuite(t *testing.T) {
+	suite.Run(t, new(ConvertDeploymentPackagesTestSuite))
 }

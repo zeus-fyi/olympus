@@ -22,9 +22,11 @@ func (s *ConvertServiceTestSuite) TestConvertService() {
 
 	var svc *v1.Service
 	err = json.Unmarshal(jsonBytes, &svc)
-
 	s.Require().Nil(err)
 	s.Require().NotEmpty(svc)
+
+	dbServiceConfig := ConvertServiceConfigToDB(svc)
+	s.Require().NotEmpty(dbServiceConfig)
 
 	_ = dev_hacks.Use(packageID)
 }

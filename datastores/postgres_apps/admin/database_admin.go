@@ -1,4 +1,4 @@
-package postgres_apps
+package admin
 
 import (
 	"context"
@@ -6,9 +6,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/zeus-fyi/olympus/datastores/postgres_apps"
+
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rs/zerolog/log"
 )
+
+type AdminDb struct {
+	Pgpool *pgxpool.Pool
+}
 
 type ConfigChangePG struct {
 	MinConn           *int32
@@ -31,11 +37,11 @@ type PoolStats struct {
 	MaxConns      int32
 }
 
-func (d *Db) PoolStats(ctx context.Context) PoolStats {
+func (a *AdminDb) PoolStats(ctx context.Context) PoolStats {
 	log.Ctx(ctx).Info().Msg("Getting Pool Stats")
 
 	var Pstat PoolStats
-	stats := Pg.Pgpool.Stat()
+	stats := postgres_apps.Pg.Pgpool.Stat()
 	if stats != nil {
 		Pstat.TotalConns = stats.TotalConns()
 		Pstat.IdleConns = stats.IdleConns()
@@ -46,16 +52,16 @@ func (d *Db) PoolStats(ctx context.Context) PoolStats {
 	return Pstat
 }
 
-func (d *Db) Ping(ctx context.Context) error {
+func (a *AdminDb) Ping(ctx context.Context) error {
 	log.Ctx(ctx).Info().Msg("Pinging DB")
-	err := Pg.Pgpool.Ping(ctx)
+	err := postgres_apps.Pg.Pgpool.Ping(ctx)
 	log.Err(err).Msg("Pinging DB failed")
 	return err
 }
 
 func UpdateConfigPG(ctx context.Context, cfg ConfigChangePG) error {
 	log.Ctx(ctx).Debug().Msg("UpdateConfigPG")
-	cfgCopy := Pg.Pgpool.Config().Copy()
+	cfgCopy := postgres_apps.Pg.Pgpool.Config().Copy()
 	if cfgCopy == nil {
 		panic(errors.New("should be a connStr"))
 	}
@@ -82,15 +88,15 @@ func UpdateConfigPG(ctx context.Context, cfg ConfigChangePG) error {
 		dbConfig.HealthCheckPeriod = *cfg.HealthCheckPeriod
 	}
 
-	Pg.Pgpool.Close()
-	connStr = dbConfig.ConnString()
-	Pg.Pgpool = Pg.InitPG(ctx, connStr)
+	postgres_apps.Pg.Pgpool.Close()
+	postgres_apps.ConnStr = dbConfig.ConnString()
+	postgres_apps.Pg.Pgpool = postgres_apps.Pg.InitPG(ctx, postgres_apps.ConnStr)
 	return nil
 }
 
 func ReadCfg(ctx context.Context) ConfigReadPG {
 	log.Ctx(ctx).Debug().Msg("ReadCfg")
-	dbConf, err := pgxpool.ParseConfig(connStr)
+	dbConf, err := pgxpool.ParseConfig(postgres_apps.ConnStr)
 	if err != nil {
 		panic(err)
 	}
@@ -106,11 +112,11 @@ func ReadCfg(ctx context.Context) ConfigReadPG {
 	return cfg
 }
 
-func (d *Db) FetchTableSize(ctx context.Context, tableName string) (string, error) {
+func (a *AdminDb) FetchTableSize(ctx context.Context, tableName string) (string, error) {
 	log.Ctx(ctx).Info().Msgf("FetchTableSize Table: %s", tableName)
 	var tableSize string
 	query := fmt.Sprintf(`SELECT pg_size_pretty(pg_total_relation_size('%s'))`, tableName)
-	err := Pg.Pgpool.QueryRow(ctx, query).Scan(&tableSize)
+	err := postgres_apps.Pg.Pgpool.QueryRow(ctx, query).Scan(&tableSize)
 	log.Err(err).Msgf("FetchTableSize DB failed with response: %s", tableSize)
 	return tableSize, err
 }

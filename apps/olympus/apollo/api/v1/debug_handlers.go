@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres_apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres_apps/admin"
 	"github.com/zeus-fyi/olympus/datastores/postgres_apps/beacon_indexer/beacon_models"
 )
 
@@ -36,7 +37,7 @@ func DebugRequestHandler(c echo.Context) (err error) {
 func DebugGetPgConfigHandler(c echo.Context) (err error) {
 	log.Info().Msg("DebugGetPgConfigHandler")
 	ctx := context.Background()
-	cfg := postgres_apps.ReadCfg(ctx)
+	cfg := admin.ReadCfg(ctx)
 	return c.JSON(http.StatusOK, cfg)
 }
 
@@ -47,7 +48,7 @@ func DebugUpdatePgConfigHandler(c echo.Context) (err error) {
 		return err
 	}
 	ctx := context.Background()
-	err = postgres_apps.UpdateConfigPG(ctx, request.ConfigChangePG)
+	err = admin.UpdateConfigPG(ctx, request.ConfigChangePG)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "error updating config")
 	}

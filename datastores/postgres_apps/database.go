@@ -24,7 +24,7 @@ type RowEntries struct {
 	Rows []RowValues
 }
 
-var connStr string
+var ConnStr string
 var Pg Db
 
 func (d *Db) InitPG(ctx context.Context, pgConnStr string) *pgxpool.Pool {
@@ -32,8 +32,8 @@ func (d *Db) InitPG(ctx context.Context, pgConnStr string) *pgxpool.Pool {
 	if err != nil {
 		panic(err)
 	}
-	connStr = config.ConnString()
-	c, err := pgxpool.Connect(ctx, connStr)
+	ConnStr = config.ConnString()
+	c, err := pgxpool.Connect(ctx, ConnStr)
 	if err != nil {
 		panic(err)
 	}

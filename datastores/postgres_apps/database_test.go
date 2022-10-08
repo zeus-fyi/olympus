@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/datastores/postgres_apps/admin"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 )
 
@@ -26,7 +27,7 @@ func (s *PostgresTestSuite) TestDumpValidatorBalancesAtEpochTable() {
 	defer conn.Close()
 
 	le, he := 134000, 135000
-	_, _, err := DumpValidatorBalancesAtEpochTable(ctx, le, he)
+	_, _, err := admin.DumpValidatorBalancesAtEpochTable(ctx, le, he)
 	s.Require().Nil(err)
 }
 

@@ -13,6 +13,7 @@ import (
 	v1 "github.com/zeus-fyi/olympus/beacon-indexer/api/v1"
 	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_fetcher"
 	"github.com/zeus-fyi/olympus/datastores/postgres_apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres_apps/admin"
 	"github.com/zeus-fyi/olympus/datastores/redis_apps"
 )
 
@@ -33,14 +34,14 @@ func Api() {
 	MinConn := int32(3)
 	MaxConnLifetime := 15 * time.Minute
 
-	pgCfg := postgres_apps.ConfigChangePG{
+	pgCfg := admin.ConfigChangePG{
 		MaxConns:          &MaxConn,
 		MinConn:           &MinConn,
 		MaxConnLifetime:   &MaxConnLifetime,
 		HealthCheckPeriod: nil,
 	}
 	postgres_apps.Pg.InitPG(ctx, PGConnStr)
-	_ = postgres_apps.UpdateConfigPG(ctx, pgCfg)
+	_ = admin.UpdateConfigPG(ctx, pgCfg)
 
 	redisOpts := redis.Options{
 		Addr: RedisEndpointURL,

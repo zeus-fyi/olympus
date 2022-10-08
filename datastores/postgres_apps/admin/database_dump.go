@@ -1,4 +1,4 @@
-package postgres_apps
+package admin
 
 import (
 	"context"

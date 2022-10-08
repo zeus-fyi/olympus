@@ -1,6 +1,7 @@
 package networking
 
 import (
+	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/conversions/common"
 	v1 "k8s.io/api/core/v1"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres_apps/zeus/structs/networking"
@@ -15,13 +16,11 @@ func ServicePortsToDB(cps []v1.ServicePort) networking.ServicePorts {
 	return spSlice
 }
 
-func ServicePortToDB(p v1.ServicePort) networking.ServicePort {
-	sp := networking.ServicePort{
-		Name:       p.Name,
-		Protocol:   string(p.Protocol),
-		Port:       int(p.Port),
-		TargetPort: p.TargetPort.String(),
-		NodePort:   int(p.NodePort),
-	}
+func ServicePortToDB(svcPort v1.ServicePort) networking.ServicePort {
+	sp := networking.NewServicePort()
+	sp.Values["name"] = common.ConvertKeyValueStringToChildValues("name", svcPort.Name)
+	sp.Values["port"] = common.ConvertKeyValueStringToChildValues("port", string(svcPort.Port))
+	sp.Values["targetPort"] = common.ConvertKeyValueStringToChildValues("targetPort", svcPort.TargetPort.String())
+	sp.Values["nodePort"] = common.ConvertKeyValueStringToChildValues("nodePort", string(svcPort.NodePort))
 	return sp
 }

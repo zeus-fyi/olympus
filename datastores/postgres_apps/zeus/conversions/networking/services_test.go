@@ -17,7 +17,7 @@ type ConvertServiceTestSuite struct {
 
 func (s *ConvertServiceTestSuite) TestConvertService() {
 	packageID := 0
-	filepath := s.TestDirectory + "/mocks/test/service.yaml"
+	filepath := s.TestDirectory + "/mocks/test/service_eth_indexer.yaml"
 	jsonBytes, err := s.Yr.ReadYamlConfig(filepath)
 
 	var svc *v1.Service

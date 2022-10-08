@@ -16,6 +16,7 @@ func ConvertServiceConfigToDB(svc *v1.Service) networking.Service {
 
 func ConvertServiceSpecConfigToDB(svc *v1.Service) networking.ServiceSpec {
 	dbServiceSpec := networking.ServiceSpec{
+		Type:     common.ConvertKeyValueStringToChildValues("type", string(svc.Spec.Type)),
 		Selector: common.ConvertSelectorByFields(svc.Spec.Selector),
 		Ports:    ServicePortsToDB(svc.Spec.Ports),
 	}

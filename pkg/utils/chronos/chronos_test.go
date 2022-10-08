@@ -12,7 +12,7 @@ type ChronosTestSuite struct {
 
 func (s *ChronosTestSuite) TestLib0() {
 	c := Chronos{}
-	s.Require().NotEmpty(c.v0.UnixTimeStampNow())
+	s.Require().NotEmpty(c.UnixTimeStampNow())
 }
 
 func TestChronosTestSuite(t *testing.T) {

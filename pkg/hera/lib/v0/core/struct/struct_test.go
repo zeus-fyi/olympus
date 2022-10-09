@@ -38,19 +38,15 @@ func (s *StructTestSuite) TestCodeGen() {
 	err := resp.Save(fw.FileName)
 	s.Assert().Nil(err)
 
-	s.Cleanup = false
+	s.Cleanup = true
 	if s.Cleanup {
 		s.DeleteFile(fw.FileName)
 	}
 }
 
 func genMutateFile(fw primitives.FileWrapper, structGen primitives.StructGen) *jen.File {
-	ret := jen.NewFile(fw.PackageName)
-	ret.Add(genDeclAt17())
-	ret.Add(genDeclAt85())
-	ret.Add(genDeclAt117())
-	ret.Add(genDeclAt289())
-	ret.Add(genFuncGetRowValues())
+	f := jen.NewFile(fw.PackageName)
+	ret := genTestBase(f)
 	ret.Add(AddStruct(structGen))
 	return ret
 }
@@ -68,7 +64,16 @@ func TestFuncTestSuite(t *testing.T) {
 	suite.Run(t, new(StructTestSuite))
 }
 
-func genDeclAt17() jen.Code {
+func genTestBase(ret *jen.File) *jen.File {
+	ret.Add(genHeader())
+	ret.Add(genDeclAt85())
+	ret.Add(genDeclAt117())
+	ret.Add(genDeclAt289())
+	ret.Add(genFuncGetRowValues())
+	return ret
+}
+
+func genHeader() jen.Code {
 	return jen.Null()
 }
 func genDeclAt85() jen.Code {

@@ -24,7 +24,7 @@ func (s *CookbookTestSuite) SetupTest() {
 }
 
 func (s *CookbookTestSuite) TestAutoGenDir() {
-	path := print.NewFullPathDefinition(env, pkgName, dirIn, dirOut, fn)
+	path := fileIO.NewFullPathDefinition(env, pkgName, dirIn, dirOut, fn)
 	err := c.CreateTemplatesInPath(path)
 	s.Require().Nil(err)
 }
@@ -33,7 +33,7 @@ func (s *CookbookTestSuite) TestAutoGenDirTmpModels() {
 	dirIn = "tmp_models"
 	dirOut = "template_preview/tmp_models"
 
-	path := print.NewFullPathDefinition(env, pkgName, dirIn, dirOut, fn)
+	path := fileIO.NewFullPathDefinition(env, pkgName, dirIn, dirOut, fn)
 	err := c.CustomZeusParsing(path)
 	s.Require().Nil(err)
 }

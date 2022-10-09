@@ -1,11 +1,11 @@
 package v0
 
 import (
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
-	"github.com/zeus-fyi/olympus/pkg/utils/logging"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/paths"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/readers"
 )
 
 type Lib struct {
-	structs.Path
-	Log logging.Logger
+	readers.ReaderLib
+	paths.PathLib
 }

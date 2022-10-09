@@ -1,4 +1,4 @@
-package autogen_structs
+package autogen
 
 type Users struct {
 	UserID   int    `db:"user_id"`

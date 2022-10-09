@@ -1,7 +1,7 @@
 package paths
 
-import v0 "github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0"
+import "github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/file_management"
 
 type PathLib struct {
-	v0.Lib
+	file_management.FileManagerLib
 }

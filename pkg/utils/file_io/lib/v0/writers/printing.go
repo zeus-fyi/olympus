@@ -1,4 +1,4 @@
-package v0
+package writers
 
 import (
 	"bufio"
@@ -11,7 +11,7 @@ import (
 
 var logLevelFilter = "error"
 
-func (l *Lib) InterfacePrinter(path structs.Path, v interface{}) (interface{}, error) {
+func (l *WriterLib) InterfacePrinter(path structs.Path, v interface{}) (interface{}, error) {
 	jsonParams, e := json.MarshalIndent(&v, "", " ")
 	if e != nil {
 		return v, e
@@ -20,7 +20,7 @@ func (l *Lib) InterfacePrinter(path structs.Path, v interface{}) (interface{}, e
 	return v, err
 }
 
-func (l *Lib) Print(p structs.Path, data []byte) error {
+func (l *WriterLib) Print(p structs.Path, data []byte) error {
 	ts := l.Log.UnixTimeStampNow()
 
 	if p.Env == "development" {
@@ -54,7 +54,7 @@ func (l *Lib) Print(p structs.Path, data []byte) error {
 	return nil
 }
 
-func (l *Lib) loglevel(line, level string) bool {
+func (l *WriterLib) loglevel(line, level string) bool {
 	if level == "error" {
 		return strings.Contains(line, level) || strings.Contains(line, "warn")
 	} else {

@@ -1,4 +1,4 @@
-package autogen_structs
+package autogen
 
 type Orgs struct {
 	OrgID    int    `db:"org_id"`

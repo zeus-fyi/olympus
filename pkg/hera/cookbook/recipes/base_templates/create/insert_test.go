@@ -15,7 +15,8 @@ type StructInsertFuncGenRecipeTestSuite struct {
 func (s *StructInsertFuncGenRecipeTestSuite) TestStructInsertFuncGen() {
 	fw := primitives.FileWrapper{}
 	fw.PackageName = "autogen_structs"
-	fw.FileName = "insert_model_template.go"
+	path := "/Users/alex/Desktop/Zeus/olympus/datastores/postgres/apps/zeus/models/creates/autogen/"
+	fw.FileName = path + "insert_model_template.go"
 	err := GenStructPtrInsertFunc(fw)
 	s.Require().Nil(err)
 }

@@ -11,7 +11,7 @@ func genImport() jen.Code {
 }
 
 func tmpGen(structName string) jen.Code {
-	tmp := jen.Func().Params(jen.Id("s").Op("*").Id(structName)).Id("StructNameExamplesFieldCase")
+	tmp := jen.Func().Params(jen.Id("s").Op("*").Id(structName)).Id(structName + "Insert")
 	tmp.Add(tmpGenParams())
 	tmp.Add(genFuncStructNameExamplesFieldCase(structName))
 	return tmp

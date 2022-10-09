@@ -8,7 +8,10 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/printer/v0/structs"
 )
 
-func AutoGenCodeFromTemplate(codeGenPathInfo structs.Path) {
+type CodeDriverLib struct {
+}
+
+func (c *CodeDriverLib) AutoGenCodeFromTemplate(codeGenPathInfo structs.Path) {
 	f := jen.NewFile(codeGenPathInfo.PackageName)
 	f.Func().Id("main").Params().Block()
 	buf := &bytes.Buffer{}

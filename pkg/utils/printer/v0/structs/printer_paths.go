@@ -33,8 +33,18 @@ func (p *Path) LeftExtendDirInPath(dirExtend string) string {
 	return p.DirIn
 }
 
+func (p *Path) RightExtendDirInPath(dirExtend string) string {
+	p.DirIn = path.Join(p.DirIn, dirExtend)
+	return p.DirIn
+}
+
 func (p *Path) LeftExtendDirOutPath(dirExtend string) string {
 	p.DirOut = path.Join(dirExtend, p.DirOut)
+	return p.DirOut
+}
+
+func (p *Path) RightExtendDirOutPath(dirExtend string) string {
+	p.DirOut = path.Join(p.DirOut, dirExtend)
 	return p.DirOut
 }
 

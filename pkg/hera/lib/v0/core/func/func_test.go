@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/hera/lib/core/primitives"
+	primitives2 "github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives"
 )
 
 type FuncTestSuite struct {
@@ -12,19 +12,19 @@ type FuncTestSuite struct {
 }
 
 func (s *FuncTestSuite) TestFuncCodeGen() {
-	fw := primitives.FileWrapper{PackageName: "_func", FileName: "func_example.go"}
+	fw := primitives2.FileWrapper{PackageName: "_func", FileName: "func_example.go"}
 
-	funcGen := primitives.FuncGen{
+	funcGen := primitives2.FuncGen{
 		Name: "funcName",
 	}
 
-	fieldOne := primitives.Field{
+	fieldOne := primitives2.Field{
 		Name: "stringParam",
 		Type: "string",
 	}
 	funcGen.AddField(fieldOne)
 
-	returnField := primitives.Field{
+	returnField := primitives2.Field{
 		Name: "err",
 		Type: "error",
 	}

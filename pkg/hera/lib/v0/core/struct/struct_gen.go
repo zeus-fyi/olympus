@@ -2,10 +2,10 @@ package _struct
 
 import (
 	jen "github.com/dave/jennifer/jen"
-	"github.com/zeus-fyi/olympus/pkg/hera/lib/core/primitives"
+	primitives2 "github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives"
 )
 
-func genDeclAt18(structToWrite primitives.StructGen) jen.Code {
+func genDeclAt18(structToWrite primitives2.StructGen) jen.Code {
 	fields := make([]jen.Code, len(structToWrite.Fields))
 	for i, f := range structToWrite.Fields {
 		fields[i] = jen.Id(f.Name).Id(f.Type)
@@ -14,7 +14,7 @@ func genDeclAt18(structToWrite primitives.StructGen) jen.Code {
 	return _struct
 }
 
-func genFile(fw primitives.FileWrapper, structGen primitives.StructGen) *jen.File {
+func genFile(fw primitives2.FileWrapper, structGen primitives2.StructGen) *jen.File {
 	ret := jen.NewFile(fw.FileName)
 	ret.Add(genDeclAt18(structGen))
 	return ret

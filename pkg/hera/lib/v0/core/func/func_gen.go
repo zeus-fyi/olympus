@@ -2,10 +2,10 @@ package _func
 
 import (
 	jen "github.com/dave/jennifer/jen"
-	primitives2 "github.com/zeus-fyi/olympus/pkg/hera/lib/core/primitives"
+	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives"
 )
 
-func genFunctemplateFunc(fg primitives2.FuncGen) jen.Code {
+func genFunctemplateFunc(fg primitives.FuncGen) jen.Code {
 	n := fg.Name
 	ctxField := jen.Id("ctx").Qual("context", "Context")
 	returnFuncParam := jen.Id("error")
@@ -16,7 +16,7 @@ func genFunctemplateFunc(fg primitives2.FuncGen) jen.Code {
 	return fn
 }
 
-func genFile(fw primitives2.FileWrapper, funcGen primitives2.FuncGen) *jen.File {
+func genFile(fw primitives.FileWrapper, funcGen primitives.FuncGen) *jen.File {
 	ret := jen.NewFile(fw.PackageName)
 	ret.Add(genFunctemplateFunc(funcGen))
 	return ret

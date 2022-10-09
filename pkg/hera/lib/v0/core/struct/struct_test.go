@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	primitives2 "github.com/zeus-fyi/olympus/pkg/hera/lib/core/primitives"
-	"github.com/zeus-fyi/olympus/pkg/hera/lib/core/template_test"
+	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives"
+	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/template_test"
 )
 
 type StructTestSuite struct {
@@ -13,19 +13,19 @@ type StructTestSuite struct {
 }
 
 func (s *StructTestSuite) TestCodeGen() {
-	fw := primitives2.FileWrapper{PackageName: "_struct", FileName: "struct_example.go"}
+	fw := primitives.FileWrapper{PackageName: "_struct", FileName: "struct_example.go"}
 
-	structToMake := primitives2.StructGen{
+	structToMake := primitives.StructGen{
 		Name:   "StructExample",
 		Fields: nil,
 	}
-	fieldOne := primitives2.Field{
+	fieldOne := primitives.Field{
 		Name: "IntField",
 		Type: "int",
 	}
 	structToMake.AddField(fieldOne)
 
-	fieldTwo := primitives2.Field{
+	fieldTwo := primitives.Field{
 		Name: "StringField",
 		Type: "string",
 	}

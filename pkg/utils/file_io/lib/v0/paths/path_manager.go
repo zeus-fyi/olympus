@@ -1,8 +1,10 @@
-package v0
+package paths
 
-import "github.com/zeus-fyi/olympus/pkg/utils/printer/v0/structs"
+import (
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+)
 
-func (l *Lib) CleanUpPaths(paths ...structs.Path) error {
+func (l *PathLib) CleanUpPaths(paths ...structs.Path) error {
 	for _, p := range paths {
 		if err := l.Log.ErrHandler(l.DeleteFile(p)); err != nil {
 			return err
@@ -11,7 +13,7 @@ func (l *Lib) CleanUpPaths(paths ...structs.Path) error {
 	return nil
 }
 
-func (l *Lib) NewPkgPath(pkg, dir, fn string) structs.Path {
+func (l *PathLib) NewPkgPath(pkg, dir, fn string) structs.Path {
 	return structs.Path{
 		PackageName: pkg,
 		DirIn:       dir,
@@ -19,14 +21,14 @@ func (l *Lib) NewPkgPath(pkg, dir, fn string) structs.Path {
 	}
 }
 
-func (l *Lib) NewPath(dir, fn string) structs.Path {
+func (l *PathLib) NewPath(dir, fn string) structs.Path {
 	return structs.Path{
 		DirIn: dir,
 		Fn:    fn,
 	}
 }
 
-func (l *Lib) NewPkgPathInOut(pkgName, dirIn, dirOut, fn string) structs.Path {
+func (l *PathLib) NewPkgPathInOut(pkgName, dirIn, dirOut, fn string) structs.Path {
 	return structs.Path{
 		PackageName: pkgName,
 		DirIn:       dirIn,
@@ -34,7 +36,7 @@ func (l *Lib) NewPkgPathInOut(pkgName, dirIn, dirOut, fn string) structs.Path {
 		Fn:          fn,
 	}
 }
-func (l *Lib) NewFullPathDefinition(env, pkg, dirIn, dirOut, fn string) structs.Path {
+func (l *PathLib) NewFullPathDefinition(env, pkg, dirIn, dirOut, fn string) structs.Path {
 	return structs.Path{
 		Env:         env,
 		PackageName: pkg,

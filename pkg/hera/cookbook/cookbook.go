@@ -2,9 +2,9 @@ package cookbook
 
 import (
 	"github.com/zeus-fyi/olympus/pkg/hera/lib"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 	"github.com/zeus-fyi/olympus/pkg/utils/logging"
-	"github.com/zeus-fyi/olympus/pkg/utils/printer"
-	"github.com/zeus-fyi/olympus/pkg/utils/printer/v0/structs"
 )
 
 type Cookbook struct {
@@ -17,6 +17,6 @@ var (
 		DirIn:  "code_templates",
 		DirOut: "autogen",
 	}
-	print = printer.Printer{}
+	print = file_io.Printer{}
 	log   = logging.Logger{}
 )

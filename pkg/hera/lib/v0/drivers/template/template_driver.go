@@ -2,14 +2,14 @@ package template_driver
 
 import (
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/drivers/ast_parser"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 	"github.com/zeus-fyi/olympus/pkg/utils/logging"
-	"github.com/zeus-fyi/olympus/pkg/utils/printer"
-	"github.com/zeus-fyi/olympus/pkg/utils/printer/v0/structs"
 	"github.com/zeus-fyi/tojen/gen"
 )
 
 var l = logging.Logger{}
-var p = printer.Printer{}
+var p = file_io.Printer{}
 
 type TemplateDriverLib struct {
 }

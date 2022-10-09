@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/zeus-fyi/olympus/pkg/utils/printer"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io"
 )
 
 type TaskCmd struct {
@@ -133,7 +133,7 @@ func (t TaskCmd) ExecuteCmd() (string, string, error) {
 	}
 
 	if t.Print && t.PrintFilename != "" && t.PrintPath != "" && t.Environment != "" {
-		printShell := printer.Printer{}
+		printShell := file_io.Printer{}
 		pp := printShell.NewFullPathDefinition(t.Environment, "cli_wrapper", t.Dir, t.PrintFilename)
 		_ = printShell.Print(pp, stdoutBuff.Bytes())
 	}

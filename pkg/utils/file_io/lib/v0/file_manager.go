@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/zeus-fyi/olympus/pkg/utils/printer/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
 func (l *Lib) CreateFile(p structs.Path, data []byte) error {

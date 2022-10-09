@@ -1,7 +1,7 @@
 package cookbook
 
 import (
-	"github.com/zeus-fyi/olympus/pkg/utils/printer/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
 func (a *Cookbook) CreateTemplatesInPath(templatePath structs.Path) error {

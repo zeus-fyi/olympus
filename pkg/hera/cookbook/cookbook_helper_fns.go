@@ -5,7 +5,7 @@ import (
 	"path"
 	"runtime"
 
-	"github.com/zeus-fyi/olympus/pkg/utils/printer/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 	"golang.org/x/exp/maps"
 )
 

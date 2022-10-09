@@ -1,4 +1,4 @@
-package v0
+package paths
 
 import (
 	"io/fs"
@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/zeus-fyi/olympus/pkg/utils/printer/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
 // BuildPathsFromDirInPath assumes the package name is the parent dir name
-func (l *Lib) BuildPathsFromDirInPath(root structs.Path, ext string) map[int]structs.Paths {
+func (l *PathLib) BuildPathsFromDirInPath(root structs.Path, ext string) map[int]structs.Paths {
 	m := make(map[int]structs.Paths)
 	depth := 0
 	dirOut := root.DirOut

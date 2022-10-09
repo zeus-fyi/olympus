@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/zeus-fyi/olympus/pkg/utils/printer"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -109,7 +109,7 @@ func (k *K8Util) DefaultK8sCfgPath() string {
 func (k *K8Util) K8Printer(v interface{}, env string) (interface{}, error) {
 	if k.PrintOn && k.FileName != "" {
 		if k.PrintPath == "" && env != "" {
-			var printPath printer.PrintPath
+			var printPath file_io.PrintPath
 			switch env {
 			case "dev", "development":
 				k.PrintPath = printPath.Dev()
@@ -119,7 +119,7 @@ func (k *K8Util) K8Printer(v interface{}, env string) (interface{}, error) {
 				k.PrintPath = printPath.Production()
 			}
 		}
-		return printer.InterfacePrinter(k.PrintPath, k.FileName, env, v)
+		return file_io.InterfacePrinter(k.PrintPath, k.FileName, env, v)
 	}
 	return v, nil
 }

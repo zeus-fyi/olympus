@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/utils/printer"
-	"github.com/zeus-fyi/olympus/pkg/utils/printer/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
 type TemplateTestSuite struct {
@@ -19,7 +19,7 @@ func (s *TemplateTestSuite) SetupTest() {
 
 func (s *TemplateTestSuite) DeleteFile(fn string) {
 	path := structs.Path{Fn: fn}
-	p := printer.Printer{}
+	p := file_io.Printer{}
 	s.Require().Nil(p.DeleteFile(path))
 }
 

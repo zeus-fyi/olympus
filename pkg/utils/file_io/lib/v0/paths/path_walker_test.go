@@ -1,10 +1,10 @@
-package v0
+package paths
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/utils/printer/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
 type PathWalkerTestSuite struct {
@@ -12,7 +12,7 @@ type PathWalkerTestSuite struct {
 }
 
 func (s *PathWalkerTestSuite) TestPathWalker() {
-	l := Lib{}
+	l := PathLib{}
 	p := structs.Path{DirIn: "."}
 	paths := l.BuildPathsFromDirInPath(p, ".go")
 	s.Assert().NotEmpty(paths)

@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 )
 
 var (
@@ -16,11 +15,7 @@ var (
 )
 
 type CookbookTestSuite struct {
-	base.TestSuite
-}
-
-func (s *CookbookTestSuite) SetupTest() {
-	UseCookbookDirectory()
+	CookbookTestSuiteBase
 }
 
 func (s *CookbookTestSuite) TestAutoGenDir() {

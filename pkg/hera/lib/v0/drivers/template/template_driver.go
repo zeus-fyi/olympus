@@ -9,7 +9,7 @@ import (
 )
 
 var l = logging.Logger{}
-var p = file_io.Printer{}
+var p = file_io.FileIO{}
 
 type TemplateDriverLib struct {
 }

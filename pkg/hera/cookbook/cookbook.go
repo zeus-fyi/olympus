@@ -17,6 +17,6 @@ var (
 		DirIn:  "code_templates",
 		DirOut: "autogen",
 	}
-	print = file_io.Printer{}
+	print = file_io.FileIO{}
 	log   = logging.Logger{}
 )

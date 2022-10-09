@@ -133,7 +133,7 @@ func (t TaskCmd) ExecuteCmd() (string, string, error) {
 	}
 
 	if t.Print && t.PrintFilename != "" && t.PrintPath != "" && t.Environment != "" {
-		printShell := file_io.Printer{}
+		printShell := file_io.FileIO{}
 		pp := printShell.NewFullPathDefinition(t.Environment, "cli_wrapper", t.Dir, t.PrintFilename)
 		_ = printShell.Print(pp, stdoutBuff.Bytes())
 	}

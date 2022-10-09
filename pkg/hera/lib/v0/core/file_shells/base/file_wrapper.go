@@ -5,7 +5,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives"
 )
 
-func FileBase(fw primitives.FileWrapper) *jen.File {
+func (b *FileComponentBaseElements) GenerateFileShell(fw primitives.FileWrapper) *jen.File {
 	f := jen.NewFile(fw.PackageName)
 	f.Add(genHeader())
 	return f

@@ -13,9 +13,11 @@ type FileBaseTestSuite struct {
 }
 
 func (s *FileBaseTestSuite) TestCodeGen() {
+
+	fb := FileComponentBaseElements{}
 	fw := primitives.FileWrapper{PackageName: "base", FileName: "base_file_example.go"}
 
-	f := FileBase(fw)
+	f := fb.GenerateFileShell(fw)
 	s.Assert().NotEmpty(f)
 	err := f.Save(fw.FileName)
 	s.Assert().Nil(err)

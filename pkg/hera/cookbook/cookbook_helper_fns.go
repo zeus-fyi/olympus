@@ -20,7 +20,6 @@ func UseCookbookDirectory() string {
 }
 
 func (a *Cookbook) GetTopologicallySortedPaths(path structs.Path) structs.Paths {
-
 	templatePathMaps := fileIO.BuildPathsFromDirInPath(path, ".go")
 	depth := len(maps.Keys(templatePathMaps))
 	tmp := structs.Paths{}

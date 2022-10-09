@@ -4,20 +4,38 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/hera/cookbook"
-	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives"
+	"github.com/zeus-fyi/olympus/pkg/hera/lib"
+	_struct "github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/struct"
+	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/test"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
 type StructInsertFuncGenRecipeTestSuite struct {
-	cookbook.CookbookTestSuiteBase
+	test.AutoGenBaseTestSuiteBase
 }
 
+func createTestCodeGenShell() lib.CodeGen {
+	p := structs.Path{
+		PackageName: "autogen_structs",
+		DirIn:       "",
+		DirOut:      "tmp",
+		Fn:          "insert_model_template.go",
+		Env:         "",
+	}
+	cg := lib.NewCodeGen(p)
+	return cg
+}
 func (s *StructInsertFuncGenRecipeTestSuite) TestStructInsertFuncGen() {
-	fw := primitives.FileWrapper{}
-	fw.PackageName = "autogen_structs"
-	path := "/Users/alex/Desktop/Zeus/olympus/datastores/postgres/apps/zeus/models/creates/autogen/"
-	fw.FileName = path + "insert_model_template.go"
-	err := GenStructPtrInsertFunc(fw)
+	cg := createTestCodeGenShell()
+	name := "ChartComponentKinds"
+	wrapperStructName := "Chart"
+	extStructPath := "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
+	extStructName := "ChartPackages"
+
+	cg.Add(_struct.GenCreateStructWithExternalStructInheritance(wrapperStructName, extStructPath, extStructName))
+	cg.Add(genDeclAt26(name))
+	cg.Add(tmpGen(name))
+	err := cg.Save()
 	s.Require().Nil(err)
 }
 

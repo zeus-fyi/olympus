@@ -2,13 +2,7 @@ package create
 
 import (
 	"github.com/zeus-fyi/jennifer/jen"
-	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/file_shells/base"
-	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives"
 )
-
-func genImport() jen.Code {
-	return jen.Null().Type().Id("Chart").Struct(jen.Qual("github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen", "ChartPackages"))
-}
 
 func tmpGen(structName string) jen.Code {
 	tmp := jen.Func().Params(jen.Id("s").Op("*").Id(structName)).Id(structName + "Insert")
@@ -35,15 +29,4 @@ func genFuncStructNameExamplesFieldCase(structName string) *jen.Statement {
 }
 func genDeclAt26(structName string) jen.Code {
 	return jen.Null().Type().Id(structName).Struct(jen.Id("ChartComponentKindID").Id("int"), jen.Id("ChartComponentKindName").Id("string"), jen.Id("ChartComponentApiVersion").Id("string"))
-}
-
-func GenStructPtrInsertFunc(fw primitives.FileWrapper) error {
-	f := base.FileBase(fw)
-
-	name := "ChartComponentKinds"
-	f.Add(genImport())
-	f.Add(genDeclAt26(name))
-	f.Add(tmpGen(name))
-
-	return f.Save(fw.PackageName)
 }

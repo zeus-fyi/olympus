@@ -8,7 +8,7 @@ import (
 )
 
 func (cg *CodeGen) NewCodeGenFileShell() {
-	f := cg.FileBaseGen.GenerateFileShell(cg.Fw)
+	f := cg.FileBaseGen.GenerateFileShell(cg.Path)
 	cg.JenFile = f
 }
 

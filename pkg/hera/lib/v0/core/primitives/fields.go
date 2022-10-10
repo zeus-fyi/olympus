@@ -2,8 +2,7 @@ package primitives
 
 type FileWrapper struct {
 	PackageName string
-
-	FileName string
+	FileName    string
 }
 
 type Field struct {

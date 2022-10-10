@@ -18,7 +18,7 @@ func createTestCodeGenShell() lib.CodeGen {
 	p := structs.Path{
 		PackageName: "autogen_structs",
 		DirIn:       "",
-		DirOut:      "tmp",
+		DirOut:      "",
 		Fn:          "insert_model_template.go",
 		Env:         "",
 	}

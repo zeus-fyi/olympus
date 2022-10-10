@@ -2,15 +2,10 @@ package base
 
 import (
 	"github.com/zeus-fyi/jennifer/jen"
-	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
-func (b *FileComponentBaseElements) GenerateFileShell(fw primitives.FileWrapper) *jen.File {
-	f := jen.NewFile(fw.PackageName)
-	f.Add(genHeader())
+func (b *FileComponentBaseElements) GenerateFileShell(path structs.Path) *jen.File {
+	f := jen.NewFile(path.PackageName)
 	return f
-}
-
-func genHeader() jen.Code {
-	return jen.Null()
 }

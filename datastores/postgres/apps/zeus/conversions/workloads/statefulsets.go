@@ -1,7 +1,7 @@
 package workloads
 
 import (
-	common2 "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/containers"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/workloads"
 	v1 "k8s.io/api/apps/v1"
@@ -9,7 +9,7 @@ import (
 
 func ConvertStatefulSetSpecConfigToDB(s *v1.StatefulSet) workloads.StatefulSet {
 	dbStatefulSet := workloads.NewStatefulSet()
-	dbStatefulSet.Metadata = common2.CreateMetadataByFields(s.Name, s.Annotations, s.Labels)
+	dbStatefulSet.Metadata = common.CreateMetadataByFields(s.Name, s.Annotations, s.Labels)
 	dbStatefulSet.Spec = ConvertStatefulSetSpec(s.Spec)
 	return dbStatefulSet
 }
@@ -21,7 +21,7 @@ func ConvertStatefulSetSpec(s v1.StatefulSetSpec) workloads.StatefulSetSpec {
 	dbStatefulSetSpec := workloads.StatefulSetSpec{
 		Replicas: 0,
 		Template: dbPodTemplateSpec,
-		Selector: common2.ConvertSelector(s.Selector),
+		Selector: common.ConvertSelector(s.Selector),
 	}
 	return dbStatefulSetSpec
 }

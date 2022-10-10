@@ -1,8 +1,8 @@
 package workloads
 
 import (
-	autogen_structs2 "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
-	common2 "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/common"
+	autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
+	common "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/common"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/containers"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/networking"
 )
@@ -14,16 +14,16 @@ type StatefulSetAndChildServices struct {
 }
 
 type StatefulSet struct {
-	KindDefinition        autogen_structs2.ChartComponentKinds
-	ParentClassDefinition autogen_structs2.ChartSubcomponentParentClassTypes
+	KindDefinition        autogen_structs.ChartComponentKinds
+	ParentClassDefinition autogen_structs.ChartSubcomponentParentClassTypes
 
-	Metadata common2.Metadata
+	Metadata common.Metadata
 	Spec     StatefulSetSpec
 }
 
 type StatefulSetSpec struct {
 	Replicas int
-	Selector common2.Selector
+	Selector common.Selector
 	// TODO VolumeClaimTemplates, ServiceName
 
 	Template containers.PodTemplateSpec
@@ -31,11 +31,11 @@ type StatefulSetSpec struct {
 
 func NewStatefulSet() StatefulSet {
 	s := StatefulSet{}
-	s.KindDefinition = autogen_structs2.ChartComponentKinds{
+	s.KindDefinition = autogen_structs.ChartComponentKinds{
 		ChartComponentKindName:   "StatefulSet",
 		ChartComponentApiVersion: "apps/v1",
 	}
-	s.ParentClassDefinition = autogen_structs2.ChartSubcomponentParentClassTypes{
+	s.ParentClassDefinition = autogen_structs.ChartSubcomponentParentClassTypes{
 		ChartPackageID:                       0,
 		ChartComponentKindID:                 0,
 		ChartSubcomponentParentClassTypeID:   0,
@@ -48,7 +48,7 @@ func NewStatefulSet() StatefulSet {
 
 func NewStatefulSetSpec() StatefulSetSpec {
 	ss := StatefulSetSpec{}
-	ss.Selector = common2.NewSelector()
+	ss.Selector = common.NewSelector()
 	ss.Template = containers.NewPodTemplateSpec()
 	return ss
 }

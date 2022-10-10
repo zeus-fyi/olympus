@@ -14,11 +14,13 @@ type StructInsertFuncGenRecipeTestSuite struct {
 	test.AutoGenBaseTestSuiteBase
 }
 
+var printOutLocation = "/Users/alex/Desktop/Zeus/olympus/datastores/postgres/apps/zeus/structs/autogen_preview"
+
 func createTestCodeGenShell() lib.CodeGen {
 	p := structs.Path{
 		PackageName: "autogen_structs",
 		DirIn:       "",
-		DirOut:      "",
+		DirOut:      printOutLocation,
 		Fn:          "insert_model_template.go",
 		Env:         "",
 	}

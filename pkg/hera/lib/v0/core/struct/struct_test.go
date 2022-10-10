@@ -5,17 +5,32 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/jennifer/jen"
+	"github.com/zeus-fyi/olympus/pkg/hera/lib"
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives"
-	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/template_test"
+	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/test"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
 type StructTestSuite struct {
-	template_test.TemplateTestSuite
+	test.AutoGenBaseTestSuiteBase
+}
+
+var printOutLocation = "/Users/alex/Desktop/Zeus/olympus/pkg/hera/cookbook/autogen/types_template_preview/structs"
+
+func createTestCodeGenShell() lib.CodeGen {
+	p := structs.Path{
+		PackageName: "_struct",
+		DirIn:       "",
+		DirOut:      printOutLocation,
+		Fn:          "struct.go",
+		Env:         "",
+	}
+	cg := lib.NewCodeGen(p)
+	return cg
 }
 
 func (s *StructTestSuite) TestCodeGen() {
-	fw := primitives.FileWrapper{PackageName: "_struct", FileName: "struct_example.go"}
-
+	cg := createTestCodeGenShell()
 	structToMake := primitives.StructGen{
 		Name:   "StructExample",
 		Fields: nil,
@@ -32,45 +47,23 @@ func (s *StructTestSuite) TestCodeGen() {
 	}
 	structToMake.AddField(fieldTwo)
 
-	resp := genMutateFile(fw, structToMake)
-	s.Assert().NotEmpty(resp)
-
-	err := resp.Save(fw.FileName)
+	cg.Add(genHeader())
+	cg.Add(genDeclAt85())
+	cg.Add(genDeclAt117())
+	cg.Add(genDeclAt289())
+	cg.Add(genFuncGetRowValues())
+	cg.Add(structToMake.GenerateStructJenCode())
+	err := cg.Save()
 	s.Assert().Nil(err)
 
-	s.Cleanup = true
+	s.Cleanup = false
 	if s.Cleanup {
-		s.DeleteFile(fw.FileName)
+		s.DeleteFile(cg.Path.Fn)
 	}
-}
-
-func genMutateFile(fw primitives.FileWrapper, structGen primitives.StructGen) *jen.File {
-	f := jen.NewFile(fw.PackageName)
-	ret := genTestBase(f)
-	ret.Add(AddStruct(structGen))
-	return ret
-}
-
-func AddStruct(structToWrite primitives.StructGen) jen.Code {
-	fields := make([]jen.Code, len(structToWrite.Fields))
-	for i, f := range structToWrite.Fields {
-		fields[i] = jen.Id(f.Name).Id(f.Type)
-	}
-	_struct := jen.Null().Type().Id(structToWrite.Name).Struct(fields...)
-	return _struct
 }
 
 func TestFuncTestSuite(t *testing.T) {
 	suite.Run(t, new(StructTestSuite))
-}
-
-func genTestBase(ret *jen.File) *jen.File {
-	ret.Add(genHeader())
-	ret.Add(genDeclAt85())
-	ret.Add(genDeclAt117())
-	ret.Add(genDeclAt289())
-	ret.Add(genFuncGetRowValues())
-	return ret
 }
 
 func genHeader() jen.Code {

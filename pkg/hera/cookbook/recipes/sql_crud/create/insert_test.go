@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/hera/lib"
-	_struct "github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/struct"
+	_struct "github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/structs"
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/test"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )

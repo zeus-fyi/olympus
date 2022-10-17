@@ -1,26 +1,24 @@
 package code_driver
 
 import (
-	"bytes"
-	"fmt"
-
 	"github.com/zeus-fyi/jennifer/jen"
+	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/file_shells/base"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
 type CodeDriverLib struct {
+	Path              structs.Path
+	FileBaseGen       base.FileComponentBaseElements
+	JenStatementChain []*jen.Statement
+	JenFile           *jen.File
 }
 
-func (c *CodeDriverLib) AutoGenCodeFromTemplate(codeGenPathInfo structs.Path) {
-	f := jen.NewFile(codeGenPathInfo.PackageName)
-	f.Func().Id("main").Params().Block()
-	buf := &bytes.Buffer{}
-	err := f.Render(buf)
-	if err != nil {
-		fmt.Println(err.Error())
-	} else {
-		fmt.Println(buf.String())
+func NewCodeDriverLib(codeGenPath structs.Path) CodeDriverLib {
+	c := CodeDriverLib{
+		Path:              codeGenPath,
+		FileBaseGen:       base.FileComponentBaseElements{},
+		JenStatementChain: []*jen.Statement{},
+		JenFile:           nil,
 	}
-
-	f.Save("m.go")
+	return c
 }

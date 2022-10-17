@@ -1,11 +1,11 @@
-package _func
+package funcs
 
 import (
-	jen "github.com/dave/jennifer/jen"
-	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives"
+	"github.com/zeus-fyi/jennifer/jen"
+	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/fields"
 )
 
-func genFunctemplateFunc(fg primitives.FuncGen) jen.Code {
+func genFunctemplateFunc(fg FuncGen) jen.Code {
 	n := fg.Name
 	ctxField := jen.Id("ctx").Qual("context", "Context")
 	returnFuncParam := jen.Id("error")
@@ -16,7 +16,7 @@ func genFunctemplateFunc(fg primitives.FuncGen) jen.Code {
 	return fn
 }
 
-func genFile(fw primitives.FileWrapper, funcGen primitives.FuncGen) *jen.File {
+func genFile(fw fields.FileWrapper, funcGen FuncGen) *jen.File {
 	ret := jen.NewFile(fw.PackageName)
 	ret.Add(genFunctemplateFunc(funcGen))
 	return ret

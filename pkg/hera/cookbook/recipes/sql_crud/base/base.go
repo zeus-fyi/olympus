@@ -2,13 +2,39 @@ package base
 
 import (
 	"github.com/zeus-fyi/jennifer/jen"
+	"github.com/zeus-fyi/olympus/pkg/hera/lib"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
-func genHeader() jen.Code {
-	return jen.Null()
+type ModelTemplate struct {
+	lib.CodeGen
 }
-func genDeclAt85(structName string) jen.Code {
-	return jen.Null().Var().Id("Sn").Op("=").Lit(structName)
+
+func NewModelTemplate(p structs.Path) ModelTemplate {
+	m := ModelTemplate{lib.NewCodeGen(p)}
+	return m
+}
+
+func (m *ModelTemplate) CreateTemplate() error {
+	m.Add(m.Vars.CreateConstStringDecl(m.Path.PackageName))
+	structJenCode := m.Structs.GenerateStructsJenCode(true)
+	for _, sDef := range structJenCode {
+		m.Add(sDef)
+	}
+	m.Add(genFuncGetRowValues())
+	err := m.Save()
+	return err
+}
+
+func (m *ModelTemplate) createRowValuesPtrFunc() error {
+	m.Add(m.Vars.CreateConstStringDecl(m.Path.PackageName))
+	structJenCode := m.Structs.GenerateStructsJenCode(true)
+	for _, sDef := range structJenCode {
+		m.Add(sDef)
+	}
+	m.Add(genFuncGetRowValues())
+	err := m.Save()
+	return err
 }
 
 func genFuncGetRowValues() jen.Code {

@@ -1,10 +1,10 @@
-package _func
+package funcs
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	primitives2 "github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives"
+	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/fields"
 )
 
 type FuncTestSuite struct {
@@ -12,19 +12,19 @@ type FuncTestSuite struct {
 }
 
 func (s *FuncTestSuite) TestFuncCodeGen() {
-	fw := primitives2.FileWrapper{PackageName: "_func", FileName: "func_example.go"}
+	fw := fields.FileWrapper{PackageName: "_func", FileName: "func_example.go"}
 
-	funcGen := primitives2.FuncGen{
+	funcGen := FuncGen{
 		Name: "funcName",
 	}
 
-	fieldOne := primitives2.Field{
+	fieldOne := fields.Field{
 		Name: "stringParam",
 		Type: "string",
 	}
 	funcGen.AddField(fieldOne)
 
-	returnField := primitives2.Field{
+	returnField := fields.Field{
 		Name: "err",
 		Type: "error",
 	}
@@ -36,6 +36,7 @@ func (s *FuncTestSuite) TestFuncCodeGen() {
 	err := resp.Save(fw.FileName)
 	s.Assert().Nil(err)
 }
+
 func TestFuncTestSuite(t *testing.T) {
 	suite.Run(t, new(FuncTestSuite))
 }

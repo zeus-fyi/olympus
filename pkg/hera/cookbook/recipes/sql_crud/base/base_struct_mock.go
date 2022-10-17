@@ -1,23 +1,26 @@
 package base
 
-import "github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives"
+import (
+	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/fields"
+	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/structs"
+)
 
-func structMock() primitives.StructGen {
-	fieldOne := primitives.Field{
+func structMock() structs.StructGen {
+	fieldOne := fields.Field{
 		Name: "ChartPackageID",
 		Type: "int",
 	}
-	fieldTwo := primitives.Field{
+	fieldTwo := fields.Field{
 		Name: "ChartName",
 		Type: "string",
 	}
-	fieldThree := primitives.Field{
+	fieldThree := fields.Field{
 		Name: "ChartVersion",
 		Type: "string",
 	}
 
-	structToMake := primitives.StructGen{
-		Name:   "ChartPackages",
+	structToMake := structs.StructGen{
+		Name:   "ChartPackage",
 		Fields: nil,
 	}
 	structToMake.AddFields(fieldOne, fieldTwo, fieldThree)

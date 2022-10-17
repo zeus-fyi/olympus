@@ -1,12 +1,12 @@
-package _struct
+package structs
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/jennifer/jen"
-	"github.com/zeus-fyi/olympus/pkg/hera/lib"
-	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives"
+	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/fields"
+	code_driver "github.com/zeus-fyi/olympus/pkg/hera/lib/v0/drivers/code"
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/test"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
@@ -17,7 +17,7 @@ type StructTestSuite struct {
 
 var printOutLocation = "/Users/alex/Desktop/Zeus/olympus/pkg/hera/cookbook/autogen/types_template_preview/structs"
 
-func createTestCodeGenShell() lib.CodeGen {
+func createTestCodeGenShell() code_driver.CodeDriverLib {
 	p := structs.Path{
 		PackageName: "_struct",
 		DirIn:       "",
@@ -25,23 +25,23 @@ func createTestCodeGenShell() lib.CodeGen {
 		Fn:          "struct.go",
 		Env:         "",
 	}
-	cg := lib.NewCodeGen(p)
+	cg := code_driver.NewCodeDriverLib(p)
 	return cg
 }
 
 func (s *StructTestSuite) TestCodeGen() {
 	cg := createTestCodeGenShell()
-	structToMake := primitives.StructGen{
+	structToMake := StructGen{
 		Name:   "StructExample",
 		Fields: nil,
 	}
-	fieldOne := primitives.Field{
+	fieldOne := fields.Field{
 		Name: "IntField",
 		Type: "int",
 	}
 	structToMake.AddField(fieldOne)
 
-	fieldTwo := primitives.Field{
+	fieldTwo := fields.Field{
 		Name: "StringField",
 		Type: "string",
 	}

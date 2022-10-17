@@ -1,30 +1,17 @@
 package lib
 
 import (
-	"github.com/zeus-fyi/jennifer/jen"
-	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/file_shells/base"
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives"
+	code_driver "github.com/zeus-fyi/olympus/pkg/hera/lib/v0/drivers/code"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
 type CodeGen struct {
-	Fw          primitives.FileWrapper
-	Path        structs.Path
-	FileBaseGen base.FileComponentBaseElements
-
-	StructsToGen []primitives.StructGen
-	FuncToGen    []primitives.FuncGen
-
-	JenStatementChain []*jen.Statement
-	JenFile           *jen.File
+	code_driver.CodeDriverLib
+	primitives.PrimitiveGenerator
 }
 
 func NewCodeGen(codeGenPath structs.Path) CodeGen {
-	return CodeGen{
-		FileBaseGen:       base.FileComponentBaseElements{},
-		Path:              codeGenPath,
-		StructsToGen:      []primitives.StructGen{},
-		FuncToGen:         []primitives.FuncGen{},
-		JenStatementChain: []*jen.Statement{},
-	}
+	c := CodeGen{code_driver.NewCodeDriverLib(codeGenPath), primitives.PrimitiveGenerator{}}
+	return c
 }

@@ -1,4 +1,4 @@
-package _struct
+package structs
 
 import "github.com/zeus-fyi/jennifer/jen"
 

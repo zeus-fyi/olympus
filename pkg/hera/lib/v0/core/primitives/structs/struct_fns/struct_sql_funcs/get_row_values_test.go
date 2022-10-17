@@ -12,6 +12,7 @@ type StructSQLTestSuite struct {
 }
 
 func (s *StructSQLTestSuite) TestGetRowValues() {
+
 }
 
 func TestStructSQLTestSuite(t *testing.T) {

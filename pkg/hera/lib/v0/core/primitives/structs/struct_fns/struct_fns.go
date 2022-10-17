@@ -6,13 +6,13 @@ import (
 )
 
 type StructFn struct {
-	Fg funcs.FuncGen
+	funcs.FuncGen
 }
 
 func (s *StructFn) GenerateStructPtrFunc(structName string) jen.Code {
 	if len(structName) <= 0 {
 		return jen.Nil()
 	}
-	fn := s.Fg.GenerateStructFunc(structName)
+	fn := s.GenerateStructFunc(structName)
 	return fn
 }

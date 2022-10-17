@@ -33,7 +33,9 @@ func (s *ModelStructBaseGen) TestStructInsertFuncGen() {
 
 	m.Structs.AddStruct(structMock())
 	m.AddSlice(m.Structs.GenerateStructsJenCode(true))
-	m.Add(genFuncGetRowValues())
+
+	fn := "GetRowValues"
+	m.Add(genFuncGetRowValues2(structMock(), fn))
 	err := m.Save()
 	s.Require().Nil(err)
 }

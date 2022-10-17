@@ -32,9 +32,7 @@ func (s *ModelStructBaseGen) TestStructInsertFuncGen() {
 	//cg.Add(_struct.GenCreateStructWithExternalStructInheritance(wrapperStructName, extStructPath, extStructName))
 
 	m.Structs.AddStruct(structMock())
-	//cg.Add(genHeader())
-	//cg.Add(genDeclAt85(m.Name))
-	m.Structs.GenerateStructsJenCode(true)
+	m.AddSlice(m.Structs.GenerateStructsJenCode(true))
 	m.Add(genFuncGetRowValues())
 	err := m.Save()
 	s.Require().Nil(err)

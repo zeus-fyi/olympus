@@ -17,7 +17,7 @@ func (sg *StructsGen) AddStruct(s StructGen) {
 }
 
 func (sg *StructsGen) GenerateStructsJenCode(withPlural bool) []jen.Code {
-	structsCode := make([]jen.Code, len(sg.Structs))
+	var structsCode []jen.Code
 	for _, s := range sg.Structs {
 		structsCode = append(structsCode, s.GenerateStructJenCode())
 		if withPlural {

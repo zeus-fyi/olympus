@@ -27,16 +27,16 @@ func (s *ModelStructBaseGen) TestStructInsertFuncGen() {
 		Fn:          "model_template.go",
 		Env:         "",
 	}
-	modelBaseGen := NewModelTemplate(p)
+	m := NewModelTemplate(p)
 
 	//cg.Add(_struct.GenCreateStructWithExternalStructInheritance(wrapperStructName, extStructPath, extStructName))
 
-	modelBaseGen.Structs.AddStruct(structMock())
+	m.Structs.AddStruct(structMock())
 	//cg.Add(genHeader())
 	//cg.Add(genDeclAt85(m.Name))
-	modelBaseGen.Structs.GenerateStructsJenCode(true)
-	modelBaseGen.Add(genFuncGetRowValues())
-	err := modelBaseGen.Save()
+	m.Structs.GenerateStructsJenCode(true)
+	m.Add(genFuncGetRowValues())
+	err := m.Save()
 	s.Require().Nil(err)
 }
 

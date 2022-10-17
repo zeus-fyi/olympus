@@ -2,6 +2,7 @@ package code_driver
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/zeus-fyi/jennifer/jen"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io"
@@ -43,6 +44,7 @@ func (c *CodeDriverLib) Save() error {
 	}
 	buf := &bytes.Buffer{}
 	if err := c.JenFile.Render(buf); err != nil {
+		fmt.Println(err)
 		return err
 	}
 	return fileIO.CreateFile(c.Path, buf.Bytes())

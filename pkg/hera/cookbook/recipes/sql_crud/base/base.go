@@ -36,10 +36,7 @@ func (m *ModelTemplate) createRowValuesPtrFunc() error {
 	return err
 }
 
-func genFuncGetRowValues2(structGen primitive.StructGen, fnName string) jen.Code {
-	v := vars.NewVarGen()
-	v.InsertStruct(structGen)
-
+func DeclarePgValuesStructVar(v vars.VariableGen) jen.Code {
 	structToMake := primitive.StructGen{
 		Name:   "RowValues",
 		Fields: nil,
@@ -50,8 +47,15 @@ func genFuncGetRowValues2(structGen primitive.StructGen, fnName string) jen.Code
 	}
 	structToMake.AddField(fieldOne)
 	v.InsertStruct(structToMake)
-
 	declStruct := v.CreateStructDecl("pgValues", "apps", structToMake.Name, true)
+	return declStruct
+}
+
+func genFuncGetRowValues2(structGen primitive.StructGen, fnName string) jen.Code {
+	v := vars.NewVarGen()
+	v.InsertStruct(structGen)
+
+	declStruct := DeclarePgValuesStructVar(v)
 	return jen.Func().Params(jen.Id("v").Op("*").Id(structGen.Name)).Id(fnName).Params(jen.Id("queryName").Id("string")).Params(jen.Id("apps").Dot("RowValues")).Block(declStruct, jen.Switch(jen.Id("queryName")).Block(jen.Case(jen.Lit("fieldGroup1")).Block(jen.Id("pgValues").Op("=").Id("apps").Dot("RowValues").Values(jen.Id("v").Dot("Field"))), jen.Default().Block(jen.Id("pgValues").Op("=").Id("apps").Dot("RowValues").Values(jen.Id("v").Dot("Field"), jen.Id("v").Dot("FieldN")))), jen.Return().Id("pgValues"))
 }
 

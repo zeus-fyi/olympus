@@ -18,9 +18,7 @@ func NewModelTemplate(p structs.Path) ModelTemplate {
 func (m *ModelTemplate) CreateTemplate() error {
 	m.Add(m.Vars.CreateConstStringDecl(m.Path.PackageName))
 	structJenCode := m.Structs.GenerateStructsJenCode(true)
-	for _, sDef := range structJenCode {
-		m.Add(sDef)
-	}
+	m.AddSlice(structJenCode)
 	m.Add(genFuncGetRowValues())
 	err := m.Save()
 	return err
@@ -29,9 +27,7 @@ func (m *ModelTemplate) CreateTemplate() error {
 func (m *ModelTemplate) createRowValuesPtrFunc() error {
 	m.Add(m.Vars.CreateConstStringDecl(m.Path.PackageName))
 	structJenCode := m.Structs.GenerateStructsJenCode(true)
-	for _, sDef := range structJenCode {
-		m.Add(sDef)
-	}
+	m.AddSlice(structJenCode)
 	m.Add(genFuncGetRowValues())
 	err := m.Save()
 	return err

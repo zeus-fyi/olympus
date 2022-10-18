@@ -31,12 +31,7 @@ func (s *ModelStructBaseGen) TestStructInsertFuncGen() {
 
 	//cg.Add(_struct.GenCreateStructWithExternalStructInheritance(wrapperStructName, extStructPath, extStructName))
 
-	m.Structs.AddStruct(structMock())
-	m.AddSlice(m.Structs.GenerateStructsJenCode(true))
-
-	fn := "GetRowValues"
-	m.Add(genFuncGetRowValues2(structMock(), fn))
-	err := m.Save()
+	err := m.CreateTemplate()
 	s.Require().Nil(err)
 }
 

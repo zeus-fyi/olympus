@@ -26,19 +26,16 @@ func DeclarePgValuesStructVar(v vars.VariableGen, genKey string, embeddedStruct 
 	return declStruct
 }
 
-func GenerateCaseStatementForPgRows(sg primitive.StructsGen) jen.Code {
-	sc := conditionals.NewSwitchCase("queryName")
+func generateDefaultCaseStatement(v vars.VariableGen, structGen primitive.StructGen) fields.CaseField {
+	declDefaultCaseFields := DeclarePgValuesStructVar(v, "embedded", structGen)
+	cf := fields.NewCaseField("default", "")
+	cf.AddBodyStatement(declDefaultCaseFields)
+	return cf
+}
 
-	//cf := fields.CaseField{
-	//	Name: "default",
-	//	Type: "default",
-	//	Body: nil,
-	//}
-	//
-	//for k, s := range sg.StructsMap {
-	//
-	//	sc.Conditions["default"].Body = s.GenerateStructJenStmt()
-	//}
+func GenerateSwitchStatementForPgRows(v vars.VariableGen, structGen primitive.StructGen) *jen.Statement {
+	sc := conditionals.NewSwitchCase("queryName")
+	sc.AddCondition(generateDefaultCaseStatement(v, structGen))
 	jc := sc.GenerateSwitchStatement()
 	return jc
 }

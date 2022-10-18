@@ -33,12 +33,15 @@ func (m *InsertModelTemplate) tmpGen(structName string) jen.Code {
 }
 
 func (m *InsertModelTemplate) genFuncStructNameExamplesFieldCase() *jen.Statement {
-	return jen.Block(genLogHeader(),
-		jen.List(genSqlExec()),
+	return jen.Block(m.genCompleteGenericExecSql()...)
+}
+
+func (m *InsertModelTemplate) genCompleteGenericExecSql() []jen.Code {
+	return []jen.Code{genLogHeader(), genSqlExec(),
 		genSqlExecErrHandler(),
 		genSqlExecRowsAffectedHandler(),
 		genSqlExecRowsAffectedDebugLog(),
-		genSqlInsertReturnWrappedErr())
+		genSqlInsertReturnWrappedErr()}
 }
 
 func tmpGenParams() *jen.Statement {

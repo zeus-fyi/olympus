@@ -9,7 +9,7 @@ import (
 
 func GetPgRowsTemplateDeclarations() (vars.VariableGen, primitive.StructGen, *jen.Statement) {
 	v := genPgRowsVar()
-	structGen := structMock()
+	structGen := StructMock()
 	bodyInitPgRowsStruct := declarePgValuesStructVar(v, "init", v.GenStructInstructs["init"])
 
 	return v, structGen, bodyInitPgRowsStruct

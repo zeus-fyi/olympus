@@ -5,7 +5,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/structs"
 )
 
-func structMock() structs.StructGen {
+func StructMock() structs.StructGen {
 	fieldOne := fields.Field{
 		Name: "ChartPackageID",
 		Type: "int",

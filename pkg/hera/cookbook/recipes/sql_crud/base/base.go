@@ -2,6 +2,7 @@ package base
 
 import (
 	"github.com/zeus-fyi/olympus/pkg/hera/lib"
+	primitive "github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/structs"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
@@ -14,8 +15,8 @@ func NewModelTemplate(p structs.Path) ModelTemplate {
 	return m
 }
 
-func (m *ModelTemplate) CreateTemplate() error {
-	m.Structs.AddStruct(structMock())
+func (m *ModelTemplate) CreateTemplateFromStruct(structGen primitive.StructGen) error {
+	m.Structs.AddStruct(structGen)
 	m.AddSlice(m.Structs.GenerateStructsJenCode(true))
 	// these are template values
 	v, structGen, bodyInitPgRowsStruct := GetPgRowsTemplateDeclarations()

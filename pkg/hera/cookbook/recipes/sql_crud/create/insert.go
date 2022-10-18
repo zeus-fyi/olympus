@@ -18,23 +18,28 @@ func NewInsertModelTemplate(p structs.Path) InsertModelTemplate {
 
 func (m *InsertModelTemplate) CreateTemplateFromStruct(structGen primitive.StructGen) error {
 	m.Structs.AddStruct(structGen)
-
-	return nil
+	m.Add(tmpGen(structGen.Name))
+	return m.Save()
 }
 
 func tmpGen(structName string) jen.Code {
 	tmp := jen.Func().Params(jen.Id("s").Op("*").Id(structName)).Id(structName + "Insert")
 	tmp.Add(tmpGenParams())
-	tmp.Add(genFuncStructNameExamplesFieldCase(structName))
+	tmp.Add(genFuncStructNameExamplesFieldCase())
 	return tmp
 }
 
 func tmpGenParams() *jen.Statement {
 	return jen.Params(jen.Id("ctx").Qual("context", "Context"), jen.Id("q").Id("sql_query_templates").Dot("QueryParams")).Params(jen.Id("error"))
 }
-func genFuncStructNameExamplesFieldCase(structName string) *jen.Statement {
-	return jen.Block(jen.Id("log").Dot("Debug").Call().Dot("Interface").Call(jen.Lit("InsertQuery:"),
-		jen.Id("q").Dot("LogHeader").Call(jen.Id("models").Dot("Sn"))),
+
+func genLogHeader() *jen.Statement {
+	return jen.Id("log").Dot("Debug").Call().Dot("Interface").Call(jen.Lit("InsertQuery:"),
+		jen.Id("q").Dot("LogHeader").Call(jen.Id("models").Dot("Sn")))
+}
+
+func genFuncStructNameExamplesFieldCase() *jen.Statement {
+	return jen.Block(genLogHeader(),
 		jen.List(jen.Id("r"), jen.Id("err")).Op(":=").Id("apps").
 			Dot("Pg").Dot("Exec").Call(jen.Id("ctx"), jen.Id("q").Dot("SelectQuery").Call()),
 		jen.If(jen.Id("returnErr").Op(":=").Id("misc").Dot("ReturnIfErr").Call(jen.Id("err"), jen.Id("q").

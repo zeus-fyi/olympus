@@ -23,7 +23,7 @@ func (s *ModelStructBaseGen) TestBaseTemplateGeneration() {
 		Env:         "",
 	}
 
-	m := NewModelTemplate(p)
+	m := NewModelTemplate(p, nil)
 	//cg.Add(_struct.GenCreateStructWithExternalStructInheritance(wrapperStructName, extStructPath, extStructName))
 	err := m.CreateTemplateFromStruct(StructMock())
 	s.Require().Nil(err)

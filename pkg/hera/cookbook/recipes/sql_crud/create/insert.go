@@ -2,7 +2,25 @@ package create
 
 import (
 	"github.com/zeus-fyi/jennifer/jen"
+	"github.com/zeus-fyi/olympus/pkg/hera/lib"
+	primitive "github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
+
+type InsertModelTemplate struct {
+	lib.CodeGen
+}
+
+func NewInsertModelTemplate(p structs.Path) InsertModelTemplate {
+	m := InsertModelTemplate{lib.NewCodeGen(p)}
+	return m
+}
+
+func (m *InsertModelTemplate) CreateTemplateFromStruct(structGen primitive.StructGen) error {
+	m.Structs.AddStruct(structGen)
+
+	return nil
+}
 
 func tmpGen(structName string) jen.Code {
 	tmp := jen.Func().Params(jen.Id("s").Op("*").Id(structName)).Id(structName + "Insert")

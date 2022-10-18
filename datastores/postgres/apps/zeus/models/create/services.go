@@ -1,4 +1,4 @@
-package creates
+package create
 
 func InsertServiceDefinition() {
 

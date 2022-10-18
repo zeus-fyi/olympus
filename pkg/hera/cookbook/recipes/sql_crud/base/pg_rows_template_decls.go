@@ -11,7 +11,6 @@ func GetPgRowsTemplateDeclarations() (vars.VariableGen, primitive.StructGen, *je
 	v := genPgRowsVar()
 	structGen := StructMock()
 	bodyInitPgRowsStruct := declarePgValuesStructVar(v, "init", v.GenStructInstructs["init"])
-
 	return v, structGen, bodyInitPgRowsStruct
 }
 

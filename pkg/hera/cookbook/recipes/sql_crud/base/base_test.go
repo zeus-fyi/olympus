@@ -14,7 +14,7 @@ type ModelStructBaseGen struct {
 
 var printOutLocation = "/Users/alex/Desktop/Zeus/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 
-func (s *ModelStructBaseGen) TestStructInsertFuncGen() {
+func (s *ModelStructBaseGen) TestBaseTemplateGeneration() {
 	p := structs.Path{
 		PackageName: "autogen_bases",
 		DirIn:       "",

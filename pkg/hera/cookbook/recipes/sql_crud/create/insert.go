@@ -2,6 +2,7 @@ package create
 
 import (
 	"github.com/zeus-fyi/jennifer/jen"
+	"github.com/zeus-fyi/olympus/pkg/hera/cookbook/recipes/common/sql_query"
 	"github.com/zeus-fyi/olympus/pkg/hera/cookbook/recipes/common/sql_query/common"
 	"github.com/zeus-fyi/olympus/pkg/hera/cookbook/recipes/sql_crud/base"
 	primitive "github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/structs"
@@ -21,15 +22,11 @@ func NewInsertModelTemplate(p structs.Path) InsertModelTemplate {
 
 func (m *InsertModelTemplate) CreateTemplateFromStruct(structGen primitive.StructGen) error {
 	m.Structs.AddStruct(structGen)
-	m.Add(m.tmpGen(structGen.Name))
-	return m.Save()
-}
-
-func (m *InsertModelTemplate) tmpGen(structName string) jen.Code {
-	tmp := jen.Func().Params(jen.Id("s").Op("*").Id(structName)).Id(structName + "Insert")
+	tmp := jen.Func().Params(jen.Id("s").Op("*").Id(structGen.Name)).Id(structGen.Name + "Insert")
 	tmp.Add(tmpGenParams())
 	tmp.Add(m.genFuncStructNameExamplesFieldCase())
-	return tmp
+	m.Add(tmp)
+	return m.Save()
 }
 
 func (m *InsertModelTemplate) genFuncStructNameExamplesFieldCase() *jen.Statement {
@@ -37,41 +34,9 @@ func (m *InsertModelTemplate) genFuncStructNameExamplesFieldCase() *jen.Statemen
 }
 
 func (m *InsertModelTemplate) genCompleteGenericExecSql() []jen.Code {
-	return []jen.Code{genLogHeader(), genSqlExec(),
-		genSqlExecErrHandler(),
-		genSqlExecRowsAffectedHandler(),
-		genSqlExecRowsAffectedDebugLog(),
-		genSqlInsertReturnWrappedErr()}
+	return sql_query.GenPGGenericExec()
 }
 
 func tmpGenParams() *jen.Statement {
 	return jen.Params(jen.Id("ctx").Qual("context", "Context"), jen.Id("q").Id("sql_query_templates").Dot("QueryParams")).Params(jen.Id("error"))
-}
-
-func genLogHeader() *jen.Statement {
-	return jen.Id("log").Dot("Debug").Call().Dot("Interface").Call(jen.Lit("InsertQuery:"),
-		jen.Id("q").Dot("LogHeader").Call(jen.Id("models").Dot("Sn")))
-}
-
-func genSqlExec() *jen.Statement {
-	return jen.Id("err").Op(":=").Id("apps").Dot("Pg").Dot("Exec").Call(jen.Id("ctx"), jen.Id("q").Dot("SelectQuery").Call())
-}
-
-func genSqlExecErrHandler() *jen.Statement {
-	return jen.If(jen.Id("returnErr").Op(":=").Id("misc").Dot("ReturnIfErr").Call(jen.Id("err"), jen.Id("q").
-		Dot("LogHeader").Call(jen.Id("models").
-		Dot("Sn"))), jen.Id("returnErr").Op("!=").Id("nil").Block(jen.Return().Id("err")))
-}
-
-func genSqlExecRowsAffectedHandler() *jen.Statement {
-	return jen.Id("rowsAffected").Op(":=").Id("r").Dot("RowsAffected").Call()
-}
-
-func genSqlExecRowsAffectedDebugLog() *jen.Statement {
-	return jen.Id("log").Dot("Debug").Call().Dot("Msgf").Call(jen.Lit("StructNameExamples: %s, Rows Affected: %d"),
-		jen.Id("q").Dot("LogHeader").Call(jen.Id("models").Dot("Sn")), jen.Id("rowsAffected"))
-}
-
-func genSqlInsertReturnWrappedErr() *jen.Statement {
-	return jen.Return().Id("misc").Dot("ReturnIfErr").Call(jen.Id("err"), jen.Id("q").Dot("LogHeader").Call(jen.Id("models").Dot("Sn")))
 }

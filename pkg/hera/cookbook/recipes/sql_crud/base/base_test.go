@@ -22,6 +22,7 @@ func (s *ModelStructBaseGen) TestBaseTemplateGeneration() {
 		Fn:          "model_template.go",
 		Env:         "",
 	}
+
 	m := NewModelTemplate(p)
 	//cg.Add(_struct.GenCreateStructWithExternalStructInheritance(wrapperStructName, extStructPath, extStructName))
 	err := m.CreateTemplateFromStruct(StructMock())

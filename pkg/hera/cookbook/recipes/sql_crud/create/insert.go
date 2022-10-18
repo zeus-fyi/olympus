@@ -2,34 +2,37 @@ package create
 
 import (
 	"github.com/zeus-fyi/jennifer/jen"
-	"github.com/zeus-fyi/olympus/pkg/hera/lib"
+	"github.com/zeus-fyi/olympus/pkg/hera/cookbook/recipes/common/sql_query/common"
+	"github.com/zeus-fyi/olympus/pkg/hera/cookbook/recipes/sql_crud/base"
 	primitive "github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/structs"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
 type InsertModelTemplate struct {
-	lib.CodeGen
+	base.ModelTemplate
 }
 
 func NewInsertModelTemplate(p structs.Path) InsertModelTemplate {
-	m := InsertModelTemplate{lib.NewCodeGen(p)}
+	sqlQueryType := "create"
+	queryInfo := common.QueryMetadata{Type: sqlQueryType}
+	m := InsertModelTemplate{base.NewModelTemplate(p, &queryInfo)}
 	return m
 }
 
 func (m *InsertModelTemplate) CreateTemplateFromStruct(structGen primitive.StructGen) error {
 	m.Structs.AddStruct(structGen)
-	m.Add(tmpGen(structGen.Name))
+	m.Add(m.tmpGen(structGen.Name))
 	return m.Save()
 }
 
-func tmpGen(structName string) jen.Code {
+func (m *InsertModelTemplate) tmpGen(structName string) jen.Code {
 	tmp := jen.Func().Params(jen.Id("s").Op("*").Id(structName)).Id(structName + "Insert")
 	tmp.Add(tmpGenParams())
-	tmp.Add(genFuncStructNameExamplesFieldCase())
+	tmp.Add(m.genFuncStructNameExamplesFieldCase())
 	return tmp
 }
 
-func genFuncStructNameExamplesFieldCase() *jen.Statement {
+func (m *InsertModelTemplate) genFuncStructNameExamplesFieldCase() *jen.Statement {
 	return jen.Block(genLogHeader(),
 		jen.List(genSqlExec()),
 		genSqlExecErrHandler(),

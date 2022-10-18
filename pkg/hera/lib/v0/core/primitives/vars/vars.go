@@ -19,6 +19,23 @@ func NewVarGen() VariableGen {
 	return v
 }
 
+func (v *VariableGen) GenImportedVarReference(importedPkgName string) *jen.Statement {
+	if varName, ok := v.StringConstants[importedPkgName]; ok {
+		return jen.Id(importedPkgName).Dot(varName)
+	}
+	// TODO, handle local reference
+	return jen.Null()
+}
+
+func (v *VariableGen) SetAndReturnImportedVarReference(importedPkgName, importedVarName string) VariableGen {
+	if v == nil {
+		// TODO should also set and return
+		return NewVarGen()
+	}
+	v.StringConstants[importedPkgName] = importedVarName
+	return *v
+}
+
 func (v *VariableGen) CreateConstStringDecl(name string) *jen.Statement {
 	if value, ok := v.StringConstants[name]; ok {
 		return jen.Null().Const().Id(name).Op("=").Lit(value)

@@ -7,21 +7,26 @@ import (
 
 type SwitchCase struct {
 	SwitchName string
-	Conditions []fields.CaseField
+	Conditions map[string]fields.CaseField
 }
 
-func (s *SwitchCase) GenerateSwitchStatement() jen.Code {
+func NewSwitchCase(name string) SwitchCase {
+	s := SwitchCase{
+		SwitchName: name,
+		Conditions: make(map[string]fields.CaseField),
+	}
+	return s
+}
+
+func (s *SwitchCase) AddCondition(cf fields.CaseField) {
+	if _, ok := s.Conditions[cf.Name]; !ok {
+		s.Conditions[cf.Name] = cf
+	}
+	s.Conditions[cf.Name] = cf
+	return
+}
+
+func (s *SwitchCase) GenerateSwitchStatement() *jen.Statement {
 	switchStatement := jen.Switch(jen.Id(s.SwitchName)).Block(s.generateSwitchBodyCaseStatement())
 	return switchStatement
-}
-
-func (s *SwitchCase) generateSwitchBodyCaseStatement() *jen.Statement {
-	//caseStatements := jen.Case(jen.Lit("fieldGroup1")).Block(jen.Id("pgValues").Op("=").Id("apps")
-	//.Dot("RowValues").Values(jen.Id("v").Dot("Field"))), jen.Default().Block(jen.Id("pgValues").Op("=").Id("apps").
-	//	Dot("RowValues").Values(jen.Id("v").Dot("Field"), jen.Id("v").Dot("FieldN"))))
-	caseStatements := jen.Case()
-	for _, cond := range s.Conditions {
-		caseStatements.Add(jen.Lit(cond.Name).Block(cond.Body))
-	}
-	return caseStatements
 }

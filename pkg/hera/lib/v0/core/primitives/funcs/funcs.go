@@ -7,27 +7,26 @@ import (
 
 type FuncGen struct {
 	Name         string
-	Body         []*jen.Statement
+	Body         []jen.Code
 	Fields       []fields.Field
 	ReturnFields []fields.Field
 }
 
-func (f *FuncGen) GenerateStructFunc(structName string) *jen.Statement {
-	if len(structName) <= 0 {
-		return jen.Nil()
+func NewFn(name string) FuncGen {
+	return FuncGen{
+		Name:         name,
+		Body:         []jen.Code{},
+		Fields:       []fields.Field{},
+		ReturnFields: []fields.Field{},
 	}
-	shortHand := structName[0:1]
-	fn := jen.Func().Params(jen.Id(shortHand).Op("*").Id(structName))
-	return fn.Add(f.GenerateFuncShell())
 }
 
 func (f *FuncGen) GenerateFunc() *jen.Statement {
 	fn := jen.Func()
-	return fn.Add(f.GenerateFuncShell())
+	return fn.Add(f.GenerateFuncShell(fn))
 }
 
-func (f *FuncGen) GenerateFuncShell() *jen.Statement {
-	header := f.GetFuncHeader()
-	bodyReturn := f.GetFuncBodyAndReturn()
-	return header.Add(bodyReturn)
+func (f *FuncGen) GenerateFuncShell(prefix *jen.Statement) *jen.Statement {
+	header := prefix.Add(f.GetFuncHeader())
+	return header.Add(f.GetBodyAndReturn())
 }

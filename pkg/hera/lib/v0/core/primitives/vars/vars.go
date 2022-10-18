@@ -7,13 +7,14 @@ import (
 
 type VariableGen struct {
 	StringConstants map[string]string
-	Structs         map[string]structs.StructGen
+	// use the key to derive the gen logic
+	GenStructInstructs map[string]structs.StructGen
 }
 
 func NewVarGen() VariableGen {
 	v := VariableGen{
-		StringConstants: make(map[string]string),
-		Structs:         make(map[string]structs.StructGen),
+		StringConstants:    make(map[string]string),
+		GenStructInstructs: make(map[string]structs.StructGen),
 	}
 	return v
 }
@@ -25,20 +26,11 @@ func (v *VariableGen) CreateConstStringDecl(name string) *jen.Statement {
 	return jen.Null()
 }
 
-func (v *VariableGen) CreateStructDecl(varName, pkgName, structName string, isFirstInit bool) *jen.Statement {
-	eq := "="
-	if isFirstInit {
-		eq = ":="
-	}
-	if _, ok := v.Structs[structName]; ok {
-		return jen.Id(varName).Op(eq).Id(pkgName).Dot(structName).Values()
-	}
-	return jen.Null()
-}
-
 func (v *VariableGen) InsertStruct(s structs.StructGen) {
-	if _, ok := v.Structs[s.Name]; !ok {
-		v.Structs[s.Name] = structs.StructGen{}
+	if _, ok := v.GenStructInstructs[s.Name]; !ok {
+		v.GenStructInstructs[s.Name] = structs.StructGen{}
 	}
-	v.Structs[s.Name] = s
+	v.GenStructInstructs[s.Name] = s
+	v.GenStructInstructs["init"] = s
+	v.GenStructInstructs["embedded"] = structs.StructGen{}
 }

@@ -8,7 +8,11 @@ import (
 func (f *FuncGen) GetFieldStatement() *jen.Statement {
 	statement := &jen.Statement{}
 	for _, item := range f.Fields {
-		statement.Add(jen.Id(item.Name).Id(item.Type))
+		if len(item.Pkg) > 0 {
+			statement.Add(jen.Id(item.Pkg).Dot(item.Type))
+		} else {
+			statement.Add(jen.Id(item.Name).Id(item.Type))
+		}
 	}
 	return statement
 }

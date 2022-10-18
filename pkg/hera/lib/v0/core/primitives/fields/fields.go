@@ -8,12 +8,28 @@ type FileWrapper struct {
 }
 
 type Field struct {
-	Name string
-	Type string
+	Pkg   string
+	Name  string
+	Type  string
+	Value string
 }
 
 type CaseField struct {
 	Name string
 	Type string
-	Body *jen.Statement
+	Body []*jen.Statement
+}
+
+func NewCaseField(name, typeName string) CaseField {
+	var body []*jen.Statement
+	return CaseField{
+		Name: name,
+		Type: typeName,
+		Body: body,
+	}
+}
+
+func (c *CaseField) AddBodyStatement(js *jen.Statement) {
+	c.Body = append(c.Body, js)
+	return
 }

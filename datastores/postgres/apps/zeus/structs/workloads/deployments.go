@@ -29,7 +29,7 @@ func NewDeployment() Deployment {
 	}
 	d.ParentClassDefinition = autogen_structs.ChartSubcomponentParentClassTypes{
 		ChartPackageID:                       0,
-		ChartComponentKindID:                 0,
+		ChartComponentResourceID:             0,
 		ChartSubcomponentParentClassTypeID:   0,
 		ChartSubcomponentParentClassTypeName: "deploymentSpec",
 	}

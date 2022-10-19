@@ -12,8 +12,8 @@ import (
 func SelectPackageQuery(packageID int) string {
 	query := fmt.Sprintf(`
 	With cte_package as (
-		SELECT cpk.chart_component_kind_name,
- 			   cpk.chart_component_api_version,
+		SELECT cpr.chart_component_kind_name,
+ 			   cpr.chart_component_api_version,
   			   cp.chart_subcomponent_parent_class_type_id,
 			   pct.chart_subcomponent_parent_class_type_name,
  			   cc.chart_subcomponent_child_class_type_name,
@@ -27,7 +27,7 @@ func SelectPackageQuery(packageID int) string {
 		LEFT JOIN chart_subcomponents_child_values cv ON cc.chart_subcomponent_child_class_type_id = cv.chart_subcomponent_child_class_type_id
 		LEFT JOIN chart_subcomponents_jsonb_child_values cvj ON cc.chart_subcomponent_child_class_type_id = cvj.chart_subcomponent_child_class_type_id
 		INNER JOIN chart_subcomponent_parent_class_types pct ON pct.chart_subcomponent_parent_class_type_id = cp.chart_subcomponent_parent_class_type_id
-		LEFT JOIN chart_component_kinds cpk ON cpk.chart_component_kind_id = pct.chart_component_kind_id
+		LEFT JOIN chart_component_resources cpr ON cpr.chart_component_resource_id = pct.chart_component_resource_id
 		WHERE cp.chart_package_id = %d
 	)
 	SELECT * FROM cte_package`, packageID)

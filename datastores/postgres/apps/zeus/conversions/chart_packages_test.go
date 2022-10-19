@@ -21,6 +21,7 @@ type ChartPackagesTestSuite struct {
 }
 
 func (s *ChartPackagesTestSuite) SetupTest() {
+	s.InitLocalConfigs()
 	s.yr = transformations.YamlReader{}
 }
 

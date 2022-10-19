@@ -14,10 +14,10 @@ type TestSuite struct {
 }
 
 func (s *TestSuite) SetupTest() {
-	s.InitConfigs()
+	s.InitLocalConfigs()
 }
 
-func (s *TestSuite) InitConfigs() {
+func (s *TestSuite) InitLocalConfigs() {
 	s.Tc = configs.InitLocalTestConfigs()
 }
 

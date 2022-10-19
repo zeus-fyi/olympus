@@ -12,19 +12,26 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-func insertDeploymentStatement(d workloads.Deployment) string {
+func insertDeploymentStatement(c *Chart, d workloads.Deployment) string {
 	pc := d.ParentClassDefinition
 	sqlInsertStatement := fmt.Sprintf(
-		`WITH cte_insert AS (
+		`WITH cte_insert_pc AS (
 					INSERT INTO chart_subcomponent_parent_class_types(chart_package_id, chart_component_resource_id, chart_subcomponent_parent_class_type_name)
-					VALUES (%d, %d, %s
-				)`, pc.ChartPackageID, pc.ChartComponentKindID, d.ParentClassDefinition.ChartSubcomponentParentClassTypeName)
+					VALUES (%d, %d, %s)
+					RETURNING chart_subcomponent_parent_class_type_id
+				), cte_insert_cct AS (
+				    INSERT INTO chart_subcomponent_child_class_types(chart_subcomponent_parent_class_type_id, chart_subcomponent_child_class_type_name)
+					VALUES ((SELECT chart_subcomponent_parent_class_type_id FROM cte_insert_pc), '%s')
+				    RETURNING chart_subcomponent_child_class_type_id
+				) SELECT chart_subcomponent_parent_class_type_id FROM cte_insert_pc
+	`, pc.ChartPackageID, pc.ChartComponentResourceID, pc.ChartSubcomponentParentClassTypeName,
+		"deploymentSpec")
 	return sqlInsertStatement
 }
 
 func InsertDeployment(ctx context.Context, q sql_query_templates.QueryParams, d workloads.Deployment) error {
 	log.Debug().Interface("InsertQuery:", q.LogHeader(models.Sn))
-	r, err := apps.Pg.Exec(ctx, insertDeploymentStatement(d))
+	r, err := apps.Pg.Exec(ctx, insertDeploymentStatement(nil, d))
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(models.Sn)); returnErr != nil {
 		return err
 	}

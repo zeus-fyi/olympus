@@ -2,6 +2,8 @@ package sql_query_templates
 
 import "fmt"
 
+type Query struct{}
+
 type QueryParams struct {
 	QueryName   string
 	Fields      []string

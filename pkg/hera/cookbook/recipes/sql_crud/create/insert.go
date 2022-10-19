@@ -25,6 +25,7 @@ func NewInsertModelTemplate(p structs.Path) InsertModelTemplate {
 
 func (m *InsertModelTemplate) CreateTemplateFromStruct(structGen primitive.StructGen) error {
 	m.Structs.AddStruct(structGen)
+	m.Add(structGen.GenerateStructJenStmt())
 	m.Add(m.GenerateModelPtrFn(structGen, sql_query.GenPGGenericExec()...))
 	return m.Save()
 }

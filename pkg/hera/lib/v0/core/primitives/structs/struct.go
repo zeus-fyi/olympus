@@ -11,7 +11,6 @@ type StructGen struct {
 	Name       string
 	Fields     []fields.Field
 	PluralDecl jen.Code
-	//struct_sql_funcs.StructFuncGenSQL
 }
 
 func (s *StructGen) AddField(field fields.Field) {

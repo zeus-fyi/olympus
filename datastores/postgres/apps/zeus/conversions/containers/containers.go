@@ -20,7 +20,7 @@ func ConvertContainersToDB(cs []v1.Container) containers.Containers {
 }
 
 func ConvertContainerInfoToDB(cs v1.Container, dbContainer containers.Container) containers.Container {
-	dbContainer.Information = autogen_structs.autogen_structs{
+	dbContainer.Information = autogen_structs.Containers{
 		ContainerName:            cs.Name,
 		ContainerImageID:         cs.Image,
 		ContainerVersionTag:      "",

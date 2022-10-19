@@ -8,7 +8,7 @@ import (
 )
 
 type TemplateSpecTestSuite struct {
-	conversions_test.conversions_test
+	conversions_test.ConversionsTestSuite
 }
 
 func TestTemplateSpecTestSuite(t *testing.T) {

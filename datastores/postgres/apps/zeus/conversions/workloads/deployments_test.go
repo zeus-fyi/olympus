@@ -13,7 +13,7 @@ import (
 )
 
 type ConvertDeploymentPackagesTestSuite struct {
-	conversions_test.conversions_test
+	conversions_test.ConversionsTestSuite
 }
 
 func (s *ConvertDeploymentPackagesTestSuite) TestConvertDeployment() {

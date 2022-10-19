@@ -5,7 +5,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-func ContainerVolumesToDB(cs *v1.Container) []autogen_structs.autogen_structs {
+func ContainerVolumesToDB(cs *v1.Container) []autogen_structs.ContainerVolumeMounts {
 	dbVmSlice := make([]autogen_structs.ContainerVolumeMounts, len(cs.VolumeMounts))
 	for i, vm := range cs.VolumeMounts {
 		dbVm := ContainerVolumeToDB(vm)

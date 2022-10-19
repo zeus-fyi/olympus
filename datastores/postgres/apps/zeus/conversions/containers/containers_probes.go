@@ -6,7 +6,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-func ContainerProbeToDB(p *v1.Probe) autogen_structs.autogen_structs {
+func ContainerProbeToDB(p *v1.Probe) autogen_structs.ContainerProbes {
 	dbProbe := autogen_structs.ContainerProbes{
 		ProbeID:             0,
 		ProbeKeyValuesJSONb: "",

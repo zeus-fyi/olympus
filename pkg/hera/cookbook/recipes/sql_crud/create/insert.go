@@ -1,10 +1,13 @@
 package create
 
 import (
+	"fmt"
+
 	"github.com/zeus-fyi/jennifer/jen"
 	"github.com/zeus-fyi/olympus/pkg/hera/cookbook/recipes/common/sql_query"
 	"github.com/zeus-fyi/olympus/pkg/hera/cookbook/recipes/common/sql_query/common"
 	"github.com/zeus-fyi/olympus/pkg/hera/cookbook/recipes/sql_crud/base"
+	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/funcs"
 	primitive "github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/structs"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
@@ -22,21 +25,17 @@ func NewInsertModelTemplate(p structs.Path) InsertModelTemplate {
 
 func (m *InsertModelTemplate) CreateTemplateFromStruct(structGen primitive.StructGen) error {
 	m.Structs.AddStruct(structGen)
-	tmp := jen.Func().Params(jen.Id("s").Op("*").Id(structGen.Name)).Id(structGen.Name + "Insert")
-	tmp.Add(tmpGenParams())
-	tmp.Add(m.genFuncStructNameExamplesFieldCase())
-	m.Add(tmp)
+	m.Add(m.GenerateModelPtrFn(structGen, sql_query.GenPGGenericExec()...))
 	return m.Save()
 }
 
-func (m *InsertModelTemplate) genFuncStructNameExamplesFieldCase() *jen.Statement {
-	return jen.Block(m.genCompleteGenericExecSql()...)
-}
-
-func (m *InsertModelTemplate) genCompleteGenericExecSql() []jen.Code {
-	return sql_query.GenPGGenericExec()
-}
-
-func tmpGenParams() *jen.Statement {
-	return jen.Params(jen.Id("ctx").Qual("context", "Context"), jen.Id("q").Id("sql_query_templates").Dot("QueryParams")).Params(jen.Id("error"))
+// GenerateModelPtrFn generates boilerplate fn init
+func (m *InsertModelTemplate) GenerateModelPtrFn(structGen primitive.StructGen, body ...*jen.Statement) jen.Code {
+	sqlQueryName := fmt.Sprintf("%sInsert", structGen.Name)
+	m.QueryMetadata.Name = sqlQueryName
+	fn := funcs.NewFn(m.QueryMetadata.Name)
+	fn.Fields = genInsertFnFields()
+	fn.ReturnFields = genInsertFnReturnFields()
+	fn.AddBodyStatement(body...)
+	return fn.GenerateStructPtrFunc(structGen)
 }

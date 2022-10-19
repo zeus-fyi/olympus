@@ -7,12 +7,11 @@ import (
 
 func genFunctemplateFunc(fg FuncGen) jen.Code {
 	n := fg.Name
-	ctxField := jen.Id("ctx").Qual("context", "Context")
 	returnFuncParam := jen.Id("error")
 	returnStatement := jen.Return().Id("nil")
 	printLnStatement := jen.Qual("fmt", "Println").Call(jen.Lit("Hello, world"))
 	returnBlock := jen.Block(printLnStatement, returnStatement)
-	fn := jen.Func().Id(n).Params(ctxField, fg.GetFieldStatement()).Params(returnFuncParam).Add(returnBlock)
+	fn := jen.Func().Id(n).Params(fg.GetFieldStatement()...).Params(returnFuncParam).Add(returnBlock)
 	return fn
 }
 

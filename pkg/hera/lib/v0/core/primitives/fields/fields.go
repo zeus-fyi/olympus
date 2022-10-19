@@ -8,10 +8,11 @@ type FileWrapper struct {
 }
 
 type Field struct {
-	Pkg   string
-	Name  string
-	Type  string
-	Value string
+	Pkg     string
+	Name    string
+	Type    string
+	Value   string
+	FnField *jen.Statement
 }
 
 type CaseField struct {

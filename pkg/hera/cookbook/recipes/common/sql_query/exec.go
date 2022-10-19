@@ -4,7 +4,7 @@ import "github.com/zeus-fyi/jennifer/jen"
 
 // GenPGExecSQLStatement this template relies on a common Pg package and it's var naming used across apps
 func genPGExecSQLStatement() *jen.Statement {
-	return jen.Id("err").Op(":=").Id("apps").Dot("Pg").Dot("Exec").Call(jen.Id("ctx"), jen.Id("q").Dot("SelectQuery").Call())
+	return jen.List(jen.Id("r"), jen.Id("err")).Op(":=").Id("apps").Dot("Pg").Dot("Exec").Call(jen.Id("ctx"), jen.Id("q").Dot("SelectQuery").Call())
 }
 
 // genPGSqlExecRowsAffectedHandler this template relies on common var naming syntax used across apps
@@ -18,14 +18,13 @@ func genPGSqlExecRowsAffectedDebugLog() *jen.Statement {
 		jen.Id("q").Dot("LogHeader").Call(jen.Id("models").Dot("Sn")), jen.Id("rowsAffected"))
 }
 
-func GenPGGenericExec() []jen.Code {
-	return []jen.Code{
+func GenPGGenericExec() []*jen.Statement {
+	return []*jen.Statement{
 		genLogHeader(),
 		genPGExecSQLStatement(),
 		genSqlExecErrHandler(),
 		genPGSqlExecRowsAffectedHandler(),
 		genPGSqlExecRowsAffectedDebugLog(),
-		genSqlInsertReturnWrappedErr(),
 	}
 }
 
@@ -38,8 +37,4 @@ func genSqlExecErrHandler() *jen.Statement {
 	return jen.If(jen.Id("returnErr").Op(":=").Id("misc").Dot("ReturnIfErr").Call(jen.Id("err"), jen.Id("q").
 		Dot("LogHeader").Call(jen.Id("models").
 		Dot("Sn"))), jen.Id("returnErr").Op("!=").Id("nil").Block(jen.Return().Id("err")))
-}
-
-func genSqlInsertReturnWrappedErr() *jen.Statement {
-	return jen.Return().Id("misc").Dot("ReturnIfErr").Call(jen.Id("err"), jen.Id("q").Dot("LogHeader").Call(jen.Id("models").Dot("Sn")))
 }

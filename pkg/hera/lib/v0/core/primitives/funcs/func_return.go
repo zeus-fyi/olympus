@@ -30,7 +30,11 @@ func (f *FuncGen) GetReturnFieldsStatement() *jen.Statement {
 func (f *FuncGen) GetFuncReturnStatement() *jen.Statement {
 	returnStmt := jen.Return()
 	for _, item := range f.ReturnFields {
-		returnStmt.Add(jen.Id(item.Name))
+		if item.FnField != nil {
+			returnStmt.Add(item.FnField)
+		} else {
+			returnStmt.Add(jen.Id(item.Name))
+		}
 	}
 	return returnStmt
 }

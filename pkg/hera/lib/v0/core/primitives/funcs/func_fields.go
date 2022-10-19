@@ -5,16 +5,26 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/fields"
 )
 
-func (f *FuncGen) GetFieldStatement() *jen.Statement {
-	statement := &jen.Statement{}
+//func tmpGenParams() *jen.Statement {
+//	return jen.Params(jen.Id("ctx").Qual("context", "Context"), jen.Id("q").Id("sql_query_templates").Dot("QueryParams")).Params(jen.Id("error"))
+//}
+
+func (f *FuncGen) GetFieldStatement() []jen.Code {
+	var stmtChain []jen.Code
 	for _, item := range f.Fields {
+		statement := &jen.Statement{}
 		if len(item.Pkg) > 0 {
-			statement.Add(jen.Id(item.Pkg).Dot(item.Type))
+			if len(item.Name) > 0 {
+				statement.Add(jen.Id(item.Name).Id(item.Pkg).Dot(item.Type))
+			} else {
+				statement.Add(jen.Id(item.Pkg).Dot(item.Type))
+			}
 		} else {
 			statement.Add(jen.Id(item.Name).Id(item.Type))
 		}
+		stmtChain = append(stmtChain, statement)
 	}
-	return statement
+	return stmtChain
 }
 
 func (f *FuncGen) AddField(field fields.Field) {

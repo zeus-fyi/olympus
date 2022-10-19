@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/hera/cookbook/recipes/sql_crud/base"
+	primitive "github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/structs"
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/test"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
@@ -24,8 +24,16 @@ func (s *StructInsertFuncGenRecipeTestSuite) TestStructInsertFuncGen() {
 		Env:         "",
 	}
 	m := NewInsertModelTemplate(p)
-	err := m.CreateTemplateFromStruct(base.StructMock())
+	err := m.CreateTemplateFromStruct(InsertStructMock())
 	s.Require().Nil(err)
+}
+
+func InsertStructMock() primitive.StructGen {
+	structToMake := primitive.StructGen{
+		Name:   "ChartPackageInsert",
+		Fields: nil,
+	}
+	return structToMake
 }
 
 func TestStructInsertFuncGenRecipeTestSuite(t *testing.T) {

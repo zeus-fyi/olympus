@@ -2,7 +2,7 @@ package containers
 
 import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
-	containers2 "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/containers"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/containers"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -24,14 +24,14 @@ func probesThatExist(probes ...*v1.Probe) []*v1.Probe {
 	return probeSlice
 }
 
-func ConvertContainerProbesToDB(cs v1.Container, dbContainer containers2.Container) containers2.Container {
+func ConvertContainerProbesToDB(cs v1.Container, dbContainer containers.Container) containers.Container {
 	suProbe := cs.StartupProbe
 	livenessProbe := cs.LivenessProbe
 	readinessProbe := cs.ReadinessProbe
 	// from k8s
 	probes := probesThatExist(suProbe, livenessProbe, readinessProbe)
 	// to db format
-	probeSlice := make(containers2.ContainerProbes, len(probes))
+	probeSlice := make(containers.ContainerProbes, len(probes))
 
 	for i, p := range probes {
 		probe := ContainerProbeToDB(p)

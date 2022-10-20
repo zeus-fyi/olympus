@@ -2,12 +2,12 @@ package containers
 
 import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
-	containers2 "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/containers"
+	containers "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/containers"
 	v1 "k8s.io/api/core/v1"
 )
 
-func ContainerPortsToDB(cps []v1.ContainerPort) containers2.ContainersPorts {
-	contPortsSlice := make(containers2.ContainersPorts, len(cps))
+func ContainerPortsToDB(cps []v1.ContainerPort) containers.ContainersPorts {
+	contPortsSlice := make(containers.ContainersPorts, len(cps))
 	for i, p := range cps {
 		port := ContainerPortToDB(p)
 		contPortsSlice[i] = port
@@ -27,7 +27,7 @@ func ContainerPortToDB(p v1.ContainerPort) autogen_structs.ContainerPorts {
 	return dbPort
 }
 
-func ConvertContainerPortsToContainerDB(cs v1.Container, dbContainer containers2.Container) containers2.Container {
+func ConvertContainerPortsToContainerDB(cs v1.Container, dbContainer containers.Container) containers.Container {
 	dbContainer.Ports = ContainerPortsToDB(cs.Ports)
 	return dbContainer
 }

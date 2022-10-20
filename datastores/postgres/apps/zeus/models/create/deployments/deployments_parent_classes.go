@@ -12,13 +12,21 @@ func (d *Deployment) addParentClass(pkgId int, pcName string) string {
 	return s
 }
 
-func (d *Deployment) insertDeploymentParentClass(pkgId int) string {
+func (d *Deployment) insertDeploymentCtes(pkgId int) string {
 	s := fmt.Sprintf(
 		`WITH cte_insert_metadata AS (
 					%s
-				), cte_insert_spec (
+				), cte_insert_spec AS (
 					%s
-				)`, d.addParentClass(pkgId, "metadata"), d.addParentClass(pkgId, "spec"),
+				), `,
+		d.addParentClass(pkgId, "metadata"),
+		d.addParentClass(pkgId, "spec"),
 	)
-	return s
+
+	s = d.insertDeploymentMetadataChildren(s, "cte_insert_metadata")
+	s = d.insertSpecChildren(s, "cte_insert_spec")
+
+	fakeCte := " cte_term AS ( SELECT 1 ) SELECT true"
+	returnExpr := s + fakeCte
+	return returnExpr
 }

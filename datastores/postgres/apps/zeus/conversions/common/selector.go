@@ -7,12 +7,12 @@ import (
 
 func ConvertSelector(m *metav1.LabelSelector) common.Selector {
 	dbSelectorConfig := common.NewSelector()
-	dbSelectorConfig.MatchLabels = ConvertKeyValueToChildValues(m.MatchLabels)
+	dbSelectorConfig.MatchLabels.Values = ConvertKeyValueToChildValues(m.MatchLabels)
 	return dbSelectorConfig
 }
 
 func ConvertSelectorByFields(labels map[string]string) common.Selector {
 	dbSelectorConfig := common.NewSelector()
-	dbSelectorConfig.MatchLabels = ConvertKeyValueToChildValues(labels)
+	dbSelectorConfig.MatchLabels.Values = ConvertKeyValueToChildValues(labels)
 	return dbSelectorConfig
 }

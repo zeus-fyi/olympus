@@ -9,8 +9,8 @@ import (
 
 func ConvertDeploymentConfigToDB(d *v1.Deployment) workloads.Deployment {
 	dbDeployment := workloads.NewDeployment()
-	dbDeployment.Metadata = common.CreateMetadataByFields(d.Name, d.Annotations, d.Labels)
-	dbDeployment.Spec = ConvertDeploymentSpec(d.Spec)
+	dbDeployment.Metadata.Metadata = common.CreateMetadataByFields(d.Name, d.Annotations, d.Labels)
+	dbDeployment.Spec.DeploymentSpec = ConvertDeploymentSpec(d.Spec)
 	return dbDeployment
 }
 
@@ -19,7 +19,7 @@ func ConvertDeploymentSpec(ds v1.DeploymentSpec) workloads.DeploymentSpec {
 	podTemplateSpec := deploymentTemplateSpec.Spec
 	dbPodTemplateSpec := containers.ConvertPodTemplateSpecConfigToDB(&podTemplateSpec)
 	dbDeploymentSpec := workloads.DeploymentSpec{
-		Replicas: 0,
+		// TODO Replicas: ,
 		Template: dbPodTemplateSpec,
 		Selector: common.ConvertSelector(ds.Selector),
 	}

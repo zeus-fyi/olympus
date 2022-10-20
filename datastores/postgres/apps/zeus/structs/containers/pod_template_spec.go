@@ -6,6 +6,7 @@ import (
 )
 
 type PodTemplateSpec struct {
+	autogen_structs.ChartSubcomponentChildClassTypes
 	Metadata common.Metadata
 	Spec     PodSpec
 }

@@ -2,7 +2,6 @@ package deployments
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -16,26 +15,15 @@ type Deployment struct {
 	workloads.Deployment
 }
 
-func newDeployment() Deployment {
-	return Deployment{workloads.NewDeployment()}
+func newDeployment(deployment workloads.Deployment) Deployment {
+	return Deployment{deployment}
 }
 
 const ModelName = "Deployment"
 
-func (d *Deployment) insertDeploymentStatement(c create.Chart) string {
-	sqlInsertStatement := fmt.Sprintf(
-		`%s, cte_insert_cct AS (
-				    INSERT INTO chart_subcomponent_child_class_types(chart_subcomponent_parent_class_type_id, chart_subcomponent_child_class_type_name)
-					VALUES ((SELECT chart_subcomponent_parent_class_type_id FROM cte_insert_pc), '%s')
-				    RETURNING chart_subcomponent_child_class_type_id
-				) SELECT chart_subcomponent_parent_class_type_id FROM cte_insert_pc
-	`, d.insertDeploymentParentClass(c.ChartPackageID), "deploymentSpec")
-	return sqlInsertStatement
-}
-
 func (d *Deployment) InsertDeployment(ctx context.Context, q sql_query_templates.QueryParams, c create.Chart) error {
 	log.Debug().Interface("InsertQuery:", q.LogHeader(ModelName))
-	r, err := apps.Pg.Exec(ctx, d.insertDeploymentStatement(c))
+	r, err := apps.Pg.Exec(ctx, d.insertDeploymentCtes(c.ChartPackageID))
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
 		return err
 	}

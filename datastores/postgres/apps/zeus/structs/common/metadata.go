@@ -19,9 +19,9 @@ func (m *Metadata) HasName() bool {
 }
 
 func (m *Metadata) HasLabels() bool {
-	return len(m.Labels.LabelValues) > 0
+	return len(m.Labels.Values) > 0
 }
 
 func (m *Metadata) HasAnnotations() bool {
-	return len(m.Annotations.AnnotationValues) > 0
+	return len(m.Annotations.Values) > 0
 }

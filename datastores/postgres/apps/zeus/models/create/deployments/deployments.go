@@ -1,4 +1,4 @@
-package create
+package deployments
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/workloads"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -21,7 +22,7 @@ func newDeployment() Deployment {
 
 const ModelName = "Deployment"
 
-func (d *Deployment) insertDeploymentStatement(c Chart) string {
+func (d *Deployment) insertDeploymentStatement(c create.Chart) string {
 	sqlInsertStatement := fmt.Sprintf(
 		`%s, cte_insert_cct AS (
 				    INSERT INTO chart_subcomponent_child_class_types(chart_subcomponent_parent_class_type_id, chart_subcomponent_child_class_type_name)
@@ -32,7 +33,7 @@ func (d *Deployment) insertDeploymentStatement(c Chart) string {
 	return sqlInsertStatement
 }
 
-func (d *Deployment) InsertDeployment(ctx context.Context, q sql_query_templates.QueryParams, c Chart) error {
+func (d *Deployment) InsertDeployment(ctx context.Context, q sql_query_templates.QueryParams, c create.Chart) error {
 	log.Debug().Interface("InsertQuery:", q.LogHeader(ModelName))
 	r, err := apps.Pg.Exec(ctx, d.insertDeploymentStatement(c))
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {

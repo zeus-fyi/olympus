@@ -1,4 +1,4 @@
-package create
+package deployments
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/workloads"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create"
 	autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -42,9 +43,9 @@ func (s *ConvertDeploymentPackagesTestSuite) TestConvertDeploymentAndInsert() {
 	s.Require().Nil(err)
 }
 
-func mockChart() (Chart, error) {
+func mockChart() (create.Chart, error) {
 	ns := sql.NullString{}
-	c := Chart{autogen_structs.ChartPackages{
+	c := create.Chart{autogen_structs.ChartPackages{
 		ChartPackageID:   0,
 		ChartName:        rand.String(10),
 		ChartVersion:     rand.String(10),

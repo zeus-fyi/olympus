@@ -13,3 +13,15 @@ func NewMetadata() Metadata {
 	m.Labels = NewMetadataLabels()
 	return m
 }
+
+func (m *Metadata) HasName() bool {
+	return len(m.Name.ChartSubcomponentsChildValues.ChartSubcomponentValue) > 0
+}
+
+func (m *Metadata) HasLabels() bool {
+	return len(m.Labels.LabelValues) > 0
+}
+
+func (m *Metadata) HasAnnotations() bool {
+	return len(m.Annotations.AnnotationValues) > 0
+}

@@ -1,14 +1,14 @@
-package create
+package deployments
 
 import "fmt"
 
 func (d *Deployment) insertDeploymentMetadataChildren() string {
 
-	//m := d.Metadata
-	//if len(m.Name) > 0 {
-	//
-	//}
-	//
+	m := d.Metadata
+	if m.HasName() {
+
+	}
+
 	//if len(m.Labels) > 0 {
 	//
 	//}

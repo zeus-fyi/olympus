@@ -7,16 +7,16 @@ import (
 
 func ConvertMetadata(m metav1.ObjectMeta) common.Metadata {
 	dbMetaConfig := common.NewMetadata()
-	dbMetaConfig.Name = m.Name
-	dbMetaConfig.Annotations = ConvertKeyValueToChildValues(m.Annotations)
-	dbMetaConfig.Labels = ConvertKeyValueToChildValues(m.Labels)
+	dbMetaConfig.Name.ChartSubcomponentValue = m.Name
+	dbMetaConfig.Annotations.AnnotationValues = ConvertKeyValueToChildValues(m.Annotations)
+	dbMetaConfig.Labels.LabelValues = ConvertKeyValueToChildValues(m.Labels)
 	return dbMetaConfig
 }
 
 func CreateMetadataByFields(name string, annotations, labels map[string]string) common.Metadata {
 	dbMetaConfig := common.NewMetadata()
-	dbMetaConfig.Name = name
-	dbMetaConfig.Annotations = ConvertKeyValueToChildValues(annotations)
-	dbMetaConfig.Labels = ConvertKeyValueToChildValues(labels)
+	dbMetaConfig.Name.AddNameValue(name)
+	dbMetaConfig.Annotations.AnnotationValues = ConvertKeyValueToChildValues(annotations)
+	dbMetaConfig.Labels.LabelValues = ConvertKeyValueToChildValues(labels)
 	return dbMetaConfig
 }

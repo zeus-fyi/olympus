@@ -7,7 +7,7 @@ import (
 )
 
 type Deployment struct {
-	KindDefinition        autogen_structs.ChartComponentKinds
+	KindDefinition        autogen_structs.ChartComponentResources
 	ParentClassDefinition autogen_structs.ChartSubcomponentParentClassTypes
 
 	Metadata common.Metadata
@@ -23,7 +23,7 @@ type DeploymentSpec struct {
 
 func NewDeployment() Deployment {
 	d := Deployment{}
-	d.KindDefinition = autogen_structs.ChartComponentKinds{
+	d.KindDefinition = autogen_structs.ChartComponentResources{
 		ChartComponentKindName:   "Deployment",
 		ChartComponentApiVersion: "apps/v1",
 	}

@@ -1,4 +1,4 @@
-package chart_component_kinds
+package chart_component_resources
 
 import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/configuration"

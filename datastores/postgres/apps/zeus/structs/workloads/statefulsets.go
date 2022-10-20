@@ -2,7 +2,7 @@ package workloads
 
 import (
 	autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
-	common "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/common"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/common"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/containers"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/networking"
 )
@@ -14,7 +14,7 @@ type StatefulSetAndChildServices struct {
 }
 
 type StatefulSet struct {
-	KindDefinition        autogen_structs.ChartComponentKinds
+	KindDefinition        autogen_structs.ChartComponentResources
 	ParentClassDefinition autogen_structs.ChartSubcomponentParentClassTypes
 
 	Metadata common.Metadata
@@ -31,7 +31,7 @@ type StatefulSetSpec struct {
 
 func NewStatefulSet() StatefulSet {
 	s := StatefulSet{}
-	s.KindDefinition = autogen_structs.ChartComponentKinds{
+	s.KindDefinition = autogen_structs.ChartComponentResources{
 		ChartComponentKindName:   "StatefulSet",
 		ChartComponentApiVersion: "apps/v1",
 	}

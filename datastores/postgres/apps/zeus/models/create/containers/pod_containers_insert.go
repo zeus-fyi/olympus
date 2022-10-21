@@ -8,9 +8,7 @@ func (p *PodContainersGroup) insertPodContainerGroupSQL() string {
 	q := fmt.Sprintf(
 		`WITH cte_insert_containers AS (
 					%s
-				), cte_insert_spec AS (
-					%s
-				), `,
+				), `, "tbd",
 	)
 
 	return q

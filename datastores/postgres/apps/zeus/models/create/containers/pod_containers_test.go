@@ -1,4 +1,4 @@
-package deployments
+package containers
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/workloads"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/deployments"
 	autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -16,31 +17,33 @@ import (
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
-type ConvertDeploymentPackagesTestSuite struct {
+type PodContainersGroupTestSuite struct {
 	conversions_test.ConversionsTestSuite
 }
 
-func (s *ConvertDeploymentPackagesTestSuite) TestConvertDeploymentAndInsert() {
-	filepath := s.TestDirectory + "/mocks/test/deployment_eth_indexer.yaml"
-	jsonBytes, err := s.Yr.ReadYamlConfig(filepath)
+func (p *PodContainersGroupTestSuite) TestConvertDeploymentAndInsert() {
+	filepath := p.TestDirectory + "/mocks/test/deployment_eth_indexer.yaml"
+	jsonBytes, err := p.Yr.ReadYamlConfig(filepath)
 
 	var d *v1.Deployment
 	err = json.Unmarshal(jsonBytes, &d)
 
-	s.Require().Nil(err)
-	s.Require().NotEmpty(d)
+	p.Require().Nil(err)
+	p.Require().NotEmpty(d)
 
 	dbDeploymentConfig := workloads.ConvertDeploymentConfigToDB(d)
-	s.Require().NotEmpty(dbDeploymentConfig)
+	p.Require().NotEmpty(dbDeploymentConfig)
 
 	mockC, err := mockChart()
-	s.Require().Nil(err)
+	p.Require().Nil(err)
 
 	ctx := context.Background()
-	q := sql_query_templates.NewQueryParam("InsertDeployment", "table", "where", 1000, []string{})
-	dbDeploy := NewDeploymentConfigForDB(dbDeploymentConfig)
+	q := sql_query_templates.NewQueryParam("InsertPodResourceContainers", "table", "where", 1000, []string{})
+	dbDeploy := deployments.NewDeploymentConfigForDB(dbDeploymentConfig)
 	err = dbDeploy.InsertDeployment(ctx, q, mockC)
-	s.Require().Nil(err)
+	p.Require().Nil(err)
+
+	// TODO, extract the pod resource group then use for test and remove excess copied here from deployment test
 }
 
 func mockChart() (create.Chart, error) {
@@ -52,11 +55,11 @@ func mockChart() (create.Chart, error) {
 		ChartDescription: ns,
 	}}
 	ctx := context.Background()
-	q := sql_query_templates.NewQueryParam("InsertChart", "table", "where", 1000, []string{})
+	q := sql_query_templates.NewQueryParam("InsertPodResourceContainers", "table", "where", 1000, []string{})
 	err := c.InsertChart(ctx, q, c)
 	return c, err
 }
 
-func TestConvertDeploymentPackagesTestSuite(t *testing.T) {
-	suite.Run(t, new(ConvertDeploymentPackagesTestSuite))
+func TestPodContainersGroupTestSuite(t *testing.T) {
+	suite.Run(t, new(PodContainersGroupTestSuite))
 }

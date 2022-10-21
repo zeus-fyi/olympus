@@ -15,7 +15,7 @@ type Deployment struct {
 	workloads.Deployment
 }
 
-func newDeployment(deployment workloads.Deployment) Deployment {
+func NewDeploymentConfigForDB(deployment workloads.Deployment) Deployment {
 	return Deployment{deployment}
 }
 

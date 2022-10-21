@@ -16,6 +16,14 @@ type PodContainersGroup struct {
 	Containers map[string]containers.Container
 }
 
+func NewPodContainersGroupForDB(ps containers.PodTemplateSpec) PodContainersGroup {
+	m := make(map[string]containers.Container)
+	for _, c := range ps.Spec.PodTemplateContainers {
+		m[c.Metadata.ContainerImageID] = c
+	}
+	return PodContainersGroup{Containers: m}
+}
+
 const ModelName = "PodContainersGroup"
 
 func (p *PodContainersGroup) InsertPodContainerGroup(ctx context.Context, q sql_query_templates.QueryParams, workloadChildGroupInfo autogen_structs.ChartSubcomponentChildClassTypes) error {

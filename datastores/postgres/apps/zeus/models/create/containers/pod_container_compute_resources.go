@@ -12,7 +12,6 @@ func (p *PodContainersGroup) insertContainerComputeResourcesHeader() string {
 
 // optional, should skip if not specified/nothing is provided
 func (p *PodContainersGroup) getContainerComputeResourcesValues(parentExpression string, cr *autogen_structs.ContainerComputeResources) string {
-
 	parentExpression += fmt.Sprintf("('%d', '%s')", cr.ComputeResourcesID, cr.ComputeResourcesKeyValuesJSONb)
 	return parentExpression
 }

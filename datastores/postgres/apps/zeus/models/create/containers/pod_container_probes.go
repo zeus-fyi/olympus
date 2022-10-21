@@ -18,17 +18,12 @@ func (p *PodContainersGroup) getContainerProbesValuesForInsert(parentExpression 
 	return parentExpression
 }
 
-func (p *PodContainersGroup) insertContainerProbesRelationship(parentExpression, containerImageID string, probes autogen_structs.ContainersProbes) string {
-	valsToInsert := "VALUES "
+func (p *PodContainersGroup) insertContainerProbesRelationshipHeader() string {
+	return "INSERT INTO container_probes(probe_id, container_id, probe_type) VALUES "
+}
 
-	valsToInsert += fmt.Sprintf("('%d', (%s), '%s')", probes.ProbeID, selectRelatedContainerIDFromImageID(containerImageID), probes.ProbeType)
-
-	containerInsert := fmt.Sprintf(`
-				%s AS (
-					INSERT INTO containers_probes(probe_id, container_id, probe_type)
-					%s
-	),`, "cte_containers_probes", valsToInsert)
-
-	returnExpression := fmt.Sprintf("%s %s", parentExpression, containerInsert)
+func (p *PodContainersGroup) getContainerProbesRelationship(parentExpression, imageID string, probes autogen_structs.ContainersProbes) string {
+	valsToInsert := fmt.Sprintf("('%d', (%s), '%s')", probes.ProbeID, selectRelatedContainerIDFromImageID(imageID), probes.ProbeType)
+	returnExpression := fmt.Sprintf("%s %s", parentExpression, valsToInsert)
 	return returnExpression
 }

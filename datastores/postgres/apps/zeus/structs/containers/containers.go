@@ -7,6 +7,7 @@ import (
 type Container struct {
 	ClassDefinition autogen_structs.ChartSubcomponentChildClassTypes
 	Metadata        autogen_structs.Containers
+	VolumeMounts    ContainerVolumeMounts
 	Ports           Ports
 	Env             ContainerEnvVars
 	Probes          ContainerProbes

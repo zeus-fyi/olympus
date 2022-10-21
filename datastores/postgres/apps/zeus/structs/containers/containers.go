@@ -6,10 +6,11 @@ import (
 
 type Container struct {
 	ClassDefinition autogen_structs.ChartSubcomponentChildClassTypes
-	Information     autogen_structs.Containers
-	Ports           ContainersPorts
+	Metadata        autogen_structs.Containers
+	Ports           Ports
 	Env             ContainerEnvVars
 	Probes          ContainerProbes
+	ResourceRequest *autogen_structs.ContainerComputeResources
 }
 
 type Containers []Container
@@ -21,7 +22,7 @@ func NewContainer() Container {
 			ChartSubcomponentChildClassTypeID:   0,
 			ChartSubcomponentChildClassTypeName: "",
 		},
-		Information: autogen_structs.Containers{},
+		Metadata: autogen_structs.Containers{},
 	}
 	return c
 }

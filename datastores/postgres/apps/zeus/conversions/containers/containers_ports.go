@@ -6,8 +6,8 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-func ContainerPortsToDB(cps []v1.ContainerPort) containers.ContainersPorts {
-	contPortsSlice := make(containers.ContainersPorts, len(cps))
+func ContainerPortsToDB(cps []v1.ContainerPort) containers.Ports {
+	contPortsSlice := make(containers.Ports, len(cps))
 	for i, p := range cps {
 		port := ContainerPortToDB(p)
 		contPortsSlice[i] = port

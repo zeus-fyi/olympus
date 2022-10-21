@@ -4,4 +4,4 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
 )
 
-type ContainersPorts []autogen_structs.ContainerPorts
+type Ports []autogen_structs.ContainerPorts

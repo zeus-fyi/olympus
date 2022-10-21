@@ -1,19 +1,19 @@
-package common
+package containers
 
 import (
 	"fmt"
 	"strings"
 
+	autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/containers"
 )
 
-// TODO depcreate
-func InsertContainerValues(parentExpression string, containers containers.Containers) string {
+func (p *PodContainersGroup) insertContainerMetadata(parentExpression string, containers containers.Containers, workloadChildGroupInfo autogen_structs.ChartSubcomponentChildClassTypes) string {
 	valsToInsert := "VALUES "
-	for i, cont := range containers {
-		c := cont.Metadata
-		// todo ports, env, probes
 
+	i := len(p.Containers)
+	for _, cont := range p.Containers {
+		c := cont.Metadata
 		if len(c.ContainerPlatformOs) <= 0 {
 			c.ContainerPlatformOs = "undefined"
 		}
@@ -34,6 +34,8 @@ func InsertContainerValues(parentExpression string, containers containers.Contai
 		if i < len(containers)-1 {
 			valsToInsert += ","
 		}
+
+		i += 1
 	}
 
 	containerInsert := fmt.Sprintf(`

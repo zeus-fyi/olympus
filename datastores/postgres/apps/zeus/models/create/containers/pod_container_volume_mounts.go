@@ -7,24 +7,15 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/containers"
 )
 
-func (p *PodContainersGroup) insertContainerVolumeMounts(parentExpression string, contVolMounts containers.ContainerVolumeMounts) string {
-	valsToInsert := "VALUES "
+func (p *PodContainersGroup) insertContainerVolumeMountsHeader() string {
+	return "INSERT INTO container_probes(probe_id, probe_key_values_jsonb) VALUES "
+}
 
-	for i, vm := range contVolMounts {
-		valsToInsert += fmt.Sprintf("('%d', '%s', '%s')", vm.VolumeMountID, vm.VolumeMountPath, vm.VolumeMountPath)
-		if i < len(contVolMounts)-1 {
-			valsToInsert += ","
-		}
+func (p *PodContainersGroup) getInsertContainerVolumeMountsValues(parentExpression string, contVolMounts containers.ContainerVolumeMounts) string {
+	for _, vm := range contVolMounts {
+		parentExpression += fmt.Sprintf("('%d', '%s', '%s')", vm.VolumeMountID, vm.VolumeMountPath, vm.VolumeMountPath)
 	}
-
-	containerVmsInsert := fmt.Sprintf(`
-				%s AS (
-					INSERT INTO container_volume_mounts(volume_mount_id, volume_mount_path, volume_name)
-					%s
-	),`, "cte_container_volume_mounts", valsToInsert)
-
-	returnExpression := fmt.Sprintf("%s %s", parentExpression, containerVmsInsert)
-	return returnExpression
+	return parentExpression
 }
 
 func (p *PodContainersGroup) insertContainerVolumeMountRelationship(parentExpression string, containerImageID string, vm autogen_structs.ContainerVolumeMounts, cct autogen_structs.ChartSubcomponentChildClassTypes) string {

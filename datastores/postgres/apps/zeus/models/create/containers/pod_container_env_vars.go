@@ -4,27 +4,22 @@ import (
 	"fmt"
 
 	autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/containers"
 )
 
-func (p *PodContainersGroup) insertContainerEnvVars(parentExpression, containerImageID string, envVars containers.ContainerEnvVars, workloadChildGroupInfo autogen_structs.ChartSubcomponentChildClassTypes) string {
-	valsToInsert := "VALUES "
+func (p *PodContainersGroup) insertContainerEnvVarsHeader() string {
+	return "INSERT INTO container_environmental_vars(port_id, port_name, container_port, host_port) VALUES "
+}
 
-	for i, ev := range envVars {
-		valsToInsert += fmt.Sprintf("('%d', '%s', '%s')", ev.EnvID, ev.Name, ev.Value)
-		if i < len(envVars)-1 {
-			valsToInsert += ","
-		}
+func (p *PodContainersGroup) getInsertContainerEnvVarsValues(parentExpression, containerImageID string) string {
+	c, ok := p.Containers[containerImageID]
+	if !ok {
+		return ""
+	}
+	for _, ev := range c.Env {
+		parentExpression += fmt.Sprintf("('%d', '%s', '%s')", ev.EnvID, ev.Name, ev.Value)
 	}
 
-	containerInsert := fmt.Sprintf(`
-				%s AS (
-					INSERT INTO container_environmental_vars(env_id, name, value)
-					%s
-	),`, "cte_container_environmental_vars", valsToInsert)
-
-	returnExpression := fmt.Sprintf("%s %s", parentExpression, containerInsert)
-	return returnExpression
+	return parentExpression
 }
 
 func (p *PodContainersGroup) insertContainerEnvVarRelationship(parentExpression, containerImageID string, envVar autogen_structs.ContainerEnvironmentalVars, cct autogen_structs.ChartSubcomponentChildClassTypes) string {

@@ -14,17 +14,21 @@ func selectRelatedContainerIDFromImageID(imageID string) string {
 // insertPodContainerGroupSQL, will use the next_id distributed ID generator and select the container id
 // value for subsequent subcomponent relationships of its element, should greatly simplify the insert logic
 func (p *PodContainersGroup) insertPodContainerGroupSQL(workloadChildGroupInfo autogen_structs.ChartSubcomponentChildClassTypes) string {
-
 	valsToInsert := "VALUES "
 
 	i := len(p.Containers)
-	for _, cont := range p.Containers {
+	insertPortsParentExpression := p.insertContainerPortsHeader()
+	// should use imageID set when calling NewPodContainersGroupForDB
+	for imageID, cont := range p.Containers {
 		c := cont.Metadata
 		processAndSetAmbiguousContainerFieldStatus(c)
 		valsToInsert += fmt.Sprintf("('%s', '%s', '%s', '%s', '%s', '%s')", c.ContainerName, c.ContainerImageID, c.ContainerVersionTag, c.ContainerPlatformOs, c.ContainerRepository, c.ContainerImagePullPolicy)
 		if i < len(p.Containers)-1 {
 			valsToInsert += ","
 		}
+
+		// should continue appending values to header
+		insertPortsParentExpression = p.getContainerPortsValuesForInsert(insertPortsParentExpression, imageID)
 
 		i += 1
 	}
@@ -38,9 +42,12 @@ func (p *PodContainersGroup) insertPodContainerGroupSQL(workloadChildGroupInfo a
 	q := fmt.Sprintf(
 		`WITH cte_insert_containers AS (
 					%s
-				) cte_insert_container_ports AS (
+				), cte_insert_container_ports AS (
 				    %s
-				), `, containerInsert, "tbd",
+				), cte_container_environmental_vars AS (
+				), cte_compute_resources_key_values_jsonb AS (
+			    ), 
+		`, containerInsert, insertPortsParentExpression,
 	)
 	return q
 }

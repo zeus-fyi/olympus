@@ -14,7 +14,7 @@ func (p *PodContainersGroup) getContainerProbesValuesForInsert(parentExpression 
 	if rr == nil {
 		return parentExpression
 	}
-	parentExpression += fmt.Sprintf("('%d', (%s))", rr.ComputeResourcesID, rr.ComputeResourcesKeyValuesJSONb)
+	parentExpression += fmt.Sprintf("\n('%d', (%s))", rr.ComputeResourcesID, rr.ComputeResourcesKeyValuesJSONb)
 	return parentExpression
 }
 
@@ -23,7 +23,7 @@ func (p *PodContainersGroup) insertContainerProbesRelationshipHeader() string {
 }
 
 func (p *PodContainersGroup) getContainerProbesRelationship(parentExpression, imageID string, probes autogen_structs.ContainersProbes) string {
-	valsToInsert := fmt.Sprintf("('%d', (%s), '%s')", probes.ProbeID, selectRelatedContainerIDFromImageID(imageID), probes.ProbeType)
+	valsToInsert := fmt.Sprintf("\n('%d', (%s), '%s')", probes.ProbeID, selectRelatedContainerIDFromImageID(imageID), probes.ProbeType)
 	returnExpression := fmt.Sprintf("%s %s", parentExpression, valsToInsert)
 	return returnExpression
 }

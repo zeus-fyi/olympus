@@ -27,6 +27,17 @@ func processAndSetAmbiguousContainerFieldStatus(c autogen_structs.Containers) {
 }
 
 func selectRelatedContainerIDFromImageID(imageID string) string {
-	selectRelatedContainerID := fmt.Sprintf("SELECT container_id FROM containers WHERE container_image_id = %s", imageID)
+	selectRelatedContainerID := fmt.Sprintf("SELECT container_id FROM containers WHERE container_image_id = '%s'", imageID)
 	return selectRelatedContainerID
+}
+
+func AppendValuesListComma(parentExpression string, valuesInsertCommaBoolCond bool) string {
+	if valuesInsertCommaBoolCond {
+		parentExpression += ","
+	}
+	return parentExpression
+}
+
+func (p *PodContainersGroup) process() {
+
 }

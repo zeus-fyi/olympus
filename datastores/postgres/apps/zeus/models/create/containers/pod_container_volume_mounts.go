@@ -10,9 +10,12 @@ func (p *PodContainersGroup) insertContainerVolumeMountsHeader() string {
 	return "INSERT INTO container_probes(probe_id, probe_key_values_jsonb) VALUES "
 }
 
-func (p *PodContainersGroup) getInsertContainerVolumeMountsValues(parentExpression string, contVolMounts containers.ContainerVolumeMounts) string {
-	for _, vm := range contVolMounts {
-		parentExpression += fmt.Sprintf("('%d', '%s', '%s')", vm.VolumeMountID, vm.VolumeMountPath, vm.VolumeMountPath)
+func (p *PodContainersGroup) getInsertContainerVolumeMountsValues(parentExpression string, contVolMounts containers.ContainerVolumeMounts, isLastValuesGroup bool) string {
+	for i, vm := range contVolMounts {
+		parentExpression += fmt.Sprintf("\n('%d', '%s', '%s')", vm.VolumeMountID, vm.VolumeMountPath, vm.VolumeMountPath)
+		if i < len(contVolMounts)-1 && !isLastValuesGroup {
+			parentExpression += ","
+		}
 	}
 	return parentExpression
 }
@@ -27,7 +30,7 @@ func (p *PodContainersGroup) getContainerVolumeMountRelationshipValues(parentExp
 		return parentExpression
 	}
 	for _, vm := range c.VolumeMounts {
-		parentExpression += fmt.Sprintf("('%s', (%s), '%d'),", childClassTypeID, selectRelatedContainerIDFromImageID(imageID), vm.VolumeMountID)
+		parentExpression += fmt.Sprintf("\n('%s', (%s), '%d'),", childClassTypeID, selectRelatedContainerIDFromImageID(imageID), vm.VolumeMountID)
 	}
 	return parentExpression
 }

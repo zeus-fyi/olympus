@@ -12,13 +12,17 @@ func (p *PodContainersGroup) insertContainerComputeResourcesHeader() string {
 
 // optional, should skip if not specified/nothing is provided
 func (p *PodContainersGroup) getContainerComputeResourcesValues(parentExpression string, cr *autogen_structs.ContainerComputeResources) string {
-	parentExpression += fmt.Sprintf("('%d', '%s')", cr.ComputeResourcesID, cr.ComputeResourcesKeyValuesJSONb)
+	parentExpression += fmt.Sprintf("\n('%d', '%s')", cr.ComputeResourcesID, cr.ComputeResourcesKeyValuesJSONb)
 	return parentExpression
+}
+
+func (p *PodContainersGroup) insertContainerComputeResourcesRelationshipHeader() string {
+	return "INSERT INTO containers_environmental_vars(compute_resources_id, compute_resources_key_values_jsonb) VALUES "
 }
 
 func (p *PodContainersGroup) insertContainerComputeResourcesRelationship(parentExpression, containerImageID string, envVar autogen_structs.ContainerEnvironmentalVars, cct autogen_structs.ChartSubcomponentChildClassTypes) string {
 	valsToInsert := "VALUES "
-	valsToInsert += fmt.Sprintf("('%d', (%s), '%d')", cct.ChartSubcomponentChildClassTypeID, selectRelatedContainerIDFromImageID(containerImageID), envVar.EnvID)
+	valsToInsert += fmt.Sprintf("\n('%d', (%s), '%d')", cct.ChartSubcomponentChildClassTypeID, selectRelatedContainerIDFromImageID(containerImageID), envVar.EnvID)
 	containerInsert := fmt.Sprintf(`
 				%s AS (
 					INSERT INTO containers_environmental_vars(chart_subcomponent_child_class_type_id, container_id, env_id)

@@ -9,7 +9,11 @@ import (
 // This will create a volume for the pod spec, if a volume already exists it's not needed, so this is optionally
 // required
 
-func (p *PodContainersGroup) insertVolumes(parentExpression string, workloadChildGroupInfo autogen_structs.ChartSubcomponentChildClassTypes, vols ...autogen_structs.Volumes) string {
+func (p *PodContainersGroup) insertVolumesHeader() string {
+	return "INSERT INTO volumes(volume_id, volume_name, volume_key_values_jsonb) "
+}
+
+func (p *PodContainersGroup) insertVolumes(parentExpression, childClassTypeID string, vols ...autogen_structs.Volumes) string {
 	valsToInsert := "VALUES "
 
 	for i, v := range vols {
@@ -29,9 +33,9 @@ func (p *PodContainersGroup) insertVolumes(parentExpression string, workloadChil
 	return returnExpression
 }
 
-func (p *PodContainersGroup) insertVolumePodSpecRelationship(parentExpression, volID string, cct autogen_structs.ChartSubcomponentChildClassTypes) string {
+func (p *PodContainersGroup) insertVolumePodSpecRelationship(parentExpression, volID, childClassTypeID string) string {
 	valsToInsert := "VALUES "
-	valsToInsert += fmt.Sprintf("('%d', %s)", cct.ChartSubcomponentChildClassTypeID, volID)
+	valsToInsert += fmt.Sprintf("('%s', %s)", childClassTypeID, volID)
 	containerInsert := fmt.Sprintf(`
 				%s AS (
 					INSERT INTO containers_volumes(chart_subcomponent_child_class_type_id, volume_id)

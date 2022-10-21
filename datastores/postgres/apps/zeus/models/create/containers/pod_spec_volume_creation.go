@@ -9,7 +9,7 @@ import (
 // This will create a volume for the pod spec, if a volume already exists it's not needed, so this is optionally
 // required
 
-func (p *PodContainersGroup) insertVolumes(parentExpression, containerImageID string, workloadChildGroupInfo autogen_structs.ChartSubcomponentChildClassTypes, vols ...autogen_structs.Volumes) string {
+func (p *PodContainersGroup) insertVolumes(parentExpression string, workloadChildGroupInfo autogen_structs.ChartSubcomponentChildClassTypes, vols ...autogen_structs.Volumes) string {
 	valsToInsert := "VALUES "
 
 	for i, v := range vols {
@@ -36,7 +36,7 @@ func (p *PodContainersGroup) insertVolumePodSpecRelationship(parentExpression, v
 				%s AS (
 					INSERT INTO containers_volumes(chart_subcomponent_child_class_type_id, volume_id)
 					%s
-	),`, "cte_container_ports", valsToInsert)
+	),`, "cte_containers_volumes_spec_relationship", valsToInsert)
 
 	returnExpression := fmt.Sprintf("%s %s", parentExpression, containerInsert)
 	return returnExpression

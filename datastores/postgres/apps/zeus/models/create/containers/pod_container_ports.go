@@ -2,22 +2,24 @@ package containers
 
 import (
 	"fmt"
-
-	autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
 )
 
-// TODO below
-func (p *PodContainersGroup) insertContainerResourceRequest(parentExpression string, rr *autogen_structs.ContainerComputeResources, workloadChildGroupInfo autogen_structs.ChartSubcomponentChildClassTypes) string {
-	if rr == nil {
-		return parentExpression
+func (p *PodContainersGroup) insertContainerPorts(containerImageID string) string {
+	c, ok := p.Containers[containerImageID]
+	if !ok {
+		return ""
 	}
-	valsToInsert := fmt.Sprintf("('%d', (%s))", rr.ComputeResourcesID, rr.ComputeResourcesKeyValuesJSONb)
+	valsToInsert := "VALUES "
+	for _, port := range c.Ports {
+		valsToInsert += fmt.Sprintf("('%d', '%s', %d, %d)", port.PortID, port.PortName, port.ContainerPort, port.HostPort)
+
+	}
 	containerInsert := fmt.Sprintf(`
 				%s AS (
-					INSERT INTO container_compute_resources(compute_resources_id, compute_resources_key_values_jsonb)
+					INSERT INTO container_ports(port_id, port_name, container_port, host_port)
 					%s
-	),`, "cte_container_compute_resources", valsToInsert)
-	returnExpression := fmt.Sprintf("%s %s", parentExpression, containerInsert)
+	),`, "cte_container_ports", valsToInsert)
+	returnExpression := fmt.Sprintf("%s", containerInsert)
 	return returnExpression
 }
 

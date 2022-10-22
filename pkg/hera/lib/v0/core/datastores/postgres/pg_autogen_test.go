@@ -22,6 +22,8 @@ func (s *PgSchemaAutogenTestSuite) TestTablesSchemaRead() {
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(s.TableContent)
 	s.Assert().NotEmpty(s.TableMap)
+	s.Assert().NotEmpty(s.StructMapToCodeGen)
+
 }
 
 func TestPgSchemaAutogenTestSuite(t *testing.T) {

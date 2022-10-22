@@ -6,5 +6,9 @@ func (d *PgSchemaAutogen) GetTableData() error {
 		return err
 	}
 	err = d.ProcessTables(d.Postgresql, d.Settings, tables...)
+	if err != nil {
+		return err
+	}
+	d.ConvertTablesToCodeGenStructs()
 	return err
 }

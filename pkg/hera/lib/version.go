@@ -6,4 +6,5 @@ import (
 
 type HeraLib struct {
 	drivers.DriverLib
+	CodeGen
 }

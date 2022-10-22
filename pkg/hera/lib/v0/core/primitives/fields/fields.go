@@ -1,6 +1,9 @@
 package fields
 
-import "github.com/zeus-fyi/jennifer/jen"
+import (
+	"github.com/zeus-fyi/jennifer/jen"
+	"github.com/zeus-fyi/tables-to-go/pkg/database"
+)
 
 type FileWrapper struct {
 	PackageName string
@@ -8,29 +11,28 @@ type FileWrapper struct {
 }
 
 type Field struct {
-	Pkg     string
-	Name    string
-	Type    string
-	Value   string
+	Pkg   string
+	Name  string
+	Type  string
+	Value string
+
+	DbMetadata
 	FnField *jen.Statement
 }
 
-type CaseField struct {
-	Name string
-	Type string
-	Body []*jen.Statement
+func (f *Field) DbFieldName() string {
+	return f.DbMetadata.Column.Name
 }
 
-func NewCaseField(name, typeName string) CaseField {
-	var body []*jen.Statement
-	return CaseField{
-		Name: name,
-		Type: typeName,
-		Body: body,
+func NewFieldFromDB(tbl *database.Table, col database.Column, colName, goType string) Field {
+	newDbField := NewDbMetadata(tbl, col)
+	f := Field{
+		Pkg:        "",
+		Name:       colName,
+		Type:       goType,
+		Value:      "",
+		DbMetadata: newDbField,
+		FnField:    nil,
 	}
-}
-
-func (c *CaseField) AddBodyStatement(js *jen.Statement) {
-	c.Body = append(c.Body, js)
-	return
+	return f
 }

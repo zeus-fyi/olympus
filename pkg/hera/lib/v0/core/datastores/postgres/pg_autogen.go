@@ -13,12 +13,18 @@ type PgSchemaAutogen struct {
 	StructMapToCodeGen map[string]structs.StructGen
 }
 
-func NewPgSchemaAutogen(dsnStringPgx string) PgSchemaAutogen {
-	pg := PgSchemaAutogen{}
-	pg.InitPG(dsnStringPgx)
-	pg.TableContentMap = table_formatting.NewTableContentMap()
-	pg.StructMapToCodeGen = make(map[string]structs.StructGen)
+func NewPgSchemaAutogen() PgSchemaAutogen {
+	pg := PgSchemaAutogen{
+		StructMapToCodeGen: make(map[string]structs.StructGen),
+	}
 	return pg
+}
+
+func (d *PgSchemaAutogen) NewInitPgConnToSchemaAutogen(dsnStringPgx string) {
+	d.InitPG(dsnStringPgx)
+	d.TableContentMap = table_formatting.NewTableContentMap()
+	d.StructMapToCodeGen = make(map[string]structs.StructGen)
+	return
 }
 
 func (d *PgSchemaAutogen) InitPG(dsnStringPgx string) {
@@ -27,9 +33,9 @@ func (d *PgSchemaAutogen) InitPG(dsnStringPgx string) {
 		panic(err)
 	}
 	d.Postgresql = database.NewPostgresql(pgConf)
-	err = d.Connect()
+	err = d.Postgresql.Connect()
 	if err != nil {
 		panic(err)
 	}
-	return
+	d.Settings = pgConf
 }

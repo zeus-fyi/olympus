@@ -14,7 +14,8 @@ type PgSchemaAutogenTestSuite struct {
 
 func (s *PgSchemaAutogenTestSuite) SetupTest() {
 	s.InitLocalConfigs()
-	s.PgSchemaAutogen = NewPgSchemaAutogen(s.Tc.LocalDbPgconn)
+	s.PgSchemaAutogen = NewPgSchemaAutogen()
+	s.NewInitPgConnToSchemaAutogen(s.Tc.LocalDbPgconn)
 }
 
 func (s *PgSchemaAutogenTestSuite) TestTablesSchemaRead() {
@@ -23,7 +24,6 @@ func (s *PgSchemaAutogenTestSuite) TestTablesSchemaRead() {
 	s.Assert().NotEmpty(s.TableContent)
 	s.Assert().NotEmpty(s.TableMap)
 	s.Assert().NotEmpty(s.StructMapToCodeGen)
-
 }
 
 func TestPgSchemaAutogenTestSuite(t *testing.T) {

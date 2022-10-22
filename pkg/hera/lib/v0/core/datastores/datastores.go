@@ -11,3 +11,9 @@ type DatastoreAutogen struct {
 func NewDatastoreAutogen() DatastoreAutogen {
 	return DatastoreAutogen{}
 }
+
+func (d *DatastoreAutogen) NewInitPGDatastoreAutogen(dsnString string) DatastoreAutogen {
+	pg := postgres.NewPgSchemaAutogen()
+	pg.NewInitPgConnToSchemaAutogen(dsnString)
+	return DatastoreAutogen{pg}
+}

@@ -14,14 +14,15 @@ type ModelTemplate struct {
 	*common.QueryMetadata
 }
 
-// NewModelTemplate should TODO make the parent pkg name part more seamless
+// NewPGModelTemplate should TODO make the parent pkg name part more seamless
 // Should use this to create all Model templates to avoid any nil panics on query metadata
-func NewModelTemplate(p structs.Path, queryInfo *common.QueryMetadata) ModelTemplate {
+func NewPGModelTemplate(p structs.Path, queryInfo *common.QueryMetadata, dsnString string) ModelTemplate {
 	if queryInfo == nil {
 		queryInfo = &common.QueryMetadata{Type: "base", ParentPkgName: "models"}
 	}
 	queryInfo.ParentPkgName = "models"
 	m := ModelTemplate{lib.NewCodeGen(p), queryInfo}
+	m.NewInitPgConnToSchemaAutogen(dsnString)
 	return m
 }
 

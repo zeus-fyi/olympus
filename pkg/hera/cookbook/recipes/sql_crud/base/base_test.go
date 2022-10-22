@@ -14,6 +14,10 @@ type ModelStructBaseGen struct {
 
 var printOutLocation = "/Users/alex/Desktop/Zeus/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 
+func (s *ModelStructBaseGen) SetupTest() {
+	s.InitLocalConfigs()
+}
+
 func (s *ModelStructBaseGen) TestBaseTemplateGeneration() {
 	p := structs.Path{
 		PackageName: "autogen_bases",
@@ -23,12 +27,26 @@ func (s *ModelStructBaseGen) TestBaseTemplateGeneration() {
 		Env:         "",
 	}
 
-	m := NewModelTemplate(p, nil)
+	m := NewPGModelTemplate(p, nil, s.Tc.LocalDbPgconn)
 	//cg.Add(_struct.GenCreateStructWithExternalStructInheritance(wrapperStructName, extStructPath, extStructName))
 	err := m.CreateTemplateFromStruct(StructMock())
 	s.Require().Nil(err)
 }
 
+func (s *ModelStructBaseGen) TestBaseTemplateGenerationFromDbChainTool() {
+	p := structs.Path{
+		PackageName: "autogen_bases",
+		DirIn:       "",
+		DirOut:      printOutLocation,
+		Fn:          "model_template.go",
+		Env:         "",
+	}
+
+	m := NewPGModelTemplate(p, nil, s.Tc.LocalDbPgconn)
+	//cg.Add(_struct.GenCreateStructWithExternalStructInheritance(wrapperStructName, extStructPath, extStructName))
+	err := m.CreateTemplateFromStruct(StructMock())
+	s.Require().Nil(err)
+}
 func TestModelStructBaseGen(t *testing.T) {
 	suite.Run(t, new(ModelStructBaseGen))
 }

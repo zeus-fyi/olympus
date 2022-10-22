@@ -22,3 +22,9 @@ func NewCodeDriverLib(codeGenPath structs.Path) CodeDriverLib {
 	}
 	return c
 }
+
+func (c *CodeDriverLib) ResetInternalJenCaches() {
+	c.FileBaseGen = base.FileComponentBaseElements{}
+	c.JenStatementChain = []*jen.Statement{}
+	c.JenFile = nil
+}

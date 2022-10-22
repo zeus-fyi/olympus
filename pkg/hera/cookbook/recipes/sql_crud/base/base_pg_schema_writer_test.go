@@ -1,8 +1,17 @@
 package base
 
-import "github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+import (
+	"testing"
 
-func (s *ModelStructBaseGen) TestPGBaseSchemaWriter() {
+	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+)
+
+type ModelStructBaseGenWriterTestSuite struct {
+	ModelStructBaseGenTestSuite
+}
+
+func (s *ModelStructBaseGenWriterTestSuite) TestPGBaseSchemaWriter() {
 	p := structs.Path{
 		PackageName: "autogen_bases",
 		DirIn:       "",
@@ -14,4 +23,8 @@ func (s *ModelStructBaseGen) TestPGBaseSchemaWriter() {
 	m := NewPGModelTemplate(p, nil, s.Tc.LocalDbPgconn)
 	err := m.WritePgTableDefinition()
 	s.Require().Nil(err)
+}
+
+func TestModelStructBaseGenWriterTestSuite(t *testing.T) {
+	suite.Run(t, new(ModelStructBaseGenWriterTestSuite))
 }

@@ -2,7 +2,7 @@ package base
 
 import "github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 
-func (s *ModelStructBaseGen) TestPGBaseSchemaReader() {
+func (s *ModelStructBaseGenTestSuite) TestPGBaseSchemaReader() {
 	p := structs.Path{
 		PackageName: "autogen_bases",
 		DirIn:       "",

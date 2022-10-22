@@ -7,9 +7,8 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/vars"
 )
 
-func GetPgRowsTemplateDeclarations() (vars.VariableGen, primitive.StructGen, *jen.Statement) {
+func GetPgRowsTemplateDeclarations(structGen primitive.StructGen) (vars.VariableGen, primitive.StructGen, *jen.Statement) {
 	v := genPgRowsVar()
-	structGen := StructMock()
 	bodyInitPgRowsStruct := declarePgValuesStructVar(v, "init", v.GenStructInstructs["init"])
 	return v, structGen, bodyInitPgRowsStruct
 }

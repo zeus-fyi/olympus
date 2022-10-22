@@ -8,17 +8,17 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
-type ModelStructBaseGen struct {
+type ModelStructBaseGenTestSuite struct {
 	test.AutoGenBaseTestSuiteBase
 }
 
 var printOutLocation = "/Users/alex/Desktop/Zeus/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 
-func (s *ModelStructBaseGen) SetupTest() {
+func (s *ModelStructBaseGenTestSuite) SetupTest() {
 	s.InitLocalConfigs()
 }
 
-func (s *ModelStructBaseGen) TestBaseTemplateGeneration() {
+func (s *ModelStructBaseGenTestSuite) TestBaseTemplateGeneration() {
 	p := structs.Path{
 		PackageName: "autogen_bases",
 		DirIn:       "",
@@ -34,5 +34,5 @@ func (s *ModelStructBaseGen) TestBaseTemplateGeneration() {
 }
 
 func TestModelStructBaseGen(t *testing.T) {
-	suite.Run(t, new(ModelStructBaseGen))
+	suite.Run(t, new(ModelStructBaseGenTestSuite))
 }

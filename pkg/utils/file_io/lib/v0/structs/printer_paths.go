@@ -63,3 +63,7 @@ func (p Path) Staging() string {
 func (p Path) Production() string {
 	return "artifacts/production/"
 }
+
+func (p *Path) AddGoFn(fn string) {
+	p.Fn = fn + ".go"
+}

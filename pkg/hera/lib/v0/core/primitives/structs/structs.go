@@ -7,6 +7,13 @@ type StructsGen struct {
 	StructsMap map[string]StructGen
 }
 
+func NewStructsGen() StructsGen {
+	return StructsGen{
+		Structs:    []StructGen{},
+		StructsMap: make(map[string]StructGen),
+	}
+}
+
 func (sg *StructsGen) AddStruct(s StructGen) {
 	if len(sg.Structs) == 0 {
 		sg.Structs = []StructGen{}

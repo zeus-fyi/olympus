@@ -10,8 +10,9 @@ import (
 func (d *PgSchemaAutogen) ConvertTablesToCodeGenStructs() {
 	tables := d.TableMap
 	for _, tbl := range tables {
+		tblName := table_formatting.FormatTableName(d.Settings, tbl)
 		s := primitive.StructGen{
-			Name:       tbl.Name,
+			Name:       tblName,
 			Fields:     nil,
 			PluralDecl: nil,
 		}

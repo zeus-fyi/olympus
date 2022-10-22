@@ -1,20 +1,8 @@
 package server
 
 import (
-	"context"
-	"time"
-
-	"github.com/go-redis/redis/v9"
-	"github.com/labstack/echo/v4"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	v1 "github.com/zeus-fyi/olympus/beacon-indexer/api/v1"
-	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_fetcher"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/admin"
-	"github.com/zeus-fyi/olympus/datastores/redis/apps"
 )
 
 var (
@@ -25,41 +13,41 @@ var (
 
 func Api() {
 	// Echo instance
-	zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	e := echo.New()
-	e = v1.Routes(e)
-	ctx := context.Background()
-	apps.Pg = apps.Db{}
-	MaxConn := int32(10)
-	MinConn := int32(3)
-	MaxConnLifetime := 15 * time.Minute
+	//zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	//e := echo.New()
+	//e = v1.Routes(e)
+	//ctx := context.Background()
+	//apps.Pg = apps.Db{}
+	//MaxConn := int32(10)
+	//MinConn := int32(3)
+	//MaxConnLifetime := 15 * time.Minute
+	//
+	//pgCfg := admin.ConfigChangePG{
+	//	MaxConns:          &MaxConn,
+	//	MinConn:           &MinConn,
+	//	MaxConnLifetime:   &MaxConnLifetime,
+	//	HealthCheckPeriod: nil,
+	//}
+	//apps.Pg.InitPG(ctx, PGConnStr)
+	//_ = admin.UpdateConfigPG(ctx, pgCfg)
 
-	pgCfg := admin.ConfigChangePG{
-		MaxConns:          &MaxConn,
-		MinConn:           &MinConn,
-		MaxConnLifetime:   &MaxConnLifetime,
-		HealthCheckPeriod: nil,
-	}
-	apps.Pg.InitPG(ctx, PGConnStr)
-	_ = admin.UpdateConfigPG(ctx, pgCfg)
-
-	redisOpts := redis.Options{
-		Addr: RedisEndpointURL,
-	}
-	r := apps.InitRedis(ctx, redisOpts)
-	_, err := r.Ping(ctx).Result()
-	if err != nil {
-		log.Err(err)
-	}
-	beacon_fetcher.InitFetcherService(ctx, BeaconEndpointURL, r)
-
-	log.Info().Interface("redis conn", r.Conn()).Msg("started redis")
+	//redisOpts := redis.Options{
+	//	Addr: RedisEndpointURL,
+	//}
+	//r := apps.InitRedis(ctx, redisOpts)
+	//_, err := r.Ping(ctx).Result()
+	//if err != nil {
+	//	log.Err(err)
+	//}
+	//beacon_fetcher.InitFetcherService(ctx, BeaconEndpointURL, r)
+	//
+	//log.Info().Interface("redis conn", r.Conn()).Msg("started redis")
 	// Start server
 
-	err = e.Start(":9000")
-	if err != nil {
-		log.Err(err)
-	}
+	//err = e.Start(":9000")
+	//if err != nil {
+	//	log.Err(err)
+	//}
 }
 
 func init() {

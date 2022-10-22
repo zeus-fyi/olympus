@@ -3,8 +3,8 @@ package postgres
 import (
 	"strconv"
 
-	"github.com/fraenky8/tables-to-go/pkg/settings"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/zeus-fyi/tables-to-go/pkg/settings"
 )
 
 func (d *PgSchemaAutogen) PgxConfigToSqlX(dsnStringPgx string) (*settings.Settings, error) {

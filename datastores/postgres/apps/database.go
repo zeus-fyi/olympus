@@ -10,6 +10,7 @@ import (
 
 type Db struct {
 	Pgpool *pgxpool.Pool
+	Schema string
 }
 
 type Model interface {

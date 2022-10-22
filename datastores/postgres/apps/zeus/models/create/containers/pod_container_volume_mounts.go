@@ -7,7 +7,7 @@ import (
 )
 
 func (p *PodContainersGroup) insertContainerVolumeMountsHeader() string {
-	return "INSERT INTO container_probes(probe_id, probe_key_values_jsonb) VALUES "
+	return "INSERT INTO container_volume_mounts(probe_id, probe_key_values_jsonb) VALUES "
 }
 
 func (p *PodContainersGroup) getInsertContainerVolumeMountsValues(parentExpression string, contVolMounts containers.ContainerVolumeMounts, isLastValuesGroup bool) string {

@@ -9,6 +9,7 @@ type QueryParams struct {
 	Fields      []string
 	TableName   string
 	WhereClause string
+	Values      []any
 	Limit       int
 }
 
@@ -21,11 +22,6 @@ func NewQueryParam(queryName, tableName, whereClause string, limit int, fields [
 		WhereClause: whereClause,
 		Limit:       limit,
 	}
-}
-
-func (q *QueryParams) SelectQuery() string {
-	query := fmt.Sprintf(`SELECT %s FROM %s WHERE %s LIMIT %d`, q.Fields, q.TableName, q.WhereClause, q.Limit)
-	return query
 }
 
 func (q *QueryParams) LogHeader(structName string) string {

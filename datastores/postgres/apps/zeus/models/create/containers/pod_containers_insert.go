@@ -4,91 +4,73 @@ import (
 	"fmt"
 
 	autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
+	"github.com/zeus-fyi/olympus/pkg/utils/dev_hacks"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
 // insertPodContainerGroupSQL, will use the next_id distributed ID generator and select the container id
 // value for subsequent subcomponent relationships of its element, should greatly simplify the insert logic
 func (p *PodContainersGroup) insertPodContainerGroupSQL(workloadChildGroupInfo autogen_structs.ChartSubcomponentChildClassTypes) string {
-
 	i := len(p.Containers)
-	// header insert sql stmts
+
 	// container
-	containerInsertHeader := p.insertContainerHeader()
+	contSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_containers")
+	contSubCTE.TableName = "containers"
+	contSubCTE.Fields = []string{"container_name", "container_image_id", "container_version_tag", "container_platform_os", "container_repository", "container_image_pull_policy"}
 
 	// ports
-	insertPortsParentExpressionHeader := p.insertContainerPortsHeader()
-	insertContainerPortsHeaderRelationshipHeader := p.insertContainerPortsHeaderRelationshipHeader()
+	portsSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_container_ports")
+	portsSubCTE.TableName = "container_ports"
+	portsSubCTE.Fields = []string{"port_id", "port_name", "container_port", "host_port"}
+	portsRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE("cte_containers_ports_relationship")
+	portsRelationshipsSubCTE.TableName = "containers_ports"
+	portsSubCTE.Fields = []string{"chart_subcomponent_child_class_type_id", "container_id", "port_id"}
+
 	// env vars
-	insertContainerEnvVarsHeader := p.insertContainerEnvVarsHeader()
-	insertContainerEnvVarRelationshipHeader := p.insertContainerEnvVarRelationshipHeader()
+	envVarsSubCTE := sql_query_templates.NewSubInsertCTE("cte_container_environmental_vars")
+	envVarsSubCTE.TableName = "container_environmental_vars"
+	envVarsSubCTE.Fields = []string{"env_id", "name", "value"}
+	envVarsRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE("cte_container_environmental_vars_relationships")
+	envVarsRelationshipsSubCTE.TableName = "containers_environmental_vars"
+	envVarsRelationshipsSubCTE.Fields = []string{"chart_subcomponent_child_class_type_id", "container_id", "env_id"}
 
 	// vms
-	insertContainerVolumeMountsHeader := p.insertContainerVolumeMountsHeader()
-	insertContainerVolumeMountRelationshipHeader := p.insertContainerVolumeMountRelationshipHeader()
-	// should use imageID set when calling NewPodContainersGroupForDB
-	for imageID, cont := range p.Containers {
+	contVmsSubCTE := sql_query_templates.NewSubInsertCTE("cte_containers_volume_mounts")
+	contVmsSubCTE.TableName = "container_volume_mounts"
+	contVmsSubCTE.Fields = []string{"volume_mount_id", "volume_mount_path", "volume_name"}
+	contVmsRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE("cte_containers_volume_mounts_relationships")
+	contVmsRelationshipsSubCTE.TableName = "containers_volume_mounts"
+	contVmsSubCTE.Fields = []string{"chart_subcomponent_child_class_type_id", "container_id", "volume_mount_id"}
+
+	cteExpr := sql_query_templates.CTE{
+		Name: "insertPodContainerGroupSQL",
+		SubCTEs: []sql_query_templates.SubCTE{
+			contSubCTE,
+			// ports
+			portsSubCTE,
+			portsRelationshipsSubCTE,
+			// env vars
+			envVarsSubCTE,
+			envVarsRelationshipsSubCTE,
+			// vms
+			contVmsSubCTE,
+			contVmsRelationshipsSubCTE,
+		},
+	}
+
+	dev_hacks.Use(cteExpr)
+	for _, _ = range p.Containers {
 
 		// should continue appending values to header
 		// container
-		cont.ProcessAndSetAmbiguousContainerFieldStatusAndSubfieldIds()
-		containerInsertHeader = p.getInsertContainerValues(containerInsertHeader, cont.Metadata)
-
-		shouldAppendCommaBool := i < len(p.Containers)-1
-		if shouldAppendCommaBool {
-			containerInsertHeader += ","
-		}
-		// ports
-		insertPortsParentExpressionHeader = p.getContainerPortsValuesForInsert(insertPortsParentExpressionHeader, imageID, shouldAppendCommaBool)
-		classTypeID := fmt.Sprintf("%d", cont.ClassDefinition.ChartSubcomponentChildClassTypeID)
-		insertContainerPortsHeaderRelationshipHeader = p.getContainerPortsHeaderRelationshipValues(insertContainerPortsHeaderRelationshipHeader, imageID, classTypeID)
-
-		// env vars
-		insertContainerEnvVarsHeader = p.getInsertContainerEnvVarsValues(insertContainerEnvVarsHeader, imageID, shouldAppendCommaBool)
-		insertContainerEnvVarRelationshipHeader = p.getContainerEnvVarRelationshipValues(insertContainerEnvVarRelationshipHeader, imageID, classTypeID, shouldAppendCommaBool)
-
-		// vol mounts
-		insertContainerVolumeMountsHeader = p.getInsertContainerVolumeMountsValues(insertContainerVolumeMountsHeader, cont.VolumeMounts, shouldAppendCommaBool)
-		insertContainerVolumeMountRelationshipHeader = p.getContainerVolumeMountRelationshipValues(insertContainerVolumeMountRelationshipHeader, imageID, classTypeID)
+		contSubCTE.AddValues()
 
 		i += 1
 	}
 
-	// env vars
-	cteEnvVars := AddCTEIfValuesExist(insertContainerEnvVarsHeader, p.insertContainerEnvVarsHeader(), "cte_container_environmental_vars")
-	cteEnvVarsRelationships := AddCTEIfValuesExist(insertContainerEnvVarRelationshipHeader, p.insertContainerEnvVarRelationshipHeader(), "cte_container_environmental_vars_relationships")
-
-	// vm mounts
-	cteContainerVms := AddCTEIfValuesExist(insertContainerVolumeMountsHeader, p.insertContainerVolumeMountsHeader(), "cte_containers_volume_mounts")
-	cteContainerVmsRelationships := AddCTEIfValuesExist(insertContainerVolumeMountsHeader, p.insertContainerVolumeMountRelationshipHeader(), "cte_containers_volume_mounts_relationships")
-
-	// ports
-	ctePorts := AddCTEIfValuesExist(insertPortsParentExpressionHeader, p.insertContainerPortsHeader(), "cte_insert_container_ports")
-	ctePortsRelationships := AddCTEIfValuesExist(insertContainerPortsHeaderRelationshipHeader, p.insertContainerPortsHeaderRelationshipHeader(), "cte_containers_ports_relationship")
-
-	q := fmt.Sprintf(
-		`WITH cte_insert_containers AS (
-					%s
-				),  %s %s %s %s %s %s `,
-		// containers
-		containerInsertHeader,
-		// ports
-		ctePorts, ctePortsRelationships,
-		// env vars
-		cteEnvVars, cteEnvVarsRelationships,
-		// vm mounts
-		cteContainerVms, cteContainerVmsRelationships,
-	)
-
 	fakeCte := " cte_term AS ( SELECT 1 ) SELECT true"
-	q += fakeCte
-	return q
-}
 
-func AddCTEIfValuesExist(parentExpression, startingHeader, cteHeader string) string {
-	if len(parentExpression) > len(startingHeader) {
-		return fmt.Sprintf("%s AS (\n\t%s\n), ", cteHeader, parentExpression)
-	}
-	return ""
+	return fakeCte
 }
 
 func (p *PodContainersGroup) generateHeaderIfNoneForCTE(parentExpression, header string) string {
@@ -98,14 +80,8 @@ func (p *PodContainersGroup) generateHeaderIfNoneForCTE(parentExpression, header
 	return parentExpression
 }
 
-func (p *PodContainersGroup) insertContainerHeader() string {
-	containerInsert := "INSERT INTO containers(container_name, container_image_id, container_version_tag, container_platform_os, container_repository, container_image_pull_policy) VALUES "
-	return containerInsert
-}
-
-func (p *PodContainersGroup) getInsertContainerValues(parentExpression string, c autogen_structs.Containers) string {
+func (p *PodContainersGroup) getInsertContainerValues(c autogen_structs.Containers) string {
 	processAndSetAmbiguousContainerFieldStatus(c)
-	valsToInsert := fmt.Sprintf("\n ('%s', '%s', '%s', '%s', '%s', '%s')", c.ContainerName, c.ContainerImageID, c.ContainerVersionTag, c.ContainerPlatformOs, c.ContainerRepository, c.ContainerImagePullPolicy)
-	returnExpression := fmt.Sprintf("%s %s", parentExpression, valsToInsert)
-	return returnExpression
+	valsToInsert := fmt.Sprintf("('%s', '%s', '%s', '%s', '%s', '%s')", c.ContainerName, c.ContainerImageID, c.ContainerVersionTag, c.ContainerPlatformOs, c.ContainerRepository, c.ContainerImagePullPolicy)
+	return valsToInsert
 }

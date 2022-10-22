@@ -1,6 +1,7 @@
 package containers
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
@@ -14,7 +15,13 @@ func (p *PodContainersGroup) getInsertContainerEnvVarsValues(parentExpression, c
 		return ""
 	}
 	for i, ev := range c.Env {
-		parentExpression += fmt.Sprintf("\n('%d', '%s', '%s')", ev.EnvID, ev.Name, ev.Value)
+
+		jsonBvalue := "{}"
+		if len(ev.Value) != 0 {
+			bytes, _ := json.Marshal(ev.Value)
+			jsonBvalue = string(bytes)
+		}
+		parentExpression += fmt.Sprintf("\n('%d', '%s', '%s'::jsonb)", ev.EnvID, ev.Name, jsonBvalue)
 		if i < len(c.Env)-1 && !isLastValuesGroup {
 			parentExpression += ","
 		}
@@ -24,7 +31,7 @@ func (p *PodContainersGroup) getInsertContainerEnvVarsValues(parentExpression, c
 }
 
 func (p *PodContainersGroup) insertContainerEnvVarRelationshipHeader() string {
-	return "INSERT INTO container_environmental_vars(chart_subcomponent_child_class_type_id, container_id, env_id) VALUES "
+	return "INSERT INTO containers_environmental_vars(chart_subcomponent_child_class_type_id, container_id, env_id) VALUES "
 }
 
 func (p *PodContainersGroup) getContainerEnvVarRelationshipValues(parentExpression, containerImageID, classTypeID string, isLastValuesGroup bool) string {

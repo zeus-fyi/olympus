@@ -1,4 +1,4 @@
-package hera
+package postgres
 
 import (
 	"strconv"
@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-func PgxConfigToSqlX(dsnStringPgx string) (*settings.Settings, error) {
+func (d *PgSchemaAutogen) PgxConfigToSqlX(dsnStringPgx string) (*settings.Settings, error) {
 	c, err := pgxpool.ParseConfig(dsnStringPgx)
 	conf := c.ConnConfig
 	pgSettings := settings.New()

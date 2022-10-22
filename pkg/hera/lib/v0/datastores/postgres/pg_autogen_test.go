@@ -16,10 +16,12 @@ func (s *PgSchemaAutogenTestSuite) SetupTest() {
 	s.InitLocalConfigs()
 	s.PgSchemaAutogen = NewPgSchemaAutogen(s.Tc.LocalDbPgconn)
 }
+
 func (s *PgSchemaAutogenTestSuite) TestTablesSchemaRead() {
-	tables, err := s.GetTables()
+	err := s.GetTableData()
 	s.Require().Nil(err)
-	s.Assert().NotEmpty(tables)
+	s.Assert().NotEmpty(s.TableContent)
+	s.Assert().NotEmpty(s.TableMap)
 }
 
 func TestPgSchemaAutogenTestSuite(t *testing.T) {

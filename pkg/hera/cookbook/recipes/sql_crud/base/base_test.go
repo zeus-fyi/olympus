@@ -33,20 +33,6 @@ func (s *ModelStructBaseGen) TestBaseTemplateGeneration() {
 	s.Require().Nil(err)
 }
 
-func (s *ModelStructBaseGen) TestBaseTemplateGenerationFromDbChainTool() {
-	p := structs.Path{
-		PackageName: "autogen_bases",
-		DirIn:       "",
-		DirOut:      printOutLocation,
-		Fn:          "model_template.go",
-		Env:         "",
-	}
-
-	m := NewPGModelTemplate(p, nil, s.Tc.LocalDbPgconn)
-	//cg.Add(_struct.GenCreateStructWithExternalStructInheritance(wrapperStructName, extStructPath, extStructName))
-	err := m.CreateTemplateFromStruct(StructMock())
-	s.Require().Nil(err)
-}
 func TestModelStructBaseGen(t *testing.T) {
 	suite.Run(t, new(ModelStructBaseGen))
 }

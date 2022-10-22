@@ -13,32 +13,6 @@ type StructGen struct {
 	PluralDecl jen.Code
 }
 
-func (s *StructGen) AddField(field fields.Field) {
-	s.Fields = append(s.Fields, field)
-}
-
-func (s *StructGen) AddFields(field ...fields.Field) {
-	s.Fields = append(s.Fields, field...)
-}
-
-func (s *StructGen) GenerateStructJenCode() jen.Code {
-	fs := make([]jen.Code, len(s.Fields))
-	for i, f := range s.Fields {
-		fs[i] = jen.Id(f.Name).Id(f.Type)
-	}
-	_struct := jen.Null().Type().Id(s.Name).Struct(fs...)
-	return _struct
-}
-
-func (s *StructGen) GenerateStructJenStmt() *jen.Statement {
-	fs := make([]jen.Code, len(s.Fields))
-	for i, f := range s.Fields {
-		fs[i] = jen.Id(f.Name).Id(f.Type)
-	}
-	_struct := jen.Null().Type().Id(s.Name).Struct(fs...)
-	return _struct
-}
-
 func (s *StructGen) GenerateSliceType() jen.Code {
 	s.PluralDecl = jen.Null().Type().Id(s.Name + "s").Index().Id(s.Name)
 	return s.PluralDecl

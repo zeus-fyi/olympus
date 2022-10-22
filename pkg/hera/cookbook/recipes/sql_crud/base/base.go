@@ -4,7 +4,6 @@ import (
 	"github.com/zeus-fyi/jennifer/jen"
 	"github.com/zeus-fyi/olympus/pkg/hera/cookbook/recipes/common/sql_query/common"
 	"github.com/zeus-fyi/olympus/pkg/hera/lib"
-	primitive "github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/structs"
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/vars"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
@@ -24,23 +23,6 @@ func NewPGModelTemplate(p structs.Path, queryInfo *common.QueryMetadata, dsnStri
 	m := ModelTemplate{lib.NewCodeGen(p), queryInfo}
 	m.NewInitPgConnToSchemaAutogen(dsnString)
 	return m
-}
-
-func (m *ModelTemplate) CreateTemplateFromStruct(structGen primitive.StructGen) error {
-	m.Structs.AddStruct(structGen)
-	m.AddSlice(m.Structs.GenerateStructsJenCode(true))
-	// these are template values
-	v, structGen, bodyInitPgRowsStruct := GetPgRowsTemplateDeclarations()
-	// each bodyPrefix variable is an independent body item in the function
-	// you'll need to modify the generateSwitchStatementForPgRows fn to include more complex case conditions
-	// it just uses a default of all rows for now
-	bodySwitchStatement := generateSwitchStatementForPgRows(v, structGen)
-	// you could add another body element here
-
-	// fn template uses a default return type, the body is prefixed with body
-	m.Add(GeneratePgRowsPtrFn(structGen, bodyInitPgRowsStruct, bodySwitchStatement))
-	err := m.Save()
-	return err
 }
 
 // GenBaseImportHeaderLog to be used by structs which inherit this, shouldn't use for base logs without handling non-import pkgname prefix

@@ -1,5 +1,7 @@
 package autogen_bases
 
+import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
+
 type Containers struct {
 	ContainerImagePullPolicy string `db:"container_image_pull_policy"`
 	ContainerID              int    `db:"container_id"`

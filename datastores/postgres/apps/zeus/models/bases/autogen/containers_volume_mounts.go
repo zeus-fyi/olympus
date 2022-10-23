@@ -1,5 +1,7 @@
 package autogen_bases
 
+import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
+
 type ContainersVolumeMounts struct {
 	VolumeMountID                     int `db:"volume_mount_id"`
 	ChartSubcomponentChildClassTypeID int `db:"chart_subcomponent_child_class_type_id"`

@@ -1,5 +1,7 @@
 package autogen_bases
 
+import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
+
 type ChartSubcomponentsJsonbChildValues struct {
 	ChartSubcomponentChildClassTypeID              int    `db:"chart_subcomponent_child_class_type_id"`
 	ChartSubcomponentChartPackageTemplateInjection bool   `db:"chart_subcomponent_chart_package_template_injection"`

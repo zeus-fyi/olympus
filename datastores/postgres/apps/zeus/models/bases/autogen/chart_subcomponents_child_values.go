@@ -1,5 +1,7 @@
 package autogen_bases
 
+import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
+
 type ChartSubcomponentsChildValues struct {
 	ChartSubcomponentKeyName                       string `db:"chart_subcomponent_key_name"`
 	ChartSubcomponentValue                         string `db:"chart_subcomponent_value"`

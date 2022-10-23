@@ -1,5 +1,7 @@
 package autogen_bases
 
+import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
+
 type TopologiesKns struct {
 	TopologyID int    `db:"topology_id"`
 	Context    string `db:"context"`

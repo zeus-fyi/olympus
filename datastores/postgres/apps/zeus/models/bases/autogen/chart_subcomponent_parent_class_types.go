@@ -1,5 +1,7 @@
 package autogen_bases
 
+import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
+
 type ChartSubcomponentParentClassTypes struct {
 	ChartPackageID                       int    `db:"chart_package_id"`
 	ChartComponentResourceID             int    `db:"chart_component_resource_id"`

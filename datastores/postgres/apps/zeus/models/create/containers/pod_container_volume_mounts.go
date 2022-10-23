@@ -1,36 +1,35 @@
 package containers
 
 import (
-	"fmt"
-
-	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
 func (p *PodContainersGroup) insertContainerVolumeMountsHeader() string {
-	return "INSERT INTO container_volume_mounts(probe_id, probe_key_values_jsonb) VALUES "
+	return "INSERT INTO container_volume_mounts(volume_mount_id, volume_mount_path, volume_name) VALUES "
 }
 
-func (p *PodContainersGroup) getInsertContainerVolumeMountsValues(parentExpression string, contVolMounts autogen_bases.ContainerVolumeMountsSlice, isLastValuesGroup bool) string {
-	for i, vm := range contVolMounts {
-		parentExpression += fmt.Sprintf("\n('%d', '%s', '%s')", vm.VolumeMountID, vm.VolumeMountPath, vm.VolumeMountPath)
-		if i < len(contVolMounts)-1 && !isLastValuesGroup {
-			parentExpression += ","
-		}
+func (p *PodContainersGroup) getInsertContainerVolumeMountsValues(imageID string, cteSubfield sql_query_templates.SubCTE) {
+	c, ok := p.Containers[imageID]
+	if !ok {
+		return
 	}
-	return parentExpression
+	for _, vm := range c.VolumeMounts {
+		cteSubfield.AddValues(vm.VolumeMountID, vm.VolumeMountPath, vm.VolumeName)
+	}
+	return
 }
 
 func (p *PodContainersGroup) insertContainerVolumeMountRelationshipHeader() string {
 	return "INSERT INTO containers_volume_mounts(chart_subcomponent_child_class_type_id, container_id, volume_mount_id) VALUES "
 }
 
-func (p *PodContainersGroup) getContainerVolumeMountRelationshipValues(parentExpression, imageID, childClassTypeID string) string {
+func (p *PodContainersGroup) getContainerVolumeMountRelationshipValues(podSpecChildClassTypeID int, imageID string, cteSubfield sql_query_templates.SubCTE) {
 	c, ok := p.Containers[imageID]
 	if !ok {
-		return parentExpression
+		return
 	}
 	for _, vm := range c.VolumeMounts {
-		parentExpression += fmt.Sprintf("\n('%s', (%s), '%d'),", childClassTypeID, selectRelatedContainerIDFromImageID(imageID), vm.VolumeMountID)
+		cteSubfield.AddValues(podSpecChildClassTypeID, selectRelatedContainerIDFromImageID(imageID), vm.VolumeMountID)
 	}
-	return parentExpression
+	return
 }

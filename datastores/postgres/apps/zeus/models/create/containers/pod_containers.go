@@ -4,8 +4,6 @@ import (
 	"context"
 
 	"github.com/rs/zerolog/log"
-	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/containers"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
@@ -26,9 +24,9 @@ func NewPodContainersGroupForDB(ps containers.PodTemplateSpec) PodContainersGrou
 
 const ModelName = "PodContainersGroup"
 
-func (p *PodContainersGroup) InsertPodContainerGroup(ctx context.Context, q sql_query_templates.QueryParams, workloadChildGroupInfo autogen_bases.ChartSubcomponentChildClassTypes) error {
+func (p *PodContainersGroup) InsertPodContainerGroup(ctx context.Context, q sql_query_templates.QueryParams, podSpecClassTypeID int) error {
 	log.Debug().Interface("InsertQuery:", q.LogHeader(ModelName))
-	r, err := apps.Pg.Exec(ctx, p.insertPodContainerGroupSQL(workloadChildGroupInfo))
+	r, err := apps.Pg.Exec(ctx, p.insertPodContainerGroupSQL(podSpecClassTypeID))
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
 		return err
 	}

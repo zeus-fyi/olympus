@@ -9,7 +9,7 @@ type QueryParams struct {
 	Fields      []string
 	TableName   string
 	WhereClause string
-	Values      []any
+	Values      [][]any
 	Limit       int
 }
 

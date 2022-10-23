@@ -4,19 +4,18 @@ import (
 	"fmt"
 
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/dev_hacks"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
 // insertPodContainerGroupSQL, will use the next_id distributed ID generator and select the container id
 // value for subsequent subcomponent relationships of its element, should greatly simplify the insert logic
-func (p *PodContainersGroup) insertPodContainerGroupSQL(workloadChildGroupInfo autogen_bases.ChartSubcomponentChildClassTypes) string {
-	i := len(p.Containers)
-
+func (p *PodContainersGroup) insertPodContainerGroupSQL(podSpecChildClassTypeID int) string {
 	// container
 	contSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_containers")
 	contSubCTE.TableName = "containers"
-	contSubCTE.Fields = []string{"container_name", "container_image_id", "container_version_tag", "container_platform_os", "container_repository", "container_image_pull_policy"}
+	contSubCTE.Fields = []string{"container_id", "container_name", "container_image_id", "container_version_tag", "container_platform_os", "container_repository", "container_image_pull_policy"}
 
 	// ports
 	portsSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_container_ports")
@@ -24,7 +23,7 @@ func (p *PodContainersGroup) insertPodContainerGroupSQL(workloadChildGroupInfo a
 	portsSubCTE.Fields = []string{"port_id", "port_name", "container_port", "host_port"}
 	portsRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE("cte_containers_ports_relationship")
 	portsRelationshipsSubCTE.TableName = "containers_ports"
-	portsSubCTE.Fields = []string{"chart_subcomponent_child_class_type_id", "container_id", "port_id"}
+	portsRelationshipsSubCTE.Fields = []string{"chart_subcomponent_child_class_type_id", "container_id", "port_id"}
 
 	// env vars
 	envVarsSubCTE := sql_query_templates.NewSubInsertCTE("cte_container_environmental_vars")
@@ -40,12 +39,19 @@ func (p *PodContainersGroup) insertPodContainerGroupSQL(workloadChildGroupInfo a
 	contVmsSubCTE.Fields = []string{"volume_mount_id", "volume_mount_path", "volume_name"}
 	contVmsRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE("cte_containers_volume_mounts_relationships")
 	contVmsRelationshipsSubCTE.TableName = "containers_volume_mounts"
-	contVmsSubCTE.Fields = []string{"chart_subcomponent_child_class_type_id", "container_id", "volume_mount_id"}
+	contVmsRelationshipsSubCTE.Fields = []string{"chart_subcomponent_child_class_type_id", "container_id", "volume_mount_id"}
+
+	// podSpec for containers
+	podSpecSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_spec_pod_template_containers")
+	podSpecSubCTE.TableName = "chart_subcomponent_spec_pod_template_containers"
+	podSpecSubCTE.Fields = []string{"chart_subcomponent_child_class_type_id", "container_id", "is_init_container", "container_sort_order"}
 
 	cteExpr := sql_query_templates.CTE{
 		Name: "insertPodContainerGroupSQL",
 		SubCTEs: []sql_query_templates.SubCTE{
+			// container and podSpec template relationship
 			contSubCTE,
+			podSpecSubCTE,
 			// ports
 			portsSubCTE,
 			portsRelationshipsSubCTE,
@@ -59,13 +65,34 @@ func (p *PodContainersGroup) insertPodContainerGroupSQL(workloadChildGroupInfo a
 	}
 
 	dev_hacks.Use(cteExpr)
-	for _, _ = range p.Containers {
 
+	ts := chronos.Chronos{}
+	// TODO for now will just generate ids here, something more complex can come later
+	sortOrderIndex := 0
+
+	for _, cont := range p.Containers {
+		c := cont.Metadata
 		// should continue appending values to header
 		// container
-		contSubCTE.AddValues()
+		c.ContainerID = ts.UnixTimeStampNow()
+		contSubCTE.AddValues(c.ContainerID, c.ContainerName, c.ContainerImageID, c.ContainerVersionTag, c.ContainerPlatformOs, c.ContainerRepository, c.ContainerImagePullPolicy)
 
-		i += 1
+		// pod spec to link container
+		podSpecSubCTE.AddValues(podSpecChildClassTypeID, c.ContainerID, cont.IsInitContainer, sortOrderIndex)
+
+		// ports
+		p.getContainerPortsValuesForInsert(c.ContainerImageID, portsSubCTE)
+		p.getContainerPortsHeaderRelationshipValues(podSpecChildClassTypeID, c.ContainerImageID, portsRelationshipsSubCTE)
+
+		// env vars
+		p.getInsertContainerEnvVarsValues(c.ContainerImageID, envVarsSubCTE)
+		p.getContainerEnvVarRelationshipValues(podSpecChildClassTypeID, c.ContainerImageID, envVarsRelationshipsSubCTE)
+
+		// vms
+		p.getInsertContainerVolumeMountsValues(c.ContainerImageID, contVmsSubCTE)
+		p.getContainerVolumeMountRelationshipValues(podSpecChildClassTypeID, c.ContainerImageID, contVmsRelationshipsSubCTE)
+
+		sortOrderIndex += 1
 	}
 
 	fakeCte := " cte_term AS ( SELECT 1 ) SELECT true"

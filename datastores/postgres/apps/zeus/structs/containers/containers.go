@@ -12,6 +12,7 @@ type Container struct {
 	Env             autogen_bases.ContainerEnvironmentalVarsSlice
 	Probes          autogen_bases.ContainerProbesSlice
 	ResourceRequest *autogen_bases.ContainerComputeResources
+	IsInitContainer bool
 }
 
 type Containers []Container
@@ -23,7 +24,8 @@ func NewContainer() Container {
 			ChartSubcomponentChildClassTypeID:   0,
 			ChartSubcomponentChildClassTypeName: "",
 		},
-		Metadata: autogen_bases.Containers{},
+		Metadata:        autogen_bases.Containers{},
+		IsInitContainer: false,
 	}
 	return c
 }

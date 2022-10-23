@@ -1,5 +1,7 @@
 package base
 
+import "strings"
+
 func (m *ModelTemplate) WritePgTableDefinition() error {
 	err := m.GetTableData()
 	if err != nil {
@@ -7,6 +9,9 @@ func (m *ModelTemplate) WritePgTableDefinition() error {
 	}
 
 	for tbl, s := range m.StructMapToCodeGen {
+		if strings.HasPrefix(tbl, "val") {
+			continue
+		}
 		m.Path.AddGoFn(tbl)
 		err = m.CreateTemplateFromStruct(s)
 		if err != nil {

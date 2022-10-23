@@ -8,7 +8,12 @@ import (
 
 func (m *ModelTemplate) CreateTemplateFromStruct(structGen primitive.StructGen) error {
 	m.NewCodeGenFileShell()
-	m.JenFile.ImportName("github.com/zeus-fyi/olympus/datastores/postgres/apps", "apps")
+
+	importNames := make(map[string]string)
+	importNames["github.com/zeus-fyi/olympus/datastores/postgres/apps"] = "apps"
+	importNames["database/sql"] = "database/sql"
+
+	m.JenFile.ImportNames(importNames)
 	m.Structs.AddStruct(structGen)
 	m.AddSlice(m.Structs.GenerateStructsJenCode(true))
 	// these are template values

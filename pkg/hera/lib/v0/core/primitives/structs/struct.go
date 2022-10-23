@@ -14,7 +14,7 @@ type StructGen struct {
 }
 
 func (s *StructGen) GenerateSliceType() jen.Code {
-	s.PluralDecl = jen.Null().Type().Id(s.Name + "s").Index().Id(s.Name)
+	s.PluralDecl = jen.Null().Type().Id(s.Name + "Slice").Index().Id(s.Name)
 	return s.PluralDecl
 }
 

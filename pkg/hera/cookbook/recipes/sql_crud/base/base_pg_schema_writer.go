@@ -1,6 +1,6 @@
 package base
 
-import "strings"
+import "github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 
 func (m *ModelTemplate) WritePgTableDefinition() error {
 	err := m.GetTableData()
@@ -9,13 +9,12 @@ func (m *ModelTemplate) WritePgTableDefinition() error {
 	}
 
 	for tbl, s := range m.StructMapToCodeGen {
-		if strings.HasPrefix(tbl, "val") {
-			continue
-		}
-		m.Path.AddGoFn(tbl)
-		err = m.CreateTemplateFromStruct(s)
-		if err != nil {
-			return err
+		if string_utils.FilterStringWithOpts(tbl, &m.Path.FilterFiles) {
+			m.Path.AddGoFn(tbl)
+			err = m.CreateTemplateFromStruct(s)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return err

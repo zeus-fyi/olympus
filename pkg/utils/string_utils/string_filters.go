@@ -6,7 +6,6 @@ import (
 
 func FilterStringWithOpts(word string, filter *FilterOpts) bool {
 	// empty doesNotContain in means ignore, also must have at least one letter
-
 	if filter == nil {
 		return true
 	}
@@ -27,11 +26,20 @@ func FilterStringWithOpts(word string, filter *FilterOpts) bool {
 			return false
 		}
 	}
+
+	if len(filter.DoesNotStartWith) > 0 {
+		for _, wordFilter := range filter.DoesNotStartWith {
+			if strings.HasPrefix(word, wordFilter) {
+				return false
+			}
+		}
+	}
 	return true
 }
 
 type FilterOpts struct {
-	StartsWith     string
-	Contains       string
-	DoesNotInclude []string
+	DoesNotStartWith []string
+	StartsWith       string
+	Contains         string
+	DoesNotInclude   []string
 }

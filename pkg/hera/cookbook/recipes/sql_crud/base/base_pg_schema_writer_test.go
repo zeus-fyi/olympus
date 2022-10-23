@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 type ModelStructBaseGenWriterTestSuite struct {
@@ -12,12 +13,20 @@ type ModelStructBaseGenWriterTestSuite struct {
 }
 
 func (s *ModelStructBaseGenWriterTestSuite) TestPGBaseSchemaWriter() {
+
+	filter := string_utils.FilterOpts{
+		DoesNotStartWith: []string{"orgs", "user", "valid", "model"},
+		StartsWith:       "",
+		Contains:         "",
+		DoesNotInclude:   nil,
+	}
 	p := structs.Path{
 		PackageName: "autogen_bases",
 		DirIn:       "",
 		DirOut:      printOutLocation,
-		Fn:          "model_template.go",
+		Fn:          "",
 		Env:         "",
+		FilterFiles: filter,
 	}
 
 	m := NewPGModelTemplate(p, nil, s.Tc.LocalDbPgconn)

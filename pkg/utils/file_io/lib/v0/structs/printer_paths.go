@@ -2,6 +2,8 @@ package structs
 
 import (
 	"path"
+
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 type Path struct {
@@ -10,6 +12,7 @@ type Path struct {
 	DirOut      string
 	Fn          string
 	Env         string
+	FilterFiles string_utils.FilterOpts
 }
 
 type Paths struct {

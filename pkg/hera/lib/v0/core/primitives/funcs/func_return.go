@@ -38,5 +38,3 @@ func (f *FuncGen) GetFuncReturnStatement() *jen.Statement {
 	}
 	return returnStmt
 }
-
-//jen.Return().Id("misc").Dot("ReturnIfErr").Call(jen.Id("err"), jen.Id("q").Dot("LogHeader").Call(jen.Id("models").Dot("Sn")))

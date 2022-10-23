@@ -24,3 +24,15 @@ func (v *StructNameExample) GetRowValues(queryName string) apps.RowValues {
 	}
 	return pgValues
 }
+
+func (v *StructNameExample) GetTableColumnValues(queryName string) []string {
+	var columnValues []string
+	switch queryName {
+	case "fieldGroup1":
+		columnValues = []string{"col1"}
+	default:
+		// should default to all
+		columnValues = []string{"col1", "col2"}
+	}
+	return columnValues
+}

@@ -16,11 +16,11 @@ func (d *PgSchemaAutogen) ConvertTablesToCodeGenStructs() {
 			Fields:     nil,
 			PluralDecl: nil,
 		}
-		fieldsToAdd := make([]fields.Field, len(tbl.Columns))
-		for i, col := range tbl.Columns {
-			fieldsToAdd[i] = d.processTableElement(tbl, col)
+		fieldsToAdd := make(map[string]fields.Field)
+		for _, col := range tbl.Columns {
+			fieldsToAdd[col.Name] = d.processTableElement(tbl, col)
 		}
-		s.AddFields(fieldsToAdd...)
+		s.AddFieldsFromMap(fieldsToAdd)
 		d.StructMapToCodeGen[tbl.Name] = s
 	}
 }

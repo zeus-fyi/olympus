@@ -10,6 +10,12 @@ func (s *StructGen) AddFields(field ...fields.Field) {
 	s.Fields = append(s.Fields, field...)
 }
 
+func (s *StructGen) AddFieldsFromMap(fieldMap map[string]fields.Field) {
+	for _, field := range fieldMap {
+		s.Fields = append(s.Fields, field)
+	}
+}
+
 func (s *StructGen) GetColumnFieldNames() []string {
 	var dbFieldColNames []string
 	for _, f := range s.Fields {

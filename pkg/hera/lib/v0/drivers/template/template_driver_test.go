@@ -14,6 +14,9 @@ type ToJenDriverTestSuite struct {
 func (s *ToJenDriverTestSuite) SetupTest() {
 }
 
+func (s *ToJenDriverTestSuite) TestTemplateCreation() {
+}
+
 func TestToJenDriverTestSuite(t *testing.T) {
 	suite.Run(t, new(ToJenDriverTestSuite))
 }

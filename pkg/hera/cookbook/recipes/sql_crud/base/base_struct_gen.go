@@ -1,6 +1,7 @@
 package base
 
 import (
+	"github.com/zeus-fyi/olympus/pkg/hera/cookbook/recipes/common/sql_query"
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives"
 	primitive "github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/structs"
 )
@@ -15,9 +16,12 @@ func (m *ModelTemplate) CreateTemplateFromStruct(structGen primitive.StructGen) 
 	// it just uses a default of all rows for now
 	bodySwitchStatement := generateSwitchStatementForPgRows(v, structGen)
 	// you could add another body element here
-
 	// fn template uses a default return type, the body is prefixed with body
 	m.Add(GeneratePgRowsPtrFn(structGen, bodyInitPgRowsStruct, bodySwitchStatement))
+
+	// adds table columns selector, todo refactor
+	m.Add(sql_query.GeneratePgColumnsPtrFunc(structGen))
+
 	err := m.Save()
 	m.resetModelTemplate()
 	return err

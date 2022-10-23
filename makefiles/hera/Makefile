@@ -1,5 +1,5 @@
 
-CORE_DIR=../../pkg/codegen/cookbook/core
+CORE_DIR=../../pkg/codegen/cookbook
 
 TYPE=func
 DIR=${CORE_DIR}/${TYPE}

@@ -6,15 +6,18 @@ import (
 )
 
 type VariableGen struct {
-	StringConstants map[string]string
+	StringConstants      map[string]string
+	StringSliceConstants map[string][]string
+
 	// use the key to derive the gen logic
 	GenStructInstructs map[string]structs.StructGen
 }
 
 func NewVarGen() VariableGen {
 	v := VariableGen{
-		StringConstants:    make(map[string]string),
-		GenStructInstructs: make(map[string]structs.StructGen),
+		StringConstants:      make(map[string]string),
+		StringSliceConstants: make(map[string][]string),
+		GenStructInstructs:   make(map[string]structs.StructGen),
 	}
 	return v
 }
@@ -34,13 +37,6 @@ func (v *VariableGen) SetAndReturnImportedVarReference(importedPkgName, imported
 	}
 	v.StringConstants[importedPkgName] = importedVarName
 	return *v
-}
-
-func (v *VariableGen) CreateConstStringDecl(name string) *jen.Statement {
-	if value, ok := v.StringConstants[name]; ok {
-		return jen.Null().Const().Id(name).Op("=").Lit(value)
-	}
-	return jen.Null()
 }
 
 func (v *VariableGen) InsertStruct(s structs.StructGen) {

@@ -19,7 +19,7 @@ type InsertModelTemplate struct {
 func NewInsertModelTemplate(p structs.Path) InsertModelTemplate {
 	sqlQueryType := "create"
 	queryInfo := common.QueryMetadata{Type: sqlQueryType}
-	m := InsertModelTemplate{base.NewPGModelTemplate(p, &queryInfo)}
+	m := InsertModelTemplate{base.NewPGModelTemplate(p, &queryInfo, "")}
 	return m
 }
 

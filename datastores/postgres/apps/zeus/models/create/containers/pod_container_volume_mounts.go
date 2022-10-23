@@ -3,14 +3,14 @@ package containers
 import (
 	"fmt"
 
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/containers"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 )
 
 func (p *PodContainersGroup) insertContainerVolumeMountsHeader() string {
 	return "INSERT INTO container_volume_mounts(probe_id, probe_key_values_jsonb) VALUES "
 }
 
-func (p *PodContainersGroup) getInsertContainerVolumeMountsValues(parentExpression string, contVolMounts containers.ContainerVolumeMounts, isLastValuesGroup bool) string {
+func (p *PodContainersGroup) getInsertContainerVolumeMountsValues(parentExpression string, contVolMounts autogen_bases.ContainerVolumeMountsSlice, isLastValuesGroup bool) string {
 	for i, vm := range contVolMounts {
 		parentExpression += fmt.Sprintf("\n('%d', '%s', '%s')", vm.VolumeMountID, vm.VolumeMountPath, vm.VolumeMountPath)
 		if i < len(contVolMounts)-1 && !isLastValuesGroup {

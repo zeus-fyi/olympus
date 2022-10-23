@@ -10,11 +10,11 @@ func (p *PodContainersGroup) insertContainerProbesHeader() string {
 	return "INSERT INTO container_probes(probe_id, probe_key_values_jsonb) VALUES "
 }
 
-func (p *PodContainersGroup) getContainerProbesValuesForInsert(parentExpression string, rr *autogen_bases.ContainerComputeResources) string {
-	if rr == nil {
+func (p *PodContainersGroup) getContainerProbesValuesForInsert(parentExpression string, probe *autogen_bases.ContainerProbes) string {
+	if probe == nil {
 		return parentExpression
 	}
-	parentExpression += fmt.Sprintf("\n('%d', (%s))", rr.ComputeResourcesID, rr.ComputeResourcesKeyValuesJSONb)
+	parentExpression += fmt.Sprintf("\n('%d', (%s))", probe.ProbeID, probe.ProbeKeyValuesJSONb)
 	return parentExpression
 }
 

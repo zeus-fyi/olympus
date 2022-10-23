@@ -13,7 +13,6 @@ type ModelStructBaseGenWriterTestSuite struct {
 }
 
 func (s *ModelStructBaseGenWriterTestSuite) TestPGBaseSchemaWriter() {
-
 	filter := string_utils.FilterOpts{
 		DoesNotStartWith: []string{"orgs", "user", "valid", "model"},
 		StartsWith:       "",
@@ -26,10 +25,10 @@ func (s *ModelStructBaseGenWriterTestSuite) TestPGBaseSchemaWriter() {
 		DirOut:      printOutLocation,
 		Fn:          "",
 		Env:         "",
-		FilterFiles: filter,
 	}
 
 	m := NewPGModelTemplate(p, nil, s.Tc.LocalDbPgconn)
+	m.Filter = &filter
 	err := m.WritePgTableDefinition()
 	s.Require().Nil(err)
 }

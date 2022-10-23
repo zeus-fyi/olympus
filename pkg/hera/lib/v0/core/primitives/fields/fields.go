@@ -24,6 +24,10 @@ func (f *Field) DbFieldName() string {
 	return f.DbMetadata.Column.Name
 }
 
+func (f *Field) DbTableName() string {
+	return f.DbMetadata.Table.Name
+}
+
 func NewFieldFromDB(tbl *database.Table, col database.Column, colName, goType string) Field {
 	newDbField := NewDbMetadata(tbl, col)
 	f := Field{

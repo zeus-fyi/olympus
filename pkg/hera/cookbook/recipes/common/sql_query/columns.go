@@ -22,6 +22,20 @@ func GeneratePgColumnsPtrFunc(structGen primitive.StructGen) jen.Code {
 	return fn.GenerateStructPtrFunc(structGen)
 }
 
+func GeneratePgTableNamePtrFunc(structGen primitive.StructGen) jen.Code {
+	fnName := "GetTableName"
+	fn := funcs.NewFn(fnName)
+	tableName := "tableName"
+	assignedColumnSlice := jen.Id(tableName).Op("=").Lit(structGen.TableExpressionName())
+	fn.AddBodyStatement(assignedColumnSlice)
+	returnField := fields.Field{
+		Type: "string",
+		Name: tableName,
+	}
+	fn.AddReturnField(returnField)
+	return fn.GenerateStructPtrFunc(structGen)
+}
+
 func CreateStringSliceFieldAssignment(structGen primitive.StructGen) []jen.Code {
 	var stmtChain []jen.Code
 	cols := structGen.GetColumnFieldNames()

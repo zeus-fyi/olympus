@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"github.com/zeus-fyi/tables-to-go/pkg/database"
 	"github.com/zeus-fyi/tables-to-go/pkg/table_formatting"
 )
@@ -9,6 +10,7 @@ import (
 type PgSchemaAutogen struct {
 	*database.Postgresql
 	// map table to its columns
+	Filter *string_utils.FilterOpts
 	table_formatting.TableContentMap
 	StructMapToCodeGen map[string]structs.StructGen
 }

@@ -12,6 +12,7 @@ func (m *ModelTemplate) CreateTemplateFromStruct(structGen primitive.StructGen) 
 	importNames := make(map[string]string)
 	importNames["github.com/zeus-fyi/olympus/datastores/postgres/apps"] = "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	importNames["database/sql"] = "database/sql"
+	importNames["apps"] = "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 	m.JenFile.ImportNames(importNames)
 	m.Structs.AddStruct(structGen)
@@ -28,6 +29,9 @@ func (m *ModelTemplate) CreateTemplateFromStruct(structGen primitive.StructGen) 
 
 	// adds table columns selector, todo refactor
 	m.Add(sql_query.GeneratePgColumnsPtrFunc(structGen))
+
+	// adds table name selector, todo refactor
+	m.Add(sql_query.GeneratePgTableNamePtrFunc(structGen))
 
 	err := m.Save()
 	m.resetModelTemplate()

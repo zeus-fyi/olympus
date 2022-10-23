@@ -5,6 +5,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/fields"
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/funcs"
 	primitive "github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/structs"
+	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/vars"
 )
 
 func GeneratePgColumnsPtrFunc(structGen primitive.StructGen) jen.Code {
@@ -26,7 +27,7 @@ func GeneratePgTableNamePtrFunc(structGen primitive.StructGen) jen.Code {
 	fnName := "GetTableName"
 	fn := funcs.NewFn(fnName)
 	tableName := "tableName"
-	assignedColumnSlice := jen.Id(tableName).Op("=").Lit(structGen.TableExpressionName())
+	assignedColumnSlice := vars.CreateStringAssignment(tableName, structGen.TableExpressionName())
 	fn.AddBodyStatement(assignedColumnSlice)
 	returnField := fields.Field{
 		Type: "string",

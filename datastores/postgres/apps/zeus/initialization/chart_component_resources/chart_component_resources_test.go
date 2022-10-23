@@ -20,14 +20,15 @@ func (s *ChartComponentResourcesTestSuite) TestSeedChartComponents() {
 
 	cr := seedDeployment()
 	err := cr.InsertChartResource(ctx, q)
+	s.Require().Nil(err)
 
 	cr = seedStatefulSet()
 	err = cr.InsertChartResource(ctx, q)
+	s.Require().Nil(err)
 
 	cr = seedService()
 	err = cr.InsertChartResource(ctx, q)
 	s.Require().Nil(err)
-
 }
 
 func seedDeployment() ChartComponentResources {

@@ -10,7 +10,7 @@ func (m *ModelTemplate) CreateTemplateFromStruct(structGen primitive.StructGen) 
 	m.NewCodeGenFileShell()
 
 	importNames := make(map[string]string)
-	importNames["github.com/zeus-fyi/olympus/datastores/postgres/apps"] = "apps"
+	importNames["github.com/zeus-fyi/olympus/datastores/postgres/apps"] = "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	importNames["database/sql"] = "database/sql"
 
 	m.JenFile.ImportNames(importNames)

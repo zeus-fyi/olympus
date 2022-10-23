@@ -1,17 +1,17 @@
 package configuration
 
 import (
-	autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 )
 
 type ConfigMap struct {
-	KindDefinition        autogen_structs.ChartComponentResources
-	ParentClassDefinition autogen_structs.ChartSubcomponentParentClassTypes
+	KindDefinition        autogen_bases.ChartComponentResources
+	ParentClassDefinition autogen_bases.ChartSubcomponentParentClassTypes
 }
 
 func NewConfigMap() ConfigMap {
 	cm := ConfigMap{}
-	cm.KindDefinition = autogen_structs.ChartComponentResources{
+	cm.KindDefinition = autogen_bases.ChartComponentResources{
 		ChartComponentKindName:   "ConfigMap",
 		ChartComponentApiVersion: "v1",
 	}

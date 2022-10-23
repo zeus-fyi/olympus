@@ -1,13 +1,13 @@
 package containers
 
 import (
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/containers"
 	v1 "k8s.io/api/core/v1"
 )
 
-func ContainerProbeToDB(p *v1.Probe) autogen_structs.ContainerProbes {
-	dbProbe := autogen_structs.ContainerProbes{
+func ContainerProbeToDB(p *v1.Probe) autogen_bases.ContainerProbes {
+	dbProbe := autogen_bases.ContainerProbes{
 		ProbeID:             0,
 		ProbeKeyValuesJSONb: "",
 	}

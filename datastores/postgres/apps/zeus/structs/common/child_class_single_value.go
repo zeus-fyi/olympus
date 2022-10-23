@@ -1,20 +1,20 @@
 package common
 
-import autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
+import autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 
 type ChildClassSingleValue struct {
-	autogen_structs.ChartSubcomponentChildClassTypes
-	autogen_structs.ChartSubcomponentsChildValues
+	autogen_bases.ChartSubcomponentChildClassTypes
+	autogen_bases.ChartSubcomponentsChildValues
 }
 
 func NewChildClassSingleValue(typeName string) ChildClassSingleValue {
 	csv := ChildClassSingleValue{
-		ChartSubcomponentChildClassTypes: autogen_structs.ChartSubcomponentChildClassTypes{
+		ChartSubcomponentChildClassTypes: autogen_bases.ChartSubcomponentChildClassTypes{
 			ChartSubcomponentParentClassTypeID:  0,
 			ChartSubcomponentChildClassTypeID:   0,
 			ChartSubcomponentChildClassTypeName: typeName,
 		},
-		ChartSubcomponentsChildValues: autogen_structs.ChartSubcomponentsChildValues{
+		ChartSubcomponentsChildValues: autogen_bases.ChartSubcomponentsChildValues{
 			ChartSubcomponentChildClassTypeID:              0,
 			ChartSubcomponentChartPackageTemplateInjection: false,
 			ChartSubcomponentKeyName:                       typeName,
@@ -26,12 +26,12 @@ func NewChildClassSingleValue(typeName string) ChildClassSingleValue {
 
 func NewInitChildClassSingleValue(typeName, value string) ChildClassSingleValue {
 	csv := ChildClassSingleValue{
-		ChartSubcomponentChildClassTypes: autogen_structs.ChartSubcomponentChildClassTypes{
+		ChartSubcomponentChildClassTypes: autogen_bases.ChartSubcomponentChildClassTypes{
 			ChartSubcomponentParentClassTypeID:  0,
 			ChartSubcomponentChildClassTypeID:   0,
 			ChartSubcomponentChildClassTypeName: typeName,
 		},
-		ChartSubcomponentsChildValues: autogen_structs.ChartSubcomponentsChildValues{
+		ChartSubcomponentsChildValues: autogen_bases.ChartSubcomponentsChildValues{
 			ChartSubcomponentChildClassTypeID:              0,
 			ChartSubcomponentChartPackageTemplateInjection: false,
 			ChartSubcomponentKeyName:                       typeName,

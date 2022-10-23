@@ -6,13 +6,13 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
 type ChartComponentResources struct {
-	autogen_structs.ChartComponentResources
+	autogen_bases.ChartComponentResources
 }
 
 const Sn = "ChartComponentResources"

@@ -1,7 +1,7 @@
 package structs
 
-import autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
+import autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 
 type Chart struct {
-	autogen_structs.ChartPackages
+	autogen_bases.ChartPackages
 }

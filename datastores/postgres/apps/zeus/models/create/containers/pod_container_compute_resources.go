@@ -3,7 +3,7 @@ package containers
 import (
 	"fmt"
 
-	autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 )
 
 func (p *PodContainersGroup) insertContainerComputeResourcesHeader() string {
@@ -11,7 +11,7 @@ func (p *PodContainersGroup) insertContainerComputeResourcesHeader() string {
 }
 
 // optional, should skip if not specified/nothing is provided
-func (p *PodContainersGroup) getContainerComputeResourcesValues(parentExpression string, cr *autogen_structs.ContainerComputeResources) string {
+func (p *PodContainersGroup) getContainerComputeResourcesValues(parentExpression string, cr *autogen_bases.ContainerComputeResources) string {
 	parentExpression += fmt.Sprintf("\n('%d', '%s')", cr.ComputeResourcesID, cr.ComputeResourcesKeyValuesJSONb)
 	return parentExpression
 }
@@ -20,7 +20,7 @@ func (p *PodContainersGroup) insertContainerComputeResourcesRelationshipHeader()
 	return "INSERT INTO containers_environmental_vars(compute_resources_id, compute_resources_key_values_jsonb) VALUES "
 }
 
-func (p *PodContainersGroup) insertContainerComputeResourcesRelationship(parentExpression, containerImageID string, envVar autogen_structs.ContainerEnvironmentalVars, cct autogen_structs.ChartSubcomponentChildClassTypes) string {
+func (p *PodContainersGroup) insertContainerComputeResourcesRelationship(parentExpression, containerImageID string, envVar autogen_bases.ContainerEnvironmentalVars, cct autogen_bases.ChartSubcomponentChildClassTypes) string {
 	valsToInsert := "VALUES "
 	valsToInsert += fmt.Sprintf("\n('%d', (%s), '%d')", cct.ChartSubcomponentChildClassTypeID, selectRelatedContainerIDFromImageID(containerImageID), envVar.EnvID)
 	containerInsert := fmt.Sprintf(`

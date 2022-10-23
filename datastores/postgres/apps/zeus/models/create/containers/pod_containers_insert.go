@@ -3,14 +3,14 @@ package containers
 import (
 	"fmt"
 
-	autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/pkg/utils/dev_hacks"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
 // insertPodContainerGroupSQL, will use the next_id distributed ID generator and select the container id
 // value for subsequent subcomponent relationships of its element, should greatly simplify the insert logic
-func (p *PodContainersGroup) insertPodContainerGroupSQL(workloadChildGroupInfo autogen_structs.ChartSubcomponentChildClassTypes) string {
+func (p *PodContainersGroup) insertPodContainerGroupSQL(workloadChildGroupInfo autogen_bases.ChartSubcomponentChildClassTypes) string {
 	i := len(p.Containers)
 
 	// container
@@ -80,7 +80,7 @@ func (p *PodContainersGroup) generateHeaderIfNoneForCTE(parentExpression, header
 	return parentExpression
 }
 
-func (p *PodContainersGroup) getInsertContainerValues(c autogen_structs.Containers) string {
+func (p *PodContainersGroup) getInsertContainerValues(c autogen_bases.Containers) string {
 	processAndSetAmbiguousContainerFieldStatus(c)
 	valsToInsert := fmt.Sprintf("('%s', '%s', '%s', '%s', '%s', '%s')", c.ContainerName, c.ContainerImageID, c.ContainerVersionTag, c.ContainerPlatformOs, c.ContainerRepository, c.ContainerImagePullPolicy)
 	return valsToInsert

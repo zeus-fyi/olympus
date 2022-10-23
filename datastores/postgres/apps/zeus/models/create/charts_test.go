@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -18,7 +18,7 @@ type ChartPackagesTestSuite struct {
 
 func (s *ChartPackagesTestSuite) TestConvertDeploymentAndInsert() {
 	ns := sql.NullString{}
-	c := Chart{autogen_structs.ChartPackages{
+	c := Chart{autogen_bases.ChartPackages{
 		ChartPackageID:   0,
 		ChartName:        rand.String(10),
 		ChartVersion:     rand.String(10),

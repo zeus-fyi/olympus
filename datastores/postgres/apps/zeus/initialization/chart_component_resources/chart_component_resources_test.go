@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
@@ -31,7 +31,7 @@ func (s *ChartComponentResourcesTestSuite) TestSeedChartComponents() {
 }
 
 func seedDeployment() ChartComponentResources {
-	cr := ChartComponentResources{autogen_structs.ChartComponentResources{
+	cr := ChartComponentResources{autogen_bases.ChartComponentResources{
 		ChartComponentResourceID: 0,
 		ChartComponentKindName:   "Deployment",
 		ChartComponentApiVersion: "apps/v1",
@@ -40,7 +40,7 @@ func seedDeployment() ChartComponentResources {
 }
 
 func seedStatefulSet() ChartComponentResources {
-	cr := ChartComponentResources{autogen_structs.ChartComponentResources{
+	cr := ChartComponentResources{autogen_bases.ChartComponentResources{
 		ChartComponentResourceID: 1,
 		ChartComponentKindName:   "StatefulSet",
 		ChartComponentApiVersion: "apps/v1",
@@ -48,7 +48,7 @@ func seedStatefulSet() ChartComponentResources {
 	return cr
 }
 func seedService() ChartComponentResources {
-	cr := ChartComponentResources{autogen_structs.ChartComponentResources{
+	cr := ChartComponentResources{autogen_bases.ChartComponentResources{
 		ChartComponentResourceID: 2,
 		ChartComponentKindName:   "Service",
 		ChartComponentApiVersion: "v1",

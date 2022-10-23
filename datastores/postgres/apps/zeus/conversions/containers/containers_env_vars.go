@@ -3,14 +3,14 @@ package containers
 import (
 	"encoding/json"
 
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/containers"
 	"github.com/zeus-fyi/olympus/pkg/utils/dev_hacks"
 	v1 "k8s.io/api/core/v1"
 )
 
-func ContainerEnvVarsToDB(envs []v1.EnvVar) containers.ContainerEnvVars {
-	envVarsSlice := make(containers.ContainerEnvVars, len(envs))
+func ContainerEnvVarsToDB(envs []v1.EnvVar) autogen_bases.ContainerEnvironmentalVarsSlice {
+	envVarsSlice := make(autogen_bases.ContainerEnvironmentalVarsSlice, len(envs))
 	for i, env := range envs {
 		envVar := ContainerEnvVarToDB(env)
 		envVarsSlice[i] = envVar
@@ -18,7 +18,7 @@ func ContainerEnvVarsToDB(envs []v1.EnvVar) containers.ContainerEnvVars {
 	return envVarsSlice
 }
 
-func ContainerEnvVarToDB(env v1.EnvVar) autogen_structs.ContainerEnvironmentalVars {
+func ContainerEnvVarToDB(env v1.EnvVar) autogen_bases.ContainerEnvironmentalVars {
 
 	// TODO fix
 	var jsonValues map[string]interface{}
@@ -28,10 +28,10 @@ func ContainerEnvVarToDB(env v1.EnvVar) autogen_structs.ContainerEnvironmentalVa
 		dev_hacks.Use(err)
 		err = json.Unmarshal(bytes, &jsonValues)
 	}
-	dbContainer := autogen_structs.ContainerEnvironmentalVars{
+	dbContainer := autogen_bases.ContainerEnvironmentalVars{
 		EnvID: 0,
 		Name:  env.Name,
-		Value: jsonValues,
+		// TODO fix data type Value: jsonValues,
 	}
 	return dbContainer
 }

@@ -3,7 +3,7 @@ package containers
 import (
 	"fmt"
 
-	autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 )
 
 // This will create a volume for the pod spec, if a volume already exists it's not needed, so this is optionally
@@ -13,7 +13,7 @@ func (p *PodContainersGroup) insertVolumesHeader() string {
 	return "INSERT INTO volumes(volume_id, volume_name, volume_key_values_jsonb) "
 }
 
-func (p *PodContainersGroup) insertVolumes(parentExpression, childClassTypeID string, vols ...autogen_structs.Volumes) string {
+func (p *PodContainersGroup) insertVolumes(parentExpression, childClassTypeID string, vols ...autogen_bases.Volumes) string {
 	valsToInsert := "VALUES "
 
 	for i, v := range vols {

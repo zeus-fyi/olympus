@@ -1,25 +1,25 @@
 package workloads
 
 import (
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/common"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/containers"
 )
 
 type Deployment struct {
-	KindDefinition autogen_structs.ChartComponentResources
+	KindDefinition autogen_bases.ChartComponentResources
 
 	Metadata DeploymentMetadata
 	Spec     Spec
 }
 
 type DeploymentMetadata struct {
-	autogen_structs.ChartSubcomponentParentClassTypes
+	autogen_bases.ChartSubcomponentParentClassTypes
 	common.Metadata
 }
 
 type Spec struct {
-	autogen_structs.ChartSubcomponentParentClassTypes
+	autogen_bases.ChartSubcomponentParentClassTypes
 	DeploymentSpec
 }
 
@@ -32,11 +32,11 @@ type DeploymentSpec struct {
 
 func NewDeployment() Deployment {
 	d := Deployment{}
-	d.KindDefinition = autogen_structs.ChartComponentResources{
+	d.KindDefinition = autogen_bases.ChartComponentResources{
 		ChartComponentKindName:   "Deployment",
 		ChartComponentApiVersion: "apps/v1",
 	}
-	d.Spec.ChartSubcomponentParentClassTypes = autogen_structs.ChartSubcomponentParentClassTypes{
+	d.Spec.ChartSubcomponentParentClassTypes = autogen_bases.ChartSubcomponentParentClassTypes{
 		ChartPackageID:                       0,
 		ChartComponentResourceID:             0,
 		ChartSubcomponentParentClassTypeID:   0,

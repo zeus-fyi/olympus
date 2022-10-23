@@ -1,7 +1,7 @@
 package containers
 
 import (
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/containers"
 	v1 "k8s.io/api/core/v1"
 )
@@ -20,7 +20,7 @@ func ConvertContainersToDB(cs []v1.Container) containers.Containers {
 }
 
 func ConvertContainerInfoToDB(cs v1.Container, dbContainer containers.Container) containers.Container {
-	dbContainer.Metadata = autogen_structs.Containers{
+	dbContainer.Metadata = autogen_bases.Containers{
 		ContainerName:            cs.Name,
 		ContainerImageID:         cs.Image,
 		ContainerVersionTag:      "",

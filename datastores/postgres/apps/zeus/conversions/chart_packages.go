@@ -75,18 +75,3 @@ func FetchQueryPackage(ctx context.Context, packageID int) (structs.PackageCompo
 
 	return packageComponents, err
 }
-
-//cp := autogen_structs.ChartPackages{
-//ChartPackageID: 0,
-//ChartName:      "",
-//ChartVersion:   "",
-//}
-//
-//cpr := autogen_structs.ChartPackageComponents{
-//ChartSubcomponentParentClassTypeID: 0,
-//}
-//cpk := autogen_structs.ChartComponentKinds{
-//ChartComponentKindID:     0,
-//ChartComponentKindName:   "",
-//ChartComponentApiVersion: "",
-//}

@@ -1,14 +1,14 @@
 package common
 
 import (
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 )
 
-type ChildValuesSlice []autogen_structs.ChartSubcomponentsChildValues
-type ChildValuesMap map[string]autogen_structs.ChartSubcomponentsChildValues
+type ChildValuesSlice []autogen_bases.ChartSubcomponentsChildValues
+type ChildValuesMap map[string]autogen_bases.ChartSubcomponentsChildValues
 
 func NewChildValuesMapKey(key string, m ChildValuesMap) ChildValuesMap {
-	m[key] = autogen_structs.ChartSubcomponentsChildValues{}
+	m[key] = autogen_bases.ChartSubcomponentsChildValues{}
 	return m
 }
 

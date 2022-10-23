@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 )
 
-func processAndSetAmbiguousContainerFieldStatus(c autogen_structs.Containers) {
+func processAndSetAmbiguousContainerFieldStatus(c autogen_bases.Containers) {
 	if len(c.ContainerPlatformOs) <= 0 {
 		c.ContainerPlatformOs = "undefined"
 	}

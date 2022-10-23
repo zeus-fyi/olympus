@@ -1,7 +1,7 @@
 package common
 
 import (
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/common"
 )
 
@@ -14,8 +14,8 @@ func ConvertKeyValueToChildValues(m map[string]string) common.ChildValuesSlice {
 	return cvs
 }
 
-func ConvertKeyValueStringToChildValues(k, v string) autogen_structs.ChartSubcomponentsChildValues {
-	cv := autogen_structs.ChartSubcomponentsChildValues{
+func ConvertKeyValueStringToChildValues(k, v string) autogen_bases.ChartSubcomponentsChildValues {
+	cv := autogen_bases.ChartSubcomponentsChildValues{
 		ChartSubcomponentChildClassTypeID:              0,
 		ChartSubcomponentChartPackageTemplateInjection: false,
 		ChartSubcomponentKeyName:                       k,

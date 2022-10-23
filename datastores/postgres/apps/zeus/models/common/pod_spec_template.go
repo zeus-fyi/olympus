@@ -3,10 +3,10 @@ package common
 import (
 	"fmt"
 
-	autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 )
 
-func SetPodSpecTemplateChildTypeInsert(parentExpression, parentClassTypeCteName string, psChildClassType autogen_structs.ChartSubcomponentChildClassTypes) string {
+func SetPodSpecTemplateChildTypeInsert(parentExpression, parentClassTypeCteName string, psChildClassType autogen_bases.ChartSubcomponentChildClassTypes) string {
 	cvTypeName := psChildClassType.ChartSubcomponentChildClassTypeName
 	typeInsert, cvTypeNameCte := SetCvTypeInsert(cvTypeName, parentClassTypeCteName)
 

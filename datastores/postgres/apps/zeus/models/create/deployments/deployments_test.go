@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/workloads"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create"
-	autogen_structs "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 	v1 "k8s.io/api/apps/v1"
@@ -45,7 +45,7 @@ func (s *ConvertDeploymentPackagesTestSuite) TestConvertDeploymentAndInsert() {
 
 func mockChart() (create.Chart, error) {
 	ns := sql.NullString{}
-	c := create.Chart{autogen_structs.ChartPackages{
+	c := create.Chart{autogen_bases.ChartPackages{
 		ChartPackageID:   0,
 		ChartName:        rand.String(10),
 		ChartVersion:     rand.String(10),

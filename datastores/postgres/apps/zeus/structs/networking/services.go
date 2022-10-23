@@ -1,13 +1,13 @@
 package networking
 
 import (
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/autogen"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/common"
 )
 
 type Service struct {
-	KindDefinition        autogen_structs.ChartComponentResources
-	ParentClassDefinition autogen_structs.ChartSubcomponentParentClassTypes
+	KindDefinition        autogen_bases.ChartComponentResources
+	ParentClassDefinition autogen_bases.ChartSubcomponentParentClassTypes
 
 	Metadata common.Metadata
 	ServiceSpec
@@ -15,7 +15,7 @@ type Service struct {
 
 func NewService() Service {
 	s := Service{}
-	s.KindDefinition = autogen_structs.ChartComponentResources{
+	s.KindDefinition = autogen_bases.ChartComponentResources{
 		ChartComponentKindName:   "Service",
 		ChartComponentApiVersion: "v1",
 	}

@@ -10,7 +10,10 @@ func (m *ModelTemplate) CreateTemplateFromStruct(structGen primitive.StructGen) 
 	m.NewCodeGenFileShell()
 
 	importNames := make(map[string]string)
+
 	importNames["database/sql"] = "database/sql"
+	// TODO not sure why, but for adding imports create a key and value for both pkg name and to itself
+	importNames["github.com/zeus-fyi/olympus/datastores/postgres/apps"] = "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	importNames["apps"] = "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 	m.JenFile.ImportNames(importNames)

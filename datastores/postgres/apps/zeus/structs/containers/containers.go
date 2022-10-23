@@ -10,7 +10,7 @@ type Container struct {
 	VolumeMounts    autogen_bases.ContainerVolumeMountsSlice
 	Ports           autogen_bases.ContainerPortsSlice
 	Env             autogen_bases.ContainerEnvironmentalVarsSlice
-	Probes          autogen_bases.ContainersProbesSlice
+	Probes          autogen_bases.ContainerProbesSlice
 	ResourceRequest *autogen_bases.ContainerComputeResources
 }
 

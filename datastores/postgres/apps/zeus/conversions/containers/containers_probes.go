@@ -31,7 +31,7 @@ func ConvertContainerProbesToDB(cs v1.Container, dbContainer containers.Containe
 	// from k8s
 	probes := probesThatExist(suProbe, livenessProbe, readinessProbe)
 	// to db format
-	probeSlice := make(containers.ContainerProbes, len(probes))
+	probeSlice := make(autogen_bases.ContainerProbesSlice, len(probes))
 
 	for i, p := range probes {
 		probe := ContainerProbeToDB(p)

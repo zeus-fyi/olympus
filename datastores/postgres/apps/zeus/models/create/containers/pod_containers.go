@@ -22,8 +22,8 @@ const ModelName = "PodContainersGroup"
 
 func (p *PodTemplateSpec) InsertPodTemplateSpec(ctx context.Context, q sql_query_templates.QueryParams) error {
 	log.Debug().Interface("InsertQuery:", q.LogHeader(ModelName))
-	q.RawQuery = p.InsertPodContainerGroupSQL()
-	r, err := apps.Pg.Exec(ctx, q.RawQuery)
+	q.CTEQuery = p.InsertPodTemplateSpecContainersCTE()
+	r, err := apps.Pg.Exec(ctx, q.CTEQuery.GenerateChainedCTE())
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
 		return err
 	}

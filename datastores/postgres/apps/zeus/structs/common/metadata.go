@@ -1,5 +1,22 @@
 package common
 
+import (
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+)
+
+type ParentMetaData struct {
+	autogen_bases.ChartSubcomponentParentClassTypes
+	Metadata
+}
+
+func (pm *ParentMetaData) SetParentClassTypeIDs(id int) {
+	pm.ChartSubcomponentParentClassTypeID = id
+
+	pm.Name.ChartSubcomponentParentClassTypeID = id
+	pm.Annotations.ChartSubcomponentParentClassTypeID = id
+	pm.Labels.ChartSubcomponentParentClassTypeID = id
+}
+
 type Metadata struct {
 	Name        ChildClassSingleValue
 	Annotations ChildClassMultiValue

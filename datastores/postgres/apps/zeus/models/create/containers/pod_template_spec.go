@@ -1,7 +1,6 @@
 package containers
 
 import (
-	conv "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common"
 	cont_conv "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/containers"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/common"
@@ -54,6 +53,14 @@ func (p *PodTemplateSpec) AddContainer(c containers.Container) {
 	p.Spec.PodTemplateContainers = append(p.Spec.PodTemplateContainers, c)
 }
 
+func (p *PodTemplateSpec) GetPodSpecParentClassTypeID() int {
+	return p.Spec.PodTemplateSpecClassDefinition.ChartSubcomponentParentClassTypeID
+}
+
+func (p *PodTemplateSpec) SetPodSpecParentClassTypeID(id int) {
+	p.Spec.PodTemplateSpecClassDefinition.ChartSubcomponentParentClassTypeID = id
+}
+
 func (p *PodTemplateSpec) GetPodSpecChildClassTypeID() int {
 	return p.Spec.PodTemplateSpecClassDefinition.ChartSubcomponentChildClassTypeID
 }
@@ -62,7 +69,7 @@ func (p *PodTemplateSpec) GetPodSpecChildClassTypeID() int {
 func (p *PodTemplateSpec) ConvertPodTemplateSpecConfigToDB(ps *v1.PodSpec) (PodTemplateSpec, error) {
 	dbPodSpec := NewPodTemplateSpec()
 
-	dbSpecVolumes, err := conv.VolumesToDB(ps.Volumes)
+	dbSpecVolumes, err := common.VolumesToDB(ps.Volumes)
 	if err != nil {
 		return dbPodSpec, err
 	}

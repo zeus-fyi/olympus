@@ -11,6 +11,7 @@ type Query struct{}
 type QueryParams struct {
 	QueryName   string
 	RawQuery    string
+	CTEQuery    CTE
 	Fields      []string
 	TableName   string
 	WhereClause string

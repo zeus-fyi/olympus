@@ -20,3 +20,11 @@ func NewSubInsertCTE(subCteName string) SubCTE {
 		},
 	}
 }
+
+func AppendSubCteSlices(singleSubCte SubCTEs, subCteGroup ...SubCTEs) SubCTEs {
+	combinedSubCtes := singleSubCte
+	for _, addSubCte := range subCteGroup {
+		combinedSubCtes = append(combinedSubCtes, addSubCte...)
+	}
+	return combinedSubCtes
+}

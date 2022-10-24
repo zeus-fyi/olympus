@@ -5,11 +5,14 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-// InsertPodContainerGroupSQL will use the next_id distributed ID generator and select the container id
+// InsertPodTemplateSpecContainersCTE will use the next_id distributed ID generator and select the container id
 // value for subsequent subcomponent relationships of its element, should greatly simplify the insert logic
-func (p *PodTemplateSpec) InsertPodContainerGroupSQL() string {
+func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE() sql_query_templates.CTE {
 	// container
-
+	ts := chronos.Chronos{}
+	if p.GetPodSpecParentClassTypeID() == 0 {
+		p.SetPodSpecParentClassTypeID(ts.UnixTimeStampNow())
+	}
 	podSpecChildClassTypeID := p.GetPodSpecChildClassTypeID()
 	contSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_containers")
 	contSubCTE.TableName = "containers"
@@ -54,7 +57,6 @@ func (p *PodTemplateSpec) InsertPodContainerGroupSQL() string {
 
 	p.insertVolumes(&podSpecVolumesSubCTE, &podSpecVolumesRelationshipSubCTE)
 
-	ts := chronos.Chronos{}
 	// TODO for now will just generate ids here, something more complex can come later
 	sortOrderIndex := 0
 	containersMapByImageID := p.NewPodContainersMapForDB()
@@ -83,7 +85,7 @@ func (p *PodTemplateSpec) InsertPodContainerGroupSQL() string {
 	}
 
 	cteExpr := sql_query_templates.CTE{
-		Name: "InsertPodContainerGroupSQL",
+		Name: "InsertPodTemplateSpecContainersCTE",
 		SubCTEs: []sql_query_templates.SubCTE{
 			// container and podSpec template relationship
 			contSubCTE,
@@ -102,6 +104,5 @@ func (p *PodTemplateSpec) InsertPodContainerGroupSQL() string {
 			podSpecVolumesRelationshipSubCTE,
 		},
 	}
-	query := cteExpr.MultiLevelValuesCTEStringBuilderSQL()
-	return query
+	return cteExpr
 }

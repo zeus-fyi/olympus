@@ -44,3 +44,20 @@ func NewInitChildClassSingleValue(typeName, value string) ChildClassSingleValue 
 func (c *ChildClassSingleValue) SetValue(v string) {
 	c.ChartSubcomponentValue = v
 }
+
+func (c *ChildClassSingleValue) SetChildClassTypeIDs(id int) {
+	c.ChartSubcomponentChildClassTypes.ChartSubcomponentChildClassTypeID = id
+	c.ChartSubcomponentsChildValues.ChartSubcomponentChildClassTypeID = id
+}
+
+func (c *ChildClassSingleValue) GetChildClassTypeID() int {
+	return c.ChartSubcomponentChildClassTypes.ChartSubcomponentChildClassTypeID
+}
+
+func (c *ChildClassSingleValue) GetParentClassTypeID() int {
+	return c.ChartSubcomponentChildClassTypes.ChartSubcomponentParentClassTypeID
+}
+
+func (c *ChildClassSingleValue) GetChildValueTypeID() int {
+	return c.ChartSubcomponentsChildValues.ChartSubcomponentChildClassTypeID
+}

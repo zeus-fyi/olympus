@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
@@ -16,6 +17,26 @@ var Sn = "ChartSubcomponentParentClassTypes"
 
 type ParentClass struct {
 	autogen_bases.ChartSubcomponentParentClassTypes
+}
+
+func CreateParentClassTypeSubCTE(pcType autogen_bases.ChartSubcomponentParentClassTypes) sql_query_templates.SubCTEs {
+	if pcType.ChartSubcomponentParentClassTypeID == 0 {
+		var ts chronos.Chronos
+		pcTypeClassTypeID := ts.UnixTimeStampNow()
+		pcType.ChartSubcomponentParentClassTypeID = pcTypeClassTypeID
+	}
+
+	parentClassTypeSubCTE := createParentClassTypeSubCTE(&pcType)
+	return []sql_query_templates.SubCTE{parentClassTypeSubCTE}
+}
+
+func createParentClassTypeSubCTE(pcType *autogen_bases.ChartSubcomponentParentClassTypes) sql_query_templates.SubCTE {
+	queryName := "cte_" + pcType.ChartSubcomponentParentClassTypeName
+	parentClassTypeSubCTE := sql_query_templates.NewSubInsertCTE(queryName)
+	parentClassTypeSubCTE.TableName = pcType.GetTableName()
+	parentClassTypeSubCTE.Fields = pcType.GetTableColumns()
+	parentClassTypeSubCTE.Values = []apps.RowValues{pcType.GetRowValues(queryName)}
+	return parentClassTypeSubCTE
 }
 
 func (p *ParentClass) insertChartSubcomponentParentClassType() string {
@@ -32,4 +53,14 @@ func (p *ParentClass) InsertChartSubcomponentParentClassTypes(ctx context.Contex
 	query := p.insertChartSubcomponentParentClassType()
 	_, err := apps.Pg.Exec(ctx, query)
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
+}
+
+const SelectDeploymentResourceID = "(SELECT chart_component_resource_id FROM chart_component_resources WHERE chart_component_kind_name = 'Deployment' AND chart_component_api_version = 'apps/v1')"
+
+func addParentClass(pkgId int, pcName string) string {
+	s := fmt.Sprintf(
+		`INSERT INTO chart_subcomponent_parent_class_types(chart_package_id, chart_component_resource_id, chart_subcomponent_parent_class_type_name)
+				 VALUES (%d, %s, '%s')
+				 RETURNING chart_subcomponent_parent_class_type_id`, pkgId, SelectDeploymentResourceID, pcName)
+	return s
 }

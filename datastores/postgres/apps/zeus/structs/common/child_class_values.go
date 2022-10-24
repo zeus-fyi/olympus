@@ -19,11 +19,23 @@ func NewChildClassAndValues(typeName string) ChildClassMultiValue {
 	return cvals
 }
 
-func (c *ChildClassMultiValue) AddValues(values ...string) {
+func (c *ChildClassMultiValue) AddValues(values map[string]string) {
 	if len(c.Values) <= 0 {
 		c.Values = []autogen_bases.ChartSubcomponentsChildValues{}
 	}
-	for _, v := range values {
-		c.Values = append(c.Values, autogen_bases.ChartSubcomponentsChildValues{ChartSubcomponentValue: v})
+	for k, v := range values {
+		c.Values = append(c.Values, autogen_bases.ChartSubcomponentsChildValues{ChartSubcomponentKeyName: k, ChartSubcomponentValue: v})
+	}
+}
+
+func (c *ChildClassMultiValue) GetClassTypeID() int {
+	return c.ChartSubcomponentChildClassTypes.ChartSubcomponentChildClassTypeID
+}
+
+func (c *ChildClassMultiValue) SetClassTypeID(id int) {
+	c.ChartSubcomponentChildClassTypes.ChartSubcomponentChildClassTypeID = id
+
+	for _, v := range c.Values {
+		v.ChartSubcomponentChildClassTypeID = id
 	}
 }

@@ -16,7 +16,10 @@ func ConvertPodTemplateSpecConfigToDB(ps *v1.PodSpec) (containers.PodTemplateSpe
 	}
 	dbPodSpec.Spec.PodTemplateSpecVolumes = dbSpecVolumes
 
-	dbContainers := ConvertContainersToDB(ps.Containers)
+	dbContainers, err := ConvertContainersToDB(ps.Containers)
+	if err != nil {
+		return dbPodSpec, err
+	}
 	dbPodSpec.Spec.PodTemplateContainers = dbContainers
 
 	return dbPodSpec, nil

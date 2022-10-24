@@ -6,17 +6,20 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-func ConvertContainersToDB(cs []v1.Container) containers.Containers {
+func ConvertContainersToDB(cs []v1.Container) (containers.Containers, error) {
 	cl := make([]containers.Container, len(cs))
 	for i, c := range cs {
 		newContainer := containers.NewContainer()
 		newContainer = ConvertContainerInfoToDB(c, newContainer)
 		newContainer = ConvertContainerPortsToContainerDB(c, newContainer)
-		newContainer = ConvertContainerEnvVarsToDB(c, newContainer)
 		newContainer = ConvertContainerProbesToDB(c, newContainer)
+		newContainer, err := ConvertContainerEnvVarsToDB(c, newContainer)
+		if err != nil {
+			return cl, err
+		}
 		cl[i] = newContainer
 	}
-	return cl
+	return cl, nil
 }
 
 func ConvertContainerInfoToDB(cs v1.Container, dbContainer containers.Container) containers.Container {

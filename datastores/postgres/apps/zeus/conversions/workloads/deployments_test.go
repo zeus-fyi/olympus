@@ -27,7 +27,9 @@ func (s *ConvertDeploymentPackagesTestSuite) TestConvertDeployment() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(d)
 
-	dbDeploymentConfig := ConvertDeploymentConfigToDB(d)
+	dbDeploymentConfig, err := ConvertDeploymentConfigToDB(d)
+	s.Require().Nil(err)
+
 	s.Require().NotEmpty(dbDeploymentConfig)
 
 	s.Require().NotEmpty(dbDeploymentConfig.Spec)

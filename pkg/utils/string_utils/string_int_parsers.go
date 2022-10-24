@@ -1,6 +1,9 @@
 package string_utils
 
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+)
 
 func Int64StringParser(str64 string) (int64Value int64) {
 	int64Value, err := strconv.ParseInt(str64, 0, 64)
@@ -27,4 +30,22 @@ func IntStringParser(strInt string) (intValue int) {
 		panic(err)
 	}
 	return intValue
+}
+
+func Convert32BitPtrIntToString(int32BitPtr *int32) string {
+	rc := "0"
+	if int32BitPtr != nil {
+		return rc
+	}
+	return fmt.Sprintf("%d", int32BitPtr)
+}
+
+func ConvertStringTo32BitPtrInt(int32BitPtrString string) *int32 {
+	var rc int32
+	int32Value, err := strconv.ParseInt(int32BitPtrString, 0, 32)
+	if err != nil {
+		panic(err)
+	}
+	rc = int32(int32Value)
+	return &rc
 }

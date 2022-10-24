@@ -5,6 +5,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/common"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/containers"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/networking"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 type StatefulSetAndChildServices struct {
@@ -22,11 +23,15 @@ type StatefulSet struct {
 }
 
 type StatefulSetSpec struct {
-	Replicas int
+	Replicas common.ChildClassSingleValue
 	Selector common.Selector
 	// TODO VolumeClaimTemplates, ServiceName
 
 	Template containers.PodTemplateSpec
+}
+
+func (ss *StatefulSetSpec) GetReplicaCount32IntPtr() *int32 {
+	return string_utils.ConvertStringTo32BitPtrInt(ss.Replicas.ChartSubcomponentValue)
 }
 
 func NewStatefulSet() StatefulSet {

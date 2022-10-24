@@ -26,6 +26,8 @@ func ContainerEnvVarToDB(env v1.EnvVar) (autogen_bases.ContainerEnvironmentalVar
 		EnvID: 0,
 		Name:  env.Name,
 	}
+
+	// selects the value from as a second choice to make ownership of the value more clear
 	if len(env.Value) <= 0 {
 		bytes, err := json.Marshal(env.ValueFrom)
 		if err != nil {

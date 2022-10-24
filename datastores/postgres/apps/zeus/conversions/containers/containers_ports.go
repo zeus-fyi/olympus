@@ -20,7 +20,7 @@ func ContainerPortToDB(p v1.ContainerPort) autogen_bases.ContainerPorts {
 		PortID:        0,
 		PortName:      p.Name,
 		ContainerPort: int(p.ContainerPort),
-		HostIp:        "",
+		HostIp:        p.HostIP,
 		HostPort:      int(p.HostPort),
 		PortProtocol:  "",
 	}

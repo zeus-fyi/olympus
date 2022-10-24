@@ -4,6 +4,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/containers"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/workloads"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	v1 "k8s.io/api/apps/v1"
 )
 
@@ -21,10 +22,11 @@ func ConvertDeploymentConfigToDB(d *v1.Deployment) (workloads.Deployment, error)
 func ConvertDeploymentSpec(ds v1.DeploymentSpec) (workloads.DeploymentSpec, error) {
 	deploymentTemplateSpec := ds.Template
 	podTemplateSpec := deploymentTemplateSpec.Spec
+
 	dbDeploymentSpec := workloads.DeploymentSpec{
-		// TODO Replicas: ,
 		Selector: common.ConvertSelector(ds.Selector),
 	}
+	dbDeploymentSpec.Replicas.ChartSubcomponentValue = string_utils.Convert32BitPtrIntToString(ds.Replicas)
 	dbPodTemplateSpec, err := containers.ConvertPodTemplateSpecConfigToDB(&podTemplateSpec)
 	if err != nil {
 		return dbDeploymentSpec, err

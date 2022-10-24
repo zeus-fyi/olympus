@@ -4,6 +4,7 @@ import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/common"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/containers"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 type Deployment struct {
@@ -28,6 +29,10 @@ type DeploymentSpec struct {
 	Selector common.Selector
 
 	Template containers.PodTemplateSpec
+}
+
+func (ds *DeploymentSpec) GetReplicaCount32IntPtr() *int32 {
+	return string_utils.ConvertStringTo32BitPtrInt(ds.Replicas.ChartSubcomponentValue)
 }
 
 func NewDeployment() Deployment {

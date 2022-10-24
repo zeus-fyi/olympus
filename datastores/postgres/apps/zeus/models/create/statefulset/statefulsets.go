@@ -3,7 +3,7 @@ package statefulset
 import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/containers"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/containers/networking"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/networking"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/common"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )

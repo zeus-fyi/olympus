@@ -2,7 +2,7 @@ package networking
 
 import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/containers/networking"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/networking"
 	v1 "k8s.io/api/core/v1"
 )
 

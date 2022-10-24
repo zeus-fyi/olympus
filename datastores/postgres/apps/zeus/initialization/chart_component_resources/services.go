@@ -1,7 +1,7 @@
 package chart_component_resources
 
 import (
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/containers/networking"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/networking"
 	"github.com/zeus-fyi/olympus/pkg/utils/dev_hacks"
 )
 

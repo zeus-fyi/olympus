@@ -8,7 +8,7 @@ func (p *PodContainersGroup) insertContainerVolumeMountsHeader() string {
 	return "INSERT INTO container_volume_mounts(volume_mount_id, volume_mount_path, volume_name) VALUES "
 }
 
-func (p *PodContainersGroup) getInsertContainerVolumeMountsValues(imageID string, cteSubfield sql_query_templates.SubCTE) {
+func (p *PodContainersGroup) getInsertContainerVolumeMountsValues(imageID string, cteSubfield *sql_query_templates.SubCTE) {
 	c, ok := p.Containers[imageID]
 	if !ok {
 		return
@@ -23,7 +23,7 @@ func (p *PodContainersGroup) insertContainerVolumeMountRelationshipHeader() stri
 	return "INSERT INTO containers_volume_mounts(chart_subcomponent_child_class_type_id, container_id, volume_mount_id) VALUES "
 }
 
-func (p *PodContainersGroup) getContainerVolumeMountRelationshipValues(podSpecChildClassTypeID int, imageID string, cteSubfield sql_query_templates.SubCTE) {
+func (p *PodContainersGroup) getContainerVolumeMountRelationshipValues(podSpecChildClassTypeID int, imageID string, cteSubfield *sql_query_templates.SubCTE) {
 	c, ok := p.Containers[imageID]
 	if !ok {
 		return

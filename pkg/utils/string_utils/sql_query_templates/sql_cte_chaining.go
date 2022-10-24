@@ -18,7 +18,7 @@ func NewSubInsertCTE(subCteName string) SubCTE {
 			Fields:      nil,
 			TableName:   "",
 			WhereClause: "",
-			Values:      []any{},
+			Values:      [][]any{},
 			Limit:       0,
 		},
 	}

@@ -5,7 +5,6 @@ import (
 
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
-	"github.com/zeus-fyi/olympus/pkg/utils/dev_hacks"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
@@ -57,6 +56,34 @@ func (p *PodContainersGroup) insertPodContainerGroupSQL(podSpecChildClassTypeID 
 	p.insertVolumes(podSpecVolumesSubCTE)
 	p.insertVolumes(podSpecVolumesRelationshipSubCTE)
 
+	ts := chronos.Chronos{}
+	// TODO for now will just generate ids here, something more complex can come later
+	sortOrderIndex := 0
+	for _, cont := range p.Containers {
+		cont.ProcessAndSetAmbiguousContainerFieldStatusAndSubfieldIds()
+		c := cont.Metadata
+		// should continue appending values to header
+		// container
+		c.ContainerID = ts.UnixTimeStampNow()
+		contSubCTE.AddValues(c.ContainerID, c.ContainerName, c.ContainerImageID, c.ContainerVersionTag, c.ContainerPlatformOs, c.ContainerRepository, c.ContainerImagePullPolicy)
+
+		// pod spec to link container
+		podSpecSubCTE.AddValues(podSpecChildClassTypeID, c.ContainerID, cont.IsInitContainer, sortOrderIndex)
+
+		// ports
+		p.getContainerPortsValuesForInsert(c.ContainerImageID, &portsSubCTE)
+		p.getContainerPortsHeaderRelationshipValues(podSpecChildClassTypeID, c.ContainerImageID, &portsRelationshipsSubCTE)
+
+		// env vars
+		p.getInsertContainerEnvVarsValues(c.ContainerImageID, &envVarsSubCTE)
+		p.getContainerEnvVarRelationshipValues(podSpecChildClassTypeID, c.ContainerImageID, &envVarsRelationshipsSubCTE)
+
+		// vms
+		p.getInsertContainerVolumeMountsValues(c.ContainerImageID, &contVmsSubCTE)
+		p.getContainerVolumeMountRelationshipValues(podSpecChildClassTypeID, c.ContainerImageID, &contVmsRelationshipsSubCTE)
+		sortOrderIndex += 1
+	}
+
 	cteExpr := sql_query_templates.CTE{
 		Name: "insertPodContainerGroupSQL",
 		SubCTEs: []sql_query_templates.SubCTE{
@@ -76,35 +103,6 @@ func (p *PodContainersGroup) insertPodContainerGroupSQL(podSpecChildClassTypeID 
 			podSpecVolumesSubCTE,
 			podSpecVolumesRelationshipSubCTE,
 		},
-	}
-
-	dev_hacks.Use(cteExpr)
-
-	ts := chronos.Chronos{}
-	// TODO for now will just generate ids here, something more complex can come later
-	sortOrderIndex := 0
-	for _, cont := range p.Containers {
-		c := cont.Metadata
-		// should continue appending values to header
-		// container
-		c.ContainerID = ts.UnixTimeStampNow()
-		contSubCTE.AddValues(c.ContainerID, c.ContainerName, c.ContainerImageID, c.ContainerVersionTag, c.ContainerPlatformOs, c.ContainerRepository, c.ContainerImagePullPolicy)
-
-		// pod spec to link container
-		podSpecSubCTE.AddValues(podSpecChildClassTypeID, c.ContainerID, cont.IsInitContainer, sortOrderIndex)
-
-		// ports
-		p.getContainerPortsValuesForInsert(c.ContainerImageID, portsSubCTE)
-		p.getContainerPortsHeaderRelationshipValues(podSpecChildClassTypeID, c.ContainerImageID, portsRelationshipsSubCTE)
-
-		// env vars
-		p.getInsertContainerEnvVarsValues(c.ContainerImageID, envVarsSubCTE)
-		p.getContainerEnvVarRelationshipValues(podSpecChildClassTypeID, c.ContainerImageID, envVarsRelationshipsSubCTE)
-
-		// vms
-		p.getInsertContainerVolumeMountsValues(c.ContainerImageID, contVmsSubCTE)
-		p.getContainerVolumeMountRelationshipValues(podSpecChildClassTypeID, c.ContainerImageID, contVmsRelationshipsSubCTE)
-		sortOrderIndex += 1
 	}
 	return cteExpr
 }

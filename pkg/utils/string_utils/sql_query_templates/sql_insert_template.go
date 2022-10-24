@@ -8,12 +8,10 @@ func (q *QueryParams) InsertQueryHeader() string {
 }
 
 func (q *QueryParams) AddValues(values ...any) {
-	if len(q.Values) <= 0 {
-		q.Values = make([][]any, len(values))
-	}
-	var tmp []any
-	for _, v := range values {
-		tmp = append(tmp, v)
+	tmp := make([]any, len(values))
+	for i, v := range values {
+		tmp[i] = v
 	}
 	q.Values = append(q.Values, tmp)
+	return
 }

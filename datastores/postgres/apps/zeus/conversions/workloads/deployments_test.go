@@ -30,6 +30,8 @@ func (s *ConvertDeploymentPackagesTestSuite) TestConvertDeployment() {
 	dbDeploymentConfig := ConvertDeploymentConfigToDB(d)
 	s.Require().NotEmpty(dbDeploymentConfig)
 
+	s.Require().NotEmpty(dbDeploymentConfig.Spec)
+
 	_ = dev_hacks.Use(packageID)
 }
 

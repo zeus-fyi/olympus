@@ -18,6 +18,10 @@ type PodSpec struct {
 	PodTemplateContainers             Containers
 }
 
+func (p *PodTemplateSpec) GetContainers() Containers {
+	return p.Spec.PodTemplateContainers
+}
+
 func NewPodTemplateSpec() PodTemplateSpec {
 	cd := autogen_bases.ChartSubcomponentChildClassTypes{
 		ChartSubcomponentParentClassTypeID:  0,

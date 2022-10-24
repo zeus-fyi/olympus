@@ -8,15 +8,14 @@ func (p *PodContainersGroup) insertContainerPortsHeader() string {
 	return "INSERT INTO container_ports(port_id, port_name, container_port, host_port) VALUES "
 }
 
-func (p *PodContainersGroup) getContainerPortsValuesForInsert(imageID string, cteSubfield sql_query_templates.SubCTE) {
+func (p *PodContainersGroup) getContainerPortsValuesForInsert(imageID string, cteSubfield *sql_query_templates.SubCTE) {
 	c, ok := p.Containers[imageID]
 	if !ok {
 		return
 	}
-	for _, port := range c.Ports {
+	for _, port := range c.GetPorts() {
 		cteSubfield.AddValues(port.PortID, port.PortName, port.ContainerPort, port.HostPort)
 	}
-	cteSubfield.AddValues()
 	return
 }
 
@@ -24,12 +23,12 @@ func (p *PodContainersGroup) insertContainerPortsHeaderRelationshipHeader() stri
 	return "INSERT INTO containers_ports(chart_subcomponent_child_class_type_id, container_id, port_id) VALUES "
 }
 
-func (p *PodContainersGroup) getContainerPortsHeaderRelationshipValues(childClassTypeID int, imageID string, cteSubfield sql_query_templates.SubCTE) {
+func (p *PodContainersGroup) getContainerPortsHeaderRelationshipValues(childClassTypeID int, imageID string, cteSubfield *sql_query_templates.SubCTE) {
 	c, ok := p.Containers[imageID]
 	if !ok {
 		return
 	}
-	for _, port := range c.Ports {
+	for _, port := range c.GetPorts() {
 		cteSubfield.AddValues(childClassTypeID, selectRelatedContainerIDFromImageID(imageID), port.PortID)
 	}
 	return

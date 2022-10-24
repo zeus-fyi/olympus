@@ -17,10 +17,10 @@ type PodContainersGroup struct {
 
 func NewPodContainersGroupForDB(ps containers.PodTemplateSpec) PodContainersGroup {
 	m := make(map[string]containers.Container)
-	for _, c := range ps.Spec.PodTemplateContainers {
+	for _, c := range ps.GetContainers() {
 		m[c.Metadata.ContainerImageID] = c
 	}
-	return PodContainersGroup{Containers: m}
+	return PodContainersGroup{PodSpecTemplate: ps, Containers: m}
 }
 
 const ModelName = "PodContainersGroup"

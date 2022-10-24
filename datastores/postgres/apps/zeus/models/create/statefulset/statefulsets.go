@@ -19,10 +19,12 @@ type StatefulSet struct {
 	ParentClassDefinition autogen_bases.ChartSubcomponentParentClassTypes
 
 	Metadata common.Metadata
-	Spec     StatefulSetSpec
+	Spec     Spec
 }
 
-type StatefulSetSpec struct {
+type Spec struct {
+	ParentClassDefinition autogen_bases.ChartSubcomponentParentClassTypes
+
 	Replicas common.ChildClassSingleValue
 	Selector common.Selector
 	// TODO VolumeClaimTemplates, ServiceName
@@ -30,7 +32,7 @@ type StatefulSetSpec struct {
 	Template containers.PodTemplateSpec
 }
 
-func (ss *StatefulSetSpec) GetReplicaCount32IntPtr() *int32 {
+func (ss *Spec) GetReplicaCount32IntPtr() *int32 {
 	return string_utils.ConvertStringTo32BitPtrInt(ss.Replicas.ChartSubcomponentValue)
 }
 
@@ -51,8 +53,8 @@ func NewStatefulSet() StatefulSet {
 	return s
 }
 
-func NewStatefulSetSpec() StatefulSetSpec {
-	ss := StatefulSetSpec{}
+func NewStatefulSetSpec() Spec {
+	ss := Spec{}
 	ss.Selector = common.NewSelector()
 	ss.Template = containers.NewPodTemplateSpec()
 	return ss

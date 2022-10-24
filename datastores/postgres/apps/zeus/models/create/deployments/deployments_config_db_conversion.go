@@ -12,6 +12,6 @@ func ConvertDeploymentConfigToDB(d *v1.Deployment) (Deployment, error) {
 	if err != nil {
 		return dbDeployment, err
 	}
-	dbDeployment.Spec.DeploymentSpec = depSpec
+	dbDeployment.Spec = depSpec
 	return dbDeployment, nil
 }

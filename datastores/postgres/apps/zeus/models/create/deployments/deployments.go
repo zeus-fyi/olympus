@@ -21,17 +21,13 @@ type Deployment struct {
 
 type Spec struct {
 	autogen_bases.ChartSubcomponentParentClassTypes
-	DeploymentSpec
-}
-
-type DeploymentSpec struct {
 	Replicas common.ChildClassSingleValue
 	Selector common.Selector
 
 	Template containers.PodTemplateSpec
 }
 
-func (ds *DeploymentSpec) GetReplicaCount32IntPtr() *int32 {
+func (ds *Spec) GetReplicaCount32IntPtr() *int32 {
 	return string_utils.ConvertStringTo32BitPtrInt(ds.Replicas.ChartSubcomponentValue)
 }
 
@@ -48,23 +44,23 @@ func NewDeployment() Deployment {
 		ChartSubcomponentParentClassTypeName: "deploymentSpec",
 	}
 	d.Metadata.Metadata = common.NewMetadata()
-	d.Spec.DeploymentSpec = NewDeploymentSpec()
+	d.Spec = NewDeploymentSpec()
 	return d
 }
 
-func NewDeploymentSpec() DeploymentSpec {
-	ds := DeploymentSpec{}
+func NewDeploymentSpec() Spec {
+	ds := Spec{}
 	ds.Selector = common.NewSelector()
 	ds.Template = containers.NewPodTemplateSpec()
 	ds.Replicas = common.NewInitChildClassSingleValue("replicas", "0")
 	return ds
 }
 
-func ConvertDeploymentSpec(ds v1.DeploymentSpec) (DeploymentSpec, error) {
+func ConvertDeploymentSpec(ds v1.DeploymentSpec) (Spec, error) {
 	deploymentTemplateSpec := ds.Template
 	podTemplateSpec := deploymentTemplateSpec.Spec
 
-	dbDeploymentSpec := DeploymentSpec{}
+	dbDeploymentSpec := Spec{}
 
 	m := make(map[string]string)
 	if ds.Selector != nil {

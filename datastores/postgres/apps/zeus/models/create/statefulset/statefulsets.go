@@ -15,19 +15,15 @@ type StatefulSetAndChildServices struct {
 }
 
 type StatefulSet struct {
-	KindDefinition        autogen_bases.ChartComponentResources
-	ParentClassDefinition autogen_bases.ChartSubcomponentParentClassTypes
+	KindDefinition autogen_bases.ChartComponentResources
 
 	Metadata common.Metadata
 	Spec     Spec
 }
 
 type Spec struct {
-	ParentClassDefinition autogen_bases.ChartSubcomponentParentClassTypes
-
 	common.SpecWorkload
 	// TODO VolumeClaimTemplates, ServiceName
-
 	Template containers.PodTemplateSpec
 }
 
@@ -41,7 +37,7 @@ func NewStatefulSet() StatefulSet {
 		ChartComponentKindName:   "StatefulSet",
 		ChartComponentApiVersion: "apps/v1",
 	}
-	s.ParentClassDefinition = autogen_bases.ChartSubcomponentParentClassTypes{
+	s.Spec.ChartSubcomponentParentClassTypes = autogen_bases.ChartSubcomponentParentClassTypes{
 		ChartPackageID:                       0,
 		ChartComponentResourceID:             0,
 		ChartSubcomponentParentClassTypeID:   0,

@@ -20,7 +20,6 @@ type Deployment struct {
 }
 
 type Spec struct {
-	autogen_bases.ChartSubcomponentParentClassTypes
 	common.SpecWorkload
 	Template containers.PodTemplateSpec
 }

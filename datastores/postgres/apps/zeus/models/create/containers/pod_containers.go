@@ -11,7 +11,8 @@ import (
 )
 
 type PodContainersGroup struct {
-	Containers map[string]containers.Container
+	PodSpecTemplate containers.PodTemplateSpec
+	Containers      map[string]containers.Container
 }
 
 func NewPodContainersGroupForDB(ps containers.PodTemplateSpec) PodContainersGroup {
@@ -26,7 +27,9 @@ const ModelName = "PodContainersGroup"
 
 func (p *PodContainersGroup) InsertPodContainerGroup(ctx context.Context, q sql_query_templates.QueryParams, podSpecClassTypeID int) error {
 	log.Debug().Interface("InsertQuery:", q.LogHeader(ModelName))
-	r, err := apps.Pg.Exec(ctx, p.insertPodContainerGroupSQL(podSpecClassTypeID))
+	query := p.insertPodContainerGroupSQL(podSpecClassTypeID)
+	// TODO create real query
+	r, err := apps.Pg.Exec(ctx, query.Name)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
 		return err
 	}

@@ -11,7 +11,7 @@ import (
 
 // insertPodContainerGroupSQL, will use the next_id distributed ID generator and select the container id
 // value for subsequent subcomponent relationships of its element, should greatly simplify the insert logic
-func (p *PodContainersGroup) insertPodContainerGroupSQL(podSpecChildClassTypeID int) string {
+func (p *PodContainersGroup) insertPodContainerGroupSQL(podSpecChildClassTypeID int) sql_query_templates.CTE {
 	// container
 	contSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_containers")
 	contSubCTE.TableName = "containers"
@@ -46,6 +46,17 @@ func (p *PodContainersGroup) insertPodContainerGroupSQL(podSpecChildClassTypeID 
 	podSpecSubCTE.TableName = "chart_subcomponent_spec_pod_template_containers"
 	podSpecSubCTE.Fields = []string{"chart_subcomponent_child_class_type_id", "container_id", "is_init_container", "container_sort_order"}
 
+	// volumes for pod spec
+	podSpecVolumesSubCTE := sql_query_templates.NewSubInsertCTE("cte_pod_spec_volumes")
+	podSpecVolumesSubCTE.TableName = "volumes"
+	podSpecVolumesSubCTE.Fields = []string{"volume_id", "volume_name", "volume_key_values_jsonb"}
+	podSpecVolumesRelationshipSubCTE := sql_query_templates.NewSubInsertCTE("cte_pod_spec_containers_volumes")
+	podSpecVolumesRelationshipSubCTE.TableName = "containers_volumes"
+	podSpecVolumesRelationshipSubCTE.Fields = []string{"chart_subcomponent_child_class_type_id", "volume_id"}
+
+	p.insertVolumes(podSpecVolumesSubCTE)
+	p.insertVolumes(podSpecVolumesRelationshipSubCTE)
+
 	cteExpr := sql_query_templates.CTE{
 		Name: "insertPodContainerGroupSQL",
 		SubCTEs: []sql_query_templates.SubCTE{
@@ -61,6 +72,9 @@ func (p *PodContainersGroup) insertPodContainerGroupSQL(podSpecChildClassTypeID 
 			// vms
 			contVmsSubCTE,
 			contVmsRelationshipsSubCTE,
+			// vols
+			podSpecVolumesSubCTE,
+			podSpecVolumesRelationshipSubCTE,
 		},
 	}
 
@@ -69,7 +83,6 @@ func (p *PodContainersGroup) insertPodContainerGroupSQL(podSpecChildClassTypeID 
 	ts := chronos.Chronos{}
 	// TODO for now will just generate ids here, something more complex can come later
 	sortOrderIndex := 0
-
 	for _, cont := range p.Containers {
 		c := cont.Metadata
 		// should continue appending values to header
@@ -91,13 +104,9 @@ func (p *PodContainersGroup) insertPodContainerGroupSQL(podSpecChildClassTypeID 
 		// vms
 		p.getInsertContainerVolumeMountsValues(c.ContainerImageID, contVmsSubCTE)
 		p.getContainerVolumeMountRelationshipValues(podSpecChildClassTypeID, c.ContainerImageID, contVmsRelationshipsSubCTE)
-
 		sortOrderIndex += 1
 	}
-
-	fakeCte := " cte_term AS ( SELECT 1 ) SELECT true"
-
-	return fakeCte
+	return cteExpr
 }
 
 func (p *PodContainersGroup) generateHeaderIfNoneForCTE(parentExpression, header string) string {

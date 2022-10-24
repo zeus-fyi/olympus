@@ -1,33 +1,90 @@
 package deployments
 
 import (
-	"context"
+	"encoding/json"
 
-	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/workloads"
-	"github.com/zeus-fyi/olympus/pkg/utils/misc"
-	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/containers"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/common"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
+	v1 "k8s.io/api/apps/v1"
 )
-
-type Deployment struct {
-	workloads.Deployment
-}
-
-func NewDeploymentConfigForDB(deployment workloads.Deployment) Deployment {
-	return Deployment{deployment}
-}
 
 const ModelName = "Deployment"
 
-func (d *Deployment) InsertDeployment(ctx context.Context, q sql_query_templates.QueryParams, c create.Chart) error {
-	log.Debug().Interface("InsertQuery:", q.LogHeader(ModelName))
-	r, err := apps.Pg.Exec(ctx, d.insertDeploymentCtes(c.ChartPackageID))
-	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
-		return err
+type Deployment struct {
+	KindDefinition autogen_bases.ChartComponentResources
+
+	Metadata DeploymentMetadata
+	Spec     Spec
+}
+
+type DeploymentMetadata struct {
+	autogen_bases.ChartSubcomponentParentClassTypes
+	common.Metadata
+}
+
+type Spec struct {
+	autogen_bases.ChartSubcomponentParentClassTypes
+	DeploymentSpec
+}
+
+type DeploymentSpec struct {
+	Replicas common.ChildClassSingleValue
+	Selector common.Selector
+
+	Template containers.PodTemplateSpec
+}
+
+func (ds *DeploymentSpec) GetReplicaCount32IntPtr() *int32 {
+	return string_utils.ConvertStringTo32BitPtrInt(ds.Replicas.ChartSubcomponentValue)
+}
+
+func NewDeployment() Deployment {
+	d := Deployment{}
+	d.KindDefinition = autogen_bases.ChartComponentResources{
+		ChartComponentKindName:   "Deployment",
+		ChartComponentApiVersion: "apps/v1",
 	}
-	rowsAffected := r.RowsAffected()
-	log.Debug().Msgf("StructNameExamples: %s, Rows Affected: %d", q.LogHeader(ModelName), rowsAffected)
-	return misc.ReturnIfErr(err, q.LogHeader(ModelName))
+	d.Spec.ChartSubcomponentParentClassTypes = autogen_bases.ChartSubcomponentParentClassTypes{
+		ChartPackageID:                       0,
+		ChartComponentResourceID:             0,
+		ChartSubcomponentParentClassTypeID:   0,
+		ChartSubcomponentParentClassTypeName: "deploymentSpec",
+	}
+	d.Metadata.Metadata = common.NewMetadata()
+	d.Spec.DeploymentSpec = NewDeploymentSpec()
+	return d
+}
+
+func NewDeploymentSpec() DeploymentSpec {
+	ds := DeploymentSpec{}
+	ds.Selector = common.NewSelector()
+	ds.Template = containers.NewPodTemplateSpec()
+	ds.Replicas = common.NewInitChildClassSingleValue("replicas", "0")
+	return ds
+}
+
+func ConvertDeploymentSpec(ds v1.DeploymentSpec) (DeploymentSpec, error) {
+	deploymentTemplateSpec := ds.Template
+	podTemplateSpec := deploymentTemplateSpec.Spec
+
+	dbDeploymentSpec := DeploymentSpec{}
+
+	if ds.Selector != nil {
+		bytes, err := json.Marshal(ds.Selector)
+		if err != nil {
+			return dbDeploymentSpec, err
+		}
+		selectorString := string(bytes)
+		dbDeploymentSpec.Selector.MatchLabels.AddValues(selectorString)
+	}
+
+	dbDeploymentSpec.Replicas.ChartSubcomponentValue = string_utils.Convert32BitPtrIntToString(ds.Replicas)
+	dbPodTemplateSpec, err := dbDeploymentSpec.Template.ConvertPodTemplateSpecConfigToDB(&podTemplateSpec)
+	if err != nil {
+		return dbDeploymentSpec, err
+	}
+	dbDeploymentSpec.Template = dbPodTemplateSpec
+	return dbDeploymentSpec, nil
 }

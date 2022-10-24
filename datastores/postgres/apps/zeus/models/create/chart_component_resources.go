@@ -1,4 +1,4 @@
-package chart_component_resources
+package create
 
 import (
 	"context"
@@ -15,7 +15,7 @@ type ChartComponentResources struct {
 	autogen_bases.ChartComponentResources
 }
 
-const Sn = "ChartComponentResources"
+const Ccr = "ChartComponentResources"
 
 func (c *ChartComponentResources) insertChartResource() string {
 	sqlInsertStatement := fmt.Sprintf(
@@ -26,8 +26,8 @@ func (c *ChartComponentResources) insertChartResource() string {
 }
 
 func (c *ChartComponentResources) InsertChartResource(ctx context.Context, q sql_query_templates.QueryParams) error {
-	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
+	log.Debug().Interface("InsertQuery:", q.LogHeader(Ccr))
 	query := c.insertChartResource()
 	_, err := apps.Pg.Exec(ctx, query)
-	return misc.ReturnIfErr(err, q.LogHeader(Sn))
+	return misc.ReturnIfErr(err, q.LogHeader(Ccr))
 }

@@ -15,6 +15,7 @@ func (d *Deployment) insertPodSpecTemplate(parentSqlExpression, parentClassTypeC
 
 	// this part links containers to this k8s workload resource
 	// TODO disabling for now, need to get cont ids
+
 	//dbParsedPodTemplateSpec := containers.NewPodContainersGroupForDB(d.Spec.Template)
 	//dbParsedPodTemplateSpec.InsertPodContainerGroupSQL(d.Spec.Template.Spec.PodTemplateSpecClassDefinition.ChartSubcomponentChildClassTypeID)
 	return parentSqlExpression

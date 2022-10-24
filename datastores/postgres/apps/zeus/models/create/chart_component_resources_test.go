@@ -1,4 +1,4 @@
-package chart_component_resources
+package create
 
 import (
 	"context"
@@ -18,26 +18,13 @@ func (s *ChartComponentResourcesTestSuite) TestSeedChartComponents() {
 	ctx := context.Background()
 	q := sql_query_templates.NewQueryParam("ChartComponentResources", "table", "where", 1000, []string{})
 
-	cr := seedDeployment()
+	cr := seedStatefulSet()
 	err := cr.InsertChartResource(ctx, q)
-	s.Require().Nil(err)
-
-	cr = seedStatefulSet()
-	err = cr.InsertChartResource(ctx, q)
 	s.Require().Nil(err)
 
 	cr = seedService()
 	err = cr.InsertChartResource(ctx, q)
 	s.Require().Nil(err)
-}
-
-func seedDeployment() ChartComponentResources {
-	cr := ChartComponentResources{autogen_bases.ChartComponentResources{
-		ChartComponentResourceID: 0,
-		ChartComponentKindName:   "Deployment",
-		ChartComponentApiVersion: "apps/v1",
-	}}
-	return cr
 }
 
 func seedStatefulSet() ChartComponentResources {

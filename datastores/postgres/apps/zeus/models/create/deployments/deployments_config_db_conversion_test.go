@@ -1,4 +1,4 @@
-package workloads
+package deployments
 
 import (
 	"encoding/json"

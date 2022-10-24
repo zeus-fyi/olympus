@@ -4,10 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/workloads"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
@@ -16,11 +17,11 @@ import (
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
-type ConvertDeploymentPackagesTestSuite struct {
+type DeploymentsTestSuite struct {
 	conversions_test.ConversionsTestSuite
 }
 
-func (s *ConvertDeploymentPackagesTestSuite) TestConvertDeploymentAndInsert() {
+func (s *DeploymentsTestSuite) TestConvertDeploymentAndInsert() {
 	filepath := s.TestDirectory + "/mocks/test/deployment_eth_indexer.yaml"
 	jsonBytes, err := s.Yr.ReadYamlConfig(filepath)
 
@@ -30,7 +31,7 @@ func (s *ConvertDeploymentPackagesTestSuite) TestConvertDeploymentAndInsert() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(d)
 
-	dbDeploymentConfig, err := workloads.ConvertDeploymentConfigToDB(d)
+	dbDeploymentConfig, err := ConvertDeploymentConfigToDB(d)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(dbDeploymentConfig)
 
@@ -39,8 +40,7 @@ func (s *ConvertDeploymentPackagesTestSuite) TestConvertDeploymentAndInsert() {
 
 	ctx := context.Background()
 	q := sql_query_templates.NewQueryParam("InsertDeployment", "table", "where", 1000, []string{})
-	dbDeploy := NewDeploymentConfigForDB(dbDeploymentConfig)
-	err = dbDeploy.InsertDeployment(ctx, q, mockC)
+	err = dbDeploymentConfig.InsertDeployment(ctx, q, mockC)
 	s.Require().Nil(err)
 }
 
@@ -58,6 +58,38 @@ func mockChart() (create.Chart, error) {
 	return c, err
 }
 
-func TestConvertDeploymentPackagesTestSuite(t *testing.T) {
-	suite.Run(t, new(ConvertDeploymentPackagesTestSuite))
+func (s *DeploymentsTestSuite) TestSeedChartComponents() {
+	ctx := context.Background()
+	q := sql_query_templates.NewQueryParam("ChartComponentResources", "table", "where", 1000, []string{})
+
+	cr := seedDeployment()
+	err := s.InsertChartResource(ctx, q, cr)
+	s.Require().Nil(err)
+}
+
+func (s *DeploymentsTestSuite) insertChartResource(c autogen_bases.ChartComponentResources) string {
+	sqlInsertStatement := fmt.Sprintf(
+		`INSERT INTO chart_component_resources(chart_component_resource_id, chart_component_kind_name, chart_component_api_version)
+ 				 VALUES ('%d', '%s', '%s')`,
+		c.ChartComponentResourceID, c.ChartComponentKindName, c.ChartComponentApiVersion)
+	return sqlInsertStatement
+}
+
+func (s *DeploymentsTestSuite) InsertChartResource(ctx context.Context, q sql_query_templates.QueryParams, c autogen_bases.ChartComponentResources) error {
+	query := s.insertChartResource(c)
+	_, err := apps.Pg.Exec(ctx, query)
+	return err
+}
+
+func seedDeployment() autogen_bases.ChartComponentResources {
+	cr := autogen_bases.ChartComponentResources{
+		ChartComponentResourceID: 0,
+		ChartComponentKindName:   "Deployment",
+		ChartComponentApiVersion: "apps/v1",
+	}
+	return cr
+}
+
+func TestDeploymentsTestSuite(t *testing.T) {
+	suite.Run(t, new(DeploymentsTestSuite))
 }

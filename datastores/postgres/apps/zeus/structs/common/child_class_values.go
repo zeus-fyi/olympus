@@ -19,11 +19,11 @@ func NewChildClassAndValues(typeName string) ChildClassAndValues {
 	return cvals
 }
 
-func (c *ChildClassAndValues) AddValues(values ...autogen_bases.ChartSubcomponentsChildValues) {
+func (c *ChildClassAndValues) AddValues(values ...string) {
 	if len(c.Values) <= 0 {
 		c.Values = []autogen_bases.ChartSubcomponentsChildValues{}
 	}
 	for _, v := range values {
-		c.Values = append(c.Values, v)
+		c.Values = append(c.Values, autogen_bases.ChartSubcomponentsChildValues{ChartSubcomponentValue: v})
 	}
 }

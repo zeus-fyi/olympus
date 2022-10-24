@@ -6,8 +6,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/workloads"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/deployments"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 	v1 "k8s.io/api/apps/v1"
@@ -28,25 +26,20 @@ func (p *PodContainersGroupTestSuite) TestContainersInsertFromParsedDeploymentFi
 	p.Require().Nil(err)
 	p.Require().NotEmpty(d)
 
-	dbDeploymentConfig, err := workloads.ConvertDeploymentConfigToDB(d)
+	ps := PodTemplateSpec{}
+	pts := d.Spec.Template.Spec
+	dbDeploymentConfig, err := ps.ConvertPodTemplateSpecConfigToDB(&pts)
 	p.Require().Nil(err)
 	p.Require().NotEmpty(dbDeploymentConfig)
 
 	q := sql_query_templates.NewQueryParam("InsertPodResourceContainers", "table", "where", 1000, []string{})
-	dbDeploy := deployments.NewDeploymentConfigForDB(dbDeploymentConfig)
 
 	// TODO remove dummy hardcode once better test setup exists
-	setDummyPodSpecHeader(&dbDeploy)
+	dbDeploymentConfig.ChartSubcomponentParentClassTypeID = 1666564843324726081
 
 	// specific to test, above code is just setting up
-	dbDeployPodSpecContainers := NewPodContainersGroupForDB(dbDeploy.Spec.Template)
-	err = dbDeployPodSpecContainers.InsertPodContainerGroup(ctx, q)
+	err = dbDeploymentConfig.InsertPodTemplateSpec(ctx, q)
 	p.Require().Nil(err)
-}
-
-func setDummyPodSpecHeader(d *deployments.Deployment) {
-	d.Spec.DeploymentSpec.Template.Spec.PodTemplateSpecClassDefinition.ChartSubcomponentParentClassTypeID = 1666564843324726081
-	return
 }
 
 func TestPodContainersGroupTestSuite(t *testing.T) {

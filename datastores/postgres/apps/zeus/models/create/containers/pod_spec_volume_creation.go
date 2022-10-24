@@ -7,12 +7,12 @@ import (
 
 // This will create a volume for the pod spec, if a volume already exists it's not needed, so this is optionally
 // required
-func (p *PodContainersGroup) insertVolumes(podSpecChildClassTypeID int, podSpecVolumesSubCTE, podSpecVolumesRelationshipSubCTE *sql_query_templates.SubCTE) {
-	vols := p.PodSpecTemplate.Spec.PodTemplateSpecVolumes
+func (p *PodTemplateSpec) insertVolumes(podSpecVolumesSubCTE, podSpecVolumesRelationshipSubCTE *sql_query_templates.SubCTE) {
+	vols := p.Spec.PodTemplateSpecVolumes
 	ts := chronos.Chronos{}
 	for _, v := range vols {
 		volID := ts.UnixTimeStampNow()
 		podSpecVolumesSubCTE.AddValues(volID, v.VolumeName, v.VolumeKeyValuesJSONb)
-		podSpecVolumesRelationshipSubCTE.AddValues(podSpecChildClassTypeID, volID)
+		podSpecVolumesRelationshipSubCTE.AddValues(p.GetPodSpecChildClassTypeID(), volID)
 	}
 }

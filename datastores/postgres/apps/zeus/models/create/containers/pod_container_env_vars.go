@@ -3,11 +3,12 @@ package containers
 import (
 	"encoding/json"
 
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/containers"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-func (p *PodContainersGroup) getInsertContainerEnvVarsValues(imageID string, cteSubfield *sql_query_templates.SubCTE) {
-	c, ok := p.Containers[imageID]
+func (p *PodTemplateSpec) getInsertContainerEnvVarsValues(m map[string]containers.Container, imageID string, cteSubfield *sql_query_templates.SubCTE) {
+	c, ok := m[imageID]
 	if !ok {
 		return
 	}
@@ -23,8 +24,8 @@ func (p *PodContainersGroup) getInsertContainerEnvVarsValues(imageID string, cte
 	return
 }
 
-func (p *PodContainersGroup) getContainerEnvVarRelationshipValues(podSpecChildClassTypeID int, imageID string, cteSubfield *sql_query_templates.SubCTE) {
-	c, ok := p.Containers[imageID]
+func (p *PodTemplateSpec) getContainerEnvVarRelationshipValues(m map[string]containers.Container, podSpecChildClassTypeID int, imageID string, cteSubfield *sql_query_templates.SubCTE) {
+	c, ok := m[imageID]
 	if !ok {
 		return
 	}

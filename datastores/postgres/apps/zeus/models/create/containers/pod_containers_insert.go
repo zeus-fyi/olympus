@@ -7,10 +7,10 @@ import (
 
 // InsertPodContainerGroupSQL will use the next_id distributed ID generator and select the container id
 // value for subsequent subcomponent relationships of its element, should greatly simplify the insert logic
-func (p *PodContainersGroup) InsertPodContainerGroupSQL() string {
+func (p *PodTemplateSpec) InsertPodContainerGroupSQL() string {
 	// container
 
-	podSpecChildClassTypeID := p.PodSpecTemplate.GetPodSpecChildClassTypeID()
+	podSpecChildClassTypeID := p.GetPodSpecChildClassTypeID()
 	contSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_containers")
 	contSubCTE.TableName = "containers"
 	contSubCTE.Fields = []string{"container_id", "container_name", "container_image_id", "container_version_tag", "container_platform_os", "container_repository", "container_image_pull_policy"}
@@ -39,7 +39,7 @@ func (p *PodContainersGroup) InsertPodContainerGroupSQL() string {
 	contVmsRelationshipsSubCTE.TableName = "containers_volume_mounts"
 	contVmsRelationshipsSubCTE.Fields = []string{"chart_subcomponent_child_class_type_id", "container_id", "volume_mount_id"}
 
-	// podSpec for containers
+	// podSpec for containersMapByImageID
 	podSpecSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_spec_pod_template_containers")
 	podSpecSubCTE.TableName = "chart_subcomponent_spec_pod_template_containers"
 	podSpecSubCTE.Fields = []string{"chart_subcomponent_child_class_type_id", "container_id", "is_init_container", "container_sort_order"}
@@ -52,12 +52,13 @@ func (p *PodContainersGroup) InsertPodContainerGroupSQL() string {
 	podSpecVolumesRelationshipSubCTE.TableName = "containers_volumes"
 	podSpecVolumesRelationshipSubCTE.Fields = []string{"chart_subcomponent_child_class_type_id", "volume_id"}
 
-	p.insertVolumes(podSpecChildClassTypeID, &podSpecVolumesSubCTE, &podSpecVolumesRelationshipSubCTE)
+	p.insertVolumes(&podSpecVolumesSubCTE, &podSpecVolumesRelationshipSubCTE)
 
 	ts := chronos.Chronos{}
 	// TODO for now will just generate ids here, something more complex can come later
 	sortOrderIndex := 0
-	for _, cont := range p.Containers {
+	containersMapByImageID := p.NewPodContainersMapForDB()
+	for _, cont := range containersMapByImageID {
 		cont.ProcessAndSetAmbiguousContainerFieldStatusAndSubfieldIds()
 		c := cont.Metadata
 		// should continue appending values to header
@@ -69,15 +70,15 @@ func (p *PodContainersGroup) InsertPodContainerGroupSQL() string {
 		podSpecSubCTE.AddValues(podSpecChildClassTypeID, c.ContainerID, cont.IsInitContainer, sortOrderIndex)
 
 		// ports
-		p.getContainerPortsValuesForInsert(c.ContainerImageID, &portsSubCTE)
-		p.getContainerPortsHeaderRelationshipValues(podSpecChildClassTypeID, c.ContainerImageID, &portsRelationshipsSubCTE)
+		p.getContainerPortsValuesForInsert(containersMapByImageID, c.ContainerImageID, &portsSubCTE)
+		p.getContainerPortsHeaderRelationshipValues(containersMapByImageID, podSpecChildClassTypeID, c.ContainerImageID, &portsRelationshipsSubCTE)
 
 		// env vars
-		p.getInsertContainerEnvVarsValues(c.ContainerImageID, &envVarsSubCTE)
-		p.getContainerEnvVarRelationshipValues(podSpecChildClassTypeID, c.ContainerImageID, &envVarsRelationshipsSubCTE)
+		p.getInsertContainerEnvVarsValues(containersMapByImageID, c.ContainerImageID, &envVarsSubCTE)
+		p.getContainerEnvVarRelationshipValues(containersMapByImageID, podSpecChildClassTypeID, c.ContainerImageID, &envVarsRelationshipsSubCTE)
 
 		// vms
-		p.insertContainerVolumeMountsValues(podSpecChildClassTypeID, c.ContainerImageID, &contVmsSubCTE, &contVmsRelationshipsSubCTE)
+		p.insertContainerVolumeMountsValues(containersMapByImageID, podSpecChildClassTypeID, c.ContainerImageID, &contVmsSubCTE, &contVmsRelationshipsSubCTE)
 		sortOrderIndex += 1
 	}
 

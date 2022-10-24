@@ -1,4 +1,4 @@
-package workloads
+package statefulset
 
 import (
 	"encoding/json"

@@ -1,4 +1,4 @@
-package common
+package containers
 
 import (
 	"context"
@@ -13,13 +13,13 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-type PodSpecTemplate struct {
+type PodSpecContainerMetadata struct {
 	autogen_bases.ChartSubcomponentSpecPodTemplateContainers
 }
 
 var PsName = "ChartSubcomponentSpecPodTemplateContainers"
 
-func (p *PodSpecTemplate) insertChartSubcomponentSpecPodTemplateContainers() string {
+func (p *PodSpecContainerMetadata) insertChartSubcomponentSpecPodTemplateContainers() string {
 	columns := p.GetTableColumns()
 	sqlInsertStatement := fmt.Sprintf(
 		`INSERT INTO %s(%s)
@@ -28,7 +28,7 @@ func (p *PodSpecTemplate) insertChartSubcomponentSpecPodTemplateContainers() str
 	return sqlInsertStatement
 }
 
-func (p *PodSpecTemplate) InsertChartSubcomponentSpecPodTemplateContainers(ctx context.Context, q sql_query_templates.QueryParams) error {
+func (p *PodSpecContainerMetadata) InsertChartSubcomponentSpecPodTemplateContainers(ctx context.Context, q sql_query_templates.QueryParams) error {
 	log.Debug().Interface("InsertQuery:", q.LogHeader(PsName))
 	query := p.insertChartSubcomponentSpecPodTemplateContainers()
 	_, err := apps.Pg.Exec(ctx, query)

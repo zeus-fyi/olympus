@@ -1,12 +1,12 @@
 package chart_component_resources
 
 import (
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/workloads"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/statefulset"
 	"github.com/zeus-fyi/olympus/pkg/utils/dev_hacks"
 )
 
 func InsertStatefulSetDefinitions() error {
-	cck := workloads.NewStatefulSet()
+	cck := statefulset.NewStatefulSet()
 
 	err := dev_hacks.Use(cck)
 	return err

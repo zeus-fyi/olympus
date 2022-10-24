@@ -57,5 +57,6 @@ func NewStatefulSetSpec() Spec {
 	ss := Spec{}
 	ss.Selector = common.NewSelector()
 	ss.Template = containers.NewPodTemplateSpec()
+	ss.Replicas = common.NewInitChildClassSingleValue("replicas", "0")
 	return ss
 }

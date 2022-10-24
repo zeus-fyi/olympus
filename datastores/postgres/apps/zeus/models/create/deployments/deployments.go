@@ -23,7 +23,6 @@ type Spec struct {
 	autogen_bases.ChartSubcomponentParentClassTypes
 	Replicas common.ChildClassSingleValue
 	Selector common.Selector
-
 	Template containers.PodTemplateSpec
 }
 

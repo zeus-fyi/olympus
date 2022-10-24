@@ -1,9 +1,9 @@
 package common
 
 type Metadata struct {
-	Name        MetadataName
-	Annotations MetadataAnnotations
-	Labels      MetadataLabels
+	Name        ChildClassSingleValue
+	Annotations ChildClassMultiValue
+	Labels      ChildClassMultiValue
 }
 
 func NewMetadata() Metadata {

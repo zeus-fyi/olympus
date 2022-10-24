@@ -1,7 +1,7 @@
 package common
 
 type Selector struct {
-	MatchLabels ChildClassAndValues
+	MatchLabels ChildClassMultiValue
 }
 
 func NewSelector() Selector {

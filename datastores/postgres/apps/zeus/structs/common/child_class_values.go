@@ -2,13 +2,13 @@ package common
 
 import autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 
-type ChildClassAndValues struct {
+type ChildClassMultiValue struct {
 	autogen_bases.ChartSubcomponentChildClassTypes
 	Values []autogen_bases.ChartSubcomponentsChildValues
 }
 
-func NewChildClassAndValues(typeName string) ChildClassAndValues {
-	cvals := ChildClassAndValues{
+func NewChildClassAndValues(typeName string) ChildClassMultiValue {
+	cvals := ChildClassMultiValue{
 		ChartSubcomponentChildClassTypes: autogen_bases.ChartSubcomponentChildClassTypes{
 			ChartSubcomponentParentClassTypeID:  0,
 			ChartSubcomponentChildClassTypeID:   0,
@@ -19,7 +19,7 @@ func NewChildClassAndValues(typeName string) ChildClassAndValues {
 	return cvals
 }
 
-func (c *ChildClassAndValues) AddValues(values ...string) {
+func (c *ChildClassMultiValue) AddValues(values ...string) {
 	if len(c.Values) <= 0 {
 		c.Values = []autogen_bases.ChartSubcomponentsChildValues{}
 	}

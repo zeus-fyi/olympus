@@ -1,10 +1,6 @@
 package common
 
-type MetadataAnnotations struct {
-	ChildClassAndValues
-}
-
-func NewMetadataAnnotations() MetadataAnnotations {
-	ma := MetadataAnnotations{NewChildClassAndValues("annotations")}
+func NewMetadataAnnotations() ChildClassMultiValue {
+	ma := NewChildClassAndValues("annotations")
 	return ma
 }

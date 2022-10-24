@@ -4,10 +4,6 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-func (p *PodContainersGroup) insertContainerPortsHeader() string {
-	return "INSERT INTO container_ports(port_id, port_name, container_port, host_port) VALUES "
-}
-
 func (p *PodContainersGroup) getContainerPortsValuesForInsert(imageID string, cteSubfield *sql_query_templates.SubCTE) {
 	c, ok := p.Containers[imageID]
 	if !ok {

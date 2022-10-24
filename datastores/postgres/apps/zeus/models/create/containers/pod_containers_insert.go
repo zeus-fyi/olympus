@@ -50,8 +50,7 @@ func (p *PodContainersGroup) insertPodContainerGroupSQL(podSpecChildClassTypeID 
 	podSpecVolumesRelationshipSubCTE.TableName = "containers_volumes"
 	podSpecVolumesRelationshipSubCTE.Fields = []string{"chart_subcomponent_child_class_type_id", "volume_id"}
 
-	p.insertVolumes(podSpecVolumesSubCTE)
-	p.insertVolumes(podSpecVolumesRelationshipSubCTE)
+	p.insertVolumes(podSpecChildClassTypeID, &podSpecVolumesSubCTE, &podSpecVolumesRelationshipSubCTE)
 
 	ts := chronos.Chronos{}
 	// TODO for now will just generate ids here, something more complex can come later
@@ -76,8 +75,7 @@ func (p *PodContainersGroup) insertPodContainerGroupSQL(podSpecChildClassTypeID 
 		p.getContainerEnvVarRelationshipValues(podSpecChildClassTypeID, c.ContainerImageID, &envVarsRelationshipsSubCTE)
 
 		// vms
-		p.getInsertContainerVolumeMountsValues(c.ContainerImageID, &contVmsSubCTE)
-		p.getContainerVolumeMountRelationshipValues(podSpecChildClassTypeID, c.ContainerImageID, &contVmsRelationshipsSubCTE)
+		p.insertContainerVolumeMountsValues(podSpecChildClassTypeID, c.ContainerImageID, &contVmsSubCTE, &contVmsRelationshipsSubCTE)
 		sortOrderIndex += 1
 	}
 

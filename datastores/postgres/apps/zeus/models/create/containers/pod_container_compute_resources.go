@@ -6,6 +6,7 @@ import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 )
 
+// TODO still
 func (p *PodContainersGroup) insertContainerComputeResourcesHeader() string {
 	return "INSERT INTO container_compute_resources(compute_resources_id, compute_resources_key_values_jsonb) VALUES "
 }

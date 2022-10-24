@@ -28,7 +28,8 @@ func (p *PodContainersGroupTestSuite) TestContainersInsertFromParsedDeploymentFi
 	p.Require().Nil(err)
 	p.Require().NotEmpty(d)
 
-	dbDeploymentConfig := workloads.ConvertDeploymentConfigToDB(d)
+	dbDeploymentConfig, err := workloads.ConvertDeploymentConfigToDB(d)
+	p.Require().Nil(err)
 	p.Require().NotEmpty(dbDeploymentConfig)
 
 	q := sql_query_templates.NewQueryParam("InsertPodResourceContainers", "table", "where", 1000, []string{})

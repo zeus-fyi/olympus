@@ -12,8 +12,11 @@ func ConvertContainersToDB(cs []v1.Container) (containers.Containers, error) {
 		newContainer := containers.NewContainer()
 		newContainer = ConvertContainerInfoToDB(c, newContainer)
 		newContainer = ConvertContainerPortsToContainerDB(c, newContainer)
-		newContainer = ConvertContainerProbesToDB(c, newContainer)
-		newContainer, err := ConvertContainerEnvVarsToDB(c, newContainer)
+		newContainer, err := ConvertContainerProbesToDB(c, newContainer)
+		if err != nil {
+			return cl, err
+		}
+		newContainer, err = ConvertContainerEnvVarsToDB(c, newContainer)
 		if err != nil {
 			return cl, err
 		}

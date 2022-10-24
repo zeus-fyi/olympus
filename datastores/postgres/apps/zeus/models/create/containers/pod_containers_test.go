@@ -40,14 +40,12 @@ func (p *PodContainersGroupTestSuite) TestContainersInsertFromParsedDeploymentFi
 
 	// specific to test, above code is just setting up
 	dbDeployPodSpecContainers := NewPodContainersGroupForDB(dbDeploy.Spec.Template)
-	dummyPodSpecClassTypeID := dbDeploy.Spec.DeploymentSpec.Template.Spec.PodTemplateSpecClassDefinition.ChartSubcomponentChildClassTypeID
-	err = dbDeployPodSpecContainers.InsertPodContainerGroup(ctx, q, dummyPodSpecClassTypeID)
+	err = dbDeployPodSpecContainers.InsertPodContainerGroup(ctx, q)
 	p.Require().Nil(err)
 }
 
 func setDummyPodSpecHeader(d *deployments.Deployment) {
 	d.Spec.DeploymentSpec.Template.Spec.PodTemplateSpecClassDefinition.ChartSubcomponentParentClassTypeID = 1666564843324726081
-	d.Spec.DeploymentSpec.Template.Spec.PodTemplateSpecClassDefinition.ChartSubcomponentChildClassTypeID = 0
 	return
 }
 

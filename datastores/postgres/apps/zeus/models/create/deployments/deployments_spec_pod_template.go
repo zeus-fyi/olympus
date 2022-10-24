@@ -1,6 +1,8 @@
 package deployments
 
-import "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/common"
+import (
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/common"
+)
 
 func (d *Deployment) insertPodSpecTemplate(parentSqlExpression, parentClassTypeCteName string) string {
 	pts := d.Spec.Template.Spec
@@ -13,7 +15,7 @@ func (d *Deployment) insertPodSpecTemplate(parentSqlExpression, parentClassTypeC
 
 	// this part links containers to this k8s workload resource
 	// TODO disabling for now, need to get cont ids
-	// parentSqlExpression = common.SetPodSpecTemplateChildTypeInsert(parentSqlExpression, parentClassTypeCteName, pts.PodTemplateSpecClassDefinition)
-
+	//dbParsedPodTemplateSpec := containers.NewPodContainersGroupForDB(d.Spec.Template)
+	//dbParsedPodTemplateSpec.InsertPodContainerGroupSQL(d.Spec.Template.Spec.PodTemplateSpecClassDefinition.ChartSubcomponentChildClassTypeID)
 	return parentSqlExpression
 }

@@ -49,3 +49,7 @@ func (p *PodTemplateSpec) AddContainer(c Container) {
 	}
 	p.Spec.PodTemplateContainers = append(p.Spec.PodTemplateContainers, c)
 }
+
+func (p *PodTemplateSpec) GetPodSpecChildClassTypeID() int {
+	return p.Spec.PodTemplateSpecClassDefinition.ChartSubcomponentChildClassTypeID
+}

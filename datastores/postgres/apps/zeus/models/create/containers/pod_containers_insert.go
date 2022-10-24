@@ -5,10 +5,12 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-// insertPodContainerGroupSQL, will use the next_id distributed ID generator and select the container id
+// InsertPodContainerGroupSQL will use the next_id distributed ID generator and select the container id
 // value for subsequent subcomponent relationships of its element, should greatly simplify the insert logic
-func (p *PodContainersGroup) insertPodContainerGroupSQL(podSpecChildClassTypeID int) string {
+func (p *PodContainersGroup) InsertPodContainerGroupSQL() string {
 	// container
+
+	podSpecChildClassTypeID := p.PodSpecTemplate.GetPodSpecChildClassTypeID()
 	contSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_containers")
 	contSubCTE.TableName = "containers"
 	contSubCTE.Fields = []string{"container_id", "container_name", "container_image_id", "container_version_tag", "container_platform_os", "container_repository", "container_image_pull_policy"}
@@ -80,7 +82,7 @@ func (p *PodContainersGroup) insertPodContainerGroupSQL(podSpecChildClassTypeID 
 	}
 
 	cteExpr := sql_query_templates.CTE{
-		Name: "insertPodContainerGroupSQL",
+		Name: "InsertPodContainerGroupSQL",
 		SubCTEs: []sql_query_templates.SubCTE{
 			// container and podSpec template relationship
 			contSubCTE,

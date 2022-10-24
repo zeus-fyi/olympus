@@ -25,9 +25,9 @@ func NewPodContainersGroupForDB(ps containers.PodTemplateSpec) PodContainersGrou
 
 const ModelName = "PodContainersGroup"
 
-func (p *PodContainersGroup) InsertPodContainerGroup(ctx context.Context, q sql_query_templates.QueryParams, podSpecClassTypeID int) error {
+func (p *PodContainersGroup) InsertPodContainerGroup(ctx context.Context, q sql_query_templates.QueryParams) error {
 	log.Debug().Interface("InsertQuery:", q.LogHeader(ModelName))
-	q.RawQuery = p.insertPodContainerGroupSQL(podSpecClassTypeID)
+	q.RawQuery = p.InsertPodContainerGroupSQL()
 	r, err := apps.Pg.Exec(ctx, q.RawQuery)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
 		return err

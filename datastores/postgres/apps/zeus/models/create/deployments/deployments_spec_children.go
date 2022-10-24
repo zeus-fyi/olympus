@@ -8,8 +8,8 @@ func (d *Deployment) insertSpecChildren(parentSqlExpression, cteSpecParent strin
 	s := d.Spec
 	// should be three child types replica, selector, template (pod/spec)
 
-	// replica TODO
-	//parentSqlExpression = common.InsertChildClassSingleValueType(parentSqlExpression, cteSpecParent, s.Replicas)
+	// replica TODO verify
+	parentSqlExpression = common.InsertChildClassSingleValueType(parentSqlExpression, cteSpecParent, s.Replicas)
 
 	// selector
 	parentSqlExpression = common.InsertChildClassValues(parentSqlExpression, cteSpecParent, s.Selector.MatchLabels)

@@ -4,6 +4,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/containers"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/workloads"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	v1 "k8s.io/api/apps/v1"
 )
 
@@ -21,10 +22,12 @@ func ConvertStatefulSetSpecConfigToDB(s *v1.StatefulSet) (workloads.StatefulSet,
 func ConvertStatefulSetSpec(s v1.StatefulSetSpec) (workloads.StatefulSetSpec, error) {
 	statefulSetTemplateSpec := s.Template
 	podTemplateSpec := statefulSetTemplateSpec.Spec
+
 	dbStatefulSetSpec := workloads.StatefulSetSpec{
-		Replicas: 0,
 		Selector: common.ConvertSelector(s.Selector),
 	}
+	dbStatefulSetSpec.Replicas.ChartSubcomponentValue = string_utils.Convert32BitPtrIntToString(s.Replicas)
+
 	dbPodTemplateSpec, err := containers.ConvertPodTemplateSpecConfigToDB(&podTemplateSpec)
 	if err != nil {
 		return dbStatefulSetSpec, err

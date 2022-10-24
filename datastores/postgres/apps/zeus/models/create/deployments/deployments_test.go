@@ -30,7 +30,8 @@ func (s *ConvertDeploymentPackagesTestSuite) TestConvertDeploymentAndInsert() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(d)
 
-	dbDeploymentConfig := workloads.ConvertDeploymentConfigToDB(d)
+	dbDeploymentConfig, err := workloads.ConvertDeploymentConfigToDB(d)
+	s.Require().Nil(err)
 	s.Require().NotEmpty(dbDeploymentConfig)
 
 	mockC, err := mockChart()
@@ -45,7 +46,7 @@ func (s *ConvertDeploymentPackagesTestSuite) TestConvertDeploymentAndInsert() {
 
 func mockChart() (create.Chart, error) {
 	ns := sql.NullString{}
-	c := create.Chart{autogen_bases.ChartPackages{
+	c := create.Chart{ChartPackages: autogen_bases.ChartPackages{
 		ChartPackageID:   0,
 		ChartName:        rand.String(10),
 		ChartVersion:     rand.String(10),

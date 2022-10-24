@@ -1,4 +1,4 @@
-package common
+package common_conversions
 
 import (
 	"encoding/json"

@@ -1,6 +1,7 @@
 package containers
 
 import (
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
 	cont_conv "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/containers"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/common"
@@ -69,7 +70,7 @@ func (p *PodTemplateSpec) GetPodSpecChildClassTypeID() int {
 func (p *PodTemplateSpec) ConvertPodTemplateSpecConfigToDB(ps *v1.PodSpec) (PodTemplateSpec, error) {
 	dbPodSpec := NewPodTemplateSpec()
 
-	dbSpecVolumes, err := common.VolumesToDB(ps.Volumes)
+	dbSpecVolumes, err := common_conversions.VolumesToDB(ps.Volumes)
 	if err != nil {
 		return dbPodSpec, err
 	}

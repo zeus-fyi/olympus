@@ -1,4 +1,4 @@
-package common
+package common_conversions
 
 import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/common"

@@ -15,13 +15,8 @@ const ModelName = "Deployment"
 type Deployment struct {
 	KindDefinition autogen_bases.ChartComponentResources
 
-	Metadata DeploymentMetadata
+	Metadata common.ParentMetaData
 	Spec     Spec
-}
-
-type DeploymentMetadata struct {
-	autogen_bases.ChartSubcomponentParentClassTypes
-	common.Metadata
 }
 
 type Spec struct {
@@ -71,13 +66,15 @@ func ConvertDeploymentSpec(ds v1.DeploymentSpec) (DeploymentSpec, error) {
 
 	dbDeploymentSpec := DeploymentSpec{}
 
+	m := make(map[string]string)
 	if ds.Selector != nil {
 		bytes, err := json.Marshal(ds.Selector)
 		if err != nil {
 			return dbDeploymentSpec, err
 		}
 		selectorString := string(bytes)
-		dbDeploymentSpec.Selector.MatchLabels.AddValues(selectorString)
+		m["selectorString"] = selectorString
+		dbDeploymentSpec.Selector.MatchLabels.AddValues(m)
 	}
 
 	dbDeploymentSpec.Replicas.ChartSubcomponentValue = string_utils.Convert32BitPtrIntToString(ds.Replicas)

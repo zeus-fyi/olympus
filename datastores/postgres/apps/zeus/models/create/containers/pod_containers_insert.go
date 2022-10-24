@@ -2,13 +2,12 @@ package containers
 
 import (
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
-	"github.com/zeus-fyi/olympus/pkg/utils/dev_hacks"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
 // insertPodContainerGroupSQL, will use the next_id distributed ID generator and select the container id
 // value for subsequent subcomponent relationships of its element, should greatly simplify the insert logic
-func (p *PodContainersGroup) insertPodContainerGroupSQL(podSpecChildClassTypeID int) sql_query_templates.CTE {
+func (p *PodContainersGroup) insertPodContainerGroupSQL(podSpecChildClassTypeID int) string {
 	// container
 	contSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_containers")
 	contSubCTE.TableName = "containers"
@@ -102,7 +101,6 @@ func (p *PodContainersGroup) insertPodContainerGroupSQL(podSpecChildClassTypeID 
 			podSpecVolumesRelationshipSubCTE,
 		},
 	}
-	tmp := cteExpr.MultiLevelValuesCTEStringBuilderSQL()
-	dev_hacks.Use(tmp)
-	return cteExpr
+	query := cteExpr.MultiLevelValuesCTEStringBuilderSQL()
+	return query
 }

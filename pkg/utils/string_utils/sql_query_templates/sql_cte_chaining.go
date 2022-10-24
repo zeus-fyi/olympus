@@ -61,7 +61,7 @@ func (c *CTE) MultiLevelValuesCTEStringBuilderSQL() string {
 		}
 
 		if ctesWithValues-1 == subCteCount {
-			sb.WriteString(")\n")
+			sb.WriteString(")\n SELECT 1")
 			return sb.String()
 		} else {
 			sb.WriteString("\n),\n")

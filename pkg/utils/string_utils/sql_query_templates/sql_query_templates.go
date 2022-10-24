@@ -10,6 +10,7 @@ type Query struct{}
 
 type QueryParams struct {
 	QueryName   string
+	RawQuery    string
 	Fields      []string
 	TableName   string
 	WhereClause string

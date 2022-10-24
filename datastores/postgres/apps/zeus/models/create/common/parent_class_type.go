@@ -19,6 +19,8 @@ type ParentClass struct {
 	autogen_bases.ChartSubcomponentParentClassTypes
 }
 
+const SelectDeploymentResourceID = "(SELECT chart_component_resource_id FROM chart_component_resources WHERE chart_component_kind_name = 'Deployment' AND chart_component_api_version = 'apps/v1')"
+
 func CreateParentClassTypeSubCTE(pcType autogen_bases.ChartSubcomponentParentClassTypes) sql_query_templates.SubCTEs {
 	if pcType.ChartSubcomponentParentClassTypeID == 0 {
 		var ts chronos.Chronos
@@ -53,14 +55,4 @@ func (p *ParentClass) InsertChartSubcomponentParentClassTypes(ctx context.Contex
 	query := p.insertChartSubcomponentParentClassType()
 	_, err := apps.Pg.Exec(ctx, query)
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
-}
-
-const SelectDeploymentResourceID = "(SELECT chart_component_resource_id FROM chart_component_resources WHERE chart_component_kind_name = 'Deployment' AND chart_component_api_version = 'apps/v1')"
-
-func addParentClass(pkgId int, pcName string) string {
-	s := fmt.Sprintf(
-		`INSERT INTO chart_subcomponent_parent_class_types(chart_package_id, chart_component_resource_id, chart_subcomponent_parent_class_type_name)
-				 VALUES (%d, %s, '%s')
-				 RETURNING chart_subcomponent_parent_class_type_id`, pkgId, SelectDeploymentResourceID, pcName)
-	return s
 }

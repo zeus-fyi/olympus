@@ -25,8 +25,7 @@ type StatefulSet struct {
 type Spec struct {
 	ParentClassDefinition autogen_bases.ChartSubcomponentParentClassTypes
 
-	Replicas common.ChildClassSingleValue
-	Selector common.Selector
+	common.SpecWorkload
 	// TODO VolumeClaimTemplates, ServiceName
 
 	Template containers.PodTemplateSpec

@@ -21,8 +21,7 @@ type Deployment struct {
 
 type Spec struct {
 	autogen_bases.ChartSubcomponentParentClassTypes
-	Replicas common.ChildClassSingleValue
-	Selector common.Selector
+	common.SpecWorkload
 	Template containers.PodTemplateSpec
 }
 

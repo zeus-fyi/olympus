@@ -1,6 +1,10 @@
 package sql_query_templates
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+)
 
 func (q *QueryParams) InsertQueryHeader() string {
 	query := fmt.Sprintf(`INSERT INTO %s(%s) VALUES `, q.TableName, q.Fields)
@@ -8,7 +12,7 @@ func (q *QueryParams) InsertQueryHeader() string {
 }
 
 func (q *QueryParams) AddValues(values ...any) {
-	tmp := make([]any, len(values))
+	tmp := make(apps.RowValues, len(values))
 	for i, v := range values {
 		tmp[i] = v
 	}

@@ -10,15 +10,15 @@ import (
 func StringDelimitedSliceBuilderSQL(delimiter string, values apps.RowValues) string {
 	returnStr := ""
 	for i, val := range values {
-
 		switch val.(type) {
 		case string:
 			returnStr += "'"
 			returnStr += val.(string)
 			returnStr += "'"
-		case int, int64:
+		case int:
+			returnStr += fmt.Sprintf("%d", val.(int))
+		case int64:
 			returnStr += fmt.Sprintf("%d", val.(int64))
-
 		case uint64:
 			returnStr += fmt.Sprintf("%d", val.(uint64))
 		case bool:

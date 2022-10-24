@@ -1,10 +1,8 @@
 package containers
 
 import (
-	"fmt"
-
-	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
+	"github.com/zeus-fyi/olympus/pkg/utils/dev_hacks"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
@@ -104,18 +102,7 @@ func (p *PodContainersGroup) insertPodContainerGroupSQL(podSpecChildClassTypeID 
 			podSpecVolumesRelationshipSubCTE,
 		},
 	}
+	tmp := portsSubCTE.GenerateChainedInsertCTE()
+	dev_hacks.Use(tmp)
 	return cteExpr
-}
-
-func (p *PodContainersGroup) generateHeaderIfNoneForCTE(parentExpression, header string) string {
-	if len(parentExpression) <= 0 {
-		parentExpression += header
-	}
-	return parentExpression
-}
-
-func (p *PodContainersGroup) getInsertContainerValues(c autogen_bases.Containers) string {
-	processAndSetAmbiguousContainerFieldStatus(c)
-	valsToInsert := fmt.Sprintf("('%s', '%s', '%s', '%s', '%s', '%s')", c.ContainerName, c.ContainerImageID, c.ContainerVersionTag, c.ContainerPlatformOs, c.ContainerRepository, c.ContainerImagePullPolicy)
-	return valsToInsert
 }

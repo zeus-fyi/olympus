@@ -21,10 +21,6 @@ func DelimitedSliceStrBuilder(prefix, delimiter string, values ...string) string
 	return sb.String()
 }
 
-func UrlEncodeQueryParamList(prefix string, values ...string) string {
-	return DelimitedSliceStrBuilder(prefix, "%2C", values...)
-}
-
 func UrlExplicitEncodeQueryParamList(key string, values ...string) string {
 	u := url.Values{}
 	for _, val := range values {

@@ -1,6 +1,10 @@
 package sql_query_templates
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+)
 
 type Query struct{}
 
@@ -9,7 +13,7 @@ type QueryParams struct {
 	Fields      []string
 	TableName   string
 	WhereClause string
-	Values      [][]any
+	Values      []apps.RowValues
 	Limit       int
 }
 

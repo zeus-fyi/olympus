@@ -102,7 +102,7 @@ func (p *PodContainersGroup) insertPodContainerGroupSQL(podSpecChildClassTypeID 
 			podSpecVolumesRelationshipSubCTE,
 		},
 	}
-	tmp := portsSubCTE.GenerateChainedInsertCTE()
+	tmp := cteExpr.MultiLevelValuesCTEStringBuilderSQL()
 	dev_hacks.Use(tmp)
 	return cteExpr
 }

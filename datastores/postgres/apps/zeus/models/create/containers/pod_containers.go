@@ -21,7 +21,7 @@ func (p *PodTemplateSpec) NewPodContainersMapForDB() map[string]containers.Conta
 
 const ModelName = "PodContainersGroup"
 
-func (p *PodTemplateSpec) InsertPodTemplateSpec(ctx context.Context, q sql_query_templates.QueryParams, chart create.Chart) error {
+func (p *PodTemplateSpec) InsertPodTemplateSpec(ctx context.Context, q sql_query_templates.QueryParams, chart *create.Chart) error {
 	log.Debug().Interface("InsertQuery:", q.LogHeader(ModelName))
 	q.CTEQuery = p.InsertPodTemplateSpecContainersCTE(chart)
 	r, err := apps.Pg.Exec(ctx, q.CTEQuery.GenerateChainedCTE())

@@ -18,7 +18,7 @@ type Deployment struct {
 
 const ModelName = "Deployment"
 
-func (d *Deployment) InsertDeployment(ctx context.Context, q sql_query_templates.QueryParams, c create.Chart) error {
+func (d *Deployment) InsertDeployment(ctx context.Context, q sql_query_templates.QueryParams, c *create.Chart) error {
 	log.Debug().Interface("InsertQuery:", q.LogHeader(ModelName))
 	q.CTEQuery = d.InsertDeploymentCte(c)
 	q.RawQuery = q.CTEQuery.GenerateChainedCTE()
@@ -31,12 +31,12 @@ func (d *Deployment) InsertDeployment(ctx context.Context, q sql_query_templates
 	return misc.ReturnIfErr(err, q.LogHeader(ModelName))
 }
 
-func (d *Deployment) InsertDeploymentCte(chart create.Chart) sql_query_templates.CTE {
+func (d *Deployment) InsertDeploymentCte(chart *create.Chart) sql_query_templates.CTE {
 	var combinedSubCTEs sql_query_templates.SubCTEs
 	// metadata
-	metaDataCtes := common.CreateParentMetadataSubCTEs(d.Metadata)
+	metaDataCtes := common.CreateParentMetadataSubCTEs(chart, d.Metadata)
 	// spec
-	specCtes := common.CreateSpecWorkloadTypeSubCTE(d.Spec.SpecWorkload)
+	specCtes := common.CreateSpecWorkloadTypeSubCTE(chart, d.Spec.SpecWorkload)
 
 	// pod template spec
 	podSpecTemplateCte := d.Spec.Template.InsertPodTemplateSpecContainersCTE(chart)

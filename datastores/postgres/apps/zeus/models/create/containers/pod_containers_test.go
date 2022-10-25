@@ -38,7 +38,7 @@ func (p *PodContainersGroupTestSuite) TestContainersInsertFromParsedDeploymentFi
 	// TODO update with another chart later?
 	c := create.Chart{}
 	// specific to test, above code is just setting up
-	err = dbDeploymentConfig.InsertPodTemplateSpec(ctx, q, c)
+	err = dbDeploymentConfig.InsertPodTemplateSpec(ctx, q, &c)
 	p.Require().Nil(err)
 }
 

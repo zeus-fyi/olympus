@@ -12,7 +12,7 @@ const SelectDeploymentResourceID = "(SELECT chart_component_resource_id FROM cha
 
 // InsertPodTemplateSpecContainersCTE will use the next_id distributed ID generator and select the container id
 // value for subsequent subcomponent relationships of its element, should greatly simplify the insert logic
-func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart create.Chart) sql_query_templates.CTE {
+func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *create.Chart) sql_query_templates.CTE {
 	// container
 	ts := chronos.Chronos{}
 	if p.GetPodSpecParentClassTypeID() == 0 {
@@ -26,7 +26,7 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart create.Chart)
 	contPodSpecParentClassCTE.Fields = []string{"chart_package_id", "chart_component_resource_id", "chart_subcomponent_parent_class_type_id", "chart_subcomponent_parent_class_type_name"}
 	contPodSpecParentClassCTE.AddValues(chart.ChartPackageID, SelectDeploymentResourceID, p.GetPodSpecParentClassTypeID(), p.ChartSubcomponentParentClassTypes.ChartSubcomponentParentClassTypeName)
 
-	cpkAddParentClassTypeSubCTEs := common.AddParentClassToChartPackage(&chart, p.GetPodSpecParentClassTypeID())
+	cpkAddParentClassTypeSubCTEs := common.AddParentClassToChartPackage(chart, p.GetPodSpecParentClassTypeID())
 
 	agCct := autogen_bases.ChartSubcomponentChildClassTypes{}
 	contSubChildClassCTE := sql_query_templates.NewSubInsertCTE("cte_podSpecSubChildClassCTE")

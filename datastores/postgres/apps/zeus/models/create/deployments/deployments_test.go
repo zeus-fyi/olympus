@@ -43,7 +43,7 @@ func (s *DeploymentsTestSuite) TestConvertDeploymentAndInsert() {
 	q := sql_query_templates.NewQueryParam("InsertDeployment", "table", "where", 1000, []string{})
 
 	deploymentInsert := Deployment{dbDeploymentConfig}
-	err = deploymentInsert.InsertDeployment(ctx, q, mockC)
+	err = deploymentInsert.InsertDeployment(ctx, q, &mockC)
 	s.Require().Nil(err)
 }
 

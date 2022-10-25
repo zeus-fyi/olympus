@@ -1,7 +1,7 @@
 package common_conversions
 
 import (
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/common"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

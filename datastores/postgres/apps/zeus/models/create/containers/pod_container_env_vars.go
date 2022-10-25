@@ -3,7 +3,7 @@ package containers
 import (
 	"encoding/json"
 
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/containers"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/containers"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 

@@ -2,7 +2,7 @@ package common_conversions
 
 import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/common"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs/common"
 )
 
 func ConvertKeyValueToChildValues(m map[string]string) common.ChildValuesSlice {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/containers"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/containers"
 )
 
 // TODO depcreate

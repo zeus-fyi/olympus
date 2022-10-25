@@ -3,7 +3,7 @@ package common
 import (
 	"fmt"
 
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/common"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs/common"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )

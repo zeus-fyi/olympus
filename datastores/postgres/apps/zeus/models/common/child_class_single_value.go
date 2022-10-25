@@ -3,7 +3,7 @@ package common
 import (
 	"fmt"
 
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/common"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs/common"
 )
 
 func InsertChildClassSingleValueType(parentExpression, parentClassTypeCteName string, sv common.ChildClassSingleValue) string {

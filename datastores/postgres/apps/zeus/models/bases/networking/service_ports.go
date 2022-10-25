@@ -1,7 +1,7 @@
 package networking
 
 import (
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/common"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs/common"
 )
 
 type ServicePort struct {

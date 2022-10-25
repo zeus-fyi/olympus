@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/containers"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/containers"
 	v1 "k8s.io/api/core/v1"
 )
 

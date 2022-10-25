@@ -4,8 +4,8 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
 	cont_conv "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/containers"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/common"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/containers"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/containers"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs/common"
 	v1 "k8s.io/api/core/v1"
 )
 

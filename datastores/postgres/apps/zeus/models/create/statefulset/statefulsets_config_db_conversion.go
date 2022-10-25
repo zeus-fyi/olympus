@@ -3,8 +3,8 @@ package statefulset
 import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulset"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs/common"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/containers"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/common"
 	v1 "k8s.io/api/apps/v1"
 )
 

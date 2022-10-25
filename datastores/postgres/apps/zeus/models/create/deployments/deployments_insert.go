@@ -49,5 +49,3 @@ func (d *Deployment) InsertDeploymentCte(chart *create.Chart) sql_query_template
 	}
 	return cteExpr
 }
-
-// TODO add chart parents to chart package is

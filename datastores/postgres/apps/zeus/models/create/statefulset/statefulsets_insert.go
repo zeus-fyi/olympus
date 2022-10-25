@@ -18,9 +18,9 @@ type StatefulSet struct {
 
 const ModelName = "StatefulSet"
 
-func (s *StatefulSet) InsertStatefulSet(ctx context.Context, q sql_query_templates.QueryParams, c create.Chart) error {
+func (s *StatefulSet) InsertStatefulSet(ctx context.Context, q sql_query_templates.QueryParams, c *create.Chart) error {
 	log.Debug().Interface("InsertQuery:", q.LogHeader(ModelName))
-	q.CTEQuery = s.InsertStatefulSetCte()
+	q.CTEQuery = s.InsertStatefulSetCte(c)
 	q.RawQuery = q.CTEQuery.GenerateChainedCTE()
 	r, err := apps.Pg.Exec(ctx, q.RawQuery)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
@@ -31,15 +31,15 @@ func (s *StatefulSet) InsertStatefulSet(ctx context.Context, q sql_query_templat
 	return misc.ReturnIfErr(err, q.LogHeader(ModelName))
 }
 
-func (s *StatefulSet) InsertStatefulSetCte() sql_query_templates.CTE {
+func (s *StatefulSet) InsertStatefulSetCte(c *create.Chart) sql_query_templates.CTE {
 	var combinedSubCTEs sql_query_templates.SubCTEs
 	// metadata
-	metaDataCtes := common.CreateParentMetadataSubCTEs(s.Metadata)
+	metaDataCtes := common.CreateParentMetadataSubCTEs(c, s.Metadata)
 	// spec
-	specCtes := common.CreateSpecWorkloadTypeSubCTE(s.Spec.SpecWorkload)
+	specCtes := common.CreateSpecWorkloadTypeSubCTE(c, s.Spec.SpecWorkload)
 
 	// pod template spec
-	podSpecTemplateCte := s.Spec.Template.InsertPodTemplateSpecContainersCTE()
+	podSpecTemplateCte := s.Spec.Template.InsertPodTemplateSpecContainersCTE(c)
 	podSpecTemplateSubCtes := podSpecTemplateCte.SubCTEs
 
 	combinedSubCTEs = sql_query_templates.AppendSubCteSlices(metaDataCtes, specCtes, podSpecTemplateSubCtes)

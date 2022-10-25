@@ -41,7 +41,7 @@ func (s *StatefulSetTestSuite) TestConvertStatefulSetAndInsert() {
 	ctx := context.Background()
 	q := sql_query_templates.NewQueryParam("InsertStatefulSet", "table", "where", 1000, []string{})
 	stsInsert := StatefulSet{dbStatefulSetConfig}
-	err = stsInsert.InsertStatefulSet(ctx, q, mockC)
+	err = stsInsert.InsertStatefulSet(ctx, q, &mockC)
 	s.Require().Nil(err)
 }
 
@@ -55,7 +55,7 @@ func mockChart() (create.Chart, error) {
 	}}
 	ctx := context.Background()
 	q := sql_query_templates.NewQueryParam("InsertChart", "table", "where", 1000, []string{})
-	err := c.InsertChart(ctx, q, c)
+	err := c.InsertChart(ctx, q)
 	return c, err
 }
 

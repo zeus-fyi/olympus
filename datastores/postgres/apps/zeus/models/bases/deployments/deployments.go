@@ -27,13 +27,13 @@ func NewDeployment() Deployment {
 		ChartComponentApiVersion: "apps/v1",
 	}
 	d.Metadata.Metadata = structs.NewMetadata()
-	d.Metadata.ChartSubcomponentParentClassTypeName = "deploymentParentMetadata"
+	d.Metadata.ChartSubcomponentParentClassTypeName = "DeploymentParentMetadata"
 	d.Spec = NewDeploymentSpec()
 	d.Spec.ChartSubcomponentParentClassTypes = autogen_bases.ChartSubcomponentParentClassTypes{
 		ChartPackageID:                       0,
 		ChartComponentResourceID:             0,
 		ChartSubcomponentParentClassTypeID:   0,
-		ChartSubcomponentParentClassTypeName: "deploymentSpec",
+		ChartSubcomponentParentClassTypeName: "DeploymentSpec",
 	}
 	return d
 }

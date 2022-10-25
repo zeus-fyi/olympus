@@ -17,6 +17,10 @@ type Chart struct {
 
 const Sn = "Chart"
 
+func (c *Chart) GetChartPackageID() int {
+	return c.ChartPackageID
+}
+
 func (c *Chart) insertChart() string {
 	sqlInsertStatement := fmt.Sprintf(
 		`WITH cte_insert_chart AS (

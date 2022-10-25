@@ -12,7 +12,7 @@ import (
 
 func AddParentClassToChartPackage(c *create.Chart, parentClassID int) sql_query_templates.SubCTE {
 	cpk := autogen_bases.ChartPackageComponents{
-		ChartPackageID:                     c.ChartPackageID,
+		ChartPackageID:                     c.GetChartPackageID(),
 		ChartSubcomponentParentClassTypeID: parentClassID,
 	}
 	return createChartPackageComponentAddParentClassTypeSubCTE(&cpk)

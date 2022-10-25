@@ -14,6 +14,6 @@ func CreateSpecWorkloadTypeSubCTE(c *create.Chart, specWorkload structs.SpecWork
 	matchLabelsCtes := CreateChildClassMultiValueSubCTEs(&specWorkload.Selector.MatchLabels)
 	chartComponentRelationship := AddParentClassToChartPackage(c, pcID)
 
-	combinedSubCtes := sql_query_templates.AppendSubCteSlices(parentClassTypeSubCTE, replicaSubCtes, matchLabelsCtes, []sql_query_templates.SubCTE{chartComponentRelationship})
+	combinedSubCtes := sql_query_templates.AppendSubCteSlices([]sql_query_templates.SubCTE{chartComponentRelationship}, parentClassTypeSubCTE, replicaSubCtes, matchLabelsCtes)
 	return combinedSubCtes
 }

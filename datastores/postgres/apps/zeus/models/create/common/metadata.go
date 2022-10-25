@@ -19,6 +19,6 @@ func CreateParentMetadataSubCTEs(c *create.Chart, metadata structs.ParentMetaDat
 	labelSubCtes := CreateChildClassMultiValueSubCTEs(&metadata.Labels)
 	annotationsSubCtes := CreateChildClassMultiValueSubCTEs(&metadata.Annotations)
 	chartComponentRelationship := AddParentClassToChartPackage(c, metadata.ChartSubcomponentParentClassTypeID)
-	combinedSubCtes := sql_query_templates.AppendSubCteSlices(parentSubCte, nameSubCtes, labelSubCtes, annotationsSubCtes, []sql_query_templates.SubCTE{chartComponentRelationship})
+	combinedSubCtes := sql_query_templates.AppendSubCteSlices([]sql_query_templates.SubCTE{chartComponentRelationship}, parentSubCte, nameSubCtes, labelSubCtes, annotationsSubCtes)
 	return combinedSubCtes
 }

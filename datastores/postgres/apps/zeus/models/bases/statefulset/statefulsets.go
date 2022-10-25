@@ -37,10 +37,10 @@ func NewStatefulSet() StatefulSet {
 		ChartPackageID:                       0,
 		ChartComponentResourceID:             0,
 		ChartSubcomponentParentClassTypeID:   0,
-		ChartSubcomponentParentClassTypeName: "statefulSetSpec",
+		ChartSubcomponentParentClassTypeName: "StatefulSetSpec",
 	}
 	s.Metadata.Metadata = structs.NewMetadata()
-	s.Metadata.ChartSubcomponentParentClassTypeName = "statefulSetSpecParentMetadata"
+	s.Metadata.ChartSubcomponentParentClassTypeName = "StatefulSetSpecParentMetadata"
 	return s
 }
 

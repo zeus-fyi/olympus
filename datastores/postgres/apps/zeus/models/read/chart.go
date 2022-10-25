@@ -31,25 +31,26 @@ var query = `
 			LEFT JOIN chart_subcomponents_jsonb_child_values AS cvps ON cvps.chart_subcomponent_child_class_type_id = cct.chart_subcomponent_child_class_type_id
 			WHERE chart_package_id = 0
 	),  cte_chart_subcomponent_spec_pod_template_containers AS (
-			SELECT cs.container_id
+			SELECT cs.container_id, cs.container_name, cs.container_image_id, cs.container_version_tag, cs.container_platform_os, cs.container_repository, cs.container_image_pull_policy
 			FROM chart_subcomponent_spec_pod_template_containers ps
-			INNER JOIN  cte_chart_package_components AS cp ON cp.chart_subcomponent_child_class_type_id = ps.chart_subcomponent_child_class_type_id
+			INNER JOIN cte_chart_package_components AS cp ON cp.chart_subcomponent_child_class_type_id = ps.chart_subcomponent_child_class_type_id
 			LEFT JOIN containers cs ON cs.container_id = ps.container_id
 	), cte_container_environmental_vars AS (
 			SELECT cenv.env_id, cv.name, cv.value
 			FROM containers_environmental_vars cenv
 			LEFT JOIN container_environmental_vars AS cv ON cv.env_id = cenv.env_id
 	), cte_container_volume_mounts AS (
-			SELECT  * 
+			SELECT cvm.volume_mount_path, cvm.volume_name
 			FROM containers_volume_mounts csvm
 			LEFT JOIN cte_chart_subcomponent_spec_pod_template_containers AS ps ON ps.container_id = csvm.container_id
+			LEFT JOIN container_volume_mounts ON cvm.volume_mount_id = cvsm.volume_mount_id
 	), cte_containers_volumes  AS (
 			SELECT volume_name, volume_key_values_jsonb
 			FROM containers_volumes csvm
 			LEFT JOIN cte_chart_package_components AS cp ON cp.chart_subcomponent_child_class_type_id = csvm.chart_subcomponent_child_class_type_id
 			LEFT JOIN volumes AS v ON v.volume_id = csvm.volume_id
 	), cte_probes AS (
-			SELECT *
+			SELECT probe_type, probe_key_values_jsonb
 			FROM containers_probes csp
 			LEFT JOIN cte_chart_subcomponent_spec_pod_template_containers AS cs ON cs.container_id = csp.container_id
 			LEFT JOIN container_probes AS cpr ON cpr.probe_id = csp.probe_id

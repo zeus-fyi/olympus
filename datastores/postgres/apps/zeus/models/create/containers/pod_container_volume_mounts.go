@@ -6,12 +6,14 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-func (p *PodTemplateSpec) insertContainerVolumeMountsValues(m map[string]containers.Container, podSpecChildClassTypeID int, imageID string, contVmsSubCTE, contVmsRelationshipsSubCTE *sql_query_templates.SubCTE) {
+func (p *PodTemplateSpec) insertContainerVolumeMountsValues(m map[string]containers.Container, imageID string, contVmsSubCTE, contVmsRelationshipsSubCTE *sql_query_templates.SubCTE) {
 	c, ok := m[imageID]
 	if !ok {
 		return
 	}
 	ts := chronos.Chronos{}
+	podSpecChildClassTypeID := p.GetPodSpecChildClassTypeID()
+
 	for _, vm := range c.VolumeMounts {
 		vmID := ts.UnixTimeStampNow()
 		contVmsSubCTE.AddValues(vmID, vm.VolumeMountPath, vm.VolumeName)

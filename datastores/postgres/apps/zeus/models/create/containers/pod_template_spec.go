@@ -10,7 +10,6 @@ import (
 )
 
 type PodTemplateSpec struct {
-	autogen_bases.ChartSubcomponentChildClassTypes
 	Metadata common.Metadata
 	Spec     PodSpec
 }
@@ -47,10 +46,6 @@ func NewPodTemplateSpec() PodTemplateSpec {
 }
 
 func (p *PodTemplateSpec) AddContainer(c containers.Container) {
-	c.ClassDefinition = autogen_bases.ChartSubcomponentChildClassTypes{
-		ChartSubcomponentChildClassTypeID:   p.Spec.PodTemplateSpecClassDefinition.ChartSubcomponentChildClassTypeID,
-		ChartSubcomponentChildClassTypeName: "container",
-	}
 	p.Spec.PodTemplateContainers = append(p.Spec.PodTemplateContainers, c)
 }
 
@@ -65,6 +60,7 @@ func (p *PodTemplateSpec) SetPodSpecParentClassTypeID(id int) {
 func (p *PodTemplateSpec) GetPodSpecChildClassTypeID() int {
 	return p.Spec.PodTemplateSpecClassDefinition.ChartSubcomponentChildClassTypeID
 }
+
 func (p *PodTemplateSpec) SetPodSpecChildClassTypeID(id int) {
 	p.Spec.PodTemplateSpecClassDefinition.ChartSubcomponentChildClassTypeID = id
 }

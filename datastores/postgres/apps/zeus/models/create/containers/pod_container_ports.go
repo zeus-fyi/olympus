@@ -20,13 +20,14 @@ func (p *PodTemplateSpec) insertContainerPortsHeaderRelationshipHeader() string 
 	return "INSERT INTO containers_ports(chart_subcomponent_child_class_type_id, container_id, port_id) VALUES "
 }
 
-func (p *PodTemplateSpec) getContainerPortsHeaderRelationshipValues(m map[string]containers.Container, childClassTypeID int, imageID string, cteSubfield *sql_query_templates.SubCTE) {
+func (p *PodTemplateSpec) getContainerPortsHeaderRelationshipValues(m map[string]containers.Container, imageID string, cteSubfield *sql_query_templates.SubCTE) {
 	c, ok := m[imageID]
 	if !ok {
 		return
 	}
+	podSpecChildClassTypeID := p.GetPodSpecChildClassTypeID()
 	for _, port := range c.GetPorts() {
-		cteSubfield.AddValues(childClassTypeID, selectRelatedContainerIDFromImageID(imageID), port.PortID)
+		cteSubfield.AddValues(podSpecChildClassTypeID, selectRelatedContainerIDFromImageID(imageID), port.PortID)
 	}
 	return
 }

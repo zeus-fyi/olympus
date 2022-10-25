@@ -24,11 +24,13 @@ func (p *PodTemplateSpec) getInsertContainerEnvVarsValues(m map[string]container
 	return
 }
 
-func (p *PodTemplateSpec) getContainerEnvVarRelationshipValues(m map[string]containers.Container, podSpecChildClassTypeID int, imageID string, cteSubfield *sql_query_templates.SubCTE) {
+func (p *PodTemplateSpec) getContainerEnvVarRelationshipValues(m map[string]containers.Container, imageID string, cteSubfield *sql_query_templates.SubCTE) {
 	c, ok := m[imageID]
 	if !ok {
 		return
 	}
+
+	podSpecChildClassTypeID := p.GetPodSpecChildClassTypeID()
 	for _, ev := range c.GetEnvVars() {
 		cteSubfield.AddValues(podSpecChildClassTypeID, selectRelatedContainerIDFromImageID(imageID), ev.EnvID)
 	}

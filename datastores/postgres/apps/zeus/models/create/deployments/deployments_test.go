@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 	v1 "k8s.io/api/apps/v1"
@@ -35,7 +35,7 @@ func (s *DeploymentsTestSuite) TestConvertDeploymentAndInsert() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(dbDeploymentConfig)
 
-	mockC, err := mockChart()
+	mockC := mockChart()
 	s.Require().Nil(err)
 
 	ctx := context.Background()
@@ -46,18 +46,15 @@ func (s *DeploymentsTestSuite) TestConvertDeploymentAndInsert() {
 	s.Require().Nil(err)
 }
 
-func mockChart() (create.Chart, error) {
+func mockChart() charts.Chart {
 	ns := sql.NullString{}
-	c := create.Chart{ChartPackages: autogen_bases.ChartPackages{
+	c := charts.Chart{ChartPackages: autogen_bases.ChartPackages{
 		ChartPackageID:   0,
 		ChartName:        rand.String(10),
 		ChartVersion:     rand.String(10),
 		ChartDescription: ns,
 	}}
-	ctx := context.Background()
-	q := sql_query_templates.NewQueryParam("InsertChart", "table", "where", 1000, []string{})
-	err := c.InsertChart(ctx, q, c)
-	return c, err
+	return c
 }
 
 func (s *DeploymentsTestSuite) TestSeedChartComponents() {

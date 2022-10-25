@@ -2,17 +2,25 @@ package containers
 
 import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/containers/probes"
 )
 
 type Container struct {
-	ClassDefinition autogen_bases.ChartSubcomponentChildClassTypes
 	Metadata        autogen_bases.Containers
 	VolumeMounts    autogen_bases.ContainerVolumeMountsSlice
 	Ports           autogen_bases.ContainerPortsSlice
 	Env             autogen_bases.ContainerEnvironmentalVarsSlice
-	Probes          autogen_bases.ContainerProbesSlice
+	Probes          probes.ProbeSlice
 	ResourceRequest *autogen_bases.ContainerComputeResources
 	IsInitContainer bool
+}
+
+func (c *Container) SetContainerID(id int) {
+	c.Metadata.ContainerID = id
+}
+
+func (c *Container) GetContainerID() int {
+	return c.Metadata.ContainerID
 }
 
 func (c *Container) GetPorts() autogen_bases.ContainerPortsSlice {
@@ -23,24 +31,15 @@ func (c *Container) GetEnvVars() autogen_bases.ContainerEnvironmentalVarsSlice {
 	return c.Env
 }
 
-func (c *Container) GetContainerClassDefinition() autogen_bases.ChartSubcomponentChildClassTypes {
-	return c.ClassDefinition
-}
-
 type Containers []Container
 
 func NewContainer() Container {
 	c := Container{
-		ClassDefinition: autogen_bases.ChartSubcomponentChildClassTypes{
-			ChartSubcomponentParentClassTypeID:  0,
-			ChartSubcomponentChildClassTypeID:   0,
-			ChartSubcomponentChildClassTypeName: "",
-		},
 		Metadata:        autogen_bases.Containers{},
 		VolumeMounts:    autogen_bases.ContainerVolumeMountsSlice{},
 		Ports:           autogen_bases.ContainerPortsSlice{},
 		Env:             autogen_bases.ContainerEnvironmentalVarsSlice{},
-		Probes:          autogen_bases.ContainerProbesSlice{},
+		Probes:          probes.ProbeSlice{},
 		IsInitContainer: false,
 	}
 	return c

@@ -9,3 +9,7 @@ func (c *CTE) GenerateChainedCTE() string {
 	formattedValues := c.MultiLevelValuesCTEStringBuilderSQL()
 	return formattedValues
 }
+
+func (c *CTE) AppendSubCtes(se SubCTEs) {
+	c.SubCTEs = append(c.SubCTEs, se...)
+}

@@ -1,25 +1,41 @@
 package containers
 
 import (
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/common"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
+const SelectDeploymentResourceID = "(SELECT chart_component_resource_id FROM chart_component_resources WHERE chart_component_kind_name = 'Deployment' AND chart_component_api_version = 'apps/v1')"
+
 // InsertPodTemplateSpecContainersCTE will use the next_id distributed ID generator and select the container id
 // value for subsequent subcomponent relationships of its element, should greatly simplify the insert logic
-func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE() sql_query_templates.CTE {
+func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart charts.Chart) sql_query_templates.CTE {
 	// container
 	ts := chronos.Chronos{}
 	if p.GetPodSpecParentClassTypeID() == 0 {
 		p.SetPodSpecParentClassTypeID(ts.UnixTimeStampNow())
 	}
 	if p.GetPodSpecChildClassTypeID() == 0 {
-		p.SetPodSpecParentClassTypeID(ts.UnixTimeStampNow())
+		p.SetPodSpecChildClassTypeID(ts.UnixTimeStampNow())
 	}
-	podSpecChildClassTypeID := p.GetPodSpecChildClassTypeID()
 	contSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_containers")
 	contSubCTE.TableName = "containers"
 	contSubCTE.Fields = []string{"container_id", "container_name", "container_image_id", "container_version_tag", "container_platform_os", "container_repository", "container_image_pull_policy"}
+
+	agPct := autogen_bases.ChartSubcomponentParentClassTypes{}
+	contPodSpecParentClassCTE := sql_query_templates.NewSubInsertCTE("cte_podSpecParentClassTypeCTE")
+	contPodSpecParentClassCTE.TableName = agPct.GetTableName()
+	contPodSpecParentClassCTE.Fields = []string{"chart_package_id", "chart_component_resource_id", "chart_subcomponent_parent_class_type_id", "chart_subcomponent_parent_class_type_name"}
+	contPodSpecParentClassCTE.AddValues(chart.ChartPackageID, SelectDeploymentResourceID, p.GetPodSpecParentClassTypeID(), "podSpecSubParentClass")
+
+	agCct := autogen_bases.ChartSubcomponentChildClassTypes{}
+	contSubChildClassCTE := sql_query_templates.NewSubInsertCTE("cte_podSpecSubChildClassCTE")
+	contSubChildClassCTE.TableName = agCct.GetTableName()
+	contSubChildClassCTE.Fields = []string{"chart_subcomponent_parent_class_type_id", "chart_subcomponent_child_class_type_id", "chart_subcomponent_child_class_type_name"}
+	contSubChildClassCTE.AddValues(p.GetPodSpecParentClassTypeID(), p.GetPodSpecChildClassTypeID(), "podSpecSubChildClass")
 
 	// ports
 	portsSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_container_ports")
@@ -50,40 +66,52 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE() sql_query_templat
 	podSpecSubCTE.TableName = "chart_subcomponent_spec_pod_template_containers"
 	podSpecSubCTE.Fields = []string{"chart_subcomponent_child_class_type_id", "container_id", "is_init_container", "container_sort_order"}
 
-	// volumes for pod spec
-	podSpecVolumesSubCTE := sql_query_templates.NewSubInsertCTE("cte_pod_spec_volumes")
-	podSpecVolumesSubCTE.TableName = "volumes"
-	podSpecVolumesSubCTE.Fields = []string{"volume_id", "volume_name", "volume_key_values_jsonb"}
-	podSpecVolumesRelationshipSubCTE := sql_query_templates.NewSubInsertCTE("cte_pod_spec_containers_volumes")
-	podSpecVolumesRelationshipSubCTE.TableName = "containers_volumes"
-	podSpecVolumesRelationshipSubCTE.Fields = []string{"chart_subcomponent_child_class_type_id", "volume_id"}
+	// probes
+	contP := autogen_bases.ContainerProbes{}
+	probesSubCTE := sql_query_templates.NewSubInsertCTE("cte_container_probes")
+	probesSubCTE.TableName = "container_probes"
+	probesSubCTE.Fields = contP.GetTableColumns()
+	conPRelationship := autogen_bases.ContainersProbes{}
+	probesRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE("cte_containers_probes_relationship")
+	probesRelationshipsSubCTE.TableName = "containers_probes"
+	probesRelationshipsSubCTE.Fields = conPRelationship.GetTableColumns()
 
-	p.insertVolumes(&podSpecVolumesSubCTE, &podSpecVolumesRelationshipSubCTE)
+	podSpecVolumesSubCTE, podSpecVolumesRelationshipSubCTE := p.insertVolumes()
 
 	// TODO for now will just generate ids here, something more complex can come later
 	sortOrderIndex := 0
 	containersMapByImageID := p.NewPodContainersMapForDB()
+
+	var probeCTEs sql_query_templates.SubCTEs
+	var probeRelationshipCTEs sql_query_templates.SubCTEs
 	for _, cont := range containersMapByImageID {
 		cont.ProcessAndSetAmbiguousContainerFieldStatusAndSubfieldIds()
+		cont.SetContainerID(ts.UnixTimeStampNow())
 		c := cont.Metadata
 		// should continue appending values to header
 		// container
-		c.ContainerID = ts.UnixTimeStampNow()
-		contSubCTE.AddValues(c.ContainerID, c.ContainerName, c.ContainerImageID, c.ContainerVersionTag, c.ContainerPlatformOs, c.ContainerRepository, c.ContainerImagePullPolicy)
+
+		// child class type to link to pod spec
+		contSubCTE.AddValues(cont.GetContainerID(), c.ContainerName, c.ContainerImageID, c.ContainerVersionTag, c.ContainerPlatformOs, c.ContainerRepository, c.ContainerImagePullPolicy)
 
 		// pod spec to link container
-		podSpecSubCTE.AddValues(podSpecChildClassTypeID, c.ContainerID, cont.IsInitContainer, sortOrderIndex)
+		podSpecSubCTE.AddValues(p.GetPodSpecChildClassTypeID(), cont.GetContainerID(), cont.IsInitContainer, sortOrderIndex)
 
 		// ports
 		p.getContainerPortsValuesForInsert(containersMapByImageID, c.ContainerImageID, &portsSubCTE)
-		p.getContainerPortsHeaderRelationshipValues(containersMapByImageID, podSpecChildClassTypeID, c.ContainerImageID, &portsRelationshipsSubCTE)
+		p.getContainerPortsHeaderRelationshipValues(containersMapByImageID, c.ContainerImageID, &portsRelationshipsSubCTE)
 
 		// env vars
 		p.getInsertContainerEnvVarsValues(containersMapByImageID, c.ContainerImageID, &envVarsSubCTE)
-		p.getContainerEnvVarRelationshipValues(containersMapByImageID, podSpecChildClassTypeID, c.ContainerImageID, &envVarsRelationshipsSubCTE)
+		p.getContainerEnvVarRelationshipValues(containersMapByImageID, c.ContainerImageID, &envVarsRelationshipsSubCTE)
 
 		// vms
-		p.insertContainerVolumeMountsValues(containersMapByImageID, podSpecChildClassTypeID, c.ContainerImageID, &contVmsSubCTE, &contVmsRelationshipsSubCTE)
+		p.insertContainerVolumeMountsValues(containersMapByImageID, c.ContainerImageID, &contVmsSubCTE, &contVmsRelationshipsSubCTE)
+
+		// probes
+		p1, p2 := common.CreateProbeValueSubCTEs(cont.GetContainerID(), cont.Probes)
+		probeCTEs = sql_query_templates.AppendSubCteSlices(probeCTEs, p1)
+		probeRelationshipCTEs = sql_query_templates.AppendSubCteSlices(probeRelationshipCTEs, p2)
 		sortOrderIndex += 1
 	}
 
@@ -92,6 +120,8 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE() sql_query_templat
 		SubCTEs: []sql_query_templates.SubCTE{
 			// container and podSpec template relationship
 			contSubCTE,
+			contPodSpecParentClassCTE,
+			contSubChildClassCTE,
 			podSpecSubCTE,
 			// ports
 			portsSubCTE,
@@ -107,5 +137,8 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE() sql_query_templat
 			podSpecVolumesRelationshipSubCTE,
 		},
 	}
+	cteExpr.AppendSubCtes(probeCTEs)
+	cteExpr.AppendSubCtes(probeRelationshipCTEs)
+
 	return cteExpr
 }

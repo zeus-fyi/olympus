@@ -20,8 +20,8 @@ WITH cte_chart_packages AS (
 	SELECT chart_package_id, chart_name, chart_version, chart_description FROM chart_packages WHERE chart_package_id = 0
 	), cte_chart_package_components AS (
 			SELECT cp.chart_component_resource_id, cp.chart_subcomponent_parent_class_type_id, cp.chart_subcomponent_parent_class_type_name, cct.chart_subcomponent_child_class_type_id,
-										 cct.chart_subcomponent_child_class_type_name, 
-										 cv.chart_subcomponent_key_name, cv.chart_subcomponent_value
+				   cct.chart_subcomponent_child_class_type_name, 
+				   cv.chart_subcomponent_key_name, cv.chart_subcomponent_value
 			FROM chart_subcomponent_parent_class_types cp
 			LEFT JOIN chart_subcomponent_child_class_types AS cct ON cct.chart_subcomponent_parent_class_type_id = cp.chart_subcomponent_parent_class_type_id
 			LEFT JOIN chart_subcomponents_child_values AS cv ON cv.chart_subcomponent_child_class_type_id = cct.chart_subcomponent_child_class_type_id

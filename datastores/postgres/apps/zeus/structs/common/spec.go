@@ -12,8 +12,12 @@ type SpecWorkload struct {
 }
 
 func NewSpecWorkload() SpecWorkload {
-	sw := SpecWorkload{}
-	sw.Selector = NewSelector()
-	sw.Replicas = NewInitChildClassSingleValue("replicas", "0")
+	pc := autogen_bases.ChartSubcomponentParentClassTypes{
+		ChartPackageID:                       0,
+		ChartComponentResourceID:             0,
+		ChartSubcomponentParentClassTypeID:   0,
+		ChartSubcomponentParentClassTypeName: "Spec",
+	}
+	sw := SpecWorkload{pc, NewInitChildClassSingleValue("replicas", "0"), NewSelector()}
 	return sw
 }

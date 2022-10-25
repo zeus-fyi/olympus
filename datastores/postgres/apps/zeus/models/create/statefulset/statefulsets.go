@@ -17,7 +17,7 @@ type StatefulSetAndChildServices struct {
 type StatefulSet struct {
 	KindDefinition autogen_bases.ChartComponentResources
 
-	Metadata common.Metadata
+	Metadata common.ParentMetaData
 	Spec     Spec
 }
 
@@ -44,6 +44,8 @@ func NewStatefulSet() StatefulSet {
 		ChartSubcomponentParentClassTypeID:   0,
 		ChartSubcomponentParentClassTypeName: "statefulSetSpec",
 	}
+	s.Metadata.Metadata = common.NewMetadata()
+	s.Metadata.ChartSubcomponentParentClassTypeName = "statefulSetSpecParentMetadata"
 	return s
 }
 
@@ -51,5 +53,6 @@ func NewStatefulSetSpec() Spec {
 	ss := Spec{}
 	ss.SpecWorkload = common.NewSpecWorkload()
 	ss.Template = containers.NewPodTemplateSpec()
+	ss.SpecWorkload.ChartSubcomponentParentClassTypeName = "Spec"
 	return ss
 }

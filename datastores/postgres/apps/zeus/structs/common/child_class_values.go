@@ -35,7 +35,7 @@ func (c *ChildClassMultiValue) GetClassTypeID() int {
 func (c *ChildClassMultiValue) SetClassTypeID(id int) {
 	c.ChartSubcomponentChildClassTypes.ChartSubcomponentChildClassTypeID = id
 
-	for _, v := range c.Values {
-		v.ChartSubcomponentChildClassTypeID = id
+	for i, _ := range c.Values {
+		c.Values[i].ChartSubcomponentChildClassTypeID = id
 	}
 }

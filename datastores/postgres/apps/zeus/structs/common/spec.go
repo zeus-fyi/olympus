@@ -21,3 +21,9 @@ func NewSpecWorkload() SpecWorkload {
 	sw := SpecWorkload{pc, NewInitChildClassSingleValue("replicas", "0"), NewSelector()}
 	return sw
 }
+
+func (s *SpecWorkload) SetParentClassTypeIDs(id int) {
+	s.ChartSubcomponentParentClassTypeID = id
+	s.Selector.MatchLabels.ChartSubcomponentParentClassTypeID = id
+	s.Replicas.ChartSubcomponentParentClassTypeID = id
+}

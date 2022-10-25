@@ -59,6 +59,9 @@ func mockChart() (create.Chart, error) {
 }
 
 func (s *DeploymentsTestSuite) TestSeedChartComponents() {
+	// only used to bootstrap for the main test
+	s.SkipTest(true)
+
 	ctx := context.Background()
 	q := sql_query_templates.NewQueryParam("ChartComponentResources", "table", "where", 1000, []string{})
 

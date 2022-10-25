@@ -13,10 +13,10 @@ func CreateParentMetadataSubCTEs(metadata common.ParentMetaData) sql_query_templ
 		metadata.SetParentClassTypeIDs(ts.UnixTimeStampNow())
 	}
 
-	parentSubCte := CreateParentClassTypeSubCTE(metadata.ChartSubcomponentParentClassTypes)
-	nameSubCtes := CreateChildClassSingleValueSubCTEs(metadata.Name)
-	labelSubCtes := CreateChildClassMultiValueSubCTEs(metadata.Labels)
-	annotationsSubCtes := CreateChildClassMultiValueSubCTEs(metadata.Annotations)
+	parentSubCte := CreateParentClassTypeSubCTE(&metadata.ChartSubcomponentParentClassTypes)
+	nameSubCtes := CreateChildClassSingleValueSubCTEs(&metadata.Name)
+	labelSubCtes := CreateChildClassMultiValueSubCTEs(&metadata.Labels)
+	annotationsSubCtes := CreateChildClassMultiValueSubCTEs(&metadata.Annotations)
 
 	combinedSubCtes := sql_query_templates.AppendSubCteSlices(parentSubCte, nameSubCtes, labelSubCtes, annotationsSubCtes)
 	return combinedSubCtes

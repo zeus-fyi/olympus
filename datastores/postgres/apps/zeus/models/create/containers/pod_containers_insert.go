@@ -13,6 +13,9 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE() sql_query_templat
 	if p.GetPodSpecParentClassTypeID() == 0 {
 		p.SetPodSpecParentClassTypeID(ts.UnixTimeStampNow())
 	}
+	if p.GetPodSpecChildClassTypeID() == 0 {
+		p.SetPodSpecParentClassTypeID(ts.UnixTimeStampNow())
+	}
 	podSpecChildClassTypeID := p.GetPodSpecChildClassTypeID()
 	contSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_containers")
 	contSubCTE.TableName = "containers"

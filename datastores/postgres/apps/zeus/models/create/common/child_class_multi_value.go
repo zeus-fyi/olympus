@@ -8,7 +8,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-func CreateChildClassMultiValueSubCTEs(csv common.ChildClassMultiValue) sql_query_templates.SubCTEs {
+func CreateChildClassMultiValueSubCTEs(csv *common.ChildClassMultiValue) sql_query_templates.SubCTEs {
 	if csv.GetClassTypeID() == 0 {
 		var ts chronos.Chronos
 		classTypeID := ts.UnixTimeStampNow()

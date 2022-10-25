@@ -65,6 +65,9 @@ func (p *PodTemplateSpec) SetPodSpecParentClassTypeID(id int) {
 func (p *PodTemplateSpec) GetPodSpecChildClassTypeID() int {
 	return p.Spec.PodTemplateSpecClassDefinition.ChartSubcomponentChildClassTypeID
 }
+func (p *PodTemplateSpec) SetPodSpecChildClassTypeID(id int) {
+	p.Spec.PodTemplateSpecClassDefinition.ChartSubcomponentChildClassTypeID = id
+}
 
 // ConvertPodTemplateSpecConfigToDB PodTemplateSpecConfigToDB has a dependency on chart_subcomponent_child_class_types and containers
 func (p *PodTemplateSpec) ConvertPodTemplateSpecConfigToDB(ps *v1.PodSpec) (PodTemplateSpec, error) {

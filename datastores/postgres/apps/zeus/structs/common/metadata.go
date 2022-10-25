@@ -11,10 +11,7 @@ type ParentMetaData struct {
 
 func (pm *ParentMetaData) SetParentClassTypeIDs(id int) {
 	pm.ChartSubcomponentParentClassTypeID = id
-
-	pm.Name.ChartSubcomponentParentClassTypeID = id
-	pm.Annotations.ChartSubcomponentParentClassTypeID = id
-	pm.Labels.ChartSubcomponentParentClassTypeID = id
+	pm.SetMetadataParentClassTypeIDs(id)
 }
 
 type Metadata struct {
@@ -29,6 +26,12 @@ func NewMetadata() Metadata {
 	m.Annotations = NewMetadataAnnotations()
 	m.Labels = NewMetadataLabels()
 	return m
+}
+
+func (m *Metadata) SetMetadataParentClassTypeIDs(id int) {
+	m.Name.ChartSubcomponentParentClassTypeID = id
+	m.Annotations.ChartSubcomponentParentClassTypeID = id
+	m.Labels.ChartSubcomponentParentClassTypeID = id
 }
 
 func (m *Metadata) HasName() bool {

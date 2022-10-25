@@ -34,22 +34,21 @@ func NewDeployment() Deployment {
 		ChartComponentKindName:   "Deployment",
 		ChartComponentApiVersion: "apps/v1",
 	}
+	d.Metadata.Metadata = common.NewMetadata()
+	d.Spec = NewDeploymentSpec()
 	d.Spec.ChartSubcomponentParentClassTypes = autogen_bases.ChartSubcomponentParentClassTypes{
 		ChartPackageID:                       0,
 		ChartComponentResourceID:             0,
 		ChartSubcomponentParentClassTypeID:   0,
 		ChartSubcomponentParentClassTypeName: "deploymentSpec",
 	}
-	d.Metadata.Metadata = common.NewMetadata()
-	d.Spec = NewDeploymentSpec()
 	return d
 }
 
 func NewDeploymentSpec() Spec {
 	ds := Spec{}
-	ds.Selector = common.NewSelector()
+	ds.SpecWorkload = common.NewSpecWorkload()
 	ds.Template = containers.NewPodTemplateSpec()
-	ds.Replicas = common.NewInitChildClassSingleValue("replicas", "0")
 	return ds
 }
 

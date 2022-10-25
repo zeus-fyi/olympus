@@ -29,11 +29,7 @@ func (d *Deployment) InsertDeploymentCte() sql_query_templates.CTE {
 	// metadata
 	metaDataCtes := common.CreateParentMetadataSubCTEs(d.Metadata)
 	// spec
-
-	specParentClassTypeSubCte := common.CreateParentClassTypeSubCTE(d.Spec.ChartSubcomponentParentClassTypes)
-	replicaSubCtes := common.CreateChildClassSingleValueSubCTEs(d.Spec.Replicas)
-	matchLabelsCtes := common.CreateChildClassMultiValueSubCTEs(d.Spec.Selector.MatchLabels)
-	specCtes := sql_query_templates.AppendSubCteSlices(specParentClassTypeSubCte, replicaSubCtes, matchLabelsCtes)
+	specCtes := common.CreateSpecWorkloadTypeSubCTE(d.Spec.SpecWorkload)
 
 	// pod template spec
 	podSpecTemplateCte := d.Spec.Template.InsertPodTemplateSpecContainersCTE()
@@ -44,6 +40,5 @@ func (d *Deployment) InsertDeploymentCte() sql_query_templates.CTE {
 		Name:    "InsertDeploymentCTEs",
 		SubCTEs: combinedSubCTEs,
 	}
-
 	return cteExpr
 }

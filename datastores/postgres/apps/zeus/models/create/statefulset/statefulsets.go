@@ -37,21 +37,19 @@ func NewStatefulSet() StatefulSet {
 		ChartComponentKindName:   "StatefulSet",
 		ChartComponentApiVersion: "apps/v1",
 	}
+	s.Spec = NewStatefulSetSpec()
 	s.Spec.ChartSubcomponentParentClassTypes = autogen_bases.ChartSubcomponentParentClassTypes{
 		ChartPackageID:                       0,
 		ChartComponentResourceID:             0,
 		ChartSubcomponentParentClassTypeID:   0,
 		ChartSubcomponentParentClassTypeName: "statefulSetSpec",
 	}
-
-	s.Spec = NewStatefulSetSpec()
 	return s
 }
 
 func NewStatefulSetSpec() Spec {
 	ss := Spec{}
-	ss.Selector = common.NewSelector()
+	ss.SpecWorkload = common.NewSpecWorkload()
 	ss.Template = containers.NewPodTemplateSpec()
-	ss.Replicas = common.NewInitChildClassSingleValue("replicas", "0")
 	return ss
 }

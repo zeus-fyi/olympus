@@ -26,7 +26,7 @@ func (s *ChartPackagesTestSuite) TestConvertDeploymentAndInsert() {
 	}}
 	ctx := context.Background()
 	q := sql_query_templates.NewQueryParam("InsertChart", "table", "where", 1000, []string{})
-	err := c.InsertChart(ctx, q, c)
+	err := c.InsertChart(ctx, q)
 	s.Require().Nil(err)
 	s.Assert().NotZero(c.ChartPackageID)
 }

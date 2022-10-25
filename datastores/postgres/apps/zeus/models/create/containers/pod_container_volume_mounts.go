@@ -17,7 +17,7 @@ func (p *PodTemplateSpec) insertContainerVolumeMountsValues(m map[string]contain
 	for _, vm := range c.VolumeMounts {
 		vmID := ts.UnixTimeStampNow()
 		contVmsSubCTE.AddValues(vmID, vm.VolumeMountPath, vm.VolumeName)
-		contVmsRelationshipsSubCTE.AddValues(podSpecChildClassTypeID, selectRelatedContainerIDFromImageID(imageID), vmID)
+		contVmsRelationshipsSubCTE.AddValues(podSpecChildClassTypeID, c.GetContainerID(), vmID)
 	}
 	return
 }

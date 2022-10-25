@@ -32,7 +32,7 @@ func (p *PodTemplateSpec) getContainerEnvVarRelationshipValues(m map[string]cont
 
 	podSpecChildClassTypeID := p.GetPodSpecChildClassTypeID()
 	for _, ev := range c.GetEnvVars() {
-		cteSubfield.AddValues(podSpecChildClassTypeID, selectRelatedContainerIDFromImageID(imageID), ev.EnvID)
+		cteSubfield.AddValues(podSpecChildClassTypeID, c.GetContainerID(), ev.EnvID)
 	}
 	return
 }

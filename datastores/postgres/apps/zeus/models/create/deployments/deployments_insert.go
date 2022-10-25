@@ -27,7 +27,7 @@ func (d *Deployment) InsertDeployment(ctx context.Context, q sql_query_templates
 		return err
 	}
 	rowsAffected := r.RowsAffected()
-	log.Debug().Msgf("StructNameExamples: %s, Rows Affected: %d", q.LogHeader(ModelName), rowsAffected)
+	log.Debug().Msgf("Deployment: %s, Rows Affected: %d", q.LogHeader(ModelName), rowsAffected)
 	return misc.ReturnIfErr(err, q.LogHeader(ModelName))
 }
 

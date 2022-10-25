@@ -27,7 +27,7 @@ func (s *StatefulSet) InsertStatefulSet(ctx context.Context, q sql_query_templat
 		return err
 	}
 	rowsAffected := r.RowsAffected()
-	log.Debug().Msgf("StructNameExamples: %s, Rows Affected: %d", q.LogHeader(ModelName), rowsAffected)
+	log.Debug().Msgf("StatefulSet: %s, Rows Affected: %d", q.LogHeader(ModelName), rowsAffected)
 	return misc.ReturnIfErr(err, q.LogHeader(ModelName))
 }
 

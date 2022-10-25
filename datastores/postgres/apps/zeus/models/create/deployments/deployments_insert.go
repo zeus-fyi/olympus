@@ -5,11 +5,18 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/common"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
+
+type Deployment struct {
+	deployments.Deployment
+}
+
+const ModelName = "Deployment"
 
 func (d *Deployment) InsertDeployment(ctx context.Context, q sql_query_templates.QueryParams, c create.Chart) error {
 	log.Debug().Interface("InsertQuery:", q.LogHeader(ModelName))

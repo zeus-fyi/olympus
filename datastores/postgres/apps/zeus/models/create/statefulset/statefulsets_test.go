@@ -40,7 +40,8 @@ func (s *StatefulSetTestSuite) TestConvertStatefulSetAndInsert() {
 
 	ctx := context.Background()
 	q := sql_query_templates.NewQueryParam("InsertDeployment", "table", "where", 1000, []string{})
-	err = dbStatefulSetConfig.InsertStatefulSet(ctx, q, mockC)
+	stsInsert := StatefulSet{dbStatefulSetConfig}
+	err = stsInsert.InsertStatefulSet(ctx, q, mockC)
 	s.Require().Nil(err)
 }
 

@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	v1 "k8s.io/api/apps/v1"
 )
 
-func ConvertDeploymentConfigToDB(d *v1.Deployment) (Deployment, error) {
-	dbDeployment := NewDeployment()
+func ConvertDeploymentConfigToDB(d *v1.Deployment) (deployments.Deployment, error) {
+	dbDeployment := deployments.NewDeployment()
 	dbDeployment.Metadata.Metadata = common_conversions.CreateMetadataByFields(d.Name, d.Annotations, d.Labels)
 	depSpec, err := ConvertDeploymentSpec(d.Spec)
 	if err != nil {
@@ -19,11 +20,11 @@ func ConvertDeploymentConfigToDB(d *v1.Deployment) (Deployment, error) {
 	return dbDeployment, nil
 }
 
-func ConvertDeploymentSpec(ds v1.DeploymentSpec) (Spec, error) {
+func ConvertDeploymentSpec(ds v1.DeploymentSpec) (deployments.Spec, error) {
 	deploymentTemplateSpec := ds.Template
 	podTemplateSpec := deploymentTemplateSpec.Spec
 
-	dbDeploymentSpec := NewDeploymentSpec()
+	dbDeploymentSpec := deployments.NewDeploymentSpec()
 
 	m := make(map[string]string)
 	if ds.Selector != nil {

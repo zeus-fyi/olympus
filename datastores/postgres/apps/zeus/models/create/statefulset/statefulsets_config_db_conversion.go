@@ -2,13 +2,14 @@ package statefulset
 
 import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
-	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/containers"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/structs/common"
 	v1 "k8s.io/api/apps/v1"
 )
 
 func ConvertStatefulSetSpecConfigToDB(s *v1.StatefulSet) (StatefulSet, error) {
 	dbStatefulSet := NewStatefulSet()
-	dbStatefulSet.Metadata = common_conversions.CreateMetadataByFields(s.Name, s.Annotations, s.Labels)
+	dbStatefulSet.Metadata.Metadata = common_conversions.CreateMetadataByFields(s.Name, s.Annotations, s.Labels)
 	spec, err := ConvertStatefulSetSpec(s.Spec)
 	if err != nil {
 		return dbStatefulSet, err
@@ -17,19 +18,18 @@ func ConvertStatefulSetSpecConfigToDB(s *v1.StatefulSet) (StatefulSet, error) {
 	return dbStatefulSet, nil
 }
 
-func ConvertStatefulSetSpec(s v1.StatefulSetSpec) (StatefulSetSpec, error) {
-	statefulSetTemplateSpec := s.Template
-	podTemplateSpec := statefulSetTemplateSpec.Spec
-
-	dbStatefulSetSpec := StatefulSetSpec{
-		Selector: common_conversions.ConvertSelector(s.Selector),
+func ConvertStatefulSetSpec(s v1.StatefulSetSpec) (Spec, error) {
+	spec := Spec{
+		SpecWorkload: common.NewSpecWorkload(),
+		Template:     containers.NewPodTemplateSpec(),
 	}
-	dbStatefulSetSpec.Replicas.ChartSubcomponentValue = string_utils.Convert32BitPtrIntToString(s.Replicas)
 
-	dbPodTemplateSpec, err := dbStatefulSetSpec.Template.ConvertPodTemplateSpecConfigToDB(&podTemplateSpec)
+	podTemplateSpec := s.Template.Spec
+
+	dbPodTemplateSpec, err := spec.Template.ConvertPodTemplateSpecConfigToDB(&podTemplateSpec)
 	if err != nil {
-		return dbStatefulSetSpec, err
+		return spec, err
 	}
-	dbStatefulSetSpec.Template = dbPodTemplateSpec
-	return dbStatefulSetSpec, nil
+	spec.Template = dbPodTemplateSpec
+	return spec, nil
 }

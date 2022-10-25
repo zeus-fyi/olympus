@@ -26,7 +26,8 @@ func (s *ConvertStatefulSetPackagesTestSuite) TestConvertStatefulSet() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(ss)
 
-	dbStatefulSetConfig := ConvertStatefulSetSpecConfigToDB(ss)
+	dbStatefulSetConfig, err := ConvertStatefulSetSpecConfigToDB(ss)
+	s.Require().Nil(err)
 	s.Require().NotEmpty(dbStatefulSetConfig)
 
 	_ = dev_hacks.Use(packageID)

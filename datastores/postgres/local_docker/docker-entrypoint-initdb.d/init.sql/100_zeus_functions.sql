@@ -10,3 +10,5 @@ BEGIN
     result := (left_shifted_utc | unix_utc_now_microseconds)::int8;
 END;
 $$ LANGUAGE PLPGSQL;
+
+CREATE EXTENSION hstore;

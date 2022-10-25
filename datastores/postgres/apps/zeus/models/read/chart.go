@@ -40,10 +40,10 @@ var query = `
 			FROM containers_environmental_vars cenv
 			LEFT JOIN container_environmental_vars AS cv ON cv.env_id = cenv.env_id
 	), cte_container_volume_mounts AS (
-			SELECT cvm.volume_mount_path, cvm.volume_name
+			SELECT  cvm.volume_name, cvm.volume_mount_path
 			FROM containers_volume_mounts csvm
 			LEFT JOIN cte_chart_subcomponent_spec_pod_template_containers AS ps ON ps.container_id = csvm.container_id
-			LEFT JOIN container_volume_mounts ON cvm.volume_mount_id = cvsm.volume_mount_id
+			LEFT JOIN container_volume_mounts AS cvm ON cvm.volume_mount_id = csvm.volume_mount_id
 	), cte_containers_volumes  AS (
 			SELECT volume_name, volume_key_values_jsonb
 			FROM containers_volumes csvm

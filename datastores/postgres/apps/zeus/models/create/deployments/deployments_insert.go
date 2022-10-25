@@ -5,8 +5,8 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/common"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -18,7 +18,7 @@ type Deployment struct {
 
 const ModelName = "Deployment"
 
-func (d *Deployment) InsertDeployment(ctx context.Context, q sql_query_templates.QueryParams, c charts.Chart) error {
+func (d *Deployment) InsertDeployment(ctx context.Context, q sql_query_templates.QueryParams, c create.Chart) error {
 	log.Debug().Interface("InsertQuery:", q.LogHeader(ModelName))
 	q.CTEQuery = d.InsertDeploymentCte(c)
 	q.RawQuery = q.CTEQuery.GenerateChainedCTE()
@@ -31,7 +31,7 @@ func (d *Deployment) InsertDeployment(ctx context.Context, q sql_query_templates
 	return misc.ReturnIfErr(err, q.LogHeader(ModelName))
 }
 
-func (d *Deployment) InsertDeploymentCte(chart charts.Chart) sql_query_templates.CTE {
+func (d *Deployment) InsertDeploymentCte(chart create.Chart) sql_query_templates.CTE {
 	var combinedSubCTEs sql_query_templates.SubCTEs
 	// metadata
 	metaDataCtes := common.CreateParentMetadataSubCTEs(d.Metadata)
@@ -49,3 +49,5 @@ func (d *Deployment) InsertDeploymentCte(chart charts.Chart) sql_query_templates
 	}
 	return cteExpr
 }
+
+// TODO add chart parents to chart package is

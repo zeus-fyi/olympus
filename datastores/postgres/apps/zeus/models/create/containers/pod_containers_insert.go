@@ -2,7 +2,7 @@ package containers
 
 import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/common"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -12,7 +12,7 @@ const SelectDeploymentResourceID = "(SELECT chart_component_resource_id FROM cha
 
 // InsertPodTemplateSpecContainersCTE will use the next_id distributed ID generator and select the container id
 // value for subsequent subcomponent relationships of its element, should greatly simplify the insert logic
-func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart charts.Chart) sql_query_templates.CTE {
+func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart create.Chart) sql_query_templates.CTE {
 	// container
 	ts := chronos.Chronos{}
 	if p.GetPodSpecParentClassTypeID() == 0 {
@@ -21,21 +21,22 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart charts.Chart)
 	if p.GetPodSpecChildClassTypeID() == 0 {
 		p.SetPodSpecChildClassTypeID(ts.UnixTimeStampNow())
 	}
-	contSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_containers")
-	contSubCTE.TableName = "containers"
-	contSubCTE.Fields = []string{"container_id", "container_name", "container_image_id", "container_version_tag", "container_platform_os", "container_repository", "container_image_pull_policy"}
-
-	agPct := autogen_bases.ChartSubcomponentParentClassTypes{}
 	contPodSpecParentClassCTE := sql_query_templates.NewSubInsertCTE("cte_podSpecParentClassTypeCTE")
-	contPodSpecParentClassCTE.TableName = agPct.GetTableName()
+	contPodSpecParentClassCTE.TableName = p.ChartSubcomponentParentClassTypes.GetTableName()
 	contPodSpecParentClassCTE.Fields = []string{"chart_package_id", "chart_component_resource_id", "chart_subcomponent_parent_class_type_id", "chart_subcomponent_parent_class_type_name"}
-	contPodSpecParentClassCTE.AddValues(chart.ChartPackageID, SelectDeploymentResourceID, p.GetPodSpecParentClassTypeID(), "podSpecSubParentClass")
+	contPodSpecParentClassCTE.AddValues(chart.ChartPackageID, SelectDeploymentResourceID, p.GetPodSpecParentClassTypeID(), p.ChartSubcomponentParentClassTypes.ChartSubcomponentParentClassTypeName)
+
+	cpkAddParentClassTypeSubCTEs := common.AddParentClassToChartPackage(&chart, p.GetPodSpecParentClassTypeID())
 
 	agCct := autogen_bases.ChartSubcomponentChildClassTypes{}
 	contSubChildClassCTE := sql_query_templates.NewSubInsertCTE("cte_podSpecSubChildClassCTE")
 	contSubChildClassCTE.TableName = agCct.GetTableName()
 	contSubChildClassCTE.Fields = []string{"chart_subcomponent_parent_class_type_id", "chart_subcomponent_child_class_type_id", "chart_subcomponent_child_class_type_name"}
 	contSubChildClassCTE.AddValues(p.GetPodSpecParentClassTypeID(), p.GetPodSpecChildClassTypeID(), "podSpecSubChildClass")
+
+	contSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_containers")
+	contSubCTE.TableName = "containers"
+	contSubCTE.Fields = []string{"container_id", "container_name", "container_image_id", "container_version_tag", "container_platform_os", "container_repository", "container_image_pull_policy"}
 
 	// ports
 	portsSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_container_ports")
@@ -78,15 +79,12 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart charts.Chart)
 
 	podSpecVolumesSubCTE, podSpecVolumesRelationshipSubCTE := p.insertVolumes()
 
-	// TODO for now will just generate ids here, something more complex can come later
 	sortOrderIndex := 0
 	containersMapByImageID := p.NewPodContainersMapForDB()
 
 	var probeCTEs sql_query_templates.SubCTEs
 	var probeRelationshipCTEs sql_query_templates.SubCTEs
 	for _, cont := range containersMapByImageID {
-		cont.ProcessAndSetAmbiguousContainerFieldStatusAndSubfieldIds()
-		cont.SetContainerID(ts.UnixTimeStampNow())
 		c := cont.Metadata
 		// should continue appending values to header
 		// container
@@ -121,6 +119,7 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart charts.Chart)
 			// container and podSpec template relationship
 			contSubCTE,
 			contPodSpecParentClassCTE,
+			cpkAddParentClassTypeSubCTEs,
 			contSubChildClassCTE,
 			podSpecSubCTE,
 			// ports

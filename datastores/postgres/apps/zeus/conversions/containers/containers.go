@@ -3,6 +3,7 @@ package containers
 import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/containers"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -21,13 +22,17 @@ func ConvertContainersToDB(cs []v1.Container) (containers.Containers, error) {
 		if err != nil {
 			return cl, err
 		}
+
+		newContainer.ProcessAndSetAmbiguousContainerFieldStatusAndSubfieldIds()
 		cl[i] = newContainer
 	}
 	return cl, nil
 }
 
 func ConvertContainerInfoToDB(cs v1.Container, dbContainer containers.Container) containers.Container {
+	var ts chronos.Chronos
 	dbContainer.Metadata = autogen_bases.Containers{
+		ContainerID:              ts.UnixTimeStampNow(),
 		ContainerName:            cs.Name,
 		ContainerImageID:         cs.Image,
 		ContainerVersionTag:      "",

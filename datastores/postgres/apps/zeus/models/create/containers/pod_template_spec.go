@@ -6,10 +6,12 @@ import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/containers"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/common"
 	v1 "k8s.io/api/core/v1"
 )
 
 type PodTemplateSpec struct {
+	common.ParentClass
 	Metadata structs.Metadata
 	Spec     PodSpec
 }
@@ -26,6 +28,7 @@ func (p *PodTemplateSpec) GetContainers() containers.Containers {
 }
 
 func NewPodTemplateSpec() PodTemplateSpec {
+
 	cd := autogen_bases.ChartSubcomponentChildClassTypes{
 		ChartSubcomponentParentClassTypeID:  0,
 		ChartSubcomponentChildClassTypeID:   0,
@@ -38,6 +41,13 @@ func NewPodTemplateSpec() PodTemplateSpec {
 	}
 
 	pts := PodTemplateSpec{
+		ParentClass: common.ParentClass{
+			ChartSubcomponentParentClassTypes: autogen_bases.ChartSubcomponentParentClassTypes{
+				ChartPackageID:                       0,
+				ChartComponentResourceID:             0,
+				ChartSubcomponentParentClassTypeID:   0,
+				ChartSubcomponentParentClassTypeName: "PodTemplateSpec",
+			}},
 		Metadata: structs.Metadata{},
 		Spec:     ps,
 	}
@@ -50,10 +60,11 @@ func (p *PodTemplateSpec) AddContainer(c containers.Container) {
 }
 
 func (p *PodTemplateSpec) GetPodSpecParentClassTypeID() int {
-	return p.Spec.PodTemplateSpecClassDefinition.ChartSubcomponentParentClassTypeID
+	return p.ChartSubcomponentParentClassTypeID
 }
 
 func (p *PodTemplateSpec) SetPodSpecParentClassTypeID(id int) {
+	p.ParentClass.InsertParentClassTypeID(id)
 	p.Spec.PodTemplateSpecClassDefinition.ChartSubcomponentParentClassTypeID = id
 }
 
@@ -82,5 +93,6 @@ func (p *PodTemplateSpec) ConvertPodTemplateSpecConfigToDB(ps *v1.PodSpec) (PodT
 	if err != nil {
 		return dbPodSpec, err
 	}
+
 	return dbPodSpec, nil
 }

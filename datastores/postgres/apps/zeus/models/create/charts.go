@@ -17,7 +17,7 @@ type Chart struct {
 
 const Sn = "Chart"
 
-func insertChart(c Chart) string {
+func (c *Chart) insertChart() string {
 	sqlInsertStatement := fmt.Sprintf(
 		`WITH cte_insert_chart AS (
 					 INSERT INTO chart_packages(chart_name, chart_version, chart_description)
@@ -28,9 +28,9 @@ func insertChart(c Chart) string {
 	return sqlInsertStatement
 }
 
-func (c *Chart) InsertChart(ctx context.Context, q sql_query_templates.QueryParams, chart Chart) error {
+func (c *Chart) InsertChart(ctx context.Context, q sql_query_templates.QueryParams) error {
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
-	query := insertChart(chart)
+	query := c.insertChart()
 	err := apps.Pg.QueryRow(ctx, query).Scan(&c.ChartPackageID)
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 

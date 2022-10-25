@@ -3,7 +3,7 @@ package statefulset
 import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulset"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs/common"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/containers"
 	v1 "k8s.io/api/apps/v1"
 )
@@ -21,7 +21,7 @@ func ConvertStatefulSetSpecConfigToDB(s *v1.StatefulSet) (statefulset.StatefulSe
 
 func ConvertStatefulSetSpec(s v1.StatefulSetSpec) (statefulset.Spec, error) {
 	spec := statefulset.Spec{
-		SpecWorkload: common.NewSpecWorkload(),
+		SpecWorkload: structs.NewSpecWorkload(),
 		Template:     containers.NewPodTemplateSpec(),
 	}
 

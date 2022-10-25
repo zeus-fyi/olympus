@@ -3,12 +3,12 @@ package common
 import (
 	"fmt"
 
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs/common"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-func CreateChildClassMultiValueSubCTEs(csv *common.ChildClassMultiValue) sql_query_templates.SubCTEs {
+func CreateChildClassMultiValueSubCTEs(csv *structs.ChildClassMultiValue) sql_query_templates.SubCTEs {
 	if csv.GetClassTypeID() == 0 {
 		var ts chronos.Chronos
 		classTypeID := ts.UnixTimeStampNow()

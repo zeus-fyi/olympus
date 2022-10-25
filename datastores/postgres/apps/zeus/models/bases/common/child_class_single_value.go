@@ -3,10 +3,10 @@ package common
 import (
 	"fmt"
 
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs/common"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
 )
 
-func InsertChildClassSingleValueType(parentExpression, parentClassTypeCteName string, sv common.ChildClassSingleValue) string {
+func InsertChildClassSingleValueType(parentExpression, parentClassTypeCteName string, sv structs.ChildClassSingleValue) string {
 	cvTypeName := sv.ChartSubcomponentChildClassTypes.ChartSubcomponentChildClassTypeName
 	typeInsert, cvTypeNameCte := SetCvTypeInsert(cvTypeName, parentClassTypeCteName)
 	cvChildCteName := fmt.Sprintf("cte_cv_%s", cvTypeName)

@@ -2,11 +2,11 @@ package common_conversions
 
 import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs/common"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
 )
 
-func ConvertKeyValueToChildValues(m map[string]string) common.ChildValuesSlice {
-	cvs := common.ChildValuesSlice{}
+func ConvertKeyValueToChildValues(m map[string]string) structs.ChildValuesSlice {
+	cvs := structs.ChildValuesSlice{}
 	for k, v := range m {
 		cv := ConvertKeyValueStringToChildValues(k, v)
 		cvs = append(cvs, cv)

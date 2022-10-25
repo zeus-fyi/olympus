@@ -1,11 +1,11 @@
 package networking
 
 import (
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs/common"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
 )
 
 type ServicePort struct {
-	Values common.ChildValuesMap
+	Values structs.ChildValuesMap
 }
 type ServicePorts []ServicePort
 
@@ -17,7 +17,7 @@ func NewServicePorts() ServicePorts {
 func NewServicePort() ServicePort {
 	sp := ServicePort{}
 	fields := []string{"name", "protocol", "port", "targetPort", "nodePort"}
-	s := common.NewChildValuesMapKeyFromIterable(fields...)
+	s := structs.NewChildValuesMapKeyFromIterable(fields...)
 	sp.Values = s
 	return sp
 }

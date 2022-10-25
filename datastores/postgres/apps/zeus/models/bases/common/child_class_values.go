@@ -3,10 +3,10 @@ package common
 import (
 	"fmt"
 
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs/common"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
 )
 
-func InsertChildClassValues(parentExpression, parentClassTypeCteName string, cvals common.ChildClassMultiValue) string {
+func InsertChildClassValues(parentExpression, parentClassTypeCteName string, cvals structs.ChildClassMultiValue) string {
 	cvTypeName := cvals.ChartSubcomponentChildClassTypes.ChartSubcomponentChildClassTypeName
 	typeInsert, cvTypeNameCte := SetCvTypeInsert(cvTypeName, parentClassTypeCteName)
 

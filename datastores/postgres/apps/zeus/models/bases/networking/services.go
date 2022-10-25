@@ -2,14 +2,14 @@ package networking
 
 import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs/common"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
 )
 
 type Service struct {
 	KindDefinition        autogen_bases.ChartComponentResources
 	ParentClassDefinition autogen_bases.ChartSubcomponentParentClassTypes
 
-	Metadata common.Metadata
+	Metadata structs.Metadata
 	ServiceSpec
 }
 

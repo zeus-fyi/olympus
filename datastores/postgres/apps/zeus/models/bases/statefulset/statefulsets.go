@@ -3,7 +3,7 @@ package statefulset
 import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs/common"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/containers"
 )
 
@@ -16,12 +16,12 @@ type StatefulSetAndChildServices struct {
 type StatefulSet struct {
 	KindDefinition autogen_bases.ChartComponentResources
 
-	Metadata common.ParentMetaData
+	Metadata structs.ParentMetaData
 	Spec     Spec
 }
 
 type Spec struct {
-	common.SpecWorkload
+	structs.SpecWorkload
 	// TODO VolumeClaimTemplates, ServiceName
 	Template containers.PodTemplateSpec
 }
@@ -39,14 +39,14 @@ func NewStatefulSet() StatefulSet {
 		ChartSubcomponentParentClassTypeID:   0,
 		ChartSubcomponentParentClassTypeName: "statefulSetSpec",
 	}
-	s.Metadata.Metadata = common.NewMetadata()
+	s.Metadata.Metadata = structs.NewMetadata()
 	s.Metadata.ChartSubcomponentParentClassTypeName = "statefulSetSpecParentMetadata"
 	return s
 }
 
 func NewStatefulSetSpec() Spec {
 	ss := Spec{}
-	ss.SpecWorkload = common.NewSpecWorkload()
+	ss.SpecWorkload = structs.NewSpecWorkload()
 	ss.Template = containers.NewPodTemplateSpec()
 	ss.SpecWorkload.ChartSubcomponentParentClassTypeName = "Spec"
 	return ss

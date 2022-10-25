@@ -1,4 +1,4 @@
-package common
+package structs
 
 func NewMetadataLabels() ChildClassMultiValue {
 	ml := NewChildClassAndValues("labels")

@@ -2,7 +2,7 @@ package deployments
 
 import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs/common"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/containers"
 )
 
@@ -11,12 +11,12 @@ const ModelName = "Deployment"
 type Deployment struct {
 	KindDefinition autogen_bases.ChartComponentResources
 
-	Metadata common.ParentMetaData
+	Metadata structs.ParentMetaData
 	Spec     Spec
 }
 
 type Spec struct {
-	common.SpecWorkload
+	structs.SpecWorkload
 	Template containers.PodTemplateSpec
 }
 
@@ -26,7 +26,7 @@ func NewDeployment() Deployment {
 		ChartComponentKindName:   "Deployment",
 		ChartComponentApiVersion: "apps/v1",
 	}
-	d.Metadata.Metadata = common.NewMetadata()
+	d.Metadata.Metadata = structs.NewMetadata()
 	d.Metadata.ChartSubcomponentParentClassTypeName = "deploymentParentMetadata"
 	d.Spec = NewDeploymentSpec()
 	d.Spec.ChartSubcomponentParentClassTypes = autogen_bases.ChartSubcomponentParentClassTypes{
@@ -40,7 +40,7 @@ func NewDeployment() Deployment {
 
 func NewDeploymentSpec() Spec {
 	ds := Spec{}
-	ds.SpecWorkload = common.NewSpecWorkload()
+	ds.SpecWorkload = structs.NewSpecWorkload()
 	ds.Template = containers.NewPodTemplateSpec()
 	return ds
 }

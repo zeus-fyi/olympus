@@ -3,12 +3,12 @@ package common
 import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs/common"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-func CreateChildClassSingleValueSubCTEs(csv *common.ChildClassSingleValue) sql_query_templates.SubCTEs {
+func CreateChildClassSingleValueSubCTEs(csv *structs.ChildClassSingleValue) sql_query_templates.SubCTEs {
 	if csv.GetChildClassTypeID() == 0 || csv.GetChildValueTypeID() == 0 {
 		var ts chronos.Chronos
 		classTypeID := ts.UnixTimeStampNow()

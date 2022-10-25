@@ -1,4 +1,4 @@
-package common
+package structs
 
 func NewMetadataAnnotations() ChildClassMultiValue {
 	ma := NewChildClassAndValues("annotations")

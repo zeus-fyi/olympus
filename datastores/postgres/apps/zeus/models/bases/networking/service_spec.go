@@ -2,13 +2,13 @@ package networking
 
 import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs/common"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
 )
 
 // ServiceSpec has these type options: ClusterIP, NodePort, LoadBalancer, ExternalName
 type ServiceSpec struct {
 	Type     autogen_bases.ChartSubcomponentsChildValues
-	Selector common.Selector
+	Selector structs.Selector
 	Ports    ServicePorts
 }
 

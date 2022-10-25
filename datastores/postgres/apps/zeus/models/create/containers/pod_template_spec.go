@@ -5,18 +5,18 @@ import (
 	cont_conv "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/containers"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/containers"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs/common"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
 	v1 "k8s.io/api/core/v1"
 )
 
 type PodTemplateSpec struct {
-	Metadata common.Metadata
+	Metadata structs.Metadata
 	Spec     PodSpec
 }
 
 type PodSpec struct {
 	PodTemplateSpecClassDefinition    autogen_bases.ChartSubcomponentChildClassTypes
-	PodTemplateSpecClassGenericFields map[string]common.ChildValuesSlice
+	PodTemplateSpecClassGenericFields map[string]structs.ChildValuesSlice
 	PodTemplateSpecVolumes            autogen_bases.VolumesSlice
 	PodTemplateContainers             containers.Containers
 }
@@ -38,7 +38,7 @@ func NewPodTemplateSpec() PodTemplateSpec {
 	}
 
 	pts := PodTemplateSpec{
-		Metadata: common.Metadata{},
+		Metadata: structs.Metadata{},
 		Spec:     ps,
 	}
 

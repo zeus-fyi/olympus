@@ -2,10 +2,9 @@ package statefulset
 
 import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs/common"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/containers"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/networking"
-	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 type StatefulSetAndChildServices struct {
@@ -25,10 +24,6 @@ type Spec struct {
 	common.SpecWorkload
 	// TODO VolumeClaimTemplates, ServiceName
 	Template containers.PodTemplateSpec
-}
-
-func (ss *Spec) GetReplicaCount32IntPtr() *int32 {
-	return string_utils.ConvertStringTo32BitPtrInt(ss.Replicas.ChartSubcomponentValue)
 }
 
 func NewStatefulSet() StatefulSet {

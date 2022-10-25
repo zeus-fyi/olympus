@@ -2,6 +2,7 @@ package common
 
 import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 type SpecWorkload struct {
@@ -9,6 +10,10 @@ type SpecWorkload struct {
 
 	Replicas ChildClassSingleValue
 	Selector Selector
+}
+
+func (s *SpecWorkload) GetReplicaCount32IntPtr() *int32 {
+	return string_utils.ConvertStringTo32BitPtrInt(s.Replicas.ChartSubcomponentValue)
 }
 
 func NewSpecWorkload() SpecWorkload {

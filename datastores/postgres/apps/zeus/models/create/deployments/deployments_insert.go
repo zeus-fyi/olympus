@@ -16,6 +16,10 @@ type Deployment struct {
 	deployments.Deployment
 }
 
+func NewReaderDeployment() deployments.Deployment {
+	return deployments.NewDeployment()
+}
+
 const ModelName = "Deployment"
 
 func (d *Deployment) InsertDeployment(ctx context.Context, q sql_query_templates.QueryParams, c *create.Chart) error {

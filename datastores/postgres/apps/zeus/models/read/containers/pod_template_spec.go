@@ -1,0 +1,5 @@
+package containers
+
+func NewPodSpec() {
+
+}

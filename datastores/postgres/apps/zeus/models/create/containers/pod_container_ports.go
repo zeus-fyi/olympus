@@ -27,7 +27,7 @@ func (p *PodTemplateSpec) getContainerPortsHeaderRelationshipValues(m map[string
 	}
 	podSpecChildClassTypeID := p.GetPodSpecChildClassTypeID()
 	for _, port := range c.GetPorts() {
-		cteSubfield.AddValues(podSpecChildClassTypeID, selectRelatedContainerIDFromImageID(imageID), port.PortID)
+		cteSubfield.AddValues(podSpecChildClassTypeID, c.GetContainerID(), port.PortID)
 	}
 	return
 }

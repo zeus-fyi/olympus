@@ -23,6 +23,10 @@ type PodSpec struct {
 	PodTemplateContainers             containers.Containers
 }
 
+func (p *PodTemplateSpec) AddVolume(v autogen_bases.Volumes) {
+	p.Spec.PodTemplateSpecVolumes = append(p.Spec.PodTemplateSpecVolumes, v)
+}
+
 func (p *PodTemplateSpec) GetContainers() containers.Containers {
 	return p.Spec.PodTemplateContainers
 }

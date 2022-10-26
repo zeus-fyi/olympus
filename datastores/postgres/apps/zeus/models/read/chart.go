@@ -7,11 +7,13 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/containers"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
 type Chart struct {
 	autogen_bases.ChartPackages
+	autogen_bases.ChartComponentResources
 }
 
 const ModelName = "Chart"
@@ -31,7 +33,8 @@ func fetchChartQuery(chartID int) string {
 				csp.chart_subcomponent_parent_class_type_id,
 				csp.chart_subcomponent_parent_class_type_name,
 				cpr.chart_component_resource_id, 
-				cpr.chart_component_kind_name
+				cpr.chart_component_kind_name,
+				cpr.chart_component_api_version
 			FROM cte_chart_packages cp
 			LEFT JOIN chart_package_components AS cpc ON cpc.chart_package_id = cp.chart_package_id
 			LEFT JOIN chart_subcomponent_parent_class_types AS csp ON csp.chart_subcomponent_parent_class_type_id =  cpc.chart_subcomponent_parent_class_type_id
@@ -119,24 +122,26 @@ func fetchChartQuery(chartID int) string {
 			FROM cte_chart_package_components_values
 			GROUP BY  chart_subcomponent_parent_class_type_id, chart_subcomponent_child_class_type_id, chart_subcomponent_parent_class_type_name, chart_subcomponent_child_class_type_name
 	)  	
-	SELECT  (SELECT chart_name FROM cte_chart_packages ) AS chart_name,
+	SELECT  (SELECT chart_package_id FROM cte_chart_packages ) AS chart_package_id,
+			(SELECT chart_name FROM cte_chart_packages ) AS chart_name,
 			(SELECT chart_version FROM cte_chart_packages ) AS chart_version,
+			(SELECT chart_description FROM cte_chart_packages ) AS chart_description,
 			chart_component_kind_name,
 			COALESCE(chart_subcomponent_parent_class_type_id_agg, chart_subcomponent_parent_class_type_id_ps) AS chart_subcomponent_parent_class_type_id,
 			COALESCE(chart_subcomponent_parent_class_type_name_agg, chart_subcomponent_parent_class_type_name_ps) AS chart_subcomponent_parent_class_type_name,
 			COALESCE(chart_subcomponent_child_class_type_id_agg, chart_subcomponent_child_class_type_id_ps) AS chart_subcomponent_child_class_type_id,
 			COALESCE(chart_subcomponent_child_class_type_name_agg, chart_subcomponent_child_class_type_name_ps) AS chart_subcomponent_child_class_type_name,
-			ps.container_id,
-			ps.container_name,
-			ps.container_image_id,
-			ps.container_version_tag, 
-			ps.container_platform_os,
-			ps.container_repository,
-			ps.container_image_pull_policy,
-			cagg.env_vars,
-			cagg.probes,
-			cagg.volume_name,
-			cagg.volume_mount_path
+			COALESCE(ps.container_id, 0) AS container_id,
+			COALESCE(ps.container_name, '') AS container_name,
+			COALESCE(ps.container_image_id,'') AS container_image_id,
+			COALESCE(ps.container_version_tag, '') AS container_version_tag,
+			COALESCE(ps.container_platform_os, '') AS container_platform_os,
+			COALESCE(ps.container_repository,'') AS container_repository,
+			COALESCE(ps.container_image_pull_policy,'') AS container_image_pull_policy,
+			COALESCE(cagg.env_vars, '{}'::jsonb) AS env_vars,
+			COALESCE(cagg.probes, '{}'::jsonb) AS probes,
+			COALESCE(cagg.volume_name, '') AS volume_name,
+			COALESCE(cagg.volume_mount_path, '') AS volume_mount_path
 	FROM cte_chart_subcomponent_spec_pod_template_containers ps
 	LEFT JOIN cte_containers_agg AS cagg ON cagg.container_id = ps.container_id
 	LEFT JOIN cte_chart_package_components_values_agg AS agg ON agg.chart_subcomponent_child_class_type_id_agg = ps.chart_subcomponent_child_class_type_id_ps
@@ -145,23 +150,43 @@ func fetchChartQuery(chartID int) string {
 	return query
 }
 
-func (c *Chart) SelectChartResources(ctx context.Context, q sql_query_templates.QueryParams) error {
+func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_templates.QueryParams) error {
 	log.Debug().Interface("SelectQuery", q.LogHeader(ModelName))
 	q.RawQuery = fetchChartQuery(c.ChartPackageID)
-	rows, err := apps.Pg.Query(ctx, q.SelectQuery())
+	rows, err := apps.Pg.Query(ctx, q.RawQuery)
 	if err != nil {
 		log.Err(err).Msg(q.LogHeader(ModelName))
 		return err
 	}
 	defer rows.Close()
 	//var podTemplateSpec containers.PodTemplateSpec
+	parentClassSlice := autogen_bases.ChartSubcomponentParentClassTypesSlice{}
+	childClassSlice := autogen_bases.ChartSubcomponentChildClassTypesSlice{}
+
 	for rows.Next() {
-		rowErr := rows.Scan()
+		parentClassElement := autogen_bases.ChartSubcomponentParentClassTypes{}
+		childClassElement := autogen_bases.ChartSubcomponentChildClassTypes{}
+		container := &containers.Container{}
+
+		probes := ""
+		volumeName := ""
+		volumePath := ""
+		envVar := ""
+		rowErr := rows.Scan(&c.ChartPackageID, &c.ChartName, &c.ChartVersion, &c.ChartDescription, &c.ChartComponentKindName,
+			&parentClassElement.ChartSubcomponentParentClassTypeID, &parentClassElement.ChartSubcomponentParentClassTypeName,
+			&childClassElement.ChartSubcomponentChildClassTypeID, &childClassElement.ChartSubcomponentChildClassTypeName,
+
+			&container.Metadata.ContainerID, &container.Metadata.ContainerName, &container.Metadata.ContainerImageID,
+			&container.Metadata.ContainerVersionTag, &container.Metadata.ContainerPlatformOs, &container.Metadata.ContainerRepository,
+			&container.Metadata.ContainerImagePullPolicy,
+			&envVar, &probes, &volumeName, &volumePath,
+		)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader(ModelName))
 			return rowErr
 		}
-		//selectedStructNameExamples = append(selectedStructNameExamples, se)
+		parentClassSlice = append(parentClassSlice, parentClassElement)
+		childClassSlice = append(childClassSlice, childClassElement)
 	}
 	return nil
 }

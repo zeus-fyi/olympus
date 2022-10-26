@@ -32,7 +32,7 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *create.Chart
 	contSubChildClassCTE := sql_query_templates.NewSubInsertCTE("cte_podSpecSubChildClassCTE")
 	contSubChildClassCTE.TableName = agCct.GetTableName()
 	contSubChildClassCTE.Fields = []string{"chart_subcomponent_parent_class_type_id", "chart_subcomponent_child_class_type_id", "chart_subcomponent_child_class_type_name"}
-	contSubChildClassCTE.AddValues(p.GetPodSpecParentClassTypeID(), p.GetPodSpecChildClassTypeID(), "podSpecSubChildClass")
+	contSubChildClassCTE.AddValues(p.GetPodSpecParentClassTypeID(), p.GetPodSpecChildClassTypeID(), "PodTemplateSpecChild")
 
 	contSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_containers")
 	contSubCTE.TableName = "containers"

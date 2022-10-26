@@ -85,6 +85,8 @@ func fetchChartQuery(chartID int) string {
 			LEFT JOIN chart_subcomponent_child_class_types AS cct ON cct.chart_subcomponent_parent_class_type_id = cpc.chart_subcomponent_parent_class_type_id
 			LEFT JOIN chart_subcomponent_spec_pod_template_containers AS ps ON ps.chart_subcomponent_child_class_type_id = cct.chart_subcomponent_child_class_type_id
 			LEFT JOIN containers cs ON cs.container_id = ps.container_id
+			LEFT JOIN chart_subcomponents_child_values AS cv ON cv.chart_subcomponent_child_class_type_id = cct.chart_subcomponent_child_class_type_id
+			WHERE chart_subcomponent_key_name IS NULL
 	), cte_container_environmental_vars AS (
 			SELECT  cenv.container_id AS env_container_id, 
 					jsonb_object_agg(cv.name, cv.value) AS env_vars
@@ -161,7 +163,7 @@ func fetchChartQuery(chartID int) string {
 	FROM cte_chart_kind_agg_to_parent_children ckagg 
 	LEFT JOIN cte_chart_subcomponent_spec_pod_template_containers AS ps ON ps.chart_package_id = ckagg.chart_package_id
 	LEFT JOIN cte_pod_spec_volumes AS v ON v.child_class_type_id_pod_spec_volumes = ps.chart_subcomponent_child_class_type_id_ps
-	INNER JOIN cte_containers_agg AS cagg ON cagg.container_id = ps.container_id
+	LEFT JOIN cte_containers_agg AS cagg ON cagg.container_id = ps.container_id
 `, chartID)
 	return query
 }

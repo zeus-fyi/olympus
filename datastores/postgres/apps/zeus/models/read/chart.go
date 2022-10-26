@@ -7,8 +7,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+	deployments "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/containers"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/deployments"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
@@ -105,9 +105,7 @@ func fetchChartQuery(chartID int) string {
 	), cte_ports AS (
 			SELECT					
 				csp.container_id AS container_id_ports,
-				cp.port_name AS port_name,
-				cp.container_port AS container_port,
-				cp.port_protocol AS port_protcol
+				jsonb_build_object(csp.container_id, cp.port_name, cp.container_port, cp.port_protocol) as ports
 			FROM containers_ports csp
 			INNER JOIN cte_chart_subcomponent_spec_pod_template_containers AS cs ON cs.container_id = csp.container_id
 			LEFT JOIN container_ports AS cp ON cp.port_id = csp.port_id 
@@ -120,9 +118,7 @@ func fetchChartQuery(chartID int) string {
 				probes,
 				volume_name, 
 				volume_mount_path,
-				ports.port_name AS port_name,
-				ports.container_port AS container_port,
-				ports.port_protcol AS port_protcol
+				ports.ports
 			FROM cte_chart_subcomponent_spec_pod_template_containers ps
 			LEFT JOIN cte_probes AS pr ON pr.container_id_probes = ps.container_id
 			LEFT JOIN cte_container_environmental_vars AS cenv ON cenv.env_container_id = ps.container_id
@@ -154,9 +150,7 @@ func fetchChartQuery(chartID int) string {
 			COALESCE(ps.container_platform_os, '') AS container_platform_os,
 			COALESCE(ps.container_repository,'') AS container_repository,
 			COALESCE(ps.container_image_pull_policy,'') AS container_image_pull_policy,
-			COALESCE(cagg.port_name, '{}') AS port_name,
-			COALESCE(cagg.container_port, 0) AS container_port,
-			COALESCE(cagg.port_protcol, '{}') AS port_protcol,
+			COALESCE(cagg.ports, '{}'::jsonb) AS ports,
 			COALESCE(cagg.env_vars, '{}'::jsonb) AS env_vars,
 			COALESCE(cagg.probes, '{}'::jsonb) AS probes,
 			COALESCE(cagg.volume_name, '') AS volume_name,
@@ -182,7 +176,6 @@ func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_tem
 	//var podTemplateSpec containers.PodTemplateSpec
 	parentClassSlice := autogen_bases.ChartSubcomponentParentClassTypesSlice{}
 	childClassSlice := autogen_bases.ChartSubcomponentChildClassTypesSlice{}
-
 	for rows.Next() {
 		parentClassElement := autogen_bases.ChartSubcomponentParentClassTypes{}
 		childClassElement := autogen_bases.ChartSubcomponentChildClassTypes{}
@@ -196,7 +189,7 @@ func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_tem
 			&container.Metadata.ContainerID, &container.Metadata.ContainerName, &container.Metadata.ContainerImageID,
 			&container.Metadata.ContainerVersionTag, &container.Metadata.ContainerPlatformOs, &container.Metadata.ContainerRepository,
 			&container.Metadata.ContainerImagePullPolicy,
-			&container.DB.PortName, &container.DB.PortNumber, &container.DB.PortProtocol,
+			&container.DB.Ports,
 			&container.DB.EnvVar, &container.DB.Probes, &container.DB.VolumeName, &container.DB.VolumePath,
 			&volumePtr.VolumeKeyValuesJSONb,
 		)
@@ -206,7 +199,8 @@ func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_tem
 		}
 		if c.ChartComponentKindName == "Deployment" {
 			if c.Deployment == nil {
-				deployment := deployments.Deployment{}
+
+				deployment := deployments.NewDeployment()
 				c.Deployment = &deployment
 				//if volumePtr.VolumeKeyValuesJSONb != "" {
 				//	c.Deployment.Spec.Template.AddVolume()
@@ -217,16 +211,19 @@ func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_tem
 			// TODO add container conversion json -> probes, env_vars
 			// TODO add volume -> spec
 			if container.Metadata.ContainerID != 0 {
-				cerr := container.ParseFields()
-				if cerr != nil {
-					return cerr
+				if v, ok := c.Spec.Template.Spec.PodTemplateMapK8sContainers[container.GetContainerID()]; !ok {
+					cerr := container.ParseFields()
+					if cerr != nil {
+						return cerr
+					}
+					c.Spec.Template.SetContainerMap(container.Metadata.ContainerID, v)
 				}
-				c.Deployment.Spec.Template.AddContainer(container.Container)
 			}
 		}
 
 		parentClassSlice = append(parentClassSlice, parentClassElement)
 		childClassSlice = append(childClassSlice, childClassElement)
 	}
+	// todo 				c.Deployment.Spec.Template.AddContainer(container.Container)
 	return nil
 }

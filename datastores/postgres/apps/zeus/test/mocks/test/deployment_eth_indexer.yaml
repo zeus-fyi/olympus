@@ -44,6 +44,12 @@ spec:
             - name: "http"
               containerPort: 9000
               protocol: "TCP"
+            - name: "http9001"
+              containerPort: 9001
+              protocol: "TCP"
+            - name: "http9002"
+              containerPort: 9002
+              protocol: "TCP"
           livenessProbe:
             httpGet:
               path: "/health"
@@ -54,10 +60,55 @@ spec:
               port: "http"
           resources:
             {}
+        - name: "eth-indexer2"
+          image: "registry.digitalocean.com/zeus-fyi/zeus-indexer:latest2"
+          volumeMounts:
+              - mountPath: "/scripts1"
+                name: "cm-eth-indexe1"
+              - mountPath: "/scripts2"
+                name: "cm-eth-indexe2"
+              - mountPath: "/scripts3"
+                name: "cm-eth-indexe3"
+          imagePullPolicy: Always
+          command: [ "/bin/sh" ]
+          args: [ "-c","/scripts/start.sh" ]
+          env:
+              - name: PG_CONN_STR2
+                valueFrom:
+                  secretKeyRef:
+                    name: postgres-auth2
+                    key: postgres-conn-str2
+              - name: BEACON_NODE2
+                valueFrom:
+                  secretKeyRef:
+                    name: beacon-auth2
+                    key: beacon-conn-str2
+          ports:
+              - name: "http2"
+                containerPort: 8000
+                protocol: "TCP"
+          livenessProbe:
+              httpGet:
+                path: "/health2"
+                port: "http2"
+          readinessProbe:
+              httpGet:
+                path: "/health2"
+                port: "http2"
+          resources:
+              { }
       volumes:
         - name: cm-eth-indexer
           configMap:
             name: cm-eth-indexer
+            defaultMode: 0744
+        - name: cm-eth-indexer2
+          configMap:
+            name: cm-eth-indexer2
+            defaultMode: 0744
+        - name: cm-eth-indexer3
+          configMap:
+            name: cm-eth-indexer3
             defaultMode: 0744
       nodeSelector:
         {}

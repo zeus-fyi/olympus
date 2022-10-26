@@ -21,6 +21,18 @@ type PodSpec struct {
 	PodTemplateSpecClassGenericFields map[string]structs.ChildValuesSlice
 	PodTemplateSpecVolumes            autogen_bases.VolumesSlice
 	PodTemplateContainers             containers.Containers
+	PodTemplateMapK8sContainers       map[int]v1.Container
+}
+
+func (p *PodTemplateSpec) GetContainerMap(id int) v1.Container {
+	if _, ok := p.Spec.PodTemplateMapK8sContainers[id]; !ok {
+		return v1.Container{}
+	}
+	return p.Spec.PodTemplateMapK8sContainers[id]
+}
+
+func (p *PodTemplateSpec) SetContainerMap(id int, c v1.Container) {
+	p.Spec.PodTemplateMapK8sContainers[id] = c
 }
 
 func (p *PodTemplateSpec) AddVolume(v autogen_bases.Volumes) {
@@ -46,6 +58,7 @@ func NewPodTemplateSpec() PodTemplateSpec {
 	ps := PodSpec{
 		PodTemplateSpecClassDefinition:    cd,
 		PodTemplateSpecClassGenericFields: nil,
+		PodTemplateMapK8sContainers:       make(map[int]v1.Container),
 	}
 
 	pts := PodTemplateSpec{

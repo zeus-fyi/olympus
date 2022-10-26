@@ -8,12 +8,15 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/containers"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/deployments"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
 type Chart struct {
 	autogen_bases.ChartPackages
 	autogen_bases.ChartComponentResources
+
+	*deployments.Deployment
 }
 
 const ModelName = "Chart"
@@ -166,7 +169,7 @@ func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_tem
 	for rows.Next() {
 		parentClassElement := autogen_bases.ChartSubcomponentParentClassTypes{}
 		childClassElement := autogen_bases.ChartSubcomponentChildClassTypes{}
-		container := &containers.Container{}
+		container := containers.Container{}
 
 		probes := ""
 		volumeName := ""
@@ -185,6 +188,19 @@ func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_tem
 			log.Err(rowErr).Msg(q.LogHeader(ModelName))
 			return rowErr
 		}
+		if c.ChartComponentKindName == "Deployment" {
+			if c.Deployment == nil {
+				deployment := deployments.Deployment{}
+				c.Deployment = &deployment
+			}
+			// TODO add metadata, spec to deployment
+			// TODO add container conversion json -> probes, env_vars
+			// TODO add volume -> spec
+			if container.Metadata.ContainerID != 0 {
+				c.Deployment.Spec.Template.AddContainer(container)
+			}
+		}
+
 		parentClassSlice = append(parentClassSlice, parentClassElement)
 		childClassSlice = append(childClassSlice, childClassElement)
 	}

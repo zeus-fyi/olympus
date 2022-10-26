@@ -27,6 +27,10 @@ func (p *PodTemplateSpec) GetContainers() containers.Containers {
 	return p.Spec.PodTemplateContainers
 }
 
+func (p *PodTemplateSpec) AddContainer(c containers.Container) {
+	p.Spec.PodTemplateContainers = append(p.Spec.PodTemplateContainers, c)
+}
+
 func NewPodTemplateSpec() PodTemplateSpec {
 
 	cd := autogen_bases.ChartSubcomponentChildClassTypes{
@@ -53,10 +57,6 @@ func NewPodTemplateSpec() PodTemplateSpec {
 	}
 
 	return pts
-}
-
-func (p *PodTemplateSpec) AddContainer(c containers.Container) {
-	p.Spec.PodTemplateContainers = append(p.Spec.PodTemplateContainers, c)
 }
 
 func (p *PodTemplateSpec) GetPodSpecParentClassTypeID() int {

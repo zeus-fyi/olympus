@@ -8,7 +8,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	deployments "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/containers"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/read_containers"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
@@ -180,8 +180,8 @@ func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_tem
 	for rows.Next() {
 		parentClassElement := autogen_bases.ChartSubcomponentParentClassTypes{}
 		childClassElement := autogen_bases.ChartSubcomponentChildClassTypes{}
-		volumePtr := autogen_bases.Volumes{}
-		container := containers.NewContainer()
+		var podSpecVolumesStr string
+		container := read_containers.NewContainer()
 
 		rowErr := rows.Scan(&c.ChartPackageID, &c.ChartName, &c.ChartVersion, &c.ChartDescription, &c.ChartComponentKindName,
 			&parentClassElement.ChartSubcomponentParentClassTypeID, &parentClassElement.ChartSubcomponentParentClassTypeName,
@@ -192,7 +192,7 @@ func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_tem
 			&container.Metadata.ContainerImagePullPolicy,
 			&container.DB.Ports,
 			&container.DB.EnvVar, &container.DB.Probes, &container.DB.ContainerVolumes,
-			&volumePtr.VolumeKeyValuesJSONb,
+			&podSpecVolumesStr,
 		)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader(ModelName))
@@ -203,22 +203,23 @@ func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_tem
 
 				deployment := deployments.NewDeployment()
 				c.Deployment = &deployment
-				//if volumePtr.VolumeKeyValuesJSONb != "" {
-				//	c.Deployment.Spec.Template.AddVolume()
-				//}
-			}
-
-			// TODO add metadata, spec to deployment
-			// TODO add container conversion json -> probes, env_vars
-			// TODO add volume -> spec
-			if container.Metadata.ContainerID != 0 {
-				cerr := container.ParseFields()
-				if cerr != nil {
-					return cerr
+				if len(podSpecVolumesStr) > 0 {
+					vs, vserr := read_containers.ParsePodSpecDBVolumesString(podSpecVolumesStr)
+					if vserr != nil {
+						log.Err(vserr).Msg(q.LogHeader(ModelName))
+						return vserr
+					}
+					c.Deployment.Spec.Template.SetK8sPodSpecVolumes(vs)
 				}
-				c.Spec.Template.AddContainer(container.Container)
-
 			}
+		}
+
+		if container.Metadata.ContainerID != 0 {
+			cerr := container.ParseFields()
+			if cerr != nil {
+				return cerr
+			}
+			c.Spec.Template.AddContainer(container.Container)
 		}
 
 		parentClassSlice = append(parentClassSlice, parentClassElement)

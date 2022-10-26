@@ -1,8 +1,6 @@
 package containers
 
 import (
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
-	cont_conv "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/containers"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/containers"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
@@ -21,6 +19,12 @@ type PodSpec struct {
 	PodTemplateSpecClassGenericFields map[string]structs.ChildValuesSlice
 	PodTemplateSpecVolumes            autogen_bases.VolumesSlice
 	PodTemplateContainers             containers.Containers
+
+	K8sPodSpec *v1.PodSpec
+}
+
+func (p *PodTemplateSpec) SetK8sPodSpecVolumes(vs []v1.Volume) {
+	p.Spec.K8sPodSpec.Volumes = vs
 }
 
 func (p *PodTemplateSpec) AddVolume(v autogen_bases.Volumes) {
@@ -46,6 +50,7 @@ func NewPodTemplateSpec() PodTemplateSpec {
 	ps := PodSpec{
 		PodTemplateSpecClassDefinition:    cd,
 		PodTemplateSpecClassGenericFields: nil,
+		K8sPodSpec:                        &v1.PodSpec{},
 	}
 
 	pts := PodTemplateSpec{
@@ -78,25 +83,4 @@ func (p *PodTemplateSpec) GetPodSpecChildClassTypeID() int {
 
 func (p *PodTemplateSpec) SetPodSpecChildClassTypeID(id int) {
 	p.Spec.PodTemplateSpecClassDefinition.ChartSubcomponentChildClassTypeID = id
-}
-
-// ConvertPodTemplateSpecConfigToDB PodTemplateSpecConfigToDB has a dependency on chart_subcomponent_child_class_types and containers
-func (p *PodTemplateSpec) ConvertPodTemplateSpecConfigToDB(ps *v1.PodSpec) (PodTemplateSpec, error) {
-	dbPodSpec := NewPodTemplateSpec()
-
-	dbSpecVolumes, err := common_conversions.VolumesToDB(ps.Volumes)
-	if err != nil {
-		return dbPodSpec, err
-	}
-	dbSpecContainers, err := cont_conv.ConvertContainersToDB(ps.Containers)
-	if err != nil {
-		return dbPodSpec, err
-	}
-	dbPodSpec.Spec.PodTemplateContainers = dbSpecContainers
-	dbPodSpec.Spec.PodTemplateSpecVolumes = dbSpecVolumes
-	if err != nil {
-		return dbPodSpec, err
-	}
-
-	return dbPodSpec, nil
 }

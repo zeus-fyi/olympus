@@ -1,4 +1,4 @@
-package containers
+package read_containers
 
 import (
 	"encoding/json"

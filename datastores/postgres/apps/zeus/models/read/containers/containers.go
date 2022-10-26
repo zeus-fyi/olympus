@@ -22,11 +22,11 @@ func (c *Container) ParseFields() error {
 		return err
 	}
 	k8sCont.Ports = ports
-	vm, err := c.DB.parseVolumeMount(c.DB.VolumeName, c.DB.VolumePath)
+	contVms, err := c.DB.parseVolumeMount(c.DB.ContainerVolumes)
 	if err != nil {
 		return err
 	}
-	k8sCont.VolumeMounts = append(k8sCont.VolumeMounts, vm...)
+	k8sCont.VolumeMounts = contVms
 	c.K8sContainer = k8sCont
 
 	return nil
@@ -40,13 +40,12 @@ type Containers struct {
 
 type Container struct {
 	containers.Container
-	K8sContainer v1.Container
-	DB           DbContainers
+	DB DbContainers
 }
 
 func NewContainer() Container {
 	return Container{
-		containers.NewContainer(), NewK8sContainer(), NewDbContainers(),
+		containers.NewContainer(), NewDbContainers(),
 	}
 }
 

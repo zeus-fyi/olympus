@@ -38,36 +38,48 @@ func (d *DbContainers) parseProbes(container *v1.Container, probeString string) 
 
 // TODO this is joining on many, so need to remove duplicates
 func (d *DbContainers) parseContainerPorts(portsStr string) ([]v1.ContainerPort, error) {
-	//m := make(map[string]string)
+	m := make(map[string]interface{})
 	var ports []v1.ContainerPort
-	//err := json.Unmarshal([]byte(portsStr), &m)
-	//if err != nil {
-	//	return ports, err
-	//}
-	//for k, v := range m {
-	//	bytes, berr := json.Marshal(v)
-	//	if berr != nil {
-	//		return ports, berr
-	//	}
-	//	var port v1.ContainerPort
-	//	perr := json.Unmarshal(bytes, &port)
-	//	if perr != nil {
-	//		return ports, perr
-	//	}
-	//	port.Name = k
-	//	ports = append(ports, port)
-	//}
+	err := json.Unmarshal([]byte(portsStr), &m)
+	if err != nil {
+		return ports, err
+	}
+	for _, v := range m {
+		bytes, berr := json.Marshal(v)
+		if berr != nil {
+			return ports, berr
+		}
+		var port v1.ContainerPort
+		perr := json.Unmarshal(bytes, &port)
+		if perr != nil {
+			return ports, perr
+		}
+		ports = append(ports, port)
+	}
 
 	return ports, nil
 }
 
-func (d *DbContainers) parseVolumeMount(volName, volPathString string) ([]v1.VolumeMount, error) {
-	var vmSingleK8s v1.VolumeMount
-
-	vmSingleK8s.Name = volName
-	vmSingleK8s.MountPath = volPathString
-
-	return []v1.VolumeMount{vmSingleK8s}, nil
+func (d *DbContainers) parseVolumeMount(contVolMounts string) ([]v1.VolumeMount, error) {
+	m := make(map[string]interface{})
+	var contVms []v1.VolumeMount
+	err := json.Unmarshal([]byte(contVolMounts), &m)
+	if err != nil {
+		return contVms, err
+	}
+	for _, v := range m {
+		bytes, berr := json.Marshal(v)
+		if berr != nil {
+			return contVms, berr
+		}
+		var contVm v1.VolumeMount
+		perr := json.Unmarshal(bytes, &contVm)
+		if perr != nil {
+			return contVms, perr
+		}
+		contVms = append(contVms, contVm)
+	}
+	return contVms, nil
 }
 
 func (d *DbContainers) parseEnvVars(envVarString string) ([]v1.EnvVar, error) {

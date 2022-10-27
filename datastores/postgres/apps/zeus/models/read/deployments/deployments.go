@@ -8,8 +8,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-const ModelName = "Deployment"
-
 func DBDeploymentResource(d *deployments.Deployment, ckagg, podSpecVolumesStr string) error {
 	pcGroupMap, pcerr := common_conversions.ParseDeploymentParentChildAggValues(ckagg)
 	if pcerr != nil {

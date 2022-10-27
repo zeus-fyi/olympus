@@ -65,7 +65,7 @@ func fetchChartQuery(chartID int) string {
 			FROM cte_chart_package_components_values cpcv
 			GROUP BY chart_package_id, chart_component_kind_name, chart_subcomponent_parent_class_type_name
 	) , cte_chart_kind_agg_to_parent_children AS (
-			SELECT pcagg.chart_package_id, pcagg.chart_component_kind_name,
+			SELECT  pcagg.chart_package_id, pcagg.chart_component_kind_name,
 					json_build_object(pcagg.chart_component_kind_name, jsonb_agg(parent_child_agg)) as ckagg
 			FROM cte_chart_package_components_values_parent_child_agg pcagg
 			GROUP BY chart_package_id, chart_component_kind_name

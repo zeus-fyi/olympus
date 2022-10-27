@@ -3,9 +3,9 @@ package autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type ChartSubcomponentChildClassTypes struct {
-	ChartSubcomponentParentClassTypeID  int    `db:"chart_subcomponent_parent_class_type_id"`
-	ChartSubcomponentChildClassTypeID   int    `db:"chart_subcomponent_child_class_type_id"`
-	ChartSubcomponentChildClassTypeName string `db:"chart_subcomponent_child_class_type_name"`
+	ChartSubcomponentParentClassTypeID  int    `db:"chart_subcomponent_parent_class_type_id" json:"chart_subcomponent_parent_class_type_id"`
+	ChartSubcomponentChildClassTypeID   int    `db:"chart_subcomponent_child_class_type_id" json:"chart_subcomponent_child_class_type_id"`
+	ChartSubcomponentChildClassTypeName string `db:"chart_subcomponent_child_class_type_name" json:"chart_subcomponent_child_class_type_name"`
 }
 type ChartSubcomponentChildClassTypesSlice []ChartSubcomponentChildClassTypes
 

@@ -1,20 +1,10 @@
-package read_containers
+package db_to_k8s_conversions
 
 import (
 	"encoding/json"
 
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/containers"
 	v1 "k8s.io/api/core/v1"
 )
-
-func NewPodSpec() PodTemplateSpec {
-	return PodTemplateSpec{}
-}
-
-type PodTemplateSpec struct {
-	containers.PodTemplateSpec
-	ContainerMap map[int]Container
-}
 
 func ParsePodSpecDBVolumesString(podSpecVolumes string) ([]v1.Volume, error) {
 	m := make(map[string]interface{})

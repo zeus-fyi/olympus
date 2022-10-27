@@ -3,8 +3,8 @@ package autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type ContainersComputeResources struct {
-	ComputeResourcesID int `db:"compute_resources_id"`
-	ContainerID        int `db:"container_id"`
+	ComputeResourcesID int `db:"compute_resources_id" json:"compute_resources_id"`
+	ContainerID        int `db:"container_id" json:"container_id"`
 }
 type ContainersComputeResourcesSlice []ContainersComputeResources
 

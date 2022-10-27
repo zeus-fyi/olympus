@@ -5,6 +5,8 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/containers"
+	v1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type StatefulSetAndChildServices struct {
@@ -14,6 +16,8 @@ type StatefulSetAndChildServices struct {
 }
 
 type StatefulSet struct {
+	K8sDeployment *v1.StatefulSet
+
 	KindDefinition autogen_bases.ChartComponentResources
 
 	Metadata structs.ParentMetaData
@@ -28,6 +32,11 @@ type Spec struct {
 
 func NewStatefulSet() StatefulSet {
 	s := StatefulSet{}
+	typeMeta := metav1.TypeMeta{
+		Kind:       "StatefulSet",
+		APIVersion: "apps/v1",
+	}
+	s.K8sDeployment = &v1.StatefulSet{TypeMeta: typeMeta}
 	s.KindDefinition = autogen_bases.ChartComponentResources{
 		ChartComponentKindName:   "StatefulSet",
 		ChartComponentApiVersion: "apps/v1",

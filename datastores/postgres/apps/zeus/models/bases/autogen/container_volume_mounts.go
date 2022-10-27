@@ -3,9 +3,9 @@ package autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type ContainerVolumeMounts struct {
-	VolumeMountID   int    `db:"volume_mount_id"`
-	VolumeMountPath string `db:"volume_mount_path"`
-	VolumeName      string `db:"volume_name"`
+	VolumeMountID   int    `db:"volume_mount_id" json:"volume_mount_id"`
+	VolumeMountPath string `db:"volume_mount_path" json:"volume_mount_path"`
+	VolumeName      string `db:"volume_name" json:"volume_name"`
 }
 type ContainerVolumeMountsSlice []ContainerVolumeMounts
 

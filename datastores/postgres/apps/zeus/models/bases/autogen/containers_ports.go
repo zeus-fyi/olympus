@@ -3,9 +3,9 @@ package autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type ContainersPorts struct {
-	ChartSubcomponentChildClassTypeID int `db:"chart_subcomponent_child_class_type_id"`
-	ContainerID                       int `db:"container_id"`
-	PortID                            int `db:"port_id"`
+	ChartSubcomponentChildClassTypeID int `db:"chart_subcomponent_child_class_type_id" json:"chart_subcomponent_child_class_type_id"`
+	ContainerID                       int `db:"container_id" json:"container_id"`
+	PortID                            int `db:"port_id" json:"port_id"`
 }
 type ContainersPortsSlice []ContainersPorts
 

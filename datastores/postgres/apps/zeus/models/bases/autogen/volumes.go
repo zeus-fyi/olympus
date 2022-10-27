@@ -3,9 +3,9 @@ package autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type Volumes struct {
-	VolumeID             int    `db:"volume_id"`
-	VolumeName           string `db:"volume_name"`
-	VolumeKeyValuesJSONb string `db:"volume_key_values_jsonb"`
+	VolumeID             int    `db:"volume_id" json:"volume_id"`
+	VolumeName           string `db:"volume_name" json:"volume_name"`
+	VolumeKeyValuesJSONb string `db:"volume_key_values_jsonb" json:"volume_key_values_jsonb"`
 }
 type VolumesSlice []Volumes
 

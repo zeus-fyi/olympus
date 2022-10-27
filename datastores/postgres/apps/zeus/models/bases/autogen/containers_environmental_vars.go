@@ -3,9 +3,9 @@ package autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type ContainersEnvironmentalVars struct {
-	ChartSubcomponentChildClassTypeID int `db:"chart_subcomponent_child_class_type_id"`
-	ContainerID                       int `db:"container_id"`
-	EnvID                             int `db:"env_id"`
+	EnvID                             int `db:"env_id" json:"env_id"`
+	ChartSubcomponentChildClassTypeID int `db:"chart_subcomponent_child_class_type_id" json:"chart_subcomponent_child_class_type_id"`
+	ContainerID                       int `db:"container_id" json:"container_id"`
 }
 type ContainersEnvironmentalVarsSlice []ContainersEnvironmentalVars
 
@@ -13,12 +13,12 @@ func (c *ContainersEnvironmentalVars) GetRowValues(queryName string) apps.RowVal
 	pgValues := apps.RowValues{}
 	switch queryName {
 	default:
-		pgValues = apps.RowValues{c.ChartSubcomponentChildClassTypeID, c.ContainerID, c.EnvID}
+		pgValues = apps.RowValues{c.EnvID, c.ChartSubcomponentChildClassTypeID, c.ContainerID}
 	}
 	return pgValues
 }
 func (c *ContainersEnvironmentalVars) GetTableColumns() (columnValues []string) {
-	columnValues = []string{"chart_subcomponent_child_class_type_id", "container_id", "env_id"}
+	columnValues = []string{"env_id", "chart_subcomponent_child_class_type_id", "container_id"}
 	return columnValues
 }
 func (c *ContainersEnvironmentalVars) GetTableName() (tableName string) {

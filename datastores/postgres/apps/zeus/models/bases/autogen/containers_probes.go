@@ -3,9 +3,9 @@ package autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type ContainersProbes struct {
-	ProbeID     int    `db:"probe_id"`
-	ContainerID int    `db:"container_id"`
-	ProbeType   string `db:"probe_type"`
+	ProbeID     int    `db:"probe_id" json:"probe_id"`
+	ContainerID int    `db:"container_id" json:"container_id"`
+	ProbeType   string `db:"probe_type" json:"probe_type"`
 }
 type ContainersProbesSlice []ContainersProbes
 

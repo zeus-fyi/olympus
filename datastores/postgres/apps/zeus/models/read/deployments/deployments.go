@@ -1,25 +1,46 @@
 package read_deployments
 
+import (
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions/db_to_k8s_conversions"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/containers"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
+	v1 "k8s.io/api/core/v1"
+)
+
 const ModelName = "Deployment"
 
-//func (s *Deployment) SelectDeploymentResource(ctx context.Context, q sql_query_templates.QueryParams) error {
-//	log.Debug().Interface("SelectQuery", q.LogHeader(ModelName))
-//	rows, err := apps.Pg.Query(ctx, q.SelectQuery())
-//	if err != nil {
-//		log.Err(err).Msg(q.LogHeader(ModelName))
-//		return err
-//	}
-//	defer rows.Close()
-//	//var podTemplateSpec containers.PodTemplateSpec
-//	for rows.Next() {
-//		//var se models.StructNameExample
-//
-//		rowErr := rows.Scan()
-//		if rowErr != nil {
-//			log.Err(rowErr).Msg(q.LogHeader(ModelName))
-//			return rowErr
-//		}
-//		//selectedStructNameExamples = append(selectedStructNameExamples, se)
-//	}
-//	return nil
-//}
+func DBDeploymentResource(d *deployments.Deployment, ckagg, podSpecVolumesStr string) error {
+	pcGroupMap, pcerr := common_conversions.ParseDeploymentParentChildAggValues(ckagg)
+	if pcerr != nil {
+		return pcerr
+	}
+	pcerr = d.ParsePCGroupMap(pcGroupMap)
+	if pcerr != nil {
+		return pcerr
+	}
+	if len(podSpecVolumesStr) > 0 {
+		vs, vserr := db_to_k8s_conversions.ParsePodSpecDBVolumesString(podSpecVolumesStr)
+		if vserr != nil {
+			return vserr
+		}
+		d.K8sDeployment.Spec.Template.Spec.Volumes = vs
+
+	}
+	return nil
+}
+
+func DBDeploymentContainer(d *deployments.Deployment, c *containers.Container) error {
+	if c.Metadata.ContainerID != 0 {
+		cerr := c.ParseFields()
+		if cerr != nil {
+			return cerr
+		}
+		deploymentContainers := d.K8sDeployment.Spec.Template.Spec.Containers
+		if len(deploymentContainers) <= 0 {
+			deploymentContainers = []v1.Container{}
+		}
+		d.K8sDeployment.Spec.Template.Spec.Containers = append(deploymentContainers, c.K8sContainer)
+	}
+	return nil
+}

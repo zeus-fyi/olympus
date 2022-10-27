@@ -7,6 +7,7 @@ import (
 )
 
 type Container struct {
+	K8sContainer    v1.Container
 	Metadata        autogen_bases.Containers
 	VolumeMounts    autogen_bases.ContainerVolumeMountsSlice
 	Ports           autogen_bases.ContainerPortsSlice
@@ -15,7 +16,7 @@ type Container struct {
 	ResourceRequest *autogen_bases.ContainerComputeResources
 	IsInitContainer bool
 
-	K8sContainer v1.Container
+	DB DbContainers
 }
 
 func (c *Container) SetContainerID(id int) {
@@ -45,6 +46,7 @@ func NewContainer() Container {
 		Probes:          probes.ProbeSlice{},
 		IsInitContainer: false,
 		K8sContainer:    v1.Container{},
+		DB:              DbContainers{},
 	}
 	return c
 }

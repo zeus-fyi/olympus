@@ -7,8 +7,8 @@ import (
 )
 
 type TopologyClassTypes struct {
-	TopologyClassTypeID   int            `db:"topology_class_type_id"`
-	TopologyClassTypeName sql.NullString `db:"topology_class_type_name"`
+	TopologyClassTypeID   int            `db:"topology_class_type_id" json:"topology_class_type_id"`
+	TopologyClassTypeName sql.NullString `db:"topology_class_type_name" json:"topology_class_type_name"`
 }
 type TopologyClassTypesSlice []TopologyClassTypes
 

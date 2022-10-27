@@ -7,9 +7,9 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	deployments "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/containers"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
 	read_deployments "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/deployments"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/read_containers"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
@@ -145,10 +145,10 @@ func fetchChartQuery(chartID int) string {
 			LEFT JOIN cte_container_volume_mounts AS cvm ON cvm.volume_mounts_container_id = ps.container_id
 			LEFT JOIN cte_ports AS ports ON ports.container_id_ports = ps.container_id
 	)
-	SELECT  (SELECT chart_package_id FROM cte_chart_packages ) AS chart_package_id,
-			(SELECT chart_name FROM cte_chart_packages ) AS chart_name,
-			(SELECT chart_version FROM cte_chart_packages ) AS chart_version,
-			(SELECT chart_description FROM cte_chart_packages ) AS chart_description,
+	SELECT  	(SELECT chart_package_id FROM cte_chart_packages ) AS chart_package_id,
+				(SELECT chart_name FROM cte_chart_packages ) AS chart_name,
+				(SELECT chart_version FROM cte_chart_packages ) AS chart_version,
+				(SELECT chart_description FROM cte_chart_packages ) AS chart_description,
 				ckagg.chart_component_kind_name,
 				ckagg.ckagg AS ckagg,
 				COALESCE(ps.container_id, 0) AS container_id,
@@ -182,7 +182,7 @@ func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_tem
 	defer rows.Close()
 	for rows.Next() {
 		var podSpecVolumesStr string
-		container := read_containers.NewContainer()
+		container := containers.NewContainer()
 
 		var ckagg string
 		rowErr := rows.Scan(&c.ChartPackageID, &c.ChartName, &c.ChartVersion, &c.ChartDescription, &c.ChartComponentKindName,
@@ -198,29 +198,22 @@ func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_tem
 			log.Err(rowErr).Msg(q.LogHeader(ModelName))
 			return rowErr
 		}
-		if c.ChartComponentKindName == "Deployment" {
+		switch c.ChartComponentKindName {
+		case "Deployment":
 			if c.Deployment == nil {
-
 				deployment := deployments.NewDeployment()
-				_ = read_deployments.ParseDeploymentParentChildAggValues(ckagg)
 				c.Deployment = &deployment
-				if len(podSpecVolumesStr) > 0 {
-					vs, vserr := read_containers.ParsePodSpecDBVolumesString(podSpecVolumesStr)
-					if vserr != nil {
-						log.Err(vserr).Msg(q.LogHeader(ModelName))
-						return vserr
-					}
-					c.Deployment.Spec.Template.SetK8sPodSpecVolumes(vs)
-				}
 			}
-		}
-
-		if container.Metadata.ContainerID != 0 {
-			cerr := container.ParseFields()
-			if cerr != nil {
-				return cerr
+			derr := read_deployments.DBDeploymentResource(c.Deployment, ckagg, podSpecVolumesStr)
+			if derr != nil {
+				log.Err(derr).Msg(q.LogHeader(ModelName))
+				return derr
 			}
-			c.Spec.Template.AddContainer(container.Container)
+			derr = read_deployments.DBDeploymentContainer(c.Deployment, &container)
+			if derr != nil {
+				log.Err(derr).Msg(q.LogHeader(ModelName))
+				return derr
+			}
 		}
 	}
 	return nil

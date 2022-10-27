@@ -3,8 +3,8 @@ package autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type TopologyInfrastructureComponents struct {
-	TopologyID     int `db:"topology_id"`
-	ChartPackageID int `db:"chart_package_id"`
+	TopologyID     int `db:"topology_id" json:"topology_id"`
+	ChartPackageID int `db:"chart_package_id" json:"chart_package_id"`
 }
 type TopologyInfrastructureComponentsSlice []TopologyInfrastructureComponents
 

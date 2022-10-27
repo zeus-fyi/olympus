@@ -3,10 +3,10 @@ package autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type TopologiesKns struct {
-	TopologyID int    `db:"topology_id"`
-	Context    string `db:"context"`
-	Namespace  string `db:"namespace"`
-	Env        string `db:"env"`
+	TopologyID int    `db:"topology_id" json:"topology_id"`
+	Context    string `db:"context" json:"context"`
+	Namespace  string `db:"namespace" json:"namespace"`
+	Env        string `db:"env" json:"env"`
 }
 type TopologiesKnsSlice []TopologiesKns
 

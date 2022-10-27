@@ -1,4 +1,4 @@
-package read_containers
+package containers
 
 type DBContainerSlice []DbContainers
 type DbContainers struct {

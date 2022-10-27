@@ -3,9 +3,9 @@ package autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type TopologyClasses struct {
-	TopologyClassID     int    `db:"topology_class_id"`
-	TopologyClassTypeID int    `db:"topology_class_type_id"`
-	TopologyClassName   string `db:"topology_class_name"`
+	TopologyClassID     int    `db:"topology_class_id" json:"topology_class_id"`
+	TopologyClassTypeID int    `db:"topology_class_type_id" json:"topology_class_type_id"`
+	TopologyClassName   string `db:"topology_class_name" json:"topology_class_name"`
 }
 type TopologyClassesSlice []TopologyClasses
 

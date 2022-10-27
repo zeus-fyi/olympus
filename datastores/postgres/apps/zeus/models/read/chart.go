@@ -8,6 +8,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	deployments "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
+	read_deployments "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/deployments"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/read_containers"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
@@ -47,23 +48,24 @@ func fetchChartQuery(chartID int) string {
 				cpc.chart_package_id,
 				cpc.chart_component_kind_name AS chart_component_kind_name,
 				cpc.chart_subcomponent_parent_class_type_name,
-				jsonb_object_agg(cpc.chart_subcomponent_parent_class_type_name,
-					jsonb_build_array(
-						json_build_object('chart_subcomponent_parent_class_type_name',cpc.chart_subcomponent_parent_class_type_name, 'chart_subcomponent_parent_class_type_id', cpc.chart_subcomponent_parent_class_type_id ),
-						json_build_object('chart_subcomponent_child_class_type_id', cct.chart_subcomponent_child_class_type_id, 'chart_subcomponent_child_class_type_name', cct.chart_subcomponent_child_class_type_name),
-						json_build_object('chart_subcomponent_key_name', cv.chart_subcomponent_key_name, 'chart_subcomponent_value', cv.chart_subcomponent_value)
-				)) AS parent_child_values_obj_agg
+				jsonb_object_agg(cpc.chart_subcomponent_parent_class_type_name, 
+						json_build_object('parentChildWrapper', jsonb_build_array(json_build_object('chart_subcomponent_parent_class_type_name',cpc.chart_subcomponent_parent_class_type_name, 'chart_subcomponent_parent_class_type_id', cpc.chart_subcomponent_parent_class_type_id ),
+							json_build_object('chart_subcomponent_child_class_type_id', cct.chart_subcomponent_child_class_type_id, 'chart_subcomponent_child_class_type_name', cct.chart_subcomponent_child_class_type_name),
+							json_build_object('chart_subcomponent_key_name', cv.chart_subcomponent_key_name, 'chart_subcomponent_value', cv.chart_subcomponent_value)
+						))
+				) AS parent_child_values_obj_agg
 			FROM cte_chart_package_components cpc
 			LEFT JOIN chart_subcomponent_child_class_types AS cct ON cct.chart_subcomponent_parent_class_type_id = cpc.chart_subcomponent_parent_class_type_id
 			LEFT JOIN chart_subcomponents_child_values AS cv ON cv.chart_subcomponent_child_class_type_id = cct.chart_subcomponent_child_class_type_id
 			WHERE chart_subcomponent_key_name IS NOT NULL
 			GROUP BY cpc.chart_package_id, cpc.chart_component_kind_name, cpc.chart_subcomponent_parent_class_type_id, cpc.chart_subcomponent_parent_class_type_name, cct.chart_subcomponent_child_class_type_id, cct.chart_subcomponent_child_class_type_name, cv.chart_subcomponent_value, cv.chart_subcomponent_key_name
 	), cte_chart_package_components_values_parent_child_agg AS (
-			SELECT cpcv.chart_package_id, cpcv.chart_component_kind_name, chart_subcomponent_parent_class_type_name, jsonb_agg(parent_child_values_obj_agg) AS parent_child_agg
+			SELECT cpcv.chart_package_id, cpcv.chart_component_kind_name, chart_subcomponent_parent_class_type_name, json_build_object('parentWrapper', jsonb_agg(parent_child_values_obj_agg)) AS parent_child_agg
 			FROM cte_chart_package_components_values cpcv
 			GROUP BY chart_package_id, chart_component_kind_name, chart_subcomponent_parent_class_type_name
 	) , cte_chart_kind_agg_to_parent_children AS (
-			SELECT pcagg.chart_package_id, pcagg.chart_component_kind_name, jsonb_agg(parent_child_agg) as ckagg
+			SELECT pcagg.chart_package_id, pcagg.chart_component_kind_name,
+					json_build_object(pcagg.chart_component_kind_name, jsonb_agg(parent_child_agg)) as ckagg
 			FROM cte_chart_package_components_values_parent_child_agg pcagg
 			GROUP BY chart_package_id, chart_component_kind_name
 	), cte_chart_subcomponent_spec_pod_template_containers AS (
@@ -147,7 +149,7 @@ func fetchChartQuery(chartID int) string {
 			(SELECT chart_version FROM cte_chart_packages ) AS chart_version,
 			(SELECT chart_description FROM cte_chart_packages ) AS chart_description,
 				ckagg.chart_component_kind_name,
-				ckagg.ckagg,
+				ckagg.ckagg AS ckagg,
 				COALESCE(ps.container_id, 0) AS container_id,
 				COALESCE(ps.container_name, '') AS container_name,
 				COALESCE(ps.container_image_id,'') AS container_image_id,
@@ -199,6 +201,7 @@ func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_tem
 			if c.Deployment == nil {
 
 				deployment := deployments.NewDeployment()
+				_ = read_deployments.ParseDeploymentParentChildAggValues(ckagg)
 				c.Deployment = &deployment
 				if len(podSpecVolumesStr) > 0 {
 					vs, vserr := read_containers.ParsePodSpecDBVolumesString(podSpecVolumesStr)

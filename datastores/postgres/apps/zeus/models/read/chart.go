@@ -48,11 +48,12 @@ func fetchChartQuery(chartID int) string {
 				cpc.chart_package_id,
 				cpc.chart_component_kind_name AS chart_component_kind_name,
 				cpc.chart_subcomponent_parent_class_type_name,
-				jsonb_object_agg(cpc.chart_subcomponent_parent_class_type_name, 
-						json_build_object('parentChildWrapper', jsonb_build_array(json_build_object('chart_subcomponent_parent_class_type_name',cpc.chart_subcomponent_parent_class_type_name, 'chart_subcomponent_parent_class_type_id', cpc.chart_subcomponent_parent_class_type_id ),
-							json_build_object('chart_subcomponent_child_class_type_id', cct.chart_subcomponent_child_class_type_id, 'chart_subcomponent_child_class_type_name', cct.chart_subcomponent_child_class_type_name),
-							json_build_object('chart_subcomponent_key_name', cv.chart_subcomponent_key_name, 'chart_subcomponent_value', cv.chart_subcomponent_value)
-						))
+				jsonb_object_agg(cpc.chart_subcomponent_parent_class_type_name,
+							 jsonb_build_array(
+								json_build_object('chart_subcomponent_parent_class_types', json_build_object('chart_subcomponent_parent_class_type_name',cpc.chart_subcomponent_parent_class_type_name, 'chart_subcomponent_parent_class_type_id', cpc.chart_subcomponent_parent_class_type_id )),
+								json_build_object('chart_subcomponent_child_class_types', json_build_object('chart_subcomponent_child_class_type_id', cct.chart_subcomponent_child_class_type_id, 'chart_subcomponent_child_class_type_name', cct.chart_subcomponent_child_class_type_name)),
+								json_build_object('chart_subcomponents_child_values', json_build_object('chart_subcomponent_key_name', cv.chart_subcomponent_key_name, 'chart_subcomponent_value', cv.chart_subcomponent_value))
+							)
 				) AS parent_child_values_obj_agg
 			FROM cte_chart_package_components cpc
 			LEFT JOIN chart_subcomponent_child_class_types AS cct ON cct.chart_subcomponent_parent_class_type_id = cpc.chart_subcomponent_parent_class_type_id
@@ -60,7 +61,7 @@ func fetchChartQuery(chartID int) string {
 			WHERE chart_subcomponent_key_name IS NOT NULL
 			GROUP BY cpc.chart_package_id, cpc.chart_component_kind_name, cpc.chart_subcomponent_parent_class_type_id, cpc.chart_subcomponent_parent_class_type_name, cct.chart_subcomponent_child_class_type_id, cct.chart_subcomponent_child_class_type_name, cv.chart_subcomponent_value, cv.chart_subcomponent_key_name
 	), cte_chart_package_components_values_parent_child_agg AS (
-			SELECT cpcv.chart_package_id, cpcv.chart_component_kind_name, chart_subcomponent_parent_class_type_name, json_build_object('parentWrapper', jsonb_agg(parent_child_values_obj_agg)) AS parent_child_agg
+			SELECT cpcv.chart_package_id, cpcv.chart_component_kind_name, jsonb_agg(parent_child_values_obj_agg) AS parent_child_agg
 			FROM cte_chart_package_components_values cpcv
 			GROUP BY chart_package_id, chart_component_kind_name, chart_subcomponent_parent_class_type_name
 	) , cte_chart_kind_agg_to_parent_children AS (

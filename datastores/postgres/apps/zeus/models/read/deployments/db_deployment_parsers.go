@@ -30,12 +30,8 @@ func ParseDeploymentParentChildAggValues(ckaggString string) error {
 	}
 	for resourceKind, parentChildContainersSlice := range m {
 		if resourceKind == "parentWrapper" {
-			//switch xx {
-			//case "DeploymentParentMetadata":
-			//	//_, _ = ParseMetadataValues(bytesN)
-			//}
 		}
-		// resourceKind eg Deployment
+		// resourceKind e.g. Deployment
 		// parentChildContainersSlice is a list of all the parent element types of one parent eg DeploymentParentMetadata & Spec
 		for _, singleParentTypeKey := range parentChildContainersSlice {
 			// parentChildContainersSlice is a list of all the parent element types of one parent eg DeploymentParentMetadata
@@ -55,14 +51,10 @@ func ParseDeploymentParentChildAggValues(ckaggString string) error {
 						if _, ok := childElementMap["chart_subcomponents_child_values"]; ok {
 							dev_hacks.Use(childElementMap)
 						}
-
 					}
-
 				}
 			}
-
 		}
-
 	}
 	return nil
 }

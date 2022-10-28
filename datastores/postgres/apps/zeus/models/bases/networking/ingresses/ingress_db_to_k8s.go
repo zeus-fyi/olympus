@@ -33,12 +33,12 @@ func (i *Ingress) ConvertSpec(pcSlice []common_conversions.PC) error {
 		switch subClassName {
 		case "tls":
 			// todo i.K8sIngress.Spec.TLS
-			err := i.ParseToK8sTLS(pcSlice)
+			err := i.ConvertDBIngressRuleToK8s(ingressRulesMap)
 			if err != nil {
 				return err
 			}
 		case "rules":
-			err := i.ParseToK8sIngressRules(ingressRulesMap)
+			err := i.ConvertDBIngressTLSToK8s(pcSlice)
 			if err != nil {
 				return err
 			}

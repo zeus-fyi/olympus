@@ -17,11 +17,15 @@ type Rules struct {
 	structs.SuperParentClassGroup
 }
 
-func (r *Rules) AddNewIngressRuleAndUniqueChildClassID(hostName string, httpPathsMap map[string]string) {
+func (r *Rules) AddIngressRule(hostName string, httpPathsSlice []string) {
 	var ts chronos.Chronos
 	rule := structs.NewSuperParentClassWithBothChildTypes("rules", "host", "http")
 	childTypeID := ts.UnixTimeStampNow()
+
+	// single values part
 	rule.SetSingleChildClassIDTypeNameKeyAndValue(childTypeID, "host", "host", hostName)
-	rule.AddValuesAndUniqueChildID(childTypeID, httpPathsMap)
+
+	// multi values part
+	rule.AddKeyValuesAndUniqueChildID(childTypeID, "http", "path", httpPathsSlice)
 	r.SuperParentClassSlice = append(r.SuperParentClassSlice, rule)
 }

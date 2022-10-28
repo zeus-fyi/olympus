@@ -2,26 +2,31 @@ package ingresses
 
 import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
 
 func NewTLS() TLS {
 	parentClassTypeName := "tls"
-	singleChildClassTypeName := "secretName"
-	multiChildClassTypeName := "hosts"
+
 	tls := TLS{
-		structs.NewSuperParentClassWithBothChildTypes(parentClassTypeName, singleChildClassTypeName, multiChildClassTypeName),
+		structs.NewSuperParentClassGroup(parentClassTypeName),
 	}
 	return tls
 }
 
 type TLS struct {
-	structs.SuperParentClass
+	structs.SuperParentClassGroup
 }
 
-func (t *TLS) AddSecretName(secretNameValue string) {
-	t.ChildClassSingleValue.SetKeyAndValue("secretName", secretNameValue)
-}
+func (t *TLS) AddIngressTLS(secretNameValue string, hosts []string) {
+	var ts chronos.Chronos
+	singleChildClassTypeName := "secretName"
+	multiChildClassTypeName := "hosts"
+	tlsIngress := structs.NewSuperParentClassWithBothChildTypes("ingress", singleChildClassTypeName, multiChildClassTypeName)
 
-func (t *TLS) AddHosts(hostNamesMap map[string]string) {
-	t.ChildClassMultiValue.AddValues(hostNamesMap)
+	childTypeID := ts.UnixTimeStampNow()
+	tlsIngress.SetSingleChildClassIDTypeNameKeyAndValue(childTypeID, singleChildClassTypeName, singleChildClassTypeName, secretNameValue)
+	tlsIngress.AddKeyValuesAndUniqueChildID(childTypeID, multiChildClassTypeName, "hosts", hosts)
+	t.SuperParentClassSlice = append(t.SuperParentClassSlice, tlsIngress)
+
 }

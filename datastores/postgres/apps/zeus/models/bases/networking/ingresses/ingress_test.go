@@ -17,7 +17,7 @@ type IngressTestSuite struct {
 	conversions_test.ConversionsTestSuite
 }
 
-func (s *IngressTestSuite) TestK8sIngressYamlReader() {
+func (s *IngressTestSuite) TestK8sIngressYamlReaderAndK8sToDB() {
 	ing := NewIngress()
 	filepath := s.TestDirectory + "/mocks/test/ingress.yaml"
 	jsonBytes, err := s.Yr.ReadYamlConfig(filepath)
@@ -25,6 +25,14 @@ func (s *IngressTestSuite) TestK8sIngressYamlReader() {
 
 	s.Require().Nil(err)
 	s.Require().NotEmpty(ing.K8sIngress)
+
+	err = ing.ParseK8sConfigToDB()
+	s.Require().Nil(err)
+
+	s.Require().NotEmpty(ing.Metadata)
+	s.Require().NotEmpty(ing.Spec)
+	s.Require().NotEmpty(ing.TLS)
+	s.Require().NotEmpty(ing.Rules)
 }
 
 func (s *IngressTestSuite) TestSeedChartComponents() {

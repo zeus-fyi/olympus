@@ -21,13 +21,3 @@ func (pc *SuperParentClass) SetSingleChildClassIdTypeNameKeyAndValue(classTypeID
 	}
 	pc.ChildClassSingleValue.SetSingleChildClassIDTypeNameKeyAndValue(classTypeID, childClassTypeName, k, v)
 }
-
-func (pc *SuperParentClass) AddMultiChildClassIDTypeNameKeyAndValues(classTypeID int, childClassTypeName string, kvMap map[string]string) {
-	if pc.ChildClassMultiValue == nil {
-		ncs := NewChildClassMultiValues(childClassTypeName)
-		pc.ChildClassMultiValue = &ncs
-
-	}
-	pc.ChildClassMultiValue.ChartSubcomponentChildClassTypeName = childClassTypeName
-	pc.ChildClassMultiValue.AddValuesAndUniqueChildID(classTypeID, kvMap)
-}

@@ -11,6 +11,7 @@ spec:
     - secretName: eth-indexer-tls
       hosts:
         - api.zeus.fyi
+        - hera.zeus.fyi
   rules:
     - host: api.zeus.fyi
       http:
@@ -22,4 +23,27 @@ spec:
                 name: eth-indexer
                 port:
                   number: 80
-
+          - path: /health
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: eth-indexer-health
+                port:
+                  number: 80
+    - host: hera.zeus.fyi
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: hera
+                port:
+                  number: 80
+          - path: /health
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: hera-health
+                port:
+                  number: 80

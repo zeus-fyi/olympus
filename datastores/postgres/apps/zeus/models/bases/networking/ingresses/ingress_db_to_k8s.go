@@ -23,6 +23,8 @@ func (i *Ingress) ParseDBConfigToK8s(pcSlice common_conversions.ParentChildDB) e
 
 func (i *Ingress) ConvertSpec(pcSlice []common_conversions.PC) error {
 	ingressRulesMap := make(map[int][]common_conversions.PC)
+	ingressTLSMap := make(map[int][]common_conversions.PC)
+
 	for _, pc := range pcSlice {
 		subClassName := pc.ChartSubcomponentChildClassTypeName
 		ccTypeID := pc.ChartSubcomponentChildClassTypes.ChartSubcomponentChildClassTypeID
@@ -38,7 +40,7 @@ func (i *Ingress) ConvertSpec(pcSlice []common_conversions.PC) error {
 				return err
 			}
 		case "rules":
-			err := i.ConvertDBIngressTLSToK8s(pcSlice)
+			err := i.ConvertDBIngressTLSToK8s(ingressTLSMap)
 			if err != nil {
 				return err
 			}

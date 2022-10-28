@@ -28,5 +28,4 @@ func (t *TLS) AddIngressTLS(secretNameValue string, hosts []string) {
 	tlsIngress.SetSingleChildClassIDTypeNameKeyAndValue(childTypeID, singleChildClassTypeName, singleChildClassTypeName, secretNameValue)
 	tlsIngress.AddKeyValuesAndUniqueChildID(childTypeID, multiChildClassTypeName, "hosts", hosts)
 	t.SuperParentClassSlice = append(t.SuperParentClassSlice, tlsIngress)
-
 }

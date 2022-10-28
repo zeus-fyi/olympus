@@ -26,5 +26,4 @@ func (pc *SuperParentClass) SetBothChildClassTypeID(id int) {
 func (pc *SuperParentClass) SetChartPackageAndResourceID(chartPackageID, chartComponentResourceID int) {
 	pc.ChartPackageID = chartPackageID
 	pc.ChartComponentResourceID = chartComponentResourceID
-
 }

@@ -9,19 +9,15 @@ import (
 func (is *Spec) GetIngressSpecCTE(c *charts.Chart) sql_query_templates.SubCTEs {
 	parentClassTypeSubCTE := common.CreateParentClassTypeSubCTE(c, &is.ChartSubcomponentParentClassTypes)
 	pcID := is.ChartSubcomponentParentClassTypeID
-	is.SetSpecParentIDs(pcID)
+	is.SetSpecChartPackageResourceAndParentIDs(c.ChartPackageID, pcID)
 	chartComponentRelationshipCte := common.AddParentClassToChartPackage(c, pcID)
 	// rules
 	rulesCte := common.CreateSuperParentGroupClassTypeFromSlicesSubCTE(c, is.Rules.SuperParentClassGroup)
 	// tls
 	tlsCte := common.CreateSuperParentGroupClassTypeFromSlicesSubCTE(c, is.TLS.SuperParentClassGroup)
 	combinedSubCtes := sql_query_templates.AppendSubCteSlices(parentClassTypeSubCTE, rulesCte, tlsCte, []sql_query_templates.SubCTE{chartComponentRelationshipCte})
+	if is.IngressClassName != nil {
+		combinedSubCtes = sql_query_templates.AppendSubCteSlices(combinedSubCtes, common.CreateChildClassSingleValueSubCTEs(&is.IngressClassName.ChildClassSingleValue))
+	}
 	return combinedSubCtes
-}
-
-func (is *Spec) SetSpecParentIDs(id int) {
-	is.ChartSubcomponentParentClassTypeID = id
-
-	is.TLS.SetParentClassTypeIDs(id)
-	is.Rules.SetParentClassTypeIDs(id)
 }

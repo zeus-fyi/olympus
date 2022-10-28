@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
@@ -17,7 +18,7 @@ type IngressTestSuite struct {
 	conversions_test.ConversionsTestSuite
 }
 
-func (s *IngressTestSuite) TestK8sIngressYamlReaderAndK8sToDB() {
+func (s *IngressTestSuite) TestK8sIngressYamlReaderAndK8sToDBCte() {
 	ing := NewIngress()
 	filepath := s.TestDirectory + "/mocks/test/ingress.yaml"
 	jsonBytes, err := s.Yr.ReadYamlConfig(filepath)
@@ -33,6 +34,11 @@ func (s *IngressTestSuite) TestK8sIngressYamlReaderAndK8sToDB() {
 	s.Require().NotEmpty(ing.Spec)
 	s.Require().NotEmpty(ing.TLS)
 	s.Require().NotEmpty(ing.Rules)
+
+	c := charts.Chart{}
+	c.ChartPackageID = 100
+	cte := ing.GetIngressSpecCTE(&c)
+	s.Require().NotEmpty(cte)
 }
 
 func (s *IngressTestSuite) TestSeedChartComponents() {

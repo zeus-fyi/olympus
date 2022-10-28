@@ -25,3 +25,12 @@ func NewIngressSpec() Spec {
 	spec.ChartComponentResourceID = IngressChartComponentResourceID
 	return spec
 }
+
+func (is *Spec) SetSpecChartPackageResourceAndParentIDs(cpID, parentID int) {
+	is.ChartSubcomponentParentClassTypeID = parentID
+	if is.IngressClassName != nil {
+		is.IngressClassName.ChartSubcomponentParentClassTypeID = parentID
+	}
+	is.TLS.SetChartPackageResourceAndParentIDs(cpID, IngressChartComponentResourceID, parentID)
+	is.Rules.SetChartPackageResourceAndParentIDs(cpID, IngressChartComponentResourceID, parentID)
+}

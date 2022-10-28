@@ -21,3 +21,14 @@ func (pc *SuperParentClass) SetSingleChildClassIdTypeNameKeyAndValue(classTypeID
 	}
 	pc.ChildClassSingleValue.SetSingleChildClassIDTypeNameKeyAndValue(classTypeID, childClassTypeName, k, v)
 }
+
+func (spg *SuperParentClassGroup) SetParentClassTypeNames(parentClassTypeName string) {
+	spg.ChartSubcomponentParentClassTypes.ChartSubcomponentParentClassTypeName = parentClassTypeName
+	for i, _ := range spg.SuperParentClassSlice {
+		spg.SuperParentClassSlice[i].ChartSubcomponentParentClassTypeName = parentClassTypeName
+	}
+	for k, sp := range spg.SuperParentClassMap {
+		sp.SetParentClassTypeName(parentClassTypeName)
+		spg.SuperParentClassMap[k] = sp
+	}
+}

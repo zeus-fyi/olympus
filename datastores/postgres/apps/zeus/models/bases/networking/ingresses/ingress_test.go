@@ -1,4 +1,4 @@
-package ingress
+package ingresses
 
 import (
 	"context"

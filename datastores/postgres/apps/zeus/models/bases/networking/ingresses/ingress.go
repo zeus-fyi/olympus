@@ -1,4 +1,4 @@
-package ingress
+package ingresses
 
 import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
@@ -29,4 +29,9 @@ func NewIngress() Ingress {
 	ing.Metadata.Metadata = structs.NewMetadata()
 	ing.Spec = NewIngressSpec()
 	return ing
+}
+
+func (i *Ingress) SetChartPackageID(id int) {
+	i.ChartPackageID = id
+	i.Metadata.ChartPackageID = id
 }

@@ -16,7 +16,7 @@ type ConfigMap struct {
 	Immutable *structs.ChildClassSingleValue
 
 	// TODO give parent class names
-	Data       structs.SuperParentClass
+	Data       Data
 	BinaryData structs.SuperParentClass
 }
 
@@ -34,4 +34,9 @@ func NewConfigMap() ConfigMap {
 
 	// TODO add data type
 	return cm
+}
+
+func (cm *ConfigMap) SetChartPackageID(id int) {
+	cm.Data.ChartPackageID = id
+	cm.Metadata.ChartPackageID = id
 }

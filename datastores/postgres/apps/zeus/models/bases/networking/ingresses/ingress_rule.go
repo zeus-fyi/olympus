@@ -1,4 +1,4 @@
-package ingress
+package ingresses
 
 import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"

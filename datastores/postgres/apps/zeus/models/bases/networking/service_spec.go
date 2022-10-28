@@ -2,8 +2,8 @@ package networking
 
 import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/common"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
@@ -26,7 +26,7 @@ func NewServiceSpec() ServiceSpec {
 	return s
 }
 
-func (ss *ServiceSpec) CreateServiceSpecSubCTE(c *create.Chart) sql_query_templates.SubCTEs {
+func (ss *ServiceSpec) CreateServiceSpecSubCTE(c *charts.Chart) sql_query_templates.SubCTEs {
 	parentClassTypeSubCTE := common.CreateParentClassTypeSubCTE(c, &ss.ChartSubcomponentParentClassTypes)
 	pcID := ss.ChartSubcomponentParentClassTypeID
 	ss.SetParentIDs(pcID)

@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 	v1 "k8s.io/api/apps/v1"
@@ -36,7 +35,7 @@ func (p *PodContainersGroupTestSuite) TestContainersInsertFromParsedDeploymentFi
 	q := sql_query_templates.NewQueryParam("InsertPodResourceContainers", "table", "where", 1000, []string{})
 
 	// TODO update with another chart later?
-	c := create.Chart{}
+	c := charts.Chart{}
 	// specific to test, above code is just setting up
 	err = dbDeploymentConfig.InsertPodTemplateSpec(ctx, q, &c)
 	p.Require().Nil(err)

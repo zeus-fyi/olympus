@@ -1,4 +1,4 @@
-package create
+package create_charts
 
 import (
 	"context"
@@ -37,5 +37,4 @@ func (c *Chart) InsertChart(ctx context.Context, q sql_query_templates.QueryPara
 	query := c.insertChart()
 	err := apps.Pg.QueryRow(ctx, query).Scan(&c.ChartPackageID)
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
-
 }

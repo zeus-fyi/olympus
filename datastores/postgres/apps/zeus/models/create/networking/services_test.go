@@ -2,14 +2,19 @@ package networking
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking"
+	create_charts "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/charts"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/rand"
 )
 
 type NetworkingTestSuite struct {
@@ -37,12 +42,20 @@ func (s *NetworkingTestSuite) TestConvertServiceAndInsert() {
 	s.Require().NotEmpty(zeusService.ServiceSpec)
 	s.Require().NotEmpty(zeusService.Service.ServiceSpec.Ports)
 
-	mockC := s.MockChart()
+	ns := sql.NullString{}
+	c := create_charts.Chart{ChartPackages: autogen_bases.ChartPackages{
+		ChartPackageID:   0,
+		ChartName:        rand.String(10),
+		ChartVersion:     rand.String(10),
+		ChartDescription: ns,
+	}}
+	ctx := context.Background()
+	q := sql_query_templates.NewQueryParam("InsertChart", "table", "where", 1000, []string{})
+	err = c.InsertChart(ctx, q)
 	s.Require().Nil(err)
 
-	ctx := context.Background()
-	q := sql_query_templates.NewQueryParam("InsertService", "table", "where", 1000, []string{})
-
+	mockC := charts.Chart{}
+	mockC.ChartPackageID = c.GetChartPackageID()
 	err = zeusService.InsertService(ctx, q, &mockC)
 	s.Require().Nil(err)
 }

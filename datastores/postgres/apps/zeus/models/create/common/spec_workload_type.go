@@ -1,12 +1,12 @@
 package common
 
 import (
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-func CreateSpecWorkloadTypeSubCTE(c *create.Chart, specWorkload structs.SpecWorkload) sql_query_templates.SubCTEs {
+func CreateSpecWorkloadTypeSubCTE(c *charts.Chart, specWorkload structs.SpecWorkload) sql_query_templates.SubCTEs {
 	parentClassTypeSubCTE := CreateParentClassTypeSubCTE(c, &specWorkload.ChartSubcomponentParentClassTypes)
 	pcID := specWorkload.ChartSubcomponentParentClassTypeID
 	specWorkload.SetParentClassTypeIDs(pcID)

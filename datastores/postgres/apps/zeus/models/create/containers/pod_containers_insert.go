@@ -2,7 +2,7 @@ package containers
 
 import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/common"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -12,7 +12,7 @@ const SelectDeploymentResourceID = "(SELECT chart_component_resource_id FROM cha
 
 // InsertPodTemplateSpecContainersCTE will use the next_id distributed ID generator and select the container id
 // value for subsequent subcomponent relationships of its element, should greatly simplify the insert logic
-func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *create.Chart) sql_query_templates.CTE {
+func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart) sql_query_templates.CTE {
 	// container
 	ts := chronos.Chronos{}
 	if p.GetPodSpecParentClassTypeID() == 0 {

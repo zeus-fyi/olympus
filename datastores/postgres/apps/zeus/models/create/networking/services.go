@@ -5,8 +5,8 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/common"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -18,7 +18,7 @@ type Service struct {
 
 const ModelName = "Service"
 
-func (s *Service) InsertService(ctx context.Context, q sql_query_templates.QueryParams, c *create.Chart) error {
+func (s *Service) InsertService(ctx context.Context, q sql_query_templates.QueryParams, c *charts.Chart) error {
 	log.Debug().Interface("InsertQuery:", q.LogHeader(ModelName))
 	q.CTEQuery = s.InsertServiceCte(c)
 	q.RawQuery = q.CTEQuery.GenerateChainedCTE()
@@ -31,7 +31,7 @@ func (s *Service) InsertService(ctx context.Context, q sql_query_templates.Query
 	return misc.ReturnIfErr(err, q.LogHeader(ModelName))
 }
 
-func (s *Service) InsertServiceCte(chart *create.Chart) sql_query_templates.CTE {
+func (s *Service) InsertServiceCte(chart *charts.Chart) sql_query_templates.CTE {
 
 	if chart != nil {
 		s.SetChartPackageID(chart.GetChartPackageID())

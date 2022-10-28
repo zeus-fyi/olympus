@@ -1,9 +1,17 @@
 package charts
 
-import autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+import (
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+)
 
 type Chart struct {
 	autogen_bases.ChartPackages
+}
+
+const Sn = "Chart"
+
+func (c *Chart) GetChartPackageID() int {
+	return c.ChartPackageID
 }
 
 type Package struct {

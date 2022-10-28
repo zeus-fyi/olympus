@@ -5,12 +5,12 @@ import (
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-func AddParentClassToChartPackage(c *create.Chart, parentClassID int) sql_query_templates.SubCTE {
+func AddParentClassToChartPackage(c *charts.Chart, parentClassID int) sql_query_templates.SubCTE {
 	cpk := autogen_bases.ChartPackageComponents{
 		ChartPackageID:                     c.GetChartPackageID(),
 		ChartSubcomponentParentClassTypeID: parentClassID,

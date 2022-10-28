@@ -6,7 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulset"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/charts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/common"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -18,7 +18,7 @@ type StatefulSet struct {
 
 const ModelName = "StatefulSet"
 
-func (s *StatefulSet) InsertStatefulSet(ctx context.Context, q sql_query_templates.QueryParams, c *create.Chart) error {
+func (s *StatefulSet) InsertStatefulSet(ctx context.Context, q sql_query_templates.QueryParams, c *charts.Chart) error {
 	log.Debug().Interface("InsertQuery:", q.LogHeader(ModelName))
 	q.CTEQuery = s.InsertStatefulSetCte(c)
 	q.RawQuery = q.CTEQuery.GenerateChainedCTE()
@@ -31,7 +31,7 @@ func (s *StatefulSet) InsertStatefulSet(ctx context.Context, q sql_query_templat
 	return misc.ReturnIfErr(err, q.LogHeader(ModelName))
 }
 
-func (s *StatefulSet) InsertStatefulSetCte(c *create.Chart) sql_query_templates.CTE {
+func (s *StatefulSet) InsertStatefulSetCte(c *charts.Chart) sql_query_templates.CTE {
 	var combinedSubCTEs sql_query_templates.SubCTEs
 	// metadata
 	metaDataCtes := common.CreateParentMetadataSubCTEs(c, s.Metadata)

@@ -1,4 +1,4 @@
-package charts
+package create_charts
 
 import (
 	"context"

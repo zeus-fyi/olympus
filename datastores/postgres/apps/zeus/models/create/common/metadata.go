@@ -1,14 +1,14 @@
 package common
 
 import (
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
 // CreateParentMetadataSubCTEs returns parent cte, name, label, annotations sub ctes
-func CreateParentMetadataSubCTEs(c *create.Chart, metadata structs.ParentMetaData) sql_query_templates.SubCTEs {
+func CreateParentMetadataSubCTEs(c *charts.Chart, metadata structs.ParentMetaData) sql_query_templates.SubCTEs {
 	if metadata.ChartSubcomponentParentClassTypeID == 0 {
 		ts := chronos.Chronos{}
 		metadata.SetParentClassTypeIDs(ts.UnixTimeStampNow())

@@ -8,7 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -26,7 +26,7 @@ func (p *ParentClass) InsertParentClassTypeID(id int) {
 
 const SelectDeploymentResourceID = "(SELECT chart_component_resource_id FROM chart_component_resources WHERE chart_component_kind_name = 'Deployment' AND chart_component_api_version = 'apps/v1')"
 
-func CreateParentClassTypeSubCTE(c *create.Chart, pcType *autogen_bases.ChartSubcomponentParentClassTypes) sql_query_templates.SubCTEs {
+func CreateParentClassTypeSubCTE(c *charts.Chart, pcType *autogen_bases.ChartSubcomponentParentClassTypes) sql_query_templates.SubCTEs {
 	if pcType.ChartSubcomponentParentClassTypeID == 0 {
 		var ts chronos.Chronos
 		pcTypeClassTypeID := ts.UnixTimeStampNow()

@@ -1,15 +1,16 @@
-package v1
+package coreK8s
 
 import (
 	"time"
 
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
+	v12 "github.com/zeus-fyi/olympus/zeus/api/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type PodActionRequest struct {
-	K8sRequest
+	v12.K8sRequest
 	Action        string
 	PodName       string
 	ContainerName string

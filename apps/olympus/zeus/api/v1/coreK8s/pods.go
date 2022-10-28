@@ -1,4 +1,4 @@
-package v1
+package coreK8s
 
 import (
 	"context"
@@ -15,6 +15,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/client"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
+	v12 "github.com/zeus-fyi/olympus/zeus/api/v1"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -59,7 +60,7 @@ func podsPortForwardRequestToAllPods(c echo.Context, request *PodActionRequest) 
 	ctx := context.Background()
 	log.Ctx(ctx).Debug().Msg("start podsPortForwardRequestToAllPods")
 
-	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, nil, request.FilterOpts)
+	pods, err := v12.K8util.GetPodsUsingCtxNs(ctx, request.Kns, nil, request.FilterOpts)
 	if err != nil {
 		return err
 	}
@@ -97,7 +98,7 @@ func podsPortForwardRequest(request *PodActionRequest) ([]byte, error) {
 	go func() {
 		log.Ctx(ctx).Debug().Msg("start port-forward thread")
 		address := "localhost"
-		err := K8util.PortForwardPod(ctx, request.Kns, request.PodName, address, clientReq.Ports, startChan, stopChan, request.FilterOpts)
+		err := v12.K8util.PortForwardPod(ctx, request.Kns, request.PodName, address, clientReq.Ports, startChan, stopChan, request.FilterOpts)
 		log.Ctx(ctx).Err(err).Msg("error in port forwarding")
 		log.Ctx(ctx).Debug().Msg("done port-forward")
 	}()
@@ -153,7 +154,7 @@ func podsPortForwardRequest(request *PodActionRequest) ([]byte, error) {
 func PodsDeleteRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
 	log.Ctx(ctx).Debug().Msg("PodsDeleteRequest")
-	err := K8util.DeleteFirstPodLike(ctx, request.Kns, request.PodName, request.DeleteOpts, request.FilterOpts)
+	err := v12.K8util.DeleteFirstPodLike(ctx, request.Kns, request.PodName, request.DeleteOpts, request.FilterOpts)
 	if err != nil {
 		return err
 	}
@@ -164,7 +165,7 @@ func PodsDeleteRequest(c echo.Context, request *PodActionRequest) error {
 func PodsDeleteAllRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
 	log.Ctx(ctx).Debug().Msg("PodsDeleteAllRequest")
-	err := K8util.DeleteAllPodsLike(ctx, request.Kns, request.PodName, request.DeleteOpts, request.FilterOpts)
+	err := v12.K8util.DeleteAllPodsLike(ctx, request.Kns, request.PodName, request.DeleteOpts, request.FilterOpts)
 	if err != nil {
 		return err
 	}
@@ -173,7 +174,7 @@ func PodsDeleteAllRequest(c echo.Context, request *PodActionRequest) error {
 
 func PodsDescribeRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
-	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, request.LogOpts, request.FilterOpts)
+	pods, err := v12.K8util.GetPodsUsingCtxNs(ctx, request.Kns, request.LogOpts, request.FilterOpts)
 	if err != nil {
 		return err
 	}
@@ -183,7 +184,7 @@ func PodsDescribeRequest(c echo.Context, request *PodActionRequest) error {
 func PodLogsActionRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
 	log.Ctx(ctx).Debug().Msg("PodLogsActionRequest")
-	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, nil, request.FilterOpts)
+	pods, err := v12.K8util.GetPodsUsingCtxNs(ctx, request.Kns, nil, request.FilterOpts)
 	if err != nil {
 		return err
 	}
@@ -194,7 +195,7 @@ func PodLogsActionRequest(c echo.Context, request *PodActionRequest) error {
 			p = pod
 		}
 	}
-	logs, err := K8util.GetPodLogs(ctx, p.GetName(), request.Kns.Namespace, request.LogOpts, request.FilterOpts)
+	logs, err := v12.K8util.GetPodLogs(ctx, p.GetName(), request.Kns.Namespace, request.LogOpts, request.FilterOpts)
 	if err != nil {
 		return err
 	}
@@ -204,7 +205,7 @@ func PodLogsActionRequest(c echo.Context, request *PodActionRequest) error {
 func PodsAuditRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
 
-	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, request.LogOpts, request.FilterOpts)
+	pods, err := v12.K8util.GetPodsUsingCtxNs(ctx, request.Kns, request.LogOpts, request.FilterOpts)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}

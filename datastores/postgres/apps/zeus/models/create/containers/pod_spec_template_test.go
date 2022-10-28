@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/charts"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
@@ -45,8 +45,8 @@ func seedHeadlessPodSpec() PodSpecContainerMetadata {
 	return cr
 }
 
-func seedHeadlessPodSpecChartComponentResource() create.ChartComponentResources {
-	cr := create.ChartComponentResources{ChartComponentResources: autogen_bases.ChartComponentResources{
+func seedHeadlessPodSpecChartComponentResource() charts.ChartComponentResources {
+	cr := charts.ChartComponentResources{ChartComponentResources: autogen_bases.ChartComponentResources{
 		ChartComponentResourceID: 3,
 		ChartComponentKindName:   "HeadlessPodSpec",
 		ChartComponentApiVersion: "v1",

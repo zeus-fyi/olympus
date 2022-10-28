@@ -31,6 +31,19 @@ func (s *ChartPackagesTestSuite) TestConvertDeploymentAndInsert() {
 	s.Assert().NotZero(c.ChartPackageID)
 }
 
+func (s *ChartPackagesTestSuite) TestInsert() {
+	ns := sql.NullString{}
+	c := Chart{ChartPackages: autogen_bases.ChartPackages{
+		ChartName:        rand.String(10),
+		ChartVersion:     rand.String(10),
+		ChartDescription: ns,
+	}}
+	q := sql_query_templates.NewQueryParam("InsertMockChartForTest", "table", "where", 1000, []string{})
+	ctx := context.Background()
+	err := c.InsertChart(ctx, q)
+	s.Require().Nil(err)
+
+}
 func TestChartPackagesTestSuite(t *testing.T) {
 	suite.Run(t, new(ChartPackagesTestSuite))
 }

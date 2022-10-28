@@ -41,11 +41,16 @@ func Convert32BitPtrIntToString(int32BitPtr *int32) string {
 }
 
 func ConvertStringTo32BitPtrInt(int32BitPtrString string) *int32 {
+	rc := ConvertStringTo32BitInt(int32BitPtrString)
+	return &rc
+}
+
+func ConvertStringTo32BitInt(int32BitPtrString string) int32 {
 	var rc int32
 	int32Value, err := strconv.ParseInt(int32BitPtrString, 0, 32)
 	if err != nil {
 		panic(err)
 	}
 	rc = int32(int32Value)
-	return &rc
+	return rc
 }

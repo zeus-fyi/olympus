@@ -32,8 +32,10 @@ func (ss *ServiceSpec) CreateServiceSpecSubCTE(c *charts.Chart) sql_query_templa
 	ss.SetParentIDs(pcID)
 	chartComponentRelationshipCte := common.AddParentClassToChartPackage(c, pcID)
 	matchLabelsCtes := common.CreateChildClassMultiValueSubCTEs(&ss.Selector.MatchLabels)
+	specTypeCte := common.CreateChildClassSingleValueSubCTEs(&ss.Type)
+
 	portsCte := common.CreateFromSliceChildClassMultiValueSubCTEs(ss.Ports)
-	combinedSubCtes := sql_query_templates.AppendSubCteSlices(parentClassTypeSubCTE, matchLabelsCtes, portsCte, []sql_query_templates.SubCTE{chartComponentRelationshipCte})
+	combinedSubCtes := sql_query_templates.AppendSubCteSlices(parentClassTypeSubCTE, matchLabelsCtes, specTypeCte, portsCte, []sql_query_templates.SubCTE{chartComponentRelationshipCte})
 	return combinedSubCtes
 }
 

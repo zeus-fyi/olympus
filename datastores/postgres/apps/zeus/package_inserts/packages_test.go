@@ -60,6 +60,7 @@ func (p *PackagesTestSuite) TestInsert() {
 	ctx = context.Background()
 	q = sql_query_templates.NewQueryParam("InsertPackages", "table", "where", 1000, []string{})
 	err = pkg.InsertPackages(ctx, q)
+	p.Require().Nil(err)
 }
 
 func TestPackagesTestSuite(t *testing.T) {

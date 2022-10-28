@@ -24,7 +24,10 @@ func (d *Deployment) ParsePCGroupMap(pcSlice common_conversions.ParentChildDB) e
 }
 
 func (d *Deployment) ConvertDeploymentConfigToDB() error {
-	d.Metadata.ChartSubcomponentParentClassTypeName = "DeploymentParentMetadata"
+	newDeployment := NewDeployment()
+	d.KindDefinition = newDeployment.KindDefinition
+	d.Metadata = newDeployment.Metadata
+	d.Spec = newDeployment.Spec
 	d.Metadata.Metadata = common_conversions.CreateMetadataByFields(d.K8sDeployment.Name, d.K8sDeployment.Annotations, d.K8sDeployment.Labels)
 	err := d.ConvertDeploymentSpec()
 	if err != nil {

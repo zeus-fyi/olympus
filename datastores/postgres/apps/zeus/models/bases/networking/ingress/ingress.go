@@ -27,6 +27,7 @@ func NewIngress() Ingress {
 		Spec:       v1.IngressSpec{},
 		Status:     v1.IngressStatus{},
 	}
+	ing.Spec = NewIngressSpec()
 
 	return ing
 }

@@ -2,8 +2,11 @@ package ingress
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"testing"
 
+	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
@@ -12,6 +15,16 @@ import (
 
 type IngressTestSuite struct {
 	conversions_test.ConversionsTestSuite
+}
+
+func (s *IngressTestSuite) TestK8sIngressYamlReader() {
+	ing := NewIngress()
+	filepath := s.TestDirectory + "/mocks/test/ingress.yaml"
+	jsonBytes, err := s.Yr.ReadYamlConfig(filepath)
+	err = json.Unmarshal(jsonBytes, &ing.K8sIngress)
+
+	s.Require().Nil(err)
+	s.Require().NotEmpty(ing.K8sIngress)
 }
 
 func (s *IngressTestSuite) TestSeedChartComponents() {
@@ -42,9 +55,13 @@ func (s *IngressTestSuite) InsertChartResource(ctx context.Context, q sql_query_
 
 func seedService() autogen_bases.ChartComponentResources {
 	cr := autogen_bases.ChartComponentResources{
-		ChartComponentResourceID: 0,
+		ChartComponentResourceID: 14,
 		ChartComponentKindName:   "Ingress",
 		ChartComponentApiVersion: "networking.k8s.io/v1",
 	}
 	return cr
+}
+
+func TestIngressTestSuite(t *testing.T) {
+	suite.Run(t, new(IngressTestSuite))
 }

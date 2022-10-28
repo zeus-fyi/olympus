@@ -1,4 +1,4 @@
-package package_inserts
+package packages
 
 import (
 	"context"

@@ -1,6 +1,8 @@
 package common
 
 import (
+	"fmt"
+
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
@@ -21,7 +23,8 @@ func CreateChildClassSingleValueSubCTEs(csv *structs.ChildClassSingleValue) sql_
 }
 
 func createChildClassSingleValueSubCTE(childClassTypeName string, csv *autogen_bases.ChartSubcomponentsChildValues) sql_query_templates.SubCTE {
-	queryName := "cte_" + childClassTypeName + "_value"
+	var ts chronos.Chronos
+	queryName := fmt.Sprintf("cte_%s_value_%d", childClassTypeName, ts.UnixTimeStampNow())
 	subCTE := sql_query_templates.NewSubInsertCTE(queryName)
 	subCTE.TableName = csv.GetTableName()
 	subCTE.Fields = csv.GetTableColumns()
@@ -31,7 +34,8 @@ func createChildClassSingleValueSubCTE(childClassTypeName string, csv *autogen_b
 
 func createChildClassSingleValueChildClassTypeSubCTE(csvType *autogen_bases.ChartSubcomponentChildClassTypes) sql_query_templates.SubCTE {
 	childClassTypeName := csvType.ChartSubcomponentChildClassTypeName
-	queryName := "cte_" + childClassTypeName
+	var ts chronos.Chronos
+	queryName := fmt.Sprintf("cte_%s_%d", childClassTypeName, ts.UnixTimeStampNow())
 	childClassTypeSubCTE := sql_query_templates.NewSubInsertCTE(queryName)
 	childClassTypeSubCTE.TableName = csvType.GetTableName()
 	childClassTypeSubCTE.Fields = csvType.GetTableColumns()

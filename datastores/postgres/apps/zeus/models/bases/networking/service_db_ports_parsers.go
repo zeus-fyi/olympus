@@ -1,15 +1,27 @@
 package networking
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func (s *Service) ServicePortsToDB() {
 	for _, svcPort := range s.K8sService.Spec.Ports {
 		m := make(map[string]string)
-		m["name"] = svcPort.Name
+
 		m["port"] = fmt.Sprintf("%d", svcPort.Port)
-		m["targetPort"] = svcPort.TargetPort.String()
-		m["nodePort"] = fmt.Sprintf("%d", svcPort.NodePort)
-		m["protocol"] = string(svcPort.Protocol)
+
+		if len(svcPort.Name) > 0 {
+			m["name"] = svcPort.Name
+		}
+		if len(svcPort.TargetPort.String()) > 0 {
+			m["targetPort"] = svcPort.TargetPort.String()
+		}
+		if svcPort.NodePort != 0 {
+			m["nodePort"] = fmt.Sprintf("%d", svcPort.NodePort)
+		}
+		if len(string(svcPort.Protocol)) > 0 {
+			m["protocol"] = string(svcPort.Protocol)
+		}
 		s.ServiceSpec.AddPortMapValuesThenInsertAsPort(m)
 	}
 }

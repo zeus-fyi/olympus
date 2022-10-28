@@ -12,6 +12,9 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
+    - port: 81
+      name: tcp-sentinel
+      targetPort: http2
   selector:
     app.kubernetes.io/name: "eth-indexer"
     app.kubernetes.io/managed-by: "zeus"

@@ -2,7 +2,7 @@ package statefulset
 
 import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/containers"
 	v1 "k8s.io/api/apps/v1"
@@ -12,7 +12,7 @@ import (
 type StatefulSetAndChildServices struct {
 	StatefulSet StatefulSet
 	//Related Component Requirement
-	ServiceDefinition networking.Service
+	ServiceDefinition services.Service
 }
 
 type StatefulSet struct {

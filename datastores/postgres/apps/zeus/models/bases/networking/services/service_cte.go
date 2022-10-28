@@ -1,4 +1,4 @@
-package networking
+package services
 
 import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"

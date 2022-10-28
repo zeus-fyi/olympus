@@ -9,7 +9,7 @@ import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/containers"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
 	read_deployments "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/deployments"
 	read_networking "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/networking"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -20,7 +20,7 @@ type Chart struct {
 	autogen_bases.ChartComponentResources
 
 	*deployments.Deployment
-	*networking.Service
+	*services.Service
 }
 
 const ModelName = "Chart"
@@ -219,7 +219,7 @@ func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_tem
 			}
 		case "Service":
 			if c.Service == nil {
-				svc := networking.NewService()
+				svc := services.NewService()
 				c.Service = &svc
 				serr := read_networking.DBServiceResource(c.Service, ckagg)
 				if serr != nil {

@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
 	create_charts "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/charts"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -32,7 +32,7 @@ func (s *NetworkingTestSuite) TestConvertServiceAndInsert() {
 	s.Require().NotEmpty(svc)
 
 	zeusService := Service{
-		networking.NewService(),
+		services.NewService(),
 	}
 	zeusService.K8sService = svc
 	zeusService.ConvertK8sServiceToDB()

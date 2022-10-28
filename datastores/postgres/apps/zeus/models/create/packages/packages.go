@@ -7,7 +7,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
@@ -15,7 +15,7 @@ import (
 type Packages struct {
 	charts.Chart
 	*deployments.Deployment
-	*networking.Service
+	*services.Service
 }
 
 const Sn = "Packages"

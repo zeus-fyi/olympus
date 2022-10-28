@@ -10,7 +10,7 @@ import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
 	create_charts "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/charts"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -35,7 +35,7 @@ func (p *PackagesTestSuite) TestInsert() {
 	p.Require().Nil(err)
 
 	nd := deployments.NewDeployment()
-	nsvc := networking.NewService()
+	nsvc := services.NewService()
 	pkg := Packages{
 		Chart:      charts.Chart{},
 		Deployment: &nd,

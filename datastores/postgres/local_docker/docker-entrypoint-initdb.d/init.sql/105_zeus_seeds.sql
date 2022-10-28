@@ -15,4 +15,15 @@ INSERT INTO "public"."chart_component_resources" VALUES (12, 'ConfigMap', 'v1');
 INSERT INTO "public"."chart_component_resources" VALUES (13, 'Secret', 'v1');
 INSERT INTO "public"."chart_component_resources" VALUES (14, 'Ingress', 'networking.k8s.io/v1');
 INSERT INTO "public"."chart_component_resources" VALUES (15, 'IngressClass', 'networking.k8s.io/v1');
+INSERT INTO "public"."chart_component_resources" VALUES (15, 'Pod', 'v1');
+INSERT INTO "public"."chart_component_resources" VALUES (16, 'ServiceAccount', 'v1');
+INSERT INTO "public"."chart_component_resources" VALUES (17, 'ClusterRole', 'rbac.authorization.k8s.io/v1');
+INSERT INTO "public"."chart_component_resources" VALUES (18, 'RoleBinding', 'rbac.authorization.k8s.io/v1');
+INSERT INTO "public"."chart_component_resources" VALUES (19, 'ClusterRoleBinding', 'rbac.authorization.k8s.io/v1');
+INSERT INTO "public"."chart_component_resources" VALUES (20, 'Role', 'rbac.authorization.k8s.io/v1');
+INSERT INTO "public"."chart_component_resources" VALUES (21, 'CSIDriver', 'storage.k8s.io/v1');
+INSERT INTO "public"."chart_component_resources" VALUES (22, 'CSINode', 'storage.k8s.io/v1');
+INSERT INTO "public"."chart_component_resources" VALUES (23, 'CSIStorageCapacity', 'storage.k8s.io/v1');
+
+
 COMMIT;

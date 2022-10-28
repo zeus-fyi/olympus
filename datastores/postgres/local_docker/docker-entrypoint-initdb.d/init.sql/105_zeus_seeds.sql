@@ -13,4 +13,6 @@ INSERT INTO "public"."chart_component_resources" VALUES (10, 'StorageClass', 'st
 INSERT INTO "public"."chart_component_resources" VALUES (11, 'VolumeSnapshotContent', 'snapshot.storage.k8s.io/v1');
 INSERT INTO "public"."chart_component_resources" VALUES (12, 'ConfigMap', 'v1');
 INSERT INTO "public"."chart_component_resources" VALUES (13, 'Secret', 'v1');
+INSERT INTO "public"."chart_component_resources" VALUES (14, 'Ingress', 'networking.k8s.io/v1');
+INSERT INTO "public"."chart_component_resources" VALUES (15, 'IngressClass', 'networking.k8s.io/v1');
 COMMIT;

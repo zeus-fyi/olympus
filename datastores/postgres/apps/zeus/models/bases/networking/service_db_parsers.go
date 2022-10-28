@@ -5,6 +5,7 @@ import (
 )
 
 func (s *Service) ConvertK8sServiceToDB() {
+	s.Metadata.ChartSubcomponentParentClassTypeName = "ServiceParentMetadata"
 	metadata := common_conversions.ConvertMetadata(s.K8sService.ObjectMeta)
 	s.Metadata.Metadata = metadata
 	s.ConvertServiceSpecConfigToDB()

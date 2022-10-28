@@ -39,6 +39,5 @@ func NewService() Service {
 		ChartComponentResourceID: SvcChartComponentResourceID,
 	}
 	s.ServiceSpec = NewServiceSpec()
-
 	return s
 }

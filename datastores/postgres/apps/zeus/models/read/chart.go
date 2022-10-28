@@ -9,7 +9,9 @@ import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/containers"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking"
 	read_deployments "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/deployments"
+	read_networking "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/networking"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
@@ -18,6 +20,7 @@ type Chart struct {
 	autogen_bases.ChartComponentResources
 
 	*deployments.Deployment
+	*networking.Service
 }
 
 const ModelName = "Chart"
@@ -203,16 +206,26 @@ func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_tem
 			if c.Deployment == nil {
 				deployment := deployments.NewDeployment()
 				c.Deployment = &deployment
+				derr := read_deployments.DBDeploymentResource(c.Deployment, ckagg, podSpecVolumesStr)
+				if derr != nil {
+					log.Err(derr).Msg(q.LogHeader(ModelName))
+					return derr
+				}
 			}
-			derr := read_deployments.DBDeploymentResource(c.Deployment, ckagg, podSpecVolumesStr)
-			if derr != nil {
-				log.Err(derr).Msg(q.LogHeader(ModelName))
-				return derr
+			err = read_deployments.DBDeploymentContainer(c.Deployment, &container)
+			if err != nil {
+				log.Err(err).Msg(q.LogHeader(ModelName))
+				return err
 			}
-			derr = read_deployments.DBDeploymentContainer(c.Deployment, &container)
-			if derr != nil {
-				log.Err(derr).Msg(q.LogHeader(ModelName))
-				return derr
+		case "Service":
+			if c.Service == nil {
+				svc := networking.NewService()
+				c.Service = &svc
+				serr := read_networking.DBServiceResource(c.Service, ckagg)
+				if serr != nil {
+					log.Err(serr).Msg(q.LogHeader(ModelName))
+					return serr
+				}
 			}
 		}
 	}

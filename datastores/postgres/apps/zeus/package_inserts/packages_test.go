@@ -34,10 +34,12 @@ func (p *PackagesTestSuite) TestInsert() {
 	err := c.InsertChart(ctx, q)
 	p.Require().Nil(err)
 
+	nd := deployments.NewDeployment()
+	nsvc := networking.NewService()
 	pkg := Packages{
 		Chart:      charts.Chart{},
-		Deployment: &deployments.Deployment{},
-		Service:    &networking.Service{},
+		Deployment: &nd,
+		Service:    &nsvc,
 	}
 	pkg.Chart.ChartPackageID = c.GetChartPackageID()
 	p.Require().NotZero(pkg.Chart.ChartPackageID)

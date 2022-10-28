@@ -18,7 +18,7 @@ type ServiceSpec struct {
 
 func NewServiceSpec() ServiceSpec {
 	s := ServiceSpec{}
-	s.ChartSubcomponentParentClassTypeName = "ServiceSpec"
+	s.ChartSubcomponentParentClassTypeName = "Spec"
 	s.ChartComponentResourceID = SvcChartComponentResourceID
 	s.Type = structs.NewChildClassSingleValue("type")
 	s.ServicePorts = NewServicePorts()

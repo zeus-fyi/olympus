@@ -41,5 +41,20 @@ CREATE TABLE "public"."topologies_deployed" (
    "topology_id" int8 NOT NULL REFERENCES topologies(topology_id),
    "org_id" int8 NOT NULL REFERENCES orgs(org_id),
    "user_id" int8 NOT NULL REFERENCES users(user_id),
-   "topology_status" text NOT NULL
+   "topology_status" text NOT NULL,
+   "updated_at" timestamptz  NOT NULL DEFAULT NOW()
 );
+
+-- if needed again per different schema. eg zeus.DB, vs eth.DB
+-- CREATE OR REPLACE FUNCTION trigger_set_timestamp()
+--     RETURNS TRIGGER AS $$
+-- BEGIN
+--     NEW.updated_at = NOW();
+--     RETURN NEW;
+-- END;
+-- $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER set_timestamp
+    BEFORE UPDATE ON topologies_deployed
+    FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();

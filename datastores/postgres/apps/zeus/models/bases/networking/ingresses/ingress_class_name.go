@@ -5,9 +5,15 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
 
-func NewIngressClassName(ingressClassName string) structs.ChildClassSingleValue {
+type IngressClassName struct {
+	structs.ChildClassSingleValue
+}
+
+func (is *Spec) NewIngressClassName(ingressClassName string) {
 	csv := structs.NewChildClassSingleValue("ingressClassName")
 	ts := chronos.Chronos{}
 	csv.SetSingleChildClassIDTypeNameKeyAndValue(ts.UnixTimeStampNow(), "ingressClassName", "ingressClassName", ingressClassName)
-	return csv
+
+	icName := IngressClassName{csv}
+	is.IngressClassName = &icName
 }

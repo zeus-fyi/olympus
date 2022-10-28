@@ -15,6 +15,11 @@ func (i *Ingress) ParseK8sConfigToDB() error {
 
 func (i *Ingress) ConvertIngressSpecConfigToDB() error {
 	i.Spec = NewIngressSpec()
+
+	if i.K8sIngress.Spec.IngressClassName != nil {
+		i.NewIngressClassName(*i.K8sIngress.Spec.IngressClassName)
+	}
+
 	err := i.ConvertK8sIngressRuleToDB()
 	if err != nil {
 		return err

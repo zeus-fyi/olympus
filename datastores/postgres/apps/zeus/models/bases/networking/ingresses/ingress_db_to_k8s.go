@@ -32,9 +32,11 @@ func (i *Ingress) ConvertSpec(pcSlice []common_conversions.PC) error {
 		keyName := pc.ChartSubcomponentKeyName
 		value := pc.ChartSubcomponentValue
 		dev_hacks.Use(ccTypeID, keyName, value)
+
 		switch subClassName {
+		case "ingressClassName":
+			i.K8sIngress.Spec.IngressClassName = &value
 		case "tls":
-			// todo i.K8sIngress.Spec.TLS
 			err := i.ConvertDBIngressRuleToK8s(ingressRulesMap)
 			if err != nil {
 				return err

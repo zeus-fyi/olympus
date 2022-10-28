@@ -9,7 +9,7 @@ type Spec struct {
 	autogen_bases.ChartSubcomponentParentClassTypes
 
 	DefaultBackend   *structs.SuperParentClassGroup
-	IngressClassName *structs.ChildClassSingleValue
+	IngressClassName *IngressClassName
 	TLS              TLS
 	Rules            Rules
 }

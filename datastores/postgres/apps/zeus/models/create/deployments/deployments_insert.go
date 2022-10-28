@@ -19,7 +19,7 @@ const ModelName = "Deployment"
 
 func (d *Deployment) InsertDeployment(ctx context.Context, q sql_query_templates.QueryParams, c *charts.Chart) error {
 	log.Debug().Interface("InsertQuery:", q.LogHeader(ModelName))
-	q.CTEQuery = d.InsertDeploymentCte(c)
+	q.CTEQuery = d.GetDeploymentCTE(c)
 	q.RawQuery = q.CTEQuery.GenerateChainedCTE()
 	r, err := apps.Pg.Exec(ctx, q.RawQuery)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {

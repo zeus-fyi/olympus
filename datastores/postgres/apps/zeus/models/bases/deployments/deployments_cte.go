@@ -6,7 +6,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-func (d *Deployment) InsertDeploymentCte(chart *charts.Chart) sql_query_templates.CTE {
+func (d *Deployment) GetDeploymentCTE(chart *charts.Chart) sql_query_templates.CTE {
 	var combinedSubCTEs sql_query_templates.SubCTEs
 	// metadata
 	metaDataCtes := common.CreateParentMetadataSubCTEs(chart, d.Metadata)

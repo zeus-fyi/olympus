@@ -24,8 +24,8 @@ func (d *Deployment) ParsePCGroupMap(pcSlice common_conversions.ParentChildDB) e
 }
 
 func (d *Deployment) ConvertDeploymentConfigToDB() error {
-	dbDeployment := NewDeployment()
-	dbDeployment.Metadata.Metadata = common_conversions.CreateMetadataByFields(d.K8sDeployment.Name, d.K8sDeployment.Annotations, d.K8sDeployment.Labels)
+	d.Metadata.ChartSubcomponentParentClassTypeName = "DeploymentParentMetadata"
+	d.Metadata.Metadata = common_conversions.CreateMetadataByFields(d.K8sDeployment.Name, d.K8sDeployment.Annotations, d.K8sDeployment.Labels)
 	err := d.ConvertDeploymentSpec()
 	if err != nil {
 		return err
@@ -34,11 +34,7 @@ func (d *Deployment) ConvertDeploymentConfigToDB() error {
 }
 
 func (d *Deployment) ConvertDeploymentSpec() error {
-	deploymentTemplateSpec := d.K8sDeployment.Spec.Template
-	podTemplateSpec := deploymentTemplateSpec.Spec
-
 	dbDeploymentSpec := NewDeploymentSpec()
-
 	m := make(map[string]string)
 	if d.K8sDeployment.Spec.Selector != nil {
 		bytes, err := json.Marshal(d.K8sDeployment.Spec.Selector)
@@ -47,14 +43,14 @@ func (d *Deployment) ConvertDeploymentSpec() error {
 		}
 		selectorString := string(bytes)
 		m["selectorString"] = selectorString
-		dbDeploymentSpec.Selector.MatchLabels.AddValues(m)
+		d.Spec.Selector.MatchLabels.AddValues(m)
 	}
 
-	dbDeploymentSpec.Replicas.ChartSubcomponentValue = string_utils.Convert32BitPtrIntToString(d.K8sDeployment.Spec.Replicas)
-	dbPodTemplateSpec, err := dbDeploymentSpec.Template.ConvertPodTemplateSpecConfigToDB(&podTemplateSpec)
+	d.Spec.Replicas.ChartSubcomponentValue = string_utils.Convert32BitPtrIntToString(d.K8sDeployment.Spec.Replicas)
+	dbPodTemplateSpec, err := dbDeploymentSpec.Template.ConvertPodTemplateSpecConfigToDB(&d.K8sDeployment.Spec.Template.Spec)
 	if err != nil {
 		return err
 	}
-	dbDeploymentSpec.Template = dbPodTemplateSpec
+	d.Spec.Template = dbPodTemplateSpec
 	return nil
 }

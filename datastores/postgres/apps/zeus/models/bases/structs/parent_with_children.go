@@ -8,3 +8,48 @@ type SuperParentClass struct {
 	*ChildClassSingleValue
 	*ChildClassMultiValue
 }
+
+func NewSuperParentClass(parentClassTypeName string) SuperParentClass {
+	sc := SuperParentClass{
+		ChartSubcomponentParentClassTypes: autogen_bases.ChartSubcomponentParentClassTypes{
+			ChartPackageID:                       0,
+			ChartComponentResourceID:             0,
+			ChartSubcomponentParentClassTypeID:   0,
+			ChartSubcomponentParentClassTypeName: parentClassTypeName,
+		},
+		ChildClassSingleValue: nil,
+		ChildClassMultiValue:  nil,
+	}
+	return sc
+}
+
+func NewSuperParentClassWithMultiValueChildren(parentClassTypeName, childClassTypeName string) SuperParentClass {
+	ccmv := NewChildClassAndValues(childClassTypeName)
+	sc := SuperParentClass{
+		ChartSubcomponentParentClassTypes: autogen_bases.ChartSubcomponentParentClassTypes{
+			ChartPackageID:                       0,
+			ChartComponentResourceID:             0,
+			ChartSubcomponentParentClassTypeID:   0,
+			ChartSubcomponentParentClassTypeName: parentClassTypeName,
+		},
+		ChildClassSingleValue: nil,
+		ChildClassMultiValue:  &ccmv,
+	}
+	return sc
+}
+
+func NewSuperParentClassWithBothChildTypes(parentClassTypeName, singleChildClassType, multiChildClassTypeName string) SuperParentClass {
+	ccmv := NewChildClassAndValues(multiChildClassTypeName)
+	ccsv := NewChildClassSingleValue(singleChildClassType)
+	sc := SuperParentClass{
+		ChartSubcomponentParentClassTypes: autogen_bases.ChartSubcomponentParentClassTypes{
+			ChartPackageID:                       0,
+			ChartComponentResourceID:             0,
+			ChartSubcomponentParentClassTypeID:   0,
+			ChartSubcomponentParentClassTypeName: parentClassTypeName,
+		},
+		ChildClassSingleValue: &ccsv,
+		ChildClassMultiValue:  &ccmv,
+	}
+	return sc
+}

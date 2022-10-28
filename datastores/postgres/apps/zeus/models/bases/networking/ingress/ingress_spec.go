@@ -7,16 +7,15 @@ import (
 type Spec struct {
 	DefaultBackend   *common.ParentClass
 	IngressClassName *common.ParentClass
-	TLS              common.ParentClass
+	TLS              TLS
 	Rules            common.ParentClass
 }
 
 func NewIngressSpec() Spec {
-	// TODO give these default parent names
 	spec := Spec{
 		DefaultBackend:   nil,
 		IngressClassName: nil,
-		TLS:              common.ParentClass{},
+		TLS:              NewTLS(),
 		Rules:            common.ParentClass{},
 	}
 	return spec

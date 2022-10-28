@@ -1,4 +1,4 @@
-package deployments
+package create_deployments
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package topologies
+package class
 
 import autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 

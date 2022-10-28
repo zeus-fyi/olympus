@@ -1,4 +1,4 @@
-package read
+package read_charts
 
 import (
 	"context"
@@ -7,8 +7,10 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/configuration"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/containers"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/ingresses"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
 	read_deployments "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/deployments"
 	read_networking "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/networking"
@@ -21,6 +23,8 @@ type Chart struct {
 
 	*deployments.Deployment
 	*services.Service
+	*ingresses.Ingress
+	*configuration.ConfigMap
 }
 
 const ModelName = "Chart"

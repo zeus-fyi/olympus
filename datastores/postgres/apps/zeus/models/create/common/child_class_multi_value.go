@@ -25,3 +25,13 @@ func CreateChildClassMultiValueSubCTEs(csv *structs.ChildClassMultiValue) sql_qu
 
 	return sql_query_templates.AppendSubCteSlices(childClassTypeSubCTESlice, childClassValuesSubCTEs)
 }
+
+func CreateFromSliceChildClassMultiValueSubCTEs(csvSlice []structs.ChildClassMultiValue) sql_query_templates.SubCTEs {
+	var combinedCtes sql_query_templates.SubCTEs
+	for _, csv := range csvSlice {
+		newChildValueCtes := CreateChildClassMultiValueSubCTEs(&csv)
+		combinedCtes = sql_query_templates.AppendSubCteSlices(combinedCtes, newChildValueCtes)
+	}
+
+	return combinedCtes
+}

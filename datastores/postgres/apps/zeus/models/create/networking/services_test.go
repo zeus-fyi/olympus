@@ -16,7 +16,7 @@ type NetworkingTestSuite struct {
 	conversions_test.ConversionsTestSuite
 }
 
-func (s *NetworkingTestSuite) TestConvertDeploymentAndInsert() {
+func (s *NetworkingTestSuite) TestConvertServiceAndInsert() {
 	filepath := s.TestDirectory + "/mocks/test/service_eth_indexer.yaml"
 	jsonBytes, err := s.Yr.ReadYamlConfig(filepath)
 
@@ -32,7 +32,10 @@ func (s *NetworkingTestSuite) TestConvertDeploymentAndInsert() {
 	zeusService.K8sService = svc
 	zeusService.ConvertK8sServiceToDB()
 	s.Require().Nil(err)
+
+	s.Require().NotEmpty(zeusService.Metadata)
 	s.Require().NotEmpty(zeusService.ServiceSpec)
+	s.Require().NotEmpty(zeusService.Service.ServiceSpec.Ports)
 
 	mockC := s.MockChart()
 	s.Require().Nil(err)

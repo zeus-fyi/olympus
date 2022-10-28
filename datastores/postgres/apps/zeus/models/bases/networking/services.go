@@ -7,12 +7,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type Service struct {
-	K8sService            v1.Service
-	KindDefinition        autogen_bases.ChartComponentResources
-	ParentClassDefinition autogen_bases.ChartSubcomponentParentClassTypes
+const SvcChartComponentResourceID = 2
 
-	Metadata structs.Metadata
+type Service struct {
+	K8sService     v1.Service
+	KindDefinition autogen_bases.ChartComponentResources
+
+	Metadata structs.ParentMetaData
 	ServiceSpec
 }
 
@@ -22,17 +23,22 @@ func NewService() Service {
 		Kind:       "Service",
 		APIVersion: "v1",
 	}
-
 	s.K8sService = v1.Service{
 		TypeMeta:   typeMeta,
 		ObjectMeta: metav1.ObjectMeta{},
 		Spec:       v1.ServiceSpec{},
 		Status:     v1.ServiceStatus{},
 	}
+	s.Metadata.ChartComponentResourceID = SvcChartComponentResourceID
+	s.Metadata.ChartSubcomponentParentClassTypeName = "ServiceParentMetadata"
+	s.Metadata.Metadata = structs.NewMetadata()
+
 	s.KindDefinition = autogen_bases.ChartComponentResources{
 		ChartComponentKindName:   "Service",
 		ChartComponentApiVersion: "v1",
+		ChartComponentResourceID: SvcChartComponentResourceID,
 	}
 	s.ServiceSpec = NewServiceSpec()
+
 	return s
 }

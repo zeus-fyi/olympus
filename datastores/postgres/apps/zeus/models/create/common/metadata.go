@@ -13,8 +13,7 @@ func CreateParentMetadataSubCTEs(c *create.Chart, metadata structs.ParentMetaDat
 		ts := chronos.Chronos{}
 		metadata.SetParentClassTypeIDs(ts.UnixTimeStampNow())
 	}
-
-	parentSubCte := CreateParentClassTypeSubCTE(&metadata.ChartSubcomponentParentClassTypes)
+	parentSubCte := CreateParentClassTypeSubCTE(c, &metadata.ChartSubcomponentParentClassTypes)
 	if metadata.HasName() {
 		parentSubCte = sql_query_templates.AppendSubCteSlices(parentSubCte, CreateChildClassSingleValueSubCTEs(&metadata.Name))
 	}
@@ -25,6 +24,6 @@ func CreateParentMetadataSubCTEs(c *create.Chart, metadata structs.ParentMetaDat
 		parentSubCte = sql_query_templates.AppendSubCteSlices(parentSubCte, CreateChildClassMultiValueSubCTEs(&metadata.Annotations))
 	}
 	chartComponentRelationship := AddParentClassToChartPackage(c, metadata.ChartSubcomponentParentClassTypeID)
-	combinedSubCtes := sql_query_templates.AppendSubCteSlices([]sql_query_templates.SubCTE{chartComponentRelationship}, parentSubCte)
+	combinedSubCtes := sql_query_templates.AppendSubCteSlices(parentSubCte, []sql_query_templates.SubCTE{chartComponentRelationship})
 	return combinedSubCtes
 }

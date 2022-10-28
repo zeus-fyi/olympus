@@ -7,7 +7,7 @@ import (
 )
 
 func CreateSpecWorkloadTypeSubCTE(c *create.Chart, specWorkload structs.SpecWorkload) sql_query_templates.SubCTEs {
-	parentClassTypeSubCTE := CreateParentClassTypeSubCTE(&specWorkload.ChartSubcomponentParentClassTypes)
+	parentClassTypeSubCTE := CreateParentClassTypeSubCTE(c, &specWorkload.ChartSubcomponentParentClassTypes)
 	pcID := specWorkload.ChartSubcomponentParentClassTypeID
 	specWorkload.SetParentClassTypeIDs(pcID)
 	replicaSubCtes := CreateChildClassSingleValueSubCTEs(&specWorkload.Replicas)

@@ -2,26 +2,26 @@ package ingress
 
 import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
 
-func NewRule() Rule {
+func NewRules() Rules {
 	parentClassTypeName := "rules"
-	singleChildClassTypeName := "secretName"
-	multiChildClassTypeName := "hosts"
-	rule := Rule{
-		structs.NewSuperParentClassWithBothChildTypes(parentClassTypeName, singleChildClassTypeName, multiChildClassTypeName),
+	rule := Rules{
+		structs.NewSuperParentClassGroup(parentClassTypeName),
 	}
 	return rule
 }
 
-type Rule struct {
-	structs.SuperParentClass
+type Rules struct {
+	structs.SuperParentClassGroup
 }
 
-//func (t *TLS) AddSecretName(secretNameValue string) {
-//	t.ChildClassSingleValue.SetKeyAndValue("secretName", secretNameValue)
-//}
-//
-//func (t *TLS) AddHosts(hostNamesMap map[string]string) {
-//	t.ChildClassMultiValue.AddValues(hostNamesMap)
-//}
+func (r *Rules) AddNewIngressRuleAndUniqueChildClassID(hostName string, httpPathsMap map[string]string) {
+	var ts chronos.Chronos
+	rule := structs.NewSuperParentClassWithBothChildTypes("rules", "host", "http")
+	childTypeID := ts.UnixTimeStampNow()
+	rule.SetSingleChildClassIDTypeNameKeyAndValue(childTypeID, "host", "host", hostName)
+	rule.AddValuesAndUniqueChildID(childTypeID, httpPathsMap)
+	r.SuperParentClassSlice = append(r.SuperParentClassSlice, rule)
+}

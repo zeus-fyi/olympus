@@ -5,6 +5,6 @@ type Selector struct {
 }
 
 func NewSelector() Selector {
-	s := Selector{MatchLabels: NewChildClassAndValues("selector")}
+	s := Selector{MatchLabels: NewChildClassMultiValues("selector")}
 	return s
 }

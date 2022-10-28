@@ -54,6 +54,12 @@ func (c *ChildClassSingleValue) SetValue(v string) {
 	c.ChartSubcomponentValue = v
 }
 
+func (c *ChildClassSingleValue) SetSingleChildClassIDTypeNameKeyAndValue(id int, childClassTypeName, k, v string) {
+	c.SetChildClassTypeIDs(id)
+	c.ChartSubcomponentChildClassTypes.ChartSubcomponentChildClassTypeName = childClassTypeName
+	c.SetKeyAndValue(k, v)
+}
+
 func (c *ChildClassSingleValue) SetChildClassTypeIDs(id int) {
 	c.ChartSubcomponentChildClassTypes.ChartSubcomponentChildClassTypeID = id
 	c.ChartSubcomponentsChildValues.ChartSubcomponentChildClassTypeID = id

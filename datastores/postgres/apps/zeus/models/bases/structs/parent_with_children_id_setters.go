@@ -10,7 +10,7 @@ func (pc *SuperParentClass) SetParentClassTypeID(id int) {
 	}
 }
 
-func (pc *SuperParentClass) SetChildClassTypeID(id int) {
+func (pc *SuperParentClass) SetBothChildClassTypeID(id int) {
 	if pc.ChildClassSingleValue != nil {
 		pc.ChildClassSingleValue.ChartSubcomponentChildClassTypes.ChartSubcomponentChildClassTypeID = id
 	}

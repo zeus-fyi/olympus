@@ -9,10 +9,10 @@ import (
 )
 
 func CreateChildClassMultiValueSubCTEs(csv *structs.ChildClassMultiValue) sql_query_templates.SubCTEs {
-	if csv.GetClassTypeID() == 0 {
+	if csv.GetMultiValueChildClassTypeID() == 0 {
 		var ts chronos.Chronos
 		classTypeID := ts.UnixTimeStampNow()
-		csv.SetClassTypeID(classTypeID)
+		csv.SetMultiValueChildClassTypeIDs(classTypeID)
 	}
 	childClassTypeSubCTE := createChildClassSingleValueChildClassTypeSubCTE(&csv.ChartSubcomponentChildClassTypes)
 	childClassTypeSubCTESlice := []sql_query_templates.SubCTE{childClassTypeSubCTE}

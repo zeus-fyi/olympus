@@ -1,6 +1,9 @@
 package structs
 
 func (sps *SuperParentClassGroup) SetChartPackageAndResourceID(chartPackageID, chartResourceID int) {
+	sps.ChartSubcomponentParentClassTypes.ChartPackageID = chartPackageID
+	sps.ChartSubcomponentParentClassTypes.ChartComponentResourceID = chartResourceID
+
 	for _, sp := range sps.SuperParentClassSlice {
 		sp.SetChartPackageAndResourceID(chartPackageID, chartResourceID)
 	}
@@ -12,6 +15,7 @@ func (sps *SuperParentClassGroup) SetChartPackageAndResourceID(chartPackageID, c
 }
 
 func (sps *SuperParentClassGroup) SetParentClassTypeNames(parentClassTypeName string) {
+	sps.ChartSubcomponentParentClassTypes.ChartSubcomponentParentClassTypeName = parentClassTypeName
 	for i, _ := range sps.SuperParentClassSlice {
 		sps.SuperParentClassSlice[i].ChartSubcomponentParentClassTypeName = parentClassTypeName
 	}
@@ -22,6 +26,8 @@ func (sps *SuperParentClassGroup) SetParentClassTypeNames(parentClassTypeName st
 }
 
 func (sps *SuperParentClassGroup) SetParentClassTypeIDs(parentClassTypeID int) {
+	sps.ChartSubcomponentParentClassTypes.ChartSubcomponentParentClassTypeID = parentClassTypeID
+
 	for _, sp := range sps.SuperParentClassSlice {
 		sp.SetParentClassTypeID(parentClassTypeID)
 	}

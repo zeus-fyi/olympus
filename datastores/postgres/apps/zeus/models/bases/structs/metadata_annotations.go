@@ -1,6 +1,6 @@
 package structs
 
 func NewMetadataAnnotations() ChildClassMultiValue {
-	ma := NewChildClassAndValues("annotations")
+	ma := NewChildClassMultiValues("annotations")
 	return ma
 }

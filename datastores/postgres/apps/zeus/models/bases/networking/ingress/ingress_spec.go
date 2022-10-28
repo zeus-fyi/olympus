@@ -1,14 +1,17 @@
 package ingress
 
 import (
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/common"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
 )
 
 type Spec struct {
-	DefaultBackend   *common.ParentClass
-	IngressClassName *common.ParentClass
+	autogen_bases.ChartSubcomponentParentClassTypes
+
+	DefaultBackend   *structs.SuperParentClassGroup
+	IngressClassName *structs.ChildClassSingleValue
 	TLS              TLS
-	Rules            common.ParentClass
+	Rules            Rules
 }
 
 func NewIngressSpec() Spec {
@@ -16,7 +19,9 @@ func NewIngressSpec() Spec {
 		DefaultBackend:   nil,
 		IngressClassName: nil,
 		TLS:              NewTLS(),
-		Rules:            common.ParentClass{},
+		Rules:            NewRules(),
 	}
+	spec.ChartSubcomponentParentClassTypeName = "Spec"
+	spec.ChartComponentResourceID = IngressChartComponentResourceID
 	return spec
 }

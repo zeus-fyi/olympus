@@ -4,6 +4,7 @@ import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const ConfigMapChartComponentResourceID = 12
@@ -22,7 +23,17 @@ type ConfigMap struct {
 
 func NewConfigMap() ConfigMap {
 	cm := ConfigMap{}
-	cm.K8sConfigMap = v1.ConfigMap{}
+	typeMeta := metav1.TypeMeta{
+		Kind:       "ConfigMap",
+		APIVersion: "v1",
+	}
+	cm.K8sConfigMap = v1.ConfigMap{
+		TypeMeta:   typeMeta,
+		ObjectMeta: metav1.ObjectMeta{},
+		Immutable:  nil,
+		Data:       nil,
+		BinaryData: nil,
+	}
 	cm.KindDefinition = autogen_bases.ChartComponentResources{
 		ChartComponentKindName:   "ConfigMap",
 		ChartComponentApiVersion: "v1",
@@ -32,7 +43,6 @@ func NewConfigMap() ConfigMap {
 	cm.Metadata.ChartSubcomponentParentClassTypeName = "ConfigMapParentMetadata"
 	cm.Metadata.Metadata = structs.NewMetadata()
 
-	// TODO add data type
 	return cm
 }
 

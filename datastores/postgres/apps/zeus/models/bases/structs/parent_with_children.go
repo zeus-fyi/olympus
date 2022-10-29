@@ -23,8 +23,8 @@ func NewSuperParentClass(parentClassTypeName string) SuperParentClass {
 	return sc
 }
 
-func NewSuperParentClassWithMultiValueChildren(parentClassTypeName, childClassTypeName string) SuperParentClass {
-	ccmv := NewChildClassMultiValues(childClassTypeName)
+func NewSuperParentClassWithMultiChildType(parentClassTypeName, multiChildClassTypeName string) SuperParentClass {
+	ccmv := NewChildClassMultiValues(multiChildClassTypeName)
 	sc := SuperParentClass{
 		ChartSubcomponentParentClassTypes: autogen_bases.ChartSubcomponentParentClassTypes{
 			ChartPackageID:                       0,
@@ -32,8 +32,7 @@ func NewSuperParentClassWithMultiValueChildren(parentClassTypeName, childClassTy
 			ChartSubcomponentParentClassTypeID:   0,
 			ChartSubcomponentParentClassTypeName: parentClassTypeName,
 		},
-		ChildClassSingleValue: nil,
-		ChildClassMultiValue:  &ccmv,
+		ChildClassMultiValue: &ccmv,
 	}
 	return sc
 }

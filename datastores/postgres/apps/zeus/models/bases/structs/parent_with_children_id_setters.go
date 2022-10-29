@@ -1,5 +1,9 @@
 package structs
 
+func (pc *SuperParentClass) GetSuperParentClassTypeID() int {
+	return pc.ChartSubcomponentParentClassTypeID
+}
+
 func (pc *SuperParentClass) SetParentClassTypeID(id int) {
 	pc.ChartSubcomponentParentClassTypeID = id
 	if pc.ChildClassSingleValue != nil {

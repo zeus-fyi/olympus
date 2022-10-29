@@ -6,6 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/configuration"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/ingresses"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
@@ -18,6 +19,7 @@ type Packages struct {
 	*deployments.Deployment
 	*services.Service
 	*ingresses.Ingress
+	*configuration.ConfigMap
 }
 
 const Sn = "Packages"
@@ -48,6 +50,10 @@ func (p *Packages) InsertPackagesCTE() sql_query_templates.CTE {
 	if p.Ingress != nil {
 		ingressCte := p.GetIngressCTE(&p.Chart)
 		cte.AppendSubCtes(ingressCte.SubCTEs)
+	}
+	if p.ConfigMap != nil {
+		cmCte := p.GetConfigMapCTE(&p.Chart)
+		cte.AppendSubCtes(cmCte.SubCTEs)
 	}
 	return cte
 }

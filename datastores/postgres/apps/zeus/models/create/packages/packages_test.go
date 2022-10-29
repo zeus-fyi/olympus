@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/configuration"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/ingresses"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
@@ -39,11 +40,13 @@ func (p *PackagesTestSuite) TestInsert() {
 	nd := deployments.NewDeployment()
 	nsvc := services.NewService()
 	ing := ingresses.NewIngress()
+	cm := configuration.NewConfigMap()
 	pkg := Packages{
 		Chart:      charts.Chart{},
 		Deployment: &nd,
 		Service:    &nsvc,
 		Ingress:    &ing,
+		ConfigMap:  &cm,
 	}
 	pkg.Chart.ChartPackageID = c.GetChartPackageID()
 	p.Require().NotZero(pkg.Chart.ChartPackageID)
@@ -70,6 +73,13 @@ func (p *PackagesTestSuite) TestInsert() {
 	err = pkg.ConvertK8sIngressToDB()
 	p.Require().Nil(err)
 	p.Assert().NotEmpty(pkg.Ingress)
+
+	filepath = p.TestDirectory + "/mocks/test/cm-eth-indexer.yaml"
+	jsonBytes, err = p.Yr.ReadYamlConfig(filepath)
+	err = json.Unmarshal(jsonBytes, &cm.K8sConfigMap)
+	p.Require().Nil(err)
+	cm.ParseK8sConfigToDB()
+	p.Assert().NotEmpty(cm.Data)
 
 	ctx = context.Background()
 	q = sql_query_templates.NewQueryParam("InsertPackages", "table", "where", 1000, []string{})

@@ -5,7 +5,6 @@ import (
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions/db_to_k8s_conversions"
-	"github.com/zeus-fyi/olympus/pkg/utils/dev_hacks"
 )
 
 func (i *Ingress) ParseDBConfigToK8s(pcSlice common_conversions.ParentChildDB) error {
@@ -27,15 +26,9 @@ func (i *Ingress) ConvertSpec(pcSlice []common_conversions.PC) error {
 	ingressRulesMap := make(map[string][]common_conversions.PC)
 	ingressTLSMap := make(map[string][]common_conversions.PC)
 
-	namesSlice := []string{}
 	for _, pc := range pcSlice {
 		subClassName := pc.ChartSubcomponentChildClassTypeName
-		ccTypeID := pc.ChartSubcomponentChildClassTypes.ChartSubcomponentChildClassTypeID
-
-		namesSlice = append(namesSlice, subClassName)
-		keyName := pc.ChartSubcomponentKeyName
 		value := pc.ChartSubcomponentValue
-		dev_hacks.Use(ccTypeID, keyName, value)
 
 		switch subClassName {
 		case "ingressClassName":

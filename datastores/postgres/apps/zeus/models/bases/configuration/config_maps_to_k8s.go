@@ -9,7 +9,6 @@ func (cm *ConfigMap) ParseDBConfigToK8s(pcSlice common_conversions.ParentChildDB
 	for pcGroupName, pc := range pcSlice.PCGroupMap {
 		switch pcGroupName {
 		case "Data":
-			// TODO
 			err := cm.ParseCmDataToK8ss(pc)
 			if err != nil {
 				return err
@@ -22,6 +21,16 @@ func (cm *ConfigMap) ParseDBConfigToK8s(pcSlice common_conversions.ParentChildDB
 }
 
 func (cm *ConfigMap) ParseCmDataToK8ss(pcSlice []common_conversions.PC) error {
-	// TODO
+	for _, pc := range pcSlice {
+		subClassName := pc.ChartSubcomponentChildClassTypeName
+		key := pc.ChartSubcomponentKeyName
+		value := pc.ChartSubcomponentValue
+		switch subClassName {
+		case "Data":
+			m := make(map[string]string)
+			m[key] = value
+			cm.K8sConfigMap.Data = m
+		}
+	}
 	return nil
 }

@@ -13,7 +13,6 @@ type ConfigMapTestSuite struct {
 }
 
 func (s *ConfigMapTestSuite) TestK8sConfigMapYamlReader() {
-
 	cm := NewConfigMap()
 	filepath := s.TestDirectory + "/mocks/test/cm-eth-indexer.yaml"
 	jsonBytes, err := s.Yr.ReadYamlConfig(filepath)
@@ -21,6 +20,9 @@ func (s *ConfigMapTestSuite) TestK8sConfigMapYamlReader() {
 
 	s.Require().Nil(err)
 	s.Require().NotEmpty(cm.K8sConfigMap)
+
+	cm.ParseK8sConfigToDB()
+	s.Require().NotEmpty(cm.Data)
 }
 
 func TestConfigMapTestSuite(t *testing.T) {

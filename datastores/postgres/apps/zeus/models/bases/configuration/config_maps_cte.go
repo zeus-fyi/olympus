@@ -26,8 +26,10 @@ func (cm *ConfigMap) GetConfigMapCTE(chart *charts.Chart) sql_query_templates.CT
 func (cm *ConfigMap) GetConfigMapDataCTE(chart *charts.Chart) sql_query_templates.SubCTEs {
 	if chart != nil {
 		cm.SetChartPackageID(chart.GetChartPackageID())
+		cm.Data.ChartPackageID = chart.GetChartPackageID()
+		cm.Data.ChartComponentResourceID = ConfigMapChartComponentResourceID
 	}
-	var combinedSubCTEs sql_query_templates.SubCTEs
+	spgSubCTEs := common.CreateSuperParentClassTypeParentChildrenAndChartPackageRelationSubCTE(chart, cm.Data.SuperParentClass)
+	return spgSubCTEs
 
-	return combinedSubCTEs
 }

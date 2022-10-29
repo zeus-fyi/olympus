@@ -14,15 +14,38 @@ type ModelStructBaseGenWriterTestSuite struct {
 
 func (s *ModelStructBaseGenWriterTestSuite) TestPGBaseSchemaWriter() {
 	filter := string_utils.FilterOpts{
-		DoesNotStartWith: []string{"orgs", "user", "valid", "model"},
-		StartsWith:       "",
-		Contains:         "",
-		DoesNotInclude:   nil,
+		DoesNotStartWithThese: []string{"orgs", "user", "valid", "model"},
+		StartsWith:            "",
+		Contains:              "",
+		DoesNotInclude:        nil,
 	}
 	p := structs.Path{
 		PackageName: "autogen_bases",
 		DirIn:       "",
 		DirOut:      printOutLocation,
+		Fn:          "",
+		Env:         "",
+	}
+
+	m := NewPGModelTemplate(p, nil, s.Tc.LocalDbPgconn)
+	m.Filter = &filter
+	err := m.WritePgTableDefinition()
+	s.Require().Nil(err)
+}
+
+var printOutLocationHestia = "/Users/alex/Desktop/Zeus/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
+
+func (s *ModelStructBaseGenWriterTestSuite) TestHestiaBaseSchemaWriter() {
+	filter := string_utils.FilterOpts{
+		DoesNotStartWithThese: []string{},
+		StartsWithThese:       []string{"orgs", "user"},
+		Contains:              "",
+		DoesNotInclude:        nil,
+	}
+	p := structs.Path{
+		PackageName: "autogen_bases",
+		DirIn:       "",
+		DirOut:      printOutLocationHestia,
 		Fn:          "",
 		Env:         "",
 	}

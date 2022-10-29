@@ -23,7 +23,7 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart
 	}
 	contPodSpecParentClassCTE := sql_query_templates.NewSubInsertCTE("cte_podSpecParentClassTypeCTE")
 	contPodSpecParentClassCTE.TableName = p.ChartSubcomponentParentClassTypes.GetTableName()
-	contPodSpecParentClassCTE.Fields = []string{"chart_package_id", "chart_component_resource_id", "chart_subcomponent_parent_class_type_id", "chart_subcomponent_parent_class_type_name"}
+	contPodSpecParentClassCTE.Columns = []string{"chart_package_id", "chart_component_resource_id", "chart_subcomponent_parent_class_type_id", "chart_subcomponent_parent_class_type_name"}
 	contPodSpecParentClassCTE.AddValues(chart.ChartPackageID, SelectDeploymentResourceID, p.GetPodSpecParentClassTypeID(), p.ChartSubcomponentParentClassTypes.ChartSubcomponentParentClassTypeName)
 
 	cpkAddParentClassTypeSubCTEs := common.AddParentClassToChartPackage(chart, p.GetPodSpecParentClassTypeID())
@@ -31,51 +31,51 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart
 	agCct := autogen_bases.ChartSubcomponentChildClassTypes{}
 	contSubChildClassCTE := sql_query_templates.NewSubInsertCTE("cte_podSpecSubChildClassCTE")
 	contSubChildClassCTE.TableName = agCct.GetTableName()
-	contSubChildClassCTE.Fields = []string{"chart_subcomponent_parent_class_type_id", "chart_subcomponent_child_class_type_id", "chart_subcomponent_child_class_type_name"}
+	contSubChildClassCTE.Columns = []string{"chart_subcomponent_parent_class_type_id", "chart_subcomponent_child_class_type_id", "chart_subcomponent_child_class_type_name"}
 	contSubChildClassCTE.AddValues(p.GetPodSpecParentClassTypeID(), p.GetPodSpecChildClassTypeID(), "PodTemplateSpecChild")
 
 	contSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_containers")
 	contSubCTE.TableName = "containers"
-	contSubCTE.Fields = []string{"container_id", "container_name", "container_image_id", "container_version_tag", "container_platform_os", "container_repository", "container_image_pull_policy"}
+	contSubCTE.Columns = []string{"container_id", "container_name", "container_image_id", "container_version_tag", "container_platform_os", "container_repository", "container_image_pull_policy"}
 
 	// ports
 	portsSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_container_ports")
 	portsSubCTE.TableName = "container_ports"
-	portsSubCTE.Fields = []string{"port_id", "port_name", "container_port", "host_port"}
+	portsSubCTE.Columns = []string{"port_id", "port_name", "container_port", "host_port"}
 	portsRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE("cte_containers_ports_relationship")
 	portsRelationshipsSubCTE.TableName = "containers_ports"
-	portsRelationshipsSubCTE.Fields = []string{"chart_subcomponent_child_class_type_id", "container_id", "port_id"}
+	portsRelationshipsSubCTE.Columns = []string{"chart_subcomponent_child_class_type_id", "container_id", "port_id"}
 
 	// env vars
 	envVarsSubCTE := sql_query_templates.NewSubInsertCTE("cte_container_environmental_vars")
 	envVarsSubCTE.TableName = "container_environmental_vars"
-	envVarsSubCTE.Fields = []string{"env_id", "name", "value"}
+	envVarsSubCTE.Columns = []string{"env_id", "name", "value"}
 	envVarsRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE("cte_container_environmental_vars_relationships")
 	envVarsRelationshipsSubCTE.TableName = "containers_environmental_vars"
-	envVarsRelationshipsSubCTE.Fields = []string{"chart_subcomponent_child_class_type_id", "container_id", "env_id"}
+	envVarsRelationshipsSubCTE.Columns = []string{"chart_subcomponent_child_class_type_id", "container_id", "env_id"}
 
 	// vms
 	contVmsSubCTE := sql_query_templates.NewSubInsertCTE("cte_containers_volume_mounts")
 	contVmsSubCTE.TableName = "container_volume_mounts"
-	contVmsSubCTE.Fields = []string{"volume_mount_id", "volume_mount_path", "volume_name"}
+	contVmsSubCTE.Columns = []string{"volume_mount_id", "volume_mount_path", "volume_name"}
 	contVmsRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE("cte_containers_volume_mounts_relationships")
 	contVmsRelationshipsSubCTE.TableName = "containers_volume_mounts"
-	contVmsRelationshipsSubCTE.Fields = []string{"chart_subcomponent_child_class_type_id", "container_id", "volume_mount_id"}
+	contVmsRelationshipsSubCTE.Columns = []string{"chart_subcomponent_child_class_type_id", "container_id", "volume_mount_id"}
 
 	// podSpec for containersMapByImageID
 	podSpecSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_spec_pod_template_containers")
 	podSpecSubCTE.TableName = "chart_subcomponent_spec_pod_template_containers"
-	podSpecSubCTE.Fields = []string{"chart_subcomponent_child_class_type_id", "container_id", "is_init_container", "container_sort_order"}
+	podSpecSubCTE.Columns = []string{"chart_subcomponent_child_class_type_id", "container_id", "is_init_container", "container_sort_order"}
 
 	// probes
 	contP := autogen_bases.ContainerProbes{}
 	probesSubCTE := sql_query_templates.NewSubInsertCTE("cte_container_probes")
 	probesSubCTE.TableName = "container_probes"
-	probesSubCTE.Fields = contP.GetTableColumns()
+	probesSubCTE.Columns = contP.GetTableColumns()
 	conPRelationship := autogen_bases.ContainersProbes{}
 	probesRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE("cte_containers_probes_relationship")
 	probesRelationshipsSubCTE.TableName = "containers_probes"
-	probesRelationshipsSubCTE.Fields = conPRelationship.GetTableColumns()
+	probesRelationshipsSubCTE.Columns = conPRelationship.GetTableColumns()
 
 	podSpecVolumesSubCTE, podSpecVolumesRelationshipSubCTE := p.insertVolumes()
 

@@ -27,7 +27,7 @@ func createChildClassSingleValueSubCTE(childClassTypeName string, csv *autogen_b
 	queryName := fmt.Sprintf("cte_%s_value_%d", childClassTypeName, ts.UnixTimeStampNow())
 	subCTE := sql_query_templates.NewSubInsertCTE(queryName)
 	subCTE.TableName = csv.GetTableName()
-	subCTE.Fields = csv.GetTableColumns()
+	subCTE.Columns = csv.GetTableColumns()
 	subCTE.Values = []apps.RowValues{csv.GetRowValues(queryName)}
 	return subCTE
 }
@@ -38,7 +38,7 @@ func createChildClassSingleValueChildClassTypeSubCTE(csvType *autogen_bases.Char
 	queryName := fmt.Sprintf("cte_%s_%d", childClassTypeName, ts.UnixTimeStampNow())
 	childClassTypeSubCTE := sql_query_templates.NewSubInsertCTE(queryName)
 	childClassTypeSubCTE.TableName = csvType.GetTableName()
-	childClassTypeSubCTE.Fields = csvType.GetTableColumns()
+	childClassTypeSubCTE.Columns = csvType.GetTableColumns()
 	childClassTypeSubCTE.Values = []apps.RowValues{csvType.GetRowValues(queryName)}
 	return childClassTypeSubCTE
 }

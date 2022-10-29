@@ -12,7 +12,7 @@ type QueryParams struct {
 	QueryName   string
 	RawQuery    string
 	CTEQuery    CTE
-	Fields      []string
+	Columns     []string
 	TableName   string
 	WhereClause string
 	Values      []apps.RowValues
@@ -20,10 +20,10 @@ type QueryParams struct {
 }
 
 // NewQueryParam queryName, tableName, whereClause string, limit int, fields []string
-func NewQueryParam(queryName, tableName, whereClause string, limit int, fields []string) QueryParams {
+func NewQueryParam(queryName, tableName, whereClause string, limit int, columns []string) QueryParams {
 	return QueryParams{
 		QueryName:   queryName,
-		Fields:      fields,
+		Columns:     columns,
 		TableName:   tableName,
 		WhereClause: whereClause,
 		Limit:       limit,
@@ -31,6 +31,6 @@ func NewQueryParam(queryName, tableName, whereClause string, limit int, fields [
 }
 
 func (q *QueryParams) LogHeader(structName string) string {
-	query := fmt.Sprintf(`%s: QueryName: %s, TableName: %s, WhereClause %s, Limit %d`, structName, q.Fields, q.TableName, q.WhereClause, q.Limit)
+	query := fmt.Sprintf(`%s: QueryName: %s, TableName: %s, WhereClause %s, Limit %d`, structName, q.Columns, q.TableName, q.WhereClause, q.Limit)
 	return query
 }

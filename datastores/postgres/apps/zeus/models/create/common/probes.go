@@ -28,7 +28,7 @@ func createProbeValueSubCTEs(probe *probes.Probe, count int) sql_query_templates
 	queryName := fmt.Sprintf("cte_%s_%d_%d_value", probe.ContainersProbes.GetTableName(), ts.UnixTimeStampNow(), count)
 	subCTE := sql_query_templates.NewSubInsertCTE(queryName)
 	subCTE.TableName = probe.ContainerProbes.GetTableName()
-	subCTE.Fields = probe.ContainerProbes.GetTableColumns()
+	subCTE.Columns = probe.ContainerProbes.GetTableColumns()
 	subCTE.Values = []apps.RowValues{probe.ContainerProbes.GetRowValues(queryName)}
 	return subCTE
 }
@@ -39,7 +39,7 @@ func createProbeRelationshipSubCTEs(containerID int, probe *probes.Probe, count 
 	probe.SetContainerID(containerID)
 	subCTE := sql_query_templates.NewSubInsertCTE(queryName)
 	subCTE.TableName = probe.ContainersProbes.GetTableName()
-	subCTE.Fields = probe.ContainersProbes.GetTableColumns()
+	subCTE.Columns = probe.ContainersProbes.GetTableColumns()
 	subCTE.Values = []apps.RowValues{probe.ContainersProbes.GetRowValues(queryName)}
 	return subCTE
 }

@@ -23,7 +23,7 @@ func createChartPackageComponentAddParentClassTypeSubCTE(cpk *autogen_bases.Char
 	queryName := fmt.Sprintf("cte_%s_%d", cpk.GetTableName(), ts.UnixTimeStampNow())
 	cpkAddParentClassTypeSubCTE := sql_query_templates.NewSubInsertCTE(queryName)
 	cpkAddParentClassTypeSubCTE.TableName = cpk.GetTableName()
-	cpkAddParentClassTypeSubCTE.Fields = cpk.GetTableColumns()
+	cpkAddParentClassTypeSubCTE.Columns = cpk.GetTableColumns()
 	cpkAddParentClassTypeSubCTE.Values = []apps.RowValues{cpk.GetRowValues(queryName)}
 	return cpkAddParentClassTypeSubCTE
 }

@@ -13,13 +13,13 @@ func (p *PodTemplateSpec) insertVolumes() (sql_query_templates.SubCTE, sql_query
 	agVol := autogen_bases.Volumes{}
 	podSpecVolumesSubCTE := sql_query_templates.NewSubInsertCTE("cte_pod_spec_volumes")
 	podSpecVolumesSubCTE.TableName = agVol.GetTableName()
-	podSpecVolumesSubCTE.Fields = agVol.GetTableColumns()
+	podSpecVolumesSubCTE.Columns = agVol.GetTableColumns()
 
 	agVolR := autogen_bases.ContainersVolumes{}
 
 	podSpecVolumesRelationshipSubCTE := sql_query_templates.NewSubInsertCTE("cte_pod_spec_containers_volumes")
 	podSpecVolumesRelationshipSubCTE.TableName = agVolR.GetTableName()
-	podSpecVolumesRelationshipSubCTE.Fields = agVolR.GetTableColumns()
+	podSpecVolumesRelationshipSubCTE.Columns = agVolR.GetTableColumns()
 	vols := p.Spec.PodTemplateSpecVolumes
 	ts := chronos.Chronos{}
 	cID := p.GetPodSpecChildClassTypeID()

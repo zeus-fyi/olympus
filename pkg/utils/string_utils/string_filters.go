@@ -27,19 +27,30 @@ func FilterStringWithOpts(word string, filter *FilterOpts) bool {
 		}
 	}
 
-	if len(filter.DoesNotStartWith) > 0 {
-		for _, wordFilter := range filter.DoesNotStartWith {
+	if len(filter.DoesNotStartWithThese) > 0 {
+		for _, wordFilter := range filter.DoesNotStartWithThese {
 			if strings.HasPrefix(word, wordFilter) {
 				return false
 			}
 		}
 	}
+
+	if len(filter.StartsWithThese) > 0 {
+		matchFound := false
+		for _, wordFilter := range filter.StartsWithThese {
+			if strings.HasPrefix(word, wordFilter) {
+				matchFound = true
+			}
+		}
+		return matchFound
+	}
 	return true
 }
 
 type FilterOpts struct {
-	DoesNotStartWith []string
-	StartsWith       string
-	Contains         string
-	DoesNotInclude   []string
+	DoesNotStartWithThese []string
+	StartsWithThese       []string
+	StartsWith            string
+	Contains              string
+	DoesNotInclude        []string
 }

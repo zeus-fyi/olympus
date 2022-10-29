@@ -2,12 +2,15 @@ package sql_query_templates
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
-func (q *QueryParams) InsertQueryHeader() string {
-	query := fmt.Sprintf(`INSERT INTO %s(%s) VALUES `, q.TableName, q.Fields)
+func (q *QueryParams) InsertSingleElementQuery() string {
+	vals := string_utils.StringDelimitedSliceBuilderSQLMultiRowValues(",", q.Values)
+	query := fmt.Sprintf(`INSERT INTO %s(%s) VALUES %s`, q.TableName, strings.Join(q.Columns, ","), vals)
 	return query
 }
 

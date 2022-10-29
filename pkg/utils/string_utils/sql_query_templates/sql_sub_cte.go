@@ -12,7 +12,7 @@ func NewSubInsertCTE(subCteName string) SubCTE {
 	return SubCTE{
 		QueryParams{
 			QueryName:   subCteName,
-			Fields:      nil,
+			Columns:     nil,
 			TableName:   "",
 			WhereClause: "",
 			Values:      []apps.RowValues{},

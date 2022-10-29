@@ -6,6 +6,6 @@ import (
 )
 
 func (q *QueryParams) InsertCTEHeader() string {
-	query := fmt.Sprintf("%s AS (\n INSERT INTO %s(%s) VALUES \n", q.QueryName, q.TableName, strings.Join(q.Fields, ","))
+	query := fmt.Sprintf("%s AS (\n INSERT INTO %s(%s) VALUES \n", q.QueryName, q.TableName, strings.Join(q.Columns, ","))
 	return query
 }

@@ -7,6 +7,48 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 )
 
+func StringDelimitedSliceBuilderSQLMultiRowValues(delimiter string, values []apps.RowValues) string {
+	sb := strings.Builder{}
+	for count, row := range values {
+		sb.WriteString("(")
+		for i, val := range row {
+			switch val.(type) {
+			case string:
+				strValue := val.(string)
+				sb.WriteString("'")
+				sb.WriteString(val.(string))
+				sb.WriteString("'")
+				if strValue == "{}" {
+					sb.WriteString("::jsonb")
+				}
+			case int:
+				returnStr := fmt.Sprintf("%d", val.(int))
+				sb.WriteString(returnStr)
+			case int64:
+				returnStr := fmt.Sprintf("%d", val.(int64))
+				sb.WriteString(returnStr)
+			case uint64:
+				returnStr := fmt.Sprintf("%d", val.(uint64))
+				sb.WriteString(returnStr)
+			case bool:
+				returnStr := fmt.Sprintf("%t", val.(bool))
+				sb.WriteString(returnStr)
+			default:
+			}
+			if len(row)-1 != i {
+				sb.WriteString(delimiter)
+			}
+		}
+
+		sb.WriteString(")")
+		if len(values)-1 == count {
+			return sb.String()
+		}
+		sb.WriteString(delimiter)
+	}
+	return sb.String()
+}
+
 func StringDelimitedSliceBuilderSQL(delimiter string, values apps.RowValues) string {
 	returnStr := ""
 	for i, val := range values {

@@ -12,6 +12,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/ingresses"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
+	read_configuration "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/configuration"
 	read_deployments "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/deployments"
 	read_networking "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/networking"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -239,6 +240,16 @@ func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_tem
 				if ierr != nil {
 					log.Err(ierr).Msg(q.LogHeader(ModelName))
 					return ierr
+				}
+			}
+		case "ConfigMap":
+			if c.ConfigMap == nil {
+				cm := configuration.NewConfigMap()
+				c.ConfigMap = &cm
+				cerr := read_configuration.DBConfigMapResource(c.ConfigMap, ckagg)
+				if cerr != nil {
+					log.Err(cerr).Msg(q.LogHeader(ModelName))
+					return cerr
 				}
 			}
 		}

@@ -8,7 +8,7 @@ import (
 	"runtime"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes/topology"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
@@ -42,9 +42,9 @@ func (s *ConversionsTestSuite) SetupTest() {
 }
 
 func (s *ConversionsTestSuite) SeedTopology() (int, string) {
-	top := topologies.NewTopology()
+	top := topology.NewTopology()
 	top.TopologyID = s.Ts.UnixTimeStampNow()
-	top.Name = fmt.Sprintf("testTopology_%s", top.TopologyID)
+	top.Name = fmt.Sprintf("testTopology_%d", top.TopologyID)
 	ctx := context.Background()
 	q := sql_query_templates.NewQueryParam("InsertTopology", "topologies", "where", 1000, []string{})
 	q.TableName = top.GetTableName()

@@ -1,21 +1,17 @@
 package clusters
 
 import (
-	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes/bases"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes/topology"
 )
 
 type Cluster struct {
-	classes.TopologyDependentComponent
+	topology.Topology
+	Base       bases.Base
+	Components topology.Dependencies
 }
 
 func NewCluster() Cluster {
-	cl := Cluster{classes.TopologyDependentComponent{
-		TopologyDependentComponents:      autogen_bases.TopologyDependentComponents{},
-		TopologyInfrastructureComponents: autogen_bases.TopologyInfrastructureComponents{},
-		InfraComponents:                  nil,
-		Status:                           state.State{},
-	}}
+	cl := Cluster{topology.NewClusterTopology(), bases.NewBase(), []topology.Component{}}
 	return cl
 }

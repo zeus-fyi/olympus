@@ -12,22 +12,29 @@ const SystemClassTypeID = 6
 
 // TopologyClass types skeleton, infrastructure, configuration, base, cluster, matrix, system
 type TopologyClass struct {
-	Type       autogen_bases.TopologyClassTypes // should be either a base or base subtype, config, cluster, or matrix
-	Definition autogen_bases.TopologyClasses
+	autogen_bases.TopologyClasses
+}
+type TopologyClassType struct {
+	autogen_bases.TopologyClassTypes // should be either a base or base subtype, config, cluster, or matrix
 }
 
 func NewTopologyClass() TopologyClass {
 	tc := TopologyClass{
-		Type:       autogen_bases.TopologyClassTypes{},
-		Definition: autogen_bases.TopologyClasses{},
+		autogen_bases.TopologyClasses{
+			TopologyClassID:     0,
+			TopologyClassTypeID: 0,
+			TopologyClassName:   "",
+		},
 	}
 	return tc
 }
 
-func (t *TopologyClass) GetClassDefinition() autogen_bases.TopologyClasses {
-	return t.Definition
-}
-
-func (t *TopologyClass) SetClassDefinition(def autogen_bases.TopologyClasses) {
-	t.Definition = def
+func NewClusterClassTopologyType() TopologyClassType {
+	tc := TopologyClassType{
+		autogen_bases.TopologyClassTypes{
+			TopologyClassTypeID: ClusterClassTypeID,
+		},
+	}
+	tc.TopologyClassTypeName.String = "Cluster"
+	return tc
 }

@@ -1,21 +1,21 @@
-package create_topologies
+package topology
 
 import (
 	"context"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes/topology"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
 type Topologies struct {
-	topologies.Topology
+	topology.Topology
 }
 
 func NewCreateTopology() Topologies {
-	tc := Topologies{topologies.NewTopology()}
+	tc := Topologies{topology.NewTopology()}
 	return tc
 }
 

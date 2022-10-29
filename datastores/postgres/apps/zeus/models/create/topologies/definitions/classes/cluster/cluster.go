@@ -1,9 +1,14 @@
 package create_clusters
 
-import (
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes"
-)
+import clusters "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes/cluster"
 
 type Cluster struct {
-	classes.TopologyDependentComponent
+	clusters.Cluster
+}
+
+func NewCreateCluster() Cluster {
+	c := Cluster{
+		clusters.NewCluster(),
+	}
+	return c
 }

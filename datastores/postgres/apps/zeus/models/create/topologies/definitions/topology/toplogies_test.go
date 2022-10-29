@@ -1,7 +1,8 @@
-package create_topologies
+package topology
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -16,8 +17,8 @@ type TopologiesTestSuite struct {
 
 func (t *TopologiesTestSuite) TestInsert() {
 	top := NewCreateTopology()
-	top.Name = "testTopology"
 	top.TopologyID = t.Ts.UnixTimeStampNow()
+	top.Name = fmt.Sprintf("testTopology_%d", top.TopologyID)
 	ctx := context.Background()
 	q := sql_query_templates.NewQueryParam("InsertTopology", "topologies", "where", 1000, []string{})
 	q.TableName = top.GetTableName()

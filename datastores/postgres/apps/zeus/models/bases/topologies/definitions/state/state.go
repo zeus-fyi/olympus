@@ -9,7 +9,7 @@ type State struct {
 
 func NewState() State {
 	s := State{autogen_bases.TopologiesDeployed{
-		TopologyStatus: "",
+		TopologyStatus: "Pending",
 		TopologyID:     0,
 		OrgID:          0,
 		UserID:         0,

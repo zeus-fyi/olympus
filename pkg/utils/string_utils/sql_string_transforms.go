@@ -3,6 +3,7 @@ package string_utils
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 )
@@ -33,6 +34,8 @@ func StringDelimitedSliceBuilderSQLMultiRowValues(delimiter string, values []app
 			case bool:
 				returnStr := fmt.Sprintf("%t", val.(bool))
 				sb.WriteString(returnStr)
+			case time.Time:
+				sb.WriteString("'(NOW())'")
 			default:
 			}
 			if len(row)-1 != i {

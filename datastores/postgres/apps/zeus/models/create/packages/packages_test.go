@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -74,6 +75,7 @@ func (p *PackagesTestSuite) TestInsert() {
 	q = sql_query_templates.NewQueryParam("InsertPackages", "table", "where", 1000, []string{})
 	err = pkg.InsertPackages(ctx, q)
 	p.Require().Nil(err)
+	fmt.Println(pkg.ChartPackageID)
 }
 
 func TestPackagesTestSuite(t *testing.T) {

@@ -7,6 +7,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/ingresses"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -16,6 +17,7 @@ type Packages struct {
 	charts.Chart
 	*deployments.Deployment
 	*services.Service
+	*ingresses.Ingress
 }
 
 const Sn = "Packages"
@@ -42,6 +44,10 @@ func (p *Packages) InsertPackagesCTE() sql_query_templates.CTE {
 	if p.Service != nil {
 		svcCte := p.GetServiceCTE(&p.Chart)
 		cte.AppendSubCtes(svcCte.SubCTEs)
+	}
+	if p.Ingress != nil {
+		ingressCte := p.GetIngressCTE(&p.Chart)
+		cte.AppendSubCtes(ingressCte.SubCTEs)
 	}
 	return cte
 }

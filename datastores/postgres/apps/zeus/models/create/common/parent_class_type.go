@@ -38,7 +38,8 @@ func CreateParentClassTypeSubCTE(c *charts.Chart, pcType *autogen_bases.ChartSub
 }
 
 func createParentClassTypeSubCTE(pcType *autogen_bases.ChartSubcomponentParentClassTypes) sql_query_templates.SubCTE {
-	queryName := "cte_" + pcType.ChartSubcomponentParentClassTypeName
+	var ts chronos.Chronos
+	queryName := fmt.Sprintf("cte_%s_%d", pcType.ChartSubcomponentParentClassTypeName, ts.UnixTimeStampNow())
 	parentClassTypeSubCTE := sql_query_templates.NewSubInsertCTE(queryName)
 	parentClassTypeSubCTE.TableName = pcType.GetTableName()
 	parentClassTypeSubCTE.Fields = pcType.GetTableColumns()

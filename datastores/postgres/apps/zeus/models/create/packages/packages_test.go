@@ -10,6 +10,7 @@ import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/ingresses"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
 	create_charts "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/charts"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
@@ -36,10 +37,12 @@ func (p *PackagesTestSuite) TestInsert() {
 
 	nd := deployments.NewDeployment()
 	nsvc := services.NewService()
+	ing := ingresses.NewIngress()
 	pkg := Packages{
 		Chart:      charts.Chart{},
 		Deployment: &nd,
 		Service:    &nsvc,
+		Ingress:    &ing,
 	}
 	pkg.Chart.ChartPackageID = c.GetChartPackageID()
 	p.Require().NotZero(pkg.Chart.ChartPackageID)
@@ -58,6 +61,14 @@ func (p *PackagesTestSuite) TestInsert() {
 	p.Require().Nil(err)
 	pkg.ConvertK8sServiceToDB()
 	p.Assert().NotEmpty(pkg.Service)
+
+	filepath = p.TestDirectory + "/mocks/test/ingress.yaml"
+	jsonBytes, err = p.Yr.ReadYamlConfig(filepath)
+	err = json.Unmarshal(jsonBytes, &pkg.K8sIngress)
+	p.Require().Nil(err)
+	err = pkg.ConvertIngressSpecConfigToDB()
+	p.Require().Nil(err)
+	p.Assert().NotEmpty(pkg.Ingress)
 
 	ctx = context.Background()
 	q = sql_query_templates.NewQueryParam("InsertPackages", "table", "where", 1000, []string{})

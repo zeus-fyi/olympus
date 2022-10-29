@@ -7,6 +7,7 @@ import (
 )
 
 type TopologyDependentComponent struct {
+	// -- links components to build higher level topologies eg. beacon + exec = full eth2 beacon cluster
 	autogen_bases.TopologyDependentComponents
 	autogen_bases.TopologyInfrastructureComponents
 	// use map->int to represent hierarchy ordering

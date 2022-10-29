@@ -51,7 +51,8 @@ func (s *ConversionsTestSuite) SeedTopology() (int, string) {
 	q.Columns = top.GetTableColumns()
 	q.Values = []apps.RowValues{top.GetRowValues("default")}
 	_, err := apps.Pg.Exec(ctx, q.InsertSingleElementQuery())
-	s.Require().Nil(err)
-
+	if err != nil {
+		panic(err)
+	}
 	return top.TopologyID, top.Topologies.Name
 }

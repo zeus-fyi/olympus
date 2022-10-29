@@ -7,7 +7,7 @@ import (
 )
 
 type Topology struct {
-	autogen_bases.Topologies
+	autogen_bases.Topologies // -- specific sw names. eg. prysm_validator_client
 	kns.Kns
 	// use map->int to represent hierarchy
 	// all same level uncoupled items are on the same depth

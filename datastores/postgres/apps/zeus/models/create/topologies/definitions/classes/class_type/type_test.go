@@ -13,12 +13,12 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-type CreateTopologyClass struct {
+type CreateTopologyClassTestSuite struct {
 	b hestia_test.BaseHestiaTestSuite
 	conversions_test.ConversionsTestSuite
 }
 
-func (s *CreateTopologyClass) TestInsertTopologyClass() {
+func (s *CreateTopologyClassTestSuite) TestInsertTopologyClass() {
 	tc := NewCreateTopologyClass()
 	cl := tc.GetClassDefinition()
 
@@ -37,6 +37,6 @@ func (s *CreateTopologyClass) TestInsertTopologyClass() {
 	s.Require().Nil(err)
 }
 
-func TestCreateTopologyClass(t *testing.T) {
-	suite.Run(t, new(CreateTopologyClass))
+func TestCreateTopologyClassTestSuite(t *testing.T) {
+	suite.Run(t, new(CreateTopologyClassTestSuite))
 }

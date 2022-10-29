@@ -10,6 +10,7 @@ const ClusterClassTypeID = 4
 const MatrixClassTypeID = 5
 const SystemClassTypeID = 6
 
+// TopologyClass types skeleton, infrastructure, configuration, base, cluster, matrix, system
 type TopologyClass struct {
 	Type       autogen_bases.TopologyClassTypes // should be either a base or base subtype, config, cluster, or matrix
 	Definition autogen_bases.TopologyClasses

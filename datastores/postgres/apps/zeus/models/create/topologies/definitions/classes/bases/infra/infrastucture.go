@@ -1,7 +1,15 @@
 package create_infra
 
-import "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
+import (
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes/bases/infra"
+)
 
 type Infrastructure struct {
-	charts.Chart
+	infra.Infrastructure
+}
+
+func NewCreateInfrastructure() Infrastructure {
+	inf := infra.NewInfrastructure()
+	i := Infrastructure{inf}
+	return i
 }

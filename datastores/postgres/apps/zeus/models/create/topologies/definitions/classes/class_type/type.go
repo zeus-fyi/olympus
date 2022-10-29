@@ -1,8 +1,15 @@
 package create_class_type
 
-import autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+import (
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes/class_type"
+)
 
 type TopologyClass struct {
-	autogen_bases.TopologyClassTypes
-	autogen_bases.TopologyClasses
+	class_type.TopologyClass
+}
+
+func NewCreateTopologyClass() TopologyClass {
+	ct := class_type.NewTopologyClass()
+	class := TopologyClass{ct}
+	return class
 }

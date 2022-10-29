@@ -25,3 +25,13 @@ INSERT INTO "public"."chart_component_resources" VALUES (22, 'CSIDriver', 'stora
 INSERT INTO "public"."chart_component_resources" VALUES (23, 'CSINode', 'storage.k8s.io/v1');
 INSERT INTO "public"."chart_component_resources" VALUES (24, 'CSIStorageCapacity', 'storage.k8s.io/v1');
 COMMIT;
+
+BEGIN;
+INSERT INTO "public"."topology_class_types" VALUES (0, 'InfrastructureBase');
+INSERT INTO "public"."topology_class_types" VALUES (1, 'ConfigurationBase');
+INSERT INTO "public"."topology_class_types" VALUES (2, 'SkeletonBase');
+INSERT INTO "public"."topology_class_types" VALUES (3, 'Base');
+INSERT INTO "public"."topology_class_types" VALUES (4, 'Cluster');
+INSERT INTO "public"."topology_class_types" VALUES (5, 'Matrix');
+INSERT INTO "public"."topology_class_types" VALUES (6, 'System');
+COMMIT;

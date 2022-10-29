@@ -3,7 +3,9 @@ package services
 import (
 	"context"
 	"fmt"
+	"testing"
 
+	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
@@ -47,4 +49,8 @@ func seedService() autogen_bases.ChartComponentResources {
 		ChartComponentApiVersion: "apps/v1",
 	}
 	return cr
+}
+
+func TestNetworkingTestSuite(t *testing.T) {
+	suite.Run(t, new(NetworkingTestSuite))
 }

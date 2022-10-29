@@ -1,14 +1,11 @@
 package zeus_core
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 
-	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -42,10 +39,6 @@ type FilterOpts struct {
 
 func (kCtx *KubeCtxNs) GetCtxName(env string) string {
 	return fmt.Sprintf("%s-%s-%s", kCtx.CloudProvider, kCtx.Region, kCtx.CtxType)
-}
-
-func (k *K8Util) GetNamespaces() (*v1.NamespaceList, error) {
-	return k.kc.CoreV1().Namespaces().List(context.Background(), metav1.ListOptions{})
 }
 
 func (k *K8Util) GetContexts() (map[string]*clientcmdapi.Context, error) {

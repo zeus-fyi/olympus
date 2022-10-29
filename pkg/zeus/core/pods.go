@@ -90,8 +90,6 @@ func (k *K8Util) GetPodsUsingCtxNs(ctx context.Context, kubeCtxNs KubeCtxNs, log
 	if logOpts == nil {
 		logOpts = &v1.PodLogOptions{}
 	}
-	k.SetContext(kubeCtxNs.GetCtxName(kubeCtxNs.Env))
-
 	pods, err := k.GetPods(ctx, kubeCtxNs.Namespace, metav1.ListOptions{})
 	if err != nil {
 		return pods, err

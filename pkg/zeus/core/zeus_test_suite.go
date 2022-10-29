@@ -14,6 +14,7 @@ type K8TestSuite struct {
 
 func (s *K8TestSuite) SetupTest() {
 	s.K = K8Util{}
+	s.K.PrintOn = true
 	s.K.ConnectToK8s()
 }
 

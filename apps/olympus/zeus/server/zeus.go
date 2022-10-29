@@ -5,7 +5,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/zeus-fyi/olympus/zeus/api/v1"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/coreK8s"
 )
 
 var cfg = Config{}
@@ -19,7 +19,7 @@ func AutoK8s() {
 		cfg.K8sUtil.CfgPath = cfg.K8sUtil.DefaultK8sCfgPath()
 	}
 	log.Debug().Msgf("The k8s config path %s:", cfg.K8sUtil.CfgPath)
-	srv.E = v1.InitRouter(srv.E, cfg.K8sUtil)
+	srv.E = coreK8s.InitRouter(srv.E, cfg.K8sUtil)
 
 	// Middleware
 	srv.E.Use(middleware.Logger())

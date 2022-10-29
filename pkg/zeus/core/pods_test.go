@@ -59,7 +59,7 @@ func (s *PodsTestSuite) TestPodPortForward() {
 
 func (s *PodsTestSuite) TestGetPods() {
 	ctx := context.Background()
-	var kns = KubeCtxNs{Env: "", CloudProvider: "", Region: "", CtxType: "data", Namespace: "eth-indexer"}
+	var kns = KubeCtxNs{Env: "", CloudProvider: "do", Region: "sfo", CtxType: "dev-do-sfo3-zeus", Namespace: "eth-indexer"}
 
 	pods, err := s.K.GetPodsUsingCtxNs(ctx, kns, nil, nil)
 	s.Require().Nil(err)

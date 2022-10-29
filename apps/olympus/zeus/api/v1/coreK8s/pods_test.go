@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
-	v12 "github.com/zeus-fyi/olympus/zeus/api/v1"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -46,7 +45,7 @@ func (p *PodsHandlerTestSuite) TestPodPortForwardGET() {
 		Action:     "port-forward",
 		PodName:    "eth-indexer-eth-indexer",
 		ClientReq:  &cliReq,
-		K8sRequest: v12.K8sRequest{kns},
+		K8sRequest: K8sRequest{kns},
 	}
 	podPortForwardReq := p.postK8Request(podActionRequest, http.StatusOK, false)
 	p.Require().NotEmpty(podPortForwardReq.logs)
@@ -67,7 +66,7 @@ func (p *PodsHandlerTestSuite) TestPodPortForwardAll() {
 		PodName:    "eth-indexer-eth-indexer",
 		FilterOpts: &filter,
 		ClientReq:  &cliReq,
-		K8sRequest: v12.K8sRequest{kns},
+		K8sRequest: K8sRequest{kns},
 	}
 	podPortForwardReq := p.postK8Request(podActionRequest, http.StatusOK, false)
 	p.Require().NotEmpty(podPortForwardReq.logs)
@@ -105,7 +104,7 @@ func (p *PodsHandlerTestSuite) TestPodPortForwardPOST() {
 		Action:     "port-forward",
 		PodName:    "eth-indexer-eth-indexer",
 		ClientReq:  &cliReq,
-		K8sRequest: v12.K8sRequest{kns},
+		K8sRequest: K8sRequest{kns},
 	}
 
 	podPortForwardReq := p.postK8Request(podActionRequest, http.StatusOK, false)
@@ -115,7 +114,7 @@ func (p *PodsHandlerTestSuite) TestPodPortForwardPOST() {
 func (p *PodsHandlerTestSuite) TestDescribePods() {
 	podActionRequest := PodActionRequest{
 		Action:     "describe",
-		K8sRequest: v12.K8sRequest{kns},
+		K8sRequest: K8sRequest{kns},
 	}
 	podDescribeReq := p.postK8Request(podActionRequest, http.StatusOK, true)
 	p.Require().NotEmpty(podDescribeReq.pods)
@@ -126,19 +125,19 @@ func (p *PodsHandlerTestSuite) TestGetPodLogs() {
 	podActionRequest := PodActionRequest{
 		Action:     "logs",
 		PodName:    "eth-indexer-eth-indexer",
-		K8sRequest: v12.K8sRequest{kns},
+		K8sRequest: K8sRequest{kns},
 		LogOpts:    &v1.PodLogOptions{Container: "eth-indexer", TailLines: &tailLines},
 	}
 	p.postK8Request(podActionRequest, http.StatusOK, false)
 }
 
 func (p *PodsHandlerTestSuite) TestDeletePod() {
-	var kns = autok8s_core.KubeCtxNs{CloudProvider: "do", Region: "sfo3", CtxType: "zeus-k8s-blockchain", Namespace: "eth-indexer"}
+	var testKns = autok8s_core.KubeCtxNs{CloudProvider: "do", Region: "sfo3", CtxType: "zeus-k8s-blockchain", Namespace: "eth-indexer"}
 
 	podActionRequest := PodActionRequest{
 		Action:     "delete",
 		PodName:    "eth-indexer-eth-indexer",
-		K8sRequest: v12.K8sRequest{kns},
+		K8sRequest: K8sRequest{testKns},
 	}
 	p.postK8Request(podActionRequest, http.StatusOK, false)
 }
@@ -148,7 +147,7 @@ func (p *PodsHandlerTestSuite) TestAuditPods() {
 
 	podActionRequest := PodActionRequest{
 		Action:     "describe-audit",
-		K8sRequest: v12.K8sRequest{Kns: kns},
+		K8sRequest: K8sRequest{Kns: kns},
 		FilterOpts: &filter,
 	}
 	podDescribeReq := p.postK8Request(podActionRequest, http.StatusOK, false)
@@ -187,7 +186,7 @@ func (p *PodsHandlerTestSuite) SetupTestServer() {
 	e := echo.New()
 	p.K.CfgPath = p.K.DefaultK8sCfgPath()
 	p.K.ConnectToK8s()
-	p.E = v12.InitRouter(e, p.K)
+	p.E = InitRouter(e, p.K)
 }
 
 func TestPodsTestSuite(t *testing.T) {

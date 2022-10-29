@@ -53,7 +53,9 @@ func (b *BaseHestiaTestSuite) NewTestUser() int {
 	qu.Columns = u.GetTableColumns()
 	qu.Values = []apps.RowValues{u.GetRowValues("default")}
 	_, err := apps.Pg.Exec(ctx, qu.InsertSingleElementQuery())
-	b.Require().Nil(err)
+	if err != nil {
+		panic(err)
+	}
 	return u.UserID
 }
 
@@ -69,7 +71,9 @@ func (b *BaseHestiaTestSuite) NewTestOrg() int {
 	qo.Columns = o.GetTableColumns()
 	qo.Values = []apps.RowValues{o.GetRowValues("default")}
 	_, err := apps.Pg.Exec(ctx, qo.InsertSingleElementQuery())
-	b.Require().Nil(err)
+	if err != nil {
+		panic(err)
+	}
 	return o.OrgID
 }
 
@@ -90,6 +94,8 @@ func (b *BaseHestiaTestSuite) NewTestOrgAndUser() (int, int) {
 	quo.Values = []apps.RowValues{ou.GetRowValues("default")}
 
 	_, err := apps.Pg.Exec(ctx, quo.InsertSingleElementQuery())
-	b.Require().Nil(err)
+	if err != nil {
+		panic(err)
+	}
 	return ou.OrgID, ou.UserID
 }

@@ -1,7 +1,13 @@
 package create_state
 
-import autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+import "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
 
 type State struct {
-	autogen_bases.TopologiesDeployed
+	state.State
+}
+
+func NewCreateState() State {
+	s := state.NewState()
+	cs := State{s}
+	return cs
 }

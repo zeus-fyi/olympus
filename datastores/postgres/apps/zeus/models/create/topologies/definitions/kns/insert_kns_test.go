@@ -6,13 +6,11 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
 type CreateKnsTestSuite struct {
-	b hestia_test.BaseHestiaTestSuite
 	conversions_test.ConversionsTestSuite
 }
 
@@ -24,6 +22,7 @@ func (s *CreateKnsTestSuite) TestInsertKns() {
 	newKns.Env = "test"
 	newKns.Namespace = "namespace"
 	newKns.TopologyID = topID
+
 	ctx := context.Background()
 	q := sql_query_templates.NewQueryParam("InsertKns", "kns", "where", 1000, []string{})
 	q.TableName = newKns.GetTableName()

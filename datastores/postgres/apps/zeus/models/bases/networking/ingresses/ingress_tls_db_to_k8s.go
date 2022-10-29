@@ -6,11 +6,11 @@ import (
 )
 
 func (i *Ingress) ConvertDBIngressTLSToK8s(tlsMap map[string][]common_conversions.PC) error {
+	k8sTLS := v1.IngressTLS{
+		Hosts:      []string{},
+		SecretName: "",
+	}
 	for _, dbTLS := range tlsMap {
-		k8sTLS := v1.IngressTLS{
-			Hosts:      []string{},
-			SecretName: "",
-		}
 		for _, tlsComponent := range dbTLS {
 			val := tlsComponent.ChartSubcomponentValue
 			k := tlsComponent.ChartSubcomponentKeyName
@@ -21,7 +21,7 @@ func (i *Ingress) ConvertDBIngressTLSToK8s(tlsMap map[string][]common_conversion
 				k8sTLS.Hosts = append(k8sTLS.Hosts, val)
 			}
 		}
-		i.K8sIngress.Spec.TLS = append(i.K8sIngress.Spec.TLS, k8sTLS)
 	}
+	i.K8sIngress.Spec.TLS = append(i.K8sIngress.Spec.TLS, k8sTLS)
 	return nil
 }

@@ -27,6 +27,6 @@ func (t *TLS) AddIngressTLS(secretNameValue string, hosts []string) {
 
 	tlsIngress := structs.NewSuperParentClassWithBothChildTypes("tls", tlsGroupID, tlsGroupID)
 	tlsIngress.SetSingleChildClassIDTypeNameKeyAndValue(childTypeID, tlsGroupID, "secretName", secretNameValue)
-	tlsIngress.AddKeyValuesAndUniqueChildID(childTypeID, tlsGroupID, " hosts", hosts)
+	tlsIngress.AddKeyValuesAndUniqueChildID(childTypeID, tlsGroupID, "hosts", hosts)
 	t.SuperParentClassSlice = append(t.SuperParentClassSlice, tlsIngress)
 }

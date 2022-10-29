@@ -7,7 +7,7 @@ import (
 	v1 "k8s.io/api/networking/v1"
 )
 
-func (i *Ingress) ConvertDBIngressRuleToK8s(rulesMap map[int][]common_conversions.PC) error {
+func (i *Ingress) ConvertDBIngressRuleToK8s(rulesMap map[string][]common_conversions.PC) error {
 	for _, rule := range rulesMap {
 		k8sIngressRule := v1.IngressRule{}
 		for _, ruleComponent := range rule {
@@ -30,22 +30,26 @@ func (i *Ingress) ConvertDBIngressRuleToK8s(rulesMap map[int][]common_conversion
 				k8sIngressRule.IngressRuleValue.HTTP.Paths = append(paths, httpPath)
 			}
 		}
-
+		i.K8sIngress.Spec.Rules = append(i.K8sIngress.Spec.Rules, k8sIngressRule)
 	}
 	return nil
 }
 
 func parseIngressPath(ingressPathStr string) (v1.HTTPIngressPath, error) {
 	ingressPath := v1.HTTPIngressPath{}
-	bytes, berr := getBytes(ingressPathStr)
+	var m interface{}
+	err := json.Unmarshal([]byte(ingressPathStr), &m)
+	if err != nil {
+		return ingressPath, err
+	}
+	bytes, berr := getBytes(m)
 	if berr != nil {
 		return ingressPath, berr
 	}
-	perr := json.Unmarshal(bytes, &ingressPath)
-	if perr != nil {
-		return ingressPath, perr
+	err = json.Unmarshal(bytes, &ingressPath)
+	if err != nil {
+		return ingressPath, err
 	}
-
 	return ingressPath, nil
 }
 

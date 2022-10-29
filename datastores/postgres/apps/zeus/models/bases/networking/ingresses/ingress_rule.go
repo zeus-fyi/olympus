@@ -1,6 +1,8 @@
 package ingresses
 
 import (
+	"fmt"
+
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
@@ -19,13 +21,14 @@ type Rules struct {
 
 func (r *Rules) AddIngressRule(hostName string, httpPathsSlice []string) {
 	var ts chronos.Chronos
-	rule := structs.NewSuperParentClassWithBothChildTypes("rules", "rules", "rules")
 	childTypeID := ts.UnixTimeStampNow()
+	rulesGroupID := fmt.Sprintf("rules_%d", childTypeID)
+	rule := structs.NewSuperParentClassWithBothChildTypes("rules", rulesGroupID, rulesGroupID)
 
 	// single values part
-	rule.SetSingleChildClassIDTypeNameKeyAndValue(childTypeID, "rules", "host", hostName)
+	rule.SetSingleChildClassIDTypeNameKeyAndValue(childTypeID, rulesGroupID, "host", hostName)
 
 	// multi values part
-	rule.AddKeyValuesAndUniqueChildID(childTypeID, "rules", "path", httpPathsSlice)
+	rule.AddKeyValuesAndUniqueChildID(childTypeID, rulesGroupID, "http", httpPathsSlice)
 	r.SuperParentClassSlice = append(r.SuperParentClassSlice, rule)
 }

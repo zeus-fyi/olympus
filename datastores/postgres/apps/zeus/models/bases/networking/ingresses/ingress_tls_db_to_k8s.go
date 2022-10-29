@@ -5,7 +5,7 @@ import (
 	v1 "k8s.io/api/networking/v1"
 )
 
-func (i *Ingress) ConvertDBIngressTLSToK8s(tlsMap map[int][]common_conversions.PC) error {
+func (i *Ingress) ConvertDBIngressTLSToK8s(tlsMap map[string][]common_conversions.PC) error {
 	for _, dbTLS := range tlsMap {
 		k8sTLS := v1.IngressTLS{
 			Hosts:      []string{},

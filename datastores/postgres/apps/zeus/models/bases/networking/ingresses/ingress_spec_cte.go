@@ -15,6 +15,7 @@ func (is *Spec) GetIngressSpecCTE(c *charts.Chart) sql_query_templates.SubCTEs {
 	rulesCte := common.CreateSuperParentGroupClassTypeChildrenFromSlicesSubCTE(is.Rules.SuperParentClassGroup)
 	// tls
 	tlsCte := common.CreateSuperParentGroupClassTypeChildrenFromSlicesSubCTE(is.TLS.SuperParentClassGroup)
+
 	combinedSubCtes := sql_query_templates.AppendSubCteSlices(parentClassTypeSubCTE, rulesCte, tlsCte)
 	if is.IngressClassName != nil {
 		combinedSubCtes = sql_query_templates.AppendSubCteSlices(combinedSubCtes, common.CreateChildClassSingleValueSubCTEs(&is.IngressClassName.ChildClassSingleValue))

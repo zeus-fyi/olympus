@@ -1,6 +1,8 @@
 package ingresses
 
 import (
+	"strings"
+
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions/db_to_k8s_conversions"
 	"github.com/zeus-fyi/olympus/pkg/utils/dev_hacks"
@@ -22,13 +24,15 @@ func (i *Ingress) ParseDBConfigToK8s(pcSlice common_conversions.ParentChildDB) e
 }
 
 func (i *Ingress) ConvertSpec(pcSlice []common_conversions.PC) error {
-	ingressRulesMap := make(map[int][]common_conversions.PC)
-	ingressTLSMap := make(map[int][]common_conversions.PC)
+	ingressRulesMap := make(map[string][]common_conversions.PC)
+	ingressTLSMap := make(map[string][]common_conversions.PC)
 
+	namesSlice := []string{}
 	for _, pc := range pcSlice {
 		subClassName := pc.ChartSubcomponentChildClassTypeName
 		ccTypeID := pc.ChartSubcomponentChildClassTypes.ChartSubcomponentChildClassTypeID
 
+		namesSlice = append(namesSlice, subClassName)
 		keyName := pc.ChartSubcomponentKeyName
 		value := pc.ChartSubcomponentValue
 		dev_hacks.Use(ccTypeID, keyName, value)
@@ -36,17 +40,23 @@ func (i *Ingress) ConvertSpec(pcSlice []common_conversions.PC) error {
 		switch subClassName {
 		case "ingressClassName":
 			i.K8sIngress.Spec.IngressClassName = &value
-		case "tls":
-			err := i.ConvertDBIngressRuleToK8s(ingressRulesMap)
-			if err != nil {
-				return err
-			}
-		case "rules":
-			err := i.ConvertDBIngressTLSToK8s(ingressTLSMap)
-			if err != nil {
-				return err
-			}
 		}
+		if strings.HasPrefix(subClassName, "tls") {
+			tmp := ingressTLSMap[subClassName]
+			ingressTLSMap[subClassName] = append(tmp, pc)
+		}
+		if strings.HasPrefix(subClassName, "rules") {
+			tmp := ingressRulesMap[subClassName]
+			ingressRulesMap[subClassName] = append(tmp, pc)
+		}
+	}
+	err := i.ConvertDBIngressRuleToK8s(ingressRulesMap)
+	if err != nil {
+		return err
+	}
+	err = i.ConvertDBIngressTLSToK8s(ingressTLSMap)
+	if err != nil {
+		return err
 	}
 	return nil
 }

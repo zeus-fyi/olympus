@@ -1,3 +1,4 @@
+
 -- since unix microseconds add 24 additional bits, this is good enough for distributed id generation, is sortable,
 -- and has the best performance with ordering at the tail end since it doesn't rely on entropy to generate
 -- the last bits, highly unlikely to collide

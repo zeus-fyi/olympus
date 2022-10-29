@@ -54,7 +54,7 @@ CREATE TABLE "public"."topologies_deployed" (
 -- END;
 -- $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER set_timestamp
+CREATE TRIGGER set_timestamp_on_topologies_deployed
     BEFORE UPDATE ON topologies_deployed
     FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();

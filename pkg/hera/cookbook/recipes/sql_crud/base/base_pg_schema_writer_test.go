@@ -38,7 +38,7 @@ var printOutLocationHestia = "/Users/alex/Desktop/Zeus/olympus/datastores/postgr
 func (s *ModelStructBaseGenWriterTestSuite) TestHestiaBaseSchemaWriter() {
 	filter := string_utils.FilterOpts{
 		DoesNotStartWithThese: []string{},
-		StartsWithThese:       []string{"orgs", "user"},
+		StartsWithThese:       []string{"org", "user"},
 		Contains:              "",
 		DoesNotInclude:        nil,
 	}

@@ -7,3 +7,8 @@ import (
 type OrgUser struct {
 	org_users.OrgUser
 }
+
+func NewCreateOrgUser() OrgUser {
+	o := OrgUser{org_users.NewOrgUser()}
+	return o
+}

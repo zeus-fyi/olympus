@@ -1,16 +1,17 @@
 package org_users
 
 import (
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/orgs"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/users"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 )
 
 type OrgUser struct {
-	orgs.Org
-	users.User
+	autogen_bases.OrgUsers
 }
 
-type OrgUsers struct {
-	orgs.Org
-	users.User
+func NewOrgUser() OrgUser {
+	o := OrgUser{autogen_bases.OrgUsers{
+		OrgID:  0,
+		UserID: 0,
+	}}
+	return o
 }

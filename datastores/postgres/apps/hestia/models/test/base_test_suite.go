@@ -34,14 +34,14 @@ func ForceDirToCallerLocation() string {
 	return dir
 }
 
-func (s *BaseHestiaTestSuite) SetupTest() {
-	s.TestDirectory = ForceDirToCallerLocation()
-	s.Yr = transformations.YamlReader{}
-	s.InitLocalConfigs()
-	s.SetupPGConn()
+func (b *BaseHestiaTestSuite) SetupTest() {
+	b.TestDirectory = ForceDirToCallerLocation()
+	b.Yr = transformations.YamlReader{}
+	b.InitLocalConfigs()
+	b.SetupPGConn()
 }
 
-func (s *BaseHestiaTestSuite) NewTestUser() int {
+func (b *BaseHestiaTestSuite) NewTestUser() int {
 	var ts chronos.Chronos
 	ctx := context.Background()
 
@@ -53,11 +53,11 @@ func (s *BaseHestiaTestSuite) NewTestUser() int {
 	qu.Columns = u.GetTableColumns()
 	qu.Values = []apps.RowValues{u.GetRowValues("default")}
 	_, err := apps.Pg.Exec(ctx, qu.InsertSingleElementQuery())
-	s.Require().Nil(err)
+	b.Require().Nil(err)
 	return u.UserID
 }
 
-func (s *BaseHestiaTestSuite) NewTestOrg() int {
+func (b *BaseHestiaTestSuite) NewTestOrg() int {
 	var ts chronos.Chronos
 	ctx := context.Background()
 
@@ -69,20 +69,20 @@ func (s *BaseHestiaTestSuite) NewTestOrg() int {
 	qo.Columns = o.GetTableColumns()
 	qo.Values = []apps.RowValues{o.GetRowValues("default")}
 	_, err := apps.Pg.Exec(ctx, qo.InsertSingleElementQuery())
-	s.Require().Nil(err)
+	b.Require().Nil(err)
 	return o.OrgID
 }
 
-func (s *BaseHestiaTestSuite) NewTestOrgAndUser() {
+func (b *BaseHestiaTestSuite) NewTestOrgAndUser() (int, int) {
 	ctx := context.Background()
 	u := users.NewUser()
-	u.UserID = s.NewTestUser()
+	u.UserID = b.NewTestUser()
 	o := orgs.NewOrg()
-	o.OrgID = s.NewTestOrg()
+	o.OrgID = b.NewTestOrg()
 
 	ou := org_users.NewOrgUser()
-	ou.UserID = u.UserID
 	ou.OrgID = o.OrgID
+	ou.UserID = u.UserID
 
 	quo := sql_query_templates.NewQueryParam("NewTestOrgUser", "org_users", "where", 1000, []string{})
 	quo.TableName = ou.GetTableName()
@@ -90,6 +90,6 @@ func (s *BaseHestiaTestSuite) NewTestOrgAndUser() {
 	quo.Values = []apps.RowValues{ou.GetRowValues("default")}
 
 	_, err := apps.Pg.Exec(ctx, quo.InsertSingleElementQuery())
-	s.Require().Nil(err)
-	return
+	b.Require().Nil(err)
+	return ou.OrgID, ou.UserID
 }

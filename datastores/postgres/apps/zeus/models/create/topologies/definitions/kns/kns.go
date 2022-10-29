@@ -1,7 +1,14 @@
 package create_kns
 
-import autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+import (
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
+)
 
 type Kns struct {
-	autogen_bases.TopologiesKns
+	kns.Kns
+}
+
+func NewCreateKns() Kns {
+	ckns := Kns{kns.NewKns()}
+	return ckns
 }

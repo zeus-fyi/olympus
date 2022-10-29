@@ -66,7 +66,7 @@ func (p *PackagesTestSuite) TestInsert() {
 	jsonBytes, err = p.Yr.ReadYamlConfig(filepath)
 	err = json.Unmarshal(jsonBytes, &pkg.K8sIngress)
 	p.Require().Nil(err)
-	err = pkg.ConvertIngressSpecConfigToDB()
+	err = pkg.ConvertK8sIngressToDB()
 	p.Require().Nil(err)
 	p.Assert().NotEmpty(pkg.Ingress)
 

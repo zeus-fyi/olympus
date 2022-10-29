@@ -19,13 +19,13 @@ type Rules struct {
 
 func (r *Rules) AddIngressRule(hostName string, httpPathsSlice []string) {
 	var ts chronos.Chronos
-	rule := structs.NewSuperParentClassWithBothChildTypes("rules", "host", "http")
+	rule := structs.NewSuperParentClassWithBothChildTypes("rules", "rules", "rules")
 	childTypeID := ts.UnixTimeStampNow()
 
 	// single values part
-	rule.SetSingleChildClassIDTypeNameKeyAndValue(childTypeID, "host", "host", hostName)
+	rule.SetSingleChildClassIDTypeNameKeyAndValue(childTypeID, "rules", "host", hostName)
 
 	// multi values part
-	rule.AddKeyValuesAndUniqueChildID(childTypeID, "http", "path", httpPathsSlice)
+	rule.AddKeyValuesAndUniqueChildID(childTypeID, "rules", "path", httpPathsSlice)
 	r.SuperParentClassSlice = append(r.SuperParentClassSlice, rule)
 }

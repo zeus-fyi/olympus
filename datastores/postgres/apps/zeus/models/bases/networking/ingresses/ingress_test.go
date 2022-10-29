@@ -27,7 +27,7 @@ func (s *IngressTestSuite) TestK8sIngressYamlReaderAndK8sToDBCte() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(ing.K8sIngress)
 
-	err = ing.ParseK8sConfigToDB()
+	err = ing.ConvertK8sIngressToDB()
 	s.Require().Nil(err)
 
 	s.Require().NotEmpty(ing.Metadata)
@@ -37,7 +37,7 @@ func (s *IngressTestSuite) TestK8sIngressYamlReaderAndK8sToDBCte() {
 
 	c := charts.Chart{}
 	c.ChartPackageID = 100
-	cte := ing.GetIngressSpecCTE(&c)
+	cte := ing.GetIngressCTE(&c)
 	s.Require().NotEmpty(cte)
 }
 

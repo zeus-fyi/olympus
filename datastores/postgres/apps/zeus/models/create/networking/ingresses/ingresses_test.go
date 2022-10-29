@@ -29,7 +29,7 @@ func (s *IngressTestSuite) TestConvertIngressAndInsert() {
 
 	s.Require().Nil(err)
 	s.Require().NotEmpty(ing.K8sIngress)
-	ing.ParseK8sConfigToDB()
+	ing.ConvertK8sIngressToDB()
 	s.Require().NotEmpty(ing.Metadata)
 	s.Require().NotEmpty(ing.Spec)
 	s.Require().NotEmpty(ing.TLS)

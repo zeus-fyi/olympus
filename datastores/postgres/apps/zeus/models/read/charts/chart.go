@@ -231,6 +231,16 @@ func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_tem
 					return serr
 				}
 			}
+		case "Ingress":
+			if c.Ingress == nil {
+				ing := ingresses.NewIngress()
+				c.Ingress = &ing
+				ierr := read_networking.DBIngressResource(c.Ingress, ckagg)
+				if ierr != nil {
+					log.Err(ierr).Msg(q.LogHeader(ModelName))
+					return ierr
+				}
+			}
 		}
 	}
 	return nil

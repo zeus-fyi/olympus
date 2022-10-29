@@ -2,18 +2,18 @@ package ingresses
 
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
 
-func (i *Ingress) ParseK8sConfigToDB() error {
+func (i *Ingress) ConvertK8sIngressToDB() error {
 	i.Metadata.ChartSubcomponentParentClassTypeName = "IngressParentMetadata"
 	metadata := common_conversions.ConvertMetadata(i.K8sIngress.ObjectMeta)
 	i.Metadata.Metadata = metadata
-	err := i.ConvertIngressSpecConfigToDB()
+	err := i.ConvertK8sIngressSpecConfigToDB()
 	if err != nil {
 		return err
 	}
 	return err
 }
 
-func (i *Ingress) ConvertIngressSpecConfigToDB() error {
+func (i *Ingress) ConvertK8sIngressSpecConfigToDB() error {
 	i.Spec = NewIngressSpec()
 
 	if i.K8sIngress.Spec.IngressClassName != nil {

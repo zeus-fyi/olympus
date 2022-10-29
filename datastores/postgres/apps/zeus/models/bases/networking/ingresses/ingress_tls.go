@@ -22,10 +22,10 @@ func (t *TLS) AddIngressTLS(secretNameValue string, hosts []string) {
 	var ts chronos.Chronos
 	singleChildClassTypeName := "secretName"
 	multiChildClassTypeName := "hosts"
-	tlsIngress := structs.NewSuperParentClassWithBothChildTypes("ingress", singleChildClassTypeName, multiChildClassTypeName)
+	tlsIngress := structs.NewSuperParentClassWithBothChildTypes("tls", "tls", "tls")
 
 	childTypeID := ts.UnixTimeStampNow()
 	tlsIngress.SetSingleChildClassIDTypeNameKeyAndValue(childTypeID, singleChildClassTypeName, singleChildClassTypeName, secretNameValue)
-	tlsIngress.AddKeyValuesAndUniqueChildID(childTypeID, multiChildClassTypeName, "hosts", hosts)
+	tlsIngress.AddKeyValuesAndUniqueChildID(childTypeID, multiChildClassTypeName, multiChildClassTypeName, hosts)
 	t.SuperParentClassSlice = append(t.SuperParentClassSlice, tlsIngress)
 }

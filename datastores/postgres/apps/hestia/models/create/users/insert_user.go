@@ -13,9 +13,7 @@ const Sn = "User"
 
 func (u *User) InsertUser(ctx context.Context, q sql_query_templates.QueryParams) error {
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
-
-	query := q.InsertSingleElementQuery()
-	r, err := apps.Pg.Exec(ctx, query)
+	r, err := apps.Pg.Exec(ctx, q.InsertSingleElementQuery())
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
 		return err
 	}

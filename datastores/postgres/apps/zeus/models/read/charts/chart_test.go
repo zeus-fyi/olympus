@@ -18,11 +18,13 @@ func (s *ChartReaderTestSuite) TestSelectQueryName() {
 	qp := test.CreateTestQueryNameParams()
 
 	chart := Chart{}
-	chart.ChartPackageID = 6764006418130280421
+	chart.ChartPackageID = 6766495712439438153
 	err := chart.SelectSingleChartsResources(ctx, qp)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(chart.K8sDeployment)
 	s.Require().NotNil(chart.K8sDeployment.Spec.Replicas)
+	s.Require().NotEmpty(chart.K8sDeployment.Spec.Template.GetObjectMeta())
+
 	s.Require().NotEmpty(chart.K8sService)
 	s.Require().NotEmpty(chart.K8sConfigMap)
 	s.Require().NotEmpty(chart.K8sIngress)

@@ -14,6 +14,9 @@ func HandleTopologyActionRequest(c echo.Context) error {
 	if request.Action == "create" {
 		return request.CreateTopology(c, request)
 	}
+	if request.Action == "deploy" {
+		return request.DeployTopology(c, request)
+	}
 	if request.Action == "read" {
 		return request.ReadTopology(c, request)
 	}

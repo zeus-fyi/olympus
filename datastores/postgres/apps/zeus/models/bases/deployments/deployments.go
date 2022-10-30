@@ -11,7 +11,7 @@ import (
 const ModelName = "Deployment"
 
 type Deployment struct {
-	K8sDeployment  *v1.Deployment
+	K8sDeployment  v1.Deployment
 	KindDefinition autogen_bases.ChartComponentResources
 
 	Metadata structs.ParentMetaData
@@ -29,7 +29,7 @@ func NewDeployment() Deployment {
 		Kind:       "Deployment",
 		APIVersion: "apps/v1",
 	}
-	d.K8sDeployment = &v1.Deployment{
+	d.K8sDeployment = v1.Deployment{
 		TypeMeta:   typeMeta,
 		ObjectMeta: metav1.ObjectMeta{},
 		Spec:       v1.DeploymentSpec{},

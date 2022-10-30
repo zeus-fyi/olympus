@@ -12,6 +12,7 @@ type TopologyDeployActionRequestTestSuite struct {
 }
 
 func (t *TopologyDeployActionRequestTestSuite) TestDeployChart() {
+	kns.Namespace = "demo"
 	topologyActionRequest := TopologyActionRequest{
 		Action:     "deploy",
 		K8sRequest: K8sRequest{Kns: kns},

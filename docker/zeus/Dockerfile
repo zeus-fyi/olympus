@@ -9,7 +9,7 @@ RUN go mod download
 
 COPY .. .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o autok8s apps/olympus/zeus/main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o zeus apps/olympus/zeus/main.go
 
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates

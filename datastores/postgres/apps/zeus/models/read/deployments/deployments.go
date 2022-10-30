@@ -38,6 +38,9 @@ func DBDeploymentContainer(d *deployments.Deployment, c *containers.Container) e
 		if len(deploymentContainers) <= 0 {
 			deploymentContainers = []v1.Container{}
 		}
+		c.K8sContainer.Name = c.Metadata.ContainerName
+		c.K8sContainer.Image = c.Metadata.ContainerImageID
+		c.K8sContainer.ImagePullPolicy = v1.PullPolicy(c.Metadata.ContainerImagePullPolicy)
 		d.K8sDeployment.Spec.Template.Spec.Containers = append(deploymentContainers, c.K8sContainer)
 	}
 	return nil

@@ -8,6 +8,7 @@ import (
 
 type Chart struct {
 	autogen_bases.ChartPackages
+	autogen_bases.ChartComponentResources
 }
 
 func NewChart() Chart {
@@ -16,6 +17,10 @@ func NewChart() Chart {
 		ChartName:        "",
 		ChartVersion:     "",
 		ChartDescription: sql.NullString{},
+	}, autogen_bases.ChartComponentResources{
+		ChartComponentResourceID: 0,
+		ChartComponentKindName:   "",
+		ChartComponentApiVersion: "",
 	}}
 	return c
 }

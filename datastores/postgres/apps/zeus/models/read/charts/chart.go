@@ -6,7 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/configuration"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/containers"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
@@ -19,8 +19,7 @@ import (
 )
 
 type Chart struct {
-	autogen_bases.ChartPackages
-	autogen_bases.ChartComponentResources
+	charts.Chart
 
 	*deployments.Deployment
 	*services.Service

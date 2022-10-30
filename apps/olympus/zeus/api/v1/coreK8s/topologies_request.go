@@ -17,18 +17,17 @@ type TopologyActionRequest struct {
 	clusters.Cluster
 }
 
-// TODO
+// TODO should read the topology id
 func (t *TopologyActionRequest) ReadTopology(c echo.Context, request *TopologyActionRequest) error {
 	//chart := t.GetInfraChartPackage()
 
 	chartReader := read_charts.Chart{}
-	chartReader.ChartPackageID = 6672899785140184951
+	chartReader.ChartPackageID = 6759098198199705229
 	//chart.ChartPackageID
 
 	ctx := context.Background()
 	q := sql_query_templates.QueryParams{}
 	err := chartReader.SelectSingleChartsResources(ctx, q)
-
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, nil)
 	}

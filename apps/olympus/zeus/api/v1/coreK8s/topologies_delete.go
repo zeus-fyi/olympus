@@ -5,5 +5,7 @@ import (
 )
 
 func (t *TopologyActionRequest) DeleteTopology(c echo.Context, request *TopologyActionRequest) error {
+
+	// TODO delete workload
 	return nil
 }

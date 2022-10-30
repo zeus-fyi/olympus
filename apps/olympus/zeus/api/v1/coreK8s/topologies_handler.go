@@ -23,7 +23,7 @@ func HandleTopologyActionRequest(c echo.Context) error {
 	if request.Action == "update" {
 		return request.UpdateTopology(c, request)
 	}
-	if request.Action == "update" {
+	if request.Action == "delete" {
 		return request.DeleteTopology(c, request)
 	}
 	return c.JSON(http.StatusBadRequest, nil)

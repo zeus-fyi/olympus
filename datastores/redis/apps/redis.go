@@ -1,4 +1,4 @@
-package apps
+package redis_app
 
 import (
 	"context"

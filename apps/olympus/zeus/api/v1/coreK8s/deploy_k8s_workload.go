@@ -16,7 +16,7 @@ func DeployChartPackage(ctx context.Context, kns autok8s_core.KubeCtxNs, c read_
 	}
 	if c.Deployment != nil {
 		// TODO
-		_, err := K8util.CreateDeployment(ctx, kns, &c.K8sDeployment)
+		_, err := K8util.CreateDeploymentIfVersionLabelChangesOrDoesNotExist(ctx, kns, &c.K8sDeployment)
 		if err != nil {
 			return err
 		}

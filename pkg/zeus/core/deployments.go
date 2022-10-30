@@ -23,6 +23,9 @@ func (k *K8Util) CreateDeployment(ctx context.Context, kns KubeCtxNs, d *v1.Depl
 func (k *K8Util) DeleteDeployment(ctx context.Context, kns KubeCtxNs, name string, filter *string_utils.FilterOpts) error {
 	opts := metav1.DeleteOptions{}
 	err := k.kc.AppsV1().Deployments(kns.Namespace).Delete(ctx, name, opts)
+	if errors.IsNotFound(err) {
+		return nil
+	}
 	return err
 }
 

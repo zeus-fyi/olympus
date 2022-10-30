@@ -19,7 +19,7 @@ func ConvertMetadata(k8sMetadata *metav1.ObjectMeta, pcSlice []common_conversion
 				k8sMetadata.Annotations = make(map[string]string)
 			}
 			k8sMetadata.Annotations[pc.ChartSubcomponentKeyName] = pc.ChartSubcomponentValue
-		case "metadataName":
+		case "name":
 			k8sMetadata.Name = pc.ChartSubcomponentValue
 		}
 	}

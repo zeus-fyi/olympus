@@ -7,7 +7,7 @@ func NewMetadataName() ChildClassSingleValue {
 		ChartSubcomponentChildClassTypes: autogen_bases.ChartSubcomponentChildClassTypes{
 			ChartSubcomponentParentClassTypeID:  0,
 			ChartSubcomponentChildClassTypeID:   0,
-			ChartSubcomponentChildClassTypeName: "metadataName",
+			ChartSubcomponentChildClassTypeName: "name",
 		},
 		ChartSubcomponentsChildValues: autogen_bases.ChartSubcomponentsChildValues{
 			ChartSubcomponentKeyName:                       "name",

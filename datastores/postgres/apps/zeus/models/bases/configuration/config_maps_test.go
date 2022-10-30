@@ -14,15 +14,19 @@ type ConfigMapTestSuite struct {
 
 func (s *ConfigMapTestSuite) TestK8sConfigMapYamlReader() {
 	cm := NewConfigMap()
-	filepath := s.TestDirectory + "/mocks/test/cm-eth-indexer.yaml"
+	filepath := s.TestDirectory + "/apps/eth-indexer/cm-eth-indexer.yaml"
 	jsonBytes, err := s.Yr.ReadYamlConfig(filepath)
 	err = json.Unmarshal(jsonBytes, &cm.K8sConfigMap)
 
 	s.Require().Nil(err)
 	s.Require().NotEmpty(cm.K8sConfigMap)
+	s.Require().NotEmpty(cm.Metadata.Name)
 
 	cm.ParseK8sConfigToDB()
 	s.Require().NotEmpty(cm.Data)
+	s.Require().NotEmpty(cm.K8sConfigMap.Name)
+	s.Require().NotEmpty(cm.K8sConfigMap.ObjectMeta.Name)
+
 }
 
 func TestConfigMapTestSuite(t *testing.T) {

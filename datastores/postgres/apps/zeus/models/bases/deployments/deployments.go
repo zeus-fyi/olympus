@@ -46,14 +46,14 @@ func NewDeployment() Deployment {
 		ChartPackageID:                       0,
 		ChartComponentResourceID:             0,
 		ChartSubcomponentParentClassTypeID:   0,
-		ChartSubcomponentParentClassTypeName: "DeploymentSpec",
+		ChartSubcomponentParentClassTypeName: "Spec",
 	}
 	return d
 }
 
 func NewDeploymentSpec() Spec {
 	ds := Spec{}
-	ds.ChartSubcomponentParentClassTypeName = "DeploymentSpec"
+	ds.ChartSubcomponentParentClassTypeName = "Spec"
 	ds.SpecWorkload = structs.NewSpecWorkload()
 	ds.Template = containers.NewPodTemplateSpec()
 	return ds

@@ -9,13 +9,13 @@ import (
 )
 
 func (k *K8Util) GetIngressWithKns(ctx context.Context, kns KubeCtxNs, name string, filter *string_utils.FilterOpts) (*v1.Ingress, error) {
-	return k.kc.NetworkingV1().Ingresses(kns.Namespace).Get(context.Background(), name, metav1.GetOptions{})
+	return k.kc.NetworkingV1().Ingresses(kns.Namespace).Get(ctx, name, metav1.GetOptions{})
 }
 
 func (k *K8Util) CreateIngressWithKns(ctx context.Context, kns KubeCtxNs, ing *v1.Ingress, filter *string_utils.FilterOpts) (*v1.Ingress, error) {
-	return k.kc.NetworkingV1().Ingresses(kns.Namespace).Create(context.Background(), ing, metav1.CreateOptions{})
+	return k.kc.NetworkingV1().Ingresses(kns.Namespace).Create(ctx, ing, metav1.CreateOptions{})
 }
 
 func (k *K8Util) DeleteIngressWithKns(ctx context.Context, kns KubeCtxNs, name string, filter *string_utils.FilterOpts) error {
-	return k.kc.NetworkingV1().Ingresses(kns.Namespace).Delete(context.Background(), name, metav1.DeleteOptions{})
+	return k.kc.NetworkingV1().Ingresses(kns.Namespace).Delete(ctx, name, metav1.DeleteOptions{})
 }

@@ -8,7 +8,6 @@ import (
 )
 
 func DeleteK8sWorkload(ctx context.Context, kns autok8s_core.KubeCtxNs, c read_charts.Chart) error {
-	// TODO, create ns if not exists
 	if c.Deployment != nil {
 		// TODO
 		_, err := K8util.DeleteDeployment(ctx, kns, &c.K8sDeployment)

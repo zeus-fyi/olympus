@@ -9,35 +9,35 @@ import (
 
 func DeployChartPackage(ctx context.Context, kns autok8s_core.KubeCtxNs, c read_charts.Chart) error {
 
-	// TODO, create ns if not exists
 	_, nserr := K8util.CreateNamespaceIfDoesNotExist(ctx, kns)
 	if nserr != nil {
 		return nserr
 	}
+
 	if c.Deployment != nil {
 		// TODO
-		_, err := K8util.CreateDeploymentIfVersionLabelChangesOrDoesNotExist(ctx, kns, &c.K8sDeployment)
+		_, err := K8util.CreateDeploymentIfVersionLabelChangesOrDoesNotExist(ctx, kns, &c.K8sDeployment, nil)
 		if err != nil {
 			return err
 		}
 	}
 	if c.Service != nil {
 		// TODO
-		_, err := K8util.CreateServiceWithKns(ctx, kns, &c.K8sService, nil)
+		_, err := K8util.CreateServiceIfVersionLabelChangesOrDoesNotExist(ctx, kns, &c.K8sService, nil)
 		if err != nil {
 			return err
 		}
 	}
 	if c.Ingress != nil {
 		// TODO
-		_, err := K8util.CreateIngressWithKns(ctx, kns, &c.K8sIngress, nil)
+		_, err := K8util.CreateIngressIfVersionLabelChangesOrDoesNotExist(ctx, kns, &c.K8sIngress, nil)
 		if err != nil {
 			return err
 		}
 	}
 	if c.ConfigMap != nil {
 		// TODO
-		_, err := K8util.CreateConfigMapWithKns(ctx, kns, &c.K8sConfigMap, nil)
+		_, err := K8util.CreateConfigMapIfVersionLabelChangesOrDoesNotExist(ctx, kns, &c.K8sConfigMap, nil)
 		if err != nil {
 			return err
 		}

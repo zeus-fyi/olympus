@@ -18,7 +18,11 @@ func (k *K8Util) CreateServiceWithKns(ctx context.Context, kns KubeCtxNs, s *v1.
 }
 
 func (k *K8Util) DeleteServiceWithKns(ctx context.Context, kns KubeCtxNs, name string, filter *string_utils.FilterOpts) error {
-	return k.kc.CoreV1().Services(kns.Namespace).Delete(ctx, name, metav1.DeleteOptions{})
+	err := k.kc.CoreV1().Services(kns.Namespace).Delete(ctx, name, metav1.DeleteOptions{})
+	if errors.IsNotFound(err) {
+		return nil
+	}
+	return err
 }
 
 func (k *K8Util) CreateServiceIfVersionLabelChangesOrDoesNotExist(ctx context.Context, kns KubeCtxNs, ns *v1.Service, filter *string_utils.FilterOpts) (*v1.Service, error) {

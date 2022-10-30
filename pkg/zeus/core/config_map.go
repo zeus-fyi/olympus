@@ -18,7 +18,11 @@ func (k *K8Util) CreateConfigMapWithKns(ctx context.Context, kns KubeCtxNs, cm *
 }
 
 func (k *K8Util) DeleteConfigMapWithKns(ctx context.Context, kns KubeCtxNs, name string, filter *string_utils.FilterOpts) error {
-	return k.kc.CoreV1().ConfigMaps(kns.Namespace).Delete(ctx, name, metav1.DeleteOptions{})
+	err := k.kc.CoreV1().ConfigMaps(kns.Namespace).Delete(ctx, name, metav1.DeleteOptions{})
+	if errors.IsNotFound(err) {
+		return nil
+	}
+	return err
 }
 
 func (k *K8Util) CreateConfigMapIfVersionLabelChangesOrDoesNotExist(ctx context.Context, kns KubeCtxNs, ncm *v1.ConfigMap, filter *string_utils.FilterOpts) (*v1.ConfigMap, error) {

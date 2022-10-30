@@ -8,9 +8,11 @@ import (
 )
 
 func DeleteK8sWorkload(ctx context.Context, kns autok8s_core.KubeCtxNs, c read_charts.Chart) error {
+
+	// todo verify if it returns an error if not found, should ignore in those cases
 	if c.Deployment != nil {
 		// TODO
-		err := K8util.DeleteDeployment(ctx, kns, c.K8sDeployment.Name)
+		err := K8util.DeleteDeployment(ctx, kns, c.K8sDeployment.Name, nil)
 		if err != nil {
 			return err
 		}
@@ -32,9 +34,6 @@ func DeleteK8sWorkload(ctx context.Context, kns autok8s_core.KubeCtxNs, c read_c
 	if c.ConfigMap != nil {
 		// TODO
 		err := K8util.DeleteConfigMapWithKns(ctx, kns, c.K8sConfigMap.Name, nil)
-		if err != nil {
-			return err
-		}
 		if err != nil {
 			return err
 		}

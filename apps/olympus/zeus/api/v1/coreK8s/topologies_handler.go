@@ -14,17 +14,17 @@ func HandleTopologyActionRequest(c echo.Context) error {
 	if request.Action == "create" {
 		return request.CreateTopology(c, request)
 	}
-	if request.Action == "deploy" {
-		return request.DeployTopology(c, request)
-	}
 	if request.Action == "read" {
 		return request.ReadTopology(c, request)
 	}
 	if request.Action == "update" {
 		return request.UpdateTopology(c, request)
 	}
-	if request.Action == "delete" {
-		return request.DeleteTopology(c, request)
+	if request.Action == "deploy" {
+		return request.DeployTopology(c, request)
+	}
+	if request.Action == "delete-deploy" {
+		return request.DeleteDeployedTopology(c, request)
 	}
 	return c.JSON(http.StatusBadRequest, nil)
 }

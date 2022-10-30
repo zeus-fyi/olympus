@@ -14,7 +14,7 @@ type TopologyDeleteWorkloadActionRequestTestSuite struct {
 func (t *TopologyDeleteWorkloadActionRequestTestSuite) TestDeleteWorkloadChart() {
 	kns.Namespace = "demo"
 	topologyActionRequest := TopologyActionRequest{
-		Action:     "delete-workload",
+		Action:     "delete-deploy",
 		K8sRequest: K8sRequest{Kns: kns},
 		Cluster:    clusters.NewCluster(),
 	}

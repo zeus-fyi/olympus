@@ -18,7 +18,11 @@ func (k *K8Util) CreateIngressWithKns(ctx context.Context, kns KubeCtxNs, ing *v
 }
 
 func (k *K8Util) DeleteIngressWithKns(ctx context.Context, kns KubeCtxNs, name string, filter *string_utils.FilterOpts) error {
-	return k.kc.NetworkingV1().Ingresses(kns.Namespace).Delete(ctx, name, metav1.DeleteOptions{})
+	err := k.kc.NetworkingV1().Ingresses(kns.Namespace).Delete(ctx, name, metav1.DeleteOptions{})
+	if errors.IsNotFound(err) {
+		return nil
+	}
+	return err
 }
 
 func (k *K8Util) CreateIngressIfVersionLabelChangesOrDoesNotExist(ctx context.Context, kns KubeCtxNs, ning *v1.Ingress, filter *string_utils.FilterOpts) (*v1.Ingress, error) {

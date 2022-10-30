@@ -30,6 +30,9 @@ func (k *K8Util) GetStatefulSet(ctx context.Context, kns KubeCtxNs, name string,
 func (k *K8Util) DeleteStatefulSet(ctx context.Context, kns KubeCtxNs, name string, filter *string_utils.FilterOpts) error {
 	opts := metav1.DeleteOptions{}
 	err := k.kc.AppsV1().StatefulSets(kns.Namespace).Delete(ctx, name, opts)
+	if errors.IsNotFound(err) {
+		return nil
+	}
 	return err
 }
 

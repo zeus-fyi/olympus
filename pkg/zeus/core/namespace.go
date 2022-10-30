@@ -18,7 +18,7 @@ func (k *K8Util) CreateNamespace(ctx context.Context, namespace *v1.Namespace) (
 
 func (k *K8Util) DeleteNamespace(ctx context.Context, kns KubeCtxNs) error {
 	err := k.kc.CoreV1().Namespaces().Delete(ctx, kns.Namespace, metav1.DeleteOptions{})
-	if errors.IsNotFound(err) == true {
+	if errors.IsNotFound(err) {
 		return nil
 	}
 	return err
@@ -30,7 +30,7 @@ func (k *K8Util) GetNamespace(ctx context.Context, kns KubeCtxNs) (*v1.Namespace
 
 func (k *K8Util) CreateNamespaceIfDoesNotExist(ctx context.Context, kns KubeCtxNs) (*v1.Namespace, error) {
 	ns, err := k.GetNamespace(ctx, kns)
-	if errors.IsNotFound(err) == true {
+	if errors.IsNotFound(err) {
 		ns.Name = kns.Namespace
 		return k.kc.CoreV1().Namespaces().Create(ctx, ns, metav1.CreateOptions{})
 	}

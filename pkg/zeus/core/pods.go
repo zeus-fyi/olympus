@@ -110,58 +110,6 @@ func (k *K8Util) GetPodsUsingCtxNs(ctx context.Context, kubeCtxNs KubeCtxNs, log
 	return pods, err
 }
 
-func (k *K8Util) DeletePod(ctx context.Context, name, ns string, deletePodOpts *metav1.DeleteOptions) error {
-	log.Ctx(ctx).Debug().Msg("DeletePod")
-
-	opts := metav1.DeleteOptions{}
-	if deletePodOpts == nil {
-		deletePodOpts = &opts
-	}
-	err := k.kc.CoreV1().Pods(ns).Delete(ctx, name, *deletePodOpts)
-	return err
-}
-
-func (k *K8Util) DeleteFirstPodLike(ctx context.Context, kubeCtxNs KubeCtxNs, podName string, deletePodOpts *metav1.DeleteOptions, filter *string_utils.FilterOpts) error {
-	log.Ctx(ctx).Debug().Msg("DeleteFirstPodLike")
-	p, err := k.GetFirstPodLike(ctx, kubeCtxNs, podName, filter)
-	if err != nil {
-		return err
-	}
-	opts := metav1.DeleteOptions{}
-	if deletePodOpts == nil {
-		deletePodOpts = &opts
-	}
-	err = k.kc.CoreV1().Pods(kubeCtxNs.Namespace).Delete(ctx, p.GetName(), *deletePodOpts)
-	return err
-}
-
-func (k *K8Util) DeleteAllPodsLike(ctx context.Context, kubeCtxNs KubeCtxNs, podName string, deletePodOpts *metav1.DeleteOptions, filter *string_utils.FilterOpts) error {
-	log.Ctx(ctx).Debug().Msg("DeleteAllPodsLike")
-
-	pods, err := k.GetPodsUsingCtxNs(ctx, kubeCtxNs, nil, filter)
-	log.Ctx(ctx).Err(err).Msg("DeleteAllPodsLike")
-	if err != nil {
-		return err
-	}
-	opts := metav1.DeleteOptions{}
-	if deletePodOpts == nil {
-		deletePodOpts = &opts
-	}
-	p := v1.Pod{}
-	for _, pod := range pods.Items {
-		name := pod.ObjectMeta.Name
-		if strings.Contains(name, podName) {
-			p = pod
-			err = k.kc.CoreV1().Pods(kubeCtxNs.Namespace).Delete(ctx, p.GetName(), *deletePodOpts)
-			if err != nil {
-				log.Ctx(ctx).Err(err).Msg("DeleteAllPodsLike")
-				return err
-			}
-		}
-	}
-	return err
-}
-
 func (k *K8Util) GetFirstPodLike(ctx context.Context, kubeCtxNs KubeCtxNs, podName string, filter *string_utils.FilterOpts) (*v1.Pod, error) {
 	pods, err := k.GetPodsUsingCtxNs(ctx, kubeCtxNs, nil, filter)
 	if err != nil {

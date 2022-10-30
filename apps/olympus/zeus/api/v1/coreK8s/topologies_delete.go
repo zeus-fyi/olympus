@@ -14,7 +14,7 @@ func (t *TopologyActionRequest) DeleteDeployedTopology(c echo.Context, request *
 	// TODO should read the topology id
 
 	chartReader := read_charts.Chart{}
-	chartReader.ChartPackageID = 6825539486850458455
+	chartReader.ChartPackageID = 6828704980826292343
 	//chart.ChartPackageID
 
 	ctx := context.Background()

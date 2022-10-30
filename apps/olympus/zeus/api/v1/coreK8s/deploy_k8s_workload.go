@@ -28,13 +28,6 @@ func DeployChartPackage(ctx context.Context, kns autok8s_core.KubeCtxNs, c read_
 			return err
 		}
 	}
-	if c.Ingress != nil {
-		// TODO
-		_, err := K8util.CreateIngressIfVersionLabelChangesOrDoesNotExist(ctx, kns, &c.K8sIngress, nil)
-		if err != nil {
-			return err
-		}
-	}
 	if c.ConfigMap != nil {
 		// TODO
 		_, err := K8util.CreateConfigMapIfVersionLabelChangesOrDoesNotExist(ctx, kns, &c.K8sConfigMap, nil)
@@ -42,5 +35,13 @@ func DeployChartPackage(ctx context.Context, kns autok8s_core.KubeCtxNs, c read_
 			return err
 		}
 	}
+	if c.Ingress != nil {
+		// TODO
+		_, err := K8util.CreateIngressIfVersionLabelChangesOrDoesNotExist(ctx, kns, &c.K8sIngress, nil)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

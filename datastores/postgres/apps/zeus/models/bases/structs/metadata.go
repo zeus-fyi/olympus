@@ -9,6 +9,14 @@ type ParentMetaData struct {
 	Metadata
 }
 
+func NewParentMetaData(parentClassTypeName string) ParentMetaData {
+	cm := ParentMetaData{
+		ChartSubcomponentParentClassTypes: autogen_bases.ChartSubcomponentParentClassTypes{ChartSubcomponentParentClassTypeName: parentClassTypeName},
+		Metadata:                          NewMetadata(),
+	}
+	return cm
+}
+
 func (pm *ParentMetaData) SetParentClassTypeIDs(id int) {
 	pm.ChartSubcomponentParentClassTypeID = id
 	pm.SetMetadataParentClassTypeIDs(id)

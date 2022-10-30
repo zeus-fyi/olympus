@@ -6,17 +6,25 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func ParseLabelSelectorJsonString(selectorLabel *metav1.LabelSelector, selectorString string) error {
-	bytes, berr := getBytes(selectorString)
+func ParseLabelSelectorJsonString(selectorString string) (*metav1.LabelSelector, error) {
+	selectorLabel := metav1.LabelSelector{}
+
+	var m map[string]interface{}
+	err := json.Unmarshal([]byte(selectorString), &m)
+	if err != nil {
+		return &selectorLabel, err
+	}
+
+	bytes, berr := getBytes(m)
 	if berr != nil {
-		return berr
+		return &selectorLabel, berr
 	}
 	perr := json.Unmarshal(bytes, &selectorLabel)
 	if perr != nil {
-		return perr
+		return &selectorLabel, perr
 	}
 
-	return nil
+	return &selectorLabel, nil
 }
 
 func getBytes(structToBytes interface{}) ([]byte, error) {

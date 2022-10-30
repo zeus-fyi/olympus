@@ -28,6 +28,7 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart
 
 	cpkAddParentClassTypeSubCTEs := common.AddParentClassToChartPackage(chart, p.GetPodSpecParentClassTypeID())
 
+	templateMetadataCTE := common.CreateParentMetadataSubCTEs(chart, p.Metadata)
 	agCct := autogen_bases.ChartSubcomponentChildClassTypes{}
 	contSubChildClassCTE := sql_query_templates.NewSubInsertCTE("cte_podSpecSubChildClassCTE")
 	contSubChildClassCTE.TableName = agCct.GetTableName()
@@ -136,6 +137,7 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart
 			podSpecVolumesRelationshipSubCTE,
 		},
 	}
+	cteExpr.AppendSubCtes(templateMetadataCTE)
 	cteExpr.AppendSubCtes(probeCTEs)
 	cteExpr.AppendSubCtes(probeRelationshipCTEs)
 

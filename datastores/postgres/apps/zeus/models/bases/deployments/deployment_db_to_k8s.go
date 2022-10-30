@@ -16,6 +16,8 @@ func (d *Deployment) ParsePCGroupMap(pcSlice common_conversions.ParentChildDB) e
 			}
 		case "DeploymentParentMetadata":
 			db_to_k8s_conversions.ConvertMetadata(&d.K8sDeployment.ObjectMeta, pc)
+		case "PodTemplateSpecMetadata":
+			db_to_k8s_conversions.ConvertMetadata(&d.K8sDeployment.Spec.Template.ObjectMeta, pc)
 		}
 	}
 	return nil
@@ -27,8 +29,9 @@ func (d *Deployment) ConvertDBDeploymentSpecToK8s(pcSlice []common_conversions.P
 		switch subClassName {
 		case "replicas":
 			d.K8sDeployment.Spec.Replicas = string_utils.ConvertStringTo32BitPtrInt(pc.ChartSubcomponentValue)
-		case "selectorString":
-			err := db_to_k8s_conversions.ParseLabelSelectorJsonString(d.K8sDeployment.Spec.Selector, pc.ChartSubcomponentValue)
+		case "selector":
+			sl, err := db_to_k8s_conversions.ParseLabelSelectorJsonString(pc.ChartSubcomponentValue)
+			d.K8sDeployment.Spec.Selector = sl
 			if err != nil {
 				return err
 			}

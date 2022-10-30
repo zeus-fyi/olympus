@@ -7,7 +7,7 @@ import (
 
 type SpecWorkload struct {
 	autogen_bases.ChartSubcomponentParentClassTypes
-
+	Metadata ParentMetaData
 	Replicas ChildClassSingleValue
 	Selector Selector
 }
@@ -23,7 +23,10 @@ func NewSpecWorkload() SpecWorkload {
 		ChartSubcomponentParentClassTypeID:   0,
 		ChartSubcomponentParentClassTypeName: "Spec",
 	}
-	sw := SpecWorkload{pc, NewInitChildClassSingleValue("replicas", "0"), NewSelector()}
+	sw := SpecWorkload{}
+	sw.ChartSubcomponentParentClassTypes = pc
+	sw.Replicas = NewInitChildClassSingleValue("replicas", "0")
+	sw.Selector = NewSelector()
 	return sw
 }
 

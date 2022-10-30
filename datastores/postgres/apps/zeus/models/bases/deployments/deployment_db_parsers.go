@@ -35,6 +35,9 @@ func (d *Deployment) ConvertDeploymentSpec() error {
 
 	d.Spec.Replicas.ChartSubcomponentValue = string_utils.Convert32BitPtrIntToString(d.K8sDeployment.Spec.Replicas)
 	dbPodTemplateSpec, err := dbDeploymentSpec.Template.ConvertPodTemplateSpecConfigToDB(&d.K8sDeployment.Spec.Template.Spec)
+	dbPodTemplateSpecMetadata := d.K8sDeployment.Spec.Template.GetObjectMeta()
+	dbPodTemplateSpec.Metadata.Metadata = common_conversions.CreateMetadataByFields(dbPodTemplateSpecMetadata.GetName(), dbPodTemplateSpecMetadata.GetAnnotations(), dbPodTemplateSpecMetadata.GetLabels())
+
 	if err != nil {
 		return err
 	}

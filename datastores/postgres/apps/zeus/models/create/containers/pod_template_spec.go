@@ -10,7 +10,7 @@ import (
 
 type PodTemplateSpec struct {
 	common.ParentClass
-	Metadata structs.Metadata
+	Metadata structs.ParentMetaData
 	Spec     PodSpec
 }
 
@@ -61,7 +61,7 @@ func NewPodTemplateSpec() PodTemplateSpec {
 				ChartSubcomponentParentClassTypeID:   0,
 				ChartSubcomponentParentClassTypeName: "PodTemplateSpec",
 			}},
-		Metadata: structs.Metadata{},
+		Metadata: structs.NewParentMetaData("PodTemplateSpecMetadata"),
 		Spec:     ps,
 	}
 

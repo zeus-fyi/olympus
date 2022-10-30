@@ -29,8 +29,11 @@ func (s *SecretsTestSuite) TestCreateSecrets() {
 	s.Require().NotEmpty(secret)
 
 	kns.Namespace = "demo"
-
 	secret.Namespace = kns.Namespace
+	_, err = s.K.CreateNamespaceIfDoesNotExist(ctx, kns)
+	s.Require().Nil(err)
+
+	secret.ResourceVersion = ""
 	newSecret, err := s.K.CreateSecretWithKns(ctx, kns, secret, nil)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(newSecret)

@@ -19,3 +19,12 @@ func (k *K8Util) CreateSecretWithKns(ctx context.Context, kns KubeCtxNs, s *v1.S
 func (k *K8Util) DeleteSecretWithKns(ctx context.Context, kns KubeCtxNs, name string, filter *string_utils.FilterOpts) error {
 	return k.kc.CoreV1().Secrets(kns.Namespace).Delete(context.Background(), name, metav1.DeleteOptions{})
 }
+
+func (k *K8Util) CopySecretToAnotherKns(ctx context.Context, kns KubeCtxNs, name string, filter *string_utils.FilterOpts) (*v1.Secret, error) {
+	s, err := k.GetSecretWithKns(ctx, kns, name, filter)
+	if err != nil {
+		return s, err
+	}
+	s.ResourceVersion = ""
+	return k.CreateSecretWithKns(ctx, kns, s, filter)
+}

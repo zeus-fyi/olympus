@@ -1,6 +1,7 @@
 package clusters
 
 import (
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes/bases"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes/topology"
 )
@@ -14,4 +15,8 @@ type Cluster struct {
 func NewCluster() Cluster {
 	cl := Cluster{topology.NewClusterTopology(), bases.NewBase(), []topology.Component{}}
 	return cl
+}
+
+func (c *Cluster) GetInfraChartPackage() charts.Chart {
+	return c.Base.Chart
 }

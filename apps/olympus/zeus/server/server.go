@@ -23,10 +23,11 @@ type Server struct {
 }
 
 type Config struct {
-	Host    string
-	Port    string
-	Name    string
-	K8sUtil autok8s_core.K8Util
+	Host      string
+	Port      string
+	Name      string
+	PGConnStr string
+	K8sUtil   autok8s_core.K8Util
 }
 
 func NewAutoK8sServer(cfg Config) Server {

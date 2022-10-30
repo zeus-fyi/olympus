@@ -1,10 +1,13 @@
 package server
 
 import (
+	"context"
+
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/coreK8s"
 )
 
@@ -21,6 +24,10 @@ func AutoK8s() {
 	log.Debug().Msgf("The k8s config path %s:", cfg.K8sUtil.CfgPath)
 	srv.E = coreK8s.InitRouter(srv.E, cfg.K8sUtil)
 
+	ctx := context.Background()
+	apps.Pg = apps.Db{}
+	apps.Pg.InitPG(ctx, cfg.PGConnStr)
+
 	// Middleware
 	srv.E.Use(middleware.Logger())
 	srv.E.Use(middleware.Recover())
@@ -32,6 +39,7 @@ func init() {
 	viper.AutomaticEnv()
 	Cmd.Flags().StringVar(&cfg.Port, "port", "9001", "server port")
 	Cmd.Flags().StringVar(&cfg.K8sUtil.CfgPath, "kubie-config-path", "", "kubie config path")
+	Cmd.Flags().StringVar(&cfg.PGConnStr, "postgres-conn-str", "", "postgres connection string")
 }
 
 // Cmd represents the base command when called without any subcommands

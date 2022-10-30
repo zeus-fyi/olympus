@@ -7,4 +7,5 @@ use (
 	./apps/external/tojen
 	./apps/olympus/zeus
 	./apps/olympus/apollo
+	./apps/olympus/hestia
 )

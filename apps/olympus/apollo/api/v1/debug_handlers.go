@@ -6,7 +6,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/admin"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/beacon_indexer/beacon_models"
 )
@@ -53,31 +52,4 @@ func DebugUpdatePgConfigHandler(c echo.Context) (err error) {
 		return c.JSON(http.StatusInternalServerError, "error updating config")
 	}
 	return c.JSON(http.StatusOK, "updated db config")
-}
-
-func DebugPgStatsHandler(c echo.Context) (err error) {
-	log.Info().Msg("DebugPgStatsHandler")
-	ctx := context.Background()
-	stats := apps.Pg.PoolStats(ctx)
-	return c.JSON(http.StatusOK, stats)
-}
-
-func PingDBHandler(c echo.Context) (err error) {
-	log.Info().Msg("PingDBHandler")
-	ctx := context.Background()
-	err = apps.Pg.Ping(ctx)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
-	}
-	return c.JSON(http.StatusOK, "pinged db successfully")
-}
-
-func TableSizesHandler(c echo.Context) (err error) {
-	log.Info().Msg("HandleTableSizes")
-	ctx := context.Background()
-	tableSize, err := apps.Pg.FetchTableSize(ctx, "validator_balances_at_epoch")
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
-	}
-	return c.JSON(http.StatusOK, tableSize)
 }

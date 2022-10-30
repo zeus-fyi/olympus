@@ -28,13 +28,12 @@ func (t *TopologyActionRequestTestSuite) SetupTest() {
 	t.E = InitRouter(e, t.K)
 }
 
-func (t *TopologyActionRequestTestSuite) TestChartQueryHandler() {
+func (t *TopologyActionRequestTestSuite) TestReadChart() {
 	topologyActionRequest := TopologyActionRequest{
 		Action:     "read",
 		K8sRequest: K8sRequest{Kns: kns},
 		Cluster:    clusters.NewCluster(),
 	}
-
 	t.postTopologyRequest(topologyActionRequest, 200)
 }
 

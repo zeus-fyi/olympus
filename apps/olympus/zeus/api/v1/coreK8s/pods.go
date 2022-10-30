@@ -1,175 +1,49 @@
 package coreK8s
 
 import (
-	"context"
-	"errors"
-	"fmt"
-	"net/http"
-	"os"
-	"os/signal"
-	"strings"
-	"syscall"
+	"time"
 
-	"github.com/labstack/echo/v4"
-	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/utils/client"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func podsPortForwardRequestToAllPods(c echo.Context, request *PodActionRequest) error {
-	ctx := context.Background()
-	log.Ctx(ctx).Debug().Msg("start podsPortForwardRequestToAllPods")
+type PodActionRequest struct {
+	K8sRequest
+	Action        string
+	PodName       string
+	ContainerName string
 
-	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, nil, request.FilterOpts)
-	if err != nil {
-		return err
-	}
-	var respBody ClientResp
-	respBody.ReplyBodies = make(map[string]string, len(pods.Items))
-
-	for _, pod := range pods.Items {
-		request.PodName = pod.GetName()
-		bytesResp, reqErr := podsPortForwardRequest(request)
-		if reqErr != nil {
-			log.Err(reqErr).Msgf("port-forwarded request to pod %s failed", pod.GetName())
-			return c.JSON(http.StatusBadRequest, "port-forwarded request failed")
-		}
-		respBody.ReplyBodies[pod.GetName()] = string(bytesResp)
-
-	}
-	return c.JSON(http.StatusOK, respBody)
+	FilterOpts *string_utils.FilterOpts
+	ClientReq  *ClientRequest
+	LogOpts    *v1.PodLogOptions
+	DeleteOpts *metav1.DeleteOptions
 }
 
-func podsPortForwardRequest(request *PodActionRequest) ([]byte, error) {
-	ctx := context.Background()
-	log.Ctx(ctx).Debug().Msg("start podsPortForwardRequest")
-
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-
-	startChan := make(chan struct{}, 1)
-	stopChan := make(chan struct{}, 1)
-
-	var emptyBytes []byte
-	if request.ClientReq == nil {
-		return emptyBytes, errors.New("no client request info provided")
-	}
-	clientReq := *request.ClientReq
-	go func() {
-		log.Ctx(ctx).Debug().Msg("start port-forward thread")
-		address := "localhost"
-		err := K8util.PortForwardPod(ctx, request.Kns, request.PodName, address, clientReq.Ports, startChan, stopChan, request.FilterOpts)
-		log.Ctx(ctx).Err(err).Msg("error in port forwarding")
-		log.Ctx(ctx).Debug().Msg("done port-forward")
-	}()
-
-	log.Ctx(ctx).Debug().Msg("awaiting signal")
-	<-startChan
-	log.Ctx(ctx).Debug().Msg("port ready chan ok")
-	go func() {
-		sig := <-sigs
-		fmt.Println(sig)
-		close(stopChan)
-	}()
-
-	log.Ctx(ctx).Debug().Msg("do port-forwarded commands")
-	cli := client.Client{}
-	port := ""
-	for _, po := range clientReq.Ports {
-		port, _, _ = strings.Cut(po, ":")
-	}
-	cli.E = client.Endpoint(fmt.Sprintf("http://localhost:%s", port))
-	cli.Headers = clientReq.EndpointHeaders
-
-	var r client.Reply
-	payloadBytes := clientReq.PayloadBytes
-	payload := clientReq.Payload
-	var finalPayload []byte
-
-	// prefer bytes, but use string if exists
-	if payloadBytes != nil {
-		finalPayload = *payloadBytes
-	} else if payload != nil {
-		finalPayload = []byte(*payload)
-	}
-
-	switch clientReq.MethodHTTP {
-	case http.MethodPost:
-		if finalPayload == nil {
-			return emptyBytes, errors.New("no payload supplied for POST request")
-		}
-		r = cli.Post(ctx, string(cli.E)+"/"+clientReq.Endpoint, finalPayload)
-	default:
-		if finalPayload != nil {
-			r = cli.GetWithPayload(ctx, string(cli.E)+"/"+clientReq.Endpoint, finalPayload)
-		} else {
-			r = cli.Get(ctx, string(cli.E)+"/"+clientReq.Endpoint)
-		}
-	}
-	close(stopChan)
-	log.Ctx(ctx).Debug().Msg("end port-forwarded commands")
-	return r.BodyBytes, nil
+type ClientRequest struct {
+	MethodHTTP      string
+	Endpoint        string
+	Ports           []string
+	Payload         *string
+	PayloadBytes    *[]byte
+	EndpointHeaders map[string]string
 }
 
-func PodsDeleteRequest(c echo.Context, request *PodActionRequest) error {
-	ctx := context.Background()
-	log.Ctx(ctx).Debug().Msg("PodsDeleteRequest")
-	err := K8util.DeleteFirstPodLike(ctx, request.Kns, request.PodName, request.DeleteOpts, request.FilterOpts)
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, fmt.Sprintf("pod %s deleted", request.PodName))
+type ClientResp struct {
+	ReplyBodies map[string]string
 }
 
-func PodsDeleteAllRequest(c echo.Context, request *PodActionRequest) error {
-	ctx := context.Background()
-	log.Ctx(ctx).Debug().Msg("PodsDeleteAllRequest")
-	err := K8util.DeleteAllPodsLike(ctx, request.Kns, request.PodName, request.DeleteOpts, request.FilterOpts)
-	if err != nil {
-		return err
-	}
-	return c.JSON(http.StatusOK, fmt.Sprintf("pods with name like %s deleted", request.PodName))
+type PodsSummary struct {
+	Pods map[string]PodSummary `json:"pods"`
 }
 
-func PodsDescribeRequest(c echo.Context, request *PodActionRequest) error {
-	ctx := context.Background()
-	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, request.LogOpts, request.FilterOpts)
-	if err != nil {
-		return err
-	}
-	return c.JSON(http.StatusOK, pods)
-}
-
-func PodLogsActionRequest(c echo.Context, request *PodActionRequest) error {
-	ctx := context.Background()
-	log.Ctx(ctx).Debug().Msg("PodLogsActionRequest")
-	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, nil, request.FilterOpts)
-	if err != nil {
-		return err
-	}
-
-	p := v1.Pod{}
-	for _, pod := range pods.Items {
-		if string_utils.FilterStringWithOpts(pod.GetName(), request.FilterOpts) {
-			p = pod
-		}
-	}
-	logs, err := K8util.GetPodLogs(ctx, p.GetName(), request.Kns.Namespace, request.LogOpts, request.FilterOpts)
-	if err != nil {
-		return err
-	}
-	return c.JSON(http.StatusOK, string(logs))
-}
-
-func PodsAuditRequest(c echo.Context, request *PodActionRequest) error {
-	ctx := context.Background()
-
-	pods, err := K8util.GetPodsUsingCtxNs(ctx, request.Kns, request.LogOpts, request.FilterOpts)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
-	parsedResp := parseResp(pods)
-	return c.JSON(http.StatusOK, parsedResp)
+type PodSummary struct {
+	PodName               string                        `json:"podName"`
+	Phase                 string                        `json:"podPhase"`
+	Message               string                        `json:"message"`
+	Reason                string                        `json:"reason"`
+	StartTime             time.Time                     `json:"startTime"`
+	PodConditions         []v1.PodCondition             `json:"podConditions"`
+	InitContainerStatuses map[string]v1.ContainerStatus `json:"initContainerConditions"`
+	ContainerStatuses     map[string]v1.ContainerStatus `json:"containerStatuses"`
 }

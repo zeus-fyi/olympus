@@ -11,8 +11,17 @@ func HandleTopologyActionRequest(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return err
 	}
+	if request.Action == "create" {
+		return request.CreateTopology(c, request)
+	}
 	if request.Action == "read" {
 		return request.ReadTopology(c, request)
+	}
+	if request.Action == "update" {
+		return request.UpdateTopology(c, request)
+	}
+	if request.Action == "update" {
+		return request.DeleteTopology(c, request)
 	}
 	return c.JSON(http.StatusBadRequest, nil)
 }

@@ -1,4 +1,4 @@
-package create
+package create_infra
 
 import (
 	"context"
@@ -7,11 +7,11 @@ import (
 	"github.com/labstack/echo/v4"
 	read_charts "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/charts"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
-	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/base"
+	base_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/base"
 )
 
 type TopologyActionCreateRequest struct {
-	base.TopologyActionRequest
+	base_infra.TopologyInfraActionRequest
 }
 
 func (t *TopologyActionCreateRequest) CreateTopology(c echo.Context) error {

@@ -1,4 +1,4 @@
-package update
+package update_infra
 
 import (
 	"testing"

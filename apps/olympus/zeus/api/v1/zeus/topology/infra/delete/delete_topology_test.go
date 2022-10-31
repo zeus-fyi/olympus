@@ -1,4 +1,4 @@
-package delete
+package delete_infra
 
 import (
 	"testing"

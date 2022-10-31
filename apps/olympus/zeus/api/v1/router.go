@@ -20,7 +20,6 @@ func InitRouter(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
 
 func Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
 	core.K8Util = k8Cfg
-	// TODO add authentication
 
 	// Middleware
 	e.Use(middleware.Logger())
@@ -32,6 +31,7 @@ func Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
 	v1TopologyAPIGroup := topologyV1Routes.Group("/v1")
 	v1TopologyAPIGroup.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
 		AuthScheme: "Bearer",
+		// TODO query acceptable users
 		Validator: func(key string, c echo.Context) (bool, error) {
 			return key == "hQyPerNFu7C9wMYpzTtZubP9BnUTzpCV5", nil
 		},

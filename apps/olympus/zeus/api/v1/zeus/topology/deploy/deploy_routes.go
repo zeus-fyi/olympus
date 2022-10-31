@@ -5,14 +5,14 @@ import (
 
 	"github.com/labstack/echo/v4"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
-	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/create"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/create_or_update"
 	delete_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/delete"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus/core"
 )
 
 type DeploymentActionRequest struct {
 	Action string
-	create_deploy.TopologyDeployCreateActionDeployRequest
+	create_or_update_deploy.TopologyDeployCreateActionDeployRequest
 	delete_deploy.TopologyDeployActionDeleteDeploymentRequest
 }
 
@@ -32,7 +32,7 @@ func HandleDeploymentActionRequest(c echo.Context) error {
 
 func Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
 	core.K8Util = k8Cfg
-	e.POST("/topology/deploy", HandleDeploymentActionRequest)
+	e.POST("/deploy", HandleDeploymentActionRequest)
 
 	return e
 }

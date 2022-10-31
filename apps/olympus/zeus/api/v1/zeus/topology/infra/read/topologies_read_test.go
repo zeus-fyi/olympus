@@ -1,4 +1,4 @@
-package read
+package read_infra
 
 import (
 	"testing"

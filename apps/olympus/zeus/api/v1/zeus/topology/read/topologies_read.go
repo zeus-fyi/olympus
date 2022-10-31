@@ -1,4 +1,4 @@
-package coreK8s
+package read
 
 import (
 	"context"
@@ -7,11 +7,15 @@ import (
 	"github.com/labstack/echo/v4"
 	read_charts "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/charts"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/base"
 )
 
-// TODO add components to package
+type TopologyActionReadRequest struct {
+	base.TopologyActionRequest
+}
+
 // TODO should read the topology id
-func (t *TopologyActionRequest) DeployTopology(c echo.Context, request *TopologyActionRequest) error {
+func (t *TopologyActionReadRequest) ReadTopology(c echo.Context, request *base.TopologyActionRequest) error {
 	//chart := t.GetInfraChartPackage()
 
 	chartReader := read_charts.Chart{}
@@ -24,10 +28,5 @@ func (t *TopologyActionRequest) DeployTopology(c echo.Context, request *Topology
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-	err = DeployChartPackage(ctx, t.Kns, chartReader)
-
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	return err
+	return c.JSON(http.StatusOK, chartReader)
 }

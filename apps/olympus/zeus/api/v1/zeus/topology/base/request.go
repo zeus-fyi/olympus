@@ -1,4 +1,4 @@
-package coreK8s
+package base
 
 import (
 	clusters "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes/cluster"

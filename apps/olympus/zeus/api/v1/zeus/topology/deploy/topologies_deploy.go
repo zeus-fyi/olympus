@@ -1,4 +1,4 @@
-package coreK8s
+package deploy
 
 import (
 	"context"
@@ -7,11 +7,17 @@ import (
 	"github.com/labstack/echo/v4"
 	read_charts "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/charts"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/base"
 )
 
-func (t *TopologyActionRequest) DeleteDeployedTopology(c echo.Context, request *TopologyActionRequest) error {
-	// TODO add components to package
-	// TODO should read the topology id
+type TopologyActionDeployRequest struct {
+	base.TopologyActionRequest
+}
+
+// TODO add components to package
+// TODO should read the topology id
+func (t *TopologyActionDeployRequest) DeployTopology(c echo.Context, request *base.TopologyActionRequest) error {
+	//chart := t.GetInfraChartPackage()
 
 	chartReader := read_charts.Chart{}
 	chartReader.ChartPackageID = 6831980425944305799
@@ -23,7 +29,7 @@ func (t *TopologyActionRequest) DeleteDeployedTopology(c echo.Context, request *
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-	err = DeleteK8sWorkload(ctx, t.Kns, chartReader)
+	err = DeployChartPackage(ctx, t.Kns, chartReader)
 
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, nil)

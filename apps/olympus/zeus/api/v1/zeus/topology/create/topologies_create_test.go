@@ -1,24 +1,26 @@
-package coreK8s
+package create
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 	clusters "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes/cluster"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/base"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/test"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus/zeus_pkg"
 )
 
 type TopologyCreateActionRequestTestSuite struct {
-	TopologyActionRequestTestSuite
+	test.TopologyActionRequestTestSuite
 }
 
 func (t *TopologyCreateActionRequestTestSuite) TestCreateChart() {
-	topologyActionRequest := TopologyActionRequest{
+	topologyActionRequest := base.TopologyActionRequest{
 		Action:     "create",
-		K8sRequest: zeus_pkg.K8sRequest{Kns: kns},
+		K8sRequest: zeus_pkg.K8sRequest{Kns: test.Kns},
 		Cluster:    clusters.NewCluster(),
 	}
-	t.postTopologyRequest(topologyActionRequest, 200)
+	t.PostTopologyRequest(topologyActionRequest, 200)
 }
 
 func TestTopologyCreateActionRequestTestSuite(t *testing.T) {

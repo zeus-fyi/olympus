@@ -1,4 +1,4 @@
-package coreK8s
+package deploy
 
 import (
 	"context"

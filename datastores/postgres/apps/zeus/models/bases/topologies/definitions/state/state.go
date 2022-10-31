@@ -11,8 +11,6 @@ func NewState() State {
 	s := State{autogen_bases.TopologiesDeployed{
 		TopologyStatus: "Pending",
 		TopologyID:     0,
-		OrgID:          0,
-		UserID:         0,
 	}}
 
 	return s

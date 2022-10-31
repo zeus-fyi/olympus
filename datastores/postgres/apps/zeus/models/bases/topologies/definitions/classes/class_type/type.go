@@ -38,3 +38,12 @@ func NewClusterClassTopologyType() TopologyClassType {
 	tc.TopologyClassTypeName.String = "Cluster"
 	return tc
 }
+
+func NewInfraClassTopologyType() TopologyClassType {
+	tc := TopologyClassType{
+		autogen_bases.TopologyClassTypes{
+			TopologyClassTypeID: InfrastructureBaseClassTypeID,
+		},
+	}
+	return tc
+}

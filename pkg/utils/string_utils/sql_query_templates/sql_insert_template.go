@@ -14,6 +14,12 @@ func (q *QueryParams) InsertSingleElementQuery() string {
 	return query
 }
 
+func (q *QueryParams) InsertSingleElementQueryReturning(returnVar string) string {
+	vals := string_utils.StringDelimitedSliceBuilderSQLMultiRowValues(",", q.Values)
+	query := fmt.Sprintf(`INSERT INTO %s(%s) VALUES %s RETURNING %s`, q.TableName, strings.Join(q.Columns, ","), vals, returnVar)
+	return query
+}
+
 func (q *QueryParams) AddValues(values ...any) {
 	tmp := make(apps.RowValues, len(values))
 	for i, v := range values {

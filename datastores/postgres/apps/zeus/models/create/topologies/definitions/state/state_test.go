@@ -26,7 +26,7 @@ func (s *CreateTopologyStateTestSuite) TestInsertTopologyState() {
 	topState.UserID = uid
 	topState.TopologyStatus = "InProgress"
 
-	q := sql_query_templates.NewQueryParam("InsertState", "toplogies_deployed", "where", 1000, []string{})
+	q := sql_query_templates.NewQueryParam("InsertState", "topologies_deployed", "where", 1000, []string{})
 	q.TableName = topState.GetTableName()
 	q.Columns = topState.GetTableColumns()
 	q.Values = []apps.RowValues{topState.GetRowValues("default")}

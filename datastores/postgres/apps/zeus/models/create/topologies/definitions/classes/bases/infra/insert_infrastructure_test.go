@@ -16,7 +16,7 @@ type CreateInfraTestSuite struct {
 	conversions_test.ConversionsTestSuite
 }
 
-func (s *CreateInfraTestSuite) TestInsertInfra() {
+func (s *CreateInfraTestSuite) TestInsertInfraBase() {
 	tID, _ := s.SeedTopology()
 	inf := NewCreateInfrastructure()
 	inf.TopologyID = tID
@@ -28,7 +28,7 @@ func (s *CreateInfraTestSuite) TestInsertInfra() {
 	q.TableName = inf.GetTableName()
 	q.Columns = inf.GetTableColumns()
 	q.Values = []apps.RowValues{inf.GetRowValues("default")}
-	err := inf.InsertInfrastructureBase(ctx, q)
+	err := inf.InsertInfraBase(ctx, q)
 	s.Require().Nil(err)
 }
 

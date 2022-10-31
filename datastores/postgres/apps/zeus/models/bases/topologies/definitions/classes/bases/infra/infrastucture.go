@@ -1,24 +1,25 @@
 package infra
 
 import (
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 )
 
-type Infrastructure struct {
+type InfraBaseTopology struct {
+	org_users.OrgUser
 	autogen_bases.TopologyInfrastructureComponents
-	charts.Chart
 }
 
-func NewInfrastructure() Infrastructure {
-	inf := Infrastructure{autogen_bases.TopologyInfrastructureComponents{
+func NewInfrastructureBaseTopology() InfraBaseTopology {
+	ou := org_users.NewOrgUser()
+	tic := autogen_bases.TopologyInfrastructureComponents{
 		TopologyID:     0,
 		ChartPackageID: 0,
-	}, charts.NewChart()}
+	}
+	inf := InfraBaseTopology{ou, tic}
 	return inf
 }
 
-func (i *Infrastructure) AddChart(chart charts.Chart) {
-	i.ChartPackageID = chart.ChartPackageID
-	i.Chart = chart
+func (i *InfraBaseTopology) AddChartPackageID(id int) {
+	i.ChartPackageID = id
 }

@@ -11,7 +11,7 @@ import (
 
 const Sn = "Infrastructure"
 
-func (i *Infrastructure) InsertInfrastructureBase(ctx context.Context, q sql_query_templates.QueryParams) error {
+func (i *InfraBaseTopology) InsertInfraBase(ctx context.Context, q sql_query_templates.QueryParams) error {
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
 	r, err := apps.Pg.Exec(ctx, q.InsertSingleElementQuery())
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {

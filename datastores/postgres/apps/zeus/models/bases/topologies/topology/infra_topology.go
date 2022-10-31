@@ -7,6 +7,11 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
 )
 
+type InfraTopology struct {
+	Topology
+	ChartID int
+}
+
 func NewInfraTopology() Topology {
 	class := class_type.NewTopologyClass()
 	classType := class_type.NewInfraClassTopologyType()

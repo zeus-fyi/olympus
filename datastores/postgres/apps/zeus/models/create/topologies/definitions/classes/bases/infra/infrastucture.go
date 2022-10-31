@@ -4,12 +4,12 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes/bases/infra"
 )
 
-type Infrastructure struct {
-	infra.Infrastructure
+type InfraBaseTopology struct {
+	infra.InfraBaseTopology
 }
 
-func NewCreateInfrastructure() Infrastructure {
-	inf := infra.NewInfrastructure()
-	i := Infrastructure{inf}
-	return i
+func NewCreateInfrastructure() InfraBaseTopology {
+	ib := infra.NewInfrastructureBaseTopology()
+	ibc := InfraBaseTopology{ib}
+	return ibc
 }

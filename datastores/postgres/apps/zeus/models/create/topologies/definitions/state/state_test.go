@@ -18,12 +18,9 @@ type CreateTopologyStateTestSuite struct {
 
 func (s *CreateTopologyStateTestSuite) TestInsertTopologyState() {
 	ctx := context.Background()
-	oid, uid := s.h.NewTestOrgAndUser()
 	topID, _ := s.SeedTopology()
 	topState := NewCreateState()
 	topState.TopologyID = topID
-	topState.OrgID = oid
-	topState.UserID = uid
 	topState.TopologyStatus = "InProgress"
 
 	q := sql_query_templates.NewQueryParam("InsertState", "topologies_deployed", "where", 1000, []string{})

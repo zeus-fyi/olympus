@@ -12,6 +12,7 @@ import (
 	clusters "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes/cluster"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
+	"github.com/zeus-fyi/olympus/zeus/pkg/zeus/zeus_pkg"
 )
 
 type TopologyActionRequestTestSuite struct {
@@ -31,7 +32,7 @@ func (t *TopologyActionRequestTestSuite) SetupTest() {
 func (t *TopologyActionRequestTestSuite) TestReadChart() {
 	topologyActionRequest := TopologyActionRequest{
 		Action:     "read",
-		K8sRequest: K8sRequest{Kns: kns},
+		K8sRequest: zeus_pkg.K8sRequest{Kns: kns},
 		Cluster:    clusters.NewCluster(),
 	}
 	t.postTopologyRequest(topologyActionRequest, 200)

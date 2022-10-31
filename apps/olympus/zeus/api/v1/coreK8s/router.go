@@ -4,13 +4,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
+	"github.com/zeus-fyi/olympus/zeus/pkg/zeus/zeus_pkg"
 )
-
-var K8util autok8s_core.K8Util
-
-type K8sRequest struct {
-	Kns autok8s_core.KubeCtxNs
-}
 
 func InitRouter(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
 	log.Debug().Msgf("InitRouter")
@@ -20,7 +15,7 @@ func InitRouter(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
 }
 
 func Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
-	K8util = k8Cfg
+	zeus_pkg.K8Util = k8Cfg
 	// TODO add authentication
 	e.POST("/pods", HandlePodActionRequest)
 	e.POST("/topology", HandleTopologyActionRequest)

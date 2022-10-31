@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	"github.com/zeus-fyi/olympus/zeus/api/v1/coreK8s"
+	"github.com/zeus-fyi/olympus/zeus/api/v1"
 )
 
 var cfg = Config{}
@@ -22,7 +22,7 @@ func AutoK8s() {
 		cfg.K8sUtil.CfgPath = cfg.K8sUtil.DefaultK8sCfgPath()
 	}
 	log.Debug().Msgf("The k8s config path %s:", cfg.K8sUtil.CfgPath)
-	srv.E = coreK8s.InitRouter(srv.E, cfg.K8sUtil)
+	srv.E = v1.InitRouter(srv.E, cfg.K8sUtil)
 
 	ctx := context.Background()
 	apps.Pg = apps.Db{}

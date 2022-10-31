@@ -1,4 +1,4 @@
-package coreK8s
+package pods
 
 import (
 	"encoding/json"
@@ -187,7 +187,7 @@ func (p *PodsHandlerTestSuite) SetupTestServer() {
 	e := echo.New()
 	p.K.CfgPath = p.K.DefaultK8sCfgPath()
 	p.K.ConnectToK8s()
-	p.E = InitRouter(e, p.K)
+	p.E = Routes(e, p.K)
 }
 
 func TestPodsTestSuite(t *testing.T) {

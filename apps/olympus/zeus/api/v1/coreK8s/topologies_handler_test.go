@@ -12,8 +12,17 @@ import (
 	clusters "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes/cluster"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
+	v12 "github.com/zeus-fyi/olympus/zeus/api/v1"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus/zeus_pkg"
+	v1 "k8s.io/api/core/v1"
 )
+
+type TestResponse struct {
+	logs []byte
+	pods v1.PodList
+}
+
+var kns autok8s_core.KubeCtxNs
 
 type TopologyActionRequestTestSuite struct {
 	E *echo.Echo
@@ -26,7 +35,7 @@ func (t *TopologyActionRequestTestSuite) SetupTest() {
 	t.K.CfgPath = t.K.DefaultK8sCfgPath()
 	t.K.ConnectToK8s()
 	t.DB.SetupPGConn()
-	t.E = InitRouter(e, t.K)
+	t.E = v12.InitRouter(e, t.K)
 }
 
 func (t *TopologyActionRequestTestSuite) TestReadChart() {

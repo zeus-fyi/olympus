@@ -1,4 +1,4 @@
-package deploy
+package infra
 
 import (
 	"github.com/labstack/echo/v4"
@@ -8,7 +8,6 @@ import (
 
 func Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
 	core.K8Util = k8Cfg
-	e.POST("/deploy", HandleDeploymentActionRequest)
-
+	e.POST("/infra", HandleTopologyInfraActionRequest)
 	return e
 }

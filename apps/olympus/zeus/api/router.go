@@ -1,4 +1,4 @@
-package v1
+package router
 
 import (
 	"net/http"
@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
-	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology"
+	v1 "github.com/zeus-fyi/olympus/zeus/api/v1"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus/core"
 )
 
@@ -27,16 +27,14 @@ func Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
 	// Routes
 	e.GET("/health", Health)
 
-	topologyV1Routes := topology.Routes(e, k8Cfg)
-	v1TopologyAPIGroup := topologyV1Routes.Group("/v1")
-	v1TopologyAPIGroup.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+	v1RoutesGroup := v1.V1Routes(e, k8Cfg)
+	v1RoutesGroup.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
 		AuthScheme: "Bearer",
 		// TODO query acceptable users
 		Validator: func(key string, c echo.Context) (bool, error) {
 			return key == "hQyPerNFu7C9wMYpzTtZubP9BnUTzpCV5", nil
 		},
 	}))
-
 	return e
 }
 

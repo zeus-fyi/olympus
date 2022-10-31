@@ -3,8 +3,8 @@ package topology
 import (
 	"github.com/labstack/echo/v4"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
-	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/actions/pods"
-	deploy_routes "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/actions"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus/core"
 )
@@ -12,8 +12,8 @@ import (
 func Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
 	core.K8Util = k8Cfg
 
-	e = pods.Routes(e, k8Cfg)
+	e = actions.Routes(e, k8Cfg)
 	e = infra.Routes(e, k8Cfg)
-	e = deploy_routes.Routes(e, k8Cfg)
+	e = deploy.Routes(e, k8Cfg)
 	return e
 }

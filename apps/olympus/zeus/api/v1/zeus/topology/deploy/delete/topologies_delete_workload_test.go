@@ -1,4 +1,4 @@
-package read
+package delete_deploy
 
 import (
 	"testing"
@@ -10,20 +10,20 @@ import (
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus/core"
 )
 
-type TopologyReadActionRequestTestSuite struct {
+type TopologyDeleteWorkloadActionRequestTestSuite struct {
 	test.TopologyActionRequestTestSuite
 }
 
-func (t *TopologyReadActionRequestTestSuite) TestDeleteWorkloadChart() {
+func (t *TopologyDeleteWorkloadActionRequestTestSuite) TestDeleteWorkloadChart() {
 	test.Kns.Namespace = "demo"
 	topologyActionRequest := base.TopologyActionRequest{
-		Action:     "read",
+		Action:     "delete-deploy",
 		K8sRequest: core.K8sRequest{Kns: test.Kns},
 		Cluster:    clusters.NewCluster(),
 	}
 	t.PostTopologyRequest(topologyActionRequest, 200)
 }
 
-func TestTopologyReadActionRequestTestSuite(t *testing.T) {
-	suite.Run(t, new(TopologyReadActionRequestTestSuite))
+func TestTopologyDeleteWorkloadActionRequestTestSuite(t *testing.T) {
+	suite.Run(t, new(TopologyDeleteWorkloadActionRequestTestSuite))
 }

@@ -8,7 +8,6 @@ import (
 
 func Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
 	core.K8Util = k8Cfg
-	// TODO add authentication
 	e.POST("/pods", HandlePodActionRequest)
 
 	return e

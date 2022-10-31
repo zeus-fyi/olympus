@@ -6,8 +6,8 @@ import (
 )
 
 type TopologyActionRequest struct {
-	core.K8sRequest
 	Action string
+	core.K8sRequest
 
 	clusters.Cluster
 }

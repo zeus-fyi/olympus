@@ -1,4 +1,4 @@
-package read
+package create_deploy
 
 import (
 	"context"
@@ -10,12 +10,11 @@ import (
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/base"
 )
 
-type TopologyActionReadRequest struct {
+type TopologyDeployCreateActionDeployRequest struct {
 	base.TopologyActionRequest
 }
 
-// TODO should read the topology id
-func (t *TopologyActionReadRequest) ReadTopology(c echo.Context, request *base.TopologyActionRequest) error {
+func (t *TopologyDeployCreateActionDeployRequest) DeployTopology(c echo.Context) error {
 	//chart := t.GetInfraChartPackage()
 
 	chartReader := read_charts.Chart{}
@@ -28,5 +27,10 @@ func (t *TopologyActionReadRequest) ReadTopology(c echo.Context, request *base.T
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-	return c.JSON(http.StatusOK, chartReader)
+	err = DeployChartPackage(ctx, t.Kns, chartReader)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	return err
 }

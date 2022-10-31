@@ -1,4 +1,4 @@
-package deploy
+package create_deploy
 
 import (
 	"testing"

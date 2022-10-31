@@ -2,11 +2,11 @@ package base
 
 import (
 	clusters "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes/cluster"
-	"github.com/zeus-fyi/olympus/zeus/pkg/zeus/zeus_pkg"
+	"github.com/zeus-fyi/olympus/zeus/pkg/zeus/core"
 )
 
 type TopologyActionRequest struct {
-	zeus_pkg.K8sRequest
+	core.K8sRequest
 	Action string
 
 	clusters.Cluster

@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
-	"github.com/zeus-fyi/olympus/zeus/pkg/zeus/zeus_pkg"
+	"github.com/zeus-fyi/olympus/zeus/pkg/zeus/core"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -46,7 +46,7 @@ func (p *PodsHandlerTestSuite) TestPodPortForwardGET() {
 		Action:     "port-forward",
 		PodName:    "eth-indexer-eth-indexer",
 		ClientReq:  &cliReq,
-		K8sRequest: zeus_pkg.K8sRequest{Kns: kns},
+		K8sRequest: core.K8sRequest{Kns: kns},
 	}
 	podPortForwardReq := p.postK8Request(podActionRequest, http.StatusOK, false)
 	p.Require().NotEmpty(podPortForwardReq.logs)
@@ -67,7 +67,7 @@ func (p *PodsHandlerTestSuite) TestPodPortForwardAll() {
 		PodName:    "eth-indexer-eth-indexer",
 		FilterOpts: &filter,
 		ClientReq:  &cliReq,
-		K8sRequest: zeus_pkg.K8sRequest{kns},
+		K8sRequest: core.K8sRequest{kns},
 	}
 	podPortForwardReq := p.postK8Request(podActionRequest, http.StatusOK, false)
 	p.Require().NotEmpty(podPortForwardReq.logs)
@@ -105,7 +105,7 @@ func (p *PodsHandlerTestSuite) TestPodPortForwardPOST() {
 		Action:     "port-forward",
 		PodName:    "eth-indexer-eth-indexer",
 		ClientReq:  &cliReq,
-		K8sRequest: zeus_pkg.K8sRequest{kns},
+		K8sRequest: core.K8sRequest{kns},
 	}
 
 	podPortForwardReq := p.postK8Request(podActionRequest, http.StatusOK, false)
@@ -115,7 +115,7 @@ func (p *PodsHandlerTestSuite) TestPodPortForwardPOST() {
 func (p *PodsHandlerTestSuite) TestDescribePods() {
 	podActionRequest := PodActionRequest{
 		Action:     "describe",
-		K8sRequest: zeus_pkg.K8sRequest{kns},
+		K8sRequest: core.K8sRequest{kns},
 	}
 	podDescribeReq := p.postK8Request(podActionRequest, http.StatusOK, true)
 	p.Require().NotEmpty(podDescribeReq.pods)
@@ -126,7 +126,7 @@ func (p *PodsHandlerTestSuite) TestGetPodLogs() {
 	podActionRequest := PodActionRequest{
 		Action:     "logs",
 		PodName:    "eth-indexer-eth-indexer",
-		K8sRequest: zeus_pkg.K8sRequest{kns},
+		K8sRequest: core.K8sRequest{kns},
 		LogOpts:    &v1.PodLogOptions{Container: "eth-indexer", TailLines: &tailLines},
 	}
 	p.postK8Request(podActionRequest, http.StatusOK, false)
@@ -138,7 +138,7 @@ func (p *PodsHandlerTestSuite) TestDeletePod() {
 	podActionRequest := PodActionRequest{
 		Action:     "delete",
 		PodName:    "eth-indexer-eth-indexer",
-		K8sRequest: zeus_pkg.K8sRequest{testKns},
+		K8sRequest: core.K8sRequest{testKns},
 	}
 	p.postK8Request(podActionRequest, http.StatusOK, false)
 }
@@ -148,7 +148,7 @@ func (p *PodsHandlerTestSuite) TestAuditPods() {
 
 	podActionRequest := PodActionRequest{
 		Action:     "describe-audit",
-		K8sRequest: zeus_pkg.K8sRequest{Kns: kns},
+		K8sRequest: core.K8sRequest{Kns: kns},
 		FilterOpts: &filter,
 	}
 	podDescribeReq := p.postK8Request(podActionRequest, http.StatusOK, false)

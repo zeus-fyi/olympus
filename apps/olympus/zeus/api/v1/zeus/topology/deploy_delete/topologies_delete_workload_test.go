@@ -7,7 +7,7 @@ import (
 	clusters "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes/cluster"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/base"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/test"
-	"github.com/zeus-fyi/olympus/zeus/pkg/zeus/zeus_pkg"
+	"github.com/zeus-fyi/olympus/zeus/pkg/zeus/core"
 )
 
 type TopologyDeleteWorkloadActionRequestTestSuite struct {
@@ -18,7 +18,7 @@ func (t *TopologyDeleteWorkloadActionRequestTestSuite) TestDeleteWorkloadChart()
 	test.Kns.Namespace = "demo"
 	topologyActionRequest := base.TopologyActionRequest{
 		Action:     "delete-deploy",
-		K8sRequest: zeus_pkg.K8sRequest{Kns: test.Kns},
+		K8sRequest: core.K8sRequest{Kns: test.Kns},
 		Cluster:    clusters.NewCluster(),
 	}
 	t.PostTopologyRequest(topologyActionRequest, 200)

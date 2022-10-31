@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 )
@@ -27,13 +28,14 @@ func (t *TopologiesTestSuite) TestInsert() Topologies {
 }
 
 func (t *TopologiesTestSuite) TestInsertOrgUsersTopology() {
-	top := t.TestInsert()
-	top.OrgID, top.UserID = t.h.NewTestOrgAndUser()
 	ctx := context.Background()
-
+	ou := org_users.OrgUser{}
+	ou.OrgID, ou.UserID = t.h.NewTestOrgAndUser()
+	top := NewCreateOrgUsersInfraTopology(ou)
+	top.Name = fmt.Sprintf("top_name_%d", top.TopologyID)
 	err := top.InsertOrgUsersTopology(ctx)
 	t.Require().Nil(err)
-
+	t.Require().NotZero(top.TopologyID)
 }
 
 func TestTopologiesTestSuite(t *testing.T) {

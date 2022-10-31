@@ -2,6 +2,7 @@ package create_topology
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -20,13 +21,17 @@ func (t *Topologies) GetInsertOrgUsersTopologyQueryParams() sql_query_templates.
 func (t *Topologies) InsertOrgUsersTopology(ctx context.Context) error {
 	q := t.GetInsertOrgUsersTopologyQueryParams()
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
-
-	query := q.InsertSingleElementQuery()
-	r, err := apps.Pg.Exec(ctx, query)
+	query := fmt.Sprintf(`
+		WITH cte_insert_top AS (
+			INSERT INTO topologies(name) VALUES ('%s') RETURNING topology_id
+		) INSERT INTO org_users_topologies(topology_id, org_id, user_id)
+		  VALUES ((SELECT topology_id FROM cte_insert_top), %d, %d)
+		  RETURNING topology_id`,
+		t.Name, t.OrgID, t.UserID)
+	err := apps.Pg.QueryRow(ctx, query).Scan(&t.TopologyID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
 		return err
 	}
-	rowsAffected := r.RowsAffected()
-	log.Debug().Msgf("OrgUsersTopology: %s, Rows Affected: %d", q.LogHeader(Sn), rowsAffected)
+	t.SetTopologyID(t.TopologyID)
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }

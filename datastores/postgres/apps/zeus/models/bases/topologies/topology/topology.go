@@ -1,6 +1,7 @@
 package topology
 
 import (
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes/class_type"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
@@ -42,4 +43,12 @@ func (t *Topology) SetTopologyID(id int) {
 func (t *Topology) SetOrgUserIDs(orgID, userID int) {
 	t.OrgID = orgID
 	t.UserID = userID
+}
+
+func NewOrgUsersInfraTopology(ou org_users.OrgUser) Topology {
+	class := class_type.NewTopologyClass()
+	classType := class_type.NewInfraClassTopologyType()
+	out := NewOrgUserTopologyFromOrgUser(ou)
+	t := Topology{autogen_bases.Topologies{}, classType, class, out, kns.Kns{}, state.NewState()}
+	return t
 }

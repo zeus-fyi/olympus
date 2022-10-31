@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/base"
@@ -19,6 +20,7 @@ type TopologyActionRequestTestSuite struct {
 	E *echo.Echo
 	autok8s_core.K8TestSuite
 	DB test_suites.PGTestSuite
+	Ts chronos.Chronos
 }
 
 type TestResponse struct {

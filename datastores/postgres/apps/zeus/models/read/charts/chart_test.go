@@ -19,7 +19,7 @@ func (s *ChartReaderTestSuite) TestSelectQueryName() {
 
 	chart := Chart{}
 	chart.ChartPackageID = 6828704980826292343
-	err := chart.SelectSingleChartsResources(ctx, qp)
+	err := chart.SelectSingleChartsResourcesByChartID(ctx, qp)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(chart.K8sDeployment)
 	s.Require().NotNil(chart.K8sDeployment.Spec.Replicas)

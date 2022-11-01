@@ -31,7 +31,7 @@ func (t *InfraBaseTopology) SelectInfraTopologyQuery() sql_query_templates.Query
 			FROM topology_infrastructure_components tic
 			INNER JOIN topologies top ON top.topology_id = tic.topology_id
 			INNER JOIN org_users_topologies out ON out.topology_id = tic.topology_id
-			WHERE topology_id = %d AND org_id = %d AND user_id = %d
+			WHERE tic.topology_id = %d AND org_id = %d AND user_id = %d
 			LIMIT 1
 			)
 	`, t.TopologyID, t.OrgID, t.UserID)
@@ -41,6 +41,7 @@ func (t *InfraBaseTopology) SelectInfraTopologyQuery() sql_query_templates.Query
 
 func (t *InfraBaseTopology) SelectTopology(ctx context.Context) error {
 	q := t.SelectInfraTopologyQuery()
+
 	log.Debug().Interface("SelectTopologyQuery", q.LogHeader(Sn))
 	err := t.SelectSingleChartsResources(ctx, q)
 	return err

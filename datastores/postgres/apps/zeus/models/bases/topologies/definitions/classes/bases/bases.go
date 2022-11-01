@@ -7,7 +7,7 @@ import (
 )
 
 type Base struct {
-	infra.Infrastructure
+	infra.InfraBaseTopology
 	*config.Configuration
 	*skeleton.Skeleton
 }

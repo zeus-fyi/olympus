@@ -16,6 +16,7 @@ import (
 
 type Packages struct {
 	charts.Chart
+	CTE sql_query_templates.CTE
 	*deployments.Deployment
 	*services.Service
 	*ingresses.Ingress
@@ -25,6 +26,7 @@ type Packages struct {
 func NewPackageInsert() Packages {
 	pkg := Packages{
 		Chart:      charts.NewChart(),
+		CTE:        sql_query_templates.CTE{},
 		Deployment: nil,
 		Service:    nil,
 		Ingress:    nil,
@@ -49,7 +51,7 @@ func (p *Packages) InsertPackages(ctx context.Context, q sql_query_templates.Que
 }
 
 func (p *Packages) InsertPackagesCTE() sql_query_templates.CTE {
-	var cte sql_query_templates.CTE
+	cte := p.CTE
 	if p.Deployment != nil {
 		depCte := p.GetDeploymentCTE(&p.Chart)
 		cte.AppendSubCtes(depCte.SubCTEs)

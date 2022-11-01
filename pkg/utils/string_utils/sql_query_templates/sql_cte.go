@@ -3,6 +3,7 @@ package sql_query_templates
 type CTE struct {
 	Name string
 	SubCTEs
+	ReturnSQLStatement string
 }
 
 func (c *CTE) GenerateChainedCTE() string {

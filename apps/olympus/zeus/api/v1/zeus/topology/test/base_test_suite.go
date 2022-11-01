@@ -58,7 +58,9 @@ func (t *TopologyActionRequestTestSuite) PostTopologyRequest(topologyActionReque
 	t.Assert().Nil(err)
 
 	fmt.Println("action request json")
-	fmt.Println(string(topologyActionRequestPayload))
+	requestJSON := pretty.Pretty(topologyActionRequestPayload)
+	requestJSON = pretty.Color(requestJSON, pretty.TerminalStyle)
+	fmt.Println(string(requestJSON))
 	req := httptest.NewRequest(http.MethodPost, t.Endpoint, strings.NewReader(string(topologyActionRequestPayload)))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 

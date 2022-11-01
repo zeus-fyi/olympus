@@ -42,6 +42,10 @@ func (d *Db) InitPG(ctx context.Context, pgConnStr string) *pgxpool.Pool {
 	return Pg.Pgpool
 }
 
+func (d *Db) QueryRowWArgs(ctx context.Context, query string, args ...interface{}) pgx.Row {
+	return Pg.Pgpool.QueryRow(ctx, query, args...)
+}
+
 func (d *Db) QueryRow(ctx context.Context, query string) pgx.Row {
 	return Pg.Pgpool.QueryRow(ctx, query)
 }

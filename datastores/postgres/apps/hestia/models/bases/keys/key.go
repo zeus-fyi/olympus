@@ -11,6 +11,15 @@ type Key struct {
 	KeyType
 }
 
+func NewKey() Key {
+	k := Key{
+		UsersKeys: autogen_bases.UsersKeys{},
+		KeyType:   KeyType{},
+	}
+
+	return k
+}
+
 func NewKeyForUser(userID int, publicKey string) Key {
 	k := Key{
 		UsersKeys: autogen_bases.UsersKeys{

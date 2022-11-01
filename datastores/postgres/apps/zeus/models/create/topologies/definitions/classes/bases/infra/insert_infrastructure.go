@@ -18,26 +18,26 @@ func (i *InfraBaseTopology) SelectInfraTopologyQuery() {
 
 	// TODO, use db but too much of pita to update right now
 	var ts chronos.Chronos
-
 	chartPackageID := ts.UnixTimeStampNow()
 	i.Packages.ChartPackageID = chartPackageID
 	i.ChartPackageID = chartPackageID
 
 	insertTopQuery.QueryName = "cte_insert_topology"
-	insertTopQuery.RawQuery = fmt.Sprintf(`INSERT INTO topologies(name) VALUES ('%s') RETURNING topology_id`, i.Name)
-
+	insertTopQuery.RawQuery = fmt.Sprintf(`INSERT INTO topologies(name) VALUES ($1) RETURNING topology_id`)
+	i.CTE.Params = append(i.CTE.Params, i.Name)
 	insertTopOrgUserQuery.QueryName = "cte_insert_ou_topology"
 	insertTopOrgUserQuery.RawQuery = fmt.Sprintf(`
 		  INSERT INTO org_users_topologies(topology_id, org_id, user_id)
-		  VALUES ((SELECT topology_id FROM %s), %d, %d)`,
-		insertTopQuery.QueryName, i.OrgID, i.UserID)
+		  VALUES ((SELECT topology_id FROM %s), $2, $3)`,
+		insertTopQuery.QueryName)
+	i.CTE.Params = append(i.CTE.Params, i.OrgID, i.UserID)
 
 	insertTopChartQuery.QueryName = "cte_insert_chart_pkg"
-	insertTopChartQuery.RawQuery = fmt.Sprintf(`
+	insertTopChartQuery.RawQuery = `
 		  INSERT INTO chart_packages(chart_package_id, chart_name, chart_version, chart_description)
-		  VALUES (%d, '%s', '%s', '%v')
-	     RETURNING chart_package_id`,
-		i.ChartPackageID, i.Chart.ChartName, i.ChartVersion, i.ChartDescription.String)
+		  VALUES ($4, $5, $6, $7)
+	     RETURNING chart_package_id`
+	i.CTE.Params = append(i.CTE.Params, i.ChartPackageID, i.ChartName, i.ChartVersion, i.ChartDescription)
 
 	insertTopInfraQuery.QueryName = "cte_insert_topology_infrastructure_components"
 	insertTopInfraQuery.RawQuery = fmt.Sprintf(`
@@ -55,7 +55,7 @@ func (i *InfraBaseTopology) InsertInfraBase(ctx context.Context) error {
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
 	i.SelectInfraTopologyQuery()
 	q.RawQuery = i.CTE.GenerateChainedCTE()
-	r, err := apps.Pg.Exec(ctx, q.RawQuery)
+	r, err := apps.Pg.Exec(ctx, q.RawQuery, i.CTE.Params...)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
 		return err
 	}

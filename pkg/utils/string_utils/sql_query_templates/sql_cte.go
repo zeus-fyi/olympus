@@ -3,11 +3,12 @@ package sql_query_templates
 type CTE struct {
 	Name string
 	SubCTEs
+	Params             []interface{}
 	ReturnSQLStatement string
 }
 
 func (c *CTE) GenerateChainedCTE() string {
-	formattedValues := c.MultiLevelValuesCTEStringBuilderSQL()
+	formattedValues := c.SanitizedMultiLevelValuesCTEStringBuilderSQL()
 	return formattedValues
 }
 

@@ -8,8 +8,6 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-const SelectDeploymentResourceID = "(SELECT chart_component_resource_id FROM chart_component_resources WHERE chart_component_kind_name = 'Deployment' AND chart_component_api_version = 'apps/v1')"
-
 // InsertPodTemplateSpecContainersCTE will use the next_id distributed ID generator and select the container id
 // value for subsequent subcomponent relationships of its element, should greatly simplify the insert logic
 func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart) sql_query_templates.CTE {
@@ -24,7 +22,7 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart
 	contPodSpecParentClassCTE := sql_query_templates.NewSubInsertCTE("cte_podSpecParentClassTypeCTE")
 	contPodSpecParentClassCTE.TableName = p.ChartSubcomponentParentClassTypes.GetTableName()
 	contPodSpecParentClassCTE.Columns = []string{"chart_package_id", "chart_component_resource_id", "chart_subcomponent_parent_class_type_id", "chart_subcomponent_parent_class_type_name"}
-	contPodSpecParentClassCTE.AddValues(chart.ChartPackageID, SelectDeploymentResourceID, p.GetPodSpecParentClassTypeID(), p.ChartSubcomponentParentClassTypes.ChartSubcomponentParentClassTypeName)
+	contPodSpecParentClassCTE.AddValues(chart.ChartPackageID, p.ChartComponentResourceID, p.GetPodSpecParentClassTypeID(), p.ChartSubcomponentParentClassTypes.ChartSubcomponentParentClassTypeName)
 
 	cpkAddParentClassTypeSubCTEs := common.AddParentClassToChartPackage(chart, p.GetPodSpecParentClassTypeID())
 

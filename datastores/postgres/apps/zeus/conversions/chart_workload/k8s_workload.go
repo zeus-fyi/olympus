@@ -1,24 +1,15 @@
 package chart_workload
 
 import (
-	v1 "k8s.io/api/apps/v1"
-	v1core "k8s.io/api/core/v1"
-	v1networking "k8s.io/api/networking/v1"
-
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/configuration"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/ingresses"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulset"
+	v1 "k8s.io/api/apps/v1"
+	v1core "k8s.io/api/core/v1"
+	v1networking "k8s.io/api/networking/v1"
 )
-
-type ChartWorkload struct {
-	*deployments.Deployment
-	*services.Service
-	*ingresses.Ingress
-	*configuration.ConfigMap
-	*statefulset.StatefulSet
-}
 
 type NativeK8s struct {
 	*v1core.Service       `json:"service"`
@@ -26,16 +17,6 @@ type NativeK8s struct {
 	*v1.Deployment        `json:"deployment"`
 	*v1.StatefulSet       `json:"statefulSet"`
 	*v1networking.Ingress `json:"ingress"`
-}
-
-func NewK8sWorkload() ChartWorkload {
-	k8s := ChartWorkload{
-		Deployment: nil,
-		Service:    nil,
-		Ingress:    nil,
-		ConfigMap:  nil,
-	}
-	return k8s
 }
 
 func NewNativeK8s() NativeK8s {
@@ -48,23 +29,43 @@ func NewNativeK8s() NativeK8s {
 	}
 }
 
-func (c *ChartWorkload) GetNativeK8s() NativeK8s {
-	nk := NativeK8s{}
-
-	if c.Deployment != nil {
-		nk.Deployment = &c.K8sDeployment
+func (nk *NativeK8s) CreateChartWorkloadFromNativeK8s() (ChartWorkload, error) {
+	cw := NewChartWorkload()
+	if nk.Deployment != nil {
+		nd := deployments.NewDeployment()
+		nd.K8sDeployment = *nk.Deployment
+		err := nd.ConvertDeploymentConfigToDB()
+		if err != nil {
+			return cw, err
+		}
+		cw.Deployment = &nd
 	}
-	if c.StatefulSet != nil {
-		nk.StatefulSet = &c.K8sStatefulSet
+	if nk.StatefulSet != nil {
+		sts := statefulset.NewStatefulSet()
+		sts.K8sStatefulSet = *nk.StatefulSet
+		// TODO add conversion
+		cw.StatefulSet = &sts
 	}
-	if c.Service != nil {
-		nk.Service = &c.K8sService
+	if nk.Service != nil {
+		nsvc := services.NewService()
+		nsvc.K8sService = *nk.Service
+		nsvc.ConvertK8sServiceToDB()
+		cw.Service = &nsvc
 	}
-	if c.ConfigMap != nil {
-		nk.ConfigMap = &c.K8sConfigMap
+	if nk.ConfigMap != nil {
+		cm := configuration.NewConfigMap()
+		cm.K8sConfigMap = *nk.ConfigMap
+		cm.ConvertK8sConfigMapToDB()
+		cw.ConfigMap = &cm
 	}
-	if c.Ingress != nil {
-		nk.Ingress = &c.K8sIngress
+	if nk.Ingress != nil {
+		ing := ingresses.NewIngress()
+		ing.K8sIngress = *nk.Ingress
+		err := ing.ConvertK8sIngressToDB()
+		if err != nil {
+			return cw, err
+		}
+		cw.Ingress = &ing
 	}
-	return nk
+	return cw, nil
 }

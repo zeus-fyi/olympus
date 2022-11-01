@@ -9,3 +9,11 @@ type TopologyActionRequest struct {
 
 	org_users.OrgUser
 }
+
+func CreateTopologyActionRequestWithOrgUser(action string, ou org_users.OrgUser) TopologyActionRequest {
+	tar := TopologyActionRequest{
+		Action:  action,
+		OrgUser: ou,
+	}
+	return tar
+}

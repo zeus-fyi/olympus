@@ -6,11 +6,11 @@ import (
 
 	"github.com/labstack/echo/v4"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
-	base_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/base"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/base"
 )
 
 type TopologyActionReadRequest struct {
-	base_infra.TopologyInfraActionRequest
+	base.TopologyActionRequest
 	TopologyID int
 }
 

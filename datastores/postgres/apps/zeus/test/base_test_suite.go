@@ -24,7 +24,7 @@ type ConversionsTestSuite struct {
 	TestDirectory string
 }
 
-func ForceDirToCallerLocation() string {
+func (s *ConversionsTestSuite) ForceDirToCallerLocation() string {
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Join(path.Dir(filename), "")
 	err := os.Chdir(dir)
@@ -35,7 +35,7 @@ func ForceDirToCallerLocation() string {
 }
 
 func (s *ConversionsTestSuite) SetupTest() {
-	s.TestDirectory = ForceDirToCallerLocation()
+	s.TestDirectory = s.ForceDirToCallerLocation()
 	s.Yr = transformations.YamlReader{}
 	s.InitLocalConfigs()
 	s.SetupPGConn()

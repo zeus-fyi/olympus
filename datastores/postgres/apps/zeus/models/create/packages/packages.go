@@ -18,7 +18,7 @@ type Packages struct {
 }
 
 func NewPackageInsert() Packages {
-	cw := chart_workload.NewK8sWorkload()
+	cw := chart_workload.NewChartWorkload()
 
 	pkg := Packages{
 		Chart:         charts.NewChart(),

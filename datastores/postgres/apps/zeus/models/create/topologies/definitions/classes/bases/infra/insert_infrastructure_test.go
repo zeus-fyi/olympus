@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/configuration"
@@ -30,6 +31,12 @@ func (s *CreateInfraTestSuite) TestInsertInfraBase() {
 	nsvc := services.NewService()
 	ing := ingresses.NewIngress()
 	cm := configuration.NewConfigMap()
+	cw := chart_workload.ChartWorkload{
+		Deployment: &nd,
+		Service:    &nsvc,
+		Ingress:    &ing,
+		ConfigMap:  &cm,
+	}
 	pkg := packages.Packages{
 		Chart: charts.Chart{
 			ChartPackages: autogen_bases.ChartPackages{
@@ -39,10 +46,7 @@ func (s *CreateInfraTestSuite) TestInsertInfraBase() {
 				ChartDescription: sql.NullString{},
 			},
 		},
-		Deployment: &nd,
-		Service:    &nsvc,
-		Ingress:    &ing,
-		ConfigMap:  &cm,
+		ChartWorkload: cw,
 	}
 
 	filepath := s.TestDirectory + "/apps/eth-indexer/deployment.yaml"
@@ -72,7 +76,7 @@ func (s *CreateInfraTestSuite) TestInsertInfraBase() {
 	jsonBytes, err = s.Yr.ReadYamlConfig(filepath)
 	err = json.Unmarshal(jsonBytes, &cm.K8sConfigMap)
 	s.Require().Nil(err)
-	cm.ParseK8sConfigToDB()
+	cm.ConvertK8sConfigMapToDB()
 	s.Assert().NotEmpty(cm.Data)
 	s.Assert().NotEmpty(cm.Metadata.Name)
 

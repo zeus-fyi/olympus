@@ -22,7 +22,7 @@ func (s *ConfigMapTestSuite) TestK8sConfigMapYamlReader() {
 	s.Require().NotEmpty(cm.K8sConfigMap)
 	s.Require().NotEmpty(cm.Metadata.Name)
 
-	cm.ParseK8sConfigToDB()
+	cm.ConvertK8sConfigMapToDB()
 	s.Require().NotEmpty(cm.Data)
 	s.Require().NotEmpty(cm.K8sConfigMap.Name)
 	s.Require().NotEmpty(cm.K8sConfigMap.ObjectMeta.Name)

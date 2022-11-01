@@ -21,6 +21,15 @@ func NewInfrastructureBaseTopology() InfraBaseTopology {
 	return inf
 }
 
+func NewOrgUserInfrastructureBaseTopology(topologyName string, ou org_users.OrgUser) InfraBaseTopology {
+	tic := autogen_bases.TopologyInfrastructureComponents{
+		TopologyID:     0,
+		ChartPackageID: 0,
+	}
+	inf := InfraBaseTopology{topologyName, ou, tic}
+	return inf
+}
+
 func (i *InfraBaseTopology) AddChartPackageID(id int) {
 	i.ChartPackageID = id
 }

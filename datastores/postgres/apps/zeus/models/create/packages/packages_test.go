@@ -81,9 +81,9 @@ func (p *PackagesTestSuite) TestInsertRealApp() {
 
 	filepath = p.TestDirectory + "/apps/eth-indexer/cm-eth-indexer.yaml"
 	jsonBytes, err = p.Yr.ReadYamlConfig(filepath)
-	err = json.Unmarshal(jsonBytes, &cm.K8sConfigMap)
+	err = json.Unmarshal(jsonBytes, &pkg.K8sConfigMap)
 	p.Require().Nil(err)
-	cm.ParseK8sConfigToDB()
+	pkg.ConfigMap.ConvertK8sConfigMapToDB()
 	p.Assert().NotEmpty(cm.Data)
 	p.Assert().NotEmpty(cm.Metadata.Name)
 
@@ -152,7 +152,7 @@ func (p *PackagesTestSuite) TestInsert() {
 	jsonBytes, err = p.Yr.ReadYamlConfig(filepath)
 	err = json.Unmarshal(jsonBytes, &cm.K8sConfigMap)
 	p.Require().Nil(err)
-	cm.ParseK8sConfigToDB()
+	cm.ConvertK8sConfigMapToDB()
 	p.Assert().NotEmpty(cm.Data)
 
 	ctx = context.Background()

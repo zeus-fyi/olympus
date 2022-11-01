@@ -26,7 +26,7 @@ type Chart struct {
 
 func NewChartReader() Chart {
 	c := charts.NewChart()
-	k8s := chart_workload.NewK8sWorkload()
+	k8s := chart_workload.NewChartWorkload()
 	cr := Chart{
 		Chart:         c,
 		ChartWorkload: k8s,

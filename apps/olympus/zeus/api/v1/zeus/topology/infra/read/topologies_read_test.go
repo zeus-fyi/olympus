@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/base"
-	base_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/base"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/test"
 )
 
@@ -15,15 +14,9 @@ type TopologyReadActionRequestTestSuite struct {
 
 func (t *TopologyReadActionRequestTestSuite) TestReadChart() {
 	test.Kns.Namespace = "demo"
-	bi := base_infra.TopologyInfraActionRequest{
-		TopologyActionRequest: base.TopologyActionRequest{
-			Action:  "read",
-			OrgUser: test.TestOrgUser,
-		}}
-
 	tar := TopologyActionReadRequest{
-		bi,
-		test.TestTopologyID,
+		TopologyActionRequest: base.CreateTopologyActionRequestWithOrgUser("read", test.TestOrgUser),
+		TopologyID:            test.TestTopologyID,
 	}
 	t.Endpoint = "/infra"
 	t.AddEndpointHandler(tar.ReadTopology)

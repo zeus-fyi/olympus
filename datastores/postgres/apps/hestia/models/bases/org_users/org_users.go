@@ -15,3 +15,11 @@ func NewOrgUser() OrgUser {
 	}}
 	return o
 }
+
+func NewOrgUserWithID(orgID, userID int) OrgUser {
+	o := OrgUser{autogen_bases.OrgUsers{
+		OrgID:  orgID,
+		UserID: userID,
+	}}
+	return o
+}

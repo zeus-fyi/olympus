@@ -7,12 +7,13 @@ import (
 
 type InfraBaseTopology struct {
 	infra.InfraBaseTopology
+
 	packages.Packages
 }
 
 func NewCreateInfrastructure() InfraBaseTopology {
-	ib := infra.NewInfrastructureBaseTopology()
 	pkg := packages.NewPackageInsert()
-	ibc := InfraBaseTopology{ib, pkg}
+	infc := infra.NewInfrastructureBaseTopology()
+	ibc := InfraBaseTopology{infc, pkg}
 	return ibc
 }

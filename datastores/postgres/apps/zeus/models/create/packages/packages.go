@@ -51,22 +51,21 @@ func (p *Packages) InsertPackages(ctx context.Context, q sql_query_templates.Que
 }
 
 func (p *Packages) InsertPackagesCTE() sql_query_templates.CTE {
-	cte := p.CTE
 	if p.Deployment != nil {
 		depCte := p.GetDeploymentCTE(&p.Chart)
-		cte.AppendSubCtes(depCte.SubCTEs)
+		p.CTE.AppendSubCtes(depCte.SubCTEs)
 	}
 	if p.Service != nil {
 		svcCte := p.GetServiceCTE(&p.Chart)
-		cte.AppendSubCtes(svcCte.SubCTEs)
+		p.CTE.AppendSubCtes(svcCte.SubCTEs)
 	}
 	if p.Ingress != nil {
 		ingressCte := p.GetIngressCTE(&p.Chart)
-		cte.AppendSubCtes(ingressCte.SubCTEs)
+		p.CTE.AppendSubCtes(ingressCte.SubCTEs)
 	}
 	if p.ConfigMap != nil {
 		cmCte := p.GetConfigMapCTE(&p.Chart)
-		cte.AppendSubCtes(cmCte.SubCTEs)
+		p.CTE.AppendSubCtes(cmCte.SubCTEs)
 	}
-	return cte
+	return p.CTE
 }

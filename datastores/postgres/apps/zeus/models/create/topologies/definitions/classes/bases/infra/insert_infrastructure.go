@@ -18,7 +18,9 @@ func (i *InfraBaseTopology) SelectInfraTopologyQuery() {
 
 	// TODO, use db but too much of pita to update right now
 	var ts chronos.Chronos
+
 	chartPackageID := ts.UnixTimeStampNow()
+	i.Packages.ChartPackageID = chartPackageID
 	i.ChartPackageID = chartPackageID
 
 	insertTopQuery.QueryName = "cte_insert_topology"
@@ -40,7 +42,7 @@ func (i *InfraBaseTopology) SelectInfraTopologyQuery() {
 	insertTopInfraQuery.QueryName = "cte_insert_topology_infrastructure_components"
 	insertTopInfraQuery.RawQuery = fmt.Sprintf(`
 		  INSERT INTO topology_infrastructure_components(topology_id, chart_package_id)
-		  VALUES ((SELECT topology_id FROM '%s'), (SELECT chart_package_id FROM '%s')) `,
+		  VALUES ((SELECT topology_id FROM %s), (SELECT chart_package_id FROM %s)) `,
 		insertTopQuery.QueryName, insertTopChartQuery.QueryName)
 
 	subCTEs := []sql_query_templates.SubCTE{insertTopQuery, insertTopOrgUserQuery, insertTopChartQuery, insertTopInfraQuery}
@@ -51,7 +53,7 @@ func (i *InfraBaseTopology) SelectInfraTopologyQuery() {
 func (i *InfraBaseTopology) InsertInfraBase(ctx context.Context) error {
 	var q sql_query_templates.QueryParams
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
-	i.InsertPackagesCTE()
+	i.SelectInfraTopologyQuery()
 	q.RawQuery = i.CTE.GenerateChainedCTE()
 	r, err := apps.Pg.Exec(ctx, q.RawQuery)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {

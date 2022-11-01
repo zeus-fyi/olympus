@@ -1,8 +1,10 @@
 package create_infra
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -76,9 +78,12 @@ func (s *CreateInfraTestSuite) TestInsertInfraBase() {
 
 	inf := NewCreateInfrastructure()
 	inf.Packages = pkg
-	//ctx := context.Background()
-	//err = inf.InsertInfraBase(ctx)
-	//s.Require().Nil(err)
+
+	ctx := context.Background()
+	inf.Name = fmt.Sprintf("test_%d", s.Ts.UnixTimeStampNow())
+	inf.OrgID, inf.UserID = s.b.NewTestOrgAndUser()
+	err = inf.InsertInfraBase(ctx)
+	s.Require().Nil(err)
 }
 
 func TestCreateInfraTestSuite(t *testing.T) {

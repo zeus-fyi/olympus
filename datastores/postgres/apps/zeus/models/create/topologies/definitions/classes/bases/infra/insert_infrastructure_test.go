@@ -24,7 +24,7 @@ func (s *CreateInfraTestSuite) TestInsertInfraBase() {
 	chartPackageID := 6672899785140184951
 	inf.ChartPackageID = chartPackageID
 	ctx := context.Background()
-	q := sql_query_templates.NewQueryParam("InsertInfrastructureBase", "topology_infrastructure_components", "where", 1000, []string{})
+	q := sql_query_templates.NewQueryParam("InsertInfraBase", "topology_infrastructure_components", "where", 1000, []string{})
 	q.TableName = inf.GetTableName()
 	q.Columns = inf.GetTableColumns()
 	q.Values = []apps.RowValues{inf.GetRowValues("default")}

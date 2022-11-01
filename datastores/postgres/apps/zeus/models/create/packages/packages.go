@@ -22,6 +22,17 @@ type Packages struct {
 	*configuration.ConfigMap
 }
 
+func NewPackageInsert() Packages {
+	pkg := Packages{
+		Chart:      charts.NewChart(),
+		Deployment: nil,
+		Service:    nil,
+		Ingress:    nil,
+		ConfigMap:  nil,
+	}
+	return pkg
+}
+
 const Sn = "Packages"
 
 func (p *Packages) InsertPackages(ctx context.Context, q sql_query_templates.QueryParams) error {

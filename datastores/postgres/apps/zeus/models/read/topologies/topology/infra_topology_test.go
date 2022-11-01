@@ -1,6 +1,7 @@
 package read_topology
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -13,6 +14,11 @@ type TopologyTestSuite struct {
 
 func (s *TopologyTestSuite) TestSelectTopology() {
 
+	tr := NewInfraTopologyReader()
+
+	ctx := context.Background()
+	err := tr.SelectTopology(ctx)
+	s.Require().Nil(err)
 }
 
 func TestTopologyTestSuite(t *testing.T) {

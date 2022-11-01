@@ -41,7 +41,7 @@ func (t *InfraBaseTopology) SelectInfraTopologyQuery() sql_query_templates.Query
 
 func (t *InfraBaseTopology) SelectTopology(ctx context.Context) error {
 	q := t.SelectInfraTopologyQuery()
-	log.Debug().Interface("SelectQuery", q.LogHeader(Sn))
+	log.Debug().Interface("SelectTopologyQuery", q.LogHeader(Sn))
 	err := t.SelectSingleChartsResources(ctx, q)
 	return err
 }

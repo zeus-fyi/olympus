@@ -16,10 +16,12 @@ type ChartReaderTestSuite struct {
 func (s *ChartReaderTestSuite) TestSelectQueryName() {
 	ctx := context.Background()
 	qp := test.CreateTestQueryNameParams()
-
+	qp.QueryName = "SelectSingleChartsResources"
 	chart := Chart{}
 	chart.ChartPackageID = 6828704980826292343
-	err := chart.SelectSingleChartsResourcesByChartID(ctx, qp)
+	qp.CTEQuery.Params = append(qp.CTEQuery.Params, chart.ChartPackageID)
+	qp.RawQuery = FetchChartQuery(qp)
+	err := chart.SelectSingleChartsResources(ctx, qp)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(chart.K8sDeployment)
 	s.Require().NotNil(chart.K8sDeployment.Spec.Replicas)

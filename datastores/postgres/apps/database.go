@@ -50,8 +50,8 @@ func (d *Db) QueryRow(ctx context.Context, query string) pgx.Row {
 	return Pg.Pgpool.QueryRow(ctx, query)
 }
 
-func (d *Db) Query(ctx context.Context, query string) (pgx.Rows, error) {
-	return Pg.Pgpool.Query(ctx, query)
+func (d *Db) Query(ctx context.Context, query string, args ...interface{}) (pgx.Rows, error) {
+	return Pg.Pgpool.Query(ctx, query, args...)
 }
 
 func (d *Db) Exec(ctx context.Context, query string, args ...interface{}) (pgconn.CommandTag, error) {

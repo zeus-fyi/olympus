@@ -36,14 +36,10 @@ func NewChartReader() Chart {
 
 const ModelName = "Chart"
 
-func (c *Chart) SelectSingleChartsResourcesByChartID(ctx context.Context, q sql_query_templates.QueryParams) error {
-	q.RawQuery = FetchChartQueryByChartID(c.ChartPackageID)
-	return c.SelectSingleChartsResources(ctx, q)
-}
-
 func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_templates.QueryParams) error {
 	log.Debug().Interface("SelectQuery", q.LogHeader(ModelName))
-	rows, err := apps.Pg.Query(ctx, q.RawQuery)
+
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, q.CTEQuery.Params...)
 	if err != nil {
 		log.Err(err).Msg(q.LogHeader(ModelName))
 		return err

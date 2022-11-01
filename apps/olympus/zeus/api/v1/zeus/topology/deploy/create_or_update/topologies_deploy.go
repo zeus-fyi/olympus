@@ -21,6 +21,7 @@ func (t *TopologyDeployCreateActionDeployRequest) DeployTopology(c echo.Context)
 
 	ctx := context.Background()
 	q := sql_query_templates.QueryParams{}
+	q.CTEQuery.Params = append(q.CTEQuery.Params, chartReader.ChartPackageID)
 	err := chartReader.SelectSingleChartsResources(ctx, q)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, nil)

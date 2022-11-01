@@ -1,19 +1,38 @@
 package read_charts
 
-import "fmt"
+import (
+	"fmt"
 
-func FetchChartQueryByChartID(chartID int) string {
-	strID := fmt.Sprintf("%d", chartID)
-	return FetchChartQuery(strID)
-}
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
+)
 
-func FetchChartQuery(chartID string) string {
+func FetchChartQuery(q sql_query_templates.QueryParams) string {
+	header := ""
+	switch q.QueryName {
+	case "SelectSingleChartsResources":
+		header =
+			`WITH cte_chart_packages AS (
+				SELECT chart_package_id, chart_name, chart_version, chart_description
+				FROM chart_packages
+				WHERE chart_package_id = $1
+			)`
+	case "SelectInfraTopologyQuery":
+		header = `
+			WITH cte_chart_packages AS (
+				SELECT cp.chart_package_id AS chart_package_id, cp.chart_name, cp.chart_version, cp.chart_description
+				FROM topology_infrastructure_components tic
+				INNER JOIN topologies top ON top.topology_id = tic.topology_id
+				INNER JOIN org_users_topologies out ON out.topology_id = tic.topology_id
+				INNER JOIN chart_packages cp ON cp.chart_package_id = tic.chart_package_id
+				WHERE tic.topology_id = $1 AND org_id = $2 AND user_id = $3
+				LIMIT 1
+		)`
+	default:
+		return ""
+	}
+
 	query := fmt.Sprintf(`
-	WITH cte_chart_packages AS (
-			SELECT chart_package_id, chart_name, chart_version, chart_description
-			FROM chart_packages
-			WHERE chart_package_id = %s
-	), cte_chart_package_components AS (							
+	%s, cte_chart_package_components AS (							
 			SELECT  
 				cp.chart_package_id,
 				cp.chart_name,
@@ -152,6 +171,6 @@ func FetchChartQuery(chartID string) string {
 	LEFT JOIN cte_chart_subcomponent_spec_pod_template_containers AS ps ON ps.chart_package_id = ckagg.chart_package_id
 	LEFT JOIN cte_pod_spec_volumes AS v ON v.child_class_type_id_pod_spec_volumes = ps.chart_subcomponent_child_class_type_id_ps
 	LEFT JOIN cte_containers_agg AS cagg ON cagg.container_id = ps.container_id
-`, chartID)
+`, header)
 	return query
 }

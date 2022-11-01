@@ -2,7 +2,6 @@ package read_topology
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes/bases/infra"
@@ -26,16 +25,9 @@ const Sn = "ReadInfraBaseTopology"
 
 func (t *InfraBaseTopology) SelectInfraTopologyQuery() sql_query_templates.QueryParams {
 	var q sql_query_templates.QueryParams
-	query := fmt.Sprintf(`(
-			SELECT tic.chart_package_id
-			FROM topology_infrastructure_components tic
-			INNER JOIN topologies top ON top.topology_id = tic.topology_id
-			INNER JOIN org_users_topologies out ON out.topology_id = tic.topology_id
-			WHERE tic.topology_id = %d AND org_id = %d AND user_id = %d
-			LIMIT 1
-			)
-	`, t.TopologyID, t.OrgID, t.UserID)
-	q.RawQuery = read_charts.FetchChartQuery(query)
+	q.QueryName = "SelectInfraTopologyQuery"
+	q.CTEQuery.Params = append(q.CTEQuery.Params, t.TopologyID, t.OrgID, t.UserID)
+	q.RawQuery = read_charts.FetchChartQuery(q)
 	return q
 }
 

@@ -12,3 +12,10 @@ const JwtKeyTypeID = 6
 type KeyType struct {
 	autogen_bases.KeyTypes
 }
+
+func NewBearerKeyType() KeyType {
+	return KeyType{autogen_bases.KeyTypes{
+		KeyTypeID:   BearerKeyTypeID,
+		KeyTypeName: "",
+	}}
+}

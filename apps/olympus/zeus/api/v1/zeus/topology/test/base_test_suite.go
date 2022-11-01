@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
@@ -16,16 +18,31 @@ import (
 
 var Kns autok8s_core.KubeCtxNs
 
+var TestOrgUser = org_users.OrgUser{autogen_bases.OrgUsers{
+	OrgID:  1667266332674446258,
+	UserID: 1667266332670878528,
+}}
+
+var TestTopologyID = 6951056435719556916
+
 type TopologyActionRequestTestSuite struct {
 	E *echo.Echo
 	autok8s_core.K8TestSuite
-	DB test_suites.PGTestSuite
+	D  test_suites.DatastoresTestSuite
 	Ts chronos.Chronos
 }
 
 type TestResponse struct {
 	logs []byte
 	pods v1.PodList
+}
+
+func (t *TopologyActionRequestTestSuite) SetupTest() {
+	t.ConnectToK8s()
+	t.InitLocalConfigs()
+
+	t.D.PGTest.SetupPGConn()
+	t.D.PG = t.D.PGTest.Pg
 }
 
 func (t *TopologyActionRequestTestSuite) PostTopologyRequest(topologyActionRequest base.TopologyActionRequest, httpCode int) TestResponse {

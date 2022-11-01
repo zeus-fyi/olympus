@@ -3,17 +3,16 @@ package server
 import (
 	"context"
 
-	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	"github.com/zeus-fyi/olympus/zeus/api/v1"
+	router "github.com/zeus-fyi/olympus/zeus/api"
 )
 
 var cfg = Config{}
 
-func AutoK8s() {
+func Zeus() {
 	srv := NewAutoK8sServer(cfg)
 	// Echo instance
 	if cfg.K8sUtil.CfgPath == "" {
@@ -22,15 +21,12 @@ func AutoK8s() {
 		cfg.K8sUtil.CfgPath = cfg.K8sUtil.DefaultK8sCfgPath()
 	}
 	log.Debug().Msgf("The k8s config path %s:", cfg.K8sUtil.CfgPath)
-	srv.E = v1.InitRouter(srv.E, cfg.K8sUtil)
+	srv.E = router.InitRouter(srv.E, cfg.K8sUtil)
 
 	ctx := context.Background()
 	apps.Pg = apps.Db{}
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 
-	// Middleware
-	srv.E.Use(middleware.Logger())
-	srv.E.Use(middleware.Recover())
 	// Start server
 	srv.Start()
 }
@@ -44,9 +40,9 @@ func init() {
 
 // Cmd represents the base command when called without any subcommands
 var Cmd = &cobra.Command{
-	Use:   "auto_k8s",
-	Short: "A Transformer for K8s Actions",
+	Use:   "zeus",
+	Short: "A transformer for distributed infra actions",
 	Run: func(cmd *cobra.Command, args []string) {
-		AutoK8s()
+		Zeus()
 	},
 }

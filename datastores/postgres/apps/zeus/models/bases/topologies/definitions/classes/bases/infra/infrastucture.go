@@ -6,6 +6,7 @@ import (
 )
 
 type InfraBaseTopology struct {
+	Name string
 	org_users.OrgUser
 	autogen_bases.TopologyInfrastructureComponents
 }
@@ -16,7 +17,7 @@ func NewInfrastructureBaseTopology() InfraBaseTopology {
 		ChartPackageID: 0,
 	}
 	ou := org_users.NewOrgUser()
-	inf := InfraBaseTopology{ou, tic}
+	inf := InfraBaseTopology{"", ou, tic}
 	return inf
 }
 

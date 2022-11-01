@@ -5,11 +5,8 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/configuration"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/ingresses"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
@@ -17,20 +14,16 @@ import (
 type Packages struct {
 	charts.Chart
 	CTE sql_query_templates.CTE
-	*deployments.Deployment
-	*services.Service
-	*ingresses.Ingress
-	*configuration.ConfigMap
+	chart_workload.ChartWorkload
 }
 
 func NewPackageInsert() Packages {
+	cw := chart_workload.NewK8sWorkload()
+
 	pkg := Packages{
-		Chart:      charts.NewChart(),
-		CTE:        sql_query_templates.CTE{},
-		Deployment: nil,
-		Service:    nil,
-		Ingress:    nil,
-		ConfigMap:  nil,
+		Chart:         charts.NewChart(),
+		CTE:           sql_query_templates.CTE{},
+		ChartWorkload: cw,
 	}
 	return pkg
 }

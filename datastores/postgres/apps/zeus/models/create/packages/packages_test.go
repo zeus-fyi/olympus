@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/configuration"
@@ -41,12 +42,16 @@ func (p *PackagesTestSuite) TestInsertRealApp() {
 	nsvc := services.NewService()
 	ing := ingresses.NewIngress()
 	cm := configuration.NewConfigMap()
-	pkg := Packages{
-		Chart:      charts.Chart{},
+
+	cw := chart_workload.ChartWorkload{
 		Deployment: &nd,
 		Service:    &nsvc,
 		Ingress:    &ing,
 		ConfigMap:  &cm,
+	}
+	pkg := Packages{
+		Chart:         charts.Chart{},
+		ChartWorkload: cw,
 	}
 	pkg.Chart.ChartPackageID = c.GetChartPackageID()
 	p.Require().NotZero(pkg.Chart.ChartPackageID)
@@ -106,13 +111,17 @@ func (p *PackagesTestSuite) TestInsert() {
 	nsvc := services.NewService()
 	ing := ingresses.NewIngress()
 	cm := configuration.NewConfigMap()
-	pkg := Packages{
-		Chart:      charts.Chart{},
+	cw := chart_workload.ChartWorkload{
 		Deployment: &nd,
 		Service:    &nsvc,
 		Ingress:    &ing,
 		ConfigMap:  &cm,
 	}
+	pkg := Packages{
+		Chart:         charts.Chart{},
+		ChartWorkload: cw,
+	}
+
 	pkg.Chart.ChartPackageID = c.GetChartPackageID()
 	p.Require().NotZero(pkg.Chart.ChartPackageID)
 

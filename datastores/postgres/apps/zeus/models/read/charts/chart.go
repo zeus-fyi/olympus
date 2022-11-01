@@ -5,6 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/configuration"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/containers"
@@ -20,12 +21,12 @@ import (
 type Chart struct {
 	charts.Chart
 
-	ChartWorkload
+	chart_workload.ChartWorkload
 }
 
 func NewChartReader() Chart {
 	c := charts.NewChart()
-	k8s := NewK8sWorkload()
+	k8s := chart_workload.NewK8sWorkload()
 	cr := Chart{
 		Chart:         c,
 		ChartWorkload: k8s,

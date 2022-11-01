@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/labstack/echo/v4"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	create_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/topology"
 	base_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/base"
 )
@@ -13,7 +14,9 @@ type TopologyActionCreateRequest struct {
 	TopologyCreateRequest
 }
 type TopologyCreateRequest struct {
-	Name string
+	Name string `json:"name"`
+
+	chart_workload.ChartWorkload
 }
 
 func (t *TopologyActionCreateRequest) CreateTopology(c echo.Context) error {

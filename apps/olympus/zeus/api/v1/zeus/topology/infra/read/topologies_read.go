@@ -2,6 +2,7 @@ package read_infra
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
@@ -22,7 +23,7 @@ func (t *TopologyActionReadRequest) ReadTopology(c echo.Context) error {
 	ctx := context.Background()
 	err := tr.SelectTopology(ctx)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusInternalServerError, err)
 	}
-	return err
+	return c.JSON(http.StatusOK, tr.Chart)
 }

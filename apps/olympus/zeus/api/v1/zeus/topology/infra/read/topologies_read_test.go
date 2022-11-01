@@ -3,7 +3,6 @@ package read_infra
 import (
 	"testing"
 
-	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/base"
 	base_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/base"
@@ -26,9 +25,10 @@ func (t *TopologyReadActionRequestTestSuite) TestReadChart() {
 		bi,
 		test.TestTopologyID,
 	}
-	var c echo.Context
-	err := tar.ReadTopology(c)
-	t.Require().Nil(err)
+	t.Endpoint = "/infra"
+	t.AddEndpointHandler(tar.ReadTopology)
+	tr := t.PostTopologyRequest(tar, 200)
+	t.Require().NotEmpty(tr.Logs)
 }
 
 func TestTopologyReadActionRequestTestSuite(t *testing.T) {

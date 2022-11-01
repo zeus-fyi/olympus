@@ -12,7 +12,6 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
-	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/base"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -28,12 +27,13 @@ var TestTopologyID = 6951056435719556916
 type TopologyActionRequestTestSuite struct {
 	E *echo.Echo
 	autok8s_core.K8TestSuite
-	D  test_suites.DatastoresTestSuite
-	Ts chronos.Chronos
+	D        test_suites.DatastoresTestSuite
+	Ts       chronos.Chronos
+	Endpoint string
 }
 
 type TestResponse struct {
-	logs []byte
+	Logs []byte
 	pods v1.PodList
 }
 
@@ -43,13 +43,18 @@ func (t *TopologyActionRequestTestSuite) SetupTest() {
 
 	t.D.PGTest.SetupPGConn()
 	t.D.PG = t.D.PGTest.Pg
+	t.E = echo.New()
 }
 
-func (t *TopologyActionRequestTestSuite) PostTopologyRequest(topologyActionRequest base.TopologyActionRequest, httpCode int) TestResponse {
+func (t *TopologyActionRequestTestSuite) AddEndpointHandler(h echo.HandlerFunc) {
+	t.E.POST(t.Endpoint, h)
+}
+
+func (t *TopologyActionRequestTestSuite) PostTopologyRequest(topologyActionRequest interface{}, httpCode int) TestResponse {
 	topologyActionRequestPayload, err := json.Marshal(topologyActionRequest)
 	t.Assert().Nil(err)
 
-	req := httptest.NewRequest(http.MethodPost, "/topology", strings.NewReader(string(topologyActionRequestPayload)))
+	req := httptest.NewRequest(http.MethodPost, t.Endpoint, strings.NewReader(string(topologyActionRequestPayload)))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
 	rec := httptest.NewRecorder()
@@ -57,6 +62,6 @@ func (t *TopologyActionRequestTestSuite) PostTopologyRequest(topologyActionReque
 	t.Equal(httpCode, rec.Code)
 
 	var tr TestResponse
-	tr.logs = rec.Body.Bytes()
+	tr.Logs = rec.Body.Bytes()
 	return tr
 }

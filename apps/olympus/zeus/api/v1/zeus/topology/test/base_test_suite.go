@@ -2,11 +2,14 @@ package test
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"github.com/tidwall/pretty"
+
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
@@ -54,6 +57,8 @@ func (t *TopologyActionRequestTestSuite) PostTopologyRequest(topologyActionReque
 	topologyActionRequestPayload, err := json.Marshal(topologyActionRequest)
 	t.Assert().Nil(err)
 
+	fmt.Println("action request json")
+	fmt.Println(string(topologyActionRequestPayload))
 	req := httptest.NewRequest(http.MethodPost, t.Endpoint, strings.NewReader(string(topologyActionRequestPayload)))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
@@ -63,5 +68,13 @@ func (t *TopologyActionRequestTestSuite) PostTopologyRequest(topologyActionReque
 
 	var tr TestResponse
 	tr.Logs = rec.Body.Bytes()
+	fmt.Println("resp json")
+	t.Assert().Nil(err)
+
+	result := pretty.Pretty(rec.Body.Bytes())
+	result = pretty.Color(result, pretty.TerminalStyle)
+
+	fmt.Println(string(result))
+
 	return tr
 }

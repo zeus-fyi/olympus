@@ -16,7 +16,7 @@ type StatefulSetAndChildServices struct {
 }
 
 type StatefulSet struct {
-	K8sDeployment *v1.StatefulSet
+	K8sStatefulSet v1.StatefulSet
 
 	KindDefinition autogen_bases.ChartComponentResources
 
@@ -36,7 +36,7 @@ func NewStatefulSet() StatefulSet {
 		Kind:       "StatefulSet",
 		APIVersion: "apps/v1",
 	}
-	s.K8sDeployment = &v1.StatefulSet{TypeMeta: typeMeta}
+	s.K8sStatefulSet = v1.StatefulSet{TypeMeta: typeMeta}
 	s.KindDefinition = autogen_bases.ChartComponentResources{
 		ChartComponentKindName:   "StatefulSet",
 		ChartComponentApiVersion: "apps/v1",

@@ -20,20 +20,15 @@ import (
 type Chart struct {
 	charts.Chart
 
-	*deployments.Deployment
-	*services.Service
-	*ingresses.Ingress
-	*configuration.ConfigMap
+	ChartWorkload
 }
 
 func NewChartReader() Chart {
 	c := charts.NewChart()
+	k8s := NewK8sWorkload()
 	cr := Chart{
-		Chart:      c,
-		Deployment: nil,
-		Service:    nil,
-		Ingress:    nil,
-		ConfigMap:  nil,
+		Chart:         c,
+		ChartWorkload: k8s,
 	}
 	return cr
 }

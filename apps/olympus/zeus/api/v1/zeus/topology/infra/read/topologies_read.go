@@ -25,5 +25,6 @@ func (t *TopologyActionReadRequest) ReadTopology(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	return c.JSON(http.StatusOK, tr.Chart)
+	nk := tr.GetNativeK8s()
+	return c.JSON(http.StatusOK, nk)
 }

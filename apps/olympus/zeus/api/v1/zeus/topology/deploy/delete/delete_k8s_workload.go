@@ -3,33 +3,33 @@ package delete_deploy
 import (
 	"context"
 
-	read_charts "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/charts"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus/core"
 )
 
-func DeleteK8sWorkload(ctx context.Context, kns autok8s_core.KubeCtxNs, c read_charts.Chart) error {
+func DeleteK8sWorkload(ctx context.Context, kns autok8s_core.KubeCtxNs, nk chart_workload.NativeK8s) error {
 
-	if c.Deployment != nil {
-		err := core.K8Util.DeleteDeployment(ctx, kns, c.K8sDeployment.Name, nil)
+	if nk.Deployment != nil {
+		err := core.K8Util.DeleteDeployment(ctx, kns, nk.Deployment.Name, nil)
 		if err != nil {
 			return err
 		}
 	}
-	if c.Service != nil {
-		err := core.K8Util.DeleteServiceWithKns(ctx, kns, c.K8sService.Name, nil)
+	if nk.Service != nil {
+		err := core.K8Util.DeleteServiceWithKns(ctx, kns, nk.Service.Name, nil)
 		if err != nil {
 			return err
 		}
 	}
-	if c.ConfigMap != nil {
-		err := core.K8Util.DeleteConfigMapWithKns(ctx, kns, c.K8sConfigMap.Name, nil)
+	if nk.ConfigMap != nil {
+		err := core.K8Util.DeleteConfigMapWithKns(ctx, kns, nk.ConfigMap.Name, nil)
 		if err != nil {
 			return err
 		}
 	}
-	if c.Ingress != nil {
-		err := core.K8Util.DeleteIngressWithKns(ctx, kns, c.K8sIngress.Name, nil)
+	if nk.Ingress != nil {
+		err := core.K8Util.DeleteIngressWithKns(ctx, kns, nk.Ingress.Name, nil)
 		if err != nil {
 			return err
 		}

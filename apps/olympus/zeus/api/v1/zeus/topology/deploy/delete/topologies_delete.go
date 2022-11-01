@@ -5,28 +5,32 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	read_charts "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/charts"
-	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
+	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/base"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/test"
 )
 
 type TopologyDeployActionDeleteDeploymentRequest struct {
 	base.TopologyActionRequest
+	TopologyID int
 }
 
 func (t *TopologyDeployActionDeleteDeploymentRequest) DeleteDeployedTopology(c echo.Context) error {
-	chartReader := read_charts.Chart{}
-	chartReader.ChartPackageID = 6831980425944305799
+	tr := read_topology.NewInfraTopologyReader()
+	tr.TopologyID = t.TopologyID
+	tr.OrgID = t.OrgID
+	tr.UserID = t.UserID
 
 	ctx := context.Background()
-	q := sql_query_templates.QueryParams{}
-	err := chartReader.SelectSingleChartsResources(ctx, q)
+	err := tr.SelectTopology(ctx)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, nil)
+		return c.JSON(http.StatusInternalServerError, err)
 	}
+	nk := tr.GetNativeK8s()
+
+	// TODO should also fetch deployed kns, then update it
 	kns := test.Kns
-	err = DeleteK8sWorkload(ctx, kns, chartReader)
+	err = DeleteK8sWorkload(ctx, kns, nk)
 
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, nil)

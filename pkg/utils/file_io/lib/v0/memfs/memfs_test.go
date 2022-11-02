@@ -15,9 +15,12 @@ func (t *MemFsTestSuite) SetupTest() {
 	t.MemFS = NewMemFs()
 }
 
+func (t *MemFsTestSuite) TestCreateFileMemFs() {
+
+}
+
 func (t *MemFsTestSuite) TestCreateMemFsAndStoreRead() {
 
-	// TODO
 }
 
 func TestMemFsTestSuite(t *testing.T) {

@@ -33,7 +33,7 @@ func (s *AgeEncryptionTestSuite) TestEncryption() {
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}
-	err := s.Age.Encrypt(p)
+	err := s.Age.Encrypt(&p)
 	s.Require().Nil(err)
 }
 
@@ -41,14 +41,14 @@ func (s *AgeEncryptionTestSuite) TestEncryption() {
 func (s *AgeEncryptionTestSuite) TestDecryption() {
 	p := structs.Path{
 		PackageName: "",
-		DirIn:       "",
-		DirOut:      "",
+		DirIn:       "./",
+		DirOut:      "./",
 		Fn:          "kube.tar.gz.age",
 		FnOut:       "kube_decrypted.tar.gz",
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}
-	err := s.Age.Decrypt(p)
+	err := s.Age.DecryptToFile(&p)
 	s.Require().Nil(err)
 }
 

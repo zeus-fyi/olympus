@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 type MemFsTestSuite struct {
@@ -16,6 +18,17 @@ func (t *MemFsTestSuite) SetupTest() {
 }
 
 func (t *MemFsTestSuite) TestCreateFileMemFs() {
+	p := structs.Path{
+		PackageName: "",
+		DirIn:       "./.kube",
+		DirOut:      "./",
+		Fn:          "kube",
+		Env:         "",
+		FilterFiles: string_utils.FilterOpts{},
+	}
+
+	err := t.MemFS.MkPathDirAll(&p)
+	t.Require().Nil(err)
 
 }
 

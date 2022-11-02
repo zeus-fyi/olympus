@@ -24,17 +24,19 @@ func (s *AgeEncryptionTestSuite) TestEncryption() {
 		FilterFiles: string_utils.FilterOpts{},
 	}
 
-	pubKey := "age1f2awqn4xvrp4sehrv6zq0s64lt278hh7vq6darny4kzmlhfnusxq3hf62a"
+	pubKey := "age1n97pswc3uqlgt2un9aqn9v4nqu32egmvjulwqp3pv4algyvvuggqaruxjj"
 	err := Encrypt(p, pubKey)
 	s.Require().Nil(err)
 }
 
+// use age-keygen -o private_key.txt to create a pubkey/private key pair for here
 func (s *AgeEncryptionTestSuite) TestDecryption() {
 	p := structs.Path{
 		PackageName: "",
 		DirIn:       "",
 		DirOut:      "",
-		Fn:          "",
+		Fn:          "kube.tar.gz.age",
+		FnOut:       "kube_decrypted.tar.gz",
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}

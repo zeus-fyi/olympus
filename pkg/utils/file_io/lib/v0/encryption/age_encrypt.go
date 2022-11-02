@@ -27,11 +27,13 @@ func Encrypt(p structs.Path, publicKey string) error {
 	if err != nil {
 		return err
 	}
-	if _, werr := io.WriteString(w, string(bytesToEncrypt)); werr != nil {
+	if _, werr := w.Write(bytesToEncrypt); werr != nil {
 		return werr
 	}
 	_, err = io.Copy(w, outFile)
-
+	if err != nil {
+		return err
+	}
 	if cerr := w.Close(); cerr != nil {
 		return cerr
 	}

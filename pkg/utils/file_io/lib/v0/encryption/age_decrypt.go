@@ -1,7 +1,6 @@
 package encryption
 
 import (
-	"bytes"
 	"io"
 	"os"
 
@@ -23,10 +22,12 @@ func Decrypt(p structs.Path, privateKey string) error {
 	if err != nil {
 		return err
 	}
-	out := &bytes.Buffer{}
-	if _, cerr := io.Copy(out, r); cerr != nil {
+	outFile, err := os.Create(p.FnOut)
+	if err != nil {
+		return err
+	}
+	if _, cerr := io.Copy(outFile, r); cerr != nil {
 		return cerr
 	}
-
 	return err
 }

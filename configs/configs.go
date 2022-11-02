@@ -12,14 +12,21 @@ import (
 var testCont TestContainer
 
 type TestContainer struct {
-	Env              string
-	ProdDbPgconn     string
-	StagingDbPgconn  string
+	Env string
+
+	LocalDbPgconn   string
+	ProdDbPgconn    string
+	StagingDbPgconn string
+
 	LocalBeaconConn  string
-	LocalDbPgconn    string
 	LocalRedisConn   string
 	StagingRedisConn string
 	ProdRedisConn    string
+
+	LocalAgePubkey      string
+	LocalAgePkey        string
+	LocalS3SpacesKey    string
+	LocalS3SpacesSecret string
 }
 
 func forceDirToCallerLocation() string {
@@ -43,12 +50,20 @@ func InitEnvFromConfig(dir string) {
 func InitLocalTestConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
 	testCont.Env = viper.GetString("ENV")
+	testCont.LocalAgePubkey = viper.GetString("LOCAL_AGE_PUBKEY")
+	testCont.LocalAgePkey = viper.GetString("LOCAL_AGE_PKEY")
+
+	testCont.LocalS3SpacesKey = viper.GetString("LOCAL_S3_SPACES_KEY")
+	testCont.LocalS3SpacesSecret = viper.GetString("LOCAL_S3_SPACES_SECRET")
+
 	testCont.LocalRedisConn = viper.GetString("LOCAL_REDIS_CONN")
 	testCont.StagingRedisConn = viper.GetString("STAGING_REDIS_CONN")
 	testCont.ProdRedisConn = viper.GetString("PROD_REDIS_CONN")
+
 	testCont.LocalDbPgconn = viper.GetString("LOCAL_DB_PGCONN")
 	testCont.StagingDbPgconn = viper.GetString("STAGING_DB_PGCONN")
 	testCont.ProdDbPgconn = viper.GetString("PROD_DB_PGCONN")
+
 	testCont.LocalBeaconConn = viper.GetString("LOCAL_BEACON_CONN_STR")
 	return testCont
 }

@@ -1,4 +1,4 @@
-package s3
+package read
 
 import (
 	"context"
@@ -6,15 +6,22 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	s3base "github.com/zeus-fyi/olympus/datastores/s3"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
-func Read(ctx context.Context, p structs.Path, s3KeyValue *s3.GetObjectInput) error {
-	awsS3Client, err := ConnectS3Session(ctx)
-	if err != nil {
-		return err
+type S3ClientReader struct {
+	s3base.S3Client
+}
+
+func NewS3ClientReader(baseClient s3base.S3Client) S3ClientReader {
+	return S3ClientReader{
+		baseClient,
 	}
-	downloader := manager.NewDownloader(awsS3Client)
+}
+
+func (s *S3ClientReader) Read(ctx context.Context, p structs.Path, s3KeyValue *s3.GetObjectInput) error {
+	downloader := manager.NewDownloader(s.AwsS3Client)
 	newFile, err := os.Create(p.Fn)
 	if err != nil {
 		return err

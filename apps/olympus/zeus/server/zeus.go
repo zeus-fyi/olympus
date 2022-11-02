@@ -13,10 +13,10 @@ import (
 var cfg = Config{}
 
 func Zeus() {
-	srv := NewAutoK8sServer(cfg)
+	srv := NewZeusServer(cfg)
 	// Echo instance
 	if cfg.K8sUtil.CfgPath == "" {
-		log.Debug().Msg("AutoK8sCmd")
+		log.Debug().Msg("ZeusCmd")
 		log.Debug().Msg("The k8s config path was empty, so using default path")
 		cfg.K8sUtil.CfgPath = cfg.K8sUtil.DefaultK8sCfgPath()
 	}

@@ -30,7 +30,7 @@ type Config struct {
 	K8sUtil   autok8s_core.K8Util
 }
 
-func NewAutoK8sServer(cfg Config) Server {
+func NewZeusServer(cfg Config) Server {
 	srv := Server{
 		host:    cfg.Host,
 		port:    cfg.Port,

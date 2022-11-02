@@ -17,6 +17,14 @@ type S3Client struct {
 	spacesSecret   string
 }
 
+func NewS3ClientBase() S3Client {
+	return S3Client{}
+}
+
+func NewS3ClientWithEndpoint(endpoint string) S3Client {
+	return S3Client{SpacesEndpoint: endpoint}
+}
+
 func NewConnS3ClientWithStaticCreds(ctx context.Context, key, secret string) (S3Client, error) {
 	s3client := S3Client{spacesKey: key, spacesSecret: secret}
 	err := s3client.ConnectS3SpacesDO(ctx)

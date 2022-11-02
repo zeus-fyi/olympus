@@ -14,9 +14,9 @@ type S3Secrets struct {
 	memfs.MemFS
 }
 
-func NewS3Secrets(c compression.Compression, a encryption.Age, s3r s3reader.S3ClientReader) S3Secrets {
+func NewS3Secrets(a encryption.Age, s3r s3reader.S3ClientReader) S3Secrets {
 	s3secrets := S3Secrets{
-		Compression:    c,
+		Compression:    compression.NewCompression(),
 		Age:            a,
 		S3ClientReader: s3r,
 		MemFS:          memfs.NewMemFs(),

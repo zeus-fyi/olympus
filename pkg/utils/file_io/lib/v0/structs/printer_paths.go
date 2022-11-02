@@ -11,6 +11,7 @@ type Path struct {
 	DirIn       string
 	DirOut      string
 	Fn          string
+	FnOut       string
 	Env         string
 	FilterFiles string_utils.FilterOpts
 }

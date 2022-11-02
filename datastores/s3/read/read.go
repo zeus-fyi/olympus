@@ -2,6 +2,7 @@ package s3reader
 
 import (
 	"context"
+	"errors"
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
@@ -20,7 +21,10 @@ func NewS3ClientReader(baseClient s3base.S3Client) S3ClientReader {
 	}
 }
 
-func (s *S3ClientReader) Read(ctx context.Context, p structs.Path, s3KeyValue *s3.GetObjectInput) error {
+func (s *S3ClientReader) Read(ctx context.Context, p *structs.Path, s3KeyValue *s3.GetObjectInput) error {
+	if p == nil {
+		return errors.New("need to include a path")
+	}
 	downloader := manager.NewDownloader(s.AwsS3Client)
 	newFile, err := os.Create(p.Fn)
 	if err != nil {

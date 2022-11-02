@@ -9,7 +9,7 @@ import (
 )
 
 type S3SecretsEncryptTestSuite struct {
-	S3SecretsTestSuite
+	S3SecretsManagerTestSuite
 }
 
 // TestRead, you'll need to set the secret values to run the test

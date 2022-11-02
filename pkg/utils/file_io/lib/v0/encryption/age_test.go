@@ -57,7 +57,7 @@ func (s *AgeEncryptionTestSuite) TestDecryptionToInMemFs() {
 	p := structs.Path{
 		PackageName: "",
 		DirIn:       "./",
-		DirOut:      "./tmp",
+		DirOut:      "./kube",
 		Fn:          "kube.tar.gz.age",
 		FnOut:       "kube_decrypted.tar.gz",
 		Env:         "",

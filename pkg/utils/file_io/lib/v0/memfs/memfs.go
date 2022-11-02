@@ -6,8 +6,14 @@ import (
 	"github.com/zeus-fyi/memoryfs"
 )
 
-type Memfs struct {
+type MemFS struct {
 	*memoryfs.FS
+}
+
+func NewMemFs() MemFS {
+	memfs := memoryfs.New()
+	m := MemFS{memfs}
+	return m
 }
 
 func tmp() {

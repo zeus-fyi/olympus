@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 
-	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -12,27 +11,16 @@ import (
 )
 
 var cfg = Config{}
-var authCfg auth_startup.AuthConfig
+var authKeysCfg auth_startup.AuthKeysCfg
 
 func Zeus() {
 	srv := NewZeusServer(cfg)
 	// Echo instance
 	ctx := context.Background()
-	s3SecretManager, err := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
-	if err != nil {
-		panic(err)
-	}
-	_, err = s3SecretManager.MemFS.ReadDir(".kube")
-	if err != nil {
-		panic(err)
-	}
-	cfg.K8sUtil.CfgPath = ".kube"
-	if cfg.K8sUtil.CfgPath == "" {
-		log.Debug().Msg("ZeusCmd")
-		log.Debug().Msg("The k8s config path was empty, so using default path")
-		cfg.K8sUtil.CfgPath = cfg.K8sUtil.DefaultK8sCfgPath()
-	}
-	log.Debug().Msgf("The k8s config path %s:", cfg.K8sUtil.CfgPath)
+
+	authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
+	inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
+	cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 	srv.E = router.InitRouter(srv.E, cfg.K8sUtil)
 
 	apps.Pg = apps.Db{}
@@ -47,6 +35,12 @@ func init() {
 	Cmd.Flags().StringVar(&cfg.Port, "port", "9001", "server port")
 	Cmd.Flags().StringVar(&cfg.K8sUtil.CfgPath, "kubie-config-path", "", "kubie config path")
 	Cmd.Flags().StringVar(&cfg.PGConnStr, "postgres-conn-str", "", "postgres connection string")
+
+	Cmd.Flags().StringVar(&authKeysCfg.AgePubKey, "age-public-key", "", "age public key")
+	Cmd.Flags().StringVar(&authKeysCfg.AgePrivKey, "age-private-key", "", "age private key")
+
+	Cmd.Flags().StringVar(&authKeysCfg.SpacesKey, "do-spaces-key", "", "do s3 spaces key")
+	Cmd.Flags().StringVar(&authKeysCfg.SpacesPrivKey, "do-spaces-private-key", "", "do s3 spaces private key")
 }
 
 // Cmd represents the base command when called without any subcommands

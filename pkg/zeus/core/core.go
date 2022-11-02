@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -94,8 +95,26 @@ func (k *K8Util) DefaultK8sCfgPath() string {
 	if !exists {
 		home = "/root"
 	}
-
 	return filepath.Join(home, ".kube", "config")
+}
+
+func (k *K8Util) ConnectToK8sFromInMemFsCfgPath(fs memfs.MemFS) {
+	var err error
+	b, err := fs.ReadFile("/.kube/config")
+	if err != nil {
+		log.Panicln("Failed to read inmemfs kube config")
+	}
+	cc, err := clientcmd.NewClientConfigFromBytes(b)
+	if err != nil {
+		log.Panicln("Failed to set context")
+	}
+	k.cfgAccess = cc.ConfigAccess()
+	k.clientCfg, err = cc.ClientConfig()
+	if err != nil {
+		log.Panicln("Failed to set context")
+	}
+	k.SetClient(k.clientCfg)
+	k.SetContext("")
 }
 
 func (k *K8Util) K8Printer(v interface{}, env string) (interface{}, error) {

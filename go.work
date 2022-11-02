@@ -5,6 +5,7 @@ use (
 	./apps/external/tables-to-go
 	./apps/external/jennifer
 	./apps/external/tojen
+	./apps/external/memoryfs
 	./apps/olympus/zeus
 	./apps/olympus/apollo
 	./apps/olympus/hestia

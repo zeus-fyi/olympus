@@ -4,31 +4,17 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
 )
 
-type S3SecretsTestSuite struct {
-	test_suites.S3TestSuite
+type S3SecretsDecryptTestSuite struct {
+	S3SecretsTestSuite
 }
 
 // TestRead, you'll need to set the secret values to run the test
-func (t *S3SecretsTestSuite) TestRead() {
-	//ctx := context.Background()
-	//
-	//input := &s3.GetObjectInput{
-	//	Bucket: aws.String("zeus-fyi"),
-	//	Key:    aws.String("test.txt"),
-	//}
-	//p := structs.Path{
-	//	PackageName: "",
-	//	DirIn:       "",
-	//	DirOut:      "",
-	//	Fn:          "local-text.txt",
-	//	Env:         "",
-	//	FilterFiles: string_utils.FilterOpts{},
-	//}
+func (t *S3SecretsDecryptTestSuite) TestReadGzipAndEncryptDecrypt() {
+
 }
 
-func TestS3SecretsTestSuite(t *testing.T) {
-	suite.Run(t, new(S3SecretsTestSuite))
+func TestS3SecretsDecryptTestSuite(t *testing.T) {
+	suite.Run(t, new(S3SecretsDecryptTestSuite))
 }

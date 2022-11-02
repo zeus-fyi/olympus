@@ -3,6 +3,7 @@ package compression
 import (
 	"archive/tar"
 	"compress/gzip"
+	"errors"
 	"io"
 	"io/fs"
 	"os"
@@ -11,12 +12,17 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
-func CreateTarGzipArchive(p structs.Path) error {
+func (c *Compression) CreateTarGzipArchive(p *structs.Path) error {
 	// Create new Writers for gzip and tar
 	// These writers are chained. Writing to the tar writer will
 	// write to the gzip writer which in turn will write to
 	// the "buf" writer
-	out, err := os.Create(p.Fn + ".tar.gz")
+	if p == nil {
+		return errors.New("need to include a path")
+	}
+
+	p.FnOut = p.Fn + ".tar.gz"
+	out, err := os.Create(p.Fn)
 	if err != nil {
 		return err
 	}
@@ -42,10 +48,11 @@ func CreateTarGzipArchive(p structs.Path) error {
 		return nil
 	})
 
+	p.Fn = p.FnOut
 	return err
 }
 
-func addToArchive(p structs.Path, tw *tar.Writer, filename string) error {
+func addToArchive(p *structs.Path, tw *tar.Writer, filename string) error {
 	// Open the file which will be written into the archive
 	file, err := os.Open(p.DirIn + string(filepath.Separator) + filename)
 	if err != nil {

@@ -1,6 +1,7 @@
 package encryption
 
 import (
+	"errors"
 	"io"
 	"os"
 
@@ -8,8 +9,11 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
-func Decrypt(p structs.Path, privateKey string) error {
-	identity, err := age.ParseX25519Identity(privateKey)
+func (a *Age) Decrypt(p *structs.Path) error {
+	if p == nil {
+		return errors.New("need to include a path")
+	}
+	identity, err := age.ParseX25519Identity(a.agePrivateKey)
 	if err != nil {
 		return err
 	}

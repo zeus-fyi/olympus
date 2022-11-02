@@ -2,6 +2,7 @@ package compression
 
 import (
 	"archive/tar"
+	"errors"
 	"io"
 	"io/ioutil"
 	"os"
@@ -10,7 +11,11 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
-func TarFolder(p structs.Path) error {
+func (c *Compression) TarFolder(p *structs.Path) error {
+	if p == nil {
+		return errors.New("need to include a path")
+	}
+
 	files, err := ioutil.ReadDir(p.DirIn)
 	if err != nil {
 		return err

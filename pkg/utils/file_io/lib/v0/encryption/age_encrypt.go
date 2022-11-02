@@ -1,6 +1,7 @@
 package encryption
 
 import (
+	"errors"
 	"io"
 	"os"
 
@@ -9,19 +10,22 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
-func Encrypt(p structs.Path, publicKey string) error {
-	recipient, err := age.ParseX25519Recipient(publicKey)
+func (a *Age) Encrypt(p *structs.Path) error {
+	if p == nil {
+		return errors.New("need to include a path")
+	}
+	recipient, err := age.ParseX25519Recipient(a.agePublicKey)
 	if err != nil {
 		return err
 	}
-
-	outFile, err := os.Create(p.Fn + ".age")
+	p.FnOut = p.Fn + ".age"
+	outFile, err := os.Create(p.FnOut)
 	if err != nil {
 		return err
 	}
 	defer outFile.Close()
 	rl := readers.ReaderLib{}
-	bytesToEncrypt := rl.ReadFile(p)
+	bytesToEncrypt := rl.ReadFilePathPtr(p)
 
 	w, err := age.Encrypt(outFile, recipient)
 	if err != nil {
@@ -37,5 +41,6 @@ func Encrypt(p structs.Path, publicKey string) error {
 	if cerr := w.Close(); cerr != nil {
 		return cerr
 	}
+	p.Fn = p.FnOut
 	return err
 }

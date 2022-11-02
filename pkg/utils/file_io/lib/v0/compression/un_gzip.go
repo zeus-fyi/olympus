@@ -3,6 +3,7 @@ package compression
 import (
 	"archive/tar"
 	"compress/gzip"
+	"errors"
 	"io"
 	"os"
 	"path"
@@ -12,7 +13,11 @@ import (
 
 // UnGzip takes a destination path and a reader; a tar reader loops over the tarfile
 // creating the file structure at 'dst' along the way, and writing any files
-func UnGzip(p structs.Path) error {
+func (c *Compression) UnGzip(p *structs.Path) error {
+	if p == nil {
+		return errors.New("need to include a path")
+	}
+
 	r, err := os.Open(p.Fn)
 	if err != nil {
 		return err
@@ -27,17 +32,17 @@ func UnGzip(p structs.Path) error {
 	tr := tar.NewReader(gzr)
 
 	for {
-		header, err := tr.Next()
+		header, herr := tr.Next()
 
 		switch {
 
 		// if no more files are found return
-		case err == io.EOF:
+		case herr == io.EOF:
 			return nil
 
 		// return any other error
-		case err != nil:
-			return err
+		case herr != nil:
+			return herr
 
 		// if the header is nil, just skip it (not sure how this happens)
 		case header == nil:

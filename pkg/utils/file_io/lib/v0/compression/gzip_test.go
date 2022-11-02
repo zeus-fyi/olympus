@@ -11,6 +11,12 @@ import (
 
 type CompressionTestSuite struct {
 	base.CoreTestSuite
+	Comp Compression
+}
+
+func (c *CompressionTestSuite) SetupTest() {
+
+	c.Comp = NewCompression()
 }
 
 func (c *CompressionTestSuite) TestTarGzip() {
@@ -23,7 +29,7 @@ func (c *CompressionTestSuite) TestTarGzip() {
 		FilterFiles: string_utils.FilterOpts{},
 	}
 
-	err := CreateTarGzipArchive(p)
+	err := c.Comp.CreateTarGzipArchive(&p)
 	c.Require().Nil(err)
 }
 
@@ -37,7 +43,7 @@ func (c *CompressionTestSuite) TestUnGzip() {
 		FilterFiles: string_utils.FilterOpts{},
 	}
 
-	err := UnGzip(p)
+	err := c.Comp.UnGzip(&p)
 	c.Require().Nil(err)
 }
 
@@ -51,7 +57,7 @@ func (c *CompressionTestSuite) TestTar() {
 		FilterFiles: string_utils.FilterOpts{},
 	}
 
-	err := TarFolder(p)
+	err := c.Comp.TarFolder(&p)
 	c.Require().Nil(err)
 }
 

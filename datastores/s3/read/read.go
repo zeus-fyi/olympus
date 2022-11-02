@@ -1,4 +1,4 @@
-package read
+package s3reader
 
 import (
 	"context"

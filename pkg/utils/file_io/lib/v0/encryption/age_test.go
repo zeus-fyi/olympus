@@ -4,14 +4,23 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/configs"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
 )
 
 type AgeEncryptionTestSuite struct {
-	test_suites.S3TestSuite
+	base.TestSuite
+	Age Age
+}
+
+func (s *AgeEncryptionTestSuite) SetupTest() {
+	s.Tc = configs.InitLocalTestConfigs()
+	pubKey := s.Tc.LocalAgePubkey
+	privKey := s.Tc.LocalAgePkey
+	s.Age = NewAge(privKey, pubKey)
 }
 
 func (s *AgeEncryptionTestSuite) TestEncryption() {
@@ -24,9 +33,7 @@ func (s *AgeEncryptionTestSuite) TestEncryption() {
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}
-
-	pubKey := s.Tc.LocalAgePubkey
-	err := Encrypt(p, pubKey)
+	err := s.Age.Encrypt(p)
 	s.Require().Nil(err)
 }
 
@@ -41,8 +48,7 @@ func (s *AgeEncryptionTestSuite) TestDecryption() {
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}
-
-	err := Decrypt(p, s.Tc.LocalAgePkey)
+	err := s.Age.Decrypt(p)
 	s.Require().Nil(err)
 }
 

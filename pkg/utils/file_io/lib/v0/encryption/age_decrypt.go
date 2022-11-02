@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"strings"
 
 	"filippo.io/age"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
@@ -26,6 +27,8 @@ func (a *Age) Decrypt(p *structs.Path) error {
 	if err != nil {
 		return err
 	}
+
+	p.FnOut, _, _ = strings.Cut(p.Fn, ".age")
 	outFile, err := os.Create(p.FnOut)
 	if err != nil {
 		return err
@@ -33,5 +36,7 @@ func (a *Age) Decrypt(p *structs.Path) error {
 	if _, cerr := io.Copy(outFile, r); cerr != nil {
 		return cerr
 	}
+
+	p.Fn = p.FnOut
 	return err
 }

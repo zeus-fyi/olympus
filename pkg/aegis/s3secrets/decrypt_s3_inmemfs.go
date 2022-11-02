@@ -18,6 +18,6 @@ func (s *S3Secrets) PullS3AndDecryptAndUnGzipToInMemFs(ctx context.Context, p *s
 	if err != nil {
 		return err
 	}
-	err = s.DecryptAndUnGzipToInMemFs(p, unzipDir, s.MemFS)
+	err = s.DecryptAndUnGzipToInMemFs(p, unzipDir)
 	return err
 }

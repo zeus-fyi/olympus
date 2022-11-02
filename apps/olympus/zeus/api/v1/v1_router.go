@@ -7,7 +7,7 @@ import (
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus/core"
 )
 
-func V1Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
+func V1Routes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	core.K8Util = k8Cfg
 
 	topology.Routes(e, k8Cfg)

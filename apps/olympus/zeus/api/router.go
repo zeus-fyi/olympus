@@ -10,18 +10,10 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	v1 "github.com/zeus-fyi/olympus/zeus/api/v1"
-	"github.com/zeus-fyi/olympus/zeus/pkg/zeus/core"
 )
 
 func InitRouter(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
 	log.Debug().Msgf("InitRouter")
-	k8Cfg.ConnectToK8sFromConfig(k8Cfg.CfgPath)
-	e = Routes(e, k8Cfg)
-	return e
-}
-
-func Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
-	core.K8Util = k8Cfg
 
 	// Middleware
 	e.Use(middleware.Logger())
@@ -29,8 +21,14 @@ func Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
 	// Routes
 	e.GET("/health", Health)
 
-	v1RoutesGroup := v1.V1Routes(e, k8Cfg)
-	v1RoutesGroup.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+	InitV1Routes(e, k8Cfg)
+	return e
+}
+
+func InitV1Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
+	eg := e.Group("/v1")
+	eg = v1.V1Routes(eg, k8Cfg)
+	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()
@@ -38,7 +36,6 @@ func Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
 			return key.PublicKeyVerified, err
 		},
 	}))
-	return e
 }
 
 func Health(c echo.Context) error {

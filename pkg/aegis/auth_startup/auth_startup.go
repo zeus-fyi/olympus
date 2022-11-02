@@ -64,20 +64,12 @@ func RunDigitalOceanS3BucketObjAuthProcedure(ctx context.Context, authCfg AuthCo
 	if err != nil {
 		panic(err)
 	}
+
+	unzipDir := "./.kube"
+	err = s3SecretsReader.DecryptAndUnGzipToInMemFs(&authCfg.Path, unzipDir)
+	if err != nil {
+		panic(err)
+	}
+
 	return s3SecretsReader.MemFS
 }
-
-//func RunDigitalOceanS3BucketObjAuthProcedure(ctx context.Context, authCfg AuthConfig) (s3secrets.S3Secrets, error) {
-//	s3ClientBase := s3base.NewS3ClientBase()
-//	err := s3ClientBase.ConnectS3SpacesDO(ctx)
-//	if err != nil {
-//		return s3secrets.S3Secrets{}, err
-//	}
-//	s3Reader := s3reader.NewS3ClientReader(s3ClientBase)
-//	s3SecretsReader := s3secrets.NewS3Secrets(authCfg.a, s3Reader)
-//	err = s3SecretsReader.Read(ctx, &authCfg.Path, authCfg.S3KeyValue)
-//	if err != nil {
-//		return s3SecretsReader, err
-//	}
-//	return s3SecretsReader, err
-//}

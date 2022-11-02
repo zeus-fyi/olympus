@@ -111,10 +111,9 @@ func (k *K8Util) ConnectToK8sFromInMemFsCfgPath(fs memfs.MemFS) {
 	k.cfgAccess = cc.ConfigAccess()
 	k.clientCfg, err = cc.ClientConfig()
 	if err != nil {
-		log.Panicln("Failed to set context")
+		log.Panicln("Failed to set client config")
 	}
 	k.SetClient(k.clientCfg)
-	k.SetContext("")
 }
 
 func (k *K8Util) K8Printer(v interface{}, env string) (interface{}, error) {

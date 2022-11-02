@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/configs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
@@ -49,6 +50,21 @@ func (s *AgeEncryptionTestSuite) TestDecryption() {
 		FilterFiles: string_utils.FilterOpts{},
 	}
 	err := s.Age.DecryptToFile(&p)
+	s.Require().Nil(err)
+}
+
+func (s *AgeEncryptionTestSuite) TestDecryptionToInMemFs() {
+	p := structs.Path{
+		PackageName: "",
+		DirIn:       "./",
+		DirOut:      "./tmp",
+		Fn:          "kube.tar.gz.age",
+		FnOut:       "kube_decrypted.tar.gz",
+		Env:         "",
+		FilterFiles: string_utils.FilterOpts{},
+	}
+	m := memfs.NewMemFs()
+	err := s.Age.DecryptToMemFsFile(&p, m)
 	s.Require().Nil(err)
 }
 

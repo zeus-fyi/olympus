@@ -47,19 +47,17 @@ func UnGzip(p structs.Path) error {
 		// check the file type
 		switch header.Typeflag {
 
-		// if its a dir and it doesn't exist create it
+		// if it's a dir do nothing
 		case tar.TypeDir:
-			if merr := os.Mkdir(header.Name, 0755); merr != nil {
-				return merr
-			}
+
 		// if it's a file create it
 		case tar.TypeReg:
 			p.Fn = header.Name
 
 			fo := p.FileOutPath()
-			b := path.Dir(fo)
-			if _, zerr := os.Stat(b); os.IsNotExist(zerr) {
-				_ = os.MkdirAll(b, 0700) // Create your dir
+			dir := path.Dir(fo)
+			if _, zerr := os.Stat(dir); os.IsNotExist(zerr) {
+				_ = os.MkdirAll(dir, 0700) // Create your dir
 			}
 			outFile, perr := os.Create(fo)
 			if perr != nil {

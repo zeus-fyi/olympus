@@ -18,6 +18,7 @@ makefiles/flux/age.agekey
 node_modules/
 dist/
 
+*.kube
 # Preview autogen'd code
 /pkg/hera/cookbook/autogen/code_preview/
 

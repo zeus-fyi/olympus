@@ -9,8 +9,10 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/rs/zerolog/log"
 	s3base "github.com/zeus-fyi/olympus/datastores/s3"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 )
 
 type S3ClientReader struct {
@@ -44,6 +46,8 @@ func (s *S3ClientReader) ReadBytes(ctx context.Context, p *structs.Path, s3KeyVa
 	if p == nil {
 		panic(errors.New("need to include a path"))
 	}
+
+	log.Info().Msg("Zeus: S3ClientReader, downloading bucket object")
 	buf := &bytes.Buffer{}
 	downloader := manager.NewDownloader(s.AwsS3Client)
 	downloader.Concurrency = 1
@@ -51,7 +55,8 @@ func (s *S3ClientReader) ReadBytes(ctx context.Context, p *structs.Path, s3KeyVa
 	w := FakeWriterAt{w: buf}
 	_, err := downloader.Download(ctx, w, s3KeyValue)
 	if err != nil {
-		panic(err)
+		log.Fatal().Msg("Zeus: S3ClientReader, download failed shutting down server")
+		misc.DelayedPanic(err)
 	}
 	return buf
 }

@@ -5,12 +5,14 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/rs/zerolog/log"
 	s3base "github.com/zeus-fyi/olympus/datastores/s3"
 	s3reader "github.com/zeus-fyi/olympus/datastores/s3/read"
 	"github.com/zeus-fyi/olympus/pkg/aegis/s3secrets"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
@@ -32,7 +34,8 @@ func NewDefaultAuthClient(ctx context.Context, keysCfg AuthKeysCfg) AuthConfig {
 	a := encryption.NewAge(keysCfg.AgePrivKey, keysCfg.AgePubKey)
 	s3BaseClient, err := s3base.NewConnS3ClientWithStaticCreds(ctx, keysCfg.SpacesKey, keysCfg.SpacesPrivKey)
 	if err != nil {
-		panic(err)
+		log.Fatal().Msg("NewDefaultAuthClient: NewConnS3ClientWithStaticCreds failed, shutting down the server")
+		misc.DelayedPanic(err)
 	}
 
 	input := &s3.GetObjectInput{
@@ -67,13 +70,15 @@ func RunDigitalOceanS3BucketObjAuthProcedure(ctx context.Context, authCfg AuthCo
 	tmpPath.FnOut = "kube.tar.gz.age"
 	err := s3SecretsReader.MemFS.MakeFile(&authCfg.Path, buf.Bytes())
 	if err != nil {
-		panic(err)
+		log.Fatal().Msg("RunDigitalOceanS3BucketObjAuthProcedure: MakeFile failed, shutting down the server")
+		misc.DelayedPanic(err)
 	}
 
 	unzipDir := "./.kube"
 	err = s3SecretsReader.DecryptAndUnGzipToInMemFs(&authCfg.Path, unzipDir)
 	if err != nil {
-		panic(err)
+		log.Fatal().Msg("RunDigitalOceanS3BucketObjAuthProcedure: DecryptAndUnGzipToInMemFs failed, shutting down the server")
+		misc.DelayedPanic(err)
 	}
 
 	return s3SecretsReader.MemFS

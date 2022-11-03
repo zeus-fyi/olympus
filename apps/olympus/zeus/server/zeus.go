@@ -33,10 +33,9 @@ func Zeus() {
 func init() {
 	viper.AutomaticEnv()
 	Cmd.Flags().StringVar(&cfg.Port, "port", "9001", "server port")
-	Cmd.Flags().StringVar(&cfg.K8sUtil.CfgPath, "kubie-config-path", "", "kubie config path")
 	Cmd.Flags().StringVar(&cfg.PGConnStr, "postgres-conn-str", "", "postgres connection string")
 
-	Cmd.Flags().StringVar(&authKeysCfg.AgePubKey, "age-public-key", "", "age public key")
+	Cmd.Flags().StringVar(&authKeysCfg.AgePubKey, "age-public-key", "age1n97pswc3uqlgt2un9aqn9v4nqu32egmvjulwqp3pv4algyvvuggqaruxjj", "age public key")
 	Cmd.Flags().StringVar(&authKeysCfg.AgePrivKey, "age-private-key", "", "age private key")
 
 	Cmd.Flags().StringVar(&authKeysCfg.SpacesKey, "do-spaces-key", "", "do s3 spaces key")

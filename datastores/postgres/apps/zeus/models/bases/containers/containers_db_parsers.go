@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/zeus-fyi/olympus/pkg/utils/misc/dev_hacks"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -11,6 +12,10 @@ func (c *Container) ParseFields() error {
 	var k8sCont v1.Container
 
 	err := c.DB.parseCmdArgs(&k8sCont, c.DB.CmdArgs)
+	if err != nil {
+		return err
+	}
+	err = c.DB.parseComputeResources(&k8sCont, c.DB.ComputeResources)
 	if err != nil {
 		return err
 	}
@@ -54,17 +59,29 @@ func (d *DbContainers) parseCmdArgs(container *v1.Container, cmdArgs string) err
 				container.Args = strings.Split(nv.(string), ",")
 			}
 		}
-
 	}
 	return err
 }
 
 // TODO
 func (d *DbContainers) parseComputeResources(container *v1.Container, computeResources string) error {
-	m := make(map[string]interface{})
+	m := make(map[string]map[string]interface{})
 	err := json.Unmarshal([]byte(computeResources), &m)
 	if err != nil {
 		return err
+	}
+	for _, v := range m {
+		for nk, nv := range v {
+			dev_hacks.Use(nv)
+			switch nk {
+			case "compute_resources_cpu_request":
+			case "compute_resources_cpu_limit":
+			case "compute_resources_ram_request":
+			case "compute_resources_ram_limit":
+			case "compute_resources_ephemeral_storage_request":
+			case "compute_resources_ephemeral_storage_limit":
+			}
+		}
 	}
 	return err
 }

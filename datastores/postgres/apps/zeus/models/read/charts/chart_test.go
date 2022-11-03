@@ -18,7 +18,7 @@ func (s *ChartReaderTestSuite) TestSelectQueryName() {
 	qp := test.CreateTestQueryNameParams()
 	qp.QueryName = "SelectSingleChartsResources"
 	chart := Chart{}
-	chart.ChartPackageID = 7153618363422304254
+	chart.ChartPackageID = 7155618375032411489
 	qp.CTEQuery.Params = append(qp.CTEQuery.Params, chart.ChartPackageID)
 	qp.RawQuery = FetchChartQuery(qp)
 	err := chart.SelectSingleChartsResources(ctx, qp)

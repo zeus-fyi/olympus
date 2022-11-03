@@ -14,7 +14,7 @@ type DeploymentsTestSuite struct {
 func (ing *DeploymentsTestSuite) TestGetDeployment() {
 	ctx := context.Background()
 	var kns = KubeCtxNs{Env: "", CloudProvider: "", Region: "", CtxType: "data", Namespace: "eth-indexer"}
-	pods, err := ing.K.GetDeployment(ctx, kns, "eth-indexer")
+	pods, err := ing.K.GetDeployment(ctx, kns, "eth-indexer", nil)
 	ing.Require().Nil(err)
 	ing.Require().NotEmpty(pods)
 }

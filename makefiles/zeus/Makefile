@@ -10,3 +10,6 @@ app.indexer:
 
 docker.build:
 	@ docker build -t ${IMG} -t ${LATEST} -f ../../docker/zeus/Dockerfile ../../
+
+docker.pubbuildx:
+	@ docker buildx build -t ${IMG} -t ${LATEST} --platform=linux/amd64 -f ../../docker/zeus/Dockerfile ../../ --push

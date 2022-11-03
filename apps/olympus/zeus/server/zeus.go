@@ -25,10 +25,11 @@ func Zeus() {
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 	case "local":
-		apps.Pg = apps.Db{}
-		apps.Pg.InitPG(ctx, cfg.PGConnStr)
 		cfg.K8sUtil.ConnectToK8s()
 	}
+
+	apps.Pg = apps.Db{}
+	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	srv.E = router.InitRouter(srv.E, cfg.K8sUtil)
 
 	// Start server

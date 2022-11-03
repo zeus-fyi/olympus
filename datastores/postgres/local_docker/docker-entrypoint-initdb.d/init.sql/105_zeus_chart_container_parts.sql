@@ -141,7 +141,12 @@ ALTER TABLE "public"."containers_probes" ADD CONSTRAINT "containers_probes_pk" U
 -- tables for resources
 CREATE TABLE "public"."container_compute_resources" (
     "compute_resources_id" int8 NOT NULL DEFAULT next_id(),
-    "compute_resources_key_values_jsonb" jsonb NOT NULL DEFAULT '{}'::jsonb
+    "compute_resources_cpu_request" text NOT NULL DEFAULT '',
+    "compute_resources_cpu_limit" text NOT NULL DEFAULT '',
+    "compute_resources_ram_request" text NOT NULL DEFAULT '',
+    "compute_resources_ram_limit" text NOT NULL DEFAULT '',
+    "compute_resources_ephemeral_storage_request" text NOT NULL DEFAULT '',
+    "compute_resources_ephemeral_storage_limit" text NOT NULL DEFAULT ''
 );
 ALTER TABLE "public"."container_compute_resources" ADD CONSTRAINT "container_compute_resources_pk" PRIMARY KEY ("compute_resources_id");
 
@@ -153,3 +158,19 @@ CREATE TABLE "public"."containers_compute_resources" (
 ALTER TABLE "public"."containers_compute_resources" ADD CONSTRAINT "containers_compute_resources_pk" UNIQUE ("container_id", "compute_resources_id");
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------
+-- CmdArgs--
+--------------
+CREATE TABLE "public"."container_command_args" (
+    "command_args_id" int8 NOT NULL DEFAULT next_id(),
+    "command_values" text NOT NULL DEFAULT '',
+    "args_values" text NOT NULL DEFAULT ''
+);
+ALTER TABLE "public"."container_command_args" ADD CONSTRAINT "container_command_args_pk" PRIMARY KEY ("command_args_id");
+
+-- tables for container_command_args links
+CREATE TABLE "public"."containers_command_args" (
+    "command_args_id" int8 NOT NULL REFERENCES container_command_args(command_args_id),
+    "container_id" int8 NOT NULL REFERENCES containers(container_id)
+);
+ALTER TABLE "public"."containers_command_args" ADD CONSTRAINT "containers_command_args_pk" UNIQUE ("container_id", "command_args_id");

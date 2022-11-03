@@ -6,19 +6,10 @@ import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 )
 
-// TODO still
-func (p *PodTemplateSpec) insertContainerComputeResourcesHeader() string {
-	return "INSERT INTO container_compute_resources(compute_resources_id, compute_resources_key_values_jsonb) VALUES "
-}
-
 // optional, should skip if not specified/nothing is provided
 func (p *PodTemplateSpec) getContainerComputeResourcesValues(parentExpression string, cr *autogen_bases.ContainerComputeResources) string {
 	parentExpression += fmt.Sprintf("\n('%d', '%s')", cr.ComputeResourcesID, cr.ComputeResourcesKeyValuesJSONb)
 	return parentExpression
-}
-
-func (p *PodTemplateSpec) insertContainerComputeResourcesRelationshipHeader() string {
-	return "INSERT INTO containers_environmental_vars(compute_resources_id, compute_resources_key_values_jsonb) VALUES "
 }
 
 func (p *PodTemplateSpec) insertContainerComputeResourcesRelationship(parentExpression, containerImageID string, envVar autogen_bases.ContainerEnvironmentalVars, cct autogen_bases.ChartSubcomponentChildClassTypes) string {

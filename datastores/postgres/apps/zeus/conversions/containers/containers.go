@@ -11,6 +11,8 @@ func ConvertContainersToDB(cs []v1.Container) (containers.Containers, error) {
 	cl := make([]containers.Container, len(cs))
 	for i, c := range cs {
 		newContainer := containers.NewContainer()
+		newContainer = ConvertContainerCmdArgsToContainerDB(c, newContainer)
+		newContainer = ConvertContainerResourcesToContainerDB(c, newContainer)
 		newContainer = ConvertContainerInfoToDB(c, newContainer)
 		newContainer.VolumeMounts = ContainerVolumesToDB(&c)
 		newContainer = ConvertContainerPortsToContainerDB(c, newContainer)

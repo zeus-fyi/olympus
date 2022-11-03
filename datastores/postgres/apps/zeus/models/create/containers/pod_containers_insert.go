@@ -53,6 +53,23 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart
 	envVarsRelationshipsSubCTE.TableName = "containers_environmental_vars"
 	envVarsRelationshipsSubCTE.Columns = []string{"chart_subcomponent_child_class_type_id", "container_id", "env_id"}
 
+	// cmd args
+	cmdArgsSubCTE := sql_query_templates.NewSubInsertCTE("cte_container_command_args")
+	cmdArgsSubCTE.TableName = "container_command_args"
+	cmdArgsSubCTE.Columns = []string{"command_args_id", "command_values", "args_values"}
+	cmdArgsRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE("cte_containers_command_args_relationships")
+	cmdArgsRelationshipsSubCTE.TableName = "containers_command_args"
+	cmdArgsRelationshipsSubCTE.Columns = []string{"command_args_id", "container_id"}
+
+	// computeResources
+	computeResourcesSubCTE := sql_query_templates.NewSubInsertCTE("cte_container_compute_resources")
+	computeResourcesSubCTE.TableName = "container_compute_resources"
+	computeResourcesSubCTE.Columns = []string{"compute_resources_id", "compute_resources_cpu_request", "compute_resources_cpu_limit",
+		"compute_resources_ram_request", "compute_resources_ram_limit", "compute_resources_ephemeral_storage_request", "compute_resources_ephemeral_storage_limit"}
+	computeResourcesRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE("cte_containers_compute_resources_relationships")
+	computeResourcesRelationshipsSubCTE.TableName = "containers_compute_resources"
+	computeResourcesRelationshipsSubCTE.Columns = []string{"compute_resources_id", "container_id"}
+
 	// vms
 	contVmsSubCTE := sql_query_templates.NewSubInsertCTE("cte_containers_volume_mounts")
 	contVmsSubCTE.TableName = "container_volume_mounts"
@@ -94,6 +111,22 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart
 		// pod spec to link container
 		podSpecSubCTE.AddValues(p.GetPodSpecChildClassTypeID(), cont.GetContainerID(), cont.IsInitContainer, sortOrderIndex)
 
+		cmdArgsID := ts.UnixTimeStampNow()
+		cmdArgsSubCTE.AddValues(cmdArgsID, cont.CmdArgs.CommandValues, cont.CmdArgs.ArgsValues)
+		cmdArgsRelationshipsSubCTE.AddValues(cmdArgsID, cont.GetContainerID())
+
+		computeResourcesID := ts.UnixTimeStampNow()
+		computeResourcesSubCTE.AddValues(
+			computeResourcesID,
+			cont.ResourceRequest.ComputeResourcesCpuRequest,
+			cont.ResourceRequest.ComputeResourcesCpuLimit,
+			cont.ResourceRequest.ComputeResourcesRamRequest,
+			cont.ResourceRequest.ComputeResourcesRamLimit,
+			cont.ResourceRequest.ComputeResourcesEphemeralStorageRequest,
+			cont.ResourceRequest.ComputeResourcesEphemeralStorageLimit,
+		)
+		computeResourcesRelationshipsSubCTE.AddValues(computeResourcesID, cont.GetContainerID())
+
 		// ports
 		p.getContainerPortsValuesForInsert(containersMapByImageID, c.ContainerImageID, &portsSubCTE)
 		p.getContainerPortsHeaderRelationshipValues(containersMapByImageID, c.ContainerImageID, &portsRelationshipsSubCTE)
@@ -133,6 +166,14 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart
 			// vols
 			podSpecVolumesSubCTE,
 			podSpecVolumesRelationshipSubCTE,
+
+			// cmdArgs
+			cmdArgsSubCTE,
+			cmdArgsRelationshipsSubCTE,
+
+			//computeResources
+			computeResourcesSubCTE,
+			computeResourcesRelationshipsSubCTE,
 		},
 	}
 	cteExpr.AppendSubCtes(templateMetadataCTE)

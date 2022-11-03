@@ -34,7 +34,8 @@ func (p *Packages) InsertPackages(ctx context.Context, q sql_query_templates.Que
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
 	q.CTEQuery = p.InsertPackagesCTE()
 	q.RawQuery = q.CTEQuery.GenerateChainedCTE()
-	r, err := apps.Pg.Exec(ctx, q.RawQuery)
+
+	r, err := apps.Pg.Exec(ctx, q.RawQuery, q.CTEQuery.Params...)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
 		return err
 	}

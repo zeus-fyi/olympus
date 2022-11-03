@@ -2,13 +2,19 @@ package containers
 
 import (
 	"encoding/json"
+	"strings"
 
 	v1 "k8s.io/api/core/v1"
 )
 
 func (c *Container) ParseFields() error {
 	var k8sCont v1.Container
-	err := c.DB.parseProbes(&k8sCont, c.DB.Probes)
+
+	err := c.DB.parseCmdArgs(&k8sCont, c.DB.CmdArgs)
+	if err != nil {
+		return err
+	}
+	err = c.DB.parseProbes(&k8sCont, c.DB.Probes)
 	if err != nil {
 		return err
 	}
@@ -27,10 +33,40 @@ func (c *Container) ParseFields() error {
 	if err != nil {
 		return err
 	}
+
 	k8sCont.VolumeMounts = contVms
 	c.K8sContainer = k8sCont
-
 	return nil
+}
+
+func (d *DbContainers) parseCmdArgs(container *v1.Container, cmdArgs string) error {
+	m := make(map[string]map[string]interface{})
+	err := json.Unmarshal([]byte(cmdArgs), &m)
+	if err != nil {
+		return err
+	}
+	for _, v := range m {
+		for nk, nv := range v {
+			switch nk {
+			case "command":
+				container.Command = strings.Split(nv.(string), ",")
+			case "args":
+				container.Args = strings.Split(nv.(string), ",")
+			}
+		}
+
+	}
+	return err
+}
+
+// TODO
+func (d *DbContainers) parseComputeResources(container *v1.Container, computeResources string) error {
+	m := make(map[string]interface{})
+	err := json.Unmarshal([]byte(computeResources), &m)
+	if err != nil {
+		return err
+	}
+	return err
 }
 
 func (d *DbContainers) parseProbes(container *v1.Container, probeString string) error {

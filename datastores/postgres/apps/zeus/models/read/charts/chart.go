@@ -56,7 +56,7 @@ func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_tem
 			&container.Metadata.ContainerVersionTag, &container.Metadata.ContainerPlatformOs, &container.Metadata.ContainerRepository,
 			&container.Metadata.ContainerImagePullPolicy,
 			&container.DB.Ports,
-			&container.DB.EnvVar, &container.DB.Probes, &container.DB.ContainerVolumes,
+			&container.DB.EnvVar, &container.DB.Probes, &container.DB.ContainerVolumes, &container.DB.CmdArgs,
 			&podSpecVolumesStr,
 		)
 		if rowErr != nil {

@@ -10,11 +10,12 @@ type Container struct {
 	K8sContainer v1.Container
 	Metadata     autogen_bases.Containers
 
-	CmdArgs         autogen_bases.ContainerCommandArgs
-	VolumeMounts    autogen_bases.ContainerVolumeMountsSlice
-	Ports           autogen_bases.ContainerPortsSlice
-	Env             autogen_bases.ContainerEnvironmentalVarsSlice
-	Probes          probes.ProbeSlice
+	CmdArgs      autogen_bases.ContainerCommandArgs
+	VolumeMounts autogen_bases.ContainerVolumeMountsSlice
+	Ports        autogen_bases.ContainerPortsSlice
+	Env          autogen_bases.ContainerEnvironmentalVarsSlice
+	Probes       probes.ProbeSlice
+
 	ResourceRequest *autogen_bases.ContainerComputeResources
 	IsInitContainer bool
 

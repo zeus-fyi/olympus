@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/stretchr/testify/suite"
 	s3reader "github.com/zeus-fyi/olympus/datastores/s3/read"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
@@ -49,10 +48,8 @@ func (t *S3SecretsDecryptTestSuite) TestDecryptAndUnGzipInMemFs() {
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}
-	m := memfs.NewMemFs()
-
 	unzipDir := "./kube"
-	err := t.S3Secrets.DecryptAndUnGzipToInMemFs(&p, unzipDir, m)
+	err := t.S3Secrets.DecryptAndUnGzipToInMemFs(&p, unzipDir)
 	t.Require().Nil(err)
 }
 

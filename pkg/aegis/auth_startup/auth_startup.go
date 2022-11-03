@@ -60,7 +60,12 @@ func NewDefaultAuthClient(ctx context.Context, keysCfg AuthKeysCfg) AuthConfig {
 func RunDigitalOceanS3BucketObjAuthProcedure(ctx context.Context, authCfg AuthConfig) memfs.MemFS {
 	s3Reader := s3reader.NewS3ClientReader(authCfg.s3BaseClient)
 	s3SecretsReader := s3secrets.NewS3Secrets(authCfg.a, s3Reader)
-	err := s3SecretsReader.Read(ctx, &authCfg.Path, authCfg.S3KeyValue)
+	buf := s3SecretsReader.ReadBytes(ctx, &authCfg.Path, authCfg.S3KeyValue)
+
+	tmpPath := structs.Path{}
+	tmpPath.DirOut = "./"
+	tmpPath.FnOut = "kube.tar.gz.age"
+	err := s3SecretsReader.MemFS.MakeFile(&authCfg.Path, buf.Bytes())
 	if err != nil {
 		panic(err)
 	}

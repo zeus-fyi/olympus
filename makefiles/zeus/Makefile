@@ -5,7 +5,10 @@ GIT_SHA := $(shell git rev-parse HEAD)
 IMG     := ${REPO}/${NAME}:${GIT_SHA}
 LATEST  := ${REPO}/${NAME}:latest
 
-app.indexer:
+scale.down:
+	kubectl scale deployment/${DEPLOYMENT_NAME} --replicas=0
+
+app.zeus:
 	go run ../../apps/zeus
 
 docker.build:

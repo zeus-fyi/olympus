@@ -28,7 +28,6 @@ func Zeus() {
 		cfg.K8sUtil.ConnectToK8s()
 	}
 
-	apps.Pg = apps.Db{}
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	srv.E = router.InitRouter(srv.E, cfg.K8sUtil)
 

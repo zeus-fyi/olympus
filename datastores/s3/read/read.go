@@ -1,8 +1,10 @@
 package s3reader
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"io"
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
@@ -36,4 +38,29 @@ func (s *S3ClientReader) Read(ctx context.Context, p *structs.Path, s3KeyValue *
 		return err
 	}
 	return err
+}
+
+func (s *S3ClientReader) ReadBytes(ctx context.Context, p *structs.Path, s3KeyValue *s3.GetObjectInput) *bytes.Buffer {
+	if p == nil {
+		panic(errors.New("need to include a path"))
+	}
+	buf := &bytes.Buffer{}
+	downloader := manager.NewDownloader(s.AwsS3Client)
+	downloader.Concurrency = 1
+
+	w := FakeWriterAt{w: buf}
+	_, err := downloader.Download(ctx, w, s3KeyValue)
+	if err != nil {
+		panic(err)
+	}
+	return buf
+}
+
+type FakeWriterAt struct {
+	w io.Writer
+}
+
+func (fw FakeWriterAt) WriteAt(p []byte, offset int64) (n int, err error) {
+	// ignore 'offset' because we forced sequential downloads
+	return fw.w.Write(p)
 }

@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -15,14 +16,19 @@ var authKeysCfg auth_startup.AuthKeysCfg
 var env string
 
 func Zeus() {
+	log.Info().Msg("Zeus: starting")
 	srv := NewZeusServer(cfg)
 	// Echo instance
 	ctx := context.Background()
 
 	switch env {
 	case "production":
+		log.Info().Msg("Zeus: production server starting")
+
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
+		log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjAuthProcedure starting")
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
+		log.Info().Msg("Zeus: ConnectToK8sFromInMemFsCfgPath starting")
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 	case "local":
 		cfg.K8sUtil.ConnectToK8s()

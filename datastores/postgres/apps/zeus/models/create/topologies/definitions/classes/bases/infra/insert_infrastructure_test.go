@@ -49,7 +49,7 @@ func (s *CreateInfraTestSuite) TestInsertInfraBase() {
 		ChartWorkload: cw,
 	}
 
-	filepath := s.TestDirectory + "/apps/eth-indexer/deployment.yaml"
+	filepath := s.TestDirectory + "/apps/zeus/deployment.yaml"
 	jsonBytes, err := s.Yr.ReadYamlConfig(filepath)
 	s.Require().Nil(err)
 	err = json.Unmarshal(jsonBytes, &pkg.K8sDeployment)
@@ -57,22 +57,14 @@ func (s *CreateInfraTestSuite) TestInsertInfraBase() {
 	err = pkg.ConvertDeploymentConfigToDB()
 	s.Require().Nil(err)
 
-	filepath = s.TestDirectory + "/apps/eth-indexer/service.yaml"
+	filepath = s.TestDirectory + "/apps/zeus/service.yaml"
 	jsonBytes, err = s.Yr.ReadYamlConfig(filepath)
 	err = json.Unmarshal(jsonBytes, &pkg.K8sService)
 	s.Require().Nil(err)
 	pkg.ConvertK8sServiceToDB()
 	s.Assert().NotEmpty(pkg.Service)
 
-	filepath = s.TestDirectory + "/apps/eth-indexer/ingress.yaml"
-	jsonBytes, err = s.Yr.ReadYamlConfig(filepath)
-	err = json.Unmarshal(jsonBytes, &pkg.K8sIngress)
-	s.Require().Nil(err)
-	err = pkg.ConvertK8sIngressToDB()
-	s.Require().Nil(err)
-	s.Assert().NotEmpty(pkg.Ingress)
-
-	filepath = s.TestDirectory + "/apps/eth-indexer/cm-eth-indexer.yaml"
+	filepath = s.TestDirectory + "/apps/zeus/cm-zeus.yaml"
 	jsonBytes, err = s.Yr.ReadYamlConfig(filepath)
 	err = json.Unmarshal(jsonBytes, &cm.K8sConfigMap)
 	s.Require().Nil(err)
@@ -88,6 +80,7 @@ func (s *CreateInfraTestSuite) TestInsertInfraBase() {
 	inf.OrgID, inf.UserID = s.b.NewTestOrgAndUser()
 	err = inf.InsertInfraBase(ctx)
 	s.Require().Nil(err)
+
 }
 
 func TestCreateInfraTestSuite(t *testing.T) {

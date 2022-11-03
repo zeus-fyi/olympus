@@ -22,8 +22,8 @@ import (
 var Kns autok8s_core.KubeCtxNs
 
 var TestOrgUser = org_users.OrgUser{autogen_bases.OrgUsers{
-	OrgID:  1667438328668203466,
-	UserID: 1667438328660134495,
+	OrgID:  1667452524363177528,
+	UserID: 1667452524356256466,
 }}
 
 var TestTopologyID = 7140168037686545724

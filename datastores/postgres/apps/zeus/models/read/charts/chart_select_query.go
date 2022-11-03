@@ -202,6 +202,8 @@ func FetchChartQuery(q sql_query_templates.QueryParams) string {
 	LEFT JOIN cte_chart_subcomponent_spec_pod_template_containers AS ps ON ps.chart_package_id = ckagg.chart_package_id
 	LEFT JOIN cte_pod_spec_volumes AS v ON v.child_class_type_id_pod_spec_volumes = ps.chart_subcomponent_child_class_type_id_ps
 	LEFT JOIN cte_containers_agg AS cagg ON cagg.container_id = ps.container_id
+	ORDER BY container_id DESC
 `, header)
 	return query
+	// TODO fix needing to order by container
 }

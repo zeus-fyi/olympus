@@ -21,7 +21,7 @@ func (t *TopologyDeployActionRequestTestSuite) TestDeployChart() {
 
 	deployReq := TopologyDeployCreateActionDeployRequest{
 		TopologyActionRequest: topologyActionRequest,
-		TopologyID:            7140168037686545724,
+		TopologyID:            7155775605218483902,
 	}
 	t.Endpoint = "/deploy"
 	t.AddEndpointHandler(deployReq.DeployTopology)

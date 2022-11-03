@@ -30,7 +30,10 @@ func (t *TopologyDeployCreateActionDeployRequest) DeployTopology(c echo.Context)
 	nk := tr.GetNativeK8s()
 
 	// TODO should also write kns & deployed status status
-	err = DeployChartPackage(ctx, test.Kns, nk)
+	kns := test.Kns
+	kns.Namespace = "zeus"
+	kns.CtxType = "dev-do-sfo3-zeus"
+	err = DeployChartPackage(ctx, kns, nk)
 
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, nil)

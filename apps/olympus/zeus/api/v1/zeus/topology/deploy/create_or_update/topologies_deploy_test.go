@@ -13,11 +13,20 @@ type TopologyDeployActionRequestTestSuite struct {
 }
 
 func (t *TopologyDeployActionRequestTestSuite) TestDeployChart() {
-	test.Kns.Namespace = "demo"
+	test.Kns.Namespace = "zeus"
 	topologyActionRequest := base.TopologyActionRequest{
-		Action: "create",
+		Action:  "create",
+		OrgUser: test.TestOrgUser,
 	}
-	t.PostTopologyRequest(topologyActionRequest, 200)
+
+	deployReq := TopologyDeployCreateActionDeployRequest{
+		TopologyActionRequest: topologyActionRequest,
+		TopologyID:            7140168037686545724,
+	}
+	t.Endpoint = "/deploy"
+	t.AddEndpointHandler(deployReq.DeployTopology)
+
+	t.PostTopologyRequest(deployReq, 200)
 }
 
 func TestTopologyDeployActionRequestTestSuite(t *testing.T) {

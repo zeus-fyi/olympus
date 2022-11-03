@@ -9,6 +9,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tidwall/pretty"
+	"github.com/zeus-fyi/olympus/zeus/pkg/zeus/core"
 
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -21,11 +22,11 @@ import (
 var Kns autok8s_core.KubeCtxNs
 
 var TestOrgUser = org_users.OrgUser{autogen_bases.OrgUsers{
-	OrgID:  1667266332674446258,
-	UserID: 1667266332670878528,
+	OrgID:  1667438328668203466,
+	UserID: 1667438328660134495,
 }}
 
-var TestTopologyID = 6951056435719556916
+var TestTopologyID = 7140168037686545724
 
 type TopologyActionRequestTestSuite struct {
 	E *echo.Echo
@@ -44,6 +45,7 @@ func (t *TopologyActionRequestTestSuite) SetupTest() {
 	t.ConnectToK8s()
 	t.InitLocalConfigs()
 
+	core.K8Util = t.K
 	t.D.PGTest.SetupPGConn()
 	t.D.PG = t.D.PGTest.Pg
 	t.E = echo.New()

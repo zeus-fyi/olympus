@@ -9,9 +9,9 @@ spec:
   tls:
     - secretName: eth-indexer-tls
       hosts:
-        - api.zeus.fyi
+        - eth.zeus.fyi
   rules:
-    - host: api.zeus.fyi
+    - host: eth.zeus.fyi
       http:
         paths:
           - path: /

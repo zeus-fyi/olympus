@@ -1,14 +1,25 @@
 package transformations
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 
 	"github.com/ghodss/yaml"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/paths"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
 type YamlReader struct {
+	chart_workload.NativeK8s
+}
+
+func (y *YamlReader) ReadK8sWorkloadDir(p structs.Path) error {
+	err := paths.WalkAndApplyFuncToFileType(p.DirIn, ".yaml", y.DecodeK8sWorkload)
+	if err != nil {
+		return err
+	}
+	return err
 }
 
 func (y *YamlReader) ReadYamlConfig(filepath string) ([]byte, error) {
@@ -22,28 +33,14 @@ func (y *YamlReader) ReadYamlConfig(filepath string) ([]byte, error) {
 		fmt.Printf("err: %v\n", err)
 		return jsonBytes, err
 	}
-	m := make(map[string]interface{})
-
-	err = json.Unmarshal(jsonBytes, &m)
 	return jsonBytes, err
 }
 
-// should match this format on query
-//{
-//	"apiVersion":"v1",
-//  "kind":"Service",
-//	"metadata":{
-//				"labels":{"app.kubernetes.io/instance":"s"},
-//				"name":"s"
-//				},
-//	"spec": {
-//				"ports":[{
-//							"name":"http",
-//							"port":80,
-//							"protocol":"TCP",
-//							"targetPort":"http"
-//						}],
-//				"selector": {"app.kubernetes.io/instance":"s"},
-//				"type":"ClusterIP"
-//			 }
-//}
+func (y *YamlReader) DecodeK8sWorkload(filepath string) error {
+	b, err := y.ReadYamlConfig(filepath)
+	if err != nil {
+		return err
+	}
+	err = y.DecodeBytes(b)
+	return err
+}

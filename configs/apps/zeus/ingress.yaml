@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: "eth-indexer"
+  name: "zeus"
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
@@ -18,6 +18,6 @@ spec:
             pathType: ImplementationSpecific
             backend:
               service:
-                name: eth-indexer
+                name: zeus
                 port:
                   number: 80

@@ -1,27 +1,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: "name"
+  name: "zeus"
   labels:
-    app.kubernetes.io/instance:  "s"
+    app.kubernetes.io/instance: "zeus"
+    app.kubernetes.io/name: "zeus"
 spec:
   replicas: 0
   selector:
     matchLabels:
-      app.kubernetes.io/instance:  "s"
+      app.kubernetes.io/name: "zeus"
+      app.kubernetes.io/instance: "zeus"
   template:
     metadata:
-      annotations:
-        app.kubernetes.io/instance:  "s"
       labels:
-        app.kubernetes.io/instance:  "s"
+        app.kubernetes.io/name: "zeus"
+        app.kubernetes.io/instance: "zeus"
     spec:
       containers:
-        - name: "containerName"
-          image: "image"
+        - name: "zeus"
+          image: "registry.digitalocean.com/zeus-fyi/zeus:latest"
           volumeMounts:
-            - mountPath: "mountPath"
-              name: "name"
+            - mountPath: "/scripts"
+              name: "cm-zeus"
           imagePullPolicy: Always
           command: [ "/bin/sh" ]
           args: [ "-c","/scripts/start.sh" ]
@@ -31,14 +32,24 @@ spec:
                 secretKeyRef:
                   name: postgres-auth
                   key: postgres-conn-str
-            - name: "BEACON_NODE"
+            - name: AGE_PKEY
               valueFrom:
                 secretKeyRef:
-                  name: "name"
-                  key: "key"
+                  name: age-auth
+                  key: age-private-key
+            - name: DO_SPACES_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: spaces-key
+                  key: do-spaces-key
+            - name: DO_SPACES_PKEY
+              valueFrom:
+                secretKeyRef:
+                  name: spaces-auth
+                  key: do-spaces-private-key
           ports:
             - name: "http"
-              containerPort: 9000
+              containerPort: 9001
               protocol: "TCP"
           livenessProbe:
             httpGet:
@@ -51,9 +62,9 @@ spec:
           resources:
             {}
       volumes:
-        - name: cm-eth-indexer
+        - name: cm-zeus
           configMap:
-            name: cm-eth-indexer
+            name: cm-zeus
             defaultMode: 0744
       nodeSelector:
         {}

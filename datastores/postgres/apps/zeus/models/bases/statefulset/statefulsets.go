@@ -20,7 +20,6 @@ type StatefulSetAndChildServices struct {
 
 type StatefulSet struct {
 	K8sStatefulSet v1.StatefulSet
-
 	KindDefinition autogen_bases.ChartComponentResources
 
 	Metadata structs.ParentMetaData

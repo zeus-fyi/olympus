@@ -42,6 +42,7 @@ func (t *TopologyCreateActionRequestTestSuite) TestUpload() {
 	c.ChartVersion = fmt.Sprintf("test_api_v%d", t.Ts.UnixTimeStampNow())
 	oid, uid := t.h.NewTestOrgAndUser()
 	orgUser := org_users.NewOrgUserWithID(oid, uid)
+	fmt.Printf("orgID: %d\n userID %d\n", oid, uid)
 
 	createRequest := TopologyCreateRequest{
 		TopologyName:     name,

@@ -6,6 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/zeus-fyi/olympus/configs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	router "github.com/zeus-fyi/olympus/zeus/api"
@@ -28,7 +29,15 @@ func Zeus() {
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 	case "local":
-		cfg.K8sUtil.ConnectToK8s()
+		tc := configs.InitLocalTestConfigs()
+		authKeysCfg.AgePrivKey = tc.LocalAgePkey
+		authKeysCfg.AgePubKey = tc.LocalAgePubkey
+		authKeysCfg.SpacesKey = tc.LocalS3SpacesKey
+		authKeysCfg.SpacesPrivKey = tc.LocalS3SpacesSecret
+
+		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
+		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
+		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 	}
 
 	log.Info().Msg("Zeus: PG connection starting")

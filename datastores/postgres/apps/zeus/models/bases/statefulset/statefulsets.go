@@ -4,10 +4,13 @@ import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/volumes"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/containers"
 	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+const SvcChartComponentResourceID = 2
 
 type StatefulSetAndChildServices struct {
 	StatefulSet StatefulSet
@@ -26,8 +29,12 @@ type StatefulSet struct {
 
 type Spec struct {
 	structs.SpecWorkload
-	// TODO VolumeClaimTemplates, ServiceName
 	Template containers.PodTemplateSpec
+
+	StatefulSetUpdateStrategy structs.ChildClassMultiValue
+	PodManagementPolicy       structs.ChildClassSingleValue
+	ServiceName               structs.ChildClassSingleValue
+	VolumeClaimTemplates      volumes.VolumeClaimTemplateGroup
 }
 
 func NewStatefulSet() StatefulSet {
@@ -46,10 +53,12 @@ func NewStatefulSet() StatefulSet {
 		ChartPackageID:                       0,
 		ChartComponentResourceID:             0,
 		ChartSubcomponentParentClassTypeID:   0,
-		ChartSubcomponentParentClassTypeName: "StatefulSetSpec",
+		ChartSubcomponentParentClassTypeName: "Spec",
 	}
 	s.Metadata.Metadata = structs.NewMetadata()
 	s.Metadata.ChartSubcomponentParentClassTypeName = "StatefulSetSpecParentMetadata"
+
+	s.Spec.VolumeClaimTemplates = volumes.NewVolumeClaimTemplateGroup()
 	return s
 }
 

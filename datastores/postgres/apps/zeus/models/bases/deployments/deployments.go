@@ -8,8 +8,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const ModelName = "Deployment"
-
 type Deployment struct {
 	K8sDeployment  v1.Deployment
 	KindDefinition autogen_bases.ChartComponentResources

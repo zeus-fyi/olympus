@@ -3,7 +3,6 @@ package statefulset
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -14,7 +13,6 @@ import (
 	create_charts "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/charts"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
-	v1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
@@ -23,15 +21,13 @@ type StatefulSetTestSuite struct {
 }
 
 func (s *StatefulSetTestSuite) TestConvertStatefulSetAndInsert() {
-	filepath := s.TestDirectory + "/mocks/test/statefulset.yaml"
-	jsonBytes, err := s.Yr.ReadYamlConfig(filepath)
+	filepath := s.TestDirectory + "/mocks/consensus_client/statefulset.yaml"
 
-	var sts *v1.StatefulSet
-	err = json.Unmarshal(jsonBytes, &sts)
-
+	err := s.Yr.DecodeK8sWorkload(filepath)
 	s.Require().Nil(err)
-	s.Require().NotEmpty(sts)
+	s.Require().NotEmpty(s.Yr.StatefulSet)
 
+	sts := s.Yr.StatefulSet
 	dbStatefulSetConfig, err := ConvertStatefulSetSpecConfigToDB(sts)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(dbStatefulSetConfig)

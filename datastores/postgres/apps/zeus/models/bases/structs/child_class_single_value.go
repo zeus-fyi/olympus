@@ -41,7 +41,7 @@ func NewInitChildClassSingleValue(typeName, value string) ChildClassSingleValue 
 	return csv
 }
 
-func (c *ChildClassSingleValue) SetKeyAndValue(k, v string) {
+func (c *ChildClassSingleValue) AddKeyValue(k, v string) {
 	c.SetKey(k)
 	c.SetValue(v)
 }
@@ -57,7 +57,7 @@ func (c *ChildClassSingleValue) SetValue(v string) {
 func (c *ChildClassSingleValue) SetSingleChildClassIDTypeNameKeyAndValue(id int, childClassTypeName, k, v string) {
 	c.SetChildClassTypeIDs(id)
 	c.ChartSubcomponentChildClassTypes.ChartSubcomponentChildClassTypeName = childClassTypeName
-	c.SetKeyAndValue(k, v)
+	c.AddKeyValue(k, v)
 }
 
 func (c *ChildClassSingleValue) SetChildClassTypeIDs(id int) {

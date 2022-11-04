@@ -2,30 +2,31 @@ package statefulset
 
 import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulset"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/containers"
-	v1 "k8s.io/api/apps/v1"
 )
 
-func ConvertStatefulSetSpecConfigToDB(s *v1.StatefulSet) (statefulset.StatefulSet, error) {
-	dbStatefulSet := statefulset.NewStatefulSet()
-	dbStatefulSet.Metadata.Metadata = common_conversions.CreateMetadataByFields(s.Name, s.Annotations, s.Labels)
-	spec, err := ConvertStatefulSetSpec(s.Spec)
+func (s *StatefulSet) ConvertStatefulSetSpecConfigToDB() error {
+	dbStatefulSet := NewStatefulSet()
+	dbStatefulSet.Metadata.Metadata = common_conversions.CreateMetadataByFields(s.K8sStatefulSet.Name, s.K8sStatefulSet.Annotations, s.K8sStatefulSet.Labels)
+	spec, err := s.ConvertStatefulSetSpec()
 	if err != nil {
-		return dbStatefulSet, err
+		return err
 	}
 	dbStatefulSet.Spec = spec
-	return dbStatefulSet, nil
+	return nil
 }
 
-func ConvertStatefulSetSpec(s v1.StatefulSetSpec) (statefulset.Spec, error) {
-	spec := statefulset.Spec{
+func (s *StatefulSet) ConvertStatefulSetSpec() (Spec, error) {
+	spec := Spec{
 		SpecWorkload: structs.NewSpecWorkload(),
 		Template:     containers.NewPodTemplateSpec(),
 	}
-	podTemplateSpec := s.Template.Spec
+	s.ConvertK8sStatefulSetUpdateStrategyToDB()
+	s.ConvertK8sStatefulPodManagementPolicyToDB()
+	s.ConvertK8sStatefulServiceNameToDB()
 
+	podTemplateSpec := s.K8sStatefulSet.Spec.Template.Spec
 	dbPodTemplateSpec, err := spec.Template.ConvertPodTemplateSpecConfigToDB(&podTemplateSpec)
 	if err != nil {
 		return spec, err

@@ -1,9 +1,12 @@
 package statefulset
 
 import (
+	"encoding/json"
+
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/containers"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 func (s *StatefulSet) ConvertStatefulSetSpecConfigToDB() error {
@@ -22,6 +25,21 @@ func (s *StatefulSet) ConvertStatefulSetSpec() (Spec, error) {
 		SpecWorkload: structs.NewSpecWorkload(),
 		Template:     containers.NewPodTemplateSpec(),
 	}
+
+	s.Spec.Replicas.ChartSubcomponentValue = string_utils.Convert32BitPtrIntToString(s.K8sStatefulSet.Spec.Replicas)
+	spec.Selector = structs.NewSelector()
+
+	m := make(map[string]string)
+	if s.K8sStatefulSet.Spec.Selector != nil {
+		bytes, err := json.Marshal(s.K8sStatefulSet.Spec.Selector)
+		if err != nil {
+			return spec, err
+		}
+		selectorString := string(bytes)
+		m["selectorString"] = selectorString
+		s.Spec.Selector.MatchLabels.AddValues(m)
+	}
+
 	s.ConvertK8sStatefulSetUpdateStrategyToDB()
 	s.ConvertK8sStatefulPodManagementPolicyToDB()
 	s.ConvertK8sStatefulServiceNameToDB()

@@ -6,7 +6,7 @@ CREATE OR REPLACE FUNCTION "public"."next_id"()
     RETURNS "pg_catalog"."int8" AS
 $BODY$
 DECLARE
-    unix_utc_now bigint := (SELECT (EXTRACT('epoch' from NOW() at TIME ZONE ('UTC'))*1000000));
+    unix_utc_now bigint := (SELECT (EXTRACT('epoch' from NOW() at TIME ZONE ('UTC'))*1000000000));
 BEGIN
     RETURN unix_utc_now;
 END;

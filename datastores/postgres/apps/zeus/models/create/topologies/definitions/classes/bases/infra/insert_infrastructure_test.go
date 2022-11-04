@@ -16,6 +16,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/ingresses"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulset"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/packages"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -31,11 +32,13 @@ func (s *CreateInfraTestSuite) TestInsertInfraBase() {
 	nsvc := services.NewService()
 	ing := ingresses.NewIngress()
 	cm := configuration.NewConfigMap()
+	sts := statefulset.NewStatefulSet()
 	cw := chart_workload.ChartWorkload{
-		Deployment: &nd,
-		Service:    &nsvc,
-		Ingress:    &ing,
-		ConfigMap:  &cm,
+		Deployment:  &nd,
+		Service:     &nsvc,
+		Ingress:     &ing,
+		ConfigMap:   &cm,
+		StatefulSet: &sts,
 	}
 	pkg := packages.Packages{
 		Chart: charts.Chart{
@@ -72,6 +75,13 @@ func (s *CreateInfraTestSuite) TestInsertInfraBase() {
 	s.Assert().NotEmpty(cm.Data)
 	s.Assert().NotEmpty(cm.Metadata.Name)
 
+	filepath = s.TestDirectory + "/mocks/consensus_client/statefulset.yaml"
+	jsonBytes, err = s.Yr.ReadYamlConfig(filepath)
+	err = json.Unmarshal(jsonBytes, &sts.K8sStatefulSet)
+	s.Require().Nil(err)
+	err = sts.ConvertK8sStatefulSetToDB()
+	s.Require().Nil(err)
+
 	inf := NewCreateInfrastructure()
 	inf.Packages = pkg
 
@@ -80,6 +90,11 @@ func (s *CreateInfraTestSuite) TestInsertInfraBase() {
 	inf.OrgID, inf.UserID = s.b.NewTestOrgAndUser()
 	err = inf.InsertInfraBase(ctx)
 	s.Require().Nil(err)
+
+	fmt.Println("ChartPackageID")
+	fmt.Println(inf.ChartPackageID)
+	fmt.Println("TopologyID")
+	fmt.Println(inf.TopologyID)
 
 }
 

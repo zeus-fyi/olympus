@@ -17,7 +17,7 @@ func NewCMData(data map[string]string) Data {
 	cmData := structs.NewSuperParentClassWithMultiChildType("Data", "Data")
 	cmData.SetParentClassTypeID(pcID)
 	cmData.AddValues(data)
-	cmData.SetChildClassTypeIDs(childTypeID)
+	cmData.ChildClassMultiValue.SetChildClassTypeIDs(childTypeID)
 
 	return Data{cmData}
 }

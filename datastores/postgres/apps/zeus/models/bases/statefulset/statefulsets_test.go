@@ -30,7 +30,7 @@ func (s *StatefulSetTestSuite) TestStatefulSetK8sToDBConversion() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(sts.K8sStatefulSet)
 
-	err = sts.ConvertStatefulSetSpecConfigToDB()
+	err = sts.ConvertK8sStatefulSetToDB()
 	s.Require().Nil(err)
 	s.Require().NotEmpty(sts.Spec)
 	s.Require().NotEmpty(sts.Metadata)
@@ -49,7 +49,6 @@ func (s *StatefulSetTestSuite) TestStatefulSetK8sToDBConversion() {
 
 	fmt.Println(subCTEs.GenerateChainedCTE())
 	fmt.Println(subCTEs.Params)
-
 }
 
 func TestStatefulSetTestSuite(t *testing.T) {

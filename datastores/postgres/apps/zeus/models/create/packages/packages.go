@@ -49,6 +49,10 @@ func (p *Packages) InsertPackagesCTE() sql_query_templates.CTE {
 		depCte := p.GetDeploymentCTE(&p.Chart)
 		p.CTE.AppendSubCtes(depCte.SubCTEs)
 	}
+	if p.StatefulSet != nil {
+		stsCte := p.GetStatefulSetCTE(&p.Chart)
+		p.CTE.AppendSubCtes(stsCte.SubCTEs)
+	}
 	if p.Service != nil {
 		svcCte := p.GetServiceCTE(&p.Chart)
 		p.CTE.AppendSubCtes(svcCte.SubCTEs)

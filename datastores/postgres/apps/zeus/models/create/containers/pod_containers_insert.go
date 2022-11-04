@@ -1,6 +1,8 @@
 package containers
 
 import (
+	"fmt"
+
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/common"
@@ -19,7 +21,8 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart
 	if p.GetPodSpecChildClassTypeID() == 0 {
 		p.SetPodSpecChildClassTypeID(ts.UnixTimeStampNow())
 	}
-	contPodSpecParentClassCTE := sql_query_templates.NewSubInsertCTE("cte_podSpecParentClassTypeCTE")
+
+	contPodSpecParentClassCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_podSpecParentClassTypeCTE_%d", ts.UnixTimeStampNow()))
 	contPodSpecParentClassCTE.TableName = p.ChartSubcomponentParentClassTypes.GetTableName()
 	contPodSpecParentClassCTE.Columns = []string{"chart_package_id", "chart_component_resource_id", "chart_subcomponent_parent_class_type_id", "chart_subcomponent_parent_class_type_name"}
 	contPodSpecParentClassCTE.AddValues(chart.ChartPackageID, p.ChartComponentResourceID, p.GetPodSpecParentClassTypeID(), p.ChartSubcomponentParentClassTypes.ChartSubcomponentParentClassTypeName)
@@ -28,68 +31,68 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart
 
 	templateMetadataCTE := common.CreateParentMetadataSubCTEs(chart, p.Metadata)
 	agCct := autogen_bases.ChartSubcomponentChildClassTypes{}
-	contSubChildClassCTE := sql_query_templates.NewSubInsertCTE("cte_podSpecSubChildClassCTE")
+	contSubChildClassCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_podSpecSubChildClassCTE_%d", ts.UnixTimeStampNow()))
 	contSubChildClassCTE.TableName = agCct.GetTableName()
 	contSubChildClassCTE.Columns = []string{"chart_subcomponent_parent_class_type_id", "chart_subcomponent_child_class_type_id", "chart_subcomponent_child_class_type_name"}
 	contSubChildClassCTE.AddValues(p.GetPodSpecParentClassTypeID(), p.GetPodSpecChildClassTypeID(), "PodTemplateSpecChild")
 
-	contSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_containers")
+	contSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_insert_containers_%d", ts.UnixTimeStampNow()))
 	contSubCTE.TableName = "containers"
 	contSubCTE.Columns = []string{"container_id", "container_name", "container_image_id", "container_version_tag", "container_platform_os", "container_repository", "container_image_pull_policy"}
 
 	// ports
-	portsSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_container_ports")
+	portsSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_insert_container_ports_%d", ts.UnixTimeStampNow()))
 	portsSubCTE.TableName = "container_ports"
 	portsSubCTE.Columns = []string{"port_id", "port_name", "container_port", "host_port"}
-	portsRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE("cte_containers_ports_relationship")
+	portsRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_containers_ports_relationship_%d", ts.UnixTimeStampNow()))
 	portsRelationshipsSubCTE.TableName = "containers_ports"
 	portsRelationshipsSubCTE.Columns = []string{"chart_subcomponent_child_class_type_id", "container_id", "port_id"}
 
 	// env vars
-	envVarsSubCTE := sql_query_templates.NewSubInsertCTE("cte_container_environmental_vars")
+	envVarsSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_container_environmental_vars_%d", ts.UnixTimeStampNow()))
 	envVarsSubCTE.TableName = "container_environmental_vars"
 	envVarsSubCTE.Columns = []string{"env_id", "name", "value"}
-	envVarsRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE("cte_container_environmental_vars_relationships")
+	envVarsRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_container_environmental_vars_relationships_%d", ts.UnixTimeStampNow()))
 	envVarsRelationshipsSubCTE.TableName = "containers_environmental_vars"
 	envVarsRelationshipsSubCTE.Columns = []string{"chart_subcomponent_child_class_type_id", "container_id", "env_id"}
 
 	// cmd args
-	cmdArgsSubCTE := sql_query_templates.NewSubInsertCTE("cte_container_command_args")
+	cmdArgsSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_container_command_args_%d", ts.UnixTimeStampNow()))
 	cmdArgsSubCTE.TableName = "container_command_args"
 	cmdArgsSubCTE.Columns = []string{"command_args_id", "command_values", "args_values"}
-	cmdArgsRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE("cte_containers_command_args_relationships")
+	cmdArgsRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_containers_command_args_relationships_%d", ts.UnixTimeStampNow()))
 	cmdArgsRelationshipsSubCTE.TableName = "containers_command_args"
 	cmdArgsRelationshipsSubCTE.Columns = []string{"command_args_id", "container_id"}
 
 	// computeResources
-	computeResourcesSubCTE := sql_query_templates.NewSubInsertCTE("cte_container_compute_resources")
+	computeResourcesSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_container_compute_resources_%d", ts.UnixTimeStampNow()))
 	computeResourcesSubCTE.TableName = "container_compute_resources"
 	computeResourcesSubCTE.Columns = []string{"compute_resources_id", "compute_resources_cpu_request", "compute_resources_cpu_limit",
 		"compute_resources_ram_request", "compute_resources_ram_limit", "compute_resources_ephemeral_storage_request", "compute_resources_ephemeral_storage_limit"}
-	computeResourcesRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE("cte_containers_compute_resources_relationships")
+	computeResourcesRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_containers_compute_resources_relationships_%d", ts.UnixTimeStampNow()))
 	computeResourcesRelationshipsSubCTE.TableName = "containers_compute_resources"
 	computeResourcesRelationshipsSubCTE.Columns = []string{"compute_resources_id", "container_id"}
 
 	// vms
-	contVmsSubCTE := sql_query_templates.NewSubInsertCTE("cte_containers_volume_mounts")
+	contVmsSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_containers_volume_mounts_%d", ts.UnixTimeStampNow()))
 	contVmsSubCTE.TableName = "container_volume_mounts"
 	contVmsSubCTE.Columns = []string{"volume_mount_id", "volume_mount_path", "volume_name"}
-	contVmsRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE("cte_containers_volume_mounts_relationships")
+	contVmsRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_containers_volume_mounts_relationships_%d", ts.UnixTimeStampNow()))
 	contVmsRelationshipsSubCTE.TableName = "containers_volume_mounts"
 	contVmsRelationshipsSubCTE.Columns = []string{"chart_subcomponent_child_class_type_id", "container_id", "volume_mount_id"}
 
 	// podSpec for containersMapByImageID
-	podSpecSubCTE := sql_query_templates.NewSubInsertCTE("cte_insert_spec_pod_template_containers")
+	podSpecSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_insert_spec_pod_template_containers_%d", ts.UnixTimeStampNow()))
 	podSpecSubCTE.TableName = "chart_subcomponent_spec_pod_template_containers"
 	podSpecSubCTE.Columns = []string{"chart_subcomponent_child_class_type_id", "container_id", "is_init_container", "container_sort_order"}
 
 	// probes
 	contP := autogen_bases.ContainerProbes{}
-	probesSubCTE := sql_query_templates.NewSubInsertCTE("cte_container_probes")
+	probesSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_container_probes_%d", ts.UnixTimeStampNow()))
 	probesSubCTE.TableName = "container_probes"
 	probesSubCTE.Columns = contP.GetTableColumns()
 	conPRelationship := autogen_bases.ContainersProbes{}
-	probesRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE("cte_containers_probes_relationship")
+	probesRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_containers_probes_relationship_%d", ts.UnixTimeStampNow()))
 	probesRelationshipsSubCTE.TableName = "containers_probes"
 	probesRelationshipsSubCTE.Columns = conPRelationship.GetTableColumns()
 

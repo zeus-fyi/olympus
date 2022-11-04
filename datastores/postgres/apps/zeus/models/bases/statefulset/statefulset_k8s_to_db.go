@@ -9,7 +9,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
-func (s *StatefulSet) ConvertStatefulSetSpecConfigToDB() error {
+func (s *StatefulSet) ConvertK8sStatefulSetToDB() error {
 	dbStatefulSet := NewStatefulSet()
 	dbStatefulSet.Metadata.Metadata = common_conversions.CreateMetadataByFields(s.K8sStatefulSet.Name, s.K8sStatefulSet.Annotations, s.K8sStatefulSet.Labels)
 	spec, err := s.ConvertStatefulSetSpec()

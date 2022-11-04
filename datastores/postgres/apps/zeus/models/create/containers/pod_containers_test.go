@@ -1,13 +1,11 @@
 package containers
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
-	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 	v1 "k8s.io/api/apps/v1"
 )
 
@@ -16,7 +14,7 @@ type PodContainersGroupTestSuite struct {
 }
 
 func (p *PodContainersGroupTestSuite) TestContainersInsertFromParsedDeploymentFile() {
-	ctx := context.Background()
+	//ctx := context.Background()
 	filepath := p.TestDirectory + "/mocks/test/deployment_eth_indexer.yaml"
 	jsonBytes, err := p.Yr.ReadYamlConfig(filepath)
 
@@ -31,14 +29,14 @@ func (p *PodContainersGroupTestSuite) TestContainersInsertFromParsedDeploymentFi
 	dbDeploymentConfig, err := ps.ConvertPodTemplateSpecConfigToDB(&pts)
 	p.Require().Nil(err)
 	p.Require().NotEmpty(dbDeploymentConfig)
-
-	q := sql_query_templates.NewQueryParam("InsertPodResourceContainers", "table", "where", 1000, []string{})
-
-	// TODO update with another chart later?
-	c := charts.Chart{}
-	// specific to test, above code is just setting up
-	err = dbDeploymentConfig.InsertPodTemplateSpec(ctx, q, &c)
-	p.Require().Nil(err)
+	//
+	//q := sql_query_templates.NewQueryParam("InsertPodResourceContainers", "table", "where", 1000, []string{})
+	//
+	//// TODO update with another chart later?
+	//c := charts.Chart{}
+	//// specific to test, above code is just setting up
+	//err = dbDeploymentConfig.InsertPodTemplateSpec(ctx, q, &c)
+	//p.Require().Nil(err)
 }
 
 func TestPodContainersGroupTestSuite(t *testing.T) {

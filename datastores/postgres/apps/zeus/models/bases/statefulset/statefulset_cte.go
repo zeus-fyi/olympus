@@ -10,6 +10,9 @@ func (s *StatefulSet) GetStatefulSetCTE(chart *charts.Chart) sql_query_templates
 	var combinedSubCTEs sql_query_templates.SubCTEs
 	// metadata
 	metaDataCtes := common.CreateParentMetadataSubCTEs(chart, s.Metadata)
+
+	// sets spec as parent to sub elements
+	s.SetSpecParentIDs()
 	// spec
 	specCtes := common.CreateSpecWorkloadTypeSubCTE(chart, s.Spec.SpecWorkload)
 

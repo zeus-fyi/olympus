@@ -1,6 +1,8 @@
 package containers
 
 import (
+	"fmt"
+
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -10,18 +12,19 @@ import (
 // required
 func (p *PodTemplateSpec) insertVolumes() (sql_query_templates.SubCTE, sql_query_templates.SubCTE) {
 	// volumes for pod spec
+	ts := chronos.Chronos{}
+
 	agVol := autogen_bases.Volumes{}
-	podSpecVolumesSubCTE := sql_query_templates.NewSubInsertCTE("cte_pod_spec_volumes")
+	podSpecVolumesSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_pod_spec_volumes_%d", ts.UnixTimeStampNow()))
 	podSpecVolumesSubCTE.TableName = agVol.GetTableName()
 	podSpecVolumesSubCTE.Columns = agVol.GetTableColumns()
 
 	agVolR := autogen_bases.ContainersVolumes{}
 
-	podSpecVolumesRelationshipSubCTE := sql_query_templates.NewSubInsertCTE("cte_pod_spec_containers_volumes")
+	podSpecVolumesRelationshipSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_pod_spec_containers_volumes_%d", ts.UnixTimeStampNow()))
 	podSpecVolumesRelationshipSubCTE.TableName = agVolR.GetTableName()
 	podSpecVolumesRelationshipSubCTE.Columns = agVolR.GetTableColumns()
 	vols := p.Spec.PodTemplateSpecVolumes
-	ts := chronos.Chronos{}
 	cID := p.GetPodSpecChildClassTypeID()
 
 	for _, v := range vols {

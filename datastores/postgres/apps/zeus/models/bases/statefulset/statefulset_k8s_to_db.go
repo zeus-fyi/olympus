@@ -12,15 +12,14 @@ import (
 func (s *StatefulSet) ConvertK8sStatefulSetToDB() error {
 	dbStatefulSet := NewStatefulSet()
 	dbStatefulSet.Metadata.Metadata = common_conversions.CreateMetadataByFields(s.K8sStatefulSet.Name, s.K8sStatefulSet.Annotations, s.K8sStatefulSet.Labels)
-	spec, err := s.ConvertStatefulSetSpec()
+	err := s.ConvertStatefulSetSpec()
 	if err != nil {
 		return err
 	}
-	dbStatefulSet.Spec = spec
 	return nil
 }
 
-func (s *StatefulSet) ConvertStatefulSetSpec() (Spec, error) {
+func (s *StatefulSet) ConvertStatefulSetSpec() error {
 	spec := Spec{
 		SpecWorkload: structs.NewSpecWorkload(),
 		Template:     containers.NewPodTemplateSpec(),
@@ -33,7 +32,7 @@ func (s *StatefulSet) ConvertStatefulSetSpec() (Spec, error) {
 	if s.K8sStatefulSet.Spec.Selector != nil {
 		bytes, err := json.Marshal(s.K8sStatefulSet.Spec.Selector)
 		if err != nil {
-			return spec, err
+			return err
 		}
 		selectorString := string(bytes)
 		m["selectorString"] = selectorString
@@ -46,13 +45,13 @@ func (s *StatefulSet) ConvertStatefulSetSpec() (Spec, error) {
 
 	err := s.ConvertK8VolumeClaimTemplatesToDB()
 	if err != nil {
-		return spec, err
+		return err
 	}
 	podTemplateSpec := s.K8sStatefulSet.Spec.Template.Spec
 	dbPodTemplateSpec, err := spec.Template.ConvertPodTemplateSpecConfigToDB(&podTemplateSpec)
 	if err != nil {
-		return spec, err
+		return err
 	}
-	spec.Template = dbPodTemplateSpec
-	return spec, nil
+	s.Spec.Template = dbPodTemplateSpec
+	return nil
 }

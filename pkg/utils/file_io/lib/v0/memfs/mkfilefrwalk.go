@@ -3,32 +3,26 @@ package memfs
 import (
 	"errors"
 	"io/fs"
-	"os"
+	"path/filepath"
 
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/readers"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
-func (m *MemFS) MakeFilesFromWalk(p *structs.Path) error {
+func (m *MemFS) WalkAndApplyFuncToFileType(p *structs.Path, ext string, f func(p string, fs *MemFS) error) error {
 	if p == nil {
 		return errors.New("need to include a path")
 	}
-	r := readers.ReaderLib{}
-	fileSystem := os.DirFS(p.DirIn)
-
-	err := fs.WalkDir(fileSystem, ".", func(path string, d fs.DirEntry, err error) error {
+	fileSystem, err := m.Sub(p.DirIn)
+	if err != nil {
+		return err
+	}
+	err = fs.WalkDir(fileSystem, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if !d.IsDir() {
-			bytesToTransfer := r.ReadFilePathPtr(p)
-			newPath := structs.Path{
-				DirOut: path,
-			}
-			terr := m.MakeFile(&newPath, bytesToTransfer)
-			if terr != nil {
-				return terr
-			}
+		if !d.IsDir() && filepath.Ext(d.Name()) == ext {
+			p.Fn = path
+			return f(p.FileInPath(), m)
 		}
 		return nil
 	})

@@ -9,6 +9,7 @@ require (
 	github.com/spf13/viper v1.12.0
 	k8s.io/api v0.24.3
 	k8s.io/apimachinery v0.24.3
+	github.com/go-resty/resty/v2 v2.7.0
 )
 
 require (

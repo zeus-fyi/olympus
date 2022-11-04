@@ -2,13 +2,10 @@ package paths
 
 import (
 	"io/fs"
-	"os"
 	"path/filepath"
 )
 
-func WalkAndApplyFuncToFileType(dir, ext string, f func(p string) error) error {
-	fileSystem := os.DirFS(dir)
-
+func WalkAndApplyFuncToFileType(fileSystem fs.FS, dir, ext string, f func(p string) error) error {
 	err := fs.WalkDir(fileSystem, dir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err

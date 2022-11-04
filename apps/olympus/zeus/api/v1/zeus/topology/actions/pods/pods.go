@@ -4,13 +4,13 @@ import (
 	"time"
 
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
-	"github.com/zeus-fyi/olympus/zeus/pkg/zeus/core"
+	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type PodActionRequest struct {
-	core.K8sRequest
+	zeus.K8sRequest
 	Action        string
 	PodName       string
 	ContainerName string

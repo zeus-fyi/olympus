@@ -9,13 +9,12 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/tidwall/pretty"
-	"github.com/zeus-fyi/olympus/zeus/pkg/zeus/core"
-
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
+	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -45,7 +44,7 @@ func (t *TopologyActionRequestTestSuite) SetupTest() {
 	t.ConnectToK8s()
 	t.InitLocalConfigs()
 
-	core.K8Util = t.K
+	zeus.K8Util = t.K
 	t.D.PGTest.SetupPGConn()
 	t.D.PG = t.D.PGTest.Pg
 	t.E = echo.New()

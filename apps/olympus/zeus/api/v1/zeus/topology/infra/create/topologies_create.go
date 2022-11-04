@@ -1,16 +1,16 @@
 package create_infra
 
 import (
+	"bytes"
 	"context"
-	"errors"
+	"io"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/packages"
 	create_infra "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/definitions/classes/bases/infra"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/base"
+	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
 
 type TopologyActionCreateRequest struct {
@@ -20,26 +20,56 @@ type TopologyActionCreateRequest struct {
 
 type TopologyCreateRequest struct {
 	Name string `json:"name"`
-
 	charts.Chart
-	chart_workload.NativeK8s
+}
+
+type TopologyCreateResponse struct {
+	TopologyName     string `json:"topologyName"`
+	ID               int    `json:"id"`
+	ChartName        string `json:"chartName"`
+	ChartDescription string `json:"chartDescription"`
+	Version          string `json:"version"`
 }
 
 func (t *TopologyActionCreateRequest) CreateTopology(c echo.Context) error {
-	pkg := packages.NewPackageInsert()
-	cw, err := t.NativeK8s.CreateChartWorkloadFromNativeK8s()
+	file, err := c.FormFile("chart")
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, errors.New("unable to parse chart"))
+		return err
 	}
-	pkg.ChartWorkload = cw
-	pkg.Chart = t.Chart
-	topCreate := create_infra.NewOrgUserCreateInfraFromNativeK8s(t.Name, t.OrgUser, pkg)
-
+	src, err := file.Open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+	in := bytes.Buffer{}
+	if _, err = io.Copy(&in, src); err != nil {
+		return err
+	}
+	nk, err := zeus.UnGzipK8sChart(&in)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	cw, err := nk.CreateChartWorkloadFromNativeK8s()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	inf := create_infra.NewCreateInfrastructure()
 	ctx := context.Background()
-	err = topCreate.InsertInfraBase(ctx)
+	inf.Name = t.Name
+	inf.ChartWorkload = cw
+	inf.Chart = t.Chart
+	inf.OrgUser = t.OrgUser
+	err = inf.InsertInfraBase(ctx)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusOK, nil)
+	resp := TopologyCreateResponse{
+		TopologyName:     t.Name,
+		ID:               inf.TopologyID,
+		ChartName:        inf.ChartName,
+		ChartDescription: inf.ChartDescription.String,
+		Version:          inf.ChartVersion,
+	}
+	return c.JSON(http.StatusOK, resp)
 }

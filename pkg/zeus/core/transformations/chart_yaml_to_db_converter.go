@@ -3,9 +3,11 @@ package transformations
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 
 	"github.com/ghodss/yaml"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/paths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
@@ -15,7 +17,9 @@ type YamlReader struct {
 }
 
 func (y *YamlReader) ReadK8sWorkloadDir(p structs.Path) error {
-	err := paths.WalkAndApplyFuncToFileType(p.DirIn, ".yaml", y.DecodeK8sWorkload)
+	fileSystem := os.DirFS(p.DirIn)
+
+	err := paths.WalkAndApplyFuncToFileType(fileSystem, p.DirIn, ".yaml", y.DecodeK8sWorkload)
 	if err != nil {
 		return err
 	}
@@ -36,8 +40,39 @@ func (y *YamlReader) ReadYamlConfig(filepath string) ([]byte, error) {
 	return jsonBytes, err
 }
 
+func (y *YamlReader) ReadK8sWorkloadInMemFsDir(p structs.Path, fs memfs.MemFS) error {
+	err := fs.WalkAndApplyFuncToFileType(&p, ".yaml", y.DecodeK8sWorkloadFromInMemFS)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
 func (y *YamlReader) DecodeK8sWorkload(filepath string) error {
 	b, err := y.ReadYamlConfig(filepath)
+	if err != nil {
+		return err
+	}
+	err = y.DecodeBytes(b)
+	return err
+}
+
+func (y *YamlReader) ReadYamlConfigInMemFS(filepath string, fs *memfs.MemFS) ([]byte, error) {
+	// Open YAML file
+	jsonByteArray, err := fs.ReadFile(filepath)
+	if err != nil {
+		panic(err)
+	}
+	jsonBytes, err := yaml.YAMLToJSON(jsonByteArray)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return jsonBytes, err
+	}
+	return jsonBytes, err
+}
+
+func (y *YamlReader) DecodeK8sWorkloadFromInMemFS(filepath string, fs *memfs.MemFS) error {
+	b, err := y.ReadYamlConfigInMemFS(filepath, fs)
 	if err != nil {
 		return err
 	}

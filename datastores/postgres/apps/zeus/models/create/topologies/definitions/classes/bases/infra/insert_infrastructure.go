@@ -24,6 +24,8 @@ func (i *InfraBaseTopology) SelectInfraTopologyQuery() {
 
 	insertTopQuery.QueryName = "cte_insert_topology"
 	insertTopQuery.RawQuery = fmt.Sprintf(`INSERT INTO topologies(name) VALUES ($1) RETURNING topology_id`)
+	i.CTE.ReturnSQLStatement = fmt.Sprintf("SELECT topology_id FROM %s", insertTopQuery.QueryName)
+
 	i.CTE.Params = append(i.CTE.Params, i.Name)
 	insertTopOrgUserQuery.QueryName = "cte_insert_ou_topology"
 	insertTopOrgUserQuery.RawQuery = fmt.Sprintf(`
@@ -55,11 +57,9 @@ func (i *InfraBaseTopology) InsertInfraBase(ctx context.Context) error {
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
 	i.SelectInfraTopologyQuery()
 	q.RawQuery = i.CTE.GenerateChainedCTE()
-	r, err := apps.Pg.Exec(ctx, q.RawQuery, i.CTE.Params...)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, i.CTE.Params...).Scan(&i.TopologyID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
 		return err
 	}
-	rowsAffected := r.RowsAffected()
-	log.Debug().Msgf("InsertTopologyClass: %s, Rows Affected: %d", q.LogHeader(Sn), rowsAffected)
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }

@@ -1,4 +1,4 @@
-package core
+package zeus
 
 import autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 

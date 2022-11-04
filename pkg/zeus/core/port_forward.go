@@ -1,9 +1,14 @@
 package zeus_core
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 	"net/url"
 
+	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	pf "k8s.io/client-go/tools/portforward"
 	"k8s.io/client-go/transport/spdy"
@@ -29,4 +34,40 @@ func (f *defaultPortForwarder) ForwardPorts(method string, url *url.URL, opts po
 		return err
 	}
 	return fw.ForwardPorts()
+}
+
+func (k *K8Util) PortForwardPod(ctx context.Context, kubeCtxNs KubeCtxNs, podName, address string, ports []string, readyChan, stopChan chan struct{}, filter *string_utils.FilterOpts) error {
+	log.Ctx(ctx).Debug().Msg("PortForwardPod")
+
+	p, err := k.GetPodsUsingCtxNs(ctx, kubeCtxNs, nil, filter)
+	if err != nil {
+		return err
+	}
+	pod, err := k.getFirstPodByPrefix(podName, p)
+	if err != nil {
+		return err
+	}
+	if pod.Status.Phase != v1.PodRunning {
+		return fmt.Errorf("unable to forward port because pod is not running. Current status=%v", pod.Status.Phase)
+	}
+	var localPF defaultPortForwarder
+	podClient := k.kc.CoreV1()
+	portFwd := portforward.PortForwardOptions{
+		Namespace:     kubeCtxNs.Namespace,
+		PodName:       pod.GetName(),
+		Ports:         ports,
+		PodClient:     podClient,
+		Config:        k.clientCfg,
+		PortForwarder: &localPF,
+		ReadyChannel:  readyChan,
+		StopChannel:   stopChan,
+		Address:       []string{address},
+	}
+
+	req := podClient.RESTClient().Post().
+		Resource("pods").
+		Namespace(kubeCtxNs.Namespace).
+		Name(pod.GetName()).
+		SubResource("portforward")
+	return portFwd.PortForwarder.ForwardPorts("POST", req.URL(), portFwd)
 }

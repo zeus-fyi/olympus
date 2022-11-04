@@ -12,9 +12,11 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/ingresses"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulset"
 	read_configuration "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/configuration"
 	read_deployments "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/deployments"
 	read_networking "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/networking"
+	read_statefulsets "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/statefulsets"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
@@ -75,6 +77,21 @@ func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_tem
 				}
 			}
 			err = read_deployments.DBDeploymentContainer(c.Deployment, &container)
+			if err != nil {
+				log.Err(err).Msg(q.LogHeader(ModelName))
+				return err
+			}
+		case "StatefulSet":
+			if c.StatefulSet == nil {
+				sts := statefulset.NewStatefulSet()
+				c.StatefulSet = &sts
+				derr := read_statefulsets.DBStatefulSetResource(c.StatefulSet, ckagg, podSpecVolumesStr)
+				if derr != nil {
+					log.Err(derr).Msg(q.LogHeader(ModelName))
+					return derr
+				}
+			}
+			err = read_statefulsets.DBStatefulSetContainer(c.StatefulSet, &container)
 			if err != nil {
 				log.Err(err).Msg(q.LogHeader(ModelName))
 				return err

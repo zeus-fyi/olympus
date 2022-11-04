@@ -10,7 +10,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const SvcChartComponentResourceID = 2
+const StsChartComponentResourceID = 1
 
 type StatefulSetAndChildServices struct {
 	StatefulSet StatefulSet
@@ -47,17 +47,18 @@ func NewStatefulSet() StatefulSet {
 	s.KindDefinition = autogen_bases.ChartComponentResources{
 		ChartComponentKindName:   "StatefulSet",
 		ChartComponentApiVersion: "apps/v1",
+		ChartComponentResourceID: StsChartComponentResourceID,
 	}
 	s.Spec = NewStatefulSetSpec()
 	s.Spec.ChartSubcomponentParentClassTypes = autogen_bases.ChartSubcomponentParentClassTypes{
 		ChartPackageID:                       0,
-		ChartComponentResourceID:             SvcChartComponentResourceID,
+		ChartComponentResourceID:             StsChartComponentResourceID,
 		ChartSubcomponentParentClassTypeID:   0,
 		ChartSubcomponentParentClassTypeName: "Spec",
 	}
 	s.Metadata.Metadata = structs.NewMetadata()
 	s.Metadata.ChartSubcomponentParentClassTypeName = "StatefulSetSpecParentMetadata"
-	s.Metadata.ChartComponentResourceID = SvcChartComponentResourceID
+	s.Metadata.ChartComponentResourceID = StsChartComponentResourceID
 	s.Spec.VolumeClaimTemplates = volumes.NewVolumeClaimTemplateGroup()
 	return s
 }

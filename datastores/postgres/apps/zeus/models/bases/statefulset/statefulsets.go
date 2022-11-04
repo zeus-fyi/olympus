@@ -51,13 +51,12 @@ func NewStatefulSet() StatefulSet {
 	s.Spec = NewStatefulSetSpec()
 	s.Spec.ChartSubcomponentParentClassTypes = autogen_bases.ChartSubcomponentParentClassTypes{
 		ChartPackageID:                       0,
-		ChartComponentResourceID:             0,
+		ChartComponentResourceID:             SvcChartComponentResourceID,
 		ChartSubcomponentParentClassTypeID:   0,
 		ChartSubcomponentParentClassTypeName: "Spec",
 	}
 	s.Metadata.Metadata = structs.NewMetadata()
 	s.Metadata.ChartSubcomponentParentClassTypeName = "StatefulSetSpecParentMetadata"
-
 	s.Spec.VolumeClaimTemplates = volumes.NewVolumeClaimTemplateGroup()
 	return s
 }

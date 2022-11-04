@@ -26,6 +26,10 @@ func (s *StatefulSet) ConvertStatefulSetSpec() (Spec, error) {
 	s.ConvertK8sStatefulPodManagementPolicyToDB()
 	s.ConvertK8sStatefulServiceNameToDB()
 
+	err := s.ConvertK8VolumeClaimTemplatesToDB()
+	if err != nil {
+		return spec, err
+	}
 	podTemplateSpec := s.K8sStatefulSet.Spec.Template.Spec
 	dbPodTemplateSpec, err := spec.Template.ConvertPodTemplateSpecConfigToDB(&podTemplateSpec)
 	if err != nil {

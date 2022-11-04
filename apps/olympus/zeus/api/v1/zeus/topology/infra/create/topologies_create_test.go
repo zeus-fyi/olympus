@@ -2,6 +2,7 @@ package create_infra
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"testing"
@@ -42,10 +43,25 @@ func (t *TopologyCreateActionRequestTestSuite) TestUpload() {
 	oid, uid := t.h.NewTestOrgAndUser()
 	orgUser := org_users.NewOrgUserWithID(oid, uid)
 
+	createRequest := TopologyCreateRequest{
+		TopologyName:     name,
+		ChartName:        c.ChartName,
+		ChartDescription: "describes chart",
+		Version:          fmt.Sprintf("v0.0.%d", +t.Ts.UnixTimeStampNow()),
+	}
+	topologyActionRequestPayload, err := json.Marshal(createRequest)
+	t.Assert().Nil(err)
+
+	fmt.Println("action request json")
+	requestJSON := pretty.Pretty(topologyActionRequestPayload)
+	requestJSON = pretty.Color(requestJSON, pretty.TerminalStyle)
+	fmt.Println(string(requestJSON))
+
 	tar := TopologyActionCreateRequest{
 		TopologyActionRequest: base.CreateTopologyActionRequestWithOrgUser("create", orgUser),
-		TopologyCreateRequest: TopologyCreateRequest{Name: name, Chart: c},
+		TopologyCreateRequest: createRequest,
 	}
+
 	t.E.POST("/infra", tar.CreateTopology)
 	client := resty.New()
 	resp, err := client.R().

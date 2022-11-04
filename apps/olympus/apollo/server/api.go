@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-redis/redis/v9"
 	"github.com/labstack/echo/v4"
@@ -9,7 +10,9 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_fetcher"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/admin"
 	redis_app "github.com/zeus-fyi/olympus/datastores/redis/apps"
 	v1 "github.com/zeus-fyi/olympus/hestia/api/v1"
 )
@@ -27,18 +30,18 @@ func Api() {
 	e = v1.Routes(e)
 	ctx := context.Background()
 	apps.Pg = apps.Db{}
-	//MaxConn := int32(10)
-	//MinConn := int32(3)
-	//MaxConnLifetime := 15 * time.Minute
-	//
-	//pgCfg := admin.ConfigChangePG{
-	//	MaxConns:          &MaxConn,
-	//	MinConn:           &MinConn,
-	//	MaxConnLifetime:   &MaxConnLifetime,
-	//	HealthCheckPeriod: nil,
-	//}
-	//apps.Pg.InitPG(ctx, PGConnStr)
-	//_ = admin.UpdateConfigPG(ctx, pgCfg)
+	MaxConn := int32(10)
+	MinConn := int32(3)
+	MaxConnLifetime := 15 * time.Minute
+
+	pgCfg := admin.ConfigChangePG{
+		MaxConns:          &MaxConn,
+		MinConn:           &MinConn,
+		MaxConnLifetime:   &MaxConnLifetime,
+		HealthCheckPeriod: nil,
+	}
+	apps.Pg.InitPG(ctx, PGConnStr)
+	_ = admin.UpdateConfigPG(ctx, pgCfg)
 
 	redisOpts := redis.Options{
 		Addr: RedisEndpointURL,
@@ -49,11 +52,9 @@ func Api() {
 		log.Err(err)
 	}
 
-	//beacon_fetcher.InitFetcherService(ctx, BeaconEndpointURL, r)
+	beacon_fetcher.InitFetcherService(ctx, BeaconEndpointURL, r)
 
 	log.Info().Interface("redis conn", r.Conn()).Msg("started redis")
-	//Start server
-
 	err = e.Start(":9000")
 	if err != nil {
 		log.Err(err)

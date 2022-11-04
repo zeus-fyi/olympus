@@ -17,17 +17,14 @@ func (s *StatefulSet) GetStatefulSetCTE(chart *charts.Chart) sql_query_templates
 	podSpecTemplateCte := s.Spec.Template.InsertPodTemplateSpecContainersCTE(chart)
 	podSpecTemplateSubCtes := podSpecTemplateCte.SubCTEs
 
-	/*
-		StatefulSetUpdateStrategy structs.ChildClassMultiValue
-		PodManagementPolicy       structs.ChildClassSingleValue
-		ServiceName               structs.ChildClassSingleValue
-	*/
 	stsUpdateStrategyCTEs := common.CreateChildClassMultiValueSubCTEs(&s.Spec.StatefulSetUpdateStrategy)
 	stsPodManagementPolicyCTEs := common.CreateChildClassSingleValueSubCTEs(&s.Spec.PodManagementPolicy)
 	stsServiceNameCTEs := common.CreateChildClassSingleValueSubCTEs(&s.Spec.ServiceName)
 
+	pvcCTEs := s.Spec.VolumeClaimTemplates.GetVCTemplateGroupSubCTEs(chart)
+
 	combinedSubCTEs = sql_query_templates.AppendSubCteSlices(metaDataCtes, specCtes, podSpecTemplateSubCtes,
-		stsUpdateStrategyCTEs, stsPodManagementPolicyCTEs, stsServiceNameCTEs)
+		stsUpdateStrategyCTEs, stsPodManagementPolicyCTEs, stsServiceNameCTEs, pvcCTEs)
 
 	cteExpr := sql_query_templates.CTE{
 		Name:    "InsertStatefulSetCTEs",

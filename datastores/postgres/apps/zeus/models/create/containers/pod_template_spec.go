@@ -73,7 +73,7 @@ func (p *PodTemplateSpec) GetPodSpecParentClassTypeID() int {
 }
 
 func (p *PodTemplateSpec) SetPodSpecParentClassTypeID(id int) {
-	p.ParentClass.InsertParentClassTypeID(id)
+	p.ParentClass.SetParentClassTypeID(id)
 	p.Spec.PodTemplateSpecClassDefinition.ChartSubcomponentParentClassTypeID = id
 }
 

@@ -13,6 +13,7 @@ func (v *VolumeClaimTemplate) ConvertK8VolumeClaimTemplateSpecStorageClassNameTo
 	v.Spec.StorageClassName.ChartSubcomponentChildClassTypeName = "storageClassName"
 	scName := v.K8sPersistentVolumeClaim.Spec.StorageClassName
 	if scName != nil {
+		v.Spec.StorageClassName.ChartSubcomponentKeyName = "storageClassName"
 		v.Spec.StorageClassName.ChartSubcomponentValue = *scName
 	}
 }

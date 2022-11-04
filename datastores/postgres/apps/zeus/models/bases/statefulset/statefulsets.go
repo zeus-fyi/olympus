@@ -33,7 +33,8 @@ type Spec struct {
 	StatefulSetUpdateStrategy structs.ChildClassMultiValue
 	PodManagementPolicy       structs.ChildClassSingleValue
 	ServiceName               structs.ChildClassSingleValue
-	VolumeClaimTemplates      volumes.VolumeClaimTemplateGroup
+
+	VolumeClaimTemplates volumes.VolumeClaimTemplateGroup
 }
 
 func NewStatefulSet() StatefulSet {
@@ -56,6 +57,7 @@ func NewStatefulSet() StatefulSet {
 	}
 	s.Metadata.Metadata = structs.NewMetadata()
 	s.Metadata.ChartSubcomponentParentClassTypeName = "StatefulSetSpecParentMetadata"
+	s.Metadata.ChartComponentResourceID = SvcChartComponentResourceID
 	s.Spec.VolumeClaimTemplates = volumes.NewVolumeClaimTemplateGroup()
 	return s
 }

@@ -8,6 +8,8 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 )
 
@@ -37,6 +39,17 @@ func (s *StatefulSetTestSuite) TestStatefulSetK8sToDBConversion() {
 	s.Require().NotEmpty(sts.Spec.Selector)
 	s.Require().NotEmpty(sts.Spec.PodManagementPolicy)
 	s.Require().NotEmpty(sts.Spec.VolumeClaimTemplates)
+
+	c := charts.NewChart()
+	ts := chronos.Chronos{}
+	c.ChartPackageID = ts.UnixTimeStampNow()
+	subCTEs := sts.GetStatefulSetCTE(&c)
+
+	s.Assert().NotEmpty(subCTEs)
+
+	fmt.Println(subCTEs.GenerateChainedCTE())
+	fmt.Println(subCTEs.Params)
+
 }
 
 func TestStatefulSetTestSuite(t *testing.T) {

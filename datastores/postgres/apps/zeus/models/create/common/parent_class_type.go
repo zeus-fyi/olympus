@@ -20,11 +20,9 @@ type ParentClass struct {
 	autogen_bases.ChartSubcomponentParentClassTypes
 }
 
-func (p *ParentClass) InsertParentClassTypeID(id int) {
+func (p *ParentClass) SetParentClassTypeID(id int) {
 	p.ChartSubcomponentParentClassTypeID = id
 }
-
-const SelectDeploymentResourceID = "(SELECT chart_component_resource_id FROM chart_component_resources WHERE chart_component_kind_name = 'Deployment' AND chart_component_api_version = 'apps/v1')"
 
 func CreateParentClassTypeSubCTE(c *charts.Chart, pcType *autogen_bases.ChartSubcomponentParentClassTypes) sql_query_templates.SubCTEs {
 	if pcType.ChartSubcomponentParentClassTypeID == 0 {

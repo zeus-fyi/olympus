@@ -57,7 +57,7 @@ func (c *ChildClassMultiValue) GetMultiValueChildClassTypeID() int {
 	return c.ChartSubcomponentChildClassTypes.ChartSubcomponentChildClassTypeID
 }
 
-func (c *ChildClassMultiValue) SetMultiValueChildClassTypeIDs(id int) {
+func (c *ChildClassMultiValue) SetChildClassTypeIDs(id int) {
 	c.ChartSubcomponentChildClassTypes.ChartSubcomponentChildClassTypeID = id
 
 	for i, _ := range c.Values {

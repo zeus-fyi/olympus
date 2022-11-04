@@ -1,13 +1,22 @@
 package volumes
 
 import (
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/common"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-func (v *VolumeClaimTemplateGroup) GetVCTemplateGroupSubCTEs() sql_query_templates.SubCTEs {
+func (v *VolumeClaimTemplateGroup) GetVCTemplateGroupSubCTEs(c *charts.Chart) sql_query_templates.SubCTEs {
+	ts := chronos.Chronos{}
+	if v.ChartSubcomponentParentClassTypeID == 0 {
+		v.SetParentIDs(ts.UnixTimeStampNow())
+	}
+	v.SetNewChildIDs()
+
 	var combinedCTEs sql_query_templates.SubCTEs
-	// TODO get parent
+	pcSubCTEs := common.CreateParentClassTypeSubCTE(c, &v.ParentClass.ChartSubcomponentParentClassTypes)
+	combinedCTEs = sql_query_templates.AppendSubCteSlices(pcSubCTEs)
 	for _, vt := range v.VolumeClaimTemplateSlice {
 		combinedCTEs = sql_query_templates.AppendSubCteSlices(vt.GetVCTemplateSubCTEs(), combinedCTEs)
 	}
@@ -15,7 +24,7 @@ func (v *VolumeClaimTemplateGroup) GetVCTemplateGroupSubCTEs() sql_query_templat
 }
 
 func (v *VolumeClaimTemplate) GetVCTemplateSubCTEs() sql_query_templates.SubCTEs {
-	vctMetadataSubCTEs := common.CreateMetadataSubCTEs(v.Metadata)
+	vctMetadataSubCTEs := common.CreateBaseMetadataSubCTEs(v.Metadata)
 	vctSpecSubCTEs := v.Spec.GetVCTemplateSpecSubCTEs()
 	return sql_query_templates.AppendSubCteSlices(vctMetadataSubCTEs, vctSpecSubCTEs)
 }

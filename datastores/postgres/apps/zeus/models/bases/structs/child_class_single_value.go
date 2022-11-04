@@ -73,6 +73,10 @@ func (c *ChildClassSingleValue) GetParentClassTypeID() int {
 	return c.ChartSubcomponentChildClassTypes.ChartSubcomponentParentClassTypeID
 }
 
+func (c *ChildClassSingleValue) SetParentClassTypeID(id int) {
+	c.ChartSubcomponentChildClassTypes.ChartSubcomponentParentClassTypeID = id
+}
+
 func (c *ChildClassSingleValue) GetChildValueTypeID() int {
 	return c.ChartSubcomponentsChildValues.ChartSubcomponentChildClassTypeID
 }

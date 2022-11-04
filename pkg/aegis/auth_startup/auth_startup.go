@@ -61,6 +61,8 @@ func NewDefaultAuthClient(ctx context.Context, keysCfg AuthKeysCfg) AuthConfig {
 }
 
 func RunDigitalOceanS3BucketObjAuthProcedure(ctx context.Context, authCfg AuthConfig) memfs.MemFS {
+	log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjAuthProcedure starting")
+
 	s3Reader := s3reader.NewS3ClientReader(authCfg.s3BaseClient)
 	s3SecretsReader := s3secrets.NewS3Secrets(authCfg.a, s3Reader)
 	buf := s3SecretsReader.ReadBytes(ctx, &authCfg.Path, authCfg.S3KeyValue)
@@ -81,5 +83,6 @@ func RunDigitalOceanS3BucketObjAuthProcedure(ctx context.Context, authCfg AuthCo
 		misc.DelayedPanic(err)
 	}
 
+	log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjAuthProcedure finished")
 	return s3SecretsReader.MemFS
 }

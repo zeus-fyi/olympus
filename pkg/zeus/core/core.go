@@ -2,11 +2,12 @@ package zeus_core
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
+	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -62,7 +63,8 @@ func (k *K8Util) SetContext(context string) {
 	k.cfgAccess = cc.ConfigAccess()
 	k.clientCfg, err = cc.ClientConfig()
 	if err != nil {
-		log.Panicln("Failed to set context")
+		log.Panic().Msg("Zeus: SetContext, failed to set ClientConfig")
+		misc.DelayedPanic(err)
 	}
 	k.SetClient(k.clientCfg)
 }
@@ -71,7 +73,8 @@ func (k *K8Util) SetClient(config *rest.Config) {
 	var err error
 	k.kc, err = kubernetes.NewForConfig(config)
 	if err != nil {
-		log.Panicln("Failed to set client")
+		log.Panic().Msg("Zeus: SetClient, failed to set client")
+		misc.DelayedPanic(err)
 	}
 }
 
@@ -99,21 +102,27 @@ func (k *K8Util) DefaultK8sCfgPath() string {
 }
 
 func (k *K8Util) ConnectToK8sFromInMemFsCfgPath(fs memfs.MemFS) {
+	log.Info().Msg("Zeus: ConnectToK8sFromInMemFsCfgPath starting")
+
 	var err error
 	b, err := fs.ReadFile("/.kube/config")
 	if err != nil {
-		log.Panicln("Failed to read inmemfs kube config")
+		log.Panic().Msg("Zeus: ConnectToK8sFromInMemFsCfgPath, failed to read inmemfs kube config")
+		misc.DelayedPanic(err)
 	}
 	cc, err := clientcmd.NewClientConfigFromBytes(b)
 	if err != nil {
-		log.Panicln("Failed to set context")
+		log.Panic().Msg("Zeus: ConnectToK8sFromInMemFsCfgPath, failed to set context")
+		misc.DelayedPanic(err)
 	}
 	k.cfgAccess = cc.ConfigAccess()
 	k.clientCfg, err = cc.ClientConfig()
 	if err != nil {
-		log.Panicln("Failed to set client config")
+		log.Panic().Msg("Zeus: ConnectToK8sFromInMemFsCfgPath, failed to set client config")
+		misc.DelayedPanic(err)
 	}
 	k.SetClient(k.clientCfg)
+	log.Info().Msg("Zeus: ConnectToK8sFromInMemFsCfgPath complete")
 }
 
 func (k *K8Util) K8Printer(v interface{}, env string) (interface{}, error) {

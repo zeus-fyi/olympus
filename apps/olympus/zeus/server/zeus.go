@@ -20,24 +20,23 @@ func Zeus() {
 	srv := NewZeusServer(cfg)
 	// Echo instance
 	ctx := context.Background()
-
 	switch env {
 	case "production":
-		log.Info().Msg("Zeus: production server starting")
+		log.Info().Msg("Zeus: production auth procedure starting")
 
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
-		log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjAuthProcedure starting")
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
-		log.Info().Msg("Zeus: ConnectToK8sFromInMemFsCfgPath starting")
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 	case "local":
 		cfg.K8sUtil.ConnectToK8s()
 	}
 
+	log.Info().Msg("Zeus: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
+
 	srv.E = router.InitRouter(srv.E, cfg.K8sUtil)
 
-	// Start server
+	log.Info().Msg("Zeus: production server starting")
 	srv.Start()
 }
 

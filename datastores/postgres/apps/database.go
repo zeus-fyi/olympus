@@ -6,6 +6,7 @@ import (
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/rs/zerolog/log"
 )
 
 type Db struct {
@@ -31,11 +32,13 @@ var Pg Db
 func (d *Db) InitPG(ctx context.Context, pgConnStr string) *pgxpool.Pool {
 	config, err := pgxpool.ParseConfig(pgConnStr)
 	if err != nil {
+		log.Info().Msg("Zeus: InitPG failed to parse config to database")
 		panic(err)
 	}
 	ConnStr = config.ConnString()
 	c, err := pgxpool.Connect(ctx, ConnStr)
 	if err != nil {
+		log.Info().Msg("Zeus: InitPG failed to connect to database")
 		panic(err)
 	}
 	Pg.Pgpool = c

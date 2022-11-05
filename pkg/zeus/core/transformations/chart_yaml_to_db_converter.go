@@ -11,11 +11,11 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
-type YamlReader struct {
+type YamlFileIO struct {
 	chart_workload.NativeK8s
 }
 
-func (y *YamlReader) ReadK8sWorkloadDir(p structs.Path) error {
+func (y *YamlFileIO) ReadK8sWorkloadDir(p structs.Path) error {
 	err := paths.WalkAndApplyFuncToFileType(p, ".yaml", y.DecodeK8sWorkload)
 	if err != nil {
 		return err
@@ -23,7 +23,7 @@ func (y *YamlReader) ReadK8sWorkloadDir(p structs.Path) error {
 	return err
 }
 
-func (y *YamlReader) ReadYamlConfig(filepath string) ([]byte, error) {
+func (y *YamlFileIO) ReadYamlConfig(filepath string) ([]byte, error) {
 	// Open YAML file
 	jsonByteArray, err := ioutil.ReadFile(filepath)
 	if err != nil {
@@ -37,7 +37,7 @@ func (y *YamlReader) ReadYamlConfig(filepath string) ([]byte, error) {
 	return jsonBytes, err
 }
 
-func (y *YamlReader) ReadK8sWorkloadInMemFsDir(p structs.Path, fs memfs.MemFS) error {
+func (y *YamlFileIO) ReadK8sWorkloadInMemFsDir(p structs.Path, fs memfs.MemFS) error {
 	err := fs.WalkAndApplyFuncToFileType(&p, ".yaml", y.DecodeK8sWorkloadFromInMemFS)
 	if err != nil {
 		return err
@@ -45,7 +45,7 @@ func (y *YamlReader) ReadK8sWorkloadInMemFsDir(p structs.Path, fs memfs.MemFS) e
 	return err
 }
 
-func (y *YamlReader) DecodeK8sWorkload(filepath string) error {
+func (y *YamlFileIO) DecodeK8sWorkload(filepath string) error {
 	b, err := y.ReadYamlConfig(filepath)
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func (y *YamlReader) DecodeK8sWorkload(filepath string) error {
 	return err
 }
 
-func (y *YamlReader) ReadYamlConfigInMemFS(filepath string, fs *memfs.MemFS) ([]byte, error) {
+func (y *YamlFileIO) ReadYamlConfigInMemFS(filepath string, fs *memfs.MemFS) ([]byte, error) {
 	// Open YAML file
 	jsonByteArray, err := fs.ReadFile(filepath)
 	if err != nil {
@@ -68,7 +68,7 @@ func (y *YamlReader) ReadYamlConfigInMemFS(filepath string, fs *memfs.MemFS) ([]
 	return jsonBytes, err
 }
 
-func (y *YamlReader) DecodeK8sWorkloadFromInMemFS(filepath string, fs *memfs.MemFS) error {
+func (y *YamlFileIO) DecodeK8sWorkloadFromInMemFS(filepath string, fs *memfs.MemFS) error {
 	b, err := y.ReadYamlConfigInMemFS(filepath, fs)
 	if err != nil {
 		return err

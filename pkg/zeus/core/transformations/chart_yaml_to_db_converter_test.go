@@ -12,16 +12,16 @@ import (
 
 type TransformationTestSuite struct {
 	base.TestSuite
-	y YamlReader
+	y YamlFileIO
 }
 
 func (s *TransformationTestSuite) SetupTest() {
-	s.y = YamlReader{}
+	s.y = YamlFileIO{}
 }
 
 func (s *TransformationTestSuite) TestDecodeK8sWorkloadDir() {
 	p := structs.Path{
-		DirIn: ".",
+		DirIn: "./temp",
 	}
 	err := s.y.ReadK8sWorkloadDir(p)
 	s.Require().Nil(err)

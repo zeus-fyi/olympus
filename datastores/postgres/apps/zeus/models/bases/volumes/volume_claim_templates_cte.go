@@ -9,25 +9,26 @@ import (
 
 func (v *VolumeClaimTemplateGroup) GetVCTemplateGroupSubCTEs(c *charts.Chart) sql_query_templates.SubCTEs {
 	ts := chronos.Chronos{}
-	if v.ChartSubcomponentParentClassTypeID == 0 {
-		v.SetParentIDs(ts.UnixTimeStampNow())
-	}
-	v.SetNewChildIDs()
-
 	var combinedCTEs sql_query_templates.SubCTEs
-	pcSubCTEs := common.CreateParentClassTypeSubCTE(c, &v.ParentClass.ChartSubcomponentParentClassTypes)
-	pkgSubCTE := common.AddParentClassToChartPackage(c, v.ChartSubcomponentParentClassTypeID)
-	combinedCTEs = sql_query_templates.AppendSubCteSlices(pcSubCTEs)
+
 	for _, vt := range v.VolumeClaimTemplateSlice {
-		combinedCTEs = sql_query_templates.AppendSubCteSlices(vt.GetVCTemplateSubCTEs(), combinedCTEs)
+		if vt.ChartSubcomponentParentClassTypeID == 0 {
+			vt.ChartSubcomponentParentClassTypeID = ts.UnixTimeStampNow()
+		}
+		vt.ChartComponentResourceID = c.ChartComponentResourceID
+		vt.Metadata.ChartComponentResourceID = c.ChartComponentResourceID
+		vt.Metadata.SetParentClassTypeIDs(vt.ChartSubcomponentParentClassTypeID)
+
+		vt.Spec.SetParentClassTypeID(vt.ChartSubcomponentParentClassTypeID)
+		vctMetadataSubCTEs := common.CreateParentMetadataSubCTEs(c, vt.Metadata)
+		combinedCTEs = sql_query_templates.AppendSubCteSlices(vctMetadataSubCTEs, vt.GetVCTemplateSubCTEs(), combinedCTEs)
 	}
-	return sql_query_templates.AppendSubCteSlices(combinedCTEs, []sql_query_templates.SubCTE{pkgSubCTE})
+	return combinedCTEs
 }
 
 func (v *VolumeClaimTemplate) GetVCTemplateSubCTEs() sql_query_templates.SubCTEs {
-	vctMetadataSubCTEs := common.CreateBaseMetadataSubCTEs(v.Metadata)
 	vctSpecSubCTEs := v.Spec.GetVCTemplateSpecSubCTEs()
-	return sql_query_templates.AppendSubCteSlices(vctMetadataSubCTEs, vctSpecSubCTEs)
+	return sql_query_templates.AppendSubCteSlices(vctSpecSubCTEs)
 }
 
 func (v *VolumeClaimTemplateSpec) GetVCTemplateSpecSubCTEs() sql_query_templates.SubCTEs {

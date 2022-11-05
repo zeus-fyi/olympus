@@ -10,7 +10,7 @@ func (v *VolumeClaimTemplate) ConvertK8VolumeClaimTemplateSpecToDB() error {
 }
 
 func (v *VolumeClaimTemplate) ConvertK8VolumeClaimTemplateSpecStorageClassNameToDB() {
-	v.Spec.StorageClassName.ChartSubcomponentChildClassTypeName = "storageClassName"
+	v.Spec.StorageClassName.ChartSubcomponentChildClassTypeName = "VolumeClaimTemplateSpec"
 	scName := v.K8sPersistentVolumeClaim.Spec.StorageClassName
 	if scName != nil {
 		v.Spec.StorageClassName.ChartSubcomponentKeyName = "storageClassName"
@@ -19,7 +19,7 @@ func (v *VolumeClaimTemplate) ConvertK8VolumeClaimTemplateSpecStorageClassNameTo
 }
 
 func (v *VolumeClaimTemplate) ConvertK8VolumeClaimTemplateSpecAccessModesToDB() {
-	v.Spec.AccessModes.ChartSubcomponentChildClassTypeName = "accessModes"
+	v.Spec.AccessModes.ChartSubcomponentChildClassTypeName = "VolumeClaimTemplateSpec"
 	accessModes := v.K8sPersistentVolumeClaim.Spec.AccessModes
 	for _, am := range accessModes {
 		v.Spec.AccessModes.AddKeyValue("accessMode", string(am))
@@ -27,7 +27,7 @@ func (v *VolumeClaimTemplate) ConvertK8VolumeClaimTemplateSpecAccessModesToDB() 
 }
 
 func (v *VolumeClaimTemplate) ConvertK8VolumeClaimTemplateSpecResourceRequestsToDB() error {
-	v.Spec.ResourceRequests.ChartSubcomponentChildClassTypeName = "resources"
+	v.Spec.ResourceRequests.ChartSubcomponentChildClassTypeName = "VolumeClaimTemplateSpec"
 	rr := v.K8sPersistentVolumeClaim.Spec.Resources
 	for _, r := range rr.Limits {
 		b, err := json.Marshal(r)

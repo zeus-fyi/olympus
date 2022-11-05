@@ -11,7 +11,11 @@ func (v *VolumeClaimTemplateGroup) ConvertK8VolumeClaimTemplateSliceToDB() error
 		if err != nil {
 			return err
 		}
-		nPVCDB.Metadata = common_conversions.ConvertMetadata(pvc.ObjectMeta)
+		nPVCDB.Metadata.ChartSubcomponentParentClassTypeName = "VolumeClaimTemplate"
+		nPVCDB.Metadata.Metadata = common_conversions.ConvertMetadata(pvc.ObjectMeta)
+		nPVCDB.Metadata.Metadata.Name.ChartSubcomponentChildClassTypeName = "VolumeClaimTemplateMetadata"
+		nPVCDB.Metadata.Metadata.Labels.ChartSubcomponentChildClassTypeName = "VolumeClaimTemplateMetadata"
+		nPVCDB.Metadata.Metadata.Annotations.ChartSubcomponentChildClassTypeName = "VolumeClaimTemplateMetadata"
 		v.VolumeClaimTemplateSlice[i] = nPVCDB
 	}
 	return nil

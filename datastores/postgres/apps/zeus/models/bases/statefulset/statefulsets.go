@@ -60,7 +60,6 @@ func NewStatefulSet() StatefulSet {
 	s.Metadata.ChartSubcomponentParentClassTypeName = "StatefulSetSpecParentMetadata"
 	s.Metadata.ChartComponentResourceID = StsChartComponentResourceID
 	s.Spec.VolumeClaimTemplates = volumes.NewVolumeClaimTemplateGroup()
-	s.Spec.VolumeClaimTemplates.ChartComponentResourceID = StsChartComponentResourceID
 	return s
 }
 

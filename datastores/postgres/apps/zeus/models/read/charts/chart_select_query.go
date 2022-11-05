@@ -136,14 +136,10 @@ func FetchChartQuery(q sql_query_templates.QueryParams) string {
 	), cte_comp_res AS (
 		SELECT					
 			csp.container_id AS comp_res_container_id,
-			jsonb_object_agg('computeResources',
+			jsonb_object_agg('resources',
 				json_build_object(
-				'compute_resources_cpu_request', compute_resources_cpu_request, 
-				'compute_resources_cpu_limit', compute_resources_cpu_limit,
-				'compute_resources_ram_request', compute_resources_ram_request,
-				'compute_resources_ram_limit', compute_resources_ram_limit,
-				'compute_resources_ephemeral_storage_request', compute_resources_ephemeral_storage_request,
-				'compute_resources_ephemeral_storage_limit', compute_resources_ephemeral_storage_limit
+				'limits', json_build_object('cpu', compute_resources_cpu_limit, 'memory', compute_resources_ram_limit, 'ephemeral-storage', compute_resources_ephemeral_storage_limit),
+				'requests', json_build_object('cpu', compute_resources_cpu_request, 'memory', compute_resources_ram_request, 'ephemeral-storage', compute_resources_ephemeral_storage_request)
 				)
 			) AS comp_res
 		FROM containers_compute_resources csp

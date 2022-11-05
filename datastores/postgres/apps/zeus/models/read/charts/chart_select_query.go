@@ -146,6 +146,14 @@ func FetchChartQuery(q sql_query_templates.QueryParams) string {
 		INNER JOIN cte_chart_subcomponent_spec_pod_template_containers AS cs ON cs.container_id = csp.container_id
 		LEFT JOIN container_compute_resources AS cpr ON cpr.compute_resources_id = csp.compute_resources_id 
 		GROUP BY csp.container_id
+	), cte_cont_sec AS (
+		SELECT					
+						csp.container_id AS sec_container_id,
+						jsonb_object_agg('securityContext', security_context_key_values) AS security_context_key_values
+		FROM containers_security_context csp
+		INNER JOIN cte_chart_subcomponent_spec_pod_template_containers AS cs ON cs.container_id = csp.container_id
+		LEFT JOIN container_security_context AS cpr ON cpr.container_security_context_id = csp.container_security_context_id 
+		GROUP BY csp.container_id
 	), cte_ports AS (
 			SELECT
 				csp.container_id AS container_id_ports,
@@ -166,7 +174,8 @@ func FetchChartQuery(q sql_query_templates.QueryParams) string {
 				container_vol_mounts AS container_vol_mounts,
 				ports.port_id_json_array AS port_id_json_array,
 				cmda.cmd_args AS cmd_args,
-				compr.comp_res AS comp_res
+				compr.comp_res AS comp_res,
+				csec.security_context_key_values AS security_context_key_values
 			FROM cte_chart_subcomponent_spec_pod_template_containers ps
 			LEFT JOIN cte_probes AS pr ON pr.container_id_probes = ps.container_id
 			LEFT JOIN cte_container_environmental_vars AS cenv ON cenv.env_container_id = ps.container_id
@@ -174,6 +183,7 @@ func FetchChartQuery(q sql_query_templates.QueryParams) string {
 			LEFT JOIN cte_ports AS ports ON ports.container_id_ports = ps.container_id
 			LEFT JOIN cte_cmd_args AS cmda ON cmda.cmd_container_id = ps.container_id
 			LEFT JOIN cte_comp_res AS compr ON compr.comp_res_container_id = ps.container_id
+			LEFT JOIN cte_cont_sec AS csec ON csec.sec_container_id = ps.container_id
 	)
 	SELECT  	(SELECT chart_package_id FROM cte_chart_packages ) AS chart_package_id,
 				(SELECT chart_name FROM cte_chart_packages ) AS chart_name,
@@ -195,6 +205,7 @@ func FetchChartQuery(q sql_query_templates.QueryParams) string {
 				COALESCE(cagg.container_vol_mounts, '{}'::jsonb) AS container_vol_mounts,
 				COALESCE(cagg.cmd_args, '{}'::jsonb) AS cmd_args,
 				COALESCE(cagg.comp_res, '{}'::jsonb) AS comp_res,
+				COALESCE(cagg.security_context_key_values, '{}'::jsonb) AS security_context_key_values,
 				COALESCE(v.pod_spec_volumes, '{}'::jsonb) AS pod_spec_volumes
 	FROM cte_chart_kind_agg_to_parent_children ckagg 
 	LEFT JOIN cte_chart_subcomponent_spec_pod_template_containers AS ps ON ps.chart_package_id = ckagg.chart_package_id

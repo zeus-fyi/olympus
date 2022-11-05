@@ -97,6 +97,17 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart
 	probesRelationshipsSubCTE.TableName = "containers_probes"
 	probesRelationshipsSubCTE.Columns = conPRelationship.GetTableColumns()
 
+	// security context
+	containerSecurityCtx := autogen_bases.ContainerSecurityContext{}
+	containerSecurityCtxSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_container_security_ctx_%d", ts.UnixTimeStampNow()))
+	containerSecurityCtxSubCTE.TableName = containerSecurityCtx.GetTableName()
+	containerSecurityCtxSubCTE.Columns = []string{"container_security_context_id", "security_context_key_values"}
+
+	containersSecurityRelationCtx := autogen_bases.ContainersSecurityContext{}
+	containersSecurityCtxRelationSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_containers_security_ctx_relationships_%d", ts.UnixTimeStampNow()))
+	containersSecurityCtxRelationSubCTE.TableName = containersSecurityRelationCtx.GetTableName()
+	containersSecurityCtxRelationSubCTE.Columns = []string{"container_security_context_id", "container_id"}
+
 	podSpecVolumesSubCTE, podSpecVolumesRelationshipSubCTE := p.insertVolumes()
 
 	sortOrderIndex := 0
@@ -142,6 +153,9 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart
 		// vms
 		p.insertContainerVolumeMountsValues(containersMapByImageID, c.ContainerImageID, &contVmsSubCTE, &contVmsRelationshipsSubCTE)
 
+		// security ctx
+		p.insertContainerSecurityCtx(containersMapByImageID, c.ContainerImageID, &containerSecurityCtxSubCTE, &containersSecurityCtxRelationSubCTE)
+
 		// probes
 		p1, p2 := common.CreateProbeValueSubCTEs(cont.GetContainerID(), cont.Probes)
 		probeCTEs = sql_query_templates.AppendSubCteSlices(probeCTEs, p1)
@@ -170,6 +184,10 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart
 			// vols
 			podSpecVolumesSubCTE,
 			podSpecVolumesRelationshipSubCTE,
+
+			// security ctx
+			containerSecurityCtxSubCTE,
+			containersSecurityCtxRelationSubCTE,
 
 			// cmdArgs
 			cmdArgsSubCTE,

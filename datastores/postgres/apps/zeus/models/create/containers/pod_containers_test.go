@@ -24,11 +24,11 @@ func (p *PodContainersGroupTestSuite) TestContainersInsertFromParsedDeploymentFi
 	p.Require().Nil(err)
 	p.Require().NotEmpty(d)
 
-	ps := PodTemplateSpec{}
-	pts := d.Spec.Template.Spec
-	dbDeploymentConfig, err := ps.ConvertPodTemplateSpecConfigToDB(&pts)
-	p.Require().Nil(err)
-	p.Require().NotEmpty(dbDeploymentConfig)
+	//ps := PodTemplateSpec{}
+	//pts := d.Spec.Template.Spec
+	//dbDeploymentConfig, err := ps.ConvertPodTemplateSpecConfigToDB(&pts)
+	//p.Require().Nil(err)
+	//p.Require().NotEmpty(dbDeploymentConfig)
 	//
 	//q := sql_query_templates.NewQueryParam("InsertPodResourceContainers", "table", "where", 1000, []string{})
 	//

@@ -176,3 +176,20 @@ CREATE TABLE "public"."containers_command_args" (
     "container_id" int8 NOT NULL REFERENCES containers(container_id)
 );
 ALTER TABLE "public"."containers_command_args" ADD CONSTRAINT "containers_command_args_pk" UNIQUE ("container_id", "command_args_id");
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------
+-- SecurityContext--
+--------------
+CREATE TABLE "public"."container_security_context" (
+   "container_security_context_id" int8 NOT NULL DEFAULT next_id(),
+   "security_context_key_values" text NOT NULL DEFAULT ''
+);
+ALTER TABLE "public"."container_security_context" ADD CONSTRAINT "container_security_context_pk" PRIMARY KEY ("container_security_context_id");
+
+-- tables for container_command_args links
+CREATE TABLE "public"."containers_security_context" (
+    "container_security_context_id" int8 NOT NULL REFERENCES container_security_context(container_security_context_id),
+    "container_id" int8 NOT NULL REFERENCES containers(container_id)
+);
+ALTER TABLE "public"."containers_security_context" ADD CONSTRAINT "containers_security_context_pk" UNIQUE ("container_id", "container_security_context_id");

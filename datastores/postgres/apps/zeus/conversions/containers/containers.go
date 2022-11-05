@@ -27,10 +27,12 @@ func ConvertContainersToDB(cs []v1.Container, isInit bool) (containers.Container
 		if err != nil {
 			return cl, err
 		}
-
+		newContainer, err = ConvertContainerSecurityContextToContainerDB(c, newContainer)
+		if err != nil {
+			return cl, err
+		}
 		newContainer.ProcessAndSetAmbiguousContainerFieldStatusAndSubfieldIds()
 		newContainer.SetIsInitContainer(isInit)
-
 		cl[i] = newContainer
 	}
 	return cl, nil

@@ -14,6 +14,10 @@ func (c *Container) ParseFields() error {
 	if err != nil {
 		return err
 	}
+	err = c.DB.parseSecurityContext(&k8sCont, c.DB.SecurityContext)
+	if err != nil {
+		return err
+	}
 	err = c.DB.parseComputeResources(&k8sCont, c.DB.ComputeResources)
 	if err != nil {
 		return err
@@ -43,6 +47,23 @@ func (c *Container) ParseFields() error {
 	return nil
 }
 
+func (d *DbContainers) parseSecurityContext(container *v1.Container, securityContext string) error {
+	m := make(map[string]string)
+	err := json.Unmarshal([]byte(securityContext), &m)
+	if err != nil {
+		return err
+	}
+	for _, nv := range m {
+		if len(nv) > 0 {
+			perr := json.Unmarshal([]byte(nv), &container.SecurityContext)
+			if perr != nil {
+				return err
+			}
+		}
+	}
+	return err
+}
+
 func (d *DbContainers) parseCmdArgs(container *v1.Container, cmdArgs string) error {
 	m := make(map[string]map[string]interface{})
 	err := json.Unmarshal([]byte(cmdArgs), &m)
@@ -70,7 +91,6 @@ func (d *DbContainers) parseComputeResources(container *v1.Container, computeRes
 	}
 	for _, v := range m {
 		for nk, nv := range v {
-
 			bytes, berr := json.Marshal(nv)
 			if berr != nil {
 				return berr

@@ -12,7 +12,7 @@ import (
 func (s *StatefulSet) ConvertK8sStatefulSetToDB() error {
 	s.Metadata.ChartSubcomponentParentClassTypeName = "StatefulSetSpecParentMetadata"
 	s.Metadata.Metadata = common_conversions.ConvertMetadata(s.K8sStatefulSet.ObjectMeta)
-
+	s.Metadata.ChartComponentResourceID = StsChartComponentResourceID
 	err := s.ConvertK8sStatefulSetSpecToDB()
 	if err != nil {
 		return err
@@ -53,6 +53,10 @@ func (s *StatefulSet) ConvertK8sStatefulSetSpecToDB() error {
 	if err != nil {
 		return err
 	}
+
+	dbPodTemplateSpecMetadata := s.K8sStatefulSet.Spec.Template.GetObjectMeta()
+	dbPodTemplateSpec.Metadata.Metadata = common_conversions.CreateMetadataByFields(dbPodTemplateSpecMetadata.GetName(), dbPodTemplateSpecMetadata.GetAnnotations(), dbPodTemplateSpecMetadata.GetLabels())
 	s.Spec.Template = dbPodTemplateSpec
+	s.Spec.Template.Metadata.ChartComponentResourceID = StsChartComponentResourceID
 	return nil
 }

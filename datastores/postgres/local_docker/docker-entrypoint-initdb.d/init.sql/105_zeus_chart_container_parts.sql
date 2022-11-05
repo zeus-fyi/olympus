@@ -79,10 +79,10 @@ ALTER TABLE "public"."containers_environmental_vars" ADD CONSTRAINT "container_e
 
 -- tables for containers_volume_mounts
 CREATE TABLE "public"."container_volume_mounts" (
-    "volume_mount_id" int8 DEFAULT next_id(),
+    "volume_mount_id" int8 NOT NULL DEFAULT next_id(),
     "volume_mount_path" text NOT NULL,
     "volume_name" text NOT NULL,
-    "volume_read_only" bool DEFAULT false,
+    "volume_read_only" bool NOT NULL DEFAULT false,
     "volume_sub_path" text NOT NULL DEFAULT ''
 );
 ALTER TABLE "public"."container_volume_mounts" ADD CONSTRAINT "container_volume_mounts_pk" PRIMARY KEY ("volume_mount_id");

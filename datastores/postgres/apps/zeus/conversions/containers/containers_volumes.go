@@ -19,6 +19,8 @@ func ContainerVolumeToDB(vm v1.VolumeMount) autogen_bases.ContainerVolumeMounts 
 		VolumeMountID:   0,
 		VolumeMountPath: vm.MountPath,
 		VolumeName:      vm.Name,
+		VolumeSubPath:   vm.SubPath,
+		VolumeReadOnly:  vm.ReadOnly,
 	}
 	return dbContainerVolumeMount
 }

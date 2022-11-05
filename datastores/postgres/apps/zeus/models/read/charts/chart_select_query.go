@@ -105,7 +105,7 @@ func FetchChartQuery(q sql_query_templates.QueryParams) string {
 	), cte_container_volume_mounts AS (
 			SELECT  ps.container_id AS volume_mounts_container_id,
 					jsonb_object_agg(cvm.volume_mount_id,
-					json_build_object('name', 	cvm.volume_name, 'mountPath', cvm.volume_mount_path)) as container_vol_mounts
+					json_build_object('name', 	cvm.volume_name, 'mountPath', cvm.volume_mount_path, 'subPath', cvm.volume_sub_path, 'readOnly', cvm.volume_read_only)) as container_vol_mounts
 			FROM cte_chart_subcomponent_spec_pod_template_containers ps
 			LEFT JOIN containers_volume_mounts AS csvm ON csvm.container_id = ps.container_id
 			INNER JOIN container_volume_mounts AS cvm ON cvm.volume_mount_id = csvm.volume_mount_id

@@ -74,9 +74,10 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart
 	computeResourcesRelationshipsSubCTE.Columns = []string{"compute_resources_id", "container_id"}
 
 	// vms
+	vmContainer := autogen_bases.ContainerVolumeMounts{}
 	contVmsSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_containers_volume_mounts_%d", ts.UnixTimeStampNow()))
-	contVmsSubCTE.TableName = "container_volume_mounts"
-	contVmsSubCTE.Columns = []string{"volume_mount_id", "volume_mount_path", "volume_name"}
+	contVmsSubCTE.TableName = vmContainer.GetTableName()
+	contVmsSubCTE.Columns = vmContainer.GetTableColumns()
 	contVmsRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_containers_volume_mounts_relationships_%d", ts.UnixTimeStampNow()))
 	contVmsRelationshipsSubCTE.TableName = "containers_volume_mounts"
 	contVmsRelationshipsSubCTE.Columns = []string{"chart_subcomponent_child_class_type_id", "container_id", "volume_mount_id"}

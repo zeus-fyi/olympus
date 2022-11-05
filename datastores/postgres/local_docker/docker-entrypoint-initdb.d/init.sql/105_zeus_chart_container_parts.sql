@@ -10,7 +10,8 @@ CREATE TABLE "public"."containers" (
     "container_version_tag" text NOT NULL DEFAULT 'latest',
     "container_platform_os" text NOT NULL,
     "container_repository" text NOT NULL,
-    "container_image_pull_policy" text CHECK (container_image_pull_policy IN ('IfNotPresent', 'Always', 'Never')) NOT NULL DEFAULT 'IfNotPresent'
+    "container_image_pull_policy" text CHECK (container_image_pull_policy IN ('IfNotPresent', 'Always', 'Never')) NOT NULL DEFAULT 'IfNotPresent',
+    "is_init_container" bool NOT NULL DEFAULT false
     -- todo fields like "container_security_context_group_id" int8 NOT NULL DEFAULT 0,
 );
 ALTER TABLE "public"."containers" ADD CONSTRAINT "containers_pk" PRIMARY KEY ("container_id");
@@ -20,7 +21,6 @@ ALTER TABLE "public"."containers" ADD CONSTRAINT "containers_version_pk" UNIQUE 
 CREATE TABLE "public"."chart_subcomponent_spec_pod_template_containers" (
     "chart_subcomponent_child_class_type_id" int8 NOT NULL REFERENCES chart_subcomponent_child_class_types(chart_subcomponent_child_class_type_id),
     "container_id" int8 NOT NULL REFERENCES containers(container_id),
-    "is_init_container" bool NOT NULL DEFAULT false,
     "container_sort_order" int8 NOT NULL DEFAULT next_id()
 );
 ALTER TABLE "public"."chart_subcomponent_spec_pod_template_containers" ADD CONSTRAINT "containers_order_pk" UNIQUE ("chart_subcomponent_child_class_type_id", "container_id", "is_init_container", "container_sort_order");

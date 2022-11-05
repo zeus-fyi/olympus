@@ -48,15 +48,13 @@ func (s *StatefulSet) ConvertK8sStatefulSetSpecToDB() error {
 	if err != nil {
 		return err
 	}
-	podTemplateSpec := s.K8sStatefulSet.Spec.Template.Spec
-	dbPodTemplateSpec, err := spec.Template.ConvertPodTemplateSpecConfigToDB(&podTemplateSpec)
+	err = s.Spec.Template.ConvertPodTemplateSpecConfigToDB(&s.K8sStatefulSet.Spec.Template.Spec)
 	if err != nil {
 		return err
 	}
-
 	dbPodTemplateSpecMetadata := s.K8sStatefulSet.Spec.Template.GetObjectMeta()
-	dbPodTemplateSpec.Metadata.Metadata = common_conversions.CreateMetadataByFields(dbPodTemplateSpecMetadata.GetName(), dbPodTemplateSpecMetadata.GetAnnotations(), dbPodTemplateSpecMetadata.GetLabels())
-	s.Spec.Template = dbPodTemplateSpec
+	s.Spec.Template.Metadata.Metadata = common_conversions.CreateMetadataByFields(dbPodTemplateSpecMetadata.GetName(), dbPodTemplateSpecMetadata.GetAnnotations(), dbPodTemplateSpecMetadata.GetLabels())
+
 	s.Spec.Template.Metadata.ChartComponentResourceID = StsChartComponentResourceID
 	return nil
 }

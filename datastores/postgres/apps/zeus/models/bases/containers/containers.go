@@ -17,7 +17,6 @@ type Container struct {
 	Probes       probes.ProbeSlice
 
 	ResourceRequest *autogen_bases.ContainerComputeResources
-	IsInitContainer bool
 
 	DB DbContainers
 }
@@ -38,18 +37,52 @@ func (c *Container) GetEnvVars() autogen_bases.ContainerEnvironmentalVarsSlice {
 	return c.Env
 }
 
+func (c *Container) SetIsInitContainer(b bool) {
+	c.Metadata.IsInitContainer = b
+}
+
 type Containers []Container
 
 func NewContainer() Container {
 	c := Container{
-		Metadata:        autogen_bases.Containers{},
-		VolumeMounts:    autogen_bases.ContainerVolumeMountsSlice{},
-		Ports:           autogen_bases.ContainerPortsSlice{},
-		Env:             autogen_bases.ContainerEnvironmentalVarsSlice{},
-		Probes:          probes.ProbeSlice{},
-		IsInitContainer: false,
-		K8sContainer:    v1.Container{},
-		DB:              DbContainers{},
+		Metadata: autogen_bases.Containers{
+			IsInitContainer:          false,
+			ContainerID:              0,
+			ContainerName:            "",
+			ContainerImageID:         "",
+			ContainerVersionTag:      "",
+			ContainerPlatformOs:      "",
+			ContainerRepository:      "",
+			ContainerImagePullPolicy: "",
+		},
+		VolumeMounts: autogen_bases.ContainerVolumeMountsSlice{},
+		Ports:        autogen_bases.ContainerPortsSlice{},
+		Env:          autogen_bases.ContainerEnvironmentalVarsSlice{},
+		Probes:       probes.ProbeSlice{},
+		K8sContainer: v1.Container{},
+		DB:           DbContainers{},
+	}
+	return c
+}
+
+func NewInit() Container {
+	c := Container{
+		Metadata: autogen_bases.Containers{
+			IsInitContainer:          true,
+			ContainerID:              0,
+			ContainerName:            "",
+			ContainerImageID:         "",
+			ContainerVersionTag:      "",
+			ContainerPlatformOs:      "",
+			ContainerRepository:      "",
+			ContainerImagePullPolicy: "",
+		},
+		VolumeMounts: autogen_bases.ContainerVolumeMountsSlice{},
+		Ports:        autogen_bases.ContainerPortsSlice{},
+		Env:          autogen_bases.ContainerEnvironmentalVarsSlice{},
+		Probes:       probes.ProbeSlice{},
+		K8sContainer: v1.Container{},
+		DB:           DbContainers{},
 	}
 	return c
 }

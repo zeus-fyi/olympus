@@ -38,7 +38,7 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart
 
 	contSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_insert_containers_%d", ts.UnixTimeStampNow()))
 	contSubCTE.TableName = "containers"
-	contSubCTE.Columns = []string{"container_id", "container_name", "container_image_id", "container_version_tag", "container_platform_os", "container_repository", "container_image_pull_policy"}
+	contSubCTE.Columns = []string{"container_id", "container_name", "container_image_id", "container_version_tag", "container_platform_os", "container_repository", "container_image_pull_policy", "is_init_container"}
 
 	// ports
 	portsSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_insert_container_ports_%d", ts.UnixTimeStampNow()))
@@ -84,7 +84,7 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart
 	// podSpec for containersMapByImageID
 	podSpecSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_insert_spec_pod_template_containers_%d", ts.UnixTimeStampNow()))
 	podSpecSubCTE.TableName = "chart_subcomponent_spec_pod_template_containers"
-	podSpecSubCTE.Columns = []string{"chart_subcomponent_child_class_type_id", "container_id", "is_init_container", "container_sort_order"}
+	podSpecSubCTE.Columns = []string{"chart_subcomponent_child_class_type_id", "container_id", "container_sort_order"}
 
 	// probes
 	contP := autogen_bases.ContainerProbes{}
@@ -109,10 +109,10 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart
 		// container
 
 		// child class type to link to pod spec
-		contSubCTE.AddValues(cont.GetContainerID(), c.ContainerName, c.ContainerImageID, c.ContainerVersionTag, c.ContainerPlatformOs, c.ContainerRepository, c.ContainerImagePullPolicy)
+		contSubCTE.AddValues(cont.GetContainerID(), c.ContainerName, c.ContainerImageID, c.ContainerVersionTag, c.ContainerPlatformOs, c.ContainerRepository, c.ContainerImagePullPolicy, c.IsInitContainer)
 
 		// pod spec to link container
-		podSpecSubCTE.AddValues(p.GetPodSpecChildClassTypeID(), cont.GetContainerID(), cont.IsInitContainer, sortOrderIndex)
+		podSpecSubCTE.AddValues(p.GetPodSpecChildClassTypeID(), cont.GetContainerID(), sortOrderIndex)
 
 		cmdArgsID := ts.UnixTimeStampNow()
 		cmdArgsSubCTE.AddValues(cmdArgsID, cont.CmdArgs.CommandValues, cont.CmdArgs.ArgsValues)

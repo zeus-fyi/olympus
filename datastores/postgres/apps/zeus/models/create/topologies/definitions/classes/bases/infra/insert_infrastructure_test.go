@@ -13,7 +13,6 @@ import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/configuration"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/ingresses"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulset"
@@ -28,13 +27,13 @@ type CreateInfraTestSuite struct {
 }
 
 func (s *CreateInfraTestSuite) TestInsertInfraBase() {
-	nd := deployments.NewDeployment()
+	//nd := deployments.NewDeployment()
 	nsvc := services.NewService()
 	ing := ingresses.NewIngress()
 	cm := configuration.NewConfigMap()
 	sts := statefulset.NewStatefulSet()
 	cw := chart_workload.ChartWorkload{
-		Deployment:  &nd,
+		//Deployment:  &nd,
 		Service:     &nsvc,
 		Ingress:     &ing,
 		ConfigMap:   &cm,
@@ -52,16 +51,16 @@ func (s *CreateInfraTestSuite) TestInsertInfraBase() {
 		ChartWorkload: cw,
 	}
 
-	filepath := s.TestDirectory + "/apps/zeus/deployment.yaml"
-	jsonBytes, err := s.Yr.ReadYamlConfig(filepath)
-	s.Require().Nil(err)
-	err = json.Unmarshal(jsonBytes, &pkg.K8sDeployment)
-	s.Require().Nil(err)
-	err = pkg.ConvertDeploymentConfigToDB()
-	s.Require().Nil(err)
+	//filepath := s.TestDirectory + "/apps/zeus/deployment.yaml"
+	//jsonBytes, err := s.Yr.ReadYamlConfig(filepath)
+	//s.Require().Nil(err)
+	//err = json.Unmarshal(jsonBytes, &pkg.K8sDeployment)
+	//s.Require().Nil(err)
+	//err = pkg.ConvertDeploymentConfigToDB()
+	//s.Require().Nil(err)
 
-	filepath = s.TestDirectory + "/apps/zeus/service.yaml"
-	jsonBytes, err = s.Yr.ReadYamlConfig(filepath)
+	filepath := s.TestDirectory + "/apps/zeus/service.yaml"
+	jsonBytes, err := s.Yr.ReadYamlConfig(filepath)
 	err = json.Unmarshal(jsonBytes, &pkg.K8sService)
 	s.Require().Nil(err)
 	pkg.ConvertK8sServiceToDB()

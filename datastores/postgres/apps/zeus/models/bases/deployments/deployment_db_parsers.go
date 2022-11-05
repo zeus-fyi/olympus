@@ -22,6 +22,7 @@ func (d *Deployment) ConvertDeploymentConfigToDB() error {
 
 func (d *Deployment) ConvertDeploymentSpec() error {
 	dbDeploymentSpec := NewDeploymentSpec()
+	d.Spec = dbDeploymentSpec
 	m := make(map[string]string)
 	if d.K8sDeployment.Spec.Selector != nil {
 		bytes, err := json.Marshal(d.K8sDeployment.Spec.Selector)
@@ -34,13 +35,11 @@ func (d *Deployment) ConvertDeploymentSpec() error {
 	}
 
 	d.Spec.Replicas.ChartSubcomponentValue = string_utils.Convert32BitPtrIntToString(d.K8sDeployment.Spec.Replicas)
-	dbPodTemplateSpec, err := dbDeploymentSpec.Template.ConvertPodTemplateSpecConfigToDB(&d.K8sDeployment.Spec.Template.Spec)
-	dbPodTemplateSpecMetadata := d.K8sDeployment.Spec.Template.GetObjectMeta()
-	dbPodTemplateSpec.Metadata.Metadata = common_conversions.CreateMetadataByFields(dbPodTemplateSpecMetadata.GetName(), dbPodTemplateSpecMetadata.GetAnnotations(), dbPodTemplateSpecMetadata.GetLabels())
-
+	err := d.Spec.Template.ConvertPodTemplateSpecConfigToDB(&d.K8sDeployment.Spec.Template.Spec)
 	if err != nil {
 		return err
 	}
-	d.Spec.Template = dbPodTemplateSpec
+	dbPodTemplateSpecMetadata := d.K8sDeployment.Spec.Template.GetObjectMeta()
+	d.Metadata.Metadata = common_conversions.CreateMetadataByFields(dbPodTemplateSpecMetadata.GetName(), dbPodTemplateSpecMetadata.GetAnnotations(), dbPodTemplateSpecMetadata.GetLabels())
 	return nil
 }

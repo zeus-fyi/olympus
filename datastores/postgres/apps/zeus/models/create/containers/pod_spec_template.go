@@ -22,8 +22,8 @@ func (p *PodSpecContainerMetadata) insertChartSubcomponentSpecPodTemplateContain
 	columns := p.GetTableColumns()
 	sqlInsertStatement := fmt.Sprintf(
 		`INSERT INTO %s(%s)
- 				 VALUES ('%t', '%d', '%d', %d)`,
-		p.GetTableName(), strings.Join(columns, ","), p.IsInitContainer, p.ContainerSortOrder, p.ChartSubcomponentChildClassTypeID, p.ContainerID)
+ 				 VALUES ('%d', '%d', %d)`,
+		p.GetTableName(), strings.Join(columns, ","), p.ContainerSortOrder, p.ChartSubcomponentChildClassTypeID, p.ContainerID)
 	return sqlInsertStatement
 }
 

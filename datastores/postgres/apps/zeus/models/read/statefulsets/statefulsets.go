@@ -34,14 +34,23 @@ func DBStatefulSetContainer(d *statefulset.StatefulSet, c *containers.Container)
 		if cerr != nil {
 			return cerr
 		}
-		deploymentContainers := d.K8sStatefulSet.Spec.Template.Spec.Containers
-		if len(deploymentContainers) <= 0 {
-			deploymentContainers = []v1.Container{}
-		}
 		c.K8sContainer.Name = c.Metadata.ContainerName
 		c.K8sContainer.Image = c.Metadata.ContainerImageID
 		c.K8sContainer.ImagePullPolicy = v1.PullPolicy(c.Metadata.ContainerImagePullPolicy)
-		d.K8sStatefulSet.Spec.Template.Spec.Containers = append(deploymentContainers, c.K8sContainer)
+
+		if c.Metadata.IsInitContainer {
+			deploymentInitContainers := d.K8sStatefulSet.Spec.Template.Spec.InitContainers
+			if len(deploymentInitContainers) <= 0 {
+				deploymentInitContainers = []v1.Container{}
+			}
+			d.K8sStatefulSet.Spec.Template.Spec.InitContainers = append(deploymentInitContainers, c.K8sContainer)
+		} else {
+			deploymentContainers := d.K8sStatefulSet.Spec.Template.Spec.Containers
+			if len(deploymentContainers) <= 0 {
+				deploymentContainers = []v1.Container{}
+			}
+			d.K8sStatefulSet.Spec.Template.Spec.Containers = append(deploymentContainers, c.K8sContainer)
+		}
 	}
 	return nil
 }

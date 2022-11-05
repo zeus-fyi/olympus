@@ -7,22 +7,26 @@ import (
 )
 
 // ConvertPodTemplateSpecConfigToDB PodTemplateSpecConfigToDB has a dependency on chart_subcomponent_child_class_types and containers
-func (p *PodTemplateSpec) ConvertPodTemplateSpecConfigToDB(ps *v1.PodSpec) (PodTemplateSpec, error) {
-	dbPodSpec := NewPodTemplateSpec()
-
+func (p *PodTemplateSpec) ConvertPodTemplateSpecConfigToDB(ps *v1.PodSpec) error {
 	dbSpecVolumes, err := common_conversions.VolumesToDB(ps.Volumes)
 	if err != nil {
-		return dbPodSpec, err
+		return err
 	}
-	dbSpecContainers, err := cont_conv.ConvertContainersToDB(ps.Containers)
+	dbSpecContainers, err := cont_conv.ConvertContainersToDB(ps.Containers, false)
 	if err != nil {
-		return dbPodSpec, err
+		return err
 	}
-	dbPodSpec.Spec.PodTemplateContainers = dbSpecContainers
-	dbPodSpec.Spec.PodTemplateSpecVolumes = dbSpecVolumes
+	dbSpecInitContainers, err := cont_conv.ConvertContainersToDB(ps.InitContainers, true)
 	if err != nil {
-		return dbPodSpec, err
+		return err
 	}
 
-	return dbPodSpec, nil
+	dbSpecInitContainers = append(dbSpecInitContainers, dbSpecContainers...)
+	p.Spec.PodTemplateContainers = dbSpecInitContainers
+	p.Spec.PodTemplateSpecVolumes = dbSpecVolumes
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

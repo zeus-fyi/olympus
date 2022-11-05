@@ -23,7 +23,7 @@ CREATE TABLE "public"."chart_subcomponent_spec_pod_template_containers" (
     "container_id" int8 NOT NULL REFERENCES containers(container_id),
     "container_sort_order" int8 NOT NULL DEFAULT next_id()
 );
-ALTER TABLE "public"."chart_subcomponent_spec_pod_template_containers" ADD CONSTRAINT "containers_order_pk" UNIQUE ("chart_subcomponent_child_class_type_id", "container_id", "is_init_container", "container_sort_order");
+ALTER TABLE "public"."chart_subcomponent_spec_pod_template_containers" ADD CONSTRAINT "containers_order_pk" UNIQUE ("chart_subcomponent_child_class_type_id", "container_id", "container_sort_order");
 
 ------------
 -- PORTS----

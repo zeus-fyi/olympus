@@ -87,7 +87,8 @@ func FetchChartQuery(q sql_query_templates.QueryParams) string {
 				cs.container_version_tag, 
 				cs.container_platform_os,
 				cs.container_repository,
-				cs.container_image_pull_policy
+				cs.container_image_pull_policy,
+				cs.is_init_container as is_init_container
 			FROM cte_chart_package_components cpc
 			LEFT JOIN chart_subcomponent_child_class_types AS cct ON cct.chart_subcomponent_parent_class_type_id = cpc.chart_subcomponent_parent_class_type_id
 			LEFT JOIN chart_subcomponent_spec_pod_template_containers AS ps ON ps.chart_subcomponent_child_class_type_id = cct.chart_subcomponent_child_class_type_id
@@ -191,6 +192,7 @@ func FetchChartQuery(q sql_query_templates.QueryParams) string {
 				COALESCE(ps.container_platform_os, '') AS container_platform_os,
 				COALESCE(ps.container_repository,'') AS container_repository,
 				COALESCE(ps.container_image_pull_policy,'') AS container_image_pull_policy,
+				COALESCE(ps.is_init_container,'false') AS is_init_container,
 				COALESCE(cagg.port_id_json_array, '{}'::jsonb) AS ports,
 				COALESCE(cagg.env_vars, '{}'::jsonb) AS env_vars,
 				COALESCE(cagg.probes, '{}'::jsonb) AS probes,

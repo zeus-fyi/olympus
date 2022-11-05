@@ -72,11 +72,13 @@ func (d *DbContainers) parseCmdArgs(container *v1.Container, cmdArgs string) err
 	}
 	for _, v := range m {
 		for nk, nv := range v {
-			switch nk {
-			case "command":
-				container.Command = strings.Split(nv.(string), ",")
-			case "args":
-				container.Args = strings.Split(nv.(string), ",")
+			if len(nv.(string)) > 0 {
+				switch nk {
+				case "command":
+					container.Command = strings.Split(nv.(string), ",")
+				case "args":
+					container.Args = strings.Split(nv.(string), ",")
+				}
 			}
 		}
 	}

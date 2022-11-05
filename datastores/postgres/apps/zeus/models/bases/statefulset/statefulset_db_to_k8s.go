@@ -1,7 +1,6 @@
 package statefulset
 
 import (
-	"fmt"
 	"strings"
 
 	v1core "k8s.io/api/core/v1"
@@ -19,7 +18,6 @@ func (s *StatefulSet) ParseDBConfigToK8s(pcSlice common_conversions.ParentChildD
 	pvcMap := make(map[int][]common_conversions.PC)
 	for pcGroupName, pc := range pcSlice.PCGroupMap {
 
-		fmt.Println(pcGroupName)
 		switch pcGroupName {
 		case "Spec":
 			err := s.ConvertDBSpecToK8s(pc)
@@ -73,12 +71,11 @@ func (s *StatefulSet) ParseVolumeClaimTemplates(pvcMap map[int][]common_conversi
 				}
 			case "VolumeClaimTemplateSpec":
 				switch key {
-				case "storageClass":
+				case "storageClassName":
 					pvc.Spec.StorageClassName = &val
 				case "requests":
 					rl := v1core.ResourceList{}
 					val = strings.Trim(val, `""`)
-
 					qty := resource.MustParse(val)
 					rl["storage"] = qty
 					pvc.Spec.Resources.Requests = rl

@@ -26,7 +26,8 @@ func (s *CreateInfraTestSuite) TestInsertInfraBase() {
 	p := structs.Path{
 		PackageName: "",
 		DirIn:       s.TestDirectory + "/temp",
-		DirOut:      "./",
+		DirOut:      s.TestDirectory + "/tempout",
+		FnOut:       "statefulset_out.yaml",
 		FilterFiles: string_utils.FilterOpts{DoesNotStartWithThese: []string{"deployment"}},
 	}
 	err := s.Yr.ReadK8sWorkloadDir(p)
@@ -59,7 +60,6 @@ func (s *CreateInfraTestSuite) TestInsertInfraBase() {
 	fmt.Println(inf.ChartPackageID)
 	fmt.Println("TopologyID")
 	fmt.Println(inf.TopologyID)
-
 }
 
 func TestCreateInfraTestSuite(t *testing.T) {

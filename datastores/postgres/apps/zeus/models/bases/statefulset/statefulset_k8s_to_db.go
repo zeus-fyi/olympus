@@ -10,7 +10,7 @@ import (
 )
 
 func (s *StatefulSet) ConvertK8sStatefulSetToDB() error {
-	s.Metadata.ChartSubcomponentParentClassTypeName = "StatefulSetSpecParentMetadata"
+	s.Metadata.ChartSubcomponentParentClassTypeName = "StatefulSetParentMetadata"
 	s.Metadata.Metadata = common_conversions.ConvertMetadata(s.K8sStatefulSet.ObjectMeta)
 	s.Metadata.ChartComponentResourceID = StsChartComponentResourceID
 	err := s.ConvertK8sStatefulSetSpecToDB()

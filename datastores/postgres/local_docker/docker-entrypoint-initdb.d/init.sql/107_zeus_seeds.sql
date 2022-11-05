@@ -24,6 +24,8 @@ INSERT INTO "public"."chart_component_resources" VALUES (21, 'Role', 'rbac.autho
 INSERT INTO "public"."chart_component_resources" VALUES (22, 'CSIDriver', 'storage.k8s.io/v1');
 INSERT INTO "public"."chart_component_resources" VALUES (23, 'CSINode', 'storage.k8s.io/v1');
 INSERT INTO "public"."chart_component_resources" VALUES (24, 'CSIStorageCapacity', 'storage.k8s.io/v1');
+INSERT INTO "public"."chart_component_resources" VALUES (25, 'ResourceQuota', 'v1');
+INSERT INTO "public"."chart_component_resources" VALUES (26, 'LimitRange', 'v1');
 COMMIT;
 
 BEGIN;

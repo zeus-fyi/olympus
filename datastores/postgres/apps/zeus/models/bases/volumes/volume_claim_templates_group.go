@@ -15,7 +15,6 @@ type VolumeClaimTemplateGroup struct {
 func NewVolumeClaimTemplateGroup() VolumeClaimTemplateGroup {
 	pc := common.ParentClass{ChartSubcomponentParentClassTypes: autogen_bases.ChartSubcomponentParentClassTypes{
 		ChartPackageID:                       0,
-		ChartComponentResourceID:             PVCChartComponentResourceID,
 		ChartSubcomponentParentClassTypeID:   0,
 		ChartSubcomponentParentClassTypeName: "VolumeClaimTemplateSpec",
 	}}

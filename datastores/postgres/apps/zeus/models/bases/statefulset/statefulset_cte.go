@@ -8,6 +8,8 @@ import (
 
 func (s *StatefulSet) GetStatefulSetCTE(chart *charts.Chart) sql_query_templates.CTE {
 	var combinedSubCTEs sql_query_templates.SubCTEs
+	chart.ChartComponentResourceID = StsChartComponentResourceID
+
 	// metadata
 	metaDataCtes := common.CreateParentMetadataSubCTEs(chart, s.Metadata)
 

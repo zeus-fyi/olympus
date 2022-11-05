@@ -5,8 +5,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-const PVCChartComponentResourceID = 2
-
 type VolumeClaimTemplate struct {
 	K8sPersistentVolumeClaim v1.PersistentVolumeClaim
 	Spec                     VolumeClaimTemplateSpec

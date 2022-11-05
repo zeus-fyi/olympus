@@ -27,10 +27,9 @@ func (s *ChartReaderTestSuite) TestSelectQueryName() {
 	s.Require().NotNil(chart.K8sDeployment.Spec.Replicas)
 	s.Require().NotEmpty(chart.K8sDeployment.Spec.Template.GetObjectMeta())
 
-	//s.Require().NotEmpty(chart.K8sService)
-	//s.Require().NotEmpty(chart.K8sConfigMap)
-	//s.Require().NotEmpty(chart.K8sIngress)
-	//s.Require().NotEmpty(chart.K8sStatefulSet)
+	s.Require().NotEmpty(chart.K8sService)
+	s.Require().NotEmpty(chart.K8sConfigMap)
+	s.Require().NotEmpty(chart.K8sStatefulSet)
 
 }
 

@@ -10,16 +10,17 @@ import (
 )
 
 func (s *StatefulSet) ConvertK8sStatefulSetToDB() error {
-	dbStatefulSet := NewStatefulSet()
-	dbStatefulSet.Metadata.Metadata = common_conversions.CreateMetadataByFields(s.K8sStatefulSet.Name, s.K8sStatefulSet.Annotations, s.K8sStatefulSet.Labels)
-	err := s.ConvertStatefulSetSpec()
+	s.Metadata.ChartSubcomponentParentClassTypeName = "StatefulSetSpecParentMetadata"
+	s.Metadata.Metadata = common_conversions.ConvertMetadata(s.K8sStatefulSet.ObjectMeta)
+
+	err := s.ConvertK8sStatefulSetSpecToDB()
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *StatefulSet) ConvertStatefulSetSpec() error {
+func (s *StatefulSet) ConvertK8sStatefulSetSpecToDB() error {
 	spec := Spec{
 		SpecWorkload: structs.NewSpecWorkload(),
 		Template:     containers.NewPodTemplateSpec(),

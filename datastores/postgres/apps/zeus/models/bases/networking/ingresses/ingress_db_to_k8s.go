@@ -11,7 +11,7 @@ func (i *Ingress) ParseDBConfigToK8s(pcSlice common_conversions.ParentChildDB) e
 	for pcGroupName, pc := range pcSlice.PCGroupMap {
 		switch pcGroupName {
 		case "Spec":
-			err := i.ConvertSpec(pc)
+			err := i.ConvertDBSpecToK8s(pc)
 			if err != nil {
 				return err
 			}
@@ -22,7 +22,7 @@ func (i *Ingress) ParseDBConfigToK8s(pcSlice common_conversions.ParentChildDB) e
 	return nil
 }
 
-func (i *Ingress) ConvertSpec(pcSlice []common_conversions.PC) error {
+func (i *Ingress) ConvertDBSpecToK8s(pcSlice []common_conversions.PC) error {
 	ingressRulesMap := make(map[string][]common_conversions.PC)
 	ingressTLSMap := make(map[string][]common_conversions.PC)
 

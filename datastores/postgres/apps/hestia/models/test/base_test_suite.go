@@ -25,7 +25,7 @@ var PgTestDB apps.Db
 
 type BaseHestiaTestSuite struct {
 	test_suites.PGTestSuite
-	Yr            transformations.YamlReader
+	Yr            transformations.YamlFileIO
 	TestDirectory string
 }
 
@@ -41,7 +41,7 @@ func ForceDirToCallerLocation() string {
 
 func (b *BaseHestiaTestSuite) SetupTest() {
 	b.TestDirectory = ForceDirToCallerLocation()
-	b.Yr = transformations.YamlReader{}
+	b.Yr = transformations.YamlFileIO{}
 	b.InitLocalConfigs()
 	b.SetupPGConn()
 }

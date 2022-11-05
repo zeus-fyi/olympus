@@ -3,7 +3,6 @@ package transformations
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 
 	"github.com/ghodss/yaml"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
@@ -17,9 +16,7 @@ type YamlReader struct {
 }
 
 func (y *YamlReader) ReadK8sWorkloadDir(p structs.Path) error {
-	fileSystem := os.DirFS(p.DirIn)
-
-	err := paths.WalkAndApplyFuncToFileType(fileSystem, p.DirIn, ".yaml", y.DecodeK8sWorkload)
+	err := paths.WalkAndApplyFuncToFileType(p, ".yaml", y.DecodeK8sWorkload)
 	if err != nil {
 		return err
 	}

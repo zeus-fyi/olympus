@@ -28,6 +28,10 @@ func (p *Path) FileOutPath() string {
 	return path.Join(p.DirOut, p.Fn)
 }
 
+func (p *Path) V2FileOutPath() string {
+	return path.Join(p.DirOut, p.FnOut)
+}
+
 func (p *Path) FileInPath() string {
 	return path.Join(p.DirIn, p.Fn)
 }

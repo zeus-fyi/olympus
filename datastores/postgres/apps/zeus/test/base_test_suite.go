@@ -20,7 +20,7 @@ var PgTestDB apps.Db
 type ConversionsTestSuite struct {
 	Ts chronos.Chronos
 	test_suites.PGTestSuite
-	Yr            transformations.YamlReader
+	Yr            transformations.YamlFileIO
 	TestDirectory string
 }
 
@@ -36,7 +36,7 @@ func (s *ConversionsTestSuite) ForceDirToCallerLocation() string {
 
 func (s *ConversionsTestSuite) SetupTest() {
 	s.TestDirectory = s.ForceDirToCallerLocation()
-	s.Yr = transformations.YamlReader{}
+	s.Yr = transformations.YamlFileIO{}
 	s.InitLocalConfigs()
 	s.SetupPGConn()
 }

@@ -45,8 +45,6 @@ func (s *StatefulSet) ConvertDBSpecToK8s(pcSlice []common_conversions.PC) error 
 			if err != nil {
 				return err
 			}
-		case "VolumeClaimTemplates":
-			// TODO
 		}
 	}
 	return nil

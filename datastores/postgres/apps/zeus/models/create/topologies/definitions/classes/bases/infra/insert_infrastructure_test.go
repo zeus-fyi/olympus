@@ -49,7 +49,6 @@ func (s *CreateInfraTestSuite) TestInsertInfraBase() {
 
 	inf := NewCreateInfrastructure()
 	inf.Packages = pkg
-
 	ctx := context.Background()
 	inf.Name = fmt.Sprintf("test_%d", s.Ts.UnixTimeStampNow())
 	inf.OrgID, inf.UserID = s.b.NewTestOrgAndUser()

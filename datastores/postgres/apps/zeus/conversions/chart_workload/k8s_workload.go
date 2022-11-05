@@ -43,6 +43,10 @@ func (nk *NativeK8s) CreateChartWorkloadFromNativeK8s() (ChartWorkload, error) {
 	if nk.StatefulSet != nil {
 		sts := statefulset.NewStatefulSet()
 		sts.K8sStatefulSet = *nk.StatefulSet
+		err := sts.ConvertK8sStatefulSetToDB()
+		if err != nil {
+			return cw, err
+		}
 		cw.StatefulSet = &sts
 	}
 	if nk.Service != nil {

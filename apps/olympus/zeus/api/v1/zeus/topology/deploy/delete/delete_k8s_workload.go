@@ -9,7 +9,6 @@ import (
 )
 
 func DeleteK8sWorkload(ctx context.Context, kns autok8s_core.KubeCtxNs, nk chart_workload.NativeK8s) error {
-
 	if nk.Deployment != nil {
 		err := zeus.K8Util.DeleteDeployment(ctx, kns, nk.Deployment.Name, nil)
 		if err != nil {

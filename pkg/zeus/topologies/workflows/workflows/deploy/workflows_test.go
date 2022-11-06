@@ -1,4 +1,4 @@
-package workflows
+package deploy_topology
 
 import (
 	"testing"

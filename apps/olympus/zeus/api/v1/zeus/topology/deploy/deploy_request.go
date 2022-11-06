@@ -1,8 +1,8 @@
 package deploy
 
 import (
-	create_or_update_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/create_or_update"
-	delete_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/delete"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/create_or_update"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/delete"
 )
 
 type DeploymentActionRequest struct {

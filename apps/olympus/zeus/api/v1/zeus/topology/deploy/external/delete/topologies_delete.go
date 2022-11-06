@@ -7,7 +7,6 @@ import (
 	"github.com/labstack/echo/v4"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/base"
-	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/test"
 )
 
 type TopologyDeployActionDeleteDeploymentRequest struct {
@@ -26,11 +25,11 @@ func (t *TopologyDeployActionDeleteDeploymentRequest) DeleteDeployedTopology(c e
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	nk := tr.GetNativeK8s()
+	//nk := tr.GetNativeK8s()
 
 	// TODO should also fetch deployed kns, then update it
-	kns := test.Kns
-	err = DeleteK8sWorkload(ctx, kns, nk)
+	//kns := test.Kns
+	//err = DeleteK8sWorkload(ctx, kns, nk)
 
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, nil)

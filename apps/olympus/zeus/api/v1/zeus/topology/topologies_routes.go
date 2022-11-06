@@ -17,3 +17,9 @@ func Routes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	e = deploy.Routes(e, k8Cfg)
 	return e
 }
+
+func InternalRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
+	zeus.K8Util = k8Cfg
+	e = deploy.InternalRoutes(e, k8Cfg)
+	return e
+}

@@ -16,9 +16,6 @@ import (
 //	return nil
 //}
 
-type YourActivityResult struct {
-}
-
 type DeployParams struct {
 	Kns        zeus_core.KubeCtxNs
 	TopologyID int
@@ -35,11 +32,7 @@ type DeployChart struct {
 	ActivityFieldTwo int
 }
 
-func (d *DeployChart) ActivityCreateNamespaceIfDoesNotExist(ctx context.Context) error {
-	//_, nserr := zeus.K8Util.CreateNamespaceIfDoesNotExist(ctx, kns)
-	//if nserr != nil {
-	//	return nserr
-	//}
+func (d *DeployChart) DeployWorkflow(ctx context.Context) error {
 
 	return nil
 }

@@ -1,4 +1,4 @@
-package temporal_client
+package temporal_base
 
 import (
 	"testing"
@@ -27,8 +27,9 @@ func (s *TemporalClientTestSuite) TestCreateClient() {
 		Namespace:        namespace,
 		HostPort:         hostPort,
 	}
-	err := ConnectClient(auth)
+	tc, err := NewTemporalClient(auth)
 	s.Require().Nil(err)
+	defer tc.Close()
 }
 
 func TestTemporalClientTestSuite(t *testing.T) {

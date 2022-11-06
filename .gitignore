@@ -69,3 +69,4 @@ Thumbs.db
 /pkg/hera/cookbook/code_templates/tmp_models/
 /datastores/postgres/apps/zeus/models/bases/structs/autogen_preview/
 /pkg/hera/cookbook/autogen/types_template_preview/
+/configs/zeus.fyi/

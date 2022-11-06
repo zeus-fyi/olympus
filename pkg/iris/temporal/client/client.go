@@ -6,15 +6,22 @@ import (
 	"go.temporal.io/sdk/client"
 )
 
-func ConnectClient(clientCertPath, clientKeyPath string) error {
-	cert, err := tls.LoadX509KeyPair(clientCertPath, clientKeyPath)
+type TemporalAuth struct {
+	ClientCertPath   string
+	ClientPEMKeyPath string
+	Namespace        string
+	HostPort         string
+}
+
+func ConnectClient(authCfg TemporalAuth) error {
+	cert, err := tls.LoadX509KeyPair(authCfg.ClientCertPath, authCfg.ClientPEMKeyPath)
 	if err != nil {
 		return err
 	}
 	temporalClient, err := client.Dial(
 		client.Options{
-			HostPort:  "your-custom-namespace.tmprl.cloud:7233",
-			Namespace: "your-custom-namespace",
+			HostPort:  authCfg.HostPort,
+			Namespace: authCfg.Namespace,
 			ConnectionOptions: client.ConnectionOptions{
 				TLS: &tls.Config{Certificates: []tls.Certificate{cert}},
 			},

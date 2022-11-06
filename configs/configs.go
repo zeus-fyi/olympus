@@ -27,6 +27,9 @@ type TestContainer struct {
 	LocalAgePkey        string
 	LocalS3SpacesKey    string
 	LocalS3SpacesSecret string
+
+	DevTemporalHostPort string
+	DevTemporalNs       string
 }
 
 func forceDirToCallerLocation() string {
@@ -50,6 +53,10 @@ func InitEnvFromConfig(dir string) {
 func InitLocalTestConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
 	testCont.Env = viper.GetString("ENV")
+
+	testCont.DevTemporalNs = viper.GetString("DEV_TEMPORAL_NS")
+	testCont.DevTemporalHostPort = viper.GetString("DEV_TEMPORAL_HOST_PORT")
+
 	testCont.LocalAgePubkey = viper.GetString("LOCAL_AGE_PUBKEY")
 	testCont.LocalAgePkey = viper.GetString("LOCAL_AGE_PKEY")
 

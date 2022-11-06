@@ -11,9 +11,24 @@ type TemporalClientTestSuite struct {
 	base.TestSuite
 }
 
-func (s *TemporalClientTestSuite) TestCreateClient() {
+func (s *TemporalClientTestSuite) SetupTest() {
+	s.InitLocalConfigs()
+}
 
-	// TODO
+func (s *TemporalClientTestSuite) TestCreateClient() {
+	certPath := "./zeus.fyi/ca.pem"
+	pemPath := "./zeus.fyi/ca.key"
+	namespace := s.Tc.DevTemporalNs
+	hostPort := s.Tc.DevTemporalHostPort
+
+	auth := TemporalAuth{
+		ClientCertPath:   certPath,
+		ClientPEMKeyPath: pemPath,
+		Namespace:        namespace,
+		HostPort:         hostPort,
+	}
+	err := ConnectClient(auth)
+	s.Require().Nil(err)
 }
 
 func TestTemporalClientTestSuite(t *testing.T) {

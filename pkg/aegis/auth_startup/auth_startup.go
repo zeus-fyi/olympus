@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	s3base "github.com/zeus-fyi/olympus/datastores/s3"
 	s3reader "github.com/zeus-fyi/olympus/datastores/s3/read"
+	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	"github.com/zeus-fyi/olympus/pkg/aegis/s3secrets"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
@@ -23,14 +24,7 @@ type AuthConfig struct {
 	S3KeyValue   *s3.GetObjectInput
 }
 
-type AuthKeysCfg struct {
-	AgePrivKey    string
-	AgePubKey     string
-	SpacesKey     string
-	SpacesPrivKey string
-}
-
-func NewDefaultAuthClient(ctx context.Context, keysCfg AuthKeysCfg) AuthConfig {
+func NewDefaultAuthClient(ctx context.Context, keysCfg auth_keys_config.AuthKeysCfg) AuthConfig {
 	a := encryption.NewAge(keysCfg.AgePrivKey, keysCfg.AgePubKey)
 	s3BaseClient, err := s3base.NewConnS3ClientWithStaticCreds(ctx, keysCfg.SpacesKey, keysCfg.SpacesPrivKey)
 	if err != nil {

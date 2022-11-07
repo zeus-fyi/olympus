@@ -7,6 +7,7 @@ import (
 	"runtime"
 
 	"github.com/spf13/viper"
+	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	temporal_client "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 )
 
@@ -33,6 +34,7 @@ type TestContainer struct {
 	DevTemporalNs       string
 
 	DevTemporalAuth temporal_client.TemporalAuth
+	DevAuthKeysCfg  auth_keys_config.AuthKeysCfg
 }
 
 func forceDirToCallerLocation() string {
@@ -85,9 +87,19 @@ func InitLocalTestConfigs() TestContainer {
 	testCont.ProdDbPgconn = viper.GetString("PROD_DB_PGCONN")
 
 	testCont.LocalBeaconConn = viper.GetString("LOCAL_BEACON_CONN_STR")
+
+	testCont.DevAuthKeysCfg = getDevAuthKeysCfg()
 	return testCont
 }
 
+func getDevAuthKeysCfg() auth_keys_config.AuthKeysCfg {
+	var DevAuthKeysCfg auth_keys_config.AuthKeysCfg
+	DevAuthKeysCfg.AgePubKey = testCont.LocalAgePubkey
+	DevAuthKeysCfg.AgePrivKey = testCont.LocalAgePkey
+	DevAuthKeysCfg.SpacesKey = testCont.LocalS3SpacesKey
+	DevAuthKeysCfg.SpacesPrivKey = testCont.LocalS3SpacesSecret
+	return DevAuthKeysCfg
+}
 func InitProductionConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
 	testCont.Env = "production"

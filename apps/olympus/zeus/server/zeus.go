@@ -9,12 +9,13 @@ import (
 	"github.com/zeus-fyi/olympus/configs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
+	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
 	router "github.com/zeus-fyi/olympus/zeus/api"
 )
 
 var cfg = Config{}
-var authKeysCfg auth_startup.AuthKeysCfg
+var authKeysCfg auth_keys_config.AuthKeysCfg
 var env string
 
 func Zeus() {
@@ -31,12 +32,7 @@ func Zeus() {
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
-		authKeysCfg.AgePrivKey = tc.LocalAgePkey
-		authKeysCfg.AgePubKey = tc.LocalAgePubkey
-		authKeysCfg.SpacesKey = tc.LocalS3SpacesKey
-		authKeysCfg.SpacesPrivKey = tc.LocalS3SpacesSecret
-
-		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
+		authCfg := auth_startup.NewDefaultAuthClient(ctx, tc.DevAuthKeysCfg)
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 		_, _ = topology_worker.InitTopologyWorker(tc.DevTemporalAuth)

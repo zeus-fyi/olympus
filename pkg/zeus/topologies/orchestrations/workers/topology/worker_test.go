@@ -1,4 +1,4 @@
-package topology
+package topology_worker
 
 import (
 	"testing"

@@ -29,6 +29,7 @@ func (d *DeployTopologyActivity) postDeployTarget(target string) error {
 	u := d.GetDeployURL(target)
 	client := resty.New()
 	_, err := client.R().
+		SetAuthToken(d.Bearer).
 		SetBody(d.TopologyActivity).
 		Post(u.Path)
 	if err != nil {

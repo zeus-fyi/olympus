@@ -7,6 +7,7 @@ import (
 	"runtime"
 
 	"github.com/spf13/viper"
+	temporal_client "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 )
 
 var testCont TestContainer
@@ -30,6 +31,8 @@ type TestContainer struct {
 
 	DevTemporalHostPort string
 	DevTemporalNs       string
+
+	DevTemporalAuth temporal_client.TemporalAuth
 }
 
 func forceDirToCallerLocation() string {
@@ -56,6 +59,16 @@ func InitLocalTestConfigs() TestContainer {
 
 	testCont.DevTemporalNs = viper.GetString("DEV_TEMPORAL_NS")
 	testCont.DevTemporalHostPort = viper.GetString("DEV_TEMPORAL_HOST_PORT")
+	certPath := "./zeus.fyi/ca.pem"
+	pemPath := "./zeus.fyi/ca.key"
+	namespace := testCont.DevTemporalNs
+	hostPort := testCont.DevTemporalHostPort
+	testCont.DevTemporalAuth = temporal_client.TemporalAuth{
+		ClientCertPath:   certPath,
+		ClientPEMKeyPath: pemPath,
+		Namespace:        namespace,
+		HostPort:         hostPort,
+	}
 
 	testCont.LocalAgePubkey = viper.GetString("LOCAL_AGE_PUBKEY")
 	testCont.LocalAgePkey = viper.GetString("LOCAL_AGE_PKEY")

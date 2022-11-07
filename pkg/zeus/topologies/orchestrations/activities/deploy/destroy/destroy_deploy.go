@@ -30,6 +30,7 @@ func (d *DestroyDeployTopologyActivity) postDestroyDeployTarget(target string) e
 	u := d.GetDestroyDeployURL(target)
 	client := resty.New()
 	_, err := client.R().
+		SetAuthToken(d.Bearer).
 		SetBody(d.TopologyActivity).
 		Post(u.Path)
 	if err != nil {

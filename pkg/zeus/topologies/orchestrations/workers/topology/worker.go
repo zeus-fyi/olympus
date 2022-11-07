@@ -1,10 +1,12 @@
-package topology
+package topology_worker
 
 import (
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	deploy_topology_activities "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/create"
 	deploy_workflow "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/create"
 )
+
+var Worker TopologyWorker
 
 type TopologyWorker struct {
 	temporal_base.Worker

@@ -10,11 +10,11 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	v1 "github.com/zeus-fyi/olympus/beacon-indexer/api/v1"
 	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_fetcher"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/admin"
 	redis_app "github.com/zeus-fyi/olympus/datastores/redis/apps"
-	v1 "github.com/zeus-fyi/olympus/hestia/api/v1"
 )
 
 var (

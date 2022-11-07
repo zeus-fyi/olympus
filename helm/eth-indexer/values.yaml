@@ -48,14 +48,14 @@ ingress:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: api.zeus.fyi
+    - host: apollo.eth.zeus.fyi
       paths:
         - path: /
           pathType: ImplementationSpecific
   tls:
     - secretName: eth-indexer-tls
       hosts:
-        - api.zeus.fyi
+        - apollo.eth.zeus.fyi
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious

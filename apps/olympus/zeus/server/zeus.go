@@ -9,6 +9,7 @@ import (
 	"github.com/zeus-fyi/olympus/configs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
+	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
 	router "github.com/zeus-fyi/olympus/zeus/api"
 )
 
@@ -38,6 +39,7 @@ func Zeus() {
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
+		_, _ = topology_worker.InitTopologyWorker(tc.DevTemporalAuth)
 	}
 
 	log.Info().Msg("Zeus: PG connection starting")

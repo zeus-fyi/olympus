@@ -1,32 +1,13 @@
-package deploy_topology
+package deploy_workflow
 
 import (
 	"time"
 
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
-	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	deploy_topology "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/create"
+	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"go.temporal.io/sdk/workflow"
 )
-
-//func WorkflowDeploy(ctx workflow.Context, params WorkflowParams) error {
-//	var activities *YourActivityStruct
-//	future := workflow.ExecuteActivity(ctx, activities.Activity, ctx)
-//	var yourActivityResult YourActivityResult
-//	if err := future.Get(ctx, &yourActivityResult); err != nil {
-//		// ...
-//	}
-//	return nil
-//}
-
-type DeployTopologyParams struct {
-	Kns        zeus_core.KubeCtxNs
-	TopologyID int
-	UserID     int
-	OrgID      int
-	chart_workload.NativeK8s
-}
 
 type DeployTopologyWorkflow struct {
 	temporal_base.Workflow
@@ -35,7 +16,7 @@ type DeployTopologyWorkflow struct {
 
 const defaultTimeout = 3 * time.Minute
 
-func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, params DeployTopologyParams) error {
+func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, params base_deploy_params.DeployTopologyParams) error {
 	log := workflow.GetLogger(ctx)
 
 	ao := workflow.ActivityOptions{

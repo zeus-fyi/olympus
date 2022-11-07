@@ -1,4 +1,4 @@
-package deploy_topology
+package destroy_deployed_workflow
 
 import (
 	"testing"

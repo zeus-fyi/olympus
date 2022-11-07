@@ -4,6 +4,6 @@ import (
 	"context"
 )
 
-func (d *DestroyDeployTopologyActivity) DeployIngress(ctx context.Context) error {
+func (d *DestroyDeployTopologyActivity) DestroyDeployIngress(ctx context.Context) error {
 	return d.postDestroyDeployTarget("ingress")
 }

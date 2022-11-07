@@ -34,6 +34,7 @@ require (
 	k8s.io/client-go v0.24.3
 	k8s.io/kubectl v0.24.3
 	logur.dev/adapter/zerolog v0.6.0
+	logur.dev/logur v0.17.0
 )
 
 require (
@@ -74,7 +75,6 @@ require (
 	google.golang.org/genproto v0.0.0-20221024183307-1bc688fe9f3e // indirect
 	google.golang.org/grpc v1.50.1 // indirect
 	gopkg.in/cenkalti/backoff.v1 v1.1.0 // indirect
-	logur.dev/logur v0.17.0 // indirect
 )
 
 require (

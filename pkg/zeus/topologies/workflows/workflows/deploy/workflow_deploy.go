@@ -23,16 +23,17 @@ type DeployParams struct {
 	OrgID      int
 }
 
-type DeployChart struct {
-	K8Util zeus_core.K8Util
-
-	DeployParams
-
-	ActivityFieldOne string
-	ActivityFieldTwo int
+type TopologyWorkflow struct {
 }
 
-func (d *DeployChart) DeployWorkflow(ctx context.Context) error {
+func (t *TopologyWorkflow) TopologyWorkflow(ctx context.Context) error {
 
+	//	var activities *YourActivityStruct
+	//	future := workflow.ExecuteActivity(ctx, activities.Activity, ctx)
+	//	var yourActivityResult YourActivityResult
+	//	if err := future.Get(ctx, &yourActivityResult); err != nil {
+	//		// ...
+	//	}
+	//	return nil
 	return nil
 }

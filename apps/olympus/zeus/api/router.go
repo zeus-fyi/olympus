@@ -21,7 +21,10 @@ func InitRouter(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
 	// Routes
 	e.GET("/health", Health)
 
+	// external
 	InitV1Routes(e, k8Cfg)
+
+	// internal
 	InitV1InternalRoutes(e, k8Cfg)
 	return e
 }
@@ -41,7 +44,7 @@ func InitV1Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
 
 func InitV1InternalRoutes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
 	eg := e.Group("/v1/internal")
-	eg = v1_router.V1Routes(eg, k8Cfg)
+	eg = v1_router.V1InternalRoutes(eg, k8Cfg)
 	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {

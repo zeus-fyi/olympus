@@ -12,8 +12,8 @@ type TopologyWorkerTestSuite struct {
 }
 
 func (s *TopologyWorkerTestSuite) TestCreateWorker() {
-	w, err := NewTopologyWorker(s.TemporalAuthCfg)
-	s.Require().Nil(err)
+	w, err := InitTopologyWorker(s.TemporalAuthCfg)
+	s.Assert().Nil(err)
 	s.Assert().NotEmpty(w)
 }
 

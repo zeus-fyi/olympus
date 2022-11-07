@@ -17,8 +17,9 @@ type Worker struct {
 	TemporalClient
 
 	worker.Worker
+	WorkerOpts    worker.Options
 	TaskQueueName string
-	Workflows     []Workflow
+	Workflows     []interface{}
 	Activities    []interface{}
 }
 
@@ -26,22 +27,33 @@ func NewWorker(tc TemporalClient, taskQueueName string) Worker {
 	return Worker{
 		TemporalClient: tc,
 		TaskQueueName:  taskQueueName,
+		WorkerOpts:     worker.Options{},
+		Workflows:      []interface{}{},
+		Activities:     []interface{}{},
 	}
 }
 
-func (w *Worker) RegisterWorker(wrk Worker) error {
+func (w *Worker) RegisterWorker() error {
 	err := w.Connect()
 	if err != nil {
 		return err
 	}
 	defer w.Close()
 
-	wrk.Worker = worker.New(w.Client, wrk.TaskQueueName, worker.Options{})
-	for _, workflow := range wrk.Workflows {
-		wrk.Worker.RegisterWorkflow(workflow)
+	w.Worker = worker.New(w.Client, w.TaskQueueName, w.WorkerOpts)
+	for _, workflow := range w.Workflows {
+		w.Worker.RegisterWorkflow(workflow)
 	}
-	for _, activity := range wrk.Activities {
-		wrk.Worker.RegisterActivity(activity)
+	for _, activity := range w.Activities {
+		w.Worker.RegisterActivity(activity)
 	}
 	return nil
+}
+
+func (w *Worker) AddWorkflow(wf interface{}) {
+	w.Workflows = append(w.Workflows, wf)
+}
+
+func (w *Worker) AddActivities(a []interface{}) {
+	w.Activities = append(w.Activities, a...)
 }

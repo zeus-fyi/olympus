@@ -4,6 +4,6 @@ import (
 	"context"
 )
 
-func (d *DeployTopologyActivity) DeployConfigMap(ctx context.Context) error {
+func (d *DeployTopologyActivities) DeployConfigMap(ctx context.Context) error {
 	return d.postDeployTarget("configmap")
 }

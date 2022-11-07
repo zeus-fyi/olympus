@@ -4,6 +4,6 @@ import (
 	"context"
 )
 
-func (d *DeployTopologyActivity) DeployService(ctx context.Context) error {
+func (d *DeployTopologyActivities) DeployService(ctx context.Context) error {
 	return d.postDeployTarget("service")
 }

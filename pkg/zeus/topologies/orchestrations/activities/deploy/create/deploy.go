@@ -1,7 +1,6 @@
 package deploy_topology_activities
 
 import (
-	"context"
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
@@ -10,14 +9,14 @@ import (
 
 const deployRoute = "/v1/internal/deploy"
 
-type DeployTopologyActivity struct {
-	activities.TopologyActivity
+type DeployTopologyActivities struct {
+	topology_activities.TopologyActivity
 }
-type ActivityDefinition func(ctx context.Context) error
-type ActivitiesSlice []ActivityDefinition
+type ActivityDefinition interface{}
+type ActivitiesSlice []interface{}
 
-func (d *DeployTopologyActivity) GetActivities() ActivitiesSlice {
-	return []ActivityDefinition{
+func (d *DeployTopologyActivities) GetActivities() ActivitiesSlice {
+	return []interface{}{
 		d.CreateNamespace,
 		d.DeployDeployment, d.DeployStatefulSet,
 		d.DeployConfigMap,
@@ -25,7 +24,7 @@ func (d *DeployTopologyActivity) GetActivities() ActivitiesSlice {
 	}
 }
 
-func (d *DeployTopologyActivity) postDeployTarget(target string) error {
+func (d *DeployTopologyActivities) postDeployTarget(target string) error {
 	u := d.GetDeployURL(target)
 	client := resty.New()
 	_, err := client.R().
@@ -38,6 +37,6 @@ func (d *DeployTopologyActivity) postDeployTarget(target string) error {
 	return err
 }
 
-func (d *DeployTopologyActivity) GetDeployURL(target string) url.URL {
+func (d *DeployTopologyActivities) GetDeployURL(target string) url.URL {
 	return d.GetURL(deployRoute, target)
 }

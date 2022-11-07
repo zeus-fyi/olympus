@@ -1,4 +1,4 @@
-package activities
+package topology_activities
 
 import (
 	"net/url"

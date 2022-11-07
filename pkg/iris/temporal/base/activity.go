@@ -1,6 +1,8 @@
 package temporal_base
 
-import "go.temporal.io/sdk/workflow"
+import (
+	"context"
+)
 
 /*
 An Activity Definition is an exportable function or a struct method.
@@ -20,4 +22,4 @@ type Activity struct {
 
 type ActivityParams interface{}
 type ActivityResponse interface{}
-type ActivityDefinitionFn func(ctx workflow.Context, params ActivityParams) (ActivityResponse, error)
+type ActivityDefinitionFn func(ctx context.Context, params ActivityParams) (ActivityResponse, error)

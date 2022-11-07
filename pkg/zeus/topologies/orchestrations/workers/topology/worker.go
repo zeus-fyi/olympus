@@ -1,4 +1,4 @@
-package workers
+package topology
 
 import temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 

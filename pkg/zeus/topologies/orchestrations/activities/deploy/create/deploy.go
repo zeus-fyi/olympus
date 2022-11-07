@@ -1,6 +1,7 @@
 package deploy_topology
 
 import (
+	"context"
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
@@ -11,6 +12,17 @@ const deployRoute = "/v1/internal/deploy"
 
 type DeployTopologyActivity struct {
 	activities.TopologyActivity
+}
+type ActivityDefinition func(ctx context.Context) error
+type ActivitiesSlice []ActivityDefinition
+
+func (d *DeployTopologyActivity) GetActivities() ActivitiesSlice {
+	return []ActivityDefinition{
+		d.CreateNamespace,
+		d.DeployDeployment, d.DeployStatefulSet,
+		d.DeployConfigMap,
+		d.DeployService, d.DeployIngress,
+	}
 }
 
 func (d *DeployTopologyActivity) postDeployTarget(target string) error {

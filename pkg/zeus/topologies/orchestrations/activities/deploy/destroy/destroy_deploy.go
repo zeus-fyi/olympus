@@ -1,6 +1,7 @@
 package destroy_deploy
 
 import (
+	"context"
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
@@ -11,6 +12,17 @@ const destroyDeployRoute = "/v1/internal/deploy/destroy"
 
 type DestroyDeployTopologyActivity struct {
 	activities.TopologyActivity
+}
+type ActivityDefinition func(ctx context.Context) error
+type ActivitiesSlice []ActivityDefinition
+
+func (d *DestroyDeployTopologyActivity) GetActivities() ActivitiesSlice {
+	return []ActivityDefinition{
+		d.DestroyNamespace,
+		d.DestroyDeployStatefulSet, d.DestroyDeployDeployment,
+		d.DeployConfigMap,
+		d.DestroyDeployService, d.DestroyDeployIngress,
+	}
 }
 
 func (d *DestroyDeployTopologyActivity) postDestroyDeployTarget(target string) error {

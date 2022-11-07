@@ -18,8 +18,8 @@ type Worker struct {
 
 	worker.Worker
 	TaskQueueName string
-	Workflows     WorkflowGroup
-	Activities    ActivitiesGroup
+	Workflows     []interface{}
+	Activities    []interface{}
 }
 
 func NewWorker(tc TemporalClient, taskQueueName string) Worker {
@@ -37,15 +37,19 @@ func (w *Worker) RegisterWorker(wrk Worker) error {
 	defer w.Close()
 
 	wrk.Worker = worker.New(w.Client, wrk.TaskQueueName, worker.Options{})
-	for _, workflow := range wrk.Workflows.Slice {
+	for _, workflow := range wrk.Workflows {
 		wrk.Worker.RegisterWorkflow(workflow)
 	}
-	for _, activity := range wrk.Activities.Slice {
+	for _, activity := range wrk.Activities {
 		wrk.Worker.RegisterActivity(activity)
 	}
 	return nil
 }
 
-func (w *Worker) AddActivityToWorker(a Activity) {
-	w.Activities.Slice = append(w.Activities.Slice, a)
+func (w *Worker) AddActivitiesToWorker(activities []interface{}) {
+	w.Activities = append(w.Activities, activities...)
+}
+
+func (w *Worker) AddWorkflowsToWorker(wfs []interface{}) {
+	w.Workflows = append(w.Workflows, wfs...)
 }

@@ -13,15 +13,15 @@ import (
 type TemporalTestSuite struct {
 	base.TestSuite
 
-	Temporal  temporal_client.TemporalClient
-	Redis     *redis.Client
-	PG        apps.Db
-	PGTest    PGTestSuite
-	RedisTest RedisTestSuite
+	TemporalAuthCfg temporal_client.TemporalAuth
+	Temporal        temporal_client.TemporalClient
+	Redis           *redis.Client
+	PG              apps.Db
+	PGTest          PGTestSuite
+	RedisTest       RedisTestSuite
 }
 
-func (t *TemporalTestSuite) SetupTemporalWithPG() {
-	t.InitLocalConfigs()
+func (t *TemporalTestSuite) GetTemporalDevAuthCfg() {
 	certPath := "./zeus.fyi/ca.pem"
 	pemPath := "./zeus.fyi/ca.key"
 	namespace := t.Tc.DevTemporalNs
@@ -32,7 +32,13 @@ func (t *TemporalTestSuite) SetupTemporalWithPG() {
 		Namespace:        namespace,
 		HostPort:         hostPort,
 	}
-	client, err := temporal_client.NewTemporalClient(auth)
+	t.TemporalAuthCfg = auth
+}
+
+func (t *TemporalTestSuite) SetupTemporalWithPG() {
+	t.InitLocalConfigs()
+	t.GetTemporalDevAuthCfg()
+	client, err := temporal_client.NewTemporalClient(t.TemporalAuthCfg)
 	t.Require().Nil(err)
 	t.Temporal = client
 	t.PGTest.SetupLocalPGConn()

@@ -18,7 +18,7 @@ type Worker struct {
 
 	worker.Worker
 	TaskQueueName string
-	Workflows     []interface{}
+	Workflows     []Workflow
 	Activities    []interface{}
 }
 
@@ -46,10 +46,10 @@ func (w *Worker) RegisterWorker(wrk Worker) error {
 	return nil
 }
 
-func (w *Worker) AddActivitiesToWorker(activities []interface{}) {
+func (w *Worker) AddActivitiesToWorker(activities ...interface{}) {
 	w.Activities = append(w.Activities, activities...)
 }
 
-func (w *Worker) AddWorkflowsToWorker(wfs []interface{}) {
+func (w *Worker) AddWorkflowToWorker(wfs ...Workflow) {
 	w.Workflows = append(w.Workflows, wfs...)
 }

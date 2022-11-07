@@ -17,7 +17,6 @@ func (s *TemporalWorkflowsTestSuite) TestCreateWorkflow() {
 	err := s.Temporal.Connect()
 	s.Require().Nil(err)
 	defer s.Temporal.Close()
-
 }
 
 func TestTemporalWorkflowsTestSuite(t *testing.T) {

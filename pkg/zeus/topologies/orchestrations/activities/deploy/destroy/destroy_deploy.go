@@ -1,27 +1,25 @@
 package destroy_deploy_activities
 
 import (
-	"context"
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities"
+	topology_activities "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities"
 )
 
 const destroyDeployRoute = "/v1/internal/deploy/destroy"
 
 type DestroyDeployTopologyActivity struct {
-	activities.TopologyActivity
-	BaseRoute string
+	topology_activities.TopologyActivity
 }
-type ActivityDefinition func(ctx context.Context) error
-type ActivitiesSlice []ActivityDefinition
+type ActivityDefinition interface{}
+type ActivitiesSlice []interface{}
 
 func (d *DestroyDeployTopologyActivity) GetActivities() ActivitiesSlice {
-	return []ActivityDefinition{
+	return []interface{}{
 		d.DestroyNamespace,
 		d.DestroyDeployStatefulSet, d.DestroyDeployDeployment,
-		d.DeployConfigMap,
+		d.DestroyDeployConfigMap,
 		d.DestroyDeployService, d.DestroyDeployIngress,
 	}
 }

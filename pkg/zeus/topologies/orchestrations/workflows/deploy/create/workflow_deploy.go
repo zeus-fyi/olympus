@@ -14,6 +14,8 @@ type DeployTopologyWorkflow struct {
 	deploy_topology_activities.DeployTopologyActivities
 }
 
+const defaultTimeout = 3 * time.Minute
+
 func NewDeployTopologyWorkflow() DeployTopologyWorkflow {
 	deployWf := DeployTopologyWorkflow{
 		Workflow:                 temporal_base.Workflow{},
@@ -21,11 +23,10 @@ func NewDeployTopologyWorkflow() DeployTopologyWorkflow {
 	}
 	return deployWf
 }
+
 func (t *DeployTopologyWorkflow) GetWorkflow() interface{} {
 	return t.DeployTopologyWorkflow
 }
-
-const defaultTimeout = 3 * time.Minute
 
 func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, params base_deploy_params.DeployTopologyParams) error {
 	log := workflow.GetLogger(ctx)

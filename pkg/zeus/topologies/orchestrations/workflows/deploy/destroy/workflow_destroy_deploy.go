@@ -4,17 +4,29 @@ import (
 	"time"
 
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
-	destroy_deploy "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/destroy"
+	destroy_deploy_activities "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/destroy"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"go.temporal.io/sdk/workflow"
 )
 
 type DestroyDeployTopologyWorkflow struct {
 	temporal_base.Workflow
-	destroy_deploy.DestroyDeployTopologyActivity
+	destroy_deploy_activities.DestroyDeployTopologyActivity
 }
 
 const defaultTimeout = 3 * time.Minute
+
+func (t *DestroyDeployTopologyWorkflow) GetWorkflow() interface{} {
+	return t.DestroyDeployedTopologyWorkflow
+}
+
+func NewDeployTopologyWorkflow() DestroyDeployTopologyWorkflow {
+	destroyDeployWf := DestroyDeployTopologyWorkflow{
+		Workflow:                      temporal_base.Workflow{},
+		DestroyDeployTopologyActivity: destroy_deploy_activities.DestroyDeployTopologyActivity{},
+	}
+	return destroyDeployWf
+}
 
 func (t *DestroyDeployTopologyWorkflow) DestroyDeployedTopologyWorkflow(ctx workflow.Context, params base_deploy_params.DeployTopologyParams) error {
 	log := workflow.GetLogger(ctx)

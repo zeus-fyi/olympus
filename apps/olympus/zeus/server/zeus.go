@@ -9,7 +9,7 @@ import (
 	"github.com/zeus-fyi/olympus/configs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
-	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
+	"github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
 	router "github.com/zeus-fyi/olympus/zeus/api"
 )
 

@@ -3,11 +3,18 @@ module github.com/zeus-fyi/olympus
 go 1.19
 
 require (
+	filippo.io/age v1.0.0
+	github.com/aws/aws-sdk-go-v2 v1.17.1
+	github.com/aws/aws-sdk-go-v2/config v1.17.10
+	github.com/aws/aws-sdk-go-v2/credentials v1.12.23
+	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.37
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.29.1
 	github.com/confluentinc/confluent-kafka-go v1.9.2
 	github.com/dave/jennifer v1.5.1
 	github.com/ethereum/go-ethereum v1.10.20
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-redis/redis/v9 v9.0.0-beta.2
+	github.com/go-resty/resty/v2 v2.7.0
 	github.com/google/go-querystring v1.1.0
 	github.com/gorilla/schema v1.2.0
 	github.com/jackc/pgx/v4 v4.16.1
@@ -15,6 +22,12 @@ require (
 	github.com/rs/zerolog v1.27.0
 	github.com/spf13/viper v1.12.0
 	github.com/stretchr/testify v1.8.0
+	github.com/zeus-fyi/jennifer v0.0.0-20221008222717-be57190219a6
+	github.com/zeus-fyi/memoryfs v0.0.0-20221102185216-a3f87725e7fb
+	github.com/zeus-fyi/tables-to-go v0.0.0-20221022223825-758445568e31
+	github.com/zeus-fyi/tojen v0.0.0-20221009050240-e9617f6e35ef
+	go.temporal.io/sdk v1.17.0
+	golang.org/x/exp v0.0.0-20221006183845-316c7553db56
 	k8s.io/api v0.24.3
 	k8s.io/apimachinery v0.24.3
 	k8s.io/cli-runtime v0.24.3
@@ -23,26 +36,43 @@ require (
 )
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.17.1 // indirect
-	github.com/aws/aws-sdk-go-v2/credentials v1.12.23 // indirect
+	github.com/aloder/tojen v0.0.0-20200427151940-c77d77b33821 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.9 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.19 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.25 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.19 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.26 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.16 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.10 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.20 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.19 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.13.19 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.11.25 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.13.8 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.17.1 // indirect
 	github.com/aws/smithy-go v1.13.4 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/go-resty/resty/v2 v2.7.0 // indirect
+	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
+	github.com/go-sql-driver/mysql v1.6.0 // indirect
+	github.com/gogo/googleapis v1.4.1 // indirect
+	github.com/gogo/status v1.1.1 // indirect
+	github.com/golang/mock v1.6.0 // indirect
+	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	github.com/jmoiron/sqlx v1.3.5 // indirect
+	github.com/lib/pq v1.10.6 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
+	github.com/mattn/go-sqlite3 v1.14.14 // indirect
+	github.com/pborman/uuid v1.2.1 // indirect
 	github.com/rivo/uniseg v0.3.1 // indirect
-	go.temporal.io/sdk v1.17.0 // indirect
-	golang.org/x/exp v0.0.0-20221006183845-316c7553db56 // indirect
-	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
-	golang.org/x/tools v0.1.12 // indirect
+	github.com/robfig/cron v1.2.0 // indirect
+	github.com/stretchr/objx v0.4.0 // indirect
+	go.temporal.io/api v1.11.1-0.20220907050538-6de5285cf463 // indirect
+	go.uber.org/atomic v1.9.0 // indirect
+	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
+	google.golang.org/genproto v0.0.0-20220902135211-223410557253 // indirect
+	google.golang.org/grpc v1.49.0 // indirect
 	gopkg.in/cenkalti/backoff.v1 v1.1.0 // indirect
 )
 
@@ -133,7 +163,6 @@ require (
 	golang.org/x/time v0.0.0-20220411224347-583f2d630306 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.66.4 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect

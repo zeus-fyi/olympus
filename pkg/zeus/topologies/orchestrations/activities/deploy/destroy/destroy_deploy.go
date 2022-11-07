@@ -4,16 +4,16 @@ import (
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/zeus-fyi/olympus/pkg/zeus/topologies/workflows/activities"
+	"github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities"
 )
 
 const destroyDeployRoute = "/v1/internal/deploy/destroy"
 
-type UndeployTopologyActivity struct {
+type DestroyDeployTopologyActivity struct {
 	activities.TopologyActivity
 }
 
-func (d *UndeployTopologyActivity) postDestroyDeployTarget(target string) error {
+func (d *DestroyDeployTopologyActivity) postDestroyDeployTarget(target string) error {
 	u := d.GetDestroyDeployURL(target)
 	client := resty.New()
 	_, err := client.R().
@@ -25,6 +25,6 @@ func (d *UndeployTopologyActivity) postDestroyDeployTarget(target string) error 
 	return err
 }
 
-func (d *UndeployTopologyActivity) GetDestroyDeployURL(target string) url.URL {
+func (d *DestroyDeployTopologyActivity) GetDestroyDeployURL(target string) url.URL {
 	return d.GetURL(destroyDeployRoute, target)
 }

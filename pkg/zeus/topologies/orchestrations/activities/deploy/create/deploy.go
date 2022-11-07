@@ -4,7 +4,7 @@ import (
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/zeus-fyi/olympus/pkg/zeus/topologies/workflows/activities"
+	"github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities"
 )
 
 const deployRoute = "/v1/internal/deploy"

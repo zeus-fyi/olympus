@@ -46,10 +46,6 @@ func (w *Worker) RegisterWorker(wrk Worker) error {
 	return nil
 }
 
-func (w *Worker) AddWorkflowToWorker(wk Workflow) {
-	w.Workflows.Slice = append(w.Workflows.Slice, wk)
-}
-
 func (w *Worker) AddActivityToWorker(a Activity) {
 	w.Activities.Slice = append(w.Activities.Slice, a)
 }

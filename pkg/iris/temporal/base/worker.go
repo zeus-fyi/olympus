@@ -45,11 +45,3 @@ func (w *Worker) RegisterWorker(wrk Worker) error {
 	}
 	return nil
 }
-
-func (w *Worker) AddActivitiesToWorker(activities ...interface{}) {
-	w.Activities = append(w.Activities, activities...)
-}
-
-func (w *Worker) AddWorkflowToWorker(wfs ...Workflow) {
-	w.Workflows = append(w.Workflows, wfs...)
-}

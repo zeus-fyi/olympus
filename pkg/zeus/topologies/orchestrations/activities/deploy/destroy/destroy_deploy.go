@@ -1,4 +1,4 @@
-package destroy_deploy
+package destroy_deploy_activities
 
 import (
 	"context"
@@ -12,6 +12,7 @@ const destroyDeployRoute = "/v1/internal/deploy/destroy"
 
 type DestroyDeployTopologyActivity struct {
 	activities.TopologyActivity
+	BaseRoute string
 }
 type ActivityDefinition func(ctx context.Context) error
 type ActivitiesSlice []ActivityDefinition

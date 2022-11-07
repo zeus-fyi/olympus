@@ -1,4 +1,4 @@
-package destroy_deploy
+package destroy_deploy_activities
 
 import "context"
 

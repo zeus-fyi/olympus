@@ -2,8 +2,8 @@ package topology
 
 import (
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
+	deploy_topology_activities "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/create"
 	deploy_workflow "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/create"
-	destroy_deployed_workflow "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/destroy"
 )
 
 type TopologyWorker struct {
@@ -19,13 +19,8 @@ func NewTopologyWorker(authCfg temporal_base.TemporalAuth) (TopologyWorker, erro
 	tw := TopologyWorker{w}
 
 	deployWf := deploy_workflow.DeployTopologyWorkflow{}
-	deployWfActivities := deployWf.GetActivities()
-	tw.AddActivitiesToWorker(deployWfActivities)
-
-	destroyDeployWf := destroy_deployed_workflow.DestroyDeployTopologyWorkflow{}
-	destroyDeployWfActivities := destroyDeployWf.GetActivities()
-	tw.AddActivitiesToWorker(destroyDeployWfActivities)
-
-	tw.AddWorkflowToWorker(deployWf.Workflow, destroyDeployWf.Workflow)
+	tw.RegisterWorkflow(deployWf)
+	deployActivities := deploy_topology_activities.DeployTopologyActivity{}
+	tw.RegisterActivity(deployActivities)
 	return tw, err
 }

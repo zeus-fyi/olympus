@@ -16,6 +16,8 @@ COPY configs/zeus.fyi/ca.key .
 COPY apps/olympus/zeus/go.mod .
 COPY apps/olympus/zeus/go.sum .
 
+RUN go mod download
+
 COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o zeus apps/olympus/zeus/main.go

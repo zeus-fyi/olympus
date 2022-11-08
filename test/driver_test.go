@@ -11,6 +11,11 @@ type DriverTestSuite struct {
 	test_suites.TemporalTestSuite
 }
 
+func (t *DriverTestSuite) TestDriveRead() {
+	err := ReadChartAPICall()
+	t.Require().Nil(err)
+}
+
 func (t *DriverTestSuite) TestDrive() {
 
 	//start := make(chan struct{}, 1)

@@ -7,18 +7,15 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/tidwall/pretty"
 	"github.com/zeus-fyi/olympus/configs"
-	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
-	create_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create"
+	read_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/read"
 )
+
+var readChartHost = "http://localhost:9001/v1/infra/read"
 
 func ReadChartAPICall() error {
 	cfg := configs.InitLocalTestConfigs()
-	var ts chronos.Chronos
-	tar := create_infra.TopologyCreateRequest{
-		TopologyName:     "zeus",
-		ChartName:        "zeus",
-		ChartDescription: "zeus infra dev test",
-		Version:          fmt.Sprintf("v0.0.%d", ts.UnixTimeStampNow()),
+	tar := read_infra.TopologyReadRequest{
+		TopologyID: 1667887316382350000,
 	}
 
 	topologyActionRequestPayload, err := json.Marshal(tar)
@@ -30,11 +27,6 @@ func ReadChartAPICall() error {
 	requestJSON = pretty.Color(requestJSON, pretty.TerminalStyle)
 	fmt.Println(string(requestJSON))
 
-	err = ZipK8sChart()
-	if err != nil {
-		return err
-	}
-
 	fp := p.V2FileOutPath()
 	fmt.Println("filepath")
 	fmt.Println(fp)
@@ -42,14 +34,8 @@ func ReadChartAPICall() error {
 	client := resty.New()
 	resp, err := client.R().
 		SetAuthToken(cfg.LocalBearerToken).
-		SetFormData(map[string]string{
-			"topologyName":     tar.TopologyName,
-			"chartName":        tar.ChartName,
-			"chartDescription": tar.ChartDescription,
-			"version":          tar.Version,
-		}).
-		SetFile("chart", fp).
-		Post(createChartHost)
+		SetBody(tar).
+		Post(readChartHost)
 
 	if err != nil {
 		fmt.Println(err.Error())

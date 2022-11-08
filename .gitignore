@@ -70,3 +70,6 @@ Thumbs.db
 /datastores/postgres/apps/zeus/models/bases/structs/autogen_preview/
 /pkg/hera/cookbook/autogen/types_template_preview/
 /configs/zeus.fyi/
+/configs/github/.token
+/configs/github/.token
+/configs/github/

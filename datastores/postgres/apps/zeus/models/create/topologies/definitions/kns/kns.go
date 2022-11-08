@@ -5,7 +5,7 @@ import (
 )
 
 type Kns struct {
-	kns.Kns
+	kns.TopologyKubeCtxNs
 }
 
 func NewCreateKns() Kns {

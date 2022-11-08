@@ -12,6 +12,8 @@ type ModelStructBaseGenWriterTestSuite struct {
 	ModelStructBaseGenTestSuite
 }
 
+var printOutLocationZeus = "/Users/alex/go/Zeus/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+
 func (s *ModelStructBaseGenWriterTestSuite) TestPGBaseSchemaWriter() {
 	filter := string_utils.FilterOpts{
 		DoesNotStartWithThese: []string{"orgs", "user", "valid", "model"},
@@ -22,7 +24,7 @@ func (s *ModelStructBaseGenWriterTestSuite) TestPGBaseSchemaWriter() {
 	p := structs.Path{
 		PackageName: "autogen_bases",
 		DirIn:       "",
-		DirOut:      printOutLocation,
+		DirOut:      printOutLocationZeus,
 		Fn:          "",
 		Env:         "",
 	}
@@ -33,7 +35,7 @@ func (s *ModelStructBaseGenWriterTestSuite) TestPGBaseSchemaWriter() {
 	s.Require().Nil(err)
 }
 
-var printOutLocationHestia = "/Users/alex/Desktop/Zeus/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
+var printOutLocationHestia = "/Users/alex/go/Zeus/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 
 func (s *ModelStructBaseGenWriterTestSuite) TestHestiaBaseSchemaWriter() {
 	filter := string_utils.FilterOpts{

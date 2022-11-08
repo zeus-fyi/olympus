@@ -12,7 +12,7 @@ type ModelStructBaseGenTestSuite struct {
 	test.AutoGenBaseTestSuiteBase
 }
 
-var printOutLocation = "/Users/alex/Desktop/Zeus/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+var printOutLocation = "/Users/alex/go/Zeus/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 
 func (s *ModelStructBaseGenTestSuite) SetupTest() {
 	s.InitLocalConfigs()

@@ -11,6 +11,15 @@ type InfraBaseTopology struct {
 	autogen_bases.TopologyInfrastructureComponents
 }
 
+func NewInfrastructureBaseTopologyWithOrgUser(ou org_users.OrgUser) InfraBaseTopology {
+	tic := autogen_bases.TopologyInfrastructureComponents{
+		TopologyID:     0,
+		ChartPackageID: 0,
+	}
+	inf := InfraBaseTopology{"", ou, tic}
+	return inf
+}
+
 func NewInfrastructureBaseTopology() InfraBaseTopology {
 	tic := autogen_bases.TopologyInfrastructureComponents{
 		TopologyID:     0,

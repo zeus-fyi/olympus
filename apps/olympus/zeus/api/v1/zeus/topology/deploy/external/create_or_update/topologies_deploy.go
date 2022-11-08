@@ -3,42 +3,53 @@ package create_or_update_deploy
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
+	topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
 	deploy_workflow "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/create"
-	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/base"
-	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/test"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/helpers"
 	"go.temporal.io/sdk/client"
 )
 
-type TopologyDeployCreateActionDeployRequest struct {
-	Action string
-	base.TopologyActionRequest
+type TopologyDeployRequest struct {
+	kns.TopologyKubeCtxNs
 }
 
-func (t *TopologyDeployCreateActionDeployRequest) DeployTopology(c echo.Context) error {
-	tr := read_topology.NewInfraTopologyReader()
-	tr.TopologyID = t.TopologyID
-	tr.OrgUser = t.OrgUser
+type TopologyDeployResponse struct {
+	topology_deployment_status.Status
+}
 
+func (t *TopologyDeployRequest) DeployTopology(c echo.Context) error {
 	ctx := context.Background()
+	ou := c.Get("orgUser").(org_users.OrgUser)
+	tr := read_topology.NewInfraTopologyReaderWithOrgUser(ou)
+	tr.TopologyID = t.TopologyID
+
 	err := tr.SelectTopology(ctx)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	// TODO should also write kns & deployed status status
-	kns := test.Kns
-	kns.Namespace = "zeus"
-	kns.CtxType = "dev-do-sfo3-zeus"
+	// from auth lookup
+	bearer := c.Get("bearer")
+	tar := helpers.PackageCommonTopologyRequest(t.TopologyKubeCtxNs, bearer.(string), ou, tr.GetNativeK8s())
+
 	workflowOptions := client.StartWorkflowOptions{}
 	deployWf := deploy_workflow.NewDeployTopologyWorkflow()
 	wf := deployWf.GetWorkflow()
-	_, err = topology_worker.Worker.ExecuteWorkflow(ctx, workflowOptions, wf, t.TopologyActivityRequest)
+	_, err = topology_worker.Worker.ExecuteWorkflow(ctx, workflowOptions, wf, tar)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-	return err
+	resp := topology_deployment_status.NewTopologyStatus()
+
+	resp.TopologyID = t.TopologyID
+	resp.TopologyStatus = "Pending"
+	resp.UpdatedAt = time.Now().UTC()
+	return c.JSON(http.StatusAccepted, resp)
 }

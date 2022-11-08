@@ -1,11 +1,9 @@
 package base_request
 
 import (
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
-	topology_activities "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities"
+	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 )
 
 type InternalDeploymentActionRequest struct {
-	topology_activities.TopologyActivityRequest
-	chart_workload.NativeK8s
+	base_deploy_params.TopologyWorkflowRequest
 }

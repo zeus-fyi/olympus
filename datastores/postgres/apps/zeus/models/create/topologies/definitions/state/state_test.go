@@ -1,14 +1,12 @@
-package create_state
+package create_topology_deployment_status
 
 import (
 	"context"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
-	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
 type CreateTopologyStateTestSuite struct {
@@ -23,12 +21,7 @@ func (s *CreateTopologyStateTestSuite) TestInsertTopologyState() {
 	topState.TopologyID = topID
 	topState.TopologyStatus = "InProgress"
 
-	q := sql_query_templates.NewQueryParam("InsertState", "topologies_deployed", "where", 1000, []string{})
-	q.TableName = topState.GetTableName()
-	q.Columns = topState.GetTableColumns()
-	q.Values = []apps.RowValues{topState.GetRowValues("default")}
-	err := topState.InsertState(ctx, q)
-
+	err := topState.InsertStatus(ctx)
 	s.Require().Nil(err)
 }
 

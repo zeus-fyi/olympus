@@ -28,7 +28,7 @@ func NewDeployTopologyWorkflow() DestroyDeployTopologyWorkflow {
 	return destroyDeployWf
 }
 
-func (t *DestroyDeployTopologyWorkflow) DestroyDeployedTopologyWorkflow(ctx workflow.Context, params base_deploy_params.DeployTopologyParams) error {
+func (t *DestroyDeployTopologyWorkflow) DestroyDeployedTopologyWorkflow(ctx workflow.Context, params base_deploy_params.TopologyWorkflowRequest) error {
 	log := workflow.GetLogger(ctx)
 
 	ao := workflow.ActivityOptions{

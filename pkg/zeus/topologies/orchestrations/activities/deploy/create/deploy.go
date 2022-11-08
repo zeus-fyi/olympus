@@ -4,13 +4,13 @@ import (
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities"
+	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 )
 
 const deployRoute = "/v1/internal/deploy"
 
 type DeployTopologyActivities struct {
-	topology_activities.TopologyActivityRequest
+	base_deploy_params.TopologyWorkflowRequest
 }
 type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
@@ -29,7 +29,7 @@ func (d *DeployTopologyActivities) postDeployTarget(target string) error {
 	client := resty.New()
 	_, err := client.R().
 		SetAuthToken(d.Bearer).
-		SetBody(d.TopologyActivityRequest).
+		SetBody(d.TopologyWorkflowRequest).
 		Post(u.Path)
 	if err != nil {
 		return err

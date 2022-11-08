@@ -14,7 +14,7 @@ func Routes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 
 	e = actions.Routes(e, k8Cfg)
 	e = infra.Routes(e, k8Cfg)
-	//e = deploy.Routes(e, k8Cfg)
+	e = deploy.ExternalDeployRoutes(e, k8Cfg)
 	return e
 }
 

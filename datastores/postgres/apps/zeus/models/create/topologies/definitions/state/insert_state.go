@@ -1,4 +1,4 @@
-package create_state
+package create_topology_deployment_status
 
 import (
 	"context"
@@ -9,9 +9,18 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-const Sn = "Kns"
+const Sn = "TopologyKubeCtxNs"
 
-func (s *State) InsertState(ctx context.Context, q sql_query_templates.QueryParams) error {
+func (s *DeploymentStatus) defaultQ() sql_query_templates.QueryParams {
+	q := sql_query_templates.NewQueryParam("InsertState", "topologies_deployed", "where", 1000, []string{})
+	q.TableName = s.GetTableName()
+	q.Columns = s.GetTableColumns()
+	q.Values = []apps.RowValues{s.GetRowValues("default")}
+	return q
+}
+
+func (s *DeploymentStatus) InsertStatus(ctx context.Context) error {
+	q := s.defaultQ()
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
 	r, err := apps.Pg.Exec(ctx, q.InsertSingleElementQuery())
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {

@@ -1,13 +1,13 @@
-package create_state
+package create_topology_deployment_status
 
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
 
-type State struct {
-	state.State
+type DeploymentStatus struct {
+	topology_deployment_status.Status
 }
 
-func NewCreateState() State {
-	s := state.NewState()
-	cs := State{s}
+func NewCreateState() DeploymentStatus {
+	s := topology_deployment_status.NewTopologyStatus()
+	cs := DeploymentStatus{s}
 	return cs
 }

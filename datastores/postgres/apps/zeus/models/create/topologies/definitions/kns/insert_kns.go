@@ -9,7 +9,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-const Sn = "Kns"
+const Sn = "TopologyKubeCtxNs"
 
 func (k *Kns) InsertKns(ctx context.Context, q sql_query_templates.QueryParams) error {
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
@@ -18,6 +18,6 @@ func (k *Kns) InsertKns(ctx context.Context, q sql_query_templates.QueryParams) 
 		return err
 	}
 	rowsAffected := r.RowsAffected()
-	log.Debug().Msgf("Kns: %s, Rows Affected: %d", q.LogHeader(Sn), rowsAffected)
+	log.Debug().Msgf("TopologyKubeCtxNs: %s, Rows Affected: %d", q.LogHeader(Sn), rowsAffected)
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }

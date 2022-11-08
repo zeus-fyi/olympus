@@ -28,7 +28,7 @@ func (t *DeployTopologyWorkflow) GetWorkflow() interface{} {
 	return t.DeployTopologyWorkflow
 }
 
-func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, params base_deploy_params.DeployTopologyParams) error {
+func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, params base_deploy_params.TopologyWorkflowRequest) error {
 	log := workflow.GetLogger(ctx)
 
 	ao := workflow.ActivityOptions{

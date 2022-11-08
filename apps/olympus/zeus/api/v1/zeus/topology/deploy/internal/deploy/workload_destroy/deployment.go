@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
+	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/internal/base_request"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
@@ -17,8 +19,10 @@ func DestroyDeployDeploymentHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	if request.Deployment != nil {
-		err := zeus.K8Util.DeleteDeployment(ctx, request.Kns, request.Deployment.Name, nil)
+		kns := zeus_core.NewKubeCtxNsFromTopologyKns(request.Kns)
+		err := zeus.K8Util.DeleteDeployment(ctx, kns, request.Deployment.Name, nil)
 		if err != nil {
+			log.Err(err).Msg("DestroyDeployDeploymentHandler")
 			return c.JSON(http.StatusInternalServerError, err)
 		}
 	} else {

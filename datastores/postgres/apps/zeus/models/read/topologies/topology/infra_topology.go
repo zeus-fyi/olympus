@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes/bases/infra"
 	read_charts "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/charts"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -16,6 +17,13 @@ type InfraBaseTopology struct {
 
 func NewInfraTopologyReader() InfraBaseTopology {
 	bt := infra.NewInfrastructureBaseTopology()
+	cr := read_charts.NewChartReader()
+	rt := InfraBaseTopology{bt, cr}
+	return rt
+}
+
+func NewInfraTopologyReaderWithOrgUser(ou org_users.OrgUser) InfraBaseTopology {
+	bt := infra.NewInfrastructureBaseTopologyWithOrgUser(ou)
 	cr := read_charts.NewChartReader()
 	rt := InfraBaseTopology{bt, cr}
 	return rt

@@ -5,7 +5,7 @@ import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes/class_type"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
+	topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
 )
 
 type Topology struct {
@@ -14,13 +14,13 @@ type Topology struct {
 	class_type.TopologyClass
 	OrgUserTopology
 
-	kns.Kns
-	state.State
+	kns.TopologyKubeCtxNs
+	topology_deployment_status.Status
 }
 
 func NewTopology() Topology {
 	t := Topology{
-		Kns: kns.Kns{},
+		TopologyKubeCtxNs: kns.TopologyKubeCtxNs{},
 	}
 	return t
 }
@@ -29,14 +29,14 @@ func NewClusterTopology() Topology {
 	class := class_type.NewTopologyClass()
 	classType := class_type.NewClusterClassTopologyType()
 	out := NewOrgUserTopology()
-	t := Topology{autogen_bases.Topologies{}, classType, class, out, kns.Kns{}, state.NewState()}
+	status := topology_deployment_status.NewTopologyStatus()
+	t := Topology{autogen_bases.Topologies{}, classType, class, out, kns.TopologyKubeCtxNs{}, status}
 	return t
 }
 
 func (t *Topology) SetTopologyID(id int) {
 	t.TopologyID = id
-	t.Kns.TopologyID = id
-	t.State.TopologyID = id
+	t.TopologyKubeCtxNs.TopologyID = id
 	t.OrgUserTopology.TopologyID = id
 }
 
@@ -49,6 +49,7 @@ func NewOrgUsersInfraTopology(ou org_users.OrgUser) Topology {
 	class := class_type.NewTopologyClass()
 	classType := class_type.NewInfraClassTopologyType()
 	out := NewOrgUserTopologyFromOrgUser(ou)
-	t := Topology{autogen_bases.Topologies{}, classType, class, out, kns.Kns{}, state.NewState()}
+	status := topology_deployment_status.NewTopologyStatus()
+	t := Topology{autogen_bases.Topologies{}, classType, class, out, kns.TopologyKubeCtxNs{}, status}
 	return t
 }

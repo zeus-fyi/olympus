@@ -1,14 +1,30 @@
 package base_deploy_params
 
 import (
+	"net/url"
+	"path"
+
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
-	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 )
 
-type DeployTopologyParams struct {
-	Kns        zeus_core.KubeCtxNs
-	TopologyID int
-	UserID     int
-	OrgID      int
+type TopologyWorkflowRequest struct {
+	Kns     kns.TopologyKubeCtxNs
+	OrgUser org_users.OrgUser
+	Bearer  string
+	Host    string
+
 	chart_workload.NativeK8s
+}
+
+func (t *TopologyWorkflowRequest) GetURL(prefix, target string) url.URL {
+	if len(t.Host) <= 0 {
+		t.Host = "https://api.zeus.fyi"
+	}
+	u := url.URL{
+		Host: t.Host,
+		Path: path.Join(prefix, target),
+	}
+	return u
 }

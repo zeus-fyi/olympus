@@ -11,21 +11,12 @@ type DriverTestSuite struct {
 	test_suites.TemporalTestSuite
 }
 
-func (t *DriverTestSuite) TestDriveRead() {
+func (t *DriverTestSuite) TestDriveReadChart() {
 	err := ReadChartAPICall()
 	t.Require().Nil(err)
 }
 
-func (t *DriverTestSuite) TestDrive() {
-
-	//start := make(chan struct{}, 1)
-	//go func() {
-	//	close(start)
-	//	zeus_server.Zeus()
-	//}()
-	//
-	//<-start
-
+func (t *DriverTestSuite) TestDriveCreateTopologyWithChart() {
 	err := CallAPI()
 	t.Require().Nil(err)
 }

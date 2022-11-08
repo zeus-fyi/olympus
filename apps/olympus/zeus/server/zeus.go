@@ -21,6 +21,7 @@ var env string
 
 func Zeus() {
 	log.Info().Msg("Zeus: starting")
+	cfg.Host = "0.0.0.0"
 	srv := NewZeusServer(cfg)
 	// Echo instance
 	ctx := context.Background()

@@ -2,12 +2,13 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: "zeus"
+  namespace: "zeus"
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: "nginx"
   tls:
-    - secretName: eth-indexer-tls
+    - secretName: zeus-tls
       hosts:
         - api.zeus.fyi
   rules:

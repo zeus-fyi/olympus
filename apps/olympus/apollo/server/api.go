@@ -55,7 +55,7 @@ func Api() {
 	beacon_fetcher.InitFetcherService(ctx, BeaconEndpointURL, r)
 
 	log.Info().Interface("redis conn", r.Conn()).Msg("started redis")
-	err = e.Start(":9000")
+	err = e.Start("0.0.0.0:9000")
 	if err != nil {
 		log.Err(err)
 	}

@@ -4,6 +4,6 @@ import (
 	"context"
 )
 
-func (d *DestroyDeployTopologyActivity) DestroyDeployService(ctx context.Context) error {
+func (d *DestroyDeployTopologyActivities) DestroyDeployService(ctx context.Context) error {
 	return d.postDestroyDeployTarget("service")
 }

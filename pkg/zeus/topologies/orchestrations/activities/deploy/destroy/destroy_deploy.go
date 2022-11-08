@@ -9,13 +9,13 @@ import (
 
 const destroyDeployRoute = "/v1/internal/deploy/destroy"
 
-type DestroyDeployTopologyActivity struct {
+type DestroyDeployTopologyActivities struct {
 	base_deploy_params.TopologyWorkflowRequest
 }
 type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
-func (d *DestroyDeployTopologyActivity) GetActivities() ActivitiesSlice {
+func (d *DestroyDeployTopologyActivities) GetActivities() ActivitiesSlice {
 	return []interface{}{
 		d.DestroyNamespace,
 		d.DestroyDeployStatefulSet, d.DestroyDeployDeployment,
@@ -24,7 +24,7 @@ func (d *DestroyDeployTopologyActivity) GetActivities() ActivitiesSlice {
 	}
 }
 
-func (d *DestroyDeployTopologyActivity) postDestroyDeployTarget(target string) error {
+func (d *DestroyDeployTopologyActivities) postDestroyDeployTarget(target string) error {
 	u := d.GetDestroyDeployURL(target)
 	client := resty.New()
 	_, err := client.R().
@@ -37,6 +37,6 @@ func (d *DestroyDeployTopologyActivity) postDestroyDeployTarget(target string) e
 	return err
 }
 
-func (d *DestroyDeployTopologyActivity) GetDestroyDeployURL(target string) url.URL {
+func (d *DestroyDeployTopologyActivities) GetDestroyDeployURL(target string) url.URL {
 	return d.GetURL(destroyDeployRoute, target)
 }

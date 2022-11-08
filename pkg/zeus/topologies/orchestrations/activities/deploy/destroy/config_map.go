@@ -4,6 +4,6 @@ import (
 	"context"
 )
 
-func (d *DestroyDeployTopologyActivity) DestroyDeployConfigMap(ctx context.Context) error {
+func (d *DestroyDeployTopologyActivities) DestroyDeployConfigMap(ctx context.Context) error {
 	return d.postDestroyDeployTarget("configmap")
 }

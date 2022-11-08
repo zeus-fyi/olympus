@@ -8,6 +8,7 @@ type Status struct {
 }
 
 const InProgress = "InProgress"
+const Complete = "Complete"
 
 func NewTopologyStatus() Status {
 	s := Status{autogen_bases.TopologiesDeployed{

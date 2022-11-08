@@ -10,6 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
+	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
 	router "github.com/zeus-fyi/olympus/zeus/api"
 )
@@ -26,10 +27,17 @@ func Zeus() {
 	switch env {
 	case "production":
 		log.Info().Msg("Zeus: production auth procedure starting")
-
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
+
+		temporalAuthCfg := temporal_base.TemporalAuth{
+			ClientCertPath:   "/etc/ssl/certs/ca.pem",
+			ClientPEMKeyPath: "/etc/ssl/certs/ca.key",
+			Namespace:        "production-zeus.ngb72",
+			HostPort:         "production-zeus.ngb72.tmprl.cloud:7233",
+		}
+		_, _ = topology_worker.InitTopologyWorker(temporalAuthCfg)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, tc.DevAuthKeysCfg)

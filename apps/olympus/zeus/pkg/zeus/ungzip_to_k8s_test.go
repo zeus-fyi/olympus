@@ -2,7 +2,7 @@ package zeus
 
 import (
 	"bytes"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -23,7 +23,7 @@ func (s *UnGzipToMemFsTestSuite) SetupTest() {
 
 func (s *UnGzipToMemFsTestSuite) TestUnGzipIntoMemFs() {
 	p := structs.Path{DirIn: "./", DirOut: "./", Fn: "zeus.tar.gz"}
-	byteArray, err := ioutil.ReadFile(p.FileInPath())
+	byteArray, err := os.ReadFile(p.FileInPath())
 	s.Require().Nil(err)
 	b := &bytes.Buffer{}
 	_, err = b.Write(byteArray)

@@ -6,6 +6,6 @@ import (
 )
 
 type InternalDeploymentActionRequest struct {
-	topology_activities.TopologyActivity
+	topology_activities.TopologyActivityRequest
 	chart_workload.NativeK8s
 }

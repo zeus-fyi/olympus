@@ -10,7 +10,7 @@ import (
 const deployRoute = "/v1/internal/deploy"
 
 type DeployTopologyActivities struct {
-	topology_activities.TopologyActivity
+	topology_activities.TopologyActivityRequest
 }
 type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
@@ -29,7 +29,7 @@ func (d *DeployTopologyActivities) postDeployTarget(target string) error {
 	client := resty.New()
 	_, err := client.R().
 		SetAuthToken(d.Bearer).
-		SetBody(d.TopologyActivity).
+		SetBody(d.TopologyActivityRequest).
 		Post(u.Path)
 	if err != nil {
 		return err

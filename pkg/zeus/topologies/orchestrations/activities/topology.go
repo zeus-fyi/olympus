@@ -4,21 +4,22 @@ import (
 	"net/url"
 	"path"
 
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
-	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 )
 
-type TopologyActivity struct {
-	temporal_base.Activity
-	chart_workload.NativeK8s
+type TopologyActivityRequest struct {
+	TopologyID int
+	OrgUser    org_users.OrgUser
+	Bearer     string
+	Kns        zeus_core.KubeCtxNs
+	Host       string
 
-	Bearer string
-	Kns    zeus_core.KubeCtxNs
-	Host   string
+	chart_workload.NativeK8s
 }
 
-func (t *TopologyActivity) GetURL(prefix, target string) url.URL {
+func (t *TopologyActivityRequest) GetURL(prefix, target string) url.URL {
 	if len(t.Host) <= 0 {
 		t.Host = "https://api.zeus.fyi"
 	}

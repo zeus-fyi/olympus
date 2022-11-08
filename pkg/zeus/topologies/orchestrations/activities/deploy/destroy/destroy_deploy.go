@@ -10,7 +10,7 @@ import (
 const destroyDeployRoute = "/v1/internal/deploy/destroy"
 
 type DestroyDeployTopologyActivity struct {
-	topology_activities.TopologyActivity
+	topology_activities.TopologyActivityRequest
 }
 type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
@@ -29,7 +29,7 @@ func (d *DestroyDeployTopologyActivity) postDestroyDeployTarget(target string) e
 	client := resty.New()
 	_, err := client.R().
 		SetAuthToken(d.Bearer).
-		SetBody(d.TopologyActivity).
+		SetBody(d.TopologyActivityRequest).
 		Post(u.Path)
 	if err != nil {
 		return err

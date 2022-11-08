@@ -21,6 +21,11 @@ func NewTopologyWorker(authCfg temporal_base.TemporalAuth) (TopologyWorker, erro
 	if err != nil {
 		return TopologyWorker{}, err
 	}
+	err = tc.Connect()
+	if err != nil {
+		return TopologyWorker{}, err
+	}
+	defer tc.Close()
 	w := temporal_base.NewWorker(tc, "TopologyTaskQueue")
 
 	deployWf := deploy_workflow.NewDeployTopologyWorkflow()

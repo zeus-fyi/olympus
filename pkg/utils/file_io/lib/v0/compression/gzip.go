@@ -21,7 +21,7 @@ func (c *Compression) CreateTarGzipArchiveDir(p *structs.Path) error {
 		return errors.New("need to include a path")
 	}
 	p.FnOut = p.Fn + ".tar.gz"
-	out, err := os.Create(p.FnOut)
+	out, err := os.Create(p.V2FileOutPath())
 	if err != nil {
 		return err
 	}

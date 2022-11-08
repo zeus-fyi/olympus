@@ -16,9 +16,10 @@ var testCont TestContainer
 type TestContainer struct {
 	Env string
 
-	LocalDbPgconn   string
-	ProdDbPgconn    string
-	StagingDbPgconn string
+	LocalDbPgconn     string
+	StagingDbPgconn   string
+	ProdDbPgconn      string
+	ProdLocalDbPgconn string
 
 	LocalBeaconConn  string
 	LocalRedisConn   string
@@ -30,11 +31,16 @@ type TestContainer struct {
 	LocalS3SpacesKey    string
 	LocalS3SpacesSecret string
 
+	LocalBearerToken string
+
 	DevTemporalHostPort string
 	DevTemporalNs       string
 
 	DevTemporalAuth temporal_client.TemporalAuth
 	DevAuthKeysCfg  auth_keys_config.AuthKeysCfg
+
+	ProdLocalTemporalAuth temporal_client.TemporalAuth
+	ProdLocalAuthKeysCfg  auth_keys_config.AuthKeysCfg
 }
 
 func forceDirToCallerLocation() string {
@@ -72,6 +78,10 @@ func InitLocalTestConfigs() TestContainer {
 		HostPort:         hostPort,
 	}
 
+	testCont.ProdLocalTemporalAuth = testCont.DevTemporalAuth
+	testCont.ProdLocalTemporalAuth.Namespace = viper.GetString("PROD_LOCAL_TEMPORAL_NS")
+	testCont.ProdLocalTemporalAuth.HostPort = viper.GetString("PROD_LOCAL_TEMPORAL_HOST_PORT")
+
 	testCont.LocalAgePubkey = viper.GetString("LOCAL_AGE_PUBKEY")
 	testCont.LocalAgePkey = viper.GetString("LOCAL_AGE_PKEY")
 
@@ -85,10 +95,12 @@ func InitLocalTestConfigs() TestContainer {
 	testCont.LocalDbPgconn = viper.GetString("LOCAL_DB_PGCONN")
 	testCont.StagingDbPgconn = viper.GetString("STAGING_DB_PGCONN")
 	testCont.ProdDbPgconn = viper.GetString("PROD_DB_PGCONN")
-
+	testCont.ProdLocalDbPgconn = viper.GetString("PROD_LOCAL_DB_PGCONN")
 	testCont.LocalBeaconConn = viper.GetString("LOCAL_BEACON_CONN_STR")
 
+	testCont.LocalBearerToken = viper.GetString("LOCAL_BEARER_TOKEN")
 	testCont.DevAuthKeysCfg = getDevAuthKeysCfg()
+	testCont.ProdLocalAuthKeysCfg = testCont.DevAuthKeysCfg
 	return testCont
 }
 

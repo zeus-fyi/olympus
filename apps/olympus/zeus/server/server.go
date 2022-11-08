@@ -1,4 +1,4 @@
-package server
+package zeus_server
 
 import (
 	"context"

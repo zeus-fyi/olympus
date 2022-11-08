@@ -1,4 +1,4 @@
-package server
+package zeus_server
 
 import (
 	"context"
@@ -38,6 +38,14 @@ func Zeus() {
 			HostPort:         "production-zeus.ngb72.tmprl.cloud:7233",
 		}
 		_, _ = topology_worker.InitTopologyWorker(temporalAuthCfg)
+	case "production-local":
+		log.Info().Msg("Zeus: production local, auth procedure starting")
+		tc := configs.InitLocalTestConfigs()
+		cfg.PGConnStr = tc.ProdLocalDbPgconn
+		authCfg := auth_startup.NewDefaultAuthClient(ctx, tc.ProdLocalAuthKeysCfg)
+		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
+		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
+		_, _ = topology_worker.InitTopologyWorker(tc.ProdLocalTemporalAuth)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, tc.DevAuthKeysCfg)
@@ -66,7 +74,7 @@ func init() {
 	Cmd.Flags().StringVar(&authKeysCfg.SpacesKey, "do-spaces-key", "", "do s3 spaces key")
 	Cmd.Flags().StringVar(&authKeysCfg.SpacesPrivKey, "do-spaces-private-key", "", "do s3 spaces private key")
 
-	Cmd.Flags().StringVar(&env, "env", "local", "environment")
+	Cmd.Flags().StringVar(&env, "env", "production-local", "environment")
 }
 
 // Cmd represents the base command when called without any subcommands

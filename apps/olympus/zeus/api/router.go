@@ -31,20 +31,22 @@ func InitRouter(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
 
 func InitV1Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
 	eg := e.Group("/v1")
-	eg = v1_router.V1Routes(eg, k8Cfg)
 	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()
 			key, err := auth.VerifyBearerToken(ctx, token)
+			c.Set("orgID", key.OrgID)
+			c.Set("userID", key.GetUserID())
+			c.Set("bearer", key.PublicKey)
 			return key.PublicKeyVerified, err
 		},
 	}))
+	eg = v1_router.V1Routes(eg, k8Cfg)
 }
 
 func InitV1InternalRoutes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
 	eg := e.Group("/v1/internal")
-	eg = v1_router.V1InternalRoutes(eg, k8Cfg)
 	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
@@ -53,6 +55,8 @@ func InitV1InternalRoutes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
 			return key.PublicKeyVerified, err
 		},
 	}))
+
+	eg = v1_router.V1InternalRoutes(eg, k8Cfg)
 }
 
 func Health(c echo.Context) error {

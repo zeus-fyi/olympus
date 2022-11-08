@@ -10,11 +10,9 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/suite"
 	"github.com/tidwall/pretty"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
-	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/base"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/test"
 )
 
@@ -41,7 +39,7 @@ func (t *TopologyCreateActionRequestTestSuite) TestUpload() {
 	c.ChartName = "test_api"
 	c.ChartVersion = fmt.Sprintf("test_api_v%d", t.Ts.UnixTimeStampNow())
 	oid, uid := t.h.NewTestOrgAndUser()
-	orgUser := org_users.NewOrgUserWithID(oid, uid)
+	//orgUser := org_users.NewOrgUserWithID(oid, uid)
 	fmt.Printf("orgID: %d\n userID %d\n", oid, uid)
 
 	createRequest := TopologyCreateRequest{
@@ -58,12 +56,7 @@ func (t *TopologyCreateActionRequestTestSuite) TestUpload() {
 	requestJSON = pretty.Color(requestJSON, pretty.TerminalStyle)
 	fmt.Println(string(requestJSON))
 
-	tar := TopologyActionCreateRequest{
-		TopologyActionRequest: base.CreateTopologyActionRequestWithOrgUser("create", orgUser),
-		TopologyCreateRequest: createRequest,
-	}
-
-	t.E.POST("/infra", tar.CreateTopology)
+	t.E.POST("/infra", nil)
 	client := resty.New()
 	resp, err := client.R().
 		SetFile("chart", "./zeus.tar.gz").

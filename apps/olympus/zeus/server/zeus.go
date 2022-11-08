@@ -59,7 +59,7 @@ func Zeus() {
 
 	srv.E = router.InitRouter(srv.E, cfg.K8sUtil)
 
-	log.Info().Msg("Zeus: production server starting")
+	log.Info().Msgf("Zeus: %s server starting", env)
 	srv.Start()
 }
 

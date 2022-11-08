@@ -11,29 +11,23 @@ import (
 	"github.com/jackc/pgconn"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_infra "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/definitions/classes/bases/infra"
-	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/base"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
-
-type TopologyActionCreateRequest struct {
-	base.TopologyActionRequest
-	TopologyCreateRequest
-}
 
 type TopologyCreateRequest struct {
 	TopologyName     string `json:"topologyName"`
 	ChartName        string `json:"chartName"`
-	ChartDescription string `json:"chartDescription"`
+	ChartDescription string `json:"chartDescription,omitempty"`
 	Version          string `json:"version"`
 }
 
 type TopologyCreateResponse struct {
 	ID int `json:"id"`
-	TopologyCreateRequest
 }
 
-func (t *TopologyActionCreateRequest) CreateTopology(c echo.Context) error {
+func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {
 	file, err := c.FormFile("chart")
 	if err != nil {
 		return err
@@ -58,13 +52,27 @@ func (t *TopologyActionCreateRequest) CreateTopology(c echo.Context) error {
 	}
 	inf := create_infra.NewCreateInfrastructure()
 	ctx := context.Background()
-	inf.Name = t.TopologyName
 	inf.ChartWorkload = cw
-	inf.Chart.ChartName = t.ChartName
-	inf.Chart.ChartDescription.String = t.ChartDescription
-	inf.ChartVersion = t.Version
 
-	inf.OrgUser = t.OrgUser
+	topologyName := c.FormValue("topologyName")
+	inf.Name = topologyName
+
+	chartName := c.FormValue("chartName")
+	inf.Chart.ChartName = chartName
+
+	chartDescription := c.FormValue("chartDescription")
+	inf.Chart.ChartDescription.String = chartDescription
+
+	version := c.FormValue("version")
+	inf.ChartVersion = version
+
+	// from auth lookup
+	orgID := c.Get("orgID")
+	inf.OrgID = orgID.(int)
+
+	userID := c.Get("userID")
+	inf.UserID = userID.(int)
+
 	err = inf.InsertInfraBase(ctx)
 	if err != nil {
 		pgErr := err.(*pgconn.PgError)
@@ -76,13 +84,15 @@ func (t *TopologyActionCreateRequest) CreateTopology(c echo.Context) error {
 			log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: CreateTopology, InsertInfraBase")
 			err = errors.New("unable to add chart, verify it is a valid kubernetes workload that's supported")
 		}
-		log.Err(err).Interface("orgUser", t.OrgUser).Msg("TopologyActionCreateRequest: CreateTopology, InsertInfraBase")
+		ou := org_users.OrgUser{}
+		ou.OrgID = inf.OrgID
+		ou.UserID = inf.UserID
+		log.Err(err).Interface("orgUser", ou).Msg("TopologyActionCreateRequest: CreateTopology, InsertInfraBase")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
 	resp := TopologyCreateResponse{
-		ID:                    inf.TopologyID,
-		TopologyCreateRequest: t.TopologyCreateRequest,
+		ID: inf.TopologyID,
 	}
 	return c.JSON(http.StatusOK, resp)
 }

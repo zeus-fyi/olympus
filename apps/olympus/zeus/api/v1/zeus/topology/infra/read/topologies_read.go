@@ -6,19 +6,21 @@ import (
 
 	"github.com/labstack/echo/v4"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
-	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/base"
 )
 
-type TopologyActionReadRequest struct {
-	base.TopologyActionRequest
-	TopologyID int
+type TopologyReadRequest struct {
+	TopologyID int `json:"topologyID"`
 }
 
-func (t *TopologyActionReadRequest) ReadTopology(c echo.Context) error {
+func (t *TopologyReadRequest) ReadTopology(c echo.Context) error {
 	tr := read_topology.NewInfraTopologyReader()
 	tr.TopologyID = t.TopologyID
-	tr.OrgID = t.OrgID
-	tr.UserID = t.UserID
+	// from auth lookup
+	orgID := c.Get("orgID")
+	tr.OrgID = orgID.(int)
+
+	userID := c.Get("userID")
+	tr.UserID = userID.(int)
 
 	ctx := context.Background()
 	err := tr.SelectTopology(ctx)

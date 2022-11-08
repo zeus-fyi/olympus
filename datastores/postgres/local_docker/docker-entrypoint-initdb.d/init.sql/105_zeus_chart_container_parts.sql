@@ -12,7 +12,6 @@ CREATE TABLE "public"."containers" (
     "container_repository" text NOT NULL,
     "container_image_pull_policy" text CHECK (container_image_pull_policy IN ('IfNotPresent', 'Always', 'Never')) NOT NULL DEFAULT 'IfNotPresent',
     "is_init_container" bool NOT NULL DEFAULT false
-    -- todo fields like "container_security_context_group_id" int8 NOT NULL DEFAULT 0,
 );
 ALTER TABLE "public"."containers" ADD CONSTRAINT "containers_pk" PRIMARY KEY ("container_id");
 ALTER TABLE "public"."containers" ADD CONSTRAINT "containers_version_pk" UNIQUE ("container_name","container_image_id", "container_version_tag", "container_platform_os");

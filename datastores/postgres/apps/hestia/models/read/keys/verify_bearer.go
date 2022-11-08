@@ -31,3 +31,7 @@ func (k *OrgUserKey) VerifyUserBearerToken(ctx context.Context) error {
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey).Scan(&k.PublicKeyVerified, &k.OrgID, &k.OrgUser.UserID)
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
+
+func (k *OrgUserKey) GetUserID() int {
+	return k.OrgUser.UserID
+}

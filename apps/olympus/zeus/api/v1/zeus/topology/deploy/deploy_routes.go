@@ -3,11 +3,11 @@ package deploy
 import (
 	"github.com/labstack/echo/v4"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/actions/deploy/workload_deploy"
+	internal_destroy_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/actions/deploy/workload_destroy"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/actions/deploy/workload_state"
 	create_or_update_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/create_or_update"
 	destoy_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/destroy"
-	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/internal/deploy/workload_deploy"
-	internal_destroy_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/internal/deploy/workload_destroy"
-	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/internal/deploy/workload_state"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
 

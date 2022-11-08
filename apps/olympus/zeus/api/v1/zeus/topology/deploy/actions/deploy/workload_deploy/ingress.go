@@ -1,4 +1,4 @@
-package internal_destroy_deploy
+package internal_deploy
 
 import (
 	"context"
@@ -8,25 +8,25 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
-	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/internal/base_request"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/actions/base_request"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
 
-func DestroyDeployConfigMapHandler(c echo.Context) error {
+func DeployIngressHandler(c echo.Context) error {
 	ctx := context.Background()
 	request := new(base_request.InternalDeploymentActionRequest)
 	if err := c.Bind(request); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	if request.ConfigMap != nil {
+	if request.Ingress != nil {
 		kns := zeus_core.NewKubeCtxNsFromTopologyKns(request.Kns)
-		err := zeus.K8Util.DeleteConfigMapWithKns(ctx, kns, request.ConfigMap.Name, nil)
+		_, err := zeus.K8Util.CreateIngressIfVersionLabelChangesOrDoesNotExist(ctx, kns, request.Ingress, nil)
 		if err != nil {
-			log.Err(err).Msg("DestroyDeployConfigMapHandler")
+			log.Err(err).Msg("DeployIngressHandler")
 			return c.JSON(http.StatusInternalServerError, err)
 		}
 	} else {
-		err := errors.New("no configmap workload was supplied")
+		err := errors.New("no ingress workload was supplied")
 		return c.JSON(http.StatusBadRequest, err)
 	}
 	return c.JSON(http.StatusOK, nil)

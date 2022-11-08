@@ -20,9 +20,9 @@ func (s *CreateTopologyStateTestSuite) TestInsertTopologyState() {
 	topState := NewCreateState()
 	topState.TopologyID = topID
 	topState.TopologyStatus = "InProgress"
-
 	err := topState.InsertStatus(ctx)
 	s.Require().Nil(err)
+	s.Assert().NotEmpty(topState.UpdatedAt)
 }
 
 func TestCreateTopologyStateTestSuite(t *testing.T) {

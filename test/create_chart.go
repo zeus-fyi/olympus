@@ -26,7 +26,7 @@ var p = structs.Path{
 	FilterFiles: string_utils.FilterOpts{},
 }
 
-func CallAPI() error {
+func CreateChartApiCall() error {
 	cfg := configs.InitLocalTestConfigs()
 	var ts chronos.Chronos
 	tar := create_infra.TopologyCreateRequest{

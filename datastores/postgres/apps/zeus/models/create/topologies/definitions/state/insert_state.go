@@ -16,17 +16,22 @@ func (s *DeploymentStatus) defaultQ() sql_query_templates.QueryParams {
 	q.TableName = s.GetTableName()
 	q.Columns = s.GetTableColumns()
 	q.Values = []apps.RowValues{s.GetRowValues("default")}
+
+	query := `INSERT INTO topologies_deployed(topology_id, topology_status) 
+			  VALUES ($1, $2) 
+			  RETURNING updated_at`
+
+	q.RawQuery = query
+	q.CTEQuery.Params = []interface{}{s.TopologyID, s.TopologyStatus}
 	return q
 }
 
 func (s *DeploymentStatus) InsertStatus(ctx context.Context) error {
 	q := s.defaultQ()
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
-	r, err := apps.Pg.Exec(ctx, q.InsertSingleElementQuery())
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, q.CTEQuery.Params...).Scan(&s.UpdatedAt)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
 		return err
 	}
-	rowsAffected := r.RowsAffected()
-	log.Debug().Msgf("State: %s, Rows Affected: %d", q.LogHeader(Sn), rowsAffected)
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }

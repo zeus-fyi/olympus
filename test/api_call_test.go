@@ -11,13 +11,18 @@ type DriverTestSuite struct {
 	test_suites.TemporalTestSuite
 }
 
+func (t *DriverTestSuite) TestDriveUpdateDeploymentStatus() {
+	err := UpdateDeploymentStatusApiCall()
+	t.Require().Nil(err)
+}
+
 func (t *DriverTestSuite) TestDriveReadChart() {
 	err := ReadChartAPICall()
 	t.Require().Nil(err)
 }
 
 func (t *DriverTestSuite) TestDriveCreateTopologyWithChart() {
-	err := CallAPI()
+	err := CreateChartApiCall()
 	t.Require().Nil(err)
 }
 

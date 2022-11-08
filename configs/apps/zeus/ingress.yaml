@@ -4,7 +4,6 @@ metadata:
   name: "zeus"
   namespace: "zeus"
   annotations:
-    kubernetes.io/ingress.class: "nginx"
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: "nginx"
@@ -17,9 +16,10 @@ spec:
       http:
         paths:
           - path: /
-            pathType: ImplementationSpecific
+            pathType: Prefix
             backend:
               service:
                 name: zeus
                 port:
                   number: 80
+

@@ -12,19 +12,23 @@ COPY go.mod .
 COPY go.sum .
 RUN go mod download
 
-COPY . .
 RUN rm go.mod
 RUN rm go.sum
 
-COPY configs/ca-certificate.crt .
-COPY configs/zeus.fyi/ca.pem .
-COPY configs/zeus.fyi/ca.key .
+COPY . .
 
 # Download necessary Go modules
 COPY apps/olympus/zeus/go.mod .
 COPY apps/olympus/zeus/go.sum .
 
 RUN go mod download
+
+COPY configs/ca-certificate.crt .
+COPY configs/zeus.fyi/ca.pem .
+COPY configs/zeus.fyi/ca.key .
+
+RUN rm go.mod
+RUN rm go.sum
 
 COPY . .
 

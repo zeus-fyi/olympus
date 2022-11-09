@@ -10,7 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
-	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
+	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
 	router "github.com/zeus-fyi/olympus/zeus/api"
 )

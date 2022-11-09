@@ -6,6 +6,7 @@ import (
 	"github.com/go-redis/redis/v9"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	temporal_client "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 )
@@ -13,7 +14,7 @@ import (
 type TemporalTestSuite struct {
 	base.TestSuite
 
-	TemporalAuthCfg temporal_client.TemporalAuth
+	TemporalAuthCfg auth.TemporalAuth
 	Temporal        temporal_client.TemporalClient
 	Redis           *redis.Client
 	PG              apps.Db
@@ -26,7 +27,7 @@ func (t *TemporalTestSuite) GetTemporalDevAuthCfg() {
 	pemPath := "./zeus.fyi/ca.key"
 	namespace := t.Tc.DevTemporalNs
 	hostPort := t.Tc.DevTemporalHostPort
-	auth := temporal_client.TemporalAuth{
+	auth := auth.TemporalAuth{
 		ClientCertPath:   certPath,
 		ClientPEMKeyPath: pemPath,
 		Namespace:        namespace,

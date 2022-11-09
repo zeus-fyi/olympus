@@ -2,13 +2,14 @@ package topology_worker
 
 import (
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	deployment_status "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/status"
 	deploy_workflow "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/create"
 	destroy_deployed_workflow "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/destroy"
 )
 
-func InitTopologyWorker(authCfg temporal_base.TemporalAuth) (TopologyWorker, error) {
+func InitTopologyWorker(authCfg auth.TemporalAuth) (TopologyWorker, error) {
 	w, err := NewTopologyWorker(authCfg)
 	if err != nil {
 		log.Err(err).Msg("InitTopologyWorker failed")
@@ -18,7 +19,7 @@ func InitTopologyWorker(authCfg temporal_base.TemporalAuth) (TopologyWorker, err
 	return w, err
 }
 
-func NewTopologyWorker(authCfg temporal_base.TemporalAuth) (TopologyWorker, error) {
+func NewTopologyWorker(authCfg auth.TemporalAuth) (TopologyWorker, error) {
 	tc, err := temporal_base.NewTemporalClient(authCfg)
 	if err != nil {
 		log.Err(err).Msg("NewTopologyWorker: NewTemporalClient failed")

@@ -3,7 +3,7 @@ package temporal_base
 import "context"
 
 func (w *Worker) BeginWorkflow(ctx context.Context, workFlow Workflow) error {
-	err := w.Connect()
+	err := w.ConnectTemporalClient()
 	if err != nil {
 		return err
 	}

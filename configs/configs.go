@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/viper"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
-	temporal_client "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
+	temporal_client "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 )
 
 var testCont TestContainer

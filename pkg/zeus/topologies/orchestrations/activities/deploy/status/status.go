@@ -6,6 +6,7 @@ import (
 	"path"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/rs/zerolog/log"
 	create_topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/definitions/state"
 )
 
@@ -32,6 +33,7 @@ func (d *TopologyActivityDeploymentStatusActivity) PostStatusUpdate(ctx context.
 		SetBody(d.DeploymentStatus).
 		Post(u.Path)
 	if err != nil {
+		log.Err(err).Interface("path", u.Path).Msg("TopologyActivityDeploymentStatusActivity")
 		return err
 	}
 	return err

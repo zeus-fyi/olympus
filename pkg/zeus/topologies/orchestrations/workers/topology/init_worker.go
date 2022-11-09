@@ -12,8 +12,8 @@ func InitTopologyWorker(authCfg temporal_base.TemporalAuth) (TopologyWorker, err
 	w, err := NewTopologyWorker(authCfg)
 	if err != nil {
 		log.Err(err).Msg("InitTopologyWorker failed")
-		Worker = w
 	}
+	Worker = w
 	return w, err
 }
 

@@ -10,7 +10,7 @@ import (
 	read_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/read"
 )
 
-var readChartHost = "http://localhost:9001/v1/infra/read"
+var readChartHost = "http://localhost:9001/v1/infra/read/chart"
 
 func ReadChartAPICall() error {
 	cfg := configs.InitLocalTestConfigs()

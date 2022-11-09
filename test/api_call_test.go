@@ -30,6 +30,11 @@ func (t *DriverTestSuite) TestDriveCreateTopologyWithChart() {
 	t.Require().Nil(err)
 }
 
+func (t *DriverTestSuite) TestDriveProdDemoCreateTopologyWithChart() {
+	err := CreateDemoChartApiCall()
+	t.Require().Nil(err)
+}
+
 func TestDriverTestSuite(t *testing.T) {
 	suite.Run(t, new(DriverTestSuite))
 }

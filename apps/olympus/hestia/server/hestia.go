@@ -13,6 +13,7 @@ import (
 var cfg = Config{}
 
 func Hestia() {
+	cfg.Host = "0.0.0.0"
 	srv := NewHestiaServer(cfg)
 	// Echo instance
 	srv.E = v1.Routes(srv.E)

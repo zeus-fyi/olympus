@@ -34,13 +34,11 @@ func (t *TopologyDeployRequest) DeployTopology(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	tr := read_topology.NewInfraTopologyReaderWithOrgUser(ou)
 	tr.TopologyID = t.TopologyID
-
 	err := tr.SelectTopology(ctx)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("DeployTopology, SelectTopology error")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-
 	// from auth lookup
 	bearer := c.Get("bearer")
 	knsDeploy := kns.NewKns()
@@ -59,7 +57,6 @@ func (t *TopologyDeployRequest) DeployTopology(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 	resp := topology_deployment_status.NewTopologyStatus()
-
 	resp.TopologyID = t.TopologyID
 	resp.TopologyStatus = "Pending"
 	resp.UpdatedAt = time.Now().UTC()

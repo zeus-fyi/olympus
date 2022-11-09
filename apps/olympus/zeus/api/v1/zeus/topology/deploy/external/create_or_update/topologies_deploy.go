@@ -13,9 +13,7 @@ import (
 	topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
-	deploy_workflow "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/create"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/helpers"
-	"go.temporal.io/sdk/client"
 )
 
 type TopologyDeployRequest struct {
@@ -39,6 +37,7 @@ func (t *TopologyDeployRequest) DeployTopology(c echo.Context) error {
 
 	err := tr.SelectTopology(ctx)
 	if err != nil {
+		log.Err(err).Interface("orgUser", ou).Msg("DeployTopology, SelectTopology error")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
@@ -54,11 +53,7 @@ func (t *TopologyDeployRequest) DeployTopology(c echo.Context) error {
 		Env:           t.Env,
 	}
 	tar := helpers.PackageCommonTopologyRequest(knsDeploy, bearer.(string), ou, tr.GetNativeK8s())
-
-	workflowOptions := client.StartWorkflowOptions{}
-	deployWf := deploy_workflow.NewDeployTopologyWorkflow()
-	wf := deployWf.GetWorkflow()
-	_, err = topology_worker.Worker.ExecuteWorkflow(ctx, workflowOptions, wf, tar)
+	err = topology_worker.Worker.ExecuteDeploy(ctx, tar)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("DeployTopology, ExecuteWorkflow error")
 		return c.JSON(http.StatusBadRequest, nil)

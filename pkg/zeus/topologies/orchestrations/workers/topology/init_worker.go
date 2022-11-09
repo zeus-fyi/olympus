@@ -39,7 +39,7 @@ func NewTopologyWorker(authCfg temporal_base.TemporalAuth) (TopologyWorker, erro
 	w.AddActivities(deployWf.GetActivities())
 
 	// deploy destroy
-	deployDestroyWf := destroy_deployed_workflow.NewDeployTopologyWorkflow()
+	deployDestroyWf := destroy_deployed_workflow.NewDestroyDeployTopologyWorkflow()
 	w.AddWorkflow(deployDestroyWf.GetWorkflow())
 	w.AddActivities(deployDestroyWf.GetActivities())
 	err = w.RegisterWorker()

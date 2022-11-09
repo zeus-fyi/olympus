@@ -23,7 +23,7 @@ func (t *DestroyDeployTopologyWorkflow) GetWorkflow() interface{} {
 	return t.DestroyDeployedTopologyWorkflow
 }
 
-func NewDeployTopologyWorkflow() DestroyDeployTopologyWorkflow {
+func NewDestroyDeployTopologyWorkflow() DestroyDeployTopologyWorkflow {
 	destroyDeployWf := DestroyDeployTopologyWorkflow{
 		Workflow:                        temporal_base.Workflow{},
 		DestroyDeployTopologyActivities: destroy_deploy_activities.DestroyDeployTopologyActivities{},

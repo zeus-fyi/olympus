@@ -50,10 +50,6 @@ func (w *Worker) RegisterWorker() error {
 	for _, activity := range w.Activities {
 		w.Worker.RegisterActivity(activity)
 	}
-	err = w.Run(worker.InterruptCh())
-	if err != nil {
-		log.Err(err).Msg("NewTopologyWorker: Run worker failed")
-	}
 	return nil
 }
 

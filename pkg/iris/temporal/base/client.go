@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"go.temporal.io/sdk/client"
 	zerologadapter "logur.dev/adapter/zerolog"
@@ -20,6 +21,7 @@ func NewTemporalClient(authCfg auth.TemporalAuth) (TemporalClient, error) {
 	tc := TemporalClient{}
 	cert, err := tls.LoadX509KeyPair(authCfg.ClientCertPath, authCfg.ClientPEMKeyPath)
 	if err != nil {
+		log.Err(err).Msg("NewTemporalClient failed LoadX509KeyPair")
 		return tc, err
 	}
 	logger := logur.LoggerToKV(zerologadapter.New(zerolog.Nop()))

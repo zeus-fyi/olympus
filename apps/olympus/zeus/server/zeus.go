@@ -55,6 +55,7 @@ func Zeus() {
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, tc.DevAuthKeysCfg)
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
+		log.Info().Msg("Zeus: production-local, temporal local procedure starting")
 		_, _ = topology_worker.InitTopologyWorker(tc.DevTemporalAuth)
 	}
 

@@ -4,6 +4,7 @@ import (
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/rs/zerolog/log"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 )
 
@@ -32,6 +33,7 @@ func (d *DestroyDeployTopologyActivities) postDestroyDeployTarget(target string)
 		SetBody(d.TopologyWorkflowRequest).
 		Post(u.Path)
 	if err != nil {
+		log.Err(err).Interface("path", u.Path).Msg("DestroyDeployTopologyActivities: postDestroyDeployTarget failed")
 		return err
 	}
 	return err

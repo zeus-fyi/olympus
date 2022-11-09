@@ -13,6 +13,7 @@ func InitTopologyWorker(authCfg temporal_base.TemporalAuth) (TopologyWorker, err
 	if err != nil {
 		log.Err(err).Msg("InitTopologyWorker failed")
 	}
+	log.Info().Msg("InitTopologyWorker succeeded")
 	Worker = w
 	return w, err
 }
@@ -20,10 +21,12 @@ func InitTopologyWorker(authCfg temporal_base.TemporalAuth) (TopologyWorker, err
 func NewTopologyWorker(authCfg temporal_base.TemporalAuth) (TopologyWorker, error) {
 	tc, err := temporal_base.NewTemporalClient(authCfg)
 	if err != nil {
+		log.Err(err).Msg("NewTopologyWorker: NewTemporalClient failed")
 		return TopologyWorker{}, err
 	}
 	err = tc.Connect()
 	if err != nil {
+		log.Err(err).Msg("NewTopologyWorker: Connect failed")
 		return TopologyWorker{}, err
 	}
 	defer tc.Close()
@@ -46,6 +49,7 @@ func NewTopologyWorker(authCfg temporal_base.TemporalAuth) (TopologyWorker, erro
 	w.AddActivities(deployDestroyWf.GetActivities())
 	err = w.RegisterWorker()
 	if err != nil {
+		log.Err(err).Msg("NewTopologyWorker: RegisterWorker failed")
 		return TopologyWorker{}, err
 	}
 	tw := TopologyWorker{w}

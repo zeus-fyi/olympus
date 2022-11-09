@@ -24,7 +24,6 @@ func (t *TopologyWorker) ExecuteDeploy(ctx context.Context, params base_deploy_p
 		return err
 	}
 	defer t.Close()
-
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: t.TaskQueueName,
 	}
@@ -45,7 +44,6 @@ func (t *TopologyWorker) ExecuteDestroyDeploy(ctx context.Context, params base_d
 		return err
 	}
 	defer t.Close()
-
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: t.TaskQueueName,
 	}

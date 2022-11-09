@@ -30,6 +30,7 @@ type TopologyDeployResponse struct {
 }
 
 func (t *TopologyDeployRequest) DeployTopology(c echo.Context) error {
+	log.Debug().Msg("TopologyDeployRequest")
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	tr := read_topology.NewInfraTopologyReaderWithOrgUser(ou)

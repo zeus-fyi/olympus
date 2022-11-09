@@ -24,7 +24,6 @@ func InitRouter(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
 
 	// external
 	InitV1Routes(e, k8Cfg)
-
 	// internal
 	InitV1InternalRoutes(e, k8Cfg)
 	return e
@@ -37,6 +36,10 @@ func InitV1Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()
 			key, err := auth.VerifyBearerToken(ctx, token)
+			if err != nil {
+				log.Err(err).Msg("InitV1Routes")
+				return false, c.JSON(http.StatusInternalServerError, nil)
+			}
 			ou := org_users.NewOrgUserWithID(key.OrgID, key.KeyTypeID)
 			c.Set("orgUser", ou)
 			c.Set("bearer", key.PublicKey)
@@ -53,10 +56,16 @@ func InitV1InternalRoutes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()
 			key, err := auth.VerifyInternalBearerToken(ctx, token)
+			if err != nil {
+				log.Err(err).Msg("InitV1InternalRoutes")
+				return false, c.JSON(http.StatusInternalServerError, nil)
+			}
+			ou := org_users.NewOrgUserWithID(key.OrgID, key.KeyTypeID)
+			c.Set("orgUser", ou)
+			c.Set("bearer", key.PublicKey)
 			return key.PublicKeyVerified, err
 		},
 	}))
-
 	eg = v1_router.V1InternalRoutes(eg, k8Cfg)
 }
 

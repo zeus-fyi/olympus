@@ -67,11 +67,9 @@ func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {
 	inf.ChartVersion = version
 
 	// from auth lookup
-	orgID := c.Get("orgID")
-	inf.OrgID = orgID.(int)
-
-	userID := c.Get("userID")
-	inf.UserID = userID.(int)
+	ou := c.Get("orgUser").(org_users.OrgUser)
+	inf.OrgID = ou.OrgID
+	inf.UserID = ou.UserID
 
 	err = inf.InsertInfraBase(ctx)
 	if err != nil {
@@ -84,9 +82,6 @@ func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {
 			log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: CreateTopology, InsertInfraBase")
 			err = errors.New("unable to add chart, verify it is a valid kubernetes workload that's supported")
 		}
-		ou := org_users.OrgUser{}
-		ou.OrgID = inf.OrgID
-		ou.UserID = inf.UserID
 		log.Err(err).Interface("orgUser", ou).Msg("TopologyActionCreateRequest: CreateTopology, InsertInfraBase")
 		return c.JSON(http.StatusInternalServerError, err)
 	}

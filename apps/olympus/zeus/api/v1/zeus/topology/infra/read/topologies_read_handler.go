@@ -2,11 +2,14 @@ package read_infra
 
 import "github.com/labstack/echo/v4"
 
-func ReadTopologyInfraActionRequestHandler(c echo.Context) error {
+func ReadTopologyChartContentsHandler(c echo.Context) error {
 	request := new(TopologyReadRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
+	return request.ReadTopologyChart(c)
+}
 
-	return request.ReadTopology(c)
+func ReadTopologiesMetadataRequestHandler(c echo.Context) error {
+	return ReadUsersTopologiesMetadata(c)
 }

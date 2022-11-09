@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 )
@@ -23,7 +24,8 @@ func (t *TopologyReadRequest) ReadTopologyChart(c echo.Context) error {
 	ctx := context.Background()
 	err := tr.SelectTopology(ctx)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: SelectTopology")
+		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	nk := tr.GetNativeK8s()
 	return c.JSON(http.StatusOK, nk)

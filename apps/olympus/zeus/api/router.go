@@ -40,7 +40,7 @@ func InitV1Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
 				log.Err(err).Msg("InitV1Routes")
 				return false, c.JSON(http.StatusInternalServerError, nil)
 			}
-			ou := org_users.NewOrgUserWithID(key.OrgID, key.KeyTypeID)
+			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
 			c.Set("orgUser", ou)
 			c.Set("bearer", key.PublicKey)
 			return key.PublicKeyVerified, err
@@ -60,7 +60,7 @@ func InitV1InternalRoutes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
 				log.Err(err).Msg("InitV1InternalRoutes")
 				return false, c.JSON(http.StatusInternalServerError, nil)
 			}
-			ou := org_users.NewOrgUserWithID(key.OrgID, key.KeyTypeID)
+			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
 			c.Set("orgUser", ou)
 			c.Set("bearer", key.PublicKey)
 			return key.PublicKeyVerified, err

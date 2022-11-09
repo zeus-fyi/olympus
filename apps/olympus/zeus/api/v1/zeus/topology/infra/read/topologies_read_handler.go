@@ -9,7 +9,3 @@ func ReadTopologyChartContentsHandler(c echo.Context) error {
 	}
 	return request.ReadTopologyChart(c)
 }
-
-func ReadTopologiesMetadataRequestHandler(c echo.Context) error {
-	return ReadUsersTopologiesMetadata(c)
-}

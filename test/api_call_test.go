@@ -16,6 +16,10 @@ func (t *DriverTestSuite) TestDriveUpdateDeploymentStatus() {
 	t.Require().Nil(err)
 }
 
+func (t *DriverTestSuite) TestDriveReadTopologiesMetadata() {
+	err := ReadTopologiesMetadataAPICall()
+	t.Require().Nil(err)
+}
 func (t *DriverTestSuite) TestDriveReadChart() {
 	err := ReadChartAPICall()
 	t.Require().Nil(err)

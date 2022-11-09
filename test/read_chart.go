@@ -17,7 +17,6 @@ func ReadChartAPICall() error {
 	tar := read_infra.TopologyReadRequest{
 		TopologyID: 1667887316382350000,
 	}
-
 	topologyActionRequestPayload, err := json.Marshal(tar)
 	if err != nil {
 		return err
@@ -26,10 +25,6 @@ func ReadChartAPICall() error {
 	requestJSON := pretty.Pretty(topologyActionRequestPayload)
 	requestJSON = pretty.Color(requestJSON, pretty.TerminalStyle)
 	fmt.Println(string(requestJSON))
-
-	fp := p.V2FileOutPath()
-	fmt.Println("filepath")
-	fmt.Println(fp)
 
 	client := resty.New()
 	resp, err := client.R().

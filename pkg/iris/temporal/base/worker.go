@@ -1,6 +1,9 @@
 package temporal_base
 
-import "go.temporal.io/sdk/worker"
+import (
+	"github.com/rs/zerolog/log"
+	"go.temporal.io/sdk/worker"
+)
 
 /*
 The Worker is where Workflow Functions and Activity Functions are executed.
@@ -34,18 +37,22 @@ func NewWorker(tc TemporalClient, taskQueueName string) Worker {
 }
 
 func (w *Worker) RegisterWorker() error {
-	err := w.Connect()
+	err := w.ConnectTemporalClient()
 	if err != nil {
+		log.Err(err).Msg("RegisterWorker: ConnectTemporalClient failed")
 		return err
 	}
 	defer w.Close()
-
 	w.Worker = worker.New(w.Client, w.TaskQueueName, w.WorkerOpts)
 	for _, workflow := range w.Workflows {
 		w.Worker.RegisterWorkflow(workflow)
 	}
 	for _, activity := range w.Activities {
 		w.Worker.RegisterActivity(activity)
+	}
+	err = w.Run(worker.InterruptCh())
+	if err != nil {
+		log.Err(err).Msg("NewTopologyWorker: Run worker failed")
 	}
 	return nil
 }

@@ -11,13 +11,13 @@ type DriverTestSuite struct {
 	test_suites.TemporalTestSuite
 }
 
-func (t *DriverTestSuite) TestDriveProdDemoCreateTopologyWithChart() {
-	err := CreateDemoChartApiCall()
+func (t *DriverTestSuite) TestDriveDeployProdDemoChartApiCall() {
+	err := DeployDemoProdChartApiCall()
 	t.Require().Nil(err)
 }
 
-func (t *DriverTestSuite) TestDriveDeployProdDemoChartApiCall() {
-	err := DeployDemoProdChartApiCall()
+func (t *DriverTestSuite) TestDriveProdDemoCreateTopologyWithChart() {
+	err := CreateDemoChartApiCall()
 	t.Require().Nil(err)
 }
 

@@ -24,34 +24,31 @@ func NewTopologyWorker(authCfg temporal_base.TemporalAuth) (TopologyWorker, erro
 		log.Err(err).Msg("NewTopologyWorker: NewTemporalClient failed")
 		return TopologyWorker{}, err
 	}
-	err = tc.Connect()
-	if err != nil {
-		log.Err(err).Msg("NewTopologyWorker: Connect failed")
-		return TopologyWorker{}, err
-	}
-	defer tc.Close()
 
 	taskQueueName := "TopologyTaskQueue"
 	w := temporal_base.NewWorker(tc, "TopologyTaskQueue")
 
 	// status
 	statusActivity := deployment_status.TopologyActivityDeploymentStatusActivity{}
-	w.AddActivities(statusActivity.GetActivities())
-
-	// deploy create
-	deployWf := deploy_workflow.NewDeployTopologyWorkflow()
-	w.AddWorkflow(deployWf.GetWorkflow())
-	w.AddActivities(deployWf.GetActivities())
-
 	// deploy destroy
 	deployDestroyWf := destroy_deployed_workflow.NewDestroyDeployTopologyWorkflow()
+	// deploy create
+	deployWf := deploy_workflow.NewDeployTopologyWorkflow()
+
+	// workflows added
+	w.AddWorkflow(deployWf.GetWorkflow())
 	w.AddWorkflow(deployDestroyWf.GetWorkflow())
+	// activities added
+	w.AddActivities(statusActivity.GetActivities())
+	w.AddActivities(deployWf.GetActivities())
 	w.AddActivities(deployDestroyWf.GetActivities())
+
 	err = w.RegisterWorker()
 	if err != nil {
 		log.Err(err).Msg("NewTopologyWorker: RegisterWorker failed")
 		return TopologyWorker{}, err
 	}
+
 	tw := TopologyWorker{w}
 	tw.TaskQueueName = taskQueueName
 	return tw, err

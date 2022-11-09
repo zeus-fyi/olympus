@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"go.temporal.io/sdk/client"
 	zerologadapter "logur.dev/adapter/zerolog"
 	"logur.dev/logur"
@@ -19,6 +20,17 @@ type TemporalAuth struct {
 type TemporalClient struct {
 	client.Client
 	client.Options
+}
+
+// ConnectTemporalClient must have client conn closed when called
+func (t *TemporalClient) ConnectTemporalClient() error {
+	dial, err := client.Dial(t.Options)
+	if err != nil {
+		log.Err(err).Msg("ConnectTemporalClient: dial failed")
+		return err
+	}
+	t.Client = dial
+	return nil
 }
 
 // NewTemporalClient must call to connect and then must defer temporalClient.Close()

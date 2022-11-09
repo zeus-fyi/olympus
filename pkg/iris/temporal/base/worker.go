@@ -1,7 +1,7 @@
 package temporal_base
 
 import (
-	"github.com/rs/zerolog/log"
+	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 )
 
@@ -17,40 +17,31 @@ Although multiple Worker Entities can be in a single Worker Process, a single Wo
 may be perfectly sufficient. For more information, see the Worker tuning guide.
 */
 type Worker struct {
-	TemporalClient
-
 	worker.Worker
+	TemporalClient
 	WorkerOpts    worker.Options
 	TaskQueueName string
 	Workflows     []interface{}
 	Activities    []interface{}
 }
 
-func NewWorker(tc TemporalClient, taskQueueName string) Worker {
+func NewWorker(taskQueueName string) Worker {
 	return Worker{
-		TemporalClient: tc,
-		TaskQueueName:  taskQueueName,
-		WorkerOpts:     worker.Options{},
-		Workflows:      []interface{}{},
-		Activities:     []interface{}{},
+		TaskQueueName: taskQueueName,
+		WorkerOpts:    worker.Options{},
+		Workflows:     []interface{}{},
+		Activities:    []interface{}{},
 	}
 }
 
-func (w *Worker) RegisterWorker() error {
-	err := w.ConnectTemporalClient()
-	if err != nil {
-		log.Err(err).Msg("RegisterWorker: ConnectTemporalClient failed")
-		return err
-	}
-	defer w.Close()
-	w.Worker = worker.New(w.Client, w.TaskQueueName, w.WorkerOpts)
+func (w *Worker) RegisterWorker(c client.Client) {
+	w.Worker = worker.New(c, w.TaskQueueName, w.WorkerOpts)
 	for _, workflow := range w.Workflows {
 		w.Worker.RegisterWorkflow(workflow)
 	}
 	for _, activity := range w.Activities {
 		w.Worker.RegisterActivity(activity)
 	}
-	return nil
 }
 
 func (w *Worker) AddWorkflow(wf interface{}) {

@@ -5,19 +5,18 @@ import (
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
+	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"go.temporal.io/sdk/client"
 	zerologadapter "logur.dev/adapter/zerolog"
 	"logur.dev/logur"
 )
 
 type TemporalClient struct {
-	client.Client
 	client.Options
 }
 
 // NewTemporalClient must call to connect and then must defer temporalClient.Close()
-func NewTemporalClient(authCfg auth.TemporalAuth) (TemporalClient, error) {
+func NewTemporalClient(authCfg temporal_auth.TemporalAuth) (TemporalClient, error) {
 	tc := TemporalClient{}
 	cert, err := tls.LoadX509KeyPair(authCfg.ClientCertPath, authCfg.ClientPEMKeyPath)
 	if err != nil {

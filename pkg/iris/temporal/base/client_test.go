@@ -18,9 +18,8 @@ func (s *TemporalClientTestSuite) TestCreateClient() {
 	s.InitLocalConfigs()
 	tc, err := NewTemporalClient(s.Tc.DevTemporalAuth)
 	s.Require().Nil(err)
-	err = tc.ConnectTemporalClient()
-	s.Require().Nil(err)
-	defer tc.Close()
+	c := tc.ConnectTemporalClient()
+	defer c.Close()
 }
 
 func TestTemporalClientTestSuite(t *testing.T) {

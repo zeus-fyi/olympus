@@ -1,4 +1,4 @@
-package auth
+package temporal_auth
 
 type TemporalAuth struct {
 	ClientCertPath   string

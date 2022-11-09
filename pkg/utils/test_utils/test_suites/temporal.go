@@ -14,7 +14,7 @@ import (
 type TemporalTestSuite struct {
 	base.TestSuite
 
-	TemporalAuthCfg auth.TemporalAuth
+	TemporalAuthCfg temporal_auth.TemporalAuth
 	Temporal        temporal_client.TemporalClient
 	Redis           *redis.Client
 	PG              apps.Db
@@ -27,7 +27,7 @@ func (t *TemporalTestSuite) GetTemporalDevAuthCfg() {
 	pemPath := "./zeus.fyi/ca.key"
 	namespace := t.Tc.DevTemporalNs
 	hostPort := t.Tc.DevTemporalHostPort
-	auth := auth.TemporalAuth{
+	auth := temporal_auth.TemporalAuth{
 		ClientCertPath:   certPath,
 		ClientPEMKeyPath: pemPath,
 		Namespace:        namespace,

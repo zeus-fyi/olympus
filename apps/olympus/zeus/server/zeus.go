@@ -10,14 +10,16 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
-	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
+	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
+	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
+	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
 	router "github.com/zeus-fyi/olympus/zeus/api"
 )
 
 var cfg = Config{}
 var authKeysCfg auth_keys_config.AuthKeysCfg
-var temporalAuthCfg temporal_base.TemporalAuth
+var temporalAuthCfg temporal_auth.TemporalAuth
 var env string
 
 func Zeus() {
@@ -33,7 +35,7 @@ func Zeus() {
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 
-		temporalAuthCfg = temporal_base.TemporalAuth{
+		temporalAuthCfg = temporal_auth.TemporalAuth{
 			ClientCertPath:   "/etc/ssl/certs/ca.pem",
 			ClientPEMKeyPath: "/etc/ssl/certs/ca.key",
 			Namespace:        "production-zeus.ngb72",
@@ -61,8 +63,19 @@ func Zeus() {
 
 	log.Info().Msgf("Zeus: %s temporal auth and init procedure starting", env)
 	temporalAuthCfg.Bearer = auth_startup.FetchTemporalAuthBearer(ctx)
-	_, _ = topology_worker.InitTopologyWorker(temporalAuthCfg)
 
+	topology_worker.InitTopologyWorker()
+
+	tc, err := temporal_base.NewTemporalClient(temporalAuthCfg)
+	if err != nil {
+		log.Err(err).Msg("InitTopologyWorker: NewTemporalClient failed")
+		misc.DelayedPanic(err)
+	}
+	topology_worker.Worker.TemporalClient = tc
+	c := tc.ConnectTemporalClient()
+	defer c.Close()
+
+	topology_worker.Worker.RegisterWorker(c)
 	log.Info().Msgf("Zeus: %s server starting", env)
 	srv.E = router.InitRouter(srv.E, cfg.K8sUtil)
 	srv.Start()

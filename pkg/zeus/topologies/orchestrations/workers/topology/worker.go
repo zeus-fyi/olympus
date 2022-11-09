@@ -18,7 +18,7 @@ type TopologyWorker struct {
 }
 
 func (t *TopologyWorker) ExecuteDeploy(ctx context.Context, params base_deploy_params.TopologyWorkflowRequest) error {
-	err := t.Connect()
+	err := t.ConnectTemporalClient()
 	if err != nil {
 		log.Err(err).Msg("ExecuteDeploy: Connect")
 		return err
@@ -38,7 +38,7 @@ func (t *TopologyWorker) ExecuteDeploy(ctx context.Context, params base_deploy_p
 }
 
 func (t *TopologyWorker) ExecuteDestroyDeploy(ctx context.Context, params base_deploy_params.TopologyWorkflowRequest) error {
-	err := t.Connect()
+	err := t.ConnectTemporalClient()
 	if err != nil {
 		log.Err(err).Msg("ExecuteDestroyDeploy: Connect")
 		return err

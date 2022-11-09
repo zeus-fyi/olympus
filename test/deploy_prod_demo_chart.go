@@ -7,21 +7,24 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/tidwall/pretty"
 	"github.com/zeus-fyi/olympus/configs"
-	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/actions/deploy/workload_state"
+	create_or_update_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/create_or_update"
 )
 
-var updateStatusHost = "http://localhost:9001/v1/internal/deploy/status"
+var deployDemoChartHostProduction = "https://api.zeus.fyi/v1/deploy"
 
-var topologyID = 1667886918118352000
-
-func UpdateDeploymentStatusApiCall() error {
+func DeployDemoProdChartApiCall() error {
 	cfg := configs.InitLocalTestConfigs()
 
-	wsr := workload_state.InternalWorkloadStatusUpdateRequest{
-		TopologyID:     topologyID,
-		TopologyStatus: "InProgress",
+	deployKns := create_or_update_deploy.TopologyDeployRequest{
+		TopologyID:    1667958167340986000,
+		CloudProvider: "do",
+		Region:        "sfo3",
+		Context:       "dev-sfo3-zeus",
+		Namespace:     "demo",
+		Env:           "dev",
 	}
-	topologyActionRequestPayload, err := json.Marshal(wsr)
+
+	topologyActionRequestPayload, err := json.Marshal(deployKns)
 	if err != nil {
 		return err
 	}
@@ -33,8 +36,8 @@ func UpdateDeploymentStatusApiCall() error {
 	client := resty.New()
 	resp, err := client.R().
 		SetAuthToken(cfg.LocalBearerToken).
-		SetBody(wsr).
-		Post(updateStatusHost)
+		SetBody(deployKns).
+		Post(deployDemoChartHostProduction)
 
 	if err != nil {
 		fmt.Println(err.Error())

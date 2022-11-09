@@ -11,6 +11,16 @@ type DriverTestSuite struct {
 	test_suites.TemporalTestSuite
 }
 
+func (t *DriverTestSuite) TestDriveProdDemoCreateTopologyWithChart() {
+	err := CreateDemoChartApiCall()
+	t.Require().Nil(err)
+}
+
+func (t *DriverTestSuite) TestDriveDeployDemoProdChartApiCall() {
+	err := DeployDemoProdChartApiCall()
+	t.Require().Nil(err)
+}
+
 func (t *DriverTestSuite) TestDriveUpdateDeploymentStatus() {
 	err := UpdateDeploymentStatusApiCall()
 	t.Require().Nil(err)
@@ -27,11 +37,6 @@ func (t *DriverTestSuite) TestDriveReadChart() {
 
 func (t *DriverTestSuite) TestDriveCreateTopologyWithChart() {
 	err := CreateChartApiCall()
-	t.Require().Nil(err)
-}
-
-func (t *DriverTestSuite) TestDriveProdDemoCreateTopologyWithChart() {
-	err := CreateDemoChartApiCall()
 	t.Require().Nil(err)
 }
 

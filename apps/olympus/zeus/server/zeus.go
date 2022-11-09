@@ -17,6 +17,7 @@ import (
 
 var cfg = Config{}
 var authKeysCfg auth_keys_config.AuthKeysCfg
+var temporalAuthCfg temporal_base.TemporalAuth
 var env string
 
 func Zeus() {
@@ -32,14 +33,12 @@ func Zeus() {
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 
-		temporalAuthCfg := temporal_base.TemporalAuth{
+		temporalAuthCfg = temporal_base.TemporalAuth{
 			ClientCertPath:   "/etc/ssl/certs/ca.pem",
 			ClientPEMKeyPath: "/etc/ssl/certs/ca.key",
 			Namespace:        "production-zeus.ngb72",
 			HostPort:         "production-zeus.ngb72.tmprl.cloud:7233",
 		}
-		log.Info().Msg("Zeus: production, temporal startup procedure starting")
-		_, _ = topology_worker.InitTopologyWorker(temporalAuthCfg)
 	case "production-local":
 		log.Info().Msg("Zeus: production local, auth procedure starting")
 		tc := configs.InitLocalTestConfigs()
@@ -47,24 +46,25 @@ func Zeus() {
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, tc.ProdLocalAuthKeysCfg)
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
-		log.Info().Msg("Zeus: production-local, temporal startup procedure starting")
-		_, _ = topology_worker.InitTopologyWorker(tc.ProdLocalTemporalAuth)
+		temporalAuthCfg = tc.ProdLocalTemporalAuth
 	case "local":
 		log.Info().Msg("Zeus: local, auth procedure starting")
 		tc := configs.InitLocalTestConfigs()
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, tc.DevAuthKeysCfg)
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
-		log.Info().Msg("Zeus: production-local, temporal local procedure starting")
-		_, _ = topology_worker.InitTopologyWorker(tc.DevTemporalAuth)
+		temporalAuthCfg = tc.ProdLocalTemporalAuth
 	}
 
 	log.Info().Msg("Zeus: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 
-	srv.E = router.InitRouter(srv.E, cfg.K8sUtil)
+	log.Info().Msgf("Zeus: %s temporal auth and init procedure starting", env)
+	temporalAuthCfg.Bearer = auth_startup.FetchTemporalAuthBearer(ctx)
+	_, _ = topology_worker.InitTopologyWorker(temporalAuthCfg)
 
 	log.Info().Msgf("Zeus: %s server starting", env)
+	srv.E = router.InitRouter(srv.E, cfg.K8sUtil)
 	srv.Start()
 }
 

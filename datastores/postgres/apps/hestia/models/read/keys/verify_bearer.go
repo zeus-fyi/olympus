@@ -6,6 +6,8 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/keys"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
@@ -28,10 +30,32 @@ func (k *OrgUserKey) VerifyUserBearerToken(ctx context.Context) error {
 	q := k.QueryVerifyUserBearerToken()
 	log.Debug().Interface("VerifyUserBearerToken:", q.LogHeader(Sn))
 
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey).Scan(&k.PublicKeyVerified, &k.OrgID, &k.OrgUser.UserID)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey).Scan(&k.PublicKeyVerified, &k.OrgID, &k.UserID)
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
 
 func (k *OrgUserKey) GetUserID() int {
-	return k.OrgUser.UserID
+	return k.UserID
+}
+
+func (k *OrgUserKey) QueryUserToken() sql_query_templates.QueryParams {
+	var q sql_query_templates.QueryParams
+	query := fmt.Sprintf(`
+	SELECT usk.public_key
+	FROM users_keys usk
+	INNER JOIN key_types kt ON kt.key_type_id = usk.public_key_type_id
+	INNER JOIN org_users ou ON ou.user_id = usk.user_id
+	WHERE ou.org_id = $1 AND usk.user_id = $2 AND usk.public_key_type_id = $3
+	`)
+	q.RawQuery = query
+	return q
+}
+
+func (k *OrgUserKey) QueryUserBearerToken(ctx context.Context, ou org_users.OrgUser) error {
+	q := k.QueryUserToken()
+	log.Debug().Interface("QueryUserBearerToken:", q.LogHeader(Sn))
+	k.OrgID = ou.OrgID
+	k.UserID = ou.UserID
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, ou.UserID, keys.BearerKeyTypeID).Scan(&k.PublicKey)
+	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }

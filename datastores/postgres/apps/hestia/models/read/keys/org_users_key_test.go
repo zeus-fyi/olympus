@@ -24,7 +24,7 @@ func (s *ReadOrgUsersKeyTestSuite) TestVerifyBearerToken() {
 	s.Require().Nil(err)
 
 	s.Assert().Equal(oID, k.OrgID)
-	s.Assert().Equal(uID, k.OrgUser.UserID)
+	s.Assert().Equal(uID, k.UserID)
 	s.Assert().True(k.PublicKeyVerified)
 }
 

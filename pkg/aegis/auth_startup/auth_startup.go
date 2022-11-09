@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	s3base "github.com/zeus-fyi/olympus/datastores/s3"
 	s3reader "github.com/zeus-fyi/olympus/datastores/s3/read"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
@@ -22,6 +23,15 @@ type AuthConfig struct {
 	a            encryption.Age
 	s3BaseClient s3base.S3Client
 	S3KeyValue   *s3.GetObjectInput
+}
+
+func FetchTemporalAuthBearer(ctx context.Context) string {
+	key, err := auth.FetchTemporalAuthToken(ctx)
+	if err != nil {
+		log.Fatal().Err(err).Msg("SetTemporalAuthBearer: failed to find auth token, shutting down the server")
+		misc.DelayedPanic(err)
+	}
+	return key.PublicKey
 }
 
 func NewDefaultAuthClient(ctx context.Context, keysCfg auth_keys_config.AuthKeysCfg) AuthConfig {

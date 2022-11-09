@@ -32,7 +32,6 @@ func DeployDemoProdChartApiCall() error {
 	requestJSON := pretty.Pretty(topologyActionRequestPayload)
 	requestJSON = pretty.Color(requestJSON, pretty.TerminalStyle)
 	fmt.Println(string(requestJSON))
-
 	client := resty.New()
 	resp, err := client.R().
 		SetAuthToken(cfg.LocalBearerToken).

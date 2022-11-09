@@ -16,7 +16,7 @@ func (t *DriverTestSuite) TestDriveProdDemoCreateTopologyWithChart() {
 	t.Require().Nil(err)
 }
 
-func (t *DriverTestSuite) TestDriveDeployDemoProdChartApiCall() {
+func (t *DriverTestSuite) TestDriveDeployProdDemoChartApiCall() {
 	err := DeployDemoProdChartApiCall()
 	t.Require().Nil(err)
 }

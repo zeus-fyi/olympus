@@ -8,6 +8,14 @@ ENV TOKEN=$GITHUB_TOKEN
 RUN go env -w GOPRIVATE="github.com/zeus-fyi/olympus,github.com/zeus-fyi/olympus/zeus"
 RUN git config --global url."https://${TOKEN}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
 
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
+
+COPY . .
+RUN rm go.mod
+RUN rm go.sum
+
 COPY configs/ca-certificate.crt .
 COPY configs/zeus.fyi/ca.pem .
 COPY configs/zeus.fyi/ca.key .

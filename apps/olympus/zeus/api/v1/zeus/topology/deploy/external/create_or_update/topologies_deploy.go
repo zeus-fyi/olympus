@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
@@ -18,7 +19,12 @@ import (
 )
 
 type TopologyDeployRequest struct {
-	kns.TopologyKubeCtxNs
+	TopologyID    int    `db:"topology_id" json:"topology_id"`
+	CloudProvider string `db:"cloud_provider" json:"cloud_provider"`
+	Region        string `db:"region" json:"region"`
+	Context       string `db:"context" json:"context"`
+	Namespace     string `db:"namespace" json:"namespace"`
+	Env           string `db:"env" json:"env"`
 }
 
 type TopologyDeployResponse struct {
@@ -38,7 +44,16 @@ func (t *TopologyDeployRequest) DeployTopology(c echo.Context) error {
 
 	// from auth lookup
 	bearer := c.Get("bearer")
-	tar := helpers.PackageCommonTopologyRequest(t.TopologyKubeCtxNs, bearer.(string), ou, tr.GetNativeK8s())
+	knsDeploy := kns.NewKns()
+	knsDeploy.TopologiesKns = autogen_bases.TopologiesKns{
+		TopologyID:    t.TopologyID,
+		CloudProvider: t.CloudProvider,
+		Region:        t.Region,
+		Context:       t.Context,
+		Namespace:     t.Namespace,
+		Env:           t.Env,
+	}
+	tar := helpers.PackageCommonTopologyRequest(knsDeploy, bearer.(string), ou, tr.GetNativeK8s())
 
 	workflowOptions := client.StartWorkflowOptions{}
 	deployWf := deploy_workflow.NewDeployTopologyWorkflow()

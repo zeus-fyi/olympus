@@ -19,8 +19,8 @@ import (
 )
 
 type TopologyDeployRequest struct {
-	TopologyID    int    `db:"topology_id" json:"topology_id"`
-	CloudProvider string `db:"cloud_provider" json:"cloud_provider"`
+	TopologyID    int    `db:"topology_id" json:"topologyID"`
+	CloudProvider string `db:"cloud_provider" json:"cloudProvider"`
 	Region        string `db:"region" json:"region"`
 	Context       string `db:"context" json:"context"`
 	Namespace     string `db:"namespace" json:"namespace"`

@@ -16,7 +16,6 @@ func UpdateWorkloadStateHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-
 	status := create_topology_deployment_status.NewCreateState()
 	status.TopologyStatus = request.TopologyStatus
 	status.TopologyID = request.TopologyID
@@ -25,5 +24,5 @@ func UpdateWorkloadStateHandler(c echo.Context) error {
 		log.Err(err).Msg("UpdateWorkloadStateHandler")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return c.JSON(http.StatusOK, nil)
+	return c.JSON(http.StatusOK, status)
 }

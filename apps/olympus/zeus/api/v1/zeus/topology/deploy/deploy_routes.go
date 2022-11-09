@@ -7,14 +7,16 @@ import (
 	internal_destroy_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/actions/deploy/workload_destroy"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/actions/deploy/workload_state"
 	create_or_update_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/create_or_update"
-	destoy_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/destroy"
+	destroy_deploy_request "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/destroy"
+	deployment_status "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/read"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
 
 func ExternalDeployRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
 	e.POST("/deploy", create_or_update_deploy.TopologyDeploymentHandler)
-	e.POST("/deploy/destroy", destoy_deploy.TopologyDestroyDeploymentHandler)
+	e.POST("/deploy/destroy", destroy_deploy_request.TopologyDestroyDeploymentHandler)
+	e.POST("/deploy/status", deployment_status.TopologyDeploymentStatusHandler)
 	return e
 }
 

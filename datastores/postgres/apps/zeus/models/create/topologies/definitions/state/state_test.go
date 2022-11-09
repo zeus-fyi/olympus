@@ -23,6 +23,11 @@ func (s *CreateTopologyStateTestSuite) TestInsertTopologyState() {
 	err := topState.InsertStatus(ctx)
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(topState.UpdatedAt)
+
+	topState.TopologyStatus = "Done"
+	err = topState.InsertStatus(ctx)
+	s.Require().Nil(err)
+	s.Assert().NotEmpty(topState.UpdatedAt)
 }
 
 func TestCreateTopologyStateTestSuite(t *testing.T) {

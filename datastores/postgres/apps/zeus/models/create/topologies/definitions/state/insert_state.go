@@ -20,7 +20,6 @@ func (s *DeploymentStatus) defaultQ() sql_query_templates.QueryParams {
 	query := `INSERT INTO topologies_deployed(topology_id, topology_status) 
 			  VALUES ($1, $2) 
 			  RETURNING updated_at`
-
 	q.RawQuery = query
 	q.CTEQuery.Params = []interface{}{s.TopologyID, s.TopologyStatus}
 	return q

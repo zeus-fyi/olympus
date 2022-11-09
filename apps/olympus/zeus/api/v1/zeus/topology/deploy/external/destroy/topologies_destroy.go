@@ -1,4 +1,4 @@
-package destoy_deploy
+package destroy_deploy_request
 
 import (
 	"context"

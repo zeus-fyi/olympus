@@ -20,7 +20,7 @@ var kns = autok8s_core.KubeCtxNs{
 	Namespace:     "demo",
 }
 
-var topologyID = 1
+var topologyID = 1667886918118352000
 
 func UpdateDeploymentStatusApiCall() error {
 	cfg := configs.InitLocalTestConfigs()

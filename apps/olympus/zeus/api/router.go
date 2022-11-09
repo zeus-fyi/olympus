@@ -1,4 +1,4 @@
-package router
+package zeus_router
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
-	v1_router "github.com/zeus-fyi/olympus/zeus/api/v1"
+	zeus_v1_router "github.com/zeus-fyi/olympus/zeus/api/v1"
 )
 
 func InitRouter(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
@@ -22,7 +22,7 @@ func InitRouter(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
 	// Routes
 	e.GET("/health", Health)
 
-	// external
+	// external, TODO limit the scope of pods/k8s actions
 	InitV1Routes(e, k8Cfg)
 	// internal
 	InitV1InternalRoutes(e, k8Cfg)
@@ -46,7 +46,7 @@ func InitV1Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
 			return key.PublicKeyVerified, err
 		},
 	}))
-	eg = v1_router.V1Routes(eg, k8Cfg)
+	eg = zeus_v1_router.V1Routes(eg, k8Cfg)
 }
 
 func InitV1InternalRoutes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
@@ -66,7 +66,7 @@ func InitV1InternalRoutes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
 			return key.PublicKeyVerified, err
 		},
 	}))
-	eg = v1_router.V1InternalRoutes(eg, k8Cfg)
+	eg = zeus_v1_router.V1InternalRoutes(eg, k8Cfg)
 }
 
 func Health(c echo.Context) error {

@@ -43,12 +43,17 @@ func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {
 	}
 	nk, err := zeus.UnGzipK8sChart(&in)
 	if err != nil {
+		log.Err(err).Interface("kubernetesWorkload", nk).Msg("CreateTopology: UnGzipK8sChart")
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 	cw, err := nk.CreateChartWorkloadFromNativeK8s()
 	if err != nil {
 		log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: CreateTopology, CreateChartWorkloadFromNativeK8s")
 		return c.JSON(http.StatusBadRequest, nil)
+	}
+	if nk.StatefulSet != nil && nk.Deployment != nil {
+		err = errors.New("cannot include both a stateful set and deployment, must only choose one per topology infra chart components")
+		return c.JSON(http.StatusBadRequest, err)
 	}
 	inf := create_infra.NewCreateInfrastructure()
 	ctx := context.Background()

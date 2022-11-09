@@ -49,7 +49,7 @@ func CreateDemoChartApiCall() error {
 		return err
 	}
 
-	fp := p.V2FileOutPath()
+	fp := demoPath.V2FileOutPath()
 	fmt.Println("filepath")
 	fmt.Println(fp)
 

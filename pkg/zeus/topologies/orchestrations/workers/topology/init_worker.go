@@ -27,6 +27,8 @@ func NewTopologyWorker(authCfg temporal_base.TemporalAuth) (TopologyWorker, erro
 		return TopologyWorker{}, err
 	}
 	defer tc.Close()
+
+	taskQueueName := "TopologyTaskQueue"
 	w := temporal_base.NewWorker(tc, "TopologyTaskQueue")
 
 	// status
@@ -47,5 +49,6 @@ func NewTopologyWorker(authCfg temporal_base.TemporalAuth) (TopologyWorker, erro
 		return TopologyWorker{}, err
 	}
 	tw := TopologyWorker{w}
+	tw.TaskQueueName = taskQueueName
 	return tw, err
 }

@@ -20,6 +20,7 @@ func DeployConfigMapHandler(c echo.Context) error {
 	}
 	if request.ConfigMap != nil {
 		kns := zeus_core.NewKubeCtxNsFromTopologyKns(request.Kns)
+		log.Debug().Interface("kns", kns).Msg("DeployConfigMapHandler: CreateConfigMapIfVersionLabelChangesOrDoesNotExist")
 		_, err := zeus.K8Util.CreateConfigMapIfVersionLabelChangesOrDoesNotExist(ctx, kns, request.ConfigMap, nil)
 		if err != nil {
 			log.Err(err).Msg("DeployConfigMapHandler")

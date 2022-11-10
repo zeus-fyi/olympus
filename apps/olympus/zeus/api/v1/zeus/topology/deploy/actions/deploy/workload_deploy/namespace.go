@@ -18,6 +18,7 @@ func DeployNamespaceHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	kns := zeus_core.NewKubeCtxNsFromTopologyKns(request.Kns)
+	log.Debug().Interface("kns", kns).Msg("DeployNamespaceHandler: CreateNamespaceIfDoesNotExist")
 	_, err := zeus.K8Util.CreateNamespaceIfDoesNotExist(ctx, kns)
 	if err != nil {
 		log.Err(err).Msg("DeployNamespaceHandler")

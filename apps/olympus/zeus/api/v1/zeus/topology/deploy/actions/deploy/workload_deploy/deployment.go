@@ -20,6 +20,7 @@ func DeployDeploymentHandler(c echo.Context) error {
 	}
 	if request.Deployment != nil {
 		kns := zeus_core.NewKubeCtxNsFromTopologyKns(request.Kns)
+		log.Debug().Interface("kns", kns).Msg("DeployDeploymentHandler: CreateDeploymentIfVersionLabelChangesOrDoesNotExist")
 		_, err := zeus.K8Util.CreateDeploymentIfVersionLabelChangesOrDoesNotExist(ctx, kns, request.Deployment, nil)
 		if err != nil {
 			log.Err(err).Msg("DeployDeploymentHandler")

@@ -20,6 +20,7 @@ func DeployStatefulSetHandler(c echo.Context) error {
 	}
 	if request.StatefulSet != nil {
 		kns := zeus_core.NewKubeCtxNsFromTopologyKns(request.Kns)
+		log.Debug().Interface("kns", kns).Msg("DeployStatefulSetHandler: CreateStatefulSetIfVersionLabelChangesOrDoesNotExist")
 		_, err := zeus.K8Util.CreateStatefulSetIfVersionLabelChangesOrDoesNotExist(ctx, kns, request.StatefulSet, nil)
 		if err != nil {
 			log.Err(err).Msg("DeployStatefulSetHandler")

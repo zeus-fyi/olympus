@@ -20,6 +20,7 @@ func DeployServiceHandler(c echo.Context) error {
 	}
 	if request.Service != nil {
 		kns := zeus_core.NewKubeCtxNsFromTopologyKns(request.Kns)
+		log.Debug().Interface("kns", kns).Msg("DeployServiceHandler: CreateServiceIfVersionLabelChangesOrDoesNotExist")
 		_, err := zeus.K8Util.CreateServiceIfVersionLabelChangesOrDoesNotExist(ctx, kns, request.Service, nil)
 		if err != nil {
 			log.Err(err).Msg("DeployServiceHandler")

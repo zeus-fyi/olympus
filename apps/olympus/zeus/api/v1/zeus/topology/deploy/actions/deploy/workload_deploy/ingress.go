@@ -20,6 +20,7 @@ func DeployIngressHandler(c echo.Context) error {
 	}
 	if request.Ingress != nil {
 		kns := zeus_core.NewKubeCtxNsFromTopologyKns(request.Kns)
+		log.Debug().Interface("kns", kns).Msg("DeployIngressHandler: CreateIngressIfVersionLabelChangesOrDoesNotExist")
 		_, err := zeus.K8Util.CreateIngressIfVersionLabelChangesOrDoesNotExist(ctx, kns, request.Ingress, nil)
 		if err != nil {
 			log.Err(err).Msg("DeployIngressHandler")

@@ -11,12 +11,8 @@ import (
 
 const Sn = "TopologyKubeCtxNs"
 
-func (s *DeploymentStatus) defaultQ() sql_query_templates.QueryParams {
-	q := sql_query_templates.NewQueryParam("InsertState", "topologies_deployed", "where", 1000, []string{})
-	q.TableName = s.GetTableName()
-	q.Columns = s.GetTableColumns()
-	q.Values = []apps.RowValues{s.GetRowValues("default")}
-
+func (s *DeploymentStatus) insertTopologyStatus() sql_query_templates.QueryParams {
+	q := sql_query_templates.NewQueryParam("insertTopologyStatus", "topologies_deployed", "where", 1000, []string{})
 	query := `INSERT INTO topologies_deployed(topology_id, topology_status) 
 			  VALUES ($1, $2) 
 			  ON CONFLICT (topology_id, topology_status) DO UPDATE SET topology_status = EXCLUDED.topology_status
@@ -27,7 +23,7 @@ func (s *DeploymentStatus) defaultQ() sql_query_templates.QueryParams {
 }
 
 func (s *DeploymentStatus) InsertStatus(ctx context.Context) error {
-	q := s.defaultQ()
+	q := s.insertTopologyStatus()
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, q.CTEQuery.Params...).Scan(&s.UpdatedAt)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {

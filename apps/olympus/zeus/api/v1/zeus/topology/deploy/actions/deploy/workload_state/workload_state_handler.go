@@ -21,7 +21,7 @@ func UpdateWorkloadStateHandler(c echo.Context) error {
 	status.TopologyID = request.TopologyID
 	err := status.InsertStatus(ctx)
 	if err != nil {
-		log.Err(err).Msg("UpdateWorkloadStateHandler")
+		log.Err(err).Interface("status", status).Msg("UpdateWorkloadStateHandler")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, status)

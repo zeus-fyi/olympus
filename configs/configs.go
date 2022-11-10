@@ -34,6 +34,8 @@ type TestContainer struct {
 	LocalBearerToken           string
 	ProductionLocalBearerToken string
 
+	ProductionLocalTemporalBearerToken string
+
 	DevTemporalHostPort string
 	DevTemporalNs       string
 
@@ -100,7 +102,9 @@ func InitLocalTestConfigs() TestContainer {
 	testCont.LocalBeaconConn = viper.GetString("LOCAL_BEACON_CONN_STR")
 
 	testCont.LocalBearerToken = viper.GetString("LOCAL_BEARER_TOKEN")
-	testCont.ProductionLocalBearerToken = viper.GetString("PRODUCTION_LOCAL_BEARER_TOKEN")
+	testCont.ProductionLocalBearerToken = viper.GetString("PROD_LOCAL_BEARER_TOKEN")
+
+	testCont.ProductionLocalTemporalBearerToken = viper.GetString("PROD_LOCAL_TEMPORAL_BEARER_TOKEN")
 
 	testCont.DevAuthKeysCfg = getDevAuthKeysCfg()
 	testCont.ProdLocalAuthKeysCfg = testCont.DevAuthKeysCfg

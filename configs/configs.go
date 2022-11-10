@@ -68,8 +68,8 @@ func InitLocalTestConfigs() TestContainer {
 
 	testCont.DevTemporalNs = viper.GetString("DEV_TEMPORAL_NS")
 	testCont.DevTemporalHostPort = viper.GetString("DEV_TEMPORAL_HOST_PORT")
-	certPath := "/Users/alex/go/Zeus/olympus/configs/zeus.fyi/ca.pem"
-	pemPath := "/Users/alex/go/Zeus/olympus/configs/zeus.fyi/ca.key"
+	certPath := "./zeus.fyi/ca.pem"
+	pemPath := "./zeus.fyi/ca.key"
 	namespace := testCont.DevTemporalNs
 	hostPort := testCont.DevTemporalHostPort
 	testCont.DevTemporalAuth = temporal_client.TemporalAuth{

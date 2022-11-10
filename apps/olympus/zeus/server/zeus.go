@@ -11,7 +11,6 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
-	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
 	router "github.com/zeus-fyi/olympus/zeus/api"
@@ -63,19 +62,17 @@ func Zeus() {
 
 	log.Info().Msgf("Zeus: %s temporal auth and init procedure starting", env)
 	temporalAuthCfg.Bearer = auth_startup.FetchTemporalAuthBearer(ctx)
+	topology_worker.InitTopologyWorker(temporalAuthCfg)
 
-	topology_worker.InitTopologyWorker()
-
-	tc, err := temporal_base.NewTemporalClient(temporalAuthCfg)
+	c := topology_worker.Worker.TemporalClient.ConnectTemporalClient()
+	defer c.Close()
+	topology_worker.Worker.RegisterWorker(c)
+	err := topology_worker.Worker.Start()
 	if err != nil {
-		log.Err(err).Msg("InitTopologyWorker: NewTemporalClient failed")
+		log.Fatal().Err(err).Msgf("Zeus: %s topology_worker.Worker.Start failed", env)
 		misc.DelayedPanic(err)
 	}
-	topology_worker.Worker.TemporalClient = tc
-	c := tc.ConnectTemporalClient()
-	defer c.Close()
-
-	topology_worker.Worker.RegisterWorker(c)
+	log.Info().Msgf("Zeus: %s temporal setup is complete", env)
 	log.Info().Msgf("Zeus: %s server starting", env)
 	srv.E = router.InitRouter(srv.E, cfg.K8sUtil)
 	srv.Start()

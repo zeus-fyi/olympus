@@ -73,3 +73,4 @@ Thumbs.db
 /configs/github/.token
 /configs/github/.token
 /configs/github/
+/configs/secrets/

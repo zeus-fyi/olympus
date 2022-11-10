@@ -19,7 +19,7 @@ func (s *DeploymentStatus) defaultQ() sql_query_templates.QueryParams {
 
 	query := `INSERT INTO topologies_deployed(topology_id, topology_status) 
 			  VALUES ($1, $2) 
-			  ON CONFLICT ON CONSTRAINT topologies_deployed_topology_id_fkey DO UPDATE SET topology_id = EXCLUDED.topology_id 
+			  ON CONFLICT ON CONSTRAINT topologies_deployed_topology_id_fkey DO UPDATE SET topology_status = EXCLUDED.topology_status 
 			  RETURNING updated_at`
 	q.RawQuery = query
 	q.CTEQuery.Params = []interface{}{s.TopologyID, s.TopologyStatus}

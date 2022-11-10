@@ -25,8 +25,8 @@ func (d *DeployTopologyActivities) GetActivities() ActivitiesSlice {
 	}
 }
 
-func (d *DeployTopologyActivities) postDeployTarget() error {
-	u := d.GetDeployURL()
+func (d *DeployTopologyActivities) postDeployTarget(target string) error {
+	u := d.GetDeployURL(target)
 	client := resty.New()
 	_, err := client.R().
 		SetAuthToken(d.Bearer).
@@ -39,6 +39,6 @@ func (d *DeployTopologyActivities) postDeployTarget() error {
 	return err
 }
 
-func (d *DeployTopologyActivities) GetDeployURL() url.URL {
-	return d.GetURL(deployRoute)
+func (d *DeployTopologyActivities) GetDeployURL(target string) url.URL {
+	return d.GetURL(deployRoute, target)
 }

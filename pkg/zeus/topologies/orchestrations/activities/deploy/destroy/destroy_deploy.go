@@ -25,8 +25,8 @@ func (d *DestroyDeployTopologyActivities) GetActivities() ActivitiesSlice {
 	}
 }
 
-func (d *DestroyDeployTopologyActivities) postDestroyDeployTarget() error {
-	u := d.GetDestroyDeployURL()
+func (d *DestroyDeployTopologyActivities) postDestroyDeployTarget(target string) error {
+	u := d.GetDestroyDeployURL(target)
 	client := resty.New()
 	_, err := client.R().
 		SetAuthToken(d.Bearer).
@@ -39,6 +39,6 @@ func (d *DestroyDeployTopologyActivities) postDestroyDeployTarget() error {
 	return err
 }
 
-func (d *DestroyDeployTopologyActivities) GetDestroyDeployURL() url.URL {
-	return d.GetURL(destroyDeployRoute)
+func (d *DestroyDeployTopologyActivities) GetDestroyDeployURL(target string) url.URL {
+	return d.GetURL(destroyDeployRoute, target)
 }

@@ -3,7 +3,6 @@ package deployment_status
 import (
 	"context"
 	"net/url"
-	"path"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
@@ -49,7 +48,7 @@ func (d *TopologyActivityDeploymentStatusActivity) GetURL(target string) url.URL
 	}
 	u := url.URL{
 		Host: d.Host,
-		Path: path.Join(d.Host, target),
+		Path: target,
 	}
 	return u
 }

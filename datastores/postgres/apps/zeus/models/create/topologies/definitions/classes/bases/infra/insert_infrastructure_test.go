@@ -54,6 +54,12 @@ func (s *CreateInfraTestSuite) TestInsertInfraBase() {
 	ctx := context.Background()
 	inf.Name = fmt.Sprintf("test_%d", s.Ts.UnixTimeStampNow())
 	inf.OrgID, inf.UserID = s.b.NewTestOrgAndUser()
+	fmt.Println("OrgID")
+	fmt.Println(inf.OrgID)
+
+	fmt.Println("UserID")
+	fmt.Println(inf.UserID)
+
 	err = inf.InsertInfraBase(ctx)
 	s.Require().Nil(err)
 

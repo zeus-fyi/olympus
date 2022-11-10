@@ -11,6 +11,11 @@ type DriverTestSuite struct {
 	test_suites.TemporalTestSuite
 }
 
+func (t *DriverTestSuite) TestDriveDestroyDeployProdDemoChartApiCall() {
+	err := DestroyDeployDemoProdChartApiCall()
+	t.Require().Nil(err)
+}
+
 func (t *DriverTestSuite) TestDriveDeployProdDemoChartApiCall() {
 	err := DeployDemoProdChartApiCall()
 	t.Require().Nil(err)

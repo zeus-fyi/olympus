@@ -11,7 +11,7 @@ require (
 	github.com/spf13/viper v1.14.0
 	github.com/stretchr/testify v1.8.1
 	github.com/tidwall/pretty v1.2.1
-	github.com/zeus-fyi/olympus v0.0.0-20221107212928-aa9e383b87d3
+	github.com/zeus-fyi/olympus v0.0.0-20221110041739-05b5f79a1149
 	k8s.io/api v0.24.3
 	k8s.io/apimachinery v0.24.3
 )

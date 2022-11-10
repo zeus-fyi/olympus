@@ -661,8 +661,8 @@ github.com/yuin/goldmark v1.4.1/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1
 github.com/zenazn/goji v0.9.0/go.mod h1:7S9M489iMyHBNxwZnk9/EHS098H4/F6TATF2mIxtB1Q=
 github.com/zeus-fyi/memoryfs v0.0.0-20221102185216-a3f87725e7fb h1:oATcLWnxYVbbm35iOIFjbQKZqDURVacvof3LEZ+gOhw=
 github.com/zeus-fyi/memoryfs v0.0.0-20221102185216-a3f87725e7fb/go.mod h1:UYUjXqE0Wl/LoeO0ENeIhw+ul1FKQgq/j998k8FozTo=
-github.com/zeus-fyi/olympus v0.0.0-20221107212928-aa9e383b87d3 h1:KnABwMgE3Hn1V326Tav1B1H7h/17rCVrW/+nMhlfYa8=
-github.com/zeus-fyi/olympus v0.0.0-20221107212928-aa9e383b87d3/go.mod h1:uVWP0u3X6ZGHG+TPhBui7thGxEaA79b060qpK+t8qXs=
+github.com/zeus-fyi/olympus v0.0.0-20221110041739-05b5f79a1149 h1:C9KMSJbh/6Dxl9+Wx8brM6pnNTuTayfNqdqpF+XniLI=
+github.com/zeus-fyi/olympus v0.0.0-20221110041739-05b5f79a1149/go.mod h1:HrcljUt78ALKZQRe9pdy33s8GAC06d7VLSUBP2BiKCA=
 go.etcd.io/etcd/api/v3 v3.5.0/go.mod h1:cbVKeC6lCfl7j/8jBhAK6aIYO9XOjdptoxU/nLQcPvs=
 go.etcd.io/etcd/client/pkg/v3 v3.5.0/go.mod h1:IJHfcCEKxYu1Os13ZdwCwIUTUVGYTSAM3YSwc9/Ac1g=
 go.etcd.io/etcd/client/v2 v2.305.0/go.mod h1:h9puh54ZTgAKtEbut2oe9P4L/oqKCVB6xsXlzd7alYQ=

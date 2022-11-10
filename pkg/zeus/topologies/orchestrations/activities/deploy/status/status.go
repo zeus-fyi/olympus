@@ -40,16 +40,16 @@ func (d *TopologyActivityDeploymentStatusActivity) PostStatusUpdate(ctx context.
 }
 
 func (d *TopologyActivityDeploymentStatusActivity) GetDeploymentStatusUpdateURL() url.URL {
-	return d.GetURL(updateDeployStatusRoute, d.Host)
+	return d.GetURL(updateDeployStatusRoute)
 }
 
-func (d *TopologyActivityDeploymentStatusActivity) GetURL(prefix, target string) url.URL {
+func (d *TopologyActivityDeploymentStatusActivity) GetURL(target string) url.URL {
 	if len(d.Host) <= 0 {
 		d.Host = "https://api.zeus.fyi"
 	}
 	u := url.URL{
 		Host: d.Host,
-		Path: path.Join(prefix, target),
+		Path: path.Join(d.Host, target),
 	}
 	return u
 }

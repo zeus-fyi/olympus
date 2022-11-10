@@ -18,13 +18,13 @@ type TopologyWorkflowRequest struct {
 	chart_workload.NativeK8s
 }
 
-func (t *TopologyWorkflowRequest) GetURL(prefix, target string) url.URL {
+func (t *TopologyWorkflowRequest) GetURL(target string) url.URL {
 	if len(t.Host) <= 0 {
 		t.Host = "https://api.zeus.fyi"
 	}
 	u := url.URL{
 		Host: t.Host,
-		Path: path.Join(prefix, target),
+		Path: path.Join(t.Host, target),
 	}
 	return u
 }

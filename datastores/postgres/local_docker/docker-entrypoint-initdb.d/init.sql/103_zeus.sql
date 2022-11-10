@@ -44,6 +44,7 @@ CREATE TABLE "public"."topologies_deployed" (
    "topology_status" text NOT NULL,
    "updated_at" timestamptz  NOT NULL DEFAULT NOW()
 );
+ALTER TABLE "public"."topologies_deployed" ADD CONSTRAINT "topologies_deployed_unique_key" UNIQUE  ("topology_id", "topology_status");
 
 -- if needed again per different schema. eg zeus.DB, vs eth.DB
 -- CREATE OR REPLACE FUNCTION trigger_set_timestamp()

@@ -24,13 +24,13 @@ func (d *TopologyActivityDeploymentStatusActivity) GetActivities() ActivitiesSli
 	return []interface{}{d.PostStatusUpdate}
 }
 
-func (d *TopologyActivityDeploymentStatusActivity) PostStatusUpdate(ctx context.Context) error {
+func (d *TopologyActivityDeploymentStatusActivity) PostStatusUpdate(ctx context.Context, status workload_state.InternalWorkloadStatusUpdateRequest) error {
 	u := d.GetDeploymentStatusUpdateURL()
 	client := resty.New()
 	client.SetBaseURL(u.Host)
 	_, err := client.R().
 		SetAuthToken(api_auth_temporal.Bearer).
-		SetBody(d.InternalWorkloadStatusUpdateRequest).
+		SetBody(status).
 		Post(u.Path)
 	if err != nil {
 		log.Err(err).Interface("path", u.Path).Msg("TopologyActivityDeploymentStatusActivity")

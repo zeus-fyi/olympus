@@ -47,7 +47,7 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 			TopologyStatus: topology_deployment_status.InProgress,
 		},
 	}
-	err := workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate).Get(statusCtx, nil)
+	err := workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, statusActivity.InternalWorkloadStatusUpdateRequest).Get(statusCtx, nil)
 	if err != nil {
 		log.Error("Failed to update topology status", "Error", err)
 		return err
@@ -97,7 +97,7 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 	}
 
 	statusActivity.TopologyStatus = topology_deployment_status.Complete
-	err = workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate).Get(statusCtx, nil)
+	err = workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, statusActivity.InternalWorkloadStatusUpdateRequest).Get(statusCtx, nil)
 	if err != nil {
 		log.Error("Failed to update topology status", "Error", err)
 		return err

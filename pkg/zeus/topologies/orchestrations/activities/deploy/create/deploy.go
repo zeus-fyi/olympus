@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/auth"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/actions/base_request"
 )
 
 const deployRoute = "/v1/internal/deploy"
@@ -26,13 +27,13 @@ func (d *DeployTopologyActivities) GetActivities() ActivitiesSlice {
 	}
 }
 
-func (d *DeployTopologyActivities) postDeployTarget(target string) error {
+func (d *DeployTopologyActivities) postDeployTarget(target string, params base_request.InternalDeploymentActionRequest) error {
 	u := d.GetDeployURL(target)
 	client := resty.New()
 	client.SetBaseURL(u.Host)
 	_, err := client.R().
 		SetAuthToken(api_auth_temporal.Bearer).
-		SetBody(d.TopologyWorkflowRequest).
+		SetBody(params).
 		Post(u.Path)
 	if err != nil {
 		log.Err(err).Interface("path", u.Path).Msg("DeployTopologyActivities: postDeployTarget failed")

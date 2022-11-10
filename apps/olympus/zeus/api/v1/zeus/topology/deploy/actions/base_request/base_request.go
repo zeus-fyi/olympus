@@ -1,9 +1,13 @@
 package base_request
 
 import (
-	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 )
 
 type InternalDeploymentActionRequest struct {
-	base_deploy_params.TopologyWorkflowRequest
+	Kns     kns.TopologyKubeCtxNs
+	OrgUser org_users.OrgUser
+	chart_workload.NativeK8s
 }

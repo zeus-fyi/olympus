@@ -8,6 +8,7 @@ import (
 	destroy_deploy_activities "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/destroy"
 	deployment_status "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/status"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/actions/base_request"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/actions/deploy/workload_state"
 	"go.temporal.io/sdk/workflow"
 )
@@ -53,9 +54,14 @@ func (t *DestroyDeployTopologyWorkflow) DestroyDeployedTopologyWorkflow(ctx work
 		return err
 	}
 
+	deployParams := base_request.InternalDeploymentActionRequest{
+		Kns:       params.Kns,
+		OrgUser:   params.OrgUser,
+		NativeK8s: params.NativeK8s,
+	}
 	if params.Deployment != nil {
 		dCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(dCtx, t.DestroyDeployTopologyActivities.DestroyDeployDeployment).Get(dCtx, nil)
+		err = workflow.ExecuteActivity(dCtx, t.DestroyDeployTopologyActivities.DestroyDeployDeployment, deployParams).Get(dCtx, nil)
 		if err != nil {
 			log.Error("Failed to destroy deployment", "Error", err)
 			return err
@@ -64,7 +70,7 @@ func (t *DestroyDeployTopologyWorkflow) DestroyDeployedTopologyWorkflow(ctx work
 
 	if params.StatefulSet != nil {
 		stsCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(stsCtx, t.DestroyDeployTopologyActivities.DestroyDeployStatefulSet).Get(stsCtx, nil)
+		err = workflow.ExecuteActivity(stsCtx, t.DestroyDeployTopologyActivities.DestroyDeployStatefulSet, deployParams).Get(stsCtx, nil)
 		if err != nil {
 			log.Error("Failed to destroy statefulset", "Error", err)
 			return err
@@ -73,7 +79,7 @@ func (t *DestroyDeployTopologyWorkflow) DestroyDeployedTopologyWorkflow(ctx work
 
 	if params.Service != nil {
 		svcCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(svcCtx, t.DestroyDeployTopologyActivities.DestroyDeployService).Get(svcCtx, nil)
+		err = workflow.ExecuteActivity(svcCtx, t.DestroyDeployTopologyActivities.DestroyDeployService, deployParams).Get(svcCtx, nil)
 		if err != nil {
 			log.Error("Failed to destroy service", "Error", err)
 			return err
@@ -82,7 +88,7 @@ func (t *DestroyDeployTopologyWorkflow) DestroyDeployedTopologyWorkflow(ctx work
 
 	if params.Ingress != nil {
 		ingCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(ingCtx, t.DestroyDeployTopologyActivities.DestroyDeployIngress).Get(ingCtx, nil)
+		err = workflow.ExecuteActivity(ingCtx, t.DestroyDeployTopologyActivities.DestroyDeployIngress, deployParams).Get(ingCtx, nil)
 		if err != nil {
 			log.Error("Failed to destroy ingress", "Error", err)
 			return err

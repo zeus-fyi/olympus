@@ -1,7 +1,11 @@
 package deploy_topology_activities
 
-import "context"
+import (
+	"context"
 
-func (d *DeployTopologyActivities) DeployStatefulSet(ctx context.Context) error {
-	return d.postDeployTarget("statefulset")
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/actions/base_request"
+)
+
+func (d *DeployTopologyActivities) DeployStatefulSet(ctx context.Context, params base_request.InternalDeploymentActionRequest) error {
+	return d.postDeployTarget("statefulset", params)
 }

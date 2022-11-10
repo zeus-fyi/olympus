@@ -6,15 +6,15 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
-	create_topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/definitions/state"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/auth"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/actions/deploy/workload_state"
 )
 
 const updateDeployStatusRoute = "/v1/internal/deploy/status"
 
 type TopologyActivityDeploymentStatusActivity struct {
 	Host string
-	create_topology_deployment_status.DeploymentStatus
+	workload_state.InternalWorkloadStatusUpdateRequest
 }
 
 type ActivityDefinition interface{}
@@ -30,7 +30,7 @@ func (d *TopologyActivityDeploymentStatusActivity) PostStatusUpdate(ctx context.
 	client.SetBaseURL(u.Host)
 	_, err := client.R().
 		SetAuthToken(api_auth_temporal.Bearer).
-		SetBody(d.DeploymentStatus).
+		SetBody(d.InternalWorkloadStatusUpdateRequest).
 		Post(u.Path)
 	if err != nil {
 		log.Err(err).Interface("path", u.Path).Msg("TopologyActivityDeploymentStatusActivity")

@@ -4,11 +4,11 @@ import (
 	"time"
 
 	topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
-	create_topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/definitions/state"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	deploy_topology_activities "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/create"
 	deployment_status "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/status"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/actions/deploy/workload_state"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -41,11 +41,12 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 
 	statusCtx := workflow.WithActivityOptions(ctx, ao)
 	statusActivity := deployment_status.TopologyActivityDeploymentStatusActivity{
-		Host:             params.Host,
-		DeploymentStatus: create_topology_deployment_status.DeploymentStatus{},
+		Host: params.Host,
+		InternalWorkloadStatusUpdateRequest: workload_state.InternalWorkloadStatusUpdateRequest{
+			TopologyID:     params.Kns.TopologyID,
+			TopologyStatus: topology_deployment_status.InProgress,
+		},
 	}
-	statusActivity.Status.TopologiesDeployed.TopologyID = params.Kns.TopologyID
-	statusActivity.Status.TopologiesDeployed.TopologyStatus = topology_deployment_status.InProgress
 	err := workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate).Get(statusCtx, nil)
 	if err != nil {
 		log.Error("Failed to update topology status", "Error", err)
@@ -95,7 +96,7 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 		}
 	}
 
-	statusActivity.Status.TopologiesDeployed.TopologyStatus = topology_deployment_status.Complete
+	statusActivity.TopologyStatus = topology_deployment_status.Complete
 	err = workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate).Get(statusCtx, nil)
 	if err != nil {
 		log.Error("Failed to update topology status", "Error", err)

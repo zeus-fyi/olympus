@@ -16,7 +16,7 @@ func DeployDemoProdChartApiCall() error {
 	cfg := configs.InitLocalTestConfigs()
 
 	deployKns := create_or_update_deploy.TopologyDeployRequest{
-		TopologyID:    1667958167340986000,
+		TopologyID:    1668066484908537000,
 		CloudProvider: "do",
 		Region:        "sfo3",
 		Context:       "dev-sfo3-zeus",
@@ -34,7 +34,7 @@ func DeployDemoProdChartApiCall() error {
 	fmt.Println(string(requestJSON))
 	client := resty.New()
 	resp, err := client.R().
-		SetAuthToken(cfg.LocalBearerToken).
+		SetAuthToken(cfg.ProductionLocalTemporalBearerToken).
 		SetBody(deployKns).
 		Post(deployDemoChartHostProduction)
 

@@ -34,24 +34,22 @@ func InternalDeployStatusRoutes(e *echo.Group) *echo.Group {
 
 func InternalDeployRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
-	e.Group("/deploy")
-	e.POST("/namespace", internal_deploy.DeployNamespaceHandler)
-	e.POST("/deployment", internal_deploy.DeployDeploymentHandler)
-	e.POST("/statefulset", internal_deploy.DeployStatefulSetHandler)
-	e.POST("/configmap", internal_deploy.DeployConfigMapHandler)
-	e.POST("/service", internal_deploy.DeployServiceHandler)
-	e.POST("/ingress", internal_deploy.DeployIngressHandler)
+	e.POST("/deploy/namespace", internal_deploy.DeployNamespaceHandler)
+	e.POST("/deploy/deployment", internal_deploy.DeployDeploymentHandler)
+	e.POST("/deploy/statefulset", internal_deploy.DeployStatefulSetHandler)
+	e.POST("/deploy/configmap", internal_deploy.DeployConfigMapHandler)
+	e.POST("/deploy/service", internal_deploy.DeployServiceHandler)
+	e.POST("/deploy/ingress", internal_deploy.DeployIngressHandler)
 	return e
 }
 
 func InternalDeployDestroyRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
-	e.Group("/deploy/destroy")
-	e.POST("/namespace", internal_destroy_deploy.DestroyDeployNamespaceHandler)
-	e.POST("/deployment", internal_destroy_deploy.DestroyDeployDeploymentHandler)
-	e.POST("/statefulset", internal_destroy_deploy.DestroyDeployStatefulSetHandler)
-	e.POST("/configmap", internal_destroy_deploy.DestroyDeployConfigMapHandler)
-	e.POST("/service", internal_destroy_deploy.DestroyDeployServiceHandler)
-	e.POST("/ingress", internal_destroy_deploy.DestroyDeployIngressHandler)
+	e.POST("/deploy/destroy/namespace", internal_destroy_deploy.DestroyDeployNamespaceHandler)
+	e.POST("/deploy/destroy/deployment", internal_destroy_deploy.DestroyDeployDeploymentHandler)
+	e.POST("/deploy/destroy/statefulset", internal_destroy_deploy.DestroyDeployStatefulSetHandler)
+	e.POST("/deploy/destroy/configmap", internal_destroy_deploy.DestroyDeployConfigMapHandler)
+	e.POST("/deploy/destroy/service", internal_destroy_deploy.DestroyDeployServiceHandler)
+	e.POST("/deploy/destroy/ingress", internal_destroy_deploy.DestroyDeployIngressHandler)
 	return e
 }

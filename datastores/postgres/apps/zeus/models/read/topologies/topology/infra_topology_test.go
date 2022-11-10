@@ -2,10 +2,13 @@ package read_topology
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 type TopologyTestSuite struct {
@@ -13,24 +16,39 @@ type TopologyTestSuite struct {
 }
 
 func (s *TopologyTestSuite) TestSelectTopology() {
+	s.InitLocalConfigs()
 	tr := NewInfraTopologyReader()
 
-	tr.TopologyID = 6951056435719556916
-	tr.OrgID = 1667266332674446258
-	tr.UserID = 1667266332670878528
+	tr.TopologyID = 1668063792629755904
+	tr.OrgID = 7138983863666903883
+	tr.UserID = 7138958574876245567
 	ctx := context.Background()
 	err := tr.SelectTopology(ctx)
 	s.Require().Nil(err)
 
 	chart := tr.Chart
+
+	p := structs.Path{
+		PackageName: "",
+		DirIn:       "./",
+		DirOut:      "./",
+		Fn:          "",
+		FnOut:       "deployment.yaml",
+		Env:         "",
+		FilterFiles: string_utils.FilterOpts{},
+	}
+	b, err := json.Marshal(chart.Deployment.K8sDeployment)
 	s.Require().Nil(err)
+
+	err = s.Yr.WriteYamlConfig(p, b)
+	s.Require().Nil(err)
+
 	s.Require().NotEmpty(chart.K8sDeployment)
 	s.Require().NotNil(chart.K8sDeployment.Spec.Replicas)
 	s.Require().NotEmpty(chart.K8sDeployment.Spec.Template.GetObjectMeta())
 
 	s.Require().NotEmpty(chart.K8sService)
 	s.Require().NotEmpty(chart.K8sConfigMap)
-	s.Require().NotEmpty(chart.K8sIngress)
 	s.Require().NotEmpty(chart.K8sConfigMap.Name)
 
 }

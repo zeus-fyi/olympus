@@ -25,10 +25,11 @@ type CreateInfraTestSuite struct {
 func (s *CreateInfraTestSuite) TestInsertInfraBase() {
 	p := structs.Path{
 		PackageName: "",
-		DirIn:       s.TestDirectory + "/temp",
+		DirIn:       s.TestDirectory + "/mocks/demo",
+		Fn:          "deployment.yaml",
 		DirOut:      s.TestDirectory + "/tempout",
-		FnOut:       "statefulset_out.yaml",
-		FilterFiles: string_utils.FilterOpts{DoesNotStartWithThese: []string{"deployment"}},
+		FnOut:       "deployment.yaml",
+		FilterFiles: string_utils.FilterOpts{DoesNotStartWithThese: []string{"cm-demo", "service"}},
 	}
 	err := s.Yr.ReadK8sWorkloadDir(p)
 	s.Require().Nil(err)

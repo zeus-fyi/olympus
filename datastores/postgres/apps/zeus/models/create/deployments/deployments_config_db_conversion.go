@@ -38,10 +38,9 @@ func ConvertDeploymentSpec(ds v1.DeploymentSpec) (deployments.Spec, error) {
 	}
 
 	dbDeploymentSpec.Replicas.ChartSubcomponentValue = string_utils.Convert32BitPtrIntToString(ds.Replicas)
-	dbPodTemplateSpec, err := dbDeploymentSpec.Template.ConvertPodTemplateSpecConfigToDB(&podTemplateSpec)
+	err := dbDeploymentSpec.Template.ConvertPodTemplateSpecConfigToDB(&podTemplateSpec)
 	if err != nil {
 		return dbDeploymentSpec, err
 	}
-	dbDeploymentSpec.Template = dbPodTemplateSpec
 	return dbDeploymentSpec, nil
 }

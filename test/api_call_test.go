@@ -21,6 +21,11 @@ func (t *DriverTestSuite) TestDriveCreateInternalProdNsApiCall() {
 	t.Require().Nil(err)
 }
 
+func (t *DriverTestSuite) TestDriveLocalDemoCreateTopologyWithChart() {
+	err := CreateLocalDemoChartApiCall()
+	t.Require().Nil(err)
+}
+
 func (t *DriverTestSuite) TestDriveProdDemoCreateTopologyWithChart() {
 	err := CreateDemoChartApiCall()
 	t.Require().Nil(err)

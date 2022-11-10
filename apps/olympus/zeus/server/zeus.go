@@ -59,7 +59,6 @@ func Zeus() {
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 		temporalAuthCfg = tc.ProdLocalTemporalAuth
-
 	}
 
 	log.Info().Msg("Zeus: PG connection starting")
@@ -94,7 +93,7 @@ func init() {
 	Cmd.Flags().StringVar(&authKeysCfg.SpacesKey, "do-spaces-key", "", "do s3 spaces key")
 	Cmd.Flags().StringVar(&authKeysCfg.SpacesPrivKey, "do-spaces-private-key", "", "do s3 spaces private key")
 
-	Cmd.Flags().StringVar(&env, "env", "production-local", "environment")
+	Cmd.Flags().StringVar(&env, "env", "local", "environment")
 }
 
 // Cmd represents the base command when called without any subcommands

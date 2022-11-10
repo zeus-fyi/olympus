@@ -17,7 +17,7 @@ type ConvertDeploymentPackagesTestSuite struct {
 
 func (s *ConvertDeploymentPackagesTestSuite) TestConvertDeployment() {
 	packageID := 0
-	filepath := s.TestDirectory + "/mocks/test/deployment_eth_indexer.yaml"
+	filepath := s.TestDirectory + "/mocks/demo/deployment.yaml"
 	jsonBytes, err := s.Yr.ReadYamlConfig(filepath)
 
 	var d *v1.Deployment
@@ -29,6 +29,7 @@ func (s *ConvertDeploymentPackagesTestSuite) TestConvertDeployment() {
 	dbDeploymentConfig, err := ConvertDeploymentConfigToDB(d)
 	s.Require().Nil(err)
 
+	s.Require().NotEmpty(dbDeploymentConfig.Metadata.Name.ChartSubcomponentValue)
 	s.Require().NotEmpty(dbDeploymentConfig)
 
 	s.Require().NotEmpty(dbDeploymentConfig.Spec)

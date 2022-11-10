@@ -40,6 +40,6 @@ func (d *Deployment) ConvertDeploymentSpec() error {
 		return err
 	}
 	dbPodTemplateSpecMetadata := d.K8sDeployment.Spec.Template.GetObjectMeta()
-	d.Metadata.Metadata = common_conversions.CreateMetadataByFields(dbPodTemplateSpecMetadata.GetName(), dbPodTemplateSpecMetadata.GetAnnotations(), dbPodTemplateSpecMetadata.GetLabels())
+	d.Spec.Template.Metadata.Metadata = common_conversions.CreateMetadataByFields(dbPodTemplateSpecMetadata.GetName(), dbPodTemplateSpecMetadata.GetAnnotations(), dbPodTemplateSpecMetadata.GetLabels())
 	return nil
 }

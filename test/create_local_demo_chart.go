@@ -8,15 +8,14 @@ import (
 	"github.com/tidwall/pretty"
 	"github.com/zeus-fyi/olympus/configs"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/compression"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	create_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create"
 )
 
-var createChartHost = "https://api.zeus.fyi/v1/infra/create"
+var createDemoChartHostLocal = "http://localhost:9001/v1/infra/create"
 
-var p = structs.Path{
+var demoLocalPath = structs.Path{
 	PackageName: "",
 	DirIn:       "../configs/apps/demo",
 	DirOut:      "../test",
@@ -26,13 +25,13 @@ var p = structs.Path{
 	FilterFiles: string_utils.FilterOpts{},
 }
 
-func CreateChartApiCall() error {
+func CreateLocalDemoChartApiCall() error {
 	cfg := configs.InitLocalTestConfigs()
 	var ts chronos.Chronos
 	tar := create_infra.TopologyCreateRequest{
-		TopologyName:     "demo",
-		ChartName:        "demo",
-		ChartDescription: "zeus infra demo test",
+		TopologyName:     "demo topology",
+		ChartName:        "demo chart",
+		ChartDescription: "demo chart description",
 		Version:          fmt.Sprintf("v0.0.%d", ts.UnixTimeStampNow()),
 	}
 
@@ -45,18 +44,18 @@ func CreateChartApiCall() error {
 	requestJSON = pretty.Color(requestJSON, pretty.TerminalStyle)
 	fmt.Println(string(requestJSON))
 
-	err = ZipK8sChart(p)
+	err = ZipK8sChart(demoLocalPath)
 	if err != nil {
 		return err
 	}
 
-	fp := p.V2FileOutPath()
+	fp := demoPath.V2FileOutPath()
 	fmt.Println("filepath")
 	fmt.Println(fp)
 
 	client := resty.New()
 	resp, err := client.R().
-		SetAuthToken(cfg.ProductionLocalBearerToken).
+		SetAuthToken(cfg.LocalBearerToken).
 		SetFormData(map[string]string{
 			"topologyName":     tar.TopologyName,
 			"chartName":        tar.ChartName,
@@ -64,7 +63,7 @@ func CreateChartApiCall() error {
 			"version":          tar.Version,
 		}).
 		SetFile("chart", fp).
-		Post(createChartHost)
+		Post(createDemoChartHostLocal)
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -75,11 +74,5 @@ func CreateChartApiCall() error {
 	respJSON = pretty.Color(respJSON, pretty.TerminalStyle)
 	fmt.Println(string(respJSON))
 
-	return err
-}
-
-func ZipK8sChart(p structs.Path) error {
-	comp := compression.NewCompression()
-	err := comp.CreateTarGzipArchiveDir(&p)
 	return err
 }

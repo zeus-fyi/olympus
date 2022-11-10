@@ -9,13 +9,12 @@ RUN go env -w GOPRIVATE="github.com/zeus-fyi/olympus,github.com/zeus-fyi/olympus
 RUN git config --global url."https://${TOKEN}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
 
 # Download necessary Go modules
-COPY apps/olympus/zeus/go.mod .
-COPY apps/olympus/zeus/go.sum .
+COPY go.mod .
+COPY go.sum .
+
 RUN go mod download
 
-RUN go get github.com/cespare/xxhash@v1.1.0
-RUN go get github.com/jackc/chunkreader@v1.0.0
-RUN go get github.com/jackc/pgproto3@v1.1.0
+COPY . .
 
 COPY configs/ca-certificate.crt .
 COPY configs/zeus.fyi/ca.pem .

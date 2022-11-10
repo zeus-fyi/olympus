@@ -51,5 +51,9 @@ func RunDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg Aut
 	}
 	cmd := exec.Command("doctl", "auth", "init", "-t", string(doctlToken))
 	err = cmd.Run()
+	if err != nil {
+		log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to auth doctl, shutting down the server")
+		misc.DelayedPanic(err)
+	}
 	return s3SecretsReader.MemFS
 }

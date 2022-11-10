@@ -7,13 +7,13 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
 	create_topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/definitions/state"
+	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/auth"
 )
 
 const updateDeployStatusRoute = "/v1/internal/deploy/status"
 
 type TopologyActivityDeploymentStatusActivity struct {
-	Host   string
-	Bearer string
+	Host string
 	create_topology_deployment_status.DeploymentStatus
 }
 
@@ -28,7 +28,7 @@ func (d *TopologyActivityDeploymentStatusActivity) PostStatusUpdate(ctx context.
 	u := d.GetDeploymentStatusUpdateURL()
 	client := resty.New()
 	_, err := client.R().
-		SetAuthToken(d.Bearer).
+		SetAuthToken(api_auth_temporal.Bearer).
 		SetBody(d.DeploymentStatus).
 		Post(u.Path)
 	if err != nil {

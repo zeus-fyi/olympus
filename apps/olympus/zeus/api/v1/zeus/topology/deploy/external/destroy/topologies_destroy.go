@@ -37,7 +37,6 @@ func (t *TopologyDestroyDeployRequest) DestroyDeployedTopology(c echo.Context) e
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	// from auth lookup
-	bearer := c.Get("bearer")
 	knsDestroyDeploy := kns.NewKns()
 	knsDestroyDeploy.TopologiesKns = autogen_bases.TopologiesKns{
 		TopologyID:    t.TopologyID,
@@ -47,7 +46,7 @@ func (t *TopologyDestroyDeployRequest) DestroyDeployedTopology(c echo.Context) e
 		Namespace:     t.Namespace,
 		Env:           t.Env,
 	}
-	tar := helpers.PackageCommonTopologyRequest(knsDestroyDeploy, bearer.(string), ou, tr.GetNativeK8s())
+	tar := helpers.PackageCommonTopologyRequest(knsDestroyDeploy, ou, tr.GetNativeK8s())
 	err = topology_worker.Worker.ExecuteDestroyDeploy(ctx, tar)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("DestroyDeployedTopology, ExecuteWorkflow error")

@@ -12,7 +12,6 @@ import (
 type TopologyWorkflowRequest struct {
 	Kns     kns.TopologyKubeCtxNs
 	OrgUser org_users.OrgUser
-	Bearer  string
 	Host    string
 
 	chart_workload.NativeK8s

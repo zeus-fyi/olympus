@@ -6,5 +6,4 @@ type TemporalAuth struct {
 	ServerRootCACert string
 	Namespace        string
 	HostPort         string
-	Bearer           string
 }

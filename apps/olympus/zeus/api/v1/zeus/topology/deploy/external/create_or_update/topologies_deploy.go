@@ -41,7 +41,6 @@ func (t *TopologyDeployRequest) DeployTopology(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	// from auth lookup
-	bearer := c.Get("bearer")
 	knsDeploy := kns.NewKns()
 	knsDeploy.TopologiesKns = autogen_bases.TopologiesKns{
 		TopologyID:    t.TopologyID,
@@ -51,7 +50,7 @@ func (t *TopologyDeployRequest) DeployTopology(c echo.Context) error {
 		Namespace:     t.Namespace,
 		Env:           t.Env,
 	}
-	tar := helpers.PackageCommonTopologyRequest(knsDeploy, bearer.(string), ou, tr.GetNativeK8s())
+	tar := helpers.PackageCommonTopologyRequest(knsDeploy, ou, tr.GetNativeK8s())
 	err = topology_worker.Worker.ExecuteDeploy(ctx, tar)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("DeployTopology, ExecuteWorkflow error")

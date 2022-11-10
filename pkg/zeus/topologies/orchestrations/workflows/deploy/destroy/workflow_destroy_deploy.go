@@ -42,7 +42,6 @@ func (t *DestroyDeployTopologyWorkflow) DestroyDeployedTopologyWorkflow(ctx work
 	statusCtx := workflow.WithActivityOptions(ctx, ao)
 	statusActivity := deployment_status.TopologyActivityDeploymentStatusActivity{
 		Host:             params.Host,
-		Bearer:           params.Bearer,
 		DeploymentStatus: create_topology_deployment_status.DeploymentStatus{},
 	}
 	statusActivity.Status.TopologiesDeployed.TopologyID = params.Kns.TopologyID

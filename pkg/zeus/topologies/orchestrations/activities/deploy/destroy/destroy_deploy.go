@@ -29,6 +29,7 @@ func (d *DestroyDeployTopologyActivities) GetActivities() ActivitiesSlice {
 func (d *DestroyDeployTopologyActivities) postDestroyDeployTarget(target string) error {
 	u := d.GetDestroyDeployURL(target)
 	client := resty.New()
+	client.SetBaseURL(u.Host)
 	_, err := client.R().
 		SetAuthToken(api_auth_temporal.Bearer).
 		SetBody(d.TopologyWorkflowRequest).

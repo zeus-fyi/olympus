@@ -22,7 +22,6 @@ COPY configs/ca-certificate.crt .
 COPY configs/zeus.fyi/ca.pem .
 COPY configs/zeus.fyi/ca.key .
 
-
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o zeus apps/olympus/zeus/main.go
 
 FROM ubuntu:22.04

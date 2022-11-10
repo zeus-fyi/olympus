@@ -27,6 +27,7 @@ func (d *TopologyActivityDeploymentStatusActivity) GetActivities() ActivitiesSli
 func (d *TopologyActivityDeploymentStatusActivity) PostStatusUpdate(ctx context.Context) error {
 	u := d.GetDeploymentStatusUpdateURL()
 	client := resty.New()
+	client.SetBaseURL(u.Host)
 	_, err := client.R().
 		SetAuthToken(api_auth_temporal.Bearer).
 		SetBody(d.DeploymentStatus).

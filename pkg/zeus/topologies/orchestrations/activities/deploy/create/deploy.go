@@ -29,6 +29,7 @@ func (d *DeployTopologyActivities) GetActivities() ActivitiesSlice {
 func (d *DeployTopologyActivities) postDeployTarget(target string) error {
 	u := d.GetDeployURL(target)
 	client := resty.New()
+	client.SetBaseURL(u.Host)
 	_, err := client.R().
 		SetAuthToken(api_auth_temporal.Bearer).
 		SetBody(d.TopologyWorkflowRequest).

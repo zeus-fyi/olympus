@@ -16,11 +16,16 @@ type PodTemplateSpec struct {
 
 type PodSpec struct {
 	PodTemplateSpecClassDefinition    autogen_bases.ChartSubcomponentChildClassTypes
-	PodTemplateSpecClassGenericFields map[string]structs.ChildValuesSlice
+	PodTemplateSpecClassGenericFields map[string]structs.ChildClassSingleValue
 	PodTemplateSpecVolumes            autogen_bases.VolumesSlice
 	PodTemplateContainers             containers.Containers
 
 	K8sPodSpec *v1.PodSpec
+}
+
+func (p *PodTemplateSpec) AddPodTemplateSpecClassGenericFields(cv structs.ChildClassSingleValue) {
+	cv.ChartSubcomponentChildClassTypeName = "PodTemplateSpec"
+	p.Spec.PodTemplateSpecClassGenericFields[cv.ChartSubcomponentKeyName] = cv
 }
 
 func (p *PodTemplateSpec) SetK8sPodSpecVolumes(vs []v1.Volume) {
@@ -49,7 +54,7 @@ func NewPodTemplateSpec() PodTemplateSpec {
 
 	ps := PodSpec{
 		PodTemplateSpecClassDefinition:    cd,
-		PodTemplateSpecClassGenericFields: nil,
+		PodTemplateSpecClassGenericFields: make(map[string]structs.ChildClassSingleValue),
 		K8sPodSpec:                        &v1.PodSpec{},
 	}
 

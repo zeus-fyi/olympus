@@ -89,11 +89,12 @@ func (s *StatefulSetTestSuite) TestStatefulSetK8sToDBConversion() {
 	s.Assert().Equal(1, stratCount)
 
 	// pod template spec
-	s.Require().NotEmpty(sts.Spec.Template)
+	stsSpecTemplate := sts.Spec.Template
+	s.Require().NotEmpty(stsSpecTemplate)
 
 	// template spec labels
-	s.Assert().Equal("labels", sts.Spec.Template.Metadata.Labels.ChartSubcomponentChildClassTypeName)
-	templateSpecMetadataLabelValues := sts.Spec.Template.Metadata.Labels.Values
+	s.Assert().Equal("labels", stsSpecTemplate.Metadata.Labels.ChartSubcomponentChildClassTypeName)
+	templateSpecMetadataLabelValues := stsSpecTemplate.Metadata.Labels.Values
 
 	// zeus adds a version label
 	s.Assert().Len(templateSpecMetadataLabelValues, 3)
@@ -112,22 +113,39 @@ func (s *StatefulSetTestSuite) TestStatefulSetK8sToDBConversion() {
 	s.Assert().Equal(111, countLabels)
 
 	// containers
-
 	conts := sts.Spec.Template.Spec.PodTemplateContainers
 	s.Assert().NotEmpty(conts)
 	s.Assert().Len(conts, 2)
 
 	countVerifiedCont := 0
+	countVerifiedVolMountCont := 0
+	countVerifiedProbes := 0
 	for _, cont := range conts {
 		name := cont.Metadata.ContainerName
 		imageID := cont.Metadata.ContainerImageID
+		imagePullPolicy := cont.Metadata.ContainerImagePullPolicy
+
 		cmdToRun := cont.CmdArgs.CommandValues
 		cmdArgs := cont.CmdArgs.ArgsValues
+		contVolMounts := cont.VolumeMounts
+		contSecCtx := cont.SecurityContext
+		contEnvs := cont.Env
 
+		contProbes := cont.Probes
 		if cont.Metadata.IsInitContainer {
 			s.Assert().Equal("init-chown-data", name)
 			s.Assert().Equal("busybox:1.34.0", imageID)
 			s.Assert().Equal("chown,-R,10001:10001,/data", cmdToRun)
+			s.Assert().Equal("IfNotPresent", imagePullPolicy)
+			s.Assert().NotEmpty(contSecCtx)
+			s.Assert().Equal("{\"runAsUser\":0,\"runAsNonRoot\":false}", contSecCtx.SecurityContextKeyValues)
+
+			s.Assert().NotEmpty(contVolMounts)
+			for _, cvm := range contVolMounts {
+				s.Assert().Equal("storage", cvm.VolumeName)
+				s.Assert().Equal("/data", cvm.VolumeMountPath)
+				countVerifiedVolMountCont += 1
+			}
 			countVerifiedCont += 1
 		}
 
@@ -136,10 +154,49 @@ func (s *StatefulSetTestSuite) TestStatefulSetK8sToDBConversion() {
 			s.Assert().Equal("sigp/lighthouse:v3.1.0", imageID)
 			s.Assert().Equal("/bin/sh", cmdToRun)
 			s.Assert().Equal("-c,/scripts/start.sh", cmdArgs)
+			s.Assert().Equal("IfNotPresent", imagePullPolicy)
+
+			s.Assert().NotEmpty(cont.Ports)
+			s.Assert().NotEmpty(contProbes)
+
+			for _, pr := range contProbes {
+
+				if pr.ProbeType == "livenessProbe" {
+					s.Assert().Equal("{\"tcpSocket\":{\"port\":\"http-api\"},\"initialDelaySeconds\":60,\"periodSeconds\":120}", pr.ProbeKeyValuesJSONb)
+					countVerifiedProbes += 1
+				}
+				if pr.ProbeType == "readinessProbe" {
+					s.Assert().Equal("{\"tcpSocket\":{\"port\":\"http-api\"},\"initialDelaySeconds\":10,\"periodSeconds\":10}", pr.ProbeKeyValuesJSONb)
+					countVerifiedProbes += 10
+				}
+			}
+			s.Assert().NotEmpty(contEnvs)
+
+			for _, env := range contEnvs {
+				s.Assert().Equal("POD_IP", env.Name)
+				s.Assert().Equal("{\"fieldRef\":{\"fieldPath\":\"status.podIP\"}}", env.Value)
+			}
+
+			s.Require().NotEmpty(contVolMounts)
+			for _, cvm := range contVolMounts {
+				cvmName := cvm.VolumeName
+				if cvmName == "storage" {
+					s.Assert().Equal("/data", cvm.VolumeMountPath)
+					countVerifiedVolMountCont += 10
+				}
+				if cvmName == "jwt" {
+					s.Assert().Equal("/data/jwt.hex", cvm.VolumeMountPath)
+					s.Assert().Equal("jwt.hex", cvm.VolumeSubPath)
+					s.Assert().True(cvm.VolumeReadOnly)
+					countVerifiedVolMountCont += 100
+				}
+			}
 			countVerifiedCont += 10
 		}
 	}
+	s.Assert().Equal(11, countVerifiedProbes)
 	s.Assert().Equal(11, countVerifiedCont)
+	s.Assert().Equal(111, countVerifiedVolMountCont)
 
 	// pod spec volumes
 	podSpecVolumes := sts.Spec.Template.Spec.PodTemplateSpecVolumes

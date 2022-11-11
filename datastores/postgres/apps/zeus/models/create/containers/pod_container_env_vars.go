@@ -2,10 +2,24 @@ package containers
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/containers"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
+
+func CreateEnvVarsCTEs() (sql_query_templates.SubCTE, sql_query_templates.SubCTE) {
+	// env vars
+	ts := chronos.Chronos{}
+	envVarsSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_container_environmental_vars_%d", ts.UnixTimeStampNow()))
+	envVarsSubCTE.TableName = "container_environmental_vars"
+	envVarsSubCTE.Columns = []string{"env_id", "name", "value"}
+	envVarsRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_container_environmental_vars_relationships_%d", ts.UnixTimeStampNow()))
+	envVarsRelationshipsSubCTE.TableName = "containers_environmental_vars"
+	envVarsRelationshipsSubCTE.Columns = []string{"chart_subcomponent_child_class_type_id", "container_id", "env_id"}
+	return envVarsSubCTE, envVarsRelationshipsSubCTE
+}
 
 func (p *PodTemplateSpec) getInsertContainerEnvVarsValues(m map[string]containers.Container, imageID string, cteSubfield *sql_query_templates.SubCTE) {
 	c, ok := m[imageID]

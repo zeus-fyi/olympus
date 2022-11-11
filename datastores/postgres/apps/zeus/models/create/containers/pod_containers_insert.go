@@ -49,12 +49,7 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart
 	portsRelationshipsSubCTE.Columns = []string{"chart_subcomponent_child_class_type_id", "container_id", "port_id"}
 
 	// env vars
-	envVarsSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_container_environmental_vars_%d", ts.UnixTimeStampNow()))
-	envVarsSubCTE.TableName = "container_environmental_vars"
-	envVarsSubCTE.Columns = []string{"env_id", "name", "value"}
-	envVarsRelationshipsSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_container_environmental_vars_relationships_%d", ts.UnixTimeStampNow()))
-	envVarsRelationshipsSubCTE.TableName = "containers_environmental_vars"
-	envVarsRelationshipsSubCTE.Columns = []string{"chart_subcomponent_child_class_type_id", "container_id", "env_id"}
+	envVarsSubCTE, envVarsRelationshipsSubCTE := CreateEnvVarsCTEs()
 
 	// cmd args
 	cmdArgsSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_container_command_args_%d", ts.UnixTimeStampNow()))

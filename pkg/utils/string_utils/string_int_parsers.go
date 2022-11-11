@@ -40,6 +40,14 @@ func Convert32BitPtrIntToString(int32BitPtr *int32) string {
 	return fmt.Sprintf("%d", *int32BitPtr)
 }
 
+func Convert64BitPtrIntToString(int64BitPtr *int64) string {
+	rc := "0"
+	if int64BitPtr == nil {
+		return rc
+	}
+	return fmt.Sprintf("%d", *int64BitPtr)
+}
+
 func ConvertStringTo32BitPtrInt(int32BitPtrString string) *int32 {
 	rc := ConvertStringTo32BitInt(int32BitPtrString)
 	return &rc

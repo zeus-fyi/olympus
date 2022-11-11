@@ -3,6 +3,9 @@ package containers
 import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
 	cont_conv "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/containers"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -19,6 +22,20 @@ func (p *PodTemplateSpec) ConvertPodTemplateSpecConfigToDB(ps *v1.PodSpec) error
 	dbSpecInitContainers, err := cont_conv.ConvertContainersToDB(ps.InitContainers, true)
 	if err != nil {
 		return err
+	}
+
+	if ps.TerminationGracePeriodSeconds != nil {
+		gps := string_utils.Convert64BitPtrIntToString(ps.TerminationGracePeriodSeconds)
+		csv := structs.ChildClassSingleValue{
+			ChartSubcomponentChildClassTypes: autogen_bases.ChartSubcomponentChildClassTypes{},
+			ChartSubcomponentsChildValues: autogen_bases.ChartSubcomponentsChildValues{
+				ChartSubcomponentChildClassTypeID:              0,
+				ChartSubcomponentChartPackageTemplateInjection: false,
+				ChartSubcomponentKeyName:                       "terminationGracePeriodSeconds",
+				ChartSubcomponentValue:                         gps,
+			},
+		}
+		p.AddPodTemplateSpecClassGenericFields(csv)
 	}
 
 	dbSpecInitContainers = append(dbSpecInitContainers, dbSpecContainers...)

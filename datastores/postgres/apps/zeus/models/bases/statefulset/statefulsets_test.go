@@ -33,17 +33,28 @@ func (s *StatefulSetTestSuite) TestStatefulSetK8sToDBConversion() {
 
 	err = sts.ConvertK8sStatefulSetToDB()
 	s.Require().Nil(err)
-	s.Require().NotEmpty(sts.Spec)
 	s.Require().NotEmpty(sts.Metadata)
 	s.Assert().Equal("name", sts.Metadata.Name.ChartSubcomponentKeyName)
 	s.Assert().Equal("zeus-lighthouse", sts.Metadata.Name.ChartSubcomponentValue)
 
-	s.Require().NotEmpty(sts.Spec.Replicas)
-	s.Assert().Equal("replicas", sts.Spec.Replicas.ChartSubcomponentKeyName)
-	s.Assert().Equal("1", sts.Spec.Replicas.ChartSubcomponentValue)
+	s.Require().NotEmpty(sts.Spec)
 
+	// podManagementPolicy
+	pmp := sts.Spec.PodManagementPolicy
+	s.Require().NotEmpty(pmp)
+	s.Assert().Equal("StatefulSetPodManagementPolicy", pmp.ChartSubcomponentChildClassTypeName)
+	s.Assert().Equal("podManagementPolicy", pmp.ChartSubcomponentKeyName)
+	s.Assert().Equal("OrderedReady", pmp.ChartSubcomponentValue)
+
+	// replicas
+	replicas := sts.Spec.Replicas
+	s.Require().NotEmpty(replicas)
+	s.Assert().Equal("replicas", replicas.ChartSubcomponentChildClassTypeName)
+	s.Assert().Equal("replicas", replicas.ChartSubcomponentKeyName)
+	s.Assert().Equal("1", replicas.ChartSubcomponentValue)
+
+	// selector
 	s.Require().NotEmpty(sts.Spec.Selector)
-
 	s.Assert().Equal("selector", sts.Spec.Selector.MatchLabels.ChartSubcomponentChildClassTypeName)
 	selectorValues := sts.Spec.Selector.MatchLabels.Values
 	s.Assert().Len(selectorValues, 1)
@@ -55,15 +66,33 @@ func (s *StatefulSetTestSuite) TestStatefulSetK8sToDBConversion() {
 	}
 	s.Assert().Equal("zeus-lighthouse", sts.Metadata.Name.ChartSubcomponentValue)
 
-	s.Require().NotEmpty(sts.Spec.PodManagementPolicy)
-	s.Assert().Equal("podManagementPolicy", sts.Spec.PodManagementPolicy.ChartSubcomponentKeyName)
-	s.Assert().Equal("OrderedReady", sts.Spec.PodManagementPolicy.ChartSubcomponentValue)
+	// serviceName
+	svcName := sts.Spec.ServiceName
+	s.Assert().NotEmpty(svcName)
+	s.Assert().Equal("StatefulSetServiceName", svcName.ChartSubcomponentChildClassTypeName)
+	s.Assert().Equal("serviceName", svcName.ChartSubcomponentKeyName)
+	s.Assert().Equal("zeus-lighthouse-headless", svcName.ChartSubcomponentValue)
 
+	// strategy
+	stsStrategy := sts.Spec.StatefulSetUpdateStrategy
+	s.Assert().NotEmpty(stsStrategy)
+	s.Assert().Equal("StatefulSetUpdateStrategy", stsStrategy.ChartSubcomponentChildClassTypeName)
+
+	stsStrategyValues := stsStrategy.Values
+	s.Assert().NotEmpty(stsStrategyValues)
+	stratCount := 0
+	for _, strat := range stsStrategyValues {
+		if strat.ChartSubcomponentKeyName == "type" && strat.ChartSubcomponentValue == "RollingUpdate" {
+			stratCount += 1
+		}
+	}
+	s.Assert().Equal(1, stratCount)
+
+	// pod template spec
 	s.Require().NotEmpty(sts.Spec.Template)
-	s.Require().NotEmpty(sts.Spec.Template.Metadata)
 
+	// template spec labels
 	s.Assert().Equal("labels", sts.Spec.Template.Metadata.Labels.ChartSubcomponentChildClassTypeName)
-
 	templateSpecMetadataLabelValues := sts.Spec.Template.Metadata.Labels.Values
 
 	// zeus adds a version label
@@ -81,6 +110,55 @@ func (s *StatefulSetTestSuite) TestStatefulSetK8sToDBConversion() {
 		}
 	}
 	s.Assert().Equal(111, countLabels)
+
+	// containers
+
+	conts := sts.Spec.Template.Spec.PodTemplateContainers
+	s.Assert().NotEmpty(conts)
+	s.Assert().Len(conts, 2)
+
+	countVerifiedCont := 0
+	for _, cont := range conts {
+		name := cont.Metadata.ContainerName
+		imageID := cont.Metadata.ContainerImageID
+		cmdToRun := cont.CmdArgs.CommandValues
+		cmdArgs := cont.CmdArgs.ArgsValues
+
+		if cont.Metadata.IsInitContainer {
+			s.Assert().Equal("init-chown-data", name)
+			s.Assert().Equal("busybox:1.34.0", imageID)
+			s.Assert().Equal("chown,-R,10001:10001,/data", cmdToRun)
+			countVerifiedCont += 1
+		}
+
+		if cont.Metadata.IsInitContainer == false {
+			s.Assert().Equal("lighthouse", name)
+			s.Assert().Equal("sigp/lighthouse:v3.1.0", imageID)
+			s.Assert().Equal("/bin/sh", cmdToRun)
+			s.Assert().Equal("-c,/scripts/start.sh", cmdArgs)
+			countVerifiedCont += 10
+		}
+	}
+	s.Assert().Equal(11, countVerifiedCont)
+
+	// pod spec volumes
+	podSpecVolumes := sts.Spec.Template.Spec.PodTemplateSpecVolumes
+	s.Assert().NotEmpty(podSpecVolumes)
+	s.Assert().Len(podSpecVolumes, 2)
+
+	volCount := 0
+	for _, psv := range podSpecVolumes {
+		if psv.VolumeName == "jwt" && psv.VolumeKeyValuesJSONb == "{\"name\":\"jwt\",\"secret\":{\"secretName\":\"zeus-lighthouse-jwt\"}}" {
+			volCount += 1
+		}
+		if psv.VolumeName == "storage" && psv.VolumeKeyValuesJSONb == "{\"name\":\"storage\",\"emptyDir\":{}}" {
+			volCount += 10
+		}
+	}
+	s.Assert().Equal(11, volCount)
+
+	s.Require().NotEmpty(sts.Spec.Template.Metadata)
+
 	s.Require().NotEmpty(sts.Spec.VolumeClaimTemplates)
 	s.Require().NotEmpty(sts.Spec.Template.Spec.PodTemplateContainers)
 

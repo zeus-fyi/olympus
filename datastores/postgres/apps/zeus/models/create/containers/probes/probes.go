@@ -1,6 +1,8 @@
 package probes
 
-import autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+import (
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+)
 
 type Probe struct {
 	autogen_bases.ContainersProbes

@@ -15,8 +15,6 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/zeus/core/transformations"
 )
 
-var PgTestDB apps.Db
-
 type ConversionsTestSuite struct {
 	Ts chronos.Chronos
 	test_suites.PGTestSuite
@@ -24,7 +22,7 @@ type ConversionsTestSuite struct {
 	TestDirectory string
 }
 
-func (s *ConversionsTestSuite) ForceDirToCallerLocation() string {
+func (s *ConversionsTestSuite) ChangeToTestDirectory() string {
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Join(path.Dir(filename), "")
 	err := os.Chdir(dir)
@@ -35,7 +33,7 @@ func (s *ConversionsTestSuite) ForceDirToCallerLocation() string {
 }
 
 func (s *ConversionsTestSuite) SetupTest() {
-	s.TestDirectory = s.ForceDirToCallerLocation()
+	s.TestDirectory = s.ChangeToTestDirectory()
 	s.Yr = transformations.YamlFileIO{}
 	s.InitLocalConfigs()
 	s.SetupPGConn()

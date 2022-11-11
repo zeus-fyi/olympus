@@ -34,10 +34,10 @@ func IntStringParser(strInt string) (intValue int) {
 
 func Convert32BitPtrIntToString(int32BitPtr *int32) string {
 	rc := "0"
-	if int32BitPtr != nil {
+	if int32BitPtr == nil {
 		return rc
 	}
-	return fmt.Sprintf("%d", int32BitPtr)
+	return fmt.Sprintf("%d", *int32BitPtr)
 }
 
 func ConvertStringTo32BitPtrInt(int32BitPtrString string) *int32 {

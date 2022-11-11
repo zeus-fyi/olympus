@@ -26,7 +26,8 @@ func (s *StatefulSet) ConvertK8sStatefulSetSpecToDB() error {
 		Template:     containers.NewPodTemplateSpec(),
 	}
 
-	s.Spec.Replicas.ChartSubcomponentValue = string_utils.Convert32BitPtrIntToString(s.K8sStatefulSet.Spec.Replicas)
+	replicaCount := string_utils.Convert32BitPtrIntToString(s.K8sStatefulSet.Spec.Replicas)
+	s.Spec.Replicas.ChartSubcomponentValue = replicaCount
 	spec.Selector = structs.NewSelector()
 
 	m := make(map[string]string)
@@ -54,7 +55,6 @@ func (s *StatefulSet) ConvertK8sStatefulSetSpecToDB() error {
 	}
 	dbPodTemplateSpecMetadata := s.K8sStatefulSet.Spec.Template.GetObjectMeta()
 	s.Spec.Template.Metadata.Metadata = common_conversions.CreateMetadataByFields(dbPodTemplateSpecMetadata.GetName(), dbPodTemplateSpecMetadata.GetAnnotations(), dbPodTemplateSpecMetadata.GetLabels())
-
 	s.Spec.Template.Metadata.ChartComponentResourceID = StsChartComponentResourceID
 	return nil
 }

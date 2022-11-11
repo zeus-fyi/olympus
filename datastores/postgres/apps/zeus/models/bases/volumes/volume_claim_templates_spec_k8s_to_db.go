@@ -34,14 +34,14 @@ func (v *VolumeClaimTemplate) ConvertK8VolumeClaimTemplateSpecResourceRequestsTo
 		if err != nil {
 			return err
 		}
-		v.Spec.AccessModes.AddKeyValue("limits", string(b))
+		v.Spec.ResourceRequests.AddKeyValue("limits", string(b))
 	}
 	for _, r := range rr.Requests {
 		b, err := json.Marshal(r)
 		if err != nil {
 			return err
 		}
-		v.Spec.AccessModes.AddKeyValue("requests", string(b))
+		v.Spec.ResourceRequests.AddKeyValue("requests", string(b))
 	}
 	return nil
 }

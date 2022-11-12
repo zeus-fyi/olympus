@@ -56,19 +56,19 @@ func (p *Path) RightExtendDirOutPath(dirExtend string) string {
 	return p.DirOut
 }
 
-func (p Path) Local() string {
+func (p *Path) Local() string {
 	return "artifacts/local/"
 }
 
-func (p Path) Dev() string {
+func (p *Path) Dev() string {
 	return "artifacts/dev/"
 }
 
-func (p Path) Staging() string {
+func (p *Path) Staging() string {
 	return "artifacts/staging/"
 }
 
-func (p Path) Production() string {
+func (p *Path) Production() string {
 	return "artifacts/production/"
 }
 

@@ -10,12 +10,21 @@ import (
 
 type AresTestSuite struct {
 	test_suites.TemporalTestSuite
+	ZeusTestClient  zeus_client.ZeusClient
 	ProdZeusClient  zeus_client.ZeusClient
 	LocalZeusClient zeus_client.ZeusClient
 }
 
-func (t *AresTestSuite) SetupTest() {
-	t.SetupZeusClients()
+func (t *AresTestSuite) SetupLocalTest() {
+	t.InitLocalConfigs()
+	t.LocalZeusClient = zeus_client.NewZeusClient(t.Tc.LocalZeusApiURL, t.Tc.ProductionLocalTemporalBearerToken)
+	t.ZeusTestClient = t.LocalZeusClient
+}
+
+func (t *AresTestSuite) SetupProdTest() {
+	t.InitLocalConfigs()
+	t.ProdZeusClient = zeus_client.NewZeusClient(t.Tc.ProdZeusApiURL, t.Tc.ProductionLocalTemporalBearerToken)
+	t.ZeusTestClient = t.ProdZeusClient
 }
 
 func (t *AresTestSuite) SetupZeusClients() {

@@ -2,7 +2,7 @@ package transformations
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/ghodss/yaml"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
@@ -25,7 +25,7 @@ func (y *YamlFileIO) ReadK8sWorkloadDir(p structs.Path) error {
 
 func (y *YamlFileIO) ReadYamlConfig(filepath string) ([]byte, error) {
 	// Open YAML file
-	jsonByteArray, err := ioutil.ReadFile(filepath)
+	jsonByteArray, err := os.ReadFile(filepath)
 	if err != nil {
 		panic(err)
 	}

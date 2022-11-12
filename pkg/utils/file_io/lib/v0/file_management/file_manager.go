@@ -1,7 +1,6 @@
 package file_management
 
 import (
-	"io/ioutil"
 	"os"
 
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
@@ -17,7 +16,7 @@ func (l *FileManagerLib) CreateFile(p structs.Path, data []byte) error {
 	if _, err := os.Stat(p.FileOutPath()); os.IsNotExist(err) {
 		_ = os.MkdirAll(p.DirOut, 0700) // Create your dir
 	}
-	err := ioutil.WriteFile(p.FileOutPath(), data, 0644)
+	err := os.WriteFile(p.FileOutPath(), data, 0644)
 	return err
 }
 
@@ -26,7 +25,7 @@ func (l *FileManagerLib) CreateV2FileOut(p structs.Path, data []byte) error {
 	if _, err := os.Stat(p.V2FileOutPath()); os.IsNotExist(err) {
 		_ = os.MkdirAll(p.DirOut, 0700) // Create your dir
 	}
-	err := ioutil.WriteFile(p.V2FileOutPath(), data, 0644)
+	err := os.WriteFile(p.V2FileOutPath(), data, 0644)
 	return err
 }
 

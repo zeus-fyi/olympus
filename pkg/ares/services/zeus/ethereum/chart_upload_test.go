@@ -1,29 +1,16 @@
 package ethereum
 
 import (
-	"context"
-	"testing"
-
-	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/ares/ethereum"
-	ares_test_suite "github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/ares"
+	create_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create"
 )
 
-type AresZeusTestSuite struct {
-	ares_test_suite.AresTestSuite
-}
-
-var ctx = context.Background()
-
-func (t *AresZeusTestSuite) TestCreateAndUploadConsensusClientChart() {
+func (t *AresZeusTestSuite) TestCreateAndUploadConsensusClientChart() create_infra.TopologyCreateResponse {
 	ethereum.ChangeDirToAresEthereumDir()
 	p := ethereum.ConsensusClientPath()
 	chartInfo := ethereum.ConsensusClientChartUploadRequest()
-	resp, err := t.ProdZeusClient.UploadChart(ctx, p, chartInfo)
+	resp, err := t.ZeusTestClient.UploadChart(ctx, p, chartInfo)
 	t.Require().Nil(err)
 	t.Assert().NotZero(resp.ID)
-}
-
-func TestAresZeusTestSuite(t *testing.T) {
-	suite.Run(t, new(AresZeusTestSuite))
+	return resp
 }

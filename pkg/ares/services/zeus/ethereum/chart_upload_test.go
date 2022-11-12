@@ -1,4 +1,4 @@
-package ares_zeus_driver
+package ethereum
 
 import (
 	"context"
@@ -15,7 +15,7 @@ type AresZeusTestSuite struct {
 
 var ctx = context.Background()
 
-func (t *AresZeusTestSuite) TestCreateAndUploadBeaconChart() {
+func (t *AresZeusTestSuite) TestCreateAndUploadConsensusClientChart() {
 	ethereum.ChangeDirToAresEthereumDir()
 	p := ethereum.ConsensusClientPath()
 	chartInfo := ethereum.ConsensusClientChartUploadRequest()

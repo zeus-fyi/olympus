@@ -3,7 +3,6 @@ kind: StatefulSet
 metadata:
   name: zeus-lighthouse
   labels:
-    helm.sh/chart: lighthouse-0.2.1
     app.kubernetes.io/name: lighthouse
     app.kubernetes.io/instance: zeus
     app.kubernetes.io/managed-by: zeus
@@ -86,7 +85,6 @@ spec:
         {}
       tolerations:
         []
-      terminationGracePeriodSeconds: 300
       volumes:
         - name: jwt
           secret:

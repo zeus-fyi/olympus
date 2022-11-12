@@ -16,6 +16,7 @@ func (z *ZeusClient) UploadChart(ctx context.Context, p structs.Path, tar create
 	if err != nil {
 		return respJson, err
 	}
+	z.PrintReqJson(tar)
 	resp, err := z.R().
 		SetResult(&respJson).
 		SetFormData(map[string]string{
@@ -31,9 +32,7 @@ func (z *ZeusClient) UploadChart(ctx context.Context, p structs.Path, tar create
 		log.Ctx(ctx).Err(err).Msg("ZeusClient: UploadChart")
 		return respJson, err
 	}
-	if z.PrintResp {
-		z.PrintRespJson(resp.Body())
-	}
+	z.PrintRespJson(resp.Body())
 	return respJson, err
 }
 

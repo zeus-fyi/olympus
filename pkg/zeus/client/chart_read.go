@@ -11,6 +11,7 @@ import (
 
 func (z *ZeusClient) ReadChart(ctx context.Context, tar read_infra.TopologyReadRequest) (chart_workload.NativeK8s, error) {
 	respJson := chart_workload.NativeK8s{}
+	z.PrintReqJson(tar)
 	resp, err := z.R().
 		SetResult(&respJson).
 		SetBody(tar).
@@ -20,8 +21,6 @@ func (z *ZeusClient) ReadChart(ctx context.Context, tar read_infra.TopologyReadR
 		log.Ctx(ctx).Err(err).Msg("ZeusClient: ReadChart")
 		return respJson, err
 	}
-	if z.PrintResp {
-		z.PrintRespJson(resp.Body())
-	}
+	z.PrintRespJson(resp.Body())
 	return respJson, err
 }

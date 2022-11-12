@@ -1,4 +1,4 @@
-package ethereum
+package zeus_ethereum
 
 import (
 	"context"
@@ -8,16 +8,16 @@ import (
 	ares_test_suite "github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/ares"
 )
 
-type AresZeusTestSuite struct {
+type AresZeusEthereumTestSuite struct {
 	ares_test_suite.AresTestSuite
 }
 
 var ctx = context.Background()
 
-func (t *AresZeusTestSuite) SetupTest() {
+func (t *AresZeusEthereumTestSuite) SetupTest() {
 	t.SetupProdTest()
 }
 
 func TestAresZeusTestSuite(t *testing.T) {
-	suite.Run(t, new(AresZeusTestSuite))
+	suite.Run(t, new(AresZeusEthereumTestSuite))
 }

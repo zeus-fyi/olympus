@@ -1,6 +1,6 @@
-package ethereum
+package zeus_ethereum
 
-func (t *AresZeusTestSuite) TestIntegratedUploadThenRead() {
+func (t *AresZeusEthereumTestSuite) TestIntegratedUploadThenRead() {
 	resp := t.TestCreateAndUploadConsensusClientChart()
 	t.readUploadedConsensusChart(resp.ID)
 }

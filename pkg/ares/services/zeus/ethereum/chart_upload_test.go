@@ -1,11 +1,11 @@
-package ethereum
+package zeus_ethereum
 
 import (
 	"github.com/zeus-fyi/olympus/pkg/ares/ethereum"
 	create_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create"
 )
 
-func (t *AresZeusTestSuite) TestCreateAndUploadConsensusClientChart() create_infra.TopologyCreateResponse {
+func (t *AresZeusEthereumTestSuite) TestCreateAndUploadConsensusClientChart() create_infra.TopologyCreateResponse {
 	ethereum.ChangeDirToAresEthereumDir()
 	p := ethereum.ConsensusClientPath()
 	chartInfo := ethereum.ConsensusClientChartUploadRequest()

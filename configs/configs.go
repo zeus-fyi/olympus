@@ -13,6 +13,11 @@ import (
 
 var testCont TestContainer
 
+type TestURLs struct {
+	ProdZeusApiURL  string
+	LocalZeusApiURL string
+}
+
 type TestContainer struct {
 	Env string
 
@@ -44,6 +49,16 @@ type TestContainer struct {
 
 	ProdLocalTemporalAuth temporal_client.TemporalAuth
 	ProdLocalAuthKeysCfg  auth_keys_config.AuthKeysCfg
+
+	TestURLs
+}
+
+func SetBaseURLs() TestURLs {
+	tu := TestURLs{}
+	tu.ProdZeusApiURL = viper.GetString("PROD_ZEUS_URL")
+	tu.LocalZeusApiURL = viper.GetString("LOCAL_ZEUS_URL")
+
+	return tu
 }
 
 func forceDirToCallerLocation() string {
@@ -66,6 +81,8 @@ func InitEnvFromConfig(dir string) {
 
 func InitLocalTestConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
+
+	testCont.TestURLs = SetBaseURLs()
 	testCont.Env = viper.GetString("ENV")
 
 	testCont.DevTemporalNs = viper.GetString("DEV_TEMPORAL_NS")

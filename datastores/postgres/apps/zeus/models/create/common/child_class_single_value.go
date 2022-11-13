@@ -25,6 +25,7 @@ func CreateChildClassSingleValueSubCTEs(csv *structs.ChildClassSingleValue) sql_
 func createChildClassSingleValueSubCTE(childClassTypeName string, csv *autogen_bases.ChartSubcomponentsChildValues) sql_query_templates.SubCTE {
 	var ts chronos.Chronos
 	queryName := fmt.Sprintf("cte_%s_value_%d", childClassTypeName, ts.UnixTimeStampNow())
+	csv.ChartSubcomponentChildValuesID = ts.UnixTimeStampNow()
 	subCTE := sql_query_templates.NewSubInsertCTE(queryName)
 	subCTE.TableName = csv.GetTableName()
 	subCTE.Columns = csv.GetTableColumns()

@@ -22,7 +22,6 @@ func CreateChildClassMultiValueSubCTEs(csv *structs.ChildClassMultiValue) sql_qu
 		cteName := childClassTypeName + fmt.Sprintf("_%d", i)
 		childClassValuesSubCTEs[i] = createChildClassSingleValueSubCTE(cteName, &element)
 	}
-
 	return sql_query_templates.AppendSubCteSlices(childClassTypeSubCTESlice, childClassValuesSubCTEs)
 }
 

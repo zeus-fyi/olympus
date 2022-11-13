@@ -3,14 +3,12 @@ package deploy_topology_activities
 import (
 	"net/url"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
+	zeus_client "github.com/zeus-fyi/olympus/pkg/zeus/client"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/auth"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/actions/base_request"
 )
-
-const deployRoute = "/v1/internal/deploy"
 
 type DeployTopologyActivities struct {
 	base_deploy_params.TopologyWorkflowRequest
@@ -29,12 +27,10 @@ func (d *DeployTopologyActivities) GetActivities() ActivitiesSlice {
 
 func (d *DeployTopologyActivities) postDeployTarget(target string, params base_request.InternalDeploymentActionRequest) error {
 	u := d.GetDeployURL(target)
-	client := resty.New()
-	client.SetBaseURL(u.Host)
-	_, err := client.R().
-		SetAuthToken(api_auth_temporal.Bearer).
+	_, err := api_auth_temporal.ZeusClient.R().
 		SetBody(params).
 		Post(u.Path)
+
 	if err != nil {
 		log.Err(err).Interface("path", u.Path).Msg("DeployTopologyActivities: postDeployTarget failed")
 		return err
@@ -43,5 +39,5 @@ func (d *DeployTopologyActivities) postDeployTarget(target string, params base_r
 }
 
 func (d *DeployTopologyActivities) GetDeployURL(target string) url.URL {
-	return d.GetURL(deployRoute, target)
+	return d.GetURL(zeus_client.InternalDeployPath, target)
 }

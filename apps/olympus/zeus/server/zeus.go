@@ -65,7 +65,7 @@ func Zeus() {
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 
 	log.Info().Msgf("Zeus: %s temporal auth and init procedure starting", env)
-	api_auth_temporal.Bearer = auth_startup.FetchTemporalAuthBearer(ctx)
+	api_auth_temporal.ZeusClient.SetAuthToken(auth_startup.FetchTemporalAuthBearer(ctx))
 	topology_worker.InitTopologyWorker(temporalAuthCfg)
 
 	c := topology_worker.Worker.TemporalClient.ConnectTemporalClient()

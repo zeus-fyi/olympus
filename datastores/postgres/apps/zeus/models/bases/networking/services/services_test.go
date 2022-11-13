@@ -1,56 +1,49 @@
 package services
 
 import (
-	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"testing"
 
+	"github.com/ghodss/yaml"
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
-	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test/mocks"
 )
 
-type NetworkingTestSuite struct {
-	conversions_test.ConversionsTestSuite
+type ServiceTestSuite struct {
+	suite.Suite
 }
 
-func (s *NetworkingTestSuite) TestSeedChartComponents() {
-	// only used to bootstrap for the main test
-	s.SkipTest(true)
+func (s *ServiceTestSuite) TestServiceParsing() {
+	mocks.ChangeToMockDirectory()
 
-	ctx := context.Background()
-	q := sql_query_templates.NewQueryParam("ChartComponentResources", "table", "where", 1000, []string{})
-
-	cr := seedService()
-	err := s.InsertChartResource(ctx, q, cr)
+	svc := NewService()
+	b, err := ReadYamlConfig("./consensus_client/service.yaml")
 	s.Require().Nil(err)
-}
+	s.Require().NotEmpty(b)
 
-func (s *NetworkingTestSuite) insertChartResource(c autogen_bases.ChartComponentResources) string {
-	sqlInsertStatement := fmt.Sprintf(
-		`INSERT INTO chart_component_resources(chart_component_resource_id, chart_component_kind_name, chart_component_api_version)
- 				 VALUES ('%d', '%s', '%s')`,
-		c.ChartComponentResourceID, c.ChartComponentKindName, c.ChartComponentApiVersion)
-	return sqlInsertStatement
-}
+	err = json.Unmarshal(b, &svc.K8sService)
+	s.Require().Nil(err)
 
-func (s *NetworkingTestSuite) InsertChartResource(ctx context.Context, q sql_query_templates.QueryParams, c autogen_bases.ChartComponentResources) error {
-	query := s.insertChartResource(c)
-	_, err := apps.Pg.Exec(ctx, query)
-	return err
-}
-
-func seedService() autogen_bases.ChartComponentResources {
-	cr := autogen_bases.ChartComponentResources{
-		ChartComponentResourceID: 0,
-		ChartComponentKindName:   "Service",
-		ChartComponentApiVersion: "apps/v1",
-	}
-	return cr
+	svc.ConvertK8sServiceToDB()
+	s.Assert().NotEmpty(svc.ServicePorts)
 }
 
 func TestNetworkingTestSuite(t *testing.T) {
-	suite.Run(t, new(NetworkingTestSuite))
+	suite.Run(t, new(ServiceTestSuite))
+}
+
+func ReadYamlConfig(filepath string) ([]byte, error) {
+	// Open YAML file
+	jsonByteArray, err := os.ReadFile(filepath)
+	if err != nil {
+		panic(err)
+	}
+	jsonBytes, err := yaml.YAMLToJSON(jsonByteArray)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return jsonBytes, err
+	}
+	return jsonBytes, err
 }

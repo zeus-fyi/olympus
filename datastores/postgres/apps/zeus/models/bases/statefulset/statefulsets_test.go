@@ -3,7 +3,7 @@ package statefulset
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -261,7 +261,7 @@ func TestStatefulSetTestSuite(t *testing.T) {
 
 func ReadYamlConfig(filepath string) ([]byte, error) {
 	// Open YAML file
-	jsonByteArray, err := ioutil.ReadFile(filepath)
+	jsonByteArray, err := os.ReadFile(filepath)
 	if err != nil {
 		panic(err)
 	}

@@ -64,7 +64,7 @@ func DeleteChartQuery(q sql_query_templates.QueryParams) string {
 		  	LEFT JOIN containers cont ON cont.container_id = psc.	container_id
 			LEFT JOIN containers_security_context cctx ON cctx.container_id = psc.container_id
 			LEFT JOIN container_security_context csctx ON csctx.container_security_context_id = cctx.container_security_context_id
-			LEFT JOIN 	containers_compute_resources cscr ON cscr.container_id = psc.container_id
+			LEFT JOIN containers_compute_resources cscr ON cscr.container_id = psc.container_id
 			LEFT JOIN container_compute_resources AS ccr ON ccr.compute_resources_id = cscr.compute_resources_id 
 			LEFT JOIN containers_command_args csca ON csca.container_id = psc.container_id
 			LEFT JOIN container_command_args cca ON cca.command_args_id = csca.command_args_id

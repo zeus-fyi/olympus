@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/rs/zerolog/log"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -51,12 +52,14 @@ func (d *DbContainers) parseSecurityContext(container *v1.Container, securityCon
 	m := make(map[string]string)
 	err := json.Unmarshal([]byte(securityContext), &m)
 	if err != nil {
+		log.Err(err).Msg("DbContainers: parseSecurityContext unmarshal securityContext string")
 		return err
 	}
 	for _, nv := range m {
 		if len(nv) > 0 {
 			perr := json.Unmarshal([]byte(nv), &container.SecurityContext)
 			if perr != nil {
+				log.Err(err).Msg("DbContainers: parseSecurityContext Unmarshal &container.SecurityContext")
 				return err
 			}
 		}
@@ -68,6 +71,7 @@ func (d *DbContainers) parseCmdArgs(container *v1.Container, cmdArgs string) err
 	m := make(map[string]map[string]interface{})
 	err := json.Unmarshal([]byte(cmdArgs), &m)
 	if err != nil {
+		log.Err(err).Msg("DbContainers: parseCmdArgs unmarshal cmdArgs string")
 		return err
 	}
 	for _, v := range m {
@@ -89,17 +93,20 @@ func (d *DbContainers) parseComputeResources(container *v1.Container, computeRes
 	m := make(map[string]map[string]interface{})
 	err := json.Unmarshal([]byte(computeResources), &m)
 	if err != nil {
+		log.Err(err).Msg("DbContainers: parseComputeResources unmarshal parseComputeResources string")
 		return err
 	}
 	for _, v := range m {
 		for nk, nv := range v {
 			bytes, berr := json.Marshal(nv)
 			if berr != nil {
+				log.Err(err).Msg("DbContainers: parseComputeResources Marshal")
 				return berr
 			}
 			rl := v1.ResourceList{}
 			perr := json.Unmarshal(bytes, &rl)
 			if perr != nil {
+				log.Err(err).Msg("DbContainers: parseComputeResources Unmarshal to ResourceList")
 				return err
 			}
 			if rl.Cpu().Value() == int64(0) {
@@ -126,6 +133,7 @@ func (d *DbContainers) parseProbes(container *v1.Container, probeString string) 
 	m := make(map[string]interface{})
 	err := json.Unmarshal([]byte(probeString), &m)
 	if err != nil {
+		log.Err(err).Msg("DbContainers: parseProbes Unmarshal probe string")
 		return err
 	}
 	for k, v := range m {
@@ -133,10 +141,12 @@ func (d *DbContainers) parseProbes(container *v1.Container, probeString string) 
 
 		bytes, berr := json.Marshal(v)
 		if berr != nil {
+			log.Err(err).Msg("DbContainers: parseProbes Marshal")
 			return berr
 		}
 		perr := json.Unmarshal(bytes, &pr)
 		if perr != nil {
+			log.Err(err).Msg("DbContainers: parseProbes Unmarshal")
 			return err
 		}
 		switch k {
@@ -158,16 +168,19 @@ func (d *DbContainers) parseContainerPorts(portsStr string) ([]v1.ContainerPort,
 	var ports []v1.ContainerPort
 	err := json.Unmarshal([]byte(portsStr), &m)
 	if err != nil {
+		log.Err(err).Msg("DbContainers: parseContainerPorts")
 		return ports, err
 	}
 	for _, v := range m {
 		bytes, berr := json.Marshal(v)
 		if berr != nil {
+			log.Err(err).Msg("DbContainers: parseContainerPorts")
 			return ports, berr
 		}
 		var port v1.ContainerPort
 		perr := json.Unmarshal(bytes, &port)
 		if perr != nil {
+			log.Err(err).Msg("DbContainers: parseContainerPorts")
 			return ports, perr
 		}
 		ports = append(ports, port)
@@ -181,16 +194,19 @@ func (d *DbContainers) parseVolumeMount(contVolMounts string) ([]v1.VolumeMount,
 	var contVms []v1.VolumeMount
 	err := json.Unmarshal([]byte(contVolMounts), &m)
 	if err != nil {
+		log.Err(err).Msg("DbContainers: parseVolumeMount")
 		return contVms, err
 	}
 	for _, v := range m {
 		bytes, berr := json.Marshal(v)
 		if berr != nil {
+			log.Err(err).Msg("DbContainers: parseVolumeMount Marshal")
 			return contVms, berr
 		}
 		var contVm v1.VolumeMount
 		perr := json.Unmarshal(bytes, &contVm)
 		if perr != nil {
+			log.Err(err).Msg("DbContainers: parseVolumeMount Unmarshal to VolumeMount")
 			return contVms, perr
 		}
 		contVms = append(contVms, contVm)
@@ -203,12 +219,14 @@ func (d *DbContainers) parseEnvVars(envVarString string) ([]v1.EnvVar, error) {
 	m := map[string]string{}
 	err := json.Unmarshal([]byte(envVarString), &m)
 	if err != nil {
+		log.Err(err).Msg("DbContainers: parseEnvVars")
 		return envVars, err
 	}
 	for k, v := range m {
 		envSource := v1.EnvVarSource{}
 		verr := json.Unmarshal([]byte(v), &envSource)
 		if verr != nil {
+			log.Err(err).Msg("DbContainers: parseEnvVars")
 			return envVars, verr
 		}
 		envVar := v1.EnvVar{

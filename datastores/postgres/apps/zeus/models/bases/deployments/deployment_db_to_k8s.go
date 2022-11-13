@@ -1,6 +1,7 @@
 package deployments
 
 import (
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions/db_to_k8s_conversions"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
@@ -33,6 +34,7 @@ func (d *Deployment) ConvertDBDeploymentSpecToK8s(pcSlice []common_conversions.P
 			sl, err := db_to_k8s_conversions.ParseLabelSelectorJsonString(pc.ChartSubcomponentValue)
 			d.K8sDeployment.Spec.Selector = sl
 			if err != nil {
+				log.Err(err).Msg("ConvertDBDeploymentSpecToK8s")
 				return err
 			}
 		}

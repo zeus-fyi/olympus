@@ -4,6 +4,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func (s *Service) ParseSvcPorts(portMap map[int][]common_conversions.PC) error {
@@ -13,7 +14,7 @@ func (s *Service) ParseSvcPorts(portMap map[int][]common_conversions.PC) error {
 			val := portComponent.ChartSubcomponentValue
 			switch portComponent.ChartSubcomponentKeyName {
 			case "targetPort":
-				k8sPort.TargetPort.StrVal = val
+				k8sPort.TargetPort = intstr.FromString(val)
 			case "port":
 				k8sPort.Port = string_utils.ConvertStringTo32BitInt(val)
 			case "name":

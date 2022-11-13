@@ -3,10 +3,10 @@ package autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type ChartSubcomponentsChildValues struct {
-	ChartSubcomponentChildClassTypeID              int    `db:"chart_subcomponent_child_class_type_id" json:"chart_subcomponent_child_class_type_id"`
-	ChartSubcomponentChartPackageTemplateInjection bool   `db:"chart_subcomponent_chart_package_template_injection" json:"chart_subcomponent_chart_package_template_injection"`
-	ChartSubcomponentKeyName                       string `db:"chart_subcomponent_key_name" json:"chart_subcomponent_key_name"`
-	ChartSubcomponentValue                         string `db:"chart_subcomponent_value" json:"chart_subcomponent_value"`
+	ChartSubcomponentChildClassTypeID              int    `db:"chart_subcomponent_child_class_type_id" json:"chartSubcomponentChildClassTypeID"`
+	ChartSubcomponentChartPackageTemplateInjection bool   `db:"chart_subcomponent_chart_package_template_injection" json:"chartSubcomponentChartPackageTemplateInjection"`
+	ChartSubcomponentKeyName                       string `db:"chart_subcomponent_key_name" json:"chartSubcomponentKeyName"`
+	ChartSubcomponentValue                         string `db:"chart_subcomponent_value" json:"chartSubcomponentValue"`
 }
 type ChartSubcomponentsChildValuesSlice []ChartSubcomponentsChildValues
 

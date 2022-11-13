@@ -1,10 +1,8 @@
 package autogen_bases
 
-import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
-
 type ContainersSecurityContext struct {
-	ContainerSecurityContextID int `db:"container_security_context_id" json:"container_security_context_id"`
-	ContainerID                int `db:"container_id" json:"container_id"`
+	ContainerSecurityContextID int `db:"container_security_context_id" json:"containerSecurityContextID"`
+	ContainerID                int `db:"container_id" json:"containerID"`
 }
 type ContainersSecurityContextSlice []ContainersSecurityContext
 

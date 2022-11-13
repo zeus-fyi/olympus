@@ -40,11 +40,12 @@ ALTER TABLE "public"."topologies_kns" ADD CONSTRAINT "kns_pk" PRIMARY KEY ("clou
 
 -- specific deployed topology to user (statuses can be pending, terminated, etc)
 CREATE TABLE "public"."topologies_deployed" (
+   "deployment_id" int8 NOT NULL DEFAULT next_id(),
    "topology_id" int8 NOT NULL REFERENCES topologies(topology_id),
    "topology_status" text NOT NULL,
    "updated_at" timestamptz  NOT NULL DEFAULT NOW()
 );
-ALTER TABLE "public"."topologies_deployed" ADD CONSTRAINT "topologies_deployed_unique_key" UNIQUE  ("topology_id", "topology_status");
+ALTER TABLE "public"."topologies_deployed" ADD CONSTRAINT "topologies_deployed_pk" PRIMARY KEY ("deployment_id");
 
 -- if needed again per different schema. eg zeus.DB, vs eth.DB
 -- CREATE OR REPLACE FUNCTION trigger_set_timestamp()

@@ -58,7 +58,7 @@ func (t *TopologyDeployRequest) DeployTopology(c echo.Context) error {
 	}
 	resp := topology_deployment_status.NewTopologyStatus()
 	resp.TopologyID = t.TopologyID
-	resp.TopologyStatus = "Pending"
+	resp.TopologyStatus = topology_deployment_status.DeployPending
 	resp.UpdatedAt = time.Now().UTC()
 	return c.JSON(http.StatusAccepted, resp)
 }

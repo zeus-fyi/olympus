@@ -1,10 +1,8 @@
 package autogen_bases
 
-import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
-
 type ContainersVolumes struct {
-	ChartSubcomponentChildClassTypeID int `db:"chart_subcomponent_child_class_type_id" json:"chart_subcomponent_child_class_type_id"`
-	VolumeID                          int `db:"volume_id" json:"volume_id"`
+	ChartSubcomponentChildClassTypeID int `db:"chart_subcomponent_child_class_type_id" json:"chartSubcomponentChildClassTypeID"`
+	VolumeID                          int `db:"volume_id" json:"volumeID"`
 }
 type ContainersVolumesSlice []ContainersVolumes
 

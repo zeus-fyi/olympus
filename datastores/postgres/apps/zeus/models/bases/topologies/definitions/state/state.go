@@ -7,6 +7,14 @@ type Status struct {
 	autogen_bases.TopologiesDeployed
 }
 
+const DeployPending = "DeployPending"
+const DeployInProgress = "DeployInProgress"
+const DeployComplete = "DeployComplete"
+
+const DestroyDeployPending = "DestroyDeployPending"
+const DestroyInProgress = "DestroyDeployInProgress"
+const DestroyDeployComplete = "DestroyDeployComplete"
+
 const InProgress = "InProgress"
 const Complete = "Complete"
 

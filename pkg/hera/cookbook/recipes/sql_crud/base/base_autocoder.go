@@ -16,6 +16,8 @@ func (m *ModelTemplate) CreateTemplateFromStruct(structGen primitive.StructGen) 
 	importNames["github.com/zeus-fyi/olympus/datastores/postgres/apps"] = "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	importNames["apps"] = "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
+	// tags are managed here
+	// pkg/hera/lib/v0/core/primitives/fields/field_tags.go
 	m.JenFile.ImportNames(importNames)
 	m.Structs.AddStruct(structGen)
 	m.AddSlice(m.Structs.GenerateStructsJenCode(true))

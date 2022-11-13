@@ -54,7 +54,7 @@ func (t *TopologyDestroyDeployRequest) DestroyDeployedTopology(c echo.Context) e
 	}
 	resp := topology_deployment_status.NewTopologyStatus()
 	resp.TopologyID = t.TopologyID
-	resp.TopologyStatus = "Pending"
+	resp.TopologyStatus = topology_deployment_status.DestroyDeployPending
 	resp.UpdatedAt = time.Now().UTC()
 	return c.JSON(http.StatusAccepted, resp)
 }

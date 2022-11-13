@@ -7,10 +7,10 @@ import (
 )
 
 type ChartPackages struct {
-	ChartPackageID   int            `db:"chart_package_id" json:"chart_package_id"`
-	ChartName        string         `db:"chart_name" json:"chart_name"`
-	ChartVersion     string         `db:"chart_version" json:"chart_version"`
-	ChartDescription sql.NullString `db:"chart_description" json:"chart_description"`
+	ChartPackageID   int            `db:"chart_package_id" json:"chartPackageID"`
+	ChartName        string         `db:"chart_name" json:"chartName"`
+	ChartVersion     string         `db:"chart_version" json:"chartVersion"`
+	ChartDescription sql.NullString `db:"chart_description" json:"chartDescription"`
 }
 type ChartPackagesSlice []ChartPackages
 

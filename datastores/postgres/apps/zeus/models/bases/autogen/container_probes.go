@@ -3,8 +3,8 @@ package autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type ContainerProbes struct {
-	ProbeID             int    `db:"probe_id" json:"probe_id"`
-	ProbeKeyValuesJSONb string `db:"probe_key_values_jsonb" json:"probe_key_values_jsonb"`
+	ProbeID             int    `db:"probe_id" json:"probeID"`
+	ProbeKeyValuesJSONb string `db:"probe_key_values_jsonb" json:"probeKeyValuesJsonb"`
 }
 type ContainerProbesSlice []ContainerProbes
 

@@ -3,7 +3,7 @@ package autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type ContainerEnvironmentalVars struct {
-	EnvID int    `db:"env_id" json:"env_id"`
+	EnvID int    `db:"env_id" json:"envID"`
 	Name  string `db:"name" json:"name"`
 	Value string `db:"value" json:"value"`
 }

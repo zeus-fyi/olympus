@@ -5,27 +5,27 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-const Sn = "TopologyKubeCtxNs"
+const Sn = "TopologyDeploymentStatus"
 
-func (s *DeploymentStatus) insertTopologyStatus() sql_query_templates.QueryParams {
+func insertTopologyStatus() sql_query_templates.QueryParams {
 	q := sql_query_templates.NewQueryParam("insertTopologyStatus", "topologies_deployed", "where", 1000, []string{})
 	query := `INSERT INTO topologies_deployed(topology_id, topology_status) 
 			  VALUES ($1, $2) 
 			  ON CONFLICT (topology_id, topology_status) DO UPDATE SET topology_status = EXCLUDED.topology_status
 			  RETURNING updated_at`
 	q.RawQuery = query
-	q.CTEQuery.Params = []interface{}{s.TopologyID, s.TopologyStatus}
 	return q
 }
 
-func (s *DeploymentStatus) InsertStatus(ctx context.Context) error {
-	q := s.insertTopologyStatus()
-	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, q.CTEQuery.Params...).Scan(&s.UpdatedAt)
+func InsertOrUpdateStatus(ctx context.Context, status topology_deployment_status.Status) error {
+	q := insertTopologyStatus()
+	log.Debug().Interface("InsertOrUpdateQuery:", q.LogHeader(Sn))
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, status.TopologyID, status.TopologyStatus).Scan(&status.UpdatedAt)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
 		return err
 	}

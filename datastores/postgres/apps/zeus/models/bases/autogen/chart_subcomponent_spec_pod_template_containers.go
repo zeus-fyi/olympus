@@ -3,9 +3,9 @@ package autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type ChartSubcomponentSpecPodTemplateContainers struct {
-	ContainerID                       int `db:"container_id" json:"container_id"`
-	ContainerSortOrder                int `db:"container_sort_order" json:"container_sort_order"`
-	ChartSubcomponentChildClassTypeID int `db:"chart_subcomponent_child_class_type_id" json:"chart_subcomponent_child_class_type_id"`
+	ChartSubcomponentChildClassTypeID int `db:"chart_subcomponent_child_class_type_id" json:"chartSubcomponentChildClassTypeID"`
+	ContainerID                       int `db:"container_id" json:"containerID"`
+	ContainerSortOrder                int `db:"container_sort_order" json:"containerSortOrder"`
 }
 type ChartSubcomponentSpecPodTemplateContainersSlice []ChartSubcomponentSpecPodTemplateContainers
 
@@ -13,12 +13,12 @@ func (c *ChartSubcomponentSpecPodTemplateContainers) GetRowValues(queryName stri
 	pgValues := apps.RowValues{}
 	switch queryName {
 	default:
-		pgValues = apps.RowValues{c.ContainerID, c.ContainerSortOrder, c.ChartSubcomponentChildClassTypeID}
+		pgValues = apps.RowValues{c.ChartSubcomponentChildClassTypeID, c.ContainerID, c.ContainerSortOrder}
 	}
 	return pgValues
 }
 func (c *ChartSubcomponentSpecPodTemplateContainers) GetTableColumns() (columnValues []string) {
-	columnValues = []string{"container_id", "container_sort_order", "chart_subcomponent_child_class_type_id"}
+	columnValues = []string{"chart_subcomponent_child_class_type_id", "container_id", "container_sort_order"}
 	return columnValues
 }
 func (c *ChartSubcomponentSpecPodTemplateContainers) GetTableName() (tableName string) {

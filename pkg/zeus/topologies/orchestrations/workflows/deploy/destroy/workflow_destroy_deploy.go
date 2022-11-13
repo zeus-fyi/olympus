@@ -45,7 +45,7 @@ func (t *DestroyDeployTopologyWorkflow) DestroyDeployedTopologyWorkflow(ctx work
 		Host: params.Host,
 		InternalWorkloadStatusUpdateRequest: workload_state.InternalWorkloadStatusUpdateRequest{
 			TopologyID:     params.Kns.TopologyID,
-			TopologyStatus: topology_deployment_status.InProgress,
+			TopologyStatus: topology_deployment_status.DestroyInProgress,
 		},
 	}
 	err := workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, statusActivity.InternalWorkloadStatusUpdateRequest).Get(statusCtx, nil)
@@ -94,7 +94,7 @@ func (t *DestroyDeployTopologyWorkflow) DestroyDeployedTopologyWorkflow(ctx work
 			return err
 		}
 	}
-	statusActivity.TopologyStatus = topology_deployment_status.Complete
+	statusActivity.TopologyStatus = topology_deployment_status.DestroyDeployComplete
 	err = workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, statusActivity.InternalWorkloadStatusUpdateRequest).Get(statusCtx, nil)
 	if err != nil {
 		log.Error("Failed to update topology status", "Error", err)

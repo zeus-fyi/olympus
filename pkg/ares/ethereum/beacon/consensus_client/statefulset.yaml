@@ -15,7 +15,7 @@ spec:
     matchLabels:
       app.kubernetes.io/name: lighthouse
       app.kubernetes.io/instance: zeus
-  serviceName: zeus-lighthouse-headless
+  serviceName: zeus-lighthouse
   updateStrategy:
     type: RollingUpdate
   template:
@@ -44,6 +44,8 @@ spec:
           command: [ "/bin/sh" ]
           args: [ "-c","/scripts/start.sh" ]
           volumeMounts:
+            - name: cm-lighthouse
+              mountPath: "/scripts"
             - name: storage
               mountPath: "/data"
             - name: jwt
@@ -86,6 +88,10 @@ spec:
       tolerations:
         []
       volumes:
+        - name: cm-lighthouse
+          configMap:
+            name: cm-lighthouse
+            defaultMode: 0744
         - name: jwt
           secret:
             secretName: zeus-lighthouse-jwt

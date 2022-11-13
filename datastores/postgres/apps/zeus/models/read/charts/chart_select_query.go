@@ -54,9 +54,9 @@ func FetchChartQuery(q sql_query_templates.QueryParams) string {
 				cpc.chart_subcomponent_parent_class_type_name,
 				jsonb_object_agg(cpc.chart_subcomponent_parent_class_type_name,
 							 jsonb_build_array(
-								json_build_object('chart_subcomponent_parent_class_types', json_build_object('chart_subcomponent_parent_class_type_name',cpc.chart_subcomponent_parent_class_type_name, 'chart_subcomponent_parent_class_type_id', cpc.chart_subcomponent_parent_class_type_id )),
-								json_build_object('chart_subcomponent_child_class_types', json_build_object('chart_subcomponent_child_class_type_id', cct.chart_subcomponent_child_class_type_id, 'chart_subcomponent_child_class_type_name', cct.chart_subcomponent_child_class_type_name)),
-								json_build_object('chart_subcomponents_child_values', json_build_object('chart_subcomponent_key_name', cv.chart_subcomponent_key_name, 'chart_subcomponent_value', cv.chart_subcomponent_value))
+								json_build_object('chart_subcomponent_parent_class_types', json_build_object('chartSubcomponentParentClassTypeName',cpc.chart_subcomponent_parent_class_type_name, 'chartSubcomponentParentClassTypeID', cpc.chart_subcomponent_parent_class_type_id )),
+								json_build_object('chart_subcomponent_child_class_types', json_build_object('chartSubcomponentChildClassTypeID', cct.chart_subcomponent_child_class_type_id, 'chartSubcomponentChildClassTypeName', cct.chart_subcomponent_child_class_type_name)),
+								json_build_object('chart_subcomponents_child_values', json_build_object('chartSubcomponentKeyName', cv.chart_subcomponent_key_name, 'chartSubcomponentValue', cv.chart_subcomponent_value))
 							)
 				) AS parent_child_values_obj_agg
 			FROM cte_chart_package_components cpc

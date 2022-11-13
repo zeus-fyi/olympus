@@ -15,7 +15,7 @@ type AresZeusEthereumTestSuite struct {
 var ctx = context.Background()
 
 func (t *AresZeusEthereumTestSuite) SetupTest() {
-	t.SetupProdTest()
+	t.SetupLocalTest()
 }
 
 func TestAresZeusTestSuite(t *testing.T) {

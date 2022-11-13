@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
+	topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 )
 
@@ -17,15 +18,15 @@ type CreateTopologyStateTestSuite struct {
 func (s *CreateTopologyStateTestSuite) TestInsertTopologyState() {
 	ctx := context.Background()
 	topID, _ := s.SeedTopology()
-	topState := NewCreateState()
+	topState := topology_deployment_status.NewTopologyStatus()
 	topState.TopologyID = topID
 	topState.TopologyStatus = "InProgress"
-	err := topState.InsertStatus(ctx)
+	err := InsertOrUpdateStatus(ctx, &topState)
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(topState.UpdatedAt)
 
 	topState.TopologyStatus = "Done"
-	err = topState.InsertStatus(ctx)
+	err = InsertOrUpdateStatus(ctx, &topState)
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(topState.UpdatedAt)
 }

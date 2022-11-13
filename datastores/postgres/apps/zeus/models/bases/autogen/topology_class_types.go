@@ -1,5 +1,11 @@
 package autogen_bases
 
+import (
+	"database/sql"
+
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+)
+
 type TopologyClassTypes struct {
 	TopologyClassTypeID   int            `db:"topology_class_type_id" json:"topologyClassTypeID"`
 	TopologyClassTypeName sql.NullString `db:"topology_class_type_name" json:"topologyClassTypeName"`

@@ -1,5 +1,7 @@
 package autogen_bases
 
+import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
+
 type ContainersSecurityContext struct {
 	ContainerSecurityContextID int `db:"container_security_context_id" json:"containerSecurityContextID"`
 	ContainerID                int `db:"container_id" json:"containerID"`

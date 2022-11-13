@@ -9,7 +9,6 @@ import (
 	deployment_status "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/status"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/actions/base_request"
-	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/actions/deploy/workload_state"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -41,14 +40,11 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 	}
 
 	statusCtx := workflow.WithActivityOptions(ctx, ao)
+	status := topology_deployment_status.NewPopulatedTopologyStatus(params.Kns.TopologyID, topology_deployment_status.DeployInProgress)
 	statusActivity := deployment_status.TopologyActivityDeploymentStatusActivity{
-		Host: params.Host,
-		InternalWorkloadStatusUpdateRequest: workload_state.InternalWorkloadStatusUpdateRequest{
-			TopologyID:     params.Kns.TopologyID,
-			TopologyStatus: topology_deployment_status.InProgress,
-		},
+		Status: status,
 	}
-	err := workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, statusActivity.InternalWorkloadStatusUpdateRequest).Get(statusCtx, nil)
+	err := workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, status).Get(statusCtx, nil)
 	if err != nil {
 		log.Error("Failed to update topology status", "Error", err)
 		return err
@@ -102,8 +98,8 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 		}
 	}
 
-	statusActivity.TopologyStatus = topology_deployment_status.Complete
-	err = workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, statusActivity.InternalWorkloadStatusUpdateRequest).Get(statusCtx, nil)
+	status.TopologyStatus = topology_deployment_status.DeployComplete
+	err = workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, status).Get(statusCtx, nil)
 	if err != nil {
 		log.Error("Failed to update topology status", "Error", err)
 		return err

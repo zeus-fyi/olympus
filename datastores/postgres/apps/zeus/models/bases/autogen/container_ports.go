@@ -1,5 +1,7 @@
 package autogen_bases
 
+import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
+
 type ContainerPorts struct {
 	HostIp        string `db:"host_ip" json:"hostIp"`
 	HostPort      int    `db:"host_port" json:"hostPort"`

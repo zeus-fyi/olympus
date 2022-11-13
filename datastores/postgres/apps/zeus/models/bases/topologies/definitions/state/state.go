@@ -12,11 +12,19 @@ const DeployInProgress = "DeployInProgress"
 const DeployComplete = "DeployComplete"
 
 const DestroyDeployPending = "DestroyDeployPending"
-const DestroyInProgress = "DestroyDeployInProgress"
+const DestroyDeployInProgress = "DestroyDeployInProgress"
 const DestroyDeployComplete = "DestroyDeployComplete"
 
 const InProgress = "InProgress"
 const Complete = "Complete"
+
+func NewPopulatedTopologyStatus(topID int, status string) Status {
+	s := Status{autogen_bases.TopologiesDeployed{
+		TopologyStatus: status,
+		TopologyID:     topID,
+	}}
+	return s
+}
 
 func NewTopologyStatus() Status {
 	s := Status{autogen_bases.TopologiesDeployed{

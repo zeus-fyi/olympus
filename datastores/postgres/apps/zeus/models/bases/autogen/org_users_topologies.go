@@ -1,5 +1,7 @@
 package autogen_bases
 
+import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
+
 type OrgUsersTopologies struct {
 	TopologyID int `db:"topology_id" json:"topologyID"`
 	OrgID      int `db:"org_id" json:"orgID"`

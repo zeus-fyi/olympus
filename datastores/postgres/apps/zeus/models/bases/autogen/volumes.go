@@ -1,5 +1,7 @@
 package autogen_bases
 
+import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
+
 type Volumes struct {
 	VolumeName           string `db:"volume_name" json:"volumeName"`
 	VolumeKeyValuesJSONb string `db:"volume_key_values_jsonb" json:"volumeKeyValuesJsonb"`

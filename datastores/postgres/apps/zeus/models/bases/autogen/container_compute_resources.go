@@ -1,5 +1,7 @@
 package autogen_bases
 
+import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
+
 type ContainerComputeResources struct {
 	ComputeResourcesCpuLimit                string `db:"compute_resources_cpu_limit" json:"computeResourcesCpuLimit"`
 	ComputeResourcesRamRequest              string `db:"compute_resources_ram_request" json:"computeResourcesRamRequest"`

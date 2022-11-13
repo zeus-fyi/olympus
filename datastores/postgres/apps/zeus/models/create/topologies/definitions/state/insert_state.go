@@ -16,13 +16,12 @@ func insertTopologyStatus() sql_query_templates.QueryParams {
 	q := sql_query_templates.NewQueryParam("insertTopologyStatus", "topologies_deployed", "where", 1000, []string{})
 	query := `INSERT INTO topologies_deployed(topology_id, topology_status) 
 			  VALUES ($1, $2) 
-			  ON CONFLICT (topology_id, topology_status) DO UPDATE SET topology_status = EXCLUDED.topology_status
 			  RETURNING updated_at`
 	q.RawQuery = query
 	return q
 }
 
-func InsertOrUpdateStatus(ctx context.Context, status topology_deployment_status.Status) error {
+func InsertOrUpdateStatus(ctx context.Context, status *topology_deployment_status.Status) error {
 	q := insertTopologyStatus()
 	log.Debug().Interface("InsertOrUpdateQuery:", q.LogHeader(Sn))
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, status.TopologyID, status.TopologyStatus).Scan(&status.UpdatedAt)

@@ -1,5 +1,11 @@
 package autogen_bases
 
+import (
+	"time"
+
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+)
+
 type TopologiesDeployed struct {
 	DeploymentID   int       `db:"deployment_id" json:"deploymentID"`
 	TopologyID     int       `db:"topology_id" json:"topologyID"`

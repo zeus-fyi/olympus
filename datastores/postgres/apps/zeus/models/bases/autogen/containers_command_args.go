@@ -1,5 +1,7 @@
 package autogen_bases
 
+import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
+
 type ContainersCommandArgs struct {
 	CommandArgsID int `db:"command_args_id" json:"commandArgsID"`
 	ContainerID   int `db:"container_id" json:"containerID"`

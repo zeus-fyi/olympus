@@ -17,13 +17,13 @@ func (p *PodTemplateSpec) insertVolumes() (sql_query_templates.SubCTE, sql_query
 	agVol := autogen_bases.Volumes{}
 	podSpecVolumesSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_pod_spec_volumes_%d", ts.UnixTimeStampNow()))
 	podSpecVolumesSubCTE.TableName = agVol.GetTableName()
-	podSpecVolumesSubCTE.Columns = agVol.GetTableColumns()
+	podSpecVolumesSubCTE.Columns = []string{"volume_id", "volume_name", "volume_key_values_jsonb"}
 
 	agVolR := autogen_bases.ContainersVolumes{}
 
 	podSpecVolumesRelationshipSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_pod_spec_containers_volumes_%d", ts.UnixTimeStampNow()))
 	podSpecVolumesRelationshipSubCTE.TableName = agVolR.GetTableName()
-	podSpecVolumesRelationshipSubCTE.Columns = agVolR.GetTableColumns()
+	podSpecVolumesRelationshipSubCTE.Columns = []string{"chart_subcomponent_child_class_type_id", "volume_id"}
 	vols := p.Spec.PodTemplateSpecVolumes
 	cID := p.GetPodSpecChildClassTypeID()
 

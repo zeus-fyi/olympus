@@ -1,9 +1,11 @@
-package demo
+package zeus_demo
 
-import "github.com/zeus-fyi/olympus/pkg/ares/ethereum"
+import (
+	"github.com/zeus-fyi/olympus/pkg/ares/demo"
+)
 
 func (t *AresDemoTestSuite) TestDestroyDeploy() {
-	ethereum.ChangeDirToAresEthereumDir()
+	demo.ChangeDirToAresDemoDir()
 	resp, err := t.ZeusTestClient.DestroyDeploy(ctx, deployDestroyKnsReq)
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(resp)

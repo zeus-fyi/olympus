@@ -1,4 +1,4 @@
-package demo
+package zeus_demo
 
 import (
 	"context"
@@ -15,7 +15,7 @@ type AresDemoTestSuite struct {
 var ctx = context.Background()
 
 func (t *AresDemoTestSuite) SetupTest() {
-	t.SetupProdTest()
+	t.SetupLocalTest()
 }
 
 func TestAresZeusTestSuite(t *testing.T) {

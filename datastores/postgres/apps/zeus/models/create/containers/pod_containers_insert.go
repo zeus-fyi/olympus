@@ -137,15 +137,19 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart
 			cpkAddParentClassTypeSubCTEs,
 			contSubChildClassCTE,
 			podSpecSubCTE,
+
 			// ports
 			portsSubCTE,
 			portsRelationshipsSubCTE,
+
 			// env vars
 			envVarsSubCTE,
 			envVarsRelationshipsSubCTE,
+
 			// vms
 			contVmsSubCTE,
 			contVmsRelationshipsSubCTE,
+
 			// vols
 			podSpecVolumesSubCTE,
 			podSpecVolumesRelationshipSubCTE,

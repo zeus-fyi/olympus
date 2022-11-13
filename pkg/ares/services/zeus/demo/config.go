@@ -1,4 +1,4 @@
-package demo
+package zeus_demo
 
 import (
 	create_or_update_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/create_or_update"

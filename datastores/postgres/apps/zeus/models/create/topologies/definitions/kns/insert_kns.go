@@ -28,10 +28,11 @@ func getInsertKnsQuery() sql_query_templates.QueryParams {
 	q.QueryName = "InsertKns"
 
 	q.RawQuery = `
-	INSERT INTO topologies_kns(topology_id, cloud_provider, region, context, namespace, env)
-	VALUES ($1, $2, $3, $4, $5, $6)
-	ON CONFLICT ON CONSTRAINT kns_pk DO NOTHING
-	RETURNING true
+	WITH cte_insert_kns AS (
+		INSERT INTO topologies_kns(topology_id, cloud_provider, region, context, namespace, env)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		ON CONFLICT ON CONSTRAINT kns_pk DO NOTHING
+	) SELECT true
 	`
 	return q
 }

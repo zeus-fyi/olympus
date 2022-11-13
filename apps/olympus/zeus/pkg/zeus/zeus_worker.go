@@ -24,10 +24,10 @@ func ExecuteDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.Org
 	}
 
 	resp := topology_deployment_status.NewTopologyStatus()
-	resp.TopologyID = knsDeploy.TopologyID
+	resp.DeployStatus.TopologyID = knsDeploy.TopologyID
 	resp.TopologyStatus = topology_deployment_status.DeployPending
 	resp.UpdatedAt = time.Now().UTC()
-	return c.JSON(http.StatusAccepted, resp)
+	return c.JSON(http.StatusAccepted, resp.DeployStatus)
 }
 
 func ExecuteDestroyDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDestroyDeploy kns.TopologyKubeCtxNs, nk chart_workload.NativeK8s) error {
@@ -38,8 +38,8 @@ func ExecuteDestroyDeployWorkflow(c echo.Context, ctx context.Context, ou org_us
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 	resp := topology_deployment_status.NewTopologyStatus()
-	resp.TopologyID = knsDestroyDeploy.TopologyID
+	resp.DeployStatus.TopologyID = knsDestroyDeploy.TopologyID
 	resp.TopologyStatus = topology_deployment_status.DestroyDeployPending
 	resp.UpdatedAt = time.Now().UTC()
-	return c.JSON(http.StatusAccepted, resp)
+	return c.JSON(http.StatusAccepted, resp.DeployStatus)
 }

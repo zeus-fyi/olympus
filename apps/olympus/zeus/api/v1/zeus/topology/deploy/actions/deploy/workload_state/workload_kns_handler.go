@@ -22,5 +22,5 @@ func UpdateWorkloadKnsStateHandler(c echo.Context) error {
 		log.Err(err).Interface("kns", request).Msg("UpdateWorkloadKnsStateHandler")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return c.JSON(http.StatusOK, nil)
+	return c.JSON(http.StatusOK, request)
 }

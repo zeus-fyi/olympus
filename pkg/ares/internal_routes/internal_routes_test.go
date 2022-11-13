@@ -15,7 +15,7 @@ type AresZeusInternalRoutesTestSuite struct {
 var ctx = context.Background()
 
 func (t *AresZeusInternalRoutesTestSuite) SetupTest() {
-	t.SetupProdTest()
+	t.SetupLocalTest()
 }
 
 func TestAresZeusTestSuite(t *testing.T) {

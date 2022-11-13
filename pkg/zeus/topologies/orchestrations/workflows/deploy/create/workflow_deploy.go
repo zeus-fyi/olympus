@@ -39,12 +39,18 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 		StartToCloseTimeout: defaultTimeout,
 	}
 
-	statusCtx := workflow.WithActivityOptions(ctx, ao)
+	statusCtxKns := workflow.WithActivityOptions(ctx, ao)
 	status := topology_deployment_status.NewPopulatedTopologyStatus(params.Kns.TopologyID, topology_deployment_status.DeployInProgress)
-	statusActivity := deployment_status.TopologyActivityDeploymentStatusActivity{
-		Status: status,
+	statusActivity := deployment_status.TopologyActivityDeploymentStatusActivity{}
+
+	err := workflow.ExecuteActivity(statusCtxKns, statusActivity.PostKnsStatusUpdate, status).Get(statusCtxKns, nil)
+	if err != nil {
+		log.Error("Failed to update topology status", "Error", err)
+		return err
 	}
-	err := workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, status).Get(statusCtx, nil)
+	statusCtx := workflow.WithActivityOptions(ctx, ao)
+
+	err = workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, status).Get(statusCtx, nil)
 	if err != nil {
 		log.Error("Failed to update topology status", "Error", err)
 		return err
@@ -104,6 +110,5 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 		log.Error("Failed to update topology status", "Error", err)
 		return err
 	}
-
 	return err
 }

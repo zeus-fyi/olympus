@@ -16,15 +16,15 @@ func insertTopologyStatus() sql_query_templates.QueryParams {
 	q := sql_query_templates.NewQueryParam("insertTopologyStatus", "topologies_deployed", "where", 1000, []string{})
 	query := `INSERT INTO topologies_deployed(topology_id, topology_status) 
 			  VALUES ($1, $2) 
-			  RETURNING updated_at`
+			  RETURNING deployment_id, updated_at`
 	q.RawQuery = query
 	return q
 }
 
-func InsertOrUpdateStatus(ctx context.Context, status *topology_deployment_status.Status) error {
+func InsertOrUpdateStatus(ctx context.Context, status *topology_deployment_status.DeployStatus) error {
 	q := insertTopologyStatus()
 	log.Debug().Interface("InsertOrUpdateQuery:", q.LogHeader(Sn))
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, status.TopologyID, status.TopologyStatus).Scan(&status.UpdatedAt)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, status.TopologyID, status.TopologyStatus).Scan(&status.DeploymentID, &status.UpdatedAt)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
 		return err
 	}

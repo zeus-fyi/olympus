@@ -13,17 +13,15 @@ import (
 // UpdateWorkloadStateHandler TODO must verify this is auth is scoped to user only
 func UpdateWorkloadStateHandler(c echo.Context) error {
 	ctx := context.Background()
-	request := new(topology_deployment_status.Status)
+	request := new(topology_deployment_status.DeployStatus)
 	if err := c.Bind(request); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	status := topology_deployment_status.NewTopologyStatus()
-	status.TopologyStatus = request.TopologyStatus
-	status.TopologyID = request.TopologyID
-	err := create_topology_deployment_status.InsertOrUpdateStatus(ctx, &status)
+	err := create_topology_deployment_status.InsertOrUpdateStatus(ctx, request)
 	if err != nil {
-		log.Err(err).Interface("status", status).Msg("UpdateWorkloadStateHandler")
+		log.Err(err).Interface("status", request).Msg("UpdateWorkloadStateHandler")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return c.JSON(http.StatusOK, status)
+
+	return c.JSON(http.StatusOK, request)
 }

@@ -13,7 +13,6 @@ import (
 
 type TopologyActivityDeploymentStatusActivity struct {
 	Host string
-	topology_deployment_status.Status
 }
 
 type ActivityDefinition interface{}
@@ -29,7 +28,22 @@ func (d *TopologyActivityDeploymentStatusActivity) PostStatusUpdate(ctx context.
 	client.SetBaseURL(u.Host)
 	_, err := client.R().
 		SetAuthToken(api_auth_temporal.Bearer).
-		SetBody(status).
+		SetBody(status.DeployStatus).
+		Post(u.Path)
+	if err != nil {
+		log.Err(err).Interface("path", zeus_endpoints.InternalDeployStatusUpdatePath).Msg("TopologyActivityDeploymentStatusActivity")
+		return err
+	}
+	return err
+}
+
+func (d *TopologyActivityDeploymentStatusActivity) PostKnsStatusUpdate(ctx context.Context, status topology_deployment_status.Status) error {
+	u := d.GetDeploymentStatusUpdateURL()
+	client := resty.New()
+	client.SetBaseURL(u.Host)
+	_, err := client.R().
+		SetAuthToken(api_auth_temporal.Bearer).
+		SetBody(status.TopologyKubeCtxNs).
 		Post(u.Path)
 	if err != nil {
 		log.Err(err).Interface("path", zeus_endpoints.InternalDeployStatusUpdatePath).Msg("TopologyActivityDeploymentStatusActivity")

@@ -41,9 +41,7 @@ func (t *DestroyDeployTopologyWorkflow) DestroyDeployedTopologyWorkflow(ctx work
 
 	statusCtx := workflow.WithActivityOptions(ctx, ao)
 	status := topology_deployment_status.NewPopulatedTopologyStatus(params.Kns.TopologyID, topology_deployment_status.DestroyDeployInProgress)
-	statusActivity := deployment_status.TopologyActivityDeploymentStatusActivity{
-		Status: status,
-	}
+	statusActivity := deployment_status.TopologyActivityDeploymentStatusActivity{}
 	err := workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, status).Get(statusCtx, nil)
 	if err != nil {
 		log.Error("Failed to update topology status", "Error", err)

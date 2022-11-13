@@ -19,14 +19,15 @@ func (s *CreateTopologyStateTestSuite) TestInsertTopologyState() {
 	ctx := context.Background()
 	topID, _ := s.SeedTopology()
 	topState := topology_deployment_status.NewTopologyStatus()
-	topState.TopologyID = topID
+
+	topState.DeployStatus.TopologyID = topID
 	topState.TopologyStatus = "InProgress"
-	err := InsertOrUpdateStatus(ctx, &topState)
+	err := InsertOrUpdateStatus(ctx, &topState.DeployStatus)
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(topState.UpdatedAt)
 
 	topState.TopologyStatus = "Done"
-	err = InsertOrUpdateStatus(ctx, &topState)
+	err = InsertOrUpdateStatus(ctx, &topState.DeployStatus)
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(topState.UpdatedAt)
 }

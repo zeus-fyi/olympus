@@ -45,7 +45,7 @@ CREATE TABLE "public"."topologies_deployed" (
    "topology_status" text NOT NULL,
    "updated_at" timestamptz  NOT NULL DEFAULT NOW()
 );
-ALTER TABLE "public"."topologies_deployed" ADD CONSTRAINT "topologies_deployed_pk" PRIMARY KEY ("deployment_id");
+ALTER TABLE "public"."topologies_deployed" ADD CONSTRAINT "topologies_deployed_pk" PRIMARY KEY ("topology_id","deployment_id");
 
 -- if needed again per different schema. eg zeus.DB, vs eth.DB
 -- CREATE OR REPLACE FUNCTION trigger_set_timestamp()

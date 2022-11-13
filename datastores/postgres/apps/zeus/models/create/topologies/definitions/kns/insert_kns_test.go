@@ -30,6 +30,10 @@ func (s *CreateKnsTestSuite) TestInsertKns() {
 	q.Values = []apps.RowValues{newKns.GetRowValues("default")}
 	err := newKns.InsertKns(ctx, q)
 	s.Require().Nil(err)
+
+	newKns.Namespace = "new"
+	err = InsertKns(ctx, &newKns.TopologyKubeCtxNs)
+	s.Require().Nil(err)
 }
 
 func TestCreateKnsTestSuite(t *testing.T) {

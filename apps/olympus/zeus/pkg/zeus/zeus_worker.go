@@ -29,3 +29,17 @@ func ExecuteDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.Org
 	resp.UpdatedAt = time.Now().UTC()
 	return c.JSON(http.StatusAccepted, resp)
 }
+
+func ExecuteDestroyDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDestroyDeploy kns.TopologyKubeCtxNs, nk chart_workload.NativeK8s) error {
+	tar := helpers.PackageCommonTopologyRequest(knsDestroyDeploy, ou, nk)
+	err := topology_worker.Worker.ExecuteDestroyDeploy(ctx, tar)
+	if err != nil {
+		log.Err(err).Interface("orgUser", ou).Msg("DestroyDeployedTopology, ExecuteWorkflow error")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	resp := topology_deployment_status.NewTopologyStatus()
+	resp.TopologyID = knsDestroyDeploy.TopologyID
+	resp.TopologyStatus = topology_deployment_status.DestroyDeployPending
+	resp.UpdatedAt = time.Now().UTC()
+	return c.JSON(http.StatusAccepted, resp)
+}

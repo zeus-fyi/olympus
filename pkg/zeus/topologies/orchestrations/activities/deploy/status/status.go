@@ -11,8 +11,6 @@ import (
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 )
 
-const updateDeployStatusRoute = "/v1/internal/deploy/status"
-
 type TopologyActivityDeploymentStatusActivity struct {
 	Host string
 	topology_deployment_status.Status
@@ -41,7 +39,7 @@ func (d *TopologyActivityDeploymentStatusActivity) PostStatusUpdate(ctx context.
 }
 
 func (d *TopologyActivityDeploymentStatusActivity) GetDeploymentStatusUpdateURL() url.URL {
-	return d.GetURL(updateDeployStatusRoute)
+	return d.GetURL(zeus_endpoints.InternalDeployStatusUpdatePath)
 }
 
 func (d *TopologyActivityDeploymentStatusActivity) GetURL(target string) url.URL {

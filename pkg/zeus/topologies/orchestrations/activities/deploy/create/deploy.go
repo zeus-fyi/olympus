@@ -5,12 +5,11 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
+	zeus_endpoints "github.com/zeus-fyi/olympus/pkg/zeus/client/endpoints"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/actions/base_request"
 )
-
-const deployRoute = "/v1/internal/deploy"
 
 type DeployTopologyActivities struct {
 	base_deploy_params.TopologyWorkflowRequest
@@ -44,5 +43,5 @@ func (d *DeployTopologyActivities) postDeployTarget(target string, params base_r
 }
 
 func (d *DeployTopologyActivities) GetDeployURL(target string) url.URL {
-	return d.GetURL(deployRoute, target)
+	return d.GetURL(zeus_endpoints.InternalDeployPath, target)
 }

@@ -3,17 +3,14 @@ package destroy_deploy_request
 import (
 	"context"
 	"net/http"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
-	topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
-	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
-	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/helpers"
+	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
 
 type TopologyDestroyDeployRequest struct {
@@ -46,15 +43,5 @@ func (t *TopologyDestroyDeployRequest) DestroyDeployedTopology(c echo.Context) e
 		Namespace:     t.Namespace,
 		Env:           t.Env,
 	}
-	tar := helpers.PackageCommonTopologyRequest(knsDestroyDeploy, ou, tr.GetNativeK8s())
-	err = topology_worker.Worker.ExecuteDestroyDeploy(ctx, tar)
-	if err != nil {
-		log.Err(err).Interface("orgUser", ou).Msg("DestroyDeployedTopology, ExecuteWorkflow error")
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	resp := topology_deployment_status.NewTopologyStatus()
-	resp.TopologyID = t.TopologyID
-	resp.TopologyStatus = topology_deployment_status.DestroyDeployPending
-	resp.UpdatedAt = time.Now().UTC()
-	return c.JSON(http.StatusAccepted, resp)
+	return zeus.ExecuteDestroyDeployWorkflow(c, ctx, ou, knsDestroyDeploy, tr.GetNativeK8s())
 }

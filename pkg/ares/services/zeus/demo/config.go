@@ -6,7 +6,7 @@ import (
 )
 
 var deployKnsReq = create_or_update_deploy.TopologyDeployRequest{
-	TopologyID:    1668049387010307081,
+	TopologyID:    1668320728359007000,
 	CloudProvider: "do",
 	Region:        "sfo3",
 	Context:       "dev-sfo3-zeus",
@@ -15,7 +15,7 @@ var deployKnsReq = create_or_update_deploy.TopologyDeployRequest{
 }
 
 var deployDestroyKnsReq = destroy_deploy_request.TopologyDestroyDeployRequest{
-	TopologyID:    1668049387010307081,
+	TopologyID:    1668320728359007000,
 	CloudProvider: "do",
 	Region:        "sfo3",
 	Context:       "dev-sfo3-zeus",

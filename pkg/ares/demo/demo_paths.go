@@ -22,7 +22,7 @@ func DemoReadChartThenWritePath() structs.Path {
 	var demoPath = structs.Path{
 		PackageName: "",
 		DirIn:       "./demo",
-		DirOut:      "./demo/read_chart",
+		DirOut:      "./demo_out/read_chart",
 		Fn:          "",
 		FnOut:       "",
 		Env:         "",

@@ -19,7 +19,7 @@ type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
 func (d *TopologyActivityDeploymentStatusActivity) GetActivities() ActivitiesSlice {
-	return []interface{}{d.PostStatusUpdate}
+	return []interface{}{d.PostStatusUpdate, d.PostKnsStatusUpdate}
 }
 
 func (d *TopologyActivityDeploymentStatusActivity) PostStatusUpdate(ctx context.Context, status topology_deployment_status.Status) error {
@@ -29,7 +29,7 @@ func (d *TopologyActivityDeploymentStatusActivity) PostStatusUpdate(ctx context.
 	_, err := client.R().
 		SetAuthToken(api_auth_temporal.Bearer).
 		SetBody(status.DeployStatus).
-		Post(u.Path)
+		Post(zeus_endpoints.InternalDeployStatusUpdatePath)
 	if err != nil {
 		log.Err(err).Interface("path", zeus_endpoints.InternalDeployStatusUpdatePath).Msg("TopologyActivityDeploymentStatusActivity")
 		return err
@@ -44,25 +44,24 @@ func (d *TopologyActivityDeploymentStatusActivity) PostKnsStatusUpdate(ctx conte
 	_, err := client.R().
 		SetAuthToken(api_auth_temporal.Bearer).
 		SetBody(status.TopologyKubeCtxNs).
-		Post(u.Path)
+		Post(zeus_endpoints.InternalDeployKnsStatusUpdatePath)
 	if err != nil {
-		log.Err(err).Interface("path", zeus_endpoints.InternalDeployStatusUpdatePath).Msg("TopologyActivityDeploymentStatusActivity")
+		log.Err(err).Interface("path", zeus_endpoints.InternalDeployKnsStatusUpdatePath).Msg("TopologyActivityDeploymentStatusActivity")
 		return err
 	}
 	return err
 }
 
 func (d *TopologyActivityDeploymentStatusActivity) GetDeploymentStatusUpdateURL() url.URL {
-	return d.GetURL(zeus_endpoints.InternalDeployStatusUpdatePath)
+	return d.GetURL()
 }
 
-func (d *TopologyActivityDeploymentStatusActivity) GetURL(target string) url.URL {
+func (d *TopologyActivityDeploymentStatusActivity) GetURL() url.URL {
 	if len(d.Host) <= 0 {
 		d.Host = "https://api.zeus.fyi"
 	}
 	u := url.URL{
 		Host: d.Host,
-		Path: target,
 	}
 	return u
 }

@@ -40,18 +40,17 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 	}
 
 	statusCtxKns := workflow.WithActivityOptions(ctx, ao)
-	status := topology_deployment_status.NewPopulatedTopologyStatus(params.Kns.TopologyID, topology_deployment_status.DeployInProgress)
-	status.TopologyKubeCtxNs = params.Kns
+	status := topology_deployment_status.NewPopulatedTopologyStatus(params.Kns, topology_deployment_status.DeployInProgress)
 	statusActivity := deployment_status.TopologyActivityDeploymentStatusActivity{}
 
-	err := workflow.ExecuteActivity(statusCtxKns, statusActivity.PostKnsStatusUpdate, status).Get(statusCtxKns, nil)
+	err := workflow.ExecuteActivity(statusCtxKns, statusActivity.PostKnsStatusUpdate, status.TopologyKubeCtxNs).Get(statusCtxKns, nil)
 	if err != nil {
 		log.Error("Failed to update topology status", "Error", err)
 		return err
 	}
 	statusCtx := workflow.WithActivityOptions(ctx, ao)
 
-	err = workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, status).Get(statusCtx, nil)
+	err = workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, status.DeployStatus).Get(statusCtx, nil)
 	if err != nil {
 		log.Error("Failed to update topology status", "Error", err)
 		return err

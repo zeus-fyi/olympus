@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
 	zeus_endpoints "github.com/zeus-fyi/olympus/pkg/zeus/client/endpoints"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
@@ -23,13 +24,13 @@ func (d *TopologyActivityDeploymentStatusActivity) GetActivities() ActivitiesSli
 	return []interface{}{d.PostStatusUpdate, d.PostKnsStatusUpdate}
 }
 
-func (d *TopologyActivityDeploymentStatusActivity) PostStatusUpdate(ctx context.Context, status topology_deployment_status.Status) error {
+func (d *TopologyActivityDeploymentStatusActivity) PostStatusUpdate(ctx context.Context, status topology_deployment_status.DeployStatus) error {
 	u := d.GetDeploymentStatusUpdateURL()
 	client := resty.New()
 	client.SetBaseURL(u.Host)
 	resp, err := client.R().
 		SetAuthToken(api_auth_temporal.Bearer).
-		SetBody(status.DeployStatus).
+		SetBody(status).
 		Post(zeus_endpoints.InternalDeployStatusUpdatePath)
 	if err != nil || resp.StatusCode() != http.StatusOK {
 		log.Err(err).Interface("path", zeus_endpoints.InternalDeployStatusUpdatePath).Msg("TopologyActivityDeploymentStatusActivity")
@@ -38,13 +39,13 @@ func (d *TopologyActivityDeploymentStatusActivity) PostStatusUpdate(ctx context.
 	return err
 }
 
-func (d *TopologyActivityDeploymentStatusActivity) PostKnsStatusUpdate(ctx context.Context, status topology_deployment_status.Status) error {
+func (d *TopologyActivityDeploymentStatusActivity) PostKnsStatusUpdate(ctx context.Context, status kns.TopologyKubeCtxNs) error {
 	u := d.GetDeploymentStatusUpdateURL()
 	client := resty.New()
 	client.SetBaseURL(u.Host)
 	resp, err := client.R().
 		SetAuthToken(api_auth_temporal.Bearer).
-		SetBody(status.TopologyKubeCtxNs).
+		SetBody(status).
 		Post(zeus_endpoints.InternalDeployKnsStatusUpdatePath)
 	if err != nil || resp.StatusCode() != http.StatusOK {
 		log.Err(err).Interface("path", zeus_endpoints.InternalDeployKnsStatusUpdatePath).Msg("TopologyActivityDeploymentStatusActivity")

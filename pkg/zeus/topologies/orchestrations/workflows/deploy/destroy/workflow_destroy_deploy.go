@@ -40,10 +40,9 @@ func (t *DestroyDeployTopologyWorkflow) DestroyDeployedTopologyWorkflow(ctx work
 	}
 
 	statusCtx := workflow.WithActivityOptions(ctx, ao)
-	status := topology_deployment_status.NewPopulatedTopologyStatus(params.Kns.TopologyID, topology_deployment_status.DestroyDeployInProgress)
-	status.TopologyKubeCtxNs = params.Kns
+	status := topology_deployment_status.NewPopulatedTopologyStatus(params.Kns, topology_deployment_status.DestroyDeployInProgress)
 	statusActivity := deployment_status.TopologyActivityDeploymentStatusActivity{}
-	err := workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, status).Get(statusCtx, nil)
+	err := workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, status.DeployStatus).Get(statusCtx, nil)
 	if err != nil {
 		log.Error("Failed to update topology status", "Error", err)
 		return err
@@ -89,8 +88,18 @@ func (t *DestroyDeployTopologyWorkflow) DestroyDeployedTopologyWorkflow(ctx work
 			return err
 		}
 	}
+
+	nsCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(nsCtx, t.DestroyDeployTopologyActivities.DestroyNamespace, deployParams).Get(nsCtx, nil)
+	if err != nil {
+		log.Error("Failed to destroy namespace", "Error", err)
+		return err
+	}
+
+	// TODO destroy kns
+
 	status.TopologyStatus = topology_deployment_status.DestroyDeployComplete
-	err = workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, status).Get(statusCtx, nil)
+	err = workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, status.DeployStatus).Get(statusCtx, nil)
 	if err != nil {
 		log.Error("Failed to update topology status", "Error", err)
 		return err

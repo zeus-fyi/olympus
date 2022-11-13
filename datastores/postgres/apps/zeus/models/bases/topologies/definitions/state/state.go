@@ -31,12 +31,14 @@ const DestroyDeployComplete = "DestroyDeployComplete"
 const InProgress = "InProgress"
 const Complete = "Complete"
 
-func NewPopulatedTopologyStatus(topID int, status string) Status {
+func NewPopulatedTopologyStatus(kns kns.TopologyKubeCtxNs, status string) Status {
 	s := Status{
-		TopologyKubeCtxNs: kns.NewKns(),
-		DeployStatus:      DeployStatus{autogen_bases.TopologiesDeployed{TopologyStatus: status, TopologyID: topID}},
+		TopologyKubeCtxNs: kns,
+		DeployStatus: DeployStatus{
+			autogen_bases.TopologiesDeployed{
+				TopologyStatus: status, TopologyID: kns.TopologyID},
+		},
 	}
-	s.SetTopologyID(topID)
 	return s
 }
 

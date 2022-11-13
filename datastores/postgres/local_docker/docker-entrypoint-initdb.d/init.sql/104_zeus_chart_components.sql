@@ -66,15 +66,16 @@ ALTER TABLE "public"."chart_subcomponent_child_class_types" ADD CONSTRAINT "char
 -- flexible schema values mapping text k-v and jsonb -------------------------------------------------------------------------------------------------------------------------------------
 -- link to synthetic chart subcomponent child key->values, use bool toggle to generate a controller for the package
 CREATE TABLE "public"."chart_subcomponents_child_values" (
+    "chart_subcomponent_child_values_id" int8 DEFAULT next_id(),
     "chart_subcomponent_child_class_type_id" int8 NOT NULL REFERENCES chart_subcomponent_child_class_types(chart_subcomponent_child_class_type_id),
     "chart_subcomponent_chart_package_template_injection" bool NOT NULL DEFAULT false,
     "chart_subcomponent_key_name" text NOT NULL,
     "chart_subcomponent_value" text NOT NULL
 );
+ALTER TABLE "public"."chart_subcomponents_child_values" ADD CONSTRAINT "chart_subcomponents_child_values_pk" PRIMARY KEY ("chart_subcomponent_child_values_id");
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- tables to jump links
-
 -- links package to chart subcomponents
 CREATE TABLE "public"."chart_package_components" (
    "chart_package_id" int8 NOT NULL REFERENCES chart_packages(chart_package_id),
@@ -83,11 +84,8 @@ CREATE TABLE "public"."chart_package_components" (
 
 -- links topology to kubernetes package
 CREATE TABLE "public"."topology_infrastructure_components" (
+    "topology_infrastructure_component_id" int8 DEFAULT next_id(),
     "topology_id" int8 NOT NULL REFERENCES topologies(topology_id),
     "chart_package_id" int8 NOT NULL REFERENCES chart_packages(chart_package_id)
 );
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
-
+ALTER TABLE "public"."topology_infrastructure_components" ADD CONSTRAINT "topology_infrastructure_components_pk" PRIMARY KEY ("topology_infrastructure_component_id");

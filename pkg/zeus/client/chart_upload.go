@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/compression"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/zeus/client/endpoints"
 	create_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create"
 )
 
@@ -26,7 +27,7 @@ func (z *ZeusClient) UploadChart(ctx context.Context, p structs.Path, tar create
 			"version":          tar.Version,
 		}).
 		SetFile("chart", p.V2FileOutPath()).
-		Post(InfraCreateV1Path)
+		Post(zeus_endpoints.InfraCreateV1Path)
 
 	if err != nil || resp.StatusCode() != http.StatusOK {
 		log.Ctx(ctx).Err(err).Msg("ZeusClient: UploadChart")

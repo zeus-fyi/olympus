@@ -6,6 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
+	"github.com/zeus-fyi/olympus/pkg/zeus/client/endpoints"
 	read_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/read"
 )
 
@@ -15,7 +16,7 @@ func (z *ZeusClient) ReadChart(ctx context.Context, tar read_infra.TopologyReadR
 	resp, err := z.R().
 		SetResult(&respJson).
 		SetBody(tar).
-		Post(InfraReadChartV1Path)
+		Post(zeus_endpoints.InfraReadChartV1Path)
 
 	if err != nil || resp.StatusCode() != http.StatusOK {
 		log.Ctx(ctx).Err(err).Msg("ZeusClient: ReadChart")

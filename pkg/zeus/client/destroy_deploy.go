@@ -6,6 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
+	"github.com/zeus-fyi/olympus/pkg/zeus/client/endpoints"
 	destroy_deploy_request "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/destroy"
 )
 
@@ -16,7 +17,7 @@ func (z *ZeusClient) DestroyDeploy(ctx context.Context, tar destroy_deploy_reque
 	resp, err := z.R().
 		SetResult(&respJson).
 		SetBody(tar).
-		Post(DestroyDeployInfraV1Path)
+		Post(zeus_endpoints.DestroyDeployInfraV1Path)
 
 	if err != nil || resp.StatusCode() != http.StatusOK {
 		log.Ctx(ctx).Err(err).Msg("ZeusClient: DestroyDeploy")

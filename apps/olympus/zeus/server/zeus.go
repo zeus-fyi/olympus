@@ -12,7 +12,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
-	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/auth"
+	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
 	router "github.com/zeus-fyi/olympus/zeus/api"
 )
@@ -65,7 +65,7 @@ func Zeus() {
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 
 	log.Info().Msgf("Zeus: %s temporal auth and init procedure starting", env)
-	api_auth_temporal.ZeusClient.SetAuthToken(auth_startup.FetchTemporalAuthBearer(ctx))
+	api_auth_temporal.Bearer = auth_startup.FetchTemporalAuthBearer(ctx)
 	topology_worker.InitTopologyWorker(temporalAuthCfg)
 
 	c := topology_worker.Worker.TemporalClient.ConnectTemporalClient()

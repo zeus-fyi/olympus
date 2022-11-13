@@ -1,4 +1,4 @@
-package zeus_client
+package zeus_endpoints
 
 // InfraCreateV1Path uploads and saves a kubernetes app workload
 const InfraCreateV1Path = "/v1/infra/create"

@@ -2,6 +2,7 @@ package deployment_status
 
 import (
 	"context"
+	"net/http"
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
@@ -26,11 +27,11 @@ func (d *TopologyActivityDeploymentStatusActivity) PostStatusUpdate(ctx context.
 	u := d.GetDeploymentStatusUpdateURL()
 	client := resty.New()
 	client.SetBaseURL(u.Host)
-	_, err := client.R().
+	resp, err := client.R().
 		SetAuthToken(api_auth_temporal.Bearer).
 		SetBody(status.DeployStatus).
 		Post(zeus_endpoints.InternalDeployStatusUpdatePath)
-	if err != nil {
+	if err != nil || resp.StatusCode() != http.StatusOK {
 		log.Err(err).Interface("path", zeus_endpoints.InternalDeployStatusUpdatePath).Msg("TopologyActivityDeploymentStatusActivity")
 		return err
 	}
@@ -41,11 +42,11 @@ func (d *TopologyActivityDeploymentStatusActivity) PostKnsStatusUpdate(ctx conte
 	u := d.GetDeploymentStatusUpdateURL()
 	client := resty.New()
 	client.SetBaseURL(u.Host)
-	_, err := client.R().
+	resp, err := client.R().
 		SetAuthToken(api_auth_temporal.Bearer).
 		SetBody(status.TopologyKubeCtxNs).
 		Post(zeus_endpoints.InternalDeployKnsStatusUpdatePath)
-	if err != nil {
+	if err != nil || resp.StatusCode() != http.StatusOK {
 		log.Err(err).Interface("path", zeus_endpoints.InternalDeployKnsStatusUpdatePath).Msg("TopologyActivityDeploymentStatusActivity")
 		return err
 	}

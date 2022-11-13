@@ -41,6 +41,7 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 
 	statusCtxKns := workflow.WithActivityOptions(ctx, ao)
 	status := topology_deployment_status.NewPopulatedTopologyStatus(params.Kns.TopologyID, topology_deployment_status.DeployInProgress)
+	status.TopologyKubeCtxNs = params.Kns
 	statusActivity := deployment_status.TopologyActivityDeploymentStatusActivity{}
 
 	err := workflow.ExecuteActivity(statusCtxKns, statusActivity.PostKnsStatusUpdate, status).Get(statusCtxKns, nil)

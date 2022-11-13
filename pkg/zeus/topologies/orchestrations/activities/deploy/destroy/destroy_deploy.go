@@ -1,6 +1,7 @@
 package destroy_deploy_activities
 
 import (
+	"net/http"
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
@@ -30,11 +31,11 @@ func (d *DestroyDeployTopologyActivities) postDestroyDeployTarget(target string,
 	u := d.GetDestroyDeployURL(target)
 	client := resty.New()
 	client.SetBaseURL(u.Host)
-	_, err := client.R().
+	resp, err := client.R().
 		SetAuthToken(api_auth_temporal.Bearer).
 		SetBody(params).
 		Post(u.Path)
-	if err != nil {
+	if err != nil || resp.StatusCode() != http.StatusOK {
 		log.Err(err).Interface("path", u.Path).Msg("DestroyDeployTopologyActivities: postDestroyDeployTarget failed")
 		return err
 	}

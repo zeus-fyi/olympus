@@ -6,7 +6,7 @@ import (
 )
 
 var deployConsensusClientKnsReq = create_or_update_deploy.TopologyDeployRequest{
-	TopologyID:    1668394031363962000,
+	TopologyID:    1668395605088406000,
 	CloudProvider: "do",
 	Region:        "sfo3",
 	Context:       "dev-sfo3-zeus",
@@ -15,7 +15,7 @@ var deployConsensusClientKnsReq = create_or_update_deploy.TopologyDeployRequest{
 }
 
 var deployDestroyConsensusClientKnsReq = destroy_deploy_request.TopologyDestroyDeployRequest{
-	TopologyID:    1668394031363962000,
+	TopologyID:    1668395605088406000,
 	CloudProvider: "do",
 	Region:        "sfo3",
 	Context:       "dev-sfo3-zeus",
@@ -24,7 +24,7 @@ var deployDestroyConsensusClientKnsReq = destroy_deploy_request.TopologyDestroyD
 }
 
 var deployExecClientKnsReq = create_or_update_deploy.TopologyDeployRequest{
-	TopologyID:    1668394107500423000,
+	TopologyID:    1668395155085061000,
 	CloudProvider: "do",
 	Region:        "sfo3",
 	Context:       "dev-sfo3-zeus",
@@ -33,7 +33,7 @@ var deployExecClientKnsReq = create_or_update_deploy.TopologyDeployRequest{
 }
 
 var deployDestroyExecClientKnsReq = destroy_deploy_request.TopologyDestroyDeployRequest{
-	TopologyID:    1668394107500423000,
+	TopologyID:    1668395155085061000,
 	CloudProvider: "do",
 	Region:        "sfo3",
 	Context:       "dev-sfo3-zeus",

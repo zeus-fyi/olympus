@@ -17,3 +17,8 @@ func (t *AresZeusEthereumTestSuite) TestDestroyDeployExecClient() {
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(resp)
 }
+
+func (t *AresZeusEthereumTestSuite) TestDestroyDeployBeacon() {
+	t.TestDestroyDeployConsensusClient()
+	t.TestDestroyDeployExecClient()
+}

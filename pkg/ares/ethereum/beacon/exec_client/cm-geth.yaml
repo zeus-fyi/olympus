@@ -5,7 +5,7 @@ metadata:
 data:
   start.sh: |-
     #!/bin/sh
-    create_jwt_then_start { 
+    create_jwt_then_start() { 
       echo "9492b672e33d2ce17026be9c678069e3bca9b671e26066b63414642036775895" > /data/jwt.hex
       geth
       --datadir=/data \
@@ -24,4 +24,4 @@ data:
       --authrpc.port=8551 \
       --authrpc.vhosts=* 
     }
-    exec create_jwt_then_start
+    create_jwt_then_start

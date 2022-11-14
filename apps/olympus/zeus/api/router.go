@@ -15,10 +15,6 @@ import (
 
 func InitRouter(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
 	log.Debug().Msgf("InitRouter")
-
-	// Middleware
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
 	// Routes
 	e.GET("/health", Health)
 

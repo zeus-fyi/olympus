@@ -3,7 +3,6 @@ kind: Service
 metadata:
   name: zeus-lighthouse
   labels:
-    helm.sh/chart: lighthouse-0.2.1
     app.kubernetes.io/name: lighthouse
     app.kubernetes.io/instance: zeus-lighthouse
     app.kubernetes.io/managed-by: zeus

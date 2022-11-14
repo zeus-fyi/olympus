@@ -39,7 +39,7 @@ spec:
               mountPath: "/data"
       containers:
         - name: lighthouse
-          image: "sigp/lighthouse:v3.1.0"
+          image: "sigp/lighthouse:v3.2.1-modern"
           imagePullPolicy: IfNotPresent
           command: [ "/bin/sh" ]
           args: [ "-c","/scripts/start.sh" ]
@@ -99,7 +99,7 @@ spec:
           emptyDir: {}
   volumeClaimTemplates:
     - metadata:
-        name: storage
+        name: consensus-client-storage
         annotations:
           {}
       spec:
@@ -107,7 +107,6 @@ spec:
           - ReadWriteOnce
         resources:
           requests:
-            storage: "20Gi"
-        storageClassName: storageClassName
+            storage: "240Gi"
 
 

@@ -6,19 +6,19 @@ import (
 )
 
 var deployKnsReq = create_or_update_deploy.TopologyDeployRequest{
-	TopologyID:    0,
+	TopologyID:    1668386117729324000,
 	CloudProvider: "do",
 	Region:        "sfo3",
 	Context:       "dev-sfo3-zeus",
-	Namespace:     "demo",
+	Namespace:     "ethereum",
 	Env:           "dev",
 }
 
 var deployDestroyKnsReq = destroy_deploy_request.TopologyDestroyDeployRequest{
-	TopologyID:    0,
+	TopologyID:    1668386117729324000,
 	CloudProvider: "do",
 	Region:        "sfo3",
 	Context:       "dev-sfo3-zeus",
-	Namespace:     "demo",
+	Namespace:     "ethereum",
 	Env:           "dev",
 }

@@ -43,7 +43,7 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 	status := topology_deployment_status.NewPopulatedTopologyStatus(params.Kns, topology_deployment_status.DeployInProgress)
 	statusActivity := deployment_status.TopologyActivityDeploymentStatusActivity{}
 
-	err := workflow.ExecuteActivity(statusCtxKns, statusActivity.PostKnsStatusUpdate, status.TopologyKubeCtxNs).Get(statusCtxKns, nil)
+	err := workflow.ExecuteActivity(statusCtxKns, statusActivity.CreateOrUpdateKubeCtxNsStatus, status.TopologyKubeCtxNs).Get(statusCtxKns, nil)
 	if err != nil {
 		log.Error("Failed to update topology status", "Error", err)
 		return err
@@ -66,6 +66,15 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 	if err != nil {
 		log.Error("Failed to create namespace", "Error", err)
 		return err
+	}
+
+	if params.ConfigMap != nil {
+		cmCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(cmCtx, t.DeployTopologyActivities.DeployConfigMap, deployParams).Get(cmCtx, nil)
+		if err != nil {
+			log.Error("Failed to create configmap", "Error", err)
+			return err
+		}
 	}
 
 	if params.Deployment != nil {
@@ -105,7 +114,7 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 	}
 
 	status.TopologyStatus = topology_deployment_status.DeployComplete
-	err = workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, status).Get(statusCtx, nil)
+	err = workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, status.DeployStatus).Get(statusCtx, nil)
 	if err != nil {
 		log.Error("Failed to update topology status", "Error", err)
 		return err

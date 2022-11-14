@@ -8,10 +8,11 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	create_kns "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/definitions/kns"
+	delete_kns "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/delete/topologies/topology/kns"
 )
 
-// UpdateWorkloadKnsStateHandler TODO must verify this is auth is scoped to user only
-func UpdateWorkloadKnsStateHandler(c echo.Context) error {
+// InsertOrUpdateWorkloadKnsStateHandler TODO must verify this is auth is scoped to user only
+func InsertOrUpdateWorkloadKnsStateHandler(c echo.Context) error {
 	ctx := context.Background()
 	request := new(kns.TopologyKubeCtxNs)
 	if err := c.Bind(request); err != nil {
@@ -19,7 +20,22 @@ func UpdateWorkloadKnsStateHandler(c echo.Context) error {
 	}
 	err := create_kns.InsertKns(ctx, request)
 	if err != nil {
-		log.Err(err).Interface("kns", request).Msg("UpdateWorkloadKnsStateHandler")
+		log.Err(err).Interface("kns", request).Msg("InsertOrUpdateWorkloadKnsStateHandler")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	return c.JSON(http.StatusOK, request)
+}
+
+// DeleteWorkloadKnsStateHandler TODO must verify this is auth is scoped to user only
+func DeleteWorkloadKnsStateHandler(c echo.Context) error {
+	ctx := context.Background()
+	request := new(kns.TopologyKubeCtxNs)
+	if err := c.Bind(request); err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+	err := delete_kns.DeleteKns(ctx, request)
+	if err != nil {
+		log.Err(err).Interface("kns", request).Msg("DeleteWorkloadKnsStateHandler")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, request)

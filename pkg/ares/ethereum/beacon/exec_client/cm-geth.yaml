@@ -5,10 +5,10 @@ metadata:
 data:
   start.sh: |-
     #!/bin/sh
-      exec geth
+    create_jwt_then_start { 
+      echo "9492b672e33d2ce17026be9c678069e3bca9b671e26066b63414642036775895" > /data/jwt.hex
+      geth
       --datadir=/data \
-      --config=/config/geth.toml \
-      --nat=extip:$(POD_IP) \
       --port=30303 \
       --http \
       --http.addr=0.0.0.0 \
@@ -23,3 +23,5 @@ data:
       --authrpc.addr=0.0.0.0 \
       --authrpc.port=8551 \
       --authrpc.vhosts=* 
+    }
+    exec create_jwt_then_start

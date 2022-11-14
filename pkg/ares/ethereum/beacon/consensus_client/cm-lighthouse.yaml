@@ -5,13 +5,17 @@ metadata:
 data:
   start.sh: |-
     #!/bin/sh
-    exec lighthouse beacon_node \
-              --datadir=/data \
-              --listen-address=0.0.0.0 \
-              --port=9000 \
-              --discovery-port=9000 \
-              --http \
-              --http-address=0.0.0.0 \
-              --http-port=5052 \
-              --execution-jwt=/data/jwt.hex \
-              --execution-endpoint="http://zeus-geth:8551"
+    create_jwt_then_start { 
+      echo "9492b672e33d2ce17026be9c678069e3bca9b671e26066b63414642036775895" > /data/jwt.hex
+      lighthouse beacon_node \
+                --datadir=/data \
+                --listen-address=0.0.0.0 \
+                --port=9000 \
+                --discovery-port=9000 \
+                --http \
+                --http-address=0.0.0.0 \
+                --http-port=5052 \
+                --execution-jwt=/data/jwt.hex \
+                --execution-endpoint="http://zeus-geth:8551" 
+    }
+    exec create_jwt_then_start

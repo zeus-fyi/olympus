@@ -10,3 +10,10 @@ func (t *AresZeusEthereumTestSuite) TestDeployConsensusClient() {
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(resp)
 }
+
+func (t *AresZeusEthereumTestSuite) TestDeployExecClient() {
+	ethereum.ChangeDirToAresEthereumDir()
+	resp, err := t.ZeusTestClient.Deploy(ctx, deployExecClientKnsReq)
+	t.Require().Nil(err)
+	t.Assert().NotEmpty(resp)
+}

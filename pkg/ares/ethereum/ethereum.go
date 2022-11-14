@@ -22,6 +22,16 @@ func ConsensusClientChartUploadRequest() create_infra.TopologyCreateRequest {
 	return uploadChart
 }
 
+func ExecClientChartUploadRequest() create_infra.TopologyCreateRequest {
+	uploadChart := create_infra.TopologyCreateRequest{
+		TopologyName:     "execClient",
+		ChartName:        "geth",
+		ChartDescription: "geth client",
+		Version:          fmt.Sprintf("v0.0.%d", ts.UnixTimeStampNow()),
+	}
+	return uploadChart
+}
+
 func ChangeDirToAresEthereumDir() string {
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Join(path.Dir(filename), "")

@@ -37,7 +37,7 @@ spec:
           resources:
             {}
           volumeMounts:
-            - name: storage
+            - name: exec-client-storage
               mountPath: "/data"
       containers:
         - name: geth
@@ -46,12 +46,8 @@ spec:
           command: [ "/bin/sh" ]
           args: [ "-c","/scripts/start.sh" ]
           volumeMounts:
-            - name: storage
+            - name: exec-client-storage
               mountPath: "/data"
-            - name: jwt
-              mountPath: "/data/jwt.hex"
-              subPath: jwt.hex
-              readOnly: true
             - name: cm-geth
               mountPath: "/scripts"
           ports:
@@ -102,11 +98,6 @@ spec:
           configMap:
             name: cm-geth
             defaultMode: 0744
-        - name: jwt
-          secret:
-            secretName: zeus-geth-jwt
-        - name: storage
-          emptyDir: {}
   volumeClaimTemplates:
     - metadata:
         name: exec-client-storage

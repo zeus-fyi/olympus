@@ -4,9 +4,9 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/ares/ethereum"
 )
 
-func (t *AresZeusEthereumTestSuite) TestDestroyDeploy() {
+func (t *AresZeusEthereumTestSuite) TestDestroyDeployConsensusClient() {
 	ethereum.ChangeDirToAresEthereumDir()
-	resp, err := t.ZeusTestClient.DestroyDeploy(ctx, deployDestroyKnsReq)
+	resp, err := t.ZeusTestClient.DestroyDeploy(ctx, deployDestroyConsensusClientKnsReq)
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(resp)
 }

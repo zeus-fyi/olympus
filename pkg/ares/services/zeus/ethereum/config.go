@@ -5,7 +5,7 @@ import (
 	destroy_deploy_request "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/destroy"
 )
 
-var deployKnsReq = create_or_update_deploy.TopologyDeployRequest{
+var deployConsensusClientKnsReq = create_or_update_deploy.TopologyDeployRequest{
 	TopologyID:    1668386117729324000,
 	CloudProvider: "do",
 	Region:        "sfo3",
@@ -14,7 +14,7 @@ var deployKnsReq = create_or_update_deploy.TopologyDeployRequest{
 	Env:           "dev",
 }
 
-var deployDestroyKnsReq = destroy_deploy_request.TopologyDestroyDeployRequest{
+var deployDestroyConsensusClientKnsReq = destroy_deploy_request.TopologyDestroyDeployRequest{
 	TopologyID:    1668386117729324000,
 	CloudProvider: "do",
 	Region:        "sfo3",

@@ -97,7 +97,6 @@ func (t *DestroyDeployTopologyWorkflow) DestroyDeployedTopologyWorkflow(ctx work
 	}
 
 	// TODO destroy kns
-
 	status.TopologyStatus = topology_deployment_status.DestroyDeployComplete
 	err = workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, status.DeployStatus).Get(statusCtx, nil)
 	if err != nil {

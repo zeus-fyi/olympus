@@ -105,7 +105,7 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 	}
 
 	status.TopologyStatus = topology_deployment_status.DeployComplete
-	err = workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, status).Get(statusCtx, nil)
+	err = workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, status.DeployStatus).Get(statusCtx, nil)
 	if err != nil {
 		log.Error("Failed to update topology status", "Error", err)
 		return err

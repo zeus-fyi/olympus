@@ -53,6 +53,16 @@ func (t *DestroyDeployTopologyWorkflow) DestroyDeployedTopologyWorkflow(ctx work
 		OrgUser:   params.OrgUser,
 		NativeK8s: params.NativeK8s,
 	}
+
+	if params.ConfigMap != nil {
+		cmCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(cmCtx, t.DestroyDeployTopologyActivities.DestroyDeployConfigMap, deployParams).Get(cmCtx, nil)
+		if err != nil {
+			log.Error("Failed to destroy configmap", "Error", err)
+			return err
+		}
+	}
+
 	if params.Deployment != nil {
 		dCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(dCtx, t.DestroyDeployTopologyActivities.DestroyDeployDeployment, deployParams).Get(dCtx, nil)

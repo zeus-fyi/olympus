@@ -68,6 +68,15 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 		return err
 	}
 
+	if params.ConfigMap != nil {
+		cmCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(cmCtx, t.DeployTopologyActivities.DeployConfigMap, deployParams).Get(cmCtx, nil)
+		if err != nil {
+			log.Error("Failed to create configmap", "Error", err)
+			return err
+		}
+	}
+
 	if params.Deployment != nil {
 		dCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(dCtx, t.DeployTopologyActivities.DeployDeployment, deployParams).Get(dCtx, nil)

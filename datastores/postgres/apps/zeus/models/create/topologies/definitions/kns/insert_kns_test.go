@@ -2,6 +2,7 @@ package create_kns
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -18,11 +19,13 @@ func (s *CreateKnsTestSuite) TestInsertKns() {
 
 	topID, _ := s.SeedTopology()
 	newKns := NewCreateKns()
+	newKns.CloudProvider = "do"
+	newKns.Region = "sfo3"
 	newKns.Context = "context"
 	newKns.Env = "test"
-	newKns.Namespace = "namespace"
+	newKns.Namespace = "testnamespace"
 	newKns.TopologyID = topID
-
+	fmt.Println(topID)
 	ctx := context.Background()
 	q := sql_query_templates.NewQueryParam("InsertKns", "kns", "where", 1000, []string{})
 	q.TableName = newKns.GetTableName()

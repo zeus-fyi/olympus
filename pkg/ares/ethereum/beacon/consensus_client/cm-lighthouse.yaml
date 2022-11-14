@@ -7,15 +7,11 @@ data:
     #!/bin/sh
     exec lighthouse beacon_node \
               --datadir=/data \
-              --disable-upnp \
-              --disable-enr-auto-update \
-              --enr-address=$(POD_IP) \
-              --enr-tcp-port=9000 \
-              --enr-udp-port=9000 \
               --listen-address=0.0.0.0 \
               --port=9000 \
               --discovery-port=9000 \
               --http \
               --http-address=0.0.0.0 \
               --http-port=5052 \
-              --execution-jwt=/data/jwt.hex 
+              --execution-jwt=/data/jwt.hex \
+              --execution-endpoint="http://zeus-geth:8551"

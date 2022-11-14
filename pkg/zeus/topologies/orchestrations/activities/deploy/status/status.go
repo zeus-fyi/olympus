@@ -21,7 +21,7 @@ type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
 func (d *TopologyActivityDeploymentStatusActivity) GetActivities() ActivitiesSlice {
-	return []interface{}{d.PostStatusUpdate, d.PostKnsStatusUpdate}
+	return []interface{}{d.PostStatusUpdate, d.CreateOrUpdateKubeCtxNsStatus, d.DeleteKubeCtxNsStatus}
 }
 
 func (d *TopologyActivityDeploymentStatusActivity) PostStatusUpdate(ctx context.Context, status topology_deployment_status.DeployStatus) error {
@@ -39,16 +39,31 @@ func (d *TopologyActivityDeploymentStatusActivity) PostStatusUpdate(ctx context.
 	return err
 }
 
-func (d *TopologyActivityDeploymentStatusActivity) PostKnsStatusUpdate(ctx context.Context, status kns.TopologyKubeCtxNs) error {
+func (d *TopologyActivityDeploymentStatusActivity) CreateOrUpdateKubeCtxNsStatus(ctx context.Context, status kns.TopologyKubeCtxNs) error {
 	u := d.GetDeploymentStatusUpdateURL()
 	client := resty.New()
 	client.SetBaseURL(u.Host)
 	resp, err := client.R().
 		SetAuthToken(api_auth_temporal.Bearer).
 		SetBody(status).
-		Post(zeus_endpoints.InternalDeployKnsStatusUpdatePath)
+		Post(zeus_endpoints.InternalDeployKnsCreateOrUpdatePath)
 	if err != nil || resp.StatusCode() != http.StatusOK {
-		log.Err(err).Interface("path", zeus_endpoints.InternalDeployKnsStatusUpdatePath).Msg("TopologyActivityDeploymentStatusActivity")
+		log.Err(err).Interface("path", zeus_endpoints.InternalDeployKnsCreateOrUpdatePath).Msg("TopologyActivityDeploymentStatusActivity")
+		return err
+	}
+	return err
+}
+
+func (d *TopologyActivityDeploymentStatusActivity) DeleteKubeCtxNsStatus(ctx context.Context, status kns.TopologyKubeCtxNs) error {
+	u := d.GetDeploymentStatusUpdateURL()
+	client := resty.New()
+	client.SetBaseURL(u.Host)
+	resp, err := client.R().
+		SetAuthToken(api_auth_temporal.Bearer).
+		SetBody(status).
+		Post(zeus_endpoints.InternalDeployKnsDestroyPath)
+	if err != nil || resp.StatusCode() != http.StatusOK {
+		log.Err(err).Interface("path", zeus_endpoints.InternalDeployKnsDestroyPath).Msg("TopologyActivityDeploymentStatusActivity")
 		return err
 	}
 	return err

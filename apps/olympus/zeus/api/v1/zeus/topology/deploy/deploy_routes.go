@@ -28,7 +28,8 @@ func InternalRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 }
 
 func InternalDeployStatusRoutes(e *echo.Group) *echo.Group {
-	e.POST("/deploy/kns", workload_state.UpdateWorkloadKnsStateHandler)
+	e.POST("/deploy/kns/create", workload_state.InsertOrUpdateWorkloadKnsStateHandler)
+	e.POST("/deploy/kns/destroy", workload_state.DeleteWorkloadKnsStateHandler)
 	e.POST("/deploy/status", workload_state.UpdateWorkloadStateHandler)
 	return e
 }

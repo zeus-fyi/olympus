@@ -16,7 +16,7 @@ func (z *ZeusClient) UpdateTopologyKnsStatus(ctx context.Context, status topolog
 	resp, err := z.R().
 		SetResult(&respStatus).
 		SetBody(status.TopologyKubeCtxNs).
-		Post(zeus_endpoints.InternalDeployKnsStatusUpdatePath)
+		Post(zeus_endpoints.InternalDeployKnsCreateOrUpdatePath)
 
 	if err != nil || resp.StatusCode() != http.StatusOK {
 		log.Ctx(ctx).Err(err).Msg("ZeusClient: UpdateTopologyKnsStatus")

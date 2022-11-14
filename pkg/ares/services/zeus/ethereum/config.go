@@ -10,7 +10,7 @@ var deployKnsReq = create_or_update_deploy.TopologyDeployRequest{
 	CloudProvider: "do",
 	Region:        "sfo3",
 	Context:       "dev-sfo3-zeus",
-	Namespace:     "demo",
+	Namespace:     "ethereum",
 	Env:           "dev",
 }
 
@@ -19,6 +19,6 @@ var deployDestroyKnsReq = destroy_deploy_request.TopologyDestroyDeployRequest{
 	CloudProvider: "do",
 	Region:        "sfo3",
 	Context:       "dev-sfo3-zeus",
-	Namespace:     "demo",
+	Namespace:     "ethereum",
 	Env:           "dev",
 }

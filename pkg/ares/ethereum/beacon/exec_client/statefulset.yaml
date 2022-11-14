@@ -107,3 +107,14 @@ spec:
             secretName: zeus-geth-jwt
         - name: storage
           emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: exec_client_storage
+        annotations:
+          {}
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: "240Gi"

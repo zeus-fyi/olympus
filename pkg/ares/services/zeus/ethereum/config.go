@@ -5,8 +5,8 @@ import (
 	destroy_deploy_request "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/destroy"
 )
 
-var deployKnsReq = create_or_update_deploy.TopologyDeployRequest{
-	TopologyID:    1668386117729324000,
+var deployConsensusClientKnsReq = create_or_update_deploy.TopologyDeployRequest{
+	TopologyID:    1668395855979004000,
 	CloudProvider: "do",
 	Region:        "sfo3",
 	Context:       "dev-sfo3-zeus",
@@ -14,8 +14,26 @@ var deployKnsReq = create_or_update_deploy.TopologyDeployRequest{
 	Env:           "dev",
 }
 
-var deployDestroyKnsReq = destroy_deploy_request.TopologyDestroyDeployRequest{
-	TopologyID:    1668386117729324000,
+var deployDestroyConsensusClientKnsReq = destroy_deploy_request.TopologyDestroyDeployRequest{
+	TopologyID:    1668395855979004000,
+	CloudProvider: "do",
+	Region:        "sfo3",
+	Context:       "dev-sfo3-zeus",
+	Namespace:     "ethereum",
+	Env:           "dev",
+}
+
+var deployExecClientKnsReq = create_or_update_deploy.TopologyDeployRequest{
+	TopologyID:    1668395155085061000,
+	CloudProvider: "do",
+	Region:        "sfo3",
+	Context:       "dev-sfo3-zeus",
+	Namespace:     "ethereum",
+	Env:           "dev",
+}
+
+var deployDestroyExecClientKnsReq = destroy_deploy_request.TopologyDestroyDeployRequest{
+	TopologyID:    1668395155085061000,
 	CloudProvider: "do",
 	Region:        "sfo3",
 	Context:       "dev-sfo3-zeus",

@@ -9,7 +9,6 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
-	topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
@@ -21,10 +20,6 @@ type TopologyDeployRequest struct {
 	Context       string `db:"context" json:"context"`
 	Namespace     string `db:"namespace" json:"namespace"`
 	Env           string `db:"env" json:"env"`
-}
-
-type TopologyDeployResponse struct {
-	topology_deployment_status.Status
 }
 
 func (t *TopologyDeployRequest) DeployTopology(c echo.Context) error {

@@ -28,3 +28,27 @@ func (t *AresZeusEthereumTestSuite) readUploadedConsensusChart(topID int) {
 	err = resp.PrintWorkload(p)
 	t.Require().Nil(err)
 }
+
+func (t *AresZeusEthereumTestSuite) TestReadExecChart() {
+	tar := read_infra.TopologyReadRequest{TopologyID: 1668372506892811008}
+	resp, err := t.ZeusTestClient.ReadChart(ctx, tar)
+	t.Require().Nil(err)
+	t.Assert().NotEmpty(resp)
+
+	ethereum.ChangeDirToAresEthereumDir()
+	p := ethereum.ExecClientReadChartThenWritePath()
+	err = resp.PrintWorkload(p)
+	t.Require().Nil(err)
+}
+
+func (t *AresZeusEthereumTestSuite) readUploadedExecChart(topID int) {
+	tar := read_infra.TopologyReadRequest{TopologyID: topID}
+	resp, err := t.ZeusTestClient.ReadChart(ctx, tar)
+	t.Require().Nil(err)
+	t.Assert().NotEmpty(resp)
+
+	ethereum.ChangeDirToAresEthereumDir()
+	p := ethereum.ExecClientReadChartThenWritePath()
+	err = resp.PrintWorkload(p)
+	t.Require().Nil(err)
+}

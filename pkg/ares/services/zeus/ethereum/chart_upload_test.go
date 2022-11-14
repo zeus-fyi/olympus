@@ -14,3 +14,13 @@ func (t *AresZeusEthereumTestSuite) TestCreateAndUploadConsensusClientChart() cr
 	t.Assert().NotZero(resp.ID)
 	return resp
 }
+
+func (t *AresZeusEthereumTestSuite) TestCreateAndUploadExecClientChart() create_infra.TopologyCreateResponse {
+	ethereum.ChangeDirToAresEthereumDir()
+	p := ethereum.ExecClientPath()
+	chartInfo := ethereum.ExecClientChartUploadRequest()
+	resp, err := t.ZeusTestClient.UploadChart(ctx, p, chartInfo)
+	t.Require().Nil(err)
+	t.Assert().NotZero(resp.ID)
+	return resp
+}

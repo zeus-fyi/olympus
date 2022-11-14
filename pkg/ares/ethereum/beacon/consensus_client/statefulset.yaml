@@ -99,7 +99,7 @@ spec:
           emptyDir: {}
   volumeClaimTemplates:
     - metadata:
-        name: consensus_client_storage
+        name: consensus-client-storage
         annotations:
           {}
       spec:

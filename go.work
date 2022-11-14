@@ -2,11 +2,14 @@ go 1.19
 
 use (
 	.
+
 	./apps/external/jennifer
 	./apps/external/memoryfs
 	./apps/external/tables-to-go
 	./apps/external/tojen
+
 	./apps/olympus/apollo
 	./apps/olympus/hestia
 	./apps/olympus/zeus
+	./apps/olympus/athena
 )

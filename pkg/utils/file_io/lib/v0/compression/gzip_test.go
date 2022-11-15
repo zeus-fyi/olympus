@@ -44,7 +44,7 @@ func (c *CompressionTestSuite) TestUnGzip() {
 		FilterFiles: string_utils.FilterOpts{},
 	}
 
-	err := c.Comp.UnGzip(&p)
+	err := c.Comp.GzipDecompress(&p)
 	c.Require().Nil(err)
 }
 

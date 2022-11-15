@@ -7,6 +7,6 @@ func (s *S3Secrets) DecryptAndUnGzip(p *structs.Path) error {
 	if err != nil {
 		return err
 	}
-	err = s.UnGzip(p)
+	err = s.GzipDecompress(p)
 	return err
 }

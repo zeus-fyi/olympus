@@ -11,7 +11,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
-func (c *Compression) ZstdCompressDir(p *structs.Path) error {
+func (c *Compression) CreateTarZstdArchiveDir(p *structs.Path) error {
 	if p == nil {
 		return errors.New("need to include a path")
 	}
@@ -19,14 +19,14 @@ func (c *Compression) ZstdCompressDir(p *structs.Path) error {
 	p.FnOut = p.FnIn + ".tar.zst"
 	out, err := os.Create(p.FileOutPath())
 	if err != nil {
-		log.Err(err).Msg("Compression: ZstdCompressDir, os.Create(p.FileOutPath())")
+		log.Err(err).Msg("Compression: CreateTarZstdArchiveDir, os.Create(p.FileOutPath())")
 		return err
 	}
 	defer out.Close()
 
 	enc, err := zstd.NewWriter(out)
 	if err != nil {
-		log.Err(err).Msg("Compression: ZstdCompressDir, zstd.NewWriter(out)")
+		log.Err(err).Msg("Compression: CreateTarZstdArchiveDir, zstd.NewWriter(out)")
 		return err
 	}
 	defer enc.Close()

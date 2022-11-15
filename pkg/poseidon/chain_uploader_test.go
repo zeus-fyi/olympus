@@ -16,12 +16,22 @@ func (s *ChainUploaderTestSuite) SetupTest() {
 	s.InitLocalConfigs()
 	chains.ChangeToChainDataDir()
 }
-func (s *ChainUploaderTestSuite) TestChainGzip() {
+
+func (s *ChainUploaderTestSuite) TestChainZstdComp() {
 	pos := NewPoseidon()
 	pos.DirIn = "./ethereum/geth/data/geth"
-	pos.DirOut = "./ethereum/geth_gzip"
+	pos.DirOut = "./ethereum/geth_zstd_cmp"
 	pos.FnIn = "geth"
-	err := pos.GzipChainData()
+	err := pos.ZstdCompressChainData()
+	s.Require().Nil(err)
+}
+
+func (s *ChainUploaderTestSuite) TestChainGzipComp() {
+	pos := NewPoseidon()
+	pos.DirIn = "./ethereum/geth/data/geth"
+	pos.DirOut = "./ethereum/geth_gzip_cmp"
+	pos.FnIn = "geth"
+	err := pos.GzipCompressChainData()
 	s.Require().Nil(err)
 }
 

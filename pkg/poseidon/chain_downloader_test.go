@@ -16,13 +16,24 @@ func (s *ChainDownloaderTestSuite) SetupTest() {
 	s.InitLocalConfigs()
 	chains.ChangeToChainDataDir()
 }
-func (s *ChainDownloaderTestSuite) TestChainUnGzip() {
+
+func (s *ChainDownloaderTestSuite) TestChainZstdDec() {
 	pos := NewPoseidon()
-	pos.DirIn = "./ethereum/geth_gzip"
-	pos.FnIn = "geth.tar.gz"
-	pos.DirOut = "./ethereum/geth_ungzip"
+	pos.DirIn = "./ethereum/geth_zstd_cmp"
+	pos.FnIn = "geth.tar.zst"
+	pos.DirOut = "./ethereum/geth_zstd_dec"
 	pos.FnOut = "data"
-	err := pos.UnGzipChainData()
+	err := pos.ZstdDecChainData()
+	s.Require().Nil(err)
+}
+
+func (s *ChainDownloaderTestSuite) TestChainGzipDec() {
+	pos := NewPoseidon()
+	pos.DirIn = "./ethereum/geth_gzip_cmp"
+	pos.FnIn = "geth.tar.gz"
+	pos.DirOut = "./ethereum/geth_gzip_dec"
+	pos.FnOut = "data"
+	err := pos.GzipCompressChainData()
 	s.Require().Nil(err)
 }
 

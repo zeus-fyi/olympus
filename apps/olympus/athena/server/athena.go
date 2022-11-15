@@ -54,7 +54,7 @@ func init() {
 	viper.AutomaticEnv()
 	Cmd.Flags().StringVar(&cfg.Port, "port", "9003", "server port")
 	Cmd.Flags().StringVar(&cfg.PGConnStr, "postgres-conn-str", "", "postgres connection string")
-	Cmd.Flags().StringVar(&dataDir.DirOut, "datadirectory", "/data", "data directory location")
+	Cmd.Flags().StringVar(&dataDir.DirOut, "dataDir", "/data", "data directory location")
 	Cmd.Flags().StringVar(&authKeysCfg.SpacesKey, "do-spaces-key", "", "do s3 spaces key")
 	Cmd.Flags().StringVar(&authKeysCfg.SpacesPrivKey, "do-spaces-private-key", "", "do s3 spaces private key")
 	Cmd.Flags().StringVar(&env, "env", "local", "environment")

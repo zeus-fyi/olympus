@@ -36,11 +36,7 @@ func FetchTemporalAuthBearer(ctx context.Context) string {
 
 func NewDefaultAuthClient(ctx context.Context, keysCfg auth_keys_config.AuthKeysCfg) AuthConfig {
 	a := encryption.NewAge(keysCfg.AgePrivKey, keysCfg.AgePubKey)
-	s3BaseClient, err := s3base.NewConnS3ClientWithStaticCreds(ctx, keysCfg.SpacesKey, keysCfg.SpacesPrivKey)
-	if err != nil {
-		log.Fatal().Msg("NewDefaultAuthClient: NewConnS3ClientWithStaticCreds failed, shutting down the server")
-		misc.DelayedPanic(err)
-	}
+	s3BaseClient := NewDigitalOceanS3AuthClient(ctx, keysCfg)
 
 	input := &s3.GetObjectInput{
 		Bucket: aws.String("zeus-fyi"),

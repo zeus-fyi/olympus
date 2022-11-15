@@ -12,7 +12,7 @@ func (m *MemFS) ReadFileFromPath(p *structs.Path) ([]byte, error) {
 	if p == nil {
 		return b, errors.New("need to include a path")
 	}
-	b, err := fs.ReadFile(m, p.FileInPath())
+	b, err := fs.ReadFile(m, p.FileDirOutFnInPath())
 	if err != nil {
 		return b, err
 	}

@@ -17,14 +17,14 @@ func (l *PathLib) NewPkgPath(pkg, dir, fn string) structs.Path {
 	return structs.Path{
 		PackageName: pkg,
 		DirIn:       dir,
-		Fn:          fn,
+		FnIn:        fn,
 	}
 }
 
 func (l *PathLib) NewPath(dir, fn string) structs.Path {
 	return structs.Path{
 		DirIn: dir,
-		Fn:    fn,
+		FnIn:  fn,
 	}
 }
 
@@ -33,7 +33,7 @@ func (l *PathLib) NewPkgPathInOut(pkgName, dirIn, dirOut, fn string) structs.Pat
 		PackageName: pkgName,
 		DirIn:       dirIn,
 		DirOut:      dirOut,
-		Fn:          fn,
+		FnIn:        fn,
 	}
 }
 func (l *PathLib) NewFullPathDefinition(env, pkg, dirIn, dirOut, fn string) structs.Path {
@@ -42,6 +42,6 @@ func (l *PathLib) NewFullPathDefinition(env, pkg, dirIn, dirOut, fn string) stru
 		PackageName: pkg,
 		DirIn:       dirIn,
 		DirOut:      dirOut,
-		Fn:          fn,
+		FnIn:        fn,
 	}
 }

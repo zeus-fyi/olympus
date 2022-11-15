@@ -20,8 +20,8 @@ func (c *Compression) CreateTarGzipArchiveDir(p *structs.Path) error {
 	if p == nil {
 		return errors.New("need to include a path")
 	}
-	p.FnOut = p.Fn + ".tar.gz"
-	out, err := os.Create(p.V2FileOutPath())
+	p.FnOut = p.FnIn + ".tar.gz"
+	out, err := os.Create(p.FileOutPath())
 	if err != nil {
 		return err
 	}
@@ -48,7 +48,7 @@ func (c *Compression) CreateTarGzipArchiveDir(p *structs.Path) error {
 	})
 
 	p.DirIn = p.DirOut
-	p.Fn = p.FnOut
+	p.FnIn = p.FnOut
 	return err
 }
 

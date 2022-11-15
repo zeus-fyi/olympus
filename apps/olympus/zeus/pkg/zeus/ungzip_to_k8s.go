@@ -12,7 +12,7 @@ import (
 
 func UnGzipK8sChart(in *bytes.Buffer) (chart_workload.NativeK8s, error) {
 	yr := transformations.YamlFileIO{}
-	p := structs.Path{DirIn: "/tmp", DirOut: "/tmp", Fn: "chart.tar.gz"}
+	p := structs.Path{DirIn: "/tmp", DirOut: "/tmp", FnIn: "chart.tar.gz"}
 	m := memfs.NewMemFs()
 	err := m.MakeFile(&p, in.Bytes())
 	if err != nil {

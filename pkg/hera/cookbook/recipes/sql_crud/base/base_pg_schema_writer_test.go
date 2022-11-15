@@ -25,7 +25,7 @@ func (s *ModelStructBaseGenWriterTestSuite) TestPGBaseSchemaWriter() {
 		PackageName: "autogen_bases",
 		DirIn:       "",
 		DirOut:      printOutLocationZeus,
-		Fn:          "",
+		FnIn:        "",
 		Env:         "",
 	}
 
@@ -48,7 +48,7 @@ func (s *ModelStructBaseGenWriterTestSuite) TestHestiaBaseSchemaWriter() {
 		PackageName: "autogen_bases",
 		DirIn:       "",
 		DirOut:      printOutLocationHestia,
-		Fn:          "",
+		FnIn:        "",
 		Env:         "",
 	}
 

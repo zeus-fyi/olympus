@@ -28,7 +28,7 @@ func (t *S3ReadTestSuite) TestRead() {
 		PackageName: "",
 		DirIn:       "",
 		DirOut:      "",
-		Fn:          "local-text.txt",
+		FnIn:        "local-text.txt",
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}

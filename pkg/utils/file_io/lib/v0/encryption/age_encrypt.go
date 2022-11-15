@@ -18,7 +18,7 @@ func (a *Age) Encrypt(p *structs.Path) error {
 	if err != nil {
 		return err
 	}
-	p.FnOut = p.Fn + ".age"
+	p.FnOut = p.FnIn + ".age"
 	outFile, err := os.Create(p.FnOut)
 	if err != nil {
 		return err
@@ -41,6 +41,6 @@ func (a *Age) Encrypt(p *structs.Path) error {
 	if cerr := w.Close(); cerr != nil {
 		return cerr
 	}
-	p.Fn = p.FnOut
+	p.FnIn = p.FnOut
 	return err
 }

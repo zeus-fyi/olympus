@@ -21,8 +21,8 @@ func (m *MemFS) WalkAndApplyFuncToFileType(p *structs.Path, ext string, f func(p
 			return err
 		}
 		if !d.IsDir() && filepath.Ext(d.Name()) == ext {
-			p.Fn = path
-			return f(p.FileInPath(), m)
+			p.FnIn = path
+			return f(p.FileDirOutFnInPath(), m)
 		}
 		return nil
 	})

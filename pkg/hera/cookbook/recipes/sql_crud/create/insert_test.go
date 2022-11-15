@@ -20,7 +20,7 @@ func (s *StructInsertFuncGenRecipeTestSuite) TestStructInsertFuncGen() {
 		PackageName: "autogen_structs",
 		DirIn:       "",
 		DirOut:      printOutLocation,
-		Fn:          "insert_model_template.go",
+		FnIn:        "insert_model_template.go",
 		Env:         "",
 	}
 	m := NewInsertModelTemplate(p)

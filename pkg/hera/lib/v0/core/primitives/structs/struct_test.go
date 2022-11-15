@@ -22,7 +22,7 @@ func createTestCodeGenShell() code_driver.CodeDriverLib {
 		PackageName: "_struct",
 		DirIn:       "",
 		DirOut:      printOutLocation,
-		Fn:          "struct.go",
+		FnIn:        "struct.go",
 		Env:         "",
 	}
 	cg := code_driver.NewCodeDriverLib(p)
@@ -58,7 +58,7 @@ func (s *StructTestSuite) TestCodeGen() {
 
 	s.Cleanup = false
 	if s.Cleanup {
-		s.DeleteFile(cg.Path.Fn)
+		s.DeleteFile(cg.Path.FnIn)
 	}
 }
 

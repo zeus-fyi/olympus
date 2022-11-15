@@ -25,7 +25,7 @@ func (c *CompressionTestSuite) TestTarGzip() {
 		PackageName: "",
 		DirIn:       "./.kube",
 		DirOut:      "./",
-		Fn:          "kube",
+		FnIn:        "kube",
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}
@@ -39,7 +39,7 @@ func (c *CompressionTestSuite) TestUnGzip() {
 		PackageName: "",
 		DirIn:       "./",
 		DirOut:      "./kube",
-		Fn:          "./kube.tar.gz",
+		FnIn:        "./kube.tar.gz",
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}
@@ -53,7 +53,7 @@ func (c *CompressionTestSuite) TestUnGzipInMemFS() {
 		PackageName: "",
 		DirIn:       "./",
 		DirOut:      "./",
-		Fn:          "kube.tar.gz",
+		FnIn:        "kube.tar.gz",
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}
@@ -70,7 +70,7 @@ func (c *CompressionTestSuite) TestUnGzipInMemFS() {
 		PackageName: "",
 		DirIn:       "./",
 		DirOut:      "./kube",
-		Fn:          "kube.tar.gz",
+		FnIn:        "kube.tar.gz",
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}
@@ -83,7 +83,7 @@ func (c *CompressionTestSuite) TestTar() {
 		PackageName: "",
 		DirIn:       "./.kube",
 		DirOut:      "./",
-		Fn:          "kube.tar",
+		FnIn:        "kube.tar",
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}

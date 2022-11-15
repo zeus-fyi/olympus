@@ -14,16 +14,16 @@ type FileBaseTestSuite struct {
 
 func (s *FileBaseTestSuite) TestCodeGen() {
 	fb := FileComponentBaseElements{}
-	p := structs.Path{PackageName: "base", Fn: "base_file_example.go"}
+	p := structs.Path{PackageName: "base", FnIn: "base_file_example.go"}
 
 	f := fb.GenerateFileShell(p)
 	s.Assert().NotEmpty(f)
-	err := f.Save(p.Fn)
+	err := f.Save(p.FnIn)
 	s.Assert().Nil(err)
 
 	s.Cleanup = false
 	if s.Cleanup {
-		s.DeleteFile(p.Fn)
+		s.DeleteFile(p.FnIn)
 	}
 }
 

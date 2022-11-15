@@ -18,7 +18,7 @@ func (c *Compression) UnGzip(p *structs.Path) error {
 		return errors.New("need to include a path")
 	}
 
-	r, err := os.Open(p.Fn)
+	r, err := os.Open(p.FileInPath())
 	if err != nil {
 		return err
 	}
@@ -57,9 +57,9 @@ func (c *Compression) UnGzip(p *structs.Path) error {
 
 		// if it's a file create it
 		case tar.TypeReg:
-			p.Fn = header.Name
+			p.FnIn = header.Name
 
-			fo := p.FileOutPath()
+			fo := p.FileDirOutFnInPath()
 			dir := path.Dir(fo)
 			if _, zerr := os.Stat(dir); os.IsNotExist(zerr) {
 				_ = os.MkdirAll(dir, 0700) // Create your dir

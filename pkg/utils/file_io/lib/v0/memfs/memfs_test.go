@@ -22,7 +22,7 @@ func (t *MemFsTestSuite) TestCreateFileMemFs() {
 		PackageName: "",
 		DirIn:       "./.kube",
 		DirOut:      "./",
-		Fn:          "kube",
+		FnIn:        "kube",
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}

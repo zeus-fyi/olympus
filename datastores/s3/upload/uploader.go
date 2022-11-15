@@ -26,7 +26,7 @@ func (s *S3ClientUploader) Upload(ctx context.Context, p *structs.Path, s3KeyVal
 		return errors.New("need to include a path")
 	}
 	uploader := manager.NewUploader(s.AwsS3Client)
-	newFile, err := os.Create(p.Fn)
+	newFile, err := os.Create(p.FnIn)
 	if err != nil {
 		return err
 	}

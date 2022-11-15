@@ -33,7 +33,7 @@ func (s *TopologyTestSuite) TestSelectTopology() {
 		PackageName: "",
 		DirIn:       "./",
 		DirOut:      "./",
-		Fn:          "",
+		FnIn:        "",
 		FnOut:       "deployment.yaml",
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},

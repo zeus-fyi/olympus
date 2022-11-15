@@ -27,7 +27,7 @@ func (t *S3SecretsDecryptTestSuite) TestPullAndGzipAndDecryptToInMemFs() {
 		PackageName: "",
 		DirIn:       "./",
 		DirOut:      "./",
-		Fn:          "kube.tar.gz.age",
+		FnIn:        "kube.tar.gz.age",
 		FnOut:       "kube.tar.gz",
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
@@ -43,7 +43,7 @@ func (t *S3SecretsDecryptTestSuite) TestDecryptAndUnGzipInMemFs() {
 		PackageName: "",
 		DirIn:       "./",
 		DirOut:      "./",
-		Fn:          "kube.tar.gz.age",
+		FnIn:        "kube.tar.gz.age",
 		FnOut:       "kube.tar.gz",
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
@@ -59,7 +59,7 @@ func (t *S3SecretsDecryptTestSuite) TestDecryptAndUnGzip() {
 		PackageName: "",
 		DirIn:       "./",
 		DirOut:      "./kube",
-		Fn:          "kube.tar.gz.age",
+		FnIn:        "kube.tar.gz.age",
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}
@@ -79,7 +79,7 @@ func (t *S3SecretsDecryptTestSuite) TestReadGzipAndEncryptDecrypt() {
 		PackageName: "",
 		DirIn:       "",
 		DirOut:      "",
-		Fn:          "unencrypted-text.txt",
+		FnIn:        "unencrypted-text.txt",
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}
@@ -91,7 +91,7 @@ func (t *S3SecretsDecryptTestSuite) TestReadGzipAndEncryptDecrypt() {
 	err = t.e.Age.Encrypt(&p)
 	t.Require().Nil(err)
 
-	p.Fn = "unencrypted-text.txt.age"
+	p.FnIn = "unencrypted-text.txt.age"
 	p.FnOut = "decrypted-text.txt"
 	err = t.e.Age.DecryptToFile(&p)
 	t.Require().Nil(err)

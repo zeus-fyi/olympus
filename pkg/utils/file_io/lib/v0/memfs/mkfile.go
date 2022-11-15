@@ -9,7 +9,7 @@ func (m *MemFS) MakeFile(p *structs.Path, content []byte) error {
 	if merr != nil {
 		return merr
 	}
-	if err := m.WriteFile(p.FileOutPath(), content, 0644); err != nil {
+	if err := m.WriteFile(p.FileDirOutFnInPath(), content, 0644); err != nil {
 		return err
 	}
 	return nil

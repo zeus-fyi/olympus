@@ -56,9 +56,9 @@ func (c *Compression) UnGzipFromInMemFsOutToInMemFS(p *structs.Path, fs memfs.Me
 		case tar.TypeDir:
 		// if it's a file create it
 		case tar.TypeReg:
-			p.Fn = header.Name
+			p.FnIn = header.Name
 
-			fo := p.FileOutPath()
+			fo := p.FileDirOutFnInPath()
 			p.DirIn = path.Dir(fo)
 
 			out := &bytes.Buffer{}

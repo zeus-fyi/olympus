@@ -31,7 +31,7 @@ func (s *YamlWriterTestSuite) TestDecodeK8sWorkloadDir() {
 		PackageName: "",
 		DirIn:       "./",
 		DirOut:      "./",
-		Fn:          "deployment.yaml",
+		FnIn:        "deployment.yaml",
 		FnOut:       "write_deployment.yaml",
 		Env:         "",
 	}

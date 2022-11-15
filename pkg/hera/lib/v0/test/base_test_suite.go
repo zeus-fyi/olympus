@@ -19,7 +19,7 @@ func (s *AutoGenBaseTestSuiteBase) SetupTest() {
 }
 
 func (s *AutoGenBaseTestSuiteBase) DeleteFile(fn string) {
-	path := structs.Path{Fn: fn}
+	path := structs.Path{FnIn: fn}
 	p := file_io.FileIO{}
 	s.Require().Nil(p.DeleteFile(path))
 }

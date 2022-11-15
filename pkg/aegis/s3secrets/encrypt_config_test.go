@@ -18,7 +18,7 @@ func (t *S3SecretsEncryptTestSuite) TestGzipAndEncrypt() {
 		PackageName: "",
 		DirIn:       "./.kube",
 		DirOut:      "./",
-		Fn:          "kube",
+		FnIn:        "kube",
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}

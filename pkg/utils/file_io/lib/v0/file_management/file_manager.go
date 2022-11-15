@@ -13,6 +13,15 @@ type FileManagerLib struct {
 
 func (l *FileManagerLib) CreateFile(p structs.Path, data []byte) error {
 	// make path if it doesn't exist
+	if _, err := os.Stat(p.FileDirOutFnInPath()); os.IsNotExist(err) {
+		_ = os.MkdirAll(p.DirOut, 0700) // Create your dir
+	}
+	err := os.WriteFile(p.FileDirOutFnInPath(), data, 0644)
+	return err
+}
+
+func (l *FileManagerLib) CreateV2FileOut(p structs.Path, data []byte) error {
+	// make path if it doesn't exist
 	if _, err := os.Stat(p.FileOutPath()); os.IsNotExist(err) {
 		_ = os.MkdirAll(p.DirOut, 0700) // Create your dir
 	}
@@ -20,22 +29,13 @@ func (l *FileManagerLib) CreateFile(p structs.Path, data []byte) error {
 	return err
 }
 
-func (l *FileManagerLib) CreateV2FileOut(p structs.Path, data []byte) error {
-	// make path if it doesn't exist
-	if _, err := os.Stat(p.V2FileOutPath()); os.IsNotExist(err) {
-		_ = os.MkdirAll(p.DirOut, 0700) // Create your dir
-	}
-	err := os.WriteFile(p.V2FileOutPath(), data, 0644)
-	return err
-}
-
 // OpenFile requires you to know that you need to close this
 func (l *FileManagerLib) OpenFile(p structs.Path) (*os.File, error) {
-	f, err := os.OpenFile(p.FileInPath(), os.O_CREATE|os.O_WRONLY|os.O_APPEND, os.ModePerm)
+	f, err := os.OpenFile(p.FileDirOutFnInPath(), os.O_CREATE|os.O_WRONLY|os.O_APPEND, os.ModePerm)
 	return f, l.Log.ErrHandler(err)
 }
 
 func (l *FileManagerLib) DeleteFile(p structs.Path) error {
-	err := os.Remove(p.FileInPath())
+	err := os.Remove(p.FileDirOutFnInPath())
 	return l.Log.ErrHandler(err)
 }

@@ -34,7 +34,7 @@ func (a *Age) decryptFromInMemFS(p *structs.Path, fs memfs.MemFS) (*bytes.Buffer
 	if err != nil {
 		return out, err
 	}
-	f, err := fs.Open(p.Fn)
+	f, err := fs.Open(p.FnIn)
 	if err != nil {
 		return out, err
 	}
@@ -43,10 +43,10 @@ func (a *Age) decryptFromInMemFS(p *structs.Path, fs memfs.MemFS) (*bytes.Buffer
 	if err != nil {
 		return out, err
 	}
-	p.FnOut, _, _ = strings.Cut(p.Fn, ".age")
+	p.FnOut, _, _ = strings.Cut(p.FnIn, ".age")
 	if _, cerr := io.Copy(out, r); cerr != nil {
 		return out, cerr
 	}
-	p.Fn = p.FnOut
+	p.FnIn = p.FnOut
 	return out, err
 }

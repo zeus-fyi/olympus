@@ -46,7 +46,7 @@ func NewDefaultAuthClient(ctx context.Context, keysCfg auth_keys_config.AuthKeys
 		PackageName: "",
 		DirIn:       "./",
 		DirOut:      "./",
-		Fn:          "kube.tar.gz.age",
+		FnIn:        "kube.tar.gz.age",
 		FnOut:       "kube.tar.gz",
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},

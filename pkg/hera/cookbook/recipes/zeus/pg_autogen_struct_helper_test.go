@@ -18,7 +18,7 @@ func createTestCodeGenShell() lib.CodeGen {
 		PackageName: "autogen_structs",
 		DirIn:       "",
 		DirOut:      "tmp",
-		Fn:          "zeus.go",
+		FnIn:        "zeus.go",
 		Env:         "",
 	}
 	cg := lib.NewCodeGen(p)

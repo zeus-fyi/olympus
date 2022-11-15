@@ -26,7 +26,7 @@ func (s *CreateInfraTestSuite) TestInsertInfraBase() {
 	p := structs.Path{
 		PackageName: "",
 		DirIn:       s.TestDirectory + "/mocks/demo",
-		Fn:          "deployment.yaml",
+		FnIn:        "deployment.yaml",
 		DirOut:      s.TestDirectory + "/tempout",
 		FnOut:       "deployment.yaml",
 		FilterFiles: string_utils.FilterOpts{DoesNotStartWithThese: []string{"cm-demo", "service"}},

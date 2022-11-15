@@ -26,8 +26,8 @@ func (l *WriterLib) Print(p structs.Path, data []byte) error {
 	if p.Env == "development" {
 		p.Env = "dev"
 	}
-	fn := fmt.Sprintf("%d.%s.%s", ts, p.Env, p.Fn)
-	p.Fn = fn
+	fn := fmt.Sprintf("%d.%s.%s", ts, p.Env, p.FnIn)
+	p.FnIn = fn
 	err := l.CreateFile(p, nil)
 	if l.Log.ErrHandler(err) != nil {
 		return err

@@ -29,7 +29,7 @@ func (t *AuthStartupTestSuite) TestAuthStartup() {
 
 	t.Require().NotEmpty(inMemFs)
 
-	authCfg.Path.Fn = "secrets.tar.gz.age"
+	authCfg.Path.FnIn = "secrets.tar.gz.age"
 	authCfg.Path.FnOut = "secrets.tar.gz"
 	inMemSecrets := RunDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 	t.Require().NotEmpty(inMemSecrets)

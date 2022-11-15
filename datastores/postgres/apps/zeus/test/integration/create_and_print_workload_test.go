@@ -34,7 +34,7 @@ func (s *IntegrationTestSuite) TestInsertInfraBase() {
 	p := structs.Path{
 		PackageName: "",
 		DirIn:       s.TestDirectory + "/mocks/consensus_client",
-		Fn:          "statefulset.yaml",
+		FnIn:        "statefulset.yaml",
 		DirOut:      s.TestDirectory + "/mocks/consensus_client_out",
 		FnOut:       "statefulset.yaml",
 		FilterFiles: string_utils.FilterOpts{DoesNotStartWithThese: []string{"cm-lighthouse", "service"}},

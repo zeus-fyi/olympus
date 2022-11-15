@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
@@ -20,9 +21,10 @@ func (c *Compression) CreateTarGzipArchiveDir(p *structs.Path) error {
 	if p == nil {
 		return errors.New("need to include a path")
 	}
-	p.FnOut = p.Fn + ".tar.gz"
-	out, err := os.Create(p.V2FileOutPath())
+	p.FnOut = p.FnIn + ".tar.gz"
+	out, err := os.Create(p.FileOutPath())
 	if err != nil {
+		log.Err(err).Msg("Compression: CreateTarGzipArchiveDir, os.Create(p.FileOutPath()")
 		return err
 	}
 	defer out.Close()
@@ -48,7 +50,7 @@ func (c *Compression) CreateTarGzipArchiveDir(p *structs.Path) error {
 	})
 
 	p.DirIn = p.DirOut
-	p.Fn = p.FnOut
+	p.FnIn = p.FnOut
 	return err
 }
 
@@ -56,6 +58,7 @@ func addToArchive(p *structs.Path, tw *tar.Writer, filename string) error {
 	// Open the file which will be written into the archive
 	file, err := os.Open(p.DirIn + string(filepath.Separator) + filename)
 	if err != nil {
+		log.Err(err).Msg("Compression: addToArchive,  os.Open(p.DirIn + string(filepath.Separator) + filename)")
 		return err
 	}
 	defer file.Close()
@@ -63,12 +66,14 @@ func addToArchive(p *structs.Path, tw *tar.Writer, filename string) error {
 	// Get FileInfo about our file providing file size, mode, etc.
 	info, err := file.Stat()
 	if err != nil {
+		log.Err(err).Msg("Compression: addToArchive, file.Stat()")
 		return err
 	}
 
 	// Create a tar Header from the FileInfo data
 	header, err := tar.FileInfoHeader(info, info.Name())
 	if err != nil {
+		log.Err(err).Msg("Compression: addToArchive, tar.FileInfoHeader(info, info.Name())")
 		return err
 	}
 
@@ -81,14 +86,15 @@ func addToArchive(p *structs.Path, tw *tar.Writer, filename string) error {
 	// Write file header to the tar archive
 	err = tw.WriteHeader(header)
 	if err != nil {
+		log.Err(err).Msg("Compression: addToArchive, WriteHeader(header)")
 		return err
 	}
 
 	// Copy file content to tar archive
 	_, err = io.Copy(tw, file)
 	if err != nil {
+		log.Err(err).Msg("Compression: addToArchive, io.Copy(tw, file)")
 		return err
 	}
-
 	return nil
 }

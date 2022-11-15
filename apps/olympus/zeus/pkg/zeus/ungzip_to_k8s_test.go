@@ -22,8 +22,8 @@ func (s *UnGzipToMemFsTestSuite) SetupTest() {
 }
 
 func (s *UnGzipToMemFsTestSuite) TestUnGzipIntoMemFs() {
-	p := structs.Path{DirIn: "./", DirOut: "./", Fn: "zeus.tar.gz"}
-	byteArray, err := os.ReadFile(p.FileInPath())
+	p := structs.Path{DirIn: "./", DirOut: "./", FnIn: "zeus.tar.gz"}
+	byteArray, err := os.ReadFile(p.FileDirOutFnInPath())
 	s.Require().Nil(err)
 	b := &bytes.Buffer{}
 	_, err = b.Write(byteArray)

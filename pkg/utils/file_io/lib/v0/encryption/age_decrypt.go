@@ -40,7 +40,7 @@ func (a *Age) decrypt(p *structs.Path) (*bytes.Buffer, error) {
 	if err != nil {
 		return out, err
 	}
-	f, err := os.Open(p.Fn)
+	f, err := os.Open(p.FnIn)
 	if err != nil {
 		return out, err
 	}
@@ -50,10 +50,10 @@ func (a *Age) decrypt(p *structs.Path) (*bytes.Buffer, error) {
 		return out, err
 	}
 
-	p.FnOut, _, _ = strings.Cut(p.Fn, ".age")
+	p.FnOut, _, _ = strings.Cut(p.FnIn, ".age")
 	if _, cerr := io.Copy(out, r); cerr != nil {
 		return out, cerr
 	}
-	p.Fn = p.FnOut
+	p.FnIn = p.FnOut
 	return out, err
 }

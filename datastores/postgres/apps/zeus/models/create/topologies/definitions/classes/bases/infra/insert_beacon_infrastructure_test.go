@@ -29,7 +29,7 @@ func (s *CreateBeaconInfraTestSuite) TestInsertInfraBase() {
 	p := structs.Path{
 		PackageName: "",
 		DirIn:       s.TestDirectory + "/mocks/demo",
-		Fn:          "deployment.yaml",
+		FnIn:        "deployment.yaml",
 		DirOut:      s.TestDirectory + "/mocks/demo_out",
 		FnOut:       "deployment.yaml",
 		FilterFiles: string_utils.FilterOpts{DoesNotStartWithThese: []string{"cm-demo", "service"}},

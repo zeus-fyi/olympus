@@ -26,7 +26,7 @@ func (z *ZeusClient) UploadChart(ctx context.Context, p structs.Path, tar create
 			"chartDescription": tar.ChartDescription,
 			"version":          tar.Version,
 		}).
-		SetFile("chart", p.V2FileOutPath()).
+		SetFile("chart", p.FileOutPath()).
 		Post(zeus_endpoints.InfraCreateV1Path)
 
 	if err != nil || resp.StatusCode() != http.StatusOK {

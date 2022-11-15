@@ -18,7 +18,7 @@ func (s *TemplateTestSuite) SetupTest() {
 }
 
 func (s *TemplateTestSuite) DeleteFile(fn string) {
-	path := structs.Path{Fn: fn}
+	path := structs.Path{FnIn: fn}
 	p := file_io.FileIO{}
 	s.Require().Nil(p.DeleteFile(path))
 }

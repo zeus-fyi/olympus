@@ -13,14 +13,14 @@ func (l *ReaderLib) ReadFilePathPtr(p *structs.Path) []byte {
 		panic(errors.New("no path provided"))
 	}
 
-	byteArray, err := ioutil.ReadFile(p.FileInPath())
+	byteArray, err := ioutil.ReadFile(p.FileDirOutFnInPath())
 	if err != nil {
 		panic(err)
 	}
 	return byteArray
 }
 func (l *ReaderLib) ReadFile(p structs.Path) []byte {
-	byteArray, err := ioutil.ReadFile(p.FileInPath())
+	byteArray, err := ioutil.ReadFile(p.FileDirOutFnInPath())
 	if err != nil {
 		panic(err)
 	}

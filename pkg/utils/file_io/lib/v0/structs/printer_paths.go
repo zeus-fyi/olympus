@@ -10,7 +10,7 @@ type Path struct {
 	PackageName string
 	DirIn       string
 	DirOut      string
-	Fn          string
+	FnIn        string
 	FnOut       string
 	Env         string
 	FilterFiles string_utils.FilterOpts
@@ -24,16 +24,16 @@ func (ps *Paths) AddPathToSlice(p Path) {
 	ps.Slice = append(ps.Slice, p)
 }
 
-func (p *Path) FileOutPath() string {
-	return path.Join(p.DirOut, p.Fn)
-}
-
-func (p *Path) V2FileOutPath() string {
-	return path.Join(p.DirOut, p.FnOut)
+func (p *Path) FileDirOutFnInPath() string {
+	return path.Join(p.DirOut, p.FnIn)
 }
 
 func (p *Path) FileInPath() string {
-	return path.Join(p.DirIn, p.Fn)
+	return path.Join(p.DirIn, p.FnIn)
+}
+
+func (p *Path) FileOutPath() string {
+	return path.Join(p.DirOut, p.FnOut)
 }
 
 func (p *Path) LeftExtendDirInPath(dirExtend string) string {
@@ -73,5 +73,5 @@ func (p *Path) Production() string {
 }
 
 func (p *Path) AddGoFn(fn string) {
-	p.Fn = fn + ".go"
+	p.FnIn = fn + ".go"
 }

@@ -7,7 +7,7 @@ func (s *ModelStructBaseGenTestSuite) TestPGBaseSchemaReader() {
 		PackageName: "autogen_bases",
 		DirIn:       "",
 		DirOut:      printOutLocation,
-		Fn:          "model_template.go",
+		FnIn:        "model_template.go",
 		Env:         "",
 	}
 

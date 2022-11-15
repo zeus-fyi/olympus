@@ -1,12 +1,12 @@
-package s3writer
+package s3uploader
 
 import (
 	"context"
 	"errors"
-	"os"
 
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/rs/zerolog/log"
 	s3base "github.com/zeus-fyi/olympus/datastores/s3"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
@@ -25,14 +25,21 @@ func (s *S3ClientUploader) Upload(ctx context.Context, p *structs.Path, s3KeyVal
 	if p == nil {
 		return errors.New("need to include a path")
 	}
-	uploader := manager.NewUploader(s.AwsS3Client)
-	newFile, err := os.Create(p.FnIn)
+	f, err := p.OpenFileInPath()
 	if err != nil {
+		log.Err(err).Msg("S3ClientUploader: p.OpenFileInPath()")
 		return err
 	}
-	defer newFile.Close()
-	_, err = uploader.Upload(ctx, s3KeyValue)
+	defer f.Close()
+	s3KeyValue.Body = f
+
+	//s.S3Client.AwsS3Client.CreateMultipartUpload()
+	uploader := manager.NewUploader(s.AwsS3Client)
+	_, err = uploader.Upload(ctx, s3KeyValue, func(u *manager.Uploader) {
+		u.LeavePartsOnError = true // Don't delete the parts if the upload fails.
+	})
 	if err != nil {
+		log.Err(err).Msg("S3ClientUploader: uploader.Upload(ctx, s3KeyValue)")
 		return err
 	}
 	return err

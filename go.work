@@ -9,7 +9,7 @@ use (
 	./apps/external/tojen
 
 	./apps/olympus/apollo
+	./apps/olympus/athena
 	./apps/olympus/hestia
 	./apps/olympus/zeus
-	./apps/olympus/athena
 )

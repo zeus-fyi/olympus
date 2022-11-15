@@ -36,7 +36,7 @@ func InitV1InternalRoutes(e *echo.Echo, p structs.Path) {
 }
 
 func CommonRoutes(e *echo.Group, p structs.Path) *echo.Group {
-	v1_common_routes.DataDir = p
+	v1_common_routes.CommonManager.DataDir = p
 	e.POST("/jwt/create", athena_jwt_route.JwtHandler)
 
 	e.POST("/snapshot/download", athena_chain_snapshots.DownloadChainSnapshotHandler)

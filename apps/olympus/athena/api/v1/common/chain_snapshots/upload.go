@@ -7,9 +7,7 @@ import (
 )
 
 type UploadChainSnapshotRequest struct {
-	ClientType string
-	ClientName string
-	Network    string
+	BucketRequest
 }
 
 func (t *UploadChainSnapshotRequest) Upload(c echo.Context) error {

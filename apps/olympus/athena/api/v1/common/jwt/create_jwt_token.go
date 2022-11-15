@@ -13,7 +13,7 @@ type TokenRequestJWT struct {
 }
 
 func (t *TokenRequestJWT) Create(c echo.Context) error {
-	err := athena_jwt.SetToken(v1_common_routes.DataDir, t.JWT)
+	err := athena_jwt.SetToken(v1_common_routes.CommonManager.DataDir, t.JWT)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}

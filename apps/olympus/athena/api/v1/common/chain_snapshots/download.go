@@ -7,12 +7,11 @@ import (
 )
 
 type DownloadChainSnapshotRequest struct {
-	ClientType string
-	ClientName string
-	Network    string
+	BucketRequest
 }
 
 func (t *DownloadChainSnapshotRequest) Download(c echo.Context) error {
 	// download procedure
+
 	return c.JSON(http.StatusOK, nil)
 }

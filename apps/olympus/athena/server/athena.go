@@ -9,7 +9,9 @@ import (
 	athena_router "github.com/zeus-fyi/olympus/athena/api"
 	"github.com/zeus-fyi/olympus/configs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
+	"github.com/zeus-fyi/olympus/pkg/athena"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
@@ -20,25 +22,28 @@ var dataDir structs.Path
 
 func Athena() {
 	ctx := context.Background()
-
 	cfg.Host = "0.0.0.0"
 	srv := NewAthenaServer(cfg)
 
+	log.Info().Msgf("Athena: %s auth procedure starting", env)
+
 	switch env {
 	case "production":
-		log.Info().Msg("Zeus: production auth procedure starting")
 	case "production-local":
-		log.Info().Msg("Zeus: production local, auth procedure starting")
 		tc := configs.InitLocalTestConfigs()
+		authKeysCfg = tc.ProdLocalAuthKeysCfg
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
+		dataDir.DirOut = "../"
 	case "local":
-		log.Info().Msg("Zeus: local, auth procedure starting")
 		tc := configs.InitLocalTestConfigs()
+		authKeysCfg = tc.DevAuthKeysCfg
 		cfg.PGConnStr = tc.LocalDbPgconn
 		dataDir.DirOut = "../"
 	}
+	log.Info().Msg("Athena: DigitalOceanS3AuthClient starting")
+	athena.AthenaS3Manager = auth_startup.NewDigitalOceanS3AuthClient(ctx, authKeysCfg)
 
-	log.Info().Msg("Zeus: PG connection starting")
+	log.Info().Msg("Athena: PG connection starting")
 	apps.Pg = apps.Db{}
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	srv.E = athena_router.Routes(srv.E, dataDir)

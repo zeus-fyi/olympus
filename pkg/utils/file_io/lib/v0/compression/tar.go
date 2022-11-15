@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
@@ -22,6 +23,7 @@ func (c *Compression) TarFolder(p *structs.Path) error {
 	}
 	tarfile, err := os.Create(p.FnIn)
 	if err != nil {
+		log.Err(err).Msg("Compression: TarFolder, os.Create(p.FnIn)")
 		return err
 	}
 	defer tarfile.Close()
@@ -29,14 +31,14 @@ func (c *Compression) TarFolder(p *structs.Path) error {
 	//Tar file writter
 	tarfileW := tar.NewWriter(fileW)
 	defer tarfileW.Close()
-
 	for _, fileInfo := range files {
 		if fileInfo.IsDir() {
 			continue
 		}
-		file, err := os.Open(p.DirIn + string(filepath.Separator) + fileInfo.Name())
-		if err != nil {
-			return err
+		file, ferr := os.Open(p.DirIn + string(filepath.Separator) + fileInfo.Name())
+		if ferr != nil {
+			log.Err(ferr).Msg("Compression: TarFolder, os.Open(p.DirIn + string(filepath.Separator) + fileInfo.Name())")
+			return ferr
 		}
 		defer file.Close()
 		header := new(tar.Header)
@@ -46,10 +48,12 @@ func (c *Compression) TarFolder(p *structs.Path) error {
 		header.ModTime = fileInfo.ModTime()
 		err = tarfileW.WriteHeader(header)
 		if err != nil {
+			log.Err(err).Msg("Compression: TarFolder, tarfileW.WriteHeader(header)")
 			return err
 		}
 		_, err = io.Copy(tarfileW, file)
 		if err != nil {
+			log.Err(err).Msg("Compression: TarFolder, io.Copy(tarfileW, file)")
 			return err
 		}
 	}

@@ -2,35 +2,16 @@ package compression
 
 import (
 	"archive/tar"
-	"compress/gzip"
-	"errors"
 	"io"
 	"os"
 	"path"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
-// UnGzip takes a destination path and a reader; a tar reader loops over the tarfile
-// creating the file structure at 'dst' along the way, and writing any files
-func (c *Compression) UnGzip(p *structs.Path) error {
-	if p == nil {
-		return errors.New("need to include a path")
-	}
-
-	r, err := os.Open(p.FileInPath())
-	if err != nil {
-		return err
-	}
-	defer r.Close()
-	gzr, err := gzip.NewReader(r)
-	if err != nil {
-		return err
-	}
-	defer gzr.Close()
-
-	tr := tar.NewReader(gzr)
-
+func tarReader(p *structs.Path, r io.Reader) error {
+	tr := tar.NewReader(r)
 	for {
 		header, herr := tr.Next()
 
@@ -66,9 +47,12 @@ func (c *Compression) UnGzip(p *structs.Path) error {
 			}
 			outFile, perr := os.Create(fo)
 			if perr != nil {
+				log.Err(perr).Msg("Compression: tarReader, os.Create(fo)")
 				return perr
 			}
 			if _, cerr := io.Copy(outFile, tr); cerr != nil {
+				log.Err(cerr).Msg("Compression: tarReader, io.Copy(outFile, tr)")
+				outFile.Close()
 				return cerr
 			}
 			outFile.Close()

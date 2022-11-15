@@ -17,32 +17,12 @@ type S3UploaderTestSuite struct {
 	test_suites.S3TestSuite
 }
 
-// TestRead, you'll need to set the secret values to run the test
-func (t *S3UploaderTestSuite) TestUploadSimple() {
-	ctx := context.Background()
-
-	fn := "text.txt"
-	bucketName := "zeus-fyi"
-	input := &s3.PutObjectInput{
-		Bucket: aws.String(bucketName),
-		Key:    aws.String("test.txt"),
-	}
-	p := structs.Path{
-		PackageName: "",
-		DirIn:       "./",
-		DirOut:      "",
-		FnIn:        fn,
-		Env:         "",
-		FilterFiles: string_utils.FilterOpts{},
-	}
-
-	uploader := NewS3ClientUploader(t.S3)
-	err := uploader.Upload(ctx, &p, input)
-	t.Require().Nil(err)
+func (t *S3UploaderTestSuite) SetupTest() {
+	t.SetupLocalDigitalOceanS3()
 }
 
 // TestRead, you'll need to set the secret values to run the test
-func (t *S3UploaderTestSuite) TestUpload() {
+func (t *S3UploaderTestSuite) TestUploadZst() {
 	chains.ChangeToChainDataDir()
 	ctx := context.Background()
 
@@ -50,19 +30,19 @@ func (t *S3UploaderTestSuite) TestUpload() {
 	bucketName := "zeus-fyi"
 	input := &s3.PutObjectInput{
 		Bucket: aws.String(bucketName),
-		Key:    aws.String("fn"),
+		Key:    aws.String(fn),
 	}
 	p := structs.Path{
 		PackageName: "",
 		DirIn:       "./ethereum/geth_zstd_cmp",
-		DirOut:      "",
+		DirOut:      "./",
 		FnIn:        fn,
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}
 
 	uploader := NewS3ClientUploader(t.S3)
-	err := uploader.Upload(ctx, &p, input)
+	err := uploader.Upload(ctx, p, input)
 	t.Require().Nil(err)
 }
 

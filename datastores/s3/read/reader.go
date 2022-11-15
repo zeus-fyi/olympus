@@ -30,13 +30,14 @@ func (s *S3ClientReader) Read(ctx context.Context, p *structs.Path, s3KeyValue *
 		return errors.New("need to include a path")
 	}
 	downloader := manager.NewDownloader(s.AwsS3Client)
-	newFile, err := os.Create(p.FnIn)
+	newFile, err := os.Create(p.FileInPath())
 	if err != nil {
 		return err
 	}
 	defer newFile.Close()
 	_, err = downloader.Download(ctx, newFile, s3KeyValue)
 	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("S3ClientReader, downloader.Download(ctx, newFile, s3KeyValue)")
 		return err
 	}
 	return err

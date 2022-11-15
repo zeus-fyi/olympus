@@ -1,6 +1,7 @@
 package poseidon
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -17,21 +18,30 @@ func (s *ChainUploaderTestSuite) SetupTest() {
 	chains.ChangeToChainDataDir()
 }
 
-func (s *ChainUploaderTestSuite) TestChainZstdComp() {
+var brUpload = BucketRequest{
+	BucketName: "zeus-fyi",
+	Protocol:   "ethereum",
+	Network:    "mainnet",
+	ClientType: "exec.client.standard",
+	ClientName: "geth",
+}
+
+func (s *ChainUploaderTestSuite) TestChainZstdCmpAndUpload() {
+	ctx := context.Background()
 	pos := NewPoseidon()
 	pos.DirIn = "./ethereum/geth/data/geth"
 	pos.DirOut = "./ethereum/geth_zstd_cmp"
 	pos.FnIn = "geth"
-	err := pos.ZstdCompressChainData()
+	err := pos.ZstdCompressAndUpload(ctx, brUpload)
 	s.Require().Nil(err)
 }
-
-func (s *ChainUploaderTestSuite) TestChainGzipComp() {
+func (s *ChainUploaderTestSuite) TestChainGzipCompAndUpload() {
+	ctx := context.Background()
 	pos := NewPoseidon()
 	pos.DirIn = "./ethereum/geth/data/geth"
 	pos.DirOut = "./ethereum/geth_gzip_cmp"
 	pos.FnIn = "geth"
-	err := pos.GzipCompressChainData()
+	err := pos.GzipCompressAndUpload(ctx, brUpload)
 	s.Require().Nil(err)
 }
 

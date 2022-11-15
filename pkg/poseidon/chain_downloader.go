@@ -1,21 +1,44 @@
 package poseidon
 
-import "github.com/rs/zerolog/log"
+import (
+	"context"
 
-func (p *Poseidon) GzipDecChainData() error {
-	err := p.GzipDecompress(&p.Path)
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	s3reader "github.com/zeus-fyi/olympus/datastores/s3/read"
+)
+
+func (p *Poseidon) Download(ctx context.Context, br BucketRequest) error {
+	ctx = context.WithValue(ctx, "func", "GzipDownloadAndDec")
+
+	downloader := s3reader.NewS3ClientReader(p.S3Client)
+	input := &s3.GetObjectInput{
+		Bucket: aws.String(br.BucketName),
+		Key:    aws.String(br.CreateBucketKey()),
+	}
+	err := downloader.Read(ctx, &p.Path, input)
 	if err != nil {
-		log.Err(err).Msg("Poseidon: GzipDecChainData")
 		return err
 	}
 	return err
 }
 
-func (p *Poseidon) ZstdDecChainData() error {
-	err := p.ZstdDecompress(&p.Path)
+func (p *Poseidon) ZstdDownloadAndDec(ctx context.Context, br BucketRequest) error {
+	ctx = context.WithValue(ctx, "func", "ZstdDownloadAndDec")
+	err := p.Download(ctx, br)
 	if err != nil {
-		log.Err(err).Msg("Poseidon: ZstdDecChainData")
 		return err
 	}
+	err = p.ZstdDecompress(&p.Path)
+	return err
+}
+
+func (p *Poseidon) GzipDownloadAndDec(ctx context.Context, br BucketRequest) error {
+	ctx = context.WithValue(ctx, "func", "GzipDownloadAndDec")
+	err := p.Download(ctx, br)
+	if err != nil {
+		return err
+	}
+	err = p.GzipDecompress(&p.Path)
 	return err
 }

@@ -39,7 +39,7 @@ func (z *ZeusClient) UploadChart(ctx context.Context, p structs.Path, tar create
 
 func (z *ZeusClient) ZipK8sChartToPath(p *structs.Path) error {
 	comp := compression.NewCompression()
-	err := comp.CreateTarGzipArchiveDir(p)
+	err := comp.GzipCompressDir(p)
 	if err != nil {
 		log.Err(err).Interface("path", p).Msg("ZeusClient: ZipK8sChartToPath")
 		return err

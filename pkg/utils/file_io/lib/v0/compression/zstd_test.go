@@ -22,7 +22,7 @@ func (c *ZstdTestSuite) TestZstdCmp() {
 		FilterFiles: string_utils.FilterOpts{},
 	}
 
-	err := c.Comp.CreateTarZstdArchiveDir(&p)
+	err := c.Comp.ZstCompressDir(&p)
 	c.Require().Nil(err)
 }
 

@@ -32,6 +32,7 @@ func (s *S3ClientReader) Read(ctx context.Context, p *structs.Path, s3KeyValue *
 	downloader := manager.NewDownloader(s.AwsS3Client)
 	newFile, err := os.Create(p.FileInPath())
 	if err != nil {
+		log.Ctx(ctx).Err(err).Msgf("S3ClientReader, os.Create(p.FileInPath()), path: %s", p.FileInPath())
 		return err
 	}
 	defer newFile.Close()

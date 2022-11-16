@@ -67,10 +67,7 @@ func RunDigitalOceanS3BucketObjAuthProcedure(ctx context.Context, authCfg AuthCo
 	s3SecretsReader := s3secrets.NewS3Secrets(authCfg.a, s3Reader)
 	buf := s3SecretsReader.ReadBytes(ctx, &authCfg.Path, authCfg.S3KeyValue)
 
-	tmpPath := structs.Path{}
-	tmpPath.DirOut = "./"
-	tmpPath.FnOut = "kube.tar.gz.age"
-	err := s3SecretsReader.MemFS.MakeFile(&authCfg.Path, buf.Bytes())
+	err := s3SecretsReader.MemFS.MakeFileIn(&authCfg.Path, buf.Bytes())
 	if err != nil {
 		log.Fatal().Msg("RunDigitalOceanS3BucketObjAuthProcedure: MakeFile failed, shutting down the server")
 		misc.DelayedPanic(err)

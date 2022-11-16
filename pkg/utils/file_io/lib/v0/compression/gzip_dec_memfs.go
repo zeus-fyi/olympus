@@ -8,6 +8,7 @@ import (
 	"io"
 	"path"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
@@ -16,8 +17,9 @@ func (c *Compression) UnGzipFromInMemFsOutToInMemFS(p *structs.Path, fs memfs.Me
 	if p == nil {
 		return errors.New("need to include a path")
 	}
-	r, err := fs.ReadFileFromPath(p)
+	r, err := fs.ReadFileInPath(p)
 	if err != nil {
+		log.Err(err).Msgf("Compression: UnGzipFromInMemFsOutToInMemFS, fs.ReadFileInPath(p) %s", p.FileInPath())
 		return err
 	}
 	in := &bytes.Buffer{}
@@ -63,10 +65,12 @@ func (c *Compression) UnGzipFromInMemFsOutToInMemFS(p *structs.Path, fs memfs.Me
 
 			out := &bytes.Buffer{}
 			if _, cerr := io.Copy(out, tr); cerr != nil {
+				log.Err(err).Msg("Compression: UnGzipFromInMemFsOutToInMemFS, io.Copy(out, tr)")
 				return cerr
 			}
-			ferr := fs.MakeFile(p, out.Bytes())
+			ferr := fs.MakeFileDirOutFnInPath(p, out.Bytes())
 			if ferr != nil {
+				log.Err(err).Msg("Compression: UnGzipFromInMemFsOutToInMemFS, fs.MakeFile(p, out.Bytes())")
 				return ferr
 			}
 		}

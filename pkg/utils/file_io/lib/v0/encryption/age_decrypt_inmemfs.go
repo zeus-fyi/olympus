@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"filippo.io/age"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
@@ -17,10 +18,15 @@ func (a *Age) DecryptToMemFsFile(p *structs.Path, fs memfs.MemFS) error {
 	}
 	out, err := a.decryptFromInMemFS(p, fs)
 	if err != nil {
+		log.Err(err).Msgf("DecryptToMemFsFile, decryptFromInMemFS %s", p.FileInPath())
 		return err
 	}
 
-	err = fs.MakeFile(p, out.Bytes())
+	err = fs.MakeFileOut(p, out.Bytes())
+	if err != nil {
+		log.Err(err).Msgf("DecryptToMemFsFile, MakeFileOut %s", p.FileOutPath())
+		return err
+	}
 	return err
 }
 
@@ -32,21 +38,24 @@ func (a *Age) decryptFromInMemFS(p *structs.Path, fs memfs.MemFS) (*bytes.Buffer
 	}
 	identity, err := age.ParseX25519Identity(a.agePrivateKey)
 	if err != nil {
+		log.Err(err).Msg("Age, decryptFromInMemFS")
 		return out, err
 	}
-	f, err := fs.Open(p.FnIn)
+	f, err := fs.Open(p.FileInPath())
 	if err != nil {
+		log.Err(err).Msgf("Age, decryptFromInMemFS, fs.Open(p.FileInPath()) %s", p.FileInPath())
 		return out, err
 	}
 	defer f.Close()
 	r, err := age.Decrypt(f, identity)
 	if err != nil {
+		log.Err(err).Msg("Age, decryptFromInMemFS, age.Decrypt")
 		return out, err
 	}
 	p.FnOut, _, _ = strings.Cut(p.FnIn, ".age")
 	if _, cerr := io.Copy(out, r); cerr != nil {
+		log.Err(cerr).Msg("Age, decryptFromInMemFS, io.Copy")
 		return out, cerr
 	}
-	p.FnIn = p.FnOut
 	return out, err
 }

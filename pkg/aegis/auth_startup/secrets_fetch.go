@@ -29,7 +29,7 @@ func RunDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg Aut
 	tmpPath := structs.Path{}
 	tmpPath.DirOut = "./"
 	tmpPath.FnOut = "secrets.tar.gz.age"
-	err := s3SecretsReader.MemFS.MakeFile(&authCfg.Path, buf.Bytes())
+	err := s3SecretsReader.MemFS.MakeFileIn(&authCfg.Path, buf.Bytes())
 	if err != nil {
 		log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: MakeFile failed, shutting down the server")
 		misc.DelayedPanic(err)

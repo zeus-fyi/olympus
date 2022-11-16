@@ -5,16 +5,17 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
 	"github.com/zeus-fyi/olympus/sandbox/chains"
 )
 
 type ChainDownloaderTestSuite struct {
-	base.TestSuite
+	test_suites.S3TestSuite
 }
 
 func (s *ChainDownloaderTestSuite) SetupTest() {
 	s.InitLocalConfigs()
+	s.SetupLocalDigitalOceanS3()
 	chains.ChangeToChainDataDir()
 }
 
@@ -28,7 +29,7 @@ var brDownload = BucketRequest{
 
 func (s *ChainDownloaderTestSuite) TestChainZstdDownloadAndDec() {
 	ctx := context.Background()
-	pos := NewPoseidon()
+	pos := NewPoseidon(s.S3)
 	pos.DirIn = "./ethereum/geth_zstd_cmp"
 	pos.FnIn = "geth.tar.zst"
 	pos.DirOut = "./ethereum/geth_zstd_dec"
@@ -39,7 +40,7 @@ func (s *ChainDownloaderTestSuite) TestChainZstdDownloadAndDec() {
 
 func (s *ChainDownloaderTestSuite) TestChainGzipDownloadAndDec() {
 	ctx := context.Background()
-	pos := NewPoseidon()
+	pos := NewPoseidon(s.S3)
 	pos.DirIn = "./ethereum/geth_gzip_cmp"
 	pos.FnIn = "geth.tar.gz"
 	pos.DirOut = "./ethereum/geth_gzip_dec"

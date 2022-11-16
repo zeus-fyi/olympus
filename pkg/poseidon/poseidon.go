@@ -29,10 +29,10 @@ func (b *BucketRequest) CreateBucketKey() string {
 	return strings.Join(key, ".")
 }
 
-func NewPoseidon() Poseidon {
+func NewPoseidon(s3Client s3base.S3Client) Poseidon {
 	return Poseidon{
 		compression.NewCompression(),
-		s3base.NewS3ClientBase(),
+		s3Client,
 		structs.Path{
 			PackageName: "",
 			DirIn:       "/data",

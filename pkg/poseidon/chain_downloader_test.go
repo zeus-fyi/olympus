@@ -20,7 +20,7 @@ func (s *ChainDownloaderTestSuite) SetupTest() {
 }
 
 var brDownload = BucketRequest{
-	BucketName: "zeus-fyi",
+	BucketName: "zeus-fyi-ethereum",
 	Protocol:   "ethereum",
 	Network:    "mainnet",
 	ClientType: "exec.client.standard",
@@ -33,7 +33,7 @@ func (s *ChainDownloaderTestSuite) TestChainZstdDownloadAndDec() {
 	pos.DirIn = "./ethereum/geth_zstd_cmp"
 	pos.FnIn = "geth.tar.zst"
 	pos.DirOut = "./ethereum/geth_zstd_dec"
-	pos.FnOut = "data"
+	pos.FnOut = "geth"
 	err := pos.ZstdDownloadAndDec(ctx, brDownload)
 	s.Require().Nil(err)
 }
@@ -44,7 +44,7 @@ func (s *ChainDownloaderTestSuite) TestChainGzipDownloadAndDec() {
 	pos.DirIn = "./ethereum/geth_gzip_cmp"
 	pos.FnIn = "geth.tar.gz"
 	pos.DirOut = "./ethereum/geth_gzip_dec"
-	pos.FnOut = "data"
+	pos.FnOut = "geth"
 	err := pos.GzipDownloadAndDec(ctx, brDownload)
 	s.Require().Nil(err)
 }

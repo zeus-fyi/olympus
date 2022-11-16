@@ -20,7 +20,7 @@ func (s *ChainUploaderTestSuite) SetupTest() {
 }
 
 var brUpload = BucketRequest{
-	BucketName: "zeus-fyi",
+	BucketName: "zeus-fyi-ethereum",
 	Protocol:   "ethereum",
 	Network:    "mainnet",
 	ClientType: "exec.client.standard",

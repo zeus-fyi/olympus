@@ -16,7 +16,7 @@ type SetJwtTestSuite struct {
 func (s *SetJwtTestSuite) TestSetJwtToken() {
 	p := structs.Path{DirIn: "./", DirOut: "./", FnIn: ""}
 
-	j := aegis_jwt.NewAresJWT()
+	j := aegis_jwt.NewAegisJWT()
 	j.GenerateJwtTokenString()
 
 	err := SetToken(p, j.Token.Raw)

@@ -5,17 +5,17 @@ import (
 	aegis_crypto "github.com/zeus-fyi/olympus/pkg/aegis/crypto"
 )
 
-type AresJWT struct {
+type AegisJWT struct {
 	jwt.Token
 }
 
-func NewAresJWT() AresJWT {
-	return AresJWT{
+func NewAegisJWT() AegisJWT {
+	return AegisJWT{
 		Token: jwt.Token{},
 	}
 }
 
-func (j *AresJWT) GenerateJwtTokenString() {
+func (j *AegisJWT) GenerateJwtTokenString() {
 	h := aegis_crypto.Hex(32)
 	j.Raw = h
 }

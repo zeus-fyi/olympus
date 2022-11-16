@@ -11,7 +11,7 @@ type JWTTestSuite struct {
 }
 
 func (s *JWTTestSuite) TestJWT() {
-	j := NewAresJWT()
+	j := NewAegisJWT()
 	j.GenerateJwtTokenString()
 	s.Assert().NotEmpty(j.Raw)
 }

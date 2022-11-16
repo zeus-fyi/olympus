@@ -12,7 +12,7 @@ type ZstdTestSuite struct {
 	CompressionTestSuite
 }
 
-func (c *ZstdTestSuite) TestZstdCompression() {
+func (c *ZstdTestSuite) TestZstdCmp() {
 	p := structs.Path{
 		PackageName: "",
 		DirIn:       "./.kube",
@@ -22,11 +22,11 @@ func (c *ZstdTestSuite) TestZstdCompression() {
 		FilterFiles: string_utils.FilterOpts{},
 	}
 
-	err := c.Comp.ZstdCompressDir(&p)
+	err := c.Comp.ZstCompressDir(&p)
 	c.Require().Nil(err)
 }
 
-func (c *ZstdTestSuite) TestZstdDecompression() {
+func (c *ZstdTestSuite) TestZstdDec() {
 	p := structs.Path{
 		PackageName: "",
 		DirIn:       "./",

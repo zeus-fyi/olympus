@@ -1,4 +1,4 @@
-package s3writer
+package s3uploader
 
 import (
 	"context"
@@ -10,31 +10,39 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
+	"github.com/zeus-fyi/olympus/sandbox/chains"
 )
 
 type S3UploaderTestSuite struct {
 	test_suites.S3TestSuite
 }
 
+func (t *S3UploaderTestSuite) SetupTest() {
+	t.SetupLocalDigitalOceanS3()
+}
+
 // TestRead, you'll need to set the secret values to run the test
-func (t *S3UploaderTestSuite) TestUpload() {
+func (t *S3UploaderTestSuite) TestUploadZst() {
+	chains.ChangeToChainDataDir()
 	ctx := context.Background()
 
+	fn := "geth.tar.zst"
+	bucketName := "zeus-fyi"
 	input := &s3.PutObjectInput{
-		Bucket: aws.String("zeus-fyi"),
-		Key:    aws.String("test.txt"),
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(fn),
 	}
 	p := structs.Path{
 		PackageName: "",
-		DirIn:       "",
-		DirOut:      "",
-		FnIn:        "local-text.txt",
+		DirIn:       "./ethereum/geth_zstd_cmp",
+		DirOut:      "./",
+		FnIn:        fn,
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}
 
-	reader := NewS3ClientUploader(t.S3)
-	err := reader.Upload(ctx, &p, input)
+	uploader := NewS3ClientUploader(t.S3)
+	err := uploader.Upload(ctx, p, input)
 	t.Require().Nil(err)
 }
 

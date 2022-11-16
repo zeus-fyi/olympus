@@ -1,6 +1,8 @@
 package poseidon
 
 import (
+	"strings"
+
 	s3base "github.com/zeus-fyi/olympus/datastores/s3"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/compression"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
@@ -13,10 +15,24 @@ type Poseidon struct {
 	structs.Path
 }
 
-func NewPoseidon() Poseidon {
+type BucketRequest struct {
+	BucketName string `json:"bucketName"`
+
+	Protocol   string `json:"protocol"`
+	Network    string `json:"network"`
+	ClientType string `json:"clientType"`
+	ClientName string `json:"clientName"`
+}
+
+func (b *BucketRequest) CreateBucketKey() string {
+	key := []string{strings.ToLower(b.Protocol), strings.ToLower(b.Network), strings.ToLower(b.ClientType), strings.ToLower(b.ClientName)}
+	return strings.Join(key, ".")
+}
+
+func NewPoseidon(s3Client s3base.S3Client) Poseidon {
 	return Poseidon{
 		compression.NewCompression(),
-		s3base.NewS3ClientBase(),
+		s3Client,
 		structs.Path{
 			PackageName: "",
 			DirIn:       "/data",

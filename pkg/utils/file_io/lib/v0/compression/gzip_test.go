@@ -30,7 +30,7 @@ func (c *CompressionTestSuite) TestTarGzip() {
 		FilterFiles: string_utils.FilterOpts{},
 	}
 
-	err := c.Comp.CreateTarGzipArchiveDir(&p)
+	err := c.Comp.GzipCompressDir(&p)
 	c.Require().Nil(err)
 }
 
@@ -44,7 +44,7 @@ func (c *CompressionTestSuite) TestUnGzip() {
 		FilterFiles: string_utils.FilterOpts{},
 	}
 
-	err := c.Comp.UnGzip(&p)
+	err := c.Comp.GzipDecompress(&p)
 	c.Require().Nil(err)
 }
 
@@ -54,6 +54,7 @@ func (c *CompressionTestSuite) TestUnGzipInMemFS() {
 		DirIn:       "./",
 		DirOut:      "./",
 		FnIn:        "kube.tar.gz",
+		FnOut:       "kube.tar.gz",
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}
@@ -63,7 +64,7 @@ func (c *CompressionTestSuite) TestUnGzipInMemFS() {
 	b := r.ReadFile(pkube)
 	c.Require().NotEmpty(b)
 
-	err := m.MakeFile(&pkube, b)
+	err := m.MakeFileIn(&pkube, b)
 	c.Require().Nil(err)
 
 	ptgz := structs.Path{

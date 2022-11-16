@@ -10,7 +10,7 @@ func (s *S3Secrets) GzipAndEncrypt(p *structs.Path) error {
 	if p == nil {
 		return errors.New("need to include a path")
 	}
-	err := s.CreateTarGzipArchiveDir(p)
+	err := s.GzipCompressDir(p)
 	if err != nil {
 		return err
 	}

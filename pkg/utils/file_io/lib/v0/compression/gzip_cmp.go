@@ -13,7 +13,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
-func (c *Compression) CreateTarGzipArchiveDir(p *structs.Path) error {
+func (c *Compression) GzipCompressDir(p *structs.Path) error {
 	// Create new Writers for gzip and tar
 	// These writers are chained. Writing to the tar writer will
 	// write to the gzip writer which in turn will write to
@@ -24,7 +24,7 @@ func (c *Compression) CreateTarGzipArchiveDir(p *structs.Path) error {
 	p.FnOut = p.FnIn + ".tar.gz"
 	out, err := os.Create(p.FileOutPath())
 	if err != nil {
-		log.Err(err).Msg("Compression: CreateTarGzipArchiveDir, os.Create(p.FileOutPath()")
+		log.Err(err).Msg("Compression: GzipCompressDir, os.Create(p.FileOutPath()")
 		return err
 	}
 	defer out.Close()

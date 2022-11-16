@@ -45,7 +45,8 @@ func (s *S3Client) ConnectS3SpacesDO(ctx context.Context) error {
 	cfg, err := config.LoadDefaultConfig(ctx,
 		config.WithRegion("us-east-1"),
 		config.WithCredentialsProvider(creds),
-		config.WithEndpointResolverWithOptions(customResolver))
+		config.WithEndpointResolverWithOptions(customResolver),
+		config.WithRetryMaxAttempts(100))
 	if err != nil {
 		return err
 	}

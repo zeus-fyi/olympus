@@ -25,7 +25,7 @@ type BucketRequest struct {
 }
 
 func (b *BucketRequest) CreateBucketKey() string {
-	key := []string{strings.ToLower(b.Protocol), strings.ToLower(b.Network), strings.ToLower(b.ClientName), strings.ToLower(b.ClientType)}
+	key := []string{strings.ToLower(b.Protocol), strings.ToLower(b.Network), strings.ToLower(b.ClientType), strings.ToLower(b.ClientName)}
 	return strings.Join(key, ".")
 }
 

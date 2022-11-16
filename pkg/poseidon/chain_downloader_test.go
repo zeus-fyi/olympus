@@ -30,7 +30,7 @@ var brDownload = BucketRequest{
 func (s *ChainDownloaderTestSuite) TestChainZstdDownloadAndDec() {
 	ctx := context.Background()
 	pos := NewPoseidon(s.S3)
-	pos.DirIn = "./ethereum/geth_zstd_cmp"
+	pos.DirIn = "./ethereum/geth_zstd_download"
 	pos.FnIn = "geth.tar.zst"
 	pos.DirOut = "./ethereum/geth_zstd_dec"
 	pos.FnOut = "geth"
@@ -41,7 +41,7 @@ func (s *ChainDownloaderTestSuite) TestChainZstdDownloadAndDec() {
 func (s *ChainDownloaderTestSuite) TestChainGzipDownloadAndDec() {
 	ctx := context.Background()
 	pos := NewPoseidon(s.S3)
-	pos.DirIn = "./ethereum/geth_gzip_cmp"
+	pos.DirIn = "./ethereum/geth_gzip_download"
 	pos.FnIn = "geth.tar.gz"
 	pos.DirOut = "./ethereum/geth_gzip_dec"
 	pos.FnOut = "geth"

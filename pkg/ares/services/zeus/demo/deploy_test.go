@@ -10,3 +10,10 @@ func (t *AresDemoTestSuite) TestDeploy() {
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(resp)
 }
+
+func (t *AresDemoTestSuite) TestObolDeploy() {
+	demo.ChangeDirToAresDemoDir()
+	resp, err := t.ZeusTestClient.Deploy(ctx, obolDeployKnsReq)
+	t.Require().Nil(err)
+	t.Assert().NotEmpty(resp)
+}

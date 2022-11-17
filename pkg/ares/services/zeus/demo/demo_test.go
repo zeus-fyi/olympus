@@ -15,7 +15,10 @@ type AresDemoTestSuite struct {
 var ctx = context.Background()
 
 func (t *AresDemoTestSuite) SetupTest() {
-	t.SetupLocalTest()
+
+	t.SetupDemoProdUserTest()
+
+	//t.SetupLocalTest()
 }
 
 func TestAresZeusTestSuite(t *testing.T) {

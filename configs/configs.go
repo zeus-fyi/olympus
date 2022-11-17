@@ -40,6 +40,7 @@ type TestContainer struct {
 	ProductionLocalBearerToken string
 
 	ProductionLocalTemporalBearerToken string
+	DemoUserBearerToken                string
 
 	DevTemporalHostPort string
 	DevTemporalNs       string
@@ -85,6 +86,7 @@ func InitLocalTestConfigs() TestContainer {
 	testCont.TestURLs = SetBaseURLs()
 	testCont.Env = viper.GetString("ENV")
 
+	testCont.DemoUserBearerToken = viper.GetString("DEMO_USER_BEARER_TOKEN")
 	testCont.DevTemporalNs = viper.GetString("DEV_TEMPORAL_NS")
 	testCont.DevTemporalHostPort = viper.GetString("DEV_TEMPORAL_HOST_PORT")
 	certPath := "./zeus.fyi/ca.pem"

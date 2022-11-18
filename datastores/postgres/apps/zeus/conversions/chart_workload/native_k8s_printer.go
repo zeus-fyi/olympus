@@ -5,11 +5,11 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/writers"
 )
 
-func (nk *NativeK8s) PrintWorkload(p structs.Path) error {
+func (nk *NativeK8s) PrintWorkload(p filepaths.Path) error {
 	if nk.Deployment != nil {
 		name := addPrefixAndYamlSuffixIfNotExists("dep", nk.Deployment.Name)
 		err := nk.printYaml(&p, name, nk.Deployment)
@@ -48,7 +48,7 @@ func (nk *NativeK8s) PrintWorkload(p structs.Path) error {
 	return nil
 }
 
-func (nk *NativeK8s) printYaml(p *structs.Path, name string, workload interface{}) error {
+func (nk *NativeK8s) printYaml(p *filepaths.Path, name string, workload interface{}) error {
 	b, err := yaml.Marshal(workload)
 	if err != nil {
 		log.Err(err).Msgf("NativeK8s: printYaml json.Marshall  %s", name)
@@ -62,7 +62,7 @@ func (nk *NativeK8s) printYaml(p *structs.Path, name string, workload interface{
 	return err
 }
 
-func (nk *NativeK8s) WriteYamlConfig(p structs.Path, jsonBytes []byte) error {
+func (nk *NativeK8s) WriteYamlConfig(p filepaths.Path, jsonBytes []byte) error {
 	w := writers.WriterLib{}
 	err := w.CreateV2FileOut(p, jsonBytes)
 	if err != nil {

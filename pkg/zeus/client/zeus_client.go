@@ -13,3 +13,10 @@ func NewZeusClient(baseURL, bearer string) ZeusClient {
 	z.Resty = base_rest_client.GetBaseRestyAresTestClient(baseURL, bearer)
 	return z
 }
+
+// const ZeusEndpoint = "https://api.zeus.fyi"
+const ZeusEndpoint = "http://localhost:9001"
+
+func NewDefaultZeusClient(bearer string) ZeusClient {
+	return NewZeusClient(ZeusEndpoint, bearer)
+}

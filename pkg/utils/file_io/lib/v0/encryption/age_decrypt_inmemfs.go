@@ -8,11 +8,11 @@ import (
 
 	"filippo.io/age"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
-func (a *Age) DecryptToMemFsFile(p *structs.Path, fs memfs.MemFS) error {
+func (a *Age) DecryptToMemFsFile(p *filepaths.Path, fs memfs.MemFS) error {
 	if p == nil {
 		return errors.New("need to include a path")
 	}
@@ -30,7 +30,7 @@ func (a *Age) DecryptToMemFsFile(p *structs.Path, fs memfs.MemFS) error {
 	return err
 }
 
-func (a *Age) decryptFromInMemFS(p *structs.Path, fs memfs.MemFS) (*bytes.Buffer, error) {
+func (a *Age) decryptFromInMemFS(p *filepaths.Path, fs memfs.MemFS) (*bytes.Buffer, error) {
 	out := &bytes.Buffer{}
 
 	if p == nil {

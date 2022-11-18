@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
@@ -18,7 +18,7 @@ func (t *MemFsTestSuite) SetupTest() {
 }
 
 func (t *MemFsTestSuite) TestCreateFileMemFs() {
-	p := structs.Path{
+	p := filepaths.Path{
 		PackageName: "",
 		DirIn:       "./.kube",
 		DirOut:      "./",

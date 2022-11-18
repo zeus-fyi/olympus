@@ -5,10 +5,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 	v1_athena "github.com/zeus-fyi/olympus/athena/api/v1"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
-func Routes(e *echo.Echo, p structs.Path) *echo.Echo {
+func Routes(e *echo.Echo, p filepaths.Path) *echo.Echo {
 	// Routes
 	e.GET("/health", Health)
 

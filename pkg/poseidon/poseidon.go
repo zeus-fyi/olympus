@@ -5,14 +5,14 @@ import (
 
 	s3base "github.com/zeus-fyi/olympus/datastores/s3"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/compression"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 type Poseidon struct {
 	compression.Compression
 	s3base.S3Client
-	structs.Path
+	filepaths.Path
 }
 
 type BucketRequest struct {
@@ -33,7 +33,7 @@ func NewPoseidon(s3Client s3base.S3Client) Poseidon {
 	return Poseidon{
 		compression.NewCompression(),
 		s3Client,
-		structs.Path{
+		filepaths.Path{
 			PackageName: "",
 			DirIn:       "/data",
 			DirOut:      "/data",

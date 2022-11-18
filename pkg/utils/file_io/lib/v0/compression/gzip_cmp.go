@@ -10,10 +10,10 @@ import (
 	"path/filepath"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
-func (c *Compression) GzipCompressDir(p *structs.Path) error {
+func (c *Compression) GzipCompressDir(p *filepaths.Path) error {
 	// Create new Writers for gzip and tar
 	// These writers are chained. Writing to the tar writer will
 	// write to the gzip writer which in turn will write to
@@ -54,7 +54,7 @@ func (c *Compression) GzipCompressDir(p *structs.Path) error {
 	return err
 }
 
-func addToArchive(p *structs.Path, tw *tar.Writer, filename string) error {
+func addToArchive(p *filepaths.Path, tw *tar.Writer, filename string) error {
 	// Open the file which will be written into the archive
 	file, err := os.Open(p.DirIn + string(filepath.Separator) + filename)
 	if err != nil {

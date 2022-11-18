@@ -8,10 +8,10 @@ import (
 	"strings"
 
 	"filippo.io/age"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
-func (a *Age) DecryptToFile(p *structs.Path) error {
+func (a *Age) DecryptToFile(p *filepaths.Path) error {
 	if p == nil {
 		return errors.New("need to include a path")
 	}
@@ -30,7 +30,7 @@ func (a *Age) DecryptToFile(p *structs.Path) error {
 	return err
 }
 
-func (a *Age) decrypt(p *structs.Path) (*bytes.Buffer, error) {
+func (a *Age) decrypt(p *filepaths.Path) (*bytes.Buffer, error) {
 	out := &bytes.Buffer{}
 
 	if p == nil {

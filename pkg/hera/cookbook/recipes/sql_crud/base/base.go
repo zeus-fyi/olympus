@@ -5,7 +5,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/hera/cookbook/recipes/common/sql_query/common"
 	"github.com/zeus-fyi/olympus/pkg/hera/lib"
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/vars"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
 type ModelTemplate struct {
@@ -15,7 +15,7 @@ type ModelTemplate struct {
 
 // NewPGModelTemplate should TODO make the parent pkg name part more seamless
 // Should use this to create all Model templates to avoid any nil panics on query metadata
-func NewPGModelTemplate(p structs.Path, queryInfo *common.QueryMetadata, dsnString string) ModelTemplate {
+func NewPGModelTemplate(p filepaths.Path, queryInfo *common.QueryMetadata, dsnString string) ModelTemplate {
 	if queryInfo == nil {
 		queryInfo = &common.QueryMetadata{Type: "base", ParentPkgName: "models"}
 	}

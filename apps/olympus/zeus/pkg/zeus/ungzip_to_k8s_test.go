@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 )
 
@@ -22,7 +22,7 @@ func (s *UnGzipToMemFsTestSuite) SetupTest() {
 }
 
 func (s *UnGzipToMemFsTestSuite) TestUnGzipIntoMemFs() {
-	p := structs.Path{DirIn: "./", DirOut: "./", FnIn: "zeus.tar.gz"}
+	p := filepaths.Path{DirIn: "./", DirOut: "./", FnIn: "zeus.tar.gz"}
 	byteArray, err := os.ReadFile(p.FileDirOutFnInPath())
 	s.Require().Nil(err)
 	b := &bytes.Buffer{}

@@ -12,14 +12,14 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	"github.com/zeus-fyi/olympus/pkg/aegis/s3secrets"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 type AuthConfig struct {
-	Path         structs.Path
+	Path         filepaths.Path
 	a            encryption.Age
 	s3BaseClient s3base.S3Client
 	S3KeyValue   *s3.GetObjectInput
@@ -42,7 +42,7 @@ func NewDefaultAuthClient(ctx context.Context, keysCfg auth_keys_config.AuthKeys
 		Bucket: aws.String("zeus-fyi"),
 		Key:    aws.String("kube.tar.gz.age"),
 	}
-	p := structs.Path{
+	p := filepaths.Path{
 		PackageName: "",
 		DirIn:       "./",
 		DirOut:      "./",

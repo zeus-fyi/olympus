@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 	v1 "k8s.io/api/apps/v1"
 )
@@ -20,7 +20,7 @@ func (s *TransformationTestSuite) SetupTest() {
 }
 
 func (s *TransformationTestSuite) TestDecodeK8sWorkloadDir() {
-	p := structs.Path{
+	p := filepaths.Path{
 		DirIn: "./temp",
 	}
 	err := s.y.ReadK8sWorkloadDir(p)

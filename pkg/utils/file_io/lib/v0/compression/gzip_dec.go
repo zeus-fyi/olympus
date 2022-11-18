@@ -6,12 +6,12 @@ import (
 	"os"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
 // GzipDecompress takes a destination path and a reader; a tar reader loops over the tarfile
 // creating the file structure at 'dst' along the way, and writing any files
-func (c *Compression) GzipDecompress(p *structs.Path) error {
+func (c *Compression) GzipDecompress(p *filepaths.Path) error {
 	if p == nil {
 		return errors.New("need to include a path")
 	}

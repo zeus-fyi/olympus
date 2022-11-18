@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
 	"github.com/zeus-fyi/olympus/sandbox/chains"
@@ -32,7 +32,7 @@ func (t *S3UploaderTestSuite) TestUploadZst() {
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(fn),
 	}
-	p := structs.Path{
+	p := filepaths.Path{
 		PackageName: "",
 		DirIn:       "./ethereum/geth_zstd_cmp",
 		DirOut:      "./",

@@ -6,12 +6,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
 // BuildPathsFromDirInPath assumes the package name is the parent dir name
-func (l *PathLib) BuildPathsFromDirInPath(root structs.Path, ext string) map[int]structs.Paths {
-	m := make(map[int]structs.Paths)
+func (l *PathLib) BuildPathsFromDirInPath(root filepaths.Path, ext string) map[int]filepaths.Paths {
+	m := make(map[int]filepaths.Paths)
 	depth := 0
 	dirOut := root.DirOut
 	depthStart := len(strings.Split(root.DirIn, "/")) - 1
@@ -24,7 +24,7 @@ func (l *PathLib) BuildPathsFromDirInPath(root structs.Path, ext string) map[int
 			pkgName := filepath.Base(dirIn)
 			depth = len(strings.Split(walkDir, "/")) - len(strings.Split(dirOut, "/")) - depthStart
 			if _, ok := m[depth]; !ok {
-				m[depth] = structs.Paths{}
+				m[depth] = filepaths.Paths{}
 			}
 			depthPaths := m[depth]
 

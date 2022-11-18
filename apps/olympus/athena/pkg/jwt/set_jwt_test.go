@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	aegis_jwt "github.com/zeus-fyi/olympus/pkg/aegis/jwt"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 )
 
@@ -14,7 +14,7 @@ type SetJwtTestSuite struct {
 }
 
 func (s *SetJwtTestSuite) TestSetJwtToken() {
-	p := structs.Path{DirIn: "./", DirOut: "./", FnIn: ""}
+	p := filepaths.Path{DirIn: "./", DirOut: "./", FnIn: ""}
 
 	j := aegis_jwt.NewAegisJWT()
 	j.GenerateJwtTokenString()

@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
@@ -29,7 +29,7 @@ func (s *TopologyTestSuite) TestSelectTopology() {
 	chart := tr.Chart
 
 	// currently dumps to config dir
-	p := structs.Path{
+	p := filepaths.Path{
 		PackageName: "",
 		DirIn:       "./",
 		DirOut:      "./",

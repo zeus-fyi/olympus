@@ -7,10 +7,10 @@ import (
 	"path"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
-func tarReader(p *structs.Path, r io.Reader) error {
+func tarReader(p *filepaths.Path, r io.Reader) error {
 	tr := tar.NewReader(r)
 	for {
 		header, herr := tr.Next()

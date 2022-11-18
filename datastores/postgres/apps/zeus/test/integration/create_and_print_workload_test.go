@@ -15,7 +15,7 @@ import (
 	create_infra "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/definitions/classes/bases/infra"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
@@ -31,7 +31,7 @@ var LocalTemporalOrgID = 7138983863666903883
 func (s *IntegrationTestSuite) TestInsertInfraBase() {
 	s.ChangeToTestDirectory()
 
-	p := structs.Path{
+	p := filepaths.Path{
 		PackageName: "",
 		DirIn:       s.TestDirectory + "/mocks/consensus_client",
 		FnIn:        "statefulset.yaml",

@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app.kubernetes.io/instance: demo
+    app.kubernetes.io/managed-by: zeus
+    app.kubernetes.io/name: demo
+    version: version-1668736628743467515
+  name: demo
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: http
+  selector:
+    app.kubernetes.io/instance: demo
+    app.kubernetes.io/name: demo
+  type: ClusterIP
+status:
+  loadBalancer: {}

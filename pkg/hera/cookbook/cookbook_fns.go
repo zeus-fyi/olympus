@@ -1,10 +1,10 @@
 package cookbook
 
 import (
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
-func (a *Cookbook) CreateTemplatesInPath(templatePath structs.Path) error {
+func (a *Cookbook) CreateTemplatesInPath(templatePath filepaths.Path) error {
 	recipePath := a.ApplyCookBookToTemplatePath(templatePath)
 	orderedTemplates := a.GetTopologicallySortedPaths(recipePath)
 	for _, r := range orderedTemplates.Slice {
@@ -16,12 +16,12 @@ func (a *Cookbook) CreateTemplatesInPath(templatePath structs.Path) error {
 	return nil
 }
 
-func (a *Cookbook) ApplyCookBookToTemplatePath(templatePath structs.Path) structs.Path {
+func (a *Cookbook) ApplyCookBookToTemplatePath(templatePath filepaths.Path) filepaths.Path {
 	templatePath.LeftExtendDirInPath(CookbookPath.DirIn)
 	return templatePath
 }
 
-func (a *Cookbook) CustomZeusParsing(templatePath structs.Path) error {
+func (a *Cookbook) CustomZeusParsing(templatePath filepaths.Path) error {
 	recipePath := a.ApplyCookBookToTemplatePath(templatePath)
 	orderedTemplates := a.GetTopologicallySortedPaths(recipePath)
 	for _, r := range orderedTemplates.Slice {

@@ -1,12 +1,12 @@
 package demo
 
 import (
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
-func DemoPath() structs.Path {
-	var demoPath = structs.Path{
+func DemoPath() filepaths.Path {
+	var demoPath = filepaths.Path{
 		PackageName: "",
 		DirIn:       "./demo",
 		DirOut:      "./demo_out/gzip",
@@ -18,8 +18,8 @@ func DemoPath() structs.Path {
 	return demoPath
 }
 
-func DemoReadChartThenWritePath() structs.Path {
-	var demoPath = structs.Path{
+func DemoReadChartThenWritePath() filepaths.Path {
+	var demoPath = filepaths.Path{
 		PackageName: "",
 		DirIn:       "./demo",
 		DirOut:      "./demo_out/read_chart",

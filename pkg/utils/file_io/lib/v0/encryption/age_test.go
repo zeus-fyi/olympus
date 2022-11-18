@@ -8,7 +8,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
@@ -25,7 +25,7 @@ func (s *AgeEncryptionTestSuite) SetupTest() {
 }
 
 func (s *AgeEncryptionTestSuite) TestEncryption() {
-	p := structs.Path{
+	p := filepaths.Path{
 		PackageName: "",
 		DirIn:       "./",
 		DirOut:      "./",
@@ -40,7 +40,7 @@ func (s *AgeEncryptionTestSuite) TestEncryption() {
 
 // use age-keygen -o private_key.txt to create a pubkey/private key pair for here
 func (s *AgeEncryptionTestSuite) TestDecryption() {
-	p := structs.Path{
+	p := filepaths.Path{
 		PackageName: "",
 		DirIn:       "./",
 		DirOut:      "./",
@@ -54,7 +54,7 @@ func (s *AgeEncryptionTestSuite) TestDecryption() {
 }
 
 func (s *AgeEncryptionTestSuite) TestDecryptionToInMemFs() {
-	p := structs.Path{
+	p := filepaths.Path{
 		PackageName: "",
 		DirIn:       "./",
 		DirOut:      "./kube",

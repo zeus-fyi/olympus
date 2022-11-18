@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/rs/zerolog/log"
 	s3base "github.com/zeus-fyi/olympus/datastores/s3"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
 type S3ClientUploader struct {
@@ -20,7 +20,7 @@ func NewS3ClientUploader(baseClient s3base.S3Client) S3ClientUploader {
 	}
 }
 
-func (s *S3ClientUploader) Upload(ctx context.Context, p structs.Path, s3KeyValue *s3.PutObjectInput) error {
+func (s *S3ClientUploader) Upload(ctx context.Context, p filepaths.Path, s3KeyValue *s3.PutObjectInput) error {
 	f, err := p.OpenFileInPath()
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("S3ClientUploader: p.OpenFileInPath()")

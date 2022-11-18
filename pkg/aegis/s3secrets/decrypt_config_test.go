@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/stretchr/testify/suite"
 	s3reader "github.com/zeus-fyi/olympus/datastores/s3/read"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
@@ -23,7 +23,7 @@ func (t *S3SecretsDecryptTestSuite) TestPullAndGzipAndDecryptToInMemFs() {
 		Bucket: aws.String("zeus-fyi"),
 		Key:    aws.String("kube.tar.gz.age"),
 	}
-	p := structs.Path{
+	p := filepaths.Path{
 		PackageName: "",
 		DirIn:       "./",
 		DirOut:      "./",
@@ -39,7 +39,7 @@ func (t *S3SecretsDecryptTestSuite) TestPullAndGzipAndDecryptToInMemFs() {
 }
 
 func (t *S3SecretsDecryptTestSuite) TestDecryptAndUnGzipInMemFs() {
-	p := structs.Path{
+	p := filepaths.Path{
 		PackageName: "",
 		DirIn:       "./",
 		DirOut:      "./",
@@ -55,7 +55,7 @@ func (t *S3SecretsDecryptTestSuite) TestDecryptAndUnGzipInMemFs() {
 
 // TestRead, you'll need to set the secret values to run the test
 func (t *S3SecretsDecryptTestSuite) TestDecryptAndUnGzip() {
-	p := structs.Path{
+	p := filepaths.Path{
 		PackageName: "",
 		DirIn:       "./",
 		DirOut:      "./kube",
@@ -75,7 +75,7 @@ func (t *S3SecretsDecryptTestSuite) TestReadGzipAndEncryptDecrypt() {
 		Bucket: aws.String("zeus-fyi"),
 		Key:    aws.String("test.txt"),
 	}
-	p := structs.Path{
+	p := filepaths.Path{
 		PackageName: "",
 		DirIn:       "",
 		DirOut:      "",

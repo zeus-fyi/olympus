@@ -3,17 +3,17 @@ package code_driver
 import (
 	"github.com/zeus-fyi/jennifer/jen"
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/file_shells/base"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
 type CodeDriverLib struct {
-	Path              structs.Path
+	Path              filepaths.Path
 	FileBaseGen       base.FileComponentBaseElements
 	JenStatementChain []*jen.Statement
 	JenFile           *jen.File
 }
 
-func NewCodeDriverLib(codeGenPath structs.Path) CodeDriverLib {
+func NewCodeDriverLib(codeGenPath filepaths.Path) CodeDriverLib {
 	c := CodeDriverLib{
 		Path:              codeGenPath,
 		FileBaseGen:       base.FileComponentBaseElements{},

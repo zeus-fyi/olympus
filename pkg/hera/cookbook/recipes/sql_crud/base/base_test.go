@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/test"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
 type ModelStructBaseGenTestSuite struct {
@@ -19,7 +19,7 @@ func (s *ModelStructBaseGenTestSuite) SetupTest() {
 }
 
 func (s *ModelStructBaseGenTestSuite) TestBaseTemplateGeneration() {
-	p := structs.Path{
+	p := filepaths.Path{
 		PackageName: "autogen_bases",
 		DirIn:       "",
 		DirOut:      printOutLocation,

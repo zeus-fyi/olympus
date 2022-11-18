@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/readers"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 )
@@ -21,7 +21,7 @@ func (c *CompressionTestSuite) SetupTest() {
 }
 
 func (c *CompressionTestSuite) TestTarGzip() {
-	p := structs.Path{
+	p := filepaths.Path{
 		PackageName: "",
 		DirIn:       "./.kube",
 		DirOut:      "./",
@@ -35,7 +35,7 @@ func (c *CompressionTestSuite) TestTarGzip() {
 }
 
 func (c *CompressionTestSuite) TestUnGzip() {
-	p := structs.Path{
+	p := filepaths.Path{
 		PackageName: "",
 		DirIn:       "./",
 		DirOut:      "./kube",
@@ -49,7 +49,7 @@ func (c *CompressionTestSuite) TestUnGzip() {
 }
 
 func (c *CompressionTestSuite) TestUnGzipInMemFS() {
-	pkube := structs.Path{
+	pkube := filepaths.Path{
 		PackageName: "",
 		DirIn:       "./",
 		DirOut:      "./",
@@ -67,7 +67,7 @@ func (c *CompressionTestSuite) TestUnGzipInMemFS() {
 	err := m.MakeFileIn(&pkube, b)
 	c.Require().Nil(err)
 
-	ptgz := structs.Path{
+	ptgz := filepaths.Path{
 		PackageName: "",
 		DirIn:       "./",
 		DirOut:      "./kube",
@@ -80,7 +80,7 @@ func (c *CompressionTestSuite) TestUnGzipInMemFS() {
 }
 
 func (c *CompressionTestSuite) TestTar() {
-	p := structs.Path{
+	p := filepaths.Path{
 		PackageName: "",
 		DirIn:       "./.kube",
 		DirOut:      "./",

@@ -7,7 +7,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/base_request"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
@@ -19,8 +18,7 @@ func DestroyDeployStatefulSetHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	if request.StatefulSet != nil {
-		kns := zeus_core.NewKubeCtxNsFromTopologyKns(request.Kns)
-		err := zeus.K8Util.DeleteStatefulSet(ctx, kns, request.StatefulSet.Name, nil)
+		err := zeus.K8Util.DeleteStatefulSet(ctx, request.Kns.CloudCtxNs, request.StatefulSet.Name, nil)
 		if err != nil {
 			log.Err(err).Msg("DestroyDeployStatefulSetHandler")
 			return c.JSON(http.StatusInternalServerError, err)

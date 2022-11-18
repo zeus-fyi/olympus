@@ -35,7 +35,6 @@ func NewClusterTopology() Topology {
 }
 
 func (t *Topology) SetTopologyID(id int) {
-	t.TopologyID = id
 	t.TopologyKubeCtxNs.TopologyID = id
 	t.OrgUserTopology.TopologyID = id
 }

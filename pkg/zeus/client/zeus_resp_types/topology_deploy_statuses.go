@@ -3,7 +3,7 @@ package zeus_resp_types
 import (
 	"time"
 
-	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_common_types"
+	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 )
 
 type TopologyDeployStatuses struct {

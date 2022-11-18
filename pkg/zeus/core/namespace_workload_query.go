@@ -3,6 +3,7 @@ package zeus_core
 import (
 	"context"
 
+	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 	v1apps "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	v1networking "k8s.io/api/networking/v1"
@@ -17,7 +18,7 @@ type NamespaceWorkload struct {
 	*v1.ConfigMapList         `json:"configMapList"`
 }
 
-func (k *K8Util) GetWorkloadAtNamespace(ctx context.Context, kns KubeCtxNs) (NamespaceWorkload, error) {
+func (k *K8Util) GetWorkloadAtNamespace(ctx context.Context, kns zeus_common_types.CloudCtxNs) (NamespaceWorkload, error) {
 	wrkLoad := NamespaceWorkload{}
 	pods, err := k.GetPodsUsingCtxNs(ctx, kns, nil, nil)
 	if err != nil {

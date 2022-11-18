@@ -14,11 +14,12 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
+	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 	v1 "k8s.io/api/core/v1"
 )
 
-var Kns autok8s_core.KubeCtxNs
+var Kns zeus_common_types.CloudCtxNs
 
 var TestOrgUser = org_users.OrgUser{autogen_bases.OrgUsers{
 	OrgID:  1667452524363177528,

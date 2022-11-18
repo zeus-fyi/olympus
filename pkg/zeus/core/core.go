@@ -1,12 +1,10 @@
 package zeus_core
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"k8s.io/client-go/kubernetes"
@@ -28,30 +26,8 @@ type K8Util struct {
 	PrintOn   bool
 }
 
-type KubeCtxNs struct {
-	CloudProvider string `json:"cloudProvider"`
-	Region        string `json:"region"`
-	Context       string `json:"context"`
-	Namespace     string `json:"namespace"`
-	Env           string `json:"env"`
-}
-
-func NewKubeCtxNsFromTopologyKns(kns kns.TopologyKubeCtxNs) KubeCtxNs {
-	return KubeCtxNs{
-		CloudProvider: kns.CloudProvider,
-		Region:        kns.Region,
-		Context:       kns.Context,
-		Namespace:     kns.Namespace,
-		Env:           kns.Env,
-	}
-}
-
 type FilterOpts struct {
 	DoesNotInclude []string
-}
-
-func (kCtx *KubeCtxNs) GetCtxName(env string) string {
-	return fmt.Sprintf("%s-%s-%s", kCtx.CloudProvider, kCtx.Region, kCtx.Context)
 }
 
 func (k *K8Util) GetContexts() (map[string]*clientcmdapi.Context, error) {

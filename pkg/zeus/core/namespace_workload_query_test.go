@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 )
 
 type NamespaceWorkloadTestSuite struct {
@@ -13,7 +14,7 @@ type NamespaceWorkloadTestSuite struct {
 
 func (s *NamespaceWorkloadTestSuite) TestGetNamespaceWorkload() {
 	ctx := context.Background()
-	var kns KubeCtxNs
+	var kns zeus_common_types.CloudCtxNs
 	kns.Namespace = "ethereum"
 	w, err := s.K.GetWorkloadAtNamespace(ctx, kns)
 	s.Require().Nil(err)

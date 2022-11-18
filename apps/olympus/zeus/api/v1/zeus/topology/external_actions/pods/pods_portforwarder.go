@@ -20,7 +20,7 @@ func podsPortForwardRequestToAllPods(c echo.Context, request *PodActionRequest) 
 	ctx := context.Background()
 	log.Ctx(ctx).Debug().Msg("start podsPortForwardRequestToAllPods")
 
-	pods, err := zeus.K8Util.GetPodsUsingCtxNs(ctx, request.Kns, nil, request.FilterOpts)
+	pods, err := zeus.K8Util.GetPodsUsingCtxNs(ctx, request.CloudCtxNs, nil, request.FilterOpts)
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func podsPortForwardRequest(request *PodActionRequest) ([]byte, error) {
 	go func() {
 		log.Ctx(ctx).Debug().Msg("start port-forward thread")
 		address := "localhost"
-		err := zeus.K8Util.PortForwardPod(ctx, request.Kns, request.PodName, address, clientReq.Ports, startChan, stopChan, request.FilterOpts)
+		err := zeus.K8Util.PortForwardPod(ctx, request.CloudCtxNs, request.PodName, address, clientReq.Ports, startChan, stopChan, request.FilterOpts)
 		log.Ctx(ctx).Err(err).Msg("error in port forwarding")
 		log.Ctx(ctx).Debug().Msg("done port-forward")
 	}()

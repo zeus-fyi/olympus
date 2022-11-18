@@ -8,6 +8,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
+	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	pf "k8s.io/client-go/tools/portforward"
@@ -36,7 +37,7 @@ func (f *defaultPortForwarder) ForwardPorts(method string, url *url.URL, opts po
 	return fw.ForwardPorts()
 }
 
-func (k *K8Util) PortForwardPod(ctx context.Context, kubeCtxNs KubeCtxNs, podName, address string, ports []string, readyChan, stopChan chan struct{}, filter *string_utils.FilterOpts) error {
+func (k *K8Util) PortForwardPod(ctx context.Context, kubeCtxNs zeus_common_types.CloudCtxNs, podName, address string, ports []string, readyChan, stopChan chan struct{}, filter *string_utils.FilterOpts) error {
 	log.Ctx(ctx).Debug().Msg("PortForwardPod")
 
 	p, err := k.GetPodsUsingCtxNs(ctx, kubeCtxNs, nil, filter)

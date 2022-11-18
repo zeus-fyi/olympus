@@ -10,8 +10,8 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
-	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_common_types"
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
+	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 	test_base "github.com/zeus-fyi/olympus/test"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
 )
@@ -41,7 +41,7 @@ var topCloudCtxNs = zeus_common_types.CloudCtxNs{
 
 // set your own topologyID here after uploading a chart workload
 var deployKnsReq = zeus_req_types.TopologyDeployRequest{
-	TopologyID: 1668319946200457984,
+	TopologyID: 1668803165801351936,
 	CloudCtxNs: topCloudCtxNs,
 }
 
@@ -61,8 +61,8 @@ func (t *ZeusClientTestSuite) SetupTest() {
 	tc := api_configs.InitLocalTestConfigs()
 
 	// uses the bearer token from test/configs/config.yaml
-	t.ZeusTestClient = NewDefaultZeusClient(tc.Bearer)
-
+	//t.ZeusTestClient = NewDefaultZeusClient(tc.Bearer)
+	t.ZeusTestClient = NewLocalZeusClient(tc.Bearer)
 	// points working dir to inside /test
 	test_base.ForceDirToTestDirLocation()
 

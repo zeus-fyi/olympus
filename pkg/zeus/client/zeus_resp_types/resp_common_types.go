@@ -5,7 +5,7 @@ import (
 )
 
 type TopologyCreateResponse struct {
-	TopologyID int `json:"id"`
+	TopologyID int `json:"topologyID"`
 }
 
 type ReadTopologiesMetadata struct {

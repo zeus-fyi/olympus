@@ -6,6 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
+	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,7 +26,7 @@ func (k *K8Util) DeletePod(ctx context.Context, name, ns string, deletePodOpts *
 	return err
 }
 
-func (k *K8Util) DeleteFirstPodLike(ctx context.Context, kubeCtxNs CloudCtxNs, podName string, deletePodOpts *metav1.DeleteOptions, filter *string_utils.FilterOpts) error {
+func (k *K8Util) DeleteFirstPodLike(ctx context.Context, kubeCtxNs zeus_common_types.CloudCtxNs, podName string, deletePodOpts *metav1.DeleteOptions, filter *string_utils.FilterOpts) error {
 	log.Ctx(ctx).Debug().Msg("DeleteFirstPodLike")
 	p, err := k.GetFirstPodLike(ctx, kubeCtxNs, podName, filter)
 	if err != nil {
@@ -42,7 +43,7 @@ func (k *K8Util) DeleteFirstPodLike(ctx context.Context, kubeCtxNs CloudCtxNs, p
 	return err
 }
 
-func (k *K8Util) DeleteAllPodsLike(ctx context.Context, kubeCtxNs CloudCtxNs, podName string, deletePodOpts *metav1.DeleteOptions, filter *string_utils.FilterOpts) error {
+func (k *K8Util) DeleteAllPodsLike(ctx context.Context, kubeCtxNs zeus_common_types.CloudCtxNs, podName string, deletePodOpts *metav1.DeleteOptions, filter *string_utils.FilterOpts) error {
 	log.Ctx(ctx).Debug().Msg("DeleteAllPodsLike")
 
 	pods, err := k.GetPodsUsingCtxNs(ctx, kubeCtxNs, nil, filter)

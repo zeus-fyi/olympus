@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 )
 
 type ConfigMapTestSuite struct {
@@ -13,7 +14,7 @@ type ConfigMapTestSuite struct {
 
 func (ing *ConfigMapTestSuite) TestGetConfigMap() {
 	ctx := context.Background()
-	var kns = CloudCtxNs{Env: "", CloudProvider: "", Region: "", Context: "data", Namespace: "eth-indexer"}
+	var kns = zeus_common_types.CloudCtxNs{Env: "", CloudProvider: "", Region: "", Context: "data", Namespace: "eth-indexer"}
 	pods, err := ing.K.GetConfigMapWithKns(ctx, kns, "cm-eth-indexer", nil)
 	ing.Require().Nil(err)
 	ing.Require().NotEmpty(pods)

@@ -10,7 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes/bases/infra"
 	read_charts "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/charts"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
-	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
+	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 )
 
 type InfraBaseTopology struct {
@@ -62,7 +62,7 @@ func getIsOrgCloudCtxNsAuthorizedQueryParams() sql_query_templates.QueryParams {
 	return q
 }
 
-func (t *InfraBaseTopology) IsOrgCloudCtxNsAuthorized(ctx context.Context, kns zeus_core.CloudCtxNs) (bool, error) {
+func (t *InfraBaseTopology) IsOrgCloudCtxNsAuthorized(ctx context.Context, kns zeus_common_types.CloudCtxNs) (bool, error) {
 	q := getIsOrgCloudCtxNsAuthorizedQueryParams()
 	log.Debug().Interface("IsOrgCloudCtxNsAuthorized", q.LogHeader(Sn))
 	authorized := false
@@ -73,7 +73,7 @@ func (t *InfraBaseTopology) IsOrgCloudCtxNsAuthorized(ctx context.Context, kns z
 	return authorized, err
 }
 
-func IsOrgCloudCtxNsAuthorized(ctx context.Context, orgID int, kns zeus_core.CloudCtxNs) (bool, error) {
+func IsOrgCloudCtxNsAuthorized(ctx context.Context, orgID int, kns zeus_common_types.CloudCtxNs) (bool, error) {
 	q := getIsOrgCloudCtxNsAuthorizedQueryParams()
 	log.Debug().Interface("IsOrgCloudCtxNsAuthorized", q.LogHeader(Sn))
 	authorized := false

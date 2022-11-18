@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 )
 
 type DeploymentsTestSuite struct {
@@ -13,7 +14,7 @@ type DeploymentsTestSuite struct {
 
 func (ing *DeploymentsTestSuite) TestGetDeployment() {
 	ctx := context.Background()
-	var kns = CloudCtxNs{Env: "", CloudProvider: "", Region: "", Context: "data", Namespace: "eth-indexer"}
+	var kns = zeus_common_types.CloudCtxNs{Env: "", CloudProvider: "", Region: "", Context: "data", Namespace: "eth-indexer"}
 	pods, err := ing.K.GetDeployment(ctx, kns, "eth-indexer", nil)
 	ing.Require().Nil(err)
 	ing.Require().NotEmpty(pods)

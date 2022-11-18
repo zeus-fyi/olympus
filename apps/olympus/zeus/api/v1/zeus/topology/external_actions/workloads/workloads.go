@@ -8,12 +8,12 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
-	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
+	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
 
 type TopologyCloudCtxNsQueryRequest struct {
-	zeus_core.CloudCtxNs
+	zeus_common_types.CloudCtxNs
 }
 
 func (t *TopologyCloudCtxNsQueryRequest) ReadDeployedWorkloads(c echo.Context) error {

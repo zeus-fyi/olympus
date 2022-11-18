@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 )
 
 type IngressTestSuite struct {
@@ -13,7 +14,7 @@ type IngressTestSuite struct {
 
 func (ing *IngressTestSuite) TestGetIngress() {
 	ctx := context.Background()
-	var kns = CloudCtxNs{Env: "", CloudProvider: "", Region: "", Context: "data", Namespace: "eth-indexer"}
+	var kns = zeus_common_types.CloudCtxNs{Env: "", CloudProvider: "", Region: "", Context: "data", Namespace: "eth-indexer"}
 
 	pods, err := ing.K.GetPodsUsingCtxNs(ctx, kns, nil, nil)
 	ing.Require().Nil(err)

@@ -2,17 +2,10 @@ package zeus_resp_types
 
 import (
 	"database/sql"
-	"time"
 )
 
 type TopologyCreateResponse struct {
-	ID int `json:"id"`
-}
-
-type DeployStatus struct {
-	TopologyID     int       `db:"topology_id" json:"topologyID"`
-	TopologyStatus string    `db:"topology_status" json:"topologyStatus"`
-	UpdatedAt      time.Time `db:"updated_at" json:"updatedAt"`
+	TopologyID int `json:"id"`
 }
 
 type ReadTopologiesMetadata struct {

@@ -10,17 +10,16 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_resp_types"
 )
 
-func (z *ZeusClient) DestroyDeploy(ctx context.Context, tar zeus_req_types.TopologyDeployRequest) (zeus_resp_types.TopologyDeployStatus, error) {
+func (z *ZeusClient) ReadDeployStatusUpdates(ctx context.Context, tar zeus_req_types.TopologyRequest) (zeus_resp_types.TopologyDeployStatuses, error) {
 	z.PrintReqJson(tar)
-
-	respJson := zeus_resp_types.TopologyDeployStatus{}
+	respJson := zeus_resp_types.TopologyDeployStatuses{}
 	resp, err := z.R().
-		SetResult(&respJson).
+		SetResult(&respJson.Slice).
 		SetBody(tar).
-		Post(zeus_endpoints.DestroyDeployInfraV1Path)
+		Post(zeus_endpoints.DeployStatusV1Path)
 
 	if err != nil || resp.StatusCode() != http.StatusOK {
-		log.Ctx(ctx).Err(err).Msg("ZeusClient: DestroyDeploy")
+		log.Ctx(ctx).Err(err).Msg("ZeusClient: ReadDeployStatusUpdates")
 		return respJson, err
 	}
 	z.PrintRespJson(resp.Body())

@@ -13,7 +13,7 @@ type TopologyDeployRequest struct {
 }
 
 type TopologyRequest struct {
-	TopologyID int `db:"topology_id" json:"topologyID"`
+	TopologyID int `json:"topologyID"`
 }
 
 type TopologyCloudCtxNsQueryRequest struct {

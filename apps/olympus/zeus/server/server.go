@@ -55,7 +55,7 @@ func (s *Server) Start() {
 	// Start server
 	go func() {
 		if err := s.E.Start(address); err != nil && err != http.ErrServerClosed {
-			log.Fatal().Msg("Start up failed, shutting down the server")
+			log.Fatal().Err(err).Msg("Start up failed, shutting down the server")
 		}
 	}()
 	log.Info().Msgf("server listening on address %s", address)

@@ -31,7 +31,7 @@ func (p *PodsHandlerTestSuite) SetupTest() {
 	p.SetupTestServer()
 }
 
-var kns = autok8s_core.KubeCtxNs{CloudProvider: "do", Region: "sfo3", Context: "zeus-k8s-blockchain", Namespace: "eth-indexer"}
+var kns = autok8s_core.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "zeus-k8s-blockchain", Namespace: "eth-indexer"}
 
 func (p *PodsHandlerTestSuite) TestPodPortForwardGET() {
 
@@ -133,7 +133,7 @@ func (p *PodsHandlerTestSuite) TestGetPodLogs() {
 }
 
 func (p *PodsHandlerTestSuite) TestDeletePod() {
-	var testKns = autok8s_core.KubeCtxNs{CloudProvider: "do", Region: "sfo3", Context: "zeus-k8s-blockchain", Namespace: "eth-indexer"}
+	var testKns = autok8s_core.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "zeus-k8s-blockchain", Namespace: "eth-indexer"}
 
 	podActionRequest := PodActionRequest{
 		Action:     "delete",

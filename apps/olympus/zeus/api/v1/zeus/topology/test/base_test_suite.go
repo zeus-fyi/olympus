@@ -18,7 +18,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-var Kns autok8s_core.KubeCtxNs
+var Kns autok8s_core.CloudCtxNs
 
 var TestOrgUser = org_users.OrgUser{autogen_bases.OrgUsers{
 	OrgID:  1667452524363177528,

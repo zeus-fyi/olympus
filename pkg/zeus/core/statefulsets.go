@@ -9,13 +9,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (k *K8Util) GetStatefulSetList(ctx context.Context, kubeCtxNs KubeCtxNs, filter *string_utils.FilterOpts) (*v1.StatefulSetList, error) {
+func (k *K8Util) GetStatefulSetList(ctx context.Context, kubeCtxNs CloudCtxNs, filter *string_utils.FilterOpts) (*v1.StatefulSetList, error) {
 	opts := metav1.ListOptions{}
 	ssl, err := k.kc.AppsV1().StatefulSets(kubeCtxNs.Namespace).List(ctx, opts)
 	return ssl, err
 }
 
-func (k *K8Util) GetStatefulSet(ctx context.Context, kns KubeCtxNs, name string, filter *string_utils.FilterOpts) (*v1.StatefulSet, error) {
+func (k *K8Util) GetStatefulSet(ctx context.Context, kns CloudCtxNs, name string, filter *string_utils.FilterOpts) (*v1.StatefulSet, error) {
 	k.PrintPath = "stateful_sets"
 	k.FileName = name
 	opts := metav1.GetOptions{}
@@ -27,7 +27,7 @@ func (k *K8Util) GetStatefulSet(ctx context.Context, kns KubeCtxNs, name string,
 	return ss, err
 }
 
-func (k *K8Util) DeleteStatefulSet(ctx context.Context, kns KubeCtxNs, name string, filter *string_utils.FilterOpts) error {
+func (k *K8Util) DeleteStatefulSet(ctx context.Context, kns CloudCtxNs, name string, filter *string_utils.FilterOpts) error {
 	opts := metav1.DeleteOptions{}
 	err := k.kc.AppsV1().StatefulSets(kns.Namespace).Delete(ctx, name, opts)
 	if errors.IsNotFound(err) {
@@ -36,19 +36,19 @@ func (k *K8Util) DeleteStatefulSet(ctx context.Context, kns KubeCtxNs, name stri
 	return err
 }
 
-func (k *K8Util) UpdateStatefulSet(ctx context.Context, kns KubeCtxNs, ss *v1.StatefulSet, filter *string_utils.FilterOpts) (*v1.StatefulSet, error) {
+func (k *K8Util) UpdateStatefulSet(ctx context.Context, kns CloudCtxNs, ss *v1.StatefulSet, filter *string_utils.FilterOpts) (*v1.StatefulSet, error) {
 	opts := metav1.UpdateOptions{}
 	ss, err := k.kc.AppsV1().StatefulSets(kns.Namespace).Update(ctx, ss, opts)
 	return ss, err
 }
 
-func (k *K8Util) CreateStatefulSet(ctx context.Context, kns KubeCtxNs, ss *v1.StatefulSet, filter *string_utils.FilterOpts) (*v1.StatefulSet, error) {
+func (k *K8Util) CreateStatefulSet(ctx context.Context, kns CloudCtxNs, ss *v1.StatefulSet, filter *string_utils.FilterOpts) (*v1.StatefulSet, error) {
 	opts := metav1.CreateOptions{}
 	ss, err := k.kc.AppsV1().StatefulSets(kns.Namespace).Create(ctx, ss, opts)
 	return ss, err
 }
 
-func (k *K8Util) CreateStatefulSetIfVersionLabelChangesOrDoesNotExist(ctx context.Context, kns KubeCtxNs, nsts *v1.StatefulSet, filter *string_utils.FilterOpts) (*v1.StatefulSet, error) {
+func (k *K8Util) CreateStatefulSetIfVersionLabelChangesOrDoesNotExist(ctx context.Context, kns CloudCtxNs, nsts *v1.StatefulSet, filter *string_utils.FilterOpts) (*v1.StatefulSet, error) {
 	csts, err := k.GetStatefulSet(ctx, kns, nsts.Name, filter)
 	switch {
 	case csts != nil && len(csts.Name) > 0:

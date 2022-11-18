@@ -13,7 +13,7 @@ type NamespaceWorkloadTestSuite struct {
 
 func (s *NamespaceWorkloadTestSuite) TestGetNamespaceWorkload() {
 	ctx := context.Background()
-	var kns KubeCtxNs
+	var kns CloudCtxNs
 	kns.Namespace = "ethereum"
 	w, err := s.K.GetWorkloadAtNamespace(ctx, kns)
 	s.Require().Nil(err)

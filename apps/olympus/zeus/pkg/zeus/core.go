@@ -5,7 +5,7 @@ import (
 )
 
 type K8sRequest struct {
-	Kns autok8s_core.KubeCtxNs
+	Kns autok8s_core.CloudCtxNs
 }
 
 var K8Util autok8s_core.K8Util

@@ -48,7 +48,7 @@ func (k *K8Util) GetPods(ctx context.Context, ns string, opts metav1.ListOptions
 	return k.kc.CoreV1().Pods(ns).List(context.Background(), opts)
 }
 
-func (k *K8Util) GetPodsUsingCtxNs(ctx context.Context, kubeCtxNs KubeCtxNs, logOpts *v1.PodLogOptions, filter *string_utils.FilterOpts) (*v1.PodList, error) {
+func (k *K8Util) GetPodsUsingCtxNs(ctx context.Context, kubeCtxNs CloudCtxNs, logOpts *v1.PodLogOptions, filter *string_utils.FilterOpts) (*v1.PodList, error) {
 	log.Ctx(ctx).Debug().Msg("GetPodsUsingCtxNs")
 	if logOpts == nil {
 		logOpts = &v1.PodLogOptions{}
@@ -73,7 +73,7 @@ func (k *K8Util) GetPodsUsingCtxNs(ctx context.Context, kubeCtxNs KubeCtxNs, log
 	return pods, err
 }
 
-func (k *K8Util) GetFirstPodLike(ctx context.Context, kubeCtxNs KubeCtxNs, podName string, filter *string_utils.FilterOpts) (*v1.Pod, error) {
+func (k *K8Util) GetFirstPodLike(ctx context.Context, kubeCtxNs CloudCtxNs, podName string, filter *string_utils.FilterOpts) (*v1.Pod, error) {
 	pods, err := k.GetPodsUsingCtxNs(ctx, kubeCtxNs, nil, filter)
 	if err != nil {
 		return nil, err

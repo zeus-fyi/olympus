@@ -15,7 +15,7 @@ type NamespaceTestSuite struct {
 
 func (s *NamespaceTestSuite) TestGetK8Namespace() {
 	ctx := context.Background()
-	var kns KubeCtxNs
+	var kns CloudCtxNs
 	kns.Namespace = "demo"
 	nsl, err := s.K.GetNamespace(ctx, kns)
 	s.Nil(err)
@@ -24,7 +24,7 @@ func (s *NamespaceTestSuite) TestGetK8Namespace() {
 
 func (s *NamespaceTestSuite) TestCreateNamespaceIfDoesNotExist() {
 	ctx := context.Background()
-	var kns KubeCtxNs
+	var kns CloudCtxNs
 	kns.Namespace = "demo"
 	nsl, err := s.K.CreateNamespaceIfDoesNotExist(ctx, kns)
 	s.Nil(err)
@@ -55,7 +55,7 @@ func (s *NamespaceTestSuite) TestCreateK8sNamespace() {
 
 func (s *NamespaceTestSuite) TestDeleteNamespace() {
 	ctx := context.Background()
-	var kns KubeCtxNs
+	var kns CloudCtxNs
 	kns.Namespace = "demo"
 	err := s.K.DeleteNamespace(ctx, kns)
 	s.Require().Nil(err)

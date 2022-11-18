@@ -17,7 +17,7 @@ type NamespaceWorkload struct {
 	*v1.ConfigMapList         `json:"configMapList"`
 }
 
-func (k *K8Util) GetWorkloadAtNamespace(ctx context.Context, kns KubeCtxNs) (NamespaceWorkload, error) {
+func (k *K8Util) GetWorkloadAtNamespace(ctx context.Context, kns CloudCtxNs) (NamespaceWorkload, error) {
 	wrkLoad := NamespaceWorkload{}
 	pods, err := k.GetPodsUsingCtxNs(ctx, kns, nil, nil)
 	if err != nil {

@@ -28,7 +28,7 @@ type K8Util struct {
 	PrintOn   bool
 }
 
-type KubeCtxNs struct {
+type CloudCtxNs struct {
 	CloudProvider string `json:"cloudProvider"`
 	Region        string `json:"region"`
 	Context       string `json:"context"`
@@ -36,8 +36,8 @@ type KubeCtxNs struct {
 	Env           string `json:"env"`
 }
 
-func NewKubeCtxNsFromTopologyKns(kns kns.TopologyKubeCtxNs) KubeCtxNs {
-	return KubeCtxNs{
+func NewKubeCtxNsFromTopologyKns(kns kns.TopologyKubeCtxNs) CloudCtxNs {
+	return CloudCtxNs{
 		CloudProvider: kns.CloudProvider,
 		Region:        kns.Region,
 		Context:       kns.Context,
@@ -50,7 +50,7 @@ type FilterOpts struct {
 	DoesNotInclude []string
 }
 
-func (kCtx *KubeCtxNs) GetCtxName(env string) string {
+func (kCtx *CloudCtxNs) GetCtxName(env string) string {
 	return fmt.Sprintf("%s-%s-%s", kCtx.CloudProvider, kCtx.Region, kCtx.Context)
 }
 

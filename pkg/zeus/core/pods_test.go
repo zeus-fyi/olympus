@@ -21,7 +21,7 @@ func (s *PodsTestSuite) TestPodPortForward() {
 	c.E = "http://localhost:9000"
 
 	ctx := context.Background()
-	var kns = KubeCtxNs{CloudProvider: "do", Region: "sfo3", Context: "zeus-k8s-blockchain", Namespace: "eth-indexer"}
+	var kns = CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "zeus-k8s-blockchain", Namespace: "eth-indexer"}
 
 	address := "localhost"
 	ports := "9000:9000"
@@ -59,7 +59,7 @@ func (s *PodsTestSuite) TestPodPortForward() {
 
 func (s *PodsTestSuite) TestGetPods() {
 	ctx := context.Background()
-	var kns = KubeCtxNs{Env: "", CloudProvider: "do", Region: "sfo", Context: "dev-do-sfo3-zeus", Namespace: "eth-indexer"}
+	var kns = CloudCtxNs{Env: "", CloudProvider: "do", Region: "sfo", Context: "dev-do-sfo3-zeus", Namespace: "eth-indexer"}
 
 	pods, err := s.K.GetPodsUsingCtxNs(ctx, kns, nil, nil)
 	s.Require().Nil(err)

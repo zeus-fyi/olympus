@@ -40,7 +40,7 @@ func (t *TopologyCloudCtxNsQueryRequest) ReadDeployedWorkloads(c echo.Context) e
 	if authed != true {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	kCtxNs := autok8s_core.KubeCtxNs{
+	kCtxNs := autok8s_core.CloudCtxNs{
 		CloudProvider: t.CloudProvider,
 		Region:        t.Region,
 		Context:       t.Context,

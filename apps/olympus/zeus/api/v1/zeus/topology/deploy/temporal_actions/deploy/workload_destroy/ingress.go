@@ -7,7 +7,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/base_request"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
@@ -19,8 +18,7 @@ func DestroyDeployIngressHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	if request.Ingress != nil {
-		kns := zeus_core.NewKubeCtxNsFromTopologyKns(request.Kns)
-		err := zeus.K8Util.DeleteIngressWithKns(ctx, kns, request.Ingress.Name, nil)
+		err := zeus.K8Util.DeleteIngressWithKns(ctx, request.Kns.CloudCtxNs, request.Ingress.Name, nil)
 		if err != nil {
 			log.Err(err).Msg("DestroyDeployIngressHandler")
 			return c.JSON(http.StatusInternalServerError, err)

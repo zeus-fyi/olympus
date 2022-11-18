@@ -1,19 +1,25 @@
 package kns
 
-import autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+import (
+	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
+)
 
 type TopologyKubeCtxNs struct {
-	autogen_bases.TopologiesKns
+	TopologyID int `db:"topology_id" json:"topologyID"`
+	zeus_core.CloudCtxNs
 }
 
 func NewKns() TopologyKubeCtxNs {
-	k := TopologyKubeCtxNs{autogen_bases.TopologiesKns{
-		TopologyID:    0,
-		CloudProvider: "",
-		Region:        "",
-		Context:       "",
-		Namespace:     "",
-		Env:           "",
-	}}
+	k := TopologyKubeCtxNs{
+		TopologyID: 0,
+		CloudCtxNs: zeus_core.NewCloudCtxNs(),
+	}
 	return k
+}
+
+func NewTopologyCloudCtxNs(topID int, ccns zeus_core.CloudCtxNs) TopologyKubeCtxNs {
+	return TopologyKubeCtxNs{
+		TopologyID: topID,
+		CloudCtxNs: ccns,
+	}
 }

@@ -13,7 +13,7 @@ import (
 func PodsDeleteRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
 	log.Ctx(ctx).Debug().Msg("PodsDeleteRequest")
-	err := zeus.K8Util.DeleteFirstPodLike(ctx, request.Kns, request.PodName, request.DeleteOpts, request.FilterOpts)
+	err := zeus.K8Util.DeleteFirstPodLike(ctx, request.CloudCtxNs, request.PodName, request.DeleteOpts, request.FilterOpts)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("PodsDeleteRequest: DeleteFirstPodLike")
 		return err
@@ -25,7 +25,7 @@ func PodsDeleteRequest(c echo.Context, request *PodActionRequest) error {
 func PodsDeleteAllRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
 	log.Ctx(ctx).Debug().Msg("PodsDeleteAllRequest")
-	err := zeus.K8Util.DeleteAllPodsLike(ctx, request.Kns, request.PodName, request.DeleteOpts, request.FilterOpts)
+	err := zeus.K8Util.DeleteAllPodsLike(ctx, request.CloudCtxNs, request.PodName, request.DeleteOpts, request.FilterOpts)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("PodsDeleteAllRequest: DeleteAllPodsLike")
 		return err

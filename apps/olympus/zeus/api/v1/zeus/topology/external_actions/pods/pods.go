@@ -3,14 +3,14 @@ package pods
 import (
 	"time"
 
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
-	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type PodActionRequest struct {
-	zeus.K8sRequest
+	kns.TopologyKubeCtxNs
 	Action        string
 	PodName       string
 	ContainerName string

@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"k8s.io/client-go/kubernetes"
@@ -36,13 +35,13 @@ type CloudCtxNs struct {
 	Env           string `json:"env"`
 }
 
-func NewKubeCtxNsFromTopologyKns(kns kns.TopologyKubeCtxNs) CloudCtxNs {
+func NewCloudCtxNs() CloudCtxNs {
 	return CloudCtxNs{
-		CloudProvider: kns.CloudProvider,
-		Region:        kns.Region,
-		Context:       kns.Context,
-		Namespace:     kns.Namespace,
-		Env:           kns.Env,
+		CloudProvider: "",
+		Region:        "",
+		Context:       "",
+		Namespace:     "",
+		Env:           "",
 	}
 }
 

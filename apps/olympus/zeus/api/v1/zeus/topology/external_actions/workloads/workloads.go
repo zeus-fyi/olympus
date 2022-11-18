@@ -10,6 +10,8 @@ import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
+	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
+	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
 
 type TopologyCloudCtxNsQueryRequest struct {
@@ -33,11 +35,22 @@ func (t *TopologyCloudCtxNsQueryRequest) ReadDeployedWorkloads(c echo.Context) e
 		Namespace:     t.Namespace,
 		Env:           t.Env,
 	}
+	// TODO move to middleware
 	authed, err := read_topology.IsOrgCloudCtxNsAuthorized(ctx, ou.OrgID, knsDeploy)
 	if authed != true {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-
-	return nil
-
+	kCtxNs := autok8s_core.KubeCtxNs{
+		CloudProvider: t.CloudProvider,
+		Region:        t.Region,
+		Context:       t.Context,
+		Namespace:     t.Namespace,
+		Env:           t.Env,
+	}
+	workload, err := zeus.K8Util.GetWorkloadAtNamespace(ctx, kCtxNs)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("TopologyCloudCtxNsQueryRequest: GetWorkloadAtNamespace")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	return c.JSON(http.StatusOK, workload)
 }

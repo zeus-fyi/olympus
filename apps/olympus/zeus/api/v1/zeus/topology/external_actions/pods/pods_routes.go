@@ -6,7 +6,7 @@ import (
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
 
-func Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
+func ExternalApiPodsRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
 	e.POST("/pods", HandlePodActionRequest)
 

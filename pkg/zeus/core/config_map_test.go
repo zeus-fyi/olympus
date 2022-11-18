@@ -13,7 +13,7 @@ type ConfigMapTestSuite struct {
 
 func (ing *ConfigMapTestSuite) TestGetConfigMap() {
 	ctx := context.Background()
-	var kns = KubeCtxNs{Env: "", CloudProvider: "", Region: "", CtxType: "data", Namespace: "eth-indexer"}
+	var kns = KubeCtxNs{Env: "", CloudProvider: "", Region: "", Context: "data", Namespace: "eth-indexer"}
 	pods, err := ing.K.GetConfigMapWithKns(ctx, kns, "cm-eth-indexer", nil)
 	ing.Require().Nil(err)
 	ing.Require().NotEmpty(pods)

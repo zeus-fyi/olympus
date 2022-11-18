@@ -6,9 +6,8 @@ import (
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
 
-func ExternalApiWorkloadQueryActionRoutes(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
+func ExternalApiWorkloadQueryActionRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
 	e.POST("/workload/read", ExternalApiWorkloadQueryActionRequestHandler)
-
 	return e
 }

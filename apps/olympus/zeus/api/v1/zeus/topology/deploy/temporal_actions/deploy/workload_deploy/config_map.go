@@ -8,26 +8,26 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
-	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/actions/base_request"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/base_request"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
 
-func DeployIngressHandler(c echo.Context) error {
+func DeployConfigMapHandler(c echo.Context) error {
 	ctx := context.Background()
 	request := new(base_request.InternalDeploymentActionRequest)
 	if err := c.Bind(request); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	if request.Ingress != nil {
+	if request.ConfigMap != nil {
 		kns := zeus_core.NewKubeCtxNsFromTopologyKns(request.Kns)
-		log.Debug().Interface("kns", kns).Msg("DeployIngressHandler: CreateIngressIfVersionLabelChangesOrDoesNotExist")
-		_, err := zeus.K8Util.CreateIngressIfVersionLabelChangesOrDoesNotExist(ctx, kns, request.Ingress, nil)
+		log.Debug().Interface("kns", kns).Msg("DeployConfigMapHandler: CreateConfigMapIfVersionLabelChangesOrDoesNotExist")
+		_, err := zeus.K8Util.CreateConfigMapIfVersionLabelChangesOrDoesNotExist(ctx, kns, request.ConfigMap, nil)
 		if err != nil {
-			log.Err(err).Msg("DeployIngressHandler")
+			log.Err(err).Msg("DeployConfigMapHandler")
 			return c.JSON(http.StatusInternalServerError, err)
 		}
 	} else {
-		err := errors.New("no ingress workload was supplied")
+		err := errors.New("no configmap workload was supplied")
 		return c.JSON(http.StatusBadRequest, err)
 	}
 	return c.JSON(http.StatusOK, nil)

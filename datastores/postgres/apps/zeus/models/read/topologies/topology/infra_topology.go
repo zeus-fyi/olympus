@@ -72,3 +72,14 @@ func (t *InfraBaseTopology) IsOrgCloudCtxNsAuthorized(ctx context.Context, kns k
 	}
 	return authorized, err
 }
+
+func IsOrgCloudCtxNsAuthorized(ctx context.Context, orgID int, kns kns.TopologyKubeCtxNs) (bool, error) {
+	q := getIsOrgCloudCtxNsAuthorizedQueryParams()
+	log.Debug().Interface("IsOrgCloudCtxNsAuthorized", q.LogHeader(Sn))
+	authorized := false
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, orgID, kns.CloudProvider, kns.Context, kns.Region, kns.Namespace).Scan(&authorized)
+	if err != nil {
+		return false, errors.New("not authorized")
+	}
+	return authorized, err
+}

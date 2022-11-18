@@ -9,6 +9,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+func (k *K8Util) GetServiceListWithKns(ctx context.Context, kns KubeCtxNs, filter *string_utils.FilterOpts) (*v1.ServiceList, error) {
+	return k.kc.CoreV1().Services(kns.Namespace).List(ctx, metav1.ListOptions{})
+}
+
 func (k *K8Util) GetServiceWithKns(ctx context.Context, kns KubeCtxNs, name string, filter *string_utils.FilterOpts) (*v1.Service, error) {
 	return k.kc.CoreV1().Services(kns.Namespace).Get(ctx, name, metav1.GetOptions{})
 }

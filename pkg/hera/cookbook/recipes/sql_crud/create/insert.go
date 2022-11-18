@@ -9,14 +9,14 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/hera/cookbook/recipes/sql_crud/base"
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/funcs"
 	primitive "github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/structs"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
 type InsertModelTemplate struct {
 	base.ModelTemplate
 }
 
-func NewInsertModelTemplate(p structs.Path) InsertModelTemplate {
+func NewInsertModelTemplate(p filepaths.Path) InsertModelTemplate {
 	sqlQueryType := "create"
 	queryInfo := common.QueryMetadata{Type: sqlQueryType}
 	m := InsertModelTemplate{base.NewPGModelTemplate(p, &queryInfo, "")}

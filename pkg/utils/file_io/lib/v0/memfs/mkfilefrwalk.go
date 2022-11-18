@@ -5,10 +5,10 @@ import (
 	"io/fs"
 	"path/filepath"
 
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
-func (m *MemFS) WalkAndApplyFuncToFileType(p *structs.Path, ext string, f func(p string, fs *MemFS) error) error {
+func (m *MemFS) WalkAndApplyFuncToFileType(p *filepaths.Path, ext string, f func(p string, fs *MemFS) error) error {
 	if p == nil {
 		return errors.New("need to include a path")
 	}

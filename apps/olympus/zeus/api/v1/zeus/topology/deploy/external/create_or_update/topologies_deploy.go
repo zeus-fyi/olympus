@@ -43,5 +43,11 @@ func (t *TopologyDeployRequest) DeployTopology(c echo.Context) error {
 		Namespace:     t.Namespace,
 		Env:           t.Env,
 	}
+
+	// validate context kns
+	authed, err := tr.IsOrgCloudCtxNsAuthorized(ctx, knsDeploy)
+	if authed != true {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
 	return zeus.ExecuteDeployWorkflow(c, ctx, ou, knsDeploy, tr.GetNativeK8s())
 }

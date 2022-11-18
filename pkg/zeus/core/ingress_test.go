@@ -13,7 +13,7 @@ type IngressTestSuite struct {
 
 func (ing *IngressTestSuite) TestGetIngress() {
 	ctx := context.Background()
-	var kns = KubeCtxNs{Env: "", CloudProvider: "", Region: "", CtxType: "data", Namespace: "eth-indexer"}
+	var kns = KubeCtxNs{Env: "", CloudProvider: "", Region: "", Context: "data", Namespace: "eth-indexer"}
 
 	pods, err := ing.K.GetPodsUsingCtxNs(ctx, kns, nil, nil)
 	ing.Require().Nil(err)

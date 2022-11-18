@@ -12,7 +12,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/packages"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
@@ -26,7 +26,7 @@ var LocalTemporalUserID = 7138958574876245567
 var LocalTemporalOrgID = 7138983863666903883
 
 func (s *CreateBeaconInfraTestSuite) TestInsertInfraBase() {
-	p := structs.Path{
+	p := filepaths.Path{
 		PackageName: "",
 		DirIn:       s.TestDirectory + "/mocks/demo",
 		FnIn:        "deployment.yaml",

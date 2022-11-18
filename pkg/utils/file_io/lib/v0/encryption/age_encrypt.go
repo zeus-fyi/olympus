@@ -6,11 +6,11 @@ import (
 	"os"
 
 	"filippo.io/age"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/readers"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
-func (a *Age) Encrypt(p *structs.Path) error {
+func (a *Age) Encrypt(p *filepaths.Path) error {
 	if p == nil {
 		return errors.New("need to include a path")
 	}

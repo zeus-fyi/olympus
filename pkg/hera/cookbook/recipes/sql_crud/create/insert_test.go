@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	primitive "github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/structs"
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/test"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
 type StructInsertFuncGenRecipeTestSuite struct {
@@ -16,7 +16,7 @@ type StructInsertFuncGenRecipeTestSuite struct {
 var printOutLocation = "/Users/alex/Desktop/Zeus/olympus/datastores/postgres/apps/zeus/models/create/autogen"
 
 func (s *StructInsertFuncGenRecipeTestSuite) TestStructInsertFuncGen() {
-	p := structs.Path{
+	p := filepaths.Path{
 		PackageName: "autogen_structs",
 		DirIn:       "",
 		DirOut:      printOutLocation,

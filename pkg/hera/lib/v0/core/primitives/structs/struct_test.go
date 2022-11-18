@@ -8,7 +8,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/core/primitives/fields"
 	code_driver "github.com/zeus-fyi/olympus/pkg/hera/lib/v0/drivers/code"
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/test"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
 type StructTestSuite struct {
@@ -18,7 +18,7 @@ type StructTestSuite struct {
 var printOutLocation = "/Users/alex/Desktop/Zeus/olympus/pkg/hera/cookbook/autogen/types_template_preview/structs"
 
 func createTestCodeGenShell() code_driver.CodeDriverLib {
-	p := structs.Path{
+	p := filepaths.Path{
 		PackageName: "_struct",
 		DirIn:       "",
 		DirOut:      printOutLocation,

@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
 )
@@ -24,7 +24,7 @@ func (t *S3ReadTestSuite) TestRead() {
 		Bucket: aws.String("zeus-fyi"),
 		Key:    aws.String("test.txt"),
 	}
-	p := structs.Path{
+	p := filepaths.Path{
 		PackageName: "",
 		DirIn:       "",
 		DirOut:      "",

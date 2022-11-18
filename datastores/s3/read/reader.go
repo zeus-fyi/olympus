@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/rs/zerolog/log"
 	s3base "github.com/zeus-fyi/olympus/datastores/s3"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 )
 
@@ -25,7 +25,7 @@ func NewS3ClientReader(baseClient s3base.S3Client) S3ClientReader {
 	}
 }
 
-func (s *S3ClientReader) Read(ctx context.Context, p *structs.Path, s3KeyValue *s3.GetObjectInput) error {
+func (s *S3ClientReader) Read(ctx context.Context, p *filepaths.Path, s3KeyValue *s3.GetObjectInput) error {
 	if p == nil {
 		return errors.New("need to include a path")
 	}
@@ -44,7 +44,7 @@ func (s *S3ClientReader) Read(ctx context.Context, p *structs.Path, s3KeyValue *
 	return err
 }
 
-func (s *S3ClientReader) ReadBytes(ctx context.Context, p *structs.Path, s3KeyValue *s3.GetObjectInput) *bytes.Buffer {
+func (s *S3ClientReader) ReadBytes(ctx context.Context, p *filepaths.Path, s3KeyValue *s3.GetObjectInput) *bytes.Buffer {
 	if p == nil {
 		panic(errors.New("need to include a path"))
 	}

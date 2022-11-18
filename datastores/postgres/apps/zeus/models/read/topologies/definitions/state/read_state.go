@@ -27,6 +27,7 @@ func (s *ReadDeploymentStatusesGroup) defaultQ() sql_query_templates.QueryParams
 			  LEFT JOIN topologies_kns tkns ON tkns.topology_id = tp.topology_id
 			  WHERE tp.topology_id = $1 AND out.org_id = $2 AND out.user_id = $3
 			  ORDER BY tp.updated_at DESC
+			  LIMIT 1000
 			  `
 	q.RawQuery = query
 	return q
@@ -45,9 +46,9 @@ func (s *ReadDeploymentStatusesGroup) ReadStatus(ctx context.Context, topologyID
 	for rows.Next() {
 		rs := ReadDeploymentStatus{}
 		rowErr := rows.Scan(
-			&rs.Kns.TopologyID, &rs.TopologyName,
+			&rs.CloudCtxNs.TopologyID, &rs.TopologyName,
 			&rs.TopologyStatus, &rs.UpdatedAt,
-			&rs.Kns.CloudProvider, &rs.Kns.Region, &rs.Kns.Context, &rs.Kns.Namespace, &rs.Kns.Env,
+			&rs.CloudCtxNs.CloudProvider, &rs.CloudCtxNs.Region, &rs.CloudCtxNs.Context, &rs.CloudCtxNs.Namespace, &rs.CloudCtxNs.Env,
 		)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader(Sn))

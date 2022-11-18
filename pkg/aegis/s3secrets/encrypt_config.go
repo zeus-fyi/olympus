@@ -3,10 +3,10 @@ package s3secrets
 import (
 	"errors"
 
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
-func (s *S3Secrets) GzipAndEncrypt(p *structs.Path) error {
+func (s *S3Secrets) GzipAndEncrypt(p *filepaths.Path) error {
 	if p == nil {
 		return errors.New("need to include a path")
 	}

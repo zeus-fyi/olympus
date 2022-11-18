@@ -1,10 +1,10 @@
 package memfs
 
 import (
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
-func (m *MemFS) MkPathDirAll(p *structs.Path) error {
+func (m *MemFS) MkPathDirAll(p *filepaths.Path) error {
 	if err := m.MkdirAll(p.DirOut, 0700); err != nil {
 		return err
 	}

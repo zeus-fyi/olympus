@@ -43,5 +43,10 @@ func (t *TopologyDestroyDeployRequest) DestroyDeployedTopology(c echo.Context) e
 		Namespace:     t.Namespace,
 		Env:           t.Env,
 	}
+	// validate context kns
+	authed, err := tr.IsOrgCloudCtxNsAuthorized(ctx, knsDestroyDeploy)
+	if authed != true {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
 	return zeus.ExecuteDestroyDeployWorkflow(c, ctx, ou, knsDestroyDeploy, tr.GetNativeK8s())
 }

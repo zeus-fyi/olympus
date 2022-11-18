@@ -9,11 +9,11 @@ import (
 	"path"
 
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
-func (c *Compression) UnGzipFromInMemFsOutToInMemFS(p *structs.Path, fs memfs.MemFS) error {
+func (c *Compression) UnGzipFromInMemFsOutToInMemFS(p *filepaths.Path, fs memfs.MemFS) error {
 	if p == nil {
 		return errors.New("need to include a path")
 	}

@@ -12,13 +12,13 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	"github.com/zeus-fyi/olympus/pkg/athena"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
 var cfg = Config{}
 var authKeysCfg auth_keys_config.AuthKeysCfg
 var env string
-var dataDir structs.Path
+var dataDir filepaths.Path
 
 func Athena() {
 	ctx := context.Background()

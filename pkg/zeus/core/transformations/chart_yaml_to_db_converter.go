@@ -6,16 +6,16 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/paths"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 )
 
 type YamlFileIO struct {
 	chart_workload.NativeK8s
 }
 
-func (y *YamlFileIO) ReadK8sWorkloadDir(p structs.Path) error {
+func (y *YamlFileIO) ReadK8sWorkloadDir(p filepaths.Path) error {
 	err := paths.WalkAndApplyFuncToFileType(p, ".yaml", y.DecodeK8sWorkload)
 	if err != nil {
 		return err
@@ -37,7 +37,7 @@ func (y *YamlFileIO) ReadYamlConfig(filepath string) ([]byte, error) {
 	return jsonBytes, err
 }
 
-func (y *YamlFileIO) ReadK8sWorkloadInMemFsDir(p structs.Path, fs memfs.MemFS) error {
+func (y *YamlFileIO) ReadK8sWorkloadInMemFsDir(p filepaths.Path, fs memfs.MemFS) error {
 	err := fs.WalkAndApplyFuncToFileType(&p, ".yaml", y.DecodeK8sWorkloadFromInMemFS)
 	if err != nil {
 		return err

@@ -9,6 +9,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+func (k *K8Util) GetConfigMapListWithKns(ctx context.Context, kns KubeCtxNs, filter *string_utils.FilterOpts) (*v1.ConfigMapList, error) {
+	return k.kc.CoreV1().ConfigMaps(kns.Namespace).List(ctx, metav1.ListOptions{})
+}
+
 func (k *K8Util) GetConfigMapWithKns(ctx context.Context, kns KubeCtxNs, name string, filter *string_utils.FilterOpts) (*v1.ConfigMap, error) {
 	return k.kc.CoreV1().ConfigMaps(kns.Namespace).Get(ctx, name, metav1.GetOptions{})
 }

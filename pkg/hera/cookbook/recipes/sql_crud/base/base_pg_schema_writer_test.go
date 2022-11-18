@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
@@ -21,7 +21,7 @@ func (s *ModelStructBaseGenWriterTestSuite) TestPGBaseSchemaWriter() {
 		Contains:              "",
 		DoesNotInclude:        nil,
 	}
-	p := structs.Path{
+	p := filepaths.Path{
 		PackageName: "autogen_bases",
 		DirIn:       "",
 		DirOut:      printOutLocationZeus,
@@ -44,7 +44,7 @@ func (s *ModelStructBaseGenWriterTestSuite) TestHestiaBaseSchemaWriter() {
 		Contains:              "",
 		DoesNotInclude:        nil,
 	}
-	p := structs.Path{
+	p := filepaths.Path{
 		PackageName: "autogen_bases",
 		DirIn:       "",
 		DirOut:      printOutLocationHestia,

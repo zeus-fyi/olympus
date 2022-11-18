@@ -16,7 +16,6 @@ type CreateKnsTestSuite struct {
 }
 
 func (s *CreateKnsTestSuite) TestInsertKns() {
-
 	topID, _ := s.SeedTopology()
 	newKns := NewCreateKns()
 	newKns.CloudProvider = "do"

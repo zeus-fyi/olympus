@@ -6,11 +6,11 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
-func WalkAndApplyFuncToFileType(p structs.Path, ext string, f func(p string) error) error {
+func WalkAndApplyFuncToFileType(p filepaths.Path, ext string, f func(p string) error) error {
 	fileSystem := os.DirFS(p.DirIn)
 	err := fs.WalkDir(fileSystem, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {

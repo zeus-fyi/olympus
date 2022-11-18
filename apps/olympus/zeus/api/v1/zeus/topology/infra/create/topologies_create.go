@@ -24,7 +24,7 @@ type TopologyCreateRequest struct {
 }
 
 type TopologyCreateResponse struct {
-	ID int `json:"id"`
+	TopologyID int `json:"topologyID"`
 }
 
 func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {
@@ -92,7 +92,7 @@ func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {
 	}
 
 	resp := TopologyCreateResponse{
-		ID: inf.TopologyID,
+		TopologyID: inf.TopologyID,
 	}
 	return c.JSON(http.StatusOK, resp)
 }

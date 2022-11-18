@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
 var logLevelFilter = "error"
 
-func (l *WriterLib) InterfacePrinter(path structs.Path, v interface{}) (interface{}, error) {
+func (l *WriterLib) InterfacePrinter(path filepaths.Path, v interface{}) (interface{}, error) {
 	jsonParams, e := json.MarshalIndent(&v, "", " ")
 	if e != nil {
 		return v, e
@@ -20,7 +20,7 @@ func (l *WriterLib) InterfacePrinter(path structs.Path, v interface{}) (interfac
 	return v, err
 }
 
-func (l *WriterLib) Print(p structs.Path, data []byte) error {
+func (l *WriterLib) Print(p filepaths.Path, data []byte) error {
 	ts := l.Log.UnixTimeStampNow()
 
 	if p.Env == "development" {

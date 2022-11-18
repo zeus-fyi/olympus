@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
 type TemplateTestSuite struct {
@@ -18,7 +18,7 @@ func (s *TemplateTestSuite) SetupTest() {
 }
 
 func (s *TemplateTestSuite) DeleteFile(fn string) {
-	path := structs.Path{FnIn: fn}
+	path := filepaths.Path{FnIn: fn}
 	p := file_io.FileIO{}
 	s.Require().Nil(p.DeleteFile(path))
 }

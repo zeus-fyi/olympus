@@ -3,7 +3,7 @@ package template_driver
 import (
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/drivers/ast_parser"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/logging"
 	"github.com/zeus-fyi/tojen/gen"
 )
@@ -14,7 +14,7 @@ var p = file_io.FileIO{}
 type TemplateDriverLib struct {
 }
 
-func (t *TemplateDriverLib) CreateTemplate(recipePath, cookbookPath structs.Path) error {
+func (t *TemplateDriverLib) CreateTemplate(recipePath, cookbookPath filepaths.Path) error {
 	retBytes, err := gen.GenerateFileBytes(p.ReadFile(recipePath), recipePath.PackageName, false, false)
 	if err != nil {
 		return err
@@ -27,7 +27,7 @@ func (t *TemplateDriverLib) CreateTemplate(recipePath, cookbookPath structs.Path
 	return err
 }
 
-func (t *TemplateDriverLib) CreateCustomZeusTemplate(recipePath, cookbookPath structs.Path) error {
+func (t *TemplateDriverLib) CreateCustomZeusTemplate(recipePath, cookbookPath filepaths.Path) error {
 	retBytes, err := gen.GenerateFileBytes(p.ReadFile(recipePath), recipePath.PackageName, false, false)
 	if err != nil {
 		return err

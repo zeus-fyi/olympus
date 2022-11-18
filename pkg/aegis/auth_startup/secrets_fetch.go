@@ -9,8 +9,8 @@ import (
 	"github.com/rs/zerolog/log"
 	s3reader "github.com/zeus-fyi/olympus/datastores/s3/read"
 	"github.com/zeus-fyi/olympus/pkg/aegis/s3secrets"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 )
 
@@ -26,7 +26,7 @@ func RunDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg Aut
 	s3SecretsReader := s3secrets.NewS3Secrets(authCfg.a, s3Reader)
 	buf := s3SecretsReader.ReadBytes(ctx, &authCfg.Path, authCfg.S3KeyValue)
 
-	tmpPath := structs.Path{}
+	tmpPath := filepaths.Path{}
 	tmpPath.DirOut = "./"
 	tmpPath.FnOut = "secrets.tar.gz.age"
 	err := s3SecretsReader.MemFS.MakeFileIn(&authCfg.Path, buf.Bytes())

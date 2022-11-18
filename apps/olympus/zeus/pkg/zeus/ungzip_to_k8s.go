@@ -5,14 +5,14 @@ import (
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/compression"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
 	"github.com/zeus-fyi/olympus/pkg/zeus/core/transformations"
 )
 
 func UnGzipK8sChart(in *bytes.Buffer) (chart_workload.NativeK8s, error) {
 	yr := transformations.YamlFileIO{}
-	p := structs.Path{DirIn: "/tmp", DirOut: "/tmp", FnIn: "chart.tar.gz"}
+	p := filepaths.Path{DirIn: "/tmp", DirOut: "/tmp", FnIn: "chart.tar.gz"}
 	m := memfs.NewMemFs()
 	err := m.MakeFileIn(&p, in.Bytes())
 	if err != nil {

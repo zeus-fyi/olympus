@@ -13,7 +13,7 @@ type SecretsTestSuite struct {
 
 func (s *SecretsTestSuite) TestGetSecrets() {
 	ctx := context.Background()
-	var kns = KubeCtxNs{CloudProvider: "do", Region: "sfo3", CtxType: "dev-sfo3-zeus", Namespace: "eth-indexer"}
+	var kns = KubeCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "eth-indexer"}
 
 	secret, err := s.K.GetSecretWithKns(ctx, kns, "postgres-auth", nil)
 	s.Require().Nil(err)
@@ -22,7 +22,7 @@ func (s *SecretsTestSuite) TestGetSecrets() {
 
 func (s *SecretsTestSuite) TestCreateSecrets() {
 	ctx := context.Background()
-	var kns = KubeCtxNs{CloudProvider: "do", Region: "sfo3", CtxType: "dev-sfo3-zeus", Namespace: "eth-indexer"}
+	var kns = KubeCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "eth-indexer"}
 
 	secret, err := s.K.GetSecretWithKns(ctx, kns, "postgres-auth", nil)
 	s.Require().Nil(err)
@@ -41,7 +41,7 @@ func (s *SecretsTestSuite) TestCreateSecrets() {
 
 func (s *SecretsTestSuite) TestCopySecretToAnotherNs() {
 	ctx := context.Background()
-	var kns = KubeCtxNs{CloudProvider: "do", Region: "sfo3", CtxType: "dev-sfo3-zeus", Namespace: "eth-indexer"}
+	var kns = KubeCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "eth-indexer"}
 
 	secret, err := s.K.GetSecretWithKns(ctx, kns, "postgres-auth", nil)
 	s.Require().Nil(err)

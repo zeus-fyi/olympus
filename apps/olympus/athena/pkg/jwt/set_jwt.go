@@ -3,10 +3,10 @@ package athena_jwt
 import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
-func SetToken(p structs.Path, token string) error {
+func SetToken(p filepaths.Path, token string) error {
 	var fileIO = file_io.FileIO{}
 
 	p.FnOut = "jwt.hex"

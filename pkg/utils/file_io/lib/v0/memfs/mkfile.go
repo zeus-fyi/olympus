@@ -2,10 +2,10 @@ package memfs
 
 import (
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
-func (m *MemFS) MakeFileDirOutFnInPath(p *structs.Path, content []byte) error {
+func (m *MemFS) MakeFileDirOutFnInPath(p *filepaths.Path, content []byte) error {
 	merr := m.MkPathDirAll(p)
 	if merr != nil {
 		return merr
@@ -16,7 +16,7 @@ func (m *MemFS) MakeFileDirOutFnInPath(p *structs.Path, content []byte) error {
 	return nil
 }
 
-func (m *MemFS) MakeFileIn(p *structs.Path, content []byte) error {
+func (m *MemFS) MakeFileIn(p *filepaths.Path, content []byte) error {
 	merr := m.MkPathDirAll(p)
 	if merr != nil {
 		log.Err(merr).Msgf("MemFS, MakeFile fileIn path %s, fileOut path %s", p.FileInPath(), p.FileOutPath())
@@ -29,7 +29,7 @@ func (m *MemFS) MakeFileIn(p *structs.Path, content []byte) error {
 	return nil
 }
 
-func (m *MemFS) MakeFileOut(p *structs.Path, content []byte) error {
+func (m *MemFS) MakeFileOut(p *filepaths.Path, content []byte) error {
 	merr := m.MkPathDirAll(p)
 	if merr != nil {
 		log.Err(merr).Msgf("MemFS, MakeFile fileIn path %s, fileOut path %s", p.FileInPath(), p.FileOutPath())

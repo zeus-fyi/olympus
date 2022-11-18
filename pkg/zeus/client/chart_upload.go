@@ -6,13 +6,14 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/compression"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
-	"github.com/zeus-fyi/olympus/pkg/zeus/client/endpoints"
-	create_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
+	zeus_endpoints "github.com/zeus-fyi/olympus/pkg/zeus/client/endpoints"
+	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
+	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_resp_types"
 )
 
-func (z *ZeusClient) UploadChart(ctx context.Context, p structs.Path, tar create_infra.TopologyCreateRequest) (create_infra.TopologyCreateResponse, error) {
-	respJson := create_infra.TopologyCreateResponse{}
+func (z *ZeusClient) UploadChart(ctx context.Context, p filepaths.Path, tar zeus_req_types.TopologyCreateRequest) (zeus_resp_types.TopologyCreateResponse, error) {
+	respJson := zeus_resp_types.TopologyCreateResponse{}
 	err := z.ZipK8sChartToPath(&p)
 	if err != nil {
 		return respJson, err
@@ -37,7 +38,7 @@ func (z *ZeusClient) UploadChart(ctx context.Context, p structs.Path, tar create
 	return respJson, err
 }
 
-func (z *ZeusClient) ZipK8sChartToPath(p *structs.Path) error {
+func (z *ZeusClient) ZipK8sChartToPath(p *filepaths.Path) error {
 	comp := compression.NewCompression()
 	err := comp.GzipCompressDir(p)
 	if err != nil {

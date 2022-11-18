@@ -2,10 +2,10 @@ package s3secrets
 
 import (
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
-func (s *S3Secrets) DecryptAndUnGzipToInMemFs(p *structs.Path, unzipDir string) error {
+func (s *S3Secrets) DecryptAndUnGzipToInMemFs(p *filepaths.Path, unzipDir string) error {
 	err := s.Age.DecryptToMemFsFile(p, s.MemFS)
 	if err != nil {
 		log.Err(err).Msgf("DecryptAndUnGzipToInMemFs, DecryptToMemFsFile %s", p.FileInPath())

@@ -29,18 +29,18 @@ type K8Util struct {
 }
 
 type KubeCtxNs struct {
-	CloudProvider string
-	Region        string
-	CtxType       string
-	Namespace     string
-	Env           string
+	CloudProvider string `json:"cloudProvider"`
+	Region        string `json:"region"`
+	Context       string `json:"context"`
+	Namespace     string `json:"namespace"`
+	Env           string `json:"env"`
 }
 
 func NewKubeCtxNsFromTopologyKns(kns kns.TopologyKubeCtxNs) KubeCtxNs {
 	return KubeCtxNs{
 		CloudProvider: kns.CloudProvider,
 		Region:        kns.Region,
-		CtxType:       kns.Context,
+		Context:       kns.Context,
 		Namespace:     kns.Namespace,
 		Env:           kns.Env,
 	}
@@ -51,7 +51,7 @@ type FilterOpts struct {
 }
 
 func (kCtx *KubeCtxNs) GetCtxName(env string) string {
-	return fmt.Sprintf("%s-%s-%s", kCtx.CloudProvider, kCtx.Region, kCtx.CtxType)
+	return fmt.Sprintf("%s-%s-%s", kCtx.CloudProvider, kCtx.Region, kCtx.Context)
 }
 
 func (k *K8Util) GetContexts() (map[string]*clientcmdapi.Context, error) {

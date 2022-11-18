@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
-func (c *Compression) TarFolder(p *structs.Path) error {
+func (c *Compression) TarFolder(p *filepaths.Path) error {
 	if p == nil {
 		return errors.New("need to include a path")
 	}

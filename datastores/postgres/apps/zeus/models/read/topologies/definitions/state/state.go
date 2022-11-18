@@ -7,10 +7,10 @@ import (
 )
 
 type ReadDeploymentStatus struct {
-	TopologyName   string    `db:"topology_name" json:"topology_name"`
-	TopologyStatus string    `db:"topology_status" json:"topology_status"`
-	UpdatedAt      time.Time `db:"updated_at" json:"updated_at"`
-	Kns            autogen_bases.TopologiesKns
+	TopologyName   string    `db:"topology_name" json:"topologyName"`
+	TopologyStatus string    `db:"topology_status" json:"topologyStatus"`
+	UpdatedAt      time.Time `db:"updated_at" json:"updatedAt"`
+	CloudCtxNs     autogen_bases.TopologiesKns
 }
 
 type ReadDeploymentStatusesGroup struct {

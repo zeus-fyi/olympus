@@ -15,6 +15,18 @@ type AresTestSuite struct {
 	LocalZeusClient zeus_client.ZeusClient
 }
 
+func (t *AresTestSuite) SetupDemoProdUserTest() {
+	t.InitLocalConfigs()
+	t.LocalZeusClient = zeus_client.NewZeusClient(t.Tc.ProdZeusApiURL, t.Tc.DemoUserBearerToken)
+	t.ZeusTestClient = t.LocalZeusClient
+}
+
+func (t *AresTestSuite) SetupDemoLocalUserTest() {
+	t.InitLocalConfigs()
+	t.LocalZeusClient = zeus_client.NewZeusClient(t.Tc.LocalZeusApiURL, t.Tc.DemoUserBearerToken)
+	t.ZeusTestClient = t.LocalZeusClient
+}
+
 func (t *AresTestSuite) SetupLocalTest() {
 	t.InitLocalConfigs()
 	t.LocalZeusClient = zeus_client.NewZeusClient(t.Tc.LocalZeusApiURL, t.Tc.ProductionLocalTemporalBearerToken)

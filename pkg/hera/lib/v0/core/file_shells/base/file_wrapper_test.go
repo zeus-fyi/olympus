@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/hera/lib/v0/test"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
 type FileBaseTestSuite struct {
@@ -14,7 +14,7 @@ type FileBaseTestSuite struct {
 
 func (s *FileBaseTestSuite) TestCodeGen() {
 	fb := FileComponentBaseElements{}
-	p := structs.Path{PackageName: "base", FnIn: "base_file_example.go"}
+	p := filepaths.Path{PackageName: "base", FnIn: "base_file_example.go"}
 
 	f := fb.GenerateFileShell(p)
 	s.Assert().NotEmpty(f)

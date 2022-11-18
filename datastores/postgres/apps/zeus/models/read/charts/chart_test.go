@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 	"github.com/zeus-fyi/olympus/pkg/hera/cookbook/code_templates/models/test"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/structs"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
 type ChartReaderTestSuite struct {
@@ -33,7 +33,7 @@ func (s *ChartReaderTestSuite) TestSelectQueryName() {
 	b, err := json.Marshal(chart.K8sStatefulSet)
 	s.Require().Nil(err)
 
-	p := structs.Path{DirOut: "./", FnOut: "statefulset_out.yaml"}
+	p := filepaths.Path{DirOut: "./", FnOut: "statefulset_out.yaml"}
 	err = s.Yr.WriteYamlConfig(p, b)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(chart.K8sService)

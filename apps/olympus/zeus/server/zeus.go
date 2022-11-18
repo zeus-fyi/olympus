@@ -84,7 +84,7 @@ func Zeus() {
 
 func init() {
 	viper.AutomaticEnv()
-	Cmd.Flags().StringVar(&cfg.Port, "port", "9011", "server port")
+	Cmd.Flags().StringVar(&cfg.Port, "port", "9001", "server port")
 	Cmd.Flags().StringVar(&cfg.PGConnStr, "postgres-conn-str", "postgresql://localhost/postgres?user=postgres&password=postgres", "postgres connection string")
 
 	Cmd.Flags().StringVar(&authKeysCfg.AgePubKey, "age-public-key", "age1n97pswc3uqlgt2un9aqn9v4nqu32egmvjulwqp3pv4algyvvuggqaruxjj", "age public key")

@@ -6,13 +6,11 @@ import (
 )
 
 func (t *ZeusClientTestSuite) TestUpdateInternalTopologyKnsStatus() {
-	status := topology_deployment_status.Status{
-		TopologyKubeCtxNs: kns.TopologyKubeCtxNs{
-			TopologyID: deployKnsReq.TopologyID,
-			CloudCtxNs: deployKnsReq.CloudCtxNs,
-		},
-		DeployStatus: topology_deployment_status.DeployStatus{},
+	k := kns.TopologyKubeCtxNs{
+		TopologyID: deployKnsReq.TopologyID,
+		CloudCtxNs: deployKnsReq.CloudCtxNs,
 	}
+	status := topology_deployment_status.NewPopulatedTopologyStatus(k, "Pending")
 	resp, err := t.ZeusTestClient.UpdateTopologyKnsStatus(ctx, status)
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(resp)

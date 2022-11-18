@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
+	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -30,7 +31,7 @@ func (p *PodsHandlerTestSuite) SetupTest() {
 	p.SetupTestServer()
 }
 
-var kns = autok8s_core.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "zeus-k8s-blockchain", Namespace: "eth-indexer"}
+var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "zeus-k8s-blockchain", Namespace: "eth-indexer"}
 
 func (p *PodsHandlerTestSuite) TestPodPortForwardGET() {
 

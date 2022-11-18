@@ -27,11 +27,5 @@ func (t *TopologyDeployRequest) DeployTopology(c echo.Context) error {
 		log.Err(err).Interface("orgUser", ou).Msg("DeployTopology, SelectTopology error")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	// from auth lookup
-	// validate context kns
-	authed, err := tr.IsOrgCloudCtxNsAuthorized(ctx, t.CloudCtxNs)
-	if authed != true {
-		return c.JSON(http.StatusInternalServerError, err)
-	}
 	return zeus.ExecuteDeployWorkflow(c, ctx, ou, t.TopologyKubeCtxNs, tr.GetNativeK8s())
 }

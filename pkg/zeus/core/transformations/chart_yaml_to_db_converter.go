@@ -12,7 +12,7 @@ import (
 )
 
 type YamlFileIO struct {
-	chart_workload.NativeK8s
+	chart_workload.TopologyBaseInfraWorkload
 }
 
 func (y *YamlFileIO) ReadK8sWorkloadDir(p filepaths.Path) error {

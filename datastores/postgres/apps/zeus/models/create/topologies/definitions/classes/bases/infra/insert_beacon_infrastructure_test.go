@@ -37,7 +37,7 @@ func (s *CreateBeaconInfraTestSuite) TestInsertInfraBase() {
 	err := s.Yr.ReadK8sWorkloadDir(p)
 	s.Require().Nil(err)
 
-	cw, err := s.Yr.CreateChartWorkloadFromNativeK8s()
+	cw, err := s.Yr.CreateChartWorkloadFromTopologyBaseInfraWorkload()
 	s.Require().Nil(err)
 
 	pkg := packages.Packages{

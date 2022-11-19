@@ -17,6 +17,9 @@ const DeployStatusV1Path = "/v1/deploy/status"
 // DeployTopologyV1Path deploys topology
 const DeployTopologyV1Path = "/v1/deploy"
 
+// ReplaceTopologyV1Path replaces topology at specified location with a temporary override that's local to that location
+const ReplaceTopologyV1Path = "/v1/deploy/replace"
+
 // DestroyDeployInfraV1Path destroys topology, in other words uninstalls the app
 const DestroyDeployInfraV1Path = "/v1/deploy/destroy"
 

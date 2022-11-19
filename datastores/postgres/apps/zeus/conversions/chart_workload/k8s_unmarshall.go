@@ -10,7 +10,7 @@ import (
 	v1networking "k8s.io/api/networking/v1"
 )
 
-func (nk *NativeK8s) DecodeBytes(jsonBytes []byte) error {
+func (nk *TopologyBaseInfraWorkload) DecodeBytes(jsonBytes []byte) error {
 	metaType, err := nk.IdWorkloadFromBytes(jsonBytes)
 	if err != nil {
 		return err
@@ -32,8 +32,8 @@ func (nk *NativeK8s) DecodeBytes(jsonBytes []byte) error {
 		nk.Ingress = &v1networking.Ingress{}
 		err = json.Unmarshal(jsonBytes, nk.Ingress)
 	default:
-		err = errors.New("NativeK8s: DecodeBytes, no matching kind found")
-		log.Err(err).Msg("NativeK8s: DecodeBytes, no matching kind found")
+		err = errors.New("TopologyBaseInfraWorkload: DecodeBytes, no matching kind found")
+		log.Err(err).Msg("TopologyBaseInfraWorkload: DecodeBytes, no matching kind found")
 	}
 	return err
 }

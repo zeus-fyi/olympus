@@ -11,7 +11,7 @@ import (
 	v1networking "k8s.io/api/networking/v1"
 )
 
-type NativeK8s struct {
+type TopologyBaseInfraWorkload struct {
 	*v1core.Service       `json:"service"`
 	*v1core.ConfigMap     `json:"configMap"`
 	*v1.Deployment        `json:"deployment"`
@@ -19,8 +19,8 @@ type NativeK8s struct {
 	*v1networking.Ingress `json:"ingress"`
 }
 
-func NewNativeK8s() NativeK8s {
-	return NativeK8s{
+func NewTopologyBaseInfraWorkload() TopologyBaseInfraWorkload {
+	return TopologyBaseInfraWorkload{
 		Service:     nil,
 		ConfigMap:   nil,
 		Deployment:  nil,
@@ -29,7 +29,7 @@ func NewNativeK8s() NativeK8s {
 	}
 }
 
-func (nk *NativeK8s) CreateChartWorkloadFromNativeK8s() (ChartWorkload, error) {
+func (nk *TopologyBaseInfraWorkload) CreateChartWorkloadFromTopologyBaseInfraWorkload() (ChartWorkload, error) {
 	cw := NewChartWorkload()
 	if nk.Deployment != nil {
 		nd := deployments.NewDeployment()

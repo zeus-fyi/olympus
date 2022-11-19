@@ -14,8 +14,6 @@ COPY go.sum .
 
 RUN go mod download
 
-COPY . .
-
 COPY configs/ca-certificate.crt .
 COPY configs/zeus.fyi/ca.pem .
 COPY configs/zeus.fyi/ca.key .

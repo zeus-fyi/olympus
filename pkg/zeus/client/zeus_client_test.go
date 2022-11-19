@@ -41,7 +41,7 @@ var topCloudCtxNs = zeus_common_types.CloudCtxNs{
 
 // set your own topologyID here after uploading a chart workload
 var deployKnsReq = zeus_req_types.TopologyDeployRequest{
-	TopologyID: 1668803165801351936,
+	TopologyID: 0,
 	CloudCtxNs: topCloudCtxNs,
 }
 

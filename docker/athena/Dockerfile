@@ -2,9 +2,6 @@ FROM golang:1.19-buster as builder
 
 WORKDIR /app
 
-ARG GITHUB_TOKEN
-ENV TOKEN=$GITHUB_TOKEN
-
 # Download necessary Go modules
 COPY . .
 

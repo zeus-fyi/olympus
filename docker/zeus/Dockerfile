@@ -2,12 +2,6 @@ FROM golang:1.19-buster as builder
 
 WORKDIR /app
 
-ARG GITHUB_TOKEN
-ENV TOKEN=$GITHUB_TOKEN
-
-RUN go env -w GOPRIVATE="github.com/zeus-fyi/olympus,github.com/zeus-fyi/olympus/zeus"
-RUN git config --global url."https://${TOKEN}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
-
 # Download necessary Go modules
 COPY . .
 
@@ -17,7 +11,7 @@ COPY configs/ca-certificate.crt .
 COPY configs/zeus.fyi/ca.pem .
 COPY configs/zeus.fyi/ca.key .
 
-RUN GO111MODULE=on CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o zeus apps/olympus/zeus/main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o zeus apps/olympus/zeus/main.go
 
 FROM ubuntu:22.04 as doctl
 RUN apt-get update && apt-get install -y wget

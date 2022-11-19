@@ -29,7 +29,6 @@ func PodLogsActionRequest(c echo.Context, request *PodActionRequest) error {
 		log.Ctx(ctx).Err(err).Msg("PodLogsActionRequest: GetPodsUsingCtxNs")
 		return err
 	}
-
 	p := v1.Pod{}
 	for _, pod := range pods.Items {
 		if string_utils.FilterStringWithOpts(pod.GetName(), request.FilterOpts) {

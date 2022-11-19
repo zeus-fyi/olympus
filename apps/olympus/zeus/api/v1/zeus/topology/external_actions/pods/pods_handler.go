@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 func HandlePodActionRequest(c echo.Context) error {
@@ -23,6 +24,10 @@ func HandlePodActionRequest(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	if request.Action == "logs" {
+		if request.FilterOpts == nil {
+			request.FilterOpts = &string_utils.FilterOpts{}
+			request.FilterOpts.StartsWith = request.PodName
+		}
 		return PodLogsActionRequest(c, request)
 	}
 	if request.Action == "describe" {
@@ -49,6 +54,10 @@ func HandlePodActionRequest(c echo.Context) error {
 		return c.JSON(http.StatusOK, string(bytesResp))
 	}
 	if request.Action == "port-forward-all" {
+		if request.FilterOpts == nil && len(request.PodName) > 0 {
+			request.FilterOpts = &string_utils.FilterOpts{}
+			request.FilterOpts.StartsWith = request.PodName
+		}
 		return podsPortForwardRequestToAllPods(c, request)
 	}
 	return c.JSON(http.StatusBadRequest, nil)

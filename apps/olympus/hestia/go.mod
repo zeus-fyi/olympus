@@ -7,7 +7,6 @@ require (
 	github.com/rs/zerolog v1.28.0
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.14.0
-	github.com/zeus-fyi/olympus v0.0.0-20221107233639-4e36d1a51ebb
 )
 
 require (

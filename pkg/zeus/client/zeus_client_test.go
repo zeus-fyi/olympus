@@ -56,16 +56,6 @@ var demoChartPath = filepaths.Path{
 	FilterFiles: string_utils.FilterOpts{},
 }
 
-var replaceTopologyComponentPath = filepaths.Path{
-	PackageName: "",
-	DirIn:       "./mocks/kubernetes_apps/demo/alt_config",
-	DirOut:      "./outputs/demo_read_chart",
-	FnIn:        "demo", // filename for your gzip workload
-	FnOut:       "",
-	Env:         "",
-	FilterFiles: string_utils.FilterOpts{},
-}
-
 func (t *ZeusClientTestSuite) SetupTest() {
 	// points dir to test/configs
 	tc := api_configs.InitLocalTestConfigs()

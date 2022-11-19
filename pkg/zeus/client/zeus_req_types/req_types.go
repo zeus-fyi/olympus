@@ -2,6 +2,10 @@ package zeus_req_types
 
 import "github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 
+type TopologyRequest struct {
+	TopologyID int `json:"topologyID"`
+}
+
 type TopologyCreateRequest struct {
 	TopologyName     string `json:"topologyName"`
 	ChartName        string `json:"chartName"`
@@ -12,10 +16,6 @@ type TopologyCreateRequest struct {
 type TopologyDeployRequest struct {
 	TopologyID int `json:"topologyID"`
 	zeus_common_types.CloudCtxNs
-}
-
-type TopologyRequest struct {
-	TopologyID int `json:"topologyID"`
 }
 
 type TopologyCloudCtxNsQueryRequest struct {

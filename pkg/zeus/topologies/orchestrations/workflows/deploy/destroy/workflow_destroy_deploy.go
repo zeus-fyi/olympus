@@ -50,9 +50,9 @@ func (t *DestroyDeployTopologyWorkflow) DestroyDeployedTopologyWorkflow(ctx work
 	}
 
 	deployParams := base_request.InternalDeploymentActionRequest{
-		Kns:       params.Kns,
-		OrgUser:   params.OrgUser,
-		NativeK8s: params.NativeK8s,
+		Kns:                       params.Kns,
+		OrgUser:                   params.OrgUser,
+		TopologyBaseInfraWorkload: params.TopologyBaseInfraWorkload,
 	}
 
 	if params.ConfigMap != nil {

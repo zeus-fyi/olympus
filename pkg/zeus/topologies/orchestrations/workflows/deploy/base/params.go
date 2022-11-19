@@ -14,7 +14,7 @@ type TopologyWorkflowRequest struct {
 	OrgUser org_users.OrgUser
 	Host    string
 
-	chart_workload.NativeK8s
+	chart_workload.TopologyBaseInfraWorkload
 }
 
 func (t *TopologyWorkflowRequest) GetURL(prefix, target string) url.URL {

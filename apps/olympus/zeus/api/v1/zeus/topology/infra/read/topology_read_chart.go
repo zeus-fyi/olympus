@@ -27,6 +27,6 @@ func (t *TopologyReadRequest) ReadTopologyChart(c echo.Context) error {
 		log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: SelectTopology")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	nk := tr.GetNativeK8s()
+	nk := tr.GetTopologyBaseInfraWorkload()
 	return c.JSON(http.StatusOK, nk)
 }

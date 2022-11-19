@@ -15,14 +15,13 @@ import (
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/helpers"
 )
 
-func ExecuteDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDeploy kns.TopologyKubeCtxNs, nk chart_workload.NativeK8s) error {
+func ExecuteDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDeploy kns.TopologyKubeCtxNs, nk chart_workload.TopologyBaseInfraWorkload) error {
 	tar := helpers.PackageCommonTopologyRequest(knsDeploy, ou, nk)
 	err := topology_worker.Worker.ExecuteDeploy(ctx, tar)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("DeployTopology, ExecuteWorkflow error")
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-
 	resp := topology_deployment_status.NewTopologyStatus()
 	resp.DeployStatus.TopologyID = knsDeploy.TopologyID
 	resp.TopologyStatus = topology_deployment_status.DeployPending
@@ -30,7 +29,7 @@ func ExecuteDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.Org
 	return c.JSON(http.StatusAccepted, resp.DeployStatus)
 }
 
-func ExecuteDestroyDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDestroyDeploy kns.TopologyKubeCtxNs, nk chart_workload.NativeK8s) error {
+func ExecuteDestroyDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDestroyDeploy kns.TopologyKubeCtxNs, nk chart_workload.TopologyBaseInfraWorkload) error {
 	tar := helpers.PackageCommonTopologyRequest(knsDestroyDeploy, ou, nk)
 	err := topology_worker.Worker.ExecuteDestroyDeploy(ctx, tar)
 	if err != nil {

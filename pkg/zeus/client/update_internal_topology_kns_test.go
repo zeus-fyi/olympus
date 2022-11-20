@@ -15,3 +15,14 @@ func (t *ZeusClientTestSuite) TestUpdateInternalTopologyKnsStatus() {
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(resp)
 }
+
+func (t *ZeusClientTestSuite) TestUpdateInternalTopologyKnsStatusGlobal() {
+	k := kns.TopologyKubeCtxNs{
+		TopologyID: 0,
+		CloudCtxNs: deployKnsReq.CloudCtxNs,
+	}
+	status := topology_deployment_status.NewPopulatedTopologyStatus(k, "Pending")
+	resp, err := t.ZeusTestClient.RemoveTopologyKnsStatus(ctx, status)
+	t.Require().Nil(err)
+	t.Assert().NotEmpty(resp)
+}

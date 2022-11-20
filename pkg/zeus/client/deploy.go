@@ -2,6 +2,7 @@ package zeus_client
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/rs/zerolog/log"
@@ -20,6 +21,9 @@ func (z *ZeusClient) Deploy(ctx context.Context, tar zeus_req_types.TopologyDepl
 
 	if err != nil || resp.StatusCode() != http.StatusOK {
 		log.Ctx(ctx).Err(err).Msg("ZeusClient: Deploy")
+		if resp.StatusCode() == http.StatusBadRequest {
+			err = errors.New("bad request")
+		}
 		return respJson, err
 	}
 	z.PrintRespJson(resp.Body())

@@ -2,6 +2,7 @@ package create_or_update_deploy
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -21,6 +22,10 @@ func TopologyDeploymentHandler(c echo.Context) error {
 	authed, err := read_topology.IsOrgCloudCtxNsAuthorized(ctx, ou.OrgID, request.CloudCtxNs)
 	if authed != true {
 		return c.JSON(http.StatusInternalServerError, err)
+	}
+	if request.TopologyID == 0 {
+		err = errors.New("no topology id provided")
+		return c.JSON(http.StatusBadRequest, err)
 	}
 	return request.DeployTopology(c)
 }

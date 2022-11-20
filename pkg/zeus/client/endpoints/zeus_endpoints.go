@@ -25,7 +25,7 @@ const DestroyDeployInfraV1Path = "/v1/deploy/destroy"
 
 // live kubernetes actions requests
 
-// ReadWorkload reads all the statefulsets, services, ingresses, deployments, configmaps, and pods in a namespace.
-const ReadWorkload = "/v1/workload/read"
+// ReadWorkloadV1Path reads all the statefulsets, services, ingresses, deployments, configmaps, and pods in a namespace.
+const ReadWorkloadV1Path = "/v1/workload/read"
 
 const PodsActionV1Path = "/v1/pods"

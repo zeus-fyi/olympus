@@ -1,9 +1,9 @@
-
 REPO	:= registry.digitalocean.com/zeus-fyi
 NAME    := zeus
 GIT_SHA := $(shell git rev-parse HEAD)
 IMG     := ${REPO}/${NAME}:${GIT_SHA}
 LATEST  := ${REPO}/${NAME}:latest
+SRC	    := ../../
 
 scale.down:
 	kubectl scale deployment/${DEPLOYMENT_NAME} --replicas=0

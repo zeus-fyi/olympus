@@ -5,6 +5,7 @@ GIT_SHA := $(shell git rev-parse HEAD)
 IMG     := ${REPO}/${NAME}:${GIT_SHA}
 LATEST  := ${REPO}/${NAME}:latest
 DEPLOYMENT_NAME := eth-indexer-eth-indexer
+SRC	    := ../../
 
 scale.zero:
 	kubectl scale deployment/${DEPLOYMENT_NAME} --replicas=0

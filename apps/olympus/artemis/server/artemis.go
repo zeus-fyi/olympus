@@ -6,7 +6,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	v1 "github.com/zeus-fyi/olympus/artemis/api/v1"
+	artemis_api_router "github.com/zeus-fyi/olympus/artemis/api"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 )
 
@@ -16,7 +16,7 @@ func Artemis() {
 	cfg.Host = "0.0.0.0"
 	srv := NewArtemisServer(cfg)
 	// Echo instance
-	srv.E = v1.Routes(srv.E)
+	srv.E = artemis_api_router.Routes(srv.E)
 	ctx := context.Background()
 	apps.Pg = apps.Db{}
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)

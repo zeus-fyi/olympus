@@ -15,12 +15,14 @@ type PodTemplateSpec struct {
 }
 
 type PodSpec struct {
+	K8sPodSpec *v1.PodSpec
+
 	PodTemplateSpecClassDefinition    autogen_bases.ChartSubcomponentChildClassTypes
 	PodTemplateSpecClassGenericFields map[string]structs.ChildClassSingleValue
 	PodTemplateSpecVolumes            autogen_bases.VolumesSlice
 	PodTemplateContainers             containers.Containers
 
-	K8sPodSpec *v1.PodSpec
+	ShareProcessNamespace *structs.ChildClassSingleValue
 }
 
 func (p *PodTemplateSpec) AddPodTemplateSpecClassGenericFields(cv structs.ChildClassSingleValue) {
@@ -69,7 +71,6 @@ func NewPodTemplateSpec() PodTemplateSpec {
 		Metadata: structs.NewParentMetaData("PodTemplateSpecMetadata"),
 		Spec:     ps,
 	}
-
 	return pts
 }
 

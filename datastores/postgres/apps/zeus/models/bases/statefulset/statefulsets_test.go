@@ -92,6 +92,9 @@ func (s *StatefulSetTestSuite) TestStatefulSetK8sToDBConversion() {
 	stsSpecTemplate := sts.Spec.Template
 	s.Require().NotEmpty(stsSpecTemplate)
 
+	s.Require().NotNil(stsSpecTemplate.Spec.ShareProcessNamespace)
+	s.Assert().Equal("true", stsSpecTemplate.Spec.ShareProcessNamespace.ChartSubcomponentValue)
+
 	// template spec labels
 	s.Assert().Equal("labels", stsSpecTemplate.Metadata.Labels.ChartSubcomponentChildClassTypeName)
 	templateSpecMetadataLabelValues := stsSpecTemplate.Metadata.Labels.Values

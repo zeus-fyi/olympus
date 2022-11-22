@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	athena_router "github.com/zeus-fyi/olympus/athena/api"
+	athena_jwt "github.com/zeus-fyi/olympus/athena/api/v1/common/jwt"
 	"github.com/zeus-fyi/olympus/configs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
@@ -19,6 +20,8 @@ var cfg = Config{}
 var authKeysCfg auth_keys_config.AuthKeysCfg
 var env string
 var dataDir filepaths.Path
+var jwtToken string
+var useDefaultToken bool
 
 func Athena() {
 	ctx := context.Background()
@@ -26,6 +29,10 @@ func Athena() {
 	srv := NewAthenaServer(cfg)
 
 	log.Info().Msgf("Athena: %s auth procedure starting", env)
+
+	if useDefaultToken {
+		_ = athena_jwt.SetTokenToDefault(dataDir, "jwt.hex", jwtToken)
+	}
 
 	switch env {
 	case "production":
@@ -58,6 +65,12 @@ func init() {
 	Cmd.Flags().StringVar(&authKeysCfg.SpacesKey, "do-spaces-key", "", "do s3 spaces key")
 	Cmd.Flags().StringVar(&authKeysCfg.SpacesPrivKey, "do-spaces-private-key", "", "do s3 spaces private key")
 	Cmd.Flags().StringVar(&env, "env", "local", "environment")
+
+	Cmd.Flags().StringVar(&dataDir.DirIn, "dataDirIn", "/data", "data directory location")
+	Cmd.Flags().StringVar(&env, "env", "local", "environment")
+	// uses a default token for demo, set your own jwt for production usage if desired
+	Cmd.Flags().StringVar(&jwtToken, "jwt", "0x6ad1acdc50a4141e518161ab2fe2bf6294de4b4d48bf3582f22cae8113f0cadc", "set jwt in datadir")
+	Cmd.Flags().BoolVar(&useDefaultToken, "useDefaultToken", true, "use default jwt token")
 }
 
 // Cmd represents the base command when called without any subcommands

@@ -10,21 +10,17 @@ const (
 )
 
 func (w *Web3Client) GetNetworkName(ctx context.Context) (string, error) {
-
 	w.Dial()
 	defer w.Close()
 	id, err := w.GetID(ctx)
 	if err != nil {
 		return "", err
 	}
-
 	switch id.GenesisHash.Hex() {
-
 	case GoerliGenesisHash:
 		w.Network = Goerli
 	case MainnetGenesisHash:
 		w.Network = Mainnet
 	}
-
 	return w.Network, nil
 }

@@ -24,9 +24,21 @@ func (s *Web3ClientTestSuite) SetupTest() {
 	s.GoerliWeb3 = NewClientWithSigner(s.Tc.GoerliNodeUrl, newAccount)
 }
 
+func (s *Web3ClientTestSuite) TestWebGetBalance() {
+	ctx := context.Background()
+	b, err := s.GoerliWeb3.GetCurrentBalance(ctx)
+
+	s.Require().Nil(err)
+	s.Assert().NotNil(b)
+	s.Assert().Greater(b.Uint64(), uint64(0))
+
+	g, err := s.GoerliWeb3.GetCurrentBalanceGwei(ctx)
+	s.Require().Nil(err)
+	s.Assert().NotEqual("0", g)
+}
+
 func (s *Web3ClientTestSuite) TestWeb3ConnectMainnet() {
 	ctx := context.Background()
-
 	network, err := s.GoerliWeb3.GetNetworkName(ctx)
 	s.Require().Nil(err)
 	s.Assert().Equal(Goerli, network)
@@ -34,7 +46,6 @@ func (s *Web3ClientTestSuite) TestWeb3ConnectMainnet() {
 	network, err = s.MainnetWeb3.GetNetworkName(ctx)
 	s.Require().Nil(err)
 	s.Assert().Equal(Mainnet, network)
-
 }
 
 func TestWeb3ClientTestSuite(t *testing.T) {

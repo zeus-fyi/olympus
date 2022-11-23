@@ -23,4 +23,4 @@ COPY --from=src_builder /app/ca.pem /etc/ssl/certs
 COPY --from=src_builder /app/ca.key /etc/ssl/certs
 
 COPY --from=src_builder /app/artemis /usr/bin/artemis
-EXPOSE 9003
+EXPOSE 9004

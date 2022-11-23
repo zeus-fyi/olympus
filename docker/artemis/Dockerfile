@@ -4,12 +4,11 @@ FROM golang:1.19-buster as src_builder
 WORKDIR /app
 
 COPY . .
-
-RUN go mod download
-
 COPY configs/ca-certificate.crt .
 COPY configs/zeus.fyi/ca.pem .
 COPY configs/zeus.fyi/ca.key .
+
+RUN go mod download
 
 COPY . .
 

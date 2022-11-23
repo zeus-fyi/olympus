@@ -5,11 +5,11 @@ WORKDIR /app
 
 COPY . .
 
-RUN go mod download
-
 COPY configs/ca-certificate.crt .
 COPY configs/zeus.fyi/ca.pem .
 COPY configs/zeus.fyi/ca.key .
+
+RUN go mod download
 
 COPY . .
 

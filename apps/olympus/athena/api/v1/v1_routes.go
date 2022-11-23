@@ -10,6 +10,7 @@ import (
 	v1_common_routes "github.com/zeus-fyi/olympus/athena/api/v1/common"
 	athena_chain_snapshots "github.com/zeus-fyi/olympus/athena/api/v1/common/chain_snapshots"
 	athena_jwt_route "github.com/zeus-fyi/olympus/athena/api/v1/common/jwt"
+	athena_routines "github.com/zeus-fyi/olympus/athena/api/v1/common/routines"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
@@ -38,6 +39,7 @@ func InitV1InternalRoutes(e *echo.Echo, p filepaths.Path) {
 func CommonRoutes(e *echo.Group, p filepaths.Path) *echo.Group {
 	v1_common_routes.CommonManager.DataDir = p
 	e.POST("/jwt/create", athena_jwt_route.JwtHandler)
+	e.POST("/routines/pause", athena_routines.PauseRoutineHandler)
 
 	e.POST("/snapshot/download", athena_chain_snapshots.DownloadChainSnapshotHandler)
 	e.POST("/snapshot/upload", athena_chain_snapshots.UploadChainSnapshotHandler)

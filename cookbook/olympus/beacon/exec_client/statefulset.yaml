@@ -40,20 +40,50 @@ spec:
             - name: exec-client-storage
               mountPath: "/data"
       containers:
-        - name: hercules
-          image: "registry.digitalocean.com/zeus-fyi/hercules:latest"
-          imagePullPolicy: IfNotPresent
+        - name: athena
+          image: "registry.digitalocean.com/zeus-fyi/athena:latest"
+          imagePullPolicy: Always
           command: [ "/bin/sh" ]
-          args: [ "-c","hercules" ]
+          args: [ "-c","/scripts/start.sh" ]
           volumeMounts:
-            - name: exec-client-storage
-              mountPath: "/data"
-            - name: cm-geth
+            - name: cm-lighthouse
               mountPath: "/scripts"
+            - name: consensus-client-storage
+              mountPath: "/data"
+            - name: cm-athena
+              mountPath: "/scripts"
+          env:
+            - name: AGE_PKEY
+              valueFrom:
+                secretKeyRef:
+                  name: age-auth
+                  key: age-private-key
+            - name: DO_SPACES_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: spaces-key
+                  key: do-spaces-key
+            - name: DO_SPACES_PKEY
+              valueFrom:
+                secretKeyRef:
+                  name: spaces-auth
+                  key: do-spaces-private-key
           ports:
-            - name: hercules
+            - name: athena
               containerPort: 9003
               protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: "/health"
+              port: "http"
+          readinessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: "/health"
+              port: "http"
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
         - name: geth
           image: "ethereum/client-go:v1.10.23"
           imagePullPolicy: IfNotPresent

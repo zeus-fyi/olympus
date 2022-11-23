@@ -8,7 +8,7 @@ import (
 
 // set your own topologyID here after uploading a chart workload
 var deployExecKnsReq = zeus_req_types.TopologyDeployRequest{
-	TopologyID: 1668887498372169000,
+	TopologyID: 1669168567793564000,
 	CloudCtxNs: topCloudCtxNs,
 }
 
@@ -34,4 +34,12 @@ func (t *ZeusAppsTestSuite) TestExecClientUpload() {
 	chart := newUploadChart(basePath.FnIn)
 	_, err := t.ZeusTestClient.UploadChart(ctx, basePath, chart)
 	t.Require().Nil(err)
+
+	tar := zeus_req_types.TopologyRequest{TopologyID: deployExecKnsReq.TopologyID}
+	resp, err := t.ZeusTestClient.ReadChart(ctx, tar)
+	t.Require().Nil(err)
+	t.Assert().NotEmpty(resp)
+
+	// prints the chart output for inspection
+	err = resp.PrintWorkload(basePath)
 }

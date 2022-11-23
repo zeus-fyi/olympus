@@ -10,19 +10,20 @@ import (
 	athena_endpoints "github.com/zeus-fyi/olympus/pkg/athena/client/endpoints"
 )
 
-func (a *AthenaClient) Pause(ctx context.Context, rr athena_routines.RoutineRequest) error {
+func (a *AthenaClient) Kill(ctx context.Context, rr athena_routines.RoutineRequest) error {
 	a.PrintReqJson(rr)
 	resp, err := a.R().
 		SetBody(rr).
-		Post(athena_endpoints.InternalPauseV1Path)
+		Post(athena_endpoints.InternalKillV1Path)
 
 	if err != nil || resp.StatusCode() != http.StatusOK {
-		log.Ctx(ctx).Err(err).Msg("AthenaClient: Pause")
+		log.Ctx(ctx).Err(err).Msg("AthenaClient: Kill")
 		if resp.StatusCode() == http.StatusBadRequest {
 			err = errors.New("bad request")
 		}
 		return err
 	}
+
 	a.PrintRespJson(resp.Body())
 	return err
 }

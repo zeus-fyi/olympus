@@ -1,8 +1,12 @@
 package athena_endpoints
 
+const InternalHypnosV1Path = "/v1/internal/routines/hypnos"
+
+const InternalSuspendV1Path = "/v1/internal/routines/suspend"
+
 const InternalResumeV1Path = "/v1/internal/routines/resume"
 
-const InternalPauseV1Path = "/v1/internal/routines/pause"
+const InternalKillV1Path = "/v1/internal/routines/kill"
 
 const InternalUploadV1Path = "/v1/internal/snapshot/upload"
 

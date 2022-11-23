@@ -10,9 +10,9 @@ spec:
   type: ClusterIP
   ports:
     - port: 9003
-      targetPort: athena
+      targetPort: hercules
       protocol: TCP
-      name: athena
+      name: hercules
     - port: 9000
       targetPort: p2p-tcp
       protocol: TCP

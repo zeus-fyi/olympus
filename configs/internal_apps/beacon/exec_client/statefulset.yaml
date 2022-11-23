@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: zeus-lighthouse
+  name: zeus-geth
   labels:
-    app.kubernetes.io/name: lighthouse
+    app.kubernetes.io/name: geth
     app.kubernetes.io/instance: zeus
     app.kubernetes.io/managed-by: zeus
   annotations:
@@ -13,18 +13,19 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: lighthouse
+      app.kubernetes.io/name: geth
       app.kubernetes.io/instance: zeus
-  serviceName: zeus-lighthouse
+  serviceName: zeus-geth
   updateStrategy:
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: lighthouse
+        app.kubernetes.io/name: geth
         app.kubernetes.io/instance: zeus
+      annotations:
+        {}
     spec:
-      shareProcessNamespace: true
       initContainers:
         - name: init-chown-data
           image: "busybox:1.34.0"
@@ -36,7 +37,7 @@ spec:
           resources:
             {}
           volumeMounts:
-            - name: consensus-client-storage
+            - name: exec-client-storage
               mountPath: "/data"
       containers:
         - name: hercules
@@ -45,46 +46,53 @@ spec:
           command: [ "/bin/sh" ]
           args: [ "-c","hercules" ]
           volumeMounts:
-            - name: cm-lighthouse
-              mountPath: "/scripts"
-            - name: consensus-client-storage
+            - name: exec-client-storage
               mountPath: "/data"
+            - name: cm-geth
+              mountPath: "/scripts"
           ports:
             - name: hercules
               containerPort: 9003
               protocol: TCP
-        - name: lighthouse
-          image: "sigp/lighthouse:v3.2.1-modern"
+        - name: geth
+          image: "ethereum/client-go:v1.10.23"
           imagePullPolicy: IfNotPresent
           command: [ "/bin/sh" ]
           args: [ "-c","/scripts/start.sh" ]
           volumeMounts:
-            - name: cm-lighthouse
-              mountPath: "/scripts"
-            - name: consensus-client-storage
+            - name: exec-client-storage
               mountPath: "/data"
+            - name: cm-geth
+              mountPath: "/scripts"
           ports:
             - name: p2p-tcp
-              containerPort: 9000
+              containerPort: 30303
               protocol: TCP
             - name: p2p-udp
-              containerPort: 9000
+              containerPort: 30303
               protocol: UDP
-            - name: http-api
-              containerPort: 5052
+            - name: http-rpc
+              containerPort: 8545
+              protocol: TCP
+            - name: ws-rpc
+              containerPort: 8546
+              protocol: TCP
+            - name: auth-rpc
+              containerPort: 8551
               protocol: TCP
             - name: metrics
-              containerPort: 5054
+              containerPort: 6060
+              protocol: TCP
           livenessProbe:
             initialDelaySeconds: 60
             periodSeconds: 120
             tcpSocket:
-              port: http-api
+              port: http-rpc
           readinessProbe:
             initialDelaySeconds: 10
             periodSeconds: 10
             tcpSocket:
-              port: http-api
+              port: http-rpc
           resources:
             {}
           env:
@@ -98,14 +106,15 @@ spec:
         {}
       tolerations:
         []
+      terminationGracePeriodSeconds: 300
       volumes:
-        - name: cm-lighthouse
+        - name: cm-geth
           configMap:
-            name: cm-lighthouse
+            name: cm-geth
             defaultMode: 0744
   volumeClaimTemplates:
     - metadata:
-        name: consensus-client-storage
+        name: exec-client-storage
         annotations:
           {}
       spec:
@@ -113,6 +122,4 @@ spec:
           - ReadWriteOnce
         resources:
           requests:
-            storage: "240Gi"
-
-
+            storage: "475Gi"

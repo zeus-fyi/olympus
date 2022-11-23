@@ -41,7 +41,7 @@ func Zeus() {
 			Namespace:        "production-zeus.ngb72",
 			HostPort:         "production-zeus.ngb72.tmprl.cloud:7233",
 		}
-		_ = auth_startup.RunDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+		_, _ = auth_startup.RunDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 	case "production-local":
 		log.Info().Msg("Zeus: production local, auth procedure starting")
 		tc := configs.InitLocalTestConfigs()
@@ -51,7 +51,7 @@ func Zeus() {
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 		temporalAuthCfg = tc.ProdLocalTemporalAuth
 
-		_ = auth_startup.RunDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+		_, _ = auth_startup.RunDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 	case "local":
 		log.Info().Msg("Zeus: local, auth procedure starting")
 		tc := configs.InitLocalTestConfigs()

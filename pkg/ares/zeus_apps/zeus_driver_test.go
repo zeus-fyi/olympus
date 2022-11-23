@@ -7,11 +7,20 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 	zeus_client "github.com/zeus-fyi/olympus/pkg/zeus/client"
+	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 	test_base "github.com/zeus-fyi/olympus/test"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
 )
 
 var ctx = context.Background()
+
+var topCloudCtxNs = zeus_common_types.CloudCtxNs{
+	CloudProvider: "do",
+	Region:        "sfo3",
+	Context:       "do-sfo3-dev-do-sfo3-zeus",
+	Namespace:     "beacon", // set with your own namespace
+	Env:           "dev",
+}
 
 type ZeusAppsTestSuite struct {
 	base.TestSuite

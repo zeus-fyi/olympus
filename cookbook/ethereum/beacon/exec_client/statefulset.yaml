@@ -40,48 +40,20 @@ spec:
             - name: exec-client-storage
               mountPath: "/data"
       containers:
-        - name: athena
-          image: "registry.digitalocean.com/zeus-fyi/athena:latest"
-          imagePullPolicy: Always
+        - name: hercules
+          image: "registry.digitalocean.com/zeus-fyi/hercules:latest"
+          imagePullPolicy: IfNotPresent
           command: [ "/bin/sh" ]
-          args: [ "-c","/scripts/start.sh" ]
+          args: [ "-c","hercules" ]
           volumeMounts:
             - name: exec-client-storage
               mountPath: "/data"
-            - name: cm-athena
-              mountPath: "/athena"
-          env:
-            - name: AGE_PKEY
-              valueFrom:
-                secretKeyRef:
-                  name: age-auth
-                  key: age-private-key
-            - name: DO_SPACES_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: spaces-key
-                  key: do-spaces-key
-            - name: DO_SPACES_PKEY
-              valueFrom:
-                secretKeyRef:
-                  name: spaces-auth
-                  key: do-spaces-private-key
+            - name: cm-geth
+              mountPath: "/scripts"
           ports:
-            - name: athena
+            - name: hercules
               containerPort: 9003
               protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: "/health"
-              port: "http"
-          readinessProbe:
-            failureThreshold: 5
-            httpGet:
-              path: "/health"
-              port: "http"
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 3
         - name: geth
           image: "ethereum/client-go:v1.10.23"
           imagePullPolicy: IfNotPresent
@@ -139,10 +111,6 @@ spec:
         - name: cm-geth
           configMap:
             name: cm-geth
-            defaultMode: 0744
-        - name: cm-athena
-          configMap:
-            name: cm-athena
             defaultMode: 0744
   volumeClaimTemplates:
     - metadata:

@@ -21,7 +21,7 @@ func (t *TopologyDeployRequest) DeployTopology(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	tr, err := zeus.ReadUserTopologyConfig(ctx, t.TopologyID, ou)
 	if err != nil {
-		log.Err(err).Interface("orgUser", ou).Msg("DeployTopology, SelectTopology error")
+		log.Err(err).Interface("orgUser", ou).Msg("DeployTopology, ReadUserTopologyConfig error")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	return zeus.ExecuteDeployWorkflow(c, ctx, ou, t.TopologyKubeCtxNs, tr.GetTopologyBaseInfraWorkload())

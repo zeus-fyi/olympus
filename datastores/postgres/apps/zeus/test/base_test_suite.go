@@ -8,6 +8,7 @@ import (
 	"runtime"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/topology"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -44,13 +45,14 @@ func (s *ConversionsTestSuite) SeedTopology() (int, string) {
 	top.TopologyID = s.Ts.UnixTimeStampNow()
 	top.Name = fmt.Sprintf("testTopology_%d", top.TopologyID)
 	ctx := context.Background()
+	temp := autogen_bases.Topologies{}
 	q := sql_query_templates.NewQueryParam("InsertTopology", "topologies", "where", 1000, []string{})
-	q.TableName = top.GetTableName()
-	q.Columns = top.GetTableColumns()
-	q.Values = []apps.RowValues{top.GetRowValues("default")}
+	q.TableName = "topologies"
+	q.Columns = temp.GetTableColumns()
+	q.Values = []apps.RowValues{apps.RowValues{top.TopologyID, top.Name}}
 	_, err := apps.Pg.Exec(ctx, q.InsertSingleElementQuery())
 	if err != nil {
 		panic(err)
 	}
-	return top.TopologyID, top.Topologies.Name
+	return top.TopologyID, top.Name
 }

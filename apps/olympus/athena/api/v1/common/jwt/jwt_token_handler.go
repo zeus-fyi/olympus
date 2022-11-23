@@ -1,4 +1,4 @@
-package athena_jwt_route
+package athena_jwt
 
 import "github.com/labstack/echo/v4"
 

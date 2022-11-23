@@ -1,8 +1,10 @@
 package filepaths
 
 import (
+	"os"
 	"path"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
@@ -74,4 +76,31 @@ func (p *Path) Production() string {
 
 func (p *Path) AddGoFn(fn string) {
 	p.FnIn = fn + ".go"
+}
+
+func (p *Path) FileInPathExists() bool {
+	return doesFileExist(p.FileInPath())
+}
+
+func doesFileExist(filePath string) bool {
+	_, err := os.Stat(filePath)
+
+	// check if error is "file not exists"
+	if os.IsNotExist(err) {
+		return false
+	} else {
+		if err != nil {
+			log.Err(err).Msgf("doesFileExist: path %s", filePath)
+			return false
+		}
+		return true
+	}
+}
+
+func (p *Path) RemoveFileInPath() error {
+	err := os.Remove(p.FileInPath())
+	if err != nil {
+		log.Err(err).Msgf("RemoveFileInPath %s", p.FileInPath())
+	}
+	return err
 }

@@ -14,7 +14,11 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 )
 
-func RunDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) memfs.MemFS {
+type SecretsWrapper struct {
+	PostgresAuth string
+}
+
+func RunDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {
 	log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjSecretsProcedure starting")
 
 	input := &s3.GetObjectInput{
@@ -55,5 +59,13 @@ func RunDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg Aut
 		log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to auth doctl, shutting down the server")
 		misc.DelayedPanic(err)
 	}
-	return s3SecretsReader.MemFS
+
+	sw := SecretsWrapper{}
+	pgAuth, err := s3SecretsReader.MemFS.ReadFile("secrets/postgres-auth.txt")
+	if err != nil {
+		log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: DecryptAndUnGzipToInMemFs failed, shutting down the server")
+		misc.DelayedPanic(err)
+	}
+	sw.PostgresAuth = string(pgAuth)
+	return s3SecretsReader.MemFS, sw
 }

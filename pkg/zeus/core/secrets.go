@@ -26,11 +26,12 @@ func (k *K8Util) DeleteSecretWithKns(ctx context.Context, kns zeus_common_types.
 	return err
 }
 
-func (k *K8Util) CopySecretToAnotherKns(ctx context.Context, kns zeus_common_types.CloudCtxNs, name string, filter *string_utils.FilterOpts) (*v1.Secret, error) {
-	s, err := k.GetSecretWithKns(ctx, kns, name, filter)
+func (k *K8Util) CopySecretToAnotherKns(ctx context.Context, knsFrom, knsTo zeus_common_types.CloudCtxNs, name string, filter *string_utils.FilterOpts) (*v1.Secret, error) {
+	s, err := k.GetSecretWithKns(ctx, knsFrom, name, filter)
 	if err != nil {
 		return s, err
 	}
 	s.ResourceVersion = ""
-	return k.CreateSecretWithKns(ctx, kns, s, filter)
+	s.Namespace = knsTo.Namespace
+	return k.CreateSecretWithKns(ctx, knsTo, s, filter)
 }

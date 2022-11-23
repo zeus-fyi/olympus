@@ -7,6 +7,7 @@ import (
 	destroy_deploy_request "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/destroy"
 	deployment_status "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/read"
 	replace_topology "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/replace"
+	internal_secrets_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/deploy/secrets_deploy"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/deploy/workload_deploy"
 	internal_destroy_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/deploy/workload_destroy"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/deploy/workload_state"
@@ -26,6 +27,8 @@ func InternalRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	e = InternalDeployRoutes(e, k8Cfg)
 	e = InternalDeployDestroyRoutes(e, k8Cfg)
 	e = InternalDeployStatusRoutes(e)
+
+	e = InternalSecretsRoutes(e, k8Cfg)
 	return e
 }
 
@@ -33,6 +36,12 @@ func InternalDeployStatusRoutes(e *echo.Group) *echo.Group {
 	e.POST("/deploy/kns/create", workload_state.InsertOrUpdateWorkloadKnsStateHandler)
 	e.POST("/deploy/kns/destroy", workload_state.DeleteWorkloadKnsStateHandler)
 	e.POST("/deploy/status", workload_state.UpdateWorkloadStateHandler)
+	return e
+}
+
+func InternalSecretsRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
+	zeus.K8Util = k8Cfg
+	e.POST("/deploy/secrets", internal_secrets_deploy.DeploySecretsHandler)
 	return e
 }
 

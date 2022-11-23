@@ -2,6 +2,7 @@ package db_to_k8s_conversions
 
 import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -23,4 +24,19 @@ func ConvertMetadata(k8sMetadata *metav1.ObjectMeta, pcSlice []common_conversion
 			k8sMetadata.Name = pc.ChartSubcomponentValue
 		}
 	}
+}
+
+func ConvertPodSpecField(k8sPodTempSpec *v1.PodTemplateSpec, pcSlice []common_conversions.PC) {
+	for _, pc := range pcSlice {
+		subClassName := pc.ChartSubcomponentChildClassTypeName
+		switch subClassName {
+		case "shareProcessNamespace":
+			sharedBool := false
+			if pc.ChartSubcomponentValue == "true" {
+				sharedBool = true
+			}
+			k8sPodTempSpec.Spec.ShareProcessNamespace = &sharedBool
+		}
+	}
+	return
 }

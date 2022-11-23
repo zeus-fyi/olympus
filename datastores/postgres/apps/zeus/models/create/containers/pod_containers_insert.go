@@ -36,6 +36,7 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart
 	contSubChildClassCTE.Columns = []string{"chart_subcomponent_parent_class_type_id", "chart_subcomponent_child_class_type_id", "chart_subcomponent_child_class_type_name"}
 	contSubChildClassCTE.AddValues(p.GetPodSpecParentClassTypeID(), p.GetPodSpecChildClassTypeID(), "PodTemplateSpecChild")
 
+	//
 	contSubCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_insert_containers_%d", ts.UnixTimeStampNow()))
 	contSubCTE.TableName = "containers"
 	contSubCTE.Columns = []string{"container_id", "container_name", "container_image_id", "container_version_tag", "container_platform_os", "container_repository", "container_image_pull_policy", "is_init_container"}
@@ -167,6 +168,24 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart
 			computeResourcesRelationshipsSubCTE,
 		},
 	}
+
+	// insert new pod spec value share process value
+	if p.Spec.ShareProcessNamespace != nil {
+		shareNamespaceIDChildTypeID := ts.UnixTimeStampNow()
+		podSpecShareNamespaceSubChildClassCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_podSpecShareProcessNamespaceCTE_%d", ts.UnixTimeStampNow()))
+		podSpecShareNamespaceSubChildClassCTE.TableName = agCct.GetTableName()
+		podSpecShareNamespaceSubChildClassCTE.Columns = []string{"chart_subcomponent_parent_class_type_id", "chart_subcomponent_child_class_type_id", "chart_subcomponent_child_class_type_name"}
+		podSpecShareNamespaceSubChildClassCTE.AddValues(p.GetPodSpecParentClassTypeID(), shareNamespaceIDChildTypeID, "shareProcessNamespace")
+
+		cv := autogen_bases.ChartSubcomponentsChildValues{}
+		podSpecShareNamespaceSubChildClassValueCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_podSpecShareProcessNamespaceValueCTE_%d", ts.UnixTimeStampNow()))
+		podSpecShareNamespaceSubChildClassValueCTE.TableName = cv.GetTableName()
+		podSpecShareNamespaceSubChildClassValueCTE.Columns = []string{"chart_subcomponent_child_class_type_id", "chart_subcomponent_chart_package_template_injection", "chart_subcomponent_key_name", "chart_subcomponent_value"}
+		podSpecShareNamespaceSubChildClassValueCTE.AddValues(shareNamespaceIDChildTypeID, p.Spec.ShareProcessNamespace.ChartSubcomponentChartPackageTemplateInjection, p.Spec.ShareProcessNamespace.ChartSubcomponentKeyName, p.Spec.ShareProcessNamespace.ChartSubcomponentValue)
+
+		cteExpr.AppendSubCtes(sql_query_templates.SubCTEs{podSpecShareNamespaceSubChildClassCTE, podSpecShareNamespaceSubChildClassValueCTE})
+	}
+
 	cteExpr.AppendSubCtes(templateMetadataCTE)
 	cteExpr.AppendSubCtes(probeCTEs)
 	cteExpr.AppendSubCtes(probeRelationshipCTEs)

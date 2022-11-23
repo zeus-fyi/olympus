@@ -7,7 +7,9 @@ use (
 	./apps/external/memoryfs
 	./apps/external/tables-to-go
 	./apps/external/tojen
+	./apps/external/web3
 
+	./apps/olympus/artemis
 	./apps/olympus/apollo
 	./apps/olympus/athena
 	./apps/olympus/hestia

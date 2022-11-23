@@ -52,6 +52,10 @@ type TestContainer struct {
 	ProdLocalAuthKeysCfg  auth_keys_config.AuthKeysCfg
 
 	TestURLs
+
+	LocalEcsdaTestPkey string
+	GoerliNodeUrl      string
+	MainnetNodeUrl     string
 }
 
 func SetBaseURLs() TestURLs {
@@ -82,7 +86,9 @@ func InitEnvFromConfig(dir string) {
 
 func InitLocalTestConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
-
+	testCont.MainnetNodeUrl = viper.GetString("MAINNET_NODE_URL")
+	testCont.GoerliNodeUrl = viper.GetString("GOERLI_NODE_URL")
+	testCont.LocalEcsdaTestPkey = viper.GetString("LOCAL_TESTING_ECDSA_PKEY")
 	testCont.TestURLs = SetBaseURLs()
 	testCont.Env = viper.GetString("ENV")
 

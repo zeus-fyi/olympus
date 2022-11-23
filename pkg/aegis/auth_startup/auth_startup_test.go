@@ -2,12 +2,13 @@ package auth_startup
 
 import (
 	"context"
-	"os/exec"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	"github.com/zeus-fyi/olympus/pkg/aegis/s3secrets"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 type AuthStartupTestSuite struct {
@@ -15,6 +16,22 @@ type AuthStartupTestSuite struct {
 }
 
 // TestRead, you'll need to set the secret values to run the test
+
+func (t *AuthStartupTestSuite) TestSecretsEncrypt() {
+
+	p := filepaths.Path{
+		PackageName: "",
+		DirIn:       "./secrets",
+		DirOut:      "./",
+		FnIn:        "secrets",
+		Env:         "",
+		FilterFiles: string_utils.FilterOpts{},
+	}
+
+	err := t.S3Secrets.GzipAndEncrypt(&p)
+	t.Require().Nil(err)
+}
+
 func (t *AuthStartupTestSuite) TestAuthStartup() {
 	ctx := context.Background()
 
@@ -31,18 +48,19 @@ func (t *AuthStartupTestSuite) TestAuthStartup() {
 
 	authCfg.Path.FnIn = "secrets.tar.gz.age"
 	authCfg.Path.FnOut = "secrets.tar.gz"
-	inMemSecrets := RunDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+	inMemSecrets, sw := RunDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 	t.Require().NotEmpty(inMemSecrets)
+	t.Require().NotEmpty(sw)
 
-	b, err := inMemSecrets.ReadFile("secrets/doctl.txt")
-	t.Require().NotEmpty(b)
-	t.Require().Nil(err)
+	//b, err := inMemSecrets.ReadFile("secrets/doctl.txt")
+	//t.Require().NotEmpty(b)
+	//t.Require().Nil(err)
+	//
+	//token := string(b)
+	//cmd := exec.Command("doctl", "auth", "init", "-t", token)
+	//err = cmd.Run()
 
-	token := string(b)
-	cmd := exec.Command("doctl", "auth", "init", "-t", token)
-	err = cmd.Run()
-
-	t.Require().Nil(err)
+	t.Assert().Equal(t.Tc.ProdDbPgconn, sw.PostgresAuth)
 
 }
 

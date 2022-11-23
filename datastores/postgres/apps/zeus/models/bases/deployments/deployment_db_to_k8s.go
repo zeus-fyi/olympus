@@ -15,6 +15,8 @@ func (d *Deployment) ParsePCGroupMap(pcSlice common_conversions.ParentChildDB) e
 			if err != nil {
 				return err
 			}
+		case "PodTemplateSpec":
+			db_to_k8s_conversions.ConvertPodSpecField(&d.K8sDeployment.Spec.Template, pc)
 		case "DeploymentParentMetadata":
 			db_to_k8s_conversions.ConvertMetadata(&d.K8sDeployment.ObjectMeta, pc)
 		case "PodTemplateSpecMetadata":

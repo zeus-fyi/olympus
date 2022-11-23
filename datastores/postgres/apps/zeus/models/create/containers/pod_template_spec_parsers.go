@@ -1,6 +1,8 @@
 package containers
 
 import (
+	"fmt"
+
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
 	cont_conv "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/containers"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
@@ -38,6 +40,13 @@ func (p *PodTemplateSpec) ConvertPodTemplateSpecConfigToDB(ps *v1.PodSpec) error
 		p.AddPodTemplateSpecClassGenericFields(csv)
 	}
 
+	if ps.ShareProcessNamespace != nil {
+		spn := structs.NewChildClassSingleValue("shareProcessNamespace")
+		spn.ChartSubcomponentKeyName = "shareProcessNamespace"
+		spnBool := *ps.ShareProcessNamespace
+		spn.ChartSubcomponentValue = fmt.Sprintf("%t", spnBool)
+		p.Spec.ShareProcessNamespace = &spn
+	}
 	dbSpecInitContainers = append(dbSpecInitContainers, dbSpecContainers...)
 	p.Spec.PodTemplateContainers = dbSpecInitContainers
 	p.Spec.PodTemplateSpecVolumes = dbSpecVolumes

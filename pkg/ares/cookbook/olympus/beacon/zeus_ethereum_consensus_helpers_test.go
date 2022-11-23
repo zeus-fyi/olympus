@@ -15,6 +15,6 @@ func (t *ZeusAppsTestSuite) TestReplaceCm() {
 		Action:                zeus_pods_reqs.DeleteAllPods,
 		PodName:               "zeus-lighthouse-0",
 	}
-	err = t.ZeusTestClient.DeletePods(ctx, par)
+	_, err = t.ZeusTestClient.DeletePods(ctx, par)
 	t.Require().Nil(err)
 }

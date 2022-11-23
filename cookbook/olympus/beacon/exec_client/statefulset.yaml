@@ -44,7 +44,7 @@ spec:
           image: "registry.digitalocean.com/zeus-fyi/athena:latest"
           imagePullPolicy: Always
           command: [ "/bin/sh" ]
-          args: [ "-c","/scripts/start.sh" ]
+          args: [ "-c","/athena/start.sh" ]
           volumeMounts:
             - name: exec-client-storage
               mountPath: "/data"

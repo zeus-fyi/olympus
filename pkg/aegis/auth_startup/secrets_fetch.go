@@ -2,7 +2,6 @@ package auth_startup
 
 import (
 	"context"
-	"os/exec"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -16,6 +15,7 @@ import (
 
 type SecretsWrapper struct {
 	PostgresAuth string
+	DoctlToken   string
 }
 
 func RunDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {
@@ -53,14 +53,9 @@ func RunDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg Aut
 		log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: DecryptAndUnGzipToInMemFs failed, shutting down the server")
 		misc.DelayedPanic(err)
 	}
-	cmd := exec.Command("doctl", "auth", "init", "-t", string(doctlToken))
-	err = cmd.Run()
-	if err != nil {
-		log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to auth doctl, shutting down the server")
-		misc.DelayedPanic(err)
-	}
 
 	sw := SecretsWrapper{}
+	sw.DoctlToken = string(doctlToken)
 	pgAuth, err := s3SecretsReader.MemFS.ReadFile("secrets/postgres-auth.txt")
 	if err != nil {
 		log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: DecryptAndUnGzipToInMemFs failed, shutting down the server")

@@ -32,5 +32,6 @@ func (k *K8Util) CopySecretToAnotherKns(ctx context.Context, knsFrom, knsTo zeus
 		return s, err
 	}
 	s.ResourceVersion = ""
+	s.Namespace = knsTo.Namespace
 	return k.CreateSecretWithKns(ctx, knsTo, s, filter)
 }

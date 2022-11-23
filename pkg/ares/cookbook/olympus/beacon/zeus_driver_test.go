@@ -1,14 +1,14 @@
-package zeus_apps
+package olympus_beacon
 
 import (
 	"context"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/cookbook"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 	zeus_client "github.com/zeus-fyi/olympus/pkg/zeus/client"
 	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
-	test_base "github.com/zeus-fyi/olympus/test"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
 )
 
@@ -35,7 +35,7 @@ func (t *ZeusAppsTestSuite) SetupTest() {
 	t.ZeusTestClient = zeus_client.NewDefaultZeusClient(tc.Bearer)
 	//t.ZeusTestClient = zeus_client.NewLocalZeusClient(tc.Bearer)
 	// points working dir to inside /test
-	test_base.ForceDirToTestDirLocation()
+	cookbook.ChangeToCookbookDir()
 
 	// generates outputs to /test/outputs dir
 	// uses inputs from /test/mocks dir

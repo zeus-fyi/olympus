@@ -1,4 +1,4 @@
-package zeus_apps
+package olympus_beacon
 
 import (
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
@@ -15,9 +15,9 @@ var deployExecKnsReq = zeus_req_types.TopologyDeployRequest{
 // DirOut is where it will write a copy of the chart you uploaded, which helps verify the workload is correct
 var execChartPath = filepaths.Path{
 	PackageName: "",
-	DirIn:       "./mocks/kubernetes_apps/beacon/exec_client",
-	DirOut:      "./mocks/kubernetes_apps/beacon/exec_client_out",
-	FnIn:        "exec", // filename for your gzip workload
+	DirIn:       "./olympus/beacon/exec_client",
+	DirOut:      "./olympus/outputs",
+	FnIn:        "execClientAthena", // filename for your gzip workload
 	FnOut:       "",
 	Env:         "",
 	FilterFiles: string_utils.FilterOpts{},
@@ -31,9 +31,7 @@ func (t *ZeusAppsTestSuite) TestExecChartDeploy() {
 func (t *ZeusAppsTestSuite) TestExecClientUpload() {
 	basePath := execChartPath
 
-	// derived
 	chart := newUploadChart(basePath.FnIn)
-	resp, err := t.ZeusTestClient.UploadChart(ctx, basePath, chart)
+	_, err := t.ZeusTestClient.UploadChart(ctx, basePath, chart)
 	t.Require().Nil(err)
-	t.TestReadDemoChart(resp.TopologyID, basePath)
 }

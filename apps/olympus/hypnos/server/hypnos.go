@@ -19,7 +19,7 @@ func Hypnos() {
 
 func init() {
 	viper.AutomaticEnv()
-	Cmd.Flags().StringVar(&cfg.Port, "port", "9002", "server port")
+	Cmd.Flags().StringVar(&cfg.Port, "port", "9005", "server port")
 }
 
 // Cmd represents the base command when called without any subcommands

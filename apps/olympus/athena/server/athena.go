@@ -73,7 +73,7 @@ func init() {
 	Cmd.Flags().BoolVar(&useDefaultToken, "useDefaultToken", true, "use default jwt token")
 }
 
-// Cmd represents the base command when called without any subcommands
+// Cmd represents the  basecommand when called without any subcommands
 var Cmd = &cobra.Command{
 	Use:   "Web3 Middleware",
 	Short: "A web3 infra middleware manager",

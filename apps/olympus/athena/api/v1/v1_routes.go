@@ -33,7 +33,8 @@ func InitV1InternalRoutes(e *echo.Echo, p filepaths.Path) {
 			return key.PublicKeyVerified, err
 		},
 	}))
-	CommonRoutes(eg, p)
+	eg = CommonRoutes(eg, p)
+	return
 }
 
 func CommonRoutes(e *echo.Group, p filepaths.Path) *echo.Group {

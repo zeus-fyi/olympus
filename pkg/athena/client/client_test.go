@@ -6,14 +6,14 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	athena_routines "github.com/zeus-fyi/olympus/athena/api/v1/common/routines"
-	"github.com/zeus-fyi/olympus/pkg/poseidon"
+	"github.com/zeus-fyi/olympus/pkg/athena/client/poseidon_buckets"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 
 	test_base "github.com/zeus-fyi/olympus/test"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
 )
 
-var ctx context.Context
+var ctx = context.Background()
 
 type AthenaClientTestSuite struct {
 	base.TestSuite
@@ -30,37 +30,27 @@ func (t *AthenaClientTestSuite) SetupTest() {
 }
 
 func (t *AthenaClientTestSuite) DownloadTest() {
-	br := poseidon.BucketRequest{
-		BucketName: "",
-		Protocol:   "",
-		Network:    "",
-		ClientType: "",
-		ClientName: "",
-	}
+	//br := poseidon_buckets.GethMainnetBucket
+	br := poseidon_buckets.LighthouseMainnetBucket
 	err := t.AthenaTestClient.Download(ctx, br)
 	t.Assert().Nil(err)
 }
 
 func (t *AthenaClientTestSuite) UploadTest() {
-	br := poseidon.BucketRequest{
-		BucketName: "",
-		Protocol:   "",
-		Network:    "",
-		ClientType: "",
-		ClientName: "",
-	}
+	//br := poseidon_buckets.GethMainnetBucket
+	br := poseidon_buckets.LighthouseMainnetBucket
 	err := t.AthenaTestClient.Upload(ctx, br)
 	t.Assert().Nil(err)
 }
 
-func (t *AthenaClientTestSuite) ResumeTest() {
-	rr := athena_routines.RoutineRequest{ClientName: ""}
+func (t *AthenaClientTestSuite) TestResume() {
+	rr := athena_routines.RoutineRequest{ClientName: "lighthouse"}
 	err := t.AthenaTestClient.Resume(ctx, rr)
 	t.Assert().Nil(err)
 }
 
-func (t *AthenaClientTestSuite) PauseTest() {
-	rr := athena_routines.RoutineRequest{ClientName: ""}
+func (t *AthenaClientTestSuite) TestPause() {
+	rr := athena_routines.RoutineRequest{ClientName: "lighthouse"}
 	err := t.AthenaTestClient.Pause(ctx, rr)
 	t.Assert().Nil(err)
 }

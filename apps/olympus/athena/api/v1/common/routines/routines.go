@@ -19,7 +19,8 @@ func (t *RoutineRequest) ResumeApp(c echo.Context) error {
 		log.Err(err).Msg("TerminateApp")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	_, err = exec.Command("sh", "-c", "/scripts/start.sh").Output()
+	cmd := exec.Command("sh", "-c", "/scripts/start.sh")
+	err = cmd.Run()
 	if err != nil {
 		log.Err(err).Msg("ResumeApp")
 		return err
@@ -49,8 +50,10 @@ func (t *RoutineRequest) PauseApp(c echo.Context) error {
 }
 
 func (t *RoutineRequest) terminateApp(appName string) error {
-	_, err := exec.Command("sh", "-c", fmt.Sprintf("pkill -SIGINT %s", appName)).Output()
+	cmd := exec.Command("sh", "-c", fmt.Sprintf("pkill -SIGINT %s", appName))
+	err := cmd.Run()
 	if err != nil {
+		log.Err(err).Msg("terminateApp")
 		return err
 	}
 	return nil
@@ -64,8 +67,10 @@ func (t *RoutineRequest) InjectHypnos() error {
 	case "geth":
 		port = "8545"
 	}
-	_, err := exec.Command("sh", "-c", fmt.Sprintf("hypnos --port=%s", port)).Output()
+	cmd := exec.Command("sh", "-c", fmt.Sprintf("hypnos --port=%s", port))
+	err := cmd.Run()
 	if err != nil {
+		log.Err(err).Msg("InjectHypnos")
 		return err
 	}
 	return nil

@@ -46,7 +46,7 @@ func RunDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg Aut
 		misc.DelayedPanic(err)
 	}
 
-	log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjSecretsProcedure finished")
+	log.Info().Msg("RunDigitalOceanS3BucketObjSecretsProcedure finished")
 
 	doctlToken, err := s3SecretsReader.MemFS.ReadFile("secrets/doctl.txt")
 	if err != nil {

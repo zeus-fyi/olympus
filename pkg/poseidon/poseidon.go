@@ -25,7 +25,12 @@ type BucketRequest struct {
 	CompressionType string `json:"compressionType,omitempty"`
 }
 
-func (b *BucketRequest) CreateBucketKey() string {
+func (b *BucketRequest) BaseBucketKeyValue() string {
+	key := []string{strings.ToLower(b.Protocol), strings.ToLower(b.Network), strings.ToLower(b.ClientType), strings.ToLower(b.ClientName)}
+	return strings.Join(key, ".")
+}
+
+func (b *BucketRequest) GetBucketKey() string {
 	key := []string{strings.ToLower(b.Protocol), strings.ToLower(b.Network), strings.ToLower(b.ClientType), strings.ToLower(b.ClientName)}
 	if len(b.CompressionType) == 0 {
 		key = append(key, "tar.zst")

@@ -36,9 +36,8 @@ func (p *Poseidon) UploadSnapshot(ctx context.Context, br BucketRequest) error {
 	uploader := s3uploader.NewS3ClientUploader(p.S3Client)
 	input := &s3.PutObjectInput{
 		Bucket: aws.String(br.BucketName),
-		Key:    aws.String(br.GetCompressedBucketKey()),
+		Key:    aws.String(br.GetBucketKey()),
 	}
-	p.FnIn = br.GetBaseBucketKey()
 	err := uploader.Upload(ctx, p.Path, input)
 	return err
 }

@@ -2,7 +2,6 @@ package auth_startup
 
 import (
 	"context"
-	"os/exec"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -14,7 +13,12 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 )
 
-func RunDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) memfs.MemFS {
+type SecretsWrapper struct {
+	PostgresAuth string
+	DoctlToken   string
+}
+
+func RunDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {
 	log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjSecretsProcedure starting")
 
 	input := &s3.GetObjectInput{
@@ -42,18 +46,21 @@ func RunDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg Aut
 		misc.DelayedPanic(err)
 	}
 
-	log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjSecretsProcedure finished")
+	log.Info().Msg("RunDigitalOceanS3BucketObjSecretsProcedure finished")
 
 	doctlToken, err := s3SecretsReader.MemFS.ReadFile("secrets/doctl.txt")
 	if err != nil {
 		log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: DecryptAndUnGzipToInMemFs failed, shutting down the server")
 		misc.DelayedPanic(err)
 	}
-	cmd := exec.Command("doctl", "auth", "init", "-t", string(doctlToken))
-	err = cmd.Run()
+
+	sw := SecretsWrapper{}
+	sw.DoctlToken = string(doctlToken)
+	pgAuth, err := s3SecretsReader.MemFS.ReadFile("secrets/postgres-auth.txt")
 	if err != nil {
-		log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to auth doctl, shutting down the server")
+		log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: DecryptAndUnGzipToInMemFs failed, shutting down the server")
 		misc.DelayedPanic(err)
 	}
-	return s3SecretsReader.MemFS
+	sw.PostgresAuth = string(pgAuth)
+	return s3SecretsReader.MemFS, sw
 }

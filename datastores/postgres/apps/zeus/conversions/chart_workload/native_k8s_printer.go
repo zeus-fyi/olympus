@@ -9,7 +9,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/writers"
 )
 
-func (nk *NativeK8s) PrintWorkload(p filepaths.Path) error {
+func (nk *TopologyBaseInfraWorkload) PrintWorkload(p filepaths.Path) error {
 	if nk.Deployment != nil {
 		name := addPrefixAndYamlSuffixIfNotExists("dep", nk.Deployment.Name)
 		err := nk.printYaml(&p, name, nk.Deployment)
@@ -48,10 +48,10 @@ func (nk *NativeK8s) PrintWorkload(p filepaths.Path) error {
 	return nil
 }
 
-func (nk *NativeK8s) printYaml(p *filepaths.Path, name string, workload interface{}) error {
+func (nk *TopologyBaseInfraWorkload) printYaml(p *filepaths.Path, name string, workload interface{}) error {
 	b, err := yaml.Marshal(workload)
 	if err != nil {
-		log.Err(err).Msgf("NativeK8s: printYaml json.Marshall  %s", name)
+		log.Err(err).Msgf("TopologyBaseInfraWorkload: printYaml json.Marshall  %s", name)
 		return err
 	}
 	p.FnOut = name
@@ -62,11 +62,11 @@ func (nk *NativeK8s) printYaml(p *filepaths.Path, name string, workload interfac
 	return err
 }
 
-func (nk *NativeK8s) WriteYamlConfig(p filepaths.Path, jsonBytes []byte) error {
+func (nk *TopologyBaseInfraWorkload) WriteYamlConfig(p filepaths.Path, jsonBytes []byte) error {
 	w := writers.WriterLib{}
 	err := w.CreateV2FileOut(p, jsonBytes)
 	if err != nil {
-		log.Err(err).Msgf("NativeK8s: WriteYamlConfig %s", p.FnOut)
+		log.Err(err).Msgf("TopologyBaseInfraWorkload: WriteYamlConfig %s", p.FnOut)
 		return err
 	}
 	return err

@@ -53,6 +53,7 @@ func (s *StatefulSet) ConvertK8sStatefulSetSpecToDB() error {
 	if err != nil {
 		return err
 	}
+	s.Spec.Template.ParentClass.ChartComponentResourceID = StsChartComponentResourceID
 	dbPodTemplateSpecMetadata := s.K8sStatefulSet.Spec.Template.GetObjectMeta()
 	s.Spec.Template.Metadata.Metadata = common_conversions.CreateMetadataByFields(dbPodTemplateSpecMetadata.GetName(), dbPodTemplateSpecMetadata.GetAnnotations(), dbPodTemplateSpecMetadata.GetLabels())
 	s.Spec.Template.Metadata.ChartComponentResourceID = StsChartComponentResourceID

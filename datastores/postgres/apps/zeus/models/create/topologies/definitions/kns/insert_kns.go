@@ -23,6 +23,27 @@ func (k *Kns) InsertKns(ctx context.Context, q sql_query_templates.QueryParams) 
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
 
+/*
+func getDeleteKnsQueryByOrgMatchAndCloudCtx() sql_query_templates.QueryParams {
+	q := sql_query_templates.QueryParams{}
+	q.QueryName = "DeleteKnsUsingLookup"
+
+	q.RawQuery = `
+	WITH cte_get_authed_ctx AS (
+		SELECT org_id, cloud_provider, region, context, namespace
+		FROM topologies_org_cloud_ctx_ns
+		WHERE cloud_provider = $1 AND region = $2 AND context = $3 AND namespace = $4
+		LIMIT 1
+	), cte_delete_kns AS (
+		DELETE FROM topologies_kns
+		WHERE cloud_provider = (SELECT cloud_provider FROM cte_get_authed_ctx) AND region = (SELECT region FROM cte_get_authed_ctx) AND namespace = (SELECT namespace FROM cte_get_authed_ctx) AND env = $5
+	) SELECT true
+	`
+	return q
+}
+*/
+
+// TODO add when no topology id provided
 func getInsertKnsQuery() sql_query_templates.QueryParams {
 	q := sql_query_templates.QueryParams{}
 	q.QueryName = "InsertKns"

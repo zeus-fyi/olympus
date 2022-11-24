@@ -57,9 +57,9 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 	}
 
 	deployParams := base_request.InternalDeploymentActionRequest{
-		Kns:       params.Kns,
-		OrgUser:   params.OrgUser,
-		NativeK8s: params.NativeK8s,
+		Kns:                       params.Kns,
+		OrgUser:                   params.OrgUser,
+		TopologyBaseInfraWorkload: params.TopologyBaseInfraWorkload,
 	}
 	nsCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(nsCtx, t.DeployTopologyActivities.CreateNamespace, deployParams).Get(nsCtx, nil)

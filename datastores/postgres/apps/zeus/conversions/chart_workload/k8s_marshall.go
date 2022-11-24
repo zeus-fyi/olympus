@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 )
 
-func (nk *NativeK8s) MarshallStatefulSet() ([]byte, error) {
+func (nk *TopologyBaseInfraWorkload) MarshallStatefulSet() ([]byte, error) {
 	var b []byte
 	if nk.StatefulSet != nil {
 		bsts, err := json.Marshal(nk.StatefulSet)
@@ -13,7 +13,7 @@ func (nk *NativeK8s) MarshallStatefulSet() ([]byte, error) {
 	return b, nil
 }
 
-func (nk *NativeK8s) MarshallDeployment() ([]byte, error) {
+func (nk *TopologyBaseInfraWorkload) MarshallDeployment() ([]byte, error) {
 	var b []byte
 	if nk.Deployment != nil {
 		bsts, err := json.Marshal(nk.Deployment)
@@ -22,7 +22,7 @@ func (nk *NativeK8s) MarshallDeployment() ([]byte, error) {
 	return b, nil
 }
 
-func (nk *NativeK8s) MarshallService() ([]byte, error) {
+func (nk *TopologyBaseInfraWorkload) MarshallService() ([]byte, error) {
 	var b []byte
 	if nk.Service != nil {
 		bsts, err := json.Marshal(nk.StatefulSet)
@@ -31,7 +31,7 @@ func (nk *NativeK8s) MarshallService() ([]byte, error) {
 	return b, nil
 }
 
-func (nk *NativeK8s) MarshallIngress() ([]byte, error) {
+func (nk *TopologyBaseInfraWorkload) MarshallIngress() ([]byte, error) {
 	var b []byte
 	if nk.Ingress != nil {
 		bsts, err := json.Marshal(nk.Ingress)
@@ -40,7 +40,7 @@ func (nk *NativeK8s) MarshallIngress() ([]byte, error) {
 	return b, nil
 }
 
-func (nk *NativeK8s) MarshallConfigMap() ([]byte, error) {
+func (nk *TopologyBaseInfraWorkload) MarshallConfigMap() ([]byte, error) {
 	var b []byte
 	if nk.ConfigMap != nil {
 		bsts, err := json.Marshal(nk.ConfigMap)

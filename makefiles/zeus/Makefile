@@ -1,9 +1,9 @@
-
 REPO	:= registry.digitalocean.com/zeus-fyi
 NAME    := zeus
 GIT_SHA := $(shell git rev-parse HEAD)
 IMG     := ${REPO}/${NAME}:${GIT_SHA}
 LATEST  := ${REPO}/${NAME}:latest
+SRC	    := ../../
 
 scale.down:
 	kubectl scale deployment/${DEPLOYMENT_NAME} --replicas=0
@@ -15,7 +15,7 @@ docker.build:
 	@ docker build -t ${IMG} -t ${LATEST} -f ../../docker/zeus/Dockerfile ../../
 
 docker.pubbuildx:
-	@ docker buildx build --build-arg GITHUB_TOKEN=${GITHUB_TOKEN_OLYMPUS} -t ${IMG} -t ${LATEST} --platform=linux/amd64 -f ../../docker/zeus/Dockerfile ../../ --push
+	@ docker buildx build -t ${IMG} -t ${LATEST} --platform=linux/amd64 -f ../../docker/zeus/Dockerfile ../../ --push
 
 docker.buildx.prune:
 	@ docker buildx prune

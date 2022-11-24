@@ -24,6 +24,8 @@ func (s *StatefulSet) ParseDBConfigToK8s(pcSlice common_conversions.ParentChildD
 			if err != nil {
 				return err
 			}
+		case "PodTemplateSpec":
+			db_to_k8s_conversions.ConvertPodSpecField(&s.K8sStatefulSet.Spec.Template, pc)
 		case "StatefulSetParentMetadata":
 			db_to_k8s_conversions.ConvertMetadata(&s.K8sStatefulSet.ObjectMeta, pc)
 		case "PodTemplateSpecMetadata":

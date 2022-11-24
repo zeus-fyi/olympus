@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-exec-client
+data:
+  start.sh: |-
+    #!/bin/sh
+    exec Nethermind.Runner --JsonRpc.Enabled true --HealthChecks.Enabled true --JsonRpc.JwtSecretFile=/data/jwt.hex --datadir=/data
+

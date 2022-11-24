@@ -26,8 +26,8 @@ func NewChartWorkload() ChartWorkload {
 	return k8s
 }
 
-func (c *ChartWorkload) GetNativeK8s() NativeK8s {
-	nk := NativeK8s{}
+func (c *ChartWorkload) GetTopologyBaseInfraWorkload() TopologyBaseInfraWorkload {
+	nk := TopologyBaseInfraWorkload{}
 
 	if c.Deployment != nil {
 		nk.Deployment = &c.K8sDeployment

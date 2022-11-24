@@ -9,5 +9,5 @@ import (
 type InternalDeploymentActionRequest struct {
 	Kns     kns.TopologyKubeCtxNs
 	OrgUser org_users.OrgUser
-	chart_workload.NativeK8s
+	chart_workload.TopologyBaseInfraWorkload
 }

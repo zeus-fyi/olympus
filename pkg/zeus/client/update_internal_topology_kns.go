@@ -25,3 +25,19 @@ func (z *ZeusClient) UpdateTopologyKnsStatus(ctx context.Context, status topolog
 	z.PrintRespJson(resp.Body())
 	return respStatus, err
 }
+
+func (z *ZeusClient) RemoveTopologyKnsStatus(ctx context.Context, status topology_deployment_status.Status) (kns.TopologyKubeCtxNs, error) {
+	z.PrintReqJson(status)
+	respStatus := kns.TopologyKubeCtxNs{}
+	resp, err := z.R().
+		SetResult(&respStatus).
+		SetBody(status.TopologyKubeCtxNs).
+		Post(zeus_endpoints.InternalDeployKnsDestroyPath)
+
+	if err != nil || resp.StatusCode() != http.StatusOK {
+		log.Ctx(ctx).Err(err).Msg("ZeusClient: RemoveTopologyKnsStatus")
+		return respStatus, err
+	}
+	z.PrintRespJson(resp.Body())
+	return respStatus, err
+}

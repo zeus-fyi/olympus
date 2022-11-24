@@ -12,6 +12,7 @@ import (
 )
 
 // InsertOrUpdateWorkloadKnsStateHandler TODO must verify this is auth is scoped to user only
+// TODO add when no topology id provided
 func InsertOrUpdateWorkloadKnsStateHandler(c echo.Context) error {
 	ctx := context.Background()
 	request := new(kns.TopologyKubeCtxNs)
@@ -33,10 +34,18 @@ func DeleteWorkloadKnsStateHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	err := delete_kns.DeleteKns(ctx, request)
-	if err != nil {
-		log.Err(err).Interface("kns", request).Msg("DeleteWorkloadKnsStateHandler")
-		return c.JSON(http.StatusInternalServerError, nil)
+	if request.TopologyID == 0 {
+		err := delete_kns.DeleteKnsByOrgAccessAndCloudCtx(ctx, request)
+		if err != nil {
+			log.Err(err).Interface("kns", request).Msg("DeleteWorkloadKnsStateHandler")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+	} else {
+		err := delete_kns.DeleteKns(ctx, request)
+		if err != nil {
+			log.Err(err).Interface("kns", request).Msg("DeleteWorkloadKnsStateHandler")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
 	}
 	return c.JSON(http.StatusOK, request)
 }

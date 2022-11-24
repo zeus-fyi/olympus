@@ -14,8 +14,10 @@ func (p *Poseidon) Download(ctx context.Context, br BucketRequest) error {
 	downloader := s3reader.NewS3ClientReader(p.S3Client)
 	input := &s3.GetObjectInput{
 		Bucket: aws.String(br.BucketName),
-		Key:    aws.String(br.CreateBucketKey()),
+		Key:    aws.String(br.GetCompressedBucketKey()),
 	}
+	p.FnIn = br.GetCompressedBucketKey()
+	p.FnOut = br.GetBaseBucketKey()
 	err := downloader.Read(ctx, &p.Path, input)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("Download: downloader.Read")

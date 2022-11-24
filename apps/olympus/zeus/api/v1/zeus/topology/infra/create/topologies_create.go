@@ -1,10 +1,8 @@
 package create_infra
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"io"
 	"net/http"
 	"strings"
 
@@ -24,31 +22,18 @@ type TopologyCreateRequest struct {
 }
 
 type TopologyCreateResponse struct {
-	ID int `json:"id"`
+	TopologyID int `json:"topologyID"`
 }
 
 func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {
-	file, err := c.FormFile("chart")
+	nk, err := zeus.DecompressUserInfraWorkload(c)
 	if err != nil {
-		return err
-	}
-	src, err := file.Open()
-	if err != nil {
-		return err
-	}
-	defer src.Close()
-	in := bytes.Buffer{}
-	if _, err = io.Copy(&in, src); err != nil {
-		return err
-	}
-	nk, err := zeus.UnGzipK8sChart(&in)
-	if err != nil {
-		log.Err(err).Interface("kubernetesWorkload", nk).Msg("CreateTopology: UnGzipK8sChart")
+		log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: CreateTopology, DecompressUserInfraWorkload")
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-	cw, err := nk.CreateChartWorkloadFromNativeK8s()
+	cw, err := nk.CreateChartWorkloadFromTopologyBaseInfraWorkload()
 	if err != nil {
-		log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: CreateTopology, CreateChartWorkloadFromNativeK8s")
+		log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: CreateTopology, CreateChartWorkloadFromTopologyBaseInfraWorkload")
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 	if nk.StatefulSet != nil && nk.Deployment != nil {
@@ -92,7 +77,7 @@ func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {
 	}
 
 	resp := TopologyCreateResponse{
-		ID: inf.TopologyID,
+		TopologyID: inf.TopologyID,
 	}
 	return c.JSON(http.StatusOK, resp)
 }

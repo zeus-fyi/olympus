@@ -10,10 +10,10 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_resp_types"
 )
 
-func (z *ZeusClient) DestroyDeploy(ctx context.Context, tar zeus_req_types.TopologyDeployRequest) (zeus_resp_types.DeployStatus, error) {
+func (z *ZeusClient) DestroyDeploy(ctx context.Context, tar zeus_req_types.TopologyDeployRequest) (zeus_resp_types.TopologyDeployStatus, error) {
 	z.PrintReqJson(tar)
 
-	respJson := zeus_resp_types.DeployStatus{}
+	respJson := zeus_resp_types.TopologyDeployStatus{}
 	resp, err := z.R().
 		SetResult(&respJson).
 		SetBody(tar).

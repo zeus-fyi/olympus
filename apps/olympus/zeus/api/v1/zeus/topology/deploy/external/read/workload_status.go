@@ -11,7 +11,7 @@ import (
 )
 
 type TopologyDeploymentStatusRequest struct {
-	TopologyID int `db:"topology_id" json:"topology_id"`
+	TopologyID int `json:"topologyID"`
 }
 
 func (t *TopologyDeploymentStatusRequest) ReadDeployedTopologyStatuses(c echo.Context) error {
@@ -20,7 +20,7 @@ func (t *TopologyDeploymentStatusRequest) ReadDeployedTopologyStatuses(c echo.Co
 	status := read_topology_deployment_status.NewReadDeploymentStatusesGroup()
 	err := status.ReadStatus(ctx, t.TopologyID, ou)
 	if err != nil {
-		log.Err(err).Interface("orgUser", ou).Msg("TopologyDeploymentStatusRequest: ReadTopologyStatus")
+		log.Err(err).Interface("orgUser", ou).Msg("TopologyDeploymentStatusRequest: ReadDeployedTopologyStatuses")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, status.Slice)

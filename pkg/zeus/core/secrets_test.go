@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 )
 
 type SecretsTestSuite struct {
@@ -13,7 +14,7 @@ type SecretsTestSuite struct {
 
 func (s *SecretsTestSuite) TestGetSecrets() {
 	ctx := context.Background()
-	var kns = KubeCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "eth-indexer"}
+	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "eth-indexer"}
 
 	secret, err := s.K.GetSecretWithKns(ctx, kns, "postgres-auth", nil)
 	s.Require().Nil(err)
@@ -22,7 +23,7 @@ func (s *SecretsTestSuite) TestGetSecrets() {
 
 func (s *SecretsTestSuite) TestCreateSecrets() {
 	ctx := context.Background()
-	var kns = KubeCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "eth-indexer"}
+	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "eth-indexer"}
 
 	secret, err := s.K.GetSecretWithKns(ctx, kns, "postgres-auth", nil)
 	s.Require().Nil(err)
@@ -39,9 +40,18 @@ func (s *SecretsTestSuite) TestCreateSecrets() {
 	s.Require().NotEmpty(newSecret)
 }
 
+func (s *SecretsTestSuite) TestCopySecrets() {
+	ctx := context.Background()
+	var knsFrom = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "zeus"}
+	var knsTo = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "beacon"}
+
+	_, err := s.K.CopySecretToAnotherKns(ctx, knsFrom, knsTo, "spaces-auth", nil)
+	s.Require().Nil(err)
+}
+
 func (s *SecretsTestSuite) TestCopySecretToAnotherNs() {
 	ctx := context.Background()
-	var kns = KubeCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "eth-indexer"}
+	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "eth-indexer"}
 
 	secret, err := s.K.GetSecretWithKns(ctx, kns, "postgres-auth", nil)
 	s.Require().Nil(err)

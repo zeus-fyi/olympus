@@ -6,12 +6,6 @@ import (
 
 var clientName = "lighthouse"
 
-func (t *AthenaClientTestSuite) TestHypnos() {
-	rr := athena_routines.RoutineRequest{ClientName: clientName}
-	err := t.AthenaTestClient.Resume(ctx, rr)
-	t.Assert().Nil(err)
-}
-
 func (t *AthenaClientTestSuite) TestResume() {
 	rr := athena_routines.RoutineRequest{ClientName: clientName}
 	err := t.AthenaTestClient.Resume(ctx, rr)
@@ -27,5 +21,11 @@ func (t *AthenaClientTestSuite) TestSuspend() {
 func (t *AthenaClientTestSuite) TestKill() {
 	rr := athena_routines.RoutineRequest{ClientName: clientName}
 	err := t.AthenaTestClient.Kill(ctx, rr)
+	t.Assert().Nil(err)
+}
+
+func (t *AthenaClientTestSuite) TestDiskWipe() {
+	rr := athena_routines.RoutineRequest{ClientName: clientName}
+	err := t.AthenaTestClient.DiskWipe(ctx, rr)
 	t.Assert().Nil(err)
 }

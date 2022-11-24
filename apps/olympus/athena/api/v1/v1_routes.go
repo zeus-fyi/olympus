@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	v1_common_routes "github.com/zeus-fyi/olympus/athena/api/v1/common"
 	athena_chain_snapshots "github.com/zeus-fyi/olympus/athena/api/v1/common/chain_snapshots"
+	host "github.com/zeus-fyi/olympus/athena/api/v1/common/host_info"
 	athena_jwt_route "github.com/zeus-fyi/olympus/athena/api/v1/common/jwt"
 	athena_routines "github.com/zeus-fyi/olympus/athena/api/v1/common/routines"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -46,6 +47,11 @@ func CommonRoutes(e *echo.Group, p filepaths.Path) *echo.Group {
 	e.POST("/routines/start", athena_routines.StartAppRoutineHandler)
 	e.POST("/routines/resume", athena_routines.ResumeProcessRoutineHandler)
 	e.POST("/routines/kill", athena_routines.KillProcessRoutineHandler)
+
+	e.POST("/routines/disk/wipe", athena_routines.WipeDiskHandler)
+
+	e.GET("/host/disk", host.GetDiskStatsHandler)
+	e.GET("/host/memory", host.GetMemStatsHandler)
 
 	e.POST("/snapshot/download", athena_chain_snapshots.DownloadChainSnapshotHandler)
 	e.POST("/snapshot/upload", athena_chain_snapshots.UploadChainSnapshotHandler)

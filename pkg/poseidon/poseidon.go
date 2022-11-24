@@ -22,11 +22,30 @@ type BucketRequest struct {
 	Network    string `json:"network"`
 	ClientType string `json:"clientType"`
 	ClientName string `json:"clientName"`
+
+	CompressionType string
 }
 
-func (b *BucketRequest) CreateBucketKey() string {
+func (b *BucketRequest) GetZstdFn() string {
+	return b.GetCompressedBucketKey() + ".tar.zst"
+}
+
+func (b *BucketRequest) GetGzipFn() string {
+	return b.GetCompressedBucketKey() + ".tar.gzip"
+}
+
+func (b *BucketRequest) GetBaseBucketKey() string {
 	key := []string{strings.ToLower(b.Protocol), strings.ToLower(b.Network), strings.ToLower(b.ClientType), strings.ToLower(b.ClientName)}
 	return strings.Join(key, ".")
+}
+
+func (b *BucketRequest) GetCompressedBucketKey() string {
+	switch b.CompressionType {
+	case "gzip":
+		return b.GetGzipFn()
+	default:
+		return b.GetZstdFn()
+	}
 }
 
 func NewPoseidon(s3Client s3base.S3Client) Poseidon {

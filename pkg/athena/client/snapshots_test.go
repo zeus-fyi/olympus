@@ -16,8 +16,7 @@ func (t *AthenaClientTestSuite) TestUploadExecClient() {
 	t.Assert().Nil(err)
 }
 
-func (t *AthenaClientTestSuite) DownloadTest() {
-	//br := poseidon_buckets.GethMainnetBucket
+func (t *AthenaClientTestSuite) TestDownloadConsensusClient() {
 	br := poseidon_buckets.LighthouseMainnetBucket
 	err := t.AthenaTestClient.Download(ctx, br)
 	t.Assert().Nil(err)

@@ -21,6 +21,7 @@ func GetProcessName(cn string) string {
 	return appName
 }
 
+// TODO others...
 func GetProcessPorts(cn string) string {
 	port := ""
 	switch cn {

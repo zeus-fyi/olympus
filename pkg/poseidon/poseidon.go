@@ -28,7 +28,7 @@ type BucketRequest struct {
 func (b *BucketRequest) GetBucketKey() string {
 	key := []string{strings.ToLower(b.Protocol), strings.ToLower(b.Network), strings.ToLower(b.ClientType), strings.ToLower(b.ClientName)}
 	if len(b.CompressionType) == 0 {
-		key = append(key, "tar.zst")
+		key = append(key, "tar.lz4")
 	}
 	return strings.Join(key, ".")
 }

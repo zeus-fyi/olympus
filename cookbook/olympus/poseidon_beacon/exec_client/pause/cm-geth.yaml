@@ -5,4 +5,4 @@ metadata:
 data:
   start.sh: |-
     #!/bin/sh
-    exec sleep 100000000000000
+    exec sleep 100000000000000000

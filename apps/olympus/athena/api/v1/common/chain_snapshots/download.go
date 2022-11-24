@@ -22,7 +22,12 @@ func (t *DownloadChainSnapshotRequest) Download(c echo.Context) error {
 	pos.FnOut = t.ClientName
 	err := pos.ZstdDownloadAndDec(ctx, t.BucketRequest)
 	if err != nil {
-		log.Err(err).Msg("DownloadChainSnapshotRequest")
+		log.Err(err).Msg("DownloadChainSnapshotRequest: ZstdDownloadAndDec")
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+	err = pos.RemoveFileInPath()
+	if err != nil {
+		log.Err(err).Msg("DownloadChainSnapshotRequest: RemoveFileInPath")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusOK, nil)

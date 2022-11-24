@@ -23,6 +23,5 @@ COPY --from=src_builder /app/ca.pem /etc/ssl/certs
 COPY --from=src_builder /app/ca.key /etc/ssl/certs
 
 COPY --from=src_builder /app/athena /usr/bin/athena
-COPY --from=hypnos_builder /app/hypnos /usr/bin/hypnos
 
 EXPOSE 9005

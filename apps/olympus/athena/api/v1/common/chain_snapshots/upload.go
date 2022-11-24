@@ -18,6 +18,7 @@ func (t *UploadChainSnapshotRequest) Upload(c echo.Context) error {
 	// upload procedure
 	pos := poseidon.NewPoseidon(athena.AthenaS3Manager)
 	ctx := context.Background()
+	pos.FnIn = t.ClientName
 	err := pos.ZstdCompressAndUpload(ctx, t.BucketRequest)
 	if err != nil {
 		log.Err(err).Msg("UploadChainSnapshotRequest")

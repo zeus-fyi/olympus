@@ -1,9 +1,17 @@
 package athena_endpoints
 
-const InternalResumeV1Path = "/v1/internal/resume"
+const InternalSuspendV1Path = "/v1/internal/routines/suspend"
 
-const InternalPauseV1Path = "/v1/internal/resume"
+const InternalResumeV1Path = "/v1/internal/routines/resume"
 
-const InternalUploadV1Path = "/v1/internal/upload"
+const InternalKillV1Path = "/v1/internal/routines/kill"
 
-const InternalDownloadV1Path = "/v1/internal/download"
+const InternalDiskWipeV1Path = "/v1/internal/routines/disk/wipe"
+
+const InternalUploadV1Path = "/v1/internal/snapshot/upload"
+
+const InternalDownloadV1Path = "/v1/internal/snapshot/download"
+
+const InternalHostDiskV1Path = "/v1/internal/host/disk"
+
+const InternalHostMemV1Path = "/v1/internal/host/memory"

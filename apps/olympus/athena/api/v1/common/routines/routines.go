@@ -1,72 +1,56 @@
 package athena_routines
 
 import (
-	"fmt"
+	"context"
 	"net/http"
-	"os/exec"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/athena/pkg/routines"
 )
 
 type RoutineRequest struct {
 	ClientName string `json:"clientName"`
 }
 
-func (t *RoutineRequest) ResumeApp(c echo.Context) error {
-	err := t.terminateApp("hypnos")
-	if err != nil {
-		log.Err(err).Msg("TerminateApp")
-		return c.JSON(http.StatusInternalServerError, err)
-	}
-	_, err = exec.Command("sh", "-c", "/scripts/start.sh").Output()
-	if err != nil {
-		log.Err(err).Msg("ResumeApp")
-		return err
-	}
-	return c.JSON(http.StatusOK, nil)
+type RoutineResp struct {
+	Status string `json:"status"`
 }
 
-func (t *RoutineRequest) PauseApp(c echo.Context) error {
-	appName := ""
-	switch t.ClientName {
-	case "lighthouse":
-		appName = "lighthouse"
-	case "geth":
-		appName = "geth"
-	}
-	err := t.terminateApp(appName)
+func (t *RoutineRequest) Kill(c echo.Context) error {
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, "func", "Kill")
+	appName := routines.GetProcessName(t.ClientName)
+	err := routines.KillProcessWithCtx(ctx, appName)
 	if err != nil {
-		log.Err(err).Msg("TerminateApp")
+		log.Ctx(ctx).Err(err).Msg("Kill")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	err = t.InjectHypnos()
+	resp := RoutineResp{Status: "killed"}
+	return c.JSON(http.StatusOK, resp)
+}
+
+func (t *RoutineRequest) Suspend(c echo.Context) error {
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, "func", "Suspend")
+	appName := routines.GetProcessName(t.ClientName)
+	err := routines.SuspendProcessWithCtx(ctx, appName)
 	if err != nil {
-		log.Err(err).Msg("InjectHypnos")
+		log.Ctx(ctx).Err(err).Msg("SuspendApp")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusOK, nil)
 }
 
-func (t *RoutineRequest) terminateApp(appName string) error {
-	_, err := exec.Command("sh", "-c", fmt.Sprintf("pkill -SIGINT %s", appName)).Output()
+func (t *RoutineRequest) Resume(c echo.Context) error {
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, "func", "Resume")
+	appName := routines.GetProcessName(t.ClientName)
+	err := routines.ResumeProcessWithCtx(ctx, appName)
 	if err != nil {
-		return err
+		log.Ctx(ctx).Err(err).Msg("Resume: ResumeProcessWithCtx")
+		return c.JSON(http.StatusInternalServerError, err)
 	}
-	return nil
-}
-
-func (t *RoutineRequest) InjectHypnos() error {
-	port := ""
-	switch t.ClientName {
-	case "lighthouse":
-		port = "5052"
-	case "geth":
-		port = "8545"
-	}
-	_, err := exec.Command("sh", "-c", fmt.Sprintf("hypnos --port=%s", port)).Output()
-	if err != nil {
-		return err
-	}
-	return nil
+	resp := RoutineResp{Status: "resumed"}
+	return c.JSON(http.StatusOK, resp)
 }

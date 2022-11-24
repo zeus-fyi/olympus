@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-lighthouse
+data:
+  start.sh: |-
+    #!/bin/sh
+    exec sleep 10000000000000

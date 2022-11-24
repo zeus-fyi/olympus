@@ -82,7 +82,7 @@ func addToArchive(p *filepaths.Path, tw *tar.Writer, filename string) error {
 	// not be preserved
 	// https://golang.org/src/archive/tar/common.go?#L626
 	header.Name = filename
-
+	header.Size = info.Size()
 	// Write file header to the tar archive
 	err = tw.WriteHeader(header)
 	if err != nil {
@@ -91,8 +91,9 @@ func addToArchive(p *filepaths.Path, tw *tar.Writer, filename string) error {
 	}
 
 	// Copy file content to tar archive
-	_, err = io.Copy(tw, file)
+	_, err = io.CopyN(tw, file, info.Size())
 	if err != nil {
+		log.Info().Int64("filesize", info.Size())
 		log.Err(err).Msg("Compression: addToArchive, io.Copy(tw, file)")
 		return err
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	v1_common_routes "github.com/zeus-fyi/olympus/athena/api/v1/common"
 	athena_chain_snapshots "github.com/zeus-fyi/olympus/athena/api/v1/common/chain_snapshots"
+	host "github.com/zeus-fyi/olympus/athena/api/v1/common/host_info"
 	athena_jwt_route "github.com/zeus-fyi/olympus/athena/api/v1/common/jwt"
 	athena_routines "github.com/zeus-fyi/olympus/athena/api/v1/common/routines"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -33,14 +34,23 @@ func InitV1InternalRoutes(e *echo.Echo, p filepaths.Path) {
 			return key.PublicKeyVerified, err
 		},
 	}))
-	CommonRoutes(eg, p)
+	eg = CommonRoutes(eg, p)
+	return
 }
 
 func CommonRoutes(e *echo.Group, p filepaths.Path) *echo.Group {
 	v1_common_routes.CommonManager.DataDir = p
 	e.POST("/jwt/create", athena_jwt_route.JwtHandler)
-	e.POST("/routines/pause", athena_routines.PauseRoutineHandler)
-	e.POST("/routines/resume", athena_routines.ResumeRoutineHandler)
+
+	e.POST("/routines/suspend", athena_routines.SuspendRoutineHandler)
+	e.POST("/routines/start", athena_routines.StartAppRoutineHandler)
+	e.POST("/routines/resume", athena_routines.ResumeProcessRoutineHandler)
+	e.POST("/routines/kill", athena_routines.KillProcessRoutineHandler)
+
+	e.POST("/routines/disk/wipe", athena_routines.WipeDiskHandler)
+
+	e.GET("/host/disk", host.GetDiskStatsHandler)
+	e.GET("/host/memory", host.GetMemStatsHandler)
 
 	e.POST("/snapshot/download", athena_chain_snapshots.DownloadChainSnapshotHandler)
 	e.POST("/snapshot/upload", athena_chain_snapshots.UploadChainSnapshotHandler)

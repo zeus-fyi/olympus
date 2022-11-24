@@ -15,15 +15,6 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o athena apps/olympus/athena/main.go
 
-#syntax=docker/dockerfile:1.4
-FROM golang:1.19-buster as hypnos_builder
-
-WORKDIR /app
-
-COPY . .
-
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o hypnos apps/olympus/hypnos/main.go
-
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates
 

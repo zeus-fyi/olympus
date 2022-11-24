@@ -20,7 +20,6 @@ func (t *DownloadChainSnapshotRequest) Download(c echo.Context) error {
 	pos := poseidon.NewPoseidon(athena.AthenaS3Manager)
 	ctx := context.Background()
 	pos.DirOut = v1_common_routes.CommonManager.DataDir.DirIn
-	pos.FnOut = t.GetCompressedBucketKey()
 	err := pos.ZstdDownloadAndDec(ctx, t.BucketRequest)
 	if err != nil {
 		log.Err(err).Msg("DownloadChainSnapshotRequest")

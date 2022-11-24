@@ -42,7 +42,6 @@ func CommonRoutes(e *echo.Group, p filepaths.Path) *echo.Group {
 	v1_common_routes.CommonManager.DataDir = p
 	e.POST("/jwt/create", athena_jwt_route.JwtHandler)
 
-	e.POST("/routines/hypnos", athena_routines.HypnosKillReplaceRoutineHandler)
 	e.POST("/routines/suspend", athena_routines.SuspendRoutineHandler)
 	e.POST("/routines/start", athena_routines.StartAppRoutineHandler)
 	e.POST("/routines/resume", athena_routines.ResumeProcessRoutineHandler)

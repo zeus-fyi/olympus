@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: cm-eth-indexer
+  name: cm-aegis
 data:
   start.sh: |-
     #!/bin/sh

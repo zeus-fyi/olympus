@@ -17,4 +17,6 @@ func (t *S3ReadTestSuite) TestGeneratePresignedURL() {
 	url, err := reader.GeneratePresignedURL(ctx, input)
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(url)
+
+	// TODO test reading from this presigned url
 }

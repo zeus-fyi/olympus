@@ -26,7 +26,7 @@ require (
 	github.com/rs/zerolog v1.28.0
 	github.com/spf13/viper v1.14.0
 	github.com/stretchr/testify v1.8.1
-	github.com/supranational/blst v0.3.8-0.20220526154634-513d2456b344
+	github.com/supranational/blst v0.3.10
 	github.com/tidwall/pretty v1.2.1
 	github.com/zeus-fyi/jennifer v0.0.0-20221008222717-be57190219a6
 	github.com/zeus-fyi/memoryfs v0.0.0-20221102185216-a3f87725e7fb

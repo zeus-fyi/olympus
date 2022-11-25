@@ -17,6 +17,7 @@ type Poseidon struct {
 
 type BucketRequest struct {
 	BucketName string `json:"bucketName"`
+	BucketKey  string `json:"bucketKey,omitempty"`
 
 	Protocol        string `json:"protocol"`
 	Network         string `json:"network"`

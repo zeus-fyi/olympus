@@ -52,5 +52,6 @@ func (s *S3Client) ConnectS3SpacesDO(ctx context.Context) error {
 	}
 	// Create an Amazon S3 service client
 	s.AwsS3Client = s3.NewFromConfig(cfg)
+
 	return err
 }

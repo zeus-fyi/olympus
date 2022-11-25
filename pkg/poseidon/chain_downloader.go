@@ -24,6 +24,21 @@ func (p *Poseidon) Download(ctx context.Context, br BucketRequest) error {
 	return err
 }
 
+func (p *Poseidon) TarDownloadAndDec(ctx context.Context, br BucketRequest) error {
+	ctx = context.WithValue(ctx, "func", "TarDownloadAndDec")
+	err := p.Download(ctx, br)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("TarDownloadAndDec: Download")
+		return err
+	}
+	err = p.TarDecompress(&p.Path)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("TarDownloadAndDec: TarDecompress")
+		return err
+	}
+	return err
+}
+
 func (p *Poseidon) Lz4DownloadAndDec(ctx context.Context, br BucketRequest) error {
 	ctx = context.WithValue(ctx, "func", "Lz4DownloadAndDec")
 	err := p.Download(ctx, br)

@@ -89,7 +89,7 @@ func (c *CompressionTestSuite) TestTar() {
 		FilterFiles: string_utils.FilterOpts{},
 	}
 
-	err := c.Comp.TarFolder(&p)
+	err := c.Comp.TarCompress(&p)
 	c.Require().Nil(err)
 }
 

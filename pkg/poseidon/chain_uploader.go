@@ -20,6 +20,17 @@ func (p *Poseidon) ZstdCompressAndUpload(ctx context.Context, br BucketRequest) 
 	return err
 }
 
+func (p *Poseidon) TarCompressAndUpload(ctx context.Context, br BucketRequest) error {
+	ctx = context.WithValue(ctx, "func", "TarCompressAndUpload")
+	err := p.TarCompress(&p.Path)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("TarCompressAndUpload: TarCompress")
+		return err
+	}
+	err = p.UploadSnapshot(ctx, br)
+	return err
+}
+
 func (p *Poseidon) Lz4CompressAndUpload(ctx context.Context, br BucketRequest) error {
 	ctx = context.WithValue(ctx, "func", "Lz4CompressAndUpload")
 	err := p.Lz4CompressDir(&p.Path)

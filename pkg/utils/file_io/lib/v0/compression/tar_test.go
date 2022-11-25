@@ -22,7 +22,7 @@ func (c *Lz4TestSuite) TestTar() {
 		FilterFiles: string_utils.FilterOpts{},
 	}
 
-	err := c.Comp.TarFolder(&p)
+	err := c.Comp.TarCompress(&p)
 	c.Require().Nil(err)
 }
 
@@ -36,7 +36,7 @@ func (c *Lz4TestSuite) TestUnTar() {
 		FilterFiles: string_utils.FilterOpts{},
 	}
 
-	err := c.Comp.TarUnzip(&p)
+	err := c.Comp.TarDecompress(&p)
 	c.Require().Nil(err)
 }
 func TestTarTestSuite(t *testing.T) {

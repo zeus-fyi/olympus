@@ -10,14 +10,14 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
-func (c *Compression) TarFolder(p *filepaths.Path) error {
+func (c *Compression) TarCompress(p *filepaths.Path) error {
 	if p == nil {
 		return errors.New("need to include a path")
 	}
 	p.FnOut = p.FnIn + ".tar"
 	out, err := os.Create(p.FileOutPath())
 	if err != nil {
-		log.Err(err).Msg("Compression: TarFolder, os.Create(p.FileOutPath()")
+		log.Err(err).Msg("Compression: TarCompress, os.Create(p.FileOutPath()")
 		return err
 	}
 	defer out.Close()

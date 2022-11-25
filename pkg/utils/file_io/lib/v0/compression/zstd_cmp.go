@@ -38,7 +38,7 @@ func (c *Compression) ZstCompressDir(p *filepaths.Path) error {
 		if err != nil {
 			return err
 		}
-		if !d.IsDir() {
+		if !d.IsDir() && filename != p.FnOut {
 			zerr := addToArchive(p, tw, filename)
 			if zerr != nil {
 				return zerr

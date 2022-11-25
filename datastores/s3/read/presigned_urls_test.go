@@ -37,7 +37,6 @@ func (t *S3ReadTestSuite) TestGeneratePresignedURL() {
 			resp.BytesComplete(),
 			resp.Size(),
 			100*resp.Progress())
-
 	case <-resp.Done:
 		// download is complete
 		err = resp.Err()

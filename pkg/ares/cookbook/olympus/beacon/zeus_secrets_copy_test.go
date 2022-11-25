@@ -28,7 +28,7 @@ func (t *ZeusAppsTestSuite) TestSecretsCopy() {
 				CloudProvider: "do",
 				Region:        "sfo3",
 				Context:       "do-sfo3-dev-do-sfo3-zeus",
-				Namespace:     "beacon",
+				Namespace:     "ethereum",
 				Env:           "dev",
 			},
 		},

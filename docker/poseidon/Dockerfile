@@ -16,7 +16,7 @@ RUN --mount=type=cache,target=${GOMODCACHE} go mod download
 
 COPY . .
 
-RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o athena apps/olympus/athena/main.go
+RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o poseidon apps/olympus/poseidon/main.go
 
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates
@@ -25,6 +25,6 @@ COPY --from=src_builder /app/ca-certificate.crt /etc/ssl/certs
 COPY --from=src_builder /app/ca.pem /etc/ssl/certs
 COPY --from=src_builder /app/ca.key /etc/ssl/certs
 
-COPY --from=src_builder /app/athena /usr/bin/athena
+COPY --from=src_builder /app/poseidon /usr/bin/poseidon
 
 EXPOSE 9005

@@ -1,5 +1,5 @@
 REPO	:= registry.digitalocean.com/zeus-fyi
-NAME    := athena
+NAME    := poseidon
 GIT_SHA := $(shell git rev-parse HEAD)
 IMG     := ${REPO}/${NAME}:${GIT_SHA}
 LATEST  := ${REPO}/${NAME}:latest
@@ -9,5 +9,5 @@ GOMODCACHE := $(shell go env GOMODCACHE)
 GOCACHE := $(shell go env GOCACHE)
 
 docker.pubbuildx:
-	@ docker buildx build -t ${IMG} -t ${LATEST} --build-arg GOMODCACHE=${GOMODCACHE} --build-arg GOCACHE=${GOCACHE} --platform=linux/amd64 -f ../../docker/athena/Dockerfile ../../ --push
+	@ docker buildx build -t ${IMG} -t ${LATEST} --build-arg GOMODCACHE=${GOMODCACHE} --build-arg GOCACHE=${GOCACHE} --platform=linux/amd64 -f ../../docker/poseidon/Dockerfile ../../ --push
 

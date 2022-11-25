@@ -4,6 +4,8 @@ GIT_SHA := $(shell git rev-parse HEAD)
 IMG     := ${REPO}/${NAME}:${GIT_SHA}
 LATEST  := ${REPO}/${NAME}:latest
 SRC	    := ../../
+GOMODCACHE := $(shell go env GOMODCACHE)
+GOCACHE := $(shell go env GOCACHE)
 
 scale.down:
 	kubectl scale deployment/${DEPLOYMENT_NAME} --replicas=0
@@ -15,7 +17,7 @@ docker.build:
 	@ docker build -t ${IMG} -t ${LATEST} -f ../../docker/zeus/Dockerfile ../../
 
 docker.pubbuildx:
-	@ docker buildx build -t ${IMG} -t ${LATEST} --platform=linux/amd64 -f ../../docker/zeus/Dockerfile ../../ --push
+	@ docker buildx build -t ${IMG} -t ${LATEST} --build-arg GOMODCACHE=${GOMODCACHE} --build-arg GOCACHE=${GOCACHE} --platform=linux/amd64 -f ../../docker/zeus/Dockerfile ../../ --push
 
 docker.buildx.prune:
 	@ docker buildx prune

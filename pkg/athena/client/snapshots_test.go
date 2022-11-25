@@ -1,7 +1,7 @@
 package athena_client
 
 import (
-	"github.com/zeus-fyi/olympus/pkg/athena/client/poseidon_buckets"
+	"github.com/zeus-fyi/olympus/pkg/poseidon/poseidon_buckets"
 )
 
 func (t *AthenaClientTestSuite) TestUploadConsensusClient() {

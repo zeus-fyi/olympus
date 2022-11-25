@@ -22,7 +22,7 @@ func (t *S3ReadTestSuite) TestRead() {
 
 	input := &s3.GetObjectInput{
 		Bucket: aws.String("zeus-fyi"),
-		Key:    aws.String("test.txt"),
+		Key:    aws.String("text.txt"),
 	}
 	p := filepaths.Path{
 		PackageName: "",

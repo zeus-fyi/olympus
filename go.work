@@ -9,11 +9,12 @@ use (
 	./apps/external/tojen
 	./apps/external/web3
 
-	./apps/olympus/artemis
+	./apps/olympus/aegis
 	./apps/olympus/apollo
+	./apps/olympus/artemis
 	./apps/olympus/athena
 	./apps/olympus/hestia
-	./apps/olympus/zeus
 	./apps/olympus/hypnos
 	./apps/olympus/poseidon
+	./apps/olympus/zeus
 )

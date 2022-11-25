@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "eth-indexer"
+  namespace: "eth-indexer"
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: "nginx"
+  tls:
+    - secretName: eth-indexer-tls
+      hosts:
+        - apollo.eth.zeus.fyi
+  rules:
+    - host: apollo.eth.zeus.fyi
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: eth-indexer-eth-indexer
+                port:
+                  number: 80

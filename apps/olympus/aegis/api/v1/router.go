@@ -14,6 +14,7 @@ import (
 func Routes(e *echo.Echo) *echo.Echo {
 	// Routes
 	e.GET("/health", Health)
+	InitV1Routes(e)
 	return e
 }
 
@@ -34,9 +35,13 @@ func InitV1Routes(e *echo.Echo) {
 			return key.PublicKeyVerified, err
 		},
 	}))
-	eg.GET("/ethereum/beacon", Health)
+	eg.GET("/ethereum/beacon", BeaconAuthHandler)
 }
 
 func Health(c echo.Context) error {
 	return c.String(http.StatusOK, "Healthy")
+}
+
+func BeaconAuthHandler(c echo.Context) error {
+	return c.String(http.StatusOK, "Success")
 }

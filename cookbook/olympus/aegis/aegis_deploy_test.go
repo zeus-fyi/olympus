@@ -6,7 +6,6 @@ func (t *AegisCookbookTestSuite) TestDeploy() {
 	resp, err := t.ZeusTestClient.Deploy(ctx, deployKnsReq)
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(resp)
-
 	t.TestAegisSecretsCopy()
 }
 

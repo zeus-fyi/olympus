@@ -35,7 +35,7 @@ func (c *Compression) Lz4CompressDir(p *filepaths.Path) error {
 			log.Err(err).Msgf("Compression: fs.WalkDir at filename %s", filename)
 			return err
 		}
-		if !d.IsDir() {
+		if !d.IsDir() && filename != p.FnOut {
 			zerr := addToArchive(p, tw, filename)
 			if zerr != nil {
 				log.Err(zerr).Msgf("Compression: addToArchive at filename %s", filename)

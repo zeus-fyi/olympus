@@ -40,7 +40,7 @@ func (c *Compression) GzipCompressDir(p *filepaths.Path) error {
 		if err != nil {
 			return err
 		}
-		if !d.IsDir() {
+		if !d.IsDir() && path != p.FnOut {
 			aerr := addToArchive(p, tw, path)
 			if aerr != nil {
 				return aerr

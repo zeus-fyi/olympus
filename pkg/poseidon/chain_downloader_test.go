@@ -32,7 +32,7 @@ func (s *ChainDownloaderTestSuite) TestChainZstdDownloadAndDec() {
 	pos := NewPoseidon(s.S3)
 	pos.DirIn = "./ethereum/geth_zstd_download"
 	pos.FnIn = "geth.tar.zst"
-	pos.DirOut = "./ethereum/geth_zstd_dec"
+	pos.DirOut = "./ethereum/geth_zstd_download"
 	pos.FnOut = "geth"
 	err := pos.ZstdDownloadAndDec(ctx, brDownload)
 	s.Require().Nil(err)

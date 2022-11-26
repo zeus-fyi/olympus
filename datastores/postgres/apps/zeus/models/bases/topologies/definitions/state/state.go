@@ -28,6 +28,10 @@ const DestroyDeployPending = "DestroyDeployPending"
 const DestroyDeployInProgress = "DestroyDeployInProgress"
 const DestroyDeployComplete = "DestroyDeployComplete"
 
+const CleanDeployPending = "CleanDeployPending"
+const CleanDeployInProgress = "CleanDeployInProgress"
+const CleanDeployComplete = "CleanDeployComplete"
+
 const InProgress = "InProgress"
 const Complete = "Complete"
 

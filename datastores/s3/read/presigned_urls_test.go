@@ -13,16 +13,20 @@ import (
 func (t *S3ReadTestSuite) TestGeneratePresignedURL() {
 	ctx := context.Background()
 	input := &s3.GetObjectInput{
-		Bucket: aws.String("zeus-fyi"),
-		Key:    aws.String("text.txt"),
+		Bucket: aws.String("zeus-fyi-ethereum"),
+		Key:    aws.String("ethereum.mainnet.exec.client.standard.geth.tar.lz4"),
 	}
 	reader := NewS3ClientReader(t.S3)
 	url, err := reader.GeneratePresignedURL(ctx, input)
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(url)
+	fmt.Println(url)
+}
 
+func (t *S3ReadTestSuite) TestDownloadFromPresignedUrl() {
+	preSignedUrl := ""
 	client := grab.NewClient()
-	req, err := grab.NewRequest(".", url)
+	req, err := grab.NewRequest(".", preSignedUrl)
 	t.Require().Nil(err)
 
 	// start download
@@ -37,7 +41,6 @@ func (t *S3ReadTestSuite) TestGeneratePresignedURL() {
 			resp.BytesComplete(),
 			resp.Size(),
 			100*resp.Progress())
-
 	case <-resp.Done:
 		// download is complete
 		err = resp.Err()

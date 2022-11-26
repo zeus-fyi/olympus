@@ -42,3 +42,17 @@ func ExecuteDestroyDeployWorkflow(c echo.Context, ctx context.Context, ou org_us
 	resp.UpdatedAt = time.Now().UTC()
 	return c.JSON(http.StatusAccepted, resp.DeployStatus)
 }
+
+func ExecuteCleanDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsCleanDeploy kns.TopologyKubeCtxNs, nk chart_workload.TopologyBaseInfraWorkload) error {
+	tar := helpers.PackageCommonTopologyRequest(knsCleanDeploy, ou, nk)
+	err := topology_worker.Worker.ExecuteCleanDeploy(ctx, tar)
+	if err != nil {
+		log.Err(err).Interface("orgUser", ou).Msg("ExecuteCleanDeploy, ExecuteWorkflow error")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	resp := topology_deployment_status.NewTopologyStatus()
+	resp.DeployStatus.TopologyID = knsCleanDeploy.TopologyID
+	resp.TopologyStatus = topology_deployment_status.CleanDeployPending
+	resp.UpdatedAt = time.Now().UTC()
+	return c.JSON(http.StatusAccepted, resp.DeployStatus)
+}

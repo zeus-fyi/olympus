@@ -15,9 +15,9 @@ type Lz4TestSuite struct {
 func (c *Lz4TestSuite) TestLz4Cmp() {
 	p := filepaths.Path{
 		PackageName: "",
-		DirIn:       "./.kube",
-		DirOut:      "./",
-		FnIn:        "kube",
+		DirIn:       "/Users/alex/go/Olympus/olympus/sandbox/chains/ethereum/geth",
+		DirOut:      "/Users/alex/go/Olympus/olympus/sandbox/chains/ethereum/geth",
+		FnIn:        "geth",
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}

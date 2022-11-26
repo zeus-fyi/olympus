@@ -18,9 +18,9 @@ func (t *DownloadChainSnapshotRequest) Download(c echo.Context) error {
 	// download procedure
 	pos := poseidon.NewPoseidon(athena.AthenaS3Manager)
 	ctx := context.Background()
-	pos.FnIn = t.ClientName + ".tar"
+	pos.FnIn = t.ClientName + ".tar.lz4"
 	pos.FnOut = t.ClientName
-	err := pos.TarDownloadAndDec(ctx, t.BucketRequest)
+	err := pos.Lz4DownloadAndDec(ctx, t.BucketRequest)
 	if err != nil {
 		log.Err(err).Msg("DownloadChainSnapshotRequest: Lz4DownloadAndDec")
 		return c.JSON(http.StatusInternalServerError, err)

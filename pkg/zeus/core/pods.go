@@ -46,7 +46,7 @@ func (k *K8Util) GetPodLogs(ctx context.Context, name, ns string, logOpts *v1.Po
 }
 
 func (k *K8Util) GetPods(ctx context.Context, ns string, opts metav1.ListOptions) (*v1.PodList, error) {
-	return k.kc.CoreV1().Pods(ns).List(context.Background(), opts)
+	return k.kc.CoreV1().Pods(ns).List(ctx, opts)
 }
 
 func (k *K8Util) GetPodsUsingCtxNs(ctx context.Context, kubeCtxNs zeus_common_types.CloudCtxNs, logOpts *v1.PodLogOptions, filter *string_utils.FilterOpts) (*v1.PodList, error) {

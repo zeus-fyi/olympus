@@ -1,7 +1,7 @@
 package web3_client
 
 import (
-	"github.com/gochain/web3"
+	"github.com/zeus-fyi/gochain/web3"
 )
 
 func (s *Web3ClientTestSuite) TestReadContract() {
@@ -14,7 +14,5 @@ func (s *Web3ClientTestSuite) TestReadContract() {
 	abis, err := web3.ABIOpenFile("/Users/alex/go/Olympus/olympus/pkg/aegis/web3_client/contract_abis/erc20Abi.json")
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(abis)
-
-	abis.
 
 }

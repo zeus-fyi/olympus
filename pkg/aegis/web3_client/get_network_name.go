@@ -1,6 +1,10 @@
 package web3_client
 
-import "context"
+import (
+	"context"
+
+	"github.com/rs/zerolog/log"
+)
 
 const (
 	Mainnet            = "Mainnet"
@@ -14,6 +18,7 @@ func (w *Web3Client) GetNetworkName(ctx context.Context) (string, error) {
 	defer w.Close()
 	id, err := w.GetID(ctx)
 	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("Web3Client| GetNetworkName")
 		return "", err
 	}
 	switch id.GenesisHash.Hex() {

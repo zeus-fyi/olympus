@@ -1,7 +1,7 @@
 package web3_client
 
 import (
-	"github.com/gochain/web3"
+	"github.com/zeus-fyi/gochain/web3"
 	ecdsa_signer "github.com/zeus-fyi/olympus/pkg/aegis/ecdsa"
 )
 

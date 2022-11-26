@@ -16,8 +16,6 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-redis/redis/v9 v9.0.0-beta.2
 	github.com/go-resty/resty/v2 v2.7.0
-	github.com/gochain/gochain/v4 v4.1.0
-	github.com/gochain/web3 v0.2.92
 	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/google/go-querystring v1.1.0
 	github.com/gorilla/schema v1.2.0

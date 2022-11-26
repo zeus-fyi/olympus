@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 
 	"github.com/gochain/gochain/v4/crypto"
-	"github.com/gochain/web3"
+	"github.com/zeus-fyi/gochain/web3"
 )
 
 type EcdsaSigner struct {

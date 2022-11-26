@@ -8,7 +8,6 @@ func (t *AegisCookbookTestSuite) TestDeploy() {
 	t.Assert().NotEmpty(resp)
 
 	t.TestAegisSecretsCopy()
-
 }
 
 func (t *AegisCookbookTestSuite) TestChartUpload() {

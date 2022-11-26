@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "ethereum"
+  namespace: "ethereum"
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/auth-url: "https://aegis.zeus.fyi/v1beta/ethereum/beacon"
+spec:
+  ingressClassName: "nginx"
+  tls:
+    - secretName: ethereum-tls
+      hosts:
+        - eth.zeus.fyi
+  rules:
+    - host: eth.zeus.fyi
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: zeus-lighthouse
+                port:
+                  number: 80
+          - path: /
+            pathType: Fixed
+            backend:
+              service:
+                name: zeus-geth
+                port:
+                  number: 80

@@ -23,6 +23,9 @@ const ReplaceTopologyV1Path = "/v1/deploy/replace"
 // DestroyDeployInfraV1Path destroys topology, in other words uninstalls the app
 const DestroyDeployInfraV1Path = "/v1/deploy/destroy"
 
+// CleanDeployedNamespaceInfraV1Path removes all the installed resources from a namespace
+const CleanDeployedNamespaceInfraV1Path = "/v1/deploy/clean/namespace"
+
 // live kubernetes actions requests
 
 // ReadWorkloadV1Path reads all the statefulsets, services, ingresses, deployments, configmaps, and pods in a namespace.

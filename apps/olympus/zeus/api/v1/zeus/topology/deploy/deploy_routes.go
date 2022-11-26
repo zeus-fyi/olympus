@@ -3,6 +3,7 @@ package deploy_routes
 import (
 	"github.com/labstack/echo/v4"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
+	clean_deploy_request "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/clean"
 	create_or_update_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/create_or_update"
 	destroy_deploy_request "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/destroy"
 	deployment_status "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/read"
@@ -17,6 +18,8 @@ import (
 func ExternalDeployRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
 	e.POST("/deploy", create_or_update_deploy.TopologyDeploymentHandler)
+
+	e.POST("/deploy/clean/namespace", clean_deploy_request.TopologyCleanNamespaceHandler)
 	e.POST("/deploy/replace", replace_topology.TopologyDeploymentReplaceHandler)
 	e.POST("/deploy/destroy", destroy_deploy_request.TopologyDestroyDeploymentHandler)
 	e.POST("/deploy/status", deployment_status.TopologyDeploymentStatusHandler)

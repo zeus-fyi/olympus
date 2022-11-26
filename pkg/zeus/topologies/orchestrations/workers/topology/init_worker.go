@@ -6,6 +6,7 @@ import (
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	deployment_status "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/status"
+	clean_deployed_workflow "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/clean"
 	deploy_workflow "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/create"
 	destroy_deployed_workflow "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/destroy"
 )
@@ -24,14 +25,20 @@ func InitTopologyWorker(temporalAuthCfg temporal_auth.TemporalAuth) {
 	deployDestroyWf := destroy_deployed_workflow.NewDestroyDeployTopologyWorkflow()
 	// deploy create
 	deployWf := deploy_workflow.NewDeployTopologyWorkflow()
+	// deploy clean
+	cleanDeployWf := clean_deployed_workflow.NewCleanDeployTopologyWorkflow()
 
 	// workflows added
 	w.AddWorkflow(deployWf.GetWorkflow())
 	w.AddWorkflow(deployDestroyWf.GetWorkflow())
+	w.AddWorkflow(cleanDeployWf.GetWorkflow())
+
 	// activities added
 	w.AddActivities(statusActivity.GetActivities())
 	w.AddActivities(deployWf.GetActivities())
 	w.AddActivities(deployDestroyWf.GetActivities())
+	w.AddActivities(cleanDeployWf.GetActivities())
+
 	Worker = TopologyWorker{w}
 	Worker.TemporalClient = tc
 	return

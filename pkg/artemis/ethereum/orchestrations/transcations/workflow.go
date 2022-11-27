@@ -26,8 +26,8 @@ func NewArtemisBroadcastEthereumTxWorkflow() ArtemisEthereumTxBroadcastWorkflow 
 	return deployWf
 }
 
-func (t *ArtemisEthereumTxBroadcastWorkflow) GetWorkflows() interface{} {
-	return t.ArtemisSendEthTxWorkflow
+func (t *ArtemisEthereumTxBroadcastWorkflow) GetWorkflows() []interface{} {
+	return []interface{}{t.ArtemisSendEthTxWorkflow, t.ArtemisSendSignedTxWorkflow}
 }
 
 func (t *ArtemisEthereumTxBroadcastWorkflow) ArtemisSendEthTxWorkflow(ctx workflow.Context, params web3_actions.SendEtherPayload) error {

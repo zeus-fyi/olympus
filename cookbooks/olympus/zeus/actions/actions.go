@@ -1,7 +1,7 @@
 package zeus_actions
 
 import (
-	zeus_cookbook "github.com/zeus-fyi/olympus/cookbook/olympus/zeus"
+	zeus_cookbook "github.com/zeus-fyi/olympus/cookbooks/olympus/zeus"
 	zeus_client "github.com/zeus-fyi/olympus/pkg/zeus/client"
 	zeus_pods_reqs "github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types/pods"
 )

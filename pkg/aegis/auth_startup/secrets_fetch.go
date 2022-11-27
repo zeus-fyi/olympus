@@ -8,128 +8,77 @@ import (
 	"github.com/rs/zerolog/log"
 	s3reader "github.com/zeus-fyi/olympus/datastores/s3/read"
 	"github.com/zeus-fyi/olympus/pkg/aegis/s3secrets"
+	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 )
 
+const pgSecret = "secrets/postgres-auth.txt"
+const doctlSecret = "secrets/doctl.txt"
+const encryptedSecret = "secrets.tar.gz.age"
+const secretBucketName = "zeus-fyi"
+
 type SecretsWrapper struct {
 	PostgresAuth string
 	DoctlToken   string
-	ArtemisEcdsaKeys
-	Beacons
+	TemporalAuth temporal_auth.TemporalAuth
 }
 
-type ArtemisEcdsaKeys struct {
-	Mainnet string
-	Goerli  string
+var secretsBucket = &s3.GetObjectInput{
+	Bucket: aws.String(secretBucketName),
+	Key:    aws.String(encryptedSecret),
 }
 
-type Beacons struct {
-	MainnetNodeUrl string
-	GoerliNodeUrl  string
+func (s *SecretsWrapper) ReadSecret(ctx context.Context, inMemSecrets memfs.MemFS, fileName string) string {
+	secret, err := inMemSecrets.ReadFile(fileName)
+	if err != nil {
+		log.Ctx(ctx).Fatal().Msgf("SecretsWrapper: ReadSecret failed, shutting down the server: %s", fileName)
+		misc.DelayedPanic(err)
+	}
+	return string(secret)
+}
+
+func ReadEncryptedSecretsData(ctx context.Context, authCfg AuthConfig) memfs.MemFS {
+	authCfg.S3KeyValue = secretsBucket
+	s3Reader := s3reader.NewS3ClientReader(authCfg.s3BaseClient)
+	s3SecretsReader := s3secrets.NewS3Secrets(authCfg.a, s3Reader)
+	buf := s3SecretsReader.ReadBytes(ctx, &authCfg.Path, authCfg.S3KeyValue)
+
+	tmpPath := filepaths.Path{}
+	tmpPath.DirOut = "./"
+	tmpPath.FnOut = encryptedSecret
+	err := s3SecretsReader.MemFS.MakeFileIn(&authCfg.Path, buf.Bytes())
+	if err != nil {
+		log.Ctx(ctx).Fatal().Msg("ReadEncryptedSecretsData: MakeFile failed, shutting down the server")
+		misc.DelayedPanic(err)
+	}
+	unzipDir := "./secrets"
+	err = s3SecretsReader.DecryptAndUnGzipToInMemFs(&authCfg.Path, unzipDir)
+	if err != nil {
+		log.Ctx(ctx).Fatal().Msg("ReadEncryptedSecretsData: DecryptAndUnGzipToInMemFs failed, shutting down the server")
+		misc.DelayedPanic(err)
+	}
+	return s3SecretsReader.MemFS
 }
 
 func RunDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {
 	log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjSecretsProcedure starting")
 
-	input := &s3.GetObjectInput{
-		Bucket: aws.String("zeus-fyi"),
-		Key:    aws.String("secrets.tar.gz.age"),
-	}
-	authCfg.S3KeyValue = input
-	s3Reader := s3reader.NewS3ClientReader(authCfg.s3BaseClient)
-	s3SecretsReader := s3secrets.NewS3Secrets(authCfg.a, s3Reader)
-	buf := s3SecretsReader.ReadBytes(ctx, &authCfg.Path, authCfg.S3KeyValue)
-
-	tmpPath := filepaths.Path{}
-	tmpPath.DirOut = "./"
-	tmpPath.FnOut = "secrets.tar.gz.age"
-	err := s3SecretsReader.MemFS.MakeFileIn(&authCfg.Path, buf.Bytes())
-	if err != nil {
-		log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: MakeFile failed, shutting down the server")
-		misc.DelayedPanic(err)
-	}
-
-	unzipDir := "./secrets"
-	err = s3SecretsReader.DecryptAndUnGzipToInMemFs(&authCfg.Path, unzipDir)
-	if err != nil {
-		log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: DecryptAndUnGzipToInMemFs failed, shutting down the server")
-		misc.DelayedPanic(err)
-	}
-
+	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
 	log.Info().Msg("RunDigitalOceanS3BucketObjSecretsProcedure finished")
-
-	doctlToken, err := s3SecretsReader.MemFS.ReadFile("secrets/doctl.txt")
-	if err != nil {
-		log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: DecryptAndUnGzipToInMemFs failed, shutting down the server")
-		misc.DelayedPanic(err)
-	}
-
 	sw := SecretsWrapper{}
-	sw.DoctlToken = string(doctlToken)
-	pgAuth, err := s3SecretsReader.MemFS.ReadFile("secrets/postgres-auth.txt")
-	if err != nil {
-		log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: DecryptAndUnGzipToInMemFs failed, shutting down the server")
-		misc.DelayedPanic(err)
-	}
-	sw.PostgresAuth = string(pgAuth)
-	return s3SecretsReader.MemFS, sw
+	sw.DoctlToken = sw.ReadSecret(ctx, inMemSecrets, doctlSecret)
+	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
+	return inMemSecrets, sw
 }
 
 func RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {
 	log.Info().Msg("Artemis: RunDigitalOceanS3BucketObjSecretsProcedure starting")
-
-	input := &s3.GetObjectInput{
-		Bucket: aws.String("zeus-fyi"),
-		Key:    aws.String("secrets.tar.gz.age"),
-	}
-	authCfg.S3KeyValue = input
-	s3Reader := s3reader.NewS3ClientReader(authCfg.s3BaseClient)
-	s3SecretsReader := s3secrets.NewS3Secrets(authCfg.a, s3Reader)
-	buf := s3SecretsReader.ReadBytes(ctx, &authCfg.Path, authCfg.S3KeyValue)
-
-	tmpPath := filepaths.Path{}
-	tmpPath.DirOut = "./"
-	tmpPath.FnOut = "secrets.tar.gz.age"
-	err := s3SecretsReader.MemFS.MakeFileIn(&authCfg.Path, buf.Bytes())
-	if err != nil {
-		log.Fatal().Msg("RunArtemisDigitalOceanS3BucketObjSecretsProcedure: MakeFile failed, shutting down the server")
-		misc.DelayedPanic(err)
-	}
-
-	unzipDir := "./secrets"
-	err = s3SecretsReader.DecryptAndUnGzipToInMemFs(&authCfg.Path, unzipDir)
-	if err != nil {
-		log.Fatal().Msg("RunArtemisDigitalOceanS3BucketObjSecretsProcedure: DecryptAndUnGzipToInMemFs failed, shutting down the server")
-		misc.DelayedPanic(err)
-	}
-
+	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
 	log.Info().Msg("RunArtemisDigitalOceanS3BucketObjSecretsProcedure finished")
 	sw := SecretsWrapper{}
-	goerliNodeUrl, err := s3SecretsReader.MemFS.ReadFile("secrets/artemis-beacon-goerli.txt")
-	if err != nil {
-		log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: DecryptAndUnGzipToInMemFs failed, shutting down the server")
-		misc.DelayedPanic(err)
-	}
-	sw.GoerliNodeUrl = string(goerliNodeUrl)
-	mainnetNodeUrl, err := s3SecretsReader.MemFS.ReadFile("secrets/artemis-beacon-mainnet.txt")
-	if err != nil {
-		log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: DecryptAndUnGzipToInMemFs failed, shutting down the server")
-		misc.DelayedPanic(err)
-	}
-	sw.MainnetNodeUrl = string(mainnetNodeUrl)
-	artemisKey, err := s3SecretsReader.MemFS.ReadFile("secrets/artemis-eth-goerli.txt")
-	if err != nil {
-		log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: DecryptAndUnGzipToInMemFs failed, shutting down the server")
-		misc.DelayedPanic(err)
-	}
-	sw.ArtemisEcdsaKeys.Goerli = string(artemisKey)
-	pgAuth, err := s3SecretsReader.MemFS.ReadFile("secrets/postgres-auth.txt")
-	if err != nil {
-		log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: DecryptAndUnGzipToInMemFs failed, shutting down the server")
-		misc.DelayedPanic(err)
-	}
-	sw.PostgresAuth = string(pgAuth)
-	return s3SecretsReader.MemFS, sw
+	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
+	log.Info().Msg("RunArtemisDigitalOceanS3BucketObjSecretsProcedure succeeded")
+	return inMemSecrets, sw
 }

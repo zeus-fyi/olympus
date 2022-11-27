@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/cookbook"
+	"github.com/zeus-fyi/olympus/cookbooks"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 	zeus_client "github.com/zeus-fyi/olympus/pkg/zeus/client"
 	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
@@ -35,7 +35,7 @@ func (t *ZeusEthereumBeaconTestSuite) SetupTest() {
 	t.ZeusTestClient = zeus_client.NewDefaultZeusClient(tc.Bearer)
 	//t.ZeusTestClient = zeus_client.NewLocalZeusClient(tc.Bearer)
 	// points working dir to inside /test
-	cookbook.ChangeToCookbookDir()
+	cookbooks.ChangeToCookbookDir()
 
 	// generates outputs to /test/outputs dir
 	// uses inputs from /test/mocks dir
@@ -47,6 +47,6 @@ func TestZeusEthereumBeaconTestSuite(t *testing.T) {
 
 func CreateBeacon() {
 
-	cookbook.ChangeToCookbookDir()
+	cookbooks.ChangeToCookbookDir()
 
 }

@@ -11,12 +11,12 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 )
 
-type ArtemisCfg struct {
+type ArtemisConfig struct {
 	*accounts.Account
 	BeaconNetwork
 }
 
-type ArtemisCfgs []ArtemisCfg
+type ArtemisConfigs []ArtemisConfig
 
 type BeaconNetwork struct {
 	Service  string
@@ -32,8 +32,8 @@ const (
 	Ethereum = "ethereum"
 )
 
-func NewArtemisCfg(protocol, network string) ArtemisCfg {
-	cfg := ArtemisCfg{
+func NewArtemisConfig(protocol, network string) ArtemisConfig {
+	cfg := ArtemisConfig{
 		BeaconNetwork: BeaconNetwork{
 			Service:  Artemis,
 			Protocol: protocol,
@@ -44,9 +44,9 @@ func NewArtemisCfg(protocol, network string) ArtemisCfg {
 }
 
 var (
-	ArtemisEthereumMainnet = NewArtemisCfg(Ethereum, Mainnet)
-	ArtemisEthereumGoerli  = NewArtemisCfg(Ethereum, Goerli)
-	GlobalArtemisCfg       = []ArtemisCfg{ArtemisEthereumMainnet, ArtemisEthereumGoerli}
+	ArtemisEthereumMainnet = NewArtemisConfig(Ethereum, Mainnet)
+	ArtemisEthereumGoerli  = NewArtemisConfig(Ethereum, Goerli)
+	GlobalArtemisConfigs   = []ArtemisConfig{ArtemisEthereumMainnet, ArtemisEthereumGoerli}
 )
 
 func (b *BeaconNetwork) GetBeaconSecretKey() string {
@@ -58,7 +58,7 @@ func (b *BeaconNetwork) GetBeaconWalletKey() string {
 }
 
 func InitArtemisEthereum(ctx context.Context, inMemSecrets memfs.MemFS, secrets auth_startup.SecretsWrapper) {
-	for _, cfg := range GlobalArtemisCfg {
+	for _, cfg := range GlobalArtemisConfigs {
 		cfg.NodeURL = secrets.ReadSecret(ctx, inMemSecrets, cfg.GetBeaconSecretKey())
 		key := secrets.ReadSecret(ctx, inMemSecrets, cfg.GetBeaconWalletKey())
 		cfg.AddAccountFromHexPk(ctx, key)
@@ -66,10 +66,10 @@ func InitArtemisEthereum(ctx context.Context, inMemSecrets memfs.MemFS, secrets 
 	return
 }
 
-func (a *ArtemisCfg) AddAccountFromHexPk(ctx context.Context, key string) {
+func (a *ArtemisConfig) AddAccountFromHexPk(ctx context.Context, key string) {
 	acc, err := accounts.ParsePrivateKey(key)
 	if err != nil {
-		log.Ctx(ctx).Panic().Interface("AddAccountFromHexPk", a.BeaconNetwork).Msg("ArtemisCfg: ParsePrivateKey")
+		log.Ctx(ctx).Panic().Interface("AddAccountFromHexPk", a.BeaconNetwork).Msg("ArtemisConfig: ParsePrivateKey")
 		panic(err)
 	}
 	a.Account = acc

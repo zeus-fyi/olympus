@@ -9,7 +9,7 @@ import (
 func (w *Web3Client) ReadContract(ctx context.Context, abiFile, address string) (string, error) {
 	w.Dial()
 	defer w.Close()
-	b, err := w.Client.GetBalance(ctx, w.HexAddress(), nil)
+	b, err := w.Client.GetBalance(ctx, w.PublicKey(), nil)
 	if err != nil {
 		return "0", err
 	}

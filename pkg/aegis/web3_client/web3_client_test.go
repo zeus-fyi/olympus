@@ -1,6 +1,7 @@
 package web3_client
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -40,6 +41,11 @@ func (s *Web3ClientTestSuite) TestWebGetBalance() {
 	g, err := s.GoerliWeb3User.GetCurrentBalanceGwei(ctx)
 	s.Require().Nil(err)
 	s.Assert().NotEqual("0", g)
+
+	g, err = s.GoerliWeb3User2.GetCurrentBalanceGwei(ctx)
+	s.Require().Nil(err)
+	s.Assert().NotEqual("0", g)
+	fmt.Println(g)
 }
 
 func (s *Web3ClientTestSuite) TestWeb3ConnectMainnet() {

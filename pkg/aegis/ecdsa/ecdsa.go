@@ -4,16 +4,16 @@ import (
 	"encoding/hex"
 
 	"github.com/gochain/gochain/v4/crypto"
-	"github.com/zeus-fyi/gochain/web3"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 )
 
 type EcdsaSigner struct {
-	*web3.Account
+	*accounts.Account
 }
 
 func CreateEcdsaSignerFromPk(pk string) (EcdsaSigner, error) {
 	e := EcdsaSigner{}
-	a, err := web3.ParsePrivateKey(pk)
+	a, err := accounts.ParsePrivateKey(pk)
 	if err != nil {
 		return e, err
 	}

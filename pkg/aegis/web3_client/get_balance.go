@@ -4,7 +4,7 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/zeus-fyi/gochain/web3"
+	"github.com/zeus-fyi/gochain/web3/types"
 )
 
 func (w *Web3Client) GetCurrentBalance(ctx context.Context) (*big.Int, error) {
@@ -21,5 +21,5 @@ func (w *Web3Client) GetCurrentBalanceGwei(ctx context.Context) (string, error) 
 	if err != nil {
 		return "0", err
 	}
-	return web3.WeiAsGwei(b), err
+	return web3_types.WeiAsGwei(b), err
 }

@@ -1,14 +1,14 @@
 package web3_client
 
 import (
-	"github.com/zeus-fyi/gochain/web3"
+	"github.com/zeus-fyi/gochain/web3/client"
 	ecdsa_signer "github.com/zeus-fyi/olympus/pkg/aegis/ecdsa"
 )
 
 type Web3Client struct {
 	NodeURL string
 	Network string
-	web3.Client
+	client.Client
 	ecdsa_signer.EcdsaSigner
 }
 
@@ -22,7 +22,7 @@ func NewClientWithSigner(nodeURL string, ecdsaSigner ecdsa_signer.EcdsaSigner) W
 }
 
 func (w *Web3Client) Dial() {
-	r, err := web3.Dial(w.NodeURL)
+	r, err := client.Dial(w.NodeURL)
 	if err != nil {
 		panic(err)
 	}

@@ -5,8 +5,9 @@ func (w *Web3Client) ApproveSpenderTx() {
 	//w.SendRawTransaction()
 }
 
-func (w *Web3Client) SendTx() {
+func (w *Web3Client) SendEtherTx() {
 	// TODO
+
 	//w.SendRawTransaction()
 }
 

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	ecdsa_signer "github.com/zeus-fyi/olympus/pkg/aegis/ecdsa"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
 )
 
@@ -19,16 +19,16 @@ type Web3ClientTestSuite struct {
 func (s *Web3ClientTestSuite) SetupTest() {
 	s.InitLocalConfigs()
 	pkHexString := s.Tc.LocalEcsdaTestPkey
-	newAccount, err := ecdsa_signer.CreateEcdsaSignerFromPk(pkHexString)
+	newAccount, err := accounts.ParsePrivateKey(pkHexString)
 	s.Assert().Nil(err)
 
 	pkHexString2 := s.Tc.LocalEcsdaTestPkey2
-	secondAccount, err := ecdsa_signer.CreateEcdsaSignerFromPk(pkHexString2)
+	secondAccount, err := accounts.ParsePrivateKey(pkHexString2)
 	s.Assert().Nil(err)
-	s.MainnetWeb3User = NewClientWithSigner(s.Tc.MainnetNodeUrl, newAccount)
+	s.MainnetWeb3User = NewWeb3Client(s.Tc.MainnetNodeUrl, newAccount)
 
-	s.GoerliWeb3User = NewClientWithSigner(s.Tc.GoerliNodeUrl, newAccount)
-	s.GoerliWeb3User2 = NewClientWithSigner(s.Tc.GoerliNodeUrl, secondAccount)
+	s.GoerliWeb3User = NewWeb3Client(s.Tc.GoerliNodeUrl, newAccount)
+	s.GoerliWeb3User2 = NewWeb3Client(s.Tc.GoerliNodeUrl, secondAccount)
 }
 
 func (s *Web3ClientTestSuite) TestWebGetBalance() {

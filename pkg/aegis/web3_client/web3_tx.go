@@ -1,8 +1,19 @@
 package web3_client
 
-func (w *Web3Client) SendTx() {
+import "context"
+
+var ctx = context.Background()
+
+func (w *Web3Client) ApproveSpenderTx() {
 	// TODO
 	//w.SendRawTransaction()
+}
+
+func (w *Web3Client) SendEtherTxToAccountTwo() {
+	// TODO
+
+	//w.SendRawTransaction()
+
 }
 
 func (w *Web3Client) GetTxStatus() {

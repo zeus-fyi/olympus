@@ -36,9 +36,8 @@ type TestContainer struct {
 	LocalS3SpacesKey    string
 	LocalS3SpacesSecret string
 
-	LocalBearerToken           string
-	ProductionLocalBearerToken string
-
+	LocalBearerToken                   string
+	ProductionLocalBearerToken         string
 	ProductionLocalTemporalBearerToken string
 	DemoUserBearerToken                string
 
@@ -46,21 +45,28 @@ type TestContainer struct {
 	DevTemporalNs       string
 
 	DevTemporalAuth temporal_client.TemporalAuth
-	DevAuthKeysCfg  auth_keys_config.AuthKeysCfg
+
+	DevAuthKeysCfg auth_keys_config.AuthKeysCfg
 
 	ProdLocalTemporalAuth temporal_client.TemporalAuth
 	ProdLocalAuthKeysCfg  auth_keys_config.AuthKeysCfg
 
+	ProdLocalTemporalAuthArtemis temporal_client.TemporalAuth
+
 	TestURLs
 
-	ArtemisGoerliEcdsaKey  string
-	ArtemisMainnetEcdsaKey string
+	ArtemisHexKeys
 
 	LocalEcsdaTestPkey  string
 	LocalEcsdaTestPkey2 string
 
 	GoerliNodeUrl  string
 	MainnetNodeUrl string
+}
+
+type ArtemisHexKeys struct {
+	ArtemisGoerliEcdsaKey  string
+	ArtemisMainnetEcdsaKey string
 }
 
 func SetBaseURLs() TestURLs {
@@ -89,20 +95,32 @@ func InitEnvFromConfig(dir string) {
 	}
 }
 
+func InitArtemisLocalAccounts() {
+	testCont.ArtemisMainnetEcdsaKey = viper.GetString("PROD_MAINNET_ARTEMIS_ECDSA_PKEY")
+	testCont.ArtemisGoerliEcdsaKey = viper.GetString("PROD_GOERLI_ARTEMIS_ECDSA_PKEY")
+}
+
 func InitLocalTestConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
 	testCont.MainnetNodeUrl = viper.GetString("MAINNET_NODE_URL")
 	testCont.GoerliNodeUrl = viper.GetString("GOERLI_NODE_URL")
 
-	testCont.ArtemisMainnetEcdsaKey = viper.GetString("PROD_MAINNET_ARTEMIS_ECDSA_PKEY")
-	testCont.ArtemisGoerliEcdsaKey = viper.GetString("PROD_GOERLI_ARTEMIS_ECDSA_PKEY")
+	InitArtemisLocalAccounts()
+	// local test keys
 	testCont.LocalEcsdaTestPkey = viper.GetString("LOCAL_TESTING_ECDSA_PKEY")
 	testCont.LocalEcsdaTestPkey2 = viper.GetString("LOCAL_TESTING_ECDSA_PKEY_2")
 
+	// urls & env
 	testCont.TestURLs = SetBaseURLs()
 	testCont.Env = viper.GetString("ENV")
 
+	// demo user for testing
 	testCont.DemoUserBearerToken = viper.GetString("DEMO_USER_BEARER_TOKEN")
+
+	// temporal auth
+	testCont.ProductionLocalTemporalBearerToken = viper.GetString("PROD_LOCAL_TEMPORAL_BEARER_TOKEN")
+
+	// temporal zeus
 	testCont.DevTemporalNs = viper.GetString("DEV_TEMPORAL_NS")
 	testCont.DevTemporalHostPort = viper.GetString("DEV_TEMPORAL_HOST_PORT")
 	certPath := "./zeus.fyi/ca.pem"
@@ -120,6 +138,13 @@ func InitLocalTestConfigs() TestContainer {
 	testCont.ProdLocalTemporalAuth.Namespace = viper.GetString("PROD_LOCAL_TEMPORAL_NS")
 	testCont.ProdLocalTemporalAuth.HostPort = viper.GetString("PROD_LOCAL_TEMPORAL_HOST_PORT")
 
+	// temporal artemis
+	testCont.ProdLocalTemporalAuthArtemis.Namespace = viper.GetString("PROD_LOCAL_ARTEMIS_TEMPORAL_NS")
+	testCont.ProdLocalTemporalAuthArtemis.HostPort = viper.GetString("PROD_LOCAL_ARTEMIS_TEMPORAL_HOST_PORT")
+	testCont.ProdLocalTemporalAuthArtemis.ClientPEMKeyPath = "./zeus.fyi/ca.key"
+	testCont.ProdLocalTemporalAuthArtemis.ClientCertPath = "./zeus.fyi/ca.pem"
+
+	// age keys
 	testCont.LocalAgePubkey = viper.GetString("LOCAL_AGE_PUBKEY")
 	testCont.LocalAgePkey = viper.GetString("LOCAL_AGE_PKEY")
 
@@ -138,8 +163,6 @@ func InitLocalTestConfigs() TestContainer {
 
 	testCont.LocalBearerToken = viper.GetString("LOCAL_BEARER_TOKEN")
 	testCont.ProductionLocalBearerToken = viper.GetString("PROD_LOCAL_BEARER_TOKEN")
-
-	testCont.ProductionLocalTemporalBearerToken = viper.GetString("PROD_LOCAL_TEMPORAL_BEARER_TOKEN")
 
 	testCont.DevAuthKeysCfg = getDevAuthKeysCfg()
 	testCont.ProdLocalAuthKeysCfg = testCont.DevAuthKeysCfg

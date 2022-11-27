@@ -48,6 +48,10 @@ func (w *Worker) AddWorkflow(wf interface{}) {
 	w.Workflows = append(w.Workflows, wf)
 }
 
+func (w *Worker) AddWorkflows(wfs []interface{}) {
+	w.Workflows = append(w.Workflows, wfs...)
+}
+
 func (w *Worker) AddActivities(a []interface{}) {
 	w.Activities = append(w.Activities, a...)
 }

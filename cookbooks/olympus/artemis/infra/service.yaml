@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "artemis"
+  labels:
+    app.kubernetes.io/instance: "artemis"
+    app.kubernetes.io/name: "artemis"
+    app.kubernetes.io/managed-by: "zeus"
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/instance: "artemis"
+    app.kubernetes.io/name: "artemis"
+

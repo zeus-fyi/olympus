@@ -1,7 +1,7 @@
 package aegis_actions
 
 import (
-	aegis_olympus_cookbook "github.com/zeus-fyi/olympus/cookbook/olympus/aegis"
+	aegis_olympus_cookbook "github.com/zeus-fyi/olympus/cookbooks/olympus/aegis"
 	zeus_client "github.com/zeus-fyi/olympus/pkg/zeus/client"
 	zeus_pods_reqs "github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types/pods"
 )

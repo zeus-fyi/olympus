@@ -37,6 +37,7 @@ func InitV1Routes(e *echo.Echo) {
 		},
 	}))
 	e.POST("/ethereum", sendEthTx.SendEthTxHandler)
+	e.POST("/ethereum/goerli", sendEthTx.SendGoerliEthTxHandler)
 }
 
 func Health(c echo.Context) error {

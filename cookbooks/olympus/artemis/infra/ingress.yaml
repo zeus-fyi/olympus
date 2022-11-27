@@ -5,7 +5,6 @@ metadata:
   namespace: "artemis"
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/auth-url: "https://aegis.zeus.fyi/v1beta/ethereum/beacon"
 spec:
   ingressClassName: "nginx"
   tls:

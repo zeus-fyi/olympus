@@ -64,5 +64,4 @@ func InitEthereumBroadcasters(ctx context.Context, temporalAuthCfg temporal_auth
 	InitEthereumTxBroadcastWorker(ctx, temporalAuthCfg)
 	InitEthereumGoerliTxBroadcastWorker(ctx, temporalAuthCfg)
 	log.Ctx(ctx).Info().Msg("Artemis: InitEthereumBroadcasters succeeded")
-
 }

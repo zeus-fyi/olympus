@@ -30,13 +30,17 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
+		temporalAuthCfg = temporalProdAuthConfig
+		authKeysCfg = tc.ProdLocalAuthKeysCfg
+		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
+		inMemSecrets, sw := auth_startup.RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
-		temporalAuthCfg = tc.ProdLocalTemporalAuth
-		artemis_network_cfgs.InitArtemisLocalTestConfigs()
+		temporalAuthCfg = tc.ProdLocalTemporalAuthArtemis
+		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
-		temporalAuthCfg = tc.ProdLocalTemporalAuth
+		temporalAuthCfg = tc.ProdLocalTemporalAuthArtemis
 		artemis_network_cfgs.InitArtemisLocalTestConfigs()
 	}
 

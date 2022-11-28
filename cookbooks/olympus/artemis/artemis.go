@@ -30,7 +30,7 @@ var ZeusCloudCtxNs = zeus_common_types.CloudCtxNs{
 }
 
 var ArtemisDeployKnsReq = zeus_req_types.TopologyDeployRequest{
-	TopologyID: 0,
+	TopologyID: 1669600134636219000,
 	CloudCtxNs: ZeusCloudCtxNs,
 }
 

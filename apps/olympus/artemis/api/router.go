@@ -36,7 +36,7 @@ func InitV1Routes(e *echo.Echo) {
 			return key.PublicKeyVerified, err
 		},
 	}))
-	//e.POST("/ethereum/mainnet", sendEthTx.SendEthTxHandler)
+
 	e.POST("/ethereum/goerli/tx", artemis_eth_txs.SendSignedTxEthGoerliTxHandler)
 	e.POST("/ethereum/goerli/send", artemis_eth_txs.SendEtherGoerliTxHandler)
 

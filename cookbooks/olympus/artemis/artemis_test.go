@@ -5,9 +5,12 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/cookbooks"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
 	zeus_client "github.com/zeus-fyi/olympus/pkg/zeus/client"
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
+	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types/internal_reqs"
+	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
 )
 
@@ -30,6 +33,7 @@ func (t *ArtemisCookbookTestSuite) TestDeploy() {
 	resp, err := t.ZeusTestClient.Deploy(ctx, ArtemisDeployKnsReq)
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(resp)
+	t.TestArtemisSecretsCopy()
 }
 
 func (t *ArtemisCookbookTestSuite) TestUploadCharts() {
@@ -42,6 +46,37 @@ func (t *ArtemisCookbookTestSuite) TestUploadCharts() {
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(chartResp)
 	err = chartResp.PrintWorkload(artemisChartPath)
+	t.Require().Nil(err)
+}
+
+func (t *ArtemisCookbookTestSuite) TestArtemisSecretsCopy() {
+	s1 := "spaces-auth"
+	s2 := "spaces-key"
+	s3 := "age-auth"
+	req := internal_reqs.InternalSecretsCopyFromTo{
+		SecretNames: []string{s1, s2, s3},
+		FromKns: kns.TopologyKubeCtxNs{
+			TopologyID: 0,
+			CloudCtxNs: zeus_common_types.CloudCtxNs{
+				CloudProvider: "do",
+				Region:        "sfo3",
+				Context:       "do-sfo3-dev-do-sfo3-zeus",
+				Namespace:     "artemis",
+				Env:           "dev",
+			},
+		},
+		ToKns: kns.TopologyKubeCtxNs{
+			TopologyID: 0,
+			CloudCtxNs: zeus_common_types.CloudCtxNs{
+				CloudProvider: "do",
+				Region:        "sfo3",
+				Context:       "do-sfo3-dev-do-sfo3-zeus",
+				Namespace:     "artemis",
+				Env:           "dev",
+			},
+		},
+	}
+	err := t.ZeusTestClient.CopySecretsFromToNamespace(ctx, req)
 	t.Require().Nil(err)
 }
 

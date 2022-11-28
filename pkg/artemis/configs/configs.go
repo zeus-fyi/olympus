@@ -50,7 +50,7 @@ var (
 )
 
 func (b *BeaconNetwork) GetBeaconSecretKey() string {
-	return "secrets/" + strings.Join([]string{b.Service, b.Protocol, b.Network}, ".") + "txt"
+	return "secrets/" + strings.Join([]string{b.Service, b.Protocol, b.Network, "beacon"}, ".") + "txt"
 }
 
 func (b *BeaconNetwork) GetBeaconWalletKey() string {
@@ -58,11 +58,14 @@ func (b *BeaconNetwork) GetBeaconWalletKey() string {
 }
 
 func InitArtemisEthereum(ctx context.Context, inMemSecrets memfs.MemFS, secrets auth_startup.SecretsWrapper) {
+	log.Info().Msg("Artemis: InitArtemisEthereum starting")
+
 	for _, cfg := range GlobalArtemisConfigs {
 		cfg.NodeURL = secrets.ReadSecret(ctx, inMemSecrets, cfg.GetBeaconSecretKey())
 		key := secrets.ReadSecret(ctx, inMemSecrets, cfg.GetBeaconWalletKey())
 		cfg.AddAccountFromHexPk(ctx, key)
 	}
+	log.Info().Msg("Artemis: InitArtemisEthereum done")
 	return
 }
 

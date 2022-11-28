@@ -18,7 +18,6 @@ type AuthStartupTestSuite struct {
 // TestRead, you'll need to set the secret values to run the test
 
 func (t *AuthStartupTestSuite) TestSecretsEncrypt() {
-
 	p := filepaths.Path{
 		PackageName: "",
 		DirIn:       "./secrets",
@@ -42,7 +41,39 @@ func (t *AuthStartupTestSuite) TestAuthStartup() {
 		SpacesPrivKey: t.Tc.LocalS3SpacesSecret,
 	}
 	authCfg := NewDefaultAuthClient(ctx, keysCfg)
-	inMemFs := RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
+	inMemFs := ReadEncryptedSecretsData(ctx, authCfg)
+
+	t.Require().NotEmpty(inMemFs)
+	//
+	//authCfg.Path.FnIn = "secrets.tar.gz.age"
+	//authCfg.Path.FnOut = "secrets.tar.gz"
+	//inMemSecrets, sw := RunDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+	//t.Require().NotEmpty(inMemSecrets)
+	//t.Require().NotEmpty(sw)
+
+	//b, err := inMemSecrets.ReadFile("secrets/doctl.txt")
+	//t.Require().NotEmpty(b)
+	//t.Require().Nil(err)
+	//
+	//token := string(b)
+	//cmd := exec.Command("doctl", "auth", "init", "-t", token)
+	//err = cmd.Run()
+
+	//t.Assert().Equal(t.Tc.ProdDbPgconn, sw.PostgresAuth)
+
+}
+
+func (t *AuthStartupTestSuite) TestArtemisAuthStartup() {
+	ctx := context.Background()
+
+	keysCfg := auth_keys_config.AuthKeysCfg{
+		AgePrivKey:    t.Tc.LocalAgePkey,
+		AgePubKey:     t.Tc.LocalAgePubkey,
+		SpacesKey:     t.Tc.LocalS3SpacesKey,
+		SpacesPrivKey: t.Tc.LocalS3SpacesSecret,
+	}
+	authCfg := NewDefaultAuthClient(ctx, keysCfg)
+	inMemFs, sw := RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 
 	t.Require().NotEmpty(inMemFs)
 

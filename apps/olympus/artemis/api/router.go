@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
-	sendEthTx "github.com/zeus-fyi/olympus/artemis/api/v1/ethereum/sendTx"
+	"github.com/zeus-fyi/olympus/artemis/api/v1/ethereum/sendTx"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 )
@@ -36,8 +36,10 @@ func InitV1Routes(e *echo.Echo) {
 			return key.PublicKeyVerified, err
 		},
 	}))
-	e.POST("/ethereum", sendEthTx.SendEthTxHandler)
-	e.POST("/ethereum/goerli", sendEthTx.SendGoerliEthTxHandler)
+	//e.POST("/ethereum/mainnet", sendEthTx.SendEthTxHandler)
+	e.POST("/ethereum/goerli/tx", artemis_eth_txs.SendSignedTxEthGoerliTxHandler)
+	e.POST("/ethereum/goerli/send", artemis_eth_txs.SendEtherGoerliTxHandler)
+
 }
 
 func Health(c echo.Context) error {

@@ -27,7 +27,7 @@ type GasPriceLimits struct {
 }
 
 type Response struct {
-	Message string
+	Message string `json:"message"`
 }
 
 func (t *EthereumSendEtherRequest) SendEtherGoerliTx(c echo.Context) error {

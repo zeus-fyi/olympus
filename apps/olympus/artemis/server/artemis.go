@@ -9,7 +9,9 @@ import (
 	artemis_api_router "github.com/zeus-fyi/olympus/artemis/api"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
+	artemis_ethereum_transcations "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/transcations"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
+	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 )
 
 var cfg = Config{}
@@ -28,7 +30,29 @@ func Artemis() {
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	log.Info().Msg("Artemis: PG connection succeeded")
 
+	// goerli
+	log.Info().Msg("Artemis: Starting ArtemisEthereumGoerliTxBroadcastWorker")
+	c := artemis_ethereum_transcations.ArtemisEthereumGoerliTxBroadcastWorker.ConnectTemporalClient()
+	defer c.Close()
+	artemis_ethereum_transcations.ArtemisEthereumGoerliTxBroadcastWorker.Worker.RegisterWorker(c)
+	err := artemis_ethereum_transcations.ArtemisEthereumGoerliTxBroadcastWorker.Worker.Start()
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Artemis: %s ArtemisEthereumGoerliTxBroadcastWorker.Worker.Start failed", env)
+		misc.DelayedPanic(err)
+	}
+	log.Info().Msg("Artemis: ArtemisEthereumGoerliTxBroadcastWorker Started")
+	// mainnet
+	log.Info().Msg("Artemis: Starting ArtemisEthereumMainnetTxBroadcastWorker")
+	artemis_ethereum_transcations.ArtemisEthereumMainnetTxBroadcastWorker.Worker.RegisterWorker(c)
+	err = artemis_ethereum_transcations.ArtemisEthereumMainnetTxBroadcastWorker.Worker.Start()
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Artemis: %s ArtemisEthereumMainnetTxBroadcastWorker.Worker.Start failed", env)
+		misc.DelayedPanic(err)
+	}
+	log.Info().Msg("Artemis: ArtemisEthereumMainnetTxBroadcastWorker Started")
+
 	// Start server
+	log.Info().Msg("Artemis: Starting Server")
 	srv.E = artemis_api_router.Routes(srv.E)
 	srv.Start()
 }

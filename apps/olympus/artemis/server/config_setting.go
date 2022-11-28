@@ -14,8 +14,8 @@ import (
 var temporalProdAuthConfig = temporal_auth.TemporalAuth{
 	ClientCertPath:   "/etc/ssl/certs/ca.pem",
 	ClientPEMKeyPath: "/etc/ssl/certs/ca.key",
-	Namespace:        "artemis-production.ngb72",
-	HostPort:         "artemis-production.ngb72.tmprl.cloud:7233",
+	Namespace:        "production-artemis.ngb72",
+	HostPort:         "production-artemis.ngb72.tmprl.cloud:7233",
 }
 
 func SetConfigByEnv(ctx context.Context, env string) {

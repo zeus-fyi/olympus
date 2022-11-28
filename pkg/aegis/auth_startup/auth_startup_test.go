@@ -73,20 +73,16 @@ func (t *AuthStartupTestSuite) TestArtemisAuthStartup() {
 		SpacesPrivKey: t.Tc.LocalS3SpacesSecret,
 	}
 	authCfg := NewDefaultAuthClient(ctx, keysCfg)
-	inMemFs, sw := RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+	inMemFs := ReadEncryptedSecretsData(ctx, authCfg)
 
 	t.Require().NotEmpty(inMemFs)
 
-	authCfg.Path.FnIn = "secrets.tar.gz.age"
-	authCfg.Path.FnOut = "secrets.tar.gz"
-	inMemSecrets, sw := RunDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
-	t.Require().NotEmpty(inMemSecrets)
-	t.Require().NotEmpty(sw)
+	fs, sw := RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+	b, err := fs.ReadFile("secrets/artemis.ethereum.goerli.beacon.txt")
+	t.Require().NotEmpty(b)
+	t.Require().Nil(err)
 
-	//b, err := inMemSecrets.ReadFile("secrets/doctl.txt")
-	//t.Require().NotEmpty(b)
-	//t.Require().Nil(err)
-	//
+	InitArtemisEthereum(ctx, fs, sw)
 	//token := string(b)
 	//cmd := exec.Command("doctl", "auth", "init", "-t", token)
 	//err = cmd.Run()

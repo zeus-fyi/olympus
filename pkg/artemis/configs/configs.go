@@ -7,8 +7,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/configs"
-	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 )
 
 type ArtemisConfig struct {
@@ -50,20 +48,11 @@ var (
 )
 
 func (b *BeaconNetwork) GetBeaconSecretKey() string {
-	return "secrets/" + strings.Join([]string{b.Service, b.Protocol, b.Network}, ".") + "txt"
+	return "secrets/" + strings.Join([]string{b.Service, b.Protocol, b.Network, "beacon"}, ".") + ".txt"
 }
 
 func (b *BeaconNetwork) GetBeaconWalletKey() string {
-	return "secrets/" + strings.Join([]string{b.Service, b.Protocol, b.Network, "ecdsa"}, ".") + "txt"
-}
-
-func InitArtemisEthereum(ctx context.Context, inMemSecrets memfs.MemFS, secrets auth_startup.SecretsWrapper) {
-	for _, cfg := range GlobalArtemisConfigs {
-		cfg.NodeURL = secrets.ReadSecret(ctx, inMemSecrets, cfg.GetBeaconSecretKey())
-		key := secrets.ReadSecret(ctx, inMemSecrets, cfg.GetBeaconWalletKey())
-		cfg.AddAccountFromHexPk(ctx, key)
-	}
-	return
+	return "secrets/" + strings.Join([]string{b.Service, b.Protocol, b.Network, "ecdsa"}, ".") + ".txt"
 }
 
 func (a *ArtemisConfig) AddAccountFromHexPk(ctx context.Context, key string) {

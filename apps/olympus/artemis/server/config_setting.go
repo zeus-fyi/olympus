@@ -27,7 +27,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
 		inMemSecrets, sw := auth_startup.RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		cfg.PGConnStr = sw.PostgresAuth
-		artemis_network_cfgs.InitArtemisEthereum(ctx, inMemSecrets, sw)
+		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn

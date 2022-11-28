@@ -44,7 +44,7 @@ func NewArtemisConfig(protocol, network string) ArtemisConfig {
 var (
 	ArtemisEthereumMainnet = NewArtemisConfig(Ethereum, Mainnet)
 	ArtemisEthereumGoerli  = NewArtemisConfig(Ethereum, Goerli)
-	GlobalArtemisConfigs   = []ArtemisConfig{ArtemisEthereumMainnet, ArtemisEthereumGoerli}
+	GlobalArtemisConfigs   = []*ArtemisConfig{&ArtemisEthereumMainnet, &ArtemisEthereumGoerli}
 )
 
 func (b *BeaconNetwork) GetBeaconSecretKey() string {

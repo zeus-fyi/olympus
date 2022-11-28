@@ -36,7 +36,7 @@ func Artemis() {
 func init() {
 	viper.AutomaticEnv()
 	Cmd.Flags().StringVar(&cfg.Port, "port", "9004", "server port")
-	Cmd.Flags().StringVar(&env, "env", "local", "environment")
+	Cmd.Flags().StringVar(&env, "env", "production-local", "environment")
 	Cmd.Flags().StringVar(&authKeysCfg.AgePubKey, "age-public-key", "age1n97pswc3uqlgt2un9aqn9v4nqu32egmvjulwqp3pv4algyvvuggqaruxjj", "age public key")
 	Cmd.Flags().StringVar(&authKeysCfg.AgePrivKey, "age-private-key", "", "age private key")
 	Cmd.Flags().StringVar(&authKeysCfg.SpacesKey, "do-spaces-key", "", "do s3 spaces key")

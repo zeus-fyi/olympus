@@ -24,7 +24,7 @@ type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
 func (d *ArtemisEthereumBroadcastTxActivities) GetActivities() ActivitiesSlice {
-	return []interface{}{d.SendEther, d.SubmitSignedTxAndReturnTxData, d.WaitForReceipt}
+	return []interface{}{d.SendEther, d.SubmitSignedTxAndReturnTxData, d.WaitForTxReceipt}
 }
 
 func (d *ArtemisEthereumBroadcastTxActivities) SendEther(ctx context.Context, payload web3_actions.SendEtherPayload) (common.Hash, error) {
@@ -47,12 +47,12 @@ func (d *ArtemisEthereumBroadcastTxActivities) SubmitSignedTxAndReturnTxData(ctx
 	return txData, err
 }
 
-func (d *ArtemisEthereumBroadcastTxActivities) WaitForReceipt(ctx context.Context, hash common.Hash) (*web3_types.Receipt, error) {
+func (d *ArtemisEthereumBroadcastTxActivities) WaitForTxReceipt(ctx context.Context, hash common.Hash) (*web3_types.Receipt, error) {
 	ctx, cancelFn := context.WithTimeout(ctx, 15*time.Minute)
 	defer cancelFn()
 	rx, err := d.WaitForReceipt(ctx, hash)
 	if err != nil {
-		log.Err(err).Str("network", d.Network).Str("nodeURL", d.NodeURL).Interface("txHash", hash).Interface("rx", rx).Msg("ArtemisEthereumBroadcastTxActivities: WaitForReceipt failed or timed out")
+		log.Err(err).Str("network", d.Network).Str("nodeURL", d.NodeURL).Interface("txHash", hash).Interface("rx", rx).Msg("ArtemisEthereumBroadcastTxActivities: WaitForTxReceipt failed or timed out")
 		return nil, err
 	}
 	return rx, err

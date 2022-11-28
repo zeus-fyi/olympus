@@ -8,6 +8,7 @@ import (
 	web3_types "github.com/zeus-fyi/gochain/web3/types"
 	"github.com/zeus-fyi/gochain/web3/web3_actions"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -45,9 +46,15 @@ func (t *ArtemisEthereumTxBroadcastWorkflow) ArtemisSendEthTxWorkflow(ctx workfl
 		return err
 	}
 
+	retryPolicy := &temporal.RetryPolicy{
+		InitialInterval:    time.Second * 15,
+		BackoffCoefficient: 2,
+	}
+	ao.RetryPolicy = retryPolicy
 	rxCtx := workflow.WithActivityOptions(ctx, ao)
 	var rx *web3_types.Receipt
-	err = workflow.ExecuteActivity(rxCtx, t.WaitForReceipt, txHash).Get(rxCtx, &rx)
+
+	err = workflow.ExecuteActivity(rxCtx, t.WaitForTxReceipt, txHash).Get(rxCtx, &rx)
 	if err != nil {
 		log.Info("params", params)
 		log.Info("txData", txHash)
@@ -74,7 +81,7 @@ func (t *ArtemisEthereumTxBroadcastWorkflow) ArtemisSendSignedTxWorkflow(ctx wor
 	}
 	rxCtx := workflow.WithActivityOptions(ctx, ao)
 	var rx *web3_types.Receipt
-	err = workflow.ExecuteActivity(rxCtx, t.WaitForReceipt, txData.Hash).Get(rxCtx, &rx)
+	err = workflow.ExecuteActivity(rxCtx, t.WaitForTxReceipt, txData.Hash).Get(rxCtx, &rx)
 	if err != nil {
 		log.Info("params", params)
 		log.Info("txData", txData)

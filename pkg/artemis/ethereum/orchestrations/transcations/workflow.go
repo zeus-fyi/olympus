@@ -17,7 +17,7 @@ type ArtemisEthereumTxBroadcastWorkflow struct {
 	ArtemisEthereumBroadcastTxActivities
 }
 
-const defaultTimeout = 20 * time.Minute
+const defaultTimeout = 30 * time.Minute
 
 func NewArtemisBroadcastEthereumTxWorkflow() ArtemisEthereumTxBroadcastWorkflow {
 	deployWf := ArtemisEthereumTxBroadcastWorkflow{

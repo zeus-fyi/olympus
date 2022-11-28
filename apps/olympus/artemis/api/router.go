@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/artemis/api/v1/ethereum/sendTx"
+	"github.com/zeus-fyi/olympus/artemis/api/v1/ethereum/send_tx"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 )
@@ -37,8 +37,8 @@ func InitV1Routes(e *echo.Echo) {
 		},
 	}))
 
-	e.POST("/ethereum/goerli/tx", artemis_eth_txs.SendSignedTxEthGoerliTxHandler)
-	e.POST("/ethereum/goerli/send", artemis_eth_txs.SendEtherGoerliTxHandler)
+	eg.POST("/ethereum/goerli/tx", artemis_eth_txs.SendSignedTxEthGoerliTxHandler)
+	eg.POST("/ethereum/goerli/send", artemis_eth_txs.SendEtherGoerliTxHandler)
 
 }
 

@@ -23,7 +23,7 @@ func (s *Web3ClientTestSuite) TestWeb3SendEther() {
 
 func (s *Web3ClientTestSuite) TestWeb3TransferTokenToUser() {
 	params := web3_actions.SendContractTxPayload{
-		SmartContractAddr: LinkGoerliContractAddr,
+		SmartContractAddr: LinkGoerliContractAddress,
 		SendTxPayload: web3_actions.SendTxPayload{
 			TransferArgs: web3_actions.TransferArgs{
 				Amount:    Finney,

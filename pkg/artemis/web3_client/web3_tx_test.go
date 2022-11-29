@@ -19,3 +19,6 @@ func (s *Web3ClientTestSuite) TestWeb3SendEther() {
 	s.Require().Nil(err)
 	s.Assert().NotNil(send)
 }
+
+func (s *Web3ClientTestSuite) TestWeb3TransferTokenToUser() {
+}

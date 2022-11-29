@@ -7,3 +7,9 @@ func (s *Web3ClientTestSuite) TestReadERC20TokenBalance() {
 	s.Require().Nil(err)
 	s.Assert().NotZero(b)
 }
+
+func (s *Web3ClientTestSuite) TestReadERC20ContractDecimals() {
+	dec, err := s.GoerliWeb3User.GetContractDecimals(ctx, LinkGoerliContractAddr)
+	s.Require().Nil(err)
+	s.Assert().Equal(int32(18), dec)
+}

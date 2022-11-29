@@ -18,7 +18,7 @@ type EthereumSendSignedTxRequest struct {
 }
 
 type EthereumSendEtherRequest struct {
-	web3_actions.SendEtherPayload
+	web3_actions.SendTxPayload
 }
 
 type GasPriceLimits struct {
@@ -32,7 +32,7 @@ type Response struct {
 
 func (t *EthereumSendEtherRequest) SendEtherGoerliTx(c echo.Context) error {
 	ctx := context.Background()
-	err := artemis_ethereum_transcations.ArtemisEthereumGoerliTxBroadcastWorker.ExecuteArtemisSendEthTxWorkflow(ctx, t.SendEtherPayload)
+	err := artemis_ethereum_transcations.ArtemisEthereumGoerliTxBroadcastWorker.ExecuteArtemisSendEthTxWorkflow(ctx, t.SendTxPayload)
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("SendEtherGoerliTx, ExecuteArtemisSendEthTxWorkflow error")

@@ -25,7 +25,7 @@ func (t *ArtemisEthereumTxWorker) ExecuteArtemisSendSignedTxWorkflow(ctx context
 	return err
 }
 
-func (t *ArtemisEthereumTxWorker) ExecuteArtemisSendEthTxWorkflow(ctx context.Context, params web3_actions.SendEtherPayload) error {
+func (t *ArtemisEthereumTxWorker) ExecuteArtemisSendEthTxWorkflow(ctx context.Context, params web3_actions.SendTxPayload) error {
 	c := t.ConnectTemporalClient()
 	defer c.Close()
 	workflowOptions := client.StartWorkflowOptions{

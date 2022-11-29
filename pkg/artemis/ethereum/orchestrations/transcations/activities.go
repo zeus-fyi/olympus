@@ -27,7 +27,7 @@ func (d *ArtemisEthereumBroadcastTxActivities) GetActivities() ActivitiesSlice {
 	return []interface{}{d.SendEther, d.SubmitSignedTxAndReturnTxData, d.WaitForTxReceipt}
 }
 
-func (d *ArtemisEthereumBroadcastTxActivities) SendEther(ctx context.Context, payload web3_actions.SendEtherPayload) (common.Hash, error) {
+func (d *ArtemisEthereumBroadcastTxActivities) SendEther(ctx context.Context, payload web3_actions.SendTxPayload) (common.Hash, error) {
 	send, err := d.Send(ctx, payload)
 	if err != nil {
 		log.Err(err).Str("network", d.Network).Str("nodeURL", d.NodeURL).Interface("tx", send).Interface("payload", payload).Msg("ArtemisEthereumBroadcastTxActivities: Send failed")

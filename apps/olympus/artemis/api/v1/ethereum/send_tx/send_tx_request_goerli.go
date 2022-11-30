@@ -14,7 +14,7 @@ import (
 )
 
 type EthereumSendSignedTxRequest struct {
-	*types.Transaction
+	types.Transaction `json:"tx"`
 }
 
 type EthereumSendEtherRequest struct {
@@ -44,7 +44,7 @@ func (t *EthereumSendEtherRequest) SendEtherGoerliTx(c echo.Context) error {
 
 func (t *EthereumSendSignedTxRequest) SendGoerliSignedTx(c echo.Context) error {
 	ctx := context.Background()
-	err := artemis_ethereum_transcations.ArtemisEthereumGoerliTxBroadcastWorker.ExecuteArtemisSendSignedTxWorkflow(ctx, t.Transaction)
+	err := artemis_ethereum_transcations.ArtemisEthereumGoerliTxBroadcastWorker.ExecuteArtemisSendSignedTxWorkflow(ctx, &t.Transaction)
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("SendGoerliSignedTx, ExecuteArtemisSendSignedTxWorkflow error")

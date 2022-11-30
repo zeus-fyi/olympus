@@ -72,7 +72,7 @@ func (t *ArtemisEthereumTxBroadcastWorkflow) ArtemisSendSignedTxWorkflow(ctx wor
 	}
 	sendCtx := workflow.WithActivityOptions(ctx, ao)
 	var txData *web3_types.Transaction
-	err := workflow.ExecuteActivity(sendCtx, t.SubmitSignedTxAndReturnTxData, params).Get(sendCtx, &txData)
+	err := workflow.ExecuteActivity(sendCtx, t.SubmitSignedTx, params).Get(sendCtx, &txData)
 	if err != nil {
 		log.Info("params", params)
 		log.Info("txData", txData)

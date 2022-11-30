@@ -31,7 +31,7 @@ func (t *ArtemisEthereumTxBroadcastWorkflow) GetWorkflows() []interface{} {
 	return []interface{}{t.ArtemisSendEthTxWorkflow, t.ArtemisSendSignedTxWorkflow}
 }
 
-func (t *ArtemisEthereumTxBroadcastWorkflow) ArtemisSendEthTxWorkflow(ctx workflow.Context, params web3_actions.SendTxPayload) error {
+func (t *ArtemisEthereumTxBroadcastWorkflow) ArtemisSendEthTxWorkflow(ctx workflow.Context, params web3_actions.SendEtherPayload) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,

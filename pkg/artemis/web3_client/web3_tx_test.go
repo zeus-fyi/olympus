@@ -11,7 +11,7 @@ func (s *Web3ClientTestSuite) TestWeb3SendEther() {
 	s.Require().Nil(err)
 	s.Assert().NotNil(b)
 
-	params := web3_actions.SendTxPayload{
+	params := web3_actions.SendEtherPayload{
 		TransferArgs: web3_actions.TransferArgs{
 			Amount:    Finney,
 			ToAddress: s.GoerliWeb3User2.Address(),
@@ -28,7 +28,7 @@ func (s *Web3ClientTestSuite) TestWeb3TransferTokenToUser() {
 		SmartContractAddr: LinkGoerliContractAddr,
 		ContractFile:      web3_actions.ERC20,
 		MethodName:        web3_actions.Transfer,
-		SendTxPayload: web3_actions.SendTxPayload{
+		SendEtherPayload: web3_actions.SendEtherPayload{
 			GasPriceLimits: web3_actions.GasPriceLimits{},
 		},
 		Params: []interface{}{s.GoerliWeb3User2.Address(), Finney},
@@ -42,7 +42,7 @@ func (s *Web3ClientTestSuite) TestWeb3TransferTokenToUserFromPresignedTx() {
 		SmartContractAddr: LinkGoerliContractAddr,
 		ContractFile:      web3_actions.ERC20,
 		MethodName:        web3_actions.Transfer,
-		SendTxPayload: web3_actions.SendTxPayload{
+		SendEtherPayload: web3_actions.SendEtherPayload{
 			GasPriceLimits: web3_actions.GasPriceLimits{},
 		},
 		Params: []interface{}{s.GoerliWeb3User2.Address(), Finney},

@@ -8,7 +8,7 @@ import (
 )
 
 type ValidatorDepositDataRequest struct {
-	web3_actions.SendTxPayload
+	web3_actions.SendEtherPayload
 }
 type Response struct {
 	Message string `json:"message"`

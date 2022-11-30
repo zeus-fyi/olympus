@@ -4,7 +4,7 @@ CREATE TABLE "public"."eth_ecdsa_txs" (
     "nonce" int8 NOT NULL DEFAULT 0,
     "gas_price_gwei" int8,
     "gas_price_gwei_decimals" int8 DEFAULT 0,
-    "gas_limit_gwei" int8 DEFAULT 21000,
+    "gas_limit_gwei" int8 DEFAULT 0,
     "gas_limit_gwei_decimals" int8 DEFAULT 0,
     "amount_gwei" int8 DEFAULT 0,
     "amount_gwei_decimals" int8 DEFAULT 0,

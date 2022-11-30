@@ -5,8 +5,8 @@ import (
 	"errors"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/aegis/web3_client"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 )
 

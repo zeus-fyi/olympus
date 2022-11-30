@@ -9,7 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	web3_types "github.com/zeus-fyi/gochain/web3/types"
 	"github.com/zeus-fyi/gochain/web3/web3_actions"
-	"github.com/zeus-fyi/olympus/pkg/aegis/web3_client"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
 type ArtemisEthereumBroadcastTxActivities struct {

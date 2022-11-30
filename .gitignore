@@ -75,3 +75,4 @@ Thumbs.db
 /configs/github/
 /configs/secrets/
 /test/configs/config.yaml
+/configs/apollo.zeus.fyi/

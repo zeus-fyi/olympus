@@ -30,6 +30,6 @@ func (s *Web3ClientTestSuite) TestWeb3TransferTokenToUser() {
 			GasPriceLimits: web3_actions.GasPriceLimits{},
 		},
 	}
-	err := s.GoerliWeb3User.Transfer(ctx, params, false, 60)
+	err := s.GoerliWeb3User.TransferToken(ctx, params, false, 60)
 	s.Require().Nil(err)
 }

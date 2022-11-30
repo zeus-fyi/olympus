@@ -1,8 +1,6 @@
 package web3_client
 
-import (
-	"github.com/zeus-fyi/gochain/web3/web3_actions"
-)
+import "github.com/zeus-fyi/gochain/web3/web3_actions"
 
 func (s *Web3ClientTestSuite) TestWeb3SendEther() {
 	b, err := s.GoerliWeb3User.GetCurrentBalance(ctx)
@@ -23,7 +21,7 @@ func (s *Web3ClientTestSuite) TestWeb3SendEther() {
 
 func (s *Web3ClientTestSuite) TestWeb3TransferTokenToUser() {
 	params := web3_actions.SendContractTxPayload{
-		SmartContractAddr: LinkGoerliContractAddress,
+		SmartContractAddr: LinkGoerliContractAddr,
 		SendTxPayload: web3_actions.SendTxPayload{
 			TransferArgs: web3_actions.TransferArgs{
 				Amount:    Finney,

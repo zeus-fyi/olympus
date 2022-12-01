@@ -30,6 +30,7 @@ type Reply struct {
 
 func (c Client) Get(ctx context.Context, url string) Reply {
 	req, err := http.NewRequest("GET", url, nil)
+
 	if err != nil {
 		log.Err(err).Msgf("had error when sending url request: %s", url)
 		return Reply{Err: err}

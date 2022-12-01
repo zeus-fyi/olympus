@@ -50,11 +50,12 @@ func (f *BeaconFetcher) FindAndQueryAndUpdateValidatorBalances(ctx context.Conte
 		return err
 	}
 
+	lib := v0.LibV0{}
 	for nextEpoch, vbs := range nextEpochSlotMap {
 		valBalances := beacon_models.ValidatorBalancesEpoch{}
 		valBalances.ValidatorBalances = vbs
 		var beaconAPI beacon_api.ValidatorBalances
-		nextEpochSlot := v0.ConvertEpochToSlot(nextEpoch)
+		nextEpochSlot := lib.ConvertEpochToSlot(nextEpoch)
 		beaconAPI.Epoch = nextEpoch
 		log.Info().Interface("BeaconFetcher: Fetching Data at Slot:", nextEpochSlot)
 		log.Info().Msg("BeaconFetcher: FetchStateAndDecode")

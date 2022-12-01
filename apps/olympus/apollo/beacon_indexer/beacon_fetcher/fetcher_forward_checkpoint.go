@@ -14,7 +14,7 @@ import (
 
 var FetchAllValidatorBalancesTimeoutFromCheckpoint = time.Minute * 5
 var FetchAnyValidatorBalancesTimeoutFromCheckpoint = time.Minute * 3
-var checkpointEpoch = 134000
+var checkpointEpoch = 164000
 
 func FetchAllValidatorBalancesAfterCheckpoint() {
 	log.Info().Msg("FetchAllValidatorBalancesAfterCheckpoint")
@@ -130,7 +130,8 @@ func (f *BeaconFetcher) FetchForwardCheckpointValidatorBalances(ctx context.Cont
 	var beaconAPI beacon_api.ValidatorBalances
 
 	// previous
-	slotToQuery := v0.ConvertEpochToSlot(epoch - 1)
+	lib := v0.LibV0{}
+	slotToQuery := lib.ConvertEpochToSlot(epoch - 1)
 	err := beaconAPI.FetchAllValidatorBalancesAtStateAndDecode(ctx, f.NodeEndpoint, slotToQuery)
 	if err != nil {
 		log.Error().Err(err).Msg("BeaconFetcher: QueryAllValidatorBalancesAtSlot")
@@ -149,7 +150,7 @@ func (f *BeaconFetcher) FetchForwardCheckpointValidatorBalances(ctx context.Cont
 	}
 
 	// checkpoint
-	slotCheckpointToQuery := v0.ConvertEpochToSlot(epoch)
+	slotCheckpointToQuery := lib.ConvertEpochToSlot(epoch)
 	err = beaconAPI.FetchAllValidatorBalancesAtStateAndDecode(ctx, f.NodeEndpoint, slotCheckpointToQuery)
 	if err != nil {
 		log.Error().Err(err).Msg("BeaconFetcher: QueryAllValidatorBalancesAtSlot")

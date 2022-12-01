@@ -6,6 +6,11 @@ IMG     := ${REPO}/${NAME}:${GIT_SHA}
 LATEST  := ${REPO}/${NAME}:latest
 DEPLOYMENT_NAME := eth-indexer-eth-indexer
 SRC	    := ../../
+GOMODCACHE := $(shell go env GOMODCACHE)
+GOCACHE := $(shell go env GOCACHE)
+
+docker.pubbuildx:
+	@ docker buildx build -t ${IMG} -t ${LATEST} --build-arg GOMODCACHE=${GOMODCACHE} --build-arg GOCACHE=${GOCACHE} --platform=linux/amd64 -f ../../docker/beacon_indexer/Dockerfile ../../ --push
 
 scale.zero:
 	kubectl scale deployment/${DEPLOYMENT_NAME} --replicas=0
@@ -28,9 +33,6 @@ docker.build:
 docker.push:
 	@ docker push ${IMG}
 	@ docker push ${LATEST}
-
-docker.pubbuildx:
-	@ docker buildx build -t ${IMG} -t ${LATEST} --platform=linux/amd64 -f ../../docker/beacon_indexer/Dockerfile ../../ --push
 
 docker.run:
 	docker run -it -p 9000:9000 registry.digitalocean.com/zeus-fyi/zeus-indexer:latest sh -c "beacon_indexer --postgres-conn-str='' --beacon-endpoint=''"

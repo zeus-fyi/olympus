@@ -12,15 +12,20 @@ import (
 	"github.com/spf13/viper"
 	v1 "github.com/zeus-fyi/olympus/beacon-indexer/api/v1"
 	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_fetcher"
+	"github.com/zeus-fyi/olympus/configs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/admin"
 	redis_app "github.com/zeus-fyi/olympus/datastores/redis/apps"
+	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
+	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 )
 
 var (
 	RedisEndpointURL  string
 	BeaconEndpointURL string
 	PGConnStr         string
+	env               string
+	authKeysCfg       auth_keys_config.AuthKeysCfg
 )
 
 func Api() {
@@ -29,6 +34,25 @@ func Api() {
 	e := echo.New()
 	e = v1.Routes(e)
 	ctx := context.Background()
+
+	switch env {
+	case "production":
+		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
+		_, sw := auth_startup.RunApolloDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+		PGConnStr = sw.PostgresAuth
+		BeaconEndpointURL = sw.MainnetBeaconURL
+	case "production-local":
+		tc := configs.InitLocalTestConfigs()
+		authKeysCfg = tc.ProdLocalAuthKeysCfg
+		PGConnStr = tc.ProdLocalDbPgconn
+		BeaconEndpointURL = tc.MainnetNodeUrl
+	case "local":
+		tc := configs.InitLocalTestConfigs()
+		authKeysCfg = tc.DevAuthKeysCfg
+		PGConnStr = tc.LocalDbPgconn
+		BeaconEndpointURL = tc.MainnetNodeUrl
+	}
+
 	apps.Pg = apps.Db{}
 	MaxConn := int32(10)
 	MinConn := int32(3)
@@ -53,7 +77,6 @@ func Api() {
 	}
 
 	beacon_fetcher.InitFetcherService(ctx, BeaconEndpointURL, r)
-
 	log.Info().Interface("redis conn", r.Conn()).Msg("started redis")
 	err = e.Start("0.0.0.0:9000")
 	if err != nil {
@@ -63,9 +86,13 @@ func Api() {
 
 func init() {
 	viper.AutomaticEnv()
-	ApiCmd.Flags().StringVar(&PGConnStr, "postgres-conn-str", "", "postgres connection string")
-	ApiCmd.Flags().StringVar(&BeaconEndpointURL, "beacon-endpoint", "", "beacon endpoint url")
+
+	ApiCmd.Flags().StringVar(&authKeysCfg.AgePubKey, "age-public-key", "age1n97pswc3uqlgt2un9aqn9v4nqu32egmvjulwqp3pv4algyvvuggqaruxjj", "age public key")
+	ApiCmd.Flags().StringVar(&authKeysCfg.AgePrivKey, "age-private-key", "", "age private key")
+	ApiCmd.Flags().StringVar(&authKeysCfg.SpacesKey, "do-spaces-key", "", "do s3 spaces key")
+	ApiCmd.Flags().StringVar(&authKeysCfg.SpacesPrivKey, "do-spaces-private-key", "", "do s3 spaces private key")
 	ApiCmd.Flags().StringVar(&RedisEndpointURL, "redis-endpoint", "eth-indexer-redis-headless:6379", "redis endpoint url")
+	ApiCmd.Flags().StringVar(&env, "env", "local", "environment")
 }
 
 // ApiCmd represents the base command when called without any subcommands

@@ -27,8 +27,10 @@ func GetValidatorsByState(ctx context.Context, beaconNode, stateID, status strin
 	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validators", status)
 	log.Debug().Interface("BeaconAPI: url:", url)
 	bearer := "Bearer bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
-	c.AddHeader(ctx, nil, echo.HeaderAuthorization, bearer)
-	return c.Get(ctx, url)
+
+	m := make(map[string]string)
+	m[echo.HeaderAuthorization] = bearer
+	return c.Get(ctx, url, m)
 }
 
 func GetValidatorsByStateFilter(ctx context.Context, beaconNode, stateID string, encodedQueryURL, status string) client.Reply {
@@ -39,8 +41,9 @@ func GetValidatorsByStateFilter(ctx context.Context, beaconNode, stateID string,
 	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validators?"+encodedQueryURL+status)
 	log.Debug().Interface("BeaconAPI: url:", url)
 	bearer := "Bearer bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
-	c.AddHeader(ctx, nil, echo.HeaderAuthorization, bearer)
-	return c.Get(ctx, url)
+	m := make(map[string]string)
+	m[echo.HeaderAuthorization] = bearer
+	return c.Get(ctx, url, m)
 }
 
 func GetAllValidatorBalancesByState(ctx context.Context, beaconNode, stateID string) client.Reply {
@@ -48,8 +51,9 @@ func GetAllValidatorBalancesByState(ctx context.Context, beaconNode, stateID str
 	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validator_balances")
 	log.Debug().Interface("BeaconAPI: url:", url)
 	bearer := "Bearer bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
-	c.AddHeader(ctx, nil, echo.HeaderAuthorization, bearer)
-	return c.Get(ctx, url)
+	m := make(map[string]string)
+	m[echo.HeaderAuthorization] = bearer
+	return c.Get(ctx, url, m)
 }
 
 func GetValidatorsBalancesByStateFilter(ctx context.Context, beaconNode, stateID string, encodedQueryURL string) client.Reply {
@@ -58,13 +62,15 @@ func GetValidatorsBalancesByStateFilter(ctx context.Context, beaconNode, stateID
 	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validator_balances?"+encodedQueryURL)
 	log.Debug().Interface("BeaconAPI: url:", url)
 	bearer := "Bearer bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
-	c.AddHeader(ctx, nil, echo.HeaderAuthorization, bearer)
-	return c.Get(ctx, url)
+	m := make(map[string]string)
+	m[echo.HeaderAuthorization] = bearer
+	return c.Get(ctx, url, m)
 }
 
 func GetBlockByID(ctx context.Context, beaconNode, blockID string) client.Reply {
 	url := string_utils.UrlPathStrBuilder(beaconNode, getBlockByID, blockID)
 	bearer := "Bearer bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
-	c.AddHeader(ctx, nil, echo.HeaderAuthorization, bearer)
-	return c.Get(ctx, url)
+	m := make(map[string]string)
+	m[echo.HeaderAuthorization] = bearer
+	return c.Get(ctx, url, m)
 }

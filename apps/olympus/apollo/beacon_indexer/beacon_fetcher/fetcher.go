@@ -32,5 +32,4 @@ func InitFetcherService(ctx context.Context, nodeURL string, redis *redis.Client
 	go UpdateEpochCheckpoint()
 	go UpdateForwardEpochCheckpoint()
 	go InsertNewEpochCheckpoint()
-
 }

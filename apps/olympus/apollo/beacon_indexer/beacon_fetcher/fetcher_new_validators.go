@@ -7,8 +7,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-var NewValidatorBatchSize = 100
-var NewValidatorTimeout = 5 * time.Minute
+var NewValidatorBatchSize = 10000
+var NewValidatorTimeout = 5 * time.Second
 
 // FetchNewOrMissingValidators Routine ONE
 func FetchNewOrMissingValidators() {

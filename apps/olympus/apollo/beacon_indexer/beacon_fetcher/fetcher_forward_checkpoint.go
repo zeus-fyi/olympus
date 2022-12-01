@@ -14,7 +14,7 @@ import (
 
 var FetchAllValidatorBalancesTimeoutFromCheckpoint = time.Minute * 5
 var FetchAnyValidatorBalancesTimeoutFromCheckpoint = time.Minute * 3
-var checkpointEpoch = 134000
+var checkpointEpoch = 164000
 
 func FetchAllValidatorBalancesAfterCheckpoint() {
 	log.Info().Msg("FetchAllValidatorBalancesAfterCheckpoint")

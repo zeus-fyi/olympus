@@ -43,7 +43,8 @@ func (f *BeaconFetcherTestSuite) TestForwardFetchCheckpoint() {
 			prevBalanceEpochMap[balance.Index] = 0
 		}
 	}
-
+	// to insert a checkpoint manually uncomment the below, this jump starts the app to index the checkpoint + epoch
+	//f.PG.InitPG(ctx, f.Tc.ProdLocalApolloDbPgconn)
 	for _, val := range vbForwardCheckpoint.ValidatorBalances {
 		f.Assert().Equal(prevBalanceEpochMap[val.Index], val.CurrentEpochYieldGwei)
 	}

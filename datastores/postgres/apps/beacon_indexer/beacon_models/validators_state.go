@@ -16,7 +16,7 @@ func (vs *Validators) InsertValidatorsFromBeaconAPI(ctx context.Context) error {
 	log.Info().Msg("Validators: InsertValidatorsFromBeaconAPI")
 
 	vs.RowSetting.RowsToInclude = "beacon_state"
-	querySuffix := ` ON CONFLICT ON CONSTRAINT validators_pkey DO UPDATE SET index = EXCLUDED.index, pubkey = EXCLUDED.pubkey `
+	querySuffix := ` ON CONFLICT (index, pubkey) DO UPDATE SET balance = EXCLUDED.balance, effective_balance = EXCLUDED.effective_balance, exit_epoch = EXCLUDED.exit_epoch, slashed = EXCLUDED.slashed `
 	query := string_utils.PrefixAndSuffixDelimitedSliceStrBuilderSQLRows(insertValidatorsFromBeaconAPI, vs.GetManyRowValues(), querySuffix)
 	r, err := apps.Pg.Exec(ctx, query)
 	rowsAffected := r.RowsAffected()

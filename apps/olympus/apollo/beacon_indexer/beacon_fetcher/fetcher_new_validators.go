@@ -26,7 +26,7 @@ func FetchNewOrMissingValidators() {
 func fetchValidatorsToInsert(ctx context.Context, contextTimeout time.Duration) error {
 	ctxTimeout, cancel := context.WithTimeout(ctx, contextTimeout)
 	defer cancel()
-	err := Fetcher.BeaconFindNewAndMissingValidatorIndexes(ctxTimeout)
+	err := Fetcher.BeaconFindNewAndMissingValidatorIndexes(ctxTimeout, 10)
 	log.Info().Err(err).Msg("FetchNewOrMissingValidators")
 	return err
 }

@@ -3,6 +3,7 @@ package beacon_api
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	base_rest_client "github.com/zeus-fyi/olympus/pkg/iris/resty_base"
@@ -89,11 +90,12 @@ func GetValidatorsByStateFilter(ctx context.Context, beaconNode, stateID string,
 
 func GetAllValidatorBalancesByState(ctx context.Context, beaconNode, stateID string) client.Reply {
 	log.Info().Msg("BeaconAPI: GetAllValidatorBalancesByState")
-
+	beaconNode = "https://CF62KTW23CWTUE2RNUFC:Q7PZEP72TGXYM2STKELBKMMAMDS6OSSG4GP42ZOT@mainnet.ethereum.coinbasecloud.net"
 	url := string_utils.UrlPathStrBuilder(getValidatorsByState, stateID, "validator_balances")
 	log.Debug().Interface("BeaconAPI: url:", url)
-	bearer := "bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
-	r := base_rest_client.GetBaseRestyClient(beaconNode, bearer)
+	r := base_rest_client.GetBaseRestyClient(beaconNode, "")
+	r.RetryCount = 3
+	r.RetryWaitTime = time.Second
 	resp, err := r.R().Get(url)
 	if err != nil {
 		return client.Reply{}
@@ -110,11 +112,12 @@ func GetAllValidatorBalancesByState(ctx context.Context, beaconNode, stateID str
 
 func GetValidatorsBalancesByStateFilter(ctx context.Context, beaconNode, stateID string, encodedQueryURL string) client.Reply {
 	log.Info().Msg("BeaconAPI: GetValidatorsBalancesByStateFilter")
-
+	beaconNode = "https://CF62KTW23CWTUE2RNUFC:Q7PZEP72TGXYM2STKELBKMMAMDS6OSSG4GP42ZOT@mainnet.ethereum.coinbasecloud.net"
 	url := string_utils.UrlPathStrBuilder(getValidatorsByState, stateID, "validator_balances?"+encodedQueryURL)
 	log.Debug().Interface("BeaconAPI: url:", url)
-	bearer := "bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
-	r := base_rest_client.GetBaseRestyClient(beaconNode, bearer)
+	r := base_rest_client.GetBaseRestyClient(beaconNode, "")
+	r.RetryCount = 3
+	r.RetryWaitTime = time.Second
 	resp, err := r.R().Get(url)
 	if err != nil {
 		return client.Reply{}

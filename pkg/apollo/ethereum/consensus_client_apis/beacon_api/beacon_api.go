@@ -94,8 +94,8 @@ func GetAllValidatorBalancesByState(ctx context.Context, beaconNode, stateID str
 	url := string_utils.UrlPathStrBuilder(getValidatorsByState, stateID, "validator_balances")
 	log.Debug().Interface("BeaconAPI: url:", url)
 	r := base_rest_client.GetBaseRestyClient(beaconNode, "")
-	r.RetryCount = 10
-	r.RetryWaitTime = 10 * time.Second
+	r.RetryCount = 3
+	r.RetryWaitTime = 5 * 60 * time.Second
 	resp, err := r.R().Get(url)
 	if err != nil {
 		return client.Reply{}

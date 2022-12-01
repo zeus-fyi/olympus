@@ -51,7 +51,7 @@ func InsertNewEpochCheckpoint() {
 		err := newCheckpoint(context.Background(), InsertCheckpointsTimeout)
 		log.Err(err)
 		log.Info().Interface("InsertNewEpochCheckpoint took this many seconds to complete: ", time.Now().Sub(timeBegin))
-		//time.Sleep(InsertCheckpointsTimeout)
+		time.Sleep(InsertCheckpointsTimeout)
 	}
 }
 

@@ -21,10 +21,11 @@ type TestURLs struct {
 type TestContainer struct {
 	Env string
 
-	LocalDbPgconn     string
-	StagingDbPgconn   string
-	ProdDbPgconn      string
-	ProdLocalDbPgconn string
+	LocalDbPgconn           string
+	StagingDbPgconn         string
+	ProdDbPgconn            string
+	ProdLocalDbPgconn       string
+	ProdLocalApolloDbPgconn string
 
 	LocalBeaconConn  string
 	LocalRedisConn   string
@@ -159,6 +160,7 @@ func InitLocalTestConfigs() TestContainer {
 	testCont.StagingDbPgconn = viper.GetString("STAGING_DB_PGCONN")
 	testCont.ProdDbPgconn = viper.GetString("PROD_DB_PGCONN")
 	testCont.ProdLocalDbPgconn = viper.GetString("PROD_LOCAL_DB_PGCONN")
+	testCont.ProdLocalApolloDbPgconn = viper.GetString("PROD_LOCAL_APOLLO_PGCONN")
 	testCont.LocalBeaconConn = viper.GetString("LOCAL_BEACON_CONN_STR")
 
 	testCont.LocalBearerToken = viper.GetString("LOCAL_BEARER_TOKEN")

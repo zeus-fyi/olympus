@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/client"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
@@ -25,6 +26,8 @@ func GetValidatorsByState(ctx context.Context, beaconNode, stateID, status strin
 	}
 	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validators", status)
 	log.Debug().Interface("BeaconAPI: url:", url)
+	bearer := "Bearer bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
+	c.AddHeader(ctx, nil, echo.HeaderAuthorization, bearer)
 	return c.Get(ctx, url)
 }
 
@@ -35,6 +38,8 @@ func GetValidatorsByStateFilter(ctx context.Context, beaconNode, stateID string,
 	}
 	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validators?"+encodedQueryURL+status)
 	log.Debug().Interface("BeaconAPI: url:", url)
+	bearer := "Bearer bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
+	c.AddHeader(ctx, nil, echo.HeaderAuthorization, bearer)
 	return c.Get(ctx, url)
 }
 
@@ -42,6 +47,8 @@ func GetAllValidatorBalancesByState(ctx context.Context, beaconNode, stateID str
 	log.Info().Msg("BeaconAPI: GetAllValidatorBalancesByState")
 	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validator_balances")
 	log.Debug().Interface("BeaconAPI: url:", url)
+	bearer := "Bearer bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
+	c.AddHeader(ctx, nil, echo.HeaderAuthorization, bearer)
 	return c.Get(ctx, url)
 }
 
@@ -50,10 +57,14 @@ func GetValidatorsBalancesByStateFilter(ctx context.Context, beaconNode, stateID
 
 	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validator_balances?"+encodedQueryURL)
 	log.Debug().Interface("BeaconAPI: url:", url)
+	bearer := "Bearer bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
+	c.AddHeader(ctx, nil, echo.HeaderAuthorization, bearer)
 	return c.Get(ctx, url)
 }
 
 func GetBlockByID(ctx context.Context, beaconNode, blockID string) client.Reply {
 	url := string_utils.UrlPathStrBuilder(beaconNode, getBlockByID, blockID)
+	bearer := "Bearer bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
+	c.AddHeader(ctx, nil, echo.HeaderAuthorization, bearer)
 	return c.Get(ctx, url)
 }

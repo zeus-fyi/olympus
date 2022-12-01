@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	v1 "github.com/zeus-fyi/olympus/beacon-indexer/api/v1"
+	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_fetcher"
 	"github.com/zeus-fyi/olympus/configs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/admin"
@@ -75,6 +76,7 @@ func Api() {
 		log.Err(err)
 	}
 
+	beacon_fetcher.InitFetcherService(ctx, BeaconEndpointURL, r)
 	log.Info().Interface("redis conn", r.Conn()).Msg("started redis")
 	err = e.Start("0.0.0.0:9000")
 	if err != nil {

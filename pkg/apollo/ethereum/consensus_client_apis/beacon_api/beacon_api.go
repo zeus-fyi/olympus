@@ -94,8 +94,8 @@ func GetAllValidatorBalancesByState(ctx context.Context, beaconNode, stateID str
 	url := string_utils.UrlPathStrBuilder(getValidatorsByState, stateID, "validator_balances")
 	log.Debug().Interface("BeaconAPI: url:", url)
 	r := base_rest_client.GetBaseRestyClient(beaconNode, "")
-	r.RetryCount = 3
-	r.RetryWaitTime = time.Second
+	r.RetryCount = 10
+	r.RetryWaitTime = 10 * time.Second
 	resp, err := r.R().Get(url)
 	if err != nil {
 		return client.Reply{}
@@ -116,8 +116,8 @@ func GetValidatorsBalancesByStateFilter(ctx context.Context, beaconNode, stateID
 	url := string_utils.UrlPathStrBuilder(getValidatorsByState, stateID, "validator_balances?"+encodedQueryURL)
 	log.Debug().Interface("BeaconAPI: url:", url)
 	r := base_rest_client.GetBaseRestyClient(beaconNode, "")
-	r.RetryCount = 3
-	r.RetryWaitTime = time.Second
+	r.RetryCount = 10
+	r.RetryWaitTime = 10 * time.Second
 	resp, err := r.R().Get(url)
 	if err != nil {
 		return client.Reply{}

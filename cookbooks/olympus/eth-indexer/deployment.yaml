@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/instance: "eth-indexer"
     app.kubernetes.io/name: "eth-indexer"
 spec:
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: "eth-indexer"

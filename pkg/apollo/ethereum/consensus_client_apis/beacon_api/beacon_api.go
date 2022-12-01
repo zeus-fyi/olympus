@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	base_rest_client "github.com/zeus-fyi/olympus/pkg/iris/resty_base"
 	"github.com/zeus-fyi/olympus/pkg/utils/client"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
@@ -24,23 +24,42 @@ func GetValidatorsByState(ctx context.Context, beaconNode, stateID, status strin
 	if len(status) > 0 {
 		status = fmt.Sprintf("?status=%s", status)
 	}
-	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validators", status)
+	url := string_utils.UrlPathStrBuilder(getValidatorsByState, stateID, "validators", status)
 	log.Debug().Interface("BeaconAPI: url:", url)
-	bearer := "Bearer bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
-
-	m := make(map[string]string)
-	m[echo.HeaderAuthorization] = bearer
-	return c.Get(ctx, url, m)
+	bearer := "bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
+	r := base_rest_client.GetBaseRestyClient(beaconNode, bearer)
+	resp, err := r.R().Get(url)
+	if err != nil {
+		return client.Reply{}
+	}
+	reply := client.Reply{
+		Body:       resp.String(),
+		StatusCode: resp.StatusCode(),
+		Status:     resp.Status(),
+		Err:        err,
+		BodyBytes:  resp.Body(),
+	}
+	return reply
 }
 
 func GetValidatorsFinalized(ctx context.Context, beaconNode string) client.Reply {
 	log.Info().Msg("BeaconAPI: GetValidatorsFinalized")
-	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, "finalized/validators")
+	url := string_utils.UrlPathStrBuilder(getValidatorsByState, "finalized/validators")
 	log.Debug().Interface("BeaconAPI: url:", url)
-	bearer := "Bearer bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
-	m := make(map[string]string)
-	m[echo.HeaderAuthorization] = bearer
-	return c.Get(ctx, url, m)
+	bearer := "bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
+	r := base_rest_client.GetBaseRestyClient(beaconNode, bearer)
+	resp, err := r.R().Get(url)
+	if err != nil {
+		return client.Reply{}
+	}
+	reply := client.Reply{
+		Body:       resp.String(),
+		StatusCode: resp.StatusCode(),
+		Status:     resp.Status(),
+		Err:        err,
+		BodyBytes:  resp.Body(),
+	}
+	return reply
 }
 
 func GetValidatorsByStateFilter(ctx context.Context, beaconNode, stateID string, encodedQueryURL, status string) client.Reply {
@@ -49,39 +68,81 @@ func GetValidatorsByStateFilter(ctx context.Context, beaconNode, stateID string,
 		status = fmt.Sprintf("&status=%s", status)
 	}
 
-	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validators?"+encodedQueryURL+status)
+	url := string_utils.UrlPathStrBuilder(getValidatorsByState, stateID, "validators?"+encodedQueryURL+status)
 	log.Debug().Interface("BeaconAPI: url:", url)
-	bearer := "Bearer bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
-	m := make(map[string]string)
-	m[echo.HeaderAuthorization] = bearer
-	return c.Get(ctx, url, m)
+
+	bearer := "bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
+	r := base_rest_client.GetBaseRestyClient(beaconNode, bearer)
+	resp, err := r.R().Get(url)
+	if err != nil {
+		return client.Reply{}
+	}
+	reply := client.Reply{
+		Body:       resp.String(),
+		StatusCode: resp.StatusCode(),
+		Status:     resp.Status(),
+		Err:        err,
+		BodyBytes:  resp.Body(),
+	}
+	return reply
 }
 
 func GetAllValidatorBalancesByState(ctx context.Context, beaconNode, stateID string) client.Reply {
 	log.Info().Msg("BeaconAPI: GetAllValidatorBalancesByState")
-	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validator_balances")
+
+	url := string_utils.UrlPathStrBuilder(getValidatorsByState, stateID, "validator_balances")
 	log.Debug().Interface("BeaconAPI: url:", url)
-	bearer := "Bearer bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
-	m := make(map[string]string)
-	m[echo.HeaderAuthorization] = bearer
-	return c.Get(ctx, url, m)
+	bearer := "bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
+	r := base_rest_client.GetBaseRestyClient(beaconNode, bearer)
+	resp, err := r.R().Get(url)
+	if err != nil {
+		return client.Reply{}
+	}
+	reply := client.Reply{
+		Body:       resp.String(),
+		StatusCode: resp.StatusCode(),
+		Status:     resp.Status(),
+		Err:        err,
+		BodyBytes:  resp.Body(),
+	}
+	return reply
 }
 
 func GetValidatorsBalancesByStateFilter(ctx context.Context, beaconNode, stateID string, encodedQueryURL string) client.Reply {
 	log.Info().Msg("BeaconAPI: GetValidatorsBalancesByStateFilter")
 
-	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validator_balances?"+encodedQueryURL)
+	url := string_utils.UrlPathStrBuilder(getValidatorsByState, stateID, "validator_balances?"+encodedQueryURL)
 	log.Debug().Interface("BeaconAPI: url:", url)
-	bearer := "Bearer bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
-	m := make(map[string]string)
-	m[echo.HeaderAuthorization] = bearer
-	return c.Get(ctx, url, m)
+	bearer := "bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
+	r := base_rest_client.GetBaseRestyClient(beaconNode, bearer)
+	resp, err := r.R().Get(url)
+	if err != nil {
+		return client.Reply{}
+	}
+	reply := client.Reply{
+		Body:       resp.String(),
+		StatusCode: resp.StatusCode(),
+		Status:     resp.Status(),
+		Err:        err,
+		BodyBytes:  resp.Body(),
+	}
+	return reply
 }
 
 func GetBlockByID(ctx context.Context, beaconNode, blockID string) client.Reply {
-	url := string_utils.UrlPathStrBuilder(beaconNode, getBlockByID, blockID)
-	bearer := "Bearer bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
-	m := make(map[string]string)
-	m[echo.HeaderAuthorization] = bearer
-	return c.Get(ctx, url, m)
+	url := string_utils.UrlPathStrBuilder(getBlockByID, blockID)
+	bearer := "bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
+	r := base_rest_client.GetBaseRestyClient(beaconNode, bearer)
+	resp, err := r.R().Get(url)
+	if err != nil {
+		return client.Reply{}
+	}
+	reply := client.Reply{
+		Body:       resp.String(),
+		StatusCode: resp.StatusCode(),
+		Status:     resp.Status(),
+		Err:        err,
+		BodyBytes:  resp.Body(),
+	}
+	return reply
 }

@@ -10,7 +10,7 @@ type ZeusClient struct {
 
 func NewZeusClient(baseURL, bearer string) ZeusClient {
 	z := ZeusClient{}
-	z.Resty = base_rest_client.GetBaseRestyAresTestClient(baseURL, bearer)
+	z.Resty = base_rest_client.GetBaseRestyClient(baseURL, bearer)
 	return z
 }
 

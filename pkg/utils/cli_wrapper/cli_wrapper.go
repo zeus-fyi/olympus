@@ -7,8 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io"
 )
 
 type TaskCmd struct {
@@ -130,12 +128,6 @@ func (t TaskCmd) ExecuteCmd() (string, string, error) {
 		if exitError, ok := execErr.(*exec.ExitError); ok {
 			t.ExitCode = exitError.ExitCode()
 		}
-	}
-
-	if t.Print && t.PrintFilename != "" && t.PrintPath != "" && t.Environment != "" {
-		printShell := file_io.FileIO{}
-		pp := printShell.NewFullPathDefinition(t.Environment, "cli_wrapper", t.Dir, t.PrintFilename)
-		_ = printShell.Print(pp, stdoutBuff.Bytes())
 	}
 	stdOut, stdErr := string(stdoutBuff.Bytes()), string(stderrBuff.Bytes())
 	return stdOut, stdErr, nil

@@ -37,9 +37,6 @@ func Routes(e *echo.Echo) *echo.Echo {
 		},
 	}))
 
-	//e.GET("/debug/redis", DebugReadRedisRequestHandler)
-	//e.POST("/debug/redis", DebugRedisRequestHandler)
-
 	debugGroup.GET("/db/counts", DebugRequestHandler)
 	//e.GET("/debug/db/sizes", TableSizesHandler)
 	//e.GET("/debug/db/stats", DebugPgStatsHandler)

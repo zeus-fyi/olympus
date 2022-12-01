@@ -10,22 +10,11 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
-func (f *BeaconFetcher) BeaconFindNewAndMissingValidatorIndexes(ctx context.Context, batchSize int) (err error) {
+func (f *BeaconFetcher) BeaconFindNewAndMissingValidatorIndexes(ctx context.Context) (err error) {
 	log.Info().Msg("BeaconFetcher: BeaconFindNewAndMissingValidatorIndexes")
 
-	log.Info().Msg("BeaconFindNewAndMissingValidatorIndexes: FindNewValidatorsToQueryBeaconURLEncoded")
-	indexes, err := beacon_models.FindNewValidatorsToQueryBeaconURLEncoded(ctx, batchSize)
-	if err != nil {
-		log.Error().Err(err).Msg("BeaconStateUpdater: FindNewValidatorsToQueryBeaconURLEncoded")
-		return err
-	}
-	if len(indexes) <= 0 {
-		log.Info().Msg("FindNewValidatorsToQueryBeaconURLEncoded: had no new indexes")
-		return nil
-	}
-
-	log.Info().Msg("BeaconFindNewAndMissingValidatorIndexes: FetchStateAndDecode")
-	err = f.BeaconStateResults.FetchStateAndDecode(ctx, f.NodeEndpoint, "finalized", indexes, "")
+	log.Info().Msg("BeaconFindNewAndMissingValidatorIndexes: FetchFinalizedStateAndDecode")
+	err = f.BeaconStateResults.FetchFinalizedStateAndDecode(ctx, f.NodeEndpoint)
 	if err != nil {
 		log.Error().Err(err).Msg("BeaconFindNewAndMissingValidatorIndexes: FetchStateAndDecode")
 		return err

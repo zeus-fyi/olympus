@@ -27,7 +27,7 @@ func (f *ProductionBeaconFetcherTestSuite) TestFetchNewOrMissingValidators() {
 	Fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, f.Redis)
 
 	checkpointEpoch = 164000
-	err := Fetcher.BeaconFindNewAndMissingValidatorIndexes(ctx, 500)
+	err := Fetcher.BeaconFindNewAndMissingValidatorIndexes(ctx)
 	f.Require().Nil(err)
 }
 

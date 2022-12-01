@@ -33,11 +33,22 @@ func GetValidatorsByState(ctx context.Context, beaconNode, stateID, status strin
 	return c.Get(ctx, url, m)
 }
 
+func GetValidatorsFinalized(ctx context.Context, beaconNode string) client.Reply {
+	log.Info().Msg("BeaconAPI: GetValidatorsFinalized")
+	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, "finalized/validators")
+	log.Debug().Interface("BeaconAPI: url:", url)
+	bearer := "Bearer bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
+	m := make(map[string]string)
+	m[echo.HeaderAuthorization] = bearer
+	return c.Get(ctx, url, m)
+}
+
 func GetValidatorsByStateFilter(ctx context.Context, beaconNode, stateID string, encodedQueryURL, status string) client.Reply {
 	log.Info().Msg("BeaconAPI: GetValidatorsByStateFilter")
 	if len(status) > 0 {
 		status = fmt.Sprintf("&status=%s", status)
 	}
+
 	url := string_utils.UrlPathStrBuilder(beaconNode, getValidatorsByState, stateID, "validators?"+encodedQueryURL+status)
 	log.Debug().Interface("BeaconAPI: url:", url)
 	bearer := "Bearer bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"

@@ -20,7 +20,7 @@ func (s *FetcherBaseTestSuite) TestBeaconFindNewAndMissingValidatorIndexes() {
 	var f BeaconFetcher
 	f.NodeEndpoint = s.Tc.LocalBeaconConn
 	ctx := context.Background()
-	err := f.BeaconFindNewAndMissingValidatorIndexes(ctx, batchSize)
+	err := f.BeaconFindNewAndMissingValidatorIndexes(ctx)
 	s.Require().Nil(err)
 	s.Assert().Len(f.Validators.Validators, batchSize)
 }

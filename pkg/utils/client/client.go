@@ -43,6 +43,7 @@ func (c Client) Get(ctx context.Context, url string, headers map[string]string) 
 }
 
 func (c Client) GetWithPayload(ctx context.Context, url string, payload []byte, headers map[string]string) Reply {
+	c.Headers = headers
 	req, err := http.NewRequest("GET", url, bytes.NewBuffer(payload))
 	if err != nil {
 		log.Err(err).Bytes("payload that failed", payload).Msgf("url: %s", url)
@@ -52,6 +53,7 @@ func (c Client) GetWithPayload(ctx context.Context, url string, payload []byte, 
 }
 
 func (c Client) Post(ctx context.Context, url string, payload []byte, headers map[string]string) Reply {
+	c.Headers = headers
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	req.Header.Set("Content-Type", "application/json")
 	if err != nil {
@@ -62,6 +64,7 @@ func (c Client) Post(ctx context.Context, url string, payload []byte, headers ma
 }
 
 func (c Client) Do(ctx context.Context, req *http.Request, headers map[string]string) Reply {
+	c.Headers = headers
 	if len(c.Headers) > 0 {
 		req = c.AppendArbitraryHeaders(ctx, req)
 	}

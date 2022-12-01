@@ -14,15 +14,18 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 )
 
-const pgSecret = "secrets/postgres-auth.txt"
-const doctlSecret = "secrets/doctl.txt"
-const encryptedSecret = "secrets.tar.gz.age"
-const secretBucketName = "zeus-fyi"
+const (
+	pgSecret         = "secrets/postgres-auth.txt"
+	doctlSecret      = "secrets/doctl.txt"
+	encryptedSecret  = "secrets.tar.gz.age"
+	secretBucketName = "zeus-fyi"
+)
 
 type SecretsWrapper struct {
-	PostgresAuth string
-	DoctlToken   string
-	TemporalAuth temporal_auth.TemporalAuth
+	PostgresAuth     string
+	DoctlToken       string
+	MainnetBeaconURL string
+	TemporalAuth     temporal_auth.TemporalAuth
 }
 
 var secretsBucket = &s3.GetObjectInput{

@@ -29,6 +29,18 @@ type ValidatorStateBeacon struct {
 	WithdrawableEpoch          string `json:"withdrawable_epoch"`
 }
 
+func (b *ValidatorsStateBeacon) FetchFinalizedStateAndDecode(ctx context.Context, beaconNode string) error {
+	log.Info().Msg("ValidatorsStateBeacon: FetchFinalizedStateAndDecode")
+
+	r := GetValidatorsFinalized(ctx, beaconNode)
+
+	if r.Err != nil {
+		log.Error().Err(r.Err).Msg("ValidatorsStateBeacon: FetchStateAndDecode")
+	}
+
+	return b.DecodeValidatorStateBeacon(r)
+}
+
 func (b *ValidatorsStateBeacon) FetchStateAndDecode(ctx context.Context, beaconNode, stateID, encodedQueryURL, status string) error {
 	log.Info().Msg("ValidatorsStateBeacon: FetchStateAndDecode")
 

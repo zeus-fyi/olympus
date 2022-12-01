@@ -18,7 +18,7 @@ func (f *BeaconFetcherTestSuite) TestForwardFetchCheckpoint() {
 	ctx := context.Background()
 	Fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
 
-	epoch := int64(134000)
+	epoch := int64(164000)
 	vbForwardCheckpoint, err := Fetcher.FetchForwardCheckpointValidatorBalances(ctx, epoch)
 	f.Require().Nil(err)
 	f.Assert().NotEmpty(vbForwardCheckpoint.ValidatorBalances)

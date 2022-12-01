@@ -19,6 +19,6 @@ spec:
             pathType: ImplementationSpecific
             backend:
               service:
-                name: eth-indexer-eth-indexer
+                name: eth-indexer
                 port:
                   number: 80

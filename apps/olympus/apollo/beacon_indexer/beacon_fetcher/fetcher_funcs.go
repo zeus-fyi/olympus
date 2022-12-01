@@ -23,7 +23,6 @@ func (f *BeaconFetcher) BeaconFindNewAndMissingValidatorIndexes(ctx context.Cont
 		log.Info().Msg("FindNewValidatorsToQueryBeaconURLEncoded: had no new indexes")
 		return nil
 	}
-
 	log.Info().Msg("BeaconFindNewAndMissingValidatorIndexes: FetchStateAndDecode")
 	err = f.BeaconStateResults.FetchStateAndDecode(ctx, f.NodeEndpoint, "finalized", indexes, "")
 	if err != nil {

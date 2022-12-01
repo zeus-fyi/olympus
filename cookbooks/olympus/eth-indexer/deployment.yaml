@@ -27,16 +27,21 @@ spec:
           command: [ "/bin/sh" ]
           args: [ "-c","/scripts/start.sh" ]
           env:
-            - name: PG_CONN_STR
+            - name: AGE_PKEY
               valueFrom:
                 secretKeyRef:
-                  name: postgres-auth
-                  key: postgres-conn-str
-            - name: BEACON_NODE
+                  name: age-auth
+                  key: age-private-key
+            - name: DO_SPACES_KEY
               valueFrom:
                 secretKeyRef:
-                  name: beacon-auth
-                  key: beacon-conn-str
+                  name: spaces-key
+                  key: do-spaces-key
+            - name: DO_SPACES_PKEY
+              valueFrom:
+                secretKeyRef:
+                  name: spaces-auth
+                  key: do-spaces-private-key
           ports:
             - name: "http"
               containerPort: 9000

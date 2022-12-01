@@ -20,7 +20,6 @@ func (s *FetcherBaseTestSuite) TestBeaconFindNewAndMissingValidatorIndexes() {
 	var f BeaconFetcher
 	f.NodeEndpoint = s.Tc.LocalBeaconConn
 	ctx := context.Background()
-	s.Pg.InitPG(ctx, s.Tc.ProdLocalApolloDbPgconn)
 	err := f.BeaconFindNewAndMissingValidatorIndexes(ctx, batchSize)
 	s.Require().Nil(err)
 }

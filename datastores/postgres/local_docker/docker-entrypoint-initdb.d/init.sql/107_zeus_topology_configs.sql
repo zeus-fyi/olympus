@@ -39,7 +39,7 @@ ALTER TABLE "public"."topology_system_components" ADD CONSTRAINT "system_compone
 
 -- links components to build higher level topologies eg. beacon + exec = full eth2 beacon cluster
 
--- enforce the class type is test_suites_base on entry, use the distributed id gen to also function as the version
+-- enforce the class type is base on entry, use the distributed id gen to also function as the version
 CREATE TABLE "public"."topology_base_components" (
     "org_id" int8 NOT NULL REFERENCES orgs(org_id),
     "topology_system_component_id" int8 NOT NULL REFERENCES topology_system_components(topology_system_component_id),
@@ -50,7 +50,7 @@ CREATE TABLE "public"."topology_base_components" (
 ALTER TABLE "public"."topology_base_components" ADD CONSTRAINT "topology_base_components_pk" PRIMARY KEY ("topology_base_component_id");
 ALTER TABLE "public"."topology_base_components" ADD CONSTRAINT "base_component_name_unique_to_org" UNIQUE("topology_base_name", "org_id");
 
--- enforce the class type is test_suites_base on entry, use the distributed id gen to also function as the version
+-- enforce the class type is base on entry, use the distributed id gen to also function as the version
 CREATE TABLE "public"."topology_skeleton_base_components" (
     "org_id" int8 NOT NULL REFERENCES orgs(org_id),
     "topology_base_component_id" int8 NOT NULL REFERENCES topology_base_components(topology_base_component_id) NOT NULL,

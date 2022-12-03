@@ -15,7 +15,7 @@ func (s *BeaconStateAPITestSuite) TestGetValidatorsByState() {
 	state := "finalized"
 	status := "active_ongoing"
 	var vs ValidatorsStateBeacon
-	err := vs.FetchAllStateAndDecode(ctx, s.Tc.LocalBeaconConn, state, status)
+	vs, err := vs.FetchAllStateAndDecode(ctx, s.Tc.LocalBeaconConn, state, status)
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(vs)
 

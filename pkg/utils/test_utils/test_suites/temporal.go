@@ -8,11 +8,11 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	temporal_client "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
 type TemporalTestSuite struct {
-	base.TestSuite
+	test_suites_base.TestSuite
 
 	TemporalAuthCfg temporal_auth.TemporalAuth
 	Temporal        temporal_client.TemporalClient

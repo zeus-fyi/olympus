@@ -14,11 +14,13 @@ type Resty struct {
 	PrintResp bool
 }
 
-func GetBaseRestyAresTestClient(baseURL, bearer string) Resty {
+func GetBaseRestyClient(baseURL, bearer string) Resty {
 	r := Resty{}
 	r.Client = resty.New()
 	r.Client.SetBaseURL(baseURL)
-	r.Client.SetAuthToken(bearer)
+	if len(bearer) > 0 {
+		r.Client.SetAuthToken(bearer)
+	}
 	r.PrintResp = true
 	return r
 }

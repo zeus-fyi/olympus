@@ -5,8 +5,10 @@ import (
 	"context"
 	"errors"
 	"io"
+	"net/http"
 	"os"
 
+	awshttp "github.com/aws/aws-sdk-go-v2/aws/transport/http"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/rs/zerolog/log"
@@ -23,6 +25,21 @@ func NewS3ClientReader(baseClient s3base.S3Client) S3ClientReader {
 	return S3ClientReader{
 		baseClient,
 	}
+}
+
+func (s *S3ClientReader) CheckIfKeyExists(ctx context.Context, s3KeyValue *s3.GetObjectInput) (bool, error) {
+	_, err := s.S3Client.AwsS3Client.HeadObject(ctx, &s3.HeadObjectInput{
+		Bucket: s3KeyValue.Bucket,
+		Key:    s3KeyValue.Key,
+	})
+	if err != nil {
+		var responseError *awshttp.ResponseError
+		if errors.As(err, &responseError) && responseError.ResponseError.HTTPStatusCode() == http.StatusNotFound {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
 
 func (s *S3ClientReader) Read(ctx context.Context, p *filepaths.Path, s3KeyValue *s3.GetObjectInput) error {
@@ -61,6 +78,25 @@ func (s *S3ClientReader) ReadBytes(ctx context.Context, p *filepaths.Path, s3Key
 		misc.DelayedPanic(err)
 	}
 	return buf
+}
+
+func (s *S3ClientReader) ReadBytesNoPanic(ctx context.Context, p *filepaths.Path, s3KeyValue *s3.GetObjectInput) (*bytes.Buffer, error) {
+	if p == nil {
+		panic(errors.New("need to include a path"))
+	}
+
+	log.Info().Msg("Zeus: S3ClientReader, downloading bucket object")
+	buf := &bytes.Buffer{}
+	downloader := manager.NewDownloader(s.AwsS3Client)
+	downloader.Concurrency = 1
+
+	w := FakeWriterAt{w: buf}
+	_, err := downloader.Download(ctx, w, s3KeyValue)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("ReadBytesNoPanic")
+		return buf, nil
+	}
+	return buf, err
 }
 
 type FakeWriterAt struct {

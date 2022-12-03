@@ -5,16 +5,26 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-redis/redis/v9"
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	rdb "github.com/zeus-fyi/olympus/datastores/redis/apps"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
 type BeaconIndexerCacheTestSuite struct {
-	test_suites.DatastoresTestSuite
+	test_suites_base.TestSuite
+	Redis *redis.Client
 }
 
 func (r *BeaconIndexerCacheTestSuite) TestCheckpointCache() {
 	ctx := context.Background()
+	r.InitLocalConfigs()
+	redisOpts := redis.Options{}
+	redisOpts.Addr = r.Tc.LocalRedisConn
+	r.Redis = rdb.InitRedis(ctx, redisOpts)
+	apps.Pg.InitPG(ctx, r.Tc.LocalDbPgconn)
+
 	fc := NewFetcherCache(ctx, r.Redis)
 	r.Assert().NotEmpty(fc)
 

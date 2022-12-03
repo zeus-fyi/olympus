@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/cookbooks"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
 	zeus_pods_reqs "github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types/pods"
 	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
@@ -39,7 +39,7 @@ var beaconCloudCtxNs = zeus_common_types.CloudCtxNs{
 }
 
 type BeaconActionsTestSuite struct {
-	base.TestSuite
+	test_suites_base.TestSuite
 	BeaconActionsClient
 }
 

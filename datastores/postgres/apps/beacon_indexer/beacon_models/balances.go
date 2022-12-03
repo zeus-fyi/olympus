@@ -9,59 +9,16 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
-// InsertValidatorBalancesForNextEpoch
-/*
-	1. gets max stored epoch for each validator, and filters out validators that are already at the max finalized epoch
-	2. compares the proposed new_epoch to validate it is +1 to the previous, otherwise filters them out to
-	   ensure data consistency epoch to epoch. exception for epoch 0
-	3. compares new to old balance to generate the diff yield for the latest epoch and inserts new data into balances
-*/
-func (vb *ValidatorBalancesEpoch) InsertValidatorBalancesForNextEpoch(ctx context.Context) error {
-	log.Info().Msg("ValidatorBalancesEpoch: InsertValidatorBalancesForNextEpoch")
-	epochs := string_utils.ArraySliceStrBuilderSQL(vb.getEpochValues())
-	valIndexes := string_utils.ArraySliceStrBuilderSQL(vb.getIndexValues())
-	newBalance := string_utils.ArraySliceStrBuilderSQL(vb.getNewBalanceValues())
-	query := fmt.Sprintf(`
-		WITH validator_max_relative_epoch_balances AS (
-			SELECT COALESCE(MAX(epoch), 0) as max_epoch, validator_index
-			FROM validator_balances_at_epoch
-			WHERE validator_index = ANY(%s) AND epoch < (SELECT mainnet_finalized_epoch())
-			GROUP BY validator_index
-		), new_balances AS (
-			SELECT * FROM UNNEST(%s, %s, %s) AS x(v_index, new_balance, new_epoch)
-			JOIN validator_max_relative_epoch_balances on validator_max_relative_epoch_balances.validator_index = v_index
-			WHERE validator_max_relative_epoch_balances.max_epoch = new_epoch-1 AND new_epoch > 0
-		)
-		INSERT INTO validator_balances_at_epoch (epoch, validator_index, total_balance_gwei, current_epoch_yield_gwei)
-    	SELECT nb.new_epoch, vm.validator_index, nb.new_balance, nb.new_balance - vb.total_balance_gwei
-		FROM validator_max_relative_epoch_balances vm
-		JOIN validator_balances_at_epoch vb ON vb.epoch = vm.max_epoch AND vb.validator_index = vm.validator_index
-		JOIN new_balances nb ON nb.v_index = vm.validator_index
-		ON CONFLICT ON CONSTRAINT validator_balances_at_epoch_pkey DO NOTHING
-	`, valIndexes, valIndexes, newBalance, epochs)
-
-	log.Debug().Interface("InsertValidatorBalancesForNextEpoch: ", query)
-	r, err := apps.Pg.Exec(ctx, query)
-	rowsAffected := r.RowsAffected()
-	log.Info().Msgf("ValidatorBalancesEpoch: InsertValidatorBalancesForNextEpoch inserted %d balances", rowsAffected)
-	if err != nil {
-		log.Error().Err(err).Interface("InsertValidatorBalancesForNextEpoch", query)
-		return err
-	}
-	return err
-}
-
 var insertValidatorBalances = "INSERT INTO validator_balances_at_epoch (epoch, validator_index, total_balance_gwei, current_epoch_yield_gwei) VALUES "
 
 func (vb *ValidatorBalancesEpoch) InsertValidatorBalances(ctx context.Context) error {
-	query := string_utils.DelimitedSliceStrBuilderSQLRows(insertValidatorBalances, vb.GetManyRowValues()) +
-		"ON CONFLICT ON CONSTRAINT validator_balances_at_epoch_pkey DO UPDATE SET" +
-		" epoch = EXCLUDED.epoch," +
-		" validator_index = EXCLUDED.validator_index," +
-		" total_balance_gwei = EXCLUDED.total_balance_gwei," +
-		" current_epoch_yield_gwei = EXCLUDED.current_epoch_yield_gwei"
+
+	vals := vb.GetManyRowValues()
+	query := string_utils.DelimitedSliceStrBuilderSQLRows(insertValidatorBalances, vals) +
+		"ON CONFLICT ON CONSTRAINT validator_balances_at_epoch_pkey DO UPDATE SET epoch = EXCLUDED.epoch, validator_index = EXCLUDED.validator_index, total_balance_gwei = EXCLUDED.total_balance_gwei, current_epoch_yield_gwei = EXCLUDED.current_epoch_yield_gwei"
 	r, err := apps.Pg.Exec(ctx, query)
 	rowsAffected := r.RowsAffected()
+
 	log.Info().Int64("rows affected: ", rowsAffected)
 	if err != nil {
 		log.Error().Err(err).Interface("InsertValidatorBalances", query)
@@ -153,15 +110,4 @@ func (vb *ValidatorBalancesEpoch) SelectValidatorBalancesSum(ctx context.Context
 		selectedValidatorBalances.ValidatorGweiYields = append(selectedValidatorBalances.ValidatorGweiYields, val)
 	}
 	return selectedValidatorBalances, err
-}
-
-func SelectCountValidatorEpochBalanceEntries(ctx context.Context) (int, error) {
-	var count int
-	query := `SELECT COUNT(*) FROM validator_balances_at_epoch`
-	err := apps.Pg.QueryRow(ctx, query).Scan(&count)
-	log.Err(err).Msg("SelectCountValidatorEpochBalanceEntries")
-	if err != nil {
-		return 0, err
-	}
-	return count, nil
 }

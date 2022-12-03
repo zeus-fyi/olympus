@@ -8,11 +8,11 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
 type UnGzipToMemFsTestSuite struct {
-	base.TestSuite
+	test_suites_base.TestSuite
 	memfs.MemFS
 }
 

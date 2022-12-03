@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
 	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 	test_base "github.com/zeus-fyi/olympus/test"
@@ -17,7 +17,7 @@ import (
 )
 
 type ZeusClientTestSuite struct {
-	base.TestSuite
+	test_suites_base.TestSuite
 	ZeusTestClient ZeusClient
 }
 

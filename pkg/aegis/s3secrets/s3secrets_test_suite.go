@@ -2,12 +2,13 @@ package s3secrets
 
 import (
 	s3reader "github.com/zeus-fyi/olympus/datastores/s3/read"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_encryption"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_s3"
 )
 
 type S3SecretsManagerTestSuite struct {
-	test_suites.S3TestSuite
-	e test_suites.EncryptionTestSuite
+	test_suites_s3.S3TestSuite
+	e test_suites_encryption.EncryptionTestSuite
 
 	S3Secrets S3Secrets
 }

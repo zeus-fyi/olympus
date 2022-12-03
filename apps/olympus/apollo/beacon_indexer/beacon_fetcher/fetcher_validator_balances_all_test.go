@@ -26,13 +26,6 @@ func (f *BeaconFetcherTestSuite) TestCheckpointCache() {
 	doesExist, err := Fetcher.Cache.DoesCheckpointExist(ctx, chkPoint.Epoch)
 	f.Require().Nil(err)
 	f.Assert().False(doesExist)
-
-	err = fetchAllValidatorBalances(ctx, 5*time.Minute)
-
-	doesExist, err = Fetcher.Cache.DoesCheckpointExist(ctx, chkPoint.Epoch)
-	f.Require().Nil(err)
-	f.Assert().True(doesExist)
-
 }
 
 func (f *BeaconFetcherTestSuite) TestFetchAndCacheAnyAfterCheckpoint() {

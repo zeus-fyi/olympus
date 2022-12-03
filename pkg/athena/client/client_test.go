@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	test_base "github.com/zeus-fyi/olympus/test"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
 )
@@ -13,7 +13,7 @@ import (
 var ctx = context.Background()
 
 type AthenaClientTestSuite struct {
-	base.TestSuite
+	test_suites_base.TestSuite
 	AthenaTestClient AthenaClient
 }
 

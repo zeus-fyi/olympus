@@ -24,18 +24,10 @@ scale.up:
 app.indexer:
 	go run ../../apps/beacon_indexer
 
-docker.print:
-	echo ${IMG} ${LATEST}
-
-docker.build:
-	@ docker build -t ${IMG} -t ${LATEST} -f ../../docker/beacon_indexer/Dockerfile ../../
 
 docker.push:
 	@ docker push ${IMG}
 	@ docker push ${LATEST}
-
-docker.run:
-	docker run -it -p 9000:9000 registry.digitalocean.com/zeus-fyi/zeus-indexer:latest sh -c "beacon_indexer --postgres-conn-str='' --beacon-endpoint=''"
 
 docker.debug:
 	docker run -it --entrypoint /bin/bash registry.digitalocean.com/zeus-fyi/zeus-indexer:latest

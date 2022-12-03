@@ -1,15 +1,15 @@
-package test_suites
+package test_suites_s3
 
 import (
 	"context"
 
 	"github.com/zeus-fyi/olympus/configs"
 	"github.com/zeus-fyi/olympus/datastores/s3"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
 type S3TestSuite struct {
-	base.TestSuite
+	test_suites_base.TestSuite
 	S3 s3base.S3Client
 }
 

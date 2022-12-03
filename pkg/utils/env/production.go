@@ -2,24 +2,13 @@ package env
 
 import (
 	"github.com/go-redis/redis/v9"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
 type ProductionPrototypeTest struct {
-	base.TestSuite
+	test_suites_base.TestSuite
 
 	Redis     *redis.Client
-	PG        apps.Db
-	PGTest    test_suites.PGTestSuite
 	RedisTest test_suites.RedisTestSuite
-}
-
-func (d *ProductionPrototypeTest) SetupTest() {
-	d.InitProductionConfig()
-	d.RedisTest.SetupRedisConnProduction()
-	d.Redis = d.RedisTest.Redis
-	d.PGTest.SetupProductionPGConn()
-	d.PG = d.PGTest.Pg
 }

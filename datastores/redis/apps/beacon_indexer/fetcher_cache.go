@@ -8,7 +8,8 @@ import (
 
 	"github.com/go-redis/redis/v9"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/beacon_indexer/beacon_models"
+	apollo_buckets "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/buckets"
+	"github.com/zeus-fyi/olympus/pkg/apollo/ethereum/consensus_client_apis/beacon_api"
 )
 
 type FetcherCache struct {
@@ -64,18 +65,22 @@ func (f *FetcherCache) DeleteCheckpoint(ctx context.Context, epoch int) error {
 	return err.Err()
 }
 
-func (f *FetcherCache) MarshalBinary(vbe beacon_models.ValidatorBalancesEpoch) ([]byte, error) {
+func (f *FetcherCache) MarshalBinary(vbe beacon_api.ValidatorBalances) ([]byte, error) {
 	return json.Marshal(vbe)
 }
-func (f *FetcherCache) SetBalanceCache(ctx context.Context, epoch int, vbe beacon_models.ValidatorBalancesEpoch, ttl time.Duration) (string, error) {
+
+func (f *FetcherCache) SetBalanceCache(ctx context.Context, epoch int, vbe beacon_api.ValidatorBalances, ttl time.Duration) (string, error) {
 	key := fmt.Sprintf("validator-balance-epoch-%d", epoch)
 
 	log.Info().Msgf("SetBalanceCache: %s", key)
-
 	bin, err := f.MarshalBinary(vbe)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msgf("SetBalanceCache: %s", key)
 		return key, err
+	}
+	err = apollo_buckets.UploadBalancesAtEpoch(ctx, key, bin)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msgf("SetBalanceCache: UploadBalancesAtEpoch %s", key)
 	}
 	statusCmd := f.Set(ctx, key, bin, ttl)
 	if statusCmd.Err() != nil {
@@ -86,24 +91,29 @@ func (f *FetcherCache) SetBalanceCache(ctx context.Context, epoch int, vbe beaco
 	return key, nil
 }
 
-func (f *FetcherCache) UnmarshalBinary(data []byte) (beacon_models.ValidatorBalancesEpoch, error) {
+func (f *FetcherCache) UnmarshalBinary(data []byte) (beacon_api.ValidatorBalances, error) {
 	// convert data to yours, let's assume its json data
-	vbe := beacon_models.ValidatorBalancesEpoch{}
+	vbe := beacon_api.ValidatorBalances{}
 	err := json.Unmarshal(data, &vbe)
 	return vbe, err
-
 }
-func (f *FetcherCache) GetBalanceCache(ctx context.Context, epoch int) (beacon_models.ValidatorBalancesEpoch, error) {
-	key := fmt.Sprintf("validator-balance-epoch-%d", epoch)
 
+func (f *FetcherCache) GetBalanceCache(ctx context.Context, epoch int) (beacon_api.ValidatorBalances, error) {
+	key := fmt.Sprintf("validator-balance-epoch-%d", epoch)
 	log.Info().Msgf("SetBalanceCache: %s", key)
-	emptyVbe := beacon_models.ValidatorBalancesEpoch{}
+	emptyVbe := beacon_api.ValidatorBalances{}
 	var bytes []byte
 	err := f.Get(ctx, key).Scan(&bytes)
 	switch {
 	case err == redis.Nil:
-		fmt.Println("GetBalanceCache: key does not exist")
-		return emptyVbe, nil
+		fmt.Println("GetBalanceCache: key does not exist in redis, checking s3 bucket")
+		bytes, err = apollo_buckets.DownloadBalancesAtEpoch(ctx, key)
+		if err != nil {
+			log.Ctx(ctx).Err(err).Msg("GetBalanceCache: no cache found in s3 bucket")
+			return emptyVbe, nil
+		}
+		s := string(bytes)
+		bytes, err = json.Marshal(s)
 	case err != nil:
 		log.Err(err).Msgf("GetBalanceCache Get failed: %s", key)
 	}

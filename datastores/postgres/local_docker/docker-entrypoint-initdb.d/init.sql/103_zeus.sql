@@ -1,5 +1,5 @@
 
--- class types skeleton, infrastructure, configuration, base, cluster, matrix, system
+-- class types skeleton, infrastructure, configuration, test_suites_base, cluster, matrix, system
 CREATE TABLE "public"."topology_class_types" (
     "topology_class_type_id" int8 NOT NULL DEFAULT next_id(),
     "topology_class_type_name" text
@@ -20,12 +20,6 @@ CREATE TABLE "public"."topologies" (
    "name" text NOT NULL
 );
 ALTER TABLE "public"."topologies" ADD CONSTRAINT "topology_pk" PRIMARY KEY ("topology_id");
-
--- links components to build higher level topologies eg. beacon + exec = full eth2 beacon cluster
-CREATE TABLE "public"."topology_dependent_components" (
-    "topology_class_id" int8 NOT NULL REFERENCES topology_classes(topology_class_id),
-    "topology_id" int8 NOT NULL REFERENCES topologies(topology_id)
-);
 
 -- kns id table
 CREATE TABLE "public"."topologies_kns" (

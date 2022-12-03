@@ -43,7 +43,7 @@ func (f *BeaconFetcher) InsertForwardFetchCheckpointUsingCache(ctx context.Conte
 		return err
 	}
 	log.Info().Err(err).Msgf(InsertForwardFetchCheckpointUsingCache+" : updating at epoch %d", chkPoint.Epoch)
-	vbe, err := Fetcher.FetchForwardCheckpointValidatorBalances(ctx, int64(chkPoint.Epoch))
+	vbe, err := Fetcher.FetchForwardCheckpointValidatorBalances(ctx, chkPoint.Epoch)
 	if err != nil {
 		log.Err(err).Msg(InsertForwardFetchCheckpointUsingCache)
 		return err

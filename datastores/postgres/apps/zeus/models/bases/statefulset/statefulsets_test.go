@@ -11,11 +11,11 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/charts"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
 type StatefulSetTestSuite struct {
-	base.TestSuite
+	test_suites_base.TestSuite
 	TestDirectory string
 }
 

@@ -9,6 +9,7 @@ import (
 	"github.com/pierrec/lz4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 )
 
 func (c *Compression) Lz4CompressDir(p *filepaths.Path) error {
@@ -48,4 +49,35 @@ func (c *Compression) Lz4CompressDir(p *filepaths.Path) error {
 	p.DirIn = p.DirOut
 	p.FnIn = p.FnOut
 	return err
+}
+
+func (c *Compression) Lz4CompressInMemFsFile(p *filepaths.Path, inMemFs memfs.MemFS) (memfs.MemFS, error) {
+	if p == nil {
+		return inMemFs, errors.New("need to include a path")
+	}
+
+	p.FnOut = p.FnIn + ".tar.lz4"
+
+	b, err := inMemFs.ReadFileInPath(p)
+	if err != nil {
+		log.Err(err).Msg("Compression: Lz4CompressInMemFsFile")
+		return inMemFs, err
+	}
+	toCompress := b
+	compressed := make([]byte, len(toCompress))
+	ht := make([]int, 128<<10) // buffer for the compression table
+	//compress
+	l, err := lz4.CompressBlock(toCompress, compressed, ht)
+	if err != nil {
+		log.Err(err).Msg("Compression: Lz4CompressInMemFsFile")
+		return inMemFs, err
+	}
+	err = inMemFs.MakeFileOut(p, compressed[:l])
+	p.DirIn = p.DirOut
+	p.FnIn = p.FnOut
+	if err != nil {
+		log.Err(err).Msg("Compression: Lz4CompressInMemFsFile")
+		return inMemFs, err
+	}
+	return inMemFs, err
 }

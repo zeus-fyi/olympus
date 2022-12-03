@@ -8,13 +8,13 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 
 	"github.com/zeus-fyi/olympus/configs"
 )
 
 type PGTestSuite struct {
-	base.TestSuite
+	test_suites_base.TestSuite
 	Pg      apps.Db
 	LocalDB bool
 }

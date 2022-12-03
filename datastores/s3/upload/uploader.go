@@ -2,12 +2,16 @@ package s3uploader
 
 import (
 	"context"
+	"errors"
+	"net/http"
 
+	awshttp "github.com/aws/aws-sdk-go-v2/aws/transport/http"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/rs/zerolog/log"
 	s3base "github.com/zeus-fyi/olympus/datastores/s3"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 )
 
 type S3ClientUploader struct {
@@ -37,4 +41,38 @@ func (s *S3ClientUploader) Upload(ctx context.Context, p filepaths.Path, s3KeyVa
 		return err
 	}
 	return err
+}
+
+func (s *S3ClientUploader) UploadFromInMemFs(ctx context.Context, p filepaths.Path, s3KeyValue *s3.PutObjectInput, inMemFs memfs.MemFS) error {
+	log.Ctx(ctx).Debug().Msg("UploadFromInMemFs")
+	f, err := inMemFs.Open(p.FileInPath())
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("S3ClientUploader: UploadFromInMemFs: p.OpenFileInPath()")
+		return err
+	}
+	defer f.Close()
+	s3KeyValue.Body = f
+	uploader := manager.NewUploader(s.AwsS3Client)
+	_, err = uploader.Upload(ctx, s3KeyValue, func(u *manager.Uploader) {
+	})
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("S3ClientUploader: UploadFromInMemFs: uploader.Upload(ctx, s3KeyValue)")
+		return err
+	}
+	return err
+}
+
+func (s *S3ClientUploader) CheckIfKeyExists(ctx context.Context, s3KeyValue *s3.PutObjectInput) (bool, error) {
+	_, err := s.S3Client.AwsS3Client.HeadObject(ctx, &s3.HeadObjectInput{
+		Bucket: s3KeyValue.Bucket,
+		Key:    s3KeyValue.Key,
+	})
+	if err != nil {
+		var responseError *awshttp.ResponseError
+		if errors.As(err, &responseError) && responseError.ResponseError.HTTPStatusCode() == http.StatusNotFound {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }

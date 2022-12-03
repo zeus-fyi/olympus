@@ -6,14 +6,14 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/cookbooks"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	zeus_client "github.com/zeus-fyi/olympus/pkg/zeus/client"
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
 )
 
 type BeaconCookbookTestSuite struct {
-	base.TestSuite
+	test_suites_base.TestSuite
 	ZeusTestClient zeus_client.ZeusClient
 }
 

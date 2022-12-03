@@ -16,7 +16,7 @@ type BeaconActionsClient struct {
 
 func NewBeaconActionsClient(baseURL, bearer string) BeaconActionsClient {
 	z := BeaconActionsClient{}
-	z.Resty = base_rest_client.GetBaseRestyAresTestClient(baseURL, bearer)
+	z.Resty = base_rest_client.GetBaseRestyClient(baseURL, bearer)
 	return z
 }
 

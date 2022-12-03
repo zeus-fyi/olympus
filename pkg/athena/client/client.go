@@ -11,7 +11,7 @@ type AthenaClient struct {
 
 func NewAthenaClient(baseURL, bearer string) AthenaClient {
 	z := AthenaClient{}
-	z.Resty = base_rest_client.GetBaseRestyAresTestClient(baseURL, bearer)
+	z.Resty = base_rest_client.GetBaseRestyClient(baseURL, bearer)
 	return z
 }
 

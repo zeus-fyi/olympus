@@ -12,11 +12,11 @@ import (
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
 type TopicsTestSuite struct {
-	base.TestSuite
+	test_suites_base.TestSuite
 }
 
 func (s *TopicsTestSuite) TestCreateTopic() {

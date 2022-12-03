@@ -35,12 +35,12 @@ func fetchAllValidatorsToUpdate(ctx context.Context, contextTimeout time.Duratio
 
 func (f *BeaconFetcher) BeaconUpdateAllValidatorStates(ctx context.Context) (err error) {
 	log.Info().Msg("BeaconFetcher: BeaconUpdateAllValidatorStates")
-	err = f.BeaconStateResults.FetchAllStateAndDecode(ctx, f.NodeEndpoint, "finalized", "")
+	vsb, err := f.BeaconStateResults.FetchAllStateAndDecode(ctx, f.NodeEndpoint, "finalized", "")
 	if err != nil {
 		log.Error().Err(err).Msg("BeaconUpdateValidatorStates: FetchStateAndDecode")
 		return err
 	}
-	f.Validators = beacon_models.ToBeaconModelFormat(f.BeaconStateResults)
+	f.Validators = beacon_models.ToBeaconModelFormat(vsb)
 	log.Info().Msg("BeaconFetcher: ToBeaconModelFormat")
 	rowsUpdated, err := f.Validators.UpdateValidatorsFromBeaconAPI(ctx)
 	log.Info().Msgf("BeaconFetcher: UpdateValidatorsFromBeaconAPI updated %d validators", rowsUpdated)

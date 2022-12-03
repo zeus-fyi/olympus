@@ -1,10 +1,12 @@
 package compression
 
 import (
+	"encoding/json"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/pkg/apollo/ethereum/consensus_client_apis/beacon_api"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/readers"
@@ -59,10 +61,13 @@ func (c *Lz4TestSuite) TestLz4Cmp() {
 	inMem, err = c.Comp.Lz4DecompressInMemFsFile(&p, inMem)
 	c.Require().Nil(err)
 
-	decOut, err := fs.ReadFileOutPath(&p)
+	err = os.WriteFile(p.FileOutPath(), out, 0644)
 	c.Require().Nil(err)
-	err = os.WriteFile(p.FileOutPath(), decOut, 0644)
+
+	vbe := beacon_api.ValidatorBalances{}
+	err = json.Unmarshal(b, &vbe)
 	c.Require().Nil(err)
+
 }
 
 func (c *Lz4TestSuite) TestLz4Dec() {
@@ -70,7 +75,7 @@ func (c *Lz4TestSuite) TestLz4Dec() {
 		PackageName: "",
 		DirIn:       "./cmp",
 		DirOut:      "./out",
-		FnIn:        "validator-balance-epoch-163999.json.tar.lz4",
+		FnIn:        "validator-balance-epoch-164033.json.tar.lz4",
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}
@@ -83,8 +88,16 @@ func (c *Lz4TestSuite) TestLz4Dec() {
 	c.Require().Nil(err)
 	inMem, err = c.Comp.Lz4DecompressInMemFsFile(&p, inMem)
 	//err := c.Comp.Lz4Decompress(&p)
+
+	p.FnOut = "validator-balance-epoch-164033.json"
 	c.Require().Nil(err)
 	c.Assert().NotEmpty(inMem)
+	b, err = inMem.ReadFileInPath(&p)
+	c.Require().Nil(err)
+
+	vbe := beacon_api.ValidatorBalances{}
+	err = json.Unmarshal(b, &vbe)
+	c.Require().Nil(err)
 
 }
 

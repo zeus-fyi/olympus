@@ -38,40 +38,30 @@ func (c *Compression) Lz4DecompressInMemFsFile(p *filepaths.Path, inMemFs memfs.
 
 	b, err := inMemFs.ReadFileInPath(p)
 	if err != nil {
-		log.Err(err).Msg("Compression: Lz4CompressInMemFsFile")
+		log.Err(err).Msg("Lz4DecompressInMemFsFile: ")
 		return inMemFs, err
 	}
 	in := bytes.Buffer{}
-	r := bufio.NewReader(&in)
-
-	buf := bytes.Buffer{}
-	// make a write buffer
-	w := bufio.NewWriter(&buf)
-
-	lz4Reader := lz4.NewReader(r)
-
-	// make a buffer to keep chunks that are read
-	buffer := make([]byte, 1024)
-	for {
-		// read a chunk
-		n, rerr := lz4Reader.Read(buffer)
-		if rerr != nil && rerr != io.EOF {
-			panic(rerr)
-		}
-		if n == 0 {
-			break
-		}
-
-		// write a chunk
-		if _, cerr := w.Write(buffer[:n]); cerr != nil {
-			panic(cerr)
-		}
+	_, err = in.Write(b)
+	if err != nil {
+		log.Err(err).Msg("Lz4DecompressInMemFsFile: ")
+		return inMemFs, err
 	}
-	err = inMemFs.MakeFileOut(p, b)
+	r := bufio.NewReader(&in)
+	lz4Reader := lz4.NewReader(r)
+	if err != nil {
+		log.Err(err).Msg("Lz4DecompressInMemFsFile: ")
+		return inMemFs, err
+	}
+	if _, cerr := io.Copy(&in, lz4Reader); cerr != nil {
+		log.Err(err).Msg("Lz4DecompressInMemFsFile: ")
+		return inMemFs, err
+	}
+	err = inMemFs.MakeFileOut(p, in.Bytes())
 	p.DirIn = p.DirOut
 	p.FnIn = p.FnOut
 	if err != nil {
-		log.Err(err).Msg("Compression: Lz4DecompressInMemFsFile")
+		log.Err(err).Msg("Lz4DecompressInMemFsFile: ")
 		return inMemFs, err
 	}
 	return inMemFs, err

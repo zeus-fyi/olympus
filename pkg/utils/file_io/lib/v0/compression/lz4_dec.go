@@ -35,7 +35,6 @@ func (c *Compression) Lz4DecompressInMemFsFile(p *filepaths.Path, inMemFs memfs.
 	if p == nil {
 		return inMemFs, errors.New("need to include a path")
 	}
-
 	b, err := inMemFs.ReadFileInPath(p)
 	if err != nil {
 		log.Err(err).Msg("Lz4DecompressInMemFsFile: ")

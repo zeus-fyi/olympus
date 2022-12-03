@@ -41,6 +41,7 @@ func (c *Lz4TestSuite) TestLz4Cmp() {
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}
+
 	inMem := memfs.NewMemFs()
 	b := r.ReadJsonObject(p)
 
@@ -75,7 +76,7 @@ func (c *Lz4TestSuite) TestLz4Dec() {
 		PackageName: "",
 		DirIn:       "./cmp",
 		DirOut:      "./out",
-		FnIn:        "validator-balance-epoch-164033.json.tar.lz4",
+		FnIn:        "validator-balance-epoch-164081.json.tar.lz4",
 		Env:         "",
 		FilterFiles: string_utils.FilterOpts{},
 	}
@@ -89,7 +90,7 @@ func (c *Lz4TestSuite) TestLz4Dec() {
 	inMem, err = c.Comp.Lz4DecompressInMemFsFile(&p, inMem)
 	//err := c.Comp.Lz4Decompress(&p)
 
-	p.FnOut = "validator-balance-epoch-164033.json"
+	p.FnOut = "validator-balance-epoch-164081.json"
 	c.Require().Nil(err)
 	c.Assert().NotEmpty(inMem)
 	b, err = inMem.ReadFileInPath(&p)

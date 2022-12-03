@@ -2,6 +2,8 @@ package compression
 
 import (
 	"archive/tar"
+	"bufio"
+	"bytes"
 	"errors"
 	"io/fs"
 	"os"
@@ -63,16 +65,19 @@ func (c *Compression) Lz4CompressInMemFsFile(p *filepaths.Path, inMemFs memfs.Me
 		log.Err(err).Msg("Compression: Lz4CompressInMemFsFile")
 		return inMemFs, err
 	}
-	toCompress := b
-	compressed := make([]byte, len(toCompress))
-	ht := make([]int, 128<<10) // buffer for the compression table
-	//compress
-	l, err := lz4.CompressBlock(toCompress, compressed, ht)
+
+	buff := bytes.Buffer{}
+	buff.Write(b)
+	buf := bufio.NewWriter(&buff)
 	if err != nil {
 		log.Err(err).Msg("Compression: Lz4CompressInMemFsFile")
 		return inMemFs, err
 	}
-	err = inMemFs.MakeFileOut(p, compressed[:l])
+	enc := lz4.NewWriter(buf)
+	defer enc.Close()
+	tw := tar.NewWriter(enc)
+	defer tw.Close()
+	err = inMemFs.MakeFileOut(p, buff.Bytes())
 	p.DirIn = p.DirOut
 	p.FnIn = p.FnOut
 	if err != nil {

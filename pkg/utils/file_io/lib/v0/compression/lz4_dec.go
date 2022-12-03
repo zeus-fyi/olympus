@@ -1,7 +1,6 @@
 package compression
 
 import (
-	"bufio"
 	"bytes"
 	"errors"
 	"io"
@@ -40,23 +39,8 @@ func (c *Compression) Lz4DecompressInMemFsFile(p *filepaths.Path, inMemFs memfs.
 		log.Err(err).Msg("Lz4DecompressInMemFsFile: ")
 		return inMemFs, err
 	}
-	in := bytes.Buffer{}
-	_, err = in.Write(b)
-	if err != nil {
-		log.Err(err).Msg("Lz4DecompressInMemFsFile: ")
-		return inMemFs, err
-	}
-	r := bufio.NewReader(&in)
-	lz4Reader := lz4.NewReader(r)
-	if err != nil {
-		log.Err(err).Msg("Lz4DecompressInMemFsFile: ")
-		return inMemFs, err
-	}
-	if _, cerr := io.Copy(&in, lz4Reader); cerr != nil {
-		log.Err(err).Msg("Lz4DecompressInMemFsFile: ")
-		return inMemFs, err
-	}
-	err = inMemFs.MakeFileOut(p, in.Bytes())
+	o, err := decompress(b)
+	err = inMemFs.MakeFileOut(p, o)
 	p.DirIn = p.DirOut
 	p.FnIn = p.FnOut
 	if err != nil {
@@ -64,4 +48,27 @@ func (c *Compression) Lz4DecompressInMemFsFile(p *filepaths.Path, inMemFs memfs.
 		return inMemFs, err
 	}
 	return inMemFs, err
+}
+
+func compress(toCompress []byte) ([]byte, int, error) {
+	toCompressLen := len(toCompress)
+	compressed := make([]byte, toCompressLen)
+
+	//compress
+	l, err := lz4.CompressBlock(toCompress, compressed, nil)
+	if err != nil {
+		panic(err)
+	}
+	return toCompress[:l], toCompressLen, nil
+}
+
+func decompress(in []byte) ([]byte, error) {
+	r := bytes.NewReader(in)
+	w := &bytes.Buffer{}
+	zr := lz4.NewReader(r)
+	_, err := io.Copy(w, zr)
+	if err != nil {
+		return nil, err
+	}
+	return w.Bytes(), nil
 }

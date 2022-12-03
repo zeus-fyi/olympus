@@ -23,6 +23,7 @@ func InitFetcherService(ctx context.Context, nodeURL string, redis *redis.Client
 	time.Sleep(time.Second * jitterStart)
 	go FetchNewOrMissingValidators()
 	// caches these values
+	go UpdateAllValidatorBalancesFromCache()
 	go FetchAnyValidatorBalancesAfterCheckpoint()
 	go FetchBeaconUpdateValidatorStates()
 	go UpdateAllValidators()

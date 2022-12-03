@@ -23,7 +23,7 @@ func DebugRequestHandler(c echo.Context) (err error) {
 	//	return c.JSON(http.StatusInternalServerError, "SelectCountValidatorEntries had an error")
 	//}
 
-	checkpointEpoch := 134000
+	checkpointEpoch := 164000
 	chkPoint := beacon_models.ValidatorsEpochCheckpoint{}
 	err = chkPoint.GetsOrderedNextEpochCheckpointWithBalancesRemainingAfterEpoch(ctx, checkpointEpoch)
 	if err != nil {

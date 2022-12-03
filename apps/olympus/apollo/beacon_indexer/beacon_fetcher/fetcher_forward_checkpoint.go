@@ -7,14 +7,11 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/beacon_indexer/beacon_models"
-	"github.com/zeus-fyi/olympus/pkg/apollo/ethereum/consensus_client_apis/beacon_api"
-	"github.com/zeus-fyi/olympus/pkg/utils/chronos/v0"
-	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 var FetchAllValidatorBalancesTimeoutFromCheckpoint = time.Minute * 5
 var FetchAnyValidatorBalancesTimeoutFromCheckpoint = time.Minute * 3
-var checkpointEpoch = 164000
+var checkpointEpoch = 163999
 
 func FetchAllValidatorBalancesAfterCheckpoint() {
 	log.Info().Msg("FetchAllValidatorBalancesAfterCheckpoint")
@@ -30,7 +27,6 @@ func FetchAllValidatorBalancesAfterCheckpoint() {
 
 func FetchAnyValidatorBalancesAfterCheckpoint() {
 	log.Info().Msg("FetchAnyValidatorBalancesAfterCheckpoint")
-
 	for {
 		timeBegin := time.Now()
 		err := fetchAnyValidatorBalancesAfterCheckpoint(context.Background(), FetchAnyValidatorBalancesTimeoutFromCheckpoint)
@@ -51,7 +47,7 @@ func fetchAnyValidatorBalancesAfterCheckpoint(ctx context.Context, contextTimeou
 		return err
 	}
 	min := 2
-	max := 100
+	max := 20
 	findEpoch := (rand.Intn(max-min+1) + min) + chkPoint.Epoch
 
 	err = chkPoint.GetAnyEpochCheckpointWithBalancesRemainingAfterEpoch(ctx, findEpoch)
@@ -65,9 +61,10 @@ func fetchAnyValidatorBalancesAfterCheckpoint(ctx context.Context, contextTimeou
 		log.Error().Err(cacheErr).Msg("fetchAnyValidatorBalancesAfterCheckpoint: DoesCheckpointExist")
 	} else if isCached {
 		log.Info().Msgf("fetchAnyValidatorBalancesAfterCheckpoint: skipping fetch balance api call since, checkpoint cache exists at epoch %d", findEpoch)
+		return nil
 	}
 
-	_, err = Fetcher.FetchAllValidatorBalances(ctxTimeout, int64(findEpoch))
+	_, err = Fetcher.FetchAllValidatorBalances(ctxTimeout, findEpoch)
 	if err != nil {
 		log.Info().Err(err).Msgf("fetchAnyValidatorBalancesAfterCheckpoint: FetchAllValidatorBalances at Epoch: %d", findEpoch)
 		return err
@@ -81,16 +78,7 @@ func fetchAllValidatorBalancesAfterCheckpoint(ctx context.Context, contextTimeou
 	defer cancel()
 
 	chkPoint := beacon_models.ValidatorsEpochCheckpoint{}
-	err := chkPoint.GetNextEpochCheckpoint(ctx)
-	if err != nil {
-		log.Info().Err(err).Msg("fetchAllValidatorBalancesAfterCheckpoint")
-	}
-
-	err = beacon_models.UpdateEpochCheckpointBalancesRecordedAtEpoch(ctxTimeout, chkPoint.Epoch)
-	if err != nil {
-		log.Info().Err(err).Msg("fetchAllValidatorBalancesAfterCheckpoint: UpdateEpochCheckpointBalancesRecordedAtEpoch")
-	}
-	err = chkPoint.GetsOrderedNextEpochCheckpointWithBalancesRemainingAfterEpoch(ctx, checkpointEpoch)
+	err := chkPoint.GetsOrderedNextEpochCheckpointWithBalancesRemainingAfterEpoch(ctx, checkpointEpoch)
 	if err != nil {
 		log.Info().Err(err).Msg("fetchAllValidatorBalancesAfterCheckpoint")
 		return err
@@ -103,12 +91,12 @@ func fetchAllValidatorBalancesAfterCheckpoint(ctx context.Context, contextTimeou
 		log.Info().Msgf("fetchAllValidatorBalancesAfterCheckpoint: skipping fetch balance api call since, checkpoint cache exists at epoch %d", chkPoint.Epoch)
 	}
 
-	balances, err := Fetcher.FetchAllValidatorBalances(ctxTimeout, int64(chkPoint.Epoch))
+	balances, err := Fetcher.FetchAllValidatorBalances(ctxTimeout, chkPoint.Epoch)
 	if err != nil {
 		log.Info().Err(err).Msgf("fetchAllValidatorBalancesAfterCheckpoint: FetchAllValidatorBalances at Epoch: %d", chkPoint.Epoch)
 		return err
 	}
-	err = balances.InsertValidatorBalancesForNextEpoch(ctx)
+	err = balances.InsertValidatorBalances(ctx)
 	if err != nil {
 		log.Error().Err(err).Msg("fetchAllValidatorBalancesAfterCheckpoint: InsertValidatorBalancesForNextEpoch")
 		return err
@@ -125,63 +113,52 @@ func fetchAllValidatorBalancesAfterCheckpoint(ctx context.Context, contextTimeou
 	return err
 }
 
-func (f *BeaconFetcher) FetchForwardCheckpointValidatorBalances(ctx context.Context, epoch int64) (beacon_models.ValidatorBalancesEpoch, error) {
+func (f *BeaconFetcher) FetchForwardCheckpointValidatorBalances(ctx context.Context, epoch int) (beacon_models.ValidatorBalancesEpoch, error) {
 	log.Info().Msg("BeaconFetcher: FetchForwardCheckpointValidatorBalances")
 	var valBalances beacon_models.ValidatorBalancesEpoch
-	var beaconAPI beacon_api.ValidatorBalances
-
+	// current
+	vbEpochCurrent := make(map[int64]beacon_models.ValidatorBalanceEpoch)
+	currentBalances, err := f.FetchAllValidatorBalances(ctx, epoch)
+	if err != nil {
+		log.Err(err).Msg("BeaconFetcher: FetchForwardCheckpointValidatorBalances")
+		return valBalances, err
+	}
+	for _, vbFromAPI := range currentBalances.ValidatorBalances {
+		vbEpochCurrent[vbFromAPI.Index] = vbFromAPI
+	}
 	// previous
-	lib := v0.LibV0{}
-	slotToQuery := lib.ConvertEpochToSlot(epoch - 1)
-	err := beaconAPI.FetchAllValidatorBalancesAtStateAndDecode(ctx, f.NodeEndpoint, slotToQuery)
+	vbEpochPrevious := make(map[int64]beacon_models.ValidatorBalanceEpoch)
+	prevBalances, err := f.FetchAllValidatorBalances(ctx, epoch-1)
 	if err != nil {
-		log.Error().Err(err).Msg("BeaconFetcher: QueryAllValidatorBalancesAtSlot")
+		log.Err(err).Msg("BeaconFetcher: FetchForwardCheckpointValidatorBalances")
 		return valBalances, err
 	}
-	log.Info().Msg("BeaconFetcher: Convert API data to model format")
-	vbEpochPrevious := make(map[int64]beacon_models.ValidatorBalanceEpoch, len(beaconAPI.Data))
-	for _, vbFromAPI := range beaconAPI.Data {
-		validatorIndex := string_utils.Int64StringParser(vbFromAPI.Index)
-		vbForDataEntry := beacon_models.ValidatorBalanceEpoch{
-			Validator:        beacon_models.Validator{Index: validatorIndex},
-			Epoch:            epoch,
-			TotalBalanceGwei: string_utils.Int64StringParser(vbFromAPI.Balance),
-		}
-		vbEpochPrevious[validatorIndex] = vbForDataEntry
+	for _, vbFromAPI := range prevBalances.ValidatorBalances {
+		vbEpochPrevious[vbFromAPI.Index] = vbFromAPI
 	}
 
-	// checkpoint
-	slotCheckpointToQuery := lib.ConvertEpochToSlot(epoch)
-	err = beaconAPI.FetchAllValidatorBalancesAtStateAndDecode(ctx, f.NodeEndpoint, slotCheckpointToQuery)
-	if err != nil {
-		log.Error().Err(err).Msg("BeaconFetcher: QueryAllValidatorBalancesAtSlot")
-		return valBalances, err
-	}
 	log.Info().Msg("BeaconFetcher: Convert API data to model format")
-	valBalances.ValidatorBalances = make([]beacon_models.ValidatorBalanceEpoch, len(beaconAPI.Data))
+	valBalances.ValidatorBalances = make([]beacon_models.ValidatorBalanceEpoch, len(currentBalances.ValidatorBalances))
 
-	for i, vbFromAPI := range beaconAPI.Data {
-		validatorIndex := string_utils.Int64StringParser(vbFromAPI.Index)
-		totalBalance := string_utils.Int64StringParser(vbFromAPI.Balance)
+	i := 0
+	for k, v := range vbEpochCurrent {
 		currentEpochYield := 0
-
-		if v, ok := vbEpochPrevious[validatorIndex]; ok {
-			currentEpochYield = int(totalBalance - v.TotalBalanceGwei)
+		if prev, ok := vbEpochPrevious[k]; ok {
+			prevBalanceGwei := prev.TotalBalanceGwei
+			currentEpochYield = int(v.TotalBalanceGwei - prevBalanceGwei)
 		}
 		vbForDataEntry := beacon_models.ValidatorBalanceEpoch{
-			Validator:             beacon_models.Validator{Index: validatorIndex},
-			Epoch:                 epoch,
-			TotalBalanceGwei:      string_utils.Int64StringParser(vbFromAPI.Balance),
+			Validator:             beacon_models.Validator{Index: k},
+			Epoch:                 int64(epoch),
+			TotalBalanceGwei:      v.TotalBalanceGwei,
 			CurrentEpochYieldGwei: int64(currentEpochYield),
 		}
 		valBalances.ValidatorBalances[i] = vbForDataEntry
+		i++
 	}
-
 	return valBalances, nil
 }
 
-// Checkpoints
-// UpdateForwardEpochCheckpoint // Routine FOUR
 func UpdateForwardEpochCheckpoint() {
 	log.Info().Msg("UpdateForwardEpochCheckpoint")
 	for {

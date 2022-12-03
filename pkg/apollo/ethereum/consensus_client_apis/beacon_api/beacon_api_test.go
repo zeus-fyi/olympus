@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
 const disableHighDataAPITests = true
@@ -16,7 +16,7 @@ const disableHighDataAPITests = true
 var ctx context.Context
 
 type BeaconAPITestSuite struct {
-	base.TestSuite
+	test_suites_base.TestSuite
 }
 
 func (s *BeaconAPITestSuite) TestGetValidatorsByState() {

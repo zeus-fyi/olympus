@@ -9,12 +9,12 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
+	s32 "github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_s3"
 	"github.com/zeus-fyi/olympus/sandbox/chains"
 )
 
 type S3UploaderTestSuite struct {
-	test_suites.S3TestSuite
+	s32.S3TestSuite
 }
 
 func (t *S3UploaderTestSuite) SetupTest() {

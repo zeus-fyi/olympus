@@ -6,11 +6,11 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/gochain/web3/accounts"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_encryption"
 )
 
 type Web3ClientTestSuite struct {
-	test_suites.EncryptionTestSuite
+	test_suites_encryption.EncryptionTestSuite
 	GoerliWeb3User  Web3Client
 	GoerliWeb3User2 Web3Client
 	MainnetWeb3User Web3Client

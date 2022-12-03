@@ -18,6 +18,7 @@ import (
 	redis_app "github.com/zeus-fyi/olympus/datastores/redis/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
+	apollo_buckets "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/buckets"
 )
 
 var (
@@ -76,8 +77,14 @@ func Api() {
 		log.Err(err)
 	}
 
+	log.Info().Msg("starting apollo redis")
 	beacon_fetcher.InitFetcherService(ctx, BeaconEndpointURL, r)
 	log.Info().Interface("redis conn", r.Conn()).Msg("started redis")
+
+	log.Info().Msg("starting apollo s3 manager")
+	apollo_buckets.ApolloS3Manager = auth_startup.NewDigitalOceanS3AuthClient(ctx, authKeysCfg)
+	log.Info().Msg("connected apollo s3 manager")
+
 	err = e.Start("0.0.0.0:9000")
 	if err != nil {
 		log.Err(err)

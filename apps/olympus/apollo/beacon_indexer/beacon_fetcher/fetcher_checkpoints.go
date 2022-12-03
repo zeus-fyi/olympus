@@ -8,8 +8,6 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/beacon_indexer/beacon_models"
 )
 
-// Checkpoints
-
 var UpdateCheckpointsTimeout = 60 * time.Second
 var InsertCheckpointsTimeout = time.Minute * 2
 

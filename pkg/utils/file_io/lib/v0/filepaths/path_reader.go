@@ -14,3 +14,12 @@ func (p *Path) ReadFileInPath() ([]byte, error) {
 	}
 	return byteArray, err
 }
+
+func (p *Path) ReadFileOutPath() ([]byte, error) {
+	byteArray, err := os.ReadFile(p.FileOutPath())
+	if err != nil {
+		log.Err(err).Msg("FileOutPath")
+		return []byte{}, err
+	}
+	return byteArray, err
+}

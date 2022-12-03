@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_s3"
 	"github.com/zeus-fyi/olympus/sandbox/chains"
 )
 
 type ChainDownloaderTestSuite struct {
-	test_suites.S3TestSuite
+	test_suites_s3.S3TestSuite
 }
 
 func (s *ChainDownloaderTestSuite) SetupTest() {

@@ -37,6 +37,9 @@ type TestContainer struct {
 	LocalS3SpacesKey    string
 	LocalS3SpacesSecret string
 
+	ProductionLocalTemporalOrgID  string
+	ProductionLocalTemporalUserID string
+
 	LocalBearerToken                   string
 	ProductionLocalBearerToken         string
 	ProductionLocalTemporalBearerToken string
@@ -105,6 +108,9 @@ func InitLocalTestConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
 	testCont.MainnetNodeUrl = viper.GetString("MAINNET_NODE_URL")
 	testCont.GoerliNodeUrl = viper.GetString("GOERLI_NODE_URL")
+
+	testCont.ProductionLocalTemporalOrgID = viper.GetString("PROD_LOCAL_TEMPORAL_ORG_ID")
+	testCont.ProductionLocalTemporalUserID = viper.GetString("PROD_LOCAL_TEMPORAL_USER_ID")
 
 	InitArtemisLocalAccounts()
 	// local test keys
@@ -188,6 +194,7 @@ func InitProductionConfigs() TestContainer {
 	testCont.StagingDbPgconn = viper.GetString("STAGING_DB_PGCONN")
 	testCont.ProdDbPgconn = viper.GetString("PROD_DB_PGCONN")
 	testCont.LocalBeaconConn = viper.GetString("LOCAL_BEACON_CONN_STR")
+	testCont.ProdLocalApolloDbPgconn = viper.GetString("PROD_LOCAL_APOLLO_PGCONN")
 	return testCont
 }
 

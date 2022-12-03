@@ -1,7 +1,6 @@
 package readers
 
 import (
-	"encoding/json"
 	"errors"
 	"io/ioutil"
 
@@ -27,11 +26,20 @@ func (l *ReaderLib) ReadFile(p filepaths.Path) []byte {
 	return byteArray
 }
 
-func (l *ReaderLib) ReadJsonObject(p filepaths.Path, obj interface{}) interface{} {
-	jsonByteArray := l.ReadFile(p)
-	err := json.Unmarshal(jsonByteArray, &obj)
+func (l *ReaderLib) ReadJsonObject(p filepaths.Path) []byte {
+	jsonByteArray, err := p.ReadFileInPath()
 	if err != nil {
 		panic(err)
 	}
-	return obj
+
+	return jsonByteArray
+}
+
+func (l *ReaderLib) ReadFilePathOutJsonObject(p filepaths.Path) []byte {
+	jsonByteArray, err := p.ReadFileOutPath()
+	if err != nil {
+		panic(err)
+	}
+
+	return jsonByteArray
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-var NewValidatorBatchSize = 10000
+var NewValidatorBatchSize = 10
 var NewValidatorTimeout = 10 * time.Minute
 
 // FetchNewOrMissingValidators Routine ONE
@@ -26,7 +26,7 @@ func FetchNewOrMissingValidators() {
 func fetchValidatorsToInsert(ctx context.Context, contextTimeout time.Duration) error {
 	ctxTimeout, cancel := context.WithTimeout(ctx, contextTimeout)
 	defer cancel()
-	err := Fetcher.BeaconFindNewAndMissingValidatorIndexes(ctxTimeout, 10)
+	err := Fetcher.BeaconFindNewAndMissingValidatorIndexes(ctxTimeout, NewValidatorBatchSize)
 	log.Info().Err(err).Msg("FetchNewOrMissingValidators")
 	return err
 }

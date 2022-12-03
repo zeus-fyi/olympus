@@ -81,11 +81,3 @@ CREATE TABLE "public"."chart_package_components" (
    "chart_package_id" int8 NOT NULL REFERENCES chart_packages(chart_package_id),
    "chart_subcomponent_parent_class_type_id" int8 NOT NULL REFERENCES chart_subcomponent_parent_class_types(chart_subcomponent_parent_class_type_id)
 );
-
--- links topology to kubernetes package
-CREATE TABLE "public"."topology_infrastructure_components" (
-    "topology_infrastructure_component_id" int8 DEFAULT next_id(),
-    "topology_id" int8 NOT NULL REFERENCES topologies(topology_id),
-    "chart_package_id" int8 NOT NULL REFERENCES chart_packages(chart_package_id)
-);
-ALTER TABLE "public"."topology_infrastructure_components" ADD CONSTRAINT "topology_infrastructure_components_pk" PRIMARY KEY ("topology_infrastructure_component_id");

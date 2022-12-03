@@ -1,4 +1,4 @@
-package base
+package test_suites_base
 
 import (
 	"testing"

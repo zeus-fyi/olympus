@@ -9,11 +9,11 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/configs"
 	rdb "github.com/zeus-fyi/olympus/datastores/redis/apps"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
 type RedisTestSuite struct {
-	base.TestSuite
+	test_suites_base.TestSuite
 	Redis *redis.Client
 }
 

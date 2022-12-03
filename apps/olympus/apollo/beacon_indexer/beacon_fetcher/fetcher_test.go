@@ -24,14 +24,6 @@ func (s *FetcherBaseTestSuite) TestBeaconFindNewAndMissingValidatorIndexes() {
 	s.Require().Nil(err)
 }
 
-func (s *FetcherBaseTestSuite) TestFindAndQueryAndUpdateValidatorBalances() {
-	var f BeaconFetcher
-	f.NodeEndpoint = s.Tc.LocalBeaconConn
-	ctx := context.Background()
-	err := f.FindAndQueryAndUpdateValidatorBalances(ctx, batchSize)
-	s.Require().Nil(err)
-}
-
 func (s *FetcherBaseTestSuite) TestBeaconUpdateValidatorStates() {
 	var f BeaconFetcher
 	f.NodeEndpoint = s.Tc.LocalBeaconConn

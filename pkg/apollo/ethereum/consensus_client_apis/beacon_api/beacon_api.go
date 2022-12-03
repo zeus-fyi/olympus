@@ -2,7 +2,9 @@ package beacon_api
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -88,7 +90,7 @@ func GetValidatorsByStateFilter(ctx context.Context, beaconNode, stateID string,
 	return reply
 }
 
-func GetAllValidatorBalancesByState(ctx context.Context, beaconNode, stateID string) client.Reply {
+func GetAllValidatorBalancesByState(ctx context.Context, beaconNode, stateID string) (ValidatorBalances, error) {
 	log.Info().Msg("BeaconAPI: GetAllValidatorBalancesByState")
 	beaconNode = "https://CF62KTW23CWTUE2RNUFC:Q7PZEP72TGXYM2STKELBKMMAMDS6OSSG4GP42ZOT@mainnet.ethereum.coinbasecloud.net"
 	url := string_utils.UrlPathStrBuilder(getValidatorsByState, stateID, "validator_balances")
@@ -96,21 +98,20 @@ func GetAllValidatorBalancesByState(ctx context.Context, beaconNode, stateID str
 	r := base_rest_client.GetBaseRestyClient(beaconNode, "")
 	r.RetryCount = 3
 	r.RetryWaitTime = 5 * 60 * time.Second
-	resp, err := r.R().Get(url)
+
+	vb := ValidatorBalances{}
+	resp, err := r.R().SetResult(&vb).Get(url)
 	if err != nil {
-		return client.Reply{}
+		return vb, err
 	}
-	reply := client.Reply{
-		Body:       resp.String(),
-		StatusCode: resp.StatusCode(),
-		Status:     resp.Status(),
-		Err:        err,
-		BodyBytes:  resp.Body(),
+	if resp.StatusCode() != http.StatusOK {
+		return vb, errors.New("had a non-200 status code")
 	}
-	return reply
+
+	return vb, err
 }
 
-func GetValidatorsBalancesByStateFilter(ctx context.Context, beaconNode, stateID string, encodedQueryURL string) client.Reply {
+func GetValidatorsBalancesByStateFilter(ctx context.Context, beaconNode, stateID string, encodedQueryURL string) (ValidatorBalances, error) {
 	log.Info().Msg("BeaconAPI: GetValidatorsBalancesByStateFilter")
 	beaconNode = "https://CF62KTW23CWTUE2RNUFC:Q7PZEP72TGXYM2STKELBKMMAMDS6OSSG4GP42ZOT@mainnet.ethereum.coinbasecloud.net"
 	url := string_utils.UrlPathStrBuilder(getValidatorsByState, stateID, "validator_balances?"+encodedQueryURL)
@@ -118,18 +119,12 @@ func GetValidatorsBalancesByStateFilter(ctx context.Context, beaconNode, stateID
 	r := base_rest_client.GetBaseRestyClient(beaconNode, "")
 	r.RetryCount = 10
 	r.RetryWaitTime = 10 * time.Second
-	resp, err := r.R().Get(url)
-	if err != nil {
-		return client.Reply{}
+	vb := ValidatorBalances{}
+	resp, err := r.R().SetResult(&vb).Get(url)
+	if resp.StatusCode() != http.StatusOK {
+		return vb, errors.New("had a non-200 status code")
 	}
-	reply := client.Reply{
-		Body:       resp.String(),
-		StatusCode: resp.StatusCode(),
-		Status:     resp.Status(),
-		Err:        err,
-		BodyBytes:  resp.Body(),
-	}
-	return reply
+	return vb, err
 }
 
 func GetBlockByID(ctx context.Context, beaconNode, blockID string) client.Reply {

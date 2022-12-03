@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/cookbooks"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	zeus_client "github.com/zeus-fyi/olympus/pkg/zeus/client"
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types/internal_reqs"
@@ -15,7 +15,7 @@ import (
 )
 
 type ArtemisCookbookTestSuite struct {
-	base.TestSuite
+	test_suites_base.TestSuite
 	ZeusTestClient zeus_client.ZeusClient
 }
 

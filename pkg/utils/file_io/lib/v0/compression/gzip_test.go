@@ -8,11 +8,11 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/readers"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
 type CompressionTestSuite struct {
-	base.CoreTestSuite
+	test_suites_base.CoreTestSuite
 	Comp Compression
 }
 

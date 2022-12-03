@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/base"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
 type TemporalClientTestSuite struct {
-	base.TestSuite
+	test_suites_base.TestSuite
 }
 
 func (s *TemporalClientTestSuite) SetupTest() {

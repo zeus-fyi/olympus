@@ -2,10 +2,8 @@ package beacon_api
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/utils/client"
 )
 
 type ValidatorsStateBeacon struct {
@@ -29,46 +27,37 @@ type ValidatorStateBeacon struct {
 	WithdrawableEpoch          string `json:"withdrawable_epoch"`
 }
 
-func (b *ValidatorsStateBeacon) FetchFinalizedStateAndDecode(ctx context.Context, beaconNode string) error {
+func (b *ValidatorsStateBeacon) FetchFinalizedStateAndDecode(ctx context.Context, beaconNode string) (ValidatorsStateBeacon, error) {
 	log.Info().Msg("ValidatorsStateBeacon: FetchFinalizedStateAndDecode")
 
-	r := GetValidatorsFinalized(ctx, beaconNode)
-
-	if r.Err != nil {
-		log.Error().Err(r.Err).Msg("ValidatorsStateBeacon: FetchStateAndDecode")
-	}
-
-	return b.DecodeValidatorStateBeacon(r)
-}
-
-func (b *ValidatorsStateBeacon) FetchStateAndDecode(ctx context.Context, beaconNode, stateID, encodedQueryURL, status string) error {
-	log.Info().Msg("ValidatorsStateBeacon: FetchStateAndDecode")
-
-	r := GetValidatorsByStateFilter(ctx, beaconNode, stateID, encodedQueryURL, status)
-
-	if r.Err != nil {
-		log.Error().Err(r.Err).Msg("ValidatorsStateBeacon: FetchStateAndDecode")
-	}
-
-	return b.DecodeValidatorStateBeacon(r)
-}
-
-func (b *ValidatorsStateBeacon) FetchAllStateAndDecode(ctx context.Context, beaconNode, stateID string, status string) error {
-	log.Info().Msg("ValidatorsStateBeacon: FetchAllStateAndDecode")
-
-	r := GetValidatorsByState(ctx, beaconNode, stateID, status)
-
-	if r.Err != nil {
-		log.Error().Err(r.Err).Msg("ValidatorsStateBeacon: FetchAllStateAndDecode")
-	}
-
-	return b.DecodeValidatorStateBeacon(r)
-}
-func (b *ValidatorsStateBeacon) DecodeValidatorStateBeacon(r client.Reply) error {
-	err := json.Unmarshal(r.BodyBytes, &b)
+	r, err := GetValidatorsFinalized(ctx, beaconNode)
 
 	if err != nil {
-		log.Error().Err(err).Msg("ValidatorsStateBeacon: DecodeValidatorStateBeacon")
+		log.Error().Err(err).Msg("ValidatorsStateBeacon: FetchStateAndDecode")
 	}
-	return err
+
+	return r, err
+}
+
+func (b *ValidatorsStateBeacon) FetchStateAndDecode(ctx context.Context, beaconNode, stateID, encodedQueryURL, status string) (ValidatorsStateBeacon, error) {
+	log.Info().Msg("ValidatorsStateBeacon: FetchStateAndDecode")
+
+	r, err := GetValidatorsByStateFilter(ctx, beaconNode, stateID, encodedQueryURL, status)
+
+	if err != nil {
+		log.Error().Err(err).Msg("ValidatorsStateBeacon: FetchStateAndDecode")
+	}
+
+	return r, err
+}
+
+func (b *ValidatorsStateBeacon) FetchAllStateAndDecode(ctx context.Context, beaconNode, stateID string, status string) (ValidatorsStateBeacon, error) {
+	log.Info().Msg("ValidatorsStateBeacon: FetchAllStateAndDecode")
+
+	r, err := GetValidatorsByState(ctx, beaconNode, stateID, status)
+
+	if err != nil {
+		log.Error().Err(err).Msg("ValidatorsStateBeacon: FetchAllStateAndDecode")
+	}
+	return r, err
 }

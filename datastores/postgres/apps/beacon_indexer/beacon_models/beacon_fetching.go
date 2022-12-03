@@ -94,30 +94,6 @@ func SelectValidatorsQueryOngoingStates(ctx context.Context, batchSize int) (Val
 	return validatorsToQueryState, err
 }
 
-func SelectValidatorsToQueryBalancesByEpochSlot(ctx context.Context, batchSize int) (map[int64][]ValidatorBalanceEpoch, error) {
-	log.Info().Msg("SelectValidatorsToQueryBalancesByEpochSlot")
-
-	nextEpochSlotMap := make(map[int64][]ValidatorBalanceEpoch, 1)
-	vbal, err := SelectValidatorsToQueryBeaconForBalanceUpdates(ctx, batchSize)
-	log.Ctx(ctx).Err(err).Interface("SelectValidatorsToQueryBalancesByEpochSlot", nextEpochSlotMap)
-	if err != nil {
-		return nextEpochSlotMap, err
-	}
-	for _, vb := range vbal.ValidatorBalances {
-		nextEpochSlotMap[vb.NextEpochToQuery] = append(nextEpochSlotMap[vb.NextEpochToQuery], vb)
-	}
-	return nextEpochSlotMap, err
-}
-
-func SelectValidatorsToQueryBalancesURL(ctx context.Context, batchSize int) (string, error) {
-	vbal, err := SelectValidatorsToQueryBeaconForBalanceUpdates(ctx, batchSize)
-	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("SelectValidatorsToQueryBalancesURL: had nil ValidatorBalancesEpoch")
-		return "", err
-	}
-	return vbal.FormatValidatorBalancesEpochIndexesToURLList(), nil
-}
-
 func FindNewValidatorsToQueryBeaconURLEncoded(ctx context.Context, batchSize int) (string, error) {
 	log.Ctx(ctx).Info().Msg("FindNewValidatorsToQueryBeaconURLEncoded")
 

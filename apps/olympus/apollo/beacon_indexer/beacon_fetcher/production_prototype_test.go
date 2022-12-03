@@ -58,6 +58,16 @@ func (f *ProductionBeaconFetcherTestSuite) TestFetchNewOrMissingValidators() {
 	f.Require().Nil(err)
 }
 
+func (f *ProductionBeaconFetcherTestSuite) TestStatusBatchUpdates() {
+	ctx := context.Background()
+	Fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
+	Fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, f.Redis)
+
+	checkpointEpoch = 163999
+	err := Fetcher.BeaconUpdateValidatorStates(ctx, 100)
+	f.Require().Nil(err)
+}
+
 func (f *ProductionBeaconFetcherTestSuite) TestInsertForwardFetchCheckpointUsingCache() {
 	ctx := context.Background()
 	Fetcher.NodeEndpoint = f.Tc.LocalBeaconConn

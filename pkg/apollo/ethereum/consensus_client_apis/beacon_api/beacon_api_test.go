@@ -3,7 +3,7 @@ package beacon_api
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -23,14 +23,12 @@ func (s *BeaconAPITestSuite) TestGetValidatorsByState() {
 	s.SkipTest(disableHighDataAPITests)
 	state := "finalized"
 	status := "active_ongoing"
-	r := GetValidatorsByState(ctx, s.Tc.LocalBeaconConn, state, status)
-	s.Require().Nil(r.Err)
-	var vs ValidatorsStateBeacon
-	err := json.Unmarshal(r.BodyBytes, &vs)
+	vs, err := GetValidatorsByState(ctx, s.Tc.LocalBeaconConn, state, status)
+
 	s.Require().Nil(err)
 	file, _ := json.Marshal(vs)
 
-	_ = ioutil.WriteFile("validators.json", file, 0644)
+	_ = os.WriteFile("validators.json", file, 0644)
 }
 
 func (s *BeaconAPITestSuite) TestGetValidatorsByStateFilter() {
@@ -38,14 +36,10 @@ func (s *BeaconAPITestSuite) TestGetValidatorsByStateFilter() {
 	state := "head"
 	valIndexes := []string{"242521", "67596"}
 	encodedURLparams := string_utils.UrlExplicitEncodeQueryParamList("id", valIndexes...)
-	r := GetValidatorsBalancesByStateFilter(ctx, s.Tc.LocalBeaconConn, state, encodedURLparams)
-	s.Require().Nil(r.Err)
-
-	var vb ValidatorBalances
-	err := json.Unmarshal(r.BodyBytes, &vb)
+	vs, err := GetValidatorsBalancesByStateFilter(ctx, s.Tc.LocalBeaconConn, state, encodedURLparams)
 	s.Require().Nil(err)
-	s.Assert().Len(vb.Data, 2)
-	s.Assert().Equal(false, vb.ExecutionOptimistic)
+	s.Assert().Len(vs.Data, 2)
+	s.Assert().Equal(false, vs.ExecutionOptimistic)
 }
 
 func (s *BeaconAPITestSuite) TestGetBlockByID() {

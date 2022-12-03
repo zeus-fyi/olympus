@@ -2,10 +2,8 @@ package beacon_api
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/utils/client"
 )
 
 type ValidatorsStateBeacon struct {
@@ -53,22 +51,13 @@ func (b *ValidatorsStateBeacon) FetchStateAndDecode(ctx context.Context, beaconN
 	return r, err
 }
 
-func (b *ValidatorsStateBeacon) FetchAllStateAndDecode(ctx context.Context, beaconNode, stateID string, status string) error {
+func (b *ValidatorsStateBeacon) FetchAllStateAndDecode(ctx context.Context, beaconNode, stateID string, status string) (ValidatorsStateBeacon, error) {
 	log.Info().Msg("ValidatorsStateBeacon: FetchAllStateAndDecode")
 
-	r := GetValidatorsByState(ctx, beaconNode, stateID, status)
-
-	if r.Err != nil {
-		log.Error().Err(r.Err).Msg("ValidatorsStateBeacon: FetchAllStateAndDecode")
-	}
-
-	return b.DecodeValidatorStateBeacon(r)
-}
-func (b *ValidatorsStateBeacon) DecodeValidatorStateBeacon(r client.Reply) error {
-	err := json.Unmarshal(r.BodyBytes, &b)
+	r, err := GetValidatorsByState(ctx, beaconNode, stateID, status)
 
 	if err != nil {
-		log.Error().Err(err).Msg("ValidatorsStateBeacon: DecodeValidatorStateBeacon")
+		log.Error().Err(err).Msg("ValidatorsStateBeacon: FetchAllStateAndDecode")
 	}
-	return err
+	return r, err
 }

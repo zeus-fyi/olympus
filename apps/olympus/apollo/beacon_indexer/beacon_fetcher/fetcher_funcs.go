@@ -21,12 +21,12 @@ func (f *BeaconFetcher) BeaconFindNewAndMissingValidatorIndexes(ctx context.Cont
 		return nil
 	}
 	log.Info().Msg("BeaconFindNewAndMissingValidatorIndexes: FetchStateAndDecode")
-	err = f.BeaconStateResults.FetchStateAndDecode(ctx, f.NodeEndpoint, "finalized", indexes, "")
+	vsb, err := f.BeaconStateResults.FetchStateAndDecode(ctx, f.NodeEndpoint, "finalized", indexes, "")
 	if err != nil {
 		log.Error().Err(err).Msg("BeaconFindNewAndMissingValidatorIndexes: FetchStateAndDecode")
 		return err
 	}
-	f.Validators = beacon_models.ToBeaconModelFormat(f.BeaconStateResults)
+	f.Validators = beacon_models.ToBeaconModelFormat(vsb)
 	log.Info().Msg("BeaconFindNewAndMissingValidatorIndexes: InsertValidatorsFromBeaconAPI")
 	err = f.Validators.InsertValidatorsFromBeaconAPI(ctx)
 	if err != nil {

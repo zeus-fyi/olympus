@@ -45,27 +45,25 @@ func GetValidatorsByState(ctx context.Context, beaconNode, stateID, status strin
 	return reply
 }
 
-func GetValidatorsFinalized(ctx context.Context, beaconNode string) client.Reply {
+func GetValidatorsFinalized(ctx context.Context, beaconNode string) (ValidatorsStateBeacon, error) {
 	log.Info().Msg("BeaconAPI: GetValidatorsFinalized")
 	url := string_utils.UrlPathStrBuilder(getValidatorsByState, "finalized/validators")
 	log.Debug().Interface("BeaconAPI: url:", url)
 	bearer := "bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
 	r := base_rest_client.GetBaseRestyClient(beaconNode, bearer)
-	resp, err := r.R().Get(url)
+	vsb := ValidatorsStateBeacon{}
+	resp, err := r.R().SetResult(&vsb).Get(url)
 	if err != nil {
-		return client.Reply{}
+		return vsb, err
 	}
-	reply := client.Reply{
-		Body:       resp.String(),
-		StatusCode: resp.StatusCode(),
-		Status:     resp.Status(),
-		Err:        err,
-		BodyBytes:  resp.Body(),
+	if resp.StatusCode() != http.StatusOK {
+		return vsb, errors.New("had a non-200 status code")
 	}
-	return reply
+
+	return vsb, err
 }
 
-func GetValidatorsByStateFilter(ctx context.Context, beaconNode, stateID string, encodedQueryURL, status string) client.Reply {
+func GetValidatorsByStateFilter(ctx context.Context, beaconNode, stateID string, encodedQueryURL, status string) (ValidatorsStateBeacon, error) {
 	log.Info().Msg("BeaconAPI: GetValidatorsByStateFilter")
 	if len(status) > 0 {
 		status = fmt.Sprintf("&status=%s", status)
@@ -76,18 +74,16 @@ func GetValidatorsByStateFilter(ctx context.Context, beaconNode, stateID string,
 
 	bearer := "bEX2piPZkxUuKwSkqkLh4KghmA7ZNDQnB"
 	r := base_rest_client.GetBaseRestyClient(beaconNode, bearer)
-	resp, err := r.R().Get(url)
+	vsb := ValidatorsStateBeacon{}
+	resp, err := r.R().SetResult(&vsb).Get(url)
 	if err != nil {
-		return client.Reply{}
+		return vsb, err
 	}
-	reply := client.Reply{
-		Body:       resp.String(),
-		StatusCode: resp.StatusCode(),
-		Status:     resp.Status(),
-		Err:        err,
-		BodyBytes:  resp.Body(),
+	if resp.StatusCode() != http.StatusOK {
+		return vsb, errors.New("had a non-200 status code")
 	}
-	return reply
+
+	return vsb, err
 }
 
 func GetAllValidatorBalancesByState(ctx context.Context, beaconNode, stateID string) (ValidatorBalances, error) {

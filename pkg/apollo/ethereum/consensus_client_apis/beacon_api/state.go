@@ -29,28 +29,28 @@ type ValidatorStateBeacon struct {
 	WithdrawableEpoch          string `json:"withdrawable_epoch"`
 }
 
-func (b *ValidatorsStateBeacon) FetchFinalizedStateAndDecode(ctx context.Context, beaconNode string) error {
+func (b *ValidatorsStateBeacon) FetchFinalizedStateAndDecode(ctx context.Context, beaconNode string) (ValidatorsStateBeacon, error) {
 	log.Info().Msg("ValidatorsStateBeacon: FetchFinalizedStateAndDecode")
 
-	r := GetValidatorsFinalized(ctx, beaconNode)
+	r, err := GetValidatorsFinalized(ctx, beaconNode)
 
-	if r.Err != nil {
-		log.Error().Err(r.Err).Msg("ValidatorsStateBeacon: FetchStateAndDecode")
+	if err != nil {
+		log.Error().Err(err).Msg("ValidatorsStateBeacon: FetchStateAndDecode")
 	}
 
-	return b.DecodeValidatorStateBeacon(r)
+	return r, err
 }
 
-func (b *ValidatorsStateBeacon) FetchStateAndDecode(ctx context.Context, beaconNode, stateID, encodedQueryURL, status string) error {
+func (b *ValidatorsStateBeacon) FetchStateAndDecode(ctx context.Context, beaconNode, stateID, encodedQueryURL, status string) (ValidatorsStateBeacon, error) {
 	log.Info().Msg("ValidatorsStateBeacon: FetchStateAndDecode")
 
-	r := GetValidatorsByStateFilter(ctx, beaconNode, stateID, encodedQueryURL, status)
+	r, err := GetValidatorsByStateFilter(ctx, beaconNode, stateID, encodedQueryURL, status)
 
-	if r.Err != nil {
-		log.Error().Err(r.Err).Msg("ValidatorsStateBeacon: FetchStateAndDecode")
+	if err != nil {
+		log.Error().Err(err).Msg("ValidatorsStateBeacon: FetchStateAndDecode")
 	}
 
-	return b.DecodeValidatorStateBeacon(r)
+	return r, err
 }
 
 func (b *ValidatorsStateBeacon) FetchAllStateAndDecode(ctx context.Context, beaconNode, stateID string, status string) error {

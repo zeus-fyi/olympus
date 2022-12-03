@@ -94,12 +94,12 @@ func (f *BeaconFetcher) BeaconUpdateValidatorStates(ctx context.Context, batchSi
 	}
 
 	log.Info().Msg("BeaconUpdateValidatorStates: FetchStateAndDecode")
-	err = f.BeaconStateResults.FetchStateAndDecode(ctx, f.NodeEndpoint, "finalized", indexes, "")
+	vsb, err := f.BeaconStateResults.FetchStateAndDecode(ctx, f.NodeEndpoint, "finalized", indexes, "")
 	if err != nil {
 		log.Error().Err(err).Msg("BeaconUpdateValidatorStates: FetchStateAndDecode")
 		return err
 	}
-	f.Validators = beacon_models.ToBeaconModelFormat(f.BeaconStateResults)
+	f.Validators = beacon_models.ToBeaconModelFormat(vsb)
 	rowsUpdated, err := f.Validators.UpdateValidatorsFromBeaconAPI(ctx)
 	log.Info().Msgf("BeaconFetcher: UpdateValidatorsFromBeaconAPI updated %d validators", rowsUpdated)
 	if err != nil {

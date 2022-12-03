@@ -11,36 +11,6 @@ import (
 var UpdateCheckpointsTimeout = 60 * time.Second
 var InsertCheckpointsTimeout = time.Minute * 2
 
-// UpdateEpochCheckpoint // Routine FOUR
-func UpdateEpochCheckpoint() {
-	log.Info().Msg("UpdateEpochCheckpoint")
-	for {
-		timeBegin := time.Now()
-		err := checkpointUpdater(context.Background(), UpdateCheckpointsTimeout)
-		log.Err(err)
-		log.Info().Interface("UpdateEpochCheckpoint took this many seconds to complete: ", time.Now().Sub(timeBegin))
-		time.Sleep(UpdateCheckpointsTimeout)
-	}
-}
-
-func checkpointUpdater(ctx context.Context, contextTimeout time.Duration) error {
-	ctxTimeout, cancel := context.WithTimeout(ctx, contextTimeout)
-	defer cancel()
-	chkPoint := beacon_models.ValidatorsEpochCheckpoint{}
-	err := chkPoint.GetFirstEpochCheckpointWithBalancesRemaining(ctx)
-	if err != nil {
-		log.Info().Err(err).Msg("checkpointUpdater")
-		return err
-	}
-	log.Info().Msgf("UpdateEpochCheckpoint: checkpointUpdater at Epoch %d", chkPoint.Epoch)
-	err = beacon_models.UpdateEpochCheckpointBalancesRecordedAtEpoch(ctxTimeout, chkPoint.Epoch)
-	if err != nil {
-		log.Info().Err(err).Msg("fetchAllValidatorBalances: checkpointUpdater")
-		return err
-	}
-	return err
-}
-
 // InsertNewEpochCheckpoint // Routine FIVE
 func InsertNewEpochCheckpoint() {
 	log.Info().Msg("InsertNewEpochCheckpoint")

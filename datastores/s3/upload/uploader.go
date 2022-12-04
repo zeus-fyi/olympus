@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	awshttp "github.com/aws/aws-sdk-go-v2/aws/transport/http"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -45,13 +46,17 @@ func (s *S3ClientUploader) Upload(ctx context.Context, p filepaths.Path, s3KeyVa
 
 func (s *S3ClientUploader) UploadFromInMemFs(ctx context.Context, p filepaths.Path, s3KeyValue *s3.PutObjectInput, inMemFs memfs.MemFS) error {
 	log.Ctx(ctx).Debug().Msg("UploadFromInMemFs")
-	f, err := inMemFs.Open(p.FileInPath())
+	f, err := inMemFs.Open(p.FileOutPath())
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("S3ClientUploader: UploadFromInMemFs: p.OpenFileInPath()")
 		return err
 	}
 	defer f.Close()
+
+	s3KeyValue.Key = aws.String(p.FnOut)
 	s3KeyValue.Body = f
+	s3KeyValue.Metadata = p.Metadata
+
 	uploader := manager.NewUploader(s.AwsS3Client)
 	_, err = uploader.Upload(ctx, s3KeyValue, func(u *manager.Uploader) {
 	})

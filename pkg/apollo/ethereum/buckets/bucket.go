@@ -115,6 +115,14 @@ func DownloadBalancesAtEpoch(ctx context.Context, keyName string) ([]byte, error
 		log.Ctx(ctx).Err(err).Msgf("DownloadBalancesAtEpoch: UploadFromInMemFs %s", keyName)
 		return nil, err
 	}
+
+	ho, err := downloader.GetHeadObject(ctx, input)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msgf("DownloadBalancesAtEpoch: GetHeadObject %s", keyName)
+		return nil, err
+	}
+
+	p.Metadata = ho.Metadata
 	inMemFs, err = comp.Lz4DecompressInMemFsFile(p, inMemFs)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msgf("DownloadBalancesAtEpoch: UploadFromInMemFs %s", keyName)

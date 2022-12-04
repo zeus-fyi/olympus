@@ -15,6 +15,8 @@ type Path struct {
 	FnIn        string
 	FnOut       string
 	Env         string
+
+	Metadata    map[string]string
 	FilterFiles string_utils.FilterOpts
 }
 

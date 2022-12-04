@@ -15,7 +15,7 @@ func (vb *ValidatorBalancesEpoch) InsertValidatorBalances(ctx context.Context) e
 
 	vals := vb.GetManyRowValues()
 	query := string_utils.DelimitedSliceStrBuilderSQLRows(insertValidatorBalances, vals) +
-		"ON CONFLICT ON CONSTRAINT validator_balances_at_epoch_pkey DO UPDATE SET epoch = EXCLUDED.epoch, validator_index = EXCLUDED.validator_index, total_balance_gwei = EXCLUDED.total_balance_gwei, current_epoch_yield_gwei = EXCLUDED.current_epoch_yield_gwei"
+		"ON CONFLICT ON CONSTRAINT validator_balances_at_epoch_pkey DO UPDATE SET total_balance_gwei = EXCLUDED.total_balance_gwei, current_epoch_yield_gwei = EXCLUDED.current_epoch_yield_gwei"
 	r, err := apps.Pg.Exec(ctx, query)
 	rowsAffected := r.RowsAffected()
 

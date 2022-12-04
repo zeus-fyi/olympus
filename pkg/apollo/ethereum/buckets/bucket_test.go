@@ -25,7 +25,7 @@ func (s *ApolloBucketsTestSuite) TestGetBuckets() {
 	tc := configs.InitLocalTestConfigs()
 	ApolloS3Manager = auth_startup.NewDigitalOceanS3AuthClient(ctx, tc.DevAuthKeysCfg)
 
-	keyname := "gfdamnit"
+	keyname := "validator-balance-epoch-164514"
 	ba, err := DownloadBalancesAtEpoch(ctx, keyname)
 	s.Require().Nil(err)
 

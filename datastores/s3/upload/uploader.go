@@ -55,6 +55,7 @@ func (s *S3ClientUploader) UploadFromInMemFs(ctx context.Context, p filepaths.Pa
 
 	s3KeyValue.Key = aws.String(p.FnOut)
 	s3KeyValue.Body = f
+	s3KeyValue.Metadata = p.Metadata
 
 	uploader := manager.NewUploader(s.AwsS3Client)
 	_, err = uploader.Upload(ctx, s3KeyValue, func(u *manager.Uploader) {

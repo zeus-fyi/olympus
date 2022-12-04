@@ -65,7 +65,7 @@ func (c *Compression) Lz4CompressInMemFsFile(p *filepaths.Path, inMemFs memfs.Me
 	}
 
 	o, mn, err := compress(b)
-	p.FnOut += mn.MagicNumSuffix()
+	p.Metadata = mn.MagicNumMetadata()
 	err = inMemFs.MakeFileOut(p, o)
 
 	p.DirIn = p.DirOut

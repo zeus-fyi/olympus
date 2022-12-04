@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/pierrec/lz4"
 	"github.com/rs/zerolog/log"
@@ -31,25 +30,17 @@ func (c *Compression) Lz4Decompress(p *filepaths.Path) error {
 	return tarReader(p, lz4Reader)
 }
 
-func (m *L4zMagicNum) MagicNumSuffix() string {
-	return fmt.Sprintf("-magicNums:%d", m.L)
+func (m *L4zMagicNum) MagicNumMetadata() map[string]string {
+	mn := make(map[string]string)
+	mn["magic"] = fmt.Sprintf("%d", m.L)
+	return mn
 }
 
-func (m *L4zMagicNum) ParseMagicNums(s string) {
-	_, mnums, ok := strings.Cut(s, "-magicNums:")
-
-	if !ok {
-		panic(errors.New("no magic nums were supplied"))
-	}
-	ss := strings.Split(mnums, ":")
-	if len(ss) < 1 {
-		panic(errors.New("no magic nums were supplied"))
-	}
-
-	for i, n := range ss {
-		if i == 0 {
-			m.L = string_utils.IntStringParser(n)
-		}
+func (m *L4zMagicNum) GetMagicNumKeyValue(mnMap map[string]string) {
+	if v, ok := mnMap["magic"]; ok {
+		m.L = string_utils.IntStringParser(v)
+	} else {
+		panic(errors.New("no magic num provided"))
 	}
 }
 
@@ -63,10 +54,8 @@ func (c *Compression) Lz4DecompressInMemFsFile(p *filepaths.Path, inMemFs memfs.
 		return inMemFs, err
 	}
 	mn := L4zMagicNum{}
-	mn.ParseMagicNums(p.FnIn)
-
+	mn.GetMagicNumKeyValue(p.Metadata)
 	o, err := decompress(b, mn)
-
 	err = inMemFs.MakeFileOut(p, o)
 	p.DirIn = p.DirOut
 	p.FnIn = p.FnOut

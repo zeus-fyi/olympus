@@ -50,9 +50,14 @@ func fetchAnyValidatorBalancesAfterCheckpoint(ctx context.Context, contextTimeou
 		log.Info().Msgf("fetchAnyValidatorBalancesAfterCheckpoint: skipping fetch balance api call since, checkpoint cache exists at epoch %d", findEpoch)
 		return nil
 	}
+
+	// just fetch them into the cache for now... todo out of order test
+	_, err = Fetcher.FetchForwardCheckpointValidatorBalances(ctx, findEpoch)
 	if err != nil {
 		log.Ctx(ctxTimeout).Err(err).Msg("fetchAnyValidatorBalancesAfterCheckpoint")
+		return err
 	}
+
 	return err
 }
 

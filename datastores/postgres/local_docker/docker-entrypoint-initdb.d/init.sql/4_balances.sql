@@ -1,5 +1,5 @@
 CREATE TABLE "public"."validator_balances_at_epoch" (
- "epoch" serial NOT NULL,
+ "epoch" int4 NOT NULL,
  "validator_index" int4 NOT NULL REFERENCES validators(index),
  "total_balance_gwei" int8 NOT NULL,
  "current_epoch_yield_gwei" int8 NOT NULL,
@@ -7,3 +7,4 @@ CREATE TABLE "public"."validator_balances_at_epoch" (
 )
 ;
 ALTER TABLE "public"."validator_balances_at_epoch" ADD CONSTRAINT "validator_balances_at_epoch_pkey" PRIMARY KEY ("validator_index","epoch");
+CREATE INDEX epoch_index_desc ON "public"."validator_balances_at_epoch" ("epoch" DESC);

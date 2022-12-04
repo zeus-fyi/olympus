@@ -9,7 +9,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/beacon_indexer/beacon_models"
 )
 
-var FetchAnyValidatorBalancesTimeoutFromCheckpoint = time.Minute * 3
+var FetchAnyValidatorBalancesTimeoutFromCheckpoint = time.Minute * 1
 var checkpointEpoch = 163999
 
 func FetchAnyValidatorBalancesAfterCheckpoint() {

@@ -133,10 +133,6 @@ func (s *ValidatorBalancesTestSuite) compareExpectedToActualValBalanceEntries(se
 
 func seedAndInsertNewValidatorBalances(ctx context.Context, vs Validators, epoch, epochTotalBalance int64) (ValidatorBalancesEpoch, map[int64]ValidatorBalanceEpoch) {
 	vbsEpoch, expVbsMapEpoch := seedValidatorEpochBalancesStructFromValidators(vs, epoch, epochTotalBalance)
-	err := vbsEpoch.InsertValidatorBalancesForNextEpoch(ctx)
-	if err != nil {
-		panic(err)
-	}
 
 	return vbsEpoch, expVbsMapEpoch
 }

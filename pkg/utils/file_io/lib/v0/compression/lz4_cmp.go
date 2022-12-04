@@ -3,7 +3,6 @@ package compression
 import (
 	"archive/tar"
 	"errors"
-	"fmt"
 	"io/fs"
 	"os"
 
@@ -65,9 +64,10 @@ func (c *Compression) Lz4CompressInMemFsFile(p *filepaths.Path, inMemFs memfs.Me
 		return inMemFs, err
 	}
 
-	o, n, err := compress(b)
-	p.FnOut += fmt.Sprintf("-offset-%d", n)
+	o, mn, err := compress(b)
+	p.FnOut += mn.MagicNumSuffix()
 	err = inMemFs.MakeFileOut(p, o)
+
 	p.DirIn = p.DirOut
 	p.FnIn = p.FnOut
 	if err != nil {

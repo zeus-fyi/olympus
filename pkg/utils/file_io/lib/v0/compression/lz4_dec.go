@@ -1,15 +1,16 @@
 package compression
 
 import (
-	"bytes"
 	"errors"
-	"io"
+	"fmt"
 	"os"
+	"strings"
 
 	"github.com/pierrec/lz4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 func (c *Compression) Lz4Decompress(p *filepaths.Path) error {
@@ -30,6 +31,28 @@ func (c *Compression) Lz4Decompress(p *filepaths.Path) error {
 	return tarReader(p, lz4Reader)
 }
 
+func (m *L4zMagicNum) MagicNumSuffix() string {
+	return fmt.Sprintf("-magicNums:%d", m.L)
+}
+
+func (m *L4zMagicNum) ParseMagicNums(s string) {
+	_, mnums, ok := strings.Cut(s, "-magicNums:")
+
+	if !ok {
+		panic(errors.New("no magic nums were supplied"))
+	}
+	ss := strings.Split(mnums, ":")
+	if len(ss) < 1 {
+		panic(errors.New("no magic nums were supplied"))
+	}
+
+	for i, n := range ss {
+		if i == 0 {
+			m.L = string_utils.IntStringParser(n)
+		}
+	}
+}
+
 func (c *Compression) Lz4DecompressInMemFsFile(p *filepaths.Path, inMemFs memfs.MemFS) (memfs.MemFS, error) {
 	if p == nil {
 		return inMemFs, errors.New("need to include a path")
@@ -39,7 +62,11 @@ func (c *Compression) Lz4DecompressInMemFsFile(p *filepaths.Path, inMemFs memfs.
 		log.Err(err).Msg("Lz4DecompressInMemFsFile: ")
 		return inMemFs, err
 	}
-	o, err := decompress(b)
+	mn := L4zMagicNum{}
+	mn.ParseMagicNums(p.FnIn)
+
+	o, err := decompress(b, mn)
+
 	err = inMemFs.MakeFileOut(p, o)
 	p.DirIn = p.DirOut
 	p.FnIn = p.FnOut
@@ -50,25 +77,25 @@ func (c *Compression) Lz4DecompressInMemFsFile(p *filepaths.Path, inMemFs memfs.
 	return inMemFs, err
 }
 
-func compress(toCompress []byte) ([]byte, int, error) {
-	toCompressLen := len(toCompress)
-	compressed := make([]byte, toCompressLen)
+type L4zMagicNum struct {
+	L int
+}
 
-	//compress
+func compress(toCompress []byte) ([]byte, L4zMagicNum, error) {
+	compressed := make([]byte, len(toCompress))
 	l, err := lz4.CompressBlock(toCompress, compressed, nil)
 	if err != nil {
 		panic(err)
 	}
-	return toCompress[:l], toCompressLen, nil
+	mn := L4zMagicNum{L: len(toCompress)}
+	return compressed[:l], mn, nil
 }
 
-func decompress(in []byte) ([]byte, error) {
-	r := bytes.NewReader(in)
-	w := &bytes.Buffer{}
-	zr := lz4.NewReader(r)
-	_, err := io.Copy(w, zr)
+func decompress(in []byte, mn L4zMagicNum) ([]byte, error) {
+	decompressed := make([]byte, mn.L)
+	l, err := lz4.UncompressBlock(in, decompressed)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	return w.Bytes(), nil
+	return decompressed[:l], err
 }

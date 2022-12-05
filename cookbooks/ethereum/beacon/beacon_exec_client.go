@@ -1,4 +1,4 @@
-package beacon_cookbook
+package beacon_cookbooks
 
 import (
 	"fmt"
@@ -12,18 +12,20 @@ import (
 // set your own topologyID here after uploading a chart workload
 var deployExecClientKnsReq = zeus_req_types.TopologyDeployRequest{
 	TopologyID: 0,
-	CloudCtxNs: beaconCloudCtxNs,
+	CloudCtxNs: BeaconCloudCtxNs,
 }
 
 // chart workload metadata
-var execClientChart = zeus_req_types.TopologyCreateRequest{
+var ExecClientChart = zeus_req_types.TopologyCreateRequest{
 	TopologyName:     "geth",
 	ChartName:        "geth-hercules",
 	ChartDescription: "geth-hercules",
 	Version:          fmt.Sprintf("v0.0.%d", time.Now().Unix()),
+
+	SkeletonBaseID: GethSkeletonBaseID,
 }
 
-var beaconExecClientChartPath = filepaths.Path{
+var BeaconExecClientChartPath = filepaths.Path{
 	PackageName: "",
 	DirIn:       "./ethereum/beacon/infra/exec_client",
 	DirOut:      "./ethereum/outputs",

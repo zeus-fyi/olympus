@@ -11,6 +11,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_infra "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/definitions/bases/infra"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
 
@@ -62,6 +63,10 @@ func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	inf.OrgID = ou.OrgID
 	inf.UserID = ou.UserID
+
+	skeletonBaseID := c.FormValue("skeletonBaseID")
+	inf.ChartVersion = version
+	inf.TopologySkeletonBaseID = string_utils.IntStringParser(skeletonBaseID)
 
 	err = inf.InsertInfraBase(ctx)
 	if err != nil {

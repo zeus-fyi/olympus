@@ -10,7 +10,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	create_infra "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/definitions/classes/bases/infra"
+	create_infra "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/definitions/bases/infra"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
 
@@ -19,10 +20,13 @@ type TopologyCreateRequest struct {
 	ChartName        string `json:"chartName"`
 	ChartDescription string `json:"chartDescription,omitempty"`
 	Version          string `json:"version"`
+
+	SkeletonBaseID int `json:"skeletonBaseID,omitempty"`
 }
 
 type TopologyCreateResponse struct {
-	TopologyID int `json:"topologyID"`
+	TopologyID     int `json:"topologyID"`
+	SkeletonBaseID int `json:"skeletonBaseID,omitempty"`
 }
 
 func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {
@@ -61,6 +65,15 @@ func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {
 	inf.OrgID = ou.OrgID
 	inf.UserID = ou.UserID
 
+	inf.ChartVersion = version
+
+	skeletonBaseID := c.FormValue("skeletonBaseID")
+	if len(skeletonBaseID) >= 1 {
+		inf.TopologySkeletonBaseID = string_utils.IntStringParser(skeletonBaseID)
+	} else {
+		inf.TopologySkeletonBaseID = 0
+	}
+
 	err = inf.InsertInfraBase(ctx)
 	if err != nil {
 		pgErr := err.(*pgconn.PgError)
@@ -77,7 +90,8 @@ func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {
 	}
 
 	resp := TopologyCreateResponse{
-		TopologyID: inf.TopologyID,
+		TopologyID:     inf.TopologyID,
+		SkeletonBaseID: inf.SkeletonBaseID,
 	}
 	return c.JSON(http.StatusOK, resp)
 }

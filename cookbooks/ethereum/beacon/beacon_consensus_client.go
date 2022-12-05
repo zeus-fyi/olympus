@@ -1,4 +1,4 @@
-package beacon_cookbook
+package beacon_cookbooks
 
 import (
 	"fmt"
@@ -9,22 +9,24 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
 )
 
-// set your own topologyID here after uploading a chart workload
-var deployConsensusClientKnsReq = zeus_req_types.TopologyDeployRequest{
+// DeployConsensusClientKnsReq set your own topologyID here after uploading a chart workload
+var DeployConsensusClientKnsReq = zeus_req_types.TopologyDeployRequest{
 	TopologyID: 0,
-	CloudCtxNs: beaconCloudCtxNs,
+	CloudCtxNs: BeaconCloudCtxNs,
 }
 
-// chart workload metadata
-var consensusClientChart = zeus_req_types.TopologyCreateRequest{
+// ConsensusClientChart chart workload metadata
+var ConsensusClientChart = zeus_req_types.TopologyCreateRequest{
 	TopologyName:     "lighthouse",
 	ChartName:        "lighthouse-hercules",
 	ChartDescription: "lighthouse-hercules",
 	Version:          fmt.Sprintf("v0.0.%d", time.Now().Unix()),
+
+	SkeletonBaseID: LighthouseSkeletonBaseID,
 }
 
-// DirOut is where it will write a copy of the chart you uploaded, which helps verify the workload is correct
-var beaconConsensusClientChartPath = filepaths.Path{
+// BeaconConsensusClientChartPath DirOut is where it will write a copy of the chart you uploaded, which helps verify the workload is correct
+var BeaconConsensusClientChartPath = filepaths.Path{
 	PackageName: "",
 	DirIn:       "./ethereum/beacon/infra",
 	DirOut:      "./ethereum/outputs",

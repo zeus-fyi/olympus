@@ -1,0 +1,66 @@
+package create_infra
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
+	"github.com/zeus-fyi/olympus/pkg/utils/misc"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
+)
+
+const Sn = "Infrastructure"
+
+func (i *InfraBaseTopology) SelectInfraTopologyQuery() {
+	var insertTopQuery, insertTopOrgUserQuery, insertTopChartQuery, insertTopInfraQuery sql_query_templates.SubCTE
+
+	// TODO, use db but too much of pita to update right now
+	var ts chronos.Chronos
+	chartPackageID := ts.UnixTimeStampNow()
+	i.Packages.ChartPackageID = chartPackageID
+	i.ChartPackageID = chartPackageID
+
+	insertTopQuery.QueryName = "cte_insert_topology"
+	insertTopQuery.RawQuery = fmt.Sprintf(`INSERT INTO topologies(name) VALUES ($1) RETURNING topology_id`)
+	i.CTE.ReturnSQLStatement = fmt.Sprintf("SELECT topology_id FROM %s", insertTopQuery.QueryName)
+
+	i.CTE.Params = append(i.CTE.Params, i.Name)
+	insertTopOrgUserQuery.QueryName = "cte_insert_ou_topology"
+	insertTopOrgUserQuery.RawQuery = fmt.Sprintf(`
+		  INSERT INTO org_users_topologies(topology_id, org_id, user_id)
+		  VALUES ((SELECT topology_id FROM %s), $2, $3)`,
+		insertTopQuery.QueryName)
+	i.CTE.Params = append(i.CTE.Params, i.OrgID, i.UserID)
+
+	insertTopChartQuery.QueryName = "cte_insert_chart_pkg"
+	insertTopChartQuery.RawQuery = `
+		  INSERT INTO chart_packages(chart_package_id, chart_name, chart_version, chart_description)
+		  VALUES ($4, $5, $6, $7)
+	     RETURNING chart_package_id`
+	i.CTE.Params = append(i.CTE.Params, i.ChartPackageID, i.ChartName, i.ChartVersion, i.ChartDescription)
+
+	insertTopInfraQuery.QueryName = "cte_insert_topology_infrastructure_components"
+	insertTopInfraQuery.RawQuery = fmt.Sprintf(`
+		  INSERT INTO topology_infrastructure_components(topology_id, chart_package_id, topology_skeleton_base_id)
+		  VALUES ((SELECT topology_id FROM %s), (SELECT chart_package_id FROM %s), $8) `,
+		insertTopQuery.QueryName, insertTopChartQuery.QueryName)
+	i.CTE.Params = append(i.CTE.Params, i.TopologySkeletonBaseID)
+
+	subCTEs := []sql_query_templates.SubCTE{insertTopQuery, insertTopOrgUserQuery, insertTopChartQuery, insertTopInfraQuery}
+	i.CTE.AppendSubCtes(subCTEs)
+	i.InsertPackagesCTE()
+}
+
+func (i *InfraBaseTopology) InsertInfraBase(ctx context.Context) error {
+	var q sql_query_templates.QueryParams
+	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
+	i.SelectInfraTopologyQuery()
+	q.RawQuery = i.CTE.GenerateChainedCTE()
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, i.CTE.Params...).Scan(&i.TopologyID)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
+		return err
+	}
+	return misc.ReturnIfErr(err, q.LogHeader(Sn))
+}

@@ -3,9 +3,10 @@ package autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type OrgUsers struct {
-	OrgID  int `db:"org_id" json:"org_id"`
-	UserID int `db:"user_id" json:"user_id"`
+	OrgID  int `db:"org_id" json:"orgID"`
+	UserID int `db:"user_id" json:"userID"`
 }
+
 type OrgUsersSlice []OrgUsers
 
 func (o *OrgUsers) GetRowValues(queryName string) apps.RowValues {

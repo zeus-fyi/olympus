@@ -1,15 +1,14 @@
 package topology
 
 import (
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/classes/class_type"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/class_types"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 )
 
 type Topology struct {
 	Name string
 	kns.TopologyKubeCtxNs
-	class_type.TopologyClassType
-	class_type.TopologyClass
+	class_types.TopologyClassType
 	OrgUserTopology
 }
 

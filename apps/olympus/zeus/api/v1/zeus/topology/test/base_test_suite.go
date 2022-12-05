@@ -1,18 +1,18 @@
 package test
 
 import (
-	"encoding/json"
-	"fmt"
+	"context"
 	"net/http"
-	"net/http/httptest"
-	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/tidwall/pretty"
+	"github.com/labstack/echo/v4/middleware"
+	"github.com/rs/zerolog/log"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
+	zeus_client "github.com/zeus-fyi/olympus/pkg/zeus/client"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
@@ -29,11 +29,14 @@ var TestOrgUser = org_users.OrgUser{autogen_bases.OrgUsers{
 var TestTopologyID = 7140168037686545724
 
 type TopologyActionRequestTestSuite struct {
-	E *echo.Echo
+	E  *echo.Echo
+	Eg *echo.Group
 	autok8s_core.K8TestSuite
 	D        test_suites.DatastoresTestSuite
 	Ts       chronos.Chronos
 	Endpoint string
+
+	zeus_client.ZeusClient
 }
 
 type TestResponse struct {
@@ -49,36 +52,28 @@ func (t *TopologyActionRequestTestSuite) SetupTest() {
 	t.D.PGTest.SetupPGConn()
 	t.D.PG = t.D.PGTest.Pg
 	t.E = echo.New()
+
+	eg := t.E.Group("/v1")
+	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+		AuthScheme: "Bearer",
+		Validator: func(token string, c echo.Context) (bool, error) {
+			ctx := context.Background()
+			key, err := auth.VerifyBearerToken(ctx, token)
+			if err != nil {
+				log.Err(err).Msg("InitV1Routes")
+				return false, c.JSON(http.StatusInternalServerError, nil)
+			}
+			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
+			c.Set("orgUser", ou)
+			c.Set("bearer", key.PublicKey)
+			return key.PublicKeyVerified, err
+		},
+	}))
+
+	t.Eg = eg
+	t.ZeusClient = zeus_client.NewZeusClient("http://localhost:9010", t.Tc.LocalBearerToken)
 }
 
 func (t *TopologyActionRequestTestSuite) AddEndpointHandler(h echo.HandlerFunc) {
 	t.E.POST(t.Endpoint, h)
-}
-
-func (t *TopologyActionRequestTestSuite) PostTopologyRequest(topologyActionRequest interface{}, httpCode int) TestResponse {
-	topologyActionRequestPayload, err := json.Marshal(topologyActionRequest)
-	t.Assert().Nil(err)
-
-	fmt.Println("action request json")
-	requestJSON := pretty.Pretty(topologyActionRequestPayload)
-	requestJSON = pretty.Color(requestJSON, pretty.TerminalStyle)
-	fmt.Println(string(requestJSON))
-	req := httptest.NewRequest(http.MethodPost, t.Endpoint, strings.NewReader(string(topologyActionRequestPayload)))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-
-	rec := httptest.NewRecorder()
-	t.E.ServeHTTP(rec, req)
-	t.Equal(httpCode, rec.Code)
-
-	var tr TestResponse
-	tr.Logs = rec.Body.Bytes()
-	fmt.Println("resp json")
-	t.Assert().Nil(err)
-
-	result := pretty.Pretty(rec.Body.Bytes())
-	result = pretty.Color(result, pretty.TerminalStyle)
-
-	fmt.Println(string(result))
-
-	return tr
 }

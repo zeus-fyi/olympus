@@ -2,6 +2,7 @@ package zeus_client
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/rs/zerolog/log"
@@ -16,6 +17,7 @@ func (z *ZeusClient) UploadChart(ctx context.Context, p filepaths.Path, tar zeus
 	respJson := zeus_resp_types.TopologyCreateResponse{}
 	err := z.ZipK8sChartToPath(&p)
 	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("UploadChart")
 		return respJson, err
 	}
 	z.PrintReqJson(tar)
@@ -26,6 +28,8 @@ func (z *ZeusClient) UploadChart(ctx context.Context, p filepaths.Path, tar zeus
 			"chartName":        tar.ChartName,
 			"chartDescription": tar.ChartDescription,
 			"version":          tar.Version,
+			"skeletonBaseID":   fmt.Sprintf("%d", tar.SkeletonBaseID),
+			"topologyClassID":  fmt.Sprintf("%d", 0),
 		}).
 		SetFile("chart", p.FileOutPath()).
 		Post(zeus_endpoints.InfraCreateV1Path)

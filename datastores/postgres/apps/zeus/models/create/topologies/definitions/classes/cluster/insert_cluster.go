@@ -16,7 +16,6 @@ linking to make cluster topology
 
 steps
 
-0. deploy table 2 migrate
 1. create topology_system_components
 
 topology_system_components (check class_id >= 3)

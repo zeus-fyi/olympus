@@ -1,4 +1,4 @@
-package skeletons
+package skeleton
 
 import (
 	"context"

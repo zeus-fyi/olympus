@@ -17,6 +17,8 @@ type CreateClustersTestSuite struct {
 	test_suites.DatastoresTestSuite
 }
 
+const LocalEthereumBeaconClusterDefinitionID = 1670201797184939008
+
 func (s *CreateClustersTestSuite) SetupTest() {
 	s.InitLocalConfigs()
 	apps.Pg.InitPG(context.Background(), s.Tc.LocalDbPgconn)

@@ -3,6 +3,9 @@ package zeus_endpoints
 // InfraCreateV1Path uploads and saves a kubernetes app workload
 const InfraCreateV1Path = "/v1/infra/create"
 
+// InfraCreateClassV1Path creates a class definition
+const InfraCreateClassV1Path = "/v1/infra/class/create"
+
 // InfraReadChartV1Path reads the chart workload you uploaded
 const InfraReadChartV1Path = "/v1/infra/read/chart"
 

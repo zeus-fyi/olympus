@@ -23,3 +23,8 @@ type TopologyDeployRequest struct {
 type TopologyCloudCtxNsQueryRequest struct {
 	zeus_common_types.CloudCtxNs
 }
+
+type TopologyCreateClusterRequest struct {
+	ClusterName string   `json:"name"`
+	Bases       []string `json:"bases,omitempty"`
+}

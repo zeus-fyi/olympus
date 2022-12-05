@@ -9,7 +9,6 @@ type Topology struct {
 	Name string
 	kns.TopologyKubeCtxNs
 	class_types.TopologyClassType
-	class_types.TopologyClass
 	OrgUserTopology
 }
 

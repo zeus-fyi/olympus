@@ -98,12 +98,13 @@ func podsPortForwardRequest(request *PodActionRequest) ([]byte, error) {
 		if finalPayload == nil {
 			return emptyBytes, errors.New("no payload supplied for POST request")
 		}
-		r = cli.Post(ctx, string(cli.E)+"/"+clientReq.Endpoint, finalPayload)
+
+		r = cli.Post(ctx, string(cli.E)+"/"+clientReq.Endpoint, finalPayload, cli.Headers)
 	default:
 		if finalPayload != nil {
-			r = cli.GetWithPayload(ctx, string(cli.E)+"/"+clientReq.Endpoint, finalPayload)
+			r = cli.GetWithPayload(ctx, string(cli.E)+"/"+clientReq.Endpoint, finalPayload, cli.Headers)
 		} else {
-			r = cli.Get(ctx, string(cli.E)+"/"+clientReq.Endpoint)
+			r = cli.Get(ctx, string(cli.E)+"/"+clientReq.Endpoint, cli.Headers)
 		}
 	}
 	close(stopChan)

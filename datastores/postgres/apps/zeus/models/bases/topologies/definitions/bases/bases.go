@@ -9,6 +9,10 @@ type Base struct {
 	autogen_bases.TopologyBaseComponents
 }
 
+type Bases struct {
+	Slice autogen_bases.TopologyBaseComponentsSlice
+}
+
 func NewBaseClassTopologyType(orgID, systemID int, name string) Base {
 	c := Base{
 		TopologyBaseComponents: autogen_bases.TopologyBaseComponents{

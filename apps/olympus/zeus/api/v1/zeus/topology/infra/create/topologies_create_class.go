@@ -1,39 +1,40 @@
 package create_infra
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
+	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	create_clusters "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/topology/classes/cluster"
+	create_systems "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/topology/classes/systems"
 )
 
-type TopologyCreateClassRequest struct {
-	SkeletonBaseIDs []int `json:"skeletonBaseIDs,omitempty"`
-	TopologyClassID int   `json:"topologyClassID,omitempty"`
+type TopologyCreateClusterRequest struct {
+	ClusterName string   `json:"name"`
+	Bases       []string `json:"bases,omitempty"`
 }
 
 type TopologyCreateClassResponse struct {
-	ClassID int    `json:"classID"`
-	Status  string `json:"status,omitempty"`
+	ClusterName string `json:"name,omitempty"`
+	ClassID     int    `json:"classID"`
+	Status      string `json:"status,omitempty"`
 }
 
-func (t *TopologyCreateClassRequest) CreateTopologyClass(c echo.Context) error {
-
-	skeletonBaseID := c.FormValue("skeletonBaseID")
-	t.SkeletonBaseIDs = string_utils.IntStringArrToIntArr(skeletonBaseID)
-
-	topologyClassID := c.FormValue("topologyClassID")
-	t.TopologyClassID = string_utils.IntStringParser(topologyClassID)
-
-	//ctx := context.Background()
-
-	//	log.Err(err).Interface("orgUser", ou).Msg("TopologyActionCreateRequest: CreateTopology, InsertInfraBase")
-	//	return c.JSON(http.StatusInternalServerError, err)
-	//}
-
-	resp := TopologyCreateResponse{
-		TopologyID:     0,
-		SkeletonBaseID: 0,
+func (t *TopologyCreateClusterRequest) CreateTopologyClusterClass(c echo.Context) error {
+	// from auth lookup
+	ou := c.Get("orgUser").(org_users.OrgUser)
+	ctx := context.Background()
+	cc := create_clusters.NewClusterClassTopologyTypeWithBases(ou.OrgID, t.ClusterName, t.Bases)
+	err := create_systems.InsertSystem(ctx, &cc.Systems)
+	if err != nil {
+		log.Err(err).Interface("orgUser", ou).Msg("CreateTopologyClusterClass: InsertSystem")
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+	resp := TopologyCreateClassResponse{
+		ClusterName: t.ClusterName,
+		ClassID:     cc.TopologySystemComponentID,
 	}
 	return c.JSON(http.StatusOK, resp)
 }

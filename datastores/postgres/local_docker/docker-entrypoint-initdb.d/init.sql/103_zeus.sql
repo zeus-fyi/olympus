@@ -6,14 +6,6 @@ CREATE TABLE "public"."topology_class_types" (
 );
 ALTER TABLE "public"."topology_class_types" ADD CONSTRAINT "topology_class_types_pk" PRIMARY KEY ("topology_class_type_id");
 
--- specific use class names. eg. eth_validator_client
-CREATE TABLE "public"."topology_classes" (
-   "topology_class_id" int8 NOT NULl DEFAULT next_id(),
-   "topology_class_type_id" int8 NOT NULL DEFAULT next_id(),
-   "topology_class_name" text NOT NULL
-);
-ALTER TABLE "public"."topology_classes" ADD CONSTRAINT "topology_class_pk" PRIMARY KEY ("topology_class_id");
-
 -- specific sw names. eg. prysm_validator_client
 CREATE TABLE "public"."topologies" (
    "topology_id" int8 NOT NULL DEFAULT next_id(),

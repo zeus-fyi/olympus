@@ -29,6 +29,7 @@ func (z *ZeusClient) UploadChart(ctx context.Context, p filepaths.Path, tar zeus
 			"chartDescription": tar.ChartDescription,
 			"version":          tar.Version,
 			"skeletonBaseID":   fmt.Sprintf("%d", tar.SkeletonBaseID),
+			"topologyClassID":  fmt.Sprintf("%d", 0),
 		}).
 		SetFile("chart", p.FileOutPath()).
 		Post(zeus_endpoints.InfraCreateV1Path)

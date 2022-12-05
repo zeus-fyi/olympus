@@ -12,3 +12,12 @@ func CreateTopologyInfraActionRequestHandler(c echo.Context) error {
 
 	return request.CreateTopology(c)
 }
+
+func CreateTopologyClassActionRequestHandler(c echo.Context) error {
+	request := new(TopologyCreateClassRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+
+	return request.CreateTopologyClass(c)
+}

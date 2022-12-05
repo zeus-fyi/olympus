@@ -3,6 +3,7 @@ package string_utils
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 func Int64StringParser(str64 string) (int64Value int64) {
@@ -21,6 +22,15 @@ func Uint64StringParser(str64u string) (uint64Value uint64) {
 		panic(err)
 	}
 	return uint64Value
+}
+
+func IntStringArrToIntArr(strIntArr string) []int {
+	vals := strings.Split(strIntArr, ",")
+	var intArr []int
+	for _, k := range vals {
+		intArr = append(intArr, IntStringParser(k))
+	}
+	return intArr
 }
 
 func IntStringParser(strInt string) (intValue int) {

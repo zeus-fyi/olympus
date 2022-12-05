@@ -25,7 +25,8 @@ type TopologyCreateRequest struct {
 }
 
 type TopologyCreateResponse struct {
-	TopologyID int `json:"topologyID"`
+	TopologyID     int `json:"topologyID"`
+	SkeletonBaseID int `json:"skeletonBaseID,omitempty"`
 }
 
 func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {
@@ -64,9 +65,14 @@ func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {
 	inf.OrgID = ou.OrgID
 	inf.UserID = ou.UserID
 
-	skeletonBaseID := c.FormValue("skeletonBaseID")
 	inf.ChartVersion = version
-	inf.TopologySkeletonBaseID = string_utils.IntStringParser(skeletonBaseID)
+
+	skeletonBaseID := c.FormValue("skeletonBaseID")
+	if len(skeletonBaseID) >= 1 {
+		inf.TopologySkeletonBaseID = string_utils.IntStringParser(skeletonBaseID)
+	} else {
+		inf.TopologySkeletonBaseID = 0
+	}
 
 	err = inf.InsertInfraBase(ctx)
 	if err != nil {
@@ -84,7 +90,8 @@ func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {
 	}
 
 	resp := TopologyCreateResponse{
-		TopologyID: inf.TopologyID,
+		TopologyID:     inf.TopologyID,
+		SkeletonBaseID: inf.SkeletonBaseID,
 	}
 	return c.JSON(http.StatusOK, resp)
 }

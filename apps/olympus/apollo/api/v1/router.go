@@ -21,6 +21,7 @@ func Routes(e *echo.Echo) *echo.Echo {
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()
+			ctx = context.WithValue(ctx, "altDB", "auth")
 			key, err := auth.VerifyBearerToken(ctx, token)
 			return key.PublicKeyVerified, err
 		},
@@ -37,12 +38,5 @@ func Routes(e *echo.Echo) *echo.Echo {
 		},
 	}))
 
-	debugGroup.GET("/db/counts", DebugRequestHandler)
-	//e.GET("/debug/db/sizes", TableSizesHandler)
-	//e.GET("/debug/db/stats", DebugPgStatsHandler)
-	//e.GET("/debug/db/ping", PingDBHandler)
-	//e.GET("/debug/db/config", DebugGetPgConfigHandler)
-
-	//e.POST("/debug/db/config", DebugUpdatePgConfigHandler)
 	return e
 }

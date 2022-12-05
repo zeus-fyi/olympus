@@ -26,6 +26,7 @@ func InitApolloEthereum(ctx context.Context, inMemSecrets memfs.MemFS) SecretsWr
 	secrets := SecretsWrapper{}
 	secrets.MainnetBeaconURL = secrets.ReadSecret(ctx, inMemSecrets, apolloMainnetBeacon)
 	secrets.PostgresAuth = secrets.ReadSecret(ctx, inMemSecrets, apolloPostgresAuth)
+	secrets.AegisPostgresAuth = secrets.ReadSecret(ctx, inMemSecrets, pgSecret)
 	log.Info().Msg("Apollo: InitApolloEthereum done")
 	return secrets
 }

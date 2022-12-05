@@ -1,4 +1,4 @@
-package class_type
+package class_types
 
 import autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 
@@ -26,16 +26,6 @@ func NewTopologyClass() TopologyClass {
 			TopologyClassName:   "",
 		},
 	}
-	return tc
-}
-
-func NewClusterClassTopologyType() TopologyClassType {
-	tc := TopologyClassType{
-		autogen_bases.TopologyClassTypes{
-			TopologyClassTypeID: ClusterClassTypeID,
-		},
-	}
-	tc.TopologyClassTypeName.String = "Cluster"
 	return tc
 }
 

@@ -37,8 +37,8 @@ type TestContainer struct {
 	LocalS3SpacesKey    string
 	LocalS3SpacesSecret string
 
-	ProductionLocalTemporalOrgID  string
-	ProductionLocalTemporalUserID string
+	ProductionLocalTemporalOrgID  int
+	ProductionLocalTemporalUserID int
 
 	LocalBearerToken                   string
 	ProductionLocalBearerToken         string
@@ -109,8 +109,8 @@ func InitLocalTestConfigs() TestContainer {
 	testCont.MainnetNodeUrl = viper.GetString("MAINNET_NODE_URL")
 	testCont.GoerliNodeUrl = viper.GetString("GOERLI_NODE_URL")
 
-	testCont.ProductionLocalTemporalOrgID = viper.GetString("PROD_LOCAL_TEMPORAL_ORG_ID")
-	testCont.ProductionLocalTemporalUserID = viper.GetString("PROD_LOCAL_TEMPORAL_USER_ID")
+	testCont.ProductionLocalTemporalOrgID = viper.GetInt("PROD_LOCAL_TEMPORAL_ORG_ID")
+	testCont.ProductionLocalTemporalUserID = viper.GetInt("PROD_LOCAL_TEMPORAL_USER_ID")
 
 	InitArtemisLocalAccounts()
 	// local test keys

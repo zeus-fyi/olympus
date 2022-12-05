@@ -18,7 +18,6 @@ steps
 
 1. create topology_system_components
 
-topology_system_components (check class_id >= 3)
  ethereumBeacon, 4
  execClient, 3
  consensusClient, 3

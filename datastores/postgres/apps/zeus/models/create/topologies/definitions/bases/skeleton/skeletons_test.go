@@ -1,4 +1,4 @@
-package skeleton
+package create_skeletons
 
 import (
 	"context"
@@ -37,7 +37,7 @@ func (s *SkeletonsTestSuite) TestInsertSkeletonDefinition() {
 
 	err := InsertSkeletonBase(ctx, &sb)
 	s.Require().Nil(err)
-	s.Require().NotZero(sb.TopologySkeletonBaseVersionID)
+	s.Require().NotZero(sb.TopologySkeletonBaseID)
 }
 
 func TestSkeletonsTestSuite(t *testing.T) {

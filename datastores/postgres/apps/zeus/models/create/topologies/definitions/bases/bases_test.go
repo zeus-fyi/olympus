@@ -18,7 +18,7 @@ type CreateBasesTestSuite struct {
 }
 
 const LocalEthereumBeaconClusterDefinitionID = 1670201797184939008
-const AnyUseLocalTestSystemID = 1670201665179992064
+const UnclassifiedLocalTestSystemID = 0
 
 func (s *CreateBasesTestSuite) SetupTest() {
 	s.InitLocalConfigs()
@@ -26,7 +26,7 @@ func (s *CreateBasesTestSuite) SetupTest() {
 }
 
 func (s *CreateBasesTestSuite) TestInsertBaseDefinition() {
-	b := bases.NewBaseClassTopologyType(s.Tc.ProductionLocalTemporalOrgID, AnyUseLocalTestSystemID, "base-"+rand.String(5))
+	b := bases.NewBaseClassTopologyType(s.Tc.ProductionLocalTemporalOrgID, UnclassifiedLocalTestSystemID, "base-"+rand.String(5))
 	err := InsertBase(ctx, &b)
 	s.Require().Nil(err)
 

@@ -5,9 +5,6 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/class_types"
 )
 
-type Skeleton struct {
-}
-
 type SkeletonBase struct {
 	autogen_bases.TopologySkeletonBaseComponents
 }

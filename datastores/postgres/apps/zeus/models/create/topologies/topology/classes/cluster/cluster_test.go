@@ -18,6 +18,7 @@ type CreateClustersTestSuite struct {
 }
 
 const LocalEthereumBeaconClusterDefinitionID = 1670201797184939008
+const UnclassifiedClusterDefinition = 0
 
 func (s *CreateClustersTestSuite) SetupTest() {
 	s.InitLocalConfigs()

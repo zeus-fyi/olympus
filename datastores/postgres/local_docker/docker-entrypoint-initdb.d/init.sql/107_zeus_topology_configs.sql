@@ -56,23 +56,23 @@ CREATE TABLE "public"."topology_skeleton_base_components" (
     "org_id" int8 NOT NULL REFERENCES orgs(org_id),
     "topology_base_component_id" int8 NOT NULL REFERENCES topology_base_components(topology_base_component_id) NOT NULL,
     "topology_class_type_id" int8 NOT NULL REFERENCES topology_class_types(topology_class_type_id) CHECK (topology_class_type_id <= 2 AND topology_class_type_id >=2) NOT NULL DEFAULT 2,
-    "topology_skeleton_base_version_id" int8 DEFAULT next_id(),
+    "topology_skeleton_base_id" int8 DEFAULT next_id(),
     "topology_skeleton_base_name" text NOT NULL
 );
 
 ALTER TABLE "public"."topology_skeleton_base_components" ADD CONSTRAINT "topology_skeleton_base_components_pk" PRIMARY KEY ("topology_base_component_id");
-ALTER TABLE "public"."topology_skeleton_base_components" ADD CONSTRAINT "topology_skeleton_base_component_name_unique_to_org" UNIQUE("topology_skeleton_base_name", "topology_skeleton_base_version_id", "topology_class_type_id", "org_id");
-ALTER TABLE "public"."topology_skeleton_base_components" ADD CONSTRAINT "topology_skeleton_base_version_id_uniq" UNIQUE("topology_skeleton_base_version_id");
+ALTER TABLE "public"."topology_skeleton_base_components" ADD CONSTRAINT "topology_skeleton_base_component_name_unique_to_org" UNIQUE("topology_skeleton_base_name", "topology_skeleton_base_id", "topology_class_type_id", "org_id");
+ALTER TABLE "public"."topology_skeleton_base_components" ADD CONSTRAINT "topology_skeleton_base_version_id_uniq" UNIQUE("topology_skeleton_base_id");
 
 -- links topology to kubernetes package
 CREATE TABLE "public"."topology_infrastructure_components" (
-    "topology_skeleton_base_version_id" int8 NOT NULL REFERENCES topology_skeleton_base_components(topology_skeleton_base_version_id) NOT NULL,
+    "topology_skeleton_base_id" int8 NOT NULL REFERENCES topology_skeleton_base_components(topology_skeleton_base_id) NOT NULL,
     "topology_infrastructure_component_id" int8 DEFAULT next_id(),
     "topology_id" int8 NOT NULL REFERENCES topologies(topology_id),
     "chart_package_id" int8 NOT NULL REFERENCES chart_packages(chart_package_id)
 );
 ALTER TABLE "public"."topology_infrastructure_components" ADD CONSTRAINT "topology_infrastructure_components_pk" PRIMARY KEY ("topology_infrastructure_component_id");
 
--- ALTER TABLE topology_infrastructure_components ADD COLUMN topology_skeleton_base_version_id int8;
--- ALTER TABLE topology_infrastructure_components ALTER COLUMN topology_skeleton_base_version_id SET NOT NULL;
--- ALTER TABLE topology_infrastructure_components ADD CONSTRAINT topology_infrastructure_components_fk FOREIGN KEY (topology_skeleton_base_version_id) REFERENCES topology_skeleton_base_components (topology_skeleton_base_version_id) MATCH FULL;
+-- ALTER TABLE topology_infrastructure_components ADD COLUMN topology_skeleton_base_id int8;
+-- ALTER TABLE topology_infrastructure_components ALTER COLUMN topology_skeleton_base_id SET NOT NULL;
+-- ALTER TABLE topology_infrastructure_components ADD CONSTRAINT topology_infrastructure_components_fk FOREIGN KEY (topology_skeleton_base_id) REFERENCES topology_skeleton_base_components (topology_skeleton_base_id) MATCH FULL;

@@ -19,6 +19,8 @@ type TopologyCreateRequest struct {
 	ChartName        string `json:"chartName"`
 	ChartDescription string `json:"chartDescription,omitempty"`
 	Version          string `json:"version"`
+
+	SkeletonBaseID int `json:"skeletonBaseID,omitempty"`
 }
 
 type TopologyCreateResponse struct {

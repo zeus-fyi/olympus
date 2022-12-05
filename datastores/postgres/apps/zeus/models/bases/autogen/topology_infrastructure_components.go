@@ -8,7 +8,7 @@ type TopologyInfrastructureComponents struct {
 	TopologyInfrastructureComponentID int `db:"topology_infrastructure_component_id" json:"topologyInfrastructureComponentID"`
 	TopologyID                        int `db:"topology_id" json:"topologyID"`
 	ChartPackageID                    int `db:"chart_package_id" json:"chartPackageID"`
-	TopologySkeletonBaseVersionID     int `db:"topology_skeleton_base_version_id" json:"topologySkeletonBaseVersionID"`
+	TopologySkeletonBaseID            int `db:"topology_skeleton_base_id" json:"topologySkeletonBaseID"`
 }
 type TopologyInfrastructureComponentsSlice []TopologyInfrastructureComponents
 
@@ -16,12 +16,12 @@ func (t *TopologyInfrastructureComponents) GetRowValues(queryName string) apps.R
 	pgValues := apps.RowValues{}
 	switch queryName {
 	default:
-		pgValues = apps.RowValues{t.TopologyInfrastructureComponentID, t.TopologyID, t.ChartPackageID, t.TopologySkeletonBaseVersionID}
+		pgValues = apps.RowValues{t.TopologyInfrastructureComponentID, t.TopologyID, t.ChartPackageID, t.TopologySkeletonBaseID}
 	}
 	return pgValues
 }
 func (t *TopologyInfrastructureComponents) GetTableColumns() (columnValues []string) {
-	columnValues = []string{"topology_infrastructure_component_id", "topology_id", "chart_package_id", "topology_skeleton_base_version_id"}
+	columnValues = []string{"topology_infrastructure_component_id", "topology_id", "chart_package_id", "topology_skeleton_base_id"}
 	return columnValues
 }
 func (t *TopologyInfrastructureComponents) GetTableName() (tableName string) {

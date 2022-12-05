@@ -19,3 +19,11 @@ func CreateTopologyClassActionRequestHandler(c echo.Context) error {
 	}
 	return request.CreateTopologyClusterClass(c)
 }
+
+func UpdateTopologyClassActionRequestHandler(c echo.Context) error {
+	request := new(TopologyAddBasesToClusterRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.AddBasesToTopologyClusterClass(c)
+}

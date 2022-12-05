@@ -51,10 +51,3 @@ func (t *TopologyCreateActionRequestTestSuite) TestUpload() {
 func TestTopologyCreateActionRequestTestSuite(t *testing.T) {
 	suite.Run(t, new(TopologyCreateActionRequestTestSuite))
 }
-
-/*
-exec:
-{
-  "topologyID": 1670209872931382784
-}
-*/

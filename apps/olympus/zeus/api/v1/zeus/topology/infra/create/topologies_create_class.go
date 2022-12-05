@@ -38,3 +38,22 @@ func (t *TopologyCreateClusterRequest) CreateTopologyClusterClass(c echo.Context
 	}
 	return c.JSON(http.StatusOK, resp)
 }
+
+type TopologyAddBasesToClusterRequest struct {
+	ClusterID string   `json:"name"`
+	Bases     []string `json:"bases,omitempty"`
+}
+
+func (t *TopologyAddBasesToClusterRequest) AddBasesToTopologyClusterClass(c echo.Context) error {
+	// from auth lookup
+
+	// TODO
+	/*
+		needs to figure out the cte -> array of values sql writer
+		ou := c.Get("orgUser").(org_users.OrgUser)
+		ctx := context.Background()
+		err := create_bases.InsertBases(ctx, params)
+	*/
+
+	return c.JSON(http.StatusOK, nil)
+}

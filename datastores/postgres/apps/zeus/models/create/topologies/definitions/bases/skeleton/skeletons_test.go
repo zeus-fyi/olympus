@@ -20,6 +20,9 @@ const (
 
 	ConsensusClientsBaseComponentsID = 1670202869405165056
 	ExecClientsBaseComponentsID      = 1670202869402443776
+
+	LighthouseSkeletonBaseID = 1670202869405165056
+	GethSkeletonBaseID       = 1670203700436209920
 )
 
 var ctx = context.Background()

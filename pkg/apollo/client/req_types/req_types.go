@@ -1,4 +1,4 @@
-package req_types
+package apollo_req_types
 
 type ValidatorBalancesRequest struct {
 	ValidatorIndexes []int `json:"validatorIndexes"`

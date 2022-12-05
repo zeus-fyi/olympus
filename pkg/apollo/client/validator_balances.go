@@ -11,10 +11,10 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/apollo/client/resp_types"
 )
 
-func (a *Apollo) ValidatorBalances(ctx context.Context, rr req_types.ValidatorBalancesRequest) (resp_types.ValidatorBalancesEpoch, error) {
+func (a *Apollo) ValidatorBalances(ctx context.Context, rr apollo_req_types.ValidatorBalancesRequest) (apollo_resp_types.ValidatorBalancesEpoch, error) {
 	a.PrintReqJson(rr)
 
-	respJson := resp_types.ValidatorBalancesEpoch{}
+	respJson := apollo_resp_types.ValidatorBalancesEpoch{}
 	resp, err := a.R().
 		SetBody(rr).
 		SetResult(&respJson.ValidatorBalances).

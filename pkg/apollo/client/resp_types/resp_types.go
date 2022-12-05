@@ -1,4 +1,4 @@
-package resp_types
+package apollo_resp_types
 
 import "time"
 

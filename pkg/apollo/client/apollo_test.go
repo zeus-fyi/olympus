@@ -21,7 +21,7 @@ func (t *ApolloClientTestSuite) SetupTest() {
 	// points dir to test/configs
 	tc := api_configs.InitLocalTestConfigs()
 	t.ApolloTestClient = NewDefaultApolloClient(tc.Bearer)
-	//t.ApolloTestClient = NewLocalApolloClient(tc.Bearer)
+	// t.ApolloTestClient = NewLocalApolloClient(tc.Bearer)
 	// points working dir to inside /test
 	test_base.ForceDirToTestDirLocation()
 }

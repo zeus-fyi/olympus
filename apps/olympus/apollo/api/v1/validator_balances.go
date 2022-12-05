@@ -28,7 +28,8 @@ func HandleValidatorBalancesRequest(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusOK, vb.GetRawRowValues())
+	resp := vb.GetRawRowValues()
+	return c.JSON(http.StatusOK, resp)
 }
 
 func HandleValidatorBalancesSumRequest(c echo.Context) error {

@@ -2,14 +2,18 @@ package resp_types
 
 import "time"
 
-type ValidatorBalancesYieldIndexes []ValidatorBalanceYieldIndex
-
 type ValidatorBalanceYieldIndex struct {
 	ValidatorIndex                int `json:"validatorIndex"`
 	GweiYieldOverEpochs           int `json:"gweiYieldOverEpochs"`
 	GweiTotalYieldAtHigherEpoch   int `json:"gweiTotalYieldAtHigherEpoch"`
 	GweiTotalBalanceAtLowerEpoch  int `json:"gweiTotalBalanceAtLowerEpoch"`
 	GweiTotalBalanceAtHigherEpoch int `json:"gweiTotalBalanceAtHigherEpoch"`
+}
+
+type ValidatorBalancesSum struct {
+	LowerEpoch          int                          `json:"lowerEpoch"`
+	HigherEpoch         int                          `json:"higherEpoch"`
+	ValidatorGweiYields []ValidatorBalanceYieldIndex `json:"validatorGweiYields"`
 }
 
 type ValidatorBalancesEpoch struct {

@@ -11,10 +11,10 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/apollo/client/resp_types"
 )
 
-func (a *Apollo) ValidatorBalanceSums(ctx context.Context, rr req_types.ValidatorBalancesRequest) (resp_types.ValidatorBalancesYieldIndexes, error) {
+func (a *Apollo) ValidatorBalanceSums(ctx context.Context, rr req_types.ValidatorBalancesRequest) (resp_types.ValidatorBalancesSum, error) {
 	a.PrintReqJson(rr)
 
-	respJson := resp_types.ValidatorBalancesYieldIndexes{}
+	respJson := resp_types.ValidatorBalancesSum{}
 	resp, err := a.R().
 		SetBody(rr).
 		SetResult(&respJson).

@@ -110,7 +110,8 @@ func (vs *Validators) SelectValidators(ctx context.Context, valIndexes []int64) 
 	defer rows.Close()
 	for rows.Next() {
 		var v Validator
-		rowErr := rows.Scan(&v.Index, &v.Pubkey, &v.Balance, &v.EffectiveBalance, &v.ActivationEpoch, &v.ActivationEpoch, &v.ExitEpoch, &v.WithdrawableEpoch, &v.Slashed, &v.Status, &v.WithdrawalCredentials, &v.SubStatus, &v.UpdatedAt)
+		v.Network = "mainnet"
+		rowErr := rows.Scan(&v.Index, &v.Pubkey, &v.Balance, &v.EffectiveBalance, &v.ActivationEligibilityEpoch, &v.ActivationEpoch, &v.ExitEpoch, &v.WithdrawableEpoch, &v.Slashed, &v.Status, &v.WithdrawalCredentials, &v.SubStatus, &v.UpdatedAt)
 		if rowErr != nil {
 			log.Err(rowErr).Msg("SelectValidators")
 			return selectedValidators, rowErr

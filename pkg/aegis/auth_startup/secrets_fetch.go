@@ -22,10 +22,11 @@ const (
 )
 
 type SecretsWrapper struct {
-	PostgresAuth     string
-	DoctlToken       string
-	MainnetBeaconURL string
-	TemporalAuth     temporal_auth.TemporalAuth
+	PostgresAuth      string
+	AegisPostgresAuth string
+	DoctlToken        string
+	MainnetBeaconURL  string
+	TemporalAuth      temporal_auth.TemporalAuth
 }
 
 var secretsBucket = &s3.GetObjectInput{

@@ -11,7 +11,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	v1 "github.com/zeus-fyi/olympus/beacon-indexer/api/v1"
-	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_fetcher"
 	"github.com/zeus-fyi/olympus/configs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/admin"
@@ -25,6 +24,7 @@ var (
 	RedisEndpointURL  string
 	BeaconEndpointURL string
 	PGConnStr         string
+	AuthPGConnStr     string
 	env               string
 	authKeysCfg       auth_keys_config.AuthKeysCfg
 )
@@ -42,16 +42,19 @@ func Api() {
 		_, sw := auth_startup.RunApolloDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		PGConnStr = sw.PostgresAuth
 		BeaconEndpointURL = sw.MainnetBeaconURL
+		AuthPGConnStr = sw.AegisPostgresAuth
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		authKeysCfg = tc.ProdLocalAuthKeysCfg
-		PGConnStr = tc.ProdLocalDbPgconn
+		PGConnStr = tc.ProdLocalApolloDbPgconn
 		BeaconEndpointURL = tc.MainnetNodeUrl
+		AuthPGConnStr = tc.LocalDbPgconn
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		authKeysCfg = tc.DevAuthKeysCfg
 		PGConnStr = tc.LocalDbPgconn
 		BeaconEndpointURL = tc.MainnetNodeUrl
+		AuthPGConnStr = tc.LocalDbPgconn
 	}
 
 	apps.Pg = apps.Db{}
@@ -68,6 +71,8 @@ func Api() {
 	apps.Pg.InitPG(ctx, PGConnStr)
 	_ = admin.UpdateConfigPG(ctx, pgCfg)
 
+	apps.Pg.InitAdditionalPG(ctx, "auth", AuthPGConnStr)
+
 	redisOpts := redis.Options{
 		Addr: RedisEndpointURL,
 	}
@@ -78,7 +83,7 @@ func Api() {
 	}
 
 	log.Info().Msg("starting apollo redis")
-	beacon_fetcher.InitFetcherService(ctx, BeaconEndpointURL, r)
+	//beacon_fetcher.InitFetcherService(ctx, BeaconEndpointURL, r)
 	log.Info().Interface("redis conn", r.Conn()).Msg("started redis")
 
 	log.Info().Msg("starting apollo s3 manager")

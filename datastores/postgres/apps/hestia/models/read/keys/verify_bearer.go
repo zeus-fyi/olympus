@@ -29,7 +29,6 @@ func (k *OrgUserKey) QueryVerifyUserBearerToken() sql_query_templates.QueryParam
 func (k *OrgUserKey) VerifyUserBearerToken(ctx context.Context) error {
 	q := k.QueryVerifyUserBearerToken()
 	log.Debug().Interface("VerifyUserBearerToken:", q.LogHeader(Sn))
-
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey).Scan(&k.PublicKeyVerified, &k.OrgID, &k.UserID)
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }

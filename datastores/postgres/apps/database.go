@@ -11,7 +11,7 @@ import (
 
 type Db struct {
 	Pgpool *pgxpool.Pool
-	Schema string
+	DbMap  map[string]*pgxpool.Pool
 }
 
 type Model interface {
@@ -30,6 +30,12 @@ var ConnStr string
 var Pg Db
 
 func (d *Db) InitPG(ctx context.Context, pgConnStr string) *pgxpool.Pool {
+	Pg.DbMap = make(map[string]*pgxpool.Pool)
+	Pg.Pgpool = d.InitAdditionalPG(ctx, "default", pgConnStr)
+	return Pg.Pgpool
+}
+
+func (d *Db) InitAdditionalPG(ctx context.Context, name, pgConnStr string) *pgxpool.Pool {
 	config, err := pgxpool.ParseConfig(pgConnStr)
 	if err != nil {
 		log.Info().Msg("Zeus: InitPG failed to parse config to database")
@@ -41,12 +47,22 @@ func (d *Db) InitPG(ctx context.Context, pgConnStr string) *pgxpool.Pool {
 		log.Info().Msg("Zeus: InitPG failed to connect to database")
 		panic(err)
 	}
-	Pg.Pgpool = c
-	return Pg.Pgpool
+
+	Pg.DbMap[name] = c
+	return c
 }
 
 func (d *Db) QueryRowWArgs(ctx context.Context, query string, args ...interface{}) pgx.Row {
-	return Pg.Pgpool.QueryRow(ctx, query, args...)
+	dbNameKey := ctx.Value("altDB")
+	c := Pg.Pgpool
+	dbNameKeyStr := dbNameKey.(string)
+	if len(dbNameKeyStr) > 0 {
+		altC, ok := d.DbMap[dbNameKeyStr]
+		if ok && altC != nil {
+			c = altC
+		}
+	}
+	return c.QueryRow(ctx, query, args...)
 }
 
 func (d *Db) QueryRow(ctx context.Context, query string) pgx.Row {

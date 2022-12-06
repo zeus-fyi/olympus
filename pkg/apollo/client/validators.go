@@ -11,10 +11,10 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/apollo/client/resp_types"
 )
 
-func (a *Apollo) ValidatorStatuses(ctx context.Context, rr req_types.ValidatorsRequest) (resp_types.Validators, error) {
+func (a *Apollo) ValidatorStatuses(ctx context.Context, rr apollo_req_types.ValidatorsRequest) (apollo_resp_types.Validators, error) {
 	a.PrintReqJson(rr)
 
-	respJson := resp_types.Validators{}
+	respJson := apollo_resp_types.Validators{}
 	resp, err := a.R().
 		SetBody(rr).
 		SetResult(&respJson).

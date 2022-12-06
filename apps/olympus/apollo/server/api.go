@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	v1 "github.com/zeus-fyi/olympus/beacon-indexer/api/v1"
+	"github.com/zeus-fyi/olympus/beacon-indexer/beacon_indexer/beacon_fetcher"
 	"github.com/zeus-fyi/olympus/configs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/admin"
@@ -83,7 +84,7 @@ func Api() {
 	}
 
 	log.Info().Msg("starting apollo redis")
-	//beacon_fetcher.InitFetcherService(ctx, BeaconEndpointURL, r)
+	beacon_fetcher.InitFetcherService(ctx, BeaconEndpointURL, r)
 	log.Info().Interface("redis conn", r.Conn()).Msg("started redis")
 
 	log.Info().Msg("starting apollo s3 manager")

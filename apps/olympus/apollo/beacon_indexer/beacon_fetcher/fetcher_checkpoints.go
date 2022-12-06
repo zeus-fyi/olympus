@@ -9,7 +9,7 @@ import (
 )
 
 var UpdateCheckpointsTimeout = 60 * time.Second
-var InsertCheckpointsTimeout = time.Minute * 2
+var InsertCheckpointsTimeout = time.Minute * 1
 
 // InsertNewEpochCheckpoint // Routine FIVE
 func InsertNewEpochCheckpoint() {

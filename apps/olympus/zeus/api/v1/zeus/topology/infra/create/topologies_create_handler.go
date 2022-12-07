@@ -21,7 +21,7 @@ func CreateTopologyClassActionRequestHandler(c echo.Context) error {
 }
 
 func UpdateTopologyClassActionRequestHandler(c echo.Context) error {
-	request := new(TopologyAddBasesToClusterRequest)
+	request := new(TopologyCreateClusterRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}

@@ -14,8 +14,7 @@ func Routes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	e.POST("/infra/create", create_infra.CreateTopologyInfraActionRequestHandler)
 	e.POST("/infra/class/create", create_infra.CreateTopologyClassActionRequestHandler)
 
-	// TODO UpdateTopologyClassActionRequestHandler
-	// 	e.POST("/infra/class/bases/create", create_infra.UpdateTopologyClassActionRequestHandler)
+	e.POST("/infra/class/bases/create", create_infra.UpdateTopologyClassActionRequestHandler)
 
 	e.POST("/infra/read/chart", read_infra.ReadTopologyChartContentsHandler)
 	e.GET("/infra/read/topologies", read_infra.ReadTopologiesMetadataRequestHandler)

@@ -7,6 +7,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/bases"
+	create_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/definitions/bases"
 	create_clusters "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/topology/classes/cluster"
 	create_systems "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/topology/classes/systems"
 )
@@ -39,21 +41,19 @@ func (t *TopologyCreateClusterRequest) CreateTopologyClusterClass(c echo.Context
 	return c.JSON(http.StatusOK, resp)
 }
 
-type TopologyAddBasesToClusterRequest struct {
-	ClusterID string   `json:"name"`
-	Bases     []string `json:"bases,omitempty"`
-}
+func (t *TopologyCreateClusterRequest) AddBasesToTopologyClusterClass(c echo.Context) error {
+	ou := c.Get("orgUser").(org_users.OrgUser)
+	ctx := context.Background()
 
-func (t *TopologyAddBasesToClusterRequest) AddBasesToTopologyClusterClass(c echo.Context) error {
-	// from auth lookup
-
-	// TODO
-	/*
-		needs to figure out the cte -> array of values sql writer
-		ou := c.Get("orgUser").(org_users.OrgUser)
-		ctx := context.Background()
-		err := create_bases.InsertBases(ctx, params)
-	*/
+	bs := make([]bases.Base, len(t.Bases))
+	for i, b := range t.Bases {
+		bs[i] = bases.NewBaseClassTopologyInsert(ou.OrgID, b)
+	}
+	err := create_bases.InsertBases(ctx, ou.OrgID, t.ClusterName, bs)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("TopologyAddBasesToClusterRequest: AddBasesToTopologyClusterClass")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 
 	return c.JSON(http.StatusOK, nil)
 }

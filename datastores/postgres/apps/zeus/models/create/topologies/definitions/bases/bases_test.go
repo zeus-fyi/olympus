@@ -29,8 +29,15 @@ func (s *CreateBasesTestSuite) TestInsertBaseDefinition() {
 	b := bases.NewBaseClassTopologyType(s.Tc.ProductionLocalTemporalOrgID, UnclassifiedLocalTestSystemID, "base-"+rand.String(5))
 	err := InsertBase(ctx, &b)
 	s.Require().Nil(err)
-
 	s.Require().NotZero(b.TopologySystemComponentID)
+}
+
+func (s *CreateBasesTestSuite) TestInsertBasesToExistingCluster() {
+	b := bases.NewBaseClassTopologyType(s.Tc.ProductionLocalTemporalOrgID, UnclassifiedLocalTestSystemID, "base-"+rand.String(5))
+	b2 := bases.NewBaseClassTopologyType(s.Tc.ProductionLocalTemporalOrgID, UnclassifiedLocalTestSystemID, "base-"+rand.String(5))
+	basesInsert := []bases.Base{b, b2}
+	err := InsertBases(ctx, s.Tc.ProductionLocalTemporalOrgID, "unclassified-cluster", basesInsert)
+	s.Require().Nil(err)
 }
 
 func TestCreateBasesTestSuite(t *testing.T) {

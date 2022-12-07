@@ -22,8 +22,12 @@ func (c *CTE) SanitizedMultiLevelValuesCTEStringBuilderSQL() string {
 			for lc, line := range subCteExpr.Values {
 				sb.WriteString("(")
 				for col, val := range line {
-					c.Params = append(c.Params, val)
-					sb.WriteString(fmt.Sprintf("$%d", len(c.Params)))
+					if v, ok := subCteExpr.ValuesOverride[col]; ok {
+						sb.WriteString(v)
+					} else {
+						c.Params = append(c.Params, val)
+						sb.WriteString(fmt.Sprintf("$%d", len(c.Params)))
+					}
 					if len(line)-1 != col {
 						sb.WriteString(", ")
 					}

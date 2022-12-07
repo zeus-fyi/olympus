@@ -18,7 +18,7 @@ type TopologyCreateClassRequestTestSuite struct {
 	h hestia_test.BaseHestiaTestSuite
 }
 
-func (t *TopologyCreateClassRequestTestSuite) TestClassCreateBases() {
+func (t *TopologyCreateClassRequestTestSuite) TestAddBasesToCluster() {
 	t.InitLocalConfigs()
 	t.Eg.POST("/infra/class/bases/create", UpdateTopologyClassActionRequestHandler)
 
@@ -32,13 +32,14 @@ func (t *TopologyCreateClassRequestTestSuite) TestClassCreateBases() {
 	ctx := context.Background()
 	defer t.E.Shutdown(ctx)
 
-	// TODO needs to add create bases to zeus client
-	//cc := zeus_req_types.TopologyCreateClusterRequest{
-	//	ClusterName: rand.String(10),
-	//}
-	//resp, err := t.ZeusClient.CreateClass(ctx, cc)
-	//t.Require().Nil(err)
-	//t.Assert().NotEmpty(resp)
+	basesInsert := []string{"add-base-" + rand.String(5), "add-base-" + rand.String(5)}
+	cc := zeus_req_types.TopologyCreateClusterRequest{
+		ClusterName: "unclassified-cluster",
+		Bases:       basesInsert,
+	}
+
+	_, err := t.ZeusClient.AddBasesToClass(ctx, cc)
+	t.Require().Nil(err)
 }
 
 func (t *TopologyCreateClassRequestTestSuite) TestClassCreate() {

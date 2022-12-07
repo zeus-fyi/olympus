@@ -55,11 +55,13 @@ func (d *Db) InitAdditionalPG(ctx context.Context, name, pgConnStr string) *pgxp
 func (d *Db) QueryRowWArgs(ctx context.Context, query string, args ...interface{}) pgx.Row {
 	dbNameKey := ctx.Value("altDB")
 	c := Pg.Pgpool
-	dbNameKeyStr := dbNameKey.(string)
-	if len(dbNameKeyStr) > 0 {
-		altC, ok := d.DbMap[dbNameKeyStr]
-		if ok && altC != nil {
-			c = altC
+	if dbNameKey != nil {
+		dbNameKeyStr := dbNameKey.(string)
+		if len(dbNameKeyStr) > 0 {
+			altC, ok := d.DbMap[dbNameKeyStr]
+			if ok && altC != nil {
+				c = altC
+			}
 		}
 	}
 	return c.QueryRow(ctx, query, args...)

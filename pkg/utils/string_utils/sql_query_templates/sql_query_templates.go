@@ -9,14 +9,15 @@ import (
 type Query struct{}
 
 type QueryParams struct {
-	QueryName   string
-	RawQuery    string
-	CTEQuery    CTE
-	Columns     []string
-	TableName   string
-	WhereClause string
-	Values      []apps.RowValues
-	Limit       int
+	QueryName      string
+	RawQuery       string
+	CTEQuery       CTE
+	Columns        []string
+	TableName      string
+	WhereClause    string
+	Values         []apps.RowValues
+	ValuesOverride map[int]string
+	Limit          int
 }
 
 // NewQueryParam queryName, tableName, whereClause string, limit int, fields []string

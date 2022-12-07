@@ -22,7 +22,7 @@ var ExecClientChart = zeus_req_types.TopologyCreateRequest{
 	ChartDescription: "geth-hercules",
 	Version:          fmt.Sprintf("v0.0.%d", time.Now().Unix()),
 
-	SkeletonBaseID: GethSkeletonBaseID,
+	SkeletonBaseName: "geth",
 }
 
 var BeaconExecClientChartPath = filepaths.Path{

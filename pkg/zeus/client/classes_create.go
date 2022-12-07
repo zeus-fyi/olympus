@@ -11,7 +11,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_resp_types/topology_workloads"
 )
 
-func (z *ZeusClient) CreateClass(ctx context.Context, tar zeus_req_types.TopologyCreateClusterRequest) (topology_workloads.TopologyCreateClassResponse, error) {
+func (z *ZeusClient) CreateClass(ctx context.Context, tar zeus_req_types.TopologyCreateOrAddBasesToClassesRequest) (topology_workloads.TopologyCreateClassResponse, error) {
 	z.PrintReqJson(tar)
 	respJson := topology_workloads.TopologyCreateClassResponse{}
 	resp, err := z.R().

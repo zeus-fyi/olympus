@@ -12,7 +12,8 @@ type TopologyCreateRequest struct {
 	ChartDescription string `json:"chartDescription,omitempty"`
 	Version          string `json:"version"`
 
-	SkeletonBaseID int `json:"skeletonBaseID,omitempty"`
+	Tag              string `json:"tag,omitempty"`
+	SkeletonBaseName string `json:"skeletonBaseName,omitempty"`
 }
 
 type TopologyDeployRequest struct {
@@ -24,7 +25,7 @@ type TopologyCloudCtxNsQueryRequest struct {
 	zeus_common_types.CloudCtxNs
 }
 
-type TopologyCreateClusterRequest struct {
-	ClusterName string   `json:"name"`
-	Bases       []string `json:"bases,omitempty"`
+type TopologyCreateOrAddBasesToClassesRequest struct {
+	ClassName      string   `json:"className"`
+	ClassBaseNames []string `json:"classBaseNames,omitempty"`
 }

@@ -10,13 +10,14 @@ type InfraBaseTopology struct {
 
 	packages.Packages
 
-	SkeletonBaseID  int `json:"skeletonBaseID,omitempty"`
-	TopologyClassID int `json:"topologyClassID,omitempty"`
+	Tag              string `json:"tag,omitempty"`
+	SkeletonBaseName string `json:"skeletonBaseName,omitempty"`
+	TopologyClassID  int    `json:"topologyClassID,omitempty"`
 }
 
 func NewCreateInfrastructure() InfraBaseTopology {
 	pkg := packages.NewPackageInsert()
 	infc := infra.NewInfrastructureBaseTopology()
-	ibc := InfraBaseTopology{infc, pkg, 0, 0}
+	ibc := InfraBaseTopology{infc, pkg, "latest-internal", "", 0}
 	return ibc
 }

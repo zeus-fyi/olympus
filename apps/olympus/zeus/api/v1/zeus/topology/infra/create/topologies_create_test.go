@@ -18,6 +18,30 @@ type TopologyCreateActionRequestTestSuite struct {
 	h hestia_test.BaseHestiaTestSuite
 }
 
+func (t *TopologyCreateActionRequestTestSuite) TestUploadWithSkeletonBaseName() {
+	t.InitLocalConfigs()
+	t.Eg.POST("/infra/create", CreateTopologyInfraActionRequestHandler)
+
+	start := make(chan struct{}, 1)
+	go func() {
+		close(start)
+		_ = t.E.Start(":9010")
+	}()
+
+	<-start
+	ctx := context.Background()
+	defer t.E.Shutdown(ctx)
+
+	cookbooks.ChangeToCookbookDir()
+	c := beacon_cookbooks.ExecClientChart
+	p := beacon_cookbooks.BeaconExecClientChartPath
+	c.SkeletonBaseName = "add-skeleton-base-wrw5v"
+	c.Tag = "test-latest"
+	resp, err := t.ZeusClient.UploadChart(ctx, p, c)
+	t.Require().Nil(err)
+	t.Assert().NotEmpty(resp)
+}
+
 func (t *TopologyCreateActionRequestTestSuite) TestUpload() {
 	t.InitLocalConfigs()
 	t.Eg.POST("/infra/create", CreateTopologyInfraActionRequestHandler)

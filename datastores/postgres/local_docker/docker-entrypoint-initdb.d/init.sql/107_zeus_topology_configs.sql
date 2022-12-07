@@ -60,19 +60,21 @@ CREATE TABLE "public"."topology_skeleton_base_components" (
     "topology_skeleton_base_name" text NOT NULL
 );
 
-ALTER TABLE "public"."topology_skeleton_base_components" ADD CONSTRAINT "topology_skeleton_base_components_pk" PRIMARY KEY ("topology_base_component_id");
-ALTER TABLE "public"."topology_skeleton_base_components" ADD CONSTRAINT "topology_skeleton_base_component_name_unique_to_org" UNIQUE("topology_skeleton_base_name", "topology_skeleton_base_id", "topology_class_type_id", "org_id");
-ALTER TABLE "public"."topology_skeleton_base_components" ADD CONSTRAINT "topology_skeleton_base_version_id_uniq" UNIQUE("topology_skeleton_base_id");
+ALTER TABLE "public"."topology_skeleton_base_components" ADD CONSTRAINT "topology_skeleton_base_components_pk" PRIMARY KEY ("topology_skeleton_base_id");
+ALTER TABLE "public"."topology_skeleton_base_components" ADD CONSTRAINT "topology_skeleton_base_component_name_unique_to_org" UNIQUE("topology_skeleton_base_name", "topology_skeleton_base_id", "org_id");
 
 -- links topology to kubernetes package
 CREATE TABLE "public"."topology_infrastructure_components" (
     "topology_skeleton_base_id" int8 NOT NULL REFERENCES topology_skeleton_base_components(topology_skeleton_base_id) NOT NULL,
     "topology_infrastructure_component_id" int8 DEFAULT next_id(),
     "topology_id" int8 NOT NULL REFERENCES topologies(topology_id),
-    "chart_package_id" int8 NOT NULL REFERENCES chart_packages(chart_package_id)
+    "chart_package_id" int8 NOT NULL REFERENCES chart_packages(chart_package_id),
+    "tag" text NOT NULL DEFAULT 'latest'
+
 );
 ALTER TABLE "public"."topology_infrastructure_components" ADD CONSTRAINT "topology_infrastructure_components_pk" PRIMARY KEY ("topology_infrastructure_component_id");
 
+-- ALTER TABLE topology_infrastructure_components ADD COLUMN tag text NOT NULL DEFAULT 'latest';
 -- ALTER TABLE topology_infrastructure_components ADD COLUMN topology_skeleton_base_id int8;
 -- ALTER TABLE topology_infrastructure_components ALTER COLUMN topology_skeleton_base_id SET NOT NULL;
 -- ALTER TABLE topology_infrastructure_components ADD CONSTRAINT topology_infrastructure_components_fk FOREIGN KEY (topology_skeleton_base_id) REFERENCES topology_skeleton_base_components (topology_skeleton_base_id) MATCH FULL;

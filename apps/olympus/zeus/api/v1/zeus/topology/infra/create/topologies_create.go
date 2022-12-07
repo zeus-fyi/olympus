@@ -11,7 +11,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_infra "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/definitions/bases/infra"
-	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
 
@@ -21,12 +20,12 @@ type TopologyCreateRequest struct {
 	ChartDescription string `json:"chartDescription,omitempty"`
 	Version          string `json:"version"`
 
-	SkeletonBaseID int `json:"skeletonBaseID,omitempty"`
+	SkeletonBaseName string `json:"skeletonBaseName,omitempty"`
 }
 
 type TopologyCreateResponse struct {
-	TopologyID     int `json:"topologyID"`
-	SkeletonBaseID int `json:"skeletonBaseID,omitempty"`
+	TopologyID       int    `json:"topologyID"`
+	SkeletonBaseName string `json:"skeletonBaseName,omitempty"`
 }
 
 func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {
@@ -60,19 +59,15 @@ func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {
 	version := c.FormValue("version")
 	inf.ChartVersion = version
 
+	inf.Tag = c.FormValue("tag")
+
 	// from auth lookup
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	inf.OrgID = ou.OrgID
 	inf.UserID = ou.UserID
-
 	inf.ChartVersion = version
 
-	skeletonBaseID := c.FormValue("skeletonBaseID")
-	if len(skeletonBaseID) >= 1 {
-		inf.TopologySkeletonBaseID = string_utils.IntStringParser(skeletonBaseID)
-	} else {
-		inf.TopologySkeletonBaseID = 0
-	}
+	inf.SkeletonBaseName = c.FormValue("skeletonBaseName")
 
 	err = inf.InsertInfraBase(ctx)
 	if err != nil {
@@ -90,8 +85,8 @@ func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {
 	}
 
 	resp := TopologyCreateResponse{
-		TopologyID:     inf.TopologyID,
-		SkeletonBaseID: inf.SkeletonBaseID,
+		TopologyID:       inf.TopologyID,
+		SkeletonBaseName: inf.SkeletonBaseName,
 	}
 	return c.JSON(http.StatusOK, resp)
 }

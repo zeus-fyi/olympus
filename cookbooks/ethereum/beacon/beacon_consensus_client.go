@@ -22,7 +22,7 @@ var ConsensusClientChart = zeus_req_types.TopologyCreateRequest{
 	ChartDescription: "lighthouse-hercules",
 	Version:          fmt.Sprintf("v0.0.%d", time.Now().Unix()),
 
-	SkeletonBaseID: LighthouseSkeletonBaseID,
+	SkeletonBaseName: "lighthouse",
 }
 
 // BeaconConsensusClientChartPath DirOut is where it will write a copy of the chart you uploaded, which helps verify the workload is correct

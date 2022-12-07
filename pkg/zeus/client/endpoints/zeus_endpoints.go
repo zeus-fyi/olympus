@@ -9,6 +9,9 @@ const InfraCreateClassV1Path = "/v1/infra/class/create"
 // InfraAddBasesToClassV1Path adds base relationship to class
 const InfraAddBasesToClassV1Path = "/v1/infra/class/bases/create"
 
+// InfraAddSkeletonBasesToBaseClassV1Path adds skeleton base relationship to base class
+const InfraAddSkeletonBasesToBaseClassV1Path = "/v1/infra/class/skeleton/bases/create"
+
 // InfraReadChartV1Path reads the chart workload you uploaded
 const InfraReadChartV1Path = "/v1/infra/read/chart"
 

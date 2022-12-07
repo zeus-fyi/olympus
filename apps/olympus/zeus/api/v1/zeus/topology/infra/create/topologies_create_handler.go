@@ -13,7 +13,7 @@ func CreateTopologyInfraActionRequestHandler(c echo.Context) error {
 }
 
 func CreateTopologyClassActionRequestHandler(c echo.Context) error {
-	request := new(TopologyCreateClusterRequest)
+	request := new(TopologyCreateOrAddBasesToClassesRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
@@ -21,9 +21,17 @@ func CreateTopologyClassActionRequestHandler(c echo.Context) error {
 }
 
 func UpdateTopologyClassActionRequestHandler(c echo.Context) error {
-	request := new(TopologyCreateClusterRequest)
+	request := new(TopologyCreateOrAddBasesToClassesRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
 	return request.AddBasesToTopologyClusterClass(c)
+}
+
+func CreateTopologySkeletonBasesActionRequestHandler(c echo.Context) error {
+	request := new(TopologyCreateOrAddBasesToClassesRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.AddSkeletonBaseClassToBase(c)
 }

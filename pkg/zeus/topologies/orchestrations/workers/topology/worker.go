@@ -25,7 +25,7 @@ func (t *TopologyWorker) ExecuteDeployCluster(ctx context.Context, params base_d
 		TaskQueue: t.TaskQueueName,
 	}
 	deployWf := deploy_workflow.NewDeployTopologyWorkflow()
-	wf := deployWf.GetWorkflow()
+	wf := deployWf.DeployClusterTopologyWorkflow
 	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
 	if err != nil {
 		log.Err(err).Msg("ExecuteDeploy")
@@ -41,7 +41,7 @@ func (t *TopologyWorker) ExecuteDeploy(ctx context.Context, params base_deploy_p
 		TaskQueue: t.TaskQueueName,
 	}
 	deployWf := deploy_workflow.NewDeployTopologyWorkflow()
-	wf := deployWf.GetWorkflow()
+	wf := deployWf.DeployTopologyWorkflow
 	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
 	if err != nil {
 		log.Err(err).Msg("ExecuteDeploy")

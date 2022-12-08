@@ -8,7 +8,6 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/stretchr/testify/suite"
-	test_base "github.com/zeus-fyi/olympus/test"
 )
 
 type ConfigMapTestSuite struct {
@@ -17,8 +16,8 @@ type ConfigMapTestSuite struct {
 
 func (s *ConfigMapTestSuite) TestK8sConfigMapYamlReader() {
 	cm := NewConfigMap()
-	test_base.ForceDirToTestDirLocation()
-	filepath := "./mocks/kubernetes_apps/demo/cm-demo.yaml"
+	//test_base.ForceDirToTestDirLocation()
+	filepath := "./cm-consensus-client.yaml"
 	jsonBytes, err := ReadYamlConfig(filepath)
 	err = json.Unmarshal(jsonBytes, &cm.K8sConfigMap)
 

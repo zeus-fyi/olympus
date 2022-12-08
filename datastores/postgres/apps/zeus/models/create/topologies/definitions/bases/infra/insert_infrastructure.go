@@ -54,8 +54,8 @@ func (i *InfraBaseTopology) SelectInfraTopologyQuery() {
 		i.CTE.Params = append(i.CTE.Params, i.OrgID, i.SkeletonBaseName, i.Tag)
 	} else {
 		insertTopInfraQuery.RawQuery = fmt.Sprintf(`
-		  INSERT INTO topology_infrastructure_components(topology_id, chart_package_id, topology_skeleton_base_id)
-		  VALUES ((SELECT topology_id FROM %s), (SELECT chart_package_id FROM %s), $8), $9 `,
+		  INSERT INTO topology_infrastructure_components(topology_id, chart_package_id, topology_skeleton_base_id, tag)
+		  VALUES ((SELECT topology_id FROM %s), (SELECT chart_package_id FROM %s), $8, $9)`,
 			insertTopQuery.QueryName, insertTopChartQuery.QueryName)
 		i.CTE.Params = append(i.CTE.Params, 0, i.Tag)
 	}

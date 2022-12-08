@@ -12,8 +12,8 @@ type Status struct {
 }
 
 type ClusterStatus struct {
-	ClusterName string
-	Status      string
+	ClusterName string `json:"clusterName"`
+	Status      string `json:"status"`
 }
 
 type DeployStatus struct {

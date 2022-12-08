@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	beacon_cookbooks "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacon"
+	beacon_cookbooks "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons"
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/test"
 )
@@ -36,7 +36,6 @@ func (t *TopologyDeployActionRequestTestSuite) TestDeployChart() {
 	resp, err := t.ZeusClient.DeployCluster(ctx, cd)
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(resp)
-
 }
 
 func TestTopologyDeployActionRequestTestSuite(t *testing.T) {

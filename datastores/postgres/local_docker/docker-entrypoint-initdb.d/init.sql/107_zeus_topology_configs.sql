@@ -35,7 +35,7 @@ CREATE TABLE "public"."topology_system_components" (
     "topology_system_component_name" text NOT NULL
 );
 ALTER TABLE "public"."topology_system_components" ADD CONSTRAINT "topology_system_components_pk" PRIMARY KEY ("topology_system_component_id");
-ALTER TABLE "public"."topology_system_components" ADD CONSTRAINT "system_component_name_unique_to_org" UNIQUE("topology_system_component_name", "topology_class_type_id", "org_id");
+ALTER TABLE "public"."topology_system_components" ADD CONSTRAINT "system_component_name_unique_to_org" UNIQUE("topology_system_component_name", "org_id");
 
 -- links components to build higher level topologies eg. beacon + exec = full eth2 beacon cluster
 
@@ -75,6 +75,6 @@ CREATE TABLE "public"."topology_infrastructure_components" (
 ALTER TABLE "public"."topology_infrastructure_components" ADD CONSTRAINT "topology_infrastructure_components_pk" PRIMARY KEY ("topology_infrastructure_component_id");
 
 -- ALTER TABLE topology_infrastructure_components ADD COLUMN tag text NOT NULL DEFAULT 'latest';
--- ALTER TABLE topology_infrastructure_components ADD COLUMN topology_skeleton_base_id int8;
+-- ALTER TABLE topology_infrastructure_components ADD COLUMN topology_skeleton_base_id int8 SET NOT NULL;
 -- ALTER TABLE topology_infrastructure_components ALTER COLUMN topology_skeleton_base_id SET NOT NULL;
 -- ALTER TABLE topology_infrastructure_components ADD CONSTRAINT topology_infrastructure_components_fk FOREIGN KEY (topology_skeleton_base_id) REFERENCES topology_skeleton_base_components (topology_skeleton_base_id) MATCH FULL;

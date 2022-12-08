@@ -21,16 +21,16 @@ func (cm *ConfigMap) ParseDBConfigToK8s(pcSlice common_conversions.ParentChildDB
 }
 
 func (cm *ConfigMap) ParseCmDataToK8s(pcSlice []common_conversions.PC) error {
+	m := make(map[string]string)
 	for _, pc := range pcSlice {
 		subClassName := pc.ChartSubcomponentChildClassTypeName
 		key := pc.ChartSubcomponentKeyName
 		value := pc.ChartSubcomponentValue
 		switch subClassName {
 		case "Data":
-			m := make(map[string]string)
 			m[key] = value
-			cm.K8sConfigMap.Data = m
 		}
 	}
+	cm.K8sConfigMap.Data = m
 	return nil
 }

@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/cookbooks"
-	beacon_cookbooks "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacon"
+	beacon_cookbooks "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/test"

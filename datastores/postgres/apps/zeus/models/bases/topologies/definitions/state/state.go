@@ -11,6 +11,11 @@ type Status struct {
 	DeployStatus
 }
 
+type ClusterStatus struct {
+	ClusterName string `json:"clusterName"`
+	Status      string `json:"status"`
+}
+
 type DeployStatus struct {
 	autogen_bases.TopologiesDeployed
 }
@@ -54,4 +59,12 @@ func NewTopologyStatus() Status {
 			TopologyID:     0,
 		}}}
 	return s
+}
+
+func NewClusterTopologyStatus(name string) ClusterStatus {
+	c := ClusterStatus{
+		ClusterName: name,
+		Status:      "Pending",
+	}
+	return c
 }

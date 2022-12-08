@@ -7,6 +7,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
+	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 )
 
 type TopologyWorkflowRequest struct {
@@ -15,6 +16,14 @@ type TopologyWorkflowRequest struct {
 	Host    string
 
 	chart_workload.TopologyBaseInfraWorkload
+}
+
+type ClusterTopologyWorkflowRequest struct {
+	ClusterName string
+	TopologyIDs []int
+	CloudCtxNS  zeus_common_types.CloudCtxNs
+	OrgUser     org_users.OrgUser
+	Host        string
 }
 
 func (t *TopologyWorkflowRequest) GetURL(prefix, target string) url.URL {

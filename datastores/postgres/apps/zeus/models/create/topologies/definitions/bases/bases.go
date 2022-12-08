@@ -46,7 +46,6 @@ func InsertBasesQ(ctx context.Context, orgID int, name string, cte *sql_query_te
 		basesCTE.AddValues(baseVal.OrgID, class_types.BaseClassTypeID, baseVal.TopologyBaseName, ts.UnixTimeStampNow(), "")
 		basesCTE.ValuesOverride[4] = "(SELECT topology_system_component_id FROM cte_select_sys_component_id)"
 	}
-
 	return []sql_query_templates.SubCTE{fetchClusterInfo, basesCTE}
 }
 

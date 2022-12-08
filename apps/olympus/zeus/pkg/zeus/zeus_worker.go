@@ -12,8 +12,20 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
+	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/helpers"
 )
+
+func ExecuteDeployClusterWorkflow(c echo.Context, ctx context.Context, params base_deploy_params.ClusterTopologyWorkflowRequest) error {
+	err := topology_worker.Worker.ExecuteDeployCluster(ctx, params)
+	if err != nil {
+		log.Err(err).Interface("orgUser", params.OrgUser).Msg("ExecuteDeployClusterWorkflow, ExecuteWorkflow error")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	resp := topology_deployment_status.NewClusterTopologyStatus(params.ClusterName)
+	resp.Status = topology_deployment_status.DeployPending
+	return c.JSON(http.StatusAccepted, resp)
+}
 
 func ExecuteDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDeploy kns.TopologyKubeCtxNs, nk chart_workload.TopologyBaseInfraWorkload) error {
 	tar := helpers.PackageCommonTopologyRequest(knsDeploy, ou, nk)

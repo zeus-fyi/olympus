@@ -18,6 +18,22 @@ type TopologyWorker struct {
 	temporal_base.Worker
 }
 
+func (t *TopologyWorker) ExecuteDeployCluster(ctx context.Context, params base_deploy_params.ClusterTopologyWorkflowRequest) error {
+	c := t.ConnectTemporalClient()
+	defer c.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: t.TaskQueueName,
+	}
+	deployWf := deploy_workflow.NewDeployTopologyWorkflow()
+	wf := deployWf.DeployClusterTopologyWorkflow
+	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
+	if err != nil {
+		log.Err(err).Msg("ExecuteDeploy")
+		return err
+	}
+	return err
+}
+
 func (t *TopologyWorker) ExecuteDeploy(ctx context.Context, params base_deploy_params.TopologyWorkflowRequest) error {
 	c := t.ConnectTemporalClient()
 	defer c.Close()
@@ -25,7 +41,7 @@ func (t *TopologyWorker) ExecuteDeploy(ctx context.Context, params base_deploy_p
 		TaskQueue: t.TaskQueueName,
 	}
 	deployWf := deploy_workflow.NewDeployTopologyWorkflow()
-	wf := deployWf.GetWorkflow()
+	wf := deployWf.DeployTopologyWorkflow
 	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
 	if err != nil {
 		log.Err(err).Msg("ExecuteDeploy")

@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
+	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 )
 
 type TopologyAuthTestSuite struct {
@@ -19,7 +19,7 @@ func (s *TopologyTestSuite) TestDeployAuth() {
 	tr := NewInfraTopologyReader()
 	tr.OrgID = 7138983863666903883
 
-	newKns := kns.NewKns()
+	newKns := zeus_common_types.CloudCtxNs{}
 	newKns.CloudProvider = "do"
 	newKns.Region = "sfo3"
 	newKns.Context = "context"

@@ -18,6 +18,7 @@ import (
 func ExternalDeployRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
 	e.POST("/deploy", create_or_update_deploy.TopologyDeploymentHandler)
+	e.POST("/deploy/cluster", create_or_update_deploy.ClusterTopologyDeploymentHandler)
 
 	e.POST("/deploy/clean/namespace", clean_deploy_request.TopologyCleanNamespaceHandler)
 	e.POST("/deploy/replace", replace_topology.TopologyDeploymentReplaceHandler)

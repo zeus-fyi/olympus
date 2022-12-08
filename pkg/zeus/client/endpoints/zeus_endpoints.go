@@ -23,8 +23,11 @@ const InfraReadTopologyV1Path = "/v1/infra/read/topologies"
 // DeployStatusV1Path gets the topology deployment status updates
 const DeployStatusV1Path = "/v1/deploy/status"
 
-// DeployTopologyV1Path deploys topology
+// DeployTopologyV1Path deploys a topology
 const DeployTopologyV1Path = "/v1/deploy"
+
+// DeployClusterTopologyV1Path deploys a cluster topology
+const DeployClusterTopologyV1Path = "/v1/deploy/cluster"
 
 // ReplaceTopologyV1Path replaces topology at specified location with a temporary override that's local to that location
 const ReplaceTopologyV1Path = "/v1/deploy/replace"

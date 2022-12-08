@@ -7,6 +7,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
 	zeus_endpoints "github.com/zeus-fyi/olympus/pkg/zeus/client/endpoints"
+	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/base_request"
@@ -23,7 +24,7 @@ func (d *DeployTopologyActivities) GetActivities() ActivitiesSlice {
 		d.CreateNamespace,
 		d.DeployDeployment, d.DeployStatefulSet,
 		d.DeployConfigMap,
-		d.DeployService, d.DeployIngress,
+		d.DeployService, d.DeployIngress, d.DeployClusterTopology,
 	}
 }
 
@@ -45,4 +46,25 @@ func (d *DeployTopologyActivities) postDeployTarget(target string, params base_r
 
 func (d *DeployTopologyActivities) GetDeployURL(target string) url.URL {
 	return d.GetURL(zeus_endpoints.InternalDeployPath, target)
+}
+
+func (d *DeployTopologyActivities) postDeployClusterTopology(params zeus_req_types.TopologyDeployRequest) error {
+	if len(d.Host) <= 0 {
+		d.Host = "https://api.zeus.fyi"
+	}
+	u := url.URL{
+		Host: d.Host,
+	}
+	client := resty.New()
+	client.SetBaseURL(u.Host)
+	resp, err := client.R().
+		SetAuthToken(api_auth_temporal.Bearer).
+		SetBody(params).
+		Post(zeus_endpoints.DeployTopologyV1Path)
+
+	if err != nil || resp.StatusCode() != http.StatusOK {
+		log.Err(err).Interface("path", u.Path).Msg("DeployTopologyActivities: postDeployClusterTopology failed")
+		return err
+	}
+	return err
 }

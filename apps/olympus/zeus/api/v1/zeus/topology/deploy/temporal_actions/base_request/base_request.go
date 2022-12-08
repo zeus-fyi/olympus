@@ -11,3 +11,12 @@ type InternalDeploymentActionRequest struct {
 	OrgUser org_users.OrgUser
 	chart_workload.TopologyBaseInfraWorkload
 }
+
+type ClusterDeployActionRequest struct {
+	Kns     kns.TopologyKubeCtxNs
+	OrgUser org_users.OrgUser
+}
+
+type ExternalDeploymentActionRequest struct {
+	kns.TopologyKubeCtxNs
+}

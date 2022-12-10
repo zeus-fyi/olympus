@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: cm-geth
+  name: cm-exec-client
 data:
   start.sh: |-
     #!/bin/sh
@@ -20,5 +20,10 @@ data:
       --authrpc.jwtsecret=/data/jwt.hex \
       --authrpc.addr=0.0.0.0 \
       --authrpc.port=8551 \
-      --authrpc.vhosts=* 
-    
+      --authrpc.vhosts=*
+  download.sh: |-
+    #!/bin/sh
+    exec snapshot --downloadURL="" --clientName="geth"
+  pause.sh: |-
+    #!/bin/sh
+    exec sleep 100000000000000000

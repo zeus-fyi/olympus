@@ -1,9 +1,11 @@
-package helpers
+package zeus
 
 import (
+	"github.com/labstack/echo/v4"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
+	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 )
 
@@ -15,4 +17,14 @@ func PackageCommonTopologyRequest(topCtxNs kns.TopologyKubeCtxNs, ou org_users.O
 		TopologyBaseInfraWorkload: nk,
 	}
 	return tar
+}
+
+func ConvertCloudCtxNsFormToType(c echo.Context) zeus_common_types.CloudCtxNs {
+	cloudCtx := zeus_common_types.NewCloudCtxNs()
+	cloudCtx.CloudProvider = c.FormValue("cloudProvider")
+	cloudCtx.Region = c.FormValue("region")
+	cloudCtx.Context = c.FormValue("context")
+	cloudCtx.Namespace = c.FormValue("namespace")
+	cloudCtx.Env = c.FormValue("env")
+	return cloudCtx
 }

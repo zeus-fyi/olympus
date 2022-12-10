@@ -29,7 +29,7 @@ func podsPortForwardRequestToAllPods(c echo.Context, request *PodActionRequest) 
 
 	for _, pod := range pods.Items {
 		request.PodName = pod.GetName()
-		bytesResp, reqErr := podsPortForwardRequest(request)
+		bytesResp, reqErr := PodsPortForwardRequest(request)
 		if reqErr != nil {
 			log.Err(reqErr).Msgf("port-forwarded request to pod %s failed", pod.GetName())
 			return c.JSON(http.StatusBadRequest, "port-forwarded request failed")
@@ -40,9 +40,9 @@ func podsPortForwardRequestToAllPods(c echo.Context, request *PodActionRequest) 
 	return c.JSON(http.StatusOK, respBody)
 }
 
-func podsPortForwardRequest(request *PodActionRequest) ([]byte, error) {
+func PodsPortForwardRequest(request *PodActionRequest) ([]byte, error) {
 	ctx := context.Background()
-	log.Ctx(ctx).Debug().Msg("start podsPortForwardRequest")
+	log.Ctx(ctx).Debug().Msg("start PodsPortForwardRequest")
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)

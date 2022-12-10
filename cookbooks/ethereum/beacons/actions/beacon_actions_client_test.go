@@ -8,35 +8,10 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/cookbooks"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
-	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
-	zeus_pods_reqs "github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types/pods"
-	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
 )
 
 var ctx = context.Background()
-
-var basePar = zeus_pods_reqs.PodActionRequest{
-	TopologyDeployRequest: beaconKnsReq,
-	PodName:               "",
-	FilterOpts:            nil,
-	ClientReq:             nil,
-	DeleteOpts:            nil,
-}
-
-// set your own topologyID here after uploading a chart workload
-var beaconKnsReq = zeus_req_types.TopologyDeployRequest{
-	TopologyID: 1669159384971627008,
-	CloudCtxNs: beaconCloudCtxNs,
-}
-
-var beaconCloudCtxNs = zeus_common_types.CloudCtxNs{
-	CloudProvider: "do",
-	Region:        "sfo3",
-	Context:       "do-sfo3-dev-do-sfo3-zeus",
-	Namespace:     "beacon", // set with your own namespace
-	Env:           "dev",
-}
 
 type BeaconActionsTestSuite struct {
 	test_suites_base.TestSuite

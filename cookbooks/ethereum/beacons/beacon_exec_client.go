@@ -15,21 +15,20 @@ var deployExecClientKnsReq = zeus_req_types.TopologyDeployRequest{
 	CloudCtxNs: BeaconCloudCtxNs,
 }
 
-// chart workload metadata
 var ExecClientChart = zeus_req_types.TopologyCreateRequest{
-	TopologyName:     "geth",
-	ChartName:        "geth-hercules",
-	ChartDescription: "geth-hercules",
+	TopologyName:     "gethHercules",
+	ChartName:        "gethHercules",
+	ChartDescription: "gethHercules",
 	Version:          fmt.Sprintf("v0.0.%d", time.Now().Unix()),
 
-	SkeletonBaseName: "geth",
+	SkeletonBaseName: "gethHercules",
 }
 
 var BeaconExecClientChartPath = filepaths.Path{
 	PackageName: "",
 	DirIn:       "./ethereum/beacon/infra/exec_client",
 	DirOut:      "./ethereum/outputs",
-	FnIn:        "geth", // filename for your gzip workload
+	FnIn:        "gethHercules", // filename for your gzip workload
 	FnOut:       "",
 	Env:         "",
 	FilterFiles: string_utils.FilterOpts{},

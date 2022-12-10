@@ -15,6 +15,7 @@ type UploadChainSnapshotRequest struct {
 }
 
 func (t *UploadChainSnapshotRequest) Upload(c echo.Context) error {
+	log.Info().Msg("UploadChainSnapshotRequest: Upload Sync Starting")
 	pos := poseidon.NewPoseidon(athena.AthenaS3Manager)
 	ctx := context.Background()
 	err := pos.SyncUpload(ctx, t.BucketRequest)
@@ -22,5 +23,6 @@ func (t *UploadChainSnapshotRequest) Upload(c echo.Context) error {
 		log.Err(err).Msg("Sync upload failed")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
+	log.Info().Msg("UploadChainSnapshotRequest: Upload Sync Finished")
 	return c.JSON(http.StatusOK, nil)
 }

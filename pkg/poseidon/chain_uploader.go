@@ -69,6 +69,7 @@ func (p *Poseidon) UploadSnapshot(ctx context.Context, br BucketRequest) error {
 
 func (p *Poseidon) SyncUpload(ctx context.Context, br BucketRequest) error {
 	ctx = context.WithValue(ctx, "func", "SyncUpload")
+	br.CompressionType = "none"
 	spacesFolderLocation := fmt.Sprintf("spaces-sfo3:zeus-fyi-snapshots/%s", br.GetBucketKey())
 	cmd := exec.Command("rclone", "sync", "data", spacesFolderLocation)
 	err := cmd.Run()

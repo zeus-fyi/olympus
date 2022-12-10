@@ -89,6 +89,7 @@ func (p *Poseidon) GzipDownloadAndDec(ctx context.Context, br BucketRequest) err
 
 func (p *Poseidon) SyncDownload(ctx context.Context, br BucketRequest) error {
 	ctx = context.WithValue(ctx, "func", "SyncDownload")
+	br.CompressionType = "none"
 	spacesFolderLocation := fmt.Sprintf("spaces-sfo3:zeus-fyi-snapshots/%s", br.GetBucketKey())
 	cmd := exec.Command("rclone", "copy", spacesFolderLocation, "data")
 	err := cmd.Run()

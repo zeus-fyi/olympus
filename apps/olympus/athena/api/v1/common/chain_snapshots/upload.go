@@ -15,16 +15,12 @@ type UploadChainSnapshotRequest struct {
 }
 
 func (t *UploadChainSnapshotRequest) Upload(c echo.Context) error {
-	// upload procedure
 	pos := poseidon.NewPoseidon(athena.AthenaS3Manager)
 	ctx := context.Background()
-	pos.FnIn = t.ClientName
-	err := pos.Lz4CompressAndUpload(ctx, t.BucketRequest)
+	err := pos.SyncUpload(ctx, t.BucketRequest)
 	if err != nil {
-		log.Err(err).Msg("UploadChainSnapshotRequest")
+		log.Err(err).Msg("Sync upload failed")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	pos.FnIn = t.ClientName + ".tar.lz4"
-	err = pos.RemoveFileInPath()
 	return c.JSON(http.StatusOK, nil)
 }

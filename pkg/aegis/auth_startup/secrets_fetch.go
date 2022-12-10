@@ -12,11 +12,13 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 const (
 	pgSecret         = "secrets/postgres-auth.txt"
 	doctlSecret      = "secrets/doctl.txt"
+	rcloneSecret     = "secrets/rclone.conf"
 	encryptedSecret  = "secrets.tar.gz.age"
 	secretBucketName = "zeus-fyi"
 )
@@ -84,5 +86,35 @@ func RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, auth
 	sw := SecretsWrapper{}
 	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
 	log.Info().Msg("RunArtemisDigitalOceanS3BucketObjSecretsProcedure succeeded")
+	return inMemSecrets, sw
+}
+
+func RunAthenaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {
+	log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjSecretsProcedure starting")
+
+	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
+	log.Info().Msg("RunDigitalOceanS3BucketObjSecretsProcedure finished")
+	sw := SecretsWrapper{}
+	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
+
+	p := filepaths.Path{
+		PackageName: "",
+		DirIn:       "",
+		DirOut:      "/.config/rclone",
+		FnOut:       "rclone.conf",
+		Env:         "",
+		Metadata:    nil,
+		FilterFiles: string_utils.FilterOpts{},
+	}
+	rcloneConf, err := inMemSecrets.ReadFile(rcloneSecret)
+	if err != nil {
+		log.Err(err).Msg("RunAthenaDigitalOceanS3BucketObjSecretsProcedure failed to set rclone conf")
+		misc.DelayedPanic(err)
+	}
+	err = p.WriteToFileOutPath(rcloneConf)
+	if err != nil {
+		log.Err(err).Msg("RunAthenaDigitalOceanS3BucketObjSecretsProcedure failed to set rclone conf")
+		misc.DelayedPanic(err)
+	}
 	return inMemSecrets, sw
 }

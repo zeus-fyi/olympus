@@ -2,11 +2,14 @@ package poseidon
 
 import (
 	"context"
+	"fmt"
+	"os/exec"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/rs/zerolog/log"
 	s3reader "github.com/zeus-fyi/olympus/datastores/s3/read"
+	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 )
 
 func (p *Poseidon) Download(ctx context.Context, br BucketRequest) error {
@@ -80,6 +83,18 @@ func (p *Poseidon) GzipDownloadAndDec(ctx context.Context, br BucketRequest) err
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("GzipDownloadAndDec: GzipDecompress")
 		return err
+	}
+	return err
+}
+
+func (p *Poseidon) SyncDownload(ctx context.Context, br BucketRequest) error {
+	ctx = context.WithValue(ctx, "func", "SyncDownload")
+	spacesFolderLocation := fmt.Sprintf("spaces-sfo3:zeus-fyi-snapshots/%s", br.GetBucketKey())
+	cmd := exec.Command("rclone", "copy", spacesFolderLocation, "data")
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal().Msg("Poseidon: SyncDownload failed")
+		misc.DelayedPanic(err)
 	}
 	return err
 }

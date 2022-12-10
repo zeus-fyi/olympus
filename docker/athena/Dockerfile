@@ -39,6 +39,6 @@ COPY --from=src_builder /app/ca.key /etc/ssl/certs
 COPY --from=src_builder /app/athena /usr/bin/athena
 COPY --from=rclone_builder /usr/bin/rclone /usr/bin/rclone
 
-RUN mkdir -p /.config/rclone
+RUN mkdir -p ~/.config/rclone
 
 EXPOSE 9005

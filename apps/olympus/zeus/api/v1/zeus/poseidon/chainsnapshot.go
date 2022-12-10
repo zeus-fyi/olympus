@@ -32,14 +32,13 @@ func SnapshotHandler(c echo.Context) error {
 	return request.SnapshotProcedure(c)
 }
 
-// TODO refactor
 func (s *InternalDeploymentActionRequest) SnapshotProcedure(c echo.Context) error {
 	request := new(InternalDeploymentActionRequest)
 	if err := c.Bind(request); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	ctx := context.Background()
-	_, err := zeus.K8Util.ConfigMapKeySwap(ctx, request.Kns.CloudCtxNs, nil, request.ConfigMapName, "start.sh", "pause.sh")
+	_, err := zeus.K8Util.ConfigMapKeySwap(ctx, request.Kns.CloudCtxNs, request.ConfigMapName, "start.sh", "pause.sh", nil)
 	if err != nil {
 		log.Err(err).Msg("SnapshotProcedure")
 		return c.JSON(http.StatusInternalServerError, err)
@@ -90,7 +89,7 @@ func (s *InternalDeploymentActionRequest) SnapshotProcedure(c echo.Context) erro
 		log.Err(err).Msg("SnapshotProcedure")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	_, _ = zeus.K8Util.ConfigMapKeySwap(ctx, request.Kns.CloudCtxNs, nil, request.ConfigMapName, "start.sh", "pause.sh")
+	_, _ = zeus.K8Util.ConfigMapKeySwap(ctx, request.Kns.CloudCtxNs, request.ConfigMapName, "start.sh", "pause.sh", nil)
 	err = zeus.K8Util.DeleteFirstPodLike(ctx, request.Kns.CloudCtxNs, fmt.Sprintf("zeus-%s-0", request.ProtocolName), nil, &filter)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("PodsDeleteRequest: DeleteFirstPodLike")

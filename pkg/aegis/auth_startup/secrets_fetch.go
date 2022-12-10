@@ -100,7 +100,7 @@ func RunAthenaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authC
 	p := filepaths.Path{
 		PackageName: "",
 		DirIn:       "",
-		DirOut:      "/.config/rclone",
+		DirOut:      "/root/.config/rclone",
 		FnOut:       "rclone.conf",
 		Env:         "",
 		Metadata:    nil,

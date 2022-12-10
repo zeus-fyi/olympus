@@ -1,11 +1,8 @@
 package zeus_core
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"fmt"
-	"io"
 	"strings"
 
 	"github.com/rs/zerolog/log"
@@ -19,30 +16,6 @@ func (k *K8Util) GetPod(ctx context.Context, name, ns string) (*v1.Pod, error) {
 	log.Ctx(ctx).Debug().Msg("GetPod")
 	p, err := k.kc.CoreV1().Pods(ns).Get(ctx, name, metav1.GetOptions{})
 	return p, err
-}
-
-func (k *K8Util) GetPodLogs(ctx context.Context, name, ns string, logOpts *v1.PodLogOptions, filter *string_utils.FilterOpts) ([]byte, error) {
-	log.Ctx(ctx).Debug().Msg("GetPodLogs")
-	if logOpts == nil {
-		logOpts = &v1.PodLogOptions{}
-	}
-	req := k.kc.CoreV1().Pods(ns).GetLogs(name, logOpts)
-	buf := new(bytes.Buffer)
-	podLogs, err := req.Stream(ctx)
-	defer func(podLogs io.ReadCloser) {
-		closeErr := podLogs.Close()
-		if closeErr != nil {
-			fmt.Printf("%s", closeErr.Error())
-		}
-	}(podLogs)
-	if err != nil {
-		return buf.Bytes(), err
-	}
-	_, err = io.Copy(buf, podLogs)
-	if err != nil {
-		return buf.Bytes(), err
-	}
-	return buf.Bytes(), err
 }
 
 func (k *K8Util) GetPods(ctx context.Context, ns string, opts metav1.ListOptions) (*v1.PodList, error) {

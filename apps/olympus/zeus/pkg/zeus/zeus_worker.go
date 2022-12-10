@@ -13,7 +13,6 @@ import (
 	topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
-	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/helpers"
 )
 
 func ExecuteDeployClusterWorkflow(c echo.Context, ctx context.Context, params base_deploy_params.ClusterTopologyWorkflowRequest) error {
@@ -28,7 +27,7 @@ func ExecuteDeployClusterWorkflow(c echo.Context, ctx context.Context, params ba
 }
 
 func ExecuteDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDeploy kns.TopologyKubeCtxNs, nk chart_workload.TopologyBaseInfraWorkload) error {
-	tar := helpers.PackageCommonTopologyRequest(knsDeploy, ou, nk)
+	tar := PackageCommonTopologyRequest(knsDeploy, ou, nk)
 	err := topology_worker.Worker.ExecuteDeploy(ctx, tar)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("DeployTopology, ExecuteWorkflow error")
@@ -42,7 +41,7 @@ func ExecuteDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.Org
 }
 
 func ExecuteDestroyDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDestroyDeploy kns.TopologyKubeCtxNs, nk chart_workload.TopologyBaseInfraWorkload) error {
-	tar := helpers.PackageCommonTopologyRequest(knsDestroyDeploy, ou, nk)
+	tar := PackageCommonTopologyRequest(knsDestroyDeploy, ou, nk)
 	err := topology_worker.Worker.ExecuteDestroyDeploy(ctx, tar)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("DestroyDeployedTopology, ExecuteWorkflow error")
@@ -56,7 +55,7 @@ func ExecuteDestroyDeployWorkflow(c echo.Context, ctx context.Context, ou org_us
 }
 
 func ExecuteCleanDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsCleanDeploy kns.TopologyKubeCtxNs, nk chart_workload.TopologyBaseInfraWorkload) error {
-	tar := helpers.PackageCommonTopologyRequest(knsCleanDeploy, ou, nk)
+	tar := PackageCommonTopologyRequest(knsCleanDeploy, ou, nk)
 	err := topology_worker.Worker.ExecuteCleanDeploy(ctx, tar)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("ExecuteCleanDeploy, ExecuteWorkflow error")

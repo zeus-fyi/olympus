@@ -14,7 +14,7 @@ type ConfigMapsActionRequestTestSuite struct {
 	test.TopologyActionRequestTestSuite
 }
 
-func (t *ConfigMapsActionRequestTestSuite) TestUpload() {
+func (t *ConfigMapsActionRequestTestSuite) TestCmKeySwap() {
 	t.InitLocalConfigs()
 	t.Eg.POST("/configmaps", ConfigMapActionRequestHandler)
 
@@ -28,8 +28,10 @@ func (t *ConfigMapsActionRequestTestSuite) TestUpload() {
 	ctx := context.Background()
 	defer t.E.Shutdown(ctx)
 
+	reqHeader := beacon_cookbooks.DeployConsensusClientKnsReq
+	reqHeader.Namespace = "ethereum"
 	cmr := zeus_configmap_reqs.ConfigMapActionRequest{
-		TopologyDeployRequest: beacon_cookbooks.DeployConsensusClientKnsReq,
+		TopologyDeployRequest: reqHeader,
 		Action:                zeus_configmap_reqs.KeySwapAction,
 		ConfigMapName:         "cm-lighthouse",
 		Keys: zeus_configmap_reqs.KeySwap{
@@ -40,6 +42,37 @@ func (t *ConfigMapsActionRequestTestSuite) TestUpload() {
 	}
 
 	r, err := t.ZeusClient.SwapConfigMapKeys(ctx, cmr)
+	t.Require().Nil(err)
+	t.Assert().NotEmpty(r)
+}
+
+func (t *ConfigMapsActionRequestTestSuite) TestSetOrCreateKeyFromExisting() {
+	t.InitLocalConfigs()
+	t.Eg.POST("/configmaps", ConfigMapActionRequestHandler)
+
+	start := make(chan struct{}, 1)
+	go func() {
+		close(start)
+		_ = t.E.Start(":9010")
+	}()
+
+	<-start
+	ctx := context.Background()
+	defer t.E.Shutdown(ctx)
+	reqHeader := beacon_cookbooks.DeployConsensusClientKnsReq
+	reqHeader.Namespace = "ethereum"
+	cmr := zeus_configmap_reqs.ConfigMapActionRequest{
+		TopologyDeployRequest: reqHeader,
+		Action:                zeus_configmap_reqs.KeySwapAction,
+		ConfigMapName:         "cm-lighthouse",
+		Keys: zeus_configmap_reqs.KeySwap{
+			KeyOne: "pause.sh",
+			KeyTwo: "start.sh",
+		},
+		FilterOpts: nil,
+	}
+
+	r, err := t.ZeusClient.SetOrCreateKeyFromConfigMapKey(ctx, cmr)
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(r)
 }

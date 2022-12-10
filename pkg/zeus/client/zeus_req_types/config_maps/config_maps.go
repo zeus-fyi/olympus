@@ -6,7 +6,8 @@ import (
 )
 
 const (
-	KeySwapAction = "key-swap"
+	KeySwapAction              = "key-swap"
+	SetOrCreateKeyFromExisting = "set-or-create-from-key"
 )
 
 type ConfigMapActionRequest struct {
@@ -17,6 +18,7 @@ type ConfigMapActionRequest struct {
 	FilterOpts    *string_utils.FilterOpts
 }
 
+// KeySwap If using create new key from existing then keyOne=keyToCopy, keyTwo=keyToSetOrCreateFromCopy
 type KeySwap struct {
 	KeyOne string `json:"keyOne"`
 	KeyTwo string `json:"keyTwo"`

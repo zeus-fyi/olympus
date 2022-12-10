@@ -25,8 +25,12 @@ func ConfigMapActionRequestHandler(c echo.Context) error {
 	if authed != true {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	if request.Action == "key-swap" {
+	switch request.Action {
+	case "key-swap":
 		return request.KeySwap(c)
+	case "set-or-create-from-key":
+		return request.KeySetOrCreateFromExistingKey(c)
+	default:
+		return c.JSON(http.StatusBadRequest, nil)
 	}
-	return c.JSON(http.StatusBadRequest, nil)
 }

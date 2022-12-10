@@ -15,20 +15,14 @@ type DownloadChainSnapshotRequest struct {
 }
 
 func (t *DownloadChainSnapshotRequest) Download(c echo.Context) error {
-	// download procedure
+	log.Info().Msg("DownloadChainSnapshotRequest: Download Sync Starting")
 	pos := poseidon.NewPoseidon(athena.AthenaS3Manager)
 	ctx := context.Background()
-	pos.FnIn = t.ClientName + ".tar.lz4"
-	pos.FnOut = t.ClientName
-	err := pos.Lz4DownloadAndDec(ctx, t.BucketRequest)
+	err := pos.SyncDownload(ctx, t.BucketRequest)
 	if err != nil {
-		log.Err(err).Msg("DownloadChainSnapshotRequest: Lz4DownloadAndDec")
+		log.Err(err).Msg("Sync")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	err = pos.RemoveFileInPath()
-	if err != nil {
-		log.Err(err).Msg("DownloadChainSnapshotRequest: Lz4DownloadAndDec")
-		return c.JSON(http.StatusInternalServerError, err)
-	}
+	log.Info().Msg("DownloadChainSnapshotRequest: Download Sync Finished")
 	return c.JSON(http.StatusOK, nil)
 }

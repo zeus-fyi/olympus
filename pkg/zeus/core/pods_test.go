@@ -50,12 +50,12 @@ func (s *PodsTestSuite) TestPodPortForward() {
 		close(stopChan)
 	}()
 
-	fmt.Println("do port-forwarded commands")
-	r := c.Get(ctx, "http://localhost:9000/health")
-	s.Require().Nil(r.Err)
-
-	fmt.Println("end port-forwarded commands")
-	fmt.Println("exiting")
+	//fmt.Println("do port-forwarded commands")
+	//r := c.Get(ctx, "http://localhost:9000/health")
+	//s.Require().Nil(r.Err)
+	//
+	//fmt.Println("end port-forwarded commands")
+	//fmt.Println("exiting")
 }
 
 func (s *PodsTestSuite) TestGetPods() {

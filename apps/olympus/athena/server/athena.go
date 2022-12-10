@@ -34,7 +34,7 @@ func Athena() {
 	switch env {
 	case "production":
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
-		_, sw := auth_startup.RunDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+		_, sw := auth_startup.RunAthenaDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		cfg.PGConnStr = sw.PostgresAuth
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()

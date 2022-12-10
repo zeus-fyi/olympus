@@ -12,12 +12,20 @@ type ConfigMapTestSuite struct {
 	K8TestSuite
 }
 
-func (ing *ConfigMapTestSuite) TestGetConfigMap() {
+func (c *ConfigMapTestSuite) TestGetConfigMap() {
 	ctx := context.Background()
-	var kns = zeus_common_types.CloudCtxNs{Env: "", CloudProvider: "", Region: "", Context: "data", Namespace: "eth-indexer"}
-	pods, err := ing.K.GetConfigMapWithKns(ctx, kns, "cm-eth-indexer", nil)
-	ing.Require().Nil(err)
-	ing.Require().NotEmpty(pods)
+	var kns = zeus_common_types.CloudCtxNs{Env: "", CloudProvider: "", Region: "", Context: "", Namespace: "ethereum"}
+	cm, err := c.K.GetConfigMapWithKns(ctx, kns, "cm-lighthouse", nil)
+	c.Require().Nil(err)
+	c.Require().NotEmpty(cm)
+}
+
+func (c *ConfigMapTestSuite) TestSwitchCmKeys() {
+	ctx := context.Background()
+	var kns = zeus_common_types.CloudCtxNs{Env: "", CloudProvider: "", Region: "", Context: "", Namespace: "ethereum"}
+	cm, err := c.K.ConfigMapKeySwap(ctx, kns, nil, "cm-lighthouse", "start.sh", "pause.sh")
+	c.Require().Nil(err)
+	c.Require().NotEmpty(cm)
 }
 
 func TestConfigMapTestSuite(t *testing.T) {

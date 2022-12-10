@@ -44,3 +44,5 @@ const CleanDeployedNamespaceInfraV1Path = "/v1/deploy/clean/namespace"
 const ReadWorkloadV1Path = "/v1/workload/read"
 
 const PodsActionV1Path = "/v1/pods"
+
+const ConfigMapsActionV1Path = "/v1/configmaps"

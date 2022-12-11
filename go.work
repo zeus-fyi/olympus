@@ -8,7 +8,6 @@ use (
 	./apps/external/tables-to-go
 	./apps/external/tojen
 	./apps/external/web3
-	./apps/external/s3sync
 
 	./apps/olympus/aegis
 	./apps/olympus/apollo

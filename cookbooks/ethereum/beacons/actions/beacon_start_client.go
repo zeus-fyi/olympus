@@ -3,6 +3,7 @@ package beacon_actions
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/rs/zerolog/log"
 	client_consts "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons/constants"
@@ -12,11 +13,11 @@ import (
 )
 
 func (b *BeaconActionsClient) StartConsensusClient(ctx context.Context) ([]byte, error) {
-	return b.StartClient(ctx, "cm-lighthouse", "lighthouse")
+	return b.StartClient(ctx, "cm-lighthouse", client_consts.Lighthouse)
 }
 
 func (b *BeaconActionsClient) StartExecClient(ctx context.Context) ([]byte, error) {
-	return b.StartClient(ctx, "cm-geth", "geth")
+	return b.StartClient(ctx, "cm-geth", client_consts.Geth)
 }
 
 func (b *BeaconActionsClient) StartClient(ctx context.Context, cmName, clientName string) ([]byte, error) {
@@ -42,8 +43,8 @@ func (b *BeaconActionsClient) StartClient(ctx context.Context, cmName, clientNam
 		Action:                zeus_configmap_reqs.SetOrCreateKeyFromExisting,
 		ConfigMapName:         cmName,
 		Keys: zeus_configmap_reqs.KeySwap{
-			KeyOne: "start.sh",
-			KeyTwo: "pause.sh",
+			KeyOne: fmt.Sprintf("%s.sh", clientName),
+			KeyTwo: "start.sh",
 		},
 		FilterOpts: nil,
 	}

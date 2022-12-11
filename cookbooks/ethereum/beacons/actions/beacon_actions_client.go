@@ -17,7 +17,7 @@ type BeaconActionsClient struct {
 	ExecClient      string
 }
 
-// set your own topologyID here after uploading a chart workload
+// BeaconKnsReq set your own topologyID here after uploading a chart workload
 var BeaconKnsReq = zeus_req_types.TopologyDeployRequest{
 	TopologyID: 1669159384971627008,
 	CloudCtxNs: beaconCloudCtxNs,
@@ -27,7 +27,7 @@ var beaconCloudCtxNs = zeus_common_types.CloudCtxNs{
 	CloudProvider: "do",
 	Region:        "sfo3",
 	Context:       "do-sfo3-dev-do-sfo3-zeus",
-	Namespace:     "beacon", // set with your own namespace
+	Namespace:     "ethereum", // set with your own namespace
 	Env:           "dev",
 }
 
@@ -51,7 +51,7 @@ func NewDefaultBeaconActionsClient(bearer string) BeaconActionsClient {
 	return NewBeaconActionsClient(ZeusEndpoint, bearer)
 }
 
-const ZeusLocalEndpoint = "http://localhost:9000"
+const ZeusLocalEndpoint = "http://localhost:9001"
 
 func NewLocalBeaconActionsClient(bearer string) BeaconActionsClient {
 	return NewBeaconActionsClient(ZeusLocalEndpoint, bearer)

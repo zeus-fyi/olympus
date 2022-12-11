@@ -25,13 +25,12 @@ type ClientRequest struct {
 	MethodHTTP      string
 	Endpoint        string
 	Ports           []string
-	Payload         *string
-	PayloadBytes    *[]byte
+	Payload         any
 	EndpointHeaders map[string]string
 }
 
 type ClientResp struct {
-	ReplyBodies map[string]string
+	ReplyBodies map[string][]byte
 }
 
 type PodsSummary struct {

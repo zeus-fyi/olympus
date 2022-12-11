@@ -1,10 +1,11 @@
-package orchestrations
+package poseidon_orchestrations
 
 import (
 	"context"
 
 	"github.com/rs/zerolog/log"
 	beacon_actions "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons/actions"
+	athena_client "github.com/zeus-fyi/olympus/pkg/athena/client"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
@@ -13,6 +14,7 @@ import (
 type PoseidonWorker struct {
 	temporal_base.Worker
 	beacon_actions.BeaconActionsClient
+	athena_client.AthenaClient
 }
 
 var PoseidonSyncWorker PoseidonWorker

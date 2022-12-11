@@ -1,6 +1,6 @@
 package client_consts
 
-func GetAnyClientHTTP(clientName string) []string {
+func GetAnyClientApiPorts(clientName string) []string {
 	switch clientName {
 	case Lighthouse:
 		return LighthouseBeaconPorts

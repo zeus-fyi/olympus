@@ -2,7 +2,6 @@ package snapshot_poseidon
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -61,19 +60,11 @@ func (s *InternalDeploymentActionRequest) SnapshotProcedure(c echo.Context) erro
 		return err
 	}
 
-	b, err := json.Marshal(br)
-	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("PodsDeleteRequest: DeleteFirstPodLike")
-		return err
-	}
-
-	bs := string(b)
-
 	cliReq := pods.ClientRequest{
 		MethodHTTP: "POST",
 		Endpoint:   athena_endpoints.InternalUploadV1Path,
 		Ports:      []string{"9003:9003"},
-		Payload:    &bs,
+		Payload:    br,
 	}
 
 	par := pods.PodActionRequest{
@@ -84,7 +75,7 @@ func (s *InternalDeploymentActionRequest) SnapshotProcedure(c echo.Context) erro
 		FilterOpts:    &filter,
 	}
 
-	_, err = pods.PodsPortForwardRequest(&par)
+	_, err = pods.PodsPortForwardRequest(c, &par)
 	if err != nil {
 		log.Err(err).Msg("SnapshotProcedure")
 		return c.JSON(http.StatusInternalServerError, err)

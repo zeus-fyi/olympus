@@ -4,7 +4,6 @@ import client_consts "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons/con
 
 func (t *BeaconActionsTestSuite) TestConsensusClientSyncStatusRequest() {
 	t.ConsensusClient = client_consts.Lighthouse
-
 	resp, err := t.GetConsensusClientSyncStatus(ctx)
 	t.Assert().Nil(err)
 	t.Assert().NotEmpty(resp)
@@ -12,7 +11,6 @@ func (t *BeaconActionsTestSuite) TestConsensusClientSyncStatusRequest() {
 
 func (t *BeaconActionsTestSuite) TestExecClientSyncStatusRequest() {
 	t.ExecClient = client_consts.Geth
-
 	resp, err := t.GetExecClientSyncStatus(ctx)
 	t.Assert().Nil(err)
 	t.Assert().NotEmpty(resp)

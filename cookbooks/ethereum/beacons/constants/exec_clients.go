@@ -15,3 +15,9 @@ func IsExecClient(name string) bool {
 		return false
 	}
 }
+
+type ExecClientSyncStatus struct {
+	JsonRPC string `json:"jsonrpc"`
+	Id      int    `json:"id"`
+	Result  bool   `json:"result"`
+}

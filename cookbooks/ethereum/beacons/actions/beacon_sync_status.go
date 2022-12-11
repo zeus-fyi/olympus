@@ -2,21 +2,22 @@ package beacon_actions
 
 import (
 	"context"
+	"encoding/json"
 
+	"github.com/rs/zerolog/log"
 	beacon_cookbooks "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons"
 	client_consts "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons/constants"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	zeus_pods_reqs "github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types/pods"
-	zeus_pods_resp "github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_resp_types/pods"
 )
 
-func (b *BeaconActionsClient) GetConsensusClientSyncStatus(ctx context.Context) (zeus_pods_resp.ClientResp, error) {
+func (b *BeaconActionsClient) GetConsensusClientSyncStatus(ctx context.Context) ([]client_consts.ConsensusClientSyncStatus, error) {
 	cliReq := zeus_pods_reqs.ClientRequest{
 		MethodHTTP: "GET",
 		Endpoint:   "eth/v1/node/syncing",
 		Ports:      client_consts.GetClientBeaconPortsHTTP(b.ConsensusClient),
 	}
-	filter := string_utils.FilterOpts{Contains: b.ExecClient}
+	filter := string_utils.FilterOpts{Contains: b.ConsensusClient}
 	routeHeader := beacon_cookbooks.DeployConsensusClientKnsReq
 	par := zeus_pods_reqs.PodActionRequest{
 		TopologyDeployRequest: routeHeader,
@@ -24,21 +25,35 @@ func (b *BeaconActionsClient) GetConsensusClientSyncStatus(ctx context.Context) 
 		ClientReq:             &cliReq,
 		FilterOpts:            &filter,
 	}
-
 	resp, err := b.ZeusClient.PortForwardReqToPods(ctx, par)
-	return resp, err
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("GetConsensusClientSyncStatus")
+		return []client_consts.ConsensusClientSyncStatus{}, err
+	}
+	ss := make([]client_consts.ConsensusClientSyncStatus, len(resp.ReplyBodies))
+	i := 0
+	for _, v := range resp.ReplyBodies {
+		err = json.Unmarshal(v, &ss[i])
+		if err != nil {
+			log.Ctx(ctx).Err(err).Msg("GetConsensusClientSyncStatus")
+			return ss, err
+		}
+		i += 1
+	}
+	return ss, err
 }
 
-// TODO 1. Get the sync api call needed & insert + replace with resty
-func (b *BeaconActionsClient) GetExecClientSyncStatus(ctx context.Context) (zeus_pods_resp.ClientResp, error) {
+func (b *BeaconActionsClient) GetExecClientSyncStatus(ctx context.Context) ([]client_consts.ExecClientSyncStatus, error) {
+	headers := make(map[string]string)
+	headers["Content-Type"] = "application/json"
 	cliReq := zeus_pods_reqs.ClientRequest{
-		MethodHTTP: "POST",
-		Endpoint:   "/",
-		Ports:      client_consts.GetAnyClientHTTP(b.ExecClient),
+		MethodHTTP:      "POST",
+		Endpoint:        "/",
+		Ports:           client_consts.GetAnyClientApiPorts(b.ExecClient),
+		EndpointHeaders: headers,
+		Payload:         `{"method":"eth_syncing","params":[],"id":1,"jsonrpc":"2.0"}`,
 	}
-	payload := `{"method":"eth_syncing","params":[],"id":1,"jsonrpc":"2.0"}`
-	cliReq.Payload = &payload
-	filter := string_utils.FilterOpts{Contains: b.ConsensusClient}
+	filter := string_utils.FilterOpts{Contains: b.ExecClient}
 	routeHeader := beacon_cookbooks.DeployExecClientKnsReq
 	par := zeus_pods_reqs.PodActionRequest{
 		TopologyDeployRequest: routeHeader,
@@ -46,7 +61,20 @@ func (b *BeaconActionsClient) GetExecClientSyncStatus(ctx context.Context) (zeus
 		ClientReq:             &cliReq,
 		FilterOpts:            &filter,
 	}
-
 	resp, err := b.ZeusClient.PortForwardReqToPods(ctx, par)
-	return resp, err
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("GetExecClientSyncStatus")
+		return []client_consts.ExecClientSyncStatus{}, err
+	}
+	es := make([]client_consts.ExecClientSyncStatus, len(resp.ReplyBodies))
+	i := 0
+	for _, v := range resp.ReplyBodies {
+		err = json.Unmarshal(v, &es[i])
+		if err != nil {
+			log.Ctx(ctx).Err(err).Msg("GetExecClientSyncStatus")
+			return es, err
+		}
+		i += 1
+	}
+	return es, err
 }

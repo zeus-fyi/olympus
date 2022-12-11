@@ -14,6 +14,7 @@ func GetClientBeaconPortsHTTP(clientName string) []string {
 	case Lighthouse:
 		return LighthouseBeaconPorts
 	}
+
 	return []string{}
 }
 

@@ -5,6 +5,8 @@ const (
 	Nethermind = "nethermind"
 )
 
+var GethBeaconPorts = []string{"8545:8545"}
+
 func IsExecClient(name string) bool {
 	switch name {
 	case Geth, Nethermind:

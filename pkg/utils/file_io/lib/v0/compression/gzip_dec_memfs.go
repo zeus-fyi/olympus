@@ -65,7 +65,7 @@ func (c *Compression) UnGzipFromInMemFsOutToInMemFS(p *filepaths.Path, fs memfs.
 
 			out := &bytes.Buffer{}
 			if _, cerr := io.Copy(out, tr); cerr != nil {
-				log.Err(err).Msg("Compression: UnGzipFromInMemFsOutToInMemFS, io.Copy(out, tr)")
+				log.Err(err).Msg("Compression: UnGzipFromInMemFsOutToInMemFS, io.RsyncBucket(out, tr)")
 				return cerr
 			}
 			ferr := fs.MakeFileDirOutFnInPath(p, out.Bytes())

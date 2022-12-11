@@ -26,7 +26,6 @@ func (b *BeaconActionsClient) PauseClient(ctx context.Context, cmName, clientNam
 		log.Ctx(ctx).Err(err).Interface("configMap", respCm).Msg("PauseConsensusClient: SetOrCreateKeyFromConfigMapKey")
 		return nil, err
 	}
-
 	if client_consts.IsConsensusClient(clientName) {
 		b.ConsensusClient = clientName
 		resp, cerr := b.RestartConsensusClientPods(ctx, basePar)
@@ -36,7 +35,6 @@ func (b *BeaconActionsClient) PauseClient(ctx context.Context, cmName, clientNam
 		}
 		return resp, cerr
 	}
-
 	if client_consts.IsExecClient(clientName) {
 		b.ExecClient = clientName
 		resp, cerr := b.RestartExecClientPods(ctx, basePar)
@@ -46,6 +44,5 @@ func (b *BeaconActionsClient) PauseClient(ctx context.Context, cmName, clientNam
 		}
 		return resp, cerr
 	}
-
 	return nil, errors.New("invalid consensus exec client supplied")
 }

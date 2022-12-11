@@ -54,7 +54,7 @@ func (a *Age) decryptFromInMemFS(p *filepaths.Path, fs memfs.MemFS) (*bytes.Buff
 	}
 	p.FnOut, _, _ = strings.Cut(p.FnIn, ".age")
 	if _, cerr := io.Copy(out, r); cerr != nil {
-		log.Err(cerr).Msg("Age, decryptFromInMemFS, io.Copy")
+		log.Err(cerr).Msg("Age, decryptFromInMemFS, io.RsyncBucket")
 		return out, cerr
 	}
 	return out, err

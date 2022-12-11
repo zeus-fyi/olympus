@@ -18,7 +18,7 @@ type BeaconActionsClient struct {
 }
 
 // set your own topologyID here after uploading a chart workload
-var beaconKnsReq = zeus_req_types.TopologyDeployRequest{
+var BeaconKnsReq = zeus_req_types.TopologyDeployRequest{
 	TopologyID: 1669159384971627008,
 	CloudCtxNs: beaconCloudCtxNs,
 }
@@ -32,7 +32,7 @@ var beaconCloudCtxNs = zeus_common_types.CloudCtxNs{
 }
 
 var basePar = zeus_pods_reqs.PodActionRequest{
-	TopologyDeployRequest: beaconKnsReq,
+	TopologyDeployRequest: BeaconKnsReq,
 	PodName:               "",
 	FilterOpts:            nil,
 	ClientReq:             nil,

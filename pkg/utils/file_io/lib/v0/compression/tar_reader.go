@@ -51,7 +51,7 @@ func tarReader(p *filepaths.Path, r io.Reader) error {
 				return perr
 			}
 			if _, cerr := io.Copy(outFile, tr); cerr != nil {
-				log.Err(cerr).Msg("Compression: tarReader, io.RsyncBucket(outFile, tr)")
+				log.Err(cerr).Msg("Compression: tarReader, io.Copy(outFile, tr)")
 				outFile.Close()
 				return cerr
 			}

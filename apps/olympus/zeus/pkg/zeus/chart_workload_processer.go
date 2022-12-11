@@ -24,7 +24,7 @@ func DecompressUserInfraWorkload(c echo.Context) (chart_workload.TopologyBaseInf
 	defer src.Close()
 	in := bytes.Buffer{}
 	if _, err = io.Copy(&in, src); err != nil {
-		log.Err(err).Msg("DecompressUserInfraWorkload: RsyncBucket")
+		log.Err(err).Msg("DecompressUserInfraWorkload: Copy")
 		return nk, err
 	}
 	nk, err = UnGzipK8sChart(&in)

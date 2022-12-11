@@ -90,7 +90,7 @@ func addToArchive(p *filepaths.Path, tw *tar.Writer, filename string) error {
 		return err
 	}
 
-	// RsyncBucket file content to tar archive
+	// CopyN file content to tar archive
 	_, err = io.CopyN(tw, file, info.Size())
 	if err != nil {
 		log.Info().Int64("filesize", info.Size())

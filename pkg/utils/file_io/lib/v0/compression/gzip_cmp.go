@@ -94,7 +94,7 @@ func addToArchive(p *filepaths.Path, tw *tar.Writer, filename string) error {
 	_, err = io.CopyN(tw, file, info.Size())
 	if err != nil {
 		log.Info().Int64("filesize", info.Size())
-		log.Err(err).Msg("Compression: addToArchive, io.RsyncBucket(tw, file)")
+		log.Err(err).Msg("Compression: addToArchive, io.CopyN(tw, file)")
 		return err
 	}
 	return nil

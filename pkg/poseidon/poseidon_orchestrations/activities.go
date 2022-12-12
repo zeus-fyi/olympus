@@ -62,6 +62,9 @@ func (d *PoseidonSyncActivities) IsExecClientSynced(ctx context.Context) (bool, 
 		log.Ctx(ctx).Err(err).Msg("SyncExecStatus")
 		return false, err
 	}
+	if len(syncStatuses) <= 0 {
+		return false, errors.New("no sync statuses returned")
+	}
 	for _, ss := range syncStatuses {
 		log.Ctx(ctx).Info().Interface("syncStatus", ss)
 		if ss.Result == false {
@@ -77,6 +80,9 @@ func (d *PoseidonSyncActivities) IsConsensusClientSynced(ctx context.Context) (b
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("SyncExecStatus")
 		return false, err
+	}
+	if len(syncStatuses) <= 0 {
+		return false, errors.New("no sync statuses returned")
 	}
 	for _, ss := range syncStatuses {
 		log.Ctx(ctx).Info().Interface("syncStatus", ss)

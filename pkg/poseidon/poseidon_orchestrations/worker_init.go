@@ -5,6 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	beacon_actions "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons/actions"
+	client_consts "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons/constants"
 	athena_client "github.com/zeus-fyi/olympus/pkg/athena/client"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
@@ -46,6 +47,8 @@ func InitPoseidonWorker(ctx context.Context, temporalAuthCfg temporal_auth.Tempo
 	ac := athena_client.NewLocalAthenaClient(PoseidonBearer)
 	w := temporal_base.NewWorker(taskQueueName)
 
+	PoseidonSyncActivitiesOrchestrator.ExecClient = client_consts.Geth
+	PoseidonSyncActivitiesOrchestrator.ConsensusClient = client_consts.Lighthouse
 	PoseidonSyncActivitiesOrchestrator = NewPoseidonSyncActivity(ba, ac)
 	wf := NewPoseidonSyncWorkflow(PoseidonSyncActivitiesOrchestrator)
 

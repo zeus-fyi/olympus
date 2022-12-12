@@ -30,26 +30,26 @@ func (d *PoseidonSyncActivities) GetActivities() ActivitiesSlice {
 }
 
 func (d *PoseidonSyncActivities) PauseExecClient(ctx context.Context) error {
-	cmName := fmt.Sprintf("cm-%s", d.ExecClient)
-	_, err := PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.PauseClient(ctx, cmName, d.ExecClient)
+	cmName := fmt.Sprintf("cm-%s", PoseidonSyncActivitiesOrchestrator.ExecClient)
+	_, err := PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.PauseClient(ctx, cmName, PoseidonSyncActivitiesOrchestrator.ExecClient)
 	return err
 }
 
 func (d *PoseidonSyncActivities) PauseConsensusClient(ctx context.Context) error {
 	cmName := fmt.Sprintf("cm-%s", d.ConsensusClient)
-	_, err := PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.PauseClient(ctx, cmName, d.ConsensusClient)
+	_, err := PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.PauseClient(ctx, cmName, PoseidonSyncActivitiesOrchestrator.ConsensusClient)
 	return err
 }
 
 func (d *PoseidonSyncActivities) ResumeExecClient(ctx context.Context) error {
 	cmName := fmt.Sprintf("cm-%s", d.ExecClient)
-	_, err := PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.StartClient(ctx, cmName, d.ExecClient)
+	_, err := PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.StartClient(ctx, cmName, PoseidonSyncActivitiesOrchestrator.ExecClient)
 	return err
 }
 
 func (d *PoseidonSyncActivities) ResumeConsensusClient(ctx context.Context) error {
 	cmName := fmt.Sprintf("cm-%s", d.ConsensusClient)
-	_, err := PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.StartClient(ctx, cmName, d.ConsensusClient)
+	_, err := PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.StartClient(ctx, cmName, PoseidonSyncActivitiesOrchestrator.ConsensusClient)
 	return err
 }
 

@@ -24,14 +24,14 @@ func Health(c echo.Context) error {
 }
 
 func InitV1Routes(e *echo.Echo) {
-	eg := e.Group("/v1beta")
+	eg := e.Group("/v1beta/internal")
 	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()
-			key, err := auth.VerifyBearerToken(ctx, token)
+			key, err := auth.VerifyInternalBearerToken(ctx, token)
 			if err != nil {
-				log.Err(err).Msg("InitV1Routes")
+				log.Err(err).Msg("InitV1InternalRoutes")
 				return false, c.JSON(http.StatusInternalServerError, nil)
 			}
 			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())

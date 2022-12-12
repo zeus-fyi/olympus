@@ -8,6 +8,10 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+func (s *S3ClientReader) ReadKeys(ctx context.Context, s3KeyValue *s3.ListObjectsV2Input) (*s3.ListObjectsV2Output, error) {
+	r, err := s.AwsS3Client.ListObjectsV2(ctx, s3KeyValue)
+	return r, err
+}
 func (s *S3ClientReader) GeneratePresignedURL(ctx context.Context, s3KeyValue *s3.GetObjectInput) (string, error) {
 	preSignClient := s3.NewPresignClient(s.AwsS3Client)
 	downloadURL, err := DownloadURL(ctx, preSignClient, s3KeyValue)

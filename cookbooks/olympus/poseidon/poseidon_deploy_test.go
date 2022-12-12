@@ -6,7 +6,7 @@ func (t *PoseidonCookbookTestSuite) TestDeploy() {
 	resp, err := t.ZeusTestClient.Deploy(ctx, PoseidonDeployKnsReq)
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(resp)
-	t.TestPoseidonSecretsCopy()
+	//t.TestPoseidonSecretsCopy()
 }
 
 func (t *PoseidonCookbookTestSuite) TestChartUpload() {

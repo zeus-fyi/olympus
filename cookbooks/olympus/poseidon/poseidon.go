@@ -26,7 +26,7 @@ var PoseidonCloudCtxNs = zeus_common_types.CloudCtxNs{
 }
 
 var PoseidonDeployKnsReq = zeus_req_types.TopologyDeployRequest{
-	TopologyID: 0,
+	TopologyID: 1670807021640692000,
 	CloudCtxNs: PoseidonCloudCtxNs,
 }
 

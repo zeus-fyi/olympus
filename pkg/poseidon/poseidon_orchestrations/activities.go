@@ -2,6 +2,7 @@ package poseidon_orchestrations
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -61,6 +62,9 @@ func (d *PoseidonSyncActivities) IsExecClientSynced(ctx context.Context) (bool, 
 		log.Ctx(ctx).Err(err).Msg("SyncExecStatus")
 		return false, err
 	}
+	if len(syncStatuses) <= 0 {
+		return false, errors.New("no sync statuses returned")
+	}
 	for _, ss := range syncStatuses {
 		log.Ctx(ctx).Info().Interface("syncStatus", ss)
 		if ss.Result == false {
@@ -77,6 +81,9 @@ func (d *PoseidonSyncActivities) IsConsensusClientSynced(ctx context.Context) (b
 		log.Ctx(ctx).Err(err).Msg("SyncExecStatus")
 		return false, err
 	}
+	if len(syncStatuses) <= 0 {
+		return false, errors.New("no sync statuses returned")
+	}
 	for _, ss := range syncStatuses {
 		log.Ctx(ctx).Info().Interface("syncStatus", ss)
 		if ss.Data.IsSyncing == false {
@@ -86,12 +93,31 @@ func (d *PoseidonSyncActivities) IsConsensusClientSynced(ctx context.Context) (b
 	return false, errors.New("not synced yet")
 }
 
+type Response struct {
+	Message string `json:"message"`
+}
+
 func (d *PoseidonSyncActivities) RsyncExecBucket(ctx context.Context) error {
 	br := poseidon_buckets.GethMainnetBucket
-	_, err := PoseidonSyncActivitiesOrchestrator.UploadViaPortForward(ctx, PoseidonSyncActivitiesOrchestrator.BeaconKnsReq, br)
+	resp, err := PoseidonSyncActivitiesOrchestrator.UploadViaPortForward(ctx, PoseidonSyncActivitiesOrchestrator.BeaconKnsReq, br)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("RsyncExecBucket")
 		return err
+	}
+
+	msg := Response{}
+	if len(resp.ReplyBodies) <= 0 {
+		return errors.New("not done")
+	}
+	for _, rep := range resp.ReplyBodies {
+		err = json.Unmarshal(rep, &msg)
+		if err != nil {
+			log.Ctx(ctx).Err(err).Msg("GetConsensusClientSyncStatus")
+			return err
+		}
+		if msg.Message != "done" {
+			return errors.New("not done")
+		}
 	}
 	return err
 }

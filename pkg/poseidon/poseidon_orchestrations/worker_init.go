@@ -6,6 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 	beacon_actions "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons/actions"
 	client_consts "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons/constants"
+	s3base "github.com/zeus-fyi/olympus/datastores/s3"
 	athena_client "github.com/zeus-fyi/olympus/pkg/athena/client"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
@@ -18,6 +19,7 @@ type PoseidonWorker struct {
 	temporal_base.Worker
 }
 
+var PoseidonS3Manager s3base.S3Client
 var PoseidonSyncWorker PoseidonWorker
 var PoseidonBearer string
 

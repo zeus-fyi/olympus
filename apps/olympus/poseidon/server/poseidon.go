@@ -67,6 +67,8 @@ func Poseidon() {
 		log.Fatal().Err(err).Msgf("Poseidon: %s topology_worker.Worker.Start failed", env)
 		misc.DelayedPanic(err)
 	}
+	poseidon_orchestrations.PoseidonS3Manager = auth_startup.NewDigitalOceanS3AuthClient(ctx, authKeysCfg)
+
 	log.Info().Msgf("Poseidon: %s temporal setup is complete", env)
 	log.Info().Msgf("Poseidon: %s server starting", env)
 	srv.Start()

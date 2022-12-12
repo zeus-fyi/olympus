@@ -10,6 +10,7 @@ import (
 	"github.com/cavaliergopher/grab/v3"
 )
 
+// TODO write all keys:presigned url & then pack it
 func (t *S3ReadTestSuite) TestReadKeys() {
 	ctx := context.Background()
 

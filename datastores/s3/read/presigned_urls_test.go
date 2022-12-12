@@ -8,13 +8,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/cavaliergopher/grab/v3"
+	"github.com/zeus-fyi/olympus/pkg/poseidon/poseidon_buckets"
 )
 
 func (t *S3ReadTestSuite) TestGeneratePresignedURL() {
 	ctx := context.Background()
 	input := &s3.GetObjectInput{
-		Bucket: aws.String("zeus-fyi-ethereum"),
-		Key:    aws.String("ethereum.mainnet.exec.client.standard.geth.tar.lz4"),
+		Bucket: aws.String("zeus-fyi-snapshots"),
+		Key:    aws.String(poseidon_buckets.GethMainnetBucket.GetBucketKey()),
 	}
 	reader := NewS3ClientReader(t.S3)
 	url, err := reader.GeneratePresignedURL(ctx, input)

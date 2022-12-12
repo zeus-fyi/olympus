@@ -23,14 +23,14 @@ type PoseidonActivitiesTestSuite struct {
 func (t *PoseidonActivitiesTestSuite) TestPauseClient() {
 	cmName := "cm-lighthouse"
 	clientName := "lighthouse"
-	resp, err := PoseidonSyncWorker.BeaconActionsClient.PauseClient(ctx, cmName, clientName)
+	resp, err := PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.PauseClient(ctx, cmName, clientName)
 	t.Assert().Nil(err)
 	t.Assert().NotEmpty(resp)
 }
 
 func (t *PoseidonActivitiesTestSuite) TestRsyncConsensus() {
 	reqHeader := beacon_actions.BeaconKnsReq
-	resp, err := PoseidonSyncWorker.UploadViaPortForward(ctx, reqHeader, poseidon_buckets.LighthouseMainnetBucket)
+	resp, err := PoseidonSyncActivitiesOrchestrator.UploadViaPortForward(ctx, reqHeader, poseidon_buckets.LighthouseMainnetBucket)
 	t.Assert().Nil(err)
 	t.Assert().NotEmpty(resp)
 }
@@ -38,31 +38,28 @@ func (t *PoseidonActivitiesTestSuite) TestRsyncConsensus() {
 func (t *PoseidonActivitiesTestSuite) TestResumeClient() {
 	cmName := "cm-lighthouse"
 	clientName := "lighthouse"
-	resp, err := PoseidonSyncWorker.BeaconActionsClient.StartClient(ctx, cmName, clientName)
+	resp, err := PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.StartClient(ctx, cmName, clientName)
 	t.Assert().Nil(err)
 	t.Assert().NotEmpty(resp)
 }
 
 func (t *PoseidonActivitiesTestSuite) TestConsensusSyncStatus() {
-	PoseidonSyncWorker.BeaconActionsClient.ConsensusClient = client_consts.Lighthouse
-	resp, err := PoseidonSyncWorker.BeaconActionsClient.GetConsensusClientSyncStatus(ctx)
+	PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.ConsensusClient = client_consts.Lighthouse
+	resp, err := PoseidonSyncActivitiesOrchestrator.IsConsensusClientSynced(ctx)
 	t.Assert().Nil(err)
 	t.Assert().NotEmpty(resp)
 }
 
 func (t *PoseidonActivitiesTestSuite) TestExecClientStatus() {
-	PoseidonSyncWorker.BeaconActionsClient.ExecClient = client_consts.Geth
-	resp, err := PoseidonSyncWorker.BeaconActionsClient.GetExecClientSyncStatus(ctx)
+	PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.ExecClient = client_consts.Geth
+	resp, err := PoseidonSyncActivitiesOrchestrator.IsExecClientSynced(ctx)
 	t.Assert().Nil(err)
 	t.Assert().NotEmpty(resp)
 }
 
 func (t *PoseidonActivitiesTestSuite) SetupTest() {
-	// points dir to test/configs
 	tc := api_configs.InitLocalTestConfigs()
-	PoseidonSyncWorker.BeaconActionsClient = beacon_actions.NewLocalBeaconActionsClient(tc.Bearer)
-	PoseidonSyncWorker.AthenaClient = athena_client.NewLocalAthenaClient(tc.Bearer)
-	// points working dir to inside /test
+	PoseidonSyncActivitiesOrchestrator = NewPoseidonSyncActivity(beacon_actions.NewDefaultBeaconActionsClient(tc.Bearer, kCtxNsHeader), athena_client.NewLocalAthenaClient(tc.Bearer))
 	test_base.ForceDirToTestDirLocation()
 }
 

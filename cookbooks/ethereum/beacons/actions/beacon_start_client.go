@@ -29,7 +29,7 @@ func (b *BeaconActionsClient) StartClient(ctx context.Context, cmName, clientNam
 		DoesNotInclude:        nil,
 	}
 	par := zeus_pods_reqs.PodActionRequest{
-		TopologyDeployRequest: BeaconKnsReq,
+		TopologyDeployRequest: b.BeaconKnsReq,
 		Action:                zeus_pods_reqs.DeleteAllPods,
 		PodName:               "",
 		ContainerName:         "",
@@ -39,7 +39,7 @@ func (b *BeaconActionsClient) StartClient(ctx context.Context, cmName, clientNam
 		DeleteOpts:            nil,
 	}
 	cmReq := zeus_configmap_reqs.ConfigMapActionRequest{
-		TopologyDeployRequest: BeaconKnsReq,
+		TopologyDeployRequest: b.BeaconKnsReq,
 		Action:                zeus_configmap_reqs.SetOrCreateKeyFromExisting,
 		ConfigMapName:         cmName,
 		Keys: zeus_configmap_reqs.KeySwap{

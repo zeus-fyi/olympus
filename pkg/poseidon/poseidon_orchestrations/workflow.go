@@ -15,55 +15,78 @@ type PoseidonSyncWorkflow struct {
 
 const defaultTimeout = 30 * time.Minute
 
-func NewPoseidonSyncWorkflow() PoseidonSyncWorkflow {
+func NewPoseidonSyncWorkflow(psa PoseidonSyncActivities) PoseidonSyncWorkflow {
 	deployWf := PoseidonSyncWorkflow{
-		Workflow: temporal_base.Workflow{},
+		Workflow:               temporal_base.Workflow{},
+		PoseidonSyncActivities: psa,
 	}
 	return deployWf
 }
 
 func (t *PoseidonSyncWorkflow) GetWorkflows() []interface{} {
-	return []interface{}{t.PoseidonWorkflow}
+	return []interface{}{t.PoseidonEthereumWorkflow}
 }
 
-func (t *PoseidonSyncWorkflow) PoseidonWorkflow(ctx workflow.Context) error {
-	//log := workflow.GetLogger(ctx)
+func (t *PoseidonSyncWorkflow) PoseidonEthereumWorkflow(ctx workflow.Context) error {
+	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
 	}
-	sendCtx := workflow.WithActivityOptions(ctx, ao)
-	retryPolicy := &temporal.RetryPolicy{
+	aoSync := workflow.ActivityOptions{
+		StartToCloseTimeout: defaultTimeout,
+	}
+	syncStatusCheckRetryPolicy := &temporal.RetryPolicy{
 		InitialInterval:    time.Second * 15,
 		BackoffCoefficient: 2,
 	}
-	ao.RetryPolicy = retryPolicy
-	rxCtx := workflow.WithActivityOptions(ctx, ao)
-
-	err := workflow.ExecuteActivity(sendCtx, t.SyncExecStatus).Get(sendCtx, nil)
+	ao.RetryPolicy = syncStatusCheckRetryPolicy
+	execSyncStatusCtx := workflow.WithActivityOptions(ctx, aoSync)
+	err := workflow.ExecuteActivity(execSyncStatusCtx, t.IsExecClientSynced).Get(execSyncStatusCtx, nil)
 	if err != nil {
+		log.Error("IsExecClientSynced: ", err)
 		return err
 	}
-	err = workflow.ExecuteActivity(sendCtx, t.SyncConsensusStatus).Get(sendCtx, nil)
+	pauseExecClientCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(pauseExecClientCtx, t.PauseExecClient).Get(pauseExecClientCtx, nil)
 	if err != nil {
+		log.Error("PauseExecClient: ", err)
 		return err
 	}
-	// TODO make these do consensus + exec via params
-	err = workflow.ExecuteActivity(rxCtx, t.Pause).Get(rxCtx, nil)
+	rsyncExecClientCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(rsyncExecClientCtx, t.RsyncExecBucket).Get(rsyncExecClientCtx, nil)
 	if err != nil {
+		log.Error("RsyncExecBucket: ", err)
 		return err
 	}
-	err = workflow.ExecuteActivity(rxCtx, t.Resume).Get(rxCtx, nil)
+	resumeExecClientCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(resumeExecClientCtx, t.ResumeExecClient).Get(resumeExecClientCtx, nil)
 	if err != nil {
+		log.Error("ResumeExecClient: ", err)
 		return err
 	}
-	err = workflow.ExecuteActivity(rxCtx, t.RsyncExecBucket).Get(rxCtx, nil)
+	consensusSyncStatusCtx := workflow.WithActivityOptions(ctx, aoSync)
+	err = workflow.ExecuteActivity(consensusSyncStatusCtx, t.IsConsensusClientSynced).Get(consensusSyncStatusCtx, nil)
 	if err != nil {
+		log.Error("IsConsensusClientSynced: ", err)
 		return err
 	}
-	err = workflow.ExecuteActivity(rxCtx, t.RsyncConsensusBucket).Get(rxCtx, nil)
+	pauseConsensusClientCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(pauseConsensusClientCtx, t.PauseConsensusClient).Get(pauseConsensusClientCtx, nil)
 	if err != nil {
+		log.Error("PauseConsensusClient: ", err)
 		return err
 	}
-
+	rsyncConsensusClientCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(rsyncConsensusClientCtx, t.RsyncConsensusBucket).Get(rsyncConsensusClientCtx, nil)
+	if err != nil {
+		log.Error("RsyncConsensusBucket: ", err)
+		return err
+	}
+	resumeConsensusClientCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(resumeConsensusClientCtx, t.ResumeConsensusClient).Get(resumeConsensusClientCtx, nil)
+	if err != nil {
+		log.Error("RsyncConsensusBucket: ", err)
+		return err
+	}
 	return nil
 }

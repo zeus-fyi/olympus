@@ -2,7 +2,10 @@ package poseidon_orchestrations
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
+	"github.com/rs/zerolog/log"
 	beacon_actions "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons/actions"
 	athena_client "github.com/zeus-fyi/olympus/pkg/athena/client"
 	"github.com/zeus-fyi/olympus/pkg/poseidon/poseidon_buckets"
@@ -10,54 +13,94 @@ import (
 
 type PoseidonSyncActivities struct {
 	beacon_actions.BeaconActionsClient
+	athena_client.AthenaClient
 }
 
-func NewPoseidonSyncActivity(client beacon_actions.BeaconActionsClient) PoseidonSyncActivities {
-	return PoseidonSyncActivities{client}
+func NewPoseidonSyncActivity(ba beacon_actions.BeaconActionsClient, ac athena_client.AthenaClient) PoseidonSyncActivities {
+	return PoseidonSyncActivities{ba, ac}
 }
 
 type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
+var PoseidonSyncActivitiesOrchestrator PoseidonSyncActivities
+
 func (d *PoseidonSyncActivities) GetActivities() ActivitiesSlice {
-	return []interface{}{d.Pause, d.Resume, d.SyncExecStatus, d.SyncConsensusStatus, d.SyncStatus, d.RsyncExecBucket, d.RsyncConsensusBucket}
+	return []interface{}{d.PauseExecClient, d.PauseConsensusClient, d.Resume, d.IsExecClientSynced, d.IsConsensusClientSynced, d.RsyncExecBucket, d.RsyncConsensusBucket}
 }
 
-func (d *PoseidonSyncActivities) Pause(ctx context.Context, cmName, clientName string) error {
-	_, err := d.BeaconActionsClient.PauseClient(ctx, cmName, clientName)
+func (d *PoseidonSyncActivities) PauseExecClient(ctx context.Context) error {
+	cmName := fmt.Sprintf("cm-%s", d.ExecClient)
+	_, err := d.BeaconActionsClient.PauseClient(ctx, cmName, d.ExecClient)
 	return err
 }
 
-func (d *PoseidonSyncActivities) Resume(ctx context.Context, cmName, clientName string) error {
-	_, err := d.BeaconActionsClient.StartClient(ctx, cmName, clientName)
+func (d *PoseidonSyncActivities) PauseConsensusClient(ctx context.Context) error {
+	cmName := fmt.Sprintf("cm-%s", d.ConsensusClient)
+	_, err := d.BeaconActionsClient.PauseClient(ctx, cmName, d.ConsensusClient)
 	return err
 }
 
-// TODO convert these from bytes to struct values from json
-func (d *PoseidonSyncActivities) SyncExecStatus(ctx context.Context) error {
-	_, err := d.BeaconActionsClient.GetExecClientSyncStatus(ctx)
+func (d *PoseidonSyncActivities) ResumeExecClient(ctx context.Context) error {
+	cmName := fmt.Sprintf("cm-%s", d.ExecClient)
+	_, err := d.BeaconActionsClient.StartClient(ctx, cmName, d.ExecClient)
 	return err
 }
 
-func (d *PoseidonSyncActivities) SyncConsensusStatus(ctx context.Context) error {
-	_, err := d.BeaconActionsClient.GetConsensusClientSyncStatus(ctx)
+func (d *PoseidonSyncActivities) ResumeConsensusClient(ctx context.Context) error {
+	cmName := fmt.Sprintf("cm-%s", d.ConsensusClient)
+	_, err := d.BeaconActionsClient.StartClient(ctx, cmName, d.ConsensusClient)
 	return err
 }
 
-func (d *PoseidonSyncActivities) SyncStatus(ctx context.Context, clientName string) error {
-	return nil
+// IsExecClientSynced only checks the first result
+func (d *PoseidonSyncActivities) IsExecClientSynced(ctx context.Context) (bool, error) {
+	syncStatuses, err := d.BeaconActionsClient.GetExecClientSyncStatus(ctx)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("SyncExecStatus")
+		return false, err
+	}
+	for _, ss := range syncStatuses {
+		log.Ctx(ctx).Info().Interface("syncStatus", ss)
+		if ss.Result == false {
+			return !ss.Result, nil
+		}
+	}
+	return false, errors.New("not synced yet")
+}
+
+// IsConsensusClientSynced only checks the first result
+func (d *PoseidonSyncActivities) IsConsensusClientSynced(ctx context.Context) (bool, error) {
+	syncStatuses, err := d.BeaconActionsClient.GetConsensusClientSyncStatus(ctx)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("SyncExecStatus")
+		return false, err
+	}
+	for _, ss := range syncStatuses {
+		log.Ctx(ctx).Info().Interface("syncStatus", ss)
+		if ss.Data.IsSyncing == false {
+			return !ss.Data.IsSyncing, nil
+		}
+	}
+	return false, errors.New("not synced yet")
 }
 
 func (d *PoseidonSyncActivities) RsyncExecBucket(ctx context.Context) error {
-	ac := athena_client.NewLocalAthenaClient(PoseidonBearer)
 	br := poseidon_buckets.GethMainnetBucket
-	err := ac.Upload(ctx, br)
+	err := d.Upload(ctx, br)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("RsyncExecBucket")
+		return err
+	}
 	return err
 }
 
 func (d *PoseidonSyncActivities) RsyncConsensusBucket(ctx context.Context) error {
-	ac := athena_client.NewLocalAthenaClient(PoseidonBearer)
 	br := poseidon_buckets.LighthouseMainnetBucket
-	err := ac.Upload(ctx, br)
+	err := d.Upload(ctx, br)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("RsyncConsensusBucket")
+		return err
+	}
 	return err
 }

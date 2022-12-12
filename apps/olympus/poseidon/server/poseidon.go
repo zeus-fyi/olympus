@@ -9,13 +9,16 @@ import (
 	"github.com/zeus-fyi/olympus/configs"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
+	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
+	"github.com/zeus-fyi/olympus/pkg/poseidon/poseidon_orchestrations"
+	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	v1_poseidon "github.com/zeus-fyi/olympus/poseidon/api/v1"
-	poseidon_pkg "github.com/zeus-fyi/olympus/poseidon/pkg"
 )
 
 var cfg = Config{}
 var authKeysCfg auth_keys_config.AuthKeysCfg
-var env string
+var temporalAuthCfg temporal_auth.TemporalAuth
+var env, bearer string
 
 func Poseidon() {
 	cfg.Host = "0.0.0.0"
@@ -27,21 +30,42 @@ func Poseidon() {
 	switch env {
 	case "production":
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
-		_, sw := auth_startup.RunDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+		_, sw := auth_startup.RunPoseidonDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		cfg.PGConnStr = sw.PostgresAuth
+		temporalAuthCfg = temporal_auth.TemporalAuth{
+			ClientCertPath:   "/etc/ssl/certs/ca.pem",
+			ClientPEMKeyPath: "/etc/ssl/certs/ca.key",
+			Namespace:        "production-poseidon.ngb72",
+			HostPort:         "production-poseidon.ngb72.tmprl.cloud:7233",
+		}
+		bearer = sw.BearerToken
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		authKeysCfg = tc.ProdLocalAuthKeysCfg
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
+		temporalAuthCfg = tc.ProdLocalTemporalAuthPoseidon
+		bearer = tc.LocalBearerToken
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		authKeysCfg = tc.DevAuthKeysCfg
 		cfg.PGConnStr = tc.LocalDbPgconn
+		temporalAuthCfg = tc.ProdLocalTemporalAuthPoseidon
+		bearer = tc.LocalBearerToken
 	}
 
-	log.Info().Msg("Poseidon: DigitalOceanS3AuthClient starting")
-	poseidon_pkg.InitPoseidonReader(auth_startup.NewDigitalOceanS3AuthClient(ctx, authKeysCfg))
-	// Start server
+	log.Info().Msgf("Poseidon: %s temporal auth and init procedure starting", env)
+	poseidon_orchestrations.InitPoseidonWorker(ctx, temporalAuthCfg)
+	poseidon_orchestrations.PoseidonBearer = bearer
+	c := poseidon_orchestrations.PoseidonSyncWorker.TemporalClient.ConnectTemporalClient()
+	defer c.Close()
+	poseidon_orchestrations.PoseidonSyncWorker.Worker.RegisterWorker(c)
+	err := poseidon_orchestrations.PoseidonSyncWorker.Worker.Start()
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Poseidon: %s topology_worker.Worker.Start failed", env)
+		misc.DelayedPanic(err)
+	}
+	log.Info().Msgf("Poseidon: %s temporal setup is complete", env)
+	log.Info().Msgf("Poseidon: %s server starting", env)
 	srv.Start()
 }
 

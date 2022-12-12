@@ -5,14 +5,13 @@ import (
 	"errors"
 
 	"github.com/rs/zerolog/log"
-	beacon_cookbooks "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons"
 	client_consts "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons/constants"
 	zeus_configmap_reqs "github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types/config_maps"
 )
 
 func (b *BeaconActionsClient) PauseClient(ctx context.Context, cmName, clientName string) ([]byte, error) {
 	cmr := zeus_configmap_reqs.ConfigMapActionRequest{
-		TopologyDeployRequest: beacon_cookbooks.DeployConsensusClientKnsReq,
+		TopologyDeployRequest: b.BeaconKnsReq,
 		Action:                zeus_configmap_reqs.SetOrCreateKeyFromExisting,
 		ConfigMapName:         cmName,
 		Keys: zeus_configmap_reqs.KeySwap{

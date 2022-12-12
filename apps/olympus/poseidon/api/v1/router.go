@@ -9,7 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
-	poseidon_chain_snapshots "github.com/zeus-fyi/olympus/poseidon/api/v1/common/chain_snapshots"
+	"github.com/zeus-fyi/olympus/pkg/poseidon/poseidon_orchestrations"
 )
 
 func Routes(e *echo.Echo) *echo.Echo {
@@ -40,5 +40,18 @@ func InitV1Routes(e *echo.Echo) {
 			return key.PublicKeyVerified, err
 		},
 	}))
-	eg.GET("/snapshot/download", poseidon_chain_snapshots.RequestDownloadURLHandler)
+	eg.GET("/ethereum", RunWorkflow)
+}
+
+func RunWorkflow(c echo.Context) error {
+	return ExecuteSyncWorkflow(c, context.Background())
+}
+
+func ExecuteSyncWorkflow(c echo.Context, ctx context.Context) error {
+	err := poseidon_orchestrations.PoseidonSyncWorker.ExecutePoseidonSyncWorkflow(ctx)
+	if err != nil {
+		log.Err(err).Msg("ExecuteSyncWorkflow")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	return c.JSON(http.StatusAccepted, nil)
 }

@@ -9,18 +9,29 @@ import (
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
+	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
+	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 )
 
 type PoseidonWorker struct {
 	temporal_base.Worker
-	beacon_actions.BeaconActionsClient
-	athena_client.AthenaClient
 }
 
 var PoseidonSyncWorker PoseidonWorker
 var PoseidonBearer string
 
 const PoseidonTaskQueue = "PoseidonTaskQueue"
+
+var kCtxNsHeader = zeus_req_types.TopologyDeployRequest{
+	TopologyID: 1669159384971627008,
+	CloudCtxNs: zeus_common_types.CloudCtxNs{
+		CloudProvider: "do",
+		Region:        "sfo3",
+		Context:       "do-sfo3-dev-do-sfo3-zeus",
+		Namespace:     "ethereum",
+		Env:           "dev",
+	},
+}
 
 func InitPoseidonWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
 	log.Ctx(ctx).Info().Msg("Poseidon: InitPoseidonWorker")
@@ -31,14 +42,15 @@ func InitPoseidonWorker(ctx context.Context, temporalAuthCfg temporal_auth.Tempo
 	}
 	taskQueueName := PoseidonTaskQueue
 
-	ba := beacon_actions.NewDefaultBeaconActionsClient(PoseidonBearer)
-
+	ba := beacon_actions.NewDefaultBeaconActionsClient(PoseidonBearer, kCtxNsHeader)
+	ac := athena_client.NewLocalAthenaClient(PoseidonBearer)
 	w := temporal_base.NewWorker(taskQueueName)
-	activityDef := NewPoseidonSyncActivity(ba)
-	wf := NewPoseidonSyncWorkflow()
+
+	PoseidonSyncActivitiesOrchestrator = NewPoseidonSyncActivity(ba, ac)
+	wf := NewPoseidonSyncWorkflow(PoseidonSyncActivitiesOrchestrator)
 
 	w.AddWorkflows(wf.GetWorkflows())
-	w.AddActivities(activityDef.GetActivities())
+	w.AddActivities(PoseidonSyncActivitiesOrchestrator.GetActivities())
 	PoseidonSyncWorker.Worker = w
 	PoseidonSyncWorker.TemporalClient = tc
 	return

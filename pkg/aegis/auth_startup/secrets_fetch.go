@@ -16,11 +16,12 @@ import (
 )
 
 const (
-	pgSecret         = "secrets/postgres-auth.txt"
-	doctlSecret      = "secrets/doctl.txt"
-	rcloneSecret     = "secrets/rclone.conf"
-	encryptedSecret  = "secrets.tar.gz.age"
-	secretBucketName = "zeus-fyi"
+	temporalBearerSecret = "secrets/temporal.bearer.txt"
+	pgSecret             = "secrets/postgres-auth.txt"
+	doctlSecret          = "secrets/doctl.txt"
+	rcloneSecret         = "secrets/rclone.conf"
+	encryptedSecret      = "secrets.tar.gz.age"
+	secretBucketName     = "zeus-fyi"
 )
 
 type SecretsWrapper struct {
@@ -28,6 +29,7 @@ type SecretsWrapper struct {
 	AegisPostgresAuth string
 	DoctlToken        string
 	MainnetBeaconURL  string
+	BearerToken       string
 	TemporalAuth      temporal_auth.TemporalAuth
 }
 
@@ -86,6 +88,17 @@ func RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, auth
 	sw := SecretsWrapper{}
 	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
 	log.Info().Msg("RunArtemisDigitalOceanS3BucketObjSecretsProcedure succeeded")
+	return inMemSecrets, sw
+}
+
+func RunPoseidonDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {
+	log.Info().Msg("Poseidon: RunDigitalOceanS3BucketObjSecretsProcedure starting")
+	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
+	log.Info().Msg("RunPoseidonDigitalOceanS3BucketObjSecretsProcedure finished")
+	sw := SecretsWrapper{}
+	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
+	sw.BearerToken = sw.ReadSecret(ctx, inMemSecrets, temporalBearerSecret)
+	log.Info().Msg("RunPoseidonDigitalOceanS3BucketObjSecretsProcedure succeeded")
 	return inMemSecrets, sw
 }
 

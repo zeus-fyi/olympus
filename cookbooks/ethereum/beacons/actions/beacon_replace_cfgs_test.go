@@ -4,7 +4,7 @@ import "github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
 
 var deployConsensusKnsReq = zeus_req_types.TopologyDeployRequest{
 	TopologyID: 1669171061885689000,
-	CloudCtxNs: beaconCloudCtxNs,
+	CloudCtxNs: BeaconCloudCtxNs,
 }
 
 func (t *BeaconActionsTestSuite) TestReplaceConsensusConfigs() {
@@ -15,7 +15,7 @@ func (t *BeaconActionsTestSuite) TestReplaceConsensusConfigs() {
 
 var deployExecKnsReq = zeus_req_types.TopologyDeployRequest{
 	TopologyID: 1669171045611326000,
-	CloudCtxNs: beaconCloudCtxNs,
+	CloudCtxNs: BeaconCloudCtxNs,
 }
 
 func (t *BeaconActionsTestSuite) TestReplaceExecConfigs() {

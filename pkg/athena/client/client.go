@@ -21,7 +21,7 @@ func NewDefaultAthenaClient(bearer string) AthenaClient {
 	return NewAthenaClient(ZeusEndpoint, bearer)
 }
 
-const ZeusLocalEndpoint = "http://localhost:9001"
+const ZeusLocalEndpoint = "http://localhost:9003"
 
 func NewLocalAthenaClient(bearer string) AthenaClient {
 	return NewAthenaClient(ZeusLocalEndpoint, bearer)

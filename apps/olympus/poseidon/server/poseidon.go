@@ -39,7 +39,7 @@ func Poseidon() {
 			Namespace:        "production-poseidon.ngb72",
 			HostPort:         "production-poseidon.ngb72.tmprl.cloud:7233",
 		}
-		bearer = sw.BearerToken
+		bearer = auth_startup.FetchTemporalAuthBearer(ctx)
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		authKeysCfg = tc.ProdLocalAuthKeysCfg
@@ -59,7 +59,7 @@ func Poseidon() {
 	log.Info().Msg("Poseidon: PG connected")
 
 	log.Info().Msgf("Poseidon: %s temporal auth and init procedure starting", env)
-	poseidon_orchestrations.PoseidonBearer = auth_startup.FetchTemporalAuthBearer(ctx)
+	poseidon_orchestrations.PoseidonBearer = bearer
 	poseidon_orchestrations.InitPoseidonWorker(ctx, temporalAuthCfg)
 	c := poseidon_orchestrations.PoseidonSyncWorker.TemporalClient.ConnectTemporalClient()
 	defer c.Close()
@@ -77,7 +77,7 @@ func Poseidon() {
 func init() {
 	viper.AutomaticEnv()
 	Cmd.Flags().StringVar(&cfg.Port, "port", "9006", "server port")
-	Cmd.Flags().StringVar(&env, "env", "local", "environment")
+	Cmd.Flags().StringVar(&env, "env", "production-local", "environment")
 	Cmd.Flags().StringVar(&authKeysCfg.AgePubKey, "age-public-key", "age1n97pswc3uqlgt2un9aqn9v4nqu32egmvjulwqp3pv4algyvvuggqaruxjj", "age public key")
 	Cmd.Flags().StringVar(&authKeysCfg.AgePrivKey, "age-private-key", "", "age private key")
 	Cmd.Flags().StringVar(&authKeysCfg.SpacesKey, "do-spaces-key", "", "do s3 spaces key")

@@ -36,8 +36,8 @@ func (t *PoseidonActivitiesTestSuite) TestRsyncConsensus() {
 }
 
 func (t *PoseidonActivitiesTestSuite) TestResumeClient() {
-	cmName := "cm-lighthouse"
-	clientName := "lighthouse"
+	cmName := "cm-geth"
+	clientName := "geth"
 	resp, err := PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.StartClient(ctx, cmName, clientName)
 	t.Assert().Nil(err)
 	t.Assert().NotEmpty(resp)

@@ -29,7 +29,7 @@ var BeaconCloudCtxNs = zeus_common_types.CloudCtxNs{
 	Region:        "sfo3",
 	Context:       "do-sfo3-dev-do-sfo3-zeus",
 	Namespace:     "ethereum", // set with your own namespace
-	Env:           "dev",
+	Env:           "production",
 }
 
 var basePar = zeus_pods_reqs.PodActionRequest{

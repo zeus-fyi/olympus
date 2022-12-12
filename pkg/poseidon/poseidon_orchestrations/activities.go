@@ -100,6 +100,9 @@ func (d *PoseidonSyncActivities) RsyncExecBucket(ctx context.Context) error {
 	}
 
 	msg := Response{}
+	if len(resp.ReplyBodies) <= 0 {
+		return errors.New("not done")
+	}
 	for _, rep := range resp.ReplyBodies {
 		err = json.Unmarshal(rep, &msg)
 		if err != nil {

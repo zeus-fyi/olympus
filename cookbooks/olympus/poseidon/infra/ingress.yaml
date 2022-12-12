@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "poseidon"
+  namespace: "poseidon"
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: "nginx"
+  tls:
+    - secretName: poseidon-tls
+      hosts:
+        - poseidon.zeus.fyi
+  rules:
+    - host: poseidon.zeus.fyi
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: poseidon
+                port:
+                  number: 80

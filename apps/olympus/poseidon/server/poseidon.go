@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/zeus-fyi/olympus/configs"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
@@ -38,24 +39,26 @@ func Poseidon() {
 			Namespace:        "production-poseidon.ngb72",
 			HostPort:         "production-poseidon.ngb72.tmprl.cloud:7233",
 		}
-		bearer = sw.BearerToken
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		authKeysCfg = tc.ProdLocalAuthKeysCfg
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
 		temporalAuthCfg = tc.ProdLocalTemporalAuthPoseidon
-		bearer = tc.LocalBearerToken
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		authKeysCfg = tc.DevAuthKeysCfg
 		cfg.PGConnStr = tc.LocalDbPgconn
 		temporalAuthCfg = tc.ProdLocalTemporalAuthPoseidon
-		bearer = tc.LocalBearerToken
 	}
 
+	log.Info().Msg("Poseidon: PG connection starting")
+	apps.Pg.InitPG(ctx, cfg.PGConnStr)
+	log.Info().Msg("Poseidon: PG connected")
+	bearer = auth_startup.FetchTemporalAuthBearer(ctx)
+
 	log.Info().Msgf("Poseidon: %s temporal auth and init procedure starting", env)
-	poseidon_orchestrations.InitPoseidonWorker(ctx, temporalAuthCfg)
 	poseidon_orchestrations.PoseidonBearer = bearer
+	poseidon_orchestrations.InitPoseidonWorker(ctx, temporalAuthCfg)
 	c := poseidon_orchestrations.PoseidonSyncWorker.TemporalClient.ConnectTemporalClient()
 	defer c.Close()
 	poseidon_orchestrations.PoseidonSyncWorker.Worker.RegisterWorker(c)
@@ -72,7 +75,7 @@ func Poseidon() {
 func init() {
 	viper.AutomaticEnv()
 	Cmd.Flags().StringVar(&cfg.Port, "port", "9006", "server port")
-	Cmd.Flags().StringVar(&env, "env", "local", "environment")
+	Cmd.Flags().StringVar(&env, "env", "production-local", "environment")
 	Cmd.Flags().StringVar(&authKeysCfg.AgePubKey, "age-public-key", "age1n97pswc3uqlgt2un9aqn9v4nqu32egmvjulwqp3pv4algyvvuggqaruxjj", "age public key")
 	Cmd.Flags().StringVar(&authKeysCfg.AgePrivKey, "age-private-key", "", "age private key")
 	Cmd.Flags().StringVar(&authKeysCfg.SpacesKey, "do-spaces-key", "", "do s3 spaces key")

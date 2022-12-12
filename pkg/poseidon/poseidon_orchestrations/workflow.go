@@ -27,7 +27,7 @@ func (t *PoseidonSyncWorkflow) GetWorkflows() []interface{} {
 	return []interface{}{t.PoseidonEthereumWorkflow}
 }
 
-func (t *PoseidonSyncWorkflow) PoseidonEthereumWorkflow(ctx workflow.Context) error {
+func (t *PoseidonSyncWorkflow) PoseidonEthereumWorkflow(ctx workflow.Context, params interface{}) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
@@ -39,7 +39,7 @@ func (t *PoseidonSyncWorkflow) PoseidonEthereumWorkflow(ctx workflow.Context) er
 		InitialInterval:    time.Second * 15,
 		BackoffCoefficient: 2,
 	}
-	ao.RetryPolicy = syncStatusCheckRetryPolicy
+	aoSync.RetryPolicy = syncStatusCheckRetryPolicy
 	execSyncStatusCtx := workflow.WithActivityOptions(ctx, aoSync)
 	err := workflow.ExecuteActivity(execSyncStatusCtx, t.IsExecClientSynced).Get(execSyncStatusCtx, nil)
 	if err != nil {

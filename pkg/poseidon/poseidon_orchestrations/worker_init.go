@@ -5,6 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	beacon_actions "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons/actions"
+	client_consts "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons/constants"
 	athena_client "github.com/zeus-fyi/olympus/pkg/athena/client"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
@@ -29,29 +30,33 @@ var kCtxNsHeader = zeus_req_types.TopologyDeployRequest{
 		Region:        "sfo3",
 		Context:       "do-sfo3-dev-do-sfo3-zeus",
 		Namespace:     "ethereum",
-		Env:           "dev",
+		Env:           "production",
 	},
 }
 
 func InitPoseidonWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
-	log.Ctx(ctx).Info().Msg("Poseidon: InitPoseidonWorker")
+	log.Ctx(ctx).Info().Msg("Poseidon: InitPoseidonWorker starting")
 	tc, err := temporal_base.NewTemporalClient(temporalAuthCfg)
 	if err != nil {
-		log.Err(err).Msg("Poseidon: sync failed")
+		log.Err(err).Msg("Poseidon: NewTemporalClient failed")
 		misc.DelayedPanic(err)
 	}
 	taskQueueName := PoseidonTaskQueue
 
 	ba := beacon_actions.NewDefaultBeaconActionsClient(PoseidonBearer, kCtxNsHeader)
-	ac := athena_client.NewLocalAthenaClient(PoseidonBearer)
+	ac := athena_client.NewDefaultAthenaClient(PoseidonBearer)
 	w := temporal_base.NewWorker(taskQueueName)
 
 	PoseidonSyncActivitiesOrchestrator = NewPoseidonSyncActivity(ba, ac)
+	PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.ExecClient = client_consts.Geth
+	PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.ConsensusClient = client_consts.Lighthouse
+
 	wf := NewPoseidonSyncWorkflow(PoseidonSyncActivitiesOrchestrator)
 
 	w.AddWorkflows(wf.GetWorkflows())
 	w.AddActivities(PoseidonSyncActivitiesOrchestrator.GetActivities())
 	PoseidonSyncWorker.Worker = w
 	PoseidonSyncWorker.TemporalClient = tc
+	log.Ctx(ctx).Info().Msg("Poseidon: InitPoseidonWorker finished")
 	return
 }

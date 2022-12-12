@@ -2,6 +2,7 @@ package poseidon_orchestrations
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -86,12 +87,28 @@ func (d *PoseidonSyncActivities) IsConsensusClientSynced(ctx context.Context) (b
 	return false, errors.New("not synced yet")
 }
 
+type Response struct {
+	Message string `json:"message"`
+}
+
 func (d *PoseidonSyncActivities) RsyncExecBucket(ctx context.Context) error {
 	br := poseidon_buckets.GethMainnetBucket
-	_, err := PoseidonSyncActivitiesOrchestrator.UploadViaPortForward(ctx, PoseidonSyncActivitiesOrchestrator.BeaconKnsReq, br)
+	resp, err := PoseidonSyncActivitiesOrchestrator.UploadViaPortForward(ctx, PoseidonSyncActivitiesOrchestrator.BeaconKnsReq, br)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("RsyncExecBucket")
 		return err
+	}
+
+	msg := Response{}
+	for _, rep := range resp.ReplyBodies {
+		err = json.Unmarshal(rep, &msg)
+		if err != nil {
+			log.Ctx(ctx).Err(err).Msg("GetConsensusClientSyncStatus")
+			return err
+		}
+		if msg.Message != "done" {
+			return errors.New("not done")
+		}
 	}
 	return err
 }

@@ -59,8 +59,8 @@ func Poseidon() {
 	log.Info().Msg("Poseidon: PG connected")
 
 	log.Info().Msgf("Poseidon: %s temporal auth and init procedure starting", env)
+	poseidon_orchestrations.PoseidonBearer = auth_startup.FetchTemporalAuthBearer(ctx)
 	poseidon_orchestrations.InitPoseidonWorker(ctx, temporalAuthCfg)
-	poseidon_orchestrations.PoseidonBearer = bearer
 	c := poseidon_orchestrations.PoseidonSyncWorker.TemporalClient.ConnectTemporalClient()
 	defer c.Close()
 	poseidon_orchestrations.PoseidonSyncWorker.Worker.RegisterWorker(c)

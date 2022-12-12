@@ -30,15 +30,15 @@ var kCtxNsHeader = zeus_req_types.TopologyDeployRequest{
 		Region:        "sfo3",
 		Context:       "do-sfo3-dev-do-sfo3-zeus",
 		Namespace:     "ethereum",
-		Env:           "proudction",
+		Env:           "production",
 	},
 }
 
 func InitPoseidonWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
-	log.Ctx(ctx).Info().Msg("Poseidon: InitPoseidonWorker")
+	log.Ctx(ctx).Info().Msg("Poseidon: InitPoseidonWorker starting")
 	tc, err := temporal_base.NewTemporalClient(temporalAuthCfg)
 	if err != nil {
-		log.Err(err).Msg("Poseidon: sync failed")
+		log.Err(err).Msg("Poseidon: NewTemporalClient failed")
 		misc.DelayedPanic(err)
 	}
 	taskQueueName := PoseidonTaskQueue
@@ -47,14 +47,16 @@ func InitPoseidonWorker(ctx context.Context, temporalAuthCfg temporal_auth.Tempo
 	ac := athena_client.NewLocalAthenaClient(PoseidonBearer)
 	w := temporal_base.NewWorker(taskQueueName)
 
-	PoseidonSyncActivitiesOrchestrator.ExecClient = client_consts.Geth
-	PoseidonSyncActivitiesOrchestrator.ConsensusClient = client_consts.Lighthouse
 	PoseidonSyncActivitiesOrchestrator = NewPoseidonSyncActivity(ba, ac)
+	PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.ExecClient = client_consts.Geth
+	PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.ConsensusClient = client_consts.Lighthouse
+
 	wf := NewPoseidonSyncWorkflow(PoseidonSyncActivitiesOrchestrator)
 
 	w.AddWorkflows(wf.GetWorkflows())
 	w.AddActivities(PoseidonSyncActivitiesOrchestrator.GetActivities())
 	PoseidonSyncWorker.Worker = w
 	PoseidonSyncWorker.TemporalClient = tc
+	log.Ctx(ctx).Info().Msg("Poseidon: InitPoseidonWorker finished")
 	return
 }

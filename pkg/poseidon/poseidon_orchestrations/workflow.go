@@ -52,6 +52,11 @@ func (t *PoseidonSyncWorkflow) PoseidonEthereumWorkflow(ctx workflow.Context, pa
 		log.Error("PauseExecClient: ", err)
 		return err
 	}
+	err = workflow.Sleep(pauseExecClientCtx, 2*time.Minute)
+	if err != nil {
+		log.Error("PauseExecClient: ", err)
+		return err
+	}
 	rsyncExecClientCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(rsyncExecClientCtx, t.RsyncExecBucket).Get(rsyncExecClientCtx, nil)
 	if err != nil {
@@ -72,6 +77,11 @@ func (t *PoseidonSyncWorkflow) PoseidonEthereumWorkflow(ctx workflow.Context, pa
 	}
 	pauseConsensusClientCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(pauseConsensusClientCtx, t.PauseConsensusClient).Get(pauseConsensusClientCtx, nil)
+	if err != nil {
+		log.Error("PauseConsensusClient: ", err)
+		return err
+	}
+	err = workflow.Sleep(pauseConsensusClientCtx, 2*time.Minute)
 	if err != nil {
 		log.Error("PauseConsensusClient: ", err)
 		return err

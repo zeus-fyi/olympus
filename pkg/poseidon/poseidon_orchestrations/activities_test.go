@@ -21,8 +21,8 @@ type PoseidonActivitiesTestSuite struct {
 }
 
 func (t *PoseidonActivitiesTestSuite) TestPauseClient() {
-	cmName := "cm-lighthouse"
-	clientName := "lighthouse"
+	cmName := "cm-geth"
+	clientName := "geth"
 	resp, err := PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.PauseClient(ctx, cmName, clientName)
 	t.Assert().Nil(err)
 	t.Assert().NotEmpty(resp)

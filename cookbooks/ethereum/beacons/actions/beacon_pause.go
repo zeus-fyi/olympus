@@ -27,6 +27,7 @@ func (b *BeaconActionsClient) PauseClient(ctx context.Context, cmName, clientNam
 	}
 	if client_consts.IsConsensusClient(clientName) {
 		b.ConsensusClient = clientName
+		basePar.TopologyDeployRequest = b.BeaconKnsReq
 		resp, cerr := b.RestartConsensusClientPods(ctx, basePar)
 		if cerr != nil {
 			log.Ctx(ctx).Err(cerr).Msg("PauseConsensusClient: RestartConsensusClientPods")
@@ -36,6 +37,7 @@ func (b *BeaconActionsClient) PauseClient(ctx context.Context, cmName, clientNam
 	}
 	if client_consts.IsExecClient(clientName) {
 		b.ExecClient = clientName
+		basePar.TopologyDeployRequest = b.BeaconKnsReq
 		resp, cerr := b.RestartExecClientPods(ctx, basePar)
 		if cerr != nil {
 			log.Ctx(ctx).Err(cerr).Msg("PauseConsensusClient: RestartExecClientPods")

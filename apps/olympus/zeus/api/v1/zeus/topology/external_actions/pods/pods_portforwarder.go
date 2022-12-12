@@ -93,7 +93,6 @@ func PodsPortForwardRequest(c echo.Context, request *PodActionRequest) ([]byte, 
 		}
 		r.Err = err
 		r.BodyBytes = resp.Body()
-		r.Body = resp.String()
 	default:
 		restyC.SetAllowGetMethodPayload(true)
 		resp, err := restyC.R().
@@ -105,9 +104,8 @@ func PodsPortForwardRequest(c echo.Context, request *PodActionRequest) ([]byte, 
 		}
 		r.Err = err
 		r.BodyBytes = resp.Body()
-		r.Body = resp.String()
 	}
 	close(stopChan)
 	log.Ctx(ctx).Debug().Msg("end port-forwarded commands")
-	return r.BodyBytes, nil
+	return r.BodyBytes, r.Err
 }

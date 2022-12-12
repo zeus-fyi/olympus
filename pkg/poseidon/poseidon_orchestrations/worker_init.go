@@ -44,7 +44,7 @@ func InitPoseidonWorker(ctx context.Context, temporalAuthCfg temporal_auth.Tempo
 	taskQueueName := PoseidonTaskQueue
 
 	ba := beacon_actions.NewDefaultBeaconActionsClient(PoseidonBearer, kCtxNsHeader)
-	ac := athena_client.NewLocalAthenaClient(PoseidonBearer)
+	ac := athena_client.NewDefaultAthenaClient(PoseidonBearer)
 	w := temporal_base.NewWorker(taskQueueName)
 
 	PoseidonSyncActivitiesOrchestrator = NewPoseidonSyncActivity(ba, ac)

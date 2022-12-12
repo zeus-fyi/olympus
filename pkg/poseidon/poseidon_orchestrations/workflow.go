@@ -13,7 +13,7 @@ type PoseidonSyncWorkflow struct {
 	temporal_base.Workflow
 }
 
-const defaultTimeout = 30 * time.Minute
+const defaultTimeout = 12 * time.Hour
 
 func NewPoseidonSyncWorkflow(psa PoseidonSyncActivities) PoseidonSyncWorkflow {
 	deployWf := PoseidonSyncWorkflow{

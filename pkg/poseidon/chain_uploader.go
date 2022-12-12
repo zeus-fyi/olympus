@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/rs/zerolog/log"
 	s3uploader "github.com/zeus-fyi/olympus/datastores/s3/upload"
-	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 )
 
 func (p *Poseidon) ZstdCompressAndUpload(ctx context.Context, br BucketRequest) error {
@@ -74,8 +73,8 @@ func (p *Poseidon) SyncUpload(ctx context.Context, br BucketRequest) error {
 	cmd := exec.Command("rclone", "sync", "data", spacesFolderLocation)
 	err := cmd.Run()
 	if err != nil {
-		log.Fatal().Msg("Poseidon: SyncUpload failed")
-		misc.DelayedPanic(err)
+		log.Ctx(ctx).Err(err).Msg("Poseidon: SyncUpload failed or was only partially filled")
+		return err
 	}
 	return err
 }

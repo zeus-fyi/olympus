@@ -39,7 +39,7 @@ func (t *PoseidonSyncWorkflow) PoseidonEthereumWorkflow(ctx workflow.Context, pa
 		InitialInterval:    time.Second * 15,
 		BackoffCoefficient: 2,
 	}
-	ao.RetryPolicy = syncStatusCheckRetryPolicy
+	aoSync.RetryPolicy = syncStatusCheckRetryPolicy
 	execSyncStatusCtx := workflow.WithActivityOptions(ctx, aoSync)
 	err := workflow.ExecuteActivity(execSyncStatusCtx, t.IsExecClientSynced).Get(execSyncStatusCtx, nil)
 	if err != nil {

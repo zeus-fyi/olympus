@@ -31,31 +31,31 @@ func (d *PoseidonSyncActivities) GetActivities() ActivitiesSlice {
 
 func (d *PoseidonSyncActivities) PauseExecClient(ctx context.Context) error {
 	cmName := fmt.Sprintf("cm-%s", d.ExecClient)
-	_, err := d.BeaconActionsClient.PauseClient(ctx, cmName, d.ExecClient)
+	_, err := PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.PauseClient(ctx, cmName, d.ExecClient)
 	return err
 }
 
 func (d *PoseidonSyncActivities) PauseConsensusClient(ctx context.Context) error {
 	cmName := fmt.Sprintf("cm-%s", d.ConsensusClient)
-	_, err := d.BeaconActionsClient.PauseClient(ctx, cmName, d.ConsensusClient)
+	_, err := PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.PauseClient(ctx, cmName, d.ConsensusClient)
 	return err
 }
 
 func (d *PoseidonSyncActivities) ResumeExecClient(ctx context.Context) error {
 	cmName := fmt.Sprintf("cm-%s", d.ExecClient)
-	_, err := d.BeaconActionsClient.StartClient(ctx, cmName, d.ExecClient)
+	_, err := PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.StartClient(ctx, cmName, d.ExecClient)
 	return err
 }
 
 func (d *PoseidonSyncActivities) ResumeConsensusClient(ctx context.Context) error {
 	cmName := fmt.Sprintf("cm-%s", d.ConsensusClient)
-	_, err := d.BeaconActionsClient.StartClient(ctx, cmName, d.ConsensusClient)
+	_, err := PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.StartClient(ctx, cmName, d.ConsensusClient)
 	return err
 }
 
 // IsExecClientSynced only checks the first result
 func (d *PoseidonSyncActivities) IsExecClientSynced(ctx context.Context) (bool, error) {
-	syncStatuses, err := d.BeaconActionsClient.GetExecClientSyncStatus(ctx)
+	syncStatuses, err := PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.GetExecClientSyncStatus(ctx)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("SyncExecStatus")
 		return false, err
@@ -71,7 +71,7 @@ func (d *PoseidonSyncActivities) IsExecClientSynced(ctx context.Context) (bool, 
 
 // IsConsensusClientSynced only checks the first result
 func (d *PoseidonSyncActivities) IsConsensusClientSynced(ctx context.Context) (bool, error) {
-	syncStatuses, err := d.BeaconActionsClient.GetConsensusClientSyncStatus(ctx)
+	syncStatuses, err := PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.GetConsensusClientSyncStatus(ctx)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("SyncExecStatus")
 		return false, err
@@ -87,7 +87,7 @@ func (d *PoseidonSyncActivities) IsConsensusClientSynced(ctx context.Context) (b
 
 func (d *PoseidonSyncActivities) RsyncExecBucket(ctx context.Context) error {
 	br := poseidon_buckets.GethMainnetBucket
-	err := d.Upload(ctx, br)
+	err := PoseidonSyncActivitiesOrchestrator.Upload(ctx, br)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("RsyncExecBucket")
 		return err
@@ -97,7 +97,7 @@ func (d *PoseidonSyncActivities) RsyncExecBucket(ctx context.Context) error {
 
 func (d *PoseidonSyncActivities) RsyncConsensusBucket(ctx context.Context) error {
 	br := poseidon_buckets.LighthouseMainnetBucket
-	err := d.Upload(ctx, br)
+	err := PoseidonSyncActivitiesOrchestrator.Upload(ctx, br)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("RsyncConsensusBucket")
 		return err

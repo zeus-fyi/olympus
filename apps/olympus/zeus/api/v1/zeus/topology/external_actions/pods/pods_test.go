@@ -34,7 +34,6 @@ func (p *PodsHandlerTestSuite) SetupTest() {
 var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "zeus-k8s-blockchain", Namespace: "eth-indexer"}
 
 func (p *PodsHandlerTestSuite) TestPodPortForwardGET() {
-
 	cliReq := ClientRequest{
 		MethodHTTP:      "GET",
 		Endpoint:        "health",
@@ -60,7 +59,6 @@ func (p *PodsHandlerTestSuite) TestPodPortForwardAll() {
 		EndpointHeaders: nil,
 	}
 	filter := string_utils.FilterOpts{DoesNotInclude: []string{"beacon", "metrics"}}
-
 	podActionRequest := PodActionRequest{
 		Action:     "port-forward-all",
 		PodName:    "eth-indexer-eth-indexer",
@@ -89,14 +87,11 @@ func (p *PodsHandlerTestSuite) TestPodPortForwardPOST() {
 		ValidatorBalancesBatchSize: &nbSize,
 		ValidatorBalancesTimeout:   &timeout,
 	}
-	payload, err := json.Marshal(adminCfg)
-	p.Require().Nil(err)
-	payloadStr := string(payload)
 	cliReq := ClientRequest{
 		MethodHTTP:      "POST",
 		Endpoint:        "admin",
 		Ports:           []string{"9000:9000"},
-		Payload:         &payloadStr,
+		Payload:         adminCfg,
 		EndpointHeaders: nil,
 	}
 	podActionRequest := PodActionRequest{
@@ -137,7 +132,6 @@ func (p *PodsHandlerTestSuite) TestDeletePod() {
 
 func (p *PodsHandlerTestSuite) TestAuditPods() {
 	filter := string_utils.FilterOpts{StartsWith: "eth"}
-
 	podActionRequest := PodActionRequest{
 		Action:     "describe-audit",
 		FilterOpts: &filter,

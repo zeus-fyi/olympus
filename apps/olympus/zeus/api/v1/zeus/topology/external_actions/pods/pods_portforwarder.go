@@ -12,6 +12,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/pkg/iris/resty_base"
 	"github.com/zeus-fyi/olympus/pkg/utils/client"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
@@ -19,28 +20,25 @@ import (
 func podsPortForwardRequestToAllPods(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
 	log.Ctx(ctx).Debug().Msg("start podsPortForwardRequestToAllPods")
-
 	pods, err := zeus.K8Util.GetPodsUsingCtxNs(ctx, request.CloudCtxNs, nil, request.FilterOpts)
 	if err != nil {
 		return err
 	}
 	var respBody ClientResp
-	respBody.ReplyBodies = make(map[string]string, len(pods.Items))
-
+	respBody.ReplyBodies = make(map[string][]byte, len(pods.Items))
 	for _, pod := range pods.Items {
 		request.PodName = pod.GetName()
-		bytesResp, reqErr := PodsPortForwardRequest(request)
+		bytesResp, reqErr := PodsPortForwardRequest(c, request)
 		if reqErr != nil {
 			log.Err(reqErr).Msgf("port-forwarded request to pod %s failed", pod.GetName())
 			return c.JSON(http.StatusBadRequest, "port-forwarded request failed")
 		}
-		respBody.ReplyBodies[pod.GetName()] = string(bytesResp)
-
+		respBody.ReplyBodies[pod.GetName()] = bytesResp
 	}
 	return c.JSON(http.StatusOK, respBody)
 }
 
-func PodsPortForwardRequest(request *PodActionRequest) ([]byte, error) {
+func PodsPortForwardRequest(c echo.Context, request *PodActionRequest) ([]byte, error) {
 	ctx := context.Background()
 	log.Ctx(ctx).Debug().Msg("start PodsPortForwardRequest")
 
@@ -73,39 +71,41 @@ func PodsPortForwardRequest(request *PodActionRequest) ([]byte, error) {
 	}()
 
 	log.Ctx(ctx).Debug().Msg("do port-forwarded commands")
-	cli := client.Client{}
 	port := ""
 	for _, po := range clientReq.Ports {
 		port, _, _ = strings.Cut(po, ":")
 	}
-	cli.E = client.Endpoint(fmt.Sprintf("http://localhost:%s", port))
-	cli.Headers = clientReq.EndpointHeaders
-
+	bearer := c.Get("bearer")
+	restyC := resty_base.GetBaseRestyClient(fmt.Sprintf("http://localhost:%s", port), bearer.(string))
 	var r client.Reply
-	payloadBytes := clientReq.PayloadBytes
 	payload := clientReq.Payload
-	var finalPayload []byte
-
-	// prefer bytes, but use string if exists
-	if payloadBytes != nil {
-		finalPayload = *payloadBytes
-	} else if payload != nil {
-		finalPayload = []byte(*payload)
-	}
-
 	switch clientReq.MethodHTTP {
 	case http.MethodPost:
-		if finalPayload == nil {
+		if payload == nil {
 			return emptyBytes, errors.New("no payload supplied for POST request")
 		}
-
-		r = cli.Post(ctx, string(cli.E)+"/"+clientReq.Endpoint, finalPayload, cli.Headers)
-	default:
-		if finalPayload != nil {
-			r = cli.GetWithPayload(ctx, string(cli.E)+"/"+clientReq.Endpoint, finalPayload, cli.Headers)
-		} else {
-			r = cli.Get(ctx, string(cli.E)+"/"+clientReq.Endpoint, cli.Headers)
+		resp, err := restyC.R().
+			SetHeaders(clientReq.EndpointHeaders).
+			SetBody(payload).
+			Post(clientReq.Endpoint)
+		if err != nil {
+			log.Ctx(ctx).Err(err)
 		}
+		r.Err = err
+		r.BodyBytes = resp.Body()
+		r.Body = resp.String()
+	default:
+		restyC.SetAllowGetMethodPayload(true)
+		resp, err := restyC.R().
+			SetHeaders(clientReq.EndpointHeaders).
+			SetBody(payload).
+			Get(clientReq.Endpoint)
+		if err != nil {
+			log.Ctx(ctx).Err(err)
+		}
+		r.Err = err
+		r.BodyBytes = resp.Body()
+		r.Body = resp.String()
 	}
 	close(stopChan)
 	log.Ctx(ctx).Debug().Msg("end port-forwarded commands")

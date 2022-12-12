@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "poseidon"
+  labels:
+    app.kubernetes.io/instance: "poseidon"
+    app.kubernetes.io/name: "poseidon"
+    app.kubernetes.io/managed-by: "zeus"
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/instance: "poseidon"
+    app.kubernetes.io/name: "poseidon"
+

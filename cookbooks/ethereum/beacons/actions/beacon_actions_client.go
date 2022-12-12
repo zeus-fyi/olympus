@@ -11,48 +11,50 @@ import (
 
 type BeaconActionsClient struct {
 	zeus_client.ZeusClient
+	BeaconKnsReq    zeus_req_types.TopologyDeployRequest
 	PrintPath       filepaths.Path
 	ConfigPaths     filepaths.Path
 	ConsensusClient string
 	ExecClient      string
 }
 
-// set your own topologyID here after uploading a chart workload
-var beaconKnsReq = zeus_req_types.TopologyDeployRequest{
+// BeaconKnsReq set your own topologyID here after uploading a chart workload
+var BeaconKnsReq = zeus_req_types.TopologyDeployRequest{
 	TopologyID: 1669159384971627008,
-	CloudCtxNs: beaconCloudCtxNs,
+	CloudCtxNs: BeaconCloudCtxNs,
 }
 
-var beaconCloudCtxNs = zeus_common_types.CloudCtxNs{
+var BeaconCloudCtxNs = zeus_common_types.CloudCtxNs{
 	CloudProvider: "do",
 	Region:        "sfo3",
 	Context:       "do-sfo3-dev-do-sfo3-zeus",
-	Namespace:     "beacon", // set with your own namespace
+	Namespace:     "ethereum", // set with your own namespace
 	Env:           "dev",
 }
 
 var basePar = zeus_pods_reqs.PodActionRequest{
-	TopologyDeployRequest: beaconKnsReq,
+	TopologyDeployRequest: BeaconKnsReq,
 	PodName:               "",
 	FilterOpts:            nil,
 	ClientReq:             nil,
 	DeleteOpts:            nil,
 }
 
-func NewBeaconActionsClient(baseURL, bearer string) BeaconActionsClient {
+func NewBeaconActionsClient(baseURL, bearer string, kCtxNs zeus_req_types.TopologyDeployRequest) BeaconActionsClient {
 	z := BeaconActionsClient{}
+	z.BeaconKnsReq = kCtxNs
 	z.Resty = base_rest_client.GetBaseRestyClient(baseURL, bearer)
 	return z
 }
 
 const ZeusEndpoint = "https://api.zeus.fyi"
 
-func NewDefaultBeaconActionsClient(bearer string) BeaconActionsClient {
-	return NewBeaconActionsClient(ZeusEndpoint, bearer)
+func NewDefaultBeaconActionsClient(bearer string, kCtxNs zeus_req_types.TopologyDeployRequest) BeaconActionsClient {
+	return NewBeaconActionsClient(ZeusEndpoint, bearer, kCtxNs)
 }
 
-const ZeusLocalEndpoint = "http://localhost:9000"
+const ZeusLocalEndpoint = "http://localhost:9001"
 
 func NewLocalBeaconActionsClient(bearer string) BeaconActionsClient {
-	return NewBeaconActionsClient(ZeusLocalEndpoint, bearer)
+	return NewBeaconActionsClient(ZeusLocalEndpoint, bearer, BeaconKnsReq)
 }

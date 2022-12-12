@@ -23,7 +23,7 @@ func (t *BeaconActionsTestSuite) SetupTest() {
 	tc := api_configs.InitLocalTestConfigs()
 
 	// uses the bearer token from test/configs/config.yaml
-	t.BeaconActionsClient = NewDefaultBeaconActionsClient(tc.Bearer)
+	t.BeaconActionsClient = NewDefaultBeaconActionsClient(tc.Bearer, BeaconKnsReq)
 	dir := cookbooks.ChangeToCookbookDir()
 
 	t.BeaconActionsClient.PrintPath.DirIn = path.Join(dir, "/ethereum/beacon/logs")

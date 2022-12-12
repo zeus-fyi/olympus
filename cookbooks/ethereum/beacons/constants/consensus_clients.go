@@ -14,6 +14,7 @@ func GetClientBeaconPortsHTTP(clientName string) []string {
 	case Lighthouse:
 		return LighthouseBeaconPorts
 	}
+
 	return []string{}
 }
 
@@ -24,4 +25,12 @@ func IsConsensusClient(name string) bool {
 	default:
 		return false
 	}
+}
+
+type ConsensusClientSyncStatus struct {
+	Data struct {
+		HeadSlot     string `json:"head_slot"`
+		SyncDistance string `json:"sync_distance"`
+		IsSyncing    bool   `json:"is_syncing"`
+	} `json:"data"`
 }

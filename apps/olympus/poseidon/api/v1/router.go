@@ -9,7 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
-	poseidon_chain_snapshots "github.com/zeus-fyi/olympus/poseidon/api/v1/common/chain_snapshots"
+	"github.com/zeus-fyi/olympus/pkg/poseidon/poseidon_orchestrations"
 )
 
 func Routes(e *echo.Echo) *echo.Echo {
@@ -24,14 +24,14 @@ func Health(c echo.Context) error {
 }
 
 func InitV1Routes(e *echo.Echo) {
-	eg := e.Group("/v1beta")
+	eg := e.Group("/v1beta/internal")
 	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()
-			key, err := auth.VerifyBearerToken(ctx, token)
+			key, err := auth.VerifyInternalBearerToken(ctx, token)
 			if err != nil {
-				log.Err(err).Msg("InitV1Routes")
+				log.Err(err).Msg("InitV1InternalRoutes")
 				return false, c.JSON(http.StatusInternalServerError, nil)
 			}
 			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
@@ -40,5 +40,18 @@ func InitV1Routes(e *echo.Echo) {
 			return key.PublicKeyVerified, err
 		},
 	}))
-	eg.GET("/snapshot/download", poseidon_chain_snapshots.RequestDownloadURLHandler)
+	eg.GET("/ethereum", RunWorkflow)
+}
+
+func RunWorkflow(c echo.Context) error {
+	return ExecuteSyncWorkflow(c, context.Background())
+}
+
+func ExecuteSyncWorkflow(c echo.Context, ctx context.Context) error {
+	err := poseidon_orchestrations.PoseidonSyncWorker.ExecutePoseidonSyncWorkflow(ctx)
+	if err != nil {
+		log.Err(err).Msg("ExecuteSyncWorkflow")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	return c.JSON(http.StatusAccepted, nil)
 }

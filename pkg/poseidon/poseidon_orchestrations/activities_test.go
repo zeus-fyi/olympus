@@ -35,6 +35,13 @@ func (t *PoseidonActivitiesTestSuite) TestRsyncConsensus() {
 	t.Assert().NotEmpty(resp)
 }
 
+func (t *PoseidonActivitiesTestSuite) TestRsyncExec() {
+	reqHeader := beacon_actions.BeaconKnsReq
+	resp, err := PoseidonSyncActivitiesOrchestrator.UploadViaPortForward(ctx, reqHeader, poseidon_buckets.GethMainnetBucket)
+	t.Assert().Nil(err)
+	t.Assert().NotEmpty(resp)
+}
+
 func (t *PoseidonActivitiesTestSuite) TestResumeClient() {
 	cmName := "cm-geth"
 	clientName := "geth"

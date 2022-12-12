@@ -88,7 +88,7 @@ func (d *PoseidonSyncActivities) IsConsensusClientSynced(ctx context.Context) (b
 
 func (d *PoseidonSyncActivities) RsyncExecBucket(ctx context.Context) error {
 	br := poseidon_buckets.GethMainnetBucket
-	err := PoseidonSyncActivitiesOrchestrator.Upload(ctx, br)
+	_, err := PoseidonSyncActivitiesOrchestrator.UploadViaPortForward(ctx, PoseidonSyncActivitiesOrchestrator.BeaconKnsReq, br)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("RsyncExecBucket")
 		return err
@@ -98,7 +98,7 @@ func (d *PoseidonSyncActivities) RsyncExecBucket(ctx context.Context) error {
 
 func (d *PoseidonSyncActivities) RsyncConsensusBucket(ctx context.Context) error {
 	br := poseidon_buckets.LighthouseMainnetBucket
-	err := PoseidonSyncActivitiesOrchestrator.Upload(ctx, br)
+	_, err := PoseidonSyncActivitiesOrchestrator.UploadViaPortForward(ctx, PoseidonSyncActivitiesOrchestrator.BeaconKnsReq, br)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("RsyncConsensusBucket")
 		return err

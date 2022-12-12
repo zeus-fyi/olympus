@@ -39,24 +39,22 @@ func Poseidon() {
 			Namespace:        "production-poseidon.ngb72",
 			HostPort:         "production-poseidon.ngb72.tmprl.cloud:7233",
 		}
-		bearer = auth_startup.FetchTemporalAuthBearer(ctx)
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		authKeysCfg = tc.ProdLocalAuthKeysCfg
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
 		temporalAuthCfg = tc.ProdLocalTemporalAuthPoseidon
-		bearer = tc.LocalBearerToken
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		authKeysCfg = tc.DevAuthKeysCfg
 		cfg.PGConnStr = tc.LocalDbPgconn
 		temporalAuthCfg = tc.ProdLocalTemporalAuthPoseidon
-		bearer = tc.LocalBearerToken
 	}
 
 	log.Info().Msg("Poseidon: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	log.Info().Msg("Poseidon: PG connected")
+	bearer = auth_startup.FetchTemporalAuthBearer(ctx)
 
 	log.Info().Msgf("Poseidon: %s temporal auth and init procedure starting", env)
 	poseidon_orchestrations.PoseidonBearer = bearer

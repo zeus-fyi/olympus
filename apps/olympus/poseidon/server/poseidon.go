@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/zeus-fyi/olympus/configs"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
@@ -52,6 +53,10 @@ func Poseidon() {
 		temporalAuthCfg = tc.ProdLocalTemporalAuthPoseidon
 		bearer = tc.LocalBearerToken
 	}
+
+	log.Info().Msg("Poseidon: PG connection starting")
+	apps.Pg.InitPG(ctx, cfg.PGConnStr)
+	log.Info().Msg("Poseidon: PG connected")
 
 	log.Info().Msgf("Poseidon: %s temporal auth and init procedure starting", env)
 	poseidon_orchestrations.InitPoseidonWorker(ctx, temporalAuthCfg)

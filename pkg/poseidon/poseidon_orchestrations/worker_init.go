@@ -29,7 +29,7 @@ var kCtxNsHeader = zeus_req_types.TopologyDeployRequest{
 		Region:        "sfo3",
 		Context:       "do-sfo3-dev-do-sfo3-zeus",
 		Namespace:     "ethereum",
-		Env:           "dev",
+		Env:           "proudction",
 	},
 }
 

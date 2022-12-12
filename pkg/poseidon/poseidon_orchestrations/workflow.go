@@ -27,7 +27,7 @@ func (t *PoseidonSyncWorkflow) GetWorkflows() []interface{} {
 	return []interface{}{t.PoseidonEthereumWorkflow}
 }
 
-func (t *PoseidonSyncWorkflow) PoseidonEthereumWorkflow(ctx workflow.Context) error {
+func (t *PoseidonSyncWorkflow) PoseidonEthereumWorkflow(ctx workflow.Context, params interface{}) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,

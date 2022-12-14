@@ -18,22 +18,25 @@ func selectClusterTopologiesQ(cte *sql_query_templates.CTE, orgID int, clusterNa
 	cte.Params = append(cte.Params, clusterName)
 	for i, skb := range clusterSkeletonBases {
 		if i == 0 {
-			cond += " AND "
+			cond += " AND ("
 		}
 		cte.Params = append(cte.Params, skb)
 		cond += fmt.Sprintf("topology_skeleton_base_name = $%d", len(cte.Params))
 		if i != len(clusterSkeletonBases)-1 {
 			cond += " OR "
 		}
+		if i == len(clusterSkeletonBases)-1 {
+			cond += ")"
+		}
 	}
 
-	query := fmt.Sprintf(`SELECT topology_skeleton_base_name, MAX(topology_id), tag
+	query := fmt.Sprintf(`SELECT topology_skeleton_base_name, MAX(topology_id)
 				FROM topology_system_components ts
 				INNER JOIN topology_base_components tb ON tb.topology_system_component_id = ts.topology_system_component_id
 				INNER JOIN topology_skeleton_base_components sb ON tb.topology_base_component_id = sb.topology_base_component_id
 				INNER JOIN topology_infrastructure_components ti ON ti.topology_skeleton_base_id = sb.topology_skeleton_base_id
 				%s
-				GROUP BY topology_skeleton_base_name, tag`, cond)
+				GROUP BY topology_skeleton_base_name`, cond)
 
 	q.RawQuery = query
 	return q
@@ -72,9 +75,9 @@ func SelectClusterTopology(ctx context.Context, orgID int, clusterName string, c
 	}
 	defer rows.Close()
 	for rows.Next() {
-		ct := ClusterTopologies{}
+		ct := ClusterTopologies{Tag: "latest"}
 		rowErr := rows.Scan(
-			&ct.SkeletonBaseName, &ct.TopologyID, &ct.Tag,
+			&ct.SkeletonBaseName, &ct.TopologyID,
 		)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader(Sn))

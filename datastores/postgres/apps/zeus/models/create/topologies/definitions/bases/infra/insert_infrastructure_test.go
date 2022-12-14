@@ -26,9 +26,9 @@ func (s *CreateInfraTestSuite) TestInsertInfraBase() {
 	p := filepaths.Path{
 		PackageName: "",
 		DirIn:       s.TestDirectory + "/mocks/demo",
-		FnIn:        "cm-consensus-client.yaml",
+		FnIn:        "statefulset.yaml",
 		DirOut:      s.TestDirectory + "/tempout",
-		FnOut:       "cm-consensus-client.yaml",
+		FnOut:       "statefulset.yaml",
 		FilterFiles: string_utils.FilterOpts{DoesNotStartWithThese: []string{"service"}},
 	}
 	err := s.Yr.ReadK8sWorkloadDir(p)
@@ -54,8 +54,8 @@ func (s *CreateInfraTestSuite) TestInsertInfraBase() {
 	ctx := context.Background()
 	inf.Name = fmt.Sprintf("test_%d", s.Ts.UnixTimeStampNow())
 	//inf.OrgID, inf.UserID = s.b.NewTestOrgAndUser()
-	inf.OrgID = 1668065557527643728
-	inf.UserID = 1668065557509163089
+	inf.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	inf.UserID = s.Tc.ProductionLocalTemporalUserID
 	fmt.Println("OrgID")
 	fmt.Println(inf.OrgID)
 

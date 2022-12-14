@@ -61,8 +61,8 @@ func (t *ZeusClientTestSuite) SetupTest() {
 	tc := api_configs.InitLocalTestConfigs()
 
 	// uses the bearer token from test/configs/config.yaml
-	//t.ZeusTestClient = NewDefaultZeusClient(tc.Bearer)
-	t.ZeusTestClient = NewLocalZeusClient(tc.Bearer)
+	t.ZeusTestClient = NewDefaultZeusClient(tc.Bearer)
+	//t.ZeusTestClient = NewLocalZeusClient(tc.Bearer)
 	// points working dir to inside /test
 	test_base.ForceDirToTestDirLocation()
 

@@ -22,11 +22,7 @@ func CreateVolumeMountsCTEs() (sql_query_templates.SubCTE, sql_query_templates.S
 	return contVmsSubCTE, contVmsRelationshipsSubCTE
 }
 
-func (p *PodTemplateSpec) insertContainerVolumeMountsValues(m map[string]containers.Container, imageID string, contVmsSubCTE, contVmsRelationshipsSubCTE *sql_query_templates.SubCTE) {
-	c, ok := m[imageID]
-	if !ok {
-		return
-	}
+func (p *PodTemplateSpec) insertContainerVolumeMountsValues(c containers.Container, contVmsSubCTE, contVmsRelationshipsSubCTE *sql_query_templates.SubCTE) {
 	ts := chronos.Chronos{}
 	podSpecChildClassTypeID := p.GetPodSpecChildClassTypeID()
 

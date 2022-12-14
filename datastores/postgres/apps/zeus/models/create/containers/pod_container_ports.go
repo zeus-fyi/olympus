@@ -20,22 +20,15 @@ func CreatePortsCTEs() (sql_query_templates.SubCTE, sql_query_templates.SubCTE) 
 	return portsSubCTE, portsRelationshipsSubCTE
 }
 
-func (p *PodTemplateSpec) getContainerPortsValuesForInsert(m map[string]containers.Container, imageID string, cteSubfield *sql_query_templates.SubCTE) {
-	c, ok := m[imageID]
-	if !ok {
-		return
-	}
+func (p *PodTemplateSpec) getContainerPortsValuesForInsert(c containers.Container, cteSubfield *sql_query_templates.SubCTE) {
 	for _, port := range c.GetPorts() {
 		cteSubfield.AddValues(port.PortID, port.PortName, port.ContainerPort, port.HostPort)
 	}
 	return
 }
 
-func (p *PodTemplateSpec) getContainerPortsHeaderRelationshipValues(m map[string]containers.Container, imageID string, cteSubfield *sql_query_templates.SubCTE) {
-	c, ok := m[imageID]
-	if !ok {
-		return
-	}
+func (p *PodTemplateSpec) getContainerPortsHeaderRelationshipValues(c containers.Container, cteSubfield *sql_query_templates.SubCTE) {
+
 	podSpecChildClassTypeID := p.GetPodSpecChildClassTypeID()
 	for _, port := range c.GetPorts() {
 		cteSubfield.AddValues(podSpecChildClassTypeID, c.GetContainerID(), port.PortID)

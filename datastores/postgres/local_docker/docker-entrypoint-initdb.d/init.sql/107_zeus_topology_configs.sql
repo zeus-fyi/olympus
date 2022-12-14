@@ -48,7 +48,7 @@ CREATE TABLE "public"."topology_base_components" (
     "topology_base_name" text NOT NULL
 );
 ALTER TABLE "public"."topology_base_components" ADD CONSTRAINT "topology_base_components_pk" PRIMARY KEY ("topology_base_component_id");
-ALTER TABLE "public"."topology_base_components" ADD CONSTRAINT "base_component_name_unique_to_org" UNIQUE("topology_base_name", "org_id");
+ALTER TABLE "public"."topology_base_components" ADD CONSTRAINT "base_component_name_unique_to_org" UNIQUE("topology_base_name", "org_id", "topology_system_component_id");
 
 
 -- enforce the class type is base on entry, use the distributed id gen to also function as the version
@@ -61,7 +61,7 @@ CREATE TABLE "public"."topology_skeleton_base_components" (
 );
 
 ALTER TABLE "public"."topology_skeleton_base_components" ADD CONSTRAINT "topology_skeleton_base_components_pk" PRIMARY KEY ("topology_skeleton_base_id");
-ALTER TABLE "public"."topology_skeleton_base_components" ADD CONSTRAINT "topology_skeleton_base_component_name_unique_to_org" UNIQUE("topology_skeleton_base_name", "topology_skeleton_base_id", "org_id");
+ALTER TABLE "public"."topology_skeleton_base_components" ADD CONSTRAINT "topology_skeleton_base_component_name_unique_to_org" UNIQUE("topology_skeleton_base_name", "org_id", "topology_base_component_id");
 
 -- links topology to kubernetes package
 CREATE TABLE "public"."topology_infrastructure_components" (

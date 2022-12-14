@@ -13,6 +13,7 @@ type TopologyCreateRequest struct {
 	Version          string `json:"version"`
 
 	Tag              string `json:"tag,omitempty"`
+	ClusterBaseName  string `json:"clusterBaseName,omitempty"`
 	SkeletonBaseName string `json:"skeletonBaseName,omitempty"`
 }
 

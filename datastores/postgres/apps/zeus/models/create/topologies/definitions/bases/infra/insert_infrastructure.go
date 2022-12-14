@@ -46,12 +46,25 @@ func (i *InfraBaseTopology) SelectInfraTopologyQuery() {
 	if len(i.Tag) <= 0 {
 		i.Tag = "latest"
 	}
+
 	if len(i.SkeletonBaseName) != 0 {
-		insertTopInfraQuery.RawQuery = fmt.Sprintf(`
+		if len(i.ClusterBaseName) > 0 {
+			insertTopInfraQuery.RawQuery = fmt.Sprintf(`
 		  INSERT INTO topology_infrastructure_components(topology_id, chart_package_id, topology_skeleton_base_id, tag)
-		  VALUES ((SELECT topology_id FROM %s), (SELECT chart_package_id FROM %s), (SELECT topology_skeleton_base_id FROM topology_skeleton_base_components WHERE org_id = $8 AND topology_skeleton_base_name = $9), $10) `,
-			insertTopQuery.QueryName, insertTopChartQuery.QueryName)
-		i.CTE.Params = append(i.CTE.Params, i.OrgID, i.SkeletonBaseName, i.Tag)
+		  VALUES ((SELECT topology_id FROM %s), (SELECT chart_package_id FROM %s), (SELECT topology_skeleton_base_id
+		  																			FROM topology_skeleton_base_components sb
+		  																			INNER JOIN topology_base_components tb ON tb.topology_base_component_id = sb.topology_base_component_id
+		  																			INNER JOIN topology_system_components sys ON sys.topology_system_component_id = tb.topology_system_component_id
+		  																			WHERE sb.org_id = $8 AND sb.topology_skeleton_base_name = $9 AND sys.topology_system_component_name = $10), $11) `,
+				insertTopQuery.QueryName, insertTopChartQuery.QueryName)
+			i.CTE.Params = append(i.CTE.Params, i.OrgID, i.SkeletonBaseName, i.ClusterBaseName, i.Tag)
+		} else {
+			insertTopInfraQuery.RawQuery = fmt.Sprintf(`
+		  INSERT INTO topology_infrastructure_components(topology_id, chart_package_id, topology_skeleton_base_id, tag)
+		  VALUES ((SELECT topology_id FROM %s), (SELECT chart_package_id FROM %s), (SELECT topology_skeleton_base_id FROM topology_skeleton_base_components WHERE org_id = $8 AND topology_skeleton_base_name = $9 LIMIT 1), $10) `,
+				insertTopQuery.QueryName, insertTopChartQuery.QueryName)
+			i.CTE.Params = append(i.CTE.Params, i.OrgID, i.SkeletonBaseName, i.Tag)
+		}
 	} else {
 		insertTopInfraQuery.RawQuery = fmt.Sprintf(`
 		  INSERT INTO topology_infrastructure_components(topology_id, chart_package_id, topology_skeleton_base_id, tag)

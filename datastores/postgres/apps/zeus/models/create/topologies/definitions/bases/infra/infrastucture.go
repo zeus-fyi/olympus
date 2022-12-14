@@ -16,6 +16,7 @@ type InfraBaseTopology struct {
 	packages.Packages
 
 	Tag              string `json:"tag,omitempty"`
+	ClusterBaseName  string `json:"clusterBaseName,omitempty"`
 	SkeletonBaseName string `json:"skeletonBaseName,omitempty"`
 	TopologyClassID  int    `json:"topologyClassID,omitempty"`
 }
@@ -23,7 +24,7 @@ type InfraBaseTopology struct {
 func NewCreateInfrastructure() InfraBaseTopology {
 	pkg := packages.NewPackageInsert()
 	infc := infra.NewInfrastructureBaseTopology()
-	ibc := InfraBaseTopology{infc, pkg, "latest-internal", "", 0}
+	ibc := InfraBaseTopology{infc, pkg, "latest-internal", "", "", 0}
 	return ibc
 }
 

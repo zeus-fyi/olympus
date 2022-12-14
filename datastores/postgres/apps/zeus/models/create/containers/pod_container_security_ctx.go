@@ -9,11 +9,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-func (p *PodTemplateSpec) insertContainerSecurityCtx(m map[string]containers.Container, imageID string, contVmsSubCTE, contVmsRelationshipsSubCTE *sql_query_templates.SubCTE) {
-	c, ok := m[imageID]
-	if !ok {
-		return
-	}
+func (p *PodTemplateSpec) insertContainerSecurityCtx(c containers.Container, contVmsSubCTE, contVmsRelationshipsSubCTE *sql_query_templates.SubCTE) {
 	ts := chronos.Chronos{}
 	securityCtxID := ts.UnixTimeStampNow()
 	contVmsSubCTE.AddValues(securityCtxID, c.SecurityContext.SecurityContextKeyValues)

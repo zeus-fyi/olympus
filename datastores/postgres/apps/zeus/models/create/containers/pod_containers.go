@@ -11,10 +11,10 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-func (p *PodTemplateSpec) NewPodContainersMapForDB() map[string]containers.Container {
-	m := make(map[string]containers.Container)
-	for _, c := range p.GetContainers() {
-		m[c.Metadata.ContainerImageID] = c
+func (p *PodTemplateSpec) NewPodContainersMapForDB() map[int]containers.Container {
+	m := make(map[int]containers.Container)
+	for i, c := range p.GetContainers() {
+		m[i] = c
 	}
 	return m
 }

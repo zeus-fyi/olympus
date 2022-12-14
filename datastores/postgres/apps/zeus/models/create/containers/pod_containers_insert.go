@@ -109,18 +109,18 @@ func (p *PodTemplateSpec) InsertPodTemplateSpecContainersCTE(chart *charts.Chart
 		computeResourcesRelationshipsSubCTE.AddValues(computeResourcesID, cont.GetContainerID())
 
 		// ports
-		p.getContainerPortsValuesForInsert(containersMapByImageID, c.ContainerImageID, &portsSubCTE)
-		p.getContainerPortsHeaderRelationshipValues(containersMapByImageID, c.ContainerImageID, &portsRelationshipsSubCTE)
+		p.getContainerPortsValuesForInsert(cont, &portsSubCTE)
+		p.getContainerPortsHeaderRelationshipValues(cont, &portsRelationshipsSubCTE)
 
 		// env vars
-		p.getInsertContainerEnvVarsValues(containersMapByImageID, c.ContainerImageID, &envVarsSubCTE)
-		p.getContainerEnvVarRelationshipValues(containersMapByImageID, c.ContainerImageID, &envVarsRelationshipsSubCTE)
+		p.getInsertContainerEnvVarsValues(cont, &envVarsSubCTE)
+		p.getContainerEnvVarRelationshipValues(cont, &envVarsRelationshipsSubCTE)
 
 		// vms
-		p.insertContainerVolumeMountsValues(containersMapByImageID, c.ContainerImageID, &contVmsSubCTE, &contVmsRelationshipsSubCTE)
+		p.insertContainerVolumeMountsValues(cont, &contVmsSubCTE, &contVmsRelationshipsSubCTE)
 
 		// security ctx
-		p.insertContainerSecurityCtx(containersMapByImageID, c.ContainerImageID, &containerSecurityCtxSubCTE, &containersSecurityCtxRelationSubCTE)
+		p.insertContainerSecurityCtx(cont, &containerSecurityCtxSubCTE, &containersSecurityCtxRelationSubCTE)
 
 		// probes
 		p1, p2 := common.CreateProbeValueSubCTEs(cont.GetContainerID(), cont.Probes)

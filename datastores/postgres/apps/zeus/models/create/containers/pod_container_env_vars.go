@@ -21,11 +21,7 @@ func CreateEnvVarsCTEs() (sql_query_templates.SubCTE, sql_query_templates.SubCTE
 	return envVarsSubCTE, envVarsRelationshipsSubCTE
 }
 
-func (p *PodTemplateSpec) getInsertContainerEnvVarsValues(m map[string]containers.Container, imageID string, cteSubfield *sql_query_templates.SubCTE) {
-	c, ok := m[imageID]
-	if !ok {
-		return
-	}
+func (p *PodTemplateSpec) getInsertContainerEnvVarsValues(c containers.Container, cteSubfield *sql_query_templates.SubCTE) {
 	for i, ev := range c.GetEnvVars() {
 		jsonBvalue := "{}"
 		if len(ev.Value) != 0 {
@@ -38,11 +34,7 @@ func (p *PodTemplateSpec) getInsertContainerEnvVarsValues(m map[string]container
 	return
 }
 
-func (p *PodTemplateSpec) getContainerEnvVarRelationshipValues(m map[string]containers.Container, imageID string, cteSubfield *sql_query_templates.SubCTE) {
-	c, ok := m[imageID]
-	if !ok {
-		return
-	}
+func (p *PodTemplateSpec) getContainerEnvVarRelationshipValues(c containers.Container, cteSubfield *sql_query_templates.SubCTE) {
 
 	podSpecChildClassTypeID := p.GetPodSpecChildClassTypeID()
 	for _, ev := range c.GetEnvVars() {

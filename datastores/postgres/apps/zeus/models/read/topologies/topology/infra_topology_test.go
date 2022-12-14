@@ -17,11 +17,12 @@ type TopologyTestSuite struct {
 
 func (s *TopologyTestSuite) TestSelectTopology() {
 	s.InitLocalConfigs()
+	//apps.Pg.InitPG(context.Background(), s.Tc.ProdLocalDbPgconn)
 	tr := NewInfraTopologyReader()
 
-	tr.TopologyID = 1668065557558818048
-	tr.OrgID = 1668065557527643728
-	tr.UserID = 1668065557509163089
+	tr.TopologyID = 1671004476048440064
+	tr.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	tr.UserID = s.Tc.ProductionLocalTemporalUserID
 	ctx := context.Background()
 	err := tr.SelectTopology(ctx)
 	s.Require().Nil(err)

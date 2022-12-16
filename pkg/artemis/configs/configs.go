@@ -24,10 +24,11 @@ type BeaconNetwork struct {
 }
 
 const (
-	Artemis  = "artemis"
-	Mainnet  = "mainnet"
-	Goerli   = "goerli"
-	Ethereum = "ethereum"
+	Artemis   = "artemis"
+	Mainnet   = "mainnet"
+	Goerli    = "goerli"
+	Ephemeral = "ephemeral"
+	Ethereum  = "ethereum"
 )
 
 func NewArtemisConfig(protocol, network string) ArtemisConfig {
@@ -42,9 +43,10 @@ func NewArtemisConfig(protocol, network string) ArtemisConfig {
 }
 
 var (
-	ArtemisEthereumMainnet = NewArtemisConfig(Ethereum, Mainnet)
-	ArtemisEthereumGoerli  = NewArtemisConfig(Ethereum, Goerli)
-	GlobalArtemisConfigs   = []*ArtemisConfig{&ArtemisEthereumMainnet, &ArtemisEthereumGoerli}
+	ArtemisEthereumMainnet   = NewArtemisConfig(Ethereum, Mainnet)
+	ArtemisEthereumGoerli    = NewArtemisConfig(Ethereum, Goerli)
+	ArtemisEthereumEphemeral = NewArtemisConfig(Ethereum, Ephemeral)
+	GlobalArtemisConfigs     = []*ArtemisConfig{&ArtemisEthereumMainnet, &ArtemisEthereumGoerli, &ArtemisEthereumEphemeral}
 )
 
 func (b *BeaconNetwork) GetBeaconSecretKey() string {
@@ -72,4 +74,7 @@ func InitArtemisLocalTestConfigs() {
 
 	ArtemisEthereumGoerli.NodeURL = tc.GoerliNodeUrl
 	ArtemisEthereumGoerli.AddAccountFromHexPk(ctx, tc.ArtemisGoerliEcdsaKey)
+
+	ArtemisEthereumEphemeral.NodeURL = tc.EphemeralNodeUrl
+	ArtemisEthereumGoerli.AddAccountFromHexPk(ctx, tc.ArtemisEphemeralEcdsaKey)
 }

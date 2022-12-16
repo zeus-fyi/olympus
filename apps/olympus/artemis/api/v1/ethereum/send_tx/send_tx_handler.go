@@ -1,6 +1,8 @@
 package artemis_eth_txs
 
 import (
+	"time"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -29,13 +31,12 @@ func SendSignedTxEthEphemeralTxHandler(c echo.Context) error {
 }
 
 func SendEtherEphemeralTxHandler(c echo.Context) error {
-	request := new(EthereumSendEtherRequest)
-	if err := c.Bind(request); err != nil {
-		return err
-	}
-	//mw := NewLimiter(0, time.Duration(100)*time.Minute)
-	//mw.ServeHTTP(c.Response().Writer, c.Request(), nil)
-	return request.SendEtherEphemeral(c)
+	//request := new(EthereumSendEtherRequest)
+	//if err := c.Bind(request); err != nil {
+	//	return err
+	//}
+	mw := NewLimiter(0, time.Duration(100)*time.Minute)
+	return mw.ServeHTTP(c.Response().Writer, c.Request(), c)
 }
 
 func SendSignedTxEthMainnetTxHandler(c echo.Context) error {

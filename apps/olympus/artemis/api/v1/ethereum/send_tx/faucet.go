@@ -146,50 +146,42 @@ func NewLimiter(proxyCount int, ttl time.Duration) *Limiter {
 	}
 }
 
-func (l *Limiter) Error() {
-
-	//var mr *malformedRequest
-	//if errors.As(err, &mr) {
-	//	renderJSON(w, claimResponse{Message: mr.message}, mr.status)
-	//} else {
-	//	renderJSON(w, claimResponse{Message: http.StatusText(http.StatusInternalServerError)}, http.StatusInternalServerError)
-	//}
-}
-
-func (l *Limiter) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+func (l *Limiter) ServeHTTP(w http.ResponseWriter, r *http.Request, c echo.Context) error {
 	address, err := readAddress(r)
 	if err != nil {
 		var mr *malformedRequest
 		if errors.As(err, &mr) {
-			renderJSON(w, claimResponse{Message: mr.message}, mr.status)
+			return renderJSON(w, claimResponse{Message: mr.message}, mr.status)
+
 		} else {
-			renderJSON(w, claimResponse{Message: http.StatusText(http.StatusInternalServerError)}, http.StatusInternalServerError)
+			return renderJSON(w, claimResponse{Message: http.StatusText(http.StatusInternalServerError)}, http.StatusInternalServerError)
 		}
-		return
+
 	}
 
 	if l.ttl <= 0 {
-		next.ServeHTTP(w, r)
-		return
+		return Faucet.FaucetHandler(c)
 	}
 
-	clintIP := getClientIPFromRequest(l.proxyCount, r)
+	clientIP := getClientIPFromRequest(l.proxyCount, r)
 	l.mutex.Lock()
-	if l.limitByKey(w, address) || l.limitByKey(w, clintIP) {
+	if l.limitByKey(w, address) || l.limitByKey(w, clientIP) {
 		l.mutex.Unlock()
-		return
+		errMsg := fmt.Sprintf("You have exceeded the rate limit. Please wait before you try again")
+		return renderJSON(w, claimResponse{Message: errMsg}, http.StatusTooManyRequests)
 	}
 	l.cache.SetWithTTL(address, true, l.ttl)
-	l.cache.SetWithTTL(clintIP, true, l.ttl)
+	l.cache.SetWithTTL(clientIP, true, l.ttl)
 	l.mutex.Unlock()
 
-	next.ServeHTTP(w, r)
-	if w.(negroni.ResponseWriter).Status() != http.StatusOK {
+	if c.Response().Writer.(negroni.ResponseWriter).Status() != http.StatusOK {
 		l.cache.Remove(address)
-		l.cache.Remove(clintIP)
-		return
+		l.cache.Remove(clientIP)
+		log.Info().Interface("address", address).Interface("clientIP", clientIP).Msg("Maximum request limit has been reached")
+		errMsg := fmt.Sprintf("You have exceeded the rate limit. Please wait before you try again")
+		return renderJSON(w, claimResponse{Message: errMsg}, http.StatusTooManyRequests)
 	}
-	log.Info().Interface("address", address).Interface("clientIP", clintIP).Msg("Maximum request limit has been reached")
+	return Faucet.FaucetHandler(c)
 }
 
 func (l *Limiter) limitByKey(w http.ResponseWriter, key string) bool {
@@ -306,7 +298,6 @@ func (s *FaucetServer) FaucetHandler(c echo.Context) error {
 			return c.JSON(http.StatusServiceUnavailable, resp)
 		}
 	}
-
 	sendEthTransferPayload := web3_actions.TransferArgs{
 		Amount:    EtherToWei(int64(s.cfg.payout)),
 		ToAddress: common.StringToAddress(address),
@@ -328,6 +319,7 @@ func (s *FaucetServer) FaucetHandler(c echo.Context) error {
 	log.Ctx(ctx).Info().Interface(
 		"txHash", "txHash").Interface("address", address).Msg("Funded directly successfully")
 	resp := claimResponse{Message: fmt.Sprintf("Txhash: %s", "")}
+
 	return c.JSON(http.StatusAccepted, resp)
 }
 

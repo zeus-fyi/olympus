@@ -146,6 +146,16 @@ func NewLimiter(proxyCount int, ttl time.Duration) *Limiter {
 	}
 }
 
+func (l *Limiter) Error() {
+
+	//var mr *malformedRequest
+	//if errors.As(err, &mr) {
+	//	renderJSON(w, claimResponse{Message: mr.message}, mr.status)
+	//} else {
+	//	renderJSON(w, claimResponse{Message: http.StatusText(http.StatusInternalServerError)}, http.StatusInternalServerError)
+	//}
+}
+
 func (l *Limiter) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	address, err := readAddress(r)
 	if err != nil {

@@ -1,6 +1,8 @@
 package artemis_eth_txs
 
-import "github.com/labstack/echo/v4"
+import (
+	"github.com/labstack/echo/v4"
+)
 
 func SendSignedTxEthGoerliTxHandler(c echo.Context) error {
 	request := new(EthereumSendSignedTxRequest)
@@ -31,6 +33,8 @@ func SendEtherEphemeralTxHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return err
 	}
+	//mw := NewLimiter(0, time.Duration(100)*time.Minute)
+	//mw.ServeHTTP(c.Response().Writer, c.Request(), nil)
 	return request.SendEtherEphemeral(c)
 }
 

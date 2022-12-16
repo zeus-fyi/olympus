@@ -18,6 +18,22 @@ func SendEtherGoerliTxHandler(c echo.Context) error {
 	return request.SendEtherGoerliTx(c)
 }
 
+func SendSignedTxEthEphemeralTxHandler(c echo.Context) error {
+	request := new(EthereumSendSignedTxRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.SendEphemeralSignedTx(c)
+}
+
+func SendEtherEphemeralTxHandler(c echo.Context) error {
+	request := new(EthereumSendEtherRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.SendEtherEphemeral(c)
+}
+
 func SendSignedTxEthMainnetTxHandler(c echo.Context) error {
 	request := new(EthereumSendSignedTxRequest)
 	if err := c.Bind(request); err != nil {

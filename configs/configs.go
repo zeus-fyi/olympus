@@ -65,13 +65,15 @@ type TestContainer struct {
 	LocalEcsdaTestPkey  string
 	LocalEcsdaTestPkey2 string
 
-	GoerliNodeUrl  string
-	MainnetNodeUrl string
+	EphemeralNodeUrl string
+	GoerliNodeUrl    string
+	MainnetNodeUrl   string
 }
 
 type ArtemisHexKeys struct {
-	ArtemisGoerliEcdsaKey  string
-	ArtemisMainnetEcdsaKey string
+	ArtemisEphemeralEcdsaKey string
+	ArtemisGoerliEcdsaKey    string
+	ArtemisMainnetEcdsaKey   string
 }
 
 func SetBaseURLs() TestURLs {
@@ -109,6 +111,7 @@ func InitLocalTestConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
 	testCont.MainnetNodeUrl = viper.GetString("MAINNET_NODE_URL")
 	testCont.GoerliNodeUrl = viper.GetString("GOERLI_NODE_URL")
+	testCont.EphemeralNodeUrl = viper.GetString("EPHEMERAL_NODE_URL")
 
 	testCont.ProductionLocalTemporalOrgID = viper.GetInt("PROD_LOCAL_TEMPORAL_ORG_ID")
 	testCont.ProductionLocalTemporalUserID = viper.GetInt("PROD_LOCAL_TEMPORAL_USER_ID")

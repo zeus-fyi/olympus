@@ -58,6 +58,28 @@ func InitEthereumGoerliTxBroadcastWorker(ctx context.Context, temporalAuthCfg te
 	return
 }
 
+var ArtemisEthereumEphemeralTxBroadcastWorker ArtemisEthereumTxWorker
+
+const EthereumEphemeralTxBroadcastTaskQueue = "EthereumEphemeralTxBroadcastTaskQueue"
+
+func InitEthereumEphemeralTxBroadcastWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
+	log.Ctx(ctx).Info().Msg("Artemis: InitEthereumEphemeralTxBroadcastWorker")
+	tc, err := temporal_base.NewTemporalClient(temporalAuthCfg)
+	if err != nil {
+		log.Err(err).Msg("EthereumEphemeralTxBroadcastTaskQueue: NewTemporalClient failed")
+		misc.DelayedPanic(err)
+	}
+	taskQueueName := EthereumEphemeralTxBroadcastTaskQueue
+	w := temporal_base.NewWorker(taskQueueName)
+	activityDef := NewArtemisEthereumBroadcastTxActivities(ArtemisEthereumEphemeralBroadcastTxClient)
+	wf := NewArtemisBroadcastEthereumTxWorkflow()
+	w.AddWorkflows(wf.GetWorkflows())
+	w.AddActivities(activityDef.GetActivities())
+	ArtemisEthereumEphemeralTxBroadcastWorker.Worker = w
+	ArtemisEthereumEphemeralTxBroadcastWorker.TemporalClient = tc
+	return
+}
+
 func InitEthereumBroadcasters(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
 	log.Ctx(ctx).Info().Msg("Artemis: InitEthereumBroadcasters: InitWeb3Clients")
 	InitWeb3Clients(ctx)
@@ -65,5 +87,7 @@ func InitEthereumBroadcasters(ctx context.Context, temporalAuthCfg temporal_auth
 	InitEthereumTxBroadcastWorker(ctx, temporalAuthCfg)
 	log.Ctx(ctx).Info().Msg("Artemis: InitEthereumBroadcasters: InitEthereumGoerliTxBroadcastWorker")
 	InitEthereumGoerliTxBroadcastWorker(ctx, temporalAuthCfg)
+	log.Ctx(ctx).Info().Msg("Artemis: InitEthereumBroadcasters: InitEthereumEphemeralTxBroadcastWorker")
+	InitEthereumEphemeralTxBroadcastWorker(ctx, temporalAuthCfg)
 	log.Ctx(ctx).Info().Msg("Artemis: InitEthereumBroadcasters succeeded")
 }

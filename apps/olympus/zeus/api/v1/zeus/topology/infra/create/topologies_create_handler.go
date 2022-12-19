@@ -21,11 +21,11 @@ func CreateTopologyClassActionRequestHandler(c echo.Context) error {
 }
 
 func UpdateTopologyClassActionRequestHandler(c echo.Context) error {
-	request := new(TopologyCreateOrAddBasesToClassesRequest)
+	request := new(TopologyCreateOrAddComponentBasesToClassesRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	return request.AddBasesToTopologyClusterClass(c)
+	return request.AddComponentBasesToTopologyClusterClass(c)
 }
 
 func CreateTopologySkeletonBasesActionRequestHandler(c echo.Context) error {

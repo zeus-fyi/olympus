@@ -38,6 +38,20 @@ func InitArtemisEthereumGoerliClient(ctx context.Context) {
 	log.Info().Msg("Artemis: InitArtemisEthereumGoerliClient Succeeded")
 }
 
+var ArtemisEthereumEphemeralBroadcastTxClient web3_client.Web3Client
+
+func InitArtemisEthereumEphemeralClient(ctx context.Context) {
+	log.Info().Msg("Artemis: InitArtemisEthereumEphemeralClient")
+	cfg := artemis_network_cfgs.ArtemisEthereumEphemeral
+	if len(cfg.NodeURL) == 0 || cfg.Account == nil {
+		err := errors.New("missing configs")
+		log.Ctx(ctx).Panic().Err(err).Interface("nodeUrl", cfg.NodeURL).Interface("account", cfg.Account.PublicKey()).Msg("InitArtemisEthereumEphemeralClient failed")
+		misc.DelayedPanic(err)
+	}
+	ArtemisEthereumEphemeralBroadcastTxClient = web3_client.NewWeb3Client(cfg.NodeURL, cfg.Account)
+	log.Info().Msg("Artemis: InitArtemisEthereumGoerliClient Succeeded")
+}
+
 func InitWeb3Clients(ctx context.Context) {
 	log.Ctx(ctx).Info().Msg("Artemis: InitWeb3Clients")
 	InitArtemisEthereumClient(ctx)

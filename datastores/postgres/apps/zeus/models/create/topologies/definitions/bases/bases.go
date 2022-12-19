@@ -31,13 +31,13 @@ func InsertBase(ctx context.Context, base *bases.Base) error {
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
 
-func InsertBasesQ(ctx context.Context, orgID int, name string, cte *sql_query_templates.CTE, bs []bases.Base) sql_query_templates.SubCTEs {
+func InsertBasesQ(ctx context.Context, orgID int, clusterClassName string, cte *sql_query_templates.CTE, bs []bases.Base) sql_query_templates.SubCTEs {
 	ts := chronos.Chronos{}
 	getClusterIDByName := `SELECT topology_system_component_id FROM topology_system_components WHERE org_id = $1 AND topology_system_component_name = $2 AND topology_class_type_id = $3`
 	var fetchClusterInfo = sql_query_templates.SubCTE{}
 	fetchClusterInfo.QueryName = "cte_select_sys_component_id"
 	fetchClusterInfo.RawQuery = getClusterIDByName
-	cte.Params = []interface{}{orgID, name, class_types.ClusterClassTypeID}
+	cte.Params = []interface{}{orgID, clusterClassName, class_types.ClusterClassTypeID}
 	basesCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_insertBasesCTE_%d", ts.UnixTimeStampNow()))
 	basesCTE.TableName = "topology_base_components"
 	basesCTE.Columns = []string{"org_id", "topology_class_type_id", "topology_base_name", "topology_base_component_id", "topology_system_component_id"}
@@ -49,9 +49,9 @@ func InsertBasesQ(ctx context.Context, orgID int, name string, cte *sql_query_te
 	return []sql_query_templates.SubCTE{fetchClusterInfo, basesCTE}
 }
 
-func InsertBases(ctx context.Context, orgID int, name string, bs []bases.Base) error {
+func InsertBases(ctx context.Context, orgID int, clusterClassName string, bs []bases.Base) error {
 	cte := sql_query_templates.CTE{}
-	q := InsertBasesQ(ctx, orgID, name, &cte, bs)
+	q := InsertBasesQ(ctx, orgID, clusterClassName, &cte, bs)
 	cte.AppendSubCtes(q)
 	query := cte.GenerateChainedCTE()
 	r, err := apps.Pg.Exec(ctx, query, cte.Params...)

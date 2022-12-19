@@ -9,7 +9,6 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
 )
 
-// set your own topologyID here after uploading a chart workload
 var DeployExecClientKnsReq = zeus_req_types.TopologyDeployRequest{
 	TopologyID: 0,
 	CloudCtxNs: BeaconCloudCtxNs,
@@ -26,7 +25,7 @@ var ExecClientChart = zeus_req_types.TopologyCreateRequest{
 
 var BeaconExecClientChartPath = filepaths.Path{
 	PackageName: "",
-	DirIn:       "./ethereum/beacon/infra/exec_client",
+	DirIn:       "./ethereum/beacons/infra/exec_client",
 	DirOut:      "./ethereum/outputs",
 	FnIn:        "gethHercules", // filename for your gzip workload
 	FnOut:       "",

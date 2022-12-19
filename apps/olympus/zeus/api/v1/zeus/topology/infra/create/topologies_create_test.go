@@ -35,8 +35,10 @@ func (t *TopologyCreateActionRequestTestSuite) TestUploadWithSkeletonBaseName() 
 	cookbooks.ChangeToCookbookDir()
 	c := beacon_cookbooks.ExecClientChart
 	p := beacon_cookbooks.BeaconExecClientChartPath
-	c.SkeletonBaseName = "add-skeleton-base-wrw5v"
-	c.Tag = "test-latest"
+	c.ClusterClassName = "lz2l2xd6wk"
+	c.ComponentBaseName = "test-cluster-base"
+	c.SkeletonBaseName = "whatever"
+	c.Tag = "latest"
 	resp, err := t.ZeusClient.UploadChart(ctx, p, c)
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(resp)

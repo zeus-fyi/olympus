@@ -15,8 +15,8 @@ import (
 )
 
 type TopologyClusterDeployRequest struct {
-	ClusterName string   `json:"clusterName"`
-	BaseOptions []string `json:"baseOptions"`
+	ClusterClassName    string   `json:"clusterClassName"`
+	SkeletonBaseOptions []string `json:"skeletonBaseOptions"`
 	zeus_common_types.CloudCtxNs
 }
 
@@ -41,19 +41,19 @@ func (t *TopologyClusterDeployRequest) DeployClusterTopology(c echo.Context) err
 	ou := c.Get("orgUser").(org_users.OrgUser)
 
 	orgID := ou.OrgID
-	if t.ClusterName == "ethereumBeacons" {
+	if t.ClusterClassName == "ethereumBeacons" {
 		err := create_infra.InsertInfraBeaconCopy(ctx, ou)
 		if err != nil {
 			log.Ctx(ctx).Err(err).Msg("DeployClusterTopology: SelectClusterTopology")
 		}
 	}
-	cl, err := read_topology.SelectClusterTopology(ctx, orgID, t.ClusterName, t.BaseOptions)
+	cl, err := read_topology.SelectClusterTopology(ctx, orgID, t.ClusterClassName, t.SkeletonBaseOptions)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("DeployClusterTopology: SelectClusterTopology")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	clDeploy := base_deploy_params.ClusterTopologyWorkflowRequest{
-		ClusterName: t.ClusterName,
+		ClusterName: t.ClusterClassName,
 		TopologyIDs: cl.GetTopologyIDs(),
 		CloudCtxNS:  t.CloudCtxNs,
 		OrgUser:     ou,

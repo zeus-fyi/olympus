@@ -13,7 +13,7 @@ import (
 func (t *TopologyCreateOrAddBasesToClassesRequest) AddSkeletonBaseClassToBase(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	ctx := context.Background()
-	err := create_skeletons.InsertSkeletonBases(ctx, ou.OrgID, t.ClassName, t.ClassBaseNames)
+	err := create_skeletons.InsertSkeletonBases(ctx, ou.OrgID, t.ClusterClassName, t.ComponentBaseName, t.SkeletonBaseNames)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("TopologyCreateSkeletonBasesRequest: AddSkeletonBaseClassToBase")
 		return c.JSON(http.StatusInternalServerError, nil)

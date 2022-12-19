@@ -28,7 +28,7 @@ var ConsensusClientChart = zeus_req_types.TopologyCreateRequest{
 // BeaconConsensusClientChartPath DirOut is where it will write a copy of the chart you uploaded, which helps verify the workload is correct
 var BeaconConsensusClientChartPath = filepaths.Path{
 	PackageName: "",
-	DirIn:       "./ethereum/beacon/infra",
+	DirIn:       "./ethereum/beacons/infra/consensus_client",
 	DirOut:      "./ethereum/outputs",
 	FnIn:        "lighthouseHercules", // filename for your gzip workload
 	FnOut:       "",

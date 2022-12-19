@@ -48,7 +48,6 @@ func InitBaseRoute() *echo.Echo {
 func (s *Server) Start() {
 	address := fmt.Sprintf("%s:%s", s.host, s.port)
 
-	// Start server
 	go func() {
 		if err := s.E.Start(address); err != nil && err != http.ErrServerClosed {
 			log.Fatal().Msg("Start up failed, shutting down the server")

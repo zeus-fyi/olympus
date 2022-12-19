@@ -37,7 +37,7 @@ func (t *TopologyCreateClassRequestTestSuite) TestEndToEnd() {
 	}()
 
 	ctx := context.Background()
-	cc := zeus_req_types.TopologyCreateOrAddSkeletonBasesToClassesRequest{
+	cc := zeus_req_types.TopologyCreateClusterClassRequest{
 		ClusterClassName: rand.String(10),
 	}
 	fmt.Println(cc.ClusterClassName)
@@ -168,7 +168,7 @@ func (t *TopologyCreateClassRequestTestSuite) TestClassCreate() {
 	ctx := context.Background()
 	defer t.E.Shutdown(ctx)
 
-	cc := zeus_req_types.TopologyCreateOrAddSkeletonBasesToClassesRequest{
+	cc := zeus_req_types.TopologyCreateClusterClassRequest{
 		ClusterClassName: rand.String(10),
 	}
 	fmt.Println(cc.ClusterClassName)

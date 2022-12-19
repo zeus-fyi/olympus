@@ -60,5 +60,8 @@ func (t *TopologyCreateOrAddComponentBasesToClassesRequest) AddComponentBasesToT
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 
-	return c.JSON(http.StatusOK, nil)
+	resp := TopologyCreateClassResponse{
+		ClusterClassName: t.ClusterClassName,
+	}
+	return c.JSON(http.StatusOK, resp)
 }

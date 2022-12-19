@@ -16,7 +16,7 @@ type InfraBaseTopology struct {
 	packages.Packages
 
 	Tag               string `json:"tag,omitempty"`
-	ClusterBaseName   string `json:"clusterBaseName,omitempty"`
+	ClusterClassName  string `json:"clusterClassName,omitempty"`
 	ComponentBaseName string `json:"componentBaseName,omitempty"`
 	SkeletonBaseName  string `json:"skeletonBaseName,omitempty"`
 	TopologyClassID   int    `json:"topologyClassID,omitempty"`

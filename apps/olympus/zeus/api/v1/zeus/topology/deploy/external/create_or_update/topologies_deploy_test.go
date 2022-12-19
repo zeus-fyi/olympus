@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	beacon_cookbooks "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/test"
@@ -31,9 +30,9 @@ func (t *TopologyDeployActionRequestTestSuite) TestDeployCluster() {
 	defer t.E.Shutdown(ctx)
 
 	cd := zeus_req_types.ClusterTopologyDeployRequest{
-		ClusterName: "ethereumBeacons",
-		BaseOptions: []string{"geth", "lighthouse"},
-		CloudCtxNs:  beacon_cookbooks.BeaconCloudCtxNs,
+		ClusterClassName:    "ethereumBeacons",
+		SkeletonBaseOptions: []string{"geth", "lighthouse"},
+		CloudCtxNs:          beacon_cookbooks.BeaconCloudCtxNs,
 	}
 	resp, err := t.ZeusClient.DeployCluster(ctx, cd)
 	t.Require().Nil(err)
@@ -43,15 +42,15 @@ func (t *TopologyDeployActionRequestTestSuite) TestDeployCluster() {
 func (t *TopologyDeployActionRequestTestSuite) TestReadCluster() {
 	t.InitLocalConfigs()
 	ctx := context.Background()
-	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
+	//apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
 
 	cd := zeus_req_types.ClusterTopologyDeployRequest{
-		ClusterName: "ethereumEphemeralBeacons",
-		BaseOptions: []string{"gethHercules", "lighthouseHercules"},
-		CloudCtxNs:  beacon_cookbooks.BeaconCloudCtxNs,
+		ClusterClassName:    "ethereumEphemeralValidatorCluster",
+		SkeletonBaseOptions: []string{"gethHercules", "lighthouseHercules", "lighthouseHerculesValidatorClient"},
+		CloudCtxNs:          beacon_cookbooks.BeaconCloudCtxNs,
 	}
 
-	cl, err := read_topology.SelectClusterTopology(ctx, t.Tc.ProductionLocalTemporalOrgID, cd.ClusterName, cd.BaseOptions)
+	cl, err := read_topology.SelectClusterTopology(ctx, t.Tc.ProductionLocalTemporalOrgID, cd.ClusterClassName, cd.SkeletonBaseOptions)
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(cl)
 }

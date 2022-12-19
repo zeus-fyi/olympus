@@ -30,18 +30,21 @@ func InsertSkeletonBase(ctx context.Context, skeletonBase *skeletons.SkeletonBas
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
 
-func insertSkeletonBasesQ(ctx context.Context, orgID int, name string, names []string, cte *sql_query_templates.CTE) sql_query_templates.SubCTEs {
+func insertSkeletonBasesQ(ctx context.Context, orgID int, clusterClassName, componentBaseName string, skeletonBaseNames []string, cte *sql_query_templates.CTE) sql_query_templates.SubCTEs {
 	ts := chronos.Chronos{}
-	getClusterIDByName := `SELECT topology_base_component_id FROM topology_base_components WHERE org_id = $1 AND topology_base_name = $2`
+	getClusterIDByName := `SELECT topology_base_component_id FROM topology_base_components
+                           WHERE org_id = $1 AND topology_base_name = $2 AND topology_system_component_id IN (SELECT topology_system_component_id
+                                                                                                              FROM topology_system_components
+                                                                                                              WHERE org_id = $3 AND topology_system_component_name = $4) `
 	var fetchClusterInfo = sql_query_templates.SubCTE{}
 	fetchClusterInfo.QueryName = "cte_select_base_component_id"
 	fetchClusterInfo.RawQuery = getClusterIDByName
-	cte.Params = []interface{}{orgID, name}
+	cte.Params = []interface{}{orgID, componentBaseName, orgID, clusterClassName}
 	basesCTE := sql_query_templates.NewSubInsertCTE(fmt.Sprintf("cte_insertBasesCTE_%d", ts.UnixTimeStampNow()))
 	basesCTE.TableName = "topology_skeleton_base_components"
 	basesCTE.Columns = []string{"org_id", "topology_class_type_id", "topology_skeleton_base_name", "topology_skeleton_base_id", "topology_base_component_id"}
 	basesCTE.ValuesOverride = make(map[int]string)
-	for _, n := range names {
+	for _, n := range skeletonBaseNames {
 		basesCTE.AddValues(orgID, class_types.SkeletonBaseClassTypeID, n, ts.UnixTimeStampNow(), "")
 		basesCTE.ValuesOverride[4] = "(SELECT topology_base_component_id FROM cte_select_base_component_id)"
 	}
@@ -49,9 +52,9 @@ func insertSkeletonBasesQ(ctx context.Context, orgID int, name string, names []s
 	return []sql_query_templates.SubCTE{fetchClusterInfo, basesCTE}
 }
 
-func InsertSkeletonBases(ctx context.Context, orgID int, baseName string, names []string) error {
+func InsertSkeletonBases(ctx context.Context, orgID int, clusterClassName string, componentBaseName string, skeletonBaseNames []string) error {
 	cte := sql_query_templates.CTE{}
-	q := insertSkeletonBasesQ(ctx, orgID, baseName, names, &cte)
+	q := insertSkeletonBasesQ(ctx, orgID, clusterClassName, componentBaseName, skeletonBaseNames, &cte)
 	cte.AppendSubCtes(q)
 	query := cte.GenerateChainedCTE()
 	r, err := apps.Pg.Exec(ctx, query, cte.Params...)

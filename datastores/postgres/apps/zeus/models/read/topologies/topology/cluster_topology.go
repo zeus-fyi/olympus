@@ -43,8 +43,8 @@ func selectClusterTopologiesQ(cte *sql_query_templates.CTE, orgID int, clusterNa
 }
 
 type ClusterTopology struct {
-	ClusterName string              `json:"clusterName"`
-	Topologies  []ClusterTopologies `json:"topologies"`
+	ClusterClassName string              `json:"clusterName"`
+	Topologies       []ClusterTopologies `json:"topologies"`
 }
 
 func (c ClusterTopology) GetTopologyIDs() []int {
@@ -64,7 +64,7 @@ type ClusterTopologies struct {
 func SelectClusterTopology(ctx context.Context, orgID int, clusterName string, clusterSkeletonBases []string) (ClusterTopology, error) {
 	cte := sql_query_templates.CTE{}
 
-	cl := ClusterTopology{ClusterName: clusterName}
+	cl := ClusterTopology{ClusterClassName: clusterName}
 	cl.Topologies = []ClusterTopologies{}
 	q := selectClusterTopologiesQ(&cte, orgID, clusterName, clusterSkeletonBases)
 	log.Debug().Interface("SelectTopologiesMetadata:", q.LogHeader(Sn))

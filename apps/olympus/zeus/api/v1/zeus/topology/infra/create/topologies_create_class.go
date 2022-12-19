@@ -14,41 +14,47 @@ import (
 )
 
 type TopologyCreateOrAddBasesToClassesRequest struct {
-	ClassName      string   `json:"className"`
-	ClassBaseNames []string `json:"classBaseNames,omitempty"`
+	ClusterClassName  string   `json:"clusterClassName"`
+	ComponentBaseName string   `json:"componentBaseName,omitempty"`
+	SkeletonBaseNames []string `json:"skeletonBaseNames,omitempty"`
+}
+
+type TopologyCreateOrAddComponentBasesToClassesRequest struct {
+	ClusterClassName   string   `json:"clusterClassName,omitempty"`
+	ComponentBaseNames []string `json:"componentBaseNames,omitempty"`
 }
 
 type TopologyCreateClassResponse struct {
-	ClusterName string `json:"name,omitempty"`
-	ClassID     int    `json:"classID"`
-	Status      string `json:"status,omitempty"`
+	ClassID          int    `json:"classID"`
+	ClusterClassName string `json:"clusterClassName,omitempty"`
+	Status           string `json:"status,omitempty"`
 }
 
 func (t *TopologyCreateOrAddBasesToClassesRequest) CreateTopologyClusterClass(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	ctx := context.Background()
-	cc := create_clusters.NewClusterClassTopologyTypeWithBases(ou.OrgID, t.ClassName, t.ClassBaseNames)
+	cc := create_clusters.NewClusterClassTopologyTypeWithBases(ou.OrgID, t.ClusterClassName, t.SkeletonBaseNames)
 	err := create_systems.InsertSystem(ctx, &cc.Systems)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("CreateTopologyClusterClass: InsertSystem")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	resp := TopologyCreateClassResponse{
-		ClusterName: t.ClassName,
-		ClassID:     cc.TopologySystemComponentID,
+		ClusterClassName: t.ClusterClassName,
+		ClassID:          cc.TopologySystemComponentID,
 	}
 	return c.JSON(http.StatusOK, resp)
 }
 
-func (t *TopologyCreateOrAddBasesToClassesRequest) AddBasesToTopologyClusterClass(c echo.Context) error {
+func (t *TopologyCreateOrAddComponentBasesToClassesRequest) AddComponentBasesToTopologyClusterClass(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	ctx := context.Background()
 
-	bs := make([]bases.Base, len(t.ClassBaseNames))
-	for i, b := range t.ClassBaseNames {
+	bs := make([]bases.Base, len(t.ComponentBaseNames))
+	for i, b := range t.ComponentBaseNames {
 		bs[i] = bases.NewBaseClassTopologyInsert(ou.OrgID, b)
 	}
-	err := create_bases.InsertBases(ctx, ou.OrgID, t.ClassName, bs)
+	err := create_bases.InsertBases(ctx, ou.OrgID, t.ClusterClassName, bs)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("TopologyAddBasesToClusterRequest: AddBasesToTopologyClusterClass")
 		return c.JSON(http.StatusInternalServerError, nil)

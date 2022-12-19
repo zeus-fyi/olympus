@@ -20,7 +20,7 @@ type TopologyCreateRequest struct {
 	ChartDescription string `json:"chartDescription,omitempty"`
 	Version          string `json:"version"`
 
-	ClusterBaseName   string `json:"clusterBaseName,omitempty"`
+	ClusterClassName  string `json:"clusterClassName,omitempty"`
 	ComponentBaseName string `json:"componentBaseName,omitempty"`
 	SkeletonBaseName  string `json:"skeletonBaseName,omitempty"`
 	Tag               string `json:"tag,omitempty"`
@@ -72,7 +72,7 @@ func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {
 
 	inf.SkeletonBaseName = c.FormValue("skeletonBaseName")
 	inf.ComponentBaseName = c.FormValue("componentBaseName")
-	inf.ClusterBaseName = c.FormValue("clusterBaseName")
+	inf.ClusterClassName = c.FormValue("clusterClassName")
 
 	err = inf.InsertInfraBase(ctx)
 	if err != nil {

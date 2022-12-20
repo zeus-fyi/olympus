@@ -56,4 +56,5 @@ func InitWeb3Clients(ctx context.Context) {
 	log.Ctx(ctx).Info().Msg("Artemis: InitWeb3Clients")
 	InitArtemisEthereumClient(ctx)
 	InitArtemisEthereumGoerliClient(ctx)
+	InitArtemisEthereumEphemeralClient(ctx)
 }

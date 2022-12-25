@@ -12,9 +12,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (k *K8Util) GetPod(ctx context.Context, name, ns string) (*v1.Pod, error) {
+func (k *K8Util) GetPod(ctx context.Context, name string, kns zeus_common_types.CloudCtxNs) (*v1.Pod, error) {
+	k.SetContext(kns.Context)
 	log.Ctx(ctx).Debug().Msg("GetPod")
-	p, err := k.kc.CoreV1().Pods(ns).Get(ctx, name, metav1.GetOptions{})
+	p, err := k.kc.CoreV1().Pods(kns.Namespace).Get(ctx, name, metav1.GetOptions{})
 	return p, err
 }
 
@@ -51,6 +52,7 @@ func (k *K8Util) GetPodsUsingCtxNs(ctx context.Context, kubeCtxNs zeus_common_ty
 }
 
 func (k *K8Util) GetFirstPodLike(ctx context.Context, kubeCtxNs zeus_common_types.CloudCtxNs, podName string, filter *string_utils.FilterOpts) (*v1.Pod, error) {
+	k.SetContext(kubeCtxNs.Context)
 	pods, err := k.GetPodsUsingCtxNs(ctx, kubeCtxNs, nil, filter)
 	if err != nil {
 		return nil, err

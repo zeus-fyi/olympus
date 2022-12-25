@@ -12,14 +12,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (k *K8Util) DeletePod(ctx context.Context, name, ns string, deletePodOpts *metav1.DeleteOptions) error {
+func (k *K8Util) DeletePod(ctx context.Context, name string, kubeCtxNs zeus_common_types.CloudCtxNs, deletePodOpts *metav1.DeleteOptions) error {
 	log.Ctx(ctx).Debug().Msg("DeletePod")
-
+	k.SetContext(kubeCtxNs.Context)
 	opts := metav1.DeleteOptions{}
 	if deletePodOpts == nil {
 		deletePodOpts = &opts
 	}
-	err := k.kc.CoreV1().Pods(ns).Delete(ctx, name, *deletePodOpts)
+	err := k.kc.CoreV1().Pods(kubeCtxNs.Namespace).Delete(ctx, name, *deletePodOpts)
 	if errors.IsNotFound(err) {
 		return nil
 	}

@@ -11,6 +11,7 @@ import (
 )
 
 func (k *K8Util) ConfigMapKeySwap(ctx context.Context, kns zeus_common_types.CloudCtxNs, name, key1, key2 string, filter *string_utils.FilterOpts) (*v1.ConfigMap, error) {
+	k.SetContext(kns.Context)
 	cm, err := k.GetConfigMapWithKns(ctx, kns, name, filter)
 	if err != nil {
 		return nil, err
@@ -32,6 +33,7 @@ func (k *K8Util) ConfigMapKeySwap(ctx context.Context, kns zeus_common_types.Clo
 }
 
 func (k *K8Util) ConfigMapOverwriteOrCreateFromKey(ctx context.Context, kns zeus_common_types.CloudCtxNs, name, keyToCopy, keyToSetOrCreateFromCopy string, filter *string_utils.FilterOpts) (*v1.ConfigMap, error) {
+	k.SetContext(kns.Context)
 	cm, err := k.GetConfigMapWithKns(ctx, kns, name, filter)
 	if err != nil {
 		return nil, err
@@ -52,6 +54,7 @@ func (k *K8Util) ConfigMapOverwriteOrCreateFromKey(ctx context.Context, kns zeus
 }
 
 func (k *K8Util) ConfigMapOverwriteOrCreateNewKeys(ctx context.Context, kns zeus_common_types.CloudCtxNs, name string, newKeyValMap map[string]string, filter *string_utils.FilterOpts) (*v1.ConfigMap, error) {
+	k.SetContext(kns.Context)
 	cm, err := k.GetConfigMapWithKns(ctx, kns, name, filter)
 	if err != nil {
 		return nil, err

@@ -27,6 +27,7 @@ type defaultPortForwarder struct {
 func (f *defaultPortForwarder) ForwardPorts(method string, url *url.URL, opts portforward.PortForwardOptions) error {
 	transport, upgrader, err := spdy.RoundTripperFor(opts.Config)
 	if err != nil {
+		log.Err(err)
 		return err
 	}
 	dialer := spdy.NewDialer(upgrader, &http.Client{Transport: transport}, method, url)
@@ -43,10 +44,12 @@ func (k *K8Util) PortForwardPod(ctx context.Context, kubeCtxNs zeus_common_types
 
 	p, err := k.GetPodsUsingCtxNs(ctx, kubeCtxNs, nil, filter)
 	if err != nil {
+		log.Ctx(ctx).Err(err)
 		return err
 	}
 	pod, err := k.getFirstPodByPrefix(podName, p)
 	if err != nil {
+		log.Ctx(ctx).Err(err)
 		return err
 	}
 	if pod.Status.Phase != v1.PodRunning {

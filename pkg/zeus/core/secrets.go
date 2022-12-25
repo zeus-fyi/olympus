@@ -3,6 +3,7 @@ package zeus_core
 import (
 	"context"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 	v1 "k8s.io/api/core/v1"
@@ -42,6 +43,7 @@ func (k *K8Util) CopySecretToAnotherKns(ctx context.Context, knsFrom, knsTo zeus
 	k.SetContext(knsFrom.Context)
 	s, err := k.GetSecretWithKns(ctx, knsFrom, name, filter)
 	if err != nil {
+		log.Ctx(ctx).Err(err)
 		return s, err
 	}
 	s.ResourceVersion = ""

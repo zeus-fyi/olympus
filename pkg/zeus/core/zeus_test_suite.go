@@ -1,9 +1,11 @@
 package zeus_core
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
@@ -13,7 +15,11 @@ type K8TestSuite struct {
 }
 
 func (s *K8TestSuite) SetupTest() {
-	s.ConnectToK8s()
+	s.InitLocalConfigs()
+	authCfg := auth_startup.NewDefaultAuthClient(context.Background(), s.Tc.ProdLocalAuthKeysCfg)
+	inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(context.Background(), authCfg)
+	s.K.ConnectToK8sFromInMemFsCfgPath(inMemFs)
+	//s.ConnectToK8s()
 }
 
 func (s *K8TestSuite) ConnectToK8s() {

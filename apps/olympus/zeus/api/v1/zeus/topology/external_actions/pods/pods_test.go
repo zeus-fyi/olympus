@@ -183,13 +183,13 @@ func (p *PodsHandlerTestSuite) SetupTestServer() {
 	authCfg := auth_startup.NewDefaultAuthClient(context.Background(), p.Tc.ProdLocalAuthKeysCfg)
 	inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(context.Background(), authCfg)
 	p.K.ConnectToK8sFromInMemFsCfgPath(inMemFs)
-	eg := &echo.Group{}
 
 	z, err := p.K.GetContexts()
+	p.Assert().Nil(err)
 	fmt.Println(z)
-	fmt.Println(err.Error())
 	p.K.SetContext("do-nyc1-do-nyc1-zeus-demo")
-	ExternalApiPodsRoutes(eg, p.K)
+
+	//ExternalApiPodsRoutes(eg, p.K)
 }
 
 func TestPodsTestSuite(t *testing.T) {

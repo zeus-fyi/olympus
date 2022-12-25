@@ -76,3 +76,4 @@ Thumbs.db
 /configs/secrets/
 /test/configs/config.yaml
 /configs/apollo.zeus.fyi/
+/configs/kube.tar.gz

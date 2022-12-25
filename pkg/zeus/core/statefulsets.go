@@ -11,12 +11,14 @@ import (
 )
 
 func (k *K8Util) GetStatefulSetList(ctx context.Context, kubeCtxNs zeus_common_types.CloudCtxNs, filter *string_utils.FilterOpts) (*v1.StatefulSetList, error) {
+	k.SetContext(kubeCtxNs.Context)
 	opts := metav1.ListOptions{}
 	ssl, err := k.kc.AppsV1().StatefulSets(kubeCtxNs.Namespace).List(ctx, opts)
 	return ssl, err
 }
 
 func (k *K8Util) GetStatefulSet(ctx context.Context, kns zeus_common_types.CloudCtxNs, name string, filter *string_utils.FilterOpts) (*v1.StatefulSet, error) {
+	k.SetContext(kns.Context)
 	k.PrintPath = "stateful_sets"
 	k.FileName = name
 	opts := metav1.GetOptions{}
@@ -29,6 +31,7 @@ func (k *K8Util) GetStatefulSet(ctx context.Context, kns zeus_common_types.Cloud
 }
 
 func (k *K8Util) DeleteStatefulSet(ctx context.Context, kns zeus_common_types.CloudCtxNs, name string, filter *string_utils.FilterOpts) error {
+	k.SetContext(kns.Context)
 	opts := metav1.DeleteOptions{}
 	err := k.kc.AppsV1().StatefulSets(kns.Namespace).Delete(ctx, name, opts)
 	if errors.IsNotFound(err) {
@@ -38,18 +41,21 @@ func (k *K8Util) DeleteStatefulSet(ctx context.Context, kns zeus_common_types.Cl
 }
 
 func (k *K8Util) UpdateStatefulSet(ctx context.Context, kns zeus_common_types.CloudCtxNs, ss *v1.StatefulSet, filter *string_utils.FilterOpts) (*v1.StatefulSet, error) {
+	k.SetContext(kns.Context)
 	opts := metav1.UpdateOptions{}
 	ss, err := k.kc.AppsV1().StatefulSets(kns.Namespace).Update(ctx, ss, opts)
 	return ss, err
 }
 
 func (k *K8Util) CreateStatefulSet(ctx context.Context, kns zeus_common_types.CloudCtxNs, ss *v1.StatefulSet, filter *string_utils.FilterOpts) (*v1.StatefulSet, error) {
+	k.SetContext(kns.Context)
 	opts := metav1.CreateOptions{}
 	ss, err := k.kc.AppsV1().StatefulSets(kns.Namespace).Create(ctx, ss, opts)
 	return ss, err
 }
 
 func (k *K8Util) CreateStatefulSetIfVersionLabelChangesOrDoesNotExist(ctx context.Context, kns zeus_common_types.CloudCtxNs, nsts *v1.StatefulSet, filter *string_utils.FilterOpts) (*v1.StatefulSet, error) {
+	k.SetContext(kns.Context)
 	csts, err := k.GetStatefulSet(ctx, kns, nsts.Name, filter)
 	switch {
 	case csts != nil && len(csts.Name) > 0:

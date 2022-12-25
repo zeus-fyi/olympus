@@ -11,10 +11,12 @@ import (
 )
 
 func (k *K8Util) GetSecretWithKns(ctx context.Context, kns zeus_common_types.CloudCtxNs, name string, filter *string_utils.FilterOpts) (*v1.Secret, error) {
+	k.SetContext(kns.Context)
 	return k.kc.CoreV1().Secrets(kns.Namespace).Get(ctx, name, metav1.GetOptions{})
 }
 
 func (k *K8Util) CreateSecretWithKnsIfDoesNotExist(ctx context.Context, kns zeus_common_types.CloudCtxNs, s *v1.Secret, filter *string_utils.FilterOpts) (*v1.Secret, error) {
+	k.SetContext(kns.Context)
 	sec, err := k.GetSecretWithKns(ctx, kns, s.Name, nil)
 	if errors.IsNotFound(err) {
 		return k.kc.CoreV1().Secrets(kns.Namespace).Create(ctx, s, metav1.CreateOptions{})
@@ -23,10 +25,12 @@ func (k *K8Util) CreateSecretWithKnsIfDoesNotExist(ctx context.Context, kns zeus
 }
 
 func (k *K8Util) CreateSecretWithKns(ctx context.Context, kns zeus_common_types.CloudCtxNs, s *v1.Secret, filter *string_utils.FilterOpts) (*v1.Secret, error) {
+	k.SetContext(kns.Context)
 	return k.kc.CoreV1().Secrets(kns.Namespace).Create(ctx, s, metav1.CreateOptions{})
 }
 
 func (k *K8Util) DeleteSecretWithKns(ctx context.Context, kns zeus_common_types.CloudCtxNs, name string, filter *string_utils.FilterOpts) error {
+	k.SetContext(kns.Context)
 	err := k.kc.CoreV1().Secrets(kns.Namespace).Delete(ctx, name, metav1.DeleteOptions{})
 	if errors.IsNotFound(err) {
 		return nil
@@ -35,11 +39,13 @@ func (k *K8Util) DeleteSecretWithKns(ctx context.Context, kns zeus_common_types.
 }
 
 func (k *K8Util) CopySecretToAnotherKns(ctx context.Context, knsFrom, knsTo zeus_common_types.CloudCtxNs, name string, filter *string_utils.FilterOpts) (*v1.Secret, error) {
+	k.SetContext(knsFrom.Context)
 	s, err := k.GetSecretWithKns(ctx, knsFrom, name, filter)
 	if err != nil {
 		return s, err
 	}
 	s.ResourceVersion = ""
 	s.Namespace = knsTo.Namespace
+	k.SetContext(knsTo.Context)
 	return k.CreateSecretWithKns(ctx, knsTo, s, filter)
 }

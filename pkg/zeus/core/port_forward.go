@@ -39,6 +39,7 @@ func (f *defaultPortForwarder) ForwardPorts(method string, url *url.URL, opts po
 
 func (k *K8Util) PortForwardPod(ctx context.Context, kubeCtxNs zeus_common_types.CloudCtxNs, podName, address string, ports []string, readyChan, stopChan chan struct{}, filter *string_utils.FilterOpts) error {
 	log.Ctx(ctx).Debug().Msg("PortForwardPod")
+	k.SetContext(kubeCtxNs.Context)
 
 	p, err := k.GetPodsUsingCtxNs(ctx, kubeCtxNs, nil, filter)
 	if err != nil {

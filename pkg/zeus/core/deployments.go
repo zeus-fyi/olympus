@@ -11,22 +11,26 @@ import (
 )
 
 func (k *K8Util) GetDeploymentList(ctx context.Context, kns zeus_common_types.CloudCtxNs, filter *string_utils.FilterOpts) (*v1.DeploymentList, error) {
+	k.SetContext(kns.Context)
 	d, err := k.kc.AppsV1().Deployments(kns.Namespace).List(ctx, metav1.ListOptions{})
 	return d, err
 }
 
 func (k *K8Util) GetDeployment(ctx context.Context, kns zeus_common_types.CloudCtxNs, name string, filter *string_utils.FilterOpts) (*v1.Deployment, error) {
+	k.SetContext(kns.Context)
 	d, err := k.kc.AppsV1().Deployments(kns.Namespace).Get(ctx, name, metav1.GetOptions{})
 	return d, err
 }
 
 func (k *K8Util) CreateDeployment(ctx context.Context, kns zeus_common_types.CloudCtxNs, d *v1.Deployment, filter *string_utils.FilterOpts) (*v1.Deployment, error) {
+	k.SetContext(kns.Context)
 	opts := metav1.CreateOptions{}
 	d, err := k.kc.AppsV1().Deployments(kns.Namespace).Create(ctx, d, opts)
 	return d, err
 }
 
 func (k *K8Util) DeleteDeployment(ctx context.Context, kns zeus_common_types.CloudCtxNs, name string, filter *string_utils.FilterOpts) error {
+	k.SetContext(kns.Context)
 	opts := metav1.DeleteOptions{}
 	err := k.kc.AppsV1().Deployments(kns.Namespace).Delete(ctx, name, opts)
 	if errors.IsNotFound(err) {
@@ -36,6 +40,8 @@ func (k *K8Util) DeleteDeployment(ctx context.Context, kns zeus_common_types.Clo
 }
 
 func (k *K8Util) CreateDeploymentIfVersionLabelChangesOrDoesNotExist(ctx context.Context, kns zeus_common_types.CloudCtxNs, nd *v1.Deployment, filter *string_utils.FilterOpts) (*v1.Deployment, error) {
+	k.SetContext(kns.Context)
+
 	cd, err := k.GetDeployment(ctx, kns, nd.Name, filter)
 	switch {
 	case cd != nil && len(cd.Name) > 0:

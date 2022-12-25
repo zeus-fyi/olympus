@@ -55,6 +55,15 @@ func (c ClusterTopology) GetTopologyIDs() []int {
 	return tmp
 }
 
+func (c ClusterTopology) CheckForChoreographyOption() bool {
+	for _, ct := range c.Topologies {
+		if ct.SkeletonBaseName == "choreography" {
+			return true
+		}
+	}
+	return false
+}
+
 type ClusterTopologies struct {
 	TopologyID       int    `json:"topologyID"`
 	SkeletonBaseName string `json:"skeletonBaseName"`

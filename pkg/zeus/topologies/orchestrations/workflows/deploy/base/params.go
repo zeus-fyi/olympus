@@ -11,9 +11,10 @@ import (
 )
 
 type TopologyWorkflowRequest struct {
-	Kns     kns.TopologyKubeCtxNs
-	OrgUser org_users.OrgUser
-	Host    string
+	Kns                       kns.TopologyKubeCtxNs
+	OrgUser                   org_users.OrgUser
+	Host                      string
+	RequestChoreographySecret bool
 
 	chart_workload.TopologyBaseInfraWorkload
 }
@@ -24,6 +25,8 @@ type ClusterTopologyWorkflowRequest struct {
 	CloudCtxNS  zeus_common_types.CloudCtxNs
 	OrgUser     org_users.OrgUser
 	Host        string
+
+	RequestChoreographySecret bool
 }
 
 func (t *TopologyWorkflowRequest) GetURL(prefix, target string) url.URL {

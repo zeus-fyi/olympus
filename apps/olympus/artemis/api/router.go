@@ -21,9 +21,9 @@ func Routes(e *echo.Echo) *echo.Echo {
 		artemis_eth_txs.Faucet.Run()
 	}()
 
-	e.POST("/ethereum/ephemeral/send/api/claim", artemis_eth_txs.SendEtherEphemeralTxHandler)
+	e.POST("/v1beta/ethereum/ephemeral/send/api/claim", artemis_eth_txs.SendEtherEphemeralTxHandler)
 	//e.POST("/ethereum/ephemeral/send/api/info",s.handleInfo()))
-	e.POST("/ethereum/ephemeral/tx", artemis_eth_txs.SendSignedTxEthEphemeralTxHandler)
+	e.POST("/v1beta/ethereum/ephemeral/tx", artemis_eth_txs.SendSignedTxEthEphemeralTxHandler)
 
 	InitV1Routes(e)
 	return e

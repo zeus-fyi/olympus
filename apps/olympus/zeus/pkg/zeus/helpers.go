@@ -9,12 +9,13 @@ import (
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 )
 
-func PackageCommonTopologyRequest(topCtxNs kns.TopologyKubeCtxNs, ou org_users.OrgUser, nk chart_workload.TopologyBaseInfraWorkload) base_deploy_params.TopologyWorkflowRequest {
+func PackageCommonTopologyRequest(topCtxNs kns.TopologyKubeCtxNs, ou org_users.OrgUser, nk chart_workload.TopologyBaseInfraWorkload, deployChoreographySecret bool) base_deploy_params.TopologyWorkflowRequest {
 	tar := base_deploy_params.TopologyWorkflowRequest{
 		Kns:                       topCtxNs,
 		OrgUser:                   ou,
 		Host:                      "",
 		TopologyBaseInfraWorkload: nk,
+		RequestChoreographySecret: deployChoreographySecret,
 	}
 	return tar
 }

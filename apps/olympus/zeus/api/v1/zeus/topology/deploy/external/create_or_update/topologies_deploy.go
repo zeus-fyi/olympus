@@ -13,6 +13,7 @@ import (
 
 type TopologyDeployRequest struct {
 	kns.TopologyKubeCtxNs
+	RequestChoreographySecretDeploy bool `json:"requestChoreographySecretDeploy,omitempty"`
 }
 
 func (t *TopologyDeployRequest) DeployTopology(c echo.Context) error {
@@ -24,5 +25,5 @@ func (t *TopologyDeployRequest) DeployTopology(c echo.Context) error {
 		log.Err(err).Interface("orgUser", ou).Msg("DeployTopology, ReadUserTopologyConfig error")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	return zeus.ExecuteDeployWorkflow(c, ctx, ou, t.TopologyKubeCtxNs, tr.GetTopologyBaseInfraWorkload())
+	return zeus.ExecuteDeployWorkflow(c, ctx, ou, t.TopologyKubeCtxNs, tr.GetTopologyBaseInfraWorkload(), t.RequestChoreographySecretDeploy)
 }

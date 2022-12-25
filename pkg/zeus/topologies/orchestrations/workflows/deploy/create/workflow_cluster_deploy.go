@@ -15,8 +15,9 @@ func (t *DeployTopologyWorkflow) DeployClusterTopologyWorkflow(ctx workflow.Cont
 	for _, topID := range params.TopologyIDs {
 		cloudCtxNs := params.CloudCtxNS
 		req := zeus_req_types.TopologyDeployRequest{
-			TopologyID: topID,
-			CloudCtxNs: cloudCtxNs,
+			TopologyID:                      topID,
+			CloudCtxNs:                      cloudCtxNs,
+			RequestChoreographySecretDeploy: params.RequestChoreographySecret,
 		}
 		err := workflow.ExecuteActivity(deployStatusCtx, t.DeployTopologyActivities.DeployClusterTopology, req).Get(deployStatusCtx, nil)
 		if err != nil {

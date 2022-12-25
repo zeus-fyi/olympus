@@ -57,6 +57,7 @@ func InternalDeployRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group 
 	e.POST("/deploy/configmap", internal_deploy.DeployConfigMapHandler)
 	e.POST("/deploy/service", internal_deploy.DeployServiceHandler)
 	e.POST("/deploy/ingress", internal_deploy.DeployIngressHandler)
+	e.POST("/deploy/choreography/secrets", internal_deploy.DeployChoreographySecretsHandler)
 	return e
 }
 

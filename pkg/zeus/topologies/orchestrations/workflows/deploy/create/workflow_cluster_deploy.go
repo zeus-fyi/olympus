@@ -19,7 +19,7 @@ func (t *DeployTopologyWorkflow) DeployClusterTopologyWorkflow(ctx workflow.Cont
 			CloudCtxNs:                      cloudCtxNs,
 			RequestChoreographySecretDeploy: params.RequestChoreographySecret,
 		}
-		err := workflow.ExecuteActivity(deployStatusCtx, t.DeployTopologyActivities.DeployClusterTopology, req).Get(deployStatusCtx, nil)
+		err := workflow.ExecuteActivity(deployStatusCtx, t.DeployTopologyActivities.DeployClusterTopology, req, params.OrgUser).Get(deployStatusCtx, nil)
 		if err != nil {
 			log.Error("Failed to deploy topology from cluster definition", "Error", err)
 			return err

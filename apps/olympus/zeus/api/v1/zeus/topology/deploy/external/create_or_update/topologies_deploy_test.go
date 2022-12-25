@@ -30,8 +30,8 @@ func (t *TopologyDeployActionRequestTestSuite) TestDeployCluster() {
 	defer t.E.Shutdown(ctx)
 
 	cd := zeus_req_types.ClusterTopologyDeployRequest{
-		ClusterClassName:    "ethereumBeacons",
-		SkeletonBaseOptions: []string{"geth", "lighthouse"},
+		ClusterClassName:    "ethereumEphemeralValidatorCluster",
+		SkeletonBaseOptions: []string{"gethHercules", "lighthouseHercules", "lighthouseHerculesValidatorClient"},
 		CloudCtxNs:          beacon_cookbooks.BeaconCloudCtxNs,
 	}
 	resp, err := t.ZeusClient.DeployCluster(ctx, cd)

@@ -11,18 +11,22 @@ import (
 )
 
 func (k *K8Util) GetServiceListWithKns(ctx context.Context, kns zeus_common_types.CloudCtxNs, filter *string_utils.FilterOpts) (*v1.ServiceList, error) {
+	k.SetContext(kns.Context)
 	return k.kc.CoreV1().Services(kns.Namespace).List(ctx, metav1.ListOptions{})
 }
 
 func (k *K8Util) GetServiceWithKns(ctx context.Context, kns zeus_common_types.CloudCtxNs, name string, filter *string_utils.FilterOpts) (*v1.Service, error) {
+	k.SetContext(kns.Context)
 	return k.kc.CoreV1().Services(kns.Namespace).Get(ctx, name, metav1.GetOptions{})
 }
 
 func (k *K8Util) CreateServiceWithKns(ctx context.Context, kns zeus_common_types.CloudCtxNs, s *v1.Service, filter *string_utils.FilterOpts) (*v1.Service, error) {
+	k.SetContext(kns.Context)
 	return k.kc.CoreV1().Services(kns.Namespace).Create(ctx, s, metav1.CreateOptions{})
 }
 
 func (k *K8Util) DeleteServiceWithKns(ctx context.Context, kns zeus_common_types.CloudCtxNs, name string, filter *string_utils.FilterOpts) error {
+	k.SetContext(kns.Context)
 	err := k.kc.CoreV1().Services(kns.Namespace).Delete(ctx, name, metav1.DeleteOptions{})
 	if errors.IsNotFound(err) {
 		return nil
@@ -31,6 +35,7 @@ func (k *K8Util) DeleteServiceWithKns(ctx context.Context, kns zeus_common_types
 }
 
 func (k *K8Util) CreateServiceIfVersionLabelChangesOrDoesNotExist(ctx context.Context, kns zeus_common_types.CloudCtxNs, ns *v1.Service, filter *string_utils.FilterOpts) (*v1.Service, error) {
+	k.SetContext(kns.Context)
 	cs, err := k.GetServiceWithKns(ctx, kns, ns.Name, filter)
 	switch {
 	case cs != nil && len(cs.Name) > 0:

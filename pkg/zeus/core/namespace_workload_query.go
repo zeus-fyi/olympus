@@ -19,6 +19,8 @@ type NamespaceWorkload struct {
 }
 
 func (k *K8Util) GetWorkloadAtNamespace(ctx context.Context, kns zeus_common_types.CloudCtxNs) (NamespaceWorkload, error) {
+	k.SetContext(kns.Context)
+
 	wrkLoad := NamespaceWorkload{}
 	pods, err := k.GetPodsUsingCtxNs(ctx, kns, nil, nil)
 	if err != nil {

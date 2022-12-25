@@ -18,8 +18,8 @@ const (
 
 var BeaconCloudCtxNs = zeus_common_types.CloudCtxNs{
 	CloudProvider: "do",
-	Region:        "sfo3",
-	Context:       "do-sfo3-dev-do-sfo3-zeus",
-	Namespace:     "ethereum", // set with your own namespace
+	Region:        "nyc1",
+	Context:       "do-nyc1-do-nyc1-zeus-demo",
+	Namespace:     "ephemeral", // set with your own namespace
 	Env:           "production",
 }

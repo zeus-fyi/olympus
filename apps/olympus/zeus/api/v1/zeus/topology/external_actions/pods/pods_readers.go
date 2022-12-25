@@ -35,7 +35,7 @@ func PodLogsActionRequest(c echo.Context, request *PodActionRequest) error {
 			p = pod
 		}
 	}
-	logs, err := zeus.K8Util.GetPodLogs(ctx, p.GetName(), request.CloudCtxNs.Namespace, request.LogOpts, request.FilterOpts)
+	logs, err := zeus.K8Util.GetPodLogs(ctx, p.GetName(), request.CloudCtxNs, request.LogOpts, request.FilterOpts)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("PodLogsActionRequest: GetPodLogs")
 		return err

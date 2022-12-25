@@ -14,8 +14,8 @@ type ConfigMapTestSuite struct {
 
 func (c *ConfigMapTestSuite) TestGetConfigMap() {
 	ctx := context.Background()
-	var kns = zeus_common_types.CloudCtxNs{Env: "", CloudProvider: "", Region: "", Context: "", Namespace: "ethereum"}
-	cm, err := c.K.GetConfigMapWithKns(ctx, kns, "cm-lighthouse", nil)
+	var kns = zeus_common_types.CloudCtxNs{Env: "", CloudProvider: "do", Region: "sfo3", Context: "do-nyc1-do-nyc1-zeus-demo", Namespace: "ephemeral"}
+	cm, err := c.K.GetConfigMapWithKns(ctx, kns, "cm-choreography", nil)
 	c.Require().Nil(err)
 	c.Require().NotEmpty(cm)
 }

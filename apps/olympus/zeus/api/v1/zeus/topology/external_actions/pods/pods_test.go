@@ -1,7 +1,9 @@
 package pods
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -11,6 +13,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
+	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
@@ -30,8 +34,6 @@ type TestResponse struct {
 func (p *PodsHandlerTestSuite) SetupTest() {
 	p.SetupTestServer()
 }
-
-var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "zeus-k8s-blockchain", Namespace: "eth-indexer"}
 
 func (p *PodsHandlerTestSuite) TestPodPortForwardGET() {
 	cliReq := ClientRequest{
@@ -105,8 +107,16 @@ func (p *PodsHandlerTestSuite) TestPodPortForwardPOST() {
 }
 
 func (p *PodsHandlerTestSuite) TestDescribePods() {
+
+	kctx := zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "nyc1", Context: "do-nyc1-do-nyc1-zeus-demo", Namespace: "ephemeral"}
+
+	tp := kns.TopologyKubeCtxNs{
+		TopologyID: 0,
+		CloudCtxNs: kctx,
+	}
 	podActionRequest := PodActionRequest{
-		Action: "describe",
+		TopologyKubeCtxNs: tp,
+		Action:            "describe",
 	}
 	podDescribeReq := p.postK8Request(podActionRequest, http.StatusOK, true)
 	p.Require().NotEmpty(podDescribeReq.pods)
@@ -169,12 +179,17 @@ func (p *PodsHandlerTestSuite) postK8Request(podActionRequest PodActionRequest, 
 }
 
 func (p *PodsHandlerTestSuite) SetupTestServer() {
-	//e := echo.New()
-	p.K.CfgPath = p.K.DefaultK8sCfgPath()
-	p.K.ConnectToK8s()
+	p.InitLocalConfigs()
+	authCfg := auth_startup.NewDefaultAuthClient(context.Background(), p.Tc.ProdLocalAuthKeysCfg)
+	inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(context.Background(), authCfg)
+	p.K.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 
-	eg := &echo.Group{}
-	ExternalApiPodsRoutes(eg, p.K)
+	z, err := p.K.GetContexts()
+	p.Assert().Nil(err)
+	fmt.Println(z)
+	p.K.SetContext("do-nyc1-do-nyc1-zeus-demo")
+
+	//ExternalApiPodsRoutes(eg, p.K)
 }
 
 func TestPodsTestSuite(t *testing.T) {

@@ -15,6 +15,8 @@ func (s *CoreTestSuite) TestK8Contexts() {
 	kctx, err := s.K.GetContexts()
 	s.Nil(err)
 	s.Greater(len(kctx), 0)
+
+	s.K.SetContext("do-nyc1-do-nyc1-zeus-demo")
 	fmt.Println(kctx)
 }
 

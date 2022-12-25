@@ -1,11 +1,14 @@
 package deploy_topology_activities
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	zeus_endpoints "github.com/zeus-fyi/olympus/pkg/zeus/client/endpoints"
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
@@ -49,17 +52,23 @@ func (d *DeployTopologyActivities) GetDeployURL(target string) url.URL {
 	return d.GetURL(zeus_endpoints.InternalDeployPath, target)
 }
 
-func (d *DeployTopologyActivities) postDeployClusterTopology(params zeus_req_types.TopologyDeployRequest) error {
+func (d *DeployTopologyActivities) postDeployClusterTopology(params zeus_req_types.TopologyDeployRequest, ou org_users.OrgUser) error {
 	if len(d.Host) <= 0 {
 		d.Host = "https://api.zeus.fyi"
 	}
 	u := url.URL{
 		Host: d.Host,
 	}
+
+	token, err := auth.FetchUserAuthToken(context.Background(), ou)
+	if err != nil {
+		log.Err(err).Interface("path", u.Path).Msg("DeployTopologyActivities: FetchUserAuthToken failed")
+		return err
+	}
 	client := resty.New()
 	client.SetBaseURL(u.Host)
 	resp, err := client.R().
-		SetAuthToken(api_auth_temporal.Bearer).
+		SetAuthToken(token.PublicKey).
 		SetBody(params).
 		Post(zeus_endpoints.DeployTopologyV1Path)
 

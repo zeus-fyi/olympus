@@ -30,5 +30,5 @@ func (t *TopologyReplaceRequest) ReplaceTopology(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	diffReplacement := zeus.DiffChartUpdate(nk, tr.GetTopologyBaseInfraWorkload())
-	return zeus.ExecuteDeployWorkflow(c, ctx, ou, t.TopologyKubeCtxNs, diffReplacement)
+	return zeus.ExecuteDeployWorkflow(c, ctx, ou, t.TopologyKubeCtxNs, diffReplacement, false)
 }

@@ -68,6 +68,16 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 		return err
 	}
 
+	chorCtx := workflow.WithActivityOptions(ctx, ao)
+	if params.RequestChoreographySecret == true {
+		cmCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(cmCtx, t.DeployTopologyActivities.CreateChoreographySecret, deployParams).Get(chorCtx, nil)
+		if err != nil {
+			log.Error("Failed to create choreographySecret", "Error", err)
+			return err
+		}
+	}
+
 	if params.ConfigMap != nil {
 		cmCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(cmCtx, t.DeployTopologyActivities.DeployConfigMap, deployParams).Get(cmCtx, nil)

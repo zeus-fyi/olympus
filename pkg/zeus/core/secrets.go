@@ -14,6 +14,14 @@ func (k *K8Util) GetSecretWithKns(ctx context.Context, kns zeus_common_types.Clo
 	return k.kc.CoreV1().Secrets(kns.Namespace).Get(ctx, name, metav1.GetOptions{})
 }
 
+func (k *K8Util) CreateSecretWithKnsIfDoesNotExist(ctx context.Context, kns zeus_common_types.CloudCtxNs, s *v1.Secret, filter *string_utils.FilterOpts) (*v1.Secret, error) {
+	sec, err := k.GetSecretWithKns(ctx, kns, s.Name, nil)
+	if errors.IsNotFound(err) {
+		return k.kc.CoreV1().Secrets(kns.Namespace).Create(ctx, s, metav1.CreateOptions{})
+	}
+	return sec, err
+}
+
 func (k *K8Util) CreateSecretWithKns(ctx context.Context, kns zeus_common_types.CloudCtxNs, s *v1.Secret, filter *string_utils.FilterOpts) (*v1.Secret, error) {
 	return k.kc.CoreV1().Secrets(kns.Namespace).Create(ctx, s, metav1.CreateOptions{})
 }

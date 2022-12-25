@@ -53,10 +53,11 @@ func (t *TopologyClusterDeployRequest) DeployClusterTopology(c echo.Context) err
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	clDeploy := base_deploy_params.ClusterTopologyWorkflowRequest{
-		ClusterName: t.ClusterClassName,
-		TopologyIDs: cl.GetTopologyIDs(),
-		CloudCtxNS:  t.CloudCtxNs,
-		OrgUser:     ou,
+		ClusterName:               t.ClusterClassName,
+		TopologyIDs:               cl.GetTopologyIDs(),
+		CloudCtxNS:                t.CloudCtxNs,
+		OrgUser:                   ou,
+		RequestChoreographySecret: cl.CheckForChoreographyOption(),
 	}
 	return zeus.ExecuteDeployClusterWorkflow(c, ctx, clDeploy)
 }

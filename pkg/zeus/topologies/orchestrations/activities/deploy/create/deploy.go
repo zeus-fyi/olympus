@@ -25,6 +25,7 @@ func (d *DeployTopologyActivities) GetActivities() ActivitiesSlice {
 		d.DeployDeployment, d.DeployStatefulSet,
 		d.DeployConfigMap,
 		d.DeployService, d.DeployIngress, d.DeployClusterTopology,
+		d.CreateChoreographySecret,
 	}
 }
 

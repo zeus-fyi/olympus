@@ -33,8 +33,12 @@ type FilterOpts struct {
 }
 
 func (k *K8Util) GetContexts() (map[string]*clientcmdapi.Context, error) {
-	startingConfig, err := k.cfgAccess.GetStartingConfig()
-	return startingConfig.Contexts, err
+	cfg, err := k.kcCfg.RawConfig()
+	if err != nil {
+		log.Err(err)
+		return nil, err
+	}
+	return cfg.Contexts, err
 }
 
 func (k *K8Util) SetContext(context string) {

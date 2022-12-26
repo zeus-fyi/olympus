@@ -16,18 +16,13 @@ type K8TestSuite struct {
 
 func (s *K8TestSuite) SetupTest() {
 	s.InitLocalConfigs()
+	s.K = K8Util{}
+	s.K.PrintOn = true
+	//s.K.ConnectToK8s()
+
 	authCfg := auth_startup.NewDefaultAuthClient(context.Background(), s.Tc.ProdLocalAuthKeysCfg)
 	inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(context.Background(), authCfg)
 	s.K.ConnectToK8sFromInMemFsCfgPath(inMemFs)
-	//s.ConnectToK8s()
-}
-
-func (s *K8TestSuite) ConnectToK8s() {
-	s.K = K8Util{}
-	s.K.PrintOn = true
-	s.K.ConnectToK8s()
-
-	s.K.SetContext("do-nyc1-do-nyc1-zeus-demo")
 }
 
 func TestK8sTestSuiteTest(t *testing.T) {

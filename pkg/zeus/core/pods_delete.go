@@ -2,7 +2,6 @@ package zeus_core
 
 import (
 	"context"
-	"strings"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
@@ -48,7 +47,15 @@ func (k *K8Util) DeleteFirstPodLike(ctx context.Context, kubeCtxNs zeus_common_t
 func (k *K8Util) DeleteAllPodsLike(ctx context.Context, kubeCtxNs zeus_common_types.CloudCtxNs, podName string, deletePodOpts *metav1.DeleteOptions, filter *string_utils.FilterOpts) error {
 	log.Ctx(ctx).Debug().Msg("DeleteAllPodsLike")
 	k.SetContext(kubeCtxNs.Context)
-
+	if filter == nil {
+		filter = &string_utils.FilterOpts{
+			DoesNotStartWithThese: nil,
+			StartsWithThese:       nil,
+			StartsWith:            "",
+			Contains:              podName,
+			DoesNotInclude:        nil,
+		}
+	}
 	pods, err := k.GetPodsUsingCtxNs(ctx, kubeCtxNs, nil, filter)
 	log.Ctx(ctx).Err(err).Msg("DeleteAllPodsLike")
 	if err != nil && errors.IsNotFound(err) {
@@ -62,7 +69,7 @@ func (k *K8Util) DeleteAllPodsLike(ctx context.Context, kubeCtxNs zeus_common_ty
 	p := v1.Pod{}
 	for _, pod := range pods.Items {
 		name := pod.ObjectMeta.Name
-		if strings.Contains(name, podName) {
+		if string_utils.FilterStringWithOpts(name, filter) {
 			p = pod
 			err = k.kc.CoreV1().Pods(kubeCtxNs.Namespace).Delete(ctx, p.GetName(), *deletePodOpts)
 			if err != nil && errors.IsNotFound(err) {

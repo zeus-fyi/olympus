@@ -33,33 +33,22 @@ type FilterOpts struct {
 }
 
 func (k *K8Util) GetContexts() (map[string]*clientcmdapi.Context, error) {
-	cfg, err := k.kcCfg.RawConfig()
-	if err != nil {
-		log.Err(err)
-		return nil, err
-	}
-	return cfg.Contexts, err
+	startingConfig, err := k.cfgAccess.GetStartingConfig()
+	return startingConfig.Contexts, err
 }
 
 func (k *K8Util) SetContext(context string) {
-
-	cfgOveride := &clientcmd.ConfigOverrides{}
-	if len(context) > 0 {
-		cfgOveride = &clientcmd.ConfigOverrides{
-			CurrentContext: context}
-	}
-
-	cc := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		&clientcmd.ClientConfigLoadingRules{ExplicitPath: k.CfgPath},
-		cfgOveride)
-	k.cfgAccess = cc.ConfigAccess()
-
-	ccfg, err := k.kcCfg.ClientConfig()
+	var err error
+	rc, err := k.kcCfg.RawConfig()
 	if err != nil {
-		log.Panic().Msg("Zeus: SetClient, failed to set client")
-		misc.DelayedPanic(err)
+		log.Err(err)
 	}
-	k.clientCfg = ccfg
+	cc := clientcmd.NewNonInteractiveClientConfig(rc, context, nil, k.cfgAccess)
+	k.cfgAccess = cc.ConfigAccess()
+	k.clientCfg, err = cc.ClientConfig()
+	if err != nil {
+		log.Err(err)
+	}
 	k.SetClient(k.clientCfg)
 }
 
@@ -77,7 +66,6 @@ func (k *K8Util) ConnectToK8s() {
 	if !exists {
 		home = "/root"
 	}
-
 	b, err := os.ReadFile(filepath.Join(home, ".kube", "config"))
 	if err != nil {
 		log.Panic().Msg("Zeus: ConnectToK8sFromInMemFsCfgPath, failed to read inmemfs kube config")
@@ -109,7 +97,6 @@ func (k *K8Util) DefaultK8sCfgPath() string {
 	if !exists {
 		home = "/root"
 	}
-
 	b, err := os.ReadFile(filepath.Join(home, ".kube", "config"))
 	if err != nil {
 		log.Panic().Msg("Zeus: ConnectToK8sFromInMemFsCfgPath, failed to read inmemfs kube config")
@@ -134,7 +121,6 @@ func (k *K8Util) DefaultK8sCfgPath() string {
 
 func (k *K8Util) ConnectToK8sFromInMemFsCfgPath(fs memfs.MemFS) {
 	log.Info().Msg("Zeus: ConnectToK8sFromInMemFsCfgPath starting")
-
 	var err error
 	b, err := fs.ReadFile("/.kube/config")
 	if err != nil {

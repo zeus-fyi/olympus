@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/utils/client"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 )
 
@@ -58,13 +59,31 @@ func (s *PodsTestSuite) TestPodPortForward() {
 	//fmt.Println("exiting")
 }
 
+func (s *PodsTestSuite) TestDeletePods() {
+	ctx := context.Background()
+	var kns = zeus_common_types.CloudCtxNs{Env: "", CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "ephemeral"}
+	filter := string_utils.FilterOpts{
+		DoesNotStartWithThese: nil,
+		StartsWithThese:       nil,
+		StartsWith:            "",
+		Contains:              "client",
+		DoesNotInclude:        nil,
+	}
+	err := s.K.DeleteAllPodsLike(ctx, kns, "", nil, &filter)
+	s.Require().Nil(err)
+}
+
 func (s *PodsTestSuite) TestGetPods() {
 	ctx := context.Background()
-	var kns = zeus_common_types.CloudCtxNs{Env: "", CloudProvider: "do", Region: "sfo", Context: "dev-do-sfo3-zeus", Namespace: "eth-indexer"}
+	var kns = zeus_common_types.CloudCtxNs{Env: "", CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "ephemeral"}
 
 	pods, err := s.K.GetPodsUsingCtxNs(ctx, kns, nil, nil)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(pods)
+
+	for _, pod := range pods.Items {
+		fmt.Println(pod.GetName())
+	}
 }
 
 func TestPodsTestSuite(t *testing.T) {

@@ -25,9 +25,13 @@ func InitHeraOpenAI(bearer string) {
 	HeraOpenAI.Client = gogpt.NewClient(bearer)
 }
 
-func (ai *OpenAI) MakeCodeGenRequest(ctx context.Context, prompt string, ou org_users.OrgUser) (gogpt.CompletionResponse, error) {
+func (ai *OpenAI) MakeCodeGenRequest(ctx context.Context, model, prompt string, ou org_users.OrgUser) (gogpt.CompletionResponse, error) {
+	if len(model) <= 0 {
+		model = gogpt.CodexCodeDavinci002
+	}
+
 	req := gogpt.CompletionRequest{
-		Model:     gogpt.CodexCodeDavinci002,
+		Model:     model,
 		MaxTokens: codexMaxTokens,
 		Prompt:    prompt,
 		User:      fmt.Sprintf("%d", ou.UserID),

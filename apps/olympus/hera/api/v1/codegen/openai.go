@@ -54,7 +54,8 @@ func (ai *CodeGenAPIRequest) CompleteCodeGenRequest(c echo.Context) error {
 	}
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
-	cg, err := openai.HeraOpenAI.MakeCodeGenRequest(ctx, prompt, ou)
+	model := c.FormValue("model")
+	cg, err := openai.HeraOpenAI.MakeCodeGenRequest(ctx, prompt, model, ou)
 	if err != nil {
 		log.Err(err)
 		return c.JSON(http.StatusInternalServerError, nil)
@@ -82,7 +83,7 @@ func UnGzipTextFiles(in *bytes.Buffer) (string, error) {
 		return "", err
 	}
 	p.DirIn = "/prompt"
-	return AppendFilesToString(m, p.FnIn)
+	return AppendFilesToString(m, p.DirOut)
 }
 
 func AppendFilesToString(fs memfs.MemFS, dir string) (string, error) {

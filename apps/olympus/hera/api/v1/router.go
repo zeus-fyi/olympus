@@ -14,7 +14,6 @@ import (
 )
 
 func Routes(e *echo.Echo) *echo.Echo {
-	// Routes
 	e.GET("/health", Health)
 	InitV1BetaRoutes(e)
 	return e

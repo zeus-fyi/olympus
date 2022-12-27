@@ -11,6 +11,7 @@ import (
 	v1_hera "github.com/zeus-fyi/olympus/hera/api/v1"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
+	"github.com/zeus-fyi/olympus/pkg/hera/openai"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 )
 
@@ -42,10 +43,12 @@ func Hera() {
 		tc := configs.InitLocalTestConfigs()
 		authKeysCfg = tc.ProdLocalAuthKeysCfg
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
+		openai.InitHeraOpenAI(tc.OpenAIAuth)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		authKeysCfg = tc.DevAuthKeysCfg
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
+		openai.InitHeraOpenAI(tc.OpenAIAuth)
 	}
 
 	log.Info().Msg("Hera: PG connection starting")

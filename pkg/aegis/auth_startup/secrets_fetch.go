@@ -30,6 +30,7 @@ type SecretsWrapper struct {
 	DoctlToken        string
 	MainnetBeaconURL  string
 	BearerToken       string
+	OpenAIToken       string
 	TemporalAuth      temporal_auth.TemporalAuth
 }
 

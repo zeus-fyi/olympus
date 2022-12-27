@@ -68,6 +68,8 @@ type TestContainer struct {
 	EphemeralNodeUrl string
 	GoerliNodeUrl    string
 	MainnetNodeUrl   string
+
+	OpenAIAuth string
 }
 
 type ArtemisHexKeys struct {
@@ -80,7 +82,6 @@ func SetBaseURLs() TestURLs {
 	tu := TestURLs{}
 	tu.ProdZeusApiURL = viper.GetString("PROD_ZEUS_URL")
 	tu.LocalZeusApiURL = viper.GetString("LOCAL_ZEUS_URL")
-
 	return tu
 }
 
@@ -109,6 +110,8 @@ func InitArtemisLocalAccounts() {
 
 func InitLocalTestConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
+	testCont.OpenAIAuth = viper.GetString("OPEN_AI_AUTH")
+
 	testCont.MainnetNodeUrl = viper.GetString("MAINNET_NODE_URL")
 	testCont.GoerliNodeUrl = viper.GetString("GOERLI_NODE_URL")
 	testCont.EphemeralNodeUrl = viper.GetString("EPHEMERAL_NODE_URL")

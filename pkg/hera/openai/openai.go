@@ -3,6 +3,7 @@ package openai
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 	gogpt "github.com/sashabaranov/go-gpt3"
@@ -12,9 +13,13 @@ import (
 
 var HeraOpenAI OpenAI
 
-const (
-	codexMaxTokens = 8000
-)
+var maxTokensByModel = map[string]int{
+	gogpt.GPT3TextDavinci003: 2048,
+	gogpt.GPT3TextDavinci002: 2048,
+	gogpt.GPT3TextDavinci001: 2048,
+	gogpt.GPT3TextAda001:     2048,
+	gogpt.GPT3TextBabbage001: 2048,
+}
 
 type OpenAI struct {
 	*gogpt.Client
@@ -27,12 +32,21 @@ func InitHeraOpenAI(bearer string) {
 
 func (ai *OpenAI) MakeCodeGenRequest(ctx context.Context, model, prompt string, ou org_users.OrgUser) (gogpt.CompletionResponse, error) {
 	if len(model) <= 0 {
-		model = gogpt.CodexCodeDavinci002
+		model = gogpt.GPT3Davinci
 	}
+
+	maxTokens := 2048
+	v, ok := maxTokensByModel[model]
+	if ok {
+		maxTokens = v
+	}
+
+	tokens := strings.Fields(prompt)
+	size := len(tokens) + 1
 
 	req := gogpt.CompletionRequest{
 		Model:     model,
-		MaxTokens: codexMaxTokens,
+		MaxTokens: maxTokens - size,
 		Prompt:    prompt,
 		User:      fmt.Sprintf("%d", ou.UserID),
 	}

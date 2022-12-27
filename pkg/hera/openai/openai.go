@@ -3,7 +3,6 @@ package openai
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/rs/zerolog/log"
 	gogpt "github.com/sashabaranov/go-gpt3"
@@ -41,12 +40,9 @@ func (ai *OpenAI) MakeCodeGenRequest(ctx context.Context, model, prompt string, 
 		maxTokens = v
 	}
 
-	tokens := strings.Fields(prompt)
-	size := len(tokens) + 1
-
 	req := gogpt.CompletionRequest{
 		Model:     model,
-		MaxTokens: maxTokens - size,
+		MaxTokens: maxTokens - GetTokenApproximate(prompt),
 		Prompt:    prompt,
 		User:      fmt.Sprintf("%d", ou.UserID),
 	}

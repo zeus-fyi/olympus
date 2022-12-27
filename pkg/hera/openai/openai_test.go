@@ -3,6 +3,7 @@ package openai
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	gogpt "github.com/sashabaranov/go-gpt3"
@@ -14,6 +15,18 @@ import (
 
 type HeraTestSuite struct {
 	test_suites_base.TestSuite
+}
+
+func (s *HeraTestSuite) TestOpenAITokenCount() {
+	ForceDirToPythonDir()
+	bytes, err := os.ReadFile("./example.txt")
+	s.Require().Nil(err)
+	tokenCount := GetTokenApproximate(string(bytes))
+	s.Assert().Equal(61, tokenCount)
+	// NOTE open gpt-3 https://beta.openai.com/tokenizer returns 64 tokens as the count
+	// there's no opensource transformer for this, so use this + some margin when sending requests
+	// 2048 is the max token count for most models, the max size - prompt size, is your limitation on completion
+	// tokens
 }
 
 func (s *HeraTestSuite) TestOpenAI() {
@@ -28,9 +41,9 @@ func (s *HeraTestSuite) TestOpenAI() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 	model := gogpt.GPT3TextDavinci003
-	prompt := "what is 1+1 equal to?"
+	bytes, err := os.ReadFile("./example.txt")
 
-	resp, err := HeraOpenAI.MakeCodeGenRequest(ctx, model, prompt, ou)
+	resp, err := HeraOpenAI.MakeCodeGenRequest(ctx, model, string(bytes), ou)
 	s.Require().Nil(err)
 	fmt.Println(resp)
 

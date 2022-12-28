@@ -48,6 +48,7 @@ func (ai *OpenAI) MakeCodeGenRequest(ctx context.Context, model, prompt string, 
 	err = hera_openai_dbmodels.InsertCompletionResponse(ctx, ou, resp)
 	if err != nil {
 		log.Ctx(ctx).Err(err)
+		return resp, err
 	}
 	return resp, err
 }

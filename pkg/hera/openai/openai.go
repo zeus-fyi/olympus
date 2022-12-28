@@ -29,15 +29,9 @@ func InitHeraOpenAI(bearer string) {
 	HeraOpenAI.Client = gogpt.NewClient(bearer)
 }
 
-func (ai *OpenAI) MakeCodeGenRequest(ctx context.Context, model, prompt string, ou org_users.OrgUser) (gogpt.CompletionResponse, error) {
+func (ai *OpenAI) MakeCodeGenRequest(ctx context.Context, model, prompt string, maxTokens int, ou org_users.OrgUser) (gogpt.CompletionResponse, error) {
 	if len(model) <= 0 {
 		model = gogpt.GPT3Davinci
-	}
-
-	maxTokens := 2048
-	v, ok := maxTokensByModel[model]
-	if ok {
-		maxTokens = v
 	}
 
 	req := gogpt.CompletionRequest{

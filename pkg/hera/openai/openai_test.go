@@ -43,7 +43,7 @@ func (s *HeraTestSuite) TestOpenAI() {
 	model := gogpt.GPT3TextDavinci003
 	bytes, err := os.ReadFile("./example.txt")
 
-	resp, err := HeraOpenAI.MakeCodeGenRequest(ctx, model, string(bytes), ou)
+	resp, err := HeraOpenAI.MakeCodeGenRequest(ctx, model, string(bytes), 2000, ou)
 	s.Require().Nil(err)
 	fmt.Println(resp)
 

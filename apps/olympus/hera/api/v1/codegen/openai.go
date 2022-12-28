@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -55,7 +56,13 @@ func (ai *CodeGenAPIRequest) CompleteCodeGenRequest(c echo.Context) error {
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	model := c.FormValue("model")
-	cg, err := openai.HeraOpenAI.MakeCodeGenRequest(ctx, prompt, model, ou)
+	maxTokens := c.FormValue("maxTokens")
+	tokens, err := strconv.Atoi(maxTokens)
+	if err != nil {
+		log.Err(err)
+		return c.JSON(http.StatusBadRequest, err)
+	}
+	cg, err := openai.HeraOpenAI.MakeCodeGenRequest(ctx, prompt, model, tokens, ou)
 	if err != nil {
 		log.Err(err)
 		return c.JSON(http.StatusInternalServerError, nil)

@@ -62,7 +62,12 @@ func (ai *CodeGenAPIRequest) CompleteCodeGenRequest(c echo.Context) error {
 		log.Err(err)
 		return c.JSON(http.StatusBadRequest, err)
 	}
-	cg, err := openai.HeraOpenAI.MakeCodeGenRequest(ctx, prompt, model, tokens, ou)
+	params := openai.OpenAIParams{
+		Model:     model,
+		MaxTokens: tokens,
+		Prompt:    prompt,
+	}
+	cg, err := openai.HeraOpenAI.MakeCodeGenRequest(ctx, ou, params)
 	if err != nil {
 		log.Err(err)
 		return c.JSON(http.StatusInternalServerError, nil)

@@ -29,17 +29,24 @@ func InitHeraOpenAI(bearer string) {
 	HeraOpenAI.Client = gogpt.NewClient(bearer)
 }
 
-func (ai *OpenAI) MakeCodeGenRequest(ctx context.Context, model, prompt string, maxTokens int, ou org_users.OrgUser) (gogpt.CompletionResponse, error) {
-	if len(model) <= 0 {
-		model = gogpt.GPT3Davinci
+type OpenAIParams struct {
+	Model     string
+	MaxTokens int
+	Prompt    string
+}
+
+func (ai *OpenAI) MakeCodeGenRequest(ctx context.Context, ou org_users.OrgUser, params OpenAIParams) (gogpt.CompletionResponse, error) {
+	if len(params.Model) <= 0 {
+		params.Model = gogpt.GPT3TextDavinci003
 	}
 
 	req := gogpt.CompletionRequest{
-		Model:     model,
-		MaxTokens: maxTokens,
-		Prompt:    prompt,
+		Model:     params.Model,
+		MaxTokens: params.MaxTokens,
+		Prompt:    params.Prompt,
 		User:      fmt.Sprintf("%d", ou.UserID),
 	}
+
 	resp, err := ai.CreateCompletion(ctx, req)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("orgUser", ou).Msg("MakeCodeGenRequest")

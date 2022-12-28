@@ -42,7 +42,7 @@ func (ai *OpenAI) MakeCodeGenRequest(ctx context.Context, model, prompt string, 
 
 	req := gogpt.CompletionRequest{
 		Model:     model,
-		MaxTokens: maxTokens - GetTokenApproximate(prompt),
+		MaxTokens: maxTokens,
 		Prompt:    prompt,
 		User:      fmt.Sprintf("%d", ou.UserID),
 	}

@@ -89,6 +89,7 @@ require (
 	github.com/pborman/uuid v1.2.1 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/robfig/cron v1.2.0 // indirect
+	github.com/sashabaranov/go-gpt3 v0.0.0-20221216095610-1c20931ead68 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220614013038-64ee5596c38a // indirect

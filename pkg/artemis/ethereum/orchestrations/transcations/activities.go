@@ -12,6 +12,11 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
+const (
+	waitForTxRxTimeout    = 15 * time.Minute
+	submitSignedTxTimeout = 5 * time.Minute
+)
+
 type ArtemisEthereumBroadcastTxActivities struct {
 	web3_client.Web3Client
 }
@@ -37,7 +42,7 @@ func (d *ArtemisEthereumBroadcastTxActivities) SendEther(ctx context.Context, pa
 }
 
 func (d *ArtemisEthereumBroadcastTxActivities) SubmitSignedTx(ctx context.Context, signedTx *types.Transaction) (*web3_types.Transaction, error) {
-	ctx, cancelFn := context.WithTimeout(ctx, 5*time.Minute)
+	ctx, cancelFn := context.WithTimeout(ctx, submitSignedTxTimeout)
 	defer cancelFn()
 	txData, err := d.Web3Actions.SubmitSignedTxAndReturnTxData(ctx, signedTx)
 	if err != nil {
@@ -48,7 +53,7 @@ func (d *ArtemisEthereumBroadcastTxActivities) SubmitSignedTx(ctx context.Contex
 }
 
 func (d *ArtemisEthereumBroadcastTxActivities) WaitForTxReceipt(ctx context.Context, hash common.Hash) (*web3_types.Receipt, error) {
-	ctx, cancelFn := context.WithTimeout(ctx, 15*time.Minute)
+	ctx, cancelFn := context.WithTimeout(ctx, waitForTxRxTimeout)
 	defer cancelFn()
 	rx, err := d.WaitForReceipt(ctx, hash)
 	if err != nil {

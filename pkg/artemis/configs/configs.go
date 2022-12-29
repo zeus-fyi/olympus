@@ -24,11 +24,11 @@ type BeaconNetwork struct {
 }
 
 const (
-	Artemis   = "artemis"
-	Mainnet   = "mainnet"
-	Goerli    = "goerli"
-	Ephemeral = "ephemeral"
-	Ethereum  = "ethereum"
+	Artemis  = "artemis"
+	Mainnet  = "mainnet"
+	Goerli   = "goerli"
+	Ephemery = "ephemery"
+	Ethereum = "ethereum"
 )
 
 func NewArtemisConfig(protocol, network string) ArtemisConfig {
@@ -45,7 +45,7 @@ func NewArtemisConfig(protocol, network string) ArtemisConfig {
 var (
 	ArtemisEthereumMainnet   = NewArtemisConfig(Ethereum, Mainnet)
 	ArtemisEthereumGoerli    = NewArtemisConfig(Ethereum, Goerli)
-	ArtemisEthereumEphemeral = NewArtemisConfig(Ethereum, Ephemeral)
+	ArtemisEthereumEphemeral = NewArtemisConfig(Ethereum, Ephemery)
 	GlobalArtemisConfigs     = []*ArtemisConfig{&ArtemisEthereumMainnet, &ArtemisEthereumGoerli, &ArtemisEthereumEphemeral}
 )
 

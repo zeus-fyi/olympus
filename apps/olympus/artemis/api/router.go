@@ -48,8 +48,8 @@ func InitV1Routes(e *echo.Echo) {
 
 	eg.POST("/ethereum/goerli/tx", artemis_eth_txs.SendSignedTxEthGoerliTxHandler)
 	eg.POST("/ethereum/goerli/send", artemis_eth_txs.SendEtherGoerliTxHandler)
-	e.POST("/ethereum/ephemery/send", artemis_eth_txs.SendEtherEphemeralTxHandler)
-	e.POST("/ethereum/ephemery/tx", artemis_eth_txs.SendSignedTxEthEphemeralTxHandler)
+	eg.POST("/ethereum/ephemery/send", artemis_eth_txs.SendEtherEphemeralTxHandler)
+	eg.POST("/ethereum/ephemery/tx", artemis_eth_txs.SendSignedTxEthEphemeralTxHandler)
 }
 
 func Health(c echo.Context) error {

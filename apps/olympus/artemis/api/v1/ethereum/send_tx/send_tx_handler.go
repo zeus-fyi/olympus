@@ -31,6 +31,14 @@ func SendSignedTxEthEphemeralTxHandler(c echo.Context) error {
 }
 
 func SendEtherEphemeralTxHandler(c echo.Context) error {
+	request := new(EthereumSendEtherRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.SendEtherEphemeral(c)
+}
+
+func SendEtherEphemeralFaucetTxHandler(c echo.Context) error {
 	//request := new(EthereumSendEtherRequest)
 	//if err := c.Bind(request); err != nil {
 	//	return err

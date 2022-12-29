@@ -21,9 +21,8 @@ func Routes(e *echo.Echo) *echo.Echo {
 		artemis_eth_txs.Faucet.Run()
 	}()
 
-	e.POST("/v1beta/ethereum/ephemeral/send/api/claim", artemis_eth_txs.SendEtherEphemeralTxHandler)
+	e.POST("/v1beta/ethereum/ephemery/send/api/claim", artemis_eth_txs.SendEtherEphemeralFaucetTxHandler)
 	//e.POST("/ethereum/ephemeral/send/api/info",s.handleInfo()))
-	e.POST("/v1beta/ethereum/ephemeral/tx", artemis_eth_txs.SendSignedTxEthEphemeralTxHandler)
 
 	InitV1Routes(e)
 	return e
@@ -49,6 +48,9 @@ func InitV1Routes(e *echo.Echo) {
 
 	eg.POST("/ethereum/goerli/tx", artemis_eth_txs.SendSignedTxEthGoerliTxHandler)
 	eg.POST("/ethereum/goerli/send", artemis_eth_txs.SendEtherGoerliTxHandler)
+	e.POST("/ethereum/ephemery/send", artemis_eth_txs.SendEtherEphemeralTxHandler)
+	e.POST("/ethereum/ephemery/tx", artemis_eth_txs.SendSignedTxEthEphemeralTxHandler)
+
 }
 
 func Health(c echo.Context) error {

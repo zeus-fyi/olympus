@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/labstack/echo/v4 v4.7.2
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/rs/zerolog v1.28.0
 	github.com/shirou/gopsutil/v3 v3.22.10
 	github.com/spf13/cobra v1.6.1

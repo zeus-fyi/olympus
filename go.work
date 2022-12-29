@@ -13,9 +13,9 @@ use (
 	./apps/olympus/apollo
 	./apps/olympus/artemis
 	./apps/olympus/athena
+	./apps/olympus/hera
 	./apps/olympus/hestia
 	./apps/olympus/hypnos
 	./apps/olympus/poseidon
-	./apps/olympus/hera
 	./apps/olympus/zeus
 )

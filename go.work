@@ -9,6 +9,8 @@ use (
 	./apps/external/tojen
 	./apps/external/web3
 
+	./apps/zeus
+
 	./apps/olympus/aegis
 	./apps/olympus/apollo
 	./apps/olympus/artemis

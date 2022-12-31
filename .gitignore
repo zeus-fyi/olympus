@@ -78,3 +78,4 @@ Thumbs.db
 /configs/apollo.zeus.fyi/
 /configs/kube.tar.gz
 /configs/web3signer.ephemery/
+/apps/zeus/test/configs/config.yaml

@@ -17,12 +17,8 @@ COPY . .
 
 RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o zeus apps/olympus/zeus/main.go
 
-FROM ubuntu:22.04 as doctl
-RUN apt-get update && apt-get install -y wget
+FROM ethereum/client-go:stable as geth
 WORKDIR /app
-
-RUN wget https://github.com/digitalocean/doctl/releases/download/v1.85.0/doctl-1.85.0-linux-amd64.tar.gz -O doctl.tar.gz
-RUN tar xf doctl.tar.gz
 
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates

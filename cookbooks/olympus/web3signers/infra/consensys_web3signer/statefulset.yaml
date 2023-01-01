@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: zeus-web3signer
+  labels:
+    app.kubernetes.io/name: zeus-web3signer
+    app.kubernetes.io/instance: zeus-web3signer
+    app.kubernetes.io/managed-by: zeus
+  annotations:
+    {}
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: zeus-web3signer
+      app.kubernetes.io/instance: zeus-web3signer
+  serviceName: zeus-web3signer
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: zeus-web3signer
+        app.kubernetes.io/instance: zeus-web3signer
+    spec:
+      securityContext:
+        fsGroup: 10001
+        runAsGroup: 10001
+        runAsNonRoot: true
+        runAsUser: 10001
+      initContainers:
+        - name: init-chown-data
+          image: "busybox:1.34.1"
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: false
+            runAsUser: 0
+          command:
+            - sh
+            - -c
+            - >
+              chown -R 10001:10001 /data;
+          resources:
+            {}
+          volumeMounts:
+            - name: web3signer-storage
+              mountPath: "/data"
+      containers:
+        - name: zeus-web3signer
+          image: "consensys/web3signer:22.11"
+          imagePullPolicy: IfNotPresent
+          command: [ "/bin/sh" ]
+          args: [ "-ac"," /opt/web3signer/bin/web3signer eth2 --slashing-protection-db-url=${WEB3SIGNER_SLASHING_PROTECTION_DB_URL} --slashing-protection-db-password=${WEB3SIGNER_SLASHING_PROTECTION_DB_PASSWORD} --slashing-protection-db-username=${WEB3SIGNER_SLASHING_PROTECTION_DB_USERNAME} --network=${WEB3SIGNER_NETWORK}"]
+          volumeMounts:
+            - name: cm-web3signer
+              mountPath: "/configs"
+            - name: web3signer-storage
+              mountPath: "/data"
+          ports:
+            - name: http
+              containerPort: 9000
+          livenessProbe:
+            initialDelaySeconds: 60
+            periodSeconds: 120
+            tcpSocket:
+              port: http
+          readinessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            tcpSocket:
+              port: http
+          resources:
+            {}
+          env:
+            - name: WEB3SIGNER_SLASHING_PROTECTION_DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: web3signer
+                  key: postgres-db
+            - name: WEB3SIGNER_SLASHING_PROTECTION_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: web3signer
+                  key: postgres-auth
+            - name: WEB3SIGNER_SLASHING_PROTECTION_DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: web3signer
+                  key: postgres-username
+            - name: WEB3SIGNER_NETWORK
+              valueFrom:
+                secretKeyRef:
+                  name: web3signer
+                  key: network
+      nodeSelector:
+        {}
+      affinity:
+        {}
+      tolerations:
+        []
+      volumes:
+        - name: cm-web3signer
+          configMap:
+            name: cm-web3signer
+            defaultMode: 0744
+  volumeClaimTemplates:
+    - metadata:
+        name: web3signer-storage
+        annotations:
+          {}
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: "100Mi"
+

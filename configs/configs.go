@@ -70,6 +70,9 @@ type TestContainer struct {
 	MainnetNodeUrl   string
 
 	OpenAIAuth string
+
+	DevWeb3SignerPgconn     string
+	DevWeb3SignerPgconnAuth string
 }
 
 type ArtemisHexKeys struct {
@@ -110,6 +113,10 @@ func InitArtemisLocalAccounts() {
 
 func InitLocalTestConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
+
+	testCont.DevWeb3SignerPgconn = viper.GetString("WEB3SIGNER_PG_DB")
+	testCont.DevWeb3SignerPgconnAuth = viper.GetString("WEB3SIGNER_PG_AUTH_DEV")
+
 	testCont.OpenAIAuth = viper.GetString("OPEN_AI_AUTH")
 
 	testCont.MainnetNodeUrl = viper.GetString("MAINNET_NODE_URL")

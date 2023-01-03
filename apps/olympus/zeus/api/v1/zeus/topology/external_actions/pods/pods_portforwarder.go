@@ -75,8 +75,16 @@ func PodsPortForwardRequest(c echo.Context, request *PodActionRequest) ([]byte, 
 	for _, po := range clientReq.Ports {
 		port, _, _ = strings.Cut(po, ":")
 	}
-	bearer := c.Get("bearer")
-	restyC := resty_base.GetBaseRestyClient(fmt.Sprintf("http://localhost:%s", port), bearer.(string))
+	bearer := c.Get("bearer").(string)
+	if len(clientReq.EndpointHeaders) > 0 {
+		v, ok := clientReq.EndpointHeaders["Authorization"]
+		if ok {
+			bearer = v
+			delete(clientReq.EndpointHeaders, "Authorization")
+		}
+	}
+
+	restyC := resty_base.GetBaseRestyClient(fmt.Sprintf("http://localhost:%s", port), bearer)
 	var r client.Reply
 	payload := clientReq.Payload
 	switch clientReq.MethodHTTP {

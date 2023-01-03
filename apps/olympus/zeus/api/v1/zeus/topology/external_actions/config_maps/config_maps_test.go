@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	beacon_cookbooks "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons"
 	zeus_configmap_reqs "github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types/config_maps"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/test"
 )
@@ -28,12 +27,9 @@ func (t *ConfigMapsActionRequestTestSuite) TestCmKeySwap() {
 	ctx := context.Background()
 	defer t.E.Shutdown(ctx)
 
-	reqHeader := beacon_cookbooks.DeployConsensusClientKnsReq
-	reqHeader.Namespace = "ethereum"
 	cmr := zeus_configmap_reqs.ConfigMapActionRequest{
-		TopologyDeployRequest: reqHeader,
-		Action:                zeus_configmap_reqs.KeySwapAction,
-		ConfigMapName:         "cm-lighthouse",
+		Action:        zeus_configmap_reqs.KeySwapAction,
+		ConfigMapName: "cm-lighthouse",
 		Keys: zeus_configmap_reqs.KeySwap{
 			KeyOne: "start.sh",
 			KeyTwo: "pause.sh",
@@ -59,12 +55,9 @@ func (t *ConfigMapsActionRequestTestSuite) TestSetOrCreateKeyFromExisting() {
 	<-start
 	ctx := context.Background()
 	defer t.E.Shutdown(ctx)
-	reqHeader := beacon_cookbooks.DeployConsensusClientKnsReq
-	reqHeader.Namespace = "ethereum"
 	cmr := zeus_configmap_reqs.ConfigMapActionRequest{
-		TopologyDeployRequest: reqHeader,
-		Action:                zeus_configmap_reqs.KeySwapAction,
-		ConfigMapName:         "cm-lighthouse",
+		Action:        zeus_configmap_reqs.KeySwapAction,
+		ConfigMapName: "cm-lighthouse",
 		Keys: zeus_configmap_reqs.KeySwap{
 			KeyOne: "pause.sh",
 			KeyTwo: "start.sh",

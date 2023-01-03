@@ -13,7 +13,6 @@ import (
 )
 
 func (k *K8Util) GetPodLogs(ctx context.Context, name string, kns zeus_common_types.CloudCtxNs, logOpts *v1.PodLogOptions, filter *string_utils.FilterOpts) ([]byte, error) {
-
 	log.Ctx(ctx).Debug().Msg("GetPodLogs")
 	if logOpts == nil {
 		logOpts = &v1.PodLogOptions{}

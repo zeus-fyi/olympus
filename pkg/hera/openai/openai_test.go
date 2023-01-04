@@ -41,9 +41,13 @@ func (s *HeraTestSuite) TestOpenAI() {
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 	model := gogpt.GPT3TextDavinci003
-	bytes, err := os.ReadFile("./example.txt")
 
-	resp, err := HeraOpenAI.MakeCodeGenRequest(ctx, model, string(bytes), 2000, ou)
+	params := OpenAIParams{
+		Model:     model,
+		MaxTokens: 300,
+		Prompt:    "what is the meaning of life",
+	}
+	resp, err := HeraOpenAI.MakeCodeGenRequest(ctx, ou, params)
 	s.Require().Nil(err)
 	fmt.Println(resp)
 

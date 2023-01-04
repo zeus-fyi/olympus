@@ -22,6 +22,7 @@ func insertCompletionResp() sql_query_templates.QueryParams {
 		), cte_update_token_usage AS (
 			UPDATE hera_openai_usage
 			SET tokens_remaining = (SELECT tokens_remaining - $5 FROM cte_insert_token_usage), tokens_consumed = (SELECT tokens_consumed + $5 FROM cte_insert_token_usage)
+   			WHERE org_id = $1
 		)
 		INSERT INTO completion_responses(org_id, user_id, prompt_tokens, completion_tokens, total_tokens, model, completion_choices)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)

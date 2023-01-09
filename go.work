@@ -20,4 +20,5 @@ use (
 	./apps/olympus/hypnos
 	./apps/olympus/poseidon
 	./apps/olympus/zeus
+	./apps/olympus/hydra
 )

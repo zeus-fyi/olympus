@@ -6,7 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	zeus_endpoints "github.com/zeus-fyi/olympus/pkg/zeus/client/endpoints"
-	zeus_config_map_reqs "github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types/config_maps"
+	zeus_config_map_reqs "github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types/config_maps"
 )
 
 func (z *ZeusClient) SwapConfigMapKeys(ctx context.Context, par zeus_config_map_reqs.ConfigMapActionRequest) ([]byte, error) {

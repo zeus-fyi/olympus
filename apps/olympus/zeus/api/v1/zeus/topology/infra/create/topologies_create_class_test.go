@@ -7,12 +7,12 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/cookbooks"
-	beacon_cookbooks "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
-	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/test"
+	beacon_cookbooks "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 

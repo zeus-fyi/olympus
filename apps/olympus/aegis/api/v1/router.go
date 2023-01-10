@@ -38,6 +38,30 @@ func InitV1Routes(e *echo.Echo) {
 	eg.GET("/ethereum/beacon", BeaconAuthHandler)
 }
 
+// TODO, remove from internal only later
+
+func InitWeb3SignerRoutes(e *echo.Echo) {
+	eg := e.Group("/v1beta")
+	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+		AuthScheme: "Bearer",
+		Validator: func(token string, c echo.Context) (bool, error) {
+			ctx := context.Background()
+			key, err := auth.VerifyInternalBearerToken(ctx, token)
+			if err != nil {
+				log.Err(err).Msg("InitV1InternalRoutes")
+				return false, c.JSON(http.StatusInternalServerError, nil)
+			}
+			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
+			c.Set("orgUser", ou)
+			c.Set("bearer", key.PublicKey)
+			return key.PublicKeyVerified, err
+		},
+	}))
+
+	// TODO, revisit path name
+	eg.GET("/ethereum/web3signer", BeaconAuthHandler)
+}
+
 func Health(c echo.Context) error {
 	return c.String(http.StatusOK, "Healthy")
 }

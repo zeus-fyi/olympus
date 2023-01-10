@@ -12,10 +12,10 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
-	zeus_client "github.com/zeus-fyi/olympus/pkg/zeus/client"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
+	zeus_client "github.com/zeus-fyi/zeus/pkg/zeus/client"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -45,7 +45,7 @@ type TestResponse struct {
 }
 
 func (t *TopologyActionRequestTestSuite) SetupTest() {
-	t.ConnectToK8s()
+	t.K.ConnectToK8s()
 	t.InitLocalConfigs()
 
 	zeus.K8Util = t.K

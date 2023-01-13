@@ -15,6 +15,7 @@ func Routes(e *echo.Echo) *echo.Echo {
 	// Routes
 	e.GET("/health", Health)
 	InitV1Routes(e)
+	InitWeb3SignerRoutes(e)
 	return e
 }
 
@@ -41,7 +42,7 @@ func InitV1Routes(e *echo.Echo) {
 // TODO, remove from internal only later
 
 func InitWeb3SignerRoutes(e *echo.Echo) {
-	eg := e.Group("/v1beta")
+	eg := e.Group("/v1beta/internal")
 	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {

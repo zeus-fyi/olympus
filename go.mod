@@ -24,7 +24,7 @@ require (
 	github.com/jackc/pgx/v4 v4.16.1
 	github.com/klauspost/compress v1.15.12
 	github.com/labstack/gommon v0.3.1
-	github.com/pierrec/lz4 v2.6.0+incompatible
+	github.com/pierrec/lz4 v2.6.1+incompatible
 	github.com/rs/zerolog v1.28.0
 	github.com/sashabaranov/go-gpt3 v0.0.0-20221216095610-1c20931ead68
 	github.com/shirou/gopsutil/v3 v3.22.10
@@ -41,7 +41,7 @@ require (
 	k8s.io/api v0.25.4
 	k8s.io/apimachinery v0.25.4
 	k8s.io/cli-runtime v0.24.3
-	k8s.io/client-go v0.24.3
+	k8s.io/client-go v0.25.4
 	k8s.io/kubectl v0.24.3
 	logur.dev/adapter/zerolog v0.6.0
 	logur.dev/logur v0.17.0
@@ -129,7 +129,7 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/imdario/mergo v0.3.5 // indirect
+	github.com/imdario/mergo v0.3.6 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.12.1
@@ -169,11 +169,11 @@ require (
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/xlab/treeprint v0.0.0-20181112141820-a009c3971eca // indirect
 	go.starlark.net v0.0.0-20221028183056-acb66ad56dd2 // indirect
-	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
-	golang.org/x/net v0.0.0-20221014081412-f15817d10f9b // indirect
+	golang.org/x/crypto v0.3.0 // indirect
+	golang.org/x/net v0.2.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect
 	golang.org/x/sys v0.2.0 // indirect
-	golang.org/x/term v0.0.0-20220526004731-065cf7ba2467 // indirect
+	golang.org/x/term v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858 // indirect
 	google.golang.org/appengine v1.6.7 // indirect

@@ -4,7 +4,6 @@ GIT_SHA := $(shell git rev-parse HEAD)
 IMG     := ${REPO}/${NAME}:${GIT_SHA}
 LATEST  := ${REPO}/${NAME}:latest
 SRC	    := ../../
-GITHUB_TOKEN=${GITHUB_TOKEN_OLYMPUS}
 GOMODCACHE := $(shell go env GOMODCACHE)
 GOCACHE := $(shell go env GOCACHE)
 

@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	zeus_configmap_reqs "github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types/config_maps"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/test"
+	zeus_config_map_reqs "github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types/config_maps"
 )
 
 type ConfigMapsActionRequestTestSuite struct {
@@ -27,10 +27,10 @@ func (t *ConfigMapsActionRequestTestSuite) TestCmKeySwap() {
 	ctx := context.Background()
 	defer t.E.Shutdown(ctx)
 
-	cmr := zeus_configmap_reqs.ConfigMapActionRequest{
-		Action:        zeus_configmap_reqs.KeySwapAction,
+	cmr := zeus_config_map_reqs.ConfigMapActionRequest{
+		Action:        zeus_config_map_reqs.KeySwapAction,
 		ConfigMapName: "cm-lighthouse",
-		Keys: zeus_configmap_reqs.KeySwap{
+		Keys: zeus_config_map_reqs.KeySwap{
 			KeyOne: "start.sh",
 			KeyTwo: "pause.sh",
 		},
@@ -55,10 +55,10 @@ func (t *ConfigMapsActionRequestTestSuite) TestSetOrCreateKeyFromExisting() {
 	<-start
 	ctx := context.Background()
 	defer t.E.Shutdown(ctx)
-	cmr := zeus_configmap_reqs.ConfigMapActionRequest{
-		Action:        zeus_configmap_reqs.KeySwapAction,
+	cmr := zeus_config_map_reqs.ConfigMapActionRequest{
+		Action:        zeus_config_map_reqs.KeySwapAction,
 		ConfigMapName: "cm-lighthouse",
-		Keys: zeus_configmap_reqs.KeySwap{
+		Keys: zeus_config_map_reqs.KeySwap{
 			KeyOne: "pause.sh",
 			KeyTwo: "start.sh",
 		},

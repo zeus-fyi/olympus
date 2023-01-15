@@ -13,6 +13,7 @@ var cd = zeus_req_types.ClusterTopologyDeployRequest{
 }
 
 func (t *HestiaCookbookTestSuite) TestDeploy() {
+	t.TestChartUpload()
 	resp, err := t.ZeusTestClient.DeployCluster(ctx, cd)
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(resp)

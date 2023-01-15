@@ -32,3 +32,5 @@ CREATE UNIQUE INDEX "pubkey_index" ON "public"."validators" USING btree (
 ALTER TABLE "public"."validators" ADD CONSTRAINT "validators_pkey" PRIMARY KEY ("index");
 CREATE INDEX "last_updated_at_index" ON "public"."validators" (updated_at ASC);
 
+ALTER TABLE "public"."validators" ADD CONSTRAINT "pubkey_index_uniq" UNIQUE ("pubkey", "index");
+ALTER TABLE "public"."validators" ADD CONSTRAINT "pubkey_network_uniq" UNIQUE ("pubkey", "protocol_network_id");

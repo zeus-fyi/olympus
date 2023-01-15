@@ -26,7 +26,7 @@ func (f *BeaconFetcherTestSuite) TestFetcherUpdateBatch() {
 	ctx := context.Background()
 	Fetcher.NodeEndpoint = f.Tc.LocalBeaconConn
 
-	err := Fetcher.BeaconUpdateValidatorStates(ctx, 100)
+	err := Fetcher.BeaconUpdateValidatorStates(ctx, 100, 1)
 	f.Require().Nil(err)
 
 	f.Assert().NotEmpty(Fetcher.Validators)

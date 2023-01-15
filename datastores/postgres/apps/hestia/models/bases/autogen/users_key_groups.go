@@ -1,4 +1,4 @@
-package autogen_bases
+package hestia_autogen_bases
 
 import (
 	"time"
@@ -10,7 +10,7 @@ type UsersKeyGroups struct {
 	KeyGroupID   int       `db:"key_group_id" json:"key_group_id"`
 	KeyGroupName string    `db:"key_group_name" json:"key_group_name"`
 	UpdatedAt    time.Time `db:"updated_at" json:"updated_at"`
-	UserID       int       `db:"user_id" json:"user_id"`
+	UserID       int       `db:"user_id" json:"userID"`
 	PublicKey    string    `db:"public_key" json:"public_key"`
 }
 type UsersKeyGroupsSlice []UsersKeyGroups

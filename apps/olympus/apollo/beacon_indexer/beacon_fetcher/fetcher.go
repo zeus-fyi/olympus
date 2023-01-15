@@ -10,7 +10,10 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/redis/apps/beacon_indexer"
 )
 
-var Fetcher BeaconFetcher
+var (
+	Fetcher   BeaconFetcher
+	NetworkID = 1
+)
 
 func InitFetcherService(ctx context.Context, nodeURL string, redis *redis.Client) {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
@@ -21,11 +24,11 @@ func InitFetcherService(ctx context.Context, nodeURL string, redis *redis.Client
 	max := 20
 	jitterStart := time.Duration(rand.Intn(max-min+1) + min)
 	time.Sleep(time.Second * jitterStart)
-	go FetchNewOrMissingValidators()
+	go FetchNewOrMissingValidators(NetworkID)
 	go UpdateAllValidatorBalancesFromCache()
 	// used for redis look ahead cache
 	go FetchAnyValidatorBalancesAfterCheckpoint()
-	go FetchBeaconUpdateValidatorStates()
+	go FetchBeaconUpdateValidatorStates(NetworkID)
 	go UpdateAllValidators()
 	go UpdateForwardEpochCheckpoint()
 	go InsertNewEpochCheckpoint()

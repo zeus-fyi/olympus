@@ -1,4 +1,4 @@
-package server
+package hestia_server
 
 import (
 	"context"

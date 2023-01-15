@@ -1,4 +1,4 @@
-package v1
+package v1hestia
 
 import (
 	"net/http"
@@ -15,22 +15,7 @@ func Routes(e *echo.Echo) *echo.Echo {
 	e.GET("/health", Health)
 
 	// TODO add users/orgs
-	v1Group := e.Group("/v1")
-	v1Group.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(2)))
-	v1Group.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
-		AuthScheme: "Bearer",
-		Validator: func(key string, c echo.Context) (bool, error) {
-			return key == "hQyPerNFu7C9wMYpzTtZubP9BnUTzpCV5", nil
-		},
-	}))
-
-	debugGroup := e.Group("/debug")
-	debugGroup.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
-		AuthScheme: "Bearer",
-		Validator: func(key string, c echo.Context) (bool, error) {
-			return key == "hQyPerNFu7C9wMYpzTtZubP9BnUTzpCV5", nil
-		},
-	}))
+	// TODO add validator service groups
 
 	return e
 }

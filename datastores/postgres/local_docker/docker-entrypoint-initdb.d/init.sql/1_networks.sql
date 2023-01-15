@@ -11,4 +11,5 @@ BEGIN;
 INSERT INTO "public"."protocol_networks" VALUES (1, 'ethereum', 'mainnet');
 INSERT INTO "public"."protocol_networks" VALUES (5, 'ethereum', 'goerli');
 INSERT INTO "public"."protocol_networks" VALUES (11155111, 'ethereum', 'sepolia');
+INSERT INTO "public"."protocol_networks" VALUES (1673748447294772000, 'ethereum', 'ephemery');
 COMMIT;

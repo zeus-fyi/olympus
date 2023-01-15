@@ -64,7 +64,7 @@ func (f *ProductionBeaconFetcherTestSuite) TestStatusBatchUpdates() {
 	Fetcher.Cache = beacon_indexer.NewFetcherCache(ctx, f.Redis)
 
 	checkpointEpoch = 163999
-	err := Fetcher.BeaconUpdateValidatorStates(ctx, 100)
+	err := Fetcher.BeaconUpdateValidatorStates(ctx, 100, 1)
 	f.Require().Nil(err)
 }
 

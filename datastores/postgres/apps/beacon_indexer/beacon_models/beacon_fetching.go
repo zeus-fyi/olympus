@@ -67,15 +67,15 @@ func FindValidatorIndexes(ctx context.Context, batchSize int) (Validators, error
 	return validatorsToQueryState, err
 }
 
-func SelectValidatorsQueryOngoingStates(ctx context.Context, batchSize int) (Validators, error) {
+func SelectValidatorsQueryOngoingStates(ctx context.Context, batchSize, networkID int) (Validators, error) {
 	log.Info().Msg("SelectValidatorsQueryOngoingStates")
 
 	query := fmt.Sprintf(`
-	SELECT index FROM validators ORDER BY updated_at LIMIT %d `, batchSize)
+	SELECT index FROM validators WHERE protocol_network_id = $1 ORDER BY updated_at LIMIT %d `, batchSize)
 	log.Debug().Interface("SelectValidatorsQueryOngoingStates: Query: ", query)
 
 	var validatorsToQueryState Validators
-	rows, err := apps.Pg.Query(ctx, query)
+	rows, err := apps.Pg.Query(ctx, query, networkID)
 	if err != nil {
 		log.Err(err).Msg("SelectValidatorsQueryOngoingStates")
 		return validatorsToQueryState, err
@@ -104,10 +104,10 @@ func FindNewValidatorsToQueryBeaconURLEncoded(ctx context.Context, batchSize int
 	return vs.formatValidatorStateIndexesToURLList(), nil
 }
 
-func SelectValidatorsQueryOngoingStatesIndexesURLEncoded(ctx context.Context, batchSize int) (string, error) {
+func SelectValidatorsQueryOngoingStatesIndexesURLEncoded(ctx context.Context, batchSize, networkID int) (string, error) {
 	log.Ctx(ctx).Info().Msg("SelectValidatorsQueryOngoingStatesIndexesURLEncoded")
 
-	vs, err := SelectValidatorsQueryOngoingStates(ctx, batchSize)
+	vs, err := SelectValidatorsQueryOngoingStates(ctx, batchSize, networkID)
 	if err != nil {
 		return "", err
 	}

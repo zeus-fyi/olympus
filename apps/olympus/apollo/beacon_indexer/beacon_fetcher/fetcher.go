@@ -25,7 +25,7 @@ func InitFetcherService(ctx context.Context, nodeURL string, redis *redis.Client
 	go UpdateAllValidatorBalancesFromCache()
 	// used for redis look ahead cache
 	go FetchAnyValidatorBalancesAfterCheckpoint()
-	go FetchBeaconUpdateValidatorStates()
+	go FetchBeaconUpdateValidatorStates(1)
 	go UpdateAllValidators()
 	go UpdateForwardEpochCheckpoint()
 	go InsertNewEpochCheckpoint()

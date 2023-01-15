@@ -8,8 +8,10 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/beacon_indexer/beacon_models"
 )
 
-var UpdateAllValidatorTimeout = time.Minute * 1
-var UpdateValidatorBatchSize = 1000
+var (
+	UpdateAllValidatorTimeout = time.Minute * 1
+	UpdateValidatorBatchSize  = 1000
+)
 
 // UpdateAllValidators Routine TWO
 func UpdateAllValidators() {
@@ -55,33 +57,33 @@ func (f *BeaconFetcher) BeaconUpdateAllValidatorStates(ctx context.Context) (err
 }
 
 // FetchBeaconUpdateValidatorStates Routine ONE
-func FetchBeaconUpdateValidatorStates() {
+func FetchBeaconUpdateValidatorStates(networkID int) {
 	log.Info().Msg("FetchBeaconUpdateValidatorStates")
 
 	for {
 		timeBegin := time.Now()
-		err := fetchValidatorsToUpdate(context.Background(), UpdateValidatorBatchSize, UpdateAllValidatorTimeout)
+		err := fetchValidatorsToUpdate(context.Background(), UpdateValidatorBatchSize, networkID, UpdateAllValidatorTimeout)
 		log.Err(err)
 		log.Info().Interface("FetchBeaconUpdateValidatorStates took this many seconds to complete: ", time.Now().Sub(timeBegin))
 		time.Sleep(1 * time.Second)
 	}
 }
 
-func fetchValidatorsToUpdate(ctx context.Context, batchSize int, contextTimeout time.Duration) error {
+func fetchValidatorsToUpdate(ctx context.Context, batchSize, networkID int, contextTimeout time.Duration) error {
 	log.Info().Msg("fetchValidatorsToUpdate")
 
 	ctxTimeout, cancel := context.WithTimeout(ctx, contextTimeout)
 	defer cancel()
-	err := Fetcher.BeaconUpdateValidatorStates(ctxTimeout, batchSize)
+	err := Fetcher.BeaconUpdateValidatorStates(ctxTimeout, batchSize, networkID)
 	log.Info().Err(err).Msg("fetchValidatorsToUpdate")
 	return err
 }
 
-func (f *BeaconFetcher) BeaconUpdateValidatorStates(ctx context.Context, batchSize int) (err error) {
+func (f *BeaconFetcher) BeaconUpdateValidatorStates(ctx context.Context, batchSize, networkID int) (err error) {
 	log.Info().Msgf("BeaconFetcher: BeaconUpdateValidatorStates, batch size %d", batchSize)
 
 	log.Info().Msg("BeaconUpdateValidatorStates: SelectValidatorsQueryOngoingStatesIndexesURLEncoded")
-	indexes, err := beacon_models.SelectValidatorsQueryOngoingStatesIndexesURLEncoded(ctx, batchSize)
+	indexes, err := beacon_models.SelectValidatorsQueryOngoingStatesIndexesURLEncoded(ctx, batchSize, networkID)
 	if err != nil {
 		log.Error().Err(err).Msg("BeaconUpdateValidatorStates: SelectValidatorsQueryOngoingStatesIndexesURLEncoded")
 		return err

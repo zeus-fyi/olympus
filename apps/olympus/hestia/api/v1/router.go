@@ -38,7 +38,7 @@ func InitV1Routes(e *echo.Echo) {
 		},
 	}))
 	eg.POST("/users/create", CreateUserHandler)
-	eg.POST("/validator/service/create", CreateValidatorServiceRequestHandler)
+	eg.POST("/validators/service/create", CreateValidatorServiceRequestHandler)
 }
 
 func InitV1InternalRoutes(e *echo.Echo) {

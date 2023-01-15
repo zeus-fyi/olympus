@@ -12,6 +12,7 @@ import (
 func InsertValidatorServiceOrgGroup(ctx context.Context, orgGroups hestia_autogen_bases.ValidatorServiceOrgGroupSlice) error {
 	tx, terr := apps.Pg.Begin(ctx)
 	if terr != nil {
+		log.Ctx(ctx).Err(terr)
 		return fmt.Errorf("failed to start transaction: %v", terr)
 	}
 
@@ -28,6 +29,7 @@ func InsertValidatorServiceOrgGroup(ctx context.Context, orgGroups hestia_autoge
 	}
 	err := tx.Commit(ctx)
 	if err != nil {
+		log.Ctx(ctx).Err(err)
 		return fmt.Errorf("failed to commit transaction: %v", err)
 	}
 	return nil

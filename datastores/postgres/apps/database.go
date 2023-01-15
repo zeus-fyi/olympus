@@ -78,3 +78,7 @@ func (d *Db) Query(ctx context.Context, query string, args ...interface{}) (pgx.
 func (d *Db) Exec(ctx context.Context, query string, args ...interface{}) (pgconn.CommandTag, error) {
 	return Pg.Pgpool.Exec(ctx, query, args...)
 }
+
+func (d *Db) Begin(ctx context.Context) (pgx.Tx, error) {
+	return Pg.Pgpool.Begin(ctx)
+}

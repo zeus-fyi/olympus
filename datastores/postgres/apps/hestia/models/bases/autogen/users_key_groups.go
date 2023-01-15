@@ -1,4 +1,4 @@
-package autogen_bases
+package hestia_autogen_bases
 
 import (
 	"time"

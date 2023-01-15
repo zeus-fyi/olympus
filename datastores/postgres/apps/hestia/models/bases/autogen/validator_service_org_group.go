@@ -8,7 +8,7 @@ type ValidatorServiceOrgGroup struct {
 	Pubkey            string `db:"pubkey" json:"pubkey"`
 	ProtocolNetworkID int    `db:"protocol_network_id" json:"protocolNetworkID"`
 	FeeRecipient      string `db:"fee_recipient" json:"feeRecipient"`
-	Enabled           string `db:"enabled" json:"enabled"`
+	Enabled           bool   `db:"enabled" json:"enabled"`
 }
 
 type ValidatorServiceOrgGroupSlice []ValidatorServiceOrgGroup

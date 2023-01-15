@@ -71,6 +71,16 @@ func ReadEncryptedSecretsData(ctx context.Context, authCfg AuthConfig) memfs.Mem
 	return s3SecretsReader.MemFS
 }
 
+func RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {
+	log.Info().Msg("Hestia: RunDigitalOceanS3BucketObjSecretsProcedure starting")
+	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
+	log.Info().Msg("Hestia: RunDigitalOceanS3BucketObjSecretsProcedure finished")
+	sw := SecretsWrapper{}
+	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
+	log.Info().Msg("Hestia: RunDigitalOceanS3BucketObjSecretsProcedure succeeded")
+	return inMemSecrets, sw
+}
+
 func RunDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {
 	log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjSecretsProcedure starting")
 

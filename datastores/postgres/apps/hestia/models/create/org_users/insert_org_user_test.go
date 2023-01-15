@@ -2,12 +2,12 @@ package create_org_users
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	create_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/users"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
-	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
 type CreateOrgUserTestSuite struct {
@@ -18,15 +18,18 @@ func (s *CreateOrgUserTestSuite) TestInsertOrgUser() {
 	ctx := context.Background()
 
 	ou := NewCreateOrgUser()
+
 	ou.OrgID = s.NewTestOrg()
 	ou.UserID = s.NewTestUser()
-	quo := sql_query_templates.NewQueryParam("NewTestOrgUser", "org_users", "where", 1000, []string{})
-	quo.TableName = ou.GetTableName()
-	quo.Columns = ou.GetTableColumns()
-	quo.Values = []apps.RowValues{ou.GetRowValues("default")}
 
-	err := ou.InsertOrgUser(ctx, quo)
+	user := create_users.NewCreateUser()
+	user.Metadata = `{"name": "test"}`
+
+	b, err := json.Marshal(user.Metadata)
 	s.Require().Nil(err)
+	err = ou.InsertOrgUser(ctx, b)
+	s.Require().Nil(err)
+	s.Assert().NotEmpty(ou.UserID)
 }
 
 func TestCreateOrgUserTestSuite(t *testing.T) {

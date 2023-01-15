@@ -11,7 +11,8 @@ import (
 
 const Sn = "User"
 
-func (u *User) InsertUser(ctx context.Context, q sql_query_templates.QueryParams) error {
+func (u *User) InsertUser(ctx context.Context) error {
+	q := sql_query_templates.NewQueryParam("InsertUser", "users", "where", 1000, []string{})
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
 	r, err := apps.Pg.Exec(ctx, q.InsertSingleElementQuery())
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {

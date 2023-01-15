@@ -7,7 +7,7 @@ CREATE TABLE "public"."validators_service_org_groups" (
     "enabled" bool NOT NULL DEFAULT false
 );
 
-ALTER TABLE "public"."validators_service_org_groups" ADD CONSTRAINT "validators_org_group_pubkey_org_uniq" PRIMARY KEY ("org_id", "pubkey");
+ALTER TABLE "public"."validators_service_org_groups" ADD CONSTRAINT "validators_org_group_pubkey_org_uniq" PRIMARY KEY ("group_name", "pubkey");
 ALTER TABLE "public"."validators_service_org_groups" ADD CONSTRAINT "validators_org_group_validator_pubkey_uniq" UNIQUE ("pubkey");
 ALTER TABLE "public"."validators_service_org_groups" ADD CONSTRAINT "validators_org_group_validator_pubkey_network_uniq" UNIQUE ("pubkey", "protocol_network_id");
 CREATE INDEX "org_group_index" ON "public"."validators_service_org_groups" ("group_name", "org_id", "protocol_network_id");

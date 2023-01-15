@@ -27,10 +27,10 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	log.Ctx(ctx).Info().Interface("ou", ou).Interface("vsg", v.ValidatorServiceOrgGroupSlice).Msg("CreateValidatorsServiceGroup")
-	err := validator_service_group.InsertValidatorServiceOrgGroup(ctx, v.ValidatorServiceOrgGroupSlice, ou.OrgID)
+	returnedVsg, err := validator_service_group.InsertValidatorServiceOrgGroup(ctx, v.ValidatorServiceOrgGroupSlice, ou.OrgID)
 	if err != nil {
 		log.Ctx(ctx).Err(err)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return c.JSON(http.StatusOK, v.ValidatorServiceOrgGroupSlice)
+	return c.JSON(http.StatusOK, returnedVsg)
 }

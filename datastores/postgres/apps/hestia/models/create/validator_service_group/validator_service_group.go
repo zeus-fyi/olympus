@@ -7,30 +7,38 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
+	"github.com/zeus-fyi/olympus/pkg/utils/misc"
+	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
+	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
 
-func InsertValidatorServiceOrgGroup(ctx context.Context, orgGroups hestia_autogen_bases.ValidatorServiceOrgGroupSlice, orgID int) error {
-	tx, terr := apps.Pg.Begin(ctx)
-	if terr != nil {
-		log.Ctx(ctx).Err(terr)
-		return fmt.Errorf("failed to start transaction: %v", terr)
-	}
+var ts chronos.Chronos
 
-	for _, orgGroup := range orgGroups {
-		_, err := tx.Exec(ctx, "INSERT INTO validators_service_org_groups (group_name, org_id, pubkey, protocol_network_id, fee_recipient, enabled) VALUES ($1, $2, $3, $4, $5, $6)", orgGroup.GroupName, orgID, orgGroup.Pubkey, orgGroup.ProtocolNetworkID, orgGroup.FeeRecipient, orgGroup.Enabled)
-		if err != nil {
-			log.Ctx(ctx).Err(err)
-			rerr := tx.Rollback(ctx)
-			if rerr != nil {
-				log.Ctx(ctx).Err(rerr)
-			}
-			return fmt.Errorf("failed to insert into validators_service_org_groups: %v", err)
-		}
+const Sn = "ValidatorServiceOrgGroup"
+
+func InsertValidatorServiceOrgGroup(ctx context.Context, orgGroups hestia_autogen_bases.ValidatorServiceOrgGroupSlice, orgID int) (hestia_autogen_bases.ValidatorServiceOrgGroupSlice, error) {
+	q := sql_query_templates.QueryParams{}
+	cte := sql_query_templates.CTE{Name: "InsertValidatorServiceOrgGroup"}
+	cte.SubCTEs = make([]sql_query_templates.SubCTE, len(orgGroups))
+	cte.Params = []interface{}{}
+	for i, orgGroup := range orgGroups {
+		tmp := &orgGroup
+		tmp.OrgID = orgID
+		tmp.Pubkey = strings_filter.AddHexPrefix(orgGroups[i].Pubkey)
+		queryName := fmt.Sprintf("vsg_insert_%d", ts.UnixTimeStampNow())
+		scte := sql_query_templates.NewSubInsertCTE(queryName)
+		scte.TableName = tmp.GetTableName()
+		scte.Columns = tmp.GetTableColumns()
+		scte.Values = []apps.RowValues{tmp.GetRowValues(queryName)}
+		cte.SubCTEs[i] = scte
 	}
-	err := tx.Commit(ctx)
-	if err != nil {
-		log.Ctx(ctx).Err(err)
-		return fmt.Errorf("failed to commit transaction: %v", err)
+	q.RawQuery = cte.GenerateChainedCTE()
+	r, err := apps.Pg.Exec(ctx, q.RawQuery, cte.Params...)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
+		return orgGroups, err
 	}
-	return nil
+	rowsAffected := r.RowsAffected()
+	log.Debug().Msgf("Packages: %s, Rows Affected: %d", q.LogHeader(Sn), rowsAffected)
+	return orgGroups, misc.ReturnIfErr(err, q.LogHeader(Sn))
 }

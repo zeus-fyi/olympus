@@ -1,18 +1,28 @@
 package v0
 
 import (
-	"math/rand"
+	"strconv"
 	"time"
+
+	"github.com/patrickmn/go-cache"
 )
+
+var tsCache = cache.New(30*time.Second, 1*time.Minute)
 
 // UnixTimeStampNow sleeps for 1-10 nanoseconds after generation, to help prevent duplicate timestamps
 func (c *LibV0) UnixTimeStampNow() int {
-	t := time.Now().UnixNano()
-	rangeLower := 1
-	rangeUpper := 10
-	randomNum := rand.Intn(rangeUpper - rangeLower)
-	time.Sleep(time.Duration(randomNum) * time.Nanosecond)
-	return int(t)
+	var t int64
+	for {
+		t = time.Now().UnixNano()
+		intTime := int(t)
+		key := strconv.Itoa(intTime)
+		_, found := tsCache.Get(key)
+		if !found {
+			tsCache.Set(key, intTime, cache.DefaultExpiration)
+			return intTime
+		}
+		time.Sleep(1 * time.Nanosecond)
+	}
 }
 
 // UnixTimeStampNowRaw does not wait and can possibly provide duplicates when called in parallel

@@ -44,7 +44,7 @@ spec:
                   key: do-spaces-private-key
           ports:
             - name: "http"
-              containerPort: 9008
+              containerPort: 9002
               protocol: "TCP"
           livenessProbe:
             httpGet:

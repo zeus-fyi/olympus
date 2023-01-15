@@ -3,7 +3,7 @@ package autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type Users struct {
-	UserID   int    `db:"user_id" json:"user_id"`
+	UserID   int    `db:"user_id" json:"userID"`
 	Metadata string `db:"metadata" json:"metadata"`
 }
 type UsersSlice []Users

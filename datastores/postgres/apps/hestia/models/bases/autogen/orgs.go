@@ -3,7 +3,7 @@ package autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type Orgs struct {
-	OrgID    int    `db:"org_id" json:"org_id"`
+	OrgID    int    `db:"org_id" json:"orgID"`
 	Metadata string `db:"metadata" json:"metadata"`
 }
 type OrgsSlice []Orgs

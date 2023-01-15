@@ -7,7 +7,7 @@ import (
 )
 
 type UsersKeys struct {
-	UserID            int       `db:"user_id" json:"user_id"`
+	UserID            int       `db:"user_id" json:"userID"`
 	PublicKeyName     string    `db:"public_key_name" json:"public_key_name"`
 	PublicKeyVerified bool      `db:"public_key_verified" json:"public_key_verified"`
 	PublicKeyTypeID   int       `db:"public_key_type_id" json:"public_key_type_id"`

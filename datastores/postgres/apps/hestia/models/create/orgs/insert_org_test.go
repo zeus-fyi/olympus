@@ -25,7 +25,7 @@ func (s *CreateOrgsTestSuite) TestInsertOrg() {
 	q.TableName = o.GetTableName()
 	q.Columns = o.GetTableColumns()
 	q.Values = []apps.RowValues{o.GetRowValues("default")}
-	err := o.InsertOrg(ctx, q)
+	err := o.InsertOrg(ctx)
 	s.Require().Nil(err)
 
 }

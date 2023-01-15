@@ -6,16 +6,16 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
 type CreateTopologiesOrgCloudCtxNs struct {
 	autogen_bases.TopologiesOrgCloudCtxNs
 }
 
-func NewCreateTopologiesOrgCloudCtxNs(orgID int, kns kns.TopologyKubeCtxNs) CreateTopologiesOrgCloudCtxNs {
+func NewCreateTopologiesOrgCloudCtxNs(orgID int, kns zeus_common_types.CloudCtxNs) CreateTopologiesOrgCloudCtxNs {
 	ct := CreateTopologiesOrgCloudCtxNs{autogen_bases.TopologiesOrgCloudCtxNs{
 		OrgID:         orgID,
 		CloudProvider: kns.CloudProvider,

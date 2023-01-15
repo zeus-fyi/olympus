@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
 type TopologiesOrgCloudCtxNsTestSuite struct {
@@ -16,7 +16,7 @@ type TopologiesOrgCloudCtxNsTestSuite struct {
 }
 
 func (t *TopologiesOrgCloudCtxNsTestSuite) TestInsertTopologyAccessCloudCtxNs() {
-	newKns := kns.NewKns()
+	newKns := zeus_common_types.CloudCtxNs{}
 	orgID := 7138983863666903883
 	newKns.CloudProvider = "do"
 	newKns.Region = "sfo3"

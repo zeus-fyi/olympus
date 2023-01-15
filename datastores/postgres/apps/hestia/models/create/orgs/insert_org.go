@@ -11,7 +11,8 @@ import (
 
 const Sn = "Org"
 
-func (o *Org) InsertOrg(ctx context.Context, q sql_query_templates.QueryParams) error {
+func (o *Org) InsertOrg(ctx context.Context) error {
+	q := sql_query_templates.NewQueryParam("InsertOrg", "orgs", "where", 1000, []string{})
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
 	r, err := apps.Pg.Exec(ctx, q.InsertSingleElementQuery())
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {

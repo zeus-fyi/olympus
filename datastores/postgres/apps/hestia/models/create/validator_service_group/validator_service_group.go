@@ -17,14 +17,14 @@ func InsertValidatorServiceOrgGroup(ctx context.Context, orgGroups hestia_autoge
 	}
 
 	for _, orgGroup := range orgGroups {
-		_, err := tx.Exec(ctx, "INSERT INTO validator_service_org_group (group_name, org_id, pubkey, protocol_network_id, fee_recipient) VALUES ($1, $2, $3, $4, $5)", orgGroup.GroupName, orgGroup.OrgID, orgGroup.Pubkey, orgGroup.ProtocolNetworkID, orgGroup.FeeRecipient)
+		_, err := tx.Exec(ctx, "INSERT INTO validators_service_org_groups (group_name, org_id, pubkey, protocol_network_id, fee_recipient) VALUES ($1, $2, $3, $4, $5)", orgGroup.GroupName, orgGroup.OrgID, orgGroup.Pubkey, orgGroup.ProtocolNetworkID, orgGroup.FeeRecipient)
 		if err != nil {
 			log.Ctx(ctx).Err(err)
 			rerr := tx.Rollback(ctx)
 			if rerr != nil {
 				log.Ctx(ctx).Err(rerr)
 			}
-			return fmt.Errorf("failed to insert into validator_service_org_group: %v", err)
+			return fmt.Errorf("failed to insert into validators_service_org_groups: %v", err)
 		}
 	}
 	err := tx.Commit(ctx)

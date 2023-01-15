@@ -7,11 +7,11 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/beacon_indexer/beacon_models"
 )
 
-func (f *BeaconFetcher) BeaconFindNewAndMissingValidatorIndexes(ctx context.Context, batchSize int) (err error) {
+func (f *BeaconFetcher) BeaconFindNewAndMissingValidatorIndexes(ctx context.Context, batchSize, networkID int) (err error) {
 	log.Info().Msg("BeaconFetcher: BeaconFindNewAndMissingValidatorIndexes")
 
 	log.Info().Msg("BeaconFindNewAndMissingValidatorIndexes: FindNewValidatorsToQueryBeaconURLEncoded")
-	indexes, err := beacon_models.FindNewValidatorsToQueryBeaconURLEncoded(ctx, batchSize)
+	indexes, err := beacon_models.FindNewValidatorsToQueryBeaconURLEncoded(ctx, batchSize, networkID)
 	if err != nil {
 		log.Error().Err(err).Msg("BeaconStateUpdater: FindNewValidatorsToQueryBeaconURLEncoded")
 		return err

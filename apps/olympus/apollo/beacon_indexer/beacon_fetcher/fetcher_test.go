@@ -16,11 +16,11 @@ type FetcherBaseTestSuite struct {
 
 var batchSize = 10
 
-func (s *FetcherBaseTestSuite) TestBeaconFindNewAndMissingValidatorIndexes() {
+func (s *FetcherBaseTestSuite) TestBeaconFindNewAndMissingValidatorIndexes(networkID int) {
 	var f BeaconFetcher
 	f.NodeEndpoint = s.Tc.LocalBeaconConn
 	ctx := context.Background()
-	err := f.BeaconFindNewAndMissingValidatorIndexes(ctx, batchSize)
+	err := f.BeaconFindNewAndMissingValidatorIndexes(ctx, batchSize, networkID)
 	s.Require().Nil(err)
 }
 

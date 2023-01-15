@@ -38,18 +38,18 @@ func SelectValidatorsToQueryBeaconForBalanceUpdates(ctx context.Context, batchSi
 	return selectedValidatorBalances, nil
 }
 
-func FindValidatorIndexes(ctx context.Context, batchSize int) (Validators, error) {
+func FindValidatorIndexes(ctx context.Context, batchSize, networkID int) (Validators, error) {
 	log.Info().Msg("FindValidatorIndexes")
 	query := fmt.Sprintf(`
 	SELECT
 	generate_series FROM GENERATE_SERIES(
-		(SELECT COALESCE(MIN(index),0) from validators), (SELECT COALESCE(MAX(index)+%d,+%d) from validators)
+		(SELECT COALESCE(MIN(index),0) from validators WHERE protocol_network_id = $1), (SELECT COALESCE(MAX(index)+%d,+%d) from validators WHERE protocol_network_id = $1)
 	)
-	WHERE NOT EXISTS(SELECT index FROM validators WHERE index = generate_series) LIMIT %d`, batchSize, batchSize, batchSize)
+	WHERE NOT EXISTS(SELECT index FROM validators WHERE index = generate_series AND protocol_network_id = $1) LIMIT %d`, batchSize, batchSize, batchSize)
 
 	var validatorsToQueryState Validators
 	log.Debug().Interface("FindValidatorIndexes: Query: ", query)
-	rows, err := apps.Pg.Query(ctx, query)
+	rows, err := apps.Pg.Query(ctx, query, networkID)
 	if err != nil {
 		return validatorsToQueryState, err
 	}
@@ -94,10 +94,10 @@ func SelectValidatorsQueryOngoingStates(ctx context.Context, batchSize, networkI
 	return validatorsToQueryState, err
 }
 
-func FindNewValidatorsToQueryBeaconURLEncoded(ctx context.Context, batchSize int) (string, error) {
+func FindNewValidatorsToQueryBeaconURLEncoded(ctx context.Context, batchSize, networkID int) (string, error) {
 	log.Ctx(ctx).Info().Msg("FindNewValidatorsToQueryBeaconURLEncoded")
 
-	vs, err := FindValidatorIndexes(ctx, batchSize)
+	vs, err := FindValidatorIndexes(ctx, batchSize, networkID)
 	if err != nil {
 		return "", err
 	}

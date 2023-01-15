@@ -18,10 +18,12 @@ import (
 	router "github.com/zeus-fyi/olympus/zeus/api"
 )
 
-var cfg = Config{}
-var authKeysCfg auth_keys_config.AuthKeysCfg
-var temporalAuthCfg temporal_auth.TemporalAuth
-var env string
+var (
+	cfg             = Config{}
+	authKeysCfg     auth_keys_config.AuthKeysCfg
+	temporalAuthCfg temporal_auth.TemporalAuth
+	env             string
+)
 
 func Zeus() {
 	log.Info().Msg("Zeus: starting")

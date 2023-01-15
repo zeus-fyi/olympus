@@ -1,29 +1,38 @@
-package server
+package hestia_server
 
 import (
 	"context"
 
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/zeus-fyi/olympus/configs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	v1 "github.com/zeus-fyi/olympus/hestia/api/v1"
+	v1hestia "github.com/zeus-fyi/olympus/hestia/api/v1"
 )
 
-var cfg = Config{}
+var (
+	cfg = Config{}
+	env string
+)
 
 func Hestia() {
 	cfg.Host = "0.0.0.0"
 	srv := NewHestiaServer(cfg)
 	// Echo instance
-	srv.E = v1.Routes(srv.E)
+	srv.E = v1hestia.Routes(srv.E)
 	ctx := context.Background()
-	apps.Pg = apps.Db{}
+	switch env {
+	case "production":
+	case "production-local":
+		tc := configs.InitLocalTestConfigs()
+		cfg.PGConnStr = tc.ProdLocalDbPgconn
+	case "local":
+		tc := configs.InitLocalTestConfigs()
+		cfg.PGConnStr = tc.LocalDbPgconn
+	}
+	log.Info().Msg("Hestia: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
-
-	// Middleware
-	srv.E.Use(middleware.Logger())
-	srv.E.Use(middleware.Recover())
 	// Start server
 	srv.Start()
 }
@@ -31,7 +40,6 @@ func Hestia() {
 func init() {
 	viper.AutomaticEnv()
 	Cmd.Flags().StringVar(&cfg.Port, "port", "9002", "server port")
-	Cmd.Flags().StringVar(&cfg.PGConnStr, "postgres-conn-str", "", "postgres connection string")
 }
 
 // Cmd represents the base command when called without any subcommands

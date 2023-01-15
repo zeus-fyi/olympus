@@ -4,7 +4,7 @@ import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type ValidatorServiceOrgGroup struct {
 	GroupName         string `db:"group_name" json:"groupName"`
-	OrgID             int    `db:"org_id" json:"orgID"`
+	OrgID             *int   `db:"org_id" json:"orgID,omitempty"`
 	Pubkey            string `db:"pubkey" json:"pubkey"`
 	ProtocolNetworkID int    `db:"protocol_network_id" json:"protocolNetworkID"`
 	FeeRecipient      string `db:"fee_recipient" json:"feeRecipient"`

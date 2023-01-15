@@ -24,7 +24,7 @@ func InsertValidatorServiceOrgGroup(ctx context.Context, orgGroups hestia_autoge
 	cte.Params = []interface{}{}
 	for i, orgGroup := range orgGroups {
 		tmp := &orgGroup
-		tmp.OrgID = orgID
+		tmp.OrgID = &orgID
 		tmp.Pubkey = strings_filter.AddHexPrefix(orgGroups[i].Pubkey)
 		queryName := fmt.Sprintf("vsg_insert_%d", ts.UnixTimeStampNow())
 		scte := sql_query_templates.NewSubInsertCTE(queryName)
@@ -32,6 +32,7 @@ func InsertValidatorServiceOrgGroup(ctx context.Context, orgGroups hestia_autoge
 		scte.Columns = tmp.GetTableColumns()
 		scte.Values = []apps.RowValues{tmp.GetRowValues(queryName)}
 		cte.SubCTEs[i] = scte
+		tmp.OrgID = nil
 	}
 	q.RawQuery = cte.GenerateChainedCTE()
 	r, err := apps.Pg.Exec(ctx, q.RawQuery, cte.Params...)

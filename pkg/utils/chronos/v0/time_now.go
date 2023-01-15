@@ -7,9 +7,9 @@ import (
 	"github.com/patrickmn/go-cache"
 )
 
-var tsCache = cache.New(30*time.Second, 1*time.Minute)
+var tsCache = cache.New(1*time.Second, 2*time.Second)
 
-// UnixTimeStampNow sleeps for 1-10 nanoseconds after generation, to help prevent duplicate timestamps
+// UnixTimeStampNow uses cache to help prevent duplicate timestamps
 func (c *LibV0) UnixTimeStampNow() int {
 	var t int64
 	for {
@@ -18,7 +18,7 @@ func (c *LibV0) UnixTimeStampNow() int {
 		key := strconv.Itoa(intTime)
 		_, found := tsCache.Get(key)
 		if !found {
-			tsCache.Set(key, intTime, cache.DefaultExpiration)
+			tsCache.Set(key, intTime, 1*time.Second)
 			return intTime
 		}
 		time.Sleep(1 * time.Nanosecond)

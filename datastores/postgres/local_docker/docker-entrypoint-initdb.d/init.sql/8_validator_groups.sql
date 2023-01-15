@@ -3,7 +3,8 @@ CREATE TABLE "public"."validator_service_org_group" (
     "org_id" int8 NOT NULL REFERENCES orgs(org_id),
     "pubkey" text NOT NULL CHECK(LENGTH(pubkey)=98),
     "protocol_network_id" int8 NOT NULL REFERENCES protocol_networks(protocol_network_id) DEFAULT 1,
-    "fee_recipient" text NOT NULL
+    "fee_recipient" text NOT NULL,
+    "enabled" bool NOT NULL DEFAULT false
 );
 
 ALTER TABLE "public"."validator_service_org_group" ADD CONSTRAINT "validators_org_group_pubkey_org_uniq" PRIMARY KEY ("org_id", "pubkey");

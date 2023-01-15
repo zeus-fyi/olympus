@@ -17,7 +17,7 @@ func InsertValidatorServiceOrgGroup(ctx context.Context, orgGroups hestia_autoge
 	}
 
 	for _, orgGroup := range orgGroups {
-		_, err := tx.Exec(ctx, "INSERT INTO validators_service_org_groups (group_name, org_id, pubkey, protocol_network_id, fee_recipient, enabled) VALUES ($1, $2, $3, $4, $5)", orgGroup.GroupName, orgID, orgGroup.Pubkey, orgGroup.ProtocolNetworkID, orgGroup.FeeRecipient, orgGroup.Enabled)
+		_, err := tx.Exec(ctx, "INSERT INTO validators_service_org_groups (group_name, org_id, pubkey, protocol_network_id, fee_recipient, enabled) VALUES ($1, $2, $3, $4, $5, $6)", orgGroup.GroupName, orgID, orgGroup.Pubkey, orgGroup.ProtocolNetworkID, orgGroup.FeeRecipient, orgGroup.Enabled)
 		if err != nil {
 			log.Ctx(ctx).Err(err)
 			rerr := tx.Rollback(ctx)

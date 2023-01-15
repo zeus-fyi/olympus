@@ -26,6 +26,6 @@ func (v *ValidatorServiceOrgGroup) GetTableColumns() (columnValues []string) {
 	return columnValues
 }
 func (v *ValidatorServiceOrgGroup) GetTableName() (tableName string) {
-	tableName = "validator_service_org_group"
+	tableName = "validators_service_org_groups"
 	return tableName
 }

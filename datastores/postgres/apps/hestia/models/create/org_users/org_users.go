@@ -12,3 +12,10 @@ func NewCreateOrgUser() OrgUser {
 	o := OrgUser{org_users.NewOrgUser()}
 	return o
 }
+
+func NewCreateOrgUserWithOrgID(orgID int) OrgUser {
+	o := OrgUser{org_users.NewOrgUser()}
+	o.OrgID = orgID
+	o.OrgUser.OrgID = orgID
+	return o
+}

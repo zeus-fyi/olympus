@@ -37,6 +37,7 @@ func InitV1Routes(e *echo.Echo) {
 			return key.PublicKeyVerified, err
 		},
 	}))
+	eg.POST("/users/create", CreateUserHandler)
 	eg.POST("/validator/service/create", CreateValidatorServiceRequestHandler)
 }
 

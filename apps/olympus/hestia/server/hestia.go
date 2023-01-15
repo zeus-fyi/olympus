@@ -9,6 +9,7 @@ import (
 	"github.com/zeus-fyi/olympus/configs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	v1hestia "github.com/zeus-fyi/olympus/hestia/api/v1"
+	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 )
 
@@ -26,6 +27,9 @@ func Hestia() {
 	ctx := context.Background()
 	switch env {
 	case "production":
+		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
+		_, sw := auth_startup.RunDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+		cfg.PGConnStr = sw.PostgresAuth
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn

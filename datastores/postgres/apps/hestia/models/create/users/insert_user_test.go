@@ -25,7 +25,7 @@ func (s *CreateUsersTestSuite) TestInsertUser() {
 	q.TableName = u.GetTableName()
 	q.Columns = u.GetTableColumns()
 	q.Values = []apps.RowValues{u.GetRowValues("default")}
-	err := u.InsertUser(ctx, q)
+	err := u.InsertUser(ctx)
 	s.Require().Nil(err)
 
 }

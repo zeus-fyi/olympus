@@ -70,7 +70,7 @@ func (b *BaseHestiaTestSuite) NewTestOrg() int {
 
 	o := orgs.NewOrg()
 	o.OrgID = ts.UnixTimeStampNow()
-
+	o.Name = "test_ord" + rand.String(10)
 	qo := sql_query_templates.NewQueryParam("NewTestOrg", "orgs", "where", 1000, []string{})
 	qo.TableName = o.GetTableName()
 	qo.Columns = o.GetTableColumns()

@@ -9,7 +9,7 @@ import (
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 )
 
-func InsertValidatorServiceOrgGroup(ctx context.Context, orgGroups hestia_autogen_bases.ValidatorServiceOrgGroupSlice) error {
+func InsertValidatorServiceOrgGroup(ctx context.Context, orgGroups hestia_autogen_bases.ValidatorServiceOrgGroupSlice, orgID int) error {
 	tx, terr := apps.Pg.Begin(ctx)
 	if terr != nil {
 		log.Ctx(ctx).Err(terr)
@@ -17,7 +17,7 @@ func InsertValidatorServiceOrgGroup(ctx context.Context, orgGroups hestia_autoge
 	}
 
 	for _, orgGroup := range orgGroups {
-		_, err := tx.Exec(ctx, "INSERT INTO validators_service_org_groups (group_name, org_id, pubkey, protocol_network_id, fee_recipient) VALUES ($1, $2, $3, $4, $5)", orgGroup.GroupName, orgGroup.OrgID, orgGroup.Pubkey, orgGroup.ProtocolNetworkID, orgGroup.FeeRecipient)
+		_, err := tx.Exec(ctx, "INSERT INTO validators_service_org_groups (group_name, org_id, pubkey, protocol_network_id, fee_recipient) VALUES ($1, $2, $3, $4, $5)", orgGroup.GroupName, orgID, orgGroup.Pubkey, orgGroup.ProtocolNetworkID, orgGroup.FeeRecipient)
 		if err != nil {
 			log.Ctx(ctx).Err(err)
 			rerr := tx.Rollback(ctx)

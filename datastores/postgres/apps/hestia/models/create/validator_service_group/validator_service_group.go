@@ -43,3 +43,28 @@ func InsertValidatorServiceOrgGroup(ctx context.Context, orgGroups hestia_autoge
 	log.Debug().Msgf("Packages: %s, Rows Affected: %d", q.LogHeader(Sn), rowsAffected)
 	return orgGroups, misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
+
+func InsertValidatorServiceOrgGroupCloudCtxNs(ctx context.Context, cloudCtxServiceGroup hestia_autogen_bases.ValidatorsServiceOrgGroupsCloudCtxNsSlice) (hestia_autogen_bases.ValidatorsServiceOrgGroupsCloudCtxNsSlice, error) {
+	q := sql_query_templates.QueryParams{}
+	cte := sql_query_templates.CTE{Name: "InsertValidatorServiceOrgGroupCloudCtxNs"}
+	cte.SubCTEs = make([]sql_query_templates.SubCTE, len(cloudCtxServiceGroup))
+	cte.Params = []interface{}{}
+	for i, cloudGroup := range cloudCtxServiceGroup {
+		tmp := &cloudGroup
+		tmp.Pubkey = strings_filter.AddHexPrefix(cloudCtxServiceGroup[i].Pubkey)
+		queryName := fmt.Sprintf("vsg_ns_insert_%d", ts.UnixTimeStampNow())
+		scte := sql_query_templates.NewSubInsertCTE(queryName)
+		scte.TableName = tmp.GetTableName()
+		scte.Columns = tmp.GetTableColumns()
+		scte.Values = []apps.RowValues{tmp.GetRowValues(queryName)}
+		cte.SubCTEs[i] = scte
+	}
+	q.RawQuery = cte.GenerateChainedCTE()
+	r, err := apps.Pg.Exec(ctx, q.RawQuery, cte.Params...)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
+		return cloudCtxServiceGroup, err
+	}
+	rowsAffected := r.RowsAffected()
+	log.Debug().Msgf("Packages: %s, Rows Affected: %d", q.LogHeader(Sn), rowsAffected)
+	return cloudCtxServiceGroup, misc.ReturnIfErr(err, q.LogHeader(Sn))
+}

@@ -78,7 +78,7 @@ func (t *TopologyCreateClassRequestTestSuite) TestEndToEnd() {
 		CloudCtxNs:          beacon_cookbooks.BeaconCloudCtxNs,
 	}
 
-	cookbooks.ChangeToCookbookDir()
+	olympus_cookbooks.ChangeToCookbookDir()
 	c := beacon_cookbooks.ExecClientChart
 	p := beacon_cookbooks.BeaconExecClientChartPath
 	c.ClusterClassName = cc.ClusterClassName

@@ -32,7 +32,7 @@ func (t *TopologyCreateActionRequestTestSuite) TestUploadWithSkeletonBaseName() 
 	ctx := context.Background()
 	defer t.E.Shutdown(ctx)
 
-	cookbooks.ChangeToCookbookDir()
+	olympus_cookbooks.ChangeToCookbookDir()
 	c := beacon_cookbooks.ExecClientChart
 	p := beacon_cookbooks.BeaconExecClientChartPath
 	c.ClusterClassName = "lz2l2xd6wk"
@@ -58,7 +58,7 @@ func (t *TopologyCreateActionRequestTestSuite) TestUpload() {
 	ctx := context.Background()
 	defer t.E.Shutdown(ctx)
 
-	cookbooks.ChangeToCookbookDir()
+	olympus_cookbooks.ChangeToCookbookDir()
 	c := beacon_cookbooks.ExecClientChart
 	p := beacon_cookbooks.BeaconExecClientChartPath
 

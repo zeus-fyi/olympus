@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: cm-athena
-data:
-  start.sh: |-
-    #!/bin/sh
-    exec athena --age-private-key="${AGE_PKEY}" --do-spaces-key="${DO_SPACES_KEY}" --do-spaces-private-key="${DO_SPACES_PKEY}" --env="production"

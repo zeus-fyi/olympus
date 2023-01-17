@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/validator_service_group"
 )
 
@@ -15,19 +16,21 @@ type CreateValidatorServiceRequest struct {
 }
 
 func CreateValidatorServiceRequestHandler(c echo.Context) error {
-	request := new(CreateOrgRequest)
+	request := new(CreateValidatorServiceRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	return request.CreateOrg(c)
+	return request.CreateValidatorsServiceGroup(c)
 }
 
-func (v *CreateValidatorServiceRequest) CreateValidatorService(c echo.Context) error {
+func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Context) error {
 	ctx := context.Background()
-	err := validator_service_group.InsertValidatorServiceOrgGroup(ctx, v.ValidatorServiceOrgGroupSlice)
+	ou := c.Get("orgUser").(org_users.OrgUser)
+	log.Ctx(ctx).Info().Interface("ou", ou).Interface("vsg", v.ValidatorServiceOrgGroupSlice).Msg("CreateValidatorsServiceGroup")
+	returnedVsg, err := validator_service_group.InsertValidatorServiceOrgGroup(ctx, v.ValidatorServiceOrgGroupSlice, ou.OrgID)
 	if err != nil {
 		log.Ctx(ctx).Err(err)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return c.JSON(http.StatusOK, v.ValidatorServiceOrgGroupSlice)
+	return c.JSON(http.StatusOK, returnedVsg)
 }

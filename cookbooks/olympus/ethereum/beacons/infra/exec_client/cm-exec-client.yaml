@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-exec-client
+data:
+  start.sh: |-
+    #!/bin/sh
+    exec geth \
+      --datadir=/data \
+      --port=30303 \
+      --http \
+      --http.addr=0.0.0.0 \
+      --http.port=8545 \
+      --http.vhosts=* \
+      --http.corsdomain=* \
+      --ws \
+      --ws.addr=0.0.0.0 \
+      --ws.port=8546 \
+      --ws.origins=* \
+      --authrpc.jwtsecret=/data/jwt.hex \
+      --authrpc.addr=0.0.0.0 \
+      --authrpc.port=8551 \
+      --authrpc.vhosts=* 
+  download.sh: |-
+    #!/bin/sh
+    exec snapshots --downloadURL="" --clientName="geth"
+  downloadGethEphemeral.sh: |-
+    #!/bin/sh
+    exec snapshots --downloadURL="" --clientName="gethEphemeral"
+  pause.sh: |-
+    #!/bin/sh
+    exec sleep 100000000000000000
+  geth.sh: |-
+    #!/bin/sh
+    exec geth \
+      --datadir=/data \
+      --port=30303 \
+      --http \
+      --http.addr=0.0.0.0 \
+      --http.port=8545 \
+      --http.vhosts=* \
+      --http.corsdomain=* \
+      --ws \
+      --ws.addr=0.0.0.0 \
+      --ws.port=8546 \
+      --ws.origins=* \
+      --authrpc.jwtsecret=/data/jwt.hex \
+      --authrpc.addr=0.0.0.0 \
+      --authrpc.port=8551 \
+      --authrpc.vhosts=*
+  athena.sh: |-
+    #!/bin/sh 
+    exec athena --age-private-key="${AGE_PKEY}" --do-spaces-key="${DO_SPACES_KEY}" --do-spaces-private-key="${DO_SPACES_PKEY}" --env="production"
+  athenaEphemeral.sh: |-
+    #!/bin/sh 
+    exec athena --age-private-key="${AGE_PKEY}" --do-spaces-key="${DO_SPACES_KEY}" --do-spaces-private-key="${DO_SPACES_PKEY}" --env="production" --network="ephemery" --clientName="geth"
+  gethEphemeral.sh: |-
+    #!/bin/sh
+    exec geth \
+      --datadir=/data \
+      --port=30303 \
+      --http \
+      --http.addr=0.0.0.0 \
+      --http.port=8545 \
+      --http.vhosts=* \
+      --http.corsdomain=* \
+      --ws \
+      --ws.addr=0.0.0.0 \
+      --ws.port=8546 \
+      --ws.origins=* \
+      --authrpc.jwtsecret=/data/jwt.hex \
+      --authrpc.addr=0.0.0.0 \
+      --authrpc.port=8551 \
+      --authrpc.vhosts=* \
+      --rpc.gascap=0 \
+      --rpc.txfeecap=0 \
+      --networkid=$(grep CHAIN_ID /data/nodevars_env.txt | cut -d '=' -f 2 | tr -d '"') \
+      --bootnodes=enode://0f2c301a9a3f9fa2ccfa362b79552c052905d8c2982f707f46cd29ece5a9e1c14ecd06f4ac951b228f059a43c6284a1a14fce709e8976cac93b50345218bf2e9@135.181.140.168:30343

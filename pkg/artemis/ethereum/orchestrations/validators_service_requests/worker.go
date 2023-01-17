@@ -4,9 +4,8 @@ import (
 	"context"
 
 	"github.com/rs/zerolog/log"
-	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
-	"github.com/zeus-fyi/olympus/pkg/utils/misc"
+	"go.temporal.io/sdk/client"
 )
 
 type ArtemisEthereumValidatorsRequestsWorker struct {
@@ -23,21 +22,21 @@ const (
 	EthereumEphemeryValidatorsRequestsTaskQueue = "EthereumEphemeryValidatorsRequestsTaskQueue"
 )
 
-func InitArtemisEthereumEphemeryValidatorsRequestsWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
-	log.Ctx(ctx).Info().Msg("Artemis: ArtemisEthereumEphemeryValidatorsRequestsWorker")
-	tc, err := temporal_base.NewTemporalClient(temporalAuthCfg)
-	if err != nil {
-		log.Err(err).Msg("ArtemisEthereumEphemeryValidatorsRequestsWorker: NewTemporalClient failed")
-		misc.DelayedPanic(err)
-	}
-	taskQueueName := EthereumEphemeryValidatorsRequestsTaskQueue
-	w := temporal_base.NewWorker(taskQueueName)
-	activityDef := NewArtemisEthereumValidatorSignatureRequestActivities()
-	wf := NewArtemisEthereumValidatorSignatureRequestWorkflow()
+type ValidatorServiceGroupWorkflowRequest struct {
+}
 
-	w.AddWorkflows(wf.GetWorkflows())
-	w.AddActivities(activityDef.GetActivities())
-	ArtemisEthereumEphemeryValidatorsRequestsWorker.Worker = w
-	ArtemisEthereumEphemeryValidatorsRequestsWorker.TemporalClient = tc
-	return
+func (t *ArtemisEthereumValidatorsRequestsWorker) ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx context.Context, params ValidatorServiceGroupWorkflowRequest) error {
+	c := t.ConnectTemporalClient()
+	defer c.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: t.TaskQueueName,
+	}
+	txWf := NewArtemisEthereumValidatorServiceRequestWorkflow()
+	wf := txWf.ServiceNewValidatorsToCloudCtxNsWorkflow
+	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
+	if err != nil {
+		log.Err(err).Msg("ServiceNewValidatorsToCloudCtxNsWorkflow")
+		return err
+	}
+	return err
 }

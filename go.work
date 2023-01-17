@@ -13,11 +13,13 @@ use (
 	./apps/olympus/apollo
 	./apps/olympus/artemis
 	./apps/olympus/athena
+	./apps/olympus/choreography/hydra
 	./apps/olympus/hera
 	./apps/olympus/hestia
 	./apps/olympus/hydra
 	./apps/olympus/hypnos
 	./apps/olympus/poseidon
+
 	./apps/olympus/zeus
 
 	./apps/zeus

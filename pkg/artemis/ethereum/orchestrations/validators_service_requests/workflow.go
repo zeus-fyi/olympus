@@ -7,7 +7,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-type ArtemisEthereumValidatorsServiceCreateRequestWorkflow struct {
+type ArtemisNewEthereumValidatorsServiceRequestWorkflow struct {
 	temporal_base.Workflow
 	ArtemisEthereumValidatorsServiceRequestActivities
 }
@@ -15,23 +15,45 @@ type ArtemisEthereumValidatorsServiceCreateRequestWorkflow struct {
 // TODO revise this timeout
 const defaultTimeout = 6 * time.Second
 
-func NewArtemisEthereumValidatorSignatureRequestWorkflow() ArtemisEthereumValidatorsServiceCreateRequestWorkflow {
-	deployWf := ArtemisEthereumValidatorsServiceCreateRequestWorkflow{
+func NewArtemisEthereumValidatorServiceRequestWorkflow() ArtemisNewEthereumValidatorsServiceRequestWorkflow {
+	deployWf := ArtemisNewEthereumValidatorsServiceRequestWorkflow{
 		temporal_base.Workflow{},
 		ArtemisEthereumValidatorsServiceRequestActivities{},
 	}
 	return deployWf
 }
 
-func (t *ArtemisEthereumValidatorsServiceCreateRequestWorkflow) GetWorkflows() []interface{} {
-	return []interface{}{t.CreateAndDistributeEphemeryValidatorsToCloudCtxNs}
+func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) GetWorkflows() []interface{} {
+	return []interface{}{t.ServiceNewValidatorsToCloudCtxNsWorkflow}
 }
 
-const ephemeryCloudCtxNs = 1671248907408699000
+const (
+	ephemeryCloudCtxNs = 1671248907408699000
+	mainnsetCloudCtxNs = 1
+)
 
-func (t *ArtemisEthereumValidatorsServiceCreateRequestWorkflow) CreateAndDistributeEphemeryValidatorsToCloudCtxNs(ctx workflow.Context, params interface{}) error {
+type ArtemisCreateAndDistributeValidatorsToCloudCtxNsPayload struct {
+	ArtemisEthereumValidatorsServiceRequestPayload
+}
 
-	// TODO, write cloud location to database, if non-existent
+func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) ServiceNewValidatorsToCloudCtxNsWorkflow(ctx workflow.Context, params ArtemisCreateAndDistributeValidatorsToCloudCtxNsPayload) error {
+	log := workflow.GetLogger(ctx)
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: defaultTimeout,
+	}
+	assignValidatorsStatusCtx := workflow.WithActivityOptions(ctx, ao)
+	err := workflow.ExecuteActivity(assignValidatorsStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.AssignValidatorsToCloudCtxNs, params.ArtemisEthereumValidatorsServiceRequestPayload).Get(assignValidatorsStatusCtx, nil)
+	if err != nil {
+		log.Error("Failed to assign validators to cloud ctx ns", "Error", err)
+		return err
+	}
 
+	updateClusterValidatorsStatusCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(updateClusterValidatorsStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.SendValidatorsToCloudCtxNs, params.ArtemisEthereumValidatorsServiceRequestPayload).Get(assignValidatorsStatusCtx, nil)
+	if err != nil {
+		log.Error("Failed to assign validators to cloud ctx ns", "Error", err)
+		return err
+	}
+	//
 	return nil
 }

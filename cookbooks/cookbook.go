@@ -1,4 +1,4 @@
-package cookbooks
+package olympus_cookbooks
 
 import (
 	"os"

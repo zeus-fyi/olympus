@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-hydra-validator-client
+data:
+  start.sh: |-
+    #!/bin/sh
+    exec lighthouse vc \
+              --testnet-dir=/data/testnet \
+              --log-format=JSON \
+              --datadir=/data \
+              --unencrypted-http-transport \
+    	      --init-slashing-protection \
+              --http \
+              --http-address=0.0.0.0 \
+              --http-port=5062 \
+              --metrics \
+              --beacon-nodes="http://zeus-consensus-client:5052"
+  pause.sh: |-
+    #!/bin/sh
+    exec sleep 100000000000000000
+  download.sh: |-
+    #!/bin/sh
+    exec snapshots --downloadURL="" --clientName="ethereumEphemeralValidatorCluster"
+  athena.sh: |-
+    #!/bin/sh 
+    athena
+  athenaEphemeral.sh: |-
+    #!/bin/sh 
+    athena --network="ephemery" --clientName="lighthouse"
+  lighthouseEphemeral.sh: |-
+    #!/bin/sh
+    exec lighthouse vc \
+              --testnet-dir=/data/testnet \
+              --log-format=JSON \
+              --datadir=/data \
+        	  --init-slashing-protection \
+              --unencrypted-http-transport \
+              --http \
+              --http-address=0.0.0.0 \
+              --http-port=5062 \
+              --metrics \
+              --beacon-nodes="http://zeus-consensus-client:5052"

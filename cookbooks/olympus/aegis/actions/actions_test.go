@@ -25,7 +25,7 @@ func (t *AegisCookbookActionsTestSuite) SetupTest() {
 	// uses the bearer token from test/configs/config.yaml
 	t.AegisActionsClient.ZeusClient = zeus_client.NewDefaultZeusClient(tc.Bearer)
 	//t.ZeusTestClient = zeus_client.NewLocalZeusClient(tc.Bearer)
-	cookbooks.ChangeToCookbookDir()
+	olympus_cookbooks.ChangeToCookbookDir()
 }
 
 func TestAegisCookbookActionsTestSuite(t *testing.T) {

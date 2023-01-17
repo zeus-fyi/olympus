@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: zeus-hydra-validators
+  labels:
+    app.kubernetes.io/name: zeus-hydra-validators
+    app.kubernetes.io/instance: zeus-hydra-validators
+    app.kubernetes.io/managed-by: zeus
+  annotations:
+    {}
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: zeus-hydra-validators
+      app.kubernetes.io/instance: zeus-hydra-validators
+  serviceName: zeus-hydra-validators
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: zeus-hydra-validators
+        app.kubernetes.io/instance: zeus-hydra-validators
+    spec:
+      initContainers:
+        - name: init-validator
+          image: "registry.digitalocean.com/zeus-fyi/athena:latest"
+          imagePullPolicy: Always
+          command: [ "/bin/sh" ]
+          args: [ "-c","/scripts/download.sh" ]
+          resources:
+            {}
+          volumeMounts:
+            - name: cm-hydra-validator-client
+              mountPath: "/scripts"
+            - name: hydra-validator-client-storage
+              mountPath: "/data"
+      containers:
+        - name: athena
+          image: "registry.digitalocean.com/zeus-fyi/athena:latest"
+          imagePullPolicy: Always
+          command: [ "/bin/sh" ]
+          args: [ "-c","/scripts/athena.sh" ]
+          volumeMounts:
+            - name: cm-hydra-validator-client
+              mountPath: "/scripts"
+            - name: hydra-validator-client-storage
+              mountPath: "/data"
+          ports:
+            - name: athena
+              containerPort: 9003
+              protocol: TCP
+          livenessProbe:
+            initialDelaySeconds: 60
+            periodSeconds: 120
+            tcpSocket:
+              port: athena
+        - name: zeus-hydra-validators
+          image: "sigp/lighthouse:v3.3.0-modern"
+          imagePullPolicy: IfNotPresent
+          command: [ "/bin/sh" ]
+          args: [ "-c","/scripts/start.sh" ]
+          volumeMounts:
+            - name: cm-hydra-validator-client
+              mountPath: "/scripts"
+            - name: hydra-validator-client-storage
+              mountPath: "/data"
+          ports:
+            - name: metrics
+              containerPort: 5064
+          resources:
+            {}
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+      nodeSelector:
+        {}
+      affinity:
+        {}
+      tolerations:
+        []
+      volumes:
+        - name: cm-hydra-validator-client
+          configMap:
+            name: cm-hydra-validator-client
+            defaultMode: 0744
+  volumeClaimTemplates:
+    - metadata:
+        name: hydra-validator-client-storage
+        annotations:
+          {}
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: "100Mi"
+
+

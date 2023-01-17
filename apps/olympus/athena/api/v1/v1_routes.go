@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	v1_common_routes "github.com/zeus-fyi/olympus/athena/api/v1/common"
 	athena_chain_snapshots "github.com/zeus-fyi/olympus/athena/api/v1/common/chain_snapshots"
+	athena_ethereum_import_validators "github.com/zeus-fyi/olympus/athena/api/v1/common/ethereum/import_validators"
 	host "github.com/zeus-fyi/olympus/athena/api/v1/common/host_info"
 	athena_jwt_route "github.com/zeus-fyi/olympus/athena/api/v1/common/jwt"
 	athena_routines "github.com/zeus-fyi/olympus/athena/api/v1/common/routines"
@@ -54,5 +55,7 @@ func CommonRoutes(e *echo.Group, p filepaths.Path) *echo.Group {
 
 	e.POST("/snapshot/download", athena_chain_snapshots.DownloadChainSnapshotHandler)
 	e.POST("/snapshot/upload", athena_chain_snapshots.UploadChainSnapshotHandler)
+
+	e.POST("/lighthouse/validators/import", athena_ethereum_import_validators.ImportLighthouseValidatorsHandler)
 	return e
 }

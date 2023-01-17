@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "zeus-hydra-choreography"
+  labels:
+    app.kubernetes.io/instance: "zeus-hydra-choreography"
+    app.kubernetes.io/name: "zeus-hydra-choreography"
+    app.kubernetes.io/managed-by: "zeus"
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9999
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/instance: "zeus-hydra-choreography"
+    app.kubernetes.io/name: "zeus-hydra-choreography"
+

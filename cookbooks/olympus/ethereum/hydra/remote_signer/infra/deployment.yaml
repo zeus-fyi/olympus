@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "hydra"
+  labels:
+    app.kubernetes.io/instance: "hydra"
+    app.kubernetes.io/name: "hydra"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: "hydra"
+      app.kubernetes.io/instance: "hydra"
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: "hydra"
+        app.kubernetes.io/instance: "hydra"
+    spec:
+      containers:
+        - name: "hydra"
+          image: "registry.digitalocean.com/zeus-fyi/hydra:latest"
+          volumeMounts:
+            - mountPath: "/scripts"
+              name: "cm-hydra"
+          imagePullPolicy: Always
+          command: [ "/bin/sh" ]
+          args: [ "-c","/scripts/start.sh" ]
+          env:
+            - name: AGE_PKEY
+              valueFrom:
+                secretKeyRef:
+                  name: age-auth
+                  key: age-private-key
+            - name: DO_SPACES_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: spaces-key
+                  key: do-spaces-key
+            - name: DO_SPACES_PKEY
+              valueFrom:
+                secretKeyRef:
+                  name: spaces-auth
+                  key: do-spaces-private-key
+          ports:
+            - name: "http"
+              containerPort: 9000
+              protocol: "TCP"
+          livenessProbe:
+            httpGet:
+              path: "/health"
+              port: "http"
+            failureThreshold: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: "/health"
+              port: "http"
+            failureThreshold: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            {}
+      volumes:
+        - name: cm-hydra
+          configMap:
+            name: cm-hydra
+            defaultMode: 0744
+      nodeSelector:
+        {}
+      affinity:
+        {}
+      tolerations:
+        []

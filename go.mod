@@ -3,7 +3,7 @@ module github.com/zeus-fyi/olympus
 go 1.19
 
 require (
-	filippo.io/age v1.0.0
+	filippo.io/age v1.1.1
 	github.com/aws/aws-sdk-go-v2 v1.17.1
 	github.com/aws/aws-sdk-go-v2/config v1.18.0
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.0
@@ -24,6 +24,7 @@ require (
 	github.com/jackc/pgx/v4 v4.16.1
 	github.com/klauspost/compress v1.15.12
 	github.com/labstack/gommon v0.3.1
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pierrec/lz4 v2.6.1+incompatible
 	github.com/rs/zerolog v1.28.0
 	github.com/sashabaranov/go-gpt3 v0.0.0-20221216095610-1c20931ead68
@@ -86,7 +87,6 @@ require (
 	github.com/lib/pq v1.10.6 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.14 // indirect
-	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pborman/uuid v1.2.1 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/robfig/cron v1.2.0 // indirect
@@ -170,12 +170,12 @@ require (
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/xlab/treeprint v0.0.0-20181112141820-a009c3971eca // indirect
 	go.starlark.net v0.0.0-20221028183056-acb66ad56dd2 // indirect
-	golang.org/x/crypto v0.3.0 // indirect
-	golang.org/x/net v0.2.0 // indirect
+	golang.org/x/crypto v0.4.0 // indirect
+	golang.org/x/net v0.3.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783 // indirect
-	golang.org/x/sys v0.2.0 // indirect
-	golang.org/x/term v0.2.0 // indirect
-	golang.org/x/text v0.4.0 // indirect
+	golang.org/x/sys v0.3.0 // indirect
+	golang.org/x/term v0.3.0 // indirect
+	golang.org/x/text v0.5.0 // indirect
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect

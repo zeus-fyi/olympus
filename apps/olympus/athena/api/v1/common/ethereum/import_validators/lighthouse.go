@@ -21,6 +21,8 @@ func ImportLighthouseValidatorsHandler(c echo.Context) error {
 func (lh *ImportLighthouseValidatorsRequest) ImportValidators(c echo.Context) error {
 	log.Info().Msg("ImportLighthouseValidatorsRequest: ImportValidators")
 
+	// TODO query here
+	//AthenaProtocolCloudCtxNs
 	log.Info().Msg("ImportLighthouseValidatorsRequest: Import Sync Finished")
 	return c.JSON(http.StatusOK, nil)
 }

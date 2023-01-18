@@ -10,18 +10,22 @@ import (
 	athena_jwt "github.com/zeus-fyi/olympus/athena/api/v1/common/jwt"
 	"github.com/zeus-fyi/olympus/configs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	"github.com/zeus-fyi/olympus/pkg/athena"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
-var cfg = Config{}
-var authKeysCfg auth_keys_config.AuthKeysCfg
-var env string
-var dataDir filepaths.Path
-var jwtToken string
-var useDefaultToken bool
+var (
+	cfg                      = Config{}
+	authKeysCfg              auth_keys_config.AuthKeysCfg
+	env                      string
+	dataDir                  filepaths.Path
+	jwtToken                 string
+	useDefaultToken          bool
+	AthenaProtocolCloudCtxNs artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol
+)
 
 func Athena() {
 	ctx := context.Background()
@@ -57,6 +61,7 @@ func Athena() {
 	srv.Start()
 }
 
+// SelectValidatorsAssignedToCloudCtxNs
 func init() {
 	viper.AutomaticEnv()
 	Cmd.Flags().StringVar(&cfg.Port, "port", "9003", "server port")
@@ -71,6 +76,9 @@ func init() {
 	// uses a default token for demo, set your own jwt for production usage if desired
 	Cmd.Flags().StringVar(&jwtToken, "jwt", "0x6ad1acdc50a4141e518161ab2fe2bf6294de4b4d48bf3582f22cae8113f0cadc", "set jwt in datadir")
 	Cmd.Flags().BoolVar(&useDefaultToken, "useDefaultToken", true, "use default jwt token")
+
+	Cmd.Flags().IntVar(&AthenaProtocolCloudCtxNs.CloudCtxNsID, "cloud-ctx-ns-id", 0, "cloud ctx ns location info")
+	Cmd.Flags().IntVar(&AthenaProtocolCloudCtxNs.ProtocolNetworkID, "protocol-network-id", 0, "identifier for protocol and network")
 }
 
 // Cmd represents the  basecommand when called without any subcommands

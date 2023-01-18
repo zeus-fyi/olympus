@@ -10,6 +10,10 @@ import (
 	ethereum_web3signer_actions "github.com/zeus-fyi/zeus/cookbooks/ethereum/web3signers/actions"
 )
 
+type ValidatorServiceCloudCtxNsProtocol struct {
+	ProtocolNetworkID, CloudCtxNsID int
+}
+
 const ModelName = "ArtemisSelectInsertUnplacedValidators"
 
 func SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx context.Context, networkID, cloudCtxNsID int) error {
@@ -33,7 +37,7 @@ func SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx context.Context, networkID
 
 const HydraAddress = "http://zeus-hydra:9000"
 
-func SelectValidatorsAssignedToCloudCtxNs(ctx context.Context, networkID, cloudCtxNsID int) ([]ethereum_web3signer_actions.LighthouseWeb3SignerRequest, error) {
+func SelectValidatorsAssignedToCloudCtxNs(ctx context.Context, validatorServiceInfo ValidatorServiceCloudCtxNsProtocol) ([]ethereum_web3signer_actions.LighthouseWeb3SignerRequest, error) {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `	
 				  SELECT vsg.pubkey, vsg.fee_recipient
@@ -42,7 +46,7 @@ func SelectValidatorsAssignedToCloudCtxNs(ctx context.Context, networkID, cloudC
 				  WHERE vsg.protocol_network_id=$1 AND vsg.enabled=true AND vctx.cloud_ctx_ns_id = $2
 				  `
 	log.Debug().Interface("SelectInsertUnplacedValidators", q.LogHeader(ModelName))
-	rows, err := apps.Pg.Query(ctx, q.RawQuery, networkID, cloudCtxNsID)
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, validatorServiceInfo.ProtocolNetworkID, validatorServiceInfo.CloudCtxNsID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
 		return nil, err
 	}

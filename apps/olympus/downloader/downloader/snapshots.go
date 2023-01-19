@@ -28,7 +28,7 @@ type WorkloadInfo struct {
 
 func StartUp() {
 	ctx := context.Background()
-	InitAction(ctx, Workload)
+	InitWorkloadAction(ctx, Workload)
 	if useDefaultToken {
 		_ = init_jwt.SetTokenToDefault(Workload.DataDir, "jwt.hex", jwtToken)
 	}

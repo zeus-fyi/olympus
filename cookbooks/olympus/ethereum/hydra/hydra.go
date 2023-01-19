@@ -47,3 +47,13 @@ var (
 		Env:         "",
 	}
 )
+
+// TODO config workload types and env vars, and for cli inputs to athena, and snapshotters
+/*
+	Cmd.Flags().StringVar(&bearer, "bearer", "", "bearer for cluster actions")
+	Cmd.Flags().IntVar(&AthenaProtocolCloudCtxNs.ProtocolNetworkID, "protocol-network-id", 0, "identifier for protocol and network")
+	Cmd.Flags().StringVar(&AthenaProtocolCloudCtxNs.CloudCtxNs.CloudProvider, "cloud-provider", "", "cloud-provider")
+	Cmd.Flags().StringVar(&AthenaProtocolCloudCtxNs.CloudCtxNs.Context, "ctx", "", "context")
+	Cmd.Flags().StringVar(&AthenaProtocolCloudCtxNs.CloudCtxNs.Namespace, "ns", "", "namespace")
+	Cmd.Flags().StringVar(&AthenaProtocolCloudCtxNs.CloudCtxNs.Region, "region", "", "region")
+*/

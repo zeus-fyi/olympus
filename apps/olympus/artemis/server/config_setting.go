@@ -7,6 +7,7 @@ import (
 	"github.com/zeus-fyi/olympus/configs"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
+	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_ethereum_transcations "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/transcations"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 )
@@ -43,6 +44,9 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		temporalAuthCfg = tc.ProdLocalTemporalAuthArtemis
 		artemis_network_cfgs.InitArtemisLocalTestConfigs()
 	}
+	log.Info().Msgf("Artemis %s orchestration retrieving auth token", env)
+	artemis_orchestration_auth.Bearer = auth_startup.FetchTemporalAuthBearer(ctx)
+	log.Info().Msgf("Artemis %s orchestration retrieving auth token done", env)
 
 	log.Info().Msgf("Artemis %s temporal auth and init procedure starting", env)
 	artemis_ethereum_transcations.InitEthereumBroadcasters(ctx, temporalAuthCfg)

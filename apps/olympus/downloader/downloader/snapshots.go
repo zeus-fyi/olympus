@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/viper"
 	init_jwt "github.com/zeus-fyi/zeus/pkg/aegis/jwt"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
 var (
@@ -22,8 +23,8 @@ type WorkloadInfo struct {
 	WorkloadType      string // eg, validatorClient
 	ClientName        string // eg. lighthouse, geth
 	ProtocolNetworkID int    // eg. mainnet
-	CloudCtxNsID      int    // id for infra location
-	DataDir           filepaths.Path
+	zeus_common_types.CloudCtxNs
+	DataDir filepaths.Path
 }
 
 func StartUp() {
@@ -45,10 +46,16 @@ func init() {
 
 	// workload info
 	Cmd.Flags().StringVar(&Workload.DataDir.DirIn, "dataDir", "/data", "data directory location")
-	Cmd.Flags().IntVar(&Workload.CloudCtxNsID, "cloudCtxNsID", 0, "cloud ctx ns location info")
-	Cmd.Flags().IntVar(&Workload.ProtocolNetworkID, "protocolNetworkID", 0, "identifier for protocol and network")
-	Cmd.Flags().StringVar(&Workload.ClientName, "clientName", "", "client name")
+
 	Cmd.Flags().StringVar(&Workload.WorkloadType, "workloadType", "", "workloadType") // eg validatorClient
+	Cmd.Flags().StringVar(&Workload.ClientName, "clientName", "", "client name")
+	Cmd.Flags().IntVar(&Workload.ProtocolNetworkID, "protocolNetworkID", 0, "identifier for protocol and network")
+
+	Cmd.Flags().StringVar(&Workload.CloudCtxNs.CloudProvider, "cloud-provider", "", "cloud-provider")
+	Cmd.Flags().StringVar(&Workload.CloudCtxNs.Context, "ctx", "", "context")
+	Cmd.Flags().StringVar(&Workload.CloudCtxNs.Namespace, "ns", "", "namespace")
+	Cmd.Flags().StringVar(&Workload.CloudCtxNs.Region, "region", "", "region")
+
 }
 
 // Cmd represents the base command when called without any subcommands

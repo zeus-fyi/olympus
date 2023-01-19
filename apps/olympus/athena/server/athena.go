@@ -24,6 +24,7 @@ var (
 	dataDir                  filepaths.Path
 	jwtToken                 string
 	useDefaultToken          bool
+	bearer                   string
 	AthenaProtocolCloudCtxNs artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol
 )
 
@@ -61,7 +62,6 @@ func Athena() {
 	srv.Start()
 }
 
-// SelectValidatorsAssignedToCloudCtxNs
 func init() {
 	viper.AutomaticEnv()
 	Cmd.Flags().StringVar(&cfg.Port, "port", "9003", "server port")
@@ -77,11 +77,14 @@ func init() {
 	Cmd.Flags().StringVar(&jwtToken, "jwt", "0x6ad1acdc50a4141e518161ab2fe2bf6294de4b4d48bf3582f22cae8113f0cadc", "set jwt in datadir")
 	Cmd.Flags().BoolVar(&useDefaultToken, "useDefaultToken", true, "use default jwt token")
 
-	Cmd.Flags().IntVar(&AthenaProtocolCloudCtxNs.CloudCtxNsID, "cloud-ctx-ns-id", 0, "cloud ctx ns location info")
 	Cmd.Flags().IntVar(&AthenaProtocolCloudCtxNs.ProtocolNetworkID, "protocol-network-id", 0, "identifier for protocol and network")
+	Cmd.Flags().StringVar(&AthenaProtocolCloudCtxNs.CloudCtxNs.CloudProvider, "cloud-provider", "", "cloud-provider")
+	Cmd.Flags().StringVar(&AthenaProtocolCloudCtxNs.CloudCtxNs.Context, "ctx", "", "context")
+	Cmd.Flags().StringVar(&AthenaProtocolCloudCtxNs.CloudCtxNs.Namespace, "ns", "", "namespace")
+	Cmd.Flags().StringVar(&AthenaProtocolCloudCtxNs.CloudCtxNs.Region, "region", "", "region")
 }
 
-// Cmd represents the  basecommand when called without any subcommands
+// Cmd represents the base command when called without any subcommands
 var Cmd = &cobra.Command{
 	Use:   "Web3 Middleware",
 	Short: "A web3 infra middleware manager",

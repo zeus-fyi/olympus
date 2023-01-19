@@ -5,6 +5,8 @@ import (
 	zeus_cluster_config_drivers "github.com/zeus-fyi/zeus/pkg/zeus/cluster_config_drivers"
 )
 
+const HydraValidatorsClientName = "zeus-hydra-validators"
+
 var (
 	ValidatorSkeletonBaseName    = "lighthouseAthenaValidatorClient"
 	ValidatorClientComponentBase = zeus_cluster_config_drivers.ComponentBaseDefinition{

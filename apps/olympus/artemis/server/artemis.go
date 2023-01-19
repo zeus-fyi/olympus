@@ -60,6 +60,7 @@ func Artemis() {
 	}
 	log.Info().Msg("Artemis: ArtemisEthereumEphemeralTxBroadcastWorker Started")
 
+	// TODO setup validator service auth here
 	// Start server
 	log.Info().Msg("Artemis: Starting Server")
 	srv.E = artemis_api_router.Routes(srv.E)

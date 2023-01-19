@@ -2,9 +2,13 @@ package eth_validators_service_requests
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	olympus_hydra_validators_cookbooks "github.com/zeus-fyi/olympus/cookbooks/olympus/ethereum/validators"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
+	zeus_pods_reqs "github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types/pods"
 )
 
 const (
@@ -23,24 +27,29 @@ type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
 func (d *ArtemisEthereumValidatorsServiceRequestActivities) GetActivities() ActivitiesSlice {
-	return []interface{}{d.AssignValidatorsToCloudCtxNs}
+	return []interface{}{d.AssignValidatorsToCloudCtxNs, d.RestartValidatorClient}
 }
 
-type ArtemisEthereumValidatorsServiceRequestPayload struct {
-	CloudCtxNsID, ProtocolNetworkID int
-}
-
-func (d *ArtemisEthereumValidatorsServiceRequestActivities) AssignValidatorsToCloudCtxNs(ctx context.Context, params ArtemisEthereumValidatorsServiceRequestPayload) error {
-	err := artemis_validator_service_groups_models.SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx, params.ProtocolNetworkID, params.CloudCtxNsID)
+func (d *ArtemisEthereumValidatorsServiceRequestActivities) AssignValidatorsToCloudCtxNs(ctx context.Context, params artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol) error {
+	err := artemis_validator_service_groups_models.SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx, params)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
-func (d *ArtemisEthereumValidatorsServiceRequestActivities) SendValidatorsToCloudCtxNs(ctx context.Context, params ArtemisEthereumValidatorsServiceRequestPayload) error {
-	// query all validators that should be in this cluster, then patch the validator yaml file
-
+func (d *ArtemisEthereumValidatorsServiceRequestActivities) RestartValidatorClient(ctx context.Context, params artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol) error {
+	// this will pull the latest validators into the cluster
+	par := zeus_pods_reqs.PodActionRequest{
+		TopologyDeployRequest: zeus_req_types.TopologyDeployRequest{
+			CloudCtxNs: params.CloudCtxNs,
+		},
+		Action:  zeus_pods_reqs.DeleteAllPods,
+		PodName: fmt.Sprintf("%s-%d", olympus_hydra_validators_cookbooks.HydraValidatorsClientName, params.ValidatorClientNumber),
+	}
+	_, err := Zeus.DeletePods(ctx, par)
+	if err != nil {
+		return err
+	}
 	return nil
 }

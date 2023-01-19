@@ -12,18 +12,54 @@ import (
 )
 
 type ValidatorServiceCloudCtxNsProtocol struct {
-	ProtocolNetworkID, ValidatorClientNumber int
+	ProtocolNetworkID     int `json:"pubkey"`
+	ValidatorClientNumber int `json:"validatorClientNumber"`
+	OrgID                 int `json:"orgID"`
 	zeus_common_types.CloudCtxNs
 }
 
-const ModelName = "ArtemisSelectInsertUnplacedValidators"
+type OrgValidatorServices []OrgValidatorService
 
-// TODO note, this selects ALL validators that aren't placed, revise once capacity observation is setup
+type OrgValidatorService struct {
+	Pubkey     string `json:"pubkey"`
+	ServiceURL string `json:"serviceURL"`
+	OrgID      int    `json:"orgID"`
+}
+
+const ModelName = "ArtemisValidatorsServices"
+
+func SelectUnplacedValidators(ctx context.Context, validatorServiceInfo ValidatorServiceCloudCtxNsProtocol) (OrgValidatorServices, error) {
+	vos := OrgValidatorServices{}
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `
+				  SELECT vsg.pubkey, vsg.service_url, vsg.org_id
+				  FROM validators_service_org_groups vsg
+				  WHERE vsg.enabled=true AND vsg.protocol_network_id=$1 AND vsg.org_id=$2 AND NOT EXISTS (SELECT pubkey FROM validators_service_org_groups_cloud_ctx_ns) 
+				  `
+	log.Debug().Interface("SelectUnplacedValidators", q.LogHeader(ModelName))
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, validatorServiceInfo.ProtocolNetworkID, validatorServiceInfo.OrgID)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		vr := OrgValidatorService{}
+		rowErr := rows.Scan(
+			&vr.Pubkey, &vr.ServiceURL, &vr.OrgID,
+		)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader(ModelName))
+			return nil, rowErr
+		}
+		vos = append(vos, vr)
+	}
+	return vos, misc.ReturnIfErr(err, q.LogHeader(ModelName))
+}
 
 func SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx context.Context, validatorServiceInfo ValidatorServiceCloudCtxNsProtocol) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `WITH cte_unplaced_validators AS (		
-					  SELECT pubkey, fee_recipient
+					  SELECT pubkey, fee_recipient, 
 					  FROM validators_service_org_groups
 					  WHERE NOT EXISTS (SELECT pubkey FROM validators_service_org_groups_cloud_ctx_ns) AND enabled=true AND protocol_network_id=$1
 				  ) INSERT INTO validators_service_org_groups_cloud_ctx_ns(pubkey, cloud_ctx_ns_id)

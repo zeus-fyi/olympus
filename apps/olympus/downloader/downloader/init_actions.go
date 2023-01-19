@@ -2,6 +2,7 @@ package snapshot_init
 
 import (
 	"context"
+	"path"
 
 	"github.com/ghodss/yaml"
 	"github.com/rs/zerolog/log"
@@ -34,6 +35,7 @@ func InitWorkloadAction(ctx context.Context, w WorkloadInfo) {
 			panic(err)
 		}
 		w.DataDir.FnOut = "validator_definitions.yaml"
+		w.DataDir.DirOut = path.Join(w.DataDir.DirIn, "/validators")
 		err = w.DataDir.WriteToFileOutPath(ymlBytes)
 		if err != nil {
 			log.Ctx(ctx).Panic().Err(err).Msg("failed to write validators yaml")

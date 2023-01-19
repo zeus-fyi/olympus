@@ -2,6 +2,7 @@ package zeus_client
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/rs/zerolog/log"
@@ -17,6 +18,9 @@ func (z *ZeusClient) ReadTopologies(ctx context.Context) (zeus_resp_types.ReadTo
 
 	if err != nil || resp.StatusCode() != http.StatusOK {
 		log.Ctx(ctx).Err(err).Msg("ZeusClient: ReadTopologies")
+		if err == nil {
+			err = fmt.Errorf("non-OK status code: %d", resp.StatusCode())
+		}
 		return respJson, err
 	}
 	z.PrintRespJson(resp.Body())

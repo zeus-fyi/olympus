@@ -23,11 +23,16 @@ type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
 func (d *ArtemisEthereumValidatorsServiceRequestActivities) GetActivities() ActivitiesSlice {
-	return []interface{}{d.AssignValidatorsToCloudCtxNs}
+	return []interface{}{d.VerifyValidatorKeyOwnershipAndSigning, d.AssignValidatorsToCloudCtxNs, d.SendValidatorsToCloudCtxNs}
 }
 
 type ArtemisEthereumValidatorsServiceRequestPayload struct {
 	CloudCtxNsID, ProtocolNetworkID int
+}
+
+func (d *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOwnershipAndSigning(ctx context.Context, params ArtemisEthereumValidatorsServiceRequestPayload) error {
+
+	return nil
 }
 
 func (d *ArtemisEthereumValidatorsServiceRequestActivities) AssignValidatorsToCloudCtxNs(ctx context.Context, params ArtemisEthereumValidatorsServiceRequestPayload) error {

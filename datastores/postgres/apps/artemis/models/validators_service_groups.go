@@ -8,6 +8,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 	ethereum_web3signer_actions "github.com/zeus-fyi/zeus/cookbooks/ethereum/web3signers/actions"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
@@ -55,7 +56,46 @@ func SelectUnplacedValidators(ctx context.Context, validatorServiceInfo Validato
 	return vos, misc.ReturnIfErr(err, q.LogHeader(ModelName))
 }
 
-// TODO needs to be scoped to verified keys only
+/*
+    var data [][]string = [][]string{
+        {"1", "value1", "value2"},
+        {"2", "value3", "value4"},
+        {"3", "value5", "value6"},
+    }
+
+    // Create a string slice with the data in a format for COPY command
+    var copyData []string
+    for _, row := range data {
+        copyData = append(copyData, strings.Join(row, "\t"))
+    }
+    // Use the `pgx.CopyFrom` method to insert the data into the table
+    _, err = conn.CopyFrom(context.Background(), pgx.Identifier{"table_name"}, []string{"id", "column1", "column2"}, pgx.CopyFromRows(strings.Join(copyData, "\n")))
+    if err != nil {
+        panic(err)
+    }
+    fmt.Println("Data inserted successfully")
+}
+*/
+
+func InsertVerifiedValidatorsToService(ctx context.Context, validatorServiceInfo ValidatorServiceCloudCtxNsProtocol, pubkeys hestia_req_types.ValidatorServiceOrgGroupSlice) error {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT pubkey, fee_recipient
+				  FROM validators_service_org_groups
+				  `
+	log.Debug().Interface("InsertVerifiedValidatorsToService", q.LogHeader(ModelName))
+
+	// TODO group insert
+	r, err := apps.Pg.Exec(ctx, q.RawQuery, validatorServiceInfo.ProtocolNetworkID)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
+		return err
+	}
+	rowsAffected := r.RowsAffected()
+	log.Debug().Msgf("InsertVerifiedValidatorsToService: %s, Rows Affected: %d", q.LogHeader(ModelName), rowsAffected)
+	return misc.ReturnIfErr(err, q.LogHeader(ModelName))
+}
+
+// TODO needs to also use capacity and client number assignments
+
 func SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx context.Context, validatorServiceInfo ValidatorServiceCloudCtxNsProtocol, cloudCtxNs zeus_common_types.CloudCtxNs) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `WITH cte_unplaced_validators AS (		

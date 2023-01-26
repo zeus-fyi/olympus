@@ -39,7 +39,20 @@ type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
 func (a *ArtemisEthereumValidatorsServiceRequestActivities) GetActivities() ActivitiesSlice {
-	return []interface{}{a.VerifyValidatorKeyOwnershipAndSigning, a.AssignValidatorsToCloudCtxNs, a.RestartValidatorClient}
+	return []interface{}{a.VerifyValidatorKeyOwnershipAndSigning, a.InsertVerifiedValidatorsWithFeeRecipient, a.AssignValidatorsToCloudCtxNs, a.RestartValidatorClient}
+}
+
+func (a *ArtemisEthereumValidatorsServiceRequestActivities) InsertVerifiedValidatorsWithFeeRecipient(
+	ctx context.Context,
+	params artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol,
+	pubkeys hestia_req_types.ValidatorServiceOrgGroupSlice) error {
+
+	err := artemis_validator_service_groups_models.InsertVerifiedValidatorsToService(ctx, params, pubkeys)
+	if err != nil {
+		log.Ctx(ctx).Err(err)
+		return err
+	}
+	return nil
 }
 
 func (a *ArtemisEthereumValidatorsServiceRequestActivities) AssignValidatorsToCloudCtxNs(ctx context.Context, params artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol) error {

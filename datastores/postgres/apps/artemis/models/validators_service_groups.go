@@ -55,6 +55,7 @@ func SelectUnplacedValidators(ctx context.Context, validatorServiceInfo Validato
 	return vos, misc.ReturnIfErr(err, q.LogHeader(ModelName))
 }
 
+// TODO needs to be scoped to verified keys only
 func SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx context.Context, validatorServiceInfo ValidatorServiceCloudCtxNsProtocol, cloudCtxNs zeus_common_types.CloudCtxNs) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `WITH cte_unplaced_validators AS (		

@@ -2,6 +2,7 @@ package eth_validators_service_requests
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -25,6 +26,11 @@ const (
 type ArtemisEthereumValidatorsServiceRequestActivities struct {
 }
 
+type ArtemisEthereumValidatorsServiceRequestPayload struct {
+	hestia_req_types.ServiceRequestWrapper
+	hestia_req_types.ValidatorServiceOrgGroupSlice
+}
+
 func NewArtemisEthereumValidatorSignatureRequestActivities() ArtemisEthereumValidatorsServiceRequestActivities {
 	return ArtemisEthereumValidatorsServiceRequestActivities{}
 }
@@ -33,12 +39,24 @@ type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
 func (a *ArtemisEthereumValidatorsServiceRequestActivities) GetActivities() ActivitiesSlice {
-	return []interface{}{a.VerifyValidatorKeyOwnershipAndSigning, a.AssignValidatorsToCloudCtxNs}
+	return []interface{}{a.VerifyValidatorKeyOwnershipAndSigning, a.AssignValidatorsToCloudCtxNs, a.RestartValidatorClient}
 }
 
 func (a *ArtemisEthereumValidatorsServiceRequestActivities) AssignValidatorsToCloudCtxNs(ctx context.Context, params artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol) error {
-	err := artemis_validator_service_groups_models.SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx, params)
+	var cloudCtxNs zeus_common_types.CloudCtxNs
+	switch params.ProtocolNetworkID {
+	case hestia_req_types.EthereumEphemeryProtocolNetworkID:
+		cloudCtxNs = EphemeryStakingCloudCtxNs
+	case hestia_req_types.EthereumMainnetProtocolNetworkID:
+		cloudCtxNs = MainnetStakingCloudCtxNs
+	default:
+		return errors.New("unsupported protocol network id")
+	}
+
+	// TODO this needs to scope the pubkeys to the verified ones
+	err := artemis_validator_service_groups_models.SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx, params, cloudCtxNs)
 	if err != nil {
+		log.Ctx(ctx).Err(err)
 		return err
 	}
 	return nil
@@ -46,9 +64,20 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) AssignValidatorsToCl
 
 func (a *ArtemisEthereumValidatorsServiceRequestActivities) RestartValidatorClient(ctx context.Context, params artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol) error {
 	// this will pull the latest validators into the cluster
+
+	var cloudCtxNs zeus_common_types.CloudCtxNs
+	switch params.ProtocolNetworkID {
+	case hestia_req_types.EthereumEphemeryProtocolNetworkID:
+		cloudCtxNs = EphemeryStakingCloudCtxNs
+	case hestia_req_types.EthereumMainnetProtocolNetworkID:
+		cloudCtxNs = MainnetStakingCloudCtxNs
+	default:
+		return errors.New("unsupported protocol network id")
+	}
+
 	par := zeus_pods_reqs.PodActionRequest{
 		TopologyDeployRequest: zeus_req_types.TopologyDeployRequest{
-			CloudCtxNs: params.CloudCtxNs,
+			CloudCtxNs: cloudCtxNs,
 		},
 		Action:  zeus_pods_reqs.DeleteAllPods,
 		PodName: fmt.Sprintf("%s-%d", olympus_hydra_validators_cookbooks.HydraValidatorsClientName, params.ValidatorClientNumber),
@@ -58,13 +87,6 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) RestartValidatorClie
 		return err
 	}
 	return nil
-}
-
-type ArtemisEthereumValidatorsServiceRequestPayload struct {
-	hestia_req_types.ServiceRequestWrapper
-	hestia_req_types.ValidatorServiceOrgGroupSlice
-
-	CloudCtxNs zeus_common_types.CloudCtxNs
 }
 
 type Resty struct {

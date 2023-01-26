@@ -12,10 +12,9 @@ import (
 )
 
 type ValidatorServiceCloudCtxNsProtocol struct {
-	ProtocolNetworkID     int `json:"pubkey"`
+	ProtocolNetworkID     int `json:"protocolNetworkID"`
 	ValidatorClientNumber int `json:"validatorClientNumber"`
 	OrgID                 int `json:"orgID"`
-	zeus_common_types.CloudCtxNs
 }
 
 type OrgValidatorServices []OrgValidatorService
@@ -56,7 +55,7 @@ func SelectUnplacedValidators(ctx context.Context, validatorServiceInfo Validato
 	return vos, misc.ReturnIfErr(err, q.LogHeader(ModelName))
 }
 
-func SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx context.Context, validatorServiceInfo ValidatorServiceCloudCtxNsProtocol) error {
+func SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx context.Context, validatorServiceInfo ValidatorServiceCloudCtxNsProtocol, cloudCtxNs zeus_common_types.CloudCtxNs) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `WITH cte_unplaced_validators AS (		
 					  SELECT pubkey, fee_recipient, 
@@ -66,7 +65,7 @@ func SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx context.Context, validator
 					SELECT pubkey, (SELECT cloud_ctx_ns_id FROM topologies_org_cloud_ctx_ns WHERE cloud_provider=$2 AND context=$3 AND region=$4 AND namespace=$5) FROM cte_unplaced_validators
 				  `
 	log.Debug().Interface("SelectInsertUnplacedValidators", q.LogHeader(ModelName))
-	r, err := apps.Pg.Exec(ctx, q.RawQuery, validatorServiceInfo.ProtocolNetworkID, validatorServiceInfo.CloudCtxNs.CloudProvider, validatorServiceInfo.CloudCtxNs.Context, validatorServiceInfo.CloudCtxNs.Region, validatorServiceInfo.Namespace)
+	r, err := apps.Pg.Exec(ctx, q.RawQuery, validatorServiceInfo.ProtocolNetworkID, cloudCtxNs.CloudProvider, cloudCtxNs.Context, cloudCtxNs.Region, cloudCtxNs.Namespace)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
 		return err
 	}
@@ -77,7 +76,7 @@ func SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx context.Context, validator
 
 const HydraAddress = "http://zeus-hydra:9000"
 
-func SelectValidatorsAssignedToCloudCtxNs(ctx context.Context, validatorServiceInfo ValidatorServiceCloudCtxNsProtocol) ([]ethereum_web3signer_actions.LighthouseWeb3SignerRequest, error) {
+func SelectValidatorsAssignedToCloudCtxNs(ctx context.Context, validatorServiceInfo ValidatorServiceCloudCtxNsProtocol, cloudCtxNs zeus_common_types.CloudCtxNs) ([]ethereum_web3signer_actions.LighthouseWeb3SignerRequest, error) {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `	
 				  SELECT vsg.pubkey, vsg.fee_recipient
@@ -87,7 +86,7 @@ func SelectValidatorsAssignedToCloudCtxNs(ctx context.Context, validatorServiceI
 				  WHERE vsg.protocol_network_id=$1 AND vsg.enabled=true AND topctx.cloud_provider=$2 AND topctx.context=$3 AND topctx.region=$4 AND topctx.namespace=$5
 				  `
 	log.Debug().Interface("SelectValidatorsAssignedToCloudCtxNs", q.LogHeader(ModelName))
-	rows, err := apps.Pg.Query(ctx, q.RawQuery, validatorServiceInfo.ProtocolNetworkID, validatorServiceInfo.CloudCtxNs.CloudProvider, validatorServiceInfo.CloudCtxNs.Context, validatorServiceInfo.CloudCtxNs.Region, validatorServiceInfo.Namespace)
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, validatorServiceInfo.ProtocolNetworkID, cloudCtxNs.CloudProvider, cloudCtxNs.Context, cloudCtxNs.Region, cloudCtxNs.Namespace)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
 		return nil, err
 	}

@@ -20,7 +20,7 @@ func (z *ZeusClient) Deploy(ctx context.Context, tar zeus_req_types.TopologyDepl
 		SetBody(tar).
 		Post(zeus_endpoints.DeployTopologyV1Path)
 
-	if err != nil || resp.StatusCode() != http.StatusOK {
+	if err != nil || resp.StatusCode() != http.StatusAccepted {
 		log.Ctx(ctx).Err(err).Msg("ZeusClient: Deploy")
 		if resp.StatusCode() == http.StatusBadRequest {
 			err = errors.New("bad request")

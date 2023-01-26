@@ -11,12 +11,21 @@ import (
 	v1hestia "github.com/zeus-fyi/olympus/hestia/api/v1"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
+	eth_validators_service_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validators_service_requests"
+	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
+	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 )
 
 var (
-	cfg         = Config{}
-	authKeysCfg auth_keys_config.AuthKeysCfg
-	env         string
+	cfg                    = Config{}
+	authKeysCfg            auth_keys_config.AuthKeysCfg
+	env                    string
+	temporalProdAuthConfig = temporal_auth.TemporalAuth{
+		ClientCertPath:   "/etc/ssl/certs/ca.pem",
+		ClientPEMKeyPath: "/etc/ssl/certs/ca.key",
+		Namespace:        "production-artemis.ngb72",
+		HostPort:         "production-artemis.ngb72.tmprl.cloud:7233",
+	}
 )
 
 func Hestia() {
@@ -33,13 +42,39 @@ func Hestia() {
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
+		temporalProdAuthConfig = tc.ProdLocalTemporalAuthArtemis
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
+		temporalProdAuthConfig = tc.ProdLocalTemporalAuthArtemis
 	}
 	log.Info().Msg("Hestia: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
-	// Start server
+
+	// ephemery
+	eth_validators_service_requests.InitArtemisEthereumEphemeryValidatorsRequestsWorker(ctx, temporalProdAuthConfig)
+	log.Info().Msg("Hestia: Starting InitArtemisEthereumEphemeryValidatorsRequestsWorker")
+	c := eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.ConnectTemporalClient()
+	defer c.Close()
+	eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.Worker.RegisterWorker(c)
+	err := eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.Worker.Start()
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Artemis: %s ArtemisEthereumEphemeryValidatorsRequestsWorker.Worker.Start failed", env)
+		misc.DelayedPanic(err)
+	}
+
+	// mainnet
+	eth_validators_service_requests.InitArtemisEthereumMainnetValidatorsRequestsWorker(ctx, temporalProdAuthConfig)
+	log.Info().Msg("Hestia: Starting InitArtemisEthereumMainnetValidatorsRequestsWorker")
+	c = eth_validators_service_requests.ArtemisEthereumMainnetValidatorsRequestsWorker.ConnectTemporalClient()
+	defer c.Close()
+	eth_validators_service_requests.ArtemisEthereumMainnetValidatorsRequestsWorker.Worker.RegisterWorker(c)
+	err = eth_validators_service_requests.ArtemisEthereumMainnetValidatorsRequestsWorker.Worker.Start()
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Artemis: %s ArtemisEthereumMainnetValidatorsRequestsWorker.Worker.Start failed", env)
+		misc.DelayedPanic(err)
+	}
+
 	srv.Start()
 }
 

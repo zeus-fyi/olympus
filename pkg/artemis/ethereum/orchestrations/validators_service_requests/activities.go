@@ -3,15 +3,18 @@ package eth_validators_service_requests
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
 	olympus_hydra_validators_cookbooks "github.com/zeus-fyi/olympus/cookbooks/olympus/ethereum/validators"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
-	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
+	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
 	zeus_pods_reqs "github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types/pods"
+	"k8s.io/apimachinery/pkg/util/rand"
 )
 
 const (
@@ -29,27 +32,11 @@ func NewArtemisEthereumValidatorSignatureRequestActivities() ArtemisEthereumVali
 type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
-func (d *ArtemisEthereumValidatorsServiceRequestActivities) GetActivities() ActivitiesSlice {
-	return []interface{}{d.ValidateKeysToServiceURL, d.AssignValidatorsToCloudCtxNs, d.RestartValidatorClient}
+func (a *ArtemisEthereumValidatorsServiceRequestActivities) GetActivities() ActivitiesSlice {
+	return []interface{}{a.VerifyValidatorKeyOwnershipAndSigning, a.AssignValidatorsToCloudCtxNs}
 }
 
-func (d *ArtemisEthereumValidatorsServiceRequestActivities) ValidateKeysToServiceURL(ctx context.Context, params hestia_autogen_bases.ValidatorServiceOrgGroup) error {
-	client := Zeus
-	client.BaseURL = params.ServiceURL
-	// TODO needs to query for an auth token for external urls or run auth procedure, needs to validate message is signable
-	// TODO POST random string payload, verify BLS key matches
-	resp, err := client.R().Get("/health")
-	if err != nil || resp.StatusCode() != http.StatusOK {
-		log.Ctx(ctx).Err(err).Msg("ArtemisEthereumValidatorsServiceRequestActivities: ValidateKeysToServiceURL health not-OK")
-		if err == nil {
-			err = fmt.Errorf("non-OK status code: %d", resp.StatusCode())
-		}
-		return err
-	}
-	return nil
-}
-
-func (d *ArtemisEthereumValidatorsServiceRequestActivities) AssignValidatorsToCloudCtxNs(ctx context.Context, params artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol) error {
+func (a *ArtemisEthereumValidatorsServiceRequestActivities) AssignValidatorsToCloudCtxNs(ctx context.Context, params artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol) error {
 	err := artemis_validator_service_groups_models.SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx, params)
 	if err != nil {
 		return err
@@ -57,7 +44,7 @@ func (d *ArtemisEthereumValidatorsServiceRequestActivities) AssignValidatorsToCl
 	return nil
 }
 
-func (d *ArtemisEthereumValidatorsServiceRequestActivities) RestartValidatorClient(ctx context.Context, params artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol) error {
+func (a *ArtemisEthereumValidatorsServiceRequestActivities) RestartValidatorClient(ctx context.Context, params artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol) error {
 	// this will pull the latest validators into the cluster
 	par := zeus_pods_reqs.PodActionRequest{
 		TopologyDeployRequest: zeus_req_types.TopologyDeployRequest{
@@ -71,4 +58,40 @@ func (d *ArtemisEthereumValidatorsServiceRequestActivities) RestartValidatorClie
 		return err
 	}
 	return nil
+}
+
+type ArtemisEthereumValidatorsServiceRequestPayload struct {
+	hestia_req_types.ServiceRequestWrapper
+	hestia_req_types.ValidatorServiceOrgGroupSlice
+
+	CloudCtxNs zeus_common_types.CloudCtxNs
+}
+
+type Resty struct {
+	*resty.Client
+}
+
+func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOwnershipAndSigning(ctx context.Context, params ArtemisEthereumValidatorsServiceRequestPayload) ([]string, error) {
+	r := Resty{}
+	r.Client = resty.New()
+	req := aegis_inmemdbs.EthereumBLSKeySignatureRequests{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureRequest)}
+	for _, vs := range params.ValidatorServiceOrgGroupSlice {
+		pubkey := vs.Pubkey
+		req.Map[pubkey] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: rand.String(10)}
+	}
+	respJson := aegis_inmemdbs.EthereumBLSKeySignatureResponses{}
+	_, err := r.R().
+		SetResult(&respJson.Map).
+		SetBody(req).
+		Post(params.ServiceURL)
+	if err != nil {
+		log.Ctx(ctx).Err(err)
+		return nil, err
+	}
+	verifiedKeys, err := respJson.VerifySignatures(ctx, req)
+	if err != nil {
+		log.Ctx(ctx).Err(err)
+		return nil, err
+	}
+	return verifiedKeys, err
 }

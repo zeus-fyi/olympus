@@ -5,6 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	"go.temporal.io/sdk/client"
 )
 
@@ -23,6 +24,8 @@ const (
 )
 
 type ValidatorServiceGroupWorkflowRequest struct {
+	hestia_req_types.ServiceRequestWrapper
+	hestia_req_types.ValidatorServiceOrgGroupSlice
 }
 
 func (t *ArtemisEthereumValidatorsRequestsWorker) ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx context.Context, params ValidatorServiceGroupWorkflowRequest) error {

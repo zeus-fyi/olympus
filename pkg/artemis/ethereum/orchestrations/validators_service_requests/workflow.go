@@ -35,7 +35,8 @@ func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) ServiceNewValidator
 	}
 	// TODO, if this keeps failing, terminate workflow
 	validateValidatorsRemoteServicesStatusCtx := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(validateValidatorsRemoteServicesStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.ValidateKeysToServiceURL, params).Get(validateValidatorsRemoteServicesStatusCtx, nil)
+	var verifiedPubkeys []string
+	err := workflow.ExecuteActivity(validateValidatorsRemoteServicesStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.VerifyValidatorKeyOwnershipAndSigning, params).Get(validateValidatorsRemoteServicesStatusCtx, &verifiedPubkeys)
 	if err != nil {
 		log.Warn("Failed to validate key to service url", "ValidatorServiceRequest", params)
 		log.Error("Failed to validate key to service url", "Error", err)

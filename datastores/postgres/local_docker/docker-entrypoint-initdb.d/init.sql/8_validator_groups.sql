@@ -15,7 +15,9 @@ CREATE INDEX "org_group_index" ON "public"."validators_service_org_groups" ("gro
 
 CREATE TABLE "public"."validators_service_org_groups_cloud_ctx_ns" (
     "cloud_ctx_ns_id" int8 NOT NULL REFERENCES topologies_org_cloud_ctx_ns(cloud_ctx_ns_id),
-    "pubkey" text NOT NULL CHECK(LENGTH(pubkey)=98) NOT NULL REFERENCES validators_service_org_groups(pubkey)
+    "pubkey" text NOT NULL CHECK(LENGTH(pubkey)=98) NOT NULL REFERENCES validators_service_org_groups(pubkey),
+    "validator_client_number" int NOT NULL DEFAULT 0
 );
 
 ALTER TABLE "public"."validators_service_org_groups_cloud_ctx_ns" ADD CONSTRAINT "validators_service_org_groups_cloud_ctx_ns_pk" PRIMARY KEY ("pubkey", "cloud_ctx_ns_id");
+

@@ -2,7 +2,9 @@ package artemis_validator_service_groups_models
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
@@ -13,17 +15,8 @@ import (
 )
 
 type ValidatorServiceCloudCtxNsProtocol struct {
-	ProtocolNetworkID     int `json:"protocolNetworkID"`
-	ValidatorClientNumber int `json:"validatorClientNumber"`
-	OrgID                 int `json:"orgID"`
-}
-
-type OrgValidatorServices []OrgValidatorService
-
-type OrgValidatorService struct {
-	Pubkey     string `json:"pubkey"`
-	ServiceURL string `json:"serviceURL"`
-	OrgID      int    `json:"orgID"`
+	ProtocolNetworkID int `json:"protocolNetworkID"`
+	OrgID             int `json:"orgID"`
 }
 
 const ModelName = "ArtemisValidatorsServices"
@@ -56,42 +49,38 @@ func SelectUnplacedValidators(ctx context.Context, validatorServiceInfo Validato
 	return vos, misc.ReturnIfErr(err, q.LogHeader(ModelName))
 }
 
-/*
-    var data [][]string = [][]string{
-        {"1", "value1", "value2"},
-        {"2", "value3", "value4"},
-        {"3", "value5", "value6"},
-    }
+type OrgValidatorServices []OrgValidatorService
 
-    // Create a string slice with the data in a format for COPY command
-    var copyData []string
-    for _, row := range data {
-        copyData = append(copyData, strings.Join(row, "\t"))
-    }
-    // Use the `pgx.CopyFrom` method to insert the data into the table
-    _, err = conn.CopyFrom(context.Background(), pgx.Identifier{"table_name"}, []string{"id", "column1", "column2"}, pgx.CopyFromRows(strings.Join(copyData, "\n")))
-    if err != nil {
-        panic(err)
-    }
-    fmt.Println("Data inserted successfully")
+type OrgValidatorService struct {
+	GroupName         string `json:"groupName"`
+	Pubkey            string `json:"pubkey"`
+	ProtocolNetworkID int    `json:"protocolNetworkID"`
+	ServiceURL        string `json:"serviceURL"`
+	OrgID             int    `json:"orgID"`
+	Enabled           bool   `json:"enabled"`
 }
-*/
 
-func InsertVerifiedValidatorsToService(ctx context.Context, validatorServiceInfo ValidatorServiceCloudCtxNsProtocol, pubkeys hestia_req_types.ValidatorServiceOrgGroupSlice) error {
-	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `SELECT pubkey, fee_recipient
-				  FROM validators_service_org_groups
-				  `
-	log.Debug().Interface("InsertVerifiedValidatorsToService", q.LogHeader(ModelName))
-
-	// TODO group insert
-	r, err := apps.Pg.Exec(ctx, q.RawQuery, validatorServiceInfo.ProtocolNetworkID)
-	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
+func InsertVerifiedValidatorsToService(ctx context.Context, validatorServiceInfo OrgValidatorService, pubkeys hestia_req_types.ValidatorServiceOrgGroupSlice) error {
+	var rows [][]interface{}
+	for i, keyPair := range pubkeys {
+		rows[i] = []interface{}{
+			validatorServiceInfo.GroupName,
+			fmt.Sprintf("%d", validatorServiceInfo.OrgID),
+			keyPair.Pubkey,
+			fmt.Sprintf("%d", validatorServiceInfo.ProtocolNetworkID),
+			keyPair.FeeRecipient,
+			validatorServiceInfo.Enabled,
+			validatorServiceInfo.ServiceURL,
+		}
+	}
+	columns := []string{"group_name", "org_id", "pubkey", "protocol_network_id", "fee_recipient", "enabled", "service_url"}
+	// Use the `pgx.CopyFrom` method to insert the data into the table
+	_, err := apps.Pg.Pgpool.CopyFrom(context.Background(), pgx.Identifier{"validators_service_org_groups"}, columns, pgx.CopyFromRows(rows))
+	if err != nil {
+		log.Ctx(ctx).Err(err)
 		return err
 	}
-	rowsAffected := r.RowsAffected()
-	log.Debug().Msgf("InsertVerifiedValidatorsToService: %s, Rows Affected: %d", q.LogHeader(ModelName), rowsAffected)
-	return misc.ReturnIfErr(err, q.LogHeader(ModelName))
+	return err
 }
 
 // TODO needs to also use capacity and client number assignments

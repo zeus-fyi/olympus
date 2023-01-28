@@ -6,6 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 	"go.temporal.io/sdk/client"
 )
 
@@ -13,14 +14,29 @@ type ArtemisEthereumValidatorsRequestsWorker struct {
 	temporal_base.Worker
 }
 
-var (
-	ArtemisEthereumMainnetValidatorsRequestsWorker  ArtemisEthereumValidatorsRequestsWorker
-	ArtemisEthereumEphemeryValidatorsRequestsWorker ArtemisEthereumValidatorsRequestsWorker
-)
-
 const (
 	EthereumMainnetValidatorsRequestsTaskQueue  = "EthereumMainnetValidatorsRequestsTaskQueue"
 	EthereumEphemeryValidatorsRequestsTaskQueue = "EthereumEphemeryValidatorsRequestsTaskQueue"
+)
+
+var (
+	ArtemisEthereumMainnetValidatorsRequestsWorker ArtemisEthereumValidatorsRequestsWorker
+	MainnetStakingCloudCtxNs                       = zeus_common_types.CloudCtxNs{
+		CloudProvider: "do",
+		Region:        "sfo3",
+		Context:       "do-sfo3-dev-do-sfo3-zeus",
+		Namespace:     "mainnet-staking",
+		Env:           "production",
+	}
+
+	ArtemisEthereumEphemeryValidatorsRequestsWorker ArtemisEthereumValidatorsRequestsWorker
+	EphemeryStakingCloudCtxNs                       = zeus_common_types.CloudCtxNs{
+		CloudProvider: "do",
+		Region:        "sfo3",
+		Context:       "do-sfo3-dev-do-sfo3-zeus",
+		Namespace:     "ephemeral-staking",
+		Env:           "production",
+	}
 )
 
 type ValidatorServiceGroupWorkflowRequest struct {

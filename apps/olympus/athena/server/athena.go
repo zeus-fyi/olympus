@@ -13,15 +13,19 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	"github.com/zeus-fyi/olympus/pkg/athena"
+	athena_workloads "github.com/zeus-fyi/olympus/pkg/athena/workloads"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
-var cfg = Config{}
-var authKeysCfg auth_keys_config.AuthKeysCfg
-var env string
-var dataDir filepaths.Path
-var jwtToken string
-var useDefaultToken bool
+var (
+	cfg             = Config{}
+	authKeysCfg     auth_keys_config.AuthKeysCfg
+	env             string
+	dataDir         filepaths.Path
+	jwtToken        string
+	useDefaultToken bool
+	Workload        athena_workloads.WorkloadInfo
+)
 
 func Athena() {
 	ctx := context.Background()
@@ -71,9 +75,17 @@ func init() {
 	// uses a default token for demo, set your own jwt for production usage if desired
 	Cmd.Flags().StringVar(&jwtToken, "jwt", "0x6ad1acdc50a4141e518161ab2fe2bf6294de4b4d48bf3582f22cae8113f0cadc", "set jwt in datadir")
 	Cmd.Flags().BoolVar(&useDefaultToken, "useDefaultToken", true, "use default jwt token")
+
+	Cmd.Flags().IntVar(&Workload.ProtocolNetworkID, "protocol-network-id", 0, "identifier for protocol and network")
+	Cmd.Flags().IntVar(&Workload.ReplicaCountNum, "replica-count-num", 0, "stateful set ordinal index")
+
+	Cmd.Flags().StringVar(&Workload.CloudCtxNs.CloudProvider, "cloud-provider", "", "cloud-provider")
+	Cmd.Flags().StringVar(&Workload.CloudCtxNs.Context, "ctx", "", "context")
+	Cmd.Flags().StringVar(&Workload.CloudCtxNs.Namespace, "ns", "", "namespace")
+	Cmd.Flags().StringVar(&Workload.CloudCtxNs.Region, "region", "", "region")
 }
 
-// Cmd represents the  basecommand when called without any subcommands
+// Cmd represents the base command when called without any subcommands
 var Cmd = &cobra.Command{
 	Use:   "Web3 Middleware",
 	Short: "A web3 infra middleware manager",

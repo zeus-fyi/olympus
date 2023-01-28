@@ -3,6 +3,7 @@ package eth_validators_service_requests
 import (
 	"time"
 
+	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	"go.temporal.io/sdk/workflow"
 )
@@ -27,33 +28,40 @@ func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) GetWorkflows() []in
 	return []interface{}{t.ServiceNewValidatorsToCloudCtxNsWorkflow}
 }
 
-const (
-	ephemeryCloudCtxNs = 1671248907408699000
-	mainnsetCloudCtxNs = 1
-)
-
-type ArtemisCreateAndDistributeValidatorsToCloudCtxNsPayload struct {
-	ArtemisEthereumValidatorsServiceRequestPayload
-}
-
-func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) ServiceNewValidatorsToCloudCtxNsWorkflow(ctx workflow.Context, params ArtemisCreateAndDistributeValidatorsToCloudCtxNsPayload) error {
+// ServiceNewValidatorsToCloudCtxNsWorkflow TODO, verify end to end
+func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) ServiceNewValidatorsToCloudCtxNsWorkflow(ctx workflow.Context, params artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
 	}
-	assignValidatorsStatusCtx := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(assignValidatorsStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.AssignValidatorsToCloudCtxNs, params.ArtemisEthereumValidatorsServiceRequestPayload).Get(assignValidatorsStatusCtx, nil)
+	// TODO, if this keeps failing, terminate workflow
+	validateValidatorsRemoteServicesStatusCtx := workflow.WithActivityOptions(ctx, ao)
+	var verifiedPubkeys []string
+	err := workflow.ExecuteActivity(validateValidatorsRemoteServicesStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.VerifyValidatorKeyOwnershipAndSigning, params).Get(validateValidatorsRemoteServicesStatusCtx, &verifiedPubkeys)
 	if err != nil {
-		log.Error("Failed to assign validators to cloud ctx ns", "Error", err)
+		log.Warn("Failed to validate key to service url", "ValidatorServiceRequest", params)
+		log.Error("Failed to validate key to service url", "Error", err)
 		return err
 	}
 
-	updateClusterValidatorsStatusCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(updateClusterValidatorsStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.SendValidatorsToCloudCtxNs, params.ArtemisEthereumValidatorsServiceRequestPayload).Get(assignValidatorsStatusCtx, nil)
+	insertVerifiedValidatorsStatusCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(insertVerifiedValidatorsStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.InsertVerifiedValidatorsWithFeeRecipient, params).Get(insertVerifiedValidatorsStatusCtx, nil)
 	if err != nil {
 		log.Error("Failed to assign validators to cloud ctx ns", "Error", err)
 		return err
 	}
-	//
+	// If succeed, continue forever or basically forever, TODO alert if failure continues for > 1hr
+	assignValidatorsStatusCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(assignValidatorsStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.AssignValidatorsToCloudCtxNs, params).Get(assignValidatorsStatusCtx, nil)
+	if err != nil {
+		log.Error("Failed to assign validators to cloud ctx ns", "Error", err)
+		return err
+	}
+	updateClusterValidatorsStatusCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(updateClusterValidatorsStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.RestartValidatorClient, params).Get(updateClusterValidatorsStatusCtx, nil)
+	if err != nil {
+		log.Error("Failed to assign validators to cloud ctx ns", "Error", err)
+		return err
+	}
 	return nil
 }

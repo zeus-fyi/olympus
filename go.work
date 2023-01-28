@@ -14,6 +14,7 @@ use (
 	./apps/olympus/artemis
 	./apps/olympus/athena
 	./apps/olympus/choreography/hydra
+	./apps/olympus/downloader
 	./apps/olympus/hera
 	./apps/olympus/hestia
 	./apps/olympus/hydra

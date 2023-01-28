@@ -2,7 +2,6 @@ package artemis_validator_service_groups_models
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
@@ -62,16 +61,16 @@ type OrgValidatorService struct {
 
 func InsertVerifiedValidatorsToService(ctx context.Context, validatorServiceInfo OrgValidatorService, pubkeys hestia_req_types.ValidatorServiceOrgGroupSlice) error {
 	var rows [][]interface{}
-	for i, keyPair := range pubkeys {
-		rows[i] = []interface{}{
+	for _, keyPair := range pubkeys {
+		rows = append(rows, []interface{}{
 			validatorServiceInfo.GroupName,
-			fmt.Sprintf("%d", validatorServiceInfo.OrgID),
+			validatorServiceInfo.OrgID,
 			keyPair.Pubkey,
-			fmt.Sprintf("%d", validatorServiceInfo.ProtocolNetworkID),
+			validatorServiceInfo.ProtocolNetworkID,
 			keyPair.FeeRecipient,
 			validatorServiceInfo.Enabled,
 			validatorServiceInfo.ServiceURL,
-		}
+		})
 	}
 	columns := []string{"group_name", "org_id", "pubkey", "protocol_network_id", "fee_recipient", "enabled", "service_url"}
 	// Use the `pgx.CopyFrom` method to insert the data into the table

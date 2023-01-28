@@ -23,8 +23,8 @@ func InitWorkloadAction(ctx context.Context, w WorkloadInfo) {
 		}
 		vsg := artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol{}
 		vsg.ProtocolNetworkID = w.ProtocolNetworkID
-		vsg.CloudCtxNs = w.CloudCtxNs
-		lhW3Enable, err := artemis_validator_service_groups_models.SelectValidatorsAssignedToCloudCtxNs(ctx, vsg)
+		vsg.ValidatorClientNumber = w.ReplicaCountNum
+		lhW3Enable, err := artemis_validator_service_groups_models.SelectValidatorsAssignedToCloudCtxNs(ctx, vsg, w.CloudCtxNs)
 		if err != nil {
 			log.Ctx(ctx).Panic().Err(err).Msg("failed to select validators")
 			panic(err)

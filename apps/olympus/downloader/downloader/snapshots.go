@@ -23,6 +23,7 @@ type WorkloadInfo struct {
 	WorkloadType      string // eg, validatorClient
 	ClientName        string // eg. lighthouse, geth
 	ProtocolNetworkID int    // eg. mainnet
+	ReplicaCountNum   int    // eg. stateful set ordinal index
 	zeus_common_types.CloudCtxNs
 	DataDir filepaths.Path
 }
@@ -47,9 +48,10 @@ func init() {
 	// workload info
 	Cmd.Flags().StringVar(&Workload.DataDir.DirIn, "dataDir", "/data", "data directory location")
 
-	Cmd.Flags().StringVar(&Workload.WorkloadType, "workloadType", "", "workloadType") // eg validatorClient
-	Cmd.Flags().StringVar(&Workload.ClientName, "clientName", "", "client name")
-	Cmd.Flags().IntVar(&Workload.ProtocolNetworkID, "protocolNetworkID", 0, "identifier for protocol and network")
+	Cmd.Flags().StringVar(&Workload.WorkloadType, "workload-type", "", "workloadType") // eg validatorClient
+	Cmd.Flags().StringVar(&Workload.ClientName, "client-name", "", "client name")
+	Cmd.Flags().IntVar(&Workload.ReplicaCountNum, "replica-count-num", 0, "stateful set ordinal index")
+	Cmd.Flags().IntVar(&Workload.ProtocolNetworkID, "protocol-network-id", 0, "identifier for protocol and network")
 
 	Cmd.Flags().StringVar(&Workload.CloudCtxNs.CloudProvider, "cloud-provider", "", "cloud-provider")
 	Cmd.Flags().StringVar(&Workload.CloudCtxNs.Context, "ctx", "", "context")

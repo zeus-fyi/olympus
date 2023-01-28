@@ -22,10 +22,10 @@ const (
 var (
 	ArtemisEthereumMainnetValidatorsRequestsWorker ArtemisEthereumValidatorsRequestsWorker
 	MainnetStakingCloudCtxNs                       = zeus_common_types.CloudCtxNs{
-		CloudProvider: "",
-		Region:        "",
+		CloudProvider: "do",
+		Region:        "sfo3",
 		Context:       "do-sfo3-dev-do-sfo3-zeus",
-		Namespace:     "",
+		Namespace:     "mainnet-staking",
 		Env:           "production",
 	}
 

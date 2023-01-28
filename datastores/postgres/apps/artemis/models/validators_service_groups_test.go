@@ -67,7 +67,6 @@ func (s *ValidatorServicesTestSuite) TestInsertValidatorServiceGroup() {
 	pubkeys := hestia_req_types.ValidatorServiceOrgGroupSlice{keyOne, keyTwo}
 	err := InsertVerifiedValidatorsToService(ctx, vsg, pubkeys)
 	s.Require().Nil(err)
-
 }
 
 func TestValidatorServicesTestSuite(t *testing.T) {

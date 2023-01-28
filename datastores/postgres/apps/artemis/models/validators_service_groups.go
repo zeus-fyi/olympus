@@ -14,8 +14,9 @@ import (
 )
 
 type ValidatorServiceCloudCtxNsProtocol struct {
-	ProtocolNetworkID int `json:"protocolNetworkID"`
-	OrgID             int `json:"orgID"`
+	ProtocolNetworkID     int `json:"protocolNetworkID"`
+	OrgID                 int `json:"orgID"`
+	ValidatorClientNumber int `json:"validatorClientNumber"`
 }
 
 const ModelName = "ArtemisValidatorsServices"
@@ -104,6 +105,7 @@ func SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx context.Context, validator
 
 const HydraAddress = "http://zeus-hydra:9000"
 
+// SelectValidatorsAssignedToCloudCtxNs is used by athena
 func SelectValidatorsAssignedToCloudCtxNs(ctx context.Context, validatorServiceInfo ValidatorServiceCloudCtxNsProtocol, cloudCtxNs zeus_common_types.CloudCtxNs) ([]ethereum_web3signer_actions.LighthouseWeb3SignerRequest, error) {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `	

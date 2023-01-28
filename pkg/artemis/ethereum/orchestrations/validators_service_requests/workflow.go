@@ -28,6 +28,7 @@ func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) GetWorkflows() []in
 	return []interface{}{t.ServiceNewValidatorsToCloudCtxNsWorkflow}
 }
 
+// ServiceNewValidatorsToCloudCtxNsWorkflow TODO, verify end to end
 func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) ServiceNewValidatorsToCloudCtxNsWorkflow(ctx workflow.Context, params artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
@@ -49,7 +50,6 @@ func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) ServiceNewValidator
 		log.Error("Failed to assign validators to cloud ctx ns", "Error", err)
 		return err
 	}
-	// TODO limit scope to verified keys only
 	// If succeed, continue forever or basically forever, TODO alert if failure continues for > 1hr
 	assignValidatorsStatusCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(assignValidatorsStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.AssignValidatorsToCloudCtxNs, params).Get(assignValidatorsStatusCtx, nil)

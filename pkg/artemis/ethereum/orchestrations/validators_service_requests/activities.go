@@ -44,7 +44,7 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) GetActivities() Acti
 
 func (a *ArtemisEthereumValidatorsServiceRequestActivities) InsertVerifiedValidatorsWithFeeRecipient(
 	ctx context.Context,
-	params artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol,
+	params artemis_validator_service_groups_models.OrgValidatorService,
 	pubkeys hestia_req_types.ValidatorServiceOrgGroupSlice) error {
 
 	err := artemis_validator_service_groups_models.InsertVerifiedValidatorsToService(ctx, params, pubkeys)
@@ -66,7 +66,6 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) AssignValidatorsToCl
 		return errors.New("unsupported protocol network id")
 	}
 
-	// TODO this needs to scope the pubkeys to the verified ones
 	err := artemis_validator_service_groups_models.SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx, params, cloudCtxNs)
 	if err != nil {
 		log.Ctx(ctx).Err(err)
@@ -97,6 +96,7 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) RestartValidatorClie
 	}
 	_, err := Zeus.DeletePods(ctx, par)
 	if err != nil {
+		log.Ctx(ctx).Err(err)
 		return err
 	}
 	return nil
@@ -106,6 +106,7 @@ type Resty struct {
 	*resty.Client
 }
 
+// VerifyValidatorKeyOwnershipAndSigning TODO fetch relevant auth to remote signer
 func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOwnershipAndSigning(ctx context.Context, params ArtemisEthereumValidatorsServiceRequestPayload) ([]string, error) {
 	r := Resty{}
 	r.Client = resty.New()

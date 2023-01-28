@@ -42,6 +42,23 @@ func (s *ValidatorServicesTestSuite) TestSelectValidatorsAssignedToCloudCtxNs() 
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+
+	vsctx := ValidatorServiceCloudCtxNsProtocol{
+		ProtocolNetworkID:     hestia_req_types.EthereumEphemeryProtocolNetworkID,
+		OrgID:                 ou.OrgID,
+		ValidatorClientNumber: 0,
+	}
+	cctx := zeus_common_types.CloudCtxNs{
+		CloudProvider: "do",
+		Region:        "sfo3",
+		Context:       "do-sfo3-dev-do-sfo3-zeus",
+		Namespace:     "ephemeral-staking",
+		Env:           "production",
+	}
+
+	vals, err := SelectValidatorsAssignedToCloudCtxNs(ctx, vsctx, cctx)
+	s.Require().Nil(err)
+	s.Assert().NotEmpty(vals)
 }
 
 func (s *ValidatorServicesTestSuite) TestInsertValidatorServiceGroup() {

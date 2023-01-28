@@ -82,12 +82,11 @@ func InsertVerifiedValidatorsToService(ctx context.Context, validatorServiceInfo
 	return err
 }
 
-// TODO needs to also use capacity and client number assignments
-
+// SelectInsertUnplacedValidatorsIntoCloudCtxNs TODO needs to also use capacity and client number assignments
 func SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx context.Context, validatorServiceInfo ValidatorServiceCloudCtxNsProtocol, cloudCtxNs zeus_common_types.CloudCtxNs) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `WITH cte_unplaced_validators AS (		
-					  SELECT pubkey, fee_recipient, 
+					  SELECT pubkey, fee_recipient 
 					  FROM validators_service_org_groups
 					  WHERE NOT EXISTS (SELECT pubkey FROM validators_service_org_groups_cloud_ctx_ns) AND enabled=true AND protocol_network_id=$1
 				  ) INSERT INTO validators_service_org_groups_cloud_ctx_ns(pubkey, cloud_ctx_ns_id)

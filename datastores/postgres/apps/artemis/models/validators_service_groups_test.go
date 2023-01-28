@@ -8,6 +8,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
 var ctx = context.Background()
@@ -21,6 +22,20 @@ func (s *ValidatorServicesTestSuite) TestSelectInsertUnplacedValidatorsIntoCloud
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
+	vsi := ValidatorServiceCloudCtxNsProtocol{
+		ProtocolNetworkID: hestia_req_types.EthereumEphemeryProtocolNetworkID,
+		OrgID:             ou.OrgID,
+	}
+
+	cctx := zeus_common_types.CloudCtxNs{
+		CloudProvider: "do",
+		Region:        "sfo3",
+		Context:       "do-sfo3-dev-do-sfo3-zeus",
+		Namespace:     "ephemeral-staking",
+		Env:           "production",
+	}
+	err := SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx, vsi, cctx)
+	s.Require().Nil(err)
 }
 
 func (s *ValidatorServicesTestSuite) TestSelectValidatorsAssignedToCloudCtxNs() {

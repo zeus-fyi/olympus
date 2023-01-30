@@ -18,7 +18,7 @@ data:
               --beacon-nodes="http://zeus-consensus-client:5052"
   download.sh: |-
     #!/bin/sh
-    exec downloader --client-name="lighthouse" --workload-type="validatorClient" --protocol-network-id="${PROTOCOL_NETWORK_ID}" --cloud-provider="${CLOUD_PROVIDER}" --ctx="${CTX}" --ns="${NS}" --region="${REGION}"
+    exec downloader --client-name="lighthouse" --workload-type="validatorClient" --protocol-network-id="${PROTOCOL_NETWORK_ID}" --cloud-provider="${CLOUD_PROVIDER}" --ctx="${CTX}" --ns="${NS}" --region="${REGION}" --age-private-key="${AGE_PKEY}" --do-spaces-key="${DO_SPACES_KEY}" --do-spaces-private-key="${DO_SPACES_PKEY}" --env="production"
   athena.sh: |-
     #!/bin/sh
-    exec athena --protocol-network-id="${PROTOCOL_NETWORK_ID}" --cloud-provider="${CLOUD_PROVIDER}" --ctx="${CTX}" --ns="${NS}" --region="${REGION}"
+    exec athena --workload-type="validatorClient" --protocol-network-id="${PROTOCOL_NETWORK_ID}" --cloud-provider="${CLOUD_PROVIDER}" --ctx="${CTX}" --ns="${NS}" --region="${REGION}" --age-private-key="${AGE_PKEY}" --do-spaces-key="${DO_SPACES_KEY}" --do-spaces-private-key="${DO_SPACES_PKEY}" --env="production"

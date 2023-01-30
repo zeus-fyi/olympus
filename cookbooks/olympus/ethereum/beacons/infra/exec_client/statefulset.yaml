@@ -113,11 +113,31 @@ spec:
           resources:
             {}
           env:
-            - name: PG_CONN_STR
+            - name: PROTOCOL_NETWORK_ID
               valueFrom:
                 secretKeyRef:
-                  name: postgres-auth
-                  key: postgres-conn-str
+                  name: workload
+                  key: protocol-network-id
+            - name: CLOUD_PROVIDER
+              valueFrom:
+                secretKeyRef:
+                  name: choreography
+                  key: cloud-provider
+            - name: CTX
+              valueFrom:
+                secretKeyRef:
+                  name: choreography
+                  key: ctx
+            - name: NS
+              valueFrom:
+                secretKeyRef:
+                  name: choreography
+                  key: ns
+            - name: REGION
+              valueFrom:
+                secretKeyRef:
+                  name: choreography
+                  key: region
             - name: AGE_PKEY
               valueFrom:
                 secretKeyRef:

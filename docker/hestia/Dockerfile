@@ -5,6 +5,8 @@ WORKDIR /app
 
 COPY . .
 COPY configs/ca-certificate.crt .
+COPY configs/zeus.fyi/ca.pem .
+COPY configs/zeus.fyi/ca.key .
 
 ARG GOMODCACHE
 ARG GOCACHE
@@ -19,6 +21,8 @@ FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates
 
 COPY --from=src_builder /app/ca-certificate.crt /etc/ssl/certs
+COPY --from=src_builder /app/ca.pem /etc/ssl/certs
+COPY --from=src_builder /app/ca.key /etc/ssl/certs
 
 COPY --from=src_builder /app/hestia /usr/bin/hestia
 EXPOSE 9002

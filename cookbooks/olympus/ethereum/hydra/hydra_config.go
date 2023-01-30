@@ -36,9 +36,39 @@ func HydraClusterConfig(network string) zeus_cluster_config_drivers.ClusterDefin
 	case "mainnet":
 		cd.CloudCtxNs.Namespace = mainnetNamespace
 		cd.ClusterClassName = "hydraMainnet"
+
+		depCfgOverride := zeus_topology_config_drivers.DeploymentDriver{}
+		depCfgOverride.ContainerDrivers = make(map[string]zeus_topology_config_drivers.ContainerDriver)
+		depCfgOverride.ContainerDrivers["hydra"] = HydraContainerDriver(network)
+		cfgOverride := zeus_topology_config_drivers.TopologyConfigDriver{
+			IngressDriver:     nil,
+			StatefulSetDriver: nil,
+			ServiceDriver:     nil,
+			DeploymentDriver:  &depCfgOverride,
+		}
+		tmp := HydraComponentBase
+		sb := tmp.SkeletonBases["hydra"]
+		sb.TopologyConfigDriver = &cfgOverride
+		tmp.SkeletonBases["hydra"] = sb
+		cd.ComponentBases["hydra"] = tmp
 	case "ephemery":
 		cd.CloudCtxNs.Namespace = ephemeryNamespace
 		cd.ClusterClassName = "hydraEphemery"
+
+		depCfgOverride := zeus_topology_config_drivers.DeploymentDriver{}
+		depCfgOverride.ContainerDrivers = make(map[string]zeus_topology_config_drivers.ContainerDriver)
+		depCfgOverride.ContainerDrivers["hydra"] = HydraContainerDriver(network)
+		cfgOverride := zeus_topology_config_drivers.TopologyConfigDriver{
+			IngressDriver:     nil,
+			StatefulSetDriver: nil,
+			ServiceDriver:     nil,
+			DeploymentDriver:  &depCfgOverride,
+		}
+		tmp := HydraComponentBase
+		sb := tmp.SkeletonBases["hydra"]
+		sb.TopologyConfigDriver = &cfgOverride
+		tmp.SkeletonBases["hydra"] = sb
+		cd.ComponentBases["hydra"] = tmp
 	}
 	return cd
 }

@@ -20,15 +20,16 @@ type HydraCookbookTestSuite struct {
 func (t *HydraCookbookTestSuite) TestClusterSetup() {
 	olympus_cookbooks.ChangeToCookbookDir()
 
-	gcd := EphemeralHydraClusterDefinition.BuildClusterDefinitions()
+	cd := HydraClusterConfig("ephemery")
+	gcd := cd.BuildClusterDefinitions()
 	t.Assert().NotEmpty(gcd)
 	fmt.Println(gcd)
 
-	gdr := EphemeralHydraClusterDefinition.GenerateDeploymentRequest()
+	gdr := cd.GenerateDeploymentRequest()
 	t.Assert().NotEmpty(gdr)
 	fmt.Println(gdr)
 
-	sbDefs, err := EphemeralHydraClusterDefinition.GenerateSkeletonBaseCharts()
+	sbDefs, err := cd.GenerateSkeletonBaseCharts()
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(sbDefs)
 }

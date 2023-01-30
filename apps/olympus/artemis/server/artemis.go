@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	artemis_api_router "github.com/zeus-fyi/olympus/artemis/api"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	artemis_ethereum_transcations "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/transcations"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
@@ -27,10 +26,6 @@ func Artemis() {
 	// Echo instance
 	ctx := context.Background()
 	SetConfigByEnv(ctx, env)
-
-	log.Info().Msg("Artemis: PG connection starting")
-	apps.Pg.InitPG(ctx, cfg.PGConnStr)
-	log.Info().Msg("Artemis: PG connection succeeded")
 
 	// goerli
 	log.Info().Msg("Artemis: Starting ArtemisEthereumGoerliTxBroadcastWorker")

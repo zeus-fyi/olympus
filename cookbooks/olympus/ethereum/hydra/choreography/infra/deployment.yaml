@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: "zeus-hydra-choreography"
-          image: "zeusfyi/choreography:latest"
+          image: "registry.digitalocean.com/zeus-fyi/hydrachoreography:latest"
           volumeMounts:
             - mountPath: "/scripts"
               name: "cm-hydra-choreography"

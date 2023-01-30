@@ -19,7 +19,7 @@ type HydraCookbookTestSuite struct {
 func (t *HydraCookbookTestSuite) TestClusterSetup() {
 	olympus_cookbooks.ChangeToCookbookDir()
 
-	cd := HydraClusterConfig("ephemery")
+	cd := HydraClusterConfig(&HydraClusterDefinition, "ephemery")
 	gcd := cd.BuildClusterDefinitions()
 	t.Assert().NotEmpty(gcd)
 	fmt.Println(gcd)

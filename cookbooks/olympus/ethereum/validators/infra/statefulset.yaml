@@ -84,52 +84,6 @@ spec:
               containerPort: 5064
           resources:
             {}
-          env:
-            - name: PG_CONN_STR
-              valueFrom:
-                secretKeyRef:
-                  name: postgres-auth
-                  key: postgres-conn-str
-            - name: AGE_PKEY
-              valueFrom:
-                secretKeyRef:
-                  name: age-auth
-                  key: age-private-key
-            - name: DO_SPACES_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: spaces-key
-                  key: do-spaces-key
-            - name: DO_SPACES_PKEY
-              valueFrom:
-                secretKeyRef:
-                  name: spaces-auth
-                  key: do-spaces-private-key
-            - name: PROTOCOL_NETWORK_ID
-              valueFrom:
-                secretKeyRef:
-                  name: workload
-                  key: protocol-network-id
-            - name: CLOUD_PROVIDER
-              valueFrom:
-                secretKeyRef:
-                  name: choreography
-                  key: cloud-provider
-            - name: CTX
-              valueFrom:
-                secretKeyRef:
-                  name: choreography
-                  key: ctx
-            - name: NS
-              valueFrom:
-                secretKeyRef:
-                  name: choreography
-                  key: ns
-            - name: REGION
-              valueFrom:
-                secretKeyRef:
-                  name: choreography
-                  key: region
       nodeSelector:
         {}
       affinity:

@@ -26,42 +26,6 @@ spec:
           imagePullPolicy: Always
           command: [ "/bin/sh" ]
           args: [ "-c","/scripts/start.sh" ]
-          env:
-            - name: CLOUD_PROVIDER
-              valueFrom:
-                secretKeyRef:
-                  name: choreography
-                  key: cloud-provider
-            - name: CTX
-              valueFrom:
-                secretKeyRef:
-                  name: choreography
-                  key: ctx
-            - name: NS
-              valueFrom:
-                secretKeyRef:
-                  name: choreography
-                  key: ns
-            - name: REGION
-              valueFrom:
-                secretKeyRef:
-                  name: choreography
-                  key: region
-            - name: AGE_PKEY
-              valueFrom:
-                secretKeyRef:
-                  name: age-auth
-                  key: age-private-key
-            - name: DO_SPACES_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: spaces-key
-                  key: do-spaces-key
-            - name: DO_SPACES_PKEY
-              valueFrom:
-                secretKeyRef:
-                  name: spaces-auth
-                  key: do-spaces-private-key
           ports:
             - name: "http"
               containerPort: 9000

@@ -7,7 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	v1_hypnos "github.com/zeus-fyi/olympus/hydra/api/v1"
+	v1_hydra "github.com/zeus-fyi/olympus/hydra/api/v1"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
@@ -29,8 +29,6 @@ func Hydra() {
 	ctx := context.Background()
 	cfg.Host = "0.0.0.0"
 	srv := NewHydraServer(cfg)
-	// Echo instance
-
 	SetConfigByEnv(ctx, env)
 
 	// TODO, set signature service routers
@@ -45,7 +43,7 @@ func Hydra() {
 		panic(err)
 	}
 
-	srv.E = v1_hypnos.Routes(srv.E)
+	srv.E = v1_hydra.Routes(srv.E)
 	// Start server
 	srv.Start()
 }

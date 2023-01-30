@@ -43,7 +43,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		artemis_network_cfgs.InitArtemisLocalTestConfigs()
 	}
 
-	log.Info().Msgf("Artemis %s orchestration retrieving auth token", env)
+	log.Info().Msgf("Hydra %s artemis orchestration retrieving auth token", env)
 	artemis_orchestration_auth.Bearer = auth_startup.FetchTemporalAuthBearer(ctx)
-	log.Info().Msgf("Artemis %s orchestration retrieving auth token done", env)
+	log.Info().Msgf("Hydra %s artemis orchestration retrieving auth token done", env)
 }

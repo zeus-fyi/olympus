@@ -51,11 +51,14 @@ func Hestia() {
 	log.Info().Msg("Hestia: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 
+	// connect
+
+	c := eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.ConnectTemporalClient()
+	defer c.Close()
+
 	// ephemery
 	eth_validators_service_requests.InitArtemisEthereumEphemeryValidatorsRequestsWorker(ctx, temporalProdAuthConfig)
 	log.Info().Msg("Hestia: Starting InitArtemisEthereumEphemeryValidatorsRequestsWorker")
-	c := eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.ConnectTemporalClient()
-	defer c.Close()
 	eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.Worker.RegisterWorker(c)
 	err := eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.Worker.Start()
 	if err != nil {
@@ -66,8 +69,6 @@ func Hestia() {
 	// mainnet
 	eth_validators_service_requests.InitArtemisEthereumMainnetValidatorsRequestsWorker(ctx, temporalProdAuthConfig)
 	log.Info().Msg("Hestia: Starting InitArtemisEthereumMainnetValidatorsRequestsWorker")
-	c = eth_validators_service_requests.ArtemisEthereumMainnetValidatorsRequestsWorker.ConnectTemporalClient()
-	defer c.Close()
 	eth_validators_service_requests.ArtemisEthereumMainnetValidatorsRequestsWorker.Worker.RegisterWorker(c)
 	err = eth_validators_service_requests.ArtemisEthereumMainnetValidatorsRequestsWorker.Worker.Start()
 	if err != nil {

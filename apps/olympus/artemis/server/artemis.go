@@ -14,10 +14,12 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 )
 
-var cfg = Config{}
-var temporalAuthCfg temporal_auth.TemporalAuth
-var env string
-var authKeysCfg auth_keys_config.AuthKeysCfg
+var (
+	cfg             = Config{}
+	temporalAuthCfg temporal_auth.TemporalAuth
+	env             string
+	authKeysCfg     auth_keys_config.AuthKeysCfg
+)
 
 func Artemis() {
 	cfg.Host = "0.0.0.0"
@@ -60,7 +62,6 @@ func Artemis() {
 	}
 	log.Info().Msg("Artemis: ArtemisEthereumEphemeralTxBroadcastWorker Started")
 
-	// TODO setup validator service auth here
 	// Start server
 	log.Info().Msg("Artemis: Starting Server")
 	srv.E = artemis_api_router.Routes(srv.E)

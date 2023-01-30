@@ -16,28 +16,9 @@ data:
               --http-port=5062 \
               --metrics \
               --beacon-nodes="http://zeus-consensus-client:5052"
-  pause.sh: |-
-    #!/bin/sh
-    exec sleep 100000000000000000
   download.sh: |-
     #!/bin/sh
-    exec snapshots --downloadURL="" --clientName="ethereumEphemeralValidatorCluster"
+    exec downloader --client-name="lighthouse" --workload-type="validatorClient" --protocol-network-id="${PROTOCOL_NETWORK_ID}" --cloud-provider="${CLOUD_PROVIDER}" --ctx="${CTX}" --ns="${NS}" --region="${REGION}"
   athena.sh: |-
-    #!/bin/sh 
-    athena
-  athenaEphemeral.sh: |-
-    #!/bin/sh 
-    athena --network="ephemery" --clientName="lighthouse"
-  lighthouseEphemeral.sh: |-
     #!/bin/sh
-    exec lighthouse vc \
-              --testnet-dir=/data/testnet \
-              --log-format=JSON \
-              --datadir=/data \
-        	  --init-slashing-protection \
-              --unencrypted-http-transport \
-              --http \
-              --http-address=0.0.0.0 \
-              --http-port=5062 \
-              --metrics \
-              --beacon-nodes="http://zeus-consensus-client:5052"
+    exec athena --protocol-network-id="${PROTOCOL_NETWORK_ID}" --cloud-provider="${CLOUD_PROVIDER}" --ctx="${CTX}" --ns="${NS}" --region="${REGION}"

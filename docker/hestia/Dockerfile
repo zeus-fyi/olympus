@@ -13,7 +13,7 @@ RUN --mount=type=cache,target=${GOMODCACHE} go mod download
 
 COPY . .
 
-RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o hestia apps/olympus/hestia/main.go
+RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o hestia apps/olympus/hestia/main.go
 
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates

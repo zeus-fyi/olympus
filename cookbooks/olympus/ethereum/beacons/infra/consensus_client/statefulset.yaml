@@ -38,7 +38,7 @@ spec:
             - name: consensus-client-storage
               mountPath: "/data"
         - name: init-snapshot
-          image: "registry.digitalocean.com/zeus-fyi/athena:latest"
+          image: "registry.digitalocean.com/zeus-fyi/downloader:latest"
           imagePullPolicy: Always
           command: [ "/bin/sh" ]
           args: [ "-c","/scripts/download.sh" ]
@@ -104,10 +104,26 @@ spec:
           resources:
             {}
           env:
-            - name: POD_IP
+            - name: PG_CONN_STR
               valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
+                secretKeyRef:
+                  name: postgres-auth
+                  key: postgres-conn-str
+            - name: AGE_PKEY
+              valueFrom:
+                secretKeyRef:
+                  name: age-auth
+                  key: age-private-key
+            - name: DO_SPACES_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: spaces-key
+                  key: do-spaces-key
+            - name: DO_SPACES_PKEY
+              valueFrom:
+                secretKeyRef:
+                  name: spaces-auth
+                  key: do-spaces-private-key
       nodeSelector:
         {}
       affinity:

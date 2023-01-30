@@ -3,24 +3,33 @@ package snapshot_init
 import (
 	"context"
 
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	init_jwt "github.com/zeus-fyi/zeus/pkg/aegis/jwt"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
+	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
+	"github.com/zeus-fyi/olympus/pkg/athena"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
 var (
 	preSignedURL    string
+	env             string
 	onlyIfEmptyDir  bool
 	compressionType string
-	jwtToken        string
-	useDefaultToken bool
 	Workload        WorkloadInfo
+	authKeysCfg     auth_keys_config.AuthKeysCfg
+	cfg             = Config{}
 )
 
+type Config struct {
+	PGConnStr string
+}
+
 type WorkloadInfo struct {
-	WorkloadType      string // eg, validatorClient
+	WorkloadType      string // eg, validatorClient, beaconExecClient, beaconConsensusClient
 	ClientName        string // eg. lighthouse, geth
 	ProtocolNetworkID int    // eg. mainnet
 	ReplicaCountNum   int    // eg. stateful set ordinal index
@@ -30,11 +39,12 @@ type WorkloadInfo struct {
 
 func StartUp() {
 	ctx := context.Background()
+	log.Info().Msg("Downloader: DigitalOceanS3AuthClient starting")
+	athena.AthenaS3Manager = auth_startup.NewDigitalOceanS3AuthClient(ctx, authKeysCfg)
+	SetConfigByEnv(ctx, env)
+	apps.Pg.InitPG(ctx, cfg.PGConnStr)
+	log.Info().Msg("Downloader: DigitalOceanS3AuthClient done")
 	InitWorkloadAction(ctx, Workload)
-	if useDefaultToken {
-		_ = init_jwt.SetTokenToDefault(Workload.DataDir, "jwt.hex", jwtToken)
-	}
-	ChainDownload()
 }
 
 func init() {
@@ -42,8 +52,13 @@ func init() {
 	Cmd.Flags().StringVar(&preSignedURL, "downloadURL", "", "use a presigned bucket url")
 	Cmd.Flags().BoolVar(&onlyIfEmptyDir, "onlyIfEmptyDir", true, "only download & extract if the datadir is empty")
 	Cmd.Flags().StringVar(&compressionType, "compressionExtension", ".tar.lz4", "compression type")
-	Cmd.Flags().StringVar(&jwtToken, "jwt", "0x6ad1acdc50a4141e518161ab2fe2bf6294de4b4d48bf3582f22cae8113f0cadc", "set jwt in datadir")
-	Cmd.Flags().BoolVar(&useDefaultToken, "useDefaultToken", true, "use default jwt token")
+	Cmd.Flags().StringVar(&env, "env", "production-local", "environment")
+
+	// internal
+	Cmd.Flags().StringVar(&authKeysCfg.AgePubKey, "age-public-key", "age1n97pswc3uqlgt2un9aqn9v4nqu32egmvjulwqp3pv4algyvvuggqaruxjj", "age public key")
+	Cmd.Flags().StringVar(&authKeysCfg.AgePrivKey, "age-private-key", "", "age private key")
+	Cmd.Flags().StringVar(&authKeysCfg.SpacesKey, "do-spaces-key", "", "do s3 spaces key")
+	Cmd.Flags().StringVar(&authKeysCfg.SpacesPrivKey, "do-spaces-private-key", "", "do s3 spaces private key")
 
 	// workload info
 	Cmd.Flags().StringVar(&Workload.DataDir.DirIn, "dataDir", "/data", "data directory location")
@@ -57,7 +72,6 @@ func init() {
 	Cmd.Flags().StringVar(&Workload.CloudCtxNs.Context, "ctx", "", "context")
 	Cmd.Flags().StringVar(&Workload.CloudCtxNs.Namespace, "ns", "", "namespace")
 	Cmd.Flags().StringVar(&Workload.CloudCtxNs.Region, "region", "", "region")
-
 }
 
 // Cmd represents the base command when called without any subcommands

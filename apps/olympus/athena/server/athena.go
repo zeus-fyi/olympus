@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	athena_router "github.com/zeus-fyi/olympus/athena/api"
-	athena_jwt "github.com/zeus-fyi/olympus/athena/api/v1/common/jwt"
 	"github.com/zeus-fyi/olympus/configs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
@@ -18,13 +17,11 @@ import (
 )
 
 var (
-	cfg             = Config{}
-	authKeysCfg     auth_keys_config.AuthKeysCfg
-	env             string
-	dataDir         filepaths.Path
-	jwtToken        string
-	useDefaultToken bool
-	Workload        athena_workloads.WorkloadInfo
+	cfg         = Config{}
+	authKeysCfg auth_keys_config.AuthKeysCfg
+	env         string
+	dataDir     filepaths.Path
+	Workload    athena_workloads.WorkloadInfo
 )
 
 func Athena() {
@@ -32,9 +29,7 @@ func Athena() {
 	cfg.Host = "0.0.0.0"
 	srv := NewAthenaServer(cfg)
 	log.Info().Msgf("Athena: %s auth procedure starting", env)
-	if useDefaultToken {
-		_ = athena_jwt.SetTokenToDefault(dataDir, "jwt.hex", jwtToken)
-	}
+
 	switch env {
 	case "production":
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
@@ -53,6 +48,7 @@ func Athena() {
 	}
 	log.Info().Msg("Athena: DigitalOceanS3AuthClient starting")
 	athena.AthenaS3Manager = auth_startup.NewDigitalOceanS3AuthClient(ctx, authKeysCfg)
+	log.Info().Msg("Athena: DigitalOceanS3AuthClient done")
 
 	log.Info().Msg("Athena: PG connection starting")
 	apps.Pg = apps.Db{}
@@ -72,9 +68,6 @@ func init() {
 	Cmd.Flags().StringVar(&env, "env", "local", "environment")
 
 	Cmd.Flags().StringVar(&dataDir.DirIn, "dataDirIn", "/data", "data directory location")
-	// uses a default token for demo, set your own jwt for production usage if desired
-	Cmd.Flags().StringVar(&jwtToken, "jwt", "0x6ad1acdc50a4141e518161ab2fe2bf6294de4b4d48bf3582f22cae8113f0cadc", "set jwt in datadir")
-	Cmd.Flags().BoolVar(&useDefaultToken, "useDefaultToken", true, "use default jwt token")
 
 	Cmd.Flags().IntVar(&Workload.ProtocolNetworkID, "protocol-network-id", 0, "identifier for protocol and network")
 	Cmd.Flags().IntVar(&Workload.ReplicaCountNum, "replica-count-num", 0, "stateful set ordinal index")

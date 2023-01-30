@@ -27,7 +27,7 @@ type Config struct {
 	PGConnStr string
 }
 
-func NewHypnosServer(cfg Config) Server {
+func NewHydraServer(cfg Config) Server {
 	srv := Server{
 		host: cfg.Host,
 		port: cfg.Port,

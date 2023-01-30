@@ -10,12 +10,14 @@ COPY configs/zeus.fyi/ca.key .
 
 ARG GOMODCACHE
 ARG GOCACHE
+ARG GOOS
+ARG GOARCH
 
 RUN --mount=type=cache,target=${GOMODCACHE} go mod download
 
 COPY . .
 
-RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o hydra apps/olympus/hydra/main.go
+RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} go build -ldflags="-s -w" -o hydra apps/olympus/hydra/main.go
 
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates

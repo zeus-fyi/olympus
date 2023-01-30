@@ -104,11 +104,6 @@ spec:
           resources:
             {}
           env:
-            - name: PROTOCOL_NETWORK_ID
-              valueFrom:
-                secretKeyRef:
-                  name: workload
-                  key: protocol-network-id
             - name: CLOUD_PROVIDER
               valueFrom:
                 secretKeyRef:

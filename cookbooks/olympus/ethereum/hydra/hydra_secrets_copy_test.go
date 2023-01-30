@@ -8,7 +8,7 @@ import (
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
-func (t *HydraCookbookTestSuite) TestAegisSecretsCopy() {
+func (t *HydraCookbookTestSuite) TestHydraSecretsCopy() {
 	s1 := "spaces-auth"
 	s2 := "spaces-key"
 	s3 := "age-auth"

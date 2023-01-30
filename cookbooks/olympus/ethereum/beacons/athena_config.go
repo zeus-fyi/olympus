@@ -1,11 +1,18 @@
 package olympus_beacon_cookbooks
 
 import (
+	"fmt"
+
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	zeus_topology_config_drivers "github.com/zeus-fyi/zeus/pkg/zeus/workload_config_drivers"
 	v1 "k8s.io/api/core/v1"
 )
 
-// TODO env vars
+const (
+	protocolNetworkKeyEnv = "PROTOCOL_NETWORK_ID"
+	startDashC            = "-c"
+	athenaStartCmd        = "athena"
+)
 
 var (
 	AthenaPort = v1.ContainerPort{
@@ -17,29 +24,22 @@ var (
 		Container: v1.Container{
 			Name:            "athena",
 			Image:           "registry.digitalocean.com/zeus-fyi/athena:latest",
-			Command:         []string{"/bin/sh"},
-			Args:            AthenaCmdArgs(),
 			Ports:           []v1.ContainerPort{AthenaPort},
-			EnvFrom:         nil,
-			Env:             nil,
-			Resources:       v1.ResourceRequirements{},
-			VolumeMounts:    nil,
-			VolumeDevices:   nil,
-			LivenessProbe:   nil,
-			ReadinessProbe:  nil,
-			StartupProbe:    nil,
 			ImagePullPolicy: "Always",
-			SecurityContext: nil,
-			Stdin:           false,
-			StdinOnce:       false,
-			TTY:             false,
 		}}
 )
 
-const (
-	startDashC     = "-c"
-	athenaStartCmd = "athena"
-)
+func AthenaContainerDriver(network string) zeus_topology_config_drivers.ContainerDriver {
+	switch network {
+	case "mainnet":
+		envVar := AthenaContainer.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumMainnetProtocolNetworkID))
+		AthenaContainer.AppendEnvVars = []v1.EnvVar{envVar}
+	case "ephemery":
+		envVar := AthenaContainer.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumEphemeryProtocolNetworkID))
+		AthenaContainer.AppendEnvVars = []v1.EnvVar{envVar}
+	}
+	return AthenaContainer
+}
 
 func AthenaCmdArgs() []string {
 	args := []string{startDashC, athenaStartCmd}

@@ -6,6 +6,8 @@ LATEST  := ${REPO}/${NAME}:latest
 SRC	    := ../../
 GOMODCACHE := $(shell go env GOMODCACHE)
 GOCACHE := $(shell go env GOCACHE)
+GOOS 	:= linux
+GOARCH  := amd64
 
 docker.pubbuildx:
 	@ docker buildx build -t ${IMG} -t ${LATEST} --build-arg GOMODCACHE=${GOMODCACHE} --build-arg GOCACHE=${GOCACHE} --platform=linux/amd64 -f ../../docker/hydra/Dockerfile ../../ --push

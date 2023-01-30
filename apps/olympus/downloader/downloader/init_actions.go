@@ -15,6 +15,7 @@ func InitWorkloadAction(ctx context.Context, w WorkloadInfo) {
 	ephemery_reset.ExtractAndDecEphemeralTestnetConfig(Workload.DataDir, w.ClientName)
 	switch w.WorkloadType {
 	case "validatorClient":
+		log.Ctx(ctx).Info().Msg("starting validators sync")
 		// TODO clientName is always lighthouse for validator clients for now, when you add others, add that conditional here
 		err := w.DataDir.WipeDirIn()
 		if err != nil {
@@ -41,5 +42,10 @@ func InitWorkloadAction(ctx context.Context, w WorkloadInfo) {
 			log.Ctx(ctx).Panic().Err(err).Msg("failed to write validators yaml")
 			panic(err)
 		}
+		log.Ctx(ctx).Info().Msg("validators sync complete")
+	case "beaconExecClient", "beaconConsensusClient":
+		log.Ctx(ctx).Info().Msg("starting chain sync")
+		ChainDownload(ctx)
+		log.Ctx(ctx).Info().Msg("chain sync complete")
 	}
 }

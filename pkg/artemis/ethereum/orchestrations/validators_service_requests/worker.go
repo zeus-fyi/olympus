@@ -50,8 +50,8 @@ func (t *ArtemisEthereumValidatorsRequestsWorker) ExecuteServiceNewValidatorsToC
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: t.TaskQueueName,
 	}
-	txWf := NewArtemisEthereumValidatorServiceRequestWorkflow()
-	wf := txWf.ServiceNewValidatorsToCloudCtxNsWorkflow
+	vsWf := NewArtemisEthereumValidatorServiceRequestWorkflow()
+	wf := vsWf.ServiceNewValidatorsToCloudCtxNsWorkflow
 	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
 	if err != nil {
 		log.Err(err).Msg("ServiceNewValidatorsToCloudCtxNsWorkflow")

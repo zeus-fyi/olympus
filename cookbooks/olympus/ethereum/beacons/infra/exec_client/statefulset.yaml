@@ -40,7 +40,7 @@ spec:
             - name: exec-client-storage
               mountPath: "/data"
         - name: init-snapshot
-          image: "registry.digitalocean.com/zeus-fyi/athena:latest"
+          image: "registry.digitalocean.com/zeus-fyi/downloader:latest"
           imagePullPolicy: Always
           command: [ "/bin/sh" ]
           args: [ "-c","/scripts/download.sh" ]
@@ -112,11 +112,6 @@ spec:
               port: http-rpc
           resources:
             {}
-          env:
-            - name: POD_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
       nodeSelector:
         {}
       affinity:

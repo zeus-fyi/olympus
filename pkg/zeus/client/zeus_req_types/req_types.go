@@ -1,6 +1,6 @@
 package zeus_req_types
 
-import "github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
+import "github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 
 type TopologyRequest struct {
 	TopologyID int `json:"topologyID"`

@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
-	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
 type TopologyAuthTestSuite struct {

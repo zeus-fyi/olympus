@@ -1,7 +1,7 @@
 package kns
 
 import (
-	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
 type TopologyKubeCtxNs struct {
@@ -12,7 +12,13 @@ type TopologyKubeCtxNs struct {
 func NewKns() TopologyKubeCtxNs {
 	k := TopologyKubeCtxNs{
 		TopologyID: 0,
-		CloudCtxNs: zeus_common_types.NewCloudCtxNs(),
+		CloudCtxNs: zeus_common_types.CloudCtxNs{
+			CloudProvider: "",
+			Region:        "",
+			Context:       "",
+			Namespace:     "",
+			Env:           "",
+		},
 	}
 	return k
 }

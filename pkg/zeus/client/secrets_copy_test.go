@@ -3,7 +3,7 @@ package zeus_client
 import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types/internal_reqs"
-	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
 func (t *ZeusClientTestSuite) TestSecretsCopy() {

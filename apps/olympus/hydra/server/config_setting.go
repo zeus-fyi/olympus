@@ -4,6 +4,10 @@ import (
 	"context"
 
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/configs"
+	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
+	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
+	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 )
 
@@ -17,11 +21,29 @@ var temporalProdAuthConfig = temporal_auth.TemporalAuth{
 func SetConfigByEnv(ctx context.Context, env string) {
 	switch env {
 	case "production":
+		log.Info().Msg("Artemis: production auth procedure starting")
+		temporalAuthCfg = temporalProdAuthConfig
+		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
+		inMemSecrets, sw := auth_startup.RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+		cfg.PGConnStr = sw.PostgresAuth
+		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
 	case "production-local":
+		tc := configs.InitLocalTestConfigs()
+		temporalAuthCfg = temporalProdAuthConfig
+		authKeysCfg = tc.ProdLocalAuthKeysCfg
+		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
+		inMemSecrets, sw := auth_startup.RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+		cfg.PGConnStr = tc.ProdLocalDbPgconn
+		temporalAuthCfg = tc.ProdLocalTemporalAuthArtemis
+		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
 	case "local":
+		tc := configs.InitLocalTestConfigs()
+		cfg.PGConnStr = tc.LocalDbPgconn
+		temporalAuthCfg = tc.ProdLocalTemporalAuthArtemis
+		artemis_network_cfgs.InitArtemisLocalTestConfigs()
 	}
 
-	log.Info().Msgf("Hydra %s temporal auth and init procedure starting", env)
-	// TODO replace
-	log.Info().Msgf("Hydra %s temporal auth and init procedure succeeded", env)
+	log.Info().Msgf("Hydra %s artemis orchestration retrieving auth token", env)
+	artemis_orchestration_auth.Bearer = auth_startup.FetchTemporalAuthBearer(ctx)
+	log.Info().Msgf("Hydra %s artemis orchestration retrieving auth token done", env)
 }

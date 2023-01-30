@@ -21,7 +21,7 @@ func PackageCommonTopologyRequest(topCtxNs kns.TopologyKubeCtxNs, ou org_users.O
 }
 
 func ConvertCloudCtxNsFormToType(c echo.Context) zeus_common_types.CloudCtxNs {
-	cloudCtx := zeus_common_types.NewCloudCtxNs()
+	cloudCtx := zeus_common_types.CloudCtxNs{}
 	cloudCtx.CloudProvider = c.FormValue("cloudProvider")
 	cloudCtx.Region = c.FormValue("region")
 	cloudCtx.Context = c.FormValue("context")

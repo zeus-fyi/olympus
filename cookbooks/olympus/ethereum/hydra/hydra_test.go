@@ -7,10 +7,14 @@ import (
 	"github.com/stretchr/testify/suite"
 	olympus_cookbooks "github.com/zeus-fyi/olympus/cookbooks"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
+	zeus_client "github.com/zeus-fyi/olympus/pkg/zeus/client"
+	api_configs "github.com/zeus-fyi/olympus/test/configs"
 )
 
 type HydraCookbookTestSuite struct {
 	test_suites_base.TestSuite
+
+	ZeusTestClient zeus_client.ZeusClient
 }
 
 func (t *HydraCookbookTestSuite) TestClusterSetup() {
@@ -31,6 +35,9 @@ func (t *HydraCookbookTestSuite) TestClusterSetup() {
 
 func (t *HydraCookbookTestSuite) SetupTest() {
 	olympus_cookbooks.ChangeToCookbookDir()
+
+	tc := api_configs.InitLocalTestConfigs()
+	t.ZeusTestClient = zeus_client.NewDefaultZeusClient(tc.Bearer)
 }
 
 func TestHydraCookbookTestSuite(t *testing.T) {

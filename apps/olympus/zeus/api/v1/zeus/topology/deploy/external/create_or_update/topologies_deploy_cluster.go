@@ -7,11 +7,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	create_infra "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/definitions/bases/infra"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
-	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
 type TopologyClusterDeployRequest struct {
@@ -41,12 +40,6 @@ func (t *TopologyClusterDeployRequest) DeployClusterTopology(c echo.Context) err
 	ou := c.Get("orgUser").(org_users.OrgUser)
 
 	orgID := ou.OrgID
-	if t.ClusterClassName == "ethereumBeacons" {
-		err := create_infra.InsertInfraBeaconCopy(ctx, ou)
-		if err != nil {
-			log.Ctx(ctx).Err(err).Msg("DeployClusterTopology: SelectClusterTopology")
-		}
-	}
 	cl, err := read_topology.SelectClusterTopology(ctx, orgID, t.ClusterClassName, t.SkeletonBaseOptions)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("DeployClusterTopology: SelectClusterTopology")
@@ -59,5 +52,6 @@ func (t *TopologyClusterDeployRequest) DeployClusterTopology(c echo.Context) err
 		OrgUser:                   ou,
 		RequestChoreographySecret: cl.CheckForChoreographyOption(),
 	}
+
 	return zeus.ExecuteDeployClusterWorkflow(c, ctx, clDeploy)
 }

@@ -11,9 +11,9 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
-	"github.com/zeus-fyi/olympus/pkg/zeus/core/zeus_common_types"
 	test_base "github.com/zeus-fyi/olympus/test"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
 type ZeusClientTestSuite struct {

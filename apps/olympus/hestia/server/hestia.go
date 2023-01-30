@@ -51,13 +51,13 @@ func Hestia() {
 	log.Info().Msg("Hestia: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 
+	// NOTE: inits at least one worker, then reuses the connection
+	// ephemery
+	eth_validators_service_requests.InitArtemisEthereumEphemeryValidatorsRequestsWorker(ctx, temporalProdAuthConfig)
 	// connect
-
 	c := eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.ConnectTemporalClient()
 	defer c.Close()
 
-	// ephemery
-	eth_validators_service_requests.InitArtemisEthereumEphemeryValidatorsRequestsWorker(ctx, temporalProdAuthConfig)
 	log.Info().Msg("Hestia: Starting InitArtemisEthereumEphemeryValidatorsRequestsWorker")
 	eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.Worker.RegisterWorker(c)
 	err := eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.Worker.Start()

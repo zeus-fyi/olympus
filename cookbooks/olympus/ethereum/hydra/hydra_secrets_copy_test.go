@@ -12,7 +12,14 @@ func (t *HydraCookbookTestSuite) TestHydraSecretsCopy() {
 	s1 := "spaces-auth"
 	s2 := "spaces-key"
 	s3 := "age-auth"
-
+	/*
+		cd.CloudCtxNs.Namespace = mainnetNamespace
+		cd.ClusterClassName = "hydraMainnet"
+	*/
+	hydraCtxNsTop := kns.TopologyKubeCtxNs{
+		TopologyID: 0,
+		CloudCtxNs: ValidatorCloudCtxNs,
+	}
 	req := internal_reqs.InternalSecretsCopyFromTo{
 		SecretNames: []string{s1, s2, s3},
 		FromKns: kns.TopologyKubeCtxNs{
@@ -25,10 +32,7 @@ func (t *HydraCookbookTestSuite) TestHydraSecretsCopy() {
 				Env:           "dev",
 			},
 		},
-		ToKns: kns.TopologyKubeCtxNs{
-			TopologyID: 0,
-			CloudCtxNs: ValidatorCloudCtxNs,
-		},
+		ToKns: hydraCtxNsTop,
 	}
 
 	err := t.ZeusTestClient.CopySecretsFromToNamespace(context.Background(), req)

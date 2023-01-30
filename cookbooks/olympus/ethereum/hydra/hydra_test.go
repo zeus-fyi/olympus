@@ -13,7 +13,6 @@ import (
 
 type HydraCookbookTestSuite struct {
 	test_suites_base.TestSuite
-
 	ZeusTestClient zeus_client.ZeusClient
 }
 

@@ -236,15 +236,21 @@ func (d *DbContainers) parseEnvVars(envVarString string) ([]v1.EnvVar, error) {
 		envSource := v1.EnvVarSource{}
 		verr := json.Unmarshal([]byte(v.(string)), &envSource)
 		value := ""
+		var envVar v1.EnvVar
 		if verr != nil {
 			log.Err(verr).Msg("DbContainers: parseEnvVars")
 			log.Info().Msg("DbContainers: skip error, assume it is a value string")
 			value = v.(string)
-		}
-		envVar := v1.EnvVar{
-			Name:      k,
-			Value:     value,
-			ValueFrom: &envSource,
+			envVar = v1.EnvVar{
+				Name:  k,
+				Value: value,
+			}
+		} else {
+			envVar = v1.EnvVar{
+				Name:      k,
+				Value:     "",
+				ValueFrom: &envSource,
+			}
 		}
 		envVars = append(envVars, envVar)
 	}

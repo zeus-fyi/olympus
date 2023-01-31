@@ -10,6 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
 	zeus_client "github.com/zeus-fyi/zeus/pkg/zeus/client"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
 )
 
 type HydraCookbookTestSuite struct {
@@ -30,6 +31,15 @@ func (t *HydraCookbookTestSuite) TestClusterDeploy() {
 
 	_, err = t.ZeusTestClient.DeployCluster(ctx, cdep)
 	t.Require().Nil(err)
+}
+
+func (t *HydraCookbookTestSuite) TestClusterDestroy() {
+	d := zeus_req_types.TopologyDeployRequest{
+		CloudCtxNs: ValidatorCloudCtxNs,
+	}
+	resp, err := t.ZeusTestClient.DestroyDeploy(ctx, d)
+	t.Require().Nil(err)
+	t.Assert().NotEmpty(resp)
 }
 
 func (t *HydraCookbookTestSuite) TestClusterRegisterDefinitions() {

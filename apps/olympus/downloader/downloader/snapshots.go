@@ -40,8 +40,8 @@ type WorkloadInfo struct {
 func StartUp() {
 	ctx := context.Background()
 	log.Info().Msg("Downloader: DigitalOceanS3AuthClient starting")
-	athena.AthenaS3Manager = auth_startup.NewDigitalOceanS3AuthClient(ctx, authKeysCfg)
 	SetConfigByEnv(ctx, env)
+	athena.AthenaS3Manager = auth_startup.NewDigitalOceanS3AuthClient(ctx, authKeysCfg)
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	log.Info().Msg("Downloader: DigitalOceanS3AuthClient done")
 	InitWorkloadAction(ctx, Workload)

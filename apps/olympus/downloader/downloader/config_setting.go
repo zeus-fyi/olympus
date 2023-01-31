@@ -13,7 +13,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	case "production":
 		log.Info().Msg("Downloader: production auth procedure starting")
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
-		_, sw := auth_startup.RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+		_, sw := auth_startup.RunAthenaDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		cfg.PGConnStr = sw.PostgresAuth
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()

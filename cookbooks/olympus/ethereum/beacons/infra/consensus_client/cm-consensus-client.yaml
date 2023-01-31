@@ -20,7 +20,7 @@ data:
               --execution-endpoint="http://zeus-exec-client:8551"
   download.sh: |-
     #!/bin/sh
-    exec downloader --workload-type="beaconConsensusClient" --client-name="lighthouse" --protocol-network-id="${PROTOCOL_NETWORK_ID}" --age-private-key="${AGE_PKEY}" --do-spaces-key="${DO_SPACES_KEY}" --do-spaces-private-key="${DO_SPACES_PKEY}" --env="production" --cloud-provider="${CLOUD_PROVIDER}" --ctx="${CTX}" --ns="${NS}" --region="${REGION}"
+    exec downloader --workload-type="beaconConsensusClient" --client-name="lighthouse" --protocol-network-id=$(expr ${PROTOCOL_NETWORK_ID} + 0) --age-private-key="${AGE_PKEY}" --do-spaces-key="${DO_SPACES_KEY}" --do-spaces-private-key="${DO_SPACES_PKEY}" --env="production" --cloud-provider="${CLOUD_PROVIDER}" --ctx="${CTX}" --ns="${NS}" --region="${REGION}"
   lighthouse.sh: |-
     #!/bin/sh
     exec lighthouse beacon_node \
@@ -38,7 +38,7 @@ data:
               --execution-endpoint="http://zeus-exec-client:8551"
   athena.sh: |-
     #!/bin/sh 
-    exec athena --workload-type="beaconConsensusClient" --protocol-network-id="${PROTOCOL_NETWORK_ID}" --age-private-key="${AGE_PKEY}" --do-spaces-key="${DO_SPACES_KEY}" --do-spaces-private-key="${DO_SPACES_PKEY}" --env="production" --cloud-provider="${CLOUD_PROVIDER}" --ctx="${CTX}" --ns="${NS}" --region="${REGION}"
+    exec athena --workload-type="beaconConsensusClient" --protocol-network-id=$(expr ${PROTOCOL_NETWORK_ID} + 0) --age-private-key="${AGE_PKEY}" --do-spaces-key="${DO_SPACES_KEY}" --do-spaces-private-key="${DO_SPACES_PKEY}" --env="production" --cloud-provider="${CLOUD_PROVIDER}" --ctx="${CTX}" --ns="${NS}" --region="${REGION}"
   lighthouseEphemeral.sh: |-
     #!/bin/sh
     exec lighthouse beacon_node \

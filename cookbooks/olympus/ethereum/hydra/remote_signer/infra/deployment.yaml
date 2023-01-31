@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: "hydra"
+  name: "zeus-hydra"
   labels:
-    app.kubernetes.io/instance: "hydra"
-    app.kubernetes.io/name: "hydra"
+    app.kubernetes.io/instance: "zeus-hydra"
+    app.kubernetes.io/name: "zeus-hydra"
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: "hydra"
-      app.kubernetes.io/instance: "hydra"
+      app.kubernetes.io/name: "zeus-hydra"
+      app.kubernetes.io/instance: "zeus-hydra"
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: "hydra"
-        app.kubernetes.io/instance: "hydra"
+        app.kubernetes.io/name: "zeus-hydra"
+        app.kubernetes.io/instance: "zeus-hydra"
     spec:
       containers:
         - name: "hydra"
-          image: "registry.digitalocean.com/zeus-fyi/hydra:latest"
+          image: "registry.digitalocean.com/zeus-fyi/zeus-hydra:latest"
           volumeMounts:
             - mountPath: "/scripts"
               name: "cm-hydra"

@@ -13,8 +13,8 @@ docker.pubbuildx:
 	@ docker buildx build -t ${IMG} -t ${LATEST} --build-arg GOMODCACHE=${GOMODCACHE} --build-arg GOCACHE=${GOCACHE} --platform=linux/amd64 -f ../../docker/hydra/Dockerfile ../../ --push
 
 CHOREOGRAPHY_NAME    := hydrachoreography
-CHOREOGRAPHY_IMG     := ${REPO}/${NAME}:${GIT_SHA}
-CHOREOGRAPHY_LATEST  := ${REPO}/${NAME}:latest
+CHOREOGRAPHY_IMG     := ${REPO}/${CHOREOGRAPHY_NAME}:${GIT_SHA}
+CHOREOGRAPHY_LATEST  := ${REPO}/${CHOREOGRAPHY_NAME}:latest
 
 docker.cho.pubbuildx:
 	@ docker buildx build -t ${CHOREOGRAPHY_IMG} -t ${CHOREOGRAPHY_LATEST} --build-arg GOMODCACHE=${GOMODCACHE} --build-arg GOCACHE=${GOCACHE} --platform=linux/amd64 -f ../../docker/hydra_choreography/Dockerfile ../../ --push

@@ -57,7 +57,7 @@ func (c ClusterTopology) GetTopologyIDs() []int {
 
 func (c ClusterTopology) CheckForChoreographyOption() bool {
 	for _, ct := range c.Topologies {
-		if ct.SkeletonBaseName == "choreography" {
+		if ct.SkeletonBaseName == "choreography" || ct.SkeletonBaseName == "hydraChoreography" {
 			return true
 		}
 	}

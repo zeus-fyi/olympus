@@ -53,7 +53,7 @@ var (
 	}
 	ExecClientChartPath = filepaths.Path{
 		PackageName: "",
-		DirIn:       "./olympus/ethereum/beacons/infra/consensus_client",
+		DirIn:       "./olympus/ethereum/beacons/infra/exec_client",
 		DirOut:      "./olympus/ethereum/outputs",
 		FnIn:        "gethAthena", // filename for your gzip workload
 		FnOut:       "",

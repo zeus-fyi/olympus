@@ -6,9 +6,12 @@ func GetChoreographyEnvVars() []v1.EnvVar {
 	var envVars []v1.EnvVar
 
 	refName := "choreography"
+	name := "BEARER"
+	key := "bearer"
+	envVars = append(envVars, MakeEnvVar(name, key, refName))
 
-	name := "CLOUD_PROVIDER"
-	key := "cloud-provider"
+	name = "CLOUD_PROVIDER"
+	key = "cloud-provider"
 	envVars = append(envVars, MakeEnvVar(name, key, refName))
 
 	name = "CTX"

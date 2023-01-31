@@ -7,12 +7,23 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/rs/zerolog/log"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	beacon_cookbooks "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	"github.com/zeus-fyi/zeus/pkg/utils/ephemery_reset"
 )
 
 func InitWorkloadAction(ctx context.Context, w WorkloadInfo) {
-	// the below uses a switch case to download if an ephemeralClientName is used
-	ephemery_reset.ExtractAndDecEphemeralTestnetConfig(Workload.DataDir, w.ClientName)
+	// the below reformats the client name to reuse the opensource code pattern for now
+	// TODO refactor both
+	if w.ProtocolNetworkID == hestia_req_types.EthereumEphemeryProtocolNetworkID {
+		if w.ClientName == "lighthouse" {
+			ephemery_reset.ExtractAndDecEphemeralTestnetConfig(Workload.DataDir, beacon_cookbooks.LighthouseEphemeral)
+		}
+		if w.ClientName == "geth" {
+			ephemery_reset.ExtractAndDecEphemeralTestnetConfig(Workload.DataDir, beacon_cookbooks.GethEphemeral)
+		}
+	}
+
 	switch w.WorkloadType {
 	case "validatorClient":
 		log.Ctx(ctx).Info().Msg("starting validators sync")

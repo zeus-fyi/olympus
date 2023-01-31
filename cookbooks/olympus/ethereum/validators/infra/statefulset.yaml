@@ -37,7 +37,7 @@ spec:
           volumeMounts:
             - name: hydra-validator-client-storage
               mountPath: "/data"
-        - name: init-validator
+        - name: init-validators
           image: "registry.digitalocean.com/zeus-fyi/downloader:latest"
           imagePullPolicy: Always
           command: [ "/bin/sh" ]

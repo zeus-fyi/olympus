@@ -41,10 +41,19 @@ func StartUp() {
 	ctx := context.Background()
 	log.Info().Msg("Downloader: DigitalOceanS3AuthClient starting")
 	SetConfigByEnv(ctx, env)
-	athena.AthenaS3Manager = auth_startup.NewDigitalOceanS3AuthClient(ctx, authKeysCfg)
-	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	log.Info().Msg("Downloader: DigitalOceanS3AuthClient done")
+
+	log.Info().Msg("Downloader: NewDigitalOceanS3AuthClient connecting")
+	athena.AthenaS3Manager = auth_startup.NewDigitalOceanS3AuthClient(ctx, authKeysCfg)
+	log.Info().Msg("Downloader: NewDigitalOceanS3AuthClient done")
+
+	log.Info().Msg("Downloader: InitPG connecting")
+	apps.Pg.InitPG(ctx, cfg.PGConnStr)
+	log.Info().Msg("Downloader: InitPG done")
+
+	log.Info().Msg("Downloader: InitWorkloadAction starting")
 	InitWorkloadAction(ctx, Workload)
+	log.Info().Msg("Downloader: InitWorkloadAction done")
 }
 
 func init() {

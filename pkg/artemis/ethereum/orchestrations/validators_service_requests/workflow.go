@@ -14,7 +14,7 @@ type ArtemisNewEthereumValidatorsServiceRequestWorkflow struct {
 }
 
 // TODO revise this timeout
-const defaultTimeout = 6 * time.Second
+const defaultTimeout = 300 * time.Second
 
 func NewArtemisEthereumValidatorServiceRequestWorkflow() ArtemisNewEthereumValidatorsServiceRequestWorkflow {
 	deployWf := ArtemisNewEthereumValidatorsServiceRequestWorkflow{
@@ -60,7 +60,7 @@ func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) ServiceNewValidator
 	updateClusterValidatorsStatusCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(updateClusterValidatorsStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.RestartValidatorClient, params).Get(updateClusterValidatorsStatusCtx, nil)
 	if err != nil {
-		log.Error("Failed to assign validators to cloud ctx ns", "Error", err)
+		log.Error("Failed to restart validators client", "Error", err)
 		return err
 	}
 	return nil

@@ -3,6 +3,7 @@ package containers
 import (
 	"encoding/json"
 
+	"github.com/rs/zerolog/log"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/containers"
 	v1 "k8s.io/api/core/v1"
@@ -29,9 +30,12 @@ func ContainerEnvVarToDB(env v1.EnvVar) (autogen_bases.ContainerEnvironmentalVar
 	if len(env.Value) <= 0 {
 		bytes, err := json.Marshal(env.ValueFrom)
 		if err != nil {
+			log.Err(err).Interface("env", env).Msg("ContainerEnvVarToDB")
 			return dbContainer, err
 		}
 		dbContainer.Value = string(bytes)
+	} else {
+		dbContainer.Value = env.Value
 	}
 
 	return dbContainer, nil

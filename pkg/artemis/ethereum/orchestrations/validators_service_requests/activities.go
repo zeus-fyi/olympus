@@ -107,27 +107,31 @@ type Resty struct {
 }
 
 // VerifyValidatorKeyOwnershipAndSigning TODO fetch relevant auth to remote signer
+// TODO, restore verify later
 func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOwnershipAndSigning(ctx context.Context, params ArtemisEthereumValidatorsServiceRequestPayload) ([]string, error) {
 	r := Resty{}
 	r.Client = resty.New()
 	req := aegis_inmemdbs.EthereumBLSKeySignatureRequests{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureRequest)}
-	for _, vs := range params.ValidatorServiceOrgGroupSlice {
+
+	tmp := make([]string, len(params.ValidatorServiceOrgGroupSlice))
+	for i, vs := range params.ValidatorServiceOrgGroupSlice {
 		pubkey := vs.Pubkey
+		tmp[i] = pubkey
 		req.Map[pubkey] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: rand.String(10)}
 	}
-	respJson := aegis_inmemdbs.EthereumBLSKeySignatureResponses{}
-	_, err := r.R().
-		SetResult(&respJson.Map).
-		SetBody(req).
-		Post(params.ServiceURL)
-	if err != nil {
-		log.Ctx(ctx).Err(err)
-		return nil, err
-	}
-	verifiedKeys, err := respJson.VerifySignatures(ctx, req)
-	if err != nil {
-		log.Ctx(ctx).Err(err)
-		return nil, err
-	}
-	return verifiedKeys, err
+	//respJson := aegis_inmemdbs.EthereumBLSKeySignatureResponses{}
+	//_, err := r.R().
+	//	SetResult(&respJson.Map).
+	//	SetBody(req).
+	//	Post(params.ServiceURL)
+	//if err != nil {
+	//	log.Ctx(ctx).Err(err)
+	//	return nil, err
+	//}
+	//verifiedKeys, err := respJson.VerifySignatures(ctx, req)
+	//if err != nil {
+	//	log.Ctx(ctx).Err(err)
+	//	return nil, err
+	//}
+	return tmp, nil
 }

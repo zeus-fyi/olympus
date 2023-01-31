@@ -225,23 +225,25 @@ func (d *DbContainers) parseVolumeMount(contVolMounts string) ([]v1.VolumeMount,
 
 func (d *DbContainers) parseEnvVars(envVarString string) ([]v1.EnvVar, error) {
 	var envVars []v1.EnvVar
-	m := map[string]any{}
+	m := make(map[string]interface{})
 	err := json.Unmarshal([]byte(envVarString), &m)
 	if err != nil {
-		log.Info().Interface("envVarString", envVarString)
 		log.Err(err).Msg("DbContainers: parseEnvVars")
+		log.Info().Interface("envVarString", envVarString)
 		return envVars, err
 	}
 	for k, v := range m {
 		envSource := v1.EnvVarSource{}
 		verr := json.Unmarshal([]byte(v.(string)), &envSource)
+		value := ""
 		if verr != nil {
-			log.Err(err).Msg("DbContainers: parseEnvVars")
-			return envVars, verr
+			log.Err(verr).Msg("DbContainers: parseEnvVars")
+			log.Info().Msg("DbContainers: skip error, assume it is a value string")
+			value = v.(string)
 		}
 		envVar := v1.EnvVar{
 			Name:      k,
-			Value:     "",
+			Value:     value,
 			ValueFrom: &envSource,
 		}
 		envVars = append(envVars, envVar)

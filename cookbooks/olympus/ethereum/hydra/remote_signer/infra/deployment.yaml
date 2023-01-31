@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: "hydra"
-          image: "registry.digitalocean.com/zeus-fyi/zeus-hydra:latest"
+          image: "registry.digitalocean.com/zeus-fyi/hydra:latest"
           volumeMounts:
             - mountPath: "/scripts"
               name: "cm-hydra"

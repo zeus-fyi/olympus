@@ -73,7 +73,7 @@ spec:
           image: "sigp/lighthouse:v3.3.0-modern"
           imagePullPolicy: IfNotPresent
           command: [ "/bin/sh" ]
-          args: [ "-c","/scripts/start.sh" ]
+          args: [ "-c","/scripts/lighthouseEphemeral.sh" ]
           volumeMounts:
             - name: cm-consensus-client
               mountPath: "/scripts"

@@ -28,6 +28,9 @@ RUN cd rclone-*-linux-amd64 && cp rclone /usr/bin/
 RUN chown root:root /usr/bin/rclone
 RUN chmod 755 /usr/bin/rclone
 
+FROM ethereum/client-go:stable as geth
+WORKDIR /app
+
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates
 
@@ -37,5 +40,6 @@ COPY --from=snapshot_builder /app/ca.key /etc/ssl/certs
 
 COPY --from=snapshot_builder /app/downloader /usr/bin/downloader
 COPY --from=rclone_builder /usr/bin/rclone /usr/bin/rclone
+COPY --from=geth /usr/local/bin/geth /usr/local/bin
 
 RUN mkdir -p ~/.config/rclone

@@ -39,6 +39,8 @@ type WorkloadInfo struct {
 
 func StartUp() {
 	ctx := context.Background()
+	log.Ctx(ctx).Info().Interface("workload", Workload)
+
 	log.Info().Msg("Downloader: DigitalOceanS3AuthClient starting")
 	SetConfigByEnv(ctx, env)
 	log.Info().Msg("Downloader: DigitalOceanS3AuthClient done")
@@ -71,7 +73,6 @@ func init() {
 
 	// workload info
 	Cmd.Flags().StringVar(&Workload.DataDir.DirIn, "dataDir", "/data", "data directory location")
-
 	Cmd.Flags().StringVar(&Workload.WorkloadType, "workload-type", "", "workloadType") // eg validatorClient
 	Cmd.Flags().StringVar(&Workload.ClientName, "client-name", "", "client name")
 	Cmd.Flags().IntVar(&Workload.ReplicaCountNum, "replica-count-num", 0, "stateful set ordinal index")

@@ -1,6 +1,7 @@
 package containers
 
 import (
+	"github.com/rs/zerolog/log"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/containers"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
@@ -21,14 +22,17 @@ func ConvertContainersToDB(cs []v1.Container, isInit bool) (containers.Container
 		newContainer = ConvertContainerPortsToContainerDB(c, newContainer)
 		newContainer, err := ConvertContainerProbesToDB(c, newContainer)
 		if err != nil {
+			log.Err(err)
 			return cl, err
 		}
 		newContainer, err = ConvertContainerEnvVarsToDB(c, newContainer)
 		if err != nil {
+			log.Err(err)
 			return cl, err
 		}
 		newContainer, err = ConvertContainerSecurityContextToContainerDB(c, newContainer)
 		if err != nil {
+			log.Err(err)
 			return cl, err
 		}
 		newContainer.ProcessAndSetAmbiguousContainerFieldStatusAndSubfieldIds()

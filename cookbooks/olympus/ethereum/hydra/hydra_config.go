@@ -32,13 +32,11 @@ var (
 )
 
 func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, network string) *zeus_cluster_config_drivers.ClusterDefinition {
-
 	var envVar v1.EnvVar
 	switch network {
 	case "mainnet":
 		cd.CloudCtxNs.Namespace = mainnetNamespace
 		cd.ClusterClassName = "hydraMainnet"
-
 		envVar = HydraContainer.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumMainnetProtocolNetworkID))
 	case "ephemery":
 		cd.CloudCtxNs.Namespace = ephemeryNamespace
@@ -70,8 +68,8 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 	stsCfgOverride.ContainerDrivers["athena"] = containCfgBoth
 	stsCfgOverride.ContainerDrivers["zeus-consensus-client"] = containCfgBoth
 	stsCfgOverride.ContainerDrivers["zeus-exec-client"] = containCfgBoth
-	stsCfgOverride.ContainerDrivers["init-validator"] = containCfgBoth
-	stsCfgOverride.ContainerDrivers["init-snapshot"] = containCfgBoth
+	stsCfgOverride.ContainerDrivers["init-validators"] = containCfgBoth
+	stsCfgOverride.ContainerDrivers["init-snapshots"] = containCfgBoth
 
 	for k, v := range cd.ComponentBases {
 		if k == "hydra" || k == "hydraChoreography" {

@@ -3,6 +3,7 @@ package statefulset
 import (
 	"encoding/json"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/containers"
@@ -47,10 +48,12 @@ func (s *StatefulSet) ConvertK8sStatefulSetSpecToDB() error {
 
 	err := s.ConvertK8VolumeClaimTemplatesToDB()
 	if err != nil {
+		log.Err(err)
 		return err
 	}
 	err = s.Spec.Template.ConvertPodTemplateSpecConfigToDB(&s.K8sStatefulSet.Spec.Template.Spec)
 	if err != nil {
+		log.Err(err)
 		return err
 	}
 	s.Spec.Template.ParentClass.ChartComponentResourceID = StsChartComponentResourceID

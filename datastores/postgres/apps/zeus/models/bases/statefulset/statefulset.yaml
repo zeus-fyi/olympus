@@ -45,6 +45,9 @@ spec:
           args: [ "-c","/scripts/download.sh" ]
           resources:
             {}
+          env:
+            - name: PROTOCOL_NETWORK_ID
+              value: "1673748447294772000"
           volumeMounts:
             - name: cm-consensus-client
               mountPath: "/scripts"

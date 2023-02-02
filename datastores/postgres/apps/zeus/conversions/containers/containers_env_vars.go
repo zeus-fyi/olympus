@@ -14,6 +14,7 @@ func ContainerEnvVarsToDB(envs []v1.EnvVar) (autogen_bases.ContainerEnvironmenta
 	for i, env := range envs {
 		envVar, err := ContainerEnvVarToDB(env)
 		if err != nil {
+			log.Err(err).Interface("env", env).Msg("ContainerEnvVarsToDB")
 			return envVarsSlice, err
 		}
 		envVarsSlice[i] = envVar
@@ -44,6 +45,7 @@ func ContainerEnvVarToDB(env v1.EnvVar) (autogen_bases.ContainerEnvironmentalVar
 func ConvertContainerEnvVarsToDB(cs v1.Container, dbContainer containers.Container) (containers.Container, error) {
 	env, err := ContainerEnvVarsToDB(cs.Env)
 	if err != nil {
+		log.Err(err).Interface("env", env).Msg("ConvertContainerEnvVarsToDB")
 		return dbContainer, err
 	}
 	dbContainer.Env = env

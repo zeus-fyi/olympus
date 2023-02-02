@@ -3,6 +3,7 @@ package containers
 import (
 	"fmt"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
 	cont_conv "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/containers"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
@@ -15,14 +16,17 @@ import (
 func (p *PodTemplateSpec) ConvertPodTemplateSpecConfigToDB(ps *v1.PodSpec) error {
 	dbSpecVolumes, err := common_conversions.VolumesToDB(ps.Volumes)
 	if err != nil {
+		log.Err(err)
 		return err
 	}
 	dbSpecContainers, err := cont_conv.ConvertContainersToDB(ps.Containers, false)
 	if err != nil {
+		log.Err(err)
 		return err
 	}
 	dbSpecInitContainers, err := cont_conv.ConvertContainersToDB(ps.InitContainers, true)
 	if err != nil {
+		log.Err(err)
 		return err
 	}
 
@@ -51,6 +55,7 @@ func (p *PodTemplateSpec) ConvertPodTemplateSpecConfigToDB(ps *v1.PodSpec) error
 	p.Spec.PodTemplateContainers = dbSpecInitContainers
 	p.Spec.PodTemplateSpecVolumes = dbSpecVolumes
 	if err != nil {
+		log.Err(err)
 		return err
 	}
 

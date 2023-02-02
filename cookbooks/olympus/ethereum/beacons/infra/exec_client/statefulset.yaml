@@ -39,7 +39,7 @@ spec:
           volumeMounts:
             - name: exec-client-storage
               mountPath: "/data"
-        - name: init-snapshot
+        - name: init-snapshots
           image: "registry.digitalocean.com/zeus-fyi/downloader:latest"
           imagePullPolicy: Always
           command: [ "/bin/sh" ]

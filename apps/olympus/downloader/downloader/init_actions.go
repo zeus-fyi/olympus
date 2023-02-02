@@ -13,16 +13,6 @@ import (
 )
 
 func InitWorkloadAction(ctx context.Context, w WorkloadInfo) {
-	// the below reformats the client name to reuse the opensource code pattern for now
-	// TODO refactor both
-	if w.ProtocolNetworkID == hestia_req_types.EthereumEphemeryProtocolNetworkID {
-		if w.ClientName == "lighthouse" {
-			ephemery_reset.ExtractAndDecEphemeralTestnetConfig(Workload.DataDir, beacon_cookbooks.LighthouseEphemeral)
-		}
-		if w.ClientName == "geth" {
-			ephemery_reset.ExtractAndDecEphemeralTestnetConfig(Workload.DataDir, beacon_cookbooks.GethEphemeral)
-		}
-	}
 
 	switch w.WorkloadType {
 	case "validatorClient":
@@ -58,5 +48,18 @@ func InitWorkloadAction(ctx context.Context, w WorkloadInfo) {
 		log.Ctx(ctx).Info().Msg("starting chain sync")
 		ChainDownload(ctx)
 		log.Ctx(ctx).Info().Msg("chain sync complete")
+	}
+
+	// the below reformats the client name to reuse the opensource code pattern for now
+	// TODO refactor both
+	if w.ProtocolNetworkID == hestia_req_types.EthereumEphemeryProtocolNetworkID {
+		log.Info().Msg("Downloader: InitEphemeryNetwork starting")
+		if w.ClientName == "lighthouse" {
+			ephemery_reset.ExtractAndDecEphemeralTestnetConfig(Workload.DataDir, beacon_cookbooks.LighthouseEphemeral)
+		}
+		if w.ClientName == "geth" {
+			ephemery_reset.ExtractAndDecEphemeralTestnetConfig(Workload.DataDir, beacon_cookbooks.GethEphemeral)
+		}
+		log.Info().Msg("Downloader: InitEphemeryNetwork done")
 	}
 }

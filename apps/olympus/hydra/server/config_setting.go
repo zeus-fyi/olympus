@@ -5,6 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/configs"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
@@ -42,6 +43,9 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		temporalAuthCfg = tc.ProdLocalTemporalAuthArtemis
 		artemis_network_cfgs.InitArtemisLocalTestConfigs()
 	}
+	log.Info().Msg("Hydra: InitPG connecting")
+	apps.Pg.InitPG(ctx, cfg.PGConnStr)
+	log.Info().Msg("Hydra: InitPG done")
 
 	log.Info().Msgf("Hydra %s artemis orchestration retrieving auth token", env)
 	artemis_orchestration_auth.Bearer = auth_startup.FetchTemporalAuthBearer(ctx)

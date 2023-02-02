@@ -63,7 +63,7 @@ func (s *S3ClientReader) ReadBytes(ctx context.Context, p *filepaths.Path, s3Key
 		panic(errors.New("need to include a path"))
 	}
 
-	log.Info().Msg("Zeus: S3ClientReader, downloading bucket object")
+	log.Info().Msg("S3ClientReader: downloading bucket object")
 	buf := &bytes.Buffer{}
 	downloader := manager.NewDownloader(s.AwsS3Client)
 	downloader.Concurrency = 1
@@ -71,7 +71,7 @@ func (s *S3ClientReader) ReadBytes(ctx context.Context, p *filepaths.Path, s3Key
 	w := FakeWriterAt{w: buf}
 	_, err := downloader.Download(ctx, w, s3KeyValue)
 	if err != nil {
-		log.Fatal().Msg("Zeus: S3ClientReader, download failed shutting down server")
+		log.Fatal().Msg("S3ClientReader: download failed shutting down server")
 		misc.DelayedPanic(err)
 	}
 	return buf

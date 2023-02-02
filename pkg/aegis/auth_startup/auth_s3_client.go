@@ -10,6 +10,12 @@ import (
 )
 
 func NewDigitalOceanS3AuthClient(ctx context.Context, keysCfg auth_keys_config.AuthKeysCfg) s3base.S3Client {
+	if len(keysCfg.SpacesPrivKey) <= 0 {
+		log.Ctx(ctx).Warn().Msg("no spaces priv key provided")
+	}
+	if len(keysCfg.SpacesKey) <= 0 {
+		log.Ctx(ctx).Warn().Msg("no spaces key provided")
+	}
 	s3BaseClient, err := s3base.NewConnS3ClientWithStaticCreds(ctx, keysCfg.SpacesKey, keysCfg.SpacesPrivKey)
 	if err != nil {
 		log.Fatal().Msg("NewDefaultAuthClient: NewConnS3ClientWithStaticCreds failed, shutting down the server")

@@ -158,6 +158,7 @@ func (s *StatefulSetTestSuite) TestStatefulSetK8sToDBConversion() {
 		if cont.Metadata.IsInitContainer && name == "init-snapshot" {
 			countInitContainers += 1
 			countVerifiedCont += 1
+			s.Assert().Len(cont.Env, 1)
 		}
 
 		if cont.Metadata.IsInitContainer == false && name == "lighthouse" {

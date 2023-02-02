@@ -16,9 +16,9 @@ type SecretsTestSuite struct {
 
 func (s *SecretsTestSuite) TestGetSecrets() {
 	ctx := context.Background()
-	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "eth-indexer"}
+	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "ephemeral-staking"}
 
-	secret, err := s.K.GetSecretWithKns(ctx, kns, "postgres-auth", nil)
+	secret, err := s.K.GetSecretWithKns(ctx, kns, "spaces-auth", nil)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(secret)
 }

@@ -39,7 +39,7 @@ spec:
           volumeMounts:
             - name: exec-client-storage
               mountPath: "/data"
-        - name: init-snapshot
+        - name: init-snapshots
           image: "registry.digitalocean.com/zeus-fyi/downloader:latest"
           imagePullPolicy: Always
           command: [ "/bin/sh" ]
@@ -75,7 +75,7 @@ spec:
           image: "ethereum/client-go:v1.10.26"
           imagePullPolicy: IfNotPresent
           command: [ "/bin/sh" ]
-          args: [ "-c","/scripts/start.sh" ]
+          args: [ "-c","/scripts/gethEphemeral.sh" ]
           volumeMounts:
             - name: exec-client-storage
               mountPath: "/data"

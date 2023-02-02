@@ -95,10 +95,10 @@ func RunDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg Aut
 func RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {
 	log.Info().Msg("Artemis: RunDigitalOceanS3BucketObjSecretsProcedure starting")
 	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
-	log.Info().Msg("RunArtemisDigitalOceanS3BucketObjSecretsProcedure finished")
+	log.Info().Msg("Artemis: RunArtemisDigitalOceanS3BucketObjSecretsProcedure finished")
 	sw := SecretsWrapper{}
 	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
-	log.Info().Msg("RunArtemisDigitalOceanS3BucketObjSecretsProcedure succeeded")
+	log.Info().Msg("Artemis: RunArtemisDigitalOceanS3BucketObjSecretsProcedure succeeded")
 	return inMemSecrets, sw
 }
 
@@ -114,10 +114,10 @@ func RunPoseidonDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, aut
 }
 
 func RunAthenaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {
-	log.Info().Msg("Zeus: RunDigitalOceanS3BucketObjSecretsProcedure starting")
+	log.Info().Msg("Athena: RunDigitalOceanS3BucketObjSecretsProcedure starting")
 
 	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
-	log.Info().Msg("RunDigitalOceanS3BucketObjSecretsProcedure finished")
+	log.Info().Msg("Athena: RunDigitalOceanS3BucketObjSecretsProcedure finished")
 	sw := SecretsWrapper{}
 	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
 
@@ -132,12 +132,12 @@ func RunAthenaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authC
 	}
 	rcloneConf, err := inMemSecrets.ReadFile(rcloneSecret)
 	if err != nil {
-		log.Err(err).Msg("RunAthenaDigitalOceanS3BucketObjSecretsProcedure failed to set rclone conf")
+		log.Err(err).Msg("Athena:  RunAthenaDigitalOceanS3BucketObjSecretsProcedure failed to set rclone conf")
 		misc.DelayedPanic(err)
 	}
 	err = p.WriteToFileOutPath(rcloneConf)
 	if err != nil {
-		log.Err(err).Msg("RunAthenaDigitalOceanS3BucketObjSecretsProcedure failed to set rclone conf")
+		log.Err(err).Msg("Athena:  RunAthenaDigitalOceanS3BucketObjSecretsProcedure failed to set rclone conf")
 		misc.DelayedPanic(err)
 	}
 	return inMemSecrets, sw

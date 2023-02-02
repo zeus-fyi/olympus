@@ -35,6 +35,9 @@ func FetchTemporalAuthBearer(ctx context.Context) string {
 }
 
 func NewDefaultAuthClient(ctx context.Context, keysCfg auth_keys_config.AuthKeysCfg) AuthConfig {
+	if len(keysCfg.AgePrivKey) <= 0 {
+		log.Warn().Msg("no age priv key provided, auth will fail")
+	}
 	a := encryption.NewAge(keysCfg.AgePrivKey, keysCfg.AgePubKey)
 	s3BaseClient := NewDigitalOceanS3AuthClient(ctx, keysCfg)
 

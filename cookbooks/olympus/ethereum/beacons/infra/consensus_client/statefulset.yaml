@@ -37,7 +37,7 @@ spec:
           volumeMounts:
             - name: consensus-client-storage
               mountPath: "/data"
-        - name: init-snapshot
+        - name: init-snapshots
           image: "registry.digitalocean.com/zeus-fyi/downloader:latest"
           imagePullPolicy: Always
           command: [ "/bin/sh" ]
@@ -70,10 +70,10 @@ spec:
             tcpSocket:
               port: athena
         - name: zeus-consensus-client
-          image: "sigp/lighthouse:v3.3.0-modern"
+          image: "sigp/lighthouse:v3.4.0"
           imagePullPolicy: IfNotPresent
           command: [ "/bin/sh" ]
-          args: [ "-c","/scripts/start.sh" ]
+          args: [ "-c","/scripts/lighthouseEphemeral.sh" ]
           volumeMounts:
             - name: cm-consensus-client
               mountPath: "/scripts"

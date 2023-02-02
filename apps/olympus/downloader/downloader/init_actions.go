@@ -1,4 +1,4 @@
-package snapshot_init
+package olympus_snapshot_init
 
 import (
 	"context"

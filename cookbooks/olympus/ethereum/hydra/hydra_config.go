@@ -44,32 +44,30 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 		envVar = HydraContainer.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumEphemeryProtocolNetworkID))
 	}
 
+	depCfgOverride := zeus_topology_config_drivers.DeploymentDriver{}
+	depCfgOverride.ContainerDrivers = make(map[string]zeus_topology_config_drivers.ContainerDriver)
+	stsCfgOverride := zeus_topology_config_drivers.StatefulSetDriver{}
+	stsCfgOverride.ContainerDrivers = make(map[string]zeus_topology_config_drivers.ContainerDriver)
+
 	envVarsChoreography := olympus_common_vals_cookbooks.GetChoreographyEnvVars()
 	internalAuthEnvVars := olympus_common_vals_cookbooks.GetCommonInternalAuthEnvVars()
 	combinedEnvVars := append(envVarsChoreography, internalAuthEnvVars...)
+	combinedEnvVars = append(combinedEnvVars, envVar)
 
 	containCfg := zeus_topology_config_drivers.ContainerDriver{}
-	containCfg.Env = envVarsChoreography
-	containCfg.AppendEnvVars = []v1.EnvVar{envVar}
+	containCfg.Env = combinedEnvVars
 
-	containCfgBoth := zeus_topology_config_drivers.ContainerDriver{}
-	containCfgBoth.Env = combinedEnvVars
-	containCfgBoth.AppendEnvVars = []v1.EnvVar{envVar}
-
-	depCfgOverride := zeus_topology_config_drivers.DeploymentDriver{}
-	depCfgOverride.ContainerDrivers = make(map[string]zeus_topology_config_drivers.ContainerDriver)
-
-	depCfgOverride.ContainerDrivers["hydra"] = containCfgBoth
+	// deployments
+	depCfgOverride.ContainerDrivers["hydra"] = containCfg
 	depCfgOverride.ContainerDrivers["zeus-hydra-choreography"] = containCfg
-	depCfgOverride.ContainerDrivers["athena"] = containCfgBoth
+	depCfgOverride.ContainerDrivers["athena"] = containCfg
 
-	stsCfgOverride := zeus_topology_config_drivers.StatefulSetDriver{}
-	stsCfgOverride.ContainerDrivers = make(map[string]zeus_topology_config_drivers.ContainerDriver)
-	stsCfgOverride.ContainerDrivers["athena"] = containCfgBoth
-	stsCfgOverride.ContainerDrivers["zeus-consensus-client"] = containCfgBoth
-	stsCfgOverride.ContainerDrivers["zeus-exec-client"] = containCfgBoth
-	stsCfgOverride.ContainerDrivers["init-validators"] = containCfgBoth
-	stsCfgOverride.ContainerDrivers["init-snapshots"] = containCfgBoth
+	// statefulsets
+	stsCfgOverride.ContainerDrivers["athena"] = containCfg
+	stsCfgOverride.ContainerDrivers["zeus-consensus-client"] = containCfg
+	stsCfgOverride.ContainerDrivers["zeus-exec-client"] = containCfg
+	stsCfgOverride.ContainerDrivers["init-validators"] = containCfg
+	stsCfgOverride.ContainerDrivers["init-snapshots"] = containCfg
 
 	for k, v := range cd.ComponentBases {
 		if k == "hydra" || k == "hydraChoreography" {

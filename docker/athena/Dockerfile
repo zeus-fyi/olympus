@@ -11,12 +11,14 @@ COPY configs/zeus.fyi/ca.key .
 
 ARG GOMODCACHE
 ARG GOCACHE
+ARG GOOS
+ARG GOARCH
 
 RUN --mount=type=cache,target=${GOMODCACHE} go mod download
 
 COPY . .
 
-RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o athena apps/olympus/athena/main.go
+RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} go build -ldflags="-s -w" -o athena apps/olympus/athena/main.go
 
 
 FROM ubuntu:22.04

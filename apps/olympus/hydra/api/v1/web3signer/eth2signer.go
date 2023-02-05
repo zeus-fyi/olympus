@@ -2,8 +2,8 @@ package hydra_eth2_web3signer
 
 import (
 	"encoding/json"
+	"github.com/google/uuid"
 	"github.com/patrickmn/go-cache"
-	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
 	"net/http"
 	"time"
 
@@ -40,29 +40,51 @@ func Eth2SignRequest(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, jsonBody)
 	}
 
+	var sr SignRequest
+
 	signType := jsonBody["type"]
 	switch signType {
 	case ATTESTATION:
+		// TODO watermark
 	case AGGREGATION_SLOT:
 	case AGGREGATE_AND_PROOF:
 	case BLOCK:
+		// TODO watermark
 	case BLOCK_V2:
+		// TODO watermark
 	case RANDAO_REVEAL:
 	case SYNC_COMMITTEE_MESSAGE:
 	case SYNC_COMMITTEE_SELECTION_PROOF:
 	case SYNC_COMMITTEE_CONTRIBUTION_AND_PROOF:
 	case VALIDATOR_REGISTRATION:
+		// TODO watermark?
+	default:
 
 	}
-	// TODO, Send here, using temporal, wait for reply, then send back
+	signingRoot := jsonBody["signingRoot"]
+
+	sr.UUID = uuid.New()
+	sr.Type = signType.(string)
+	sr.Pubkey = pubkey
+	sr.SigningRoot = signingRoot.(string)
+
+	// TODO, Send here, using temporal? or just send to a queue?
+	// lookup function/endpoint & send & wait for reply, then send back
+
+	// ideally can aggregate requests, and send in batch
+
 	// Unique identifier for this request (e.g. UUID), type, pubkey
 	resp := Eth2SignResponse{Signature: ""}
 	return c.JSON(http.StatusOK, resp)
 }
 
 type SignRequest struct {
-	aegis_inmemdbs.EthereumBLSKeySignatureRequests
+	UUID uuid.UUID `json:"uuid"`
+
+	Pubkey      string `json:"pubkey"`
+	Type        string `json:"type"`
+	SigningRoot string `json:"signingRoot"`
 }
 
-// TODO queue up requests, then send in batch
+// TODO queue up requests, then send in batch?
 var tsCache = cache.New(1*time.Second, 2*time.Second)

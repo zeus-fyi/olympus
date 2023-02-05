@@ -69,6 +69,8 @@ func Eth2SignRequest(c echo.Context) error {
 	sr.SigningRoot = signingRoot.(string)
 
 	// TODO, Send here, using temporal? or just send to a queue?
+	// maybe just have it wait on a channel?
+
 	// lookup function/endpoint & send & wait for reply, then send back
 
 	// ideally can aggregate requests, and send in batch

@@ -54,6 +54,7 @@ func Athena() {
 	apps.Pg = apps.Db{}
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	srv.E = athena_router.Routes(srv.E, dataDir)
+	StartAndConfigClientNetworkSettings(ctx, Workload.ProtocolNetworkID, Workload.ClientName)
 	srv.Start()
 }
 
@@ -82,7 +83,7 @@ func init() {
 // Cmd represents the base command when called without any subcommands
 var Cmd = &cobra.Command{
 	Use:   "Web3 Middleware",
-	Short: "A web3 infra middleware manager",
+	Short: "A web3 infra middleware manager for apps on Olympus",
 	Run: func(cmd *cobra.Command, args []string) {
 		Athena()
 	},

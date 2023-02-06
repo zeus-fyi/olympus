@@ -30,6 +30,7 @@ var ctx = context.Background()
 
 func (t *ValidatorsTestSuite) TestImportValidatorsToSim() {
 	req, err := GetValidatorsAndPrepareRemoteSignEmaulation(ctx, t.Tc.EphemeralNodeUrl, HydraAddress)
+	t.Require().Nil(err)
 
 	w3 := ethereum_web3signer_actions.Web3SignerActionsClient{ZeusClient: t.ZeusTestClient}
 	resp, err := w3.GetLighthouseAuth(ctx, ValidatorCloudCtxNs)

@@ -40,6 +40,7 @@ func Eth2SignRequest(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, jsonBody)
 	}
 
+	log.Info().Interface("body", jsonBody)
 	var sr SignRequest
 
 	signType := jsonBody["type"]

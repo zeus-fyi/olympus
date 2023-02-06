@@ -12,6 +12,7 @@ func Routes(e *echo.Echo, p filepaths.Path) *echo.Echo {
 	// Routes
 	e.GET("/health", Health)
 
+	v1_athena.InitV1BetaInternalRoutes(e)
 	v1_athena.InitV1InternalRoutes(e, p)
 	return e
 }

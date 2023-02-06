@@ -7,11 +7,12 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
+
 	v1_common_routes "github.com/zeus-fyi/olympus/athena/api/v1/common"
 	athena_chain_snapshots "github.com/zeus-fyi/olympus/athena/api/v1/common/chain_snapshots"
 	host "github.com/zeus-fyi/olympus/athena/api/v1/common/host_info"
-	athena_jwt_route "github.com/zeus-fyi/olympus/athena/api/v1/common/jwt"
 	athena_routines "github.com/zeus-fyi/olympus/athena/api/v1/common/routines"
+	athena_ethereum "github.com/zeus-fyi/olympus/athena/api/v1/ethereum"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
@@ -35,12 +36,12 @@ func InitV1InternalRoutes(e *echo.Echo, p filepaths.Path) {
 		},
 	}))
 	eg = CommonRoutes(eg, p)
+	eg = EthereumRoutes(eg)
 	return
 }
 
 func CommonRoutes(e *echo.Group, p filepaths.Path) *echo.Group {
 	v1_common_routes.CommonManager.DataDir = p
-	e.POST("/jwt/create", athena_jwt_route.JwtHandler)
 
 	e.POST("/routines/suspend", athena_routines.SuspendRoutineHandler)
 	e.POST("/routines/start", athena_routines.StartAppRoutineHandler)
@@ -55,5 +56,31 @@ func CommonRoutes(e *echo.Group, p filepaths.Path) *echo.Group {
 	e.POST("/snapshot/download", athena_chain_snapshots.DownloadChainSnapshotHandler)
 	e.POST("/snapshot/upload", athena_chain_snapshots.UploadChainSnapshotHandler)
 
+	return e
+}
+
+func InitV1BetaInternalRoutes(e *echo.Echo) {
+	eg := e.Group("/v1beta/internal")
+	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+		AuthScheme: "Bearer",
+		Validator: func(token string, c echo.Context) (bool, error) {
+			ctx := context.Background()
+			key, err := auth.VerifyInternalBearerToken(ctx, token)
+			if err != nil {
+				log.Err(err).Msg("InitV1InternalRoutes")
+				return false, c.JSON(http.StatusInternalServerError, nil)
+			}
+			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
+			c.Set("orgUser", ou)
+			c.Set("bearer", key.PublicKey)
+			return key.PublicKeyVerified, err
+		},
+	}))
+	eg = EthereumRoutes(eg)
+	return
+}
+
+func EthereumRoutes(e *echo.Group) *echo.Group {
+	e.GET("/ethereum/lighthouse/validator/auth", athena_ethereum.LighthouseValidatorHandler)
 	return e
 }

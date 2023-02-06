@@ -19,6 +19,8 @@ var (
 	env             string
 	onlyIfEmptyDir  bool
 	compressionType string
+	jwtToken        string
+	useDefaultToken bool
 	Workload        WorkloadInfo
 	authKeysCfg     auth_keys_config.AuthKeysCfg
 	cfg             = Config{}
@@ -64,6 +66,10 @@ func init() {
 	Cmd.Flags().BoolVar(&onlyIfEmptyDir, "onlyIfEmptyDir", true, "only download & extract if the datadir is empty")
 	Cmd.Flags().StringVar(&compressionType, "compressionExtension", ".tar.lz4", "compression type")
 	Cmd.Flags().StringVar(&env, "env", "production-local", "environment")
+
+	// ethereum
+	Cmd.Flags().StringVar(&jwtToken, "jwt", "0x6ad1acdc50a4141e518161ab2fe2bf6294de4b4d48bf3582f22cae8113f0cadc", "set jwt in datadir")
+	Cmd.Flags().BoolVar(&useDefaultToken, "useDefaultToken", true, "use default jwt token")
 
 	// internal
 	Cmd.Flags().StringVar(&authKeysCfg.AgePubKey, "age-public-key", "age1n97pswc3uqlgt2un9aqn9v4nqu32egmvjulwqp3pv4algyvvuggqaruxjj", "age public key")

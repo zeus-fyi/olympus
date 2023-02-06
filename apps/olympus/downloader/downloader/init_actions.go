@@ -2,6 +2,7 @@ package olympus_snapshot_init
 
 import (
 	"context"
+	init_jwt "github.com/zeus-fyi/zeus/pkg/aegis/jwt"
 	"path"
 
 	"github.com/ghodss/yaml"
@@ -45,6 +46,9 @@ func InitWorkloadAction(ctx context.Context, w WorkloadInfo) {
 		}
 		log.Ctx(ctx).Info().Msg("validators sync complete")
 	case "beaconExecClient", "beaconConsensusClient":
+		if useDefaultToken {
+			_ = init_jwt.SetTokenToDefault(w.DataDir, "jwt.hex", jwtToken)
+		}
 		log.Ctx(ctx).Info().Msg("starting chain sync")
 		ChainDownload(ctx)
 		log.Ctx(ctx).Info().Msg("chain sync complete")

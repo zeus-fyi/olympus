@@ -14,7 +14,7 @@ import (
 )
 
 func InitWorkloadAction(ctx context.Context, w WorkloadInfo) {
-
+	log.Ctx(ctx).Info().Interface("w", w).Msg("init workload action")
 	switch w.WorkloadType {
 	case "validatorClient":
 		log.Ctx(ctx).Info().Msg("starting validators sync")
@@ -24,6 +24,7 @@ func InitWorkloadAction(ctx context.Context, w WorkloadInfo) {
 			log.Ctx(ctx).Panic().Err(err).Msg("failed to wipe validator dir on startup")
 			panic(err)
 		}
+		EphemeryReset()
 		vsg := artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol{}
 		vsg.ProtocolNetworkID = w.ProtocolNetworkID
 		vsg.ValidatorClientNumber = w.ReplicaCountNum
@@ -46,22 +47,28 @@ func InitWorkloadAction(ctx context.Context, w WorkloadInfo) {
 		}
 		log.Ctx(ctx).Info().Msg("validators sync complete")
 	case "beaconExecClient", "beaconConsensusClient":
-		if useDefaultToken {
-			_ = init_jwt.SetTokenToDefault(w.DataDir, "jwt.hex", jwtToken)
-		}
+		EphemeryReset()
 		log.Ctx(ctx).Info().Msg("starting chain sync")
 		ChainDownload(ctx)
 		log.Ctx(ctx).Info().Msg("chain sync complete")
+		if useDefaultToken {
+			log.Ctx(ctx).Info().Msg("setting jwt token to default")
+			err := init_jwt.SetTokenToDefault(w.DataDir, "jwt.hex", jwtToken)
+			if err != nil {
+				log.Ctx(ctx).Panic().Err(err).Msg("failed to set jwt token to default")
+				panic(err)
+			}
+		}
 	}
+}
 
-	// the below reformats the client name to reuse the opensource code pattern for now
-	// TODO refactor both
-	if w.ProtocolNetworkID == hestia_req_types.EthereumEphemeryProtocolNetworkID {
+func EphemeryReset() {
+	if Workload.ProtocolNetworkID == hestia_req_types.EthereumEphemeryProtocolNetworkID {
 		log.Info().Msg("Downloader: InitEphemeryNetwork starting")
-		if w.ClientName == "lighthouse" {
+		if Workload.ClientName == "lighthouse" {
 			ephemery_reset.ExtractAndDecEphemeralTestnetConfig(Workload.DataDir, beacon_cookbooks.LighthouseEphemeral)
 		}
-		if w.ClientName == "geth" {
+		if Workload.ClientName == "geth" {
 			ephemery_reset.ExtractAndDecEphemeralTestnetConfig(Workload.DataDir, beacon_cookbooks.GethEphemeral)
 		}
 		log.Info().Msg("Downloader: InitEphemeryNetwork done")

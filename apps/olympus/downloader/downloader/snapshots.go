@@ -15,7 +15,6 @@ import (
 )
 
 var (
-	preSignedURL    string
 	env             string
 	onlyIfEmptyDir  bool
 	compressionType string
@@ -62,7 +61,6 @@ func StartUp() {
 
 func init() {
 	viper.AutomaticEnv()
-	Cmd.Flags().StringVar(&preSignedURL, "downloadURL", "", "use a presigned bucket url")
 	Cmd.Flags().BoolVar(&onlyIfEmptyDir, "onlyIfEmptyDir", true, "only download & extract if the datadir is empty")
 	Cmd.Flags().StringVar(&compressionType, "compressionExtension", ".tar.lz4", "compression type")
 	Cmd.Flags().StringVar(&env, "env", "production-local", "environment")

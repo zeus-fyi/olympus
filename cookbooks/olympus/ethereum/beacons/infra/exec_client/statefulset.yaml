@@ -72,7 +72,7 @@ spec:
             tcpSocket:
               port: athena
         - name: zeus-exec-client
-          image: "ethpandaops/geth:master"
+          image: "ethereum/client-go:latest"
           imagePullPolicy: IfNotPresent
           command: [ "/bin/sh" ]
           args: [ "-c","/scripts/gethEphemeral.sh" ]

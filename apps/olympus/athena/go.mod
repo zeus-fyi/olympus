@@ -3,6 +3,7 @@ module github.com/zeus-fyi/olympus/athena
 go 1.19
 
 require (
+	github.com/go-resty/resty/v2 v2.7.0
 	github.com/labstack/echo/v4 v4.7.2
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/rs/zerolog v1.28.0

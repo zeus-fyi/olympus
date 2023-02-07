@@ -9,7 +9,7 @@ import (
 
 func Routes(e *echo.Echo) *echo.Echo {
 	e.GET("/health", Health)
-	e.POST(hydra_eth2_web3signer.Eth2SignRoute, hydra_eth2_web3signer.Eth2SignRequest)
+	e.POST(hydra_eth2_web3signer.Eth2SignRoute, hydra_eth2_web3signer.HydraEth2SignRequestHandler)
 	return e
 }
 

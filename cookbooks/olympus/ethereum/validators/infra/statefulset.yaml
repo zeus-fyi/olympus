@@ -70,7 +70,7 @@ spec:
             tcpSocket:
               port: athena
         - name: zeus-hydra-validators
-          image: "sigp/lighthouse:v3.4.0"
+          image: "sigp/lighthouse:capella"
           imagePullPolicy: IfNotPresent
           command: [ "/bin/sh" ]
           args: [ "-c","/scripts/start.sh" ]

@@ -40,7 +40,7 @@ type WorkloadInfo struct {
 
 func StartUp() {
 	ctx := context.Background()
-	log.Ctx(ctx).Info().Interface("workload", Workload)
+	log.Ctx(ctx).Info().Interface("workload", Workload).Msg("Downloader: WorkloadInfo")
 
 	log.Info().Msg("Downloader: DigitalOceanS3AuthClient starting")
 	SetConfigByEnv(ctx, env)

@@ -14,7 +14,6 @@ import (
 )
 
 func InitWorkloadAction(ctx context.Context, w WorkloadInfo) {
-	log.Ctx(ctx).Info().Interface("w", w).Msg("init workload action")
 	switch w.WorkloadType {
 	case "validatorClient":
 		log.Ctx(ctx).Info().Msg("starting validators sync")

@@ -20,11 +20,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Setup Docker
-      uses: docker/setup-docker-action@v1
-      with:
-        context: /github/workspace
-
     - name: Clone external repos into workspace
       run: |
         mkdir -p apps/external

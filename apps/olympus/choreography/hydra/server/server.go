@@ -57,6 +57,7 @@ func (s *Server) Start() {
 
 	// Wait for interrupt signal to gracefully shut down the server with a timeout of 10 seconds.
 	// Use a buffered channel to avoid missing signals as recommended for signal.Notify
+
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	<-quit

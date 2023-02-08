@@ -55,7 +55,9 @@ func (w *Web3SignerRequest) Eth2SignRequest(c echo.Context) error {
 		// TODO watermark
 		log.Info().Interface("body", w.Body).Msg("ATTESTATION")
 	case AGGREGATION_SLOT:
+		log.Info().Interface("body", w.Body).Msg("AGGREGATION_SLOT")
 	case AGGREGATE_AND_PROOF:
+		log.Info().Interface("body", w.Body).Msg("AGGREGATE_AND_PROOF")
 	case BLOCK:
 		// TODO watermark
 		log.Info().Interface("body", w.Body).Msg("BLOCK")
@@ -65,9 +67,13 @@ func (w *Web3SignerRequest) Eth2SignRequest(c echo.Context) error {
 	case RANDAO_REVEAL:
 		log.Info().Interface("body", w.Body).Msg("RANDAO_REVEAL")
 	case SYNC_COMMITTEE_MESSAGE:
+		log.Info().Interface("body", w.Body).Msg("SYNC_COMMITTEE_MESSAGE")
 	case SYNC_COMMITTEE_SELECTION_PROOF:
+		log.Info().Interface("body", w.Body).Msg("SYNC_COMMITTEE_SELECTION_PROOF")
 	case SYNC_COMMITTEE_CONTRIBUTION_AND_PROOF:
+		log.Info().Interface("body", w.Body).Msg("SYNC_COMMITTEE_CONTRIBUTION_AND_PROOF")
 	case VALIDATOR_REGISTRATION:
+		log.Info().Interface("body", w.Body).Msg("VALIDATOR_REGISTRATION")
 		// TODO watermark?
 	default:
 

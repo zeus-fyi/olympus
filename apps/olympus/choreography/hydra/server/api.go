@@ -1,9 +1,12 @@
 package hydra_choreography
 
 import (
+	"context"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	v1_hydra_choreography "github.com/zeus-fyi/olympus/choreography/hydra/api/v1"
+	hydra_choreography_metrics "github.com/zeus-fyi/olympus/choreography/hydra/metrics"
+	apollo_metrics_workload_info "github.com/zeus-fyi/olympus/pkg/apollo/metrics/workload_info"
 	zeus_client "github.com/zeus-fyi/zeus/pkg/zeus/client"
 )
 
@@ -13,10 +16,18 @@ var (
 )
 
 func Api() {
+	ctx := context.Background()
 	cfg.Host = "0.0.0.0"
 	srv := NewChoreography(cfg)
 	v1_hydra_choreography.ZeusClient = zeus_client.NewDefaultZeusClient(bearer)
 	srv.E = v1_hydra_choreography.Routes(srv.E)
+
+	// for beacon monitoring, todo use switch cases to build relevant metrics
+
+	// todo add network name to metrics, workload type etc
+
+	mwi := apollo_metrics_workload_info.NewWorkloadInfo("hydra", v1_hydra_choreography.CloudCtxNs)
+	hydra_choreography_metrics.InitHydraMetrics(ctx, mwi)
 	srv.Start()
 }
 

@@ -8,8 +8,8 @@ on:
     branches:
       - main
 env:
-  REPO: "registry.digitalocean.com/zeus-fyi"
-  NAME: "hydrachoreography"
+  REPO: registry.digitalocean.com/zeus-fyi
+  NAME: hydrachoreography
   GO111MODULE: on
   GOOS: linux
   GOARCH: amd64

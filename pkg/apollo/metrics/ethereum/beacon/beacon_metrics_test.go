@@ -15,7 +15,7 @@ type BeaconMetricsClientTestSuite struct {
 func (t *BeaconMetricsClientTestSuite) SetupTest() {
 	t.InitLocalConfigs()
 	wi := apollo_metrics_workload_info.WorkloadInfo{}
-	t.BeaconMetricsClient = NewBeaconMetrics(wi, t.Tc.EphemeralNodeUrl, t.Tc.ProductionLocalTemporalBearerToken)
+	t.BeaconMetricsClient = NewBeaconMetrics(wi, BeaconConfig{}, t.Tc.ProductionLocalTemporalBearerToken)
 }
 
 func TestBeaconMetricsClientTestSuite(t *testing.T) {

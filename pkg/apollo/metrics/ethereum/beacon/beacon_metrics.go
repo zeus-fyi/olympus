@@ -147,7 +147,7 @@ func (bm *BeaconMetrics) BeaconExecClientSyncStatus() {
 	resp, err := bm.ExecClientRestClient.R().
 		SetHeaders(headers).
 		SetResult(&ss).
-		SetBody(beaconExecSyncPayload).Post("/")
+		SetBody(beaconExecSyncPayload).Post(bm.ExecClientSVC)
 	if err != nil {
 		log.Err(err).Msgf("resp: %s", resp)
 		return

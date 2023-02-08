@@ -3,7 +3,7 @@ name: Build Hydra Choreography App
 on:
   push:
     paths:
-      - apps/olympus/choreography/hydra
+      - apps/olympus/choreography/hydra/**
     branches:
       - main
 env:

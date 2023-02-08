@@ -45,5 +45,5 @@ jobs:
     - name: Build And Publish Hydra Choreography App
       run: |
         doctl registry login -t ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-        cd makefiles/hydra/Makefile
-        make docker.pubbuildx
+        cd makefiles/hydra
+        make docker.cho.pubbuildx

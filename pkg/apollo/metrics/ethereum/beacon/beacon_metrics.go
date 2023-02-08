@@ -6,6 +6,7 @@ import (
 	apollo_metrics_workload_info "github.com/zeus-fyi/olympus/pkg/apollo/metrics/workload_info"
 	client_consts "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons/constants"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	"path"
 	"time"
 
 	"github.com/zeus-fyi/olympus/pkg/iris/resty_base"
@@ -30,11 +31,15 @@ var (
 )
 
 type ConsensusClientMetrics struct {
+	ConsensusClientRestClient resty_base.Resty
 	BeaconConsensusSyncStatus prometheus.Gauge
 }
 
-func NewConsensusClientMetrics(w apollo_metrics_workload_info.WorkloadInfo) ConsensusClientMetrics {
-	m := ConsensusClientMetrics{}
+func NewConsensusClientMetrics(w apollo_metrics_workload_info.WorkloadInfo, bc BeaconConfig) ConsensusClientMetrics {
+	m := ConsensusClientMetrics{
+		ConsensusClientRestClient: resty_base.GetBaseRestyClient(bc.ConsensusClientSVC, ""),
+	}
+
 	m.BeaconConsensusSyncStatus = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name:        "ethereum_beacon_consensus_sync_status_is_syncing",
 		Help:        "Is the beacon consensus client syncing, or is it synced? 0 = syncing, 1 = synced",
@@ -44,11 +49,14 @@ func NewConsensusClientMetrics(w apollo_metrics_workload_info.WorkloadInfo) Cons
 }
 
 type ExecClientMetrics struct {
+	ExecClientRestClient resty_base.Resty
 	BeaconExecSyncStatus prometheus.Gauge
 }
 
-func NewExecClientMetrics(w apollo_metrics_workload_info.WorkloadInfo) ExecClientMetrics {
-	m := ExecClientMetrics{}
+func NewExecClientMetrics(w apollo_metrics_workload_info.WorkloadInfo, bc BeaconConfig) ExecClientMetrics {
+	m := ExecClientMetrics{
+		ExecClientRestClient: resty_base.GetBaseRestyClient(bc.ExecClientSVC, ""),
+	}
 	m.BeaconExecSyncStatus = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name:        "ethereum_beacon_exec_sync_status_is_syncing",
 		Help:        "Is the beacon exec client syncing? 0 = syncing, 1 = synced",
@@ -99,8 +107,8 @@ func NewBeaconMetrics(w apollo_metrics_workload_info.WorkloadInfo, bc BeaconConf
 		R:                      resty_base.GetBaseRestyClient("", bearer),
 		BeaconConfig:           bc,
 		CloudCtxNs:             w.CloudCtxNs,
-		ConsensusClientMetrics: NewConsensusClientMetrics(w),
-		ExecClientMetrics:      NewExecClientMetrics(w),
+		ConsensusClientMetrics: NewConsensusClientMetrics(w, bc),
+		ExecClientMetrics:      NewExecClientMetrics(w, bc),
 	}
 }
 
@@ -116,11 +124,9 @@ func (bm *BeaconMetrics) BeaconConsensusClientSyncStatus() {
 	bm.BeaconConsensusSyncStatus.Set(0)
 	ss := client_consts.ConsensusClientSyncStatus{}
 
-	c := bm.R
-	c.BaseURL = bm.ConsensusClientSVC
-	resp, err := c.R().
+	resp, err := bm.R.R().
 		SetResult(&ss).
-		Get(beaconConsensusSyncEndpoint)
+		Get(path.Join(bm.ConsensusClientSVC, beaconConsensusSyncEndpoint))
 	if err != nil {
 		log.Err(err).Msgf("resp: %s", resp)
 		return
@@ -134,12 +140,10 @@ func (bm *BeaconMetrics) BeaconExecClientSyncStatus() {
 	bm.BeaconExecSyncStatus.Set(0)
 	ss := client_consts.ExecClientSyncStatus{}
 
-	c := bm.R
-	c.BaseURL = bm.ExecClientSVC
-	resp, err := c.R().
+	resp, err := bm.R.R().
 		SetResult(&ss).
 		SetBody(beaconExecSyncPayload).
-		Post("")
+		Post(bm.ExecClientSVC)
 	if err != nil {
 		log.Err(err).Msgf("resp: %s", resp)
 		return

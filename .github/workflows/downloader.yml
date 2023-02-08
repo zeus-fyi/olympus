@@ -21,7 +21,6 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-
     - name: Cache Go Modules
       uses: actions/cache@v2
       with:
@@ -52,7 +51,7 @@ jobs:
         wget https://github.com/digitalocean/doctl/releases/download/v1.78.0/doctl-1.78.0-linux-amd64.tar.gz -O doctl.tar.gz
         tar xf doctl.tar.gz -C /usr/local/bin
 
-    - name: Build And Publish Hydra Choreography App
+    - name: Build And Publish Downloader App
       run: |
         doctl registry login -t ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
         docker buildx build -t ${{ env.REPO }}/${{ env.NAME }}:${{ github.sha }} -t ${{ env.REPO }}/${{ env.NAME }}:${{ env.TAG}} --build-arg GOMODCACHE=${{ env.GOMODCACHE }} --build-arg GOCACHE=${{ env.GOCACHE }} --build-arg GOOS=${{ env.GOOS }} --build-arg GOARCH=${{ env.GOARCH }} --platform=${{ env.GOOS }}/${{ env.GOARCH }} -f docker/downloader/Dockerfile .

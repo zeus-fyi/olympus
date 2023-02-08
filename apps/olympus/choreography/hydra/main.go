@@ -8,7 +8,6 @@ import (
 
 func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-
 	if err := hydra_choreography.Cmd.Execute(); err != nil {
 		log.Err(err)
 	}

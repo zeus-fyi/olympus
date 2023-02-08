@@ -55,7 +55,6 @@ func CommonRoutes(e *echo.Group, p filepaths.Path) *echo.Group {
 
 	e.POST("/snapshot/download", athena_chain_snapshots.DownloadChainSnapshotHandler)
 	e.POST("/snapshot/upload", athena_chain_snapshots.UploadChainSnapshotHandler)
-
 	return e
 }
 

@@ -4,7 +4,9 @@ go 1.19
 
 require (
 	github.com/go-faker/faker/v4 v4.0.0-beta.4
+	github.com/google/uuid v1.3.0
 	github.com/labstack/echo/v4 v4.7.2
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/rs/zerolog v1.28.0
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.14.0

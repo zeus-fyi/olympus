@@ -1,7 +1,6 @@
 package hydra_eth2_web3signer
 
 import (
-	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/patrickmn/go-cache"
 	"net/http"
@@ -30,39 +29,56 @@ type Eth2SignResponse struct {
 	Signature string `json:"signature"`
 }
 
-func Eth2SignRequest(c echo.Context) error {
-	pubkey := c.Param("identifier")
-	log.Info().Str("identifier", pubkey)
+type Web3SignerRequest struct {
+	Body echo.Map
+}
 
-	var jsonBody map[string]any
-	err := json.NewDecoder(c.Request().Body).Decode(&jsonBody)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, jsonBody)
+func HydraEth2SignRequestHandler(c echo.Context) error {
+	request := new(Web3SignerRequest)
+	request.Body = echo.Map{}
+	if err := c.Bind(&request.Body); err != nil {
+		log.Err(err)
+		return err
 	}
+	return request.Eth2SignRequest(c)
+}
 
-	log.Info().Interface("body", jsonBody)
+func (w *Web3SignerRequest) Eth2SignRequest(c echo.Context) error {
+	log.Info().Msg("Eth2SignRequest")
+	pubkey := c.Param("identifier")
+
 	var sr SignRequest
 
-	signType := jsonBody["type"]
+	signType := w.Body["type"]
 	switch signType {
 	case ATTESTATION:
 		// TODO watermark
+		log.Info().Interface("body", w.Body).Msg("ATTESTATION")
 	case AGGREGATION_SLOT:
+		log.Info().Interface("body", w.Body).Msg("AGGREGATION_SLOT")
 	case AGGREGATE_AND_PROOF:
+		log.Info().Interface("body", w.Body).Msg("AGGREGATE_AND_PROOF")
 	case BLOCK:
 		// TODO watermark
+		log.Info().Interface("body", w.Body).Msg("BLOCK")
 	case BLOCK_V2:
+		log.Info().Interface("body", w.Body).Msg("BLOCK_V2")
 		// TODO watermark
 	case RANDAO_REVEAL:
+		log.Info().Interface("body", w.Body).Msg("RANDAO_REVEAL")
 	case SYNC_COMMITTEE_MESSAGE:
+		log.Info().Interface("body", w.Body).Msg("SYNC_COMMITTEE_MESSAGE")
 	case SYNC_COMMITTEE_SELECTION_PROOF:
+		log.Info().Interface("body", w.Body).Msg("SYNC_COMMITTEE_SELECTION_PROOF")
 	case SYNC_COMMITTEE_CONTRIBUTION_AND_PROOF:
+		log.Info().Interface("body", w.Body).Msg("SYNC_COMMITTEE_CONTRIBUTION_AND_PROOF")
 	case VALIDATOR_REGISTRATION:
+		log.Info().Interface("body", w.Body).Msg("VALIDATOR_REGISTRATION")
 		// TODO watermark?
 	default:
 
 	}
-	signingRoot := jsonBody["signingRoot"]
+	signingRoot := w.Body["signingRoot"]
 
 	sr.UUID = uuid.New()
 	sr.Type = signType.(string)
@@ -78,7 +94,7 @@ func Eth2SignRequest(c echo.Context) error {
 
 	// Unique identifier for this request (e.g. UUID), type, pubkey
 	resp := Eth2SignResponse{Signature: ""}
-	return c.JSON(http.StatusOK, resp)
+	return c.JSON(http.StatusNotFound, resp)
 }
 
 type SignRequest struct {

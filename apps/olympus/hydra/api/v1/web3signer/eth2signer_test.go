@@ -17,7 +17,7 @@ type HydraEth2Web3SignerTestSuite struct {
 
 func (t *HydraEth2Web3SignerTestSuite) TestEth2Proxy() {
 	t.InitLocalConfigs()
-	t.E.POST(Eth2SignRoute, Eth2SignRequest)
+	t.E.POST(Eth2SignRoute, HydraEth2SignRequestHandler)
 	start := make(chan struct{}, 1)
 	go func() {
 		close(start)

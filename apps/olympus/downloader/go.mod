@@ -8,7 +8,7 @@ require (
 	github.com/rs/zerolog v1.28.0
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.14.0
-	github.com/zeus-fyi/zeus v0.1.21-rc.1
+	github.com/zeus-fyi/zeus v0.1.21-rc.2
 )
 
 require (
@@ -39,6 +39,7 @@ require (
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.1 // indirect
+	github.com/zeus-fyi/memoryfs v0.0.0-20221107215020-c71d8bb73852 // indirect
 	golang.org/x/crypto v0.4.0 // indirect
 	golang.org/x/net v0.3.0 // indirect
 	golang.org/x/sys v0.3.0 // indirect

@@ -16,6 +16,7 @@ var (
 func Routes(e *echo.Echo) *echo.Echo {
 	e.GET("/health", Health)
 	e.GET("/delete/pods", RestartPods)
+	e.GET("/metrics", MetricsHandler)
 	return e
 }
 

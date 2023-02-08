@@ -15,7 +15,6 @@ import (
 )
 
 var (
-	preSignedURL    string
 	env             string
 	onlyIfEmptyDir  bool
 	compressionType string
@@ -41,7 +40,7 @@ type WorkloadInfo struct {
 
 func StartUp() {
 	ctx := context.Background()
-	log.Ctx(ctx).Info().Interface("workload", Workload)
+	log.Ctx(ctx).Info().Interface("workload", Workload).Msg("Downloader: WorkloadInfo")
 
 	log.Info().Msg("Downloader: DigitalOceanS3AuthClient starting")
 	SetConfigByEnv(ctx, env)
@@ -62,7 +61,6 @@ func StartUp() {
 
 func init() {
 	viper.AutomaticEnv()
-	Cmd.Flags().StringVar(&preSignedURL, "downloadURL", "", "use a presigned bucket url")
 	Cmd.Flags().BoolVar(&onlyIfEmptyDir, "onlyIfEmptyDir", true, "only download & extract if the datadir is empty")
 	Cmd.Flags().StringVar(&compressionType, "compressionExtension", ".tar.lz4", "compression type")
 	Cmd.Flags().StringVar(&env, "env", "production-local", "environment")

@@ -29,7 +29,7 @@ func Athena() {
 	cfg.Host = "0.0.0.0"
 	srv := NewAthenaServer(cfg)
 	log.Info().Msgf("Athena: %s auth procedure starting", env)
-
+	log.Info().Interface("workload", Workload).Msg("Athena: WorkloadInfo")
 	switch env {
 	case "production":
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)

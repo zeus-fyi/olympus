@@ -19,7 +19,6 @@ func StartAndConfigClientNetworkSettings(ctx context.Context, protocolNetworkID 
 			genesisPath = path.Join(genesisPath, "/testnet")
 		default:
 		}
-
 		ok, _ := ephemery_reset.Exists(path.Join(genesisPath, "/retention.vars"))
 		if ok {
 			kt := ephemery_reset.ExtractResetTime(path.Join(genesisPath, "/retention.vars"))
@@ -30,7 +29,7 @@ func StartAndConfigClientNetworkSettings(ctx context.Context, protocolNetworkID 
 				// assumes you have the default choreography sidecar in your namespace cluster
 				_, err := rc.R().Get("http://zeus-hydra-choreography:9999/delete/pods")
 				if err != nil {
-					log.Ctx(ctx).Err(err)
+					log.Ctx(ctx).Err(err).Msg("failed to delete ephemeral pods")
 				}
 			}(kt)
 		}

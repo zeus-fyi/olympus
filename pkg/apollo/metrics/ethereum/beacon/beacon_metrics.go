@@ -114,8 +114,8 @@ func NewBeaconMetrics(w apollo_metrics_workload_info.WorkloadInfo, bc BeaconConf
 func (bm *BeaconMetrics) PollMetrics(pollTime time.Duration) {
 	ticker := time.Tick(pollTime)
 	for range ticker {
-		bm.BeaconConsensusClientSyncStatus()
-		bm.BeaconExecClientSyncStatus()
+		go bm.BeaconConsensusClientSyncStatus()
+		go bm.BeaconExecClientSyncStatus()
 	}
 }
 
@@ -147,13 +147,13 @@ func (bm *BeaconMetrics) BeaconExecClientSyncStatus() {
 	resp, err := bm.ExecClientRestClient.R().
 		SetHeaders(headers).
 		SetResult(&ss).
-		SetBody(beaconExecSyncPayload).Post(bm.ExecClientSVC)
+		SetBody(beaconExecSyncPayload).Post("/")
 	if err != nil {
 		log.Err(err).Msgf("resp: %s", resp)
 		return
 	}
 	// Should always return false if not syncing.
 	if ss.Result == false {
-		bm.BeaconConsensusSyncStatus.Set(1)
+		bm.BeaconExecSyncStatus.Set(1)
 	}
 }

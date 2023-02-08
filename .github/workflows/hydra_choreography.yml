@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - apps/olympus/choreography/hydra/**
+      - .github/workflows/hydra_choreography.yml
     branches:
       - main
 env:
@@ -32,7 +33,6 @@ jobs:
 
     - name: Install dependencies
       run: |
-        mkdir -p /home/github/bin
         wget https://github.com/digitalocean/doctl/releases/download/v1.78.0/doctl-1.78.0-linux-amd64.tar.gz -O doctl.tar.gz
         tar xf doctl.tar.gz -C /home/github/bin
 

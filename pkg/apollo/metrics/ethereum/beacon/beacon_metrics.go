@@ -8,6 +8,7 @@ import (
 	client_consts "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons/constants"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 	"path"
+	"time"
 
 	"github.com/zeus-fyi/olympus/pkg/iris/resty_base"
 )
@@ -102,6 +103,14 @@ func NewBeaconMetrics(w apollo_metrics_workload_info.WorkloadInfo, bc BeaconConf
 		CloudCtxNs:             w.CloudCtxNs,
 		ConsensusClientMetrics: NewConsensusClientMetrics(w),
 		ExecClientMetrics:      NewExecClientMetrics(w),
+	}
+}
+
+func (bm *BeaconMetrics) PollMetrics(pollTime time.Duration) {
+	ticker := time.Tick(pollTime)
+	for range ticker {
+		bm.BeaconConsensusClientSyncStatus()
+		bm.BeaconExecClientSyncStatus()
 	}
 }
 

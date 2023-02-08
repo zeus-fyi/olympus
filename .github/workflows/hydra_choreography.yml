@@ -14,8 +14,6 @@ env:
   GOOS: linux
   GOARCH: amd64
   CGO_ENABLED: 1
-  GOMODCACHE: $(shell go env GOMODCACHE)
-  GOCACHE: $(shell go env GOCACHE)
 jobs:
   build:
     runs-on: ubuntu-22.04

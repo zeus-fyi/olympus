@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - apps/olympus/choreography/hydra/**
+      - pkg/apollo/metrics/ethereum/beacon/**
       - .github/workflows/hydra_choreography.yml
     branches:
       - main
@@ -20,9 +21,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-22.04
-
     steps:
-
     - name: Cache Go Modules
       uses: actions/cache@v2
       with:

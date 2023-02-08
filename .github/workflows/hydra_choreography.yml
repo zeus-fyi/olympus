@@ -34,7 +34,7 @@ jobs:
     - name: Install dependencies
       run: |
         wget https://github.com/digitalocean/doctl/releases/download/v1.78.0/doctl-1.78.0-linux-amd64.tar.gz -O doctl.tar.gz
-        tar xf doctl.tar.gz -C /home/github/bin
+        tar xf doctl.tar.gz -C /usr/local/bin
 
     - name: Cache Go Modules
       uses: actions/cache@v2

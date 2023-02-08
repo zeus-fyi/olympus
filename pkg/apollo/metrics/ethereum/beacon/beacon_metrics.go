@@ -37,8 +37,6 @@ type ConsensusClientMetrics struct {
 func NewConsensusClientMetrics(w apollo_metrics_workload_info.WorkloadInfo) ConsensusClientMetrics {
 	m := ConsensusClientMetrics{}
 	m.BeaconConsensusSyncStatus = prometheus.NewGauge(prometheus.GaugeOpts{
-		Namespace:   w.Namespace,
-		Subsystem:   w.Subsystem,
 		Name:        "ethereum_beacon_consensus_sync_status_is_syncing",
 		Help:        "Is the beacon consensus client syncing, or is it synced? 0 = syncing, 1 = synced",
 		ConstLabels: nil,
@@ -53,8 +51,6 @@ type ExecClientMetrics struct {
 func NewExecClientMetrics(w apollo_metrics_workload_info.WorkloadInfo) ExecClientMetrics {
 	m := ExecClientMetrics{}
 	m.BeaconExecSyncStatus = prometheus.NewGauge(prometheus.GaugeOpts{
-		Namespace:   w.Namespace,
-		Subsystem:   w.Subsystem,
 		Name:        "ethereum_beacon_exec_sync_status_is_syncing",
 		Help:        "Is the beacon exec client syncing? 0 = syncing, 1 = synced",
 		ConstLabels: nil,

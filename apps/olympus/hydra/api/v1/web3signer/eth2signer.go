@@ -1,13 +1,14 @@
 package hydra_eth2_web3signer
 
 import (
-	"github.com/google/uuid"
-	"github.com/patrickmn/go-cache"
 	"net/http"
-	"time"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+
+	bls_serverless_signing "github.com/zeus-fyi/zeus/pkg/aegis/aws/serverless_signing"
+	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
 )
 
 const (
@@ -87,12 +88,17 @@ func (w *Web3SignerRequest) Eth2SignRequest(c echo.Context) error {
 
 	// TODO, Send here, using temporal? or just send to a queue?
 	// maybe just have it wait on a channel?
-
 	// lookup function/endpoint & send & wait for reply, then send back
 
 	// ideally can aggregate requests, and send in batch
-
+	sigReqs := bls_serverless_signing.SignatureRequests{
+		SecretName:        "",
+		SignatureRequests: aegis_inmemdbs.EthereumBLSKeySignatureRequests{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureRequest)},
+	}
+	sigReqs.SignatureRequests.Map[sr.Pubkey] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: sr.SigningRoot}
 	// Unique identifier for this request (e.g. UUID), type, pubkey
+
+	// Aggregate requests, then send in batch
 	resp := Eth2SignResponse{Signature: ""}
 	return c.JSON(http.StatusNotFound, resp)
 }
@@ -105,5 +111,16 @@ type SignRequest struct {
 	SigningRoot string `json:"signingRoot"`
 }
 
+/*
 // TODO queue up requests, then send in batch?
 var tsCache = cache.New(1*time.Second, 2*time.Second)
+*/
+
+// TODO, this is a mock response, for testing delete/replace
+func MockResponse(c echo.Context) error {
+	respMsgMap := make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureResponse)
+	signedEventResponse := aegis_inmemdbs.EthereumBLSKeySignatureResponses{
+		Map: respMsgMap,
+	}
+	return c.JSON(http.StatusNotFound, signedEventResponse)
+}

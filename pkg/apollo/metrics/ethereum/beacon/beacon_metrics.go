@@ -145,6 +145,7 @@ func (bm *BeaconMetrics) BeaconExecClientSyncStatus() {
 	headers := make(map[string]string)
 	headers["Content-Type"] = "application/json"
 	resp, err := bm.ExecClientRestClient.R().
+		SetHeaders(headers).
 		SetResult(&ss).
 		SetBody(beaconExecSyncPayload).Post("/")
 	if err != nil {

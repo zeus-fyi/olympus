@@ -6,7 +6,6 @@ import (
 	apollo_metrics_workload_info "github.com/zeus-fyi/olympus/pkg/apollo/metrics/workload_info"
 	client_consts "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons/constants"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
-	"path"
 	"time"
 
 	"github.com/zeus-fyi/olympus/pkg/iris/resty_base"
@@ -117,9 +116,11 @@ func (bm *BeaconMetrics) BeaconConsensusClientSyncStatus() {
 	bm.BeaconConsensusSyncStatus.Set(0)
 	ss := client_consts.ConsensusClientSyncStatus{}
 
-	resp, err := bm.R.R().
+	c := bm.R
+	c.BaseURL = bm.ConsensusClientSVC
+	resp, err := c.R().
 		SetResult(&ss).
-		Get(path.Join(bm.ConsensusClientSVC, beaconConsensusSyncEndpoint))
+		Get(beaconConsensusSyncEndpoint)
 	if err != nil {
 		log.Err(err).Msgf("resp: %s", resp)
 		return
@@ -133,10 +134,12 @@ func (bm *BeaconMetrics) BeaconExecClientSyncStatus() {
 	bm.BeaconExecSyncStatus.Set(0)
 	ss := client_consts.ExecClientSyncStatus{}
 
-	resp, err := bm.R.R().
+	c := bm.R
+	c.BaseURL = bm.ExecClientSVC
+	resp, err := c.R().
 		SetResult(&ss).
 		SetBody(beaconExecSyncPayload).
-		Post(bm.ExecClientSVC)
+		Post("")
 	if err != nil {
 		log.Err(err).Msgf("resp: %s", resp)
 		return

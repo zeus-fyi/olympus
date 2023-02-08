@@ -43,8 +43,8 @@ jobs:
 
     - name: Clone external zeus repo into workspace
       run: |
-        mkdir -p apps/zeus
-        cd apps/zeus
+        mkdir -p apps
+        cd apps
         git clone https://github.com/zeus-fyi/zeus.git --branch main --single-branch
 
     - name: Install dependencies

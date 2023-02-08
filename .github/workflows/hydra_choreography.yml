@@ -9,7 +9,6 @@ on:
       - main
 env:
   REPO: "registry.digitalocean.com/zeus-fyi"
-  GIT_SHA: $(shell git rev-parse HEAD)
   NAME: "hydrachoreography"
   GO111MODULE: on
   GOOS: linux
@@ -55,5 +54,5 @@ jobs:
     - name: Build And Publish Hydra Choreography App
       run: |
         doctl registry login -t ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-        docker buildx build -t ${{ env.REPO }}/${{ env.NAME }}:${{ env.GIT_SHA }} -t ${{ env.REPO }}/${{ env.NAME }}:latest  --build-arg GOMODCACHE=${{ env.GOMODCACHE }} --build-arg GOCACHE=${{ env.GOCACHE }} --build-arg GOOS=${{ env.GOOS }} --build-arg GOARCH=${{ env.GOARCH }} --platform=${{ env.GOOS }}/${{ env.GOARCH }} -f docker/hydra_choreography/Dockerfile .
+        docker buildx build -t ${{ env.REPO }}/${{ env.NAME }}:${{ env.GITHUB_SHA }} -t ${{ env.REPO }}/${{ env.NAME }}:latest  --build-arg GOMODCACHE=${{ env.GOMODCACHE }} --build-arg GOCACHE=${{ env.GOCACHE }} --build-arg GOOS=${{ env.GOOS }} --build-arg GOARCH=${{ env.GOARCH }} --platform=${{ env.GOOS }}/${{ env.GOARCH }} -f docker/hydra_choreography/Dockerfile .
 

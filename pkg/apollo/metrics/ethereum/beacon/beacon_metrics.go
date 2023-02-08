@@ -1,7 +1,6 @@
 package apollo_beacon_prom_metrics
 
 import (
-	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 	apollo_metrics_workload_info "github.com/zeus-fyi/olympus/pkg/apollo/metrics/workload_info"
@@ -76,8 +75,8 @@ func HydraConfig(network string) BeaconConfig {
 		ConsensusClientName: "lighthouse",
 		ExecClientName:      "geth",
 		BeaconURL:           "",
-		ExecClientSVC:       fmt.Sprintf("http://zeus-exec-client:%s", client_consts.GetAnyClientApiPorts("geth")),
-		ConsensusClientSVC:  fmt.Sprintf("http://zeus-consensus-client:%s", client_consts.GetAnyClientApiPorts("lighthouse")),
+		ExecClientSVC:       "http://zeus-exec-client:8545",
+		ConsensusClientSVC:  "http://zeus-consensus-client:5052",
 	}
 }
 

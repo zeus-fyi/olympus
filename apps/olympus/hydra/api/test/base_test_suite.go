@@ -3,6 +3,8 @@ package hydra_base_test
 import (
 	"context"
 	"errors"
+	"github.com/go-faker/faker/v4"
+	consensys_eth2_openapi "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer/models"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -58,4 +60,11 @@ func (t *HydraBaseTestSuite) PostRequest(ctx context.Context, endpoint string, p
 	}
 	t.PrintRespJson(resp.Body())
 	return resp.Body(), err
+}
+
+func (t *HydraBaseTestSuite) GenerateMockAttestationSigningRequest() consensys_eth2_openapi.AttestationSigning {
+	att := consensys_eth2_openapi.AttestationSigning{}
+	err := faker.FakeData(&att)
+	t.Require().Nil(err)
+	return att
 }

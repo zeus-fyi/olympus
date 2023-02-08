@@ -30,6 +30,11 @@ jobs:
         git clone https://github.com/zeus-fyi/jennifer.git --branch master --single-branch
         git clone https://github.com/zeus-fyi/tojen.git --branch master --single-branch
         git clone https://github.com/zeus-fyi/memoryfs.git --branch master --single-branch
+
+    - name: Clone external zeus repo into workspace
+      run: |
+        mkdir -p apps/external
+        cd apps/zeus
         git clone https://github.com/zeus-fyi/zeus.git --branch main --single-branch
 
     - name: Install dependencies

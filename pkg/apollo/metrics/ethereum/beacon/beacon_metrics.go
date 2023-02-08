@@ -120,6 +120,8 @@ func (bm *BeaconMetrics) PollMetrics(pollTime time.Duration) {
 }
 
 func (bm *BeaconMetrics) BeaconConsensusClientSyncStatus() {
+	log.Info().Msg("BeaconConsensusClientSyncStatus: getting sync status")
+
 	bm.BeaconConsensusSyncStatus.Set(0)
 	ss := client_consts.ConsensusClientSyncStatus{}
 
@@ -136,9 +138,12 @@ func (bm *BeaconMetrics) BeaconConsensusClientSyncStatus() {
 }
 
 func (bm *BeaconMetrics) BeaconExecClientSyncStatus() {
+	log.Info().Msg("BeaconExecClientSyncStatus: getting sync status")
 	bm.BeaconExecSyncStatus.Set(0)
 	ss := client_consts.ExecClientSyncStatus{}
 
+	headers := make(map[string]string)
+	headers["Content-Type"] = "application/json"
 	resp, err := bm.ExecClientRestClient.R().
 		SetResult(&ss).
 		SetBody(beaconExecSyncPayload).Post("/")

@@ -35,6 +35,8 @@ func Hydra() {
 	srv := NewHydraServer(cfg)
 	SetConfigByEnv(ctx, env)
 
+	// TODO auth dynamodb
+
 	// TODO, set signature service routers
 	switch Workload.ProtocolNetworkID {
 	case hestia_req_types.EthereumEphemeryProtocolNetworkID:

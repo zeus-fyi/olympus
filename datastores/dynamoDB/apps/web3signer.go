@@ -1,0 +1,1 @@
+package dynamodb_web3signer

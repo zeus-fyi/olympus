@@ -10,16 +10,18 @@ import (
 
 type DynamoDB struct {
 	*dynamodb.Client
-	region       string
-	accessKey    string
-	accessSecret string
+	DynamoDBCredentials
 }
 
-func NewDynamoDBClient(ctx context.Context, region, accessKey, accessSecret string) (DynamoDB, error) {
+type DynamoDBCredentials struct {
+	Region       string
+	AccessKey    string
+	AccessSecret string
+}
+
+func NewDynamoDBClient(ctx context.Context, creds DynamoDBCredentials) (DynamoDB, error) {
 	d := DynamoDB{
-		region:       region,
-		accessKey:    accessKey,
-		accessSecret: accessSecret,
+		DynamoDBCredentials: creds,
 	}
 	err := d.InitDynamoDBClient(ctx)
 	if err != nil {
@@ -30,11 +32,11 @@ func NewDynamoDBClient(ctx context.Context, region, accessKey, accessSecret stri
 }
 
 func (d *DynamoDB) InitDynamoDBClient(ctx context.Context) error {
-	creds := credentials.NewStaticCredentialsProvider(d.accessKey, d.accessSecret, "")
+	creds := credentials.NewStaticCredentialsProvider(d.AccessKey, d.AccessSecret, "")
 	cfg, err := config.LoadDefaultConfig(
 		ctx,
 		config.WithCredentialsProvider(creds),
-		config.WithRegion(d.region),
+		config.WithRegion(d.Region),
 	)
 	if err != nil {
 		log.Ctx(ctx).Err(err)

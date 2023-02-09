@@ -73,6 +73,9 @@ type TestContainer struct {
 
 	DevWeb3SignerPgconn     string
 	DevWeb3SignerPgconnAuth string
+
+	AwsAccessKey string
+	AwsSecretKey string
 }
 
 type ArtemisHexKeys struct {
@@ -114,6 +117,8 @@ func InitArtemisLocalAccounts() {
 func InitLocalTestConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
 
+	testCont.AwsAccessKey = viper.GetString("AWS_ACCESS_KEY")
+	testCont.AwsSecretKey = viper.GetString("AWS_SECRET_KEY")
 	testCont.DevWeb3SignerPgconn = viper.GetString("WEB3SIGNER_PG_DB")
 	testCont.DevWeb3SignerPgconnAuth = viper.GetString("WEB3SIGNER_PG_AUTH_DEV")
 

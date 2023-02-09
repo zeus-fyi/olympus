@@ -22,6 +22,8 @@ var (
 	Workload        WorkloadInfo
 )
 
+// TODO set up some polling mechanism to update validators to send serverless functions to
+
 type WorkloadInfo struct {
 	zeus_common_types.CloudCtxNs
 	ProtocolNetworkID int // eg. mainnet
@@ -32,6 +34,8 @@ func Hydra() {
 	cfg.Host = "0.0.0.0"
 	srv := NewHydraServer(cfg)
 	SetConfigByEnv(ctx, env)
+
+	// TODO auth dynamodb
 
 	// TODO, set signature service routers
 	switch Workload.ProtocolNetworkID {

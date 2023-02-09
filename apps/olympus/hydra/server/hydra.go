@@ -22,6 +22,8 @@ var (
 	Workload        WorkloadInfo
 )
 
+// TODO set up some polling mechanism to update validators to send serverless functions to
+
 type WorkloadInfo struct {
 	zeus_common_types.CloudCtxNs
 	ProtocolNetworkID int // eg. mainnet

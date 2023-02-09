@@ -1,7 +1,6 @@
 package hydra_eth2_web3signer
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -23,11 +22,9 @@ func (t *HydraEth2Web3SignerTestSuite) TestEth2Proxy() {
 	}()
 
 	<-start
-	ctx := context.Background()
 	defer t.E.Shutdown(ctx)
 
 	att := t.GenerateMockAttestationSigningRequest()
-
 	pubkey := "0x93247f2209abcacf57b75a51dafae777f9dd38bc7053d1af526f220a7489a6d3a2753e5f3e8b1cfe39b56f43611df74a"
 	resp, err := t.PostRequest(ctx, Eth2SignRequestWithPubkey(pubkey), att)
 	t.Require().Nil(err)

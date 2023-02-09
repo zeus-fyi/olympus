@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/rs/zerolog/log"
+	"strconv"
 
 	consensys_eth2_openapi "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer/models"
 )
@@ -14,35 +15,60 @@ const (
 	BELLATRIX = "BELLATRIX"
 )
 
-func DecodeBeaconBlock(ctx context.Context, body any) (any, error) {
+func DecodeBeaconBlockAndSlot(ctx context.Context, body any) (any, int, error) {
 	b, err := json.Marshal(body)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Interface("body", body).Msg("DecodeBeaconBlock")
-		return nil, err
+		return nil, 0, err
 	}
-
 	m := make(map[string]any)
 	err = json.Unmarshal(b, &m)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Interface("body", body).Msg("DecodeBeaconBlock: Unmarshal")
-		return nil, err
+		return nil, 0, err
 	}
 	version := GetVersion(m)
 	switch version {
 	case PHASE0:
 		blockPhase0 := consensys_eth2_openapi.BlockRequestPhase0{}
 		err = json.Unmarshal(b, &blockPhase0)
-		return blockPhase0, err
+		if err != nil {
+			log.Ctx(ctx).Error().Err(err).Interface("body", body).Msg("DecodeBeaconBlock: Unmarshal")
+			return nil, 0, err
+		}
+		slot, serr := strconv.Atoi(blockPhase0.Block.Slot)
+		if serr != nil {
+			log.Ctx(ctx).Error().Err(serr).Interface("body", body).Msg("DecodeBeaconBlock: Unmarshal")
+			return nil, 0, err
+		}
+		return blockPhase0, slot, err
 	case ALTAIR:
 		blockAltair := consensys_eth2_openapi.BlockRequestAltair{}
 		err = json.Unmarshal(b, &blockAltair)
-		return blockAltair, err
+		if err != nil {
+			return nil, 0, err
+		}
+		slot, serr := strconv.Atoi(blockAltair.Block.Slot)
+		if serr != nil {
+			log.Ctx(ctx).Error().Err(serr).Interface("body", body).Msg("DecodeBeaconBlock: Unmarshal")
+			return nil, 0, err
+		}
+		return blockAltair, slot, err
 	case BELLATRIX:
 		blockBellatrix := consensys_eth2_openapi.BlockRequestBellatrix{}
 		err = json.Unmarshal(b, &blockBellatrix)
-		return blockBellatrix, err
+		if err != nil {
+			log.Ctx(ctx).Error().Err(err).Interface("body", body).Msg("DecodeBeaconBlock: Unmarshal")
+			return nil, 0, err
+		}
+		slot, serr := strconv.Atoi(blockBellatrix.BlockHeader.Slot)
+		if serr != nil {
+			log.Ctx(ctx).Error().Err(serr).Interface("body", body).Msg("DecodeBeaconBlock: Unmarshal")
+			return nil, 0, err
+		}
+		return blockBellatrix, slot, err
 	}
-	return nil, err
+	return nil, 0, err
 }
 
 func GetVersion(m map[string]any) string {

@@ -27,8 +27,9 @@ func (t *WatermarkBlockDecodingTestSuite) TestDecodePhase0() {
 	bs.BeaconBlock = blockPhase0
 	bs.Type = "BLOCK"
 
-	body, err := DecodeBeaconBlock(ctx, bs.BeaconBlock)
+	body, slot, err := DecodeBeaconBlockAndSlot(ctx, bs.BeaconBlock)
 	t.Require().Nil(err)
+	t.Require().Equal(1, slot)
 
 	typeBody := body.(consensys_eth2_openapi.BlockRequestPhase0)
 	rawBytes1, err := json.Marshal(body)
@@ -49,6 +50,18 @@ func (t *WatermarkBlockDecodingTestSuite) TestDecodeAltair() {
 
 	bs.Type = "BLOCK_V2"
 	bs.BeaconBlock = blockAltair
+
+	body, slot, err := DecodeBeaconBlockAndSlot(ctx, bs.BeaconBlock)
+	t.Require().Nil(err)
+	t.Require().Equal(100000, slot)
+
+	typeBody := body.(consensys_eth2_openapi.BlockRequestAltair)
+	rawBytes1, err := json.Marshal(body)
+	t.Require().Nil(err)
+
+	rawBytes2, err := json.Marshal(typeBody)
+	t.Require().Nil(err)
+	t.Require().Equal(rawBytes1, rawBytes2)
 }
 
 func (t *WatermarkBlockDecodingTestSuite) TestDecodeBellatrix() {
@@ -61,6 +74,18 @@ func (t *WatermarkBlockDecodingTestSuite) TestDecodeBellatrix() {
 
 	bs.Type = "BLOCK_V2"
 	bs.BeaconBlock = blockBellatrix
+
+	body, slot, err := DecodeBeaconBlockAndSlot(ctx, bs.BeaconBlock)
+	t.Require().Nil(err)
+	t.Require().Equal(150000, slot)
+
+	typeBody := body.(consensys_eth2_openapi.BlockRequestBellatrix)
+	rawBytes1, err := json.Marshal(body)
+	t.Require().Nil(err)
+
+	rawBytes2, err := json.Marshal(typeBody)
+	t.Require().Nil(err)
+	t.Require().Equal(rawBytes1, rawBytes2)
 }
 
 func TestWatermarkBlockDecodingTestSuite(t *testing.T) {

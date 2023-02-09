@@ -9,12 +9,11 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
-	s32 "github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_s3"
-	"github.com/zeus-fyi/olympus/sandbox/chains"
+	s3test "github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_s3"
 )
 
 type S3UploaderTestSuite struct {
-	s32.S3TestSuite
+	s3test.S3TestSuite
 }
 
 func (t *S3UploaderTestSuite) SetupTest() {
@@ -23,7 +22,6 @@ func (t *S3UploaderTestSuite) SetupTest() {
 
 // TestRead, you'll need to set the secret values to run the test
 func (t *S3UploaderTestSuite) TestUploadZst() {
-	chains.ChangeToChainDataDir()
 	ctx := context.Background()
 
 	fn := "geth.tar.zst"

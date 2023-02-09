@@ -10,6 +10,11 @@ type Web3SignerDynamoDB struct {
 	dynamodb_client.DynamoDB
 }
 
+type Web3SignerDynamoDBTableKeys struct {
+	Pubkey  string `dynamodbav:"pubkey"`
+	Network string `dynamodbav:"network"`
+}
+
 func NewWeb3SignerDynamoDB(ctx context.Context, creds dynamodb_client.DynamoDBCredentials) (Web3SignerDynamoDB, error) {
 	w3DynDB := Web3SignerDynamoDB{}
 	client, err := dynamodb_client.NewDynamoDBClient(ctx, creds)

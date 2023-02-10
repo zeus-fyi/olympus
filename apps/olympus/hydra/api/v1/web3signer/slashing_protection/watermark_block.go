@@ -29,7 +29,7 @@ func FetchLastSignedBlockSlot(ctx context.Context, pubkey string) (prevSlot int,
 	}
 	bp, err := dynamoInstance.GetBlockProposal(ctx, key)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err).Interface("key", key).Msg("failed to get attestation")
+		log.Ctx(ctx).Error().Err(err).Interface("key", key).Msg("failed to get last block proposal")
 		return 0, err
 	}
 	return bp.Slot, nil

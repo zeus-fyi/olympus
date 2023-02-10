@@ -41,8 +41,9 @@ func (w *Web3SignerDynamoDB) GetBlockProposal(ctx context.Context, tableKeys Web
 		return bp, err
 	}
 	resp, err := w.DynamoDB.GetItem(ctx, &dynamodb.GetItemInput{
-		TableName: BlockProposalsTableName,
-		Key:       keyMap,
+		TableName:      BlockProposalsTableName,
+		Key:            keyMap,
+		ConsistentRead: aws.Bool(true),
 	})
 	if err != nil {
 		log.Ctx(ctx).Error().Interface("resp", resp).Err(err).Msg("failed to get last block proposal")

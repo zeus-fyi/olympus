@@ -41,8 +41,9 @@ func (w *Web3SignerDynamoDB) GetAttestation(ctx context.Context, tableKeys Web3S
 		return att, err
 	}
 	resp, err := w.DynamoDB.GetItem(ctx, &dynamodb.GetItemInput{
-		TableName: AttestationsTableName,
-		Key:       item,
+		Key:            item,
+		TableName:      AttestationsTableName,
+		ConsistentRead: aws.Bool(true),
 	})
 	if err != nil {
 		log.Ctx(ctx).Error().Interface("resp", resp).Err(err).Msg("failed to get attestation")

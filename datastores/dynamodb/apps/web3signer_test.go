@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/configs"
-	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamoDB"
+	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamodb"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 

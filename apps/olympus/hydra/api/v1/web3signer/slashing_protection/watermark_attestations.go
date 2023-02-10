@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 	"github.com/rs/zerolog/log"
+	dynamodb_web3signer "github.com/zeus-fyi/olympus/datastores/dynamodb/apps"
+	dynamodb_web3signer_client "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/dynamodb_web3signer"
 )
 
 func WatermarkAttestation(ctx context.Context, pubkey string, sourceEpoch, targetEpoch int) error {
 	if IsSourceEpochGreaterThanTargetEpoch(ctx, pubkey, sourceEpoch, targetEpoch) {
 		return errors.New("sourceEpoch greater than targetEpoch")
 	}
-	// Get Last Recorded Source/Target Epochs TODO
 	prevSourceEpoch, prevTargetEpoch, err := FetchLastAttestation(ctx, pubkey)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Msg("failed to fetch last attestation")
@@ -26,8 +27,18 @@ func WatermarkAttestation(ctx context.Context, pubkey string, sourceEpoch, targe
 }
 
 func FetchLastAttestation(ctx context.Context, pubkey string) (sourceEpoch, targetEpoch int, err error) {
-	// TODO
-	return 0, 0, nil
+	dynamoInstance := dynamodb_web3signer_client.Web3SignerDynamoDBClient
+
+	key := dynamodb_web3signer.Web3SignerDynamoDBTableKeys{
+		Pubkey:  pubkey,
+		Network: Network,
+	}
+	att, err := dynamoInstance.GetAttestation(ctx, key)
+	if err != nil {
+		log.Ctx(ctx).Error().Err(err).Interface("key", key).Msg("failed to get attestation")
+		return 0, 0, err
+	}
+	return att.SourceEpoch, att.TargetEpoch, nil
 }
 
 // TODO far future signing protection

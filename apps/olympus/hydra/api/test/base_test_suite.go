@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"github.com/go-faker/faker/v4"
+	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamodb"
 	consensys_eth2_openapi "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer/models"
+	dynamodb_web3signer_client "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/dynamodb_web3signer"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -40,7 +42,12 @@ type HydraBaseTestSuite struct {
 func (t *HydraBaseTestSuite) SetupTest() {
 	t.InitLocalConfigs()
 	t.E = echo.New()
-
+	dcreds := dynamodb_client.DynamoDBCredentials{
+		Region:       "us-west-1",
+		AccessKey:    t.Tc.AwsAccessKey,
+		AccessSecret: t.Tc.AwsSecretKey,
+	}
+	dynamodb_web3signer_client.InitWeb3SignerDynamoDBClient(context.Background(), dcreds)
 	t.ZeusClient = zeus_client.NewZeusClient("http://localhost:9000", "")
 }
 

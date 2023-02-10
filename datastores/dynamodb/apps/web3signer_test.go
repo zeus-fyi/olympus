@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/configs"
-	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamoDB"
+	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamodb"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
@@ -64,12 +64,6 @@ func (t *Web3SignerDynamoDBTestSuite) TestBlockProposals() {
 	t.Require().Nil(err)
 	t.Require().NotNil(returnedBP)
 	t.Require().Equal(bp, returnedBP)
-}
-
-func (t *Web3SignerDynamoDBTestSuite) TestListTables() {
-	tables, err := t.DynamoDB.ListTables(ctx, nil)
-	t.Require().Nil(err)
-	t.Require().NotNil(tables)
 }
 
 func TestWeb3SignerDynamoDBTestSuite(t *testing.T) {

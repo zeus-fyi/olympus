@@ -2,15 +2,11 @@ package hydra_server
 
 import (
 	"context"
-	"errors"
-
-	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	v1_hydra "github.com/zeus-fyi/olympus/hydra/api/v1"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
-	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
@@ -34,21 +30,6 @@ func Hydra() {
 	cfg.Host = "0.0.0.0"
 	srv := NewHydraServer(cfg)
 	SetConfigByEnv(ctx, env)
-
-	// TODO auth dynamodb
-
-	// TODO, set signature service routers
-	switch Workload.ProtocolNetworkID {
-	case hestia_req_types.EthereumEphemeryProtocolNetworkID:
-
-	case hestia_req_types.EthereumMainnetProtocolNetworkID:
-
-	default:
-		err := errors.New("invalid or unsupported protocol network id")
-		log.Ctx(ctx).Err(err)
-		panic(err)
-	}
-
 	srv.E = v1_hydra.Routes(srv.E)
 	// Start server
 	srv.Start()

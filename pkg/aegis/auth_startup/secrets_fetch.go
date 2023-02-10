@@ -25,13 +25,15 @@ const (
 )
 
 type SecretsWrapper struct {
-	PostgresAuth      string
-	AegisPostgresAuth string
-	DoctlToken        string
-	MainnetBeaconURL  string
-	BearerToken       string
-	OpenAIToken       string
-	TemporalAuth      temporal_auth.TemporalAuth
+	PostgresAuth           string
+	AegisPostgresAuth      string
+	DoctlToken             string
+	MainnetBeaconURL       string
+	BearerToken            string
+	OpenAIToken            string
+	AccessKeyHydraDynamoDB string
+	SecretKeyHydraDynamoDB string
+	TemporalAuth           temporal_auth.TemporalAuth
 }
 
 var secretsBucket = &s3.GetObjectInput{

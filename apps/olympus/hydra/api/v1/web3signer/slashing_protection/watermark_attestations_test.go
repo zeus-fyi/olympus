@@ -6,18 +6,18 @@ import (
 	"testing"
 )
 
-type WatermarkerWeb3SignerTestSuite struct {
+type WatermarkAttestationsWeb3SignerTestSuite struct {
 	hydra_base_test.HydraBaseTestSuite
 }
 
-func (t *WatermarkerWeb3SignerTestSuite) TestBlockProposalWatermarker() {
-	// TODO check slot
-}
-
-func (t *WatermarkerWeb3SignerTestSuite) TestAttestationWatermarker() {
+func (t *WatermarkAttestationsWeb3SignerTestSuite) TestAttestationWatermarker() {
 	// TODO check source and target epochs
 }
 
-func TestWatermarkerWeb3SignerTestSuite(t *testing.T) {
-	suite.Run(t, new(WatermarkerWeb3SignerTestSuite))
+func (t *WatermarkAttestationsWeb3SignerTestSuite) TestFarFutureSigning() {
+	// TODO check source and target epochs
+}
+
+func TestWatermarkAttestationsWeb3SignerTestSuite(t *testing.T) {
+	suite.Run(t, new(WatermarkAttestationsWeb3SignerTestSuite))
 }

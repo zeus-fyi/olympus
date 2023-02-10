@@ -3,7 +3,7 @@ package dynamodb_web3signer
 import (
 	"context"
 	"github.com/rs/zerolog/log"
-	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamoDB"
+	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamodb"
 )
 
 type Web3SignerDynamoDB struct {

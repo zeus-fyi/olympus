@@ -15,10 +15,7 @@ type ArtemisEthereumValidatorSignatureRequestsWorker struct {
 
 var ArtemisEthereumValidatorSignatureRequestsMainnetWorker ArtemisEthereumValidatorSignatureRequestsWorker
 
-// TODO, identify how to setup task queue better
-// TODO, add ephemeral testnet, maybe make that part a param?
-
-const EthereumTxBroadcastTaskQueue = "EthereumValidatorSignatureRequestsMainnetTaskQueue"
+const EthereumTxBroadcastMainnetTaskQueue = "EthereumValidatorSignatureRequestsMainnetTaskQueue"
 
 func InitArtemisEthereumValidatorSignatureRequestsMainnetWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
 	log.Ctx(ctx).Info().Msg("Artemis: InitArtemisEthereumValidatorSignatureRequestsMainnetWorker")
@@ -27,7 +24,7 @@ func InitArtemisEthereumValidatorSignatureRequestsMainnetWorker(ctx context.Cont
 		log.Err(err).Msg("InitArtemisEthereumValidatorSignatureRequestsMainnetWorker: NewTemporalClient failed")
 		misc.DelayedPanic(err)
 	}
-	taskQueueName := EthereumTxBroadcastTaskQueue
+	taskQueueName := EthereumTxBroadcastMainnetTaskQueue
 	w := temporal_base.NewWorker(taskQueueName)
 	activityDef := NewArtemisEthereumValidatorSignatureRequestActivities()
 	wf := NewArtemisEthereumValidatorSignatureRequestWorkflow()

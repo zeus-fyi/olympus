@@ -9,10 +9,6 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 )
 
-type ArtemisEthereumValidatorSignatureRequestsWorker struct {
-	temporal_base.Worker
-}
-
 var ArtemisEthereumValidatorSignatureRequestsMainnetWorker ArtemisEthereumValidatorSignatureRequestsWorker
 
 const EthereumTxBroadcastMainnetTaskQueue = "EthereumValidatorSignatureRequestsMainnetTaskQueue"

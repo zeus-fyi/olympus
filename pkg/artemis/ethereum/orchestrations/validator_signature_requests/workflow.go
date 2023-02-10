@@ -23,10 +23,10 @@ func NewArtemisEthereumValidatorSignatureRequestWorkflow() ArtemisArtemisEthereu
 }
 
 func (t *ArtemisArtemisEthereumValidatorSignatureRequestWorkflow) GetWorkflows() []interface{} {
-	return []interface{}{t.ArtemisSendEthValidatorSignatureRequestWorkflow}
+	return []interface{}{t.ArtemisSendValidatorSignatureRequestWorkflow}
 }
 
-func (t *ArtemisArtemisEthereumValidatorSignatureRequestWorkflow) ArtemisSendEthValidatorSignatureRequestWorkflow(ctx workflow.Context, params interface{}) error {
+func (t *ArtemisArtemisEthereumValidatorSignatureRequestWorkflow) ArtemisSendValidatorSignatureRequestWorkflow(ctx workflow.Context, params interface{}) error {
 	//log := workflow.GetLogger(ctx)
 	//ao := workflow.ActivityOptions{
 	//	StartToCloseTimeout: defaultTimeout,

@@ -2,6 +2,7 @@ package eth_validator_signature_requests
 
 import (
 	"context"
+	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
 	"time"
 )
 
@@ -28,9 +29,7 @@ func (d *ArtemisEthereumValidatorSignatureRequestActivities) GetActivities() Act
 	return []interface{}{d.RequestValidatorSignature}
 }
 
-func (d *ArtemisEthereumValidatorSignatureRequestActivities) RequestValidatorSignature(ctx context.Context, payload any) (Eth2SignResponse, error) {
-
+func (d *ArtemisEthereumValidatorSignatureRequestActivities) RequestValidatorSignature(ctx context.Context, payload any) (aegis_inmemdbs.EthereumBLSKeySignatureResponses, error) {
 	// TODO serverless request here
-	resp := Eth2SignResponse{}
-	return resp, nil
+	return aegis_inmemdbs.EthereumBLSKeySignatureResponses{}, nil
 }

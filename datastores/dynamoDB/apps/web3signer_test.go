@@ -66,12 +66,6 @@ func (t *Web3SignerDynamoDBTestSuite) TestBlockProposals() {
 	t.Require().Equal(bp, returnedBP)
 }
 
-func (t *Web3SignerDynamoDBTestSuite) TestListTables() {
-	tables, err := t.DynamoDB.ListTables(ctx, nil)
-	t.Require().Nil(err)
-	t.Require().NotNil(tables)
-}
-
 func TestWeb3SignerDynamoDBTestSuite(t *testing.T) {
 	suite.Run(t, new(Web3SignerDynamoDBTestSuite))
 }

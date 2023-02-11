@@ -34,5 +34,19 @@ func (d *ArtemisEthereumValidatorSignatureRequestActivities) RequestValidatorSig
 	// TODO serverless request here
 	// TODO, group pubkeys by serverless function then send requests
 
+	m := make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureRequests)
+	// TODO: group by service url
+	for pubkey, signReq := range sigRequests.Map {
+		svcURL := MockGetServiceURL(pubkey)
+		if _, ok := m[svcURL]; !ok {
+			m[svcURL] = aegis_inmemdbs.EthereumBLSKeySignatureRequests{}
+		}
+		m[svcURL].Map[pubkey] = signReq
+	}
 	return aegis_inmemdbs.EthereumBLSKeySignatureResponses{}, nil
+}
+
+func MockGetServiceURL(pubkey string) string {
+	// TODO lookup in cache
+	return "http://localhost:8080"
 }

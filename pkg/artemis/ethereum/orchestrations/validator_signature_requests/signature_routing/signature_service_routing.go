@@ -11,6 +11,10 @@ import (
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
+// TODO get auth info + chain messages to sign
+
+// map pubkey -> service url -> batchSignReq to this url
+
 type ServiceRoutes struct {
 	To []ServiceRoute
 }
@@ -22,7 +26,7 @@ type ServiceRoute struct {
 	bls_serverless_signing.SignatureRequests
 }
 
-var ServiceAuthRouteCache = cache.New(10*time.Second, 20*time.Second)
+var ServiceAuthRouteCache = cache.New(12*time.Hour, 24*time.Hour)
 
 func InitAsyncServiceAuthRoutePolling(ctx context.Context, cctx zeus_common_types.CloudCtxNs) {
 	for {
@@ -45,7 +49,5 @@ func GetServiceURLs(ctx context.Context, cctx zeus_common_types.CloudCtxNs) (art
 		log.Ctx(ctx).Error().Err(err).Msg("GetServiceURL")
 		return vsRoutes, err
 	}
-	// TODO get auth info + chain messages to sign
-
 	return vsRoutes, err
 }

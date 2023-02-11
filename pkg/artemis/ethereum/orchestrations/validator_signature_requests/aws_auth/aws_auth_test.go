@@ -33,7 +33,7 @@ func (s *ArtemisHydraSecretsManagerTestSuite) SetupTest() {
 
 func (s *ArtemisHydraSecretsManagerTestSuite) TestCreateSecret() {
 	ou := org_users.OrgUser{}
-	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID + 1
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
 	v := hestia_req_types.ServiceRequestWrapper{
@@ -60,7 +60,7 @@ func (s *ArtemisHydraSecretsManagerTestSuite) TestCreateSecret() {
 
 func (s *ArtemisHydraSecretsManagerTestSuite) TestFetchSecret() {
 	ou := org_users.OrgUser{}
-	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID + 1
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 	v := hestia_req_types.ServiceRequestWrapper{
 		GroupName:         "testGroup",
@@ -73,14 +73,14 @@ func (s *ArtemisHydraSecretsManagerTestSuite) TestFetchSecret() {
 		Name:   fmt.Sprintf("%s-%d-%d", v.GroupName, ou.OrgID, v.ProtocolNetworkID),
 		Key:    fmt.Sprintf("%s-%d-%d", v.GroupName, ou.OrgID, v.ProtocolNetworkID),
 	}
-	so, err := HydraSecretManagerAuthAWS.GetSecret(ctx, si)
+	so, err := GetServiceRoutesAuths(ctx, si)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(so)
 }
 
 func (s *ArtemisHydraSecretsManagerTestSuite) TestFetchServiceRoutesAuths() {
 	ou := org_users.OrgUser{}
-	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID + 1
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
 	v := hestia_req_types.ServiceRequestWrapper{

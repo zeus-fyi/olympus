@@ -3,6 +3,7 @@ package v1hestia
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -37,22 +38,22 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 		ServiceRequestWrapper:         v.ServiceRequestWrapper,
 		ValidatorServiceOrgGroupSlice: v.ValidatorServiceOrgGroupSlice,
 	}
-	var err error
+
+	var network string
 	switch v.ProtocolNetworkID {
 	case hestia_req_types.EthereumMainnetProtocolNetworkID:
-		err = eth_validators_service_requests.ArtemisEthereumMainnetValidatorsRequestsWorker.ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx, vsr)
+		network = "mainnet"
 	case hestia_req_types.EthereumEphemeryProtocolNetworkID:
-		err = eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx, vsr)
+		network = "ephemery"
 	default:
-		return c.JSON(http.StatusBadRequest, nil)
-	}
+		return c.JSON(http.StatusBadRequest, errors.New("unknown network"))
 
-	err = v.ServiceAuth.Validate()
+	}
+	err := v.ServiceAuth.Validate()
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
 	la := v.ServiceAuth
 	b, err := json.Marshal(la)
 	if err != nil {
@@ -60,8 +61,8 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	si := secretsmanager.CreateSecretInput{
-		Name:         aws.String(fmt.Sprintf("%s-%d-%d", v.GroupName, ou.OrgID, v.ProtocolNetworkID)),
-		Description:  aws.String(fmt.Sprintf("%s-%d-%d", v.GroupName, ou.OrgID, v.ProtocolNetworkID)),
+		Name:         aws.String(fmt.Sprintf("%s-%d-%s", v.GroupName, ou.OrgID, network)),
+		Description:  aws.String(fmt.Sprintf("%s-%d-%s", v.GroupName, ou.OrgID, network)),
 		SecretBinary: b,
 		SecretString: nil,
 	}
@@ -70,5 +71,22 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 		log.Ctx(ctx).Error().Err(err)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return c.JSON(http.StatusAccepted, nil)
+
+	switch v.ProtocolNetworkID {
+	case hestia_req_types.EthereumMainnetProtocolNetworkID:
+		err = eth_validators_service_requests.ArtemisEthereumMainnetValidatorsRequestsWorker.ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx, vsr)
+		if err != nil {
+			log.Ctx(ctx).Error().Err(err)
+			return c.JSON(http.StatusAccepted, nil)
+		}
+	case hestia_req_types.EthereumEphemeryProtocolNetworkID:
+		err = eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx, vsr)
+		if err != nil {
+			log.Ctx(ctx).Error().Err(err)
+			return c.JSON(http.StatusAccepted, nil)
+		}
+	default:
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	return c.JSON(http.StatusBadRequest, nil)
 }

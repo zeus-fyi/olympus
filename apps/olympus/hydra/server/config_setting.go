@@ -12,7 +12,6 @@ import (
 	"github.com/zeus-fyi/olympus/configs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
-	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 )
@@ -35,29 +34,26 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		log.Info().Msg("Artemis: production auth procedure starting")
 		temporalAuthCfg = temporalProdAuthConfig
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
-		inMemSecrets, sw := auth_startup.RunHydraDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+		_, sw := auth_startup.RunHydraDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		cfg.PGConnStr = sw.PostgresAuth
 		dynamoCreds.AccessKey = sw.AccessKeyHydraDynamoDB
 		dynamoCreds.AccessSecret = sw.SecretKeyHydraDynamoDB
-		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		temporalAuthCfg = temporalProdAuthConfig
 		authKeysCfg = tc.ProdLocalAuthKeysCfg
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
-		inMemSecrets, sw := auth_startup.RunHydraDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+		_, sw := auth_startup.RunHydraDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
 		dynamoCreds.AccessKey = sw.AccessKeyHydraDynamoDB
 		dynamoCreds.AccessSecret = sw.SecretKeyHydraDynamoDB
 		temporalAuthCfg = tc.ProdLocalTemporalAuthArtemis
-		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
 		temporalAuthCfg = tc.ProdLocalTemporalAuthArtemis
 		dynamoCreds.AccessKey = tc.AwsAccessKey
 		dynamoCreds.AccessSecret = tc.AwsSecretKey
-		artemis_network_cfgs.InitArtemisLocalTestConfigs()
 	}
 	log.Info().Msg("Hydra: InitPG connecting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)

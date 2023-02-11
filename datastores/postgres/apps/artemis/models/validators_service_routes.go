@@ -15,9 +15,10 @@ type ValidatorsSignatureServiceRoutes struct {
 }
 
 type ValidatorsSignatureServiceRoute struct {
-	GroupName  string `json:"groupName"`
-	ServiceURL string `json:"serviceURL"`
-	OrgID      int    `json:"orgID"`
+	GroupName         string `json:"groupName"`
+	ServiceURL        string `json:"serviceURL"`
+	OrgID             int    `json:"orgID"`
+	ProtocolNetworkID int    `json:"protocolNetworkID"`
 }
 
 // SelectValidatorsServiceRoutesAssignedToCloudCtxNs is used by hydra
@@ -26,7 +27,7 @@ func SelectValidatorsServiceRoutesAssignedToCloudCtxNs(ctx context.Context, vali
 	serviceRoutes := ValidatorsSignatureServiceRoutes{}
 	m := make(map[string]ValidatorsSignatureServiceRoute)
 	q.RawQuery = `	
-				  SELECT vsg.pubkey, vsg.group_name, vsg.service_url, vsg.org_id
+				  SELECT vsg.pubkey, vsg.group_name, vsg.service_url, vsg.org_id, vsg.protocol_network_id
 				  FROM validators_service_org_groups_cloud_ctx_ns vctx
 				  INNER JOIN topologies_org_cloud_ctx_ns topctx ON topctx.cloud_ctx_ns_id = vctx.cloud_ctx_ns_id
 				  INNER JOIN validators_service_org_groups vsg ON vsg.pubkey = vctx.pubkey
@@ -42,7 +43,7 @@ func SelectValidatorsServiceRoutesAssignedToCloudCtxNs(ctx context.Context, vali
 		var pubkey string
 		vsr := ValidatorsSignatureServiceRoute{}
 		rowErr := rows.Scan(
-			&pubkey, &vsr.GroupName, &vsr.ServiceURL, &vsr.OrgID,
+			&pubkey, &vsr.GroupName, &vsr.ServiceURL, &vsr.OrgID, &vsr.ProtocolNetworkID,
 		)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader(ModelName))

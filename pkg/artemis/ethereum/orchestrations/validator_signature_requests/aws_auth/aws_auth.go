@@ -1,4 +1,4 @@
-package artemis_hydra_orchestrations_auth
+package artemis_hydra_orchestrations_aws_auth
 
 import (
 	"context"

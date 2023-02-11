@@ -1,4 +1,4 @@
-package artemis_hydra_orchestrations_auth
+package artemis_hydra_orchestrations_aws_auth
 
 import (
 	"context"
@@ -57,7 +57,6 @@ func (s *ArtemisHydraSecretsManagerTestSuite) TestCreateSecret() {
 		SecretString: nil,
 	}
 	_, err = HydraSecretManagerAuthAWS.CreateSecret(ctx, &si)
-
 	errStr := err.Error()
 	errCheckStr := fmt.Sprintf("the secret %s already exists", name)
 	if strings.Contains(errStr, errCheckStr) {

@@ -7,8 +7,11 @@ import (
 	"github.com/spf13/viper"
 	v1_hydra "github.com/zeus-fyi/olympus/hydra/api/v1"
 	hydra_eth2_web3signer "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer"
+	ethereum_slashing_protection_watermarking "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer/slashing_protection"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
+	eth_validator_signature_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
+	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
@@ -19,8 +22,6 @@ var (
 	env             string
 	Workload        WorkloadInfo
 )
-
-// TODO set up some polling mechanism to update validators to send serverless functions to
 
 type WorkloadInfo struct {
 	zeus_common_types.CloudCtxNs
@@ -34,8 +35,38 @@ func Hydra() {
 	log.Ctx(ctx).Info().Msg("Hydra: Initializing configs by environment type")
 	SetConfigByEnv(ctx, env)
 	srv.E = v1_hydra.Routes(srv.E)
+
+	log.Ctx(ctx).Info().Msg("Hydra: Starting Temporal Worker")
+	switch ethereum_slashing_protection_watermarking.Network {
+	case "mainnet":
+		eth_validator_signature_requests.InitArtemisEthereumValidatorSignatureRequestsMainnetWorker(ctx, temporalProdAuthConfig)
+		c := eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsMainnetWorker.ConnectTemporalClient()
+		defer c.Close()
+		eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsMainnetWorker.RegisterWorker(c)
+		err := eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsMainnetWorker.Worker.Start()
+		if err != nil {
+			log.Fatal().Err(err).Msgf("Hydra: %s ArtemisEthereumValidatorSignatureRequestsMainnetWorker.Worker.Start failed", env)
+			misc.DelayedPanic(err)
+		}
+	case "ephemery":
+		eth_validator_signature_requests.InitArtemisEthereumValidatorSignatureRequestsEphemeryWorker(ctx, temporalProdAuthConfig)
+		c := eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsEphemeryWorker.ConnectTemporalClient()
+		defer c.Close()
+		eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsEphemeryWorker.RegisterWorker(c)
+		err := eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsEphemeryWorker.Worker.Start()
+		if err != nil {
+			log.Fatal().Err(err).Msgf("Hydra: %s ArtemisEthereumValidatorSignatureRequestsEphemeryWorker.Worker.Start failed", env)
+			misc.DelayedPanic(err)
+		}
+	default:
+		panic("unknown network")
+	}
+	log.Ctx(ctx).Info().Interface("network", ethereum_slashing_protection_watermarking.Network).Msg("Hydra: Temporal Worker Started")
+
 	log.Ctx(ctx).Info().Msg("Hydra: Starting async priority message queues")
 	hydra_eth2_web3signer.InitAsyncMessageQueues(ctx)
+	log.Ctx(ctx).Info().Msg("Hydra: Async priority message queues started")
+
 	log.Ctx(ctx).Info().Msg("Hydra: Starting server")
 	srv.Start()
 }

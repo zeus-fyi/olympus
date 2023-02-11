@@ -33,18 +33,19 @@ func HydraEth2SignRequestHandler(c echo.Context) error {
 func (w *Web3SignerRequest) Eth2SignRequest(c echo.Context) error {
 	log.Info().Msg("Eth2SignRequest")
 	pubkey := c.Param("identifier")
-
 	ctx := context.Background()
 	sr, err := Watermarking(ctx, pubkey, w)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("Eth2SignRequest")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-
-	resp, err := QueueSigningRequestAndReturnSignature(ctx, sr)
+	resp, err := WaitForSignature(ctx, sr)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("Eth2SignRequest")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	return c.JSON(http.StatusNotFound, resp)
+	if resp.Signature == "" {
+		return c.JSON(http.StatusRequestTimeout, resp)
+	}
+	return c.JSON(http.StatusOK, resp)
 }

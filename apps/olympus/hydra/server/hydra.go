@@ -2,9 +2,11 @@ package hydra_server
 
 import (
 	"context"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	v1_hydra "github.com/zeus-fyi/olympus/hydra/api/v1"
+	hydra_eth2_web3signer "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
@@ -29,9 +31,12 @@ func Hydra() {
 	ctx := context.Background()
 	cfg.Host = "0.0.0.0"
 	srv := NewHydraServer(cfg)
+	log.Ctx(ctx).Info().Msg("Hydra: Initializing configs by environment type")
 	SetConfigByEnv(ctx, env)
 	srv.E = v1_hydra.Routes(srv.E)
-	// Start server
+	log.Ctx(ctx).Info().Msg("Hydra: Starting async priority message queues")
+	hydra_eth2_web3signer.InitAsyncMessageQueues(ctx)
+	log.Ctx(ctx).Info().Msg("Hydra: Starting server")
 	srv.Start()
 }
 

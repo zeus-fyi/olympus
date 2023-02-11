@@ -60,10 +60,13 @@ func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (Sig
 			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("ATTESTATION")
 			return SignRequest{}, err
 		}
+		AttestationSigningRequestPriorityQueue.Push(sr)
 	case AGGREGATION_SLOT:
 		log.Info().Interface("pubkey", pubkey).Msg("AGGREGATION_SLOT")
+		AggregationSlotSigningRequestPriorityQueue.Push(sr)
 	case AGGREGATE_AND_PROOF:
 		log.Info().Interface("pubkey", pubkey).Msg("AGGREGATE_AND_PROOF")
+		AggregationAndProofSigningRequestPriorityQueue.Push(sr)
 	case BLOCK:
 		log.Info().Interface("pubkey", pubkey).Msg("BLOCK")
 		bs := consensys_eth2_openapi.BlockSigning{}
@@ -87,6 +90,7 @@ func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (Sig
 			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("slot", slot).Msg("BLOCK")
 			return SignRequest{}, err
 		}
+		BlockSigningRequestPriorityQueue.Push(sr)
 	case BLOCK_V2:
 		log.Info().Interface("pubkey", pubkey).Msg("BLOCK_V2")
 		bs := consensys_eth2_openapi.BeaconBlockSigning{}
@@ -110,16 +114,22 @@ func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (Sig
 			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("slot", slot).Msg("BLOCK_V2")
 			return SignRequest{}, err
 		}
+		BlockSigningRequestPriorityQueue.Push(sr)
 	case RANDAO_REVEAL:
 		log.Info().Interface("pubkey", pubkey).Msg("RANDAO_REVEAL")
+		RandaoRevealSigningRequestPriorityQueue.Push(sr)
 	case SYNC_COMMITTEE_MESSAGE:
 		log.Info().Interface("pubkey", pubkey).Msg("SYNC_COMMITTEE_MESSAGE")
+		SyncCommitteeMessageSigningRequestPriorityQueue.Push(sr)
 	case SYNC_COMMITTEE_SELECTION_PROOF:
 		log.Info().Interface("pubkey", pubkey).Msg("SYNC_COMMITTEE_SELECTION_PROOF")
+		SyncCommitteeSelectionProofSigningRequestPriorityQueue.Push(sr)
 	case SYNC_COMMITTEE_CONTRIBUTION_AND_PROOF:
 		log.Info().Interface("pubkey", pubkey).Msg("SYNC_COMMITTEE_CONTRIBUTION_AND_PROOF")
+		SyncCommitteeContributionAndProof.Push(sr)
 	case VALIDATOR_REGISTRATION:
 		log.Info().Interface("pubkey", pubkey).Msg("VALIDATOR_REGISTRATION")
+		ValidatorRegistration.Push(sr)
 	default:
 	}
 

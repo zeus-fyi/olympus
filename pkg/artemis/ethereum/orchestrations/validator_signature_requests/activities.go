@@ -2,8 +2,9 @@ package eth_validator_signature_requests
 
 import (
 	"context"
-	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
 	"time"
+
+	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
 )
 
 const (
@@ -26,10 +27,12 @@ type Eth2SignResponse struct {
 }
 
 func (d *ArtemisEthereumValidatorSignatureRequestActivities) GetActivities() ActivitiesSlice {
-	return []interface{}{d.RequestValidatorSignature}
+	return []interface{}{d.RequestValidatorSignatures}
 }
 
-func (d *ArtemisEthereumValidatorSignatureRequestActivities) RequestValidatorSignature(ctx context.Context, payload any) (aegis_inmemdbs.EthereumBLSKeySignatureResponses, error) {
+func (d *ArtemisEthereumValidatorSignatureRequestActivities) RequestValidatorSignatures(ctx context.Context, sigRequests aegis_inmemdbs.EthereumBLSKeySignatureRequests) (aegis_inmemdbs.EthereumBLSKeySignatureResponses, error) {
 	// TODO serverless request here
+	// TODO, group pubkeys by serverless function then send requests
+
 	return aegis_inmemdbs.EthereumBLSKeySignatureResponses{}, nil
 }

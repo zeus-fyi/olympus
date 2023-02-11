@@ -13,19 +13,24 @@ type ArtemisEthereumValidatorSignatureRequestsWorker struct {
 	temporal_base.Worker
 }
 
-func (t *ArtemisEthereumValidatorSignatureRequestsWorker) ExecuteValidatorSignatureRequestsWorkflow(ctx context.Context, params any) (aegis_inmemdbs.EthereumBLSKeySignatureResponses, error) {
+func (t *ArtemisEthereumValidatorSignatureRequestsWorker) ExecuteValidatorSignatureRequestsWorkflow(ctx context.Context, sigRequests aegis_inmemdbs.EthereumBLSKeySignatureRequests, signType string) (aegis_inmemdbs.EthereumBLSKeySignatureResponses, error) {
 	c := t.ConnectTemporalClient()
 	defer c.Close()
 	workflowOptions := client.StartWorkflowOptions{
-		TaskQueue: t.TaskQueueName,
+		TaskQueue: fmt.Sprintf("%s-%s", t.TaskQueueName, signType),
 	}
-	sigReqWf := NewArtemisEthereumValidatorSignatureRequestActivities()
-	wf, err := sigReqWf.RequestValidatorSignature(ctx, params)
-	resp, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
+	sigReqWf := NewArtemisEthereumValidatorSignatureRequestWorkflow()
+	wf := sigReqWf.ArtemisSendValidatorSignatureRequestsWorkflow
+	workflowRun, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, sigRequests)
 	if err != nil {
-		log.Err(err).Msg("ExecuteArtemisSendSignedTxWorkflow")
+		log.Err(err).Msg("Hydra: Artemis Subsystem: ExecuteValidatorSignatureRequestsWorkflow")
 		return aegis_inmemdbs.EthereumBLSKeySignatureResponses{}, err
 	}
-	fmt.Print(resp)
-	return aegis_inmemdbs.EthereumBLSKeySignatureResponses{}, err
+	var resp aegis_inmemdbs.EthereumBLSKeySignatureResponses
+	err = workflowRun.Get(ctx, &resp)
+	if err != nil {
+		log.Err(err).Msg("Hydra: Artemis Subsystem: ExecuteValidatorSignatureRequestsWorkflow")
+		return aegis_inmemdbs.EthereumBLSKeySignatureResponses{}, err
+	}
+	return resp, err
 }

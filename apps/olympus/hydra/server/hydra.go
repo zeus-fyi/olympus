@@ -10,6 +10,7 @@ import (
 	ethereum_slashing_protection_watermarking "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer/slashing_protection"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	eth_validator_signature_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests"
+	artemis_validator_signature_service_routing "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/signature_routing"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
@@ -21,6 +22,11 @@ var (
 	authKeysCfg     auth_keys_config.AuthKeysCfg
 	env             string
 	Workload        WorkloadInfo
+)
+
+const (
+	Mainnet  = "mainnet"
+	Ephemery = "ephemery"
 )
 
 type WorkloadInfo struct {
@@ -36,9 +42,13 @@ func Hydra() {
 	SetConfigByEnv(ctx, env)
 	srv.E = v1_hydra.Routes(srv.E)
 
+	log.Ctx(ctx).Info().Msg("Hydra: Starting Async Service Route Polling")
+	artemis_validator_signature_service_routing.InitAsyncServiceAuthRoutePolling(ctx, Workload.CloudCtxNs)
+	log.Ctx(ctx).Info().Msg("Hydra: Async Service Route Polling Started")
+
 	log.Ctx(ctx).Info().Msg("Hydra: Starting Temporal Worker")
 	switch ethereum_slashing_protection_watermarking.Network {
-	case "mainnet":
+	case Mainnet:
 		eth_validator_signature_requests.InitArtemisEthereumValidatorSignatureRequestsMainnetWorker(ctx, temporalAuthCfg)
 		c := eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsMainnetWorker.ConnectTemporalClient()
 		defer c.Close()
@@ -48,7 +58,7 @@ func Hydra() {
 			log.Fatal().Err(err).Msgf("Hydra: %s ArtemisEthereumValidatorSignatureRequestsMainnetWorker.Worker.Start failed", env)
 			misc.DelayedPanic(err)
 		}
-	case "ephemery":
+	case Ephemery:
 		eth_validator_signature_requests.InitArtemisEthereumValidatorSignatureRequestsEphemeryWorker(ctx, temporalAuthCfg)
 		c := eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsEphemeryWorker.ConnectTemporalClient()
 		defer c.Close()

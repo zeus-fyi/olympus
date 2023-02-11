@@ -62,13 +62,13 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	switch Workload.ProtocolNetworkID {
 	case hestia_req_types.EthereumEphemeryProtocolNetworkID:
 		log.Info().Msg("Hydra: ProtocolNetworkID (ephemery)")
-		ethereum_slashing_protection_watermarking.Network = "ephemery"
+		ethereum_slashing_protection_watermarking.Network = Ephemery
 	case hestia_req_types.EthereumMainnetProtocolNetworkID:
 		log.Info().Msg("Hydra: ProtocolNetworkID (mainnet)")
-		ethereum_slashing_protection_watermarking.Network = "mainnet"
+		ethereum_slashing_protection_watermarking.Network = Mainnet
 	default:
 		err := errors.New("invalid or unsupported protocol network id")
-		log.Ctx(ctx).Err(err)
+		log.Ctx(ctx).Err(err).Interface("protocol_network_id", Workload.ProtocolNetworkID).Msg("Hydra: ProtocolNetworkID (invalid or unsupported)")
 		panic(err)
 	}
 	log.Info().Msg("Hydra: InitDynamoDB connecting")

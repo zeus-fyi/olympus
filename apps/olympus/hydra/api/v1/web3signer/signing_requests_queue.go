@@ -87,6 +87,7 @@ func (sq *SignaturePriorityQueue) SendSignatureRequestsFromQueue(ctx context.Con
 	m := make(map[string]string)
 	seen := make(map[string]SignRequest)
 	ql := sq.Len()
+	log.Info().Str("signingType", sq.Type).Msg(fmt.Sprintf("queue length: %d", ql))
 	for i := 0; i < ql; i++ {
 		sr := sq.Pop().(SignRequest)
 		pubkey := sr.Pubkey

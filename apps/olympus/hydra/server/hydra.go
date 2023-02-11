@@ -39,7 +39,7 @@ func Hydra() {
 	log.Ctx(ctx).Info().Msg("Hydra: Starting Temporal Worker")
 	switch ethereum_slashing_protection_watermarking.Network {
 	case "mainnet":
-		eth_validator_signature_requests.InitArtemisEthereumValidatorSignatureRequestsMainnetWorker(ctx, temporalProdAuthConfig)
+		eth_validator_signature_requests.InitArtemisEthereumValidatorSignatureRequestsMainnetWorker(ctx, temporalAuthCfg)
 		c := eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsMainnetWorker.ConnectTemporalClient()
 		defer c.Close()
 		eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsMainnetWorker.RegisterWorker(c)
@@ -49,7 +49,7 @@ func Hydra() {
 			misc.DelayedPanic(err)
 		}
 	case "ephemery":
-		eth_validator_signature_requests.InitArtemisEthereumValidatorSignatureRequestsEphemeryWorker(ctx, temporalProdAuthConfig)
+		eth_validator_signature_requests.InitArtemisEthereumValidatorSignatureRequestsEphemeryWorker(ctx, temporalAuthCfg)
 		c := eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsEphemeryWorker.ConnectTemporalClient()
 		defer c.Close()
 		eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsEphemeryWorker.RegisterWorker(c)

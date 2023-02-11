@@ -33,20 +33,39 @@ func (s *ValidatorServiceAuthRoutesTestSuite) SetupTest() {
 func (s *ValidatorServiceAuthRoutesTestSuite) TestServiceGroupingHelper() {
 	srs := aegis_inmemdbs.EthereumBLSKeySignatureRequests{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureRequest)}
 
-	keyOne := "0x1"
+	keyOne, keyTwo, keyThree := "0x1", "0x2", "0x3"
+	keyOneSvcURL, keyTwoSvcURL, keyThreeSvcURL := "https://fake-service.com", "https://fake-service.com", "https://different-service.com"
 	srs.Map[keyOne] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: "one"}
-	srs.Map["0x2"] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: "two"}
-	srs.Map["0x3"] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: "one"}
+	srs.Map[keyTwo] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: "two"}
+	srs.Map[keyThree] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: "three"}
 	InitRouteMapInMemFS(ctx)
 	p := filepaths.Path{
 		DirIn: ".",
-		FnIn:  keyOne,
 	}
-	err := RouteMapInMemFS.MakeFileIn(&p, []byte("https://fake-service.com"))
+	p.FnIn = keyOne
+	err := RouteMapInMemFS.MakeFileIn(&p, []byte(keyOneSvcURL))
+	s.Require().Nil(err)
+	p.FnIn = keyTwo
+	err = RouteMapInMemFS.MakeFileIn(&p, []byte(keyTwoSvcURL))
+	s.Require().Nil(err)
+	p.FnIn = keyThree
+	err = RouteMapInMemFS.MakeFileIn(&p, []byte(keyThreeSvcURL))
 	s.Require().Nil(err)
 
 	resp := GroupSigRequestsByServiceURL(ctx, srs)
 	s.Require().NotEmpty(resp)
+	s.Require().Equal(2, len(resp))
+	for k, v := range resp {
+		if k == keyOneSvcURL {
+			s.Require().Equal(2, len(v.Map))
+			s.Require().Equal("one", v.Map[keyOne].Message)
+			s.Require().Equal("two", v.Map[keyTwo].Message)
+		}
+		if k == keyThreeSvcURL {
+			s.Require().Equal(1, len(v.Map))
+			s.Require().Equal("three", v.Map[keyThree].Message)
+		}
+	}
 }
 
 func (s *ValidatorServiceAuthRoutesTestSuite) TestFetchServiceAuthRouteGrouping() {

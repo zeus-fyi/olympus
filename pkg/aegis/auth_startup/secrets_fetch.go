@@ -2,6 +2,7 @@ package auth_startup
 
 import (
 	"context"
+	aws_secrets "github.com/zeus-fyi/zeus/pkg/aegis/aws"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -33,7 +34,9 @@ type SecretsWrapper struct {
 	OpenAIToken            string
 	AccessKeyHydraDynamoDB string
 	SecretKeyHydraDynamoDB string
-	TemporalAuth           temporal_auth.TemporalAuth
+
+	SecretsManagerAuthAWS aws_secrets.AuthAWS
+	TemporalAuth          temporal_auth.TemporalAuth
 }
 
 var secretsBucket = &s3.GetObjectInput{
@@ -71,16 +74,6 @@ func ReadEncryptedSecretsData(ctx context.Context, authCfg AuthConfig) memfs.Mem
 		misc.DelayedPanic(err)
 	}
 	return s3SecretsReader.MemFS
-}
-
-func RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {
-	log.Info().Msg("Hestia: RunDigitalOceanS3BucketObjSecretsProcedure starting")
-	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
-	log.Info().Msg("Hestia: RunDigitalOceanS3BucketObjSecretsProcedure finished")
-	sw := SecretsWrapper{}
-	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
-	log.Info().Msg("Hestia: RunDigitalOceanS3BucketObjSecretsProcedure succeeded")
-	return inMemSecrets, sw
 }
 
 func RunDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {

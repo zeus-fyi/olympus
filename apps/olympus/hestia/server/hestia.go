@@ -2,6 +2,8 @@ package hestia_server
 
 import (
 	"context"
+	hestia_aws_secrets_auth "github.com/zeus-fyi/olympus/hestia/auth"
+	aws_secrets "github.com/zeus-fyi/zeus/pkg/aegis/aws"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -26,6 +28,11 @@ var (
 		Namespace:        "production-artemis.ngb72",
 		HostPort:         "production-artemis.ngb72.tmprl.cloud:7233",
 	}
+	awsAuthCfg = aws_secrets.AuthAWS{
+		Region:    "us-west-1",
+		AccessKey: "",
+		SecretKey: "",
+	}
 )
 
 func Hestia() {
@@ -37,20 +44,29 @@ func Hestia() {
 	switch env {
 	case "production":
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
-		_, sw := auth_startup.RunDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+		_, sw := auth_startup.RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		cfg.PGConnStr = sw.PostgresAuth
+		awsAuthCfg = sw.SecretsManagerAuthAWS
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
 		temporalProdAuthConfig = tc.ProdLocalTemporalAuthArtemis
+		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
+		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
 		temporalProdAuthConfig = tc.ProdLocalTemporalAuthArtemis
+		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
+		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
 	}
+	log.Info().Msg("Hestia: AWS Secrets Manager connection starting")
+	hestia_aws_secrets_auth.InitHestiaSecretManagerAuthAWS(ctx, awsAuthCfg)
+	log.Info().Msg("Hestia: AWS Secrets Manager connected")
+
 	log.Info().Msg("Hestia: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
-
+	log.Info().Msg("Hestia: PG connection connected")
 	// NOTE: inits at least one worker, then reuses the connection
 	// ephemery
 	eth_validators_service_requests.InitArtemisEthereumEphemeryValidatorsRequestsWorker(ctx, temporalProdAuthConfig)

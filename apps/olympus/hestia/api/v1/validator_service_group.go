@@ -2,11 +2,16 @@ package v1hestia
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	hestia_aws_secrets_auth "github.com/zeus-fyi/olympus/hestia/auth"
 	eth_validators_service_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validators_service_requests"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
@@ -41,8 +46,28 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 	default:
 		return c.JSON(http.StatusBadRequest, nil)
 	}
+
+	err = v.ServiceAuth.Validate()
 	if err != nil {
-		log.Ctx(ctx).Err(err)
+		log.Ctx(ctx).Error().Err(err)
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+
+	la := v.ServiceAuth
+	b, err := json.Marshal(la)
+	if err != nil {
+		log.Ctx(ctx).Error().Err(err)
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	si := secretsmanager.CreateSecretInput{
+		Name:         aws.String(fmt.Sprintf("%s-%d-%d", v.GroupName, ou.OrgID, v.ProtocolNetworkID)),
+		Description:  aws.String(fmt.Sprintf("%s-%d-%d", v.GroupName, ou.OrgID, v.ProtocolNetworkID)),
+		SecretBinary: b,
+		SecretString: nil,
+	}
+	err = hestia_aws_secrets_auth.HestiaSecretManagerAuthAWS.CreateNewSecret(ctx, si)
+	if err != nil {
+		log.Ctx(ctx).Error().Err(err)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusAccepted, nil)

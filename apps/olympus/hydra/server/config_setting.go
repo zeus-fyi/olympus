@@ -3,17 +3,19 @@ package hydra_server
 import (
 	"context"
 	"errors"
-	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamodb"
-	ethereum_slashing_protection_watermarking "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer/slashing_protection"
-	"github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/dynamodb_web3signer"
-	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/configs"
+	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamodb"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	ethereum_slashing_protection_watermarking "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer/slashing_protection"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
+	"github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/dynamodb_web3signer"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
+	artemis_hydra_orchestrations_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
+	aws_secrets "github.com/zeus-fyi/zeus/pkg/aegis/aws"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
 var (
@@ -25,6 +27,11 @@ var (
 	}
 	dynamoCreds = dynamodb_client.DynamoDBCredentials{
 		Region: "us-west-1",
+	}
+	awsAuthCfg = aws_secrets.AuthAWS{
+		Region:    "us-west-1",
+		AccessKey: "",
+		SecretKey: "",
 	}
 )
 
@@ -38,6 +45,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		cfg.PGConnStr = sw.PostgresAuth
 		dynamoCreds.AccessKey = sw.AccessKeyHydraDynamoDB
 		dynamoCreds.AccessSecret = sw.SecretKeyHydraDynamoDB
+		awsAuthCfg = sw.SecretsManagerAuthAWS
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		temporalAuthCfg = temporalProdAuthConfig
@@ -48,13 +56,22 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		dynamoCreds.AccessKey = sw.AccessKeyHydraDynamoDB
 		dynamoCreds.AccessSecret = sw.SecretKeyHydraDynamoDB
 		temporalAuthCfg = tc.ProdLocalTemporalAuthArtemis
+		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
+		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
 		temporalAuthCfg = tc.ProdLocalTemporalAuthArtemis
 		dynamoCreds.AccessKey = tc.AwsAccessKey
 		dynamoCreds.AccessSecret = tc.AwsSecretKey
+		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
+		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
 	}
+
+	log.Info().Msg("Hydra: AWS Secrets Manager connection starting")
+	artemis_hydra_orchestrations_auth.InitHydraSecretManagerAuthAWS(ctx, awsAuthCfg)
+	log.Info().Msg("Hydra: AWS Secrets Manager connected")
+
 	log.Info().Msg("Hydra: InitPG connecting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	log.Info().Msg("Hydra: InitPG done")

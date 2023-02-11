@@ -15,6 +15,10 @@ import (
 
 // map pubkey -> service url -> batchSignReq to this url
 
+/*
+ v.GroupName, ou.OrgID, v.ProtocolNetworkID)
+*/
+
 type ServiceRoutes struct {
 	To []ServiceRoute
 }

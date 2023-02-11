@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
@@ -60,16 +61,22 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 		log.Ctx(ctx).Error().Err(err)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	name := fmt.Sprintf("%s-%d-%s", v.GroupName, ou.OrgID, network)
 	si := secretsmanager.CreateSecretInput{
-		Name:         aws.String(fmt.Sprintf("%s-%d-%s", v.GroupName, ou.OrgID, network)),
-		Description:  aws.String(fmt.Sprintf("%s-%d-%s", v.GroupName, ou.OrgID, network)),
+		Name:         aws.String(name),
+		Description:  aws.String(name),
 		SecretBinary: b,
 		SecretString: nil,
 	}
 	err = hestia_aws_secrets_auth.HestiaSecretManagerAuthAWS.CreateNewSecret(ctx, si)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err)
-		return c.JSON(http.StatusInternalServerError, nil)
+		errCheckStr := fmt.Sprintf("the secret %s already exists", name)
+		if strings.Contains(err.Error(), errCheckStr) {
+			fmt.Println("Secret already exists, skipping")
+		} else {
+			log.Ctx(ctx).Error().Err(err)
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
 	}
 
 	switch v.ProtocolNetworkID {

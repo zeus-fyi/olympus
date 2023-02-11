@@ -55,6 +55,7 @@ func formatSecret(groupName string, orgID, protocolNetworkID int) string {
 	return fmt.Sprintf("%s-%d-%s", groupName, orgID, hestia_req_types.ProtocolNetworkIDToString(protocolNetworkID))
 }
 
+// TODO add inmemfs cache
 func GetServiceRoutesAuths(ctx context.Context, vsRoute artemis_validator_service_groups_models.ValidatorsSignatureServiceRoutes) error {
 	// TODO convert ->
 	si := aws_secrets.SecretInfo{

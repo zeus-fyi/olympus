@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	aws_secrets "github.com/zeus-fyi/zeus/pkg/aegis/aws"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -48,14 +49,22 @@ func (s *ArtemisHydraSecretsManagerTestSuite) TestCreateSecret() {
 	}
 	b, err := json.Marshal(v)
 	s.Require().Nil(err)
+	name := fmt.Sprintf("%s-%d-%s", v.GroupName, ou.OrgID, hestia_req_types.ProtocolNetworkIDToString(v.ProtocolNetworkID))
 	si := secretsmanager.CreateSecretInput{
-		Name:         aws.String(fmt.Sprintf("%s-%d-%s", v.GroupName, ou.OrgID, hestia_req_types.ProtocolNetworkIDToString(v.ProtocolNetworkID))),
+		Name:         aws.String(name),
 		Description:  aws.String(fmt.Sprintf("%s-%d-%s", v.GroupName, ou.OrgID, hestia_req_types.ProtocolNetworkIDToString(v.ProtocolNetworkID))),
 		SecretBinary: b,
 		SecretString: nil,
 	}
 	_, err = HydraSecretManagerAuthAWS.CreateSecret(ctx, &si)
-	s.Require().Nil(err)
+
+	errStr := err.Error()
+	errCheckStr := fmt.Sprintf("the secret %s already exists", name)
+	if strings.Contains(errStr, errCheckStr) {
+		fmt.Println("Secret already exists, skipping")
+	} else {
+		s.Require().Nil(err)
+	}
 }
 
 func (s *ArtemisHydraSecretsManagerTestSuite) TestFetchSecret() {

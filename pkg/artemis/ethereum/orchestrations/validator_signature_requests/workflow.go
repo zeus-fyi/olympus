@@ -1,41 +1,44 @@
 package eth_validator_signature_requests
 
 import (
+	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
 	"time"
 
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	"go.temporal.io/sdk/workflow"
 )
 
-type ArtemisArtemisEthereumValidatorSignatureRequestWorkflow struct {
+type ArtemisEthereumValidatorSignatureRequestWorkflow struct {
 	temporal_base.Workflow
 	ArtemisEthereumValidatorSignatureRequestActivities
 }
 
 const defaultTimeout = 6 * time.Second
 
-func NewArtemisEthereumValidatorSignatureRequestWorkflow() ArtemisArtemisEthereumValidatorSignatureRequestWorkflow {
-	deployWf := ArtemisArtemisEthereumValidatorSignatureRequestWorkflow{
+func NewArtemisEthereumValidatorSignatureRequestWorkflow() ArtemisEthereumValidatorSignatureRequestWorkflow {
+	deployWf := ArtemisEthereumValidatorSignatureRequestWorkflow{
 		temporal_base.Workflow{},
 		ArtemisEthereumValidatorSignatureRequestActivities{},
 	}
 	return deployWf
 }
 
-func (t *ArtemisArtemisEthereumValidatorSignatureRequestWorkflow) GetWorkflows() []interface{} {
-	return []interface{}{t.ArtemisSendEthValidatorSignatureRequestWorkflow}
+func (t *ArtemisEthereumValidatorSignatureRequestWorkflow) GetWorkflows() []interface{} {
+	return []interface{}{t.ArtemisSendValidatorSignatureRequestsWorkflow}
 }
 
-func (t *ArtemisArtemisEthereumValidatorSignatureRequestWorkflow) ArtemisSendEthValidatorSignatureRequestWorkflow(ctx workflow.Context, params interface{}) error {
-	//log := workflow.GetLogger(ctx)
-	//ao := workflow.ActivityOptions{
-	//	StartToCloseTimeout: defaultTimeout,
-	//}
-
-	// TODO, send serverless request, wait for reply for only as much time as makes since. eg 12s slot, 6.3min epoch
-	// don't block other validators
-
-	// TODO, send request back to origin, then done
-
-	return nil
+func (t *ArtemisEthereumValidatorSignatureRequestWorkflow) ArtemisSendValidatorSignatureRequestsWorkflow(ctx workflow.Context, sigRequests aegis_inmemdbs.EthereumBLSKeySignatureRequests) (aegis_inmemdbs.EthereumBLSKeySignatureResponses, error) {
+	log := workflow.GetLogger(ctx)
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: defaultTimeout,
+	}
+	// TODO group pubkeys by serverless function then send requests
+	var sigResponses aegis_inmemdbs.EthereumBLSKeySignatureResponses
+	sigRespCtx := workflow.WithActivityOptions(ctx, ao)
+	err := workflow.ExecuteActivity(sigRespCtx, t.RequestValidatorSignatures, sigRequests).Get(sigRespCtx, &sigResponses)
+	if err != nil {
+		log.Error("Failed to get signatures", "Error", err)
+		return sigResponses, err
+	}
+	return sigResponses, nil
 }

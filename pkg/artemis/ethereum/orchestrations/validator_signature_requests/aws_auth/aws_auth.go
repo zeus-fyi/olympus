@@ -40,6 +40,5 @@ func GetServiceRoutesAuths(ctx context.Context, si aws_secrets.SecretInfo) (hest
 		log.Ctx(ctx).Err(err)
 		return srw, err
 	}
-
 	return srw, nil
 }

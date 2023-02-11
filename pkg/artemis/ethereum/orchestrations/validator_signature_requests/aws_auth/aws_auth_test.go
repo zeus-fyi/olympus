@@ -66,7 +66,11 @@ func (s *ArtemisHydraSecretsManagerTestSuite) TestFetchSecret() {
 		GroupName:         "testGroup",
 		ProtocolNetworkID: hestia_req_types.EthereumEphemeryProtocolNetworkID,
 		ServiceURL:        s.Tc.AwsLamdbaTestURL,
-		ServiceAuth:       hestia_req_types.ServiceAuthConfig{},
+		ServiceAuth: hestia_req_types.ServiceAuthConfig{AuthLamdbaAWS: &hestia_req_types.AuthLamdbaAWS{
+			SecretName:   "testLambdaExternalSecret",
+			AccessKey:    s.Tc.AwsAccessKeyLambdaExt,
+			AccessSecret: s.Tc.AwsSecretKeyLambdaExt,
+		}},
 	}
 	si := aws_secrets.SecretInfo{
 		Region: "us-west-1",
@@ -86,7 +90,11 @@ func (s *ArtemisHydraSecretsManagerTestSuite) TestFetchServiceRoutesAuths() {
 		GroupName:         "testGroup",
 		ProtocolNetworkID: hestia_req_types.EthereumEphemeryProtocolNetworkID,
 		ServiceURL:        s.Tc.AwsLamdbaTestURL,
-		ServiceAuth:       hestia_req_types.ServiceAuthConfig{},
+		ServiceAuth: hestia_req_types.ServiceAuthConfig{AuthLamdbaAWS: &hestia_req_types.AuthLamdbaAWS{
+			SecretName:   "testLambdaExternalSecret",
+			AccessKey:    s.Tc.AwsAccessKeyLambdaExt,
+			AccessSecret: s.Tc.AwsSecretKeyLambdaExt,
+		}},
 	}
 	si := aws_secrets.SecretInfo{
 		Region: "us-west-1",

@@ -42,9 +42,9 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 	var network string
 	switch v.ProtocolNetworkID {
 	case hestia_req_types.EthereumMainnetProtocolNetworkID:
-		network = "mainnet"
+		network = hestia_req_types.ProtocolNetworkIDToString(v.ProtocolNetworkID)
 	case hestia_req_types.EthereumEphemeryProtocolNetworkID:
-		network = "ephemery"
+		network = hestia_req_types.ProtocolNetworkIDToString(v.ProtocolNetworkID)
 	default:
 		return c.JSON(http.StatusBadRequest, errors.New("unknown network"))
 

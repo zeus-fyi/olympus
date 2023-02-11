@@ -7,7 +7,9 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.17.4
 	github.com/aws/aws-sdk-go-v2/config v1.18.11
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.11
+	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.10.11
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.39
+	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.18.2
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.29.2
 	github.com/cavaliergopher/grab/v3 v3.0.1
 	github.com/cbergoon/merkletree v0.2.0
@@ -54,13 +56,11 @@ require (
 	github.com/allegro/bigcache v1.2.1 // indirect
 	github.com/aloder/tojen v0.0.0-20200427151940-c77d77b33821 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.9 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.10.11 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.21 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.28 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.22 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.28 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.16 // indirect
-	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.18.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.14.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.11 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.20 // indirect

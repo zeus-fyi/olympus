@@ -2,7 +2,12 @@ package artemis_hydra_orchestrations_auth
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	aws_secrets "github.com/zeus-fyi/zeus/pkg/aegis/aws"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -26,6 +31,28 @@ func (s *ArtemisHydraSecretsManagerTestSuite) SetupTest() {
 	InitHydraSecretManagerAuthAWS(ctx, auth)
 }
 
+func (s *ArtemisHydraSecretsManagerTestSuite) TestCreateSecret() {
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+
+	v := hestia_req_types.ServiceRequestWrapper{
+		GroupName:         "testGroup",
+		ProtocolNetworkID: hestia_req_types.EthereumEphemeryProtocolNetworkID,
+		ServiceURL:        s.Tc.AwsLamdbaTestURL,
+		ServiceAuth:       hestia_req_types.ServiceAuthConfig{},
+	}
+	b, err := json.Marshal(v)
+	s.Require().Nil(err)
+	si := secretsmanager.CreateSecretInput{
+		Name:         aws.String(fmt.Sprintf("%s-%d-%d", v.GroupName, ou.OrgID, v.ProtocolNetworkID)),
+		Description:  aws.String(fmt.Sprintf("%s-%d-%d", v.GroupName, ou.OrgID, v.ProtocolNetworkID)),
+		SecretBinary: b,
+		SecretString: nil,
+	}
+	_, err = HydraSecretManagerAuthAWS.CreateSecret(ctx, &si)
+	s.Require().Nil(err)
+}
 func (s *ArtemisHydraSecretsManagerTestSuite) TestFetchServiceRoutesAuths() {
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID

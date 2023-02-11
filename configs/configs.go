@@ -79,6 +79,8 @@ type TestContainer struct {
 
 	AwsAccessKeySecretManager string
 	AwsSecretKeySecretManager string
+
+	AwsLamdbaTestURL string
 }
 
 type ArtemisHexKeys struct {
@@ -126,6 +128,7 @@ func InitLocalTestConfigs() TestContainer {
 	testCont.AwsAccessKeySecretManager = viper.GetString("AWS_ACCESS_KEY_SECRET_MANAGER")
 	testCont.AwsSecretKeySecretManager = viper.GetString("AWS_SECRET_KEY_SECRET_MANAGER")
 
+	testCont.AwsLamdbaTestURL = viper.GetString("BLS_SERVERLESS_LAMBA_FUNC_ADDR")
 	testCont.DevWeb3SignerPgconn = viper.GetString("WEB3SIGNER_PG_DB")
 	testCont.DevWeb3SignerPgconnAuth = viper.GetString("WEB3SIGNER_PG_AUTH_DEV")
 

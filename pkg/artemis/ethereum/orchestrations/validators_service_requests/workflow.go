@@ -3,7 +3,6 @@ package eth_validators_service_requests
 import (
 	"time"
 
-	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	"go.temporal.io/sdk/workflow"
 )
@@ -29,7 +28,7 @@ func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) GetWorkflows() []in
 }
 
 // ServiceNewValidatorsToCloudCtxNsWorkflow TODO, verify end to end
-func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) ServiceNewValidatorsToCloudCtxNsWorkflow(ctx workflow.Context, params artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol) error {
+func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) ServiceNewValidatorsToCloudCtxNsWorkflow(ctx workflow.Context, params ValidatorServiceGroupWorkflowRequest) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,

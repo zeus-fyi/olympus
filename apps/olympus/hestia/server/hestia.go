@@ -2,8 +2,6 @@ package hestia_server
 
 import (
 	"context"
-	hestia_aws_secrets_auth "github.com/zeus-fyi/olympus/hestia/auth"
-	aws_secrets "github.com/zeus-fyi/zeus/pkg/aegis/aws"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -13,9 +11,11 @@ import (
 	v1hestia "github.com/zeus-fyi/olympus/hestia/api/v1"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
+	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	eth_validators_service_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validators_service_requests"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
+	aws_secrets "github.com/zeus-fyi/zeus/pkg/aegis/aws"
 )
 
 var (
@@ -61,7 +61,7 @@ func Hestia() {
 		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
 	}
 	log.Info().Msg("Hestia: AWS Secrets Manager connection starting")
-	hestia_aws_secrets_auth.InitHestiaSecretManagerAuthAWS(ctx, awsAuthCfg)
+	artemis_hydra_orchestrations_aws_auth.InitHydraSecretManagerAuthAWS(ctx, awsAuthCfg)
 	log.Info().Msg("Hestia: AWS Secrets Manager connected")
 
 	log.Info().Msg("Hestia: PG connection starting")

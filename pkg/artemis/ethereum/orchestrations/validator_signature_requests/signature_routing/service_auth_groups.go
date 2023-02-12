@@ -31,7 +31,7 @@ func FetchAndSetServiceGroupsAuths(ctx context.Context, vsRoute artemis_validato
 		if err == nil {
 			continue
 		}
-		si.Name = formatSecret(v.GroupName, v.OrgID, v.ProtocolNetworkID)
+		si.Name = FormatSecretNameAWS(v.GroupName, v.OrgID, v.ProtocolNetworkID)
 		s, err := artemis_hydra_orchestrations_aws_auth.GetServiceRoutesAuths(ctx, si)
 		if err != nil {
 			log.Ctx(ctx).Error().Err(err).Msg("GetServiceRoutesAuths")
@@ -83,6 +83,6 @@ func GetGroupAuthFromInMemFS(ctx context.Context, groupName string) (hestia_req_
 	return authCfg, nil
 }
 
-func formatSecret(groupName string, orgID, protocolNetworkID int) string {
+func FormatSecretNameAWS(groupName string, orgID, protocolNetworkID int) string {
 	return fmt.Sprintf("%s-%d-%s", groupName, orgID, hestia_req_types.ProtocolNetworkIDToString(protocolNetworkID))
 }

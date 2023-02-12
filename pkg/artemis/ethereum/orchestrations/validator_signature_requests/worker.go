@@ -14,6 +14,9 @@ type ArtemisEthereumValidatorSignatureRequestsWorker struct {
 }
 
 func (t *ArtemisEthereumValidatorSignatureRequestsWorker) ExecuteValidatorSignatureRequestsWorkflow(ctx context.Context, sigRequests aegis_inmemdbs.EthereumBLSKeySignatureRequests, signType string) (aegis_inmemdbs.EthereumBLSKeySignatureResponses, error) {
+	if len(sigRequests.Map) == 0 {
+		return aegis_inmemdbs.EthereumBLSKeySignatureResponses{}, nil
+	}
 	c := t.ConnectTemporalClient()
 	defer c.Close()
 	workflowOptions := client.StartWorkflowOptions{

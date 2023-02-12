@@ -62,23 +62,23 @@ type SignaturePriorityQueue struct {
 func InitAsyncMessageQueues(ctx context.Context) {
 	for {
 		go AttestationSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(2 * time.Millisecond)
 		go AggregationSlotSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(2 * time.Millisecond)
 		go AggregationAndProofSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(2 * time.Millisecond)
 		go BlockSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(2 * time.Millisecond)
 		go RandaoRevealSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(2 * time.Millisecond)
 		go SyncCommitteeMessageSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(2 * time.Millisecond)
 		go SyncCommitteeSelectionProofSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(2 * time.Millisecond)
 		go SyncCommitteeContributionAndProof.SendSignatureRequestsFromQueue(ctx)
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(2 * time.Millisecond)
 		go ValidatorRegistration.SendSignatureRequestsFromQueue(ctx)
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(2 * time.Millisecond)
 	}
 }
 
@@ -87,6 +87,9 @@ func (sq *SignaturePriorityQueue) SendSignatureRequestsFromQueue(ctx context.Con
 	m := make(map[string]string)
 	seen := make(map[string]SignRequest)
 	ql := sq.Len()
+	if ql == 0 {
+		return
+	}
 	log.Info().Str("signingType", sq.Type).Msg(fmt.Sprintf("queue length: %d", ql))
 	for i := 0; i < ql; i++ {
 		sr := sq.Pop().(SignRequest)

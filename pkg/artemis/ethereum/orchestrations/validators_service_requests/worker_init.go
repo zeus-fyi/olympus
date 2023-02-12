@@ -26,7 +26,7 @@ func InitArtemisEthereumEphemeryValidatorsRequestsWorker(ctx context.Context, te
 
 	w.AddWorkflows(wf.GetWorkflows())
 	w.AddActivities(activityDef.GetActivities())
-	ArtemisEthereumEphemeryValidatorsRequestsWorker.Worker = w
+	ArtemisEthereumEphemeryValidatorsRequestsWorker = ArtemisEthereumValidatorsRequestsWorker{Worker: w}
 	ArtemisEthereumEphemeryValidatorsRequestsWorker.TemporalClient = tc
 	return
 }
@@ -45,7 +45,7 @@ func InitArtemisEthereumMainnetValidatorsRequestsWorker(ctx context.Context, tem
 
 	w.AddWorkflows(wf.GetWorkflows())
 	w.AddActivities(activityDef.GetActivities())
-	ArtemisEthereumEphemeryValidatorsRequestsWorker.Worker = w
-	ArtemisEthereumEphemeryValidatorsRequestsWorker.TemporalClient = tc
+	ArtemisEthereumMainnetValidatorsRequestsWorker = ArtemisEthereumValidatorsRequestsWorker{Worker: w}
+	ArtemisEthereumMainnetValidatorsRequestsWorker.TemporalClient = tc
 	return
 }

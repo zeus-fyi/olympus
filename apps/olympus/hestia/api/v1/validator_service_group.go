@@ -50,7 +50,6 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 		network = hestia_req_types.ProtocolNetworkIDToString(v.ProtocolNetworkID)
 	default:
 		return c.JSON(http.StatusBadRequest, errors.New("unknown network"))
-
 	}
 	err := v.ServiceAuth.Validate()
 	if err != nil {

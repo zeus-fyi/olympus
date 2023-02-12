@@ -124,7 +124,7 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 	}
 	sv, err := artemis_hydra_orchestrations_aws_auth.GetServiceRoutesAuths(ctx, si)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err)
+		log.Ctx(ctx).Error().Err(err).Msg("failed to get service routes auths")
 		return nil, err
 	}
 	// TODO add auth signing on payload
@@ -138,12 +138,12 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 		SetBody(signReqs).
 		Post(sv.ServiceAuth.ServiceURL)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err)
+		log.Ctx(ctx).Error().Err(err).Msg("failed to post to validator signature service url")
 		return nil, err
 	}
 	verifiedKeys, err := respJson.VerifySignatures(ctx, req)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err)
+		log.Ctx(ctx).Error().Err(err).Msg("failed to verify signatures")
 		return nil, err
 	}
 	return verifiedKeys, nil

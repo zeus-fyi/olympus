@@ -6,11 +6,16 @@ import (
 	"github.com/rs/zerolog/log"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
+	bls_signer "github.com/zeus-fyi/zeus/pkg/crypto/bls"
 	"go.temporal.io/sdk/client"
 )
 
 type ArtemisEthereumValidatorSignatureRequestsWorker struct {
 	temporal_base.Worker
+}
+
+func init() {
+	_ = bls_signer.InitEthBLS()
 }
 
 func (t *ArtemisEthereumValidatorSignatureRequestsWorker) ExecuteValidatorSignatureRequestsWorkflow(ctx context.Context, sigRequests aegis_inmemdbs.EthereumBLSKeySignatureRequests, signType string) (aegis_inmemdbs.EthereumBLSKeySignatureResponses, error) {

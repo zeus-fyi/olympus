@@ -2,6 +2,7 @@ package eth_validators_service_requests
 
 import (
 	"context"
+	bls_signer "github.com/zeus-fyi/zeus/pkg/crypto/bls"
 
 	"github.com/rs/zerolog/log"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
@@ -18,6 +19,10 @@ const (
 	EthereumMainnetValidatorsRequestsTaskQueue  = "EthereumMainnetValidatorsRequestsTaskQueue"
 	EthereumEphemeryValidatorsRequestsTaskQueue = "EthereumEphemeryValidatorsRequestsTaskQueue"
 )
+
+func init() {
+	_ = bls_signer.InitEthBLS()
+}
 
 var (
 	ArtemisEthereumMainnetValidatorsRequestsWorker ArtemisEthereumValidatorsRequestsWorker

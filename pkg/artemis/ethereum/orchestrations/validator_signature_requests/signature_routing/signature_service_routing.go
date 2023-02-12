@@ -33,7 +33,7 @@ func InitAsyncServiceAuthRoutePolling(ctx context.Context, cctx zeus_common_type
 	}
 }
 
-func GetServiceURLs(ctx context.Context, cctx zeus_common_types.CloudCtxNs) (artemis_validator_service_groups_models.ValidatorsSignatureServiceRoutes, error) {
+func GetServiceMetadata(ctx context.Context, cctx zeus_common_types.CloudCtxNs) (artemis_validator_service_groups_models.ValidatorsSignatureServiceRoutes, error) {
 	vsi := artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol{}
 	vsRoutes, err := artemis_validator_service_groups_models.SelectValidatorsServiceRoutesAssignedToCloudCtxNs(ctx, vsi, cctx)
 	if err != nil {
@@ -44,9 +44,9 @@ func GetServiceURLs(ctx context.Context, cctx zeus_common_types.CloudCtxNs) (art
 }
 
 func GetServiceAuthAndURLs(ctx context.Context, cctx zeus_common_types.CloudCtxNs) error {
-	sr, err := GetServiceURLs(ctx, cctx)
+	sr, err := GetServiceMetadata(ctx, cctx)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err).Msg("GetServiceAuthAndURLs: GetServiceURLs")
+		log.Ctx(ctx).Error().Err(err).Msg("GetServiceAuthAndURLs: GetServiceMetadata")
 		return err
 	}
 	err = FetchAndSetServiceGroupsAuths(ctx, sr)

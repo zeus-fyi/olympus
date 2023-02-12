@@ -21,6 +21,21 @@ func (s *ValidatorServiceAuthRoutesTestSuite) TestFetchServiceAuthRouteGrouping(
 	s.Require().Nil(err)
 }
 
+func (s *ValidatorServiceAuthRoutesTestSuite) TestFetchGroupAuths() {
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+	cctx := zeus_common_types.CloudCtxNs{
+		CloudProvider: "do",
+		Region:        "sfo3",
+		Context:       "do-sfo3-dev-do-sfo3-zeus",
+		Namespace:     "ephemeral-staking", // set with your own namespace
+		Env:           "production",
+	}
+	err := GetServiceAuthAndURLs(ctx, cctx)
+	s.Require().Nil(err)
+}
+
 func (s *ValidatorServiceAuthRoutesTestSuite) TestSetAndGetGroupAuthToInMemFS() {
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID

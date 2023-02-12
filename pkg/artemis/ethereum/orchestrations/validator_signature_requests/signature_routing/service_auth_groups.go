@@ -64,6 +64,25 @@ func SetGroupAuthInMemFS(ctx context.Context, groupName string, serviceAuth hest
 	return nil
 }
 
+func GetGroupAuthFromInMemFS(ctx context.Context, groupName string) (hestia_req_types.ServiceAuthConfig, error) {
+	svcAuthPath := filepaths.Path{
+		DirIn: serviceGroupsAuthsDir,
+		FnIn:  groupName,
+	}
+	authCfg := hestia_req_types.ServiceAuthConfig{}
+	b, err := RouteMapInMemFS.ReadFile(svcAuthPath.FileInPath())
+	if err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg("GetServiceRoutesAuths")
+		return authCfg, err
+	}
+	err = json.Unmarshal(b, &authCfg)
+	if err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg("GetServiceRoutesAuths")
+		return authCfg, err
+	}
+	return authCfg, nil
+}
+
 func formatSecret(groupName string, orgID, protocolNetworkID int) string {
 	return fmt.Sprintf("%s-%d-%s", groupName, orgID, hestia_req_types.ProtocolNetworkIDToString(protocolNetworkID))
 }

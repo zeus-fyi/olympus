@@ -11,7 +11,9 @@ import (
 
 // ValidatorsSignatureServiceRoutes uses the validator pubkey as the map key
 type ValidatorsSignatureServiceRoutes struct {
-	Map map[string]ValidatorsSignatureServiceRoute
+	PubkeyToGroupName  map[string]string
+	GroupToPubKeySlice map[string][]string
+	GroupToServiceMap  map[string]ValidatorsSignatureServiceRoute
 }
 
 type ValidatorsSignatureServiceRoute struct {
@@ -25,7 +27,10 @@ type ValidatorsSignatureServiceRoute struct {
 func SelectValidatorsServiceRoutesAssignedToCloudCtxNs(ctx context.Context, validatorServiceInfo ValidatorServiceCloudCtxNsProtocol, cloudCtxNs zeus_common_types.CloudCtxNs) (ValidatorsSignatureServiceRoutes, error) {
 	q := sql_query_templates.QueryParams{}
 	serviceRoutes := ValidatorsSignatureServiceRoutes{}
-	m := make(map[string]ValidatorsSignatureServiceRoute)
+	m := make(map[string]string)
+	gtkm := make(map[string][]string)
+	gts := make(map[string]ValidatorsSignatureServiceRoute)
+
 	q.RawQuery = `	
 				  SELECT vsg.pubkey, vsg.group_name, vsg.service_url, vsg.org_id, vsg.protocol_network_id
 				  FROM validators_service_org_groups_cloud_ctx_ns vctx
@@ -49,8 +54,20 @@ func SelectValidatorsServiceRoutesAssignedToCloudCtxNs(ctx context.Context, vali
 			log.Err(rowErr).Msg(q.LogHeader(ModelName))
 			return serviceRoutes, rowErr
 		}
-		m[pubkey] = vsr
+		// pubkey to group name
+		m[pubkey] = vsr.GroupName
+
+		// group to pubkey slice
+		tmp := gtkm[vsr.GroupName]
+		gtkm[vsr.GroupName] = append(tmp, pubkey)
+
+		// group to service map
+		if _, ok := gts[vsr.GroupName]; !ok {
+			gts[vsr.GroupName] = vsr
+		}
 	}
-	serviceRoutes.Map = m
+	serviceRoutes.PubkeyToGroupName = m
+	serviceRoutes.GroupToPubKeySlice = gtkm
+	serviceRoutes.GroupToServiceMap = gts
 	return serviceRoutes, misc.ReturnIfErr(err, q.LogHeader(ModelName))
 }

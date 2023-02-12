@@ -32,8 +32,8 @@ func (s *ValidatorServiceRoutesTestSuite) TestFetchServiceRouteInfo() {
 	}
 	vsr, err := SelectValidatorsServiceRoutesAssignedToCloudCtxNs(ctx, vsctx, cctx)
 	s.Require().Nil(err)
-	s.Require().NotNil(vsr.Map)
-	s.Require().NotEmpty(vsr.Map)
+	s.Require().NotNil(vsr.PubkeyToGroupName)
+	s.Require().NotEmpty(vsr.PubkeyToGroupName)
 }
 
 func TestValidatorServiceRoutesTestSuite(t *testing.T) {

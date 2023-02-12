@@ -22,7 +22,8 @@ func (m *MemFS) MakeFileIn(p *filepaths.Path, content []byte) error {
 		log.Err(merr).Msgf("MemFS, MakeFile fileIn path %s, fileOut path %s", p.FileInPath(), p.FileOutPath())
 		return merr
 	}
-	if err := m.WriteFile(p.FileInPath(), content, 0644); err != nil {
+	fnPath := p.FileInPath()
+	if err := m.WriteFile(fnPath, content, 0644); err != nil {
 		log.Err(err).Msgf("MemFS, WriteFile, fileOut path %s", p.FileInPath())
 		return err
 	}

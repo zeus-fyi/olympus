@@ -80,21 +80,29 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 		}
 	}
 
+	resp := Response{}
 	switch v.ProtocolNetworkID {
 	case hestia_req_types.EthereumMainnetProtocolNetworkID:
 		err = eth_validators_service_requests.ArtemisEthereumMainnetValidatorsRequestsWorker.ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx, vsr)
 		if err != nil {
 			log.Ctx(ctx).Error().Err(err)
-			return c.JSON(http.StatusAccepted, nil)
+			return c.JSON(http.StatusInternalServerError, nil)
 		}
+		resp.Message = "Ethereum Mainnet validators service request in progress"
+		return c.JSON(http.StatusAccepted, resp)
 	case hestia_req_types.EthereumEphemeryProtocolNetworkID:
 		err = eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx, vsr)
 		if err != nil {
 			log.Ctx(ctx).Error().Err(err)
-			return c.JSON(http.StatusAccepted, nil)
+			return c.JSON(http.StatusInternalServerError, resp)
 		}
+		resp.Message = "Ethereum Ephemery validators service request in progress"
+		return c.JSON(http.StatusAccepted, resp)
 	default:
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-	return c.JSON(http.StatusBadRequest, nil)
+}
+
+type Response struct {
+	Message string `json:"message"`
 }

@@ -47,7 +47,7 @@ func Hydra() {
 	vsi := artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol{
 		ProtocolNetworkID: Workload.ProtocolNetworkID,
 	}
-	artemis_validator_signature_service_routing.InitAsyncServiceAuthRoutePolling(ctx, vsi, Workload.CloudCtxNs)
+	go artemis_validator_signature_service_routing.InitAsyncServiceAuthRoutePolling(ctx, vsi, Workload.CloudCtxNs)
 	log.Ctx(ctx).Info().Msg("Hydra: Async Service Route Polling Started")
 
 	log.Ctx(ctx).Info().Msg("Hydra: Starting Temporal Worker")

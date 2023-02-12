@@ -99,7 +99,7 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) RestartValidatorClie
 	}
 	_, err := Zeus.DeletePods(ctx, par)
 	if err != nil {
-		log.Ctx(ctx).Err(err)
+		log.Ctx(ctx).Error().Err(err)
 		return err
 	}
 	return nil

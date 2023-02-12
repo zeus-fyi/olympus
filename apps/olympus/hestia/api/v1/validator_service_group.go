@@ -79,7 +79,8 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
 	}
-
+	// clear auth, not needed anymore, and we don't want to log it in temporal
+	vsr.ServiceAuth = hestia_req_types.ServiceAuthConfig{}
 	resp := Response{}
 	switch v.ProtocolNetworkID {
 	case hestia_req_types.EthereumMainnetProtocolNetworkID:

@@ -11,6 +11,8 @@ COPY configs/zeus.fyi/ca.key .
 ARG GOMODCACHE
 ARG GOCACHE
 
+COPY go.mod go.sum ./
+
 RUN --mount=type=cache,target=${GOMODCACHE} go mod download
 
 COPY . .

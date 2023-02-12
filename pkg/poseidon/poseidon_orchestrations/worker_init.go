@@ -2,16 +2,16 @@ package poseidon_orchestrations
 
 import (
 	"context"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
 
 	"github.com/rs/zerolog/log"
-	beacon_actions "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons/actions"
-	client_consts "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons/constants"
 	s3base "github.com/zeus-fyi/olympus/datastores/s3"
 	athena_client "github.com/zeus-fyi/olympus/pkg/athena/client"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
-	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
+	beacon_actions "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons/actions"
+	client_consts "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons/constants"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 

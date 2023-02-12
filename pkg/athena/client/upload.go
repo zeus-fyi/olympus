@@ -8,10 +8,10 @@ import (
 	"github.com/rs/zerolog/log"
 	athena_endpoints "github.com/zeus-fyi/olympus/pkg/athena/client/endpoints"
 	"github.com/zeus-fyi/olympus/pkg/poseidon"
-	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
-	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
-	zeus_pods_reqs "github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types/pods"
-	zeus_pods_resp "github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_resp_types/pods"
+	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
+	zeus_pods_reqs "github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types/pods"
+	zeus_pods_resp "github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_resp_types/pods"
 )
 
 func (a *AthenaClient) Upload(ctx context.Context, br poseidon.BucketRequest) error {
@@ -42,7 +42,7 @@ func (a *AthenaClient) UploadViaPortForward(ctx context.Context, routeHeader zeu
 		Ports:      AthenaPorts,
 		Payload:    br,
 	}
-	filter := string_utils.FilterOpts{Contains: br.ClientName}
+	filter := strings_filter.FilterOpts{Contains: br.ClientName}
 	par := zeus_pods_reqs.PodActionRequest{
 		TopologyDeployRequest: routeHeader,
 		Action:                zeus_pods_reqs.PortForwardToAllMatchingPods,

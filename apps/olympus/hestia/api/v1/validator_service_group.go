@@ -26,6 +26,7 @@ type CreateValidatorServiceRequest struct {
 func CreateValidatorServiceRequestHandler(c echo.Context) error {
 	request := new(CreateValidatorServiceRequest)
 	if err := c.Bind(request); err != nil {
+		log.Error().Err(err).Msg("CreateValidatorServiceRequestHandler")
 		return err
 	}
 	return request.CreateValidatorsServiceGroup(c)
@@ -53,13 +54,13 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 	}
 	err := v.ServiceAuth.Validate()
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err)
+		log.Ctx(ctx).Error().Err(err).Msg("service auth failed validation")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	la := v.ServiceAuth
 	b, err := json.Marshal(la)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err)
+		log.Ctx(ctx).Error().Err(err).Msg("service auth failed json marshal")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	name := fmt.Sprintf("%s-%d-%s", v.GroupName, ou.OrgID, network)
@@ -74,7 +75,6 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 		errCheckStr := fmt.Sprintf("the secret %s already exists", name)
 		if strings.Contains(err.Error(), errCheckStr) {
 			fmt.Println("Secret already exists, updating to new values")
-
 		} else {
 			log.Ctx(ctx).Error().Err(err)
 			return c.JSON(http.StatusInternalServerError, nil)
@@ -87,7 +87,7 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 	case hestia_req_types.EthereumMainnetProtocolNetworkID:
 		err = eth_validators_service_requests.ArtemisEthereumMainnetValidatorsRequestsWorker.ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx, vsr)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err)
+			log.Ctx(ctx).Error().Err(err).Interface("network", network).Msg("ExecuteServiceNewValidatorsToCloudCtxNsWorkflow")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
 		resp.Message = "Ethereum Mainnet validators service request in progress"
@@ -95,7 +95,7 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 	case hestia_req_types.EthereumEphemeryProtocolNetworkID:
 		err = eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx, vsr)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err)
+			log.Ctx(ctx).Error().Err(err).Interface("network", network).Msg("ExecuteServiceNewValidatorsToCloudCtxNsWorkflow")
 			return c.JSON(http.StatusInternalServerError, resp)
 		}
 		resp.Message = "Ethereum Ephemery validators service request in progress"

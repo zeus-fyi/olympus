@@ -42,7 +42,6 @@ func Hydra() {
 	srv := NewHydraServer(cfg)
 	log.Ctx(ctx).Info().Msg("Hydra: Initializing configs by environment type")
 	SetConfigByEnv(ctx, env)
-	srv.E = v1_hydra.Routes(srv.E)
 
 	log.Ctx(ctx).Info().Msg("Hydra: Starting Async Service Route Polling")
 	vsi := artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol{
@@ -83,6 +82,7 @@ func Hydra() {
 	log.Ctx(ctx).Info().Msg("Hydra: Async priority message queues started")
 
 	log.Ctx(ctx).Info().Msg("Hydra: Starting server")
+	srv.E = v1_hydra.Routes(srv.E)
 	srv.Start()
 }
 

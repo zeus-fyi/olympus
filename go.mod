@@ -11,6 +11,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.39
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.18.2
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.29.2
+	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.18.2
 	github.com/cavaliergopher/grab/v3 v3.0.1
 	github.com/cbergoon/merkletree v0.2.0
 	github.com/confluentinc/confluent-kafka-go v1.9.2

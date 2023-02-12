@@ -13,6 +13,7 @@ import (
 	artemis_validator_signature_service_routing "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/signature_routing"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
@@ -85,7 +86,7 @@ func init() {
 	viper.AutomaticEnv()
 	Cmd.Flags().StringVar(&cfg.Port, "port", "9000", "server port")
 	Cmd.Flags().StringVar(&env, "env", "production-local", "environment")
-	Cmd.Flags().IntVar(&Workload.ProtocolNetworkID, "protocol-network-id", 0, "identifier for protocol and network")
+	Cmd.Flags().IntVar(&Workload.ProtocolNetworkID, "protocol-network-id", hestia_req_types.EthereumEphemeryProtocolNetworkID, "identifier for protocol and network")
 
 	Cmd.Flags().StringVar(&Workload.CloudCtxNs.CloudProvider, "cloud-provider", "", "cloud-provider")
 	Cmd.Flags().StringVar(&Workload.CloudCtxNs.Context, "ctx", "", "context")

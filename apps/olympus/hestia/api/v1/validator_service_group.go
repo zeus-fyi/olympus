@@ -3,8 +3,10 @@ package v1hestia
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
@@ -37,38 +39,61 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 		ServiceRequestWrapper:         v.ServiceRequestWrapper,
 		ValidatorServiceOrgGroupSlice: v.ValidatorServiceOrgGroupSlice,
 	}
-	var err error
+
+	var network string
 	switch v.ProtocolNetworkID {
 	case hestia_req_types.EthereumMainnetProtocolNetworkID:
-		err = eth_validators_service_requests.ArtemisEthereumMainnetValidatorsRequestsWorker.ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx, vsr)
+		network = hestia_req_types.ProtocolNetworkIDToString(v.ProtocolNetworkID)
 	case hestia_req_types.EthereumEphemeryProtocolNetworkID:
-		err = eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx, vsr)
+		network = hestia_req_types.ProtocolNetworkIDToString(v.ProtocolNetworkID)
 	default:
-		return c.JSON(http.StatusBadRequest, nil)
-	}
+		return c.JSON(http.StatusBadRequest, errors.New("unknown network"))
 
-	err = v.ServiceAuth.Validate()
+	}
+	err := v.ServiceAuth.Validate()
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
 	la := v.ServiceAuth
 	b, err := json.Marshal(la)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	name := fmt.Sprintf("%s-%d-%s", v.GroupName, ou.OrgID, network)
 	si := secretsmanager.CreateSecretInput{
-		Name:         aws.String(fmt.Sprintf("%s-%d-%d", v.GroupName, ou.OrgID, v.ProtocolNetworkID)),
-		Description:  aws.String(fmt.Sprintf("%s-%d-%d", v.GroupName, ou.OrgID, v.ProtocolNetworkID)),
+		Name:         aws.String(name),
+		Description:  aws.String(name),
 		SecretBinary: b,
 		SecretString: nil,
 	}
 	err = hestia_aws_secrets_auth.HestiaSecretManagerAuthAWS.CreateNewSecret(ctx, si)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err)
-		return c.JSON(http.StatusInternalServerError, nil)
+		errCheckStr := fmt.Sprintf("the secret %s already exists", name)
+		if strings.Contains(err.Error(), errCheckStr) {
+			fmt.Println("Secret already exists, skipping")
+		} else {
+			log.Ctx(ctx).Error().Err(err)
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
 	}
-	return c.JSON(http.StatusAccepted, nil)
+
+	switch v.ProtocolNetworkID {
+	case hestia_req_types.EthereumMainnetProtocolNetworkID:
+		err = eth_validators_service_requests.ArtemisEthereumMainnetValidatorsRequestsWorker.ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx, vsr)
+		if err != nil {
+			log.Ctx(ctx).Error().Err(err)
+			return c.JSON(http.StatusAccepted, nil)
+		}
+	case hestia_req_types.EthereumEphemeryProtocolNetworkID:
+		err = eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx, vsr)
+		if err != nil {
+			log.Ctx(ctx).Error().Err(err)
+			return c.JSON(http.StatusAccepted, nil)
+		}
+	default:
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	return c.JSON(http.StatusBadRequest, nil)
 }

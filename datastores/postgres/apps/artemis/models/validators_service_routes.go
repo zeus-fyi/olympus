@@ -11,22 +11,28 @@ import (
 
 // ValidatorsSignatureServiceRoutes uses the validator pubkey as the map key
 type ValidatorsSignatureServiceRoutes struct {
-	Map map[string]ValidatorsSignatureServiceRoute
+	PubkeyToGroupName  map[string]string
+	GroupToPubKeySlice map[string][]string
+	GroupToServiceMap  map[string]ValidatorsSignatureServiceRoute
 }
 
 type ValidatorsSignatureServiceRoute struct {
-	GroupName  string `json:"groupName"`
-	ServiceURL string `json:"serviceURL"`
-	OrgID      int    `json:"orgID"`
+	GroupName         string `json:"groupName"`
+	ServiceURL        string `json:"serviceURL"`
+	OrgID             int    `json:"orgID"`
+	ProtocolNetworkID int    `json:"protocolNetworkID"`
 }
 
 // SelectValidatorsServiceRoutesAssignedToCloudCtxNs is used by hydra
 func SelectValidatorsServiceRoutesAssignedToCloudCtxNs(ctx context.Context, validatorServiceInfo ValidatorServiceCloudCtxNsProtocol, cloudCtxNs zeus_common_types.CloudCtxNs) (ValidatorsSignatureServiceRoutes, error) {
 	q := sql_query_templates.QueryParams{}
 	serviceRoutes := ValidatorsSignatureServiceRoutes{}
-	m := make(map[string]ValidatorsSignatureServiceRoute)
+	m := make(map[string]string)
+	gtkm := make(map[string][]string)
+	gts := make(map[string]ValidatorsSignatureServiceRoute)
+
 	q.RawQuery = `	
-				  SELECT vsg.pubkey, vsg.group_name, vsg.service_url, vsg.org_id
+				  SELECT vsg.pubkey, vsg.group_name, vsg.service_url, vsg.org_id, vsg.protocol_network_id
 				  FROM validators_service_org_groups_cloud_ctx_ns vctx
 				  INNER JOIN topologies_org_cloud_ctx_ns topctx ON topctx.cloud_ctx_ns_id = vctx.cloud_ctx_ns_id
 				  INNER JOIN validators_service_org_groups vsg ON vsg.pubkey = vctx.pubkey
@@ -42,14 +48,26 @@ func SelectValidatorsServiceRoutesAssignedToCloudCtxNs(ctx context.Context, vali
 		var pubkey string
 		vsr := ValidatorsSignatureServiceRoute{}
 		rowErr := rows.Scan(
-			&pubkey, &vsr.GroupName, &vsr.ServiceURL, &vsr.OrgID,
+			&pubkey, &vsr.GroupName, &vsr.ServiceURL, &vsr.OrgID, &vsr.ProtocolNetworkID,
 		)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader(ModelName))
 			return serviceRoutes, rowErr
 		}
-		m[pubkey] = vsr
+		// pubkey to group name
+		m[pubkey] = vsr.GroupName
+
+		// group to pubkey slice
+		tmp := gtkm[vsr.GroupName]
+		gtkm[vsr.GroupName] = append(tmp, pubkey)
+
+		// group to service map
+		if _, ok := gts[vsr.GroupName]; !ok {
+			gts[vsr.GroupName] = vsr
+		}
 	}
-	serviceRoutes.Map = m
+	serviceRoutes.PubkeyToGroupName = m
+	serviceRoutes.GroupToPubKeySlice = gtkm
+	serviceRoutes.GroupToServiceMap = gts
 	return serviceRoutes, misc.ReturnIfErr(err, q.LogHeader(ModelName))
 }

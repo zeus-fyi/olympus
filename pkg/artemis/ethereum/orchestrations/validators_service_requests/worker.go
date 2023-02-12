@@ -40,6 +40,7 @@ var (
 )
 
 type ValidatorServiceGroupWorkflowRequest struct {
+	OrgID int
 	hestia_req_types.ServiceRequestWrapper
 	hestia_req_types.ValidatorServiceOrgGroupSlice
 }

@@ -36,6 +36,7 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	log.Ctx(ctx).Info().Interface("ou", ou).Interface("vsg", v.ValidatorServiceOrgGroupSlice).Msg("CreateValidatorsServiceGroup")
 	vsr := eth_validators_service_requests.ValidatorServiceGroupWorkflowRequest{
+		OrgID:                         ou.OrgID,
 		ServiceRequestWrapper:         v.ServiceRequestWrapper,
 		ValidatorServiceOrgGroupSlice: v.ValidatorServiceOrgGroupSlice,
 	}

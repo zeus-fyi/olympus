@@ -19,10 +19,10 @@ import (
 )
 
 var (
-	cfg                    = Config{}
-	authKeysCfg            auth_keys_config.AuthKeysCfg
-	env                    string
-	temporalProdAuthConfig = temporal_auth.TemporalAuth{
+	cfg                = Config{}
+	authKeysCfg        auth_keys_config.AuthKeysCfg
+	env                string
+	temporalAuthConfig = temporal_auth.TemporalAuth{
 		ClientCertPath:   "/etc/ssl/certs/ca.pem",
 		ClientPEMKeyPath: "/etc/ssl/certs/ca.key",
 		Namespace:        "production-artemis.ngb72",
@@ -50,13 +50,13 @@ func Hestia() {
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
-		temporalProdAuthConfig = tc.ProdLocalTemporalAuthArtemis
+		temporalAuthConfig = tc.ProdLocalTemporalAuthArtemis
 		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
 		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
-		temporalProdAuthConfig = tc.ProdLocalTemporalAuthArtemis
+		temporalAuthConfig = tc.ProdLocalTemporalAuthArtemis
 		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
 		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
 	}
@@ -67,9 +67,12 @@ func Hestia() {
 	log.Info().Msg("Hestia: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	log.Info().Msg("Hestia: PG connection connected")
+
+	log.Info().Msg("Hestia: InitArtemisEthereumEphemeryValidatorsRequestsWorker")
+
 	// NOTE: inits at least one worker, then reuses the connection
 	// ephemery
-	eth_validators_service_requests.InitArtemisEthereumEphemeryValidatorsRequestsWorker(ctx, temporalProdAuthConfig)
+	eth_validators_service_requests.InitArtemisEthereumEphemeryValidatorsRequestsWorker(ctx, temporalAuthConfig)
 	// connect
 	c := eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.ConnectTemporalClient()
 	defer c.Close()
@@ -82,8 +85,10 @@ func Hestia() {
 		misc.DelayedPanic(err)
 	}
 
+	log.Info().Msg("Hestia: InitArtemisEthereumMainnetValidatorsRequestsWorker")
+
 	// mainnet
-	eth_validators_service_requests.InitArtemisEthereumMainnetValidatorsRequestsWorker(ctx, temporalProdAuthConfig)
+	eth_validators_service_requests.InitArtemisEthereumMainnetValidatorsRequestsWorker(ctx, temporalAuthConfig)
 	log.Info().Msg("Hestia: Starting InitArtemisEthereumMainnetValidatorsRequestsWorker")
 	eth_validators_service_requests.ArtemisEthereumMainnetValidatorsRequestsWorker.Worker.RegisterWorker(c)
 	err = eth_validators_service_requests.ArtemisEthereumMainnetValidatorsRequestsWorker.Worker.Start()

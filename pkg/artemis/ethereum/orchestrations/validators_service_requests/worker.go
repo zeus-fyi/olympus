@@ -55,7 +55,7 @@ func (t *ArtemisEthereumValidatorsRequestsWorker) ExecuteServiceNewValidatorsToC
 	wf := vsWf.ServiceNewValidatorsToCloudCtxNsWorkflow
 	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
 	if err != nil {
-		log.Err(err).Msg("ServiceNewValidatorsToCloudCtxNsWorkflow")
+		log.Err(err).Msg("ExecuteServiceNewValidatorsToCloudCtxNsWorkflow: ServiceNewValidatorsToCloudCtxNsWorkflow")
 		return err
 	}
 	return err

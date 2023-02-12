@@ -4,9 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	bls_serverless_signing "github.com/zeus-fyi/zeus/pkg/aegis/aws/serverless_signing"
-	"time"
-
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
 	olympus_hydra_validators_cookbooks "github.com/zeus-fyi/olympus/cookbooks/olympus/ethereum/validators"
@@ -14,6 +11,7 @@ import (
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	artemis_validator_signature_service_routing "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/signature_routing"
 	aws_secrets "github.com/zeus-fyi/zeus/pkg/aegis/aws"
+	bls_serverless_signing "github.com/zeus-fyi/zeus/pkg/aegis/aws/serverless_signing"
 	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
@@ -23,9 +21,7 @@ import (
 )
 
 const (
-	awsSecretsRegion      = "us-west-1"
-	waitForTxRxTimeout    = 15 * time.Minute
-	submitSignedTxTimeout = 5 * time.Minute
+	awsSecretsRegion = "us-west-1"
 )
 
 type ArtemisEthereumValidatorsServiceRequestActivities struct {

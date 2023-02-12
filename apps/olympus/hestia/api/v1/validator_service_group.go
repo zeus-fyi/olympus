@@ -13,7 +13,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	hestia_aws_secrets_auth "github.com/zeus-fyi/olympus/hestia/auth"
+	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	eth_validators_service_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validators_service_requests"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
@@ -69,7 +69,7 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 		SecretBinary: b,
 		SecretString: nil,
 	}
-	err = hestia_aws_secrets_auth.HestiaSecretManagerAuthAWS.CreateNewSecret(ctx, si)
+	err = artemis_hydra_orchestrations_aws_auth.HydraSecretManagerAuthAWS.CreateNewSecret(ctx, si)
 	if err != nil {
 		errCheckStr := fmt.Sprintf("the secret %s already exists", name)
 		if strings.Contains(err.Error(), errCheckStr) {

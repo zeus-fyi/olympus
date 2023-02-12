@@ -2,12 +2,12 @@ package eth_validator_signature_requests
 
 import (
 	"context"
+	"time"
+
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
 	artemis_validator_signature_service_routing "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/signature_routing"
 	bls_serverless_signing "github.com/zeus-fyi/zeus/pkg/aegis/aws/serverless_signing"
-	"time"
-
 	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
 )
 

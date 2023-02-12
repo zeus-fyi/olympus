@@ -5,6 +5,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	v1_hydra "github.com/zeus-fyi/olympus/hydra/api/v1"
 	hydra_eth2_web3signer "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer"
 	ethereum_slashing_protection_watermarking "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer/slashing_protection"
@@ -44,7 +45,10 @@ func Hydra() {
 	srv.E = v1_hydra.Routes(srv.E)
 
 	log.Ctx(ctx).Info().Msg("Hydra: Starting Async Service Route Polling")
-	artemis_validator_signature_service_routing.InitAsyncServiceAuthRoutePolling(ctx, Workload.CloudCtxNs)
+	vsi := artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol{
+		ProtocolNetworkID: Workload.ProtocolNetworkID,
+	}
+	artemis_validator_signature_service_routing.InitAsyncServiceAuthRoutePolling(ctx, vsi, Workload.CloudCtxNs)
 	log.Ctx(ctx).Info().Msg("Hydra: Async Service Route Polling Started")
 
 	log.Ctx(ctx).Info().Msg("Hydra: Starting Temporal Worker")

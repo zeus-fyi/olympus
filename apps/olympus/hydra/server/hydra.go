@@ -78,7 +78,7 @@ func Hydra() {
 	log.Ctx(ctx).Info().Interface("network", ethereum_slashing_protection_watermarking.Network).Msg("Hydra: Temporal Worker Started")
 
 	log.Ctx(ctx).Info().Msg("Hydra: Starting async priority message queues")
-	hydra_eth2_web3signer.InitAsyncMessageQueues(ctx)
+	go hydra_eth2_web3signer.InitAsyncMessageQueues(ctx)
 	log.Ctx(ctx).Info().Msg("Hydra: Async priority message queues started")
 
 	log.Ctx(ctx).Info().Msg("Hydra: Starting server")

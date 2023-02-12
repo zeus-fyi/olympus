@@ -99,7 +99,7 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) RestartValidatorClie
 	}
 	_, err := Zeus.DeletePods(ctx, par)
 	if err != nil {
-		log.Ctx(ctx).Err(err)
+		log.Ctx(ctx).Error().Err(err)
 		return err
 	}
 	return nil
@@ -121,7 +121,6 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 		tmp[i] = pubkey
 		req.Map[pubkey] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: rand.String(10)}
 	}
-
 	sn := artemis_validator_signature_service_routing.FormatSecretNameAWS(params.ServiceRequestWrapper.GroupName, params.OrgID, params.ServiceRequestWrapper.ProtocolNetworkID)
 	si := aws_secrets.SecretInfo{
 		Region: awsSecretsRegion,
@@ -132,16 +131,16 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 		log.Ctx(ctx).Error().Err(err)
 		return nil, err
 	}
-	// TODO add auth
+	// TODO add auth signing on payload
 	signReqs := bls_serverless_signing.SignatureRequests{
 		SecretName:        sv.ServiceAuth.SecretName,
 		SignatureRequests: req,
 	}
-	respJson := aegis_inmemdbs.EthereumBLSKeySignatureResponses{}
+	respJson := aegis_inmemdbs.EthereumBLSKeySignatureResponses{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureResponse)}
 	_, err = r.R().
-		SetResult(&respJson.Map).
+		SetResult(&respJson).
 		SetBody(signReqs).
-		Post(sv.ServiceURL)
+		Post(sv.ServiceAuth.ServiceURL)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err)
 		return nil, err

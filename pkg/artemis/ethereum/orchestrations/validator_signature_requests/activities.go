@@ -4,6 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/go-resty/resty/v2"
+	"github.com/rs/zerolog/log"
+	artemis_validator_signature_service_routing "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/signature_routing"
+	bls_serverless_signing "github.com/zeus-fyi/zeus/pkg/aegis/aws/serverless_signing"
 	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
 )
 
@@ -30,23 +34,39 @@ func (d *ArtemisEthereumValidatorSignatureRequestActivities) GetActivities() Act
 	return []interface{}{d.RequestValidatorSignatures}
 }
 
-func (d *ArtemisEthereumValidatorSignatureRequestActivities) RequestValidatorSignatures(ctx context.Context, sigRequests aegis_inmemdbs.EthereumBLSKeySignatureRequests) (aegis_inmemdbs.EthereumBLSKeySignatureResponses, error) {
-	// TODO serverless request here
-	// TODO, group pubkeys by serverless function then send requests
-
-	m := make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureRequests)
-	// TODO: group by service url
-	for pubkey, signReq := range sigRequests.Map {
-		svcURL := MockGetServiceURL(pubkey)
-		if _, ok := m[svcURL]; !ok {
-			m[svcURL] = aegis_inmemdbs.EthereumBLSKeySignatureRequests{}
-		}
-		m[svcURL].Map[pubkey] = signReq
-	}
-	return aegis_inmemdbs.EthereumBLSKeySignatureResponses{}, nil
+type Resty struct {
+	*resty.Client
 }
 
-func MockGetServiceURL(pubkey string) string {
-	// TODO lookup in cache
-	return "http://localhost:8080"
+// TODO add signature auth, todo make each group an async activity
+
+func (d *ArtemisEthereumValidatorSignatureRequestActivities) RequestValidatorSignatures(ctx context.Context, sigRequests aegis_inmemdbs.EthereumBLSKeySignatureRequests) (aegis_inmemdbs.EthereumBLSKeySignatureResponses, error) {
+	sigResponses := aegis_inmemdbs.EthereumBLSKeySignatureResponses{}
+	gm := artemis_validator_signature_service_routing.GroupSigRequestsByGroupName(ctx, sigRequests)
+	r := Resty{}
+	r.Client = resty.New()
+	for groupName, signReqs := range gm {
+		auth, err := artemis_validator_signature_service_routing.GetGroupAuthFromInMemFS(ctx, groupName)
+		if err != nil {
+			log.Ctx(ctx).Error().Err(err).Msg("Failed to get group auth")
+			return sigResponses, err
+		}
+		sr := bls_serverless_signing.SignatureRequests{
+			SecretName:        auth.SecretName,
+			SignatureRequests: aegis_inmemdbs.EthereumBLSKeySignatureRequests{Map: signReqs.Map},
+		}
+		respJson := aegis_inmemdbs.EthereumBLSKeySignatureResponses{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureResponse)}
+		_, err = r.R().
+			SetResult(&respJson).
+			SetBody(sr).
+			Post(auth.AuthLamdbaAWS.ServiceURL)
+		if err != nil {
+			log.Ctx(ctx).Error().Err(err)
+			return sigResponses, err
+		}
+		for k, v := range respJson.Map {
+			sigResponses.Map[k] = v
+		}
+	}
+	return sigResponses, nil
 }

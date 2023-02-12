@@ -35,8 +35,8 @@ func (s *ValidatorServiceAuthRoutesTestSuite) TestFetchAndSetServiceGroupsAuths(
 	expAuth := hestia_req_types.ServiceRequestWrapper{
 		GroupName:         "testGroup",
 		ProtocolNetworkID: hestia_req_types.EthereumEphemeryProtocolNetworkID,
-		ServiceURL:        s.Tc.AwsLamdbaTestURL,
 		ServiceAuth: hestia_req_types.ServiceAuthConfig{AuthLamdbaAWS: &hestia_req_types.AuthLamdbaAWS{
+			ServiceURL:   s.Tc.AwsLamdbaTestURL,
 			SecretName:   "testLambdaExternalSecret",
 			AccessKey:    s.Tc.AwsAccessKeyLambdaExt,
 			AccessSecret: s.Tc.AwsSecretKeyLambdaExt,

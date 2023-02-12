@@ -32,6 +32,32 @@ func (s *ArtemisHydraSecretsManagerTestSuite) SetupTest() {
 	InitHydraSecretManagerAuthAWS(ctx, auth)
 }
 
+func (s *ArtemisHydraSecretsManagerTestSuite) TestUpdateSecret() {
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+
+	v := hestia_req_types.ServiceRequestWrapper{
+		GroupName:         "testGroup",
+		ProtocolNetworkID: hestia_req_types.EthereumEphemeryProtocolNetworkID,
+		ServiceAuth: hestia_req_types.ServiceAuthConfig{AuthLamdbaAWS: &hestia_req_types.AuthLamdbaAWS{
+			ServiceURL:   s.Tc.AwsLamdbaTestURL,
+			SecretName:   "agekey",
+			AccessKey:    s.Tc.AwsAccessKeyLambdaExt,
+			AccessSecret: s.Tc.AwsSecretKeyLambdaExt,
+		}},
+	}
+	b, err := json.Marshal(v)
+	s.Require().Nil(err)
+	name := fmt.Sprintf("%s-%d-%s", v.GroupName, ou.OrgID, hestia_req_types.ProtocolNetworkIDToString(v.ProtocolNetworkID))
+	si := secretsmanager.UpdateSecretInput{
+		SecretId:     aws.String(name),
+		SecretBinary: b,
+	}
+	_, err = HydraSecretManagerAuthAWS.UpdateSecret(ctx, &si)
+	s.Require().Nil(err)
+}
+
 func (s *ArtemisHydraSecretsManagerTestSuite) TestCreateSecret() {
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
@@ -40,9 +66,9 @@ func (s *ArtemisHydraSecretsManagerTestSuite) TestCreateSecret() {
 	v := hestia_req_types.ServiceRequestWrapper{
 		GroupName:         "testGroup",
 		ProtocolNetworkID: hestia_req_types.EthereumEphemeryProtocolNetworkID,
-		ServiceURL:        s.Tc.AwsLamdbaTestURL,
 		ServiceAuth: hestia_req_types.ServiceAuthConfig{AuthLamdbaAWS: &hestia_req_types.AuthLamdbaAWS{
-			SecretName:   "testLambdaExternalSecret",
+			ServiceURL:   s.Tc.AwsLamdbaTestURL,
+			SecretName:   "agekey",
 			AccessKey:    s.Tc.AwsAccessKeyLambdaExt,
 			AccessSecret: s.Tc.AwsSecretKeyLambdaExt,
 		}},
@@ -73,9 +99,9 @@ func (s *ArtemisHydraSecretsManagerTestSuite) TestFetchSecret() {
 	v := hestia_req_types.ServiceRequestWrapper{
 		GroupName:         "testGroup",
 		ProtocolNetworkID: hestia_req_types.EthereumEphemeryProtocolNetworkID,
-		ServiceURL:        s.Tc.AwsLamdbaTestURL,
 		ServiceAuth: hestia_req_types.ServiceAuthConfig{AuthLamdbaAWS: &hestia_req_types.AuthLamdbaAWS{
-			SecretName:   "testLambdaExternalSecret",
+			ServiceURL:   s.Tc.AwsLamdbaTestURL,
+			SecretName:   "agekey",
 			AccessKey:    s.Tc.AwsAccessKeyLambdaExt,
 			AccessSecret: s.Tc.AwsSecretKeyLambdaExt,
 		}},
@@ -97,8 +123,8 @@ func (s *ArtemisHydraSecretsManagerTestSuite) TestFetchServiceRoutesAuths() {
 	v := hestia_req_types.ServiceRequestWrapper{
 		GroupName:         "testGroup",
 		ProtocolNetworkID: hestia_req_types.EthereumEphemeryProtocolNetworkID,
-		ServiceURL:        s.Tc.AwsLamdbaTestURL,
 		ServiceAuth: hestia_req_types.ServiceAuthConfig{AuthLamdbaAWS: &hestia_req_types.AuthLamdbaAWS{
+			ServiceURL:   s.Tc.AwsLamdbaTestURL,
 			SecretName:   "testLambdaExternalSecret",
 			AccessKey:    s.Tc.AwsAccessKeyLambdaExt,
 			AccessSecret: s.Tc.AwsSecretKeyLambdaExt,
@@ -113,7 +139,6 @@ func (s *ArtemisHydraSecretsManagerTestSuite) TestFetchServiceRoutesAuths() {
 	s.Require().NotEmpty(srw)
 
 	s.Assert().Equal(v.GroupName, srw.GroupName)
-	s.Assert().Equal(v.ServiceURL, srw.ServiceURL)
 	s.Assert().Equal(v.ServiceAuth, srw.ServiceAuth)
 }
 

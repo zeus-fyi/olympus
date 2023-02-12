@@ -73,7 +73,8 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 	if err != nil {
 		errCheckStr := fmt.Sprintf("the secret %s already exists", name)
 		if strings.Contains(err.Error(), errCheckStr) {
-			fmt.Println("Secret already exists, skipping")
+			fmt.Println("Secret already exists, updating to new values")
+
 		} else {
 			log.Ctx(ctx).Error().Err(err)
 			return c.JSON(http.StatusInternalServerError, nil)

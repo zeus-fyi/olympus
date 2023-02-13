@@ -69,7 +69,6 @@ func Hestia() {
 	log.Info().Msg("Hestia: PG connection connected")
 
 	log.Info().Msg("Hestia: InitArtemisEthereumEphemeryValidatorsRequestsWorker Starting")
-
 	// NOTE: inits at least one worker, then reuses the connection
 	// ephemery
 	eth_validators_service_requests.InitArtemisEthereumEphemeryValidatorsRequestsWorker(ctx, temporalAuthConfig)

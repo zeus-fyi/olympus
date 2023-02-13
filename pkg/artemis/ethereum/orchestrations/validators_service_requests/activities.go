@@ -107,14 +107,14 @@ type Resty struct {
 
 // TODO add auth signature
 
-func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOwnershipAndSigning(ctx context.Context, params ValidatorServiceGroupWorkflowRequest) ([]string, error) {
+func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOwnershipAndSigning(ctx context.Context, params ValidatorServiceGroupWorkflowRequest) (hestia_req_types.ValidatorServiceOrgGroupSlice, error) {
 	r := Resty{}
 	r.Client = resty.New()
 	req := aegis_inmemdbs.EthereumBLSKeySignatureRequests{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureRequest)}
-	tmp := make([]string, len(params.ValidatorServiceOrgGroupSlice))
-	for i, vs := range params.ValidatorServiceOrgGroupSlice {
+	feeAddrToPubkeyMap := make(map[string]string)
+	for _, vs := range params.ValidatorServiceOrgGroupSlice {
 		pubkey := vs.Pubkey
-		tmp[i] = pubkey
+		feeAddrToPubkeyMap[pubkey] = vs.FeeRecipient
 		req.Map[pubkey] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: rand.String(10)}
 	}
 	sn := artemis_validator_signature_service_routing.FormatSecretNameAWS(params.ServiceRequestWrapper.GroupName, params.OrgID, params.ServiceRequestWrapper.ProtocolNetworkID)
@@ -146,5 +146,13 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 		log.Ctx(ctx).Error().Err(err).Msg("failed to verify signatures")
 		return nil, err
 	}
-	return verifiedKeys, nil
+
+	vkAndFeeAddrSlice := make([]hestia_req_types.ValidatorServiceOrgGroup, len(verifiedKeys))
+	for i, vk := range verifiedKeys {
+		vkAndFeeAddrSlice[i] = hestia_req_types.ValidatorServiceOrgGroup{
+			Pubkey:       vk,
+			FeeRecipient: feeAddrToPubkeyMap[vk],
+		}
+	}
+	return vkAndFeeAddrSlice, nil
 }

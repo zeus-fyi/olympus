@@ -1,6 +1,8 @@
 package eth_validators_service_requests
 
 import (
+	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	"time"
 
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
@@ -35,7 +37,7 @@ func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) ServiceNewValidator
 	}
 	// TODO, if this keeps failing, terminate workflow
 	validateValidatorsRemoteServicesStatusCtx := workflow.WithActivityOptions(ctx, ao)
-	var verifiedPubkeys []string
+	var verifiedPubkeys hestia_req_types.ValidatorServiceOrgGroupSlice
 	err := workflow.ExecuteActivity(validateValidatorsRemoteServicesStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.VerifyValidatorKeyOwnershipAndSigning, params).Get(validateValidatorsRemoteServicesStatusCtx, &verifiedPubkeys)
 	if err != nil {
 		log.Warn("Failed to validate key to service url", "ValidatorServiceRequest", params)
@@ -43,9 +45,17 @@ func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) ServiceNewValidator
 		workflow.Sleep(ctx, time.Second*30)
 		return err
 	}
+	params.ValidatorServiceOrgGroupSlice = verifiedPubkeys
 
+	insertParams := artemis_validator_service_groups_models.OrgValidatorService{
+		GroupName:         params.GroupName,
+		ProtocolNetworkID: params.ProtocolNetworkID,
+		ServiceURL:        params.ServiceAuth.ServiceURL,
+		OrgID:             params.OrgID,
+		Enabled:           true,
+	}
 	insertVerifiedValidatorsStatusCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(insertVerifiedValidatorsStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.InsertVerifiedValidatorsWithFeeRecipient, params).Get(insertVerifiedValidatorsStatusCtx, nil)
+	err = workflow.ExecuteActivity(insertVerifiedValidatorsStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.InsertVerifiedValidatorsWithFeeRecipient, insertParams, params.ValidatorServiceOrgGroupSlice).Get(insertVerifiedValidatorsStatusCtx, nil)
 	if err != nil {
 		log.Error("Failed to assign validators to cloud ctx ns", "Error", err)
 		return err

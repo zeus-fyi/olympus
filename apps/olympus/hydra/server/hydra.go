@@ -63,6 +63,13 @@ func Hydra() {
 			log.Fatal().Err(err).Msgf("Hydra: %s ArtemisEthereumValidatorSignatureRequestsMainnetWorker.Worker.Start failed", env)
 			misc.DelayedPanic(err)
 		}
+		eth_validator_signature_requests.InitArtemisEthereumValidatorSignatureRequestsMainnetWorkerSecondary(ctx, temporalAuthCfg)
+		eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsMainnetWorkerSecondary.RegisterWorker(c)
+		err = eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsMainnetWorkerSecondary.Worker.Start()
+		if err != nil {
+			log.Fatal().Err(err).Msgf("Hydra: %s ArtemisEthereumValidatorSignatureRequestsMainnetWorkerSecondary.Worker.Start failed", env)
+			misc.DelayedPanic(err)
+		}
 	case Ephemery:
 		eth_validator_signature_requests.InitArtemisEthereumValidatorSignatureRequestsEphemeryWorker(ctx, temporalAuthCfg)
 		c := eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsEphemeryWorker.ConnectTemporalClient()
@@ -71,6 +78,13 @@ func Hydra() {
 		err := eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsEphemeryWorker.Worker.Start()
 		if err != nil {
 			log.Fatal().Err(err).Msgf("Hydra: %s ArtemisEthereumValidatorSignatureRequestsEphemeryWorker.Worker.Start failed", env)
+			misc.DelayedPanic(err)
+		}
+		eth_validator_signature_requests.InitArtemisEthereumValidatorSignatureRequestsEphemeryWorkerSecondary(ctx, temporalAuthCfg)
+		eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsEphemeryWorkerSecondary.RegisterWorker(c)
+		err = eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsEphemeryWorkerSecondary.Worker.Start()
+		if err != nil {
+			log.Fatal().Err(err).Msgf("Hydra: %s ArtemisEthereumValidatorSignatureRequestsEphemeryWorkerSecondary.Worker.Start failed", env)
 			misc.DelayedPanic(err)
 		}
 	default:

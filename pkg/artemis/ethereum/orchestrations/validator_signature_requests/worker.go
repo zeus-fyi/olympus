@@ -2,7 +2,6 @@ package eth_validator_signature_requests
 
 import (
 	"context"
-	"fmt"
 	"github.com/rs/zerolog/log"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
@@ -18,14 +17,14 @@ func init() {
 	_ = bls_signer.InitEthBLS()
 }
 
-func (t *ArtemisEthereumValidatorSignatureRequestsWorker) ExecuteValidatorSignatureRequestsWorkflow(ctx context.Context, sigRequests aegis_inmemdbs.EthereumBLSKeySignatureRequests, signType string) (aegis_inmemdbs.EthereumBLSKeySignatureResponses, error) {
+func (t *ArtemisEthereumValidatorSignatureRequestsWorker) ExecuteValidatorSignatureRequestsWorkflow(ctx context.Context, sigRequests aegis_inmemdbs.EthereumBLSKeySignatureRequests) (aegis_inmemdbs.EthereumBLSKeySignatureResponses, error) {
 	if len(sigRequests.Map) == 0 {
 		return aegis_inmemdbs.EthereumBLSKeySignatureResponses{}, nil
 	}
 	c := t.ConnectTemporalClient()
 	defer c.Close()
 	workflowOptions := client.StartWorkflowOptions{
-		TaskQueue: fmt.Sprintf("%s-%s", t.TaskQueueName, signType),
+		TaskQueue: t.TaskQueueName,
 	}
 	sigReqWf := NewArtemisEthereumValidatorSignatureRequestWorkflow()
 	wf := sigReqWf.ArtemisSendValidatorSignatureRequestsWorkflow

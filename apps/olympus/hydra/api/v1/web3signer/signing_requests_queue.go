@@ -106,14 +106,28 @@ func (sq *SignaturePriorityQueue) SendSignatureRequestsFromQueue(ctx context.Con
 	var err error
 	switch ethereum_slashing_protection_watermarking.Network {
 	case "mainnet":
-		resp, err = eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsMainnetWorker.ExecuteValidatorSignatureRequestsWorkflow(ctx, batchSigReqs, sq.Type)
-		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Msg("ExecuteValidatorSignatureRequestsWorkflow")
+		if sq.Type == ATTESTATION || sq.Type == AGGREGATION_SLOT || sq.Type == AGGREGATE_AND_PROOF {
+			resp, err = eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsMainnetWorker.ExecuteValidatorSignatureRequestsWorkflow(ctx, batchSigReqs)
+			if err != nil {
+				log.Ctx(ctx).Error().Err(err).Msg("ExecuteValidatorSignatureRequestsWorkflow")
+			}
+		} else {
+			resp, err = eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsMainnetWorkerSecondary.ExecuteValidatorSignatureRequestsWorkflow(ctx, batchSigReqs)
+			if err != nil {
+				log.Ctx(ctx).Error().Err(err).Msg("ExecuteValidatorSignatureRequestsWorkflow")
+			}
 		}
 	case "ephemery":
-		resp, err = eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsEphemeryWorker.ExecuteValidatorSignatureRequestsWorkflow(ctx, batchSigReqs, sq.Type)
-		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Msg("ExecuteValidatorSignatureRequestsWorkflow")
+		if sq.Type == ATTESTATION || sq.Type == AGGREGATION_SLOT || sq.Type == AGGREGATE_AND_PROOF {
+			resp, err = eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsEphemeryWorker.ExecuteValidatorSignatureRequestsWorkflow(ctx, batchSigReqs)
+			if err != nil {
+				log.Ctx(ctx).Error().Err(err).Msg("ExecuteValidatorSignatureRequestsWorkflow")
+			}
+		} else {
+			resp, err = eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsEphemeryWorkerSecondary.ExecuteValidatorSignatureRequestsWorkflow(ctx, batchSigReqs)
+			if err != nil {
+				log.Ctx(ctx).Error().Err(err).Msg("ExecuteValidatorSignatureRequestsWorkflow")
+			}
 		}
 	}
 	for pubkey, msg := range resp.Map {

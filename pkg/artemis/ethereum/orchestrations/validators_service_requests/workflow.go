@@ -66,7 +66,7 @@ func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) ServiceNewValidator
 		return err
 	}
 	updateClusterValidatorsStatusCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(updateClusterValidatorsStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.RestartValidatorClient).Get(updateClusterValidatorsStatusCtx, nil)
+	err = workflow.ExecuteActivity(updateClusterValidatorsStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.RestartValidatorClient, params).Get(updateClusterValidatorsStatusCtx, nil)
 	if err != nil {
 		log.Error("Failed to restart validators client", "Error", err)
 		return err

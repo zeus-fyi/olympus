@@ -42,11 +42,11 @@ var (
 		Type:          SYNC_COMMITTEE_SELECTION_PROOF,
 		PriorityQueue: datastructures.PriorityQueue{},
 	}
-	SyncCommitteeContributionAndProof = SignaturePriorityQueue{
+	SyncCommitteeContributionAndProofPriorityQueue = SignaturePriorityQueue{
 		Type:          SYNC_COMMITTEE_CONTRIBUTION_AND_PROOF,
 		PriorityQueue: datastructures.PriorityQueue{},
 	}
-	ValidatorRegistration = SignaturePriorityQueue{
+	ValidatorRegistrationPriorityQueue = SignaturePriorityQueue{
 		Type:          VALIDATOR_REGISTRATION,
 		PriorityQueue: datastructures.PriorityQueue{},
 	}
@@ -61,23 +61,41 @@ type SignaturePriorityQueue struct {
 
 func InitAsyncMessageQueues(ctx context.Context) {
 	for {
-		go AttestationSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+		go func() {
+			AttestationSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+		}()
 		time.Sleep(2 * time.Millisecond)
-		go AggregationSlotSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+		go func() {
+			AggregationSlotSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+		}()
 		time.Sleep(2 * time.Millisecond)
-		go AggregationAndProofSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+		go func() {
+			go AggregationAndProofSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+		}()
 		time.Sleep(2 * time.Millisecond)
-		go BlockSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+		go func() {
+			BlockSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+		}()
 		time.Sleep(2 * time.Millisecond)
-		go RandaoRevealSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+		go func() {
+			RandaoRevealSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+		}()
 		time.Sleep(2 * time.Millisecond)
-		go SyncCommitteeMessageSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+		go func() {
+			SyncCommitteeMessageSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+		}()
 		time.Sleep(2 * time.Millisecond)
-		go SyncCommitteeSelectionProofSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+		go func() {
+			SyncCommitteeSelectionProofSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+		}()
 		time.Sleep(2 * time.Millisecond)
-		go SyncCommitteeContributionAndProof.SendSignatureRequestsFromQueue(ctx)
+		go func() {
+			SyncCommitteeContributionAndProofPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+		}()
 		time.Sleep(2 * time.Millisecond)
-		go ValidatorRegistration.SendSignatureRequestsFromQueue(ctx)
+		go func() {
+			ValidatorRegistrationPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+		}()
 		time.Sleep(2 * time.Millisecond)
 	}
 }
@@ -139,6 +157,8 @@ func (sq *SignaturePriorityQueue) SendSignatureRequestsFromQueue(ctx context.Con
 }
 
 func WaitForSignature(ctx context.Context, sr SignRequest) (Eth2SignResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 	ch := make(chan Eth2SignResponse)
 	go func(ctx context.Context, sr SignRequest) {
 		ch <- ReturnSignedMessage(ctx, sr)

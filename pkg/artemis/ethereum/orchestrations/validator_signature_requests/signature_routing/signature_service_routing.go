@@ -35,6 +35,7 @@ func InitAsyncServiceAuthRoutePolling(ctx context.Context, vsi artemis_validator
 }
 
 func GetServiceMetadata(ctx context.Context, vsi artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol, cctx zeus_common_types.CloudCtxNs) (artemis_validator_service_groups_models.ValidatorsSignatureServiceRoutes, error) {
+	log.Ctx(ctx).Info().Interface("cctx", cctx).Msg("GetServiceMetadata")
 	vsRoutes, err := artemis_validator_service_groups_models.SelectValidatorsServiceRoutesAssignedToCloudCtxNs(ctx, vsi, cctx)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("GetServiceURL")
@@ -44,6 +45,7 @@ func GetServiceMetadata(ctx context.Context, vsi artemis_validator_service_group
 }
 
 func GetServiceAuthAndURLs(ctx context.Context, vsi artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol, cctx zeus_common_types.CloudCtxNs) error {
+	log.Ctx(ctx).Info().Interface("cctx", cctx).Msg("GetServiceAuthAndURLs")
 	sr, err := GetServiceMetadata(ctx, vsi, cctx)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("GetServiceAuthAndURLs: GetServiceMetadata")
@@ -64,6 +66,7 @@ func GetServiceAuthAndURLs(ctx context.Context, vsi artemis_validator_service_gr
 
 func SetPubkeyToGroupInMemFS(ctx context.Context, a artemis_validator_service_groups_models.ValidatorsSignatureServiceRoutes) error {
 	for pubkey, gn := range a.PubkeyToGroupName {
+		log.Info().Interface("groupName", gn).Interface("pubkey", pubkey).Msg("SetPubkeyToGroupInMemFS")
 		err := SetPubkeyToGroupService(ctx, pubkey, gn)
 		if err != nil {
 			log.Ctx(ctx).Err(err).Msg("SetPubkeyToGroupInMemFS")

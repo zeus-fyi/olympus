@@ -20,6 +20,9 @@ func RunHydraDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCf
 	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
 	sw.AccessKeyHydraDynamoDB = sw.ReadSecret(ctx, inMemSecrets, hydraAccessKeyDynamoDB)
 	sw.SecretKeyHydraDynamoDB = sw.ReadSecret(ctx, inMemSecrets, hydraSecretKeyDynamoDB)
+
+	sw.SecretsManagerAuthAWS.AccessKey = sw.ReadSecret(ctx, inMemSecrets, secretsManagerAccessKey)
+	sw.SecretsManagerAuthAWS.SecretKey = sw.ReadSecret(ctx, inMemSecrets, secretsManagerSecretKey)
 	log.Info().Msg("Hydra: RunHydraDigitalOceanS3BucketObjSecretsProcedure succeeded")
 	return inMemSecrets, sw
 }

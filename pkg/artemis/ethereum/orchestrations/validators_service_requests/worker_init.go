@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/rs/zerolog/log"
+	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
@@ -11,6 +12,12 @@ import (
 )
 
 var Zeus zeus_client.ZeusClient
+
+func InitZeusClientValidatorServiceGroup(ctx context.Context) {
+	log.Ctx(ctx).Info().Msg("Artemis: InitZeusClientValidatorServiceGroup")
+	Zeus = zeus_client.NewDefaultZeusClient(artemis_orchestration_auth.Bearer)
+	return
+}
 
 func InitArtemisEthereumEphemeryValidatorsRequestsWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
 	log.Ctx(ctx).Info().Msg("Artemis: ArtemisEthereumEphemeryValidatorsRequestsWorker")

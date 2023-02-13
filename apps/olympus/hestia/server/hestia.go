@@ -10,6 +10,7 @@ import (
 	v1hestia "github.com/zeus-fyi/olympus/hestia/api/v1"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
+	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	eth_validators_service_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validators_service_requests"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
@@ -67,6 +68,14 @@ func Hestia() {
 	log.Info().Msg("Hestia: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	log.Info().Msg("Hestia: PG connection connected")
+
+	log.Info().Msgf("Hestia %s artemis orchestration retrieving auth token", env)
+	artemis_orchestration_auth.Bearer = auth_startup.FetchTemporalAuthBearer(ctx)
+	log.Info().Msgf("Hestia %s artemis orchestration retrieving auth token done", env)
+
+	log.Info().Msgf("Hestia %s artemis orchestration setting up zeus client", env)
+	eth_validators_service_requests.InitZeusClientValidatorServiceGroup(ctx)
+	log.Info().Msgf("Hestia %s artemis orchestration zeus client setup complete", env)
 
 	log.Info().Msg("Hestia: InitArtemisEthereumEphemeryValidatorsRequestsWorker Starting")
 	// NOTE: inits at least one worker, then reuses the connection

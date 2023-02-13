@@ -65,7 +65,7 @@ func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (Sig
 			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("ATTESTATION")
 			return SignRequest{}, err
 		}
-		AttestationSigningRequestPriorityQueue.Push(sr)
+		AttestationSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
 	case AGGREGATION_SLOT:
 		log.Info().Interface("pubkey", pubkey).Msg("AGGREGATION_SLOT")
 		AggregationSlotSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))

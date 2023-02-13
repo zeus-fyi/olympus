@@ -45,6 +45,7 @@ func (d *ArtemisEthereumValidatorSignatureRequestActivities) RequestValidatorSig
 	gm := artemis_validator_signature_service_routing.GroupSigRequestsByGroupName(ctx, sigRequests)
 	r := Resty{}
 	r.Client = resty.New()
+	log.Info().Interface("sigRequests", sigRequests).Interface("gm", gm).Msg("RequestValidatorSignatures")
 	for groupName, signReqs := range gm {
 		auth, err := artemis_validator_signature_service_routing.GetGroupAuthFromInMemFS(ctx, groupName)
 		if err != nil {

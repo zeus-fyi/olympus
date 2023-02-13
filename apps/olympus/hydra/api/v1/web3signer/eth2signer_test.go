@@ -15,7 +15,6 @@ type HydraEth2Web3SignerTestSuite struct {
 }
 
 func (t *HydraEth2Web3SignerTestSuite) TestQueueResponse() {
-
 	newUUID := uuid.New()
 	sr := SignRequest{
 		UUID:        newUUID,
@@ -25,12 +24,9 @@ func (t *HydraEth2Web3SignerTestSuite) TestQueueResponse() {
 	}
 
 	mockSig := "dsadfgdasf"
-
 	SignatureResponsesCache.Set(newUUID.String(), mockSig, cache.DefaultExpiration)
-
 	resp := ReturnSignedMessage(ctx, sr)
 	t.Assert().Equal(mockSig, resp.Signature)
-
 }
 
 func (t *HydraEth2Web3SignerTestSuite) TestAggregationSlot() {

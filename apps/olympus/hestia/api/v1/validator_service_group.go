@@ -24,16 +24,21 @@ type CreateValidatorServiceRequest struct {
 }
 
 func CreateValidatorServiceRequestHandler(c echo.Context) error {
+	log.Info().Msg("Hestia: CreateValidatorServiceRequestHandler")
 	request := new(CreateValidatorServiceRequest)
 	if err := c.Bind(request); err != nil {
+		log.Err(err).Msg("CreateValidatorServiceRequestHandler")
 		return err
 	}
 	return request.CreateValidatorsServiceGroup(c)
 }
 
 func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Context) error {
+	log.Info().Msg("Hestia: CreateValidatorServiceRequest: CreateValidatorsServiceGroup")
+
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
+
 	log.Ctx(ctx).Info().Interface("ou", ou).Interface("vsg", v.ValidatorServiceOrgGroupSlice).Msg("CreateValidatorsServiceGroup")
 	vsr := eth_validators_service_requests.ValidatorServiceGroupWorkflowRequest{
 		OrgID:                         ou.OrgID,
@@ -48,18 +53,21 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 	case hestia_req_types.EthereumEphemeryProtocolNetworkID:
 		network = hestia_req_types.ProtocolNetworkIDToString(v.ProtocolNetworkID)
 	default:
-		return c.JSON(http.StatusBadRequest, errors.New("unknown network"))
-
+		err := errors.New("unknown network")
+		log.Ctx(ctx).Err(err).Msg("CreateValidatorServiceRequest")
+		return c.JSON(http.StatusBadRequest, err)
 	}
+
+	log.Info().Msg("Hestia: CreateValidatorServiceRequest: Validating Service Auth")
 	err := v.ServiceAuth.Validate()
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err)
+		log.Ctx(ctx).Err(err).Msg("service auth failed validation")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	la := v.ServiceAuth
 	b, err := json.Marshal(la)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err)
+		log.Ctx(ctx).Err(err).Msg("service auth failed json marshal")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	name := fmt.Sprintf("%s-%d-%s", v.GroupName, ou.OrgID, network)
@@ -69,17 +77,22 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 		SecretBinary: b,
 		SecretString: nil,
 	}
+	log.Info().Msg("Hestia: CreateValidatorServiceRequest: Service Auth Valid, Creating Secret")
 	err = artemis_hydra_orchestrations_aws_auth.HydraSecretManagerAuthAWS.CreateNewSecret(ctx, si)
 	if err != nil {
+		log.Info().Msg(fmt.Sprintf("%e", err))
 		errCheckStr := fmt.Sprintf("the secret %s already exists", name)
 		if strings.Contains(err.Error(), errCheckStr) {
-			fmt.Println("Secret already exists, updating to new values")
-
+			log.Err(err).Msg("secret already exists, updating to new values")
+			// TODO: update secret
+			err = nil
 		} else {
-			log.Ctx(ctx).Error().Err(err)
+			log.Info().Msg("Hestia: CreateValidatorServiceRequest: Unexpected Error")
+			log.Ctx(ctx).Err(err).Msg("service auth failed to create secret")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
 	}
+	log.Info().Msg("Hestia: CreateValidatorsServiceGroup Secret Created: Init Validator Service Workflow")
 	// clear auth, not needed anymore, and we don't want to log it in temporal
 	vsr.ServiceAuth = hestia_req_types.ServiceAuthConfig{}
 	resp := Response{}
@@ -87,7 +100,7 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 	case hestia_req_types.EthereumMainnetProtocolNetworkID:
 		err = eth_validators_service_requests.ArtemisEthereumMainnetValidatorsRequestsWorker.ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx, vsr)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err)
+			log.Ctx(ctx).Err(err).Interface("network", network).Msg("ExecuteServiceNewValidatorsToCloudCtxNsWorkflow")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
 		resp.Message = "Ethereum Mainnet validators service request in progress"
@@ -95,7 +108,7 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 	case hestia_req_types.EthereumEphemeryProtocolNetworkID:
 		err = eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx, vsr)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err)
+			log.Ctx(ctx).Err(err).Interface("network", network).Msg("ExecuteServiceNewValidatorsToCloudCtxNsWorkflow")
 			return c.JSON(http.StatusInternalServerError, resp)
 		}
 		resp.Message = "Ethereum Ephemery validators service request in progress"

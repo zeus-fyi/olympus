@@ -2,6 +2,7 @@ package eth_validators_service_requests
 
 import (
 	"context"
+	bls_signer "github.com/zeus-fyi/zeus/pkg/crypto/bls"
 
 	"github.com/rs/zerolog/log"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
@@ -18,6 +19,10 @@ const (
 	EthereumMainnetValidatorsRequestsTaskQueue  = "EthereumMainnetValidatorsRequestsTaskQueue"
 	EthereumEphemeryValidatorsRequestsTaskQueue = "EthereumEphemeryValidatorsRequestsTaskQueue"
 )
+
+func init() {
+	_ = bls_signer.InitEthBLS()
+}
 
 var (
 	ArtemisEthereumMainnetValidatorsRequestsWorker ArtemisEthereumValidatorsRequestsWorker
@@ -46,6 +51,7 @@ type ValidatorServiceGroupWorkflowRequest struct {
 }
 
 func (t *ArtemisEthereumValidatorsRequestsWorker) ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx context.Context, params ValidatorServiceGroupWorkflowRequest) error {
+	log.Info().Msg("ArtemisEthereumValidatorsRequestsWorker: ExecuteServiceNewValidatorsToCloudCtxNsWorkflow")
 	c := t.ConnectTemporalClient()
 	defer c.Close()
 	workflowOptions := client.StartWorkflowOptions{
@@ -55,7 +61,7 @@ func (t *ArtemisEthereumValidatorsRequestsWorker) ExecuteServiceNewValidatorsToC
 	wf := vsWf.ServiceNewValidatorsToCloudCtxNsWorkflow
 	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
 	if err != nil {
-		log.Err(err).Msg("ServiceNewValidatorsToCloudCtxNsWorkflow")
+		log.Err(err).Msg("ExecuteServiceNewValidatorsToCloudCtxNsWorkflow: ServiceNewValidatorsToCloudCtxNsWorkflow")
 		return err
 	}
 	return err

@@ -7,9 +7,9 @@ import (
 	"fmt"
 
 	"github.com/rs/zerolog/log"
-	beacon_actions "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons/actions"
 	athena_client "github.com/zeus-fyi/olympus/pkg/athena/client"
 	"github.com/zeus-fyi/olympus/pkg/poseidon/poseidon_buckets"
+	beacon_actions "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons/actions"
 )
 
 type PoseidonSyncActivities struct {

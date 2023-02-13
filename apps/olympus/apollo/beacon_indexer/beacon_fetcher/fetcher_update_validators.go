@@ -39,7 +39,7 @@ func (f *BeaconFetcher) BeaconUpdateAllValidatorStates(ctx context.Context) (err
 	log.Info().Msg("BeaconFetcher: BeaconUpdateAllValidatorStates")
 	vsb, err := f.BeaconStateResults.FetchAllStateAndDecode(ctx, f.NodeEndpoint, "finalized", "")
 	if err != nil {
-		log.Error().Err(err).Msg("BeaconUpdateValidatorStates: FetchStateAndDecode")
+		log.Err(err).Msg("BeaconUpdateValidatorStates: FetchStateAndDecode")
 		return err
 	}
 	f.Validators = beacon_models.ToBeaconModelFormat(vsb)
@@ -47,7 +47,7 @@ func (f *BeaconFetcher) BeaconUpdateAllValidatorStates(ctx context.Context) (err
 	rowsUpdated, err := f.Validators.UpdateValidatorsFromBeaconAPI(ctx)
 	log.Info().Msgf("BeaconFetcher: UpdateValidatorsFromBeaconAPI updated %d validators", rowsUpdated)
 	if err != nil {
-		log.Error().Err(err).Msg("BeaconFetcher: UpdateValidatorsFromBeaconAPI")
+		log.Err(err).Msg("BeaconFetcher: UpdateValidatorsFromBeaconAPI")
 		return err
 	}
 	if rowsUpdated <= 0 {
@@ -85,7 +85,7 @@ func (f *BeaconFetcher) BeaconUpdateValidatorStates(ctx context.Context, batchSi
 	log.Info().Msg("BeaconUpdateValidatorStates: SelectValidatorsQueryOngoingStatesIndexesURLEncoded")
 	indexes, err := beacon_models.SelectValidatorsQueryOngoingStatesIndexesURLEncoded(ctx, batchSize, networkID)
 	if err != nil {
-		log.Error().Err(err).Msg("BeaconUpdateValidatorStates: SelectValidatorsQueryOngoingStatesIndexesURLEncoded")
+		log.Err(err).Msg("BeaconUpdateValidatorStates: SelectValidatorsQueryOngoingStatesIndexesURLEncoded")
 		return err
 	}
 
@@ -98,14 +98,14 @@ func (f *BeaconFetcher) BeaconUpdateValidatorStates(ctx context.Context, batchSi
 	log.Info().Msg("BeaconUpdateValidatorStates: FetchStateAndDecode")
 	vsb, err := f.BeaconStateResults.FetchStateAndDecode(ctx, f.NodeEndpoint, "finalized", indexes, "")
 	if err != nil {
-		log.Error().Err(err).Msg("BeaconUpdateValidatorStates: FetchStateAndDecode")
+		log.Err(err).Msg("BeaconUpdateValidatorStates: FetchStateAndDecode")
 		return err
 	}
 	f.Validators = beacon_models.ToBeaconModelFormat(vsb)
 	rowsUpdated, err := f.Validators.UpdateValidatorsFromBeaconAPI(ctx)
 	log.Info().Msgf("BeaconFetcher: UpdateValidatorsFromBeaconAPI updated %d validators", rowsUpdated)
 	if err != nil {
-		log.Error().Err(err).Msg("BeaconFetcher: UpdateValidatorsFromBeaconAPI")
+		log.Err(err).Msg("BeaconFetcher: UpdateValidatorsFromBeaconAPI")
 		return err
 	}
 	if rowsUpdated <= 0 {

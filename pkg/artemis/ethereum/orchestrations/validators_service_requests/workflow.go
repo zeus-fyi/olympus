@@ -1,6 +1,8 @@
 package eth_validators_service_requests
 
 import (
+	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	"time"
 
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
@@ -35,18 +37,25 @@ func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) ServiceNewValidator
 	}
 	// TODO, if this keeps failing, terminate workflow
 	validateValidatorsRemoteServicesStatusCtx := workflow.WithActivityOptions(ctx, ao)
-	var verifiedPubkeys []string
+	var verifiedPubkeys hestia_req_types.ValidatorServiceOrgGroupSlice
 	err := workflow.ExecuteActivity(validateValidatorsRemoteServicesStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.VerifyValidatorKeyOwnershipAndSigning, params).Get(validateValidatorsRemoteServicesStatusCtx, &verifiedPubkeys)
 	if err != nil {
 		log.Warn("Failed to validate key to service url", "ValidatorServiceRequest", params)
 		log.Error("Failed to validate key to service url", "Error", err)
+		workflow.Sleep(ctx, time.Second*30)
 		return err
 	}
-
+	insertParams := artemis_validator_service_groups_models.OrgValidatorService{
+		GroupName:         params.GroupName,
+		ProtocolNetworkID: params.ProtocolNetworkID,
+		ServiceURL:        "https://deprecated.com",
+		OrgID:             params.OrgID,
+		Enabled:           true,
+	}
 	insertVerifiedValidatorsStatusCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(insertVerifiedValidatorsStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.InsertVerifiedValidatorsWithFeeRecipient, params).Get(insertVerifiedValidatorsStatusCtx, nil)
+	err = workflow.ExecuteActivity(insertVerifiedValidatorsStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.InsertVerifiedValidatorsWithFeeRecipient, insertParams, verifiedPubkeys).Get(insertVerifiedValidatorsStatusCtx, nil)
 	if err != nil {
-		log.Error("Failed to assign validators to cloud ctx ns", "Error", err)
+		log.Error("Failed to insert new validators to service", "Error", err)
 		return err
 	}
 	// If succeed, continue forever or basically forever, TODO alert if failure continues for > 1hr
@@ -57,7 +66,7 @@ func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) ServiceNewValidator
 		return err
 	}
 	updateClusterValidatorsStatusCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(updateClusterValidatorsStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.RestartValidatorClient, params).Get(updateClusterValidatorsStatusCtx, nil)
+	err = workflow.ExecuteActivity(updateClusterValidatorsStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.RestartValidatorClient).Get(updateClusterValidatorsStatusCtx, nil)
 	if err != nil {
 		log.Error("Failed to restart validators client", "Error", err)
 		return err

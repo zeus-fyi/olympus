@@ -5,13 +5,15 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	beacon_actions "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons/actions"
-	client_consts "github.com/zeus-fyi/olympus/cookbooks/ethereum/beacons/constants"
+	olympus_beacon_cookbooks "github.com/zeus-fyi/olympus/cookbooks/olympus/ethereum/beacons"
 	athena_client "github.com/zeus-fyi/olympus/pkg/athena/client"
 	"github.com/zeus-fyi/olympus/pkg/poseidon/poseidon_buckets"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	test_base "github.com/zeus-fyi/olympus/test"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
+	beacon_actions "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons/actions"
+	client_consts "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons/constants"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
 )
 
 var ctx = context.Background()
@@ -29,14 +31,22 @@ func (t *PoseidonActivitiesTestSuite) TestPauseClient() {
 }
 
 func (t *PoseidonActivitiesTestSuite) TestRsyncConsensus() {
-	reqHeader := beacon_actions.BeaconKnsReq
+	reqHeader := zeus_req_types.TopologyDeployRequest{
+		TopologyID:                      0,
+		CloudCtxNs:                      olympus_beacon_cookbooks.EphemeralAthenaBeaconCloudCtxNs,
+		RequestChoreographySecretDeploy: false,
+	}
 	resp, err := PoseidonSyncActivitiesOrchestrator.UploadViaPortForward(ctx, reqHeader, poseidon_buckets.LighthouseMainnetBucket)
 	t.Assert().Nil(err)
 	t.Assert().NotEmpty(resp)
 }
 
 func (t *PoseidonActivitiesTestSuite) TestRsyncExec() {
-	reqHeader := beacon_actions.BeaconKnsReq
+	reqHeader := zeus_req_types.TopologyDeployRequest{
+		TopologyID:                      0,
+		CloudCtxNs:                      olympus_beacon_cookbooks.EphemeralAthenaBeaconCloudCtxNs,
+		RequestChoreographySecretDeploy: false,
+	}
 	resp, err := PoseidonSyncActivitiesOrchestrator.UploadViaPortForward(ctx, reqHeader, poseidon_buckets.GethMainnetBucket)
 	t.Assert().Nil(err)
 	t.Assert().NotEmpty(resp)

@@ -4,9 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	bls_serverless_signing "github.com/zeus-fyi/zeus/pkg/aegis/aws/serverless_signing"
-	"time"
-
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
 	olympus_hydra_validators_cookbooks "github.com/zeus-fyi/olympus/cookbooks/olympus/ethereum/validators"
@@ -14,6 +11,7 @@ import (
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	artemis_validator_signature_service_routing "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/signature_routing"
 	aws_secrets "github.com/zeus-fyi/zeus/pkg/aegis/aws"
+	bls_serverless_signing "github.com/zeus-fyi/zeus/pkg/aegis/aws/serverless_signing"
 	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
@@ -23,9 +21,7 @@ import (
 )
 
 const (
-	awsSecretsRegion      = "us-west-1"
-	waitForTxRxTimeout    = 15 * time.Minute
-	submitSignedTxTimeout = 5 * time.Minute
+	awsSecretsRegion = "us-west-1"
 )
 
 type ArtemisEthereumValidatorsServiceRequestActivities struct {
@@ -60,7 +56,7 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) InsertVerifiedValida
 	return nil
 }
 
-func (a *ArtemisEthereumValidatorsServiceRequestActivities) AssignValidatorsToCloudCtxNs(ctx context.Context, params artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol) error {
+func (a *ArtemisEthereumValidatorsServiceRequestActivities) AssignValidatorsToCloudCtxNs(ctx context.Context, params ValidatorServiceGroupWorkflowRequest) error {
 	var cloudCtxNs zeus_common_types.CloudCtxNs
 	switch params.ProtocolNetworkID {
 	case hestia_req_types.EthereumEphemeryProtocolNetworkID:
@@ -70,7 +66,13 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) AssignValidatorsToCl
 	default:
 		return errors.New("unsupported protocol network id")
 	}
-	err := artemis_validator_service_groups_models.SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx, params, cloudCtxNs)
+	// TODO when capacity is reached, we need to delete the oldest pod
+	vsCloudCtx := artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol{
+		ProtocolNetworkID:     params.ProtocolNetworkID,
+		OrgID:                 params.OrgID,
+		ValidatorClientNumber: 0,
+	}
+	err := artemis_validator_service_groups_models.SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx, vsCloudCtx, cloudCtxNs)
 	if err != nil {
 		log.Ctx(ctx).Err(err)
 		return err
@@ -78,7 +80,7 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) AssignValidatorsToCl
 	return nil
 }
 
-func (a *ArtemisEthereumValidatorsServiceRequestActivities) RestartValidatorClient(ctx context.Context, params artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol) error {
+func (a *ArtemisEthereumValidatorsServiceRequestActivities) RestartValidatorClient(ctx context.Context, params ValidatorServiceGroupWorkflowRequest) error {
 	// this will pull the latest validators into the cluster
 	var cloudCtxNs zeus_common_types.CloudCtxNs
 	switch params.ProtocolNetworkID {
@@ -90,12 +92,14 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) RestartValidatorClie
 		return errors.New("unsupported protocol network id")
 	}
 
+	// TODO when capacity is reached, we need to delete the oldest pod
+	vcNum := 0
 	par := zeus_pods_reqs.PodActionRequest{
 		TopologyDeployRequest: zeus_req_types.TopologyDeployRequest{
 			CloudCtxNs: cloudCtxNs,
 		},
 		Action:  zeus_pods_reqs.DeleteAllPods,
-		PodName: fmt.Sprintf("%s-%d", olympus_hydra_validators_cookbooks.HydraValidatorsClientName, params.ValidatorClientNumber),
+		PodName: fmt.Sprintf("%s-%d", olympus_hydra_validators_cookbooks.HydraValidatorsClientName, vcNum),
 	}
 	_, err := Zeus.DeletePods(ctx, par)
 	if err != nil {
@@ -111,14 +115,14 @@ type Resty struct {
 
 // TODO add auth signature
 
-func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOwnershipAndSigning(ctx context.Context, params ValidatorServiceGroupWorkflowRequest) ([]string, error) {
+func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOwnershipAndSigning(ctx context.Context, params ValidatorServiceGroupWorkflowRequest) (hestia_req_types.ValidatorServiceOrgGroupSlice, error) {
 	r := Resty{}
 	r.Client = resty.New()
 	req := aegis_inmemdbs.EthereumBLSKeySignatureRequests{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureRequest)}
-	tmp := make([]string, len(params.ValidatorServiceOrgGroupSlice))
-	for i, vs := range params.ValidatorServiceOrgGroupSlice {
+	feeAddrToPubkeyMap := make(map[string]string)
+	for _, vs := range params.ValidatorServiceOrgGroupSlice {
 		pubkey := vs.Pubkey
-		tmp[i] = pubkey
+		feeAddrToPubkeyMap[pubkey] = vs.FeeRecipient
 		req.Map[pubkey] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: rand.String(10)}
 	}
 	sn := artemis_validator_signature_service_routing.FormatSecretNameAWS(params.ServiceRequestWrapper.GroupName, params.OrgID, params.ServiceRequestWrapper.ProtocolNetworkID)
@@ -128,7 +132,7 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 	}
 	sv, err := artemis_hydra_orchestrations_aws_auth.GetServiceRoutesAuths(ctx, si)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err)
+		log.Ctx(ctx).Error().Err(err).Msg("failed to get service routes auths")
 		return nil, err
 	}
 	// TODO add auth signing on payload
@@ -142,13 +146,20 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 		SetBody(signReqs).
 		Post(sv.ServiceAuth.ServiceURL)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err)
+		log.Ctx(ctx).Error().Err(err).Msg("failed to post to validator signature service url")
 		return nil, err
 	}
 	verifiedKeys, err := respJson.VerifySignatures(ctx, req)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err)
+		log.Ctx(ctx).Error().Err(err).Msg("failed to verify signatures")
 		return nil, err
 	}
-	return verifiedKeys, nil
+	vkAndFeeAddrSlice := make([]hestia_req_types.ValidatorServiceOrgGroup, len(verifiedKeys))
+	for i, vk := range verifiedKeys {
+		vkAndFeeAddrSlice[i] = hestia_req_types.ValidatorServiceOrgGroup{
+			Pubkey:       vk,
+			FeeRecipient: feeAddrToPubkeyMap[vk],
+		}
+	}
+	return vkAndFeeAddrSlice, nil
 }

@@ -26,7 +26,7 @@ func (f *BeaconFetcher) FetchAllValidatorBalances(ctx context.Context, epoch int
 		slotToQuery := lib.ConvertEpochToSlot(int64(epoch))
 		b, berr := beaconAPI.FetchAllValidatorBalancesAtStateAndDecode(ctx, f.NodeEndpoint, slotToQuery)
 		if berr != nil {
-			log.Error().Err(berr).Msg("BeaconFetcher: QueryAllValidatorBalancesAtSlot")
+			log.Err(berr).Msg("BeaconFetcher: QueryAllValidatorBalancesAtSlot")
 			return valBalances, berr
 		}
 		b.Epoch = epoch

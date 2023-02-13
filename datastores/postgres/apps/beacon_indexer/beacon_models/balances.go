@@ -21,7 +21,7 @@ func (vb *ValidatorBalancesEpoch) InsertValidatorBalances(ctx context.Context) e
 
 	log.Info().Int64("rows affected: ", rowsAffected)
 	if err != nil {
-		log.Error().Err(err).Interface("InsertValidatorBalances", query)
+		log.Err(err).Interface("InsertValidatorBalances", query)
 		return err
 	}
 	return err

@@ -2,7 +2,6 @@ package hestia_server
 
 import (
 	"context"
-
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -11,6 +10,7 @@ import (
 	v1hestia "github.com/zeus-fyi/olympus/hestia/api/v1"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
+	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	eth_validators_service_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validators_service_requests"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
@@ -19,17 +19,18 @@ import (
 )
 
 var (
-	cfg                    = Config{}
-	authKeysCfg            auth_keys_config.AuthKeysCfg
-	env                    string
-	temporalProdAuthConfig = temporal_auth.TemporalAuth{
+	cfg                = Config{}
+	authKeysCfg        auth_keys_config.AuthKeysCfg
+	env                string
+	temporalAuthConfig = temporal_auth.TemporalAuth{
 		ClientCertPath:   "/etc/ssl/certs/ca.pem",
 		ClientPEMKeyPath: "/etc/ssl/certs/ca.key",
 		Namespace:        "production-artemis.ngb72",
 		HostPort:         "production-artemis.ngb72.tmprl.cloud:7233",
 	}
+	awsRegion  = "us-west-1"
 	awsAuthCfg = aws_secrets.AuthAWS{
-		Region:    "us-west-1",
+		Region:    awsRegion,
 		AccessKey: "",
 		SecretKey: "",
 	}
@@ -39,7 +40,6 @@ func Hestia() {
 	cfg.Host = "0.0.0.0"
 	srv := NewHestiaServer(cfg)
 	// Echo instance
-	srv.E = v1hestia.Routes(srv.E)
 	ctx := context.Background()
 	switch env {
 	case "production":
@@ -47,16 +47,17 @@ func Hestia() {
 		_, sw := auth_startup.RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		cfg.PGConnStr = sw.PostgresAuth
 		awsAuthCfg = sw.SecretsManagerAuthAWS
+		awsAuthCfg.Region = awsRegion
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
-		temporalProdAuthConfig = tc.ProdLocalTemporalAuthArtemis
+		temporalAuthConfig = tc.ProdLocalTemporalAuthArtemis
 		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
 		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
-		temporalProdAuthConfig = tc.ProdLocalTemporalAuthArtemis
+		temporalAuthConfig = tc.ProdLocalTemporalAuthArtemis
 		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
 		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
 	}
@@ -67,14 +68,24 @@ func Hestia() {
 	log.Info().Msg("Hestia: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	log.Info().Msg("Hestia: PG connection connected")
+
+	log.Info().Msgf("Hestia %s artemis orchestration retrieving auth token", env)
+	artemis_orchestration_auth.Bearer = auth_startup.FetchTemporalAuthBearer(ctx)
+	log.Info().Msgf("Hestia %s artemis orchestration retrieving auth token done", env)
+
+	log.Info().Msgf("Hestia %s artemis orchestration setting up zeus client", env)
+	eth_validators_service_requests.InitZeusClientValidatorServiceGroup(ctx)
+	log.Info().Msgf("Hestia %s artemis orchestration zeus client setup complete", env)
+
+	log.Info().Msg("Hestia: InitArtemisEthereumEphemeryValidatorsRequestsWorker Starting")
 	// NOTE: inits at least one worker, then reuses the connection
 	// ephemery
-	eth_validators_service_requests.InitArtemisEthereumEphemeryValidatorsRequestsWorker(ctx, temporalProdAuthConfig)
+	eth_validators_service_requests.InitArtemisEthereumEphemeryValidatorsRequestsWorker(ctx, temporalAuthConfig)
 	// connect
 	c := eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.ConnectTemporalClient()
 	defer c.Close()
 
-	log.Info().Msg("Hestia: Starting InitArtemisEthereumEphemeryValidatorsRequestsWorker")
+	log.Info().Msg("Hestia: InitArtemisEthereumEphemeryValidatorsRequestsWorker Done")
 	eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.Worker.RegisterWorker(c)
 	err := eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.Worker.Start()
 	if err != nil {
@@ -82,8 +93,9 @@ func Hestia() {
 		misc.DelayedPanic(err)
 	}
 
+	log.Info().Msg("Hestia: InitArtemisEthereumMainnetValidatorsRequestsWorker")
 	// mainnet
-	eth_validators_service_requests.InitArtemisEthereumMainnetValidatorsRequestsWorker(ctx, temporalProdAuthConfig)
+	eth_validators_service_requests.InitArtemisEthereumMainnetValidatorsRequestsWorker(ctx, temporalAuthConfig)
 	log.Info().Msg("Hestia: Starting InitArtemisEthereumMainnetValidatorsRequestsWorker")
 	eth_validators_service_requests.ArtemisEthereumMainnetValidatorsRequestsWorker.Worker.RegisterWorker(c)
 	err = eth_validators_service_requests.ArtemisEthereumMainnetValidatorsRequestsWorker.Worker.Start()
@@ -91,7 +103,9 @@ func Hestia() {
 		log.Fatal().Err(err).Msgf("Hestia: %s ArtemisEthereumMainnetValidatorsRequestsWorker.Worker.Start failed", env)
 		misc.DelayedPanic(err)
 	}
-
+	log.Info().Msg("Hestia: InitArtemisEthereumMainnetValidatorsRequestsWorker Done")
+	log.Info().Msg("Hestia: InitArtemisEthereumMainnetValidatorsRequestsWorker Starting Server")
+	srv.E = v1hestia.Routes(srv.E)
 	srv.Start()
 }
 

@@ -33,7 +33,7 @@ func (b *ValidatorsStateBeacon) FetchFinalizedStateAndDecode(ctx context.Context
 	r, err := GetValidatorsFinalized(ctx, beaconNode)
 
 	if err != nil {
-		log.Error().Err(err).Msg("ValidatorsStateBeacon: FetchStateAndDecode")
+		log.Err(err).Msg("ValidatorsStateBeacon: FetchStateAndDecode")
 	}
 
 	return r, err
@@ -45,7 +45,7 @@ func (b *ValidatorsStateBeacon) FetchStateAndDecode(ctx context.Context, beaconN
 	r, err := GetValidatorsByStateFilter(ctx, beaconNode, stateID, encodedQueryURL, status)
 
 	if err != nil {
-		log.Error().Err(err).Msg("ValidatorsStateBeacon: FetchStateAndDecode")
+		log.Err(err).Msg("ValidatorsStateBeacon: FetchStateAndDecode")
 	}
 
 	return r, err
@@ -57,7 +57,7 @@ func (b *ValidatorsStateBeacon) FetchAllStateAndDecode(ctx context.Context, beac
 	r, err := GetValidatorsByState(ctx, beaconNode, stateID, status)
 
 	if err != nil {
-		log.Error().Err(err).Msg("ValidatorsStateBeacon: FetchAllStateAndDecode")
+		log.Err(err).Msg("ValidatorsStateBeacon: FetchAllStateAndDecode")
 	}
 	return r, err
 }

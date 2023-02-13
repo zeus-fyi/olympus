@@ -1,8 +1,8 @@
 package athena_client
 
 import (
-	base_rest_client "github.com/zeus-fyi/olympus/pkg/iris/resty_base"
-	zeus_client "github.com/zeus-fyi/olympus/pkg/zeus/client"
+	zeus_client "github.com/zeus-fyi/zeus/pkg/zeus/client"
+	resty_base "github.com/zeus-fyi/zeus/pkg/zeus/client/base"
 )
 
 type AthenaClient struct {
@@ -11,7 +11,7 @@ type AthenaClient struct {
 
 func NewAthenaClient(baseURL, bearer string) AthenaClient {
 	z := AthenaClient{}
-	z.Resty = base_rest_client.GetBaseRestyClient(baseURL, bearer)
+	z.Resty = resty_base.GetBaseRestyClient(baseURL, bearer)
 	return z
 }
 

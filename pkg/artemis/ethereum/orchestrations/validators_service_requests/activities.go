@@ -146,7 +146,6 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 		log.Ctx(ctx).Error().Err(err).Msg("failed to verify signatures")
 		return nil, err
 	}
-
 	vkAndFeeAddrSlice := make([]hestia_req_types.ValidatorServiceOrgGroup, len(verifiedKeys))
 	for i, vk := range verifiedKeys {
 		vkAndFeeAddrSlice[i] = hestia_req_types.ValidatorServiceOrgGroup{

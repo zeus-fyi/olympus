@@ -45,19 +45,17 @@ func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) ServiceNewValidator
 		workflow.Sleep(ctx, time.Second*30)
 		return err
 	}
-	params.ValidatorServiceOrgGroupSlice = verifiedPubkeys
-
 	insertParams := artemis_validator_service_groups_models.OrgValidatorService{
 		GroupName:         params.GroupName,
 		ProtocolNetworkID: params.ProtocolNetworkID,
-		ServiceURL:        params.ServiceAuth.ServiceURL,
+		ServiceURL:        "https://deprecated.com",
 		OrgID:             params.OrgID,
 		Enabled:           true,
 	}
 	insertVerifiedValidatorsStatusCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(insertVerifiedValidatorsStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.InsertVerifiedValidatorsWithFeeRecipient, insertParams, params.ValidatorServiceOrgGroupSlice).Get(insertVerifiedValidatorsStatusCtx, nil)
+	err = workflow.ExecuteActivity(insertVerifiedValidatorsStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.InsertVerifiedValidatorsWithFeeRecipient, insertParams, verifiedPubkeys).Get(insertVerifiedValidatorsStatusCtx, nil)
 	if err != nil {
-		log.Error("Failed to assign validators to cloud ctx ns", "Error", err)
+		log.Error("Failed to insert new validators to service", "Error", err)
 		return err
 	}
 	// If succeed, continue forever or basically forever, TODO alert if failure continues for > 1hr

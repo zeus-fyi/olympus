@@ -74,7 +74,7 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) AssignValidatorsToCl
 	return nil
 }
 
-func (a *ArtemisEthereumValidatorsServiceRequestActivities) RestartValidatorClient(ctx context.Context, params artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol) error {
+func (a *ArtemisEthereumValidatorsServiceRequestActivities) RestartValidatorClient(ctx context.Context, params ValidatorServiceGroupWorkflowRequest) error {
 	// this will pull the latest validators into the cluster
 	var cloudCtxNs zeus_common_types.CloudCtxNs
 	switch params.ProtocolNetworkID {
@@ -86,12 +86,14 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) RestartValidatorClie
 		return errors.New("unsupported protocol network id")
 	}
 
+	// TODO when capacity is reached, we need to delete the oldest pod
+	vcNum := 0
 	par := zeus_pods_reqs.PodActionRequest{
 		TopologyDeployRequest: zeus_req_types.TopologyDeployRequest{
 			CloudCtxNs: cloudCtxNs,
 		},
 		Action:  zeus_pods_reqs.DeleteAllPods,
-		PodName: fmt.Sprintf("%s-%d", olympus_hydra_validators_cookbooks.HydraValidatorsClientName, params.ValidatorClientNumber),
+		PodName: fmt.Sprintf("%s-%d", olympus_hydra_validators_cookbooks.HydraValidatorsClientName, vcNum),
 	}
 	_, err := Zeus.DeletePods(ctx, par)
 	if err != nil {

@@ -41,10 +41,11 @@ type Resty struct {
 // TODO add signature auth, todo make each group an async activity
 
 func (d *ArtemisEthereumValidatorSignatureRequestActivities) RequestValidatorSignatures(ctx context.Context, sigRequests aegis_inmemdbs.EthereumBLSKeySignatureRequests) (aegis_inmemdbs.EthereumBLSKeySignatureResponses, error) {
-	sigResponses := aegis_inmemdbs.EthereumBLSKeySignatureResponses{}
+	sigResponses := aegis_inmemdbs.EthereumBLSKeySignatureResponses{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureResponse)}
 	gm := artemis_validator_signature_service_routing.GroupSigRequestsByGroupName(ctx, sigRequests)
 	r := Resty{}
 	r.Client = resty.New()
+	log.Info().Interface("sigRequests", sigRequests).Interface("gm", gm).Msg("RequestValidatorSignatures")
 	for groupName, signReqs := range gm {
 		auth, err := artemis_validator_signature_service_routing.GetGroupAuthFromInMemFS(ctx, groupName)
 		if err != nil {
@@ -68,5 +69,11 @@ func (d *ArtemisEthereumValidatorSignatureRequestActivities) RequestValidatorSig
 			sigResponses.Map[k] = v
 		}
 	}
+	if len(sigRequests.Map) < len(sigRequests.Map) {
+		log.Ctx(ctx).Warn().Msg("Not all signatures were returned")
+		log.Ctx(ctx).Info().Interface("sigRequests", sigRequests).Interface("sigResponses", sigResponses).Msg("Not all signatures were returned")
+		return sigResponses, nil
+	}
+
 	return sigResponses, nil
 }

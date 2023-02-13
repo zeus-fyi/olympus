@@ -92,11 +92,12 @@ func (sq *SignaturePriorityQueue) SendSignatureRequestsFromQueue(ctx context.Con
 	}
 	log.Info().Str("signingType", sq.Type).Msg(fmt.Sprintf("queue length: %d", ql))
 	for i := 0; i < ql; i++ {
-		sr := sq.Pop().(SignRequest)
+		item := sq.Pop().(*datastructures.Item)
+		sr := item.Value.(SignRequest)
 		pubkey := sr.Pubkey
 		if v, ok := seen[pubkey]; ok {
 			log.Ctx(ctx).Warn().Interface("prevSignRequest", v).Interface("currentSignRequest", sr).Msg(fmt.Sprintf("more than one message seen for pubkey %s, adding back to the queue", pubkey))
-			sq.Push(sr)
+			sq.Push(SigningRequestToItem(sr))
 		}
 		seen[pubkey] = sr
 		batchSigReqs.Map[sr.Pubkey] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: sr.SigningRoot}

@@ -34,12 +34,12 @@ func FetchAndSetServiceGroupsAuths(ctx context.Context, vsRoute artemis_validato
 		si.Name = FormatSecretNameAWS(v.GroupName, v.OrgID, v.ProtocolNetworkID)
 		s, err := artemis_hydra_orchestrations_aws_auth.GetServiceRoutesAuths(ctx, si)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Msg("GetServiceRoutesAuths")
+			log.Ctx(ctx).Err(err).Msg("GetServiceRoutesAuths")
 			return err
 		}
 		err = SetGroupAuthInMemFS(ctx, s.GroupName, s.ServiceAuth)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Msg("GetServiceRoutesAuths")
+			log.Ctx(ctx).Err(err).Msg("GetServiceRoutesAuths")
 			return err
 		}
 	}
@@ -53,12 +53,12 @@ func SetGroupAuthInMemFS(ctx context.Context, groupName string, serviceAuth hest
 	}
 	b, err := json.Marshal(serviceAuth)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err).Msg("GetServiceRoutesAuths")
+		log.Ctx(ctx).Err(err).Msg("GetServiceRoutesAuths")
 		return err
 	}
 	err = RouteMapInMemFS.MakeFileIn(&svcAuthPath, b)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err).Msg("GetServiceRoutesAuths")
+		log.Ctx(ctx).Err(err).Msg("GetServiceRoutesAuths")
 		return err
 	}
 	return nil
@@ -72,12 +72,12 @@ func GetGroupAuthFromInMemFS(ctx context.Context, groupName string) (hestia_req_
 	authCfg := hestia_req_types.ServiceAuthConfig{}
 	b, err := RouteMapInMemFS.ReadFile(svcAuthPath.FileInPath())
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err).Msg("GetServiceRoutesAuths")
+		log.Ctx(ctx).Err(err).Msg("GetServiceRoutesAuths")
 		return authCfg, err
 	}
 	err = json.Unmarshal(b, &authCfg)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err).Msg("GetServiceRoutesAuths")
+		log.Ctx(ctx).Err(err).Msg("GetServiceRoutesAuths")
 		return authCfg, err
 	}
 	return authCfg, nil

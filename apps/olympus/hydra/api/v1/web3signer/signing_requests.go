@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	consensys_eth2_openapi "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer/models"
 	ethereum_slashing_protection_watermarking "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer/slashing_protection"
+	"github.com/zeus-fyi/olympus/pkg/utils/datastructures"
 	"strconv"
 )
 
@@ -29,6 +30,10 @@ type SignRequest struct {
 	Pubkey      string `json:"pubkey"`
 	Type        string `json:"type"`
 	SigningRoot string `json:"signingRoot"`
+}
+
+func SigningRequestToItem(sr SignRequest) *datastructures.Item {
+	return &datastructures.Item{Value: sr}
 }
 
 func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (SignRequest, error) {
@@ -63,10 +68,10 @@ func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (Sig
 		AttestationSigningRequestPriorityQueue.Push(sr)
 	case AGGREGATION_SLOT:
 		log.Info().Interface("pubkey", pubkey).Msg("AGGREGATION_SLOT")
-		AggregationSlotSigningRequestPriorityQueue.Push(sr)
+		AggregationSlotSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
 	case AGGREGATE_AND_PROOF:
 		log.Info().Interface("pubkey", pubkey).Msg("AGGREGATE_AND_PROOF")
-		AggregationAndProofSigningRequestPriorityQueue.Push(sr)
+		AggregationAndProofSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
 	case BLOCK:
 		log.Info().Interface("pubkey", pubkey).Msg("BLOCK")
 		bs := consensys_eth2_openapi.BlockSigning{}
@@ -90,7 +95,7 @@ func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (Sig
 			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("slot", slot).Msg("BLOCK")
 			return SignRequest{}, err
 		}
-		BlockSigningRequestPriorityQueue.Push(sr)
+		BlockSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
 	case BLOCK_V2:
 		log.Info().Interface("pubkey", pubkey).Msg("BLOCK_V2")
 		bs := consensys_eth2_openapi.BeaconBlockSigning{}
@@ -114,22 +119,22 @@ func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (Sig
 			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("slot", slot).Msg("BLOCK_V2")
 			return SignRequest{}, err
 		}
-		BlockSigningRequestPriorityQueue.Push(sr)
+		BlockSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
 	case RANDAO_REVEAL:
 		log.Info().Interface("pubkey", pubkey).Msg("RANDAO_REVEAL")
-		RandaoRevealSigningRequestPriorityQueue.Push(sr)
+		RandaoRevealSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
 	case SYNC_COMMITTEE_MESSAGE:
 		log.Info().Interface("pubkey", pubkey).Msg("SYNC_COMMITTEE_MESSAGE")
-		SyncCommitteeMessageSigningRequestPriorityQueue.Push(sr)
+		SyncCommitteeMessageSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
 	case SYNC_COMMITTEE_SELECTION_PROOF:
 		log.Info().Interface("pubkey", pubkey).Msg("SYNC_COMMITTEE_SELECTION_PROOF")
-		SyncCommitteeSelectionProofSigningRequestPriorityQueue.Push(sr)
+		SyncCommitteeSelectionProofSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
 	case SYNC_COMMITTEE_CONTRIBUTION_AND_PROOF:
 		log.Info().Interface("pubkey", pubkey).Msg("SYNC_COMMITTEE_CONTRIBUTION_AND_PROOF")
-		SyncCommitteeContributionAndProof.Push(sr)
+		SyncCommitteeContributionAndProof.Push(SigningRequestToItem(sr))
 	case VALIDATOR_REGISTRATION:
 		log.Info().Interface("pubkey", pubkey).Msg("VALIDATOR_REGISTRATION")
-		ValidatorRegistration.Push(sr)
+		ValidatorRegistration.Push(SigningRequestToItem(sr))
 	default:
 	}
 

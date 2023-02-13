@@ -105,7 +105,6 @@ func (s *ValidatorServicesTestSuite) TestSelectValidatorsServiceRoutesAssignedTo
 	}
 	vsi := ValidatorServiceCloudCtxNsProtocol{
 		ProtocolNetworkID:     hestia_req_types.EthereumEphemeryProtocolNetworkID,
-		OrgID:                 ou.OrgID,
 		ValidatorClientNumber: 0,
 	}
 

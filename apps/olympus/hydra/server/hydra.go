@@ -53,7 +53,15 @@ func Hydra() {
 		log.Ctx(ctx).Err(inMemFsErr).Msg("Hydra: InitRouteMapInMemFS failed")
 		panic(inMemFsErr)
 	}
-	go artemis_validator_signature_service_routing.InitAsyncServiceAuthRoutePolling(ctx, vsi, Workload.CloudCtxNs)
+	log.Ctx(ctx).Info().Interface("workload", Workload).Msg("Hydra Workload Context")
+	initErr := artemis_validator_signature_service_routing.GetServiceAuthAndURLs(ctx, vsi, Workload.CloudCtxNs)
+	if initErr != nil {
+		log.Ctx(ctx).Err(initErr).Msg("Hydra: GetServiceAuthAndURLs failed")
+		misc.DelayedPanic(initErr)
+	}
+	go func() {
+		artemis_validator_signature_service_routing.InitAsyncServiceAuthRoutePolling(ctx, vsi, Workload.CloudCtxNs)
+	}()
 	log.Ctx(ctx).Info().Msg("Hydra: Async Service Route Polling Started")
 
 	log.Ctx(ctx).Info().Msg("Hydra: Starting Temporal Worker")

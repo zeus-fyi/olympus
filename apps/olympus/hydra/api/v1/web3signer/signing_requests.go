@@ -131,10 +131,10 @@ func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (Sig
 		SyncCommitteeSelectionProofSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
 	case SYNC_COMMITTEE_CONTRIBUTION_AND_PROOF:
 		log.Info().Interface("pubkey", pubkey).Msg("SYNC_COMMITTEE_CONTRIBUTION_AND_PROOF")
-		SyncCommitteeContributionAndProof.Push(SigningRequestToItem(sr))
+		SyncCommitteeContributionAndProofPriorityQueue.Push(SigningRequestToItem(sr))
 	case VALIDATOR_REGISTRATION:
 		log.Info().Interface("pubkey", pubkey).Msg("VALIDATOR_REGISTRATION")
-		ValidatorRegistration.Push(SigningRequestToItem(sr))
+		ValidatorRegistrationPriorityQueue.Push(SigningRequestToItem(sr))
 	default:
 	}
 

@@ -2,13 +2,13 @@ package olympus_snapshot_init
 
 import (
 	"context"
-	init_jwt "github.com/zeus-fyi/zeus/pkg/aegis/jwt"
 	"path"
 
 	"github.com/ghodss/yaml"
 	"github.com/rs/zerolog/log"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	beacon_cookbooks "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons"
+	init_jwt "github.com/zeus-fyi/zeus/pkg/aegis/jwt"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	"github.com/zeus-fyi/zeus/pkg/utils/ephemery_reset"
 )

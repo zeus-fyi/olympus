@@ -2,10 +2,10 @@ package hydra_eth2_web3signer
 
 import (
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/patrickmn/go-cache"
 	"testing"
 
+	"github.com/google/uuid"
+	"github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/suite"
 	hydra_base_test "github.com/zeus-fyi/olympus/hydra/api/test"
 )

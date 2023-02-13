@@ -37,7 +37,7 @@ func InitWorkloadAction(ctx context.Context, w WorkloadInfo) {
 			log.Ctx(ctx).Panic().Err(err).Msg("failed to marshall yaml")
 			panic(err)
 		}
-		w.DataDir.FnOut = "validator_definitions.yaml"
+		w.DataDir.FnOut = "validator_definitions.yml"
 		w.DataDir.DirOut = path.Join(w.DataDir.DirIn, "/validators")
 		err = w.DataDir.WriteToFileOutPath(ymlBytes)
 		if err != nil {

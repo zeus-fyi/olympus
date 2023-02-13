@@ -56,7 +56,7 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) InsertVerifiedValida
 	return nil
 }
 
-func (a *ArtemisEthereumValidatorsServiceRequestActivities) AssignValidatorsToCloudCtxNs(ctx context.Context, params artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol) error {
+func (a *ArtemisEthereumValidatorsServiceRequestActivities) AssignValidatorsToCloudCtxNs(ctx context.Context, params ValidatorServiceGroupWorkflowRequest) error {
 	var cloudCtxNs zeus_common_types.CloudCtxNs
 	switch params.ProtocolNetworkID {
 	case hestia_req_types.EthereumEphemeryProtocolNetworkID:
@@ -66,7 +66,13 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) AssignValidatorsToCl
 	default:
 		return errors.New("unsupported protocol network id")
 	}
-	err := artemis_validator_service_groups_models.SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx, params, cloudCtxNs)
+	// TODO when capacity is reached, we need to delete the oldest pod
+	vsCloudCtx := artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol{
+		ProtocolNetworkID:     params.ProtocolNetworkID,
+		OrgID:                 params.OrgID,
+		ValidatorClientNumber: 0,
+	}
+	err := artemis_validator_service_groups_models.SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx, vsCloudCtx, cloudCtxNs)
 	if err != nil {
 		log.Ctx(ctx).Err(err)
 		return err

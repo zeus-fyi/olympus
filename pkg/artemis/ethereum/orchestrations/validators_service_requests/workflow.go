@@ -40,6 +40,7 @@ func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) ServiceNewValidator
 	if err != nil {
 		log.Warn("Failed to validate key to service url", "ValidatorServiceRequest", params)
 		log.Error("Failed to validate key to service url", "Error", err)
+		workflow.Sleep(ctx, time.Second*30)
 		return err
 	}
 

@@ -24,6 +24,7 @@ var (
 	authKeysCfg     auth_keys_config.AuthKeysCfg
 	env             string
 	Workload        WorkloadInfo
+	awsRegion       = "us-west-1"
 )
 
 const (

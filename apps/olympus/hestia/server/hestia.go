@@ -2,13 +2,12 @@ package hestia_server
 
 import (
 	"context"
-	v1hestia "github.com/zeus-fyi/olympus/hestia/api/v1"
-
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/zeus-fyi/olympus/configs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	v1hestia "github.com/zeus-fyi/olympus/hestia/api/v1"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
@@ -28,8 +27,9 @@ var (
 		Namespace:        "production-artemis.ngb72",
 		HostPort:         "production-artemis.ngb72.tmprl.cloud:7233",
 	}
+	awsRegion  = "us-west-1"
 	awsAuthCfg = aws_secrets.AuthAWS{
-		Region:    "us-west-1",
+		Region:    awsRegion,
 		AccessKey: "",
 		SecretKey: "",
 	}
@@ -46,6 +46,7 @@ func Hestia() {
 		_, sw := auth_startup.RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		cfg.PGConnStr = sw.PostgresAuth
 		awsAuthCfg = sw.SecretsManagerAuthAWS
+		awsAuthCfg.Region = awsRegion
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn

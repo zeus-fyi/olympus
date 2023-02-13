@@ -26,10 +26,10 @@ var (
 		HostPort:         "production-artemis.ngb72.tmprl.cloud:7233",
 	}
 	dynamoCreds = dynamodb_client.DynamoDBCredentials{
-		Region: "us-west-1",
+		Region: awsRegion,
 	}
 	awsAuthCfg = aws_secrets.AuthAWS{
-		Region:    "us-west-1",
+		Region:    awsRegion,
 		AccessKey: "",
 		SecretKey: "",
 	}
@@ -45,7 +45,9 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		cfg.PGConnStr = sw.PostgresAuth
 		dynamoCreds.AccessKey = sw.AccessKeyHydraDynamoDB
 		dynamoCreds.AccessSecret = sw.SecretKeyHydraDynamoDB
+		dynamoCreds.Region = awsRegion
 		awsAuthCfg = sw.SecretsManagerAuthAWS
+		awsAuthCfg.Region = awsRegion
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		temporalAuthCfg = temporalProdAuthConfig

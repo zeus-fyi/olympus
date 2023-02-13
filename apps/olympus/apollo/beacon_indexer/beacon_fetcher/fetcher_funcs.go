@@ -13,7 +13,7 @@ func (f *BeaconFetcher) BeaconFindNewAndMissingValidatorIndexes(ctx context.Cont
 	log.Info().Msg("BeaconFindNewAndMissingValidatorIndexes: FindNewValidatorsToQueryBeaconURLEncoded")
 	indexes, err := beacon_models.FindNewValidatorsToQueryBeaconURLEncoded(ctx, batchSize, networkID)
 	if err != nil {
-		log.Error().Err(err).Msg("BeaconStateUpdater: FindNewValidatorsToQueryBeaconURLEncoded")
+		log.Err(err).Msg("BeaconStateUpdater: FindNewValidatorsToQueryBeaconURLEncoded")
 		return err
 	}
 	if len(indexes) <= 0 {
@@ -23,14 +23,14 @@ func (f *BeaconFetcher) BeaconFindNewAndMissingValidatorIndexes(ctx context.Cont
 	log.Info().Msg("BeaconFindNewAndMissingValidatorIndexes: FetchStateAndDecode")
 	vsb, err := f.BeaconStateResults.FetchStateAndDecode(ctx, f.NodeEndpoint, "finalized", indexes, "")
 	if err != nil {
-		log.Error().Err(err).Msg("BeaconFindNewAndMissingValidatorIndexes: FetchStateAndDecode")
+		log.Err(err).Msg("BeaconFindNewAndMissingValidatorIndexes: FetchStateAndDecode")
 		return err
 	}
 	f.Validators = beacon_models.ToBeaconModelFormat(vsb)
 	log.Info().Msg("BeaconFindNewAndMissingValidatorIndexes: InsertValidatorsFromBeaconAPI")
 	err = f.Validators.InsertValidatorsFromBeaconAPI(ctx)
 	if err != nil {
-		log.Error().Err(err).Msg("BeaconFindNewAndMissingValidatorIndexes: InsertValidatorsFromBeaconAPI")
+		log.Err(err).Msg("BeaconFindNewAndMissingValidatorIndexes: InsertValidatorsFromBeaconAPI")
 		return err
 	}
 	return err

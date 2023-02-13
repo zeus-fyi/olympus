@@ -22,7 +22,7 @@ func (vs *Validators) InsertValidatorsFromBeaconAPI(ctx context.Context) error {
 	rowsAffected := r.RowsAffected()
 	log.Info().Int64("rows affected: ", rowsAffected)
 	if err != nil {
-		log.Error().Err(err).Msg("InsertValidatorsFromBeaconAPI: InsertValidatorsFromBeaconAPI")
+		log.Err(err).Msg("InsertValidatorsFromBeaconAPI: InsertValidatorsFromBeaconAPI")
 		return err
 	}
 	return err
@@ -48,7 +48,7 @@ func (vs *Validators) UpdateValidatorsFromBeaconAPI(ctx context.Context) (int64,
 
 	rows, err := apps.Pg.Exec(ctx, query)
 	if err != nil {
-		log.Error().Err(err).Msg("UpdateValidatorsFromBeaconAPI: Query")
+		log.Err(err).Msg("UpdateValidatorsFromBeaconAPI: Query")
 		return rows.RowsAffected(), err
 	}
 

@@ -48,11 +48,11 @@ func newCheckpoint(ctx context.Context, contextTimeout time.Duration) error {
 	}
 	_, err = beacon_models.InsertEpochCheckpoint(ctxTimeout, chkPoint.Epoch)
 	if err != nil {
-		log.Error().Err(err).Msg("InsertNewEpochCheckpoint: newCheckpoint")
+		log.Err(err).Msg("InsertNewEpochCheckpoint: newCheckpoint")
 	}
 	err = beacon_models.UpdateEpochCheckpointBalancesRecordedAtEpoch(ctxTimeout, chkPoint.Epoch)
 	if err != nil {
-		log.Error().Err(err).Msg("InsertNewEpochCheckpoint: newCheckpoint")
+		log.Err(err).Msg("InsertNewEpochCheckpoint: newCheckpoint")
 	}
 	return err
 }

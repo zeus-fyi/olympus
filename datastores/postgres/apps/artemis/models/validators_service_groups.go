@@ -124,8 +124,8 @@ func SelectValidatorsAssignedToCloudCtxNs(ctx context.Context, validatorServiceI
 	defer rows.Close()
 	for rows.Next() {
 		w3rs := ethereum_web3signer_actions.LighthouseWeb3SignerRequest{
-			Enable: true,
-			Url:    HydraAddress,
+			Enabled: true,
+			Url:     HydraAddress,
 		}
 		rowErr := rows.Scan(
 			&w3rs.VotingPublicKey, &w3rs.SuggestedFeeRecipient,

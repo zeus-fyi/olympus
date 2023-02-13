@@ -2,6 +2,8 @@ package hydra_eth2_web3signer
 
 import (
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/patrickmn/go-cache"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -10,6 +12,25 @@ import (
 
 type HydraEth2Web3SignerTestSuite struct {
 	hydra_base_test.HydraBaseTestSuite
+}
+
+func (t *HydraEth2Web3SignerTestSuite) TestQueueResponse() {
+
+	newUUID := uuid.New()
+	sr := SignRequest{
+		UUID:        newUUID,
+		Pubkey:      "0x8a7addbf2857a72736205d861169c643545283a74a1ccb71c95dd2c9652acb89de226ca26d60248c4ef9591d7e010288",
+		Type:        AGGREGATION_SLOT,
+		SigningRoot: "gadgdsgdsg",
+	}
+
+	mockSig := "dsadfgdasf"
+
+	SignatureResponsesCache.Set(newUUID.String(), mockSig, cache.DefaultExpiration)
+
+	resp := ReturnSignedMessage(ctx, sr)
+	t.Assert().Equal(mockSig, resp.Signature)
+
 }
 
 func (t *HydraEth2Web3SignerTestSuite) TestAggregationSlot() {

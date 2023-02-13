@@ -22,7 +22,6 @@ func (t *HydraEth2Web3SignerTestSuite) TestQueueResponse() {
 		Type:        AGGREGATION_SLOT,
 		SigningRoot: "gadgdsgdsg",
 	}
-
 	mockSig := "dsadfgdasf"
 	SignatureResponsesCache.Set(newUUID.String(), mockSig, cache.DefaultExpiration)
 	resp := ReturnSignedMessage(ctx, sr)

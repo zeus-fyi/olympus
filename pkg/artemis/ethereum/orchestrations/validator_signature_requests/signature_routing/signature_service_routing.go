@@ -24,6 +24,7 @@ func InitRouteMapInMemFS(ctx context.Context) error {
 }
 
 func InitAsyncServiceAuthRoutePolling(ctx context.Context, vsi artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol, cctx zeus_common_types.CloudCtxNs) {
+	log.Ctx(ctx).Info().Interface("cctx", cctx).Msg("InitAsyncServiceAuthRoutePolling")
 	for {
 		err := GetServiceAuthAndURLs(ctx, vsi, cctx)
 		if err != nil {
@@ -62,7 +63,7 @@ func GetServiceAuthAndURLs(ctx context.Context, vsi artemis_validator_service_gr
 }
 
 func SetPubkeyToGroupInMemFS(ctx context.Context, a artemis_validator_service_groups_models.ValidatorsSignatureServiceRoutes) error {
-	for gn, pubkey := range a.PubkeyToGroupName {
+	for pubkey, gn := range a.PubkeyToGroupName {
 		err := SetPubkeyToGroupService(ctx, pubkey, gn)
 		if err != nil {
 			log.Ctx(ctx).Err(err).Msg("SetPubkeyToGroupInMemFS")

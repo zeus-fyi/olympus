@@ -66,7 +66,6 @@ func GetServiceAuthAndURLs(ctx context.Context, vsi artemis_validator_service_gr
 
 func SetPubkeyToGroupInMemFS(ctx context.Context, a artemis_validator_service_groups_models.ValidatorsSignatureServiceRoutes) error {
 	for pubkey, gn := range a.PubkeyToGroupName {
-		log.Info().Interface("groupName", gn).Interface("pubkey", pubkey).Msg("SetPubkeyToGroupInMemFS")
 		err := SetPubkeyToGroupService(ctx, pubkey, gn)
 		if err != nil {
 			log.Ctx(ctx).Err(err).Msg("SetPubkeyToGroupInMemFS")

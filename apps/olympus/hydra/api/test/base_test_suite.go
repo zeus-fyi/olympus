@@ -75,3 +75,10 @@ func (t *HydraBaseTestSuite) GenerateMockAttestationSigningRequest() consensys_e
 	t.Require().Nil(err)
 	return att
 }
+
+func (t *HydraBaseTestSuite) GenerateMockAggregationSlotSigningRequest() consensys_eth2_openapi.AggregationSlotSigning {
+	ags := consensys_eth2_openapi.AggregationSlotSigning{}
+	err := faker.FakeData(&ags)
+	t.Require().Nil(err)
+	return ags
+}

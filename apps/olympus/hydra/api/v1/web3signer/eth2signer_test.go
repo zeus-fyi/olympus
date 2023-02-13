@@ -12,7 +12,16 @@ type HydraEth2Web3SignerTestSuite struct {
 	hydra_base_test.HydraBaseTestSuite
 }
 
-func (t *HydraEth2Web3SignerTestSuite) TestEth2Proxy() {
+func (t *HydraEth2Web3SignerTestSuite) TestAggregationSlot() {
+	ags := t.GenerateMockAggregationSlotSigningRequest()
+	pubkey := "0x8a7addbf2857a72736205d861169c643545283a74a1ccb71c95dd2c9652acb89de226ca26d60248c4ef9591d7e010288"
+	ags.Type = AGGREGATION_SLOT
+	resp, err := t.PostRequest(ctx, Eth2SignRequestWithPubkey(pubkey), ags)
+	t.Require().Nil(err)
+	fmt.Println(resp)
+}
+
+func (t *HydraEth2Web3SignerTestSuite) TestAttestation() {
 	t.InitLocalConfigs()
 	t.E.POST(Eth2SignRoute, HydraEth2SignRequestHandler)
 	start := make(chan struct{}, 1)
@@ -25,7 +34,7 @@ func (t *HydraEth2Web3SignerTestSuite) TestEth2Proxy() {
 	defer t.E.Shutdown(ctx)
 
 	att := t.GenerateMockAttestationSigningRequest()
-	pubkey := "0x93247f2209abcacf57b75a51dafae777f9dd38bc7053d1af526f220a7489a6d3a2753e5f3e8b1cfe39b56f43611df74a"
+	pubkey := "0x8a7addbf2857a72736205d861169c643545283a74a1ccb71c95dd2c9652acb89de226ca26d60248c4ef9591d7e010288"
 	resp, err := t.PostRequest(ctx, Eth2SignRequestWithPubkey(pubkey), att)
 	t.Require().Nil(err)
 	fmt.Println(resp)

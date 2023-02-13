@@ -2,13 +2,13 @@ package hestia_server
 
 import (
 	"context"
+	v1hestia "github.com/zeus-fyi/olympus/hestia/api/v1"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/zeus-fyi/olympus/configs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	v1hestia "github.com/zeus-fyi/olympus/hestia/api/v1"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
@@ -39,7 +39,6 @@ func Hestia() {
 	cfg.Host = "0.0.0.0"
 	srv := NewHestiaServer(cfg)
 	// Echo instance
-	srv.E = v1hestia.Routes(srv.E)
 	ctx := context.Background()
 	switch env {
 	case "production":
@@ -68,7 +67,7 @@ func Hestia() {
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	log.Info().Msg("Hestia: PG connection connected")
 
-	log.Info().Msg("Hestia: InitArtemisEthereumEphemeryValidatorsRequestsWorker")
+	log.Info().Msg("Hestia: InitArtemisEthereumEphemeryValidatorsRequestsWorker Starting")
 
 	// NOTE: inits at least one worker, then reuses the connection
 	// ephemery
@@ -77,7 +76,7 @@ func Hestia() {
 	c := eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.ConnectTemporalClient()
 	defer c.Close()
 
-	log.Info().Msg("Hestia: Starting InitArtemisEthereumEphemeryValidatorsRequestsWorker")
+	log.Info().Msg("Hestia: InitArtemisEthereumEphemeryValidatorsRequestsWorker Done")
 	eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.Worker.RegisterWorker(c)
 	err := eth_validators_service_requests.ArtemisEthereumEphemeryValidatorsRequestsWorker.Worker.Start()
 	if err != nil {
@@ -86,7 +85,6 @@ func Hestia() {
 	}
 
 	log.Info().Msg("Hestia: InitArtemisEthereumMainnetValidatorsRequestsWorker")
-
 	// mainnet
 	eth_validators_service_requests.InitArtemisEthereumMainnetValidatorsRequestsWorker(ctx, temporalAuthConfig)
 	log.Info().Msg("Hestia: Starting InitArtemisEthereumMainnetValidatorsRequestsWorker")
@@ -96,7 +94,9 @@ func Hestia() {
 		log.Fatal().Err(err).Msgf("Hestia: %s ArtemisEthereumMainnetValidatorsRequestsWorker.Worker.Start failed", env)
 		misc.DelayedPanic(err)
 	}
-
+	log.Info().Msg("Hestia: InitArtemisEthereumMainnetValidatorsRequestsWorker Done")
+	log.Info().Msg("Hestia: InitArtemisEthereumMainnetValidatorsRequestsWorker Starting Server")
+	srv.E = v1hestia.Routes(srv.E)
 	srv.Start()
 }
 

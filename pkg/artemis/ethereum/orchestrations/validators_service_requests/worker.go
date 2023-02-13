@@ -51,6 +51,7 @@ type ValidatorServiceGroupWorkflowRequest struct {
 }
 
 func (t *ArtemisEthereumValidatorsRequestsWorker) ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx context.Context, params ValidatorServiceGroupWorkflowRequest) error {
+	log.Info().Msg("ArtemisEthereumValidatorsRequestsWorker: ExecuteServiceNewValidatorsToCloudCtxNsWorkflow")
 	c := t.ConnectTemporalClient()
 	defer c.Close()
 	workflowOptions := client.StartWorkflowOptions{

@@ -24,6 +24,7 @@ type CreateValidatorServiceRequest struct {
 }
 
 func CreateValidatorServiceRequestHandler(c echo.Context) error {
+	log.Info().Msg("Hestia: CreateValidatorServiceRequestHandler")
 	request := new(CreateValidatorServiceRequest)
 	if err := c.Bind(request); err != nil {
 		log.Error().Err(err).Msg("CreateValidatorServiceRequestHandler")
@@ -33,8 +34,11 @@ func CreateValidatorServiceRequestHandler(c echo.Context) error {
 }
 
 func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Context) error {
+	log.Info().Msg("Hestia: CreateValidatorServiceRequest: CreateValidatorsServiceGroup")
+
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
+
 	log.Ctx(ctx).Info().Interface("ou", ou).Interface("vsg", v.ValidatorServiceOrgGroupSlice).Msg("CreateValidatorsServiceGroup")
 	vsr := eth_validators_service_requests.ValidatorServiceGroupWorkflowRequest{
 		OrgID:                         ou.OrgID,
@@ -51,6 +55,8 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 	default:
 		return c.JSON(http.StatusBadRequest, errors.New("unknown network"))
 	}
+
+	log.Info().Msg("Hestia: CreateValidatorServiceRequest: Validating Service Auth")
 	err := v.ServiceAuth.Validate()
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("service auth failed validation")
@@ -69,6 +75,7 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 		SecretBinary: b,
 		SecretString: nil,
 	}
+	log.Info().Msg("Hestia: CreateValidatorServiceRequest: Service Auth Valid, Creating Secret")
 	err = artemis_hydra_orchestrations_aws_auth.HydraSecretManagerAuthAWS.CreateNewSecret(ctx, si)
 	if err != nil {
 		errCheckStr := fmt.Sprintf("the secret %s already exists", name)
@@ -81,6 +88,7 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
 	}
+	log.Info().Msg("Hestia: CreateValidatorsServiceGroup Secret Created: Init Validator Service Workflow")
 	// clear auth, not needed anymore, and we don't want to log it in temporal
 	vsr.ServiceAuth = hestia_req_types.ServiceAuthConfig{}
 	resp := Response{}

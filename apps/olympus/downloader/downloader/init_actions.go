@@ -2,13 +2,13 @@ package olympus_snapshot_init
 
 import (
 	"context"
-	init_jwt "github.com/zeus-fyi/zeus/pkg/aegis/jwt"
 	"path"
 
 	"github.com/ghodss/yaml"
 	"github.com/rs/zerolog/log"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	beacon_cookbooks "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons"
+	init_jwt "github.com/zeus-fyi/zeus/pkg/aegis/jwt"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	"github.com/zeus-fyi/zeus/pkg/utils/ephemery_reset"
 )
@@ -37,13 +37,14 @@ func InitWorkloadAction(ctx context.Context, w WorkloadInfo) {
 			log.Ctx(ctx).Panic().Err(err).Msg("failed to marshall yaml")
 			panic(err)
 		}
-		w.DataDir.FnOut = "validator_definitions.yaml"
+		w.DataDir.FnOut = "validator_definitions.yml"
 		w.DataDir.DirOut = path.Join(w.DataDir.DirIn, "/validators")
 		err = w.DataDir.WriteToFileOutPath(ymlBytes)
 		if err != nil {
 			log.Ctx(ctx).Panic().Err(err).Msg("failed to write validators yaml")
 			panic(err)
 		}
+		log.Info().Interface("validator_definitions.yaml", lhW3Enable).Msg("validator_definitions.yaml")
 		log.Ctx(ctx).Info().Msg("validators sync complete")
 	case "beaconExecClient", "beaconConsensusClient":
 		EphemeryReset()

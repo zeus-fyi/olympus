@@ -48,6 +48,11 @@ func Hydra() {
 	vsi := artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol{
 		ProtocolNetworkID: Workload.ProtocolNetworkID,
 	}
+	inMemFsErr := artemis_validator_signature_service_routing.InitRouteMapInMemFS(ctx)
+	if inMemFsErr != nil {
+		log.Ctx(ctx).Err(inMemFsErr).Msg("Hydra: InitRouteMapInMemFS failed")
+		panic(inMemFsErr)
+	}
 	go artemis_validator_signature_service_routing.InitAsyncServiceAuthRoutePolling(ctx, vsi, Workload.CloudCtxNs)
 	log.Ctx(ctx).Info().Msg("Hydra: Async Service Route Polling Started")
 

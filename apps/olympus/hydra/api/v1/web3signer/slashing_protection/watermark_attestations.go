@@ -23,6 +23,25 @@ func WatermarkAttestation(ctx context.Context, pubkey string, sourceEpoch, targe
 	if IsTargetEpochLessThanOrEqualToAnyPreviousAttestations(ctx, pubkey, targetEpoch, prevTargetEpoch) {
 		return errors.New("targetEpoch less than or equal to a previous attestation targetEpoch")
 	}
+	return RecordAttestation(ctx, pubkey, sourceEpoch, targetEpoch)
+}
+
+func RecordAttestation(ctx context.Context, pubkey string, sourceEpoch, targetEpoch int) error {
+	dynamoInstance := dynamodb_web3signer_client.Web3SignerDynamoDBClient
+	key := dynamodb_web3signer.Web3SignerDynamoDBTableKeys{
+		Pubkey:  pubkey,
+		Network: Network,
+	}
+	dynAtt := dynamodb_web3signer.AttestationsDynamoDB{
+		Web3SignerDynamoDBTableKeys: key,
+		SourceEpoch:                 sourceEpoch,
+		TargetEpoch:                 targetEpoch,
+	}
+	err := dynamoInstance.PutAttestation(ctx, dynAtt)
+	if err != nil {
+		log.Ctx(ctx).Error().Err(err).Interface("key", key).Msg("failed to get attestation")
+		return err
+	}
 	return nil
 }
 

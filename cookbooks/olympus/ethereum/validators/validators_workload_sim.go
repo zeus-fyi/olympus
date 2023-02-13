@@ -15,14 +15,15 @@ func GetValidatorsAndPrepareRemoteSignEmaulation(ctx context.Context, beaconURL,
 	}
 	lhw3 := make([]ethereum_web3signer_actions.LighthouseWeb3SignerRequest, len(vs.Data))
 	req := ethereum_web3signer_actions.LighthouseWeb3SignerRequests{
-		Enable:        true,
+		Enabled:       true,
 		Web3SignerURL: hydraAddres,
 		FeeAddr:       "0xF7Ab1d834Cd0A33691e9A750bD720cb6436cA1B9",
 		Slice:         lhw3,
 	}
 	for i, v := range vs.Data {
 		req.Slice[i] = ethereum_web3signer_actions.LighthouseWeb3SignerRequest{
-			Enable:                true,
+			Enabled:               true,
+			Type:                  ethereum_web3signer_actions.Web3SignerType,
 			SuggestedFeeRecipient: "0xF7Ab1d834Cd0A33691e9A750bD720cb6436cA1B9",
 			VotingPublicKey:       v.Validator.Pubkey,
 			Url:                   hydraAddres,

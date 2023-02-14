@@ -1,14 +1,14 @@
 package hydra_eth2_web3signer
 
 import (
-	"github.com/status-im/keycard-go/hexutils"
-	bls_signer "github.com/zeus-fyi/zeus/pkg/crypto/bls"
-	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
+	"encoding/hex"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 	hydra_base_test "github.com/zeus-fyi/olympus/hydra/api/test"
 	consensys_eth2_openapi "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer/models"
+	bls_signer "github.com/zeus-fyi/zeus/pkg/crypto/bls"
+	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
 
 type HydraSigningRequestsTestSuite struct {
@@ -51,7 +51,8 @@ func (t *HydraSigningRequestsTestSuite) TestMockWeb3SignerConsensys() {
 	t.Require().Equal(expPubkey, keyTwo.PublicKeyString())
 
 	trimmedHex := strings_filter.Trim0xPrefix(att.SigningRoot)
-	signingRoot := hexutils.HexToBytes(trimmedHex)
+	signingRoot, err := hex.DecodeString(trimmedHex)
+	t.Require().Nil(err)
 
 	sig := keyTwo.Sign(signingRoot)
 	signedLocal := "0x" + bls_signer.ConvertBytesToString(sig.Marshal())

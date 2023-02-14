@@ -7,8 +7,6 @@ import (
 
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
-	ethereum_slashing_protection_watermarking "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer/slashing_protection"
-	eth_validator_signature_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests"
 	"github.com/zeus-fyi/olympus/pkg/utils/datastructures"
 	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
 )
@@ -59,50 +57,52 @@ type SignaturePriorityQueue struct {
 	datastructures.PriorityQueue
 }
 
+const jitterDelay = 2 * time.Millisecond
+
 func InitAsyncMessageQueues(ctx context.Context) {
 	for {
 		go func() {
 			AttestationSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
-		time.Sleep(2 * time.Millisecond)
+		time.Sleep(jitterDelay)
 		go func() {
 			AggregationSlotSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
-		time.Sleep(2 * time.Millisecond)
+		time.Sleep(jitterDelay)
 		go func() {
 			go AggregationAndProofSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
-		time.Sleep(2 * time.Millisecond)
+		time.Sleep(jitterDelay)
 		go func() {
 			BlockSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
-		time.Sleep(2 * time.Millisecond)
+		time.Sleep(jitterDelay)
 		go func() {
 			RandaoRevealSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
-		time.Sleep(2 * time.Millisecond)
+		time.Sleep(jitterDelay)
 		go func() {
 			SyncCommitteeMessageSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
-		time.Sleep(2 * time.Millisecond)
+		time.Sleep(jitterDelay)
 		go func() {
 			SyncCommitteeSelectionProofSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
-		time.Sleep(2 * time.Millisecond)
+		time.Sleep(jitterDelay)
 		go func() {
 			SyncCommitteeContributionAndProofPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
-		time.Sleep(2 * time.Millisecond)
+		time.Sleep(jitterDelay)
 		go func() {
 			ValidatorRegistrationPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
-		time.Sleep(2 * time.Millisecond)
+		time.Sleep(jitterDelay)
 	}
 }
 
 func (sq *SignaturePriorityQueue) SendSignatureRequestsFromQueue(ctx context.Context) {
 	batchSigReqs := aegis_inmemdbs.EthereumBLSKeySignatureRequests{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureRequest)}
-	m := make(map[string]string)
+	pubkeyToUUID := make(map[string]string)
 	seen := make(map[string]SignRequest)
 	ql := sq.Len()
 	if ql == 0 {
@@ -119,40 +119,11 @@ func (sq *SignaturePriorityQueue) SendSignatureRequestsFromQueue(ctx context.Con
 		}
 		seen[pubkey] = sr
 		batchSigReqs.Map[sr.Pubkey] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: sr.SigningRoot}
-		m[sr.Pubkey] = sr.UUID.String()
+		pubkeyToUUID[sr.Pubkey] = sr.UUID.String()
 	}
-	var resp aegis_inmemdbs.EthereumBLSKeySignatureResponses
-	var err error
-	switch ethereum_slashing_protection_watermarking.Network {
-	case "mainnet":
-		if sq.Type == ATTESTATION || sq.Type == AGGREGATION_SLOT || sq.Type == AGGREGATE_AND_PROOF {
-			resp, err = eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsMainnetWorker.ExecuteValidatorSignatureRequestsWorkflow(ctx, batchSigReqs)
-			if err != nil {
-				log.Ctx(ctx).Error().Err(err).Msg("ExecuteValidatorSignatureRequestsWorkflow")
-			}
-		} else {
-			resp, err = eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsMainnetWorkerSecondary.ExecuteValidatorSignatureRequestsWorkflow(ctx, batchSigReqs)
-			if err != nil {
-				log.Ctx(ctx).Error().Err(err).Msg("ExecuteValidatorSignatureRequestsWorkflow")
-			}
-		}
-	case "ephemery":
-		if sq.Type == ATTESTATION || sq.Type == AGGREGATION_SLOT || sq.Type == AGGREGATE_AND_PROOF {
-			resp, err = eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsEphemeryWorker.ExecuteValidatorSignatureRequestsWorkflow(ctx, batchSigReqs)
-			if err != nil {
-				log.Ctx(ctx).Error().Err(err).Msg("ExecuteValidatorSignatureRequestsWorkflow")
-			}
-		} else {
-			resp, err = eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsEphemeryWorkerSecondary.ExecuteValidatorSignatureRequestsWorkflow(ctx, batchSigReqs)
-			if err != nil {
-				log.Ctx(ctx).Error().Err(err).Msg("ExecuteValidatorSignatureRequestsWorkflow")
-			}
-		}
-	}
-	for pubkey, msg := range resp.Map {
-		sigResp := msg.Signature
-		uuid := m[pubkey]
-		SignatureResponsesCache.Set(uuid, sigResp, cache.DefaultExpiration)
+	err := RequestValidatorSignaturesAsync(ctx, batchSigReqs, pubkeyToUUID)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Interface("signType", sq.Type).Msg("RequestValidatorSignaturesAsync")
 	}
 }
 

@@ -36,16 +36,17 @@ func (w *Web3SignerRequest) Eth2SignRequest(c echo.Context) error {
 	ctx := context.Background()
 	sr, err := Watermarking(ctx, pubkey, w)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("Eth2SignRequest")
+		log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("Eth2SignRequest")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	log.Info().Interface("pubkey", pubkey).Interface("signType", w.Body["signTypes"]).Interface("sr", sr).Msg("Eth2SignRequest: SignRequest")
 	resp, err := WaitForSignature(ctx, sr)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("Eth2SignRequest")
+		log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("Eth2SignRequest")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	if resp.Signature == "" {
+		log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("Eth2SignRequest: Signature Field Was Empty")
 		return c.JSON(http.StatusRequestTimeout, resp)
 	}
 	return c.JSON(http.StatusOK, resp)

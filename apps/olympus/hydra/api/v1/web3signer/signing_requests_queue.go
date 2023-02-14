@@ -173,6 +173,7 @@ func ReturnSignedMessage(ctx context.Context, sr SignRequest) Eth2SignResponse {
 	for {
 		if v, found := SignatureResponsesCache.Get(sr.UUID.String()); found {
 			sigResp := v.(string)
+			log.Info().Interface("signRequest", sr).Interface("signResp", sigResp).Msg("found signature in cache")
 			return Eth2SignResponse{Signature: sigResp}
 		}
 		time.Sleep(5 * time.Millisecond)

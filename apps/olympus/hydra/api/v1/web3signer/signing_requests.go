@@ -3,12 +3,14 @@ package hydra_eth2_web3signer
 import (
 	"context"
 	"encoding/json"
+	"strconv"
+
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	consensys_eth2_openapi "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer/models"
 	ethereum_slashing_protection_watermarking "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer/slashing_protection"
 	"github.com/zeus-fyi/olympus/pkg/utils/datastructures"
-	"strconv"
+	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
 
 const (
@@ -44,7 +46,7 @@ func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (Sig
 	sr.UUID = uuid.New()
 	sr.Type = signType.(string)
 	sr.Pubkey = pubkey
-	sr.SigningRoot = signingRoot.(string)
+	sr.SigningRoot = strings_filter.Trim0xPrefix(signingRoot.(string))
 
 	switch signType {
 	case ATTESTATION:

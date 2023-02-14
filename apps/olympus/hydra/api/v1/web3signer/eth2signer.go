@@ -39,6 +39,7 @@ func (w *Web3SignerRequest) Eth2SignRequest(c echo.Context) error {
 		log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("Eth2SignRequest")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
+	log.Info().Interface("pubkey", pubkey).Interface("signType", w.Body["signTypes"]).Interface("sr", sr).Msg("Eth2SignRequest: SignRequest")
 	resp, err := WaitForSignature(ctx, sr)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("Eth2SignRequest")

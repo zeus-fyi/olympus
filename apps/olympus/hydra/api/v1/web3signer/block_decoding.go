@@ -13,18 +13,20 @@ const (
 	PHASE0    = "PHASE0"
 	ALTAIR    = "ALTAIR"
 	BELLATRIX = "BELLATRIX"
+	CAPELLA   = "CAPELLA"
 )
 
-func DecodeBeaconBlockAndSlot(ctx context.Context, body any) (any, int, error) {
-	b, err := json.Marshal(body)
+func DecodeBeaconBlockAndSlot(ctx context.Context, beaconBlockBody any) (any, int, error) {
+	log.Info().Interface("beaconBlockBody", beaconBlockBody).Msg("DecodeBeaconBlock")
+	b, err := json.Marshal(beaconBlockBody)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err).Interface("body", body).Msg("DecodeBeaconBlock")
+		log.Ctx(ctx).Error().Err(err).Interface("beaconBlockBody", beaconBlockBody).Msg("DecodeBeaconBlock")
 		return nil, 0, err
 	}
 	m := make(map[string]any)
 	err = json.Unmarshal(b, &m)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err).Interface("body", body).Msg("DecodeBeaconBlock: Unmarshal")
+		log.Ctx(ctx).Error().Err(err).Interface("beaconBlockBody", beaconBlockBody).Msg("DecodeBeaconBlock: Unmarshal")
 		return nil, 0, err
 	}
 	version := GetVersion(m)
@@ -33,12 +35,12 @@ func DecodeBeaconBlockAndSlot(ctx context.Context, body any) (any, int, error) {
 		blockPhase0 := consensys_eth2_openapi.BlockRequestPhase0{}
 		err = json.Unmarshal(b, &blockPhase0)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("body", body).Msg("DecodeBeaconBlock: Unmarshal")
+			log.Ctx(ctx).Error().Err(err).Interface("beaconBlockBody", beaconBlockBody).Msg("DecodeBeaconBlock: Unmarshal")
 			return nil, 0, err
 		}
 		slot, serr := strconv.Atoi(blockPhase0.Block.Slot)
 		if serr != nil {
-			log.Ctx(ctx).Error().Err(serr).Interface("body", body).Msg("DecodeBeaconBlock: Unmarshal")
+			log.Ctx(ctx).Error().Err(serr).Interface("beaconBlockBody", beaconBlockBody).Msg("DecodeBeaconBlock: Unmarshal")
 			return nil, 0, err
 		}
 		return blockPhase0, slot, err
@@ -50,7 +52,7 @@ func DecodeBeaconBlockAndSlot(ctx context.Context, body any) (any, int, error) {
 		}
 		slot, serr := strconv.Atoi(blockAltair.Block.Slot)
 		if serr != nil {
-			log.Ctx(ctx).Error().Err(serr).Interface("body", body).Msg("DecodeBeaconBlock: Unmarshal")
+			log.Ctx(ctx).Error().Err(serr).Interface("beaconBlockBody", beaconBlockBody).Msg("DecodeBeaconBlock: Unmarshal")
 			return nil, 0, err
 		}
 		return blockAltair, slot, err
@@ -58,17 +60,45 @@ func DecodeBeaconBlockAndSlot(ctx context.Context, body any) (any, int, error) {
 		blockBellatrix := consensys_eth2_openapi.BlockRequestBellatrix{}
 		err = json.Unmarshal(b, &blockBellatrix)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("body", body).Msg("DecodeBeaconBlock: Unmarshal")
+			log.Ctx(ctx).Error().Err(err).Interface("beaconBlockBody", beaconBlockBody).Msg("DecodeBeaconBlock: Unmarshal")
 			return nil, 0, err
 		}
 		slot, serr := strconv.Atoi(blockBellatrix.BlockHeader.Slot)
 		if serr != nil {
-			log.Ctx(ctx).Error().Err(serr).Interface("body", body).Msg("DecodeBeaconBlock: Unmarshal")
+			log.Ctx(ctx).Error().Err(serr).Interface("beaconBlockBody", beaconBlockBody).Msg("DecodeBeaconBlock: Unmarshal")
 			return nil, 0, err
 		}
 		return blockBellatrix, slot, err
+	case CAPELLA:
+		blockCapella := consensys_eth2_openapi.BlockRequestCapella{}
+		err = json.Unmarshal(b, &blockCapella)
+		if err != nil {
+			log.Ctx(ctx).Error().Err(err).Interface("beaconBlockBody", beaconBlockBody).Msg("DecodeBeaconBlock: Unmarshal")
+			return nil, 0, err
+		}
+		log.Ctx(ctx).Info().Interface("blockCapella", blockCapella).Msg("DecodeBeaconBlock: CAPELLA Block")
+		slot, serr := strconv.Atoi(blockCapella.BlockHeader.Slot)
+		if serr != nil {
+			log.Ctx(ctx).Error().Err(serr).Interface("beaconBlockBody", beaconBlockBody).Msg("DecodeBeaconBlock: Unmarshal")
+			return nil, 0, err
+		}
+		log.Ctx(ctx).Info().Interface("blockCapellaSlot", blockCapella.BlockHeader.Slot).Msg("DecodeBeaconBlock: CAPELLA Block")
+		return blockCapella, slot, err
+	default:
+		log.Ctx(ctx).Error().Err(err).Interface("beaconBlockBody", beaconBlockBody).Msg("DecodeBeaconBlock: Block Type Not Identified, Defaulting To Capella Block")
+		blockCapella := consensys_eth2_openapi.BlockRequestCapella{}
+		err = json.Unmarshal(b, &blockCapella)
+		if err != nil {
+			log.Ctx(ctx).Error().Err(err).Interface("beaconBlockBody", beaconBlockBody).Msg("DecodeBeaconBlock: Unmarshal")
+			return nil, 0, err
+		}
+		slot, serr := strconv.Atoi(blockCapella.BlockHeader.Slot)
+		if serr != nil {
+			log.Ctx(ctx).Error().Err(serr).Interface("beaconBlockBody", beaconBlockBody).Msg("DecodeBeaconBlock: Unmarshal")
+			return nil, 0, err
+		}
+		return blockCapella, slot, err
 	}
-	return nil, 0, err
 }
 
 func GetVersion(m map[string]any) string {
@@ -81,6 +111,8 @@ func GetVersion(m map[string]any) string {
 				return ALTAIR
 			case BELLATRIX:
 				return BELLATRIX
+			case CAPELLA:
+				return CAPELLA
 			default:
 				// TODO
 			}

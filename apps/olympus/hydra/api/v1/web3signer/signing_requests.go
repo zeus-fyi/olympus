@@ -111,15 +111,18 @@ func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (Sig
 			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK_V2")
 			//return SignRequest{}, err
 		}
-		beaconBody, slot, err := DecodeBeaconBlockAndSlot(ctx, bs)
+		beaconBody, slot, err := DecodeBeaconBlockAndSlot(ctx, bs.BeaconBlock)
 		if err != nil {
 			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("beaconBody", beaconBody).Interface("slot", slot).Msg("BLOCK_V2")
 			//return SignRequest{}, err
 		}
-		err = ethereum_slashing_protection_watermarking.WatermarkBlock(ctx, pubkey, slot)
-		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("slot", slot).Msg("BLOCK_V2_WatermarkBlock")
-			//return SignRequest{}, err
+		// TODO - update after verifying block works for capella
+		if slot != 0 {
+			err = ethereum_slashing_protection_watermarking.WatermarkBlock(ctx, pubkey, slot)
+			if err != nil {
+				log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("slot", slot).Msg("BLOCK_V2_WatermarkBlock")
+				//return SignRequest{}, err
+			}
 		}
 		BlockSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
 	case RANDAO_REVEAL:

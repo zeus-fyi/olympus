@@ -43,12 +43,24 @@ func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inme
 			// TODO, notify on errors, track these metrics & latency
 			if err != nil {
 				log.Ctx(ctx).Err(err).Msg("Failed to get response")
-				return
+
+				// try again
+				resp, err = r.R().
+					SetResult(&sigResponses).
+					SetBody(sr).
+					Post(auth.AuthLamdbaAWS.ServiceURL)
 			}
 			if resp.StatusCode() != 200 {
 				err = errors.New("non-200 status code")
 				log.Ctx(ctx).Err(err).Msg("Failed to get 200 status code")
+
+				// try last time
+				resp, err = r.R().
+					SetResult(&sigResponses).
+					SetBody(sr).
+					Post(auth.AuthLamdbaAWS.ServiceURL)
 			}
+
 			if len(sigRequests.Map) < len(sigRequests.Map) {
 				log.Ctx(ctx).Warn().Msg("Not all signatures were returned")
 				log.Ctx(ctx).Info().Interface("sigRequests", sigRequests).Interface("sigResponses", sigResponses).Msg("Not all signatures were returned")

@@ -44,7 +44,7 @@ func InitWorkloadAction(ctx context.Context, w WorkloadInfo) {
 			log.Ctx(ctx).Panic().Err(err).Msg("failed to write validators yaml")
 			panic(err)
 		}
-		log.Info().Interface("validator_definitions.yaml", lhW3Enable).Msg("validator_definitions.yaml")
+		log.Info().Interface("validator_definitions.yaml", lhW3Enable).Msg("validator_definitions.yml")
 		log.Ctx(ctx).Info().Msg("validators sync complete")
 	case "beaconExecClient", "beaconConsensusClient":
 		EphemeryReset()

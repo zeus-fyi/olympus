@@ -17,7 +17,7 @@ import (
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
 	zeus_pods_reqs "github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types/pods"
-	"k8s.io/apimachinery/pkg/util/rand"
+	"net/http"
 )
 
 const (
@@ -123,7 +123,12 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 	for _, vs := range params.ValidatorServiceOrgGroupSlice {
 		pubkey := vs.Pubkey
 		feeAddrToPubkeyMap[pubkey] = vs.FeeRecipient
-		req.Map[pubkey] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: rand.String(10)}
+
+		hexMessage, err := aegis_inmemdbs.RandomHex(10)
+		if err != nil {
+			log.Ctx(ctx).Err(err).Msg("unable to generate hex message")
+		}
+		req.Map[pubkey] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: hexMessage}
 	}
 	sn := artemis_validator_signature_service_routing.FormatSecretNameAWS(params.ServiceRequestWrapper.GroupName, params.OrgID, params.ServiceRequestWrapper.ProtocolNetworkID)
 	si := aws_secrets.SecretInfo{
@@ -140,16 +145,23 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 		SecretName:        sv.ServiceAuth.SecretName,
 		SignatureRequests: req,
 	}
-	respJson := aegis_inmemdbs.EthereumBLSKeySignatureResponses{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureResponse)}
-	_, err = r.R().
-		SetResult(&respJson).
+	respMsgMap := make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureResponse)
+	signedEventResponses := aegis_inmemdbs.EthereumBLSKeySignatureResponses{
+		Map: respMsgMap,
+	}
+	resp, err := r.R().
+		SetResult(&signedEventResponses).
 		SetBody(signReqs).
 		Post(sv.ServiceAuth.ServiceURL)
 	if err != nil {
-		log.Ctx(ctx).Error().Err(err).Msg("failed to post to validator signature service url")
+		log.Ctx(ctx).Err(err).Msg("failed to post to validator signature service url")
 		return nil, err
 	}
-	verifiedKeys, err := respJson.VerifySignatures(ctx, req)
+	if resp.StatusCode() != http.StatusOK {
+		log.Ctx(ctx).Warn().Msg("resp code not 200")
+	}
+
+	verifiedKeys, err := signedEventResponses.VerifySignatures(ctx, req, true)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("failed to verify signatures")
 		return nil, err

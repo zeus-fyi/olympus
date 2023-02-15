@@ -1,6 +1,6 @@
 module github.com/zeus-fyi/olympus/hydra
 
-go 1.19
+go 1.20
 
 require (
 	github.com/go-faker/faker/v4 v4.0.0-beta.4

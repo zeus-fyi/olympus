@@ -54,17 +54,17 @@ func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (Sig
 		attestation := consensys_eth2_openapi.AttestationSigning{}
 		b, err := json.Marshal(w.Body)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("ATTESTATION")
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("ATTESTATION")
 			return SignRequest{}, err
 		}
 		err = json.Unmarshal(b, &attestation)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("ATTESTATION")
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("ATTESTATION")
 			return SignRequest{}, err
 		}
 		err = CanSignAttestation(ctx, pubkey, attestation.Attestation)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("ATTESTATION")
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("ATTESTATION")
 			return SignRequest{}, err
 		}
 		AttestationSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
@@ -79,22 +79,22 @@ func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (Sig
 		bs := consensys_eth2_openapi.BlockSigning{}
 		b, err := json.Marshal(w.Body)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK")
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK")
 			return SignRequest{}, err
 		}
 		err = json.Unmarshal(b, &bs)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK")
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK")
 			return SignRequest{}, err
 		}
 		slot, err := strconv.Atoi(bs.Block.Slot)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("beaconBody", bs.Block).Interface("slot", slot).Msg("BLOCK_V2")
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("beaconBody", bs.Block).Interface("slot", slot).Msg("BLOCK_V2")
 			return SignRequest{}, err
 		}
 		err = ethereum_slashing_protection_watermarking.WatermarkBlock(ctx, pubkey, slot)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("slot", slot).Msg("BLOCK")
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("slot", slot).Msg("BLOCK")
 			return SignRequest{}, err
 		}
 		BlockSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
@@ -103,24 +103,24 @@ func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (Sig
 		bs := consensys_eth2_openapi.BeaconBlockSigning{}
 		b, err := json.Marshal(w.Body)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK_V2")
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK_V2")
 			//return SignRequest{}, err
 		}
 		err = json.Unmarshal(b, &bs)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK_V2")
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK_V2")
 			//return SignRequest{}, err
 		}
 		beaconBody, slot, err := DecodeBeaconBlockAndSlot(ctx, bs.BeaconBlock)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("beaconBody", beaconBody).Interface("slot", slot).Msg("BLOCK_V2")
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("beaconBody", beaconBody).Interface("SLOT", slot).Msg("BLOCK_V2_DECODE_ERROR")
 			//return SignRequest{}, err
 		}
 		// TODO - update after verifying block works for capella
 		if slot != 0 {
 			err = ethereum_slashing_protection_watermarking.WatermarkBlock(ctx, pubkey, slot)
 			if err != nil {
-				log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("slot", slot).Msg("BLOCK_V2_WatermarkBlock")
+				log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("SLOT", slot).Msg("BLOCK_V2_WatermarkBlock")
 				//return SignRequest{}, err
 			}
 		}

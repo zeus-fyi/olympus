@@ -3,12 +3,14 @@ package hydra_eth2_web3signer
 import (
 	"context"
 	"encoding/json"
+	"strconv"
+
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	consensys_eth2_openapi "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer/models"
 	ethereum_slashing_protection_watermarking "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer/slashing_protection"
 	"github.com/zeus-fyi/olympus/pkg/utils/datastructures"
-	"strconv"
+	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
 
 const (
@@ -44,7 +46,7 @@ func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (Sig
 	sr.UUID = uuid.New()
 	sr.Type = signType.(string)
 	sr.Pubkey = pubkey
-	sr.SigningRoot = signingRoot.(string)
+	sr.SigningRoot = strings_filter.Trim0xPrefix(signingRoot.(string))
 
 	switch signType {
 	case ATTESTATION:
@@ -52,20 +54,20 @@ func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (Sig
 		attestation := consensys_eth2_openapi.AttestationSigning{}
 		b, err := json.Marshal(w.Body)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("ATTESTATION")
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("ATTESTATION")
 			return SignRequest{}, err
 		}
 		err = json.Unmarshal(b, &attestation)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("ATTESTATION")
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("ATTESTATION")
 			return SignRequest{}, err
 		}
 		err = CanSignAttestation(ctx, pubkey, attestation.Attestation)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("ATTESTATION")
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("ATTESTATION")
 			return SignRequest{}, err
 		}
-		AttestationSigningRequestPriorityQueue.Push(sr)
+		AttestationSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
 	case AGGREGATION_SLOT:
 		log.Info().Interface("pubkey", pubkey).Msg("AGGREGATION_SLOT")
 		AggregationSlotSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
@@ -77,48 +79,49 @@ func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (Sig
 		bs := consensys_eth2_openapi.BlockSigning{}
 		b, err := json.Marshal(w.Body)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK")
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK")
 			return SignRequest{}, err
 		}
 		err = json.Unmarshal(b, &bs)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK")
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK")
 			return SignRequest{}, err
 		}
 		slot, err := strconv.Atoi(bs.Block.Slot)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("beaconBody", bs.Block).Interface("slot", slot).Msg("BLOCK_V2")
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("beaconBody", bs.Block).Interface("slot", slot).Msg("BLOCK_V2")
 			return SignRequest{}, err
 		}
 		err = ethereum_slashing_protection_watermarking.WatermarkBlock(ctx, pubkey, slot)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("slot", slot).Msg("BLOCK")
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("slot", slot).Msg("BLOCK")
 			return SignRequest{}, err
 		}
 		BlockSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
 	case BLOCK_V2:
-		log.Info().Interface("pubkey", pubkey).Msg("BLOCK_V2")
+		log.Info().Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK_V2")
 		bs := consensys_eth2_openapi.BeaconBlockSigning{}
 		b, err := json.Marshal(w.Body)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK_V2")
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK_V2_MARSHALL_ERROR")
 			return SignRequest{}, err
 		}
 		err = json.Unmarshal(b, &bs)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK_V2")
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK_V2_UNMARSHALL_ERROR")
 			return SignRequest{}, err
 		}
-		beaconBody, slot, err := DecodeBeaconBlockAndSlot(ctx, bs)
+		beaconBody, slot, err := DecodeBeaconBlockAndSlot(ctx, bs.BeaconBlock)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("beaconBody", beaconBody).Interface("slot", slot).Msg("BLOCK_V2")
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("beaconBody", beaconBody).Interface("SLOT", slot).Msg("BLOCK_V2_DECODE_ERROR")
 			return SignRequest{}, err
 		}
 		err = ethereum_slashing_protection_watermarking.WatermarkBlock(ctx, pubkey, slot)
 		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("slot", slot).Msg("BLOCK_V2")
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("SLOT", slot).Msg("BLOCK_V2_WatermarkBlock_ERROR")
 			return SignRequest{}, err
 		}
+		log.Info().Interface("pubkey", pubkey).Interface("body", w.Body).Interface("slot", slot).Msg("BLOCK_V2_WATERMARKED")
 		BlockSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
 	case RANDAO_REVEAL:
 		log.Info().Interface("pubkey", pubkey).Msg("RANDAO_REVEAL")

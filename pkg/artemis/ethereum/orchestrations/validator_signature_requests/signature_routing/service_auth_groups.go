@@ -31,6 +31,7 @@ func FetchAndSetServiceGroupsAuths(ctx context.Context, vsRoute artemis_validato
 		if err == nil {
 			continue
 		}
+		log.Ctx(ctx).Info().Interface("groupName", groupName).Msg("FetchAndSetServiceGroupsAuths: fetching auths for group")
 		si.Name = FormatSecretNameAWS(v.GroupName, v.OrgID, v.ProtocolNetworkID)
 		s, err := artemis_hydra_orchestrations_aws_auth.GetServiceRoutesAuths(ctx, si)
 		if err != nil {

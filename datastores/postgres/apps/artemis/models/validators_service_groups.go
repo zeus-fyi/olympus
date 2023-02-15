@@ -88,8 +88,12 @@ func SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx context.Context, validator
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `WITH cte_unplaced_validators AS (		
 					  SELECT pubkey, fee_recipient 
-					  FROM validators_service_org_groups
-					  WHERE NOT EXISTS (SELECT pubkey FROM validators_service_org_groups_cloud_ctx_ns) AND enabled=true AND protocol_network_id=$1
+					  FROM validators_service_org_groups vg
+					  WHERE NOT EXISTS (
+					  	SELECT 1
+					  	FROM validators_service_org_groups_cloud_ctx_ns cg
+					  	WHERE vg.pubkey = cg.pubkey AND enabled=true AND protocol_network_id=$1
+					  )
 				  ) INSERT INTO validators_service_org_groups_cloud_ctx_ns(pubkey, cloud_ctx_ns_id)
 					SELECT pubkey, (SELECT cloud_ctx_ns_id FROM topologies_org_cloud_ctx_ns WHERE cloud_provider=$2 AND context=$3 AND region=$4 AND namespace=$5) FROM cte_unplaced_validators
 				  `

@@ -83,6 +83,9 @@ type TestContainer struct {
 	AwsAccessKeyLambdaExt string
 	AwsSecretKeyLambdaExt string
 	AwsLamdbaTestURL      string
+
+	TestEthKeyOneBLS string
+	TestEthKeyTwoBLS string
 }
 
 type ArtemisHexKeys struct {
@@ -123,6 +126,9 @@ func InitArtemisLocalAccounts() {
 
 func InitLocalTestConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
+
+	testCont.TestEthKeyOneBLS = viper.GetString("BLS_ETH_TEST_SK_ONE")
+	testCont.TestEthKeyTwoBLS = viper.GetString("BLS_ETH_TEST_SK_TWO")
 
 	testCont.AwsAccessKey = viper.GetString("AWS_ACCESS_KEY")
 	testCont.AwsSecretKey = viper.GetString("AWS_SECRET_KEY")

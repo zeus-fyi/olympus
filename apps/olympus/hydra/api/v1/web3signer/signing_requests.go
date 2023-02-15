@@ -103,27 +103,25 @@ func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (Sig
 		bs := consensys_eth2_openapi.BeaconBlockSigning{}
 		b, err := json.Marshal(w.Body)
 		if err != nil {
-			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK_V2")
-			//return SignRequest{}, err
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK_V2_MARSHALL_ERROR")
+			return SignRequest{}, err
 		}
 		err = json.Unmarshal(b, &bs)
 		if err != nil {
-			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK_V2")
-			//return SignRequest{}, err
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK_V2_UNMARSHALL_ERROR")
+			return SignRequest{}, err
 		}
 		beaconBody, slot, err := DecodeBeaconBlockAndSlot(ctx, bs.BeaconBlock)
 		if err != nil {
 			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("beaconBody", beaconBody).Interface("SLOT", slot).Msg("BLOCK_V2_DECODE_ERROR")
-			//return SignRequest{}, err
+			return SignRequest{}, err
 		}
-		// TODO - update after verifying block works for capella
-		if slot != 0 {
-			err = ethereum_slashing_protection_watermarking.WatermarkBlock(ctx, pubkey, slot)
-			if err != nil {
-				log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("SLOT", slot).Msg("BLOCK_V2_WatermarkBlock")
-				//return SignRequest{}, err
-			}
+		err = ethereum_slashing_protection_watermarking.WatermarkBlock(ctx, pubkey, slot)
+		if err != nil {
+			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("SLOT", slot).Msg("BLOCK_V2_WatermarkBlock_ERROR")
+			return SignRequest{}, err
 		}
+		log.Info().Interface("pubkey", pubkey).Interface("body", w.Body).Interface("slot", slot).Msg("BLOCK_V2_WATERMARKED")
 		BlockSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
 	case RANDAO_REVEAL:
 		log.Info().Interface("pubkey", pubkey).Msg("RANDAO_REVEAL")

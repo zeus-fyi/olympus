@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/patrickmn/go-cache"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
@@ -21,8 +22,7 @@ type Resty struct {
 
 func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inmemdbs.EthereumBLSKeySignatureRequests, pubkeyToUUID map[string]string) error {
 	gm := artemis_validator_signature_service_routing.GroupSigRequestsByGroupName(ctx, sigRequests)
-	r := Resty{}
-	r.Client = resty.New()
+
 	for groupName, signReqs := range gm {
 		go func(groupName string, signReqs aegis_inmemdbs.EthereumBLSKeySignatureRequests) {
 			auth, err := artemis_validator_signature_service_routing.GetGroupAuthFromInMemFS(ctx, groupName)
@@ -35,10 +35,24 @@ func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inme
 				SignatureRequests: aegis_inmemdbs.EthereumBLSKeySignatureRequests{Map: signReqs.Map},
 			}
 			sigResponses := aegis_inmemdbs.EthereumBLSKeySignatureResponses{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureResponse)}
+
+			cfg := aegis_aws_auth.AuthAWS{
+				Region:    "us-west-1",
+				AccessKey: auth.AccessKey,
+				SecretKey: auth.SecretKey,
+			}
+			r := Resty{}
+			r.Client = resty.New()
+			r.SetBaseURL(auth.AuthLamdbaAWS.ServiceURL)
+			reqAuth, err := cfg.CreateV4AuthPOSTReq(ctx, "lambda", auth.AuthLamdbaAWS.ServiceURL, signReqs)
+			if err != nil {
+				log.Ctx(ctx).Error().Err(err).Msg("failed to get service routes auths for lambda iam auth")
+				return
+			}
 			resp, err := r.R().
+				SetHeaderMultiValues(reqAuth.Header).
 				SetResult(&sigResponses).
-				SetBody(sr).
-				Post(auth.AuthLamdbaAWS.ServiceURL)
+				SetBody(sr).Post("/")
 
 			// TODO, notify on errors, track these metrics & latency
 			if err != nil {
@@ -46,9 +60,9 @@ func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inme
 
 				// try again
 				resp, err = r.R().
+					SetHeaderMultiValues(reqAuth.Header).
 					SetResult(&sigResponses).
-					SetBody(sr).
-					Post(auth.AuthLamdbaAWS.ServiceURL)
+					SetBody(sr).Post("/")
 			}
 			if resp.StatusCode() != 200 {
 				err = errors.New("non-200 status code")
@@ -56,9 +70,9 @@ func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inme
 
 				// try last time
 				resp, err = r.R().
+					SetHeaderMultiValues(reqAuth.Header).
 					SetResult(&sigResponses).
-					SetBody(sr).
-					Post(auth.AuthLamdbaAWS.ServiceURL)
+					SetBody(sr).Post("/")
 			}
 
 			if len(sigRequests.Map) < len(sigRequests.Map) {

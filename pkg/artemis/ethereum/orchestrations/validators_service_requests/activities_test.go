@@ -2,13 +2,13 @@ package eth_validators_service_requests
 
 import (
 	"context"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
-	aws_secrets "github.com/zeus-fyi/zeus/pkg/aegis/aws"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
@@ -20,7 +20,7 @@ var ctx = context.Background()
 
 func (s *ValidatorServicesActivitesTestSuite) SetupTest() {
 	s.InitLocalConfigs()
-	auth := aws_secrets.AuthAWS{
+	auth := aegis_aws_auth.AuthAWS{
 		Region:    "us-west-1",
 		AccessKey: s.Tc.AwsAccessKeySecretManager,
 		SecretKey: s.Tc.AwsSecretKeySecretManager,
@@ -38,10 +38,10 @@ func (s *ValidatorServicesActivitesTestSuite) TestVerifyValidatorKeyOwnershipAnd
 		GroupName:         "testGroup",
 		ProtocolNetworkID: hestia_req_types.EthereumEphemeryProtocolNetworkID,
 		ServiceAuth: hestia_req_types.ServiceAuthConfig{AuthLamdbaAWS: &hestia_req_types.AuthLamdbaAWS{
-			ServiceURL:   s.Tc.AwsLamdbaTestURL,
-			SecretName:   "agekey",
-			AccessKey:    s.Tc.AwsAccessKeyLambdaExt,
-			AccessSecret: s.Tc.AwsSecretKeyLambdaExt,
+			ServiceURL: s.Tc.AwsLamdbaTestURL,
+			SecretName: "agekey",
+			AccessKey:  s.Tc.AwsAccessKeyLambdaExt,
+			SecretKey:  s.Tc.AwsSecretKeyLambdaExt,
 		}},
 	}
 	keyOne := hestia_req_types.ValidatorServiceOrgGroup{

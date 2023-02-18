@@ -44,7 +44,7 @@ func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inme
 			r := Resty{}
 			r.Client = resty.New()
 			r.SetBaseURL(auth.AuthLamdbaAWS.ServiceURL)
-			reqAuth, err := cfg.CreateV4AuthPOSTReq(ctx, "lambda", auth.AuthLamdbaAWS.ServiceURL, signReqs)
+			reqAuth, err := cfg.CreateV4AuthPOSTReq(ctx, "lambda", auth.AuthLamdbaAWS.ServiceURL, sr)
 			if err != nil {
 				log.Ctx(ctx).Error().Err(err).Msg("failed to get service routes auths for lambda iam auth")
 				return

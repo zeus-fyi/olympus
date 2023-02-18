@@ -1,5 +1,5 @@
 #syntax=docker/dockerfile:1.4
-FROM golang:1.19-buster as builder
+FROM golang:1.20.1-buster as builder
 
 WORKDIR /app
 # Download necessary Go modules

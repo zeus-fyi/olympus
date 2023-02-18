@@ -4,16 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
-	aws_secrets "github.com/zeus-fyi/zeus/pkg/aegis/aws"
-	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	"strings"
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
+	aegis_aws_secretmanager "github.com/zeus-fyi/zeus/pkg/aegis/aws/secretmanager"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
 type ArtemisHydraSecretsManagerTestSuite struct {
@@ -24,7 +25,7 @@ var ctx = context.Background()
 
 func (s *ArtemisHydraSecretsManagerTestSuite) SetupTest() {
 	s.InitLocalConfigs()
-	auth := aws_secrets.AuthAWS{
+	auth := aegis_aws_auth.AuthAWS{
 		Region:    "us-west-1",
 		AccessKey: s.Tc.AwsAccessKeySecretManager,
 		SecretKey: s.Tc.AwsSecretKeySecretManager,
@@ -41,10 +42,10 @@ func (s *ArtemisHydraSecretsManagerTestSuite) TestUpdateSecret() {
 		GroupName:         "testGroup",
 		ProtocolNetworkID: hestia_req_types.EthereumEphemeryProtocolNetworkID,
 		ServiceAuth: hestia_req_types.ServiceAuthConfig{AuthLamdbaAWS: &hestia_req_types.AuthLamdbaAWS{
-			ServiceURL:   s.Tc.AwsLamdbaTestURL,
-			SecretName:   "agekey",
-			AccessKey:    s.Tc.AwsAccessKeyLambdaExt,
-			AccessSecret: s.Tc.AwsSecretKeyLambdaExt,
+			ServiceURL: s.Tc.AwsLamdbaTestURL,
+			SecretName: "agekey",
+			AccessKey:  s.Tc.AwsAccessKeyLambdaExt,
+			SecretKey:  s.Tc.AwsSecretKeyLambdaExt,
 		}},
 	}
 	b, err := json.Marshal(v)
@@ -67,10 +68,10 @@ func (s *ArtemisHydraSecretsManagerTestSuite) TestCreateSecret() {
 		GroupName:         "testGroup",
 		ProtocolNetworkID: hestia_req_types.EthereumEphemeryProtocolNetworkID,
 		ServiceAuth: hestia_req_types.ServiceAuthConfig{AuthLamdbaAWS: &hestia_req_types.AuthLamdbaAWS{
-			ServiceURL:   s.Tc.AwsLamdbaTestURL,
-			SecretName:   "agekey",
-			AccessKey:    s.Tc.AwsAccessKeyLambdaExt,
-			AccessSecret: s.Tc.AwsSecretKeyLambdaExt,
+			ServiceURL: s.Tc.AwsLamdbaTestURL,
+			SecretName: "agekey",
+			AccessKey:  s.Tc.AwsAccessKeyLambdaExt,
+			SecretKey:  s.Tc.AwsSecretKeyLambdaExt,
 		}},
 	}
 	b, err := json.Marshal(v)
@@ -100,13 +101,13 @@ func (s *ArtemisHydraSecretsManagerTestSuite) TestFetchSecret() {
 		GroupName:         "testGroup",
 		ProtocolNetworkID: hestia_req_types.EthereumEphemeryProtocolNetworkID,
 		ServiceAuth: hestia_req_types.ServiceAuthConfig{AuthLamdbaAWS: &hestia_req_types.AuthLamdbaAWS{
-			ServiceURL:   s.Tc.AwsLamdbaTestURL,
-			SecretName:   "agekey",
-			AccessKey:    s.Tc.AwsAccessKeyLambdaExt,
-			AccessSecret: s.Tc.AwsSecretKeyLambdaExt,
+			ServiceURL: s.Tc.AwsLamdbaTestURL,
+			SecretName: "agekey",
+			AccessKey:  s.Tc.AwsAccessKeyLambdaExt,
+			SecretKey:  s.Tc.AwsSecretKeyLambdaExt,
 		}},
 	}
-	si := aws_secrets.SecretInfo{
+	si := aegis_aws_secretmanager.SecretInfo{
 		Region: "us-west-1",
 		Name:   fmt.Sprintf("%s-%d-%s", v.GroupName, ou.OrgID, hestia_req_types.ProtocolNetworkIDToString(v.ProtocolNetworkID)),
 	}
@@ -124,13 +125,13 @@ func (s *ArtemisHydraSecretsManagerTestSuite) TestFetchServiceRoutesAuths() {
 		GroupName:         "testGroup",
 		ProtocolNetworkID: hestia_req_types.EthereumEphemeryProtocolNetworkID,
 		ServiceAuth: hestia_req_types.ServiceAuthConfig{AuthLamdbaAWS: &hestia_req_types.AuthLamdbaAWS{
-			ServiceURL:   s.Tc.AwsLamdbaTestURL,
-			SecretName:   "testLambdaExternalSecret",
-			AccessKey:    s.Tc.AwsAccessKeyLambdaExt,
-			AccessSecret: s.Tc.AwsSecretKeyLambdaExt,
+			ServiceURL: s.Tc.AwsLamdbaTestURL,
+			SecretName: "testLambdaExternalSecret",
+			AccessKey:  s.Tc.AwsAccessKeyLambdaExt,
+			SecretKey:  s.Tc.AwsSecretKeyLambdaExt,
 		}},
 	}
-	si := aws_secrets.SecretInfo{
+	si := aegis_aws_secretmanager.SecretInfo{
 		Region: "us-west-1",
 		Name:   fmt.Sprintf("%s-%d-%s", v.GroupName, ou.OrgID, hestia_req_types.ProtocolNetworkIDToString(v.ProtocolNetworkID)),
 	}

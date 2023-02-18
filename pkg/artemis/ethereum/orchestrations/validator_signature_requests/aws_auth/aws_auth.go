@@ -6,14 +6,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/rs/zerolog/log"
-	aws_secrets "github.com/zeus-fyi/zeus/pkg/aegis/aws"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
+	aegis_aws_secretmanager "github.com/zeus-fyi/zeus/pkg/aegis/aws/secretmanager"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-var HydraSecretManagerAuthAWS aws_secrets.SecretsManagerAuthAWS
+var HydraSecretManagerAuthAWS aegis_aws_secretmanager.SecretsManagerAuthAWS
 
-func InitHydraSecretManagerAuthAWS(ctx context.Context, awsAuth aws_secrets.AuthAWS) {
-	awsSm, err := aws_secrets.InitSecretsManager(ctx, awsAuth)
+func InitHydraSecretManagerAuthAWS(ctx context.Context, awsAuth aegis_aws_auth.AuthAWS) {
+	awsSm, err := aegis_aws_secretmanager.InitSecretsManager(ctx, awsAuth)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("Hydra: InitHestiaSecretManagerAuthAWS: error initializing aws secrets manager")
 		panic(err)
@@ -22,7 +23,7 @@ func InitHydraSecretManagerAuthAWS(ctx context.Context, awsAuth aws_secrets.Auth
 	log.Info().Msg("InitHydraSecretManagerAuthAWS: initialized")
 }
 
-func GetServiceRoutesAuths(ctx context.Context, si aws_secrets.SecretInfo) (hestia_req_types.ServiceRequestWrapper, error) {
+func GetServiceRoutesAuths(ctx context.Context, si aegis_aws_secretmanager.SecretInfo) (hestia_req_types.ServiceRequestWrapper, error) {
 	input := &secretsmanager.GetSecretValueInput{
 		SecretId:     aws.String(si.Name),
 		VersionStage: aws.String("AWSCURRENT"), // VersionStage defaults to AWSCURRENT if unspecified

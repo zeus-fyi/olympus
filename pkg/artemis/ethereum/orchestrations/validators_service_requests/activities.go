@@ -10,7 +10,8 @@ import (
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	artemis_validator_signature_service_routing "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/signature_routing"
-	aws_secrets "github.com/zeus-fyi/zeus/pkg/aegis/aws"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
+	aegis_aws_secretmanager "github.com/zeus-fyi/zeus/pkg/aegis/aws/secretmanager"
 	bls_serverless_signing "github.com/zeus-fyi/zeus/pkg/aegis/aws/serverless_signing"
 	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
@@ -113,8 +114,6 @@ type Resty struct {
 	*resty.Client
 }
 
-// TODO add auth signature
-
 func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOwnershipAndSigning(ctx context.Context, params ValidatorServiceGroupWorkflowRequest) (hestia_req_types.ValidatorServiceOrgGroupSlice, error) {
 	r := Resty{}
 	r.Client = resty.New()
@@ -131,7 +130,7 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 		req.Map[pubkey] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: hexMessage}
 	}
 	sn := artemis_validator_signature_service_routing.FormatSecretNameAWS(params.ServiceRequestWrapper.GroupName, params.OrgID, params.ServiceRequestWrapper.ProtocolNetworkID)
-	si := aws_secrets.SecretInfo{
+	si := aegis_aws_secretmanager.SecretInfo{
 		Region: awsSecretsRegion,
 		Name:   sn,
 	}
@@ -140,7 +139,6 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 		log.Ctx(ctx).Error().Err(err).Msg("failed to get service routes auths")
 		return nil, err
 	}
-	// TODO add auth signing on payload
 	signReqs := bls_serverless_signing.SignatureRequests{
 		SecretName:        sv.ServiceAuth.SecretName,
 		SignatureRequests: req,
@@ -149,10 +147,23 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 	signedEventResponses := aegis_inmemdbs.EthereumBLSKeySignatureResponses{
 		Map: respMsgMap,
 	}
+	auth := aegis_aws_auth.AuthAWS{
+		Region:    awsSecretsRegion,
+		AccessKey: sv.ServiceAuth.AccessKey,
+		SecretKey: sv.ServiceAuth.SecretKey,
+	}
+
+	reqAuth, err := auth.CreateV4AuthPOSTReq(ctx, "lambda", sv.ServiceAuth.ServiceURL, signReqs)
+	if err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg("failed to get service routes auths for lambda iam auth")
+		return nil, err
+	}
+	r.SetBaseURL(sv.ServiceAuth.ServiceURL)
 	resp, err := r.R().
+		SetHeaderMultiValues(reqAuth.Header).
 		SetResult(&signedEventResponses).
-		SetBody(signReqs).
-		Post(sv.ServiceAuth.ServiceURL)
+		SetBody(signReqs).Post("/")
+
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("failed to post to validator signature service url")
 		return nil, err

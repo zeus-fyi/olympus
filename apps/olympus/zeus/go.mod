@@ -1,6 +1,6 @@
 module github.com/zeus-fyi/olympus/zeus
 
-go 1.19
+go 1.20
 
 require (
 	github.com/jackc/pgconn v1.12.1

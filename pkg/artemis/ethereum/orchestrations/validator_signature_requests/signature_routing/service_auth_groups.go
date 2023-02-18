@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
-	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
+	aegis_aws_secretmanager "github.com/zeus-fyi/zeus/pkg/aegis/aws/secretmanager"
 
+	"github.com/rs/zerolog/log"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
-	aws_secrets "github.com/zeus-fyi/zeus/pkg/aegis/aws"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
 const (
@@ -18,7 +18,7 @@ const (
 )
 
 func FetchAndSetServiceGroupsAuths(ctx context.Context, vsRoute artemis_validator_service_groups_models.ValidatorsSignatureServiceRoutes) error {
-	si := aws_secrets.SecretInfo{
+	si := aegis_aws_secretmanager.SecretInfo{
 		Region: "us-west-1",
 		Name:   "",
 	}

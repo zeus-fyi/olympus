@@ -2,12 +2,12 @@ package artemis_validator_signature_service_routing
 
 import (
 	"context"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
-	aws_secrets "github.com/zeus-fyi/zeus/pkg/aegis/aws"
 	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
 )
 
@@ -21,7 +21,7 @@ func (s *ValidatorServiceAuthRoutesTestSuite) SetupTest() {
 	s.InitLocalConfigs()
 	err := InitRouteMapInMemFS(ctx)
 	s.Require().Nil(err)
-	auth := aws_secrets.AuthAWS{
+	auth := aegis_aws_auth.AuthAWS{
 		Region:    "us-west-1",
 		AccessKey: s.Tc.AwsAccessKeySecretManager,
 		SecretKey: s.Tc.AwsSecretKeySecretManager,

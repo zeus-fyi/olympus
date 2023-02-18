@@ -36,10 +36,10 @@ func (s *ValidatorServiceAuthRoutesTestSuite) TestFetchAndSetServiceGroupsAuths(
 		GroupName:         "testGroup",
 		ProtocolNetworkID: hestia_req_types.EthereumEphemeryProtocolNetworkID,
 		ServiceAuth: hestia_req_types.ServiceAuthConfig{AuthLamdbaAWS: &hestia_req_types.AuthLamdbaAWS{
-			ServiceURL:   s.Tc.AwsLamdbaTestURL,
-			SecretName:   "testLambdaExternalSecret",
-			AccessKey:    s.Tc.AwsAccessKeyLambdaExt,
-			AccessSecret: s.Tc.AwsSecretKeyLambdaExt,
+			ServiceURL: s.Tc.AwsLamdbaTestURL,
+			SecretName: "testLambdaExternalSecret",
+			AccessKey:  s.Tc.AwsAccessKeyLambdaExt,
+			SecretKey:  s.Tc.AwsSecretKeyLambdaExt,
 		}},
 	}
 	auth, err := GetGroupAuthFromInMemFS(ctx, expAuth.GroupName)
@@ -73,9 +73,9 @@ func (s *ValidatorServiceAuthRoutesTestSuite) TestSetAndGetGroupAuthToInMemFS() 
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
 	serviceAuth := hestia_req_types.ServiceAuthConfig{AuthLamdbaAWS: &hestia_req_types.AuthLamdbaAWS{
-		SecretName:   "testLambdaExternalSecret",
-		AccessKey:    s.Tc.AwsAccessKeyLambdaExt,
-		AccessSecret: s.Tc.AwsSecretKeyLambdaExt,
+		SecretName: "testLambdaExternalSecret",
+		AccessKey:  s.Tc.AwsAccessKeyLambdaExt,
+		SecretKey:  s.Tc.AwsSecretKeyLambdaExt,
 	}}
 	groupName := "group1"
 	err := SetGroupAuthInMemFS(ctx, groupName, serviceAuth)

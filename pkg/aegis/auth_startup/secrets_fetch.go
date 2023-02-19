@@ -2,7 +2,6 @@ package auth_startup
 
 import (
 	"context"
-	aws_secrets "github.com/zeus-fyi/zeus/pkg/aegis/aws"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -14,6 +13,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
 
 const (
@@ -35,7 +35,7 @@ type SecretsWrapper struct {
 	AccessKeyHydraDynamoDB string
 	SecretKeyHydraDynamoDB string
 
-	SecretsManagerAuthAWS aws_secrets.AuthAWS
+	SecretsManagerAuthAWS aegis_aws_auth.AuthAWS
 	TemporalAuth          temporal_auth.TemporalAuth
 }
 

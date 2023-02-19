@@ -3,6 +3,7 @@ package artemis_hydra_orchestrations_aws_auth
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/rs/zerolog/log"

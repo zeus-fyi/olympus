@@ -2,13 +2,13 @@ package eth_validators_service_requests
 
 import (
 	"context"
-	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
@@ -35,21 +35,21 @@ func (s *ValidatorServicesActivitesTestSuite) TestVerifyValidatorKeyOwnershipAnd
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 
 	srw := hestia_req_types.ServiceRequestWrapper{
-		GroupName:         "testGroup",
+		GroupName:         "demoGroup",
 		ProtocolNetworkID: hestia_req_types.EthereumEphemeryProtocolNetworkID,
 		ServiceAuth: hestia_req_types.ServiceAuthConfig{AuthLamdbaAWS: &hestia_req_types.AuthLamdbaAWS{
 			ServiceURL: s.Tc.AwsLamdbaTestURL,
-			SecretName: "agekey",
+			SecretName: "ageEncryptionKey",
 			AccessKey:  s.Tc.AwsAccessKeyLambdaExt,
 			SecretKey:  s.Tc.AwsSecretKeyLambdaExt,
 		}},
 	}
 	keyOne := hestia_req_types.ValidatorServiceOrgGroup{
-		Pubkey:       "0x8a7addbf2857a72736205d861169c643545283a74a1ccb71c95dd2c9652acb89de226ca26d60248c4ef9591d7e010288",
+		Pubkey:       "0x913d41b26a157bc8f539a9f63695b87a066f5086f259673f602a85cf9be0738629e872efd94eda6b08ecfd3c229e875e",
 		FeeRecipient: "0xF7Ab1d834Cd0A33691e9A750bD720cb6436cA1B9",
 	}
 	keyTwo := hestia_req_types.ValidatorServiceOrgGroup{
-		Pubkey:       "0x8258f4ec23d5e113f2b62caa40d77d52c2ad9dfd871173a9815f77ef66e02e5a090e8e940477c7df06477c5ceb42bb08",
+		Pubkey:       "0xabaf170036e7cb6674f146f3e3398d45c951e10c8e4f02fc5b062dd91701e5a45554070d0eceeda0d99ac2d11c4543f3",
 		FeeRecipient: "0xF7Ab1d834Cd0A33691e9A750bD720cb6436cA1B9",
 	}
 	pubkeys := hestia_req_types.ValidatorServiceOrgGroupSlice{keyOne, keyTwo}

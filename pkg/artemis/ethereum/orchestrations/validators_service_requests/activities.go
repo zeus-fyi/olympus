@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
@@ -158,6 +159,10 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 		return nil, err
 	}
 	r.SetBaseURL(sv.ServiceAuth.ServiceURL)
+	// the first request make timeout, since it may have a cold start latency
+	r.SetTimeout(3 * time.Second)
+	r.SetRetryCount(5)
+	r.SetRetryWaitTime(500 * time.Millisecond)
 	resp, err := r.R().
 		SetHeaderMultiValues(reqAuth.Header).
 		SetResult(&signedEventResponses).

@@ -64,8 +64,7 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 		log.Ctx(ctx).Err(err).Msg("service auth failed validation")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	la := v.ServiceAuth
-	b, err := json.Marshal(la)
+	b, err := json.Marshal(v.ServiceRequestWrapper)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("service auth failed json marshal")
 		return c.JSON(http.StatusInternalServerError, nil)
@@ -75,7 +74,6 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 		Name:         aws.String(name),
 		Description:  aws.String(name),
 		SecretBinary: b,
-		SecretString: nil,
 	}
 	log.Info().Msg("Hestia: CreateValidatorServiceRequest: Service Auth Valid, Creating Secret")
 	err = artemis_hydra_orchestrations_aws_auth.HydraSecretManagerAuthAWS.CreateNewSecret(ctx, si)

@@ -2,6 +2,7 @@ package hestia_server
 
 import (
 	"context"
+
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -15,7 +16,7 @@ import (
 	eth_validators_service_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validators_service_requests"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
-	aws_secrets "github.com/zeus-fyi/zeus/pkg/aegis/aws"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
 
 var (
@@ -29,7 +30,7 @@ var (
 		HostPort:         "production-artemis.ngb72.tmprl.cloud:7233",
 	}
 	awsRegion  = "us-west-1"
-	awsAuthCfg = aws_secrets.AuthAWS{
+	awsAuthCfg = aegis_aws_auth.AuthAWS{
 		Region:    awsRegion,
 		AccessKey: "",
 		SecretKey: "",

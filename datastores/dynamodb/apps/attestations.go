@@ -2,6 +2,8 @@ package dynamodb_web3signer
 
 import (
 	"context"
+	"time"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -14,9 +16,15 @@ type AttestationsDynamoDB struct {
 	Web3SignerDynamoDBTableKeys
 	SourceEpoch int `dynamodbav:"sourceEpoch"`
 	TargetEpoch int `dynamodbav:"targetEpoch"`
+	TTL         int `dynamodbav:"ttl"`
 }
 
 func (w *Web3SignerDynamoDB) PutAttestation(ctx context.Context, att AttestationsDynamoDB) error {
+	now := time.Now()
+	oneHourLater := now.Add(time.Hour)
+	unixTimestamp := oneHourLater.Unix()
+	ttl := unixTimestamp
+	att.TTL = int(ttl)
 	item, err := attributevalue.MarshalMap(att)
 	if err != nil {
 		log.Ctx(ctx).Error().Interface("att", att).Err(err).Msg("failed to marshal attestation")

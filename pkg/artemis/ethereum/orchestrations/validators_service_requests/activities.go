@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
 	olympus_hydra_validators_cookbooks "github.com/zeus-fyi/olympus/cookbooks/olympus/ethereum/validators"
@@ -18,7 +20,6 @@ import (
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
 	zeus_pods_reqs "github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types/pods"
-	"net/http"
 )
 
 const (
@@ -122,7 +123,6 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 	for _, vs := range params.ValidatorServiceOrgGroupSlice {
 		pubkey := vs.Pubkey
 		feeAddrToPubkeyMap[pubkey] = vs.FeeRecipient
-
 		hexMessage, err := aegis_inmemdbs.RandomHex(10)
 		if err != nil {
 			log.Ctx(ctx).Err(err).Msg("unable to generate hex message")
@@ -152,7 +152,6 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 		AccessKey: sv.ServiceAuth.AccessKey,
 		SecretKey: sv.ServiceAuth.SecretKey,
 	}
-
 	reqAuth, err := auth.CreateV4AuthPOSTReq(ctx, "lambda", sv.ServiceAuth.ServiceURL, signReqs)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("failed to get service routes auths for lambda iam auth")

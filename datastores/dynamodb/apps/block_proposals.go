@@ -2,6 +2,8 @@ package dynamodb_web3signer
 
 import (
 	"context"
+	"time"
+
 	"github.com/rs/zerolog/log"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -14,9 +16,15 @@ var BlockProposalsTableName = aws.String("BlockProposals")
 type BlockProposalsDynamoDB struct {
 	Web3SignerDynamoDBTableKeys
 	Slot int `dynamodbav:"slot"`
+	TTL  int `dynamodbav:"ttl"`
 }
 
 func (w *Web3SignerDynamoDB) PutBlockProposal(ctx context.Context, bp BlockProposalsDynamoDB) error {
+	now := time.Now()
+	oneHourLater := now.Add(time.Hour)
+	unixTimestamp := oneHourLater.Unix()
+	ttl := unixTimestamp
+	bp.TTL = int(ttl)
 	item, err := attributevalue.MarshalMap(bp)
 	if err != nil {
 		log.Ctx(ctx).Error().Interface("att", bp).Err(err).Msg("failed to marshal block proposal")

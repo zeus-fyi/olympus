@@ -14,7 +14,7 @@ import (
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_hydra_orchestrations_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
-	aws_secrets "github.com/zeus-fyi/zeus/pkg/aegis/aws"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
@@ -28,7 +28,7 @@ var (
 	dynamoCreds = dynamodb_client.DynamoDBCredentials{
 		Region: awsRegion,
 	}
-	awsAuthCfg = aws_secrets.AuthAWS{
+	awsAuthCfg = aegis_aws_auth.AuthAWS{
 		Region:    awsRegion,
 		AccessKey: "",
 		SecretKey: "",

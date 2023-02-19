@@ -3,6 +3,8 @@ package hydra_eth2_web3signer
 import (
 	"context"
 	"errors"
+	"time"
+
 	"github.com/patrickmn/go-cache"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 
@@ -22,7 +24,6 @@ type Resty struct {
 
 func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inmemdbs.EthereumBLSKeySignatureRequests, pubkeyToUUID map[string]string) error {
 	gm := artemis_validator_signature_service_routing.GroupSigRequestsByGroupName(ctx, sigRequests)
-
 	for groupName, signReqs := range gm {
 		go func(groupName string, signReqs aegis_inmemdbs.EthereumBLSKeySignatureRequests) {
 			auth, err := artemis_validator_signature_service_routing.GetGroupAuthFromInMemFS(ctx, groupName)
@@ -43,6 +44,10 @@ func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inme
 			}
 			r := Resty{}
 			r.Client = resty.New()
+			r.SetTimeout(3 * time.Second)
+			r.SetRetryCount(3)
+			r.SetRetryWaitTime(500 * time.Millisecond)
+
 			r.SetBaseURL(auth.AuthLamdbaAWS.ServiceURL)
 			reqAuth, err := cfg.CreateV4AuthPOSTReq(ctx, "lambda", auth.AuthLamdbaAWS.ServiceURL, sr)
 			if err != nil {
@@ -57,22 +62,12 @@ func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inme
 			// TODO, notify on errors, track these metrics & latency
 			if err != nil {
 				log.Ctx(ctx).Err(err).Msg("Failed to get response")
-
-				// try again
-				resp, err = r.R().
-					SetHeaderMultiValues(reqAuth.Header).
-					SetResult(&sigResponses).
-					SetBody(sr).Post("/")
+				return
 			}
 			if resp.StatusCode() != 200 {
 				err = errors.New("non-200 status code")
 				log.Ctx(ctx).Err(err).Msg("Failed to get 200 status code")
-
-				// try last time
-				resp, err = r.R().
-					SetHeaderMultiValues(reqAuth.Header).
-					SetResult(&sigResponses).
-					SetBody(sr).Post("/")
+				return
 			}
 
 			if len(sigRequests.Map) < len(sigRequests.Map) {

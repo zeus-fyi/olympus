@@ -94,7 +94,6 @@ func SendHeartbeat(ctx context.Context, vsi artemis_validator_service_groups_mod
 	for groupName, _ := range svcGroups.GroupToServiceMap {
 		go func(groupName string) {
 			log.Ctx(ctx).Info().Interface("groupName", groupName).Msg("sending heartbeat message")
-
 			auth, err := GetGroupAuthFromInMemFS(ctx, groupName)
 			if err != nil {
 				log.Ctx(ctx).Err(err).Msg("Failed to get group auth")

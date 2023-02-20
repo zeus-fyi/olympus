@@ -127,6 +127,7 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 		hexMessage, err := aegis_inmemdbs.RandomHex(10)
 		if err != nil {
 			log.Ctx(ctx).Err(err).Msg("unable to generate hex message")
+			return nil, err
 		}
 		req.Map[pubkey] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: hexMessage}
 	}
@@ -160,7 +161,7 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 	}
 	r.SetBaseURL(sv.ServiceAuth.ServiceURL)
 	// the first request make timeout, since it may have a cold start latency
-	r.SetTimeout(3 * time.Second)
+	r.SetTimeout(6 * time.Second)
 	r.SetRetryCount(5)
 	r.SetRetryWaitTime(500 * time.Millisecond)
 	resp, err := r.R().

@@ -44,9 +44,9 @@ func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inme
 			}
 			r := Resty{}
 			r.Client = resty.New()
-			r.SetTimeout(3 * time.Second)
-			r.SetRetryCount(3)
-			r.SetRetryWaitTime(500 * time.Millisecond)
+			r.SetTimeout(5 * time.Second)
+			r.SetRetryCount(2)
+			r.SetRetryWaitTime(20 * time.Millisecond)
 
 			r.SetBaseURL(auth.AuthLamdbaAWS.ServiceURL)
 			reqAuth, err := cfg.CreateV4AuthPOSTReq(ctx, "lambda", auth.AuthLamdbaAWS.ServiceURL, sr)

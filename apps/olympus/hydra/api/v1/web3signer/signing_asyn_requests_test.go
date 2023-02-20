@@ -1,6 +1,8 @@
 package hydra_eth2_web3signer
 
 import (
+	"testing"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -8,11 +10,10 @@ import (
 	hydra_base_test "github.com/zeus-fyi/olympus/hydra/api/test"
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	artemis_validator_signature_service_routing "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/signature_routing"
-	aws_secrets "github.com/zeus-fyi/zeus/pkg/aegis/aws"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
-	"testing"
 )
 
 type HydraSigningAsyncRequestsTestSuite struct {
@@ -21,7 +22,7 @@ type HydraSigningAsyncRequestsTestSuite struct {
 
 func (t *HydraSigningRequestsTestSuite) TestAsyncSignRequest() {
 	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
-	auth := aws_secrets.AuthAWS{
+	auth := aegis_aws_auth.AuthAWS{
 		Region:    "us-west-1",
 		AccessKey: t.Tc.AwsAccessKeySecretManager,
 		SecretKey: t.Tc.AwsSecretKeySecretManager,

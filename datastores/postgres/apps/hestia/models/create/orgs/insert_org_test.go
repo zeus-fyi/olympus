@@ -17,11 +17,13 @@ type CreateOrgsTestSuite struct {
 
 func (s *CreateOrgsTestSuite) TestInsertOrg() {
 	var ts chronos.Chronos
-	o := NewCreateOrg()
+
+	o := NewCreateNamedOrg("validatorDemosOrg")
 	o.OrgID = ts.UnixTimeStampNow()
 
 	ctx := context.Background()
 	q := sql_query_templates.NewQueryParam("InsertOrg", "orgs", "where", 1000, []string{})
+
 	q.TableName = o.GetTableName()
 	q.Columns = o.GetTableColumns()
 	q.Values = []apps.RowValues{o.GetRowValues("default")}

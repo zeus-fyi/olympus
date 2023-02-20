@@ -64,8 +64,7 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 		log.Ctx(ctx).Err(err).Msg("service auth failed validation")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	la := v.ServiceAuth
-	b, err := json.Marshal(la)
+	b, err := json.Marshal(v.ServiceRequestWrapper)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("service auth failed json marshal")
 		return c.JSON(http.StatusInternalServerError, nil)
@@ -75,19 +74,26 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 		Name:         aws.String(name),
 		Description:  aws.String(name),
 		SecretBinary: b,
-		SecretString: nil,
 	}
 	log.Info().Msg("Hestia: CreateValidatorServiceRequest: Service Auth Valid, Creating Secret")
 	err = artemis_hydra_orchestrations_aws_auth.HydraSecretManagerAuthAWS.CreateNewSecret(ctx, si)
 	if err != nil {
-		log.Info().Msg(fmt.Sprintf("%e", err))
+		log.Info().Msg(fmt.Sprintf("%s", err.Error()))
 		errCheckStr := fmt.Sprintf("the secret %s already exists", name)
 		if strings.Contains(err.Error(), errCheckStr) {
 			log.Err(err).Msg("secret already exists, updating to new values")
-			// TODO: update secret
-			err = nil
+			su := &secretsmanager.UpdateSecretInput{
+				SecretId:     aws.String(name),
+				SecretBinary: b,
+			}
+			_, err = artemis_hydra_orchestrations_aws_auth.HydraSecretManagerAuthAWS.UpdateSecret(ctx, su)
+			if err != nil {
+				log.Ctx(ctx).Err(err).Msg("service auth failed to update secret")
+				log.Info().Msgf("Hestia: CreateValidatorServiceRequest: Unexpected Error: ", err.Error())
+				return c.JSON(http.StatusInternalServerError, nil)
+			}
 		} else {
-			log.Info().Msg("Hestia: CreateValidatorServiceRequest: Unexpected Error")
+			log.Info().Msgf("Hestia: CreateValidatorServiceRequest: Unexpected Error: ", err.Error())
 			log.Ctx(ctx).Err(err).Msg("service auth failed to create secret")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}

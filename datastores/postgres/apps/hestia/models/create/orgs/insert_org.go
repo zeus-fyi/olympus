@@ -14,11 +14,14 @@ const Sn = "Org"
 func (o *Org) InsertOrg(ctx context.Context) error {
 	q := sql_query_templates.NewQueryParam("InsertOrg", "orgs", "where", 1000, []string{})
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
-	r, err := apps.Pg.Exec(ctx, q.InsertSingleElementQuery())
+
+	q.RawQuery = `INSERT INTO orgs (org_id, name, metadata) VALUES ($1, $2, $3)`
+
+	r, err := apps.Pg.Exec(ctx, q.RawQuery, o.OrgID, o.Name, o.Metadata)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
 		return err
 	}
 	rowsAffected := r.RowsAffected()
-	log.Debug().Msgf("User: %s, Rows Affected: %d", q.LogHeader(Sn), rowsAffected)
+	log.Debug().Msgf("InsertOrg: %s, Rows Affected: %d", q.LogHeader(Sn), rowsAffected)
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }

@@ -3,6 +3,7 @@ package hydra_eth2_web3signer
 import (
 	"context"
 	"errors"
+	"math/rand"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -18,7 +19,6 @@ type Resty struct {
 	*resty.Client
 }
 
-// TODO add signature auth, todo make each group an async activity
 // TODO add additional methods of usage besides aws lambda
 
 func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inmemdbs.EthereumBLSKeySignatureRequests, pubkeyToUUID map[string]string) error {
@@ -45,8 +45,10 @@ func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inme
 			r.Client = resty.New()
 			r.SetTimeout(2 * time.Second)
 			r.SetRetryCount(3)
-			r.SetRetryWaitTime(100 * time.Millisecond)
-
+			minDuration := 10 * time.Millisecond
+			maxDuration := 100 * time.Millisecond
+			jitter := time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
+			r.SetRetryWaitTime(jitter)
 			r.SetBaseURL(auth.AuthLamdbaAWS.ServiceURL)
 			reqAuth, err := cfg.CreateV4AuthPOSTReq(ctx, "lambda", auth.AuthLamdbaAWS.ServiceURL, sr)
 			if err != nil {

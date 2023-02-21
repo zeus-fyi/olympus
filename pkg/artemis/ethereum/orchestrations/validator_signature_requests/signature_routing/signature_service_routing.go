@@ -90,11 +90,10 @@ func SendHeartbeat(ctx context.Context, vsi artemis_validator_service_groups_mod
 		log.Ctx(ctx).Err(serr).Msg("SendHeartbeat: GetServiceMetadata")
 		return
 	}
-
-	for groupName, _ := range svcGroups.GroupToServiceMap {
-		go func(groupName string) {
-			log.Ctx(ctx).Info().Interface("groupName", groupName).Msg("sending heartbeat message")
-			auth, err := GetGroupAuthFromInMemFS(ctx, groupName)
+	for _, vsrInfo := range svcGroups.GroupToServiceMap {
+		go func(vsrInfo artemis_validator_service_groups_models.ValidatorsSignatureServiceRoute) {
+			log.Ctx(ctx).Info().Interface("groupName", vsrInfo.GroupName).Msg("sending heartbeat message")
+			auth, err := GetGroupAuthFromInMemFS(ctx, vsrInfo.GroupName)
 			if err != nil {
 				log.Ctx(ctx).Err(err).Msg("Failed to get group auth")
 				return
@@ -127,23 +126,23 @@ func SendHeartbeat(ctx context.Context, vsi artemis_validator_service_groups_mod
 				log.Ctx(ctx).Error().Err(err).Msg("failed to get service routes auths for lambda iam auth")
 				return
 			}
-			log.Info().Interface("groupName", groupName).Msg("sending heartbeat")
+			log.Info().Interface("groupName", vsrInfo.GroupName).Msg("sending heartbeat")
 			resp, err := r.R().
 				SetHeaderMultiValues(reqAuth.Header).
 				SetResult(&sigResponses).
 				SetBody(sr).Post("/")
 			if err != nil {
-				log.Ctx(ctx).Err(err).Interface("groupName", groupName).Msg("failed to get response")
+				log.Ctx(ctx).Err(err).Interface("groupName", vsrInfo.GroupName).Msg("failed to get response")
 				return
 			}
 			if resp.StatusCode() != 200 {
 				err = errors.New("non-200 status code")
-				log.Ctx(ctx).Err(err).Interface("groupName", groupName).Msg("failed to get 200 status code")
+				log.Ctx(ctx).Err(err).Interface("groupName", vsrInfo.GroupName).Msg("failed to get 200 status code")
 				return
 			} else {
-				log.Ctx(ctx).Info().Interface("groupName", groupName).Msg("heartbeat OK")
+				log.Ctx(ctx).Info().Interface("groupName", vsrInfo.GroupName).Msg("heartbeat OK")
 			}
-		}(groupName)
+		}(vsrInfo)
 	}
 }
 

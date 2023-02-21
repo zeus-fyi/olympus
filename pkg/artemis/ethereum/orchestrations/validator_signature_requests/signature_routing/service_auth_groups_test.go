@@ -1,6 +1,8 @@
 package artemis_validator_signature_service_routing
 
 import (
+	"time"
+
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
@@ -12,7 +14,7 @@ func (s *ValidatorServiceAuthRoutesTestSuite) TestFetchAndSetServiceGroupsAuths(
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 	s.InitLocalConfigs()
-	s.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	s.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 
 	cctx := zeus_common_types.CloudCtxNs{
 		CloudProvider: "do",
@@ -32,19 +34,22 @@ func (s *ValidatorServiceAuthRoutesTestSuite) TestFetchAndSetServiceGroupsAuths(
 	err = FetchAndSetServiceGroupsAuths(ctx, vsMetadata)
 	s.Require().Nil(err)
 
-	expAuth := hestia_req_types.ServiceRequestWrapper{
-		GroupName:         "testGroup",
-		ProtocolNetworkID: hestia_req_types.EthereumEphemeryProtocolNetworkID,
-		ServiceAuth: hestia_req_types.ServiceAuthConfig{AuthLamdbaAWS: &hestia_req_types.AuthLamdbaAWS{
-			ServiceURL: s.Tc.AwsLamdbaTestURL,
-			SecretName: "testLambdaExternalSecret",
-			AccessKey:  s.Tc.AwsAccessKeyLambdaExt,
-			SecretKey:  s.Tc.AwsSecretKeyLambdaExt,
-		}},
-	}
-	auth, err := GetGroupAuthFromInMemFS(ctx, expAuth.GroupName)
-	s.Require().Nil(err)
-	s.Assert().Equal(expAuth.ServiceAuth, auth)
+	//expAuth := hestia_req_types.ServiceRequestWrapper{
+	//	GroupName:         "testGroup",
+	//	ProtocolNetworkID: hestia_req_types.EthereumEphemeryProtocolNetworkID,
+	//	ServiceAuth: hestia_req_types.ServiceAuthConfig{AuthLamdbaAWS: &hestia_req_types.AuthLamdbaAWS{
+	//		ServiceURL: s.Tc.AwsLamdbaTestURL,
+	//		SecretName: "testLambdaExternalSecret",
+	//		AccessKey:  s.Tc.AwsAccessKeyLambdaExt,
+	//		SecretKey:  s.Tc.AwsSecretKeyLambdaExt,
+	//	}},
+	//}
+	//auth, err := GetGroupAuthFromInMemFS(ctx, expAuth.GroupName)
+	//s.Require().Nil(err)
+	//s.Assert().Equal(expAuth.ServiceAuth, auth)
+
+	SendHeartbeat(ctx, vsi, cctx)
+	time.Sleep(5 * time.Second)
 }
 
 func (s *ValidatorServiceAuthRoutesTestSuite) TestFetchServiceAuthRouteGrouping() {

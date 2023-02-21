@@ -9,12 +9,7 @@ import (
 )
 
 func CanSignAttestation(ctx context.Context, pubkey string, att consensys_eth2_openapi.AttestationData) error {
-	sourceEpoch, targetEpoch, err := ethereum_slashing_protection_watermarking.ConvertAttSourceTargetsToInt(ctx, att)
-	if err != nil {
-		log.Ctx(ctx).Error().Err(err).Msg("failed to convert attestation source & target epoch to int")
-		return err
-	}
-	err = ethereum_slashing_protection_watermarking.WatermarkAttestation(ctx, pubkey, sourceEpoch, targetEpoch)
+	err := ethereum_slashing_protection_watermarking.WatermarkAttestation(ctx, pubkey, att)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("failed to check watermark for attestation")
 		return err

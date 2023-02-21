@@ -3,18 +3,21 @@ package ethereum_slashing_protection_watermarking
 import (
 	"context"
 	"errors"
+
 	"github.com/rs/zerolog/log"
 	dynamodb_web3signer "github.com/zeus-fyi/olympus/datastores/dynamodb/apps"
 	dynamodb_web3signer_client "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/dynamodb_web3signer"
 )
 
 func WatermarkAttestation(ctx context.Context, pubkey string, sourceEpoch, targetEpoch int) error {
-	if IsSourceEpochGreaterThanTargetEpoch(ctx, pubkey, sourceEpoch, targetEpoch) {
-		return errors.New("sourceEpoch greater than targetEpoch")
-	}
 	prevSourceEpoch, prevTargetEpoch, err := FetchLastAttestation(ctx, pubkey)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Msg("failed to fetch last attestation")
+		return err
+	}
+	if IsSurroundVote(ctx, pubkey, prevSourceEpoch, prevTargetEpoch, sourceEpoch, targetEpoch) {
+		log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey).Msg("surround vote")
+		err = errors.New("surround vote")
 		return err
 	}
 	if IsSourceEpochLessThanOrEqualToAnyPreviousAttestations(ctx, pubkey, sourceEpoch, prevSourceEpoch) {
@@ -83,6 +86,14 @@ func IsSourceEpochLessThanOrEqualToAnyPreviousAttestations(ctx context.Context, 
 func IsTargetEpochLessThanOrEqualToAnyPreviousAttestations(ctx context.Context, pubkey string, newTargetEpoch, prevTargetEpoch int) bool {
 	if newTargetEpoch <= prevTargetEpoch {
 		log.Ctx(ctx).Warn().Msgf("detected newSourceEpoch %d less than or equal to maxRecordedSourceEpoch %d for %s", newTargetEpoch, prevTargetEpoch, pubkey)
+		return true
+	}
+	return false
+}
+
+func IsSurroundVote(ctx context.Context, pubkey string, data1SourceEpoch, data1TargetEpoch, data2SourceEpoch, data2TargetEpoch int) bool {
+	if data1SourceEpoch < data2SourceEpoch && data2TargetEpoch < data1TargetEpoch {
+		log.Ctx(ctx).Warn().Interface("data1SourceEpoch", data1SourceEpoch).Interface("data1TargetEpoch", data1TargetEpoch).Interface("data2SourceEpoch", data2SourceEpoch).Interface("data2TargetEpoch", data2TargetEpoch).Msgf("detected surround vote for %s", pubkey)
 		return true
 	}
 	return false

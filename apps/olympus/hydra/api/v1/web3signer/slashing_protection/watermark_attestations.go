@@ -41,7 +41,7 @@ func WatermarkAttestation(ctx context.Context, pubkey string, attData consensys_
 		return err
 	}
 	if sourceEpoch < prevSourceEpoch {
-		err = errors.New("source epoch less than previously recorded epoch")
+		err = errors.New("source epoch can't be less than previously recorded source epoch")
 		log.Ctx(ctx).Error().Err(err).Interface("pubkey", pubkey)
 		return err
 	}

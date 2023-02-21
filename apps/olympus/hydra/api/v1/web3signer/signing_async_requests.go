@@ -3,7 +3,6 @@ package hydra_eth2_web3signer
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/patrickmn/go-cache"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
@@ -44,10 +43,6 @@ func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inme
 			}
 			r := Resty{}
 			r.Client = resty.New()
-			r.SetTimeout(5 * time.Second)
-			r.SetRetryCount(2)
-			r.SetRetryWaitTime(20 * time.Millisecond)
-
 			r.SetBaseURL(auth.AuthLamdbaAWS.ServiceURL)
 			reqAuth, err := cfg.CreateV4AuthPOSTReq(ctx, "lambda", auth.AuthLamdbaAWS.ServiceURL, sr)
 			if err != nil {
@@ -62,12 +57,20 @@ func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inme
 			// TODO, notify on errors, track these metrics & latency
 			if err != nil {
 				log.Ctx(ctx).Err(err).Msg("Failed to get response")
-				return
+				// try again
+				resp, err = r.R().
+					SetResult(&sigResponses).
+					SetBody(sr).
+					Post(auth.AuthLamdbaAWS.ServiceURL)
 			}
 			if resp.StatusCode() != 200 {
 				err = errors.New("non-200 status code")
 				log.Ctx(ctx).Err(err).Msg("Failed to get 200 status code")
-				return
+				// try again
+				resp, err = r.R().
+					SetResult(&sigResponses).
+					SetBody(sr).
+					Post(auth.AuthLamdbaAWS.ServiceURL)
 			}
 
 			if len(sigRequests.Map) < len(sigRequests.Map) {

@@ -35,6 +35,10 @@ func (t *WatermarkAttestationsWeb3SignerTestSuite) TestAttestationWatermarkerDou
 	err := WatermarkAttestation(ctx, pubkey, data1Att)
 	t.Require().NoError(err)
 
+	// (data_1 == data_2 and data_1.target.epoch == data_2.target.epoch)
+	err = WatermarkAttestation(ctx, pubkey, data1Att)
+	t.Require().NoError(err)
+
 	// invalid attestation new target < prev target
 
 	dataInvalidTarget := data1Att

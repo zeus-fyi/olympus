@@ -3,14 +3,14 @@ package hydra_eth2_web3signer
 import (
 	"context"
 	"errors"
+	"math/rand"
 	"time"
 
-	"github.com/patrickmn/go-cache"
-	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
-
 	"github.com/go-resty/resty/v2"
+	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
 	artemis_validator_signature_service_routing "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/signature_routing"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	bls_serverless_signing "github.com/zeus-fyi/zeus/pkg/aegis/aws/serverless_signing"
 	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
 )
@@ -19,7 +19,6 @@ type Resty struct {
 	*resty.Client
 }
 
-// TODO add signature auth, todo make each group an async activity
 // TODO add additional methods of usage besides aws lambda
 
 func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inmemdbs.EthereumBLSKeySignatureRequests, pubkeyToUUID map[string]string) error {
@@ -44,10 +43,12 @@ func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inme
 			}
 			r := Resty{}
 			r.Client = resty.New()
-			r.SetTimeout(5 * time.Second)
-			r.SetRetryCount(2)
-			r.SetRetryWaitTime(20 * time.Millisecond)
-
+			r.SetTimeout(2 * time.Second)
+			r.SetRetryCount(3)
+			minDuration := 10 * time.Millisecond
+			maxDuration := 100 * time.Millisecond
+			jitter := time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
+			r.SetRetryWaitTime(jitter)
 			r.SetBaseURL(auth.AuthLamdbaAWS.ServiceURL)
 			reqAuth, err := cfg.CreateV4AuthPOSTReq(ctx, "lambda", auth.AuthLamdbaAWS.ServiceURL, sr)
 			if err != nil {

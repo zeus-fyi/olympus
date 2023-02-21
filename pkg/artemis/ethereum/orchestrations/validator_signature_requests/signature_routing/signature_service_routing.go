@@ -29,13 +29,18 @@ func InitRouteMapInMemFS(ctx context.Context) error {
 
 func InitAsyncServiceAuthRoutePolling(ctx context.Context, vsi artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol, cctx zeus_common_types.CloudCtxNs) {
 	log.Ctx(ctx).Info().Interface("cctx", cctx).Msg("InitAsyncServiceAuthRoutePolling")
+	i := 0
 	for {
 		err := GetServiceAuthAndURLs(ctx, vsi, cctx)
 		if err != nil {
 			log.Ctx(ctx).Err(err).Msg("GetServiceAuthAndURLs")
 		}
 		time.Sleep(60 * time.Second)
-		SendHeartbeat(ctx, vsi, cctx)
+		i++
+		if i >= 2 {
+			SendHeartbeat(ctx, vsi, cctx)
+			i = 0
+		}
 	}
 }
 

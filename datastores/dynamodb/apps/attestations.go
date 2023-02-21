@@ -14,9 +14,10 @@ var AttestationsTableName = aws.String("Attestations")
 
 type AttestationsDynamoDB struct {
 	Web3SignerDynamoDBTableKeys
-	SourceEpoch int `dynamodbav:"sourceEpoch"`
-	TargetEpoch int `dynamodbav:"targetEpoch"`
-	TTL         int `dynamodbav:"ttl"`
+	SourceEpoch     int    `dynamodbav:"sourceEpoch"`
+	TargetEpoch     int    `dynamodbav:"targetEpoch"`
+	AttestationData string `dynamodbav:"attestationData"`
+	TTL             int    `dynamodbav:"ttl"`
 }
 
 func (w *Web3SignerDynamoDB) PutAttestation(ctx context.Context, att AttestationsDynamoDB) error {

@@ -17,6 +17,18 @@ type CreateOrgUserTestSuite struct {
 	hestia_test.BaseHestiaTestSuite
 }
 
+func (s *CreateOrgUserTestSuite) TestInsertOrgUserWithKey() {
+	ctx := context.Background()
+
+	s.InitLocalConfigs()
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+
+	ou := OrgUser{}
+	key, err := ou.InsertDemoOrgUserWithNewKey(ctx, []byte("{}"), "userdemotestkey", EthereumEphemeryServiceID)
+	s.Require().Nil(err)
+	s.Assert().NotEmpty(key)
+}
+
 func (s *CreateOrgUserTestSuite) TestInsertOrgUser() {
 	ctx := context.Background()
 	var ts chronos.Chronos

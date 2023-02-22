@@ -37,6 +37,6 @@ ALTER TABLE "public"."services" ADD CONSTRAINT "service_name_uniq" UNIQUE ("serv
 
 CREATE TABLE "public"."users_key_services" (
     "service_id" int8 NOT NULL REFERENCES services(service_id),
-    "public_key" text NOT NULL REFERENCES users_keys(public_key),
+    "public_key" text NOT NULL REFERENCES users_keys(public_key)
 );
 ALTER TABLE "public"."users_key_services" ADD CONSTRAINT "users_key_services_pk" PRIMARY KEY ("service_id", "public_key");

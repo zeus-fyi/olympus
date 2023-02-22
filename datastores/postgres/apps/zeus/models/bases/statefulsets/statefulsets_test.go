@@ -1,4 +1,4 @@
-package statefulset
+package statefulsets
 
 import (
 	"encoding/json"
@@ -20,7 +20,7 @@ type StatefulSetTestSuite struct {
 }
 
 func (s *StatefulSetTestSuite) SetupTest() {
-	s.TestDirectory = "./statefulset.yaml"
+	s.TestDirectory = "./statefulsets.yaml"
 }
 func (s *StatefulSetTestSuite) TestStatefulSetK8sToDBConversion() {
 	sts := NewStatefulSet()

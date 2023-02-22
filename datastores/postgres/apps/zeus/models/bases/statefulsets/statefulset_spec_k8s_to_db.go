@@ -1,4 +1,4 @@
-package statefulset
+package statefulsets
 
 func (s *StatefulSet) ConvertK8sStatefulSetUpdateStrategyToDB() {
 	updateType := s.K8sStatefulSet.Spec.UpdateStrategy.Type

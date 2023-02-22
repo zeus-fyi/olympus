@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulset"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulsets"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
@@ -19,7 +19,7 @@ func UpdateReplicaCountSQL(q sql_query_templates.QueryParams, replicaCount strin
 		childUpdate = getUpdate(&q, "Spec", "replicas", replicaCount)
 		versionUpdate = getUpdate(&q, "DeploymentParentMetadata", "version", newVersion)
 	case "UpdateReplicaCountStatefulSet":
-		header = getChartResourceTypes(statefulset.StsChartComponentResourceID)
+		header = getChartResourceTypes(statefulsets.StsChartComponentResourceID)
 		childUpdate = getUpdate(&q, "Spec", "replicas", replicaCount)
 		versionUpdate = getUpdate(&q, "StatefulSetParentMetadata", "version", newVersion)
 	default:

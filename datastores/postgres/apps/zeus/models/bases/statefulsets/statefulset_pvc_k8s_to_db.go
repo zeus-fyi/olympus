@@ -1,4 +1,4 @@
-package statefulset
+package statefulsets
 
 func (s *StatefulSet) ConvertK8VolumeClaimTemplatesToDB() error {
 	s.Spec.VolumeClaimTemplates.K8sPersistentVolumeClaimSlice = s.K8sStatefulSet.Spec.VolumeClaimTemplates

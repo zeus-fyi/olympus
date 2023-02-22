@@ -5,7 +5,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/ingresses"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulset"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulsets"
 	v1 "k8s.io/api/apps/v1"
 	v1core "k8s.io/api/core/v1"
 	v1networking "k8s.io/api/networking/v1"
@@ -41,7 +41,7 @@ func (nk *TopologyBaseInfraWorkload) CreateChartWorkloadFromTopologyBaseInfraWor
 		cw.Deployment = &nd
 	}
 	if nk.StatefulSet != nil {
-		sts := statefulset.NewStatefulSet()
+		sts := statefulsets.NewStatefulSet()
 		sts.K8sStatefulSet = *nk.StatefulSet
 		err := sts.ConvertK8sStatefulSetToDB()
 		if err != nil {

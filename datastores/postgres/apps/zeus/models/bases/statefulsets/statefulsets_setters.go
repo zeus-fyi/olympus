@@ -1,4 +1,4 @@
-package statefulset
+package statefulsets
 
 import "github.com/zeus-fyi/olympus/pkg/utils/chronos"
 

@@ -4,11 +4,11 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/common_conversions/db_to_k8s_conversions"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/containers"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulset"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulsets"
 	v1 "k8s.io/api/core/v1"
 )
 
-func DBStatefulSetResource(sts *statefulset.StatefulSet, ckagg, podSpecVolumesStr string) error {
+func DBStatefulSetResource(sts *statefulsets.StatefulSet, ckagg, podSpecVolumesStr string) error {
 	pcGroupMap, pcerr := common_conversions.ParseDeploymentParentChildAggValues(ckagg)
 	if pcerr != nil {
 		return pcerr
@@ -28,7 +28,7 @@ func DBStatefulSetResource(sts *statefulset.StatefulSet, ckagg, podSpecVolumesSt
 	return nil
 }
 
-func DBStatefulSetContainer(d *statefulset.StatefulSet, c *containers.Container) error {
+func DBStatefulSetContainer(d *statefulsets.StatefulSet, c *containers.Container) error {
 	if c.Metadata.ContainerID != 0 {
 		cerr := c.ParseFields()
 		if cerr != nil {

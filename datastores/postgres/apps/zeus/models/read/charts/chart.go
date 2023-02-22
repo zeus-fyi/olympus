@@ -12,7 +12,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/ingresses"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulset"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulsets"
 	read_configuration "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/configuration"
 	read_deployments "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/deployments"
 	read_networking "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/networking"
@@ -83,7 +83,7 @@ func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_tem
 			}
 		case "StatefulSet":
 			if c.StatefulSet == nil {
-				sts := statefulset.NewStatefulSet()
+				sts := statefulsets.NewStatefulSet()
 				c.StatefulSet = &sts
 				derr := read_statefulsets.DBStatefulSetResource(c.StatefulSet, ckagg, podSpecVolumesStr)
 				if derr != nil {

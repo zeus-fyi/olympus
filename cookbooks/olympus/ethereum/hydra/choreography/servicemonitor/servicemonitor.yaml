@@ -12,6 +12,6 @@ spec:
       app.kubernetes.io/name: "zeus-hydra-choreography"
   endpoints:
     - port: http
-      interval: 10s
+      interval: 30s
       path: /metrics
 

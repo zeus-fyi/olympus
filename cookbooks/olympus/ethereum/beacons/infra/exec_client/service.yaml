@@ -3,6 +3,7 @@ kind: Service
 metadata:
   name: zeus-exec-client
   labels:
+    app: "zeus-exec-client"
     app.kubernetes.io/name: zeus-exec-client
     app.kubernetes.io/instance: zeus-exec-client
     app.kubernetes.io/managed-by: zeus
@@ -38,6 +39,7 @@ spec:
       protocol: TCP
       name: metrics
   selector:
+    app: "zeus-exec-client"
     app.kubernetes.io/name: zeus-exec-client
     app.kubernetes.io/instance: zeus-exec-client
 

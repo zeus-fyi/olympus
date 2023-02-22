@@ -13,6 +13,7 @@ require (
 	github.com/spf13/viper v1.14.0
 	github.com/status-im/keycard-go v0.0.0-20200402102358-957c09536969
 	github.com/stretchr/testify v1.8.1
+	k8s.io/apimachinery v0.25.4
 )
 
 require (

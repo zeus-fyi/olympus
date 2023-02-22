@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	zeus_v1_router "github.com/zeus-fyi/olympus/zeus/api/v1"
@@ -31,7 +32,7 @@ func InitV1Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()
-			key, err := auth.VerifyBearerToken(ctx, token)
+			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.ZeusService)
 			if err != nil {
 				log.Err(err).Msg("InitV1Routes")
 				return false, c.JSON(http.StatusInternalServerError, nil)

@@ -1,14 +1,17 @@
-package v1_hypnos
+package v1_hydra
 
 import (
 	"net/http"
 
+	"github.com/labstack/echo-contrib/prometheus"
 	"github.com/labstack/echo/v4"
 	hydra_eth2_web3signer "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer"
 )
 
 func Routes(e *echo.Echo) *echo.Echo {
 	e.GET("/health", Health)
+	p := prometheus.NewPrometheus("hydra", nil)
+	p.Use(e)
 	e.POST(hydra_eth2_web3signer.Eth2SignRoute, hydra_eth2_web3signer.HydraEth2SignRequestHandler)
 	return e
 }

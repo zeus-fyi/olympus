@@ -27,3 +27,16 @@ CREATE TRIGGER set_timestamp_on_user_key_groups
     BEFORE UPDATE ON users_key_groups
     FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();
+
+CREATE TABLE "public"."services" (
+    "service_id" int8 NOT NULL DEFAULT next_id(),
+    "service_name" text NOT NULL
+);
+ALTER TABLE "public"."services" ADD CONSTRAINT "services_pk" PRIMARY KEY ("service_id");
+ALTER TABLE "public"."services" ADD CONSTRAINT "service_name_uniq" UNIQUE ("service_name");
+
+CREATE TABLE "public"."users_key_services" (
+    "service_id" int8 NOT NULL REFERENCES services(service_id),
+    "public_key" text NOT NULL REFERENCES users_keys(public_key),
+);
+ALTER TABLE "public"."users_key_services" ADD CONSTRAINT "users_key_services_pk" PRIMARY KEY ("service_id", "public_key");

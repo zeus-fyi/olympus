@@ -2,6 +2,7 @@ package hydra_choreography
 
 import (
 	"context"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	v1_hydra_choreography "github.com/zeus-fyi/olympus/choreography/hydra/api/v1"
@@ -23,7 +24,6 @@ func Api() {
 	srv.E = v1_hydra_choreography.Routes(srv.E)
 
 	// for beacon monitoring, todo use switch cases to build relevant metrics
-
 	// todo add network name to metrics, workload type etc
 
 	mwi := apollo_metrics_workload_info.NewWorkloadInfo("hydra", v1_hydra_choreography.CloudCtxNs)

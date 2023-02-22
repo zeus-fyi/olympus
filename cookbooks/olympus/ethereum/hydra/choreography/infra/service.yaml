@@ -3,6 +3,7 @@ kind: Service
 metadata:
   name: "zeus-hydra-choreography"
   labels:
+    app: "zeus-hydra-choreography"
     app.kubernetes.io/instance: "zeus-hydra-choreography"
     app.kubernetes.io/name: "zeus-hydra-choreography"
     app.kubernetes.io/managed-by: "zeus"
@@ -14,6 +15,6 @@ spec:
       protocol: TCP
       name: http
   selector:
+    app: "zeus-hydra-choreography"
     app.kubernetes.io/instance: "zeus-hydra-choreography"
     app.kubernetes.io/name: "zeus-hydra-choreography"
-

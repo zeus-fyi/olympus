@@ -8,7 +8,6 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/labstack/echo-contrib/prometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
@@ -43,8 +42,8 @@ func InitBaseRoute() *echo.Echo {
 		middleware.Recover(),
 		middleware.Logger(),
 	)
-	p := prometheus.NewPrometheus("hydra", nil)
-	p.Use(e)
+	//p := prometheus.NewPrometheus("hydra", nil)
+	//p.Use(e)
 	return e
 }
 

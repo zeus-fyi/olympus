@@ -3,6 +3,7 @@ kind: StatefulSet
 metadata:
   name: zeus-exec-client
   labels:
+    app: "zeus-exec-client"
     app.kubernetes.io/name: zeus-exec-client
     app.kubernetes.io/instance: zeus-exec-client
     app.kubernetes.io/managed-by: zeus
@@ -13,6 +14,7 @@ spec:
   replicas: 1
   selector:
     matchLabels:
+      app: "zeus-exec-client"
       app.kubernetes.io/name: zeus-exec-client
       app.kubernetes.io/instance: zeus-exec-client
   serviceName: zeus-exec-client
@@ -21,6 +23,7 @@ spec:
   template:
     metadata:
       labels:
+        app: "zeus-exec-client"
         app.kubernetes.io/name: zeus-exec-client
         app.kubernetes.io/instance: zeus-exec-client
       annotations:

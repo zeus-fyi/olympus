@@ -3,17 +3,20 @@ kind: Deployment
 metadata:
   name: "zeus-hydra"
   labels:
+    app: "zeus-hydra"
     app.kubernetes.io/instance: "zeus-hydra"
     app.kubernetes.io/name: "zeus-hydra"
 spec:
   replicas: 1
   selector:
     matchLabels:
+      app: "zeus-hydra"
       app.kubernetes.io/name: "zeus-hydra"
       app.kubernetes.io/instance: "zeus-hydra"
   template:
     metadata:
       labels:
+        app: "zeus-hydra"
         app.kubernetes.io/name: "zeus-hydra"
         app.kubernetes.io/instance: "zeus-hydra"
     spec:

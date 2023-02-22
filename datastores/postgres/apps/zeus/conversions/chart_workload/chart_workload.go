@@ -5,7 +5,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/ingresses"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulset"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulsets"
 )
 
 type ChartWorkload struct {
@@ -13,7 +13,7 @@ type ChartWorkload struct {
 	*services.Service
 	*ingresses.Ingress
 	*configuration.ConfigMap
-	*statefulset.StatefulSet
+	*statefulsets.StatefulSet
 }
 
 func NewChartWorkload() ChartWorkload {

@@ -1,4 +1,4 @@
-package statefulset
+package statefulsets
 
 import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"

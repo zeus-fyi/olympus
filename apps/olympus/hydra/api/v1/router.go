@@ -1,4 +1,4 @@
-package v1_hypnos
+package v1_hydra
 
 import (
 	"net/http"

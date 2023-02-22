@@ -3,17 +3,20 @@ kind: Deployment
 metadata:
   name: "zeus-hydra-choreography"
   labels:
+    app: "zeus-hydra-choreography"
     app.kubernetes.io/instance: "zeus-hydra-choreography"
     app.kubernetes.io/name: "zeus-hydra-choreography"
 spec:
   replicas: 1
   selector:
     matchLabels:
+      app: "zeus-hydra-choreography"
       app.kubernetes.io/name: "zeus-hydra-choreography"
       app.kubernetes.io/instance: "zeus-hydra-choreography"
   template:
     metadata:
       labels:
+        app: "zeus-hydra-choreography"
         app.kubernetes.io/name: "zeus-hydra-choreography"
         app.kubernetes.io/instance: "zeus-hydra-choreography"
     spec:

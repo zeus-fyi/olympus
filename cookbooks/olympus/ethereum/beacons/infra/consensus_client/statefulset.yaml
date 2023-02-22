@@ -3,6 +3,7 @@ kind: StatefulSet
 metadata:
   name: zeus-consensus-client
   labels:
+    app: "zeus-consensus-client"
     app.kubernetes.io/name: zeus-consensus-client
     app.kubernetes.io/instance: zeus-consensus-client
     app.kubernetes.io/managed-by: zeus
@@ -13,6 +14,7 @@ spec:
   replicas: 1
   selector:
     matchLabels:
+      app: "zeus-consensus-client"
       app.kubernetes.io/name: zeus-consensus-client
       app.kubernetes.io/instance: zeus-consensus-client
   serviceName: zeus-consensus-client
@@ -21,6 +23,7 @@ spec:
   template:
     metadata:
       labels:
+        app: "zeus-consensus-client"
         app.kubernetes.io/name: zeus-consensus-client
         app.kubernetes.io/instance: zeus-consensus-client
     spec:

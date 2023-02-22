@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: zeus-hydra-monitor
+  labels:
+    app: "zeus-hydra"
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: "zeus-hydra"
+      app.kubernetes.io/name: "zeus-hydra"
+  endpoints:
+    - port: http
+      interval: 30s
+      path: /metrics

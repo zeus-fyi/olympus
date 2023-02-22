@@ -2,13 +2,13 @@ package create_orgs
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
-	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
 type CreateOrgsTestSuite struct {
@@ -17,19 +17,14 @@ type CreateOrgsTestSuite struct {
 
 func (s *CreateOrgsTestSuite) TestInsertOrg() {
 	var ts chronos.Chronos
-
-	o := NewCreateNamedOrg("validatorDemosOrg")
+	s.InitLocalConfigs()
+	apps.Pg.InitPG(context.Background(), s.Tc.ProdLocalDbPgconn)
+	o := NewCreateNamedOrg("userdemos")
 	o.OrgID = ts.UnixTimeStampNow()
-
 	ctx := context.Background()
-	q := sql_query_templates.NewQueryParam("InsertOrg", "orgs", "where", 1000, []string{})
-
-	q.TableName = o.GetTableName()
-	q.Columns = o.GetTableColumns()
-	q.Values = []apps.RowValues{o.GetRowValues("default")}
 	err := o.InsertOrg(ctx)
 	s.Require().Nil(err)
-
+	fmt.Println(o.OrgID)
 }
 
 func TestCreateOrgsTestSuite(t *testing.T) {

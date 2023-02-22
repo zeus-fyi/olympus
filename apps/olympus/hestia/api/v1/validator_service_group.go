@@ -13,6 +13,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	eth_validators_service_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validators_service_requests"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
@@ -35,7 +37,6 @@ func CreateValidatorServiceRequestHandler(c echo.Context) error {
 
 func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Context) error {
 	log.Info().Msg("Hestia: CreateValidatorServiceRequest: CreateValidatorsServiceGroup")
-
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
 
@@ -47,10 +48,22 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 	}
 
 	var network string
+	bearer := c.Get("bearer").(string)
+
 	switch v.ProtocolNetworkID {
 	case hestia_req_types.EthereumMainnetProtocolNetworkID:
+		key, err := auth.VerifyBearerTokenService(ctx, bearer, create_org_users.EthereumMainnetService)
+		if err != nil || key.PublicKeyVerified == false {
+			log.Err(err).Interface("orgUser", ou).Msg("CreateValidatorsServiceGroup: EthereumMainnetService unauthorized")
+			return c.JSON(http.StatusUnauthorized, nil)
+		}
 		network = hestia_req_types.ProtocolNetworkIDToString(v.ProtocolNetworkID)
 	case hestia_req_types.EthereumEphemeryProtocolNetworkID:
+		key, err := auth.VerifyBearerTokenService(ctx, bearer, create_org_users.EthereumEphemeryService)
+		if err != nil || key.PublicKeyVerified == false {
+			log.Err(err).Interface("orgUser", ou).Msg("CreateValidatorsServiceGroup: EthereumEphemeryService unauthorized")
+			return c.JSON(http.StatusUnauthorized, nil)
+		}
 		network = hestia_req_types.ProtocolNetworkIDToString(v.ProtocolNetworkID)
 	default:
 		err := errors.New("unknown network")
@@ -89,11 +102,11 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 			_, err = artemis_hydra_orchestrations_aws_auth.HydraSecretManagerAuthAWS.UpdateSecret(ctx, su)
 			if err != nil {
 				log.Ctx(ctx).Err(err).Msg("service auth failed to update secret")
-				log.Info().Msgf("Hestia: CreateValidatorServiceRequest: Unexpected Error: ", err.Error())
+				log.Info().Msgf("Hestia: CreateValidatorServiceRequest: Unexpected Error: %s", err.Error())
 				return c.JSON(http.StatusInternalServerError, nil)
 			}
 		} else {
-			log.Info().Msgf("Hestia: CreateValidatorServiceRequest: Unexpected Error: ", err.Error())
+			log.Info().Msgf("Hestia: CreateValidatorServiceRequest: Unexpected Error: %s", err.Error())
 			log.Ctx(ctx).Err(err).Msg("service auth failed to create secret")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}

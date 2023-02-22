@@ -37,7 +37,6 @@ func InitV1Routes(e *echo.Echo) {
 			return key.PublicKeyVerified, err
 		},
 	}))
-	eg.POST("/users/create", CreateUserHandler)
 	eg.POST("/validators/service/create", CreateValidatorServiceRequestHandler)
 }
 
@@ -58,6 +57,8 @@ func InitV1InternalRoutes(e *echo.Echo) {
 			return key.PublicKeyVerified, err
 		},
 	}))
+	eg.POST(DemoUsersCreateRoute, CreateDemoUserHandler)
+	eg.POST("/users/create", CreateUserHandler)
 	eg.POST("/orgs/create", CreateOrgHandler)
 	eg.POST("/cloud/namespace/request/create", CreateTopologiesOrgCloudCtxNsRequestHandler)
 }

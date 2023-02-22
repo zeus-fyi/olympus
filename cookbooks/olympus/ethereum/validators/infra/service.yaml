@@ -3,6 +3,7 @@ kind: Service
 metadata:
   name: zeus-hydra-validators
   labels:
+    app: "zeus-hydra-validators"
     app.kubernetes.io/name: zeus-hydra-validators
     app.kubernetes.io/instance: zeus-hydra-validators
     app.kubernetes.io/managed-by: zeus-hydra-validators
@@ -18,5 +19,6 @@ spec:
       protocol: TCP
       name: metrics
   selector:
+    app: "zeus-hydra-validators"
     app.kubernetes.io/name: zeus-hydra-validators
     app.kubernetes.io/instance: zeus-hydra-validators

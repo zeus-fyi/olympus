@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/instance: "zeus-hydra-choreography"
     app.kubernetes.io/name: "zeus-hydra-choreography"
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: "zeus-hydra-choreography"

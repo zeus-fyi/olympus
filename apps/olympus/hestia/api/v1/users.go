@@ -47,9 +47,9 @@ const (
 
 type CreateDemoUserRequest struct {
 	Keyname         string `json:"keyname"`
-	Metadata        string `json:"metadata"`
+	Metadata        any    `json:"metadata"`
 	ServiceID       int    `json:"serviceID"`
-	ValidatorCount  int    `json:"validatorCount"`
+	ValidatorCount  string `json:"validatorCount"`
 	Middleware      string `json:"middleware"`
 	ServiceType     string `json:"serviceType"`
 	EthereumAddress string `json:"ethereumAddress"`

@@ -4,9 +4,6 @@ FROM golang:1.20.1-buster as builder
 WORKDIR /app
 # Download necessary Go modules
 COPY . .
-COPY configs/ca-certificate.crt .
-COPY configs/zeus.fyi/ca.pem .
-COPY configs/zeus.fyi/ca.key .
 
 ARG CA_CRT
 RUN if [ -z "${CA_CRT}" ]; then \

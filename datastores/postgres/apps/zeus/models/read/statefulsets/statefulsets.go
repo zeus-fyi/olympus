@@ -9,7 +9,7 @@ import (
 )
 
 func DBStatefulSetResource(sts *statefulsets.StatefulSet, ckagg, podSpecVolumesStr string) error {
-	pcGroupMap, pcerr := common_conversions.ParseDeploymentParentChildAggValues(ckagg)
+	pcGroupMap, pcerr := common_conversions.ParseParentChildAggValues(ckagg)
 	if pcerr != nil {
 		return pcerr
 	}

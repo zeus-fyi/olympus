@@ -9,7 +9,7 @@ import (
 )
 
 func DBDeploymentResource(d *deployments.Deployment, ckagg, podSpecVolumesStr string) error {
-	pcGroupMap, pcerr := common_conversions.ParseDeploymentParentChildAggValues(ckagg)
+	pcGroupMap, pcerr := common_conversions.ParseParentChildAggValues(ckagg)
 	if pcerr != nil {
 		return pcerr
 	}

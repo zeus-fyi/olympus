@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 )
 
@@ -46,7 +47,7 @@ func InitV1InternalRoutes(e *echo.Echo) {
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()
-			key, err := auth.VerifyInternalBearerToken(ctx, token)
+			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.ZeusWebhooksService)
 			if err != nil {
 				log.Err(err).Msg("InitV1InternalRoutes")
 				return false, c.JSON(http.StatusInternalServerError, nil)
@@ -58,9 +59,9 @@ func InitV1InternalRoutes(e *echo.Echo) {
 		},
 	}))
 	eg.POST(DemoUsersCreateRoute, CreateDemoUserHandler)
-	eg.POST("/users/create", CreateUserHandler)
-	eg.POST("/orgs/create", CreateOrgHandler)
-	eg.POST("/cloud/namespace/request/create", CreateTopologiesOrgCloudCtxNsRequestHandler)
+	//eg.POST("/users/create", CreateUserHandler)
+	//eg.POST("/orgs/create", CreateOrgHandler)
+	//eg.POST("/cloud/namespace/request/create", CreateTopologiesOrgCloudCtxNsRequestHandler)
 }
 
 func Health(c echo.Context) error {

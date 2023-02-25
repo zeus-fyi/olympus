@@ -20,7 +20,7 @@ type StatefulSetTestSuite struct {
 }
 
 func (s *StatefulSetTestSuite) SetupTest() {
-	s.TestDirectory = "./statefulsets.yaml"
+	s.TestDirectory = "./statefulset.yaml"
 }
 func (s *StatefulSetTestSuite) TestStatefulSetK8sToDBConversion() {
 	sts := NewStatefulSet()

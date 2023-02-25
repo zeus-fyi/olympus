@@ -30,7 +30,7 @@ func (t *HestiaTestSuite) TestCreateDemoUserEphemery() {
 	<-start
 	defer t.E.Shutdown(ctx)
 	userDemoReq := CreateDemoUserRequest{
-		KeyName:   "userDemoKey",
+		Keyname:   "userDemoKey",
 		Metadata:  `{"name": "username"}`,
 		ServiceID: create_org_users.EthereumEphemeryServiceID,
 	}

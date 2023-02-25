@@ -1,10 +1,12 @@
 package chart_workload
 
 import (
+	v1sm "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/configuration"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/ingresses"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/servicemonitors"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulsets"
 	v1 "k8s.io/api/apps/v1"
 	v1core "k8s.io/api/core/v1"
@@ -17,15 +19,17 @@ type TopologyBaseInfraWorkload struct {
 	*v1.Deployment        `json:"deployment"`
 	*v1.StatefulSet       `json:"statefulSet"`
 	*v1networking.Ingress `json:"ingress"`
+	*v1sm.ServiceMonitor  `json:"serviceMonitor"`
 }
 
 func NewTopologyBaseInfraWorkload() TopologyBaseInfraWorkload {
 	return TopologyBaseInfraWorkload{
-		Service:     nil,
-		ConfigMap:   nil,
-		Deployment:  nil,
-		StatefulSet: nil,
-		Ingress:     nil,
+		Service:        nil,
+		ConfigMap:      nil,
+		Deployment:     nil,
+		StatefulSet:    nil,
+		Ingress:        nil,
+		ServiceMonitor: nil,
 	}
 }
 
@@ -69,6 +73,15 @@ func (nk *TopologyBaseInfraWorkload) CreateChartWorkloadFromTopologyBaseInfraWor
 			return cw, err
 		}
 		cw.Ingress = &ing
+	}
+	if nk.ServiceMonitor != nil {
+		sm := servicemonitors.NewServiceMonitor()
+		sm.K8sServiceMonitor = *nk.ServiceMonitor
+		err := sm.ConvertK8sServiceMonitorToDB()
+		if err != nil {
+			return cw, err
+		}
+		cw.ServiceMonitor = &sm
 	}
 	return cw, nil
 }

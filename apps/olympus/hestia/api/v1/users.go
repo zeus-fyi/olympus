@@ -3,6 +3,7 @@ package v1hestia
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -45,9 +46,13 @@ const (
 )
 
 type CreateDemoUserRequest struct {
-	KeyName   string `json:"keyName"`
-	Metadata  string `json:"metadata"`
-	ServiceID int    `json:"serviceID"`
+	Keyname         string `json:"keyname"`
+	Metadata        any    `json:"metadata"`
+	ServiceID       int    `json:"serviceID"`
+	ValidatorCount  string `json:"validatorCount"`
+	Middleware      string `json:"middleware"`
+	ServiceType     string `json:"serviceType"`
+	EthereumAddress string `json:"ethereumAddress"`
 }
 
 func CreateDemoUserHandler(c echo.Context) error {
@@ -61,17 +66,16 @@ func CreateDemoUserHandler(c echo.Context) error {
 func (uc *CreateDemoUserRequest) CreateUserWithKeyServiceDemo(c echo.Context) error {
 	ctx := context.Background()
 	ou := create_org_users.OrgUser{}
-	b, err := json.Marshal(uc.Metadata)
+	metadata, err := json.Marshal(uc)
 	if err != nil {
 		log.Err(err).Interface("userMetadata", uc.Metadata).Msg("CreateUserRequest: marshal metadata error")
-		return c.JSON(http.StatusBadRequest, b)
+		return c.JSON(http.StatusBadRequest, nil)
 	}
-	key, err := ou.InsertDemoOrgUserWithNewKey(ctx, b, uc.KeyName, uc.ServiceID)
+	key, err := ou.InsertDemoOrgUserWithNewKey(ctx, metadata, uc.Keyname, uc.ServiceID)
 	if err != nil {
 		log.Err(err).Interface("userMetadata", uc.Metadata).Msg("CreateUserWithKeyServiceDemo, insert error")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	resp := make(map[string]string)
-	resp["bearer"] = key
+	resp := Response{Message: fmt.Sprintf("Your bearer token is: %s", key)}
 	return c.JSON(http.StatusOK, resp)
 }

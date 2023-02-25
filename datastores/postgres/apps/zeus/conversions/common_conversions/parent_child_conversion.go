@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 )
 
-func ParseDeploymentParentChildAggValues(ckaggString string) (ParentChildDB, error) {
+func ParseParentChildAggValues(ckaggString string) (ParentChildDB, error) {
 	pcGroupMap := NewPCGroupMap()
 	// represents the json compressed version in db that wraps parent, child, and values
 	m := make(map[string][][]map[string][]map[string]interface{})

@@ -6,7 +6,7 @@ import (
 )
 
 func DBIngressResource(ing *ingresses.Ingress, ckagg string) error {
-	pcGroupMap, pcerr := common_conversions.ParseDeploymentParentChildAggValues(ckagg)
+	pcGroupMap, pcerr := common_conversions.ParseParentChildAggValues(ckagg)
 	if pcerr != nil {
 		return pcerr
 	}

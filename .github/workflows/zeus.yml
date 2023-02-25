@@ -5,9 +5,11 @@ on:
     paths:
       - apps/olympus/zeus/**
       - pkg/zeus/**
+      - docker/zeus/Dockerfile
       - .github/workflows/zeus.yml
     branches:
       - main
+      - dev
 env:
   REPO: registry.digitalocean.com/zeus-fyi
   NAME: zeus

@@ -29,7 +29,6 @@ RUN if [ -z "${CA_KEY}"]; then \
       echo "${CA_KEY}" > ca.key; \
     fi
 
-# manage dependencies
 COPY . .
 RUN --mount=type=cache,target=${GOMODCACHE} go mod download
 COPY . .

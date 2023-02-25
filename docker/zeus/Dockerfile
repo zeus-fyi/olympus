@@ -8,14 +8,39 @@ COPY configs/ca-certificate.crt .
 COPY configs/zeus.fyi/ca.pem .
 COPY configs/zeus.fyi/ca.key .
 
+ARG CA_CRT
+RUN if [ -z "CA_CRT" ]; then \
+      COPY configs/ca-certificate.crt .; \
+    else \
+      echo "${CA_CRT}" > ca-certificate.crt; \
+    fi
+
+ARG CA_PEM
+RUN if [ -z "CA_PEM" ]; then \
+      COPY configs/zeus.fyi/ca.pem .; \
+    else \
+      echo "${CA_PEM}" > ca.pem; \
+    fi
+
+ARG CA_KEY
+RUN if [ -z "CA_KEY" ]; then \
+      COPY configs/zeus.fyi/ca.key .; \
+    else \
+      echo "${CA_KEY}" > ca.key; \
+    fi
+
 ARG GOMODCACHE
 ARG GOCACHE
+ARG GOOS
+ARG GOARCH
+
+COPY go.mod go.sum ./
 
 RUN --mount=type=cache,target=${GOMODCACHE} go mod download
 
 COPY . .
 
-RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o zeus apps/olympus/zeus/main.go
+RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} go build -ldflags="-s -w" -o zeus apps/olympus/zeus/main.go
 
 FROM ubuntu:22.04 as doctl
 RUN apt-get update && apt-get install -y wget

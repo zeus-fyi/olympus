@@ -16,7 +16,6 @@ const Sn = "Infrastructure"
 func (i *InfraBaseTopology) SelectInfraTopologyQuery() {
 	var insertTopQuery, insertTopOrgUserQuery, insertTopChartQuery, insertTopInfraQuery sql_query_templates.SubCTE
 
-	// TODO, use db but too much of pita to update right now
 	var ts chronos.Chronos
 	chartPackageID := ts.UnixTimeStampNow()
 	i.Packages.ChartPackageID = chartPackageID

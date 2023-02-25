@@ -65,5 +65,9 @@ func (p *Packages) InsertPackagesCTE() sql_query_templates.CTE {
 		cmCte := p.GetConfigMapCTE(&p.Chart)
 		p.CTE.AppendSubCtes(cmCte.SubCTEs)
 	}
+	if p.ServiceMonitor != nil {
+		smCte := p.GetServiceMonitorCTE(&p.Chart)
+		p.CTE.AppendSubCtes(smCte.SubCTEs)
+	}
 	return p.CTE
 }

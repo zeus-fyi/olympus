@@ -1,6 +1,7 @@
 package chart_workload
 
 import (
+	v1sm "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/configuration"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/ingresses"
@@ -17,6 +18,7 @@ type TopologyBaseInfraWorkload struct {
 	*v1.Deployment        `json:"deployment"`
 	*v1.StatefulSet       `json:"statefulSet"`
 	*v1networking.Ingress `json:"ingress"`
+	*v1sm.ServiceMonitor  `json:"serviceMonitor"`
 }
 
 func NewTopologyBaseInfraWorkload() TopologyBaseInfraWorkload {

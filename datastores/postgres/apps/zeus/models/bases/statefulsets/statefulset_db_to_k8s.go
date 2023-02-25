@@ -44,7 +44,6 @@ func (s *StatefulSet) ParseDBConfigToK8s(pcSlice common_conversions.ParentChildD
 }
 
 func (s *StatefulSet) ParseVolumeClaimTemplates(pvcMap map[int][]common_conversions.PC) error {
-
 	pvc := v1core.PersistentVolumeClaim{
 		TypeMeta:   metav1.TypeMeta{},
 		ObjectMeta: metav1.ObjectMeta{},

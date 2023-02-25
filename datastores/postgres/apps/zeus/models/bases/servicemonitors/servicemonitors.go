@@ -41,7 +41,7 @@ func NewServiceMonitor() ServiceMonitor {
 		ChartSubcomponentParentClassTypeName: "Spec",
 	}
 	s.Metadata.Metadata = structs.NewMetadata()
-	s.Metadata.ChartSubcomponentParentClassTypeName = "ServiceMonitorSpecParentMetadata"
+	s.Metadata.ChartSubcomponentParentClassTypeName = "ServiceMonitorParentMetadata"
 	s.Metadata.ChartComponentResourceID = ServiceMonitorChartComponentResourceID
 	return s
 }

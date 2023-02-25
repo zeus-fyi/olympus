@@ -12,10 +12,12 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/ingresses"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/servicemonitors"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulsets"
 	read_configuration "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/configuration"
 	read_deployments "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/deployments"
 	read_networking "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/networking"
+	read_servicemonitors "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/servicemonitors"
 	read_statefulsets "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/statefulsets"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
@@ -124,6 +126,16 @@ func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_tem
 				if cerr != nil {
 					log.Err(cerr).Msg(q.LogHeader(ModelName))
 					return cerr
+				}
+			}
+		case "ServiceMonitor":
+			if c.ServiceMonitor == nil {
+				sm := servicemonitors.NewServiceMonitor()
+				c.ServiceMonitor = &sm
+				serr := read_servicemonitors.DBServiceMonitorResource(c.ServiceMonitor, ckagg)
+				if serr != nil {
+					log.Err(serr).Msg(q.LogHeader(ModelName))
+					return serr
 				}
 			}
 		}

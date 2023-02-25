@@ -5,6 +5,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/ingresses"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/servicemonitors"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulsets"
 )
 
@@ -14,14 +15,17 @@ type ChartWorkload struct {
 	*ingresses.Ingress
 	*configuration.ConfigMap
 	*statefulsets.StatefulSet
+	*servicemonitors.ServiceMonitor
 }
 
 func NewChartWorkload() ChartWorkload {
 	k8s := ChartWorkload{
-		Deployment: nil,
-		Service:    nil,
-		Ingress:    nil,
-		ConfigMap:  nil,
+		Deployment:     nil,
+		Service:        nil,
+		Ingress:        nil,
+		ConfigMap:      nil,
+		StatefulSet:    nil,
+		ServiceMonitor: nil,
 	}
 	return k8s
 }
@@ -43,6 +47,9 @@ func (c *ChartWorkload) GetTopologyBaseInfraWorkload() TopologyBaseInfraWorkload
 	}
 	if c.Ingress != nil {
 		nk.Ingress = &c.K8sIngress
+	}
+	if c.ServiceMonitor != nil {
+		nk.ServiceMonitor = &c.K8sServiceMonitor
 	}
 	return nk
 }

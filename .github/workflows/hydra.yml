@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - apps/olympus/hydra/**
+      - datastores/dynamodb/**
       - .github/workflows/hydra.yml
     branches:
       - main

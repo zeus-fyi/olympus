@@ -1,20 +1,19 @@
-name: Build Zeus App
+name: Build Hestia App
 
 on:
   push:
     paths:
-      - apps/olympus/zeus/**
-      - pkg/aegis/auth_startup/**
-      - pkg/zeus/**
-      - datastores/apps/zeus/**
-      - datastores/s3/**
-      - docker/zeus/Dockerfile
-      - .github/workflows/zeus.yml
+      - apps/olympus/hestia/**
+      - pkg/aegis/auth_startup/hestia_auth.go
+      - pkg/artemis/**
+      - datastores/postgres/apps/hestia/**
+      - docker/hestia/Dockerfile
+      - .github/workflows/hestia.yml
     branches:
       - main
 env:
   REPO: registry.digitalocean.com/zeus-fyi
-  NAME: zeus
+  NAME: hestia
   TAG: latest
   GO111MODULE: on
   GOOS: linux
@@ -58,7 +57,7 @@ jobs:
           wget https://github.com/digitalocean/doctl/releases/download/v1.78.0/doctl-1.78.0-linux-amd64.tar.gz -O doctl.tar.gz
           tar xf doctl.tar.gz -C /usr/local/bin
 
-      - name: Build And Publish Zeus App
+      - name: Build And Publish Hestia App
         run: |
           doctl registry login -t ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
           docker buildx build \
@@ -71,5 +70,5 @@ jobs:
           --build-arg CA_PEM="${{ secrets.CA_PEM }}" \
           --build-arg CA_KEY="${{ secrets.CA_KEY }}" \
           --platform=${{ env.GOOS }}/${{ env.GOARCH }} \
-          -f docker/zeus/Dockerfile . --push
+          -f docker/hestia/Dockerfile . --push
 

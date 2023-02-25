@@ -3,6 +3,7 @@ name: Build Hydra Choreography App
 on:
   push:
     paths:
+      - pkg/aegis/auth_startup/**
       - apps/olympus/choreography/hydra/**
       - pkg/apollo/metrics/ethereum/beacon/**
       - .github/workflows/hydra_choreography.yml

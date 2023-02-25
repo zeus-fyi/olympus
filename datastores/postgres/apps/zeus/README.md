@@ -6,19 +6,6 @@ High Level Explainer
 
 * Zeus Model Definitions and Interfaces
 
-### Technology Stack ###
-
-* Postgres 13.4 (Temporal Dependency)
-
-### Directory
-* Conversions
-* Initializations
-    * Seeds Useful Default Template Values
-* Models
-* Structs
-* CI/CD
-    * Flux
-
 ### Models
 
 * Models

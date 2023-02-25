@@ -5,14 +5,31 @@ WORKDIR /app
 
 COPY . .
 
-COPY configs/ca-certificate.crt .
-COPY configs/zeus.fyi/ca.pem .
-COPY configs/zeus.fyi/ca.key .
-
 ARG GOMODCACHE
 ARG GOCACHE
 ARG GOOS
 ARG GOARCH
+
+ARG CA_CRT
+RUN if [ -z "${CA_CRT}" ]; then \
+      COPY configs/ca-certificate.crt .; \
+    else \
+      echo "${CA_CRT}" > ca-certificate.crt; \
+    fi
+
+ARG CA_PEM
+RUN if [ -z "${CA_PEM}" ]; then \
+      COPY configs/zeus.fyi/ca.pem .; \
+    else \
+      echo "${CA_PEM}" > ca.pem; \
+    fi
+
+ARG CA_KEY
+RUN if [ -z "${CA_KEY}"]; then \
+      COPY configs/zeus.fyi/ca.key .; \
+    else \
+      echo "${CA_KEY}" > ca.key; \
+    fi
 
 RUN --mount=type=cache,target=${GOMODCACHE} go mod download
 

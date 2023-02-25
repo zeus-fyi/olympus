@@ -8,7 +8,6 @@ on:
       - .github/workflows/hydra_choreography.yml
     branches:
       - main
-      - dev
 env:
   REPO: registry.digitalocean.com/zeus-fyi
   NAME: hydrachoreography

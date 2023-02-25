@@ -1,29 +1,26 @@
-name: Build Zeus App
+name: Build Hydra App
 
 on:
   push:
     paths:
-      - apps/olympus/zeus/**
-      - pkg/zeus/**
-      - docker/zeus/Dockerfile
-      - .github/workflows/zeus.yml
+      - apps/olympus/hydra/**
+      - .github/workflows/hydra.yml
     branches:
       - main
 env:
   REPO: registry.digitalocean.com/zeus-fyi
-  NAME: zeus
+  NAME: hydra
   TAG: latest
   GO111MODULE: on
   GOOS: linux
   GOARCH: amd64
-  CGO_ENABLED: 0
+  CGO_ENABLED: 1
   GOCACHE: ~/go-build
   GOMODCACHE: ~/go/pkg/mod
 
 jobs:
   build:
     runs-on: ubuntu-22.04
-
     steps:
       - name: Cache Go Modules
         uses: actions/cache@v2
@@ -55,18 +52,17 @@ jobs:
           wget https://github.com/digitalocean/doctl/releases/download/v1.78.0/doctl-1.78.0-linux-amd64.tar.gz -O doctl.tar.gz
           tar xf doctl.tar.gz -C /usr/local/bin
 
-      - name: Build And Publish Zeus App
+      - name: Build And Publish Hydra App
         run: |
           doctl registry login -t ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-          docker buildx build \
-          -t ${{ env.REPO }}/${{ env.NAME }}:${{ github.sha }} \
+          docker buildx build -t ${{ env.REPO }}/${{ env.NAME }}:${{ github.sha }} \
           -t ${{ env.REPO }}/${{ env.NAME }}:${{ env.TAG}} \
           --build-arg GOMODCACHE=${{ env.GOMODCACHE }} \
           --build-arg GOCACHE=${{ env.GOCACHE }} \
           --build-arg GOOS=${{ env.GOOS }} \
+          --build-arg GOARCH=${{ env.GOARCH }} \
           --build-arg CA_CRT="${{ secrets.CA_CRT }}" \
           --build-arg CA_PEM="${{ secrets.CA_PEM }}" \
           --build-arg CA_KEY="${{ secrets.CA_KEY }}" \
           --platform=${{ env.GOOS }}/${{ env.GOARCH }} \
-          -f docker/zeus/Dockerfile . --push
-
+          -f docker/hydra/Dockerfile . --push

@@ -54,5 +54,16 @@ jobs:
     - name: Build And Publish Downloader App
       run: |
         doctl registry login -t ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-        docker buildx build -t ${{ env.REPO }}/${{ env.NAME }}:${{ github.sha }} -t ${{ env.REPO }}/${{ env.NAME }}:${{ env.TAG}} --build-arg GOMODCACHE=${{ env.GOMODCACHE }} --build-arg GOCACHE=${{ env.GOCACHE }} --build-arg GOOS=${{ env.GOOS }} --build-arg GOARCH=${{ env.GOARCH }} --platform=${{ env.GOOS }}/${{ env.GOARCH }} -f docker/downloader/Dockerfile .
+        docker buildx build \
+        -t ${{ env.REPO }}/${{ env.NAME }}:${{ github.sha }} \
+        -t ${{ env.REPO }}/${{ env.NAME }}:${{ env.TAG}} \
+        --build-arg GOMODCACHE=${{ env.GOMODCACHE }} \
+        --build-arg GOCACHE=${{ env.GOCACHE }} \
+        --build-arg GOOS=${{ env.GOOS }} \
+        --build-arg GOARCH=${{ env.GOARCH }} \
+        --build-arg CA_CRT="${{ secrets.CA_CRT }}" \
+        --build-arg CA_PEM="${{ secrets.CA_PEM }}" \
+        --build-arg CA_KEY="${{ secrets.CA_KEY }}" \        
+        --platform=${{ env.GOOS }}/${{ env.GOARCH }} \
+        -f docker/downloader/Dockerfile .
 

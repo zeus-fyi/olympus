@@ -3,7 +3,6 @@ FROM golang:1.20.1-buster as builder
 
 WORKDIR /app
 # Download necessary Go modules
-COPY . .
 
 ARG CA_CRT
 RUN if [ -z "${CA_CRT}" ]; then \

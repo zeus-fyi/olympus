@@ -4,6 +4,7 @@ import (
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/structs"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -18,7 +19,7 @@ type ServiceMonitor struct {
 }
 
 type ServiceMonitorSpec struct {
-	autogen_bases.ChartSubcomponentParentClassTypes
+	common.ParentClass
 	structs.ChildClassSingleValue
 }
 

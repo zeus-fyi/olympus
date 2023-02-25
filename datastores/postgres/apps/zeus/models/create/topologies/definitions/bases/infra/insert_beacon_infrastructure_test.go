@@ -25,6 +25,45 @@ type CreateBeaconInfraTestSuite struct {
 var LocalTemporalUserID = 7138958574876245567
 var LocalTemporalOrgID = 7138983863666903883
 
+func (s *CreateBeaconInfraTestSuite) TestInsertInfraBasePackage() {
+	p := filepaths.Path{
+		PackageName: "",
+		DirIn:       s.TestDirectory + "/mocks/consensus_client",
+		DirOut:      s.TestDirectory + "/mocks/consensus_client_out",
+	}
+	err := s.Yr.ReadK8sWorkloadDir(p)
+	s.Require().Nil(err)
+
+	cw, err := s.Yr.CreateChartWorkloadFromTopologyBaseInfraWorkload()
+	s.Require().Nil(err)
+
+	pkg := packages.Packages{
+		Chart: charts.Chart{
+			ChartPackages: autogen_bases.ChartPackages{
+				ChartPackageID:   0,
+				ChartName:        rand.String(10),
+				ChartVersion:     rand.String(10),
+				ChartDescription: sql.NullString{},
+			},
+		},
+		ChartWorkload: cw,
+	}
+
+	inf := NewCreateInfrastructure()
+	inf.Packages = pkg
+	ctx := context.Background()
+	inf.Name = fmt.Sprintf("test_%d", s.Ts.UnixTimeStampNow())
+	inf.OrgID, inf.UserID = LocalTemporalOrgID, LocalTemporalUserID
+
+	err = inf.InsertInfraBase(ctx)
+	s.Require().Nil(err)
+
+	fmt.Println("ChartPackageID")
+	fmt.Println(inf.ChartPackageID)
+	fmt.Println("TopologyID")
+	fmt.Println(inf.TopologyID)
+}
+
 func (s *CreateBeaconInfraTestSuite) TestInsertInfraBase() {
 	p := filepaths.Path{
 		PackageName: "",

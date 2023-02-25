@@ -35,7 +35,7 @@ RUN --mount=type=cache,target=${GOMODCACHE} go mod download
 
 COPY . .
 
-RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} go build -ldflags="-s -w" -o zeus ~/apps/olympus/zeus/main.go
+RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} go build -ldflags="-s -w" -o zeus apps/olympus/zeus/main.go
 
 FROM ubuntu:22.04 as doctl
 RUN apt-get update && apt-get install -y wget

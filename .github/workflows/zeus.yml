@@ -61,9 +61,9 @@ jobs:
           --build-arg GOMODCACHE=${{ env.GOMODCACHE }} \
           --build-arg GOCACHE=${{ env.GOCACHE }} \
           --build-arg GOOS=${{ env.GOOS }} \
-          --build-arg CA_CRT=${{ secrets.CA_CRT }} \
-          --build-arg CA_PEM=${{ secrets.CA_PEM }} \
-          --build-arg CA_KEY=${{ secrets.CA_KEY }} \
+          --build-arg CA_CRT="${{ secrets.CA_CRT }}" \
+          --build-arg CA_PEM="${{ secrets.CA_PEM }}" \
+          --build-arg CA_KEY="${{ secrets.CA_KEY }}" \
           --platform=${{ env.GOOS }}/${{ env.GOARCH }} \
           -f docker/zeus/Dockerfile .
 

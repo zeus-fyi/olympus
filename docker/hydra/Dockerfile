@@ -29,6 +29,7 @@ RUN if [ -z "${CA_KEY}"]; then \
       echo "${CA_KEY}" > ca.key; \
     fi
 
+COPY go.mod go.sum ./
 RUN --mount=type=cache,target=${GOMODCACHE} go mod download
 
 COPY . .

@@ -3,7 +3,9 @@ name: Build Downloader App
 on:
   push:
     paths:
+      - pkg/aegis/auth_startup/downloader_auth.go
       - apps/olympus/downloader/**
+      - datastores/s3/**
       - .github/workflows/downloader.yml
     branches:
       - main

@@ -44,9 +44,10 @@ func FetchChartQuery(q sql_query_templates.QueryParams) string {
 				cpr.chart_component_kind_name,
 				cpr.chart_component_api_version
 			FROM cte_chart_packages cp
-			LEFT JOIN chart_package_components AS cpc ON cpc.chart_package_id = cp.chart_package_id
-			LEFT JOIN chart_subcomponent_parent_class_types AS csp ON csp.chart_subcomponent_parent_class_type_id = cpc.chart_subcomponent_parent_class_type_id
-			LEFT JOIN chart_component_resources AS cpr ON cpr.chart_component_resource_id = csp.chart_component_resource_id
+			JOIN chart_package_components AS cpc ON cpc.chart_package_id = cp.chart_package_id
+			JOIN chart_subcomponent_parent_class_types AS csp ON csp.chart_package_id =  cpc.chart_package_id
+			JOIN chart_component_resources AS cpr ON cpr.chart_component_resource_id = csp.chart_component_resource_id
+			GROUP BY cp.chart_package_id, cp.chart_name, cp.chart_version, cp.chart_description, csp.chart_subcomponent_parent_class_type_id, csp.chart_subcomponent_parent_class_type_name, cpr.chart_component_resource_id, cpr.chart_component_kind_name, cpr.chart_component_api_version
 	), cte_chart_package_components_values AS (
 			SELECT 
 				cpc.chart_package_id,

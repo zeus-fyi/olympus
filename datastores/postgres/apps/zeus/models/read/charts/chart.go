@@ -42,7 +42,6 @@ const ModelName = "Chart"
 
 func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_templates.QueryParams) error {
 	log.Debug().Interface("SelectQuery", q.LogHeader(ModelName))
-
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, q.CTEQuery.Params...)
 	if err != nil {
 		log.Err(err).Msg(q.LogHeader(ModelName))
@@ -52,7 +51,6 @@ func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_tem
 	for rows.Next() {
 		var podSpecVolumesStr string
 		container := containers.NewContainer()
-
 		var ckagg string
 		rowErr := rows.Scan(&c.ChartPackageID, &c.ChartName, &c.ChartVersion, &c.ChartDescription, &c.ChartComponentKindName,
 			&ckagg,

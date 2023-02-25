@@ -3,6 +3,7 @@ name: Build Downloader App
 on:
   push:
     paths:
+      - docker/downloader/Dockerfile
       - pkg/aegis/auth_startup/downloader_auth.go
       - apps/olympus/downloader/**
       - datastores/s3/**

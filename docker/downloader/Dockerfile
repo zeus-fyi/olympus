@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 FROM golang:1.20.1-buster as snapshot_builder
 
 WORKDIR /app

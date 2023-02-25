@@ -29,6 +29,8 @@ ARG GOCACHE
 ARG GOOS
 ARG GOARCH
 
+COPY . .
+
 RUN --mount=type=cache,target=${GOMODCACHE} go mod download
 
 COPY . .

@@ -23,26 +23,25 @@ var (
 //		Help: "How far behind head of chain is the beacon consensus client?",
 //	})
 //
-//	BeaconConsensusSyncHeadSlot = prometheus.NewGauge(prometheus.GaugeOpts{
-//		Name: "ethereum_beacon_consensus_sync_head_slot",
-//		Help: "What slot is the beacon consensus client synced to?",
-//	})
 )
 
 type ConsensusClientMetrics struct {
 	ConsensusClientRestClient resty_base.Resty
 	BeaconConsensusSyncStatus prometheus.Gauge
+	BeaconConsensusClientSyncDistance prometheus.Gauge
 }
 
 func NewConsensusClientMetrics(w apollo_metrics_workload_info.WorkloadInfo, bc BeaconConfig) ConsensusClientMetrics {
 	m := ConsensusClientMetrics{
 		ConsensusClientRestClient: resty_base.GetBaseRestyClient(bc.ConsensusClientSVC, ""),
 	}
-
+	m.BeaconConsensusClientSyncDistance = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "ethereum_beacon_consensus_sync_distance",
+		Help: "How many slots is the beacon consensus client behind head of chain?",
+	})
 	m.BeaconConsensusSyncStatus = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name:        "ethereum_beacon_consensus_sync_status_is_syncing",
 		Help:        "Is the beacon consensus client syncing, or is it synced? 0 = syncing, 1 = synced",
-		ConstLabels: nil,
 	})
 	return m
 }
@@ -135,6 +134,7 @@ func (bm *BeaconMetrics) BeaconConsensusClientSyncStatus() {
 	if ss.Data.IsSyncing == false {
 		bm.BeaconConsensusSyncStatus.Set(1)
 	}
+	bm.BeaconConsensusClientSyncDistance.Set(ss.Data.SyncDistance)
 }
 
 func (bm *BeaconMetrics) BeaconExecClientSyncStatus() {

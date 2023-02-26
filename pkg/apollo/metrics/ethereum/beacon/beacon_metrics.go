@@ -1,33 +1,38 @@
 package apollo_beacon_prom_metrics
 
 import (
+	"time"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 	apollo_metrics_workload_info "github.com/zeus-fyi/olympus/pkg/apollo/metrics/workload_info"
 	client_consts "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons/constants"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
-	"time"
-
 	"github.com/zeus-fyi/olympus/pkg/iris/resty_base"
 )
 
 const (
 	beaconConsensusSyncEndpoint = "/eth/v1/node/syncing"
 	beaconExecSyncPayload       = `{"method":"eth_syncing","params":[],"id":1,"jsonrpc":"2.0"}`
+	beaconExecBlockHeight       = `{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":83}`
 )
 
+type ExecClientSyncStatusBlockHeight struct {
+	JsonRPC string `json:"jsonrpc"`
+	Id      int    `json:"id"`
+	Result  string   `json:"result"`
+}
 // TODO embed this in the PrometheusMetrics struct
 var (
 //	BeaconConsensusSyncDistance = prometheus.NewGauge(prometheus.GaugeOpts{
 //		Name: "ethereum_beacon_consensus_sync_distance",
 //		Help: "How far behind head of chain is the beacon consensus client?",
 //	})
-//
 )
 
 type ConsensusClientMetrics struct {
-	ConsensusClientRestClient resty_base.Resty
-	BeaconConsensusSyncStatus prometheus.Gauge
+	ConsensusClientRestClient         resty_base.Resty
+	BeaconConsensusSyncStatus         prometheus.Gauge
 	BeaconConsensusClientSyncDistance prometheus.Gauge
 }
 
@@ -40,8 +45,8 @@ func NewConsensusClientMetrics(w apollo_metrics_workload_info.WorkloadInfo, bc B
 		Help: "How many slots is the beacon consensus client behind head of chain?",
 	})
 	m.BeaconConsensusSyncStatus = prometheus.NewGauge(prometheus.GaugeOpts{
-		Name:        "ethereum_beacon_consensus_sync_status_is_syncing",
-		Help:        "Is the beacon consensus client syncing, or is it synced? 0 = syncing, 1 = synced",
+		Name: "ethereum_beacon_consensus_sync_status_is_syncing",
+		Help: "Is the beacon consensus client syncing, or is it synced? 0 = syncing, 1 = synced",
 	})
 	return m
 }
@@ -49,12 +54,17 @@ func NewConsensusClientMetrics(w apollo_metrics_workload_info.WorkloadInfo, bc B
 type ExecClientMetrics struct {
 	ExecClientRestClient resty_base.Resty
 	BeaconExecSyncStatus prometheus.Gauge
+	BeaconExecSyncBlockHeight prometheus.Gauge
 }
 
 func NewExecClientMetrics(w apollo_metrics_workload_info.WorkloadInfo, bc BeaconConfig) ExecClientMetrics {
 	m := ExecClientMetrics{
 		ExecClientRestClient: resty_base.GetBaseRestyClient(bc.ExecClientSVC, ""),
 	}
+	m.BeaconExecSyncBlockHeight = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name:        "ethereum_beacon_exec_sync_status_block_height",
+		Help: 		"Returns the current block number the client is on.",
+	})
 	m.BeaconExecSyncStatus = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name:        "ethereum_beacon_exec_sync_status_is_syncing",
 		Help:        "Is the beacon exec client syncing? 0 = syncing, 1 = synced",
@@ -156,4 +166,28 @@ func (bm *BeaconMetrics) BeaconExecClientSyncStatus() {
 	if ss.Result == false {
 		bm.BeaconExecSyncStatus.Set(1)
 	}
+
+	bh := client_consts.ExecClientSyncStatusBlockHeight{}
+	resp, err := bm.ExecClientRestClient.R().
+	SetHeaders(headers).
+	SetResult(&bh).
+	SetBody(beaconExecBlockHeight).Post("/")
+	if err != nil {
+		log.Err(err).Msgf("resp: %s", resp)
+		return
+	}
+	
+	blockNum, err := strconv.ParseInt(Trim0xPrefix(ss.Result), 16, 64)
+	if err != nil {
+	   log.Err(err).Msgf("can't decode hex string result %s", ss.Result)
+	   return
+	}
+	bm.BeaconExecSyncBlockHeight.Set(blockNum)
+}
+
+func Trim0xPrefix(input string) string {
+	if strings.HasPrefix(input, "0x") {
+		return input[2:]
+	}
+	return input
 }

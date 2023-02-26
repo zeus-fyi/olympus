@@ -25,9 +25,13 @@ type ActivitiesSlice []interface{}
 func (d *DeployTopologyActivities) GetActivities() ActivitiesSlice {
 	return []interface{}{
 		d.CreateNamespace,
-		d.DeployDeployment, d.DeployStatefulSet,
+		d.DeployDeployment,
+		d.DeployStatefulSet,
 		d.DeployConfigMap,
-		d.DeployService, d.DeployIngress, d.DeployClusterTopology,
+		d.DeployService,
+		d.DeployIngress,
+		d.DeployClusterTopology,
+		d.DeployServiceMonitor,
 		d.CreateChoreographySecret,
 	}
 }

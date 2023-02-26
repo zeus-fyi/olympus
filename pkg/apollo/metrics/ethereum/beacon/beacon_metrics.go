@@ -22,13 +22,6 @@ type ExecClientSyncStatusBlockHeight struct {
 	Id      int    `json:"id"`
 	Result  string   `json:"result"`
 }
-// TODO embed this in the PrometheusMetrics struct
-var (
-//	BeaconConsensusSyncDistance = prometheus.NewGauge(prometheus.GaugeOpts{
-//		Name: "ethereum_beacon_consensus_sync_distance",
-//		Help: "How far behind head of chain is the beacon consensus client?",
-//	})
-)
 
 type ConsensusClientMetrics struct {
 	ConsensusClientRestClient         resty_base.Resty

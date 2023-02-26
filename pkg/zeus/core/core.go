@@ -16,9 +16,8 @@ import (
 
 type K8Util struct {
 	kc        *kubernetes.Clientset
-	mc        *monitoringclient.Clientset
 	cfgAccess clientcmd.ConfigAccess
-
+	mc        *monitoringclient.Clientset
 	kcCfg     clientcmd.ClientConfig
 	clientCfg *rest.Config
 
@@ -56,6 +55,12 @@ func (k *K8Util) SetContext(context string) {
 		log.Err(err)
 	}
 	k.SetClient(k.clientCfg)
+	mclient, err := monitoringclient.NewForConfig(k.clientCfg)
+	if err != nil {
+		log.Panic().Msg("Zeus: NewForConfig, failed to set client config")
+		misc.DelayedPanic(err)
+	}
+	k.mc = mclient
 }
 
 func (k *K8Util) SetClient(config *rest.Config) {
@@ -90,14 +95,14 @@ func (k *K8Util) ConnectToK8s() {
 		misc.DelayedPanic(err)
 	}
 	k.SetClient(k.clientCfg)
-	log.Info().Msg("Zeus: DefaultK8sCfgPath complete")
-	k.CfgPath = filepath.Join(home, ".kube", "config")
-	mc, err := monitoringclient.NewForConfig(k.clientCfg)
+	mclient, err := monitoringclient.NewForConfig(k.clientCfg)
 	if err != nil {
-		log.Panic().Msg("Zeus: monitoringclient, failed to set monitoringclient config")
+		log.Panic().Msg("Zeus: NewForConfig, failed to set client config")
 		misc.DelayedPanic(err)
 	}
-	k.mc = mc
+	k.mc = mclient
+	log.Info().Msg("Zeus: DefaultK8sCfgPath complete")
+	k.CfgPath = filepath.Join(home, ".kube", "config")
 }
 
 func (k *K8Util) ConnectToK8sFromConfig(dir string) {
@@ -127,7 +132,14 @@ func (k *K8Util) DefaultK8sCfgPath() string {
 		misc.DelayedPanic(err)
 	}
 	k.SetClient(k.clientCfg)
+	mclient, err := monitoringclient.NewForConfig(k.clientCfg)
+	if err != nil {
+		log.Panic().Msg("Zeus: NewForConfig, failed to set client config")
+		misc.DelayedPanic(err)
+	}
+	k.mc = mclient
 	log.Info().Msg("Zeus: DefaultK8sCfgPath complete")
+
 	return filepath.Join(home, ".kube", "config")
 }
 
@@ -152,6 +164,12 @@ func (k *K8Util) ConnectToK8sFromInMemFsCfgPath(fs memfs.MemFS) {
 		misc.DelayedPanic(err)
 	}
 	k.SetClient(k.clientCfg)
+	mclient, err := monitoringclient.NewForConfig(k.clientCfg)
+	if err != nil {
+		log.Panic().Msg("Zeus: NewForConfig, failed to set client config")
+		misc.DelayedPanic(err)
+	}
+	k.mc = mclient
 	log.Info().Msg("Zeus: ConnectToK8sFromInMemFsCfgPath complete")
 }
 

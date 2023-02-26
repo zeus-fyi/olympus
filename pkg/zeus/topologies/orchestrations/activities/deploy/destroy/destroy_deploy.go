@@ -21,9 +21,12 @@ type ActivitiesSlice []interface{}
 func (d *DestroyDeployTopologyActivities) GetActivities() ActivitiesSlice {
 	return []interface{}{
 		d.DestroyNamespace,
-		d.DestroyDeployStatefulSet, d.DestroyDeployDeployment,
+		d.DestroyDeployStatefulSet,
+		d.DestroyDeployDeployment,
 		d.DestroyDeployConfigMap,
-		d.DestroyDeployService, d.DestroyDeployIngress,
+		d.DestroyDeployService,
+		d.DestroyDeployIngress,
+		d.DestroyDeployServiceMonitor,
 	}
 }
 

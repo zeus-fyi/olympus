@@ -70,6 +70,6 @@ func InternalDeployDestroyRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo
 	e.POST("/deploy/destroy/configmap", internal_destroy_deploy.DestroyDeployConfigMapHandler)
 	e.POST("/deploy/destroy/service", internal_destroy_deploy.DestroyDeployServiceHandler)
 	e.POST("/deploy/destroy/ingress", internal_destroy_deploy.DestroyDeployIngressHandler)
-	e.POST("/deploy/destroy/ingress", internal_destroy_deploy.DestroyDeployServiceMonitorHandler)
+	e.POST("/deploy/destroy/servicemonitor", internal_destroy_deploy.DestroyDeployServiceMonitorHandler)
 	return e
 }

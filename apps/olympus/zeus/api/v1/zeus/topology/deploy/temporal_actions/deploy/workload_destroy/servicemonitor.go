@@ -17,7 +17,7 @@ func DestroyDeployServiceMonitorHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	if request.Service != nil {
+	if request.ServiceMonitor != nil {
 		err := zeus.K8Util.DeleteServiceMonitor(ctx, request.Kns.CloudCtxNs, request.ServiceMonitor.Name, nil)
 		if err != nil {
 			log.Err(err).Msg("DestroyDeployServiceMonitorHandler")

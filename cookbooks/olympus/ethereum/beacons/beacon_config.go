@@ -19,7 +19,6 @@ var (
 	consensusClientStsEphemeralCfgDriver = zeus_topology_config_drivers.TopologyConfigDriver{
 		StatefulSetDriver: &consensusClientStsEphemeralCfg,
 	}
-
 	execClientStsEphemeralCfg = zeus_topology_config_drivers.StatefulSetDriver{
 		ContainerDrivers: map[string]zeus_topology_config_drivers.ContainerDriver{
 			"zeus-exec-client": {

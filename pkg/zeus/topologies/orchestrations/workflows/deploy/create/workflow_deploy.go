@@ -122,7 +122,14 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 			return err
 		}
 	}
-
+	if params.ServiceMonitor != nil {
+		smCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(smCtx, t.DeployTopologyActivities.DeployServiceMonitor, deployParams).Get(smCtx, nil)
+		if err != nil {
+			log.Error("Failed to create servicemonitor", "Error", err)
+			return err
+		}
+	}
 	status.TopologyStatus = topology_deployment_status.DeployComplete
 	err = workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, status.DeployStatus).Get(statusCtx, nil)
 	if err != nil {

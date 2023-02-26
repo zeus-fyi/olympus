@@ -92,7 +92,6 @@ func (k *K8Util) ConnectToK8s() {
 	k.SetClient(k.clientCfg)
 	log.Info().Msg("Zeus: DefaultK8sCfgPath complete")
 	k.CfgPath = filepath.Join(home, ".kube", "config")
-
 	mc, err := monitoringclient.NewForConfig(k.clientCfg)
 	if err != nil {
 		log.Panic().Msg("Zeus: monitoringclient, failed to set monitoringclient config")

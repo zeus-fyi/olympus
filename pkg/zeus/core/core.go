@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
+	monitoringclient "github.com/prometheus-operator/prometheus-operator/pkg/client/versioned"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
@@ -15,6 +16,7 @@ import (
 
 type K8Util struct {
 	kc        *kubernetes.Clientset
+	mc        *monitoringclient.Clientset
 	cfgAccess clientcmd.ConfigAccess
 
 	kcCfg     clientcmd.ClientConfig
@@ -90,6 +92,13 @@ func (k *K8Util) ConnectToK8s() {
 	k.SetClient(k.clientCfg)
 	log.Info().Msg("Zeus: DefaultK8sCfgPath complete")
 	k.CfgPath = filepath.Join(home, ".kube", "config")
+
+	mc, err := monitoringclient.NewForConfig(k.clientCfg)
+	if err != nil {
+		log.Panic().Msg("Zeus: monitoringclient, failed to set monitoringclient config")
+		misc.DelayedPanic(err)
+	}
+	k.mc = mc
 }
 
 func (k *K8Util) ConnectToK8sFromConfig(dir string) {

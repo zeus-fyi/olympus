@@ -100,6 +100,15 @@ func (t *DestroyDeployTopologyWorkflow) DestroyDeployedTopologyWorkflow(ctx work
 		}
 	}
 
+	if params.ServiceMonitor != nil {
+		smCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(smCtx, t.DestroyDeployTopologyActivities.DestroyDeployServiceMonitor, deployParams).Get(smCtx, nil)
+		if err != nil {
+			log.Error("Failed to destroy ingress", "Error", err)
+			return err
+		}
+	}
+
 	nsCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(nsCtx, t.DestroyDeployTopologyActivities.DestroyNamespace, deployParams).Get(nsCtx, nil)
 	if err != nil {

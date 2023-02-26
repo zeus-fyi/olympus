@@ -24,7 +24,6 @@ func (k *K8Util) GetServiceMonitor(ctx context.Context, kns zeus_common_types.Cl
 func (k *K8Util) CreateServiceMonitor(ctx context.Context, kns zeus_common_types.CloudCtxNs, sm *v1.ServiceMonitor, filter *string_utils.FilterOpts) (*v1.ServiceMonitor, error) {
 	k.SetContext(kns.Context)
 	opts := metav1.CreateOptions{}
-	sm.Namespace = kns.Namespace
 	sm, err := k.mc.MonitoringV1().ServiceMonitors(kns.Namespace).Create(ctx, sm, opts)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("kns", kns).Msg("CreateServiceMonitor")

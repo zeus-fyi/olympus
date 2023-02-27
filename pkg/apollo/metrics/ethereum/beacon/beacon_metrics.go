@@ -1,7 +1,6 @@
 package apollo_beacon_prom_metrics
 
 import (
-	"math"
 	"strconv"
 	"time"
 
@@ -182,7 +181,7 @@ func (bm *BeaconMetrics) BeaconExecClientSyncStatus() {
 		log.Err(err).Msgf("can't decode hex string result %s", bh.Result)
 		return
 	}
-	floatValueBlockNum := math.Float64frombits(uint64(blockNum))
+	floatValueBlockNum := float64(blockNum)
 	bm.BeaconExecSyncBlockHeight.Set(floatValueBlockNum)
 }
 

@@ -1,14 +1,17 @@
 package apollo_beacon_prom_metrics
 
 import (
+	"math"
+	"strconv"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 	apollo_metrics_workload_info "github.com/zeus-fyi/olympus/pkg/apollo/metrics/workload_info"
-	client_consts "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons/constants"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 	"github.com/zeus-fyi/olympus/pkg/iris/resty_base"
+	client_consts "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons/constants"
+	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
 const (
@@ -20,7 +23,7 @@ const (
 type ExecClientSyncStatusBlockHeight struct {
 	JsonRPC string `json:"jsonrpc"`
 	Id      int    `json:"id"`
-	Result  string   `json:"result"`
+	Result  string `json:"result"`
 }
 
 type ConsensusClientMetrics struct {
@@ -45,8 +48,8 @@ func NewConsensusClientMetrics(w apollo_metrics_workload_info.WorkloadInfo, bc B
 }
 
 type ExecClientMetrics struct {
-	ExecClientRestClient resty_base.Resty
-	BeaconExecSyncStatus prometheus.Gauge
+	ExecClientRestClient      resty_base.Resty
+	BeaconExecSyncStatus      prometheus.Gauge
 	BeaconExecSyncBlockHeight prometheus.Gauge
 }
 
@@ -55,8 +58,8 @@ func NewExecClientMetrics(w apollo_metrics_workload_info.WorkloadInfo, bc Beacon
 		ExecClientRestClient: resty_base.GetBaseRestyClient(bc.ExecClientSVC, ""),
 	}
 	m.BeaconExecSyncBlockHeight = prometheus.NewGauge(prometheus.GaugeOpts{
-		Name:        "ethereum_beacon_exec_sync_status_block_height",
-		Help: 		"Returns the current block number the client is on.",
+		Name: "ethereum_beacon_exec_sync_status_block_height",
+		Help: "Returns the current block number the client is on.",
 	})
 	m.BeaconExecSyncStatus = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name:        "ethereum_beacon_exec_sync_status_is_syncing",
@@ -137,14 +140,19 @@ func (bm *BeaconMetrics) BeaconConsensusClientSyncStatus() {
 	if ss.Data.IsSyncing == false {
 		bm.BeaconConsensusSyncStatus.Set(1)
 	}
-	bm.BeaconConsensusClientSyncDistance.Set(ss.Data.SyncDistance)
+
+	parsedNumber, err := strconv.ParseFloat(ss.Data.SyncDistance, 64)
+	if err != nil {
+		log.Err(err).Msgf("parsedNumber err: %s", err)
+		return
+	}
+	bm.BeaconConsensusClientSyncDistance.Set(parsedNumber)
 }
 
 func (bm *BeaconMetrics) BeaconExecClientSyncStatus() {
 	log.Info().Msg("BeaconExecClientSyncStatus: getting sync status")
 	bm.BeaconExecSyncStatus.Set(0)
 	ss := client_consts.ExecClientSyncStatus{}
-
 	headers := make(map[string]string)
 	headers["Content-Type"] = "application/json"
 	resp, err := bm.ExecClientRestClient.R().
@@ -159,28 +167,26 @@ func (bm *BeaconMetrics) BeaconExecClientSyncStatus() {
 	if ss.Result == false {
 		bm.BeaconExecSyncStatus.Set(1)
 	}
-
-	bh := client_consts.ExecClientSyncStatusBlockHeight{}
-	resp, err := bm.ExecClientRestClient.R().
-	SetHeaders(headers).
-	SetResult(&bh).
-	SetBody(beaconExecBlockHeight).Post("/")
+	bh := ExecClientSyncBlockHeight{}
+	resp, err = bm.ExecClientRestClient.R().
+		SetHeaders(headers).
+		SetResult(&bh).
+		SetBody(beaconExecBlockHeight).Post("/")
 	if err != nil {
 		log.Err(err).Msgf("resp: %s", resp)
 		return
 	}
-	
-	blockNum, err := strconv.ParseInt(Trim0xPrefix(ss.Result), 16, 64)
+	blockNum, err := strconv.ParseInt(strings_filter.Trim0xPrefix(bh.Result), 16, 64)
 	if err != nil {
-	   log.Err(err).Msgf("can't decode hex string result %s", ss.Result)
-	   return
+		log.Err(err).Msgf("can't decode hex string result %s", ss.Result)
+		return
 	}
-	bm.BeaconExecSyncBlockHeight.Set(blockNum)
+	floatValueBlockNum := math.Float64frombits(uint64(blockNum))
+	bm.BeaconExecSyncBlockHeight.Set(floatValueBlockNum)
 }
 
-func Trim0xPrefix(input string) string {
-	if strings.HasPrefix(input, "0x") {
-		return input[2:]
-	}
-	return input
+type ExecClientSyncBlockHeight struct {
+	JsonRPC string `json:"jsonrpc"`
+	Id      int    `json:"id"`
+	Result  string `json:"result"`
 }

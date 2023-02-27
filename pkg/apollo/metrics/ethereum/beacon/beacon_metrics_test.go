@@ -1,12 +1,13 @@
 package apollo_beacon_prom_metrics
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/suite"
 	apollo_metrics_workload_info "github.com/zeus-fyi/olympus/pkg/apollo/metrics/workload_info"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	client_consts "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons/constants"
 	resty_base "github.com/zeus-fyi/zeus/pkg/zeus/client/base"
-	"testing"
 )
 
 type BeaconMetricsClientTestSuite struct {
@@ -26,7 +27,7 @@ func (t *BeaconMetricsClientTestSuite) TestBeaconExecClientSyncStatus() {
 	headers := make(map[string]string)
 	headers["Content-Type"] = "application/json"
 
-	r := resty_base.GetBaseRestyTestClient(t.Tc.EphemeralNodeUrl, "")
+	r := resty_base.GetBaseRestyClient(t.Tc.EphemeralNodeUrl, "")
 	resp, err := r.R().
 		SetHeaders(headers).
 		SetResult(&ss).

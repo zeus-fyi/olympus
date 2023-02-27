@@ -5,7 +5,8 @@ on:
     paths:
       - pkg/aegis/auth_startup/**
       - apps/olympus/choreography/hydra/**
-      - pkg/apollo/metrics/ethereum/beacon/**
+      - pkg/apollo/metrics/ethereum/**
+      - pkg/apollo/ethereum/**
       - .github/workflows/hydra_choreography.yml
     branches:
       - main

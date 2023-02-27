@@ -38,6 +38,22 @@ func (t *BeaconMetricsClientTestSuite) TestBeaconExecClientSyncStatus() {
 	t.Require().NotEmpty(ss)
 
 	t.Assert().False(ss.Result)
+
+	bh := ExecClientSyncStatusBlockHeight{}
+	headers = make(map[string]string)
+	headers["Content-Type"] = "application/json"
+
+	r = resty_base.GetBaseRestyClient(t.Tc.EphemeralNodeUrl, "")
+	resp, err = r.R().
+		SetHeaders(headers).
+		SetResult(&bh).
+		SetBody(beaconExecBlockHeight).Post("/")
+
+	t.Require().NoError(err)
+	t.Require().Equal(200, resp.StatusCode())
+	t.Require().NotEmpty(ss)
+
+	t.Assert().NotEmpty(bh.Result)
 }
 
 func TestBeaconMetricsClientTestSuite(t *testing.T) {

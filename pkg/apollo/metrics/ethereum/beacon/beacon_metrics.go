@@ -178,7 +178,7 @@ func (bm *BeaconMetrics) BeaconExecClientSyncStatus() {
 	}
 	blockNum, err := strconv.ParseInt(strings_filter.Trim0xPrefix(bh.Result), 16, 64)
 	if err != nil {
-		log.Err(err).Msgf("can't decode hex string result %s", ss.Result)
+		log.Err(err).Msgf("can't decode hex string result %s", bh.Result)
 		return
 	}
 	floatValueBlockNum := math.Float64frombits(uint64(blockNum))

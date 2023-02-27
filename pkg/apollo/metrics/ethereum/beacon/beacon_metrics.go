@@ -62,9 +62,8 @@ func NewExecClientMetrics(w apollo_metrics_workload_info.WorkloadInfo, bc Beacon
 		Help: "Returns the current block number the client is on.",
 	})
 	m.BeaconExecSyncStatus = prometheus.NewGauge(prometheus.GaugeOpts{
-		Name:        "ethereum_beacon_exec_sync_status_is_syncing",
-		Help:        "Is the beacon exec client syncing? 0 = syncing, 1 = synced",
-		ConstLabels: nil,
+		Name: "ethereum_beacon_exec_sync_status_is_syncing",
+		Help: "Is the beacon exec client syncing? 0 = syncing, 1 = synced",
 	})
 	return m
 }
@@ -101,8 +100,10 @@ type BeaconMetrics struct {
 
 func (bm *BeaconMetrics) GetMetrics() []prometheus.Collector {
 	return []prometheus.Collector{
+		bm.BeaconConsensusClientSyncDistance,
 		bm.BeaconConsensusSyncStatus,
 		bm.BeaconExecSyncStatus,
+		bm.BeaconExecSyncBlockHeight,
 	}
 }
 

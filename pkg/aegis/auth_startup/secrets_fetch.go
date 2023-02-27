@@ -23,6 +23,8 @@ const (
 	rcloneSecret         = "secrets/rclone.conf"
 	encryptedSecret      = "secrets.tar.gz.age"
 	secretBucketName     = "zeus-fyi"
+	pagerDutySecret      = "secrets/pagerduty.txt"
+	pagerDutyRoutingKey  = "secrets/pagerduty.routing.key.txt"
 )
 
 type SecretsWrapper struct {
@@ -34,6 +36,8 @@ type SecretsWrapper struct {
 	OpenAIToken            string
 	AccessKeyHydraDynamoDB string
 	SecretKeyHydraDynamoDB string
+	PagerDutyApiKey        string
+	PagerDutyRoutingKey    string
 
 	SecretsManagerAuthAWS aegis_aws_auth.AuthAWS
 	TemporalAuth          temporal_auth.TemporalAuth

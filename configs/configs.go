@@ -89,6 +89,9 @@ type TestContainer struct {
 
 	TestEthKeyOneBLS string
 	TestEthKeyTwoBLS string
+
+	PagerDutyApiKey     string
+	PagerDutyRoutingKey string
 }
 
 type ArtemisHexKeys struct {
@@ -223,6 +226,8 @@ func InitLocalTestConfigs() TestContainer {
 	testCont.LocalBearerToken = viper.GetString("LOCAL_BEARER_TOKEN")
 	testCont.ProductionLocalBearerToken = viper.GetString("PROD_LOCAL_BEARER_TOKEN")
 
+	testCont.PagerDutyApiKey = viper.GetString("PAGERDUTY_API_KEY")
+	testCont.PagerDutyRoutingKey = viper.GetString("PAGERDUTY_ROUTING_KEY")
 	testCont.DevAuthKeysCfg = getDevAuthKeysCfg()
 	testCont.ProdLocalAuthKeysCfg = testCont.DevAuthKeysCfg
 	return testCont

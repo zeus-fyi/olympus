@@ -2,6 +2,7 @@ package auth_startup
 
 import (
 	"context"
+
 	"github.com/rs/zerolog/log"
 
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
@@ -20,6 +21,8 @@ func RunHydraDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCf
 	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
 	sw.AccessKeyHydraDynamoDB = sw.ReadSecret(ctx, inMemSecrets, hydraAccessKeyDynamoDB)
 	sw.SecretKeyHydraDynamoDB = sw.ReadSecret(ctx, inMemSecrets, hydraSecretKeyDynamoDB)
+	sw.PagerDutyApiKey = sw.ReadSecret(ctx, inMemSecrets, pagerDutySecret)
+	sw.PagerDutyRoutingKey = sw.ReadSecret(ctx, inMemSecrets, pagerDutyRoutingKey)
 
 	sw.SecretsManagerAuthAWS.AccessKey = sw.ReadSecret(ctx, inMemSecrets, secretsManagerAccessKey)
 	sw.SecretsManagerAuthAWS.SecretKey = sw.ReadSecret(ctx, inMemSecrets, secretsManagerSecretKey)

@@ -126,10 +126,8 @@ func (bm *BeaconMetrics) PollMetrics(pollTime time.Duration) {
 
 func (bm *BeaconMetrics) BeaconConsensusClientSyncStatus() {
 	log.Info().Msg("BeaconConsensusClientSyncStatus: getting sync status")
-
 	bm.BeaconConsensusSyncStatus.Set(0)
 	ss := client_consts.ConsensusClientSyncStatus{}
-
 	resp, err := bm.ConsensusClientRestClient.R().
 		SetResult(&ss).
 		Get(beaconConsensusSyncEndpoint)
@@ -140,7 +138,6 @@ func (bm *BeaconMetrics) BeaconConsensusClientSyncStatus() {
 	if ss.Data.IsSyncing == false {
 		bm.BeaconConsensusSyncStatus.Set(1)
 	}
-
 	parsedNumber, err := strconv.ParseFloat(ss.Data.SyncDistance, 64)
 	if err != nil {
 		log.Err(err).Msgf("parsedNumber err: %s", err)

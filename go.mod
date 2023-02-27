@@ -55,6 +55,7 @@ require (
 
 require (
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
+	github.com/PagerDuty/go-pagerduty v1.6.0 // indirect
 	github.com/allegro/bigcache v1.2.1 // indirect
 	github.com/aloder/tojen v0.0.0-20200427151940-c77d77b33821 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.9 // indirect

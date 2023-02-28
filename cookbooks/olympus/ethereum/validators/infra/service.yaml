@@ -6,7 +6,7 @@ metadata:
     app: "zeus-hydra-validators"
     app.kubernetes.io/name: zeus-hydra-validators
     app.kubernetes.io/instance: zeus-hydra-validators
-    app.kubernetes.io/managed-by: zeus-hydra-validators
+    app.kubernetes.io/managed-by: zeus
 spec:
   type: ClusterIP
   ports:

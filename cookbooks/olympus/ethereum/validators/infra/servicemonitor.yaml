@@ -8,7 +8,8 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: "zeus-hydra-validators"
+      app.kubernetes.io/name: zeus-hydra-validators
+      app.kubernetes.io/instance: zeus-hydra-validators
   endpoints:
     - port: metrics
       interval: 30s

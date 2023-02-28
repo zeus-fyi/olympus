@@ -17,6 +17,8 @@ data:
       --ws.addr=0.0.0.0 \
       --ws.port=8546 \
       --ws.origins=* \
+      --metrics \
+      --metrics.addr=0.0.0.0 \
       --authrpc.jwtsecret=/data/jwt.hex \
       --authrpc.addr=0.0.0.0 \
       --authrpc.port=8551 \
@@ -34,6 +36,8 @@ data:
       --http.port=8545 \
       --http.vhosts=* \
       --http.corsdomain=* \
+      --metrics \
+      --metrics.addr=0.0.0.0 \
       --ws \
       --ws.addr=0.0.0.0 \
       --ws.port=8546 \
@@ -55,6 +59,8 @@ data:
       --http.port=8545 \
       --http.vhosts=* \
       --http.corsdomain=* \
+      --metrics \
+      --metrics.addr=0.0.0.0 \
       --ws \
       --ws.addr=0.0.0.0 \
       --ws.port=8546 \

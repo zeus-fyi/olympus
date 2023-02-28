@@ -45,11 +45,6 @@ func (t *AegisCookbookTestSuite) TestMainnetBeaconSecretsCopy() {
 	s1 := "spaces-auth"
 	s2 := "spaces-key"
 	s3 := "age-auth"
-	/*
-		for mainnet
-		cd.CloudCtxNs.Namespace = mainnetNamespace
-		cd.ClusterClassName = "hydraMainnet"
-	*/
 	mainnetBeaconCtxNsTop := kns.TopologyKubeCtxNs{
 		TopologyID: 0,
 		CloudCtxNs: olympus_beacon_cookbooks.MainnetAthenaBeaconCloudCtxNs,

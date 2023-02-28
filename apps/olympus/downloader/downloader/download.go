@@ -21,6 +21,7 @@ func ChainDownload(ctx context.Context) {
 		case "beaconExecClient":
 			switch Workload.ClientName {
 			case "geth":
+				log.Ctx(ctx).Info().Msg("DownloadChainSnapshotRequest: Geth Sync Starting")
 				// TODO, unsure if always downloading to resync beacon is an issue or not
 				b := poseidon_buckets.GethMainnetBucket
 				err := pos.SyncDownload(ctx, b)
@@ -35,6 +36,7 @@ func ChainDownload(ctx context.Context) {
 		case "beaconConsensusClient":
 			switch Workload.ClientName {
 			case "lighthouse":
+				log.Ctx(ctx).Info().Msg("DownloadChainSnapshotRequest: Lighthouse Sync Starting")
 				b := poseidon_buckets.LighthouseMainnetBucket
 				err := pos.SyncDownload(ctx, b)
 				if err != nil {

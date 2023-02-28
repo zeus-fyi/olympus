@@ -2,12 +2,18 @@ package create_org_users
 
 import (
 	"context"
+	"encoding/json"
+	"strconv"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/keys"
+	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
@@ -78,8 +84,8 @@ func (o *OrgUser) InsertOrgUserWithNewKeyForService(ctx context.Context, metadat
 func (o *OrgUser) InsertDemoOrgUserWithNewKey(ctx context.Context, metadata []byte, keyname string, serviceID int) (string, error) {
 	q := sql_query_templates.NewQueryParam("NewDemoOrgUser", "org_users", "where", 1000, []string{})
 	q.RawQuery = `WITH new_user_id AS (
-					INSERT INTO users(metadata)
-					VALUES ($2)
+					INSERT INTO users(metadata, email)
+					VALUES ($2, $7)
 					RETURNING user_id
 				), cte_org_users AS (
 					INSERT INTO org_users(org_id, user_id)
@@ -93,12 +99,63 @@ func (o *OrgUser) InsertDemoOrgUserWithNewKey(ctx context.Context, metadata []by
 				  RETURNING (SELECT user_id FROM new_user_id)
 				`
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
+
+	m := make(map[string]string)
+	err := json.Unmarshal(metadata, &m)
+	var email string
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("error unmarshalling metadata")
+	} else {
+		if v, ok := m["email"]; ok {
+			email = v
+		}
+	}
 	var userID int64
 	userKey := rand.String(120)
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, UserDemoOrgID, metadata, keyname, keys.BearerKeyTypeID, userKey, serviceID).Scan(&userID)
+	err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery, UserDemoOrgID, metadata, keyname, keys.BearerKeyTypeID, userKey, serviceID, &email).Scan(&userID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
 		return "", err
 	}
 	o.UserID = int(userID)
+	OtherServiceSetup(ctx, m, o.UserID)
 	return userKey, misc.ReturnIfErr(err, q.LogHeader(Sn))
+}
+
+func OtherServiceSetup(ctx context.Context, m map[string]string, userID int) {
+	vc, ok := m["validatorCount"]
+	if !ok {
+		return
+	}
+	ethAddress, ok := m["ethereumAddress"]
+	if !ok {
+		log.Ctx(ctx).Info().Msg("no ethereum address found")
+		return
+	}
+	nk := create_keys.NewCreateKey(userID, ethAddress)
+	nk.PublicKeyVerified = true
+	nk.PublicKeyName = "ethereumAddressEphemery"
+	nk.PublicKeyTypeID = keys.EcdsaKeyTypeID
+	nk.UserID = userID
+	err := nk.InsertUserKey(ctx)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("error inserting user key")
+		return
+	}
+	validatorCount, err := strconv.Atoi(vc)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("error inserting delivery schedule")
+		return
+	}
+	sd := artemis_autogen_bases.EthScheduledDelivery{
+		DeliveryScheduleType: "networkReset",
+		ProtocolNetworkID:    hestia_req_types.EthereumEphemeryProtocolNetworkID,
+		Amount:               validatorCount*artemis_validator_service_groups_models.GweiThirtyTwoEth + artemis_validator_service_groups_models.GweiGasFees,
+		Units:                "gwei",
+		PublicKey:            ethAddress,
+	}
+	err = artemis_validator_service_groups_models.InsertDeliverySchedule(ctx, sd)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("error inserting delivery schedule")
+		return
+	}
 }

@@ -161,7 +161,7 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 	}
 	r.SetBaseURL(sv.ServiceAuth.ServiceURL)
 	// the first request make timeout, since it may have a cold start latency
-	r.SetTimeout(6 * time.Second)
+	r.SetTimeout(12 * time.Second)
 	r.SetRetryCount(5)
 	r.SetRetryWaitTime(500 * time.Millisecond)
 	resp, err := r.R().

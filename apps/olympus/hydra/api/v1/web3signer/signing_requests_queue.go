@@ -3,6 +3,7 @@ package hydra_eth2_web3signer
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/patrickmn/go-cache"
@@ -57,45 +58,54 @@ type SignaturePriorityQueue struct {
 	datastructures.PriorityQueue
 }
 
-const jitterDelay = 2 * time.Millisecond
-
 func InitAsyncMessageQueues(ctx context.Context) {
+	minDuration := 1 * time.Millisecond
+	maxDuration := 4 * time.Millisecond
 	for {
 		go func() {
 			AttestationSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
+		jitterDelay := time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
 		time.Sleep(jitterDelay)
 		go func() {
 			AggregationSlotSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
+		jitterDelay = time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
 		time.Sleep(jitterDelay)
 		go func() {
 			go AggregationAndProofSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
+		jitterDelay = time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
 		time.Sleep(jitterDelay)
 		go func() {
 			BlockSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
+		jitterDelay = time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
 		time.Sleep(jitterDelay)
 		go func() {
 			RandaoRevealSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
+		jitterDelay = time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
 		time.Sleep(jitterDelay)
 		go func() {
 			SyncCommitteeMessageSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
+		jitterDelay = time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
 		time.Sleep(jitterDelay)
 		go func() {
 			SyncCommitteeSelectionProofSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
+		jitterDelay = time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
 		time.Sleep(jitterDelay)
 		go func() {
 			SyncCommitteeContributionAndProofPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
+		jitterDelay = time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
 		time.Sleep(jitterDelay)
 		go func() {
 			ValidatorRegistrationPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
+		jitterDelay = time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
 		time.Sleep(jitterDelay)
 	}
 }

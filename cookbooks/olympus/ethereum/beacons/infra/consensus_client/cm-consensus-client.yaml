@@ -16,6 +16,8 @@ data:
               --http \
               --http-address=0.0.0.0 \
               --http-port=5052 \
+              --metrics \
+              --validator-monitor-auto \
               --execution-jwt=/data/jwt.hex \
               --execution-endpoint="http://zeus-exec-client:8551"
   download.sh: |-
@@ -46,12 +48,14 @@ data:
               --execution-jwt=/data/jwt.hex \
               --execution-endpoint="http://zeus-exec-client:8551" \
               --testnet-dir=/data/testnet \
+              --validator-monitor-auto \
               --datadir=/data \
               --enr-tcp-port=9000 \
               --enr-udp-port=9000 \
               --listen-address=0.0.0.0 \
               --port=9000 \
               --discovery-port=9000 \
+              --metrics \
               --http \
               --http-address=0.0.0.0 \
               --http-port=5052 \

@@ -1,7 +1,9 @@
 package hydra_eth2_web3signer
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
@@ -44,25 +46,39 @@ func (t *HydraSigningRequestsTestSuite) TestAsyncSignRequest() {
 
 	err = artemis_validator_signature_service_routing.GetServiceAuthAndURLs(ctx, vsi, cctx)
 	t.Require().Nil(err)
-	pubkey := "0x8258f4ec23d5e113f2b62caa40d77d52c2ad9dfd871173a9815f77ef66e02e5a090e8e940477c7df06477c5ceb42bb08"
+	pubkey := "0xb9f787d2f74ce17f22ad8de1bb936c515ee2112460166d8317b3f2c1f81b69bcd6f84b51a2b9e91abcd51afde3e9bdec"
 
 	pubkeyToUUID := make(map[string]string)
-
+	hexMessage, err := aegis_inmemdbs.RandomHex(10)
+	t.Require().NoError(err)
 	sr := SignRequest{
 		UUID:        uuid.UUID{},
 		Pubkey:      pubkey,
-		Type:        "BLOCK_V2",
-		SigningRoot: "0x133f5cee5a36d56ca3085db561375b7f668b12f8d8e971aac8578557ca37635f",
+		Type:        RANDAO_REVEAL,
+		SigningRoot: hexMessage,
 	}
 	batchSigReqs := aegis_inmemdbs.EthereumBLSKeySignatureRequests{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureRequest)}
-	batchSigReqs.Map[sr.Pubkey] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: sr.SigningRoot}
-	pubkeyToUUID[sr.Pubkey] = sr.UUID.String()
 
-	err = RequestValidatorSignaturesAsync(ctx, batchSigReqs, pubkeyToUUID)
-	t.Require().Nil(err)
-
-	resp, _ := WaitForSignature(ctx, sr)
-	t.Assert().NotEmpty(resp)
+	totalTime := time.Duration(0)
+	totalRequests := 100
+	for i := 0; i < totalRequests; i++ {
+		uuidRand := uuid.New()
+		sr.UUID = uuidRand
+		pubkeyToUUID[sr.Pubkey] = uuidRand.String()
+		hexMessage, err = aegis_inmemdbs.RandomHex(10)
+		t.Require().NoError(err)
+		batchSigReqs.Map[sr.Pubkey] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: hexMessage}
+		start := time.Now()
+		err = RequestValidatorSignaturesAsync(ctx, batchSigReqs, pubkeyToUUID)
+		resp, _ := WaitForSignature(ctx, sr)
+		t.Assert().NotEmpty(resp)
+		t.Require().Nil(err)
+		end := time.Now()         // Get the current time after the function call
+		latency := end.Sub(start) //
+		fmt.Println("latency: ", latency)
+		totalTime += latency
+	}
+	fmt.Println("avg latency: ", totalTime/time.Duration(totalRequests))
 }
 
 func TestHydraSigningAsyncRequestsTestSuite(t *testing.T) {

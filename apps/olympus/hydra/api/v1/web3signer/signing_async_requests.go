@@ -34,50 +34,57 @@ func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inme
 				SecretName:        auth.SecretName,
 				SignatureRequests: aegis_inmemdbs.EthereumBLSKeySignatureRequests{Map: signReqs.Map},
 			}
-			sigResponses := aegis_inmemdbs.EthereumBLSKeySignatureResponses{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureResponse)}
-
 			cfg := aegis_aws_auth.AuthAWS{
 				Region:    "us-west-1",
 				AccessKey: auth.AccessKey,
 				SecretKey: auth.SecretKey,
 			}
-			r := Resty{}
-			r.Client = resty.New()
-			r.SetTimeout(2 * time.Second)
-			r.SetRetryCount(3)
-			minDuration := 10 * time.Millisecond
-			maxDuration := 100 * time.Millisecond
+			minDuration := 5 * time.Millisecond
+			maxDuration := 20 * time.Millisecond
 			jitter := time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
-			r.SetRetryWaitTime(jitter)
-			r.SetBaseURL(auth.AuthLamdbaAWS.ServiceURL)
-			reqAuth, err := cfg.CreateV4AuthPOSTReq(ctx, "lambda", auth.AuthLamdbaAWS.ServiceURL, sr)
-			if err != nil {
-				log.Ctx(ctx).Error().Err(err).Msg("failed to get service routes auths for lambda iam auth")
+			ch := make(chan aegis_inmemdbs.EthereumBLSKeySignatureResponses)
+			for i := 0; i < 3; i++ {
+				go func() {
+					sigResponses := aegis_inmemdbs.EthereumBLSKeySignatureResponses{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureResponse)}
+					r := Resty{}
+					r.Client = resty.New()
+					r.SetBaseURL(auth.AuthLamdbaAWS.ServiceURL)
+					reqAuth, rerr := cfg.CreateV4AuthPOSTReq(ctx, "lambda", auth.AuthLamdbaAWS.ServiceURL, sr)
+					if rerr != nil {
+						log.Ctx(ctx).Error().Err(rerr).Msg("failed to get service routes auths for lambda iam auth")
+						return
+					}
+					resp, reerr := r.R().
+						SetHeaderMultiValues(reqAuth.Header).
+						SetResult(&sigResponses).
+						SetBody(sr).Post("/")
+					if reerr != nil {
+						log.Ctx(ctx).Err(reerr).Msg("Failed to get response")
+						return
+					}
+					if resp.StatusCode() != 200 {
+						err = errors.New("non-200 status code")
+						log.Ctx(ctx).Err(reerr).Msg("Failed to get 200 status code")
+						return
+					}
+					ch <- sigResponses
+				}()
+				time.Sleep(jitter)
+			}
+			timeout := time.After(4 * time.Second)
+			select {
+			case sigResponses := <-ch:
+				if len(sigRequests.Map) < len(sigRequests.Map) {
+					log.Ctx(ctx).Warn().Msg("Not all signatures were returned")
+					log.Ctx(ctx).Info().Interface("sigRequests", sigRequests).Interface("sigResponses", sigResponses).Msg("Not all signatures were returned")
+				}
+				for pubkey, sigRespWrapper := range sigResponses.Map {
+					uuid := pubkeyToUUID[pubkey]
+					SignatureResponsesCache.Set(uuid, sigRespWrapper.Signature, cache.DefaultExpiration)
+				}
 				return
-			}
-			resp, err := r.R().
-				SetHeaderMultiValues(reqAuth.Header).
-				SetResult(&sigResponses).
-				SetBody(sr).Post("/")
-
-			// TODO, notify on errors, track these metrics & latency
-			if err != nil {
-				log.Ctx(ctx).Err(err).Msg("Failed to get response")
-				return
-			}
-			if resp.StatusCode() != 200 {
-				err = errors.New("non-200 status code")
-				log.Ctx(ctx).Err(err).Msg("Failed to get 200 status code")
-				return
-			}
-
-			if len(sigRequests.Map) < len(sigRequests.Map) {
-				log.Ctx(ctx).Warn().Msg("Not all signatures were returned")
-				log.Ctx(ctx).Info().Interface("sigRequests", sigRequests).Interface("sigResponses", sigResponses).Msg("Not all signatures were returned")
-			}
-			for pubkey, sigRespWrapper := range sigResponses.Map {
-				uuid := pubkeyToUUID[pubkey]
-				SignatureResponsesCache.Set(uuid, sigRespWrapper.Signature, cache.DefaultExpiration)
+			case <-timeout:
+				log.Error().Msg("Timed out")
 			}
 		}(groupName, signReqs)
 	}

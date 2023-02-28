@@ -61,9 +61,6 @@ data:
       --http.port=8545 \
       --http.vhosts=* \
       --http.corsdomain=* \
-      --metrics \
-      --metrics.addr=0.0.0.0 \
-      --metrics.port=6060 \
       --ws \
       --ws.addr=0.0.0.0 \
       --ws.port=8546 \

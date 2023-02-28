@@ -13,7 +13,3 @@ spec:
     - port: metrics
       interval: 30s
       path: /metrics
-      metricRelabelings:
-        - sourceLabels: [__name__]
-          regex: 'vc_signing_times_seconds_bucket|vc_validators_enabled_count|vc_validators_total_count'
-          action: keep

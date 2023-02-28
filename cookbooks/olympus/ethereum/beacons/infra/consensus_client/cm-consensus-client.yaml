@@ -18,6 +18,8 @@ data:
               --http-port=5052 \
               --metrics \
               --validator-monitor-auto \
+              --metrics-address=0.0.0.0 \
+              --metrics-port=5054 \
               --execution-jwt=/data/jwt.hex \
               --execution-endpoint="http://zeus-exec-client:8551"
   download.sh: |-
@@ -56,6 +58,8 @@ data:
               --port=9000 \
               --discovery-port=9000 \
               --metrics \
+              --metrics-address=0.0.0.0 \
+              --metrics-port=5054 \
               --http \
               --http-address=0.0.0.0 \
               --http-port=5052 \

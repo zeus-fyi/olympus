@@ -44,6 +44,8 @@ func ClusterConfigEnvVars(cd *zeus_cluster_config_drivers.ClusterDefinition, net
 		cdTmp := zeus_topology_config_drivers.ContainerDriver{}
 		envVar = cdTmp.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumMainnetProtocolNetworkID))
 	case "ephemery":
+		cdTmp := zeus_topology_config_drivers.ContainerDriver{}
+		envVar = cdTmp.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumEphemeryProtocolNetworkID))
 	}
 
 	depCfgOverride := zeus_topology_config_drivers.DeploymentDriver{}

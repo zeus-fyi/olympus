@@ -15,6 +15,8 @@ data:
               --http-address=0.0.0.0 \
               --http-port=5062 \
               --metrics \
+              --metrics-address=0.0.0.0 \
+              --metrics-port=5054 \
               --beacon-nodes="http://zeus-consensus-client:5052,http://zeus-consensus-client.ephemeral.svc.cluster.local:5052"
   download.sh: |-
     #!/bin/sh

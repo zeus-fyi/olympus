@@ -3,6 +3,7 @@ kind: StatefulSet
 metadata:
   name: zeus-hydra-validators
   labels:
+    app: "zeus-hydra-validators"
     app.kubernetes.io/name: zeus-hydra-validators
     app.kubernetes.io/instance: zeus-hydra-validators
     app.kubernetes.io/managed-by: zeus
@@ -13,6 +14,7 @@ spec:
   replicas: 1
   selector:
     matchLabels:
+      app: "zeus-hydra-validators"
       app.kubernetes.io/name: zeus-hydra-validators
       app.kubernetes.io/instance: zeus-hydra-validators
   serviceName: zeus-hydra-validators
@@ -21,6 +23,7 @@ spec:
   template:
     metadata:
       labels:
+        app: "zeus-hydra-validators"
         app.kubernetes.io/name: zeus-hydra-validators
         app.kubernetes.io/instance: zeus-hydra-validators
     spec:

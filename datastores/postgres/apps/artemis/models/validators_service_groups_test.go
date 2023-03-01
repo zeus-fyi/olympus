@@ -22,6 +22,26 @@ func (s *ValidatorServicesTestSuite) SetupTest() {
 	s.Pg.InitPG(context.Background(), s.Tc.LocalDbPgconn)
 }
 
+func (s *ValidatorServicesTestSuite) TestFilterKeysThatExistAlready() {
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+
+	s.Pg.InitPG(context.Background(), s.Tc.ProdLocalDbPgconn)
+
+	keyOne := hestia_req_types.ValidatorServiceOrgGroup{
+		Pubkey:       "0x83b08ac888767416614040a1abc0c0043d2e713454c809813081b31d3e3d59678a67375ca3deebce33bff46c20b98d29",
+		FeeRecipient: "0xF7Ab1d834Cd0A33691e9A750bD720cb6436cA1B9",
+	}
+	keyTwo := hestia_req_types.ValidatorServiceOrgGroup{
+		Pubkey:       "0x9796d83c0b5d321d2c368bc5583da02b305edc89078c0abe877da76438aa1a224ae71c815ac322b425f247bb582971c2",
+		FeeRecipient: "0xF7Ab1d834Cd0A33691e9A750bD720cb6436cA1B9",
+	}
+	pubkeys := hestia_req_types.ValidatorServiceOrgGroupSlice{keyOne, keyTwo}
+	reKeys, err := FilterKeysThatExistAlready(ctx, pubkeys)
+	s.Require().Nil(err)
+	s.Assert().NotEmpty(reKeys)
+}
 func (s *ValidatorServicesTestSuite) TestSelectInsertUnplacedValidatorsIntoCloudCtxNs() {
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
@@ -70,6 +90,7 @@ func (s *ValidatorServicesTestSuite) TestInsertValidatorServiceGroup() {
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+	s.Pg.InitPG(context.Background(), s.Tc.ProdLocalDbPgconn)
 
 	vsg := OrgValidatorService{
 		GroupName:         "testGroup",
@@ -79,11 +100,11 @@ func (s *ValidatorServicesTestSuite) TestInsertValidatorServiceGroup() {
 		Enabled:           true,
 	}
 	keyOne := hestia_req_types.ValidatorServiceOrgGroup{
-		Pubkey:       "0x8a7addbf2857a72736205d861169c643545283a74a1ccb71c95dd2c9652acb89de226ca26d60248c4ef9591d7e010288",
+		Pubkey:       "0x83b08ac888767416614040a1abc0c0043d2e713454c809813081b31d3e3d59678a67375ca3deebce33bff46c20b98d29",
 		FeeRecipient: "0xF7Ab1d834Cd0A33691e9A750bD720cb6436cA1B9",
 	}
 	keyTwo := hestia_req_types.ValidatorServiceOrgGroup{
-		Pubkey:       "0x9a7addbf2857a72736205d861169c643545283a74a1ccb71c95dd2c9652acb89de226ca26d60248c4ef9591d7e010288",
+		Pubkey:       "0x83b08ac888767416614040a1abc0c0043d2e713454c809813081b31d3e3d5967da67375ca3deebce33bff46c20b98ddd",
 		FeeRecipient: "0xF7Ab1d834Cd0A33691e9A750bD720cb6436cA1B9",
 	}
 	pubkeys := hestia_req_types.ValidatorServiceOrgGroupSlice{keyOne, keyTwo}

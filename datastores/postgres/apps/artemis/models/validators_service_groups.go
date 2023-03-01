@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v4"
+	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
@@ -60,9 +61,63 @@ type OrgValidatorService struct {
 	Enabled           bool   `json:"enabled"`
 }
 
-func InsertVerifiedValidatorsToService(ctx context.Context, validatorServiceInfo OrgValidatorService, pubkeys hestia_req_types.ValidatorServiceOrgGroupSlice) error {
-	var rows [][]interface{}
+func FilterKeysThatExistAlready(ctx context.Context, pubkeys hestia_req_types.ValidatorServiceOrgGroupSlice) (hestia_req_types.ValidatorServiceOrgGroupSlice, error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `	
+				  WITH cte_check_keys AS (
+   		 			  SELECT column1 AS pubkey
+    				  FROM UNNEST($1::text[]) AS column1
+				  ) SELECT pubkey FROM cte_check_keys
+					WHERE NOT EXISTS (
+						  SELECT pubkey 
+						  FROM validators_service_org_groups 
+						  WHERE pubkey = cte_check_keys.pubkey
+					)
+				  `
+	log.Debug().Interface("FilterKeysThatExistAlready", q.LogHeader(ModelName))
+	var pkSlice []interface{}
 	for _, keyPair := range pubkeys {
+		pkSlice = append(pkSlice, keyPair.Pubkey)
+	}
+	pubkeys = hestia_req_types.ValidatorServiceOrgGroupSlice{}
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, pq.Array(pkSlice))
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
+		return pubkeys, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var dbPubKey string
+		err = rows.Scan(&dbPubKey)
+		if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
+			return pubkeys, err
+		}
+		pubkey := hestia_req_types.ValidatorServiceOrgGroup{Pubkey: dbPubKey}
+		pubkeys = append(pubkeys, pubkey)
+	}
+	return pubkeys, nil
+}
+func InsertVerifiedValidatorsToService(ctx context.Context, validatorServiceInfo OrgValidatorService, pubkeys hestia_req_types.ValidatorServiceOrgGroupSlice) error {
+	checkedKeys, err := FilterKeysThatExistAlready(ctx, pubkeys)
+	if err != nil {
+		log.Ctx(ctx).Err(err)
+		return err
+	}
+
+	m := make(map[string]string)
+	for _, key := range checkedKeys {
+		m[key.Pubkey] = key.Pubkey
+	}
+
+	newKeys := hestia_req_types.ValidatorServiceOrgGroupSlice{}
+	for _, pk := range pubkeys {
+		if _, ok := m[pk.Pubkey]; !ok {
+			continue
+		}
+		newKeys = append(newKeys, pk)
+	}
+
+	var rows [][]interface{}
+	for _, keyPair := range newKeys {
 		rows = append(rows, []interface{}{
 			validatorServiceInfo.GroupName,
 			validatorServiceInfo.OrgID,
@@ -75,7 +130,7 @@ func InsertVerifiedValidatorsToService(ctx context.Context, validatorServiceInfo
 	}
 	columns := []string{"group_name", "org_id", "pubkey", "protocol_network_id", "fee_recipient", "enabled", "service_url"}
 	// Use the `pgx.CopyFrom` method to insert the data into the table
-	_, err := apps.Pg.Pgpool.CopyFrom(context.Background(), pgx.Identifier{"validators_service_org_groups"}, columns, pgx.CopyFromRows(rows))
+	_, err = apps.Pg.Pgpool.CopyFrom(ctx, pgx.Identifier{"validators_service_org_groups"}, columns, pgx.CopyFromRows(rows))
 	if err != nil {
 		log.Ctx(ctx).Err(err)
 		return err

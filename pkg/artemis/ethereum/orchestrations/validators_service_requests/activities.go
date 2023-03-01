@@ -117,19 +117,52 @@ type Resty struct {
 }
 
 func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOwnershipAndSigning(ctx context.Context, params ValidatorServiceGroupWorkflowRequest) (hestia_req_types.ValidatorServiceOrgGroupSlice, error) {
+	totalVerifiedKeys := hestia_req_types.ValidatorServiceOrgGroupSlice{}
+	feeAddrToPubkeyMap := make(map[string]string)
+
+	totalKeys := len(params.ValidatorServiceOrgGroupSlice)
+	var keyGroup hestia_req_types.ValidatorServiceOrgGroupSlice
+	for _, vs := range params.ValidatorServiceOrgGroupSlice {
+		feeAddrToPubkeyMap[vs.Pubkey] = vs.FeeRecipient
+		keyGroup = append(keyGroup, vs)
+		if len(keyGroup) >= 100 {
+			newVerifiedKeys, retryKeys, verr := GetVerifiedKeys(ctx, feeAddrToPubkeyMap, params, keyGroup)
+			if verr == nil {
+				totalVerifiedKeys = append(totalVerifiedKeys, newVerifiedKeys...)
+			} else {
+				return nil, verr
+			}
+			time.Sleep(1 * time.Second)
+			keyGroup = retryKeys
+		}
+	}
+	if len(keyGroup) > 0 {
+		newVerifiedKeys, _, verr := GetVerifiedKeys(ctx, feeAddrToPubkeyMap, params, keyGroup)
+		if verr == nil {
+			totalVerifiedKeys = append(totalVerifiedKeys, newVerifiedKeys...)
+		} else {
+			return nil, verr
+		}
+	}
+	if len(totalVerifiedKeys) != totalKeys {
+		return nil, errors.New("not all keys were verified")
+	}
+	return totalVerifiedKeys, nil
+}
+
+func GetVerifiedKeys(ctx context.Context, feeAddrToPubkeyMap map[string]string, params ValidatorServiceGroupWorkflowRequest, keyGroup hestia_req_types.ValidatorServiceOrgGroupSlice) ([]hestia_req_types.ValidatorServiceOrgGroup, []hestia_req_types.ValidatorServiceOrgGroup, error) {
 	r := Resty{}
 	r.Client = resty.New()
 	req := aegis_inmemdbs.EthereumBLSKeySignatureRequests{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureRequest)}
-	feeAddrToPubkeyMap := make(map[string]string)
-	for _, vs := range params.ValidatorServiceOrgGroupSlice {
-		pubkey := vs.Pubkey
-		feeAddrToPubkeyMap[pubkey] = vs.FeeRecipient
-		hexMessage, err := aegis_inmemdbs.RandomHex(10)
-		if err != nil {
-			log.Ctx(ctx).Err(err).Msg("unable to generate hex message")
-			return nil, err
+
+	for _, vs := range keyGroup {
+		hexMessage, herr := aegis_inmemdbs.RandomHex(10)
+		if herr != nil {
+			panic(herr)
 		}
-		req.Map[pubkey] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: hexMessage}
+		req.Map[vs.Pubkey] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{
+			Message: hexMessage,
+		}
 	}
 	sn := artemis_validator_signature_service_routing.FormatSecretNameAWS(params.ServiceRequestWrapper.GroupName, params.OrgID, params.ServiceRequestWrapper.ProtocolNetworkID)
 	si := aegis_aws_secretmanager.SecretInfo{
@@ -139,7 +172,7 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 	sv, err := artemis_hydra_orchestrations_aws_auth.GetServiceRoutesAuths(ctx, si)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("failed to get service routes auths")
-		return nil, err
+		return nil, nil, err
 	}
 	signReqs := bls_serverless_signing.SignatureRequests{
 		SecretName:        sv.ServiceAuth.SecretName,
@@ -157,7 +190,7 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 	reqAuth, err := auth.CreateV4AuthPOSTReq(ctx, "lambda", sv.ServiceAuth.ServiceURL, signReqs)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("failed to get service routes auths for lambda iam auth")
-		return nil, err
+		return nil, nil, err
 	}
 	r.SetBaseURL(sv.ServiceAuth.ServiceURL)
 	// the first request make timeout, since it may have a cold start latency
@@ -171,16 +204,17 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("failed to post to validator signature service url")
-		return nil, err
+		return nil, nil, err
 	}
 	if resp.StatusCode() != http.StatusOK {
-		log.Ctx(ctx).Warn().Msg("resp code not 200")
+		log.Ctx(ctx).Warn().Interface("respCode", resp.StatusCode()).Msg("resp code not 200, doing a cooldown")
+		time.Sleep(10 * time.Second)
+		return nil, keyGroup, nil
 	}
-
 	verifiedKeys, err := signedEventResponses.VerifySignatures(ctx, req, true)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("failed to verify signatures")
-		return nil, err
+		return nil, nil, err
 	}
 	vkAndFeeAddrSlice := make([]hestia_req_types.ValidatorServiceOrgGroup, len(verifiedKeys))
 	for i, vk := range verifiedKeys {
@@ -189,5 +223,5 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) VerifyValidatorKeyOw
 			FeeRecipient: feeAddrToPubkeyMap[vk],
 		}
 	}
-	return vkAndFeeAddrSlice, nil
+	return vkAndFeeAddrSlice, hestia_req_types.ValidatorServiceOrgGroupSlice{}, nil
 }

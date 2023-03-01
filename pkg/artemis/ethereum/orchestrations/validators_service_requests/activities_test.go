@@ -9,7 +9,10 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
+	signing_automation_ethereum "github.com/zeus-fyi/zeus/pkg/artemis/signing_automation/ethereum"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
+	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
+	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
 
 type ValidatorServicesActivitesTestSuite struct {
@@ -44,15 +47,17 @@ func (s *ValidatorServicesActivitesTestSuite) TestVerifyValidatorKeyOwnershipAnd
 			SecretKey:  s.Tc.AwsSecretKeyLambdaExt,
 		}},
 	}
-	keyOne := hestia_req_types.ValidatorServiceOrgGroup{
-		Pubkey:       "0x913d41b26a157bc8f539a9f63695b87a066f5086f259673f602a85cf9be0738629e872efd94eda6b08ecfd3c229e875e",
-		FeeRecipient: "0xF7Ab1d834Cd0A33691e9A750bD720cb6436cA1B9",
+	filter := &strings_filter.FilterOpts{StartsWith: "deposit_data", DoesNotInclude: []string{"keystores.tar.gz.age", ".DS_Store", "keystore.zip"}}
+	keystoresPath := filepaths.Path{DirIn: "/Users/alex/go/Olympus/Zeus/builds/serverless/keystores"}
+	keystoresPath.FilterFiles = filter
+	dpSlice, err := signing_automation_ethereum.ParseValidatorDepositSliceJSON(ctx, keystoresPath)
+	if err != nil {
+		panic(err)
 	}
-	keyTwo := hestia_req_types.ValidatorServiceOrgGroup{
-		Pubkey:       "0xabaf170036e7cb6674f146f3e3398d45c951e10c8e4f02fc5b062dd91701e5a45554070d0eceeda0d99ac2d11c4543f3",
-		FeeRecipient: "0xF7Ab1d834Cd0A33691e9A750bD720cb6436cA1B9",
+	pubkeys := make(hestia_req_types.ValidatorServiceOrgGroupSlice, len(dpSlice))
+	for i, dp := range dpSlice {
+		pubkeys[i] = hestia_req_types.ValidatorServiceOrgGroup{Pubkey: "0x" + dp.Pubkey, FeeRecipient: "0xF7Ab1d834Cd0A33691e9A750bD720cb6436cA1B9"}
 	}
-	pubkeys := hestia_req_types.ValidatorServiceOrgGroupSlice{keyOne, keyTwo}
 	wfParams := ValidatorServiceGroupWorkflowRequest{
 		OrgID:                         s.Tc.ProductionLocalTemporalOrgID,
 		ServiceRequestWrapper:         srw,

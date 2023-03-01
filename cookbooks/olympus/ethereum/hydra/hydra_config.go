@@ -8,12 +8,25 @@ import (
 	zeus_cluster_config_drivers "github.com/zeus-fyi/zeus/pkg/zeus/cluster_config_drivers"
 	zeus_topology_config_drivers "github.com/zeus-fyi/zeus/pkg/zeus/workload_config_drivers"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 const (
 	protocolNetworkKeyEnv = "PROTOCOL_NETWORK_ID"
 	ephemeryNamespace     = "ephemeral-staking"
 	mainnetNamespace      = "mainnet-staking"
+
+	consensusClientEphemeralRequestRAM      = "1Gi"
+	consensusClientEphemeralRequestLimitRAM = "1Gi"
+
+	consensusClientEphemeralRequestCPU      = "1"
+	consensusClientEphemeralRequestLimitCPU = "1"
+
+	execClientEphemeralRequestRAM      = "1Gi"
+	execClientEphemeralRequestLimitRAM = "1Gi"
+
+	execClientEphemeralRequestCPU      = "1"
+	execClientEphemeralRequestLimitCPU = "1"
 )
 
 var (
@@ -33,6 +46,8 @@ var (
 
 func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, network string) *zeus_cluster_config_drivers.ClusterDefinition {
 	var envVar v1.EnvVar
+	var rrCC v1.ResourceRequirements
+	var rrEC v1.ResourceRequirements
 	switch network {
 	case "mainnet":
 		cd.CloudCtxNs.Namespace = mainnetNamespace
@@ -42,6 +57,27 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 		cd.CloudCtxNs.Namespace = ephemeryNamespace
 		cd.ClusterClassName = "hydraEphemery"
 		envVar = HydraContainer.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumEphemeryProtocolNetworkID))
+
+		rrCC = v1.ResourceRequirements{
+			Limits: v1.ResourceList{
+				"cpu":    resource.MustParse(consensusClientEphemeralRequestLimitCPU),
+				"memory": resource.MustParse(consensusClientEphemeralRequestLimitRAM),
+			},
+			Requests: v1.ResourceList{
+				"cpu":    resource.MustParse(consensusClientEphemeralRequestCPU),
+				"memory": resource.MustParse(consensusClientEphemeralRequestRAM),
+			},
+		}
+		rrEC = v1.ResourceRequirements{
+			Limits: v1.ResourceList{
+				"cpu":    resource.MustParse(execClientEphemeralRequestRAM),
+				"memory": resource.MustParse(execClientEphemeralRequestLimitRAM),
+			},
+			Requests: v1.ResourceList{
+				"cpu":    resource.MustParse(execClientEphemeralRequestCPU),
+				"memory": resource.MustParse(execClientEphemeralRequestLimitCPU),
+			},
+		}
 	}
 
 	depCfgOverride := zeus_topology_config_drivers.DeploymentDriver{}
@@ -55,6 +91,19 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 	combinedEnvVars = append(combinedEnvVars, envVar)
 
 	containCfg := zeus_topology_config_drivers.ContainerDriver{}
+
+	containCfgBeaconConsensusClient := zeus_topology_config_drivers.ContainerDriver{
+		Container: v1.Container{
+			Resources: rrCC,
+		},
+	}
+
+	containCfgBeaconExecClient := zeus_topology_config_drivers.ContainerDriver{
+		Container: v1.Container{
+			Resources: rrEC,
+		},
+	}
+
 	containCfg.Env = combinedEnvVars
 
 	// deployments
@@ -64,8 +113,8 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 
 	// statefulsets
 	stsCfgOverride.ContainerDrivers["athena"] = containCfg
-	stsCfgOverride.ContainerDrivers["zeus-consensus-client"] = containCfg
-	stsCfgOverride.ContainerDrivers["zeus-exec-client"] = containCfg
+	stsCfgOverride.ContainerDrivers["zeus-consensus-client"] = containCfgBeaconConsensusClient
+	stsCfgOverride.ContainerDrivers["zeus-exec-client"] = containCfgBeaconExecClient
 	stsCfgOverride.ContainerDrivers["init-validators"] = containCfg
 	stsCfgOverride.ContainerDrivers["init-snapshots"] = containCfg
 

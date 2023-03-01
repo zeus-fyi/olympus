@@ -3,6 +3,7 @@ package hydra_eth2_web3signer
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -22,6 +23,8 @@ type Resty struct {
 // TODO add additional methods of usage besides aws lambda
 
 func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inmemdbs.EthereumBLSKeySignatureRequests, pubkeyToUUID map[string]string) error {
+	ctx, cancel := context.WithTimeout(ctx, 4*time.Second)
+	defer cancel()
 	gm := artemis_validator_signature_service_routing.GroupSigRequestsByGroupName(ctx, sigRequests)
 	for groupName, signReqs := range gm {
 		go func(groupName string, signReqs aegis_inmemdbs.EthereumBLSKeySignatureRequests) {
@@ -39,12 +42,18 @@ func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inme
 				AccessKey: auth.AccessKey,
 				SecretKey: auth.SecretKey,
 			}
-			minDuration := 5 * time.Millisecond
-			maxDuration := 20 * time.Millisecond
-			jitter := time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
-			ch := make(chan aegis_inmemdbs.EthereumBLSKeySignatureResponses)
+
+			ch := make(chan aegis_inmemdbs.EthereumBLSKeySignatureResponses, 1)
 			for i := 0; i < 3; i++ {
-				go func() {
+				go func(i int) {
+					minDuration := 150 * time.Millisecond
+					maxDuration := 200 * time.Millisecond
+					jitter := time.Duration(i) * (time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration)
+					time.Sleep(jitter)
+					if len(ch) == cap(ch) {
+						fmt.Println("channel is full, returning")
+						return
+					}
 					sigResponses := aegis_inmemdbs.EthereumBLSKeySignatureResponses{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureResponse)}
 					r := Resty{}
 					r.Client = resty.New()
@@ -68,8 +77,7 @@ func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inme
 						return
 					}
 					ch <- sigResponses
-				}()
-				time.Sleep(jitter)
+				}(i)
 			}
 			timeout := time.After(4 * time.Second)
 			select {

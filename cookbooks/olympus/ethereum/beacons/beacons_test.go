@@ -7,14 +7,20 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	olympus_cookbooks "github.com/zeus-fyi/olympus/cookbooks"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
+	zeus_client_oly "github.com/zeus-fyi/olympus/pkg/zeus/client"
+	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types/internal_reqs"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
 	zeus_client "github.com/zeus-fyi/zeus/pkg/zeus/client"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
 )
 
 type BeaconsTestCookbookTestSuite struct {
 	test_suites_base.TestSuite
-	ZeusTestClient zeus_client.ZeusClient
+	ZeusTestClient    zeus_client.ZeusClient
+	ZeusTestClientOly zeus_client_oly.ZeusClient
 }
 
 var ctx = context.Background()
@@ -29,6 +35,40 @@ func (t *BeaconsTestCookbookTestSuite) TestMainnetClusterDeploy() {
 	cdep := MainnetBeaconBaseClusterDefinition.GenerateDeploymentRequest()
 	_, err = t.ZeusTestClient.DeployCluster(ctx, cdep)
 	t.Require().Nil(err)
+	s1 := "spaces-auth"
+	s2 := "spaces-key"
+	s3 := "age-auth"
+	mainnetBeaconCtxNsTop := kns.TopologyKubeCtxNs{
+		TopologyID: 0,
+		CloudCtxNs: MainnetAthenaBeaconCloudCtxNs,
+	}
+
+	req := internal_reqs.InternalSecretsCopyFromTo{
+		SecretNames: []string{s1, s2, s3},
+		FromKns: kns.TopologyKubeCtxNs{
+			TopologyID: 0,
+			CloudCtxNs: zeus_common_types.CloudCtxNs{
+				CloudProvider: "do",
+				Region:        "sfo3",
+				Context:       "do-sfo3-dev-do-sfo3-zeus",
+				Namespace:     "zeus",
+				Env:           "dev",
+			},
+		},
+		ToKns: mainnetBeaconCtxNsTop,
+	}
+
+	err = t.ZeusTestClientOly.CopySecretsFromToNamespace(context.Background(), req)
+	t.Require().Nil(err)
+}
+func (t *BeaconsTestCookbookTestSuite) TestMainnetClusterDestroy() {
+	olympus_cookbooks.ChangeToCookbookDir()
+	d := zeus_req_types.TopologyDeployRequest{
+		CloudCtxNs: MainnetAthenaBeaconCloudCtxNs,
+	}
+	resp, err := t.ZeusTestClient.DestroyDeploy(ctx, d)
+	t.Require().Nil(err)
+	t.Assert().NotEmpty(resp)
 }
 
 func (t *BeaconsTestCookbookTestSuite) TestMainnetClusterSetup() {
@@ -87,6 +127,7 @@ func (t *BeaconsTestCookbookTestSuite) SetupTest() {
 
 	tc := api_configs.InitLocalTestConfigs()
 	t.ZeusTestClient = zeus_client.NewDefaultZeusClient(tc.Bearer)
+	t.ZeusTestClientOly = zeus_client_oly.NewDefaultZeusClient(tc.Bearer)
 }
 
 func TestBeaconsTestCookbookTestSuite(t *testing.T) {

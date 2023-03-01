@@ -3,7 +3,6 @@ package hydra_eth2_web3signer
 import (
 	"context"
 	"errors"
-	"fmt"
 	"math/rand"
 	"time"
 
@@ -51,7 +50,6 @@ func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inme
 					jitter := time.Duration(i) * (time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration)
 					time.Sleep(jitter)
 					if len(ch) == cap(ch) {
-						fmt.Println("channel is full, returning")
 						return
 					}
 					sigResponses := aegis_inmemdbs.EthereumBLSKeySignatureResponses{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureResponse)}

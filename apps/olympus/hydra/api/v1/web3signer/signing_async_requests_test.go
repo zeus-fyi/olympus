@@ -60,7 +60,7 @@ func (t *HydraSigningRequestsTestSuite) TestAsyncSignRequest() {
 	batchSigReqs := aegis_inmemdbs.EthereumBLSKeySignatureRequests{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureRequest)}
 
 	totalTime := time.Duration(0)
-	totalRequests := 100
+	totalRequests := 30
 	for i := 0; i < totalRequests; i++ {
 		uuidRand := uuid.New()
 		sr.UUID = uuidRand

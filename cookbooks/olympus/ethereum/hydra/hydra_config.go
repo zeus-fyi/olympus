@@ -9,6 +9,7 @@ import (
 	zeus_topology_config_drivers "github.com/zeus-fyi/zeus/pkg/zeus/workload_config_drivers"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -27,6 +28,12 @@ const (
 
 	execClientEphemeralRequestCPU      = "1"
 	execClientEphemeralRequestLimitCPU = "1"
+
+	consensusClientDiskName = "consensus-client-storage"
+	execClientDiskName      = "exec-client-storage"
+
+	consensusStorageDiskSizeEphemeral = "4Gi"
+	execClientDiskSizeEphemeral       = "12Gi"
 )
 
 var (
@@ -48,6 +55,8 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 	var envVar v1.EnvVar
 	var rrCC v1.ResourceRequirements
 	var rrEC v1.ResourceRequirements
+	var pvcCC *zeus_topology_config_drivers.PersistentVolumeClaimsConfigDriver
+	var pvcEC *zeus_topology_config_drivers.PersistentVolumeClaimsConfigDriver
 	switch network {
 	case "mainnet":
 		cd.CloudCtxNs.Namespace = mainnetNamespace
@@ -70,14 +79,33 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 		}
 		rrEC = v1.ResourceRequirements{
 			Limits: v1.ResourceList{
-				"cpu":    resource.MustParse(execClientEphemeralRequestRAM),
+				"cpu":    resource.MustParse(execClientEphemeralRequestLimitCPU),
 				"memory": resource.MustParse(execClientEphemeralRequestLimitRAM),
 			},
 			Requests: v1.ResourceList{
 				"cpu":    resource.MustParse(execClientEphemeralRequestCPU),
-				"memory": resource.MustParse(execClientEphemeralRequestLimitCPU),
+				"memory": resource.MustParse(execClientEphemeralRequestRAM),
 			},
 		}
+		pvcCC = &zeus_topology_config_drivers.PersistentVolumeClaimsConfigDriver{
+			PersistentVolumeClaimDrivers: map[string]v1.PersistentVolumeClaim{
+				consensusClientDiskName: {
+					ObjectMeta: metav1.ObjectMeta{Name: consensusClientDiskName},
+					Spec: v1.PersistentVolumeClaimSpec{Resources: v1.ResourceRequirements{
+						Requests: v1.ResourceList{"storage": resource.MustParse(consensusStorageDiskSizeEphemeral)},
+					}},
+				},
+			}}
+
+		pvcEC = &zeus_topology_config_drivers.PersistentVolumeClaimsConfigDriver{
+			PersistentVolumeClaimDrivers: map[string]v1.PersistentVolumeClaim{
+				execClientDiskName: {
+					ObjectMeta: metav1.ObjectMeta{Name: execClientDiskName},
+					Spec: v1.PersistentVolumeClaimSpec{Resources: v1.ResourceRequirements{
+						Requests: v1.ResourceList{"storage": resource.MustParse(execClientDiskSizeEphemeral)},
+					}},
+				},
+			}}
 	}
 
 	depCfgOverride := zeus_topology_config_drivers.DeploymentDriver{}
@@ -141,11 +169,13 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 			}
 			tmp := v
 			if k == "consensusClients" {
+				stsCfgOverride.PVCDriver = pvcCC
 				sb := tmp.SkeletonBases["lighthouseAthena"]
 				tmpSb := sb
 				tmpSb.TopologyConfigDriver = &cfgOverride
 				tmp.SkeletonBases["lighthouseAthena"] = tmpSb
 			} else if k == "execClients" {
+				stsCfgOverride.PVCDriver = pvcEC
 				sb := tmp.SkeletonBases["gethAthena"]
 				tmpSb := sb
 				tmpSb.TopologyConfigDriver = &cfgOverride

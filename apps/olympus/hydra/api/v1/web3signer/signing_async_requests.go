@@ -77,7 +77,7 @@ func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inme
 					ch <- sigResponses
 				}(i)
 			}
-			timeout := time.After(4 * time.Second)
+			timeout := time.After(6 * time.Second)
 			select {
 			case sigResponses := <-ch:
 				if len(sigRequests.Map) < len(sigRequests.Map) {

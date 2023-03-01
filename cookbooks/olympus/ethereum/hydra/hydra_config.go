@@ -96,7 +96,6 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 					}},
 				},
 			}}
-
 		pvcEC = &zeus_topology_config_drivers.PersistentVolumeClaimsConfigDriver{
 			PersistentVolumeClaimDrivers: map[string]v1.PersistentVolumeClaim{
 				execClientDiskName: {

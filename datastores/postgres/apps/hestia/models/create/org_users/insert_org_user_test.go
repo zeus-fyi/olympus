@@ -19,10 +19,10 @@ func (s *CreateOrgUserTestSuite) TestInsertDemoOrgUserWithKey() {
 	ctx := context.Background()
 
 	s.InitLocalConfigs()
-	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 
 	ou := OrgUser{}
-	key, err := ou.InsertDemoOrgUserWithNewKey(ctx, []byte("{}"), "userDemo", EthereumEphemeryServiceID)
+	key, err := ou.InsertDemoOrgUserWithNewKey(ctx, []byte(`{"email": "alex@zeus.fyi", "ethereumAddress": "0x974C0c36265b7aa658b63A6121041AeE9e4DFd1b", "validatorCount": "3"}`), "userDemo", EthereumEphemeryServiceID)
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(key)
 }

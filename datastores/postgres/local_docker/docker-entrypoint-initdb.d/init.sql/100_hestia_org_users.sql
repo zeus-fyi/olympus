@@ -1,5 +1,6 @@
 CREATE TABLE "public"."users" (
     "user_id" int8 NOT NULL DEFAULT next_id(),
+    "email" text,
     "metadata" jsonb NOT NULL
 );
 ALTER TABLE "public"."users" ADD CONSTRAINT "user_pk" PRIMARY KEY ("user_id");
@@ -16,3 +17,4 @@ CREATE TABLE "public"."org_users" (
  "org_id" int8 NOT NULL REFERENCES orgs(org_id),
  "user_id" int8 NOT NULL REFERENCES users(user_id)
 );
+

@@ -16,12 +16,12 @@ type EthScheduledDeliveryTestSuite struct {
 
 func (s *EthScheduledDeliveryTestSuite) SetupTest() {
 	s.InitLocalConfigs()
-	s.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	s.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 }
 
 func (s *EthScheduledDeliveryTestSuite) TestInsert() {
 	ArtemisClient = artemis_client.NewDefaultArtemisClient(s.Tc.ProductionLocalTemporalBearerToken)
-	//pubKey := "0x974C0c36265b7aa658b63A6121041AeE9e4DFd1b"
+	pubKey := "0x974C0c36265b7aa658b63A6121041AeE9e4DFd1b"
 	//addr := common.HexToAddress(pubKey)
 	//rr := artemis_req_types.SendEtherPayload{
 	//	TransferArgs: artemis_req_types.TransferArgs{
@@ -39,7 +39,7 @@ func (s *EthScheduledDeliveryTestSuite) TestInsert() {
 		ProtocolNetworkID:    hestia_req_types.EthereumEphemeryProtocolNetworkID,
 		Amount:               GweiThirtyTwoEth + GweiGasFees,
 		Units:                "gwei",
-		PublicKey:            "0x974C0c36265b7aa658b63A6121041AeE9e4DFd1b",
+		PublicKey:            pubKey,
 	}
 	err := InsertDeliverySchedule(ctx, sd)
 	s.Require().Nil(err)

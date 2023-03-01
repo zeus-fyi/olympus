@@ -10,6 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
 	zeus_client "github.com/zeus-fyi/zeus/pkg/zeus/client"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
 )
 
 type BeaconsTestCookbookTestSuite struct {
@@ -29,6 +30,15 @@ func (t *BeaconsTestCookbookTestSuite) TestMainnetClusterDeploy() {
 	cdep := MainnetBeaconBaseClusterDefinition.GenerateDeploymentRequest()
 	_, err = t.ZeusTestClient.DeployCluster(ctx, cdep)
 	t.Require().Nil(err)
+}
+func (t *BeaconsTestCookbookTestSuite) TestMainnetClusterDestroy() {
+	olympus_cookbooks.ChangeToCookbookDir()
+	d := zeus_req_types.TopologyDeployRequest{
+		CloudCtxNs: MainnetAthenaBeaconCloudCtxNs,
+	}
+	resp, err := t.ZeusTestClient.DestroyDeploy(ctx, d)
+	t.Require().Nil(err)
+	t.Assert().NotEmpty(resp)
 }
 
 func (t *BeaconsTestCookbookTestSuite) TestMainnetClusterSetup() {

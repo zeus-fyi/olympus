@@ -2,6 +2,7 @@ package auth_startup
 
 import (
 	"context"
+
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 )
@@ -17,6 +18,7 @@ func RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authC
 	log.Info().Msg("Hestia: RunDigitalOceanS3BucketObjSecretsProcedure finished")
 	sw := SecretsWrapper{}
 	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
+	sw.BearerToken = sw.ReadSecret(ctx, inMemSecrets, temporalBearerSecret)
 	sw.SecretsManagerAuthAWS.AccessKey = sw.ReadSecret(ctx, inMemSecrets, secretsManagerAccessKey)
 	sw.SecretsManagerAuthAWS.SecretKey = sw.ReadSecret(ctx, inMemSecrets, secretsManagerSecretKey)
 	log.Info().Msg("Hestia: RunDigitalOceanS3BucketObjSecretsProcedure succeeded")

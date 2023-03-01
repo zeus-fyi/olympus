@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
+	artemis_client "github.com/zeus-fyi/zeus/pkg/artemis/client"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
@@ -19,7 +20,20 @@ func (s *EthScheduledDeliveryTestSuite) SetupTest() {
 }
 
 func (s *EthScheduledDeliveryTestSuite) TestInsert() {
-
+	ArtemisClient = artemis_client.NewDefaultArtemisClient(s.Tc.ProductionLocalTemporalBearerToken)
+	//pubKey := "0x974C0c36265b7aa658b63A6121041AeE9e4DFd1b"
+	//addr := common.HexToAddress(pubKey)
+	//rr := artemis_req_types.SendEtherPayload{
+	//	TransferArgs: artemis_req_types.TransferArgs{
+	//		Amount:    big.NewInt(1).Mul(signing_automation_ethereum.Gwei, big.NewInt(int64(GweiThirtyTwoEth))),
+	//		ToAddress: addr,
+	//	},
+	//}
+	//rAddr := addr.String()
+	//s.Require().Equal(pubKey, rAddr)
+	//rx, err := ArtemisClient.SendEther(ctx, rr, artemis_client.ArtemisEthereumEphemeral)
+	//s.Require().Nil(err)
+	//s.Require().NotNil(rx)
 	sd := artemis_autogen_bases.EthScheduledDelivery{
 		DeliveryScheduleType: "networkReset",
 		ProtocolNetworkID:    hestia_req_types.EthereumEphemeryProtocolNetworkID,

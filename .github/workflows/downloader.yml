@@ -30,7 +30,6 @@ jobs:
         with:
           path: ~/go/pkg/mod
           key: go-mod-${{ hashFiles('**/go.sum') }}
-
       - name: Checkout code
         uses: actions/checkout@v2
 

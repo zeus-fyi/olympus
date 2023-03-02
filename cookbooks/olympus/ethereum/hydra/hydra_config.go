@@ -153,6 +153,7 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 	containCfgHydraClient := zeus_topology_config_drivers.ContainerDriver{
 		Container: v1.Container{
 			Resources: hydraRR,
+			Env:       combinedEnvVars,
 		},
 	}
 
@@ -171,10 +172,6 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 
 	for k, v := range cd.ComponentBases {
 		if k == "hydra" || k == "hydraChoreography" {
-
-			if k == "hydra" {
-
-			}
 			cfgOverride := zeus_topology_config_drivers.TopologyConfigDriver{
 				IngressDriver:     nil,
 				StatefulSetDriver: nil,
@@ -182,12 +179,10 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 				DeploymentDriver:  &depCfgOverride,
 			}
 			tmp := v
-
 			tmpSb := tmp.SkeletonBases[k]
 			tmpSb.TopologyConfigDriver = &cfgOverride
 			tmp.SkeletonBases[k] = tmpSb
 			cd.ComponentBases[k] = tmp
-
 		} else {
 			cfgOverride := zeus_topology_config_drivers.TopologyConfigDriver{
 				IngressDriver:     nil,
@@ -213,9 +208,13 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 				tmpSb.TopologyConfigDriver.StatefulSetDriver = &tmpStsCfgOverride
 				tmp.SkeletonBases["gethAthena"] = tmpSb
 			} else if k == "validatorClients" {
+				tmpStsCfgOverride := stsCfgOverride
+				var rc int32 = 2
 				sb := tmp.SkeletonBases["lighthouseAthenaValidatorClient"]
 				tmpSb := sb
 				tmpSb.TopologyConfigDriver = &cfgOverride
+				tmpSb.TopologyConfigDriver.StatefulSetDriver = &tmpStsCfgOverride
+				tmpSb.TopologyConfigDriver.StatefulSetDriver.ReplicaCount = &rc
 				tmp.SkeletonBases["lighthouseAthenaValidatorClient"] = tmpSb
 			}
 			cd.ComponentBases[k] = tmp

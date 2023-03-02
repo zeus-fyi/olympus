@@ -32,7 +32,7 @@ const (
 	consensusClientDiskName = "consensus-client-storage"
 	execClientDiskName      = "exec-client-storage"
 
-	consensusStorageDiskSizeEphemeral = "10Gi"
+	consensusStorageDiskSizeEphemeral = "20Gi"
 	execClientDiskSizeEphemeral       = "40Gi"
 )
 
@@ -168,16 +168,20 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 			}
 			tmp := v
 			if k == "consensusClients" {
-				stsCfgOverride.PVCDriver = pvcCC
+				tmpStsCfgOverride := stsCfgOverride
+				tmpStsCfgOverride.PVCDriver = pvcCC
 				sb := tmp.SkeletonBases["lighthouseAthena"]
 				tmpSb := sb
 				tmpSb.TopologyConfigDriver = &cfgOverride
+				tmpSb.TopologyConfigDriver.StatefulSetDriver = &tmpStsCfgOverride
 				tmp.SkeletonBases["lighthouseAthena"] = tmpSb
 			} else if k == "execClients" {
-				stsCfgOverride.PVCDriver = pvcEC
+				tmpStsCfgOverride := stsCfgOverride
+				tmpStsCfgOverride.PVCDriver = pvcEC
 				sb := tmp.SkeletonBases["gethAthena"]
 				tmpSb := sb
 				tmpSb.TopologyConfigDriver = &cfgOverride
+				tmpSb.TopologyConfigDriver.StatefulSetDriver = &tmpStsCfgOverride
 				tmp.SkeletonBases["gethAthena"] = tmpSb
 			} else if k == "validatorClients" {
 				sb := tmp.SkeletonBases["lighthouseAthenaValidatorClient"]

@@ -73,7 +73,7 @@ spec:
             tcpSocket:
               port: athena
         - name: zeus-consensus-client
-          image: "sigp/lighthouse:capella"
+          image: "sigp/lighthouse:v3.5.0"
           imagePullPolicy: IfNotPresent
           command: [ "/bin/sh" ]
           args: [ "-c","/scripts/lighthouseEphemeral.sh" ]

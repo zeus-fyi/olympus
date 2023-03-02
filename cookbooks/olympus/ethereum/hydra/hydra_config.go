@@ -17,6 +17,12 @@ const (
 	ephemeryNamespace     = "ephemeral-staking"
 	mainnetNamespace      = "mainnet-staking"
 
+	hydraClientEphemeralRequestRAM      = "500Mi"
+	hydraClientEphemeralRequestLimitRAM = "500Mi"
+
+	hydraClientEphemeralRequestCPU      = "1"
+	hydraClientEphemeralRequestLimitCPU = "1"
+
 	consensusClientEphemeralRequestRAM      = "1Gi"
 	consensusClientEphemeralRequestLimitRAM = "1Gi"
 
@@ -55,6 +61,19 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 	var envVar v1.EnvVar
 	var rrCC v1.ResourceRequirements
 	var rrEC v1.ResourceRequirements
+	var hydraRR v1.ResourceRequirements
+
+	hydraRR = v1.ResourceRequirements{
+		Limits: v1.ResourceList{
+			"cpu":    resource.MustParse(hydraClientEphemeralRequestCPU),
+			"memory": resource.MustParse(hydraClientEphemeralRequestLimitRAM),
+		},
+		Requests: v1.ResourceList{
+			"cpu":    resource.MustParse(hydraClientEphemeralRequestLimitCPU),
+			"memory": resource.MustParse(hydraClientEphemeralRequestRAM),
+		},
+	}
+
 	var pvcCC *zeus_topology_config_drivers.PersistentVolumeClaimsConfigDriver
 	var pvcEC *zeus_topology_config_drivers.PersistentVolumeClaimsConfigDriver
 	switch network {
@@ -131,10 +150,15 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 		},
 	}
 
-	containCfg.Env = combinedEnvVars
+	containCfgHydraClient := zeus_topology_config_drivers.ContainerDriver{
+		Container: v1.Container{
+			Resources: hydraRR,
+		},
+	}
 
+	containCfg.Env = combinedEnvVars
 	// deployments
-	depCfgOverride.ContainerDrivers["hydra"] = containCfg
+	depCfgOverride.ContainerDrivers["hydra"] = containCfgHydraClient
 	depCfgOverride.ContainerDrivers["zeus-hydra-choreography"] = containCfg
 	depCfgOverride.ContainerDrivers["athena"] = containCfg
 
@@ -147,6 +171,10 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 
 	for k, v := range cd.ComponentBases {
 		if k == "hydra" || k == "hydraChoreography" {
+
+			if k == "hydra" {
+
+			}
 			cfgOverride := zeus_topology_config_drivers.TopologyConfigDriver{
 				IngressDriver:     nil,
 				StatefulSetDriver: nil,
@@ -159,6 +187,7 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 			tmpSb.TopologyConfigDriver = &cfgOverride
 			tmp.SkeletonBases[k] = tmpSb
 			cd.ComponentBases[k] = tmp
+
 		} else {
 			cfgOverride := zeus_topology_config_drivers.TopologyConfigDriver{
 				IngressDriver:     nil,

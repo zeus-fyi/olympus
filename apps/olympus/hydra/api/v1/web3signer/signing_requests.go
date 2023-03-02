@@ -139,7 +139,7 @@ func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (Sig
 		log.Info().Interface("pubkey", pubkey).Msg("VALIDATOR_REGISTRATION")
 		ValidatorRegistrationPriorityQueue.Push(SigningRequestToItem(sr))
 	default:
-		log.Warn().Interface("pubkey", pubkey).Interface("body", w.Body).Msg("UNKNOWN")
+		log.Warn().Interface("pubkey", pubkey).Interface("type", w.Body["type"]).Interface("body", w.Body).Msg("UNKNOWN")
 	}
 
 	return sr, nil

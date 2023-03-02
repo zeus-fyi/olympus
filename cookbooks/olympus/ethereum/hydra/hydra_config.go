@@ -32,8 +32,8 @@ const (
 	consensusClientDiskName = "consensus-client-storage"
 	execClientDiskName      = "exec-client-storage"
 
-	consensusStorageDiskSizeEphemeral = "4Gi"
-	execClientDiskSizeEphemeral       = "12Gi"
+	consensusStorageDiskSizeEphemeral = "10Gi"
+	execClientDiskSizeEphemeral       = "40Gi"
 )
 
 var (

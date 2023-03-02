@@ -58,54 +58,54 @@ type SignaturePriorityQueue struct {
 	datastructures.PriorityQueue
 }
 
-func InitAsyncMessageQueues(ctx context.Context) {
-	minDuration := 1 * time.Millisecond
-	maxDuration := 4 * time.Millisecond
+func InitAsyncMessageQueuesSyncCommitteeQueues(ctx context.Context) {
+	minDuration := 30 * time.Millisecond
+	maxDuration := 50 * time.Millisecond
 	for {
-		go func() {
-			AttestationSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
-		}()
-		jitterDelay := time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
-		time.Sleep(jitterDelay)
-		go func() {
-			AggregationSlotSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
-		}()
-		jitterDelay = time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
-		time.Sleep(jitterDelay)
-		go func() {
-			go AggregationAndProofSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
-		}()
-		jitterDelay = time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
-		time.Sleep(jitterDelay)
-		go func() {
-			BlockSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
-		}()
-		jitterDelay = time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
-		time.Sleep(jitterDelay)
-		go func() {
-			RandaoRevealSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
-		}()
-		jitterDelay = time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
-		time.Sleep(jitterDelay)
 		go func() {
 			SyncCommitteeMessageSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
-		jitterDelay = time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
-		time.Sleep(jitterDelay)
 		go func() {
 			SyncCommitteeSelectionProofSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
-		jitterDelay = time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
-		time.Sleep(jitterDelay)
 		go func() {
 			SyncCommitteeContributionAndProofPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
-		jitterDelay = time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
+		jitterDelay := time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
 		time.Sleep(jitterDelay)
+	}
+}
+
+func InitAsyncMessageAttestationQueues(ctx context.Context) {
+	minDuration := 10 * time.Millisecond
+	maxDuration := 20 * time.Millisecond
+	go func() {
+		AttestationSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+	}()
+	go func() {
+		AggregationSlotSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+	}()
+	go func() {
+		go AggregationAndProofSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+	}()
+	jitterDelay := time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
+	time.Sleep(jitterDelay)
+}
+
+func InitAsyncBlockMessageQueues(ctx context.Context) {
+	minDuration := 10 * time.Millisecond
+	maxDuration := 30 * time.Millisecond
+	for {
+		go func() {
+			BlockSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+		}()
+		go func() {
+			RandaoRevealSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+		}()
 		go func() {
 			ValidatorRegistrationPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
-		jitterDelay = time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
+		jitterDelay := time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
 		time.Sleep(jitterDelay)
 	}
 }

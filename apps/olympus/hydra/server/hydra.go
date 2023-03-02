@@ -2,6 +2,7 @@ package hydra_server
 
 import (
 	"context"
+
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -106,7 +107,9 @@ func Hydra() {
 	log.Ctx(ctx).Info().Interface("network", ethereum_slashing_protection_watermarking.Network).Msg("Hydra: Temporal Worker Started")
 
 	log.Ctx(ctx).Info().Msg("Hydra: Starting async priority message queues")
-	go hydra_eth2_web3signer.InitAsyncMessageQueues(ctx)
+	go hydra_eth2_web3signer.InitAsyncBlockMessageQueues(ctx)
+	go hydra_eth2_web3signer.InitAsyncMessageQueuesSyncCommitteeQueues(ctx)
+	go hydra_eth2_web3signer.InitAsyncMessageAttestationQueues(ctx)
 	log.Ctx(ctx).Info().Msg("Hydra: Async priority message queues started")
 
 	log.Ctx(ctx).Info().Msg("Hydra: Starting server")

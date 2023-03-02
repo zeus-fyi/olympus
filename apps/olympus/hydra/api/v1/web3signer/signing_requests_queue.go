@@ -50,7 +50,7 @@ var (
 		PriorityQueue: datastructures.PriorityQueue{},
 	}
 
-	SignatureResponsesCache = cache.New(10*time.Second, 20*time.Second)
+	SignatureResponsesCache = cache.New(30*time.Second, 60*time.Second)
 )
 
 type SignaturePriorityQueue struct {

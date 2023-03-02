@@ -130,6 +130,8 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 	depCfgOverride.ContainerDrivers = make(map[string]zeus_topology_config_drivers.ContainerDriver)
 	stsCfgOverride := zeus_topology_config_drivers.StatefulSetDriver{}
 	stsCfgOverride.ContainerDrivers = make(map[string]zeus_topology_config_drivers.ContainerDriver)
+	stsCfgOverrideSecondary := zeus_topology_config_drivers.StatefulSetDriver{}
+	stsCfgOverrideSecondary.ContainerDrivers = make(map[string]zeus_topology_config_drivers.ContainerDriver)
 
 	envVarsChoreography := olympus_common_vals_cookbooks.GetChoreographyEnvVars()
 	internalAuthEnvVars := olympus_common_vals_cookbooks.GetCommonInternalAuthEnvVars()
@@ -158,6 +160,19 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 	}
 
 	containCfg.Env = combinedEnvVars
+	containCfgSecondary := containCfg
+	rcSecondary := v1.EnvVar{
+		Name:  "REPLICA_COUNT",
+		Value: "1",
+	}
+	containCfgSecondary.AppendEnvVars = []v1.EnvVar{rcSecondary}
+
+	rcPrimary := v1.EnvVar{
+		Name:  "REPLICA_COUNT",
+		Value: "0",
+	}
+	containCfg.AppendEnvVars = []v1.EnvVar{rcPrimary}
+
 	// deployments
 	depCfgOverride.ContainerDrivers["hydra"] = containCfgHydraClient
 	depCfgOverride.ContainerDrivers["zeus-hydra-choreography"] = containCfg
@@ -169,6 +184,12 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 	stsCfgOverride.ContainerDrivers["zeus-exec-client"] = containCfgBeaconExecClient
 	stsCfgOverride.ContainerDrivers["init-validators"] = containCfg
 	stsCfgOverride.ContainerDrivers["init-snapshots"] = containCfg
+
+	stsCfgOverrideSecondary.ContainerDrivers["athena"] = containCfgSecondary
+	stsCfgOverrideSecondary.ContainerDrivers["zeus-consensus-client"] = containCfgBeaconConsensusClient
+	stsCfgOverrideSecondary.ContainerDrivers["zeus-exec-client"] = containCfgBeaconExecClient
+	stsCfgOverrideSecondary.ContainerDrivers["init-validators"] = containCfgSecondary
+	stsCfgOverrideSecondary.ContainerDrivers["init-snapshots"] = containCfgSecondary
 
 	for k, v := range cd.ComponentBases {
 		if k == "hydra" || k == "hydraChoreography" {
@@ -209,13 +230,18 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 				tmp.SkeletonBases["gethAthena"] = tmpSb
 			} else if k == "validatorClients" {
 				tmpStsCfgOverride := stsCfgOverride
-				var rc int32 = 2
 				sb := tmp.SkeletonBases["lighthouseAthenaValidatorClient"]
 				tmpSb := sb
 				tmpSb.TopologyConfigDriver = &cfgOverride
 				tmpSb.TopologyConfigDriver.StatefulSetDriver = &tmpStsCfgOverride
-				tmpSb.TopologyConfigDriver.StatefulSetDriver.ReplicaCount = &rc
 				tmp.SkeletonBases["lighthouseAthenaValidatorClient"] = tmpSb
+			} else if k == "validatorClientsSecondary" {
+				tmpStsCfgOverride := stsCfgOverrideSecondary
+				sb := tmp.SkeletonBases["lighthouseAthenaValidatorClientSecondary"]
+				tmpSb := sb
+				tmpSb.TopologyConfigDriver = &cfgOverride
+				tmpSb.TopologyConfigDriver.StatefulSetDriver = &tmpStsCfgOverride
+				tmp.SkeletonBases["lighthouseAthenaValidatorClientSecondary"] = tmpSb
 			}
 			cd.ComponentBases[k] = tmp
 		}

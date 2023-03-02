@@ -172,10 +172,10 @@ func SelectValidatorsAssignedToCloudCtxNs(ctx context.Context, validatorServiceI
 				  FROM validators_service_org_groups_cloud_ctx_ns vctx
 				  INNER JOIN topologies_org_cloud_ctx_ns topctx ON topctx.cloud_ctx_ns_id = vctx.cloud_ctx_ns_id
 				  INNER JOIN validators_service_org_groups vsg ON vsg.pubkey = vctx.pubkey
-				  WHERE vsg.protocol_network_id=$1 AND vsg.enabled=true AND topctx.cloud_provider=$2 AND topctx.context=$3 AND topctx.region=$4 AND topctx.namespace=$5
+				  WHERE vsg.protocol_network_id=$1 AND vsg.enabled=true AND topctx.cloud_provider=$2 AND topctx.context=$3 AND topctx.region=$4 AND topctx.namespace=$5 AND vctx.validator_client_number=$6
 				  `
 	log.Debug().Interface("SelectValidatorsAssignedToCloudCtxNs", q.LogHeader(ModelName))
-	rows, err := apps.Pg.Query(ctx, q.RawQuery, validatorServiceInfo.ProtocolNetworkID, cloudCtxNs.CloudProvider, cloudCtxNs.Context, cloudCtxNs.Region, cloudCtxNs.Namespace)
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, validatorServiceInfo.ProtocolNetworkID, cloudCtxNs.CloudProvider, cloudCtxNs.Context, cloudCtxNs.Region, cloudCtxNs.Namespace, validatorServiceInfo.ValidatorClientNumber)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
 		return nil, err
 	}

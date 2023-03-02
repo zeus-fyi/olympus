@@ -96,13 +96,17 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) RestartValidatorClie
 	}
 
 	// TODO when capacity is reached, we need to delete the oldest pod
+	//if vcNum > 0 {
+	//	podName = fmt.Sprintf("%s-%d-0", olympus_hydra_validators_cookbooks.HydraValidatorsClientName, vcNum)
+	//}
 	vcNum := 0
+	podName := fmt.Sprintf("%s-%d", olympus_hydra_validators_cookbooks.HydraValidatorsClientName, vcNum)
 	par := zeus_pods_reqs.PodActionRequest{
 		TopologyDeployRequest: zeus_req_types.TopologyDeployRequest{
 			CloudCtxNs: cloudCtxNs,
 		},
 		Action:  zeus_pods_reqs.DeleteAllPods,
-		PodName: fmt.Sprintf("%s-%d", olympus_hydra_validators_cookbooks.HydraValidatorsClientName, vcNum),
+		PodName: podName,
 	}
 	_, err := Zeus.DeletePods(ctx, par)
 	if err != nil {

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: cm-hydra-validator-client
+  name: cm-hydra-validator-client-1
 data:
   start.sh: |-
     #!/bin/sh

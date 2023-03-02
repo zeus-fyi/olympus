@@ -42,14 +42,6 @@ func (t *HydraCookbookTestSuite) TestClusterDestroy() {
 	t.Assert().NotEmpty(resp)
 }
 
-func (t *HydraCookbookTestSuite) TestClusterRegisterDefinitions() {
-	cdCfg := HydraClusterConfig(&HydraClusterDefinition, "ephemery")
-	cd := cdCfg.BuildClusterDefinitions()
-
-	err := cd.CreateClusterClassDefinitions(ctx, t.ZeusTestClient)
-	t.Require().Nil(err)
-}
-
 func (t *HydraCookbookTestSuite) TestClusterSetup() {
 	olympus_cookbooks.ChangeToCookbookDir()
 
@@ -65,6 +57,35 @@ func (t *HydraCookbookTestSuite) TestClusterSetup() {
 	sbDefs, err := cd.GenerateSkeletonBaseCharts()
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(sbDefs)
+}
+
+func (t *HydraCookbookTestSuite) TestClusterRegisterDefinitions() {
+	cdCfg := HydraClusterConfig(&HydraClusterDefinition, "ephemery")
+	cd := cdCfg.BuildClusterDefinitions()
+
+	err := cd.CreateClusterClassDefinitions(ctx, t.ZeusTestClient)
+	t.Require().Nil(err)
+
+}
+
+func (t *HydraCookbookTestSuite) TestCreateClusterBaseSecondary() {
+	basesInsert := []string{"validatorClientsSecondary"}
+	cc := zeus_req_types.TopologyCreateOrAddComponentBasesToClassesRequest{
+		ClusterClassName:   "hydraEphemery",
+		ComponentBaseNames: basesInsert,
+	}
+	_, err := t.ZeusTestClient.AddComponentBasesToClass(ctx, cc)
+	t.Require().Nil(err)
+}
+
+func (t *HydraCookbookTestSuite) TestCreateClusterSkeletonBaseSecondary() {
+	cc := zeus_req_types.TopologyCreateOrAddSkeletonBasesToClassesRequest{
+		ClusterClassName:  "hydraEphemery",
+		ComponentBaseName: "validatorClientsSecondary",
+		SkeletonBaseNames: []string{"lighthouseAthenaValidatorClientSecondary"},
+	}
+	_, err := t.ZeusTestClient.AddSkeletonBasesToClass(ctx, cc)
+	t.Require().Nil(err)
 }
 
 func (t *HydraCookbookTestSuite) SetupTest() {

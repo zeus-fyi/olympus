@@ -12,14 +12,15 @@ import (
 
 var (
 	HydraClusterDefinition = zeus_cluster_config_drivers.ClusterDefinition{
-		ClusterClassName: "hydraEphemeral",
+		ClusterClassName: "hydraEphemery",
 		CloudCtxNs:       ValidatorCloudCtxNs,
 		ComponentBases: map[string]zeus_cluster_config_drivers.ComponentBaseDefinition{
-			"consensusClients":  olympus_beacon_cookbooks.ConsensusClientComponentBase,
-			"execClients":       olympus_beacon_cookbooks.ExecClientComponentBase,
-			"validatorClients":  olympus_hydra_validators_cookbooks.ValidatorClientComponentBase,
-			"hydraChoreography": olympus_hydra_choreography_cookbooks.HydraChoreographyComponentBase,
-			"hydra":             HydraComponentBase,
+			"consensusClients":          olympus_beacon_cookbooks.ConsensusClientComponentBase,
+			"execClients":               olympus_beacon_cookbooks.ExecClientComponentBase,
+			"validatorClients":          olympus_hydra_validators_cookbooks.ValidatorClientComponentBase,
+			"validatorClientsSecondary": olympus_hydra_validators_cookbooks.ValidatorClientSecondaryComponentBase,
+			"hydraChoreography":         olympus_hydra_choreography_cookbooks.HydraChoreographyComponentBase,
+			"hydra":                     HydraComponentBase,
 		},
 	}
 	ValidatorCloudCtxNs = zeus_common_types.CloudCtxNs{

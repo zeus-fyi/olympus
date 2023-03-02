@@ -9,7 +9,6 @@ import (
 	"github.com/rs/zerolog/log"
 	consensys_eth2_openapi "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer/models"
 	ethereum_slashing_protection_watermarking "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer/slashing_protection"
-	"github.com/zeus-fyi/olympus/pkg/utils/datastructures"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
 
@@ -32,10 +31,6 @@ type SignRequest struct {
 	Pubkey      string `json:"pubkey"`
 	Type        string `json:"type"`
 	SigningRoot string `json:"signingRoot"`
-}
-
-func SigningRequestToItem(sr SignRequest) *datastructures.Item {
-	return &datastructures.Item{Value: sr}
 }
 
 func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (SignRequest, error) {
@@ -68,13 +63,13 @@ func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (Sig
 			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Msg("ATTESTATION")
 			return SignRequest{}, err
 		}
-		AttestationSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
+		AttestationSigningRequestPriorityQueue.PriorityQueue.Enqueue(sr)
 	case AGGREGATION_SLOT:
 		log.Info().Interface("pubkey", pubkey).Msg("AGGREGATION_SLOT")
-		AggregationSlotSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
+		AggregationSlotSigningRequestPriorityQueue.PriorityQueue.Enqueue(sr)
 	case AGGREGATE_AND_PROOF:
 		log.Info().Interface("pubkey", pubkey).Msg("AGGREGATE_AND_PROOF")
-		AggregationAndProofSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
+		AggregationAndProofSigningRequestPriorityQueue.PriorityQueue.Enqueue(sr)
 	case BLOCK:
 		log.Info().Interface("pubkey", pubkey).Msg("BLOCK")
 		bs := consensys_eth2_openapi.BlockSigning{}
@@ -98,7 +93,7 @@ func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (Sig
 			log.Ctx(ctx).Err(err).Interface("pubkey", pubkey).Interface("body", w.Body).Interface("slot", slot).Msg("BLOCK")
 			return SignRequest{}, err
 		}
-		BlockSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
+		BlockSigningRequestPriorityQueue.PriorityQueue.Enqueue(sr)
 	case BLOCK_V2:
 		log.Info().Interface("pubkey", pubkey).Interface("body", w.Body).Msg("BLOCK_V2")
 		bs := consensys_eth2_openapi.BeaconBlockSigning{}
@@ -123,22 +118,22 @@ func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (Sig
 			return SignRequest{}, err
 		}
 		log.Info().Interface("pubkey", pubkey).Interface("body", w.Body).Interface("slot", slot).Msg("BLOCK_V2_WATERMARKED")
-		BlockSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
+		BlockSigningRequestPriorityQueue.PriorityQueue.Enqueue(sr)
 	case RANDAO_REVEAL:
 		log.Info().Interface("pubkey", pubkey).Msg("RANDAO_REVEAL")
-		RandaoRevealSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
+		RandaoRevealSigningRequestPriorityQueue.PriorityQueue.Enqueue(sr)
 	case SYNC_COMMITTEE_MESSAGE:
 		log.Info().Interface("pubkey", pubkey).Msg("SYNC_COMMITTEE_MESSAGE")
-		SyncCommitteeMessageSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
+		SyncCommitteeMessageSigningRequestPriorityQueue.PriorityQueue.Enqueue(sr)
 	case SYNC_COMMITTEE_SELECTION_PROOF:
 		log.Info().Interface("pubkey", pubkey).Msg("SYNC_COMMITTEE_SELECTION_PROOF")
-		SyncCommitteeSelectionProofSigningRequestPriorityQueue.Push(SigningRequestToItem(sr))
+		SyncCommitteeSelectionProofSigningRequestPriorityQueue.PriorityQueue.Enqueue(sr)
 	case SYNC_COMMITTEE_CONTRIBUTION_AND_PROOF:
 		log.Info().Interface("pubkey", pubkey).Msg("SYNC_COMMITTEE_CONTRIBUTION_AND_PROOF")
-		SyncCommitteeContributionAndProofPriorityQueue.Push(SigningRequestToItem(sr))
+		SyncCommitteeContributionAndProofPriorityQueue.PriorityQueue.Enqueue(sr)
 	case VALIDATOR_REGISTRATION:
 		log.Info().Interface("pubkey", pubkey).Msg("VALIDATOR_REGISTRATION")
-		ValidatorRegistrationPriorityQueue.Push(SigningRequestToItem(sr))
+		ValidatorRegistrationPriorityQueue.PriorityQueue.Enqueue(sr)
 	default:
 		log.Warn().Interface("pubkey", pubkey).Interface("type", w.Body["type"]).Interface("body", w.Body).Msg("UNKNOWN")
 	}

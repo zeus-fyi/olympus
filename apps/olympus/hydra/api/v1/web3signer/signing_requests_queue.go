@@ -6,56 +6,60 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/oleiade/lane/v2"
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/utils/datastructures"
 	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
 )
 
 var (
 	AttestationSigningRequestPriorityQueue = SignaturePriorityQueue{
 		Type:          ATTESTATION,
-		PriorityQueue: datastructures.PriorityQueue{},
+		PriorityQueue: NewSigningQueue(),
 	}
 	AggregationSlotSigningRequestPriorityQueue = SignaturePriorityQueue{
 		Type:          AGGREGATION_SLOT,
-		PriorityQueue: datastructures.PriorityQueue{},
+		PriorityQueue: NewSigningQueue(),
 	}
 	AggregationAndProofSigningRequestPriorityQueue = SignaturePriorityQueue{
 		Type:          AGGREGATE_AND_PROOF,
-		PriorityQueue: datastructures.PriorityQueue{},
+		PriorityQueue: NewSigningQueue(),
 	}
 	BlockSigningRequestPriorityQueue = SignaturePriorityQueue{
 		Type:          BLOCK_V2,
-		PriorityQueue: datastructures.PriorityQueue{},
+		PriorityQueue: NewSigningQueue(),
 	}
 	RandaoRevealSigningRequestPriorityQueue = SignaturePriorityQueue{
 		Type:          RANDAO_REVEAL,
-		PriorityQueue: datastructures.PriorityQueue{},
+		PriorityQueue: NewSigningQueue(),
 	}
 	SyncCommitteeMessageSigningRequestPriorityQueue = SignaturePriorityQueue{
 		Type:          SYNC_COMMITTEE_MESSAGE,
-		PriorityQueue: datastructures.PriorityQueue{},
+		PriorityQueue: NewSigningQueue(),
 	}
 	SyncCommitteeSelectionProofSigningRequestPriorityQueue = SignaturePriorityQueue{
 		Type:          SYNC_COMMITTEE_SELECTION_PROOF,
-		PriorityQueue: datastructures.PriorityQueue{},
+		PriorityQueue: NewSigningQueue(),
 	}
 	SyncCommitteeContributionAndProofPriorityQueue = SignaturePriorityQueue{
 		Type:          SYNC_COMMITTEE_CONTRIBUTION_AND_PROOF,
-		PriorityQueue: datastructures.PriorityQueue{},
+		PriorityQueue: NewSigningQueue(),
 	}
 	ValidatorRegistrationPriorityQueue = SignaturePriorityQueue{
 		Type:          VALIDATOR_REGISTRATION,
-		PriorityQueue: datastructures.PriorityQueue{},
+		PriorityQueue: NewSigningQueue(),
 	}
 
 	SignatureResponsesCache = cache.New(30*time.Second, 60*time.Second)
 )
 
+func NewSigningQueue() *lane.Queue[SignRequest] {
+	return lane.NewQueue[SignRequest]()
+}
+
 type SignaturePriorityQueue struct {
-	Type string
-	datastructures.PriorityQueue
+	Type          string
+	PriorityQueue *lane.Queue[SignRequest]
 }
 
 func InitAsyncMessageQueuesSyncCommitteeQueues(ctx context.Context) {
@@ -77,8 +81,8 @@ func InitAsyncMessageQueuesSyncCommitteeQueues(ctx context.Context) {
 }
 
 func InitAsyncMessageAttestationQueues(ctx context.Context) {
-	minDuration := 10 * time.Millisecond
-	maxDuration := 20 * time.Millisecond
+	minDuration := 20 * time.Millisecond
+	maxDuration := 30 * time.Millisecond
 	for {
 		go func() {
 			AttestationSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
@@ -116,18 +120,24 @@ func (sq *SignaturePriorityQueue) SendSignatureRequestsFromQueue(ctx context.Con
 	batchSigReqs := aegis_inmemdbs.EthereumBLSKeySignatureRequests{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureRequest)}
 	pubkeyToUUID := make(map[string]string)
 	seen := make(map[string]SignRequest)
-	ql := sq.Len()
+	ql := sq.PriorityQueue.Size()
 	if ql == 0 {
 		return
 	}
 	log.Info().Str("signingType", sq.Type).Msg(fmt.Sprintf("queue length: %d", ql))
-	for i := 0; i < ql; i++ {
-		item := sq.Pop().(*datastructures.Item)
-		sr := item.Value.(SignRequest)
+	for {
+		ql = sq.PriorityQueue.Size()
+		if ql == 0 {
+			break
+		}
+		sr, qOk := sq.PriorityQueue.Dequeue()
+		if !qOk {
+			continue
+		}
 		pubkey := sr.Pubkey
 		if v, ok := seen[pubkey]; ok {
 			log.Ctx(ctx).Warn().Interface("prevSignRequest", v).Interface("currentSignRequest", sr).Msg(fmt.Sprintf("more than one message seen for pubkey %s, adding back to the queue", pubkey))
-			sq.Push(SigningRequestToItem(sr))
+			sq.PriorityQueue.Enqueue(sr)
 		}
 		seen[pubkey] = sr
 		batchSigReqs.Map[sr.Pubkey] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: sr.SigningRoot}

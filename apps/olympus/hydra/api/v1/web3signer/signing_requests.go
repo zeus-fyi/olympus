@@ -47,6 +47,7 @@ func Watermarking(ctx context.Context, pubkey string, w *Web3SignerRequest) (Sig
 	sr.Type = signType.(string)
 	sr.Pubkey = pubkey
 	sr.SigningRoot = strings_filter.Trim0xPrefix(signingRoot.(string))
+	log.Info().Interface("signType", signType).Interface("pubkey", sr.Pubkey).Msg("signType")
 
 	switch signType {
 	case ATTESTATION:

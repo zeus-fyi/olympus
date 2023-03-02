@@ -14,6 +14,7 @@ import (
 	artemis_req_types "github.com/zeus-fyi/zeus/pkg/artemis/client/req_types"
 	signing_automation_ethereum "github.com/zeus-fyi/zeus/pkg/artemis/signing_automation/ethereum"
 	"github.com/zeus-fyi/zeus/pkg/crypto/ecdsa"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	resty_base "github.com/zeus-fyi/zeus/pkg/zeus/client/base"
 )
 
@@ -54,4 +55,32 @@ func InsertDeliverySchedule(ctx context.Context, sd artemis_autogen_bases.EthSch
 	}
 	log.Info().Interface("rx", rx).Msgf("ArtemisClient.SendEther: %s", q.LogHeader(ArtemisScheduledDelivery))
 	return misc.ReturnIfErr(err, q.LogHeader(ArtemisScheduledDelivery))
+}
+
+func SelectEphemeryDeliverySchedule(ctx context.Context) ([]artemis_autogen_bases.EthScheduledDelivery, error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `
+				  SELECT public_key, amount, units
+				  FROM eth_scheduled_delivery
+				  WHERE protocol_network_id = $1
+				  `
+	sdeliveries := []artemis_autogen_bases.EthScheduledDelivery{}
+	log.Debug().Interface("SelectDeliverySchedule", q.LogHeader(ArtemisScheduledDelivery))
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, hestia_req_types.EthereumEphemeryProtocolNetworkID)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ArtemisScheduledDelivery)); returnErr != nil {
+		return sdeliveries, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		sd := artemis_autogen_bases.EthScheduledDelivery{}
+		rowErr := rows.Scan(
+			&sd.PublicKey, &sd.Amount, &sd.Units,
+		)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader(ModelName))
+			return nil, rowErr
+		}
+		sdeliveries = append(sdeliveries, sd)
+	}
+	return sdeliveries, misc.ReturnIfErr(err, q.LogHeader(ArtemisScheduledDelivery))
 }

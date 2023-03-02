@@ -86,7 +86,7 @@ func InitAsyncMessageAttestationQueues(ctx context.Context) {
 		AggregationSlotSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 	}()
 	go func() {
-		go AggregationAndProofSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+		AggregationAndProofSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 	}()
 	jitterDelay := time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
 	time.Sleep(jitterDelay)

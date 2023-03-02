@@ -79,17 +79,19 @@ func InitAsyncMessageQueuesSyncCommitteeQueues(ctx context.Context) {
 func InitAsyncMessageAttestationQueues(ctx context.Context) {
 	minDuration := 10 * time.Millisecond
 	maxDuration := 20 * time.Millisecond
-	go func() {
-		AttestationSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
-	}()
-	go func() {
-		AggregationSlotSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
-	}()
-	go func() {
-		AggregationAndProofSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
-	}()
-	jitterDelay := time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
-	time.Sleep(jitterDelay)
+	for {
+		go func() {
+			AttestationSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+		}()
+		go func() {
+			AggregationSlotSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+		}()
+		go func() {
+			AggregationAndProofSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
+		}()
+		jitterDelay := time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
+		time.Sleep(jitterDelay)
+	}
 }
 
 func InitAsyncBlockMessageQueues(ctx context.Context) {

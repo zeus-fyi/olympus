@@ -19,6 +19,28 @@ func (s *EthScheduledDeliveryTestSuite) SetupTest() {
 	s.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 }
 
+func (s *EthScheduledDeliveryTestSuite) TestSelect() {
+	ArtemisClient = artemis_client.NewDefaultArtemisClient(s.Tc.ProductionLocalTemporalBearerToken)
+
+	sds, err := SelectEphemeryDeliverySchedule(ctx)
+	s.Require().Nil(err)
+	s.Require().NotNil(sds)
+
+	//for _, sd := range sds {
+	//	addr := common.HexToAddress(sd.PublicKey)
+	//	rr := artemis_req_types.SendEtherPayload{
+	//		TransferArgs: artemis_req_types.TransferArgs{
+	//			Amount:    big.NewInt(1).Mul(signing_automation_ethereum.Gwei, big.NewInt(int64(sd.Amount))),
+	//			ToAddress: addr,
+	//		},
+	//	}
+	//	rx, rerr := ArtemisClient.SendEther(ctx, rr, artemis_client.ArtemisEthereumEphemeral)
+	//	s.Require().Nil(rerr)
+	//	s.Require().NotNil(rx)
+	//	fmt.Println("tx hash: ", rx.Message)
+	//}
+}
+
 func (s *EthScheduledDeliveryTestSuite) TestInsert() {
 	ArtemisClient = artemis_client.NewDefaultArtemisClient(s.Tc.ProductionLocalTemporalBearerToken)
 	pubKey := "0x974C0c36265b7aa658b63A6121041AeE9e4DFd1b"

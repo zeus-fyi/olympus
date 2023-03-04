@@ -18,3 +18,9 @@ CREATE TABLE "public"."org_users" (
  "user_id" int8 NOT NULL REFERENCES users(user_id)
 );
 
+CREATE TABLE "public"."users_passwords" (
+    "password_id" int8 NOT NULL DEFAULT next_id(),
+    "user_id" int8 NOT NULL REFERENCES users(user_id),
+    "password" text NOT NULL
+);
+ALTER TABLE "public"."users_passwords" ADD CONSTRAINT "user_pw_pk" PRIMARY KEY ("password_id");

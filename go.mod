@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	filippo.io/age v1.1.1
+	github.com/PagerDuty/go-pagerduty v1.6.0
 	github.com/aws/aws-sdk-go-v2 v1.17.4
 	github.com/aws/aws-sdk-go-v2/config v1.18.11
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.11
@@ -27,15 +28,17 @@ require (
 	github.com/jackc/pgx/v4 v4.16.1
 	github.com/klauspost/compress v1.15.12
 	github.com/labstack/gommon v0.4.0
+	github.com/lib/pq v1.10.6
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pierrec/lz4 v2.6.1+incompatible
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.63.0
+	github.com/prometheus-operator/prometheus-operator/pkg/client v0.63.0
 	github.com/prometheus/client_golang v1.14.0
-	github.com/rs/zerolog v1.28.0
+	github.com/rs/zerolog v1.29.0
 	github.com/sashabaranov/go-gpt3 v0.0.0-20221216095610-1c20931ead68
 	github.com/shirou/gopsutil/v3 v3.22.10
-	github.com/spf13/viper v1.14.0
-	github.com/stretchr/testify v1.8.1
+	github.com/spf13/viper v1.15.0
+	github.com/stretchr/testify v1.8.2
 	github.com/supranational/blst v0.3.10
 	github.com/tidwall/pretty v1.2.1
 	github.com/zeus-fyi/jennifer v0.0.0-20221008222717-be57190219a6
@@ -55,7 +58,6 @@ require (
 
 require (
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
-	github.com/PagerDuty/go-pagerduty v1.6.0 // indirect
 	github.com/allegro/bigcache v1.2.1 // indirect
 	github.com/aloder/tojen v0.0.0-20200427151940-c77d77b33821 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.9 // indirect
@@ -94,16 +96,13 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jmoiron/sqlx v1.3.5 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
-	github.com/lib/pq v1.10.6 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.14 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
-	github.com/oleiade/lane v1.0.1 // indirect
-	github.com/oleiade/lane/v2 v2.0.0 // indirect
+	github.com/onsi/ginkgo/v2 v2.8.1 // indirect
+	github.com/onsi/gomega v1.27.1 // indirect
 	github.com/pborman/uuid v1.2.1 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
-	github.com/prometheus-operator/prometheus-operator v0.63.0 // indirect
-	github.com/prometheus-operator/prometheus-operator/pkg/client v0.63.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.39.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
@@ -162,7 +161,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
-	github.com/magiconair/properties v1.8.6 // indirect
+	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
@@ -174,21 +173,20 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/pelletier/go-toml v1.9.5 // indirect
-	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
+	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/r3labs/sse/v2 v2.8.1
-	github.com/spf13/afero v1.9.2 // indirect
+	github.com/spf13/afero v1.9.3 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/cobra v1.6.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/subosito/gotenv v1.4.1 // indirect
+	github.com/subosito/gotenv v1.4.2 // indirect
 	github.com/xlab/treeprint v1.1.0 // indirect
 	go.starlark.net v0.0.0-20221028183056-acb66ad56dd2 // indirect
-	golang.org/x/crypto v0.6.0 // indirect
+	golang.org/x/crypto v0.6.0
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/oauth2 v0.4.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect

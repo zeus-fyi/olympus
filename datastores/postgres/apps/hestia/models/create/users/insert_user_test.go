@@ -15,19 +15,19 @@ type CreateUsersTestSuite struct {
 	hestia_test.BaseHestiaTestSuite
 }
 
+var ctx = context.Background()
+
 func (s *CreateUsersTestSuite) TestInsertUser() {
 	var ts chronos.Chronos
 	u := NewCreateUser()
 	u.UserID = ts.UnixTimeStampNow()
 
-	ctx := context.Background()
 	q := sql_query_templates.NewQueryParam("InsertUser", "users", "where", 1000, []string{})
 	q.TableName = u.GetTableName()
 	q.Columns = u.GetTableColumns()
 	q.Values = []apps.RowValues{u.GetRowValues("default")}
 	err := u.InsertUser(ctx)
 	s.Require().Nil(err)
-
 }
 
 func TestCreateUsersTestSuite(t *testing.T) {

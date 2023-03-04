@@ -6,6 +6,7 @@ INSERT INTO "public"."key_types" VALUES (3, 'ecdsa');
 INSERT INTO "public"."key_types" VALUES (4, 'bls');
 INSERT INTO "public"."key_types" VALUES (5, 'bearer');
 INSERT INTO "public"."key_types" VALUES (6, 'jwt');
+INSERT INTO "public"."key_types" VALUES (7, 'password');
 COMMIT;
 
 BEGIN;

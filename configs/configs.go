@@ -92,6 +92,7 @@ type TestContainer struct {
 
 	PagerDutyApiKey     string
 	PagerDutyRoutingKey string
+	AdminLoginPassword  string
 }
 
 type ArtemisHexKeys struct {
@@ -133,6 +134,7 @@ func InitArtemisLocalAccounts() {
 func InitLocalTestConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
 
+	testCont.AdminLoginPassword = viper.GetString("ADMIN_LOGIN_PW")
 	testCont.AwsAccessKeyDynamoDB = viper.GetString("AWS_ACCESS_KEY_DYNAMODB")
 	testCont.AwsSecretKeyDynamoDB = viper.GetString("AWS_SECRET_KEY_DYNAMODB")
 

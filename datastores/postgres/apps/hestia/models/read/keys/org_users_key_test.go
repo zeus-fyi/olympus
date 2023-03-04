@@ -38,7 +38,7 @@ func (s *ReadOrgUsersKeyTestSuite) TestVerifyPassword() {
 
 	k := NewKeyReader()
 	k.PublicKey = s.Tc.AdminLoginPassword
-	err := k.VerifyUserPassword(ctx)
+	err := k.VerifyUserPassword(ctx, "alex@zeus.fyi")
 	s.Require().Nil(err)
 	s.Assert().Equal(s.Tc.ProductionLocalTemporalOrgID, k.OrgID)
 	s.Assert().Equal(s.Tc.ProductionLocalTemporalUserID, k.UserID)

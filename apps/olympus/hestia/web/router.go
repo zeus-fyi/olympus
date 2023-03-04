@@ -4,12 +4,13 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	hestia_login "github.com/zeus-fyi/olympus/hestia/web/login"
 )
 
 func WebRoutes(e *echo.Echo) *echo.Echo {
 	// Routes
 
-	e.GET("/login", Login)
+	e.POST("/login", hestia_login.CreateLoginHandler)
 	return e
 }
 

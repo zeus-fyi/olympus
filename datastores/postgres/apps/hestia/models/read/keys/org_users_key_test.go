@@ -13,9 +13,9 @@ type ReadOrgUsersKeyTestSuite struct {
 	hestia_test.BaseHestiaTestSuite
 }
 
-func (s *ReadOrgUsersKeyTestSuite) TestVerifyBearerTokenService() {
-	ctx := context.Background()
+var ctx = context.Background()
 
+func (s *ReadOrgUsersKeyTestSuite) TestVerifyBearerTokenService() {
 	serviceName := create_org_users.EthereumEphemeryService
 	bearerToken := "75ghwvjxw9lnzlz57nlblbrb2kw4v99nk7nbx2zbq5pwj4dntdpl962j8qfj6rg8456zdcghgnwmnp46sj6bd7rcgcc8ddkrvl2nvqbb5dg2nwtzj6vph7lj"
 
@@ -34,10 +34,18 @@ func (s *ReadOrgUsersKeyTestSuite) TestVerifyBearerTokenService() {
 	s.Require().Error(err)
 	s.Assert().False(k.PublicKeyVerified)
 }
+func (s *ReadOrgUsersKeyTestSuite) TestVerifyPassword() {
+
+	k := NewKeyReader()
+	k.PublicKey = s.Tc.AdminLoginPassword
+	err := k.VerifyUserPassword(ctx)
+	s.Require().Nil(err)
+	s.Assert().Equal(s.Tc.ProductionLocalTemporalOrgID, k.OrgID)
+	s.Assert().Equal(s.Tc.ProductionLocalTemporalUserID, k.UserID)
+	s.Assert().True(k.PublicKeyVerified)
+}
 
 func (s *ReadOrgUsersKeyTestSuite) TestVerifyBearerToken() {
-	ctx := context.Background()
-
 	oID, uID, bearerToken := s.NewTestOrgAndUserWithBearer()
 
 	k := NewKeyReader()

@@ -30,15 +30,6 @@ func (s *CreateUsersTestSuite) TestInsertUser() {
 	s.Require().Nil(err)
 }
 
-func (s *CreateUsersTestSuite) TestInsertUserPassword() {
-	u := NewCreateUser()
-	u.UserID = s.Tc.ProductionLocalTemporalUserID
-	pw := s.Tc.AdminLoginPassword
-
-	err := u.InsertUserPassword(ctx, pw)
-	s.Require().Nil(err)
-}
-
 func TestCreateUsersTestSuite(t *testing.T) {
 	suite.Run(t, new(CreateUsersTestSuite))
 }

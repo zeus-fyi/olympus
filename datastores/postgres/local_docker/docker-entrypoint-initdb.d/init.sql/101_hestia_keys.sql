@@ -1,3 +1,5 @@
+CREATE EXTENSION pgcrypto;
+
 CREATE TABLE "public"."key_types" (
     "key_type_id" int8 NOT NULL DEFAULT next_id(),
     "key_type_name" text NOT NULL

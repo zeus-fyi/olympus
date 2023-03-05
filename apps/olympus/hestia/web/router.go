@@ -6,6 +6,6 @@ import (
 )
 
 func WebRoutes(e *echo.Echo) *echo.Echo {
-	e.POST("/login", hestia_login.CreateLoginHandler)
+	e.POST("/login", hestia_login.LoginHandler)
 	return e
 }

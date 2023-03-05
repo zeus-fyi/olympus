@@ -1,22 +1,20 @@
-import React, {Component} from 'react';
+import React from 'react';
 import {Provider} from 'react-redux';
-import {BrowserRouter} from 'react-router-dom';
+import {BrowserRouter, Route, Routes} from 'react-router-dom';
 import './App.css';
-import SignIn from "../routes/signin/SignIn";
 import store from "../redux/store";
+import Login from "../components/login/Login";
+import Dashboard from "../components/dashboard/Dashboard";
 
-class App extends Component {
-    render() {
-        // this.props.location.pathname
-        return (
+export const App = () => {
+    return (
             <Provider store={store}>
                 <BrowserRouter>
-                    <div>
-                        <SignIn/>
-                    </div>
+                    <Routes>
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/dashboard" element={<Dashboard />} />
+                    </Routes>
                 </BrowserRouter>
             </Provider>
         );
-    }
 }
-export default App;

@@ -14,7 +14,7 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-func CreateLoginHandler(c echo.Context) error {
+func LoginHandler(c echo.Context) error {
 	request := new(LoginRequest)
 	if err := c.Bind(request); err != nil {
 		return err

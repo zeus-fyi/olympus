@@ -4,17 +4,22 @@ import {BrowserRouter, Route, Routes} from 'react-router-dom';
 import './App.css';
 import store from "../redux/store";
 import Login from "../components/login/Login";
-import Dashboard from "../components/dashboard/Dashboard";
+import {ProtectedRoute} from "../components/protected/ProtectedRoute";
+import {HomeLayout} from "../components/home/Home";
 
 export const App = () => {
     return (
             <Provider store={store}>
                 <BrowserRouter>
                     <Routes>
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/dashboard" element={<Dashboard />} />
+                            <Route path="/" element={<HomeLayout />} />
+                            <Route path="/login" element={<Login />} />
+                        <Route>
+                            <Route path="/dashboard" element={<ProtectedRoute />}/>
+                        </Route>
                     </Routes>
                 </BrowserRouter>
             </Provider>
         );
 }
+

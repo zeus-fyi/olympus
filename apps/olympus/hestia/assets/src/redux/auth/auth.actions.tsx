@@ -4,26 +4,26 @@ import {authApiGateway} from "../../gateway/login";
 import inMemoryJWT from "../../auth/InMemoryJWT";
 import {AppDispatch} from "../store";
 
-export const REGISTER_SUCCESS = "REGISTER_SUCCESS";
-export const REGISTER_FAIL = "REGISTER_FAIL";
-export const LOGIN_SUCCESS = "LOGIN_SUCCESS";
-export const LOGIN_FAIL = "LOGIN_FAIL";
-export const LOGOUT = "LOGOUT";
+import {LOGOUT,} from "./auth.types";
 
-const jwtTokenParse = pipe(getAxiosResponse,prop('jwtToken'));
+const tokenParse = pipe(getAxiosResponse,prop('jwtToken'));
 const ttlSeconds = pipe(getAxiosResponse, prop('ttl'));
+const userIDParse = pipe(getAxiosResponse, prop('userID'));
 
 const authProvider = {
-    login: async (username: string, password: string) => {
+    login: (username: string, password: string) => async () => {
         try {
             const res = await authApiGateway.sendLoginRequest(username, password);
             const statusCode = res.status;
             if (statusCode === 401 || statusCode === 403) {
                 inMemoryJWT.ereaseToken();
-            } else {
-                const token = jwtTokenParse(res);
+            }
+            if (statusCode === 200) {
+                const token = tokenParse(res);
                 const tokenExpiry = ttlSeconds(res);
+                const userID = userIDParse(res);
                 inMemoryJWT.setToken(token, tokenExpiry);
+                localStorage.setItem("userID", userID);
             }
             return res
         } catch (e) {
@@ -34,6 +34,7 @@ const authProvider = {
 
     logout: async () => async (dispatch: AppDispatch) => {
         const res = await authApiGateway.sendLogoutRequest();
+        localStorage.removeItem("user");
         inMemoryJWT.ereaseToken();
         dispatch({
             type: LOGOUT,

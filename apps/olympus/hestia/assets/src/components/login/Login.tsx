@@ -13,8 +13,9 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import {useNavigate} from "react-router-dom";
-import {useDispatch} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
+import {useDispatch} from "react-redux";
+import {LOGIN_FAIL, LOGIN_SUCCESS,} from "../../redux/auth/auth.types";
 
 function Copyright(props: any) {
     return (
@@ -29,15 +30,6 @@ function Copyright(props: any) {
     );
 }
 
-const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-        email: data.get('email'),
-        password: data.get('password'),
-    });
-};
-
 const theme = createTheme();
 
 const Login = () => {
@@ -47,24 +39,22 @@ const Login = () => {
     const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
-        console.log({
-            email: data.get('email'),
-            password: data.get('password'),
-        });
-        let res = await authProvider.login(data.get('email') as string, data.get('password') as string);
+
+        let email = data.get('email') as string
+        let password = data.get('password') as string
+        let res: any = await authProvider.login(email, password)
         const statusCode = res.status;
-        console.log("Status code: " + statusCode);
-        console.log(statusCode)
-        if (statusCode !== 200) {
-            console.log("Login failed");
+        if (statusCode === 200) {
+            dispatch({type: 'LOGIN_SUCCESS', payload: res.data})
+            navigate('/dashboard');
         } else {
-            navigate("/dashboard");
+            dispatch({type: 'LOGIN_FAIL', payload: res.data})
         }
-    };
+    }
     return (
         <ThemeProvider theme={theme}>
-            <Grid container component="main" sx={{ height: '100vh' }}>
-                <CssBaseline />
+            <Grid container component="main" sx={{height: '100vh'}}>
+                <CssBaseline/>
                 <Grid
                     item
                     xs={false}
@@ -89,13 +79,13 @@ const Login = () => {
                             alignItems: 'center',
                         }}
                     >
-                        <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
-                            <LockOutlinedIcon />
+                        <Avatar sx={{m: 1, bgcolor: 'secondary.main'}}>
+                            <LockOutlinedIcon/>
                         </Avatar>
                         <Typography component="h1" variant="h5">
                             Sign in
                         </Typography>
-                        <Box component="form" noValidate onSubmit={handleLogin} sx={{ mt: 1 }}>
+                        <Box component="form" noValidate onSubmit={handleLogin} sx={{mt: 1}}>
                             <TextField
                                 margin="normal"
                                 required
@@ -117,14 +107,14 @@ const Login = () => {
                                 autoComplete="current-password"
                             />
                             <FormControlLabel
-                                control={<Checkbox value="remember" color="primary" />}
+                                control={<Checkbox value="remember" color="primary"/>}
                                 label="Remember me"
                             />
                             <Button
                                 type="submit"
                                 fullWidth
                                 variant="contained"
-                                sx={{ mt: 3, mb: 2 }}
+                                sx={{mt: 3, mb: 2}}
                             >
                                 Sign In
                             </Button>
@@ -140,7 +130,7 @@ const Login = () => {
                                     </Link>
                                 </Grid>
                             </Grid>
-                            <Copyright sx={{ mt: 5 }} />
+                            <Copyright sx={{mt: 5}}/>
                         </Box>
                     </Box>
                 </Grid>

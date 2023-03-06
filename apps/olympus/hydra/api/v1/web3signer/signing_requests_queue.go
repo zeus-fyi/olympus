@@ -81,8 +81,8 @@ func InitAsyncMessageQueuesSyncCommitteeQueues(ctx context.Context) {
 }
 
 func InitAsyncMessageAttestationQueues(ctx context.Context) {
-	minDuration := 20 * time.Millisecond
-	maxDuration := 30 * time.Millisecond
+	minDuration := 50 * time.Millisecond
+	maxDuration := 75 * time.Millisecond
 	for {
 		go func() {
 			AttestationSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)

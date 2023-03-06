@@ -10,32 +10,19 @@ import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import Container from '@mui/material/Container';
-import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
-import Link from '@mui/material/Link';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import MainListItems from './listItems';
-import Chart from './Chart';
-import Deposits from './Deposits';
-import Orders from './Orders';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
-
-function Copyright(props: any) {
-    return (
-        <Typography variant="body2" color="text.secondary" align="center" {...props}>
-            {'Copyright © '}
-            <Link color="inherit" href="https://mui.com/">
-                Zeus Cloud
-            </Link>{' '}
-            {new Date().getFullYear()}
-            {'.'}
-        </Typography>
-    );
-}
+import Table from "@mui/material/Table";
+import TableHead from "@mui/material/TableHead";
+import TableCell from "@mui/material/TableCell";
+import {TableContainer, TableRow} from '@mui/material';
+import TableBody from "@mui/material/TableBody";
+import MainListItems from "../dashboard/listItems";
 
 const drawerWidth: number = 240;
 
@@ -89,7 +76,23 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 
 const mdTheme = createTheme();
 
-function DashboardContent() {
+function createData(
+    network: string,
+    keyGroupName: string,
+    publicKey: string,
+    serviceType: string,
+    verified: string,
+    enabled: string,
+) {
+    return {network, keyGroupName, publicKey, serviceType, enabled, verified};
+}
+
+const rows = [
+    createData('Mainnet', 'DemoGroup','0xd38hglsdfa', 'Serverless', "True", "True"),
+    createData('Mainnet', 'DemoGroup', '0xdek3h553','Serverless', "True", "True"),
+];
+
+function ValidatorsServiceContent() {
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
@@ -175,41 +178,7 @@ function DashboardContent() {
                 >
                     <Toolbar />
                     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                        <Grid container spacing={3}>
-                            {/* Chart */}
-                            <Grid item xs={12} md={8} lg={9}>
-                                <Paper
-                                    sx={{
-                                        p: 2,
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        height: 240,
-                                    }}
-                                >
-                                    <Chart />
-                                </Paper>
-                            </Grid>
-                            {/* Recent Deposits */}
-                            <Grid item xs={12} md={4} lg={3}>
-                                <Paper
-                                    sx={{
-                                        p: 2,
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        height: 240,
-                                    }}
-                                >
-                                    <Deposits />
-                                </Paper>
-                            </Grid>
-                            {/* Recent Orders */}
-                            <Grid item xs={12}>
-                                <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-                                    <Orders />
-                                </Paper>
-                            </Grid>
-                        </Grid>
-                        <Copyright sx={{ pt: 4 }} />
+                        {<Validators />}
                     </Container>
                 </Box>
             </Box>
@@ -217,6 +186,42 @@ function DashboardContent() {
     );
 }
 
-export default function Dashboard() {
-    return <DashboardContent />;
+export default function ValidatorsServices() {
+    return <ValidatorsServiceContent />;
+}
+
+function Validators() {
+    return (
+        <TableContainer component={Paper}>
+            <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                <TableHead>
+                    <TableRow>
+                        <TableCell>Network</TableCell>
+                        <TableCell align="left">KeyGroupName</TableCell>
+                        <TableCell align="left">AccessKey</TableCell>
+                        <TableCell align="left">ServiceType</TableCell>
+                        <TableCell align="left">Verified</TableCell>
+                        <TableCell align="left">Enabled</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {rows.map((row) => (
+                        <TableRow
+                            key={row.network}
+                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                        >
+                            <TableCell component="th" scope="row">
+                                {row.network}
+                            </TableCell>
+                            <TableCell align="left">{row.keyGroupName}</TableCell>
+                            <TableCell align="left">{row.publicKey}</TableCell>
+                            <TableCell align="left">{row.serviceType}</TableCell>
+                            <TableCell align="left">{row.verified}</TableCell>
+                            <TableCell align="left">{row.enabled}</TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </TableContainer>
+    );
 }

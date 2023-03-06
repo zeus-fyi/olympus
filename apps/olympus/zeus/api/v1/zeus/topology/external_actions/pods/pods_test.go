@@ -13,26 +13,24 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
-	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/test"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
+	zeus_pods_reqs "github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types/pods"
 	v1 "k8s.io/api/core/v1"
 )
 
+var ctx = context.Background()
+
 type PodsHandlerTestSuite struct {
-	E *echo.Echo
-	autok8s_core.K8TestSuite
+	test.TopologyActionRequestTestSuite
 }
 
 type TestResponse struct {
 	logs []byte
 	pods v1.PodList
-}
-
-func (p *PodsHandlerTestSuite) SetupTest() {
-	p.SetupTestServer()
 }
 
 func (p *PodsHandlerTestSuite) TestPodPortForwardGET() {
@@ -107,19 +105,28 @@ func (p *PodsHandlerTestSuite) TestPodPortForwardPOST() {
 }
 
 func (p *PodsHandlerTestSuite) TestDescribePods() {
+	p.InitLocalConfigs()
+	p.Eg.POST("/pods", HandlePodActionRequest)
+	start := make(chan struct{}, 1)
+	go func() {
+		close(start)
+		_ = p.E.Start(":9010")
+	}()
 
-	kctx := zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "nyc1", Context: "do-nyc1-do-nyc1-zeus-demo", Namespace: "ephemeral"}
+	<-start
+	defer p.E.Shutdown(ctx)
+	kctx := zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "ephemeral-staking"}
 
-	tp := kns.TopologyKubeCtxNs{
-		TopologyID: 0,
-		CloudCtxNs: kctx,
+	podActionRequest := zeus_pods_reqs.PodActionRequest{
+		TopologyDeployRequest: zeus_req_types.TopologyDeployRequest{
+			TopologyID: 0,
+			CloudCtxNs: kctx,
+		},
+		Action: "describe",
 	}
-	podActionRequest := PodActionRequest{
-		TopologyKubeCtxNs: tp,
-		Action:            "describe",
-	}
-	podDescribeReq := p.postK8Request(podActionRequest, http.StatusOK, true)
-	p.Require().NotEmpty(podDescribeReq.pods)
+	resp, err := p.ZeusClient.GetPods(ctx, podActionRequest)
+	p.Require().NoError(err)
+	p.Require().NotEmpty(resp)
 }
 
 func (p *PodsHandlerTestSuite) TestGetPodLogs() {

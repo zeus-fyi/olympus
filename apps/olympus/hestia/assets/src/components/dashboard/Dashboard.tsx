@@ -29,7 +29,7 @@ function Copyright(props: any) {
         <Typography variant="body2" color="text.secondary" align="center" {...props}>
             {'Copyright © '}
             <Link color="inherit" href="https://mui.com/">
-                Zeus Cloud
+                Zeus
             </Link>{' '}
             {new Date().getFullYear()}
             {'.'}
@@ -43,7 +43,7 @@ interface AppBarProps extends MuiAppBarProps {
     open?: boolean;
 }
 
-const AppBar = styled(MuiAppBar, {
+export const AppBar = styled(MuiAppBar, {
     shouldForwardProp: (prop) => prop !== 'open',
 })<AppBarProps>(({ theme, open }) => ({
     zIndex: theme.zIndex.drawer + 1,
@@ -61,7 +61,7 @@ const AppBar = styled(MuiAppBar, {
     }),
 }));
 
-const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
+export const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
     ({ theme, open }) => ({
         '& .MuiDrawer-paper': {
             position: 'relative',

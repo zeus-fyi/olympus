@@ -31,14 +31,13 @@ function createData(
     region: string,
     context: string,
     namespace: string,
-    env: string,
 ) {
-    return {cloudCtxNsID, cloudProvider, region, context, namespace, env};
+    return {cloudCtxNsID, cloudProvider, region, context, namespace};
 }
 
 const clusterRows = [
-    createData('1243535','do', 'sfo3','do-sfo3-zeus', 'eth-indexer', 'production'),
-    createData('12235535','do', 'sfo3', 'do-sfo3-zeus','ephemeral-staking', 'production'),
+    createData('1243535','do', 'sfo3','do-sfo3-zeus', 'eth-indexer'),
+    createData('12235535','do', 'sfo3', 'do-sfo3-zeus','ephemeral-staking'),
 ];
 
 function ClustersContent() {
@@ -150,7 +149,6 @@ function CloudClusters() {
                         <TableCell align="left">Region</TableCell>
                         <TableCell align="left">Context</TableCell>
                         <TableCell align="left">Namespace</TableCell>
-                        <TableCell align="left">Env</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -166,7 +164,6 @@ function CloudClusters() {
                             <TableCell align="left">{row.region}</TableCell>
                             <TableCell align="left">{row.context}</TableCell>
                             <TableCell align="left">{row.namespace}</TableCell>
-                            <TableCell align="left">{row.env}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
@@ -174,3 +171,22 @@ function CloudClusters() {
         </TableContainer>
     );
 }
+
+const R = require('ramda');
+
+// export const orderMatchFormatMany = R.curry((clusters: any) => R.map(clustersFormat(clusters), clusters));
+
+const mapStateToProps = (state: any) => ({
+    clusters: state,
+});
+
+const asyncComponentConfig = {
+    props: ['clusters'],
+    load: async (props: any) => { },
+    initial: [],
+    dataProp: 'history'
+};
+
+// const TradeHistory = connect(mapStateToProps, null)(
+//     AsyncComponent(asyncComponentConfig)(TradeHistoryComponent)
+// );

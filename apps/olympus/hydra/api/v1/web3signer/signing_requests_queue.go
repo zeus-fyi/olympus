@@ -63,8 +63,8 @@ type SignaturePriorityQueue struct {
 }
 
 func InitAsyncMessageQueuesSyncCommitteeQueues(ctx context.Context) {
-	minDuration := 30 * time.Millisecond
-	maxDuration := 50 * time.Millisecond
+	minDuration := 100 * time.Millisecond
+	maxDuration := 150 * time.Millisecond
 	for {
 		go func() {
 			SyncCommitteeMessageSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)

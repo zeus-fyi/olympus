@@ -77,18 +77,19 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 const mdTheme = createTheme();
 
 function createData(
+    cloudCtxNsID: string,
     cloudProvider: string,
     region: string,
     context: string,
     namespace: string,
     env: string,
 ) {
-    return {cloudProvider, region, context, namespace, env};
+    return {cloudCtxNsID, cloudProvider, region, context, namespace, env};
 }
 
 const clusterRows = [
-    createData('do', 'sfo3','do-sfo3-zeus', 'eth-indexer', 'production'),
-    createData('do', 'sfo3', 'do-sfo3-zeus','ephemeral-staking', 'production'),
+    createData('1243535','do', 'sfo3','do-sfo3-zeus', 'eth-indexer', 'production'),
+    createData('12235535','do', 'sfo3', 'do-sfo3-zeus','ephemeral-staking', 'production'),
 ];
 
 function ClustersContent() {
@@ -195,7 +196,8 @@ function CloudClusters() {
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
                 <TableHead>
                     <TableRow>
-                        <TableCell>CloudProvider</TableCell>
+                        <TableCell>CloudCtxNsID</TableCell>
+                        <TableCell align="left">CloudProvider</TableCell>
                         <TableCell align="left">Region</TableCell>
                         <TableCell align="left">Context</TableCell>
                         <TableCell align="left">Namespace</TableCell>
@@ -205,12 +207,13 @@ function CloudClusters() {
                 <TableBody>
                     {clusterRows.map((row) => (
                         <TableRow
-                            key={row.cloudProvider}
+                            key={row.cloudCtxNsID}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >
                             <TableCell component="th" scope="row">
-                                {row.cloudProvider}
+                                {row.cloudCtxNsID}
                             </TableCell>
+                            <TableCell align="left">{row.cloudProvider}</TableCell>
                             <TableCell align="left">{row.region}</TableCell>
                             <TableCell align="left">{row.context}</TableCell>
                             <TableCell align="left">{row.namespace}</TableCell>

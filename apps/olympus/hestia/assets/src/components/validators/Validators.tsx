@@ -77,19 +77,21 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 const mdTheme = createTheme();
 
 function createData(
-    network: string,
-    keyGroupName: string,
     publicKey: string,
+    feeAddress: string,
+    keyGroupName: string,
+    network: string,
     serviceType: string,
+    accessKey: string,
     verified: string,
     enabled: string,
 ) {
-    return {network, keyGroupName, publicKey, serviceType, enabled, verified};
+    return {publicKey,feeAddress,network, keyGroupName, serviceType,accessKey, enabled, verified};
 }
 
 const rows = [
-    createData('Mainnet', 'DemoGroup','0xd38hglsdfa', 'Serverless', "True", "True"),
-    createData('Mainnet', 'DemoGroup', '0xdek3h553','Serverless', "True", "True"),
+    createData('0xd38hglsdfa','0x134','DemoGroup','Mainnet', 'Serverless','DKDH', "True", "True"),
+    createData('0xd38h333dfa','0x134','DemoGroup','Mainnet', 'Serverless', 'ALLE',"True", "True"),
 ];
 
 function ValidatorsServiceContent() {
@@ -197,6 +199,8 @@ function Validators() {
                 <TableHead>
                     <TableRow>
                         <TableCell>Network</TableCell>
+                        <TableCell align="left">PublicKey</TableCell>
+                        <TableCell align="left">FeeAddress</TableCell>
                         <TableCell align="left">KeyGroupName</TableCell>
                         <TableCell align="left">AccessKey</TableCell>
                         <TableCell align="left">ServiceType</TableCell>
@@ -207,14 +211,16 @@ function Validators() {
                 <TableBody>
                     {rows.map((row) => (
                         <TableRow
-                            key={row.network}
+                            key={row.publicKey}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >
                             <TableCell component="th" scope="row">
                                 {row.network}
                             </TableCell>
-                            <TableCell align="left">{row.keyGroupName}</TableCell>
                             <TableCell align="left">{row.publicKey}</TableCell>
+                            <TableCell align="left">{row.feeAddress}</TableCell>
+                            <TableCell align="left">{row.keyGroupName}</TableCell>
+                            <TableCell align="left">{row.accessKey}</TableCell>
                             <TableCell align="left">{row.serviceType}</TableCell>
                             <TableCell align="left">{row.verified}</TableCell>
                             <TableCell align="left">{row.enabled}</TableCell>

@@ -63,37 +63,45 @@ type SignaturePriorityQueue struct {
 }
 
 func InitAsyncMessageQueuesSyncCommitteeQueues(ctx context.Context) {
-	minDuration := 100 * time.Millisecond
-	maxDuration := 150 * time.Millisecond
+	minDuration := 25 * time.Millisecond
+	maxDuration := 50 * time.Millisecond
 	for {
 		go func() {
 			SyncCommitteeMessageSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
+		jitterDelay := time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
+		time.Sleep(jitterDelay)
 		go func() {
 			SyncCommitteeSelectionProofSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
+		jitterDelay = time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
+		time.Sleep(jitterDelay)
 		go func() {
 			SyncCommitteeContributionAndProofPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
-		jitterDelay := time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
+		jitterDelay = time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
 		time.Sleep(jitterDelay)
 	}
 }
 
 func InitAsyncMessageAttestationQueues(ctx context.Context) {
-	minDuration := 50 * time.Millisecond
-	maxDuration := 75 * time.Millisecond
+	minDuration := 20 * time.Millisecond
+	maxDuration := 30 * time.Millisecond
 	for {
 		go func() {
 			AttestationSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
+		jitterDelay := time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
+		time.Sleep(jitterDelay)
 		go func() {
 			AggregationSlotSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
+		jitterDelay = time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
+		time.Sleep(jitterDelay)
 		go func() {
 			AggregationAndProofSigningRequestPriorityQueue.SendSignatureRequestsFromQueue(ctx)
 		}()
-		jitterDelay := time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
+		jitterDelay = time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration
 		time.Sleep(jitterDelay)
 	}
 }

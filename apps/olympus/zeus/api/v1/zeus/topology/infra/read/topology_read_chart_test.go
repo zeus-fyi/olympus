@@ -14,9 +14,27 @@ type TopologyReadActionRequestTestSuite struct {
 	test.TopologyActionRequestTestSuite
 }
 
-func (t *TopologyReadActionRequestTestSuite) TestReadChart() {
-	ctx := context.Background()
+var ctx = context.Background()
 
+func (t *TopologyReadActionRequestTestSuite) TestReadTopologiesOrgCloudCtxNs() {
+	t.InitLocalConfigs()
+	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
+	t.Eg.POST("/infra/read/org/topologies", ReadTopologiesOrgCloudCtxNsHandler)
+
+	start := make(chan struct{}, 1)
+	go func() {
+		close(start)
+		_ = t.E.Start(":9010")
+	}()
+
+	<-start
+	defer t.E.Shutdown(ctx)
+	resp, err := t.ZeusClient.ReadTopologiesOrgCloudCtxNs(ctx)
+	t.Require().Nil(err)
+	t.Require().NotEmpty(resp)
+}
+
+func (t *TopologyReadActionRequestTestSuite) TestReadChart() {
 	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
 	tr := read_topology.NewInfraTopologyReader()
 	tr.TopologyID = 1675200222894809000

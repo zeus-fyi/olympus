@@ -9,3 +9,11 @@ func ReadTopologyChartContentsHandler(c echo.Context) error {
 	}
 	return request.ReadTopologyChart(c)
 }
+
+func ReadTopologiesOrgCloudCtxNsHandler(c echo.Context) error {
+	request := new(TopologyReadRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.ReadTopologiesOrgCloudCtxNs(c)
+}

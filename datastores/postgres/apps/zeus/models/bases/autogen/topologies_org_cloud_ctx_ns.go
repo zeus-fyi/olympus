@@ -8,7 +8,7 @@ import (
 
 type TopologiesOrgCloudCtxNs struct {
 	CloudCtxNsID  int       `db:"cloud_ctx_ns_id" json:"cloudCtxNsID"`
-	OrgID         int       `db:"org_id" json:"orgID"`
+	OrgID         int       `db:"org_id" json:"orgID,omitempty"`
 	CloudProvider string    `db:"cloud_provider" json:"cloudProvider"`
 	Context       string    `db:"context" json:"context"`
 	Region        string    `db:"region" json:"region"`

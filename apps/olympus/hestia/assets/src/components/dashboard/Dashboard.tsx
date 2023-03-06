@@ -9,25 +9,27 @@ import List from '@mui/material/List';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
-import Badge from '@mui/material/Badge';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import Link from '@mui/material/Link';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import {mainListItems, secondaryListItems} from './listItems';
 import Chart from './Chart';
 import Deposits from './Deposits';
 import Orders from './Orders';
+import Button from "@mui/material/Button";
+import {useNavigate} from "react-router-dom";
+import {useDispatch} from "react-redux";
+import authProvider from "../../redux/auth/auth.actions";
 
 function Copyright(props: any) {
     return (
         <Typography variant="body2" color="text.secondary" align="center" {...props}>
             {'Copyright © '}
             <Link color="inherit" href="https://mui.com/">
-                Your Website
+                Zeus Cloud
             </Link>{' '}
             {new Date().getFullYear()}
             {'.'}
@@ -92,6 +94,15 @@ function DashboardContent() {
     const toggleDrawer = () => {
         setOpen(!open);
     };
+    let navigate = useNavigate();
+    const dispatch = useDispatch();
+
+    const handleLogout = (event: any) => {
+        event.preventDefault();
+        authProvider.logout()
+        dispatch({type: 'LOGOUT_SUCCESS'})
+        navigate('/login');
+    }
 
     return (
         <ThemeProvider theme={mdTheme}>
@@ -124,11 +135,11 @@ function DashboardContent() {
                         >
                             Dashboard
                         </Typography>
-                        <IconButton color="inherit">
-                            <Badge badgeContent={4} color="secondary">
-                                <NotificationsIcon />
-                            </Badge>
-                        </IconButton>
+                        <Button
+                            color="inherit"
+                            onClick={handleLogout}
+                        >Logout
+                        </Button>
                     </Toolbar>
                 </AppBar>
                 <Drawer variant="permanent" open={open}>

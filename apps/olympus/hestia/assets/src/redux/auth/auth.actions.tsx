@@ -2,9 +2,6 @@ import {pipe, prop} from 'ramda';
 import {getAxiosResponse} from "../../helpers/get-axios-response";
 import {authApiGateway} from "../../gateway/login";
 import inMemoryJWT from "../../auth/InMemoryJWT";
-import {AppDispatch} from "../store";
-
-import {LOGOUT,} from "./auth.types";
 
 const tokenParse = pipe(getAxiosResponse,prop('jwtToken'));
 const ttlSeconds = pipe(getAxiosResponse, prop('ttl'));
@@ -32,13 +29,9 @@ const authProvider = {
         }
     },
 
-    logout: async () => async (dispatch: AppDispatch) => {
-        const res = await authApiGateway.sendLogoutRequest();
-        localStorage.removeItem("user");
+    logout: () =>{
+        localStorage.removeItem("userID");
         inMemoryJWT.ereaseToken();
-        dispatch({
-            type: LOGOUT,
-        });
     },
 
     checkAuth: () => {

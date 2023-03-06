@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
@@ -22,6 +23,12 @@ func LoginHandler(c echo.Context) error {
 	return request.VerifyPassword(c)
 }
 
+type LoginResponse struct {
+	UserID    int       `json:"userID"`
+	SessionID uuid.UUID `json:"sessionID"`
+	TTL       int       `json:"ttl"`
+}
+
 func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 	ctx := context.Background()
 	key := read_keys.NewKeyReader()
@@ -31,5 +38,10 @@ func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 		log.Err(err).Interface("email", l.Email).Msg("VerifyPassword error")
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-	return c.JSON(http.StatusOK, nil)
+	resp := LoginResponse{
+		UserID:    key.UserID,
+		SessionID: uuid.New(),
+		TTL:       3600,
+	}
+	return c.JSON(http.StatusOK, resp)
 }

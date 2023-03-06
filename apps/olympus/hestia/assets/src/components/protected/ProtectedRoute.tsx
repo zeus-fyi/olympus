@@ -3,10 +3,8 @@ import Dashboard from "../dashboard/Dashboard";
 import React from "react";
 
 export const ProtectedRoute = () => {
-    let parsedUser: any = localStorage.getItem('user');
-    const user = JSON.parse(parsedUser);
-
-    if (!user) {
+    let userID = localStorage.getItem('userID');
+    if (!userID) {
         return <Navigate to="/login" />;
     }
     return <Dashboard />

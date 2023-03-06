@@ -29,21 +29,24 @@ function Copyright(props: any) {
         </Typography>
     );
 }
-
 const theme = createTheme();
 
 const Login = () => {
     let navigate = useNavigate();
     const dispatch = useDispatch();
 
-    const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+    const handleLogin = async (event: React.FormEvent<HTMLFormElement>) =>  {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
+        console.log(data)
 
         let email = data.get('email') as string
         let password = data.get('password') as string
         let res: any = await authProvider.login(email, password)
         const statusCode = res.status;
+        console.log(res)
+        navigate('/dashboard');
+
         if (statusCode === 200) {
             dispatch({type: 'LOGIN_SUCCESS', payload: res.data})
             navigate('/dashboard');

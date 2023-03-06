@@ -3,10 +3,9 @@ import Dashboard from "../dashboard/Dashboard";
 import React from "react";
 
 export const HomeLayout = () => {
-    let parsedUser: any = localStorage.getItem('user');
-    const user = JSON.parse(parsedUser);
+    let userID = localStorage.getItem('userID');
 
-    if (!user) {
+    if (!userID) {
         return <Navigate to="/login" />;
     }
     return <Dashboard />

@@ -17,5 +17,5 @@ func ClusterDeploymentStatusHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	return request.ReadDeployedTopologies(c)
+	return request.ReadDeployedClusterTopologies(c)
 }

@@ -116,11 +116,11 @@ func Hestia() {
 	log.Info().Msg("Hestia: InitArtemisEthereumMainnetValidatorsRequestsWorker Starting Server")
 	srv.E = v1hestia.Routes(srv.E)
 
-	if env == "local" {
+	if env == "local" || env == "production-local" {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins: []string{"*"},
 			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
-			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+			AllowHeaders: []string{"*"},
 		}))
 	}
 	srv.E = hestia_web_router.WebRoutes(srv.E)
@@ -130,7 +130,7 @@ func Hestia() {
 func init() {
 	viper.AutomaticEnv()
 	Cmd.Flags().StringVar(&cfg.Port, "port", "9002", "server port")
-	Cmd.Flags().StringVar(&env, "env", "local", "environment")
+	Cmd.Flags().StringVar(&env, "env", "production-local", "environment")
 	Cmd.Flags().StringVar(&authKeysCfg.AgePubKey, "age-public-key", "age1n97pswc3uqlgt2un9aqn9v4nqu32egmvjulwqp3pv4algyvvuggqaruxjj", "age public key")
 	Cmd.Flags().StringVar(&authKeysCfg.AgePrivKey, "age-private-key", "", "age private key")
 	Cmd.Flags().StringVar(&authKeysCfg.SpacesKey, "do-spaces-key", "", "do s3 spaces key")

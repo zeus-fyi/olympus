@@ -39,6 +39,7 @@ function createData(
 
 function ClustersContent() {
     const [open, setOpen] = React.useState(true);
+
     const toggleDrawer = () => {
         setOpen(!open);
     };
@@ -122,7 +123,7 @@ function ClustersContent() {
                 >
                     <Toolbar />
                     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                        {<CloudClusters />}
+                        <CloudClusters />
                     </Container>
                 </Box>
             </Box>
@@ -134,8 +135,51 @@ export default function Clusters() {
     return <ClustersContent />;
 }
 
+function ClustersTable(clusters: any) {
+    let navigate = useNavigate();
+    const handleClick = async (event: any, cluster: any) => {
+        event.preventDefault();
+        const response = await clustersApiGateway.getClusters();
+        let res = await clustersApiGateway.getClusterTopologies(cluster)
+        console.log(res.data)
+        //navigate('/clusters'+cluster.cloudCtxNsID);
+    }
+
+    return <TableContainer component={Paper}>
+        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+            <TableHead>
+                <TableRow>
+                    <TableCell>CloudCtxNsID</TableCell>
+                    <TableCell align="left">CloudProvider</TableCell>
+                    <TableCell align="left">Region</TableCell>
+                    <TableCell align="left">Context</TableCell>
+                    <TableCell align="left">Namespace</TableCell>
+                </TableRow>
+            </TableHead>
+            <TableBody>
+                {clusters.map((row: any, i: number) => (
+                    <TableRow
+                        key={i}
+                        onClick={(event) => handleClick(event, row)}
+                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                    >
+                        <TableCell component="th" scope="row">
+                            {row.cloudCtxNsID}
+                        </TableCell>
+                        <TableCell align="left">{row.cloudProvider}</TableCell>
+                        <TableCell align="left">{row.region}</TableCell>
+                        <TableCell align="left">{row.context}</TableCell>
+                        <TableCell align="left">{row.namespace}</TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
+    </TableContainer>
+}
+
 function CloudClusters() {
     const [clusters, setClusters] = useState([{}]);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -151,34 +195,6 @@ function CloudClusters() {
         fetchData();
     }, []);
     return (
-        <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 650 }} aria-label="simple table">
-                <TableHead>
-                    <TableRow>
-                        <TableCell>CloudCtxNsID</TableCell>
-                        <TableCell align="left">CloudProvider</TableCell>
-                        <TableCell align="left">Region</TableCell>
-                        <TableCell align="left">Context</TableCell>
-                        <TableCell align="left">Namespace</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {clusters.map((row: any) => (
-                        <TableRow
-                            key={row.cloudCtxNsID}
-                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                        >
-                            <TableCell component="th" scope="row">
-                                {row.cloudCtxNsID}
-                            </TableCell>
-                            <TableCell align="left">{row.cloudProvider}</TableCell>
-                            <TableCell align="left">{row.region}</TableCell>
-                            <TableCell align="left">{row.context}</TableCell>
-                            <TableCell align="left">{row.namespace}</TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
+        ClustersTable(clusters)
     );
 }

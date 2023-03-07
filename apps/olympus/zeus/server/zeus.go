@@ -89,7 +89,7 @@ func Zeus() {
 	}
 	log.Info().Msgf("Zeus: %s temporal setup is complete", env)
 	log.Info().Msgf("Zeus: %s server starting", env)
-	if env == "local" {
+	if env == "local" || env == "production-local" {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins: []string{"*"},
 			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
@@ -111,7 +111,7 @@ func init() {
 	Cmd.Flags().StringVar(&authKeysCfg.SpacesKey, "do-spaces-key", "", "do s3 spaces key")
 	Cmd.Flags().StringVar(&authKeysCfg.SpacesPrivKey, "do-spaces-private-key", "", "do s3 spaces private key")
 
-	Cmd.Flags().StringVar(&env, "env", "local", "environment")
+	Cmd.Flags().StringVar(&env, "env", "production-local", "environment")
 }
 
 // Cmd represents the base command when called without any subcommands

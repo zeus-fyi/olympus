@@ -64,7 +64,7 @@ func (s *ReadDeploymentStatusesGroup) readClustersDeployedToKns() sql_query_temp
 				JOIN topology_skeleton_base_components sb ON sb.topology_skeleton_base_id = tip.topology_skeleton_base_id
 				JOIN topology_base_components bc ON bc.topology_base_component_id = sb.topology_base_component_id
 				JOIN topology_system_components tsys ON tsys.topology_system_component_id = bc.topology_system_component_id
-				WHERE kns.cloud_provider = $1 AND kns.region = $2 AND kns.context = $3 AND kns.namespace = $4 AND out.org_id = $5
+				WHERE kns.cloud_provider = $1 AND kns.region = $2 AND kns.context = $3 AND kns.namespace = $4 AND out.org_id = $5 AND td.topology_status != 'DestroyDeployComplete'
 				GROUP BY topology_system_component_name, topology_skeleton_base_name
 				ORDER BY topology_system_component_name, topology_skeleton_base_name
 			  	LIMIT 1000

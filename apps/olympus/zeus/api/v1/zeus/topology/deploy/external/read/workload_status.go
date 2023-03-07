@@ -28,16 +28,16 @@ func (t *TopologyDeploymentStatusRequest) ReadDeployedTopologyStatuses(c echo.Co
 }
 
 type ClusterDeploymentStatusRequest struct {
-	Cctx zeus_common_types.CloudCtxNs
+	zeus_common_types.CloudCtxNs
 }
 
-func (t *ClusterDeploymentStatusRequest) ReadDeployedTopologies(c echo.Context) error {
+func (t *ClusterDeploymentStatusRequest) ReadDeployedClusterTopologies(c echo.Context) error {
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	status := read_topology_deployment_status.NewReadDeploymentStatusesGroup()
-	err := status.ReadLatestDeployedStatus(ctx, t.Cctx, ou)
+	err := status.ReadLatestDeployedClusterTopologies(ctx, t.CloudCtxNs, ou)
 	if err != nil {
-		log.Err(err).Interface("orgUser", ou).Msg("TopologyDeploymentStatusRequest: ReadDeployedTopologyStatuses")
+		log.Err(err).Interface("orgUser", ou).Msg("ClusterDeploymentInfoRequest: ReadDeployedClusterTopologies")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, status.Slice)

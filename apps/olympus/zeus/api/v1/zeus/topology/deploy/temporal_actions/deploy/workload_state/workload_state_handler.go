@@ -10,7 +10,6 @@ import (
 	create_topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/definitions/state"
 )
 
-// UpdateWorkloadStateHandler TODO must verify this is auth is scoped to user only
 func UpdateWorkloadStateHandler(c echo.Context) error {
 	ctx := context.Background()
 	request := new(topology_deployment_status.DeployStatus)

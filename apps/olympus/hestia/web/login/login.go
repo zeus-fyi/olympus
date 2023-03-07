@@ -46,7 +46,7 @@ func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 	sessionKey.PublicKeyVerified = true
 	sessionKey.PublicKeyTypeID = keys.SessionIDKeyTypeID
 	sessionKey.PublicKeyName = "sessionID"
-	err = sessionKey.InsertUserKey(ctx)
+	err = sessionKey.InsertUserSessionKey(ctx)
 	if err != nil {
 		log.Err(err).Interface("email", l.Email).Msg("InsertUserSessionKey error")
 		return c.JSON(http.StatusBadRequest, nil)

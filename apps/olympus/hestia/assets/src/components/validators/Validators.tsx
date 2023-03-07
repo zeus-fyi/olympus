@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useEffect, useState} from 'react';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import {AppBar, Drawer} from '../dashboard/Dashboard';
@@ -19,29 +20,21 @@ import authProvider from "../../redux/auth/auth.actions";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
-import {TableContainer, TableRow} from '@mui/material';
+import {TableContainer, TableFooter, TablePagination, TableRow} from '@mui/material';
 import TableBody from "@mui/material/TableBody";
 import MainListItems from "../dashboard/listItems";
+import {validatorsApiGateway} from "../../gateway/validators";
+import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 
 const mdTheme = createTheme();
 
 function createData(
-    publicKey: string,
-    feeAddress: string,
-    keyGroupName: string,
+    pubkey: string,
+    feeRecipient: string,
     network: string,
-    serviceType: string,
-    accessKey: string,
-    verified: string,
-    enabled: string,
 ) {
-    return {publicKey,feeAddress,network, keyGroupName, serviceType,accessKey, enabled, verified};
+    return {pubkey,feeRecipient,network};
 }
-
-const rows = [
-    createData('0xd38hglsdfa','0x134','DemoGroup','Mainnet', 'Serverless','DKDH', "True", "True"),
-    createData('0xd38h333dfa','0x134','DemoGroup','Mainnet', 'Serverless', 'ALLE',"True", "True"),
-];
 
 function ValidatorsServiceContent() {
     const [open, setOpen] = React.useState(true);
@@ -128,7 +121,7 @@ function ValidatorsServiceContent() {
                     }}
                 >
                     <Toolbar />
-                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         {<Validators />}
                     </Container>
                 </Box>
@@ -142,40 +135,87 @@ export default function ValidatorsServices() {
 }
 
 function Validators() {
+    const [page, setPage] = React.useState(0);
+    const [rowsPerPage, setRowsPerPage] = React.useState(25);
+
+    const [validators, setValidators] = useState([{}]);
+    const handleChangeRowsPerPage = (
+        event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    ) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+    const handleChangePage = (
+        event: React.MouseEvent<HTMLButtonElement> | null,
+        newPage: number,
+    ) => {
+        setPage(newPage);
+    };
+
+    const emptyRows =
+        page > 0 ? Math.max(0, (1 + page) * rowsPerPage - validators.length) : 0;
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                let network = 'ephemery';
+                const response = await validatorsApiGateway.getValidators(network);
+                console.log(response.data)
+                const validatorsData: any[] = response.data;
+                const validatorRows = validatorsData.map((v: any) =>
+                    createData(v.pubkey, v.feeRecipient, network),
+                );
+                setValidators(validatorRows)
+            } catch (error) {
+                console.log("error", error);
+            }}
+        fetchData();
+    }, []);
     return (
         <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 650 }} aria-label="simple table">
+            <Table sx={{ minWidth: 1000 }} aria-label="simple table">
                 <TableHead>
                     <TableRow>
                         <TableCell>Network</TableCell>
                         <TableCell align="left">PublicKey</TableCell>
                         <TableCell align="left">FeeAddress</TableCell>
-                        <TableCell align="left">KeyGroupName</TableCell>
-                        <TableCell align="left">AccessKey</TableCell>
-                        <TableCell align="left">ServiceType</TableCell>
-                        <TableCell align="left">Verified</TableCell>
-                        <TableCell align="left">Enabled</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {rows.map((row) => (
+                    {(rowsPerPage > 0
+                        ? validators.slice(page * rowsPerPage, page*rowsPerPage+rowsPerPage) : validators).map((row: any,i: number) => (
                         <TableRow
-                            key={row.publicKey}
+                            key={i}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >
                             <TableCell component="th" scope="row">
                                 {row.network}
                             </TableCell>
-                            <TableCell align="left">{row.publicKey}</TableCell>
-                            <TableCell align="left">{row.feeAddress}</TableCell>
-                            <TableCell align="left">{row.keyGroupName}</TableCell>
-                            <TableCell align="left">{row.accessKey}</TableCell>
-                            <TableCell align="left">{row.serviceType}</TableCell>
-                            <TableCell align="left">{row.verified}</TableCell>
-                            <TableCell align="left">{row.enabled}</TableCell>
+                            <TableCell align="left">{row.pubkey}</TableCell>
+                            <TableCell align="left">{row.feeRecipient}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
+                <TableFooter>
+                    <TableRow>
+                        <TablePagination
+                            rowsPerPageOptions={[10, 25, 100, { label: 'All', value: -1 }]}
+                            colSpan={3}
+                            count={validators.length}
+                            rowsPerPage={rowsPerPage}
+                            page={page}
+                            SelectProps={{
+                                inputProps: {
+                                    'aria-label': 'rows per page',
+                                },
+                                native: true,
+                            }}
+                            onPageChange={handleChangePage}
+                            onRowsPerPageChange={handleChangeRowsPerPage}
+                            ActionsComponent={TablePaginationActions}
+                        />
+                    </TableRow>
+                </TableFooter>
             </Table>
         </TableContainer>
     );

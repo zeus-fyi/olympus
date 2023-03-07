@@ -28,7 +28,7 @@ import {clustersApiGateway} from "../../gateway/clusters";
 const mdTheme = createTheme();
 
 function createData(
-    cloudCtxNsID: string,
+    cloudCtxNsID: number,
     cloudProvider: string,
     region: string,
     context: string,
@@ -36,11 +36,6 @@ function createData(
 ) {
     return {cloudCtxNsID, cloudProvider, region, context, namespace};
 }
-
-const clusterRows = [
-    createData('1243535','do', 'sfo3','do-sfo3-zeus', 'eth-indexer'),
-    createData('12235535','do', 'sfo3', 'do-sfo3-zeus','ephemeral-staking'),
-];
 
 function ClustersContent() {
     const [open, setOpen] = React.useState(true);
@@ -56,27 +51,6 @@ function ClustersContent() {
         dispatch({type: 'LOGOUT_SUCCESS'})
         navigate('/login');
     }
-
-    const [clusters, setClusters] = useState("");
-
-    useEffect(() => {
-        const fetchData = async () => {
-        try {
-            const response = await clustersApiGateway.getClusters();
-            console.log('response')
-            console.log(response)
-            const json = await response.json();
-            console.log(json);
-            setClusters(json);
-        } catch (error) {
-            console.log("error", error);
-        }}
-        fetchData();
-        console.log('useEffect');
-
-        console.log(clusters);
-    }, []);
-
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
@@ -161,6 +135,21 @@ export default function Clusters() {
 }
 
 function CloudClusters() {
+    const [clusters, setClusters] = useState([{}]);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await clustersApiGateway.getClusters();
+                const clustersData: any[] = response.data;
+                const clusterRows = clustersData.map((cluster: any) =>
+                    createData(cluster.cloudCtxNsID, cluster.cloudProvider, cluster.region, cluster.context, cluster.namespace),
+                );
+                setClusters(clusterRows)
+            } catch (error) {
+                console.log("error", error);
+            }}
+        fetchData();
+    }, []);
     return (
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
@@ -174,7 +163,7 @@ function CloudClusters() {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {clusterRows.map((row) => (
+                    {clusters.map((row: any) => (
                         <TableRow
                             key={row.cloudCtxNsID}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}

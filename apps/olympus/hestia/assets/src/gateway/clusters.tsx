@@ -17,7 +17,7 @@ class ClustersApiGateway {
         }
     }
 
-    async getClusterTopologies(cluster: any): Promise<any>  {
+    async getClusterTopologies(cloudCtxNsID: number): Promise<any>  {
         const url = `/v1/deploy/cluster/status`;
         try {
             const sessionID = localStorage.getItem("sessionID");
@@ -26,12 +26,9 @@ class ClustersApiGateway {
                     'Authorization': `Bearer ${sessionID}`
                 }}
             const payload = {
-                cloudCtxNsID: cluster.cloudCtxNsID,
-                cloudProvider: cluster.cloudProvider,
-                region: cluster.region,
-                context: cluster.context,
-                namespace: cluster.namespace
+                cloudCtxNsID: cloudCtxNsID,
             }
+            console.log(payload)
             return await zeusApi.post(url, payload, config)
         } catch (exc) {
             console.error('error sending get cluster topologies at cloud ctx ns request');

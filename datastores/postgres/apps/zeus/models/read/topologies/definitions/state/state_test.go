@@ -10,7 +10,6 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
 type ReadTopologyStateTestSuite struct {
@@ -25,14 +24,8 @@ func (s *ReadTopologyStateTestSuite) TestReadLatestTopologyState() {
 	orgID := 7138983863666903883
 	userID := 1667452524356256466
 	ou := org_users.NewOrgUserWithID(orgID, userID)
-	cctx := zeus_common_types.CloudCtxNs{
-		CloudProvider: "do",
-		Region:        "sfo3",
-		Context:       "do-sfo3-dev-do-sfo3-zeus",
-		Namespace:     "avax",
-		Env:           "",
-	}
-	err := dr.ReadLatestDeployedClusterTopologies(ctx, cctx, ou)
+
+	err := dr.ReadLatestDeployedClusterTopologies(ctx, 1671248907408699000, ou)
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(dr.Slice)
 	for _, v := range dr.Slice {

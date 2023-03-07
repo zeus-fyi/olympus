@@ -1,6 +1,5 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
-import {createTheme, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import {AppBar, Drawer} from '../dashboard/Dashboard';
 import Box from '@mui/material/Box';
@@ -20,10 +19,11 @@ import authProvider from "../../redux/auth/auth.actions";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
-import {TableContainer, TableRow} from '@mui/material';
+import {createTheme, TableContainer, TableRow} from '@mui/material';
 import TableBody from "@mui/material/TableBody";
 import MainListItems from "../dashboard/listItems";
 import {clustersApiGateway} from "../../gateway/clusters";
+import {ThemeProvider} from "@mui/material/styles";
 
 const mdTheme = createTheme();
 
@@ -131,21 +131,14 @@ function ClustersContent() {
     );
 }
 
-export default function Clusters() {
-    return <ClustersContent />;
-}
-
 function ClustersTable(clusters: any) {
     let navigate = useNavigate();
     const handleClick = async (event: any, cluster: any) => {
         event.preventDefault();
-        const response = await clustersApiGateway.getClusters();
-        let res = await clustersApiGateway.getClusterTopologies(cluster)
-        console.log(res.data)
-        //navigate('/clusters'+cluster.cloudCtxNsID);
+        navigate('/clusters/'+cluster.cloudCtxNsID);
     }
 
-    return <TableContainer component={Paper}>
+    return( <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
             <TableHead>
                 <TableRow>
@@ -174,7 +167,7 @@ function ClustersTable(clusters: any) {
                 ))}
             </TableBody>
         </Table>
-    </TableContainer>
+    </TableContainer>)
 }
 
 function CloudClusters() {
@@ -196,5 +189,9 @@ function CloudClusters() {
     }, []);
     return (
         ClustersTable(clusters)
-    );
+    )
+}
+
+export default function Clusters() {
+    return <ClustersContent />
 }

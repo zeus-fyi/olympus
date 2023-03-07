@@ -22,6 +22,34 @@ type ValidatorServiceCloudCtxNsProtocol struct {
 
 const ModelName = "ArtemisValidatorsServices"
 
+func SelectValidatorsServiceInfo(ctx context.Context, orgID, protocolNetworkID int) (hestia_req_types.ValidatorServiceOrgGroupSlice, error) {
+	vos := hestia_req_types.ValidatorServiceOrgGroupSlice{}
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `
+				  SELECT vsg.pubkey, vsg.fee_recipient
+				  FROM validators_service_org_groups vsg
+				  WHERE vsg.protocol_network_id=$1 AND vsg.org_id=$2
+				  `
+	log.Debug().Interface("SelectUnplacedValidators", q.LogHeader(ModelName))
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, protocolNetworkID)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		vr := hestia_req_types.ValidatorServiceOrgGroup{}
+		rowErr := rows.Scan(
+			&vr.Pubkey, &vr.FeeRecipient,
+		)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader(ModelName))
+			return nil, rowErr
+		}
+		vos = append(vos, vr)
+	}
+	return vos, misc.ReturnIfErr(err, q.LogHeader(ModelName))
+}
+
 func SelectUnplacedValidators(ctx context.Context, validatorServiceInfo ValidatorServiceCloudCtxNsProtocol) (OrgValidatorServices, error) {
 	vos := OrgValidatorServices{}
 	q := sql_query_templates.QueryParams{}

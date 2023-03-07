@@ -39,6 +39,7 @@ func InitV1Routes(e *echo.Echo) {
 		},
 	}))
 	eg.POST("/validators/service/create", CreateValidatorServiceRequestHandler)
+	eg.GET("/validators/service/info/:network", GetValidatorServiceInfoHandler)
 }
 
 func InitV1InternalRoutes(e *echo.Echo) {

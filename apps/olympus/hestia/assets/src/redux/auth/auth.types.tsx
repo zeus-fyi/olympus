@@ -6,3 +6,18 @@ export const LOGOUT = "LOGOUT";
 
 export const SET_MESSAGE = "SET_MESSAGE";
 export const CLEAR_MESSAGE = "CLEAR_MESSAGE";
+
+export interface User {
+    userID: string
+    email: string
+}
+
+export interface UserResponse {
+    user: User
+    token: string
+}
+
+export interface LoginRequest {
+    username: string
+    password: string
+}

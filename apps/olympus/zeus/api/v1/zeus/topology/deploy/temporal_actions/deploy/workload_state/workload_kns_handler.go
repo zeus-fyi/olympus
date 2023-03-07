@@ -11,8 +11,6 @@ import (
 	delete_kns "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/delete/topologies/topology/kns"
 )
 
-// InsertOrUpdateWorkloadKnsStateHandler TODO must verify this is auth is scoped to user only
-// TODO add when no topology id provided
 func InsertOrUpdateWorkloadKnsStateHandler(c echo.Context) error {
 	ctx := context.Background()
 	request := new(kns.TopologyKubeCtxNs)
@@ -27,7 +25,6 @@ func InsertOrUpdateWorkloadKnsStateHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, request)
 }
 
-// DeleteWorkloadKnsStateHandler TODO must verify this is auth is scoped to user only
 func DeleteWorkloadKnsStateHandler(c echo.Context) error {
 	ctx := context.Background()
 	request := new(kns.TopologyKubeCtxNs)

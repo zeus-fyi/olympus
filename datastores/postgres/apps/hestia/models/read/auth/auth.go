@@ -47,7 +47,7 @@ func VerifyBearerTokenService(ctx context.Context, token, serviceName string) (r
 			KeyType: keys.NewBearerKeyType(),
 		},
 	}
-	err := key.VerifyUserBearerTokenService(ctx, serviceName)
+	err := key.VerifyUserTokenService(ctx, serviceName)
 	if err != nil {
 		return read_keys.OrgUserKey{}, err
 	}

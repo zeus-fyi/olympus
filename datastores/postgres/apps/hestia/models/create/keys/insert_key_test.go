@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/keys"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
@@ -25,6 +26,17 @@ func (s *CreateKeyTestSuite) TestInsertUserPassword() {
 	nk.CreatedAt = time.Now()
 
 	err := nk.InsertUserKey(ctx)
+	s.Require().Nil(err)
+}
+
+func (s *CreateKeyTestSuite) TestInsertUserSessionID() {
+	sessionID := uuid.New()
+	nk := NewCreateKey(s.Tc.ProductionLocalTemporalUserID, sessionID.String())
+	nk.PublicKeyVerified = true
+	nk.PublicKeyName = "sessionID"
+	nk.CreatedAt = time.Now()
+
+	err := nk.InsertUserSessionKey(ctx)
 	s.Require().Nil(err)
 }
 

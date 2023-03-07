@@ -4,6 +4,8 @@ import (
 	"context"
 	"os/exec"
 
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -87,6 +89,13 @@ func Zeus() {
 	}
 	log.Info().Msgf("Zeus: %s temporal setup is complete", env)
 	log.Info().Msgf("Zeus: %s server starting", env)
+	if env == "local" {
+		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins: []string{"*"},
+			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
+			AllowHeaders: []string{"*"},
+		}))
+	}
 	srv.E = router.InitRouter(srv.E, cfg.K8sUtil)
 	srv.Start()
 }
@@ -102,7 +111,7 @@ func init() {
 	Cmd.Flags().StringVar(&authKeysCfg.SpacesKey, "do-spaces-key", "", "do s3 spaces key")
 	Cmd.Flags().StringVar(&authKeysCfg.SpacesPrivKey, "do-spaces-private-key", "", "do s3 spaces private key")
 
-	Cmd.Flags().StringVar(&env, "env", "production-local", "environment")
+	Cmd.Flags().StringVar(&env, "env", "local", "environment")
 }
 
 // Cmd represents the base command when called without any subcommands

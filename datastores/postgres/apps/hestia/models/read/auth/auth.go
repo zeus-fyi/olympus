@@ -41,7 +41,6 @@ func VerifyBearerTokenService(ctx context.Context, token, serviceName string) (r
 				UserID:            0,
 				PublicKeyName:     "",
 				PublicKeyVerified: false,
-				PublicKeyTypeID:   keys.BearerKeyTypeID,
 				CreatedAt:         time.Time{},
 				PublicKey:         token,
 			},

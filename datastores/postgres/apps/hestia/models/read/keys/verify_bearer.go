@@ -70,16 +70,41 @@ func (k *OrgUserKey) QueryVerifyUserBearerTokenService() sql_query_templates.Que
 	INNER JOIN users_key_services uksvc ON uksvc.public_key = usk.public_key
 	INNER JOIN services svcs ON svcs.service_id = uksvc.service_id
 	INNER JOIN org_users ou ON ou.user_id = usk.user_id
-	WHERE usk.public_key = $1 AND service_name = $2
+	WHERE usk.public_key = $1 AND service_name = $2 AND usk.public_key_type_id = $3
 	`)
 	q.RawQuery = query
 	return q
 }
 
+func (k *OrgUserKey) QueryVerifyUserSessionTokenService() sql_query_templates.QueryParams {
+	var q sql_query_templates.QueryParams
+	query := fmt.Sprintf(`
+	SELECT usk.public_key_verified, ou.org_id, ou.user_id
+	FROM users_keys usk
+	INNER JOIN key_types kt ON kt.key_type_id = usk.public_key_type_id
+	INNER JOIN users_key_services uksvc ON uksvc.public_key = usk.public_key
+	INNER JOIN services svcs ON svcs.service_id = uksvc.service_id
+	INNER JOIN org_users ou ON ou.user_id = usk.user_id
+	WHERE user_id IN SELECT(user_id FROM users_keys WHERE public_key=$1 AND public_key_type_id=8 LIMIT 1) AND service_name = $2
+	`)
+	q.RawQuery = query
+	return q
+}
+
+func (k *OrgUserKey) VerifyUserSessionToken(ctx context.Context, serviceName string) error {
+	q := k.QueryVerifyUserSessionTokenService()
+	log.Debug().Interface("QueryVerifyUserBearerTokenService:", q.LogHeader(Sn))
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey, serviceName, keys.BearerKeyTypeID).Scan(&k.PublicKeyVerified, &k.OrgID, &k.UserID)
+	if err != nil {
+		k.PublicKeyVerified = false
+	}
+	return misc.ReturnIfErr(err, q.LogHeader(Sn))
+}
+
 func (k *OrgUserKey) VerifyUserBearerTokenService(ctx context.Context, serviceName string) error {
 	q := k.QueryVerifyUserBearerTokenService()
 	log.Debug().Interface("QueryVerifyUserBearerTokenService:", q.LogHeader(Sn))
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey, serviceName).Scan(&k.PublicKeyVerified, &k.OrgID, &k.UserID)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey, serviceName, keys.BearerKeyTypeID).Scan(&k.PublicKeyVerified, &k.OrgID, &k.UserID)
 	if err != nil {
 		k.PublicKeyVerified = false
 	}

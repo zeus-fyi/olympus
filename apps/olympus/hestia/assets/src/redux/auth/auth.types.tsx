@@ -12,12 +12,13 @@ export interface User {
     email: string
 }
 
-export interface UserResponse {
-    user: User
-    token: string
+export interface LoginResponse {
+    userID: number
+    sessionID: string
+    ttl: number
 }
 
 export interface LoginRequest {
-    username: string
+    email: string
     password: string
 }

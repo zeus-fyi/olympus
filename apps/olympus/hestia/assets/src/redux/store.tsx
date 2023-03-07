@@ -2,18 +2,12 @@ import reducer from './reducer';
 import {configureStore} from '@reduxjs/toolkit'
 import {sessionService, SessionServiceOptions} from 'redux-react-session';
 import {Store} from 'redux';
-import {zeusApi} from "../gateway/axios/axios";
 import {setupListeners} from "@reduxjs/toolkit/query";
-import authReducer from './auth/auth.slice'
 
 export const store = configureStore({
     reducer: {
         reducer,
-        [zeusApi.reducerPath]: zeusApi.reducer,
-        auth: authReducer,
     },
-    middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware().concat(zeusApi.middleware),
 })
 const validateSession = (session: any) => {
     // check if your session is still valid
@@ -32,4 +26,3 @@ export type RootState = ReturnType<typeof store.getState>
 export type AppDispatch = typeof store.dispatch
 
 setupListeners(store.dispatch)
-

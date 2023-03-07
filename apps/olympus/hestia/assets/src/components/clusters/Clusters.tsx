@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useEffect, useState} from 'react';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import {AppBar, Drawer} from '../dashboard/Dashboard';
@@ -22,6 +23,7 @@ import TableCell from "@mui/material/TableCell";
 import {TableContainer, TableRow} from '@mui/material';
 import TableBody from "@mui/material/TableBody";
 import MainListItems from "../dashboard/listItems";
+import {clustersApiGateway} from "../../gateway/clusters";
 
 const mdTheme = createTheme();
 
@@ -54,6 +56,26 @@ function ClustersContent() {
         dispatch({type: 'LOGOUT_SUCCESS'})
         navigate('/login');
     }
+
+    const [clusters, setClusters] = useState("");
+
+    useEffect(() => {
+        const fetchData = async () => {
+        try {
+            const response = await clustersApiGateway.getClusters();
+            console.log('response')
+            console.log(response)
+            const json = await response.json();
+            console.log(json);
+            setClusters(json);
+        } catch (error) {
+            console.log("error", error);
+        }}
+        fetchData();
+        console.log('useEffect');
+
+        console.log(clusters);
+    }, []);
 
     return (
         <ThemeProvider theme={mdTheme}>
@@ -171,22 +193,3 @@ function CloudClusters() {
         </TableContainer>
     );
 }
-
-const R = require('ramda');
-
-// export const orderMatchFormatMany = R.curry((clusters: any) => R.map(clustersFormat(clusters), clusters));
-
-const mapStateToProps = (state: any) => ({
-    clusters: state,
-});
-
-const asyncComponentConfig = {
-    props: ['clusters'],
-    load: async (props: any) => { },
-    initial: [],
-    dataProp: 'history'
-};
-
-// const TradeHistory = connect(mapStateToProps, null)(
-//     AsyncComponent(asyncComponentConfig)(TradeHistoryComponent)
-// );

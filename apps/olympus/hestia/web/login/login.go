@@ -4,10 +4,12 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/keys"
+	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
+	"k8s.io/apimachinery/pkg/util/rand"
 )
 
 type LoginRequest struct {
@@ -24,9 +26,9 @@ func LoginHandler(c echo.Context) error {
 }
 
 type LoginResponse struct {
-	UserID    int       `json:"userID"`
-	SessionID uuid.UUID `json:"sessionID"`
-	TTL       int       `json:"ttl"`
+	UserID    int    `json:"userID"`
+	SessionID string `json:"sessionID"`
+	TTL       int    `json:"ttl"`
 }
 
 func (l *LoginRequest) VerifyPassword(c echo.Context) error {
@@ -38,9 +40,20 @@ func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 		log.Err(err).Interface("email", l.Email).Msg("VerifyPassword error")
 		return c.JSON(http.StatusBadRequest, nil)
 	}
+
+	sessionID := rand.String(64)
+	sessionKey := create_keys.NewCreateKey(key.UserID, sessionID)
+	sessionKey.PublicKeyVerified = true
+	sessionKey.PublicKeyTypeID = keys.SessionIDKeyTypeID
+	sessionKey.PublicKeyName = "sessionID"
+	err = sessionKey.InsertUserKey(ctx)
+	if err != nil {
+		log.Err(err).Interface("email", l.Email).Msg("InsertUserSessionKey error")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
 	resp := LoginResponse{
 		UserID:    key.UserID,
-		SessionID: uuid.New(),
+		SessionID: sessionID,
 		TTL:       3600,
 	}
 	return c.JSON(http.StatusOK, resp)

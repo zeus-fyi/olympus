@@ -25,3 +25,19 @@ func (t *TopologyDeploymentStatusRequest) ReadDeployedTopologyStatuses(c echo.Co
 	}
 	return c.JSON(http.StatusOK, status.Slice)
 }
+
+type ClusterDeploymentStatusRequest struct {
+	CloudCtxNsID int `json:"cloudCtxNsID"`
+}
+
+func (t *ClusterDeploymentStatusRequest) ReadDeployedClusterTopologies(c echo.Context) error {
+	ctx := context.Background()
+	ou := c.Get("orgUser").(org_users.OrgUser)
+	status := read_topology_deployment_status.NewReadDeploymentStatusesGroup()
+	err := status.ReadLatestDeployedClusterTopologies(ctx, t.CloudCtxNsID, ou)
+	if err != nil {
+		log.Err(err).Interface("orgUser", ou).Msg("ClusterDeploymentInfoRequest: ReadDeployedClusterTopologies")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	return c.JSON(http.StatusOK, status.Slice)
+}

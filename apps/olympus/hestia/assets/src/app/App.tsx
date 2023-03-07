@@ -9,6 +9,7 @@ import {HomeLayout} from "../components/home/Home";
 import Integrations from "../components/integrations/Integrations";
 import ValidatorsServices from "../components/validators/Validators";
 import Clusters from "../components/clusters/Clusters";
+import ClustersPage from "../components/clusters/ClusterPage";
 
 export const App = () => {
     return (
@@ -21,6 +22,7 @@ export const App = () => {
                             <Route path="/dashboard" element={<ProtectedLayout />}/>
                             <Route>
                                 <Route path="clusters" element={<Clusters />} />
+                                <Route path="clusters/:id" element={<ClustersPage />} />
                             </Route>
                             <Route>
                                 <Route path="services/ethereum/validators" element={<ValidatorsServices />} />

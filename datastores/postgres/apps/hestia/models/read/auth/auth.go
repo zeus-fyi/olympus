@@ -41,14 +41,13 @@ func VerifyBearerTokenService(ctx context.Context, token, serviceName string) (r
 				UserID:            0,
 				PublicKeyName:     "",
 				PublicKeyVerified: false,
-				PublicKeyTypeID:   keys.BearerKeyTypeID,
 				CreatedAt:         time.Time{},
 				PublicKey:         token,
 			},
 			KeyType: keys.NewBearerKeyType(),
 		},
 	}
-	err := key.VerifyUserBearerTokenService(ctx, serviceName)
+	err := key.VerifyUserTokenService(ctx, serviceName)
 	if err != nil {
 		return read_keys.OrgUserKey{}, err
 	}

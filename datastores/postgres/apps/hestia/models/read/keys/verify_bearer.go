@@ -61,24 +61,29 @@ func (k *OrgUserKey) VerifyUserBearerToken(ctx context.Context) error {
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
 
-func (k *OrgUserKey) QueryVerifyUserBearerTokenService() sql_query_templates.QueryParams {
+func (k *OrgUserKey) QueryVerifyUserTokenService() sql_query_templates.QueryParams {
 	var q sql_query_templates.QueryParams
 	query := fmt.Sprintf(`
+	WITH cte_get_user_key AS (
+		SELECT usk.user_id AS user_id
+		FROM users_keys usk
+		WHERE usk.public_key = $1
+	) 
 	SELECT usk.public_key_verified, ou.org_id, ou.user_id
 	FROM users_keys usk
 	INNER JOIN key_types kt ON kt.key_type_id = usk.public_key_type_id
 	INNER JOIN users_key_services uksvc ON uksvc.public_key = usk.public_key
 	INNER JOIN services svcs ON svcs.service_id = uksvc.service_id
 	INNER JOIN org_users ou ON ou.user_id = usk.user_id
-	WHERE usk.public_key = $1 AND service_name = $2
+	WHERE usk.user_id = (SELECT user_id FROM cte_get_user_key) AND svcs.service_name = $2
 	`)
 	q.RawQuery = query
 	return q
 }
 
-func (k *OrgUserKey) VerifyUserBearerTokenService(ctx context.Context, serviceName string) error {
-	q := k.QueryVerifyUserBearerTokenService()
-	log.Debug().Interface("QueryVerifyUserBearerTokenService:", q.LogHeader(Sn))
+func (k *OrgUserKey) VerifyUserTokenService(ctx context.Context, serviceName string) error {
+	q := k.QueryVerifyUserTokenService()
+	log.Debug().Interface("QueryVerifyUserTokenService:", q.LogHeader(Sn))
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey, serviceName).Scan(&k.PublicKeyVerified, &k.OrgID, &k.UserID)
 	if err != nil {
 		k.PublicKeyVerified = false

@@ -3,7 +3,7 @@ import {getAxiosResponse} from "../../helpers/get-axios-response";
 import {authApiGateway} from "../../gateway/login";
 import inMemoryJWT from "../../auth/InMemoryJWT";
 
-const tokenParse = pipe(getAxiosResponse,prop('jwtToken'));
+const sessionIDParse = pipe(getAxiosResponse,prop('sessionID'));
 const ttlSeconds = pipe(getAxiosResponse, prop('ttl'));
 const userIDParse = pipe(getAxiosResponse, prop('userID'));
 
@@ -16,10 +16,11 @@ const authProvider = {
                 //inMemoryJWT.ereaseToken();
             }
             if (statusCode === 200) {
-                const token = tokenParse(res);
+                const sessionID = sessionIDParse(res);
                 const tokenExpiry = ttlSeconds(res);
                 const userID = userIDParse(res);
                 //inMemoryJWT.setToken(token, tokenExpiry);
+                localStorage.setItem("sessionID", sessionID);
                 localStorage.setItem("userID", userID);
             }
             return res
@@ -31,6 +32,7 @@ const authProvider = {
 
     logout: () =>{
         localStorage.removeItem("userID");
+        localStorage.removeItem("sessionID");
         inMemoryJWT.ereaseToken();
     },
 

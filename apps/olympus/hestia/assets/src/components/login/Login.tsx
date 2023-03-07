@@ -41,6 +41,7 @@ const Login = () => {
         let email = data.get('email') as string
         let password = data.get('password') as string
         let res: any = await authProvider.login(email, password)
+
         const statusCode = res.status;
         if (statusCode === 200) {
             dispatch({type: 'LOGIN_SUCCESS', payload: res.data})

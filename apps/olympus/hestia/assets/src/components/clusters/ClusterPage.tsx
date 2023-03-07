@@ -1,43 +1,42 @@
-import * as React from 'react';
-import {useEffect, useState} from 'react';
-import CssBaseline from '@mui/material/CssBaseline';
-import {AppBar, Drawer} from '../dashboard/Dashboard';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import List from '@mui/material/List';
-import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
-import Container from '@mui/material/Container';
-import Paper from '@mui/material/Paper';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import Button from "@mui/material/Button";
-import {useNavigate} from "react-router-dom";
-import {useDispatch} from "react-redux";
-import authProvider from "../../redux/auth/auth.actions";
+import * as React from "react";
+import {useEffect, useState} from "react";
+import {clustersApiGateway} from "../../gateway/clusters";
+import {TableContainer, TableRow} from "@mui/material";
+import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
-import {createTheme, TableContainer, TableRow} from '@mui/material';
 import TableBody from "@mui/material/TableBody";
+import {useNavigate, useParams} from "react-router-dom";
+import {useDispatch} from "react-redux";
+import authProvider from "../../redux/auth/auth.actions";
+import {createTheme, ThemeProvider} from "@mui/material/styles";
+import Box from "@mui/material/Box";
+import CssBaseline from "@mui/material/CssBaseline";
+import {AppBar, Drawer} from "../dashboard/Dashboard";
+import Toolbar from "@mui/material/Toolbar";
+import IconButton from "@mui/material/IconButton";
+import MenuIcon from "@mui/icons-material/Menu";
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import Divider from "@mui/material/Divider";
+import List from "@mui/material/List";
 import MainListItems from "../dashboard/listItems";
-import {clustersApiGateway} from "../../gateway/clusters";
-import {ThemeProvider} from "@mui/material/styles";
+import Container from "@mui/material/Container";
 
 const mdTheme = createTheme();
 
-function createData(
-    cloudCtxNsID: number,
-    cloudProvider: string,
-    region: string,
-    context: string,
-    namespace: string,
+function createTopologyData(
+    topologyID: number,
+    clusterName: string,
+    componentBaseName: string,
+    skeletonBaseName: string,
 ) {
-    return {cloudCtxNsID, cloudProvider, region, context, namespace};
+    return {topologyID, clusterName, componentBaseName, skeletonBaseName};
 }
 
-function ClustersContent() {
+function ClustersPageContent() {
     const [open, setOpen] = React.useState(true);
 
     const toggleDrawer = () => {
@@ -123,7 +122,7 @@ function ClustersContent() {
                 >
                     <Toolbar />
                     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                        <CloudClusters />
+                        <ClustersPageTable />
                     </Container>
                 </Box>
             </Box>
@@ -131,67 +130,55 @@ function ClustersContent() {
     );
 }
 
-function ClustersTable(clusters: any) {
-    let navigate = useNavigate();
-    const handleClick = async (event: any, cluster: any) => {
-        event.preventDefault();
-        navigate('/clusters/'+cluster.cloudCtxNsID);
-    }
-
-    return( <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label="simple table">
-            <TableHead>
-                <TableRow>
-                    <TableCell>CloudCtxNsID</TableCell>
-                    <TableCell align="left">CloudProvider</TableCell>
-                    <TableCell align="left">Region</TableCell>
-                    <TableCell align="left">Context</TableCell>
-                    <TableCell align="left">Namespace</TableCell>
-                </TableRow>
-            </TableHead>
-            <TableBody>
-                {clusters.map((row: any, i: number) => (
-                    <TableRow
-                        key={i}
-                        onClick={(event) => handleClick(event, row)}
-                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                    >
-                        <TableCell component="th" scope="row">
-                            {row.cloudCtxNsID}
-                        </TableCell>
-                        <TableCell align="left">{row.cloudProvider}</TableCell>
-                        <TableCell align="left">{row.region}</TableCell>
-                        <TableCell align="left">{row.context}</TableCell>
-                        <TableCell align="left">{row.namespace}</TableCell>
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
-    </TableContainer>)
-}
-
-function CloudClusters() {
-    const [clusters, setClusters] = useState([{}]);
-
+function ClustersPageTable(cluster: any) {
+    const params = useParams();
+    const [activeClusterTopologies, setActiveClusterTopologies] = useState([{}]);
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchData = async (params: any) => {
             try {
-                const response = await clustersApiGateway.getClusters();
-                const clustersData: any[] = response.data;
-                const clusterRows = clustersData.map((cluster: any) =>
-                    createData(cluster.cloudCtxNsID, cluster.cloudProvider, cluster.region, cluster.context, cluster.namespace),
+                const response = await clustersApiGateway.getClusterTopologies(parseInt(params.id));
+                console.log(response.data)
+                const clustersTopologyData: any[] = response.data;
+                const clusterTopologyRows = clustersTopologyData.map((topology: any) =>
+                    createTopologyData(topology.topologyID, topology.clusterName, topology.componentBaseName, topology.skeletonBaseName),
                 );
-                setClusters(clusterRows)
+                setActiveClusterTopologies(clusterTopologyRows);
             } catch (error) {
                 console.log("error", error);
             }}
-        fetchData();
+        fetchData(params);
     }, []);
     return (
-        ClustersTable(clusters)
-    )
+        <TableContainer component={Paper}>
+            <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                <TableHead>
+                    <TableRow>
+                        <TableCell>TopologyID</TableCell>
+                        <TableCell align="left">ClusterName</TableCell>
+                        <TableCell align="left">ClusterBaseName</TableCell>
+                        <TableCell align="left">SkeletonBaseName</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {activeClusterTopologies.map((row: any, i: number) => (
+                        <TableRow
+                            key={i}
+                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                        >
+                            <TableCell component="th" scope="row">
+                                {row.topologyID}
+                            </TableCell>
+                            <TableCell align="left">{row.clusterName}</TableCell>
+                            <TableCell align="left">{row.componentBaseName}</TableCell>
+                            <TableCell align="left">{row.skeletonBaseName}</TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </TableContainer>
+    );
 }
 
-export default function Clusters() {
-    return <ClustersContent />
+export default function ClustersPage() {
+    return <ClustersPageContent />
 }

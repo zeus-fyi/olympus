@@ -11,3 +11,11 @@ func TopologyDeploymentStatusHandler(c echo.Context) error {
 	}
 	return request.ReadDeployedTopologyStatuses(c)
 }
+
+func ClusterDeploymentStatusHandler(c echo.Context) error {
+	request := new(ClusterDeploymentStatusRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.ReadDeployedClusterTopologies(c)
+}

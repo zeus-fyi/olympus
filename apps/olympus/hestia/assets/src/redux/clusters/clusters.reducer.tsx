@@ -1,4 +1,4 @@
-import {SET_CLUSTERS} from './clusters.actions';
+import {GET_CLUSTERS_FAIL, SET_CLUSTERS} from './clusters.actions';
 
 const getClusterItems: any = localStorage.getItem("clusters")
 const clusters: any = JSON.parse(getClusterItems);
@@ -17,7 +17,15 @@ export default function clustersReducer(state = initialState, action: any ) {
                 hasClusters: true,
                 clusters: payload.clusters,
             };
+        case GET_CLUSTERS_FAIL:
+            return {
+                ...state,
+                hasClusters: true,
+                clusters: payload.clusters,
+            };
         default:
             return state;
     }
 }
+
+export const getClusters = (state: any) => state.clusters;

@@ -11,6 +11,7 @@ const (
 	BearerKeyTypeID     = 5
 	JwtKeyTypeID        = 6
 	PassphraseKeyTypeID = 7
+	SessionIDKeyTypeID  = 8
 )
 
 type KeyType struct {

@@ -2,9 +2,12 @@ import reducer from './reducer';
 import {configureStore} from '@reduxjs/toolkit'
 import {sessionService, SessionServiceOptions} from 'redux-react-session';
 import {Store} from 'redux';
+import {setupListeners} from "@reduxjs/toolkit/query";
 
 export const store = configureStore({
-    reducer: reducer,
+    reducer: {
+        reducer,
+    },
 })
 const validateSession = (session: any) => {
     // check if your session is still valid
@@ -21,3 +24,5 @@ export default store;
 export type RootState = ReturnType<typeof store.getState>
 // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = typeof store.dispatch
+
+setupListeners(store.dispatch)

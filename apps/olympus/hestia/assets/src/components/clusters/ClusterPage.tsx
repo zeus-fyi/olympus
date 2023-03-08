@@ -56,7 +56,7 @@ function ClustersPageContent() {
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />
-                <AppBar position="absolute" open={open}>
+                <AppBar position="absolute" open={open} style={{ color: '#151C2F', backgroundColor: '#8991B0'}}>
                     <Toolbar
                         sx={{
                             pr: '24px', // keep right padding when drawer closed
@@ -81,7 +81,7 @@ function ClustersPageContent() {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            Dashboard
+                            Clusters
                         </Typography>
                         <Button
                             color="inherit"

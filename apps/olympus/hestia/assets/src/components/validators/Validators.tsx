@@ -25,6 +25,7 @@ import TableBody from "@mui/material/TableBody";
 import MainListItems from "../dashboard/listItems";
 import {validatorsApiGateway} from "../../gateway/validators";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
+import {ValidatorsUploadActionAreaCard} from "./ValidatorsUpload";
 
 const mdTheme = createTheme();
 
@@ -57,7 +58,7 @@ function ValidatorsServiceContent() {
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />
-                <AppBar position="absolute" open={open}>
+                <AppBar position="absolute" open={open} style={{ color: '#151C2F', backgroundColor: '#8991B0'}}>
                     <Toolbar
                         sx={{
                             pr: '24px', // keep right padding when drawer closed
@@ -82,7 +83,7 @@ function ValidatorsServiceContent() {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            Dashboard
+                            Validators
                         </Typography>
                         <Button
                             color="inherit"
@@ -124,6 +125,9 @@ function ValidatorsServiceContent() {
                 >
                     <Toolbar />
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4}} >
+                            <ValidatorsUploadActionAreaCard />
+                        </Container>
                         {<Validators />}
                     </Container>
                 </Box>
@@ -175,12 +179,12 @@ function Validators() {
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 1000 }} aria-label="validators pagination table">
                 <TableHead>
-                    <TableRow>
-                        <TableCell>Network</TableCell>
-                        <TableCell align="left">GroupName</TableCell>
-                        <TableCell align="left">PublicKey</TableCell>
-                        <TableCell align="left">FeeRecipient</TableCell>
-                        <TableCell align="left">Enabled</TableCell>
+                    <TableRow style={{ backgroundColor: '#8991B0'}} >
+                        <TableCell style={{ fontWeight: 'normal', color: '#151C2F'}} >Network</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: '#151C2F'}} align="left">GroupName</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: '#151C2F'}} align="left">PublicKey</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: '#151C2F'}} align="left">FeeRecipient</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: '#151C2F'}} align="left">Enabled</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>

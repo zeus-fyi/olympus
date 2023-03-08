@@ -56,7 +56,7 @@ function ClustersContent() {
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />
-                <AppBar position="absolute" open={open} style={{ color: '#151C2F', backgroundColor: '#8991B0'}}>
+                <AppBar position="absolute" open={open} style={{ backgroundColor: '#8991B0'}}>
                     <Toolbar
                         sx={{
                             pr: '24px', // keep right padding when drawer closed
@@ -144,12 +144,12 @@ function ClustersTable(clusters: any) {
     return( <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
             <TableHead>
-                <TableRow>
-                    <TableCell>CloudCtxNsID</TableCell>
-                    <TableCell align="left">CloudProvider</TableCell>
-                    <TableCell align="left">Region</TableCell>
-                    <TableCell align="left">Context</TableCell>
-                    <TableCell align="left">Namespace</TableCell>
+                <TableRow style={{ backgroundColor: '#8991B0'}} >
+                    <TableCell style={{ color: 'white'}}>CloudCtxNsID</TableCell>
+                    <TableCell style={{ color: 'white'}} align="left">CloudProvider</TableCell>
+                    <TableCell style={{ color: 'white'}} align="left">Region</TableCell>
+                    <TableCell style={{ color: 'white'}} align="left">Context</TableCell>
+                    <TableCell style={{ color: 'white'}} align="left">Namespace</TableCell>
                 </TableRow>
             </TableHead>
             <TableBody>

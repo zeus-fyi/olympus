@@ -57,7 +57,7 @@ function DashboardIntegrationContent() {
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />
-                <AppBar position="absolute" open={open} style={{ color: '#151C2F', backgroundColor: '#8991B0'}}>
+                <AppBar position="absolute" open={open} style={{ backgroundColor: '#8991B0'}}>
                     <Toolbar
                         sx={{
                             pr: '24px', // keep right padding when drawer closed
@@ -141,10 +141,10 @@ function ApiKeys() {
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
                 <TableHead>
-                    <TableRow>
-                        <TableCell>Service</TableCell>
-                        <TableCell align="left">KeyName</TableCell>
-                        <TableCell align="left">AccessKey</TableCell>
+                    <TableRow style={{ backgroundColor: '#8991B0'}} >
+                        <TableCell style={{ color: 'white'}}>Service</TableCell>
+                        <TableCell style={{ color: 'white'}} align="left">KeyName</TableCell>
+                        <TableCell style={{ color: 'white'}} align="left">AccessKey</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>

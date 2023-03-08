@@ -40,9 +40,9 @@ export function PodsPageTable() {
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
                 <TableHead>
-                    <TableRow>
-                        <TableCell>PodName</TableCell>
-                        <TableCell align="left">Status</TableCell>
+                    <TableRow style={{ backgroundColor: '#8991B0'}} >
+                        <TableCell style={{ color: 'white'}}>PodName</TableCell>
+                        <TableCell style={{ color: 'white'}} align="left">Status</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>

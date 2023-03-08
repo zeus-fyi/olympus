@@ -1,8 +1,8 @@
 import {hestiaApi} from './axios/axios';
 
 class ValidatorsApiGateway {
-    async getValidators(network: string): Promise<any>  {
-        const url = `/v1/validators/service/info/`+network;
+    async getValidators(): Promise<any>  {
+        const url = `/v1/validators/service/info`;
         try {
             const sessionID = localStorage.getItem("sessionID");
             let config = {

@@ -7,6 +7,7 @@ import (
 	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 	ethereum_web3signer_actions "github.com/zeus-fyi/zeus/cookbooks/ethereum/web3signers/actions"
@@ -22,32 +23,32 @@ type ValidatorServiceCloudCtxNsProtocol struct {
 
 const ModelName = "ArtemisValidatorsServices"
 
-func SelectValidatorsServiceInfo(ctx context.Context, orgID, protocolNetworkID int) (hestia_req_types.ValidatorServiceOrgGroupSlice, error) {
-	vos := hestia_req_types.ValidatorServiceOrgGroupSlice{}
+func SelectValidatorsServiceInfo(ctx context.Context, orgID int) (hestia_autogen_bases.ValidatorServiceOrgGroupSlice, error) {
+	vsr := hestia_autogen_bases.ValidatorServiceOrgGroupSlice{}
 	q := sql_query_templates.QueryParams{}
+	params := []interface{}{orgID}
 	q.RawQuery = `
-				  SELECT vsg.pubkey, vsg.fee_recipient
+				  SELECT vsg.group_name, vsg.pubkey, vsg.fee_recipient, vsg.protocol_network_id, vsg.enabled
 				  FROM validators_service_org_groups vsg
-				  WHERE vsg.protocol_network_id=$1 AND vsg.org_id=$2
-				  `
-	log.Debug().Interface("SelectUnplacedValidators", q.LogHeader(ModelName))
-	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, protocolNetworkID)
+				  WHERE vsg.org_id=$1`
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, params...)
+	log.Debug().Interface("SelectValidatorsServiceInfo", q.LogHeader(ModelName))
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
-		vr := hestia_req_types.ValidatorServiceOrgGroup{}
+		vr := hestia_autogen_bases.ValidatorServiceOrgGroup{}
 		rowErr := rows.Scan(
-			&vr.Pubkey, &vr.FeeRecipient,
+			&vr.GroupName, &vr.Pubkey, &vr.FeeRecipient, &vr.ProtocolNetworkID, &vr.Enabled,
 		)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader(ModelName))
 			return nil, rowErr
 		}
-		vos = append(vos, vr)
+		vsr = append(vsr, vr)
 	}
-	return vos, misc.ReturnIfErr(err, q.LogHeader(ModelName))
+	return vsr, misc.ReturnIfErr(err, q.LogHeader(ModelName))
 }
 
 func SelectUnplacedValidators(ctx context.Context, validatorServiceInfo ValidatorServiceCloudCtxNsProtocol) (OrgValidatorServices, error) {

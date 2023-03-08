@@ -29,11 +29,13 @@ import TablePaginationActions from "@mui/material/TablePagination/TablePaginatio
 const mdTheme = createTheme();
 
 function createData(
+    network: string,
+    groupName: string,
     pubkey: string,
     feeRecipient: string,
-    network: string,
+    enabled: string,
 ) {
-    return {pubkey,feeRecipient,network};
+    return {network, groupName,pubkey,feeRecipient,enabled};
 }
 
 function ValidatorsServiceContent() {
@@ -158,12 +160,10 @@ function Validators() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                let network = 'ephemery';
-                const response = await validatorsApiGateway.getValidators(network);
-                console.log(response.data)
+                const response = await validatorsApiGateway.getValidators();
                 const validatorsData: any[] = response.data;
                 const validatorRows = validatorsData.map((v: any) =>
-                    createData(v.pubkey, v.feeRecipient, network),
+                    createData(getNetwork(v.protocolNetworkID), v.groupName, v.pubkey, v.feeRecipient, booleanString(v.enabled))
                 );
                 setValidators(validatorRows)
             } catch (error) {
@@ -177,8 +177,10 @@ function Validators() {
                 <TableHead>
                     <TableRow>
                         <TableCell>Network</TableCell>
+                        <TableCell align="left">GroupName</TableCell>
                         <TableCell align="left">PublicKey</TableCell>
-                        <TableCell align="left">FeeAddress</TableCell>
+                        <TableCell align="left">FeeRecipient</TableCell>
+                        <TableCell align="left">Enabled</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -191,8 +193,10 @@ function Validators() {
                             <TableCell component="th" scope="row">
                                 {row.network}
                             </TableCell>
+                            <TableCell align="left">{row.groupName}</TableCell>
                             <TableCell align="left">{row.pubkey}</TableCell>
                             <TableCell align="left">{row.feeRecipient}</TableCell>
+                            <TableCell align="left">{row.enabled}</TableCell>
                         </TableRow>
                     ))}
                     {emptyRows > 0 && (
@@ -224,4 +228,22 @@ function Validators() {
             </Table>
         </TableContainer>
     );
+}
+
+function getNetwork(networkID: number){
+    if (BigInt(networkID) === BigInt(1)) {
+        return 'Mainnet'
+    }
+    if (BigInt(networkID) === BigInt(1673748447294772000)) {
+        return 'Ephemery'
+    }
+    return 'Unknown'
+}
+
+function booleanString(bool: boolean) {
+  if (bool) {
+      return 'True'
+  } else {
+    return 'False'
+  }
 }

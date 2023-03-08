@@ -28,7 +28,6 @@ class ClustersApiGateway {
             const payload = {
                 'cloudCtxNsID': `${params.id}`
             }
-            console.log('payload', payload)
             return await zeusApi.post(url, payload, config)
         } catch (exc) {
             console.error('error sending get cluster topologies at cloud ctx ns request');

@@ -12,8 +12,13 @@ import (
 func Routes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
 	e = infra_routes.Routes(e, k8Cfg)
-	e = external_actions_routes.ExternalActionsRoutes(e, k8Cfg)
 	e = deploy_routes.ExternalDeployRoutes(e, k8Cfg)
+	return e
+}
+
+func ActionsRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
+	zeus.K8Util = k8Cfg
+	e = external_actions_routes.ExternalActionsRoutes(e, k8Cfg)
 	return e
 }
 

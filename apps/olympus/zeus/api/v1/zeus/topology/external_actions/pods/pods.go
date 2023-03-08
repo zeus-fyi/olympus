@@ -11,9 +11,9 @@ import (
 
 type PodActionRequest struct {
 	kns.TopologyKubeCtxNs
-	Action        string
-	PodName       string
-	ContainerName string
+	Action        string `json:"action"`
+	PodName       string `json:"podName,omitempty"`
+	ContainerName string `json:"containerName,omitempty"`
 
 	FilterOpts *string_utils.FilterOpts
 	ClientReq  *ClientRequest

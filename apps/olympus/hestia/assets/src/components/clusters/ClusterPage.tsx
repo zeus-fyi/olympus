@@ -24,6 +24,7 @@ import Divider from "@mui/material/Divider";
 import List from "@mui/material/List";
 import MainListItems from "../dashboard/listItems";
 import Container from "@mui/material/Container";
+import {PodsPageTable} from "./Pods";
 
 const mdTheme = createTheme();
 
@@ -124,6 +125,9 @@ function ClustersPageContent() {
                     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
                         <ClustersPageTable />
                     </Container>
+                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                        <PodsPageTable />
+                    </Container>
                 </Box>
             </Box>
         </ThemeProvider>
@@ -136,8 +140,7 @@ function ClustersPageTable(cluster: any) {
     useEffect(() => {
         const fetchData = async (params: any) => {
             try {
-                const response = await clustersApiGateway.getClusterTopologies(parseInt(params.id));
-                console.log(response.data)
+                const response = await clustersApiGateway.getClusterTopologies(params);
                 const clustersTopologyData: any[] = response.data;
                 const clusterTopologyRows = clustersTopologyData.map((topology: any) =>
                     createTopologyData(topology.topologyID, topology.clusterName, topology.componentBaseName, topology.skeletonBaseName),

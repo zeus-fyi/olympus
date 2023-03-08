@@ -173,7 +173,7 @@ function Validators() {
     }, []);
     return (
         <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 1000 }} aria-label="simple table">
+            <Table sx={{ minWidth: 1000 }} aria-label="validators pagination table">
                 <TableHead>
                     <TableRow>
                         <TableCell>Network</TableCell>
@@ -195,6 +195,11 @@ function Validators() {
                             <TableCell align="left">{row.feeRecipient}</TableCell>
                         </TableRow>
                     ))}
+                    {emptyRows > 0 && (
+                        <TableRow style={{ height: 53 * emptyRows }}>
+                            <TableCell colSpan={6} />
+                        </TableRow>
+                    )}
                 </TableBody>
                 <TableFooter>
                     <TableRow>

@@ -133,8 +133,11 @@ function ClustersContent() {
 
 function ClustersTable(clusters: any) {
     let navigate = useNavigate();
+    const [cluster, setCluster] = useState([{}]);
+
     const handleClick = async (event: any, cluster: any) => {
         event.preventDefault();
+        setCluster(cluster);
         navigate('/clusters/'+cluster.cloudCtxNsID);
     }
 

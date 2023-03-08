@@ -1,28 +1,15 @@
 package pods
 
 import (
-	"context"
 	"net/http"
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 
 func HandlePodActionRequest(c echo.Context) error {
-	request := new(PodActionRequest)
-	if err := c.Bind(request); err != nil {
-		return err
-	}
-	ctx := context.Background()
-	ou := c.Get("orgUser").(org_users.OrgUser)
-
-	authed, err := read_topology.IsOrgCloudCtxNsAuthorized(ctx, ou.OrgID, request.CloudCtxNs)
-	if authed != true {
-		return c.JSON(http.StatusInternalServerError, err)
-	}
+	request := c.Get("PodActionRequest").(*PodActionRequest)
 	if request.Action == "logs" {
 		if request.FilterOpts == nil {
 			request.FilterOpts = &string_utils.FilterOpts{}

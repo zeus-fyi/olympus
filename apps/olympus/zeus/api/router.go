@@ -19,11 +19,33 @@ func InitRouter(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
 	// Routes
 	e.GET("/health", Health)
 
-	// external, TODO limit the scope of pods/k8s actions
+	// external
 	InitV1Routes(e, k8Cfg)
 	// internal
 	InitV1InternalRoutes(e, k8Cfg)
+	// external
+	InitV1ActionsRoutes(e, k8Cfg)
 	return e
+}
+
+func InitV1ActionsRoutes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
+	eg := e.Group("/v1")
+	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+		AuthScheme: "Bearer",
+		Validator: func(token string, c echo.Context) (bool, error) {
+			ctx := context.Background()
+			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.ZeusService)
+			if err != nil {
+				log.Err(err).Msg("InitV1Routes")
+				return false, c.JSON(http.StatusUnauthorized, nil)
+			}
+			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
+			c.Set("orgUser", ou)
+			c.Set("bearer", key.PublicKey)
+			return key.PublicKeyVerified, err
+		},
+	}))
+	eg = zeus_v1_router.ActionsV1Routes(eg, k8Cfg)
 }
 
 func InitV1Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
@@ -35,7 +57,7 @@ func InitV1Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
 			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.ZeusService)
 			if err != nil {
 				log.Err(err).Msg("InitV1Routes")
-				return false, c.JSON(http.StatusInternalServerError, nil)
+				return false, c.JSON(http.StatusUnauthorized, nil)
 			}
 			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
 			c.Set("orgUser", ou)
@@ -55,7 +77,7 @@ func InitV1InternalRoutes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
 			key, err := auth.VerifyInternalBearerToken(ctx, token)
 			if err != nil {
 				log.Err(err).Msg("InitV1InternalRoutes")
-				return false, c.JSON(http.StatusInternalServerError, nil)
+				return false, c.JSON(http.StatusUnauthorized, nil)
 			}
 			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
 			c.Set("orgUser", ou)

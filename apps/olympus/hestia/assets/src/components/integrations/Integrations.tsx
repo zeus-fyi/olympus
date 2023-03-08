@@ -22,6 +22,7 @@ import TableCell from "@mui/material/TableCell";
 import {TableContainer, TableRow} from '@mui/material';
 import TableBody from "@mui/material/TableBody";
 import MainListItems from "../dashboard/listItems";
+import {AwsUploadActionAreaCard} from "./AwsPanel";
 
 const mdTheme = createTheme();
 
@@ -123,6 +124,9 @@ function DashboardIntegrationContent() {
                     }}
                 >
                     <Toolbar />
+                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4}} >
+                        <AwsUploadActionAreaCard />
+                    </Container>
                     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
                         {<ApiKeys />}
                     </Container>

@@ -124,10 +124,10 @@ function ValidatorsServiceContent() {
                     }}
                 >
                     <Toolbar />
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4}} >
+                        <ValidatorsUploadActionAreaCard />
+                    </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4}} >
-                            <ValidatorsUploadActionAreaCard />
-                        </Container>
                         {<Validators />}
                     </Container>
                 </Box>

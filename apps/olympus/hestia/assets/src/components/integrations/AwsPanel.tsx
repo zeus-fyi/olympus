@@ -31,7 +31,7 @@ export function AwsCredentialsAccessKey(props: any) {
             <TextField
                 fullWidth
                 id="AccessKey"
-                label="AccessKey"
+                label="Access Key"
                 variant="outlined"
                 value={accessKey}
                 onChange={onAccessKeyChange}
@@ -45,7 +45,7 @@ export function AwsCredentialsSecret(props: any) {
             <TextField
                 fullWidth
                 id="SecretKey"
-                label="SecretKey"
+                label="Secret Key"
                 variant="outlined"
                 value={secretKey}
                 onChange={onSecretKeyChange}

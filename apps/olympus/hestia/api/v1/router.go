@@ -10,6 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
+	v1_aws_ethereum_automation "github.com/zeus-fyi/olympus/hestia/api/v1/aws/ethereum"
 )
 
 func Routes(e *echo.Echo) *echo.Echo {
@@ -38,6 +39,14 @@ func InitV1Routes(e *echo.Echo) {
 			return key.PublicKeyVerified, err
 		},
 	}))
+
+	// ethereum aws automation
+	eg.POST("/ethereum/validators/aws/user/internal/lambda/create", v1_aws_ethereum_automation.CreateServerlessInternalUserHandler)
+	eg.POST("/ethereum/validators/aws/user/external/lambda/create", v1_aws_ethereum_automation.CreateServerlessExternalUserHandler)
+	eg.POST("/ethereum/validators/aws/lambda/keystore/create", v1_aws_ethereum_automation.CreateServerlessKeystoresHandler)
+	eg.POST("/ethereum/validators/aws/lambda/create", v1_aws_ethereum_automation.CreateLambdaFunctionHandler)
+	eg.POST("/ethereum/validators/aws/lambda/verify", v1_aws_ethereum_automation.VerifyLambdaFunctionHandler)
+
 	eg.POST("/validators/service/create", CreateValidatorServiceRequestHandler)
 	eg.GET("/validators/service/info", GetValidatorServiceInfoHandler)
 }

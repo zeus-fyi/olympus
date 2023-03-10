@@ -1,4 +1,4 @@
-import {Card, CardActionArea, CardMedia} from "@mui/material";
+import {Card, CardActionArea, CardMedia, Container, Stack} from "@mui/material";
 import * as React from "react";
 import {useState} from "react";
 import TextField from "@mui/material/TextField";
@@ -11,7 +11,8 @@ export function AwsUploadActionAreaCard() {
         setAccessKey(event.target.value);
     };
     return (
-        <Card sx={{ maxWidth: 320 }}>
+        <Card sx={{ maxWidth: 500 }}>
+            <div style={{ display: 'flex' }}>
             <CardActionArea>
                 <CardMedia
                     component="img"
@@ -20,10 +21,18 @@ export function AwsUploadActionAreaCard() {
                     alt="aws"
                 />
             </CardActionArea>
-            <AwsCredentialsAccessKey accessKey={accessKey}/>
-            <AwsCredentialsSecret secretKey={secretKey} />
+                <Stack direction="column" alignItems="center" spacing={2}>
+
+                </Stack>
+                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                    <AwsCredentialsAccessKey accessKey={accessKey}/>
+                    <AwsCredentialsSecret secretKey={secretKey} />
+                </Container>
+
+            </div>
         </Card>
-    );
+
+);
 }
 export function AwsCredentialsAccessKey(props: any) {
     const { accessKey, onAccessKeyChange } = props;
@@ -35,6 +44,7 @@ export function AwsCredentialsAccessKey(props: any) {
                 variant="outlined"
                 value={accessKey}
                 onChange={onAccessKeyChange}
+                sx={{ width: '100%' }}
             />
     );
 }
@@ -49,6 +59,8 @@ export function AwsCredentialsSecret(props: any) {
                 variant="outlined"
                 value={secretKey}
                 onChange={onSecretKeyChange}
+                sx={{ width: '100%' }}
+
             />
     );
 }

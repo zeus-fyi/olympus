@@ -26,6 +26,8 @@ import MainListItems from "../dashboard/listItems";
 import {validatorsApiGateway} from "../../gateway/validators";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import {ValidatorsUploadActionAreaCard} from "./ValidatorsUpload";
+import {AwsUploadActionAreaCard} from "../integrations/AwsPanel";
+import Stack from "@mui/material/Stack";
 
 const mdTheme = createTheme();
 
@@ -124,12 +126,18 @@ function ValidatorsServiceContent() {
                     }}
                 >
                     <Toolbar />
-                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4}} >
-                        <ValidatorsUploadActionAreaCard />
-                    </Container>
+                    <div style={{ display: 'flex' }}>
+                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        <Stack direction="row" alignItems="center" spacing={2}>
+                            <ValidatorsUploadActionAreaCard />
+                            <AwsUploadActionAreaCard />
+                        </Stack>
+                        </Container>
+                    </div>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         {<Validators />}
                     </Container>
+
                 </Box>
             </Box>
         </ThemeProvider>

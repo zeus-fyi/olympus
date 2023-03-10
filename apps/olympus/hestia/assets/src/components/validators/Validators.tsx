@@ -137,7 +137,6 @@ function ValidatorsServiceContent() {
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         {<Validators />}
                     </Container>
-
                 </Box>
             </Box>
         </ThemeProvider>
@@ -188,11 +187,11 @@ function Validators() {
             <Table sx={{ minWidth: 1000 }} aria-label="validators pagination table">
                 <TableHead>
                     <TableRow style={{ backgroundColor: '#8991B0'}} >
-                        <TableCell style={{ fontWeight: 'normal', color: '#151C2F'}} >Network</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: '#151C2F'}} align="left">GroupName</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: '#151C2F'}} align="left">PublicKey</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: '#151C2F'}} align="left">FeeRecipient</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: '#151C2F'}} align="left">Enabled</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Network</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">GroupName</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">PublicKey</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">FeeRecipient</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Enabled</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>

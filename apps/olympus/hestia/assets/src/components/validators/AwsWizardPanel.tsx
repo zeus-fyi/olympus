@@ -5,12 +5,12 @@ import Step from '@mui/material/Step';
 import StepButton from '@mui/material/StepButton';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import {AwsUploadActionAreaCard} from "./AwsPanel";
 import Container from "@mui/material/Container";
 import {CreateAwsSecretsActionAreaCardWrapper} from "./AwsSecrets";
 import {CreateInternalAwsLambdaUserRolesActionAreaCardWrapper} from "./AwsLambdaUserRolePolicies";
 import {CreateAwsLambdaFunctionActionAreaCardWrapper} from "./AwsLambdaCreation";
 import {LambdaVerifyAndZeusServiceRequest} from "./AwsLambdaVerifyAndZeusServiceRequest";
+import {GenerateValidatorKeysAndDepositsAreaCardWrapper} from "./ValidatorsGeneration";
 
 const steps = [
     'Create AWS Secrets',
@@ -22,7 +22,7 @@ const steps = [
 
 const stepComponents = [
     <CreateAwsSecretsActionAreaCardWrapper />,
-    <AwsUploadActionAreaCard />,
+    <GenerateValidatorKeysAndDepositsAreaCardWrapper />,
     <CreateInternalAwsLambdaUserRolesActionAreaCardWrapper />,
     <CreateAwsLambdaFunctionActionAreaCardWrapper />,
     <LambdaVerifyAndZeusServiceRequest />,

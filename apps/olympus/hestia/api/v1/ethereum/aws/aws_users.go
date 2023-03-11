@@ -1,4 +1,4 @@
-package v1_aws_ethereum_automation
+package v1_ethereum_aws
 
 import (
 	"context"

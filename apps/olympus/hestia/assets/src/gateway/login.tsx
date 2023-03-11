@@ -17,7 +17,6 @@ class AuthApiGateway {
             return
         }
     }
-
     async sendLogoutRequest()  {
         const url = `logout`;
         try {

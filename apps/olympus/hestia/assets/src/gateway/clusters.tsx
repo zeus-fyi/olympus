@@ -16,7 +16,6 @@ class ClustersApiGateway {
             return
         }
     }
-
     async getClusterTopologies(params: any): Promise<any>  {
         const url = `/v1/deploy/cluster/status`;
         try {
@@ -35,7 +34,6 @@ class ClustersApiGateway {
             return
         }
     }
-
     async getClusterPodsAudit(clusterID: any): Promise<any>  {
         const url = `/v1/pods`;
         try {

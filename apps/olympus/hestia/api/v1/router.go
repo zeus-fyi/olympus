@@ -10,7 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
-	v1_aws_ethereum_automation "github.com/zeus-fyi/olympus/hestia/api/v1/aws/ethereum"
+	"github.com/zeus-fyi/olympus/hestia/api/v1/ethereum/aws"
 )
 
 func Routes(e *echo.Echo) *echo.Echo {
@@ -41,14 +41,19 @@ func InitV1Routes(e *echo.Echo) {
 	}))
 
 	// ethereum aws automation
-	eg.POST("/ethereum/validators/aws/user/internal/lambda/create", v1_aws_ethereum_automation.CreateServerlessInternalUserHandler)
-	eg.POST("/ethereum/validators/aws/user/external/lambda/create", v1_aws_ethereum_automation.CreateServerlessExternalUserHandler)
-	eg.POST("/ethereum/validators/aws/lambda/keystore/create", v1_aws_ethereum_automation.CreateServerlessKeystoresHandler)
-	eg.POST("/ethereum/validators/aws/lambda/create", v1_aws_ethereum_automation.CreateLambdaFunctionHandler)
-	eg.POST("/ethereum/validators/aws/lambda/verify", v1_aws_ethereum_automation.VerifyLambdaFunctionHandler)
+	// validator deposit & keystore generation
+	eg.POST("/ethereum/validators/aws/generation", v1_ethereum_aws.GenerateValidatorsHandler)
+	// lambda related
+	eg.POST("/ethereum/validators/aws/user/internal/lambda/create", v1_ethereum_aws.CreateServerlessInternalUserHandler)
+	eg.POST("/ethereum/validators/aws/user/external/lambda/create", v1_ethereum_aws.CreateServerlessExternalUserHandler)
+	eg.POST("/ethereum/validators/aws/lambda/keystore/create", v1_ethereum_aws.CreateServerlessKeystoresHandler)
+	eg.POST("/ethereum/validators/aws/lambda/create", v1_ethereum_aws.CreateLambdaFunctionHandler)
+	eg.POST("/ethereum/validators/aws/lambda/verify", v1_ethereum_aws.VerifyLambdaFunctionHandler)
 
+	// zeus service
+	eg.GET("/ethereum/validators/service/info", GetValidatorServiceInfoHandler)
+	eg.POST("/ethereum/validators/service/create", CreateValidatorServiceRequestHandler)
 	eg.POST("/validators/service/create", CreateValidatorServiceRequestHandler)
-	eg.GET("/validators/service/info", GetValidatorServiceInfoHandler)
 }
 
 func InitV1InternalRoutes(e *echo.Echo) {

@@ -1,4 +1,4 @@
-package v1_aws_ethereum_automation
+package v1_ethereum_aws
 
 import (
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"

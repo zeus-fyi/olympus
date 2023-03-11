@@ -4,9 +4,8 @@ import {useState} from "react";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import {ValidatorsUploadActionAreaCard} from "./ValidatorsUpload";
-import {ZeusServiceRequest} from "./ZeusServiceRequest";
 
-export function LambdaVerifyAndZeusServiceRequest() {
+export function LambdaExtUserVerify() {
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
             <ValidatorsUploadActionAreaCard />,
@@ -27,10 +26,10 @@ export function AwsLambdaFunctionVerifyAreaCard() {
     return (
         <div style={{ display: 'flex' }}>
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                <LambdaVerifyCard />
+                <CreateAwsExternalLambdaUser />
             </Container >
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                <ZeusServiceRequest />
+                <LambdaVerifyCard />
             </Container >
         </div>
 
@@ -55,3 +54,20 @@ export function LambdaVerifyCard() {
     );
 }
 
+export function CreateAwsExternalLambdaUser() {
+    return (
+        <Card sx={{ maxWidth: 400 }}>
+            <CardContent>
+                <Typography gutterBottom variant="h5" component="div">
+                    Create AWS External Lambda User
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                    Creates AWS External Lambda User
+                </Typography>
+            </CardContent>
+            <CardActions>
+                <Button size="small">Create</Button>
+            </CardActions>
+        </Card>
+    );
+}

@@ -9,15 +9,17 @@ import Container from "@mui/material/Container";
 import {CreateAwsSecretsActionAreaCardWrapper} from "./AwsSecrets";
 import {CreateInternalAwsLambdaUserRolesActionAreaCardWrapper} from "./AwsLambdaUserRolePolicies";
 import {CreateAwsLambdaFunctionActionAreaCardWrapper} from "./AwsLambdaCreation";
-import {LambdaVerifyAndZeusServiceRequest} from "./AwsLambdaVerifyAndZeusServiceRequest";
+import {LambdaExtUserVerify} from "./AwsExtUserAndLambdaVerify";
 import {GenerateValidatorKeysAndDepositsAreaCardWrapper} from "./ValidatorsGeneration";
+import {ZeusServiceRequestAreaCardWrapper} from "./ZeusServiceRequest";
 
 const steps = [
     'Create AWS Secrets',
     'Generate Validator Deposits',
     'Create Lambda User Roles',
     'Create or Update Lambda Function',
-    'Verify & Create Zeus Service Request',
+    'Verify Lambda Function',
+    'Create Zeus Service Request',
 ];
 
 const stepComponents = [
@@ -25,7 +27,8 @@ const stepComponents = [
     <GenerateValidatorKeysAndDepositsAreaCardWrapper />,
     <CreateInternalAwsLambdaUserRolesActionAreaCardWrapper />,
     <CreateAwsLambdaFunctionActionAreaCardWrapper />,
-    <LambdaVerifyAndZeusServiceRequest />,
+    <LambdaExtUserVerify />,
+    <ZeusServiceRequestAreaCardWrapper />,
 ];
 
 export default function AwsWizardPanel() {

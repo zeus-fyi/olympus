@@ -15,7 +15,7 @@ export const charsets = {
     NUMBERS: '0123456789',
     LOWERCASE: 'abcdefghijklmnopqrstuvwxyz',
     UPPERCASE: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-    SYMBOLS: '!#$%&()*+,-./<=>?@[]^`{|}~',
+    SYMBOLS: '!#$%&()*+,-/<=>?@[]^`{|}~',
 };
 
 export const generatePassword = (length: number, charset: string): string => {

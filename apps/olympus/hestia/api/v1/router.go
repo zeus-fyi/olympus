@@ -40,6 +40,8 @@ func InitV1Routes(e *echo.Echo) {
 		},
 	}))
 
+	eg.GET("/age/generate", TODO) // if no js client, generate age keypair
+
 	// ethereum aws automation
 	// validator deposit & keystore generation
 	eg.POST("/ethereum/validators/aws/generation", v1_ethereum_aws.GenerateValidatorsHandler)
@@ -81,4 +83,8 @@ func InitV1InternalRoutes(e *echo.Echo) {
 
 func Health(c echo.Context) error {
 	return c.String(http.StatusOK, "Healthy")
+}
+
+func TODO(c echo.Context) error {
+	return c.String(http.StatusOK, "TODO")
 }

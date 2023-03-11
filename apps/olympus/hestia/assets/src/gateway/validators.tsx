@@ -16,6 +16,21 @@ class ValidatorsApiGateway {
             return
         }
     }
+    async generateValidatorsServiceRequest(payload: any): Promise<any>  {
+        const url = `/v1/ethereum/validators/aws/generation`;
+        try {
+            const sessionID = localStorage.getItem("sessionID");
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`,
+                }}
+            return await hestiaApi.post(url, payload, config)
+        } catch (exc) {
+            console.error('error sending create lambda function keystores layer');
+            console.error(exc);
+            return
+        }
+    }
     async createValidatorsServiceRequest(payload: any): Promise<any>  {
         const url = `/v1/ethereum/validators/service/create`;
         try {
@@ -27,6 +42,21 @@ class ValidatorsApiGateway {
             return await hestiaApi.post(url, payload, config)
         } catch (exc) {
             console.error('error sending create lambda function keystores layer');
+            console.error(exc);
+            return
+        }
+    }
+    async getGeneratedAgeKey(): Promise<any>  {
+        const url = `/v1/age/generate"`;
+        try {
+            const sessionID = localStorage.getItem("sessionID");
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                }}
+            return await hestiaApi.get(url, config)
+        } catch (exc) {
+            console.error('error sending cluster get request');
             console.error(exc);
             return
         }

@@ -1,15 +1,25 @@
 import {Card, CardActionArea, CardMedia, Container, Stack} from "@mui/material";
 import * as React from "react";
-import {useState} from "react";
 import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import {useDispatch, useSelector} from 'react-redux';
+import {setAccessKey, setSecretKey} from '../../redux/aws_wizard/aws.wizard.reducer';
+import {RootState} from "../../redux/store";
 
 export function AwsUploadActionAreaCard() {
-    const [accessKey, setAccessKey] = useState('');
-    const [secretKey, setSecretKey] = useState('');
+    const accessKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
+    const secretKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const dispatch = useDispatch();
 
-    const handleAccessKeyChange = (event: { target: { value: React.SetStateAction<string>; }; }) => {
-        setAccessKey(event.target.value);
+    const onAccessKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const newAccessKey = event.target.value;
+        dispatch(setAccessKey(newAccessKey));
     };
+    const onSecretKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const newSecretKey = event.target.value;
+        dispatch(setSecretKey(newSecretKey));
+    };
+
     return (
         <Card sx={{ maxWidth: 500 }}>
             <div style={{ display: 'flex' }}>
@@ -21,17 +31,30 @@ export function AwsUploadActionAreaCard() {
                     alt="aws"
                 />
             </CardActionArea>
-                <Stack direction="column" alignItems="center" spacing={2}>
-                </Stack>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <AwsCredentialsAccessKey accessKey={accessKey}/>
-                    <AwsCredentialsSecret secretKey={secretKey} />
+                    <AwsCredentialsAccessKey accessKey={accessKey} onAccessKeyChange={onAccessKeyChange}/>
+                    <AwsCredentialsSecret secretKey={secretKey} onSecretKeyChange={onSecretKeyChange}/>
+                    <AwsCredentialsButtons />
                 </Container>
             </div>
         </Card>
-
 );
 }
+
+export function AwsCredentialsButtons(props: any) {
+    const { onSave, onCancel } = props;
+    return (
+        <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+            <Button variant="contained" onClick={onSave}>
+                Create
+            </Button>
+            <Button variant="outlined" onClick={onCancel}>
+                Generate
+            </Button>
+        </Stack>
+    );
+}
+
 export function AwsCredentialsAccessKey(props: any) {
     const { accessKey, onAccessKeyChange } = props;
     return (

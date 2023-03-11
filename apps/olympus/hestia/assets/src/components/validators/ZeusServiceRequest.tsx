@@ -54,9 +54,9 @@ export function ZeusServiceRequest() {
 }
 
 export function ZeusServiceRequestWrapper() {
-    const [awsValidatorSecretName, setAwsValidatorSecretName] = useState('');
-    const [mnemonic, setMnemonic] = useState('');
-    const [hdWalletPw, setHDWalletPw] = useState('');
+    const [keyGroupName, setKeyGroupName] = useState('EphemeryDemoGroup');
+    const [feeRecipient, setMnemonic] = useState('');
+    const [network, setNetwork] = useState('Ephemery');
 
     const handleAccessKeyChange = (event: { target: { value: React.SetStateAction<string>; }; }) => {
         setMnemonic(event.target.value);
@@ -67,9 +67,9 @@ export function ZeusServiceRequestWrapper() {
                 <Stack direction="column" alignItems="center" spacing={2}>
                 </Stack>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <KeyGroupName validatorSecretName={awsValidatorSecretName}/>
-                    <FeeRecipient hdWalletPw={hdWalletPw}/>
-                    <Network mnemonic={mnemonic}/>
+                    <KeyGroupName keyGroupName={keyGroupName}/>
+                    <Network network={network}/>
+                    <FeeRecipient feeRecipient={feeRecipient}/>
                 </Container>
             </div>
         </Card>
@@ -78,45 +78,45 @@ export function ZeusServiceRequestWrapper() {
 }
 
 export function KeyGroupName(props: any) {
-    const { accessKey, onAccessKeyChange } = props;
+    const { keyGroupName, onAccessKeyGroupName } = props;
     return (
         <TextField
             fullWidth
             id="keyGroupName"
             label="Key Group Name"
             variant="outlined"
-            value={accessKey}
-            onChange={onAccessKeyChange}
+            value={keyGroupName}
+            onChange={onAccessKeyGroupName}
             sx={{ width: '100%' }}
         />
     );
 }
 
 export function FeeRecipient(props: any) {
-    const { accessKey, onAccessKeyChange } = props;
+    const { feeRecipient, onAccessFeeRecipientChange } = props;
     return (
         <TextField
             fullWidth
             id="feeRecipient"
             label="Fee Recipient"
             variant="outlined"
-            value={accessKey}
-            onChange={onAccessKeyChange}
+            value={feeRecipient}
+            onChange={onAccessFeeRecipientChange}
             sx={{ width: '100%' }}
         />
     );
 }
 
 export function Network(props: any) {
-    const { accessKey, onAccessKeyChange } = props;
+    const { network, onAccessSetNetwork } = props;
     return (
         <TextField
             fullWidth
             id="network"
             label="Network"
             variant="outlined"
-            value={accessKey}
-            onChange={onAccessKeyChange}
+            value={network}
+            onChange={onAccessSetNetwork}
             sx={{ width: '100%' }}
         />
     );

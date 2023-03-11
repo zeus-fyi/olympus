@@ -56,21 +56,17 @@ export function SubmitValidators() {
 
 
 export function ValidatorsDepositsSubmitWrapper() {
-    const [awsValidatorSecretName, setAwsValidatorSecretName] = useState('');
-    const [mnemonic, setMnemonic] = useState('');
-    const [hdWalletPw, setHDWalletPw] = useState('');
+    const [network, setNetwork] = useState('Ephemery');
+    const [eth1Pk, setEth1Pk] = useState('');
 
-    const handleAccessKeyChange = (event: { target: { value: React.SetStateAction<string>; }; }) => {
-        setMnemonic(event.target.value);
-    };
     return (
         <Card sx={{ maxWidth: 500 }}>
             <div style={{ display: 'flex' }}>
                 <Stack direction="column" alignItems="center" spacing={2}>
                 </Stack>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <Eth1WalletPrivateKey validatorSecretName={awsValidatorSecretName}/>
-                    <Network mnemonic={mnemonic}/>
+                    <Network network={network}/>
+                    <Eth1WalletPrivateKey eth1Pk={eth1Pk}/>
                 </Container>
             </div>
         </Card>
@@ -79,15 +75,15 @@ export function ValidatorsDepositsSubmitWrapper() {
 }
 
 export function Eth1WalletPrivateKey(props: any) {
-    const { accessKey, onAccessKeyChange } = props;
+    const { eth1Pk, onAccessEth1PkChange } = props;
     return (
         <TextField
             fullWidth
             id="eth1WalletPrivateKey"
             label="Eth1 Wallet Private Key"
             variant="outlined"
-            value={accessKey}
-            onChange={onAccessKeyChange}
+            value={eth1Pk}
+            onChange={onAccessEth1PkChange}
             sx={{ width: '100%' }}
         />
     );

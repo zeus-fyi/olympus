@@ -15,21 +15,21 @@ export function CreateAwsSecretsActionAreaCardWrapper() {
 }
 
 export function CreateAwsSecretsAgeEncryptionActionAreaCard() {
-    const [mnemonic, setMnemonic] = useState('');
-    const [hdWalletPw, setHDWalletPw] = useState('');
+    const [awsAgeEncryptionKeyName, setAwsAgeEncryptionKeyName] = useState('ageEncryptionKeyEphemery');
     const [agePubKey, setAgePubKey] = useState('');
     const [agePrivKey, setAgePrivKey] = useState('');
 
-    const handleAccessKeyChange = (event: { target: { value: React.SetStateAction<string>; }; }) => {
-        setAgePubKey(event.target.value);
-    };
+    // const onAwsAgeEncryptionKeyNameChange = (event: { target: { value: React.SetStateAction<string>; }; }) => {
+    //     setAwsAgeEncryptionKeyName(event.target.value);
+    // };
+
     return (
         <Card sx={{ maxWidth: 500 }}>
             <div style={{ display: 'flex' }}>
                 <Stack direction="column" alignItems="center" spacing={2}>
                 </Stack>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <AgeEncryptionKeySecretName validatorSecretName={mnemonic}/>
+                    <AgeEncryptionKeySecretName awsAgeEncryptionKeyName={awsAgeEncryptionKeyName}/>
                     <AgeCredentialsPublicKey agePubKey={agePubKey}/>
                     <AgeCredentialsPrivateKey agePrivKey={agePrivKey} />
                 </Container>
@@ -40,7 +40,7 @@ export function CreateAwsSecretsAgeEncryptionActionAreaCard() {
 }
 
 export function CreateAwsSecretsValidatorSecretsActionAreaCard() {
-    const [awsValidatorSecretName, setAwsValidatorSecretName] = useState('');
+    const [awsValidatorSecretName, setAwsValidatorSecretName] = useState('mnemonicAndHDWalletEphemery');
     const [mnemonic, setMnemonic] = useState('');
     const [hdWalletPw, setHDWalletPw] = useState('');
 
@@ -64,30 +64,30 @@ export function CreateAwsSecretsValidatorSecretsActionAreaCard() {
 }
 
 export function ValidatorSecretName(props: any) {
-    const { accessKey, onAccessKeyChange } = props;
+    const { validatorSecretName, onValidatorSecretNameNameChange } = props;
     return (
         <TextField
             fullWidth
             id="validatorSecretName"
             label="AWS Validator Key Secret Name"
             variant="outlined"
-            value={accessKey}
-            onChange={onAccessKeyChange}
+            value={validatorSecretName}
+            onChange={onValidatorSecretNameNameChange}
             sx={{ width: '100%' }}
         />
     );
 }
 
 export function AgeEncryptionKeySecretName(props: any) {
-    const { awsValidatorSecretName, onAccessValidatorSecretNameChange } = props;
+    const { awsAgeEncryptionKeyName, onAccessAwsAgeEncryptionKeyName} = props;
     return (
         <TextField
             fullWidth
             id="ageEncryptionKeySecretName"
             label="AWS Age Encryption Key Secret Name"
             variant="outlined"
-            value={awsValidatorSecretName}
-            onChange={onAccessValidatorSecretNameChange}
+            value={awsAgeEncryptionKeyName}
+            onChange={onAccessAwsAgeEncryptionKeyName}
             sx={{ width: '100%' }}
         />
     );

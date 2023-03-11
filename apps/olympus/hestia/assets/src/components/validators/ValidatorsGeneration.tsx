@@ -3,6 +3,7 @@ import {useState} from "react";
 import {Card, Container, Stack} from "@mui/material";
 import {AwsUploadActionAreaCard} from "./AwsPanel";
 import TextField from "@mui/material/TextField";
+import {ValidatorSecretName} from "./AwsSecrets";
 
 export function GenerateValidatorKeysAndDepositsAreaCardWrapper() {
     return (
@@ -15,7 +16,7 @@ export function GenerateValidatorKeysAndDepositsAreaCardWrapper() {
 }
 
 export function GenerateValidatorKeysAndDeposits() {
-    const [awsValidatorSecretName, setAwsValidatorSecretName] = useState('');
+    const [awsValidatorSecretNameDeposits, awsValidatorSecretNameDepositsName] = useState('mnemonicAndHDWalletEphemery');
     const [mnemonic, setMnemonic] = useState('');
     const [hdWalletPw, setHDWalletPw] = useState('');
 
@@ -28,7 +29,7 @@ export function GenerateValidatorKeysAndDeposits() {
                 <Stack direction="column" alignItems="center" spacing={2}>
                 </Stack>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <ValidatorSecretName validatorSecretName={awsValidatorSecretName}/>
+                    <ValidatorSecretName validatorSecretName={awsValidatorSecretNameDeposits}/>
                     <HDWalletPassword hdWalletPw={hdWalletPw}/>
                     <Mnemonic mnemonic={mnemonic}/>
                 </Container>
@@ -38,23 +39,12 @@ export function GenerateValidatorKeysAndDeposits() {
     );
 }
 
-export function ValidatorSecretName(props: any) {
-    const { accessKey, onAccessKeyChange } = props;
-    return (
-        <TextField
-            fullWidth
-            id="validatorSecretName"
-            label="AWS Validator Key Secret Name"
-            variant="outlined"
-            value={accessKey}
-            onChange={onAccessKeyChange}
-            sx={{ width: '100%' }}
-        />
-    );
-}
-
 export function AgeEncryptionKeySecretName(props: any) {
     const { awsValidatorSecretName, onAccessValidatorSecretNameChange } = props;
+    const onAccessValidatorSecretChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        onAccessValidatorSecretNameChange(event.target.value);
+    };
+
     return (
         <TextField
             fullWidth
@@ -62,7 +52,7 @@ export function AgeEncryptionKeySecretName(props: any) {
             label="AWS Age Encryption Key Secret Name"
             variant="outlined"
             value={awsValidatorSecretName}
-            onChange={onAccessValidatorSecretNameChange}
+            onChange={onAccessValidatorSecretChange}
             sx={{ width: '100%' }}
         />
     );
@@ -70,6 +60,11 @@ export function AgeEncryptionKeySecretName(props: any) {
 
 export function Mnemonic(props: any) {
     const { accessKey, onAccessKeyChange } = props;
+
+    const onAccessMnemonicSecretChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        onAccessKeyChange(event.target.value);
+    };
+
     return (
         <TextField
             fullWidth
@@ -77,7 +72,7 @@ export function Mnemonic(props: any) {
             label="24 Word Mnemonic"
             variant="outlined"
             value={accessKey}
-            onChange={onAccessKeyChange}
+            onChange={onAccessMnemonicSecretChange}
             sx={{ width: '100%' }}
         />
     );
@@ -99,22 +94,19 @@ export function HDWalletPassword(props: any) {
 }
 
 export function GenerateValidatorsParams() {
-    const [awsValidatorSecretName, setAwsValidatorSecretName] = useState('');
-    const [mnemonic, setMnemonic] = useState('');
-    const [hdWalletPw, setHDWalletPw] = useState('');
+    const [awsValidatorsNetwork, setAwsValidatorsNetwork] = useState('Ephemery');
+    const [validatorCount, onValidatorCountChange ] = useState('1');
+    const [offset, setOffset] = useState('0');
 
-    const handleAccessKeyChange = (event: { target: { value: React.SetStateAction<string>; }; }) => {
-        setMnemonic(event.target.value);
-    };
     return (
         <Card sx={{ maxWidth: 500 }}>
             <div style={{ display: 'flex' }}>
                 <Stack direction="column" alignItems="center" spacing={2}>
                 </Stack>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <ValidatorsNetwork validatorSecretName={awsValidatorSecretName}/>
-                    <ValidatorCount hdWalletPw={hdWalletPw}/>
-                    <ValidatorOffsetHD mnemonic={mnemonic}/>
+                    <ValidatorsNetwork awsValidatorsNetwork={awsValidatorsNetwork}/>
+                    <ValidatorCount validatorCount={validatorCount}/>
+                    <ValidatorOffsetHD offset={offset}/>
                 </Container>
             </div>
         </Card>
@@ -123,45 +115,46 @@ export function GenerateValidatorsParams() {
 }
 
 export function ValidatorsNetwork(props: any) {
-    const { accessKey, onAccessKeyChange } = props;
+    const { awsValidatorsNetwork, setAwsValidatorsNetwork } = props;
+
     return (
         <TextField
             fullWidth
             id="validatorsNetwork"
             label="Network Name"
             variant="outlined"
-            value={accessKey}
-            onChange={onAccessKeyChange}
+            value={awsValidatorsNetwork}
+            onChange={setAwsValidatorsNetwork}
             sx={{ width: '100%' }}
         />
     );
 }
 
 export function ValidatorCount(props: any) {
-    const { accessKey, onAccessKeyChange } = props;
+    const { validatorCount, onValidatorCountChange } = props;
     return (
         <TextField
             fullWidth
             id="validatorCount"
             label="Validator Count"
             variant="outlined"
-            value={accessKey}
-            onChange={onAccessKeyChange}
+            value={validatorCount}
+            onChange={onValidatorCountChange}
             sx={{ width: '100%' }}
         />
     );
 }
 
 export function ValidatorOffsetHD(props: any) {
-    const { accessKey, onAccessKeyChange } = props;
+    const { offset, setOffset } = props;
     return (
         <TextField
             fullWidth
             id="validatorOffsetHD"
             label="Validator HD Offset"
             variant="outlined"
-            value={accessKey}
-            onChange={onAccessKeyChange}
+            value={offset}
+            onChange={setOffset}
             sx={{ width: '100%' }}
         />
     );

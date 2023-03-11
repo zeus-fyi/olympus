@@ -1,10 +1,12 @@
 import {combineReducers, configureStore} from '@reduxjs/toolkit';
 import {sessionReducer, sessionService, SessionServiceOptions} from 'redux-react-session';
 import awsCredentialsReducer from './aws_wizard/aws.wizard.reducer';
+import validatorSecretsReducer from './validators/ethereum.validators.reducer';
 
 const rootReducer = combineReducers({
     session: sessionReducer,
     awsCredentials: awsCredentialsReducer,
+    validatorSecrets: validatorSecretsReducer,
 });
 
 const store = configureStore({

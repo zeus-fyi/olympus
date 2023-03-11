@@ -229,6 +229,9 @@ function getNetwork(networkID: number){
     if (BigInt(networkID) === BigInt(1)) {
         return 'Mainnet'
     }
+    if (BigInt(networkID) === BigInt(5)) {
+        return 'Goerli'
+    }
     if (BigInt(networkID) === BigInt(1673748447294772000)) {
         return 'Ephemery'
     }

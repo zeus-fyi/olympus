@@ -6,14 +6,18 @@ import StepButton from '@mui/material/StepButton';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import {ValidatorsUploadActionAreaCard} from "./ValidatorsUpload";
-import {AwsUploadActionAreaCard} from "../access/AwsPanel";
+import {AwsUploadActionAreaCard} from "./AwsPanel";
 import Container from "@mui/material/Container";
 
-const steps = ['Select campaign settings', 'Create an ad group', 'Create an ad'];
+const steps = ['Create AWS Secrets', 'Generate Validator Deposits', 'Create Lambda User Roles', 'Create or Update Lambda Function', 'Verify Lambda Function'];
 
 const stepComponents = [
-    <ValidatorsUploadActionAreaCard />,
     <AwsUploadActionAreaCard />,
+    <AwsUploadActionAreaCard />,
+    <AwsUploadActionAreaCard />,
+    <AwsUploadActionAreaCard />,
+    <AwsUploadActionAreaCard />,
+    <ValidatorsUploadActionAreaCard />,
 ];
 
 export default function AwsWizardPanel() {

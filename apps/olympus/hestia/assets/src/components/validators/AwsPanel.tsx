@@ -28,7 +28,6 @@ export function AwsUploadActionAreaCard() {
                     <AwsCredentialsAccessKey accessKey={accessKey}/>
                     <AwsCredentialsSecret secretKey={secretKey} />
                 </Container>
-
             </div>
         </Card>
 

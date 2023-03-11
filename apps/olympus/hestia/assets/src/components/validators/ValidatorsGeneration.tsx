@@ -9,7 +9,6 @@ export function GenerateValidatorKeysAndDepositsAreaCardWrapper() {
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
             <AwsUploadActionAreaCard />
-            <GenerateValidatorKeysAndDeposits />
             <GenerateValidatorsParams />
         </Stack>
     );
@@ -20,9 +19,6 @@ export function GenerateValidatorKeysAndDeposits() {
     const [mnemonic, setMnemonic] = useState('');
     const [hdWalletPw, setHDWalletPw] = useState('');
 
-    const handleAccessKeyChange = (event: { target: { value: React.SetStateAction<string>; }; }) => {
-        setMnemonic(event.target.value);
-    };
     return (
         <Card sx={{ maxWidth: 500 }}>
             <div style={{ display: 'flex' }}>
@@ -36,25 +32,6 @@ export function GenerateValidatorKeysAndDeposits() {
             </div>
         </Card>
 
-    );
-}
-
-export function AgeEncryptionKeySecretName(props: any) {
-    const { awsValidatorSecretName, onAccessValidatorSecretNameChange } = props;
-    const onAccessValidatorSecretChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        onAccessValidatorSecretNameChange(event.target.value);
-    };
-
-    return (
-        <TextField
-            fullWidth
-            id="ageEncryptionKeySecretName"
-            label="AWS Age Encryption Key Secret Name"
-            variant="outlined"
-            value={awsValidatorSecretName}
-            onChange={onAccessValidatorSecretChange}
-            sx={{ width: '100%' }}
-        />
     );
 }
 

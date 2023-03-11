@@ -3,11 +3,28 @@ import {useState} from "react";
 import {Card, Container, Stack} from "@mui/material";
 import {AwsUploadActionAreaCard} from "./AwsPanel";
 import TextField from "@mui/material/TextField";
+import {useDispatch, useSelector} from "react-redux";
+import {RootState} from "../../redux/store";
+import {ethers} from "ethers";
+import {setMnemonic} from "../../redux/validators/ethereum.validators.reducer";
 
 export function CreateAwsSecretsActionAreaCardWrapper() {
+    const dispatch = useDispatch();
+
+    const onGenerate = async () => {
+        try {
+            const entropyBytes = ethers.randomBytes(32); // 16 bytes = 128 bits of entropy
+            let phrase = ethers.Mnemonic.fromEntropy(entropyBytes).phrase;
+            console.log("mnemonic: ", phrase)
+            dispatch(setMnemonic(phrase));
+            return ethers.Mnemonic.fromEntropy(entropyBytes).phrase;
+        } catch (error) {
+            console.log("error", error);
+        }};
+
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <AwsUploadActionAreaCard />
+            <AwsUploadActionAreaCard onGenerate={onGenerate}/>
             <CreateAwsSecretsValidatorSecretsActionAreaCard />
             <CreateAwsSecretsAgeEncryptionActionAreaCard />
         </Stack>
@@ -31,13 +48,11 @@ export function CreateAwsSecretsAgeEncryptionActionAreaCard() {
                 </Container>
             </div>
         </Card>
-
     );
 }
 
-export function CreateAwsSecretsValidatorSecretsActionAreaCard() {
+export function CreateAwsSecretsValidatorSecretsActionAreaCard(props: any) {
     const [awsValidatorSecretName, setAwsValidatorSecretName] = useState('mnemonicAndHDWalletEphemery');
-    const [mnemonic, setMnemonic] = useState('');
     const [hdWalletPw, setHDWalletPw] = useState('');
 
     return (
@@ -48,7 +63,7 @@ export function CreateAwsSecretsValidatorSecretsActionAreaCard() {
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <ValidatorSecretName validatorSecretName={awsValidatorSecretName}/>
                     <HDWalletPassword hdWalletPw={hdWalletPw}/>
-                    <Mnemonic mnemonic={mnemonic}/>
+                    <Mnemonic />
                 </Container>
             </div>
         </Card>
@@ -71,16 +86,21 @@ export function ValidatorSecretName(props: any) {
     );
 }
 
-export function Mnemonic(props: any) {
-    const { accessKey, onAccessKeyChange } = props;
+export function Mnemonic() {
+    const mnemonic = useSelector((state: RootState) => state.validatorSecrets.mnemonic);
+    const dispatch = useDispatch();
+    const onMnemonicChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const newMnemonicValue = event.target.value;
+        dispatch(setMnemonic(newMnemonicValue));
+    };
     return (
         <TextField
             fullWidth
             id="mnemonic"
             label="24 Word Mnemonic"
             variant="outlined"
-            value={accessKey}
-            onChange={onAccessKeyChange}
+            value={mnemonic}
+            onChange={onMnemonicChange}
             sx={{ width: '100%' }}
         />
     );
@@ -143,7 +163,6 @@ export function AgeCredentialsPrivateKey(props: any) {
             value={agePrivKey}
             onChange={onAgePrivKeyChange}
             sx={{ width: '100%' }}
-
         />
     );
 }

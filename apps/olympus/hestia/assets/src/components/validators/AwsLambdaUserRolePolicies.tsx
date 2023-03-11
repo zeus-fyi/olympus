@@ -25,7 +25,6 @@ export function CreateAwsLambdaUserRolesActionAreaCard() {
                     <InternalLambdaUserRolePolicySetup />
                 </Container >
             </div>
-
     );
 }
 

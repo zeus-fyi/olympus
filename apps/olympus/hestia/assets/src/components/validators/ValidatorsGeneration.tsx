@@ -3,7 +3,6 @@ import {useState} from "react";
 import {Card, Container, Stack} from "@mui/material";
 import {AwsUploadActionAreaCard} from "./AwsPanel";
 import TextField from "@mui/material/TextField";
-import {ValidatorSecretName} from "./AwsSecrets";
 
 export function GenerateValidatorKeysAndDepositsAreaCardWrapper() {
     return (
@@ -11,62 +10,6 @@ export function GenerateValidatorKeysAndDepositsAreaCardWrapper() {
             <AwsUploadActionAreaCard />
             <GenerateValidatorsParams />
         </Stack>
-    );
-}
-
-export function GenerateValidatorKeysAndDeposits() {
-    const [awsValidatorSecretNameDeposits, awsValidatorSecretNameDepositsName] = useState('mnemonicAndHDWalletEphemery');
-    const [mnemonic, setMnemonic] = useState('');
-    const [hdWalletPw, setHDWalletPw] = useState('');
-
-    return (
-        <Card sx={{ maxWidth: 500 }}>
-            <div style={{ display: 'flex' }}>
-                <Stack direction="column" alignItems="center" spacing={2}>
-                </Stack>
-                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <ValidatorSecretName validatorSecretName={awsValidatorSecretNameDeposits}/>
-                    <HDWalletPassword hdWalletPw={hdWalletPw}/>
-                    <Mnemonic mnemonic={mnemonic}/>
-                </Container>
-            </div>
-        </Card>
-
-    );
-}
-
-export function Mnemonic(props: any) {
-    const { accessKey, onAccessKeyChange } = props;
-
-    const onAccessMnemonicSecretChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        onAccessKeyChange(event.target.value);
-    };
-
-    return (
-        <TextField
-            fullWidth
-            id="mnemonic"
-            label="24 Word Mnemonic"
-            variant="outlined"
-            value={accessKey}
-            onChange={onAccessMnemonicSecretChange}
-            sx={{ width: '100%' }}
-        />
-    );
-}
-
-export function HDWalletPassword(props: any) {
-    const { hdWalletPw, onHDWalletPwChange } = props;
-    return (
-        <TextField
-            fullWidth
-            id="hdWalletPassword"
-            label="HD Wallet Password"
-            variant="outlined"
-            value={hdWalletPw}
-            onChange={onHDWalletPwChange}
-            sx={{ width: '100%' }}
-        />
     );
 }
 

@@ -11,6 +11,7 @@ import (
 	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	"github.com/zeus-fyi/olympus/hestia/api/v1/ethereum/aws"
+	age_encryption "github.com/zeus-fyi/zeus/pkg/crypto/age"
 )
 
 func Routes(e *echo.Echo) *echo.Echo {
@@ -40,7 +41,7 @@ func InitV1Routes(e *echo.Echo) {
 		},
 	}))
 
-	eg.GET("/age/generate", TODO) // if no js client, generate age keypair
+	eg.GET("/age/generate", GenerateRandomAgeEncryptionKey) // if no js client, generate age keypair
 
 	// ethereum aws automation
 	// validator deposit & keystore generation
@@ -85,6 +86,13 @@ func Health(c echo.Context) error {
 	return c.String(http.StatusOK, "Healthy")
 }
 
-func TODO(c echo.Context) error {
-	return c.String(http.StatusOK, "TODO")
+type GeneratedAgeKey struct {
+	AgePrivateKey string `json:"agePrivateKey"`
+	AgePublicKey  string `json:"agePublicKey"`
+}
+
+func GenerateRandomAgeEncryptionKey(c echo.Context) error {
+	key := GeneratedAgeKey{}
+	key.AgePublicKey, key.AgePrivateKey = age_encryption.GenerateNewKeyPair()
+	return c.JSON(http.StatusOK, key)
 }

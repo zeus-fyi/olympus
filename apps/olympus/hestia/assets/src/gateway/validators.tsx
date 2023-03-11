@@ -46,21 +46,6 @@ class ValidatorsApiGateway {
             return
         }
     }
-    async getGeneratedAgeKey(): Promise<any>  {
-        const url = `/v1/age/generate"`;
-        try {
-            const sessionID = localStorage.getItem("sessionID");
-            let config = {
-                headers: {
-                    'Authorization': `Bearer ${sessionID}`
-                }}
-            return await hestiaApi.get(url, config)
-        } catch (exc) {
-            console.error('error sending cluster get request');
-            console.error(exc);
-            return
-        }
-    }
 }
 export const validatorsApiGateway = new ValidatorsApiGateway();
 

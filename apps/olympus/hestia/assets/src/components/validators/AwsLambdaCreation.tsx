@@ -1,5 +1,4 @@
 import * as React from "react";
-import {useState} from "react";
 import {Card, CardActions, CardContent, Container, Stack} from "@mui/material";
 import {AwsUploadActionAreaCard} from "./AwsPanel";
 import Typography from "@mui/material/Typography";
@@ -15,14 +14,6 @@ export function CreateAwsLambdaFunctionActionAreaCardWrapper() {
 }
 
 export function CreateAwsLambdaFunctionAreaCard() {
-    const [mnemonic, setMnemonic] = useState('');
-    const [hdWalletPw, setHDWalletPw] = useState('');
-    const [agePubKey, setAgePubKey] = useState('');
-    const [agePrivKey, setAgePrivKey] = useState('');
-
-    const handleAccessKeyChange = (event: { target: { value: React.SetStateAction<string>; }; }) => {
-        setAgePubKey(event.target.value);
-    };
     return (
             <div style={{ display: 'flex' }}>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>

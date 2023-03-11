@@ -1,6 +1,5 @@
 import {Card, CardActions, CardContent, Container, Stack} from "@mui/material";
 import * as React from "react";
-import {useState} from "react";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import {ValidatorsUploadActionAreaCard} from "./ValidatorsUpload";
@@ -15,14 +14,6 @@ export function LambdaExtUserVerify() {
 }
 
 export function AwsLambdaFunctionVerifyAreaCard() {
-    const [mnemonic, setMnemonic] = useState('');
-    const [hdWalletPw, setHDWalletPw] = useState('');
-    const [agePubKey, setAgePubKey] = useState('');
-    const [agePrivKey, setAgePrivKey] = useState('');
-
-    const handleAccessKeyChange = (event: { target: { value: React.SetStateAction<string>; }; }) => {
-        setAgePubKey(event.target.value);
-    };
     return (
         <div style={{ display: 'flex' }}>
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>

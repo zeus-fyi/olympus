@@ -6,10 +6,11 @@ import store from "../redux/store";
 import Login from "../components/login/Login";
 import {ProtectedLayout} from "../auth/ProtectedLayout";
 import {HomeLayout} from "../components/home/Home";
-import Integrations from "../components/integrations/Integrations";
+import Access from "../components/access/Access";
 import ValidatorsServices from "../components/validators/Validators";
 import Clusters from "../components/clusters/Clusters";
 import ClustersPage from "../components/clusters/ClusterPage";
+import AwsWizard from "../components/validators/AwsWizard";
 
 export const App = () => {
     return (
@@ -26,8 +27,9 @@ export const App = () => {
                             </Route>
                             <Route>
                                 <Route path="services/ethereum/validators" element={<ValidatorsServices />} />
+                                <Route path="services/ethereum/aws" element={<AwsWizard />} />
                             </Route>
-                            <Route path="integrations" element={<Integrations />} />
+                            <Route path="access" element={<Access />} />
                         </Route>
                     </Routes>
                 </BrowserRouter>

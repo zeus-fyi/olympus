@@ -1,5 +1,4 @@
 import * as React from "react";
-import {useState} from "react";
 import {Card, CardActions, CardContent, Container, Stack} from "@mui/material";
 import {AwsUploadActionAreaCard} from "./AwsPanel";
 import Typography from "@mui/material/Typography";
@@ -15,14 +14,6 @@ export function CreateInternalAwsLambdaUserRolesActionAreaCardWrapper() {
 }
 
 export function CreateAwsLambdaUserRolesActionAreaCard() {
-    const [mnemonic, setMnemonic] = useState('');
-    const [hdWalletPw, setHDWalletPw] = useState('');
-    const [agePubKey, setAgePubKey] = useState('');
-    const [agePrivKey, setAgePrivKey] = useState('');
-
-    const handleAccessKeyChange = (event: { target: { value: React.SetStateAction<string>; }; }) => {
-        setAgePubKey(event.target.value);
-    };
     return (
             <div style={{ display: 'flex' }}>
                 <Stack direction="column" alignItems="center" spacing={2}>
@@ -34,20 +25,20 @@ export function CreateAwsLambdaUserRolesActionAreaCard() {
 
     );
 }
+
 export function InternalLambdaUserRolePolicySetup() {
     return (
-        <Card sx={{ maxWidth: 345 }}>
+        <Card sx={{ maxWidth: 400 }}>
             <CardContent>
                 <Typography gutterBottom variant="h5" component="div">
-                    Internal
+                    Internal User & RolePolicy Setup
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                    Internal Lambda User & RolePolicy Setup
+                    Creates a new user and role policy for your own internal usage, e.g. for running, testing, development, etc.
                 </Typography>
             </CardContent>
             <CardActions>
-                <Button size="small">Share</Button>
-                <Button size="small">Learn More</Button>
+                <Button size="small">Create</Button>
             </CardActions>
         </Card>
     );

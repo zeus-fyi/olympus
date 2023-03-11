@@ -4,16 +4,17 @@ import {useState} from "react";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
+import {Network} from "./ZeusServiceRequest";
 
-export function ZeusServiceRequestAreaCardWrapper() {
+export function ValidatorsDepositRequestAreaCardWrapper() {
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <ZeusServiceRequestAreaCard />
+            <ValidatorsDepositRequestAreaCard />
         </Stack>
     );
 }
 
-export function ZeusServiceRequestAreaCard() {
+export function ValidatorsDepositRequestAreaCard() {
     const [mnemonic, setMnemonic] = useState('');
     const [hdWalletPw, setHDWalletPw] = useState('');
     const [agePubKey, setAgePubKey] = useState('');
@@ -25,25 +26,25 @@ export function ZeusServiceRequestAreaCard() {
     return (
         <div style={{ display: 'flex' }}>
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                <ZeusServiceRequestWrapper />
+                <ValidatorsDepositsSubmitWrapper />
             </Container >
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                <ZeusServiceRequest />
+                <SubmitValidators />
             </Container >
         </div>
 
     );
 }
 
-export function ZeusServiceRequest() {
+export function SubmitValidators() {
     return (
         <Card sx={{ maxWidth: 400 }}>
             <CardContent>
                 <Typography gutterBottom variant="h5" component="div">
-                    Create Zeus Validators Service Request
+                    Send Validator Deposits to Network
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                    Creates Zeus Validators Service Request
+                    Sends Validator Deposits to the Network
                 </Typography>
             </CardContent>
             <CardActions>
@@ -53,7 +54,8 @@ export function ZeusServiceRequest() {
     );
 }
 
-export function ZeusServiceRequestWrapper() {
+
+export function ValidatorsDepositsSubmitWrapper() {
     const [awsValidatorSecretName, setAwsValidatorSecretName] = useState('');
     const [mnemonic, setMnemonic] = useState('');
     const [hdWalletPw, setHDWalletPw] = useState('');
@@ -67,8 +69,7 @@ export function ZeusServiceRequestWrapper() {
                 <Stack direction="column" alignItems="center" spacing={2}>
                 </Stack>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <KeyGroupName validatorSecretName={awsValidatorSecretName}/>
-                    <FeeRecipient hdWalletPw={hdWalletPw}/>
+                    <Eth1WalletPrivateKey validatorSecretName={awsValidatorSecretName}/>
                     <Network mnemonic={mnemonic}/>
                 </Container>
             </div>
@@ -77,43 +78,13 @@ export function ZeusServiceRequestWrapper() {
     );
 }
 
-export function KeyGroupName(props: any) {
+export function Eth1WalletPrivateKey(props: any) {
     const { accessKey, onAccessKeyChange } = props;
     return (
         <TextField
             fullWidth
-            id="keyGroupName"
-            label="Key Group Name"
-            variant="outlined"
-            value={accessKey}
-            onChange={onAccessKeyChange}
-            sx={{ width: '100%' }}
-        />
-    );
-}
-
-export function FeeRecipient(props: any) {
-    const { accessKey, onAccessKeyChange } = props;
-    return (
-        <TextField
-            fullWidth
-            id="feeRecipient"
-            label="Fee Recipient"
-            variant="outlined"
-            value={accessKey}
-            onChange={onAccessKeyChange}
-            sx={{ width: '100%' }}
-        />
-    );
-}
-
-export function Network(props: any) {
-    const { accessKey, onAccessKeyChange } = props;
-    return (
-        <TextField
-            fullWidth
-            id="network"
-            label="Network"
+            id="eth1WalletPrivateKey"
+            label="Eth1 Wallet Private Key"
             variant="outlined"
             value={accessKey}
             onChange={onAccessKeyChange}

@@ -12,6 +12,7 @@ import {CreateAwsLambdaFunctionActionAreaCardWrapper} from "./AwsLambdaCreation"
 import {LambdaExtUserVerify} from "./AwsExtUserAndLambdaVerify";
 import {GenerateValidatorKeysAndDepositsAreaCardWrapper} from "./ValidatorsGeneration";
 import {ZeusServiceRequestAreaCardWrapper} from "./ZeusServiceRequest";
+import {ValidatorsDepositRequestAreaCardWrapper} from "./ValidatorsDeposits";
 
 const steps = [
     'Create AWS Secrets',
@@ -20,6 +21,7 @@ const steps = [
     'Create or Update Lambda Function',
     'Verify Lambda Function',
     'Create Zeus Service Request',
+    'Submit Deposits',
 ];
 
 const stepComponents = [
@@ -29,6 +31,7 @@ const stepComponents = [
     <CreateAwsLambdaFunctionActionAreaCardWrapper />,
     <LambdaExtUserVerify />,
     <ZeusServiceRequestAreaCardWrapper />,
+    <ValidatorsDepositRequestAreaCardWrapper />
 ];
 
 export default function AwsWizardPanel() {

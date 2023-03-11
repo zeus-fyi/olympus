@@ -22,7 +22,6 @@ export function AwsUploadActionAreaCard() {
                 />
             </CardActionArea>
                 <Stack direction="column" alignItems="center" spacing={2}>
-
                 </Stack>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <AwsCredentialsAccessKey accessKey={accessKey}/>

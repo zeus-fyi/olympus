@@ -8,11 +8,12 @@ import Typography from '@mui/material/Typography';
 import {ValidatorsUploadActionAreaCard} from "./ValidatorsUpload";
 import {AwsUploadActionAreaCard} from "./AwsPanel";
 import Container from "@mui/material/Container";
+import {CreateAwsSecretsActionAreaCardWrapper} from "./CreateAwsSecrets";
 
 const steps = ['Create AWS Secrets', 'Generate Validator Deposits', 'Create Lambda User Roles', 'Create or Update Lambda Function', 'Verify Lambda Function'];
 
 const stepComponents = [
-    <AwsUploadActionAreaCard />,
+    <CreateAwsSecretsActionAreaCardWrapper />,
     <AwsUploadActionAreaCard />,
     <AwsUploadActionAreaCard />,
     <AwsUploadActionAreaCard />,

@@ -5,5 +5,5 @@ import (
 )
 
 type AwsRequest struct {
-	aegis_aws_auth.AuthAWS
+	aegis_aws_auth.AuthAWS `json:"authAWS"`
 }

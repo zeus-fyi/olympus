@@ -22,7 +22,6 @@ func CreateServerlessKeystoresHandler(c echo.Context) error {
 func (a *AwsRequest) CreateKeystores(c echo.Context) error {
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
-	// TODO
 	err := serverless_aws_automation.CreateLambdaFunctionKeystoresLayer(ctx, a.AuthAWS, filepaths.Path{})
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("AwsRequest, CreateKeystores error")

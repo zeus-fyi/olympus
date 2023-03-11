@@ -3,6 +3,9 @@ import * as React from "react";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import {ValidatorsUploadActionAreaCard} from "./ValidatorsUpload";
+import {useSelector} from "react-redux";
+import {RootState} from "../../redux/store";
+import {awsApiGateway} from "../../gateway/aws";
 
 export function LambdaExtUserVerify() {
     return (
@@ -46,6 +49,17 @@ export function LambdaVerifyCard() {
 }
 
 export function CreateAwsExternalLambdaUser() {
+    const accessKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
+    const secretKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
+
+    const handleCreateUser = async () => {
+        try {
+            const response = await awsApiGateway.createExternalLambdaUser(accessKey,secretKey);
+            console.log("response", response);
+        } catch (error) {
+            console.log("error", error);
+        }};
+
     return (
         <Card sx={{ maxWidth: 400 }}>
             <CardContent>
@@ -57,7 +71,7 @@ export function CreateAwsExternalLambdaUser() {
                 </Typography>
             </CardContent>
             <CardActions>
-                <Button size="small">Create</Button>
+                <Button size="small" onClick={handleCreateUser}>Create</Button>
             </CardActions>
         </Card>
     );

@@ -28,16 +28,6 @@ import AwsWizardPanel from "./AwsWizardPanel";
 
 const mdTheme = createTheme();
 
-function createData(
-    network: string,
-    groupName: string,
-    pubkey: string,
-    feeRecipient: string,
-    enabled: string,
-) {
-    return {network, groupName,pubkey,feeRecipient,enabled};
-}
-
 function AwsWizardServiceContent() {
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {

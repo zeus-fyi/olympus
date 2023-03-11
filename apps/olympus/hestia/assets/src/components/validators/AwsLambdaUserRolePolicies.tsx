@@ -3,6 +3,9 @@ import {Card, CardActions, CardContent, Container, Stack} from "@mui/material";
 import {AwsUploadActionAreaCard} from "./AwsPanel";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
+import {awsApiGateway} from "../../gateway/aws";
+import {useSelector} from "react-redux";
+import {RootState} from "../../redux/store";
 
 export function CreateInternalAwsLambdaUserRolesActionAreaCardWrapper() {
     return (
@@ -27,6 +30,17 @@ export function CreateAwsLambdaUserRolesActionAreaCard() {
 }
 
 export function InternalLambdaUserRolePolicySetup() {
+    const accessKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
+    const secretKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
+
+    const handleCreateUser = async () => {
+        try {
+            const response = await awsApiGateway.createInternalLambdaUser(accessKey,secretKey);
+            console.log("response", response);
+        } catch (error) {
+            console.log("error", error);
+        }};
+
     return (
         <Card sx={{ maxWidth: 400 }}>
             <CardContent>
@@ -38,7 +52,7 @@ export function InternalLambdaUserRolePolicySetup() {
                 </Typography>
             </CardContent>
             <CardActions>
-                <Button size="small">Create</Button>
+                <Button size="small" onClick={handleCreateUser}>Create</Button>
             </CardActions>
         </Card>
     );

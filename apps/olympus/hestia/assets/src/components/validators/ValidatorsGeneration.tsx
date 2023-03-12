@@ -40,6 +40,7 @@ export function GenerateValidatorsParams() {
     );
 }
 
+// TODO set these in redux
 export function ValidatorsNetwork(props: any) {
     const { awsValidatorsNetwork, setAwsValidatorsNetwork } = props;
 
@@ -55,7 +56,7 @@ export function ValidatorsNetwork(props: any) {
         />
     );
 }
-
+// TODO set these in redux
 export function ValidatorCount(props: any) {
     const { validatorCount, onValidatorCountChange } = props;
     return (
@@ -70,7 +71,7 @@ export function ValidatorCount(props: any) {
         />
     );
 }
-
+// TODO set these in redux
 export function ValidatorOffsetHD(props: any) {
     const { offset, setOffset } = props;
     return (

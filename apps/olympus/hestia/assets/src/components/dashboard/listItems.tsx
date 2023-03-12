@@ -4,8 +4,9 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
-import LayersIcon from '@mui/icons-material/Layers';
+import SecurityIcon from '@mui/icons-material/Security';
 import {Link} from "react-router-dom";
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import CloudIcon from '@mui/icons-material/Cloud';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import {ExpandLess, ExpandMore} from "@mui/icons-material";
@@ -57,13 +58,19 @@ export default function MainListItems() {
                         </ListItemIcon>
                         <ListItemText primary="Validators" />
                     </ListItemButton>
+                    <ListItemButton sx={{ pl: 4 }} component={Link} to="/services/ethereum/aws">
+                        <ListItemIcon>
+                            <AutoFixHighIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="AWS Wizard" />
+                    </ListItemButton>
                 </List>
             </Collapse>
-            <ListItemButton component={Link} to="/integrations">
+            <ListItemButton component={Link} to="/access">
                 <ListItemIcon>
-                    <LayersIcon />
+                    <SecurityIcon />
                 </ListItemIcon>
-                <ListItemText primary="Integrations"/>
+                <ListItemText primary="Access"/>
             </ListItemButton>
             <ListItemButton>
                 <ListItemIcon>

@@ -16,8 +16,7 @@ class ClustersApiGateway {
             return
         }
     }
-
-    async getClusterTopologies(cloudCtxNsID: number): Promise<any>  {
+    async getClusterTopologies(params: any): Promise<any>  {
         const url = `/v1/deploy/cluster/status`;
         try {
             const sessionID = localStorage.getItem("sessionID");
@@ -26,9 +25,27 @@ class ClustersApiGateway {
                     'Authorization': `Bearer ${sessionID}`
                 }}
             const payload = {
-                cloudCtxNsID: cloudCtxNsID,
+                'cloudCtxNsID': `${params.id}`
             }
-            console.log(payload)
+            return await zeusApi.post(url, payload, config)
+        } catch (exc) {
+            console.error('error sending get cluster topologies at cloud ctx ns request');
+            console.error(exc);
+            return
+        }
+    }
+    async getClusterPodsAudit(clusterID: any): Promise<any>  {
+        const url = `/v1/pods`;
+        try {
+            const sessionID = localStorage.getItem("sessionID");
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`,
+                    'CloudCtxNsID': `${clusterID}`
+                }}
+            const payload = {
+                action: "describe-audit",
+            }
             return await zeusApi.post(url, payload, config)
         } catch (exc) {
             console.error('error sending get cluster topologies at cloud ctx ns request');
@@ -38,4 +55,3 @@ class ClustersApiGateway {
     }
 }
 export const clustersApiGateway = new ClustersApiGateway();
-

@@ -45,7 +45,6 @@ func PodLogsActionRequest(c echo.Context, request *PodActionRequest) error {
 
 func PodsAuditRequest(c echo.Context, request *PodActionRequest) error {
 	ctx := context.Background()
-
 	pods, err := zeus.K8Util.GetPodsUsingCtxNs(ctx, request.CloudCtxNs, request.LogOpts, request.FilterOpts)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("PodsAuditRequest")

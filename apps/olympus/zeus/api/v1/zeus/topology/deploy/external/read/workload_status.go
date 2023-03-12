@@ -3,6 +3,7 @@ package deployment_status
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -27,14 +28,20 @@ func (t *TopologyDeploymentStatusRequest) ReadDeployedTopologyStatuses(c echo.Co
 }
 
 type ClusterDeploymentStatusRequest struct {
-	CloudCtxNsID int `json:"cloudCtxNsID"`
+	CloudCtxNsID string `json:"cloudCtxNsID"`
 }
 
 func (t *ClusterDeploymentStatusRequest) ReadDeployedClusterTopologies(c echo.Context) error {
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
+
+	id, err := strconv.Atoi(t.CloudCtxNsID)
+	if err != nil {
+		log.Err(err).Interface("orgUser", ou).Msg("ClusterDeploymentInfoRequest: ReadDeployedClusterTopologies")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 	status := read_topology_deployment_status.NewReadDeploymentStatusesGroup()
-	err := status.ReadLatestDeployedClusterTopologies(ctx, t.CloudCtxNsID, ou)
+	err = status.ReadLatestDeployedClusterTopologies(ctx, id, ou)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("ClusterDeploymentInfoRequest: ReadDeployedClusterTopologies")
 		return c.JSON(http.StatusInternalServerError, nil)

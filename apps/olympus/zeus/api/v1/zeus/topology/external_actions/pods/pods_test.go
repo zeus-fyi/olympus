@@ -13,6 +13,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/suite"
+	"github.com/tidwall/pretty"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/test"
@@ -148,18 +149,34 @@ func (p *PodsHandlerTestSuite) TestDeletePod() {
 }
 
 func (p *PodsHandlerTestSuite) TestAuditPods() {
-	filter := string_utils.FilterOpts{StartsWith: "eth"}
-	podActionRequest := PodActionRequest{
-		Action:     "describe-audit",
-		FilterOpts: &filter,
-	}
-	podDescribeReq := p.postK8Request(podActionRequest, http.StatusOK, false)
-	resp := podDescribeReq.logs
+	p.InitLocalConfigs()
+	p.Eg.POST("/pods", HandlePodActionRequest)
+	start := make(chan struct{}, 1)
+	go func() {
+		close(start)
+		_ = p.E.Start(":9010")
+	}()
 
-	var ps PodsSummary
-	err := json.Unmarshal(resp, &ps)
+	<-start
+	defer p.E.Shutdown(ctx)
+	kctx := zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "ephemeral-staking"}
+
+	podActionRequest := zeus_pods_reqs.PodActionRequest{
+		TopologyDeployRequest: zeus_req_types.TopologyDeployRequest{
+			TopologyID: 0,
+			CloudCtxNs: kctx,
+		},
+		Action: "describe-audit"}
+	topologyActionRequestPayload, err := json.Marshal(podActionRequest)
+	p.Require().NoError(err)
+
+	fmt.Println("action request json")
+	requestJSON := pretty.Pretty(topologyActionRequestPayload)
+	requestJSON = pretty.Color(requestJSON, pretty.TerminalStyle)
+	fmt.Println(string(requestJSON))
+	resp, err := p.ZeusClient.GetPodsAudit(ctx, podActionRequest)
+	p.Require().NoError(err)
 	p.Require().NotEmpty(resp)
-	p.Assert().Nil(err)
 }
 
 func (p *PodsHandlerTestSuite) postK8Request(podActionRequest PodActionRequest, httpCode int, unmarshall bool) TestResponse {

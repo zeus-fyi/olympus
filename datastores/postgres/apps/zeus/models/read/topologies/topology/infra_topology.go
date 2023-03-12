@@ -62,6 +62,33 @@ func getIsOrgCloudCtxNsAuthorizedQueryParams() sql_query_templates.QueryParams {
 	return q
 }
 
+func getIsOrgCloudCtxNsAuthorizedQueryParamsFromID() sql_query_templates.QueryParams {
+	q := sql_query_templates.NewQueryParam("IsOrgCloudCtxNsAuthorized", "topologies_org_cloud_ctx_ns", "where", 1000, []string{})
+	q.RawQuery = `
+			SELECT true, cloud_provider, region, context, namespace
+			FROM topologies_org_cloud_ctx_ns
+			WHERE EXISTS (  SELECT 1 
+							FROM topologies_org_cloud_ctx_ns
+							WHERE org_id = $1 AND cloud_ctx_ns_id = $2 
+			    		 ) AND cloud_ctx_ns_id = $2`
+	return q
+}
+func IsOrgCloudCtxNsAuthorizedFromID(ctx context.Context, orgID, cloudCtxNsID int) (bool, zeus_common_types.CloudCtxNs, error) {
+	q := getIsOrgCloudCtxNsAuthorizedQueryParamsFromID()
+	log.Debug().Interface("IsOrgCloudCtxNsAuthorizedFromID", q.LogHeader(Sn))
+	authorized := false
+	cctx := zeus_common_types.CloudCtxNs{}
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, orgID, cloudCtxNsID).Scan(&authorized, &cctx.CloudProvider, &cctx.Region, &cctx.Context, &cctx.Namespace)
+	if err != nil {
+		if orgID == TemporalOrgID {
+			log.Ctx(ctx).Info().Msg("IsOrgCloudCtxNsAuthorized: Using Temporal Key")
+			return true, cctx, nil
+		}
+		return false, cctx, errors.New("not authorized")
+	}
+	return authorized, cctx, err
+}
+
 const TemporalOrgID = 7138983863666903883
 
 func (t *InfraBaseTopology) IsOrgCloudCtxNsAuthorized(ctx context.Context, kns zeus_common_types.CloudCtxNs) (bool, error) {

@@ -1,8 +1,9 @@
 import * as React from 'react';
+import {useEffect, useState} from 'react';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import Box from '@mui/material/Box';
 import {AppBar, Drawer} from '../dashboard/Dashboard';
+import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import List from '@mui/material/List';
 import Typography from '@mui/material/Typography';
@@ -19,26 +20,15 @@ import authProvider from "../../redux/auth/auth.actions";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
-import {TableContainer, TableRow} from '@mui/material';
+import {TableContainer, TableFooter, TablePagination, TableRow} from '@mui/material';
 import TableBody from "@mui/material/TableBody";
 import MainListItems from "../dashboard/listItems";
+import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
+import AwsWizardPanel from "./AwsWizardPanel";
 
 const mdTheme = createTheme();
 
-function createData(
-    service: string,
-    keyName: string,
-    accessKey: string,
-) {
-    return {service, keyName, accessKey };
-}
-
-const rows = [
-    createData('Zeus', 'Default','4ULNVVsqHfxnZ8HwkMTrnvLMuzsjpeU2jVG5oFw9gfXMbSgrFXnRSYN'),
-    createData('Validators', 'DemoValidators', '4ULNVVsqHfxnZ8HwkMTrnvLMuzsjpeU2jVG5oFw9gfXMbSgrFXnRSYN'),
-];
-
-function DashboardIntegrationContent() {
+function AwsWizardServiceContent() {
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
@@ -57,7 +47,7 @@ function DashboardIntegrationContent() {
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />
-                <AppBar position="absolute" open={open}>
+                <AppBar position="absolute" open={open} style={{ backgroundColor: '#8991B0'}}>
                     <Toolbar
                         sx={{
                             pr: '24px', // keep right padding when drawer closed
@@ -82,7 +72,7 @@ function DashboardIntegrationContent() {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            Dashboard
+                            Validators
                         </Typography>
                         <Button
                             color="inherit"
@@ -123,8 +113,13 @@ function DashboardIntegrationContent() {
                     }}
                 >
                     <Toolbar />
-                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                        {<ApiKeys />}
+                    <div style={{ display: 'flex' }}>
+                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                            <AwsWizardPanel />
+                        </Container>
+                    </div>
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        {<AwsWizardPageContent />}
                     </Container>
                 </Box>
             </Box>
@@ -132,36 +127,94 @@ function DashboardIntegrationContent() {
     );
 }
 
-export default function Integrations() {
-    return <DashboardIntegrationContent />;
-}
 
-function ApiKeys() {
+function AwsWizardPageContent() {
+    const [page, setPage] = React.useState(0);
+    const [rowsPerPage, setRowsPerPage] = React.useState(25);
+
+    const [validators, setValidators] = useState([{}]);
+    const handleChangeRowsPerPage = (
+        event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    ) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+    const handleChangePage = (
+        event: React.MouseEvent<HTMLButtonElement> | null,
+        newPage: number,
+    ) => {
+        setPage(newPage);
+    };
+
+    const emptyRows =
+        page > 0 ? Math.max(0, (1 + page) * rowsPerPage - validators.length) : 0;
+
+    useEffect(() => {
+        const fetchData = async () => {
+
+        }
+        fetchData();
+    }, [])
+
     return (
         <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 650 }} aria-label="simple table">
+            <Table sx={{ minWidth: 1000 }} aria-label="validators pagination table">
                 <TableHead>
-                    <TableRow>
-                        <TableCell>Service</TableCell>
-                        <TableCell align="left">KeyName</TableCell>
-                        <TableCell align="left">AccessKey</TableCell>
+                    <TableRow style={{ backgroundColor: '#8991B0'}} >
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Network</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">GroupName</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">PublicKey</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">FeeRecipient</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Enabled</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {rows.map((row) => (
+                    {(rowsPerPage > 0
+                        ? validators.slice(page * rowsPerPage, page*rowsPerPage+rowsPerPage) : validators).map((row: any,i: number) => (
                         <TableRow
-                            key={row.service}
+                            key={i}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >
                             <TableCell component="th" scope="row">
-                                {row.service}
+                                {row.network}
                             </TableCell>
-                            <TableCell align="left">{row.keyName}</TableCell>
-                            <TableCell align="left">{row.accessKey}</TableCell>
+                            <TableCell align="left">{row.groupName}</TableCell>
+                            <TableCell align="left">{row.pubkey}</TableCell>
+                            <TableCell align="left">{row.feeRecipient}</TableCell>
+                            <TableCell align="left">{row.enabled}</TableCell>
                         </TableRow>
                     ))}
+                    {emptyRows > 0 && (
+                        <TableRow style={{ height: 53 * emptyRows }}>
+                            <TableCell colSpan={6} />
+                        </TableRow>
+                    )}
                 </TableBody>
+                <TableFooter>
+                    <TableRow>
+                        <TablePagination
+                            rowsPerPageOptions={[10, 25, 100, { label: 'All', value: -1 }]}
+                            colSpan={3}
+                            count={validators.length}
+                            rowsPerPage={rowsPerPage}
+                            page={page}
+                            SelectProps={{
+                                inputProps: {
+                                    'aria-label': 'rows per page',
+                                },
+                                native: true,
+                            }}
+                            onPageChange={handleChangePage}
+                            onRowsPerPageChange={handleChangeRowsPerPage}
+                            ActionsComponent={TablePaginationActions}
+                        />
+                    </TableRow>
+                </TableFooter>
             </Table>
         </TableContainer>
     );
+}
+
+export default function AwsWizard() {
+    return <AwsWizardServiceContent />;
 }

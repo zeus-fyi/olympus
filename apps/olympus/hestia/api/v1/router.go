@@ -10,6 +10,8 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
+	"github.com/zeus-fyi/olympus/hestia/api/v1/ethereum/aws"
+	age_encryption "github.com/zeus-fyi/zeus/pkg/crypto/age"
 )
 
 func Routes(e *echo.Echo) *echo.Echo {
@@ -38,6 +40,23 @@ func InitV1Routes(e *echo.Echo) {
 			return key.PublicKeyVerified, err
 		},
 	}))
+
+	eg.GET("/age/generate", GenerateRandomAgeEncryptionKey) // if no js client, generate age keypair
+
+	// ethereum aws automation
+	// validator deposit & keystore generation
+	eg.POST("/ethereum/validators/deposits/generation", v1_ethereum_aws.ValidatorsDepositsGenerationRequestHandler)
+	eg.POST("/ethereum/validators/aws/encryption/age", v1_ethereum_aws.ValidatorsAgeEncryptedKeystoresGenerationRequestHandler)
+	// lambda related
+	eg.POST("/ethereum/validators/aws/user/internal/lambda/create", v1_ethereum_aws.CreateServerlessInternalUserHandler)
+	eg.POST("/ethereum/validators/aws/user/external/lambda/create", v1_ethereum_aws.CreateServerlessExternalUserHandler)
+	eg.POST("/ethereum/validators/aws/lambda/keystore/create", v1_ethereum_aws.CreateServerlessKeystoresHandler)
+	eg.POST("/ethereum/validators/aws/lambda/create", v1_ethereum_aws.CreateLambdaFunctionHandler)
+	eg.POST("/ethereum/validators/aws/lambda/verify", v1_ethereum_aws.VerifyLambdaFunctionHandler)
+
+	// zeus service
+	eg.GET("/ethereum/validators/service/info", GetValidatorServiceInfoHandler)
+	eg.POST("/ethereum/validators/service/create", CreateValidatorServiceRequestHandler)
 	eg.POST("/validators/service/create", CreateValidatorServiceRequestHandler)
 }
 
@@ -66,4 +85,15 @@ func InitV1InternalRoutes(e *echo.Echo) {
 
 func Health(c echo.Context) error {
 	return c.String(http.StatusOK, "Healthy")
+}
+
+type GeneratedAgeKey struct {
+	AgePrivateKey string `json:"agePrivateKey"`
+	AgePublicKey  string `json:"agePublicKey"`
+}
+
+func GenerateRandomAgeEncryptionKey(c echo.Context) error {
+	key := GeneratedAgeKey{}
+	key.AgePublicKey, key.AgePrivateKey = age_encryption.GenerateNewKeyPair()
+	return c.JSON(http.StatusOK, key)
 }

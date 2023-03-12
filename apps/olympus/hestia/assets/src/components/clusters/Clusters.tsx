@@ -56,7 +56,7 @@ function ClustersContent() {
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />
-                <AppBar position="absolute" open={open}>
+                <AppBar position="absolute" open={open} style={{ backgroundColor: '#8991B0'}}>
                     <Toolbar
                         sx={{
                             pr: '24px', // keep right padding when drawer closed
@@ -81,7 +81,7 @@ function ClustersContent() {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            Dashboard
+                            Clusters
                         </Typography>
                         <Button
                             color="inherit"
@@ -133,20 +133,23 @@ function ClustersContent() {
 
 function ClustersTable(clusters: any) {
     let navigate = useNavigate();
+    const [cluster, setCluster] = useState([{}]);
+
     const handleClick = async (event: any, cluster: any) => {
         event.preventDefault();
+        setCluster(cluster);
         navigate('/clusters/'+cluster.cloudCtxNsID);
     }
 
     return( <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
             <TableHead>
-                <TableRow>
-                    <TableCell>CloudCtxNsID</TableCell>
-                    <TableCell align="left">CloudProvider</TableCell>
-                    <TableCell align="left">Region</TableCell>
-                    <TableCell align="left">Context</TableCell>
-                    <TableCell align="left">Namespace</TableCell>
+                <TableRow style={{ backgroundColor: '#8991B0'}} >
+                    <TableCell style={{ color: 'white'}}>CloudCtxNsID</TableCell>
+                    <TableCell style={{ color: 'white'}} align="left">CloudProvider</TableCell>
+                    <TableCell style={{ color: 'white'}} align="left">Region</TableCell>
+                    <TableCell style={{ color: 'white'}} align="left">Context</TableCell>
+                    <TableCell style={{ color: 'white'}} align="left">Namespace</TableCell>
                 </TableRow>
             </TableHead>
             <TableBody>

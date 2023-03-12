@@ -1,45 +1,45 @@
-import * as React from "react";
-import {useEffect, useState} from "react";
-import {clustersApiGateway} from "../../gateway/clusters";
-import {TableContainer, TableRow} from "@mui/material";
-import Paper from "@mui/material/Paper";
+import * as React from 'react';
+import {createTheme, ThemeProvider} from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import Box from '@mui/material/Box';
+import {AppBar, Drawer} from '../dashboard/Dashboard';
+import Toolbar from '@mui/material/Toolbar';
+import List from '@mui/material/List';
+import Typography from '@mui/material/Typography';
+import Divider from '@mui/material/Divider';
+import IconButton from '@mui/material/IconButton';
+import Container from '@mui/material/Container';
+import Paper from '@mui/material/Paper';
+import MenuIcon from '@mui/icons-material/Menu';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import Button from "@mui/material/Button";
+import {useNavigate} from "react-router-dom";
+import {useDispatch} from "react-redux";
+import authProvider from "../../redux/auth/auth.actions";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
+import {TableContainer, TableRow} from '@mui/material';
 import TableBody from "@mui/material/TableBody";
-import {useNavigate, useParams} from "react-router-dom";
-import {useDispatch} from "react-redux";
-import authProvider from "../../redux/auth/auth.actions";
-import {createTheme, ThemeProvider} from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import CssBaseline from "@mui/material/CssBaseline";
-import {AppBar, Drawer} from "../dashboard/Dashboard";
-import Toolbar from "@mui/material/Toolbar";
-import IconButton from "@mui/material/IconButton";
-import MenuIcon from "@mui/icons-material/Menu";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import Divider from "@mui/material/Divider";
-import List from "@mui/material/List";
 import MainListItems from "../dashboard/listItems";
-import Container from "@mui/material/Container";
-import {PodsPageTable} from "./Pods";
 
 const mdTheme = createTheme();
 
-function createTopologyData(
-    topologyID: number,
-    clusterName: string,
-    componentBaseName: string,
-    skeletonBaseName: string,
+function createData(
+    service: string,
+    keyName: string,
+    accessKey: string,
 ) {
-    return {topologyID, clusterName, componentBaseName, skeletonBaseName};
+    return {service, keyName, accessKey };
 }
 
-function ClustersPageContent() {
-    const [open, setOpen] = React.useState(true);
+const rows = [
+    createData('Zeus', 'Default','4ULNVVsqHfxnZ8HwkMTrnvLMuzsjpeU2jVG5oFw9gfXMbSgrFXnRSYN'),
+    createData('Validators', 'DemoValidators', '4ULNVVsqHfxnZ8HwkMTrnvLMuzsjpeU2jVG5oFw9gfXMbSgrFXnRSYN'),
+];
 
+function DashboardIntegrationContent() {
+    const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
     };
@@ -52,6 +52,7 @@ function ClustersPageContent() {
         dispatch({type: 'LOGOUT_SUCCESS'})
         navigate('/login');
     }
+
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
@@ -81,7 +82,7 @@ function ClustersPageContent() {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            Clusters
+                            Access
                         </Typography>
                         <Button
                             color="inherit"
@@ -123,10 +124,7 @@ function ClustersPageContent() {
                 >
                     <Toolbar />
                     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                        <ClustersPageTable />
-                    </Container>
-                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                        <PodsPageTable />
+                        {<ApiKeys />}
                     </Container>
                 </Box>
             </Box>
@@ -134,54 +132,36 @@ function ClustersPageContent() {
     );
 }
 
-function ClustersPageTable(cluster: any) {
-    const params = useParams();
-    const [activeClusterTopologies, setActiveClusterTopologies] = useState([{}]);
-    useEffect(() => {
-        const fetchData = async (params: any) => {
-            try {
-                const response = await clustersApiGateway.getClusterTopologies(params);
-                const clustersTopologyData: any[] = response.data;
-                const clusterTopologyRows = clustersTopologyData.map((topology: any) =>
-                    createTopologyData(topology.topologyID, topology.clusterName, topology.componentBaseName, topology.skeletonBaseName),
-                );
-                setActiveClusterTopologies(clusterTopologyRows);
-            } catch (error) {
-                console.log("error", error);
-            }}
-        fetchData(params);
-    }, []);
+export default function Access() {
+    return <DashboardIntegrationContent />;
+}
+
+function ApiKeys() {
     return (
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
                 <TableHead>
                     <TableRow style={{ backgroundColor: '#8991B0'}} >
-                        <TableCell style={{ color: 'white'}}>TopologyID</TableCell>
-                        <TableCell style={{ color: 'white'}} align="left">ClusterName</TableCell>
-                        <TableCell style={{ color: 'white'}} align="left">ClusterBaseName</TableCell>
-                        <TableCell style={{ color: 'white'}} align="left">SkeletonBaseName</TableCell>
+                        <TableCell style={{ color: 'white'}}>Service</TableCell>
+                        <TableCell style={{ color: 'white'}} align="left">KeyName</TableCell>
+                        <TableCell style={{ color: 'white'}} align="left">AccessKey</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {activeClusterTopologies.map((row: any, i: number) => (
+                    {rows.map((row) => (
                         <TableRow
-                            key={i}
+                            key={row.service}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >
                             <TableCell component="th" scope="row">
-                                {row.topologyID}
+                                {row.service}
                             </TableCell>
-                            <TableCell align="left">{row.clusterName}</TableCell>
-                            <TableCell align="left">{row.componentBaseName}</TableCell>
-                            <TableCell align="left">{row.skeletonBaseName}</TableCell>
+                            <TableCell align="left">{row.keyName}</TableCell>
+                            <TableCell align="left">{row.accessKey}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
             </Table>
         </TableContainer>
     );
-}
-
-export default function ClustersPage() {
-    return <ClustersPageContent />
 }

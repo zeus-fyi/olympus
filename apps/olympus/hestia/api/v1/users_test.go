@@ -26,7 +26,6 @@ func (t *HestiaTestSuite) TestCreateDemoUserEphemery() {
 		close(start)
 		_ = t.E.Start(":9002")
 	}()
-
 	<-start
 	defer t.E.Shutdown(ctx)
 	userDemoReq := CreateDemoUserRequest{

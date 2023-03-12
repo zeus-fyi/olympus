@@ -10,6 +10,7 @@ import {setHdWalletPw, setMnemonic} from "../../redux/validators/ethereum.valida
 import {awsApiGateway} from "../../gateway/aws";
 import {setAgePrivKey, setAgePubKey} from "../../redux/aws_wizard/aws.wizard.reducer";
 import CryptoJS from 'crypto-js';
+import {validatorsApiGateway} from "../../gateway/validators";
 
 export const charsets = {
     NUMBERS: '0123456789',
@@ -29,6 +30,9 @@ export const generatePassword = (length: number, charset: string): string => {
 }
 
 export function CreateAwsSecretsActionAreaCardWrapper() {
+    const mnemonic = useSelector((state: RootState) => state.validatorSecrets.mnemonic);
+    const hdWalletPw = useSelector((state: RootState) => state.validatorSecrets.hdWalletPw);
+
     const dispatch = useDispatch();
 
     const onGenerate = async () => {
@@ -42,14 +46,22 @@ export function CreateAwsSecretsActionAreaCardWrapper() {
             dispatch(setMnemonic(phrase));
             const password = generatePassword(20, charsets.NUMBERS + charsets.LOWERCASE + charsets.UPPERCASE + charsets.SYMBOLS);
             dispatch(setHdWalletPw(password));
+        } catch (error) {
+            console.log("error", error);
+        }};
 
+    const onGenerateValidatorDeposits = async () => {
+        try {
+            // TODO this is a stub
+            const response = await validatorsApiGateway.generateValidatorsDepositData(mnemonic, hdWalletPw, 0, 0);
+            console.log(response.data)
         } catch (error) {
             console.log("error", error);
         }};
 
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <AwsUploadActionAreaCard onGenerate={onGenerate}/>
+            <AwsUploadActionAreaCard onGenerate={onGenerate} onGenerateValidatorDeposits={onGenerateValidatorDeposits}/>
             <CreateAwsSecretsValidatorSecretsActionAreaCard />
             <CreateAwsSecretsAgeEncryptionActionAreaCard />
         </Stack>

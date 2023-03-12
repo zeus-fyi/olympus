@@ -7,7 +7,7 @@ import {setAccessKey, setSecretKey} from '../../redux/aws_wizard/aws.wizard.redu
 import {RootState} from "../../redux/store";
 
 export function AwsUploadActionAreaCard(props: any) {
-    const { onSave, onGenerate } = props;
+    const { onSave, onGenerate, onGenerateValidatorDeposits } = props;
     const accessKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
     const secretKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
     const dispatch = useDispatch();
@@ -35,7 +35,7 @@ export function AwsUploadActionAreaCard(props: any) {
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <AwsCredentialsAccessKey accessKey={accessKey} onAccessKeyChange={onAccessKeyChange}/>
                     <AwsCredentialsSecret secretKey={secretKey} onSecretKeyChange={onSecretKeyChange}/>
-                    <AwsCredentialsButtons onGenerate={onGenerate}/>
+                    <AwsCredentialsButtons onGenerate={onGenerate} onGenerateValidatorDeposits={onGenerateValidatorDeposits}/>
                 </Container>
             </div>
         </Card>
@@ -43,7 +43,7 @@ export function AwsUploadActionAreaCard(props: any) {
 }
 
 export function AwsCredentialsButtons(props: any) {
-    const { onSave, onGenerate } = props;
+    const { onSave, onGenerate, onGenerateValidatorDeposits } = props;
     return (
         <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
             <Button variant="contained" onClick={onSave}>
@@ -51,6 +51,9 @@ export function AwsCredentialsButtons(props: any) {
             </Button>
             <Button variant="outlined" onClick={onGenerate}>
                 Generate
+            </Button>
+            <Button variant="outlined" onClick={onGenerateValidatorDeposits}>
+                Generate Validators
             </Button>
         </Stack>
     );

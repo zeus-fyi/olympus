@@ -8,9 +8,9 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/web3_actions"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	ethereum_automation_cookbook "github.com/zeus-fyi/zeus/cookbooks/ethereum/automation"
 	signing_automation_ethereum "github.com/zeus-fyi/zeus/pkg/artemis/signing_automation/ethereum"
 	age_encryption "github.com/zeus-fyi/zeus/pkg/crypto/age"
+	"github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/memfs"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
@@ -35,28 +35,52 @@ func (v *GenerateValidatorsRequest) GenerateValidators(c echo.Context) error {
 			Network: "ephemery",
 		},
 	}
-	enc := age_encryption.NewAge(v.AgePrivKey, v.AgePubKey)
 	vdg := signing_automation_ethereum.ValidatorDepositGenerationParams{
 		Fp:                   filepaths.Path{},
 		Mnemonic:             v.Mnemonic,
 		Pw:                   v.HdWalletPw,
 		ValidatorIndexOffset: v.HdOffset,
 		NumValidators:        v.ValidatorCount,
-		Network:              "ephemery",
+		Network:              v.Network,
 	}
 	// TODO needs to be a background job
-	err := ethereum_automation_cookbook.GenerateValidatorDepositsAndCreateAgeEncryptedKeystores(ctx, w3Client, vdg, enc, v.HdWalletPw)
+	if v.Network == "ephemery" {
+		// TODO network select
+	}
+	dpSlice, err := w3Client.GenerateEphemeryDepositDataWithDefaultWd(ctx, vdg)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("GenerateValidatorsRequest, GenerateValidators error")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	return c.JSON(http.StatusOK, nil)
+	return c.JSON(http.StatusOK, dpSlice)
+}
+
+func (v *GenerateValidatorsRequest) GenerateValidatorsAgeEncryptedZipFile(c echo.Context) error {
+	ctx := context.Background()
+	ou := c.Get("orgUser").(org_users.OrgUser)
+	vdg := signing_automation_ethereum.ValidatorDepositGenerationParams{
+		Fp:                   filepaths.Path{},
+		Mnemonic:             v.Mnemonic,
+		Pw:                   v.HdWalletPw,
+		ValidatorIndexOffset: v.HdOffset,
+		NumValidators:        v.ValidatorCount,
+		Network:              v.Network,
+	}
+	enc := age_encryption.NewAge(v.AgePrivKey, v.AgePubKey)
+	inMemFs := memfs.NewMemFs()
+	zip, err := vdg.GenerateAgeEncryptedValidatorKeysInMemZipFile(ctx, inMemFs, enc)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("GenerateValidatorsRequest, GenerateValidatorsAgeEncryptedZipFile error")
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+	return c.JSON(http.StatusOK, zip)
 }
 
 type ValidatorDepositGenerationParams struct {
-	AgePubKey  string `json:"agePubKey"`
-	AgePrivKey string `json:"agePrivKey"`
+	AgePubKey  string `json:"agePubKey,omitempty"`
+	AgePrivKey string `json:"agePrivKey,omitempty"`
 
+	Network        string `json:"network,omitempty"`
 	Mnemonic       string `json:"mnemonic"`
 	HdWalletPw     string `json:"hdWalletPw"`
 	HdOffset       int    `json:"hdOffset"`

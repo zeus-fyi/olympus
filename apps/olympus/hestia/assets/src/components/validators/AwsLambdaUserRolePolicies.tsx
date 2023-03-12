@@ -7,10 +7,11 @@ import {awsApiGateway} from "../../gateway/aws";
 import {useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 
-export function CreateInternalAwsLambdaUserRolesActionAreaCardWrapper() {
+export function CreateInternalAwsLambdaUserRolesActionAreaCardWrapper(props: any) {
+    const { activeStep } = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <AwsUploadActionAreaCard />
+            <AwsUploadActionAreaCard activeStep={activeStep}/>
             <CreateAwsLambdaUserRolesActionAreaCard />
         </Stack>
     );

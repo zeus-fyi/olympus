@@ -6,7 +6,8 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import {Network} from "./ZeusServiceRequest";
 
-export function ValidatorsDepositRequestAreaCardWrapper() {
+export function ValidatorsDepositRequestAreaCardWrapper(props: any) {
+    const { activeStep } = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
             <ValidatorsDepositRequestAreaCard />

@@ -29,7 +29,8 @@ export const generatePassword = (length: number, charset: string): string => {
     return result;
 }
 
-export function CreateAwsSecretsActionAreaCardWrapper() {
+export function CreateAwsSecretsActionAreaCardWrapper(props: any) {
+    const { activeStep } = props;
     const mnemonic = useSelector((state: RootState) => state.validatorSecrets.mnemonic);
     const hdWalletPw = useSelector((state: RootState) => state.validatorSecrets.hdWalletPw);
 
@@ -61,7 +62,7 @@ export function CreateAwsSecretsActionAreaCardWrapper() {
 
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <AwsUploadActionAreaCard onGenerate={onGenerate} onGenerateValidatorDeposits={onGenerateValidatorDeposits}/>
+            <AwsUploadActionAreaCard activeStep={activeStep} onGenerate={onGenerate} onGenerateValidatorDeposits={onGenerateValidatorDeposits}/>
             <CreateAwsSecretsValidatorSecretsActionAreaCard />
             <CreateAwsSecretsAgeEncryptionActionAreaCard />
         </Stack>

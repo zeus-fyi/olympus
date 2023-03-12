@@ -4,10 +4,11 @@ import {AwsUploadActionAreaCard} from "./AwsPanel";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 
-export function CreateAwsLambdaFunctionActionAreaCardWrapper() {
+export function CreateAwsLambdaFunctionActionAreaCardWrapper(props: any) {
+    const { activeStep } = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <AwsUploadActionAreaCard />
+            <AwsUploadActionAreaCard activeStep={activeStep}/>
             <CreateAwsLambdaFunctionAreaCard />
         </Stack>
     );

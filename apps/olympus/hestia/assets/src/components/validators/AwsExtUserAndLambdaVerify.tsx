@@ -7,7 +7,8 @@ import {useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import {awsApiGateway} from "../../gateway/aws";
 
-export function LambdaExtUserVerify() {
+export function LambdaExtUserVerify(props: any) {
+    const { activeStep } = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
             <ValidatorsUploadActionAreaCard />,

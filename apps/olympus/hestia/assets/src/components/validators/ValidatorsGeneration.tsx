@@ -4,10 +4,11 @@ import {Card, Container, Stack} from "@mui/material";
 import {AwsUploadActionAreaCard} from "./AwsPanel";
 import TextField from "@mui/material/TextField";
 
-export function GenerateValidatorKeysAndDepositsAreaCardWrapper() {
+export function GenerateValidatorKeysAndDepositsAreaCardWrapper(props: any) {
+    const { activeStep } = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <AwsUploadActionAreaCard />
+            <AwsUploadActionAreaCard activeStep={activeStep}/>
             <GenerateValidatorsParams />
         </Stack>
     );

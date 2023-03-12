@@ -24,15 +24,17 @@ const steps = [
     'Submit Deposits',
 ];
 
-const stepComponents = [
-    <CreateAwsSecretsActionAreaCardWrapper />,
-    <GenerateValidatorKeysAndDepositsAreaCardWrapper />,
-    <CreateInternalAwsLambdaUserRolesActionAreaCardWrapper />,
-    <CreateAwsLambdaFunctionActionAreaCardWrapper />,
-    <LambdaExtUserVerify />,
-    <ZeusServiceRequestAreaCardWrapper />,
-    <ValidatorsDepositRequestAreaCardWrapper />
-];
+function stepComponents(activeStep: number) {
+    const steps = [
+        <CreateAwsSecretsActionAreaCardWrapper activeStep={activeStep}/>,
+        <GenerateValidatorKeysAndDepositsAreaCardWrapper activeStep={activeStep}/>,
+        <CreateInternalAwsLambdaUserRolesActionAreaCardWrapper activeStep={activeStep}/>,
+        <CreateAwsLambdaFunctionActionAreaCardWrapper activeStep={activeStep}/>,
+        <LambdaExtUserVerify activeStep={activeStep}/>,
+        <ZeusServiceRequestAreaCardWrapper activeStep={activeStep}/>,
+        <ValidatorsDepositRequestAreaCardWrapper activeStep={activeStep}/>]
+    return steps[activeStep]
+}
 
 export default function AwsWizardPanel() {
     const [activeStep, setActiveStep] = React.useState(0);
@@ -111,7 +113,7 @@ export default function AwsWizardPanel() {
                 ) : (
                     <React.Fragment>
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                            {stepComponents[activeStep]}
+                            {stepComponents(activeStep)}
                         </Container>
                         <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                             <Button

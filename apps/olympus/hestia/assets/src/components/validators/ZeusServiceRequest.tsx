@@ -5,7 +5,8 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 
-export function ZeusServiceRequestAreaCardWrapper() {
+export function ZeusServiceRequestAreaCardWrapper(props: any) {
+    const { activeStep } = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
             <ZeusServiceRequestAreaCard />

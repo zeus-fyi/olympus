@@ -17,7 +17,7 @@ class ValidatorsApiGateway {
         }
     }
     async generateValidatorsDepositData(mnemonicPhrase: string, hdWalletPw: string, count: number, offset: number): Promise<any>  {
-        const url = `/v1/ethereum/validators/aws/generation`;
+        const url = `/v1/ethereum/validators/deposits/generation`;
         try {
             const sessionID = localStorage.getItem("sessionID");
             let config = {
@@ -35,6 +35,29 @@ class ValidatorsApiGateway {
             return await hestiaApi.post(url, payload, config)
         } catch (exc) {
             console.error('error sending create validator deposits');
+            console.error(exc);
+            return
+        }
+    }
+    async generateValidatorsAgeEncryptedKeystoresZip(agePub: string, agePriv: string,mnemonicPhrase: string, hdWalletPw: string, count: number, offset: number): Promise<any>  {
+        const url = `/v1/ethereum/validators/aws/encryption/age`;
+        try {
+            const sessionID = localStorage.getItem("sessionID");
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`,
+                }}
+            const payload = {
+                agePubKey: agePub,
+                agePrivKey: agePriv,
+                mnemonic: mnemonicPhrase,
+                hdWalletPw: hdWalletPw,
+                validatorCount: count,
+                hdOffset: offset,
+            }
+            return await hestiaApi.post(url, payload, config)
+        } catch (exc) {
+            console.error('error sending create validator encrypted keystores zip');
             console.error(exc);
             return
         }

@@ -15,14 +15,6 @@ export function ZeusServiceRequestAreaCardWrapper(props: any) {
 }
 
 export function ZeusServiceRequestAreaCard() {
-    const [mnemonic, setMnemonic] = useState('');
-    const [hdWalletPw, setHDWalletPw] = useState('');
-    const [agePubKey, setAgePubKey] = useState('');
-    const [agePrivKey, setAgePrivKey] = useState('');
-
-    const handleAccessKeyChange = (event: { target: { value: React.SetStateAction<string>; }; }) => {
-        setAgePubKey(event.target.value);
-    };
     return (
         <div style={{ display: 'flex' }}>
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
@@ -32,7 +24,6 @@ export function ZeusServiceRequestAreaCard() {
                 <ZeusServiceRequest />
             </Container >
         </div>
-
     );
 }
 
@@ -58,10 +49,6 @@ export function ZeusServiceRequestWrapper() {
     const [keyGroupName, setKeyGroupName] = useState('EphemeryDemoGroup');
     const [feeRecipient, setMnemonic] = useState('');
     const [network, setNetwork] = useState('Ephemery');
-
-    const handleAccessKeyChange = (event: { target: { value: React.SetStateAction<string>; }; }) => {
-        setMnemonic(event.target.value);
-    };
     return (
         <Card sx={{ maxWidth: 500 }}>
             <div style={{ display: 'flex' }}>

@@ -7,7 +7,7 @@ import {setAccessKey, setSecretKey} from '../../redux/aws_wizard/aws.wizard.redu
 import {RootState} from "../../redux/store";
 
 export function AwsUploadActionAreaCard(props: any) {
-    const { onSave, onGenerate, onGenerateValidatorDeposits, activeStep } = props;
+    const { activeStep, onGenerate, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip } = props;
     const accessKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
     const secretKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
     const dispatch = useDispatch();
@@ -35,7 +35,7 @@ export function AwsUploadActionAreaCard(props: any) {
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <AwsCredentialsAccessKey accessKey={accessKey} onAccessKeyChange={onAccessKeyChange}/>
                     <AwsCredentialsSecret secretKey={secretKey} onSecretKeyChange={onSecretKeyChange}/>
-                    <AwsCredentialsButtons activeStep={activeStep} onGenerate={onGenerate} onGenerateValidatorDeposits={onGenerateValidatorDeposits}/>
+                    <AwsCredentialsButtons activeStep={activeStep} onGenerate={onGenerate} onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip} onGenerateValidatorDeposits={onGenerateValidatorDeposits}/>
                 </Container>
             </div>
         </Card>
@@ -43,21 +43,32 @@ export function AwsUploadActionAreaCard(props: any) {
 }
 
 export function AwsCredentialsButtons(props: any) {
-    const { onSave, onGenerate, onGenerateValidatorDeposits, activeStep } = props;
-    console.log("activeStep: " + activeStep)
+    const { activeStep, onGenerate, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip, onSave } = props;
+    console.log("activeStep", activeStep)
+    console.log("onGenerate", onGenerate)
+    console.log("onGenerateValidatorDeposits", onGenerateValidatorDeposits)
+    console.log("onGenerateValidatorEncryptedKeystoresZip", onGenerateValidatorEncryptedKeystoresZip)
+
     return (
         <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
-            <Button variant="contained" onClick={onSave}>
-                Create
-            </Button>
             {activeStep === 1 ? (
-                <Button variant="outlined" onClick={onGenerateValidatorDeposits}>
-                    Generate Validators
-                </Button>
+                <div>
+                    <Button variant="contained" onClick={onGenerateValidatorDeposits}>
+                        Generate Deposit Data
+                    </Button>
+                    <Button variant="outlined" onClick={onGenerateValidatorEncryptedKeystoresZip}>
+                        Generate Keystores Zip
+                    </Button>
+                </div>
             ) : (
-                <Button variant="outlined" onClick={onGenerate}>
-                    Generate
-                </Button>
+                <div>
+                    <Button variant="contained" onClick={onSave}>
+                        Create
+                    </Button>
+                    <Button variant="outlined" onClick={onGenerate}>
+                        Generate
+                    </Button>
+                </div>
             )}
         </Stack>
     );

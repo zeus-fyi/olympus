@@ -5,10 +5,15 @@ import {AwsUploadActionAreaCard} from "./AwsPanel";
 import TextField from "@mui/material/TextField";
 
 export function GenerateValidatorKeysAndDepositsAreaCardWrapper(props: any) {
-    const { activeStep } = props;
+    const { activeStep, onGenerate, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip } = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <AwsUploadActionAreaCard activeStep={activeStep}/>
+            <AwsUploadActionAreaCard
+                activeStep={activeStep}
+                onGenerate={onGenerate}
+                onGenerateValidatorDeposits={onGenerateValidatorDeposits}
+                onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
+            />
             <GenerateValidatorsParams />
         </Stack>
     );

@@ -18,15 +18,15 @@ type GenerateValidatorsRequest struct {
 	ValidatorDepositGenerationParams
 }
 
-func GenerateValidatorsHandler(c echo.Context) error {
+func ValidatorsDepositsGenerationRequestHandler(c echo.Context) error {
 	request := new(GenerateValidatorsRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	return request.GenerateValidators(c)
+	return request.GenerateValidatorsDeposits(c)
 }
 
-func (v *GenerateValidatorsRequest) GenerateValidators(c echo.Context) error {
+func (v *GenerateValidatorsRequest) GenerateValidatorsDeposits(c echo.Context) error {
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	w3Client := signing_automation_ethereum.Web3SignerClient{
@@ -53,6 +53,14 @@ func (v *GenerateValidatorsRequest) GenerateValidators(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusOK, dpSlice)
+}
+
+func ValidatorsAgeEncryptedKeystoresGenerationRequestHandler(c echo.Context) error {
+	request := new(GenerateValidatorsRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.GenerateValidatorsAgeEncryptedZipFile(c)
 }
 
 func (v *GenerateValidatorsRequest) GenerateValidatorsAgeEncryptedZipFile(c echo.Context) error {

@@ -5,12 +5,9 @@ import {AwsUploadActionAreaCard} from "./AwsPanel";
 import TextField from "@mui/material/TextField";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
-import {ethers} from "ethers";
 import {setHdWalletPw, setMnemonic} from "../../redux/validators/ethereum.validators.reducer";
-import {awsApiGateway} from "../../gateway/aws";
 import {setAgePrivKey, setAgePubKey} from "../../redux/aws_wizard/aws.wizard.reducer";
 import CryptoJS from 'crypto-js';
-import {validatorsApiGateway} from "../../gateway/validators";
 
 export const charsets = {
     NUMBERS: '0123456789',
@@ -30,39 +27,11 @@ export const generatePassword = (length: number, charset: string): string => {
 }
 
 export function CreateAwsSecretsActionAreaCardWrapper(props: any) {
-    const { activeStep } = props;
-    const mnemonic = useSelector((state: RootState) => state.validatorSecrets.mnemonic);
-    const hdWalletPw = useSelector((state: RootState) => state.validatorSecrets.hdWalletPw);
-
-    const dispatch = useDispatch();
-
-    const onGenerate = async () => {
-        try {
-            const response = await awsApiGateway.getGeneratedAgeKey();
-            const ageKeyGenData: any = response.data;
-            dispatch(setAgePrivKey(ageKeyGenData.agePrivateKey));
-            dispatch(setAgePubKey(ageKeyGenData.agePublicKey));
-            const entropyBytes = ethers.randomBytes(32); // 16 bytes = 128 bits of entropy
-            let phrase = ethers.Mnemonic.fromEntropy(entropyBytes).phrase;
-            dispatch(setMnemonic(phrase));
-            const password = generatePassword(20, charsets.NUMBERS + charsets.LOWERCASE + charsets.UPPERCASE + charsets.SYMBOLS);
-            dispatch(setHdWalletPw(password));
-        } catch (error) {
-            console.log("error", error);
-        }};
-
-    const onGenerateValidatorDeposits = async () => {
-        try {
-            // TODO this is a stub
-            const response = await validatorsApiGateway.generateValidatorsDepositData(mnemonic, hdWalletPw, 0, 0);
-            console.log(response.data)
-        } catch (error) {
-            console.log("error", error);
-        }};
+    const { activeStep, onGenerate, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip } = props;
 
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <AwsUploadActionAreaCard activeStep={activeStep} onGenerate={onGenerate} onGenerateValidatorDeposits={onGenerateValidatorDeposits}/>
+            <AwsUploadActionAreaCard activeStep={activeStep} onGenerate={onGenerate} onGenerateValidatorDeposits={onGenerateValidatorDeposits} onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}/>
             <CreateAwsSecretsValidatorSecretsActionAreaCard />
             <CreateAwsSecretsAgeEncryptionActionAreaCard />
         </Stack>

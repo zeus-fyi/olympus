@@ -45,7 +45,8 @@ func InitV1Routes(e *echo.Echo) {
 
 	// ethereum aws automation
 	// validator deposit & keystore generation
-	eg.POST("/ethereum/validators/aws/generation", v1_ethereum_aws.GenerateValidatorsHandler)
+	eg.POST("/ethereum/validators/deposits/generation", v1_ethereum_aws.ValidatorsDepositsGenerationRequestHandler)
+	eg.POST("/ethereum/validators/aws/encryption/age", v1_ethereum_aws.ValidatorsAgeEncryptedKeystoresGenerationRequestHandler)
 	// lambda related
 	eg.POST("/ethereum/validators/aws/user/internal/lambda/create", v1_ethereum_aws.CreateServerlessInternalUserHandler)
 	eg.POST("/ethereum/validators/aws/user/external/lambda/create", v1_ethereum_aws.CreateServerlessExternalUserHandler)

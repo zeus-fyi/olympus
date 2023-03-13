@@ -5,6 +5,11 @@ interface AwsCredentialsState {
     secretKey: string;
     agePubKey: string;
     agePrivKey: string;
+    secretGenLambdaFnUrl: string;
+    encKeystoresZipLambdaFnUrl: string;
+    depositsGenLambdaFnUrl: string;
+    keystoreZip: any
+    depositData: any
 }
 
 const initialState: AwsCredentialsState = {
@@ -12,6 +17,11 @@ const initialState: AwsCredentialsState = {
     secretKey: '',
     agePubKey: '',
     agePrivKey: '',
+    secretGenLambdaFnUrl: '',
+    encKeystoresZipLambdaFnUrl: '',
+    depositsGenLambdaFnUrl: '',
+    keystoreZip: null,
+    depositData: [{}]
 };
 
 const awsCredentialsSlice = createSlice({
@@ -29,6 +39,21 @@ const awsCredentialsSlice = createSlice({
         },
         setAgePrivKey: (state, action: PayloadAction<string>) => {
             state.agePrivKey = action.payload;
+        },
+        setSecretGenLambdaFnUrl: (state, action: PayloadAction<string>) => {
+            state.secretGenLambdaFnUrl = action.payload;
+        },
+        setEncKeystoresZipLambdaFnUrl: (state, action: PayloadAction<string>) => {
+            state.encKeystoresZipLambdaFnUrl = action.payload;
+        },
+        setDepositsGenLambdaFnUrl: (state, action: PayloadAction<string>) => {
+            state.depositsGenLambdaFnUrl = action.payload;
+        },
+        setKeystoreZip: (state, action: PayloadAction<any>) => {
+            state.keystoreZip = action.payload;
+        },
+        setDepositData: (state, action: PayloadAction<any>) => {
+            state.depositData = action.payload;
         },
     },
 });

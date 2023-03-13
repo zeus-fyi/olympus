@@ -3,6 +3,9 @@ import {Card, CardActions, CardContent, Container, Stack} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import {EncryptedKeystoresZipUploadActionAreaCard} from "./AwsExtUserAndLambdaVerify";
+import {awsApiGateway} from "../../gateway/aws";
+import {useSelector} from "react-redux";
+import {RootState} from "../../redux/store";
 
 export function CreateAwsLambdaFunctionActionAreaCardWrapper(props: any) {
     const { activeStep } = props;
@@ -24,7 +27,6 @@ export function CreateAwsLambdaFunctionAreaCard() {
                     <LambdaFunctionCreation />
                 </Container >
             </div>
-
     );
 }
 
@@ -48,6 +50,17 @@ export function LambdaFunctionKeystoresLayerCreation() {
 
 
 export function LambdaFunctionCreation() {
+    const acKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
+    const seKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
+
+    const onCreateLambdaSignerFn = async () => {
+        try {
+            console.log('onCreateLambdaSignerFn')
+            const response = await awsApiGateway.createLambdaFunction(acKey, seKey);
+            console.log(response.data)
+        } catch (error) {
+            console.log("error", error);
+        }};
     return (
         <Card sx={{ maxWidth: 400 }}>
             <CardContent>
@@ -59,13 +72,24 @@ export function LambdaFunctionCreation() {
                 </Typography>
             </CardContent>
             <CardActions>
-                <Button size="small">Create</Button>
+                <Button onClick={onCreateLambdaSignerFn} size="small">Create</Button>
             </CardActions>
         </Card>
     );
 }
 
 export function LambdaFunctionSecretsCreation() {
+    const accessKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
+    const secretKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
+
+    const onCreateLambdaSecretsFn = async () => {
+        try {
+            console.log('onCreateLambdaSecretsFn')
+            const response = await awsApiGateway.createValidatorSecretsLambda(accessKey, secretKey);
+            console.log(response.data)
+        } catch (error) {
+            console.log("error", error);
+        }};
     return (
         <Card sx={{ maxWidth: 400 }}>
             <CardContent>
@@ -77,13 +101,23 @@ export function LambdaFunctionSecretsCreation() {
                 </Typography>
             </CardContent>
             <CardActions>
-                <Button size="small">Create</Button>
+                <Button onClick={onCreateLambdaSecretsFn} size="small">Create</Button>
             </CardActions>
         </Card>
     );
 }
 
 export function LambdaFunctionGenValidatorDepositsCreation() {
+    const accKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
+    const secKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const onCreateLambdaValidatorDepositsFn = async () => {
+        try {
+            console.log('onCreateLambdaValidatorDepositsFn')
+            const response = await awsApiGateway.createValidatorsDepositDataLambda(accKey, secKey);
+            console.log(response.data)
+        } catch (error) {
+            console.log("error", error);
+        }};
     return (
         <Card sx={{ maxWidth: 400 }}>
             <CardContent>
@@ -95,13 +129,23 @@ export function LambdaFunctionGenValidatorDepositsCreation() {
                 </Typography>
             </CardContent>
             <CardActions>
-                <Button size="small">Create</Button>
+                <Button onClick={onCreateLambdaValidatorDepositsFn} size="small">Create</Button>
             </CardActions>
         </Card>
     );
 }
 
 export function LambdaFunctionGenEncZipFileCreation() {
+    const ak = useSelector((state: RootState) => state.awsCredentials.accessKey);
+    const sk = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const onCreateLambdaEncryptedKeystoresZipFn = async () => {
+        try {
+            console.log('onCreateLambdaValidatorDepositsFn')
+            const response = await awsApiGateway.createValidatorsDepositDataLambda(ak, sk);
+            console.log(response.data)
+        } catch (error) {
+            console.log("error", error);
+        }};
     return (
         <Card sx={{ maxWidth: 400 }}>
             <CardContent>
@@ -113,7 +157,7 @@ export function LambdaFunctionGenEncZipFileCreation() {
                 </Typography>
             </CardContent>
             <CardActions>
-                <Button size="small">Create</Button>
+                <Button onClick={onCreateLambdaEncryptedKeystoresZipFn} size="small">Create</Button>
             </CardActions>
         </Card>
     );

@@ -48,11 +48,6 @@ export function AwsUploadActionAreaCard(props: any) {
 
 export function AwsCredentialsButtons(props: any) {
     const { activeStep, onGenerate, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip, onSave } = props;
-    console.log("activeStep", activeStep)
-    console.log("onGenerate", onGenerate)
-    console.log("onGenerateValidatorDeposits", onGenerateValidatorDeposits)
-    console.log("onGenerateValidatorEncryptedKeystoresZip", onGenerateValidatorEncryptedKeystoresZip)
-
     return (
         <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
             {activeStep === 3 ? (

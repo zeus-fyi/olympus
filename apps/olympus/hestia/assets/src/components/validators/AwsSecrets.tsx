@@ -6,8 +6,8 @@ import TextField from "@mui/material/TextField";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import {setHdWalletPw, setMnemonic} from "../../redux/validators/ethereum.validators.reducer";
-import {setAgePrivKey, setAgePubKey} from "../../redux/aws_wizard/aws.wizard.reducer";
 import CryptoJS from 'crypto-js';
+import {LambdaFunctionSecretsCreation} from "./AwsLambdaCreation";
 
 export const charsets = {
     NUMBERS: '0123456789',
@@ -28,19 +28,18 @@ export const generatePassword = (length: number, charset: string): string => {
 
 export function CreateAwsSecretsActionAreaCardWrapper(props: any) {
     const { activeStep, onGenerate, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip } = props;
-
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
             <AwsUploadActionAreaCard activeStep={activeStep} onGenerate={onGenerate} onGenerateValidatorDeposits={onGenerateValidatorDeposits} onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}/>
-            <CreateAwsSecretsValidatorSecretsActionAreaCard />
-            <CreateAwsSecretsAgeEncryptionActionAreaCard />
+            <LambdaFunctionSecretsCreation />
+            <CreateAwsSecretNamesAreaCard />
         </Stack>
     );
 }
 
-export function CreateAwsSecretsAgeEncryptionActionAreaCard() {
+export function CreateAwsSecretNamesAreaCard() {
     const [awsAgeEncryptionKeyName, setAwsAgeEncryptionKeyName] = useState('ageEncryptionKeyEphemery');
-
+    const [awsValidatorSecretName, setAwsValidatorSecretName] = useState('mnemonicAndHDWalletEphemery');
     return (
         <Card sx={{ maxWidth: 500 }}>
             <div style={{ display: 'flex' }}>
@@ -48,30 +47,10 @@ export function CreateAwsSecretsAgeEncryptionActionAreaCard() {
                 </Stack>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <AgeEncryptionKeySecretName awsAgeEncryptionKeyName={awsAgeEncryptionKeyName}/>
-                    <AgeCredentialsPublicKey />
-                    <AgeCredentialsPrivateKey />
-                </Container>
-            </div>
-        </Card>
-    );
-}
-
-export function CreateAwsSecretsValidatorSecretsActionAreaCard(props: any) {
-    const [awsValidatorSecretName, setAwsValidatorSecretName] = useState('mnemonicAndHDWalletEphemery');
-
-    return (
-        <Card sx={{ maxWidth: 500 }}>
-            <div style={{ display: 'flex' }}>
-                <Stack direction="column" alignItems="center" spacing={2}>
-                </Stack>
-                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <ValidatorSecretName validatorSecretName={awsValidatorSecretName}/>
-                    <HDWalletPassword />
-                    <Mnemonic />
                 </Container>
             </div>
         </Card>
-
     );
 }
 
@@ -140,48 +119,6 @@ export function AgeEncryptionKeySecretName(props: any) {
             variant="outlined"
             value={awsAgeEncryptionKeyName}
             onChange={onAccessAwsAgeEncryptionKeyName}
-            sx={{ width: '100%' }}
-        />
-    );
-}
-
-
-export function AgeCredentialsPublicKey(props: any) {
-    const dispatch = useDispatch();
-    const onAgePubKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const newPubKeyValue = event.target.value;
-        dispatch(setAgePubKey(newPubKeyValue));
-    };
-    const agePubKey = useSelector((state: RootState) => state.awsCredentials.agePubKey);
-    return (
-        <TextField
-            fullWidth
-            id="AgePubKey"
-            label="Age Encryption Public Key"
-            variant="outlined"
-            value={agePubKey}
-            onChange={onAgePubKeyChange}
-            sx={{ width: '100%' }}
-        />
-    );
-}
-
-export function AgeCredentialsPrivateKey(props: any) {
-    const dispatch = useDispatch();
-
-    const onAgePrivKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const newPrivKeyValue = event.target.value;
-        dispatch(setAgePrivKey(newPrivKeyValue));
-    };
-    const agePrivKey = useSelector((state: RootState) => state.awsCredentials.agePrivKey);
-    return (
-        <TextField
-            fullWidth
-            id="AgePrivKey"
-            label="Age Encryption Secret Key"
-            variant="outlined"
-            value={agePrivKey}
-            onChange={onAgePrivKeyChange}
             sx={{ width: '100%' }}
         />
     );

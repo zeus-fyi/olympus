@@ -22,9 +22,9 @@ import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 
 const steps = [
+    'Create Lambda User Roles',
     'Create AWS Secrets',
     'Generate Validator Deposits',
-    'Create Lambda User Roles',
     'Create or Update Lambda Function',
     'Verify Lambda Function',
     'Create Zeus Service Request',
@@ -33,6 +33,12 @@ const steps = [
 
 function stepComponents(activeStep: number, onGenerate: any, onGenerateValidatorDeposits: any, onGenerateValidatorEncryptedKeystoresZip: any) {
     const steps = [
+        <CreateInternalAwsLambdaUserRolesActionAreaCardWrapper
+            activeStep={activeStep}
+            onGenerate={onGenerate}
+            onGenerateValidatorDeposits={onGenerateValidatorDeposits}
+            onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
+        />,
         <CreateAwsSecretsActionAreaCardWrapper
             activeStep={activeStep}
             onGenerate={onGenerate}
@@ -40,12 +46,6 @@ function stepComponents(activeStep: number, onGenerate: any, onGenerateValidator
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
         />,
         <GenerateValidatorKeysAndDepositsAreaCardWrapper
-            activeStep={activeStep}
-            onGenerate={onGenerate}
-            onGenerateValidatorDeposits={onGenerateValidatorDeposits}
-            onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
-        />,
-        <CreateInternalAwsLambdaUserRolesActionAreaCardWrapper
             activeStep={activeStep}
             onGenerate={onGenerate}
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}

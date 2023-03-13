@@ -3,6 +3,8 @@ import {useState} from "react";
 import {Card, Container, Stack} from "@mui/material";
 import {AwsUploadActionAreaCard} from "./AwsPanel";
 import TextField from "@mui/material/TextField";
+import {LambdaFunctionGenValidatorDepositsCreation} from "./AwsLambdaCreation";
+import {ValidatorSecretName} from "./AwsSecrets";
 
 export function GenerateValidatorKeysAndDepositsAreaCardWrapper(props: any) {
     const { activeStep, onGenerate, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip } = props;
@@ -14,6 +16,7 @@ export function GenerateValidatorKeysAndDepositsAreaCardWrapper(props: any) {
                 onGenerateValidatorDeposits={onGenerateValidatorDeposits}
                 onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
             />
+            <LambdaFunctionGenValidatorDepositsCreation />
             <GenerateValidatorsParams />
         </Stack>
     );
@@ -23,6 +26,7 @@ export function GenerateValidatorsParams() {
     const [awsValidatorsNetwork, setAwsValidatorsNetwork] = useState('Ephemery');
     const [validatorCount, onValidatorCountChange ] = useState('1');
     const [offset, setOffset] = useState('0');
+    const [awsValidatorSecretName, setAwsValidatorSecretName] = useState('mnemonicAndHDWalletEphemery');
 
     return (
         <Card sx={{ maxWidth: 500 }}>
@@ -30,6 +34,7 @@ export function GenerateValidatorsParams() {
                 <Stack direction="column" alignItems="center" spacing={2}>
                 </Stack>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                    <ValidatorSecretName validatorSecretName={awsValidatorSecretName}/>
                     <ValidatorsNetwork awsValidatorsNetwork={awsValidatorsNetwork}/>
                     <ValidatorCount validatorCount={validatorCount}/>
                     <ValidatorOffsetHD offset={offset}/>

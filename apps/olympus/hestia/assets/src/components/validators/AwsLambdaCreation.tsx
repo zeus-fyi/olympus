@@ -4,8 +4,14 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import {EncryptedKeystoresZipUploadActionAreaCard} from "./AwsExtUserAndLambdaVerify";
 import {awsApiGateway} from "../../gateway/aws";
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
+import {
+    setBlsSignerLambdaFnUrl,
+    setDepositsGenLambdaFnUrl,
+    setEncKeystoresZipLambdaFnUrl,
+    setSecretGenLambdaFnUrl
+} from "../../redux/aws_wizard/aws.wizard.reducer";
 
 export function CreateAwsLambdaFunctionActionAreaCardWrapper(props: any) {
     const { activeStep } = props;
@@ -48,16 +54,18 @@ export function LambdaFunctionKeystoresLayerCreation() {
     );
 }
 
-
 export function LambdaFunctionCreation() {
     const acKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
     const seKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const dispatch = useDispatch();
 
     const onCreateLambdaSignerFn = async () => {
         try {
             console.log('onCreateLambdaSignerFn')
             const response = await awsApiGateway.createLambdaFunction(acKey, seKey);
             console.log(response.data)
+            dispatch(setBlsSignerLambdaFnUrl(response.data));
+
         } catch (error) {
             console.log("error", error);
         }};
@@ -81,12 +89,14 @@ export function LambdaFunctionCreation() {
 export function LambdaFunctionSecretsCreation() {
     const accessKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
     const secretKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const dispatch = useDispatch();
 
     const onCreateLambdaSecretsFn = async () => {
         try {
             console.log('onCreateLambdaSecretsFn')
             const response = await awsApiGateway.createValidatorSecretsLambda(accessKey, secretKey);
             console.log(response.data)
+            dispatch(setSecretGenLambdaFnUrl(response.data));
         } catch (error) {
             console.log("error", error);
         }};
@@ -110,11 +120,14 @@ export function LambdaFunctionSecretsCreation() {
 export function LambdaFunctionGenValidatorDepositsCreation() {
     const accKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
     const secKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const dispatch = useDispatch();
+
     const onCreateLambdaValidatorDepositsFn = async () => {
         try {
             console.log('onCreateLambdaValidatorDepositsFn')
             const response = await awsApiGateway.createValidatorsDepositDataLambda(accKey, secKey);
             console.log(response.data)
+            dispatch(setDepositsGenLambdaFnUrl(response.data));
         } catch (error) {
             console.log("error", error);
         }};
@@ -138,11 +151,14 @@ export function LambdaFunctionGenValidatorDepositsCreation() {
 export function LambdaFunctionGenEncZipFileCreation() {
     const ak = useSelector((state: RootState) => state.awsCredentials.accessKey);
     const sk = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const dispatch = useDispatch();
+
     const onCreateLambdaEncryptedKeystoresZipFn = async () => {
         try {
-            console.log('onCreateLambdaValidatorDepositsFn')
+            console.log('onCreateLambdaEncryptedKeystoresZipFn')
             const response = await awsApiGateway.createValidatorsDepositDataLambda(ak, sk);
             console.log(response.data)
+            dispatch(setEncKeystoresZipLambdaFnUrl(response.data));
         } catch (error) {
             console.log("error", error);
         }};

@@ -65,7 +65,6 @@ export function LambdaFunctionCreation() {
             const response = await awsApiGateway.createLambdaFunction(acKey, seKey);
             console.log(response.data)
             dispatch(setBlsSignerLambdaFnUrl(response.data));
-
         } catch (error) {
             console.log("error", error);
         }};
@@ -121,7 +120,6 @@ export function LambdaFunctionGenValidatorDepositsCreation() {
     const accKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
     const secKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
     const dispatch = useDispatch();
-
     const onCreateLambdaValidatorDepositsFn = async () => {
         try {
             console.log('onCreateLambdaValidatorDepositsFn')

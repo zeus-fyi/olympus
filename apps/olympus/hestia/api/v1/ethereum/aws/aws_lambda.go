@@ -12,8 +12,6 @@ import (
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
-// TODODODODODDO
-
 func CreateBlsLambdaFunctionHandler(c echo.Context) error {
 	request := new(AwsRequest)
 	if err := c.Bind(request); err != nil {
@@ -70,7 +68,7 @@ func CreateLambdaFunctionSecretsKeyGenHandler(c echo.Context) error {
 func (a *AwsRequest) CreateLambdaFunctionSecretsKeyGen(c echo.Context) error {
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
-	lambdaFnUrl, err := serverless_aws_automation.CreateLambdaFunction(ctx, a.AuthAWS)
+	lambdaFnUrl, err := serverless_aws_automation.CreateLambdaFunctionSecretsKeyGen(ctx, a.AuthAWS)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("AwsRequest, CreateLambdaFunctionSecretsKeyGen error")
 		return c.JSON(http.StatusInternalServerError, err)
@@ -89,7 +87,7 @@ func CreateLambdaFunctionEncZipGenHandler(c echo.Context) error {
 func (a *AwsRequest) CreateLambdaFunctionEncZipGen(c echo.Context) error {
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
-	lambdaFnUrl, err := serverless_aws_automation.CreateLambdaFunction(ctx, a.AuthAWS)
+	lambdaFnUrl, err := serverless_aws_automation.CreateLambdaFunctionEncryptedKeystoresZip(ctx, a.AuthAWS)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("AwsRequest, CreateLambdaFunctionEncZipGen error")
 		return c.JSON(http.StatusInternalServerError, err)
@@ -108,7 +106,7 @@ func CreateLambdaFunctionDepositsGenHandler(c echo.Context) error {
 func (a *AwsRequest) CreateLambdaFunctionDepositsGen(c echo.Context) error {
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
-	lambdaFnUrl, err := serverless_aws_automation.CreateLambdaFunction(ctx, a.AuthAWS)
+	lambdaFnUrl, err := serverless_aws_automation.CreateLambdaFunctionDepositGen(ctx, a.AuthAWS)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("AwsRequest, CreateLambdaFunctionDepositsGen error")
 		return c.JSON(http.StatusInternalServerError, err)

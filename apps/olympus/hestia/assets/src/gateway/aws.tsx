@@ -46,7 +46,7 @@ class AwsApiGateway {
         }
     }
     async createLambdaFunction(ak: string, sk: string): Promise<any>  {
-        const url = `/v1/ethereum/validators/aws/lambda/create`;
+        const url = `/v1/ethereum/validators/aws/lambda/signer/create`;
         try {
             const sessionID = localStorage.getItem("sessionID");
             let config = {
@@ -85,6 +85,72 @@ class AwsApiGateway {
             return await hestiaApi.post(url, payload, config)
         } catch (exc) {
             console.error('error sending create lambda function keystores layer');
+            console.error(exc);
+            return
+        }
+    }
+    async createValidatorsDepositDataLambda(ak: string, sk: string): Promise<any>  {
+        const url = `/v1/ethereum/validators/aws/lambda/deposits/create`;
+        try {
+            const sessionID = localStorage.getItem("sessionID");
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`,
+                }}
+            const payload: AwsRequest = {
+                authAWS: {
+                    region: "us-west-1",
+                    accessKey: ak,
+                    secretKey: sk,
+                },
+            };
+            return await hestiaApi.post(url, payload, config)
+        } catch (exc) {
+            console.error('error sending create validator deposits lambda function');
+            console.error(exc);
+            return
+        }
+    }
+    async createValidatorsAgeEncryptedKeystoresZipLambda(ak: string, sk: string): Promise<any>  {
+        const url = `/v1/ethereum/validators/aws/lambda/keystores/zip/create`;
+        try {
+            const sessionID = localStorage.getItem("sessionID");
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`,
+                }}
+            const payload: AwsRequest = {
+                authAWS: {
+                    region: "us-west-1",
+                    accessKey: ak,
+                    secretKey: sk,
+                },
+            };
+            return await hestiaApi.post(url, payload, config)
+        } catch (exc) {
+            console.error('error sending create validator encrypted keystores lambda function');
+            console.error(exc);
+            return
+        }
+    }
+    async createValidatorSecretsLambda(ak: string, sk: string): Promise<any> {
+        const url = `/v1/ethereum/validators/aws/lambda/secrets/create`;
+        try {
+            const sessionID = localStorage.getItem("sessionID");
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`,
+                }}
+            const payload: AwsRequest = {
+                authAWS: {
+                    region: "us-west-1",
+                    accessKey: ak,
+                    secretKey: sk,
+                },
+            };
+            return await hestiaApi.post(url, payload, config)
+        } catch (exc) {
+            console.error('error sending create validator secrets lambda function');
             console.error(exc);
             return
         }

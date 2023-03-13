@@ -22,12 +22,11 @@ import {awsApiGateway} from "../../gateway/aws";
 import {setAgePrivKey, setAgePubKey} from "../../redux/aws_wizard/aws.wizard.reducer";
 import {ethers} from "ethers";
 import {setHdWalletPw, setMnemonic} from "../../redux/validators/ethereum.validators.reducer";
-import {validatorsApiGateway} from "../../gateway/validators";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 
 const steps = [
-    'AWS Auth & Internal Lambda User Roles',
+    'AWS Auth & Internal User Roles',
     'Create Internal Lambdas',
     'Generate Secrets',
     'Generate Validator Keys/Deposits',
@@ -170,8 +169,8 @@ export default function AwsWizardPanel() {
         try {
             // TODO this is a stub
             console.log('onGenerateValidatorDeposits')
-            const response = await validatorsApiGateway.generateValidatorsDepositData(mnemonic, hdWalletPw,count,hdOffset);
-            console.log(response.data)
+            //const response = await validatorsApiGateway.generateValidatorsDepositDataLambda(mnemonic, hdWalletPw,count,hdOffset);
+            //console.log(response.data)
         } catch (error) {
             console.log("error", error);
         }};
@@ -180,8 +179,8 @@ export default function AwsWizardPanel() {
         try {
             // TODO this is a stub
             console.log('onGenerateValidatorEncryptedKeystoresZip')
-            const response = await validatorsApiGateway.generateValidatorsAgeEncryptedKeystoresZip(agePubKey, agePrivKey,mnemonic, hdWalletPw, count, hdOffset);
-            console.log(response.data)
+            //const response = await validatorsApiGateway.createValidatorsAgeEncryptedKeystoresZipLambda(agePubKey, agePrivKey,mnemonic, hdWalletPw, count, hdOffset);
+            //console.log(response.data)
         } catch (error) {
             console.log("error", error);
         }};

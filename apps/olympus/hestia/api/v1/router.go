@@ -54,8 +54,8 @@ func InitV1Routes(e *echo.Echo) {
 
 	eg.POST("/ethereum/validators/aws/lambda/signer/create", v1_ethereum_aws.CreateBlsLambdaFunctionHandler)
 	eg.POST("/ethereum/validators/aws/lambda/keystores/zip/create", v1_ethereum_aws.CreateLambdaFunctionEncZipGenHandler)
-	eg.POST("/ethereum/validators/aws/lambda/secrets/gen/create", v1_ethereum_aws.CreateLambdaFunctionSecretsKeyGenHandler)
-	eg.POST("/ethereum/validators/aws/lambda/deposits/sgen/create", v1_ethereum_aws.CreateLambdaFunctionDepositsGenHandler)
+	eg.POST("/ethereum/validators/aws/lambda/secrets/create", v1_ethereum_aws.CreateLambdaFunctionSecretsKeyGenHandler)
+	eg.POST("/ethereum/validators/aws/lambda/deposits/create", v1_ethereum_aws.CreateLambdaFunctionDepositsGenHandler)
 
 	eg.POST("/ethereum/validators/aws/lambda/verify", v1_ethereum_aws.VerifyLambdaFunctionHandler)
 

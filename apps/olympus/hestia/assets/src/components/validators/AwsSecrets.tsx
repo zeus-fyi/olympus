@@ -7,7 +7,11 @@ import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import {setHdWalletPw, setMnemonic} from "../../redux/validators/ethereum.validators.reducer";
 import CryptoJS from 'crypto-js';
-import {LambdaFunctionSecretsCreation} from "./AwsLambdaCreation";
+import {
+    LambdaFunctionGenEncZipFileCreation,
+    LambdaFunctionGenValidatorDepositsCreation,
+    LambdaFunctionSecretsCreation
+} from "./AwsLambdaCreation";
 
 export const charsets = {
     NUMBERS: '0123456789',
@@ -26,12 +30,27 @@ export const generatePassword = (length: number, charset: string): string => {
     return result;
 }
 
+export function CreateAwsInternalLambdasActionAreaCardWrapper(props: any) {
+    const { activeStep, onGenerate, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip } = props;
+    return (
+        <Stack direction="row" alignItems="center" spacing={2}>
+            <LambdaFunctionSecretsCreation />
+            <LambdaFunctionGenEncZipFileCreation />
+            <LambdaFunctionGenValidatorDepositsCreation />
+        </Stack>
+    );
+}
+
 export function CreateAwsSecretsActionAreaCardWrapper(props: any) {
     const { activeStep, onGenerate, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip } = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <AwsUploadActionAreaCard activeStep={activeStep} onGenerate={onGenerate} onGenerateValidatorDeposits={onGenerateValidatorDeposits} onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}/>
-            <LambdaFunctionSecretsCreation />
+            <AwsUploadActionAreaCard
+                activeStep={activeStep}
+                onGenerate={onGenerate}
+                onGenerateValidatorDeposits={onGenerateValidatorDeposits}
+                onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
+            />
             <CreateAwsSecretNamesAreaCard />
         </Stack>
     );
@@ -46,8 +65,8 @@ export function CreateAwsSecretNamesAreaCard() {
                 <Stack direction="column" alignItems="center" spacing={2}>
                 </Stack>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <AgeEncryptionKeySecretName awsAgeEncryptionKeyName={awsAgeEncryptionKeyName}/>
                     <ValidatorSecretName validatorSecretName={awsValidatorSecretName}/>
+                    <AgeEncryptionKeySecretName awsAgeEncryptionKeyName={awsAgeEncryptionKeyName}/>
                 </Container>
             </div>
         </Card>

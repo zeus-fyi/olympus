@@ -2,21 +2,19 @@ import * as React from "react";
 import {useState} from "react";
 import {Card, Container, Stack} from "@mui/material";
 import TextField from "@mui/material/TextField";
-import {LambdaFunctionGenEncZipFileCreation, LambdaFunctionGenValidatorDepositsCreation} from "./AwsLambdaCreation";
 import {ValidatorSecretName} from "./AwsSecrets";
+import {AwsUploadActionAreaCard} from "./AwsPanel";
 
 export function GenerateValidatorKeysAndDepositsAreaCardWrapper(props: any) {
     const { activeStep, onGenerate, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip } = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            {/*<AwsUploadActionAreaCard*/}
-            {/*    activeStep={activeStep}*/}
-            {/*    onGenerate={onGenerate}*/}
-            {/*    onGenerateValidatorDeposits={onGenerateValidatorDeposits}*/}
-            {/*    onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}*/}
-            {/*/>*/}
-            <LambdaFunctionGenEncZipFileCreation />
-            <LambdaFunctionGenValidatorDepositsCreation />
+            <AwsUploadActionAreaCard
+                activeStep={activeStep}
+                onGenerate={onGenerate}
+                onGenerateValidatorDeposits={onGenerateValidatorDeposits}
+                onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
+            />
             <GenerateValidatorsParams />
         </Stack>
     );

@@ -33,8 +33,12 @@ export function AwsUploadActionAreaCard(props: any) {
                 />
             </CardActionArea>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <AwsCredentialsAccessKey accessKey={accessKey} onAccessKeyChange={onAccessKeyChange}/>
-                    <AwsCredentialsSecret secretKey={secretKey} onSecretKeyChange={onSecretKeyChange}/>
+                    {activeStep === 0 ? (
+                        <div>
+                        <AwsCredentialsAccessKey accessKey={accessKey} onAccessKeyChange={onAccessKeyChange}/>
+                        <AwsCredentialsSecret secretKey={secretKey} onSecretKeyChange={onSecretKeyChange}/>
+                        </div>
+                    ): (  <div>   </div> )}
                     <AwsCredentialsButtons activeStep={activeStep} onGenerate={onGenerate} onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip} onGenerateValidatorDeposits={onGenerateValidatorDeposits}/>
                 </Container>
             </div>
@@ -51,7 +55,7 @@ export function AwsCredentialsButtons(props: any) {
 
     return (
         <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
-            {activeStep === 1 ? (
+            {activeStep === 3 ? (
                 <div>
                     <Button variant="contained" onClick={onGenerateValidatorDeposits}>
                         Generate Deposit Data

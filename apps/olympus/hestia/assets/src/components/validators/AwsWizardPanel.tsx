@@ -6,7 +6,12 @@ import StepButton from '@mui/material/StepButton';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Container from "@mui/material/Container";
-import {charsets, CreateAwsSecretsActionAreaCardWrapper, generatePassword} from "./AwsSecrets";
+import {
+    charsets,
+    CreateAwsInternalLambdasActionAreaCardWrapper,
+    CreateAwsSecretsActionAreaCardWrapper,
+    generatePassword
+} from "./AwsSecrets";
 import {CreateInternalAwsLambdaUserRolesActionAreaCardWrapper} from "./AwsLambdaUserRolePolicies";
 import {CreateAwsLambdaFunctionActionAreaCardWrapper} from "./AwsLambdaCreation";
 import {LambdaExtUserVerify} from "./AwsExtUserAndLambdaVerify";
@@ -22,11 +27,11 @@ import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 
 const steps = [
-    'Create Lambda User Roles',
-    'Create AWS Secrets',
-    'Generate Validator Deposits',
-    'Create or Update Lambda Function',
-    'Verify Lambda Function',
+    'AWS Auth & Internal Lambda User Roles',
+    'Create Internal Lambdas',
+    'Generate Secrets',
+    'Generate Validator Keys/Deposits',
+    'Create/Update External Lambda Function',
     'Create Zeus Service Request',
     'Submit Deposits',
 ];
@@ -34,6 +39,12 @@ const steps = [
 function stepComponents(activeStep: number, onGenerate: any, onGenerateValidatorDeposits: any, onGenerateValidatorEncryptedKeystoresZip: any) {
     const steps = [
         <CreateInternalAwsLambdaUserRolesActionAreaCardWrapper
+            activeStep={activeStep}
+            onGenerate={onGenerate}
+            onGenerateValidatorDeposits={onGenerateValidatorDeposits}
+            onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
+        />,
+        <CreateAwsInternalLambdasActionAreaCardWrapper
             activeStep={activeStep}
             onGenerate={onGenerate}
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}

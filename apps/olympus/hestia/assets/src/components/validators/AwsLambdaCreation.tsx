@@ -1,14 +1,14 @@
 import * as React from "react";
 import {Card, CardActions, CardContent, Container, Stack} from "@mui/material";
-import {AwsUploadActionAreaCard} from "./AwsPanel";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
+import {EncryptedKeystoresZipUploadActionAreaCard} from "./AwsExtUserAndLambdaVerify";
 
 export function CreateAwsLambdaFunctionActionAreaCardWrapper(props: any) {
     const { activeStep } = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <AwsUploadActionAreaCard activeStep={activeStep}/>
+            <EncryptedKeystoresZipUploadActionAreaCard />
             <CreateAwsLambdaFunctionAreaCard />
         </Stack>
     );

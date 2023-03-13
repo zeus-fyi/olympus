@@ -1,21 +1,21 @@
 import * as React from "react";
 import {useState} from "react";
 import {Card, Container, Stack} from "@mui/material";
-import {AwsUploadActionAreaCard} from "./AwsPanel";
 import TextField from "@mui/material/TextField";
-import {LambdaFunctionGenValidatorDepositsCreation} from "./AwsLambdaCreation";
+import {LambdaFunctionGenEncZipFileCreation, LambdaFunctionGenValidatorDepositsCreation} from "./AwsLambdaCreation";
 import {ValidatorSecretName} from "./AwsSecrets";
 
 export function GenerateValidatorKeysAndDepositsAreaCardWrapper(props: any) {
     const { activeStep, onGenerate, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip } = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <AwsUploadActionAreaCard
-                activeStep={activeStep}
-                onGenerate={onGenerate}
-                onGenerateValidatorDeposits={onGenerateValidatorDeposits}
-                onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
-            />
+            {/*<AwsUploadActionAreaCard*/}
+            {/*    activeStep={activeStep}*/}
+            {/*    onGenerate={onGenerate}*/}
+            {/*    onGenerateValidatorDeposits={onGenerateValidatorDeposits}*/}
+            {/*    onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}*/}
+            {/*/>*/}
+            <LambdaFunctionGenEncZipFileCreation />
             <LambdaFunctionGenValidatorDepositsCreation />
             <GenerateValidatorsParams />
         </Stack>
@@ -31,8 +31,7 @@ export function GenerateValidatorsParams() {
     return (
         <Card sx={{ maxWidth: 500 }}>
             <div style={{ display: 'flex' }}>
-                <Stack direction="column" alignItems="center" spacing={2}>
-                </Stack>
+
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <ValidatorSecretName validatorSecretName={awsValidatorSecretName}/>
                     <ValidatorsNetwork awsValidatorsNetwork={awsValidatorsNetwork}/>

@@ -18,9 +18,6 @@ export function CreateAwsLambdaFunctionAreaCard() {
     return (
             <div style={{ display: 'flex' }}>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <LambdaFunctionGenEncZipFileCreation />
-                </Container >
-                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <LambdaFunctionKeystoresLayerCreation />
                 </Container >
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>

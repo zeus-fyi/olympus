@@ -201,6 +201,6 @@ type AuthAWS = {
     secretKey: string;
 };
 
-type AwsRequest = {
+export type AwsRequest = {
     authAWS: AuthAWS;
 };

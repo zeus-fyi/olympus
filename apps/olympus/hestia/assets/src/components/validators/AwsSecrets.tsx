@@ -1,7 +1,6 @@
 import * as React from "react";
 import {useState} from "react";
-import {Card, Container, Stack} from "@mui/material";
-import {AwsUploadActionAreaCard} from "./AwsPanel";
+import {Card, CardActions, CardContent, Container, Stack} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
@@ -12,6 +11,9 @@ import {
     LambdaFunctionGenValidatorDepositsCreation,
     LambdaFunctionSecretsCreation
 } from "./AwsLambdaCreation";
+import Button from "@mui/material/Button";
+import {awsLambdaApiGateway} from "../../gateway/aws.lambda";
+import Typography from "@mui/material/Typography";
 
 export const charsets = {
     NUMBERS: '0123456789',
@@ -45,12 +47,6 @@ export function CreateAwsSecretsActionAreaCardWrapper(props: any) {
     const { activeStep, onGenerate, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip } = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <AwsUploadActionAreaCard
-                activeStep={activeStep}
-                onGenerate={onGenerate}
-                onGenerateValidatorDeposits={onGenerateValidatorDeposits}
-                onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
-            />
             <CreateAwsSecretNamesAreaCard />
         </Stack>
     );
@@ -59,16 +55,37 @@ export function CreateAwsSecretsActionAreaCardWrapper(props: any) {
 export function CreateAwsSecretNamesAreaCard() {
     const [awsAgeEncryptionKeyName, setAwsAgeEncryptionKeyName] = useState('ageEncryptionKeyEphemery');
     const [awsValidatorSecretName, setAwsValidatorSecretName] = useState('mnemonicAndHDWalletEphemery');
+    const sgLambdaURL = useSelector((state: RootState) => state.awsCredentials.secretGenLambdaFnUrl);
+    const ak = useSelector((state: RootState) => state.awsCredentials.accessKey);
+    const sk = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const dispatch = useDispatch();
+    const onCreateNewValidatorSecrets = async () => {
+        try {
+            const response = await awsLambdaApiGateway.invokeValidatorSecretsGeneration(sgLambdaURL, ak, sk, awsValidatorSecretName, awsAgeEncryptionKeyName);
+            console.log(response.data)
+        } catch (error) {
+            console.log("error", error);
+        }};
     return (
         <Card sx={{ maxWidth: 500 }}>
-            <div style={{ display: 'flex' }}>
+            <CardContent>
+                <Typography gutterBottom variant="h5" component="div">
+                    Generate New Secrets Using Lambda
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                    Securely generates a new mnemonic, hd wallet password, and age encryption key and saves them in your secret manager with the below key names. If
+                    secrets already exist with the same key name, it will not overwrite them.
+                </Typography>
+            </CardContent>
                 <Stack direction="column" alignItems="center" spacing={2}>
-                </Stack>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <ValidatorSecretName validatorSecretName={awsValidatorSecretName}/>
                     <AgeEncryptionKeySecretName awsAgeEncryptionKeyName={awsAgeEncryptionKeyName}/>
                 </Container>
-            </div>
+                <CardActions>
+                    <Button onClick={onCreateNewValidatorSecrets} size="small">Create</Button>
+                </CardActions>
+                </Stack>
         </Card>
     );
 }

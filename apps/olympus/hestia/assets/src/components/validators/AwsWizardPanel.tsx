@@ -6,23 +6,14 @@ import StepButton from '@mui/material/StepButton';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Container from "@mui/material/Container";
-import {
-    charsets,
-    CreateAwsInternalLambdasActionAreaCardWrapper,
-    CreateAwsSecretsActionAreaCardWrapper,
-    generatePassword
-} from "./AwsSecrets";
+import {CreateAwsInternalLambdasActionAreaCardWrapper, CreateAwsSecretsActionAreaCardWrapper,} from "./AwsSecrets";
 import {CreateInternalAwsLambdaUserRolesActionAreaCardWrapper} from "./AwsLambdaUserRolePolicies";
 import {CreateAwsLambdaFunctionActionAreaCardWrapper} from "./AwsLambdaCreation";
 import {LambdaExtUserVerify} from "./AwsExtUserAndLambdaVerify";
 import {GenerateValidatorKeysAndDepositsAreaCardWrapper} from "./ValidatorsGeneration";
 import {ZeusServiceRequestAreaCardWrapper} from "./ZeusServiceRequest";
 import {ValidatorsDepositRequestAreaCardWrapper} from "./ValidatorsDeposits";
-import {awsApiGateway} from "../../gateway/aws";
-import {setAgePrivKey, setAgePubKey} from "../../redux/aws_wizard/aws.wizard.reducer";
-import {ethers} from "ethers";
-import {setHdWalletPw, setMnemonic} from "../../redux/validators/ethereum.validators.reducer";
-import {useDispatch, useSelector} from "react-redux";
+import {useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 
 const steps = [
@@ -35,53 +26,45 @@ const steps = [
     'Submit Deposits',
 ];
 
-function stepComponents(activeStep: number, onGenerate: any, onGenerateValidatorDeposits: any, onGenerateValidatorEncryptedKeystoresZip: any) {
+function stepComponents(activeStep: number, onGenerateValidatorDeposits: any, onGenerateValidatorEncryptedKeystoresZip: any) {
     const steps = [
         <CreateInternalAwsLambdaUserRolesActionAreaCardWrapper
             activeStep={activeStep}
-            onGenerate={onGenerate}
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
         />,
         <CreateAwsInternalLambdasActionAreaCardWrapper
             activeStep={activeStep}
-            onGenerate={onGenerate}
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
         />,
         <CreateAwsSecretsActionAreaCardWrapper
             activeStep={activeStep}
-            onGenerate={onGenerate}
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
         />,
         <GenerateValidatorKeysAndDepositsAreaCardWrapper
             activeStep={activeStep}
-            onGenerate={onGenerate}
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
         />,
         <CreateAwsLambdaFunctionActionAreaCardWrapper
             activeStep={activeStep}
-            onGenerate={onGenerate}
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
         />,
         <LambdaExtUserVerify
             activeStep={activeStep}
-            onGenerate={onGenerate}
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
         />,
         <ZeusServiceRequestAreaCardWrapper
             activeStep={activeStep}
-            onGenerate={onGenerate}
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
         />,
         <ValidatorsDepositRequestAreaCardWrapper
             activeStep={activeStep}
-            onGenerate={onGenerate}
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
         />]
@@ -140,28 +123,7 @@ export default function AwsWizardPanel() {
         setCompleted({});
     };
 
-    const dispatch = useDispatch();
-    const onGenerate = async () => {
-        try {
-            console.log('onGenerate')
-            const response = await awsApiGateway.getGeneratedAgeKey();
-            const ageKeyGenData: any = response.data;
-            dispatch(setAgePrivKey(ageKeyGenData.agePrivateKey));
-            dispatch(setAgePubKey(ageKeyGenData.agePublicKey));
-            const entropyBytes = ethers.randomBytes(32); // 16 bytes = 128 bits of entropy
-            let phrase = ethers.Mnemonic.fromEntropy(entropyBytes).phrase;
-            dispatch(setMnemonic(phrase));
-            const password = generatePassword(20, charsets.NUMBERS + charsets.LOWERCASE + charsets.UPPERCASE + charsets.SYMBOLS);
-            dispatch(setHdWalletPw(password));
-        } catch (error) {
-            console.log("error", error);
-        }};
 
-    const mnemonic = useSelector((state: RootState) => state.validatorSecrets.mnemonic);
-    const hdWalletPw = useSelector((state: RootState) => state.validatorSecrets.hdWalletPw);
-
-    const agePubKey = useSelector((state: RootState) => state.awsCredentials.agePubKey);
-    const agePrivKey = useSelector((state: RootState) => state.awsCredentials.agePrivKey);
     const count = useSelector((state: RootState) => state.validatorSecrets.validatorCount);
     const hdOffset = useSelector((state: RootState) => state.validatorSecrets.hdOffset);
 
@@ -209,7 +171,7 @@ export default function AwsWizardPanel() {
                 ) : (
                     <React.Fragment>
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                            {stepComponents(activeStep, onGenerate, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip)}
+                            {stepComponents(activeStep, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip)}
                         </Container>
                         <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                             <Button

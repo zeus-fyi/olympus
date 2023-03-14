@@ -5,6 +5,8 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import {Network} from "./ZeusServiceRequest";
+import {useSelector} from "react-redux";
+import {RootState} from "../../redux/store";
 
 export function ValidatorsDepositRequestAreaCardWrapper(props: any) {
     const { activeStep } = props;
@@ -49,7 +51,7 @@ export function SubmitValidators() {
 
 
 export function ValidatorsDepositsSubmitWrapper() {
-    const [network, setNetwork] = useState('Ephemery');
+    const network = useSelector((state: RootState) => state.validatorSecrets.network);
     const [eth1Pk, setEth1Pk] = useState('');
 
     return (

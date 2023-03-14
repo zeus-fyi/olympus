@@ -4,7 +4,6 @@ import {Card, CardActions, CardContent, Container, Stack} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
-import {setHdWalletPw, setMnemonic} from "../../redux/validators/ethereum.validators.reducer";
 import CryptoJS from 'crypto-js';
 import {
     LambdaFunctionGenEncZipFileCreation,
@@ -14,6 +13,7 @@ import {
 import Button from "@mui/material/Button";
 import {awsLambdaApiGateway} from "../../gateway/aws.lambda";
 import Typography from "@mui/material/Typography";
+import {setAgeSecretName, setValidatorSecretsName} from "../../redux/aws_wizard/aws.wizard.reducer";
 
 export const charsets = {
     NUMBERS: '0123456789',
@@ -33,7 +33,6 @@ export const generatePassword = (length: number, charset: string): string => {
 }
 
 export function CreateAwsInternalLambdasActionAreaCardWrapper(props: any) {
-    const { activeStep, onGenerate, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip } = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
             <LambdaFunctionSecretsCreation />
@@ -44,7 +43,6 @@ export function CreateAwsInternalLambdasActionAreaCardWrapper(props: any) {
 }
 
 export function CreateAwsSecretsActionAreaCardWrapper(props: any) {
-    const { activeStep, onGenerate, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip } = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
             <CreateAwsSecretNamesAreaCard />
@@ -91,7 +89,12 @@ export function CreateAwsSecretNamesAreaCard() {
 }
 
 export function ValidatorSecretName(props: any) {
-    const { validatorSecretName, onValidatorSecretNameNameChange } = props;
+    const dispatch = useDispatch();
+    const validatorSecretName = useSelector((state: RootState) => state.awsCredentials.validatorSecretsName);
+    const onValidatorSecretNameNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const newValidatorSecretsName = event.target.value;
+        dispatch(setValidatorSecretsName(newValidatorSecretsName));
+    };
     return (
         <TextField
             fullWidth
@@ -110,7 +113,6 @@ export function Mnemonic() {
     const dispatch = useDispatch();
     const onMnemonicChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const newMnemonicValue = event.target.value;
-        dispatch(setMnemonic(newMnemonicValue));
     };
     return (
         <TextField
@@ -130,7 +132,6 @@ export function HDWalletPassword() {
     const hdWalletPw = useSelector((state: RootState) => state.validatorSecrets.hdWalletPw);
     const onHdWalletPwChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const newHdWalletPw = event.target.value;
-        dispatch(setHdWalletPw(newHdWalletPw));
     };
     return (
         <TextField
@@ -146,7 +147,12 @@ export function HDWalletPassword() {
 }
 
 export function AgeEncryptionKeySecretName(props: any) {
-    const { awsAgeEncryptionKeyName, onAccessAwsAgeEncryptionKeyName} = props;
+    const dispatch = useDispatch();
+    const awsAgeEncryptionKeyName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
+    const onAccessAwsAgeEncryptionKeyName = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const newAgeSecretName = event.target.value;
+        dispatch(setAgeSecretName(newAgeSecretName));
+    };
     return (
         <TextField
             fullWidth

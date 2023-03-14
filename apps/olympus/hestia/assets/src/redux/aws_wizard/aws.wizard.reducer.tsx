@@ -3,8 +3,8 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 interface AwsCredentialsState {
     accessKey: string;
     secretKey: string;
-    agePubKey: string;
-    agePrivKey: string;
+    validatorSecretsName: string;
+    ageSecretName: string;
     blsSignerLambdaFnUrl: string;
     secretGenLambdaFnUrl: string;
     encKeystoresZipLambdaFnUrl: string;
@@ -12,12 +12,11 @@ interface AwsCredentialsState {
     keystoreZip: any
     depositData: any
 }
-
 const initialState: AwsCredentialsState = {
     accessKey: '',
     secretKey: '',
-    agePubKey: '',
-    agePrivKey: '',
+    validatorSecretsName: 'mnemonicAndHDWalletEphemery',
+    ageSecretName: 'ageEncryptionKeyEphemery',
     blsSignerLambdaFnUrl: '',
     secretGenLambdaFnUrl: '',
     encKeystoresZipLambdaFnUrl: '',
@@ -36,11 +35,11 @@ const awsCredentialsSlice = createSlice({
         setSecretKey: (state, action: PayloadAction<string>) => {
             state.secretKey = action.payload;
         },
-        setAgePubKey: (state, action: PayloadAction<string>) => {
-            state.agePubKey = action.payload;
+        setValidatorSecretsName: (state, action: PayloadAction<string>) => {
+            state.validatorSecretsName = action.payload;
         },
-        setAgePrivKey: (state, action: PayloadAction<string>) => {
-            state.agePrivKey = action.payload;
+        setAgeSecretName: (state, action: PayloadAction<string>) => {
+            state.ageSecretName = action.payload;
         },
         setBlsSignerLambdaFnUrl: (state, action: PayloadAction<string>) => {
             state.blsSignerLambdaFnUrl = action.payload;
@@ -63,7 +62,7 @@ const awsCredentialsSlice = createSlice({
     },
 });
 
-export const { setAccessKey, setSecretKey, setAgePubKey, setAgePrivKey,
+export const { setAccessKey, setSecretKey, setAgeSecretName, setValidatorSecretsName,
     setBlsSignerLambdaFnUrl, setSecretGenLambdaFnUrl, setEncKeystoresZipLambdaFnUrl, setDepositsGenLambdaFnUrl,
     setKeystoreZip, setDepositData } = awsCredentialsSlice.actions;
 

@@ -45,7 +45,8 @@ export function LambdaFunctionKeystoresLayerCreation() {
                     Lambda Keystores Layer Creation
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                    Creates your encrypted keystores layer for usage in your AWS lambda function using your generated encrypted zip keystores file.
+                    Creates your encrypted keystores layer for usage in your AWS lambda signing function using your generated encrypted zip keystores file.
+                    If you did not create your zip file in the previous step you'll need to manually upload it on the left.
                 </Typography>
             </CardContent>
             <CardActions>
@@ -74,7 +75,9 @@ export function LambdaFunctionCreation() {
                     Lambda Function Signer Creation
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                    Creates a BLS signer lambda function in AWS that decrypts your keystores with your Age Encryption key to sign messages.
+                    Creates a BLS signer lambda function in AWS that decrypts your keystores with your Age Encryption key,
+                    and will sign messages for your validators. You only need to share the
+                    key name reference, not the actual public or private key.
                 </Typography>
             </CardContent>
             <CardActions>
@@ -90,7 +93,6 @@ export function LambdaFunctionSecretsCreation() {
     const sgLambdaURL = useSelector((state: RootState) => state.awsCredentials.secretGenLambdaFnUrl);
 
     const dispatch = useDispatch();
-
     const onCreateLambdaSecretsFn = async () => {
         try {
             const response = await awsApiGateway.createValidatorSecretsLambda(accessKey, secretKey);
@@ -186,7 +188,8 @@ export function LambdaFunctionGenEncZipFileCreation() {
                     Lambda Function Encrypted Keystores Creation
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                    Creates a lambda function in AWS that generates an encrypted zip file with validator signing keys.
+                    Creates a lambda function in AWS that securely generates an encrypted zip file with validator signing keys
+                    using your mnemonic from secret manager.
                 </Typography>
             </CardContent>
             <TextField

@@ -8,6 +8,7 @@ import {awsApiGateway} from "../../gateway/aws";
 import {setDepositsGenLambdaFnUrl, setEncKeystoresZipLambdaFnUrl} from "../../redux/aws_wizard/aws.wizard.reducer";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
+import {setHdOffset, setNetworkName, setValidatorCount} from "../../redux/validators/ethereum.validators.reducer";
 
 export function GenerateValidatorKeysAndDepositsAreaCardWrapper(props: any) {
     return (
@@ -21,8 +22,6 @@ export function GenerateValidatorKeysAndDepositsAreaCardWrapper(props: any) {
 
 export function GenerateValidatorsParams() {
     const awsValidatorsNetwork = useSelector((state: RootState) => state.validatorSecrets.network);
-    const validatorCount = useSelector((state: RootState) => state.validatorSecrets.validatorCount);
-    const offset = useSelector((state: RootState) => state.validatorSecrets.hdOffset);
     const awsValidatorSecretName = useSelector((state: RootState) => state.awsCredentials.validatorSecretsName);
     const awsAgeEncryptionKeyName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
 
@@ -33,8 +32,8 @@ export function GenerateValidatorsParams() {
                     <ValidatorSecretName validatorSecretName={awsValidatorSecretName}/>
                     <AgeEncryptionKeySecretName awsAgeEncryptionKeyName={awsAgeEncryptionKeyName}/>
                     <ValidatorsNetwork awsValidatorsNetwork={awsValidatorsNetwork}/>
-                    <ValidatorCount validatorCount={validatorCount}/>
-                    <ValidatorOffsetHD offset={offset}/>
+                    <ValidatorCount />
+                    <ValidatorOffsetHD />
                 </Container>
             </div>
         </Card>
@@ -125,48 +124,70 @@ export function GenValidatorDepositsCreationActionsCard() {
     );
 }
 
-// TODO set these in redux
 export function ValidatorsNetwork(props: any) {
-    const { awsValidatorsNetwork, setAwsValidatorsNetwork } = props;
-
+    const dispatch = useDispatch();
+    const network = useSelector((state: RootState) => state.validatorSecrets.network);
+    const onValidatorsNetworkChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        try {
+            const network = event.target.value;
+            dispatch(setNetworkName(network));
+        } catch (error) {
+            console.log("error", error);
+        }};
     return (
         <TextField
             fullWidth
             id="validatorsNetwork"
             label="Network Name"
             variant="outlined"
-            value={awsValidatorsNetwork}
-            onChange={setAwsValidatorsNetwork}
+            value={network}
+            onChange={onValidatorsNetworkChange}
             sx={{ width: '100%' }}
         />
     );
 }
-// TODO set these in redux
-export function ValidatorCount(props: any) {
-    const { validatorCount, onValidatorCountChange } = props;
+export function ValidatorCount() {
+    const dispatch = useDispatch();
+    const validatorCount = useSelector((state: RootState) => state.validatorSecrets.validatorCount);
+    const onValidatorCountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        try {
+            const validatorCount = parseInt(event.target.value);
+            dispatch(setValidatorCount(validatorCount));
+        } catch (error) {
+            console.log("error", error);
+        }};
     return (
         <TextField
             fullWidth
             id="validatorCount"
             label="Validator Count"
             variant="outlined"
+            type="number"
             value={validatorCount}
             onChange={onValidatorCountChange}
             sx={{ width: '100%' }}
         />
     );
 }
-// TODO set these in redux
-export function ValidatorOffsetHD(props: any) {
-    const { offset, setOffset } = props;
+export function ValidatorOffsetHD() {
+    const dispatch = useDispatch();
+    const hdOffset = useSelector((state: RootState) => state.validatorSecrets.hdOffset);
+    const onHdOffsetChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        try {
+            const hdOffset = parseInt(event.target.value);
+            dispatch(setHdOffset(hdOffset));
+        } catch (error) {
+            console.log("error", error);
+        }};
     return (
         <TextField
             fullWidth
             id="validatorOffsetHD"
             label="Validator HD Offset"
             variant="outlined"
-            value={offset}
-            onChange={setOffset}
+            type="number"
+            value={hdOffset}
+            onChange={onHdOffsetChange}
             sx={{ width: '100%' }}
         />
     );

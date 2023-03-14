@@ -12,6 +12,7 @@ import {
     setEncKeystoresZipLambdaFnUrl,
     setSecretGenLambdaFnUrl
 } from "../../redux/aws_wizard/aws.wizard.reducer";
+import TextField from "@mui/material/TextField";
 
 export function CreateAwsLambdaFunctionActionAreaCardWrapper(props: any) {
     const { activeStep } = props;
@@ -61,9 +62,7 @@ export function LambdaFunctionCreation() {
 
     const onCreateLambdaSignerFn = async () => {
         try {
-            console.log('onCreateLambdaSignerFn')
             const response = await awsApiGateway.createLambdaFunction(acKey, seKey);
-            console.log(response.data)
             dispatch(setBlsSignerLambdaFnUrl(response.data));
         } catch (error) {
             console.log("error", error);
@@ -88,13 +87,13 @@ export function LambdaFunctionCreation() {
 export function LambdaFunctionSecretsCreation() {
     const accessKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
     const secretKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const sgLambdaURL = useSelector((state: RootState) => state.awsCredentials.secretGenLambdaFnUrl);
+
     const dispatch = useDispatch();
 
     const onCreateLambdaSecretsFn = async () => {
         try {
-            console.log('onCreateLambdaSecretsFn')
             const response = await awsApiGateway.createValidatorSecretsLambda(accessKey, secretKey);
-            console.log(response.data)
             dispatch(setSecretGenLambdaFnUrl(response.data));
         } catch (error) {
             console.log("error", error);
@@ -109,6 +108,16 @@ export function LambdaFunctionSecretsCreation() {
                     Creates a lambda function in AWS that securely generates a mnemonic, hdWalletPassword, and Age Encryption key and stores them in your secrets manager.
                 </Typography>
             </CardContent>
+            <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="secretGenLambdaFnUrl"
+                label="SecretGenLambdaFnUrl"
+                name="secretGenLambdaFnUrl"
+                value={sgLambdaURL}
+                autoFocus
+            />
             <CardActions>
                 <Button onClick={onCreateLambdaSecretsFn} size="small">Create</Button>
             </CardActions>
@@ -119,12 +128,12 @@ export function LambdaFunctionSecretsCreation() {
 export function LambdaFunctionGenValidatorDepositsCreation() {
     const accKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
     const secKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const depositsGenLambdaFnUrl = useSelector((state: RootState) => state.awsCredentials.depositsGenLambdaFnUrl);
+
     const dispatch = useDispatch();
     const onCreateLambdaValidatorDepositsFn = async () => {
         try {
-            console.log('onCreateLambdaValidatorDepositsFn')
             const response = await awsApiGateway.createValidatorsDepositDataLambda(accKey, secKey);
-            console.log(response.data)
             dispatch(setDepositsGenLambdaFnUrl(response.data));
         } catch (error) {
             console.log("error", error);
@@ -139,6 +148,16 @@ export function LambdaFunctionGenValidatorDepositsCreation() {
                     Creates a lambda function in AWS that securely generates validator deposit messages using your mnemonic from secrets manager.
                 </Typography>
             </CardContent>
+            <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="depositsGenLambdaFnUrl"
+                label="DepositsGenLambdaFnUrl"
+                name="depositsGenLambdaFnUrl"
+                value={depositsGenLambdaFnUrl}
+                autoFocus
+            />
             <CardActions>
                 <Button onClick={onCreateLambdaValidatorDepositsFn} size="small">Create</Button>
             </CardActions>
@@ -149,13 +168,13 @@ export function LambdaFunctionGenValidatorDepositsCreation() {
 export function LambdaFunctionGenEncZipFileCreation() {
     const ak = useSelector((state: RootState) => state.awsCredentials.accessKey);
     const sk = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const encKeystoresZipLambdaFnUrl = useSelector((state: RootState) => state.awsCredentials.encKeystoresZipLambdaFnUrl);
+
     const dispatch = useDispatch();
 
     const onCreateLambdaEncryptedKeystoresZipFn = async () => {
         try {
-            console.log('onCreateLambdaEncryptedKeystoresZipFn')
-            const response = await awsApiGateway.createValidatorsDepositDataLambda(ak, sk);
-            console.log(response.data)
+            const response = await awsApiGateway.createValidatorsAgeEncryptedKeystoresZipLambda(ak, sk);
             dispatch(setEncKeystoresZipLambdaFnUrl(response.data));
         } catch (error) {
             console.log("error", error);
@@ -170,6 +189,16 @@ export function LambdaFunctionGenEncZipFileCreation() {
                     Creates a lambda function in AWS that generates an encrypted zip file with validator signing keys.
                 </Typography>
             </CardContent>
+            <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="encKeystoresZipLambdaFnUrl"
+                label="EncryptedKeystoresZipLambdaFnUrl"
+                name="encKeystoresZipLambdaFnUrl"
+                value={encKeystoresZipLambdaFnUrl}
+                autoFocus
+            />
             <CardActions>
                 <Button onClick={onCreateLambdaEncryptedKeystoresZipFn} size="small">Create</Button>
             </CardActions>

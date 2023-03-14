@@ -1,5 +1,4 @@
 import * as React from "react";
-import {useState} from "react";
 import {Card, CardActions, CardContent, Container, Stack} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import {useDispatch, useSelector} from "react-redux";
@@ -51,16 +50,17 @@ export function CreateAwsSecretsActionAreaCardWrapper(props: any) {
 }
 
 export function CreateAwsSecretNamesAreaCard() {
-    const [awsAgeEncryptionKeyName, setAwsAgeEncryptionKeyName] = useState('ageEncryptionKeyEphemery');
-    const [awsValidatorSecretName, setAwsValidatorSecretName] = useState('mnemonicAndHDWalletEphemery');
     const sgLambdaURL = useSelector((state: RootState) => state.awsCredentials.secretGenLambdaFnUrl);
     const ak = useSelector((state: RootState) => state.awsCredentials.accessKey);
     const sk = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const awsValidatorSecretName = useSelector((state: RootState) => state.awsCredentials.validatorSecretsName);
+    const awsAgeEncryptionKeyName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
+
     const dispatch = useDispatch();
     const onCreateNewValidatorSecrets = async () => {
         try {
-            const response = await awsLambdaApiGateway.invokeValidatorSecretsGeneration(sgLambdaURL, ak, sk, awsValidatorSecretName, awsAgeEncryptionKeyName);
-            console.log(response.data)
+            const creds = {accessKeyId: ak, secretAccessKey: sk};
+            const response = await awsLambdaApiGateway.invokeValidatorSecretsGeneration(sgLambdaURL, creds, awsValidatorSecretName, awsAgeEncryptionKeyName);
         } catch (error) {
             console.log("error", error);
         }};

@@ -17,7 +17,7 @@ func CreateBlsLambdaFunctionHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	return request.CreateKeystores(c)
+	return request.CreateLambdaFunctionBlsSigner(c)
 }
 
 func (a *AwsRequest) CreateLambdaFunctionBlsSigner(c echo.Context) error {
@@ -62,7 +62,7 @@ func CreateLambdaFunctionSecretsKeyGenHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	return request.CreateKeystores(c)
+	return request.CreateLambdaFunctionSecretsKeyGen(c)
 }
 
 func (a *AwsRequest) CreateLambdaFunctionSecretsKeyGen(c echo.Context) error {
@@ -81,7 +81,7 @@ func CreateLambdaFunctionEncZipGenHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	return request.CreateKeystores(c)
+	return request.CreateLambdaFunctionEncZipGen(c)
 }
 
 func (a *AwsRequest) CreateLambdaFunctionEncZipGen(c echo.Context) error {
@@ -100,7 +100,7 @@ func CreateLambdaFunctionDepositsGenHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	return request.CreateKeystores(c)
+	return request.CreateLambdaFunctionDepositsGen(c)
 }
 
 func (a *AwsRequest) CreateLambdaFunctionDepositsGen(c echo.Context) error {

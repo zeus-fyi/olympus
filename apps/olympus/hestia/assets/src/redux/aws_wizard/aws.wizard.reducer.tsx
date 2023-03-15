@@ -9,7 +9,6 @@ interface AwsCredentialsState {
     secretGenLambdaFnUrl: string;
     encKeystoresZipLambdaFnUrl: string;
     depositsGenLambdaFnUrl: string;
-    keystoreZip: any
     depositData: [{}]
 }
 const initialState: AwsCredentialsState = {
@@ -21,7 +20,6 @@ const initialState: AwsCredentialsState = {
     secretGenLambdaFnUrl: '',
     encKeystoresZipLambdaFnUrl: '',
     depositsGenLambdaFnUrl: '',
-    keystoreZip: null,
     depositData: [{}]
 };
 
@@ -53,9 +51,6 @@ const awsCredentialsSlice = createSlice({
         setDepositsGenLambdaFnUrl: (state, action: PayloadAction<string>) => {
             state.depositsGenLambdaFnUrl = action.payload;
         },
-        setKeystoreZip: (state, action: PayloadAction<any>) => {
-            state.keystoreZip = action.payload;
-        },
         setDepositData: (state, action: PayloadAction<any>) => {
             state.depositData = action.payload;
         },
@@ -64,6 +59,6 @@ const awsCredentialsSlice = createSlice({
 
 export const { setAccessKey, setSecretKey, setAgeSecretName, setValidatorSecretsName,
     setBlsSignerLambdaFnUrl, setSecretGenLambdaFnUrl, setEncKeystoresZipLambdaFnUrl, setDepositsGenLambdaFnUrl,
-    setKeystoreZip, setDepositData } = awsCredentialsSlice.actions;
+    setDepositData } = awsCredentialsSlice.actions;
 
 export default awsCredentialsSlice.reducer;

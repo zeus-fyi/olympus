@@ -9,7 +9,6 @@ import {
     setDepositData,
     setDepositsGenLambdaFnUrl,
     setEncKeystoresZipLambdaFnUrl,
-    setKeystoreZip
 } from "../../redux/aws_wizard/aws.wizard.reducer";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
@@ -44,7 +43,18 @@ export function GenerateValidatorsParams() {
         </Card>
     );
 }
-
+function download(blob: any, filename: string) {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.setAttribute('download', `${filename}`);
+    // the filename you want
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
 export function GenerateZipValidatorActionsCard() {
     const ak = useSelector((state: RootState) => state.awsCredentials.accessKey);
     const sk = useSelector((state: RootState) => state.awsCredentials.secretKey);
@@ -60,10 +70,10 @@ export function GenerateZipValidatorActionsCard() {
             const response = await awsApiGateway.createValidatorsAgeEncryptedKeystoresZipLambda(ak, sk);
             dispatch(setEncKeystoresZipLambdaFnUrl(response.data));
             const creds = {accessKeyId: ak, secretAccessKey: sk};
-            // TODO verify this is correct
             const zip = await awsLambdaApiGateway.invokeEncryptedKeystoresZipGeneration(encKeystoresZipLambdaFnUrl, creds,ageSecretName,validatorSecretsName, validatorCount, hdOffset);
-            const body = await zip.body;
-            dispatch(setKeystoreZip(body))
+            const zipBlob = await zip.blob();
+            const blob = new Blob([zipBlob], {type: 'application/zip'});
+            download(blob, "keystores");
         } catch (error) {
             console.log("error", error);
         }};
@@ -102,7 +112,6 @@ export function GenValidatorDepositsCreationActionsCard() {
     const validatorSecretsName = useSelector((state: RootState) => state.awsCredentials.validatorSecretsName);
     const validatorCount = useSelector((state: RootState) => state.validatorSecrets.validatorCount);
     const hdOffset = useSelector((state: RootState) => state.validatorSecrets.hdOffset);
-    const depositData = useSelector((state: RootState) => state.awsCredentials.depositData);
 
     const depositsGenLambdaFnUrl = useSelector((state: RootState) => state.awsCredentials.depositsGenLambdaFnUrl);
 

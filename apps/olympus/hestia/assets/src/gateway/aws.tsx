@@ -177,21 +177,6 @@ class AwsApiGateway {
             return
         }
     }
-    async getGeneratedAgeKey(): Promise<any>  {
-        const url = `/v1/age/generate`;
-        try {
-            const sessionID = localStorage.getItem("sessionID");
-            let config = {
-                headers: {
-                    'Authorization': `Bearer ${sessionID}`
-                }}
-            return await hestiaApi.get(url, config)
-        } catch (exc) {
-            console.error('error sending age keygen get request');
-            console.error(exc);
-            return
-        }
-    }
 }
 export const awsApiGateway = new AwsApiGateway();
 

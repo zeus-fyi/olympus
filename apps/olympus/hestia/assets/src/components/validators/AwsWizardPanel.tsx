@@ -26,7 +26,8 @@ const steps = [
     'Generate Secrets',
     'Generate Validator Keys/Deposits',
     'Create/Update External Lambda Function',
-    'Create Zeus Service Request',
+    'Verify Lambda Function',
+    'Request Zeus Service',
     'Submit Deposits',
 ];
 

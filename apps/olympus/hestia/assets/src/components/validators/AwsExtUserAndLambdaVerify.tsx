@@ -57,9 +57,6 @@ export function AwsLambdaFunctionVerifyAreaCard() {
     return (
         <div style={{ display: 'flex' }}>
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                <CreateAwsExternalLambdaUser />
-            </Container >
-            <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                 <LambdaVerifyCard />
             </Container >
         </div>

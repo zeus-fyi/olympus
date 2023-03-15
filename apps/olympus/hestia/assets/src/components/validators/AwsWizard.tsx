@@ -25,6 +25,7 @@ import TableBody from "@mui/material/TableBody";
 import MainListItems from "../dashboard/listItems";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import AwsWizardPanel from "./AwsWizardPanel";
+import {ValidatorsDepositsTable} from "./ValidatorsDepositsTable";
 
 const mdTheme = createTheme();
 
@@ -119,7 +120,7 @@ function AwsWizardServiceContent() {
                         </Container>
                     </div>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        {<AwsWizardPageContent />}
+                        {<ValidatorsDepositsTable />}
                     </Container>
                 </Box>
             </Box>

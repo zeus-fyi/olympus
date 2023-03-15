@@ -32,33 +32,34 @@ class AwsLambdaApiGateway {
             );
             return await aws.fetch(request)
         } catch (exc) {
-            console.error('error sending create new internal lambda user');
+            console.error('error sending create new secrets gen via lambda');
             console.error(exc);
             return
         }
     }
-    async invokeValidatorDepositsGeneration(url:string, credentials: AwsCredentialIdentity,network: string, mnemonicHdPwSecretName: string, validatorCount: number, hdOffset: number): Promise<any> {
+    async invokeValidatorDepositsGeneration(url: string, credentials: AwsCredentialIdentity, network: string, mnemonicHdPwSecretName: string, validatorCount: number, hdOffset: number): Promise<any> {
         try {
             const payload = {
+                mnemonicAndHDWalletSecretName: mnemonicHdPwSecretName,
                 validatorCount: validatorCount,
                 hdOffset: hdOffset,
                 network: network,
             }
-            let headers = {
+            const headers = {
                 "Content-Type": "application/json",
             };
-            let accessKeyId = credentials.accessKeyId;
-            let secretAccessKey = credentials.secretAccessKey;
-            let service = "lambda";
-            let region = "us-west-1";
-            let body = JSON.stringify(payload);
-            let aws = new AwsClient({
+            const accessKeyId = credentials.accessKeyId;
+            const secretAccessKey = credentials.secretAccessKey;
+            const service = "lambda";
+            const region = "us-west-1";
+            const body = JSON.stringify(payload);
+            const aws = new AwsClient({
                 accessKeyId,
                 secretAccessKey,
                 service,
                 region,
             })
-            let request = new Request(
+            const request = new Request(
                 `${url}`,
                 {
                     method: "POST",

@@ -5,10 +5,15 @@ import {AgeEncryptionKeySecretName, ValidatorSecretName} from "./AwsSecrets";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import {awsApiGateway} from "../../gateway/aws";
-import {setDepositsGenLambdaFnUrl, setEncKeystoresZipLambdaFnUrl} from "../../redux/aws_wizard/aws.wizard.reducer";
+import {
+    setDepositData,
+    setDepositsGenLambdaFnUrl,
+    setEncKeystoresZipLambdaFnUrl
+} from "../../redux/aws_wizard/aws.wizard.reducer";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import {setHdOffset, setNetworkName, setValidatorCount} from "../../redux/validators/ethereum.validators.reducer";
+import {awsLambdaApiGateway} from "../../gateway/aws.lambda";
 
 export function GenerateValidatorKeysAndDepositsAreaCardWrapper(props: any) {
     return (
@@ -86,6 +91,12 @@ export function GenerateZipValidatorActionsCard() {
 export function GenValidatorDepositsCreationActionsCard() {
     const accKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
     const secKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const network = useSelector((state: RootState) => state.validatorSecrets.network);
+    const validatorSecretsName = useSelector((state: RootState) => state.awsCredentials.validatorSecretsName);
+    const validatorCount = useSelector((state: RootState) => state.validatorSecrets.validatorCount);
+    const hdOffset = useSelector((state: RootState) => state.validatorSecrets.hdOffset);
+    const depositData = useSelector((state: RootState) => state.awsCredentials.depositData);
+
     const depositsGenLambdaFnUrl = useSelector((state: RootState) => state.awsCredentials.depositsGenLambdaFnUrl);
 
     const dispatch = useDispatch();
@@ -93,6 +104,11 @@ export function GenValidatorDepositsCreationActionsCard() {
         try {
             const response = await awsApiGateway.createValidatorsDepositDataLambda(accKey, secKey);
             dispatch(setDepositsGenLambdaFnUrl(response.data));
+            const creds = {accessKeyId: accKey, secretAccessKey: secKey};
+            const depositData = await awsLambdaApiGateway.invokeValidatorDepositsGeneration(depositsGenLambdaFnUrl,creds,network,validatorSecretsName,validatorCount,hdOffset);
+            const body = await depositData.json();
+            console.log(body)
+            dispatch(setDepositData(body));
         } catch (error) {
             console.log("error", error);
         }};

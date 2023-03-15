@@ -10,7 +10,7 @@ interface AwsCredentialsState {
     encKeystoresZipLambdaFnUrl: string;
     depositsGenLambdaFnUrl: string;
     keystoreZip: any
-    depositData: any
+    depositData: [{}]
 }
 const initialState: AwsCredentialsState = {
     accessKey: '',

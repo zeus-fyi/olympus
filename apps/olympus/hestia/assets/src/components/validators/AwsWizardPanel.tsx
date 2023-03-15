@@ -30,7 +30,7 @@ const steps = [
     'Submit Deposits',
 ];
 
-function stepComponents(activeStep: number, onGenerateValidatorDeposits: any, onGenerateValidatorEncryptedKeystoresZip: any, onEncZipFileUpload: any) {
+function stepComponents(activeStep: number, onGenerateValidatorDeposits: any, onGenerateValidatorEncryptedKeystoresZip: any, onEncZipFileUpload: any, zipBlob: Blob) {
     const steps = [
         <CreateInternalAwsLambdaUserRolesActionAreaCardWrapper
             activeStep={activeStep}
@@ -57,6 +57,7 @@ function stepComponents(activeStep: number, onGenerateValidatorDeposits: any, on
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
             onEncZipFileUpload={onEncZipFileUpload}
+            zipBlob={zipBlob}
         />,
         <LambdaExtUserVerify
             activeStep={activeStep}
@@ -129,7 +130,7 @@ export default function AwsWizardPanel() {
     };
 
 
-    const [encZipFile, setEncZipFile] = useState<Blob | null>(null);
+    const [encZipFile, setEncZipFile] = useState<Blob>(new Blob());
     const onGenerateValidatorDeposits = async () => {
         try {
             // TODO this is a stub
@@ -198,7 +199,7 @@ export default function AwsWizardPanel() {
                 ) : (
                     <React.Fragment>
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                            {stepComponents(activeStep, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip, onEncZipFileUpload)}
+                            {stepComponents(activeStep, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip, onEncZipFileUpload, encZipFile)}
                         </Container>
                         <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                             <Button

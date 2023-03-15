@@ -15,20 +15,21 @@ import {
 import TextField from "@mui/material/TextField";
 
 export function CreateAwsLambdaFunctionActionAreaCardWrapper(props: any) {
-    const { activeStep, onEncZipFileUpload } = props;
+    const { activeStep, onEncZipFileUpload, zipBlob } = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
             <EncryptedKeystoresZipUploadActionAreaCard onEncZipFileUpload={onEncZipFileUpload} />
-            <CreateAwsLambdaFunctionAreaCard />
+            <CreateAwsLambdaFunctionAreaCard zipBlob={zipBlob} />
         </Stack>
     );
 }
 
-export function CreateAwsLambdaFunctionAreaCard() {
+export function CreateAwsLambdaFunctionAreaCard(props: any) {
+    const { zipBlob } = props;
     return (
             <div style={{ display: 'flex' }}>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <LambdaFunctionKeystoresLayerCreation />
+                    <LambdaFunctionKeystoresLayerCreation zipBlob={zipBlob}/>
                 </Container >
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <LambdaFunctionCreation />
@@ -37,14 +38,16 @@ export function CreateAwsLambdaFunctionAreaCard() {
     );
 }
 
-export function LambdaFunctionKeystoresLayerCreation() {
+export function LambdaFunctionKeystoresLayerCreation(props: any) {
+    const { zipBlob } = props;
+
     const dispatch = useDispatch();
     const acKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
     const seKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
-    const onCreateLambdaSignerFn = async () => {
+    const onCreateLambdaKeystoresLayer = async () => {
         try {
             const creds = {accessKeyId: acKey, secretAccessKey: seKey};
-            const response = await awsApiGateway.createLambdaFunctionKeystoresLayer(creds);
+            const response = await awsApiGateway.createLambdaFunctionKeystoresLayer(creds, "", zipBlob);
             dispatch(setBlsSignerLambdaFnUrl(response.data));
         } catch (error) {
             console.log("error", error);
@@ -61,7 +64,7 @@ export function LambdaFunctionKeystoresLayerCreation() {
                 </Typography>
             </CardContent>
             <CardActions>
-                <Button size="small">Create</Button>
+                <Button size="small" onClick={onCreateLambdaKeystoresLayer}>Create</Button>
             </CardActions>
         </Card>
     );
@@ -75,7 +78,8 @@ export function LambdaFunctionCreation() {
     const onCreateLambdaSignerFn = async () => {
         try {
             const creds = {accessKeyId: acKey, secretAccessKey: seKey};
-            const response = await awsApiGateway.createLambdaFunction(creds);
+            // TODO
+            const response = await awsApiGateway.createLambdaSignerFunction(creds, "", "");
             dispatch(setBlsSignerLambdaFnUrl(response.data));
         } catch (error) {
             console.log("error", error);

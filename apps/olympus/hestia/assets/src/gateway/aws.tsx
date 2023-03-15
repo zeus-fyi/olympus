@@ -46,7 +46,7 @@ class AwsApiGateway {
             return
         }
     }
-    async createLambdaFunction(credentials: AwsCredentialIdentity): Promise<any>  {
+    async createLambdaSignerFunction(credentials: AwsCredentialIdentity, functionName: string, keystoresLayerName: string): Promise<any>  {
         const url = `/v1/ethereum/validators/aws/lambda/signer/create`;
         try {
             const sessionID = localStorage.getItem("sessionID");
@@ -54,12 +54,14 @@ class AwsApiGateway {
                 headers: {
                     'Authorization': `Bearer ${sessionID}`,
                 }}
-            const payload: AwsRequest = {
+            const payload: AwsRequestSignerCreationRequest = {
                 authAWS: {
                     region: "us-west-1",
                     accessKey: credentials.accessKeyId,
                     secretKey: credentials.secretAccessKey,
                 },
+                functionName: functionName,
+                keystoresLayerName: keystoresLayerName,
             };
             return await hestiaApi.post(url, payload, config)
         } catch (exc) {
@@ -68,24 +70,25 @@ class AwsApiGateway {
             return
         }
     }
-    async createLambdaFunctionKeystoresLayer(credentials: AwsCredentialIdentity): Promise<any>  {
-        const url = `/v1/ethereum/validators/aws/lambda/keystores/layer/create`;
+    async createLambdaFunctionKeystoresLayer(credentials: AwsCredentialIdentity, keystoresLayerName: string, keystoresZip: Blob): Promise<any>  {
+        const url = `/v1/ethereum/validators/aws/lambda/signer/keystores/layer/create`;
         try {
             const sessionID = localStorage.getItem("sessionID");
             let config = {
                 headers: {
                     'Authorization': `Bearer ${sessionID}`,
                 }}
-            const payload: AwsRequest = {
+            const payload: AwsRequestKeystoreLayerCreationRequest = {
                 authAWS: {
                     region: "us-west-1",
                     accessKey: credentials.accessKeyId,
                     secretKey: credentials.secretAccessKey,
                 },
+                keystoresLayerName: keystoresLayerName,
             };
             return await hestiaApi.post(url, payload, config)
         } catch (exc) {
-            console.error('error sending create lambda function keystores layer');
+            console.error('error sending create lambda keystores layer');
             console.error(exc);
             return
         }
@@ -180,6 +183,17 @@ class AwsApiGateway {
     }
 }
 export const awsApiGateway = new AwsApiGateway();
+
+export type AwsRequestSignerCreationRequest = {
+    authAWS: AuthAWS;
+    functionName: string;
+    keystoresLayerName: string;
+};
+
+export type AwsRequestKeystoreLayerCreationRequest = {
+    authAWS: AuthAWS;
+    keystoresLayerName: string;
+};
 
 type AuthAWS = {
     region: string;

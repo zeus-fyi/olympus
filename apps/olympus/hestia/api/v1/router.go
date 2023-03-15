@@ -50,11 +50,13 @@ func InitV1Routes(e *echo.Echo) {
 	// lambda related
 	eg.POST("/ethereum/validators/aws/user/internal/lambda/create", v1_ethereum_aws.CreateServerlessInternalUserHandler)
 	eg.POST("/ethereum/validators/aws/user/external/lambda/create", v1_ethereum_aws.CreateServerlessExternalUserHandler)
-	eg.POST("/ethereum/validators/aws/lambda/keystores/layer/create", v1_ethereum_aws.CreateServerlessKeystoresLayerHandler)
+
+	// lambda signers
+	eg.POST("/ethereum/validators/aws/lambda/signer/create", v1_ethereum_aws.CreateBlsLambdaFunctionHandler)
+	eg.POST("/ethereum/validators/aws/lambda/signer/keystores/layer/create", v1_ethereum_aws.CreateServerlessKeystoresLayerHandler)
 
 	// lambda create
 	eg.POST("/ethereum/validators/aws/lambda/secrets/create", v1_ethereum_aws.CreateLambdaFunctionSecretsKeyGenHandler)
-	eg.POST("/ethereum/validators/aws/lambda/signer/create", v1_ethereum_aws.CreateBlsLambdaFunctionHandler)
 	eg.POST("/ethereum/validators/aws/lambda/keystores/zip/create", v1_ethereum_aws.CreateLambdaFunctionEncZipGenHandler)
 	eg.POST("/ethereum/validators/aws/lambda/deposits/create", v1_ethereum_aws.CreateLambdaFunctionDepositsGenHandler)
 

@@ -6,7 +6,6 @@ import TextField from "@mui/material/TextField";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import {setFeeRecipient, setKeyGroupName, setNetworkName} from "../../redux/validators/ethereum.validators.reducer";
-import {CreateAwsExternalLambdaUser} from "./AwsExtUserAndLambdaVerify";
 
 export function ZeusServiceRequestAreaCardWrapper(props: any) {
     const { activeStep } = props;
@@ -22,9 +21,6 @@ export function ZeusServiceRequestAreaCard() {
         <div style={{ display: 'flex' }}>
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                 <ZeusServiceRequestWrapper />
-            </Container >
-            <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                <CreateAwsExternalLambdaUser />
             </Container >
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                 <ZeusServiceRequest />

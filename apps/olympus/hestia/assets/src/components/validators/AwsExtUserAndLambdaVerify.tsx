@@ -13,6 +13,7 @@ export function LambdaExtUserVerify(props: any) {
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
             <ValidatorsUploadActionAreaCard />,
+            <CreateAwsExternalLambdaUser />
             <AwsLambdaFunctionVerifyAreaCard />
         </Stack>
     );
@@ -64,6 +65,14 @@ export function AwsLambdaFunctionVerifyAreaCard() {
 }
 
 export function LambdaVerifyCard() {
+    const handleVerifySigners = async () => {
+        try {
+            // TODO, get external accesss key and secret key from redux store
+            //const response = await awsApiGateway.verifyLambdaKeySigning();
+        } catch (error) {
+            console.log("error", error);
+        }};
+
     return (
         <Card sx={{ maxWidth: 400 }}>
             <CardContent>
@@ -75,7 +84,7 @@ export function LambdaVerifyCard() {
                 </Typography>
             </CardContent>
             <CardActions>
-                <Button size="small">Send Request</Button>
+                <Button size="small" onClick={handleVerifySigners}>Send Request</Button>
             </CardActions>
         </Card>
     );

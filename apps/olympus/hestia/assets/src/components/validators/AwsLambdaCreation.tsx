@@ -15,10 +15,10 @@ import {
 import TextField from "@mui/material/TextField";
 
 export function CreateAwsLambdaFunctionActionAreaCardWrapper(props: any) {
-    const { activeStep } = props;
+    const { activeStep, onEncZipFileUpload } = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <EncryptedKeystoresZipUploadActionAreaCard />
+            <EncryptedKeystoresZipUploadActionAreaCard onEncZipFileUpload={onEncZipFileUpload} />
             <CreateAwsLambdaFunctionAreaCard />
         </Stack>
     );
@@ -38,6 +38,17 @@ export function CreateAwsLambdaFunctionAreaCard() {
 }
 
 export function LambdaFunctionKeystoresLayerCreation() {
+    const dispatch = useDispatch();
+    const acKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
+    const seKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const onCreateLambdaSignerFn = async () => {
+        try {
+            const creds = {accessKeyId: acKey, secretAccessKey: seKey};
+            const response = await awsApiGateway.createLambdaFunctionKeystoresLayer(creds);
+            dispatch(setBlsSignerLambdaFnUrl(response.data));
+        } catch (error) {
+            console.log("error", error);
+        }};
     return (
         <Card sx={{ maxWidth: 400 }}>
             <CardContent>
@@ -63,7 +74,8 @@ export function LambdaFunctionCreation() {
 
     const onCreateLambdaSignerFn = async () => {
         try {
-            const response = await awsApiGateway.createLambdaFunction(acKey, seKey);
+            const creds = {accessKeyId: acKey, secretAccessKey: seKey};
+            const response = await awsApiGateway.createLambdaFunction(creds);
             dispatch(setBlsSignerLambdaFnUrl(response.data));
         } catch (error) {
             console.log("error", error);
@@ -95,7 +107,8 @@ export function LambdaFunctionSecretsCreation() {
     const dispatch = useDispatch();
     const onCreateLambdaSecretsFn = async () => {
         try {
-            const response = await awsApiGateway.createValidatorSecretsLambda(accessKey, secretKey);
+            const creds = {accessKeyId: accessKey, secretAccessKey: secretKey};
+            const response = await awsApiGateway.createValidatorSecretsLambda(creds);
             dispatch(setSecretGenLambdaFnUrl(response.data));
         } catch (error) {
             console.log("error", error);
@@ -135,7 +148,8 @@ export function LambdaFunctionGenValidatorDepositsCreation() {
     const dispatch = useDispatch();
     const onCreateLambdaValidatorDepositsFn = async () => {
         try {
-            const response = await awsApiGateway.createValidatorsDepositDataLambda(accKey, secKey);
+            const creds = {accessKeyId: accKey, secretAccessKey: secKey};
+            const response = await awsApiGateway.createValidatorsDepositDataLambda(creds);
             dispatch(setDepositsGenLambdaFnUrl(response.data));
         } catch (error) {
             console.log("error", error);
@@ -176,7 +190,8 @@ export function LambdaFunctionGenEncZipFileCreation() {
 
     const onCreateLambdaEncryptedKeystoresZipFn = async () => {
         try {
-            const response = await awsApiGateway.createValidatorsAgeEncryptedKeystoresZipLambda(ak, sk);
+            const creds = {accessKeyId: ak, secretAccessKey: sk};
+            const response = await awsApiGateway.createValidatorsAgeEncryptedKeystoresZipLambda(creds);
             dispatch(setEncKeystoresZipLambdaFnUrl(response.data));
         } catch (error) {
             console.log("error", error);

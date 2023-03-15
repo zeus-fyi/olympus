@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useState} from 'react';
 import Box from '@mui/material/Box';
 import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
@@ -13,8 +14,11 @@ import {LambdaExtUserVerify} from "./AwsExtUserAndLambdaVerify";
 import {GenerateValidatorKeysAndDepositsAreaCardWrapper} from "./ValidatorsGeneration";
 import {ZeusServiceRequestAreaCardWrapper} from "./ZeusServiceRequest";
 import {ValidatorsDepositRequestAreaCardWrapper} from "./ValidatorsDeposits";
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
+import {setEncKeystoresZipLambdaFnUrl} from "../../redux/aws_wizard/aws.wizard.reducer";
+import {awsApiGateway} from "../../gateway/aws";
+import {awsLambdaApiGateway} from "../../gateway/aws.lambda";
 
 const steps = [
     'AWS Auth & Internal User Roles',
@@ -26,7 +30,7 @@ const steps = [
     'Submit Deposits',
 ];
 
-function stepComponents(activeStep: number, onGenerateValidatorDeposits: any, onGenerateValidatorEncryptedKeystoresZip: any) {
+function stepComponents(activeStep: number, onGenerateValidatorDeposits: any, onGenerateValidatorEncryptedKeystoresZip: any, onEncZipFileUpload: any) {
     const steps = [
         <CreateInternalAwsLambdaUserRolesActionAreaCardWrapper
             activeStep={activeStep}
@@ -52,6 +56,7 @@ function stepComponents(activeStep: number, onGenerateValidatorDeposits: any, on
             activeStep={activeStep}
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
+            onEncZipFileUpload={onEncZipFileUpload}
         />,
         <LambdaExtUserVerify
             activeStep={activeStep}
@@ -124,9 +129,7 @@ export default function AwsWizardPanel() {
     };
 
 
-    const count = useSelector((state: RootState) => state.validatorSecrets.validatorCount);
-    const hdOffset = useSelector((state: RootState) => state.validatorSecrets.hdOffset);
-
+    const [encZipFile, setEncZipFile] = useState<Blob | null>(null);
     const onGenerateValidatorDeposits = async () => {
         try {
             // TODO this is a stub
@@ -137,12 +140,36 @@ export default function AwsWizardPanel() {
             console.log("error", error);
         }};
 
+    const onEncZipFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files && event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const blob = new Blob([e.target!.result as ArrayBuffer], {type: 'application/zip'});
+                setEncZipFile(blob);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+    };
+    const dispatch = useDispatch();
+    const akey = useSelector((state: RootState) => state.awsCredentials.accessKey);
+    const skey = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const encKeystoresZipLambdaFnUrl = useSelector((state: RootState) => state.awsCredentials.encKeystoresZipLambdaFnUrl);
+    const validatorSecretsName = useSelector((state: RootState) => state.awsCredentials.validatorSecretsName);
+    const ageSecretName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
+    const validatorCount = useSelector((state: RootState) => state.validatorSecrets.validatorCount);
+    const hdOffset = useSelector((state: RootState) => state.validatorSecrets.hdOffset);
     const onGenerateValidatorEncryptedKeystoresZip = async () => {
         try {
-            // TODO this is a stub
             console.log('onGenerateValidatorEncryptedKeystoresZip')
-            //const response = await validatorsApiGateway.createValidatorsAgeEncryptedKeystoresZipLambda(agePubKey, agePrivKey,mnemonic, hdWalletPw, count, hdOffset);
-            //console.log(response.data)
+            const creds = {accessKeyId: akey, secretAccessKey: skey};
+            const res = await awsApiGateway.createValidatorsAgeEncryptedKeystoresZipLambda(creds);
+            dispatch(setEncKeystoresZipLambdaFnUrl(res.data));
+            const zip = await awsLambdaApiGateway.invokeEncryptedKeystoresZipGeneration(encKeystoresZipLambdaFnUrl, creds,ageSecretName,validatorSecretsName, validatorCount, hdOffset);
+            const zipBlob = await zip.blob();
+            const blob = new Blob([zipBlob], {type: 'application/zip'});
+            setEncZipFile(blob);
+            download(blob, "keystores");
         } catch (error) {
             console.log("error", error);
         }};
@@ -171,7 +198,7 @@ export default function AwsWizardPanel() {
                 ) : (
                     <React.Fragment>
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                            {stepComponents(activeStep, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip)}
+                            {stepComponents(activeStep, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip, onEncZipFileUpload)}
                         </Container>
                         <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                             <Button
@@ -203,4 +230,17 @@ export default function AwsWizardPanel() {
             </div>
         </Box>
     );
+}
+
+export function download(blob: any, filename: string) {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.setAttribute('download', `${filename}`);
+    // the filename you want
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
 }

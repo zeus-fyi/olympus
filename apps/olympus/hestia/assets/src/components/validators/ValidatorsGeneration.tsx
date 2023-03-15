@@ -5,22 +5,19 @@ import {AgeEncryptionKeySecretName, ValidatorSecretName} from "./AwsSecrets";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import {awsApiGateway} from "../../gateway/aws";
-import {
-    setDepositData,
-    setDepositsGenLambdaFnUrl,
-    setEncKeystoresZipLambdaFnUrl,
-} from "../../redux/aws_wizard/aws.wizard.reducer";
+import {setDepositData, setDepositsGenLambdaFnUrl,} from "../../redux/aws_wizard/aws.wizard.reducer";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import {setHdOffset, setNetworkName, setValidatorCount} from "../../redux/validators/ethereum.validators.reducer";
 import {awsLambdaApiGateway} from "../../gateway/aws.lambda";
 
 export function GenerateValidatorKeysAndDepositsAreaCardWrapper(props: any) {
+    const { activeStep, onGenerateValidatorEncryptedKeystoresZip } = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
             <GenerateValidatorsParams />
             <GenValidatorDepositsCreationActionsCard />
-            <GenerateZipValidatorActionsCard />
+            <GenerateZipValidatorActionsCard onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip} />
         </Stack>
     );
 }
@@ -43,40 +40,11 @@ export function GenerateValidatorsParams() {
         </Card>
     );
 }
-function download(blob: any, filename: string) {
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.style.display = 'none';
-    a.href = url;
-    a.setAttribute('download', `${filename}`);
-    // the filename you want
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-}
-export function GenerateZipValidatorActionsCard() {
-    const ak = useSelector((state: RootState) => state.awsCredentials.accessKey);
-    const sk = useSelector((state: RootState) => state.awsCredentials.secretKey);
-    const encKeystoresZipLambdaFnUrl = useSelector((state: RootState) => state.awsCredentials.encKeystoresZipLambdaFnUrl);
-    const validatorSecretsName = useSelector((state: RootState) => state.awsCredentials.validatorSecretsName);
-    const ageSecretName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
-    const validatorCount = useSelector((state: RootState) => state.validatorSecrets.validatorCount);
-    const hdOffset = useSelector((state: RootState) => state.validatorSecrets.hdOffset);
 
-    const dispatch = useDispatch();
-    const onGenerateLambdaEncryptedKeystoresZip = async () => {
-        try {
-            const response = await awsApiGateway.createValidatorsAgeEncryptedKeystoresZipLambda(ak, sk);
-            dispatch(setEncKeystoresZipLambdaFnUrl(response.data));
-            const creds = {accessKeyId: ak, secretAccessKey: sk};
-            const zip = await awsLambdaApiGateway.invokeEncryptedKeystoresZipGeneration(encKeystoresZipLambdaFnUrl, creds,ageSecretName,validatorSecretsName, validatorCount, hdOffset);
-            const zipBlob = await zip.blob();
-            const blob = new Blob([zipBlob], {type: 'application/zip'});
-            download(blob, "keystores");
-        } catch (error) {
-            console.log("error", error);
-        }};
+export function GenerateZipValidatorActionsCard(props: any) {
+    const { activeStep, onGenerateValidatorEncryptedKeystoresZip } = props;
+    const encKeystoresZipLambdaFnUrl = useSelector((state: RootState) => state.awsCredentials.encKeystoresZipLambdaFnUrl);
+
     return (
         <Card sx={{ maxWidth: 400 }}>
             <CardContent>
@@ -99,7 +67,7 @@ export function GenerateZipValidatorActionsCard() {
                 autoFocus
             />
             <CardActions>
-                <Button onClick={onGenerateLambdaEncryptedKeystoresZip} size="small">Generate</Button>
+                <Button onClick={onGenerateValidatorEncryptedKeystoresZip} size="small">Generate</Button>
             </CardActions>
         </Card>
     );
@@ -118,9 +86,9 @@ export function GenValidatorDepositsCreationActionsCard() {
     const dispatch = useDispatch();
     const onCreateLambdaValidatorDepositsFn = async () => {
         try {
-            const response = await awsApiGateway.createValidatorsDepositDataLambda(accKey, secKey);
-            dispatch(setDepositsGenLambdaFnUrl(response.data));
             const creds = {accessKeyId: accKey, secretAccessKey: secKey};
+            const response = await awsApiGateway.createValidatorsDepositDataLambda(creds);
+            dispatch(setDepositsGenLambdaFnUrl(response.data));
             const depositData = await awsLambdaApiGateway.invokeValidatorDepositsGeneration(depositsGenLambdaFnUrl,creds,network,validatorSecretsName,validatorCount,hdOffset);
             const body = await depositData.json();
             dispatch(setDepositData(body));

@@ -18,7 +18,9 @@ export function LambdaExtUserVerify(props: any) {
     );
 }
 
-export function EncryptedKeystoresZipUploadActionAreaCard() {
+export function EncryptedKeystoresZipUploadActionAreaCard(props: any) {
+    const { activeStep, onEncZipFileUpload } = props;
+
     return (
         <Card sx={{ maxWidth: 320 }}>
             <CardActionArea>
@@ -32,18 +34,20 @@ export function EncryptedKeystoresZipUploadActionAreaCard() {
                     <Typography gutterBottom variant="h5" component="div" style={{ fontSize: 'large',fontWeight: 'thin', marginRight: '15x', color: '#151C2F'}}>
                         Upload Keystores.zip
                     </Typography>
-                    <UploadValidatorsButton />
+                    <UploadKeystoresZipButton onEncZipFileUpload={onEncZipFileUpload}/>
                 </CardContent>
             </CardActionArea>
         </Card>
     );
 }
-export function UploadValidatorsButton() {
+
+export function UploadKeystoresZipButton(props: any) {
+    const { activeStep, onEncZipFileUpload } = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
             <Button variant="contained" component="label" style={{ backgroundColor: '#8991B0', color: '#151C2F' }}>
                 <CloudUploadIcon />
-                <input hidden accept="image/*" multiple type="file" />
+                <input hidden accept="application/zip" type="file" onChange={onEncZipFileUpload}/>
             </Button>
         </Stack>
     );
@@ -86,7 +90,8 @@ export function CreateAwsExternalLambdaUser() {
 
     const handleCreateUser = async () => {
         try {
-            const response = await awsApiGateway.createExternalLambdaUser(accessKey,secretKey);
+            const creds = {accessKeyId: accessKey, secretAccessKey: secretKey};
+            const response = await awsApiGateway.createExternalLambdaUser(creds);
             console.log("response", response);
         } catch (error) {
             console.log("error", error);

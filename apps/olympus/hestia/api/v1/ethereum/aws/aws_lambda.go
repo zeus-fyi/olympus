@@ -8,22 +8,29 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	serverless_aws_automation "github.com/zeus-fyi/zeus/builds/serverless/aws_automation"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	aws_aegis_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
+type CreateAwsLambdaSignerRequest struct {
+	aegis_aws_auth.AuthAWS `json:"authAWS"`
+	FunctionName           string `json:"functionName"`
+	KeystoresLayerName     string `json:"keystoresLayerName,omitempty"`
+}
+
 func CreateBlsLambdaFunctionHandler(c echo.Context) error {
-	request := new(AwsRequest)
+	request := new(CreateAwsLambdaSignerRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
 	return request.CreateLambdaFunctionBlsSigner(c)
 }
 
-func (a *AwsRequest) CreateLambdaFunctionBlsSigner(c echo.Context) error {
+func (a *CreateAwsLambdaSignerRequest) CreateLambdaFunctionBlsSigner(c echo.Context) error {
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
-	lambdaFnUrl, err := serverless_aws_automation.CreateLambdaFunction(ctx, a.AuthAWS)
+	lambdaFnUrl, err := serverless_aws_automation.CreateLambdaFunction(ctx, a.AuthAWS, a.FunctionName, a.KeystoresLayerName)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("AwsRequest, CreateLambdaFunctionBlsSigner error")
 		return c.JSON(http.StatusInternalServerError, err)

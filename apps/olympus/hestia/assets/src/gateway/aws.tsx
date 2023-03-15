@@ -1,7 +1,8 @@
 import {hestiaApi} from './axios/axios';
+import {AwsCredentialIdentity} from "@aws-sdk/types/dist-types/identity";
 
 class AwsApiGateway {
-    async createInternalLambdaUser(ak: string, sk: string): Promise<any>  {
+    async createInternalLambdaUser(credentials: AwsCredentialIdentity): Promise<any>  {
         const url = `/v1/ethereum/validators/aws/user/internal/lambda/create`;
         try {
             const sessionID = localStorage.getItem("sessionID");
@@ -12,8 +13,8 @@ class AwsApiGateway {
             const payload: AwsRequest = {
                 authAWS: {
                     region: "us-west-1",
-                    accessKey: ak,
-                    secretKey: sk,
+                    accessKey: credentials.accessKeyId,
+                    secretKey: credentials.secretAccessKey,
                 },
             };
             return await hestiaApi.post(url, payload, config)
@@ -23,7 +24,7 @@ class AwsApiGateway {
             return
         }
     }
-    async createExternalLambdaUser(ak: string, sk: string): Promise<any>  {
+    async createExternalLambdaUser(credentials: AwsCredentialIdentity): Promise<any>  {
         const url = `/v1/ethereum/validators/aws/user/external/lambda/create`;
         try {
             const sessionID = localStorage.getItem("sessionID");
@@ -34,8 +35,8 @@ class AwsApiGateway {
             const payload: AwsRequest = {
                 authAWS: {
                     region: "us-west-1",
-                    accessKey: ak,
-                    secretKey: sk,
+                    accessKey: credentials.accessKeyId,
+                    secretKey: credentials.secretAccessKey,
                 },
             };
             return await hestiaApi.post(url, payload, config)
@@ -45,7 +46,7 @@ class AwsApiGateway {
             return
         }
     }
-    async createLambdaFunction(ak: string, sk: string): Promise<any>  {
+    async createLambdaFunction(credentials: AwsCredentialIdentity): Promise<any>  {
         const url = `/v1/ethereum/validators/aws/lambda/signer/create`;
         try {
             const sessionID = localStorage.getItem("sessionID");
@@ -56,8 +57,8 @@ class AwsApiGateway {
             const payload: AwsRequest = {
                 authAWS: {
                     region: "us-west-1",
-                    accessKey: ak,
-                    secretKey: sk,
+                    accessKey: credentials.accessKeyId,
+                    secretKey: credentials.secretAccessKey,
                 },
             };
             return await hestiaApi.post(url, payload, config)
@@ -67,8 +68,8 @@ class AwsApiGateway {
             return
         }
     }
-    async createLambdaFunctionKeystoresLayer(ak: string, sk: string): Promise<any>  {
-        const url = `/v1/ethereum/validators/aws/lambda/keystore/create`;
+    async createLambdaFunctionKeystoresLayer(credentials: AwsCredentialIdentity): Promise<any>  {
+        const url = `/v1/ethereum/validators/aws/lambda/keystores/layer/create`;
         try {
             const sessionID = localStorage.getItem("sessionID");
             let config = {
@@ -78,8 +79,8 @@ class AwsApiGateway {
             const payload: AwsRequest = {
                 authAWS: {
                     region: "us-west-1",
-                    accessKey: ak,
-                    secretKey: sk,
+                    accessKey: credentials.accessKeyId,
+                    secretKey: credentials.secretAccessKey,
                 },
             };
             return await hestiaApi.post(url, payload, config)
@@ -89,7 +90,7 @@ class AwsApiGateway {
             return
         }
     }
-    async createValidatorsDepositDataLambda(ak: string, sk: string): Promise<any>  {
+    async createValidatorsDepositDataLambda(credentials: AwsCredentialIdentity): Promise<any>  {
         const url = `/v1/ethereum/validators/aws/lambda/deposits/create`;
         try {
             const sessionID = localStorage.getItem("sessionID");
@@ -100,8 +101,8 @@ class AwsApiGateway {
             const payload: AwsRequest = {
                 authAWS: {
                     region: "us-west-1",
-                    accessKey: ak,
-                    secretKey: sk,
+                    accessKey: credentials.accessKeyId,
+                    secretKey: credentials.secretAccessKey,
                 },
             };
             return await hestiaApi.post(url, payload, config)
@@ -111,7 +112,7 @@ class AwsApiGateway {
             return
         }
     }
-    async createValidatorsAgeEncryptedKeystoresZipLambda(ak: string, sk: string): Promise<any>  {
+    async createValidatorsAgeEncryptedKeystoresZipLambda(credentials: AwsCredentialIdentity): Promise<any>  {
         const url = `/v1/ethereum/validators/aws/lambda/keystores/zip/create`;
         try {
             const sessionID = localStorage.getItem("sessionID");
@@ -122,8 +123,8 @@ class AwsApiGateway {
             const payload: AwsRequest = {
                 authAWS: {
                     region: "us-west-1",
-                    accessKey: ak,
-                    secretKey: sk,
+                    accessKey: credentials.accessKeyId,
+                    secretKey: credentials.secretAccessKey,
                 },
             };
             return await hestiaApi.post(url, payload, config)
@@ -133,7 +134,7 @@ class AwsApiGateway {
             return
         }
     }
-    async createValidatorSecretsLambda(ak: string, sk: string): Promise<any> {
+    async createValidatorSecretsLambda(credentials: AwsCredentialIdentity): Promise<any> {
         const url = `/v1/ethereum/validators/aws/lambda/secrets/create`;
         try {
             const sessionID = localStorage.getItem("sessionID");
@@ -144,8 +145,8 @@ class AwsApiGateway {
             const payload: AwsRequest = {
                 authAWS: {
                     region: "us-west-1",
-                    accessKey: ak,
-                    secretKey: sk,
+                    accessKey: credentials.accessKeyId,
+                    secretKey: credentials.secretAccessKey,
                 },
             };
             return await hestiaApi.post(url, payload, config)
@@ -155,7 +156,7 @@ class AwsApiGateway {
             return
         }
     }
-    async verifyLambdaFunctionSigner(ak: string, sk: string): Promise<any>  {
+    async verifyLambdaFunctionSigner(credentials: AwsCredentialIdentity): Promise<any>  {
         const url = `/v1/ethereum/validators/aws/lambda/verify`;
         try {
             const sessionID = localStorage.getItem("sessionID");
@@ -166,8 +167,8 @@ class AwsApiGateway {
             const payload: AwsRequest = {
                 authAWS: {
                     region: "us-west-1",
-                    accessKey: ak,
-                    secretKey: sk,
+                    accessKey: credentials.accessKeyId,
+                    secretKey: credentials.secretAccessKey,
                 },
             };
             return await hestiaApi.post(url, payload, config)

@@ -7,25 +7,29 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	serverless_aws_automation "github.com/zeus-fyi/zeus/builds/serverless/aws_automation"
-	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
+	aws_lambda "github.com/zeus-fyi/zeus/pkg/cloud/aws/lambda"
 )
 
-func CreateServerlessKeystoresHandler(c echo.Context) error {
-	request := new(AwsRequest)
+func CreateServerlessKeystoresLayerHandler(c echo.Context) error {
+	request := new(CreateAwsLambdaSignerRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	return request.CreateKeystores(c)
+	return request.CreateKeystoresLayer(c)
 }
 
-func (a *AwsRequest) CreateKeystores(c echo.Context) error {
+func (a *CreateAwsLambdaSignerRequest) CreateKeystoresLayer(c echo.Context) error {
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
-	err := serverless_aws_automation.CreateLambdaFunctionKeystoresLayer(ctx, a.AuthAWS, filepaths.Path{})
+	lm, err := aws_lambda.InitLambdaClient(ctx, a.AuthAWS)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("AwsRequest, CreateKeystores error")
+		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("AwsRequest, CreateKeystoresLayer error")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	return c.JSON(http.StatusOK, nil)
+	ly, err := lm.CreateServerlessBLSLambdaFnKeystoreLayer(ctx, a.FunctionName, nil)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("AwsRequest, CreateKeystoresLayer error")
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+	return c.JSON(http.StatusOK, ly.Version)
 }

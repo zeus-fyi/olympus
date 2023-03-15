@@ -8,7 +8,8 @@ import {awsApiGateway} from "../../gateway/aws";
 import {
     setDepositData,
     setDepositsGenLambdaFnUrl,
-    setEncKeystoresZipLambdaFnUrl
+    setEncKeystoresZipLambdaFnUrl,
+    setKeystoreZip
 } from "../../redux/aws_wizard/aws.wizard.reducer";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
@@ -26,7 +27,6 @@ export function GenerateValidatorKeysAndDepositsAreaCardWrapper(props: any) {
 }
 
 export function GenerateValidatorsParams() {
-    const awsValidatorsNetwork = useSelector((state: RootState) => state.validatorSecrets.network);
     const awsValidatorSecretName = useSelector((state: RootState) => state.awsCredentials.validatorSecretsName);
     const awsAgeEncryptionKeyName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
 
@@ -36,13 +36,12 @@ export function GenerateValidatorsParams() {
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <ValidatorSecretName validatorSecretName={awsValidatorSecretName}/>
                     <AgeEncryptionKeySecretName awsAgeEncryptionKeyName={awsAgeEncryptionKeyName}/>
-                    <ValidatorsNetwork awsValidatorsNetwork={awsValidatorsNetwork}/>
+                    <ValidatorsNetwork />
                     <ValidatorCount />
                     <ValidatorOffsetHD />
                 </Container>
             </div>
         </Card>
-
     );
 }
 
@@ -50,13 +49,21 @@ export function GenerateZipValidatorActionsCard() {
     const ak = useSelector((state: RootState) => state.awsCredentials.accessKey);
     const sk = useSelector((state: RootState) => state.awsCredentials.secretKey);
     const encKeystoresZipLambdaFnUrl = useSelector((state: RootState) => state.awsCredentials.encKeystoresZipLambdaFnUrl);
+    const validatorSecretsName = useSelector((state: RootState) => state.awsCredentials.validatorSecretsName);
+    const ageSecretName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
+    const validatorCount = useSelector((state: RootState) => state.validatorSecrets.validatorCount);
+    const hdOffset = useSelector((state: RootState) => state.validatorSecrets.hdOffset);
 
     const dispatch = useDispatch();
-
-    const onCreateLambdaEncryptedKeystoresZipFn = async () => {
+    const onGenerateLambdaEncryptedKeystoresZip = async () => {
         try {
             const response = await awsApiGateway.createValidatorsAgeEncryptedKeystoresZipLambda(ak, sk);
             dispatch(setEncKeystoresZipLambdaFnUrl(response.data));
+            const creds = {accessKeyId: ak, secretAccessKey: sk};
+            // TODO verify this is correct
+            const zip = await awsLambdaApiGateway.invokeEncryptedKeystoresZipGeneration(encKeystoresZipLambdaFnUrl, creds,ageSecretName,validatorSecretsName, validatorCount, hdOffset);
+            const body = await zip.body;
+            dispatch(setKeystoreZip(body))
         } catch (error) {
             console.log("error", error);
         }};
@@ -82,7 +89,7 @@ export function GenerateZipValidatorActionsCard() {
                 autoFocus
             />
             <CardActions>
-                <Button onClick={onCreateLambdaEncryptedKeystoresZipFn} size="small">Generate</Button>
+                <Button onClick={onGenerateLambdaEncryptedKeystoresZip} size="small">Generate</Button>
             </CardActions>
         </Card>
     );
@@ -107,7 +114,6 @@ export function GenValidatorDepositsCreationActionsCard() {
             const creds = {accessKeyId: accKey, secretAccessKey: secKey};
             const depositData = await awsLambdaApiGateway.invokeValidatorDepositsGeneration(depositsGenLambdaFnUrl,creds,network,validatorSecretsName,validatorCount,hdOffset);
             const body = await depositData.json();
-            console.log(body)
             dispatch(setDepositData(body));
         } catch (error) {
             console.log("error", error);
@@ -140,7 +146,7 @@ export function GenValidatorDepositsCreationActionsCard() {
     );
 }
 
-export function ValidatorsNetwork(props: any) {
+export function ValidatorsNetwork() {
     const dispatch = useDispatch();
     const network = useSelector((state: RootState) => state.validatorSecrets.network);
     const onValidatorsNetworkChange = (event: React.ChangeEvent<HTMLInputElement>) => {

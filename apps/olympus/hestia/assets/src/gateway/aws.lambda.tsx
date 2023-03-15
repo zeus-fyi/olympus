@@ -74,6 +74,43 @@ class AwsLambdaApiGateway {
             return
         }
     }
+    async invokeEncryptedKeystoresZipGeneration(url: string, credentials: AwsCredentialIdentity, ageSecretName: string, mnemonicHdPwSecretName: string, validatorCount: number, hdOffset: number): Promise<any> {
+        try {
+            const payload = {
+                ageSecretName: ageSecretName,
+                mnemonicAndHDWalletSecretName: mnemonicHdPwSecretName,
+                validatorCount: validatorCount,
+                hdOffset: hdOffset,
+            }
+            const headers = {
+                "Content-Type": "application/json",
+            };
+            const accessKeyId = credentials.accessKeyId;
+            const secretAccessKey = credentials.secretAccessKey;
+            const service = "lambda";
+            const region = "us-west-1";
+            const body = JSON.stringify(payload);
+            const aws = new AwsClient({
+                accessKeyId,
+                secretAccessKey,
+                service,
+                region,
+            })
+            const request = new Request(
+                `${url}`,
+                {
+                    method: "POST",
+                    headers,
+                    body,
+                }
+            );
+            return await aws.fetch(request)
+        } catch (exc) {
+            console.error('error sending create validator encrypted keystores zip request to lambda function');
+            console.error(exc);
+            return
+        }
+    }
 }
 
 export const awsLambdaApiGateway = new AwsLambdaApiGateway();

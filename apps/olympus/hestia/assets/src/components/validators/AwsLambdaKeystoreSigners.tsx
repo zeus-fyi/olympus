@@ -67,8 +67,8 @@ export function LambdaFunctionCreation() {
                     Lambda Function Signer Creation
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                    Creates a BLS signer lambda function in AWS that decrypts your keystores with your Age Encryption key,
-                    and will sign messages for your validators. You only need to share the
+                    Creates a BLS signer lambda function in AWS that decrypts your keystores layer (with the name you supplied on the left panel)
+                    with your Age Encryption key, and will sign messages for your validators. You only need to share the age
                     key name reference, not the actual public or private key.
                 </Typography>
             </CardContent>
@@ -129,8 +129,10 @@ export function LambdaFunctionKeystoresLayerCreation(props: any) {
                     Lambda Keystores Layer Creation
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                    Creates your encrypted keystores layer for usage in your AWS lambda signing function using your generated encrypted zip keystores file.
+                    Creates a new layer from your keystores.zip for usage in your AWS lambda signing function.
                     If you did not create your zip file in the previous step you'll need to manually upload it on the left.
+                    If you create a new layer, then you can re-run the create lambda function on the right to update
+                    the signer function with the new layer.
                 </Typography>
             </CardContent>
             <TextField

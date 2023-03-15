@@ -5,6 +5,8 @@ interface AwsCredentialsState {
     secretKey: string;
     validatorSecretsName: string;
     ageSecretName: string;
+    blsSignerFunctionName: string;
+    blsSignerKeystoresLayerName: string;
     blsSignerLambdaFnUrl: string;
     secretGenLambdaFnUrl: string;
     encKeystoresZipLambdaFnUrl: string;
@@ -18,6 +20,8 @@ const initialState: AwsCredentialsState = {
     secretKey: '',
     validatorSecretsName: 'mnemonicAndHDWalletEphemery',
     ageSecretName: 'ageEncryptionKeyEphemery',
+    blsSignerFunctionName: 'blsSignerEphemery',
+    blsSignerKeystoresLayerName: 'blsSignerEphemeryKeystores',
     blsSignerLambdaFnUrl: '',
     secretGenLambdaFnUrl: '',
     encKeystoresZipLambdaFnUrl: '',
@@ -42,6 +46,9 @@ const awsCredentialsSlice = createSlice({
         setAgeSecretName: (state, action: PayloadAction<string>) => {
             state.ageSecretName = action.payload;
         },
+        setSignerFunctionName: (state, action: PayloadAction<string>) => {
+            state.blsSignerFunctionName = action.payload;
+        },
         setBlsSignerLambdaFnUrl: (state, action: PayloadAction<string>) => {
             state.blsSignerLambdaFnUrl = action.payload;
         },
@@ -57,6 +64,9 @@ const awsCredentialsSlice = createSlice({
         setDepositData: (state, action: PayloadAction<any>) => {
             state.depositData = action.payload;
         },
+        setKeystoreLayerName: (state, action: PayloadAction<string>) => {
+            state.blsSignerKeystoresLayerName = action.payload;
+        },
         setKeystoreLayerNumber: (state, action: PayloadAction<number>) => {
             state.keystoreLayerNumber = action.payload;
         },
@@ -65,6 +75,6 @@ const awsCredentialsSlice = createSlice({
 
 export const { setAccessKey, setSecretKey, setAgeSecretName, setValidatorSecretsName,
     setBlsSignerLambdaFnUrl, setSecretGenLambdaFnUrl, setEncKeystoresZipLambdaFnUrl, setDepositsGenLambdaFnUrl,
-    setDepositData, setKeystoreLayerNumber } = awsCredentialsSlice.actions;
+    setDepositData, setKeystoreLayerNumber, setSignerFunctionName, setKeystoreLayerName } = awsCredentialsSlice.actions;
 
 export default awsCredentialsSlice.reducer;

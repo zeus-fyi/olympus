@@ -9,7 +9,6 @@ import Typography from '@mui/material/Typography';
 import Container from "@mui/material/Container";
 import {CreateAwsInternalLambdasActionAreaCardWrapper, CreateAwsSecretsActionAreaCardWrapper,} from "./AwsSecrets";
 import {CreateInternalAwsLambdaUserRolesActionAreaCardWrapper} from "./AwsLambdaUserRolePolicies";
-import {CreateAwsLambdaFunctionActionAreaCardWrapper} from "./AwsLambdaCreation";
 import {LambdaExtUserVerify} from "./AwsExtUserAndLambdaVerify";
 import {GenerateValidatorKeysAndDepositsAreaCardWrapper} from "./ValidatorsGeneration";
 import {ZeusServiceRequestAreaCardWrapper} from "./ZeusServiceRequest";
@@ -19,6 +18,7 @@ import {RootState} from "../../redux/store";
 import {setEncKeystoresZipLambdaFnUrl} from "../../redux/aws_wizard/aws.wizard.reducer";
 import {awsApiGateway} from "../../gateway/aws";
 import {awsLambdaApiGateway} from "../../gateway/aws.lambda";
+import {CreateAwsLambdaFunctionActionAreaCardWrapper} from './AwsLambdaKeystoreSigners';
 
 const steps = [
     'AWS Auth & Internal User Roles',
@@ -128,7 +128,6 @@ export default function AwsWizardPanel() {
         setActiveStep(0);
         setCompleted({});
     };
-
 
     const [encZipFile, setEncZipFile] = useState<Blob>(new Blob());
     const onGenerateValidatorDeposits = async () => {

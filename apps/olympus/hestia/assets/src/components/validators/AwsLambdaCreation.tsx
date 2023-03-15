@@ -1,107 +1,16 @@
 import * as React from "react";
-import {Card, CardActions, CardContent, Container, Stack} from "@mui/material";
+import {Card, CardActions, CardContent} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import {EncryptedKeystoresZipUploadActionAreaCard} from "./AwsExtUserAndLambdaVerify";
 import {awsApiGateway} from "../../gateway/aws";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import {
-    setBlsSignerLambdaFnUrl,
     setDepositsGenLambdaFnUrl,
     setEncKeystoresZipLambdaFnUrl,
     setSecretGenLambdaFnUrl
 } from "../../redux/aws_wizard/aws.wizard.reducer";
 import TextField from "@mui/material/TextField";
-
-export function CreateAwsLambdaFunctionActionAreaCardWrapper(props: any) {
-    const { activeStep, onEncZipFileUpload, zipBlob } = props;
-    return (
-        <Stack direction="row" alignItems="center" spacing={2}>
-            <EncryptedKeystoresZipUploadActionAreaCard onEncZipFileUpload={onEncZipFileUpload} />
-            <CreateAwsLambdaFunctionAreaCard zipBlob={zipBlob} />
-        </Stack>
-    );
-}
-
-export function CreateAwsLambdaFunctionAreaCard(props: any) {
-    const { zipBlob } = props;
-    return (
-            <div style={{ display: 'flex' }}>
-                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <LambdaFunctionKeystoresLayerCreation zipBlob={zipBlob}/>
-                </Container >
-                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <LambdaFunctionCreation />
-                </Container >
-            </div>
-    );
-}
-
-export function LambdaFunctionKeystoresLayerCreation(props: any) {
-    const { zipBlob } = props;
-
-    const dispatch = useDispatch();
-    const acKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
-    const seKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
-    const onCreateLambdaKeystoresLayer = async () => {
-        try {
-            const creds = {accessKeyId: acKey, secretAccessKey: seKey};
-            const response = await awsApiGateway.createLambdaFunctionKeystoresLayer(creds, "", zipBlob);
-            dispatch(setBlsSignerLambdaFnUrl(response.data));
-        } catch (error) {
-            console.log("error", error);
-        }};
-    return (
-        <Card sx={{ maxWidth: 400 }}>
-            <CardContent>
-                <Typography gutterBottom variant="h5" component="div">
-                    Lambda Keystores Layer Creation
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                    Creates your encrypted keystores layer for usage in your AWS lambda signing function using your generated encrypted zip keystores file.
-                    If you did not create your zip file in the previous step you'll need to manually upload it on the left.
-                </Typography>
-            </CardContent>
-            <CardActions>
-                <Button size="small" onClick={onCreateLambdaKeystoresLayer}>Create</Button>
-            </CardActions>
-        </Card>
-    );
-}
-
-export function LambdaFunctionCreation() {
-    const acKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
-    const seKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
-    const dispatch = useDispatch();
-
-    const onCreateLambdaSignerFn = async () => {
-        try {
-            const creds = {accessKeyId: acKey, secretAccessKey: seKey};
-            // TODO
-            const response = await awsApiGateway.createLambdaSignerFunction(creds, "", "");
-            dispatch(setBlsSignerLambdaFnUrl(response.data));
-        } catch (error) {
-            console.log("error", error);
-        }};
-    return (
-        <Card sx={{ maxWidth: 400 }}>
-            <CardContent>
-                <Typography gutterBottom variant="h5" component="div">
-                    Lambda Function Signer Creation
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                    Creates a BLS signer lambda function in AWS that decrypts your keystores with your Age Encryption key,
-                    and will sign messages for your validators. You only need to share the
-                    key name reference, not the actual public or private key.
-                </Typography>
-            </CardContent>
-            <CardActions>
-                <Button onClick={onCreateLambdaSignerFn} size="small">Create</Button>
-            </CardActions>
-        </Card>
-    );
-}
 
 export function LambdaFunctionSecretsCreation() {
     const accessKey = useSelector((state: RootState) => state.awsCredentials.accessKey);

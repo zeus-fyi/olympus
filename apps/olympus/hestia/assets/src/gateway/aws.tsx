@@ -77,16 +77,18 @@ class AwsApiGateway {
             let config = {
                 headers: {
                     'Authorization': `Bearer ${sessionID}`,
+                    'Content-Type': 'multipart/form-data'
                 }}
-            const payload: AwsRequestKeystoreLayerCreationRequest = {
-                authAWS: {
-                    region: "us-west-1",
-                    accessKey: credentials.accessKeyId,
-                    secretKey: credentials.secretAccessKey,
-                },
-                keystoresLayerName: keystoresLayerName,
-            };
-            return await hestiaApi.post(url, payload, config)
+            const formData = new FormData(); // Create a new FormData object
+            const zipFile = new File([keystoresZip], 'keystores.zip', { type: 'application/zip' }); // Create a new zip file
+            formData.append('authAWS', JSON.stringify({
+                region: "us-west-1",
+                accessKey: credentials.accessKeyId,
+                secretKey: credentials.secretAccessKey,
+            })); // Add authAWS as a stringified JSON value
+            formData.append('keystoresLayerName', keystoresLayerName); // Add keystoresLayerName
+            formData.append('keystoresZip', zipFile); // Add keystoresZip as a blob
+            return await hestiaApi.post(url, formData, config)
         } catch (exc) {
             console.error('error sending create lambda keystores layer');
             console.error(exc);
@@ -193,6 +195,7 @@ export type AwsRequestSignerCreationRequest = {
 export type AwsRequestKeystoreLayerCreationRequest = {
     authAWS: AuthAWS;
     keystoresLayerName: string;
+    keystoresZip: Blob;
 };
 
 type AuthAWS = {

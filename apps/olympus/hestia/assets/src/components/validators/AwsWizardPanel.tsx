@@ -162,7 +162,6 @@ export default function AwsWizardPanel() {
     const hdOffset = useSelector((state: RootState) => state.validatorSecrets.hdOffset);
     const onGenerateValidatorEncryptedKeystoresZip = async () => {
         try {
-            console.log('onGenerateValidatorEncryptedKeystoresZip')
             const creds = {accessKeyId: akey, secretAccessKey: skey};
             const res = await awsApiGateway.createValidatorsAgeEncryptedKeystoresZipLambda(creds);
             dispatch(setEncKeystoresZipLambdaFnUrl(res.data));

@@ -4,6 +4,7 @@ import {awsApiGateway} from "../../gateway/aws";
 import {
     setBlsSignerLambdaFnUrl,
     setKeystoreLayerName,
+    setKeystoreLayerNumber,
     setSignerFunctionName
 } from "../../redux/aws_wizard/aws.wizard.reducer";
 import {Card, CardActions, CardContent, Container, Stack} from "@mui/material";
@@ -41,6 +42,8 @@ export function LambdaFunctionCreation() {
     const acKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
     const seKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
     const signerName = useSelector((state: RootState) => state.awsCredentials.blsSignerFunctionName);
+    const signerLayerName = useSelector((state: RootState) => state.awsCredentials.blsSignerKeystoresLayerName);
+
     const signerUrl = useSelector((state: RootState) => state.awsCredentials.blsSignerLambdaFnUrl);
 
     const dispatch = useDispatch();
@@ -48,8 +51,7 @@ export function LambdaFunctionCreation() {
     const onCreateLambdaSignerFn = async () => {
         try {
             const creds = {accessKeyId: acKey, secretAccessKey: seKey};
-            // TODO
-            const response = await awsApiGateway.createLambdaSignerFunction(creds, "", "");
+            const response = await awsApiGateway.createLambdaSignerFunction(creds, signerName, signerLayerName);
             dispatch(setBlsSignerLambdaFnUrl(response.data));
         } catch (error) {
             console.log("error", error);
@@ -102,15 +104,16 @@ export function LambdaFunctionCreation() {
 
 export function LambdaFunctionKeystoresLayerCreation(props: any) {
     const { zipBlob } = props;
-
     const dispatch = useDispatch();
     const acKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
     const seKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const signerLayerName = useSelector((state: RootState) => state.awsCredentials.blsSignerKeystoresLayerName);
+
     const onCreateLambdaKeystoresLayer = async () => {
         try {
             const creds = {accessKeyId: acKey, secretAccessKey: seKey};
-            const response = await awsApiGateway.createLambdaFunctionKeystoresLayer(creds, "", zipBlob);
-            dispatch(setBlsSignerLambdaFnUrl(response.data));
+            const response = await awsApiGateway.createLambdaFunctionKeystoresLayer(creds, signerLayerName, zipBlob);
+            dispatch(setKeystoreLayerNumber(response.data));
         } catch (error) {
             console.log("error", error);
         }};

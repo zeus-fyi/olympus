@@ -7,12 +7,12 @@ import {
     setKeystoreLayerNumber,
     setSignerFunctionName
 } from "../../redux/aws_wizard/aws.wizard.reducer";
-import {Card, CardActions, CardContent, Container, Stack} from "@mui/material";
+import {Card, CardActionArea, CardActions, CardContent, CardMedia, Container, Stack} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import * as React from "react";
-import {EncryptedKeystoresZipUploadActionAreaCard} from "./AwsExtUserAndLambdaVerify";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 
 export function CreateAwsLambdaFunctionActionAreaCardWrapper(props: any) {
     const { activeStep, onEncZipFileUpload, zipBlob } = props;
@@ -43,7 +43,6 @@ export function LambdaFunctionCreation() {
     const seKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
     const signerName = useSelector((state: RootState) => state.awsCredentials.blsSignerFunctionName);
     const signerLayerName = useSelector((state: RootState) => state.awsCredentials.blsSignerKeystoresLayerName);
-
     const signerUrl = useSelector((state: RootState) => state.awsCredentials.blsSignerLambdaFnUrl);
 
     const dispatch = useDispatch();
@@ -164,5 +163,40 @@ export function LambdaFunctionKeystoresLayerCreation(props: any) {
                 <Button size="small" onClick={onCreateLambdaKeystoresLayer}>Create</Button>
             </CardActions>
         </Card>
+    );
+}
+
+export function EncryptedKeystoresZipUploadActionAreaCard(props: any) {
+    const { activeStep, onEncZipFileUpload } = props;
+
+    return (
+        <Card sx={{ maxWidth: 320 }}>
+            <CardActionArea>
+                <CardMedia
+                    component="img"
+                    height="230"
+                    image={require("../../static/ethereum-logo.png")}
+                    alt="ethereum"
+                />
+                <CardContent style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#8991B0'}}>
+                    <Typography gutterBottom variant="h5" component="div" style={{ fontSize: 'large',fontWeight: 'thin', marginRight: '15x', color: '#151C2F'}}>
+                        Upload Keystores.zip
+                    </Typography>
+                    <UploadKeystoresZipButton onEncZipFileUpload={onEncZipFileUpload}/>
+                </CardContent>
+            </CardActionArea>
+        </Card>
+    );
+}
+
+export function UploadKeystoresZipButton(props: any) {
+    const { activeStep, onEncZipFileUpload } = props;
+    return (
+        <Stack direction="row" alignItems="center" spacing={2}>
+            <Button variant="contained" component="label" style={{ backgroundColor: '#8991B0', color: '#151C2F' }}>
+                <CloudUploadIcon />
+                <input hidden accept="application/zip" type="file" onChange={onEncZipFileUpload}/>
+            </Button>
+        </Stack>
     );
 }

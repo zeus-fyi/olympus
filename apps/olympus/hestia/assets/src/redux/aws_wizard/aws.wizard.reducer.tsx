@@ -5,6 +5,8 @@ interface AwsCredentialsState {
     secretKey: string;
     validatorSecretsName: string;
     ageSecretName: string;
+    externalAccessUserName: string,
+    externalAccessSecretName: string,
     blsSignerFunctionName: string;
     blsSignerKeystoresLayerName: string;
     blsSignerLambdaFnUrl: string;
@@ -20,6 +22,8 @@ const initialState: AwsCredentialsState = {
     secretKey: '',
     validatorSecretsName: 'mnemonicAndHDWalletEphemery',
     ageSecretName: 'ageEncryptionKeyEphemery',
+    externalAccessUserName: 'externalAccessUser',
+    externalAccessSecretName: 'externalAccessKey',
     blsSignerFunctionName: 'zeusValidatorsClientEphemery',
     blsSignerKeystoresLayerName: 'zeusValidatorsClientKeystoresEphemery',
     blsSignerLambdaFnUrl: '',

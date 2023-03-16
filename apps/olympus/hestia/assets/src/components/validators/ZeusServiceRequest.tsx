@@ -29,7 +29,16 @@ export function ZeusServiceRequestAreaCard() {
     );
 }
 
+// TODO
 export function ZeusServiceRequest() {
+    const handleZeusServiceRequest = async () => {
+        try {
+            // TODO, get external accesss key and secret key from redux store
+            //const response = await awsApiGateway.verifyLambdaKeySigning();
+        } catch (error) {
+            console.log("error", error);
+        }};
+
     return (
         <Card sx={{ maxWidth: 400 }}>
             <CardContent>
@@ -41,7 +50,7 @@ export function ZeusServiceRequest() {
                 </Typography>
             </CardContent>
             <CardActions>
-                <Button size="small">Send</Button>
+                <Button size="small" onClick={handleZeusServiceRequest}>Send</Button>
             </CardActions>
         </Card>
     );

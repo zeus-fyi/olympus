@@ -46,6 +46,28 @@ class AwsApiGateway {
             return
         }
     }
+    async createOrFetchExternalLambdaUserAccessKeys(credentials: AwsCredentialIdentity): Promise<any>  {
+        const url = `/v1/ethereum/validators/aws/lambda/external/user/access/keys/create`;
+        try {
+            const sessionID = localStorage.getItem("sessionID");
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`,
+                }}
+            const payload: AwsRequest = {
+                authAWS: {
+                    region: "us-west-1",
+                    accessKey: credentials.accessKeyId,
+                    secretKey: credentials.secretAccessKey,
+                },
+            };
+            return await hestiaApi.post(url, payload, config)
+        } catch (exc) {
+            console.error('error sending create new external lambda user');
+            console.error(exc);
+            return
+        }
+    }
     async createLambdaSignerFunction(credentials: AwsCredentialIdentity, functionName: string, keystoresLayerName: string): Promise<any>  {
         const url = `/v1/ethereum/validators/aws/lambda/signer/create`;
         try {

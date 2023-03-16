@@ -47,9 +47,11 @@ func InitV1Routes(e *echo.Echo) {
 	// validator deposit & keystore generation
 	eg.POST("/ethereum/validators/deposits/generation", v1_ethereum_aws.ValidatorsDepositsGenerationRequestHandler)
 	eg.POST("/ethereum/validators/aws/encryption/age", v1_ethereum_aws.ValidatorsAgeEncryptedKeystoresGenerationRequestHandler)
-	// lambda related
+	// lambda user & role policy creation
 	eg.POST("/ethereum/validators/aws/user/internal/lambda/create", v1_ethereum_aws.CreateServerlessInternalUserHandler)
 	eg.POST("/ethereum/validators/aws/user/external/lambda/create", v1_ethereum_aws.CreateServerlessExternalUserHandler)
+	// lambda access keys creation
+	eg.POST("/ethereum/validators/aws/lambda/external/user/access/keys/create", v1_ethereum_aws.CreateServerlessExternalUserAuthHandler)
 
 	// lambda signers
 	eg.POST("/ethereum/validators/aws/lambda/signer/create", v1_ethereum_aws.CreateBlsLambdaFunctionHandler)
@@ -60,8 +62,8 @@ func InitV1Routes(e *echo.Echo) {
 	eg.POST("/ethereum/validators/aws/lambda/keystores/zip/create", v1_ethereum_aws.CreateLambdaFunctionEncZipGenHandler)
 	eg.POST("/ethereum/validators/aws/lambda/deposits/create", v1_ethereum_aws.CreateLambdaFunctionDepositsGenHandler)
 
+	// lambda verify
 	eg.POST("/ethereum/validators/aws/lambda/verify", v1_ethereum_aws.VerifyLambdaFunctionHandler)
-
 	// zeus service
 	eg.GET("/ethereum/validators/service/info", GetValidatorServiceInfoHandler)
 	eg.POST("/ethereum/validators/service/create", CreateValidatorServiceRequestHandler)

@@ -1,4 +1,4 @@
-import {Card, CardActionArea, CardActions, CardContent, CardMedia, Container, Stack} from "@mui/material";
+import {Card, CardActions, CardContent, Container, Stack} from "@mui/material";
 import * as React from "react";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
@@ -6,7 +6,8 @@ import {ValidatorsUploadActionAreaCard} from "./ValidatorsUpload";
 import {useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import {awsApiGateway} from "../../gateway/aws";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import TextField from "@mui/material/TextField";
+import {validatorsApiGateway} from "../../gateway/validators";
 
 export function LambdaExtUserVerify(props: any) {
     const { activeStep } = props;
@@ -19,38 +20,58 @@ export function LambdaExtUserVerify(props: any) {
     );
 }
 
-export function EncryptedKeystoresZipUploadActionAreaCard(props: any) {
-    const { activeStep, onEncZipFileUpload } = props;
+export function CreateAwsExternalLambdaUser() {
+    const accessKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
+    const secretKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const externalAccessUserName = useSelector((state: RootState) => state.awsCredentials.externalAccessUserName);
+    const externalAccessSecretName = useSelector((state: RootState) => state.awsCredentials.externalAccessSecretName);
+
+    const handleCreateUser = async () => {
+        try {
+            const creds = {accessKeyId: accessKey, secretAccessKey: secretKey};
+            const response = await awsApiGateway.createExternalLambdaUser(creds);
+            console.log("response", response);
+            const r = await awsApiGateway.createOrFetchExternalLambdaUserAccessKeys(creds);
+            console.log("r", r);
+        } catch (error) {
+            console.log("error", error);
+        }};
 
     return (
-        <Card sx={{ maxWidth: 320 }}>
-            <CardActionArea>
-                <CardMedia
-                    component="img"
-                    height="230"
-                    image={require("../../static/ethereum-logo.png")}
-                    alt="ethereum"
-                />
-                <CardContent style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#8991B0'}}>
-                    <Typography gutterBottom variant="h5" component="div" style={{ fontSize: 'large',fontWeight: 'thin', marginRight: '15x', color: '#151C2F'}}>
-                        Upload Keystores.zip
-                    </Typography>
-                    <UploadKeystoresZipButton onEncZipFileUpload={onEncZipFileUpload}/>
-                </CardContent>
-            </CardActionArea>
+        <Card sx={{ maxWidth: 400 }}>
+            <CardContent>
+                <Typography gutterBottom variant="h5" component="div">
+                    Setup External Access
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                    Creates an AWS Lambda User and RolePolicy for external function calls. This is the user
+                    that we will use to send authorized messages to your validators.
+                </Typography>
+            </CardContent>
+            <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="externalAccessUserName"
+                label="ExternalAccessUserName"
+                name="externalAccessUserName"
+                value={externalAccessUserName}
+                autoFocus
+            />
+            <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="externalAccessSecretName"
+                label="ExternalAccessSecretName"
+                name="externalAccessSecretName"
+                value={externalAccessSecretName}
+                autoFocus
+            />
+            <CardActions>
+                <Button size="small" onClick={handleCreateUser}>Create</Button>
+            </CardActions>
         </Card>
-    );
-}
-
-export function UploadKeystoresZipButton(props: any) {
-    const { activeStep, onEncZipFileUpload } = props;
-    return (
-        <Stack direction="row" alignItems="center" spacing={2}>
-            <Button variant="contained" component="label" style={{ backgroundColor: '#8991B0', color: '#151C2F' }}>
-                <CloudUploadIcon />
-                <input hidden accept="application/zip" type="file" onChange={onEncZipFileUpload}/>
-            </Button>
-        </Stack>
     );
 }
 
@@ -64,11 +85,22 @@ export function AwsLambdaFunctionVerifyAreaCard() {
     );
 }
 
+// TODO
 export function LambdaVerifyCard() {
+    const accessKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
+    const secretKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const depositsData = useSelector((state: RootState) => state.awsCredentials.depositData);
+    const blsSignerLambdaFnUrl = useSelector((state: RootState) => state.awsCredentials.blsSignerLambdaFnUrl);
+    const blsSignerFunctionName = useSelector((state: RootState) => state.awsCredentials.blsSignerFunctionName);
+
     const handleVerifySigners = async () => {
         try {
             // TODO, get external accesss key and secret key from redux store
-            //const response = await awsApiGateway.verifyLambdaKeySigning();
+            const creds = {accessKeyId: accessKey, secretAccessKey: secretKey};
+            const r = await awsApiGateway.createOrFetchExternalLambdaUserAccessKeys(creds);
+            // TODO set external access keys & then call verifyLambdaKeySigning, use depositsData payload
+            const response = await validatorsApiGateway.verifyValidators(creds,blsSignerLambdaFnUrl, depositsData);
+            console.log("r", r);
         } catch (error) {
             console.log("error", error);
         }};
@@ -83,38 +115,28 @@ export function LambdaVerifyCard() {
                     Sends random hex string payloads to your AWS lambda function and verifies the returned signatures match the public keys.
                 </Typography>
             </CardContent>
+            <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="blsSignerLambdaFunctionName"
+                label="BlsSignerLambdaFunctionName"
+                name="blsSignerLambdaFunctionName"
+                value={blsSignerFunctionName}
+                autoFocus
+            />
+            <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="blsSignerLambdaFnUrl"
+                label="BlsSignerLambdaFnUrl"
+                name="blsSignerLambdaFnUrl"
+                value={blsSignerLambdaFnUrl}
+                autoFocus
+            />
             <CardActions>
                 <Button size="small" onClick={handleVerifySigners}>Send Request</Button>
-            </CardActions>
-        </Card>
-    );
-}
-
-export function CreateAwsExternalLambdaUser() {
-    const accessKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
-    const secretKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
-
-    const handleCreateUser = async () => {
-        try {
-            const creds = {accessKeyId: accessKey, secretAccessKey: secretKey};
-            const response = await awsApiGateway.createExternalLambdaUser(creds);
-            console.log("response", response);
-        } catch (error) {
-            console.log("error", error);
-        }};
-
-    return (
-        <Card sx={{ maxWidth: 400 }}>
-            <CardContent>
-                <Typography gutterBottom variant="h5" component="div">
-                    Create AWS External Lambda User
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                    Creates AWS External Lambda User
-                </Typography>
-            </CardContent>
-            <CardActions>
-                <Button size="small" onClick={handleCreateUser}>Create</Button>
             </CardActions>
         </Card>
     );

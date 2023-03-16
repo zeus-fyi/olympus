@@ -17,7 +17,7 @@ const initialState: ValidatorSecretsState = {
     validatorCount: 1,
     network: 'Ephemery',
     feeRecipient: '',
-    keyGroupName: 'EphemeryDemoKeyGroup',
+    keyGroupName: 'ephemeryDemoKeyGroup',
 };
 
 const validatorSecretsSlice = createSlice({

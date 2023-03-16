@@ -3,7 +3,7 @@ import * as React from "react";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import {ValidatorsUploadActionAreaCard} from "./ValidatorsUpload";
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import {awsApiGateway} from "../../gateway/aws";
 import TextField from "@mui/material/TextField";
@@ -62,23 +62,30 @@ export function CreateAwsExternalLambdaUser() {
                 value={externalAccessUserName}
                 autoFocus
             />
-            <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="externalAccessSecretName"
-                label="ExternalAccessSecretName"
-                name="externalAccessSecretName"
-                value={externalAccessSecretName}
-                autoFocus
-            />
+            <ExternalAccessSecretName />
             <CardActions>
                 <Button size="small" onClick={handleCreateUser}>Create User & Auth Keys</Button>
             </CardActions>
         </Card>
     );
 }
+export function ExternalAccessSecretName(props: any) {
+    const dispatch = useDispatch();
+    const externalAccessSecretName = useSelector((state: RootState) => state.awsCredentials.externalAccessSecretName);
 
+    return (
+        <TextField
+            margin="normal"
+            required
+            fullWidth
+            id="externalAccessSecretName"
+            label="ExternalAccessSecretName"
+            name="externalAccessSecretName"
+            value={externalAccessSecretName}
+            autoFocus
+        />
+    );
+}
 export function AwsLambdaFunctionVerifyAreaCard(props: any) {
     const { activeStep, onHandleVerifySigners } = props;
 
@@ -93,9 +100,7 @@ export function AwsLambdaFunctionVerifyAreaCard(props: any) {
 
 export function LambdaVerifyCard(props: any) {
     const { activeStep, onHandleVerifySigners } = props;
-    const blsSignerFunctionName = useSelector((state: RootState) => state.awsCredentials.blsSignerFunctionName);
     const ageSecretName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
-
 
     return (
         <Card sx={{ maxWidth: 400 }}>
@@ -107,16 +112,7 @@ export function LambdaVerifyCard(props: any) {
                     Sends random hex string payloads to your AWS lambda function and verifies the returned signatures match the public keys.
                 </Typography>
             </CardContent>
-            <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="blsSignerLambdaFunctionName"
-                label="BlsSignerLambdaFunctionName"
-                name="blsSignerLambdaFunctionName"
-                value={blsSignerFunctionName}
-                autoFocus
-            />
+           <SignerFunctionName />
             <TextField
                 margin="normal"
                 required
@@ -131,5 +127,22 @@ export function LambdaVerifyCard(props: any) {
                 <Button size="small" onClick={onHandleVerifySigners}>Send Request</Button>
             </CardActions>
         </Card>
+    );
+}
+export function SignerFunctionName(props: any) {
+    const dispatch = useDispatch();
+    const blsSignerFunctionName = useSelector((state: RootState) => state.awsCredentials.blsSignerFunctionName);
+
+    return (
+        <TextField
+            margin="normal"
+            required
+            fullWidth
+            id="blsSignerLambdaFunctionName"
+            label="BlsSignerLambdaFunctionName"
+            name="blsSignerLambdaFunctionName"
+            value={blsSignerFunctionName}
+            autoFocus
+        />
     );
 }

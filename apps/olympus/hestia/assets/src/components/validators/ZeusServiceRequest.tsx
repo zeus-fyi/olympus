@@ -6,6 +6,8 @@ import TextField from "@mui/material/TextField";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import {setFeeRecipient, setKeyGroupName, setNetworkName} from "../../redux/validators/ethereum.validators.reducer";
+import {AgeEncryptionKeySecretName} from "./AwsSecrets";
+import {ExternalAccessSecretName} from "./AwsExtUserAndLambdaVerify";
 
 export function ZeusServiceRequestAreaCardWrapper(props: any) {
     const { activeStep } = props;
@@ -20,7 +22,7 @@ export function ZeusServiceRequestAreaCard() {
     return (
         <div style={{ display: 'flex' }}>
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                <ZeusServiceRequestWrapper />
+                <ZeusServiceRequestParams />
             </Container >
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                 <ZeusServiceRequest />
@@ -40,36 +42,43 @@ export function ZeusServiceRequest() {
         }};
 
     return (
-        <Card sx={{ maxWidth: 400 }}>
+        <Card sx={{ maxWidth: 500 }}>
             <CardContent>
                 <Typography gutterBottom variant="h5" component="div">
                     Create Zeus Validators Service Request
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                    Creates Zeus Validators Service Request
-                </Typography>
             </CardContent>
+            <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                <AgeEncryptionKeySecretName />
+                <ExternalAccessSecretName />
+            </Container>
             <CardActions>
-                <Button size="small" onClick={handleZeusServiceRequest}>Send</Button>
+                <Button onClick={handleZeusServiceRequest} size="small">Submit</Button>
             </CardActions>
         </Card>
     );
 }
 
-export function ZeusServiceRequestWrapper() {
+export function ZeusServiceRequestParams() {
     return (
+        <div style={{ display: 'flex' }}>
+
         <Card sx={{ maxWidth: 500 }}>
-            <div style={{ display: 'flex' }}>
-                <Stack direction="column" alignItems="center" spacing={2}>
-                </Stack>
+            <CardContent>
+                <Typography gutterBottom variant="h5" component="div">
+                    Set Zeus Validators Service Params
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                    Sets Zeus Validators Service Params
+                </Typography>
+            </CardContent>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <KeyGroupName />
                     <Network />
+                    <KeyGroupName />
                     <FeeRecipient />
                 </Container>
-            </div>
         </Card>
-
+        </div>
     );
 }
 

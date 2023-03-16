@@ -138,10 +138,10 @@ export function LambdaVerifyCard() {
                 margin="normal"
                 required
                 fullWidth
-                id="blsSignerLambdaFnUrl"
-                label="BlsSignerLambdaFnUrl"
-                name="blsSignerLambdaFnUrl"
-                value={blsSignerLambdaFnUrl}
+                id="ageEncryptionKeySecretName"
+                label="AgeEncryptionKeySecretName"
+                name="ageEncryptionKeySecretName"
+                value={ageSecretName}
                 autoFocus
             />
             <CardActions>

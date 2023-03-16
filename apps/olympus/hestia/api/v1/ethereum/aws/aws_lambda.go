@@ -58,7 +58,7 @@ func CreateBlsLambdaFunctionHandler(c echo.Context) error {
 func (a *CreateAwsLambdaSignerRequest) CreateLambdaFunctionBlsSigner(c echo.Context) error {
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
-	lambdaFnUrl, err := serverless_aws_automation.CreateLambdaFunction(ctx, a.AuthAWS, a.FunctionName, a.KeystoresLayerName)
+	lambdaFnUrl, err := serverless_aws_automation.CreateOrUpdateLambdaFunction(ctx, a.AuthAWS, a.FunctionName, a.KeystoresLayerName)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("AwsRequest, CreateLambdaFunctionBlsSigner error")
 		return c.JSON(http.StatusInternalServerError, err)

@@ -14,9 +14,9 @@ import (
 
 type VerifyAwsLambdaSignerRequest struct {
 	aegis_aws_auth.AuthAWS `json:"authAWS"`
-	DepositDataSlice       signing_automation_ethereum.ValidatorDepositSlice `json:"depositData"`
-	SecretName             string                                            `json:"secretName"`
-	FunctionURL            string                                            `json:"functionURL"`
+	KeySlice               []string `json:"keySlice"`
+	SecretName             string   `json:"secretName"`
+	FunctionURL            string   `json:"functionURL"`
 }
 
 func VerifyLambdaFunctionHandler(c echo.Context) error {
@@ -35,10 +35,14 @@ func (a *VerifyAwsLambdaSignerRequest) VerifyLambdaFunction(c echo.Context) erro
 		AccessKey: a.AccessKey,
 		SecretKey: a.SecretKey,
 	}
-	err := serverless_aws_automation.VerifyLambdaSignerFromDepositDataSlice(ctx, lambdaAccessAuth, a.DepositDataSlice, a.FunctionURL, a.SecretName)
+	dpSlice := signing_automation_ethereum.ValidatorDepositSlice{}
+	for _, key := range a.KeySlice {
+		dpSlice = append(dpSlice, signing_automation_ethereum.ExtendedDepositParams{ValidatorDepositParams: signing_automation_ethereum.ValidatorDepositParams{Pubkey: key}})
+	}
+	err := serverless_aws_automation.VerifyLambdaSignerFromDepositDataSlice(ctx, lambdaAccessAuth, dpSlice, a.FunctionURL, a.SecretName)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("VerifyRequest VerifyLambdaFunction error")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	return c.JSON(http.StatusOK, a.DepositDataSlice)
+	return c.JSON(http.StatusOK, a.KeySlice)
 }

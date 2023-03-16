@@ -110,7 +110,10 @@ export function LambdaFunctionKeystoresLayerCreation(props: any) {
 
     const onCreateLambdaKeystoresLayer = async () => {
         try {
-            const creds = {accessKeyId: acKey, secretAccessKey: seKey};
+            if (zipBlob.size === 0) {
+                console.log("ZipBlob is empty. Skipping creation of Lambda Keystores Layer.");
+                return;
+            }            const creds = {accessKeyId: acKey, secretAccessKey: seKey};
             const response = await awsApiGateway.createLambdaFunctionKeystoresLayer(creds, signerLayerName, zipBlob);
             dispatch(setKeystoreLayerNumber(response.data));
         } catch (error) {

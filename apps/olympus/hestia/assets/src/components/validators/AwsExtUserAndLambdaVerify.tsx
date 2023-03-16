@@ -9,12 +9,12 @@ import {awsApiGateway} from "../../gateway/aws";
 import TextField from "@mui/material/TextField";
 
 export function LambdaExtUserVerify(props: any) {
-    const { activeStep } = props;
+    const { activeStep, onHandleVerifySigners } = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
             <ValidatorsUploadActionAreaCard />,
             <CreateAwsExternalLambdaUser />
-            <AwsLambdaFunctionVerifyAreaCard />
+            <AwsLambdaFunctionVerifyAreaCard onHandleVerifySigners={onHandleVerifySigners} />
         </Stack>
     );
 }
@@ -79,41 +79,23 @@ export function CreateAwsExternalLambdaUser() {
     );
 }
 
-export function AwsLambdaFunctionVerifyAreaCard() {
+export function AwsLambdaFunctionVerifyAreaCard(props: any) {
+    const { activeStep, onHandleVerifySigners } = props;
+
     return (
         <div style={{ display: 'flex' }}>
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                <LambdaVerifyCard />
+                <LambdaVerifyCard onHandleVerifySigners={onHandleVerifySigners}/>
             </Container >
         </div>
     );
 }
 
-export function LambdaVerifyCard() {
-    const accessKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
-    const secretKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
-    const depositsData = useSelector((state: RootState) => state.awsCredentials.depositData);
-    const blsSignerLambdaFnUrl = useSelector((state: RootState) => state.awsCredentials.blsSignerLambdaFnUrl);
+export function LambdaVerifyCard(props: any) {
+    const { activeStep, onHandleVerifySigners } = props;
+
     const blsSignerFunctionName = useSelector((state: RootState) => state.awsCredentials.blsSignerFunctionName);
-    const externalAccessUserName = useSelector((state: RootState) => state.awsCredentials.externalAccessUserName);
-    const externalAccessSecretName = useSelector((state: RootState) => state.awsCredentials.externalAccessSecretName);
     const ageSecretName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
-
-    const handleVerifySigners = async () => {
-        const creds = {accessKeyId: accessKey, secretAccessKey: secretKey};
-        try {
-            const r = await awsApiGateway.createOrFetchExternalLambdaUserAccessKeys(creds, externalAccessUserName, externalAccessSecretName);
-            const url = await awsApiGateway.getLambdaFunctionURL(creds, blsSignerFunctionName);
-            console.log("url", url);
-            const extCreds = {accessKeyId: r.data.accessKey, secretAccessKey: r.data.secretKey};
-            const response = await awsApiGateway.verifyLambdaFunctionSigner(extCreds,ageSecretName,url, depositsData);
-            // TODO set dispatch/update the table
-
-            console.log("r", response);
-        } catch (error) {
-            console.log("error", error);
-        }}
-
     return (
         <Card sx={{ maxWidth: 400 }}>
             <CardContent>
@@ -145,7 +127,7 @@ export function LambdaVerifyCard() {
                 autoFocus
             />
             <CardActions>
-                <Button size="small" onClick={handleVerifySigners}>Send Request</Button>
+                <Button size="small" onClick={onHandleVerifySigners}>Send Request</Button>
             </CardActions>
         </Card>
     );

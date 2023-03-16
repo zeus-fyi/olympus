@@ -217,8 +217,11 @@ class AwsApiGateway {
                 headers: {
                     'Authorization': `Bearer ${sessionID}`,
                 }}
+            const keySlice = depositSlice.map((v: any) =>
+                v.pubkey
+            );
             const payload: AwsVerifyLambdaSignerRequest = {
-                depositData: depositSlice,
+                keySlice: keySlice,
                 functionURL: fnUrl,
                 secretName: ageSecretName,
                 authAWS: {
@@ -239,7 +242,7 @@ export const awsApiGateway = new AwsApiGateway();
 
 export type AwsVerifyLambdaSignerRequest = {
     authAWS: AuthAWS;
-    depositData: [{}];
+    keySlice: any;
     secretName: string;
     functionURL: string;
 };
@@ -271,3 +274,9 @@ type AuthAWS = {
 export type AwsRequest = {
     authAWS: AuthAWS;
 };
+
+function createKeySlice(
+    pubkey: string,
+) {
+    return {pubkey};
+}

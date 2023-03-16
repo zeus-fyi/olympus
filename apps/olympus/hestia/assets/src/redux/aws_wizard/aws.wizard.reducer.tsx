@@ -15,7 +15,6 @@ interface AwsCredentialsState {
     depositsGenLambdaFnUrl: string;
     depositData: [{}],
     keystoreLayerNumber: number,
-
 }
 const initialState: AwsCredentialsState = {
     accessKey: '',

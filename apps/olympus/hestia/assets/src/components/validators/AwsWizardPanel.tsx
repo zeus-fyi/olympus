@@ -36,7 +36,7 @@ const steps = [
     'Submit Deposits',
 ];
 
-function stepComponents(activeStep: number, onGenerateValidatorDeposits: any, onGenerateValidatorEncryptedKeystoresZip: any, onEncZipFileUpload: any, zipBlob: Blob) {
+function stepComponents(activeStep: number, onGenerateValidatorDeposits: any, onGenerateValidatorEncryptedKeystoresZip: any, onEncZipFileUpload: any, zipBlob: Blob, onHandleVerifySigners: any) {
     const steps = [
         <CreateInternalAwsLambdaUserRolesActionAreaCardWrapper
             activeStep={activeStep}
@@ -69,6 +69,7 @@ function stepComponents(activeStep: number, onGenerateValidatorDeposits: any, on
             activeStep={activeStep}
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
+            onHandleVerifySigners={onHandleVerifySigners}
         />,
         <ZeusServiceRequestAreaCardWrapper
             activeStep={activeStep}
@@ -135,7 +136,7 @@ export default function AwsWizardPanel() {
         setCompleted({});
     };
 
-    const [encZipFile, setEncZipFile] = useState<Blob>(new Blob());
+    const [encZipFile, setEncZipFile] = useState<Blob>(new Blob([], {type: 'application/zip'}));
 
     const onEncZipFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files && event.target.files[0];
@@ -151,25 +152,26 @@ export default function AwsWizardPanel() {
     const dispatch = useDispatch();
     const akey = useSelector((state: RootState) => state.awsCredentials.accessKey);
     const skey = useSelector((state: RootState) => state.awsCredentials.secretKey);
-    const encKeystoresZipLambdaFnUrl = useSelector((state: RootState) => state.awsCredentials.encKeystoresZipLambdaFnUrl);
     const validatorSecretsName = useSelector((state: RootState) => state.awsCredentials.validatorSecretsName);
     const ageSecretName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
     const validatorCount = useSelector((state: RootState) => state.validatorSecrets.validatorCount);
     const hdOffset = useSelector((state: RootState) => state.validatorSecrets.hdOffset);
     const onGenerateValidatorEncryptedKeystoresZip = async () => {
         try {
-            const creds = {accessKeyId: akey, secretAccessKey: skey};
+            const creds = { accessKeyId: akey, secretAccessKey: skey };
             const res = await awsApiGateway.createValidatorsAgeEncryptedKeystoresZipLambda(creds);
-            dispatch(setEncKeystoresZipLambdaFnUrl(res.data));
-            const zip = await awsLambdaApiGateway.invokeEncryptedKeystoresZipGeneration(encKeystoresZipLambdaFnUrl, creds,ageSecretName,validatorSecretsName, validatorCount, hdOffset);
+            const updatedEncKeystoresZipLambdaFnUrl = res.data;
+            dispatch(setEncKeystoresZipLambdaFnUrl(updatedEncKeystoresZipLambdaFnUrl));
+            const zip = await awsLambdaApiGateway.invokeEncryptedKeystoresZipGeneration(updatedEncKeystoresZipLambdaFnUrl, creds, ageSecretName, validatorSecretsName, validatorCount, hdOffset);
             const zipBlob = await zip.blob();
-            const blob = new Blob([zipBlob], {type: 'application/zip'});
+            const blob = new Blob([zipBlob], { type: 'application/octet-stream' });
+            download(blob, "keystores.zip");
             setEncZipFile(blob);
-            download(blob, "keystores");
         } catch (error) {
             console.log("error", error);
-        }};
-
+        } finally {
+        }
+    };
     const network = useSelector((state: RootState) => state.validatorSecrets.network);
     let depositsGenLambdaFnUrl = useSelector((state: RootState) => state.awsCredentials.depositsGenLambdaFnUrl);
     const depositData = useSelector((state: RootState) => state.awsCredentials.depositData);
@@ -188,12 +190,47 @@ export default function AwsWizardPanel() {
             console.log("invokeValidatorDepositsGeneration");
             const dpSlice = await awsLambdaApiGateway.invokeValidatorDepositsGeneration(depositsGenLambdaFnUrl,creds,network,validatorSecretsName,validatorCount,hdOffset);
             const body = await dpSlice.json();
+            body.forEach((item: any) => {
+                item.verified = false;
+            });
+            console.log("body", body)
             dispatch(setDepositData(body));
             console.log("depositData", depositData);
         } catch (error) {
             console.log("error", error);
         }
     };
+    const externalAccessUserName = useSelector((state: RootState) => state.awsCredentials.externalAccessUserName);
+    const externalAccessSecretName = useSelector((state: RootState) => state.awsCredentials.externalAccessSecretName);
+    const blsSignerFunctionName = useSelector((state: RootState) => state.awsCredentials.blsSignerFunctionName);
+
+    const onHandleVerifySigners = async () => {
+        const creds = {accessKeyId: akey, secretAccessKey: skey};
+        try {
+            const r = await awsApiGateway.createOrFetchExternalLambdaUserAccessKeys(creds, externalAccessUserName, externalAccessSecretName);
+            const url = await awsApiGateway.getLambdaFunctionURL(creds, blsSignerFunctionName);
+            const extCreds = {accessKeyId: r.data.accessKey, secretAccessKey: r.data.secretKey};
+            const response = await awsApiGateway.verifyLambdaFunctionSigner(extCreds,ageSecretName,url.data, depositData);
+            const verifiedKeys = response.data
+            let keyMap = new Map();
+            verifiedKeys.forEach((item: any) => {
+                keyMap.set(item.pubkey, true);
+            });
+            // const filtered = depositData.map((obj: any) => {
+            //     // Check if the object has the specified attributeName
+            //     console.log(obj)
+            //     if (obj.hasOwnProperty('verified')) {
+            //         // Update the attribute value
+            //         return {
+            //             ...obj,
+            //             ['verified']: keyMap.get(obj.pubkey),
+            //         };
+            //     }});
+           // console.log("filteredDepositData", filtered)
+            console.log("r", response);
+        } catch (error) {
+            console.log("error", error);
+        }}
     return (
         <div>
         <Box sx={{ width: '100%' }}>
@@ -220,7 +257,7 @@ export default function AwsWizardPanel() {
                 ) : (
                     <React.Fragment>
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                            {stepComponents(activeStep, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip, onEncZipFileUpload, encZipFile)}
+                            {stepComponents(activeStep, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip, onEncZipFileUpload, encZipFile, onHandleVerifySigners)}
                         </Container>
                         <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                             <Button
@@ -251,7 +288,7 @@ export default function AwsWizardPanel() {
                 )}
             </div>
         </Box>
-    <ValidatorsDepositsTable depositData={depositData} />
+            <ValidatorsDepositsTable depositData={depositData} />
 </div>
 );
 }

@@ -63,6 +63,7 @@ func InitV1Routes(e *echo.Echo) {
 	eg.POST("/ethereum/validators/aws/lambda/deposits/create", v1_ethereum_aws.CreateLambdaFunctionDepositsGenHandler)
 
 	// lambda verify
+	eg.POST("/ethereum/validators/aws/lambda/url", v1_ethereum_aws.GetLambdaFunctionURLHandler)
 	eg.POST("/ethereum/validators/aws/lambda/verify", v1_ethereum_aws.VerifyLambdaFunctionHandler)
 	// zeus service
 	eg.GET("/ethereum/validators/service/info", GetValidatorServiceInfoHandler)

@@ -100,16 +100,19 @@ export function LambdaVerifyCard() {
     const ageSecretName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
 
     const handleVerifySigners = async () => {
+        const creds = {accessKeyId: accessKey, secretAccessKey: secretKey};
         try {
-            const creds = {accessKeyId: accessKey, secretAccessKey: secretKey};
             const r = await awsApiGateway.createOrFetchExternalLambdaUserAccessKeys(creds, externalAccessUserName, externalAccessSecretName);
+            const url = await awsApiGateway.getLambdaFunctionURL(creds, blsSignerFunctionName);
+            console.log("url", url);
             const extCreds = {accessKeyId: r.data.accessKey, secretAccessKey: r.data.secretKey};
-            const response = await awsApiGateway.verifyLambdaFunctionSigner(extCreds,ageSecretName,blsSignerLambdaFnUrl, depositsData);
+            const response = await awsApiGateway.verifyLambdaFunctionSigner(extCreds,ageSecretName,url, depositsData);
             // TODO set dispatch/update the table
+
             console.log("r", response);
         } catch (error) {
             console.log("error", error);
-        }};
+        }}
 
     return (
         <Card sx={{ maxWidth: 400 }}>

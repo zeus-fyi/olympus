@@ -185,7 +185,7 @@ class AwsApiGateway {
             return
         }
     }
-    async verifyLambdaFunctionSigner(credentials: AwsCredentialIdentity): Promise<any>  {
+    async verifyLambdaFunctionSigner(credentials: AwsCredentialIdentity, ageSecretName: string, fnUrl: string, depositSlice: [{}]): Promise<any>  {
         const url = `/v1/ethereum/validators/aws/lambda/verify`;
         try {
             const sessionID = localStorage.getItem("sessionID");
@@ -193,7 +193,10 @@ class AwsApiGateway {
                 headers: {
                     'Authorization': `Bearer ${sessionID}`,
                 }}
-            const payload: AwsRequest = {
+            const payload: AwsVerifyLambdaSignerRequest = {
+                depositData: depositSlice,
+                functionURL: fnUrl,
+                secretName: ageSecretName,
                 authAWS: {
                     region: "us-west-1",
                     accessKey: credentials.accessKeyId,
@@ -209,6 +212,13 @@ class AwsApiGateway {
     }
 }
 export const awsApiGateway = new AwsApiGateway();
+
+export type AwsVerifyLambdaSignerRequest = {
+    authAWS: AuthAWS;
+    depositData: [{}];
+    secretName: string;
+    functionURL: string;
+};
 
 export type AwsRequestSignerExternalUserAccessCreationRequest = {
     authAWS: AuthAWS;

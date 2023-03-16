@@ -7,7 +7,6 @@ import {useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import {awsApiGateway} from "../../gateway/aws";
 import TextField from "@mui/material/TextField";
-import {validatorsApiGateway} from "../../gateway/validators";
 
 export function LambdaExtUserVerify(props: any) {
     const { activeStep } = props;
@@ -98,13 +97,14 @@ export function LambdaVerifyCard() {
     const blsSignerFunctionName = useSelector((state: RootState) => state.awsCredentials.blsSignerFunctionName);
     const externalAccessUserName = useSelector((state: RootState) => state.awsCredentials.externalAccessUserName);
     const externalAccessSecretName = useSelector((state: RootState) => state.awsCredentials.externalAccessSecretName);
+    const ageSecretName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
 
     const handleVerifySigners = async () => {
         try {
             const creds = {accessKeyId: accessKey, secretAccessKey: secretKey};
             const r = await awsApiGateway.createOrFetchExternalLambdaUserAccessKeys(creds, externalAccessUserName, externalAccessSecretName);
             const extCreds = {accessKeyId: r.data.accessKey, secretAccessKey: r.data.secretKey};
-            const response = await validatorsApiGateway.verifyValidators(extCreds,blsSignerLambdaFnUrl, depositsData);
+            const response = await awsApiGateway.verifyLambdaFunctionSigner(extCreds,ageSecretName,blsSignerLambdaFnUrl, depositsData);
             // TODO set dispatch/update the table
             console.log("r", response);
         } catch (error) {

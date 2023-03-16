@@ -9,8 +9,6 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	serverless_aws_automation "github.com/zeus-fyi/zeus/builds/serverless/aws_automation"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
-	aws_aegis_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
-	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
 type CreateAwsLambdaSignerRequest struct {
@@ -36,32 +34,6 @@ func (a *CreateAwsLambdaSignerRequest) CreateLambdaFunctionBlsSigner(c echo.Cont
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusOK, lambdaFnUrl)
-}
-
-func VerifyLambdaFunctionHandler(c echo.Context) error {
-	request := new(AwsRequest)
-	if err := c.Bind(request); err != nil {
-		return err
-	}
-	return request.VerifyLambdaFunction(c)
-}
-
-func (a *AwsRequest) VerifyLambdaFunction(c echo.Context) error {
-	ctx := context.Background()
-	ou := c.Get("orgUser").(org_users.OrgUser)
-	lambdaAccessAuth := aws_aegis_auth.AuthAWS{
-		Region:    "us-west-1",
-		AccessKey: a.AccessKey,
-		SecretKey: a.SecretKey,
-	}
-	ageEncryptionSecretName := ""
-	serviceURL := ""
-	err := serverless_aws_automation.VerifyLambdaSigner(ctx, lambdaAccessAuth, filepaths.Path{}, serviceURL, ageEncryptionSecretName)
-	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("VerifyRequest VerifyLambdaFunction error")
-		return c.JSON(http.StatusInternalServerError, err)
-	}
-	return c.JSON(http.StatusOK, nil)
 }
 
 func CreateLambdaFunctionSecretsKeyGenHandler(c echo.Context) error {

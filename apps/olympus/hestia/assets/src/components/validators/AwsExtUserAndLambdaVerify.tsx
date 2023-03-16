@@ -31,11 +31,16 @@ export function CreateAwsExternalLambdaUser() {
             const creds = {accessKeyId: accessKey, secretAccessKey: secretKey};
             const response = await awsApiGateway.createExternalLambdaUser(creds);
             console.log("response", response);
-            const r = await awsApiGateway.createOrFetchExternalLambdaUserAccessKeys(creds);
-            console.log("r", r);
         } catch (error) {
             console.log("error", error);
-        }};
+        }
+        try {
+            const creds = {accessKeyId: accessKey, secretAccessKey: secretKey};
+            await awsApiGateway.createOrFetchExternalLambdaUserAccessKeys(creds,externalAccessUserName, externalAccessSecretName);
+        } catch (error) {
+            console.log("error", error);
+        }
+    };
 
     return (
         <Card sx={{ maxWidth: 400 }}>
@@ -69,7 +74,7 @@ export function CreateAwsExternalLambdaUser() {
                 autoFocus
             />
             <CardActions>
-                <Button size="small" onClick={handleCreateUser}>Create</Button>
+                <Button size="small" onClick={handleCreateUser}>Create User & Auth Keys</Button>
             </CardActions>
         </Card>
     );
@@ -85,22 +90,23 @@ export function AwsLambdaFunctionVerifyAreaCard() {
     );
 }
 
-// TODO
 export function LambdaVerifyCard() {
     const accessKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
     const secretKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
     const depositsData = useSelector((state: RootState) => state.awsCredentials.depositData);
     const blsSignerLambdaFnUrl = useSelector((state: RootState) => state.awsCredentials.blsSignerLambdaFnUrl);
     const blsSignerFunctionName = useSelector((state: RootState) => state.awsCredentials.blsSignerFunctionName);
+    const externalAccessUserName = useSelector((state: RootState) => state.awsCredentials.externalAccessUserName);
+    const externalAccessSecretName = useSelector((state: RootState) => state.awsCredentials.externalAccessSecretName);
 
     const handleVerifySigners = async () => {
         try {
-            // TODO, get external accesss key and secret key from redux store
             const creds = {accessKeyId: accessKey, secretAccessKey: secretKey};
-            const r = await awsApiGateway.createOrFetchExternalLambdaUserAccessKeys(creds);
-            // TODO set external access keys & then call verifyLambdaKeySigning, use depositsData payload
-            const response = await validatorsApiGateway.verifyValidators(creds,blsSignerLambdaFnUrl, depositsData);
-            console.log("r", r);
+            const r = await awsApiGateway.createOrFetchExternalLambdaUserAccessKeys(creds, externalAccessUserName, externalAccessSecretName);
+            const extCreds = {accessKeyId: r.data.accessKey, secretAccessKey: r.data.secretKey};
+            const response = await validatorsApiGateway.verifyValidators(extCreds,blsSignerLambdaFnUrl, depositsData);
+            // TODO set dispatch/update the table
+            console.log("r", response);
         } catch (error) {
             console.log("error", error);
         }};

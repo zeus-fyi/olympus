@@ -4,19 +4,17 @@ import TextField from "@mui/material/TextField";
 import {AgeEncryptionKeySecretName, ValidatorSecretName} from "./AwsSecrets";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
-import {awsApiGateway} from "../../gateway/aws";
-import {setDepositData, setDepositsGenLambdaFnUrl,} from "../../redux/aws_wizard/aws.wizard.reducer";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import {setHdOffset, setNetworkName, setValidatorCount} from "../../redux/validators/ethereum.validators.reducer";
-import {awsLambdaApiGateway} from "../../gateway/aws.lambda";
 
 export function GenerateValidatorKeysAndDepositsAreaCardWrapper(props: any) {
-    const { activeStep, onGenerateValidatorEncryptedKeystoresZip } = props;
+    const { activeStep, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip } = props;
+
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
             <GenerateValidatorsParams />
-            <GenValidatorDepositsCreationActionsCard />
+            <GenValidatorDepositsCreationActionsCard onGenerateValidatorDeposits={onGenerateValidatorDeposits}/>
             <GenerateZipValidatorActionsCard onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip} />
         </Stack>
     );
@@ -73,28 +71,11 @@ export function GenerateZipValidatorActionsCard(props: any) {
     );
 }
 
-export function GenValidatorDepositsCreationActionsCard() {
-    const accKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
-    const secKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
-    const network = useSelector((state: RootState) => state.validatorSecrets.network);
-    const validatorSecretsName = useSelector((state: RootState) => state.awsCredentials.validatorSecretsName);
-    const validatorCount = useSelector((state: RootState) => state.validatorSecrets.validatorCount);
-    const hdOffset = useSelector((state: RootState) => state.validatorSecrets.hdOffset);
+export function GenValidatorDepositsCreationActionsCard(props: any) {
+    const { activeStep, onGenerateValidatorDeposits } = props;
 
     const depositsGenLambdaFnUrl = useSelector((state: RootState) => state.awsCredentials.depositsGenLambdaFnUrl);
 
-    const dispatch = useDispatch();
-    const onCreateLambdaValidatorDepositsFn = async () => {
-        try {
-            const creds = {accessKeyId: accKey, secretAccessKey: secKey};
-            const response = await awsApiGateway.createValidatorsDepositDataLambda(creds);
-            dispatch(setDepositsGenLambdaFnUrl(response.data));
-            const depositData = await awsLambdaApiGateway.invokeValidatorDepositsGeneration(depositsGenLambdaFnUrl,creds,network,validatorSecretsName,validatorCount,hdOffset);
-            const body = await depositData.json();
-            dispatch(setDepositData(body));
-        } catch (error) {
-            console.log("error", error);
-        }};
     return (
         <Card sx={{ maxWidth: 400 }}>
             <CardContent>
@@ -117,7 +98,7 @@ export function GenValidatorDepositsCreationActionsCard() {
                 autoFocus
             />
             <CardActions>
-                <Button onClick={onCreateLambdaValidatorDepositsFn} size="small">Generate</Button>
+                <Button onClick={onGenerateValidatorDeposits} size="small">Generate</Button>
             </CardActions>
         </Card>
     );

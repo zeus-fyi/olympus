@@ -7,8 +7,6 @@ import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
-import {useSelector} from "react-redux";
-import {RootState} from "../../redux/store";
 
 function createDepositDataRows(
     pubkey: string,
@@ -20,12 +18,12 @@ function createDepositDataRows(
     return {pubkey, feeRecipient,amount, signature,withdrawalCredentials};
 }
 
-export function ValidatorsDepositsTable() {
+export function ValidatorsDepositsTable(props: any) {
+    const { depositData } = props;
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [validators, setValidators] = useState([{}]);
 
-    const depositsData = useSelector((state: RootState) => state.awsCredentials.depositData);
     const handleChangeRowsPerPage = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
@@ -39,12 +37,8 @@ export function ValidatorsDepositsTable() {
         setPage(newPage);
     };
 
-    const depositDataRows = depositsData.map((v: any) =>
-        createDepositDataRows(v.pubkey, v.feeRecipient, v.amount, v.signature, v.withdrawal_credentials)
-    )
-
     const emptyRows =
-        page > 0 ? Math.max(0, (1 + page) * rowsPerPage - depositDataRows.length) : 0;
+        page > 0 ? Math.max(0, (1 + page) * rowsPerPage - validators.length) : 0;
 
     return (
         <TableContainer component={Paper}>
@@ -59,7 +53,7 @@ export function ValidatorsDepositsTable() {
                 </TableHead>
                 <TableBody>
                     {(rowsPerPage > 0
-                        ? depositDataRows.slice(page * rowsPerPage, page*rowsPerPage+rowsPerPage) : depositDataRows).map((row: any,i: number) => (
+                        ? depositData.slice(page * rowsPerPage, page*rowsPerPage+rowsPerPage) : depositData).map((row: any,i: number) => (
                         <TableRow
                             key={i}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
@@ -83,7 +77,7 @@ export function ValidatorsDepositsTable() {
                         <TablePagination
                             rowsPerPageOptions={[10, 25, 100, { label: 'All', value: -1 }]}
                             colSpan={3}
-                            count={depositDataRows.length}
+                            count={depositData.length}
                             rowsPerPage={rowsPerPage}
                             page={page}
                             SelectProps={{

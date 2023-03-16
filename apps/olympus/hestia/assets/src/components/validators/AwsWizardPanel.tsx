@@ -15,10 +15,15 @@ import {ZeusServiceRequestAreaCardWrapper} from "./ZeusServiceRequest";
 import {ValidatorsDepositRequestAreaCardWrapper} from "./ValidatorsDeposits";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
-import {setEncKeystoresZipLambdaFnUrl} from "../../redux/aws_wizard/aws.wizard.reducer";
+import {
+    setDepositData,
+    setDepositsGenLambdaFnUrl,
+    setEncKeystoresZipLambdaFnUrl
+} from "../../redux/aws_wizard/aws.wizard.reducer";
 import {awsApiGateway} from "../../gateway/aws";
 import {awsLambdaApiGateway} from "../../gateway/aws.lambda";
 import {CreateAwsLambdaFunctionActionAreaCardWrapper} from './AwsLambdaKeystoreSigners';
+import {ValidatorsDepositsTable} from "./ValidatorsDepositsTable";
 
 const steps = [
     'AWS Auth & Internal User Roles',
@@ -131,15 +136,6 @@ export default function AwsWizardPanel() {
     };
 
     const [encZipFile, setEncZipFile] = useState<Blob>(new Blob());
-    const onGenerateValidatorDeposits = async () => {
-        try {
-            // TODO this is a stub
-            console.log('onGenerateValidatorDeposits')
-            //const response = await validatorsApiGateway.generateValidatorsDepositDataLambda(mnemonic, hdWalletPw,count,hdOffset);
-            //console.log(response.data)
-        } catch (error) {
-            console.log("error", error);
-        }};
 
     const onEncZipFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files && event.target.files[0];
@@ -173,7 +169,33 @@ export default function AwsWizardPanel() {
         } catch (error) {
             console.log("error", error);
         }};
+
+    const network = useSelector((state: RootState) => state.validatorSecrets.network);
+    let depositsGenLambdaFnUrl = useSelector((state: RootState) => state.awsCredentials.depositsGenLambdaFnUrl);
+    const depositData = useSelector((state: RootState) => state.awsCredentials.depositData);
+
+    const onGenerateValidatorDeposits = async () => {
+        console.log("onGenerateValidatorDeposits");
+        const creds = {accessKeyId: akey, secretAccessKey: skey};
+        try {
+            const response = await awsApiGateway.createValidatorsDepositDataLambda(creds);
+            dispatch(setDepositsGenLambdaFnUrl(response.data));
+            depositsGenLambdaFnUrl = response.data;
+        } catch (error) {
+            console.log("error", error);
+        }
+        try {
+            console.log("invokeValidatorDepositsGeneration");
+            const dpSlice = await awsLambdaApiGateway.invokeValidatorDepositsGeneration(depositsGenLambdaFnUrl,creds,network,validatorSecretsName,validatorCount,hdOffset);
+            const body = await dpSlice.json();
+            dispatch(setDepositData(body));
+            console.log("depositData", depositData);
+        } catch (error) {
+            console.log("error", error);
+        }
+    };
     return (
+        <div>
         <Box sx={{ width: '100%' }}>
             <Stepper nonLinear activeStep={activeStep}>
                 {steps.map((label, index) => (
@@ -229,7 +251,9 @@ export default function AwsWizardPanel() {
                 )}
             </div>
         </Box>
-    );
+    <ValidatorsDepositsTable depositData={depositData} />
+</div>
+);
 }
 
 export function download(blob: any, filename: string) {

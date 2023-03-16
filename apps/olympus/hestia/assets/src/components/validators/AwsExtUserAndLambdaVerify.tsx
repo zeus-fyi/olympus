@@ -93,9 +93,10 @@ export function AwsLambdaFunctionVerifyAreaCard(props: any) {
 
 export function LambdaVerifyCard(props: any) {
     const { activeStep, onHandleVerifySigners } = props;
-
     const blsSignerFunctionName = useSelector((state: RootState) => state.awsCredentials.blsSignerFunctionName);
     const ageSecretName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
+
+
     return (
         <Card sx={{ maxWidth: 400 }}>
             <CardContent>

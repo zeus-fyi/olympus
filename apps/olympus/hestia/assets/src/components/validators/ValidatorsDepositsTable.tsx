@@ -8,7 +8,7 @@ import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 
 export function ValidatorsDepositsTable(props: any) {
-    const { depositData } = props;
+    const { activeStep, depositData } = props;
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
 
@@ -36,6 +36,9 @@ export function ValidatorsDepositsTable(props: any) {
             <Table sx={{ minWidth: 1000 }} aria-label="validators pagination table">
                 <TableHead>
                     <TableRow style={{ backgroundColor: '#8991B0'}} >
+                        {activeStep === 5 && (
+                            <TableCell style={{ fontWeight: 'normal', color: 'white' }} align="left">Verified</TableCell>
+                        )}
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Pubkey</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Amount</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Signature</TableCell>
@@ -49,6 +52,9 @@ export function ValidatorsDepositsTable(props: any) {
                             key={i}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >
+                            {activeStep === 5 && (
+                                <TableCell align="left">{row.verified ? 'True' : 'False'}</TableCell>
+                            )}
                             <TableCell component="th" scope="row">
                                 {row.pubkey}
                             </TableCell>

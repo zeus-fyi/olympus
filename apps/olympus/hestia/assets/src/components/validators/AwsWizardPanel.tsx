@@ -193,9 +193,7 @@ export default function AwsWizardPanel() {
             body.forEach((item: any) => {
                 item.verified = false;
             });
-            console.log("body", body)
             dispatch(setDepositData(body));
-            console.log("depositData", depositData);
         } catch (error) {
             console.log("error", error);
         }
@@ -212,22 +210,16 @@ export default function AwsWizardPanel() {
             const extCreds = {accessKeyId: r.data.accessKey, secretAccessKey: r.data.secretKey};
             const response = await awsApiGateway.verifyLambdaFunctionSigner(extCreds,ageSecretName,url.data, depositData);
             const verifiedKeys = response.data
-            let keyMap = new Map();
-            verifiedKeys.forEach((item: any) => {
-                keyMap.set(item.pubkey, true);
-            });
-            // const filtered = depositData.map((obj: any) => {
-            //     // Check if the object has the specified attributeName
-            //     console.log(obj)
-            //     if (obj.hasOwnProperty('verified')) {
-            //         // Update the attribute value
-            //         return {
-            //             ...obj,
-            //             ['verified']: keyMap.get(obj.pubkey),
-            //         };
-            //     }});
-           // console.log("filteredDepositData", filtered)
-            console.log("r", response);
+            let hm = createHashMap(verifiedKeys);
+            const verifiedDepositData = depositData.map((obj: any) => {
+                if (obj.hasOwnProperty('verified')) {
+                    // Update the attribute value
+                    return {
+                        ...obj,
+                        ['verified']: hm[obj.pubkey],
+                    };
+                }});
+            dispatch(setDepositData(verifiedDepositData));
         } catch (error) {
             console.log("error", error);
         }}
@@ -288,7 +280,7 @@ export default function AwsWizardPanel() {
                 )}
             </div>
         </Box>
-            <ValidatorsDepositsTable depositData={depositData} />
+            <ValidatorsDepositsTable depositData={depositData} activeStep={activeStep}/>
 </div>
 );
 }
@@ -304,4 +296,11 @@ export function download(blob: any, filename: string) {
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
+}
+
+function createHashMap(keys: string[]): { [key: string]: boolean } {
+    return keys.reduce((hashMap: { [key: string]: boolean }, key: string) => {
+        hashMap[key] = true;
+        return hashMap;
+    }, {});
 }

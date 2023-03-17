@@ -12,4 +12,4 @@ docker.pubbuildx:
 	@ docker buildx build -t ${IMG} -t ${LATEST} --platform=${GOOS}/${GOARCH} -f ../../docker/zeus_cloud/Dockerfile ../../ --push
 
 docker.debug:
-	docker run -it --entrypoint /bin/bash registry.digitalocean.com/zeus-fyi/zeus-cloud:latest
+	docker run -p 3000:3000 registry.digitalocean.com/zeus-fyi/zeus-cloud:latest

@@ -53,6 +53,7 @@
   "scripts": {
     "start": "node_modules/.bin/react-scripts start",
     "build": "node_modules/.bin/react-scripts build",
+    "serve": "node_modules/.bin/serve -s build -l 3000",
     "test": "node_modules/.bin/react-scripts test",
     "eject": "node_modules/.bin/react-scripts eject"
   },

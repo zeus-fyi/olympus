@@ -14,17 +14,8 @@ COPY apps/olympus/hestia/assets/ ./
 # Build the React app for production
 RUN npm run build
 
-FROM gcr.io/distroless/nodejs:16
-
-# Set the working directory to /app
-WORKDIR /app
-
-# Copy the build output and node_modules from the previous build stage
-COPY --from=src_builder /app/build /app/build
-COPY --from=src_builder /app/node_modules /app/node_modules
-
 ENV NODE_ENV=production
 
 EXPOSE 3000
 
-CMD ["node", "/app/node_modules/serve/bin/serve.js", "-s", "build", "-l", "3000"]
+CMD ["node", "/app/node_modules/.bin/serve", "-s", "/app/build", "-l", "3000"]

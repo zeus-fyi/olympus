@@ -4,14 +4,6 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
 )
 
-var clusterClassName = "olympus"
-
-var cd = zeus_req_types.ClusterTopologyDeployRequest{
-	ClusterClassName:    clusterClassName,
-	SkeletonBaseOptions: []string{"hestia"},
-	CloudCtxNs:          HestiaCloudCtxNs,
-}
-
 func (t *HestiaCookbookTestSuite) TestDeploy() {
 	t.TestChartUpload()
 	resp, err := t.ZeusTestClient.DeployCluster(ctx, cd)

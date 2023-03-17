@@ -1,37 +1,42 @@
 package hestia_olympus_cookbook
 
-import "github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
+import (
+	"fmt"
+	"testing"
 
-var zeusCloudClusterDef = zeus_req_types.ClusterTopologyDeployRequest{
-	ClusterClassName:    clusterClassName,
-	SkeletonBaseOptions: []string{"zeusCloud"},
-	CloudCtxNs:          ZeusCloudCloudCtxNs,
-}
+	"github.com/stretchr/testify/suite"
+	olympus_cookbooks "github.com/zeus-fyi/olympus/cookbooks"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
+	api_configs "github.com/zeus-fyi/olympus/test/configs"
+	zeus_client "github.com/zeus-fyi/zeus/pkg/zeus/client"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
+)
 
-// TODO needs to add env vars for api urls
-func (t *HestiaCookbookTestSuite) TestDeployZeusCloud() {
-	t.TestChartUpload()
-	resp, err := t.ZeusTestClient.DeployCluster(ctx, zeusCloudClusterDef)
+func (t *ZeusCloudCookbookTestSuite) TestDeployZeusCloud() {
+	_, err := ZeusCloudClusterDef.UploadChartsFromClusterDefinition(ctx, t.ZeusTestClient, true)
+	t.Require().Nil(err)
+
+	cdep := ZeusCloudClusterDef.GenerateDeploymentRequest()
+	resp, err := t.ZeusTestClient.DeployCluster(ctx, cdep)
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(resp)
 }
 
-func (t *HestiaCookbookTestSuite) TestChartUploadZeusCloud() {
-	resp, err := t.ZeusTestClient.UploadChart(ctx, ZeusCloudChartPath, ZeusCloudUploadChart)
-	t.Require().Nil(err)
-	t.Assert().NotZero(resp.TopologyID)
+func (t *ZeusCloudCookbookTestSuite) TestZeusCloudClusterSetup() {
+	gcd := ZeusCloudClusterDef.BuildClusterDefinitions()
+	t.Assert().NotEmpty(gcd)
+	fmt.Println(gcd)
 
-	ZeusCloudDeployKnsReq.TopologyID = resp.TopologyID
-	tar := zeus_req_types.TopologyRequest{TopologyID: ZeusCloudDeployKnsReq.TopologyID}
-	chartResp, err := t.ZeusTestClient.ReadChart(ctx, tar)
-	t.Require().Nil(err)
-	t.Assert().NotEmpty(chartResp)
+	gdr := ZeusCloudClusterDef.GenerateDeploymentRequest()
+	t.Assert().NotEmpty(gdr)
+	fmt.Println(gdr)
 
-	err = chartResp.PrintWorkload(ZeusCloudChartPath)
+	sbDefs, err := ZeusCloudClusterDef.GenerateSkeletonBaseCharts()
 	t.Require().Nil(err)
+	t.Assert().NotEmpty(sbDefs)
 }
 
-func (t *HestiaCookbookTestSuite) TestCreateClusterBaseZeusCloud() {
+func (t *ZeusCloudCookbookTestSuite) TestCreateClusterBase() {
 	basesInsert := []string{"zeusCloud"}
 	cc := zeus_req_types.TopologyCreateOrAddComponentBasesToClassesRequest{
 		ClusterClassName:   clusterClassName,
@@ -41,7 +46,7 @@ func (t *HestiaCookbookTestSuite) TestCreateClusterBaseZeusCloud() {
 	t.Require().Nil(err)
 }
 
-func (t *HestiaCookbookTestSuite) TestCreateClusterSkeletonBasesZeusCloud() {
+func (t *ZeusCloudCookbookTestSuite) TestCreateClusterSkeletonBases() {
 	cc := zeus_req_types.TopologyCreateOrAddSkeletonBasesToClassesRequest{
 		ClusterClassName:  clusterClassName,
 		ComponentBaseName: "zeusCloud",
@@ -49,4 +54,23 @@ func (t *HestiaCookbookTestSuite) TestCreateClusterSkeletonBasesZeusCloud() {
 	}
 	_, err := t.ZeusTestClient.AddSkeletonBasesToClass(ctx, cc)
 	t.Require().Nil(err)
+}
+
+type ZeusCloudCookbookTestSuite struct {
+	test_suites_base.TestSuite
+	ZeusTestClient zeus_client.ZeusClient
+}
+
+func (t *ZeusCloudCookbookTestSuite) SetupTest() {
+	// points dir to test/configs
+	tc := api_configs.InitLocalTestConfigs()
+
+	// uses the bearer token from test/configs/config.yaml
+	t.ZeusTestClient = zeus_client.NewDefaultZeusClient(tc.Bearer)
+	//t.ZeusTestClient = zeus_client.NewLocalZeusClient(tc.Bearer)
+	olympus_cookbooks.ChangeToCookbookDir()
+}
+
+func TestZeusCloudCookbookTestSuite(t *testing.T) {
+	suite.Run(t, new(ZeusCloudCookbookTestSuite))
 }

@@ -43,7 +43,7 @@ const Login = () => {
         let res: any = await authProvider.login(email, password)
 
         const statusCode = res.status;
-        if (statusCode === 200) {
+        if (statusCode === 200 || statusCode === 204) {
             dispatch({type: 'LOGIN_SUCCESS', payload: res.data})
             navigate('/dashboard');
         } else {

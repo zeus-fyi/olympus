@@ -1,15 +1,18 @@
 import {hestiaApi} from './axios/axios';
 import {AwsCredentialIdentity} from "@aws-sdk/types/dist-types/identity";
+import inMemoryJWT from "../auth/InMemoryJWT";
 
 class AwsApiGateway {
     async createInternalLambdaUser(credentials: AwsCredentialIdentity): Promise<any>  {
         const url = `/v1/ethereum/validators/aws/user/internal/lambda/create`;
         try {
-            const sessionID = localStorage.getItem("sessionID");
+            const sessionID = inMemoryJWT.getToken();
             let config = {
                 headers: {
-                    'Authorization': `Bearer ${sessionID}`,
-                }}
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
             const payload: AwsRequest = {
                 authAWS: {
                     region: "us-west-1",
@@ -27,11 +30,13 @@ class AwsApiGateway {
     async createExternalLambdaUser(credentials: AwsCredentialIdentity): Promise<any>  {
         const url = `/v1/ethereum/validators/aws/user/external/lambda/create`;
         try {
-            const sessionID = localStorage.getItem("sessionID");
+            const sessionID = inMemoryJWT.getToken();
             let config = {
                 headers: {
-                    'Authorization': `Bearer ${sessionID}`,
-                }}
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
             const payload: AwsRequest = {
                 authAWS: {
                     region: "us-west-1",
@@ -49,11 +54,13 @@ class AwsApiGateway {
     async getLambdaFunctionURL(credentials: AwsCredentialIdentity, functionName: string): Promise<any>  {
         const url = `/v1/ethereum/validators/aws/lambda/url`;
         try {
-            const sessionID = localStorage.getItem("sessionID");
+            const sessionID = inMemoryJWT.getToken();
             let config = {
                 headers: {
-                    'Authorization': `Bearer ${sessionID}`,
-                }}
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
             const payload: AwsRequestSignerCreationRequest = {
                 functionName: functionName,
                 keystoresLayerName: "",
@@ -73,11 +80,13 @@ class AwsApiGateway {
     async createOrFetchExternalLambdaUserAccessKeys(credentials: AwsCredentialIdentity, externalUserName: string, externalAccessSecretName: string): Promise<any>  {
         const url = `/v1/ethereum/validators/aws/lambda/external/user/access/keys/create`;
         try {
-            const sessionID = localStorage.getItem("sessionID");
+            const sessionID = inMemoryJWT.getToken();
             let config = {
                 headers: {
-                    'Authorization': `Bearer ${sessionID}`,
-                }}
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
             const payload: AwsRequestSignerExternalUserAccessCreationRequest = {
                 authAWS: {
                     region: "us-west-1",
@@ -97,11 +106,13 @@ class AwsApiGateway {
     async createLambdaSignerFunction(credentials: AwsCredentialIdentity, functionName: string, keystoresLayerName: string): Promise<any>  {
         const url = `/v1/ethereum/validators/aws/lambda/signer/create`;
         try {
-            const sessionID = localStorage.getItem("sessionID");
+            const sessionID = inMemoryJWT.getToken();
             let config = {
                 headers: {
-                    'Authorization': `Bearer ${sessionID}`,
-                }}
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
             const payload: AwsRequestSignerCreationRequest = {
                 authAWS: {
                     region: "us-west-1",
@@ -121,12 +132,13 @@ class AwsApiGateway {
     async createLambdaFunctionKeystoresLayer(credentials: AwsCredentialIdentity, keystoresLayerName: string, keystoresZip: Blob): Promise<any>  {
         const url = `/v1/ethereum/validators/aws/lambda/signer/keystores/layer/create`;
         try {
-            const sessionID = localStorage.getItem("sessionID");
+            const sessionID = inMemoryJWT.getToken();
             let config = {
                 headers: {
-                    'Authorization': `Bearer ${sessionID}`,
-                    'Content-Type': 'multipart/form-data'
-                }}
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
             const formData = new FormData(); // Create a new FormData object
             const zipFile = new File([keystoresZip], 'keystores.zip', { type: 'application/zip' }); // Create a new zip file
             formData.append('authAWS', JSON.stringify({
@@ -146,11 +158,13 @@ class AwsApiGateway {
     async createValidatorsDepositDataLambda(credentials: AwsCredentialIdentity): Promise<any>  {
         const url = `/v1/ethereum/validators/aws/lambda/deposits/create`;
         try {
-            const sessionID = localStorage.getItem("sessionID");
+            const sessionID = inMemoryJWT.getToken();
             let config = {
                 headers: {
-                    'Authorization': `Bearer ${sessionID}`,
-                }}
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
             const payload: AwsRequest = {
                 authAWS: {
                     region: "us-west-1",
@@ -168,11 +182,13 @@ class AwsApiGateway {
     async createValidatorsAgeEncryptedKeystoresZipLambda(credentials: AwsCredentialIdentity): Promise<any>  {
         const url = `/v1/ethereum/validators/aws/lambda/keystores/zip/create`;
         try {
-            const sessionID = localStorage.getItem("sessionID");
+            const sessionID = inMemoryJWT.getToken();
             let config = {
                 headers: {
-                    'Authorization': `Bearer ${sessionID}`,
-                }}
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
             const payload: AwsRequest = {
                 authAWS: {
                     region: "us-west-1",
@@ -190,11 +206,13 @@ class AwsApiGateway {
     async createValidatorSecretsLambda(credentials: AwsCredentialIdentity): Promise<any> {
         const url = `/v1/ethereum/validators/aws/lambda/secrets/create`;
         try {
-            const sessionID = localStorage.getItem("sessionID");
+            const sessionID = inMemoryJWT.getToken();
             let config = {
                 headers: {
-                    'Authorization': `Bearer ${sessionID}`,
-                }}
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
             const payload: AwsRequest = {
                 authAWS: {
                     region: "us-west-1",
@@ -212,11 +230,13 @@ class AwsApiGateway {
     async verifyLambdaFunctionSigner(credentials: AwsCredentialIdentity, ageSecretName: string, fnUrl: string, depositSlice: [{}]): Promise<any>  {
         const url = `/v1/ethereum/validators/aws/lambda/verify`;
         try {
-            const sessionID = localStorage.getItem("sessionID");
+            const sessionID = inMemoryJWT.getToken();
             let config = {
                 headers: {
-                    'Authorization': `Bearer ${sessionID}`,
-                }}
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
             const keySlice = depositSlice.map((v: any) =>
                 v.pubkey
             );

@@ -1,6 +1,7 @@
 import {hestiaApi} from './axios/axios';
 
 const config = {
+    withCredentials: true,
 };
 
 class AuthApiGateway {
@@ -11,6 +12,16 @@ class AuthApiGateway {
                 email: email,
                 password: password,
             }, config)
+        } catch (exc) {
+            console.error('error sending login request');
+            console.error(exc);
+            return
+        }
+    }
+    async sendTokenRefreshRequest(): Promise<any>  {
+        const url = `/v1/refresh/token`;
+        try {
+            return await hestiaApi.get(url,config)
         } catch (exc) {
             console.error('error sending login request');
             console.error(exc);

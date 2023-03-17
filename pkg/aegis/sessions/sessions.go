@@ -1,0 +1,3 @@
+package aegis_sessions
+
+const SessionIDNickname = "t7wk7ZVfNaTw7t4cctHpLiTBJP8jK7G89wyWTs4myWhhzRKoLEKCViSua9u"

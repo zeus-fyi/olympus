@@ -1,39 +1,24 @@
-name: Build Zeus App
+name: Build Zeus Cloud App
 
 on:
   push:
     paths:
-      - apps/olympus/zeus/**
-      - pkg/aegis/auth_startup/**
-      - pkg/aegis/sessions/**
-      - pkg/zeus/**
-      - datastores/apps/zeus/**
-      - datastores/s3/**
-      - docker/zeus/Dockerfile
-      - .github/workflows/zeus.yml
+      - .github/workflows/zeus_cloud.yml
+      - apps/olympus/hestia/assets/**
     branches:
       - main
+      - dev
 env:
   REPO: registry.digitalocean.com/zeus-fyi
-  NAME: zeus
+  NAME: zeus-cloud
   TAG: latest
-  GO111MODULE: on
   GOOS: linux
   GOARCH: amd64
-  CGO_ENABLED: 0
-  GOCACHE: ~/go-build
-  GOMODCACHE: ~/go/pkg/mod
 
 jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - name: Cache Go Modules
-        uses: actions/cache@v2
-        with:
-          path: ~/go/pkg/mod
-          key: go-mod-${{ hashFiles('**/go.sum') }}
-
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -58,18 +43,12 @@ jobs:
           wget https://github.com/digitalocean/doctl/releases/download/v1.78.0/doctl-1.78.0-linux-amd64.tar.gz -O doctl.tar.gz
           tar xf doctl.tar.gz -C /usr/local/bin
 
-      - name: Build And Publish Zeus App
+      - name: Build And Publish Zeus Cloud App
         run: |
           doctl registry login -t ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
           docker buildx build \
           -t ${{ env.REPO }}/${{ env.NAME }}:${{ github.sha }} \
           -t ${{ env.REPO }}/${{ env.NAME }}:${{ env.TAG}} \
-          --build-arg GOMODCACHE=${{ env.GOMODCACHE }} \
-          --build-arg GOCACHE=${{ env.GOCACHE }} \
-          --build-arg GOOS=${{ env.GOOS }} \
-          --build-arg CA_CRT="${{ secrets.CA_CRT }}" \
-          --build-arg CA_PEM="${{ secrets.CA_PEM }}" \
-          --build-arg CA_KEY="${{ secrets.CA_KEY }}" \
           --platform=${{ env.GOOS }}/${{ env.GOARCH }} \
-          -f docker/zeus/Dockerfile . --push
+          -f docker/zeus_cloud/Dockerfile . --push
 

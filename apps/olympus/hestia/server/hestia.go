@@ -127,9 +127,10 @@ func Hestia() {
 
 	if env == "local" || env == "production-local" {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-			AllowOrigins: []string{"*"},
-			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
-			AllowHeaders: []string{"*"},
+			AllowOrigins:     []string{"http://localhost:3000"},
+			AllowMethods:     []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
+			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+			AllowCredentials: true,
 		}))
 	}
 	srv.E = hestia_web_router.WebRoutes(srv.E)

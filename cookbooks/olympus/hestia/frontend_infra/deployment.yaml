@@ -20,13 +20,14 @@ spec:
       containers:
         - name: "zeus-cloud"
           image: "registry.digitalocean.com/zeus-fyi/zeus-cloud:latest"
-          volumeMounts:
-            - mountPath: "/scripts"
-              name: "cm-zeus-cloud"
           imagePullPolicy: Always
-          command: [ "/bin/sh" ]
-          args: [ "-c","/scripts/start.sh" ]
           env:
+            - name: REACT_APP_BACKEND_ENDPOINT
+              value: "http://hestia.hestia.svc.cluster.local:9002"
+            - name: REACT_APP_ZEUS_BACKEND_ENDPOINT
+              value: "http://zeus.zeus.svc.cluster.local:9001"
+            - name: REACT_APP_ARTEMIS_BACKEND_ENDPOINT
+              value: "http://artemis.artemis.svc.cluster.local:9004"
           ports:
             - name: "http"
               containerPort: 3000
@@ -34,10 +35,6 @@ spec:
           resources:
             {}
       volumes:
-        - name: cm-zeus-cloud
-          configMap:
-            name: cm-zeus-cloud
-            defaultMode: 0744
       nodeSelector:
         {}
       affinity:

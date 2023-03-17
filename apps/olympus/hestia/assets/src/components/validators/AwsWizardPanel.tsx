@@ -29,7 +29,7 @@ import {awsLambdaApiGateway} from "../../gateway/aws.lambda";
 import {CreateAwsLambdaFunctionActionAreaCardWrapper} from './AwsLambdaKeystoreSigners';
 import {ValidatorsDepositsTable} from "./ValidatorsDepositsTable";
 import {ValidatorDepositDataJSON} from "../../gateway/validators";
-import {setNetworkAppended} from "../../redux/validators/ethereum.validators.reducer";
+import {setKeyGroupName, setNetworkAppended} from "../../redux/validators/ethereum.validators.reducer";
 
 const steps = [
     'AWS Auth & Internal User Roles',
@@ -249,6 +249,7 @@ export default function AwsWizardPanel() {
 
     const networkAppended = useSelector((state: RootState) => state.validatorSecrets.networkAppended);
     const keystoresLayerName = useSelector((state: RootState) => state.awsCredentials.blsSignerKeystoresLayerName);
+    const keyGroupName = useSelector((state: RootState) => state.validatorSecrets.keyGroupName);
 
     const handleNetworkAppend = () => {
         if (!networkAppended) {
@@ -260,6 +261,8 @@ export default function AwsWizardPanel() {
             dispatch(setSignerFunctionName(newBlsSignerFunctionName));
             const newKeystoresLayerName = keystoresLayerName + network;
             dispatch(setKeystoreLayerName(newKeystoresLayerName));
+            const newKeyGroupName = keyGroupName + network;
+            dispatch(setKeyGroupName(newKeyGroupName));
             dispatch(setNetworkAppended(true));
         }
     };

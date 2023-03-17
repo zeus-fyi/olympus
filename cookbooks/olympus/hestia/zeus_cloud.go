@@ -11,11 +11,11 @@ import (
 )
 
 var ZeusCloudUploadChart = zeus_req_types.TopologyCreateRequest{
-	TopologyName:      "zeus-cloud",
-	ChartName:         "zeus-cloud",
-	ChartDescription:  "zeus-cloud",
-	SkeletonBaseName:  "zeus-cloud",
-	ComponentBaseName: "zeus-cloud",
+	TopologyName:      "zeusCloud",
+	ChartName:         "zeusCloud",
+	ChartDescription:  "zeusCloud",
+	SkeletonBaseName:  "zeusCloud",
+	ComponentBaseName: "zeusCloud",
 	ClusterClassName:  "olympus",
 	Tag:               "latest",
 	Version:           fmt.Sprintf("v0.0.%d", time.Now().Unix()),
@@ -38,7 +38,7 @@ var ZeusCloudChartPath = filepaths.Path{
 	PackageName: "",
 	DirIn:       "./olympus/hestia/frontend_infra",
 	DirOut:      "./olympus/outputs",
-	FnIn:        "zeus-cloud", // filename for your gzip workload
+	FnIn:        "zeusCloud", // filename for your gzip workload
 	FnOut:       "",
 	Env:         "",
 	FilterFiles: string_utils.FilterOpts{},

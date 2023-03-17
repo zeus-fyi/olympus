@@ -3,6 +3,8 @@ package artemis_server
 import (
 	"context"
 
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -59,6 +61,13 @@ func Artemis() {
 
 	// Start server
 	log.Info().Msg("Artemis: Starting Server")
+	if env == "local" || env == "production-local" {
+		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins: []string{"*"},
+			AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
+			AllowHeaders: []string{"*"},
+		}))
+	}
 	srv.E = artemis_api_router.Routes(srv.E)
 	srv.Start()
 }

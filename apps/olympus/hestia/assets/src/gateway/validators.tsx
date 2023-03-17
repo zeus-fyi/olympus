@@ -1,4 +1,4 @@
-import {hestiaApi} from './axios/axios';
+import {artemisApi, hestiaApi} from './axios/axios';
 import {AwsCredentialIdentity} from "@aws-sdk/types/dist-types/identity";
 
 class ValidatorsApiGateway {
@@ -32,10 +32,67 @@ class ValidatorsApiGateway {
             return
         }
     }
+    async depositValidatorsServiceRequest(payload: CreateValidatorsDepositServiceRequest): Promise<any>  {
+        const url = `/v1/ethereum/validators/create`;
+        try {
+            const sessionID = localStorage.getItem("sessionID");
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`,
+                }}
+            return await artemisApi.post(url, payload, config)
+        } catch (exc) {
+            console.error('error sending create lambda function keystores layer');
+            console.error(exc);
+            return
+        }
+    }
 }
 export const validatorsApiGateway = new ValidatorsApiGateway();
 
-// TypeScript interfaces matching the Go types
+interface ValidatorDepositParams {
+    pubkey: string;
+    withdrawal_credentials: string;
+    signature: string;
+    deposit_data_root: string;
+}
+
+interface ExtendedDepositParams extends ValidatorDepositParams {
+    amount: number;
+    deposit_message_root: string;
+}
+
+
+export function createExtendedDepositParams(
+    pubkey: string,
+    withdrawalCredentials: string,
+    signature: string,
+    depositDataRoot: string,
+    amount: number,
+    depositMessageRoot: string,
+): ExtendedDepositParams {
+    return {
+        pubkey,
+        withdrawal_credentials: withdrawalCredentials,
+        signature,
+        deposit_data_root: depositDataRoot,
+        amount,
+        deposit_message_root: depositMessageRoot,
+    };
+}
+
+type CreateValidatorsDepositServiceRequest = {
+    network: string;
+    validatorServiceOrgGroupSlice: ExtendedDepositParams[];
+};
+
+export function createValidatorsDepositServiceRequest(network: string, validatorServiceOrgGroupSlice: ExtendedDepositParams[]): CreateValidatorsDepositServiceRequest {
+    return {
+        network: network,
+        validatorServiceOrgGroupSlice: validatorServiceOrgGroupSlice,
+    }
+}
+
 interface AuthLambdaAWS {
     serviceURL: string;
     secretName: string;
@@ -106,4 +163,16 @@ export function createValidatorServiceRequest(
     };
 
     return hestiaServiceRequest;
+}
+
+interface ValidatorDepositParams {
+    pubkey: string;
+    withdrawal_credentials: string;
+    signature: string;
+    deposit_data_root: string;
+}
+
+interface ExtendedDepositParams extends ValidatorDepositParams {
+    amount: number;
+    deposit_message_root: string;
 }

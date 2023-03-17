@@ -1,12 +1,15 @@
 import {Card, CardActions, CardContent, Container, Stack} from "@mui/material";
 import * as React from "react";
-import {useState} from "react";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
 import {Network} from "./ZeusServiceRequest";
 import {useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
+import {
+    createExtendedDepositParams,
+    createValidatorsDepositServiceRequest,
+    validatorsApiGateway
+} from "../../gateway/validators";
 
 export function ValidatorsDepositRequestAreaCardWrapper(props: any) {
     const { activeStep } = props;
@@ -32,6 +35,19 @@ export function ValidatorsDepositRequestAreaCard() {
 }
 
 export function SubmitValidators() {
+    const depositData = useSelector((state: RootState) => state.awsCredentials.depositData);
+    const network = useSelector((state: RootState) => state.validatorSecrets.network);
+    const onClickSendValidatorsDeposits = async () => {
+        try {
+            const depositParams = depositData.map((dd: any) => {
+                return createExtendedDepositParams(dd.pubkey, dd.withdrawal_credentials, dd.signature, dd.deposit_data_root,dd.amount,dd.deposit_message_root);
+            });
+            const reqParams = createValidatorsDepositServiceRequest(network, depositParams)
+            const response = await validatorsApiGateway.depositValidatorsServiceRequest(reqParams);
+            console.log("response", response);
+        } catch (error) {
+            console.log("error", error);
+        }}
     return (
         <Card sx={{ maxWidth: 400 }}>
             <CardContent>
@@ -43,7 +59,7 @@ export function SubmitValidators() {
                 </Typography>
             </CardContent>
             <CardActions>
-                <Button size="small">Send</Button>
+                <Button size="small" onClick={onClickSendValidatorsDeposits}>Send</Button>
             </CardActions>
         </Card>
     );
@@ -52,7 +68,6 @@ export function SubmitValidators() {
 
 export function ValidatorsDepositsSubmitWrapper() {
     const network = useSelector((state: RootState) => state.validatorSecrets.network);
-    const [eth1Pk, setEth1Pk] = useState('');
 
     return (
         <Card sx={{ maxWidth: 500 }}>
@@ -61,7 +76,6 @@ export function ValidatorsDepositsSubmitWrapper() {
                 </Stack>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <Network network={network}/>
-                    <Eth1WalletPrivateKey eth1Pk={eth1Pk}/>
                 </Container>
             </div>
         </Card>
@@ -69,17 +83,17 @@ export function ValidatorsDepositsSubmitWrapper() {
     );
 }
 
-export function Eth1WalletPrivateKey(props: any) {
-    const { eth1Pk, onAccessEth1PkChange } = props;
-    return (
-        <TextField
-            fullWidth
-            id="eth1WalletPrivateKey"
-            label="Eth1 Wallet Private Key"
-            variant="outlined"
-            value={eth1Pk}
-            onChange={onAccessEth1PkChange}
-            sx={{ width: '100%' }}
-        />
-    );
-}
+// export function Eth1WalletPrivateKey(props: any) {
+//     const { eth1Pk, onAccessEth1PkChange } = props;
+//     return (
+//         <TextField
+//             fullWidth
+//             id="eth1WalletPrivateKey"
+//             label="Eth1 Wallet Private Key"
+//             variant="outlined"
+//             value={eth1Pk}
+//             onChange={onAccessEth1PkChange}
+//             sx={{ width: '100%' }}
+//         />
+//     );
+// }

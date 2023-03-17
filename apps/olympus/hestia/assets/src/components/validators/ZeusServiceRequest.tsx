@@ -64,7 +64,6 @@ export function ZeusServiceRequest() {
             const serviceAuth = createAuthAwsLambda(url, ageSecretName,extCreds);
             const protocolID = getNetworkId(network);
             const sr = createValidatorServiceRequest(keyGroupName,protocolID,serviceAuth,validatorServiceRequestSlice)
-            console.log(sr)
             const response = await validatorsApiGateway.createValidatorsServiceRequest(sr);
             console.log("response", response)
         } catch (error) {

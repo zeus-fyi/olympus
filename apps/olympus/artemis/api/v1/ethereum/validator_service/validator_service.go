@@ -2,24 +2,26 @@ package artemis_ethereum_validator_service
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
-	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
+	signing_automation_ethereum "github.com/zeus-fyi/zeus/pkg/artemis/signing_automation/ethereum"
 )
 
-type EthereumValidatorServiceGroupCloudCtxNsRequest struct {
-	hestia_autogen_bases.ValidatorsServiceOrgGroupsCloudCtxNsSlice
+type DepositEthereumValidatorsService struct {
+	Network                                           string `json:"network"`
+	signing_automation_ethereum.ValidatorDepositSlice `json:"validatorDepositSlice"`
 }
 
-func EthereumEphemeryValidatorHandler(c echo.Context) error {
-	request := new(EthereumValidatorServiceGroupCloudCtxNsRequest)
+func CreateEthereumValidatorsHandler(c echo.Context) error {
+	request := new(DepositEthereumValidatorsService)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	return request.OrchestrateEphemeryValidatorPlacement(c)
+	return request.DepositValidators(c)
 }
 
-func (v *EthereumValidatorServiceGroupCloudCtxNsRequest) OrchestrateEphemeryValidatorPlacement(c echo.Context) error {
+func (v *DepositEthereumValidatorsService) DepositValidators(c echo.Context) error {
 	//ctx := context.Background()
 	//ou := c.Get("orgUser").(org_users.OrgUser)
 
@@ -27,5 +29,16 @@ func (v *EthereumValidatorServiceGroupCloudCtxNsRequest) OrchestrateEphemeryVali
 	//	log.Err(err).Interface("orgUser", ou).Msg("SendEphemeralSignedTx, ExecuteArtemisSendSignedTxWorkflow error")
 	//	return c.JSON(http.StatusBadRequest, nil)
 	//}
-	return c.JSON(http.StatusAccepted, v.ValidatorsServiceOrgGroupsCloudCtxNsSlice)
+	// TODO
+
+	switch strings.ToLower(v.Network) {
+	case "mainnet":
+		return c.JSON(http.StatusNotImplemented, nil)
+	case "goerli":
+		return c.JSON(http.StatusNotImplemented, nil)
+	case "ephemery":
+		return c.JSON(http.StatusAccepted, nil)
+	default:
+		return c.JSON(http.StatusBadRequest, nil)
+	}
 }

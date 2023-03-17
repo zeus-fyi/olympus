@@ -8,6 +8,14 @@ import {RootState} from "../../redux/store";
 import {setFeeRecipient, setKeyGroupName, setNetworkName} from "../../redux/validators/ethereum.validators.reducer";
 import {AgeEncryptionKeySecretName} from "./AwsSecrets";
 import {ExternalAccessSecretName} from "./AwsExtUserAndLambdaVerify";
+import {
+    createAuthAwsLambda,
+    createValidatorOrgGroup,
+    createValidatorServiceRequest,
+    validatorsApiGateway
+} from "../../gateway/validators";
+import {getNetworkId} from "./Validators";
+import {awsApiGateway} from "../../gateway/aws";
 
 export function ZeusServiceRequestAreaCardWrapper(props: any) {
     const { activeStep } = props;
@@ -31,12 +39,31 @@ export function ZeusServiceRequestAreaCard() {
     );
 }
 
-// TODO
 export function ZeusServiceRequest() {
+    const feeRecipient = useSelector((state: RootState) => state.validatorSecrets.feeRecipient);
+    const depositData = useSelector((state: RootState) => state.awsCredentials.depositData);
+    const keyGroupName = useSelector((state: RootState) => state.validatorSecrets.keyGroupName);
+    const network = useSelector((state: RootState) => state.validatorSecrets.network);
+    const accessKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
+    const secretKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const externalAccessUserName = useSelector((state: RootState) => state.awsCredentials.externalAccessUserName);
+    const externalAccessSecretName = useSelector((state: RootState) => state.awsCredentials.externalAccessSecretName);
+    const ageSecretName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
+    const blsSignerFunctionName = useSelector((state: RootState) => state.awsCredentials.blsSignerFunctionName);
+
     const handleZeusServiceRequest = async () => {
         try {
-            // TODO, get external accesss key and secret key from redux store
-            //const response = await awsApiGateway.verifyLambdaKeySigning();
+            const validatorServiceRequestSlice = depositData.map((dd: any) => {
+                return createValidatorOrgGroup(dd.pubkey, feeRecipient)
+                })
+            const creds = {accessKeyId: accessKey, secretAccessKey: secretKey};
+            const signerUrl = await awsApiGateway.getLambdaFunctionURL(creds, blsSignerFunctionName);
+            const getExtCreds = await awsApiGateway.createOrFetchExternalLambdaUserAccessKeys(creds,externalAccessUserName, externalAccessSecretName);
+            const extCreds = {accessKeyId: getExtCreds.data.accessKey, secretAccessKey: getExtCreds.data.secretKey};
+            const serviceAuth = createAuthAwsLambda(signerUrl, ageSecretName,extCreds);
+            const sr = createValidatorServiceRequest(keyGroupName,getNetworkId(network),serviceAuth,validatorServiceRequestSlice)
+            const response = await validatorsApiGateway.createValidatorsServiceRequest(sr);
+            console.log("response", response)
         } catch (error) {
             console.log("error", error);
         }};
@@ -61,8 +88,7 @@ export function ZeusServiceRequest() {
 
 export function ZeusServiceRequestParams() {
     return (
-        <div style={{ display: 'flex' }}>
-
+        <div>
         <Card sx={{ maxWidth: 500 }}>
             <CardContent>
                 <Typography gutterBottom variant="h5" component="div">
@@ -72,11 +98,11 @@ export function ZeusServiceRequestParams() {
                     Sets Zeus Validators Service Params
                 </Typography>
             </CardContent>
-                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <Network />
-                    <KeyGroupName />
-                    <FeeRecipient />
-                </Container>
+            <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                <Network />
+                <KeyGroupName />
+                <FeeRecipient />
+            </Container>
         </Card>
         </div>
     );

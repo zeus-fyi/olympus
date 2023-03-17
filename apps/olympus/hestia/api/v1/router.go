@@ -44,8 +44,6 @@ func InitV1Routes(e *echo.Echo) {
 	eg.GET("/age/generate", GenerateRandomAgeEncryptionKey) // if no js client, generate age keypair
 
 	// ethereum aws automation
-	// validator deposit & keystore generation
-	eg.POST("/ethereum/validators/aws/encryption/age", v1_ethereum_aws.ValidatorsAgeEncryptedKeystoresGenerationRequestHandler)
 	// lambda user & role policy creation
 	eg.POST("/ethereum/validators/aws/user/internal/lambda/create", v1_ethereum_aws.CreateServerlessInternalUserHandler)
 	eg.POST("/ethereum/validators/aws/user/external/lambda/create", v1_ethereum_aws.CreateServerlessExternalUserHandler)

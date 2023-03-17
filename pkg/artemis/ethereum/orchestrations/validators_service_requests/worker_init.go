@@ -56,3 +56,22 @@ func InitArtemisEthereumMainnetValidatorsRequestsWorker(ctx context.Context, tem
 	ArtemisEthereumMainnetValidatorsRequestsWorker.TemporalClient = tc
 	return
 }
+
+func InitArtemisEthereumGoerliValidatorsRequestsWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
+	log.Ctx(ctx).Info().Msg("Artemis: InitArtemisEthereumGoerliValidatorsRequestsWorker")
+	tc, err := temporal_base.NewTemporalClient(temporalAuthCfg)
+	if err != nil {
+		log.Err(err).Msg("InitArtemisEthereumGoerliValidatorsRequestsWorker: NewTemporalClient failed")
+		misc.DelayedPanic(err)
+	}
+	taskQueueName := EthereumGoerliValidatorsRequestsTaskQueue
+	w := temporal_base.NewWorker(taskQueueName)
+	activityDef := NewArtemisEthereumValidatorSignatureRequestActivities()
+	wf := NewArtemisEthereumValidatorServiceRequestWorkflow()
+
+	w.AddWorkflows(wf.GetWorkflows())
+	w.AddActivities(activityDef.GetActivities())
+	ArtemisEthereumGoerliValidatorsRequestsWorker = ArtemisEthereumValidatorsRequestsWorker{Worker: w}
+	ArtemisEthereumGoerliValidatorsRequestsWorker.TemporalClient = tc
+	return
+}

@@ -49,12 +49,18 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 
 	var network string
 	bearer := c.Get("bearer").(string)
-
 	switch v.ProtocolNetworkID {
 	case hestia_req_types.EthereumMainnetProtocolNetworkID:
 		key, err := auth.VerifyBearerTokenService(ctx, bearer, create_org_users.EthereumMainnetService)
 		if err != nil || key.PublicKeyVerified == false {
 			log.Err(err).Interface("orgUser", ou).Msg("CreateValidatorsServiceGroup: EthereumMainnetService unauthorized")
+			return c.JSON(http.StatusUnauthorized, nil)
+		}
+		network = hestia_req_types.ProtocolNetworkIDToString(v.ProtocolNetworkID)
+	case hestia_req_types.EthereumGoerliProtocolNetworkID:
+		key, err := auth.VerifyBearerTokenService(ctx, bearer, create_org_users.EthereumGoerliService)
+		if err != nil || key.PublicKeyVerified == false {
+			log.Err(err).Interface("orgUser", ou).Msg("CreateValidatorsServiceGroup: EthereumGoerliService unauthorized")
 			return c.JSON(http.StatusUnauthorized, nil)
 		}
 		network = hestia_req_types.ProtocolNetworkIDToString(v.ProtocolNetworkID)
@@ -117,6 +123,14 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 	resp := Response{}
 	switch v.ProtocolNetworkID {
 	case hestia_req_types.EthereumMainnetProtocolNetworkID:
+		err = eth_validators_service_requests.ArtemisEthereumMainnetValidatorsRequestsWorker.ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx, vsr)
+		if err != nil {
+			log.Ctx(ctx).Err(err).Interface("network", network).Msg("ExecuteServiceNewValidatorsToCloudCtxNsWorkflow")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		resp.Message = "Ethereum Mainnet validators service request in progress"
+		return c.JSON(http.StatusAccepted, resp)
+	case hestia_req_types.EthereumGoerliProtocolNetworkID:
 		err = eth_validators_service_requests.ArtemisEthereumMainnetValidatorsRequestsWorker.ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx, vsr)
 		if err != nil {
 			log.Ctx(ctx).Err(err).Interface("network", network).Msg("ExecuteServiceNewValidatorsToCloudCtxNsWorkflow")

@@ -2,6 +2,7 @@ package eth_validators_service_requests
 
 import (
 	"context"
+
 	bls_signer "github.com/zeus-fyi/zeus/pkg/crypto/bls"
 
 	"github.com/rs/zerolog/log"
@@ -17,6 +18,7 @@ type ArtemisEthereumValidatorsRequestsWorker struct {
 
 const (
 	EthereumMainnetValidatorsRequestsTaskQueue  = "EthereumMainnetValidatorsRequestsTaskQueue"
+	EthereumGoerliValidatorsRequestsTaskQueue   = "EthereumGoerliValidatorsRequestsTaskQueue"
 	EthereumEphemeryValidatorsRequestsTaskQueue = "EthereumEphemeryValidatorsRequestsTaskQueue"
 )
 
@@ -33,7 +35,14 @@ var (
 		Namespace:     "mainnet-staking",
 		Env:           "production",
 	}
-
+	ArtemisEthereumGoerliValidatorsRequestsWorker ArtemisEthereumValidatorsRequestsWorker
+	GoerliStakingCloudCtxNs                       = zeus_common_types.CloudCtxNs{
+		CloudProvider: "do",
+		Region:        "sfo3",
+		Context:       "do-sfo3-dev-do-sfo3-zeus",
+		Namespace:     "goerli-staking",
+		Env:           "production",
+	}
 	ArtemisEthereumEphemeryValidatorsRequestsWorker ArtemisEthereumValidatorsRequestsWorker
 	EphemeryStakingCloudCtxNs                       = zeus_common_types.CloudCtxNs{
 		CloudProvider: "do",

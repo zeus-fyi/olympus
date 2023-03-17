@@ -101,6 +101,15 @@ func Hestia() {
 		log.Fatal().Err(err).Msgf("Hestia: %s ArtemisEthereumEphemeryValidatorsRequestsWorker.Worker.Start failed", env)
 		misc.DelayedPanic(err)
 	}
+	log.Info().Msg("Hestia: InitArtemisEthereumGoerliValidatorsRequestsWorker")
+	eth_validators_service_requests.InitArtemisEthereumGoerliValidatorsRequestsWorker(ctx, temporalAuthConfig)
+	log.Info().Msg("Hestia: Starting InitArtemisEthereumGoerliValidatorsRequestsWorker")
+	eth_validators_service_requests.ArtemisEthereumGoerliValidatorsRequestsWorker.Worker.RegisterWorker(c)
+	err = eth_validators_service_requests.ArtemisEthereumGoerliValidatorsRequestsWorker.Worker.Start()
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Hestia: %s ArtemisEthereumGoerliValidatorsRequestsWorker.Worker.Start failed", env)
+		misc.DelayedPanic(err)
+	}
 
 	log.Info().Msg("Hestia: InitArtemisEthereumMainnetValidatorsRequestsWorker")
 	// mainnet

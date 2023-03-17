@@ -47,10 +47,13 @@ const (
 	EthereumEphemeryService   = "ethereumEphemeryValidators"
 	EthereumMainnetServiceID  = 1677096791420465000
 	EthereumMainnetService    = "ethereumMainnetValidators"
-	ZeusServiceID             = 1677100016195486976
-	ZeusService               = "zeus"
-	ZeusWebhooksService       = "zeusWebhooks"
-	ZeusWebhooksServiceID     = 1677111502304971000
+	EthereumGoerliService     = "ethereumGoerliValidators"
+	EthereumGoerliServiceID   = 5
+
+	ZeusServiceID         = 1677100016195486976
+	ZeusService           = "zeus"
+	ZeusWebhooksService   = "zeusWebhooks"
+	ZeusWebhooksServiceID = 1677111502304971000
 )
 
 func (o *OrgUser) InsertOrgUserWithNewKeyForService(ctx context.Context, metadata []byte, keyname string, serviceID int) (string, error) {

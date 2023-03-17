@@ -11,18 +11,19 @@ const authProvider = {
     login: async (username: string, password: string) =>  {
         try {
             const res = await authApiGateway.sendLoginRequest(username, password);
+            console.log(res)
             const statusCode = res.status;
             if (statusCode === 401 || statusCode === 403) {
-                //inMemoryJWT.ereaseToken();
+                inMemoryJWT.ereaseToken();
             }
-            if (statusCode === 200) {
+            if (statusCode === 200 || statusCode === 204) {
                 const sessionID = sessionIDParse(res);
                 const tokenExpiry = ttlSeconds(res);
                 const userID = userIDParse(res);
-                //inMemoryJWT.setToken(token, tokenExpiry);
-                localStorage.setItem("sessionID", sessionID);
+                inMemoryJWT.setToken(sessionID, tokenExpiry);
                 localStorage.setItem("userID", userID);
             }
+            console.log(res)
             return res
         } catch (e) {
             console.log(e);
@@ -32,7 +33,6 @@ const authProvider = {
 
     logout: () =>{
         localStorage.removeItem("userID");
-        localStorage.removeItem("sessionID");
         inMemoryJWT.ereaseToken();
     },
 

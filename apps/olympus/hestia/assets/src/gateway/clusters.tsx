@@ -1,14 +1,17 @@
 import {zeusApi} from './axios/axios';
+import inMemoryJWT from "../auth/InMemoryJWT";
 
 class ClustersApiGateway {
     async getClusters(): Promise<any>  {
         const url = `/v1/infra/read/org/topologies`;
         try {
-            const sessionID = localStorage.getItem("sessionID");
+            const sessionID = inMemoryJWT.getToken();
             let config = {
-            headers: {
-                'Authorization': `Bearer ${sessionID}`
-            }}
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
             return await zeusApi.get(url, config)
         } catch (exc) {
             console.error('error sending cluster get request');
@@ -19,11 +22,13 @@ class ClustersApiGateway {
     async getClusterTopologies(params: any): Promise<any>  {
         const url = `/v1/deploy/cluster/status`;
         try {
-            const sessionID = localStorage.getItem("sessionID");
+            const sessionID = inMemoryJWT.getToken();
             let config = {
                 headers: {
                     'Authorization': `Bearer ${sessionID}`
-                }}
+                },
+                withCredentials: true,
+            }
             const payload = {
                 'cloudCtxNsID': `${params.id}`
             }
@@ -37,12 +42,14 @@ class ClustersApiGateway {
     async getClusterPodsAudit(clusterID: any): Promise<any>  {
         const url = `/v1/pods`;
         try {
-            const sessionID = localStorage.getItem("sessionID");
+            const sessionID = inMemoryJWT.getToken();
             let config = {
                 headers: {
                     'Authorization': `Bearer ${sessionID}`,
                     'CloudCtxNsID': `${clusterID}`
-                }}
+                },
+                withCredentials: true,
+            }
             const payload = {
                 action: "describe-audit",
             }

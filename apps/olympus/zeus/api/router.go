@@ -10,6 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
+	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	zeus_v1_router "github.com/zeus-fyi/olympus/zeus/api/v1"
 )
@@ -34,6 +35,10 @@ func InitV1ActionsRoutes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()
+			cookie, err := c.Cookie(aegis_sessions.SessionIDNickname)
+			if err == nil && cookie != nil {
+				token = cookie.Value
+			}
 			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.ZeusService)
 			if err != nil {
 				log.Err(err).Msg("InitV1Routes")
@@ -54,6 +59,10 @@ func InitV1Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()
+			cookie, err := c.Cookie(aegis_sessions.SessionIDNickname)
+			if err == nil && cookie != nil {
+				token = cookie.Value
+			}
 			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.ZeusService)
 			if err != nil {
 				log.Err(err).Msg("InitV1Routes")

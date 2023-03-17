@@ -3,12 +3,14 @@ package hestia_login
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/keys"
 	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
+	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
@@ -56,5 +58,15 @@ func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 		SessionID: sessionID,
 		TTL:       3600,
 	}
+	cookie := &http.Cookie{
+		Name:     aegis_sessions.SessionIDNickname,
+		Value:    sessionID,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+		Expires:  time.Now().Add(24 * time.Hour),
+	}
+	http.SetCookie(c.Response().Writer, cookie)
 	return c.JSON(http.StatusOK, resp)
 }

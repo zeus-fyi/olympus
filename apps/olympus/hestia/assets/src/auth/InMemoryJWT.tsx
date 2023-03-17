@@ -1,3 +1,5 @@
+import {configService} from "../config/config";
+
 interface JWTManager {
     ereaseToken: () => boolean;
     getRefreshedToken: () => Promise<boolean>;
@@ -12,7 +14,7 @@ const inMemoryJWTManager = (): JWTManager => {
     let inMemoryJWT: string | null = null;
     let isRefreshing: Promise<boolean | void>;
     let logoutEventName = 'ra-logout';
-    let refreshEndpoint = '/refresh-token';
+    let refreshEndpoint = configService.apiUrl+'/v1/refresh/token';
     let refreshTimeOutId: number | undefined;
 
     const setLogoutEventName = (name: string) => {
@@ -49,18 +51,19 @@ const inMemoryJWTManager = (): JWTManager => {
 
     // The method make a call to the refresh-token endpoint
     // If there is a valid cookie, the endpoint will set a fresh jwt in memory.
-    const getRefreshedToken = (): Promise<boolean> => {
+    const getRefreshedToken = () => {
         const request = new Request(refreshEndpoint, {
             method: 'GET',
             headers: new Headers({ 'Content-Type': 'application/json' }),
             credentials: 'include',
         });
-
-        isRefreshing = fetch(request)
+        return fetch(request)
             .then((response) => {
                 if (response.status !== 200) {
                     ereaseToken();
-                    console.log('Token renewal failure');
+                    global.console.log(
+                        'Failed to renew the jwt from the refresh token.'
+                    );
                     return { token: null };
                 }
                 return response.json();
@@ -70,11 +73,8 @@ const inMemoryJWTManager = (): JWTManager => {
                     setToken(token, tokenExpiry);
                     return true;
                 }
-                ereaseToken();
                 return false;
             });
-
-        return isRefreshing.then(() => true);
     };
 
     const getToken = (): string | null => inMemoryJWT;

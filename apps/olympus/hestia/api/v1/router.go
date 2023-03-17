@@ -11,6 +11,7 @@ import (
 	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	"github.com/zeus-fyi/olympus/hestia/api/v1/ethereum/aws"
+	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 	age_encryption "github.com/zeus-fyi/zeus/pkg/crypto/age"
 )
 
@@ -28,6 +29,10 @@ func InitV1Routes(e *echo.Echo) {
 	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
+			cookie, err := c.Cookie(aegis_sessions.SessionIDNickname)
+			if err == nil && cookie != nil {
+				token = cookie.Value
+			}
 			ctx := context.Background()
 			key, err := auth.VerifyBearerToken(ctx, token)
 			if err != nil {

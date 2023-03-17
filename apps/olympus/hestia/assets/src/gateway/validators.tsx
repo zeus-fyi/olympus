@@ -1,15 +1,18 @@
 import {artemisApi, hestiaApi} from './axios/axios';
 import {AwsCredentialIdentity} from "@aws-sdk/types/dist-types/identity";
+import inMemoryJWT from "../auth/InMemoryJWT";
 
 class ValidatorsApiGateway {
     async getValidators(): Promise<any>  {
         const url = `/v1/ethereum/validators/service/info`;
         try {
-            const sessionID = localStorage.getItem("sessionID");
+            const sessionID = inMemoryJWT.getToken();
             let config = {
                 headers: {
                     'Authorization': `Bearer ${sessionID}`
-                }}
+                },
+                withCredentials: true,
+            }
             return await hestiaApi.get(url, config)
         } catch (exc) {
             console.error('error sending get validators request');
@@ -20,11 +23,13 @@ class ValidatorsApiGateway {
     async createValidatorsServiceRequest(payload: CreateValidatorServiceRequest): Promise<any>  {
         const url = `/v1/ethereum/validators/service/create`;
         try {
-            const sessionID = localStorage.getItem("sessionID");
+            const sessionID = inMemoryJWT.getToken();
             let config = {
                 headers: {
-                    'Authorization': `Bearer ${sessionID}`,
-                }}
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
             return await hestiaApi.post(url, payload, config)
         } catch (exc) {
             console.error('error sending create lambda function keystores layer');
@@ -35,11 +40,13 @@ class ValidatorsApiGateway {
     async depositValidatorsServiceRequest(payload: CreateValidatorsDepositServiceRequest): Promise<any>  {
         const url = `/v1/ethereum/validators/create`;
         try {
-            const sessionID = localStorage.getItem("sessionID");
+            const sessionID = inMemoryJWT.getToken();
             let config = {
                 headers: {
-                    'Authorization': `Bearer ${sessionID}`,
-                }}
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
             return await artemisApi.post(url, payload, config)
         } catch (exc) {
             console.error('error sending create lambda function keystores layer');

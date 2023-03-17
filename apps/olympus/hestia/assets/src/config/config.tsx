@@ -1,21 +1,23 @@
-let apiUrl = '';
-let zeusApiUrl = '';
-let artemisApiUrl = '';
-
 class ConfigService  {
+    private readonly apiUrl: string;
+    private readonly zeusApiUrl: string;
+    private readonly artemisApiUrl: string;
+
     constructor() {
-        apiUrl = process.env.REACT_APP_BACKEND_ENDPOINT || 'http://localhost:9002';
-        zeusApiUrl = process.env.REACT_APP_ZEUS_BACKEND_ENDPOINT || 'http://localhost:9001';
-        artemisApiUrl = process.env.REACT_APP_ARTEMIS_BACKEND_ENDPOINT || 'http://localhost:9004';
+        this.apiUrl = process.env.REACT_APP_BACKEND_ENDPOINT || 'http://localhost:9002';
+        this.zeusApiUrl = process.env.REACT_APP_ZEUS_BACKEND_ENDPOINT || 'http://localhost:9001';
+        this.artemisApiUrl = process.env.REACT_APP_ARTEMIS_BACKEND_ENDPOINT || 'http://localhost:9004';
     }
-    get apiUrl() {
-        return apiUrl;
+    public getApiUrl(): string {
+        return this.apiUrl;
     }
-    get zeusApiUrl() {
-        return zeusApiUrl;
+
+    public getZeusApiUrl(): string {
+        return this.zeusApiUrl;
     }
-    get artemisApiUrl() {
-        return artemisApiUrl;
+
+    public getArtemisApiUrl(): string {
+        return this.artemisApiUrl;
     }
 }
 

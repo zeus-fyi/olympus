@@ -6,13 +6,13 @@ export const awsLambdaInvoke = axios.create({
 });
 
 export const hestiaApi = axios.create({
-    baseURL: configService.apiUrl,
+    baseURL: configService.getApiUrl(),
 });
 
 export const artemisApi = axios.create({
-    baseURL: configService.artemisApiUrl,
+    baseURL: configService.getArtemisApiUrl(),
 });
 
 export const zeusApi = axios.create({
-    baseURL: configService.zeusApiUrl,
+    baseURL: configService.getZeusApiUrl(),
 });

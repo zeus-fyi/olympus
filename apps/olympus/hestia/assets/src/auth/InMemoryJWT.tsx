@@ -14,7 +14,7 @@ const inMemoryJWTManager = (): JWTManager => {
     let inMemoryJWT: string | null = null;
     let isRefreshing: Promise<boolean | void>;
     let logoutEventName = 'ra-logout';
-    let refreshEndpoint = configService.apiUrl+'/v1/refresh/token';
+    let refreshEndpoint = configService.getApiUrl()+'/v1/refresh/token';
     let refreshTimeOutId: number | undefined;
 
     const setLogoutEventName = (name: string) => {

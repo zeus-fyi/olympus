@@ -9,7 +9,7 @@ COPY apps/olympus/hestia/assets/package*.json ./
 RUN npm ci
 
 # Copy the rest of the application code into the container
-COPY . .
+COPY apps/olympus/hestia/assets/ ./
 
 # Build the React app for production
 RUN npm run build

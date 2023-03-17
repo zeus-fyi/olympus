@@ -13,6 +13,7 @@ import Button from "@mui/material/Button";
 import {awsLambdaApiGateway} from "../../gateway/aws.lambda";
 import Typography from "@mui/material/Typography";
 import {setAgeSecretName, setValidatorSecretsName} from "../../redux/aws_wizard/aws.wizard.reducer";
+import {Network} from "./ZeusServiceRequest";
 
 export const charsets = {
     NUMBERS: '0123456789',
@@ -55,7 +56,9 @@ export function CreateAwsSecretNamesAreaCard() {
     const sk = useSelector((state: RootState) => state.awsCredentials.secretKey);
     const awsValidatorSecretName = useSelector((state: RootState) => state.awsCredentials.validatorSecretsName);
     const awsAgeEncryptionKeyName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
+    const network = useSelector((state: RootState) => state.validatorSecrets.network);
 
+    let validatorSecretName = awsValidatorSecretName+network;
     const dispatch = useDispatch();
     const onCreateNewValidatorSecrets = async () => {
         try {
@@ -77,8 +80,9 @@ export function CreateAwsSecretNamesAreaCard() {
             </CardContent>
                 <Stack direction="column" alignItems="center" spacing={2}>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <ValidatorSecretName validatorSecretName={awsValidatorSecretName}/>
-                    <AgeEncryptionKeySecretName awsAgeEncryptionKeyName={awsAgeEncryptionKeyName}/>
+                    <Network />
+                    <ValidatorSecretName validatorSecretName={validatorSecretName}/>
+                    <AgeEncryptionKeySecretName awsAgeEncryptionKeyName={awsAgeEncryptionKeyName+network}/>
                 </Container>
                 <CardActions>
                     <Button onClick={onCreateNewValidatorSecrets} size="small">Create</Button>

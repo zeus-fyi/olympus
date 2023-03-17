@@ -16,15 +16,20 @@ import {ValidatorsDepositRequestAreaCardWrapper} from "./ValidatorsDeposits";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import {
+    setAgeSecretName,
     setDepositData,
     setDepositsGenLambdaFnUrl,
-    setEncKeystoresZipLambdaFnUrl
+    setEncKeystoresZipLambdaFnUrl,
+    setKeystoreLayerName,
+    setSignerFunctionName,
+    setValidatorSecretsName
 } from "../../redux/aws_wizard/aws.wizard.reducer";
 import {awsApiGateway} from "../../gateway/aws";
 import {awsLambdaApiGateway} from "../../gateway/aws.lambda";
 import {CreateAwsLambdaFunctionActionAreaCardWrapper} from './AwsLambdaKeystoreSigners';
 import {ValidatorsDepositsTable} from "./ValidatorsDepositsTable";
 import {ValidatorDepositDataJSON} from "../../gateway/validators";
+import {setNetworkAppended} from "../../redux/validators/ethereum.validators.reducer";
 
 const steps = [
     'AWS Auth & Internal User Roles',
@@ -241,6 +246,27 @@ export default function AwsWizardPanel() {
         } catch (error) {
             console.log("error", error);
         }}
+
+    const networkAppended = useSelector((state: RootState) => state.validatorSecrets.networkAppended);
+    const keystoresLayerName = useSelector((state: RootState) => state.awsCredentials.blsSignerKeystoresLayerName);
+
+    const handleNetworkAppend = () => {
+        if (!networkAppended) {
+            const newValidatorSecretsName = validatorSecretsName + network;
+            dispatch(setValidatorSecretsName(newValidatorSecretsName));
+            const newAgeSecretName = ageSecretName + network;
+            dispatch(setAgeSecretName(newAgeSecretName));
+            const newBlsSignerFunctionName  = blsSignerFunctionName + network;
+            dispatch(setSignerFunctionName(newBlsSignerFunctionName));
+            const newKeystoresLayerName = keystoresLayerName + network;
+            dispatch(setKeystoreLayerName(newKeystoresLayerName));
+            dispatch(setNetworkAppended(true));
+        }
+    };
+
+    React.useEffect(() => {
+        handleNetworkAppend();
+    }, [network]);
     return (
         <div>
         <Box sx={{ width: '100%' }}>

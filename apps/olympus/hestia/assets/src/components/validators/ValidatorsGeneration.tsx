@@ -6,7 +6,8 @@ import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import {setHdOffset, setNetworkName, setValidatorCount} from "../../redux/validators/ethereum.validators.reducer";
+import {setHdOffset, setValidatorCount} from "../../redux/validators/ethereum.validators.reducer";
+import {Network} from "./ZeusServiceRequest";
 
 export function GenerateValidatorKeysAndDepositsAreaCardWrapper(props: any) {
     const { activeStep, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip } = props;
@@ -30,7 +31,7 @@ export function GenerateValidatorsParams() {
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <ValidatorSecretName validatorSecretName={awsValidatorSecretName}/>
                     <AgeEncryptionKeySecretName awsAgeEncryptionKeyName={awsAgeEncryptionKeyName}/>
-                    <ValidatorsNetwork />
+                    <Network />
                     <ValidatorCount />
                     <ValidatorOffsetHD />
                 </Container>
@@ -104,28 +105,6 @@ export function GenValidatorDepositsCreationActionsCard(props: any) {
     );
 }
 
-export function ValidatorsNetwork() {
-    const dispatch = useDispatch();
-    const network = useSelector((state: RootState) => state.validatorSecrets.network);
-    const onValidatorsNetworkChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        try {
-            const network = event.target.value;
-            dispatch(setNetworkName(network));
-        } catch (error) {
-            console.log("error", error);
-        }};
-    return (
-        <TextField
-            fullWidth
-            id="validatorsNetwork"
-            label="Network Name"
-            variant="outlined"
-            value={network}
-            onChange={onValidatorsNetworkChange}
-            sx={{ width: '100%' }}
-        />
-    );
-}
 export function ValidatorCount() {
     const dispatch = useDispatch();
     const validatorCount = useSelector((state: RootState) => state.validatorSecrets.validatorCount);

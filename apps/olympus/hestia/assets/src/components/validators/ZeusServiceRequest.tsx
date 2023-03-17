@@ -1,4 +1,14 @@
-import {Card, CardActions, CardContent, Container, Stack} from "@mui/material";
+import {
+    Card,
+    CardActions,
+    CardContent,
+    Container,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Select,
+    Stack
+} from "@mui/material";
 import * as React from "react";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
@@ -153,19 +163,25 @@ export function FeeRecipient() {
 export function Network(props: any) {
     const dispatch = useDispatch();
     const network = useSelector((state: RootState) => state.validatorSecrets.network);
-    const onAccessSetNetwork = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const newNetworkName = event.target.value;
-        dispatch(setNetworkName(newNetworkName));
+    const onAccessSetNetwork = (selectedNetwork: string) => {
+        console.log('Selected network:', selectedNetwork);
+        dispatch(setNetworkName(selectedNetwork));
     };
+
     return (
-        <TextField
-            fullWidth
-            id="network"
-            label="Network"
-            variant="outlined"
-            value={network}
-            onChange={onAccessSetNetwork}
-            sx={{ width: '100%' }}
-        />
+        <FormControl variant="outlined" style={{ minWidth: '100%' }}>
+            <InputLabel id="network-label">Network</InputLabel>
+            <Select
+                labelId="network-label"
+                id="network"
+                value={network}
+                label="Network"
+                onChange={(event) => onAccessSetNetwork(event.target.value as string)}
+                sx={{ width: '100%' }}
+            >
+                <MenuItem value="Ephemery">Ephemery</MenuItem>
+            </Select>
+        </FormControl>
     );
 }
+

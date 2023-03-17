@@ -8,6 +8,7 @@ interface ValidatorSecretsState {
     network: string;
     feeRecipient: string;
     keyGroupName: string;
+    networkAppended : boolean;
 }
 
 const initialState: ValidatorSecretsState = {
@@ -17,7 +18,8 @@ const initialState: ValidatorSecretsState = {
     validatorCount: 1,
     network: 'Ephemery',
     feeRecipient: '',
-    keyGroupName: 'ephemeryDemoKeyGroup',
+    keyGroupName: 'DemoKeyGroup',
+    networkAppended : false,
 };
 
 const validatorSecretsSlice = createSlice({
@@ -45,9 +47,12 @@ const validatorSecretsSlice = createSlice({
         setKeyGroupName: (state, action: PayloadAction<string>) => {
             state.keyGroupName = action.payload;
         },
+        setNetworkAppended: (state, action: PayloadAction<boolean>) => {
+            state.networkAppended = action.payload;
+        },
     },
 });
 
-export const { setHdOffset, setValidatorCount, setNetworkName, setFeeRecipient, setKeyGroupName} = validatorSecretsSlice.actions;
+export const { setHdOffset, setValidatorCount, setNetworkName, setFeeRecipient, setKeyGroupName, setNetworkAppended} = validatorSecretsSlice.actions;
 
 export default validatorSecretsSlice.reducer;

@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "zeus-cloud"
+  labels:
+    app.kubernetes.io/instance: "zeus-cloud"
+    app.kubernetes.io/name: "zeus-cloud"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: "zeus-cloud"
+      app.kubernetes.io/instance: "zeus-cloud"
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: "zeus-cloud"
+        app.kubernetes.io/instance: "zeus-cloud"
+    spec:
+      containers:
+        - name: "zeus-cloud"
+          image: "registry.digitalocean.com/zeus-fyi/zeus-cloud:latest"
+          volumeMounts:
+            - mountPath: "/scripts"
+              name: "cm-zeus-cloud"
+          imagePullPolicy: Always
+          command: [ "/bin/sh" ]
+          args: [ "-c","/scripts/start.sh" ]
+          env:
+          ports:
+            - name: "http"
+              containerPort: 3000
+              protocol: "TCP"
+          resources:
+            {}
+      volumes:
+        - name: cm-zeus-cloud
+          configMap:
+            name: cm-zeus-cloud
+            defaultMode: 0744
+      nodeSelector:
+        {}
+      affinity:
+        {}
+      tolerations:
+        []

@@ -5,6 +5,7 @@ on:
     paths:
       - apps/olympus/zeus/**
       - pkg/aegis/auth_startup/**
+      - pkg/aegis/sessions/**
       - pkg/zeus/**
       - datastores/apps/zeus/**
       - datastores/s3/**

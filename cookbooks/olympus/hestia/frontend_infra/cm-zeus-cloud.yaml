@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-zeus-cloud
+data:
+  start.sh: |-
+    #!/bin/sh
+    set -e
+    node /app/node_modules/serve/bin/serve.js -s /app/build -l 3000

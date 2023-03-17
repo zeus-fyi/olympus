@@ -10,6 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/artemis/api/v1/ethereum/send_tx"
 	artemis_ethereum_validator_service "github.com/zeus-fyi/olympus/artemis/api/v1/ethereum/validator_service"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 )
 
@@ -61,7 +62,7 @@ func InitV1Routes(e *echo.Echo) {
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()
-			key, err := auth.VerifyBearerToken(ctx, token)
+			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.EthereumEphemeryService)
 			if err != nil {
 				log.Err(err).Msg("InitV1Routes")
 				return false, c.JSON(http.StatusInternalServerError, nil)

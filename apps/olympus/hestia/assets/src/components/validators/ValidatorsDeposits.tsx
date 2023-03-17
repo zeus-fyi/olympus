@@ -6,7 +6,7 @@ import {Network} from "./ZeusServiceRequest";
 import {useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import {
-    createExtendedDepositParams,
+    createValidatorsDepositsDataJSON,
     createValidatorsDepositServiceRequest,
     validatorsApiGateway
 } from "../../gateway/validators";
@@ -40,9 +40,11 @@ export function SubmitValidators() {
     const onClickSendValidatorsDeposits = async () => {
         try {
             const depositParams = depositData.map((dd: any) => {
-                return createExtendedDepositParams(dd.pubkey, dd.withdrawal_credentials, dd.signature, dd.deposit_data_root,dd.amount,dd.deposit_message_root);
+                return createValidatorsDepositsDataJSON(dd.pubkey, dd.withdrawal_credentials, dd.signature, dd.deposit_data_root,dd.amount,dd.deposit_message_root,dd.fork_version);
             });
+            console.log("depositParams", depositParams)
             const reqParams = createValidatorsDepositServiceRequest(network, depositParams)
+            console.log("reqParams", reqParams)
             const response = await validatorsApiGateway.depositValidatorsServiceRequest(reqParams);
             console.log("response", response);
         } catch (error) {

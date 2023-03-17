@@ -31,7 +31,6 @@ export function ValidatorsDepositsTable(props: any) {
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - depositData.length) : 0;
 
-    console.log(depositData)
     return (
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 1000 }} aria-label="validators pagination table">

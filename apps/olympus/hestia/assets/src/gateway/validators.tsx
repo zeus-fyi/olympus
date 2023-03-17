@@ -50,46 +50,45 @@ class ValidatorsApiGateway {
 }
 export const validatorsApiGateway = new ValidatorsApiGateway();
 
-interface ValidatorDepositParams {
+interface ValidatorDepositDataJSON {
     pubkey: string;
     withdrawal_credentials: string;
     signature: string;
     deposit_data_root: string;
-}
-
-interface ExtendedDepositParams extends ValidatorDepositParams {
     amount: number;
     deposit_message_root: string;
+    fork_version: string;
 }
 
-
-export function createExtendedDepositParams(
+export function createValidatorsDepositsDataJSON(
     pubkey: string,
     withdrawalCredentials: string,
     signature: string,
     depositDataRoot: string,
     amount: number,
     depositMessageRoot: string,
-): ExtendedDepositParams {
+    forkVersion: string,
+): ValidatorDepositDataJSON {
     return {
         pubkey,
         withdrawal_credentials: withdrawalCredentials,
         signature,
-        deposit_data_root: depositDataRoot,
         amount,
+        deposit_data_root: depositDataRoot,
         deposit_message_root: depositMessageRoot,
+        fork_version: forkVersion,
     };
 }
 
 type CreateValidatorsDepositServiceRequest = {
     network: string;
-    validatorServiceOrgGroupSlice: ExtendedDepositParams[];
+    validatorDepositSlice: ValidatorDepositDataJSON[];
 };
 
-export function createValidatorsDepositServiceRequest(network: string, validatorServiceOrgGroupSlice: ExtendedDepositParams[]): CreateValidatorsDepositServiceRequest {
+export function createValidatorsDepositServiceRequest(network: string, validatorServiceOrgGroupSlice: ValidatorDepositDataJSON[]): CreateValidatorsDepositServiceRequest {
     return {
         network: network,
-        validatorServiceOrgGroupSlice: validatorServiceOrgGroupSlice,
+        validatorDepositSlice: validatorServiceOrgGroupSlice,
     }
 }
 

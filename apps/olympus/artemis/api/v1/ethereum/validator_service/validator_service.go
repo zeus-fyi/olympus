@@ -9,8 +9,8 @@ import (
 )
 
 type DepositEthereumValidatorsService struct {
-	Network                                           string `json:"network"`
-	signing_automation_ethereum.ValidatorDepositSlice `json:"validatorDepositSlice"`
+	Network               string                                        `json:"network"`
+	ValidatorDepositSlice []signing_automation_ethereum.DepositDataJSON `json:"validatorDepositSlice"`
 }
 
 func CreateEthereumValidatorsHandler(c echo.Context) error {

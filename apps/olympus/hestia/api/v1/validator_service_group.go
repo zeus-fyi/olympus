@@ -18,11 +18,12 @@ import (
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	eth_validators_service_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validators_service_requests"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
+	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
 
 type CreateValidatorServiceRequest struct {
-	hestia_req_types.ServiceRequestWrapper
-	hestia_req_types.ValidatorServiceOrgGroupSlice
+	hestia_req_types.ServiceRequestWrapper         `json:"serviceRequestWrapper"`
+	hestia_req_types.ValidatorServiceOrgGroupSlice `json:"validatorServiceOrgGroupSlice"`
 }
 
 func CreateValidatorServiceRequestHandler(c echo.Context) error {
@@ -46,15 +47,25 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 		ServiceRequestWrapper:         v.ServiceRequestWrapper,
 		ValidatorServiceOrgGroupSlice: v.ValidatorServiceOrgGroupSlice,
 	}
+	for i, key := range v.ValidatorServiceOrgGroupSlice {
+		v.ValidatorServiceOrgGroupSlice[i].Pubkey = strings_filter.AddHexPrefix(key.Pubkey)
+		v.ValidatorServiceOrgGroupSlice[i].FeeRecipient = strings_filter.AddHexPrefix(key.FeeRecipient)
+	}
 
 	var network string
 	bearer := c.Get("bearer").(string)
-
 	switch v.ProtocolNetworkID {
 	case hestia_req_types.EthereumMainnetProtocolNetworkID:
 		key, err := auth.VerifyBearerTokenService(ctx, bearer, create_org_users.EthereumMainnetService)
 		if err != nil || key.PublicKeyVerified == false {
 			log.Err(err).Interface("orgUser", ou).Msg("CreateValidatorsServiceGroup: EthereumMainnetService unauthorized")
+			return c.JSON(http.StatusUnauthorized, nil)
+		}
+		network = hestia_req_types.ProtocolNetworkIDToString(v.ProtocolNetworkID)
+	case hestia_req_types.EthereumGoerliProtocolNetworkID:
+		key, err := auth.VerifyBearerTokenService(ctx, bearer, create_org_users.EthereumGoerliService)
+		if err != nil || key.PublicKeyVerified == false {
+			log.Err(err).Interface("orgUser", ou).Msg("CreateValidatorsServiceGroup: EthereumGoerliService unauthorized")
 			return c.JSON(http.StatusUnauthorized, nil)
 		}
 		network = hestia_req_types.ProtocolNetworkIDToString(v.ProtocolNetworkID)
@@ -117,6 +128,14 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 	resp := Response{}
 	switch v.ProtocolNetworkID {
 	case hestia_req_types.EthereumMainnetProtocolNetworkID:
+		err = eth_validators_service_requests.ArtemisEthereumMainnetValidatorsRequestsWorker.ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx, vsr)
+		if err != nil {
+			log.Ctx(ctx).Err(err).Interface("network", network).Msg("ExecuteServiceNewValidatorsToCloudCtxNsWorkflow")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		resp.Message = "Ethereum Mainnet validators service request in progress"
+		return c.JSON(http.StatusAccepted, resp)
+	case hestia_req_types.EthereumGoerliProtocolNetworkID:
 		err = eth_validators_service_requests.ArtemisEthereumMainnetValidatorsRequestsWorker.ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx, vsr)
 		if err != nil {
 			log.Ctx(ctx).Err(err).Interface("network", network).Msg("ExecuteServiceNewValidatorsToCloudCtxNsWorkflow")

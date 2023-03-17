@@ -1,5 +1,4 @@
 import * as React from 'react';
-import {useEffect, useState} from 'react';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import {AppBar, Drawer} from '../dashboard/Dashboard';
@@ -10,20 +9,13 @@ import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import Container from '@mui/material/Container';
-import Paper from '@mui/material/Paper';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
-import Table from "@mui/material/Table";
-import TableHead from "@mui/material/TableHead";
-import TableCell from "@mui/material/TableCell";
-import {TableContainer, TableFooter, TablePagination, TableRow} from '@mui/material';
-import TableBody from "@mui/material/TableBody";
 import MainListItems from "../dashboard/listItems";
-import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 import AwsWizardPanel from "./AwsWizardPanel";
 
 const mdTheme = createTheme();
@@ -118,100 +110,9 @@ function AwsWizardServiceContent() {
                             <AwsWizardPanel />
                         </Container>
                     </div>
-                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        {<AwsWizardPageContent />}
-                    </Container>
                 </Box>
             </Box>
         </ThemeProvider>
-    );
-}
-
-
-function AwsWizardPageContent() {
-    const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(25);
-
-    const [validators, setValidators] = useState([{}]);
-    const handleChangeRowsPerPage = (
-        event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    ) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
-    };
-    const handleChangePage = (
-        event: React.MouseEvent<HTMLButtonElement> | null,
-        newPage: number,
-    ) => {
-        setPage(newPage);
-    };
-
-    const emptyRows =
-        page > 0 ? Math.max(0, (1 + page) * rowsPerPage - validators.length) : 0;
-
-    useEffect(() => {
-        const fetchData = async () => {
-
-        }
-        fetchData();
-    }, [])
-
-    return (
-        <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 1000 }} aria-label="validators pagination table">
-                <TableHead>
-                    <TableRow style={{ backgroundColor: '#8991B0'}} >
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Network</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">GroupName</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">PublicKey</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">FeeRecipient</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Enabled</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {(rowsPerPage > 0
-                        ? validators.slice(page * rowsPerPage, page*rowsPerPage+rowsPerPage) : validators).map((row: any,i: number) => (
-                        <TableRow
-                            key={i}
-                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                        >
-                            <TableCell component="th" scope="row">
-                                {row.network}
-                            </TableCell>
-                            <TableCell align="left">{row.groupName}</TableCell>
-                            <TableCell align="left">{row.pubkey}</TableCell>
-                            <TableCell align="left">{row.feeRecipient}</TableCell>
-                            <TableCell align="left">{row.enabled}</TableCell>
-                        </TableRow>
-                    ))}
-                    {emptyRows > 0 && (
-                        <TableRow style={{ height: 53 * emptyRows }}>
-                            <TableCell colSpan={6} />
-                        </TableRow>
-                    )}
-                </TableBody>
-                <TableFooter>
-                    <TableRow>
-                        <TablePagination
-                            rowsPerPageOptions={[10, 25, 100, { label: 'All', value: -1 }]}
-                            colSpan={3}
-                            count={validators.length}
-                            rowsPerPage={rowsPerPage}
-                            page={page}
-                            SelectProps={{
-                                inputProps: {
-                                    'aria-label': 'rows per page',
-                                },
-                                native: true,
-                            }}
-                            onPageChange={handleChangePage}
-                            onRowsPerPageChange={handleChangeRowsPerPage}
-                            ActionsComponent={TablePaginationActions}
-                        />
-                    </TableRow>
-                </TableFooter>
-            </Table>
-        </TableContainer>
     );
 }
 

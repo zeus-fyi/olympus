@@ -2,36 +2,104 @@ import {Card, CardActions, CardContent, Container, Stack} from "@mui/material";
 import * as React from "react";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import {ValidatorsUploadActionAreaCard} from "./ValidatorsUpload";
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import {awsApiGateway} from "../../gateway/aws";
+import TextField from "@mui/material/TextField";
 
 export function LambdaExtUserVerify(props: any) {
-    const { activeStep } = props;
+    const { activeStep, onHandleVerifySigners } = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <ValidatorsUploadActionAreaCard />,
-            <AwsLambdaFunctionVerifyAreaCard />
+            <CreateAwsExternalLambdaUser />
+            <AwsLambdaFunctionVerifyAreaCard onHandleVerifySigners={onHandleVerifySigners} />
         </Stack>
     );
 }
 
-export function AwsLambdaFunctionVerifyAreaCard() {
+export function CreateAwsExternalLambdaUser() {
+    const accessKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
+    const secretKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const externalAccessUserName = useSelector((state: RootState) => state.awsCredentials.externalAccessUserName);
+    const externalAccessSecretName = useSelector((state: RootState) => state.awsCredentials.externalAccessSecretName);
+
+    const handleCreateUser = async () => {
+        try {
+            const creds = {accessKeyId: accessKey, secretAccessKey: secretKey};
+            const response = await awsApiGateway.createExternalLambdaUser(creds);
+            console.log("response", response);
+        } catch (error) {
+            console.log("error", error);
+        }
+        try {
+            const creds = {accessKeyId: accessKey, secretAccessKey: secretKey};
+            await awsApiGateway.createOrFetchExternalLambdaUserAccessKeys(creds,externalAccessUserName, externalAccessSecretName);
+        } catch (error) {
+            console.log("error", error);
+        }
+    };
+
+    return (
+        <Card sx={{ maxWidth: 400 }}>
+            <CardContent>
+                <Typography gutterBottom variant="h5" component="div">
+                    Setup External Access
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                    Creates an AWS Lambda User and RolePolicy for external function calls. This is the user
+                    that we will use to send authorized messages to your validators.
+                </Typography>
+            </CardContent>
+            <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="externalAccessUserName"
+                label="ExternalAccessUserName"
+                name="externalAccessUserName"
+                value={externalAccessUserName}
+                autoFocus
+            />
+            <ExternalAccessSecretName />
+            <CardActions>
+                <Button size="small" onClick={handleCreateUser}>Create User & Auth Keys</Button>
+            </CardActions>
+        </Card>
+    );
+}
+export function ExternalAccessSecretName(props: any) {
+    const dispatch = useDispatch();
+    const externalAccessSecretName = useSelector((state: RootState) => state.awsCredentials.externalAccessSecretName);
+
+    return (
+        <TextField
+            margin="normal"
+            required
+            fullWidth
+            id="externalAccessSecretName"
+            label="ExternalAccessSecretName"
+            name="externalAccessSecretName"
+            value={externalAccessSecretName}
+            autoFocus
+        />
+    );
+}
+export function AwsLambdaFunctionVerifyAreaCard(props: any) {
+    const { activeStep, onHandleVerifySigners } = props;
+
     return (
         <div style={{ display: 'flex' }}>
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                <CreateAwsExternalLambdaUser />
-            </Container >
-            <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                <LambdaVerifyCard />
+                <LambdaVerifyCard onHandleVerifySigners={onHandleVerifySigners}/>
             </Container >
         </div>
-
     );
 }
 
-export function LambdaVerifyCard() {
+export function LambdaVerifyCard(props: any) {
+    const { activeStep, onHandleVerifySigners } = props;
+    const ageSecretName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
+
     return (
         <Card sx={{ maxWidth: 400 }}>
             <CardContent>
@@ -42,38 +110,37 @@ export function LambdaVerifyCard() {
                     Sends random hex string payloads to your AWS lambda function and verifies the returned signatures match the public keys.
                 </Typography>
             </CardContent>
+           <SignerFunctionName />
+            <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="ageEncryptionKeySecretName"
+                label="AgeEncryptionKeySecretName"
+                name="ageEncryptionKeySecretName"
+                value={ageSecretName}
+                autoFocus
+            />
             <CardActions>
-                <Button size="small">Send Request</Button>
+                <Button size="small" onClick={onHandleVerifySigners}>Send Request</Button>
             </CardActions>
         </Card>
     );
 }
-
-export function CreateAwsExternalLambdaUser() {
-    const accessKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
-    const secretKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
-
-    const handleCreateUser = async () => {
-        try {
-            const response = await awsApiGateway.createExternalLambdaUser(accessKey,secretKey);
-            console.log("response", response);
-        } catch (error) {
-            console.log("error", error);
-        }};
+export function SignerFunctionName(props: any) {
+    const dispatch = useDispatch();
+    const blsSignerFunctionName = useSelector((state: RootState) => state.awsCredentials.blsSignerFunctionName);
 
     return (
-        <Card sx={{ maxWidth: 400 }}>
-            <CardContent>
-                <Typography gutterBottom variant="h5" component="div">
-                    Create AWS External Lambda User
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                    Creates AWS External Lambda User
-                </Typography>
-            </CardContent>
-            <CardActions>
-                <Button size="small" onClick={handleCreateUser}>Create</Button>
-            </CardActions>
-        </Card>
+        <TextField
+            margin="normal"
+            required
+            fullWidth
+            id="blsSignerLambdaFunctionName"
+            label="BlsSignerLambdaFunctionName"
+            name="blsSignerLambdaFunctionName"
+            value={blsSignerFunctionName}
+            autoFocus
+        />
     );
 }

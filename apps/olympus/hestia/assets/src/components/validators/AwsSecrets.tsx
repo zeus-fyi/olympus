@@ -1,13 +1,19 @@
 import * as React from "react";
-import {useState} from "react";
-import {Card, Container, Stack} from "@mui/material";
-import {AwsUploadActionAreaCard} from "./AwsPanel";
+import {Card, CardActions, CardContent, Container, Stack} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
-import {setHdWalletPw, setMnemonic} from "../../redux/validators/ethereum.validators.reducer";
-import {setAgePrivKey, setAgePubKey} from "../../redux/aws_wizard/aws.wizard.reducer";
 import CryptoJS from 'crypto-js';
+import {
+    LambdaFunctionGenEncZipFileCreation,
+    LambdaFunctionGenValidatorDepositsCreation,
+    LambdaFunctionSecretsCreation
+} from "./AwsLambdaCreation";
+import Button from "@mui/material/Button";
+import {awsLambdaApiGateway} from "../../gateway/aws.lambda";
+import Typography from "@mui/material/Typography";
+import {setAgeSecretName, setValidatorSecretsName} from "../../redux/aws_wizard/aws.wizard.reducer";
+import {Network} from "./ZeusServiceRequest";
 
 export const charsets = {
     NUMBERS: '0123456789',
@@ -26,57 +32,73 @@ export const generatePassword = (length: number, charset: string): string => {
     return result;
 }
 
-export function CreateAwsSecretsActionAreaCardWrapper(props: any) {
-    const { activeStep, onGenerate, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip } = props;
-
+export function CreateAwsInternalLambdasActionAreaCardWrapper(props: any) {
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <AwsUploadActionAreaCard activeStep={activeStep} onGenerate={onGenerate} onGenerateValidatorDeposits={onGenerateValidatorDeposits} onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}/>
-            <CreateAwsSecretsValidatorSecretsActionAreaCard />
-            <CreateAwsSecretsAgeEncryptionActionAreaCard />
+            <LambdaFunctionSecretsCreation />
+            <LambdaFunctionGenEncZipFileCreation />
+            <LambdaFunctionGenValidatorDepositsCreation />
         </Stack>
     );
 }
 
-export function CreateAwsSecretsAgeEncryptionActionAreaCard() {
-    const [awsAgeEncryptionKeyName, setAwsAgeEncryptionKeyName] = useState('ageEncryptionKeyEphemery');
-
+export function CreateAwsSecretsActionAreaCardWrapper(props: any) {
     return (
-        <Card sx={{ maxWidth: 500 }}>
-            <div style={{ display: 'flex' }}>
-                <Stack direction="column" alignItems="center" spacing={2}>
-                </Stack>
-                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <AgeEncryptionKeySecretName awsAgeEncryptionKeyName={awsAgeEncryptionKeyName}/>
-                    <AgeCredentialsPublicKey />
-                    <AgeCredentialsPrivateKey />
-                </Container>
-            </div>
-        </Card>
+        <Stack direction="row" alignItems="center" spacing={2}>
+            <CreateAwsSecretNamesAreaCard />
+        </Stack>
     );
 }
 
-export function CreateAwsSecretsValidatorSecretsActionAreaCard(props: any) {
-    const [awsValidatorSecretName, setAwsValidatorSecretName] = useState('mnemonicAndHDWalletEphemery');
+export function CreateAwsSecretNamesAreaCard() {
+    const sgLambdaURL = useSelector((state: RootState) => state.awsCredentials.secretGenLambdaFnUrl);
+    const ak = useSelector((state: RootState) => state.awsCredentials.accessKey);
+    const sk = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const awsValidatorSecretName = useSelector((state: RootState) => state.awsCredentials.validatorSecretsName);
+    const awsAgeEncryptionKeyName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
+    const network = useSelector((state: RootState) => state.validatorSecrets.network);
 
+    let validatorSecretName = awsValidatorSecretName+network;
+    const dispatch = useDispatch();
+    const onCreateNewValidatorSecrets = async () => {
+        try {
+            const creds = {accessKeyId: ak, secretAccessKey: sk};
+            const response = await awsLambdaApiGateway.invokeValidatorSecretsGeneration(sgLambdaURL, creds, awsValidatorSecretName, awsAgeEncryptionKeyName);
+        } catch (error) {
+            console.log("error", error);
+        }};
     return (
         <Card sx={{ maxWidth: 500 }}>
-            <div style={{ display: 'flex' }}>
+            <CardContent>
+                <Typography gutterBottom variant="h5" component="div">
+                    Generate New Secrets Using Lambda
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                    Securely generates a new mnemonic, hd wallet password, and age encryption key and saves them in your secret manager with the below key names. If
+                    secrets already exist with the same key name, it will not overwrite them.
+                </Typography>
+            </CardContent>
                 <Stack direction="column" alignItems="center" spacing={2}>
-                </Stack>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <ValidatorSecretName validatorSecretName={awsValidatorSecretName}/>
-                    <HDWalletPassword />
-                    <Mnemonic />
+                    <Network />
+                    <ValidatorSecretName validatorSecretName={validatorSecretName}/>
+                    <AgeEncryptionKeySecretName awsAgeEncryptionKeyName={awsAgeEncryptionKeyName+network}/>
                 </Container>
-            </div>
+                <CardActions>
+                    <Button onClick={onCreateNewValidatorSecrets} size="small">Create</Button>
+                </CardActions>
+                </Stack>
         </Card>
-
     );
 }
 
 export function ValidatorSecretName(props: any) {
-    const { validatorSecretName, onValidatorSecretNameNameChange } = props;
+    const dispatch = useDispatch();
+    const validatorSecretName = useSelector((state: RootState) => state.awsCredentials.validatorSecretsName);
+    const onValidatorSecretNameNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const newValidatorSecretsName = event.target.value;
+        dispatch(setValidatorSecretsName(newValidatorSecretsName));
+    };
     return (
         <TextField
             fullWidth
@@ -95,7 +117,6 @@ export function Mnemonic() {
     const dispatch = useDispatch();
     const onMnemonicChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const newMnemonicValue = event.target.value;
-        dispatch(setMnemonic(newMnemonicValue));
     };
     return (
         <TextField
@@ -115,7 +136,6 @@ export function HDWalletPassword() {
     const hdWalletPw = useSelector((state: RootState) => state.validatorSecrets.hdWalletPw);
     const onHdWalletPwChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const newHdWalletPw = event.target.value;
-        dispatch(setHdWalletPw(newHdWalletPw));
     };
     return (
         <TextField
@@ -131,7 +151,12 @@ export function HDWalletPassword() {
 }
 
 export function AgeEncryptionKeySecretName(props: any) {
-    const { awsAgeEncryptionKeyName, onAccessAwsAgeEncryptionKeyName} = props;
+    const dispatch = useDispatch();
+    const awsAgeEncryptionKeyName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
+    const onAccessAwsAgeEncryptionKeyName = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const newAgeSecretName = event.target.value;
+        dispatch(setAgeSecretName(newAgeSecretName));
+    };
     return (
         <TextField
             fullWidth
@@ -140,48 +165,6 @@ export function AgeEncryptionKeySecretName(props: any) {
             variant="outlined"
             value={awsAgeEncryptionKeyName}
             onChange={onAccessAwsAgeEncryptionKeyName}
-            sx={{ width: '100%' }}
-        />
-    );
-}
-
-
-export function AgeCredentialsPublicKey(props: any) {
-    const dispatch = useDispatch();
-    const onAgePubKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const newPubKeyValue = event.target.value;
-        dispatch(setAgePubKey(newPubKeyValue));
-    };
-    const agePubKey = useSelector((state: RootState) => state.awsCredentials.agePubKey);
-    return (
-        <TextField
-            fullWidth
-            id="AgePubKey"
-            label="Age Encryption Public Key"
-            variant="outlined"
-            value={agePubKey}
-            onChange={onAgePubKeyChange}
-            sx={{ width: '100%' }}
-        />
-    );
-}
-
-export function AgeCredentialsPrivateKey(props: any) {
-    const dispatch = useDispatch();
-
-    const onAgePrivKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const newPrivKeyValue = event.target.value;
-        dispatch(setAgePrivKey(newPrivKeyValue));
-    };
-    const agePrivKey = useSelector((state: RootState) => state.awsCredentials.agePrivKey);
-    return (
-        <TextField
-            fullWidth
-            id="AgePrivKey"
-            label="Age Encryption Secret Key"
-            variant="outlined"
-            value={agePrivKey}
-            onChange={onAgePrivKeyChange}
             sx={{ width: '100%' }}
         />
     );

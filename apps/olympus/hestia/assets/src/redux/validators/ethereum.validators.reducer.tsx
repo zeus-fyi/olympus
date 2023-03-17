@@ -5,13 +5,21 @@ interface ValidatorSecretsState {
     mnemonic: string;
     hdOffset: number;
     validatorCount: number;
+    network: string;
+    feeRecipient: string;
+    keyGroupName: string;
+    networkAppended : boolean;
 }
 
 const initialState: ValidatorSecretsState = {
     hdWalletPw: '',
     mnemonic: '',
     hdOffset: 0,
-    validatorCount: 1
+    validatorCount: 1,
+    network: 'Ephemery',
+    feeRecipient: '',
+    keyGroupName: 'DemoKeyGroup',
+    networkAppended : false,
 };
 
 const validatorSecretsSlice = createSlice({
@@ -30,9 +38,21 @@ const validatorSecretsSlice = createSlice({
         setHdOffset: (state, action: PayloadAction<number>) => {
             state.hdOffset = action.payload;
         },
+        setNetworkName: (state, action: PayloadAction<string>) => {
+            state.network = action.payload;
+        },
+        setFeeRecipient: (state, action: PayloadAction<string>) => {
+            state.feeRecipient = action.payload;
+        },
+        setKeyGroupName: (state, action: PayloadAction<string>) => {
+            state.keyGroupName = action.payload;
+        },
+        setNetworkAppended: (state, action: PayloadAction<boolean>) => {
+            state.networkAppended = action.payload;
+        },
     },
 });
 
-export const { setHdWalletPw, setMnemonic } = validatorSecretsSlice.actions;
+export const { setHdOffset, setValidatorCount, setNetworkName, setFeeRecipient, setKeyGroupName, setNetworkAppended} = validatorSecretsSlice.actions;
 
 export default validatorSecretsSlice.reducer;

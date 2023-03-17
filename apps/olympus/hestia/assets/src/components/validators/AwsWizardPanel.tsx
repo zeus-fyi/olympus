@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {ChangeEvent, useState} from 'react';
 import Box from '@mui/material/Box';
 import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
@@ -6,74 +7,86 @@ import StepButton from '@mui/material/StepButton';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Container from "@mui/material/Container";
-import {charsets, CreateAwsSecretsActionAreaCardWrapper, generatePassword} from "./AwsSecrets";
+import {CreateAwsInternalLambdasActionAreaCardWrapper, CreateAwsSecretsActionAreaCardWrapper,} from "./AwsSecrets";
 import {CreateInternalAwsLambdaUserRolesActionAreaCardWrapper} from "./AwsLambdaUserRolePolicies";
-import {CreateAwsLambdaFunctionActionAreaCardWrapper} from "./AwsLambdaCreation";
 import {LambdaExtUserVerify} from "./AwsExtUserAndLambdaVerify";
 import {GenerateValidatorKeysAndDepositsAreaCardWrapper} from "./ValidatorsGeneration";
 import {ZeusServiceRequestAreaCardWrapper} from "./ZeusServiceRequest";
 import {ValidatorsDepositRequestAreaCardWrapper} from "./ValidatorsDeposits";
-import {awsApiGateway} from "../../gateway/aws";
-import {setAgePrivKey, setAgePubKey} from "../../redux/aws_wizard/aws.wizard.reducer";
-import {ethers} from "ethers";
-import {setHdWalletPw, setMnemonic} from "../../redux/validators/ethereum.validators.reducer";
-import {validatorsApiGateway} from "../../gateway/validators";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
+import {
+    setAgeSecretName,
+    setDepositData,
+    setDepositsGenLambdaFnUrl,
+    setEncKeystoresZipLambdaFnUrl,
+    setKeystoreLayerName,
+    setSignerFunctionName,
+    setValidatorSecretsName
+} from "../../redux/aws_wizard/aws.wizard.reducer";
+import {awsApiGateway} from "../../gateway/aws";
+import {awsLambdaApiGateway} from "../../gateway/aws.lambda";
+import {CreateAwsLambdaFunctionActionAreaCardWrapper} from './AwsLambdaKeystoreSigners';
+import {ValidatorsDepositsTable} from "./ValidatorsDepositsTable";
+import {ValidatorDepositDataJSON} from "../../gateway/validators";
+import {setKeyGroupName, setNetworkAppended} from "../../redux/validators/ethereum.validators.reducer";
 
 const steps = [
-    'Create AWS Secrets',
-    'Generate Validator Deposits',
-    'Create Lambda User Roles',
-    'Create or Update Lambda Function',
+    'AWS Auth & Internal User Roles',
+    'Create Internal Lambdas',
+    'Generate Secrets',
+    'Generate Validator Keys/Deposits',
+    'Create/Update External Lambda Function',
     'Verify Lambda Function',
-    'Create Zeus Service Request',
+    'Request Zeus Service',
     'Submit Deposits',
 ];
 
-function stepComponents(activeStep: number, onGenerate: any, onGenerateValidatorDeposits: any, onGenerateValidatorEncryptedKeystoresZip: any) {
+function stepComponents(activeStep: number, onGenerateValidatorDeposits: any, onGenerateValidatorEncryptedKeystoresZip: any, onEncZipFileUpload: any, zipBlob: Blob, onHandleVerifySigners: any, onValidatorsDepositsUpload: any) {
     const steps = [
+        <CreateInternalAwsLambdaUserRolesActionAreaCardWrapper
+            activeStep={activeStep}
+            onGenerateValidatorDeposits={onGenerateValidatorDeposits}
+            onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
+        />,
+        <CreateAwsInternalLambdasActionAreaCardWrapper
+            activeStep={activeStep}
+            onGenerateValidatorDeposits={onGenerateValidatorDeposits}
+            onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
+        />,
         <CreateAwsSecretsActionAreaCardWrapper
             activeStep={activeStep}
-            onGenerate={onGenerate}
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
         />,
         <GenerateValidatorKeysAndDepositsAreaCardWrapper
             activeStep={activeStep}
-            onGenerate={onGenerate}
-            onGenerateValidatorDeposits={onGenerateValidatorDeposits}
-            onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
-        />,
-        <CreateInternalAwsLambdaUserRolesActionAreaCardWrapper
-            activeStep={activeStep}
-            onGenerate={onGenerate}
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
         />,
         <CreateAwsLambdaFunctionActionAreaCardWrapper
             activeStep={activeStep}
-            onGenerate={onGenerate}
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
+            onEncZipFileUpload={onEncZipFileUpload}
+            zipBlob={zipBlob}
         />,
         <LambdaExtUserVerify
             activeStep={activeStep}
-            onGenerate={onGenerate}
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
+            onHandleVerifySigners={onHandleVerifySigners}
         />,
         <ZeusServiceRequestAreaCardWrapper
             activeStep={activeStep}
-            onGenerate={onGenerate}
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
         />,
         <ValidatorsDepositRequestAreaCardWrapper
             activeStep={activeStep}
-            onGenerate={onGenerate}
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
+            onValidatorsDepositsUpload={onValidatorsDepositsUpload}
         />]
     return steps[activeStep]
 }
@@ -130,51 +143,135 @@ export default function AwsWizardPanel() {
         setCompleted({});
     };
 
+    const [encZipFile, setEncZipFile] = useState<Blob>(new Blob([], {type: 'application/zip'}));
+
+    const onEncZipFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files && event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const blob = new Blob([e.target!.result as ArrayBuffer], {type: 'application/zip'});
+                setEncZipFile(blob);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+    };
     const dispatch = useDispatch();
-    const onGenerate = async () => {
-        try {
-            console.log('onGenerate')
-            const response = await awsApiGateway.getGeneratedAgeKey();
-            const ageKeyGenData: any = response.data;
-            dispatch(setAgePrivKey(ageKeyGenData.agePrivateKey));
-            dispatch(setAgePubKey(ageKeyGenData.agePublicKey));
-            const entropyBytes = ethers.randomBytes(32); // 16 bytes = 128 bits of entropy
-            let phrase = ethers.Mnemonic.fromEntropy(entropyBytes).phrase;
-            dispatch(setMnemonic(phrase));
-            const password = generatePassword(20, charsets.NUMBERS + charsets.LOWERCASE + charsets.UPPERCASE + charsets.SYMBOLS);
-            dispatch(setHdWalletPw(password));
-        } catch (error) {
-            console.log("error", error);
-        }};
-
-    const mnemonic = useSelector((state: RootState) => state.validatorSecrets.mnemonic);
-    const hdWalletPw = useSelector((state: RootState) => state.validatorSecrets.hdWalletPw);
-
-    const agePubKey = useSelector((state: RootState) => state.awsCredentials.agePubKey);
-    const agePrivKey = useSelector((state: RootState) => state.awsCredentials.agePrivKey);
-    const count = useSelector((state: RootState) => state.validatorSecrets.validatorCount);
+    const akey = useSelector((state: RootState) => state.awsCredentials.accessKey);
+    const skey = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const validatorSecretsName = useSelector((state: RootState) => state.awsCredentials.validatorSecretsName);
+    const ageSecretName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
+    const validatorCount = useSelector((state: RootState) => state.validatorSecrets.validatorCount);
     const hdOffset = useSelector((state: RootState) => state.validatorSecrets.hdOffset);
-
-    const onGenerateValidatorDeposits = async () => {
-        try {
-            // TODO this is a stub
-            console.log('onGenerateValidatorDeposits')
-            const response = await validatorsApiGateway.generateValidatorsDepositData(mnemonic, hdWalletPw,count,hdOffset);
-            console.log(response.data)
-        } catch (error) {
-            console.log("error", error);
-        }};
-
     const onGenerateValidatorEncryptedKeystoresZip = async () => {
         try {
-            // TODO this is a stub
-            console.log('onGenerateValidatorEncryptedKeystoresZip')
-            const response = await validatorsApiGateway.generateValidatorsAgeEncryptedKeystoresZip(agePubKey, agePrivKey,mnemonic, hdWalletPw, count, hdOffset);
-            console.log(response.data)
+            const creds = { accessKeyId: akey, secretAccessKey: skey };
+            const res = await awsApiGateway.createValidatorsAgeEncryptedKeystoresZipLambda(creds);
+            const updatedEncKeystoresZipLambdaFnUrl = res.data;
+            dispatch(setEncKeystoresZipLambdaFnUrl(updatedEncKeystoresZipLambdaFnUrl));
+            const zip = await awsLambdaApiGateway.invokeEncryptedKeystoresZipGeneration(updatedEncKeystoresZipLambdaFnUrl, creds, ageSecretName, validatorSecretsName, validatorCount, hdOffset);
+            const zipBlob = await zip.blob();
+            const blob = new Blob([zipBlob], { type: 'application/octet-stream' });
+            download(blob, "keystores.zip");
+            setEncZipFile(blob);
         } catch (error) {
             console.log("error", error);
-        }};
+        } finally {
+        }
+    };
+    const network = useSelector((state: RootState) => state.validatorSecrets.network);
+    let depositsGenLambdaFnUrl = useSelector((state: RootState) => state.awsCredentials.depositsGenLambdaFnUrl);
+    const depositData = useSelector((state: RootState) => state.awsCredentials.depositData);
+
+    const onGenerateValidatorDeposits = async () => {
+        console.log("onGenerateValidatorDeposits");
+        const creds = {accessKeyId: akey, secretAccessKey: skey};
+        try {
+            const response = await awsApiGateway.createValidatorsDepositDataLambda(creds);
+            dispatch(setDepositsGenLambdaFnUrl(response.data));
+            depositsGenLambdaFnUrl = response.data;
+        } catch (error) {
+            console.log("error", error);
+        }
+        try {
+            console.log("invokeValidatorDepositsGeneration");
+            const dpSlice = await awsLambdaApiGateway.invokeValidatorDepositsGeneration(depositsGenLambdaFnUrl,creds,network,validatorSecretsName,validatorCount,hdOffset);
+            const body = await dpSlice.json();
+            body.forEach((item: any) => {
+                item.verified = false;
+            });
+            dispatch(setDepositData(body));
+        } catch (error) {
+            console.log("error", error);
+        }
+    };
+    const onValidatorsDepositsUpload = (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const jsonData = JSON.parse(e.target?.result as string) as ValidatorDepositDataJSON[]
+                console.log(jsonData);
+                dispatch(setDepositData(jsonData));
+            } catch (error) {
+                console.error("Error parsing JSON file:", error);
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    const externalAccessUserName = useSelector((state: RootState) => state.awsCredentials.externalAccessUserName);
+    const externalAccessSecretName = useSelector((state: RootState) => state.awsCredentials.externalAccessSecretName);
+    const blsSignerFunctionName = useSelector((state: RootState) => state.awsCredentials.blsSignerFunctionName);
+
+    const onHandleVerifySigners = async () => {
+        const creds = {accessKeyId: akey, secretAccessKey: skey};
+        try {
+            const r = await awsApiGateway.createOrFetchExternalLambdaUserAccessKeys(creds, externalAccessUserName, externalAccessSecretName);
+            const url = await awsApiGateway.getLambdaFunctionURL(creds, blsSignerFunctionName);
+            const extCreds = {accessKeyId: r.data.accessKey, secretAccessKey: r.data.secretKey};
+            const response = await awsApiGateway.verifyLambdaFunctionSigner(extCreds,ageSecretName,url.data, depositData);
+            const verifiedKeys = response.data
+            let hm = createHashMap(verifiedKeys);
+            const verifiedDepositData = depositData.map((obj: any) => {
+                if (obj.hasOwnProperty('verified')) {
+                    return {
+                        ...obj,
+                        ['verified']: hm[obj.pubkey],
+                    };
+                }});
+            dispatch(setDepositData(verifiedDepositData));
+        } catch (error) {
+            console.log("error", error);
+        }}
+
+    const networkAppended = useSelector((state: RootState) => state.validatorSecrets.networkAppended);
+    const keystoresLayerName = useSelector((state: RootState) => state.awsCredentials.blsSignerKeystoresLayerName);
+    const keyGroupName = useSelector((state: RootState) => state.validatorSecrets.keyGroupName);
+
+    const handleNetworkAppend = () => {
+        if (!networkAppended) {
+            const newValidatorSecretsName = validatorSecretsName + network;
+            dispatch(setValidatorSecretsName(newValidatorSecretsName));
+            const newAgeSecretName = ageSecretName + network;
+            dispatch(setAgeSecretName(newAgeSecretName));
+            const newBlsSignerFunctionName  = blsSignerFunctionName + network;
+            dispatch(setSignerFunctionName(newBlsSignerFunctionName));
+            const newKeystoresLayerName = keystoresLayerName + network;
+            dispatch(setKeystoreLayerName(newKeystoresLayerName));
+            const newKeyGroupName = keyGroupName + network;
+            dispatch(setKeyGroupName(newKeyGroupName));
+            dispatch(setNetworkAppended(true));
+        }
+    };
+
+    React.useEffect(() => {
+        handleNetworkAppend();
+    }, [network]);
     return (
+        <div>
         <Box sx={{ width: '100%' }}>
             <Stepper nonLinear activeStep={activeStep}>
                 {steps.map((label, index) => (
@@ -199,7 +296,7 @@ export default function AwsWizardPanel() {
                 ) : (
                     <React.Fragment>
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                            {stepComponents(activeStep, onGenerate, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip)}
+                            {stepComponents(activeStep, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip, onEncZipFileUpload, encZipFile, onHandleVerifySigners, onValidatorsDepositsUpload)}
                         </Container>
                         <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                             <Button
@@ -230,5 +327,27 @@ export default function AwsWizardPanel() {
                 )}
             </div>
         </Box>
-    );
+            <ValidatorsDepositsTable depositData={depositData} activeStep={activeStep}/>
+</div>
+);
+}
+
+export function download(blob: any, filename: string) {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.setAttribute('download', `${filename}`);
+    // the filename you want
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+function createHashMap(keys: string[]): { [key: string]: boolean } {
+    return keys.reduce((hashMap: { [key: string]: boolean }, key: string) => {
+        hashMap[key] = true;
+        return hashMap;
+    }, {});
 }

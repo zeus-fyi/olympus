@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_s3"
-	"github.com/zeus-fyi/olympus/sandbox/chains"
 )
 
 type ChainUploaderTestSuite struct {
@@ -16,7 +15,6 @@ type ChainUploaderTestSuite struct {
 func (s *ChainUploaderTestSuite) SetupTest() {
 	s.InitLocalConfigs()
 	s.SetupLocalDigitalOceanS3()
-	chains.ChangeToChainDataDir()
 }
 
 var brUpload = BucketRequest{

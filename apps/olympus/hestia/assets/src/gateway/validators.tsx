@@ -1,4 +1,5 @@
-import {hestiaApi} from './axios/axios';
+import {artemisApi, hestiaApi} from './axios/axios';
+import {AwsCredentialIdentity} from "@aws-sdk/types/dist-types/identity";
 
 class ValidatorsApiGateway {
     async getValidators(): Promise<any>  {
@@ -16,53 +17,7 @@ class ValidatorsApiGateway {
             return
         }
     }
-    async generateValidatorsDepositData(mnemonicPhrase: string, hdWalletPw: string, count: number, offset: number): Promise<any>  {
-        const url = `/v1/ethereum/validators/deposits/generation`;
-        try {
-            const sessionID = localStorage.getItem("sessionID");
-            let config = {
-                headers: {
-                    'Authorization': `Bearer ${sessionID}`,
-                }}
-            const payload = {
-                agePubKey: '',
-                agePrivKey: '',
-                mnemonic: mnemonicPhrase,
-                hdWalletPw: hdWalletPw,
-                validatorCount: count,
-                hdOffset: offset,
-            }
-            return await hestiaApi.post(url, payload, config)
-        } catch (exc) {
-            console.error('error sending create validator deposits');
-            console.error(exc);
-            return
-        }
-    }
-    async generateValidatorsAgeEncryptedKeystoresZip(agePub: string, agePriv: string,mnemonicPhrase: string, hdWalletPw: string, count: number, offset: number): Promise<any>  {
-        const url = `/v1/ethereum/validators/aws/encryption/age`;
-        try {
-            const sessionID = localStorage.getItem("sessionID");
-            let config = {
-                headers: {
-                    'Authorization': `Bearer ${sessionID}`,
-                }}
-            const payload = {
-                agePubKey: agePub,
-                agePrivKey: agePriv,
-                mnemonic: mnemonicPhrase,
-                hdWalletPw: hdWalletPw,
-                validatorCount: count,
-                hdOffset: offset,
-            }
-            return await hestiaApi.post(url, payload, config)
-        } catch (exc) {
-            console.error('error sending create validator encrypted keystores zip');
-            console.error(exc);
-            return
-        }
-    }
-    async createValidatorsServiceRequest(payload: any): Promise<any>  {
+    async createValidatorsServiceRequest(payload: CreateValidatorServiceRequest): Promise<any>  {
         const url = `/v1/ethereum/validators/service/create`;
         try {
             const sessionID = localStorage.getItem("sessionID");
@@ -77,6 +32,146 @@ class ValidatorsApiGateway {
             return
         }
     }
+    async depositValidatorsServiceRequest(payload: CreateValidatorsDepositServiceRequest): Promise<any>  {
+        const url = `/v1/ethereum/validators/create`;
+        try {
+            const sessionID = localStorage.getItem("sessionID");
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`,
+                }}
+            return await artemisApi.post(url, payload, config)
+        } catch (exc) {
+            console.error('error sending create lambda function keystores layer');
+            console.error(exc);
+            return
+        }
+    }
 }
 export const validatorsApiGateway = new ValidatorsApiGateway();
 
+export interface ValidatorDepositDataJSON {
+    pubkey: string;
+    withdrawal_credentials: string;
+    signature: string;
+    deposit_data_root: string;
+    amount: number;
+    deposit_message_root: string;
+    fork_version: string;
+}
+
+export function createValidatorsDepositsDataJSON(
+    pubkey: string,
+    withdrawalCredentials: string,
+    signature: string,
+    depositDataRoot: string,
+    amount: number,
+    depositMessageRoot: string,
+    forkVersion: string,
+): ValidatorDepositDataJSON {
+    return {
+        pubkey,
+        withdrawal_credentials: withdrawalCredentials,
+        signature,
+        amount,
+        deposit_data_root: depositDataRoot,
+        deposit_message_root: depositMessageRoot,
+        fork_version: forkVersion,
+    };
+}
+
+type CreateValidatorsDepositServiceRequest = {
+    network: string;
+    validatorDepositSlice: ValidatorDepositDataJSON[];
+};
+
+export function createValidatorsDepositServiceRequest(network: string, validatorServiceOrgGroupSlice: ValidatorDepositDataJSON[]): CreateValidatorsDepositServiceRequest {
+    return {
+        network: network,
+        validatorDepositSlice: validatorServiceOrgGroupSlice,
+    }
+}
+
+interface AuthLambdaAWS {
+    serviceURL: string;
+    secretName: string;
+    accessKey: string;
+    accessSecret: string;
+}
+
+export function createAuthAwsLambda(serviceURL: string, secretName: string, credentials: AwsCredentialIdentity): AuthLambdaAWS {
+    return {
+        serviceURL: serviceURL,
+        secretName: secretName,
+        accessKey: credentials.accessKeyId,
+        accessSecret: credentials.secretAccessKey,
+    };
+}
+
+interface ServiceAuthConfig {
+    awsAuth: AuthLambdaAWS;
+}
+
+interface ServiceRequestWrapper {
+    groupName: string;
+    protocolNetworkID: number;
+    enabled: boolean;
+    serviceAuth: ServiceAuthConfig;
+}
+
+type ValidatorServiceOrgGroup = {
+    pubkey: string;
+    feeRecipient: string;
+};
+
+type CreateValidatorServiceRequest = {
+    serviceRequestWrapper: ServiceRequestWrapper;
+    validatorServiceOrgGroupSlice: ValidatorServiceOrgGroup[];
+};
+
+export function createValidatorOrgGroup(pubkey: string, feeRecipient: string): ValidatorServiceOrgGroup {
+    return {
+        pubkey: pubkey,
+        feeRecipient: feeRecipient,
+    };
+}
+// Function to create and set the CreateValidatorServiceRequest payload
+export function createValidatorServiceRequest(
+    keyGroupName: string,
+    protocolNetworkID: number,
+    externalAwsAuth: AuthLambdaAWS,
+    validatorServiceOrgGroups: ValidatorServiceOrgGroup[]
+): CreateValidatorServiceRequest {
+    const serviceRequestWrapper: ServiceRequestWrapper = {
+        groupName: keyGroupName,
+        protocolNetworkID: protocolNetworkID,
+        enabled: true,
+        serviceAuth: {
+            awsAuth: {
+                serviceURL: externalAwsAuth.serviceURL,
+                secretName: externalAwsAuth.secretName,
+                accessKey: externalAwsAuth.accessKey,
+                accessSecret: externalAwsAuth.accessSecret,
+            },
+        },
+    };
+
+    const hestiaServiceRequest: CreateValidatorServiceRequest = {
+        serviceRequestWrapper: serviceRequestWrapper,
+        validatorServiceOrgGroupSlice: validatorServiceOrgGroups,
+    };
+
+    return hestiaServiceRequest;
+}
+
+interface ValidatorDepositParams {
+    pubkey: string;
+    withdrawal_credentials: string;
+    signature: string;
+    deposit_data_root: string;
+}
+
+interface ExtendedDepositParams extends ValidatorDepositParams {
+    amount: number;
+    deposit_message_root: string;
+}

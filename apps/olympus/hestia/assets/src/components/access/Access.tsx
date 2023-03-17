@@ -124,7 +124,7 @@ function DashboardIntegrationContent() {
                 >
                     <Toolbar />
                     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                        {<ApiKeys />}
+                        {/*{<ApiKeys />}*/}
                     </Container>
                 </Box>
             </Box>
@@ -144,7 +144,6 @@ function ApiKeys() {
                     <TableRow style={{ backgroundColor: '#8991B0'}} >
                         <TableCell style={{ color: 'white'}}>Service</TableCell>
                         <TableCell style={{ color: 'white'}} align="left">KeyName</TableCell>
-                        <TableCell style={{ color: 'white'}} align="left">AccessKey</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -157,7 +156,6 @@ function ApiKeys() {
                                 {row.service}
                             </TableCell>
                             <TableCell align="left">{row.keyName}</TableCell>
-                            <TableCell align="left">{row.accessKey}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>

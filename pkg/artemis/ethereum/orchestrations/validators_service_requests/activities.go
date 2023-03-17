@@ -64,6 +64,8 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) AssignValidatorsToCl
 	switch params.ProtocolNetworkID {
 	case hestia_req_types.EthereumEphemeryProtocolNetworkID:
 		cloudCtxNs = EphemeryStakingCloudCtxNs
+	case hestia_req_types.EthereumGoerliProtocolNetworkID:
+		cloudCtxNs = GoerliStakingCloudCtxNs
 	case hestia_req_types.EthereumMainnetProtocolNetworkID:
 		cloudCtxNs = MainnetStakingCloudCtxNs
 	default:
@@ -89,6 +91,8 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) RestartValidatorClie
 	switch params.ProtocolNetworkID {
 	case hestia_req_types.EthereumEphemeryProtocolNetworkID:
 		cloudCtxNs = EphemeryStakingCloudCtxNs
+	case hestia_req_types.EthereumGoerliProtocolNetworkID:
+		cloudCtxNs = GoerliStakingCloudCtxNs
 	case hestia_req_types.EthereumMainnetProtocolNetworkID:
 		cloudCtxNs = MainnetStakingCloudCtxNs
 	default:

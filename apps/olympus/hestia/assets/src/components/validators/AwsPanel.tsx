@@ -1,7 +1,6 @@
-import {Card, CardActionArea, CardMedia, Container, Stack} from "@mui/material";
+import {Card, CardActionArea, CardMedia, Container} from "@mui/material";
 import * as React from "react";
 import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
 import {useDispatch, useSelector} from 'react-redux';
 import {setAccessKey, setSecretKey} from '../../redux/aws_wizard/aws.wizard.reducer';
 import {RootState} from "../../redux/store";
@@ -22,7 +21,7 @@ export function AwsUploadActionAreaCard(props: any) {
     };
 
     return (
-        <Card sx={{ maxWidth: 500 }}>
+        <Card sx={{ maxWidth: 1000 }}>
             <div style={{ display: 'flex' }}>
             <CardActionArea>
                 <CardMedia
@@ -33,46 +32,40 @@ export function AwsUploadActionAreaCard(props: any) {
                 />
             </CardActionArea>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <AwsCredentialsAccessKey accessKey={accessKey} onAccessKeyChange={onAccessKeyChange}/>
-                    <AwsCredentialsSecret secretKey={secretKey} onSecretKeyChange={onSecretKeyChange}/>
-                    <AwsCredentialsButtons activeStep={activeStep} onGenerate={onGenerate} onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip} onGenerateValidatorDeposits={onGenerateValidatorDeposits}/>
+                        <AwsCredentialsAccessKey accessKey={accessKey} onAccessKeyChange={onAccessKeyChange}/>
+                        <AwsCredentialsSecret secretKey={secretKey} onSecretKeyChange={onSecretKeyChange}/>
                 </Container>
             </div>
         </Card>
 );
 }
 
-export function AwsCredentialsButtons(props: any) {
-    const { activeStep, onGenerate, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip, onSave } = props;
-    console.log("activeStep", activeStep)
-    console.log("onGenerate", onGenerate)
-    console.log("onGenerateValidatorDeposits", onGenerateValidatorDeposits)
-    console.log("onGenerateValidatorEncryptedKeystoresZip", onGenerateValidatorEncryptedKeystoresZip)
-
-    return (
-        <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
-            {activeStep === 1 ? (
-                <div>
-                    <Button variant="contained" onClick={onGenerateValidatorDeposits}>
-                        Generate Deposit Data
-                    </Button>
-                    <Button variant="outlined" onClick={onGenerateValidatorEncryptedKeystoresZip}>
-                        Generate Keystores Zip
-                    </Button>
-                </div>
-            ) : (
-                <div>
-                    <Button variant="contained" onClick={onSave}>
-                        Create
-                    </Button>
-                    <Button variant="outlined" onClick={onGenerate}>
-                        Generate
-                    </Button>
-                </div>
-            )}
-        </Stack>
-    );
-}
+// export function AwsCredentialsButtons(props: any) {
+//     const { activeStep, onGenerate, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip, onSave } = props;
+//     return (
+//         <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+//             {activeStep === 3 ? (
+//                 <div>
+//                     <Button variant="contained" onClick={onGenerateValidatorDeposits}>
+//                         Generate Deposit Data
+//                     </Button>
+//                     <Button variant="outlined" onClick={onGenerateValidatorEncryptedKeystoresZip}>
+//                         Generate Keystores Zip
+//                     </Button>
+//                 </div>
+//             ) : (
+//                 <div>
+//                     <Button variant="contained" onClick={onSave}>
+//                         Create
+//                     </Button>
+//                     <Button variant="outlined" onClick={onGenerate}>
+//                         Generate
+//                     </Button>
+//                 </div>
+//             )}
+//         </Stack>
+//     );
+// }
 
 export function AwsCredentialsAccessKey(props: any) {
     const { accessKey, onAccessKeyChange } = props;

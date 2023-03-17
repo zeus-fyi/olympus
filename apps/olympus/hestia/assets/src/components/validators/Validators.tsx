@@ -230,7 +230,7 @@ function Validators() {
     );
 }
 
-function getNetwork(networkID: number){
+export function getNetwork(networkID: number){
     if (BigInt(networkID) === BigInt(1)) {
         return 'Mainnet'
     }
@@ -241,6 +241,19 @@ function getNetwork(networkID: number){
         return 'Ephemery'
     }
     return 'Unknown'
+}
+
+export function getNetworkId(network: string){
+    if (network === 'Mainnet' || network === 'mainnet') {
+        return 1
+    }
+    if (network === 'Goerli' || network === 'goerli') {
+        return 5
+    }
+    if (network === 'Ephemery' || network === 'ephemery') {
+        return  1673748447294772000
+    }
+    return 1673748447294772000
 }
 
 function booleanString(bool: boolean) {

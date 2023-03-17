@@ -35,7 +35,8 @@ export function InternalLambdaUserRolePolicySetup() {
 
     const handleCreateUser = async () => {
         try {
-            const response = await awsApiGateway.createInternalLambdaUser(accessKey,secretKey);
+            const creds = {accessKeyId: accessKey, secretAccessKey: secretKey};
+            const response = await awsApiGateway.createInternalLambdaUser(creds);
             console.log("response", response);
         } catch (error) {
             console.log("error", error);

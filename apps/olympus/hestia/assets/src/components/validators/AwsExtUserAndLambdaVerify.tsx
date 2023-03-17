@@ -2,7 +2,6 @@ import {Card, CardActions, CardContent, Container, Stack} from "@mui/material";
 import * as React from "react";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import {ValidatorsUploadActionAreaCard} from "./ValidatorsUpload";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import {awsApiGateway} from "../../gateway/aws";
@@ -12,7 +11,6 @@ export function LambdaExtUserVerify(props: any) {
     const { activeStep, onHandleVerifySigners } = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <ValidatorsUploadActionAreaCard />,
             <CreateAwsExternalLambdaUser />
             <AwsLambdaFunctionVerifyAreaCard onHandleVerifySigners={onHandleVerifySigners} />
         </Stack>

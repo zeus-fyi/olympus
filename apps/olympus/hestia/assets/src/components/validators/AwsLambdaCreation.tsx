@@ -47,7 +47,7 @@ export function LambdaFunctionSecretsCreation() {
                 autoFocus
             />
             <CardActions>
-                <Button onClick={onCreateLambdaSecretsFn} size="small">Create</Button>
+                <Button onClick={onCreateLambdaSecretsFn} size="small">Create | Restore</Button>
             </CardActions>
         </Card>
     );
@@ -88,7 +88,7 @@ export function LambdaFunctionGenValidatorDepositsCreation() {
                 autoFocus
             />
             <CardActions>
-                <Button onClick={onCreateLambdaValidatorDepositsFn} size="small">Create</Button>
+                <Button onClick={onCreateLambdaValidatorDepositsFn} size="small">Create | Restore</Button>
             </CardActions>
         </Card>
     );
@@ -131,7 +131,7 @@ export function LambdaFunctionGenEncZipFileCreation() {
                 autoFocus
             />
             <CardActions>
-                <Button onClick={onCreateLambdaEncryptedKeystoresZipFn} size="small">Create</Button>
+                <Button onClick={onCreateLambdaEncryptedKeystoresZipFn} size="small">Create | Restore</Button>
             </CardActions>
         </Card>
     );

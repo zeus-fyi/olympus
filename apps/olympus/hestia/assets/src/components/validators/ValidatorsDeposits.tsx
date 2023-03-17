@@ -10,11 +10,14 @@ import {
     createValidatorsDepositServiceRequest,
     validatorsApiGateway
 } from "../../gateway/validators";
+import {ValidatorsUploadActionAreaCard} from "./ValidatorsUpload";
 
 export function ValidatorsDepositRequestAreaCardWrapper(props: any) {
-    const { activeStep } = props;
+    const { activeStep, onValidatorsDepositsUpload } = props;
+
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
+            <ValidatorsUploadActionAreaCard onValidatorsDepositsUpload={onValidatorsDepositsUpload}/>,
             <ValidatorsDepositRequestAreaCard />
         </Stack>
     );
@@ -24,9 +27,6 @@ export function ValidatorsDepositRequestAreaCard() {
     return (
         <div style={{ display: 'flex' }}>
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                <ValidatorsDepositsSubmitWrapper />
-            </Container >
-            <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                 <SubmitValidators />
             </Container >
         </div>
@@ -34,7 +34,7 @@ export function ValidatorsDepositRequestAreaCard() {
     );
 }
 
-export function SubmitValidators() {
+export function SubmitValidators(props: any) {
     const depositData = useSelector((state: RootState) => state.awsCredentials.depositData);
     const network = useSelector((state: RootState) => state.validatorSecrets.network);
     const onClickSendValidatorsDeposits = async () => {
@@ -42,24 +42,25 @@ export function SubmitValidators() {
             const depositParams = depositData.map((dd: any) => {
                 return createValidatorsDepositsDataJSON(dd.pubkey, dd.withdrawal_credentials, dd.signature, dd.deposit_data_root,dd.amount,dd.deposit_message_root,dd.fork_version);
             });
-            console.log("depositParams", depositParams)
             const reqParams = createValidatorsDepositServiceRequest(network, depositParams)
-            console.log("reqParams", reqParams)
             const response = await validatorsApiGateway.depositValidatorsServiceRequest(reqParams);
-            console.log("response", response);
         } catch (error) {
             console.log("error", error);
         }}
     return (
-        <Card sx={{ maxWidth: 400 }}>
+        <Card sx={{ maxWidth: 500 }}>
             <CardContent>
                 <Typography gutterBottom variant="h5" component="div">
                     Send Validator Deposits to Network
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                    Sends Validator Deposits to the Network
+                    If you didn't generate your validator deposits from the previous step, you can upload your
+                    deposit data JSON file to the left.
                 </Typography>
             </CardContent>
+            <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                <Network network={network}/>
+            </Container>
             <CardActions>
                 <Button size="small" onClick={onClickSendValidatorsDeposits}>Send</Button>
             </CardActions>
@@ -67,23 +68,6 @@ export function SubmitValidators() {
     );
 }
 
-
-export function ValidatorsDepositsSubmitWrapper() {
-    const network = useSelector((state: RootState) => state.validatorSecrets.network);
-
-    return (
-        <Card sx={{ maxWidth: 500 }}>
-            <div style={{ display: 'flex' }}>
-                <Stack direction="column" alignItems="center" spacing={2}>
-                </Stack>
-                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <Network network={network}/>
-                </Container>
-            </div>
-        </Card>
-
-    );
-}
 
 // export function Eth1WalletPrivateKey(props: any) {
 //     const { eth1Pk, onAccessEth1PkChange } = props;

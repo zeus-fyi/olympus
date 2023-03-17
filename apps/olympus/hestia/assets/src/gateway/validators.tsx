@@ -50,7 +50,7 @@ class ValidatorsApiGateway {
 }
 export const validatorsApiGateway = new ValidatorsApiGateway();
 
-interface ValidatorDepositDataJSON {
+export interface ValidatorDepositDataJSON {
     pubkey: string;
     withdrawal_credentials: string;
     signature: string;

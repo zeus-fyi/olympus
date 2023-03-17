@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useState} from 'react';
+import {ChangeEvent, useState} from 'react';
 import Box from '@mui/material/Box';
 import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
@@ -24,6 +24,7 @@ import {awsApiGateway} from "../../gateway/aws";
 import {awsLambdaApiGateway} from "../../gateway/aws.lambda";
 import {CreateAwsLambdaFunctionActionAreaCardWrapper} from './AwsLambdaKeystoreSigners';
 import {ValidatorsDepositsTable} from "./ValidatorsDepositsTable";
+import {ValidatorDepositDataJSON} from "../../gateway/validators";
 
 const steps = [
     'AWS Auth & Internal User Roles',
@@ -36,7 +37,7 @@ const steps = [
     'Submit Deposits',
 ];
 
-function stepComponents(activeStep: number, onGenerateValidatorDeposits: any, onGenerateValidatorEncryptedKeystoresZip: any, onEncZipFileUpload: any, zipBlob: Blob, onHandleVerifySigners: any) {
+function stepComponents(activeStep: number, onGenerateValidatorDeposits: any, onGenerateValidatorEncryptedKeystoresZip: any, onEncZipFileUpload: any, zipBlob: Blob, onHandleVerifySigners: any, onValidatorsDepositsUpload: any) {
     const steps = [
         <CreateInternalAwsLambdaUserRolesActionAreaCardWrapper
             activeStep={activeStep}
@@ -80,6 +81,7 @@ function stepComponents(activeStep: number, onGenerateValidatorDeposits: any, on
             activeStep={activeStep}
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
+            onValidatorsDepositsUpload={onValidatorsDepositsUpload}
         />]
     return steps[activeStep]
 }
@@ -198,6 +200,23 @@ export default function AwsWizardPanel() {
             console.log("error", error);
         }
     };
+    const onValidatorsDepositsUpload = (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const jsonData = JSON.parse(e.target?.result as string) as ValidatorDepositDataJSON[]
+                console.log(jsonData);
+                dispatch(setDepositData(jsonData));
+            } catch (error) {
+                console.error("Error parsing JSON file:", error);
+            }
+        };
+        reader.readAsText(file);
+    }
+
     const externalAccessUserName = useSelector((state: RootState) => state.awsCredentials.externalAccessUserName);
     const externalAccessSecretName = useSelector((state: RootState) => state.awsCredentials.externalAccessSecretName);
     const blsSignerFunctionName = useSelector((state: RootState) => state.awsCredentials.blsSignerFunctionName);
@@ -213,7 +232,6 @@ export default function AwsWizardPanel() {
             let hm = createHashMap(verifiedKeys);
             const verifiedDepositData = depositData.map((obj: any) => {
                 if (obj.hasOwnProperty('verified')) {
-                    // Update the attribute value
                     return {
                         ...obj,
                         ['verified']: hm[obj.pubkey],
@@ -249,7 +267,7 @@ export default function AwsWizardPanel() {
                 ) : (
                     <React.Fragment>
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                            {stepComponents(activeStep, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip, onEncZipFileUpload, encZipFile, onHandleVerifySigners)}
+                            {stepComponents(activeStep, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip, onEncZipFileUpload, encZipFile, onHandleVerifySigners, onValidatorsDepositsUpload)}
                         </Container>
                         <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                             <Button

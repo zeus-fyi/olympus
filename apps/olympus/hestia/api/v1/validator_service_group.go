@@ -18,6 +18,7 @@ import (
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	eth_validators_service_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validators_service_requests"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
+	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
 
 type CreateValidatorServiceRequest struct {
@@ -45,6 +46,10 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 		OrgID:                         ou.OrgID,
 		ServiceRequestWrapper:         v.ServiceRequestWrapper,
 		ValidatorServiceOrgGroupSlice: v.ValidatorServiceOrgGroupSlice,
+	}
+	for i, key := range v.ValidatorServiceOrgGroupSlice {
+		v.ValidatorServiceOrgGroupSlice[i].Pubkey = strings_filter.AddHexPrefix(key.Pubkey)
+		v.ValidatorServiceOrgGroupSlice[i].FeeRecipient = strings_filter.AddHexPrefix(key.FeeRecipient)
 	}
 
 	var network string

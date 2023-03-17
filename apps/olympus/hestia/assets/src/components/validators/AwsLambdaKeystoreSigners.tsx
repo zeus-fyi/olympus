@@ -95,7 +95,7 @@ export function LambdaFunctionCreation() {
                 autoFocus
             />
             <CardActions>
-                <Button onClick={onCreateLambdaSignerFn} size="small">Create</Button>
+                <Button onClick={onCreateLambdaSignerFn} size="small">Create | Update</Button>
             </CardActions>
         </Card>
     );
@@ -163,7 +163,7 @@ export function LambdaFunctionKeystoresLayerCreation(props: any) {
                 autoFocus
             />
             <CardActions>
-                <Button size="small" onClick={onCreateLambdaKeystoresLayer}>Create</Button>
+                <Button size="small" onClick={onCreateLambdaKeystoresLayer}>Create | Update</Button>
             </CardActions>
         </Card>
     );

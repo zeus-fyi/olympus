@@ -245,15 +245,15 @@ export function getNetwork(networkID: number){
 
 export function getNetworkId(network: string){
     if (network === 'Mainnet' || network === 'mainnet') {
-        return BigInt(1)
+        return 1
     }
     if (network === 'Goerli' || network === 'goerli') {
-        return BigInt(5)
+        return 5
     }
     if (network === 'Ephemery' || network === 'ephemery') {
-        return  BigInt(1673748447294772000)
+        return  1673748447294772000
     }
-    return BigInt(1673748447294772000)
+    return 1673748447294772000
 }
 
 function booleanString(bool: boolean) {

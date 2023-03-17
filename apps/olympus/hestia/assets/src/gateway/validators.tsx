@@ -58,7 +58,7 @@ interface ServiceAuthConfig {
 
 interface ServiceRequestWrapper {
     groupName: string;
-    protocolNetworkID: BigInt;
+    protocolNetworkID: number;
     enabled: boolean;
     serviceAuth: ServiceAuthConfig;
 }
@@ -69,8 +69,8 @@ type ValidatorServiceOrgGroup = {
 };
 
 type CreateValidatorServiceRequest = {
-    ServiceRequestWrapper: ServiceRequestWrapper;
-    ValidatorServiceOrgGroupSlice: ValidatorServiceOrgGroup[];
+    serviceRequestWrapper: ServiceRequestWrapper;
+    validatorServiceOrgGroupSlice: ValidatorServiceOrgGroup[];
 };
 
 export function createValidatorOrgGroup(pubkey: string, feeRecipient: string): ValidatorServiceOrgGroup {
@@ -82,7 +82,7 @@ export function createValidatorOrgGroup(pubkey: string, feeRecipient: string): V
 // Function to create and set the CreateValidatorServiceRequest payload
 export function createValidatorServiceRequest(
     keyGroupName: string,
-    protocolNetworkID: BigInt,
+    protocolNetworkID: number,
     externalAwsAuth: AuthLambdaAWS,
     validatorServiceOrgGroups: ValidatorServiceOrgGroup[]
 ): CreateValidatorServiceRequest {
@@ -101,8 +101,8 @@ export function createValidatorServiceRequest(
     };
 
     const hestiaServiceRequest: CreateValidatorServiceRequest = {
-        ServiceRequestWrapper: serviceRequestWrapper,
-        ValidatorServiceOrgGroupSlice: validatorServiceOrgGroups,
+        serviceRequestWrapper: serviceRequestWrapper,
+        validatorServiceOrgGroupSlice: validatorServiceOrgGroups,
     };
 
     return hestiaServiceRequest;

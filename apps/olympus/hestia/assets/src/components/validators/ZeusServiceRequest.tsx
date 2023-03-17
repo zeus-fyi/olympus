@@ -62,7 +62,8 @@ export function ZeusServiceRequest() {
             const getExtCreds = await awsApiGateway.createOrFetchExternalLambdaUserAccessKeys(creds,externalAccessUserName, externalAccessSecretName);
             const extCreds = {accessKeyId: getExtCreds.data.accessKey, secretAccessKey: getExtCreds.data.secretKey};
             const serviceAuth = createAuthAwsLambda(url, ageSecretName,extCreds);
-            const sr = createValidatorServiceRequest(keyGroupName,getNetworkId(network),serviceAuth,validatorServiceRequestSlice)
+            const protocolID = getNetworkId(network);
+            const sr = createValidatorServiceRequest(keyGroupName,protocolID,serviceAuth,validatorServiceRequestSlice)
             console.log(sr)
             const response = await validatorsApiGateway.createValidatorsServiceRequest(sr);
             console.log("response", response)

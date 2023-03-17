@@ -21,8 +21,8 @@ import (
 )
 
 type CreateValidatorServiceRequest struct {
-	hestia_req_types.ServiceRequestWrapper
-	hestia_req_types.ValidatorServiceOrgGroupSlice
+	hestia_req_types.ServiceRequestWrapper         `json:"serviceRequestWrapper"`
+	hestia_req_types.ValidatorServiceOrgGroupSlice `json:"validatorServiceOrgGroupSlice"`
 }
 
 func CreateValidatorServiceRequestHandler(c echo.Context) error {

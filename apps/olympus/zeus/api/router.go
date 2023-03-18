@@ -15,23 +15,23 @@ import (
 	zeus_v1_router "github.com/zeus-fyi/olympus/zeus/api/v1"
 )
 
-func InitRouter(e *echo.Echo, k8Cfg autok8s_core.K8Util) *echo.Echo {
+func InitRouter(e *echo.Echo, k8Cfg autok8s_core.K8Util, mw echo.MiddlewareFunc) *echo.Echo {
 	log.Debug().Msgf("InitRouter")
 	// Routes
 	e.GET("/health", Health)
 
 	// external
-	InitV1Routes(e, k8Cfg)
+	InitV1Routes(e, k8Cfg, mw)
 	// internal
 	InitV1InternalRoutes(e, k8Cfg)
 	// external
-	InitV1ActionsRoutes(e, k8Cfg)
+	InitV1ActionsRoutes(e, k8Cfg, mw)
 	return e
 }
 
-func InitV1ActionsRoutes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
+func InitV1ActionsRoutes(e *echo.Echo, k8Cfg autok8s_core.K8Util, mw echo.MiddlewareFunc) {
 	eg := e.Group("/v1")
-	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+	eg.Use(mw, middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()
@@ -53,9 +53,9 @@ func InitV1ActionsRoutes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
 	eg = zeus_v1_router.ActionsV1Routes(eg, k8Cfg)
 }
 
-func InitV1Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util) {
+func InitV1Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util, mw echo.MiddlewareFunc) {
 	eg := e.Group("/v1")
-	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+	eg.Use(mw, middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()

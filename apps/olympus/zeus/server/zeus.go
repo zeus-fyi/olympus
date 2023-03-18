@@ -90,21 +90,22 @@ func Zeus() {
 	log.Info().Msgf("Zeus: %s temporal setup is complete", env)
 	log.Info().Msgf("Zeus: %s server starting", env)
 	if env == "local" || env == "production-local" {
-		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		mw := middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins:     []string{"http://localhost:3000"},
 			AllowMethods:     []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
 			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 			AllowCredentials: true,
-		}))
+		})
+		srv.E = router.InitRouter(srv.E, cfg.K8sUtil, mw)
 	} else {
-		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		mw := middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins:     []string{"https://cloud.zeus.fyi"},
 			AllowMethods:     []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
 			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 			AllowCredentials: true,
-		}))
+		})
+		srv.E = router.InitRouter(srv.E, cfg.K8sUtil, mw)
 	}
-	srv.E = router.InitRouter(srv.E, cfg.K8sUtil)
 	srv.Start()
 }
 

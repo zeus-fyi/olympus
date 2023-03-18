@@ -15,6 +15,8 @@ import authProvider from "../../redux/auth/auth.actions";
 import {useDispatch} from "react-redux";
 import {LOGIN_FAIL, LOGIN_SUCCESS,} from "../../redux/auth/auth.types";
 
+const ethImage = require("../../static/eth.png")
+
 function Copyright(props: any) {
     return (
         <Typography variant="body2" color="text.secondary" align="center" {...props}>
@@ -58,11 +60,10 @@ const Login = () => {
                     sm={4}
                     md={7}
                     sx={{
-                        backgroundImage: 'url(https://source.unsplash.com/random)',
-                        backgroundRepeat: 'no-repeat',
+                        backgroundImage: `url(${ethImage})`,
                         backgroundColor: (t) =>
                             t.palette.mode === 'light' ? t.palette.grey[50] : t.palette.grey[900],
-                        backgroundSize: 'cover',
+                        backgroundSize: 'auto 100%',
                         backgroundPosition: 'center',
                     }}
                 />

@@ -123,7 +123,6 @@ func Hestia() {
 	}
 	log.Info().Msg("Hestia: InitArtemisEthereumMainnetValidatorsRequestsWorker Done")
 	log.Info().Msg("Hestia: InitArtemisEthereumMainnetValidatorsRequestsWorker Starting Server")
-	srv.E = v1hestia.Routes(srv.E)
 
 	if env == "local" || env == "production-local" {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -140,6 +139,7 @@ func Hestia() {
 			AllowCredentials: true,
 		}))
 	}
+	srv.E = v1hestia.Routes(srv.E)
 	srv.E = hestia_web_router.WebRoutes(srv.E)
 	srv.Start()
 }

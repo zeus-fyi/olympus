@@ -39,10 +39,10 @@ RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=1 GOOS=linux GOARCH=amd64 g
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates
 
-COPY --from=bls_sig_zip /app/apps/zeus/builds/serverless/bls_signatures/main.zip /etc/serverless/bls_signatures
-COPY --from=bls_sgen_zip /app/apps/zeus/builds/serverless/bls_secrets_gen/main.zip /etc/serverless/bls_secrets_gen
-COPY --from=bls_vdg_zip /app/apps/zeus/builds/serverless/validators_deposits_gen/main.zip /etc/serverless/validators_deposits_gen
-COPY --from=bls_enc_zip /app/apps/zeus/builds/serverless/bls_encrypted_zip_gen/main.zip /etc/serverless/bls_encrypted_zip_gen
+COPY --from=src_builder /app/apps/zeus/builds/serverless/bls_signatures/main.zip /etc/serverless/bls_signatures
+COPY --from=src_builder /app/apps/zeus/builds/serverless/bls_secrets_gen/main.zip /etc/serverless/bls_secrets_gen
+COPY --from=src_builder /app/apps/zeus/builds/serverless/validators_deposits_gen/main.zip /etc/serverless/validators_deposits_gen
+COPY --from=src_builder /app/apps/zeus/builds/serverless/bls_encrypted_zip_gen/main.zip /etc/serverless/bls_encrypted_zip_gen
 
 COPY --from=src_builder /app/ca-certificate.crt /etc/ssl/certs
 COPY --from=src_builder /app/ca.pem /etc/ssl/certs

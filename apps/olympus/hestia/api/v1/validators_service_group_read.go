@@ -17,10 +17,10 @@ type GetValidatorServiceInfo struct {
 }
 
 func GetValidatorServiceInfoHandler(c echo.Context) error {
-	log.Info().Msg("Hestia: CreateValidatorServiceRequestHandler")
+	log.Info().Msg("Hestia: GetValidatorServiceInfoHandler")
 	request := new(GetValidatorServiceInfo)
 	if err := c.Bind(request); err != nil {
-		log.Err(err).Msg("CreateValidatorServiceRequestHandler")
+		log.Err(err).Msg("GetValidatorServiceInfoHandler")
 		return err
 	}
 	return request.GetValidatorServiceInfo(c)

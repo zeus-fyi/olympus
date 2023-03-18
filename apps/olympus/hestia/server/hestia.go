@@ -123,23 +123,23 @@ func Hestia() {
 	}
 	log.Info().Msg("Hestia: InitArtemisEthereumMainnetValidatorsRequestsWorker Done")
 	log.Info().Msg("Hestia: InitArtemisEthereumMainnetValidatorsRequestsWorker Starting Server")
-	srv.E = v1hestia.Routes(srv.E)
 
 	if env == "local" || env == "production-local" {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins:     []string{"http://localhost:3000"},
 			AllowMethods:     []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
-			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "Access-Control-Allow-Headers", "X-CSRF-Token", "Accept-Encoding"},
 			AllowCredentials: true,
 		}))
 	} else {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-			AllowOrigins:     []string{"https://cloud.zeus.fyi"},
+			AllowOrigins:     []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi"},
 			AllowMethods:     []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
-			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "Access-Control-Allow-Headers", "X-CSRF-Token", "Accept-Encoding"},
 			AllowCredentials: true,
 		}))
 	}
+	srv.E = v1hestia.Routes(srv.E)
 	srv.E = hestia_web_router.WebRoutes(srv.E)
 	srv.Start()
 }

@@ -37,6 +37,7 @@ func InitV1ActionsRoutes(e *echo.Echo, k8Cfg autok8s_core.K8Util, mw echo.Middle
 			ctx := context.Background()
 			cookie, err := c.Cookie(aegis_sessions.SessionIDNickname)
 			if err == nil && cookie != nil {
+				log.Info().Msg("InitV1ActionsRoutes: Cookie found")
 				token = cookie.Value
 			}
 			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.ZeusService)
@@ -61,6 +62,7 @@ func InitV1Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util, mw echo.MiddlewareFun
 			ctx := context.Background()
 			cookie, err := c.Cookie(aegis_sessions.SessionIDNickname)
 			if err == nil && cookie != nil {
+				log.Info().Msg("InitV1Routes: Cookie found")
 				token = cookie.Value
 			}
 			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.ZeusService)

@@ -31,6 +31,7 @@ func InitV1Routes(e *echo.Echo) {
 		Validator: func(token string, c echo.Context) (bool, error) {
 			cookie, err := c.Cookie(aegis_sessions.SessionIDNickname)
 			if err == nil && cookie != nil {
+				log.Info().Msg("InitV1Routes: Cookie found")
 				token = cookie.Value
 			}
 			ctx := context.Background()

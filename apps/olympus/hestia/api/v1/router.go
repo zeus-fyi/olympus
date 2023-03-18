@@ -33,6 +33,7 @@ func InitV1Routes(e *echo.Echo) {
 			if err == nil && cookie != nil {
 				log.Info().Msg("InitV1Routes: Cookie found")
 				token = cookie.Value
+				log.Info().Msg("InitV1Routes: Cookie value: " + token)
 			}
 			ctx := context.Background()
 			key, err := auth.VerifyBearerToken(ctx, token)

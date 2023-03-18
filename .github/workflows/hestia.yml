@@ -12,6 +12,7 @@ on:
       - .github/workflows/hestia.yml
     branches:
       - main
+      - dev
 env:
   REPO: registry.digitalocean.com/zeus-fyi
   NAME: hestia

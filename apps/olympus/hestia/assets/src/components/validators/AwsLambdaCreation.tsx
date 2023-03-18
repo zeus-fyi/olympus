@@ -33,7 +33,7 @@ export function LambdaFunctionSecretsCreation() {
             statusMessage = 'Lambda function created successfully!';
             break;
         case 'error':
-            buttonLabel = 'Error creating lambda function';
+            buttonLabel = 'Retry';
             buttonDisabled = false;
             statusMessage = 'An error occurred while creating the lambda function.';
             break;
@@ -79,7 +79,7 @@ export function LambdaFunctionSecretsCreation() {
                 autoFocus
             />
             <CardActions>
-                <Button onClick={onCreateLambdaSecretsFn} size="small"disabled={buttonDisabled}>{buttonLabel}</Button>
+                <Button onClick={onCreateLambdaSecretsFn} size="small" disabled={buttonDisabled}>{buttonLabel}</Button>
             </CardActions>
             {statusMessage && (
                 <Typography variant="body2" color={requestStatus === 'error' ? 'error' : 'success'}>

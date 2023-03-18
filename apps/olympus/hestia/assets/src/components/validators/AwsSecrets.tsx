@@ -1,5 +1,6 @@
 import * as React from "react";
-import {Card, CardActions, CardContent, Container, Stack} from "@mui/material";
+import {useState} from "react";
+import {Card, CardActions, CardContent, CircularProgress, Container, Stack} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
@@ -58,13 +59,53 @@ export function CreateAwsSecretNamesAreaCard() {
     const awsAgeEncryptionKeyName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
     const network = useSelector((state: RootState) => state.validatorSecrets.network);
 
+    let buttonLabel;
+    let buttonDisabled;
+    let statusMessage;
+    const [requestStatus, setRequestStatus] = useState('');
+
+    switch (requestStatus) {
+        case 'pending':
+            buttonLabel = <CircularProgress size={20} />;
+            buttonDisabled = true;
+            break;
+        case 'success':
+            buttonLabel = 'Created successfully';
+            buttonDisabled = true;
+            statusMessage = 'Secrets generated successfully!';
+            break;
+        case 'error':
+            buttonLabel = 'Error creating secrets';
+            buttonDisabled = false;
+            statusMessage = 'An error occurred while creating the secrets.';
+            break;
+        case 'errorAuth':
+            buttonLabel = 'Retry';
+            buttonDisabled = false;
+            statusMessage = 'Update your AWS credentials on step 1 and try again.';
+            break;
+        default:
+            buttonLabel = 'Create';
+            buttonDisabled = false;
+            break;
+    }
     let validatorSecretName = awsValidatorSecretName+network;
     const dispatch = useDispatch();
     const onCreateNewValidatorSecrets = async () => {
         try {
+            if (!ak || !sk) {
+                setRequestStatus('errorAuth');
+                return;
+            }
             const creds = {accessKeyId: ak, secretAccessKey: sk};
             const response = await awsLambdaApiGateway.invokeValidatorSecretsGeneration(sgLambdaURL, creds, awsValidatorSecretName, awsAgeEncryptionKeyName);
+            if (response.status === 200) {
+                setRequestStatus('success');
+            } else {
+                setRequestStatus('error');
+            }
         } catch (error) {
+            setRequestStatus('error');
             console.log("error", error);
         }};
     return (
@@ -85,8 +126,13 @@ export function CreateAwsSecretNamesAreaCard() {
                     <AgeEncryptionKeySecretName awsAgeEncryptionKeyName={awsAgeEncryptionKeyName+network}/>
                 </Container>
                 <CardActions>
-                    <Button onClick={onCreateNewValidatorSecrets} size="small">Create</Button>
+                    <Button onClick={onCreateNewValidatorSecrets} size="small" disabled={buttonDisabled}>{buttonLabel}</Button>
                 </CardActions>
+                    {statusMessage && (
+                        <Typography variant="body2" color={requestStatus === 'error' ? 'error' : 'success'}>
+                            {statusMessage}
+                        </Typography>
+                    )}
                 </Stack>
         </Card>
     );

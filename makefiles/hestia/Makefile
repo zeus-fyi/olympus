@@ -12,3 +12,6 @@ docker.pubbuildx:
 
 docker.debug:
 	docker run -it --entrypoint /bin/bash registry.digitalocean.com/zeus-fyi/hestia:latest
+
+docker.pull:
+	docker pull registry.digitalocean.com/zeus-fyi/hestia:latest

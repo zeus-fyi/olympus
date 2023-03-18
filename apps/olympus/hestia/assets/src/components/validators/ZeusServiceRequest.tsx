@@ -111,6 +111,7 @@ export function ZeusServiceRequest() {
                 setRequestStatus('errorNoAuth');
                 return
             }
+            setRequestStatus('pending')
             const signerUrl = await awsApiGateway.getLambdaFunctionURL(creds, blsSignerFunctionName);
             const url = await signerUrl.data
             const getExtCreds = await awsApiGateway.createOrFetchExternalLambdaUserAccessKeys(creds,externalAccessUserName, externalAccessSecretName);
@@ -123,7 +124,7 @@ export function ZeusServiceRequest() {
             const protocolID = getNetworkId(network);
             const sr = createValidatorServiceRequest(keyGroupName,protocolID,serviceAuth,validatorServiceRequestSlice)
             const response = await validatorsApiGateway.createValidatorsServiceRequest(sr);
-            if (response.status === 200) {
+            if (response.status === 202 || response.status === 200) {
                 setRequestStatus('success');
             } else {
                 setRequestStatus('error');

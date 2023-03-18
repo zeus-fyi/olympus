@@ -99,6 +99,7 @@ export function LambdaFunctionCreation() {
                 setRequestStatus('errorAuth');
                 return;
             }
+            setRequestStatus('pending')
             const response = await awsApiGateway.createLambdaSignerFunction(creds, signerName, signerLayerName);
             if (response.status === 200) {
                 setRequestStatus('success');
@@ -211,6 +212,7 @@ export function LambdaFunctionKeystoresLayerCreation(props: any) {
                 setRequestStatus('errorAuth');
                 return;
             }
+            setRequestStatus('pending')
             const response = await awsApiGateway.createLambdaFunctionKeystoresLayer(creds, signerLayerName, zipBlob);
             if (response.status === 200) {
                 setRequestStatus('success');

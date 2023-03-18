@@ -64,7 +64,7 @@ func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   true,
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteNoneMode,
 		Expires:  time.Now().Add(24 * time.Hour),
 	}
 	http.SetCookie(c.Response().Writer, cookie)

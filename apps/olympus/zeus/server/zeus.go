@@ -96,6 +96,13 @@ func Zeus() {
 			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 			AllowCredentials: true,
 		}))
+	} else {
+		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins:     []string{"https://cloud.zeus.fyi"},
+			AllowMethods:     []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
+			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+			AllowCredentials: true,
+		}))
 	}
 	srv.E = router.InitRouter(srv.E, cfg.K8sUtil)
 	srv.Start()

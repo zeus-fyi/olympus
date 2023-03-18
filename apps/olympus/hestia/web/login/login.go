@@ -61,13 +61,10 @@ func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 	cookie := &http.Cookie{
 		Name:     aegis_sessions.SessionIDNickname,
 		Value:    sessionID,
-		Path:     "/",
-		Domain:   "zeus.fyi",
 		HttpOnly: true,
 		Secure:   true,
-		SameSite: http.SameSiteNoneMode,
 		Expires:  time.Now().Add(24 * time.Hour),
 	}
-	http.SetCookie(c.Response().Writer, cookie)
+	c.SetCookie(cookie)
 	return c.JSON(http.StatusOK, resp)
 }

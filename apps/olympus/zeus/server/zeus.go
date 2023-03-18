@@ -94,15 +94,15 @@ func Zeus() {
 		mw := middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins:     []string{"http://localhost:3000"},
 			AllowMethods:     []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
-			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "CloudCtxNsID"},
+			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "Access-Control-Allow-Headers", "X-CSRF-Token", "Accept-Encoding", "CloudCtxNsID"},
 			AllowCredentials: true,
 		})
 		srv.E = router.InitRouter(srv.E, cfg.K8sUtil, mw)
 	} else {
 		mw := middleware.CORSWithConfig(middleware.CORSConfig{
-			AllowOrigins:     []string{"https://cloud.zeus.fyi"},
+			AllowOrigins:     []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi"},
 			AllowMethods:     []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
-			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "CloudCtxNsID"},
+			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "Access-Control-Allow-Headers", "X-CSRF-Token", "Accept-Encoding", "CloudCtxNsID"},
 			AllowCredentials: true,
 		})
 		srv.E = router.InitRouter(srv.E, cfg.K8sUtil, mw)

@@ -52,6 +52,7 @@ export function LambdaFunctionSecretsCreation() {
                 setRequestStatus('success');
             } else {
                 setRequestStatus('error');
+                return
             }
             dispatch(setSecretGenLambdaFnUrl(response.data));
         } catch (error) {
@@ -130,6 +131,7 @@ export function LambdaFunctionGenValidatorDepositsCreation() {
                 setRequestStatus('success');
             } else {
                 setRequestStatus('error');
+                return
             }
             dispatch(setDepositsGenLambdaFnUrl(response.data));
         } catch (error) {

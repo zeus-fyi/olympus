@@ -103,6 +103,7 @@ export function CreateAwsSecretNamesAreaCard() {
                 setRequestStatus('success');
             } else {
                 setRequestStatus('error');
+                return
             }
         } catch (error) {
             setRequestStatus('error');

@@ -104,6 +104,7 @@ export function LambdaFunctionCreation() {
                 setRequestStatus('success');
             } else {
                 setRequestStatus('error');
+                return
             }
             dispatch(setBlsSignerLambdaFnUrl(response.data));
         } catch (error) {
@@ -215,6 +216,7 @@ export function LambdaFunctionKeystoresLayerCreation(props: any) {
                 setRequestStatus('success');
             } else {
                 setRequestStatus('error');
+                return
             }
             dispatch(setKeystoreLayerNumber(response.data));
         } catch (error) {

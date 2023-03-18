@@ -49,6 +49,7 @@ export function InternalLambdaUserRolePolicySetup() {
                 setRequestStatus('success');
             } else {
                 setRequestStatus('error');
+                return
             }
         } catch (error) {
             setRequestStatus('error');

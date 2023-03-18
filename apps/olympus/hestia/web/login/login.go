@@ -64,6 +64,7 @@ func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 		HttpOnly: true,
 		Secure:   true,
 		Domain:   "zeus.fyi",
+		SameSite: http.SameSiteNoneMode,
 		Expires:  time.Now().Add(24 * time.Hour),
 	}
 	c.SetCookie(cookie)

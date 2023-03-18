@@ -4,11 +4,10 @@ on:
   push:
     paths:
       - .github/workflows/zeus_cloud.yml
-      - apps/olympus/hestia/assets/**
+      - apps/olympus/hestia/**
     branches:
       - main
       - dev
-      -
 env:
   REPO: registry.digitalocean.com/zeus-fyi
   NAME: zeus-cloud

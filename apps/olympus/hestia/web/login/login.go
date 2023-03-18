@@ -14,6 +14,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
+var Domain string
+
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -58,12 +60,13 @@ func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 		SessionID: sessionID,
 		TTL:       3600,
 	}
+
 	cookie := &http.Cookie{
 		Name:     aegis_sessions.SessionIDNickname,
 		Value:    sessionID,
 		HttpOnly: true,
 		Secure:   true,
-		Domain:   "zeus.fyi",
+		Domain:   Domain,
 		SameSite: http.SameSiteNoneMode,
 		Expires:  time.Now().Add(24 * time.Hour),
 	}

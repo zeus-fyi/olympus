@@ -13,7 +13,6 @@ on:
       - .github/workflows/zeus.yml
     branches:
       - main
-      - dev
 env:
   REPO: registry.digitalocean.com/zeus-fyi
   NAME: zeus

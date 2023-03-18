@@ -13,6 +13,7 @@ import (
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	v1hestia "github.com/zeus-fyi/olympus/hestia/api/v1"
 	hestia_web_router "github.com/zeus-fyi/olympus/hestia/web"
+	hestia_login "github.com/zeus-fyi/olympus/hestia/web/login"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
@@ -131,6 +132,7 @@ func Hestia() {
 			AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization, echo.HeaderAccessControlAllowHeaders, "X-CSRF-Token", "Accept-Encoding"},
 			AllowCredentials: true,
 		}))
+		hestia_login.Domain = "localhost"
 	} else {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins:     []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi"},
@@ -138,6 +140,7 @@ func Hestia() {
 			AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization, echo.HeaderAccessControlAllowHeaders, "X-CSRF-Token", "Accept-Encoding"},
 			AllowCredentials: true,
 		}))
+		hestia_login.Domain = "zeus.fyi"
 	}
 	srv.E = v1hestia.Routes(srv.E)
 	srv.E = hestia_web_router.WebRoutes(srv.E)

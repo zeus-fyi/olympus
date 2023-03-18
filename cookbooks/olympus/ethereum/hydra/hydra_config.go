@@ -13,6 +13,9 @@ import (
 )
 
 const (
+	consensusClient = "zeus-consensus-client"
+	execClient      = "zeus-exec-client"
+
 	protocolNetworkKeyEnv = "PROTOCOL_NETWORK_ID"
 	ephemeryNamespace     = "ephemeral-staking"
 	goerliNamespace       = "goerli-staking"
@@ -41,6 +44,9 @@ const (
 
 	consensusStorageDiskSizeEphemeral = "20Gi"
 	execClientDiskSizeEphemeral       = "40Gi"
+
+	gethDockerImage       = "ethereum/client-go:v1.11.4"
+	lighthouseDockerImage = "sigp/lighthouse:v3.3.0-modern"
 )
 
 var (
@@ -126,6 +132,34 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 					}},
 				},
 			}}
+		//ccContDriver := map[string]zeus_topology_config_drivers.ContainerDriver{
+		//	consensusClient: {Container: v1.Container{
+		//		Name:  consensusClient,
+		//		Image: lighthouseDockerImage,
+		//	}},
+		//}
+		//ecContDriver := map[string]zeus_topology_config_drivers.ContainerDriver{
+		//	execClient: {Container: v1.Container{
+		//		Name:  execClient,
+		//		Image: gethDockerImage,
+		//	}},
+		//}
+		//ccCmDriver := zeus_topology_config_drivers.ConfigMapDriver{
+		//	ConfigMap: v1.ConfigMap{
+		//		ObjectMeta: metav1.ObjectMeta{Name: "cm-consensus-client"},
+		//	},
+		//	SwapKeys: map[string]string{
+		//		"start.sh": "lighthouseGoerli" + ".sh",
+		//	},
+		//}
+		//ecCmDriver := zeus_topology_config_drivers.ConfigMapDriver{
+		//	ConfigMap: v1.ConfigMap{
+		//		ObjectMeta: metav1.ObjectMeta{Name: "cm-exec-client"},
+		//	},
+		//	SwapKeys: map[string]string{
+		//		"start.sh": "gethGoerli" + ".sh",
+		//	},
+		//}
 	case "ephemery":
 		cd.CloudCtxNs.Namespace = ephemeryNamespace
 		cd.ClusterClassName = "hydraEphemery"

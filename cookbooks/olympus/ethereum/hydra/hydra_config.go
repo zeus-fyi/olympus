@@ -15,13 +15,14 @@ import (
 const (
 	protocolNetworkKeyEnv = "PROTOCOL_NETWORK_ID"
 	ephemeryNamespace     = "ephemeral-staking"
+	goerliNamespace       = "goerli-staking"
 	mainnetNamespace      = "mainnet-staking"
 
 	hydraClientEphemeralRequestRAM      = "500Mi"
 	hydraClientEphemeralRequestLimitRAM = "500Mi"
 
-	hydraClientEphemeralRequestCPU      = "1"
-	hydraClientEphemeralRequestLimitCPU = "1"
+	hydraClientEphemeralRequestCPU      = "2.5"
+	hydraClientEphemeralRequestLimitCPU = "2.5"
 
 	consensusClientEphemeralRequestRAM      = "1Gi"
 	consensusClientEphemeralRequestLimitRAM = "1Gi"
@@ -81,6 +82,50 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 		cd.CloudCtxNs.Namespace = mainnetNamespace
 		cd.ClusterClassName = "hydraMainnet"
 		envVar = HydraContainer.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumMainnetProtocolNetworkID))
+	case "goerli":
+		cd.CloudCtxNs.Namespace = goerliNamespace
+		envVar = HydraContainer.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumGoerliProtocolNetworkID))
+		cd.ClusterClassName = "hydraGoerli"
+		envVar = HydraContainer.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumEphemeryProtocolNetworkID))
+
+		rrCC = v1.ResourceRequirements{
+			Limits: v1.ResourceList{
+				"cpu":    resource.MustParse(consensusClientGoerliRequestLimitCPU),
+				"memory": resource.MustParse(consensusClientGoerliRequestLimitRAM),
+			},
+			Requests: v1.ResourceList{
+				"cpu":    resource.MustParse(consensusClientGoerliRequestCPU),
+				"memory": resource.MustParse(consensusClientGoerliRequestRAM),
+			},
+		}
+		rrEC = v1.ResourceRequirements{
+			Limits: v1.ResourceList{
+				"cpu":    resource.MustParse(execClientGoerliRequestLimitCPU),
+				"memory": resource.MustParse(execClientGoerliRequestLimitRAM),
+			},
+			Requests: v1.ResourceList{
+				"cpu":    resource.MustParse(execClientGoerliRequestCPU),
+				"memory": resource.MustParse(execClientGoerliRequestRAM),
+			},
+		}
+		pvcCC = &zeus_topology_config_drivers.PersistentVolumeClaimsConfigDriver{
+			PersistentVolumeClaimDrivers: map[string]v1.PersistentVolumeClaim{
+				consensusClientDiskName: {
+					ObjectMeta: metav1.ObjectMeta{Name: consensusClientDiskName},
+					Spec: v1.PersistentVolumeClaimSpec{Resources: v1.ResourceRequirements{
+						Requests: v1.ResourceList{"storage": resource.MustParse(consensusStorageDiskSizeGoerli)},
+					}},
+				},
+			}}
+		pvcEC = &zeus_topology_config_drivers.PersistentVolumeClaimsConfigDriver{
+			PersistentVolumeClaimDrivers: map[string]v1.PersistentVolumeClaim{
+				execClientDiskName: {
+					ObjectMeta: metav1.ObjectMeta{Name: execClientDiskName},
+					Spec: v1.PersistentVolumeClaimSpec{Resources: v1.ResourceRequirements{
+						Requests: v1.ResourceList{"storage": resource.MustParse(execClientDiskSizeGoerli)},
+					}},
+				},
+			}}
 	case "ephemery":
 		cd.CloudCtxNs.Namespace = ephemeryNamespace
 		cd.ClusterClassName = "hydraEphemery"

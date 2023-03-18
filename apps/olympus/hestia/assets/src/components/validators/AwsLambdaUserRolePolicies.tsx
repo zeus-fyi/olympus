@@ -37,8 +37,13 @@ export function InternalLambdaUserRolePolicySetup() {
 
     const handleCreateUser = async () => {
         try {
-            setRequestStatus('pending');
             const creds = {accessKeyId: accessKey, secretAccessKey: secretKey};
+            if (!accessKey || !secretKey) {
+                setRequestStatus('errorAuth');
+                return;
+            }
+            setRequestStatus('pending');
+
             const response = await awsApiGateway.createInternalLambdaUser(creds);
             if (response.status === 200) {
                 setRequestStatus('success');
@@ -69,6 +74,11 @@ export function InternalLambdaUserRolePolicySetup() {
             buttonLabel = 'Error creating user';
             buttonDisabled = false;
             statusMessage = 'An error occurred while creating the user.';
+            break;
+        case 'errorAuth':
+            buttonLabel = 'Retry';
+            buttonDisabled = false;
+            statusMessage = 'Update your AWS credentials on step 1 and try again.';
             break;
         default:
             buttonLabel = 'Create';

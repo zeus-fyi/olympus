@@ -50,8 +50,9 @@ function stepComponents(activeStep: number,
                         zipBlob: Blob,
                         onHandleVerifySigners: any,
                         onValidatorsDepositsUpload: any,
-                        zipGenButtonLabel: any, zipGenButtonEnabled: any, zipGenStatus: any,
-                        buttonLabelVd: any, buttonDisabledVd: any,statusMessageVd: any
+                        zipGenButtonLabel: any, zipGenButtonEnabled: any, zipGenStatus: any, requestStatusZipGen: any,
+                        buttonLabelVd: any, buttonDisabledVd: any,statusMessageVd: any, requestStatusVd: any,
+                        buttonLabelVerify: any, buttonDisabledVerify: any, statusMessageVerify: any, statusVerify: any,
 ) {
     const steps = [
         <CreateInternalAwsLambdaUserRolesActionAreaCardWrapper
@@ -79,6 +80,7 @@ function stepComponents(activeStep: number,
             zipGenButtonLabel={zipGenButtonLabel}
             zipGenButtonEnabled={zipGenButtonEnabled}
             zipGenStatus={zipGenStatus}
+            requestStatusZipGen={requestStatusZipGen}
         />,
         <CreateAwsLambdaFunctionActionAreaCardWrapper
             activeStep={activeStep}
@@ -92,6 +94,11 @@ function stepComponents(activeStep: number,
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
             onHandleVerifySigners={onHandleVerifySigners}
+            buttonLabelVerify={buttonLabelVerify}
+            buttonDisabledVerify={buttonDisabledVerify}
+            statusMessageVerify={statusMessageVerify}
+            statusVerify={statusVerify}
+            requestStatusVd={requestStatusVd}
         />,
         <ZeusServiceRequestAreaCardWrapper
             activeStep={activeStep}
@@ -223,12 +230,14 @@ export default function AwsWizardPanel() {
             console.log("res", res)
             if (res.status !== 200) {
                 setRequestStatusZipGen('error');
+                return
             }
             const updatedEncKeystoresZipLambdaFnUrl = res.data;
             dispatch(setEncKeystoresZipLambdaFnUrl(updatedEncKeystoresZipLambdaFnUrl));
             const zip = await awsLambdaApiGateway.invokeEncryptedKeystoresZipGeneration(updatedEncKeystoresZipLambdaFnUrl, creds, ageSecretName, validatorSecretsName, validatorCount, hdOffset);
             if (zip.status !== 200) {
                 setRequestStatusZipGen('error');
+                return
             }
             const zipBlob = await zip.blob();
             const blob = new Blob([zipBlob], { type: 'application/octet-stream' });
@@ -342,9 +351,9 @@ export default function AwsWizardPanel() {
     let buttonLabelVerify;
     let buttonDisabledVerify;
     let statusMessageVerify;
-    const [requestStatusVerify, setRequestStatusVerify] = useState('');
+    const [statusVerify, setStatusVerify] = useState('');
 
-    switch (requestStatusVerify) {
+    switch (statusVerify) {
         case 'pending':
             buttonLabelVerify = <CircularProgress size={20} />;
             buttonDisabledVerify = true;
@@ -359,24 +368,33 @@ export default function AwsWizardPanel() {
             buttonDisabledVerify = false;
             statusMessageVerify = 'An error occurred while sending the verify request.';
             break;
+        case 'errorAuth':
+            buttonLabelVerify = 'Retry';
+            buttonDisabledVerify = false;
+            statusMessageVerify = 'Update your AWS credentials on step 1 and try again.';
+            break;
         default:
-            buttonLabelVerify = 'Verify';
+            buttonLabelVerify = 'Send Verify Request';
             buttonDisabledVerify = false;
             break;
     }
     const onHandleVerifySigners = async () => {
         const creds = {accessKeyId: akey, secretAccessKey: skey};
+        if (!akey || !skey) {
+            setStatusVerify('errorAuth');
+            return;
+        }
         try {
-            setRequestStatusVerify('pending');
+            setStatusVerify('pending');
             const r = await awsApiGateway.createOrFetchExternalLambdaUserAccessKeys(creds, externalAccessUserName, externalAccessSecretName);
             const url = await awsApiGateway.getLambdaFunctionURL(creds, blsSignerFunctionName);
             const extCreds = {accessKeyId: r.data.accessKey, secretAccessKey: r.data.secretKey};
             const response = await awsApiGateway.verifyLambdaFunctionSigner(extCreds,ageSecretName,url.data, depositData);
             if (response.status !== 200) {
-                setRequestStatusVerify('error');
+                setStatusVerify('error');
                 return
             } else {
-                setRequestStatusVerify('success');
+                setStatusVerify('success');
             }
             const verifiedKeys = response.data
             let hm = createHashMap(verifiedKeys);
@@ -389,7 +407,7 @@ export default function AwsWizardPanel() {
                 }});
             dispatch(setDepositData(verifiedDepositData));
         } catch (error) {
-            setRequestStatusVerify('error');
+            setStatusVerify('error');
             console.log("error", error);
         }}
 
@@ -452,9 +470,15 @@ export default function AwsWizardPanel() {
                                 zipGenButtonLabel,
                                 zipGenButtonEnabled,
                                 zipGenStatus,
+                                requestStatusZipGen,
                                 buttonLabelVd,
                                 buttonDisabledVd,
                                 statusMessageVd,
+                                requestStatusVd,
+                                buttonLabelVerify,
+                                buttonDisabledVerify,
+                                statusMessageVerify,
+                                statusVerify,
                             )}
                         </Container>
                         <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>

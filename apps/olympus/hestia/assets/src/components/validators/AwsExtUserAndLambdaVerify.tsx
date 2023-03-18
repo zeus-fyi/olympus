@@ -8,11 +8,16 @@ import {awsApiGateway} from "../../gateway/aws";
 import TextField from "@mui/material/TextField";
 
 export function LambdaExtUserVerify(props: any) {
-    const { activeStep, onHandleVerifySigners } = props;
+    const { activeStep, onHandleVerifySigners, buttonLabelVerify, buttonDisabledVerify, statusMessageVerify, statusVerify} = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
             <CreateAwsExternalLambdaUser />
-            <AwsLambdaFunctionVerifyAreaCard onHandleVerifySigners={onHandleVerifySigners} />
+            <AwsLambdaFunctionVerifyAreaCard onHandleVerifySigners={onHandleVerifySigners}
+                                             buttonLabelVerify={buttonLabelVerify}
+                                             buttonDisabledVerify={buttonDisabledVerify}
+                                             statusMessageVerify={statusMessageVerify}
+                                             statusVerify={statusVerify}
+            />
         </Stack>
     );
 }
@@ -85,19 +90,24 @@ export function ExternalAccessSecretName(props: any) {
     );
 }
 export function AwsLambdaFunctionVerifyAreaCard(props: any) {
-    const { activeStep, onHandleVerifySigners } = props;
+    const { activeStep, onHandleVerifySigners,buttonLabelVerify, buttonDisabledVerify, statusMessageVerify,statusVerify} = props;
 
     return (
         <div style={{ display: 'flex' }}>
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                <LambdaVerifyCard onHandleVerifySigners={onHandleVerifySigners}/>
+                <LambdaVerifyCard onHandleVerifySigners={onHandleVerifySigners}
+                                  buttonLabelVerify={buttonLabelVerify}
+                                  buttonDisabledVerify={buttonDisabledVerify}
+                                  statusMessageVerify={statusMessageVerify}
+                                  statusVerify={statusVerify}
+                />
             </Container >
         </div>
     );
 }
 
 export function LambdaVerifyCard(props: any) {
-    const { activeStep, onHandleVerifySigners } = props;
+    const { activeStep, onHandleVerifySigners, buttonLabelVerify, buttonDisabledVerify, statusMessageVerify, statusVerify} = props;
     const ageSecretName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
 
     return (
@@ -122,8 +132,13 @@ export function LambdaVerifyCard(props: any) {
                 autoFocus
             />
             <CardActions>
-                <Button size="small" onClick={onHandleVerifySigners}>Send Request</Button>
+                <Button size="small" onClick={onHandleVerifySigners} disabled={buttonDisabledVerify}>{buttonLabelVerify}</Button>
             </CardActions>
+            {statusMessageVerify && (
+                <Typography variant="body2" color={statusVerify === 'error' ? 'error' : 'success'}>
+                    {statusMessageVerify}
+                </Typography>
+            )}
         </Card>
     );
 }

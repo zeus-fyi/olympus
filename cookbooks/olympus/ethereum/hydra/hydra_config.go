@@ -13,15 +13,19 @@ import (
 )
 
 const (
+	consensusClient = "zeus-consensus-client"
+	execClient      = "zeus-exec-client"
+
 	protocolNetworkKeyEnv = "PROTOCOL_NETWORK_ID"
 	ephemeryNamespace     = "ephemeral-staking"
+	goerliNamespace       = "goerli-staking"
 	mainnetNamespace      = "mainnet-staking"
 
 	hydraClientEphemeralRequestRAM      = "500Mi"
 	hydraClientEphemeralRequestLimitRAM = "500Mi"
 
-	hydraClientEphemeralRequestCPU      = "1"
-	hydraClientEphemeralRequestLimitCPU = "1"
+	hydraClientEphemeralRequestCPU      = "2.5"
+	hydraClientEphemeralRequestLimitCPU = "2.5"
 
 	consensusClientEphemeralRequestRAM      = "1Gi"
 	consensusClientEphemeralRequestLimitRAM = "1Gi"
@@ -40,6 +44,12 @@ const (
 
 	consensusStorageDiskSizeEphemeral = "20Gi"
 	execClientDiskSizeEphemeral       = "40Gi"
+
+	gethDockerImage       = "ethereum/client-go:v1.11.4"
+	lighthouseDockerImage = "sigp/lighthouse:v3.3.0-modern"
+
+	cmExecClient      = "cm-exec-client"
+	cmConsensusClient = "cm-consensus-client"
 )
 
 var (
@@ -76,11 +86,88 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 
 	var pvcCC *zeus_topology_config_drivers.PersistentVolumeClaimsConfigDriver
 	var pvcEC *zeus_topology_config_drivers.PersistentVolumeClaimsConfigDriver
+	var ccContDriver = map[string]zeus_topology_config_drivers.ContainerDriver{}
+	var ecContDriver = map[string]zeus_topology_config_drivers.ContainerDriver{}
+	var ccCmDriver = zeus_topology_config_drivers.ConfigMapDriver{}
+	var ecCmDriver = zeus_topology_config_drivers.ConfigMapDriver{}
+
 	switch network {
 	case "mainnet":
 		cd.CloudCtxNs.Namespace = mainnetNamespace
 		cd.ClusterClassName = "hydraMainnet"
 		envVar = HydraContainer.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumMainnetProtocolNetworkID))
+	case "goerli":
+		cd.CloudCtxNs.Namespace = goerliNamespace
+		envVar = HydraContainer.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumGoerliProtocolNetworkID))
+		cd.ClusterClassName = "hydraGoerli"
+		envVar = HydraContainer.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumEphemeryProtocolNetworkID))
+
+		rrCC = v1.ResourceRequirements{
+			Limits: v1.ResourceList{
+				"cpu":    resource.MustParse(consensusClientGoerliRequestLimitCPU),
+				"memory": resource.MustParse(consensusClientGoerliRequestLimitRAM),
+			},
+			Requests: v1.ResourceList{
+				"cpu":    resource.MustParse(consensusClientGoerliRequestCPU),
+				"memory": resource.MustParse(consensusClientGoerliRequestRAM),
+			},
+		}
+		rrEC = v1.ResourceRequirements{
+			Limits: v1.ResourceList{
+				"cpu":    resource.MustParse(execClientGoerliRequestLimitCPU),
+				"memory": resource.MustParse(execClientGoerliRequestLimitRAM),
+			},
+			Requests: v1.ResourceList{
+				"cpu":    resource.MustParse(execClientGoerliRequestCPU),
+				"memory": resource.MustParse(execClientGoerliRequestRAM),
+			},
+		}
+		pvcCC = &zeus_topology_config_drivers.PersistentVolumeClaimsConfigDriver{
+			PersistentVolumeClaimDrivers: map[string]v1.PersistentVolumeClaim{
+				consensusClientDiskName: {
+					ObjectMeta: metav1.ObjectMeta{Name: consensusClientDiskName},
+					Spec: v1.PersistentVolumeClaimSpec{Resources: v1.ResourceRequirements{
+						Requests: v1.ResourceList{"storage": resource.MustParse(consensusStorageDiskSizeGoerli)},
+					}},
+				},
+			}}
+		pvcEC = &zeus_topology_config_drivers.PersistentVolumeClaimsConfigDriver{
+			PersistentVolumeClaimDrivers: map[string]v1.PersistentVolumeClaim{
+				execClientDiskName: {
+					ObjectMeta: metav1.ObjectMeta{Name: execClientDiskName},
+					Spec: v1.PersistentVolumeClaimSpec{Resources: v1.ResourceRequirements{
+						Requests: v1.ResourceList{"storage": resource.MustParse(execClientDiskSizeGoerli)},
+					}},
+				},
+			}}
+		ccContDriver = map[string]zeus_topology_config_drivers.ContainerDriver{
+			consensusClient: {Container: v1.Container{
+				Name:  consensusClient,
+				Image: lighthouseDockerImage,
+			}},
+		}
+		ecContDriver = map[string]zeus_topology_config_drivers.ContainerDriver{
+			execClient: {Container: v1.Container{
+				Name:  execClient,
+				Image: gethDockerImage,
+			}},
+		}
+		ccCmDriver = zeus_topology_config_drivers.ConfigMapDriver{
+			ConfigMap: v1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{Name: cmConsensusClient},
+			},
+			SwapKeys: map[string]string{
+				"start.sh": "lighthouseGoerli" + ".sh",
+			},
+		}
+		ecCmDriver = zeus_topology_config_drivers.ConfigMapDriver{
+			ConfigMap: v1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{Name: cmExecClient},
+			},
+			SwapKeys: map[string]string{
+				"start.sh": "gethGoerli" + ".sh",
+			},
+		}
 	case "ephemery":
 		cd.CloudCtxNs.Namespace = ephemeryNamespace
 		cd.ClusterClassName = "hydraEphemery"
@@ -215,17 +302,21 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 			if k == "consensusClients" {
 				tmpStsCfgOverride := stsCfgOverride
 				tmpStsCfgOverride.PVCDriver = pvcCC
+				tmpStsCfgOverride.ContainerDrivers = ccContDriver
 				sb := tmp.SkeletonBases["lighthouseAthena"]
 				tmpSb := sb
 				tmpSb.TopologyConfigDriver = &cfgOverride
+				tmpSb.TopologyConfigDriver.ConfigMapDriver = &ccCmDriver
 				tmpSb.TopologyConfigDriver.StatefulSetDriver = &tmpStsCfgOverride
 				tmp.SkeletonBases["lighthouseAthena"] = tmpSb
 			} else if k == "execClients" {
 				tmpStsCfgOverride := stsCfgOverride
 				tmpStsCfgOverride.PVCDriver = pvcEC
+				tmpStsCfgOverride.ContainerDrivers = ecContDriver
 				sb := tmp.SkeletonBases["gethAthena"]
 				tmpSb := sb
 				tmpSb.TopologyConfigDriver = &cfgOverride
+				tmpSb.TopologyConfigDriver.ConfigMapDriver = &ecCmDriver
 				tmpSb.TopologyConfigDriver.StatefulSetDriver = &tmpStsCfgOverride
 				tmp.SkeletonBases["gethAthena"] = tmpSb
 			} else if k == "validatorClients" {

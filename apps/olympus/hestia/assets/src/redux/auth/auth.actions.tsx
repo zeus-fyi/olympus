@@ -11,7 +11,6 @@ const authProvider = {
     login: async (username: string, password: string) =>  {
         try {
             const res = await authApiGateway.sendLoginRequest(username, password);
-            console.log(res)
             const statusCode = res.status;
             if (statusCode === 401 || statusCode === 403) {
                 inMemoryJWT.ereaseToken();
@@ -23,7 +22,6 @@ const authProvider = {
                 inMemoryJWT.setToken(sessionID, tokenExpiry);
                 localStorage.setItem("userID", userID);
             }
-            console.log(res)
             return res
         } catch (e) {
             console.log(e);

@@ -40,6 +40,26 @@ data:
               --http-port=5052 \
               --execution-jwt=/data/jwt.hex \
               --execution-endpoint="http://zeus-exec-client:8551"
+  lighthouseGoerli.sh: |-
+    #!/bin/sh
+    exec lighthouse beacon_node \
+              --network=goerli \
+              --log-format=JSON \
+              --datadir=/data \
+              --enr-tcp-port=9000 \
+              --enr-udp-port=9000 \
+              --listen-address=0.0.0.0 \
+              --port=9000 \
+              --discovery-port=9000 \
+              --http \
+              --http-address=0.0.0.0 \
+              --http-port=5052 \
+              --metrics \
+              --validator-monitor-auto \
+              --metrics-address=0.0.0.0 \
+              --metrics-port=5054 \
+              --execution-jwt=/data/jwt.hex \
+              --execution-endpoint="http://zeus-exec-client:8551"
   athena.sh: |-
     #!/bin/sh 
     exec athena --workload-type="beaconConsensusClient" --protocol-network-id=${PROTOCOL_NETWORK_ID} --age-private-key="${AGE_PKEY}" --do-spaces-key="${DO_SPACES_KEY}" --do-spaces-private-key="${DO_SPACES_PKEY}" --env="production" --cloud-provider="${CLOUD_PROVIDER}" --ctx="${CTX}" --ns="${NS}" --region="${REGION}"

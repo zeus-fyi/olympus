@@ -65,7 +65,6 @@ func (t *HydraCookbookTestSuite) TestClusterRegisterDefinitions() {
 
 	err := cd.CreateClusterClassDefinitions(ctx, t.ZeusTestClient)
 	t.Require().Nil(err)
-
 }
 
 func (t *HydraCookbookTestSuite) TestCreateClusterBaseSecondary() {

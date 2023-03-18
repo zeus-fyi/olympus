@@ -62,6 +62,7 @@ func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 		Name:     aegis_sessions.SessionIDNickname,
 		Value:    sessionID,
 		Path:     "/",
+		Domain:   ".zeus.fyi",
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteNoneMode,

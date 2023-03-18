@@ -3,6 +3,7 @@ package v1_ethereum_aws
 import (
 	"context"
 	"net/http"
+	"path"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -10,7 +11,10 @@ import (
 	serverless_aws_automation "github.com/zeus-fyi/zeus/builds/serverless/aws_automation"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	aws_lambda "github.com/zeus-fyi/zeus/pkg/cloud/aws/lambda"
+	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
+
+var LambdaBaseDirIn = "/etc/serverless"
 
 type CreateAwsLambdaSignerRequest struct {
 	aegis_aws_auth.AuthAWS `json:"authAWS"`
@@ -58,7 +62,8 @@ func CreateBlsLambdaFunctionHandler(c echo.Context) error {
 func (a *CreateAwsLambdaSignerRequest) CreateLambdaFunctionBlsSigner(c echo.Context) error {
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
-	lambdaFnUrl, err := serverless_aws_automation.CreateOrUpdateLambdaFunction(ctx, a.AuthAWS, a.FunctionName, a.KeystoresLayerName)
+	p := filepaths.Path{DirIn: path.Join(LambdaBaseDirIn, "bls_signatures"), FnIn: "main.zip"}
+	lambdaFnUrl, err := serverless_aws_automation.CreateOrUpdateLambdaFunction(ctx, a.AuthAWS, a.FunctionName, a.KeystoresLayerName, p)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("AwsRequest, CreateLambdaFunctionBlsSigner error")
 		return c.JSON(http.StatusInternalServerError, err)
@@ -77,7 +82,8 @@ func CreateLambdaFunctionSecretsKeyGenHandler(c echo.Context) error {
 func (a *AwsRequest) CreateLambdaFunctionSecretsKeyGen(c echo.Context) error {
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
-	lambdaFnUrl, err := serverless_aws_automation.CreateLambdaFunctionSecretsKeyGen(ctx, a.AuthAWS)
+	p := filepaths.Path{DirIn: path.Join(LambdaBaseDirIn, "bls_secrets_gen"), FnIn: "main.zip"}
+	lambdaFnUrl, err := serverless_aws_automation.CreateLambdaFunctionSecretsKeyGen(ctx, a.AuthAWS, p)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("AwsRequest, CreateLambdaFunctionSecretsKeyGen error")
 		return c.JSON(http.StatusInternalServerError, err)
@@ -96,7 +102,8 @@ func CreateLambdaFunctionEncZipGenHandler(c echo.Context) error {
 func (a *AwsRequest) CreateLambdaFunctionEncZipGen(c echo.Context) error {
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
-	lambdaFnUrl, err := serverless_aws_automation.CreateLambdaFunctionEncryptedKeystoresZip(ctx, a.AuthAWS)
+	p := filepaths.Path{DirIn: path.Join(LambdaBaseDirIn, "bls_encrypted_zip_gen"), FnIn: "main.zip"}
+	lambdaFnUrl, err := serverless_aws_automation.CreateLambdaFunctionEncryptedKeystoresZip(ctx, a.AuthAWS, p)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("AwsRequest, CreateLambdaFunctionEncZipGen error")
 		return c.JSON(http.StatusInternalServerError, err)
@@ -115,7 +122,8 @@ func CreateLambdaFunctionDepositsGenHandler(c echo.Context) error {
 func (a *AwsRequest) CreateLambdaFunctionDepositsGen(c echo.Context) error {
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
-	lambdaFnUrl, err := serverless_aws_automation.CreateLambdaFunctionDepositGen(ctx, a.AuthAWS)
+	p := filepaths.Path{DirIn: path.Join(LambdaBaseDirIn, "validators_deposits_gen"), FnIn: "main.zip"}
+	lambdaFnUrl, err := serverless_aws_automation.CreateLambdaFunctionDepositGen(ctx, a.AuthAWS, p)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("AwsRequest, CreateLambdaFunctionDepositsGen error")
 		return c.JSON(http.StatusInternalServerError, err)

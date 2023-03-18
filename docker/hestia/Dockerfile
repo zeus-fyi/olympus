@@ -44,10 +44,10 @@ RUN mkdir -p /etc/serverless/bls_secrets_gen
 RUN mkdir -p /etc/serverless/validators_deposits_gen
 RUN mkdir -p /etc/serverless/bls_encrypted_zip_gen
 
-COPY --from=src_builder /app/apps/zeus/builds/serverless/bls_signatures/main.zip /etc/serverless/bls_signatures
-COPY --from=src_builder /app/apps/zeus/builds/serverless/bls_secrets_gen/main.zip /etc/serverless/bls_secrets_gen
-COPY --from=src_builder /app/apps/zeus/builds/serverless/validators_deposits_gen/main.zip /etc/serverless/validators_deposits_gen
-COPY --from=src_builder /app/apps/zeus/builds/serverless/bls_encrypted_zip_gen/main.zip /etc/serverless/bls_encrypted_zip_gen
+COPY --from=src_builder /app/apps/zeus/builds/serverless/bls_signatures/main.zip /etc/serverless/bls_signatures/
+COPY --from=src_builder /app/apps/zeus/builds/serverless/bls_secrets_gen/main.zip /etc/serverless/bls_secrets_gen/
+COPY --from=src_builder /app/apps/zeus/builds/serverless/validators_deposits_gen/main.zip /etc/serverless/validators_deposits_gen/
+COPY --from=src_builder /app/apps/zeus/builds/serverless/bls_encrypted_zip_gen/main.zip /etc/serverless/bls_encrypted_zip_gen/
 
 COPY --from=src_builder /app/ca-certificate.crt /etc/ssl/certs
 COPY --from=src_builder /app/ca.pem /etc/ssl/certs

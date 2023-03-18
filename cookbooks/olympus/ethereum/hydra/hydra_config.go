@@ -47,6 +47,9 @@ const (
 
 	gethDockerImage       = "ethereum/client-go:v1.11.4"
 	lighthouseDockerImage = "sigp/lighthouse:v3.3.0-modern"
+
+	cmExecClient      = "cm-exec-client"
+	cmConsensusClient = "cm-consensus-client"
 )
 
 var (
@@ -83,6 +86,11 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 
 	var pvcCC *zeus_topology_config_drivers.PersistentVolumeClaimsConfigDriver
 	var pvcEC *zeus_topology_config_drivers.PersistentVolumeClaimsConfigDriver
+	var ccContDriver = map[string]zeus_topology_config_drivers.ContainerDriver{}
+	var ecContDriver = map[string]zeus_topology_config_drivers.ContainerDriver{}
+	var ccCmDriver = zeus_topology_config_drivers.ConfigMapDriver{}
+	var ecCmDriver = zeus_topology_config_drivers.ConfigMapDriver{}
+
 	switch network {
 	case "mainnet":
 		cd.CloudCtxNs.Namespace = mainnetNamespace
@@ -132,34 +140,34 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 					}},
 				},
 			}}
-		//ccContDriver := map[string]zeus_topology_config_drivers.ContainerDriver{
-		//	consensusClient: {Container: v1.Container{
-		//		Name:  consensusClient,
-		//		Image: lighthouseDockerImage,
-		//	}},
-		//}
-		//ecContDriver := map[string]zeus_topology_config_drivers.ContainerDriver{
-		//	execClient: {Container: v1.Container{
-		//		Name:  execClient,
-		//		Image: gethDockerImage,
-		//	}},
-		//}
-		//ccCmDriver := zeus_topology_config_drivers.ConfigMapDriver{
-		//	ConfigMap: v1.ConfigMap{
-		//		ObjectMeta: metav1.ObjectMeta{Name: "cm-consensus-client"},
-		//	},
-		//	SwapKeys: map[string]string{
-		//		"start.sh": "lighthouseGoerli" + ".sh",
-		//	},
-		//}
-		//ecCmDriver := zeus_topology_config_drivers.ConfigMapDriver{
-		//	ConfigMap: v1.ConfigMap{
-		//		ObjectMeta: metav1.ObjectMeta{Name: "cm-exec-client"},
-		//	},
-		//	SwapKeys: map[string]string{
-		//		"start.sh": "gethGoerli" + ".sh",
-		//	},
-		//}
+		ccContDriver = map[string]zeus_topology_config_drivers.ContainerDriver{
+			consensusClient: {Container: v1.Container{
+				Name:  consensusClient,
+				Image: lighthouseDockerImage,
+			}},
+		}
+		ecContDriver = map[string]zeus_topology_config_drivers.ContainerDriver{
+			execClient: {Container: v1.Container{
+				Name:  execClient,
+				Image: gethDockerImage,
+			}},
+		}
+		ccCmDriver = zeus_topology_config_drivers.ConfigMapDriver{
+			ConfigMap: v1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{Name: cmConsensusClient},
+			},
+			SwapKeys: map[string]string{
+				"start.sh": "lighthouseGoerli" + ".sh",
+			},
+		}
+		ecCmDriver = zeus_topology_config_drivers.ConfigMapDriver{
+			ConfigMap: v1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{Name: cmExecClient},
+			},
+			SwapKeys: map[string]string{
+				"start.sh": "gethGoerli" + ".sh",
+			},
+		}
 	case "ephemery":
 		cd.CloudCtxNs.Namespace = ephemeryNamespace
 		cd.ClusterClassName = "hydraEphemery"
@@ -294,17 +302,21 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 			if k == "consensusClients" {
 				tmpStsCfgOverride := stsCfgOverride
 				tmpStsCfgOverride.PVCDriver = pvcCC
+				tmpStsCfgOverride.ContainerDrivers = ccContDriver
 				sb := tmp.SkeletonBases["lighthouseAthena"]
 				tmpSb := sb
 				tmpSb.TopologyConfigDriver = &cfgOverride
+				tmpSb.TopologyConfigDriver.ConfigMapDriver = &ccCmDriver
 				tmpSb.TopologyConfigDriver.StatefulSetDriver = &tmpStsCfgOverride
 				tmp.SkeletonBases["lighthouseAthena"] = tmpSb
 			} else if k == "execClients" {
 				tmpStsCfgOverride := stsCfgOverride
 				tmpStsCfgOverride.PVCDriver = pvcEC
+				tmpStsCfgOverride.ContainerDrivers = ecContDriver
 				sb := tmp.SkeletonBases["gethAthena"]
 				tmpSb := sb
 				tmpSb.TopologyConfigDriver = &cfgOverride
+				tmpSb.TopologyConfigDriver.ConfigMapDriver = &ecCmDriver
 				tmpSb.TopologyConfigDriver.StatefulSetDriver = &tmpStsCfgOverride
 				tmp.SkeletonBases["gethAthena"] = tmpSb
 			} else if k == "validatorClients" {

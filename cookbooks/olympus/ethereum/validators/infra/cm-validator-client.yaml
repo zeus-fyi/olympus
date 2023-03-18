@@ -18,6 +18,21 @@ data:
               --metrics-address=0.0.0.0 \
               --metrics-port=5064 \
               --beacon-nodes="http://zeus-consensus-client:5052,http://zeus-consensus-client.ephemeral.svc.cluster.local:5052"
+  lighthouseGoerli.sh: |-
+    #!/bin/sh
+    exec lighthouse vc \
+              --network=goerli \
+              --log-format=JSON \
+              --datadir=/data \
+              --unencrypted-http-transport \
+    	      --init-slashing-protection \
+              --http \
+              --http-address=0.0.0.0 \
+              --http-port=5062 \
+              --metrics \
+              --metrics-address=0.0.0.0 \
+              --metrics-port=5064 \
+              --beacon-nodes="http://zeus-consensus-client:5052,http://zeus-consensus-client.ephemeral.svc.cluster.local:5052"
   download.sh: |-
     #!/bin/sh
     exec downloader --client-name="lighthouse" --workload-type="validatorClient" --replica-count-num=${REPLICA_COUNT} --protocol-network-id=${PROTOCOL_NETWORK_ID} --cloud-provider="${CLOUD_PROVIDER}" --ctx="${CTX}" --ns="${NS}" --region="${REGION}" --age-private-key="${AGE_PKEY}" --do-spaces-key="${DO_SPACES_KEY}" --do-spaces-private-key="${DO_SPACES_PKEY}" --env="production"

@@ -128,14 +128,14 @@ func Hestia() {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins:     []string{"http://localhost:3000"},
 			AllowMethods:     []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
-			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "Access-Control-Allow-Headers", "X-CSRF-Token", "Accept-Encoding"},
 			AllowCredentials: true,
 		}))
 	} else {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-			AllowOrigins:     []string{"https://cloud.zeus.fyi"},
+			AllowOrigins:     []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi"},
 			AllowMethods:     []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
-			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "Access-Control-Allow-Headers", "X-CSRF-Token", "Accept-Encoding"},
 			AllowCredentials: true,
 		}))
 	}

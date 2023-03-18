@@ -30,6 +30,7 @@ import {CreateAwsLambdaFunctionActionAreaCardWrapper} from './AwsLambdaKeystoreS
 import {ValidatorsDepositsTable} from "./ValidatorsDepositsTable";
 import {ValidatorDepositDataJSON} from "../../gateway/validators";
 import {setKeyGroupName, setNetworkAppended} from "../../redux/validators/ethereum.validators.reducer";
+import {CircularProgress} from "@mui/material";
 
 const steps = [
     'AWS Auth & Internal User Roles',
@@ -42,7 +43,17 @@ const steps = [
     'Submit Deposits',
 ];
 
-function stepComponents(activeStep: number, onGenerateValidatorDeposits: any, onGenerateValidatorEncryptedKeystoresZip: any, onEncZipFileUpload: any, zipBlob: Blob, onHandleVerifySigners: any, onValidatorsDepositsUpload: any) {
+function stepComponents(activeStep: number,
+                        onGenerateValidatorDeposits: any, 
+                        onGenerateValidatorEncryptedKeystoresZip: any,
+                        onEncZipFileUpload: any,
+                        zipBlob: Blob,
+                        onHandleVerifySigners: any,
+                        onValidatorsDepositsUpload: any,
+                        zipGenButtonLabel: any, zipGenButtonEnabled: any, zipGenStatus: any, requestStatusZipGen: any,
+                        buttonLabelVd: any, buttonDisabledVd: any,statusMessageVd: any, requestStatusVd: any,
+                        buttonLabelVerify: any, buttonDisabledVerify: any, statusMessageVerify: any, statusVerify: any,
+) {
     const steps = [
         <CreateInternalAwsLambdaUserRolesActionAreaCardWrapper
             activeStep={activeStep}
@@ -63,6 +74,13 @@ function stepComponents(activeStep: number, onGenerateValidatorDeposits: any, on
             activeStep={activeStep}
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
+            buttonLabelVd={buttonLabelVd}
+            buttonDisabledVd={buttonDisabledVd}
+            statusMessageVd={statusMessageVd}
+            zipGenButtonLabel={zipGenButtonLabel}
+            zipGenButtonEnabled={zipGenButtonEnabled}
+            zipGenStatus={zipGenStatus}
+            requestStatusZipGen={requestStatusZipGen}
         />,
         <CreateAwsLambdaFunctionActionAreaCardWrapper
             activeStep={activeStep}
@@ -76,6 +94,11 @@ function stepComponents(activeStep: number, onGenerateValidatorDeposits: any, on
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
             onHandleVerifySigners={onHandleVerifySigners}
+            buttonLabelVerify={buttonLabelVerify}
+            buttonDisabledVerify={buttonDisabledVerify}
+            statusMessageVerify={statusMessageVerify}
+            statusVerify={statusVerify}
+            requestStatusVd={requestStatusVd}
         />,
         <ZeusServiceRequestAreaCardWrapper
             activeStep={activeStep}
@@ -156,6 +179,38 @@ export default function AwsWizardPanel() {
             reader.readAsArrayBuffer(file);
         }
     };
+
+    let zipGenButtonLabel;
+    let zipGenButtonEnabled;
+    let zipGenStatus;
+    const [requestStatusZipGen, setRequestStatusZipGen] = useState('');
+    
+    switch (requestStatusZipGen) {
+        case 'pending':
+            zipGenButtonLabel = <CircularProgress size={20} />;
+            zipGenButtonEnabled = true;
+            break;
+        case 'success':
+            zipGenButtonLabel = 'Generate';
+            zipGenButtonEnabled = true;
+            zipGenStatus = 'Encrypted keystores request completed successfully!';
+            break;
+        case 'error':
+            zipGenButtonLabel = 'Retry';
+            zipGenButtonEnabled = false;
+            zipGenStatus = 'An error occurred while sending the keystores zip generation request.';
+            break;
+        case 'errorAuth':
+            zipGenButtonLabel = 'Retry';
+            zipGenButtonEnabled = false;
+            zipGenStatus = 'Update your AWS credentials on step 1 and try again.';
+            break;
+        default:
+            zipGenButtonLabel = 'Generate';
+            zipGenButtonEnabled = false;
+            break;
+    }
+
     const dispatch = useDispatch();
     const akey = useSelector((state: RootState) => state.awsCredentials.accessKey);
     const skey = useSelector((state: RootState) => state.awsCredentials.secretKey);
@@ -165,16 +220,32 @@ export default function AwsWizardPanel() {
     const hdOffset = useSelector((state: RootState) => state.validatorSecrets.hdOffset);
     const onGenerateValidatorEncryptedKeystoresZip = async () => {
         try {
+            setRequestStatusZipGen('pending');
             const creds = { accessKeyId: akey, secretAccessKey: skey };
+            if (!akey || !skey) {
+                setRequestStatusZipGen('errorAuth');
+                return;
+            }
             const res = await awsApiGateway.createValidatorsAgeEncryptedKeystoresZipLambda(creds);
+            console.log("res", res)
+            if (res.status !== 200) {
+                setRequestStatusZipGen('error');
+                return
+            }
             const updatedEncKeystoresZipLambdaFnUrl = res.data;
             dispatch(setEncKeystoresZipLambdaFnUrl(updatedEncKeystoresZipLambdaFnUrl));
             const zip = await awsLambdaApiGateway.invokeEncryptedKeystoresZipGeneration(updatedEncKeystoresZipLambdaFnUrl, creds, ageSecretName, validatorSecretsName, validatorCount, hdOffset);
+            if (zip.status !== 200) {
+                setRequestStatusZipGen('error');
+                return
+            }
             const zipBlob = await zip.blob();
             const blob = new Blob([zipBlob], { type: 'application/octet-stream' });
             download(blob, "keystores.zip");
             setEncZipFile(blob);
+            setRequestStatusZipGen('success');
         } catch (error) {
+            setRequestStatusZipGen('error');
             console.log("error", error);
         } finally {
         }
@@ -183,26 +254,77 @@ export default function AwsWizardPanel() {
     let depositsGenLambdaFnUrl = useSelector((state: RootState) => state.awsCredentials.depositsGenLambdaFnUrl);
     const depositData = useSelector((state: RootState) => state.awsCredentials.depositData);
 
+    let buttonLabelVd;
+    let buttonDisabledVd;
+    let statusMessageVd;
+    const [requestStatusVd, setRequestStatusVd] = useState('');
+
+    switch (requestStatusVd) {
+        case 'pending':
+            buttonLabelVd = <CircularProgress size={20} />;
+            buttonDisabledVd = true;
+            break;
+        case 'success':
+            buttonLabelVd = 'Created successfully';
+            buttonDisabledVd = true;
+            statusMessageVd = 'Validator deposits created successfully!';
+            break;
+        case 'error':
+            buttonLabelVd = 'Error creating validator deposits';
+            buttonDisabledVd = false;
+            statusMessageVd = 'An error occurred while creating the validator deposits.';
+            break;
+        case 'errorAuth':
+            buttonLabelVd = 'Retry';
+            buttonDisabledVd = false;
+            statusMessageVd = 'Update your AWS credentials on step 1 and try again.';
+            break;
+        default:
+            buttonLabelVd = 'Generate';
+            buttonDisabledVd = false;
+            break;
+    }
+
     const onGenerateValidatorDeposits = async () => {
         console.log("onGenerateValidatorDeposits");
+        setRequestStatusVd('pending');
+
         const creds = {accessKeyId: akey, secretAccessKey: skey};
+        if (!akey || !skey) {
+            setRequestStatusVd('errorAuth');
+            return;
+        }
         try {
             const response = await awsApiGateway.createValidatorsDepositDataLambda(creds);
+            if (response.status !== 200) {
+                setRequestStatusVd('error');
+                return
+            }
             dispatch(setDepositsGenLambdaFnUrl(response.data));
             depositsGenLambdaFnUrl = response.data;
         } catch (error) {
+            setRequestStatusVd('error');
             console.log("error", error);
+            return
         }
         try {
             console.log("invokeValidatorDepositsGeneration");
             const dpSlice = await awsLambdaApiGateway.invokeValidatorDepositsGeneration(depositsGenLambdaFnUrl,creds,network,validatorSecretsName,validatorCount,hdOffset);
+            if (dpSlice.status === 200) {
+                setRequestStatusVd('success');
+            } else {
+                setRequestStatusVd('error');
+                return
+            }
             const body = await dpSlice.json();
             body.forEach((item: any) => {
                 item.verified = false;
             });
             dispatch(setDepositData(body));
         } catch (error) {
+            setRequestStatusVd('error');
             console.log("error", error);
+            return
         }
     };
     const onValidatorsDepositsUpload = (event: ChangeEvent<HTMLInputElement>) => {
@@ -226,13 +348,54 @@ export default function AwsWizardPanel() {
     const externalAccessSecretName = useSelector((state: RootState) => state.awsCredentials.externalAccessSecretName);
     const blsSignerFunctionName = useSelector((state: RootState) => state.awsCredentials.blsSignerFunctionName);
 
+    let buttonLabelVerify;
+    let buttonDisabledVerify;
+    let statusMessageVerify;
+    const [statusVerify, setStatusVerify] = useState('');
+
+    switch (statusVerify) {
+        case 'pending':
+            buttonLabelVerify = <CircularProgress size={20} />;
+            buttonDisabledVerify = true;
+            break;
+        case 'success':
+            buttonLabelVerify = 'Verify request completed successfully';
+            buttonDisabledVerify = true;
+            statusMessageVerify = 'Verify request completed successfully!';
+            break;
+        case 'error':
+            buttonLabelVerify = 'Error sending verify request';
+            buttonDisabledVerify = false;
+            statusMessageVerify = 'An error occurred while sending the verify request.';
+            break;
+        case 'errorAuth':
+            buttonLabelVerify = 'Retry';
+            buttonDisabledVerify = false;
+            statusMessageVerify = 'Update your AWS credentials on step 1 and try again.';
+            break;
+        default:
+            buttonLabelVerify = 'Send Verify Request';
+            buttonDisabledVerify = false;
+            break;
+    }
     const onHandleVerifySigners = async () => {
         const creds = {accessKeyId: akey, secretAccessKey: skey};
+        if (!akey || !skey) {
+            setStatusVerify('errorAuth');
+            return;
+        }
         try {
+            setStatusVerify('pending');
             const r = await awsApiGateway.createOrFetchExternalLambdaUserAccessKeys(creds, externalAccessUserName, externalAccessSecretName);
             const url = await awsApiGateway.getLambdaFunctionURL(creds, blsSignerFunctionName);
             const extCreds = {accessKeyId: r.data.accessKey, secretAccessKey: r.data.secretKey};
             const response = await awsApiGateway.verifyLambdaFunctionSigner(extCreds,ageSecretName,url.data, depositData);
+            if (response.status !== 200) {
+                setStatusVerify('error');
+                return
+            } else {
+                setStatusVerify('success');
+            }
             const verifiedKeys = response.data
             let hm = createHashMap(verifiedKeys);
             const verifiedDepositData = depositData.map((obj: any) => {
@@ -244,6 +407,7 @@ export default function AwsWizardPanel() {
                 }});
             dispatch(setDepositData(verifiedDepositData));
         } catch (error) {
+            setStatusVerify('error');
             console.log("error", error);
         }}
 
@@ -296,7 +460,26 @@ export default function AwsWizardPanel() {
                 ) : (
                     <React.Fragment>
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                            {stepComponents(activeStep, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip, onEncZipFileUpload, encZipFile, onHandleVerifySigners, onValidatorsDepositsUpload)}
+                            {stepComponents(activeStep, 
+                                onGenerateValidatorDeposits,
+                                onGenerateValidatorEncryptedKeystoresZip,
+                                onEncZipFileUpload,
+                                encZipFile,
+                                onHandleVerifySigners,
+                                onValidatorsDepositsUpload,
+                                zipGenButtonLabel,
+                                zipGenButtonEnabled,
+                                zipGenStatus,
+                                requestStatusZipGen,
+                                buttonLabelVd,
+                                buttonDisabledVd,
+                                statusMessageVd,
+                                requestStatusVd,
+                                buttonLabelVerify,
+                                buttonDisabledVerify,
+                                statusMessageVerify,
+                                statusVerify,
+                            )}
                         </Container>
                         <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                             <Button

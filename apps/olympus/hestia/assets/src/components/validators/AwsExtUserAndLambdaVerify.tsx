@@ -1,5 +1,6 @@
-import {Card, CardActions, CardContent, Container, Stack} from "@mui/material";
+import {Card, CardActions, CardContent, CircularProgress, Container, Stack} from "@mui/material";
 import * as React from "react";
+import {useState} from "react";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import {useDispatch, useSelector} from "react-redux";
@@ -8,11 +9,16 @@ import {awsApiGateway} from "../../gateway/aws";
 import TextField from "@mui/material/TextField";
 
 export function LambdaExtUserVerify(props: any) {
-    const { activeStep, onHandleVerifySigners } = props;
+    const { activeStep, onHandleVerifySigners, buttonLabelVerify, buttonDisabledVerify, statusMessageVerify, statusVerify} = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
             <CreateAwsExternalLambdaUser />
-            <AwsLambdaFunctionVerifyAreaCard onHandleVerifySigners={onHandleVerifySigners} />
+            <AwsLambdaFunctionVerifyAreaCard onHandleVerifySigners={onHandleVerifySigners}
+                                             buttonLabelVerify={buttonLabelVerify}
+                                             buttonDisabledVerify={buttonDisabledVerify}
+                                             statusMessageVerify={statusMessageVerify}
+                                             statusVerify={statusVerify}
+            />
         </Stack>
     );
 }
@@ -22,19 +28,65 @@ export function CreateAwsExternalLambdaUser() {
     const secretKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
     const externalAccessUserName = useSelector((state: RootState) => state.awsCredentials.externalAccessUserName);
     const externalAccessSecretName = useSelector((state: RootState) => state.awsCredentials.externalAccessSecretName);
+    let buttonLabel;
+    let buttonDisabled;
+    let statusMessage;
+    const [requestStatus, setRequestStatus] = useState('');
 
+    switch (requestStatus) {
+        case 'pending':
+            buttonLabel = <CircularProgress size={20} />;
+            buttonDisabled = true;
+            break;
+        case 'success':
+            buttonLabel = 'Successfully created or retrieved external user & access keys';
+            buttonDisabled = true;
+            statusMessage = 'Successfully created or retrieved external user & access keys!';
+            break;
+        case 'error':
+            buttonLabel = 'Retry';
+            buttonDisabled = false;
+            statusMessage = 'An error occurred while creating or retrieved external user & access keys.';
+            break;
+        case 'errorAuth':
+            buttonLabel = 'Retry';
+            buttonDisabled = false;
+            statusMessage = 'Update your AWS credentials on step 1 and try again.';
+            break;
+        default:
+            buttonLabel = 'Create External User & Access Keys';
+            buttonDisabled = false;
+            break;
+    }
     const handleCreateUser = async () => {
         try {
             const creds = {accessKeyId: accessKey, secretAccessKey: secretKey};
+            if (!accessKey || !secretKey) {
+                setRequestStatus('errorAuth');
+                return;
+            }
             const response = await awsApiGateway.createExternalLambdaUser(creds);
-            console.log("response", response);
+            if (response.status === 200) {
+                setRequestStatus('success');
+            } else {
+                setRequestStatus('error');
+                return
+            }
         } catch (error) {
+            setRequestStatus('error');
             console.log("error", error);
+            return
         }
         try {
             const creds = {accessKeyId: accessKey, secretAccessKey: secretKey};
+            if (!accessKey || !secretKey) {
+                setRequestStatus('errorAuth');
+                return;
+            }
             await awsApiGateway.createOrFetchExternalLambdaUserAccessKeys(creds,externalAccessUserName, externalAccessSecretName);
+            setRequestStatus('success');
         } catch (error) {
+            setRequestStatus('error');
             console.log("error", error);
         }
     };
@@ -62,8 +114,13 @@ export function CreateAwsExternalLambdaUser() {
             />
             <ExternalAccessSecretName />
             <CardActions>
-                <Button size="small" onClick={handleCreateUser}>Create User & Auth Keys</Button>
+                <Button size="small" onClick={handleCreateUser} disabled={buttonDisabled}>{buttonLabel}</Button>
             </CardActions>
+            {statusMessage && (
+                <Typography variant="body2" color={requestStatus === 'error' ? 'error' : 'success'}>
+                    {statusMessage}
+                </Typography>
+            )}
         </Card>
     );
 }
@@ -85,19 +142,24 @@ export function ExternalAccessSecretName(props: any) {
     );
 }
 export function AwsLambdaFunctionVerifyAreaCard(props: any) {
-    const { activeStep, onHandleVerifySigners } = props;
+    const { activeStep, onHandleVerifySigners,buttonLabelVerify, buttonDisabledVerify, statusMessageVerify,statusVerify} = props;
 
     return (
         <div style={{ display: 'flex' }}>
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                <LambdaVerifyCard onHandleVerifySigners={onHandleVerifySigners}/>
+                <LambdaVerifyCard onHandleVerifySigners={onHandleVerifySigners}
+                                  buttonLabelVerify={buttonLabelVerify}
+                                  buttonDisabledVerify={buttonDisabledVerify}
+                                  statusMessageVerify={statusMessageVerify}
+                                  statusVerify={statusVerify}
+                />
             </Container >
         </div>
     );
 }
 
 export function LambdaVerifyCard(props: any) {
-    const { activeStep, onHandleVerifySigners } = props;
+    const { activeStep, onHandleVerifySigners, buttonLabelVerify, buttonDisabledVerify, statusMessageVerify, statusVerify} = props;
     const ageSecretName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
 
     return (
@@ -122,8 +184,13 @@ export function LambdaVerifyCard(props: any) {
                 autoFocus
             />
             <CardActions>
-                <Button size="small" onClick={onHandleVerifySigners}>Send Request</Button>
+                <Button size="small" onClick={onHandleVerifySigners} disabled={buttonDisabledVerify}>{buttonLabelVerify}</Button>
             </CardActions>
+            {statusMessageVerify && (
+                <Typography variant="body2" color={statusVerify === 'error' ? 'error' : 'success'}>
+                    {statusMessageVerify}
+                </Typography>
+            )}
         </Card>
     );
 }

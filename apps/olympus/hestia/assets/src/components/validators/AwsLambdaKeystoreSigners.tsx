@@ -7,11 +7,21 @@ import {
     setKeystoreLayerNumber,
     setSignerFunctionName
 } from "../../redux/aws_wizard/aws.wizard.reducer";
-import {Card, CardActionArea, CardActions, CardContent, CardMedia, Container, Stack} from "@mui/material";
+import {
+    Card,
+    CardActionArea,
+    CardActions,
+    CardContent,
+    CardMedia,
+    CircularProgress,
+    Container,
+    Stack
+} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import * as React from "react";
+import {useState} from "react";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 
 export function CreateAwsLambdaFunctionActionAreaCardWrapper(props: any) {
@@ -47,20 +57,61 @@ export function LambdaFunctionCreation() {
 
     const dispatch = useDispatch();
 
-    const onCreateLambdaSignerFn = async () => {
-        try {
-            const creds = {accessKeyId: acKey, secretAccessKey: seKey};
-            const response = await awsApiGateway.createLambdaSignerFunction(creds, signerName, signerLayerName);
-            dispatch(setBlsSignerLambdaFnUrl(response.data));
-        } catch (error) {
-            console.log("error", error);
-        }};
-
     const blsSignerFunctionName = useSelector((state: RootState) => state.awsCredentials.blsSignerFunctionName);
     const onBlsSignerFunctionName = (event: React.ChangeEvent<HTMLInputElement>) => {
         const newBlsSignerFunctionName = event.target.value;
         dispatch(setSignerFunctionName(newBlsSignerFunctionName));
     };
+    let buttonLabel;
+    let buttonDisabled;
+    let statusMessage;
+    const [requestStatus, setRequestStatus] = useState('');
+
+    switch (requestStatus) {
+        case 'pending':
+            buttonLabel = <CircularProgress size={20} />;
+            buttonDisabled = true;
+            break;
+        case 'success':
+            buttonLabel = 'Successfully updated, or created function';
+            buttonDisabled = true;
+            statusMessage = 'Lambda function created successfully!';
+            break;
+        case 'error':
+            buttonLabel = 'Retry';
+            buttonDisabled = false;
+            statusMessage = 'An error occurred while creating or updating the lambda function.';
+            break;
+        case 'errorAuth':
+            buttonLabel = 'Retry';
+            buttonDisabled = false;
+            statusMessage = 'An error occurred while creating or updating the lambda function.';
+            break;
+        default:
+            buttonLabel = 'Create | Update';
+            buttonDisabled = false;
+            break;
+    }
+    const onCreateLambdaSignerFn = async () => {
+        try {
+            const creds = {accessKeyId: acKey, secretAccessKey: seKey};
+            if (!acKey || !seKey) {
+                setRequestStatus('errorAuth');
+                return;
+            }
+            const response = await awsApiGateway.createLambdaSignerFunction(creds, signerName, signerLayerName);
+            if (response.status === 200) {
+                setRequestStatus('success');
+            } else {
+                setRequestStatus('error');
+                return
+            }
+            dispatch(setBlsSignerLambdaFnUrl(response.data));
+        } catch (error) {
+            setRequestStatus('error');
+            console.log("error", error);
+        }};
+
     return (
         <Card sx={{ maxWidth: 400 }}>
             <CardContent>
@@ -95,8 +146,13 @@ export function LambdaFunctionCreation() {
                 autoFocus
             />
             <CardActions>
-                <Button onClick={onCreateLambdaSignerFn} size="small">Create | Update</Button>
+                <Button onClick={onCreateLambdaSignerFn} size="small" disabled={buttonDisabled}>{buttonLabel}</Button>
             </CardActions>
+            {statusMessage && (
+                <Typography variant="body2" color={requestStatus === 'error' ? 'error' : 'success'}>
+                    {statusMessage}
+                </Typography>
+            )}
         </Card>
     );
 }
@@ -108,15 +164,63 @@ export function LambdaFunctionKeystoresLayerCreation(props: any) {
     const seKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
     const signerLayerName = useSelector((state: RootState) => state.awsCredentials.blsSignerKeystoresLayerName);
 
+    let buttonLabel;
+    let buttonDisabled;
+    let statusMessage;
+    const [requestStatus, setRequestStatus] = useState('');
+
+    switch (requestStatus) {
+        case 'pending':
+            buttonLabel = <CircularProgress size={20} />;
+            buttonDisabled = true;
+            break;
+        case 'success':
+            buttonLabel = 'Created successfully';
+            buttonDisabled = true;
+            statusMessage = 'Keystore layer created successfully!';
+            break;
+        case 'error':
+            buttonLabel = 'Retry';
+            buttonDisabled = false;
+            statusMessage = 'An error occurred while creating the keystore layer.';
+            break;
+        case 'errorNoZip':
+            buttonLabel = 'Retry';
+            buttonDisabled = false;
+            statusMessage = 'No zip file detected, please regenerate or manually upload one.';
+            break;
+        case 'errorAuth':
+            buttonLabel = 'Retry';
+            buttonDisabled = false;
+            statusMessage = 'Update your AWS credentials on step 1 and try again.';
+            break;
+        default:
+            buttonLabel = 'Create | Update';
+            buttonDisabled = false;
+            break;
+    }
     const onCreateLambdaKeystoresLayer = async () => {
         try {
             if (zipBlob.size === 0) {
                 console.log("ZipBlob is empty. Skipping creation of Lambda Keystores Layer.");
+                setRequestStatus('errorNoZip');
                 return;
-            }            const creds = {accessKeyId: acKey, secretAccessKey: seKey};
+            }
+            const creds = {accessKeyId: acKey, secretAccessKey: seKey};
+            if (!creds.accessKeyId || !creds.secretAccessKey) {
+                setRequestStatus('errorAuth');
+                return;
+            }
             const response = await awsApiGateway.createLambdaFunctionKeystoresLayer(creds, signerLayerName, zipBlob);
+            if (response.status === 200) {
+                setRequestStatus('success');
+            } else {
+                setRequestStatus('error');
+                return
+            }
             dispatch(setKeystoreLayerNumber(response.data));
         } catch (error) {
+            setRequestStatus('error');
             console.log("error", error);
         }};
 
@@ -163,8 +267,13 @@ export function LambdaFunctionKeystoresLayerCreation(props: any) {
                 autoFocus
             />
             <CardActions>
-                <Button size="small" onClick={onCreateLambdaKeystoresLayer}>Create | Update</Button>
+                <Button size="small" onClick={onCreateLambdaKeystoresLayer} disabled={buttonDisabled}>{buttonLabel}</Button>
             </CardActions>
+            {statusMessage && (
+                <Typography variant="body2" color={requestStatus === 'error' ? 'error' : 'success'}>
+                    {statusMessage}
+                </Typography>
+            )}
         </Card>
     );
 }

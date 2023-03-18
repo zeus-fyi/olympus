@@ -2,6 +2,7 @@ import {
     Card,
     CardActions,
     CardContent,
+    CircularProgress,
     Container,
     FormControl,
     InputLabel,
@@ -10,6 +11,7 @@ import {
     Stack
 } from "@mui/material";
 import * as React from "react";
+import {useState} from "react";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
@@ -60,23 +62,75 @@ export function ZeusServiceRequest() {
     const externalAccessSecretName = useSelector((state: RootState) => state.awsCredentials.externalAccessSecretName);
     const ageSecretName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
     const blsSignerFunctionName = useSelector((state: RootState) => state.awsCredentials.blsSignerFunctionName);
+    let buttonLabel;
+    let buttonDisabled;
+    let statusMessage;
+    const [requestStatus, setRequestStatus] = useState('');
 
+    switch (requestStatus) {
+        case 'pending':
+            buttonLabel = <CircularProgress size={20} />;
+            buttonDisabled = true;
+            break;
+        case 'success':
+            buttonLabel = 'Successfully created service request!';
+            buttonDisabled = true;
+            statusMessage = 'Successfully created service request!';
+            break;
+        case 'error':
+            buttonLabel = 'Retry';
+            buttonDisabled = false;
+            statusMessage = 'An error occurred while submitting your request. Please try again.';
+            break;
+        case 'errorNoAuth':
+            buttonLabel = 'Retry';
+            buttonDisabled = false;
+            statusMessage = 'Unable to fetch external access keys, please update your AWS credentials on step 1 and try again.';
+            break;
+        case 'errorFeeRecipient':
+            buttonLabel = 'Retry';
+            buttonDisabled = false;
+            statusMessage = 'No fee recipient address found, please update this field.';
+            break;
+        default:
+            buttonLabel = 'Submit';
+            buttonDisabled = false;
+            break;
+    }
     const handleZeusServiceRequest = async () => {
         try {
+            if (!feeRecipient) {
+                setRequestStatus('errorFeeRecipient');
+                return
+            }
             const validatorServiceRequestSlice = depositData.map((dd: any) => {
                 return createValidatorOrgGroup(dd.pubkey, feeRecipient)
                 })
             const creds = {accessKeyId: accessKey, secretAccessKey: secretKey};
+            if (!creds.accessKeyId || !creds.secretAccessKey) {
+                setRequestStatus('errorNoAuth');
+                return
+            }
             const signerUrl = await awsApiGateway.getLambdaFunctionURL(creds, blsSignerFunctionName);
             const url = await signerUrl.data
             const getExtCreds = await awsApiGateway.createOrFetchExternalLambdaUserAccessKeys(creds,externalAccessUserName, externalAccessSecretName);
             const extCreds = {accessKeyId: getExtCreds.data.accessKey, secretAccessKey: getExtCreds.data.secretKey};
+            if (!extCreds.accessKeyId || !extCreds.secretAccessKey) {
+                setRequestStatus('errorNoAuth');
+                return
+            }
             const serviceAuth = createAuthAwsLambda(url, ageSecretName,extCreds);
             const protocolID = getNetworkId(network);
             const sr = createValidatorServiceRequest(keyGroupName,protocolID,serviceAuth,validatorServiceRequestSlice)
             const response = await validatorsApiGateway.createValidatorsServiceRequest(sr);
-            console.log("response", response)
+            if (response.status === 200) {
+                setRequestStatus('success');
+            } else {
+                setRequestStatus('error');
+                return
+            }
         } catch (error) {
+            setRequestStatus('error');
             console.log("error", error);
         }};
 
@@ -92,8 +146,13 @@ export function ZeusServiceRequest() {
                 <ExternalAccessSecretName />
             </Container>
             <CardActions>
-                <Button onClick={handleZeusServiceRequest} size="small">Submit</Button>
+                <Button onClick={handleZeusServiceRequest} size="small"disabled={buttonDisabled}>{buttonLabel}</Button>
             </CardActions>
+            {statusMessage && (
+                <Typography variant="body2" color={requestStatus === 'error' ? 'error' : 'success'}>
+                    {statusMessage}
+                </Typography>
+            )}
         </Card>
     );
 }

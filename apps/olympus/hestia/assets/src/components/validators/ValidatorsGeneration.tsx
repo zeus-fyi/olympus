@@ -10,13 +10,24 @@ import {setHdOffset, setValidatorCount} from "../../redux/validators/ethereum.va
 import {Network} from "./ZeusServiceRequest";
 
 export function GenerateValidatorKeysAndDepositsAreaCardWrapper(props: any) {
-    const { activeStep, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip } = props;
+    const { activeStep, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip,
+        zipGenButtonLabel, zipGenButtonEnabled, zipGenStatus, requestStatusZipGen,
+        buttonLabelVd, buttonDisabledVd, statusMessageVd,} = props;
 
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
             <GenerateValidatorsParams />
-            <GenValidatorDepositsCreationActionsCard onGenerateValidatorDeposits={onGenerateValidatorDeposits}/>
-            <GenerateZipValidatorActionsCard onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip} />
+            <GenValidatorDepositsCreationActionsCard onGenerateValidatorDeposits={onGenerateValidatorDeposits}
+                                                     buttonLabelVd={buttonLabelVd}
+                                                     buttonDisabledVd={buttonDisabledVd}
+                                                     statusMessageVd={statusMessageVd}
+            />
+            <GenerateZipValidatorActionsCard onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
+                                             zipGenButtonLabel={zipGenButtonLabel}
+                                             zipGenButtonEnabled={zipGenButtonEnabled}
+                                             zipGenStatus={zipGenStatus}
+                                             requestStatusZipGen={requestStatusZipGen}
+            />
         </Stack>
     );
 }
@@ -41,7 +52,7 @@ export function GenerateValidatorsParams() {
 }
 
 export function GenerateZipValidatorActionsCard(props: any) {
-    const { activeStep, onGenerateValidatorEncryptedKeystoresZip } = props;
+    const { activeStep, onGenerateValidatorEncryptedKeystoresZip, zipGenButtonLabel, zipGenButtonEnabled, zipGenStatus, requestStatusZipGen } = props;
     const encKeystoresZipLambdaFnUrl = useSelector((state: RootState) => state.awsCredentials.encKeystoresZipLambdaFnUrl);
 
     return (
@@ -66,14 +77,19 @@ export function GenerateZipValidatorActionsCard(props: any) {
                 autoFocus
             />
             <CardActions>
-                <Button onClick={onGenerateValidatorEncryptedKeystoresZip} size="small">Generate</Button>
+                <Button onClick={onGenerateValidatorEncryptedKeystoresZip} size="small" disabled={zipGenButtonEnabled}>{zipGenButtonLabel}</Button>
             </CardActions>
+            {zipGenStatus && (
+                <Typography variant="body2" color={requestStatusZipGen === 'error' ? 'error' : 'success'}>
+                    {zipGenStatus}
+                </Typography>
+            )}
         </Card>
     );
 }
 
 export function GenValidatorDepositsCreationActionsCard(props: any) {
-    const { activeStep, onGenerateValidatorDeposits } = props;
+    const { activeStep, onGenerateValidatorDeposits, buttonLabelVd, buttonDisabledVd, statusMessageVd, requestStatusVd } = props;
 
     const depositsGenLambdaFnUrl = useSelector((state: RootState) => state.awsCredentials.depositsGenLambdaFnUrl);
 
@@ -99,8 +115,13 @@ export function GenValidatorDepositsCreationActionsCard(props: any) {
                 autoFocus
             />
             <CardActions>
-                <Button onClick={onGenerateValidatorDeposits} size="small">Generate</Button>
+                <Button onClick={onGenerateValidatorDeposits} size="small" disabled={buttonDisabledVd}>{buttonLabelVd}</Button>
             </CardActions>
+            {statusMessageVd && (
+                <Typography variant="body2" color={requestStatusVd === 'error' ? 'error' : 'success'}>
+                    {statusMessageVd}
+                </Typography>
+            )}
         </Card>
     );
 }

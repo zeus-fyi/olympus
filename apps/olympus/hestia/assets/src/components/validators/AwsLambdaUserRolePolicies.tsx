@@ -1,11 +1,13 @@
 import * as React from "react";
-import {Card, CardActions, CardContent, Container, Stack} from "@mui/material";
+import {useState} from "react";
+import {Card, CardActions, CardContent, CircularProgress, Container, Stack} from "@mui/material";
 import {AwsUploadActionAreaCard} from "./AwsPanel";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import {awsApiGateway} from "../../gateway/aws";
 import {useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
+import TextField from "@mui/material/TextField";
 
 export function CreateInternalAwsLambdaUserRolesActionAreaCardWrapper(props: any) {
     const { activeStep } = props;
@@ -35,12 +37,44 @@ export function InternalLambdaUserRolePolicySetup() {
 
     const handleCreateUser = async () => {
         try {
+            setRequestStatus('pending');
             const creds = {accessKeyId: accessKey, secretAccessKey: secretKey};
             const response = await awsApiGateway.createInternalLambdaUser(creds);
-            console.log("response", response);
+            if (response.status === 200) {
+                setRequestStatus('success');
+            } else {
+                setRequestStatus('error');
+            }
         } catch (error) {
+            setRequestStatus('error');
             console.log("error", error);
         }};
+
+    let buttonLabel;
+    let buttonDisabled;
+    let statusMessage;
+    const [requestStatus, setRequestStatus] = useState('');
+
+    switch (requestStatus) {
+        case 'pending':
+            buttonLabel = <CircularProgress size={20} />;
+            buttonDisabled = true;
+            break;
+        case 'success':
+            buttonLabel = 'Created successfully';
+            buttonDisabled = true;
+            statusMessage = 'User and role policy created successfully!';
+            break;
+        case 'error':
+            buttonLabel = 'Error creating user';
+            buttonDisabled = false;
+            statusMessage = 'An error occurred while creating the user.';
+            break;
+        default:
+            buttonLabel = 'Create';
+            buttonDisabled = false;
+            break;
+    }
 
     return (
         <Card sx={{ maxWidth: 400 }}>
@@ -52,9 +86,24 @@ export function InternalLambdaUserRolePolicySetup() {
                     Creates a new user and role policy for your own internal usage, e.g. for running, testing, development, etc.
                 </Typography>
             </CardContent>
+            <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="internalLambdaUser"
+                label="internalLambdaUser"
+                name="internalLambdaUser"
+                value={"internalLambdaUser"}
+                autoFocus
+            />
             <CardActions>
-                <Button size="small" onClick={handleCreateUser}>Create</Button>
+                <Button size="small" onClick={handleCreateUser} disabled={buttonDisabled}>{buttonLabel}</Button>
             </CardActions>
+            {statusMessage && (
+                <Typography variant="body2" color={requestStatus === 'error' ? 'error' : 'success'}>
+                    {statusMessage}
+                </Typography>
+            )}
         </Card>
     );
 }

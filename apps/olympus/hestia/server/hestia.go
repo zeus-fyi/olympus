@@ -133,7 +133,7 @@ func Hestia() {
 		}))
 	} else {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-			AllowOrigins:     []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi"},
+			AllowOrigins:     []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi"},
 			AllowMethods:     []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
 			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "Access-Control-Allow-Headers", "X-CSRF-Token", "Accept-Encoding"},
 			AllowCredentials: true,

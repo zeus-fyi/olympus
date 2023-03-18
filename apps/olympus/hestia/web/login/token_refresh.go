@@ -57,7 +57,7 @@ func (l *TokenRefreshRequest) RefreshToken(c echo.Context) error {
 	//	Path:     "/",
 	//	HttpOnly: true,
 	//	Secure:   true,
-	//	SameSite: http.SameSiteLaxMode,
+	//	SameSite: http.SameSiteNoneMode,
 	//}
 	//c.SetCookie(cookie)
 	return c.JSON(http.StatusOK, resp)

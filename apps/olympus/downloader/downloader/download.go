@@ -51,6 +51,8 @@ func ChainDownload(ctx context.Context) {
 			err := errors.New("invalid client workload type")
 			log.Ctx(ctx).Err(err)
 		}
+	case hestia_req_types.EthereumGoerliProtocolNetworkID:
+		// TODO
 	case hestia_req_types.EthereumEphemeryProtocolNetworkID:
 	default:
 		err := errors.New("invalid or unsupported protocol network id")

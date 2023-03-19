@@ -352,7 +352,6 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 				tmp.SkeletonBases["lighthouseAthenaValidatorClient"] = tmpSb
 			} else if k == "validatorClientsSecondary" {
 				tmpStsCfgOverride := stsCfgOverrideSecondary
-				tmpStsCfgOverride.ContainerDrivers = vcContDriver
 				sb := tmp.SkeletonBases["lighthouseAthenaValidatorClientSecondary"]
 				tmpSb := sb
 				tmpSb.TopologyConfigDriver = &cfgOverride

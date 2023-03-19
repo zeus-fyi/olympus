@@ -102,6 +102,8 @@ func Hydra() {
 			log.Fatal().Err(err).Msgf("Hydra: %s ArtemisEthereumValidatorSignatureRequestsEphemeryWorkerSecondary.Worker.Start failed", env)
 			misc.DelayedPanic(err)
 		}
+	case Goerli:
+		// Not needed anymore
 	default:
 		panic("unknown network")
 	}

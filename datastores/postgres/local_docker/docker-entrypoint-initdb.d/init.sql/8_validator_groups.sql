@@ -21,4 +21,5 @@ CREATE TABLE "public"."validators_service_org_groups_cloud_ctx_ns" (
 );
 
 ALTER TABLE "public"."validators_service_org_groups_cloud_ctx_ns" ADD CONSTRAINT "validators_service_org_groups_cloud_ctx_ns_pk" PRIMARY KEY ("pubkey", "cloud_ctx_ns_id");
+ALTER TABLE "public"."validators_service_org_groups_cloud_ctx_ns" ADD CONSTRAINT "validators_service_org_groups_cloud_ctx_ns_pubkey_uniq" UNIQUE ("pubkey");
 

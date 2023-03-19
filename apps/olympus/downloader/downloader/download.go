@@ -14,16 +14,17 @@ import (
 func ChainDownload(ctx context.Context) {
 	log.Info().Msg("DownloadChainSnapshotRequest: Download Sync Starting")
 	pos := poseidon.NewPoseidon(athena.AthenaS3Manager)
-
+	network := hestia_req_types.ProtocolNetworkIDToString(Workload.ProtocolNetworkID)
+	log.Ctx(ctx).Info().Interface("network", network).Msg("DownloadChainSnapshotRequest: Downloading Chain Snapshot")
 	switch Workload.ProtocolNetworkID {
-	case hestia_req_types.EthereumMainnetProtocolNetworkID:
+	case hestia_req_types.EthereumMainnetProtocolNetworkID, hestia_req_types.EthereumGoerliProtocolNetworkID:
 		switch Workload.WorkloadType {
 		case "beaconExecClient":
 			switch Workload.ClientName {
 			case "geth":
 				log.Ctx(ctx).Info().Msg("DownloadChainSnapshotRequest: Geth Sync Starting")
 				// TODO, unsure if always downloading to resync beacon is an issue or not
-				b := poseidon_buckets.GethMainnetBucket
+				b := poseidon_buckets.GethBucket(network)
 				err := pos.SyncDownload(ctx, b)
 				if err != nil {
 					log.Ctx(ctx).Err(err)
@@ -37,7 +38,7 @@ func ChainDownload(ctx context.Context) {
 			switch Workload.ClientName {
 			case "lighthouse":
 				log.Ctx(ctx).Info().Msg("DownloadChainSnapshotRequest: Lighthouse Sync Starting")
-				b := poseidon_buckets.LighthouseMainnetBucket
+				b := poseidon_buckets.LighthouseBucket(network)
 				err := pos.SyncDownload(ctx, b)
 				if err != nil {
 					log.Ctx(ctx).Err(err)
@@ -51,8 +52,6 @@ func ChainDownload(ctx context.Context) {
 			err := errors.New("invalid client workload type")
 			log.Ctx(ctx).Err(err)
 		}
-	case hestia_req_types.EthereumGoerliProtocolNetworkID:
-		// TODO
 	case hestia_req_types.EthereumEphemeryProtocolNetworkID:
 	default:
 		err := errors.New("invalid or unsupported protocol network id")

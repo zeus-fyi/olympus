@@ -78,10 +78,17 @@ func (t *AegisCookbookTestSuite) TestHydraSecretsCopy() {
 		cd.CloudCtxNs.Namespace = mainnetNamespace
 		cd.ClusterClassName = "hydraMainnet"
 	*/
+
 	hydraCtxNsTop := kns.TopologyKubeCtxNs{
 		TopologyID: 0,
 		CloudCtxNs: olympus_hydra_cookbooks.ValidatorCloudCtxNs,
 	}
+	/*
+		for goerli
+		hydraCtxNsTop.Namespace = "goerli-staking"
+		cd.ClusterClassName = "hydraGoerli"
+	*/
+
 	req := internal_reqs.InternalSecretsCopyFromTo{
 		SecretNames: []string{s1, s2, s3},
 		FromKns: kns.TopologyKubeCtxNs{

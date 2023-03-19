@@ -1,20 +1,23 @@
 package olympus_beacon_cookbooks
 
 import (
+	"fmt"
+
 	olympus_hydra_choreography_cookbooks "github.com/zeus-fyi/olympus/cookbooks/olympus/ethereum/hydra/choreography"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
 	zeus_cluster_config_drivers "github.com/zeus-fyi/zeus/pkg/zeus/cluster_config_drivers"
 	zeus_topology_config_drivers "github.com/zeus-fyi/zeus/pkg/zeus/workload_config_drivers"
 	v1Core "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
+	athena                = "athena"
 	consensusClient       = "zeus-consensus-client"
 	execClient            = "zeus-exec-client"
-	lighthouseDockerImage = "sigp/lighthouse:v3.5.0"
+	lighthouseDockerImage = "sigp/lighthouse:v3.5.1"
 	gethDockerImage       = "ethereum/client-go:v1.11.2"
 	initSnapshots         = "init-snapshots"
 )
@@ -22,101 +25,34 @@ const (
 var (
 	EphemeralBeaconBaseClusterDefinition = zeus_cluster_config_drivers.ClusterDefinition{
 		ClusterClassName: "ethereumEphemeralAthenaBeacon",
-		CloudCtxNs:       EphemeralAthenaBeaconCloudCtxNs,
+		CloudCtxNs:       GetBeaconCloudCtxNs(hestia_req_types.Ephemery),
 		ComponentBases: map[string]zeus_cluster_config_drivers.ComponentBaseDefinition{
-			"consensusClients":  ConsensusClientComponentBase,
-			"execClients":       ExecClientComponentBase,
+			"consensusClients":  GetConsensusClientComponentBaseConfig(hestia_req_types.Ephemery),
+			"execClients":       GetExecClientComponentBaseConfig(hestia_req_types.Ephemery),
+			"hydraChoreography": olympus_hydra_choreography_cookbooks.HydraChoreographyComponentBase,
+		},
+	}
+	GoerliBeaconBaseClusterDefinition = zeus_cluster_config_drivers.ClusterDefinition{
+		ClusterClassName: "ethereumGoerliAthenaBeacon",
+		CloudCtxNs:       GetBeaconCloudCtxNs(hestia_req_types.Goerli),
+		ComponentBases: map[string]zeus_cluster_config_drivers.ComponentBaseDefinition{
+			"consensusClients":  GetConsensusClientComponentBaseConfig(hestia_req_types.Goerli),
+			"execClients":       GetExecClientComponentBaseConfig(hestia_req_types.Goerli),
 			"hydraChoreography": olympus_hydra_choreography_cookbooks.HydraChoreographyComponentBase,
 		},
 	}
 	MainnetBeaconBaseClusterDefinition = zeus_cluster_config_drivers.ClusterDefinition{
 		ClusterClassName: "ethereumMainnetAthenaBeacon",
-		CloudCtxNs:       MainnetAthenaBeaconCloudCtxNs,
+		CloudCtxNs:       GetBeaconCloudCtxNs(hestia_req_types.Mainnet),
 		ComponentBases: map[string]zeus_cluster_config_drivers.ComponentBaseDefinition{
-			"consensusClients":  ConsensusClientComponentBaseMainnet,
-			"execClients":       ExecClientComponentBaseMainnet,
+			"consensusClients":  GetConsensusClientComponentBaseConfig(hestia_req_types.Mainnet),
+			"execClients":       GetExecClientComponentBaseConfig(hestia_req_types.Mainnet),
 			"hydraChoreography": olympus_hydra_choreography_cookbooks.HydraChoreographyComponentBase,
 		},
-	}
-	ConsensusClientComponentBaseMainnet = zeus_cluster_config_drivers.ComponentBaseDefinition{
-		SkeletonBases: map[string]zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
-			"lighthouseAthena": ConsensusClientSkeletonBaseConfigMainnet,
-		},
-	}
-	ConsensusClientSkeletonBaseConfigMainnet = zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
-		SkeletonBaseChart:         zeus_req_types.TopologyCreateRequest{},
-		SkeletonBaseNameChartPath: ConsensusClientChartPath,
-		TopologyConfigDriver: &zeus_topology_config_drivers.TopologyConfigDriver{
-			ConfigMapDriver: &zeus_topology_config_drivers.ConfigMapDriver{
-				ConfigMap: v1Core.ConfigMap{
-					ObjectMeta: metav1.ObjectMeta{Name: "cm-consensus-client"},
-				},
-			},
-			StatefulSetDriver: &zeus_topology_config_drivers.StatefulSetDriver{
-				ContainerDrivers: map[string]zeus_topology_config_drivers.ContainerDriver{
-					consensusClient: {Container: v1Core.Container{
-						Name:  consensusClient,
-						Image: lighthouseDockerImage,
-						Args:  []string{"-c", "/scripts/lighthouse.sh"},
-						Env:   ClusterConfigEnvVars(nil, "mainnet"),
-					}},
-					initSnapshots: {Container: v1Core.Container{
-						Name: initSnapshots,
-						Env:  ClusterConfigEnvVars(nil, "mainnet"),
-					}},
-				},
-			},
-		}}
-
-	MainnetAthenaBeaconCloudCtxNs = zeus_common_types.CloudCtxNs{
-		CloudProvider: "do",
-		Region:        "sfo3",
-		Context:       "do-sfo3-dev-do-sfo3-zeus",
-		Namespace:     "athena-beacon-mainnet", // set with your own namespace
-		Env:           "production",
-	}
-	EphemeralAthenaBeaconCloudCtxNs = zeus_common_types.CloudCtxNs{
-		CloudProvider: "do",
-		Region:        "sfo3",
-		Context:       "do-sfo3-dev-do-sfo3-zeus",
-		Namespace:     "athena-beacon-ephemeral", // set with your own namespace
-		Env:           "production",
 	}
 	ConsensusClientComponentBase = zeus_cluster_config_drivers.ComponentBaseDefinition{
 		SkeletonBases: map[string]zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
 			"lighthouseAthena": ConsensusClientSkeletonBaseConfig,
-		},
-	}
-	ExecClientComponentBaseMainnet = zeus_cluster_config_drivers.ComponentBaseDefinition{
-		SkeletonBases: map[string]zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
-			"gethAthena": ExecClientSkeletonBaseConfigMainnet,
-		},
-	}
-	ExecClientSkeletonBaseConfigMainnet = zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
-		SkeletonBaseChart:         zeus_req_types.TopologyCreateRequest{},
-		SkeletonBaseNameChartPath: ExecClientChartPath,
-		TopologyConfigDriver: &zeus_topology_config_drivers.TopologyConfigDriver{
-			ConfigMapDriver: &zeus_topology_config_drivers.ConfigMapDriver{
-				ConfigMap: v1Core.ConfigMap{
-					ObjectMeta: metav1.ObjectMeta{Name: "cm-exec-client"},
-				},
-			},
-			StatefulSetDriver: &zeus_topology_config_drivers.StatefulSetDriver{
-				ContainerDrivers: map[string]zeus_topology_config_drivers.ContainerDriver{
-					execClient: {
-						Container: v1Core.Container{
-							Name:  execClient,
-							Image: gethDockerImage,
-							Args:  []string{"-c", "/scripts/geth.sh"},
-							Env:   ClusterConfigEnvVars(nil, "mainnet"),
-						},
-					},
-					initSnapshots: {Container: v1Core.Container{
-						Name: initSnapshots,
-						Env:  ClusterConfigEnvVars(nil, "mainnet"),
-					}},
-				},
-			},
 		},
 	}
 	ConsensusClientSkeletonBaseConfig = zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
@@ -136,7 +72,6 @@ var (
 			"gethAthena": ExecClientSkeletonBaseConfig,
 		},
 	}
-
 	ExecClientSkeletonBaseConfig = zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
 		SkeletonBaseChart:         zeus_req_types.TopologyCreateRequest{},
 		SkeletonBaseNameChartPath: ExecClientChartPath,
@@ -150,3 +85,102 @@ var (
 		Env:         "",
 	}
 )
+
+func GetBeaconCloudCtxNs(network string) zeus_common_types.CloudCtxNs {
+	beaconCloudCtxNs := zeus_common_types.CloudCtxNs{
+		CloudProvider: "do",
+		Region:        "sfo3",
+		Context:       "do-sfo3-dev-do-sfo3-zeus",
+		Namespace:     fmt.Sprintf("athena-beacon-%s", network), // set with your own namespace
+		Env:           "production",
+	}
+	return beaconCloudCtxNs
+}
+
+func GetConsensusClientComponentBaseConfig(network string) zeus_cluster_config_drivers.ComponentBaseDefinition {
+	return zeus_cluster_config_drivers.ComponentBaseDefinition{
+		SkeletonBases: map[string]zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
+			"lighthouseAthena": GetConsensusClientSkeletonBase(network),
+		},
+	}
+}
+
+func GetConsensusClientSkeletonBase(network string) zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition {
+	args := []string{"-c", "/scripts/lighthouse.sh"}
+	switch network {
+	case hestia_req_types.Goerli:
+		args = []string{"-c", "/scripts/lighthouseGoerliBeacon.sh"}
+	}
+	sbCfg := zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
+		SkeletonBaseChart:         zeus_req_types.TopologyCreateRequest{},
+		SkeletonBaseNameChartPath: ConsensusClientChartPath,
+		TopologyConfigDriver: &zeus_topology_config_drivers.TopologyConfigDriver{
+			StatefulSetDriver: &zeus_topology_config_drivers.StatefulSetDriver{
+				ContainerDrivers: map[string]zeus_topology_config_drivers.ContainerDriver{
+					athena: {
+						Container: v1Core.Container{
+							Env: ClusterConfigEnvVars(nil, network),
+						},
+					},
+					consensusClient: {
+						Container: v1Core.Container{
+							Name:  consensusClient,
+							Image: lighthouseDockerImage,
+							Args:  args,
+							Env:   ClusterConfigEnvVars(nil, network),
+						},
+					},
+					initSnapshots: {Container: v1Core.Container{
+						Name: initSnapshots,
+						Env:  ClusterConfigEnvVars(nil, network),
+					}},
+				},
+			},
+		},
+	}
+	return sbCfg
+}
+
+func GetExecClientComponentBaseConfig(network string) zeus_cluster_config_drivers.ComponentBaseDefinition {
+	return zeus_cluster_config_drivers.ComponentBaseDefinition{
+		SkeletonBases: map[string]zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
+			"gethAthena": GetExecClientSkeletonBase(network),
+		},
+	}
+}
+
+func GetExecClientSkeletonBase(network string) zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition {
+	args := []string{"-c", "/scripts/geth.sh"}
+	switch network {
+	case hestia_req_types.Goerli:
+		args = []string{"-c", "/scripts/gethGoerli.sh"}
+	}
+	sbCfg := zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
+		SkeletonBaseChart:         zeus_req_types.TopologyCreateRequest{},
+		SkeletonBaseNameChartPath: ExecClientChartPath,
+		TopologyConfigDriver: &zeus_topology_config_drivers.TopologyConfigDriver{
+			StatefulSetDriver: &zeus_topology_config_drivers.StatefulSetDriver{
+				ContainerDrivers: map[string]zeus_topology_config_drivers.ContainerDriver{
+					athena: {
+						Container: v1Core.Container{
+							Env: ClusterConfigEnvVars(nil, network),
+						},
+					},
+					execClient: {
+						Container: v1Core.Container{
+							Name:  execClient,
+							Image: gethDockerImage,
+							Args:  args,
+							Env:   ClusterConfigEnvVars(nil, network),
+						},
+					},
+					initSnapshots: {Container: v1Core.Container{
+						Name: initSnapshots,
+						Env:  ClusterConfigEnvVars(nil, network),
+					}},
+				},
+			},
+		},
+	}
+	return sbCfg
+}

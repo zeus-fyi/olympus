@@ -1,19 +1,20 @@
-package olympus_hydra_cookbooks
+package olympus_beacon_cookbooks
 
 import (
 	"fmt"
 
 	olympus_cookbooks "github.com/zeus-fyi/olympus/cookbooks"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
 )
 
-func (t *HydraCookbookTestSuite) TestGoerliClusterDeploy() {
+func (t *BeaconsTestCookbookTestSuite) TestGoerliClusterDeploy() {
 	olympus_cookbooks.ChangeToCookbookDir()
-	cdCfg := HydraClusterConfig(&HydraClusterDefinition, "goerli")
+	cdCfg := GoerliBeaconBaseClusterDefinition
 	//cdCfg.FilterSkeletonBaseUploads = &strings_filter.FilterOpts{
 	//	StartsWith: "light",
 	//}
-	t.Require().Equal("goerli-staking", cdCfg.CloudCtxNs.Namespace)
+	t.Require().Equal("athena-beacon-goerli", cdCfg.CloudCtxNs.Namespace)
 	_, err := cdCfg.UploadChartsFromClusterDefinition(ctx, t.ZeusTestClient, true)
 	t.Require().Nil(err)
 
@@ -22,36 +23,33 @@ func (t *HydraCookbookTestSuite) TestGoerliClusterDeploy() {
 	t.Require().Nil(err)
 }
 
-func (t *HydraCookbookTestSuite) TestGoerliClusterDestroy() {
+func (t *BeaconsTestCookbookTestSuite) TestGoerliClusterDestroy() {
 	d := zeus_req_types.TopologyDeployRequest{
-		CloudCtxNs: ValidatorCloudCtxNs,
+		CloudCtxNs: GetBeaconCloudCtxNs(hestia_req_types.Goerli),
 	}
 	resp, err := t.ZeusTestClient.DestroyDeploy(ctx, d)
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(resp)
 }
 
-func (t *HydraCookbookTestSuite) TestGoerliClusterSetup() {
+func (t *BeaconsTestCookbookTestSuite) TestGoerliClusterSetup() {
 	olympus_cookbooks.ChangeToCookbookDir()
 
-	cd := HydraClusterConfig(&HydraClusterDefinition, "goerli")
-	gcd := cd.BuildClusterDefinitions()
+	gcd := GoerliBeaconBaseClusterDefinition.BuildClusterDefinitions()
 	t.Assert().NotEmpty(gcd)
 	fmt.Println(gcd)
 
-	gdr := cd.GenerateDeploymentRequest()
+	gdr := GoerliBeaconBaseClusterDefinition.GenerateDeploymentRequest()
 	t.Assert().NotEmpty(gdr)
 	fmt.Println(gdr)
 
-	sbDefs, err := cd.GenerateSkeletonBaseCharts()
+	sbDefs, err := GoerliBeaconBaseClusterDefinition.GenerateSkeletonBaseCharts()
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(sbDefs)
 }
 
-func (t *HydraCookbookTestSuite) TestGoerliClusterRegisterDefinitions() {
-	cdCfg := HydraClusterConfig(&HydraClusterDefinition, "goerli")
-	cd := cdCfg.BuildClusterDefinitions()
-
+func (t *BeaconsTestCookbookTestSuite) TestGoerliClusterRegisterDefinitions() {
+	cd := GoerliBeaconBaseClusterDefinition.BuildClusterDefinitions()
 	err := cd.CreateClusterClassDefinitions(ctx, t.ZeusTestClient)
 	t.Require().Nil(err)
 }

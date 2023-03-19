@@ -197,7 +197,7 @@ const HydraAddress = "http://zeus-hydra:9000"
 func SelectValidatorsAssignedToCloudCtxNs(ctx context.Context, validatorServiceInfo ValidatorServiceCloudCtxNsProtocol, cloudCtxNs zeus_common_types.CloudCtxNs) ([]ethereum_web3signer_actions.LighthouseWeb3SignerRequest, error) {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `	
-				  SELECT vsg.pubkey, vsg.fee_recipient
+				  SELECT vsg.enabled, vsg.pubkey, vsg.fee_recipient, vsg.mev_enabled
 				  FROM validators_service_org_groups_cloud_ctx_ns vctx
 				  INNER JOIN topologies_org_cloud_ctx_ns topctx ON topctx.cloud_ctx_ns_id = vctx.cloud_ctx_ns_id
 				  INNER JOIN validators_service_org_groups vsg ON vsg.pubkey = vctx.pubkey
@@ -212,13 +212,17 @@ func SelectValidatorsAssignedToCloudCtxNs(ctx context.Context, validatorServiceI
 	defer rows.Close()
 	for rows.Next() {
 		w3rs := ethereum_web3signer_actions.LighthouseWeb3SignerRequest{
-			Enabled: true,
-			Type:    ethereum_web3signer_actions.Web3SignerType,
-			Url:     HydraAddress,
+			Type: ethereum_web3signer_actions.Web3SignerType,
+			Url:  HydraAddress,
 		}
 		rowErr := rows.Scan(
-			&w3rs.VotingPublicKey, &w3rs.SuggestedFeeRecipient,
+			&w3rs.Enabled, &w3rs.VotingPublicKey, &w3rs.SuggestedFeeRecipient, &w3rs.BuilderProposals,
 		)
+		// No mev for ephemery
+		if validatorServiceInfo.ProtocolNetworkID == hestia_req_types.EthereumEphemeryProtocolNetworkID {
+			w3rs.BuilderProposals = false
+		}
+		w3rs.Graffiti = "zeusFyiServerlessValidators"
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader(ModelName))
 			return nil, rowErr

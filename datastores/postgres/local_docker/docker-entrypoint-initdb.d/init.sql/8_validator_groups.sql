@@ -5,6 +5,7 @@ CREATE TABLE "public"."validators_service_org_groups" (
     "protocol_network_id" int8 NOT NULL REFERENCES protocol_networks(protocol_network_id) DEFAULT 1,
     "fee_recipient" text NOT NULL,
     "enabled" bool NOT NULL DEFAULT false,
+    "mev_enabled" bool NOT NULL DEFAULT true,
     "service_url" text NOT NULL
 );
 

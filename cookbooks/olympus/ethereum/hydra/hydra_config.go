@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	olympus_common_vals_cookbooks "github.com/zeus-fyi/olympus/cookbooks/olympus/common"
+	olympus_ethereum_mev_cookbooks "github.com/zeus-fyi/olympus/cookbooks/olympus/ethereum/mev"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	zeus_cluster_config_drivers "github.com/zeus-fyi/zeus/pkg/zeus/cluster_config_drivers"
 	zeus_topology_config_drivers "github.com/zeus-fyi/zeus/pkg/zeus/workload_config_drivers"
@@ -13,6 +14,9 @@ import (
 )
 
 const (
+	HydraMainnet    = "hydraMainnet"
+	HydraGoerli     = "hydraGoerli"
+	HydraEphemery   = "hydraEphemery"
 	consensusClient = "zeus-consensus-client"
 	execClient      = "zeus-exec-client"
 	validatorClient = "zeus-hydra-validators"
@@ -157,11 +161,12 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 	switch network {
 	case "mainnet":
 		cd.CloudCtxNs.Namespace = mainnetNamespace
-		cd.ClusterClassName = "hydraMainnet"
+		cd.ClusterClassName = HydraMainnet
+		cd.ComponentBases["mev"] = olympus_ethereum_mev_cookbooks.MevCbCfgMainnet()
 	case "goerli":
 		cd.CloudCtxNs.Namespace = goerliNamespace
-		cd.ClusterClassName = "hydraGoerli"
-
+		cd.ClusterClassName = HydraGoerli
+		cd.ComponentBases["mev"] = olympus_ethereum_mev_cookbooks.MevCbCfgGoerli()
 		rrCC = v1.ResourceRequirements{
 			Limits: v1.ResourceList{
 				"cpu":    resource.MustParse(consensusClientGoerliRequestLimitCPU),
@@ -226,17 +231,11 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 				Args:  []string{"-c", "/scripts/lighthouseGoerli" + ".sh"},
 			}},
 		}
-		ecCmDriver = zeus_topology_config_drivers.ConfigMapDriver{
-			ConfigMap: v1.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{Name: cmExecClient},
-			},
-		}
 		containCfgBeaconConsensusClient = zeus_topology_config_drivers.ContainerDriver{
 			Container: v1.Container{
 				Resources: rrCC,
 			},
 		}
-
 		containCfgBeaconExecClient = zeus_topology_config_drivers.ContainerDriver{
 			Container: v1.Container{
 				Resources: rrEC,
@@ -252,7 +251,7 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 		stsCfgOverrideSecondary.ContainerDrivers[validatorClient] = vcContDriver[validatorClient]
 	case "ephemery":
 		cd.CloudCtxNs.Namespace = ephemeryNamespace
-		cd.ClusterClassName = "hydraEphemery"
+		cd.ClusterClassName = HydraEphemery
 
 		rrCC = v1.ResourceRequirements{
 			Limits: v1.ResourceList{

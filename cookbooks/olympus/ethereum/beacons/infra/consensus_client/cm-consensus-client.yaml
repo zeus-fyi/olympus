@@ -44,6 +44,7 @@ data:
     #!/bin/sh
     exec lighthouse beacon_node \
               --network=goerli \
+              --builder="http://zeus-mev:18550" \
               --log-format=JSON \
               --datadir=/data \
               --enr-tcp-port=9000 \

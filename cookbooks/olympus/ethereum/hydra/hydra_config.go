@@ -15,6 +15,7 @@ import (
 const (
 	consensusClient = "zeus-consensus-client"
 	execClient      = "zeus-exec-client"
+	validatorClient = "zeus-hydra-validators"
 
 	protocolNetworkKeyEnv = "PROTOCOL_NETWORK_ID"
 	ephemeryNamespace     = "ephemeral-staking"
@@ -72,7 +73,14 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 	var rrCC v1.ResourceRequirements
 	var rrEC v1.ResourceRequirements
 	var hydraRR v1.ResourceRequirements
-
+	switch network {
+	case "mainnet":
+		envVar = HydraContainer.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumMainnetProtocolNetworkID))
+	case "goerli":
+		envVar = HydraContainer.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumGoerliProtocolNetworkID))
+	case "ephemery":
+		envVar = HydraContainer.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumEphemeryProtocolNetworkID))
+	}
 	hydraRR = v1.ResourceRequirements{
 		Limits: v1.ResourceList{
 			"cpu":    resource.MustParse(hydraClientEphemeralRequestCPU),
@@ -88,19 +96,71 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 	var pvcEC *zeus_topology_config_drivers.PersistentVolumeClaimsConfigDriver
 	var ccContDriver = map[string]zeus_topology_config_drivers.ContainerDriver{}
 	var ecContDriver = map[string]zeus_topology_config_drivers.ContainerDriver{}
+	var vcContDriver = map[string]zeus_topology_config_drivers.ContainerDriver{}
 	var ccCmDriver = zeus_topology_config_drivers.ConfigMapDriver{}
 	var ecCmDriver = zeus_topology_config_drivers.ConfigMapDriver{}
+
+	depCfgOverride := zeus_topology_config_drivers.DeploymentDriver{}
+	depCfgOverride.ContainerDrivers = make(map[string]zeus_topology_config_drivers.ContainerDriver)
+	stsCfgOverride := zeus_topology_config_drivers.StatefulSetDriver{}
+	stsCfgOverride.ContainerDrivers = make(map[string]zeus_topology_config_drivers.ContainerDriver)
+	stsCfgOverrideSecondary := zeus_topology_config_drivers.StatefulSetDriver{}
+	stsCfgOverrideSecondary.ContainerDrivers = make(map[string]zeus_topology_config_drivers.ContainerDriver)
+
+	envVarsChoreography := olympus_common_vals_cookbooks.GetChoreographyEnvVars()
+	internalAuthEnvVars := olympus_common_vals_cookbooks.GetCommonInternalAuthEnvVars()
+	combinedEnvVars := append(envVarsChoreography, internalAuthEnvVars...)
+	combinedEnvVars = append(combinedEnvVars, envVar)
+
+	containCfg := zeus_topology_config_drivers.ContainerDriver{}
+	containCfgBeaconConsensusClient := zeus_topology_config_drivers.ContainerDriver{}
+	containCfgBeaconExecClient := zeus_topology_config_drivers.ContainerDriver{}
+	containCfg.Env = combinedEnvVars
+	containCfgSecondary := containCfg
+	rcSecondary := v1.EnvVar{
+		Name:  "REPLICA_COUNT",
+		Value: "1",
+	}
+	containCfgSecondary.AppendEnvVars = []v1.EnvVar{rcSecondary}
+
+	rcPrimary := v1.EnvVar{
+		Name:  "REPLICA_COUNT",
+		Value: "0",
+	}
+	containCfg.AppendEnvVars = []v1.EnvVar{rcPrimary}
+
+	containCfgHydraClient := zeus_topology_config_drivers.ContainerDriver{
+		Container: v1.Container{
+			Resources: hydraRR,
+			Env:       combinedEnvVars,
+		},
+	}
+
+	// deployments
+	depCfgOverride.ContainerDrivers["hydra"] = containCfgHydraClient
+	depCfgOverride.ContainerDrivers["zeus-hydra-choreography"] = containCfg
+	depCfgOverride.ContainerDrivers["athena"] = containCfg
+
+	// statefulsets
+	stsCfgOverride.ContainerDrivers["athena"] = containCfg
+	stsCfgOverride.ContainerDrivers["zeus-consensus-client"] = containCfgBeaconConsensusClient
+	stsCfgOverride.ContainerDrivers["zeus-exec-client"] = containCfgBeaconExecClient
+	stsCfgOverride.ContainerDrivers["init-validators"] = containCfg
+	stsCfgOverride.ContainerDrivers["init-snapshots"] = containCfg
+
+	stsCfgOverrideSecondary.ContainerDrivers["athena"] = containCfgSecondary
+	stsCfgOverrideSecondary.ContainerDrivers["zeus-consensus-client"] = containCfgBeaconConsensusClient
+	stsCfgOverrideSecondary.ContainerDrivers["zeus-exec-client"] = containCfgBeaconExecClient
+	stsCfgOverrideSecondary.ContainerDrivers["init-validators"] = containCfgSecondary
+	stsCfgOverrideSecondary.ContainerDrivers["init-snapshots"] = containCfgSecondary
 
 	switch network {
 	case "mainnet":
 		cd.CloudCtxNs.Namespace = mainnetNamespace
 		cd.ClusterClassName = "hydraMainnet"
-		envVar = HydraContainer.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumMainnetProtocolNetworkID))
 	case "goerli":
 		cd.CloudCtxNs.Namespace = goerliNamespace
-		envVar = HydraContainer.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumGoerliProtocolNetworkID))
 		cd.ClusterClassName = "hydraGoerli"
-		envVar = HydraContainer.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumEphemeryProtocolNetworkID))
 
 		rrCC = v1.ResourceRequirements{
 			Limits: v1.ResourceList{
@@ -144,34 +204,55 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 			consensusClient: {Container: v1.Container{
 				Name:  consensusClient,
 				Image: lighthouseDockerImage,
+				Env:   combinedEnvVars,
+				Args:  []string{"-c", "/scripts/lighthouseGoerli" + ".sh"},
 			}},
 		}
+
 		ecContDriver = map[string]zeus_topology_config_drivers.ContainerDriver{
 			execClient: {Container: v1.Container{
 				Name:  execClient,
 				Image: gethDockerImage,
+				Env:   combinedEnvVars,
+				Args:  []string{"-c", "/scripts/gethGoerli" + ".sh"},
 			}},
 		}
-		ccCmDriver = zeus_topology_config_drivers.ConfigMapDriver{
-			ConfigMap: v1.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{Name: cmConsensusClient},
-			},
-			SwapKeys: map[string]string{
-				"start.sh": "lighthouseGoerli" + ".sh",
-			},
+
+		vcContDriver = map[string]zeus_topology_config_drivers.ContainerDriver{
+			validatorClient: {Container: v1.Container{
+				Name:  validatorClient,
+				Image: lighthouseDockerImage,
+				Env:   combinedEnvVars,
+				Args:  []string{"-c", "/scripts/lighthouseGoerli" + ".sh"},
+			}},
 		}
 		ecCmDriver = zeus_topology_config_drivers.ConfigMapDriver{
 			ConfigMap: v1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{Name: cmExecClient},
 			},
-			SwapKeys: map[string]string{
-				"start.sh": "gethGoerli" + ".sh",
+		}
+		containCfgBeaconConsensusClient = zeus_topology_config_drivers.ContainerDriver{
+			Container: v1.Container{
+				Resources: rrCC,
 			},
 		}
+
+		containCfgBeaconExecClient = zeus_topology_config_drivers.ContainerDriver{
+			Container: v1.Container{
+				Resources: rrEC,
+			},
+		}
+		stsCfgOverride.ContainerDrivers[execClient] = ecContDriver[execClient]
+		stsCfgOverrideSecondary.ContainerDrivers[execClient] = ecContDriver[execClient]
+
+		stsCfgOverride.ContainerDrivers[consensusClient] = ccContDriver[consensusClient]
+		stsCfgOverrideSecondary.ContainerDrivers[consensusClient] = ccContDriver[consensusClient]
+
+		stsCfgOverride.ContainerDrivers[validatorClient] = vcContDriver[validatorClient]
+		stsCfgOverrideSecondary.ContainerDrivers[validatorClient] = vcContDriver[validatorClient]
 	case "ephemery":
 		cd.CloudCtxNs.Namespace = ephemeryNamespace
 		cd.ClusterClassName = "hydraEphemery"
-		envVar = HydraContainer.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumEphemeryProtocolNetworkID))
 
 		rrCC = v1.ResourceRequirements{
 			Limits: v1.ResourceList{
@@ -211,72 +292,17 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 					}},
 				},
 			}}
+		containCfgBeaconConsensusClient = zeus_topology_config_drivers.ContainerDriver{
+			Container: v1.Container{
+				Resources: rrCC,
+			},
+		}
+		containCfgBeaconExecClient = zeus_topology_config_drivers.ContainerDriver{
+			Container: v1.Container{
+				Resources: rrEC,
+			},
+		}
 	}
-
-	depCfgOverride := zeus_topology_config_drivers.DeploymentDriver{}
-	depCfgOverride.ContainerDrivers = make(map[string]zeus_topology_config_drivers.ContainerDriver)
-	stsCfgOverride := zeus_topology_config_drivers.StatefulSetDriver{}
-	stsCfgOverride.ContainerDrivers = make(map[string]zeus_topology_config_drivers.ContainerDriver)
-	stsCfgOverrideSecondary := zeus_topology_config_drivers.StatefulSetDriver{}
-	stsCfgOverrideSecondary.ContainerDrivers = make(map[string]zeus_topology_config_drivers.ContainerDriver)
-
-	envVarsChoreography := olympus_common_vals_cookbooks.GetChoreographyEnvVars()
-	internalAuthEnvVars := olympus_common_vals_cookbooks.GetCommonInternalAuthEnvVars()
-	combinedEnvVars := append(envVarsChoreography, internalAuthEnvVars...)
-	combinedEnvVars = append(combinedEnvVars, envVar)
-
-	containCfg := zeus_topology_config_drivers.ContainerDriver{}
-
-	containCfgBeaconConsensusClient := zeus_topology_config_drivers.ContainerDriver{
-		Container: v1.Container{
-			Resources: rrCC,
-		},
-	}
-
-	containCfgBeaconExecClient := zeus_topology_config_drivers.ContainerDriver{
-		Container: v1.Container{
-			Resources: rrEC,
-		},
-	}
-
-	containCfgHydraClient := zeus_topology_config_drivers.ContainerDriver{
-		Container: v1.Container{
-			Resources: hydraRR,
-			Env:       combinedEnvVars,
-		},
-	}
-
-	containCfg.Env = combinedEnvVars
-	containCfgSecondary := containCfg
-	rcSecondary := v1.EnvVar{
-		Name:  "REPLICA_COUNT",
-		Value: "1",
-	}
-	containCfgSecondary.AppendEnvVars = []v1.EnvVar{rcSecondary}
-
-	rcPrimary := v1.EnvVar{
-		Name:  "REPLICA_COUNT",
-		Value: "0",
-	}
-	containCfg.AppendEnvVars = []v1.EnvVar{rcPrimary}
-
-	// deployments
-	depCfgOverride.ContainerDrivers["hydra"] = containCfgHydraClient
-	depCfgOverride.ContainerDrivers["zeus-hydra-choreography"] = containCfg
-	depCfgOverride.ContainerDrivers["athena"] = containCfg
-
-	// statefulsets
-	stsCfgOverride.ContainerDrivers["athena"] = containCfg
-	stsCfgOverride.ContainerDrivers["zeus-consensus-client"] = containCfgBeaconConsensusClient
-	stsCfgOverride.ContainerDrivers["zeus-exec-client"] = containCfgBeaconExecClient
-	stsCfgOverride.ContainerDrivers["init-validators"] = containCfg
-	stsCfgOverride.ContainerDrivers["init-snapshots"] = containCfg
-
-	stsCfgOverrideSecondary.ContainerDrivers["athena"] = containCfgSecondary
-	stsCfgOverrideSecondary.ContainerDrivers["zeus-consensus-client"] = containCfgBeaconConsensusClient
-	stsCfgOverrideSecondary.ContainerDrivers["zeus-exec-client"] = containCfgBeaconExecClient
-	stsCfgOverrideSecondary.ContainerDrivers["init-validators"] = containCfgSecondary
-	stsCfgOverrideSecondary.ContainerDrivers["init-snapshots"] = containCfgSecondary
 
 	for k, v := range cd.ComponentBases {
 		if k == "hydra" || k == "hydraChoreography" {
@@ -302,7 +328,6 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 			if k == "consensusClients" {
 				tmpStsCfgOverride := stsCfgOverride
 				tmpStsCfgOverride.PVCDriver = pvcCC
-				tmpStsCfgOverride.ContainerDrivers = ccContDriver
 				sb := tmp.SkeletonBases["lighthouseAthena"]
 				tmpSb := sb
 				tmpSb.TopologyConfigDriver = &cfgOverride
@@ -312,7 +337,6 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 			} else if k == "execClients" {
 				tmpStsCfgOverride := stsCfgOverride
 				tmpStsCfgOverride.PVCDriver = pvcEC
-				tmpStsCfgOverride.ContainerDrivers = ecContDriver
 				sb := tmp.SkeletonBases["gethAthena"]
 				tmpSb := sb
 				tmpSb.TopologyConfigDriver = &cfgOverride
@@ -328,6 +352,7 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 				tmp.SkeletonBases["lighthouseAthenaValidatorClient"] = tmpSb
 			} else if k == "validatorClientsSecondary" {
 				tmpStsCfgOverride := stsCfgOverrideSecondary
+				tmpStsCfgOverride.ContainerDrivers = vcContDriver
 				sb := tmp.SkeletonBases["lighthouseAthenaValidatorClientSecondary"]
 				tmpSb := sb
 				tmpSb.TopologyConfigDriver = &cfgOverride

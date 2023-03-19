@@ -11,11 +11,11 @@ func (t *HydraCookbookTestSuite) TestGoerliClusterDeploy() {
 	olympus_cookbooks.ChangeToCookbookDir()
 
 	cdCfg := HydraClusterConfig(&HydraClusterDefinition, "goerli")
+	t.Require().Equal("goerli-staking", cdCfg.CloudCtxNs.Namespace)
 	_, err := cdCfg.UploadChartsFromClusterDefinition(ctx, t.ZeusTestClient, true)
 	t.Require().Nil(err)
 
 	cdep := cdCfg.GenerateDeploymentRequest()
-
 	_, err = t.ZeusTestClient.DeployCluster(ctx, cdep)
 	t.Require().Nil(err)
 }

@@ -31,6 +31,7 @@ var (
 const (
 	Mainnet  = "mainnet"
 	Ephemery = "ephemery"
+	Goerli   = "goerli"
 )
 
 type WorkloadInfo struct {

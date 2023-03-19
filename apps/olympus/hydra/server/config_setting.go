@@ -85,6 +85,9 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	case hestia_req_types.EthereumMainnetProtocolNetworkID:
 		log.Info().Msg("Hydra: ProtocolNetworkID (mainnet)")
 		ethereum_slashing_protection_watermarking.Network = Mainnet
+	case hestia_req_types.EthereumGoerliProtocolNetworkID:
+		log.Info().Msg("Hydra: ProtocolNetworkID (goerli)")
+		ethereum_slashing_protection_watermarking.Network = Goerli
 	default:
 		err := errors.New("invalid or unsupported protocol network id")
 		log.Ctx(ctx).Err(err).Interface("protocol_network_id", Workload.ProtocolNetworkID).Msg("Hydra: ProtocolNetworkID (invalid or unsupported)")

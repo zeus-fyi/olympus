@@ -12,6 +12,7 @@ import (
 	zeus_client_oly "github.com/zeus-fyi/olympus/pkg/zeus/client"
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types/internal_reqs"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	zeus_client "github.com/zeus-fyi/zeus/pkg/zeus/client"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
@@ -40,7 +41,7 @@ func (t *BeaconsTestCookbookTestSuite) TestMainnetClusterDeploy() {
 	s3 := "age-auth"
 	mainnetBeaconCtxNsTop := kns.TopologyKubeCtxNs{
 		TopologyID: 0,
-		CloudCtxNs: MainnetAthenaBeaconCloudCtxNs,
+		CloudCtxNs: GetBeaconCloudCtxNs(hestia_req_types.Mainnet),
 	}
 
 	req := internal_reqs.InternalSecretsCopyFromTo{
@@ -64,7 +65,7 @@ func (t *BeaconsTestCookbookTestSuite) TestMainnetClusterDeploy() {
 func (t *BeaconsTestCookbookTestSuite) TestMainnetClusterDestroy() {
 	olympus_cookbooks.ChangeToCookbookDir()
 	d := zeus_req_types.TopologyDeployRequest{
-		CloudCtxNs: MainnetAthenaBeaconCloudCtxNs,
+		CloudCtxNs: GetBeaconCloudCtxNs(hestia_req_types.Mainnet),
 	}
 	resp, err := t.ZeusTestClient.DestroyDeploy(ctx, d)
 	t.Require().Nil(err)

@@ -10,39 +10,15 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-var (
-	consensusClientStsEphemeralCfg = zeus_topology_config_drivers.StatefulSetDriver{
-		ContainerDrivers: map[string]zeus_topology_config_drivers.ContainerDriver{
-			"zeus-consensus-client": {
-				Container: v1.Container{
-					Name:  "zeus-consensus-client",
-					Image: "sigp/lighthouse:capella",
-				},
-			},
-		}}
-	consensusClientStsEphemeralCfgDriver = zeus_topology_config_drivers.TopologyConfigDriver{
-		StatefulSetDriver: &consensusClientStsEphemeralCfg,
-	}
-	execClientStsEphemeralCfg = zeus_topology_config_drivers.StatefulSetDriver{
-		ContainerDrivers: map[string]zeus_topology_config_drivers.ContainerDriver{
-			"zeus-exec-client": {
-				Container: v1.Container{
-					Name:  "zeus-exec-client",
-					Image: "ethpandaops/geth:master",
-				},
-			},
-		}}
-	execClientStsEphemeralCfgDriver = zeus_topology_config_drivers.TopologyConfigDriver{
-		StatefulSetDriver: &execClientStsEphemeralCfg,
-	}
-)
-
 func ClusterConfigEnvVars(cd *zeus_cluster_config_drivers.ClusterDefinition, network string) []v1.EnvVar {
 	var envVar v1.EnvVar
 	switch network {
 	case "mainnet":
 		cdTmp := zeus_topology_config_drivers.ContainerDriver{}
 		envVar = cdTmp.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumMainnetProtocolNetworkID))
+	case "goerli":
+		cdTmp := zeus_topology_config_drivers.ContainerDriver{}
+		envVar = cdTmp.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumGoerliProtocolNetworkID))
 	case "ephemery":
 		cdTmp := zeus_topology_config_drivers.ContainerDriver{}
 		envVar = cdTmp.CreateEnvVarKeyValue(protocolNetworkKeyEnv, fmt.Sprintf("%d", hestia_req_types.EthereumEphemeryProtocolNetworkID))

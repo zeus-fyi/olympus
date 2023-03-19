@@ -51,7 +51,7 @@ const (
 	execClientDiskSizeEphemeral       = "40Gi"
 
 	gethDockerImage       = "ethereum/client-go:v1.11.4"
-	lighthouseDockerImage = "sigp/lighthouse:v3.3.0-modern"
+	lighthouseDockerImage = "sigp/lighthouse:v3.5.1"
 
 	cmExecClient      = "cm-exec-client"
 	cmConsensusClient = "cm-consensus-client"

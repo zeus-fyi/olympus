@@ -26,6 +26,8 @@ func (t *HydraCookbookTestSuite) TestGoerliClusterDestroy() {
 	d := zeus_req_types.TopologyDeployRequest{
 		CloudCtxNs: ValidatorCloudCtxNs,
 	}
+	d.CloudCtxNs.Namespace = "goerli-staking"
+	t.Require().Equal("goerli-staking", d.CloudCtxNs.Namespace)
 	resp, err := t.ZeusTestClient.DestroyDeploy(ctx, d)
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(resp)

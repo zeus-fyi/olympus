@@ -67,6 +67,7 @@ data:
     exec lighthouse beacon_node \
               --network=goerli \
               --builder="http://zeus-mev:18550" \
+              --checkpoint-sync-url="https://goerli.beaconstate.ethstaker.cc" \
               --log-format=JSON \
               --datadir=/data \
               --enr-tcp-port=9000 \

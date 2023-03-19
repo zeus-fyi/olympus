@@ -1,9 +1,10 @@
 package eth_validators_service_requests
 
 import (
+	"time"
+
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
-	"time"
 
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	"go.temporal.io/sdk/workflow"
@@ -50,7 +51,8 @@ func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) ServiceNewValidator
 		ProtocolNetworkID: params.ProtocolNetworkID,
 		ServiceURL:        "https://deprecated.com",
 		OrgID:             params.OrgID,
-		Enabled:           true,
+		Enabled:           params.Enabled,
+		MevEnabled:        params.MevEnabled,
 	}
 	insertVerifiedValidatorsStatusCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(insertVerifiedValidatorsStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.InsertVerifiedValidatorsWithFeeRecipient, insertParams, verifiedPubkeys).Get(insertVerifiedValidatorsStatusCtx, nil)

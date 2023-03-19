@@ -28,7 +28,7 @@ func SelectValidatorsServiceInfo(ctx context.Context, orgID int) (hestia_autogen
 	q := sql_query_templates.QueryParams{}
 	params := []interface{}{orgID}
 	q.RawQuery = `
-				  SELECT vsg.group_name, vsg.pubkey, vsg.fee_recipient, vsg.protocol_network_id, vsg.enabled
+				  SELECT vsg.group_name, vsg.pubkey, vsg.fee_recipient, vsg.protocol_network_id, vsg.enabled, vsg.mev_enabled
 				  FROM validators_service_org_groups vsg
 				  WHERE vsg.org_id=$1`
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, params...)
@@ -40,7 +40,7 @@ func SelectValidatorsServiceInfo(ctx context.Context, orgID int) (hestia_autogen
 	for rows.Next() {
 		vr := hestia_autogen_bases.ValidatorServiceOrgGroup{}
 		rowErr := rows.Scan(
-			&vr.GroupName, &vr.Pubkey, &vr.FeeRecipient, &vr.ProtocolNetworkID, &vr.Enabled,
+			&vr.GroupName, &vr.Pubkey, &vr.FeeRecipient, &vr.ProtocolNetworkID, &vr.Enabled, &vr.MevEnabled,
 		)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader(ModelName))
@@ -88,6 +88,7 @@ type OrgValidatorService struct {
 	ServiceURL        string `json:"serviceURL"`
 	OrgID             int    `json:"orgID"`
 	Enabled           bool   `json:"enabled"`
+	MevEnabled        bool   `json:"mevEnabled"`
 }
 
 func FilterKeysThatExistAlready(ctx context.Context, pubkeys hestia_req_types.ValidatorServiceOrgGroupSlice) (hestia_req_types.ValidatorServiceOrgGroupSlice, error) {
@@ -155,9 +156,10 @@ func InsertVerifiedValidatorsToService(ctx context.Context, validatorServiceInfo
 			keyPair.FeeRecipient,
 			validatorServiceInfo.Enabled,
 			validatorServiceInfo.ServiceURL,
+			validatorServiceInfo.MevEnabled,
 		})
 	}
-	columns := []string{"group_name", "org_id", "pubkey", "protocol_network_id", "fee_recipient", "enabled", "service_url"}
+	columns := []string{"group_name", "org_id", "pubkey", "protocol_network_id", "fee_recipient", "enabled", "service_url", "mev_enabled"}
 	// Use the `pgx.CopyFrom` method to insert the data into the table
 	_, err = apps.Pg.Pgpool.CopyFrom(ctx, pgx.Identifier{"validators_service_org_groups"}, columns, pgx.CopyFromRows(rows))
 	if err != nil {

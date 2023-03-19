@@ -14,7 +14,7 @@ import (
 
 const (
 	mevContainerReference = "zeus-mev"
-	flashbotsDockerImage  = "flashbots/mev-boost:v1.5.0"
+	flashbotsDockerImage  = "flashbots/mev-boost:1.5.0"
 )
 
 var (

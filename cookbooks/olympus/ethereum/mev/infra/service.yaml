@@ -16,4 +16,3 @@ spec:
   selector:
     app.kubernetes.io/instance: "zeus-mev"
     app.kubernetes.io/name: "zeus-mev"
-

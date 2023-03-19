@@ -9,6 +9,7 @@ type ValidatorServiceOrgGroup struct {
 	ProtocolNetworkID int    `db:"protocol_network_id" json:"protocolNetworkID"`
 	FeeRecipient      string `db:"fee_recipient" json:"feeRecipient"`
 	Enabled           bool   `db:"enabled" json:"enabled"`
+	MevEnabled        bool   `db:"mev_enabled" json:"mevEnabled"`
 	ServiceURL        string `db:"service_url" json:"serviceURL"`
 }
 
@@ -18,12 +19,12 @@ func (v *ValidatorServiceOrgGroup) GetRowValues(queryName string) apps.RowValues
 	pgValues := apps.RowValues{}
 	switch queryName {
 	default:
-		pgValues = apps.RowValues{v.GroupName, v.OrgID, v.Pubkey, v.ProtocolNetworkID, v.FeeRecipient, v.Enabled, v.ServiceURL}
+		pgValues = apps.RowValues{v.GroupName, v.OrgID, v.Pubkey, v.ProtocolNetworkID, v.FeeRecipient, v.Enabled, v.ServiceURL, v.MevEnabled}
 	}
 	return pgValues
 }
 func (v *ValidatorServiceOrgGroup) GetTableColumns() (columnValues []string) {
-	columnValues = []string{"group_name", "org_id", "pubkey", "protocol_network_id", "fee_recipient", "enabled", "service_url"}
+	columnValues = []string{"group_name", "org_id", "pubkey", "protocol_network_id", "fee_recipient", "enabled", "service_url", "mev_enabled"}
 	return columnValues
 }
 

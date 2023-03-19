@@ -17,3 +17,23 @@ var LighthouseMainnetBucket = poseidon.BucketRequest{
 	ClientType: "consensus.client.standard",
 	ClientName: "lighthouse",
 }
+
+func GethBucket(network string) poseidon.BucketRequest {
+	return poseidon.BucketRequest{
+		BucketName: "zeus-fyi-ethereum",
+		Protocol:   "ethereum",
+		Network:    network,
+		ClientType: "exec.client.standard",
+		ClientName: "geth",
+	}
+}
+
+func LighthouseBucket(network string) poseidon.BucketRequest {
+	return poseidon.BucketRequest{
+		BucketName: "zeus-fyi-ethereum",
+		Protocol:   "ethereum",
+		Network:    network,
+		ClientType: "consensus.client.standard",
+		ClientName: "lighthouse",
+	}
+}

@@ -5,6 +5,7 @@ CREATE TABLE "public"."validators_service_org_groups" (
     "protocol_network_id" int8 NOT NULL REFERENCES protocol_networks(protocol_network_id) DEFAULT 1,
     "fee_recipient" text NOT NULL,
     "enabled" bool NOT NULL DEFAULT false,
+    "mev_enabled" bool NOT NULL DEFAULT true,
     "service_url" text NOT NULL
 );
 
@@ -20,4 +21,5 @@ CREATE TABLE "public"."validators_service_org_groups_cloud_ctx_ns" (
 );
 
 ALTER TABLE "public"."validators_service_org_groups_cloud_ctx_ns" ADD CONSTRAINT "validators_service_org_groups_cloud_ctx_ns_pk" PRIMARY KEY ("pubkey", "cloud_ctx_ns_id");
+ALTER TABLE "public"."validators_service_org_groups_cloud_ctx_ns" ADD CONSTRAINT "validators_service_org_groups_cloud_ctx_ns_pubkey_uniq" UNIQUE ("pubkey");
 

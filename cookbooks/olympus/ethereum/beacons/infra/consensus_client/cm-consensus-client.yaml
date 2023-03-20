@@ -44,7 +44,7 @@ data:
     #!/bin/sh
     exec lighthouse beacon_node \
               --network=goerli \
-              --checkpoint-sync-url="https://goerli.beaconstate.ethstaker.cc" \
+              --checkpoint-sync-url="https://checkpoint-sync.goerli.ethpandaops.io" \
               --builder="http://zeus-mev.goerli-staking.svc.cluster.local:18550" \
               --log-format=JSON \
               --datadir=/data \
@@ -67,7 +67,7 @@ data:
     exec lighthouse beacon_node \
               --network=goerli \
               --builder="http://zeus-mev:18550" \
-              --checkpoint-sync-url="https://goerli.beaconstate.ethstaker.cc" \
+              --checkpoint-sync-url="https://checkpoint-sync.goerli.ethpandaops.io" \
               --log-format=JSON \
               --datadir=/data \
               --enr-tcp-port=9000 \

@@ -67,6 +67,11 @@ export interface ValidatorDepositDataJSON {
     fork_version: string;
 }
 
+export interface ValidatorDepositDataRxJSON {
+    pubkey: string;
+    rx: string;
+}
+
 export function createValidatorsDepositsDataJSON(
     pubkey: string,
     withdrawalCredentials: string,

@@ -39,8 +39,11 @@ export function ValidatorsDepositsTable(props: any) {
                         {activeStep === 5 && (
                             <TableCell style={{ fontWeight: 'normal', color: 'white' }} align="left">Verified</TableCell>
                         )}
+                        {activeStep === 7 && (
+                            <TableCell style={{ fontWeight: 'normal', color: 'white' }} align="left">Tx Hash</TableCell>
+                        )}
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Pubkey</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Amount</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Amount (Gwei)</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Signature</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">Withdrawal Credentials</TableCell>
                     </TableRow>
@@ -54,6 +57,9 @@ export function ValidatorsDepositsTable(props: any) {
                         >
                             {activeStep === 5 && (row.pubkey !== undefined) && (
                                 <TableCell align="left">{row.verified ? 'True' : 'False'}</TableCell>
+                            )}
+                            {activeStep === 7 && (row.pubkey !== undefined) && (
+                                <TableCell align="left">{row.rx ? row.rx : 'None'}</TableCell>
                             )}
                             <TableCell component="th" scope="row">
                                 {row.pubkey}

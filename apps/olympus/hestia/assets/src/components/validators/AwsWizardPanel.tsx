@@ -319,6 +319,7 @@ export default function AwsWizardPanel() {
             const body = await dpSlice.json();
             body.forEach((item: any) => {
                 item.verified = false;
+                item.rx = '';
             });
             dispatch(setDepositData(body));
         } catch (error) {
@@ -335,7 +336,10 @@ export default function AwsWizardPanel() {
         reader.onload = (e) => {
             try {
                 const jsonData = JSON.parse(e.target?.result as string) as ValidatorDepositDataJSON[]
-                console.log(jsonData);
+                jsonData.forEach((item: any) => {
+                    item.verified = false;
+                    item.rx = '';
+                });
                 dispatch(setDepositData(jsonData));
             } catch (error) {
                 console.error("Error parsing JSON file:", error);

@@ -12,6 +12,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
+	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 )
 
 func Routes(e *echo.Echo) *echo.Echo {
@@ -62,6 +63,11 @@ func InitV1Routes(e *echo.Echo) {
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()
+			cookie, err := c.Cookie(aegis_sessions.SessionIDNickname)
+			if err == nil && cookie != nil {
+				log.Info().Msg("InitV1Routes: Cookie found")
+				token = cookie.Value
+			}
 			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.EthereumEphemeryService)
 			if err != nil {
 				log.Err(err).Msg("InitV1Routes")

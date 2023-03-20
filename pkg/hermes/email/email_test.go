@@ -1,0 +1,1 @@
+package hermes_email_notifications

@@ -165,7 +165,7 @@ function DashboardContent() {
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
                                     Cluster infra creation, ops, management from natural code & UIs coming soon to public release.
-                                    The Ethereum validators UI open to anyone.
+                                    The Ethereum validators UI is open to anyone.
                                 </Typography>
                             </CardContent>
                         </Card>

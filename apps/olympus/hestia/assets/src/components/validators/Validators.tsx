@@ -20,7 +20,7 @@ import authProvider from "../../redux/auth/auth.actions";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
-import {TableContainer, TableFooter, TablePagination, TableRow} from '@mui/material';
+import {Card, CardContent, TableContainer, TableFooter, TablePagination, TableRow} from '@mui/material';
 import TableBody from "@mui/material/TableBody";
 import MainListItems from "../dashboard/listItems";
 import {validatorsApiGateway} from "../../gateway/validators";
@@ -123,6 +123,19 @@ function ValidatorsServiceContent() {
                     }}
                 >
                     <Toolbar />
+
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        <Card sx={{ maxWidth: 700 }}>
+                            <CardContent>
+                                <Typography gutterBottom variant="h5" component="div">
+                                    Validator Management for Ethereum Staking
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Currently, you can only view validators which have successfully registered for service. More functionality coming soon.
+                                </Typography>
+                            </CardContent>
+                        </Card>
+                    </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         {<Validators />}
                     </Container>

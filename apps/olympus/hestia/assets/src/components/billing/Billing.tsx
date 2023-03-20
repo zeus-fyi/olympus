@@ -1,9 +1,8 @@
 import * as React from 'react';
-import {createTheme, styled, ThemeProvider} from '@mui/material/styles';
+import {createTheme, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import MuiDrawer from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
-import MuiAppBar, {AppBarProps as MuiAppBarProps} from '@mui/material/AppBar';
+import {AppBar, Drawer} from '../dashboard/Dashboard';
 import Toolbar from '@mui/material/Toolbar';
 import List from '@mui/material/List';
 import Typography from '@mui/material/Typography';
@@ -12,67 +11,15 @@ import IconButton from '@mui/material/IconButton';
 import Container from '@mui/material/Container';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import MainListItems from './listItems';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
-import {Card, CardContent} from "@mui/material";
-import {ZeusCopyright} from "../copyright/ZeusCopyright";
-
-const drawerWidth: number = 240;
-
-interface AppBarProps extends MuiAppBarProps {
-    open?: boolean;
-}
-
-export const AppBar = styled(MuiAppBar, {
-    shouldForwardProp: (prop) => prop !== 'open',
-})<AppBarProps>(({ theme, open }) => ({
-    zIndex: theme.zIndex.drawer + 1,
-    transition: theme.transitions.create(['width', 'margin'], {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-    }),
-    ...(open && {
-        marginLeft: drawerWidth,
-        width: `calc(100% - ${drawerWidth}px)`,
-        transition: theme.transitions.create(['width', 'margin'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.enteringScreen,
-        }),
-    }),
-}));
-
-export const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
-    ({ theme, open }) => ({
-        '& .MuiDrawer-paper': {
-            position: 'relative',
-            whiteSpace: 'nowrap',
-            width: drawerWidth,
-            transition: theme.transitions.create('width', {
-                easing: theme.transitions.easing.sharp,
-                duration: theme.transitions.duration.enteringScreen,
-            }),
-            boxSizing: 'border-box',
-            ...(!open && {
-                overflowX: 'hidden',
-                transition: theme.transitions.create('width', {
-                    easing: theme.transitions.easing.sharp,
-                    duration: theme.transitions.duration.leavingScreen,
-                }),
-                width: theme.spacing(7),
-                [theme.breakpoints.up('sm')]: {
-                    width: theme.spacing(9),
-                },
-            }),
-        },
-    }),
-);
+import MainListItems from "../dashboard/listItems";
 
 const mdTheme = createTheme();
 
-function DashboardContent() {
+function BillingContent() {
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
@@ -116,7 +63,7 @@ function DashboardContent() {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            Dashboard
+                            Billing
                         </Typography>
                         <Button
                             color="inherit"
@@ -158,25 +105,14 @@ function DashboardContent() {
                 >
                     <Toolbar />
                     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                        <Card sx={{ maxWidth: 700 }}>
-                            <CardContent>
-                                <Typography gutterBottom variant="h5" component="div">
-                                    Cluster Management & Ethereum Staking
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Cluster infra creation, ops, management from natural code & UIs coming soon to public release.
-                                    The Ethereum validators UI open to anyone.
-                                </Typography>
-                            </CardContent>
-                        </Card>
+                        {/*{<ApiKeys />}*/}
                     </Container>
-                    <ZeusCopyright sx={{ pt: 4 }} />
                 </Box>
             </Box>
         </ThemeProvider>
     );
 }
 
-export default function Dashboard() {
-    return <DashboardContent />;
+export default function Billing() {
+    return <BillingContent />;
 }

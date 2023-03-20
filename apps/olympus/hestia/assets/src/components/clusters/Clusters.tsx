@@ -19,11 +19,12 @@ import authProvider from "../../redux/auth/auth.actions";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
-import {createTheme, TableContainer, TableRow} from '@mui/material';
+import {Card, CardContent, createTheme, TableContainer, TableRow} from '@mui/material';
 import TableBody from "@mui/material/TableBody";
 import MainListItems from "../dashboard/listItems";
 import {clustersApiGateway} from "../../gateway/clusters";
 import {ThemeProvider} from "@mui/material/styles";
+import Stack from "@mui/material/Stack";
 
 const mdTheme = createTheme();
 
@@ -122,6 +123,33 @@ function ClustersContent() {
                     }}
                 >
                     <Toolbar />
+                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                        <Stack direction="row" alignItems="center" spacing={2}>
+                            <Card sx={{ maxWidth: 600 }}>
+                                <CardContent>
+                                    <Typography gutterBottom variant="h5" component="div">
+                                        Cloud, Infra, & Cluster Management
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        If you have access to infra clusters, you can create a new cluster here and manage existing ones. Public signup & access
+                                        coming soon.
+                                    </Typography>
+                                </CardContent>
+                            </Card>
+                            <Card sx={{ maxWidth: 600 }}>
+                                <CardContent>
+                                    <Typography gutterBottom variant="h5" component="div">
+                                        In the Meantime, Read More Details Here:
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Here we cover an example of how we created an Ethereum beacon.
+                                        https://medium.com/@zeusfyi/zeus-k8s-infra-as-code-concepts-47e690c6e3c5
+                                    </Typography>
+                                </CardContent>
+                            </Card>
+                        </Stack>
+
+                </Container>
                     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
                         <CloudClusters />
                     </Container>

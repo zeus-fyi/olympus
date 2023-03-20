@@ -6,7 +6,6 @@ import store from "../redux/store";
 import Login from "../components/login/Login";
 import {ProtectedLayout} from "../auth/ProtectedLayout";
 import {HomeLayout} from "../components/home/Home";
-import Access from "../components/access/Access";
 import ValidatorsServices from "../components/validators/Validators";
 import Clusters from "../components/clusters/Clusters";
 import ClustersPage from "../components/clusters/ClusterPage";
@@ -19,6 +18,7 @@ export const App = () => {
                     <Routes>
                             <Route path="/" element={<HomeLayout />} />
                             <Route path="/login" element={<Login />} />
+                            {/*<Route path="/signup" element={<SignUp />} />*/}
                         <Route>
                             <Route path="/dashboard" element={<ProtectedLayout />}/>
                             <Route>
@@ -29,7 +29,8 @@ export const App = () => {
                                 <Route path="services/ethereum/validators" element={<ValidatorsServices />} />
                                 <Route path="services/ethereum/aws" element={<AwsWizard />} />
                             </Route>
-                            <Route path="access" element={<Access />} />
+                            {/*<Route path="access" element={<Access />} />*/}
+                            {/*<Route path="billing" element={<Billing />} />*/}
                         </Route>
                     </Routes>
                 </BrowserRouter>

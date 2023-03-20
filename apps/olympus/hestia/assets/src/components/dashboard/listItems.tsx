@@ -3,8 +3,6 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import DashboardIcon from '@mui/icons-material/Dashboard';
-import CreditCardIcon from '@mui/icons-material/CreditCard';
-import SecurityIcon from '@mui/icons-material/Security';
 import {Link} from "react-router-dom";
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import CloudIcon from '@mui/icons-material/Cloud';
@@ -66,18 +64,18 @@ export default function MainListItems() {
                     </ListItemButton>
                 </List>
             </Collapse>
-            <ListItemButton component={Link} to="/access">
-                <ListItemIcon>
-                    <SecurityIcon />
-                </ListItemIcon>
-                <ListItemText primary="Access"/>
-            </ListItemButton>
-            <ListItemButton>
-                <ListItemIcon>
-                    <CreditCardIcon />
-                </ListItemIcon>
-                <ListItemText primary="Billing" />
-            </ListItemButton>
+            {/*<ListItemButton component={Link} to="/access">*/}
+            {/*    <ListItemIcon>*/}
+            {/*        <SecurityIcon />*/}
+            {/*    </ListItemIcon>*/}
+            {/*    <ListItemText primary="Access"/>*/}
+            {/*</ListItemButton>*/}
+            {/*<ListItemButton component={Link} to="/billing">*/}
+            {/*    <ListItemIcon>*/}
+            {/*        <CreditCardIcon />*/}
+            {/*    </ListItemIcon>*/}
+            {/*    <ListItemText primary="Billing" />*/}
+            {/*</ListItemButton>*/}
         </List>
     );
 }

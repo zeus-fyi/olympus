@@ -3,7 +3,6 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import Link from '@mui/material/Link';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
@@ -14,21 +13,11 @@ import {useNavigate} from "react-router-dom";
 import authProvider from "../../redux/auth/auth.actions";
 import {useDispatch} from "react-redux";
 import {LOGIN_FAIL, LOGIN_SUCCESS,} from "../../redux/auth/auth.types";
+import {ZeusCopyright} from "../copyright/ZeusCopyright";
 
 const ethImage = require("../../static/eth.png")
 
-function Copyright(props: any) {
-    return (
-        <Typography variant="body2" color="text.secondary" align="center" {...props}>
-            {'Copyright © '}
-            <Link color="inherit" href="https://mui.com/">
-                Zeus Cloud
-            </Link>{' '}
-            {new Date().getFullYear()}
-            {'.'}
-        </Typography>
-    );
-}
+
 const theme = createTheme();
 
 const Login = () => {
@@ -128,7 +117,7 @@ const Login = () => {
                                 {/*    </Link>*/}
                                 {/*</Grid>*/}
                             </Grid>
-                            <Copyright sx={{mt: 5}}/>
+                            <ZeusCopyright sx={{mt: 5}}/>
                         </Box>
                     </Box>
                 </Grid>

@@ -13,19 +13,36 @@ import Container from '@mui/material/Container';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import {ZeusCopyright} from "../copyright/ZeusCopyright";
 import {CircularProgress} from "@mui/material";
+import {signUpApiGateway} from "../../gateway/signup";
 
 const theme = createTheme();
 
 export default function SignUp() {
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         setRequestStatus('pending')
         event.preventDefault();
         const data = new FormData(event.currentTarget);
         console.log({
+            firstName: data.get('firstName'),
+            lastName: data.get('lastName'),
             email: data.get('email'),
             password: data.get('password'),
         });
-        setRequestStatus('success')
+        const firstName = data.get('firstName') as string
+        const lastName = data.get('lastName') as string
+        const email = data.get('email') as string
+        const password = data.get('password') as string
+        try {
+            const res = await signUpApiGateway.sendSignUpRequest(firstName, lastName, email, password)
+            if (res.status === 200) {
+                setRequestStatus('success')
+            } else {
+                setRequestStatus('error')
+            }
+        } catch (e) {
+            setRequestStatus('error')
+            console.error(e)
+        }
     };
     let buttonLabel;
     let buttonDisabled;

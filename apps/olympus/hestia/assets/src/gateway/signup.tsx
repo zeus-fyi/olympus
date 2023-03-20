@@ -1,0 +1,25 @@
+import {hestiaApi} from './axios/axios';
+
+const config = {
+    withCredentials: true,
+};
+
+class SignUpApiGateway {
+    async sendSignUpRequest(firstName: string, lastName: string, email: string, password: string): Promise<any>  {
+        const url = `signup`;
+        try {
+            return await hestiaApi.post(url, {
+                firstName: firstName,
+                lastName: lastName,
+                email: email,
+                password: password,
+            }, config)
+        } catch (exc) {
+            console.error('error sending signup request');
+            console.error(exc);
+            return
+        }
+    }
+}
+export const signUpApiGateway = new SignUpApiGateway();
+

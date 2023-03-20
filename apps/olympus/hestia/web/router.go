@@ -11,10 +11,13 @@ import (
 	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	hestia_login "github.com/zeus-fyi/olympus/hestia/web/login"
+	hestia_signup "github.com/zeus-fyi/olympus/hestia/web/signup"
 )
 
 func WebRoutes(e *echo.Echo) *echo.Echo {
 	e.POST("/login", hestia_login.LoginHandler)
+	e.POST("/signup", hestia_signup.SignUpHandler)
+
 	InitV1Routes(e)
 	return e
 }

@@ -12,7 +12,7 @@ RUN npm ci
 COPY apps/olympus/hestia/assets/ ./
 
 # Build the React app for production
-RUN npm run build
+RUN npm run build --nomaps
 
 ENV NODE_ENV=production
 

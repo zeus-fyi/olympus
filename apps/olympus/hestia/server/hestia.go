@@ -20,6 +20,7 @@ import (
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
 	eth_validators_service_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validators_service_requests"
+	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
@@ -42,6 +43,11 @@ var (
 		AccessKey: "",
 		SecretKey: "",
 	}
+	awsSESAuthCfg = aegis_aws_auth.AuthAWS{
+		Region:    awsRegion,
+		AccessKey: "",
+		SecretKey: "",
+	}
 )
 
 func Hestia() {
@@ -57,6 +63,7 @@ func Hestia() {
 		awsAuthCfg = sw.SecretsManagerAuthAWS
 		awsAuthCfg.Region = awsRegion
 		artemis_validator_service_groups_models.ArtemisClient = artemis_client.NewDefaultArtemisClient(sw.BearerToken)
+		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesEmailNotifications(ctx, sw.SESAuthAWS)
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
@@ -64,6 +71,9 @@ func Hestia() {
 		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
 		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
 		artemis_validator_service_groups_models.ArtemisClient = artemis_client.NewDefaultArtemisClient(tc.ProductionLocalTemporalBearerToken)
+		awsSESAuthCfg.AccessKey = tc.AwsAccessKeySES
+		awsSESAuthCfg.SecretKey = tc.AwsSecretKeySES
+		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesEmailNotifications(ctx, awsSESAuthCfg)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
@@ -71,6 +81,9 @@ func Hestia() {
 		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
 		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
 		artemis_validator_service_groups_models.ArtemisClient = artemis_client.NewDefaultArtemisClient(tc.ProductionLocalTemporalBearerToken)
+		awsSESAuthCfg.AccessKey = tc.AwsAccessKeySES
+		awsSESAuthCfg.SecretKey = tc.AwsSecretKeySES
+		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesEmailNotifications(ctx, awsSESAuthCfg)
 	}
 	log.Info().Msg("Hestia: AWS Secrets Manager connection starting")
 	artemis_hydra_orchestrations_aws_auth.InitHydraSecretManagerAuthAWS(ctx, awsAuthCfg)

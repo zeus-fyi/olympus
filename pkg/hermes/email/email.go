@@ -10,6 +10,8 @@ import (
 	aws_aegis_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
 
+var Hermes = HermesEmailNotifications{}
+
 type HermesEmailNotifications struct {
 	*sesv2.Client
 }

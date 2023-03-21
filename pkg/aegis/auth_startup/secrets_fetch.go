@@ -40,6 +40,7 @@ type SecretsWrapper struct {
 	PagerDutyRoutingKey    string
 
 	SecretsManagerAuthAWS aegis_aws_auth.AuthAWS
+	SESAuthAWS            aegis_aws_auth.AuthAWS
 	TemporalAuth          temporal_auth.TemporalAuth
 }
 

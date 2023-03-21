@@ -15,6 +15,24 @@ type CreateOrgUserTestSuite struct {
 	hestia_test.BaseHestiaTestSuite
 }
 
+func (s *CreateOrgUserTestSuite) TestInsertDemoOrgUserWithSignUp() {
+	ctx := context.Background()
+	s.InitLocalConfigs()
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+
+	ou := OrgUser{}
+	ou.OrgID = 1677096191839528000
+	us := UserSignup{
+		FirstName:    "alex",
+		LastName:     "g",
+		EmailAddress: "alex@aol.com",
+		Password:     "password",
+	}
+	key, err := ou.InsertSignUpOrgUserAndVerifyEmail(ctx, us)
+	s.Require().Nil(err)
+	s.Assert().NotEmpty(key)
+}
+
 func (s *CreateOrgUserTestSuite) TestInsertDemoOrgUserWithKey() {
 	ctx := context.Background()
 

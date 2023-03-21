@@ -23,7 +23,7 @@ func (s *EmailTestSuite) SendTestEmail() {
 	}
 	h := InitHermesEmailNotifications(ctx, auth)
 	s.Require().Nil(h.Client)
-	r, err := h.SendEmailTo(ctx, []string{"alex@zeus.fyi"})
+	r, err := h.SendEmailVerifyRequest(ctx, []string{"alex@zeus.fyi"})
 	s.Require().Nil(err)
 	s.Require().NotNil(r)
 }

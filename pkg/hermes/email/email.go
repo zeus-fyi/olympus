@@ -2,6 +2,7 @@ package hermes_email_notifications
 
 import (
 	"context"
+	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sesv2"
@@ -26,8 +27,12 @@ func InitHermesEmailNotifications(ctx context.Context, a aws_aegis_auth.AuthAWS)
 	return HermesEmailNotifications{Client: client}
 }
 
-func (h *HermesEmailNotifications) SendEmailTo(ctx context.Context, toEmails []string) (*sesv2.SendEmailOutput, error) {
-
+func (h *HermesEmailNotifications) SendEmailVerifyRequest(ctx context.Context, toEmails []string, token string) (*sesv2.SendEmailOutput, error) {
+	htmlFile, err := os.ReadFile("./templates/verify_email.html")
+	if err != nil {
+		log.Ctx(ctx).Info().Interface("htmlFile", htmlFile).Err(err).Msg("HermesEmailNotifications: SendEmailTo: error")
+		return nil, err
+	}
 	// TODO token creation
 	params := &sesv2.SendEmailInput{
 		Content: &types.EmailContent{

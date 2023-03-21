@@ -39,7 +39,8 @@ func (s *SignupRequest) SignUp(c echo.Context) error {
 		log.Err(err).Interface("user", us).Msg("SignupRequest, SignUp error")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	_, err = hermes_email_notifications.Hermes.SendEmailVerifyRequest(ctx, []string{s.Email}, verifyToken)
+	us.VerifyEmailToken = verifyToken
+	_, err = hermes_email_notifications.Hermes.SendEmailVerifyRequest(ctx, us)
 	if err != nil {
 		log.Err(err).Interface("user", us).Msg("SignupRequest, SignUp error")
 		return c.JSON(http.StatusInternalServerError, nil)

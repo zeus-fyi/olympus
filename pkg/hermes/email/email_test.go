@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	aws_aegis_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
@@ -15,15 +16,23 @@ type EmailTestSuite struct {
 
 var ctx = context.Background()
 
-func (s *EmailTestSuite) SendTestEmail() {
+func (s *EmailTestSuite) TestSendTestEmail() {
+	s.InitLocalConfigs()
 	auth := aws_aegis_auth.AuthAWS{
 		Region:    "us-west-1",
 		AccessKey: s.Tc.AwsAccessKeySES,
 		SecretKey: s.Tc.AwsSecretKeySES,
 	}
 	h := InitHermesEmailNotifications(ctx, auth)
-	s.Require().Nil(h.Client)
-	r, err := h.SendEmailVerifyRequest(ctx, []string{"alex@zeus.fyi"})
+	s.Require().NotNil(h.Client)
+	us := create_org_users.UserSignup{
+		FirstName:        "",
+		LastName:         "",
+		EmailAddress:     "ageorge010@vt.edu",
+		Password:         "",
+		VerifyEmailToken: "abc123",
+	}
+	r, err := h.SendEmailVerifyRequest(ctx, us)
 	s.Require().Nil(err)
 	s.Require().NotNil(r)
 }

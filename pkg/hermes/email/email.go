@@ -2,12 +2,13 @@ package hermes_email_notifications
 
 import (
 	"context"
-	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sesv2"
 	"github.com/aws/aws-sdk-go-v2/service/sesv2/types"
 	"github.com/rs/zerolog/log"
+	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
+	email_templates "github.com/zeus-fyi/olympus/pkg/hermes/email/templates"
 	aws_aegis_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
 
@@ -27,51 +28,32 @@ func InitHermesEmailNotifications(ctx context.Context, a aws_aegis_auth.AuthAWS)
 	return HermesEmailNotifications{Client: client}
 }
 
-func (h *HermesEmailNotifications) SendEmailVerifyRequest(ctx context.Context, toEmails []string, token string) (*sesv2.SendEmailOutput, error) {
-	htmlFile, err := os.ReadFile("./templates/verify_email.html")
-	if err != nil {
-		log.Ctx(ctx).Info().Interface("htmlFile", htmlFile).Err(err).Msg("HermesEmailNotifications: SendEmailTo: error")
-		return nil, err
-	}
-	// TODO token creation
+func (h *HermesEmailNotifications) SendEmailVerifyRequest(ctx context.Context, us create_org_users.UserSignup) (*sesv2.SendEmailOutput, error) {
+	html := email_templates.VerifyEmailHTML(us.VerifyEmailToken)
 	params := &sesv2.SendEmailInput{
 		Content: &types.EmailContent{
-			Raw: nil,
 			Simple: &types.Message{
 				Body: &types.Body{
 					Html: &types.Content{
-						Data:    nil,
-						Charset: nil,
-					},
-					Text: &types.Content{
-						Data:    nil,
-						Charset: nil,
+						Data:    aws.String(html),
+						Charset: aws.String("utf-8"),
 					},
 				},
 				Subject: &types.Content{
-					Data:    aws.String("Email Verification"),
-					Charset: nil,
+					Data:    aws.String("Verify Your Email at Zeus Cloud"),
+					Charset: aws.String("utf-8"),
 				},
 			},
-			Template: nil,
 		},
-		ConfigurationSetName: nil,
 		Destination: &types.Destination{
-			BccAddresses: nil,
-			CcAddresses:  nil,
-			ToAddresses:  toEmails,
+			ToAddresses: []string{us.EmailAddress},
 		},
-		FeedbackForwardingEmailAddress:            nil,
-		FeedbackForwardingEmailAddressIdentityArn: nil,
-		FromEmailAddress:                          nil,
-		FromEmailAddressIdentityArn:               nil,
-		ListManagementOptions:                     nil,
-		ReplyToAddresses:                          nil,
+		FromEmailAddress: aws.String("alex@zeus.fyi"),
 	}
 	resp, err := h.SendEmail(ctx, params)
 	if err != nil {
 		log.Ctx(ctx).Info().Interface("resp", resp).Err(err).Msg("HermesEmailNotifications: SendEmailVerify: error")
-		panic(err)
+		return nil, err
 	}
 	return resp, err
 }

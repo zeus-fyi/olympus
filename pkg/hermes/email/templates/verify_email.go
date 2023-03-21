@@ -1,3 +1,9 @@
+package email_templates
+
+import "fmt"
+
+func VerifyEmailHTML(token string) string {
+	return fmt.Sprintf(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -33,8 +39,8 @@
         table,
         td,
         a {
-            -ms-text-size-adjust: 100%; /* 1 */
-            -webkit-text-size-adjust: 100%; /* 2 */
+            -ms-text-size-adjust: 100%%; /* 1 */
+            -webkit-text-size-adjust: 100%%; /* 2 */
         }
         /**
          * Remove extra space added to tables and cells in Outlook.
@@ -68,8 +74,8 @@
             margin: 0 !important;
         }
         body {
-            width: 100% !important;
-            height: 100% !important;
+            width: 100%% !important;
+            height: 100%% !important;
             padding: 0 !important;
             margin: 0 !important;
         }
@@ -84,7 +90,7 @@
         }
         img {
             height: auto;
-            line-height: 100%;
+            line-height: 100%%;
             text-decoration: none;
             border: 0;
             outline: none;
@@ -101,7 +107,7 @@
 <!-- end preheader -->
 
 <!-- start body -->
-<table border="0" cellpadding="0" cellspacing="0" width="100%">
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
 
     <!-- start logo -->
     <tr>
@@ -111,7 +117,7 @@
                 <tr>
                     <td align="center" valign="top" width="600">
             <![endif]-->
-            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%%" style="max-width: 600px;">
                 <tr>
                     <td align="center" valign="top" style="padding: 36px 24px;">
                     </td>
@@ -134,7 +140,7 @@
                 <tr>
                     <td align="center" valign="top" width="600">
             <![endif]-->
-            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%%" style="max-width: 600px;">
                 <tr>
                     <td align="left" bgcolor="#ffffff" style="padding: 36px 24px 0; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; border-top: 3px solid #d4dadf;">
                         <h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -1px; line-height: 48px;">Confirm Your Email Address</h1>
@@ -158,7 +164,7 @@
                 <tr>
                     <td align="center" valign="top" width="600">
             <![endif]-->
-            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%%" style="max-width: 600px;">
 
                 <!-- start copy -->
                 <tr>
@@ -171,13 +177,13 @@
                 <!-- start button -->
                 <tr>
                     <td align="left" bgcolor="#ffffff">
-                        <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                        <table border="0" cellpadding="0" cellspacing="0" width="100%%">
                             <tr>
                                 <td align="center" bgcolor="#ffffff" style="padding: 12px;">
                                     <table border="0" cellpadding="0" cellspacing="0">
                                         <tr>
                                             <td align="center" bgcolor="#1a82e2" style="border-radius: 6px;">
-                                                <a href="https://www.blogdesire.com" target="_blank" style="display: inline-block; padding: 16px 36px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; color: #ffffff; text-decoration: none; border-radius: 6px;">Verify</a>
+                                                <a href="https://cloud.zeus.fyi/verify/email/%s" target="_blank" style="display: inline-block; padding: 16px 36px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; color: #ffffff; text-decoration: none; border-radius: 6px;">Verify</a>
                                             </td>
                                         </tr>
                                     </table>
@@ -192,7 +198,7 @@
                 <tr>
                     <td align="left" bgcolor="#ffffff" style="padding: 24px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;">
                         <p style="margin: 0;">If that doesn't work, copy and paste the following link in your browser:</p>
-                        <p style="margin: 0;"><a href="https://cloud.zeus.fyi/verify/email" target="_blank">https://cloud.zeus.fyi/verify/email</a></p>
+                        <p style="margin: 0;"><a href="https://cloud.zeus.fyi/verify/email/%s" target="_blank">https://cloud.zeus.fyi/verify/email/%s</a></p>
                     </td>
                 </tr>
                 <!-- end copy -->
@@ -223,7 +229,7 @@
                 <tr>
                     <td align="center" valign="top" width="600">
             <![endif]-->
-            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%%" style="max-width: 600px;">
 
                 <!-- start permission -->
                 <tr>
@@ -248,3 +254,5 @@
 
 </body>
 </html>
+`, token, token, token)
+}

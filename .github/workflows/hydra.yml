@@ -8,7 +8,6 @@ on:
       - .github/workflows/hydra.yml
     branches:
       - main
-      - dev
 env:
   REPO: registry.digitalocean.com/zeus-fyi
   NAME: hydra

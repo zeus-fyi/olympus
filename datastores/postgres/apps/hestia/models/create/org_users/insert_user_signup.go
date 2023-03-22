@@ -2,6 +2,7 @@ package create_org_users
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -43,13 +44,17 @@ func (o *OrgUser) InsertSignUpOrgUserAndVerifyEmail(ctx context.Context, us User
 							FROM users_keys u
 							WHERE user_id = (SELECT user_id FROM cte_user_id) AND public_key_type_id = $6
 					  )
+				    ), cte_create_org AS (
+						INSERT INTO orgs (name, metadata)	
+						SELECT $8, '{}'	
+						RETURNING org_id
 					), cte_org_users AS (
 						INSERT INTO org_users(org_id, user_id)
-						SELECT $8, (SELECT user_id FROM cte_user_id)
+						SELECT (SELECT org_id FROM cte_create_org), (SELECT user_id FROM cte_user_id)
 						WHERE NOT EXISTS (
 							SELECT 1
 							FROM org_users ou
-							WHERE ou.user_id = (SELECT user_id FROM cte_user_id) AND ou.org_id = $8
+							WHERE ou.user_id = (SELECT user_id FROM cte_user_id) AND ou.org_id = (SELECT org_id FROM cte_create_org)
 						  )
 					), cte_delete_prev_verify_token AS (
 						DELETE FROM users_keys WHERE user_id = (SELECT user_id FROM cte_user_id) AND public_key_type_id = $9
@@ -73,11 +78,13 @@ func (o *OrgUser) InsertSignUpOrgUserAndVerifyEmail(ctx context.Context, us User
 	signupKey.PublicKeyTypeID = keys.VerifyEmailTokenTypeID
 	signupKey.PublicKeyName = "verifyEmailToken"
 	us.VerifyEmailToken = signupKey.PublicKey
+
+	demoOrgName := fmt.Sprintf("demoOrg-%s", rand.String(12))
 	var userID int64
 	err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery,
 		us.FirstName, us.LastName, us.EmailAddress,
 		signupPwKey.PublicKeyName, signupPwKey.PublicKeyVerified, signupPwKey.PublicKeyTypeID, signupPwKey.PublicKey,
-		UserDemoOrgID,
+		demoOrgName,
 		signupKey.PublicKeyTypeID, signupKey.PublicKeyName, signupKey.PublicKeyVerified, signupKey.PublicKey,
 	).Scan(&userID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {

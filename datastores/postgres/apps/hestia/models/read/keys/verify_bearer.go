@@ -129,8 +129,5 @@ func (k *OrgUserKey) QueryUserBearerToken(ctx context.Context, ou org_users.OrgU
 	if err != nil {
 		k.PublicKeyVerified = false
 	}
-	if k.PublicKeyVerified == false {
-		return errors.New("unauthorized key")
-	}
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }

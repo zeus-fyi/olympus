@@ -14,6 +14,10 @@ import (
 
 func InitHermesSendGridClient(ctx context.Context, apiKey string) {
 	client := sendgrid.NewSendClient(apiKey)
+	if client == nil {
+		log.Ctx(ctx).Panic().Msg("HermesEmailNotifications: InitHermesSendGridClient: client is nil")
+		panic("HermesEmailNotifications: InitHermesSendGridClient: client is nil")
+	}
 	Hermes.SendGrid = client
 	return
 }

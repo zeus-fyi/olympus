@@ -13,6 +13,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.18.2
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.29.2
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.18.2
+	github.com/aws/aws-sdk-go-v2/service/sesv2 v1.17.1
 	github.com/cavaliergopher/grab/v3 v3.0.1
 	github.com/cbergoon/merkletree v0.2.0
 	github.com/confluentinc/confluent-kafka-go v1.9.2
@@ -72,7 +73,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.7.22 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.21 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.13.19 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sesv2 v1.17.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.12.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.18.2 // indirect

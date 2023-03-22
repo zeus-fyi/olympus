@@ -101,7 +101,6 @@ func (t *HydraSigningRequestsTestSuite) TestAsyncSignRequest() {
 		Namespace:     "ephemeral-staking",
 		Env:           "production",
 	}
-
 	vsi := artemis_validator_service_groups_models.ValidatorServiceCloudCtxNsProtocol{
 		ProtocolNetworkID: hestia_req_types.EthereumEphemeryProtocolNetworkID,
 	}

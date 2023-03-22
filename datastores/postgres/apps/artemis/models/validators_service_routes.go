@@ -2,10 +2,13 @@ package artemis_validator_service_groups_models
 
 import (
 	"context"
+	"fmt"
+
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
@@ -55,19 +58,23 @@ func SelectValidatorsServiceRoutesAssignedToCloudCtxNs(ctx context.Context, vali
 			return serviceRoutes, rowErr
 		}
 		// pubkey to group name
-		m[pubkey] = vsr.GroupName
+		groupName := FormatSecretNameAWS(vsr.GroupName, vsr.OrgID, vsr.ProtocolNetworkID)
+		m[pubkey] = groupName
 
 		// group to pubkey slice
-		tmp := gtkm[vsr.GroupName]
-		gtkm[vsr.GroupName] = append(tmp, pubkey)
+		tmp := gtkm[groupName]
+		gtkm[groupName] = append(tmp, pubkey)
 
 		// group to service map
-		if _, ok := gts[vsr.GroupName]; !ok {
-			gts[vsr.GroupName] = vsr
+		if _, ok := gts[groupName]; !ok {
+			gts[groupName] = vsr
 		}
 	}
 	serviceRoutes.PubkeyToGroupName = m
 	serviceRoutes.GroupToPubKeySlice = gtkm
 	serviceRoutes.GroupToServiceMap = gts
 	return serviceRoutes, misc.ReturnIfErr(err, q.LogHeader(ModelName))
+}
+func FormatSecretNameAWS(groupName string, orgID, protocolNetworkID int) string {
+	return fmt.Sprintf("%s-%d-%s", groupName, orgID, hestia_req_types.ProtocolNetworkIDToString(protocolNetworkID))
 }

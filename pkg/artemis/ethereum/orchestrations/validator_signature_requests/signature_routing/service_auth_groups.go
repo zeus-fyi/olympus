@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	aegis_aws_secretmanager "github.com/zeus-fyi/zeus/pkg/aegis/aws/secretmanager"
 
 	"github.com/rs/zerolog/log"
@@ -22,7 +23,7 @@ func FetchAndSetServiceGroupsAuths(ctx context.Context, vsRoute artemis_validato
 		Region: "us-west-1",
 		Name:   "",
 	}
-	for groupName, v := range vsRoute.GroupToServiceMap {
+	for groupName, _ := range vsRoute.GroupToServiceMap {
 		svcAuthPath := filepaths.Path{
 			DirIn: serviceGroupsAuthsDir,
 			FnIn:  groupName,
@@ -32,13 +33,13 @@ func FetchAndSetServiceGroupsAuths(ctx context.Context, vsRoute artemis_validato
 			continue
 		}
 		log.Ctx(ctx).Info().Interface("groupName", groupName).Msg("FetchAndSetServiceGroupsAuths: fetching auths for group")
-		si.Name = FormatSecretNameAWS(v.GroupName, v.OrgID, v.ProtocolNetworkID)
+		si.Name = groupName
 		s, err := artemis_hydra_orchestrations_aws_auth.GetServiceRoutesAuths(ctx, si)
 		if err != nil {
 			log.Ctx(ctx).Err(err).Msg("GetServiceRoutesAuths")
 			return err
 		}
-		err = SetGroupAuthInMemFS(ctx, s.GroupName, s.ServiceAuth)
+		err = SetGroupAuthInMemFS(ctx, groupName, s.ServiceAuth)
 		if err != nil {
 			log.Ctx(ctx).Err(err).Msg("GetServiceRoutesAuths")
 			return err

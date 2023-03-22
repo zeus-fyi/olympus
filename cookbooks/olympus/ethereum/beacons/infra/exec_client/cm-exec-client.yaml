@@ -66,7 +66,7 @@ data:
   athena.sh: |-
     #!/bin/sh 
     exec athena --workload-type="beaconExecClient" --protocol-network-id=${PROTOCOL_NETWORK_ID} --age-private-key="${AGE_PKEY}" --do-spaces-key="${DO_SPACES_KEY}" --do-spaces-private-key="${DO_SPACES_PKEY}" --env="production" --cloud-provider="${CLOUD_PROVIDER}" --ctx="${CTX}" --ns="${NS}" --region="${REGION}"
-  gethEphemeral.sh: |-
+  gethEphemery.sh: |-
     #!/bin/sh
     exec geth \
       --datadir=/data \

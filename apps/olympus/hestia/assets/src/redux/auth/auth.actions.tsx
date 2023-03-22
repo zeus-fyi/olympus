@@ -29,7 +29,13 @@ const authProvider = {
         }
     },
 
-    logout: () =>{
+    logout: async () =>  {
+        let token = inMemoryJWT.getToken()
+        let id = String(token)
+        if (!token) {
+            id = "none"
+        }
+        const res = await authApiGateway.sendLogoutRequest(id);
         localStorage.removeItem("userID");
         inMemoryJWT.ereaseToken();
     },

@@ -80,9 +80,9 @@ function DashboardContent() {
     let navigate = useNavigate();
     const dispatch = useDispatch();
 
-    const handleLogout = (event: any) => {
+    const handleLogout = async (event: any) => {
         event.preventDefault();
-        authProvider.logout()
+        await authProvider.logout()
         dispatch({type: 'LOGOUT_SUCCESS'})
         navigate('/login');
     }

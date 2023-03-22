@@ -25,7 +25,7 @@ class SignUpApiGateway {
         try {
             return await hestiaApi.get(url, config)
         } catch (exc) {
-            console.error('error sending signup request');
+            console.error('error verifying email request');
             console.error(exc);
             return
         }

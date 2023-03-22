@@ -30,7 +30,7 @@ func (s *SignupRequest) SignUp(c echo.Context) error {
 	ou := create_org_users.OrgUser{}
 	us := create_org_users.UserSignup{
 		FirstName:    s.FirstName,
-		LastName:     s.FirstName,
+		LastName:     s.LastName,
 		EmailAddress: s.Email,
 		Password:     s.Password,
 	}

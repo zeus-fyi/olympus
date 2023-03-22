@@ -1,5 +1,4 @@
 name: Build Athena App
-
 on:
   push:
     paths:

@@ -36,6 +36,7 @@ export default function SignUp() {
             const res = await signUpApiGateway.sendSignUpRequest(firstName, lastName, email, password)
             if (res.status === 400) {
                 setRequestStatus('errorFormValidation')
+                return
             }
             if (res.status === 200) {
                 setRequestStatus('success')
@@ -64,12 +65,12 @@ export default function SignUp() {
             break;
         case 'error':
             buttonLabel = 'Resubmit';
-            buttonDisabled = true;
+            buttonDisabled = false;
             statusMessage = 'A user with that email already exists or an error has occurred. Check your email for a verification code';
             break;
         case 'errorDuplicateUser':
-            buttonLabel = 'Check your email to verify your account!';
-            buttonDisabled = true;
+            buttonLabel = 'Resubmit';
+            buttonDisabled = false;
             statusMessage = 'A user with that email already exists or an error has occurred. Check your email for a verification code';
             break;
         case 'errorFormValidation':

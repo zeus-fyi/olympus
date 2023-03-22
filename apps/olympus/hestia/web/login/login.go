@@ -42,7 +42,7 @@ func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 	err := key.VerifyUserPassword(ctx, l.Email)
 	if err != nil {
 		log.Err(err).Interface("email", l.Email).Msg("VerifyPassword error")
-		return c.JSON(http.StatusBadRequest, nil)
+		return c.JSON(http.StatusUnauthorized, nil)
 	}
 	if key.PublicKeyVerified == false {
 		log.Err(err).Interface("email", l.Email).Msg("VerifyPassword StatusUnauthorized")

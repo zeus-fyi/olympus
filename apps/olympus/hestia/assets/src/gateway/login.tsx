@@ -28,8 +28,8 @@ class AuthApiGateway {
             return
         }
     }
-    async sendLogoutRequest()  {
-        const url = `logout`;
+    async sendLogoutRequest(sessionID: string): Promise<any>  {
+        const url = `logout/${sessionID}`;
         try {
             return await hestiaApi.get(url, config)
         } catch (exc) {

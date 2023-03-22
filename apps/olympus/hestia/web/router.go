@@ -9,14 +9,17 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
+	hestia_delete "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/delete"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	hestia_login "github.com/zeus-fyi/olympus/hestia/web/login"
 	hestia_signup "github.com/zeus-fyi/olympus/hestia/web/signup"
+	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 )
 
 func WebRoutes(e *echo.Echo) *echo.Echo {
 	e.POST("/login", hestia_login.LoginHandler)
 	e.POST("/signup", hestia_signup.SignUpHandler)
+	e.GET("/logout/:token", Logout)
 
 	e.GET("/verify/email/:token", hestia_signup.VerifyEmailHandler)
 	InitV1Routes(e)
@@ -41,5 +44,25 @@ func InitV1Routes(e *echo.Echo) {
 		},
 	}))
 	eg.GET("/refresh/token", hestia_login.TokenRefreshRequestHandler)
+}
 
+func Logout(c echo.Context) error {
+	ctx := context.Background()
+	cookie, err := c.Cookie(aegis_sessions.SessionIDNickname)
+	if err == nil && cookie != nil {
+		log.Info().Msg("InitV1Routes: Cookie found")
+		derr := hestia_delete.DeleteUserSessionKey(ctx, cookie.Value)
+		if derr != nil {
+			log.Err(derr).Msg("InitV1Routes: DeleteUserSessionKey error")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		return c.JSON(http.StatusOK, nil)
+	}
+	sessionToken := c.Param("token")
+	derr := hestia_delete.DeleteUserSessionKey(ctx, sessionToken)
+	if derr != nil {
+		log.Err(derr).Msg("InitV1Routes: DeleteUserSessionKey error")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	return c.JSON(http.StatusOK, nil)
 }

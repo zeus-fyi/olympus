@@ -44,6 +44,10 @@ func (l *LoginRequest) VerifyPassword(c echo.Context) error {
 		log.Err(err).Interface("email", l.Email).Msg("VerifyPassword error")
 		return c.JSON(http.StatusBadRequest, nil)
 	}
+	if key.PublicKeyVerified == false {
+		log.Err(err).Interface("email", l.Email).Msg("VerifyPassword StatusUnauthorized")
+		return c.JSON(http.StatusUnauthorized, nil)
+	}
 	sessionID := rand.String(64)
 	sessionKey := create_keys.NewCreateKey(key.UserID, sessionID)
 	sessionKey.PublicKeyVerified = true

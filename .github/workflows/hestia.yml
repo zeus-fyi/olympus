@@ -1,5 +1,4 @@
 name: Build Hestia App
-
 on:
   push:
     paths:

@@ -1,5 +1,4 @@
 name: Build Artemis App
-
 on:
   push:
     paths:

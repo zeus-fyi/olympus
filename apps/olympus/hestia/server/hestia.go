@@ -64,7 +64,7 @@ func Hestia() {
 		awsAuthCfg.Region = awsRegion
 		sw.SESAuthAWS.Region = awsRegion
 		artemis_validator_service_groups_models.ArtemisClient = artemis_client.NewDefaultArtemisClient(sw.BearerToken)
-		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesEmailNotifications(ctx, sw.SESAuthAWS)
+		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesSESEmailNotifications(ctx, sw.SESAuthAWS)
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
@@ -74,7 +74,7 @@ func Hestia() {
 		artemis_validator_service_groups_models.ArtemisClient = artemis_client.NewDefaultArtemisClient(tc.ProductionLocalTemporalBearerToken)
 		awsSESAuthCfg.AccessKey = tc.AwsAccessKeySES
 		awsSESAuthCfg.SecretKey = tc.AwsSecretKeySES
-		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesEmailNotifications(ctx, awsSESAuthCfg)
+		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesSESEmailNotifications(ctx, awsSESAuthCfg)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
@@ -84,7 +84,7 @@ func Hestia() {
 		artemis_validator_service_groups_models.ArtemisClient = artemis_client.NewDefaultArtemisClient(tc.ProductionLocalTemporalBearerToken)
 		awsSESAuthCfg.AccessKey = tc.AwsAccessKeySES
 		awsSESAuthCfg.SecretKey = tc.AwsSecretKeySES
-		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesEmailNotifications(ctx, awsSESAuthCfg)
+		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesSESEmailNotifications(ctx, awsSESAuthCfg)
 	}
 	log.Info().Msg("Hestia: AWS Secrets Manager connection starting")
 	artemis_hydra_orchestrations_aws_auth.InitHydraSecretManagerAuthAWS(ctx, awsAuthCfg)

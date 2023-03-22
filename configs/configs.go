@@ -86,6 +86,7 @@ type TestContainer struct {
 	AwsAccessKeySES string
 	AwsSecretKeySES string
 
+	SendGridAPIKey        string
 	AwsAccessKeyLambdaExt string
 	AwsSecretKeyLambdaExt string
 	AwsLamdbaTestURL      string
@@ -137,6 +138,7 @@ func InitArtemisLocalAccounts() {
 func InitLocalTestConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
 
+	testCont.SendGridAPIKey = viper.GetString("SENDGRID_API_KEY")
 	testCont.AwsAccessKeySES = viper.GetString("AWS_ACCESS_KEY_SES")
 	testCont.AwsSecretKeySES = viper.GetString("AWS_SECRET_KEY_SES")
 

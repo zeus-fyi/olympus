@@ -40,7 +40,7 @@ func (s *SignupRequest) SignUp(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	us.VerifyEmailToken = verifyToken
-	_, err = hermes_email_notifications.Hermes.SendEmailVerifyRequest(ctx, us)
+	_, err = hermes_email_notifications.Hermes.SendSendGridEmailVerifyRequest(ctx, us)
 	if err != nil {
 		log.Err(err).Interface("user", us).Msg("SignupRequest, SignUp error")
 		return c.JSON(http.StatusInternalServerError, nil)

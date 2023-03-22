@@ -23,8 +23,8 @@ func (s *EmailTestSuite) TestSendTestEmail() {
 		AccessKey: s.Tc.AwsAccessKeySES,
 		SecretKey: s.Tc.AwsSecretKeySES,
 	}
-	h := InitHermesEmailNotifications(ctx, auth)
-	s.Require().NotNil(h.Client)
+	h := InitHermesSESEmailNotifications(ctx, auth)
+	s.Require().NotNil(h.SES)
 	us := create_org_users.UserSignup{
 		FirstName:        "",
 		LastName:         "",
@@ -32,7 +32,7 @@ func (s *EmailTestSuite) TestSendTestEmail() {
 		Password:         "",
 		VerifyEmailToken: "abc123",
 	}
-	r, err := h.SendEmailVerifyRequest(ctx, us)
+	r, err := h.SendSESEmailVerifyRequest(ctx, us)
 	s.Require().Nil(err)
 	s.Require().NotNil(r)
 }

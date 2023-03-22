@@ -50,8 +50,11 @@ const (
 	consensusStorageDiskSizeEphemeral = "20Gi"
 	execClientDiskSizeEphemeral       = "40Gi"
 
-	gethDockerImage       = "ethereum/client-go:v1.11.4"
+	gethDockerImage       = "ethereum/client-go:v1.11.5"
 	lighthouseDockerImage = "sigp/lighthouse:v3.5.1"
+
+	gethDockerImageEphemery       = "ethpandaops/geth:master"
+	lighthouseDockerImageEphemery = "sigp/lighthouse:v3.5.1"
 
 	cmExecClient      = "cm-exec-client"
 	cmConsensusClient = "cm-consensus-client"
@@ -273,6 +276,32 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 				"memory": resource.MustParse(execClientEphemeralRequestRAM),
 			},
 		}
+		ccContDriver = map[string]zeus_topology_config_drivers.ContainerDriver{
+			consensusClient: {Container: v1.Container{
+				Name:  consensusClient,
+				Image: lighthouseDockerImage,
+				Env:   combinedEnvVars,
+				Args:  []string{"-c", "/scripts/lighthouseEphemery" + ".sh"},
+			}},
+		}
+
+		ecContDriver = map[string]zeus_topology_config_drivers.ContainerDriver{
+			execClient: {Container: v1.Container{
+				Name:  execClient,
+				Image: gethDockerImageEphemery,
+				Env:   combinedEnvVars,
+				Args:  []string{"-c", "/scripts/gethEphemery" + ".sh"},
+			}},
+		}
+
+		vcContDriver = map[string]zeus_topology_config_drivers.ContainerDriver{
+			validatorClient: {Container: v1.Container{
+				Name:  validatorClient,
+				Image: lighthouseDockerImageEphemery,
+				Env:   combinedEnvVars,
+				Args:  []string{"-c", "/scripts/lighthouseEphemery" + ".sh"},
+			}},
+		}
 		pvcCC = &zeus_topology_config_drivers.PersistentVolumeClaimsConfigDriver{
 			PersistentVolumeClaimDrivers: map[string]v1.PersistentVolumeClaim{
 				consensusClientDiskName: {
@@ -301,6 +330,14 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 				Resources: rrEC,
 			},
 		}
+		stsCfgOverride.ContainerDrivers[execClient] = ecContDriver[execClient]
+		stsCfgOverrideSecondary.ContainerDrivers[execClient] = ecContDriver[execClient]
+
+		stsCfgOverride.ContainerDrivers[consensusClient] = ccContDriver[consensusClient]
+		stsCfgOverrideSecondary.ContainerDrivers[consensusClient] = ccContDriver[consensusClient]
+
+		stsCfgOverride.ContainerDrivers[validatorClient] = vcContDriver[validatorClient]
+		stsCfgOverrideSecondary.ContainerDrivers[validatorClient] = vcContDriver[validatorClient]
 	}
 
 	for k, v := range cd.ComponentBases {

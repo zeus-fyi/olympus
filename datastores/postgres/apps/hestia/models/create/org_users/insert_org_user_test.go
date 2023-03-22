@@ -23,7 +23,6 @@ func (s *CreateOrgUserTestSuite) TestInsertDemoOrgUserWithSignUp() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 
 	ou := OrgUser{}
-	ou.OrgID = 1677096191839528000
 	us := UserSignup{
 		FirstName:    "alex",
 		LastName:     "g",

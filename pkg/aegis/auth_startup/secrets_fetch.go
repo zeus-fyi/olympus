@@ -38,6 +38,10 @@ type SecretsWrapper struct {
 	SecretKeyHydraDynamoDB string
 	PagerDutyApiKey        string
 	PagerDutyRoutingKey    string
+	SendGridAPIKey         string
+
+	StripePubKey    string
+	StripeSecretKey string
 
 	SecretsManagerAuthAWS aegis_aws_auth.AuthAWS
 	SESAuthAWS            aegis_aws_auth.AuthAWS

@@ -13,6 +13,11 @@ const (
 
 	sesAccessKey = "secrets/aws.ses.access.key.txt"
 	sesSecretKey = "secrets/aws.ses.secret.key.txt"
+
+	sendGridAPIKey = "secrets/sendgrid.api.key.txt"
+
+	stripePublishableKey = "secrets/stripe.api.access.key.txt"
+	stripeSecretKey      = "secrets/stripe.api.secret.key.txt"
 )
 
 func RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {
@@ -27,6 +32,9 @@ func RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authC
 
 	sw.SESAuthAWS.AccessKey = sw.ReadSecret(ctx, inMemSecrets, sesAccessKey)
 	sw.SESAuthAWS.SecretKey = sw.ReadSecret(ctx, inMemSecrets, sesSecretKey)
+	sw.SendGridAPIKey = sw.ReadSecret(ctx, inMemSecrets, sendGridAPIKey)
+	sw.StripePubKey = sw.ReadSecret(ctx, inMemSecrets, stripePublishableKey)
+	sw.StripeSecretKey = sw.ReadSecret(ctx, inMemSecrets, stripeSecretKey)
 	log.Info().Msg("Hestia: RunDigitalOceanS3BucketObjSecretsProcedure succeeded")
 	return inMemSecrets, sw
 }

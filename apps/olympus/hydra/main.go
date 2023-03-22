@@ -8,7 +8,7 @@ import (
 
 func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	zerolog.SetGlobalLevel(zerolog.WarnLevel)
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	if err := hydra_server.Cmd.Execute(); err != nil {
 		log.Err(err)
 	}

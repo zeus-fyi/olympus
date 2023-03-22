@@ -42,7 +42,11 @@ func (a *VerifyAwsLambdaSignerRequest) VerifyLambdaFunction(c echo.Context) erro
 	err := serverless_aws_automation.VerifyLambdaSignerFromDepositDataSlice(ctx, lambdaAccessAuth, dpSlice, a.FunctionURL, a.SecretName)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("VerifyRequest VerifyLambdaFunction error")
-		return c.JSON(http.StatusInternalServerError, err)
+		err = serverless_aws_automation.VerifyLambdaSignerFromDepositDataSlice(ctx, lambdaAccessAuth, dpSlice, a.FunctionURL, a.SecretName)
+		if err != nil {
+			log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("VerifyRequest VerifyLambdaFunction error")
+			return c.JSON(http.StatusInternalServerError, err)
+		}
 	}
 	return c.JSON(http.StatusOK, a.KeySlice)
 }

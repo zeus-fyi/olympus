@@ -34,6 +34,13 @@ func (s *SignupRequest) SignUp(c echo.Context) error {
 		EmailAddress: s.Email,
 		Password:     s.Password,
 	}
+
+	uID, err := create_org_users.DoesUserExist(ctx, us.EmailAddress)
+	if err != nil {
+		log.Err(err).Interface("user", uID).Msg("SignupRequest, SignUp user already exists error")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+
 	verifyToken, err := ou.InsertSignUpOrgUserAndVerifyEmail(ctx, us)
 	if err != nil {
 		log.Err(err).Interface("user", us).Msg("SignupRequest, SignUp error")

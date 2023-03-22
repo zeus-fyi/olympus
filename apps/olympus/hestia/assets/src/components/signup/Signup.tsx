@@ -62,7 +62,12 @@ export default function SignUp() {
         case 'error':
             buttonLabel = 'Resubmit';
             buttonDisabled = false;
-            statusMessage = 'An error occurred while creating the lambda function.';
+            statusMessage = 'A user with that email already exists or an error has occurred. Check your email for a verification code';
+            break;
+        case 'errorDuplicateUser':
+            buttonLabel = 'Check your email to verify your account!';
+            buttonDisabled = true;
+            statusMessage = 'A user with that email already exists or an error has occurred. Check your email for a verification code';
             break;
         default:
             buttonLabel = 'Sign Up';

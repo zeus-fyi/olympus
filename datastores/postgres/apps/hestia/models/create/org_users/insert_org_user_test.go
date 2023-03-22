@@ -21,7 +21,6 @@ func (s *CreateOrgUserTestSuite) TestInsertDemoOrgUserWithSignUp() {
 	ctx := context.Background()
 	s.InitLocalConfigs()
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
-
 	ou := OrgUser{}
 	us := UserSignup{
 		FirstName:    "alex",
@@ -29,12 +28,20 @@ func (s *CreateOrgUserTestSuite) TestInsertDemoOrgUserWithSignUp() {
 		EmailAddress: rand.String(10) + "@zeus.fyi",
 		Password:     "password",
 	}
+	userID, err := DoesUserExist(ctx, us.EmailAddress)
+	s.Require().NotNil(err)
+	s.Assert().Zero(userID)
+
 	key, err := ou.InsertSignUpOrgUserAndVerifyEmail(ctx, us)
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(key)
 
 	err = create_keys.UpdateKeysFromVerifyEmail(ctx, key)
 	s.Require().Nil(err)
+
+	userID, err = DoesUserExist(ctx, us.EmailAddress)
+	s.Require().Nil(err)
+	s.Assert().NotZero(userID)
 }
 
 func (s *CreateOrgUserTestSuite) TestInsertDemoOrgUserWithKey() {

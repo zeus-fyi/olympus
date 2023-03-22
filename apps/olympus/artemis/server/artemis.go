@@ -68,6 +68,13 @@ func Artemis() {
 			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 			AllowCredentials: true,
 		}))
+	} else {
+		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins:     []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi"},
+			AllowMethods:     []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
+			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "Access-Control-Allow-Headers", "X-CSRF-Token", "Accept-Encoding", "CloudCtxNsID"},
+			AllowCredentials: true,
+		}))
 	}
 	srv.E = artemis_api_router.Routes(srv.E)
 	srv.Start()

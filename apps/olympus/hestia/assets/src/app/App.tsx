@@ -10,6 +10,8 @@ import ValidatorsServices from "../components/validators/Validators";
 import Clusters from "../components/clusters/Clusters";
 import ClustersPage from "../components/clusters/ClusterPage";
 import AwsWizard from "../components/validators/AwsWizard";
+import SignUp from "../components/signup/Signup";
+import {VerifyEmail} from "../components/signup/VerifyEmail";
 
 export const App = () => {
     return (
@@ -18,7 +20,8 @@ export const App = () => {
                     <Routes>
                             <Route path="/" element={<HomeLayout />} />
                             <Route path="/login" element={<Login />} />
-                            {/*<Route path="/signup" element={<SignUp />} />*/}
+                            <Route path="/signup" element={<SignUp />} />
+                            <Route path="/verify/email/:id" element={<VerifyEmail />} />
                         <Route>
                             <Route path="/dashboard" element={<ProtectedLayout />}/>
                             <Route>

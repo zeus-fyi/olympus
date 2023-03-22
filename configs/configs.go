@@ -83,6 +83,9 @@ type TestContainer struct {
 	AwsAccessKeyDynamoDB string
 	AwsSecretKeyDynamoDB string
 
+	AwsAccessKeySES string
+	AwsSecretKeySES string
+
 	AwsAccessKeyLambdaExt string
 	AwsSecretKeyLambdaExt string
 	AwsLamdbaTestURL      string
@@ -133,6 +136,9 @@ func InitArtemisLocalAccounts() {
 
 func InitLocalTestConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
+
+	testCont.AwsAccessKeySES = viper.GetString("AWS_ACCESS_KEY_SES")
+	testCont.AwsSecretKeySES = viper.GetString("AWS_SECRET_KEY_SES")
 
 	testCont.AdminLoginPassword = viper.GetString("ADMIN_LOGIN_PW")
 	testCont.AwsAccessKeyDynamoDB = viper.GetString("AWS_ACCESS_KEY_DYNAMODB")

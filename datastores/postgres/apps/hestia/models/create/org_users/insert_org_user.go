@@ -19,16 +19,16 @@ import (
 
 const Sn = "OrgUser"
 
-func DoesUserExist(ctx context.Context, email string) (int, error) {
+func DoesUserExist(ctx context.Context, email string) bool {
 	q := sql_query_templates.NewQueryParam("NewTestOrgUser", "org_users", "where", 1000, []string{})
-	q.RawQuery = `SELECT user_id FROM users WHERE email = $1`
+	q.RawQuery = `SELECT EXISTS(SELECT user_id FROM users WHERE email = $1);`
 	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
-	var userID int64
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, email).Scan(&userID)
-	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
-		return 0, err
+	var exists bool
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, email).Scan(&exists)
+	if err != nil {
+		return exists
 	}
-	return int(userID), misc.ReturnIfErr(err, q.LogHeader(Sn))
+	return exists
 }
 
 func (o *OrgUser) InsertOrgUser(ctx context.Context, metadata []byte) error {

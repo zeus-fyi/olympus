@@ -28,10 +28,8 @@ func (s *CreateOrgUserTestSuite) TestInsertDemoOrgUserWithSignUp() {
 		EmailAddress: rand.String(10) + "@zeus.fyi",
 		Password:     "password",
 	}
-	userID, err := DoesUserExist(ctx, us.EmailAddress)
-	s.Require().NotNil(err)
-	s.Assert().Zero(userID)
-
+	doesExist := DoesUserExist(ctx, us.EmailAddress)
+	s.Assert().False(doesExist)
 	key, err := ou.InsertSignUpOrgUserAndVerifyEmail(ctx, us)
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(key)
@@ -39,9 +37,8 @@ func (s *CreateOrgUserTestSuite) TestInsertDemoOrgUserWithSignUp() {
 	err = create_keys.UpdateKeysFromVerifyEmail(ctx, key)
 	s.Require().Nil(err)
 
-	userID, err = DoesUserExist(ctx, us.EmailAddress)
-	s.Require().Nil(err)
-	s.Assert().NotZero(userID)
+	doesExist = DoesUserExist(ctx, us.EmailAddress)
+	s.Assert().True(doesExist)
 }
 
 func (s *CreateOrgUserTestSuite) TestInsertDemoOrgUserWithKey() {

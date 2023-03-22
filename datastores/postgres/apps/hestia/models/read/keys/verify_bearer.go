@@ -2,6 +2,7 @@ package read_keys
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/rs/zerolog/log"
@@ -46,7 +47,11 @@ func (k *OrgUserKey) VerifyUserPassword(ctx context.Context, email string) error
 	log.Debug().Interface("VerifyUserBearerToken:", q.LogHeader(Sn))
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey, email).Scan(&k.PublicKeyVerified, &k.OrgID, &k.UserID)
 	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("VerifyUserPassword error")
 		k.PublicKeyVerified = false
+	}
+	if k.PublicKeyVerified == false {
+		return errors.New("unauthorized key")
 	}
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
@@ -57,6 +62,9 @@ func (k *OrgUserKey) VerifyUserBearerToken(ctx context.Context) error {
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey).Scan(&k.PublicKeyVerified, &k.OrgID, &k.UserID)
 	if err != nil {
 		k.PublicKeyVerified = false
+	}
+	if k.PublicKeyVerified == false {
+		return errors.New("unauthorized key")
 	}
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
@@ -86,7 +94,11 @@ func (k *OrgUserKey) VerifyUserTokenService(ctx context.Context, serviceName str
 	log.Debug().Interface("QueryVerifyUserTokenService:", q.LogHeader(Sn))
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey, serviceName).Scan(&k.PublicKeyVerified, &k.OrgID, &k.UserID)
 	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("VerifyUserTokenService error")
 		k.PublicKeyVerified = false
+	}
+	if k.PublicKeyVerified == false {
+		return errors.New("unauthorized key")
 	}
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
@@ -116,6 +128,9 @@ func (k *OrgUserKey) QueryUserBearerToken(ctx context.Context, ou org_users.OrgU
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, ou.UserID, keys.BearerKeyTypeID).Scan(&k.PublicKey)
 	if err != nil {
 		k.PublicKeyVerified = false
+	}
+	if k.PublicKeyVerified == false {
+		return errors.New("unauthorized key")
 	}
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }

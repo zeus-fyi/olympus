@@ -3,6 +3,7 @@ package create_keys
 import (
 	"context"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/keys"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
@@ -51,6 +52,7 @@ func UpdateKeysFromVerifyEmail(ctx context.Context, tokenID string) error {
 		EthereumEphemeryServiceID,
 		keys.PassphraseKeyTypeID).Scan(&userID)
 	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("UpdateKeysFromVerifyEmail, QueryRowWArgs error")
 		return err
 	}
 	return nil

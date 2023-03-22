@@ -6,7 +6,7 @@ export function ZeusCopyright(props: any) {
     return (
         <Typography variant="body2" color="text.secondary" align="center" {...props}>
             {'Copyright © '}
-            <Link color="inherit" href="https://mui.com/">
+            <Link color="inherit" href="https://cloud.zeus.fyi">
                 Zeus Cloud
             </Link>{' '}
             {new Date().getFullYear()}

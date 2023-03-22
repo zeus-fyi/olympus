@@ -20,6 +20,16 @@ class SignUpApiGateway {
             return
         }
     }
+    async verifyEmail(token: string): Promise<any>  {
+        const url = `/verify/email/${token}`;
+        try {
+            return await hestiaApi.get(url, config)
+        } catch (exc) {
+            console.error('error sending signup request');
+            console.error(exc);
+            return
+        }
+    }
 }
 export const signUpApiGateway = new SignUpApiGateway();
 

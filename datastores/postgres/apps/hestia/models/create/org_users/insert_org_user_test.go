@@ -6,9 +6,11 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
 	create_orgs "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/orgs"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
+	"k8s.io/apimachinery/pkg/util/rand"
 )
 
 type CreateOrgUserTestSuite struct {
@@ -25,12 +27,15 @@ func (s *CreateOrgUserTestSuite) TestInsertDemoOrgUserWithSignUp() {
 	us := UserSignup{
 		FirstName:    "alex",
 		LastName:     "g",
-		EmailAddress: "alex@aol.com",
+		EmailAddress: rand.String(10) + "@zeus.fyi",
 		Password:     "password",
 	}
 	key, err := ou.InsertSignUpOrgUserAndVerifyEmail(ctx, us)
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(key)
+
+	err = create_keys.UpdateKeysFromVerifyEmail(ctx, key)
+	s.Require().Nil(err)
 }
 
 func (s *CreateOrgUserTestSuite) TestInsertDemoOrgUserWithKey() {

@@ -41,7 +41,7 @@ func (o *OrgUser) InsertSignUpOrgUserAndVerifyEmail(ctx context.Context, us User
 						WHERE NOT EXISTS (
 							SELECT 1
 							FROM users_keys u
-							WHERE user_id IN (SELECT user_id FROM cte_user_id) AND public_key_type_id = $6
+							WHERE user_id = (SELECT user_id FROM cte_user_id) AND public_key_type_id = $6
 					  )
 					), cte_org_users AS (
 						INSERT INTO org_users(org_id, user_id)
@@ -67,7 +67,6 @@ func (o *OrgUser) InsertSignUpOrgUserAndVerifyEmail(ctx context.Context, us User
 	signupPwKey.PublicKeyVerified = false
 	signupPwKey.PublicKeyName = "userLoginPassword"
 	signupPwKey.PublicKeyTypeID = keys.PassphraseKeyTypeID
-	signupPwKey.PublicKeyName = hashedPassword
 
 	signupKey := create_keys.NewCreateKey(0, rand.String(64))
 	signupKey.PublicKeyVerified = false

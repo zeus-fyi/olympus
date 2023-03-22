@@ -18,6 +18,7 @@ func WebRoutes(e *echo.Echo) *echo.Echo {
 	e.POST("/login", hestia_login.LoginHandler)
 	e.POST("/signup", hestia_signup.SignUpHandler)
 
+	e.GET("/verify/email", hestia_signup.VerifyEmailHandler)
 	InitV1Routes(e)
 	return e
 }

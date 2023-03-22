@@ -14,6 +14,7 @@ import authProvider from "../../redux/auth/auth.actions";
 import {useDispatch} from "react-redux";
 import {LOGIN_FAIL, LOGIN_SUCCESS,} from "../../redux/auth/auth.types";
 import {ZeusCopyright} from "../copyright/ZeusCopyright";
+import Link from "@mui/material/Link";
 
 const ethImage = require("../../static/eth.png")
 
@@ -111,11 +112,11 @@ const Login = () => {
                                 {/*        Forgot password?*/}
                                 {/*    </Link>*/}
                                 {/*</Grid>*/}
-                                {/*<Grid item>*/}
-                                {/*    <Link href="#" variant="body2">*/}
-                                {/*        {"Don't have an account? Sign Up"}*/}
-                                {/*    </Link>*/}
-                                {/*</Grid>*/}
+                                <Grid item>
+                                    <Link href="/signup" variant="body2">
+                                        {"Don't have an account? Sign Up"}
+                                    </Link>
+                                </Grid>
                             </Grid>
                             <ZeusCopyright sx={{mt: 5}}/>
                         </Box>

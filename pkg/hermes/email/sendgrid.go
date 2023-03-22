@@ -27,7 +27,8 @@ func (h *HermesEmailNotifications) SendSendGridEmailVerifyRequest(ctx context.Co
 	subject := "Verify Your Email at Zeus Cloud"
 	to := mail.NewEmail(fmt.Sprintf("%s", us.FirstName), us.EmailAddress)
 	htmlContent := email_templates.VerifyEmailHTML(us.VerifyEmailToken)
-	message := mail.NewSingleEmail(from, subject, to, "", htmlContent)
+	verifyEmail := fmt.Sprintf("Verify your email at: https://cloud.zeus.fyi/verify/email/%s", us.VerifyEmailToken)
+	message := mail.NewSingleEmail(from, subject, to, verifyEmail, htmlContent)
 	resp, err := h.SendGrid.Send(message)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("HermesEmailNotifications: SendSendGridEmailVerifyRequest: error")

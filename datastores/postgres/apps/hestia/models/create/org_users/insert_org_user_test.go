@@ -29,7 +29,7 @@ func (s *CreateOrgUserTestSuite) TestInsertDemoOrgUserWithSignUp() {
 		Password:     "password",
 	}
 	userID, err := DoesUserExist(ctx, us.EmailAddress)
-	s.Require().Nil(err)
+	s.Require().NotNil(err)
 	s.Assert().Zero(userID)
 
 	key, err := ou.InsertSignUpOrgUserAndVerifyEmail(ctx, us)

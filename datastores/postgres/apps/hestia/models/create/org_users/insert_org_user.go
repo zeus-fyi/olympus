@@ -19,6 +19,18 @@ import (
 
 const Sn = "OrgUser"
 
+func DoesUserExist(ctx context.Context, email string) (int, error) {
+	q := sql_query_templates.NewQueryParam("NewTestOrgUser", "org_users", "where", 1000, []string{})
+	q.RawQuery = `SELECT user_id FROM users WHERE email = $1`
+	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
+	var userID int64
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, email).Scan(&userID)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
+		return 0, err
+	}
+	return int(userID), misc.ReturnIfErr(err, q.LogHeader(Sn))
+}
+
 func (o *OrgUser) InsertOrgUser(ctx context.Context, metadata []byte) error {
 	q := sql_query_templates.NewQueryParam("NewTestOrgUser", "org_users", "where", 1000, []string{})
 	q.RawQuery = `WITH new_user_id AS (

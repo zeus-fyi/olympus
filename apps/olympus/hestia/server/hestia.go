@@ -65,6 +65,7 @@ func Hestia() {
 		sw.SESAuthAWS.Region = awsRegion
 		artemis_validator_service_groups_models.ArtemisClient = artemis_client.NewDefaultArtemisClient(sw.BearerToken)
 		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesSESEmailNotifications(ctx, sw.SESAuthAWS)
+		hermes_email_notifications.InitHermesSendGridClient(ctx, sw.SendGridAPIKey)
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
@@ -75,6 +76,7 @@ func Hestia() {
 		awsSESAuthCfg.AccessKey = tc.AwsAccessKeySES
 		awsSESAuthCfg.SecretKey = tc.AwsSecretKeySES
 		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesSESEmailNotifications(ctx, awsSESAuthCfg)
+		hermes_email_notifications.InitHermesSendGridClient(ctx, tc.SendGridAPIKey)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
@@ -85,6 +87,7 @@ func Hestia() {
 		awsSESAuthCfg.AccessKey = tc.AwsAccessKeySES
 		awsSESAuthCfg.SecretKey = tc.AwsSecretKeySES
 		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesSESEmailNotifications(ctx, awsSESAuthCfg)
+		hermes_email_notifications.InitHermesSendGridClient(ctx, tc.SendGridAPIKey)
 	}
 	log.Info().Msg("Hestia: AWS Secrets Manager connection starting")
 	artemis_hydra_orchestrations_aws_auth.InitHydraSecretManagerAuthAWS(ctx, awsAuthCfg)

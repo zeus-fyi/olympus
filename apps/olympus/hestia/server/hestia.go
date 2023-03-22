@@ -62,6 +62,7 @@ func Hestia() {
 		cfg.PGConnStr = sw.PostgresAuth
 		awsAuthCfg = sw.SecretsManagerAuthAWS
 		awsAuthCfg.Region = awsRegion
+		sw.SESAuthAWS.Region = awsRegion
 		artemis_validator_service_groups_models.ArtemisClient = artemis_client.NewDefaultArtemisClient(sw.BearerToken)
 		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesEmailNotifications(ctx, sw.SESAuthAWS)
 	case "production-local":

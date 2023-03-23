@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_s3"
-	"github.com/zeus-fyi/olympus/sandbox/chains"
 )
 
 type ChainDownloaderTestSuite struct {
@@ -16,7 +15,6 @@ type ChainDownloaderTestSuite struct {
 func (s *ChainDownloaderTestSuite) SetupTest() {
 	s.InitLocalConfigs()
 	s.SetupLocalDigitalOceanS3()
-	chains.ChangeToChainDataDir()
 }
 
 var brDownload = BucketRequest{

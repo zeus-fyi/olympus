@@ -15,6 +15,8 @@ CREATE TABLE "public"."users_keys" (
     "public_key_verified" bool NOT NULL DEFAULT false
 );
 ALTER TABLE "public"."users_keys" ADD CONSTRAINT "users_keys_pk" PRIMARY KEY ("public_key");
+CREATE INDEX ON users_keys (public_key, user_id);
+CREATE INDEX users_keys_public_key_type_id_idx ON users_keys (public_key_type_id);
 
 CREATE TABLE "public"."users_key_groups" (
     "user_id" int8 NOT NULL REFERENCES users(user_id),

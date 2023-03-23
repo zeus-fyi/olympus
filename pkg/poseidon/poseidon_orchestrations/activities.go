@@ -28,7 +28,9 @@ var PoseidonSyncActivitiesOrchestrator PoseidonSyncActivities
 
 func (d *PoseidonSyncActivities) GetActivities() ActivitiesSlice {
 	return []interface{}{d.PauseExecClient, d.PauseConsensusClient, d.ResumeExecClient, d.ResumeConsensusClient,
-		d.IsExecClientSynced, d.IsConsensusClientSynced, d.RsyncExecBucket, d.RsyncConsensusBucket}
+		d.IsExecClientSynced, d.IsConsensusClientSynced, d.RsyncExecBucket, d.RsyncConsensusBucket,
+		d.ScheduleDiskWipe, d.RestartBeaconPod, d.ScheduleDiskUpload,
+	}
 }
 
 func (d *PoseidonSyncActivities) PauseExecClient(ctx context.Context) error {

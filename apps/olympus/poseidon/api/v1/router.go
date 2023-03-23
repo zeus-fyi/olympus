@@ -48,6 +48,9 @@ func InitV1Routes(e *echo.Echo) {
 	eg.GET("/ethereum/mainnet/geth", GetGethPresignedURL)
 	eg.GET("/ethereum/mainnet/lighthouse", GetLighthousePresignedURL)
 
+	eg.POST("/ethereum/beacon/disk/wipe", DiskWipeRequestHandler)
+	eg.POST("/ethereum/beacon/disk/upload", SnapshotUploadRequestHandler)
+
 }
 func GetGethPresignedURL(c echo.Context) error {
 	ctx := context.Background()

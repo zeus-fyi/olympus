@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useState} from 'react';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -15,6 +16,7 @@ import {useDispatch} from "react-redux";
 import {LOGIN_FAIL, LOGIN_SUCCESS,} from "../../redux/auth/auth.types";
 import {ZeusCopyright} from "../copyright/ZeusCopyright";
 import Link from "@mui/material/Link";
+import {CircularProgress} from "@mui/material";
 
 const ethImage = require("../../static/eth.png")
 
@@ -24,21 +26,53 @@ const theme = createTheme();
 const Login = () => {
     let navigate = useNavigate();
     const dispatch = useDispatch();
+    let buttonLabel;
+    let buttonDisabled;
+    let statusMessage;
+    const [requestStatus, setRequestStatus] = useState('');
 
+    switch (requestStatus) {
+        case 'pending':
+            buttonLabel = <CircularProgress size={20} />;
+            buttonDisabled = true;
+            break;
+        case 'success':
+            buttonLabel = 'Logged in successfully';
+            buttonDisabled = true;
+            statusMessage = 'Logged in successfully!';
+            break;
+        case 'error':
+            buttonLabel = 'Retry';
+            buttonDisabled = false;
+            statusMessage = 'An error occurred while logging in, please try again. If you continue having issues please email alex@zeus.fyi';
+            break;
+        default:
+            buttonLabel = 'Login';
+            buttonDisabled = false;
+            break;
+    }
     const handleLogin = async (event: React.FormEvent<HTMLFormElement>) =>  {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
         let email = data.get('email') as string
         let password = data.get('password') as string
-        let res: any = await authProvider.login(email, password)
+        try {
+            setRequestStatus('pending');
+            let res: any = await authProvider.login(email, password)
 
-        const statusCode = res.status;
-        if (statusCode === 200 || statusCode === 204) {
-            dispatch({type: 'LOGIN_SUCCESS', payload: res.data})
-            navigate('/dashboard');
-        } else {
-            dispatch({type: 'LOGIN_FAIL', payload: res.data})
+            const statusCode = res.status;
+            if (statusCode === 200 || statusCode === 204) {
+                setRequestStatus('success');
+                dispatch({type: 'LOGIN_SUCCESS', payload: res.data})
+                navigate('/dashboard');
+            } else {
+                dispatch({type: 'LOGIN_FAIL', payload: res.data})
+                setRequestStatus('error');
+            }
+        } catch (e) {
+            setRequestStatus('error');
         }
+
     }
     return (
         <ThemeProvider theme={theme}>
@@ -103,9 +137,12 @@ const Login = () => {
                                 fullWidth
                                 variant="contained"
                                 sx={{mt: 3, mb: 2}}
-                            >
-                                Sign In
-                            </Button>
+                                disabled={buttonDisabled}>{buttonLabel}</Button>
+                            {statusMessage && (
+                                <Typography variant="body2" color={requestStatus === 'error' ? 'error' : 'success'}>
+                                    {statusMessage}
+                                </Typography>
+                            )}
                             <Grid container>
                                 {/*<Grid item xs>*/}
                                 {/*    <Link href="#" variant="body2">*/}

@@ -1,24 +1,22 @@
-name: Build Downloader App
-
+name: Build Poseidon App
 on:
   push:
     paths:
-      - docker/downloader/Dockerfile
-      - pkg/aegis/auth_startup/downloader_auth.go
-      - apps/olympus/downloader/**
-      - datastores/s3/**
-      - .github/workflows/downloader.yml
+      - apps/olympus/poseidon/**
+      - pkg/aegis/auth_startup/**
+      - docker/poseidon/Dockerfile
+      - .github/workflows/poseidon.yml
     branches:
       - main
-
+      - dev
 env:
   REPO: registry.digitalocean.com/zeus-fyi
-  NAME: downloader
+  NAME: poseidon
   TAG: latest
   GO111MODULE: on
   GOOS: linux
   GOARCH: amd64
-  CGO_ENABLED: 1
+  CGO_ENABLED: 0
   GOCACHE: ~/go-build
   GOMODCACHE: ~/go/pkg/mod
 
@@ -31,6 +29,7 @@ jobs:
         with:
           path: ~/go/pkg/mod
           key: go-mod-${{ hashFiles('**/go.sum') }}
+
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -55,7 +54,7 @@ jobs:
           wget https://github.com/digitalocean/doctl/releases/download/v1.78.0/doctl-1.78.0-linux-amd64.tar.gz -O doctl.tar.gz
           tar xf doctl.tar.gz -C /usr/local/bin
 
-      - name: Build And Publish Downloader App
+      - name: Build And Publish Poseidon App
         run: |
           doctl registry login -t ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
           docker buildx build \
@@ -68,4 +67,5 @@ jobs:
           --build-arg CA_PEM="${{ secrets.CA_PEM }}" \
           --build-arg CA_KEY="${{ secrets.CA_KEY }}" \
           --platform=${{ env.GOOS }}/${{ env.GOARCH }} \
-          -f docker/downloader/Dockerfile . --push
+          -f docker/poseidon/Dockerfile . --push
+

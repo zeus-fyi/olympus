@@ -92,7 +92,7 @@ func init() {
 
 // Cmd represents the base command when called without any subcommands
 var Cmd = &cobra.Command{
-	Use:   "Orchestration for web3 txs.",
+	Use:   "ScheduledToCloudCtxNs for web3 txs.",
 	Short: "A microservice for web3 tx orchestrations",
 	Run: func(cmd *cobra.Command, args []string) {
 		Artemis()

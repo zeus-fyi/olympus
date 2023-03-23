@@ -1,6 +1,7 @@
-package artemis_validator_service_groups_models
+package artemis_orchestrations
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -8,8 +9,10 @@ import (
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
-	"k8s.io/apimachinery/pkg/util/rand"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
+
+var ctx = context.Background()
 
 type OrchestrationsTestSuite struct {
 	hestia_test.BaseHestiaTestSuite
@@ -21,9 +24,20 @@ func (s *OrchestrationsTestSuite) TestInsertOrchestrationDefinition() {
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 	orch := artemis_autogen_bases.Orchestrations{
 		OrgID:             ou.OrgID,
-		OrchestrationName: "Test" + rand.String(10),
+		OrchestrationName: "GethDataDirDiskWipe",
 	}
-	err := InsertOrchestrations(ctx, &orch)
+	os := OrchestrationJob{
+		Orchestrations: orch,
+		CloudCtxNs: zeus_common_types.CloudCtxNs{
+			CloudProvider: "do",
+			Region:        "sfo3",
+			Context:       "",
+			Namespace:     "",
+			Env:           "",
+		},
+	}
+
+	err := os.InsertOrchestrations(ctx)
 	s.Require().Nil(err)
 	s.Assert().NotZero(orch.OrchestrationID)
 	fmt.Println(orch.OrchestrationID)
@@ -37,8 +51,19 @@ func (s *OrchestrationsTestSuite) TestInsertOrchestrationsScheduledToCloudCtxNs(
 		OrchestrationID: 1679548290001220864,
 		CloudCtxNsID:    1674866203750351872,
 	}
+	os := OrchestrationJob{
+		Orchestrations: artemis_autogen_bases.Orchestrations{},
+		Scheduled:      orch,
+		CloudCtxNs: zeus_common_types.CloudCtxNs{
+			CloudProvider: "do",
+			Region:        "sfo3",
+			Context:       "",
+			Namespace:     "",
+			Env:           "",
+		},
+	}
 
-	err := InsertOrchestrationsScheduledToCloudCtxNs(ctx, &orch)
+	err := os.InsertOrchestrationsScheduledToCloudCtxNs(ctx)
 	s.Require().Nil(err)
 	s.Assert().NotZero(orch.OrchestrationID)
 }
@@ -52,8 +77,19 @@ func (s *OrchestrationsTestSuite) TestUpdateOrchestrationsScheduledToCloudCtxNs(
 		CloudCtxNsID:    1674866203750351872,
 		Status:          "Pending",
 	}
+	os := OrchestrationJob{
+		Orchestrations: artemis_autogen_bases.Orchestrations{},
+		Scheduled:      orch,
+		CloudCtxNs: zeus_common_types.CloudCtxNs{
+			CloudProvider: "do",
+			Region:        "sfo3",
+			Context:       "",
+			Namespace:     "",
+			Env:           "",
+		},
+	}
 
-	err := UpdateOrchestrationsScheduledToCloudCtxNs(ctx, ou.OrgID, "Test", &orch)
+	err := os.UpdateOrchestrationsScheduledToCloudCtxNs(ctx)
 	s.Require().Nil(err)
 	s.Assert().NotZero(orch.OrchestrationID)
 }
@@ -65,9 +101,24 @@ func (s *OrchestrationsTestSuite) TestInsertOrchestrationScheduledToCloudCtxNs()
 	orch := artemis_autogen_bases.OrchestrationsScheduledToCloudCtxNs{
 		OrchestrationID: 1679548290001220864,
 		CloudCtxNsID:    1674866203750351872,
+		Status:          "Pending",
 	}
-
-	orchTodo, err := SelectOrchestrationsAtCloudCtxNsWithStatus(ctx, ou.OrgID, orch.CloudCtxNsID, "Pending", "Test")
+	os := OrchestrationJob{
+		Orchestrations: artemis_autogen_bases.Orchestrations{
+			OrchestrationID:   0,
+			OrgID:             0,
+			OrchestrationName: "Test",
+		},
+		Scheduled: orch,
+		CloudCtxNs: zeus_common_types.CloudCtxNs{
+			CloudProvider: "do",
+			Region:        "sfo3",
+			Context:       "",
+			Namespace:     "",
+			Env:           "",
+		},
+	}
+	orchTodo, err := os.SelectOrchestrationsAtCloudCtxNsWithStatus(ctx)
 	s.Require().Nil(err)
 	s.Assert().True(orchTodo)
 }

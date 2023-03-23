@@ -24,7 +24,7 @@ func NewPoseidonSyncWorkflow(psa PoseidonSyncActivities) PoseidonSyncWorkflow {
 }
 
 func (t *PoseidonSyncWorkflow) GetWorkflows() []interface{} {
-	return []interface{}{t.PoseidonEthereumWorkflow}
+	return []interface{}{t.PoseidonEthereumWorkflow, t.PoseidonEthereumClientDiskWipeWorkflow, t.PoseidonEthereumClientDiskUploadWorkflow}
 }
 
 func (t *PoseidonSyncWorkflow) PoseidonEthereumWorkflow(ctx workflow.Context, params interface{}) error {

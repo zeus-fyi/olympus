@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/rs/zerolog/log"
+	pg_poseidon "github.com/zeus-fyi/olympus/datastores/postgres/apps/poseidon"
 	"go.temporal.io/sdk/client"
 )
 
@@ -19,6 +20,38 @@ func (t *PoseidonWorker) ExecutePoseidonSyncWorkflow(ctx context.Context) error 
 	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, nil)
 	if err != nil {
 		log.Err(err).Msg("ExecutePoseidonSyncWorkflow")
+		return err
+	}
+	return err
+}
+
+func (t *PoseidonWorker) ExecutePoseidonDiskWipeWorkflow(ctx context.Context, dw pg_poseidon.DiskWipeOrchestration) error {
+	c := t.ConnectTemporalClient()
+	defer c.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: t.TaskQueueName,
+	}
+	psWf := NewPoseidonSyncWorkflow(PoseidonSyncActivitiesOrchestrator)
+	wf := psWf.PoseidonEthereumClientDiskWipeWorkflow
+	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, dw)
+	if err != nil {
+		log.Err(err).Msg("ExecutePoseidonDiskWipeWorkflow")
+		return err
+	}
+	return err
+}
+
+func (t *PoseidonWorker) ExecutePoseidonDiskUploadWorkflow(ctx context.Context, du pg_poseidon.UploadDataDirOrchestration) error {
+	c := t.ConnectTemporalClient()
+	defer c.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: t.TaskQueueName,
+	}
+	psWf := NewPoseidonSyncWorkflow(PoseidonSyncActivitiesOrchestrator)
+	wf := psWf.PoseidonEthereumClientDiskUploadWorkflow
+	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, du)
+	if err != nil {
+		log.Err(err).Msg("ExecutePoseidonDiskUploadWorkflow")
 		return err
 	}
 	return err

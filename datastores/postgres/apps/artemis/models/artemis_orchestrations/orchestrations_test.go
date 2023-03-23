@@ -72,13 +72,13 @@ func (s *OrchestrationsTestSuite) TestInsertOrchestrationsScheduledToCloudCtxNsU
 }
 
 func (s *OrchestrationsTestSuite) TestUpdateOrchestrationsScheduledToCloudCtxNs() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 	orch := artemis_autogen_bases.OrchestrationsScheduledToCloudCtxNs{
-		OrchestrationID: 1679548290001220864,
-		CloudCtxNsID:    1674866203750351872,
-		Status:          "Pending",
+		Status: "Pending",
 	}
 	os := OrchestrationJob{
 		Orchestrations: artemis_autogen_bases.Orchestrations{},

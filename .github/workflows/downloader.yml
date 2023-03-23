@@ -10,7 +10,7 @@ on:
       - .github/workflows/downloader.yml
     branches:
       - main
-      - dev
+
 env:
   REPO: registry.digitalocean.com/zeus-fyi
   NAME: downloader
@@ -69,4 +69,3 @@ jobs:
           --build-arg CA_KEY="${{ secrets.CA_KEY }}" \
           --platform=${{ env.GOOS }}/${{ env.GOARCH }} \
           -f docker/downloader/Dockerfile . --push
-

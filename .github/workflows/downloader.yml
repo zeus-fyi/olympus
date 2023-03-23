@@ -10,6 +10,7 @@ on:
       - .github/workflows/downloader.yml
     branches:
       - main
+      - dev
 env:
   REPO: registry.digitalocean.com/zeus-fyi
   NAME: downloader

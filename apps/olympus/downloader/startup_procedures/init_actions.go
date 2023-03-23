@@ -48,6 +48,8 @@ func InitWorkloadAction(ctx context.Context, w WorkloadInfo) {
 		log.Ctx(ctx).Info().Msg("validators sync complete")
 	case "beaconExecClient", "beaconConsensusClient":
 		EphemeryReset()
+		log.Ctx(ctx).Info().Msgf("checking for upload snapshot job %s", w.WorkloadType)
+		CheckForUploadBeaconJob(ctx, w)
 		log.Ctx(ctx).Info().Msgf("checking for disk wipe job %s", w.WorkloadType)
 		CheckForDiskWipeJobBeacon(ctx, w)
 		log.Ctx(ctx).Info().Msg("starting chain sync")

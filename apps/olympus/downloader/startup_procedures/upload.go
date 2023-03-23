@@ -44,15 +44,15 @@ func CheckForUploadBeaconJob(ctx context.Context, w WorkloadInfo) {
 }
 
 func UploadSelector(ctx context.Context, w WorkloadInfo) {
-	network := hestia_req_types.ProtocolNetworkIDToString(Workload.ProtocolNetworkID)
+	network := hestia_req_types.ProtocolNetworkIDToString(w.ProtocolNetworkID)
 	log.Info().Interface("network", network).Msg("UploadChainSnapshotRequest: Upload Sync Starting")
 	pos := poseidon.NewPoseidon(athena.AthenaS3Manager)
 
-	switch Workload.ProtocolNetworkID {
+	switch w.ProtocolNetworkID {
 	case hestia_req_types.EthereumMainnetProtocolNetworkID, hestia_req_types.EthereumGoerliProtocolNetworkID:
-		switch Workload.WorkloadType {
+		switch w.WorkloadType {
 		case "beaconExecClient":
-			switch Workload.ClientName {
+			switch w.ClientName {
 			case "geth":
 				log.Ctx(ctx).Info().Msg("UploadChainSnapshotRequest: Geth Upload Starting")
 				b := poseidon_buckets.GethBucket(network)
@@ -66,7 +66,7 @@ func UploadSelector(ctx context.Context, w WorkloadInfo) {
 				log.Ctx(ctx).Err(err)
 			}
 		case "beaconConsensusClient":
-			switch Workload.ClientName {
+			switch w.ClientName {
 			case "lighthouse":
 				log.Ctx(ctx).Info().Msg("DownloadChainSnapshotRequest: Lighthouse Sync Starting")
 				b := poseidon_buckets.LighthouseBucket(network)

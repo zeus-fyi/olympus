@@ -11,16 +11,16 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-func ChainDownload(ctx context.Context) {
+func ChainDownload(ctx context.Context, w WorkloadInfo) {
 	log.Info().Msg("DownloadChainSnapshotRequest: Download Sync Starting")
 	pos := poseidon.NewPoseidon(athena.AthenaS3Manager)
-	network := hestia_req_types.ProtocolNetworkIDToString(Workload.ProtocolNetworkID)
+	network := hestia_req_types.ProtocolNetworkIDToString(w.ProtocolNetworkID)
 	log.Ctx(ctx).Info().Interface("network", network).Msg("DownloadChainSnapshotRequest: Downloading Chain Snapshot")
-	switch Workload.ProtocolNetworkID {
+	switch w.ProtocolNetworkID {
 	case hestia_req_types.EthereumMainnetProtocolNetworkID, hestia_req_types.EthereumGoerliProtocolNetworkID:
-		switch Workload.WorkloadType {
+		switch w.WorkloadType {
 		case "beaconExecClient":
-			switch Workload.ClientName {
+			switch w.ClientName {
 			case "geth":
 				log.Ctx(ctx).Info().Msg("DownloadChainSnapshotRequest: Geth Sync Starting")
 				// TODO, unsure if always downloading to resync beacon is an issue or not
@@ -35,7 +35,7 @@ func ChainDownload(ctx context.Context) {
 				log.Ctx(ctx).Err(err)
 			}
 		case "beaconConsensusClient":
-			switch Workload.ClientName {
+			switch w.ClientName {
 			case "lighthouse":
 				log.Ctx(ctx).Info().Msg("DownloadChainSnapshotRequest: Lighthouse Sync Starting")
 				b := poseidon_buckets.LighthouseBucket(network)

@@ -1,8 +1,14 @@
 package poseidon
 
 import (
+	"context"
+	"errors"
+	"net/http"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awshttp "github.com/aws/aws-sdk-go-v2/aws/transport/http"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3base "github.com/zeus-fyi/olympus/datastores/s3"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/compression"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
@@ -32,6 +38,21 @@ func (b *BucketRequest) GetBucketKey() string {
 		key = append(key, "tar.lz4")
 	}
 	return strings.Join(key, ".")
+}
+
+func (p *Poseidon) CheckIfBucketKeyExists(ctx context.Context, b BucketRequest) (bool, error) {
+	_, err := p.S3Client.AwsS3Client.HeadObject(ctx, &s3.HeadObjectInput{
+		Bucket: aws.String(b.BucketName),
+		Key:    aws.String(b.GetBucketKey()),
+	})
+	if err != nil {
+		var responseError *awshttp.ResponseError
+		if errors.As(err, &responseError) && responseError.ResponseError.HTTPStatusCode() == http.StatusNotFound {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
 
 func NewPoseidon(s3Client s3base.S3Client) Poseidon {

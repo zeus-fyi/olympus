@@ -7,6 +7,7 @@ CREATE TABLE "public"."users" (
     "metadata" jsonb NOT NULL
 );
 ALTER TABLE "public"."users" ADD CONSTRAINT "user_pk" PRIMARY KEY ("user_id");
+CREATE INDEX users_email_idx ON users (email);
 
 CREATE TABLE "public"."orgs" (
   "org_id" int8 NOT NULL DEFAULT next_id(),

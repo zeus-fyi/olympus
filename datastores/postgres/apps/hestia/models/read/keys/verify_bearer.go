@@ -36,7 +36,7 @@ func (k *OrgUserKey) QueryVerifyUserPassword() sql_query_templates.QueryParams {
 	INNER JOIN key_types kt ON kt.key_type_id = usk.public_key_type_id
 	INNER JOIN org_users ou ON ou.user_id = usk.user_id
 	INNER JOIN users u ON u.user_id = ou.user_id
-	WHERE public_key = crypt($1, public_key) AND u.email = $2
+	WHERE public_key = crypt($1, public_key) AND u.email = $2 AND usk.public_key_type_id = $3
 	`)
 	q.RawQuery = query
 	return q
@@ -45,7 +45,7 @@ func (k *OrgUserKey) QueryVerifyUserPassword() sql_query_templates.QueryParams {
 func (k *OrgUserKey) VerifyUserPassword(ctx context.Context, email string) error {
 	q := k.QueryVerifyUserPassword()
 	log.Debug().Interface("VerifyUserBearerToken:", q.LogHeader(Sn))
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey, email).Scan(&k.PublicKeyVerified, &k.OrgID, &k.UserID)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey, email, keys.PassphraseKeyTypeID).Scan(&k.PublicKeyVerified, &k.OrgID, &k.UserID)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("VerifyUserPassword error")
 		k.PublicKeyVerified = false

@@ -2,8 +2,8 @@ package artemis_orchestrations
 
 import (
 	"context"
-	"database/sql"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
@@ -124,7 +124,7 @@ func (o *OrchestrationJob) SelectOrchestrationsAtCloudCtxNsWithStatus(ctx contex
 	var orchestrationTodo bool
 	log.Debug().Interface("SelectOrchestrations", q.LogHeader(Orchestrations))
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, o.CloudProvider, o.Region, o.Context, o.Namespace, o.Scheduled.Status, o.OrchestrationName).Scan(&orchestrationTodo)
-	if err == sql.ErrNoRows {
+	if err == pgx.ErrNoRows {
 		// no rows were found by the query
 		return false, nil
 	} else if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {

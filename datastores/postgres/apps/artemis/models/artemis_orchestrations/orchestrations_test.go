@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
@@ -19,12 +20,14 @@ type OrchestrationsTestSuite struct {
 }
 
 func (s *OrchestrationsTestSuite) TestInsertOrchestrationDefinition() {
+	//apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 	orch := artemis_autogen_bases.Orchestrations{
 		OrgID:             ou.OrgID,
-		OrchestrationName: "GethDataDirDiskWipe",
+		OrchestrationName: "prysmDataDirDiskWipe",
 	}
 	os := OrchestrationJob{
 		Orchestrations: orch,
@@ -39,33 +42,33 @@ func (s *OrchestrationsTestSuite) TestInsertOrchestrationDefinition() {
 
 	err := os.InsertOrchestrations(ctx)
 	s.Require().Nil(err)
-	s.Assert().NotZero(orch.OrchestrationID)
-	fmt.Println(orch.OrchestrationID)
+	s.Assert().NotZero(os.OrchestrationID)
+	fmt.Println(os.OrchestrationID)
 }
 
-func (s *OrchestrationsTestSuite) TestInsertOrchestrationsScheduledToCloudCtxNs() {
+func (s *OrchestrationsTestSuite) TestInsertOrchestrationsScheduledToCloudCtxNsUsingName() {
+	//apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
-	orch := artemis_autogen_bases.OrchestrationsScheduledToCloudCtxNs{
-		OrchestrationID: 1679548290001220864,
-		CloudCtxNsID:    1674866203750351872,
-	}
+	orch := artemis_autogen_bases.OrchestrationsScheduledToCloudCtxNs{}
 	os := OrchestrationJob{
-		Orchestrations: artemis_autogen_bases.Orchestrations{},
-		Scheduled:      orch,
+		Orchestrations: artemis_autogen_bases.Orchestrations{
+			OrchestrationName: "gethDataDirDiskWipe",
+		},
+		Scheduled: orch,
 		CloudCtxNs: zeus_common_types.CloudCtxNs{
 			CloudProvider: "do",
 			Region:        "sfo3",
-			Context:       "",
-			Namespace:     "",
+			Context:       "do-sfo3-dev-do-sfo3-zeus",
+			Namespace:     "athena-beacon-goerli",
 			Env:           "",
 		},
 	}
-
-	err := os.InsertOrchestrationsScheduledToCloudCtxNs(ctx)
+	err := os.InsertOrchestrationsScheduledToCloudCtxNsUsingName(ctx)
 	s.Require().Nil(err)
-	s.Assert().NotZero(orch.OrchestrationID)
+	s.Assert().NotZero(os.Scheduled.OrchestrationScheduleID)
 }
 
 func (s *OrchestrationsTestSuite) TestUpdateOrchestrationsScheduledToCloudCtxNs() {
@@ -83,8 +86,8 @@ func (s *OrchestrationsTestSuite) TestUpdateOrchestrationsScheduledToCloudCtxNs(
 		CloudCtxNs: zeus_common_types.CloudCtxNs{
 			CloudProvider: "do",
 			Region:        "sfo3",
-			Context:       "",
-			Namespace:     "",
+			Context:       "do-sfo3-dev-do-sfo3-zeus",
+			Namespace:     "athena-beacon-goerli",
 			Env:           "",
 		},
 	}
@@ -94,27 +97,24 @@ func (s *OrchestrationsTestSuite) TestUpdateOrchestrationsScheduledToCloudCtxNs(
 	s.Assert().NotZero(orch.OrchestrationID)
 }
 
-func (s *OrchestrationsTestSuite) TestInsertOrchestrationScheduledToCloudCtxNs() {
+func (s *OrchestrationsTestSuite) TestSelectOrchestrationsAtCloudCtxNsWithStatus() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ou := org_users.OrgUser{}
 	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
 	orch := artemis_autogen_bases.OrchestrationsScheduledToCloudCtxNs{
-		OrchestrationID: 1679548290001220864,
-		CloudCtxNsID:    1674866203750351872,
-		Status:          "Pending",
+		Status: "Pending",
 	}
 	os := OrchestrationJob{
 		Orchestrations: artemis_autogen_bases.Orchestrations{
-			OrchestrationID:   0,
-			OrgID:             0,
-			OrchestrationName: "Test",
+			OrchestrationName: "aaa",
 		},
 		Scheduled: orch,
 		CloudCtxNs: zeus_common_types.CloudCtxNs{
 			CloudProvider: "do",
 			Region:        "sfo3",
-			Context:       "",
-			Namespace:     "",
+			Context:       "do-sfo3-dev-do-sfo3-zeus",
+			Namespace:     "athena-beacon-goerli",
 			Env:           "",
 		},
 	}

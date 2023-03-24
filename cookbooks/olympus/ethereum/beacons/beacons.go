@@ -11,6 +11,7 @@ import (
 	zeus_cluster_config_drivers "github.com/zeus-fyi/zeus/pkg/zeus/cluster_config_drivers"
 	zeus_topology_config_drivers "github.com/zeus-fyi/zeus/pkg/zeus/workload_config_drivers"
 	v1Core "k8s.io/api/core/v1"
+	v1 "k8s.io/api/networking/v1"
 )
 
 const (
@@ -38,6 +39,7 @@ var (
 		ComponentBases: map[string]zeus_cluster_config_drivers.ComponentBaseDefinition{
 			"consensusClients":  GetConsensusClientComponentBaseConfig(hestia_req_types.Goerli),
 			"execClients":       GetExecClientComponentBaseConfig(hestia_req_types.Goerli),
+			"beaconIngress":     GetIngressComponentBaseConfig(hestia_req_types.Goerli),
 			"hydraChoreography": olympus_hydra_choreography_cookbooks.HydraChoreographyComponentBase,
 		},
 	}
@@ -81,6 +83,14 @@ var (
 		DirIn:       "./olympus/ethereum/beacons/infra/exec_client",
 		DirOut:      "./olympus/ethereum/outputs",
 		FnIn:        "gethAthena", // filename for your gzip workload
+		FnOut:       "",
+		Env:         "",
+	}
+	IngressChartPath = filepaths.Path{
+		PackageName: "",
+		DirIn:       "./olympus/ethereum/beacons/infra/ingress",
+		DirOut:      "./olympus/ethereum/outputs",
+		FnIn:        "ingress", // filename for your gzip workload
 		FnOut:       "",
 		Env:         "",
 	}
@@ -179,6 +189,33 @@ func GetExecClientSkeletonBase(network string) zeus_cluster_config_drivers.Clust
 						Env:  ClusterConfigEnvVars(nil, network),
 					}},
 				},
+			},
+		},
+	}
+	return sbCfg
+}
+
+func GetIngressComponentBaseConfig(network string) zeus_cluster_config_drivers.ComponentBaseDefinition {
+	return zeus_cluster_config_drivers.ComponentBaseDefinition{
+		SkeletonBases: map[string]zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
+			"ingress": GetIngressSkeletonBase(network),
+		},
+	}
+}
+func GetIngressSkeletonBase(network string) zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition {
+	sbCfg := zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
+		SkeletonBaseChart:         zeus_req_types.TopologyCreateRequest{},
+		SkeletonBaseNameChartPath: IngressChartPath,
+		TopologyConfigDriver: &zeus_topology_config_drivers.TopologyConfigDriver{
+			IngressDriver: &zeus_topology_config_drivers.IngressDriver{
+				Ingress: v1.Ingress{
+					Spec: v1.IngressSpec{
+						TLS: []v1.IngressTLS{{[]string{fmt.Sprintf("eth.%s.zeus.fyi", network)}, fmt.Sprintf("beacon-%s-tls", network)}},
+						Rules: []v1.IngressRule{{
+							Host: fmt.Sprintf("eth.%s.zeus.fyi", network),
+						}}},
+				},
+				NginxAuthURL: "https://aegis.zeus.fyi/v1/ethereum/beacon",
 			},
 		},
 	}

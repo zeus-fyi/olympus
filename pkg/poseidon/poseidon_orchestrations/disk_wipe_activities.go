@@ -43,12 +43,3 @@ func (d *PoseidonSyncActivities) RestartBeaconPod(ctx context.Context, params pg
 	}
 	return err
 }
-
-func (d *PoseidonSyncActivities) ScheduleDiskUpload(ctx context.Context, params pg_poseidon.DiskWipeOrchestration) error {
-	err := params.ScheduleDiskWipe(ctx)
-	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("PoseidonSyncActivities: ScheduleDiskWipe")
-		return err
-	}
-	return err
-}

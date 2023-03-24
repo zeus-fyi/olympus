@@ -22,7 +22,7 @@ func (t *PoseidonSyncWorkflow) PoseidonEthereumClientDiskUploadWorkflow(ctx work
 	}
 	aoSync.RetryPolicy = syncStatusCheckRetryPolicy
 	setDiskUploadStatusCtx := workflow.WithActivityOptions(ctx, aoSync)
-	err := workflow.ExecuteActivity(setDiskUploadStatusCtx, t.ScheduleDiskUpload, params).Get(setDiskUploadStatusCtx, nil)
+	err := workflow.ExecuteActivity(setDiskUploadStatusCtx, t.ScheduleUploadDisk, params).Get(setDiskUploadStatusCtx, nil)
 	if err != nil {
 		log.Error("ScheduleDiskUpload: ", err)
 		return err

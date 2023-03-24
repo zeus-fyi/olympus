@@ -10,36 +10,12 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/poseidon/poseidon_orchestrations"
 )
 
-type DiskWipeRequest struct {
-	pg_poseidon.DiskWipeOrchestration
-}
-
-func DiskWipeRequestHandler(c echo.Context) error {
-	log.Info().Msg("Poseidon: DiskWipeRequestHandler")
-	request := new(DiskWipeRequest)
-	if err := c.Bind(request); err != nil {
-		log.Err(err).Msg("DiskWipeRequestHandler")
-		return err
-	}
-	return request.ExecuteDiskWipeWorkflow(c)
-}
-
-func (dw *DiskWipeRequest) ExecuteDiskWipeWorkflow(c echo.Context) error {
-	ctx := context.Background()
-	err := poseidon_orchestrations.PoseidonSyncWorker.ExecutePoseidonDiskWipeWorkflow(ctx, dw.DiskWipeOrchestration)
-	if err != nil {
-		log.Err(err).Msg("ExecuteDiskWipeWorkflow")
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	return c.JSON(http.StatusAccepted, nil)
-}
-
 type SnapshotUploadRequest struct {
 	pg_poseidon.UploadDataDirOrchestration
 }
 
 func SnapshotUploadRequestHandler(c echo.Context) error {
-	log.Info().Msg("Poseidon: DiskWipeRequestHandler")
+	log.Info().Msg("Poseidon: SnapshotUploadRequestHandler")
 	request := new(SnapshotUploadRequest)
 	if err := c.Bind(request); err != nil {
 		log.Err(err).Msg("SnapshotUploadRequestHandler")

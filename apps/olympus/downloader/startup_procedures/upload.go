@@ -62,6 +62,10 @@ func UploadSelector(ctx context.Context, w WorkloadInfo) {
 					log.Ctx(ctx).Err(err)
 					panic(err)
 				}
+				err = pos.RemoveFileInPath()
+				if err != nil {
+					log.Ctx(ctx).Err(err).Interface("fnIn", pos.FnIn).Msg("failed to remove file in path")
+				}
 			default:
 				err := errors.New("invalid client workload type")
 				log.Ctx(ctx).Err(err)
@@ -76,6 +80,10 @@ func UploadSelector(ctx context.Context, w WorkloadInfo) {
 				if err != nil {
 					log.Ctx(ctx).Err(err)
 					panic(err)
+				}
+				err = pos.RemoveFileInPath()
+				if err != nil {
+					log.Ctx(ctx).Err(err).Interface("fnIn", pos.FnIn).Msg("failed to remove file in path")
 				}
 			default:
 				err := errors.New("invalid client workload type")

@@ -47,7 +47,6 @@ func UploadSelector(ctx context.Context, w WorkloadInfo) {
 	network := hestia_req_types.ProtocolNetworkIDToString(w.ProtocolNetworkID)
 	log.Info().Interface("network", network).Msg("UploadChainSnapshotRequest: Upload Sync Starting")
 	pos := poseidon.NewPoseidon(athena.AthenaS3Manager)
-	pos.FnIn = w.ClientName
 
 	switch w.ProtocolNetworkID {
 	case hestia_req_types.EthereumMainnetProtocolNetworkID, hestia_req_types.EthereumGoerliProtocolNetworkID:
@@ -57,10 +56,15 @@ func UploadSelector(ctx context.Context, w WorkloadInfo) {
 			case "geth":
 				log.Ctx(ctx).Info().Msg("UploadChainSnapshotRequest: Geth Upload Starting")
 				b := poseidon_buckets.GethBucket(network)
+				pos.FnIn = b.GetBucketKey()
 				err := pos.Lz4CompressAndUpload(ctx, b)
 				if err != nil {
 					log.Ctx(ctx).Err(err)
 					panic(err)
+				}
+				err = pos.RemoveFileInPath()
+				if err != nil {
+					log.Ctx(ctx).Err(err).Interface("fnIn", pos.FnIn).Msg("failed to remove file in path")
 				}
 			default:
 				err := errors.New("invalid client workload type")
@@ -71,10 +75,15 @@ func UploadSelector(ctx context.Context, w WorkloadInfo) {
 			case "lighthouse":
 				log.Ctx(ctx).Info().Msg("DownloadChainSnapshotRequest: Lighthouse Sync Starting")
 				b := poseidon_buckets.LighthouseBucket(network)
+				pos.FnIn = b.GetBucketKey()
 				err := pos.Lz4CompressAndUpload(ctx, b)
 				if err != nil {
 					log.Ctx(ctx).Err(err)
 					panic(err)
+				}
+				err = pos.RemoveFileInPath()
+				if err != nil {
+					log.Ctx(ctx).Err(err).Interface("fnIn", pos.FnIn).Msg("failed to remove file in path")
 				}
 			default:
 				err := errors.New("invalid client workload type")

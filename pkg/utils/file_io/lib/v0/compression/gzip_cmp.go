@@ -97,5 +97,6 @@ func addToArchive(p *filepaths.Path, tw *tar.Writer, filename string) error {
 		log.Err(err).Msg("Compression: addToArchive, io.CopyN(tw, file)")
 		return err
 	}
+	log.Info().Interface("fileSize", header.Size).Msg("File added to archive: " + filename)
 	return nil
 }

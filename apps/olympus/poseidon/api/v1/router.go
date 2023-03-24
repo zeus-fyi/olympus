@@ -50,6 +50,7 @@ func InitV1Routes(e *echo.Echo) {
 
 	eg.POST("/ethereum/beacon/disk/wipe", DiskWipeRequestHandler)
 	eg.POST("/ethereum/beacon/disk/upload", SnapshotUploadRequestHandler)
+	eg.POST("/ethereum/beacon/chainsync/upload", BeaconChainSyncUploadRequestHandler)
 
 }
 func GetGethPresignedURL(c echo.Context) error {

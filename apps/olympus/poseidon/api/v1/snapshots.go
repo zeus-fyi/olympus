@@ -33,3 +33,28 @@ func (s *SnapshotUploadRequest) ExecuteSnapshotUploadWorkflow(c echo.Context) er
 	}
 	return c.JSON(http.StatusAccepted, nil)
 }
+
+type BeaconChainSyncUpload struct {
+	ExecClient      pg_poseidon.UploadDataDirOrchestration
+	ConsensusClient pg_poseidon.UploadDataDirOrchestration
+}
+
+func BeaconChainSyncUploadRequestHandler(c echo.Context) error {
+	log.Info().Msg("Poseidon: BeaconChainSyncUploadRequestHandler")
+	request := new(BeaconChainSyncUpload)
+	if err := c.Bind(request); err != nil {
+		log.Err(err).Msg("SnapshotUploadRequestHandler")
+		return err
+	}
+	return request.ExecuteBeaconChainSyncUploadWorkflow(c)
+}
+
+func (s *BeaconChainSyncUpload) ExecuteBeaconChainSyncUploadWorkflow(c echo.Context) error {
+	ctx := context.Background()
+	err := poseidon_orchestrations.PoseidonSyncWorker.ExecutePoseidonEthereumClientBeaconUploadWorkflow(ctx, s.ExecClient, s.ConsensusClient)
+	if err != nil {
+		log.Err(err).Msg("ExecuteBeaconChainSyncUploadWorkflow")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	return c.JSON(http.StatusAccepted, nil)
+}

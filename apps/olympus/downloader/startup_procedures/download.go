@@ -73,6 +73,7 @@ func downloadIfBucketExists(ctx context.Context, usedPercent float64, pos poseid
 	}
 	if exists && usedPercent <= float64(1) {
 		pos.FnIn = b.GetBucketKey()
+		log.Ctx(ctx).Info().Interface("bucket", b.GetBucketKey()).Msg("DownloadChainSnapshotRequest: Downloading Chain Snapshot")
 		err = pos.Lz4DownloadAndDec(ctx, b)
 		if err != nil {
 			log.Ctx(ctx).Err(err).Msg("Lz4DownloadAndDec")

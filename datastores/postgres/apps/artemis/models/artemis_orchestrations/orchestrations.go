@@ -92,8 +92,8 @@ func (o *OrchestrationJob) UpdateOrchestrationsScheduledToCloudCtxNs(ctx context
 				WHERE orchestrations_scheduled_to_cloud_ctx_ns.orchestration_id = orchestrations.orchestration_id
 				AND orchestrations.org_id = (SELECT org_id FROM cte_get_cloud_ctx)
 				AND orchestrations.orchestration_name = $6
-				AND orchestrations_scheduled_to_cloud_ctx_ns.cloud_ctx_ns_id = (SELECT cloud_ctx_ns_id FROM cte_get_cloud_ctx);
-				  `
+				AND orchestrations_scheduled_to_cloud_ctx_ns.cloud_ctx_ns_id = (SELECT cloud_ctx_ns_id FROM cte_get_cloud_ctx)
+				RETURNING orchestrations_scheduled_to_cloud_ctx_ns.orchestration_schedule_id;`
 	log.Debug().Interface("UpdateOrchestrationsScheduledToCloudCtxNs", q.LogHeader(Orchestrations))
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, o.CloudProvider, o.Region, o.Context, o.Namespace,
 		o.Scheduled.Status, o.OrchestrationName).Scan(&o.Scheduled.OrchestrationScheduleID)

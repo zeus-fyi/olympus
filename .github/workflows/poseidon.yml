@@ -4,6 +4,7 @@ on:
     paths:
       - apps/olympus/poseidon/**
       - pkg/aegis/auth_startup/**
+      - pkg/poseidon/**
       - docker/poseidon/Dockerfile
       - .github/workflows/poseidon.yml
     branches:

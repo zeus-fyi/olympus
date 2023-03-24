@@ -12,6 +12,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/poseidon"
 	"github.com/zeus-fyi/olympus/pkg/poseidon/poseidon_buckets"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
+	"github.com/zeus-fyi/zeus/pkg/utils/host_info"
 )
 
 func CheckForUploadBeaconJob(ctx context.Context, w WorkloadInfo) {
@@ -48,6 +49,12 @@ func UploadSelector(ctx context.Context, w WorkloadInfo) {
 	log.Info().Interface("network", network).Msg("UploadChainSnapshotRequest: Upload Sync Starting")
 	pos := poseidon.NewPoseidon(athena.AthenaS3Manager)
 
+	stats, serr := host_info.GetDiskUsageStats(ctx, w.DataDir.DirIn)
+	if serr != nil {
+		log.Ctx(ctx).Panic().Err(serr).Msg("GetDiskUsageStats")
+		panic(serr)
+	}
+	log.Ctx(ctx).Info().Interface("diskUtilizationPercentage", stats.UsedPercent).Interface("diskTotalSpace", stats.Total).Interface("client", w.ClientName).Msg("GetDiskUsageStats")
 	switch w.ProtocolNetworkID {
 	case hestia_req_types.EthereumMainnetProtocolNetworkID, hestia_req_types.EthereumGoerliProtocolNetworkID:
 		switch w.WorkloadType {

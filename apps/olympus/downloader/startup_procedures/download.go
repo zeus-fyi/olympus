@@ -72,10 +72,15 @@ func downloadIfBucketExists(ctx context.Context, usedPercent float64, pos poseid
 		return err
 	}
 	if exists && usedPercent <= float64(1) {
+		pos.FnIn = b.GetBucketKey()
 		err = pos.Lz4DownloadAndDec(ctx, b)
 		if err != nil {
 			log.Ctx(ctx).Err(err).Msg("Lz4DownloadAndDec")
 			return err
+		}
+		err = pos.RemoveFileInPath()
+		if err != nil {
+			log.Ctx(ctx).Err(err).Msg("Error removing compressed file after decompression")
 		}
 	}
 	return nil

@@ -57,6 +57,22 @@ func (t *PoseidonWorker) ExecutePoseidonDiskUploadWorkflow(ctx context.Context, 
 	return err
 }
 
+func (t *PoseidonWorker) ExecutePoseidonEthereumClientBeaconUploadWorkflow(ctx context.Context, execClient pg_poseidon.UploadDataDirOrchestration, consensusClient pg_poseidon.UploadDataDirOrchestration) error {
+	c := t.ConnectTemporalClient()
+	defer c.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: t.TaskQueueName,
+	}
+	psWf := NewPoseidonSyncWorkflow(PoseidonSyncActivitiesOrchestrator)
+	wf := psWf.PoseidonEthereumClientBeaconUploadWorkflow
+	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, execClient, consensusClient)
+	if err != nil {
+		log.Err(err).Msg("ExecutePoseidonEthereumClientBeaconUploadWorkflow")
+		return err
+	}
+	return err
+}
+
 /*
 	// CronSchedule - Optional cron schedule for workflow. If a cron schedule is specified, the workflow will run
 	// as a cron based on the schedule. The scheduling will be based on UTC time. Schedule for next run only happen

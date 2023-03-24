@@ -30,7 +30,7 @@ func (t *PoseidonSyncWorkflow) PoseidonEthereumClientDiskWipeWorkflow(ctx workfl
 		return err
 	}
 	restartCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(restartCtx, t.RestartBeaconPod, params).Get(restartCtx, nil)
+	err = workflow.ExecuteActivity(restartCtx, t.RestartBeaconPod, params.ClientName, params.CloudCtxNs).Get(restartCtx, nil)
 	if err != nil {
 		log.Error("RestartBeaconPod: ", err)
 		return err

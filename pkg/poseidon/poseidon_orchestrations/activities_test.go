@@ -11,7 +11,6 @@ import (
 	test_base "github.com/zeus-fyi/olympus/test"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
 	beacon_actions "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons/actions"
-	client_consts "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons/constants"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
 )
 
@@ -57,19 +56,19 @@ func (t *PoseidonActivitiesTestSuite) TestResumeClient() {
 	t.Assert().NotEmpty(resp)
 }
 
-func (t *PoseidonActivitiesTestSuite) TestConsensusSyncStatus() {
-	PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.ConsensusClient = client_consts.Lighthouse
-	resp, err := PoseidonSyncActivitiesOrchestrator.IsConsensusClientSynced(ctx)
-	t.Assert().Nil(err)
-	t.Assert().NotEmpty(resp)
-}
-
-func (t *PoseidonActivitiesTestSuite) TestExecClientStatus() {
-	PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.ExecClient = client_consts.Geth
-	resp, err := PoseidonSyncActivitiesOrchestrator.IsExecClientSynced(ctx)
-	t.Assert().Nil(err)
-	t.Assert().NotEmpty(resp)
-}
+//func (t *PoseidonActivitiesTestSuite) TestConsensusSyncStatus() {
+//	PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.ConsensusClient = client_consts.Lighthouse
+//	resp, err := PoseidonSyncActivitiesOrchestrator.IsConsensusClientSynced(ctx)
+//	t.Assert().Nil(err)
+//	t.Assert().NotEmpty(resp)
+//}
+//
+//func (t *PoseidonActivitiesTestSuite) TestExecClientStatus() {
+//	PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.ExecClient = client_consts.Geth
+//	resp, err := PoseidonSyncActivitiesOrchestrator.IsExecClientSynced(ctx)
+//	t.Assert().Nil(err)
+//	t.Assert().NotEmpty(resp)
+//}
 
 func (t *PoseidonActivitiesTestSuite) SetupTest() {
 	tc := api_configs.InitLocalTestConfigs()

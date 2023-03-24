@@ -28,7 +28,7 @@ func (t *PoseidonSyncWorkflow) PoseidonEthereumClientDiskUploadWorkflow(ctx work
 		return err
 	}
 	restartCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(restartCtx, t.RestartBeaconPod, params).Get(restartCtx, nil)
+	err = workflow.ExecuteActivity(restartCtx, t.RestartBeaconPod, params.ClientName, params.CloudCtxNs).Get(restartCtx, nil)
 	if err != nil {
 		log.Error("RestartBeaconPod: ", err)
 		return err

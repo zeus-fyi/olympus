@@ -80,7 +80,7 @@ func (t *SnapshotDiskRequestTestSuite) TestSnapshotUploadRequest() {
 
 	su := SnapshotUploadRequest{
 		pg_poseidon.UploadDataDirOrchestration{
-			ClientName: "lighthouse",
+			ClientName: "geth",
 			OrchestrationJob: artemis_orchestrations.OrchestrationJob{
 				Orchestrations: artemis_autogen_bases.Orchestrations{},
 				Scheduled:      artemis_autogen_bases.OrchestrationsScheduledToCloudCtxNs{},

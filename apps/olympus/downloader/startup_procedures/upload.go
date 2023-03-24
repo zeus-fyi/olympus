@@ -26,6 +26,7 @@ func CheckForUploadBeaconJob(ctx context.Context, w WorkloadInfo) {
 			CloudCtxNs: w.CloudCtxNs,
 		},
 	}
+	log.Ctx(ctx).Info().Interface("w", w).Msg("checking for beacon client chain data upload job on startup")
 	shouldUpload, err := ua.CheckForPendingUploadJob(ctx)
 	if err != nil {
 		log.Ctx(ctx).Panic().Err(err).Msgf("failed to check for upload on startup", w.ClientName)
@@ -37,6 +38,7 @@ func CheckForUploadBeaconJob(ctx context.Context, w WorkloadInfo) {
 	}
 	log.Ctx(ctx).Info().Interface("w", w).Msg("disk upload job found, starting snapshot upload")
 	UploadSelector(ctx, w)
+	log.Ctx(ctx).Info().Interface("w", w).Msg("disk upload job complete, marking job as complete")
 	err = ua.MarkUploadComplete(ctx)
 	if err != nil {
 		log.Ctx(ctx).Panic().Err(err).Msgf("failed to mark upload complete for %s", w.ClientName)

@@ -18,7 +18,7 @@ const (
 	consensusClient       = "zeus-consensus-client"
 	execClient            = "zeus-exec-client"
 	lighthouseDockerImage = "sigp/lighthouse:v3.5.1"
-	gethDockerImage       = "ethereum/client-go:v1.11.2"
+	gethDockerImage       = "ethereum/client-go:v1.11.5"
 	initSnapshots         = "init-snapshots"
 )
 

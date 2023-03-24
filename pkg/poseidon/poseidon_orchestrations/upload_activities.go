@@ -7,10 +7,10 @@ import (
 	pg_poseidon "github.com/zeus-fyi/olympus/datastores/postgres/apps/poseidon"
 )
 
-func (d *PoseidonSyncActivities) ScheduleUploadDisk(ctx context.Context, params pg_poseidon.UploadDataDirOrchestration) error {
+func (d *PoseidonSyncActivities) ScheduleDiskUpload(ctx context.Context, params pg_poseidon.UploadDataDirOrchestration) error {
 	err := params.ScheduleUpload(ctx)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("PoseidonSyncActivities: ScheduleUploadDisk")
+		log.Ctx(ctx).Err(err).Msg("PoseidonSyncActivities: ScheduleDiskUpload")
 		return err
 	}
 	return err

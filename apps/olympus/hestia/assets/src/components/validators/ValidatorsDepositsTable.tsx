@@ -6,8 +6,11 @@ import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
+import {useSelector} from "react-redux";
+import {RootState} from "../../redux/store";
 
 export function ValidatorsDepositsTable(props: any) {
+    const network = useSelector((state: RootState) => state.validatorSecrets.network);
     const { activeStep, depositData } = props;
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
@@ -27,6 +30,21 @@ export function ValidatorsDepositsTable(props: any) {
 
     if (depositData == null) {
         return (<div></div>)
+    }
+    let explorerURL = '';
+    // network
+    switch (network) {
+        case 'Mainnet':
+            explorerURL = 'https://etherscan.io/tx/';
+            break;
+        case 'Ephemery':
+            explorerURL = 'https://explorer.ephemery.pk910.de/tx/';
+           break;
+        case 'Goerli':
+            explorerURL = 'https://goerli.etherscan.io/tx/';
+            break;
+        default:
+            break;
     }
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - depositData.length) : 0;
@@ -58,8 +76,8 @@ export function ValidatorsDepositsTable(props: any) {
                             {activeStep === 5 && (row.pubkey !== undefined) && (
                                 <TableCell align="left">{row.verified ? 'True' : 'False'}</TableCell>
                             )}
-                            {activeStep === 7 && (row.pubkey !== undefined) && (
-                                <TableCell align="left">{row.rx ? row.rx : 'None'}</TableCell>
+                            {activeStep === 7 && (row.rx !== undefined) && (
+                                <TableCell align="left">{row.rx ? explorerURL+row.rx : 'None'}</TableCell>
                             )}
                             <TableCell component="th" scope="row">
                                 {row.pubkey}

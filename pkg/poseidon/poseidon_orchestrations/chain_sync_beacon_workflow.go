@@ -25,7 +25,7 @@ func (t *PoseidonSyncWorkflow) PoseidonEthereumClientBeaconUploadWorkflow(ctx wo
 	}
 	aoSync.RetryPolicy = syncStatusCheckRetryPolicy
 	execSyncStatusCtx := workflow.WithActivityOptions(ctx, aoSync)
-	err := workflow.ExecuteActivity(execSyncStatusCtx, t.IsExecClientSynced).Get(execSyncStatusCtx, nil)
+	err := workflow.ExecuteActivity(execSyncStatusCtx, t.IsExecClientSynced, execClientParams).Get(execSyncStatusCtx, nil)
 	if err != nil {
 		log.Error("IsExecClientSynced: ", err)
 		return err
@@ -43,7 +43,7 @@ func (t *PoseidonSyncWorkflow) PoseidonEthereumClientBeaconUploadWorkflow(ctx wo
 		return err
 	}
 	consensusClientSyncStatusCtx := workflow.WithActivityOptions(ctx, aoSync)
-	err = workflow.ExecuteActivity(consensusClientSyncStatusCtx, t.IsConsensusClientSynced).Get(consensusClientSyncStatusCtx, nil)
+	err = workflow.ExecuteActivity(consensusClientSyncStatusCtx, t.IsConsensusClientSynced, consensusClientParams).Get(consensusClientSyncStatusCtx, nil)
 	if err != nil {
 		log.Error("IsConsensusClientSynced: ", err)
 		return err

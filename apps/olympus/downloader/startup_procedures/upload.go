@@ -47,6 +47,7 @@ func UploadSelector(ctx context.Context, w WorkloadInfo) {
 	network := hestia_req_types.ProtocolNetworkIDToString(w.ProtocolNetworkID)
 	log.Info().Interface("network", network).Msg("UploadChainSnapshotRequest: Upload Sync Starting")
 	pos := poseidon.NewPoseidon(athena.AthenaS3Manager)
+	pos.FnIn = w.ClientName
 
 	switch w.ProtocolNetworkID {
 	case hestia_req_types.EthereumMainnetProtocolNetworkID, hestia_req_types.EthereumGoerliProtocolNetworkID:

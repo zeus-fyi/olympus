@@ -22,8 +22,11 @@ type SnapshotDiskRequestTestSuite struct {
 }
 
 const (
-	dwRoute  = "/ethereum/beacon/disk/wipe"
-	ssUpload = "/ethereum/beacon/disk/upload"
+	useProd               = true
+	productionPoseidonURL = "https://poseidon.zeus.fyi/v1"
+	localPoseidonURL      = "http://localhost:9010/v1"
+	dwRoute               = "/ethereum/beacon/disk/wipe"
+	ssUpload              = "/ethereum/beacon/disk/upload"
 )
 
 func (t *SnapshotDiskRequestTestSuite) TestDiskWipe() {
@@ -98,11 +101,17 @@ func (t *SnapshotDiskRequestTestSuite) TestSnapshotUploadRequest() {
 
 func SendDiskWipeRequest(ctx context.Context, z zeus_client.ZeusClient, dw DiskWipeRequest) error {
 	z.PrintReqJson(dw)
+
+	url := localPoseidonURL + dwRoute
+
+	if useProd {
+		url = productionPoseidonURL + dwRoute
+	}
 	resp, err := z.R().
 		SetBody(&dw).
-		Post("http://localhost:9010/v1" + dwRoute)
+		Post(url)
 
-	if err != nil || resp.StatusCode() != http.StatusOK {
+	if err != nil || (resp.StatusCode() != http.StatusAccepted && resp.StatusCode() != http.StatusOK) {
 		log.Ctx(ctx).Err(err).Msg("ZeusClient: SendDiskWipeRequest")
 		if resp.StatusCode() == http.StatusBadRequest {
 			err = errors.New("bad request")
@@ -118,11 +127,17 @@ func SendDiskWipeRequest(ctx context.Context, z zeus_client.ZeusClient, dw DiskW
 
 func SendSnapshotUploadRequest(ctx context.Context, z zeus_client.ZeusClient, su SnapshotUploadRequest) error {
 	z.PrintReqJson(su)
+
+	url := localPoseidonURL + ssUpload
+
+	if useProd {
+		url = productionPoseidonURL + ssUpload
+	}
 	resp, err := z.R().
 		SetBody(&su).
-		Post("http://localhost:9010/v1" + ssUpload)
+		Post(url)
 
-	if err != nil || resp.StatusCode() != http.StatusOK {
+	if err != nil || (resp.StatusCode() != http.StatusAccepted && resp.StatusCode() != http.StatusOK) {
 		log.Ctx(ctx).Err(err).Msg("ZeusClient: SendSnapshotUploadRequest")
 		if resp.StatusCode() == http.StatusBadRequest {
 			err = errors.New("bad request")

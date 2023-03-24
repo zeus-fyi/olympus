@@ -33,7 +33,7 @@ func (d *UploadDataDirOrchestration) CheckForPendingUploadJob(ctx context.Contex
 	d.Scheduled.Status = Pending
 	isJobPending, err := d.SelectOrchestrationsAtCloudCtxNsWithStatus(ctx)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("Error checking for pending upload job")
+		log.Ctx(ctx).Err(err).Msg("error checking for pending upload job")
 		return false, err
 	}
 	return isJobPending, nil

@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/rs/zerolog/log"
+	pg_poseidon "github.com/zeus-fyi/olympus/datastores/postgres/apps/poseidon"
 	athena_client "github.com/zeus-fyi/olympus/pkg/athena/client"
 	"github.com/zeus-fyi/olympus/pkg/poseidon/poseidon_buckets"
 	beacon_actions "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons/actions"
@@ -58,10 +59,12 @@ func (d *PoseidonSyncActivities) ResumeConsensusClient(ctx context.Context) erro
 }
 
 // IsExecClientSynced only checks the first result
-func (d *PoseidonSyncActivities) IsExecClientSynced(ctx context.Context) (bool, error) {
-	syncStatuses, err := PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.GetExecClientSyncStatus(ctx)
+func (d *PoseidonSyncActivities) IsExecClientSynced(ctx context.Context, params pg_poseidon.UploadDataDirOrchestration) (bool, error) {
+	bac := PoseidonSyncActivitiesOrchestrator.BeaconActionsClient
+	bac.ExecClient = params.ClientName
+	syncStatuses, err := bac.GetExecClientSyncStatus(ctx)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("SyncExecStatus")
+		log.Ctx(ctx).Err(err).Msg("GetExecClientSyncStatus")
 		return false, err
 	}
 	if len(syncStatuses) <= 0 {
@@ -77,10 +80,12 @@ func (d *PoseidonSyncActivities) IsExecClientSynced(ctx context.Context) (bool, 
 }
 
 // IsConsensusClientSynced only checks the first result
-func (d *PoseidonSyncActivities) IsConsensusClientSynced(ctx context.Context) (bool, error) {
-	syncStatuses, err := PoseidonSyncActivitiesOrchestrator.BeaconActionsClient.GetConsensusClientSyncStatus(ctx)
+func (d *PoseidonSyncActivities) IsConsensusClientSynced(ctx context.Context, params pg_poseidon.UploadDataDirOrchestration) (bool, error) {
+	bac := PoseidonSyncActivitiesOrchestrator.BeaconActionsClient
+	bac.ConsensusClient = params.ClientName
+	syncStatuses, err := bac.GetConsensusClientSyncStatus(ctx)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("SyncExecStatus")
+		log.Ctx(ctx).Err(err).Msg("GetConsensusClientSyncStatus")
 		return false, err
 	}
 	if len(syncStatuses) <= 0 {

@@ -39,7 +39,7 @@ class AwsLambdaApiGateway {
     }
     async invokeValidatorDepositsGeneration(url: string, credentials: AwsCredentialIdentity, network: string,
                                             mnemonicHdPwSecretName: string, validatorCount: number,
-                                            hdOffset: number): Promise<any> {
+                                            hdOffset: number, wc: string): Promise<any> {
         try {
             let payload: DepositGenerationPayload = {
                 mnemonicAndHDWalletSecretName: mnemonicHdPwSecretName,
@@ -55,6 +55,10 @@ class AwsLambdaApiGateway {
                 const forkVersionBytes = new Uint8Array([0x00, 0x00, 0x00, 0x00]);
                 payload.forkVersion =  Array.from(forkVersionBytes)
             }
+            if (wc.length > 0) {
+                payload.withdrawalAddress = wc;
+            }
+            console.log('payload', payload)
             const headers = {
                 "Content-Type": "application/json",
             };
@@ -128,6 +132,7 @@ interface DepositGenerationPayload {
     validatorCount: number;
     hdOffset: number;
     network: string;
+    withdrawalAddress?: string;
     forkVersion?: any; // Change the type of forkVersion to
 }
 

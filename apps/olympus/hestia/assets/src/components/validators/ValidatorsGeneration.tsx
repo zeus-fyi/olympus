@@ -1,12 +1,16 @@
 import * as React from "react";
-import {Card, CardActions, CardContent, Container, Stack} from "@mui/material";
+import {Box, Card, CardActions, CardContent, Container, Stack} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import {AgeEncryptionKeySecretName, ValidatorSecretName} from "./AwsSecrets";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import {setHdOffset, setValidatorCount} from "../../redux/validators/ethereum.validators.reducer";
+import {
+    setHdOffset,
+    setValidatorCount,
+    setWithdrawalCredentials
+} from "../../redux/validators/ethereum.validators.reducer";
 import {Network} from "./ZeusServiceRequest";
 
 export function GenerateValidatorKeysAndDepositsAreaCardWrapper(props: any) {
@@ -41,11 +45,32 @@ export function GenerateValidatorsParams(props: any) {
         <Card sx={{ maxWidth: 500 }}>
             <div style={{ display: 'flex' }}>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <ValidatorSecretName validatorSecretName={awsValidatorSecretName}/>
-                    <AgeEncryptionKeySecretName awsAgeEncryptionKeyName={awsAgeEncryptionKeyName}/>
-                    <Network authorizedNetworks={authorizedNetworks}/>
-                    <ValidatorCount />
-                    <ValidatorOffsetHD />
+                    <Box mt={2}>
+                        <ValidatorSecretName validatorSecretName={awsValidatorSecretName}/>
+                    </Box>
+                    <Box mt={2}>
+                        <AgeEncryptionKeySecretName awsAgeEncryptionKeyName={awsAgeEncryptionKeyName}/>
+                    </Box>
+                    <Box mt={2}>
+                        <Network authorizedNetworks={authorizedNetworks}/>
+                    </Box>
+                    <Box mt={2}>
+                        <ValidatorCount />
+                    </Box>
+                    <Box mt={2}>
+                        <Typography variant="body2" color="text.secondary">
+                            The Validator HD Offset and Withdrawal Credentials fields are optional. If you don't set the withdrawal credentials, it will generate one for you from your mnemonic.
+                            The offset is used to set the offset validator keys from your mnemonic. Eg. if you set the offset to 1, it will generate the
+                            validator keys starting from the second validator key from your mnemonic onwards.
+                        </Typography>
+                    </Box>
+                    <Box mt={2}>
+                        <ValidatorOffsetHD />
+                    </Box>
+                    <Box mt={2}>
+                        <WithdrawalCredentials />
+                    </Box>
+
                 </Container>
             </div>
         </Card>
@@ -169,6 +194,30 @@ export function ValidatorOffsetHD() {
             type="number"
             value={hdOffset}
             onChange={onHdOffsetChange}
+            sx={{ width: '100%' }}
+        />
+    );
+}
+
+export function WithdrawalCredentials() {
+    const dispatch = useDispatch();
+    const withdrawalCredentials = useSelector((state: RootState) => state.validatorSecrets.withdrawalCredentials);
+    const onWithdrawalCredentialsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        try {
+            const wc = event.target.value;
+            console.log(wc)
+            dispatch(setWithdrawalCredentials(wc));
+        } catch (error) {
+            console.log("error", error);
+        }};
+    return (
+        <TextField
+            fullWidth
+            id="WithdrawalCredentials"
+            label="WithdrawalCredentials"
+            variant="outlined"
+            value={withdrawalCredentials}
+            onChange={onWithdrawalCredentialsChange}
             sx={{ width: '100%' }}
         />
     );

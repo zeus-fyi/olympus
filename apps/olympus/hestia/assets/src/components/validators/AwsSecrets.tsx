@@ -1,6 +1,6 @@
 import * as React from "react";
 import {useState} from "react";
-import {Card, CardActions, CardContent, CircularProgress, Container, Stack} from "@mui/material";
+import {Box, Card, CardActions, CardContent, CircularProgress, Container, Stack} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
@@ -126,9 +126,15 @@ export function CreateAwsSecretNamesAreaCard(props: any) {
             </CardContent>
                 <Stack direction="column" alignItems="center" spacing={2}>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <Network authorizedNetworks={authorizedNetworks}/>
-                    <ValidatorSecretName validatorSecretName={validatorSecretName}/>
-                    <AgeEncryptionKeySecretName awsAgeEncryptionKeyName={awsAgeEncryptionKeyName+network}/>
+                    <Box mt={2}>
+                        <Network authorizedNetworks={authorizedNetworks}/>
+                    </Box>
+                    <Box mt={2}>
+                        <ValidatorSecretName validatorSecretName={validatorSecretName}/>
+                    </Box>
+                    <Box mt={2}>
+                        <AgeEncryptionKeySecretName awsAgeEncryptionKeyName={awsAgeEncryptionKeyName+network}/>
+                    </Box>
                 </Container>
                 <CardActions>
                     <Button onClick={onCreateNewValidatorSecrets} size="small" disabled={buttonDisabled}>{buttonLabel}</Button>

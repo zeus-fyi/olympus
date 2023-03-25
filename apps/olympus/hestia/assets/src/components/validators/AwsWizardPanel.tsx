@@ -259,6 +259,7 @@ export default function AwsWizardPanel(props: any) {
     const network = useSelector((state: RootState) => state.validatorSecrets.network);
     let depositsGenLambdaFnUrl = useSelector((state: RootState) => state.awsCredentials.depositsGenLambdaFnUrl);
     const depositData = useSelector((state: RootState) => state.awsCredentials.depositData);
+    const withdrawalCredentials = useSelector((state: RootState) => state.validatorSecrets.withdrawalCredentials);
 
     let buttonLabelVd;
     let buttonDisabledVd;
@@ -272,7 +273,7 @@ export default function AwsWizardPanel(props: any) {
             break;
         case 'success':
             buttonLabelVd = 'Created successfully';
-            buttonDisabledVd = true;
+            buttonDisabledVd = false;
             statusMessageVd = 'Validator deposits created successfully!';
             break;
         case 'error':
@@ -314,8 +315,8 @@ export default function AwsWizardPanel(props: any) {
             return
         }
         try {
-            console.log("invokeValidatorDepositsGeneration");
-            const dpSlice = await awsLambdaApiGateway.invokeValidatorDepositsGeneration(depositsGenLambdaFnUrl,creds,network,validatorSecretsName,validatorCount,hdOffset);
+            console.log('withdrawalCredentials', withdrawalCredentials)
+            const dpSlice = await awsLambdaApiGateway.invokeValidatorDepositsGeneration(depositsGenLambdaFnUrl,creds,network,validatorSecretsName,validatorCount,hdOffset,withdrawalCredentials);
             if (dpSlice.status === 200) {
                 setRequestStatusVd('success');
             } else {
@@ -327,6 +328,8 @@ export default function AwsWizardPanel(props: any) {
                 item.verified = false;
                 item.rx = '';
             });
+            console.log(body);
+
             dispatch(setDepositData(body));
         } catch (error) {
             setRequestStatusVd('error');

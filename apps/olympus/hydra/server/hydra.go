@@ -76,6 +76,13 @@ func Hydra() {
 		log.Fatal().Err(err).Msgf("Hydra: %s ArtemisEthereumValidatorSignatureRequestsMainnetWorker.Worker.Start failed", env)
 		misc.DelayedPanic(err)
 	}
+	go func() {
+		log.Ctx(ctx).Info().Msg("Hydra: Heartbeat Service Starting")
+		err = eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsHeartbeatWorker.ExecuteHeartbeatWorkflow(ctx)
+		if err != nil {
+			log.Err(err).Msg("Hydra: ExecuteHeartbeatWorkflow failed")
+		}
+	}()
 	log.Ctx(ctx).Info().Interface("network", ethereum_slashing_protection_watermarking.Network).Msg("Hydra: Temporal Worker Started")
 	log.Ctx(ctx).Info().Msg("Hydra: Starting async priority message queues")
 	go hydra_eth2_web3signer.InitAsyncBlockMessageQueues(ctx)

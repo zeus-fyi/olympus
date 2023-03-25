@@ -36,13 +36,14 @@ func InitHeartbeatWorker(ctx context.Context, temporalAuthCfg temporal_auth.Temp
 func (t *ArtemisEthereumValidatorSignatureRequestsWorker) ExecuteHeartbeatWorkflow(ctx context.Context) error {
 	c := t.ConnectTemporalClient()
 	defer c.Close()
+	workflowID := "heartbeat"
+
 	workflowOptions := client.StartWorkflowOptions{
+		ID:        workflowID,
 		TaskQueue: t.TaskQueueName,
 	}
-	workflowID := "heartbeat"
 	sigReqWf := NewArtemisEthereumValidatorSignatureRequestWorkflow()
 	wf := sigReqWf.ValidatorsHeartbeatWorkflow
-
 	_, err := c.SignalWithStartWorkflow(ctx, workflowID, "start", nil, workflowOptions, wf, nil)
 	if err != nil {
 		log.Err(err).Msg("Hydra: Artemis Subsystem: ExecuteHeartbeatWorkflow")

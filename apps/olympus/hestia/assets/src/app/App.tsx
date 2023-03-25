@@ -1,6 +1,6 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {Provider} from 'react-redux';
-import {BrowserRouter, Route, Routes} from 'react-router-dom';
+import {BrowserRouter, Route, Routes, useLocation} from 'react-router-dom';
 import './App.css';
 import store from "../redux/store";
 import Login from "../components/login/Login";
@@ -13,7 +13,21 @@ import AwsWizard from "../components/validators/AwsWizard";
 import SignUp from "../components/signup/Signup";
 import {VerifyEmail} from "../components/signup/VerifyEmail";
 
+declare global {
+    interface Window {
+        dataLayer: any[];
+        gtag: (...args: any[]) => void;
+    }
+}
+
 export const App = () => {
+    const location = useLocation();
+    useEffect(() => {
+        // Send virtual pageviews to Google Analytics on location change
+        window.gtag('config', 'G-KZFWQL2CJN', {
+            'page_path': location.pathname + location.search,
+        });
+    }, [location]);
     return (
             <Provider store={store}>
                 <BrowserRouter>

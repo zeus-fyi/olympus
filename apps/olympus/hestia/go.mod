@@ -3,7 +3,7 @@ module github.com/zeus-fyi/olympus/hestia
 go 1.20
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.17.6
+	github.com/aws/aws-sdk-go-v2 v1.17.7
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.18.2
 	github.com/labstack/echo/v4 v4.10.1
 	github.com/rs/zerolog v1.29.0

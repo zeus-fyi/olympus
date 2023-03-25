@@ -14,7 +14,11 @@ var HeartbeatQueue = lane.NewQueue[string]()
 const heartbeatTimeout = 300 * time.Second
 
 func (t *ArtemisEthereumValidatorSignatureRequestWorkflow) ValidatorsHeartbeatWorkflow(ctx workflow.Context, params interface{}) error {
-	wfLog := workflow.GetLogger(ctx)
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: heartbeatTimeout,
+	}
+	heartbeatCtx := workflow.WithActivityOptions(ctx, ao)
+	wfLog := workflow.GetLogger(heartbeatCtx)
 	localCtx := context.Background()
 
 	serviceRoutes, err := artemis_validator_service_groups_models.SelectValidatorsServiceRoutes(localCtx)
@@ -33,10 +37,7 @@ func (t *ArtemisEthereumValidatorSignatureRequestWorkflow) ValidatorsHeartbeatWo
 	i := 30
 	for {
 		wfLog.Info("Heartbeat to service, queue size", "QueueSize", HeartbeatQueue.Size())
-		ao := workflow.ActivityOptions{
-			StartToCloseTimeout: heartbeatTimeout,
-		}
-		heartbeatCtx := workflow.WithActivityOptions(ctx, ao)
+		heartbeatCtx = workflow.WithActivityOptions(heartbeatCtx, ao)
 		err = workflow.ExecuteActivity(heartbeatCtx, t.SendHeartbeat).Get(heartbeatCtx, nil)
 		if err != nil {
 			wfLog.Error("Failed to send heartbeat", "error", err)

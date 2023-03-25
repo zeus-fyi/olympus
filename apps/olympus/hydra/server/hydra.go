@@ -11,7 +11,6 @@ import (
 	hydra_eth2_web3signer "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer"
 	ethereum_slashing_protection_watermarking "github.com/zeus-fyi/olympus/hydra/api/v1/web3signer/slashing_protection"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
-	eth_validator_signature_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests"
 	artemis_validator_signature_service_routing "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/signature_routing"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
@@ -66,23 +65,6 @@ func Hydra() {
 	}()
 	log.Ctx(ctx).Info().Msg("Hydra: Async Service Route Polling Started")
 
-	log.Ctx(ctx).Info().Msg("Hydra: Starting Temporal Worker")
-	eth_validator_signature_requests.InitHeartbeatWorker(ctx, temporalAuthCfg)
-	c := eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsHeartbeatWorker.ConnectTemporalClient()
-	defer c.Close()
-	eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsHeartbeatWorker.RegisterWorker(c)
-	err := eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsHeartbeatWorker.Worker.Start()
-	if err != nil {
-		log.Fatal().Err(err).Msgf("Hydra: %s ArtemisEthereumValidatorSignatureRequestsMainnetWorker.Worker.Start failed", env)
-		misc.DelayedPanic(err)
-	}
-	go func() {
-		log.Ctx(ctx).Info().Msg("Hydra: Heartbeat Service Starting")
-		err = eth_validator_signature_requests.ArtemisEthereumValidatorSignatureRequestsHeartbeatWorker.ExecuteHeartbeatWorkflow(ctx)
-		if err != nil {
-			log.Err(err).Msg("Hydra: ExecuteHeartbeatWorkflow failed")
-		}
-	}()
 	log.Ctx(ctx).Info().Interface("network", ethereum_slashing_protection_watermarking.Network).Msg("Hydra: Temporal Worker Started")
 	log.Ctx(ctx).Info().Msg("Hydra: Starting async priority message queues")
 	go hydra_eth2_web3signer.InitAsyncBlockMessageQueues(ctx)

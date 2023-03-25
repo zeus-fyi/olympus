@@ -19,6 +19,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_hydra_orchestrations_aws_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
+	artemis_validator_signature_service_routing "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/signature_routing"
 	eth_validators_service_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validators_service_requests"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
@@ -89,13 +90,22 @@ func Hestia() {
 		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesSESEmailNotifications(ctx, awsSESAuthCfg)
 		hermes_email_notifications.InitHermesSendGridClient(ctx, tc.SendGridAPIKey)
 	}
+	log.Info().Msg("Hestia: PG connection starting")
+	apps.Pg.InitPG(ctx, cfg.PGConnStr)
+	log.Info().Msg("Hestia: PG connection connected")
+
 	log.Info().Msg("Hestia: AWS Secrets Manager connection starting")
 	artemis_hydra_orchestrations_aws_auth.InitHydraSecretManagerAuthAWS(ctx, awsAuthCfg)
 	log.Info().Msg("Hestia: AWS Secrets Manager connected")
 
-	log.Info().Msg("Hestia: PG connection starting")
-	apps.Pg.InitPG(ctx, cfg.PGConnStr)
-	log.Info().Msg("Hestia: PG connection connected")
+	inMemFsErr := artemis_validator_signature_service_routing.InitRouteMapInMemFS(ctx)
+	if inMemFsErr != nil {
+		log.Ctx(ctx).Err(inMemFsErr).Msg("Hydra: InitRouteMapInMemFS failed")
+		panic(inMemFsErr)
+	}
+	go func() {
+		artemis_validator_signature_service_routing.InitAsyncServiceAuthRoutePollingHeartbeatAll(ctx)
+	}()
 
 	log.Info().Msgf("Hestia %s artemis orchestration retrieving auth token", env)
 	artemis_orchestration_auth.Bearer = auth_startup.FetchTemporalAuthBearer(ctx)

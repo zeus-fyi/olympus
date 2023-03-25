@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
 )
 
@@ -13,6 +15,23 @@ type ReadOrgUsersKeyTestSuite struct {
 }
 
 var ctx = context.Background()
+
+func (s *ReadOrgUsersKeyTestSuite) TestGetAuthedServices() {
+
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	k := NewKeyReader()
+
+	ou := org_users.NewOrgUser()
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+
+	services, err := k.QueryUserAuthedServices(ctx, s.Tc.ProductionLocalTemporalBearerToken)
+	s.Require().Nil(err)
+	s.NotEmpty(services)
+	s.Assert().Equal(7138983863666903883, k.OrgID)
+	s.Assert().Equal(7138958574876245567, k.UserID)
+	s.Assert().True(k.PublicKeyVerified)
+}
 
 func (s *ReadOrgUsersKeyTestSuite) TestVerifyBearerTokenService() {
 	serviceName := "zeus"

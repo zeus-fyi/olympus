@@ -16,11 +16,13 @@ import {ValidatorsDepositRequestAreaCardWrapper} from "./ValidatorsDeposits";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import {
+    initialState,
     setAgeSecretName,
     setDepositData,
     setDepositsGenLambdaFnUrl,
     setEncKeystoresZipLambdaFnUrl,
     setKeystoreLayerName,
+    setKeystoreLayerNumber,
     setSignerFunctionName,
     setValidatorSecretsName
 } from "../../redux/aws_wizard/aws.wizard.reducer";
@@ -28,8 +30,12 @@ import {awsApiGateway} from "../../gateway/aws";
 import {awsLambdaApiGateway} from "../../gateway/aws.lambda";
 import {CreateAwsLambdaFunctionActionAreaCardWrapper} from './AwsLambdaKeystoreSigners';
 import {ValidatorsDepositsTable} from "./ValidatorsDepositsTable";
-import {ValidatorDepositDataJSON} from "../../gateway/validators";
-import {setKeyGroupName, setNetworkAppended} from "../../redux/validators/ethereum.validators.reducer";
+import {ValidatorDepositDataJSON, validatorsApiGateway} from "../../gateway/validators";
+import {
+    setAuthorizedNetworks,
+    setKeyGroupName,
+    setNetworkAppended
+} from "../../redux/validators/ethereum.validators.reducer";
 import {CircularProgress} from "@mui/material";
 
 const steps = [
@@ -114,7 +120,7 @@ function stepComponents(activeStep: number,
     return steps[activeStep]
 }
 
-export default function AwsWizardPanel() {
+export default function AwsWizardPanel(props: any) {
     const [activeStep, setActiveStep] = React.useState(0);
     const [completed, setCompleted] = React.useState<{
         [k: number]: boolean;
@@ -416,26 +422,34 @@ export default function AwsWizardPanel() {
         }}
 
     const networkAppended = useSelector((state: RootState) => state.validatorSecrets.networkAppended);
-    const keystoresLayerName = useSelector((state: RootState) => state.awsCredentials.blsSignerKeystoresLayerName);
-    const keyGroupName = useSelector((state: RootState) => state.validatorSecrets.keyGroupName);
 
     const handleNetworkAppend = () => {
         if (!networkAppended) {
-            const newValidatorSecretsName = validatorSecretsName + network;
+            dispatch(setKeystoreLayerNumber(initialState.keystoreLayerNumber));
+            const newValidatorSecretsName = initialState.validatorSecretsName + network;
             dispatch(setValidatorSecretsName(newValidatorSecretsName));
-            const newAgeSecretName = ageSecretName + network;
+            const newAgeSecretName = initialState.ageSecretName + network;
             dispatch(setAgeSecretName(newAgeSecretName));
-            const newBlsSignerFunctionName  = blsSignerFunctionName + network;
+            const newBlsSignerFunctionName  = initialState.blsSignerFunctionName + network;
             dispatch(setSignerFunctionName(newBlsSignerFunctionName));
-            const newKeystoresLayerName = keystoresLayerName + network;
+            const newKeystoresLayerName = initialState.blsSignerKeystoresLayerName + network;
             dispatch(setKeystoreLayerName(newKeystoresLayerName));
-            const newKeyGroupName = keyGroupName + network;
+            const newKeyGroupName = 'DefaultKeyGroup' + network;
             dispatch(setKeyGroupName(newKeyGroupName));
             dispatch(setNetworkAppended(true));
         }
     };
 
+    const fetchData = async () => {
+        const response = await validatorsApiGateway.getAuthedValidatorsServiceRequest();
+        const verifiedNetworks: [string] = response.data;
+        dispatch(setAuthorizedNetworks(verifiedNetworks));
+    };
+
     React.useEffect(() => {
+        fetchData().catch((e) => {
+            console.log("error", e);
+        })
         handleNetworkAppend();
     }, [network]);
     return (

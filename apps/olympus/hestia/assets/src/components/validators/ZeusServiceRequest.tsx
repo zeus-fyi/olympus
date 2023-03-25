@@ -17,7 +17,12 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
-import {setFeeRecipient, setKeyGroupName, setNetworkName} from "../../redux/validators/ethereum.validators.reducer";
+import {
+    setFeeRecipient,
+    setKeyGroupName,
+    setNetworkAppended,
+    setNetworkName
+} from "../../redux/validators/ethereum.validators.reducer";
 import {AgeEncryptionKeySecretName} from "./AwsSecrets";
 import {ExternalAccessSecretName} from "./AwsExtUserAndLambdaVerify";
 import {
@@ -30,28 +35,31 @@ import {getNetworkId} from "./Validators";
 import {awsApiGateway} from "../../gateway/aws";
 
 export function ZeusServiceRequestAreaCardWrapper(props: any) {
-    const { activeStep } = props;
+    const { activeStep, authorizedNetworks} = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <ZeusServiceRequestAreaCard />
+            <ZeusServiceRequestAreaCard authorizedNetworks={authorizedNetworks}/>
         </Stack>
     );
 }
 
-export function ZeusServiceRequestAreaCard() {
+export function ZeusServiceRequestAreaCard(props: any) {
+    const {authorizedNetworks} = props;
     return (
         <div style={{ display: 'flex' }}>
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                <ZeusServiceRequestParams />
+                <ZeusServiceRequestParams authorizedNetworks={authorizedNetworks}/>
             </Container >
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                <ZeusServiceRequest />
+                <ZeusServiceRequest authorizedNetworks={authorizedNetworks}/>
             </Container >
         </div>
     );
 }
 
-export function ZeusServiceRequest() {
+export function ZeusServiceRequest(props: any) {
+    const {authorizedNetworks} = props;
+
     const feeRecipient = useSelector((state: RootState) => state.validatorSecrets.feeRecipient);
     const depositData = useSelector((state: RootState) => state.awsCredentials.depositData);
     const keyGroupName = useSelector((state: RootState) => state.validatorSecrets.keyGroupName);
@@ -158,7 +166,8 @@ export function ZeusServiceRequest() {
     );
 }
 
-export function ZeusServiceRequestParams() {
+export function ZeusServiceRequestParams(props: any) {
+    const {authorizedNetworks} = props;
     return (
         <div>
         <Card sx={{ maxWidth: 500 }}>
@@ -171,7 +180,7 @@ export function ZeusServiceRequestParams() {
                 </Typography>
             </CardContent>
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                <Network />
+                <Network authorizedNetworks={authorizedNetworks}/>
                 <KeyGroupName />
                 <FeeRecipient />
             </Container>
@@ -221,13 +230,17 @@ export function FeeRecipient() {
 }
 
 export function Network(props: any) {
+
     const dispatch = useDispatch();
     const network = useSelector((state: RootState) => state.validatorSecrets.network);
+    const authorizedNetworks = useSelector((state: RootState) => state.validatorSecrets.authorizedNetworks);
+
     const onAccessSetNetwork = (selectedNetwork: string) => {
         console.log('Selected network:', selectedNetwork);
         dispatch(setNetworkName(selectedNetwork));
+        dispatch(setNetworkAppended(false))
     };
-
+console.log("authorizedNetworkssss", authorizedNetworks)
     return (
         <FormControl variant="outlined" style={{ minWidth: '100%' }}>
             <InputLabel id="network-label">Network</InputLabel>
@@ -239,7 +252,14 @@ export function Network(props: any) {
                 onChange={(event) => onAccessSetNetwork(event.target.value as string)}
                 sx={{ width: '100%' }}
             >
-                <MenuItem value="Ephemery">Ephemery</MenuItem>
+                { authorizedNetworks &&
+                    authorizedNetworks.map((network: string, index: number) => (
+
+                        <MenuItem key={index} value={network}>
+                            {network}
+                        </MenuItem>
+                    ))
+                }
             </Select>
         </FormControl>
     );

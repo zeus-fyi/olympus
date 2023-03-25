@@ -30,11 +30,42 @@ func CreateEthereumValidatorsHandler(c echo.Context) error {
 func (v *DepositEthereumValidatorsService) DepositValidators(c echo.Context) error {
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
-
 	switch strings.ToLower(v.Network) {
 	case "mainnet":
 		return c.JSON(http.StatusNotImplemented, nil)
 	case "goerli":
+		resp := make([]ValidatorDepositResponse, len(v.ValidatorDepositSlice))
+		w3client := signing_automation_ethereum.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumGoerli.NodeURL, artemis_network_cfgs.ArtemisEthereumGoerli.Account)
+		txToBroadcast := make([]*types.Transaction, len(v.ValidatorDepositSlice))
+		for i, d := range v.ValidatorDepositSlice {
+			dp := signing_automation_ethereum.ExtendedDepositParams{
+				ValidatorDepositParams: signing_automation_ethereum.ValidatorDepositParams{
+					Pubkey:                d.Pubkey,
+					WithdrawalCredentials: d.WithdrawalCredentials,
+					Signature:             d.Signature,
+					DepositDataRoot:       d.DepositDataRoot,
+				},
+				Amount:             d.Amount,
+				DepositMessageRoot: d.DepositMessageRoot,
+				ForkVersion:        d.ForkVersion,
+				NetworkName:        hestia_req_types.Goerli,
+			}
+			signedTx, err := w3client.SignValidatorDepositTxToBroadcastFromJSON(ctx, dp)
+			if err != nil {
+				log.Err(err).Interface("orgUser", ou).Msg("DepositValidators, goerli error")
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+			txToBroadcast[i] = signedTx
+			rx, err := w3client.SubmitSignedTxAndReturnTxData(ctx, signedTx)
+			if err != nil {
+				log.Err(err).Interface("orgUser", ou).Msg("DepositValidators, goerli error")
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+			resp[i] = ValidatorDepositResponse{
+				Pubkey: d.Pubkey,
+				Rx:     rx.Hash.String(),
+			}
+		}
 		return c.JSON(http.StatusNotImplemented, nil)
 	case "ephemery":
 		resp := make([]ValidatorDepositResponse, len(v.ValidatorDepositSlice))

@@ -12,11 +12,11 @@ import {Network} from "./ZeusServiceRequest";
 export function GenerateValidatorKeysAndDepositsAreaCardWrapper(props: any) {
     const { activeStep, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip,
         zipGenButtonLabel, zipGenButtonEnabled, zipGenStatus, requestStatusZipGen,
-        buttonLabelVd, buttonDisabledVd, statusMessageVd,} = props;
+        buttonLabelVd, buttonDisabledVd, statusMessageVd,authorizedNetworks} = props;
 
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <GenerateValidatorsParams />
+            <GenerateValidatorsParams authorizedNetworks={authorizedNetworks} />
             <GenValidatorDepositsCreationActionsCard onGenerateValidatorDeposits={onGenerateValidatorDeposits}
                                                      buttonLabelVd={buttonLabelVd}
                                                      buttonDisabledVd={buttonDisabledVd}
@@ -32,7 +32,8 @@ export function GenerateValidatorKeysAndDepositsAreaCardWrapper(props: any) {
     );
 }
 
-export function GenerateValidatorsParams() {
+export function GenerateValidatorsParams(props: any) {
+    const {authorizedNetworks } = props;
     const awsValidatorSecretName = useSelector((state: RootState) => state.awsCredentials.validatorSecretsName);
     const awsAgeEncryptionKeyName = useSelector((state: RootState) => state.awsCredentials.ageSecretName);
 
@@ -42,7 +43,7 @@ export function GenerateValidatorsParams() {
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <ValidatorSecretName validatorSecretName={awsValidatorSecretName}/>
                     <AgeEncryptionKeySecretName awsAgeEncryptionKeyName={awsAgeEncryptionKeyName}/>
-                    <Network />
+                    <Network authorizedNetworks={authorizedNetworks}/>
                     <ValidatorCount />
                     <ValidatorOffsetHD />
                 </Container>

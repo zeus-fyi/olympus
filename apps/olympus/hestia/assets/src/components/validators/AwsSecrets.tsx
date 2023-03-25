@@ -44,14 +44,17 @@ export function CreateAwsInternalLambdasActionAreaCardWrapper(props: any) {
 }
 
 export function CreateAwsSecretsActionAreaCardWrapper(props: any) {
+    const {authorizedNetworks} = props;
+
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <CreateAwsSecretNamesAreaCard />
+            <CreateAwsSecretNamesAreaCard authorizedNetworks={authorizedNetworks} />
         </Stack>
     );
 }
 
-export function CreateAwsSecretNamesAreaCard() {
+export function CreateAwsSecretNamesAreaCard(props: any) {
+    const {authorizedNetworks} = props;
     const sgLambdaURL = useSelector((state: RootState) => state.awsCredentials.secretGenLambdaFnUrl);
     const ak = useSelector((state: RootState) => state.awsCredentials.accessKey);
     const sk = useSelector((state: RootState) => state.awsCredentials.secretKey);
@@ -89,7 +92,8 @@ export function CreateAwsSecretNamesAreaCard() {
             buttonDisabled = false;
             break;
     }
-    let validatorSecretName = awsValidatorSecretName+network;
+
+    const validatorSecretName = useSelector((state: RootState) => state.awsCredentials.validatorSecretsName);
     const dispatch = useDispatch();
     const onCreateNewValidatorSecrets = async () => {
         try {
@@ -122,7 +126,7 @@ export function CreateAwsSecretNamesAreaCard() {
             </CardContent>
                 <Stack direction="column" alignItems="center" spacing={2}>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <Network />
+                    <Network authorizedNetworks={authorizedNetworks}/>
                     <ValidatorSecretName validatorSecretName={validatorSecretName}/>
                     <AgeEncryptionKeySecretName awsAgeEncryptionKeyName={awsAgeEncryptionKeyName+network}/>
                 </Container>

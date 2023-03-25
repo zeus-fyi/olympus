@@ -214,7 +214,7 @@ func GetIngressSkeletonBase(network string) zeus_cluster_config_drivers.ClusterS
 					},
 				},
 				Host:         fmt.Sprintf("eth.%s.zeus.fyi", network),
-				NginxAuthURL: "https://aegis.zeus.fyi/v1/ethereum/beacon",
+				NginxAuthURL: "https://aegis.zeus.fyi/v1beta/ethereum/beacon",
 			},
 		},
 	}

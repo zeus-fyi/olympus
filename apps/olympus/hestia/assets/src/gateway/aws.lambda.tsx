@@ -37,14 +37,28 @@ class AwsLambdaApiGateway {
             return
         }
     }
-    async invokeValidatorDepositsGeneration(url: string, credentials: AwsCredentialIdentity, network: string, mnemonicHdPwSecretName: string, validatorCount: number, hdOffset: number): Promise<any> {
+    async invokeValidatorDepositsGeneration(url: string, credentials: AwsCredentialIdentity, network: string,
+                                            mnemonicHdPwSecretName: string, validatorCount: number,
+                                            hdOffset: number, wc: string): Promise<any> {
         try {
-            const payload = {
+            let payload: DepositGenerationPayload = {
                 mnemonicAndHDWalletSecretName: mnemonicHdPwSecretName,
                 validatorCount: validatorCount,
                 hdOffset: hdOffset,
                 network: network,
             }
+            if (network === 'Goerli') {
+                const forkVersionBytes = new Uint8Array([0x00, 0x00, 0x10, 0x20]);
+                payload.forkVersion =  Array.from(forkVersionBytes)
+            }
+            if (network === 'Mainnet') {
+                const forkVersionBytes = new Uint8Array([0x00, 0x00, 0x00, 0x00]);
+                payload.forkVersion =  Array.from(forkVersionBytes)
+            }
+            if (wc.length > 0) {
+                payload.withdrawalAddress = wc;
+            }
+            console.log('payload', payload)
             const headers = {
                 "Content-Type": "application/json",
             };
@@ -111,6 +125,15 @@ class AwsLambdaApiGateway {
             return
         }
     }
+}
+
+interface DepositGenerationPayload {
+    mnemonicAndHDWalletSecretName: string;
+    validatorCount: number;
+    hdOffset: number;
+    network: string;
+    withdrawalAddress?: string;
+    forkVersion?: any; // Change the type of forkVersion to
 }
 
 export const awsLambdaApiGateway = new AwsLambdaApiGateway();

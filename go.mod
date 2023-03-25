@@ -5,7 +5,7 @@ go 1.20
 require (
 	filippo.io/age v1.1.1
 	github.com/PagerDuty/go-pagerduty v1.6.0
-	github.com/aws/aws-sdk-go-v2 v1.17.6
+	github.com/aws/aws-sdk-go-v2 v1.17.7
 	github.com/aws/aws-sdk-go-v2/config v1.18.11
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.11
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.10.11

@@ -1,9 +1,10 @@
-import {Card, CardActionArea, CardMedia, Container} from "@mui/material";
+import {Box, Card, CardActionArea, CardMedia, Container} from "@mui/material";
 import * as React from "react";
 import TextField from "@mui/material/TextField";
 import {useDispatch, useSelector} from 'react-redux';
 import {setAccessKey, setSecretKey} from '../../redux/aws_wizard/aws.wizard.reducer';
 import {RootState} from "../../redux/store";
+import Typography from "@mui/material/Typography";
 
 export function AwsUploadActionAreaCard(props: any) {
     const { activeStep, onGenerate, onGenerateValidatorDeposits, onGenerateValidatorEncryptedKeystoresZip } = props;
@@ -21,7 +22,7 @@ export function AwsUploadActionAreaCard(props: any) {
     };
 
     return (
-        <Card sx={{ maxWidth: 1000 }}>
+        <Card sx={{ maxWidth: 750 }}>
             <div style={{ display: 'flex' }}>
             <CardActionArea>
                 <CardMedia
@@ -32,8 +33,17 @@ export function AwsUploadActionAreaCard(props: any) {
                 />
             </CardActionArea>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                    <Box mt={2}>
                         <AwsCredentialsAccessKey accessKey={accessKey} onAccessKeyChange={onAccessKeyChange}/>
+                    </Box>
+                    <Box mt={2}>
                         <AwsCredentialsSecret secretKey={secretKey} onSecretKeyChange={onSecretKeyChange}/>
+                    </Box>
+                    <Box mt={2}>
+                        <Typography variant="body2" color="text.secondary">
+                            You'll need to set your AWS credentials here, if you don't have an AWS account you'll need to create one first.
+                        </Typography>
+                    </Box>
                 </Container>
             </div>
         </Card>

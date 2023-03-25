@@ -1,4 +1,5 @@
 import {
+    Box,
     Card,
     CardActions,
     CardContent,
@@ -180,9 +181,15 @@ export function ZeusServiceRequestParams(props: any) {
                 </Typography>
             </CardContent>
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                <Network authorizedNetworks={authorizedNetworks}/>
-                <KeyGroupName />
-                <FeeRecipient />
+                <Box mt={2}>
+                    <Network authorizedNetworks={authorizedNetworks}/>
+                </Box>
+                <Box mt={2}>
+                    <KeyGroupName />
+                </Box>
+                <Box mt={2}>
+                    <FeeRecipient />
+                </Box>
             </Container>
         </Card>
         </div>
@@ -240,7 +247,6 @@ export function Network(props: any) {
         dispatch(setNetworkName(selectedNetwork));
         dispatch(setNetworkAppended(false))
     };
-console.log("authorizedNetworkssss", authorizedNetworks)
     return (
         <FormControl variant="outlined" style={{ minWidth: '100%' }}>
             <InputLabel id="network-label">Network</InputLabel>
@@ -254,7 +260,6 @@ console.log("authorizedNetworkssss", authorizedNetworks)
             >
                 { authorizedNetworks &&
                     authorizedNetworks.map((network: string, index: number) => (
-
                         <MenuItem key={index} value={network}>
                             {network}
                         </MenuItem>

@@ -211,10 +211,9 @@ func GetIngressSkeletonBase(network string) zeus_cluster_config_drivers.ClusterS
 				Ingress: v1.Ingress{
 					Spec: v1.IngressSpec{
 						TLS: []v1.IngressTLS{{[]string{fmt.Sprintf("eth.%s.zeus.fyi", network)}, fmt.Sprintf("beacon-%s-tls", network)}},
-						Rules: []v1.IngressRule{{
-							Host: fmt.Sprintf("eth.%s.zeus.fyi", network),
-						}}},
+					},
 				},
+				Host:         fmt.Sprintf("eth.%s.zeus.fyi", network),
 				NginxAuthURL: "https://aegis.zeus.fyi/v1/ethereum/beacon",
 			},
 		},

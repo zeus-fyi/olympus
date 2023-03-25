@@ -1,8 +1,9 @@
 package eth_validator_signature_requests
 
 import (
-	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
 	"time"
+
+	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
 
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	"go.temporal.io/sdk/workflow"
@@ -24,7 +25,7 @@ func NewArtemisEthereumValidatorSignatureRequestWorkflow() ArtemisEthereumValida
 }
 
 func (t *ArtemisEthereumValidatorSignatureRequestWorkflow) GetWorkflows() []interface{} {
-	return []interface{}{t.ArtemisSendValidatorSignatureRequestsWorkflow}
+	return []interface{}{t.ArtemisSendValidatorSignatureRequestsWorkflow, t.ValidatorsHeartbeatWorkflow}
 }
 
 func (t *ArtemisEthereumValidatorSignatureRequestWorkflow) ArtemisSendValidatorSignatureRequestsWorkflow(ctx workflow.Context, sigRequests aegis_inmemdbs.EthereumBLSKeySignatureRequests) (aegis_inmemdbs.EthereumBLSKeySignatureResponses, error) {

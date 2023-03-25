@@ -75,6 +75,57 @@ func SelectValidatorsServiceRoutesAssignedToCloudCtxNs(ctx context.Context, vali
 	serviceRoutes.GroupToServiceMap = gts
 	return serviceRoutes, misc.ReturnIfErr(err, q.LogHeader(ModelName))
 }
+
+// SelectValidatorsServiceRoutes is used to heartbeat
+func SelectValidatorsServiceRoutes(ctx context.Context) (ValidatorsSignatureServiceRoutes, error) {
+	q := sql_query_templates.QueryParams{}
+	serviceRoutes := ValidatorsSignatureServiceRoutes{}
+	m := make(map[string]string)
+	gtkm := make(map[string][]string)
+	gts := make(map[string]ValidatorsSignatureServiceRoute)
+
+	q.RawQuery = `	
+				  SELECT vsg.pubkey, vsg.group_name, vsg.service_url, vsg.org_id, vsg.protocol_network_id
+				  FROM validators_service_org_groups_cloud_ctx_ns vctx
+				  INNER JOIN topologies_org_cloud_ctx_ns topctx ON topctx.cloud_ctx_ns_id = vctx.cloud_ctx_ns_id
+				  INNER JOIN validators_service_org_groups vsg ON vsg.pubkey = vctx.pubkey
+				  WHERE vsg.enabled=true
+				  `
+	log.Debug().Interface("SelectValidatorsServiceRoutes", q.LogHeader(ModelName))
+	rows, err := apps.Pg.Query(ctx, q.RawQuery)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
+		return serviceRoutes, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var pubkey string
+		vsr := ValidatorsSignatureServiceRoute{}
+		rowErr := rows.Scan(
+			&pubkey, &vsr.GroupName, &vsr.ServiceURL, &vsr.OrgID, &vsr.ProtocolNetworkID,
+		)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader(ModelName))
+			return serviceRoutes, rowErr
+		}
+		// pubkey to group name
+		groupName := FormatSecretNameAWS(vsr.GroupName, vsr.OrgID, vsr.ProtocolNetworkID)
+		m[pubkey] = groupName
+
+		// group to pubkey slice
+		tmp := gtkm[groupName]
+		gtkm[groupName] = append(tmp, pubkey)
+
+		// group to service map
+		if _, ok := gts[groupName]; !ok {
+			gts[groupName] = vsr
+		}
+	}
+	serviceRoutes.PubkeyToGroupName = m
+	serviceRoutes.GroupToPubKeySlice = gtkm
+	serviceRoutes.GroupToServiceMap = gts
+	return serviceRoutes, misc.ReturnIfErr(err, q.LogHeader(ModelName))
+}
+
 func FormatSecretNameAWS(groupName string, orgID, protocolNetworkID int) string {
 	return fmt.Sprintf("%s-%d-%s", groupName, orgID, hestia_req_types.ProtocolNetworkIDToString(protocolNetworkID))
 }

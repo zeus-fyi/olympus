@@ -240,7 +240,6 @@ export function Network(props: any) {
         dispatch(setNetworkName(selectedNetwork));
         dispatch(setNetworkAppended(false))
     };
-console.log("authorizedNetworkssss", authorizedNetworks)
     return (
         <FormControl variant="outlined" style={{ minWidth: '100%' }}>
             <InputLabel id="network-label">Network</InputLabel>
@@ -254,7 +253,6 @@ console.log("authorizedNetworkssss", authorizedNetworks)
             >
                 { authorizedNetworks &&
                     authorizedNetworks.map((network: string, index: number) => (
-
                         <MenuItem key={index} value={network}>
                             {network}
                         </MenuItem>

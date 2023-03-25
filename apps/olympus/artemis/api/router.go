@@ -68,6 +68,7 @@ func InitV1Routes(e *echo.Echo) {
 				log.Info().Msg("InitV1Routes: Cookie found")
 				token = cookie.Value
 			}
+			c.Set("token", token)
 			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.EthereumEphemeryService)
 			if err != nil {
 				log.Err(err).Msg("InitV1Routes")

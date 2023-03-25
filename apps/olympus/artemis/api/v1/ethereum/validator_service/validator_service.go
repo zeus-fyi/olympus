@@ -9,6 +9,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	signing_automation_ethereum "github.com/zeus-fyi/zeus/pkg/artemis/signing_automation/ethereum"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
@@ -34,8 +36,16 @@ func (v *DepositEthereumValidatorsService) DepositValidators(c echo.Context) err
 	case "mainnet":
 		return c.JSON(http.StatusNotImplemented, nil)
 	case "goerli":
+		token := c.Get("token").(string)
+		key, rr := auth.VerifyBearerTokenService(ctx, token, create_org_users.EthereumGoerliService)
+		if rr != nil || key.PublicKeyVerified == false {
+			log.Err(rr).Interface("orgUser", ou).Msg("DepositValidators: EthereumGoerliService unauthorized")
+			return c.JSON(http.StatusUnauthorized, nil)
+		}
 		resp := make([]ValidatorDepositResponse, len(v.ValidatorDepositSlice))
 		w3client := signing_automation_ethereum.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumGoerli.NodeURL, artemis_network_cfgs.ArtemisEthereumGoerli.Account)
+		w3client.Client.SetHeader(ctx, "Authorization", "Bearer "+token)
+
 		txToBroadcast := make([]*types.Transaction, len(v.ValidatorDepositSlice))
 		for i, d := range v.ValidatorDepositSlice {
 			dp := signing_automation_ethereum.ExtendedDepositParams{

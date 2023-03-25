@@ -80,7 +80,7 @@ func (d *ArtemisEthereumValidatorSignatureRequestActivities) RequestValidatorSig
 	return sigResponses, nil
 }
 
-func (d *ArtemisEthereumValidatorSignatureRequestActivities) SendHeartbeat(ctx context.Context) error {
+func (d *ArtemisEthereumValidatorSignatureRequestActivities) SendHeartbeat(ctx context.Context) ([]string, error) {
 	log.Ctx(ctx).Info().Msg("sending heartbeat message")
 	var restore []string
 	for {
@@ -148,8 +148,5 @@ func (d *ArtemisEthereumValidatorSignatureRequestActivities) SendHeartbeat(ctx c
 		}(groupName)
 	}
 
-	for _, groupName := range restore {
-		HeartbeatQueue.Enqueue(groupName)
-	}
-	return nil
+	return restore, nil
 }

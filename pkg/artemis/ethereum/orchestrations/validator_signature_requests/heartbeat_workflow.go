@@ -38,9 +38,14 @@ func (t *ArtemisEthereumValidatorSignatureRequestWorkflow) ValidatorsHeartbeatWo
 	for {
 		wfLog.Info("Heartbeat to service, queue size", "QueueSize", HeartbeatQueue.Size())
 		heartbeatCtx = workflow.WithActivityOptions(heartbeatCtx, ao)
-		err = workflow.ExecuteActivity(heartbeatCtx, t.SendHeartbeat).Get(heartbeatCtx, nil)
+		var restore []string
+		err = workflow.ExecuteActivity(heartbeatCtx, t.SendHeartbeat).Get(heartbeatCtx, &restore)
 		if err != nil {
 			wfLog.Error("Failed to send heartbeat", "error", err)
+		}
+		wfLog.Info("Heartbeat to service, restore", "restore", restore)
+		for _, groupName := range restore {
+			HeartbeatQueue.Enqueue(groupName)
 		}
 		err = workflow.Sleep(ctx, 30*time.Second)
 		if err != nil {

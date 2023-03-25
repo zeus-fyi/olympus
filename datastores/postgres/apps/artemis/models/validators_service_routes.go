@@ -78,6 +78,7 @@ func SelectValidatorsServiceRoutesAssignedToCloudCtxNs(ctx context.Context, vali
 
 // SelectValidatorsServiceRoutes is used to heartbeat
 func SelectValidatorsServiceRoutes(ctx context.Context) (ValidatorsSignatureServiceRoutes, error) {
+	log.Ctx(ctx).Info().Msg("SelectValidatorsServiceRoutes")
 	q := sql_query_templates.QueryParams{}
 	serviceRoutes := ValidatorsSignatureServiceRoutes{}
 	m := make(map[string]string)

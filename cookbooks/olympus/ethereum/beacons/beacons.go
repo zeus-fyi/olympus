@@ -121,10 +121,14 @@ func GetConsensusClientSkeletonBase(network string) zeus_cluster_config_drivers.
 	case hestia_req_types.Goerli:
 		args = []string{"-c", "/scripts/lighthouseGoerliBeacon.sh"}
 	}
+	sd := &zeus_topology_config_drivers.ServiceDriver{}
+
+	sd.AddNginxTargetPort("http", "http-api")
 	sbCfg := zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
 		SkeletonBaseChart:         zeus_req_types.TopologyCreateRequest{},
 		SkeletonBaseNameChartPath: ConsensusClientChartPath,
 		TopologyConfigDriver: &zeus_topology_config_drivers.TopologyConfigDriver{
+			ServiceDriver: sd,
 			StatefulSetDriver: &zeus_topology_config_drivers.StatefulSetDriver{
 				ContainerDrivers: map[string]zeus_topology_config_drivers.ContainerDriver{
 					athena: {
@@ -165,10 +169,13 @@ func GetExecClientSkeletonBase(network string) zeus_cluster_config_drivers.Clust
 	case hestia_req_types.Goerli:
 		args = []string{"-c", "/scripts/gethGoerli.sh"}
 	}
+	sd := &zeus_topology_config_drivers.ServiceDriver{}
+	sd.AddNginxTargetPort("http", "http-rpc")
 	sbCfg := zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
 		SkeletonBaseChart:         zeus_req_types.TopologyCreateRequest{},
 		SkeletonBaseNameChartPath: ExecClientChartPath,
 		TopologyConfigDriver: &zeus_topology_config_drivers.TopologyConfigDriver{
+			ServiceDriver: sd,
 			StatefulSetDriver: &zeus_topology_config_drivers.StatefulSetDriver{
 				ContainerDrivers: map[string]zeus_topology_config_drivers.ContainerDriver{
 					athena: {

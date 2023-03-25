@@ -11,7 +11,7 @@ import (
 
 var HeartbeatQueue = lane.NewQueue[string]()
 
-func (t *ArtemisEthereumValidatorSignatureRequestWorkflow) ValidatorsHeartbeatWorkflow(ctx workflow.Context) error {
+func (t *ArtemisEthereumValidatorSignatureRequestWorkflow) ValidatorsHeartbeatWorkflow(ctx workflow.Context, params interface{}) error {
 	wfLog := workflow.GetLogger(ctx)
 	localCtx := context.Background()
 	serviceRoutes, err := artemis_validator_service_groups_models.SelectValidatorsServiceRoutes(localCtx)
@@ -28,20 +28,15 @@ func (t *ArtemisEthereumValidatorSignatureRequestWorkflow) ValidatorsHeartbeatWo
 		}
 	}
 
-	err = workflow.ExecuteActivity(ctx, t.SendHeartbeat).Get(ctx, nil)
-	if err != nil {
-		wfLog.Error("Failed to send heartbeat", "error", err)
-	}
 	i := 30
 	for {
-		err = t.SendHeartbeat(localCtx)
+		err = workflow.ExecuteActivity(ctx, t.SendHeartbeat).Get(ctx, nil)
 		if err != nil {
 			wfLog.Error("Failed to send heartbeat", "error", err)
 		}
 		err = workflow.Sleep(ctx, 30*time.Second)
 		if err != nil {
 			wfLog.Error("failed to sleep", "error", err)
-			return err
 		}
 		i++
 		if i >= 30 {

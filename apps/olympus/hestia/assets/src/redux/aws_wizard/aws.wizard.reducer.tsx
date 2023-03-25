@@ -16,7 +16,7 @@ interface AwsCredentialsState {
     depositData: [{}],
     keystoreLayerNumber: number,
 }
-const initialState: AwsCredentialsState = {
+export const initialState: AwsCredentialsState = {
     accessKey: '',
     secretKey: '',
     validatorSecretsName: 'mnemonicAndHDWallet',

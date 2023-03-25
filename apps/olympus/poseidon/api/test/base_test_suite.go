@@ -49,7 +49,7 @@ func (t *PoseidonBaseTestSuite) SetupTest() {
 		},
 	}))
 	t.Eg = eg
-	t.ZeusClient = zeus_client.NewZeusClient("http://localhost:9010", t.Tc.LocalBearerToken)
+	t.ZeusClient = zeus_client.NewZeusClient("http://localhost:9010", t.Tc.ProductionLocalTemporalBearerToken)
 }
 
 func (t *PoseidonBaseTestSuite) PostRequest(ctx context.Context, endpoint string, payload any) ([]byte, error) {

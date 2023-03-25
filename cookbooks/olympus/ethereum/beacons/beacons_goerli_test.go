@@ -12,7 +12,7 @@ func (t *BeaconsTestCookbookTestSuite) TestGoerliClusterDeploy() {
 	olympus_cookbooks.ChangeToCookbookDir()
 	cdCfg := GoerliBeaconBaseClusterDefinition
 	//cdCfg.FilterSkeletonBaseUploads = &strings_filter.FilterOpts{
-	//	StartsWith: "light",
+	//	StartsWith: "ingress",
 	//}
 	t.Require().Equal("athena-beacon-goerli", cdCfg.CloudCtxNs.Namespace)
 	_, err := cdCfg.UploadChartsFromClusterDefinition(ctx, t.ZeusTestClient, true)
@@ -46,6 +46,26 @@ func (t *BeaconsTestCookbookTestSuite) TestGoerliClusterSetup() {
 	sbDefs, err := GoerliBeaconBaseClusterDefinition.GenerateSkeletonBaseCharts()
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(sbDefs)
+}
+
+func (t *BeaconsTestCookbookTestSuite) TestCreateClusterBase() {
+	basesInsert := []string{"beaconIngress"}
+	cc := zeus_req_types.TopologyCreateOrAddComponentBasesToClassesRequest{
+		ClusterClassName:   GoerliBeaconBaseClusterDefinition.ClusterClassName,
+		ComponentBaseNames: basesInsert,
+	}
+	_, err := t.ZeusTestClient.AddComponentBasesToClass(ctx, cc)
+	t.Require().Nil(err)
+}
+
+func (t *BeaconsTestCookbookTestSuite) TestCreateClusterSkeletonBases() {
+	cc := zeus_req_types.TopologyCreateOrAddSkeletonBasesToClassesRequest{
+		ClusterClassName:  GoerliBeaconBaseClusterDefinition.ClusterClassName,
+		ComponentBaseName: "beaconIngress",
+		SkeletonBaseNames: []string{"ingress"},
+	}
+	_, err := t.ZeusTestClient.AddSkeletonBasesToClass(ctx, cc)
+	t.Require().Nil(err)
 }
 
 func (t *BeaconsTestCookbookTestSuite) TestGoerliClusterRegisterDefinitions() {

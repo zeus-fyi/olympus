@@ -10,6 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
 	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
+	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
@@ -60,5 +61,41 @@ func (l *TokenRefreshRequest) RefreshToken(c echo.Context) error {
 	//	SameSite: http.SameSiteNoneMode,
 	//}
 	//c.SetCookie(cookie)
+	return c.JSON(http.StatusOK, resp)
+}
+
+type UserAuthedServicesRequest struct {
+}
+
+func UsersServicesRequestHandler(c echo.Context) error {
+	request := new(UserAuthedServicesRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.GetAuthedServices(c)
+}
+
+func (l *UserAuthedServicesRequest) GetAuthedServices(c echo.Context) error {
+	ctx := context.Background()
+	sessionToken := ""
+	cookie, err := c.Cookie(aegis_sessions.SessionIDNickname)
+	if err == nil && cookie != nil {
+		sessionToken = cookie.Value
+	}
+	k := read_keys.NewKeyReader()
+	services, err := k.QueryUserAuthedServices(ctx, sessionToken)
+	if err != nil {
+		log.Err(err).Msg("InitV1Routes: QueryUserAuthedServices error")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	var resp []string
+	for _, service := range services {
+		if service == "ethereumGoerliValidators" {
+			resp = append(resp, "Goerli")
+		}
+		if service == "ethereumEphemeryValidators" {
+			resp = append(resp, "Ephemery")
+		}
+	}
 	return c.JSON(http.StatusOK, resp)
 }

@@ -16,27 +16,29 @@ import {ValidatorsUploadActionAreaCard} from "./ValidatorsUpload";
 import {setDepositData} from "../../redux/aws_wizard/aws.wizard.reducer";
 
 export function ValidatorsDepositRequestAreaCardWrapper(props: any) {
-    const { activeStep, onValidatorsDepositsUpload } = props;
+    const { activeStep, onValidatorsDepositsUpload, authorizedNetworks} = props;
 
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <ValidatorsUploadActionAreaCard onValidatorsDepositsUpload={onValidatorsDepositsUpload}/>,
-            <ValidatorsDepositRequestAreaCard />
+            <ValidatorsUploadActionAreaCard onValidatorsDepositsUpload={onValidatorsDepositsUpload} authorizedNetworks={authorizedNetworks}/>,
+            <ValidatorsDepositRequestAreaCard authorizedNetworks={authorizedNetworks} />
         </Stack>
     );
 }
 
-export function ValidatorsDepositRequestAreaCard() {
+export function ValidatorsDepositRequestAreaCard(props: any) {
+    const {authorizedNetworks } = props;
     return (
         <div style={{ display: 'flex' }}>
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                <SubmitValidators />
+                <SubmitValidators authorizedNetworks={authorizedNetworks}/>
             </Container >
         </div>
     );
 }
 
 export function SubmitValidators(props: any) {
+    const {authorizedNetworks } = props;
     const depositData = useSelector((state: RootState) => state.awsCredentials.depositData);
     const network = useSelector((state: RootState) => state.validatorSecrets.network);
     const dispatch = useDispatch();
@@ -109,7 +111,7 @@ export function SubmitValidators(props: any) {
                 </Typography>
             </CardContent>
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                <Network network={network}/>
+                <Network network={network} authorizedNetworks={authorizedNetworks}/>
             </Container>
             <CardActions>
                 <Button size="small" onClick={onClickSendValidatorsDeposits} disabled={buttonDisabled}>{buttonLabel}</Button>

@@ -59,7 +59,6 @@ const Login = () => {
         try {
             setRequestStatus('pending');
             let res: any = await authProvider.login(email, password)
-
             const statusCode = res.status;
             if (statusCode === 200 || statusCode === 204) {
                 setRequestStatus('success');

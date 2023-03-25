@@ -11,6 +11,7 @@ import (
 	zeus_cluster_config_drivers "github.com/zeus-fyi/zeus/pkg/zeus/cluster_config_drivers"
 	zeus_topology_config_drivers "github.com/zeus-fyi/zeus/pkg/zeus/workload_config_drivers"
 	v1Core "k8s.io/api/core/v1"
+	v1 "k8s.io/api/networking/v1"
 )
 
 const (
@@ -18,7 +19,7 @@ const (
 	consensusClient       = "zeus-consensus-client"
 	execClient            = "zeus-exec-client"
 	lighthouseDockerImage = "sigp/lighthouse:v3.5.1"
-	gethDockerImage       = "ethereum/client-go:v1.11.2"
+	gethDockerImage       = "ethereum/client-go:v1.11.5"
 	initSnapshots         = "init-snapshots"
 )
 
@@ -38,6 +39,7 @@ var (
 		ComponentBases: map[string]zeus_cluster_config_drivers.ComponentBaseDefinition{
 			"consensusClients":  GetConsensusClientComponentBaseConfig(hestia_req_types.Goerli),
 			"execClients":       GetExecClientComponentBaseConfig(hestia_req_types.Goerli),
+			"beaconIngress":     GetIngressComponentBaseConfig(hestia_req_types.Goerli),
 			"hydraChoreography": olympus_hydra_choreography_cookbooks.HydraChoreographyComponentBase,
 		},
 	}
@@ -84,6 +86,14 @@ var (
 		FnOut:       "",
 		Env:         "",
 	}
+	IngressChartPath = filepaths.Path{
+		PackageName: "",
+		DirIn:       "./olympus/ethereum/beacons/infra/ingress",
+		DirOut:      "./olympus/ethereum/outputs",
+		FnIn:        "ingress", // filename for your gzip workload
+		FnOut:       "",
+		Env:         "",
+	}
 )
 
 func GetBeaconCloudCtxNs(network string) zeus_common_types.CloudCtxNs {
@@ -111,10 +121,14 @@ func GetConsensusClientSkeletonBase(network string) zeus_cluster_config_drivers.
 	case hestia_req_types.Goerli:
 		args = []string{"-c", "/scripts/lighthouseGoerliBeacon.sh"}
 	}
+	sd := &zeus_topology_config_drivers.ServiceDriver{}
+
+	sd.AddNginxTargetPort("http", "http-api")
 	sbCfg := zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
 		SkeletonBaseChart:         zeus_req_types.TopologyCreateRequest{},
 		SkeletonBaseNameChartPath: ConsensusClientChartPath,
 		TopologyConfigDriver: &zeus_topology_config_drivers.TopologyConfigDriver{
+			ServiceDriver: sd,
 			StatefulSetDriver: &zeus_topology_config_drivers.StatefulSetDriver{
 				ContainerDrivers: map[string]zeus_topology_config_drivers.ContainerDriver{
 					athena: {
@@ -155,10 +169,13 @@ func GetExecClientSkeletonBase(network string) zeus_cluster_config_drivers.Clust
 	case hestia_req_types.Goerli:
 		args = []string{"-c", "/scripts/gethGoerli.sh"}
 	}
+	sd := &zeus_topology_config_drivers.ServiceDriver{}
+	sd.AddNginxTargetPort("http", "http-rpc")
 	sbCfg := zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
 		SkeletonBaseChart:         zeus_req_types.TopologyCreateRequest{},
 		SkeletonBaseNameChartPath: ExecClientChartPath,
 		TopologyConfigDriver: &zeus_topology_config_drivers.TopologyConfigDriver{
+			ServiceDriver: sd,
 			StatefulSetDriver: &zeus_topology_config_drivers.StatefulSetDriver{
 				ContainerDrivers: map[string]zeus_topology_config_drivers.ContainerDriver{
 					athena: {
@@ -179,6 +196,32 @@ func GetExecClientSkeletonBase(network string) zeus_cluster_config_drivers.Clust
 						Env:  ClusterConfigEnvVars(nil, network),
 					}},
 				},
+			},
+		},
+	}
+	return sbCfg
+}
+
+func GetIngressComponentBaseConfig(network string) zeus_cluster_config_drivers.ComponentBaseDefinition {
+	return zeus_cluster_config_drivers.ComponentBaseDefinition{
+		SkeletonBases: map[string]zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
+			"ingress": GetIngressSkeletonBase(network),
+		},
+	}
+}
+func GetIngressSkeletonBase(network string) zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition {
+	sbCfg := zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
+		SkeletonBaseChart:         zeus_req_types.TopologyCreateRequest{},
+		SkeletonBaseNameChartPath: IngressChartPath,
+		TopologyConfigDriver: &zeus_topology_config_drivers.TopologyConfigDriver{
+			IngressDriver: &zeus_topology_config_drivers.IngressDriver{
+				Ingress: v1.Ingress{
+					Spec: v1.IngressSpec{
+						TLS: []v1.IngressTLS{{[]string{fmt.Sprintf("eth.%s.zeus.fyi", network)}, fmt.Sprintf("beacon-%s-tls", network)}},
+					},
+				},
+				Host:         fmt.Sprintf("eth.%s.zeus.fyi", network),
+				NginxAuthURL: "https://aegis.zeus.fyi/v1beta/ethereum/beacon",
 			},
 		},
 	}

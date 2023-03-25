@@ -54,6 +54,23 @@ class ValidatorsApiGateway {
             return
         }
     }
+    async getAuthedValidatorsServiceRequest(): Promise<any>  {
+        const url = `/v1/users/services`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
+            return await hestiaApi.get(url, config)
+        } catch (exc) {
+            console.error('error sending getAuthedValidatorsServiceRequest');
+            console.error(exc);
+            return
+        }
+    }
 }
 export const validatorsApiGateway = new ValidatorsApiGateway();
 

@@ -34,9 +34,9 @@ func (t *ArtemisEthereumValidatorSignatureRequestWorkflow) ValidatorsHeartbeatWo
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: heartbeatTimeout,
 	}
-	heartbeatCtx := workflow.WithActivityOptions(ctx, ao)
 	i := 30
 	for {
+		heartbeatCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(heartbeatCtx, t.SendHeartbeat).Get(heartbeatCtx, nil)
 		if err != nil {
 			wfLog.Error("Failed to send heartbeat", "error", err)

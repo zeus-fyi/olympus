@@ -81,6 +81,7 @@ func (d *ArtemisEthereumValidatorSignatureRequestActivities) RequestValidatorSig
 }
 
 func (d *ArtemisEthereumValidatorSignatureRequestActivities) SendHeartbeat(ctx context.Context) error {
+	log.Ctx(ctx).Info().Msg("sending heartbeat message")
 	var restore []string
 	for {
 		ql := HeartbeatQueue.Size()

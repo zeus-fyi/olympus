@@ -30,12 +30,12 @@ func (t *ArtemisEthereumValidatorSignatureRequestWorkflow) ValidatorsHeartbeatWo
 			HeartbeatQueue.Enqueue(vsrInfo.GroupName)
 		}
 	}
-
-	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: heartbeatTimeout,
-	}
 	i := 30
 	for {
+		wfLog.Info("Heartbeat to service, queue size", "QueueSize", HeartbeatQueue.Size())
+		ao := workflow.ActivityOptions{
+			StartToCloseTimeout: heartbeatTimeout,
+		}
 		heartbeatCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(heartbeatCtx, t.SendHeartbeat).Get(heartbeatCtx, nil)
 		if err != nil {
@@ -54,10 +54,11 @@ func (t *ArtemisEthereumValidatorSignatureRequestWorkflow) ValidatorsHeartbeatWo
 				if ql == 0 {
 					break
 				}
-				_, qOk := HeartbeatQueue.Dequeue()
+				groupKey, qOk := HeartbeatQueue.Dequeue()
 				if !qOk {
 					continue
 				}
+				wfLog.Info("Group key,", groupKey)
 			}
 			serviceRoutes, err = artemis_validator_service_groups_models.SelectValidatorsServiceRoutes(localCtx)
 			if err != nil {

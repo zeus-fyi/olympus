@@ -48,7 +48,6 @@ func (s *ValidatorServiceAuthRoutesTestSuite) TestFetchAndSetServiceGroupsAuths(
 	//s.Require().Nil(err)
 	//s.Assert().Equal(expAuth.ServiceAuth, auth)
 
-	SendHeartbeat(ctx, vsi, cctx)
 	time.Sleep(5 * time.Second)
 }
 

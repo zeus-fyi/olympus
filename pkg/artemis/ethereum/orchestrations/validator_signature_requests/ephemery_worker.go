@@ -3,13 +3,16 @@ package eth_validator_signature_requests
 import (
 	"context"
 	"fmt"
+
 	"github.com/rs/zerolog/log"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 )
 
-const EthereumEphemeryTxBroadcastTaskQueue = "EthereumValidatorSignatureRequestsEphemeryTaskQueue"
+const (
+	EthereumEphemeryTxBroadcastTaskQueue = "EthereumValidatorSignatureRequestsEphemeryTaskQueue"
+)
 
 var (
 	ArtemisEthereumValidatorSignatureRequestsEphemeryWorker          ArtemisEthereumValidatorSignatureRequestsWorker

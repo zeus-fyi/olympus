@@ -315,7 +315,6 @@ export default function AwsWizardPanel(props: any) {
             return
         }
         try {
-            console.log('withdrawalCredentials', withdrawalCredentials)
             const dpSlice = await awsLambdaApiGateway.invokeValidatorDepositsGeneration(depositsGenLambdaFnUrl,creds,network,validatorSecretsName,validatorCount,hdOffset,withdrawalCredentials);
             if (dpSlice.status === 200) {
                 setRequestStatusVd('success');
@@ -328,8 +327,6 @@ export default function AwsWizardPanel(props: any) {
                 item.verified = false;
                 item.rx = '';
             });
-            console.log(body);
-
             dispatch(setDepositData(body));
         } catch (error) {
             setRequestStatusVd('error');

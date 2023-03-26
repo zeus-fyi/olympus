@@ -249,23 +249,6 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 				"memory": resource.MustParse(execClientEphemeralRequestRAM),
 			},
 		}
-		ccContDriver = map[string]zeus_topology_config_drivers.ContainerDriver{
-			consensusClient: {Container: v1.Container{
-				Name:  consensusClient,
-				Image: lighthouseDockerImage,
-				Env:   combinedEnvVars,
-				Args:  []string{"-c", "/scripts/lighthouseEphemery" + ".sh"},
-			}},
-		}
-
-		ecContDriver = map[string]zeus_topology_config_drivers.ContainerDriver{
-			execClient: {Container: v1.Container{
-				Name:  execClient,
-				Image: gethDockerImageEphemery,
-				Env:   combinedEnvVars,
-				Args:  []string{"-c", "/scripts/gethEphemery" + ".sh"},
-			}},
-		}
 
 		vcContDriver = map[string]zeus_topology_config_drivers.ContainerDriver{
 			validatorClient: {Container: v1.Container{
@@ -295,11 +278,19 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 			}}
 		containCfgBeaconConsensusClient = zeus_topology_config_drivers.ContainerDriver{
 			Container: v1.Container{
+				Name:      validatorClient,
+				Image:     lighthouseDockerImageEphemery,
+				Env:       combinedEnvVars,
+				Args:      []string{"-c", "/scripts/lighthouseEphemery" + ".sh"},
 				Resources: rrCC,
 			},
 		}
 		containCfgBeaconExecClient = zeus_topology_config_drivers.ContainerDriver{
 			Container: v1.Container{
+				Name:      execClient,
+				Image:     gethDockerImageEphemery,
+				Env:       combinedEnvVars,
+				Args:      []string{"-c", "/scripts/gethEphemery" + ".sh"},
 				Resources: rrEC,
 			},
 		}

@@ -77,7 +77,9 @@ export function ValidatorsDepositsTable(props: any) {
                                 <TableCell align="left">{row.verified ? 'True' : 'False'}</TableCell>
                             )}
                             {activeStep === 7 && (row.rx !== undefined) && (
-                                <TableCell align="left">{row.rx ? explorerURL+row.rx : 'None'}</TableCell>
+                                <TableCell align="left">
+                                    {row.rx ? <a href={explorerURL+row.rx}>{explorerURL+row.rx}</a> : 'None'}
+                                </TableCell>
                             )}
                             <TableCell component="th" scope="row">
                                 {row.pubkey}

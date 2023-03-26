@@ -65,8 +65,8 @@ func InitAsyncServiceAuthRoutePollingHeartbeatAll(ctx context.Context) {
 			log.Ctx(ctx).Err(err).Msg("GetAllServiceAuthAndURLs")
 		}
 		SendHeartbeat(ctx, svcGroups)
-		time.Sleep(6 * time.Second)
-		if i > 60 {
+		time.Sleep(30 * time.Second)
+		if i > 30 {
 			svcGroups, err = GetAllServiceAuthAndURLs(ctx)
 			if err != nil {
 				log.Ctx(ctx).Err(err).Msg("GetAllServiceAuthAndURLs")
@@ -76,62 +76,66 @@ func InitAsyncServiceAuthRoutePollingHeartbeatAll(ctx context.Context) {
 	}
 }
 
+var ConcurrentHeartbeatSize = 3
+
 func SendHeartbeat(ctx context.Context, svcGroups artemis_validator_service_groups_models.ValidatorsSignatureServiceRoutes) {
 	log.Ctx(ctx).Info().Msg("SendHeartbeat")
 	for groupName, _ := range svcGroups.GroupToServiceMap {
 		log.Ctx(ctx).Info().Interface("groupName", groupName).Msg("SendHeartbeat")
-		go func(groupName string) {
-			log.Ctx(ctx).Info().Interface("groupName", groupName).Msg("sending heartbeat message")
-			auth, err := GetGroupAuthFromInMemFS(ctx, groupName)
-			if err != nil {
-				log.Ctx(ctx).Err(err).Msg("Failed to get group auth")
-				return
-			}
-			signReqs := aegis_inmemdbs.EthereumBLSKeySignatureRequests{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureRequest)}
-			hexMessage, err := aegis_inmemdbs.RandomHex(10)
-			if err != nil {
-				log.Ctx(ctx).Err(err).Msg("failed to create random hex message")
-				return
-			}
-			signReqs.Map["0x0000000"] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: hexMessage}
-			sr := bls_serverless_signing.SignatureRequests{
-				SecretName:        auth.SecretName,
-				SignatureRequests: aegis_inmemdbs.EthereumBLSKeySignatureRequests{Map: signReqs.Map},
-			}
-			sigResponses := aegis_inmemdbs.EthereumBLSKeySignatureResponses{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureResponse)}
-			cfg := aegis_aws_auth.AuthAWS{
-				Region:    "us-west-1",
-				AccessKey: auth.AccessKey,
-				SecretKey: auth.SecretKey,
-			}
-			r := Resty{}
-			r.Client = resty.New()
-			r.SetBaseURL(auth.AuthLamdbaAWS.ServiceURL)
-			r.SetTimeout(5 * time.Second)
-			r.SetRetryCount(2)
-			r.SetRetryWaitTime(20 * time.Millisecond)
-			reqAuth, err := cfg.CreateV4AuthPOSTReq(ctx, "lambda", auth.AuthLamdbaAWS.ServiceURL, sr)
-			if err != nil {
-				log.Ctx(ctx).Error().Err(err).Msg("failed to get service routes auths for lambda iam auth")
-				return
-			}
-			log.Info().Interface("groupName", groupName).Msg("sending heartbeat")
-			resp, err := r.R().
-				SetHeaderMultiValues(reqAuth.Header).
-				SetResult(&sigResponses).
-				SetBody(sr).Post("/")
-			if err != nil {
-				log.Ctx(ctx).Err(err).Interface("groupName", groupName).Msg("failed to get response")
-				return
-			}
-			if resp.StatusCode() != 200 {
-				err = errors.New("non-200 status code")
-				log.Ctx(ctx).Err(err).Interface("groupName", groupName).Msg("failed to get 200 status code")
-				return
-			} else {
-				log.Ctx(ctx).Info().Interface("groupName", groupName).Msg("heartbeat OK")
-			}
-		}(groupName)
+		for i := 0; i < ConcurrentHeartbeatSize; i++ {
+			go func(groupName string) {
+				log.Ctx(ctx).Info().Interface("groupName", groupName).Msg("sending heartbeat message")
+				auth, err := GetGroupAuthFromInMemFS(ctx, groupName)
+				if err != nil {
+					log.Ctx(ctx).Err(err).Msg("Failed to get group auth")
+					return
+				}
+				signReqs := aegis_inmemdbs.EthereumBLSKeySignatureRequests{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureRequest)}
+				hexMessage, err := aegis_inmemdbs.RandomHex(10)
+				if err != nil {
+					log.Ctx(ctx).Err(err).Msg("failed to create random hex message")
+					return
+				}
+				signReqs.Map["0x0000000"] = aegis_inmemdbs.EthereumBLSKeySignatureRequest{Message: hexMessage}
+				sr := bls_serverless_signing.SignatureRequests{
+					SecretName:        auth.SecretName,
+					SignatureRequests: aegis_inmemdbs.EthereumBLSKeySignatureRequests{Map: signReqs.Map},
+				}
+				sigResponses := aegis_inmemdbs.EthereumBLSKeySignatureResponses{Map: make(map[string]aegis_inmemdbs.EthereumBLSKeySignatureResponse)}
+				cfg := aegis_aws_auth.AuthAWS{
+					Region:    "us-west-1",
+					AccessKey: auth.AccessKey,
+					SecretKey: auth.SecretKey,
+				}
+				r := Resty{}
+				r.Client = resty.New()
+				r.SetBaseURL(auth.AuthLamdbaAWS.ServiceURL)
+				r.SetTimeout(5 * time.Second)
+				r.SetRetryCount(2)
+				r.SetRetryWaitTime(20 * time.Millisecond)
+				reqAuth, err := cfg.CreateV4AuthPOSTReq(ctx, "lambda", auth.AuthLamdbaAWS.ServiceURL, sr)
+				if err != nil {
+					log.Ctx(ctx).Error().Err(err).Msg("failed to get service routes auths for lambda iam auth")
+					return
+				}
+				log.Info().Interface("groupName", groupName).Msg("sending heartbeat")
+				resp, err := r.R().
+					SetHeaderMultiValues(reqAuth.Header).
+					SetResult(&sigResponses).
+					SetBody(sr).Post("/")
+				if err != nil {
+					log.Ctx(ctx).Err(err).Interface("groupName", groupName).Msg("failed to get response")
+					return
+				}
+				if resp.StatusCode() != 200 {
+					err = errors.New("non-200 status code")
+					log.Ctx(ctx).Err(err).Interface("groupName", groupName).Msg("failed to get 200 status code")
+					return
+				} else {
+					log.Ctx(ctx).Info().Interface("groupName", groupName).Msg("heartbeat OK")
+				}
+			}(groupName)
+		}
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/prometheus/client_golang/api"
+	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/rs/zerolog/log"
 )
 
@@ -13,7 +14,14 @@ const (
 )
 
 type Prometheus struct {
-	api.Client
+	v1.API
+}
+
+func NewPrometheusLocalClient(ctx context.Context) Prometheus {
+	return NewPrometheusClient(ctx, localPrometheusHostPort)
+}
+func NewPrometheusProdClient(ctx context.Context) Prometheus {
+	return NewPrometheusClient(ctx, prodPrometheusHostPort)
 }
 
 func NewPrometheusClient(ctx context.Context, hostURL string) Prometheus {
@@ -22,5 +30,6 @@ func NewPrometheusClient(ctx context.Context, hostURL string) Prometheus {
 		log.Ctx(ctx).Panic().Err(err).Msg("apollo_prometheus.NewPrometheusClient")
 		panic(err)
 	}
-	return Prometheus{promClient}
+	apiClient := v1.NewAPI(promClient)
+	return Prometheus{apiClient}
 }

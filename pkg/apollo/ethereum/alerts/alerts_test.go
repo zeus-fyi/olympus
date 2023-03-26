@@ -1,4 +1,4 @@
-package apollo_prometheus
+package apollo_ethereum_alerts
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/suite"
 	"github.com/tidwall/pretty"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
@@ -15,19 +16,22 @@ import (
 
 var ctx = context.Background()
 
-type PrometheusTestSuite struct {
-	pc Prometheus
+type ApolloEthereumAlertsTestSuite struct {
+	pc ApolloEthereumAlerts
 	test_suites_base.TestSuite
 }
 
-func (t *PrometheusTestSuite) SetupTest() {
+func (t *ApolloEthereumAlertsTestSuite) SetupTest() {
 	t.InitLocalConfigs()
-	t.pc = NewPrometheusLocalClient(ctx)
+	t.pc = InitLocalApolloEthereumAlerts(ctx, t.Tc.PagerDutyApiKey, t.Tc.PagerDutyRoutingKey)
 }
 
-func (t *PrometheusTestSuite) TestQueryRangePromQL() {
-	t.Require().NotEmpty(t.pc)
+func (t *ApolloEthereumAlertsTestSuite) TestSlashingQueryRangePromQL() {
+	_, err := t.pc.SlashingAlertTrigger(ctx)
+	t.Require().NoError(err)
+}
 
+func (t *ApolloEthereumAlertsTestSuite) TestQueryRangePromQL() {
 	timeNow := time.Now().UTC()
 
 	window := v1.Range{
@@ -43,21 +47,9 @@ func (t *PrometheusTestSuite) TestQueryRangePromQL() {
 	fmt.Println(w)
 	t.Require().NoError(err)
 	t.Assert().NotEmpty(r)
-	fmt.Println(r)
 
-	b, err := json.Marshal(r)
-	t.Require().NoError(err)
-	requestJSON := pretty.Pretty(b)
-	requestJSON = pretty.Color(requestJSON, pretty.TerminalStyle)
-	fmt.Println(string(requestJSON))
-}
-func (t *PrometheusTestSuite) TestPromGetRules() {
-	t.Require().NotEmpty(t.pc)
-
-	r, err := t.pc.Rules(ctx)
-	t.Require().NoError(err)
-	t.Assert().NotEmpty(r)
-	fmt.Println(r)
+	mv := r.(model.Matrix)
+	fmt.Println(mv)
 
 	b, err := json.Marshal(r)
 	t.Require().NoError(err)
@@ -66,6 +58,6 @@ func (t *PrometheusTestSuite) TestPromGetRules() {
 	fmt.Println(string(requestJSON))
 }
 
-func TestPrometheusTestSuite(t *testing.T) {
-	suite.Run(t, new(PrometheusTestSuite))
+func TestApolloEthereumAlertsTestSuite(t *testing.T) {
+	suite.Run(t, new(ApolloEthereumAlertsTestSuite))
 }

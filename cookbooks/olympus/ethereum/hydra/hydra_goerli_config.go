@@ -13,6 +13,6 @@ var (
 	execClientGoerliRequestCPU      = "2"
 	execClientGoerliRequestLimitCPU = "2"
 
-	consensusStorageDiskSizeGoerli = "400Gi"
-	execClientDiskSizeGoerli       = "1.2Ti"
+	consensusStorageDiskSizeGoerli = "500Gi"
+	execClientDiskSizeGoerli       = "1000Gi"
 )

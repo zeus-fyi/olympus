@@ -45,10 +45,24 @@ func RequestValidatorSignaturesAsync(ctx context.Context, sigRequests aegis_inme
 			ch := make(chan aegis_inmemdbs.EthereumBLSKeySignatureResponses, 1)
 			for i := 0; i < 3; i++ {
 				go func(i int) {
-					minDuration := 150 * time.Millisecond
-					maxDuration := 200 * time.Millisecond
-					jitter := time.Duration(i) * (time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration)
-					time.Sleep(jitter)
+					switch i {
+					case 1:
+						minDuration := 150 * time.Millisecond
+						maxDuration := 200 * time.Millisecond
+						jitter := time.Duration(i) * (time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration)
+						time.Sleep(jitter)
+					case 2:
+						minDuration := 200 * time.Millisecond
+						maxDuration := 250 * time.Millisecond
+						jitter := time.Duration(i) * (time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration)
+						time.Sleep(jitter)
+					case 3:
+						minDuration := 250 * time.Millisecond
+						maxDuration := 300 * time.Millisecond
+						jitter := time.Duration(i) * (time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration)
+						time.Sleep(jitter)
+					default:
+					}
 					if len(ch) == cap(ch) {
 						return
 					}

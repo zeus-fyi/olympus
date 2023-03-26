@@ -54,6 +54,10 @@ func (t *ArtemisNewEthereumValidatorsServiceRequestWorkflow) ServiceNewValidator
 		Enabled:           params.Enabled,
 		MevEnabled:        params.MevEnabled,
 	}
+	if len(verifiedPubkeys) <= 0 {
+		log.Info("No new validators to insert", "ValidatorServiceRequest", params)
+		return nil
+	}
 	insertVerifiedValidatorsStatusCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(insertVerifiedValidatorsStatusCtx, t.ArtemisEthereumValidatorsServiceRequestActivities.InsertVerifiedValidatorsWithFeeRecipient, insertParams, verifiedPubkeys).Get(insertVerifiedValidatorsStatusCtx, nil)
 	if err != nil {

@@ -233,7 +233,6 @@ export default function AwsWizardPanel(props: any) {
                 return;
             }
             const res = await awsApiGateway.createValidatorsAgeEncryptedKeystoresZipLambda(creds);
-            console.log("res", res)
             if (res.status !== 200) {
                 setRequestStatusZipGen('error');
                 return

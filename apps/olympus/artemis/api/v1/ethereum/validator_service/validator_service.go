@@ -44,7 +44,9 @@ func (v *DepositEthereumValidatorsService) DepositValidators(c echo.Context) err
 		}
 		resp := make([]ValidatorDepositResponse, len(v.ValidatorDepositSlice))
 		w3client := signing_automation_ethereum.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumGoerli.NodeURL, artemis_network_cfgs.ArtemisEthereumGoerli.Account)
-		w3client.Client.SetHeader(ctx, "Authorization", "Bearer "+token)
+		h := make(map[string]string)
+		h["Authorization"] = "Bearer " + token
+		w3client.Headers = h
 
 		txToBroadcast := make([]*types.Transaction, len(v.ValidatorDepositSlice))
 		for i, d := range v.ValidatorDepositSlice {

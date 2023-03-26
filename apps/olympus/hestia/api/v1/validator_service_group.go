@@ -136,7 +136,7 @@ func (v *CreateValidatorServiceRequest) CreateValidatorsServiceGroup(c echo.Cont
 		resp.Message = "Ethereum Mainnet validators service request in progress"
 		return c.JSON(http.StatusAccepted, resp)
 	case hestia_req_types.EthereumGoerliProtocolNetworkID:
-		err = eth_validators_service_requests.ArtemisEthereumMainnetValidatorsRequestsWorker.ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx, vsr)
+		err = eth_validators_service_requests.ArtemisEthereumGoerliValidatorsRequestsWorker.ExecuteServiceNewValidatorsToCloudCtxNsWorkflow(ctx, vsr)
 		if err != nil {
 			log.Ctx(ctx).Err(err).Interface("network", network).Msg("ExecuteServiceNewValidatorsToCloudCtxNsWorkflow")
 			return c.JSON(http.StatusInternalServerError, nil)

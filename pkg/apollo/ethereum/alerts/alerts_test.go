@@ -25,6 +25,10 @@ func (t *ApolloEthereumAlertsTestSuite) SetupTest() {
 	t.InitLocalConfigs()
 	t.pc = InitLocalApolloEthereumAlerts(ctx, t.Tc.PagerDutyApiKey, t.Tc.PagerDutyRoutingKey)
 }
+func (t *ApolloEthereumAlertsTestSuite) TestHydraLatency() {
+	err := t.pc.HydraLatencyIssueTrigger(ctx)
+	t.Require().NoError(err)
+}
 
 func (t *ApolloEthereumAlertsTestSuite) TestSlashingQueryRangePromQL() {
 	_, err := t.pc.SlashingAlertTrigger(ctx)

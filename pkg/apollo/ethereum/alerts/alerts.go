@@ -45,3 +45,25 @@ func (a *ApolloEthereumAlerts) CreateAlertFromTemplate(ctx context.Context, summ
 	}
 	return r, err
 }
+
+func (a *ApolloEthereumAlerts) CreateLowPriorityAlertFromTemplate(ctx context.Context, summary, component, details string) (apollo_pagerduty.V2EventResponse, error) {
+	event := pagerduty.V2Event{
+		RoutingKey: a.pagerdutyRoutingKey,
+		Action:     a.Warning(),
+		Payload: &pagerduty.V2Payload{
+			Summary:   summary,
+			Source:    "APOLLO_ETHEREUM_ALERTS",
+			Severity:  a.Critical(),
+			Component: fmt.Sprintf("This is the %s component", component),
+			Group:     "This is the ethereum group",
+			Class:     "Ethereum",
+			Details:   details,
+		},
+	}
+	r, err := a.SendAlert(ctx, event)
+	if err != nil {
+		log.Error().Err(err).Msg("apollo_ethereum_alerts.CreateAlertFromTemplate")
+		return r, err
+	}
+	return r, err
+}

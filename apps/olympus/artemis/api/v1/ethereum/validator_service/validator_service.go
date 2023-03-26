@@ -78,7 +78,7 @@ func (v *DepositEthereumValidatorsService) DepositValidators(c echo.Context) err
 				Rx:     rx.Hash.String(),
 			}
 		}
-		return c.JSON(http.StatusNotImplemented, nil)
+		return c.JSON(http.StatusAccepted, resp)
 	case "ephemery":
 		resp := make([]ValidatorDepositResponse, len(v.ValidatorDepositSlice))
 		w3client := signing_automation_ethereum.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumEphemeral.NodeURL, artemis_network_cfgs.ArtemisEthereumEphemeral.Account)

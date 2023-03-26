@@ -178,8 +178,8 @@ func SelectInsertUnplacedValidatorsIntoCloudCtxNs(ctx context.Context, validator
 					  WHERE NOT EXISTS (
 					  	SELECT 1
 					  	FROM validators_service_org_groups_cloud_ctx_ns cg
-					  	WHERE vg.pubkey = cg.pubkey AND enabled=true AND protocol_network_id=$1
-					  )
+					  	WHERE vg.pubkey = cg.pubkey AND enabled=true
+					  ) AND protocol_network_id=$1
 				  ) INSERT INTO validators_service_org_groups_cloud_ctx_ns(pubkey, cloud_ctx_ns_id)
 					SELECT pubkey, (SELECT cloud_ctx_ns_id FROM topologies_org_cloud_ctx_ns WHERE cloud_provider=$2 AND context=$3 AND region=$4 AND namespace=$5) FROM cte_unplaced_validators
 				  `

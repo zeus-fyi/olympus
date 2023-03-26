@@ -65,8 +65,8 @@ func InitAsyncServiceAuthRoutePollingHeartbeatAll(ctx context.Context) {
 			log.Ctx(ctx).Err(err).Msg("GetAllServiceAuthAndURLs")
 		}
 		SendHeartbeat(ctx, svcGroups)
-		time.Sleep(30 * time.Second)
-		if i > 30 {
+		time.Sleep(12 * time.Second)
+		if i > 60 {
 			svcGroups, err = GetAllServiceAuthAndURLs(ctx)
 			if err != nil {
 				log.Ctx(ctx).Err(err).Msg("GetAllServiceAuthAndURLs")

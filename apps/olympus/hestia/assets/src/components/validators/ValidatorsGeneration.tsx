@@ -205,7 +205,6 @@ export function WithdrawalCredentials() {
     const onWithdrawalCredentialsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         try {
             const wc = event.target.value;
-            console.log(wc)
             dispatch(setWithdrawalCredentials(wc));
         } catch (error) {
             console.log("error", error);

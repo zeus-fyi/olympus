@@ -293,7 +293,6 @@ export default function AwsWizardPanel(props: any) {
     }
 
     const onGenerateValidatorDeposits = async () => {
-        console.log("onGenerateValidatorDeposits");
         setRequestStatusVd('pending');
 
         const creds = {accessKeyId: akey, secretAccessKey: skey};

@@ -58,7 +58,6 @@ class AwsLambdaApiGateway {
             if (wc.length > 0) {
                 payload.withdrawalAddress = wc;
             }
-            console.log('payload', payload)
             const headers = {
                 "Content-Type": "application/json",
             };

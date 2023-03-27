@@ -41,6 +41,16 @@ export default function MainListItems() {
                 </ListItemIcon>
                 <ListItemText primary="Clusters"/>
             </ListItemButton>
+            <Collapse in={open} timeout="auto" unmountOnExit>
+                <List component="div" disablePadding>
+                    <ListItemButton sx={{ pl: 4 }} component={Link} to="/clusters/builder">
+                        <ListItemIcon>
+                            <AutoFixHighIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Cluster Wizard" />
+                    </ListItemButton>
+                </List>
+            </Collapse>
             <ListItemButton onClick={handleClick}>
                 <ListItemIcon>
                     <ViewListIcon />

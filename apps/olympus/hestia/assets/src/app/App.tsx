@@ -12,6 +12,7 @@ import ClustersPage from "../components/clusters/ClusterPage";
 import AwsWizard from "../components/validators/AwsWizard";
 import SignUp from "../components/signup/Signup";
 import {VerifyEmail} from "../components/signup/VerifyEmail";
+import ClusterBuilderPage from "../components/clusters_wizard/ClusterBuilderPage";
 
 export const App = () => {
 
@@ -27,6 +28,7 @@ export const App = () => {
                             <Route path="/dashboard" element={<ProtectedLayout />}/>
                             <Route>
                                 <Route path="clusters" element={<Clusters />} />
+                                <Route path="clusters/builder" element={<ClusterBuilderPage />} />
                                 <Route path="clusters/:id" element={<ClustersPage />} />
                             </Route>
                             <Route>

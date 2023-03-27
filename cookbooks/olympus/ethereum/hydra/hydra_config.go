@@ -32,17 +32,17 @@ const (
 	hydraClientEphemeralRequestCPU      = "2.5"
 	hydraClientEphemeralRequestLimitCPU = "2.5"
 
-	consensusClientEphemeralRequestRAM      = "1.5Gi"
-	consensusClientEphemeralRequestLimitRAM = "1.5Gi"
+	consensusClientEphemeralRequestRAM      = "2Gi"
+	consensusClientEphemeralRequestLimitRAM = "2Gi"
 
-	consensusClientEphemeralRequestCPU      = "1.5"
-	consensusClientEphemeralRequestLimitCPU = "1.5"
+	consensusClientEphemeralRequestCPU      = "2.5"
+	consensusClientEphemeralRequestLimitCPU = "2.5"
 
-	execClientEphemeralRequestRAM      = "1.5Gi"
-	execClientEphemeralRequestLimitRAM = "1.5Gi"
+	execClientEphemeralRequestRAM      = "2Gi"
+	execClientEphemeralRequestLimitRAM = "2Gi"
 
-	execClientEphemeralRequestCPU      = "1"
-	execClientEphemeralRequestLimitCPU = "1"
+	execClientEphemeralRequestCPU      = "1.5"
+	execClientEphemeralRequestLimitCPU = "1.5"
 
 	consensusClientDiskName = "consensus-client-storage"
 	execClientDiskName      = "exec-client-storage"

@@ -321,6 +321,10 @@ export default function AwsWizardPanel(props: any) {
                 return
             }
             const body = await dpSlice.json();
+            const jsonString = JSON.stringify(body, null, 2); // Convert JSON object to string with 2-space indentation
+            const blob = new Blob([jsonString], { type: 'application/json' }); // Create a blob from the JSON string
+            download(blob, "deposit_data.json");
+
             body.forEach((item: any) => {
                 item.verified = false;
                 item.rx = '';

@@ -1,8 +1,7 @@
-
-export type Cluster = {
+export interface Cluster{
     clusterName: string;
     componentBases: ComponentBases;
-};
+}
 
 export type ComponentBases = {
     [key: string]: SkeletonBases;
@@ -22,6 +21,8 @@ export type DockerImages = {
 
 export interface DockerImage {
     imageName: string;
+    cmd: string;
+    args: string[];
     ports: Port[];
 }
 

@@ -1,7 +1,7 @@
 import {Box, Card, CardContent, Container} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import {useDispatch, useSelector} from "react-redux";
-import {RootState} from "../../../redux/store";
+import {RootState} from "../../../../redux/store";
 import * as React from "react";
 import TextField from "@mui/material/TextField";
 import {AddPortsInputFields} from "./DefinePorts";
@@ -34,7 +34,7 @@ export function DefineDockerParams(props: any) {
 
 export function DockerImageName() {
     const dispatch = useDispatch();
-    const dockerImageName = useSelector((state: RootState) => state.clusterBuilder.dockerImages);
+    const dockerImageName = useSelector((state: RootState) => state.clusterBuilder.cluster.clusterName);
     const onDockerImageNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const newDockerImageName = event.target.value;
         //dispatch(addDockerImagePort(newDockerImageName));

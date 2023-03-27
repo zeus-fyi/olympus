@@ -1,5 +1,6 @@
 import {DefineClusterClassParams} from "./DefineClusterClass";
 import {DefineDockerParams} from "./DefineDockerImage";
+import {DefineClusterComponentBaseParams} from "./DefineComponentBases";
 
 export const clusterBuilderSteps = [
     'Define Cluster',
@@ -12,6 +13,7 @@ export function wizardStepComponents(activeStep: number,
 ) {
     const steps = [
         <DefineClusterClassParams />,
+        <DefineClusterComponentBaseParams />,
         <DefineDockerParams />
     ];
     return (steps[activeStep])

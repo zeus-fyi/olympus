@@ -1,10 +1,10 @@
 import {Box, Card, CardContent, Container} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import {useDispatch, useSelector} from "react-redux";
-import {RootState} from "../../../redux/store";
+import {RootState} from "../../../../redux/store";
 import * as React from "react";
 import TextField from "@mui/material/TextField";
-import {setClusterName} from "../../../redux/clusters/clusters.builder.reducer";
+import {setClusterName} from "../../../../redux/clusters/clusters.builder.reducer";
 import {AddComponentBases} from "./AddComponentBases";
 
 export function DefineClusterClassParams(props: any) {
@@ -35,7 +35,7 @@ export function DefineClusterClassParams(props: any) {
 
 export function ClusterName() {
     const dispatch = useDispatch();
-    const clusterName = useSelector((state: RootState) => state.clusterBuilder.clusterName);
+    const clusterName = useSelector((state: RootState) => state.clusterBuilder.cluster.clusterName);
     const onClusterNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const newClusterName = event.target.value;
         dispatch(setClusterName(newClusterName));

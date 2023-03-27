@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import {AppBar, Drawer} from '../dashboard/Dashboard';
+import {AppBar, Drawer} from '../../dashboard/Dashboard';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import List from '@mui/material/List';
@@ -14,13 +14,12 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";
-import authProvider from "../../redux/auth/auth.actions";
-import MainListItems from "../dashboard/listItems";
-import ClusterWizard from "./ClusterWizard";
+import authProvider from "../../../redux/auth/auth.actions";
+import MainListItems from "../../dashboard/listItems";
 
 const mdTheme = createTheme();
 
-function ClusterBuilderContent() {
+function ClusterAppsContent() {
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
@@ -64,7 +63,7 @@ function ClusterBuilderContent() {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            Infra Builder
+                            Apps
                         </Typography>
                         <Button
                             color="inherit"
@@ -107,7 +106,6 @@ function ClusterBuilderContent() {
                     <Toolbar />
                     <div style={{ display: 'flex' }}>
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                            <ClusterWizard />
                         </Container>
                     </div>
                 </Box>
@@ -116,6 +114,6 @@ function ClusterBuilderContent() {
     );
 }
 
-export default function ClusterBuilderPage() {
-    return <ClusterBuilderContent />;
+export default function ClusterAppsPage() {
+    return <ClusterAppsContent />;
 }

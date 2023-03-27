@@ -31,12 +31,20 @@ const clusterBuilderSlice = createSlice({
                 console.error(`Component base not found: ${key}`);
             }
         },
-        addSkeletonBase: (state, action: PayloadAction<{ componentBaseKey: string; key: string; skeletonBase: SkeletonBase }>) => {
-            const { componentBaseKey, key, skeletonBase } = action.payload;
-            if (!state.cluster.componentBases[componentBaseKey]) {
-                state.cluster.componentBases[componentBaseKey] = {};
+        addSkeletonBase: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; skeletonBase: SkeletonBase }>) => {
+            const { componentBaseName, skeletonBaseName, skeletonBase } = action.payload;
+            if (!state.cluster.componentBases[componentBaseName]) {
+                state.cluster.componentBases[componentBaseName] = {};
             }
-            state.cluster.componentBases[componentBaseKey][key] = skeletonBase;
+            state.cluster.componentBases[componentBaseName][skeletonBaseName] = skeletonBase;
+        },
+        removeSkeletonBase: (state, action: PayloadAction<{ componentBaseName: string; key: string; skeletonBaseName: string }>) => {
+            const { componentBaseName, skeletonBaseName } = action.payload;
+            if (state.cluster.componentBases[componentBaseName][skeletonBaseName]) {
+                delete state.cluster.componentBases[componentBaseName][skeletonBaseName];
+            } else {
+                console.error(`Skeleton base not found: ${skeletonBaseName}`);
+            }
         },
         addDockerImage: (state, action: PayloadAction<{ componentBaseKey: string; skeletonBaseKey: string; key: string; dockerImage: DockerImage }>) => {
             const { componentBaseKey, skeletonBaseKey, key, dockerImage } = action.payload;

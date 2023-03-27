@@ -29,10 +29,9 @@ export function DefineClusterComponentBaseParams(props: any) {
 
 export function SelectedComponentBaseName(props: any) {
     const dispatch = useDispatch();
-    const [componentBase, setComponentBase] = React.useState('');
-
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
     const componentBaseKeys = Object.keys(cluster.componentBases);
+    const [componentBase, setComponentBase] = React.useState(componentBaseKeys[0]);
 
     const onAccessComponentBase = (selectedComponentBase: string) => {
         setComponentBase(selectedComponentBase);

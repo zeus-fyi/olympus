@@ -12,7 +12,8 @@ func (t *HydraCookbookTestSuite) TestGoerliClusterDeploy() {
 	olympus_cookbooks.ChangeToCookbookDir()
 	cdCfg := HydraClusterConfig(&HydraClusterDefinition, "goerli")
 	cdCfg.FilterSkeletonBaseUploads = &strings_filter.FilterOpts{
-		StartsWith: "lighthouseAthena",
+		StartsWith: "geth",
+		//DoesNotStartWithThese: []string{"lighthouseAthenaValidatorClient"},
 	}
 	t.Require().Equal("goerli-staking", cdCfg.CloudCtxNs.Namespace)
 	_, err := cdCfg.UploadChartsFromClusterDefinition(ctx, t.ZeusTestClient, true)

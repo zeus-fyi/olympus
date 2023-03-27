@@ -1,17 +1,17 @@
 package olympus_hydra_cookbooks
 
 var (
-	consensusClientGoerliRequestRAM      = "6Gi"
-	consensusClientGoerliRequestLimitRAM = "6Gi"
+	consensusClientGoerliRequestRAM      = "12Gi"
+	consensusClientGoerliRequestLimitRAM = "12Gi"
 
-	consensusClientGoerliRequestCPU      = "4"
-	consensusClientGoerliRequestLimitCPU = "4"
+	consensusClientGoerliRequestCPU      = "7"
+	consensusClientGoerliRequestLimitCPU = "7"
 
-	execClientGoerliRequestRAM      = "6Gi"
-	execClientGoerliRequestLimitRAM = "6Gi"
+	execClientGoerliRequestRAM      = "7Gi"
+	execClientGoerliRequestLimitRAM = "7Gi"
 
-	execClientGoerliRequestCPU      = "2"
-	execClientGoerliRequestLimitCPU = "2"
+	execClientGoerliRequestCPU      = "6"
+	execClientGoerliRequestLimitCPU = "6"
 
 	consensusStorageDiskSizeGoerli = "500Gi"
 	execClientDiskSizeGoerli       = "1000Gi"

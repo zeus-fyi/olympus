@@ -217,12 +217,6 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 				Resources: rrEC,
 			},
 		}
-		stsCfgOverride.ContainerDrivers[execClient] = ecContDriver[execClient]
-		stsCfgOverrideSecondary.ContainerDrivers[execClient] = ecContDriver[execClient]
-
-		stsCfgOverride.ContainerDrivers[consensusClient] = ccContDriver[consensusClient]
-		stsCfgOverrideSecondary.ContainerDrivers[consensusClient] = ccContDriver[consensusClient]
-
 		stsCfgOverride.ContainerDrivers[validatorClient] = vcContDriver[validatorClient]
 		stsCfgOverrideSecondary.ContainerDrivers[validatorClient] = vcContDriver[validatorClient]
 	case "ephemery":
@@ -278,7 +272,7 @@ func HydraClusterConfig(cd *zeus_cluster_config_drivers.ClusterDefinition, netwo
 			}}
 		containCfgBeaconConsensusClient = zeus_topology_config_drivers.ContainerDriver{
 			Container: v1.Container{
-				Name:      validatorClient,
+				Name:      consensusClient,
 				Image:     lighthouseDockerImageEphemery,
 				Env:       combinedEnvVars,
 				Args:      []string{"-c", "/scripts/lighthouseEphemery" + ".sh"},

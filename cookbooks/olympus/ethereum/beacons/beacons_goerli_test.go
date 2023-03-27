@@ -5,15 +5,16 @@ import (
 
 	olympus_cookbooks "github.com/zeus-fyi/olympus/cookbooks"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
+	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
 )
 
 func (t *BeaconsTestCookbookTestSuite) TestGoerliClusterDeploy() {
 	olympus_cookbooks.ChangeToCookbookDir()
 	cdCfg := GoerliBeaconBaseClusterDefinition
-	//cdCfg.FilterSkeletonBaseUploads = &strings_filter.FilterOpts{
-	//	StartsWith: "ingress",
-	//}
+	cdCfg.FilterSkeletonBaseUploads = &strings_filter.FilterOpts{
+		StartsWith: "geth",
+	}
 	t.Require().Equal("athena-beacon-goerli", cdCfg.CloudCtxNs.Namespace)
 	_, err := cdCfg.UploadChartsFromClusterDefinition(ctx, t.ZeusTestClient, true)
 	t.Require().Nil(err)

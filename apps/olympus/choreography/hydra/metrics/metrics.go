@@ -7,8 +7,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	apollo_beacon_prom_metrics "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/beacon"
 	apollo_metrics "github.com/zeus-fyi/olympus/pkg/apollo/metrics"
-	apollo_beacon_prom_metrics "github.com/zeus-fyi/olympus/pkg/apollo/metrics/ethereum/beacon"
 	apollo_metrics_workload_info "github.com/zeus-fyi/olympus/pkg/apollo/metrics/workload_info"
 )
 

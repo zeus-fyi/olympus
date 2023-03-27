@@ -17,6 +17,8 @@ const (
 )
 
 type PagerDutyClient struct {
+	EventAction
+	Severity
 	*resty.Client
 }
 

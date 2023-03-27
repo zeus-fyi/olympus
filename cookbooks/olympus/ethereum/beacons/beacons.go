@@ -12,6 +12,7 @@ import (
 	zeus_topology_config_drivers "github.com/zeus-fyi/zeus/pkg/zeus/workload_config_drivers"
 	v1Core "k8s.io/api/core/v1"
 	v1 "k8s.io/api/networking/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 const (
@@ -122,7 +123,21 @@ func GetConsensusClientSkeletonBase(network string) zeus_cluster_config_drivers.
 		args = []string{"-c", "/scripts/lighthouseGoerliBeacon.sh"}
 	}
 	sd := &zeus_topology_config_drivers.ServiceDriver{}
+	rrCC := v1Core.ResourceRequirements{}
 
+	switch network {
+	case hestia_req_types.Goerli:
+		rrCC = v1Core.ResourceRequirements{
+			Limits: v1Core.ResourceList{
+				"cpu":    resource.MustParse(consensusClientGoerliRequestLimitCPU),
+				"memory": resource.MustParse(consensusClientGoerliRequestLimitRAM),
+			},
+			Requests: v1Core.ResourceList{
+				"cpu":    resource.MustParse(consensusClientGoerliRequestCPU),
+				"memory": resource.MustParse(consensusClientGoerliRequestRAM),
+			},
+		}
+	}
 	sd.AddNginxTargetPort("http", "http-api")
 	sbCfg := zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
 		SkeletonBaseChart:         zeus_req_types.TopologyCreateRequest{},
@@ -138,10 +153,11 @@ func GetConsensusClientSkeletonBase(network string) zeus_cluster_config_drivers.
 					},
 					consensusClient: {
 						Container: v1Core.Container{
-							Name:  consensusClient,
-							Image: lighthouseDockerImage,
-							Args:  args,
-							Env:   ClusterConfigEnvVars(nil, network),
+							Name:      consensusClient,
+							Image:     lighthouseDockerImage,
+							Args:      args,
+							Env:       ClusterConfigEnvVars(nil, network),
+							Resources: rrCC,
 						},
 					},
 					initSnapshots: {Container: v1Core.Container{
@@ -169,6 +185,21 @@ func GetExecClientSkeletonBase(network string) zeus_cluster_config_drivers.Clust
 	case hestia_req_types.Goerli:
 		args = []string{"-c", "/scripts/gethGoerli.sh"}
 	}
+	rrEC := v1Core.ResourceRequirements{}
+	switch network {
+	case hestia_req_types.Goerli:
+		rrEC = v1Core.ResourceRequirements{
+			Limits: v1Core.ResourceList{
+				"cpu":    resource.MustParse(execClientGoerliRequestLimitCPU),
+				"memory": resource.MustParse(execClientGoerliRequestLimitRAM),
+			},
+			Requests: v1Core.ResourceList{
+				"cpu":    resource.MustParse(execClientGoerliRequestCPU),
+				"memory": resource.MustParse(execClientGoerliRequestRAM),
+			},
+		}
+	}
+
 	sd := &zeus_topology_config_drivers.ServiceDriver{}
 	sd.AddNginxTargetPort("http", "http-rpc")
 	sbCfg := zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
@@ -185,10 +216,11 @@ func GetExecClientSkeletonBase(network string) zeus_cluster_config_drivers.Clust
 					},
 					execClient: {
 						Container: v1Core.Container{
-							Name:  execClient,
-							Image: gethDockerImage,
-							Args:  args,
-							Env:   ClusterConfigEnvVars(nil, network),
+							Name:      execClient,
+							Image:     gethDockerImage,
+							Args:      args,
+							Env:       ClusterConfigEnvVars(nil, network),
+							Resources: rrEC,
 						},
 					},
 					initSnapshots: {Container: v1Core.Container{

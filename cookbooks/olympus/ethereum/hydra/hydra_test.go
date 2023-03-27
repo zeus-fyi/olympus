@@ -9,6 +9,7 @@ import (
 	olympus_cookbooks "github.com/zeus-fyi/olympus/cookbooks"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
+	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 	zeus_client "github.com/zeus-fyi/zeus/pkg/zeus/client"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
 )
@@ -24,6 +25,10 @@ func (t *HydraCookbookTestSuite) TestClusterDeploy() {
 	olympus_cookbooks.ChangeToCookbookDir()
 
 	cdCfg := HydraClusterConfig(&HydraClusterDefinition, "ephemery")
+	cdCfg.FilterSkeletonBaseUploads = &strings_filter.FilterOpts{
+		StartsWith:            "lighthouseAthena",
+		DoesNotStartWithThese: []string{"lighthouseAthenaValidatorClient"},
+	}
 	_, err := cdCfg.UploadChartsFromClusterDefinition(ctx, t.ZeusTestClient, true)
 	t.Require().Nil(err)
 

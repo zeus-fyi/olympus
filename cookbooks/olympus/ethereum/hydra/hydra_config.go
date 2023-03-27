@@ -32,11 +32,11 @@ const (
 	hydraClientEphemeralRequestCPU      = "2.5"
 	hydraClientEphemeralRequestLimitCPU = "2.5"
 
-	consensusClientEphemeralRequestRAM      = "1Gi"
-	consensusClientEphemeralRequestLimitRAM = "1Gi"
+	consensusClientEphemeralRequestRAM      = "1.5Gi"
+	consensusClientEphemeralRequestLimitRAM = "1.5Gi"
 
-	consensusClientEphemeralRequestCPU      = "1"
-	consensusClientEphemeralRequestLimitCPU = "1"
+	consensusClientEphemeralRequestCPU      = "1.5"
+	consensusClientEphemeralRequestLimitCPU = "1.5"
 
 	execClientEphemeralRequestRAM      = "1Gi"
 	execClientEphemeralRequestLimitRAM = "1Gi"

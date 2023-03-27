@@ -26,8 +26,8 @@ func (t *HydraCookbookTestSuite) TestClusterDeploy() {
 
 	cdCfg := HydraClusterConfig(&HydraClusterDefinition, "ephemery")
 	cdCfg.FilterSkeletonBaseUploads = &strings_filter.FilterOpts{
-		StartsWith:            "lighthouseAthena",
-		DoesNotStartWithThese: []string{"lighthouseAthenaValidatorClient"},
+		StartsWith: "geth",
+		//DoesNotStartWithThese: []string{"lighthouseAthenaValidatorClient"},
 	}
 	_, err := cdCfg.UploadChartsFromClusterDefinition(ctx, t.ZeusTestClient, true)
 	t.Require().Nil(err)

@@ -38,8 +38,8 @@ const (
 	consensusClientEphemeralRequestCPU      = "1.5"
 	consensusClientEphemeralRequestLimitCPU = "1.5"
 
-	execClientEphemeralRequestRAM      = "1Gi"
-	execClientEphemeralRequestLimitRAM = "1Gi"
+	execClientEphemeralRequestRAM      = "1.5Gi"
+	execClientEphemeralRequestLimitRAM = "1.5Gi"
 
 	execClientEphemeralRequestCPU      = "1"
 	execClientEphemeralRequestLimitCPU = "1"

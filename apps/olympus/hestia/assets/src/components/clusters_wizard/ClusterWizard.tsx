@@ -6,11 +6,7 @@ import StepButton from "@mui/material/StepButton";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
-import {wizardStepComponents} from "./WizardSteps";
-
-const steps = [
-    'Define Cluster',
-];
+import {clusterBuilderSteps, wizardStepComponents} from "./builder/WizardSteps";
 
 export default function ClusterWizard(props: any) {
     const [activeStep, setActiveStep] = React.useState(0);
@@ -19,7 +15,7 @@ export default function ClusterWizard(props: any) {
     }>({});
 
     const totalSteps = () => {
-        return steps.length;
+        return clusterBuilderSteps.length;
     };
 
     const completedSteps = () => {
@@ -39,7 +35,7 @@ export default function ClusterWizard(props: any) {
             isLastStep() && !allStepsCompleted()
                 ? // It's the last step, but not all steps have been completed,
                   // find the first step that has been completed
-                steps.findIndex((step, i) => !(i in completed))
+                clusterBuilderSteps.findIndex((step, i) => !(i in completed))
                 : activeStep + 1;
         setActiveStep(newActiveStep);
     };
@@ -71,7 +67,7 @@ export default function ClusterWizard(props: any) {
         <div>
             <Box sx={{ width: '100%' }}>
                 <Stepper nonLinear activeStep={activeStep}>
-                    {steps.map((label, index) => (
+                    {clusterBuilderSteps.map((label, index) => (
                         <Step key={label} completed={completed[index]}>
                             <StepButton color="inherit" onClick={handleStep(index)}>
                                 {label}
@@ -109,7 +105,7 @@ export default function ClusterWizard(props: any) {
                                 <Button onClick={handleNext} sx={{ mr: 1 }}>
                                     Next
                                 </Button>
-                                {activeStep !== steps.length &&
+                                {activeStep !== clusterBuilderSteps.length &&
                                     (completed[activeStep] ? (
                                         <Typography variant="caption" sx={{ display: 'inline-block' }}>
                                         </Typography>

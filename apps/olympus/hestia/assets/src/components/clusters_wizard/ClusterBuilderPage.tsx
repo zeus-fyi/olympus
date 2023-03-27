@@ -64,7 +64,7 @@ function ClusterBuilderContent() {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            Cluster Builder
+                            Infra Builder
                         </Typography>
                         <Button
                             color="inherit"

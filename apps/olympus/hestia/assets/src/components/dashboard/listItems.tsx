@@ -10,14 +10,19 @@ import ViewListIcon from '@mui/icons-material/ViewList';
 import {ExpandLess, ExpandMore} from "@mui/icons-material";
 import {Collapse, List, ListSubheader} from "@mui/material";
 import MiscellaneousServicesIcon from '@mui/icons-material/MiscellaneousServices';
+import ConstructionIcon from '@mui/icons-material/Construction';
 
 export default function MainListItems() {
     const [open, setOpen] = React.useState(true);
+    const [openClusters, setOpenClusters] = React.useState(true);
 
     const handleClick = () => {
         setOpen(!open);
     };
 
+    const handleClickClusters = () => {
+        setOpenClusters(!openClusters);
+    };
     return (
         <List
             sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}
@@ -35,19 +40,20 @@ export default function MainListItems() {
                 </ListItemIcon>
                 <ListItemText primary="Dashboard" />
             </ListItemButton>
-            <ListItemButton component={Link} to="/clusters">
+            <ListItemButton onClick={handleClickClusters}  component={Link} to="/clusters">
                 <ListItemIcon>
                     <CloudIcon />
                 </ListItemIcon>
                 <ListItemText primary="Clusters"/>
+                {openClusters ? <ExpandLess /> : <ExpandMore />}
             </ListItemButton>
-            <Collapse in={open} timeout="auto" unmountOnExit>
+            <Collapse in={openClusters} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
                     <ListItemButton sx={{ pl: 4 }} component={Link} to="/clusters/builder">
                         <ListItemIcon>
-                            <AutoFixHighIcon />
+                            <ConstructionIcon />
                         </ListItemIcon>
-                        <ListItemText primary="Cluster Wizard" />
+                        <ListItemText primary="Builder" />
                     </ListItemButton>
                 </List>
             </Collapse>

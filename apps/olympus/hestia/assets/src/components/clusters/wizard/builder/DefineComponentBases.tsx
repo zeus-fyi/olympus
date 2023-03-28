@@ -20,7 +20,8 @@ export function DefineClusterComponentBaseParams(props: any) {
     const onAccessComponentBase = (selectedComponentBase: string) => {
         setComponentBase(selectedComponentBase);
     };
-    console.log('componentBaseKeys', componentBaseKeys)
+
+    console.log(cluster.componentBases[selectedKey])
     return (
         <div>
             <Card sx={{ maxWidth: 500 }}>
@@ -36,9 +37,11 @@ export function DefineClusterComponentBaseParams(props: any) {
                     <Box mt={2}>
                         <SelectedComponentBaseName componentBaseKeys={componentBaseKeys} componentBase={componentBase} onAccessComponentBase={onAccessComponentBase} />
                     </Box>
-                    <Box mt={2}>
-                        <AddSkeletonBases componentBaseName={componentBase}/>
-                    </Box>
+                    { cluster.componentBases[selectedKey] &&
+                        <Box mt={2}>
+                            <AddSkeletonBases componentBase={cluster.componentBases[selectedKey]} componentBaseName={selectedKey}/>
+                        </Box>
+                    }
                 </Container>
             </Card>
         </div>

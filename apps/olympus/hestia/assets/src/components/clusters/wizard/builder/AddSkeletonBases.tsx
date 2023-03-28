@@ -1,14 +1,17 @@
 import {useState} from "react";
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {addSkeletonBase, removeSkeletonBase} from "../../../../redux/clusters/clusters.builder.reducer";
 import {Box} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
+import {RootState} from "../../../../redux/store";
 
 export function AddSkeletonBases(props: any) {
-    const {componentBase, componentBaseName} = props;
+    const componentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
     const dispatch = useDispatch();
+    const componentBase = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBase);
     const selectedComponentBaseSkeletonBasesKeys = Object.keys(componentBase);
+
     const [inputField, setInputField] = useState('');
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setInputField(event.target.value);

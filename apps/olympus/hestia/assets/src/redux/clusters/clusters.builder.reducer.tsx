@@ -3,6 +3,7 @@ import {Cluster, ComponentBases, DockerImage, Port, SkeletonBase, SkeletonBases}
 
 interface ClusterBuilderState {
     cluster: Cluster;
+    selectedComponentBaseName: string;
     selectedComponentBase: SkeletonBases;
     selectedSkeletonBase: SkeletonBase;
 }
@@ -12,6 +13,7 @@ const initialState: ClusterBuilderState = {
         clusterName: '',
         componentBases: {} as ComponentBases,
     },
+    selectedComponentBaseName: '',
     selectedComponentBase: {} as SkeletonBases,
     selectedSkeletonBase: {} as SkeletonBase,
 };
@@ -22,6 +24,12 @@ const clusterBuilderSlice = createSlice({
     reducers: {
         setClusterName: (state, action: PayloadAction<string>) => {
             state.cluster.clusterName = action.payload;
+        },
+        setSelectedComponentBaseName: (state, action: PayloadAction<string>) => {
+            state.selectedComponentBaseName = action.payload;
+        },
+        setSelectedComponentBase: (state, action: PayloadAction<SkeletonBases>) => {
+            state.selectedComponentBase = action.payload;
         },
         addComponentBase: (state, action: PayloadAction<{ componentBaseName: string; skeletonBases: SkeletonBases }>) => {
             const { componentBaseName, skeletonBases } = action.payload;
@@ -74,6 +82,8 @@ const clusterBuilderSlice = createSlice({
     },
 });
 
-export const { setClusterName, addComponentBase, removeComponentBase, addSkeletonBase, removeSkeletonBase, addDockerImage, setDockerImagePort} = clusterBuilderSlice.actions;
+export const { setClusterName, addComponentBase, removeComponentBase, addSkeletonBase, removeSkeletonBase,
+    setSelectedComponentBase, setSelectedComponentBaseName,
+    addDockerImage, setDockerImagePort} = clusterBuilderSlice.actions;
 
 export default clusterBuilderSlice.reducer;

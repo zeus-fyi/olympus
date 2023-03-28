@@ -35,7 +35,6 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
         setSkeletonBaseName(selectedSkeletonBaseName);
     };
 
-    console.log(selectedSkeletonBaseKey, 'selectedSkeletonBaseKey')
     return (
         <div>
             <Card sx={{ maxWidth: 1000 }}>

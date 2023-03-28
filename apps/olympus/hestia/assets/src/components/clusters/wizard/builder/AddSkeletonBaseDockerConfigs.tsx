@@ -1,13 +1,11 @@
-import {useDispatch, useSelector} from "react-redux";
+import {useSelector} from "react-redux";
 import * as React from "react";
 import {Box, Card, CardContent, Container, FormControl, InputLabel, MenuItem, Select} from "@mui/material";
 import {RootState} from "../../../../redux/store";
-import {SelectedComponentBaseName} from "./DefineComponentBases";
 import Typography from "@mui/material/Typography";
 import {DefineDockerParams} from "./DefineDockerImage";
 
 export function AddSkeletonBaseDockerConfigs(props: any) {
-    const dispatch = useDispatch();
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
     const componentBases = cluster.componentBases;
     const componentBaseKeys = Object.keys(componentBases);
@@ -16,10 +14,6 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
     if (componentBaseKeys.length > 0) {
         selectedComponentBaseKey = componentBaseKeys[0];
     }
-    const [componentBase, setComponentBase] = React.useState(selectedComponentBaseKey);
-    const onAccessComponentBase = (selectedComponentBase: string) => {
-        setComponentBase(selectedComponentBase);
-    };
 
     let skeletonBasesKeys: string | any[] = [];
     if (componentBases[selectedComponentBaseKey] !== undefined) {
@@ -47,9 +41,9 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
                     </Typography>
                 </CardContent>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <Box mt={2}>
-                        <SelectedComponentBaseName componentBaseKeys={componentBaseKeys} componentBase={componentBase} onAccessComponentBase={onAccessComponentBase} />
-                    </Box>
+                    {/*<Box mt={2}>*/}
+                    {/*    <SelectedComponentBaseName />*/}
+                    {/*</Box>*/}
                     { cluster.componentBases[selectedComponentBaseKey] && skeletonBasesKeys.length > 0 &&
                         <Box mt={2}>
                             <SelectedSkeletonBaseName skeletonBaseKeys={skeletonBasesKeys} skeletonBaseName={skeletonBaseName} onAccessSkeletonBase={onAccessSkeletonBase}/>

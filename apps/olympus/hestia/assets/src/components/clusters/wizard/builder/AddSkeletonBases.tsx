@@ -7,28 +7,37 @@ import Button from "@mui/material/Button";
 import {RootState} from "../../../../redux/store";
 
 export function AddSkeletonBases(props: any) {
-    const componentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
     const dispatch = useDispatch();
-    const componentBase = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBase);
-    const selectedComponentBaseSkeletonBasesKeys = Object.keys(componentBase);
+
+    let cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
+    let componentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
+
+    console.log("componentBaseName: " + componentBaseName);
+    console.log("cluster: ", cluster);
+    let componentBase = cluster.componentBases[componentBaseName];
+    console.log("componentBase: ", componentBase);
 
     const [inputField, setInputField] = useState('');
+
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setInputField(event.target.value);
     };
     const handleAddField = () => {
         if (inputField) {
             let sb = {  dockerImages: {},  };
-            dispatch(addSkeletonBase({ componentBaseName: componentBaseName, skeletonBaseName: inputField, skeletonBase: sb }));
+            let cbObj = { componentBaseName: componentBaseName, skeletonBaseName: inputField, skeletonBase: sb }
+            dispatch(addSkeletonBase(cbObj));
             setInputField('');
         }
     };
     const handleRemoveField = (skeletonBaseName: string) => {
         dispatch(removeSkeletonBase({componentBaseName: componentBaseName, skeletonBaseName: skeletonBaseName}));
     };
+    let showAdd = componentBase !== undefined;
+    let show = showAdd && Object.keys(componentBase).length > 0;
     return (
         <div>
-            {selectedComponentBaseSkeletonBasesKeys.map((key, index) => (
+            { show && Object.keys(componentBase).map((key, index) => (
                 <Box key={index} display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
                     <TextField
                         fullWidth
@@ -44,7 +53,8 @@ export function AddSkeletonBases(props: any) {
                     </Button>
                 </Box>))
             }
-            <Box key={selectedComponentBaseSkeletonBasesKeys.length} display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+            { showAdd &&
+            <Box key={Object.keys(componentBase).length} display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
                 <TextField
                     fullWidth
                     id="inputField-new"
@@ -58,6 +68,7 @@ export function AddSkeletonBases(props: any) {
                     Add
                 </Button>
             </Box>
+            }
         </div>
     )
 }

@@ -3,7 +3,12 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../../../redux/store";
-import {addComponentBase, removeComponentBase} from "../../../../redux/clusters/clusters.builder.reducer";
+import {
+    addComponentBase,
+    removeComponentBase,
+    setSelectedComponentBase,
+    setSelectedComponentBaseName
+} from "../../../../redux/clusters/clusters.builder.reducer";
 import Box from "@mui/material/Box";
 
 export function AddComponentBases() {
@@ -11,7 +16,6 @@ export function AddComponentBases() {
     const componentBaseKeys = Object.keys(componentBases);
     const dispatch = useDispatch();
     const [inputField, setInputField] = useState('');
-    const [componentBaseKeysItem, setComponentBaseKeysItem] = useState(componentBaseKeys);
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setInputField(event.target.value);
@@ -19,22 +23,22 @@ export function AddComponentBases() {
 
     const handleAddField = () => {
         if (inputField) {
-            dispatch(addComponentBase({ componentBaseName: inputField, skeletonBases: {} }));
+            const cb = { componentBaseName: inputField, skeletonBases: {} }
+            dispatch(addComponentBase(cb));
+            dispatch(setSelectedComponentBaseName(inputField));
+            dispatch(setSelectedComponentBase(cb));
             setInputField('');
-            setComponentBaseKeysItem([...componentBaseKeysItem, inputField]);
         }
     };
-
     const handleRemoveField = (key: string) => {
         const componentBasesCopy = { ...componentBases };
         delete componentBasesCopy[key];
         dispatch(removeComponentBase(key));
-        setComponentBaseKeysItem(Object.keys(componentBasesCopy));
     };
 
     return (
         <div>
-            {componentBaseKeysItem.map((key, index) => (
+            {componentBaseKeys.map((key, index) => (
                 <Box key={index} display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
                     <TextField
                         fullWidth
@@ -50,7 +54,7 @@ export function AddComponentBases() {
                     </Button>
                 </Box>))
             }
-            <Box key={componentBaseKeysItem.length} display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+            <Box key={componentBaseKeys.length} display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
             <TextField
                 fullWidth
                 id="inputField-new"

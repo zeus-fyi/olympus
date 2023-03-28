@@ -4,31 +4,10 @@ import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../../../redux/store";
 import * as React from "react";
 import {AddSkeletonBases} from "./AddSkeletonBases";
-import {
-    setSelectedComponentBase,
-    setSelectedComponentBaseName
-} from "../../../../redux/clusters/clusters.builder.reducer";
+import {setSelectedComponentBaseName} from "../../../../redux/clusters/clusters.builder.reducer";
 
 export function DefineClusterComponentBaseParams(props: any) {
     const {} = props;
-    const dispatch = useDispatch();
-    const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
-    const componentBaseKeys = Object.keys(cluster.componentBases);
-
-    let selectedKey = '';
-    if (componentBaseKeys.length > 0) {
-        selectedKey = componentBaseKeys[0];
-    }
-    let componentBaseObj = cluster.componentBases[selectedKey];
-    const onAccessComponentBase = (selectedComponentBaseName: string) => {
-        dispatch(setSelectedComponentBaseName(selectedComponentBaseName));
-        componentBaseObj = cluster.componentBases[selectedKey]
-        dispatch(setSelectedComponentBase(componentBaseObj));
-
-    };
-
-    // TODO, when component base is changed needs to update the skeleton base list
-
     return (
         <div>
             <Card sx={{ maxWidth: 500 }}>
@@ -42,10 +21,10 @@ export function DefineClusterComponentBaseParams(props: any) {
                 </CardContent>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <Box mt={2}>
-                        <SelectedComponentBaseName componentBaseKeys={componentBaseKeys} onAccessComponentBase={onAccessComponentBase} />
+                        <SelectedComponentBaseName />
                     </Box>
                     <Box mt={2}>
-                        <AddSkeletonBases componentBase={componentBaseObj} />
+                        <AddSkeletonBases />
                     </Box>
                 </Container>
             </Card>
@@ -54,27 +33,34 @@ export function DefineClusterComponentBaseParams(props: any) {
 }
 
 export function SelectedComponentBaseName(props: any) {
-    const {onAccessComponentBase} = props;
-    const componentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
-    const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
-    const componentBaseKeys = Object.keys(cluster.componentBases);
+    const dispatch = useDispatch();
+    let cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
+    let selectedComponentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
+    const onAccessComponentBase = (selectedComponentBaseName: string) => {
+       dispatch(setSelectedComponentBaseName(selectedComponentBaseName));
+    };
+
+    let show = Object.keys(cluster.componentBases).length > 0;
     return (
-        <FormControl variant="outlined" style={{ minWidth: '100%' }}>
-            <InputLabel id="network-label">Component Bases</InputLabel>
-            <Select
-                labelId="componentBase-label"
-                id="componentBase"
-                value={componentBaseName}
-                label="Component Base"
-                onChange={(event) => onAccessComponentBase(event.target.value as string)}
-                sx={{ width: '100%' }}
-            >
-                {componentBaseKeys.map((key: any) => (
-                    <MenuItem key={key} value={key}>
-                        {key}
-                    </MenuItem>))
-                }
-            </Select>
-        </FormControl>
-    );
+        <div>
+            {show &&
+            <FormControl variant="outlined" style={{ minWidth: '100%' }}>
+                <InputLabel id="network-label">Component Bases</InputLabel>
+                <Select
+                    labelId="componentBase-label"
+                    id="componentBase"
+                    value={selectedComponentBaseName}
+                    label="Component Base"
+                    onChange={(event) => onAccessComponentBase(event.target.value as string)}
+                    sx={{ width: '100%' }}
+                >
+                    {Object.keys(cluster.componentBases).map((key: any, i: number) => (
+                        <MenuItem key={i} value={key}>
+                            {key}
+                        </MenuItem>))
+                    }
+                </Select>
+            </FormControl>
+            }
+        </div>);
 }

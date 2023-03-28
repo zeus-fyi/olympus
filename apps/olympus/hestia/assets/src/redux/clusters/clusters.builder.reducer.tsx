@@ -28,8 +28,9 @@ const clusterBuilderSlice = createSlice({
         setSelectedComponentBaseName: (state, action: PayloadAction<string>) => {
             state.selectedComponentBaseName = action.payload;
         },
-        setSelectedComponentBase: (state, action: PayloadAction<SkeletonBases>) => {
-            state.selectedComponentBase = action.payload;
+        setSelectedComponentBase:  (state, action: PayloadAction<{ componentBaseName: string; skeletonBases: SkeletonBases }>) => {
+            const { componentBaseName, skeletonBases } = action.payload;
+            state.cluster.componentBases[componentBaseName] = skeletonBases;
         },
         addComponentBase: (state, action: PayloadAction<{ componentBaseName: string; skeletonBases: SkeletonBases }>) => {
             const { componentBaseName, skeletonBases } = action.payload;

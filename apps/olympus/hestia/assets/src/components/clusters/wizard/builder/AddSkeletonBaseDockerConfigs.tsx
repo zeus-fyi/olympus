@@ -40,10 +40,10 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
             <Card sx={{ maxWidth: 1000 }}>
                 <CardContent>
                     <Typography gutterBottom variant="h5" component="div">
-                        Define Cluster Skeleton Base Elements
+                        Configure Skeleton Base Workloads
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        Sets Cluster Skeleton Base Elements
+                        Sets Cluster Skeleton Base Workloads
                     </Typography>
                 </CardContent>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>

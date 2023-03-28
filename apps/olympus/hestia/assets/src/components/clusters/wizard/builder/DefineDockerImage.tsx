@@ -5,6 +5,7 @@ import {RootState} from "../../../../redux/store";
 import * as React from "react";
 import TextField from "@mui/material/TextField";
 import {AddPortsInputFields} from "./DefinePorts";
+import {setSelectedDockerImageName} from "../../../../redux/clusters/clusters.builder.reducer";
 
 export function DefineDockerParams(props: any) {
     const {} = props;
@@ -23,6 +24,7 @@ export function DefineDockerParams(props: any) {
                     <Box mt={2}>
                         <DockerImageName />
                     </Box>
+                    <DockerImageCmdArgs />
                     <Box mt={2}>
                         <AddPortsInputFields />
                     </Box>
@@ -34,10 +36,11 @@ export function DefineDockerParams(props: any) {
 
 export function DockerImageName() {
     const dispatch = useDispatch();
-    const dockerImageName = useSelector((state: RootState) => state.clusterBuilder.cluster.clusterName);
+    const cluster  = useSelector((state: RootState) => state.clusterBuilder.cluster);
+    const dockerImageName = useSelector((state: RootState) => state.clusterBuilder.selectedDockerImageName);
     const onDockerImageNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const newDockerImageName = event.target.value;
-        //dispatch(addDockerImagePort(newDockerImageName));
+        dispatch(setSelectedDockerImageName(newDockerImageName));
     };
     return (
         <TextField
@@ -49,5 +52,36 @@ export function DockerImageName() {
             onChange={onDockerImageNameChange}
             sx={{ width: '100%' }}
         />
+    );
+}
+
+export function DockerImageCmdArgs() {
+    const dispatch = useDispatch();
+
+    const cmd = ''
+    const args = ''
+    return (
+        <div>
+            <Box mt={2}>
+                <TextField
+                    fullWidth
+                    id="dockerImageCmd"
+                    label="Docker Cmd"
+                    variant="outlined"
+                    value={cmd}
+                    sx={{ width: '100%' }}
+                />
+            </Box>
+            <Box mt={2}>
+                <TextField
+                    fullWidth
+                    id="dockerImageArgs"
+                    label="Docker Args"
+                    variant="outlined"
+                    value={args}
+                    sx={{ width: '100%' }}
+                />
+            </Box>
+        </div>
     );
 }

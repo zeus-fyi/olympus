@@ -14,7 +14,6 @@ export function AddSkeletonBases(props: any) {
     const dispatch = useDispatch();
     let cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
     let selectedComponentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
-    let selectedSkeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
     let componentBase = cluster.componentBases[selectedComponentBaseName];
 
     const [inputField, setInputField] = useState('');

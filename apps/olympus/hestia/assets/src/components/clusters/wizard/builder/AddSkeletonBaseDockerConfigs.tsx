@@ -42,10 +42,10 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
                             <SelectedSkeletonBaseName />
                         </Box>
                     }
-                    {show && cluster.componentBases[selectedComponentBaseKey] && Object.keys(skeletonBaseKeys).length > 0 &&
-                        <DefineDockerParams />
-                    }
                 </Container>
+                {show && cluster.componentBases[selectedComponentBaseKey] && Object.keys(skeletonBaseKeys).length > 0 &&
+                    <DefineDockerParams />
+                }
             </Card>
         </div>
     )

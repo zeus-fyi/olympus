@@ -5,6 +5,7 @@ interface ClusterBuilderState {
     cluster: Cluster;
     selectedComponentBaseName: string;
     selectedSkeletonBaseName: string;
+    selectedDockerImageName: string;
 }
 
 const initialState: ClusterBuilderState = {
@@ -14,6 +15,7 @@ const initialState: ClusterBuilderState = {
     },
     selectedComponentBaseName: '',
     selectedSkeletonBaseName: '',
+    selectedDockerImageName: '',
 };
 
 const clusterBuilderSlice = createSlice({
@@ -22,6 +24,9 @@ const clusterBuilderSlice = createSlice({
     reducers: {
         setClusterName: (state, action: PayloadAction<string>) => {
             state.cluster.clusterName = action.payload;
+        },
+        setSelectedDockerImageName: (state, action: PayloadAction<string>) => {
+            state.selectedDockerImageName = action.payload;
         },
         setSelectedComponentBaseName: (state, action: PayloadAction<string>) => {
             state.selectedComponentBaseName = action.payload;
@@ -80,7 +85,8 @@ const clusterBuilderSlice = createSlice({
     },
 });
 
-export const { setClusterName, addComponentBase, removeComponentBase, addSkeletonBase, removeSkeletonBase, setSelectedComponentBaseName,setSelectedSkeletonBaseName,
+export const { setClusterName, addComponentBase, removeComponentBase, addSkeletonBase,
+    setSelectedDockerImageName, removeSkeletonBase, setSelectedComponentBaseName,setSelectedSkeletonBaseName,
     addDockerImage, setDockerImagePort} = clusterBuilderSlice.actions;
 
 export default clusterBuilderSlice.reducer;

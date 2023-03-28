@@ -30,7 +30,7 @@ export function AddComponentBases() {
     return (
         <div>
             {componentBaseKeys.map((key, index) => (
-                <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                <Box key={index} display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
                     <TextField
                         fullWidth
                         id={`inputField-${index}`}
@@ -45,7 +45,7 @@ export function AddComponentBases() {
                     </Button>
                 </Box>))
             }
-            <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+            <Box key={componentBaseKeys.length} display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
             <TextField
                 fullWidth
                 id="inputField-new"

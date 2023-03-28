@@ -3,9 +3,22 @@ import Typography from "@mui/material/Typography";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../../../redux/store";
 import * as React from "react";
+import {AddSkeletonBases} from "./AddSkeletonBases";
 
 export function DefineClusterComponentBaseParams(props: any) {
     const {} = props;
+    const dispatch = useDispatch();
+    const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
+
+    let defaultState = ''
+    const componentBaseKeys = Object.keys(cluster.componentBases);
+    if (cluster.componentBases !== null) {
+        defaultState = componentBaseKeys[0]
+    }
+    const [componentBase, setComponentBase] = React.useState('');
+    const onAccessComponentBase = (selectedComponentBase: string) => {
+        setComponentBase(selectedComponentBase);
+    };
     return (
         <div>
             <Card sx={{ maxWidth: 500 }}>
@@ -19,7 +32,10 @@ export function DefineClusterComponentBaseParams(props: any) {
                 </CardContent>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <Box mt={2}>
-                        <SelectedComponentBaseName />
+                        <SelectedComponentBaseName componentBaseKeys={componentBaseKeys} componentBase={componentBase} onAccessComponentBase={onAccessComponentBase} />
+                    </Box>
+                    <Box mt={2}>
+                        <AddSkeletonBases componentBaseName={componentBase}/>
                     </Box>
                 </Container>
             </Card>
@@ -28,14 +44,8 @@ export function DefineClusterComponentBaseParams(props: any) {
 }
 
 export function SelectedComponentBaseName(props: any) {
-    const dispatch = useDispatch();
-    const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
-    const componentBaseKeys = Object.keys(cluster.componentBases);
-    const [componentBase, setComponentBase] = React.useState(componentBaseKeys[0]);
+    const {componentBase, componentBaseKeys, onAccessComponentBase} = props;
 
-    const onAccessComponentBase = (selectedComponentBase: string) => {
-        setComponentBase(selectedComponentBase);
-    };
     return (
         <FormControl variant="outlined" style={{ minWidth: '100%' }}>
             <InputLabel id="network-label">Component Bases</InputLabel>
@@ -47,7 +57,7 @@ export function SelectedComponentBaseName(props: any) {
                 onChange={(event) => onAccessComponentBase(event.target.value as string)}
                 sx={{ width: '100%' }}
             >
-                {componentBaseKeys.map((key) => (
+                {componentBaseKeys.map((key: any) => (
                     <MenuItem key={key} value={key}>
                         {key}
                     </MenuItem>))

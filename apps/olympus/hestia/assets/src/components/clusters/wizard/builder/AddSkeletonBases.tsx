@@ -1,6 +1,10 @@
 import {useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
-import {addSkeletonBase, removeSkeletonBase} from "../../../../redux/clusters/clusters.builder.reducer";
+import {
+    addSkeletonBase,
+    removeSkeletonBase,
+    setSelectedSkeletonBaseName
+} from "../../../../redux/clusters/clusters.builder.reducer";
 import {Box} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
@@ -8,14 +12,10 @@ import {RootState} from "../../../../redux/store";
 
 export function AddSkeletonBases(props: any) {
     const dispatch = useDispatch();
-
     let cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
-    let componentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
-
-    console.log("componentBaseName: " + componentBaseName);
-    console.log("cluster: ", cluster);
-    let componentBase = cluster.componentBases[componentBaseName];
-    console.log("componentBase: ", componentBase);
+    let selectedComponentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
+    let selectedSkeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
+    let componentBase = cluster.componentBases[selectedComponentBaseName];
 
     const [inputField, setInputField] = useState('');
 
@@ -25,13 +25,17 @@ export function AddSkeletonBases(props: any) {
     const handleAddField = () => {
         if (inputField) {
             let sb = {  dockerImages: {},  };
-            let cbObj = { componentBaseName: componentBaseName, skeletonBaseName: inputField, skeletonBase: sb }
+            let cbObj = { componentBaseName: selectedComponentBaseName, skeletonBaseName: inputField, skeletonBase: sb }
+            dispatch(setSelectedSkeletonBaseName(inputField))
             dispatch(addSkeletonBase(cbObj));
             setInputField('');
         }
     };
     const handleRemoveField = (skeletonBaseName: string) => {
-        dispatch(removeSkeletonBase({componentBaseName: componentBaseName, skeletonBaseName: skeletonBaseName}));
+        dispatch(removeSkeletonBase({componentBaseName: selectedComponentBaseName, skeletonBaseName: skeletonBaseName}));
+        if (cluster.componentBases[selectedComponentBaseName] !== undefined && Object.keys(cluster.componentBases[selectedComponentBaseName]).length > 0) {
+            dispatch(setSelectedSkeletonBaseName(Object.keys(cluster.componentBases[selectedComponentBaseName])[0]));
+        }
     };
     let showAdd = componentBase !== undefined;
     let show = showAdd && Object.keys(componentBase).length > 0;

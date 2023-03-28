@@ -4,7 +4,10 @@ import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../../../redux/store";
 import * as React from "react";
 import {AddSkeletonBases} from "./AddSkeletonBases";
-import {setSelectedComponentBaseName} from "../../../../redux/clusters/clusters.builder.reducer";
+import {
+    setSelectedComponentBaseName,
+    setSelectedSkeletonBaseName
+} from "../../../../redux/clusters/clusters.builder.reducer";
 
 export function DefineClusterComponentBaseParams(props: any) {
     const {} = props;
@@ -38,6 +41,8 @@ export function SelectedComponentBaseName(props: any) {
     let selectedComponentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
     const onAccessComponentBase = (selectedComponentBaseName: string) => {
        dispatch(setSelectedComponentBaseName(selectedComponentBaseName));
+       const skeletonBaseName = Object.keys(cluster.componentBases[selectedComponentBaseName])[0];
+       dispatch(setSelectedSkeletonBaseName(skeletonBaseName));
     };
 
     let show = Object.keys(cluster.componentBases).length > 0;

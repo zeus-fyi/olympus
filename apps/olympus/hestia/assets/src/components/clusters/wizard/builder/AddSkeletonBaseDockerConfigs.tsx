@@ -1,34 +1,30 @@
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import * as React from "react";
 import {Box, Card, CardContent, Container, FormControl, InputLabel, MenuItem, Select} from "@mui/material";
 import {RootState} from "../../../../redux/store";
 import Typography from "@mui/material/Typography";
 import {DefineDockerParams} from "./DefineDockerImage";
+import {setSelectedSkeletonBaseName} from "../../../../redux/clusters/clusters.builder.reducer";
 
 export function AddSkeletonBaseDockerConfigs(props: any) {
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
     const componentBases = cluster.componentBases;
     const componentBaseKeys = Object.keys(componentBases);
+    const componentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
 
     let selectedComponentBaseKey = '';
     if (componentBaseKeys.length > 0) {
         selectedComponentBaseKey = componentBaseKeys[0];
     }
 
-    let skeletonBasesKeys: string | any[] = [];
-    if (componentBases[selectedComponentBaseKey] !== undefined) {
-        skeletonBasesKeys = Object.keys(componentBases[selectedComponentBaseKey]);
+    if (cluster.componentBases === undefined) {
+        return <div></div>
     }
-
-    let selectedSkeletonBaseKey = '';
-    if (skeletonBasesKeys.length > 0) {
-        selectedSkeletonBaseKey = skeletonBasesKeys[0];
+    const skeletonBaseKeys = cluster.componentBases[componentBaseName];
+    const show = skeletonBaseKeys !== undefined && Object.keys(skeletonBaseKeys).length > 0;
+    if (!show) {
+        return <div></div>
     }
-    const [skeletonBaseName, setSkeletonBaseName] = React.useState(selectedSkeletonBaseKey);
-    const onAccessSkeletonBase = (selectedSkeletonBaseName: string) => {
-        setSkeletonBaseName(selectedSkeletonBaseName);
-    };
-
     return (
         <div>
             <Card sx={{ maxWidth: 1000 }}>
@@ -41,18 +37,13 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
                     </Typography>
                 </CardContent>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    {/*<Box mt={2}>*/}
-                    {/*    <SelectedComponentBaseName />*/}
-                    {/*</Box>*/}
-                    { cluster.componentBases[selectedComponentBaseKey] && skeletonBasesKeys.length > 0 &&
+                    { show && cluster.componentBases[selectedComponentBaseKey] && Object.keys(skeletonBaseKeys).length > 0 &&
                         <Box mt={2}>
-                            <SelectedSkeletonBaseName skeletonBaseKeys={skeletonBasesKeys} skeletonBaseName={skeletonBaseName} onAccessSkeletonBase={onAccessSkeletonBase}/>
+                            <SelectedSkeletonBaseName />
                         </Box>
                     }
-                    { cluster.componentBases[selectedComponentBaseKey] && skeletonBasesKeys.length > 0 && selectedSkeletonBaseKey != '' &&
-                        <Box mt={2}>
-                            <DefineDockerParams />
-                        </Box>
+                    {show && cluster.componentBases[selectedComponentBaseKey] && Object.keys(skeletonBaseKeys).length > 0 &&
+                        <DefineDockerParams />
                     }
                 </Container>
             </Card>
@@ -61,9 +52,23 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
 }
 
 export function SelectedSkeletonBaseName(props: any) {
-    const {skeletonBaseName, skeletonBaseKeys, onAccessSkeletonBase} = props;
+    const dispatch = useDispatch();
+    const skeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
+    const onAccessSkeletonBase = (selectedSkeletonBaseName: string) => {
+        dispatch(setSelectedSkeletonBaseName(selectedSkeletonBaseName));
+    };
+    const componentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
+    const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
 
-    console.log(skeletonBaseName, 'SelectedSkeletonBaseName')
+    if (cluster.componentBases === undefined) {
+        return <div></div>
+    }
+
+    const skeletonBaseKeys = cluster.componentBases[componentBaseName];
+    const show = skeletonBaseKeys !== undefined && Object.keys(skeletonBaseKeys).length > 0;
+    if (!show) {
+        return <div></div>
+    }
     return (
         <FormControl variant="outlined" style={{ minWidth: '100%' }}>
             <InputLabel id="network-label">Skeleton Bases</InputLabel>
@@ -75,8 +80,8 @@ export function SelectedSkeletonBaseName(props: any) {
                 onChange={(event) => onAccessSkeletonBase(event.target.value as string)}
                 sx={{ width: '100%' }}
             >
-                {skeletonBaseKeys.map((key: any) => (
-                    <MenuItem key={key} value={key}>
+                {show && Object.keys(skeletonBaseKeys).map((key: any, i: number) => (
+                    <MenuItem key={i} value={key}>
                         {key}
                     </MenuItem>))
                 }

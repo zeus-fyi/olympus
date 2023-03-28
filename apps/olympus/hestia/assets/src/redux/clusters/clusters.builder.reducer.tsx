@@ -4,8 +4,7 @@ import {Cluster, ComponentBases, DockerImage, Port, SkeletonBase, SkeletonBases}
 interface ClusterBuilderState {
     cluster: Cluster;
     selectedComponentBaseName: string;
-    selectedComponentBase: SkeletonBases;
-    selectedSkeletonBase: SkeletonBase;
+    selectedSkeletonBaseName: string;
 }
 
 const initialState: ClusterBuilderState = {
@@ -14,8 +13,7 @@ const initialState: ClusterBuilderState = {
         componentBases: {} as ComponentBases,
     },
     selectedComponentBaseName: '',
-    selectedComponentBase: {} as SkeletonBases,
-    selectedSkeletonBase: {} as SkeletonBase,
+    selectedSkeletonBaseName: '',
 };
 
 const clusterBuilderSlice = createSlice({
@@ -28,9 +26,8 @@ const clusterBuilderSlice = createSlice({
         setSelectedComponentBaseName: (state, action: PayloadAction<string>) => {
             state.selectedComponentBaseName = action.payload;
         },
-        setSelectedComponentBase:  (state, action: PayloadAction<{ componentBaseName: string; skeletonBases: SkeletonBases }>) => {
-            const { componentBaseName, skeletonBases } = action.payload;
-            state.cluster.componentBases[componentBaseName] = skeletonBases;
+        setSelectedSkeletonBaseName: (state, action: PayloadAction<string>) => {
+            state.selectedSkeletonBaseName = action.payload;
         },
         addComponentBase: (state, action: PayloadAction<{ componentBaseName: string; skeletonBases: SkeletonBases }>) => {
             const { componentBaseName, skeletonBases } = action.payload;
@@ -83,8 +80,7 @@ const clusterBuilderSlice = createSlice({
     },
 });
 
-export const { setClusterName, addComponentBase, removeComponentBase, addSkeletonBase, removeSkeletonBase,
-    setSelectedComponentBase, setSelectedComponentBaseName,
+export const { setClusterName, addComponentBase, removeComponentBase, addSkeletonBase, removeSkeletonBase, setSelectedComponentBaseName,setSelectedSkeletonBaseName,
     addDockerImage, setDockerImagePort} = clusterBuilderSlice.actions;
 
 export default clusterBuilderSlice.reducer;

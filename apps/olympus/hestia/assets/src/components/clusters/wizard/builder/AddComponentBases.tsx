@@ -6,13 +6,17 @@ import {RootState} from "../../../../redux/store";
 import {
     addComponentBase,
     removeComponentBase,
-    setSelectedComponentBase,
-    setSelectedComponentBaseName
+    setSelectedComponentBaseName,
+    setSelectedSkeletonBaseName
 } from "../../../../redux/clusters/clusters.builder.reducer";
 import Box from "@mui/material/Box";
 
 export function AddComponentBases() {
+    const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
+
     const componentBases = useSelector((state: RootState) => state.clusterBuilder.cluster.componentBases);
+    const selectedComponentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
+
     const componentBaseKeys = Object.keys(componentBases);
     const dispatch = useDispatch();
     const [inputField, setInputField] = useState('');
@@ -26,7 +30,6 @@ export function AddComponentBases() {
             const cb = { componentBaseName: inputField, skeletonBases: {} }
             dispatch(addComponentBase(cb));
             dispatch(setSelectedComponentBaseName(inputField));
-            dispatch(setSelectedComponentBase(cb));
             setInputField('');
         }
     };
@@ -34,8 +37,10 @@ export function AddComponentBases() {
         const componentBasesCopy = { ...componentBases };
         delete componentBasesCopy[key];
         dispatch(removeComponentBase(key));
+        if (cluster.componentBases[key] !== undefined && Object.keys(cluster.componentBases).length > 0 && key === selectedComponentBaseName) {
+            dispatch(setSelectedSkeletonBaseName(Object.keys(cluster.componentBases)[0]));
+        }
     };
-
     return (
         <div>
             {componentBaseKeys.map((key, index) => (

@@ -6,8 +6,7 @@ import {RootState} from "../../../../redux/store";
 import {
     addComponentBase,
     removeComponentBase,
-    setSelectedComponentBaseName,
-    setSelectedSkeletonBaseName
+    setSelectedComponentBaseName
 } from "../../../../redux/clusters/clusters.builder.reducer";
 import Box from "@mui/material/Box";
 
@@ -37,8 +36,12 @@ export function AddComponentBases() {
         const componentBasesCopy = { ...componentBases };
         delete componentBasesCopy[key];
         dispatch(removeComponentBase(key));
-        if (cluster.componentBases[key] !== undefined && Object.keys(cluster.componentBases).length > 0 && key === selectedComponentBaseName) {
-            dispatch(setSelectedSkeletonBaseName(Object.keys(cluster.componentBases)[0]));
+        if (cluster.componentBases[key] !== undefined && Object.keys(cluster.componentBases).length > 0) {
+            if (Object.keys(cluster.componentBases)[0] === key) {
+                dispatch(setSelectedComponentBaseName(Object.keys(cluster.componentBases)[1]));
+            } else {
+                dispatch(setSelectedComponentBaseName(Object.keys(cluster.componentBases)[0]));
+            }
         }
     };
     return (

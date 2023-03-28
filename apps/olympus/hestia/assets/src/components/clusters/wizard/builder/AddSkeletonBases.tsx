@@ -34,7 +34,11 @@ export function AddSkeletonBases(props: any) {
     const handleRemoveField = (skeletonBaseName: string) => {
         dispatch(removeSkeletonBase({componentBaseName: selectedComponentBaseName, skeletonBaseName: skeletonBaseName}));
         if (cluster.componentBases[selectedComponentBaseName] !== undefined && Object.keys(cluster.componentBases[selectedComponentBaseName]).length > 0) {
-            dispatch(setSelectedSkeletonBaseName(Object.keys(cluster.componentBases[selectedComponentBaseName])[0]));
+            if (Object.keys(cluster.componentBases[selectedComponentBaseName])[0] === skeletonBaseName) {
+                dispatch(setSelectedSkeletonBaseName(Object.keys(cluster.componentBases[selectedComponentBaseName])[1]));
+            } else {
+                dispatch(setSelectedSkeletonBaseName(Object.keys(cluster.componentBases[selectedComponentBaseName])[0]));
+            }
         }
     };
     let showAdd = componentBase !== undefined;

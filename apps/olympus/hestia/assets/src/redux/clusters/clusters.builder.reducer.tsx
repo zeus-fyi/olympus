@@ -38,7 +38,7 @@ const clusterBuilderSlice = createSlice({
             }
             state.cluster.componentBases[componentBaseName][skeletonBaseName] = skeletonBase;
         },
-        removeSkeletonBase: (state, action: PayloadAction<{ componentBaseName: string; key: string; skeletonBaseName: string }>) => {
+        removeSkeletonBase: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string }>) => {
             const { componentBaseName, skeletonBaseName } = action.payload;
             if (state.cluster.componentBases[componentBaseName][skeletonBaseName]) {
                 delete state.cluster.componentBases[componentBaseName][skeletonBaseName];
@@ -70,6 +70,6 @@ const clusterBuilderSlice = createSlice({
     },
 });
 
-export const { setClusterName, addComponentBase, removeComponentBase, addSkeletonBase, addDockerImage, setDockerImagePort} = clusterBuilderSlice.actions;
+export const { setClusterName, addComponentBase, removeComponentBase, addSkeletonBase, removeSkeletonBase, addDockerImage, setDockerImagePort} = clusterBuilderSlice.actions;
 
 export default clusterBuilderSlice.reducer;

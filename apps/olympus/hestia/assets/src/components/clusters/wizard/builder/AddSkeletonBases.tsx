@@ -1,6 +1,6 @@
 import {useState} from "react";
 import {useDispatch} from "react-redux";
-import {addSkeletonBase} from "../../../../redux/clusters/clusters.builder.reducer";
+import {addSkeletonBase, removeSkeletonBase} from "../../../../redux/clusters/clusters.builder.reducer";
 import {Box} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
@@ -24,10 +24,9 @@ export function AddSkeletonBases(props: any) {
         }
     };
 
-    const handleRemoveField = (key: string) => {
-        //dispatch(removeComponentBase(key));
+    const handleRemoveField = (skeletonBaseName: string) => {
+        dispatch(removeSkeletonBase({componentBaseName: componentBaseName, skeletonBaseName: skeletonBaseName}));
     };
-
     return (
         <div>
             {selectedComponentBaseSkeletonBasesKeys.map((key, index) => (

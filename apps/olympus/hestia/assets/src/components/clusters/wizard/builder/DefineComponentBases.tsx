@@ -26,10 +26,10 @@ export function DefineClusterComponentBaseParams(props: any) {
             <Card sx={{ maxWidth: 500 }}>
                 <CardContent>
                     <Typography gutterBottom variant="h5" component="div">
-                        Define Cluster Component Base Elements
+                        Define Skeleton Base Elements for Component Bases
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        Sets Cluster Component Base Elements
+                        Sets Skeleton Base Elements for Component Bases
                     </Typography>
                 </CardContent>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>

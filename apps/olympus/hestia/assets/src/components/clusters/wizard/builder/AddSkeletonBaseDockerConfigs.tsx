@@ -21,9 +21,11 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
         setComponentBase(selectedComponentBase);
     };
 
-    const skeletonBasesKeys = Object.keys(componentBases[selectedComponentBaseKey]);
+    let skeletonBasesKeys: string | any[] = [];
+    if (componentBases[selectedComponentBaseKey] !== undefined) {
+        skeletonBasesKeys = Object.keys(componentBases[selectedComponentBaseKey]);
+    }
 
-    console.log(skeletonBasesKeys)
     let selectedSkeletonBaseKey = '';
     if (skeletonBasesKeys.length > 0) {
         selectedSkeletonBaseKey = skeletonBasesKeys[0];
@@ -35,7 +37,7 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
 
     return (
         <div>
-            <Card sx={{ maxWidth: 500 }}>
+            <Card sx={{ maxWidth: 1000 }}>
                 <CardContent>
                     <Typography gutterBottom variant="h5" component="div">
                         Define Cluster Skeleton Base Elements

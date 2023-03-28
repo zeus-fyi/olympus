@@ -10,15 +10,17 @@ export function DefineClusterComponentBaseParams(props: any) {
     const dispatch = useDispatch();
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
 
-    let defaultState = ''
     const componentBaseKeys = Object.keys(cluster.componentBases);
-    if (cluster.componentBases !== null) {
-        defaultState = componentBaseKeys[0]
+
+    let selectedKey = '';
+    if (componentBaseKeys.length > 0) {
+        selectedKey = componentBaseKeys[0];
     }
-    const [componentBase, setComponentBase] = React.useState('');
+    const [componentBase, setComponentBase] = React.useState(selectedKey);
     const onAccessComponentBase = (selectedComponentBase: string) => {
         setComponentBase(selectedComponentBase);
     };
+    console.log('componentBaseKeys', componentBaseKeys)
     return (
         <div>
             <Card sx={{ maxWidth: 500 }}>

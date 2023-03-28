@@ -21,7 +21,6 @@ export function DefineClusterComponentBaseParams(props: any) {
         setComponentBase(selectedComponentBase);
     };
 
-    console.log(cluster.componentBases[selectedKey])
     return (
         <div>
             <Card sx={{ maxWidth: 500 }}>

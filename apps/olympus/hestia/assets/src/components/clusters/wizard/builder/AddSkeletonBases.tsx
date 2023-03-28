@@ -8,14 +8,11 @@ import Button from "@mui/material/Button";
 export function AddSkeletonBases(props: any) {
     const {componentBase, componentBaseName} = props;
     const dispatch = useDispatch();
-
     const selectedComponentBaseSkeletonBasesKeys = Object.keys(componentBase);
     const [inputField, setInputField] = useState('');
-
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setInputField(event.target.value);
     };
-
     const handleAddField = () => {
         if (inputField) {
             let sb = {  dockerImages: {},  };
@@ -23,7 +20,6 @@ export function AddSkeletonBases(props: any) {
             setInputField('');
         }
     };
-
     const handleRemoveField = (skeletonBaseName: string) => {
         dispatch(removeSkeletonBase({componentBaseName: componentBaseName, skeletonBaseName: skeletonBaseName}));
     };

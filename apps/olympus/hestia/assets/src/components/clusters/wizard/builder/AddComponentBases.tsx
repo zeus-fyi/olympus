@@ -11,6 +11,7 @@ export function AddComponentBases() {
     const componentBaseKeys = Object.keys(componentBases);
     const dispatch = useDispatch();
     const [inputField, setInputField] = useState('');
+    const [componentBaseKeysItem, setComponentBaseKeysItem] = useState(componentBaseKeys);
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setInputField(event.target.value);
@@ -20,16 +21,20 @@ export function AddComponentBases() {
         if (inputField) {
             dispatch(addComponentBase({ componentBaseName: inputField, skeletonBases: {} }));
             setInputField('');
+            setComponentBaseKeysItem([...componentBaseKeysItem, inputField]);
         }
     };
 
     const handleRemoveField = (key: string) => {
+        const componentBasesCopy = { ...componentBases };
+        delete componentBasesCopy[key];
         dispatch(removeComponentBase(key));
+        setComponentBaseKeysItem(Object.keys(componentBasesCopy));
     };
 
     return (
         <div>
-            {componentBaseKeys.map((key, index) => (
+            {componentBaseKeysItem.map((key, index) => (
                 <Box key={index} display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
                     <TextField
                         fullWidth
@@ -45,7 +50,7 @@ export function AddComponentBases() {
                     </Button>
                 </Box>))
             }
-            <Box key={componentBaseKeys.length} display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+            <Box key={componentBaseKeysItem.length} display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
             <TextField
                 fullWidth
                 id="inputField-new"

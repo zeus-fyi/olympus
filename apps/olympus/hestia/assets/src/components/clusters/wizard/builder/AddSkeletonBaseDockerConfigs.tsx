@@ -4,13 +4,13 @@ import {Box, Card, CardContent, Container, FormControl, InputLabel, MenuItem, Se
 import {RootState} from "../../../../redux/store";
 import {SelectedComponentBaseName} from "./DefineComponentBases";
 import Typography from "@mui/material/Typography";
+import {DefineDockerParams} from "./DefineDockerImage";
 
 export function AddSkeletonBaseDockerConfigs(props: any) {
     const dispatch = useDispatch();
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
     const componentBases = cluster.componentBases;
     const componentBaseKeys = Object.keys(componentBases);
-    console.log(cluster)
 
     let selectedComponentBaseKey = '';
     if (componentBaseKeys.length > 0) {
@@ -35,6 +35,7 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
         setSkeletonBaseName(selectedSkeletonBaseName);
     };
 
+    console.log(selectedSkeletonBaseKey, 'selectedSkeletonBaseKey')
     return (
         <div>
             <Card sx={{ maxWidth: 1000 }}>
@@ -50,9 +51,14 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
                     <Box mt={2}>
                         <SelectedComponentBaseName componentBaseKeys={componentBaseKeys} componentBase={componentBase} onAccessComponentBase={onAccessComponentBase} />
                     </Box>
-                    { cluster.componentBases[selectedComponentBaseKey] &&
+                    { cluster.componentBases[selectedComponentBaseKey] && skeletonBasesKeys.length > 0 &&
                         <Box mt={2}>
                             <SelectedSkeletonBaseName skeletonBaseKeys={skeletonBasesKeys} skeletonBaseName={skeletonBaseName} onAccessSkeletonBase={onAccessSkeletonBase}/>
+                        </Box>
+                    }
+                    { cluster.componentBases[selectedComponentBaseKey] && skeletonBasesKeys.length > 0 && selectedSkeletonBaseKey != '' &&
+                        <Box mt={2}>
+                            <DefineDockerParams />
                         </Box>
                     }
                 </Container>
@@ -64,6 +70,7 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
 export function SelectedSkeletonBaseName(props: any) {
     const {skeletonBaseName, skeletonBaseKeys, onAccessSkeletonBase} = props;
 
+    console.log(skeletonBaseName, 'SelectedSkeletonBaseName')
     return (
         <FormControl variant="outlined" style={{ minWidth: '100%' }}>
             <InputLabel id="network-label">Skeleton Bases</InputLabel>

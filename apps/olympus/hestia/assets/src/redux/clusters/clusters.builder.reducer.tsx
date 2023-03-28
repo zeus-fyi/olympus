@@ -3,6 +3,8 @@ import {Cluster, ComponentBases, DockerImage, Port, SkeletonBase, SkeletonBases}
 
 interface ClusterBuilderState {
     cluster: Cluster;
+    selectedComponentBase: SkeletonBases;
+    selectedSkeletonBase: SkeletonBase;
 }
 
 const initialState: ClusterBuilderState = {
@@ -10,6 +12,8 @@ const initialState: ClusterBuilderState = {
         clusterName: '',
         componentBases: {} as ComponentBases,
     },
+    selectedComponentBase: {} as SkeletonBases,
+    selectedSkeletonBase: {} as SkeletonBase,
 };
 
 const clusterBuilderSlice = createSlice({

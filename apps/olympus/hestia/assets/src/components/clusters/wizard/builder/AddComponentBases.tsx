@@ -14,7 +14,6 @@ export function AddComponentBases() {
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
 
     const componentBases = useSelector((state: RootState) => state.clusterBuilder.cluster.componentBases);
-    const selectedComponentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
 
     const componentBaseKeys = Object.keys(componentBases);
     const dispatch = useDispatch();

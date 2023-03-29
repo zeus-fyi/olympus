@@ -4,20 +4,25 @@ export interface Cluster{
 }
 
 export type ComponentBases = {
-    [key: string]: SkeletonBases;
+    [componentBaseName: string]: SkeletonBases;
 };
 
 export type SkeletonBases = {
-    [key: string]: SkeletonBase;
+    [skeletonBaseName: string]: SkeletonBase;
 };
 
 export interface SkeletonBase {
-    dockerImages: DockerImages;
+    containers: Containers;
 }
 
-export type DockerImages = {
-    [key: string]: DockerImage;
+export type Containers = {
+    [containerName: string]: Container;
 };
+
+export interface Container {
+    containerName: string;
+    dockerImage: DockerImage;
+}
 
 export interface DockerImage {
     imageName: string;

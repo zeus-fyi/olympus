@@ -23,7 +23,7 @@ export function AddSkeletonBases(props: any) {
     };
     const handleAddField = () => {
         if (inputField) {
-            let sb = {  dockerImages: {},  };
+            let sb = {  containers: {},  };
             let cbObj = { componentBaseName: selectedComponentBaseName, skeletonBaseName: inputField, skeletonBase: sb }
             dispatch(setSelectedSkeletonBaseName(inputField))
             dispatch(addSkeletonBase(cbObj));

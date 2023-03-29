@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {Cluster, ComponentBases, DockerImage, Port, SkeletonBase, SkeletonBases} from "./clusters.types";
+import {Cluster, ComponentBases, Container, Port, SkeletonBase, SkeletonBases} from "./clusters.types";
 
 interface ClusterBuilderState {
     cluster: Cluster;
@@ -61,17 +61,17 @@ const clusterBuilderSlice = createSlice({
                 console.error(`Skeleton base not found: ${skeletonBaseName}`);
             }
         },
-        addDockerImage: (state, action: PayloadAction<{ componentBaseKey: string; skeletonBaseKey: string; key: string; dockerImage: DockerImage }>) => {
-            const { componentBaseKey, skeletonBaseKey, key, dockerImage } = action.payload;
+        addContainer: (state, action: PayloadAction<{ componentBaseKey: string; skeletonBaseKey: string; containerName: string; container: Container }>) => {
+            const { componentBaseKey, skeletonBaseKey, containerName, container } = action.payload;
             if (!state.cluster.componentBases[componentBaseKey]?.[skeletonBaseKey]) {
                 console.error(`SkeletonBase not found: ${skeletonBaseKey}`);
                 return;
             }
-            state.cluster.componentBases[componentBaseKey][skeletonBaseKey].dockerImages[key] = dockerImage;
+            state.cluster.componentBases[componentBaseKey][skeletonBaseKey].containers[containerName] = container;
         },
-        setDockerImagePort: (state, action: PayloadAction<{ componentBaseKey: string; skeletonBaseKey: string; dockerImageKey: string; portIndex: number; port: Port }>) => {
-            const { componentBaseKey, skeletonBaseKey, dockerImageKey, portIndex, port } = action.payload;
-            const dockerImage = state.cluster.componentBases[componentBaseKey]?.[skeletonBaseKey]?.dockerImages[dockerImageKey];
+        setDockerImagePort: (state, action: PayloadAction<{ componentBaseKey: string; skeletonBaseKey: string; containerName: string; dockerImageKey: string; portIndex: number; port: Port }>) => {
+            const { componentBaseKey, skeletonBaseKey, containerName, dockerImageKey, portIndex, port } = action.payload;
+            const dockerImage = state.cluster.componentBases[componentBaseKey]?.[skeletonBaseKey]?.containers[containerName].dockerImage;
             if (!dockerImage) {
                 console.error(`Docker image not found: ${dockerImageKey}`);
                 return;
@@ -87,6 +87,6 @@ const clusterBuilderSlice = createSlice({
 
 export const { setClusterName, addComponentBase, removeComponentBase, addSkeletonBase,
     setSelectedDockerImageName, removeSkeletonBase, setSelectedComponentBaseName,setSelectedSkeletonBaseName,
-    addDockerImage, setDockerImagePort} = clusterBuilderSlice.actions;
+    addContainer, setDockerImagePort} = clusterBuilderSlice.actions;
 
 export default clusterBuilderSlice.reducer;

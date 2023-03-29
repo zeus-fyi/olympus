@@ -14,16 +14,14 @@ export function DefineDockerParams(props: any) {
             <Card sx={{ maxWidth: 500 }}>
                 <CardContent>
                     <Typography gutterBottom variant="h5" component="div">
-                        Set Docker Image
+                        Set Container Configs
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                         Sets Docker Image Default
                     </Typography>
                 </CardContent>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <Box mt={2}>
                         <DockerImageName />
-                    </Box>
                     <DockerImageCmdArgs />
                     <Box mt={2}>
                         <AddPortsInputFields />
@@ -43,15 +41,30 @@ export function DockerImageName() {
         dispatch(setSelectedDockerImageName(newDockerImageName));
     };
     return (
-        <TextField
-            fullWidth
-            id="dockerImage"
-            label="Docker Image Name"
-            variant="outlined"
-            value={dockerImageName}
-            onChange={onDockerImageNameChange}
-            sx={{ width: '100%' }}
-        />
+        <div>
+            <Box mt={2}>
+                <TextField
+                    fullWidth
+                    id="containerName"
+                    label="Container Name"
+                    variant="outlined"
+                    value={dockerImageName}
+                    onChange={onDockerImageNameChange}
+                    sx={{ width: '100%' }}
+                />
+            </Box>
+            <Box mt={2}>
+                <TextField
+                    fullWidth
+                    id="dockerImage"
+                    label="Docker Image Name"
+                    variant="outlined"
+                    value={dockerImageName}
+                    onChange={onDockerImageNameChange}
+                    sx={{ width: '100%' }}
+                />
+            </Box>
+        </div>
     );
 }
 

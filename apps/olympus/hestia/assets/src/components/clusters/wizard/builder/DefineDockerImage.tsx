@@ -9,7 +9,8 @@ import {
     setDockerImage,
     setDockerImageCmd,
     setDockerImageCmdArgs,
-    setSelectedContainerName
+    setSelectedContainerName,
+    setSelectedDockerImage
 } from "../../../../redux/clusters/clusters.builder.reducer";
 
 export function DefineDockerParams(props: any) {
@@ -37,7 +38,6 @@ export function DefineDockerParams(props: any) {
 export function ContainerConfig() {
     const dispatch = useDispatch();
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
-
     const selectedComponentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
     const selectedSkeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
     const selectedContainerName = useSelector((state: RootState) => state.clusterBuilder.selectedContainerName);
@@ -57,6 +57,12 @@ export function ContainerConfig() {
     }
     const onContainerNameChange = (newContainerName: string) => {
         dispatch(setSelectedContainerName(newContainerName));
+        const containerRef = {
+            componentBaseKey: selectedComponentBaseName,
+            skeletonBaseKey: selectedSkeletonBaseName,
+            containerName: selectedContainerName,
+        };
+        dispatch(setSelectedDockerImage(containerRef));
     };
     return (
         <div>

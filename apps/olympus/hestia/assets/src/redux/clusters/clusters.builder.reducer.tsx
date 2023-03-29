@@ -1,11 +1,13 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {Cluster, ComponentBases, Container, Port, SkeletonBase, SkeletonBases} from "./clusters.types";
+import {Cluster, ComponentBases, Container, DockerImage, Port, SkeletonBase, SkeletonBases} from "./clusters.types";
 
 interface ClusterBuilderState {
     cluster: Cluster;
     selectedComponentBaseName: string;
     selectedSkeletonBaseName: string;
     selectedContainerName: string;
+    selectedDockerImage: DockerImage;
+
 }
 
 const initialState: ClusterBuilderState = {
@@ -16,6 +18,7 @@ const initialState: ClusterBuilderState = {
     selectedComponentBaseName: '',
     selectedSkeletonBaseName: '',
     selectedContainerName: '',
+    selectedDockerImage: {imageName: '', cmd: '', args: '', ports: [{}] as Port[]} as DockerImage,
 };
 
 const clusterBuilderSlice = createSlice({
@@ -95,6 +98,15 @@ const clusterBuilderSlice = createSlice({
             }
             container.dockerImage.imageName = dockerImageKey
         },
+        setSelectedDockerImage: (state, action: PayloadAction<{ componentBaseKey: string; skeletonBaseKey: string; containerName: string;}>) => {
+            const { componentBaseKey, skeletonBaseKey, containerName} = action.payload;
+            const container = state.cluster.componentBases[componentBaseKey]?.[skeletonBaseKey]?.containers[containerName];
+            if (!container) {
+                console.error(`Docker image not found in container: ${containerName}`);
+                return;
+            }
+            state.selectedDockerImage = container.dockerImage
+        },
         setDockerImageCmdArgs: (state, action: PayloadAction<{ componentBaseKey: string; skeletonBaseKey: string; containerName: string; args: string}>) => {
             const { componentBaseKey, skeletonBaseKey, containerName, args } = action.payload;
             const dockerImage = state.cluster.componentBases[componentBaseKey]?.[skeletonBaseKey]?.containers[containerName].dockerImage;
@@ -122,7 +134,8 @@ const clusterBuilderSlice = createSlice({
 
 export const { setClusterName, addComponentBase, removeComponentBase, addSkeletonBase,
     setSelectedContainerName, removeSkeletonBase, setSelectedComponentBaseName,setSelectedSkeletonBaseName,
-    addContainer, setDockerImagePort, setDockerImageCmd, removeContainer, setDockerImage, setDockerImageCmdArgs
+    addContainer, setDockerImagePort, setDockerImageCmd, removeContainer, setDockerImage, setDockerImageCmdArgs,
+    setSelectedDockerImage
 } = clusterBuilderSlice.actions;
 
 export default clusterBuilderSlice.reducer;

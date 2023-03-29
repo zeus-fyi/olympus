@@ -5,7 +5,12 @@ import {RootState} from "../../../../redux/store";
 import * as React from "react";
 import TextField from "@mui/material/TextField";
 import {AddPortsInputFields} from "./DefinePorts";
-import {setDockerImage, setSelectedContainerName} from "../../../../redux/clusters/clusters.builder.reducer";
+import {
+    setDockerImage,
+    setDockerImageCmd,
+    setDockerImageCmdArgs,
+    setSelectedContainerName
+} from "../../../../redux/clusters/clusters.builder.reducer";
 
 export function DefineDockerParams(props: any) {
     const {} = props;
@@ -148,19 +153,26 @@ export function DockerImageCmdArgs() {
     if (!show) {
         return <div></div>
     }
-
-    // const onUpdateDockerCmd = (cmd: string) => {
-    //     const input = {
-    //         componentBaseKey: selectedComponentBaseName,
-    //         skeletonBaseKey: selectedSkeletonBaseName,
-    //         containerName: setSelectedContainerName,
-    //         cmd: cmd
-    //     };
-    //     dispatch(setDockerImageCmd(input));
-    // };
-
-    const cmd = ''
-    const args = ''
+    const cmd = skeletonBaseContainerNames.containers[selectedContainerName].dockerImage.cmd;
+    const onUpdateDockerCmd = (cmd: string) => {
+        const input = {
+            componentBaseKey: selectedComponentBaseName,
+            skeletonBaseKey: selectedSkeletonBaseName,
+            containerName: selectedContainerName,
+            cmd: cmd
+        };
+        dispatch(setDockerImageCmd(input));
+    };
+    const args = skeletonBaseContainerNames.containers[selectedContainerName].dockerImage.args;
+    const onUpdateDockerArgs = (args: string) => {
+        const input = {
+            componentBaseKey: selectedComponentBaseName,
+            skeletonBaseKey: selectedSkeletonBaseName,
+            containerName: selectedContainerName,
+            args: args
+        };
+        dispatch(setDockerImageCmdArgs(input));
+    };
     return (
         <div>
             <Box mt={2}>
@@ -169,6 +181,7 @@ export function DockerImageCmdArgs() {
                     id="dockerImageCmd"
                     label="Docker Cmd"
                     variant="outlined"
+                    onChange={(event) => onUpdateDockerCmd(event.target.value as string)}
                     value={cmd}
                     sx={{ width: '100%' }}
                 />
@@ -180,6 +193,7 @@ export function DockerImageCmdArgs() {
                     label="Docker Args"
                     variant="outlined"
                     value={args}
+                    onChange={(event) => onUpdateDockerArgs(event.target.value as string)}
                     sx={{ width: '100%' }}
                 />
             </Box>

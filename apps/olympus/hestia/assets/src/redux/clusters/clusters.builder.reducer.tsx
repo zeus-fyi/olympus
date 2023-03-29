@@ -95,7 +95,7 @@ const clusterBuilderSlice = createSlice({
             }
             container.dockerImage.imageName = dockerImageKey
         },
-        setDockerImageArgs: (state, action: PayloadAction<{ componentBaseKey: string; skeletonBaseKey: string; containerName: string; dockerImageKey: string; args: [string] }>) => {
+        setDockerImageCmdArgs: (state, action: PayloadAction<{ componentBaseKey: string; skeletonBaseKey: string; containerName: string; args: string}>) => {
             const { componentBaseKey, skeletonBaseKey, containerName, args } = action.payload;
             const dockerImage = state.cluster.componentBases[componentBaseKey]?.[skeletonBaseKey]?.containers[containerName].dockerImage;
             if (!dockerImage) {
@@ -122,7 +122,7 @@ const clusterBuilderSlice = createSlice({
 
 export const { setClusterName, addComponentBase, removeComponentBase, addSkeletonBase,
     setSelectedContainerName, removeSkeletonBase, setSelectedComponentBaseName,setSelectedSkeletonBaseName,
-    addContainer, setDockerImagePort, setDockerImageCmd, removeContainer, setDockerImage
+    addContainer, setDockerImagePort, setDockerImageCmd, removeContainer, setDockerImage, setDockerImageCmdArgs
 } = clusterBuilderSlice.actions;
 
 export default clusterBuilderSlice.reducer;

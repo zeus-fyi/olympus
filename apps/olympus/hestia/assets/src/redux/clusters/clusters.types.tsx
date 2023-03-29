@@ -26,7 +26,7 @@ export interface Container {
 export interface DockerImage {
     imageName: string;
     cmd: string;
-    args: string[];
+    args: string;
     ports: Port[];
 }
 

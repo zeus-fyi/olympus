@@ -1,9 +1,20 @@
-import {Box, Card, CardContent, Container, FormControl, InputLabel, MenuItem, Select} from "@mui/material";
+import {
+    Box,
+    Card,
+    CardContent,
+    Container,
+    FormControl,
+    FormControlLabel,
+    InputLabel,
+    MenuItem,
+    Select,
+    Switch
+} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../../../redux/store";
 import * as React from "react";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import TextField from "@mui/material/TextField";
 import {AddPortsInputFields} from "./DefinePorts";
 import {
@@ -43,6 +54,12 @@ export function ContainerConfig() {
     const selectedSkeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
     const selectedContainerName = useSelector((state: RootState) => state.clusterBuilder.selectedContainerName);
     const skeletonBaseKeys = cluster.componentBases[selectedComponentBaseName];
+    const [isInitContainer, setIsInitContainer] = useState(false);
+    const label = { inputProps: { label: 'IsInitContainer', 'aria-label': 'IsInitContainer' } };
+
+    const handleClick = () => {
+        setIsInitContainer(!isInitContainer);
+    };
     if (cluster.componentBases === undefined) {
         return <div></div>
     }
@@ -68,23 +85,31 @@ export function ContainerConfig() {
     return (
         <div>
             {show &&
-                <FormControl variant="outlined" style={{ minWidth: '100%' }}>
-                    <InputLabel id="network-label">Containers</InputLabel>
-                    <Select
-                        labelId="containerName-label"
-                        id="containerName"
-                        value={selectedContainerName}
-                        label="Container Name"
-                        onChange={(event) => onContainerNameChange(event.target.value as string)}
-                        sx={{ width: '100%' }}
-                    >
-                        {Object.keys(skeletonBaseContainerNames.containers).map((key: any, i: number) => (
-                            <MenuItem key={i} value={key}>
-                                {key}
-                            </MenuItem>))
-                        }
-                    </Select>
-                </FormControl>
+                <Box mt={2}>
+                    <FormControlLabel control={<Switch {...label} defaultChecked={isInitContainer} onClick={handleClick}/>} label={isInitContainer ? 'Init Container [True]' : 'Init Container [False]'} />
+                </Box>
+            }
+            {show &&
+                <Box mt={2}>
+                    <FormControl variant="outlined" style={{ minWidth: '100%' }}>
+                        <InputLabel id="network-label">Containers</InputLabel>
+                        <Select
+                            labelId="containerName-label"
+                            id="containerName"
+                            value={selectedContainerName}
+                            label="Container Name"
+                            onChange={(event) => onContainerNameChange(event.target.value as string)}
+                            sx={{ width: '100%' }}
+                        >
+                            {Object.keys(skeletonBaseContainerNames.containers).map((key: any, i: number) => (
+                                <MenuItem key={i} value={key}>
+                                    {key}
+                                </MenuItem>))
+                            }
+                        </Select>
+                    </FormControl>
+                </Box>
+
             }
         </div>);
 }

@@ -5,7 +5,7 @@ import {RootState} from "../../../../redux/store";
 import * as React from "react";
 import TextField from "@mui/material/TextField";
 import {AddPortsInputFields} from "./DefinePorts";
-import {setDockerImageCmd, setSelectedContainerName} from "../../../../redux/clusters/clusters.builder.reducer";
+import {setSelectedContainerName} from "../../../../redux/clusters/clusters.builder.reducer";
 
 export function DefineDockerParams(props: any) {
     const {} = props;
@@ -23,10 +23,6 @@ export function DefineDockerParams(props: any) {
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <ContainerConfig />
                     <DockerConfig />
-                    <DockerImageCmdArgs />
-                    <Box mt={2}>
-                        <AddPortsInputFields />
-                    </Box>
                 </Container>
             </Card>
         </div>
@@ -85,7 +81,6 @@ export function ContainerConfig() {
 export function DockerConfig() {
     const dispatch = useDispatch();
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
-
     const selectedComponentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
     const selectedSkeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
     const selectedContainerName = useSelector((state: RootState) => state.clusterBuilder.selectedContainerName);
@@ -93,7 +88,13 @@ export function DockerConfig() {
     if (cluster.componentBases === undefined) {
         return <div></div>
     }
-    const show = skeletonBaseKeys !== undefined && Object.keys(skeletonBaseKeys).length > 0;
+    let show = skeletonBaseKeys !== undefined && Object.keys(skeletonBaseKeys).length > 0;
+    if (!show) {
+        return <div></div>
+    }
+
+    const skeletonBaseContainerNames = skeletonBaseKeys[selectedSkeletonBaseName];
+    show = skeletonBaseContainerNames !== undefined && Object.keys(skeletonBaseContainerNames.containers).length > 0;
     if (!show) {
         return <div></div>
     }
@@ -106,6 +107,7 @@ export function DockerConfig() {
 
     return (
         <div>
+            <DockerImageCmdArgs />
             <Box mt={2}>
                 <TextField
                     fullWidth
@@ -124,28 +126,33 @@ export function DockerConfig() {
 export function DockerImageCmdArgs() {
     const dispatch = useDispatch();
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
-
     const selectedComponentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
     const selectedSkeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
-    const setSelectedContainerName = useSelector((state: RootState) => state.clusterBuilder.selectedContainerName);
+    const selectedContainerName = useSelector((state: RootState) => state.clusterBuilder.selectedContainerName);
     const skeletonBaseKeys = cluster.componentBases[selectedComponentBaseName];
     if (cluster.componentBases === undefined) {
         return <div></div>
     }
-    const show = skeletonBaseKeys !== undefined && Object.keys(skeletonBaseKeys).length > 0;
+    let show = skeletonBaseKeys !== undefined && Object.keys(skeletonBaseKeys).length > 0;
     if (!show) {
         return <div></div>
     }
 
-    const onUpdateDockerCmd = (cmd: string) => {
-        const input = {
-            componentBaseKey: selectedComponentBaseName,
-            skeletonBaseKey: selectedSkeletonBaseName,
-            containerName: setSelectedContainerName,
-            cmd: cmd
-        };
-        dispatch(setDockerImageCmd(input));
-    };
+    const skeletonBaseContainerNames = skeletonBaseKeys[selectedSkeletonBaseName];
+    show = skeletonBaseContainerNames !== undefined && Object.keys(skeletonBaseContainerNames.containers).length > 0;
+    if (!show) {
+        return <div></div>
+    }
+
+    // const onUpdateDockerCmd = (cmd: string) => {
+    //     const input = {
+    //         componentBaseKey: selectedComponentBaseName,
+    //         skeletonBaseKey: selectedSkeletonBaseName,
+    //         containerName: setSelectedContainerName,
+    //         cmd: cmd
+    //     };
+    //     dispatch(setDockerImageCmd(input));
+    // };
 
     const cmd = ''
     const args = ''
@@ -171,6 +178,7 @@ export function DockerImageCmdArgs() {
                     sx={{ width: '100%' }}
                 />
             </Box>
+            <AddPortsInputFields />
         </div>
     );
 }

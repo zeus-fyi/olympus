@@ -1,11 +1,11 @@
-import {Box, Card, CardContent, Container} from "@mui/material";
+import {Box, Card, CardContent, Container, FormControl, InputLabel, MenuItem, Select} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../../../redux/store";
 import * as React from "react";
 import TextField from "@mui/material/TextField";
 import {AddPortsInputFields} from "./DefinePorts";
-import {setDockerImageCmd} from "../../../../redux/clusters/clusters.builder.reducer";
+import {setDockerImageCmd, setSelectedContainerName} from "../../../../redux/clusters/clusters.builder.reducer";
 
 export function DefineDockerParams(props: any) {
     const {} = props;
@@ -22,6 +22,7 @@ export function DefineDockerParams(props: any) {
                 </CardContent>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <ContainerConfig />
+                    <DockerConfig />
                     <DockerImageCmdArgs />
                     <Box mt={2}>
                         <AddPortsInputFields />
@@ -33,6 +34,56 @@ export function DefineDockerParams(props: any) {
 }
 
 export function ContainerConfig() {
+    const dispatch = useDispatch();
+    const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
+
+    const selectedComponentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
+    const selectedSkeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
+    const selectedContainerName = useSelector((state: RootState) => state.clusterBuilder.selectedContainerName);
+    const skeletonBaseKeys = cluster.componentBases[selectedComponentBaseName];
+    if (cluster.componentBases === undefined) {
+        return <div></div>
+    }
+    let show = skeletonBaseKeys !== undefined && Object.keys(skeletonBaseKeys).length > 0;
+    if (!show) {
+        return <div></div>
+    }
+
+    const skeletonBaseContainerNames = skeletonBaseKeys[selectedContainerName];
+    show = !(skeletonBaseKeys[selectedSkeletonBaseName] !== undefined);
+
+    if (!show) {
+        return <div></div>
+    }
+    const onContainerNameChange = (newContainerName: string) => {
+        dispatch(setSelectedContainerName(newContainerName));
+    };
+    return (
+        <div>
+            {show &&
+                <FormControl variant="outlined" style={{ minWidth: '100%' }}>
+                    <InputLabel id="network-label">Component Bases</InputLabel>
+                    <Select
+                        labelId="containerName-label"
+                        id="containerName"
+                        value={selectedContainerName}
+                        label="Container Name"
+                        onChange={(event) => onContainerNameChange(event.target.value as string)}
+                        sx={{ width: '100%' }}
+                    >
+                        {Object.keys(skeletonBaseContainerNames).map((key: any, i: number) => (
+                            <MenuItem key={i} value={key}>
+                                {key}
+                            </MenuItem>))
+                        }
+                    </Select>
+                </FormControl>
+            }
+        </div>);
+}
+
+
+export function DockerConfig() {
     const dispatch = useDispatch();
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
 
@@ -56,17 +107,6 @@ export function ContainerConfig() {
 
     return (
         <div>
-            <Box mt={2}>
-                <TextField
-                    fullWidth
-                    id="containerName"
-                    label="Container Name"
-                    variant="outlined"
-                    // value={dockerImageName}
-                    // onChange={onContainerNameChange}
-                    sx={{ width: '100%' }}
-                />
-            </Box>
             <Box mt={2}>
                 <TextField
                     fullWidth

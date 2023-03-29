@@ -25,6 +25,7 @@ export function AddContainers(props: any) {
     const handleAddField = () => {
         if (inputField) {
             let contObj = { componentBaseKey: selectedComponentBaseName,skeletonBaseKey: selectedSkeletonBaseName, containerName: inputField, container: {} as Container }
+            console.log(contObj);
             dispatch(addContainer(contObj));
             dispatch(setSelectedContainerName(inputField))
             setInputField('');
@@ -42,9 +43,10 @@ export function AddContainers(props: any) {
     };
     let showAdd = componentBase !== undefined;
     let show = showAdd && Object.keys(componentBase).length > 0;
+    const skeletonBaseContainerNames = cluster.componentBases[selectedComponentBaseName][selectedSkeletonBaseName];
     return (
         <div>
-            { show && Object.keys(componentBase).map((key, index) => (
+            { show && Object.keys(skeletonBaseContainerNames.containers).map((key, index) => (
                 <Box key={index} display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
                     <TextField
                         fullWidth
@@ -61,7 +63,7 @@ export function AddContainers(props: any) {
                 </Box>))
             }
             { showAdd &&
-                <Box key={Object.keys(componentBase).length} display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                <Box key={Object.keys(skeletonBaseContainerNames.containers).length} display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
                     <TextField
                         fullWidth
                         id="inputField-new"

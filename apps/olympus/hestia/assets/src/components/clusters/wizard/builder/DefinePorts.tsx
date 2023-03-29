@@ -47,8 +47,6 @@ export function AddPortsInputFields() {
 
     const handleChange = (index: number, event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const values = [...(selectedDockerImage.ports)];
-        console.log('handleChange', values)
-
         values[index] = {...values[index], [event.target.name]: event.target.value};
         dispatch(setDockerImagePort({
             componentBaseKey: selectedComponentBaseName,
@@ -97,7 +95,6 @@ export function AddPortsInputFields() {
             port: newPort,
         }));
     };
-    console.log(ports)
     return (
         <div>
             <Box mt={2}>

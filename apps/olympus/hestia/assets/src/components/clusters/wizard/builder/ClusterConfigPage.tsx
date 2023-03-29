@@ -1,4 +1,4 @@
-import {Box, Card, CardContent, Container, Stack} from "@mui/material";
+import {Box, Card, CardContent, Container} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../../../redux/store";
@@ -7,13 +7,11 @@ import TextField from "@mui/material/TextField";
 import {setClusterName} from "../../../../redux/clusters/clusters.builder.reducer";
 import {AddComponentBases} from "./AddComponentBases";
 import {DefineClusterComponentBaseParams} from "./DefineComponentBases";
-import {AddSkeletonBaseDockerConfigs} from "./AddSkeletonBaseDockerConfigs";
 
-export function DefineClusterClassParams(props: any) {
+export function ClusterConfigPage(props: any) {
     const {} = props;
     return (
         <div>
-            <Stack direction="row" spacing={2}>
             <div>
                 <Card sx={{ maxWidth: 500 }}>
                     <CardContent>
@@ -37,9 +35,6 @@ export function DefineClusterClassParams(props: any) {
                     <DefineClusterComponentBaseParams />
                 </Box>
             </div>
-                <AddSkeletonBaseDockerConfigs />
-            </Stack>
-
         </div>
     );
 }

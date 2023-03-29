@@ -28,7 +28,7 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
     }
     return (
         <div>
-            <Card sx={{ maxWidth: 1000 }}>
+            <Card sx={{ maxWidth: 800 }}>
                 <CardContent>
                     <Typography gutterBottom variant="h5" component="div">
                         Configure Skeleton Base Workloads

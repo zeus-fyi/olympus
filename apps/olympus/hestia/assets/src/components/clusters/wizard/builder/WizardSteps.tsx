@@ -1,16 +1,17 @@
-import {DefineClusterClassParams} from "./DefineClusterClass";
+import {ClusterConfigPage} from "./ClusterConfigPage";
+import * as React from "react";
+import {WorkloadConfigPage} from "./WorkloadConfigPage";
 
 export const clusterBuilderSteps = [
     'Define Cluster',
-    'Define Component Base Workloads',
-    'Define Skeleton Base Workloads',
-    'Define Docker Image',
+    'Define Workloads',
 ];
 
 export function wizardStepComponents(activeStep: number,
 ) {
     const steps = [
-        <DefineClusterClassParams />,
+        <ClusterConfigPage />,
+        <WorkloadConfigPage />
     ];
     return (steps[activeStep])
 }

@@ -1,6 +1,6 @@
 import {useDispatch, useSelector} from "react-redux";
 import * as React from "react";
-import {Box, Card, CardContent, Container, FormControl, InputLabel, MenuItem, Select} from "@mui/material";
+import {Box, Card, CardContent, Container, FormControl, InputLabel, MenuItem, Select, Stack} from "@mui/material";
 import {RootState} from "../../../../redux/store";
 import Typography from "@mui/material/Typography";
 import {DefineDockerParams} from "./DefineDockerImage";
@@ -28,26 +28,28 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
     }
     return (
         <div>
-            <Card sx={{ maxWidth: 800 }}>
-                <CardContent>
-                    <Typography gutterBottom variant="h5" component="div">
-                        Configure Skeleton Base Workloads
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        Sets Cluster Skeleton Base Workloads
-                    </Typography>
-                </CardContent>
-                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    {show && cluster.componentBases[selectedComponentBaseKey] && Object.keys(skeletonBaseKeys).length > 0 &&
-                        <Box mt={2}>
-                            <AddContainers />
-                        </Box>
-                    }
-                </Container>
+            <Stack direction="row" spacing={2}>
+                <Card sx={{ maxWidth: 800 }}>
+                    <CardContent>
+                        <Typography gutterBottom variant="h5" component="div">
+                            Configure Skeleton Base Workloads
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            Sets Cluster Skeleton Base Workloads
+                        </Typography>
+                    </CardContent>
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        {show && cluster.componentBases[selectedComponentBaseKey] && Object.keys(skeletonBaseKeys).length > 0 &&
+                            <Box mt={2}>
+                                <AddContainers />
+                            </Box>
+                        }
+                    </Container>
+                </Card>
                 {show && cluster.componentBases[selectedComponentBaseKey] && Object.keys(skeletonBaseKeys).length > 0 &&
                     <DefineDockerParams />
                 }
-            </Card>
+            </Stack>
         </div>
     )
 }

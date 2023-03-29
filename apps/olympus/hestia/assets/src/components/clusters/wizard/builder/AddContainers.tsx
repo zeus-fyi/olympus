@@ -24,7 +24,8 @@ export function AddContainers(props: any) {
     };
     const handleAddField = () => {
         if (inputField) {
-            let contObj = { componentBaseKey: selectedComponentBaseName,skeletonBaseKey: selectedSkeletonBaseName, containerName: inputField, container: {} as Container }
+            const cont = {dockerImage: {imageName: ''}}
+            let contObj = { componentBaseKey: selectedComponentBaseName,skeletonBaseKey: selectedSkeletonBaseName, containerName: inputField, container: cont as Container}
             dispatch(addContainer(contObj));
             dispatch(setSelectedContainerName(inputField))
             setInputField('');

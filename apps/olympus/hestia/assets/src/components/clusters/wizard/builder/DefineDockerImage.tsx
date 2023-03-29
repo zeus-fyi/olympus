@@ -5,7 +5,7 @@ import {RootState} from "../../../../redux/store";
 import * as React from "react";
 import TextField from "@mui/material/TextField";
 import {AddPortsInputFields} from "./DefinePorts";
-import {setSelectedContainerName} from "../../../../redux/clusters/clusters.builder.reducer";
+import {setDockerImage, setSelectedContainerName} from "../../../../redux/clusters/clusters.builder.reducer";
 
 export function DefineDockerParams(props: any) {
     const {} = props;
@@ -99,12 +99,16 @@ export function DockerConfig() {
         return <div></div>
     }
 
-    // const dockerImageName = useSelector((state: RootState) => state.clusterBuilder.selectedDockerImageName);
-    // const onDockerImageNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //     const newDockerImageName = event.target.value;
-    //     dispatch(setSelectedDockerImageName(newDockerImageName));
-    // };
-
+    const dockerImageName = skeletonBaseContainerNames.containers[selectedContainerName].dockerImage.imageName;
+    const onDockerImageNameChange = (newDockerImageName: string) => {
+        const containerRef = {
+            componentBaseKey: selectedComponentBaseName,
+            skeletonBaseKey: selectedSkeletonBaseName,
+            containerName: selectedContainerName,
+            dockerImageKey: newDockerImageName
+        };
+        dispatch(setDockerImage(containerRef));
+    };
     return (
         <div>
             <Box mt={2}>
@@ -113,8 +117,8 @@ export function DockerConfig() {
                     id="dockerImage"
                     label="Docker Image Name"
                     variant="outlined"
-                    // value={dockerImageName}
-                    // onChange={onDockerImageNameChange}
+                    value={dockerImageName}
+                    onChange={(event) => onDockerImageNameChange(event.target.value as string)}
                     sx={{ width: '100%' }}
                 />
             </Box>

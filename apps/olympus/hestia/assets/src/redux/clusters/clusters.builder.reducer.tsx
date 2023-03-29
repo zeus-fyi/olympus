@@ -86,6 +86,15 @@ const clusterBuilderSlice = createSlice({
             }
             dockerImage.cmd = cmd
         },
+        setDockerImage: (state, action: PayloadAction<{ componentBaseKey: string; skeletonBaseKey: string; containerName: string; dockerImageKey: string;}>) => {
+            const { componentBaseKey, skeletonBaseKey, containerName, dockerImageKey } = action.payload;
+            const container = state.cluster.componentBases[componentBaseKey]?.[skeletonBaseKey]?.containers[containerName];
+            if (!container) {
+                console.error(`Docker image not found in container: ${containerName}`);
+                return;
+            }
+            container.dockerImage.imageName = dockerImageKey
+        },
         setDockerImageArgs: (state, action: PayloadAction<{ componentBaseKey: string; skeletonBaseKey: string; containerName: string; dockerImageKey: string; args: [string] }>) => {
             const { componentBaseKey, skeletonBaseKey, containerName, args } = action.payload;
             const dockerImage = state.cluster.componentBases[componentBaseKey]?.[skeletonBaseKey]?.containers[containerName].dockerImage;
@@ -113,7 +122,7 @@ const clusterBuilderSlice = createSlice({
 
 export const { setClusterName, addComponentBase, removeComponentBase, addSkeletonBase,
     setSelectedContainerName, removeSkeletonBase, setSelectedComponentBaseName,setSelectedSkeletonBaseName,
-    addContainer, setDockerImagePort, setDockerImageCmd, removeContainer
+    addContainer, setDockerImagePort, setDockerImageCmd, removeContainer, setDockerImage
 } = clusterBuilderSlice.actions;
 
 export default clusterBuilderSlice.reducer;

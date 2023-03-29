@@ -49,9 +49,8 @@ export function ContainerConfig() {
         return <div></div>
     }
 
-    const skeletonBaseContainerNames = skeletonBaseKeys[selectedContainerName];
-    show = !(skeletonBaseKeys[selectedSkeletonBaseName] !== undefined);
-
+    const skeletonBaseContainerNames = skeletonBaseKeys[selectedSkeletonBaseName];
+    show = skeletonBaseContainerNames !== undefined && Object.keys(skeletonBaseContainerNames.containers).length > 0;
     if (!show) {
         return <div></div>
     }
@@ -62,7 +61,7 @@ export function ContainerConfig() {
         <div>
             {show &&
                 <FormControl variant="outlined" style={{ minWidth: '100%' }}>
-                    <InputLabel id="network-label">Component Bases</InputLabel>
+                    <InputLabel id="network-label">Containers</InputLabel>
                     <Select
                         labelId="containerName-label"
                         id="containerName"
@@ -71,7 +70,7 @@ export function ContainerConfig() {
                         onChange={(event) => onContainerNameChange(event.target.value as string)}
                         sx={{ width: '100%' }}
                     >
-                        {Object.keys(skeletonBaseContainerNames).map((key: any, i: number) => (
+                        {Object.keys(skeletonBaseContainerNames.containers).map((key: any, i: number) => (
                             <MenuItem key={i} value={key}>
                                 {key}
                             </MenuItem>))

@@ -25,7 +25,6 @@ export function AddContainers(props: any) {
     const handleAddField = () => {
         if (inputField) {
             let contObj = { componentBaseKey: selectedComponentBaseName,skeletonBaseKey: selectedSkeletonBaseName, containerName: inputField, container: {} as Container }
-            console.log(contObj);
             dispatch(addContainer(contObj));
             dispatch(setSelectedContainerName(inputField))
             setInputField('');

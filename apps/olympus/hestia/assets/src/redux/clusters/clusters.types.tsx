@@ -20,7 +20,6 @@ export type Containers = {
 };
 
 export interface Container {
-    containerName: string;
     dockerImage: DockerImage;
 }
 

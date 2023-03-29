@@ -5,6 +5,7 @@ import {RootState} from "../../../../redux/store";
 import Typography from "@mui/material/Typography";
 import {DefineDockerParams} from "./DefineDockerImage";
 import {setSelectedSkeletonBaseName} from "../../../../redux/clusters/clusters.builder.reducer";
+import {AddContainers} from "./AddContainers";
 
 export function AddSkeletonBaseDockerConfigs(props: any) {
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
@@ -40,6 +41,11 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
                     { show && cluster.componentBases[selectedComponentBaseKey] && Object.keys(skeletonBaseKeys).length > 0 &&
                         <Box mt={2}>
                             <SelectedSkeletonBaseName />
+                        </Box>
+                    }
+                    {show && cluster.componentBases[selectedComponentBaseKey] && Object.keys(skeletonBaseKeys).length > 0 &&
+                        <Box mt={2}>
+                            <AddContainers />
                         </Box>
                     }
                 </Container>

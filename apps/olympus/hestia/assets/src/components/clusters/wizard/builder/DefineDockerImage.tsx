@@ -5,7 +5,7 @@ import {RootState} from "../../../../redux/store";
 import * as React from "react";
 import TextField from "@mui/material/TextField";
 import {AddPortsInputFields} from "./DefinePorts";
-import {setSelectedDockerImageName} from "../../../../redux/clusters/clusters.builder.reducer";
+import {setDockerImageCmd} from "../../../../redux/clusters/clusters.builder.reducer";
 
 export function DefineDockerParams(props: any) {
     const {} = props;
@@ -21,7 +21,7 @@ export function DefineDockerParams(props: any) {
                     </Typography>
                 </CardContent>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        <DockerImageName />
+                    <ContainerConfig />
                     <DockerImageCmdArgs />
                     <Box mt={2}>
                         <AddPortsInputFields />
@@ -32,14 +32,28 @@ export function DefineDockerParams(props: any) {
     );
 }
 
-export function DockerImageName() {
+export function ContainerConfig() {
     const dispatch = useDispatch();
-    const cluster  = useSelector((state: RootState) => state.clusterBuilder.cluster);
-    const dockerImageName = useSelector((state: RootState) => state.clusterBuilder.selectedDockerImageName);
-    const onDockerImageNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const newDockerImageName = event.target.value;
-        dispatch(setSelectedDockerImageName(newDockerImageName));
-    };
+    const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
+
+    const selectedComponentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
+    const selectedSkeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
+    const selectedContainerName = useSelector((state: RootState) => state.clusterBuilder.selectedContainerName);
+    const skeletonBaseKeys = cluster.componentBases[selectedComponentBaseName];
+    if (cluster.componentBases === undefined) {
+        return <div></div>
+    }
+    const show = skeletonBaseKeys !== undefined && Object.keys(skeletonBaseKeys).length > 0;
+    if (!show) {
+        return <div></div>
+    }
+
+    // const dockerImageName = useSelector((state: RootState) => state.clusterBuilder.selectedDockerImageName);
+    // const onDockerImageNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    //     const newDockerImageName = event.target.value;
+    //     dispatch(setSelectedDockerImageName(newDockerImageName));
+    // };
+
     return (
         <div>
             <Box mt={2}>
@@ -48,8 +62,8 @@ export function DockerImageName() {
                     id="containerName"
                     label="Container Name"
                     variant="outlined"
-                    value={dockerImageName}
-                    onChange={onDockerImageNameChange}
+                    // value={dockerImageName}
+                    // onChange={onContainerNameChange}
                     sx={{ width: '100%' }}
                 />
             </Box>
@@ -59,8 +73,8 @@ export function DockerImageName() {
                     id="dockerImage"
                     label="Docker Image Name"
                     variant="outlined"
-                    value={dockerImageName}
-                    onChange={onDockerImageNameChange}
+                    // value={dockerImageName}
+                    // onChange={onDockerImageNameChange}
                     sx={{ width: '100%' }}
                 />
             </Box>
@@ -70,6 +84,29 @@ export function DockerImageName() {
 
 export function DockerImageCmdArgs() {
     const dispatch = useDispatch();
+    const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
+
+    const selectedComponentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
+    const selectedSkeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
+    const setSelectedContainerName = useSelector((state: RootState) => state.clusterBuilder.selectedContainerName);
+    const skeletonBaseKeys = cluster.componentBases[selectedComponentBaseName];
+    if (cluster.componentBases === undefined) {
+        return <div></div>
+    }
+    const show = skeletonBaseKeys !== undefined && Object.keys(skeletonBaseKeys).length > 0;
+    if (!show) {
+        return <div></div>
+    }
+
+    const onUpdateDockerCmd = (cmd: string) => {
+        const input = {
+            componentBaseKey: selectedComponentBaseName,
+            skeletonBaseKey: selectedSkeletonBaseName,
+            containerName: setSelectedContainerName,
+            cmd: cmd
+        };
+        dispatch(setDockerImageCmd(input));
+    };
 
     const cmd = ''
     const args = ''

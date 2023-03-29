@@ -5,7 +5,7 @@ interface ClusterBuilderState {
     cluster: Cluster;
     selectedComponentBaseName: string;
     selectedSkeletonBaseName: string;
-    selectedDockerImageName: string;
+    selectedContainerName: string;
 }
 
 const initialState: ClusterBuilderState = {
@@ -15,7 +15,7 @@ const initialState: ClusterBuilderState = {
     },
     selectedComponentBaseName: '',
     selectedSkeletonBaseName: '',
-    selectedDockerImageName: '',
+    selectedContainerName: '',
 };
 
 const clusterBuilderSlice = createSlice({
@@ -25,8 +25,8 @@ const clusterBuilderSlice = createSlice({
         setClusterName: (state, action: PayloadAction<string>) => {
             state.cluster.clusterName = action.payload;
         },
-        setSelectedDockerImageName: (state, action: PayloadAction<string>) => {
-            state.selectedDockerImageName = action.payload;
+        setSelectedContainerName: (state, action: PayloadAction<string>) => {
+            state.selectedContainerName = action.payload;
         },
         setSelectedComponentBaseName: (state, action: PayloadAction<string>) => {
             state.selectedComponentBaseName = action.payload;
@@ -69,6 +69,32 @@ const clusterBuilderSlice = createSlice({
             }
             state.cluster.componentBases[componentBaseKey][skeletonBaseKey].containers[containerName] = container;
         },
+        removeContainer: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string, containerName: string}>) => {
+            const { componentBaseName, skeletonBaseName, containerName} = action.payload;
+            if (state.cluster.componentBases[componentBaseName][skeletonBaseName].containers[containerName]) {
+                delete state.cluster.componentBases[componentBaseName][skeletonBaseName].containers[containerName];
+            } else {
+                console.error(`Container not found: ${containerName}`);
+            }
+        },
+        setDockerImageCmd: (state, action: PayloadAction<{ componentBaseKey: string; skeletonBaseKey: string; containerName: string; cmd: string }>) => {
+            const { componentBaseKey, skeletonBaseKey, containerName, cmd } = action.payload;
+            const dockerImage = state.cluster.componentBases[componentBaseKey]?.[skeletonBaseKey]?.containers[containerName].dockerImage;
+            if (!dockerImage) {
+                console.error(`Docker image not found in container: ${containerName}`);
+                return;
+            }
+            dockerImage.cmd = cmd
+        },
+        setDockerImageArgs: (state, action: PayloadAction<{ componentBaseKey: string; skeletonBaseKey: string; containerName: string; dockerImageKey: string; args: [string] }>) => {
+            const { componentBaseKey, skeletonBaseKey, containerName, args } = action.payload;
+            const dockerImage = state.cluster.componentBases[componentBaseKey]?.[skeletonBaseKey]?.containers[containerName].dockerImage;
+            if (!dockerImage) {
+                console.error(`Docker image not found in container: ${containerName}`);
+                return;
+            }
+            dockerImage.args = args
+        },
         setDockerImagePort: (state, action: PayloadAction<{ componentBaseKey: string; skeletonBaseKey: string; containerName: string; dockerImageKey: string; portIndex: number; port: Port }>) => {
             const { componentBaseKey, skeletonBaseKey, containerName, dockerImageKey, portIndex, port } = action.payload;
             const dockerImage = state.cluster.componentBases[componentBaseKey]?.[skeletonBaseKey]?.containers[containerName].dockerImage;
@@ -86,7 +112,8 @@ const clusterBuilderSlice = createSlice({
 });
 
 export const { setClusterName, addComponentBase, removeComponentBase, addSkeletonBase,
-    setSelectedDockerImageName, removeSkeletonBase, setSelectedComponentBaseName,setSelectedSkeletonBaseName,
-    addContainer, setDockerImagePort} = clusterBuilderSlice.actions;
+    setSelectedContainerName, removeSkeletonBase, setSelectedComponentBaseName,setSelectedSkeletonBaseName,
+    addContainer, setDockerImagePort, setDockerImageCmd, removeContainer
+} = clusterBuilderSlice.actions;
 
 export default clusterBuilderSlice.reducer;

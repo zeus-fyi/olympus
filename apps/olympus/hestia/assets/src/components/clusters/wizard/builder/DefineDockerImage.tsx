@@ -107,7 +107,6 @@ export function DockerConfig() {
 
     return (
         <div>
-            <DockerImageCmdArgs />
             <Box mt={2}>
                 <TextField
                     fullWidth
@@ -119,6 +118,8 @@ export function DockerConfig() {
                     sx={{ width: '100%' }}
                 />
             </Box>
+            <DockerImageCmdArgs />
+            <AddPortsInputFields />
         </div>
     );
 }
@@ -178,7 +179,6 @@ export function DockerImageCmdArgs() {
                     sx={{ width: '100%' }}
                 />
             </Box>
-            <AddPortsInputFields />
         </div>
     );
 }

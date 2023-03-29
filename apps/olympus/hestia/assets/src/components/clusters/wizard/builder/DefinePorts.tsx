@@ -20,7 +20,7 @@ export function AddPortsInputFields() {
     const selectedContainerName = useSelector((state: RootState) => state.clusterBuilder.selectedContainerName);
     let selectedDockerImage = useSelector((state: RootState) => state.clusterBuilder.selectedDockerImage);
     const skeletonBaseKeys = cluster.componentBases[selectedComponentBaseName];
-    const ports = selectedDockerImage.ports || [];
+    const ports = selectedDockerImage.ports || [{name: "", port: "", protocol: "TCP"}];
     useEffect(() => {
         const containerRef = {
             componentBaseKey: selectedComponentBaseName,
@@ -132,7 +132,7 @@ export function AddPortsInputFields() {
                                 labelId={`portProtocolLabel-${index}`}
                                 id={`portProtocol-${index}`}
                                 name="protocol"
-                                value={inputField.protocol}
+                                value={inputField.protocol ? inputField.protocol : "TCP"}
                                 onChange={(event) => handleChangeSelect(index, event)}
                                 label="Protocol"
                                 defaultValue="TCP"

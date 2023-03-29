@@ -3,6 +3,7 @@ import Typography from "@mui/material/Typography";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../../../redux/store";
 import * as React from "react";
+import {useEffect} from "react";
 import TextField from "@mui/material/TextField";
 import {AddPortsInputFields} from "./DefinePorts";
 import {
@@ -96,6 +97,16 @@ export function DockerConfig() {
     const selectedSkeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
     const selectedContainerName = useSelector((state: RootState) => state.clusterBuilder.selectedContainerName);
     const skeletonBaseKeys = cluster.componentBases[selectedComponentBaseName];
+    useEffect(() => {
+        const containerRef = {
+            componentBaseKey: selectedComponentBaseName,
+            skeletonBaseKey: selectedSkeletonBaseName,
+            containerName: selectedContainerName,
+        };
+        dispatch(setSelectedDockerImage(containerRef));
+
+    }, [dispatch, selectedComponentBaseName, selectedSkeletonBaseName, selectedContainerName, cluster]);
+
     if (cluster.componentBases === undefined) {
         return <div></div>
     }
@@ -110,7 +121,7 @@ export function DockerConfig() {
         return <div></div>
     }
 
-    const dockerImageName = skeletonBaseContainerNames.containers[selectedContainerName].dockerImage.imageName;
+    const dockerImageName = skeletonBaseContainerNames?.containers?.[selectedContainerName]?.dockerImage?.imageName;
     const onDockerImageNameChange = (newDockerImageName: string) => {
         const containerRef = {
             componentBaseKey: selectedComponentBaseName,
@@ -119,7 +130,9 @@ export function DockerConfig() {
             dockerImageKey: newDockerImageName
         };
         dispatch(setDockerImage(containerRef));
+        dispatch(setSelectedDockerImage(containerRef));
     };
+
     return (
         <div>
             <Box mt={2}>
@@ -159,7 +172,9 @@ export function DockerImageCmdArgs() {
     if (!show) {
         return <div></div>
     }
-    const cmd = skeletonBaseContainerNames.containers[selectedContainerName].dockerImage.cmd;
+    const container = skeletonBaseContainerNames.containers[selectedContainerName];
+    const cmd = container?.dockerImage?.cmd || [];
+    const args = container?.dockerImage?.args || [];
     const onUpdateDockerCmd = (cmd: string) => {
         const input = {
             componentBaseKey: selectedComponentBaseName,
@@ -169,7 +184,6 @@ export function DockerImageCmdArgs() {
         };
         dispatch(setDockerImageCmd(input));
     };
-    const args = skeletonBaseContainerNames.containers[selectedContainerName].dockerImage.args;
     const onUpdateDockerArgs = (args: string) => {
         const input = {
             componentBaseKey: selectedComponentBaseName,

@@ -38,11 +38,6 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
                     </Typography>
                 </CardContent>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    { show && cluster.componentBases[selectedComponentBaseKey] && Object.keys(skeletonBaseKeys).length > 0 &&
-                        <Box mt={2}>
-                            <SelectedSkeletonBaseName />
-                        </Box>
-                    }
                     {show && cluster.componentBases[selectedComponentBaseKey] && Object.keys(skeletonBaseKeys).length > 0 &&
                         <Box mt={2}>
                             <AddContainers />

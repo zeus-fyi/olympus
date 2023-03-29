@@ -1,11 +1,16 @@
 import * as React from "react";
-import {useState} from "react";
+import {useEffect} from "react";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import {Box, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent} from "@mui/material";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../../../redux/store";
-import {setDockerImagePort} from "../../../../redux/clusters/clusters.builder.reducer";
+import {
+    addDockerImagePort,
+    removeDockerImagePort,
+    setDockerImagePort,
+    setSelectedDockerImage
+} from "../../../../redux/clusters/clusters.builder.reducer";
 
 export function AddPortsInputFields() {
     const dispatch = useDispatch();
@@ -13,8 +18,18 @@ export function AddPortsInputFields() {
     const selectedComponentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
     const selectedSkeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
     const selectedContainerName = useSelector((state: RootState) => state.clusterBuilder.selectedContainerName);
+    let selectedDockerImage = useSelector((state: RootState) => state.clusterBuilder.selectedDockerImage);
     const skeletonBaseKeys = cluster.componentBases[selectedComponentBaseName];
-    const [inputFields, setInputFields] = useState<{ name: string; number: number; protocol: string }[]>([{ name: '', number: 0, protocol: 'TCP' }]);
+    const ports = selectedDockerImage.ports || [];
+    useEffect(() => {
+        const containerRef = {
+            componentBaseKey: selectedComponentBaseName,
+            skeletonBaseKey: selectedSkeletonBaseName,
+            containerName: selectedContainerName,
+        };
+        dispatch(setSelectedDockerImage(containerRef));
+
+    }, [dispatch, selectedComponentBaseName, selectedSkeletonBaseName, selectedContainerName, cluster, selectedDockerImage, ports]);
 
     if (cluster.componentBases === undefined) {
         return <div></div>
@@ -31,10 +46,10 @@ export function AddPortsInputFields() {
     }
 
     const handleChange = (index: number, event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const values = [...inputFields];
+        const values = [...(selectedDockerImage.ports)];
+        console.log('handleChange', values)
+
         values[index] = {...values[index], [event.target.name]: event.target.value};
-        //console.log("values: " + values[index].name + " " + values[index].number + " " + values[index].protocol)
-        setInputFields(values);
         dispatch(setDockerImagePort({
             componentBaseKey: selectedComponentBaseName,
             skeletonBaseKey: selectedSkeletonBaseName,
@@ -46,14 +61,19 @@ export function AddPortsInputFields() {
     };
 
     const handleRemoveField = (index: number) => {
-        const values = [...inputFields];
+        const values = [...(selectedDockerImage.ports)];
         values.splice(index, 1);
-        setInputFields(values);
+        dispatch(removeDockerImagePort({
+                componentBaseKey: selectedComponentBaseName,
+                skeletonBaseKey: selectedSkeletonBaseName,
+                containerName: selectedContainerName,
+                dockerImageKey: skeletonBaseContainerNames.containers[selectedContainerName].dockerImage.imageName,
+                portIndex: index,
+        }));
     };
     const handleChangeSelect = (index: number, event: SelectChangeEvent<string>) => {
-        const values = [...inputFields];
+        const values = [...(selectedDockerImage.ports)];
         values[index] = { ...values[index], [event.target.name]: event.target.value };
-        setInputFields(values);
         dispatch(
             setDockerImagePort({
                 componentBaseKey: selectedComponentBaseName,
@@ -68,37 +88,49 @@ export function AddPortsInputFields() {
     };
 
     const handleAddField = () => {
-        setInputFields([...inputFields, { name: '', number: 0, protocol: 'TCP'}]);
+        const newPort = { name: '', number: 0, protocol: 'TCP' };
+        dispatch(addDockerImagePort({
+            componentBaseKey: selectedComponentBaseName,
+            skeletonBaseKey: selectedSkeletonBaseName,
+            containerName: selectedContainerName,
+            dockerImageKey: skeletonBaseContainerNames.containers[selectedContainerName].dockerImage.imageName,
+            port: newPort,
+        }));
     };
-
+    console.log(ports)
     return (
         <div>
             <Box mt={2}>
-                {inputFields.map((inputField, index) => (
+                {ports && ports.map((inputField, index) => (
                     <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                         <TextField
+                            key={`portName-${index}`}
                             name="name"
                             fullWidth
                             id={`portName-${index}`}
                             label={`Port Name ${index + 1}`}
                             variant="outlined"
+                            defaultValue=""
                             value={inputField.name}
                             onChange={(event) => handleChange(index, event)}
                             sx={{ mr: 1 }}
                         />
                         <TextField
+                            key={`portNumber-${index}`}
                             name="number"
                             fullWidth
                             id={`portNumber-${index}`}
                             label={`Port Number ${index + 1}`}
                             variant="outlined"
                             type="number"
+                            defaultValue={0}
                             value={inputField.number}
                             onChange={(event) => handleChange(index, event)}
                             sx={{ mr: 1 }}
+                            inputProps={{ min: 0 }}
                         />
                         <FormControl fullWidth variant="outlined">
-                            <InputLabel id={`portProtocolLabel-${index}`}>Protocol</InputLabel>
+                            <InputLabel key={`portProtocolLabel-${index}`} id={`portProtocolLabel-${index}`}>Protocol</InputLabel>
                             <Select
                                 labelId={`portProtocolLabel-${index}`}
                                 id={`portProtocol-${index}`}
@@ -106,6 +138,7 @@ export function AddPortsInputFields() {
                                 value={inputField.protocol}
                                 onChange={(event) => handleChangeSelect(index, event)}
                                 label="Protocol"
+                                defaultValue="TCP"
                             >
                                 <MenuItem value="TCP">TCP</MenuItem>
                                 <MenuItem value="UDP">UDP</MenuItem>

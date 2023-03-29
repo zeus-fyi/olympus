@@ -18,7 +18,7 @@ const initialState: ClusterBuilderState = {
     selectedComponentBaseName: '',
     selectedSkeletonBaseName: '',
     selectedContainerName: '',
-    selectedDockerImage: {imageName: '', cmd: '', args: '', ports: [{}] as Port[]} as DockerImage,
+    selectedDockerImage: {imageName: '', cmd: '', args: '', ports: [{name: '', number: 0, protocol: 'TCP'}] as Port[]} as DockerImage,
 };
 
 const clusterBuilderSlice = createSlice({
@@ -97,6 +97,8 @@ const clusterBuilderSlice = createSlice({
                 return;
             }
             container.dockerImage.imageName = dockerImageKey
+            const selectedDockerImage = state.selectedDockerImage
+            selectedDockerImage.imageName = dockerImageKey
         },
         setSelectedDockerImage: (state, action: PayloadAction<{ componentBaseKey: string; skeletonBaseKey: string; containerName: string;}>) => {
             const { componentBaseKey, skeletonBaseKey, containerName} = action.payload;
@@ -115,6 +117,8 @@ const clusterBuilderSlice = createSlice({
                 return;
             }
             dockerImage.args = args
+            const selectedDockerImage = state.selectedDockerImage
+            selectedDockerImage.args = args
         },
         setDockerImagePort: (state, action: PayloadAction<{
             componentBaseKey: string;
@@ -135,6 +139,66 @@ const clusterBuilderSlice = createSlice({
                 return;
             }
             dockerImage.ports[portIndex] = port;
+            const selectedDockerImage = state.selectedDockerImage
+            selectedDockerImage.ports[portIndex] = port;
+        },
+        addDockerImagePort: (state, action: PayloadAction<{
+            componentBaseKey: string;
+            skeletonBaseKey: string;
+            containerName: string;
+            dockerImageKey: string;
+            port: Port;
+        }>) => {
+            const { componentBaseKey, skeletonBaseKey, containerName, dockerImageKey, port } = action.payload;
+            const dockerImage = state.cluster.componentBases[componentBaseKey]?.[skeletonBaseKey]?.containers[containerName].dockerImage;
+            if (!dockerImage) {
+                console.error(`Docker image not found: ${dockerImageKey}`);
+                return;
+            }
+            // if (!port.name || port.number === 0) {
+            //     console.error(`Invalid port: ${port}`);
+            //     return;
+            // }
+            dockerImage.ports.push(port);
+            const selectedDockerImage = state.selectedDockerImage
+            selectedDockerImage.ports.push(port);
+        },
+        removeDockerImagePort: (state, action: PayloadAction<{
+            componentBaseKey: string;
+            skeletonBaseKey: string;
+            containerName: string;
+            dockerImageKey: string;
+            portIndex?: number;
+            port?: Port;
+        }>) => {
+            const { componentBaseKey, skeletonBaseKey, containerName, dockerImageKey, portIndex, port } = action.payload;
+            const dockerImage = state.cluster.componentBases[componentBaseKey]?.[skeletonBaseKey]?.containers[containerName].dockerImage;
+            const selectedDockerImage = state.selectedDockerImage
+
+            if (!dockerImage) {
+                console.error(`Docker image not found: ${dockerImageKey}`);
+                return;
+            }
+            if (portIndex !== undefined && (portIndex < 0 || portIndex >= dockerImage.ports.length)) {
+                console.error(`Invalid port index: ${portIndex}`);
+                return;
+            }
+            if (portIndex !== undefined && port === undefined) {
+                // Remove port at specified index
+                dockerImage.ports.splice(portIndex, 1);
+                selectedDockerImage.ports.splice(portIndex, 1);
+            } else if (port !== undefined) {
+                // Add or update port
+                if (portIndex !== undefined) {
+                    // Update existing port
+                    dockerImage.ports[portIndex] = port;
+                    selectedDockerImage.ports[portIndex] = port;
+                } else {
+                    // Add new port
+                    dockerImage.ports.push(port);
+                    selectedDockerImage.ports.push(port);
+                }
+            }
         },
     },
 });
@@ -142,7 +206,7 @@ const clusterBuilderSlice = createSlice({
 export const { setClusterName, addComponentBase, removeComponentBase, addSkeletonBase,
     setSelectedContainerName, removeSkeletonBase, setSelectedComponentBaseName,setSelectedSkeletonBaseName,
     addContainer, setDockerImagePort, setDockerImageCmd, removeContainer, setDockerImage, setDockerImageCmdArgs,
-    setSelectedDockerImage
+    setSelectedDockerImage, removeDockerImagePort, addDockerImagePort
 } = clusterBuilderSlice.actions;
 
 export default clusterBuilderSlice.reducer;

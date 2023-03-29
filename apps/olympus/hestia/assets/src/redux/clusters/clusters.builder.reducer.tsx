@@ -116,7 +116,14 @@ const clusterBuilderSlice = createSlice({
             }
             dockerImage.args = args
         },
-        setDockerImagePort: (state, action: PayloadAction<{ componentBaseKey: string; skeletonBaseKey: string; containerName: string; dockerImageKey: string; portIndex: number; port: Port }>) => {
+        setDockerImagePort: (state, action: PayloadAction<{
+            componentBaseKey: string;
+            skeletonBaseKey: string;
+            containerName: string;
+            dockerImageKey: string;
+            portIndex: number;
+            port: Port;
+        }>) => {
             const { componentBaseKey, skeletonBaseKey, containerName, dockerImageKey, portIndex, port } = action.payload;
             const dockerImage = state.cluster.componentBases[componentBaseKey]?.[skeletonBaseKey]?.containers[containerName].dockerImage;
             if (!dockerImage) {

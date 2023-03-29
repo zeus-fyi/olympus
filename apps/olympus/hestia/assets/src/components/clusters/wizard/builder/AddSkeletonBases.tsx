@@ -23,8 +23,20 @@ export function AddSkeletonBases(props: any) {
     };
     const handleAddField = () => {
         if (inputField) {
-            let sb = {  containers: {},  };
-            let cbObj = { componentBaseName: selectedComponentBaseName, skeletonBaseName: inputField, skeletonBase: sb }
+            let sb = {
+                addStatefulSet: false,
+                addDeployment: false,
+                addService: false,
+                addIngress: false,
+                addServiceMonitor: false,
+                addConfigMap: false,
+                containers: {},
+            };
+            let cbObj = {
+                componentBaseName: selectedComponentBaseName,
+                skeletonBaseName: inputField,
+                skeletonBase: sb,
+            }
             dispatch(setSelectedSkeletonBaseName(inputField))
             dispatch(addSkeletonBase(cbObj));
             setInputField('');

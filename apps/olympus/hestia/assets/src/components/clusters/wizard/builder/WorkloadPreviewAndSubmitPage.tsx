@@ -1,4 +1,4 @@
-import {Box, Card, CardContent, Container, Stack} from "@mui/material";
+import {Box, Button, Card, CardContent, Container, Stack} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import {SelectedComponentBaseName} from "./DefineComponentBases";
 import * as React from "react";
@@ -24,6 +24,16 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
                         </Box>
                         <Box mt={2}>
                             <SelectedSkeletonBaseName />
+                        </Box>
+                        <Box mt={2}>
+                            <Button variant="contained">
+                                Generate Preview
+                            </Button>
+                        </Box>
+                        <Box mt={2}>
+                            <Button variant="contained">
+                                Create Cluster
+                            </Button>
                         </Box>
                     </Container>
                 </Card>

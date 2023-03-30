@@ -110,7 +110,6 @@ export function AddPortsInputFields() {
                             id={`portName-${index}`}
                             label={`Port Name ${index + 1}`}
                             variant="outlined"
-                            defaultValue=""
                             value={inputField.name}
                             onChange={(event) => handleChange(index, event)}
                             sx={{ mr: 1 }}
@@ -123,7 +122,6 @@ export function AddPortsInputFields() {
                             label={`Port Number ${index + 1}`}
                             variant="outlined"
                             type="number"
-                            defaultValue={0}
                             value={inputField.number}
                             onChange={(event) => handleChange(index, event)}
                             sx={{ mr: 1 }}
@@ -138,7 +136,6 @@ export function AddPortsInputFields() {
                                 value={inputField.protocol ? inputField.protocol : "TCP"}
                                 onChange={(event) => handleChangeSelect(index, event)}
                                 label="Protocol"
-                                defaultValue="TCP"
                             >
                                 <MenuItem value="TCP">TCP</MenuItem>
                                 <MenuItem value="UDP">UDP</MenuItem>

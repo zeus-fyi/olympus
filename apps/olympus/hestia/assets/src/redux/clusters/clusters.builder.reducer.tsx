@@ -86,6 +86,14 @@ const clusterBuilderSlice = createSlice({
             }
             state.cluster.componentBases[componentBaseKey][skeletonBaseKey].containers[containerName] = container;
         },
+        setContainerInit: (state, action: PayloadAction<{ componentBaseKey: string; skeletonBaseKey: string; containerName: string; isInitContainer: boolean }>) => {
+            const { componentBaseKey, skeletonBaseKey, containerName, isInitContainer } = action.payload;
+            if (!state.cluster.componentBases[componentBaseKey]?.[skeletonBaseKey]) {
+                console.error(`SkeletonBase not found: ${skeletonBaseKey}`);
+                return;
+            }
+            state.cluster.componentBases[componentBaseKey][skeletonBaseKey].containers[containerName].isInitContainer = isInitContainer;
+        },
         removeContainer: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string, containerName: string}>) => {
             const { componentBaseName, skeletonBaseName, containerName} = action.payload;
             if (state.cluster.componentBases[componentBaseName][skeletonBaseName].containers[containerName]) {
@@ -299,7 +307,7 @@ export const { setClusterName, addComponentBase, removeComponentBase, addSkeleto
     setSelectedContainerName, removeSkeletonBase, setSelectedComponentBaseName,setSelectedSkeletonBaseName,
     addContainer, setDockerImagePort, setDockerImageCmd, removeContainer, setDockerImage, setDockerImageCmdArgs,
     setSelectedDockerImage, removeDockerImagePort, addDockerImagePort, setDockerImageVolumeMount,
-    addDockerImageVolumeMount, removeDockerImageVolumeMount
+    addDockerImageVolumeMount, removeDockerImageVolumeMount, setContainerInit
 } = clusterBuilderSlice.actions;
 
 export default clusterBuilderSlice.reducer;

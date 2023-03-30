@@ -18,6 +18,7 @@ import {useEffect, useState} from "react";
 import TextField from "@mui/material/TextField";
 import {AddPortsInputFields} from "./DefinePorts";
 import {
+    setContainerInit,
     setDockerImage,
     setDockerImageCmd,
     setDockerImageCmdArgs,
@@ -55,11 +56,31 @@ export function ContainerConfig() {
     const selectedSkeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
     const selectedContainerName = useSelector((state: RootState) => state.clusterBuilder.selectedContainerName);
     const skeletonBaseKeys = cluster.componentBases[selectedComponentBaseName];
-    const [isInitContainer, setIsInitContainer] = useState(false);
-    const label = { inputProps: { label: 'IsInitContainer', 'aria-label': 'IsInitContainer' } };
+    let isInitContainer = skeletonBaseKeys[selectedSkeletonBaseName]?.containers[selectedContainerName]?.isInitContainer || false;
+    const [checked, setChecked] = useState<boolean>(isInitContainer);
+    const skeletonBaseContainerNames = skeletonBaseKeys[selectedSkeletonBaseName];
+
+    useEffect(() => {
+        const containerRef = {
+            componentBaseKey: selectedComponentBaseName,
+            skeletonBaseKey: selectedSkeletonBaseName,
+            containerName: selectedContainerName,
+        };
+        const container = cluster.componentBases[selectedComponentBaseName]?.[selectedSkeletonBaseName]?.containers[selectedContainerName];
+        if (!container) {
+            return;
+        }
+    }, [dispatch, selectedComponentBaseName, selectedSkeletonBaseName, selectedContainerName, cluster, isInitContainer, skeletonBaseContainerNames]);
 
     const handleClick = () => {
-        setIsInitContainer(!isInitContainer);
+        const containerRef = {
+            componentBaseKey: selectedComponentBaseName,
+            skeletonBaseKey: selectedSkeletonBaseName,
+            containerName: selectedContainerName,
+            isInitContainer: !isInitContainer
+        };
+        setChecked(!checked);
+        dispatch(setContainerInit(containerRef));
     };
     if (cluster.componentBases === undefined) {
         return <div></div>
@@ -69,7 +90,6 @@ export function ContainerConfig() {
         return <div></div>
     }
 
-    const skeletonBaseContainerNames = skeletonBaseKeys[selectedSkeletonBaseName];
     show = skeletonBaseContainerNames !== undefined && Object.keys(skeletonBaseContainerNames.containers).length > 0;
     if (!show) {
         return <div></div>
@@ -82,18 +102,23 @@ export function ContainerConfig() {
             containerName: selectedContainerName,
         };
         dispatch(setSelectedDockerImage(containerRef));
+        isInitContainer = skeletonBaseKeys[selectedSkeletonBaseName]?.containers[newContainerName]?.isInitContainer || false
+        setChecked(isInitContainer);
     };
     return (
         <div>
             {show &&
                 <Box mt={2}>
-                    <FormControlLabel control={<Switch {...label} defaultChecked={isInitContainer} onClick={handleClick}/>} label={isInitContainer ? 'Init Container [True]' : 'Init Container [False]'} />
+                    <FormControlLabel
+                        control={<Switch checked={checked} onClick={handleClick} />}
+                        label={checked ? 'Init Container [True]' : 'Init Container [False]'}
+                    />
                 </Box>
             }
             {show &&
                 <Box mt={2}>
                     <FormControl variant="outlined" style={{ minWidth: '100%' }}>
-                        <InputLabel id="network-label">Containers</InputLabel>
+                        <InputLabel id="containerName-label">Containers</InputLabel>
                         <Select
                             labelId="containerName-label"
                             id="containerName"
@@ -114,7 +139,6 @@ export function ContainerConfig() {
             }
         </div>);
 }
-
 
 export function DockerConfig() {
     const dispatch = useDispatch();
@@ -196,7 +220,6 @@ export function DockerImageCmdArgs() {
     if (!show) {
         return <div></div>
     }
-
     const skeletonBaseContainerNames = skeletonBaseKeys[selectedSkeletonBaseName];
     show = skeletonBaseContainerNames !== undefined && Object.keys(skeletonBaseContainerNames.containers).length > 0;
     if (!show) {

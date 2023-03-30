@@ -59,7 +59,7 @@ export function ContainerConfig() {
     const selectedSkeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
     const selectedContainerName = useSelector((state: RootState) => state.clusterBuilder.selectedContainerName);
     const skeletonBaseKeys = cluster.componentBases[selectedComponentBaseName];
-    let isInitContainer = skeletonBaseKeys[selectedSkeletonBaseName]?.containers[selectedContainerName]?.isInitContainer || false;
+    const isInitContainer = skeletonBaseKeys[selectedSkeletonBaseName]?.containers[selectedContainerName]?.isInitContainer ?? false; // Fix the warning
     const [checked, setChecked] = useState<boolean>(isInitContainer);
     const skeletonBaseContainerNames = skeletonBaseKeys[selectedSkeletonBaseName];
 
@@ -105,7 +105,6 @@ export function ContainerConfig() {
             containerName: selectedContainerName,
         };
         dispatch(setSelectedDockerImage(containerRef));
-        isInitContainer = skeletonBaseKeys[selectedSkeletonBaseName]?.containers[newContainerName]?.isInitContainer || false
         setChecked(isInitContainer);
     };
     return (

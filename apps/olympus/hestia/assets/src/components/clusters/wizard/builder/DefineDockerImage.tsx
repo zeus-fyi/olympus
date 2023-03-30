@@ -177,7 +177,7 @@ export function DockerConfig() {
         return <div></div>
     }
 
-    const dockerImageName = skeletonBaseContainerNames?.containers?.[selectedContainerName]?.dockerImage?.imageName;
+    const dockerImageName = skeletonBaseContainerNames?.containers?.[selectedContainerName]?.dockerImage?.imageName ?? '';
     const onDockerImageNameChange = (newDockerImageName: string) => {
         const containerRef = {
             componentBaseKey: selectedComponentBaseName,

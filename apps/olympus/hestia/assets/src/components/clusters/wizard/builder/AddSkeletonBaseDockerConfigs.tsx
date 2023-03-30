@@ -7,6 +7,7 @@ import Typography from "@mui/material/Typography";
 import {DefineDockerParams} from "./DefineDockerImage";
 import {
     setSelectedComponentBaseName,
+    setSelectedContainerName,
     setSelectedSkeletonBaseName
 } from "../../../../redux/clusters/clusters.builder.reducer";
 import {AddContainers} from "./AddContainers";
@@ -77,6 +78,10 @@ export function SelectedSkeletonBaseName(props: any) {
 
     const onAccessSkeletonBase = (selectedSkeletonBaseName: string) => {
         dispatch(setSelectedSkeletonBaseName(selectedSkeletonBaseName));
+        const containerKeys = Object.keys(cluster.componentBases[componentBaseName][selectedSkeletonBaseName].containers)
+        if (containerKeys.length > 0) {
+            dispatch(setSelectedContainerName(containerKeys[0]));
+        }
     };
 
     if (cluster.componentBases === undefined) {

@@ -15,7 +15,7 @@ import Typography from "@mui/material/Typography";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../../../redux/store";
 import * as React from "react";
-import {useEffect, useState} from "react";
+import {useEffect} from "react";
 import TextField from "@mui/material/TextField";
 import {AddPortsInputFields} from "./DefinePorts";
 import {
@@ -60,20 +60,7 @@ export function ContainerConfig() {
     const selectedContainerName = useSelector((state: RootState) => state.clusterBuilder.selectedContainerName);
     const skeletonBaseKeys = cluster.componentBases[selectedComponentBaseName];
     const isInitContainer = skeletonBaseKeys[selectedSkeletonBaseName]?.containers[selectedContainerName]?.isInitContainer ?? false; // Fix the warning
-    const [checked, setChecked] = useState<boolean>(isInitContainer);
     const skeletonBaseContainerNames = skeletonBaseKeys[selectedSkeletonBaseName];
-
-    useEffect(() => {
-        const containerRef = {
-            componentBaseKey: selectedComponentBaseName,
-            skeletonBaseKey: selectedSkeletonBaseName,
-            containerName: selectedContainerName,
-        };
-        const container = cluster.componentBases[selectedComponentBaseName]?.[selectedSkeletonBaseName]?.containers[selectedContainerName];
-        if (!container) {
-            return;
-        }
-    }, [dispatch, selectedComponentBaseName, selectedSkeletonBaseName, selectedContainerName, cluster, isInitContainer, skeletonBaseContainerNames]);
 
     const handleClick = () => {
         const containerRef = {
@@ -82,7 +69,6 @@ export function ContainerConfig() {
             containerName: selectedContainerName,
             isInitContainer: !isInitContainer
         };
-        setChecked(!checked);
         dispatch(setContainerInit(containerRef));
     };
     if (cluster.componentBases === undefined) {
@@ -105,15 +91,14 @@ export function ContainerConfig() {
             containerName: selectedContainerName,
         };
         dispatch(setSelectedDockerImage(containerRef));
-        setChecked(isInitContainer);
     };
     return (
         <div>
             {show &&
                 <Box mt={2}>
                     <FormControlLabel
-                        control={<Switch checked={checked} onClick={handleClick} />}
-                        label={checked ? 'Init Container [True]' : 'Init Container [False]'}
+                        control={<Switch checked={isInitContainer} onClick={handleClick} />}
+                        label={isInitContainer ? 'Init Container [True]' : 'Init Container [False]'}
                     />
                 </Box>
             }

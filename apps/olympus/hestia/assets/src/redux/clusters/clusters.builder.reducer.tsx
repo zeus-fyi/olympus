@@ -108,7 +108,7 @@ const clusterBuilderSlice = createSlice({
             const { componentBaseKey, skeletonBaseKey, containerName, cmd } = action.payload;
             const dockerImage = state.cluster.componentBases[componentBaseKey]?.[skeletonBaseKey]?.containers[containerName].dockerImage;
             if (!dockerImage) {
-                console.error(`Docker image not found in container: ${containerName}`);
+                console.error(`Docker image not found in container setDockerImageCmd: ${containerName}`);
                 return;
             }
             dockerImage.cmd = cmd
@@ -117,7 +117,7 @@ const clusterBuilderSlice = createSlice({
             const { componentBaseKey, skeletonBaseKey, containerName, dockerImageKey } = action.payload;
             const container = state.cluster.componentBases[componentBaseKey]?.[skeletonBaseKey]?.containers[containerName];
             if (!container) {
-                console.error(`Docker image not found in container: ${containerName}`);
+                console.error(`Docker image not found in container setDockerImage: ${containerName}`);
                 return;
             }
             container.dockerImage.imageName = dockerImageKey

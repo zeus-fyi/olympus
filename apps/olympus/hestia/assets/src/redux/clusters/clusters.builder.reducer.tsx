@@ -5,6 +5,7 @@ import {
     Container,
     DockerImage,
     Port,
+    ResourceRequirements,
     SkeletonBase,
     SkeletonBases,
     VolumeMount
@@ -30,6 +31,7 @@ const initialState: ClusterBuilderState = {
         imageName: '',
         cmd: '',
         args: '',
+        resourceRequirements: {cpu: '', memory: ''} as ResourceRequirements,
         ports: [{name: '', number: 0, protocol: 'TCP'}] as Port[],
         volumeMounts: [{name: '', mountPath: ''}] as VolumeMount[]
     } as DockerImage,
@@ -141,6 +143,28 @@ const clusterBuilderSlice = createSlice({
             dockerImage.args = args
             const selectedDockerImage = state.selectedDockerImage
             selectedDockerImage.args = args
+        },
+        setDockerImageCpuResourceRequirement: (state, action: PayloadAction<{ componentBaseKey: string; skeletonBaseKey: string; containerName: string; cpu: string}>) => {
+            const { componentBaseKey, skeletonBaseKey, containerName, cpu } = action.payload;
+            const dockerImage = state.cluster.componentBases[componentBaseKey]?.[skeletonBaseKey]?.containers[containerName].dockerImage;
+            if (!dockerImage) {
+                console.error(`Docker image not found in container: ${containerName}`);
+                return;
+            }
+            dockerImage.resourceRequirements.cpu = cpu
+            const selectedDockerImage = state.selectedDockerImage
+            selectedDockerImage.resourceRequirements.cpu = cpu
+        },
+        setDockerImageMemoryResourceRequirement: (state, action: PayloadAction<{ componentBaseKey: string; skeletonBaseKey: string; containerName: string; memory: string}>) => {
+            const { componentBaseKey, skeletonBaseKey, containerName, memory } = action.payload;
+            const dockerImage = state.cluster.componentBases[componentBaseKey]?.[skeletonBaseKey]?.containers[containerName].dockerImage;
+            if (!dockerImage) {
+                console.error(`Docker image not found in container: ${containerName}`);
+                return;
+            }
+            dockerImage.resourceRequirements.memory = memory
+            const selectedDockerImage = state.selectedDockerImage
+            selectedDockerImage.resourceRequirements.memory = memory
         },
         setDockerImagePort: (state, action: PayloadAction<{
             componentBaseKey: string;
@@ -307,7 +331,8 @@ export const { setClusterName, addComponentBase, removeComponentBase, addSkeleto
     setSelectedContainerName, removeSkeletonBase, setSelectedComponentBaseName,setSelectedSkeletonBaseName,
     addContainer, setDockerImagePort, setDockerImageCmd, removeContainer, setDockerImage, setDockerImageCmdArgs,
     setSelectedDockerImage, removeDockerImagePort, addDockerImagePort, setDockerImageVolumeMount,
-    addDockerImageVolumeMount, removeDockerImageVolumeMount, setContainerInit
+    addDockerImageVolumeMount, removeDockerImageVolumeMount, setContainerInit, setDockerImageCpuResourceRequirement,
+    setDockerImageMemoryResourceRequirement
 } = clusterBuilderSlice.actions;
 
 export default clusterBuilderSlice.reducer;

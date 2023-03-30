@@ -8,6 +8,7 @@ import {
     InputLabel,
     MenuItem,
     Select,
+    Stack,
     Switch
 } from "@mui/material";
 import Typography from "@mui/material/Typography";
@@ -22,6 +23,8 @@ import {
     setDockerImage,
     setDockerImageCmd,
     setDockerImageCmdArgs,
+    setDockerImageCpuResourceRequirement,
+    setDockerImageMemoryResourceRequirement,
     setSelectedContainerName,
     setSelectedDockerImage
 } from "../../../../redux/clusters/clusters.builder.reducer";
@@ -200,6 +203,7 @@ export function DockerConfig() {
                 />
             </Box>
             <DockerImageCmdArgs />
+            <DockerImageResourceRequirements />
             <AddPortsInputFields />
             <AddVolumeMountsInputFields />
         </div>
@@ -269,6 +273,74 @@ export function DockerImageCmdArgs() {
                     onChange={(event) => onUpdateDockerArgs(event.target.value as string)}
                     sx={{ width: '100%' }}
                 />
+            </Box>
+        </div>
+    );
+}
+
+export function DockerImageResourceRequirements() {
+    const dispatch = useDispatch();
+    const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
+    const selectedComponentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
+    const selectedSkeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
+    const selectedContainerName = useSelector((state: RootState) => state.clusterBuilder.selectedContainerName);
+    const skeletonBaseKeys = cluster.componentBases[selectedComponentBaseName];
+    if (cluster.componentBases === undefined) {
+        return <div></div>
+    }
+    let show = skeletonBaseKeys !== undefined && Object.keys(skeletonBaseKeys).length > 0;
+    if (!show) {
+        return <div></div>
+    }
+    const skeletonBaseContainerNames = skeletonBaseKeys[selectedSkeletonBaseName];
+    show = skeletonBaseContainerNames !== undefined && Object.keys(skeletonBaseContainerNames.containers).length > 0;
+    if (!show) {
+        return <div></div>
+    }
+    const container = skeletonBaseContainerNames.containers[selectedContainerName];
+    const cpu = container?.dockerImage?.resourceRequirements.cpu || '';
+    const memory = container?.dockerImage?.resourceRequirements.memory || '';
+    const onUpdateDockerCpuResourceRequirements = (cpu: string) => {
+        const input = {
+            componentBaseKey: selectedComponentBaseName,
+            skeletonBaseKey: selectedSkeletonBaseName,
+            containerName: selectedContainerName,
+            cpu: cpu
+        };
+        dispatch(setDockerImageCpuResourceRequirement(input));
+    };
+    const onUpdateDockerMemoryResourceRequirements = (memory: string) => {
+        const input = {
+            componentBaseKey: selectedComponentBaseName,
+            skeletonBaseKey: selectedSkeletonBaseName,
+            containerName: selectedContainerName,
+            memory: memory
+        };
+        dispatch(setDockerImageMemoryResourceRequirement(input));
+    };
+    return (
+        <div>
+            <Box mt={2}>
+                <Stack direction="row" alignItems="center" spacing={2}>
+                    <TextField
+                        fullWidth
+                        id="dockerCpuResourceRequirements"
+                        label="Docker CPU Resource Requirements"
+                        variant="outlined"
+                        onChange={(event) => onUpdateDockerCpuResourceRequirements(event.target.value as string)}
+                        value={cpu}
+                        sx={{ width: '100%' }}
+                    />
+                    <TextField
+                        fullWidth
+                        id="dockerMemoryResourceRequirements"
+                        label="Docker Memory Resource Requirements"
+                        variant="outlined"
+                        value={memory}
+                        onChange={(event) => onUpdateDockerMemoryResourceRequirements(event.target.value as string)}
+                        sx={{ width: '100%' }}
+                    />
+                </Stack>
             </Box>
         </div>
     );

@@ -35,8 +35,14 @@ export interface DockerImage {
     imageName: string;
     cmd: string;
     args: string;
+    resourceRequirements: ResourceRequirements;
     ports: Port[];
     volumeMounts: VolumeMount[];
+}
+
+export interface ResourceRequirements {
+    cpu: string;
+    memory: string;
 }
 
 export interface Port {

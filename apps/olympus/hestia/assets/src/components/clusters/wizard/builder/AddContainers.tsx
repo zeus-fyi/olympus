@@ -30,6 +30,7 @@ export function AddContainers(props: any) {
                         imageName: '',
                         args: '',
                         cmd: '',
+                        resourceRequirements: {cpu: '', memory: ''},
                         volumeMounts: [{name: '', mountPath: ''}] as VolumeMount[],
                         ports: [{name: '', number: 0, protocol: 'TCP'} as Port] as Port[]}
                     }

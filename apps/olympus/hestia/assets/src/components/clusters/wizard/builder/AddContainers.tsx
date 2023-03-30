@@ -9,7 +9,7 @@ import {
 import {Box} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import {Container, Port} from "../../../../redux/clusters/clusters.types";
+import {Container, Port, VolumeMount} from "../../../../redux/clusters/clusters.types";
 
 export function AddContainers(props: any) {
     const dispatch = useDispatch();
@@ -24,8 +24,21 @@ export function AddContainers(props: any) {
     };
     const handleAddField = () => {
         if (inputField) {
-            const cont = {dockerImage: {imageName: '', args: '', cmd: '', ports: [{name: '', number: 0, protocol: 'TCP'} as Port] as Port[]}}
-            let contObj = { componentBaseKey: selectedComponentBaseName,skeletonBaseKey: selectedSkeletonBaseName, containerName: inputField, container: cont as Container}
+            const cont = {
+                dockerImage:
+                    {
+                        imageName: '',
+                        args: '',
+                        cmd: '',
+                        volumeMounts: [{name: '', mountPath: ''}] as VolumeMount[],
+                        ports: [{name: '', number: 0, protocol: 'TCP'} as Port] as Port[]}
+                    }
+            let contObj = {
+                componentBaseKey: selectedComponentBaseName,
+                skeletonBaseKey: selectedSkeletonBaseName,
+                containerName: inputField,
+                container: cont as Container,
+            }
             dispatch(addContainer(contObj));
             dispatch(setSelectedContainerName(inputField))
             setInputField('');

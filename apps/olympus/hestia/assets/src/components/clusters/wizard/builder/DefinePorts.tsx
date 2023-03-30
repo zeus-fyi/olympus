@@ -27,8 +27,11 @@ export function AddPortsInputFields() {
             skeletonBaseKey: selectedSkeletonBaseName,
             containerName: selectedContainerName,
         };
+        const container = cluster.componentBases[selectedComponentBaseName]?.[selectedSkeletonBaseName]?.containers[selectedContainerName];
+        if (!container) {
+            return;
+        }
         dispatch(setSelectedDockerImage(containerRef));
-
     }, [dispatch, selectedComponentBaseName, selectedSkeletonBaseName, selectedContainerName, cluster, selectedDockerImage, ports]);
 
     if (cluster.componentBases === undefined) {
@@ -152,9 +155,8 @@ export function AddPortsInputFields() {
                     </Box>
                 ))}
                 <Button variant="contained" onClick={handleAddField}>
-                    Add Item
+                    Add Port
                 </Button>
-
             </Box>
         </div>
     );

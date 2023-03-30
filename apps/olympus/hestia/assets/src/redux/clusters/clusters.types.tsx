@@ -11,7 +11,6 @@ export type SkeletonBases = {
     [skeletonBaseName: string]: SkeletonBase;
 };
 
-// TODO, needs to be updated to add service, ingress, etc
 export interface SkeletonBase {
     addStatefulSet: boolean;
     addDeployment: boolean;

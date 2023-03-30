@@ -24,6 +24,7 @@ import {
     setSelectedContainerName,
     setSelectedDockerImage
 } from "../../../../redux/clusters/clusters.builder.reducer";
+import {AddVolumeMountsInputFields} from "./DefineVolumeMounts";
 
 export function DefineDockerParams(props: any) {
     const {} = props;
@@ -128,8 +129,11 @@ export function DockerConfig() {
             skeletonBaseKey: selectedSkeletonBaseName,
             containerName: selectedContainerName,
         };
+        const container = cluster.componentBases[selectedComponentBaseName]?.[selectedSkeletonBaseName]?.containers[selectedContainerName];
+        if (!container) {
+            return;
+        }
         dispatch(setSelectedDockerImage(containerRef));
-
     }, [dispatch, selectedComponentBaseName, selectedSkeletonBaseName, selectedContainerName, cluster]);
 
     if (cluster.componentBases === undefined) {
@@ -173,6 +177,7 @@ export function DockerConfig() {
             </Box>
             <DockerImageCmdArgs />
             <AddPortsInputFields />
+            <AddVolumeMountsInputFields />
         </div>
     );
 }

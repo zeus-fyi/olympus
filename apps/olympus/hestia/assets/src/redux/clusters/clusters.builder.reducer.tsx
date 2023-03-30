@@ -1,5 +1,14 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {Cluster, ComponentBases, Container, DockerImage, Port, SkeletonBase, SkeletonBases} from "./clusters.types";
+import {
+    Cluster,
+    ComponentBases,
+    Container,
+    DockerImage,
+    Port,
+    SkeletonBase,
+    SkeletonBases,
+    VolumeMount
+} from "./clusters.types";
 
 interface ClusterBuilderState {
     cluster: Cluster;
@@ -7,7 +16,6 @@ interface ClusterBuilderState {
     selectedSkeletonBaseName: string;
     selectedContainerName: string;
     selectedDockerImage: DockerImage;
-
 }
 
 const initialState: ClusterBuilderState = {
@@ -18,7 +26,13 @@ const initialState: ClusterBuilderState = {
     selectedComponentBaseName: '',
     selectedSkeletonBaseName: '',
     selectedContainerName: '',
-    selectedDockerImage: {imageName: '', cmd: '', args: '', ports: [{name: '', number: 0, protocol: 'TCP'}] as Port[]} as DockerImage,
+    selectedDockerImage: {
+        imageName: '',
+        cmd: '',
+        args: '',
+        ports: [{name: '', number: 0, protocol: 'TCP'}] as Port[],
+        volumeMounts: [{name: '', mountPath: ''}] as VolumeMount[]
+    } as DockerImage,
 };
 
 const clusterBuilderSlice = createSlice({
@@ -200,13 +214,92 @@ const clusterBuilderSlice = createSlice({
                 }
             }
         },
+        setDockerImageVolumeMount: (state, action: PayloadAction<{
+            componentBaseKey: string;
+            skeletonBaseKey: string;
+            containerName: string;
+            dockerImageKey: string;
+            volumeMountIndex: number;
+            volumeMount: VolumeMount;
+        }>) => {
+            const { componentBaseKey, skeletonBaseKey, containerName, dockerImageKey, volumeMountIndex, volumeMount } = action.payload;
+            const dockerImage = state.cluster.componentBases[componentBaseKey]?.[skeletonBaseKey]?.containers[containerName].dockerImage;
+            if (!dockerImage) {
+                console.error(`Docker image not found: ${dockerImageKey}`);
+                return;
+            }
+            if (volumeMountIndex < 0 || volumeMountIndex >= dockerImage.volumeMounts.length) {
+                console.error(`Invalid volume mount index: ${volumeMountIndex}`);
+                return;
+            }
+            dockerImage.volumeMounts[volumeMountIndex] = volumeMount;
+            const selectedDockerImage = state.selectedDockerImage
+            selectedDockerImage.volumeMounts[volumeMountIndex] = volumeMount;
+        },
+        addDockerImageVolumeMount: (state, action: PayloadAction<{
+            componentBaseKey: string;
+            skeletonBaseKey: string;
+            containerName: string;
+            dockerImageKey: string;
+            volumeMount: VolumeMount;
+        }>) => {
+            const { componentBaseKey, skeletonBaseKey, containerName, dockerImageKey, volumeMount } = action.payload;
+            const dockerImage = state.cluster.componentBases[componentBaseKey]?.[skeletonBaseKey]?.containers[containerName].dockerImage;
+            if (!dockerImage) {
+                console.error(`Docker image not found: ${dockerImageKey}`);
+                return;
+            }
+            dockerImage.volumeMounts.push(volumeMount);
+            const selectedDockerImage = state.selectedDockerImage
+            selectedDockerImage.volumeMounts.push(volumeMount);
+        },
+        removeDockerImageVolumeMount: (state, action: PayloadAction<{
+            componentBaseKey: string;
+            skeletonBaseKey: string;
+            containerName: string;
+            dockerImageKey: string;
+            volumeMountIndex?: number;
+            volumeMount?: VolumeMount;
+        }>) => {
+            const { componentBaseKey, skeletonBaseKey, containerName, dockerImageKey, volumeMountIndex, volumeMount } = action.payload;
+            const dockerImage = state.cluster.componentBases[componentBaseKey]?.[skeletonBaseKey]?.containers[containerName].dockerImage;
+            const selectedDockerImage = state.selectedDockerImage;
+
+            if (!dockerImage) {
+                console.error(`Docker image not found: ${dockerImageKey}`);
+                return;
+            }
+
+            if (volumeMountIndex !== undefined && (volumeMountIndex < 0 || volumeMountIndex >= dockerImage.volumeMounts.length)) {
+                console.error(`Invalid volume mount index: ${volumeMountIndex}`);
+                return;
+            }
+
+            if (volumeMountIndex !== undefined && volumeMount === undefined) {
+                // Remove volume mount at specified index
+                dockerImage.volumeMounts.splice(volumeMountIndex, 1);
+                selectedDockerImage.volumeMounts.splice(volumeMountIndex, 1);
+            } else if (volumeMount !== undefined) {
+                // Add or update volume mount
+                if (volumeMountIndex !== undefined) {
+                    // Update existing volume mount
+                    dockerImage.volumeMounts[volumeMountIndex] = volumeMount;
+                    selectedDockerImage.volumeMounts[volumeMountIndex] = volumeMount;
+                } else {
+                    // Add new volume mount
+                    dockerImage.volumeMounts.push(volumeMount);
+                    selectedDockerImage.volumeMounts.push(volumeMount);
+                }
+            }
+        },
     },
 });
 
 export const { setClusterName, addComponentBase, removeComponentBase, addSkeletonBase,
     setSelectedContainerName, removeSkeletonBase, setSelectedComponentBaseName,setSelectedSkeletonBaseName,
     addContainer, setDockerImagePort, setDockerImageCmd, removeContainer, setDockerImage, setDockerImageCmdArgs,
-    setSelectedDockerImage, removeDockerImagePort, addDockerImagePort
+    setSelectedDockerImage, removeDockerImagePort, addDockerImagePort, setDockerImageVolumeMount,
+    addDockerImageVolumeMount, removeDockerImageVolumeMount
 } = clusterBuilderSlice.actions;
 
 export default clusterBuilderSlice.reducer;

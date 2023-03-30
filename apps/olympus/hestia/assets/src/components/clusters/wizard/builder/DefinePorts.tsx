@@ -1,5 +1,5 @@
 import * as React from "react";
-import {useEffect} from "react";
+import {useMemo} from "react";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import {Box, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent} from "@mui/material";
@@ -8,8 +8,7 @@ import {RootState} from "../../../../redux/store";
 import {
     addDockerImagePort,
     removeDockerImagePort,
-    setDockerImagePort,
-    setSelectedDockerImage
+    setDockerImagePort
 } from "../../../../redux/clusters/clusters.builder.reducer";
 
 export function AddPortsInputFields() {
@@ -18,21 +17,9 @@ export function AddPortsInputFields() {
     const selectedComponentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
     const selectedSkeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
     const selectedContainerName = useSelector((state: RootState) => state.clusterBuilder.selectedContainerName);
-    let selectedDockerImage = useSelector((state: RootState) => state.clusterBuilder.selectedDockerImage);
     const skeletonBaseKeys = cluster.componentBases[selectedComponentBaseName];
-    const ports = selectedDockerImage.ports || [{name: "", port: "", protocol: "TCP"}];
-    useEffect(() => {
-        const containerRef = {
-            componentBaseKey: selectedComponentBaseName,
-            skeletonBaseKey: selectedSkeletonBaseName,
-            containerName: selectedContainerName,
-        };
-        const container = cluster.componentBases[selectedComponentBaseName]?.[selectedSkeletonBaseName]?.containers[selectedContainerName];
-        if (!container) {
-            return;
-        }
-        dispatch(setSelectedDockerImage(containerRef));
-    }, [dispatch, selectedComponentBaseName, selectedSkeletonBaseName, selectedContainerName, cluster, selectedDockerImage, ports]);
+    let selectedDockerImage = cluster.componentBases[selectedComponentBaseName]?.[selectedSkeletonBaseName]?.containers[selectedContainerName]?.dockerImage
+    const ports = useMemo(() => selectedDockerImage?.ports || [{name: "", number: "", protocol: "TCP"}], [selectedDockerImage?.ports]);
 
     if (cluster.componentBases === undefined) {
         return <div></div>
@@ -128,19 +115,19 @@ export function AddPortsInputFields() {
                             inputProps={{ min: 0 }}
                         />
                         <FormControl fullWidth variant="outlined">
-                            <InputLabel key={`portProtocolLabel-${index}`} id={`portProtocolLabel-${index}`}>Protocol</InputLabel>
-                            <Select
-                                labelId={`portProtocolLabel-${index}`}
-                                id={`portProtocol-${index}`}
-                                name="protocol"
-                                value={inputField.protocol ? inputField.protocol : "TCP"}
-                                onChange={(event) => handleChangeSelect(index, event)}
-                                label="Protocol"
-                            >
+                                <InputLabel key={`portProtocolLabel-${index}`} id={`portProtocolLabel-${index}`}>Protocol</InputLabel>
+                                <Select
+                                    labelId={`portProtocolLabel-${index}`}
+                                    id={`portProtocol-${index}`}
+                                    name="protocol"
+                                    value={inputField.protocol ? inputField.protocol : "TCP"}
+                                    onChange={(event) => handleChangeSelect(index, event)}
+                                    label="Protocol"
+                                >
                                 <MenuItem value="TCP">TCP</MenuItem>
                                 <MenuItem value="UDP">UDP</MenuItem>
-                            </Select>
-                        </FormControl>
+                                </Select>
+                            </FormControl>
                         <Box sx={{ ml: 2 }}>
                             <Button
                                 variant="contained"

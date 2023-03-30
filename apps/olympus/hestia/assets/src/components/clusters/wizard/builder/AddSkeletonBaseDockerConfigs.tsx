@@ -1,17 +1,26 @@
 import {useDispatch, useSelector} from "react-redux";
 import * as React from "react";
+import {useEffect} from "react";
 import {Box, Card, CardContent, Container, FormControl, InputLabel, MenuItem, Select, Stack} from "@mui/material";
 import {RootState} from "../../../../redux/store";
 import Typography from "@mui/material/Typography";
 import {DefineDockerParams} from "./DefineDockerImage";
-import {setSelectedSkeletonBaseName} from "../../../../redux/clusters/clusters.builder.reducer";
+import {
+    setSelectedComponentBaseName,
+    setSelectedSkeletonBaseName
+} from "../../../../redux/clusters/clusters.builder.reducer";
 import {AddContainers} from "./AddContainers";
 
 export function AddSkeletonBaseDockerConfigs(props: any) {
+    const dispatch = useDispatch();
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
     const componentBases = cluster.componentBases;
     const componentBaseKeys = Object.keys(componentBases);
     const componentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
+
+    useEffect(() => {
+        dispatch(setSelectedComponentBaseName(componentBaseName));
+    }, [dispatch, cluster, componentBaseName]);
 
     let selectedComponentBaseKey = '';
     if (componentBaseKeys.length > 0) {
@@ -57,11 +66,18 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
 export function SelectedSkeletonBaseName(props: any) {
     const dispatch = useDispatch();
     const skeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
+    const componentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
+    const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
+
+    useEffect(() => {
+        dispatch(setSelectedComponentBaseName(componentBaseName));
+        dispatch(setSelectedSkeletonBaseName(skeletonBaseName));
+    }, [dispatch,skeletonBaseName, componentBaseName]);
+
+
     const onAccessSkeletonBase = (selectedSkeletonBaseName: string) => {
         dispatch(setSelectedSkeletonBaseName(selectedSkeletonBaseName));
     };
-    const componentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
-    const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
 
     if (cluster.componentBases === undefined) {
         return <div></div>

@@ -97,7 +97,6 @@ export function AddVolumeMountsInputFields() {
                     id={`volumeMountName-${index}`}
                     label={`Volume Mount Name ${index + 1}`}
                     variant="outlined"
-                    defaultValue=""
                     value={inputField.name}
                     onChange={(event) => handleChange(index, event)}
                     sx={{ mr: 1 }}
@@ -109,7 +108,6 @@ export function AddVolumeMountsInputFields() {
                     id={`volumeMountPath-${index}`}
                     label={`Volume Mount Path ${index + 1}`}
                     variant="outlined"
-                    defaultValue=""
                     value={inputField.mountPath}
                     onChange={(event) => handleChange(index, event)}
                     sx={{ mr: 1 }}

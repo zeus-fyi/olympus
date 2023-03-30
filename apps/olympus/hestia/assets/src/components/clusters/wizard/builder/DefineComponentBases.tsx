@@ -6,6 +6,7 @@ import * as React from "react";
 import {AddSkeletonBases} from "./AddSkeletonBases";
 import {
     setSelectedComponentBaseName,
+    setSelectedContainerName,
     setSelectedSkeletonBaseName
 } from "../../../../redux/clusters/clusters.builder.reducer";
 
@@ -43,6 +44,10 @@ export function SelectedComponentBaseName(props: any) {
        dispatch(setSelectedComponentBaseName(selectedComponentBaseName));
        const skeletonBaseName = Object.keys(cluster.componentBases[selectedComponentBaseName])[0];
        dispatch(setSelectedSkeletonBaseName(skeletonBaseName));
+        const containerKeys = Object.keys(cluster.componentBases[selectedComponentBaseName][skeletonBaseName].containers)
+        if (containerKeys.length > 0) {
+            dispatch(setSelectedContainerName(containerKeys[0]));
+        }
     };
 
     let show = Object.keys(cluster.componentBases).length > 0;

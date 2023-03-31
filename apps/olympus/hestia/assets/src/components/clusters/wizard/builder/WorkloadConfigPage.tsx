@@ -116,8 +116,10 @@ export function WorkloadConfigPage(props: any) {
     const onChangeComponentOrSkeletonBase = () => {
         setViewField('')
     }
+    let show = Object.keys(cluster.componentBases).length > 0
+
     return (
-        <div>
+        <div> {show && Object.keys(cluster.componentBases?.[selectedComponentBaseName]).length > 0 && (
             <Stack direction="row" spacing={2}>
                 <Card sx={{ maxWidth: 500 }}>
                     <CardContent>
@@ -233,6 +235,7 @@ export function WorkloadConfigPage(props: any) {
                     <AddSkeletonBaseDockerConfigs viewField={viewField} />
                 )}
             </Stack>
+            )}
         </div>
     );
 }

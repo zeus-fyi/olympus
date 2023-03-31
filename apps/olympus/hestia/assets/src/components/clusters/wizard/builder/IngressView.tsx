@@ -10,11 +10,6 @@ import Typography from "@mui/material/Typography";
 export function IngressView(props: any) {
     const dispatch = useDispatch();
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
-    const selectedComponentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
-    const selectedSkeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
-    const selectedComponentBase = cluster.componentBases?.[selectedComponentBaseName]?.[selectedSkeletonBaseName] ?? '';
-    const addDeployment = selectedComponentBase?.addDeployment
-    const addStatefulSet = selectedComponentBase?.addStatefulSet
     const ports = useMemo(() => {
         const allPorts: Port[] = [];
         const componentBases = Object.values(cluster.componentBases);

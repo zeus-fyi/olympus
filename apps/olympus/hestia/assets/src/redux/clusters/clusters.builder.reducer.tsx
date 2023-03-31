@@ -96,7 +96,6 @@ const clusterBuilderSlice = createSlice({
                 console.error(`Invalid pvc index: ${pvcIndex}`);
                 return;
             }
-            console.log(pvc, pvcIndex, 'pvc, pvcIndex')
             if (pvcIndex >= 0) {
                 statefulSet.pvcTemplates[pvcIndex] = pvc;
             } else {

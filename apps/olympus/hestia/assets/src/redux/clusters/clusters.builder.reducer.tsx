@@ -162,6 +162,7 @@ const clusterBuilderSlice = createSlice({
             state.cluster.componentBases[componentBaseName][skeletonBaseName].addStatefulSet = addStatefulSet;
             if (state.cluster.componentBases[componentBaseName][skeletonBaseName].addDeployment && addStatefulSet) {
                 state.cluster.componentBases[componentBaseName][skeletonBaseName].addDeployment = false;
+                state.cluster.componentBases[componentBaseName][skeletonBaseName].containers = {};
             }
         },
         toggleDeploymentWorkloadSelectionOnSkeletonBase: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; addDeployment: boolean }>) => {
@@ -172,6 +173,7 @@ const clusterBuilderSlice = createSlice({
             state.cluster.componentBases[componentBaseName][skeletonBaseName].addDeployment = addDeployment;
             if (state.cluster.componentBases[componentBaseName][skeletonBaseName].addStatefulSet && addDeployment) {
                 state.cluster.componentBases[componentBaseName][skeletonBaseName].addStatefulSet = false;
+                state.cluster.componentBases[componentBaseName][skeletonBaseName].containers = {};
             }
         },
         toggleServiceWorkloadSelectionOnSkeletonBase: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; addService: boolean }>) => {

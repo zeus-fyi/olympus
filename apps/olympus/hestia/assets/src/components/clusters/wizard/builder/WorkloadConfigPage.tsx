@@ -245,9 +245,7 @@ export function WorkloadConfigPage(props: any) {
                 )}
                 {viewField === 'service' && (
                     <div>
-                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                            <ServiceView />
-                        </Container>
+                        <ServiceView addStatefulSet={addStatefulSet} addDeployment={addStatefulSet} />
                     </div>
                 )}
             </Stack>

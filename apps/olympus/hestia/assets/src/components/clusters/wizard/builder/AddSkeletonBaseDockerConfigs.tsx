@@ -6,11 +6,14 @@ import {RootState} from "../../../../redux/store";
 import Typography from "@mui/material/Typography";
 import {DefineDockerParams} from "./DefineDockerImage";
 import {
+    setDeploymentReplicaCount,
     setSelectedComponentBaseName,
     setSelectedContainerName,
-    setSelectedSkeletonBaseName
+    setSelectedSkeletonBaseName,
+    setStatefulSetReplicaCount
 } from "../../../../redux/clusters/clusters.builder.reducer";
 import {AddContainers} from "./AddContainers";
+import TextField from "@mui/material/TextField";
 
 export function AddSkeletonBaseDockerConfigs(props: any) {
     const {viewField} = props;
@@ -27,6 +30,7 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
     const componentBases = cluster.componentBases;
     const componentBaseKeys = Object.keys(componentBases);
     const componentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
+    const selectedSkeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
 
     useEffect(() => {
         dispatch(setSelectedComponentBaseName(componentBaseName));
@@ -45,6 +49,14 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
     if (!show) {
         return <div></div>
     }
+    const onChangeStatefulSetReplicaCount = (replicaCount: number) => {
+        const stsObjRef = {componentBaseName: componentBaseName, skeletonBaseName: selectedSkeletonBaseName, replicaCount: replicaCount};
+        dispatch(setStatefulSetReplicaCount(stsObjRef));
+    };
+    const onChangeDeploymentReplicaCount = (replicaCount: number) => {
+        const stsObjRef = {componentBaseName: componentBaseName, skeletonBaseName: selectedSkeletonBaseName, replicaCount: replicaCount};
+        dispatch(setDeploymentReplicaCount(stsObjRef));
+    };
     return (
         <div>
             <Stack direction="row" spacing={2}>
@@ -55,15 +67,50 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
                         </Typography>
                     </CardContent>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        <div>
+                            {viewField === 'deployment' &&
+                            <Box mt={2}>
+                                <TextField
+                                    fullWidth
+                                    id={"replicaCount"+viewFieldName}
+                                    label={"Replica Count"}
+                                    variant="outlined"
+                                    type={"number"}
+                                    InputProps={{ inputProps: { min: 0 } }}
+                                    value={cluster.componentBases[selectedComponentBaseKey][selectedSkeletonBaseName].deployment.replicaCount}
+                                    onChange={(event) => onChangeDeploymentReplicaCount(parseInt(event.target.value))}
+                                    sx={{ width: '100%' }}
+                                />
+                            </Box>
+                            }
+                            {viewField === 'statefulSet' &&
+                                <Box mt={2}>
+                                    <TextField
+                                        fullWidth
+                                        id={"replicaCount"+viewFieldName}
+                                        label={"Replica Count"}
+                                        variant="outlined"
+                                        type={"number"}
+                                        InputProps={{ inputProps: { min: 0 } }}
+                                        value={cluster.componentBases[selectedComponentBaseKey][selectedSkeletonBaseName].statefulSet.replicaCount}
+                                        onChange={(event) => onChangeStatefulSetReplicaCount(parseInt(event.target.value))}
+                                        sx={{ width: '100%' }}
+                                    />
+                                </Box>
+                            }
                         {show && cluster.componentBases[selectedComponentBaseKey] && Object.keys(skeletonBaseKeys).length > 0 &&
                             <Box mt={2}>
                                 <AddContainers />
                             </Box>
                         }
+                        </div>
+
                     </Container>
                 </Card>
                 {show && cluster.componentBases[selectedComponentBaseKey] && Object.keys(skeletonBaseKeys).length > 0 &&
-                    <DefineDockerParams />
+                    <div>
+                        <DefineDockerParams />
+                    </div>
                 }
             </Stack>
         </div>

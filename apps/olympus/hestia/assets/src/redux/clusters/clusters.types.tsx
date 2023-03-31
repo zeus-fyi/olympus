@@ -29,7 +29,7 @@ export interface Deployment {
 
 export interface StatefulSet {
     replicaCount: number;
-    pvcTemplate: PVCTemplate[];
+    pvcTemplates: PVCTemplate[];
 }
 
 export interface PVCTemplate {

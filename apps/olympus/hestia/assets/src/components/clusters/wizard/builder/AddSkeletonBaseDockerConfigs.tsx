@@ -1,19 +1,34 @@
 import {useDispatch, useSelector} from "react-redux";
 import * as React from "react";
 import {useEffect} from "react";
-import {Box, Card, CardContent, Container, FormControl, InputLabel, MenuItem, Select, Stack} from "@mui/material";
+import {
+    Box,
+    Card,
+    CardContent,
+    Container,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Select,
+    SelectChangeEvent,
+    Stack
+} from "@mui/material";
 import {RootState} from "../../../../redux/store";
 import Typography from "@mui/material/Typography";
 import {DefineDockerParams} from "./DefineDockerImage";
 import {
+    addStatefulSetPVC,
+    removeStatefulSetPVC,
     setDeploymentReplicaCount,
     setSelectedComponentBaseName,
     setSelectedContainerName,
     setSelectedSkeletonBaseName,
+    setStatefulSetPVC,
     setStatefulSetReplicaCount
 } from "../../../../redux/clusters/clusters.builder.reducer";
 import {AddContainers} from "./AddContainers";
 import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
 
 export function AddSkeletonBaseDockerConfigs(props: any) {
     const {viewField} = props;
@@ -57,6 +72,49 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
         const stsObjRef = {componentBaseName: componentBaseName, skeletonBaseName: selectedSkeletonBaseName, replicaCount: replicaCount};
         dispatch(setDeploymentReplicaCount(stsObjRef));
     };
+
+    const handleChange = (index: number, event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const values = [...(cluster.componentBases[selectedComponentBaseKey][selectedSkeletonBaseName].statefulSet.pvcTemplates)];
+        values[index] = {...values[index], [event.target.name]: event.target.value};
+        dispatch(setStatefulSetPVC({
+            componentBaseName: componentBaseName,
+            skeletonBaseName: selectedSkeletonBaseName,
+            pvcIndex: index,
+            pvc: values[index],
+        }));
+    };
+
+    const handleRemoveField = (index: number) => {
+        const values = [...(cluster.componentBases[selectedComponentBaseKey][selectedSkeletonBaseName].statefulSet.pvcTemplates)];
+        const pvc = values[index]
+        values.splice(index, 1);
+        dispatch(removeStatefulSetPVC({
+            componentBaseName: componentBaseName,
+            skeletonBaseName: selectedSkeletonBaseName,
+            pvc: pvc,
+            pvcIndex: index,
+        }));
+    };
+    const handleChangeSelect = (index: number, event: SelectChangeEvent<string>) => {
+        const values = [...(cluster.componentBases[selectedComponentBaseKey][selectedSkeletonBaseName].statefulSet.pvcTemplates)];
+        values[index] = { ...values[index], [event.target.name]: event.target.value };
+        dispatch(setStatefulSetPVC({
+            componentBaseName: componentBaseName,
+            skeletonBaseName: selectedSkeletonBaseName,
+            pvcIndex: index,
+            pvc: values[index],
+        }));
+    };
+
+    const handleAddField = () => {
+        const newPVC = { name: '', accessMode: 'ReadWriteOnce', storageSizeRequest: '' };
+        dispatch(addStatefulSetPVC({
+            componentBaseName: componentBaseName,
+            skeletonBaseName: selectedSkeletonBaseName,
+            pvc: newPVC,
+        }));
+    };
+    const showPVCs = Object.keys(cluster.componentBases[selectedComponentBaseKey][selectedSkeletonBaseName].statefulSet.pvcTemplates).length > 0;
     return (
         <div>
             <Stack direction="row" spacing={2}>
@@ -84,19 +142,74 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
                             </Box>
                             }
                             {viewField === 'statefulSet' &&
-                                <Box mt={2}>
-                                    <TextField
-                                        fullWidth
-                                        id={"replicaCount"+viewFieldName}
-                                        label={"Replica Count"}
-                                        variant="outlined"
-                                        type={"number"}
-                                        InputProps={{ inputProps: { min: 0 } }}
-                                        value={cluster.componentBases[selectedComponentBaseKey][selectedSkeletonBaseName].statefulSet.replicaCount}
-                                        onChange={(event) => onChangeStatefulSetReplicaCount(parseInt(event.target.value))}
-                                        sx={{ width: '100%' }}
-                                    />
-                                </Box>
+                                <div>
+                                    <Box mt={2}>
+                                        <TextField
+                                            fullWidth
+                                            id={"replicaCount"+viewFieldName}
+                                            label={"Replica Count"}
+                                            variant="outlined"
+                                            type={"number"}
+                                            InputProps={{ inputProps: { min: 0 } }}
+                                            value={cluster.componentBases[selectedComponentBaseKey][selectedSkeletonBaseName].statefulSet.replicaCount}
+                                            onChange={(event) => onChangeStatefulSetReplicaCount(parseInt(event.target.value))}
+                                            sx={{ width: '100%' }}
+                                        />
+                                    </Box>
+                                    <Box mt={2}>
+                                        {showPVCs && cluster.componentBases[selectedComponentBaseKey][selectedSkeletonBaseName].statefulSet.pvcTemplates.map((inputField, index) => (
+                                            <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                                <TextField
+                                                    key={`name-${index}`}
+                                                    name="name"
+                                                    fullWidth
+                                                    id={`name-${index}`}
+                                                    label={`PVC Name ${index + 1}`}
+                                                    variant="outlined"
+                                                    value={inputField.name}
+                                                    onChange={(event) => handleChange(index, event)}
+                                                    sx={{ mr: 1 }}
+                                                />
+                                                <TextField
+                                                    key={`storageSizeRequest-${index}`}
+                                                    name="storageSizeRequest"
+                                                    fullWidth
+                                                    id={`storageSizeRequest-${index}`}
+                                                    label={`Storage Size Request Number ${index + 1}`}
+                                                    variant="outlined"
+                                                    value={inputField.storageSizeRequest}
+                                                    onChange={(event) => handleChange(index, event)}
+                                                    sx={{ mr: 1 }}
+                                                    inputProps={{ min: 0 }}
+                                                />
+                                                <FormControl fullWidth variant="outlined">
+                                                    <InputLabel key={`accessModeLabel-${index}`} id={`accessModeLabel-${index}`}>Access Mode</InputLabel>
+                                                    <Select
+                                                        labelId={`accessModeLabel-${index}`}
+                                                        id={`accessMode-${index}`}
+                                                        name="accessMode"
+                                                        value={inputField.accessMode ? inputField.accessMode : "ReadWriteOnce"}
+                                                        onChange={(event) => handleChangeSelect(index, event)}
+                                                        label="Access Mode"
+                                                    >
+                                                        <MenuItem value="ReadWriteOnce">ReadWriteOnce</MenuItem>
+                                                    </Select>
+                                                </FormControl>
+                                                <Box sx={{ ml: 2 }}>
+                                                    <Button
+                                                        variant="contained"
+                                                        onClick={() => handleRemoveField(index)}
+                                                    >
+                                                        Remove
+                                                    </Button>
+                                                </Box>
+                                            </Box>
+                                        ))}
+                                        <Button variant="contained" onClick={handleAddField}>
+                                            Add PVC
+                                        </Button>
+                                    </Box>
+                                </div>
                             }
                         {show && cluster.componentBases[selectedComponentBaseKey] && Object.keys(skeletonBaseKeys).length > 0 &&
                             <Box mt={2}>

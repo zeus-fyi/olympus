@@ -80,7 +80,30 @@ const clusterBuilderSlice = createSlice({
             }
             state.cluster.componentBases[componentBaseName][skeletonBaseName].statefulSet.replicaCount = replicaCount;
         },
-        setStatefulSetPVC: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; pvc: PVCTemplate }>) => {
+        setStatefulSetPVC: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; pvcIndex: number, pvc: PVCTemplate }>) => {
+            const { componentBaseName, skeletonBaseName, pvcIndex, pvc } = action.payload;
+            const skeletonBase = state.cluster.componentBases[componentBaseName]?.[skeletonBaseName];
+            if (!skeletonBase) {
+                console.error(`Skeleton base not found: ${skeletonBaseName}`);
+                return;
+            }
+            const statefulSet = skeletonBase.statefulSet;
+            if (!statefulSet) {
+                console.error(`Stateful set not found in skeleton base: ${skeletonBaseName}`);
+                return;
+            }
+            if (pvcIndex < 0 || pvcIndex >= statefulSet.pvcTemplates.length) {
+                console.error(`Invalid pvc index: ${pvcIndex}`);
+                return;
+            }
+            console.log(pvc, pvcIndex, 'pvc, pvcIndex')
+            if (pvcIndex >= 0) {
+                statefulSet.pvcTemplates[pvcIndex] = pvc;
+            } else {
+                statefulSet.pvcTemplates.push(pvc);
+            }
+        },
+        addStatefulSetPVC: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; pvc: PVCTemplate }>) => {
             const { componentBaseName, skeletonBaseName, pvc } = action.payload;
             const skeletonBase = state.cluster.componentBases[componentBaseName]?.[skeletonBaseName];
             if (!skeletonBase) {
@@ -92,15 +115,10 @@ const clusterBuilderSlice = createSlice({
                 console.error(`Stateful set not found in skeleton base: ${skeletonBaseName}`);
                 return;
             }
-            const pvcTemplateIndex = statefulSet.pvcTemplate.findIndex((pvcTemplate) => pvcTemplate.name === pvc.name);
-            if (pvcTemplateIndex >= 0) {
-                statefulSet.pvcTemplate[pvcTemplateIndex] = pvc;
-            } else {
-                statefulSet.pvcTemplate.push(pvc);
-            }
+            statefulSet.pvcTemplates.push(pvc);
         },
-        removeStatefulSetPVC: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; pvcName: string }>) => {
-            const { componentBaseName, skeletonBaseName, pvcName } = action.payload;
+        removeStatefulSetPVC: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; pvcIndex: number, pvc: PVCTemplate}>) => {
+            const { componentBaseName, skeletonBaseName, pvcIndex, pvc} = action.payload;
             const skeletonBase = state.cluster.componentBases[componentBaseName]?.[skeletonBaseName];
             if (!skeletonBase) {
                 console.error(`Skeleton base not found: ${skeletonBaseName}`);
@@ -111,9 +129,23 @@ const clusterBuilderSlice = createSlice({
                 console.error(`Stateful set not found in skeleton base: ${skeletonBaseName}`);
                 return;
             }
-            const pvcTemplateIndex = statefulSet.pvcTemplate.findIndex((pvcTemplate) => pvcTemplate.name === pvcName);
-            if (pvcTemplateIndex >= 0) {
-                statefulSet.pvcTemplate.splice(pvcTemplateIndex, 1);
+
+            if (pvcIndex !== undefined && (pvcIndex < 0 || pvcIndex >= skeletonBase.statefulSet.pvcTemplates.length)) {
+                console.error(`Invalid pvc index: ${pvcIndex}`);
+                return;
+            }
+            if (pvcIndex !== undefined) {
+                // Remove port at specified index
+                skeletonBase.statefulSet.pvcTemplates.splice(pvcIndex, 1);
+            } else if (pvc !== undefined) {
+                // Add or update port
+                if (pvcIndex !== undefined) {
+                    // Update existing port
+                    skeletonBase.statefulSet.pvcTemplates[pvcIndex] = pvc;
+                } else {
+                    // Add new port
+                    skeletonBase.statefulSet.pvcTemplates.push(pvc);
+                }
             }
         },
         setDeploymentReplicaCount: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; replicaCount: number }>) => {
@@ -459,7 +491,8 @@ export const {
     removeStatefulSetPVC,
     setStatefulSetPVC,
     setStatefulSetReplicaCount,
-    setDeploymentReplicaCount
+    setDeploymentReplicaCount,
+    addStatefulSetPVC
 } = clusterBuilderSlice.actions;
 
 export default clusterBuilderSlice.reducer;

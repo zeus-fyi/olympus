@@ -11,6 +11,7 @@ export const clusterBuilderSteps = [
 
 export function wizardStepComponents(activeStep: number,
 ) {
+
     const steps = [
         <ClusterConfigPage />,
         <WorkloadConfigPage />,

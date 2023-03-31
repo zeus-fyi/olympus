@@ -3,6 +3,7 @@ import Typography from "@mui/material/Typography";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../../../redux/store";
 import * as React from "react";
+import {useState} from "react";
 import {AddSkeletonBases} from "./AddSkeletonBases";
 import {
     setSelectedComponentBaseName,
@@ -12,6 +13,10 @@ import {
 
 export function DefineClusterComponentBaseParams(props: any) {
     const {} = props;
+    const [viewField, setViewField] = useState('');
+    const onChangeComponentOrSkeletonBase = () => {
+        setViewField('')
+    }
     return (
         <div>
             <Card sx={{ maxWidth: 500 }}>
@@ -25,7 +30,7 @@ export function DefineClusterComponentBaseParams(props: any) {
                 </CardContent>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <Box mt={2}>
-                        <SelectedComponentBaseName />
+                        <SelectedComponentBaseName onChangeComponentOrSkeletonBase={onChangeComponentOrSkeletonBase}/>
                     </Box>
                     <Box mt={2}>
                         <AddSkeletonBases />
@@ -45,9 +50,15 @@ export function SelectedComponentBaseName(props: any) {
        dispatch(setSelectedComponentBaseName(selectedComponentBaseName));
        const skeletonBaseName = Object.keys(cluster.componentBases[selectedComponentBaseName])[0];
        dispatch(setSelectedSkeletonBaseName(skeletonBaseName));
-        const containerKeys = Object.keys(cluster.componentBases[selectedComponentBaseName][skeletonBaseName].containers)
-        if (containerKeys.length > 0) {
-            dispatch(setSelectedContainerName(containerKeys[0]));
+
+        // Add a check to see if the `containers` field exists
+        if (cluster.componentBases[selectedComponentBaseName] &&
+            cluster.componentBases[selectedComponentBaseName][skeletonBaseName] &&
+            cluster.componentBases[selectedComponentBaseName][skeletonBaseName].containers) {
+            const containerKeys = Object.keys(cluster.componentBases[selectedComponentBaseName][skeletonBaseName].containers);
+            if (containerKeys.length > 0) {
+                dispatch(setSelectedContainerName(containerKeys[0]));
+            }
         }
         onChangeComponentOrSkeletonBase();
     };

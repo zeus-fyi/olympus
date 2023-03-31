@@ -12,9 +12,7 @@ import Box from "@mui/material/Box";
 
 export function AddComponentBases() {
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
-
     const componentBases = useSelector((state: RootState) => state.clusterBuilder.cluster.componentBases);
-
     const componentBaseKeys = Object.keys(componentBases);
     const dispatch = useDispatch();
     const [inputField, setInputField] = useState('');

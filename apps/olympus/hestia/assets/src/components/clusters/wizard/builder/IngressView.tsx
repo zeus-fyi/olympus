@@ -75,6 +75,12 @@ export function IngressView(props: any) {
         console.log(event.target.value);
     };
 
+    const handleChangeAuthURL = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        console.log(event.target.value);
+    };
+
+    // TODO needs a selector to get ingress enabled ports, should also make sure only one is enabled per service
+    // TODO needs to set path, and add auth url
     return (
         <div>
             <Card>
@@ -101,6 +107,19 @@ export function IngressView(props: any) {
                             sx={{ mb: 1 }}
                         />
                         </Box>
+                    <Box mt={2}>
+                        <TextField
+                            key={`authURL`}
+                            name="authURL"
+                            fullWidth
+                            id={`authURL`}
+                            label="AuthURL"
+                            variant="outlined"
+                            value="aegis.zeus.fyi"
+                            onChange={(event) => handleChangeAuthURL(event)}
+                            sx={{ mb: 1 }}
+                        />
+                    </Box>
                 </Container>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <Box>

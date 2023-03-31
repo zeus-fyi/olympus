@@ -14,6 +14,7 @@ import {
     toggleServiceWorkloadSelectionOnSkeletonBase,
     toggleStatefulSetWorkloadSelectionOnSkeletonBase,
 } from "../../../../redux/clusters/clusters.builder.reducer";
+import {ServiceView} from "./ServiceView";
 
 export function WorkloadConfigPage(props: any) {
     const {} = props;
@@ -239,6 +240,13 @@ export function WorkloadConfigPage(props: any) {
                 {viewField === 'configMap' && (
                     <div>
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        </Container>
+                    </div>
+                )}
+                {viewField === 'service' && (
+                    <div>
+                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                            <ServiceView />
                         </Container>
                     </div>
                 )}

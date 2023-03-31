@@ -19,7 +19,7 @@ import {
     removeDockerImagePort,
     setDockerImagePort
 } from "../../../../redux/clusters/clusters.builder.reducer";
-import {Port} from "../../../../redux/clusters/clusters.types";
+import {Container as ClustersContainer, Port} from "../../../../redux/clusters/clusters.types";
 import Typography from "@mui/material/Typography";
 
 export function IngressView(props: any) {
@@ -34,21 +34,25 @@ export function IngressView(props: any) {
     const addStatefulSet = selectedComponentBase?.addStatefulSet
     let selectedDockerImage = cluster.componentBases[selectedComponentBaseName]?.[selectedSkeletonBaseName]?.containers[selectedContainerName]?.dockerImage
     const ports = useMemo(() => {
-        const containers = cluster.componentBases[selectedComponentBaseName]?.[selectedSkeletonBaseName]?.containers || {};
-        return Object.values(containers).reduce<Port[]>((acc, container) => {
-            const dockerImage = container.dockerImage || {};
-            const dockerPorts = dockerImage.ports || [{name: "", number: 0, protocol: "TCP"}];
-            const filteredPorts = dockerPorts.filter((port) => {
-                return port.name !== "" && port.number !== 0;
-            });
-            return acc.concat(filteredPorts);
-        }, []);
-    }, [cluster, selectedComponentBaseName, selectedSkeletonBaseName]);
+        const allPorts: Port[] = [];
+        const componentBases = Object.values(cluster.componentBases);
+        componentBases.forEach((componentBase) => {
+            const skeletonBases = Object.values(componentBase);
 
-    if (addDeployment === undefined && addStatefulSet === undefined) {
-        return <div></div>
-    }
+            skeletonBases.forEach((skeletonBase) => {
+                const containers = Object.values(skeletonBase.containers)
+               containers.forEach((container: ClustersContainer) => {
+                   const dockerPorts = container.dockerImage.ports || [{ name: "", number: 0, protocol: "TCP" }];
+                   const filteredPorts = dockerPorts.filter((port) => {
+                       return port.name !== "" && port.number !== 0;
+                   });
+                   allPorts.push(...filteredPorts);
+               })
 
+            })
+        })
+        return allPorts;
+    }, [cluster]);
     if (addDeployment === false && addStatefulSet === false) {
         return (
             <div>

@@ -18,7 +18,24 @@ export interface SkeletonBase {
     addService: boolean;
     addIngress: boolean;
     addServiceMonitor: boolean;
+    deployment: Deployment;
+    statefulSet: StatefulSet;
     containers: Containers;
+}
+
+export interface Deployment {
+    replicaCount: number;
+}
+
+export interface StatefulSet {
+    replicaCount: number;
+    pvcTemplate: PVCTemplate[];
+}
+
+export interface PVCTemplate {
+    name: string;
+    accessMode: string;
+    storageSizeRequest: string;
 }
 
 // just conditionally add/remove items if deployment or stateful set is selected

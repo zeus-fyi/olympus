@@ -30,6 +30,8 @@ export function AddSkeletonBases(props: any) {
                 addIngress: false,
                 addServiceMonitor: false,
                 addConfigMap: false,
+                statefulSet: {replicaCount: 0, pvcTemplate: [{name: '', storageSizeRequest: '', accessMode: ''}]},
+                deployment: {replicaCount: 0},
                 containers: {},
             };
             let cbObj = {

@@ -230,7 +230,7 @@ export function WorkloadConfigPage(props: any) {
                     </Container>
                 </Card>
                 {(viewField === 'deployment' || viewField === 'statefulSet') && (
-                    <AddSkeletonBaseDockerConfigs />
+                    <AddSkeletonBaseDockerConfigs viewField={viewField} />
                 )}
             </Stack>
         </div>

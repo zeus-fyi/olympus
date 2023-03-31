@@ -5,6 +5,7 @@ import {
     Container,
     DockerImage,
     Port,
+    PVCTemplate,
     ResourceRequirements,
     SkeletonBase,
     SkeletonBases,
@@ -71,6 +72,56 @@ const clusterBuilderSlice = createSlice({
                 state.cluster.componentBases[componentBaseName] = {};
             }
             state.cluster.componentBases[componentBaseName][skeletonBaseName] = skeletonBase;
+        },
+        setStatefulSetReplicaCount: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; replicaCount: number }>) => {
+            const {componentBaseName, skeletonBaseName, replicaCount} = action.payload;
+            if (!state.cluster.componentBases[componentBaseName]) {
+                state.cluster.componentBases[componentBaseName] = {};
+            }
+            state.cluster.componentBases[componentBaseName][skeletonBaseName].statefulSet.replicaCount = replicaCount;
+        },
+        setStatefulSetPVC: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; pvc: PVCTemplate }>) => {
+            const { componentBaseName, skeletonBaseName, pvc } = action.payload;
+            const skeletonBase = state.cluster.componentBases[componentBaseName]?.[skeletonBaseName];
+            if (!skeletonBase) {
+                console.error(`Skeleton base not found: ${skeletonBaseName}`);
+                return;
+            }
+            const statefulSet = skeletonBase.statefulSet;
+            if (!statefulSet) {
+                console.error(`Stateful set not found in skeleton base: ${skeletonBaseName}`);
+                return;
+            }
+            const pvcTemplateIndex = statefulSet.pvcTemplate.findIndex((pvcTemplate) => pvcTemplate.name === pvc.name);
+            if (pvcTemplateIndex >= 0) {
+                statefulSet.pvcTemplate[pvcTemplateIndex] = pvc;
+            } else {
+                statefulSet.pvcTemplate.push(pvc);
+            }
+        },
+        removeStatefulSetPVC: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; pvcName: string }>) => {
+            const { componentBaseName, skeletonBaseName, pvcName } = action.payload;
+            const skeletonBase = state.cluster.componentBases[componentBaseName]?.[skeletonBaseName];
+            if (!skeletonBase) {
+                console.error(`Skeleton base not found: ${skeletonBaseName}`);
+                return;
+            }
+            const statefulSet = skeletonBase.statefulSet;
+            if (!statefulSet) {
+                console.error(`Stateful set not found in skeleton base: ${skeletonBaseName}`);
+                return;
+            }
+            const pvcTemplateIndex = statefulSet.pvcTemplate.findIndex((pvcTemplate) => pvcTemplate.name === pvcName);
+            if (pvcTemplateIndex >= 0) {
+                statefulSet.pvcTemplate.splice(pvcTemplateIndex, 1);
+            }
+        },
+        setDeploymentReplicaCount: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; replicaCount: number }>) => {
+            const {componentBaseName, skeletonBaseName, replicaCount} = action.payload;
+            if (!state.cluster.componentBases[componentBaseName]) {
+                state.cluster.componentBases[componentBaseName] = {};
+            }
+            state.cluster.componentBases[componentBaseName][skeletonBaseName].deployment.replicaCount = replicaCount;
         },
         toggleStatefulSetWorkloadSelectionOnSkeletonBase: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; addStatefulSet: boolean }>) => {
             const {componentBaseName, skeletonBaseName, addStatefulSet} = action.payload;
@@ -405,6 +456,10 @@ export const {
     toggleIngressWorkloadSelectionOnSkeletonBase,
     toggleConfigMapWorkloadSelectionOnSkeletonBase,
     toggleAddServiceMonitorWorkloadSelectionOnSkeletonBase,
+    removeStatefulSetPVC,
+    setStatefulSetPVC,
+    setStatefulSetReplicaCount,
+    setDeploymentReplicaCount
 } = clusterBuilderSlice.actions;
 
 export default clusterBuilderSlice.reducer;

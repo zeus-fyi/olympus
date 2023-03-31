@@ -13,6 +13,15 @@ import {
 import {AddContainers} from "./AddContainers";
 
 export function AddSkeletonBaseDockerConfigs(props: any) {
+    const {viewField} = props;
+
+    let viewFieldName = '';
+    if (viewField === 'statefulSet') {
+        viewFieldName = 'StatefulSet';
+    }
+    if (viewField === 'deployment') {
+        viewFieldName = 'Deployment';
+    }
     const dispatch = useDispatch();
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
     const componentBases = cluster.componentBases;
@@ -42,10 +51,7 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
                 <Card sx={{ maxWidth: 800 }}>
                     <CardContent>
                         <Typography gutterBottom variant="h5" component="div">
-                            Configure Skeleton Base Workloads
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Sets Cluster Skeleton Base Workloads
+                            Configure {viewFieldName} Workload
                         </Typography>
                     </CardContent>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
@@ -75,7 +81,6 @@ export function SelectedSkeletonBaseName(props: any) {
         dispatch(setSelectedComponentBaseName(componentBaseName));
         dispatch(setSelectedSkeletonBaseName(skeletonBaseName));
     }, [dispatch,skeletonBaseName, componentBaseName]);
-
 
     const onAccessSkeletonBase = (selectedSkeletonBaseName: string) => {
         dispatch(setSelectedSkeletonBaseName(selectedSkeletonBaseName));

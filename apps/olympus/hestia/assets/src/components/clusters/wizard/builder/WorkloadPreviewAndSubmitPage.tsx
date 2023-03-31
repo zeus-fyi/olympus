@@ -24,13 +24,15 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
                             Sets Infra and App Configs
                         </Typography>
                     </CardContent>
-                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                    <Container maxWidth="xl" sx={{ mb: 4 }}>
                         <Box mt={2}>
                             <SelectedComponentBaseName onChangeComponentOrSkeletonBase={onChangeComponentOrSkeletonBase}/>
                         </Box>
                         <Box mt={2}>
                             <SelectedSkeletonBaseName onChangeComponentOrSkeletonBase={onChangeComponentOrSkeletonBase}/>
                         </Box>
+                    </Container>
+                    <Container maxWidth="xl" sx={{ mb: 4 }}>
                         <Box mt={2}>
                             <Button variant="contained">
                                 Generate Preview

@@ -28,7 +28,7 @@ export function DefineClusterComponentBaseParams(props: any) {
                         Sets Skeleton Base Elements for Component Bases
                     </Typography>
                 </CardContent>
-                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                <Container maxWidth="xl" sx={{ mb: 4 }}>
                     <Box mt={2}>
                         <SelectedComponentBaseName onChangeComponentOrSkeletonBase={onChangeComponentOrSkeletonBase}/>
                     </Box>
@@ -67,7 +67,7 @@ export function SelectedComponentBaseName(props: any) {
     return (
         <div>
             {show &&
-            <FormControl variant="outlined" style={{ minWidth: '100%' }}>
+            <FormControl sx={{mb: 1}} variant="outlined" style={{ minWidth: '100%' }}>
                 <InputLabel id="network-label">Component Bases</InputLabel>
                 <Select
                     labelId="componentBase-label"

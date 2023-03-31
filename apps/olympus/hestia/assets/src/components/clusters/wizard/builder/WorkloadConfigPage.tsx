@@ -133,14 +133,18 @@ export function WorkloadConfigPage(props: any) {
                             Sets Infra and App Configs
                         </Typography>
                     </CardContent>
-                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        <Stack direction="column" spacing={2}>
+                    <Stack direction="column" spacing={2}>
+                        <Container maxWidth="xl" sx={{}}>
                         <Box mt={2}>
                             <SelectedComponentBaseName onChangeComponentOrSkeletonBase={onChangeComponentOrSkeletonBase}/>
                         </Box>
                         <Box mt={2}>
                             <SelectedSkeletonBaseName onChangeComponentOrSkeletonBase={onChangeComponentOrSkeletonBase}/>
                         </Box>
+                        </Container>
+                    </Stack>
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        <Stack direction="column" spacing={2}>
                         {!addDeployment && (
                             <Button variant="contained" onClick={onToggleDeployment}>
                                 Add Deployment

@@ -70,7 +70,7 @@ export function AddSkeletonBases(props: any) {
                         variant="outlined"
                         value={key}
                         InputProps={{ readOnly: true }}
-                        sx={{ flex: 1, mr: 2 }}
+                        sx={{ flex: 1, mr: 2, mb: 1}}
                     />
                     <Button variant="contained" sx={{ width: '100px' }} onClick={() => handleRemoveField(key)}>
                         Remove

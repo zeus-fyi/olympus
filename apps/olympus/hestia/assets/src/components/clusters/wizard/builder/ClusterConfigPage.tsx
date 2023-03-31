@@ -22,7 +22,7 @@ export function ClusterConfigPage(props: any) {
                             Define Cluster Class & Component Bases
                         </Typography>
                     </CardContent>
-                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                    <Container maxWidth="xl" sx={{ mb: 4 }}>
                         <Box mt={2}>
                             <ClusterName />
                         </Box>

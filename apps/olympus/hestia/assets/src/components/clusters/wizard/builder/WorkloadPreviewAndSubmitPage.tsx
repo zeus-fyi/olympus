@@ -4,6 +4,7 @@ import {SelectedComponentBaseName} from "./DefineComponentBases";
 import * as React from "react";
 import {useState} from "react";
 import {SelectedSkeletonBaseName} from "./AddSkeletonBaseDockerConfigs";
+import YamlTextField from "./YamlFormattedTextPage";
 
 export function WorkloadPreviewAndSubmitPage(props: any) {
     const {} = props;
@@ -42,6 +43,9 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
                         </Box>
                     </Container>
                 </Card>
+                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                    <YamlTextField />
+                </Container>
             </Stack>
         </div>
     );

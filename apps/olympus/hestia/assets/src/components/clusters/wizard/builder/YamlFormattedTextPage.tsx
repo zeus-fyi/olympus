@@ -1,6 +1,8 @@
 import React, {useEffect, useRef} from "react";
 import {SelectionText} from "@uiw/react-textarea-code-editor";
 import MonacoEditor from "react-monaco-editor/lib/editor";
+import {editor} from "monaco-editor";
+import setTheme = editor.setTheme;
 
 window.MonacoEnvironment = { getWorkerUrl: () => proxy };
 
@@ -21,6 +23,12 @@ export default function YamlTextField(props: any) {
         setCode(textInput);
     }
     const themeRef = useRef<string>()
+    function onSelectThemeChange(e: React.ChangeEvent<HTMLSelectElement>) {
+        e.persist();
+        document.documentElement.setAttribute('data-color-mode', /^vs$/.test(e.target.value) ? 'light' : 'dark');
+        themeRef.current = e.target.value;
+        setTheme(e.target.value);
+    }
     useEffect(() => {
         if (themeRef.current) {
             // @ts-ignore

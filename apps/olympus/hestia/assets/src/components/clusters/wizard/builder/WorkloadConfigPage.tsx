@@ -14,7 +14,6 @@ import {
     toggleServiceWorkloadSelectionOnSkeletonBase,
     toggleStatefulSetWorkloadSelectionOnSkeletonBase,
 } from "../../../../redux/clusters/clusters.builder.reducer";
-import YamlTextField from "./YamlFormattedTextPage";
 
 export function WorkloadConfigPage(props: any) {
     const {} = props;
@@ -240,7 +239,6 @@ export function WorkloadConfigPage(props: any) {
                 {viewField === 'configMap' && (
                     <div>
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                            <YamlTextField />
                         </Container>
                     </div>
                 )}

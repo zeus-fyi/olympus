@@ -14,6 +14,7 @@ import {
     toggleServiceWorkloadSelectionOnSkeletonBase,
     toggleStatefulSetWorkloadSelectionOnSkeletonBase,
 } from "../../../../redux/clusters/clusters.builder.reducer";
+import YamlTextField from "./YamlFormattedTextPage";
 
 export function WorkloadConfigPage(props: any) {
     const {} = props;
@@ -117,9 +118,9 @@ export function WorkloadConfigPage(props: any) {
         setViewField('')
     }
     let show = Object.keys(cluster.componentBases).length > 0
-
     return (
-        <div> {show && Object.keys(cluster.componentBases?.[selectedComponentBaseName]).length > 0 && (
+        <div>
+            {show && Object.keys(cluster.componentBases?.[selectedComponentBaseName]).length > 0 && (
             <Stack direction="row" spacing={2}>
                 <Card sx={{ maxWidth: 500 }}>
                     <CardContent>
@@ -236,8 +237,16 @@ export function WorkloadConfigPage(props: any) {
                         <AddSkeletonBaseDockerConfigs viewField={viewField} />
                     </div>
                 )}
+                {viewField === 'configMap' && (
+                    <div>
+                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                            <YamlTextField />
+                        </Container>
+                    </div>
+                )}
             </Stack>
             )}
         </div>
     );
 }
+

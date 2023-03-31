@@ -32,6 +32,7 @@ export function IngressView(props: any) {
         return allPorts;
     }, [cluster]);
 
+    // todo, on add/remove port to ingress, update the ingress path, add host
     return (
         <div>
             <Card>
@@ -44,9 +45,25 @@ export function IngressView(props: any) {
                         The Ingress controller will then route traffic to the service at port 80.
                     </Typography>
                 </CardContent>
-                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                <Container maxWidth="xl" sx={{ mt: 4 }}>
                     <Box mt={2}>
-                        {ports &&
+                        <TextField
+                            key={`host`}
+                            name="host"
+                            fullWidth
+                            id={`host`}
+                            label="Host"
+                            variant="outlined"
+                            value="host.zeus.fyi"
+                            sx={{ mb: 1 }}
+                        />
+                        </Box>
+                </Container>
+            </Card>
+            <Card>
+                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                    <Box>
+                {ports &&
                             Object.entries(ports).map(([componentBaseName, componentBasePorts]: [string, Port[]], index) => (
                                 <div key={index}>
                                     <Box mt={2} mb={2}>

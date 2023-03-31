@@ -1,7 +1,17 @@
 import * as React from "react";
 import {useMemo} from "react";
 import TextField from "@mui/material/TextField";
-import {Box, Card, CardContent, Container, FormControl, InputLabel, MenuItem, Select} from "@mui/material";
+import {
+    Box,
+    Card,
+    CardContent,
+    Container,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Select,
+    SelectChangeEvent
+} from "@mui/material";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../../../redux/store";
 import {Container as ClustersContainer, Port, SkeletonBases} from "../../../../redux/clusters/clusters.types";
@@ -31,8 +41,20 @@ export function IngressView(props: any) {
         })
         return allPorts;
     }, [cluster]);
+    const handleChangeSelect = (index: number, event: SelectChangeEvent<string>) => {
+        // const values = [...(selectedDockerImage.ports)];
+        // values[index] = { ...values[index], [event.target.name]: event.target.value };
+        //
+        console.log(event.target.value);
+    };
+    const handleChange = (index: number, event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        console.log(event.target.value);
+    };
 
-    // todo, on add/remove port to ingress, update the ingress path, add host
+    const handleChangeHost = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        console.log(event.target.value);
+    };
+
     return (
         <div>
             <Card>
@@ -55,15 +77,14 @@ export function IngressView(props: any) {
                             label="Host"
                             variant="outlined"
                             value="host.zeus.fyi"
+                            onChange={(event) => handleChangeHost(event)}
                             sx={{ mb: 1 }}
                         />
                         </Box>
                 </Container>
-            </Card>
-            <Card>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <Box>
-                {ports &&
+                        {ports &&
                             Object.entries(ports).map(([componentBaseName, componentBasePorts]: [string, Port[]], index) => (
                                 <div key={index}>
                                     <Box mt={2} mb={2}>
@@ -81,6 +102,7 @@ export function IngressView(props: any) {
                                                     id={`portName-${index}`}
                                                     name="name"
                                                     value={""}
+                                                    onChange={(event) => handleChangeSelect(index, event)}
                                                     label="Port Name"
                                                 >
                                                     {componentBasePorts.map((port) => (
@@ -97,6 +119,7 @@ export function IngressView(props: any) {
                                                     id={`pathType-${index}`}
                                                     name="pathType"
                                                     value={'ImplementationSpecific'}
+                                                    onChange={(event) => handleChangeSelect(index, event)}
                                                     label="Path Type"
                                                 >
                                                     <MenuItem value="ImplementationSpecific">ImplementationSpecific</MenuItem>
@@ -111,6 +134,7 @@ export function IngressView(props: any) {
                                                 label="Path"
                                                 variant="outlined"
                                                 value="/"
+                                                onChange={(event) => handleChange(index, event)}
                                                 sx={{ mr: 1 }}
                                             />
                                             <Box sx={{ ml: 2 }}>

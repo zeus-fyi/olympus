@@ -65,6 +65,7 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
 }
 
 export function SelectedSkeletonBaseName(props: any) {
+    const { onChangeComponentOrSkeletonBase}  = props;
     const dispatch = useDispatch();
     const skeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
     const componentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
@@ -82,6 +83,7 @@ export function SelectedSkeletonBaseName(props: any) {
         if (containerKeys.length > 0) {
             dispatch(setSelectedContainerName(containerKeys[0]));
         }
+        onChangeComponentOrSkeletonBase();
     };
 
     if (cluster.componentBases === undefined) {

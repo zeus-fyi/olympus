@@ -1,4 +1,5 @@
 import * as React from "react";
+import {useState} from "react";
 import {Box, Button, Card, CardContent, Container, Stack} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import {SelectedComponentBaseName} from "./DefineComponentBases";
@@ -27,8 +28,18 @@ export function WorkloadConfigPage(props: any) {
     const addIngress = selectedComponentBase?.addIngress
     const addServiceMonitor = selectedComponentBase?.addServiceMonitor
     const addConfigMap = selectedComponentBase?.addConfigMap
+    const [viewField, setViewField] = useState('');
+
+    const onClickView = (fieldName: string) => {
+        setViewField(fieldName)
+    };
 
     const onToggleStatefulSet = () => {
+        if (!addStatefulSet) {
+            setViewField('statefulSet')
+        } else {
+            setViewField('')
+        }
         const refObj = {
             componentBaseName: selectedComponentBaseName,
             skeletonBaseName: selectedSkeletonBaseName,
@@ -37,6 +48,11 @@ export function WorkloadConfigPage(props: any) {
         dispatch(toggleStatefulSetWorkloadSelectionOnSkeletonBase(refObj));
     };
     const onToggleDeployment = () => {
+        if (!addDeployment) {
+            setViewField('deployment')
+        } else {
+            setViewField('')
+        }
         const refObj = {
             componentBaseName: selectedComponentBaseName,
             skeletonBaseName: selectedSkeletonBaseName,
@@ -45,6 +61,11 @@ export function WorkloadConfigPage(props: any) {
         dispatch(toggleDeploymentWorkloadSelectionOnSkeletonBase(refObj));
     };
     const onToggleService = () => {
+        if (!addService) {
+            setViewField('service')
+        } else {
+            setViewField('')
+        }
         const refObj = {
             componentBaseName: selectedComponentBaseName,
             skeletonBaseName: selectedSkeletonBaseName,
@@ -53,6 +74,11 @@ export function WorkloadConfigPage(props: any) {
         dispatch(toggleServiceWorkloadSelectionOnSkeletonBase(refObj));
     };
     const onToggleConfigMap = () => {
+        if (!addConfigMap) {
+            setViewField('configMap')
+        } else {
+            setViewField('')
+        }
         const refObj = {
             componentBaseName: selectedComponentBaseName,
             skeletonBaseName: selectedSkeletonBaseName,
@@ -61,6 +87,11 @@ export function WorkloadConfigPage(props: any) {
         dispatch(toggleConfigMapWorkloadSelectionOnSkeletonBase(refObj));
     };
     const onToggleServiceMonitor = () => {
+        if (!addServiceMonitor) {
+            setViewField('serviceMonitor')
+        } else {
+            setViewField('')
+        }
         const refObj = {
             componentBaseName: selectedComponentBaseName,
             skeletonBaseName: selectedSkeletonBaseName,
@@ -69,6 +100,11 @@ export function WorkloadConfigPage(props: any) {
         dispatch(toggleAddServiceMonitorWorkloadSelectionOnSkeletonBase(refObj));
     };
     const onToggleIngress = () => {
+        if (!addIngress) {
+            setViewField('ingress')
+        } else {
+            setViewField('')
+        }
         const refObj = {
             componentBaseName: selectedComponentBaseName,
             skeletonBaseName: selectedSkeletonBaseName,
@@ -76,6 +112,10 @@ export function WorkloadConfigPage(props: any) {
         }
         dispatch(toggleIngressWorkloadSelectionOnSkeletonBase(refObj));
     };
+
+    const onChangeComponentOrSkeletonBase = () => {
+        setViewField('')
+    }
     return (
         <div>
             <Stack direction="row" spacing={2}>
@@ -91,10 +131,10 @@ export function WorkloadConfigPage(props: any) {
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Stack direction="column" spacing={2}>
                         <Box mt={2}>
-                            <SelectedComponentBaseName />
+                            <SelectedComponentBaseName onChangeComponentOrSkeletonBase={onChangeComponentOrSkeletonBase}/>
                         </Box>
                         <Box mt={2}>
-                            <SelectedSkeletonBaseName />
+                            <SelectedSkeletonBaseName onChangeComponentOrSkeletonBase={onChangeComponentOrSkeletonBase}/>
                         </Box>
                         {!addDeployment && (
                             <Button variant="contained" onClick={onToggleDeployment}>
@@ -103,7 +143,7 @@ export function WorkloadConfigPage(props: any) {
                         )}
                         {addDeployment && (
                             <Stack direction="row" spacing={2}>
-                            <Button variant="contained" color="primary">
+                                <Button variant="contained" color="primary" onClick={() => onClickView('deployment')}>
                                     View Deployment
                                 </Button>
                                 <Button variant="contained" onClick={onToggleDeployment}>
@@ -118,7 +158,7 @@ export function WorkloadConfigPage(props: any) {
                         )}
                         {addStatefulSet && (
                             <Stack direction="row" spacing={2}>
-                                <Button variant="contained" color="primary">
+                                <Button variant="contained" color="primary" onClick={() => onClickView('statefulSet')}>
                                     View StatefulSet
                                 </Button>
                                 <Button variant="contained" onClick={onToggleStatefulSet}>
@@ -133,7 +173,7 @@ export function WorkloadConfigPage(props: any) {
                         )}
                         {addConfigMap && (
                             <Stack direction="row" spacing={2}>
-                                <Button variant="contained" color="primary">
+                                <Button variant="contained" color="primary" onClick={() => onClickView('configMap')}>
                                     View ConfigMap
                                 </Button>
                                 <Button variant="contained" onClick={onToggleConfigMap}>
@@ -148,7 +188,7 @@ export function WorkloadConfigPage(props: any) {
                         )}
                         {addService && (
                             <Stack direction="row" spacing={2}>
-                                <Button variant="contained" color="primary">
+                                <Button variant="contained" color="primary" onClick={() => onClickView('service')}>
                                     View Service
                                 </Button>
                                 <Button variant="contained" onClick={onToggleService}>
@@ -163,7 +203,7 @@ export function WorkloadConfigPage(props: any) {
                         )}
                         {addIngress && (
                             <Stack direction="row" spacing={2}>
-                                <Button variant="contained" color="primary">
+                                <Button variant="contained" color="primary" onClick={() => onClickView('ingress')}>
                                     View Ingress
                                 </Button>
                                 <Button variant="contained" onClick={onToggleIngress}>
@@ -178,7 +218,7 @@ export function WorkloadConfigPage(props: any) {
                         )}
                         {addServiceMonitor && (
                             <Stack direction="row" spacing={2}>
-                                <Button variant="contained" color="primary">
+                                <Button variant="contained" color="primary" onClick={() => onClickView('serviceMonitor')}>
                                     View ServiceMonitor
                                 </Button>
                                 <Button variant="contained" onClick={onToggleServiceMonitor}>
@@ -189,7 +229,9 @@ export function WorkloadConfigPage(props: any) {
                         </Stack>
                     </Container>
                 </Card>
-                <AddSkeletonBaseDockerConfigs />
+                {(viewField === 'deployment' || viewField === 'statefulSet') && (
+                    <AddSkeletonBaseDockerConfigs />
+                )}
             </Stack>
         </div>
     );

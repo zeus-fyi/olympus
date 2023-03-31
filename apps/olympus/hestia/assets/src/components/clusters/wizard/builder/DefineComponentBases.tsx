@@ -37,6 +37,7 @@ export function DefineClusterComponentBaseParams(props: any) {
 }
 
 export function SelectedComponentBaseName(props: any) {
+    const {onChangeComponentOrSkeletonBase} = props;
     const dispatch = useDispatch();
     let cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
     let selectedComponentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
@@ -48,6 +49,7 @@ export function SelectedComponentBaseName(props: any) {
         if (containerKeys.length > 0) {
             dispatch(setSelectedContainerName(containerKeys[0]));
         }
+        onChangeComponentOrSkeletonBase();
     };
 
     let show = Object.keys(cluster.componentBases).length > 0;

@@ -31,11 +31,16 @@ export interface Ingress {
     paths: IngressPath[]
 }
 
+export interface ClusterPorts {
+    [componentBaseName: string]: Port[];
+}
+
 export interface IngressPath {
     path: string
     pathType: string
     serviceName: string
 }
+
 export interface ConfigMap {
     [key: string]: string;
 }

@@ -14,7 +14,6 @@ import {
     toggleStatefulSetWorkloadSelectionOnSkeletonBase,
 } from "../../../../redux/clusters/clusters.builder.reducer";
 
-
 export function WorkloadConfigPage(props: any) {
     const {} = props;
     const dispatch = useDispatch();

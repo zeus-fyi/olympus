@@ -30,9 +30,11 @@ export function AddSkeletonBases(props: any) {
                 addIngress: false,
                 addServiceMonitor: false,
                 addConfigMap: false,
+                configMap: {},
                 statefulSet: {replicaCount: 0, pvcTemplates: [{name: '', storageSizeRequest: '', accessMode: ''}]},
                 deployment: {replicaCount: 0},
                 containers: {},
+                ingress: {host: '', path: '', pathType: '', authServerURL: ''},
             };
             let cbObj = {
                 componentBaseName: selectedComponentBaseName,

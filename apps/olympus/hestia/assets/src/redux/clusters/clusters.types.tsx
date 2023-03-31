@@ -18,9 +18,22 @@ export interface SkeletonBase {
     addService: boolean;
     addIngress: boolean;
     addServiceMonitor: boolean;
+    configMap: ConfigMap;
+    ingress: Ingress;
     deployment: Deployment;
     statefulSet: StatefulSet;
     containers: Containers;
+}
+
+export interface Ingress {
+    host: string
+    path: string
+    pathType: string
+    authServerURL: string
+}
+
+export interface ConfigMap {
+    [key: string]: string;
 }
 
 export interface Deployment {

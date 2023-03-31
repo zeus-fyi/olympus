@@ -73,6 +73,48 @@ const clusterBuilderSlice = createSlice({
             }
             state.cluster.componentBases[componentBaseName][skeletonBaseName] = skeletonBase;
         },
+        setConfigMapKey: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; key: string; value: string; }>) => {
+            const {componentBaseName, skeletonBaseName, key, value} = action.payload;
+            if (!state.cluster.componentBases[componentBaseName]) {
+                state.cluster.componentBases[componentBaseName] = {};
+            }
+            state.cluster.componentBases[componentBaseName][skeletonBaseName].configMap[key] = value;
+        },
+        removeConfigMapKey: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; key: string;}>) => {
+            const {componentBaseName, skeletonBaseName, key} = action.payload;
+            if (!state.cluster.componentBases[componentBaseName]) {
+                state.cluster.componentBases[componentBaseName] = {};
+            }
+            delete state.cluster.componentBases[componentBaseName][skeletonBaseName].configMap[key]
+        },
+        setIngressHost: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; host: string }>) => {
+            const {componentBaseName, skeletonBaseName, host} = action.payload;
+            if (!state.cluster.componentBases[componentBaseName]) {
+                state.cluster.componentBases[componentBaseName] = {};
+            }
+            state.cluster.componentBases[componentBaseName][skeletonBaseName].ingress.host = host;
+        },
+        setIngressPath: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; path: string }>) => {
+            const {componentBaseName, skeletonBaseName, path} = action.payload;
+            if (!state.cluster.componentBases[componentBaseName]) {
+                state.cluster.componentBases[componentBaseName] = {};
+            }
+            state.cluster.componentBases[componentBaseName][skeletonBaseName].ingress.path = path;
+        },
+        setIngressPathType: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; pathType: string }>) => {
+            const {componentBaseName, skeletonBaseName, pathType} = action.payload;
+            if (!state.cluster.componentBases[componentBaseName]) {
+                state.cluster.componentBases[componentBaseName] = {};
+            }
+            state.cluster.componentBases[componentBaseName][skeletonBaseName].ingress.pathType = pathType;
+        },
+        setIngressAuthServerURL: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; authServerURL: string }>) => {
+            const {componentBaseName, skeletonBaseName, authServerURL} = action.payload;
+            if (!state.cluster.componentBases[componentBaseName]) {
+                state.cluster.componentBases[componentBaseName] = {};
+            }
+            state.cluster.componentBases[componentBaseName][skeletonBaseName].ingress.authServerURL = authServerURL;
+        },
         setStatefulSetReplicaCount: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; replicaCount: number }>) => {
             const {componentBaseName, skeletonBaseName, replicaCount} = action.payload;
             if (!state.cluster.componentBases[componentBaseName]) {
@@ -493,7 +535,13 @@ export const {
     setStatefulSetPVC,
     setStatefulSetReplicaCount,
     setDeploymentReplicaCount,
-    addStatefulSetPVC
+    addStatefulSetPVC,
+    setConfigMapKey,
+    removeConfigMapKey,
+    setIngressHost,
+    setIngressPath,
+    setIngressPathType,
+    setIngressAuthServerURL
 } = clusterBuilderSlice.actions;
 
 export default clusterBuilderSlice.reducer;

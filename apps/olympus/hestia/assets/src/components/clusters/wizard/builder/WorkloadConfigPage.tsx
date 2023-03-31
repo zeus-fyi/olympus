@@ -214,21 +214,21 @@ export function WorkloadConfigPage(props: any) {
                                 </Button>
                             </Stack>
                         )}
-                        {!addServiceMonitor && (
-                            <Button variant="contained" onClick={onToggleServiceMonitor}>
-                                Add ServiceMonitor
-                            </Button>
-                        )}
-                        {addServiceMonitor && (
-                            <Stack direction="row" spacing={2}>
-                                <Button variant="contained" color="primary" onClick={() => onClickView('serviceMonitor')}>
-                                    View ServiceMonitor
-                                </Button>
-                                <Button variant="contained" onClick={onToggleServiceMonitor}>
-                                    Remove
-                                </Button>
-                            </Stack>
-                        )}
+                        {/*{!addServiceMonitor && (*/}
+                        {/*    <Button variant="contained" onClick={onToggleServiceMonitor}>*/}
+                        {/*        Add ServiceMonitor*/}
+                        {/*    </Button>*/}
+                        {/*)}*/}
+                        {/*{addServiceMonitor && (*/}
+                        {/*    <Stack direction="row" spacing={2}>*/}
+                        {/*        <Button variant="contained" color="primary" onClick={() => onClickView('serviceMonitor')}>*/}
+                        {/*            View ServiceMonitor*/}
+                        {/*        </Button>*/}
+                        {/*        <Button variant="contained" onClick={onToggleServiceMonitor}>*/}
+                        {/*            Remove*/}
+                        {/*        </Button>*/}
+                        {/*    </Stack>*/}
+                        {/*)}*/}
                         </Stack>
                     </Container>
                 </Card>
@@ -248,6 +248,18 @@ export function WorkloadConfigPage(props: any) {
                         <ServiceView addStatefulSet={addStatefulSet} addDeployment={addStatefulSet} />
                     </div>
                 )}
+                {viewField === 'ingress' && (
+                    <div>
+                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        </Container>
+                    </div>
+                )}
+                {/*{viewField === 'serviceMonitor' && (*/}
+                {/*    <div>*/}
+                {/*        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>*/}
+                {/*        </Container>*/}
+                {/*    </div>*/}
+                {/*)}*/}
             </Stack>
             )}
         </div>

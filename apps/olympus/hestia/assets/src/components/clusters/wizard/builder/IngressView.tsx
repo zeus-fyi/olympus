@@ -10,22 +10,23 @@ import Typography from "@mui/material/Typography";
 export function IngressView(props: any) {
     const dispatch = useDispatch();
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
+
     const ports = useMemo(() => {
         const allPorts: Port[] = [];
         const componentBases = Object.values(cluster.componentBases);
         componentBases.forEach((componentBase) => {
             const skeletonBases = Object.values(componentBase);
-
             skeletonBases.forEach((skeletonBase) => {
-                const containers = Object.values(skeletonBase.containers)
-               containers.forEach((container: ClustersContainer) => {
-                   const dockerPorts = container.dockerImage.ports || [{ name: "", number: 0, protocol: "TCP" }];
-                   const filteredPorts = dockerPorts.filter((port) => {
-                       return port.name !== "" && port.number !== 0;
-                   });
-                   allPorts.push(...filteredPorts);
-               })
-
+                if (skeletonBase.addService){
+                    const containers = Object.values(skeletonBase.containers)
+                    containers.forEach((container: ClustersContainer) => {
+                        const dockerPorts = container.dockerImage.ports || [{ name: "", number: 0, protocol: "TCP" }];
+                        const filteredPorts = dockerPorts.filter((port) => {
+                            return port.name !== "" && port.number !== 0;
+                        });
+                        allPorts.push(...filteredPorts);
+                    })
+                }
             })
         })
         return allPorts;

@@ -104,7 +104,7 @@ export function WorkloadConfigPage(props: any) {
                         {addDeployment && (
                             <Stack direction="row" spacing={2}>
                             <Button variant="contained" color="primary">
-                                    Deployment
+                                    View Deployment
                                 </Button>
                                 <Button variant="contained" onClick={onToggleDeployment}>
                                     Remove
@@ -119,9 +119,24 @@ export function WorkloadConfigPage(props: any) {
                         {addStatefulSet && (
                             <Stack direction="row" spacing={2}>
                                 <Button variant="contained" color="primary">
-                                    StatefulSet
+                                    View StatefulSet
                                 </Button>
                                 <Button variant="contained" onClick={onToggleStatefulSet}>
+                                    Remove
+                                </Button>
+                            </Stack>
+                        )}
+                        {!addConfigMap && (
+                            <Button variant="contained" onClick={onToggleConfigMap}>
+                                Add ConfigMap
+                            </Button>
+                        )}
+                        {addConfigMap && (
+                            <Stack direction="row" spacing={2}>
+                                <Button variant="contained" color="primary">
+                                    View ConfigMap
+                                </Button>
+                                <Button variant="contained" onClick={onToggleConfigMap}>
                                     Remove
                                 </Button>
                             </Stack>
@@ -134,7 +149,7 @@ export function WorkloadConfigPage(props: any) {
                         {addService && (
                             <Stack direction="row" spacing={2}>
                                 <Button variant="contained" color="primary">
-                                    Service
+                                    View Service
                                 </Button>
                                 <Button variant="contained" onClick={onToggleService}>
                                     Remove
@@ -149,7 +164,7 @@ export function WorkloadConfigPage(props: any) {
                         {addIngress && (
                             <Stack direction="row" spacing={2}>
                                 <Button variant="contained" color="primary">
-                                    Ingress
+                                    View Ingress
                                 </Button>
                                 <Button variant="contained" onClick={onToggleIngress}>
                                     Remove
@@ -164,7 +179,7 @@ export function WorkloadConfigPage(props: any) {
                         {addServiceMonitor && (
                             <Stack direction="row" spacing={2}>
                                 <Button variant="contained" color="primary">
-                                    ServiceMonitor
+                                    View ServiceMonitor
                                 </Button>
                                 <Button variant="contained" onClick={onToggleServiceMonitor}>
                                     Remove

@@ -1,24 +1,9 @@
 import * as React from "react";
 import {useMemo} from "react";
 import TextField from "@mui/material/TextField";
-import {
-    Box,
-    Card,
-    CardContent,
-    Container,
-    FormControl,
-    InputLabel,
-    MenuItem,
-    Select,
-    SelectChangeEvent
-} from "@mui/material";
+import {Box, Card, CardContent, Container, FormControl, InputLabel, MenuItem, Select} from "@mui/material";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../../../redux/store";
-import {
-    addDockerImagePort,
-    removeDockerImagePort,
-    setDockerImagePort
-} from "../../../../redux/clusters/clusters.builder.reducer";
 import {Container as ClustersContainer, Port} from "../../../../redux/clusters/clusters.types";
 import Typography from "@mui/material/Typography";
 
@@ -53,6 +38,7 @@ export function IngressView(props: any) {
         })
         return allPorts;
     }, [cluster]);
+    console.log('ports', ports)
     if (addDeployment === false && addStatefulSet === false) {
         return (
             <div>
@@ -70,77 +56,7 @@ export function IngressView(props: any) {
             </div>
         )
     }
-    let workloadType = ''
-    if (addDeployment) {
-        workloadType = 'Deployment'
-    }
-    if (addStatefulSet) {
-        workloadType = 'StatefulSet'
-    }
-    if (cluster.componentBases === undefined) {
-        return <div></div>
-    }
-    let show = skeletonBaseKeys !== undefined && Object.keys(skeletonBaseKeys).length > 0;
-    if (!show) {
-        return <div></div>
-    }
 
-    const skeletonBaseContainerNames = skeletonBaseKeys[selectedSkeletonBaseName];
-    show = skeletonBaseContainerNames !== undefined && Object.keys(skeletonBaseContainerNames.containers).length > 0;
-    if (!show) {
-        return <div></div>
-    }
-
-    const handleChange = (index: number, event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const values = [...(selectedDockerImage.ports)];
-        values[index] = {...values[index], [event.target.name]: event.target.value};
-        dispatch(setDockerImagePort({
-            componentBaseKey: selectedComponentBaseName,
-            skeletonBaseKey: selectedSkeletonBaseName,
-            containerName: selectedContainerName,
-            dockerImageKey: skeletonBaseContainerNames.containers[selectedContainerName].dockerImage.imageName,
-            portIndex: index,
-            port: values[index],
-        }));
-    };
-
-    const handleRemoveField = (index: number) => {
-        const values = [...(selectedDockerImage.ports)];
-        values.splice(index, 1);
-        dispatch(removeDockerImagePort({
-            componentBaseKey: selectedComponentBaseName,
-            skeletonBaseKey: selectedSkeletonBaseName,
-            containerName: selectedContainerName,
-            dockerImageKey: skeletonBaseContainerNames.containers[selectedContainerName].dockerImage.imageName,
-            portIndex: index,
-        }));
-    };
-    const handleChangeSelect = (index: number, event: SelectChangeEvent<string>) => {
-        const values = [...(selectedDockerImage.ports)];
-        values[index] = { ...values[index], [event.target.name]: event.target.value };
-        dispatch(
-            setDockerImagePort({
-                componentBaseKey: selectedComponentBaseName,
-                skeletonBaseKey: selectedSkeletonBaseName,
-                containerName: selectedContainerName,
-                dockerImageKey:
-                skeletonBaseContainerNames.containers[selectedContainerName].dockerImage.imageName,
-                portIndex: index,
-                port: values[index],
-            })
-        );
-    };
-
-    const handleAddField = () => {
-        const newPort = { name: '', number: 0, protocol: 'TCP' };
-        dispatch(addDockerImagePort({
-            componentBaseKey: selectedComponentBaseName,
-            skeletonBaseKey: selectedSkeletonBaseName,
-            containerName: selectedContainerName,
-            dockerImageKey: skeletonBaseContainerNames.containers[selectedContainerName].dockerImage.imageName,
-            port: newPort,
-        }));
-    };
     return (
         <div>
             <Card>
@@ -190,7 +106,6 @@ export function IngressView(props: any) {
                                     label={`Port Name ${index + 1}`}
                                     variant="outlined"
                                     value={inputField.name}
-                                    onChange={(event) => handleChange(index, event)}
                                     sx={{ ml: 1 }}
                                 />
                                 <TextField
@@ -202,7 +117,6 @@ export function IngressView(props: any) {
                                     variant="outlined"
                                     type="number"
                                     value={inputField.number}
-                                    onChange={(event) => handleChange(index, event)}
                                     sx={{ mr: 1, ml: 1 }}
                                     inputProps={{ min: 0 }}
                                 />
@@ -213,7 +127,6 @@ export function IngressView(props: any) {
                                         id={`portProtocol-${index}`}
                                         name="protocol"
                                         value={inputField.protocol ? inputField.protocol : "TCP"}
-                                        onChange={(event) => handleChangeSelect(index, event)}
                                         label="Protocol"
                                     >
                                         <MenuItem value="TCP">TCP</MenuItem>

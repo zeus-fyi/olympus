@@ -34,7 +34,7 @@ const initialState: ClusterBuilderState = {
         cmd: '',
         args: '',
         resourceRequirements: {cpu: '', memory: ''} as ResourceRequirements,
-        ports: [{name: '', number: 0, protocol: 'TCP'}] as Port[],
+        ports: [{name: '', number: 0, protocol: 'TCP', ingressEnabledPort: false}] as Port[],
         volumeMounts: [{name: '', mountPath: ''}] as VolumeMount[]
     } as DockerImage,
 };

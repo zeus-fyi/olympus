@@ -37,7 +37,7 @@ export function ServiceView(props: any) {
         const containers = cluster.componentBases[selectedComponentBaseName]?.[selectedSkeletonBaseName]?.containers || {};
         return Object.values(containers).reduce<Port[]>((acc, container) => {
             const dockerImage = container.dockerImage || {};
-            const dockerPorts = dockerImage.ports || [{name: "", number: 0, protocol: "TCP"}];
+            const dockerPorts = dockerImage.ports || [{name: "", number: 0, protocol: "TCP", ingressEnabled: false}];
             const filteredPorts = dockerPorts.filter((port) => {
                 return port.name !== "" && port.number !== 0;
             });
@@ -128,7 +128,7 @@ export function ServiceView(props: any) {
     };
 
     const handleAddField = () => {
-        const newPort = { name: '', number: 0, protocol: 'TCP' };
+        const newPort = { name: '', number: 0, protocol: 'TCP', ingressEnabledPort: false}
         dispatch(addDockerImagePort({
             componentBaseKey: selectedComponentBaseName,
             skeletonBaseKey: selectedSkeletonBaseName,

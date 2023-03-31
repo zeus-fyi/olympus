@@ -31,10 +31,6 @@ export interface Ingress {
     paths: IngressPath[]
 }
 
-export interface ClusterPorts {
-    [componentBaseName: string]: Port[];
-}
-
 export interface IngressPath {
     path: string
     pathType: string
@@ -88,6 +84,7 @@ export interface Port {
     name: string;
     number: number;
     protocol: string;
+    ingressEnabledPort: boolean;
 }
 
 export interface VolumeMount {

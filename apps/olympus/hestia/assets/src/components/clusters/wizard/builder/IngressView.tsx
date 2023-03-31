@@ -1,52 +1,72 @@
 import * as React from "react";
 import {useMemo} from "react";
 import TextField from "@mui/material/TextField";
-import {
-    Box,
-    Card,
-    CardContent,
-    Container,
-    FormControl,
-    InputLabel,
-    MenuItem,
-    Select,
-    SelectChangeEvent
-} from "@mui/material";
+import {Box, Card, CardContent, Container, FormControl, InputLabel, MenuItem, Select,} from "@mui/material";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../../../redux/store";
-import {Container as ClustersContainer, Port, SkeletonBases} from "../../../../redux/clusters/clusters.types";
+import {
+    Container as ClustersContainer,
+    Port,
+    SkeletonBase,
+    SkeletonBases
+} from "../../../../redux/clusters/clusters.types";
 import Typography from "@mui/material/Typography";
+import {setDockerImagePort} from "../../../../redux/clusters/clusters.builder.reducer";
 
 export function IngressView(props: any) {
     const dispatch = useDispatch();
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
     const ports = useMemo(() => {
         const componentBases = Object.entries(cluster.componentBases);
-        const allPorts: { [componentBaseName: string]: Port[] } = {};
+        const allPorts: {
+            [componentBaseName: string]: {
+                ports: Port[];
+                skeletonBaseName: string;
+                componentBaseName: string;
+                portIndexToContainer: { [portIndex: number]: { containerName: string, portNumber: number } };
+            }
+        } = {};
         componentBases.forEach(([componentBaseName, componentBase]: [string, SkeletonBases]) => {
-            allPorts[componentBaseName] = [];
-            const skeletonBases = Object.values(componentBase ?? {});
-            skeletonBases.forEach((skeletonBase) => {
+            const skeletonBases = Object.entries(componentBase ?? {});
+            skeletonBases.forEach(([skeletonBaseName, skeletonBase]: [string, SkeletonBase]) => {
                 if (skeletonBase?.addService){
-                    const containers = Object.values(skeletonBase.containers ?? {})
-                    containers.forEach((container: ClustersContainer) => {
-                        const dockerPorts = container?.dockerImage?.ports ?? [{ name: "", number: 0, protocol: "TCP" }];
+                    allPorts[componentBaseName] = { ports: [], skeletonBaseName: skeletonBaseName, componentBaseName: componentBaseName, portIndexToContainer: {}};
+                    const containers = Object.entries(skeletonBase.containers ?? {})
+                    containers.forEach(([containerName, container]: [string,ClustersContainer], containerIndex: number) => {
+                        const dockerPorts = container?.dockerImage?.ports ?? [{ name: "", number: 0, protocol: "TCP", ingressEnabledPort: false }];
                         const filteredPorts = dockerPorts.filter((port) => {
                             return port?.name !== "" && port?.number !== 0;
                         });
-                        allPorts[componentBaseName].push(...filteredPorts);
+                        filteredPorts.forEach((port, portIndex) => {
+                            allPorts[componentBaseName].portIndexToContainer[portIndex] = { containerName: containerName, portNumber: port.number };
+                        });
+                        allPorts[componentBaseName].ports.push(...filteredPorts);
                     })
                 }
             })
         })
         return allPorts;
     }, [cluster]);
-    const handleChangeSelect = (index: number, event: SelectChangeEvent<string>) => {
-        // const values = [...(selectedDockerImage.ports)];
-        // values[index] = { ...values[index], [event.target.name]: event.target.value };
-        //
-        console.log(event.target.value);
-    };
+
+    function handleChangeSelect(componentBasePorts: any, selectedPortName: string, selectedPortIndex: number) {
+
+        const containerIndex = componentBasePorts.portIndexToContainer[selectedPortIndex];
+        const dockerImage = cluster.componentBases[componentBasePorts.componentBaseName][componentBasePorts.skeletonBaseName].containers[containerIndex.containerName].dockerImage
+        let port = dockerImage.ports[selectedPortIndex];
+        console.log('containerIndex', containerIndex);
+        console.log('dockerImage', dockerImage);
+        console.log('port', port);
+        const newPort = {name: port.name, number: port.number, protocol: port.protocol, ingressEnabledPort: true};
+        dispatch(setDockerImagePort({
+            componentBaseKey: componentBasePorts.componentBaseName,
+            skeletonBaseKey: componentBasePorts.skeletonBaseName,
+            containerName: containerIndex.containerName,
+            port: newPort,
+            portIndex: selectedPortIndex,
+            dockerImageKey: dockerImage.imageName
+        }))
+    }
+
     const handleChange = (index: number, event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         console.log(event.target.value);
     };
@@ -85,7 +105,7 @@ export function IngressView(props: any) {
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <Box>
                         {ports &&
-                            Object.entries(ports).map(([componentBaseName, componentBasePorts]: [string, Port[]], index) => (
+                            Object.entries(ports).map(([componentBaseName, componentBasePorts]: [string, {}], index) => (
                                 <div key={index}>
                                     <Box mt={2} mb={2}>
                                         <Typography variant="body1" color="text.secondary">
@@ -102,11 +122,13 @@ export function IngressView(props: any) {
                                                     id={`portName-${index}`}
                                                     name="name"
                                                     value={""}
-                                                    onChange={(event) => handleChangeSelect(index, event)}
+                                                    onChange={(event) => handleChangeSelect(componentBasePorts, event.target.value, index)}
                                                     label="Port Name"
                                                 >
-                                                    {componentBasePorts.map((port) => (
-                                                        <MenuItem key={`menuItem-${port.name}`} value={port.name}>{port.name}</MenuItem>
+                                                    {Object.values(ports[componentBaseName].ports).map((port, portIndex) => (
+                                                        <MenuItem key={`menuItem-${port.name}-${portIndex}`} value={port.name}>
+                                                            {port.name}
+                                                        </MenuItem>
                                                     ))}
                                                 </Select>
                                             </FormControl>
@@ -119,7 +141,7 @@ export function IngressView(props: any) {
                                                     id={`pathType-${index}`}
                                                     name="pathType"
                                                     value={'ImplementationSpecific'}
-                                                    onChange={(event) => handleChangeSelect(index, event)}
+                                                    onChange={(event) => handleChangeSelect(componentBasePorts, event.target.value, index)}
                                                     label="Path Type"
                                                 >
                                                     <MenuItem value="ImplementationSpecific">ImplementationSpecific</MenuItem>

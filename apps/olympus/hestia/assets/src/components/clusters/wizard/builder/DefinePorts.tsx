@@ -76,7 +76,7 @@ export function AddPortsInputFields() {
     };
 
     const handleAddField = () => {
-        const newPort = { name: '', number: 0, protocol: 'TCP' };
+        const newPort = { name: '', number: 0, protocol: 'TCP', ingressEnabledPort: false };
         dispatch(addDockerImagePort({
             componentBaseKey: selectedComponentBaseName,
             skeletonBaseKey: selectedSkeletonBaseName,

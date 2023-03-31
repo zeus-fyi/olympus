@@ -32,7 +32,7 @@ export function AddContainers(props: any) {
                         cmd: '',
                         resourceRequirements: {cpu: '', memory: ''},
                         volumeMounts: [{name: '', mountPath: ''}] as VolumeMount[],
-                        ports: [{name: '', number: 0, protocol: 'TCP'} as Port] as Port[]}
+                        ports: [{name: '', number: 0, protocol: 'TCP', ingressEnabledPort: false} as Port] as Port[]}
                     }
             let contObj = {
                 componentBaseKey: selectedComponentBaseName,

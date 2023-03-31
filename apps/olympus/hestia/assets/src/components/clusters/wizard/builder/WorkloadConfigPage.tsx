@@ -16,6 +16,7 @@ import {
 } from "../../../../redux/clusters/clusters.builder.reducer";
 import {ServiceView} from "./ServiceView";
 import {IngressView} from "./IngressView";
+import {ConfigMapView} from "./ConfigMapView";
 
 export function WorkloadConfigPage(props: any) {
     const {} = props;
@@ -240,8 +241,7 @@ export function WorkloadConfigPage(props: any) {
                 )}
                 {viewField === 'configMap' && (
                     <div>
-                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        </Container>
+                        <ConfigMapView />
                     </div>
                 )}
                 {viewField === 'service' && (

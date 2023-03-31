@@ -145,8 +145,8 @@ export function IngressView(props: any) {
                         View Ingress Paths & Ports
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        Each component base can expose up to one port from a defined service to the ingress controller.
-                        The ingress controller will then route traffic to the service at port 80.
+                        Each component base can expose up to one port from a defined service to the Ingress controller.
+                        The Ingress controller will then route traffic to the service at port 80.
                     </Typography>
                 </CardContent>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>

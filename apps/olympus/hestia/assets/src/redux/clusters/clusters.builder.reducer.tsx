@@ -72,6 +72,54 @@ const clusterBuilderSlice = createSlice({
             }
             state.cluster.componentBases[componentBaseName][skeletonBaseName] = skeletonBase;
         },
+        toggleStatefulSetWorkloadSelectionOnSkeletonBase: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; addStatefulSet: boolean }>) => {
+            const {componentBaseName, skeletonBaseName, addStatefulSet} = action.payload;
+            if (!state.cluster.componentBases[componentBaseName]) {
+                state.cluster.componentBases[componentBaseName] = {};
+            }
+            state.cluster.componentBases[componentBaseName][skeletonBaseName].addStatefulSet = addStatefulSet;
+            if (state.cluster.componentBases[componentBaseName][skeletonBaseName].addDeployment && addStatefulSet) {
+                state.cluster.componentBases[componentBaseName][skeletonBaseName].addDeployment = false;
+            }
+        },
+        toggleDeploymentWorkloadSelectionOnSkeletonBase: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; addDeployment: boolean }>) => {
+            const {componentBaseName, skeletonBaseName, addDeployment} = action.payload;
+            if (!state.cluster.componentBases[componentBaseName]) {
+                state.cluster.componentBases[componentBaseName] = {};
+            }
+            state.cluster.componentBases[componentBaseName][skeletonBaseName].addDeployment = addDeployment;
+            if (state.cluster.componentBases[componentBaseName][skeletonBaseName].addStatefulSet && addDeployment) {
+                state.cluster.componentBases[componentBaseName][skeletonBaseName].addStatefulSet = false;
+            }
+        },
+        toggleServiceWorkloadSelectionOnSkeletonBase: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; addService: boolean }>) => {
+            const {componentBaseName, skeletonBaseName, addService} = action.payload;
+            if (!state.cluster.componentBases[componentBaseName]) {
+                state.cluster.componentBases[componentBaseName] = {};
+            }
+            state.cluster.componentBases[componentBaseName][skeletonBaseName].addService = addService;
+        },
+        toggleIngressWorkloadSelectionOnSkeletonBase: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; addIngress: boolean }>) => {
+            const {componentBaseName, skeletonBaseName, addIngress} = action.payload;
+            if (!state.cluster.componentBases[componentBaseName]) {
+                state.cluster.componentBases[componentBaseName] = {};
+            }
+            state.cluster.componentBases[componentBaseName][skeletonBaseName].addIngress = addIngress;
+        },
+        toggleConfigMapWorkloadSelectionOnSkeletonBase: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; addConfigMap: boolean }>) => {
+            const {componentBaseName, skeletonBaseName, addConfigMap} = action.payload;
+            if (!state.cluster.componentBases[componentBaseName]) {
+                state.cluster.componentBases[componentBaseName] = {};
+            }
+            state.cluster.componentBases[componentBaseName][skeletonBaseName].addConfigMap = addConfigMap;
+        },
+        toggleAddServiceMonitorWorkloadSelectionOnSkeletonBase: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; addServiceMonitor: boolean }>) => {
+            const {componentBaseName, skeletonBaseName, addServiceMonitor} = action.payload;
+            if (!state.cluster.componentBases[componentBaseName]) {
+                state.cluster.componentBases[componentBaseName] = {};
+            }
+            state.cluster.componentBases[componentBaseName][skeletonBaseName].addServiceMonitor = addServiceMonitor;
+        },
         removeSkeletonBase: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string }>) => {
             const { componentBaseName, skeletonBaseName } = action.payload;
             if (state.cluster.componentBases[componentBaseName][skeletonBaseName]) {
@@ -327,12 +375,36 @@ const clusterBuilderSlice = createSlice({
     },
 });
 
-export const { setClusterName, addComponentBase, removeComponentBase, addSkeletonBase,
-    setSelectedContainerName, removeSkeletonBase, setSelectedComponentBaseName,setSelectedSkeletonBaseName,
-    addContainer, setDockerImagePort, setDockerImageCmd, removeContainer, setDockerImage, setDockerImageCmdArgs,
-    setSelectedDockerImage, removeDockerImagePort, addDockerImagePort, setDockerImageVolumeMount,
-    addDockerImageVolumeMount, removeDockerImageVolumeMount, setContainerInit, setDockerImageCpuResourceRequirement,
-    setDockerImageMemoryResourceRequirement
+export const {
+    setClusterName,
+    addComponentBase,
+    removeComponentBase,
+    addSkeletonBase,
+    setSelectedContainerName,
+    removeSkeletonBase,
+    setSelectedComponentBaseName,
+    setSelectedSkeletonBaseName,
+    addContainer,
+    setDockerImagePort,
+    setDockerImageCmd,
+    removeContainer,
+    setDockerImage,
+    setDockerImageCmdArgs,
+    setSelectedDockerImage,
+    removeDockerImagePort,
+    addDockerImagePort,
+    setDockerImageVolumeMount,
+    addDockerImageVolumeMount,
+    removeDockerImageVolumeMount,
+    setContainerInit,
+    setDockerImageCpuResourceRequirement,
+    setDockerImageMemoryResourceRequirement,
+    toggleStatefulSetWorkloadSelectionOnSkeletonBase,
+    toggleDeploymentWorkloadSelectionOnSkeletonBase,
+    toggleServiceWorkloadSelectionOnSkeletonBase,
+    toggleIngressWorkloadSelectionOnSkeletonBase,
+    toggleConfigMapWorkloadSelectionOnSkeletonBase,
+    toggleAddServiceMonitorWorkloadSelectionOnSkeletonBase,
 } = clusterBuilderSlice.actions;
 
 export default clusterBuilderSlice.reducer;

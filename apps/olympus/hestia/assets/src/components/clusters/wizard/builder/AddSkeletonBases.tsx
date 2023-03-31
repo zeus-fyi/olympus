@@ -3,6 +3,7 @@ import {useDispatch, useSelector} from "react-redux";
 import {
     addSkeletonBase,
     removeSkeletonBase,
+    setSelectedComponentBaseName,
     setSelectedSkeletonBaseName
 } from "../../../../redux/clusters/clusters.builder.reducer";
 import {Box} from "@mui/material";
@@ -15,7 +16,6 @@ export function AddSkeletonBases(props: any) {
     let cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
     let selectedComponentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
     let componentBase = cluster.componentBases[selectedComponentBaseName];
-
     const [inputField, setInputField] = useState('');
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,6 +41,7 @@ export function AddSkeletonBases(props: any) {
                 skeletonBaseName: inputField,
                 skeletonBase: sb,
             }
+            dispatch(setSelectedComponentBaseName(selectedComponentBaseName));
             dispatch(setSelectedSkeletonBaseName(inputField))
             dispatch(addSkeletonBase(cbObj));
             setInputField('');

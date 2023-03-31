@@ -42,19 +42,8 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
     }
     const dispatch = useDispatch();
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
-    const componentBases = cluster.componentBases;
-    const componentBaseKeys = Object.keys(componentBases);
     const componentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
     const selectedSkeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
-
-    useEffect(() => {
-        dispatch(setSelectedComponentBaseName(componentBaseName));
-    }, [dispatch, cluster, componentBaseName]);
-
-    let selectedComponentBaseKey = '';
-    if (componentBaseKeys.length > 0) {
-        selectedComponentBaseKey = componentBaseKeys[0];
-    }
 
     if (cluster.componentBases === undefined) {
         return <div></div>
@@ -74,7 +63,7 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
     };
 
     const handleChange = (index: number, event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const values = [...(cluster.componentBases[selectedComponentBaseKey][selectedSkeletonBaseName].statefulSet.pvcTemplates)];
+        const values = [...(cluster.componentBases[componentBaseName][selectedSkeletonBaseName].statefulSet.pvcTemplates)];
         values[index] = {...values[index], [event.target.name]: event.target.value};
         dispatch(setStatefulSetPVC({
             componentBaseName: componentBaseName,
@@ -85,7 +74,7 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
     };
 
     const handleRemoveField = (index: number) => {
-        const values = [...(cluster.componentBases[selectedComponentBaseKey][selectedSkeletonBaseName].statefulSet.pvcTemplates)];
+        const values = [...(cluster.componentBases[componentBaseName][selectedSkeletonBaseName].statefulSet.pvcTemplates)];
         const pvc = values[index]
         values.splice(index, 1);
         dispatch(removeStatefulSetPVC({
@@ -96,7 +85,7 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
         }));
     };
     const handleChangeSelect = (index: number, event: SelectChangeEvent<string>) => {
-        const values = [...(cluster.componentBases[selectedComponentBaseKey][selectedSkeletonBaseName].statefulSet.pvcTemplates)];
+        const values = [...(cluster.componentBases[componentBaseName][selectedSkeletonBaseName].statefulSet.pvcTemplates)];
         values[index] = { ...values[index], [event.target.name]: event.target.value };
         dispatch(setStatefulSetPVC({
             componentBaseName: componentBaseName,
@@ -114,7 +103,11 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
             pvc: newPVC,
         }));
     };
-    const showPVCs = Object.keys(cluster.componentBases[selectedComponentBaseKey][selectedSkeletonBaseName].statefulSet.pvcTemplates).length > 0;
+    console.log('cluster', cluster)
+    console.log('selectedComponentBaseKey', componentBaseName)
+    console.log(cluster.componentBases[componentBaseName], 'componentBases', selectedSkeletonBaseName, 'selectedSkeletonBaseName')
+
+    const showPVCs = Object.keys(cluster.componentBases[componentBaseName][selectedSkeletonBaseName].statefulSet?.pvcTemplates).length > 0;
     return (
         <div>
             <Stack direction="row" spacing={2}>
@@ -135,7 +128,7 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
                                     variant="outlined"
                                     type={"number"}
                                     InputProps={{ inputProps: { min: 0 } }}
-                                    value={cluster.componentBases[selectedComponentBaseKey][selectedSkeletonBaseName].deployment.replicaCount}
+                                    value={cluster.componentBases[componentBaseName][selectedSkeletonBaseName].deployment.replicaCount}
                                     onChange={(event) => onChangeDeploymentReplicaCount(parseInt(event.target.value))}
                                     sx={{ width: '100%' }}
                                 />
@@ -151,13 +144,13 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
                                             variant="outlined"
                                             type={"number"}
                                             InputProps={{ inputProps: { min: 0 } }}
-                                            value={cluster.componentBases[selectedComponentBaseKey][selectedSkeletonBaseName].statefulSet.replicaCount}
+                                            value={cluster.componentBases[componentBaseName][selectedSkeletonBaseName].statefulSet.replicaCount}
                                             onChange={(event) => onChangeStatefulSetReplicaCount(parseInt(event.target.value))}
                                             sx={{ width: '100%' }}
                                         />
                                     </Box>
                                     <Box mt={2}>
-                                        {showPVCs && cluster.componentBases[selectedComponentBaseKey][selectedSkeletonBaseName].statefulSet.pvcTemplates.map((inputField, index) => (
+                                        {showPVCs && cluster.componentBases[componentBaseName][selectedSkeletonBaseName].statefulSet.pvcTemplates.map((inputField, index) => (
                                             <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                                                 <TextField
                                                     key={`name-${index}`}
@@ -211,7 +204,7 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
                                     </Box>
                                 </div>
                             }
-                        {show && cluster.componentBases[selectedComponentBaseKey] && Object.keys(skeletonBaseKeys).length > 0 &&
+                        {show && cluster.componentBases[componentBaseName] && Object.keys(skeletonBaseKeys).length > 0 &&
                             <Box mt={2}>
                                 <AddContainers />
                             </Box>
@@ -220,7 +213,7 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
 
                     </Container>
                 </Card>
-                {show && cluster.componentBases[selectedComponentBaseKey] && Object.keys(skeletonBaseKeys).length > 0 &&
+                {show && cluster.componentBases[componentBaseName] && Object.keys(skeletonBaseKeys).length > 0 &&
                     <div>
                         <DefineDockerParams />
                     </div>

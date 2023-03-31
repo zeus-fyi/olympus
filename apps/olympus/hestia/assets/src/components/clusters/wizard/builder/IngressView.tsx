@@ -12,12 +12,9 @@ export function IngressView(props: any) {
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
     const selectedComponentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
     const selectedSkeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
-    const selectedContainerName = useSelector((state: RootState) => state.clusterBuilder.selectedContainerName);
-    const skeletonBaseKeys = cluster.componentBases[selectedComponentBaseName];
     const selectedComponentBase = cluster.componentBases?.[selectedComponentBaseName]?.[selectedSkeletonBaseName] ?? '';
     const addDeployment = selectedComponentBase?.addDeployment
     const addStatefulSet = selectedComponentBase?.addStatefulSet
-    let selectedDockerImage = cluster.componentBases[selectedComponentBaseName]?.[selectedSkeletonBaseName]?.containers[selectedContainerName]?.dockerImage
     const ports = useMemo(() => {
         const allPorts: Port[] = [];
         const componentBases = Object.values(cluster.componentBases);
@@ -38,24 +35,6 @@ export function IngressView(props: any) {
         })
         return allPorts;
     }, [cluster]);
-    console.log('ports', ports)
-    if (addDeployment === false && addStatefulSet === false) {
-        return (
-            <div>
-                <Card sx={{ minWidth: 400, maxWidth: 600}}>
-                    <CardContent>
-                        <Typography gutterBottom variant="h5" component="div">
-                            View Ingress Paths & Ports
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Each component base can expose up to one port from a defined service to the ingress controller.
-                            The ingress controller will then route traffic to the service at port 80.
-                        </Typography>
-                    </CardContent>
-                </Card>
-            </div>
-        )
-    }
 
     return (
         <div>

@@ -118,7 +118,7 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
     return (
         <div>
             <Stack direction="row" spacing={2}>
-                <Card sx={{ maxWidth: 800 }}>
+                <Card sx={{ maxWidth: 500 }}>
                     <CardContent>
                         <Typography gutterBottom variant="h5" component="div">
                             Configure {viewFieldName} Workload

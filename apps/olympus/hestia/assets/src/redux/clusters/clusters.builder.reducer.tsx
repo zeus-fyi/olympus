@@ -4,6 +4,7 @@ import {
     ComponentBases,
     Container,
     DockerImage,
+    IngressPath,
     Port,
     PVCTemplate,
     ResourceRequirements,
@@ -94,19 +95,53 @@ const clusterBuilderSlice = createSlice({
             }
             state.cluster.componentBases[componentBaseName][skeletonBaseName].ingress.host = host;
         },
-        setIngressPath: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; path: string }>) => {
-            const {componentBaseName, skeletonBaseName, path} = action.payload;
+        setIngressPath: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; pathIndex: number; path: IngressPath }>) => {
+            const {componentBaseName, skeletonBaseName, pathIndex, path} = action.payload;
             if (!state.cluster.componentBases[componentBaseName]) {
                 state.cluster.componentBases[componentBaseName] = {};
             }
-            state.cluster.componentBases[componentBaseName][skeletonBaseName].ingress.path = path;
+            const skeletonBase = state.cluster.componentBases[componentBaseName]?.[skeletonBaseName]
+            if (!skeletonBase) {
+                console.error(`Skeleton base not found: ${skeletonBaseName}`);
+                return;
+            }
+            if (pathIndex < 0 || pathIndex >= skeletonBase.ingress.paths.length) {
+                console.error(`Invalid port index: ${pathIndex}`);
+                return;
+            }
+            if (pathIndex >= 0) {
+                skeletonBase.ingress.paths[pathIndex] = path;
+            } else {
+                skeletonBase.ingress.paths.push(path);
+            }
         },
-        setIngressPathType: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; pathType: string }>) => {
-            const {componentBaseName, skeletonBaseName, pathType} = action.payload;
+        removeIngressPath: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; pathIndex: number, path: IngressPath}>) => {
+            const {componentBaseName, skeletonBaseName, pathIndex, path} = action.payload;
             if (!state.cluster.componentBases[componentBaseName]) {
                 state.cluster.componentBases[componentBaseName] = {};
             }
-            state.cluster.componentBases[componentBaseName][skeletonBaseName].ingress.pathType = pathType;
+            const skeletonBase = state.cluster.componentBases[componentBaseName]?.[skeletonBaseName]
+            if (!skeletonBase) {
+                console.error(`Skeleton base not found: ${skeletonBaseName}`);
+                return;
+            }
+            if (pathIndex !== undefined && (pathIndex < 0 || pathIndex >= skeletonBase.ingress.paths.length)) {
+                console.error(`Invalid path index: ${pathIndex}`);
+                return;
+            }
+            if (pathIndex !== undefined) {
+                // Remove port at specified index
+                skeletonBase.ingress.paths.splice(pathIndex, 1);
+            } else if (path !== undefined) {
+                // Add or update port
+                if (pathIndex !== undefined) {
+                    // Update existing port
+                    skeletonBase.ingress.paths[pathIndex] = path;
+                } else {
+                    // Add new port
+                    skeletonBase.ingress.paths.push(path);
+                }
+            }
         },
         setIngressAuthServerURL: (state, action: PayloadAction<{ componentBaseName: string; skeletonBaseName: string; authServerURL: string }>) => {
             const {componentBaseName, skeletonBaseName, authServerURL} = action.payload;
@@ -540,7 +575,7 @@ export const {
     removeConfigMapKey,
     setIngressHost,
     setIngressPath,
-    setIngressPathType,
+    removeIngressPath,
     setIngressAuthServerURL
 } = clusterBuilderSlice.actions;
 

@@ -34,7 +34,7 @@ export function AddSkeletonBases(props: any) {
                 statefulSet: {replicaCount: 0, pvcTemplates: [{name: '', storageSizeRequest: '', accessMode: ''}]},
                 deployment: {replicaCount: 0},
                 containers: {},
-                ingress: {host: '', path: '', pathType: '', authServerURL: ''},
+                ingress: {host: '',  authServerURL: '', paths: [{path: '', serviceName: '', pathType: ''}]},
             };
             let cbObj = {
                 componentBaseName: selectedComponentBaseName,

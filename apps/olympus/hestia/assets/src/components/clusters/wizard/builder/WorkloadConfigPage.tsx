@@ -15,6 +15,7 @@ import {
     toggleStatefulSetWorkloadSelectionOnSkeletonBase,
 } from "../../../../redux/clusters/clusters.builder.reducer";
 import {ServiceView} from "./ServiceView";
+import {IngressView} from "./IngressView";
 
 export function WorkloadConfigPage(props: any) {
     const {} = props;
@@ -250,8 +251,7 @@ export function WorkloadConfigPage(props: any) {
                 )}
                 {viewField === 'ingress' && (
                     <div>
-                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        </Container>
+                        <IngressView />
                     </div>
                 )}
                 {/*{viewField === 'serviceMonitor' && (*/}

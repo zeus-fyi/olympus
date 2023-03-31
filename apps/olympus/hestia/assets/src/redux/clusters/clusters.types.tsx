@@ -26,12 +26,16 @@ export interface SkeletonBase {
 }
 
 export interface Ingress {
-    host: string
-    path: string
-    pathType: string
     authServerURL: string
+    host: string
+    paths: IngressPath[]
 }
 
+export interface IngressPath {
+    path: string
+    pathType: string
+    serviceName: string
+}
 export interface ConfigMap {
     [key: string]: string;
 }

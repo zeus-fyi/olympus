@@ -103,10 +103,6 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
             pvc: newPVC,
         }));
     };
-    console.log('cluster', cluster)
-    console.log('selectedComponentBaseKey', componentBaseName)
-    console.log(cluster.componentBases[componentBaseName], 'componentBases', selectedSkeletonBaseName, 'selectedSkeletonBaseName')
-
     const showPVCs = Object.keys(cluster.componentBases[componentBaseName][selectedSkeletonBaseName].statefulSet?.pvcTemplates).length > 0;
     return (
         <div>

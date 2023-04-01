@@ -2,8 +2,10 @@ package create_infra
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_resp_types/topology_workloads"
 )
 
 func PreviewCreateTopologyInfraActionRequestHandler(c echo.Context) error {
@@ -21,5 +23,7 @@ type TopologyPreviewCreateRequest struct {
 func (t *TopologyPreviewCreateRequest) PreviewCreateTopology(c echo.Context) error {
 
 	fmt.Println(t.Cluster)
-	return nil
+	// TODO process
+	tmp := topology_workloads.NewTopologyBaseInfraWorkload()
+	return c.JSON(http.StatusOK, tmp)
 }

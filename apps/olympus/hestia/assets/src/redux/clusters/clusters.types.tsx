@@ -30,6 +30,10 @@ export interface SkeletonBase {
     containers: Containers;
 }
 
+export interface ConfigMap {
+    [key: string]: string;
+}
+
 export interface Ingress {
     authServerURL: string
     host: string
@@ -38,10 +42,6 @@ export interface Ingress {
 export interface IngressPath {
     path: string
     pathType: string
-}
-
-export interface ConfigMap {
-    [key: string]: string;
 }
 
 export interface Deployment {

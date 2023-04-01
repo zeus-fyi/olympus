@@ -11,7 +11,13 @@ import {
     SkeletonBases
 } from "../../../../redux/clusters/clusters.types";
 import Typography from "@mui/material/Typography";
-import {setDockerImagePort} from "../../../../redux/clusters/clusters.builder.reducer";
+import {
+    setDockerImagePort,
+    setIngressAuthServerURL,
+    setIngressHost,
+    setIngressPath,
+    setIngressPathType
+} from "../../../../redux/clusters/clusters.builder.reducer";
 
 export function IngressView(props: any) {
     const dispatch = useDispatch();
@@ -69,22 +75,25 @@ export function IngressView(props: any) {
             dockerImageKey: dockerImage.imageName
         }))
     }
+    function handleChangeSelectPathType(componentBaseName: string, selectedPathType: string) {
+        dispatch(setIngressPathType({componentBaseName: componentBaseName, pathType: selectedPathType}))
+    }
 
-    const handleChange = (index: number, event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        console.log(event.target.value);
+    const handleChangePath = (componentBaseName: string, event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const path = event.target.value;
+        dispatch(setIngressPath({componentBaseName: componentBaseName, path: path}))
     };
 
     const handleChangeHost = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        console.log(event.target.value);
+        const host = event.target.value;
+        dispatch(setIngressHost({host: host}))
     };
 
     const handleChangeAuthURL = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        console.log(event.target.value);
+        const authServerURL = event.target.value;
+        dispatch(setIngressAuthServerURL({authServerURL: authServerURL}))
     };
 
-    // TODO needs a selector to get ingress enabled ports, should also make sure only one is enabled per service
-    // TODO needs to set path, and add auth url
-    // if port is ingress enabled, then add to ingress once per service
     return (
         <div>
             <Card>
@@ -98,32 +107,34 @@ export function IngressView(props: any) {
                     </Typography>
                 </CardContent>
                 <Container maxWidth="xl" sx={{ mt: 4 }}>
-                    <Box mt={2}>
-                        <TextField
-                            key={`host`}
-                            name="host"
-                            fullWidth
-                            id={`host`}
-                            label="Host"
-                            variant="outlined"
-                            value="host.zeus.fyi"
-                            onChange={(event) => handleChangeHost(event)}
-                            sx={{ mb: 1 }}
-                        />
+                    <div>
+                        <Box mt={2}>
+                            <TextField
+                                key={`host`}
+                                name="host"
+                                fullWidth
+                                id={`host`}
+                                label="Host"
+                                variant="outlined"
+                                value={cluster.ingressSettings.host}
+                                onChange={(event) => handleChangeHost(event)}
+                                sx={{ mb: 1 }}
+                            />
+                            </Box>
+                        <Box mt={2}>
+                            <TextField
+                                key={`authURL`}
+                                name="authURL"
+                                fullWidth
+                                id={`authURL`}
+                                label="AuthURL"
+                                variant="outlined"
+                                value={cluster.ingressSettings.authServerURL}
+                                onChange={(event) => handleChangeAuthURL(event)}
+                                sx={{ mb: 1 }}
+                            />
                         </Box>
-                    <Box mt={2}>
-                        <TextField
-                            key={`authURL`}
-                            name="authURL"
-                            fullWidth
-                            id={`authURL`}
-                            label="AuthURL"
-                            variant="outlined"
-                            value="aegis.zeus.fyi"
-                            onChange={(event) => handleChangeAuthURL(event)}
-                            sx={{ mb: 1 }}
-                        />
-                    </Box>
+                    </div>
                 </Container>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <Box>
@@ -167,8 +178,8 @@ export function IngressView(props: any) {
                                                     labelId={`pathTypeLabel-${index}`}
                                                     id={`pathType-${index}`}
                                                     name="pathType"
-                                                    value={'ImplementationSpecific'}
-                                                    onChange={(event) => handleChangeSelect(componentBasePorts, event.target.value, index)}
+                                                    value={cluster.ingressPaths[componentBaseName].pathType}
+                                                    onChange={(event) => handleChangeSelectPathType(componentBaseName, event.target.value)}
                                                     label="Path Type"
                                                 >
                                                     <MenuItem value="ImplementationSpecific">ImplementationSpecific</MenuItem>
@@ -182,8 +193,8 @@ export function IngressView(props: any) {
                                                 id={`path-${index}`}
                                                 label="Path"
                                                 variant="outlined"
-                                                value="/"
-                                                onChange={(event) => handleChange(index, event)}
+                                                value={cluster.ingressPaths[componentBaseName].path}
+                                                onChange={(event) => handleChangePath(componentBaseName, event)}
                                                 sx={{ mr: 1 }}
                                             />
                                             <Box sx={{ ml: 2 }}>

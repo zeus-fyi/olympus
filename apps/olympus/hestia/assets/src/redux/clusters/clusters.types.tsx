@@ -1,7 +1,13 @@
 export interface Cluster{
     clusterName: string;
     componentBases: ComponentBases;
+    ingressSettings: Ingress;
+    ingressPaths: IngressPaths;
 }
+
+export type IngressPaths = {
+    [componentBaseName: string]: IngressPath;
+};
 
 export type ComponentBases = {
     [componentBaseName: string]: SkeletonBases;
@@ -19,7 +25,6 @@ export interface SkeletonBase {
     addIngress: boolean;
     addServiceMonitor: boolean;
     configMap: ConfigMap;
-    ingress: Ingress;
     deployment: Deployment;
     statefulSet: StatefulSet;
     containers: Containers;
@@ -28,13 +33,11 @@ export interface SkeletonBase {
 export interface Ingress {
     authServerURL: string
     host: string
-    paths: IngressPath[]
 }
 
 export interface IngressPath {
     path: string
     pathType: string
-    serviceName: string
 }
 
 export interface ConfigMap {

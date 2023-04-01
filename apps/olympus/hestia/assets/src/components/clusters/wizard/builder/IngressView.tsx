@@ -16,6 +16,7 @@ import {setDockerImagePort} from "../../../../redux/clusters/clusters.builder.re
 export function IngressView(props: any) {
     const dispatch = useDispatch();
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
+
     const ports = useMemo(() => {
         const componentBases = Object.entries(cluster.componentBases);
         const allPorts: {
@@ -33,14 +34,16 @@ export function IngressView(props: any) {
                     allPorts[componentBaseName] = { ports: [], skeletonBaseName: skeletonBaseName, componentBaseName: componentBaseName, portIndexToContainer: {}};
                     const containers = Object.entries(skeletonBase.containers ?? {})
                     containers.forEach(([containerName, container]: [string,ClustersContainer], containerIndex: number) => {
-                        const dockerPorts = container?.dockerImage?.ports ?? [{ name: "", number: 0, protocol: "TCP", ingressEnabledPort: false }];
-                        const filteredPorts = dockerPorts.filter((port) => {
-                            return port?.name !== "" && port?.number !== 0;
-                        });
-                        filteredPorts.forEach((port, portIndex) => {
-                            allPorts[componentBaseName].portIndexToContainer[portIndex] = { containerName: containerName, portNumber: port.number };
-                        });
-                        allPorts[componentBaseName].ports.push(...filteredPorts);
+                        if (container?.dockerImage.imageName !== "") {
+                            const dockerPorts = container?.dockerImage?.ports ?? [{ name: "", number: 0, protocol: "TCP", ingressEnabledPort: false }];
+                            const filteredPorts = dockerPorts.filter((port) => {
+                                return port?.name !== "" && port?.number !== 0;
+                            });
+                            filteredPorts.forEach((port, portIndex) => {
+                                allPorts[componentBaseName].portIndexToContainer[portIndex] = { containerName: containerName, portNumber: port.number };
+                            });
+                            allPorts[componentBaseName].ports.push(...filteredPorts);
+                        }
                     })
                 }
             })
@@ -49,18 +52,18 @@ export function IngressView(props: any) {
     }, [cluster]);
 
     function handleChangeSelect(componentBasePorts: any, selectedPortName: string, selectedPortIndex: number) {
-
-        const containerIndex = componentBasePorts.portIndexToContainer[selectedPortIndex];
-        const dockerImage = cluster.componentBases[componentBasePorts.componentBaseName][componentBasePorts.skeletonBaseName].containers[containerIndex.containerName].dockerImage
+        const containerName= componentBasePorts?.portIndexToContainer[selectedPortIndex].containerName;
+        const dockerImage = cluster?.componentBases?.[componentBasePorts?.componentBaseName]?.[componentBasePorts?.skeletonBaseName]?.containers?.[containerName]?.dockerImage;
+        if (!dockerImage) {
+            console.log('no docker image found');
+            return;
+        }
         let port = dockerImage.ports[selectedPortIndex];
-        console.log('containerIndex', containerIndex);
-        console.log('dockerImage', dockerImage);
-        console.log('port', port);
         const newPort = {name: port.name, number: port.number, protocol: port.protocol, ingressEnabledPort: true};
         dispatch(setDockerImagePort({
             componentBaseKey: componentBasePorts.componentBaseName,
             skeletonBaseKey: componentBasePorts.skeletonBaseName,
-            containerName: containerIndex.containerName,
+            containerName: containerName,
             port: newPort,
             portIndex: selectedPortIndex,
             dockerImageKey: dockerImage.imageName
@@ -81,6 +84,7 @@ export function IngressView(props: any) {
 
     // TODO needs a selector to get ingress enabled ports, should also make sure only one is enabled per service
     // TODO needs to set path, and add auth url
+    // if port is ingress enabled, then add to ingress once per service
     return (
         <div>
             <Card>
@@ -140,12 +144,16 @@ export function IngressView(props: any) {
                                                     labelId={`portNameLabel-${index}`}
                                                     id={`portName-${index}`}
                                                     name="name"
-                                                    value={""}
-                                                    onChange={(event) => handleChangeSelect(componentBasePorts, event.target.value, index)}
+                                                    value={Object.values(ports[componentBaseName].ports).find(port => port.ingressEnabledPort)?.name || ""}
+                                                    onChange={(event) => {
+                                                        const selectedPortName = event.target.value;
+                                                        const selectedPortIndex = Object.values(ports[componentBaseName].ports).findIndex(port => port.name === selectedPortName);
+                                                        handleChangeSelect(componentBasePorts, selectedPortName, selectedPortIndex)
+                                                    }}
                                                     label="Port Name"
                                                 >
                                                     {Object.values(ports[componentBaseName].ports).map((port, portIndex) => (
-                                                        <MenuItem key={`menuItem-${port.name}-${portIndex}`} value={port.name}>
+                                                        <MenuItem selected={port.ingressEnabledPort} key={`menuItem-${port.name}-${portIndex}`} value={port.name}>
                                                             {port.name}
                                                         </MenuItem>
                                                     ))}

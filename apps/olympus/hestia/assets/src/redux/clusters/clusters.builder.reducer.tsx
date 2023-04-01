@@ -393,9 +393,18 @@ const clusterBuilderSlice = createSlice({
                 console.error(`Invalid port index: ${portIndex}`);
                 return;
             }
-            dockerImage.ports[portIndex] = port;
-            const selectedDockerImage = state.selectedDockerImage
-            selectedDockerImage.ports[portIndex] = port;
+            const updatedPorts = dockerImage.ports.map((p, i) => {
+                if (i === portIndex) {
+                    return port;
+                } else if (port.ingressEnabledPort && p.ingressEnabledPort) {
+                    return { ...p, ingressEnabledPort: false };
+                } else {
+                    return p;
+                }
+            });
+            dockerImage.ports = updatedPorts;
+            const selectedDockerImage = state.selectedDockerImage;
+            selectedDockerImage.ports = updatedPorts;
         },
         addDockerImagePort: (state, action: PayloadAction<{
             componentBaseKey: string;

@@ -20,10 +20,22 @@ type TopologyPreviewCreateRequest struct {
 	Cluster `json:"cluster"`
 }
 
+type TopologyPreviewCreateResponse struct {
+	ComponentBases map[string]topology_workloads.TopologyBaseInfraWorkload `json:"componentBases"`
+}
+
 func (t *TopologyPreviewCreateRequest) PreviewCreateTopology(c echo.Context) error {
 
 	fmt.Println(t.Cluster)
-	// TODO process
+	/*
+			// TODO process, map to ClusterPreview
+			export interface ClusterPreview {
+		    clusterName: string;
+		    componentBases: any;
+		    ingressSettings: any;
+		    ingressPaths: any;
+		}
+	*/
 	tmp := topology_workloads.NewTopologyBaseInfraWorkload()
 	return c.JSON(http.StatusOK, tmp)
 }

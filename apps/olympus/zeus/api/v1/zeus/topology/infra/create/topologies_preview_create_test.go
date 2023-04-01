@@ -32,13 +32,69 @@ func (t *TopologyPreviewCreateClassRequestTestSuite) TestGeneratePreview() {
 	ctx := context.Background()
 	defer t.E.Shutdown(ctx)
 
-	// TODO
 	req := Cluster{
-		ClusterName:     "clusterTest",
+		ClusterName:     "avaxNodeTest",
 		ComponentBases:  make(map[string]SkeletonBases),
 		IngressSettings: Ingress{},
 		IngressPaths:    IngressPaths{},
 	}
+
+	sb := SkeletonBase{
+		AddStatefulSet:    true,
+		AddDeployment:     false,
+		AddConfigMap:      false,
+		AddService:        true,
+		AddIngress:        false,
+		AddServiceMonitor: false,
+		ConfigMap:         ConfigMap{},
+		StatefulSet: StatefulSet{
+			ReplicaCount: 1,
+			PVCTemplates: []PVCTemplate{{
+				Name:               "avax-client-storage",
+				AccessMode:         "ReadWriteOnce",
+				StorageSizeRequest: "2Ti",
+			}},
+		},
+		Containers: make(map[string]Container),
+	}
+	c := Container{
+		IsInitContainer: false,
+		DockerImage: DockerImage{
+			ImageName: "avaplatform/avalanchego:v1.9.10",
+			Cmd:       "/bin/sh",
+			Args:      "-c,/scripts/start.sh",
+			ResourceRequirements: ResourceRequirements{
+				CPU:    "6",
+				Memory: "12Gi",
+			},
+			Ports: []Port{
+				{
+					Name:               "p2p-tcp",
+					Number:             "9651",
+					Protocol:           "TCP",
+					IngressEnabledPort: false,
+				}, {
+					Name:               "http-api",
+					Number:             "9650",
+					Protocol:           "TCP",
+					IngressEnabledPort: true,
+				}, {
+					Name:               "metrics",
+					Number:             "9090",
+					Protocol:           "TCP",
+					IngressEnabledPort: false,
+				},
+			},
+			VolumeMounts: []VolumeMount{{
+				Name:      "avax-client-storage",
+				MountPath: "/data",
+			}},
+		},
+	}
+
+	sb.Containers["avax-client"] = c
+	req.ComponentBases["avaxClients"] = make(map[string]SkeletonBase)
+	req.ComponentBases["avaxClients"]["avaxClients"] = sb
 
 	var jsonResp any
 	resp, err := t.ZeusClient.R().

@@ -65,11 +65,16 @@ export function AddSkeletonBaseDockerConfigs(props: any) {
     const handleChange = (index: number, event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const values = [...(cluster.componentBases[componentBaseName][selectedSkeletonBaseName].statefulSet.pvcTemplates)];
         values[index] = {...values[index], [event.target.name]: event.target.value};
+
+        let newValues = values[index];
+        if (newValues.accessMode == '') {
+            newValues.accessMode = 'ReadWriteOnce';
+        }
         dispatch(setStatefulSetPVC({
             componentBaseName: componentBaseName,
             skeletonBaseName: selectedSkeletonBaseName,
             pvcIndex: index,
-            pvc: values[index],
+            pvc: newValues,
         }));
     };
 

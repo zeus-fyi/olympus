@@ -213,6 +213,7 @@ const clusterBuilderSlice = createSlice({
             state.cluster.componentBases[componentBaseName][skeletonBaseName].addStatefulSet = addStatefulSet;
             if (state.cluster.componentBases[componentBaseName][skeletonBaseName].addDeployment && addStatefulSet) {
                 state.cluster.componentBases[componentBaseName][skeletonBaseName].addDeployment = false;
+                state.cluster.componentBases[componentBaseName][skeletonBaseName].deployment.replicaCount = 0;
                 state.cluster.componentBases[componentBaseName][skeletonBaseName].containers = {};
             }
         },
@@ -224,6 +225,7 @@ const clusterBuilderSlice = createSlice({
             state.cluster.componentBases[componentBaseName][skeletonBaseName].addDeployment = addDeployment;
             if (state.cluster.componentBases[componentBaseName][skeletonBaseName].addStatefulSet && addDeployment) {
                 state.cluster.componentBases[componentBaseName][skeletonBaseName].addStatefulSet = false;
+                state.cluster.componentBases[componentBaseName][skeletonBaseName].statefulSet.replicaCount = 0;
                 state.cluster.componentBases[componentBaseName][skeletonBaseName].containers = {};
             }
         },

@@ -5,6 +5,13 @@ export interface Cluster{
     ingressPaths: IngressPaths;
 }
 
+export interface ClusterPreview {
+    clusterName: string;
+    componentBases: any;
+    ingressSettings: any;
+    ingressPaths: any;
+}
+
 export type IngressPaths = {
     [componentBaseName: string]: IngressPath;
 };

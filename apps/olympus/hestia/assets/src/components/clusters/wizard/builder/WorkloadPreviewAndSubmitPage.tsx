@@ -1,17 +1,67 @@
-import {Box, Button, Card, CardContent, Container, Stack} from "@mui/material";
+import {Box, Button, Card, CardContent, CircularProgress, Container, Stack} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import {SelectedComponentBaseName} from "./DefineComponentBases";
 import * as React from "react";
 import {useState} from "react";
 import {SelectedSkeletonBaseName} from "./AddSkeletonBaseDockerConfigs";
 import YamlTextField from "./YamlFormattedTextPage";
+import {clustersApiGateway} from "../../../../gateway/clusters";
+import {useSelector} from "react-redux";
+import {RootState} from "../../../../redux/store";
 
 export function WorkloadPreviewAndSubmitPage(props: any) {
     const {} = props;
+    const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
     const [viewField, setViewField] = useState('');
+    let buttonLabel;
+    let buttonDisabled;
+    let statusMessage;
+    const [requestStatus, setRequestStatus] = useState('');
+
+    switch (requestStatus) {
+        case 'pending':
+            buttonLabel = <CircularProgress size={20} />;
+            buttonDisabled = true;
+            break;
+        case 'success':
+            buttonLabel = 'Logged in successfully';
+            buttonDisabled = true;
+            statusMessage = 'Logged in successfully!';
+            break;
+        case 'error':
+            buttonLabel = 'Retry';
+            buttonDisabled = false;
+            statusMessage = 'An error occurred while generating preview, please try again. If you continue having issues please email alex@zeus.fyi';
+            break;
+        default:
+            buttonLabel = 'Login';
+            buttonDisabled = false;
+            break;
+    }
+
+    // ClusterPreview
+
     const onChangeComponentOrSkeletonBase = () => {
         setViewField('')
     }
+
+    const onClickPreviewCreate = async () => {
+        console.log(cluster)
+        try {
+            setRequestStatus('pending');
+            let res: any = await clustersApiGateway.previewCreateCluster(cluster)
+            console.log(res)
+            const statusCode = res.status;
+            if (statusCode === 200 || statusCode === 204) {
+                setRequestStatus('success');
+            } else {
+                setRequestStatus('error');
+            }
+        } catch (e) {
+            setRequestStatus('error');
+        }
+    }
+
     return (
         <div>
             <Stack direction="row" spacing={2}>
@@ -34,7 +84,7 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
                     </Container>
                     <Container maxWidth="xl" sx={{ mb: 4 }}>
                         <Box mt={2}>
-                            <Button variant="contained">
+                            <Button variant="contained" onClick={onClickPreviewCreate}>
                                 Generate Preview
                             </Button>
                         </Box>

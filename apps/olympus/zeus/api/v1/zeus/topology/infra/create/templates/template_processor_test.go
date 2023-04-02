@@ -2,6 +2,7 @@ package zeus_templates
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -85,7 +86,18 @@ func (t *TemplateProcessorTestSuite) TestGeneratePreview() {
 	req.ComponentBases["avaxClients"] = make(map[string]SkeletonBase)
 	req.ComponentBases["avaxClients"]["avaxClients"] = sb
 
-	PreviewTemplateGeneration(ctx, req)
+	cd := PreviewTemplateGeneration(ctx, req)
+	gcd := cd.BuildClusterDefinitions()
+	t.Assert().NotEmpty(gcd)
+	fmt.Println(gcd)
+
+	gdr := cd.GenerateDeploymentRequest()
+	t.Assert().NotEmpty(gdr)
+	fmt.Println(gdr)
+
+	sbDefs, err := cd.GenerateSkeletonBaseCharts()
+	t.Assert().NoError(err)
+	t.Assert().NotEmpty(sbDefs)
 }
 
 func TestTemplateProcessorTestSuite(t *testing.T) {

@@ -19,7 +19,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func PreviewTemplateGeneration(ctx context.Context, cluster Cluster) {
+func PreviewTemplateGeneration(ctx context.Context, cluster Cluster) zeus_cluster_config_drivers.ClusterDefinition {
 	templateClusterDefinition := zeus_cluster_config_drivers.ClusterDefinition{
 		ClusterClassName: cluster.ClusterName,
 		ComponentBases:   make(map[string]zeus_cluster_config_drivers.ComponentBaseDefinition),
@@ -84,7 +84,7 @@ func PreviewTemplateGeneration(ctx context.Context, cluster Cluster) {
 		}
 		templateClusterDefinition.ComponentBases[cbName] = cbDef
 	}
-	fmt.Println(templateClusterDefinition)
+	return templateClusterDefinition
 }
 
 func BuildStatefulSetDriver(ctx context.Context, sbName string, containers Containers, sts StatefulSet) (zeus_topology_config_drivers.StatefulSetDriver, error) {

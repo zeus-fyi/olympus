@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: zeus-client
+  labels:
+    app.kubernetes.io/name: zeus-client
+    app.kubernetes.io/instance: zeus-client
+    app.kubernetes.io/managed-by: zeus
+  annotations:
+    {}
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: zeus-client
+      app.kubernetes.io/instance: zeus-client
+  serviceName: zeus-client
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: zeus-client
+        app.kubernetes.io/instance: zeus-client
+    spec:
+      initContainers:
+      containers:
+      nodeSelector:
+        {}
+      affinity:
+        {}
+      tolerations:
+        []
+      volumes:
+  volumeClaimTemplates:
+
+

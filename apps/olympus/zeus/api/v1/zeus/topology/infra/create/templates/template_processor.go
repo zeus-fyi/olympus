@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/rs/zerolog/log"
-	create_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
@@ -20,7 +19,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func PreviewTemplateGeneration(ctx context.Context, cluster create_infra.Cluster) {
+func PreviewTemplateGeneration(ctx context.Context, cluster Cluster) {
 	templateClusterDefinition := zeus_cluster_config_drivers.ClusterDefinition{
 		ClusterClassName: cluster.ClusterName,
 		ComponentBases:   make(map[string]zeus_cluster_config_drivers.ComponentBaseDefinition),
@@ -29,7 +28,9 @@ func PreviewTemplateGeneration(ctx context.Context, cluster create_infra.Cluster
 	for cbName, componentBase := range cluster.ComponentBases {
 		fmt.Println(cbName)
 		fmt.Println(componentBase)
-		cbDef := zeus_cluster_config_drivers.ComponentBaseDefinition{}
+		cbDef := zeus_cluster_config_drivers.ComponentBaseDefinition{
+			SkeletonBases: make(map[string]zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition),
+		}
 
 		for sbName, skeletonBase := range componentBase {
 			fmt.Println(sbName)
@@ -86,12 +87,44 @@ func PreviewTemplateGeneration(ctx context.Context, cluster create_infra.Cluster
 	fmt.Println(templateClusterDefinition)
 }
 
-func BuildStatefulSetDriver(ctx context.Context, sbName string, containers create_infra.Containers, sts create_infra.StatefulSet) (zeus_topology_config_drivers.StatefulSetDriver, error) {
-	stsDriver := zeus_topology_config_drivers.StatefulSetDriver{}
+func BuildStatefulSetDriver(ctx context.Context, sbName string, containers Containers, sts StatefulSet) (zeus_topology_config_drivers.StatefulSetDriver, error) {
+	rc := int32(sts.ReplicaCount)
+	stsDriver := zeus_topology_config_drivers.StatefulSetDriver{
+		ReplicaCount:     &rc,
+		ContainerDrivers: make(map[string]zeus_topology_config_drivers.ContainerDriver),
+	}
+
+	for containerName, container := range containers {
+		fmt.Println(containerName)
+		fmt.Println(container)
+		contDriver, _ := BuildContainerDriver(ctx, sbName, container)
+		fmt.Println(contDriver)
+		stsDriver.ContainerDrivers[containerName] = zeus_topology_config_drivers.ContainerDriver{
+			Container:     contDriver,
+			AppendEnvVars: nil,
+		}
+	}
+
+	pvcCfg := zeus_topology_config_drivers.PersistentVolumeClaimsConfigDriver{
+		PersistentVolumeClaimDrivers: make(map[string]v1.PersistentVolumeClaim),
+	}
+	for _, pvcTemplate := range sts.PVCTemplates {
+		storageReq := v1.ResourceList{"storage": resource.MustParse(pvcTemplate.StorageSizeRequest)}
+		pvc := v1.PersistentVolumeClaim{
+			Spec: v1.PersistentVolumeClaimSpec{
+				AccessModes: []v1.PersistentVolumeAccessMode{v1.PersistentVolumeAccessMode(pvcTemplate.AccessMode)},
+				Resources: v1.ResourceRequirements{
+					Requests: storageReq,
+				},
+				VolumeName: pvcTemplate.Name,
+			},
+		}
+		pvcCfg.PersistentVolumeClaimDrivers[pvcTemplate.Name] = pvc
+	}
 	return stsDriver, nil
 }
 
-func BuildDeploymentDriver(ctx context.Context, sbName string, containers create_infra.Containers, dep create_infra.Deployment) (zeus_topology_config_drivers.DeploymentDriver, error) {
+func BuildDeploymentDriver(ctx context.Context, sbName string, containers Containers, dep Deployment) (zeus_topology_config_drivers.DeploymentDriver, error) {
 	rc := int32(dep.ReplicaCount)
 	depDriver := zeus_topology_config_drivers.DeploymentDriver{
 		ReplicaCount:     &rc,
@@ -102,6 +135,10 @@ func BuildDeploymentDriver(ctx context.Context, sbName string, containers create
 		fmt.Println(container)
 		contDriver, _ := BuildContainerDriver(ctx, sbName, container)
 		fmt.Println(contDriver)
+		depDriver.ContainerDrivers[containerName] = zeus_topology_config_drivers.ContainerDriver{
+			Container:     contDriver,
+			AppendEnvVars: nil,
+		}
 	}
 	return depDriver, nil
 }
@@ -111,7 +148,7 @@ func BuildServiceDriver(ctx context.Context, sbName string) (zeus_topology_confi
 	return svcDriver, nil
 }
 
-func BuildIngressDriver(ctx context.Context, sbName string, ing create_infra.Ingress, ip create_infra.IngressPaths) (zeus_topology_config_drivers.IngressDriver, error) {
+func BuildIngressDriver(ctx context.Context, sbName string, ing Ingress, ip IngressPaths) (zeus_topology_config_drivers.IngressDriver, error) {
 	ingDriver := zeus_topology_config_drivers.IngressDriver{
 		Ingress: v1networking.Ingress{
 			Spec: v1networking.IngressSpec{
@@ -142,7 +179,7 @@ func BuildIngressDriver(ctx context.Context, sbName string, ing create_infra.Ing
 	return ingDriver, nil
 }
 
-func BuildConfigMapDriver(ctx context.Context, sbName string, configMap create_infra.ConfigMap) (zeus_topology_config_drivers.ConfigMapDriver, error) {
+func BuildConfigMapDriver(ctx context.Context, sbName string, configMap ConfigMap) (zeus_topology_config_drivers.ConfigMapDriver, error) {
 	cmDriver := zeus_topology_config_drivers.ConfigMapDriver{
 		ConfigMap: v1.ConfigMap{
 			TypeMeta:   metav1.TypeMeta{},
@@ -163,7 +200,7 @@ func LabelBuilder(ctx context.Context) {
 	// TODO
 }
 
-func BuildContainerDriver(ctx context.Context, sbName string, container create_infra.Container) (v1.Container, error) {
+func BuildContainerDriver(ctx context.Context, sbName string, container Container) (v1.Container, error) {
 	c := v1.Container{
 		Name:    sbName,
 		Image:   container.DockerImage.ImageName,
@@ -173,9 +210,8 @@ func BuildContainerDriver(ctx context.Context, sbName string, container create_i
 		EnvFrom: nil,
 		Env:     nil,
 		Resources: v1.ResourceRequirements{
-			Limits:   nil,
-			Requests: nil,
-			Claims:   nil,
+			Limits:   make(map[v1.ResourceName]resource.Quantity),
+			Requests: make(map[v1.ResourceName]resource.Quantity),
 		},
 		VolumeMounts:    []v1.VolumeMount{},
 		ImagePullPolicy: "IfNotPresent",
@@ -206,6 +242,7 @@ func BuildContainerDriver(ctx context.Context, sbName string, container create_i
 		})
 	}
 	if len(container.DockerImage.ResourceRequirements.CPU) > 0 {
+
 		c.Resources.Requests["cpu"] = resource.MustParse(container.DockerImage.ResourceRequirements.CPU)
 		c.Resources.Limits["cpu"] = resource.MustParse(container.DockerImage.ResourceRequirements.CPU)
 	}

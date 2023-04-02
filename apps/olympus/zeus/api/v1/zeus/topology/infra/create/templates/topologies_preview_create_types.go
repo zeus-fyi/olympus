@@ -1,4 +1,4 @@
-package create_infra
+package zeus_templates
 
 type Cluster struct {
 	ClusterName     string                 `json:"clusterName"`

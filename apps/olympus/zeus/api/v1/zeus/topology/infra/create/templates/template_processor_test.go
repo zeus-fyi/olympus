@@ -1,4 +1,4 @@
-package create_infra
+package zeus_templates
 
 import (
 	"context"
@@ -7,68 +7,56 @@ import (
 	"github.com/stretchr/testify/suite"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
-	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/test"
 )
 
-type TopologyPreviewCreateClassRequestTestSuite struct {
+type TemplateProcessorTestSuite struct {
 	test.TopologyActionRequestTestSuite
 	c conversions_test.ConversionsTestSuite
 	h hestia_test.BaseHestiaTestSuite
 }
 
-const previewEndpoint = "/infra/preview/create"
-
-func (t *TopologyPreviewCreateClassRequestTestSuite) TestGeneratePreview() {
+func (t *TemplateProcessorTestSuite) TestGeneratePreview() {
 	t.InitLocalConfigs()
 
-	t.Eg.POST("/infra/preview/create", PreviewCreateTopologyInfraActionRequestHandler)
-	start := make(chan struct{}, 1)
-	go func() {
-		close(start)
-		_ = t.E.Start(":9010")
-	}()
-
-	<-start
 	ctx := context.Background()
-	defer t.E.Shutdown(ctx)
 
-	req := zeus_templates.Cluster{
+	req := Cluster{
 		ClusterName:     "avaxNodeTest",
-		ComponentBases:  make(map[string]zeus_templates.SkeletonBases),
-		IngressSettings: zeus_templates.Ingress{},
-		IngressPaths:    zeus_templates.IngressPaths{},
+		ComponentBases:  make(map[string]SkeletonBases),
+		IngressSettings: Ingress{},
+		IngressPaths:    IngressPaths{},
 	}
 
-	sb := zeus_templates.SkeletonBase{
+	sb := SkeletonBase{
 		AddStatefulSet:    true,
 		AddDeployment:     false,
 		AddConfigMap:      false,
 		AddService:        true,
 		AddIngress:        false,
 		AddServiceMonitor: false,
-		ConfigMap:         zeus_templates.ConfigMap{},
-		StatefulSet: zeus_templates.StatefulSet{
+		ConfigMap:         ConfigMap{},
+		StatefulSet: StatefulSet{
 			ReplicaCount: 1,
-			PVCTemplates: []zeus_templates.PVCTemplate{{
+			PVCTemplates: []PVCTemplate{{
 				Name:               "avax-client-storage",
 				AccessMode:         "ReadWriteOnce",
 				StorageSizeRequest: "2Ti",
 			}},
 		},
-		Containers: make(map[string]zeus_templates.Container),
+		Containers: make(map[string]Container),
 	}
-	c := zeus_templates.Container{
+	c := Container{
 		IsInitContainer: false,
-		DockerImage: zeus_templates.DockerImage{
+		DockerImage: DockerImage{
 			ImageName: "avaplatform/avalanchego:v1.9.10",
 			Cmd:       "/bin/sh",
 			Args:      "-c,/scripts/start.sh",
-			ResourceRequirements: zeus_templates.ResourceRequirements{
+			ResourceRequirements: ResourceRequirements{
 				CPU:    "6",
 				Memory: "12Gi",
 			},
-			Ports: []zeus_templates.Port{
+			Ports: []Port{
 				{
 					Name:               "p2p-tcp",
 					Number:             "9651",
@@ -86,7 +74,7 @@ func (t *TopologyPreviewCreateClassRequestTestSuite) TestGeneratePreview() {
 					IngressEnabledPort: false,
 				},
 			},
-			VolumeMounts: []zeus_templates.VolumeMount{{
+			VolumeMounts: []VolumeMount{{
 				Name:      "avax-client-storage",
 				MountPath: "/data",
 			}},
@@ -94,19 +82,12 @@ func (t *TopologyPreviewCreateClassRequestTestSuite) TestGeneratePreview() {
 	}
 
 	sb.Containers["avax-client"] = c
-	req.ComponentBases["avaxClients"] = make(map[string]zeus_templates.SkeletonBase)
+	req.ComponentBases["avaxClients"] = make(map[string]SkeletonBase)
 	req.ComponentBases["avaxClients"]["avaxClients"] = sb
 
-	var jsonResp any
-	resp, err := t.ZeusClient.R().
-		SetResult(&jsonResp).
-		SetBody(&req).
-		Post(previewEndpoint)
-
-	t.Require().Nil(err)
-	t.ZeusClient.PrintRespJson(resp.Body())
+	PreviewTemplateGeneration(ctx, req)
 }
 
-func TestTopologyPreviewCreateClassRequestTestSuite(t *testing.T) {
-	suite.Run(t, new(TopologyPreviewCreateClassRequestTestSuite))
+func TestTemplateProcessorTestSuite(t *testing.T) {
+	suite.Run(t, new(TemplateProcessorTestSuite))
 }

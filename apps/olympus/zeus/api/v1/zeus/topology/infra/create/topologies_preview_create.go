@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_resp_types/topology_workloads"
 )
 
@@ -17,7 +18,7 @@ func PreviewCreateTopologyInfraActionRequestHandler(c echo.Context) error {
 }
 
 type TopologyPreviewCreateRequest struct {
-	Cluster `json:"cluster"`
+	zeus_templates.Cluster `json:"cluster"`
 }
 
 type TopologyPreviewCreateResponse struct {

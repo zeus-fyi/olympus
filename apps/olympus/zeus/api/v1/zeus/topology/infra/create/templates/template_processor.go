@@ -276,10 +276,6 @@ func BuildConfigMapDriver(ctx context.Context, configMap ConfigMap) (zeus_topolo
 	return cmDriver, nil
 }
 
-func LabelBuilder(ctx context.Context) {
-	// TODO
-}
-
 func BuildContainerDriver(ctx context.Context, sbName string, container Container) (v1.Container, error) {
 	pp := "IfNotPresent"
 	if len(container.ImagePullPolicy) <= 0 {

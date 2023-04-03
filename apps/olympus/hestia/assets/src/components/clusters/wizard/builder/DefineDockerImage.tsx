@@ -34,7 +34,7 @@ export function DefineDockerParams(props: any) {
     const {} = props;
     return (
         <div>
-            <Card sx={{ maxWidth: 500 }}>
+            <Card sx={{ maxWidth: 600 }}>
                 <CardContent>
                     <Typography gutterBottom variant="h5" component="div">
                         Set Container Configs

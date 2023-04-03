@@ -76,14 +76,14 @@ func PreviewTemplateGeneration(ctx context.Context, cluster Cluster) zeus_cluste
 			}
 			if skeletonBase.AddStatefulSet {
 				sbDef.Workload.StatefulSet = GetStatefulSetTemplate(ctx, cbName)
-				stsDriver, err := BuildStatefulSetDriver(ctx, sbName, skeletonBase.Containers, skeletonBase.StatefulSet)
+				stsDriver, err := BuildStatefulSetDriver(ctx, skeletonBase.Containers, skeletonBase.StatefulSet)
 				if err != nil {
 					log.Ctx(ctx).Err(err).Msg("error building statefulset driver")
 				}
 				sbDef.TopologyConfigDriver.StatefulSetDriver = &stsDriver
 			} else if skeletonBase.AddDeployment {
 				sbDef.Workload.Deployment = GetDeploymentTemplate(ctx, cbName)
-				depDriver, err := BuildDeploymentDriver(ctx, sbName, skeletonBase.Containers, skeletonBase.Deployment)
+				depDriver, err := BuildDeploymentDriver(ctx, skeletonBase.Containers, skeletonBase.Deployment)
 				if err != nil {
 					log.Ctx(ctx).Err(err).Msg("error building deployment driver")
 				}
@@ -120,14 +120,14 @@ func PreviewTemplateGeneration(ctx context.Context, cluster Cluster) zeus_cluste
 	return templateClusterDefinition
 }
 
-func BuildStatefulSetDriver(ctx context.Context, sbName string, containers Containers, sts StatefulSet) (zeus_topology_config_drivers.StatefulSetDriver, error) {
+func BuildStatefulSetDriver(ctx context.Context, containers Containers, sts StatefulSet) (zeus_topology_config_drivers.StatefulSetDriver, error) {
 	rc := int32(sts.ReplicaCount)
 	stsDriver := zeus_topology_config_drivers.StatefulSetDriver{
 		ReplicaCount:     &rc,
 		ContainerDrivers: make(map[string]zeus_topology_config_drivers.ContainerDriver),
 	}
 	for containerName, container := range containers {
-		contDriver, err := BuildContainerDriver(ctx, sbName, container)
+		contDriver, err := BuildContainerDriver(ctx, containerName, container)
 		if err != nil {
 			log.Ctx(ctx).Error().Err(err).Msg("Failed to build container driver")
 			return zeus_topology_config_drivers.StatefulSetDriver{}, err
@@ -161,14 +161,14 @@ func BuildStatefulSetDriver(ctx context.Context, sbName string, containers Conta
 	return stsDriver, nil
 }
 
-func BuildDeploymentDriver(ctx context.Context, sbName string, containers Containers, dep Deployment) (zeus_topology_config_drivers.DeploymentDriver, error) {
+func BuildDeploymentDriver(ctx context.Context, containers Containers, dep Deployment) (zeus_topology_config_drivers.DeploymentDriver, error) {
 	rc := int32(dep.ReplicaCount)
 	depDriver := zeus_topology_config_drivers.DeploymentDriver{
 		ReplicaCount:     &rc,
 		ContainerDrivers: make(map[string]zeus_topology_config_drivers.ContainerDriver),
 	}
 	for containerName, container := range containers {
-		contDriver, err := BuildContainerDriver(ctx, sbName, container)
+		contDriver, err := BuildContainerDriver(ctx, containerName, container)
 		if err != nil {
 			log.Ctx(ctx).Error().Err(err).Msg("Failed to build container driver")
 			return zeus_topology_config_drivers.DeploymentDriver{}, err
@@ -276,13 +276,13 @@ func BuildConfigMapDriver(ctx context.Context, configMap ConfigMap) (zeus_topolo
 	return cmDriver, nil
 }
 
-func BuildContainerDriver(ctx context.Context, sbName string, container Container) (v1.Container, error) {
+func BuildContainerDriver(ctx context.Context, name string, container Container) (v1.Container, error) {
 	pp := "IfNotPresent"
 	if len(container.ImagePullPolicy) <= 0 {
 		pp = container.ImagePullPolicy
 	}
 	c := v1.Container{
-		Name:    sbName,
+		Name:    name,
 		Image:   container.DockerImage.ImageName,
 		Command: strings.Split(container.DockerImage.Cmd, ","),
 		Args:    strings.Split(container.DockerImage.Args, ","),

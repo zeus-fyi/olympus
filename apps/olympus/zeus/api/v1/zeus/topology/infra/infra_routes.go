@@ -11,9 +11,6 @@ import (
 func Routes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
 
-	e.POST("/infra/ui/create", create_infra.CreateTopologyInfraActionFromUIRequestHandler)
-	e.POST("/infra/ui/preview/create", create_infra.PreviewCreateTopologyInfraActionRequestHandler)
-
 	e.POST("/infra/create", create_infra.CreateTopologyInfraActionRequestHandler)
 	e.POST("/infra/class/create", create_infra.CreateTopologyClassActionRequestHandler)
 	e.POST("/infra/class/bases/create", create_infra.UpdateTopologyClassActionRequestHandler)
@@ -22,5 +19,13 @@ func Routes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	e.POST("/infra/read/chart", read_infra.ReadTopologyChartContentsHandler)
 	e.GET("/infra/read/topologies", read_infra.ReadTopologiesMetadataRequestHandler)
 	e.GET("/infra/read/org/topologies", read_infra.ReadTopologiesOrgCloudCtxNsHandler)
+	return e
+}
+
+func UIRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
+	zeus.K8Util = k8Cfg
+
+	e.POST("/infra/ui/create", create_infra.CreateTopologyInfraActionFromUIRequestHandler)
+	e.POST("/infra/ui/preview/create", create_infra.PreviewCreateTopologyInfraActionRequestHandler)
 	return e
 }

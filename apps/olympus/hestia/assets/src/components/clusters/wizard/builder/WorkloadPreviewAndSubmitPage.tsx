@@ -17,8 +17,14 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
     const clusterPreview = useSelector((state: RootState) => state.clusterBuilder.clusterPreview);
     const selectedComponentBase =  useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
     const selectedSkeletonBaseName =  useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
-    const selectedContent = clusterPreview.componentBases[selectedComponentBase]?.[selectedSkeletonBaseName]?.statefulSet ?? '';
+    const clusterPreviewComponentBases = clusterPreview.componentBases;
+    let selectedContent = '';
 
+    if (clusterPreviewComponentBases !== undefined && Object.keys(clusterPreviewComponentBases).length > 0) {
+        if (clusterPreviewComponentBases[selectedSkeletonBaseName] !== undefined && Object.keys(clusterPreviewComponentBases[selectedSkeletonBaseName]).length > 0) {
+            //selectedContent = clusterPreview.componentBases[selectedComponentBase]?.[selectedSkeletonBaseName]?.statefulSet ?? '';
+        }
+    }
     const [viewField, setViewField] = useState('');
     let buttonLabel;
     let buttonDisabled;

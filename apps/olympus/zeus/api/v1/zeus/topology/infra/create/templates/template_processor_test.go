@@ -3,6 +3,9 @@ package zeus_templates
 import (
 	"context"
 	"fmt"
+	"os"
+	"path"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -23,10 +26,13 @@ func (t *TemplateProcessorTestSuite) TestGeneratePreview() {
 	ctx := context.Background()
 
 	req := Cluster{
-		ClusterName:     "avaxNodeTest",
-		ComponentBases:  make(map[string]SkeletonBases),
-		IngressSettings: Ingress{},
-		IngressPaths:    IngressPaths{},
+		ClusterName:    "avaxNodeTest",
+		ComponentBases: make(map[string]SkeletonBases),
+		IngressSettings: Ingress{
+			AuthServerURL: "aegis.zeus.fyi",
+			Host:          "host.zeus.fyi",
+		},
+		IngressPaths: make(map[string]IngressPath),
 	}
 
 	sb := SkeletonBase{
@@ -34,7 +40,7 @@ func (t *TemplateProcessorTestSuite) TestGeneratePreview() {
 		AddDeployment:     false,
 		AddConfigMap:      false,
 		AddService:        true,
-		AddIngress:        false,
+		AddIngress:        true,
 		AddServiceMonitor: false,
 		ConfigMap:         ConfigMap{},
 		StatefulSet: StatefulSet{
@@ -85,7 +91,11 @@ func (t *TemplateProcessorTestSuite) TestGeneratePreview() {
 	sb.Containers["avax-client"] = c
 	req.ComponentBases["avaxClients"] = make(map[string]SkeletonBase)
 	req.ComponentBases["avaxClients"]["avaxClients"] = sb
-
+	req.IngressPaths["avaxClients"] = IngressPath{
+		Path:     "/",
+		PathType: "ImplementationSpecific",
+	}
+	forceDirToCallerLocation()
 	cd := PreviewTemplateGeneration(ctx, req)
 	gcd := cd.BuildClusterDefinitions()
 	t.Assert().NotEmpty(gcd)
@@ -95,9 +105,20 @@ func (t *TemplateProcessorTestSuite) TestGeneratePreview() {
 	t.Assert().NotEmpty(gdr)
 	fmt.Println(gdr)
 
+	t.Assert().NotNil(cd.ComponentBases["avaxClients"].SkeletonBases["avaxClients"].TopologyConfigDriver.IngressDriver.Spec.Rules[0].HTTP.Paths)
 	sbDefs, err := cd.GenerateSkeletonBaseCharts()
 	t.Assert().NoError(err)
 	t.Assert().NotEmpty(sbDefs)
+}
+
+func forceDirToCallerLocation() string {
+	_, filename, _, _ := runtime.Caller(0)
+	dir := path.Join(path.Dir(filename), "")
+	err := os.Chdir(dir)
+	if err != nil {
+		panic(err.Error())
+	}
+	return dir
 }
 
 func TestTemplateProcessorTestSuite(t *testing.T) {

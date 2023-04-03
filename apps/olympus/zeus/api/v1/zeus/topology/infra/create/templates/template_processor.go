@@ -17,6 +17,7 @@ import (
 	v1networking "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func PreviewTemplateGeneration(ctx context.Context, cluster Cluster) zeus_cluster_config_drivers.ClusterDefinition {
@@ -31,7 +32,6 @@ func PreviewTemplateGeneration(ctx context.Context, cluster Cluster) zeus_cluste
 		cbDef := zeus_cluster_config_drivers.ComponentBaseDefinition{
 			SkeletonBases: make(map[string]zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition),
 		}
-
 		for sbName, skeletonBase := range componentBase {
 			fmt.Println(sbName)
 			fmt.Println(skeletonBase)
@@ -39,8 +39,8 @@ func PreviewTemplateGeneration(ctx context.Context, cluster Cluster) zeus_cluste
 				SkeletonBaseChart: zeus_req_types.TopologyCreateRequest{},
 				SkeletonBaseNameChartPath: filepaths.Path{
 					PackageName: sbName,
-					DirIn:       "./templates",
-					DirOut:      "",
+					DirIn:       "./",
+					DirOut:      "./",
 					FnIn:        sbName,
 					FnOut:       sbName,
 					FilterFiles: &strings_filter.FilterOpts{},
@@ -48,10 +48,10 @@ func PreviewTemplateGeneration(ctx context.Context, cluster Cluster) zeus_cluste
 				Workload:             topology_workloads.TopologyBaseInfraWorkload{},
 				TopologyConfigDriver: &zeus_topology_config_drivers.TopologyConfigDriver{},
 			}
-
 			if skeletonBase.AddStatefulSet {
 				stsDriver, _ := BuildStatefulSetDriver(ctx, sbName, skeletonBase.Containers, skeletonBase.StatefulSet)
 				fmt.Println(stsDriver)
+				sbDef.TopologyConfigDriver.StatefulSetDriver = &stsDriver
 				sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese = append(sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese, "deployment")
 			} else if skeletonBase.AddDeployment {
 				depDriver, _ := BuildDeploymentDriver(ctx, sbName, skeletonBase.Containers, skeletonBase.Deployment)
@@ -67,7 +67,7 @@ func PreviewTemplateGeneration(ctx context.Context, cluster Cluster) zeus_cluste
 				sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese = append(sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese, "ingress")
 			}
 			if skeletonBase.AddService {
-				svcDriver, _ := BuildServiceDriver(ctx, sbName)
+				svcDriver, _ := BuildServiceDriver(ctx, sbName, skeletonBase.Containers)
 				fmt.Println(svcDriver)
 				sbDef.TopologyConfigDriver.ServiceDriver = &svcDriver
 			} else {
@@ -93,18 +93,18 @@ func BuildStatefulSetDriver(ctx context.Context, sbName string, containers Conta
 		ReplicaCount:     &rc,
 		ContainerDrivers: make(map[string]zeus_topology_config_drivers.ContainerDriver),
 	}
-
 	for containerName, container := range containers {
 		fmt.Println(containerName)
 		fmt.Println(container)
 		contDriver, _ := BuildContainerDriver(ctx, sbName, container)
 		fmt.Println(contDriver)
 		stsDriver.ContainerDrivers[containerName] = zeus_topology_config_drivers.ContainerDriver{
-			Container:     contDriver,
-			AppendEnvVars: nil,
+			IsAppendContainer: true,
+			IsInitContainer:   container.IsInitContainer,
+			Container:         contDriver,
+			AppendEnvVars:     nil,
 		}
 	}
-
 	pvcCfg := zeus_topology_config_drivers.PersistentVolumeClaimsConfigDriver{
 		PersistentVolumeClaimDrivers: make(map[string]v1.PersistentVolumeClaim),
 	}
@@ -121,6 +121,7 @@ func BuildStatefulSetDriver(ctx context.Context, sbName string, containers Conta
 		}
 		pvcCfg.PersistentVolumeClaimDrivers[pvcTemplate.Name] = pvc
 	}
+	stsDriver.PVCDriver = &pvcCfg
 	return stsDriver, nil
 }
 
@@ -136,19 +137,63 @@ func BuildDeploymentDriver(ctx context.Context, sbName string, containers Contai
 		contDriver, _ := BuildContainerDriver(ctx, sbName, container)
 		fmt.Println(contDriver)
 		depDriver.ContainerDrivers[containerName] = zeus_topology_config_drivers.ContainerDriver{
-			Container:     contDriver,
-			AppendEnvVars: nil,
+			IsAppendContainer: true,
+			IsInitContainer:   container.IsInitContainer,
+			Container:         contDriver,
+			AppendEnvVars:     nil,
 		}
 	}
 	return depDriver, nil
 }
 
-func BuildServiceDriver(ctx context.Context, sbName string) (zeus_topology_config_drivers.ServiceDriver, error) {
-	svcDriver := zeus_topology_config_drivers.ServiceDriver{}
+func BuildServiceDriver(ctx context.Context, sbName string, containers Containers) (zeus_topology_config_drivers.ServiceDriver, error) {
+	svcDriver := zeus_topology_config_drivers.ServiceDriver{
+		Service: v1.Service{
+			Spec: v1.ServiceSpec{
+				Ports: []v1.ServicePort{},
+			},
+		},
+	}
+	var sps []v1.ServicePort
+	for _, c := range containers {
+		for _, p := range c.DockerImage.Ports {
+			numberInt64, err := strconv.ParseInt(p.Number, 10, 32)
+			if err != nil {
+				log.Ctx(ctx).Error().Err(err).Msg("failed to parse port number")
+				return svcDriver, err
+			}
+			sps = append(sps, v1.ServicePort{
+				Name:       p.Name,
+				Port:       int32(numberInt64),
+				Protocol:   v1.Protocol(p.Protocol),
+				TargetPort: intstr.IntOrString{Type: intstr.String, StrVal: p.Name},
+			})
+			if p.IngressEnabledPort {
+				svcDriver.AddNginxTargetPort("http", p.Name)
+			}
+		}
+	}
+	svcDriver.Service.Spec.Ports = sps
 	return svcDriver, nil
 }
 
 func BuildIngressDriver(ctx context.Context, sbName string, ing Ingress, ip IngressPaths) (zeus_topology_config_drivers.IngressDriver, error) {
+	var httpPaths []v1networking.HTTPIngressPath
+	for _, pa := range ip {
+		pt := v1networking.PathType(pa.PathType)
+		appendPath := v1networking.HTTPIngressPath{
+			Path:     pa.Path,
+			PathType: &pt,
+			Backend: v1networking.IngressBackend{
+				Service: &v1networking.IngressServiceBackend{
+					Name: "http", // TODO rename
+				},
+			},
+		}
+		httpPaths = append(httpPaths, appendPath)
+	}
+
+	ingressRuleValue := v1networking.IngressRuleValue{HTTP: &v1networking.HTTPIngressRuleValue{Paths: httpPaths}}
 	ingDriver := zeus_topology_config_drivers.IngressDriver{
 		Ingress: v1networking.Ingress{
 			Spec: v1networking.IngressSpec{
@@ -157,19 +202,8 @@ func BuildIngressDriver(ctx context.Context, sbName string, ing Ingress, ip Ingr
 					SecretName: "tls-secret", // TODO rename
 				}},
 				Rules: []v1networking.IngressRule{{
-					Host: ing.Host,
-					IngressRuleValue: v1networking.IngressRuleValue{
-						HTTP: &v1networking.HTTPIngressRuleValue{
-							Paths: []v1networking.HTTPIngressPath{{
-								Path:     "",  // TODO
-								PathType: nil, // TODO
-								Backend: v1networking.IngressBackend{
-									Service:  nil, // todo
-									Resource: nil,
-								},
-							}},
-						},
-					},
+					Host:             ing.Host,
+					IngressRuleValue: ingressRuleValue,
 				}},
 			},
 		},
@@ -217,10 +251,6 @@ func BuildContainerDriver(ctx context.Context, sbName string, container Containe
 		ImagePullPolicy: "IfNotPresent",
 	}
 
-	if container.IsInitContainer {
-		// set init container
-	}
-
 	for _, p := range container.DockerImage.Ports {
 		// Use strconv.ParseInt to convert the string to int64
 		numberInt64, err := strconv.ParseInt(p.Number, 10, 32)
@@ -242,7 +272,6 @@ func BuildContainerDriver(ctx context.Context, sbName string, container Containe
 		})
 	}
 	if len(container.DockerImage.ResourceRequirements.CPU) > 0 {
-
 		c.Resources.Requests["cpu"] = resource.MustParse(container.DockerImage.ResourceRequirements.CPU)
 		c.Resources.Limits["cpu"] = resource.MustParse(container.DockerImage.ResourceRequirements.CPU)
 	}

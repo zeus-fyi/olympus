@@ -114,11 +114,11 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
                                 Generate Preview
                             </Button>
                         </Box>
-                        <Box mt={2}>
-                            <Button variant="contained">
-                                Create Cluster
-                            </Button>
-                        </Box>
+                        {/*<Box mt={2}>*/}
+                        {/*    <Button variant="contained">*/}
+                        {/*        Create Cluster*/}
+                        {/*    </Button>*/}
+                        {/*</Box>*/}
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Stack direction="column" spacing={2}>

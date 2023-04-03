@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_resp_types/topology_workloads"
@@ -27,6 +28,8 @@ func GenerateSkeletonBaseChartsPreview(ctx context.Context, cluster Cluster) (Cl
 		ComponentBasesToSkeletonBases: make(map[string]map[string]topology_workloads.TopologyBaseInfraWorkload),
 	}
 	cd := PreviewTemplateGeneration(ctx, cluster)
+	cd.UseEmbeddedWorkload = true
+	cd.DisablePrint = true
 	_, err := cd.GenerateSkeletonBaseCharts()
 	if err != nil {
 		log.Ctx(ctx).Err(err)
@@ -67,63 +70,48 @@ func PreviewTemplateGeneration(ctx context.Context, cluster Cluster) zeus_cluste
 		}
 		for sbName, skeletonBase := range componentBase {
 			sbDef := zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
-				SkeletonBaseChart: zeus_req_types.TopologyCreateRequest{},
-				Workload: topology_workloads.TopologyBaseInfraWorkload{
-					Service:        nil,
-					ConfigMap:      nil,
-					Deployment:     nil,
-					StatefulSet:    nil,
-					Ingress:        nil,
-					ServiceMonitor: nil,
-				},
+				SkeletonBaseChart:    zeus_req_types.TopologyCreateRequest{},
+				Workload:             topology_workloads.TopologyBaseInfraWorkload{},
 				TopologyConfigDriver: &zeus_topology_config_drivers.TopologyConfigDriver{},
 			}
 			if skeletonBase.AddStatefulSet {
-				sbDef.Workload.StatefulSet = GetStatefulSetTemplate(ctx)
+				sbDef.Workload.StatefulSet = GetStatefulSetTemplate(ctx, cbName)
 				stsDriver, err := BuildStatefulSetDriver(ctx, sbName, skeletonBase.Containers, skeletonBase.StatefulSet)
 				if err != nil {
 					log.Ctx(ctx).Err(err).Msg("error building statefulset driver")
 				}
 				sbDef.TopologyConfigDriver.StatefulSetDriver = &stsDriver
-				sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese = append(sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese, "deployment")
 			} else if skeletonBase.AddDeployment {
-				sbDef.Workload.Deployment = GetDeploymentTemplate(ctx)
+				sbDef.Workload.Deployment = GetDeploymentTemplate(ctx, cbName)
 				depDriver, err := BuildDeploymentDriver(ctx, sbName, skeletonBase.Containers, skeletonBase.Deployment)
 				if err != nil {
 					log.Ctx(ctx).Err(err).Msg("error building deployment driver")
 				}
 				sbDef.TopologyConfigDriver.DeploymentDriver = &depDriver
-				sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese = append(sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese, "statefulset")
 			}
 			if skeletonBase.AddIngress {
-				sbDef.Workload.Ingress = GetIngressTemplate(ctx)
-				ingDriver, err := BuildIngressDriver(ctx, sbName, cluster.IngressSettings, cluster.IngressPaths)
+				sbDef.Workload.Ingress = GetIngressTemplate(ctx, cbName)
+				ingDriver, err := BuildIngressDriver(ctx, cbName, skeletonBase.Containers, cluster.IngressSettings, cluster.IngressPaths)
 				if err != nil {
 					log.Ctx(ctx).Err(err).Msg("error building ingress driver")
 				}
 				sbDef.TopologyConfigDriver.IngressDriver = &ingDriver
-			} else {
-				sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese = append(sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese, "ingress")
 			}
 			if skeletonBase.AddService {
-				sbDef.Workload.Service = GetServiceTemplate(ctx)
-				svcDriver, err := BuildServiceDriver(ctx, sbName, skeletonBase.Containers)
+				sbDef.Workload.Service = GetServiceTemplate(ctx, cbName)
+				svcDriver, err := BuildServiceDriver(ctx, skeletonBase.Containers)
 				if err != nil {
 					log.Ctx(ctx).Err(err).Msg("error building service driver")
 				}
 				sbDef.TopologyConfigDriver.ServiceDriver = &svcDriver
-			} else {
-				sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese = append(sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese, "service")
 			}
 			if skeletonBase.AddConfigMap {
-				sbDef.Workload.ConfigMap = GetConfigMapTemplate(ctx)
-				cmDriver, err := BuildConfigMapDriver(ctx, sbName, skeletonBase.ConfigMap)
+				sbDef.Workload.ConfigMap = GetConfigMapTemplate(ctx, cbName)
+				cmDriver, err := BuildConfigMapDriver(ctx, skeletonBase.ConfigMap)
 				if err != nil {
 					log.Ctx(ctx).Err(err).Msg("error building configmap driver")
 				}
 				sbDef.TopologyConfigDriver.ConfigMapDriver = &cmDriver
-			} else {
-				sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese = append(sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese, "configmap")
 			}
 			cbDef.SkeletonBases[sbName] = sbDef
 		}
@@ -195,7 +183,7 @@ func BuildDeploymentDriver(ctx context.Context, sbName string, containers Contai
 	return depDriver, nil
 }
 
-func BuildServiceDriver(ctx context.Context, sbName string, containers Containers) (zeus_topology_config_drivers.ServiceDriver, error) {
+func BuildServiceDriver(ctx context.Context, containers Containers) (zeus_topology_config_drivers.ServiceDriver, error) {
 	svcDriver := zeus_topology_config_drivers.ServiceDriver{
 		Service: v1.Service{
 			Spec: v1.ServiceSpec{
@@ -226,7 +214,17 @@ func BuildServiceDriver(ctx context.Context, sbName string, containers Container
 	return svcDriver, nil
 }
 
-func BuildIngressDriver(ctx context.Context, sbName string, ing Ingress, ip IngressPaths) (zeus_topology_config_drivers.IngressDriver, error) {
+func BuildIngressDriver(ctx context.Context, cbName string, containers Containers, ing Ingress, ip IngressPaths) (zeus_topology_config_drivers.IngressDriver, error) {
+	portName := ""
+	uid := uuid.New()
+	ing.Host = GetIngressHostName(ctx, uid.String())
+	for _, container := range containers {
+		for _, p := range container.DockerImage.Ports {
+			if p.IngressEnabledPort {
+				portName = p.Name
+			}
+		}
+	}
 	var httpPaths []v1networking.HTTPIngressPath
 	for _, pa := range ip {
 		pt := v1networking.PathType(pa.PathType)
@@ -235,22 +233,24 @@ func BuildIngressDriver(ctx context.Context, sbName string, ing Ingress, ip Ingr
 			PathType: &pt,
 			Backend: v1networking.IngressBackend{
 				Service: &v1networking.IngressServiceBackend{
-					Name: "http", // TODO rename
+					Name: GetServiceName(ctx, cbName),
 					Port: v1networking.ServiceBackendPort{
 						Number: int32(80),
+						Name:   portName,
 					},
 				},
 			},
 		}
 		httpPaths = append(httpPaths, appendPath)
 	}
+
 	ingressRuleValue := v1networking.IngressRuleValue{HTTP: &v1networking.HTTPIngressRuleValue{Paths: httpPaths}}
 	ingDriver := zeus_topology_config_drivers.IngressDriver{
 		Ingress: v1networking.Ingress{
 			Spec: v1networking.IngressSpec{
 				TLS: []v1networking.IngressTLS{{
 					Hosts:      []string{ing.Host},
-					SecretName: "tls-secret", // TODO rename
+					SecretName: GetIngressSecretName(ctx, uid.String()),
 				}},
 				Rules: []v1networking.IngressRule{{
 					Host:             ing.Host,
@@ -264,7 +264,7 @@ func BuildIngressDriver(ctx context.Context, sbName string, ing Ingress, ip Ingr
 	return ingDriver, nil
 }
 
-func BuildConfigMapDriver(ctx context.Context, sbName string, configMap ConfigMap) (zeus_topology_config_drivers.ConfigMapDriver, error) {
+func BuildConfigMapDriver(ctx context.Context, configMap ConfigMap) (zeus_topology_config_drivers.ConfigMapDriver, error) {
 	cmDriver := zeus_topology_config_drivers.ConfigMapDriver{
 		ConfigMap: v1.ConfigMap{
 			Data: make(map[string]string),

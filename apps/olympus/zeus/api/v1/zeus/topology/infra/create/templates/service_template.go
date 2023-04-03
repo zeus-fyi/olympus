@@ -22,14 +22,20 @@ spec:
     app.kubernetes.io/instance: zeus-client
 */
 
-func GetServiceTemplate(ctx context.Context) *v1.Service {
+func GetServiceTemplate(ctx context.Context, name string) *v1.Service {
+	labels := GetLabels(ctx, name)
+	selectors := GetSelector(ctx, name)
 	return &v1.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
 			APIVersion: "v1",
 		},
-		ObjectMeta: metav1.ObjectMeta{},
-		Spec:       v1.ServiceSpec{},
-		Status:     v1.ServiceStatus{},
+		ObjectMeta: metav1.ObjectMeta{
+			Labels: labels,
+		},
+		Spec: v1.ServiceSpec{
+			Selector: selectors,
+			Type:     v1.ServiceTypeClusterIP,
+		},
 	}
 }

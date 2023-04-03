@@ -4,53 +4,35 @@ import (
 	"context"
 
 	v1 "k8s.io/api/apps/v1"
+	v1Core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-/*
-metadata:
-  name: zeus-client
-  labels:
-    app.kubernetes.io/name: zeus-client
-    app.kubernetes.io/instance: zeus-client
-    app.kubernetes.io/managed-by: zeus
-  annotations:
-    {}
-spec:
-  podManagementPolicy: OrderedReady
-  replicas: 0
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: zeus-client
-      app.kubernetes.io/instance: zeus-client
-  serviceName: zeus-client
-  updateStrategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        app.kubernetes.io/name: zeus-client
-        app.kubernetes.io/instance: zeus-client
-    spec:
-      initContainers:
-      containers:
-      nodeSelector:
-        {}
-      affinity:
-        {}
-      tolerations:
-        []
-      volumes:
-  volumeClaimTemplates:
-*/
-
-func GetStatefulSetTemplate(ctx context.Context) *v1.StatefulSet {
+func GetStatefulSetTemplate(ctx context.Context, name string) *v1.StatefulSet {
+	labels := GetLabels(ctx, name)
+	selectors := GetSelector(ctx, name)
 	return &v1.StatefulSet{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "StatefulSet",
 			APIVersion: "apps/v1",
 		},
-		ObjectMeta: metav1.ObjectMeta{},
-		Spec:       v1.StatefulSetSpec{},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:   GetStatefulSetName(ctx, name),
+			Labels: labels,
+		},
+		Spec: v1.StatefulSetSpec{
+			Selector: metav1.SetAsLabelSelector(selectors),
+			Template: v1Core.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: labels,
+				},
+				Spec: v1Core.PodSpec{},
+			},
+			ServiceName:         GetServiceName(ctx, name),
+			PodManagementPolicy: v1.OrderedReadyPodManagement,
+			UpdateStrategy: v1.StatefulSetUpdateStrategy{
+				Type: v1.RollingUpdateStatefulSetStrategyType,
+			},
+		},
 	}
 }

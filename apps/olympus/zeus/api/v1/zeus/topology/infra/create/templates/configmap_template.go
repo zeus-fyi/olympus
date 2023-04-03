@@ -7,20 +7,15 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-/*
-metadata:
-  name: cm-zeus
-*/
-
-func GetConfigMapTemplate(ctx context.Context) *v1.ConfigMap {
+func GetConfigMapTemplate(ctx context.Context, name string) *v1.ConfigMap {
 	return &v1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "ConfigMap",
 			APIVersion: "v1",
 		},
-		ObjectMeta: metav1.ObjectMeta{},
-		Immutable:  nil,
-		Data:       nil,
-		BinaryData: nil,
+		ObjectMeta: metav1.ObjectMeta{
+			Name: GetConfigMapName(ctx, name),
+		},
+		Data: make(map[string]string),
 	}
 }

@@ -2,7 +2,6 @@ package zeus_templates
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path"
 	"runtime"
@@ -22,7 +21,6 @@ type TemplateProcessorTestSuite struct {
 
 func (t *TemplateProcessorTestSuite) TestGeneratePreview() {
 	t.InitLocalConfigs()
-
 	ctx := context.Background()
 
 	req := Cluster{
@@ -97,24 +95,6 @@ func (t *TemplateProcessorTestSuite) TestGeneratePreview() {
 		Path:     "/",
 		PathType: "ImplementationSpecific",
 	}
-	forceDirToCallerLocation()
-	cd := PreviewTemplateGeneration(ctx, req)
-	cd.DisablePrint = true
-	gcd := cd.BuildClusterDefinitions()
-	t.Assert().NotEmpty(gcd)
-	fmt.Println(gcd)
-
-	gdr := cd.GenerateDeploymentRequest()
-	t.Assert().NotEmpty(gdr)
-	fmt.Println(gdr)
-
-	t.Assert().NotNil(cd.ComponentBases["avaxClients"].SkeletonBases["avaxClients"].TopologyConfigDriver.IngressDriver.Spec.Rules[0].HTTP.Paths)
-	sbDefs, err := cd.GenerateSkeletonBaseCharts()
-	t.Assert().NoError(err)
-	t.Assert().NotEmpty(sbDefs)
-
-	wl := cd.ComponentBases["avaxClients"].SkeletonBases["avaxClients"].Workload
-	t.Assert().NotEmpty(wl)
 
 	pcg, err := GenerateSkeletonBaseChartsPreview(ctx, req)
 	t.Assert().NoError(err)

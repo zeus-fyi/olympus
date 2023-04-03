@@ -7,7 +7,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_resp_types/topology_workloads"
 )
 
 func PreviewCreateTopologyInfraActionRequestHandler(c echo.Context) error {
@@ -22,10 +21,6 @@ type TopologyPreviewCreateRequest struct {
 	zeus_templates.Cluster `json:"cluster"`
 }
 
-type TopologyPreviewCreateResponse struct {
-	ComponentBases map[string]topology_workloads.TopologyBaseInfraWorkload `json:"componentBases"`
-}
-
 func (t *TopologyPreviewCreateRequest) PreviewCreateTopology(c echo.Context) error {
 	//fmt.Println(t.Cluster)
 	ctx := context.Background()
@@ -34,5 +29,5 @@ func (t *TopologyPreviewCreateRequest) PreviewCreateTopology(c echo.Context) err
 		log.Ctx(ctx).Err(err).Msg("error generating skeleton base charts")
 		return c.JSON(http.StatusBadRequest, err)
 	}
-	return c.JSON(http.StatusOK, pcg.ComponentBasesToSkeletonBases)
+	return c.JSON(http.StatusOK, pcg)
 }

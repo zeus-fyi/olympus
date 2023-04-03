@@ -6,17 +6,25 @@ import {useState} from "react";
 import {SelectedSkeletonBaseName} from "./AddSkeletonBaseDockerConfigs";
 import YamlTextField from "./YamlFormattedTextPage";
 import {clustersApiGateway} from "../../../../gateway/clusters";
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../../../redux/store";
+import {ClusterPreview} from "../../../../redux/clusters/clusters.types";
+import {setClusterPreview} from "../../../../redux/clusters/clusters.builder.reducer";
 
 export function WorkloadPreviewAndSubmitPage(props: any) {
     const {} = props;
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
+    const clusterPreview = useSelector((state: RootState) => state.clusterBuilder.clusterPreview);
+    const selectedComponentBase =  useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
+    const selectedSkeletonBaseName =  useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
+    const selectedContent = clusterPreview.componentBases[selectedComponentBase]?.[selectedSkeletonBaseName]?.statefulSet ?? '';
+
     const [viewField, setViewField] = useState('');
     let buttonLabel;
     let buttonDisabled;
     let statusMessage;
     const [requestStatus, setRequestStatus] = useState('');
+    const dispatch = useDispatch();
 
     switch (requestStatus) {
         case 'pending':
@@ -38,9 +46,6 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
             buttonDisabled = false;
             break;
     }
-
-    // ClusterPreview
-
     const onChangeComponentOrSkeletonBase = () => {
         setViewField('')
     }
@@ -50,9 +55,11 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
         try {
             setRequestStatus('pending');
             let res: any = await clustersApiGateway.previewCreateCluster(cluster)
-            console.log(res)
+            const cp =  res.data as ClusterPreview;
+            console.log(cp)
             const statusCode = res.status;
             if (statusCode === 200 || statusCode === 204) {
+                dispatch(setClusterPreview(cp));
                 setRequestStatus('success');
             } else {
                 setRequestStatus('error');
@@ -96,7 +103,7 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
                     </Container>
                 </Card>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <YamlTextField />
+                    <YamlTextField selectedContent={selectedContent}/>
                 </Container>
             </Stack>
         </div>

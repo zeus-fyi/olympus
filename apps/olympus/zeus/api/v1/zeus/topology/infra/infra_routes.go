@@ -11,8 +11,8 @@ import (
 func Routes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
 
-	e.POST("/infra/ui/preview/create", create_infra.PreviewCreateTopologyInfraActionRequestHandler)
 	e.POST("/infra/ui/create", create_infra.CreateTopologyInfraActionFromUIRequestHandler)
+	e.POST("/infra/ui/preview/create", create_infra.PreviewCreateTopologyInfraActionRequestHandler)
 
 	e.POST("/infra/create", create_infra.CreateTopologyInfraActionRequestHandler)
 	e.POST("/infra/class/create", create_infra.CreateTopologyClassActionRequestHandler)

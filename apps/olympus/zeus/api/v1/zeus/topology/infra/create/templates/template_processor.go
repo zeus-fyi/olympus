@@ -19,11 +19,15 @@ import (
 )
 
 type ClusterPreviewWorkloads struct {
+	ClusterName                   string                                                             `json:"clusterName"`
 	ComponentBasesToSkeletonBases map[string]map[string]topology_workloads.TopologyBaseInfraWorkload `json:"componentBasesToSkeletonBases"`
 }
 
 func GenerateSkeletonBaseChartsPreview(ctx context.Context, cluster Cluster) (ClusterPreviewWorkloads, error) {
-	pcg := ClusterPreviewWorkloads{ComponentBasesToSkeletonBases: make(map[string]map[string]topology_workloads.TopologyBaseInfraWorkload)}
+	pcg := ClusterPreviewWorkloads{
+		ClusterName:                   cluster.ClusterName,
+		ComponentBasesToSkeletonBases: make(map[string]map[string]topology_workloads.TopologyBaseInfraWorkload),
+	}
 	cd := PreviewTemplateGeneration(ctx, cluster)
 	_, err := cd.GenerateSkeletonBaseCharts()
 	if err != nil {

@@ -18,7 +18,8 @@ export const languageData = [
 ];
 
 export default function YamlTextField(props: any) {
-    const [code, setCode] = React.useState('');
+    const {selectedContent} = props;
+    const [code, setCode] = React.useState(selectedContent);
     const onChange = (textInput: string) => {
         setCode(textInput);
     }

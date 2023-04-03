@@ -1,6 +1,7 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {
     Cluster,
+    ClusterPreview,
     ComponentBases,
     Container,
     DockerImage,
@@ -15,6 +16,7 @@ import {
 } from "./clusters.types";
 
 interface ClusterBuilderState {
+    clusterPreview: ClusterPreview;
     cluster: Cluster;
     selectedComponentBaseName: string;
     selectedSkeletonBaseName: string;
@@ -23,6 +25,7 @@ interface ClusterBuilderState {
 }
 
 const initialState: ClusterBuilderState = {
+    clusterPreview: {} as ClusterPreview,
     cluster: {
         clusterName: '',
         componentBases: {} as ComponentBases,
@@ -46,6 +49,9 @@ const clusterBuilderSlice = createSlice({
     name: 'clusterBuilder',
     initialState,
     reducers: {
+        setClusterPreview: (state, action: PayloadAction<ClusterPreview>) => {
+            state.clusterPreview = action.payload;
+        },
         setClusterName: (state, action: PayloadAction<string>) => {
             state.cluster.clusterName = action.payload;
         },
@@ -562,6 +568,7 @@ export const {
     setIngressPath,
     setIngressPathType,
     removeIngressPath,
+    setClusterPreview,
     setIngressAuthServerURL
 } = clusterBuilderSlice.actions;
 

@@ -106,6 +106,7 @@ func BuildStatefulSetDriver(ctx context.Context, sbName string, containers Conta
 		}
 	}
 	pvcCfg := zeus_topology_config_drivers.PersistentVolumeClaimsConfigDriver{
+		AppendPVC:                    make(map[string]bool),
 		PersistentVolumeClaimDrivers: make(map[string]v1.PersistentVolumeClaim),
 	}
 	for _, pvcTemplate := range sts.PVCTemplates {
@@ -119,6 +120,7 @@ func BuildStatefulSetDriver(ctx context.Context, sbName string, containers Conta
 				VolumeName: pvcTemplate.Name,
 			},
 		}
+		pvcCfg.AppendPVC[pvcTemplate.Name] = true
 		pvcCfg.PersistentVolumeClaimDrivers[pvcTemplate.Name] = pvc
 	}
 	stsDriver.PVCDriver = &pvcCfg

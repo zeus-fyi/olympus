@@ -37,6 +37,7 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
         }
     }, [clusterPreview, selectedComponentBaseName, selectedSkeletonBaseName]);
 
+    const [configError, setConfigError] = useState('');
 
     let buttonLabel;
     let buttonDisabled;
@@ -50,17 +51,17 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
             buttonDisabled = true;
             break;
         case 'success':
-            buttonLabel = 'Logged in successfully';
+            buttonLabel = 'Generate Preview';
             buttonDisabled = true;
-            statusMessage = 'Logged in successfully!';
+            statusMessage = 'Preview generated successfully!';
             break;
         case 'error':
-            buttonLabel = 'Retry';
+            buttonLabel = 'Regenerate Preview';
             buttonDisabled = false;
-            statusMessage = 'An error occurred while generating preview, please try again. If you continue having issues please email alex@zeus.fyi';
+            statusMessage = 'An error occurred while generating preview, there\'s likely a problem with your configuration, check that your ports, resource values, etc are valid. ' + configError;
             break;
         default:
-            buttonLabel = 'Login';
+            buttonLabel = 'Generate Preview';
             buttonDisabled = false;
             break;
     }
@@ -81,6 +82,7 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
                 dispatch(setClusterPreview(cp));
                 setRequestStatus('success');
             } else {
+                setConfigError('')
                 setRequestStatus('error');
             }
         } catch (e) {
@@ -110,9 +112,14 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
                     </Container>
                     <Container maxWidth="xl" sx={{ mb: 4 }}>
                         <Box mt={2}>
-                            <Button variant="contained" onClick={onClickPreviewCreate}>
-                                Generate Preview
+                            <Button variant="contained" onClick={onClickPreviewCreate} disabled={buttonDisabled}>
+                                {buttonLabel}
                             </Button>
+                            {statusMessage && (
+                                <Typography variant="body2" color={requestStatus === 'error' ? 'error' : 'success'}>
+                                    {statusMessage}
+                                </Typography>
+                            )}
                         </Box>
                         {/*<Box mt={2}>*/}
                         {/*    <Button variant="contained">*/}

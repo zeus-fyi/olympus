@@ -2,7 +2,6 @@ package zeus_templates
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -19,12 +18,32 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
+type ClusterPreviewWorkloads struct {
+	ComponentBasesToSkeletonBases map[string]map[string]topology_workloads.TopologyBaseInfraWorkload `json:"componentBasesToSkeletonBases"`
+}
+
+func GenerateSkeletonBaseChartsPreview(ctx context.Context, cluster Cluster) (ClusterPreviewWorkloads, error) {
+	pcg := ClusterPreviewWorkloads{ComponentBasesToSkeletonBases: make(map[string]map[string]topology_workloads.TopologyBaseInfraWorkload)}
+	cd := PreviewTemplateGeneration(ctx, cluster)
+	_, err := cd.GenerateSkeletonBaseCharts()
+	if err != nil {
+		log.Ctx(ctx).Err(err)
+		return pcg, err
+	}
+	for cbName, componentBase := range cd.ComponentBases {
+		pcg.ComponentBasesToSkeletonBases[cbName] = make(map[string]topology_workloads.TopologyBaseInfraWorkload)
+		for sbName, skeletonBase := range componentBase.SkeletonBases {
+			pcg.ComponentBasesToSkeletonBases[cbName][sbName] = skeletonBase.Workload
+		}
+	}
+	return pcg, nil
+}
+
 func PreviewTemplateGeneration(ctx context.Context, cluster Cluster) zeus_cluster_config_drivers.ClusterDefinition {
 	templateClusterDefinition := zeus_cluster_config_drivers.ClusterDefinition{
 		ClusterClassName: cluster.ClusterName,
 		ComponentBases:   make(map[string]zeus_cluster_config_drivers.ComponentBaseDefinition),
 	}
-	fmt.Println(templateClusterDefinition)
 	for cbName, componentBase := range cluster.ComponentBases {
 		cbDef := zeus_cluster_config_drivers.ComponentBaseDefinition{
 			SkeletonBases: make(map[string]zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition),

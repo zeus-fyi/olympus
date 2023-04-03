@@ -115,6 +115,10 @@ func (t *TemplateProcessorTestSuite) TestGeneratePreview() {
 
 	wl := cd.ComponentBases["avaxClients"].SkeletonBases["avaxClients"].Workload
 	t.Assert().NotEmpty(wl)
+
+	pcg, err := GenerateSkeletonBaseChartsPreview(ctx, req)
+	t.Assert().NoError(err)
+	t.Assert().NotEmpty(pcg)
 }
 
 func forceDirToCallerLocation() string {

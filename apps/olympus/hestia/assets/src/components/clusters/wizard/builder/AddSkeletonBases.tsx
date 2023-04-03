@@ -66,7 +66,7 @@ export function AddSkeletonBases(props: any) {
                     <TextField
                         fullWidth
                         id={`inputField-${index}`}
-                        label={`Skeleton Base Name`}
+                        label={`Workload Base Name`}
                         variant="outlined"
                         value={key}
                         InputProps={{ readOnly: true }}
@@ -82,7 +82,7 @@ export function AddSkeletonBases(props: any) {
                 <TextField
                     fullWidth
                     id="inputField-new"
-                    label="New Skeleton Base Name"
+                    label="New Workload Base Name"
                     variant="outlined"
                     value={inputField}
                     onChange={handleChange}

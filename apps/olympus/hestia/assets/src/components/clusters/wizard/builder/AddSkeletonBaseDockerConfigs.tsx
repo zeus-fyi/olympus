@@ -256,7 +256,7 @@ export function SelectedSkeletonBaseName(props: any) {
     }
     return (
         <FormControl variant="outlined" style={{ minWidth: '100%' }}>
-            <InputLabel id="network-label">Skeleton Bases</InputLabel>
+            <InputLabel id="network-label">Workload Bases</InputLabel>
             <Select
                 labelId="skeletonBase-label"
                 id="skeletonBase"

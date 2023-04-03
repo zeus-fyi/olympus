@@ -19,13 +19,13 @@ export function DefineClusterComponentBaseParams(props: any) {
     }
     return (
         <div>
-            <Card sx={{ maxWidth: 500 }}>
+            <Card sx={{ minWidth: 500, maxWidth: 500 }}>
                 <CardContent>
                     <Typography gutterBottom variant="h5" component="div">
-                        Define Skeleton Base Elements for Component Bases
+                        Define Cluster Workloads
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        Sets Skeleton Base Elements for Component Bases
+                        You'll configure these workloads next. Give them a name for now.
                     </Typography>
                 </CardContent>
                 <Container maxWidth="xl" sx={{ mb: 4 }}>
@@ -50,7 +50,6 @@ export function SelectedComponentBaseName(props: any) {
        dispatch(setSelectedComponentBaseName(selectedComponentBaseName));
        const skeletonBaseName = Object.keys(cluster.componentBases[selectedComponentBaseName])[0];
        dispatch(setSelectedSkeletonBaseName(skeletonBaseName));
-
         // Add a check to see if the `containers` field exists
         if (cluster.componentBases[selectedComponentBaseName] &&
             cluster.componentBases[selectedComponentBaseName][skeletonBaseName] &&
@@ -68,7 +67,7 @@ export function SelectedComponentBaseName(props: any) {
         <div>
             {show &&
             <FormControl sx={{mb: 1}} variant="outlined" style={{ minWidth: '100%' }}>
-                <InputLabel id="network-label">Component Bases</InputLabel>
+                <InputLabel id="network-label">Cluster Bases</InputLabel>
                 <Select
                     labelId="componentBase-label"
                     id="componentBase"

@@ -20,7 +20,7 @@ import (
 
 type ClusterPreviewWorkloads struct {
 	ClusterName                   string                                                             `json:"clusterName"`
-	ComponentBasesToSkeletonBases map[string]map[string]topology_workloads.TopologyBaseInfraWorkload `json:"componentBasesToSkeletonBases"`
+	ComponentBasesToSkeletonBases map[string]map[string]topology_workloads.TopologyBaseInfraWorkload `json:"componentBases"`
 }
 
 func GenerateSkeletonBaseChartsPreview(ctx context.Context, cluster Cluster) (ClusterPreviewWorkloads, error) {
@@ -72,7 +72,7 @@ func PreviewTemplateGeneration(ctx context.Context, cluster Cluster) zeus_cluste
 				SkeletonBaseChart: zeus_req_types.TopologyCreateRequest{},
 				SkeletonBaseNameChartPath: filepaths.Path{
 					PackageName: sbName,
-					DirIn:       "./",
+					DirIn:       "/Users/alex/go/Olympus/olympus/apps/olympus/zeus/api/v1/zeus/topology/infra/create/templates",
 					DirOut:      "./",
 					FnIn:        sbName,
 					FnOut:       sbName,

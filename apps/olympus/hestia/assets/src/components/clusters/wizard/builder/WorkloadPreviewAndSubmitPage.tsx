@@ -14,18 +14,9 @@ import {setClusterPreview} from "../../../../redux/clusters/clusters.builder.red
 export function WorkloadPreviewAndSubmitPage(props: any) {
     const {} = props;
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
-    const clusterPreview = useSelector((state: RootState) => state.clusterBuilder.clusterPreview);
-    const selectedComponentBase =  useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
-    const selectedSkeletonBaseName =  useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
-    const clusterPreviewComponentBases = clusterPreview.componentBases;
-    let selectedContent = '';
-
-    if (clusterPreviewComponentBases !== undefined && Object.keys(clusterPreviewComponentBases).length > 0) {
-        if (clusterPreviewComponentBases[selectedSkeletonBaseName] !== undefined && Object.keys(clusterPreviewComponentBases[selectedSkeletonBaseName]).length > 0) {
-            //selectedContent = clusterPreview.componentBases[selectedComponentBase]?.[selectedSkeletonBaseName]?.statefulSet ?? '';
-        }
-    }
     const [viewField, setViewField] = useState('');
+    const [previewType, setPreviewType] = useState('statefulSet');
+
     let buttonLabel;
     let buttonDisabled;
     let statusMessage;
@@ -57,12 +48,10 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
     }
 
     const onClickPreviewCreate = async () => {
-        console.log(cluster)
         try {
             setRequestStatus('pending');
             let res: any = await clustersApiGateway.previewCreateCluster(cluster)
             const cp =  res.data as ClusterPreview;
-            console.log(cp)
             const statusCode = res.status;
             if (statusCode === 200 || statusCode === 204) {
                 dispatch(setClusterPreview(cp));
@@ -109,7 +98,7 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
                     </Container>
                 </Card>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <YamlTextField selectedContent={selectedContent}/>
+                    <YamlTextField previewType={previewType}/>
                 </Container>
             </Stack>
         </div>

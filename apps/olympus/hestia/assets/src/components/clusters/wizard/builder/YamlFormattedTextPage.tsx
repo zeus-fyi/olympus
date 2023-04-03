@@ -1,7 +1,10 @@
-import React, {useEffect, useRef} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {SelectionText} from "@uiw/react-textarea-code-editor";
 import MonacoEditor from "react-monaco-editor/lib/editor";
 import {editor} from "monaco-editor";
+import {useSelector} from "react-redux";
+import {RootState} from "../../../../redux/store";
+import yaml from 'js-yaml';
 import setTheme = editor.setTheme;
 
 window.MonacoEnvironment = { getWorkerUrl: () => proxy };
@@ -18,11 +21,47 @@ export const languageData = [
 ];
 
 export default function YamlTextField(props: any) {
-    const {selectedContent} = props;
-    const [code, setCode] = React.useState(selectedContent);
+    const { previewType } = props;
+    const clusterPreview = useSelector((state: RootState) => state.clusterBuilder.clusterPreview);
+    const selectedComponentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
+    const selectedSkeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
+    const [code, setCode] = useState('');
+
+    useEffect(() => {
+        const clusterPreviewComponentBases = clusterPreview.componentBases[selectedComponentBaseName];
+
+        if (clusterPreviewComponentBases && Object.keys(clusterPreviewComponentBases).length > 0) {
+            if (
+                clusterPreviewComponentBases[selectedSkeletonBaseName] &&
+                Object.keys(clusterPreviewComponentBases[selectedSkeletonBaseName]).length > 0
+            ) {
+                switch (previewType) {
+                    case 'service':
+                        setCode(yaml.dump(clusterPreviewComponentBases[selectedSkeletonBaseName].service));
+                        break;
+                    case 'configMap':
+                        setCode(yaml.dump(clusterPreviewComponentBases[selectedSkeletonBaseName].configMap));
+                        break;
+                    case 'deployment':
+                        setCode(yaml.dump(clusterPreviewComponentBases[selectedSkeletonBaseName].deployment));
+                        break;
+                    case 'statefulSet':
+                        setCode(yaml.dump(clusterPreviewComponentBases[selectedSkeletonBaseName].statefulSet));
+                        break;
+                    case 'ingress':
+                        setCode(yaml.dump(clusterPreviewComponentBases[selectedSkeletonBaseName].ingress));
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }, [previewType, clusterPreview, selectedComponentBaseName, selectedSkeletonBaseName]);
+
     const onChange = (textInput: string) => {
         setCode(textInput);
-    }
+    };
+
     const themeRef = useRef<string>()
     function onSelectThemeChange(e: React.ChangeEvent<HTMLSelectElement>) {
         e.persist();

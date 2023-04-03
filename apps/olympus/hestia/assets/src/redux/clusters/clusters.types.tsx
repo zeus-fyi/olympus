@@ -9,17 +9,23 @@ export interface Cluster{
 
 export interface ClusterPreview {
     clusterName: string;
-    componentBases: {
-        [key: string]: {
-            [key: string]: {
-                service: V1Service | null;
-                configMap: V1ConfigMap | null;
-                deployment: V1Deployment | null;
-                statefulSet: V1StatefulSet | null;
-                ingress: V1Ingress | null;
-            };
-        };
-    };
+    componentBases: ComponentBasesPreviews
+}
+
+export type ComponentBasesPreviews = {
+    [componentBaseName: string]: SkeletonBasesPreviews;
+};
+
+export type SkeletonBasesPreviews = {
+    [skeletonBaseName: string]: SkeletonBasePreview;
+};
+
+export type SkeletonBasePreview = {
+    service: V1Service | null;
+    configMap: V1ConfigMap | null;
+    deployment: V1Deployment | null;
+    statefulSet: V1StatefulSet | null;
+    ingress: V1Ingress | null;
 }
 
 export type IngressPaths = {

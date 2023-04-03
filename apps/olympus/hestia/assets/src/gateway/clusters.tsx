@@ -4,8 +4,6 @@ import inMemoryJWT from "../auth/InMemoryJWT";
 class ClustersApiGateway {
     async previewCreateCluster(params: any): Promise<any>  {
         const url = `/v1/infra/ui/preview/create`;
-        console.log(params)
-
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {

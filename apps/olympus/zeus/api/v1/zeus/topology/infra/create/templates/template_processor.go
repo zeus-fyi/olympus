@@ -6,8 +6,6 @@ import (
 	"strings"
 
 	"github.com/rs/zerolog/log"
-	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
-	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_resp_types/topology_workloads"
 	zeus_cluster_config_drivers "github.com/zeus-fyi/zeus/pkg/zeus/cluster_config_drivers"
@@ -70,40 +68,59 @@ func PreviewTemplateGeneration(ctx context.Context, cluster Cluster) zeus_cluste
 		for sbName, skeletonBase := range componentBase {
 			sbDef := zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
 				SkeletonBaseChart: zeus_req_types.TopologyCreateRequest{},
-				SkeletonBaseNameChartPath: filepaths.Path{
-					PackageName: sbName,
-					DirIn:       "/Users/alex/go/Olympus/olympus/apps/olympus/zeus/api/v1/zeus/topology/infra/create/templates",
-					DirOut:      "./",
-					FnIn:        sbName,
-					FnOut:       sbName,
-					FilterFiles: &strings_filter.FilterOpts{},
+				Workload: topology_workloads.TopologyBaseInfraWorkload{
+					Service:        nil,
+					ConfigMap:      nil,
+					Deployment:     nil,
+					StatefulSet:    nil,
+					Ingress:        nil,
+					ServiceMonitor: nil,
 				},
-				Workload:             topology_workloads.TopologyBaseInfraWorkload{},
 				TopologyConfigDriver: &zeus_topology_config_drivers.TopologyConfigDriver{},
 			}
 			if skeletonBase.AddStatefulSet {
-				stsDriver, _ := BuildStatefulSetDriver(ctx, sbName, skeletonBase.Containers, skeletonBase.StatefulSet)
+				sbDef.Workload.StatefulSet = GetStatefulSetTemplate(ctx)
+				stsDriver, err := BuildStatefulSetDriver(ctx, sbName, skeletonBase.Containers, skeletonBase.StatefulSet)
+				if err != nil {
+					log.Ctx(ctx).Err(err).Msg("error building statefulset driver")
+				}
 				sbDef.TopologyConfigDriver.StatefulSetDriver = &stsDriver
 				sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese = append(sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese, "deployment")
 			} else if skeletonBase.AddDeployment {
-				depDriver, _ := BuildDeploymentDriver(ctx, sbName, skeletonBase.Containers, skeletonBase.Deployment)
+				sbDef.Workload.Deployment = GetDeploymentTemplate(ctx)
+				depDriver, err := BuildDeploymentDriver(ctx, sbName, skeletonBase.Containers, skeletonBase.Deployment)
+				if err != nil {
+					log.Ctx(ctx).Err(err).Msg("error building deployment driver")
+				}
 				sbDef.TopologyConfigDriver.DeploymentDriver = &depDriver
 				sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese = append(sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese, "statefulset")
 			}
 			if skeletonBase.AddIngress {
-				ingDriver, _ := BuildIngressDriver(ctx, sbName, cluster.IngressSettings, cluster.IngressPaths)
+				sbDef.Workload.Ingress = GetIngressTemplate(ctx)
+				ingDriver, err := BuildIngressDriver(ctx, sbName, cluster.IngressSettings, cluster.IngressPaths)
+				if err != nil {
+					log.Ctx(ctx).Err(err).Msg("error building ingress driver")
+				}
 				sbDef.TopologyConfigDriver.IngressDriver = &ingDriver
 			} else {
 				sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese = append(sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese, "ingress")
 			}
 			if skeletonBase.AddService {
-				svcDriver, _ := BuildServiceDriver(ctx, sbName, skeletonBase.Containers)
+				sbDef.Workload.Service = GetServiceTemplate(ctx)
+				svcDriver, err := BuildServiceDriver(ctx, sbName, skeletonBase.Containers)
+				if err != nil {
+					log.Ctx(ctx).Err(err).Msg("error building service driver")
+				}
 				sbDef.TopologyConfigDriver.ServiceDriver = &svcDriver
 			} else {
 				sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese = append(sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese, "service")
 			}
 			if skeletonBase.AddConfigMap {
-				cmDriver, _ := BuildConfigMapDriver(ctx, sbName, skeletonBase.ConfigMap)
+				sbDef.Workload.ConfigMap = GetConfigMapTemplate(ctx)
+				cmDriver, err := BuildConfigMapDriver(ctx, sbName, skeletonBase.ConfigMap)
+				if err != nil {
+					log.Ctx(ctx).Err(err).Msg("error building configmap driver")
+				}
 				sbDef.TopologyConfigDriver.ConfigMapDriver = &cmDriver
 			} else {
 				sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese = append(sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese, "configmap")

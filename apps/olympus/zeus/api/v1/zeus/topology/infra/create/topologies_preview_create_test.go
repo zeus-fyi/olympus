@@ -17,12 +17,12 @@ type TopologyPreviewCreateClassRequestTestSuite struct {
 	h hestia_test.BaseHestiaTestSuite
 }
 
-const previewEndpoint = "/infra/preview/create"
+const previewEndpoint = "/infra/ui/preview/create"
 
 func (t *TopologyPreviewCreateClassRequestTestSuite) TestGeneratePreview() {
 	t.InitLocalConfigs()
 
-	t.Eg.POST("/infra/preview/create", PreviewCreateTopologyInfraActionRequestHandler)
+	t.Eg.POST("/infra/ui/preview/create", PreviewCreateTopologyInfraActionRequestHandler)
 	start := make(chan struct{}, 1)
 	go func() {
 		close(start)

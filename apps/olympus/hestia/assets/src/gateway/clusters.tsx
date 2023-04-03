@@ -3,7 +3,7 @@ import inMemoryJWT from "../auth/InMemoryJWT";
 
 class ClustersApiGateway {
     async previewCreateCluster(params: any): Promise<any>  {
-        const url = `/v1/infra/preview/create`;
+        const url = `/v1/infra/ui/preview/create`;
         console.log(params)
 
         try {
@@ -20,6 +20,26 @@ class ClustersApiGateway {
             return await zeusApi.post(url, payload, config)
         } catch (exc) {
             console.error('error sending cluster preview create request');
+            console.error(exc);
+            return
+        }
+    }
+    async createCluster(params: any): Promise<any>  {
+        const url = `/v1/infra/ui/create`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
+            const payload = {
+                'cluster': params
+            }
+            return await zeusApi.post(url, payload, config)
+        } catch (exc) {
+            console.error('error sending cluster create request');
             console.error(exc);
             return
         }

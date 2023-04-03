@@ -35,14 +35,16 @@ func (t *TemplateProcessorTestSuite) TestGeneratePreview() {
 		IngressPaths: make(map[string]IngressPath),
 	}
 
+	m := make(map[string]string)
+	m["start.sh"] = "#!/bin/sh\n    exec /avalanchego/build/avalanchego --db-dir=/data --http-host=0.0.0.0"
 	sb := SkeletonBase{
 		AddStatefulSet:    true,
 		AddDeployment:     false,
-		AddConfigMap:      false,
+		AddConfigMap:      true,
 		AddService:        true,
 		AddIngress:        true,
 		AddServiceMonitor: false,
-		ConfigMap:         ConfigMap{},
+		ConfigMap:         m,
 		StatefulSet: StatefulSet{
 			ReplicaCount: 1,
 			PVCTemplates: []PVCTemplate{{

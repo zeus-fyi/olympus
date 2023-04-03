@@ -16,7 +16,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	v1networking "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -221,13 +220,8 @@ func BuildIngressDriver(ctx context.Context, sbName string, ing Ingress, ip Ingr
 func BuildConfigMapDriver(ctx context.Context, sbName string, configMap ConfigMap) (zeus_topology_config_drivers.ConfigMapDriver, error) {
 	cmDriver := zeus_topology_config_drivers.ConfigMapDriver{
 		ConfigMap: v1.ConfigMap{
-			TypeMeta:   metav1.TypeMeta{},
-			ObjectMeta: metav1.ObjectMeta{},
-			Immutable:  nil,
-			Data:       nil,
-			BinaryData: nil,
+			Data: make(map[string]string),
 		},
-		SwapKeys: nil,
 	}
 	for key, value := range configMap {
 		cmDriver.ConfigMap.Data[key] = value

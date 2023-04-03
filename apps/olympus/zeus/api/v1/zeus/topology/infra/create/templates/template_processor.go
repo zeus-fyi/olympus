@@ -26,14 +26,10 @@ func PreviewTemplateGeneration(ctx context.Context, cluster Cluster) zeus_cluste
 	}
 	fmt.Println(templateClusterDefinition)
 	for cbName, componentBase := range cluster.ComponentBases {
-		fmt.Println(cbName)
-		fmt.Println(componentBase)
 		cbDef := zeus_cluster_config_drivers.ComponentBaseDefinition{
 			SkeletonBases: make(map[string]zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition),
 		}
 		for sbName, skeletonBase := range componentBase {
-			fmt.Println(sbName)
-			fmt.Println(skeletonBase)
 			sbDef := zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
 				SkeletonBaseChart: zeus_req_types.TopologyCreateRequest{},
 				SkeletonBaseNameChartPath: filepaths.Path{
@@ -49,32 +45,27 @@ func PreviewTemplateGeneration(ctx context.Context, cluster Cluster) zeus_cluste
 			}
 			if skeletonBase.AddStatefulSet {
 				stsDriver, _ := BuildStatefulSetDriver(ctx, sbName, skeletonBase.Containers, skeletonBase.StatefulSet)
-				fmt.Println(stsDriver)
 				sbDef.TopologyConfigDriver.StatefulSetDriver = &stsDriver
 				sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese = append(sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese, "deployment")
 			} else if skeletonBase.AddDeployment {
 				depDriver, _ := BuildDeploymentDriver(ctx, sbName, skeletonBase.Containers, skeletonBase.Deployment)
-				fmt.Println(depDriver)
 				sbDef.TopologyConfigDriver.DeploymentDriver = &depDriver
 				sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese = append(sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese, "statefulset")
 			}
 			if skeletonBase.AddIngress {
 				ingDriver, _ := BuildIngressDriver(ctx, sbName, cluster.IngressSettings, cluster.IngressPaths)
-				fmt.Println(ingDriver)
 				sbDef.TopologyConfigDriver.IngressDriver = &ingDriver
 			} else {
 				sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese = append(sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese, "ingress")
 			}
 			if skeletonBase.AddService {
 				svcDriver, _ := BuildServiceDriver(ctx, sbName, skeletonBase.Containers)
-				fmt.Println(svcDriver)
 				sbDef.TopologyConfigDriver.ServiceDriver = &svcDriver
 			} else {
 				sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese = append(sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese, "service")
 			}
 			if skeletonBase.AddConfigMap {
 				cmDriver, _ := BuildConfigMapDriver(ctx, sbName, skeletonBase.ConfigMap)
-				fmt.Println(cmDriver)
 				sbDef.TopologyConfigDriver.ConfigMapDriver = &cmDriver
 			} else {
 				sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese = append(sbDef.SkeletonBaseNameChartPath.FilterFiles.DoesNotStartWithThese, "configmap")
@@ -93,10 +84,7 @@ func BuildStatefulSetDriver(ctx context.Context, sbName string, containers Conta
 		ContainerDrivers: make(map[string]zeus_topology_config_drivers.ContainerDriver),
 	}
 	for containerName, container := range containers {
-		fmt.Println(containerName)
-		fmt.Println(container)
 		contDriver, _ := BuildContainerDriver(ctx, sbName, container)
-		fmt.Println(contDriver)
 		stsDriver.ContainerDrivers[containerName] = zeus_topology_config_drivers.ContainerDriver{
 			IsAppendContainer: true,
 			IsInitContainer:   container.IsInitContainer,
@@ -133,10 +121,7 @@ func BuildDeploymentDriver(ctx context.Context, sbName string, containers Contai
 		ContainerDrivers: make(map[string]zeus_topology_config_drivers.ContainerDriver),
 	}
 	for containerName, container := range containers {
-		fmt.Println(containerName)
-		fmt.Println(container)
 		contDriver, _ := BuildContainerDriver(ctx, sbName, container)
-		fmt.Println(contDriver)
 		depDriver.ContainerDrivers[containerName] = zeus_topology_config_drivers.ContainerDriver{
 			IsAppendContainer: true,
 			IsInitContainer:   container.IsInitContainer,
@@ -234,6 +219,10 @@ func LabelBuilder(ctx context.Context) {
 }
 
 func BuildContainerDriver(ctx context.Context, sbName string, container Container) (v1.Container, error) {
+	pp := "IfNotPresent"
+	if len(container.ImagePullPolicy) <= 0 {
+		pp = container.ImagePullPolicy
+	}
 	c := v1.Container{
 		Name:    sbName,
 		Image:   container.DockerImage.ImageName,
@@ -247,7 +236,7 @@ func BuildContainerDriver(ctx context.Context, sbName string, container Containe
 			Requests: make(map[v1.ResourceName]resource.Quantity),
 		},
 		VolumeMounts:    []v1.VolumeMount{},
-		ImagePullPolicy: "IfNotPresent",
+		ImagePullPolicy: v1.PullPolicy(pp),
 	}
 
 	for _, p := range container.DockerImage.Ports {

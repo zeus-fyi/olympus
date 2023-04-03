@@ -57,6 +57,7 @@ type Containers map[string]Container
 
 type Container struct {
 	IsInitContainer bool        `json:"isInitContainer"`
+	ImagePullPolicy string      `json:"imagePullPolicy,omitempty"`
 	DockerImage     DockerImage `json:"dockerImage"`
 }
 

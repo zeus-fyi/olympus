@@ -189,6 +189,9 @@ func BuildIngressDriver(ctx context.Context, sbName string, ing Ingress, ip Ingr
 			Backend: v1networking.IngressBackend{
 				Service: &v1networking.IngressServiceBackend{
 					Name: "http", // TODO rename
+					Port: v1networking.ServiceBackendPort{
+						Number: int32(80),
+					},
 				},
 			},
 		}

@@ -84,7 +84,11 @@ func BuildStatefulSetDriver(ctx context.Context, sbName string, containers Conta
 		ContainerDrivers: make(map[string]zeus_topology_config_drivers.ContainerDriver),
 	}
 	for containerName, container := range containers {
-		contDriver, _ := BuildContainerDriver(ctx, sbName, container)
+		contDriver, err := BuildContainerDriver(ctx, sbName, container)
+		if err != nil {
+			log.Ctx(ctx).Error().Err(err).Msg("Failed to build container driver")
+			return zeus_topology_config_drivers.StatefulSetDriver{}, err
+		}
 		stsDriver.ContainerDrivers[containerName] = zeus_topology_config_drivers.ContainerDriver{
 			IsAppendContainer: true,
 			IsInitContainer:   container.IsInitContainer,
@@ -121,7 +125,11 @@ func BuildDeploymentDriver(ctx context.Context, sbName string, containers Contai
 		ContainerDrivers: make(map[string]zeus_topology_config_drivers.ContainerDriver),
 	}
 	for containerName, container := range containers {
-		contDriver, _ := BuildContainerDriver(ctx, sbName, container)
+		contDriver, err := BuildContainerDriver(ctx, sbName, container)
+		if err != nil {
+			log.Ctx(ctx).Error().Err(err).Msg("Failed to build container driver")
+			return zeus_topology_config_drivers.DeploymentDriver{}, err
+		}
 		depDriver.ContainerDrivers[containerName] = zeus_topology_config_drivers.ContainerDriver{
 			IsAppendContainer: true,
 			IsInitContainer:   container.IsInitContainer,
@@ -181,7 +189,6 @@ func BuildIngressDriver(ctx context.Context, sbName string, ing Ingress, ip Ingr
 		}
 		httpPaths = append(httpPaths, appendPath)
 	}
-
 	ingressRuleValue := v1networking.IngressRuleValue{HTTP: &v1networking.HTTPIngressRuleValue{Paths: httpPaths}}
 	ingDriver := zeus_topology_config_drivers.IngressDriver{
 		Ingress: v1networking.Ingress{

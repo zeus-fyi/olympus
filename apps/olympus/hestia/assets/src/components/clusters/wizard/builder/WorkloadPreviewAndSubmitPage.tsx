@@ -50,17 +50,17 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
             buttonDisabled = true;
             break;
         case 'success':
-            buttonLabel = 'Logged in successfully';
+            buttonLabel = 'Generate Preview';
             buttonDisabled = true;
-            statusMessage = 'Logged in successfully!';
+            statusMessage = 'Preview generated successfully!';
             break;
         case 'error':
             buttonLabel = 'Retry';
             buttonDisabled = false;
-            statusMessage = 'An error occurred while generating preview, please try again. If you continue having issues please email alex@zeus.fyi';
+            statusMessage = 'An error occurred while generating preview, there\'s likely a problem with your configuration, check that your ports, resource values, etc are valid.';
             break;
         default:
-            buttonLabel = 'Login';
+            buttonLabel = 'Generate Preview';
             buttonDisabled = false;
             break;
     }
@@ -110,8 +110,8 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
                     </Container>
                     <Container maxWidth="xl" sx={{ mb: 4 }}>
                         <Box mt={2}>
-                            <Button variant="contained" onClick={onClickPreviewCreate}>
-                                Generate Preview
+                            <Button variant="contained" onClick={onClickPreviewCreate} disabled={buttonDisabled}>
+                                {buttonLabel}
                             </Button>
                         </Box>
                         {/*<Box mt={2}>*/}

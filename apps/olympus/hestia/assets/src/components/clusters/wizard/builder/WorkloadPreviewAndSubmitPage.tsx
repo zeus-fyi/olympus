@@ -2,7 +2,7 @@ import {Box, Button, Card, CardContent, CircularProgress, Container, Stack} from
 import Typography from "@mui/material/Typography";
 import {SelectedComponentBaseName} from "./DefineComponentBases";
 import * as React from "react";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {SelectedSkeletonBaseName} from "./AddSkeletonBaseDockerConfigs";
 import YamlTextField from "./YamlFormattedTextPage";
 import {clustersApiGateway} from "../../../../gateway/clusters";
@@ -15,7 +15,28 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
     const {} = props;
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
     const [viewField, setViewField] = useState('');
-    const [previewType, setPreviewType] = useState('statefulSet');
+    const [previewType, setPreviewType] = useState('');
+    const clusterPreview = useSelector((state: RootState) => state.clusterBuilder.clusterPreview);
+    const selectedComponentBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedComponentBaseName);
+    const selectedSkeletonBaseName = useSelector((state: RootState) => state.clusterBuilder.selectedSkeletonBaseName);
+    const [addDeployment, setAddDeployment] = useState(false);
+    const [addConfigMap, setAddConfigMap] = useState(false);
+    const [addIngress, setAddIngress] = useState(false);
+    const [addService, setAddService] = useState(false);
+    const [addStatefulSet, setAddStatefulSet] = useState(false);
+
+    useEffect(() => {
+        const skeletonBasePreview = clusterPreview?.componentBases?.[selectedComponentBaseName]?.[selectedSkeletonBaseName];
+
+        if (skeletonBasePreview) {
+            setAddDeployment(skeletonBasePreview.deployment !== null);
+            setAddConfigMap(skeletonBasePreview.configMap !== null);
+            setAddIngress(skeletonBasePreview.ingress !== null);
+            setAddService(skeletonBasePreview.service !== null);
+            setAddStatefulSet(skeletonBasePreview.statefulSet !== null);
+        }
+    }, [clusterPreview, selectedComponentBaseName, selectedSkeletonBaseName]);
+
 
     let buttonLabel;
     let buttonDisabled;
@@ -42,6 +63,9 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
             buttonLabel = 'Login';
             buttonDisabled = false;
             break;
+    }
+    const onClickView = (newPreviewType: string) => {
+        setPreviewType(newPreviewType);
     }
     const onChangeComponentOrSkeletonBase = () => {
         setViewField('')
@@ -95,6 +119,45 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
                                 Create Cluster
                             </Button>
                         </Box>
+                    </Container>
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        <Stack direction="column" spacing={2}>
+                            {addDeployment && (
+                                <Stack direction="row" spacing={2}>
+                                    <Button variant="contained" color="primary" onClick={() => onClickView('deployment')}>
+                                        View Deployment
+                                    </Button>
+                                </Stack>
+                            )}
+                            {addStatefulSet && (
+                                <Stack direction="row" spacing={2}>
+                                    <Button variant="contained" color="primary" onClick={() => onClickView('statefulSet')}>
+                                        View StatefulSet
+                                    </Button>
+                                </Stack>
+                            )}
+                            {addConfigMap && (
+                                <Stack direction="row" spacing={2}>
+                                    <Button variant="contained" color="primary" onClick={() => onClickView('configMap')}>
+                                        View ConfigMap
+                                    </Button>
+                                </Stack>
+                            )}
+                            {addService && (
+                                <Stack direction="row" spacing={2}>
+                                    <Button variant="contained" color="primary" onClick={() => onClickView('service')}>
+                                        View Service
+                                    </Button>
+                                </Stack>
+                            )}
+                            {addIngress && (
+                                <Stack direction="row" spacing={2}>
+                                    <Button variant="contained" color="primary" onClick={() => onClickView('ingress')}>
+                                        View Ingress
+                                    </Button>
+                                </Stack>
+                            )}
+                        </Stack>
                     </Container>
                 </Card>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>

@@ -48,7 +48,7 @@ export function AddComponentBases() {
                     <TextField
                         fullWidth
                         id={`inputField-${index}`}
-                        label={`Component Base Name`}
+                        label={`Cluster Base Name`}
                         variant="outlined"
                         value={key}
                         InputProps={{ readOnly: true }}
@@ -63,7 +63,7 @@ export function AddComponentBases() {
             <TextField
                 fullWidth
                 id="inputField-new"
-                label="New Component Base Name"
+                label="New Cluster Base Name"
                 variant="outlined"
                 value={inputField}
                 onChange={handleChange}

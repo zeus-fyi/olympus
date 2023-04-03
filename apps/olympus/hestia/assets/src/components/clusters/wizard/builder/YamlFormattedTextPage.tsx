@@ -28,7 +28,7 @@ export default function YamlTextField(props: any) {
     const [code, setCode] = useState('');
 
     useEffect(() => {
-        const clusterPreviewComponentBases = clusterPreview.componentBases[selectedComponentBaseName];
+        const clusterPreviewComponentBases = clusterPreview?.componentBases?.[selectedComponentBaseName];
 
         if (clusterPreviewComponentBases && Object.keys(clusterPreviewComponentBases).length > 0) {
             if (

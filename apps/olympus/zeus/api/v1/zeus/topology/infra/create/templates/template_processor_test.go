@@ -99,6 +99,7 @@ func (t *TemplateProcessorTestSuite) TestGeneratePreview() {
 	}
 	forceDirToCallerLocation()
 	cd := PreviewTemplateGeneration(ctx, req)
+	cd.DisablePrint = true
 	gcd := cd.BuildClusterDefinitions()
 	t.Assert().NotEmpty(gcd)
 	fmt.Println(gcd)
@@ -111,6 +112,9 @@ func (t *TemplateProcessorTestSuite) TestGeneratePreview() {
 	sbDefs, err := cd.GenerateSkeletonBaseCharts()
 	t.Assert().NoError(err)
 	t.Assert().NotEmpty(sbDefs)
+
+	wl := cd.ComponentBases["avaxClients"].SkeletonBases["avaxClients"].Workload
+	t.Assert().NotEmpty(wl)
 }
 
 func forceDirToCallerLocation() string {

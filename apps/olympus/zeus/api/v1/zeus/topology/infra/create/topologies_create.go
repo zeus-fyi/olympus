@@ -11,7 +11,9 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_infra "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/definitions/bases/infra"
+	zeus_templates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
+	zeus_client "github.com/zeus-fyi/zeus/pkg/zeus/client"
 )
 
 type TopologyCreateRequest struct {
@@ -29,6 +31,27 @@ type TopologyCreateRequest struct {
 type TopologyCreateResponse struct {
 	TopologyID       int    `json:"topologyID"`
 	SkeletonBaseName string `json:"skeletonBaseName,omitempty"`
+}
+
+type TopologyCreateRequestFromUI struct {
+	zeus_templates.Cluster `json:"cluster"`
+}
+
+func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error {
+	ctx := context.Background()
+	gcd, err := zeus_templates.GenerateClusterFromUI(ctx, t.Cluster)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("error generating skeleton base charts")
+		return c.JSON(http.StatusBadRequest, err)
+	}
+	bearer := c.Get("bearer").(string)
+	zc := zeus_client.NewDefaultZeusClient(bearer)
+	err = gcd.CreateClusterClassDefinitions(ctx, zc)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("error creating cluster class definitions")
+		return c.JSON(http.StatusBadRequest, err)
+	}
+	return c.JSON(http.StatusOK, nil)
 }
 
 func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {

@@ -13,6 +13,13 @@ func V1Routes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	topology_routes.Routes(e, k8Cfg)
 	return e
 }
+
+func V1RoutesUI(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
+	zeus.K8Util = k8Cfg
+
+	topology_routes.RoutesUI(e, k8Cfg)
+	return e
+}
 func ActionsV1Routes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
 

@@ -71,7 +71,6 @@ const Login = () => {
         } catch (e) {
             setRequestStatus('error');
         }
-
     }
     return (
         <ThemeProvider theme={theme}>

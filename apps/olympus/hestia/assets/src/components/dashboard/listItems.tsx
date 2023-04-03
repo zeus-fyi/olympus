@@ -10,14 +10,20 @@ import ViewListIcon from '@mui/icons-material/ViewList';
 import {ExpandLess, ExpandMore} from "@mui/icons-material";
 import {Collapse, List, ListSubheader} from "@mui/material";
 import MiscellaneousServicesIcon from '@mui/icons-material/MiscellaneousServices';
+import ConstructionIcon from '@mui/icons-material/Construction';
+import AppsIcon from '@mui/icons-material/Apps';
 
 export default function MainListItems() {
     const [open, setOpen] = React.useState(true);
+    const [openClusters, setOpenClusters] = React.useState(true);
 
     const handleClick = () => {
         setOpen(!open);
     };
 
+    const handleClickClusters = () => {
+        setOpenClusters(!openClusters);
+    };
     return (
         <List
             sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}
@@ -35,12 +41,29 @@ export default function MainListItems() {
                 </ListItemIcon>
                 <ListItemText primary="Dashboard" />
             </ListItemButton>
-            <ListItemButton component={Link} to="/clusters">
+            <ListItemButton onClick={handleClickClusters}  component={Link} to="/clusters">
                 <ListItemIcon>
                     <CloudIcon />
                 </ListItemIcon>
                 <ListItemText primary="Clusters"/>
+                {openClusters ? <ExpandLess /> : <ExpandMore />}
             </ListItemButton>
+            <Collapse in={openClusters} timeout="auto" unmountOnExit>
+                <List component="div" disablePadding>
+                    <ListItemButton sx={{ pl: 4 }} component={Link} to="/clusters/apps">
+                        <ListItemIcon>
+                            <AppsIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Apps" />
+                    </ListItemButton>
+                    <ListItemButton sx={{ pl: 4 }} component={Link} to="/clusters/builder">
+                        <ListItemIcon>
+                            <ConstructionIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Builder" />
+                    </ListItemButton>
+                </List>
+            </Collapse>
             <ListItemButton onClick={handleClick}>
                 <ListItemIcon>
                     <ViewListIcon />
@@ -50,17 +73,17 @@ export default function MainListItems() {
             </ListItemButton>
             <Collapse in={open} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
-                    <ListItemButton sx={{ pl: 4 }} component={Link} to="/services/ethereum/validators">
-                        <ListItemIcon>
-                            <MiscellaneousServicesIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="Validators" />
-                    </ListItemButton>
                     <ListItemButton sx={{ pl: 4 }} component={Link} to="/services/ethereum/aws">
                         <ListItemIcon>
                             <AutoFixHighIcon />
                         </ListItemIcon>
                         <ListItemText primary="AWS Wizard" />
+                    </ListItemButton>
+                    <ListItemButton sx={{ pl: 4 }} component={Link} to="/services/ethereum/validators">
+                        <ListItemIcon>
+                            <MiscellaneousServicesIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Validators" />
                     </ListItemButton>
                 </List>
             </Collapse>

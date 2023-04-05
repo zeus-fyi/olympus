@@ -2,8 +2,10 @@ import {combineReducers, configureStore} from '@reduxjs/toolkit';
 import awsCredentialsReducer from './aws_wizard/aws.wizard.reducer';
 import validatorSecretsReducer from './validators/ethereum.validators.reducer';
 import clusterBuilderReducer from './clusters/clusters.builder.reducer';
+import appsReducer from "./apps/apps.reducer";
 
 const rootReducer = combineReducers({
+    apps: appsReducer,
     clusterBuilder: clusterBuilderReducer,
     awsCredentials: awsCredentialsReducer,
     validatorSecrets: validatorSecretsReducer,

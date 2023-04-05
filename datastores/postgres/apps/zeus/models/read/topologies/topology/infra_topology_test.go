@@ -1,7 +1,6 @@
 package read_topology
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -20,7 +19,6 @@ func (s *TopologyTestSuite) TestSelectTopology() {
 	tr.TopologyID = 1677360008013168128
 	tr.OrgID = s.Tc.ProductionLocalTemporalOrgID
 	tr.UserID = s.Tc.ProductionLocalTemporalUserID
-	ctx := context.Background()
 	err := tr.SelectTopology(ctx)
 	s.Require().Nil(err)
 }

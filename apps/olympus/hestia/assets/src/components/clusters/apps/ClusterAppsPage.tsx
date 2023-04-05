@@ -16,6 +16,8 @@ import {useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";
 import authProvider from "../../../redux/auth/auth.actions";
 import MainListItems from "../../dashboard/listItems";
+import {PrivateAppsTable} from "./AppsTable";
+import {Card, CardContent, Stack} from "@mui/material";
 
 const mdTheme = createTheme();
 
@@ -105,8 +107,24 @@ function ClusterAppsContent() {
                 >
                     <Toolbar />
                     <div style={{ display: 'flex' }}>
-                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        </Container>
+                        <Stack direction="column" spacing={2} sx={{ mt: 4, mb: 4 }}>
+                            <Container maxWidth="xl" sx={{ mt: 0, mb: 0 }}>
+                                <Card>
+                                    <CardContent>
+                                        <Typography gutterBottom variant="h5" component="div">
+                                            Private Registered Apps
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary">
+                                            The table below contains apps that are registered workloads that you can deploy, edit, or upgrade.
+                                        </Typography>
+                                    </CardContent>
+                                </Card>
+                            </Container>
+                            <Container maxWidth="xl" sx={{ mt: 0, mb: 4 }}>
+                                <PrivateAppsTable />
+                            </Container>
+                        </Stack>
+
                     </div>
                 </Box>
             </Box>

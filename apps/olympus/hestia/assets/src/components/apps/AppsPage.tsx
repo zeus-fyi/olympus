@@ -106,6 +106,7 @@ function AppsPageContent() {
                     }}
                 >
                     <Toolbar />
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <div style={{ display: 'flex' }}>
                         <Stack direction="column" spacing={2} sx={{ mt: 4, mb: 4 }}>
                             <Container maxWidth="xl" sx={{ mt: 0, mb: 0 }}>
@@ -124,8 +125,8 @@ function AppsPageContent() {
                                 <PrivateAppsTable />
                             </Container>
                         </Stack>
-
                     </div>
+                    </Container>
                 </Box>
             </Box>
         </ThemeProvider>

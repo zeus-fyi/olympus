@@ -22,6 +22,7 @@ func (s *CreateNodesTestSuite) TestInsertOrg() {
 
 	nodes := hestia_autogen_bases.NodesSlice{}
 	nodes = append(nodes, hestia_autogen_bases.Nodes{
+		Description:   "test",
 		Slug:          "sg-sfo1-01",
 		Disk:          25,
 		PriceHourly:   1,

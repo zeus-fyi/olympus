@@ -11,12 +11,14 @@ import TablePaginationActions from "@mui/material/TablePagination/TablePaginatio
 import {appsApiGateway} from "../../gateway/apps";
 import {setPrivateOrgApps} from "../../redux/apps/apps.reducer";
 import {RootState} from "../../redux/store";
+import {useNavigate} from "react-router-dom";
 
 export function PrivateAppsTable(props: any) {
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const privateOrgApps = useSelector((state: RootState) => state.apps.privateOrgApps);
     const dispatch = useDispatch();
+    let navigate = useNavigate();
 
     useEffect(() => {
         async function fetchData() {
@@ -42,6 +44,11 @@ export function PrivateAppsTable(props: any) {
         setPage(newPage);
     };
 
+    const handleClick = async (event: any, app: any) => {
+        event.preventDefault();
+        navigate('/clusters/app/'+app.topologySystemComponentID);
+    }
+
     if (privateOrgApps == null) {
         return (<div></div>)
     }
@@ -63,6 +70,7 @@ export function PrivateAppsTable(props: any) {
                     {privateOrgApps.map((row: any, i: number) => (
                         <TableRow
                             key={i}
+                            onClick={(event) => handleClick(event, row)}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >
                             <TableCell component="th" scope="row">

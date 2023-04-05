@@ -49,7 +49,7 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
             buttonDisabledCreate = true;
             break;
         case 'success':
-            buttonLabelCreate = '';
+            buttonLabelCreate = 'Register Cluster';
             buttonDisabledCreate = true;
             statusMessageCreate = 'Cluster definition generated successfully!';
             break;
@@ -119,7 +119,7 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
     const onClickCreate = async () => {
         try {
             setCreateRequestStatus('pending');
-            let res: any = await clustersApiGateway.previewCreateCluster(cluster)
+            let res: any = await clustersApiGateway.createCluster(cluster)
             const cp =  res.data as ClusterPreview;
             const statusCode = res.status;
             if (statusCode === 200 || statusCode === 204) {

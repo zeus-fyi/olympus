@@ -39,6 +39,11 @@ type TopologyCreateRequestFromUI struct {
 
 func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error {
 	ctx := context.Background()
+	pcg, err := zeus_templates.GenerateSkeletonBaseChartsPreview(ctx, t.Cluster)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("error generating skeleton base charts")
+		return c.JSON(http.StatusBadRequest, err)
+	}
 	gcd, err := zeus_templates.GenerateClusterFromUI(ctx, t.Cluster)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("error generating skeleton base charts")
@@ -51,7 +56,7 @@ func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error
 		log.Ctx(ctx).Err(err).Msg("error creating cluster class definitions")
 		return c.JSON(http.StatusBadRequest, err)
 	}
-	return c.JSON(http.StatusOK, nil)
+	return c.JSON(http.StatusOK, pcg)
 }
 
 func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {

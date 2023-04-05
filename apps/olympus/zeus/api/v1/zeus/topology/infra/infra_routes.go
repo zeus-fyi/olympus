@@ -25,6 +25,7 @@ func Routes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 func UIRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
 
+	e.GET("/infra/ui/private/apps", create_infra.CreateTopologyInfraActionFromUIRequestHandler)
 	e.POST("/infra/ui/create", create_infra.CreateTopologyInfraActionFromUIRequestHandler)
 	e.POST("/infra/ui/preview/create", create_infra.PreviewCreateTopologyInfraActionRequestHandler)
 	return e

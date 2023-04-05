@@ -2,6 +2,7 @@ package read_infra
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
+	zeus_templates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
 )
 
 type TopologyReadPrivateAppsRequest struct {
@@ -29,16 +31,39 @@ func (t *TopologyReadPrivateAppsRequest) GetPrivateAppDetailsRequest(c echo.Cont
 	appID := c.Param("id")
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	ctx := context.Background()
-
 	id, err := strconv.Atoi(appID)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("GetPrivateAppDetailsRequest: SelectOrgApps")
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-	apps, err := read_topology.SelectAppTopologyByID(ctx, id, ou.OrgID)
+	apps, err := read_topology.SelectAppTopologyByID(ctx, ou.OrgID, id)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("ListPrivateAppsRequest: SelectOrgApps")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return c.JSON(http.StatusOK, apps)
+	resp := zeus_templates.Cluster{
+		ClusterName:    apps.ClusterClassName,
+		ComponentBases: make(map[string]zeus_templates.SkeletonBases),
+	}
+	for cbName, cb := range apps.ComponentBases {
+		uiSbs := make(map[string]zeus_templates.SkeletonBase)
+		for sbName, sb := range cb.SkeletonBases {
+			uiSbs[sbName] = zeus_templates.SkeletonBase{
+				TopologyID:        fmt.Sprintf("%d", sb.TopologyID),
+				AddStatefulSet:    false,
+				AddDeployment:     false,
+				AddConfigMap:      false,
+				AddService:        false,
+				AddIngress:        false,
+				AddServiceMonitor: false,
+				ConfigMap:         nil,
+				Deployment:        zeus_templates.Deployment{},
+				StatefulSet:       zeus_templates.StatefulSet{},
+				Containers:        nil,
+			}
+		}
+		resp.ComponentBases[cbName] = uiSbs
+	}
+
+	return c.JSON(http.StatusOK, resp)
 }

@@ -14,6 +14,7 @@ type ComponentBases map[string]SkeletonBases
 type SkeletonBases map[string]SkeletonBase
 
 type SkeletonBase struct {
+	TopologyID        string      `json:"topologyID,omitempty"`
 	AddStatefulSet    bool        `json:"addStatefulSet"`
 	AddDeployment     bool        `json:"addDeployment"`
 	AddConfigMap      bool        `json:"addConfigMap"`

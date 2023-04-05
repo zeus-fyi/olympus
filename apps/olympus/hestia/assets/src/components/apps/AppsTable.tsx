@@ -8,9 +8,9 @@ import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
-import {appsApiGateway} from "../../../gateway/apps";
-import {setPrivateOrgApps} from "../../../redux/apps/apps.reducer";
-import {RootState} from "../../../redux/store";
+import {appsApiGateway} from "../../gateway/apps";
+import {setPrivateOrgApps} from "../../redux/apps/apps.reducer";
+import {RootState} from "../../redux/store";
 
 export function PrivateAppsTable(props: any) {
     const [page, setPage] = React.useState(0);
@@ -20,11 +20,14 @@ export function PrivateAppsTable(props: any) {
 
     useEffect(() => {
         async function fetchData() {
-            const response = await appsApiGateway.getPrivateApps();
-            dispatch(setPrivateOrgApps(response));
+            try {
+                const response = await appsApiGateway.getPrivateApps();
+                dispatch(setPrivateOrgApps(response));
+            } catch (e) {
+            }
         }
         fetchData();
-    }, []);
+    }, [dispatch]);
 
     const handleChangeRowsPerPage = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,

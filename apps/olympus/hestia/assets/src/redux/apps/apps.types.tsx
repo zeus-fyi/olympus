@@ -1,3 +1,5 @@
+import {Cluster} from "../clusters/clusters.types";
+
 export interface TopologySystemComponents {
     topologySystemComponentID: number;
     topologyClassTypeID: number;
@@ -6,6 +8,7 @@ export interface TopologySystemComponents {
 
 export interface AppsState {
     privateOrgApps: TopologySystemComponentsSlice;
+    selectedClusterApp: Cluster;
 }
 
 export type TopologySystemComponentsSlice = TopologySystemComponents[];

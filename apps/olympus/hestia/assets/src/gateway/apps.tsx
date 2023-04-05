@@ -1,6 +1,7 @@
 import {zeusApi} from './axios/axios';
 import inMemoryJWT from "../auth/InMemoryJWT";
 import {TopologySystemComponents} from "../redux/apps/apps.types";
+import {Cluster} from "../redux/clusters/clusters.types";
 
 class AppsApiGateway {
     async getPrivateApps(): Promise<TopologySystemComponents[]>  {
@@ -22,7 +23,7 @@ class AppsApiGateway {
             return []
         }
     }
-    async getPrivateAppDetails(id: string): Promise<any>  {
+    async getPrivateAppDetails(id: string): Promise<Cluster>  {
         const url = `/v1/infra/ui/private/app/${id}`;
         try {
             const sessionID = inMemoryJWT.getToken();
@@ -38,7 +39,7 @@ class AppsApiGateway {
         } catch (exc) {
             console.error('error sending get private apps request');
             console.error(exc);
-            return []
+            return {} as Cluster
         }
     }
 }

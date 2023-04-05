@@ -59,7 +59,7 @@ func (t *TopologyDeployActionRequestTestSuite) TestReadAppByID() {
 	t.InitLocalConfigs()
 	ctx := context.Background()
 	//apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
-	cl, err := read_topology.SelectAppTopologyByID(ctx, t.Tc.ProductionLocalTemporalOrgID, 0)
+	cl, err := read_topology.SelectAppTopologyByID(ctx, t.Tc.ProductionLocalTemporalOrgID, 1677816792038031000)
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(cl)
 }

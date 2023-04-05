@@ -1,41 +1,52 @@
-import * as React from 'react';
-import {createTheme, ThemeProvider} from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import {AppBar, Drawer} from '../../dashboard/Dashboard';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import List from '@mui/material/List';
-import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
-import Container from '@mui/material/Container';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import * as React from "react";
+import {useEffect} from "react";
+import {useNavigate, useParams} from "react-router-dom";
+import {useDispatch, useSelector} from "react-redux";
+import authProvider from "../../redux/auth/auth.actions";
+import {createTheme, ThemeProvider} from "@mui/material/styles";
+import Box from "@mui/material/Box";
+import CssBaseline from "@mui/material/CssBaseline";
+import {AppBar, Drawer} from "../dashboard/Dashboard";
+import Toolbar from "@mui/material/Toolbar";
+import IconButton from "@mui/material/IconButton";
+import MenuIcon from "@mui/icons-material/Menu";
+import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import {useNavigate} from "react-router-dom";
-import {useDispatch} from "react-redux";
-import authProvider from "../../../redux/auth/auth.actions";
-import MainListItems from "../../dashboard/listItems";
-import {PrivateAppsTable} from "./AppsTable";
-import {Card, CardContent, Stack} from "@mui/material";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import Divider from "@mui/material/Divider";
+import List from "@mui/material/List";
+import MainListItems from "../dashboard/listItems";
+import Container from "@mui/material/Container";
+import {appsApiGateway} from "../../gateway/apps";
+import {RootState} from "../../redux/store";
+import {setSelectedClusterApp} from "../../redux/apps/apps.reducer";
 
 const mdTheme = createTheme();
 
-function ClusterAppsContent() {
+function createTopologyData(
+    topologyID: number,
+    clusterName: string,
+    componentBaseName: string,
+    skeletonBaseName: string,
+) {
+    return {topologyID, clusterName, componentBaseName, skeletonBaseName};
+}
+
+function AppPageContent() {
     const [open, setOpen] = React.useState(true);
+
     const toggleDrawer = () => {
         setOpen(!open);
     };
     let navigate = useNavigate();
     const dispatch = useDispatch();
 
-    const handleLogout = (event: any) => {
+    const handleLogout = async (event: any) => {
         event.preventDefault();
-        authProvider.logout()
+        await authProvider.logout()
         dispatch({type: 'LOGOUT_SUCCESS'})
         navigate('/login');
     }
-
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
@@ -65,7 +76,7 @@ function ClusterAppsContent() {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            Apps
+                            Clusters
                         </Typography>
                         <Button
                             color="inherit"
@@ -106,32 +117,37 @@ function ClusterAppsContent() {
                     }}
                 >
                     <Toolbar />
-                    <div style={{ display: 'flex' }}>
-                        <Stack direction="column" spacing={2} sx={{ mt: 4, mb: 4 }}>
-                            <Container maxWidth="xl" sx={{ mt: 0, mb: 0 }}>
-                                <Card>
-                                    <CardContent>
-                                        <Typography gutterBottom variant="h5" component="div">
-                                            Private Registered Apps
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            The table below contains apps that are registered workloads that you can deploy, edit, or upgrade.
-                                        </Typography>
-                                    </CardContent>
-                                </Card>
-                            </Container>
-                            <Container maxWidth="xl" sx={{ mt: 0, mb: 4 }}>
-                                <PrivateAppsTable />
-                            </Container>
-                        </Stack>
-
-                    </div>
+                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                        <AppPageDetails />
+                    </Container>
                 </Box>
             </Box>
         </ThemeProvider>
     );
 }
 
-export default function ClusterAppsPage() {
-    return <ClusterAppsContent />;
+function AppPageDetails(props: any) {
+    const params = useParams();
+    const selectedApp = useSelector((state: RootState) => state.apps.selectedClusterApp);
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const response = await appsApiGateway.getPrivateAppDetails(params.id as string);
+                dispatch(setSelectedClusterApp(response));
+            } catch (e) {
+            }
+        }
+        fetchData();
+    }, [dispatch]);
+
+    const name = selectedApp.clusterName
+    return (
+        <div>{name}</div>
+    );
+}
+
+export default function AppPage() {
+    return <AppPageContent />
 }

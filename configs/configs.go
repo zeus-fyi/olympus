@@ -21,6 +21,7 @@ type TestURLs struct {
 type TestContainer struct {
 	Env string
 
+	DigitalOceanAPIKey      string
 	LocalDbPgconn           string
 	StagingDbPgconn         string
 	ProdDbPgconn            string
@@ -138,6 +139,7 @@ func InitArtemisLocalAccounts() {
 func InitLocalTestConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
 
+	testCont.DigitalOceanAPIKey = viper.GetString("DO_API_KEY")
 	testCont.SendGridAPIKey = viper.GetString("SENDGRID_API_KEY")
 	testCont.AwsAccessKeySES = viper.GetString("AWS_ACCESS_KEY_SES")
 	testCont.AwsSecretKeySES = viper.GetString("AWS_SECRET_KEY_SES")

@@ -55,6 +55,14 @@ func (t *TopologyDeployActionRequestTestSuite) TestReadCluster() {
 	t.Assert().NotEmpty(cl)
 }
 
+func (t *TopologyDeployActionRequestTestSuite) TestReadAppByID() {
+	t.InitLocalConfigs()
+	ctx := context.Background()
+	//apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
+	cl, err := read_topology.SelectAppTopologyByID(ctx, t.Tc.ProductionLocalTemporalOrgID, 0)
+	t.Require().Nil(err)
+	t.Assert().NotEmpty(cl)
+}
 func TestTopologyDeployActionRequestTestSuite(t *testing.T) {
 	suite.Run(t, new(TopologyDeployActionRequestTestSuite))
 }

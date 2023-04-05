@@ -93,7 +93,7 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
     return (
         <div>
             <Stack direction="row" spacing={2}>
-                <Card sx={{ maxWidth: 500 }}>
+                <Card sx={{ minWidth: 250, maxWidth: 400 }}>
                     <CardContent>
                         <Typography gutterBottom variant="h5" component="div">
                             Workload Config
@@ -167,9 +167,7 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
                         </Stack>
                     </Container>
                 </Card>
-                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                    <YamlTextField previewType={previewType}/>
-                </Container>
+                <YamlTextField previewType={previewType}/>
             </Stack>
         </div>
     );

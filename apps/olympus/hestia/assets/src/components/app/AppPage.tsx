@@ -19,7 +19,14 @@ import MainListItems from "../dashboard/listItems";
 import Container from "@mui/material/Container";
 import {appsApiGateway} from "../../gateway/apps";
 import {RootState} from "../../redux/store";
-import {setSelectedClusterApp} from "../../redux/apps/apps.reducer";
+import {
+    setSelectedClusterApp,
+    setSelectedComponentBaseName,
+    setSelectedSkeletonBaseName
+} from "../../redux/apps/apps.reducer";
+import TextField from "@mui/material/TextField";
+import {Card, CardContent, FormControl, InputLabel, MenuItem, Select} from "@mui/material";
+import {setSelectedContainerName} from "../../redux/clusters/clusters.builder.reducer";
 
 const mdTheme = createTheme();
 
@@ -117,7 +124,7 @@ function AppPageContent() {
                     }}
                 >
                     <Toolbar />
-                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <AppPageDetails />
                     </Container>
                 </Box>
@@ -144,10 +151,131 @@ function AppPageDetails(props: any) {
 
     const name = selectedApp.clusterName
     return (
-        <div>{name}</div>
+        <div>
+            <Card sx={{ maxWidth: 500 }}>
+                <CardContent>
+                    <Typography gutterBottom variant="h5" component="div">
+                        Cluster App Details
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        Review Cluster Class & Workload Bases
+                    </Typography>
+                </CardContent>
+                <Container maxWidth="xl" sx={{ mb: 4 }}>
+                    <Box mt={2}>
+                        <TextField
+                            fullWidth
+                            id={`clusterName`}
+                            label={`Cluster Name`}
+                            variant="outlined"
+                            value={name}
+                            InputProps={{ readOnly: true }}
+                        />
+                    </Box>
+                    <Box mt={2}>
+                        <SelectedComponentBaseName />
+                    </Box>
+                    <Box mt={2}>
+                        <SelectedSkeletonBaseName />
+                    </Box>
+                </Container>
+            </Card>
+        </div>
     );
 }
 
+export function SelectedComponentBaseName(props: any) {
+    const dispatch = useDispatch();
+    let cluster = useSelector((state: RootState) => state.apps.selectedClusterApp);
+    let selectedComponentBaseName = useSelector((state: RootState) => state.apps.selectedComponentBaseName);
+
+    const onAccessComponentBase = (selectedComponentBaseName: string) => {
+        dispatch(setSelectedComponentBaseName(selectedComponentBaseName));
+        const skeletonBaseName = Object.keys(cluster.componentBases[selectedComponentBaseName])[0];
+        dispatch(setSelectedSkeletonBaseName(skeletonBaseName));
+        // Add a check to see if the `containers` field exists
+        if (cluster.componentBases[selectedComponentBaseName] &&
+            cluster.componentBases[selectedComponentBaseName][skeletonBaseName] &&
+            cluster.componentBases[selectedComponentBaseName][skeletonBaseName].containers) {
+            const containerKeys = Object.keys(cluster.componentBases[selectedComponentBaseName][skeletonBaseName].containers);
+            if (containerKeys.length > 0) {
+
+            }
+        }
+    };
+
+    let show = Object.keys(cluster.componentBases).length > 0;
+    return (
+        <div>
+            {show &&
+                <FormControl sx={{mb: 1}} variant="outlined" style={{ minWidth: '100%' }}>
+                    <InputLabel id="network-label">Cluster Bases</InputLabel>
+                    <Select
+                        labelId="componentBase-label"
+                        id="componentBase"
+                        value={selectedComponentBaseName}
+                        label="Component Base"
+                        onChange={(event) => onAccessComponentBase(event.target.value as string)}
+                    >
+                        {Object.keys(cluster.componentBases).map((key: any, i: number) => (
+                            <MenuItem key={i} value={key}>
+                                {key}
+                            </MenuItem>))
+                        }
+                    </Select>
+                </FormControl>
+            }
+        </div>);
+}
+
+export function SelectedSkeletonBaseName(props: any) {
+    const dispatch = useDispatch();
+    const skeletonBaseName = useSelector((state: RootState) => state.apps.selectedSkeletonBaseName);
+    const componentBaseName = useSelector((state: RootState) => state.apps.selectedComponentBaseName);
+    const cluster = useSelector((state: RootState) => state.apps.selectedClusterApp);
+
+    useEffect(() => {
+        dispatch(setSelectedComponentBaseName(componentBaseName));
+        dispatch(setSelectedSkeletonBaseName(skeletonBaseName));
+    }, [dispatch,skeletonBaseName, componentBaseName]);
+
+    const onAccessSkeletonBase = (selectedSkeletonBaseName: string) => {
+        dispatch(setSelectedSkeletonBaseName(selectedSkeletonBaseName));
+        const containerKeys = Object.keys(cluster.componentBases[componentBaseName][selectedSkeletonBaseName].containers)
+        if (containerKeys.length > 0) {
+            dispatch(setSelectedContainerName(containerKeys[0]));
+        }
+    };
+
+    if (cluster.componentBases === undefined) {
+        return <div></div>
+    }
+
+    const skeletonBaseKeys = cluster.componentBases[componentBaseName];
+    const show = skeletonBaseKeys !== undefined && Object.keys(skeletonBaseKeys).length > 0;
+    if (!show) {
+        return <div></div>
+    }
+    return (
+        <FormControl variant="outlined" style={{ minWidth: '100%' }}>
+            <InputLabel id="network-label">Workload Bases</InputLabel>
+            <Select
+                labelId="skeletonBase-label"
+                id="skeletonBase"
+                value={skeletonBaseName}
+                label="Skeleton Base"
+                onChange={(event) => onAccessSkeletonBase(event.target.value as string)}
+                sx={{ width: '100%' }}
+            >
+                {show && Object.keys(skeletonBaseKeys).map((key: any, i: number) => (
+                    <MenuItem key={i} value={key}>
+                        {key}
+                    </MenuItem>))
+                }
+            </Select>
+        </FormControl>
+    );
+}
 export default function AppPage() {
     return <AppPageContent />
 }

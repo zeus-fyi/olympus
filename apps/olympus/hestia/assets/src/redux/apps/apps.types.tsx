@@ -9,6 +9,8 @@ export interface TopologySystemComponents {
 export interface AppsState {
     privateOrgApps: TopologySystemComponentsSlice;
     selectedClusterApp: Cluster;
+    selectedComponentBaseName: string;
+    selectedSkeletonBaseName: string;
 }
 
 export type TopologySystemComponentsSlice = TopologySystemComponents[];

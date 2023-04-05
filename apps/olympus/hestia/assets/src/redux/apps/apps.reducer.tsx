@@ -10,6 +10,8 @@ const initialState: AppsState = {
         ingressSettings: {authServerURL: 'aegis.zeus.fyi', host: 'host.zeus.fyi'} as Ingress,
         ingressPaths: {} as IngressPaths,
     } as Cluster,
+    selectedComponentBaseName: '',
+    selectedSkeletonBaseName: '',
 }
 
 const appsSlice = createSlice({
@@ -22,8 +24,14 @@ const appsSlice = createSlice({
         setSelectedClusterApp: (state, action: PayloadAction<Cluster>) => {
             state.selectedClusterApp = action.payload;
         },
+        setSelectedComponentBaseName: (state, action: PayloadAction<string>) => {
+            state.selectedComponentBaseName = action.payload;
+        },
+        setSelectedSkeletonBaseName: (state, action: PayloadAction<string>) => {
+            state.selectedSkeletonBaseName = action.payload;
+        },
     }
 });
 
-export const { setPrivateOrgApps, setSelectedClusterApp } = appsSlice.actions;
+export const { setPrivateOrgApps, setSelectedClusterApp, setSelectedSkeletonBaseName, setSelectedComponentBaseName } = appsSlice.actions;
 export default appsSlice.reducer;

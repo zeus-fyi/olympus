@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import {AppBar, Drawer} from '../../dashboard/Dashboard';
+import {AppBar, Drawer} from '../dashboard/Dashboard';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import List from '@mui/material/List';
@@ -14,14 +14,14 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";
-import authProvider from "../../../redux/auth/auth.actions";
-import MainListItems from "../../dashboard/listItems";
+import authProvider from "../../redux/auth/auth.actions";
+import MainListItems from "../dashboard/listItems";
 import {PrivateAppsTable} from "./AppsTable";
 import {Card, CardContent, Stack} from "@mui/material";
 
 const mdTheme = createTheme();
 
-function ClusterAppsContent() {
+function AppsPageContent() {
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
@@ -106,6 +106,7 @@ function ClusterAppsContent() {
                     }}
                 >
                     <Toolbar />
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <div style={{ display: 'flex' }}>
                         <Stack direction="column" spacing={2} sx={{ mt: 4, mb: 4 }}>
                             <Container maxWidth="xl" sx={{ mt: 0, mb: 0 }}>
@@ -124,14 +125,14 @@ function ClusterAppsContent() {
                                 <PrivateAppsTable />
                             </Container>
                         </Stack>
-
                     </div>
+                    </Container>
                 </Box>
             </Box>
         </ThemeProvider>
     );
 }
 
-export default function ClusterAppsPage() {
-    return <ClusterAppsContent />;
+export default function AppsPage() {
+    return <AppsPageContent />;
 }

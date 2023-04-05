@@ -3,7 +3,7 @@ package autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type TopologySystemComponents struct {
-	OrgID                       int    `db:"org_id" json:"orgID"`
+	OrgID                       int    `db:"org_id" json:"orgID,omitempty"`
 	TopologySystemComponentID   int    `db:"topology_system_component_id" json:"topologySystemComponentID"`
 	TopologyClassTypeID         int    `db:"topology_class_type_id" json:"topologyClassTypeID"`
 	TopologySystemComponentName string `db:"topology_system_component_name" json:"topologySystemComponentName"`

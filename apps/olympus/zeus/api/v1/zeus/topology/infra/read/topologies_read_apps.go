@@ -11,22 +11,15 @@ import (
 )
 
 type TopologyReadPrivateAppsRequest struct {
-	TopologyID int `json:"topologyID"`
 }
 
-func (t *TopologyReadRequest) ListPrivateAppsRequest(c echo.Context) error {
-	tr := read_topology.NewInfraTopologyReader()
-	tr.TopologyID = t.TopologyID
-	// from auth lookup
+func (t *TopologyReadPrivateAppsRequest) ListPrivateAppsRequest(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
-	tr.OrgID = ou.OrgID
-	tr.UserID = ou.UserID
 	ctx := context.Background()
-	err := tr.SelectTopology(ctx)
+	apps, err := read_topology.SelectOrgApps(ctx, ou.OrgID)
 	if err != nil {
-		log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: SelectTopology")
+		log.Err(err).Interface("orgUser", ou).Msg("ListPrivateAppsRequest: SelectOrgApps")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	nk := tr.GetTopologyBaseInfraWorkload()
-	return c.JSON(http.StatusOK, nk)
+	return c.JSON(http.StatusOK, apps)
 }

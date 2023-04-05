@@ -17,3 +17,11 @@ func ReadTopologiesOrgCloudCtxNsHandler(c echo.Context) error {
 	}
 	return request.ReadTopologiesOrgCloudCtxNs(c)
 }
+
+func ReadOrgApps(c echo.Context) error {
+	request := new(TopologyReadPrivateAppsRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.ListPrivateAppsRequest(c)
+}

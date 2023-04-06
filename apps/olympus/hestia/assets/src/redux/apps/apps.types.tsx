@@ -1,4 +1,4 @@
-import {Cluster} from "../clusters/clusters.types";
+import {Cluster, ClusterPreview} from "../clusters/clusters.types";
 
 export interface TopologySystemComponents {
     topologySystemComponentID: number;
@@ -9,6 +9,7 @@ export interface TopologySystemComponents {
 export interface AppsState {
     privateOrgApps: TopologySystemComponentsSlice;
     selectedClusterApp: Cluster;
+    clusterPreview: ClusterPreview;
     selectedComponentBaseName: string;
     selectedSkeletonBaseName: string;
 }

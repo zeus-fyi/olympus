@@ -1,5 +1,5 @@
 import * as React from "react";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
@@ -25,8 +25,9 @@ import {
     setSelectedSkeletonBaseName
 } from "../../redux/apps/apps.reducer";
 import TextField from "@mui/material/TextField";
-import {Card, CardContent, FormControl, InputLabel, MenuItem, Select} from "@mui/material";
+import {Card, CardContent, FormControl, InputLabel, MenuItem, Select, Stack} from "@mui/material";
 import {setSelectedContainerName} from "../../redux/clusters/clusters.builder.reducer";
+import YamlTextFieldAppPage from "./YamlFormattedTextAppPage";
 
 const mdTheme = createTheme();
 
@@ -41,6 +42,7 @@ function createTopologyData(
 
 function AppPageContent() {
     const [open, setOpen] = React.useState(true);
+    const [previewType, setPreviewType] = useState('');
 
     const toggleDrawer = () => {
         setOpen(!open);
@@ -124,9 +126,12 @@ function AppPageContent() {
                     }}
                 >
                     <Toolbar />
-                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        <AppPageDetails />
-                    </Container>
+                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                            <Stack spacing={2} direction="row">
+                                <AppPageDetails />
+                                <YamlTextFieldAppPage previewType={previewType}/>
+                            </Stack>
+                        </Container>
                 </Box>
             </Box>
         </ThemeProvider>

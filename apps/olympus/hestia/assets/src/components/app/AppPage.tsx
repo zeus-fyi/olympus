@@ -197,8 +197,11 @@ export function SelectedComponentBaseNameAppPage(props: any) {
     let selectedComponentBaseName = useSelector((state: RootState) => state.apps.selectedComponentBaseName);
     const onAccessComponentBase = (selectedComponentBaseName: string) => {
         dispatch(setSelectedComponentBaseName(selectedComponentBaseName));
-        const skeletonBaseName = Object.keys(cluster.componentBases[selectedComponentBaseName])[0];
-        dispatch(setSelectedSkeletonBaseName(skeletonBaseName));
+        const keys = Object.keys(cluster.componentBases[selectedComponentBaseName])
+        if (keys.length > 0) {
+            const skeletonBaseName = Object.keys(cluster.componentBases[selectedComponentBaseName])[0];
+            dispatch(setSelectedSkeletonBaseName(skeletonBaseName));
+        }
         onChangeComponentOrSkeletonBase();
     };
 

@@ -4,7 +4,7 @@ import {Cluster, ClusterPreview, ComponentBases, Ingress, IngressPaths} from "..
 
 const initialState: AppsState = {
     privateOrgApps: [],
-    selectedClusterApp: {
+    cluster: {
         clusterName: '',
         componentBases: {} as ComponentBases,
         ingressSettings: {authServerURL: 'aegis.zeus.fyi', host: 'host.zeus.fyi'} as Ingress,
@@ -25,8 +25,8 @@ const appsSlice = createSlice({
         setPrivateOrgApps: (state, action: PayloadAction<TopologySystemComponentsSlice>) => {
             state.privateOrgApps = action.payload;
         },
-        setSelectedClusterApp: (state, action: PayloadAction<Cluster>) => {
-            state.selectedClusterApp = action.payload;
+        setCluster: (state, action: PayloadAction<Cluster>) => {
+            state.cluster = action.payload;
         },
         setSelectedComponentBaseName: (state, action: PayloadAction<string>) => {
             state.selectedComponentBaseName = action.payload;
@@ -37,5 +37,5 @@ const appsSlice = createSlice({
     }
 });
 
-export const { setPrivateOrgApps, setSelectedClusterApp, setSelectedSkeletonBaseName, setSelectedComponentBaseName } = appsSlice.actions;
+export const { setPrivateOrgApps, setCluster, setSelectedSkeletonBaseName, setSelectedComponentBaseName } = appsSlice.actions;
 export default appsSlice.reducer;

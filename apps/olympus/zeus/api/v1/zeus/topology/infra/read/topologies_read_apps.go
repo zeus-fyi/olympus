@@ -2,6 +2,7 @@ package read_infra
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -26,6 +27,13 @@ func (t *TopologyReadPrivateAppsRequest) ListPrivateAppsRequest(c echo.Context) 
 	return c.JSON(http.StatusOK, apps)
 }
 
+type TopologyUIAppDetailsResponse struct {
+	zeus_templates.Cluster                        `json:"cluster"`
+	zeus_templates.ClusterPreviewWorkloadsOlympus `json:"clusterPreview"`
+	SelectedComponentBaseName                     string `json:"selectedComponentBaseName"`
+	SelectedSkeletonBaseName                      string `json:"selectedSkeletonBaseName"`
+}
+
 func (t *TopologyReadPrivateAppsRequest) GetPrivateAppDetailsRequest(c echo.Context) error {
 	appID := c.Param("id")
 	ou := c.Get("orgUser").(org_users.OrgUser)
@@ -40,15 +48,28 @@ func (t *TopologyReadPrivateAppsRequest) GetPrivateAppDetailsRequest(c echo.Cont
 		log.Err(err).Interface("orgUser", ou).Msg("ListPrivateAppsRequest: SelectOrgApps")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	resp := zeus_templates.ClusterPreviewWorkloadsOlympus{
-		ClusterName:    apps.ClusterClassName,
-		ComponentBases: make(map[string]map[string]any),
+	resp := TopologyUIAppDetailsResponse{
+		Cluster: zeus_templates.Cluster{
+			ClusterName:     apps.ClusterClassName,
+			ComponentBases:  make(map[string]zeus_templates.SkeletonBases),
+			IngressSettings: zeus_templates.Ingress{},
+			IngressPaths:    nil,
+		},
+		ClusterPreviewWorkloadsOlympus: zeus_templates.ClusterPreviewWorkloadsOlympus{
+			ClusterName:    apps.ClusterClassName,
+			ComponentBases: make(map[string]map[string]any),
+		},
+		SelectedComponentBaseName: "",
+		SelectedSkeletonBaseName:  "",
 	}
 
 	for cbName, cb := range apps.ComponentBases {
 		uiSbs := make(map[string]any)
-		resp.ComponentBases[cbName] = make(map[string]any)
+		resp.ClusterPreviewWorkloadsOlympus.ComponentBases[cbName] = make(map[string]any)
+		resp.SelectedComponentBaseName = cbName
+		sbUI := make(map[string]zeus_templates.SkeletonBase)
 		for sbName, sb := range cb.SkeletonBases {
+			resp.SelectedSkeletonBaseName = sbName
 			tr := read_topology.NewInfraTopologyReader()
 			tr.TopologyID = sb.TopologyID
 			// from auth lookup
@@ -61,8 +82,31 @@ func (t *TopologyReadPrivateAppsRequest) GetPrivateAppDetailsRequest(c echo.Cont
 			}
 			nk := tr.GetTopologyBaseInfraWorkload()
 			uiSbs[sbName] = nk
+			sbTemplate := zeus_templates.SkeletonBase{
+				TopologyID: fmt.Sprintf("%d", sb.TopologyID),
+			}
+			if nk.StatefulSet != nil {
+				sbTemplate.AddStatefulSet = true
+			}
+			if nk.Deployment != nil {
+				sbTemplate.AddDeployment = true
+			}
+			if nk.Service != nil {
+				sbTemplate.AddService = true
+			}
+			if nk.ConfigMap != nil {
+				sbTemplate.AddConfigMap = true
+			}
+			if nk.Ingress != nil {
+				sbTemplate.AddIngress = true
+			}
+			if nk.ServiceMonitor != nil {
+				sbTemplate.AddServiceMonitor = true
+			}
+			sbUI[sbName] = sbTemplate
 		}
-		resp.ComponentBases[cbName] = uiSbs
+		resp.Cluster.ComponentBases[cbName] = sbUI
+		resp.ClusterPreviewWorkloadsOlympus.ComponentBases[cbName] = uiSbs
 	}
 	return c.JSON(http.StatusOK, resp)
 }

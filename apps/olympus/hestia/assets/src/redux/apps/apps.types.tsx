@@ -8,7 +8,7 @@ export interface TopologySystemComponents {
 
 export interface AppsState {
     privateOrgApps: TopologySystemComponentsSlice;
-    selectedClusterApp: Cluster;
+    cluster: Cluster;
     clusterPreview: ClusterPreview;
     selectedComponentBaseName: string;
     selectedSkeletonBaseName: string;

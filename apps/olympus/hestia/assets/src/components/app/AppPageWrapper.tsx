@@ -51,6 +51,7 @@ export function AppPageWrapper() {
     useEffect(() => {
         async function fetchData() {
             try {
+                console.log('sdfds')
                 const response = await appsApiGateway.getPrivateAppDetails(params.id as string);
                 clusterPreview = await response.clusterPreview;
                 dispatch(setClusterPreview(clusterPreview));
@@ -76,7 +77,7 @@ export function AppPageWrapper() {
         }
         fetchData().then(r => {
         });
-    }, [params.id, selectedComponentBaseName, selectedSkeletonBaseName]);
+    }, [params.id]);
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>

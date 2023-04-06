@@ -18,13 +18,12 @@ import {
 } from "@mui/material";
 import {clustersApiGateway} from "../../gateway/clusters";
 import {ClusterPreview} from "../../redux/clusters/clusters.types";
-import {setClusterPreview} from "../../redux/apps/apps.reducer";
-import Typography from "@mui/material/Typography";
 import {
+    setClusterPreview,
     setSelectedComponentBaseName,
-    setSelectedContainerName,
     setSelectedSkeletonBaseName
-} from "../../redux/clusters/clusters.builder.reducer";
+} from "../../redux/apps/apps.reducer";
+import Typography from "@mui/material/Typography";
 import YamlTextFieldAppPage from "./YamlFormattedTextAppPage";
 
 export function AppPage(props: any) {
@@ -79,7 +78,6 @@ export function AppPage(props: any) {
             buttonDisabledCreate = true;
             break;
     }
-
 
     const onClickView = (newPreviewType: string) => {
         setPreviewType(newPreviewType);
@@ -194,14 +192,7 @@ export function SelectedComponentBaseNameAppPage(props: any) {
         const skeletonBaseName = Object.keys(cluster.componentBases[selectedComponentBaseName])[0];
         dispatch(setSelectedSkeletonBaseName(skeletonBaseName));
         // Add a check to see if the `containers` field exists
-        if (cluster.componentBases[selectedComponentBaseName] &&
-            cluster.componentBases[selectedComponentBaseName][skeletonBaseName] &&
-            cluster.componentBases[selectedComponentBaseName][skeletonBaseName].containers) {
-            const containerKeys = Object.keys(cluster.componentBases[selectedComponentBaseName][skeletonBaseName].containers);
-            if (containerKeys.length > 0) {
-                dispatch(setSelectedContainerName(containerKeys[0]));
-            }
-        }
+
         onChangeComponentOrSkeletonBase();
     };
 
@@ -244,10 +235,6 @@ export function SelectedSkeletonBaseNameAppsPage(props: any) {
 
     const onAccessSkeletonBase = (selectedSkeletonBaseName: string) => {
         dispatch(setSelectedSkeletonBaseName(selectedSkeletonBaseName));
-        const containerKeys = Object.keys(cluster.componentBases[componentBaseName][selectedSkeletonBaseName].containers)
-        if (containerKeys.length > 0) {
-            dispatch(setSelectedContainerName(containerKeys[0]));
-        }
         onChangeComponentOrSkeletonBase();
     };
 

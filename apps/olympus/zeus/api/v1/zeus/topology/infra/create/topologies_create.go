@@ -88,7 +88,6 @@ func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error
 		log.Ctx(ctx).Err(err).Msg("CreateTopologyFromUI: AddBasesToTopologyClusterClass")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
 	for componentBaseName, component := range pcg.ComponentBases {
 		sbNameSlice := make([]string, len(component))
 		i := 0
@@ -102,9 +101,7 @@ func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error
 			return c.JSON(http.StatusBadRequest, nil)
 		}
 		for skeletonBaseName, skeleton := range component {
-
 			nk := chart_workload.TopologyBaseInfraWorkload{}
-
 			if skeleton.Deployment != nil {
 				b, berr := json.Marshal(skeleton.Deployment)
 				if berr != nil {

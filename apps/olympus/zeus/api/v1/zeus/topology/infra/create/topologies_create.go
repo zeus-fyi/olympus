@@ -4,15 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/jackc/pgconn"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	create_infra "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/definitions/bases/infra"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	zeus_templates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 	zeus_client "github.com/zeus-fyi/zeus/pkg/zeus/client"
@@ -39,10 +42,11 @@ type TopologyCreateRequestFromUI struct {
 	zeus_templates.Cluster `json:"cluster"`
 }
 
+var ts chronos.Chronos
+
 func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error {
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
-
 	pcg, err := zeus_templates.GenerateSkeletonBaseChartsPreview(ctx, t.Cluster)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("error generating skeleton base charts")
@@ -55,80 +59,106 @@ func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error
 	}
 	bearer := c.Get("bearer").(string)
 	zc := zeus_client.NewDefaultZeusClient(bearer)
+	// TODO replace this, so that it is wrapped in the tx
 	err = gcd.CreateClusterClassDefinitions(ctx, zc)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("error creating cluster class definitions")
 		return c.JSON(http.StatusBadRequest, err)
 	}
+	tx, err := apps.Pg.Begin(ctx)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("error creating transaction")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	defer tx.Rollback(ctx)
 
 	for componentBaseName, component := range pcg.ComponentBases {
 		for skeletonBaseName, skeleton := range component {
 			nk := chart_workload.TopologyBaseInfraWorkload{}
 
-			b, berr := json.Marshal(skeleton.Deployment)
-			if berr != nil {
-				log.Err(berr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
-				return c.JSON(http.StatusBadRequest, nil)
+			if skeleton.Deployment != nil {
+				b, berr := json.Marshal(skeleton.Deployment)
+				if berr != nil {
+					log.Err(berr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+					return c.JSON(http.StatusBadRequest, nil)
+				}
+				err = nk.DecodeBytes(b)
+				if err != nil {
+					log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+					return c.JSON(http.StatusBadRequest, nil)
+				}
 			}
-			err = nk.DecodeBytes(b)
-			if err != nil {
-				log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
-				return c.JSON(http.StatusBadRequest, nil)
+
+			if skeleton.StatefulSet != nil {
+				b, berr := json.Marshal(skeleton.StatefulSet)
+				if berr != nil {
+					log.Err(berr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+					return c.JSON(http.StatusBadRequest, nil)
+				}
+				err = nk.DecodeBytes(b)
+				if err != nil {
+					log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+					return c.JSON(http.StatusBadRequest, nil)
+				}
 			}
-			b, berr = json.Marshal(skeleton.StatefulSet)
-			if berr != nil {
-				log.Err(berr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
-				return c.JSON(http.StatusBadRequest, nil)
-			}
+
 			if nk.StatefulSet != nil && nk.Deployment != nil {
 				err = errors.New("cannot include both a stateful set and deployment, must only choose one per topology infra chart components")
 				return c.JSON(http.StatusBadRequest, err)
 			}
-			err = nk.DecodeBytes(b)
-			if err != nil {
-				log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
-				return c.JSON(http.StatusBadRequest, nil)
+
+			if skeleton.Service != nil {
+				b, berr := json.Marshal(skeleton.Service)
+				if berr != nil {
+					log.Err(berr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+					return c.JSON(http.StatusBadRequest, nil)
+				}
+				err = nk.DecodeBytes(b)
+				if err != nil {
+					log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+					return c.JSON(http.StatusBadRequest, nil)
+				}
 			}
-			b, berr = json.Marshal(skeleton.Service)
-			if berr != nil {
-				log.Err(berr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
-				return c.JSON(http.StatusBadRequest, nil)
+
+			if skeleton.Ingress != nil {
+				b, berr := json.Marshal(skeleton.Ingress)
+				if berr != nil {
+					log.Err(berr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+					return c.JSON(http.StatusBadRequest, nil)
+				}
+				err = nk.DecodeBytes(b)
+				if err != nil {
+					log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+					return c.JSON(http.StatusBadRequest, nil)
+				}
 			}
-			err = nk.DecodeBytes(b)
-			if err != nil {
-				log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
-				return c.JSON(http.StatusBadRequest, nil)
+
+			if skeleton.ConfigMap != nil {
+				b, berr := json.Marshal(skeleton.ConfigMap)
+				if berr != nil {
+					log.Err(berr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+					return c.JSON(http.StatusBadRequest, nil)
+				}
+				err = nk.DecodeBytes(b)
+				if err != nil {
+					log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+					return c.JSON(http.StatusBadRequest, nil)
+				}
 			}
-			b, err = json.Marshal(skeleton.Ingress)
-			if berr != nil {
-				log.Err(berr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
-				return c.JSON(http.StatusBadRequest, nil)
+
+			if skeleton.ServiceMonitor != nil {
+				b, berr := json.Marshal(skeleton.ServiceMonitor)
+				if berr != nil {
+					log.Err(berr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+					return c.JSON(http.StatusBadRequest, nil)
+				}
+				err = nk.DecodeBytes(b)
+				if err != nil {
+					log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+					return c.JSON(http.StatusBadRequest, nil)
+				}
 			}
-			err = nk.DecodeBytes(b)
-			if err != nil {
-				log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
-				return c.JSON(http.StatusBadRequest, nil)
-			}
-			b, berr = json.Marshal(skeleton.ConfigMap)
-			if berr != nil {
-				log.Err(berr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
-				return c.JSON(http.StatusBadRequest, nil)
-			}
-			err = nk.DecodeBytes(b)
-			if err != nil {
-				log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
-				return c.JSON(http.StatusBadRequest, nil)
-			}
-			b, err = json.Marshal(skeleton.ServiceMonitor)
-			if berr != nil {
-				log.Err(berr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
-				return c.JSON(http.StatusBadRequest, nil)
-			}
-			err = nk.DecodeBytes(b)
-			if err != nil {
-				log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
-				return c.JSON(http.StatusBadRequest, nil)
-			}
+
 			cw, cerr := nk.CreateChartWorkloadFromTopologyBaseInfraWorkload()
 			if cerr != nil {
 				log.Err(cerr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: CreateTopology, CreateChartWorkloadFromTopologyBaseInfraWorkload")
@@ -144,10 +174,9 @@ func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error
 			inf.UserID = ou.UserID
 			inf.Name = skeletonBaseName
 			inf.Chart.ChartName = skeletonBaseName
+			inf.ChartVersion = fmt.Sprintf("%d", ts.UnixTimeStampNow())
 			inf.Tag = "latest"
-
-			// TODO chain into a single transaction
-			err = inf.InsertInfraBase(ctx)
+			tx, err = inf.InsertInfraBaseTx(ctx, tx)
 			if err != nil {
 				pgErr := err.(*pgconn.PgError)
 				switch {
@@ -162,6 +191,11 @@ func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error
 				return c.JSON(http.StatusInternalServerError, err)
 			}
 		}
+	}
+	err = tx.Commit(ctx)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("error committing transaction")
+		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, pcg)
 }

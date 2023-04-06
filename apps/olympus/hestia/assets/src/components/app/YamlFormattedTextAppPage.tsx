@@ -23,12 +23,11 @@ export const languageData = [
 ];
 
 export default function YamlTextFieldAppPage(props: any) {
-    const { previewType, clusterPreview } = props;
+    const { previewType } = props;
+    const clusterPreview = useSelector((state: RootState) => state.apps.clusterPreview);
     const selectedComponentBaseName = useSelector((state: RootState) => state.apps.selectedComponentBaseName);
     const selectedSkeletonBaseName = useSelector((state: RootState) => state.apps.selectedSkeletonBaseName);
     const [code, setCode] = useState('');
-    console.log(clusterPreview, 'clusterPreview')
-    console.log('previewType', previewType)
     useEffect(() => {
         const clusterPreviewComponentBases = clusterPreview?.componentBases?.[selectedComponentBaseName];
         if (clusterPreviewComponentBases && Object.keys(clusterPreviewComponentBases).length > 0) {

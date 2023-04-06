@@ -37,5 +37,5 @@ const appsSlice = createSlice({
     }
 });
 
-export const { setPrivateOrgApps, setCluster, setSelectedSkeletonBaseName, setSelectedComponentBaseName } = appsSlice.actions;
+export const { setPrivateOrgApps,setClusterPreview, setCluster, setSelectedSkeletonBaseName, setSelectedComponentBaseName } = appsSlice.actions;
 export default appsSlice.reducer;

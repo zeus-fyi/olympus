@@ -3,8 +3,9 @@ package sql_query_templates
 type CTE struct {
 	Name string
 	SubCTEs
-	Params             []interface{} // FYI this stupid thing will show null values using goland IDE
-	ReturnSQLStatement string
+	Params              []interface{} // FYI this stupid thing will show null values using goland IDE
+	ReturnSQLStatement  string
+	OnConflictDoNothing bool
 }
 
 func (c *CTE) GenerateChainedCTE() string {

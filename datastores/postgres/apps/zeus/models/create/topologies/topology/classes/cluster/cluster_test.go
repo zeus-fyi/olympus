@@ -8,7 +8,6 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	create_systems "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/topology/classes/systems"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
-	"k8s.io/apimachinery/pkg/util/rand"
 )
 
 var ctx = context.Background()
@@ -26,7 +25,8 @@ func (s *CreateClustersTestSuite) SetupTest() {
 }
 
 func (s *CreateClustersTestSuite) TestInsertClusterDefinition() {
-	c := NewClusterClassTopologyType(s.Tc.ProductionLocalTemporalOrgID, "cluster-"+rand.String(5))
+	testDuplicate := "test-duplicate"
+	c := NewClusterClassTopologyType(s.Tc.ProductionLocalTemporalOrgID, testDuplicate)
 	err := create_systems.InsertSystem(ctx, &c.Systems)
 	s.Require().Nil(err)
 }

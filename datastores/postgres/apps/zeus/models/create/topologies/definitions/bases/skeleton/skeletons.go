@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/bases/skeletons"
@@ -56,6 +57,7 @@ func InsertSkeletonBases(ctx context.Context, orgID int, clusterClassName string
 	cte := sql_query_templates.CTE{}
 	q := insertSkeletonBasesQ(ctx, orgID, clusterClassName, componentBaseName, skeletonBaseNames, &cte)
 	cte.AppendSubCtes(q)
+	cte.OnConflictDoNothing = true
 	query := cte.GenerateChainedCTE()
 	r, err := apps.Pg.Exec(ctx, query, cte.Params...)
 	if err != nil {
@@ -64,4 +66,19 @@ func InsertSkeletonBases(ctx context.Context, orgID int, clusterClassName string
 	}
 	log.Ctx(ctx).Debug().Int64("rowsAffected", r.RowsAffected())
 	return err
+}
+
+func InsertSkeletonBasesTx(ctx context.Context, orgID int, clusterClassName string, componentBaseName string, skeletonBaseNames []string, tx pgx.Tx) (pgx.Tx, error) {
+	cte := sql_query_templates.CTE{}
+	q := insertSkeletonBasesQ(ctx, orgID, clusterClassName, componentBaseName, skeletonBaseNames, &cte)
+	cte.AppendSubCtes(q)
+	cte.OnConflictDoNothing = true
+	query := cte.GenerateChainedCTE()
+	r, err := apps.Pg.Exec(ctx, query, cte.Params...)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("InsertSkeletonBases")
+		return tx, err
+	}
+	log.Ctx(ctx).Debug().Int64("rowsAffected", r.RowsAffected())
+	return tx, err
 }

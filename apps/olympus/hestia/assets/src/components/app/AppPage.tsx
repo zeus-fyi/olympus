@@ -27,15 +27,6 @@ import YamlTextFieldAppPage from "./YamlFormattedTextAppPage";
 
 const mdTheme = createTheme();
 
-function createTopologyData(
-    topologyID: number,
-    clusterName: string,
-    componentBaseName: string,
-    skeletonBaseName: string,
-) {
-    return {topologyID, clusterName, componentBaseName, skeletonBaseName};
-}
-
 function AppPageContent() {
     const [open, setOpen] = React.useState(true);
     const [previewType, setPreviewType] = useState('');

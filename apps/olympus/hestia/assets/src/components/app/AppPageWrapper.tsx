@@ -51,7 +51,6 @@ export function AppPageWrapper() {
     useEffect(() => {
         async function fetchData() {
             try {
-                console.log('sdfds')
                 const response = await appsApiGateway.getPrivateAppDetails(params.id as string);
                 clusterPreview = await response.clusterPreview;
                 dispatch(setClusterPreview(clusterPreview));
@@ -66,9 +65,6 @@ export function AppPageWrapper() {
                     if (sbs.length > 0) {
                         selectedSkeletonBaseName = sbs[0];
                         dispatch(setSelectedSkeletonBaseName(selectedSkeletonBaseName));
-                        const skeletonBasePreview = clusterPreview?.componentBases?.[selectedComponentBaseName]?.[selectedSkeletonBaseName];
-                        console.log(clusterPreview, 'clusterPreview')
-                        console.log(skeletonBasePreview, 'skeletonBasePreview')
                     }
                 }
                 return response;

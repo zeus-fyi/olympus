@@ -50,7 +50,7 @@ export function AppPage(props: any) {
             setAddService(skeletonBasePreview.service !== null);
             setAddStatefulSet(skeletonBasePreview.statefulSet !== null);
         }
-    }, [clusterPreview, selectedComponentBaseName, selectedSkeletonBaseName]);
+    }, [cluster, clusterPreview, selectedComponentBaseName, selectedSkeletonBaseName]);
 
     const [configError, setConfigError] = useState('');
 
@@ -83,7 +83,15 @@ export function AppPage(props: any) {
         setPreviewType(newPreviewType);
     }
     const onChangeComponentOrSkeletonBase = () => {
-        setViewField('')
+        setPreviewType('');
+        const skeletonBasePreview = clusterPreview?.componentBases?.[selectedComponentBaseName]?.[selectedSkeletonBaseName];
+        if (skeletonBasePreview) {
+            setAddDeployment(skeletonBasePreview.deployment !== null);
+            setAddConfigMap(skeletonBasePreview.configMap !== null);
+            setAddIngress(skeletonBasePreview.ingress !== null);
+            setAddService(skeletonBasePreview.service !== null);
+            setAddStatefulSet(skeletonBasePreview.statefulSet !== null);
+        }
     }
 
     const onClickCreate = async () => {
@@ -161,19 +169,19 @@ export function AppPage(props: any) {
                             )}
                         </Stack>
                     </Container>
-                    <Divider/>
-                    <Container maxWidth="xl" sx={{ mb: 4 }}>
-                        <Box mt={2}>
-                            <Button variant="contained" onClick={onClickCreate} disabled={buttonDisabledCreate}>
-                                {buttonLabelCreate}
-                            </Button>
-                            {statusMessageCreate && (
-                                <Typography variant="body2" color={requestCreateStatus === 'error' ? 'error' : 'success'}>
-                                    {statusMessageCreate}
-                                </Typography>
-                            )}
-                        </Box>
-                    </Container>
+                    {/*<Divider/>*/}
+                    {/*<Container maxWidth="xl" sx={{ mb: 4 }}>*/}
+                    {/*    <Box mt={2}>*/}
+                    {/*        <Button variant="contained" onClick={onClickCreate} disabled={buttonDisabledCreate}>*/}
+                    {/*            {buttonLabelCreate}*/}
+                    {/*        </Button>*/}
+                    {/*        {statusMessageCreate && (*/}
+                    {/*            <Typography variant="body2" color={requestCreateStatus === 'error' ? 'error' : 'success'}>*/}
+                    {/*                {statusMessageCreate}*/}
+                    {/*            </Typography>*/}
+                    {/*        )}*/}
+                    {/*    </Box>*/}
+                    {/*</Container>*/}
                 </Card>
                 <YamlTextFieldAppPage previewType={previewType}/>
             </Stack>
@@ -191,8 +199,6 @@ export function SelectedComponentBaseNameAppPage(props: any) {
         dispatch(setSelectedComponentBaseName(selectedComponentBaseName));
         const skeletonBaseName = Object.keys(cluster.componentBases[selectedComponentBaseName])[0];
         dispatch(setSelectedSkeletonBaseName(skeletonBaseName));
-        // Add a check to see if the `containers` field exists
-
         onChangeComponentOrSkeletonBase();
     };
 

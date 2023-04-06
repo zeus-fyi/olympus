@@ -1,7 +1,7 @@
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import * as React from "react";
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {
     Box,
     Button,
@@ -189,13 +189,12 @@ export function AppPage(props: any) {
     );
 }
 
-
 export function SelectedComponentBaseNameAppPage(props: any) {
     const {onChangeComponentOrSkeletonBase} = props;
     const dispatch = useDispatch();
     let cluster = useSelector((state: RootState) => state.apps.cluster);
     let selectedComponentBaseName = useSelector((state: RootState) => state.apps.selectedComponentBaseName);
-    const onAccessComponentBase = (selectedComponentBaseName: string) => {
+    const onAccessComponentBase = useCallback((selectedComponentBaseName: string) => {
         dispatch(setSelectedComponentBaseName(selectedComponentBaseName));
         const keys = Object.keys(cluster.componentBases[selectedComponentBaseName])
         if (keys.length > 0) {
@@ -203,12 +202,12 @@ export function SelectedComponentBaseNameAppPage(props: any) {
             dispatch(setSelectedSkeletonBaseName(skeletonBaseName));
         }
         onChangeComponentOrSkeletonBase();
-    };
+    }, [dispatch, onChangeComponentOrSkeletonBase, cluster, selectedComponentBaseName]);
 
     let show = Object.keys(cluster.componentBases).length > 0;
     return (
         <div>
-            {show &&
+            {show && Object.keys(cluster.componentBases).includes(selectedComponentBaseName) &&
                 <FormControl sx={{mb: 1}} variant="outlined" style={{ minWidth: '100%' }}>
                     <InputLabel id="network-label">Cluster Bases</InputLabel>
                     <Select

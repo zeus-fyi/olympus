@@ -2,6 +2,7 @@ package create_infra
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	create_infra "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/definitions/bases/infra"
 	zeus_templates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
@@ -39,6 +41,8 @@ type TopologyCreateRequestFromUI struct {
 
 func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error {
 	ctx := context.Background()
+	ou := c.Get("orgUser").(org_users.OrgUser)
+
 	pcg, err := zeus_templates.GenerateSkeletonBaseChartsPreview(ctx, t.Cluster)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("error generating skeleton base charts")
@@ -55,6 +59,109 @@ func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("error creating cluster class definitions")
 		return c.JSON(http.StatusBadRequest, err)
+	}
+
+	for componentBaseName, component := range pcg.ComponentBases {
+		for skeletonBaseName, skeleton := range component {
+			nk := chart_workload.TopologyBaseInfraWorkload{}
+
+			b, berr := json.Marshal(skeleton.Deployment)
+			if berr != nil {
+				log.Err(berr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+			err = nk.DecodeBytes(b)
+			if err != nil {
+				log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+			b, berr = json.Marshal(skeleton.StatefulSet)
+			if berr != nil {
+				log.Err(berr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+			if nk.StatefulSet != nil && nk.Deployment != nil {
+				err = errors.New("cannot include both a stateful set and deployment, must only choose one per topology infra chart components")
+				return c.JSON(http.StatusBadRequest, err)
+			}
+			err = nk.DecodeBytes(b)
+			if err != nil {
+				log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+			b, berr = json.Marshal(skeleton.Service)
+			if berr != nil {
+				log.Err(berr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+			err = nk.DecodeBytes(b)
+			if err != nil {
+				log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+			b, err = json.Marshal(skeleton.Ingress)
+			if berr != nil {
+				log.Err(berr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+			err = nk.DecodeBytes(b)
+			if err != nil {
+				log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+			b, berr = json.Marshal(skeleton.ConfigMap)
+			if berr != nil {
+				log.Err(berr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+			err = nk.DecodeBytes(b)
+			if err != nil {
+				log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+			b, err = json.Marshal(skeleton.ServiceMonitor)
+			if berr != nil {
+				log.Err(berr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+			err = nk.DecodeBytes(b)
+			if err != nil {
+				log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+			cw, cerr := nk.CreateChartWorkloadFromTopologyBaseInfraWorkload()
+			if cerr != nil {
+				log.Err(cerr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: CreateTopology, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+				return c.JSON(http.StatusBadRequest, nil)
+			}
+			inf := create_infra.NewCreateInfrastructure()
+			inf.ChartWorkload = cw
+			inf.ClusterClassName = t.ClusterName
+			inf.ComponentBaseName = componentBaseName
+			inf.SkeletonBaseName = skeletonBaseName
+
+			inf.OrgID = ou.OrgID
+			inf.UserID = ou.UserID
+			inf.Name = skeletonBaseName
+			inf.Chart.ChartName = skeletonBaseName
+			inf.Tag = "latest"
+
+			// TODO chain into a single transaction
+			err = inf.InsertInfraBase(ctx)
+			if err != nil {
+				pgErr := err.(*pgconn.PgError)
+				switch {
+				case strings.Contains(pgErr.Error(), "chart_package_unique"):
+					err = errors.New("chart name and version already exists")
+					return c.JSON(http.StatusBadRequest, err)
+				default:
+					log.Err(err).Msg("CreateTopologyFromUI: CreateTopology, InsertInfraBase")
+					err = errors.New("unable to add chart, verify it is a valid kubernetes workload that's supported")
+				}
+				log.Err(err).Interface("orgUser", ou).Msg("TopologyActionCreateRequest: CreateTopology, InsertInfraBase")
+				return c.JSON(http.StatusInternalServerError, err)
+			}
+		}
 	}
 	return c.JSON(http.StatusOK, pcg)
 }

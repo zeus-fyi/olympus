@@ -22,6 +22,11 @@ type ClusterPreviewWorkloads struct {
 	ComponentBases map[string]map[string]topology_workloads.TopologyBaseInfraWorkload `json:"componentBases"`
 }
 
+type ClusterPreviewWorkloadsOlympus struct {
+	ClusterName    string                    `json:"clusterName"`
+	ComponentBases map[string]map[string]any `json:"componentBases"`
+}
+
 func GenerateSkeletonBaseChartsPreview(ctx context.Context, cluster Cluster) (ClusterPreviewWorkloads, error) {
 	pcg := ClusterPreviewWorkloads{
 		ClusterName:    cluster.ClusterName,

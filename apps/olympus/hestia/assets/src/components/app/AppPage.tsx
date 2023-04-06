@@ -19,14 +19,10 @@ import MainListItems from "../dashboard/listItems";
 import Container from "@mui/material/Container";
 import {appsApiGateway} from "../../gateway/apps";
 import {RootState} from "../../redux/store";
-import {
-    setSelectedClusterApp,
-    setSelectedComponentBaseName,
-    setSelectedSkeletonBaseName
-} from "../../redux/apps/apps.reducer";
+import {setSelectedComponentBaseName, setSelectedSkeletonBaseName} from "../../redux/apps/apps.reducer";
 import TextField from "@mui/material/TextField";
 import {Card, CardContent, FormControl, InputLabel, MenuItem, Select, Stack} from "@mui/material";
-import {setSelectedContainerName} from "../../redux/clusters/clusters.builder.reducer";
+import {setClusterPreview} from "../../redux/clusters/clusters.builder.reducer";
 import YamlTextFieldAppPage from "./YamlFormattedTextAppPage";
 
 const mdTheme = createTheme();
@@ -43,13 +39,46 @@ function createTopologyData(
 function AppPageContent() {
     const [open, setOpen] = React.useState(true);
     const [previewType, setPreviewType] = useState('');
+    const [addDeployment, setAddDeployment] = useState(true);
+    const [addConfigMap, setAddConfigMap] = useState(true);
+    const [addIngress, setAddIngress] = useState(true);
+    const [addService, setAddService] = useState(true);
+    const [addStatefulSet, setAddStatefulSet] = useState(true);
 
+    const params = useParams();
+    const dispatch = useDispatch();
+    let clusterPreview = useSelector((state: RootState) => state.apps.clusterPreview);
+    const [name, setName] = useState('');
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const response = await appsApiGateway.getPrivateAppDetails(params.id as string);
+                dispatch(setClusterPreview(response));
+                setClusterPreview(response);
+                setName(response.clusterName);
+                const cb = Object.keys(response.componentBases)
+                if (cb.length > 0) {
+                    dispatch(setSelectedComponentBaseName(cb[0]));
+                    const sbs = Object.keys(response.componentBases[cb[0]])
+                    if (sbs.length > 0) {
+                        dispatch(setSelectedSkeletonBaseName(sbs[0]));
+                    }
+                }
+                return response;
+            } catch (e) {
+            }
+        }
+        fetchData();
+    }, [params.id, dispatch]);
+    const onClickView = (newPreviewType: string) => {
+        setPreviewType(newPreviewType);
+    }
     const toggleDrawer = () => {
         setOpen(!open);
     };
     let navigate = useNavigate();
-    const dispatch = useDispatch();
 
+    console.log('clustene', name)
     const handleLogout = async (event: any) => {
         event.preventDefault();
         await authProvider.logout()
@@ -128,8 +157,74 @@ function AppPageContent() {
                     <Toolbar />
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                             <Stack spacing={2} direction="row">
-                                <AppPageDetails />
-                                <YamlTextFieldAppPage previewType={previewType}/>
+                                <Card sx={{ maxWidth: 500 }}>
+                                    <CardContent>
+                                        <Typography gutterBottom variant="h5" component="div">
+                                            Cluster App Details
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary">
+                                            Review Cluster Class & Workload Bases
+                                        </Typography>
+                                    </CardContent>
+                                    <Container maxWidth="xl" sx={{ mb: 4 }}>
+                                        <Box mt={2}>
+                                            <TextField
+                                                fullWidth
+                                                id={`clusterName`}
+                                                label={`Cluster Name`}
+                                                variant="outlined"
+                                                value={name}
+                                                InputProps={{ readOnly: true }}
+                                            />
+                                        </Box>
+                                        {/*<Box mt={2}>*/}
+                                        {/*    <SelectedComponentBaseName />*/}
+                                        {/*</Box>*/}
+                                        {/*<Box mt={2}>*/}
+                                        {/*    <SelectedSkeletonBaseName />*/}
+                                        {/*</Box>*/}
+                                    </Container>
+                                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                                        <Stack direction="column" spacing={2}>
+                                            {addDeployment && (
+                                                <Stack direction="row" spacing={2}>
+                                                    <Button variant="contained" color="primary" onClick={() => onClickView('deployment')}>
+                                                        View Deployment
+                                                    </Button>
+                                                </Stack>
+                                            )}
+                                            {addStatefulSet && (
+                                                <Stack direction="row" spacing={2}>
+                                                    <Button variant="contained" color="primary" onClick={() => onClickView('statefulSet')}>
+                                                        View StatefulSet
+                                                    </Button>
+                                                </Stack>
+                                            )}
+                                            {addConfigMap && (
+                                                <Stack direction="row" spacing={2}>
+                                                    <Button variant="contained" color="primary" onClick={() => onClickView('configMap')}>
+                                                        View ConfigMap
+                                                    </Button>
+                                                </Stack>
+                                            )}
+                                            {addService && (
+                                                <Stack direction="row" spacing={2}>
+                                                    <Button variant="contained" color="primary" onClick={() => onClickView('service')}>
+                                                        View Service
+                                                    </Button>
+                                                </Stack>
+                                            )}
+                                            {addIngress && (
+                                                <Stack direction="row" spacing={2}>
+                                                    <Button variant="contained" color="primary" onClick={() => onClickView('ingress')}>
+                                                        View Ingress
+                                                    </Button>
+                                                </Stack>
+                                            )}
+                                        </Stack>
+                                    </Container>
+                                </Card>
+                                <YamlTextFieldAppPage previewType={previewType} clusterPreview={clusterPreview}/>
                             </Stack>
                         </Container>
                 </Box>
@@ -138,98 +233,38 @@ function AppPageContent() {
     );
 }
 
-function AppPageDetails(props: any) {
-    const params = useParams();
-    const selectedApp = useSelector((state: RootState) => state.apps.selectedClusterApp);
-    const dispatch = useDispatch();
-
-    useEffect(() => {
-        async function fetchData() {
-            try {
-                const response = await appsApiGateway.getPrivateAppDetails(params.id as string);
-                dispatch(setSelectedClusterApp(response));
-            } catch (e) {
-            }
-        }
-        fetchData();
-    }, [dispatch]);
-
-    const name = selectedApp.clusterName
-    return (
-        <div>
-            <Card sx={{ maxWidth: 500 }}>
-                <CardContent>
-                    <Typography gutterBottom variant="h5" component="div">
-                        Cluster App Details
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        Review Cluster Class & Workload Bases
-                    </Typography>
-                </CardContent>
-                <Container maxWidth="xl" sx={{ mb: 4 }}>
-                    <Box mt={2}>
-                        <TextField
-                            fullWidth
-                            id={`clusterName`}
-                            label={`Cluster Name`}
-                            variant="outlined"
-                            value={name}
-                            InputProps={{ readOnly: true }}
-                        />
-                    </Box>
-                    <Box mt={2}>
-                        <SelectedComponentBaseName />
-                    </Box>
-                    <Box mt={2}>
-                        <SelectedSkeletonBaseName />
-                    </Box>
-                </Container>
-            </Card>
-        </div>
-    );
-}
 
 export function SelectedComponentBaseName(props: any) {
     const dispatch = useDispatch();
-    let cluster = useSelector((state: RootState) => state.apps.selectedClusterApp);
+    let clusterPreview = useSelector((state: RootState) => state.apps.clusterPreview);
     let selectedComponentBaseName = useSelector((state: RootState) => state.apps.selectedComponentBaseName);
+    // console.log(selectedComponentBaseName, 'selectedComponentBaseName')
+    // const onAccessComponentBase = (selectedComponentBaseName: string) => {
+    //     // dispatch(setSelectedComponentBaseName(selectedComponentBaseName));
+    //     // const skeletonBaseName = Object.keys(clusterPreview.componentBases[selectedComponentBaseName])[0];
+    //     // dispatch(setSelectedSkeletonBaseName(skeletonBaseName));
+    // };
 
-    const onAccessComponentBase = (selectedComponentBaseName: string) => {
-        dispatch(setSelectedComponentBaseName(selectedComponentBaseName));
-        const skeletonBaseName = Object.keys(cluster.componentBases[selectedComponentBaseName])[0];
-        dispatch(setSelectedSkeletonBaseName(skeletonBaseName));
-        // Add a check to see if the `containers` field exists
-        if (cluster.componentBases[selectedComponentBaseName] &&
-            cluster.componentBases[selectedComponentBaseName][skeletonBaseName] &&
-            cluster.componentBases[selectedComponentBaseName][skeletonBaseName].containers) {
-            const containerKeys = Object.keys(cluster.componentBases[selectedComponentBaseName][skeletonBaseName].containers);
-            if (containerKeys.length > 0) {
-
-            }
-        }
-    };
-
-    let show = Object.keys(cluster.componentBases).length > 0;
     return (
         <div>
-            {show &&
-                <FormControl sx={{mb: 1}} variant="outlined" style={{ minWidth: '100%' }}>
-                    <InputLabel id="network-label">Cluster Bases</InputLabel>
-                    <Select
-                        labelId="componentBase-label"
-                        id="componentBase"
-                        value={selectedComponentBaseName}
-                        label="Component Base"
-                        onChange={(event) => onAccessComponentBase(event.target.value as string)}
-                    >
-                        {Object.keys(cluster.componentBases).map((key: any, i: number) => (
-                            <MenuItem key={i} value={key}>
-                                {key}
-                            </MenuItem>))
-                        }
-                    </Select>
-                </FormControl>
-            }
+            {/*{true &&*/}
+            {/*    <FormControl sx={{mb: 1}} variant="outlined" style={{ minWidth: '100%' }}>*/}
+            {/*        <InputLabel id="network-label">Cluster Bases</InputLabel>*/}
+            {/*        <Select*/}
+            {/*            labelId="componentBase-label"*/}
+            {/*            id="componentBase"*/}
+            {/*            value={selectedComponentBaseName}*/}
+            {/*            label="Component Base"*/}
+            {/*            onChange={(event) => onAccessComponentBase(event.target.value as string)}*/}
+            {/*        >*/}
+            {/*            {Object.keys(clusterPreview.componentBases).map((key: any, i: number) => (*/}
+            {/*                <MenuItem key={i} value={key}>*/}
+            {/*                    {key}*/}
+            {/*                </MenuItem>))*/}
+            {/*            }*/}
+            {/*        </Select>*/}
+            {/*    </FormControl>*/}
+            {/*}*/}
         </div>);
 }
 
@@ -237,7 +272,7 @@ export function SelectedSkeletonBaseName(props: any) {
     const dispatch = useDispatch();
     const skeletonBaseName = useSelector((state: RootState) => state.apps.selectedSkeletonBaseName);
     const componentBaseName = useSelector((state: RootState) => state.apps.selectedComponentBaseName);
-    const cluster = useSelector((state: RootState) => state.apps.selectedClusterApp);
+    const cluster = useSelector((state: RootState) => state.apps.clusterPreview);
 
     useEffect(() => {
         dispatch(setSelectedComponentBaseName(componentBaseName));
@@ -246,10 +281,7 @@ export function SelectedSkeletonBaseName(props: any) {
 
     const onAccessSkeletonBase = (selectedSkeletonBaseName: string) => {
         dispatch(setSelectedSkeletonBaseName(selectedSkeletonBaseName));
-        const containerKeys = Object.keys(cluster.componentBases[componentBaseName][selectedSkeletonBaseName].containers)
-        if (containerKeys.length > 0) {
-            dispatch(setSelectedContainerName(containerKeys[0]));
-        }
+
     };
 
     if (cluster.componentBases === undefined) {

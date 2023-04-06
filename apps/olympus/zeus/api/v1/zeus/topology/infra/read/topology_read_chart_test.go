@@ -37,7 +37,7 @@ func (t *TopologyReadActionRequestTestSuite) TestReadTopologiesOrgCloudCtxNs() {
 func (t *TopologyReadActionRequestTestSuite) TestReadChart() {
 	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
 	tr := read_topology.NewInfraTopologyReader()
-	tr.TopologyID = 1675200222894809000
+	tr.TopologyID = 1677822630388650000
 	// from auth lookup
 	tr.OrgID = t.Tc.ProductionLocalTemporalOrgID
 	tr.UserID = t.Tc.ProductionLocalTemporalUserID

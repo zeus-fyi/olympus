@@ -27,6 +27,17 @@ func FetchChartQuery(q sql_query_templates.QueryParams) string {
 				WHERE tic.topology_id = $1 AND org_id = $2 AND user_id = $3
 				LIMIT 1
 		)`
+	case "SelectInfraTopologyQueryForOrg":
+		header = `
+			WITH cte_chart_packages AS (
+				SELECT cp.chart_package_id AS chart_package_id, cp.chart_name, cp.chart_version, cp.chart_description
+				FROM topology_infrastructure_components tic
+				INNER JOIN topologies top ON top.topology_id = tic.topology_id
+				INNER JOIN org_users_topologies out ON out.topology_id = tic.topology_id
+				INNER JOIN chart_packages cp ON cp.chart_package_id = tic.chart_package_id
+				WHERE tic.topology_id = $1 AND org_id = $2
+				LIMIT 1
+		)`
 	default:
 		return ""
 	}

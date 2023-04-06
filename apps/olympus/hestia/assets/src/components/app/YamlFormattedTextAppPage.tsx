@@ -23,12 +23,12 @@ export const languageData = [
 ];
 
 export default function YamlTextFieldAppPage(props: any) {
-    const { previewType } = props;
-    const clusterPreview = useSelector((state: RootState) => state.apps.clusterPreview);
+    const { previewType, clusterPreview } = props;
     const selectedComponentBaseName = useSelector((state: RootState) => state.apps.selectedComponentBaseName);
     const selectedSkeletonBaseName = useSelector((state: RootState) => state.apps.selectedSkeletonBaseName);
     const [code, setCode] = useState('');
-
+    console.log(clusterPreview, 'clusterPreview')
+    console.log('previewType', previewType)
     useEffect(() => {
         const clusterPreviewComponentBases = clusterPreview?.componentBases?.[selectedComponentBaseName];
         if (clusterPreviewComponentBases && Object.keys(clusterPreviewComponentBases).length > 0) {
@@ -38,6 +38,7 @@ export default function YamlTextFieldAppPage(props: any) {
             ) {
                 switch (previewType) {
                     case 'service':
+                        console.log(clusterPreviewComponentBases[selectedSkeletonBaseName].service, 'dsaf')
                         setCode(yaml.dump(clusterPreviewComponentBases[selectedSkeletonBaseName].service));
                         break;
                     case 'configMap':

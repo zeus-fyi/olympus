@@ -2,7 +2,6 @@ package read_infra
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -41,29 +40,29 @@ func (t *TopologyReadPrivateAppsRequest) GetPrivateAppDetailsRequest(c echo.Cont
 		log.Err(err).Interface("orgUser", ou).Msg("ListPrivateAppsRequest: SelectOrgApps")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	resp := zeus_templates.Cluster{
+	resp := zeus_templates.ClusterPreviewWorkloadsOlympus{
 		ClusterName:    apps.ClusterClassName,
-		ComponentBases: make(map[string]zeus_templates.SkeletonBases),
+		ComponentBases: make(map[string]map[string]any),
 	}
+
 	for cbName, cb := range apps.ComponentBases {
-		uiSbs := make(map[string]zeus_templates.SkeletonBase)
+		uiSbs := make(map[string]any)
+		resp.ComponentBases[cbName] = make(map[string]any)
 		for sbName, sb := range cb.SkeletonBases {
-			uiSbs[sbName] = zeus_templates.SkeletonBase{
-				TopologyID:        fmt.Sprintf("%d", sb.TopologyID),
-				AddStatefulSet:    false,
-				AddDeployment:     false,
-				AddConfigMap:      false,
-				AddService:        false,
-				AddIngress:        false,
-				AddServiceMonitor: false,
-				ConfigMap:         nil,
-				Deployment:        zeus_templates.Deployment{},
-				StatefulSet:       zeus_templates.StatefulSet{},
-				Containers:        nil,
+			tr := read_topology.NewInfraTopologyReader()
+			tr.TopologyID = sb.TopologyID
+			// from auth lookup
+			tr.OrgID = ou.OrgID
+			tr.UserID = ou.UserID
+			err = tr.SelectTopologyForOrg(ctx)
+			if err != nil {
+				log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: SelectTopology")
+				return c.JSON(http.StatusInternalServerError, nil)
 			}
+			nk := tr.GetTopologyBaseInfraWorkload()
+			uiSbs[sbName] = nk
 		}
 		resp.ComponentBases[cbName] = uiSbs
 	}
-
 	return c.JSON(http.StatusOK, resp)
 }

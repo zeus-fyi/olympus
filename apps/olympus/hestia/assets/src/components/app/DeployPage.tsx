@@ -81,7 +81,7 @@ export function DeployPage(props: any) {
                             Deployment & Management
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            Currently, you cannot deploy clusters without getting authorization manually first, until we have automated billing setup.
+                            Currently, you cannot deploy clusters without getting authorization manually first until we have automated billing setup.
                         </Typography>
                     </CardContent>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>

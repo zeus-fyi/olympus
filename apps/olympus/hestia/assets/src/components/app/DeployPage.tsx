@@ -22,15 +22,36 @@ import {ThemeProvider} from "@mui/material/styles";
 import {ResourceRequirementsTable} from "./ResourceRequirementsTable";
 import {useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
+import {Nodes} from "../../redux/apps/apps.types";
 
 const mdTheme = createTheme();
+
+interface NodeMap {
+    [nodeId: number]: Nodes;
+}
+
 
 export function DeployPage(props: any) {
     const [cloudProvider, setCloudProvider] = useState('do');
     const [region, setRegion] = useState('nyc1');
     const nodes = useSelector((state: RootState) => state.apps.nodes);
-    const [node, setNode] = useState(nodes.length > 0 ? nodes[0].description : '');
-
+    const nodeMap: NodeMap = {};
+    nodes.forEach((node) => {
+        nodeMap[node.nodeID] = node;
+    });
+    const emptyNode: Nodes = {
+        nodeID: 0,
+        description: '',
+        slug: '',
+        disk: 0,
+        priceHourly: 0,
+        cloudProvider: '',
+        vcpus: 0,
+        priceMonthly: 0,
+        region: '',
+        memory: 0,
+    };
+    const [node, setNode] = useState(nodes.length > 0 ? nodes[0] : emptyNode);
     let buttonLabel;
     let buttonDisabled;
     let statusMessage;
@@ -81,8 +102,10 @@ export function DeployPage(props: any) {
         setRegion(region);
     }
 
-    function handleAddNode(node: string) {
-        setNode(node)
+    function handleAddNode(nodeID: number) {
+        if (nodeID in nodeMap) {
+            setNode(nodeMap[nodeID]);
+        }
     }
 
     return (
@@ -149,8 +172,8 @@ export function DeployPage(props: any) {
                                         labelId={`nodesLabel`}
                                         id={`nodes`}
                                         name="nodes"
-                                        value={node}
-                                        onChange={(event) => handleAddNode(event.target.value)}
+                                        value={node.nodeID}
+                                        onChange={(event) => handleAddNode(event.target.value as number)}
                                         label="Nodes"
                                     >
                                         {nodes.map((node) => (
@@ -159,6 +182,7 @@ export function DeployPage(props: any) {
                                             </MenuItem>
                                         ))}
                                     </Select>
+
                                 </FormControl>
                                 <CardActions >
                                     <Button variant="contained" color="primary" onClick={() => handleAddNode}>
@@ -167,7 +191,6 @@ export function DeployPage(props: any) {
                                 </CardActions>
                             </Stack>
                         </Stack>
-
                     </Container>
                     <CardContent>
                         <Typography gutterBottom variant="h5" component="div">

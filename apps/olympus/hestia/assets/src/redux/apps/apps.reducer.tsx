@@ -13,7 +13,18 @@ const initialState: AppsState = {
     clusterPreview: {} as ClusterPreview,
     selectedComponentBaseName: '',
     selectedSkeletonBaseName: '',
-    nodes: [],
+    nodes: [{
+        nodeID: 0,
+        description: '',
+        slug: '',
+        disk: 0,
+        priceHourly: 0,
+        cloudProvider: '',
+        vcpus: 0,
+        priceMonthly: 0,
+        region: '',
+        memory: 0,
+    }],
 }
 
 const appsSlice = createSlice({

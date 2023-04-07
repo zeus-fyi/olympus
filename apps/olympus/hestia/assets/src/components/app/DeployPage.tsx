@@ -8,21 +8,32 @@ import {
     CardContent,
     CircularProgress,
     createTheme,
+    Divider,
     FormControl,
+    IconButton,
     InputLabel,
     MenuItem,
     Select,
-    Stack
+    Stack,
+    TextField
 } from "@mui/material";
 import * as React from "react";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {appsApiGateway} from "../../gateway/apps";
 import {useParams} from "react-router-dom";
 import {ThemeProvider} from "@mui/material/styles";
 import {ResourceRequirementsTable} from "./ResourceRequirementsTable";
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import {Nodes} from "../../redux/apps/apps.types";
+import {Add, Remove} from "@mui/icons-material";
+import {
+    setCluster,
+    setClusterPreview,
+    setNodes,
+    setSelectedComponentBaseName,
+    setSelectedSkeletonBaseName
+} from "../../redux/apps/apps.reducer";
 
 const mdTheme = createTheme();
 
@@ -34,31 +45,74 @@ interface NodeMap {
 export function DeployPage(props: any) {
     const [cloudProvider, setCloudProvider] = useState('do');
     const [region, setRegion] = useState('nyc1');
-    const nodes = useSelector((state: RootState) => state.apps.nodes);
+    let nodes = useSelector((state: RootState) => state.apps.nodes);
     const nodeMap: NodeMap = {};
+    const [count, setCount] = useState(0);
+    const [node, setNode] = useState(nodes[0]);
+    const params = useParams();
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        async function fetchData() {
+            let cluster;
+            let clusterPreview;
+            let selectedComponentBaseName;
+            let selectedSkeletonBaseName;
+            try {
+                const response = await appsApiGateway.getPrivateAppDetails(params.id as string);
+                clusterPreview = await response.clusterPreview;
+                dispatch(setClusterPreview(clusterPreview));
+                cluster = await response.cluster;
+                dispatch(setCluster(cluster));
+                const cBases = await response.cluster.componentBases
+                const cb = Object.keys(cBases)
+                if (cb.length > 0) {
+                    selectedComponentBaseName = cb[0];
+                    dispatch(setSelectedComponentBaseName(selectedComponentBaseName));
+                    const sbs = Object.keys(response.cluster.componentBases[selectedComponentBaseName])
+                    if (sbs.length > 0) {
+                        selectedSkeletonBaseName = sbs[0];
+                        dispatch(setSelectedSkeletonBaseName(selectedSkeletonBaseName));
+                    }
+                }
+                if (response.nodes.length > 0) {
+                    dispatch(setNodes(response.nodes))
+                }
+                nodes = response.nodes
+                return response;
+            } catch (e) {
+            }
+        }
+        if (nodes[0].nodeID === 0) {
+            fetchData().then(r => {
+                setNode(nodes[0]);
+            });
+        }
+
+    }, [params.id, nodes]);
+
+    const handleIncrement = () => {
+        setCount(count + 1);
+    };
+
+    const handleDecrement = () => {
+        if (count - 1 < 0) {
+            setCount(0)
+            return;
+        }
+        setCount(count - 1);
+    };
+
     nodes.forEach((node) => {
+        if (node.nodeID === 0) {
+            return;
+        }
         nodeMap[node.nodeID] = node;
     });
-    const emptyNode: Nodes = {
-        nodeID: 0,
-        description: '',
-        slug: '',
-        disk: 0,
-        priceHourly: 0,
-        cloudProvider: '',
-        vcpus: 0,
-        priceMonthly: 0,
-        region: '',
-        memory: 0,
-    };
-    const [node, setNode] = useState(nodes.length > 0 ? nodes[0] : emptyNode);
     let buttonLabel;
     let buttonDisabled;
     let statusMessage;
-    const params = useParams();
-
     const [requestStatus, setRequestStatus] = useState('');
-
     switch (requestStatus) {
         case 'pending':
             buttonLabel = <CircularProgress size={20} />;
@@ -102,12 +156,21 @@ export function DeployPage(props: any) {
         setRegion(region);
     }
 
+    function isNodeInMap(nodeID: number) {
+        return nodeID in nodeMap;
+    }
+
     function handleAddNode(nodeID: number) {
         if (nodeID in nodeMap) {
             setNode(nodeMap[nodeID]);
         }
     }
-
+    function totalCost() {
+        return node.priceMonthly * count;
+    }
+    function totalHourlyCost() {
+        return node.priceHourly * count;
+    }
     return (
         <div>
             <ThemeProvider theme={mdTheme}>
@@ -123,8 +186,8 @@ export function DeployPage(props: any) {
                     </CardContent>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Stack direction="column" spacing={2}>
-                            <Stack direction="row" spacing={2}>
-                                <FormControl sx={{ mr: 1 }} fullWidth variant="outlined">
+                            <Stack direction="row" >
+                                <FormControl sx={{ mr: 2 }} fullWidth variant="outlined">
                                     <InputLabel key={`cloudProviderLabel`} id={`cloudProvider`}>
                                         Cloud Provider
                                     </InputLabel>
@@ -163,8 +226,9 @@ export function DeployPage(props: any) {
                                     )}
                                 </CardActions>
                             </Stack>
-                            <Stack direction="row" spacing={2}>
-                                <FormControl sx={{ mr: 1 }} fullWidth variant="outlined">
+                            <Stack direction="row" >
+                                {isNodeInMap(node.nodeID) &&
+                                <FormControl  sx={{ mr: 1 }} fullWidth variant="outlined">
                                     <InputLabel key={`nodesLabel`} id={`nodes`}>
                                         Nodes
                                     </InputLabel>
@@ -178,17 +242,78 @@ export function DeployPage(props: any) {
                                     >
                                         {nodes.map((node) => (
                                             <MenuItem key={node.nodeID} value={node.nodeID}>
-                                                {node.description}
+                                                {node.slug}
                                             </MenuItem>
                                         ))}
                                     </Select>
-
                                 </FormControl>
+                                }
+                                <TextField
+                                    fullWidth
+                                    id="description"
+                                    label="Description"
+                                    variant="outlined"
+                                    value={node ? node.description : ""}
+                                    style={{ width: "50%" }}
+                                />
                                 <CardActions >
-                                    <Button variant="contained" color="primary" onClick={() => handleAddNode}>
-                                        Add
-                                    </Button>
+                                        <Stack direction="row" >
+                                            <IconButton onClick={handleDecrement} aria-label="decrement" >
+                                                <Remove />
+                                            </IconButton>
+                                            <TextField
+                                                value={count}
+                                                variant="outlined"
+                                                size="small"
+                                                inputProps={{ style: { textAlign: 'center' }, min: 0 }}
+                                            />
+                                            <IconButton onClick={handleIncrement} aria-label="increment">
+                                                <Add />
+                                            </IconButton>
+                                        </Stack>
                                 </CardActions>
+                            </Stack>
+                            <Stack direction="row" >
+                                <TextField
+                                    id="vcpus"
+                                    label="vCPUs"
+                                    variant="outlined"
+                                    value={node ? node.vcpus : ""}
+                                    sx={{ flex: 1, mr: 2 }}
+                                />
+                                <TextField
+                                    id="memory"
+                                    label="Memory (GB)"
+                                    variant="outlined"
+                                    value={node ? Math.floor(node.memory/1000) : ""}
+                                    sx={{ flex: 1, mr: 2 }}
+                                />
+                                <TextField
+                                    id="localDiskSize"
+                                    label="Local Disk Size (GB)"
+                                    variant="outlined"
+                                    value={node ? node.disk : ""}
+                                    sx={{ flex: 1, mr: 2 }}
+                                />
+                            </Stack>
+                            <Divider />
+                            <Stack direction="row" >
+                                <TextField
+                                    fullWidth
+                                    id="monthlyCost"
+                                    label="Monthly Cost ($)"
+                                    variant="outlined"
+                                    value={node ? totalCost().toFixed(2) : ""}
+                                    sx={{ flex: 1, mr: 2 }}
+                                />
+                                <TextField
+                                    fullWidth
+                                    id="hourlyCost"
+                                    label="Hourly Cost ($)"
+                                    variant="outlined"
+                                    value={node ? totalHourlyCost().toFixed(2) : ""}
+                                    sx={{ flex: 1, mr: 2 }}
+                                />
                             </Stack>
                         </Stack>
                     </Container>
@@ -207,21 +332,6 @@ export function DeployPage(props: any) {
                     </Container>
                 </Card>
             </Container>
-            {/*<Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>*/}
-            {/*    <ResourceRequirementsTable />*/}
-            {/*</Container>*/}
-            {/*<Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>*/}
-            {/*    <Card sx={{ maxWidth: 700 }}>*/}
-            {/*        <CardContent>*/}
-            {/*            <Typography gutterBottom variant="h5" component="div">*/}
-            {/*                App Resource Requirements*/}
-            {/*            </Typography>*/}
-            {/*            <Typography variant="body2" color="text.secondary">*/}
-            {/*                TODO*/}
-            {/*            </Typography>*/}
-            {/*        </CardContent>*/}
-            {/*    </Card>*/}
-            {/*</Container>*/}
             </ThemeProvider>
 
         </div>

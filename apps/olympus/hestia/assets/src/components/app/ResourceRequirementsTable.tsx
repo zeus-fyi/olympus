@@ -1,28 +1,28 @@
 import * as React from "react";
 import {useEffect} from "react";
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {useNavigate} from "react-router-dom";
-import {appsApiGateway} from "../../gateway/apps";
-import {setPrivateOrgApps} from "../../redux/apps/apps.reducer";
 import {TableContainer, TableFooter, TableRow} from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
+import {RootState} from "../../redux/store";
+import {Cluster} from "../../redux/clusters/clusters.types";
+
 
 export function ResourceRequirementsTable(props: any) {
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
-    const resourceRequirements = [{}];
+    const cluster = useSelector((state: RootState) => state.apps.cluster);
+    const resourceRequirements = createResourceRequirementsData(cluster);
     const dispatch = useDispatch();
     let navigate = useNavigate();
 
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await appsApiGateway.getPrivateApps();
-                dispatch(setPrivateOrgApps(response));
             } catch (e) {
             }
         }
@@ -47,7 +47,7 @@ export function ResourceRequirementsTable(props: any) {
     //     navigate('/clusters/app/'+app.topologySystemComponentID);
     // }
 
-    if (resourceRequirements == null) {
+    if (cluster == null) {
         return (<div></div>)
     }
 
@@ -76,9 +76,9 @@ export function ResourceRequirementsTable(props: any) {
                                 {row.componentBaseName}
                             </TableCell>
                             <TableCell align="left">{row.skeletonBaseName}</TableCell>
-                            <TableCell align="left">{row.cpu}</TableCell>
-                            <TableCell align="left">{row.memory}</TableCell>
-                            <TableCell align="left">{row.disk}</TableCell>
+                            <TableCell align="left">{row.resourceSumsCPU}</TableCell>
+                            <TableCell align="left">{row.resourceSumsMemory}</TableCell>
+                            <TableCell align="left">{row.resourceSumsDisk}</TableCell>
                         </TableRow>
                     ))}
                     {emptyRows > 0 && (
@@ -92,4 +92,28 @@ export function ResourceRequirementsTable(props: any) {
             </Table>
         </TableContainer>
     );
+}
+
+function createResourceRequirementsData(cluster: Cluster): Array<{componentBaseName: string, skeletonBaseName: string, resourceSumsCPU: string, resourceSumsMemory: string, resourceSumsDisk: string}> {
+    const resourceRequirementsData = [];
+
+    for (const [componentBaseName, skeletonBases] of Object.entries(cluster.componentBases)) {
+        for (const [skeletonBaseName, skeletonBase] of Object.entries(skeletonBases)) {
+            if (skeletonBase.resourceSums) {
+                const {cpuRequests, memRequests, diskRequests} = skeletonBase.resourceSums;
+
+                if ((cpuRequests && cpuRequests !== '0') ||  (memRequests && memRequests !== '0') || (diskRequests && diskRequests !== '0')) {
+                    resourceRequirementsData.push({
+                        componentBaseName,
+                        skeletonBaseName,
+                        resourceSumsCPU: cpuRequests?.toString() ?? '',
+                        resourceSumsMemory: memRequests?.toString() ?? '',
+                        resourceSumsDisk: diskRequests?.toString() ?? '',
+                    });
+                }
+            }
+        }
+    }
+
+    return resourceRequirementsData;
 }

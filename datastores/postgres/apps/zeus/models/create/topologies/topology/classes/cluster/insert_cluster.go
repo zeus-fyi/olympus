@@ -20,8 +20,9 @@ import (
 const Sn = "Cluster"
 
 var (
-	checkExistingCluster     = `SELECT topology_system_component_id FROM topology_system_components WHERE topology_system_component_name = $1 AND org_id = $2`
-	checkExistingClusterBase = `SELECT topology_base_component_id FROM topology_base_components WHERE topology_base_name = $1 AND org_id = $2`
+	checkExistingCluster             = `SELECT topology_system_component_id FROM topology_system_components WHERE topology_system_component_name = $1 AND org_id = $2`
+	checkExistingClusterBase         = `SELECT topology_base_component_id FROM topology_base_components WHERE topology_base_name = $1 AND org_id = $2`
+	checkExistingClusterSkeletonBase = `SELECT topology_skeleton_base_id FROM topology_skeleton_base_components WHERE topology_skeleton_base_name = $1 AND topology_base_component_id = $2 AND org_id = $3`
 )
 
 func InsertCluster(ctx context.Context, tx pgx.Tx, sys *systems.Systems, cbMap zeus_templates.ClusterPreviewWorkloads) (pgx.Tx, error) {
@@ -80,26 +81,39 @@ func InsertCluster(ctx context.Context, tx pgx.Tx, sys *systems.Systems, cbMap z
 			log.Ctx(ctx).Error().Err(err).Msg("InsertCluster: failed to insert system")
 			return tx, err
 		}
-		sbEntry := skeletons.SkeletonBase{TopologySkeletonBaseComponents: autogen_bases.TopologySkeletonBaseComponents{
-			OrgID:                   sys.OrgID,
-			TopologyBaseComponentID: base.TopologyBaseComponentID,
-			TopologyClassTypeID:     class_types.SkeletonBaseClassTypeID,
-		}}
+
 		for sbName, _ := range cb {
-			sbEntry.TopologySkeletonBaseName = sbName
-			tx, err = create_skeletons.InsertSkeletonBaseTx(ctx, &sbEntry, tx)
-			if err != nil && sbEntry.TopologySkeletonBaseID <= 0 {
-				log.Ctx(ctx).Error().Err(err).Msg("InsertCluster: failed to insert system")
-				return tx, err
+			sbEntry := skeletons.SkeletonBase{TopologySkeletonBaseComponents: autogen_bases.TopologySkeletonBaseComponents{
+				OrgID:                    sys.OrgID,
+				TopologyBaseComponentID:  base.TopologyBaseComponentID,
+				TopologyClassTypeID:      class_types.SkeletonBaseClassTypeID,
+				TopologySkeletonBaseName: sbName,
+			}}
+
+			err = tx.QueryRow(ctx, checkExistingClusterSkeletonBase, sbName, base.TopologyBaseComponentID, sys.OrgID).Scan(&sbEntry.TopologySkeletonBaseID)
+			if err == pgx.ErrNoRows && sbEntry.TopologySkeletonBaseID <= 0 {
+				err = nil
+				tx, err = create_skeletons.InsertSkeletonBaseTx(ctx, &sbEntry, tx)
+				if sbEntry.TopologySkeletonBaseID > 0 && err == pgx.ErrNoRows {
+					continue
+				}
+				if err != nil {
+					log.Ctx(ctx).Error().Err(err).Msg("InsertCluster: failed to insert system")
+					return tx, err
+				}
+				err = tx.Commit(ctx)
+				if err != nil {
+					log.Ctx(ctx).Error().Err(err).Msg("InsertCluster: failed to insert system")
+					return tx, err
+				}
+				tx, err = apps.Pg.Begin(ctx)
+				if err != nil {
+					log.Ctx(ctx).Error().Err(err).Msg("InsertCluster: failed to start tx")
+					return tx, err
+				}
 			}
-			err = tx.Commit(ctx)
 			if err != nil {
 				log.Ctx(ctx).Error().Err(err).Msg("InsertCluster: failed to insert system")
-				return tx, err
-			}
-			tx, err = apps.Pg.Begin(ctx)
-			if err != nil {
-				log.Ctx(ctx).Error().Err(err).Msg("InsertCluster: failed to start tx")
 				return tx, err
 			}
 		}

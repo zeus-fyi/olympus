@@ -25,6 +25,7 @@ import {
 } from "../../redux/apps/apps.reducer";
 import Typography from "@mui/material/Typography";
 import YamlTextFieldAppPage from "./YamlFormattedTextAppPage";
+import TextField from "@mui/material/TextField";
 
 export function AppPage(props: any) {
     const {} = props;
@@ -118,10 +119,25 @@ export function AppPage(props: any) {
                 <Card sx={{ minWidth: 250, maxWidth: 300 }}>
                     <CardContent>
                         <Typography gutterBottom variant="h5" component="div">
-                            App Config
+                            Workload Config
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            Here you can inspect the saved workload. You'll be able to edit this from the UI in a future release.
+                            For now, you'll need to use the API to edit the workload after it's been created.
                         </Typography>
                     </CardContent>
                     <Container maxWidth="xl" sx={{ mb: 4 }}>
+                        <Box mt={2}>
+                            <TextField
+                                fullWidth
+                                id="clusterName"
+                                label="Cluster Name"
+                                variant="outlined"
+                                inputProps={{ readOnly: true }}
+                                value={cluster.clusterName}
+                                sx={{ width: '100%' }}
+                            />
+                        </Box>
                         <Box mt={2}>
                             <SelectedComponentBaseNameAppPage onChangeComponentOrSkeletonBase={onChangeComponentOrSkeletonBase}/>
                         </Box>

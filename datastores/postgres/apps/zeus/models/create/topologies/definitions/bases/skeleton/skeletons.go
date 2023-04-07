@@ -21,9 +21,21 @@ func insertSkeletonBaseQ() sql_query_templates.QueryParams {
 	q.QueryName = "InsertSkeletonBaseDefinition"
 	q.RawQuery = `INSERT INTO topology_skeleton_base_components (org_id, topology_base_component_id, topology_class_type_id, topology_skeleton_base_name)
 			      VALUES ($1, $2, $3, $4)
+			      ON CONFLICT DO NOTHING
 				  RETURNING topology_skeleton_base_id`
 	return q
 }
+func InsertSkeletonBaseTx(ctx context.Context, skeletonBase *skeletons.SkeletonBase, tx pgx.Tx) (pgx.Tx, error) {
+	q := insertSkeletonBaseQ()
+	log.Debug().Interface("InsertSkeletonBase:", q.LogHeader(Sn))
+	err := tx.QueryRow(ctx, q.RawQuery, skeletonBase.OrgID, skeletonBase.TopologyBaseComponentID, class_types.SkeletonBaseClassTypeID, skeletonBase.TopologySkeletonBaseName).Scan(&skeletonBase.TopologySkeletonBaseID)
+	if err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg(fmt.Sprintf("InsertSkeletonBase: %s", q.LogHeader(Sn)))
+		return nil, err
+	}
+	return tx, misc.ReturnIfErr(err, q.LogHeader(Sn))
+}
+
 func InsertSkeletonBase(ctx context.Context, skeletonBase *skeletons.SkeletonBase) error {
 	q := insertSkeletonBaseQ()
 	log.Debug().Interface("InsertSkeletonBase:", q.LogHeader(Sn))

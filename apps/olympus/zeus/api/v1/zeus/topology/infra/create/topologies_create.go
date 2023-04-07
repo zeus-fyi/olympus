@@ -15,13 +15,10 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/bases"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/class_types"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/topology/classes/systems"
-	create_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/definitions/bases"
 	create_infra "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/definitions/bases/infra"
-	create_skeletons "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/definitions/bases/skeleton"
-	create_systems "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/topology/classes/systems"
+	create_clusters "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/topology/classes/cluster"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	zeus_templates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
@@ -58,11 +55,6 @@ func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error
 		log.Ctx(ctx).Err(err).Msg("error generating skeleton base charts")
 		return c.JSON(http.StatusBadRequest, err)
 	}
-	gcd, err := zeus_templates.GenerateClusterFromUI(ctx, t.Cluster)
-	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("error generating skeleton base charts")
-		return c.JSON(http.StatusBadRequest, err)
-	}
 	tx, err := apps.Pg.Begin(ctx)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("error creating transaction")
@@ -74,32 +66,13 @@ func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error
 		TopologyClassTypeID:         class_types.ClusterClassTypeID,
 		TopologySystemComponentName: t.Cluster.ClusterName,
 	}}
-	tx, err = create_systems.InsertSystemTx(ctx, &sys, tx)
+
+	tx, err = create_clusters.InsertCluster(ctx, tx, &sys, pcg)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("error creating cluster class")
-		return err
-	}
-	bs := make([]bases.Base, len(gcd.ComponentBasesRequests.ComponentBaseNames))
-	for i, b := range gcd.ComponentBasesRequests.ComponentBaseNames {
-		bs[i] = bases.NewBaseClassTopologyInsert(ou.OrgID, b)
-	}
-	tx, err = create_bases.InsertBasesTx(ctx, ou.OrgID, t.Cluster.ClusterName, bs, tx)
-	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("CreateTopologyFromUI: AddBasesToTopologyClusterClass")
+		log.Ctx(ctx).Err(err).Msg("error creating transaction")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	for componentBaseName, component := range pcg.ComponentBases {
-		sbNameSlice := make([]string, len(component))
-		i := 0
-		for skeletonBaseName, _ := range component {
-			sbNameSlice[i] = skeletonBaseName
-			i++
-		}
-		tx, err = create_skeletons.InsertSkeletonBasesTx(ctx, ou.OrgID, t.Cluster.ClusterName, componentBaseName, sbNameSlice, tx)
-		if err != nil {
-			log.Err(err).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, InsertSkeletonBasesTx")
-			return c.JSON(http.StatusBadRequest, nil)
-		}
 		for skeletonBaseName, skeleton := range component {
 			nk := chart_workload.TopologyBaseInfraWorkload{}
 			if skeleton.Deployment != nil {

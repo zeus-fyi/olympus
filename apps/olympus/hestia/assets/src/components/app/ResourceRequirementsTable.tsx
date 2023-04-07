@@ -76,9 +76,9 @@ export function ResourceRequirementsTable(props: any) {
                                 {row.componentBaseName}
                             </TableCell>
                             <TableCell align="left">{row.skeletonBaseName}</TableCell>
-                            <TableCell align="left">{row.resourceSumsCPU}</TableCell>
-                            <TableCell align="left">{row.resourceSumsMemory}</TableCell>
-                            <TableCell align="left">{row.resourceSumsDisk}</TableCell>
+                            <TableCell align="left">{row.resourceSumsCPU === '0' ? '-' : row.resourceSumsCPU}</TableCell>
+                            <TableCell align="left">{row.resourceSumsMemory === '0' ? '-' : row.resourceSumsMemory}</TableCell>
+                            <TableCell align="left">{row.resourceSumsDisk === '0' ? '-' : row.resourceSumsDisk}</TableCell>
                         </TableRow>
                     ))}
                     {emptyRows > 0 && (

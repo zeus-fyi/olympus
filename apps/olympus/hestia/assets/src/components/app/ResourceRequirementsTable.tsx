@@ -61,7 +61,7 @@ export function ResourceRequirementsTable(props: any) {
                     <TableRow style={{ backgroundColor: '#8991B0'}} >
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >ClusterBase</TableCell>
                         <TableCell style={{ color: 'white'}} align="left">Workload</TableCell>
-                        <TableCell style={{ color: 'white'}} align="left">CPU</TableCell>
+                        <TableCell style={{ color: 'white'}} align="left">vCPU</TableCell>
                         <TableCell style={{ color: 'white'}} align="left">Memory</TableCell>
                         <TableCell style={{ color: 'white'}} align="left">Disk</TableCell>
                         <TableCell style={{ color: 'white'}} align="left">Count</TableCell>

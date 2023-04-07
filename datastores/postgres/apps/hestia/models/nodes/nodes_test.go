@@ -19,17 +19,13 @@ type NodesTestSuite struct {
 
 func (s *NodesTestSuite) TestSelectNodes() {
 	s.InitLocalConfigs()
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	nf := NodeFilter{
 		CloudProvider: "do",
 		Region:        "nyc1",
 		ResourceSums: zeus_core.ResourceSums{
-			MemRequests:  "12Gi",
-			MemLimits:    "",
-			CpuRequests:  "6",
-			CpuLimits:    "",
-			DiskRequests: "",
-			DiskLimits:   "",
+			MemRequests: "12Gi",
+			CpuRequests: "6",
 		},
 	}
 	nodes, err := SelectNodes(ctx, nf)

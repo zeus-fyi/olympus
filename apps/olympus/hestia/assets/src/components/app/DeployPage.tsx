@@ -14,17 +14,21 @@ import {
     Select,
     Stack
 } from "@mui/material";
+import * as React from "react";
 import {useState} from "react";
 import {appsApiGateway} from "../../gateway/apps";
 import {useParams} from "react-router-dom";
 import {ThemeProvider} from "@mui/material/styles";
 import {ResourceRequirementsTable} from "./ResourceRequirementsTable";
+import {useSelector} from "react-redux";
+import {RootState} from "../../redux/store";
 
 const mdTheme = createTheme();
 
 export function DeployPage(props: any) {
     const [cloudProvider, setCloudProvider] = useState('do');
     const [region, setRegion] = useState('nyc1');
+    const nodes = useSelector((state: RootState) => state.apps.nodes);
     let buttonLabel;
     let buttonDisabled;
     let statusMessage;
@@ -71,6 +75,10 @@ export function DeployPage(props: any) {
         setCloudProvider(cloudProvider);
     }
 
+    function handleAddNode(server: string) {
+
+    }
+
     return (
         <div>
             <ThemeProvider theme={mdTheme}>
@@ -85,46 +93,75 @@ export function DeployPage(props: any) {
                         </Typography>
                     </CardContent>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        <Stack direction="row" spacing={2}>
-                            <FormControl sx={{ mr: 1 }} fullWidth variant="outlined">
-                                <InputLabel key={`cloudProviderLabel`} id={`cloudProvider`}>
-                                    Cloud Provider
-                                </InputLabel>
-                                <Select
-                                    labelId={`cloudProviderLabel`}
-                                    id={`cloudProvider`}
-                                    name="cloudProvider"
-                                    value={cloudProvider}
-                                    onChange={(event) => handleChangeSelectPathType(event.target.value)}
-                                    label="Cloud Provider"
-                                >
-                                    <MenuItem value="do">DigitalOcean</MenuItem>
-                                </Select>
-                            </FormControl>
-                            <FormControl sx={{ mr: 1 }} fullWidth variant="outlined">
-                                <InputLabel key={`regionLabel`} id={`region`}>
-                                    Region
-                                </InputLabel>
-                                <Select
-                                    labelId={`regionLabel`}
-                                    id={`region`}
-                                    name="region"
-                                    value={region}
-                                    onChange={(event) => handleChangeSelectPathType(event.target.value)}
-                                    label="Region"
-                                >
-                                    <MenuItem value="nyc1">Nyc1</MenuItem>
-                                </Select>
-                            </FormControl>
-                            <CardActions >
-                                <Button variant="contained" onClick={handleDeploy} disabled={buttonDisabled}>{buttonLabel}</Button>
-                                {statusMessage && (
-                                    <Typography variant="body2" color={requestStatus === 'error' ? 'error' : 'success'}>
-                                        {statusMessage}
-                                    </Typography>
-                                )}
-                            </CardActions>
+                        <Stack direction="column" spacing={2}>
+                            <Stack direction="row" spacing={2}>
+                                <FormControl sx={{ mr: 1 }} fullWidth variant="outlined">
+                                    <InputLabel key={`cloudProviderLabel`} id={`cloudProvider`}>
+                                        Cloud Provider
+                                    </InputLabel>
+                                    <Select
+                                        labelId={`cloudProviderLabel`}
+                                        id={`cloudProvider`}
+                                        name="cloudProvider"
+                                        value={cloudProvider}
+                                        onChange={(event) => handleChangeSelectPathType(event.target.value)}
+                                        label="Cloud Provider"
+                                    >
+                                        <MenuItem value="do">DigitalOcean</MenuItem>
+                                    </Select>
+                                </FormControl>
+                                <FormControl sx={{ mr: 1 }} fullWidth variant="outlined">
+                                    <InputLabel key={`regionLabel`} id={`region`}>
+                                        Region
+                                    </InputLabel>
+                                    <Select
+                                        labelId={`regionLabel`}
+                                        id={`region`}
+                                        name="region"
+                                        value={region}
+                                        onChange={(event) => handleChangeSelectPathType(event.target.value)}
+                                        label="Region"
+                                    >
+                                        <MenuItem value="nyc1">Nyc1</MenuItem>
+                                    </Select>
+                                </FormControl>
+                                <CardActions >
+                                    <Button variant="contained" onClick={handleDeploy} disabled={buttonDisabled}>{buttonLabel}</Button>
+                                    {statusMessage && (
+                                        <Typography variant="body2" color={requestStatus === 'error' ? 'error' : 'success'}>
+                                            {statusMessage}
+                                        </Typography>
+                                    )}
+                                </CardActions>
+                            </Stack>
+                            <Stack direction="row" spacing={2}>
+                                <FormControl sx={{ mr: 1 }} fullWidth variant="outlined">
+                                    <InputLabel key={`nodesLabel`} id={`nodes`}>
+                                        Nodes
+                                    </InputLabel>
+                                    <Select
+                                        labelId={`nodesLabel`}
+                                        id={`nodes`}
+                                        name="nodes"
+                                        value={""}
+                                        onChange={(event) => handleChangeSelectPathType(event.target.value)}
+                                        label="Nodes"
+                                    >
+                                        {nodes.map((node) => (
+                                            <MenuItem key={node.nodeID} value={node.nodeID}>
+                                                {node.description}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                                <CardActions >
+                                    <Button variant="contained" color="primary" onClick={() => handleAddNode}>
+                                        Add
+                                    </Button>
+                                </CardActions>
+                            </Stack>
                         </Stack>
+
                     </Container>
                     <CardContent>
                         <Typography gutterBottom variant="h5" component="div">

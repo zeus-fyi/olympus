@@ -14,6 +14,7 @@ type Nodes struct {
 	Region        string  `db:"region" json:"region"`
 	Memory        int     `db:"memory" json:"memory"`
 }
+
 type NodesSlice []Nodes
 
 func (n *Nodes) GetRowValues(queryName string) apps.RowValues {

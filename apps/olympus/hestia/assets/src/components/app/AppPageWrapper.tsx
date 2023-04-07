@@ -22,6 +22,7 @@ import {RootState} from "../../redux/store";
 import {
     setCluster,
     setClusterPreview,
+    setNodes,
     setSelectedComponentBaseName,
     setSelectedSkeletonBaseName
 } from "../../redux/apps/apps.reducer";
@@ -66,6 +67,9 @@ export function AppPageWrapper() {
                         selectedSkeletonBaseName = sbs[0];
                         dispatch(setSelectedSkeletonBaseName(selectedSkeletonBaseName));
                     }
+                }
+                if (response.nodes.length > 0) {
+                    dispatch(setNodes(response.nodes))
                 }
                 return response;
             } catch (e) {

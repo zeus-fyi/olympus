@@ -14,10 +14,9 @@ import SignUp from "../components/signup/Signup";
 import {VerifyEmail} from "../components/signup/VerifyEmail";
 import ClusterBuilderPage from "../components/clusters/wizard/ClusterBuilderPage";
 import AppsPage from "../components/apps/AppsPage";
-import AppPage from "../components/app/AppPage";
+import {AppPageWrapper} from "../components/app/AppPageWrapper";
 
 export const App = () => {
-
     return (
             <Provider store={store}>
                 <BrowserRouter>
@@ -31,7 +30,7 @@ export const App = () => {
                             <Route>
                                 <Route path="clusters" element={<Clusters />} />
                                 <Route path="clusters/apps" element={<AppsPage />} />
-                                <Route path="clusters/app/:id" element={<AppPage />} />
+                                <Route path="clusters/app/:id" element={<AppPageWrapper />} />
                                 <Route path="clusters/builder" element={<ClusterBuilderPage />} />
                                 <Route path="clusters/:id" element={<ClustersPage />} />
                             </Route>

@@ -6,9 +6,14 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/class_types"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/topology/classes/systems"
 	create_systems "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/topology/classes/systems"
+	delete_cluster "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/delete"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
-	"k8s.io/apimachinery/pkg/util/rand"
+	zeus_templates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_resp_types/topology_workloads"
 )
 
 var ctx = context.Background()
@@ -26,9 +31,63 @@ func (s *CreateClustersTestSuite) SetupTest() {
 }
 
 func (s *CreateClustersTestSuite) TestInsertClusterDefinition() {
-	c := NewClusterClassTopologyType(s.Tc.ProductionLocalTemporalOrgID, "cluster-"+rand.String(5))
+	testDuplicate := "test-duplicate"
+	c := NewClusterClassTopologyType(s.Tc.ProductionLocalTemporalOrgID, testDuplicate)
 	err := create_systems.InsertSystem(ctx, &c.Systems)
 	s.Require().Nil(err)
+}
+
+func (s *CreateClustersTestSuite) TestInsertCluster() {
+	name := "test-cluster"
+	err := delete_cluster.DeleteCluster(ctx, name)
+
+	tx, err := apps.Pg.Begin(ctx)
+	s.Require().Nil(err)
+
+	defer tx.Rollback(ctx)
+	sys := systems.Systems{TopologySystemComponents: autogen_bases.TopologySystemComponents{
+		OrgID:                       s.Tc.ProductionLocalTemporalOrgID,
+		TopologyClassTypeID:         class_types.ClusterClassTypeID,
+		TopologySystemComponentName: name,
+	}}
+
+	pcg := zeus_templates.ClusterPreviewWorkloads{
+		ClusterName:    name,
+		ComponentBases: make(map[string]map[string]topology_workloads.TopologyBaseInfraWorkload),
+	}
+
+	sbOne := make(map[string]topology_workloads.TopologyBaseInfraWorkload)
+	sbOne["sbTestBase1Test1"] = topology_workloads.TopologyBaseInfraWorkload{}
+	sbOne["sbTestBase1Test2"] = topology_workloads.TopologyBaseInfraWorkload{}
+	pcg.ComponentBases["baseTest1"] = sbOne
+	sbTwo := make(map[string]topology_workloads.TopologyBaseInfraWorkload)
+	sbTwo["sbTestBase2Test1"] = topology_workloads.TopologyBaseInfraWorkload{}
+	sbTwo["sbTestBase2Test2"] = topology_workloads.TopologyBaseInfraWorkload{}
+	pcg.ComponentBases["baseTest2"] = sbTwo
+	tx, err = InsertCluster(ctx, tx, &sys, pcg)
+	s.Require().Nil(err)
+
+	err = tx.Commit(ctx)
+	s.Require().Nil(err)
+
+	tx, err = apps.Pg.Begin(ctx)
+	s.Require().Nil(err)
+	sbTwo["sbTestBase2Test3"] = topology_workloads.TopologyBaseInfraWorkload{}
+	tx, err = InsertCluster(ctx, tx, &sys, pcg)
+	s.Require().Nil(err)
+	err = tx.Commit(ctx)
+	s.Require().Nil(err)
+
+	tx, err = apps.Pg.Begin(ctx)
+	s.Require().Nil(err)
+	sbThree := make(map[string]topology_workloads.TopologyBaseInfraWorkload)
+	sbThree["sbTestBase3Test1"] = topology_workloads.TopologyBaseInfraWorkload{}
+	pcg.ComponentBases["baseTest3"] = sbThree
+
+	tx, err = InsertCluster(ctx, tx, &sys, pcg)
+	s.Require().Nil(err)
+	err = tx.Commit(ctx)
+
 }
 
 func TestCreateClustersTestSuite(t *testing.T) {

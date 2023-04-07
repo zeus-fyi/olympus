@@ -46,7 +46,11 @@ func (c *CTE) SanitizedMultiLevelValuesCTEStringBuilderSQL() string {
 			if len(c.ReturnSQLStatement) > 0 {
 				sb.WriteString(")\n" + c.ReturnSQLStatement)
 			} else {
-				sb.WriteString(")\n SELECT 1")
+				if c.OnConflictDoNothing {
+					sb.WriteString("\n ON CONFLICT DO NOTHING)\n SELECT 1")
+				} else {
+					sb.WriteString(")\n SELECT 1")
+				}
 			}
 			return sb.String()
 		} else {

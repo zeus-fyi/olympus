@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
@@ -22,7 +23,7 @@ func (i *InfraBaseTopology) SelectInfraTopologyQuery() {
 	i.ChartPackageID = chartPackageID
 
 	insertTopQuery.QueryName = "cte_insert_topology"
-	insertTopQuery.RawQuery = fmt.Sprintf(`INSERT INTO topologies(name) VALUES ($1) RETURNING topology_id`)
+	insertTopQuery.RawQuery = fmt.Sprintf(`INSERT INTO topologies(topology_id, name) VALUES ($4, $1) RETURNING topology_id`)
 	i.CTE.ReturnSQLStatement = fmt.Sprintf("SELECT topology_id FROM %s", insertTopQuery.QueryName)
 
 	i.CTE.Params = append(i.CTE.Params, i.Name)
@@ -49,36 +50,36 @@ func (i *InfraBaseTopology) SelectInfraTopologyQuery() {
 	if len(i.SkeletonBaseName) != 0 {
 		if len(i.ClusterClassName) > 0 && len(i.ComponentBaseName) > 0 {
 			insertTopInfraQuery.RawQuery = fmt.Sprintf(`
-			  INSERT INTO topology_infrastructure_components(topology_id, chart_package_id, topology_skeleton_base_id, tag)
-			  VALUES ((SELECT topology_id FROM %s), (SELECT chart_package_id FROM %s), (SELECT topology_skeleton_base_id
+			  INSERT INTO topology_infrastructure_components(topology_infrastructure_component_id, topology_id, chart_package_id, topology_skeleton_base_id, tag)
+			  VALUES ((SELECT topology_id FROM %s), (SELECT topology_id FROM %s), (SELECT chart_package_id FROM %s), (SELECT topology_skeleton_base_id
 																						FROM topology_skeleton_base_components sb
 																						INNER JOIN topology_base_components tb ON tb.topology_base_component_id = sb.topology_base_component_id
 																						INNER JOIN topology_system_components sys ON sys.topology_system_component_id = tb.topology_system_component_id
 																						WHERE sb.org_id = $8 AND sb.topology_skeleton_base_name = $9 AND sys.topology_system_component_name = $10 AND tb.topology_base_name = $11 ORDER BY topology_skeleton_base_id DESC LIMIT 1), $12) `,
-				insertTopQuery.QueryName, insertTopChartQuery.QueryName)
+				insertTopQuery.QueryName, insertTopQuery.QueryName, insertTopChartQuery.QueryName)
 			i.CTE.Params = append(i.CTE.Params, i.OrgID, i.SkeletonBaseName, i.ClusterClassName, i.ComponentBaseName, i.Tag)
 		} else if len(i.ClusterClassName) > 0 {
 			insertTopInfraQuery.RawQuery = fmt.Sprintf(`
-			  INSERT INTO topology_infrastructure_components(topology_id, chart_package_id, topology_skeleton_base_id, tag)
-			  VALUES ((SELECT topology_id FROM %s), (SELECT chart_package_id FROM %s), (SELECT topology_skeleton_base_id
+			  INSERT INTO topology_infrastructure_components(topology_infrastructure_component_id, topology_id, chart_package_id, topology_skeleton_base_id, tag)
+			  VALUES ((SELECT topology_id FROM %s), (SELECT topology_id FROM %s), (SELECT chart_package_id FROM %s), (SELECT topology_skeleton_base_id
 																						FROM topology_skeleton_base_components sb
 																						INNER JOIN topology_base_components tb ON tb.topology_base_component_id = sb.topology_base_component_id
 																						INNER JOIN topology_system_components sys ON sys.topology_system_component_id = tb.topology_system_component_id
 																						WHERE sb.org_id = $8 AND sb.topology_skeleton_base_name = $9 AND sys.topology_system_component_name = $10 ORDER BY topology_skeleton_base_id DESC LIMIT 1), $11) `,
-				insertTopQuery.QueryName, insertTopChartQuery.QueryName)
+				insertTopQuery.QueryName, insertTopQuery.QueryName, insertTopChartQuery.QueryName)
 			i.CTE.Params = append(i.CTE.Params, i.OrgID, i.SkeletonBaseName, i.ClusterClassName, i.Tag)
 		} else {
 			insertTopInfraQuery.RawQuery = fmt.Sprintf(`
-		  INSERT INTO topology_infrastructure_components(topology_id, chart_package_id, topology_skeleton_base_id, tag)
-		  VALUES ((SELECT topology_id FROM %s), (SELECT chart_package_id FROM %s), (SELECT topology_skeleton_base_id FROM topology_skeleton_base_components WHERE org_id = $8 AND topology_skeleton_base_name = $9 ORDER BY topology_skeleton_base_id DESC LIMIT 1), $10) `,
-				insertTopQuery.QueryName, insertTopChartQuery.QueryName)
+		  INSERT INTO topology_infrastructure_components(topology_infrastructure_component_id, topology_id, chart_package_id, topology_skeleton_base_id, tag)
+		  VALUES ((SELECT topology_id FROM %s), (SELECT topology_id FROM %s), (SELECT chart_package_id FROM %s), (SELECT topology_skeleton_base_id FROM topology_skeleton_base_components WHERE org_id = $8 AND topology_skeleton_base_name = $9 ORDER BY topology_skeleton_base_id DESC LIMIT 1), $10) `,
+				insertTopQuery.QueryName, insertTopQuery.QueryName, insertTopChartQuery.QueryName)
 			i.CTE.Params = append(i.CTE.Params, i.OrgID, i.SkeletonBaseName, i.Tag)
 		}
 	} else {
 		insertTopInfraQuery.RawQuery = fmt.Sprintf(`
-		  INSERT INTO topology_infrastructure_components(topology_id, chart_package_id, topology_skeleton_base_id, tag)
-		  VALUES ((SELECT topology_id FROM %s), (SELECT chart_package_id FROM %s), $8, $9)`,
-			insertTopQuery.QueryName, insertTopChartQuery.QueryName)
+		  INSERT INTO topology_infrastructure_components(topology_infrastructure_component_id, topology_id, chart_package_id, topology_skeleton_base_id, tag)
+		  VALUES ((SELECT topology_id FROM %s), (SELECT topology_id FROM %s), (SELECT chart_package_id FROM %s), $8, $9)`,
+			insertTopQuery.QueryName, insertTopQuery.QueryName, insertTopChartQuery.QueryName)
 		i.CTE.Params = append(i.CTE.Params, ts.UnixTimeStampNow(), i.Tag)
 	}
 
@@ -97,4 +98,16 @@ func (i *InfraBaseTopology) InsertInfraBase(ctx context.Context) error {
 		return err
 	}
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
+}
+
+func (i *InfraBaseTopology) InsertInfraBaseTx(ctx context.Context, tx pgx.Tx) (pgx.Tx, error) {
+	var q sql_query_templates.QueryParams
+	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
+	i.SelectInfraTopologyQuery()
+	q.RawQuery = i.CTE.GenerateChainedCTE()
+	err := tx.QueryRow(ctx, q.RawQuery, i.CTE.Params...).Scan(&i.TopologyID)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
+		return tx, err
+	}
+	return tx, misc.ReturnIfErr(err, q.LogHeader(Sn))
 }

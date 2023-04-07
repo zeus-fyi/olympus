@@ -27,7 +27,7 @@ func UIRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 
 	e.GET("/infra/ui/private/app/:id", read_infra.ReadOrgAppDetails)
 	e.GET("/infra/ui/private/apps", read_infra.ReadOrgApps)
-	e.POST("/infra/ui/create", create_infra.CreateTopologyInfraActionFromUIRequestHandler)
-	e.POST("/infra/ui/preview/create", create_infra.PreviewCreateTopologyInfraActionRequestHandler)
+	e.POST("/infra/ui/cluster/create", create_infra.CreateTopologyInfraActionFromUIRequestHandler)
+	e.POST("/infra/ui/cluster/preview", create_infra.PreviewCreateTopologyInfraActionRequestHandler)
 	return e
 }

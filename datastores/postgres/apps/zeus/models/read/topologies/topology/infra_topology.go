@@ -42,6 +42,22 @@ func (t *InfraBaseTopology) SelectInfraTopologyQuery() sql_query_templates.Query
 	return q
 }
 
+func (t *InfraBaseTopology) SelectInfraTopologyQueryForOrg() sql_query_templates.QueryParams {
+	var q sql_query_templates.QueryParams
+	q.QueryName = "SelectInfraTopologyQueryForOrg"
+	q.CTEQuery.Params = append(q.CTEQuery.Params, t.TopologyID, t.OrgID)
+	q.RawQuery = read_charts.FetchChartQuery(q)
+	return q
+}
+
+func (t *InfraBaseTopology) SelectTopologyForOrg(ctx context.Context) error {
+	q := t.SelectInfraTopologyQueryForOrg()
+
+	log.Debug().Interface("SelectTopologyQuery", q.LogHeader(Sn))
+	err := t.SelectSingleChartsResources(ctx, q)
+	return err
+}
+
 func (t *InfraBaseTopology) SelectTopology(ctx context.Context) error {
 	q := t.SelectInfraTopologyQuery()
 

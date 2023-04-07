@@ -18,14 +18,19 @@ import (
 )
 
 type ClusterPreviewWorkloads struct {
-	ClusterName                   string                                                             `json:"clusterName"`
-	ComponentBasesToSkeletonBases map[string]map[string]topology_workloads.TopologyBaseInfraWorkload `json:"componentBases"`
+	ClusterName    string                                                             `json:"clusterName"`
+	ComponentBases map[string]map[string]topology_workloads.TopologyBaseInfraWorkload `json:"componentBases"`
+}
+
+type ClusterPreviewWorkloadsOlympus struct {
+	ClusterName    string                    `json:"clusterName"`
+	ComponentBases map[string]map[string]any `json:"componentBases"`
 }
 
 func GenerateSkeletonBaseChartsPreview(ctx context.Context, cluster Cluster) (ClusterPreviewWorkloads, error) {
 	pcg := ClusterPreviewWorkloads{
-		ClusterName:                   cluster.ClusterName,
-		ComponentBasesToSkeletonBases: make(map[string]map[string]topology_workloads.TopologyBaseInfraWorkload),
+		ClusterName:    cluster.ClusterName,
+		ComponentBases: make(map[string]map[string]topology_workloads.TopologyBaseInfraWorkload),
 	}
 	cd := PreviewTemplateGeneration(ctx, cluster)
 	cd.UseEmbeddedWorkload = true
@@ -36,9 +41,9 @@ func GenerateSkeletonBaseChartsPreview(ctx context.Context, cluster Cluster) (Cl
 		return pcg, err
 	}
 	for cbName, componentBase := range cd.ComponentBases {
-		pcg.ComponentBasesToSkeletonBases[cbName] = make(map[string]topology_workloads.TopologyBaseInfraWorkload)
+		pcg.ComponentBases[cbName] = make(map[string]topology_workloads.TopologyBaseInfraWorkload)
 		for sbName, skeletonBase := range componentBase.SkeletonBases {
-			pcg.ComponentBasesToSkeletonBases[cbName][sbName] = skeletonBase.Workload
+			pcg.ComponentBases[cbName][sbName] = skeletonBase.Workload
 		}
 	}
 	return pcg, nil
@@ -46,6 +51,8 @@ func GenerateSkeletonBaseChartsPreview(ctx context.Context, cluster Cluster) (Cl
 
 func GenerateClusterFromUI(ctx context.Context, cluster Cluster) (zeus_cluster_config_drivers.GeneratedClusterCreationRequests, error) {
 	cd := PreviewTemplateGeneration(ctx, cluster)
+	cd.UseEmbeddedWorkload = true
+	cd.DisablePrint = true
 	_, err := cd.GenerateSkeletonBaseCharts()
 	if err != nil {
 		log.Ctx(ctx).Err(err)
@@ -278,23 +285,23 @@ func BuildConfigMapDriver(ctx context.Context, configMap ConfigMap) (zeus_topolo
 
 func BuildContainerDriver(ctx context.Context, name string, container Container) (v1.Container, error) {
 	pp := "IfNotPresent"
-	if len(container.ImagePullPolicy) <= 0 {
+	if len(container.ImagePullPolicy) > 0 {
 		pp = container.ImagePullPolicy
 	}
 	c := v1.Container{
-		Name:    name,
-		Image:   container.DockerImage.ImageName,
-		Command: strings.Split(container.DockerImage.Cmd, ","),
-		Args:    strings.Split(container.DockerImage.Args, ","),
-		Ports:   []v1.ContainerPort{},
-		EnvFrom: nil,
-		Env:     nil,
+		Name:            name,
+		Image:           container.DockerImage.ImageName,
+		ImagePullPolicy: v1.PullPolicy(pp),
+		Command:         strings.Split(container.DockerImage.Cmd, ","),
+		Args:            strings.Split(container.DockerImage.Args, ","),
+		Ports:           []v1.ContainerPort{},
+		EnvFrom:         nil,
+		Env:             nil,
 		Resources: v1.ResourceRequirements{
 			Limits:   make(map[v1.ResourceName]resource.Quantity),
 			Requests: make(map[v1.ResourceName]resource.Quantity),
 		},
-		VolumeMounts:    []v1.VolumeMount{},
-		ImagePullPolicy: v1.PullPolicy(pp),
+		VolumeMounts: []v1.VolumeMount{},
 	}
 
 	for _, p := range container.DockerImage.Ports {

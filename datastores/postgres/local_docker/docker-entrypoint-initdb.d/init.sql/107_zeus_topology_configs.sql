@@ -30,7 +30,7 @@
 -- use the distributed id gen to also function as the version
 CREATE TABLE "public"."topology_system_components" (
     "org_id" int8 NOT NULL REFERENCES orgs(org_id),
-    "topology_system_component_id" int8 DEFAULT next_id(),
+    "topology_system_component_id" int8 NOT NULL DEFAULT next_id(),
     "topology_class_type_id" int8 NOT NULL REFERENCES topology_class_types(topology_class_type_id) CHECK (topology_class_type_id >=4) NOT NULL,
     "topology_system_component_name" text NOT NULL
 );
@@ -44,7 +44,7 @@ CREATE TABLE "public"."topology_base_components" (
     "org_id" int8 NOT NULL REFERENCES orgs(org_id),
     "topology_system_component_id" int8 NOT NULL REFERENCES topology_system_components(topology_system_component_id),
     "topology_class_type_id" int8 NOT NULL REFERENCES topology_class_types(topology_class_type_id) CHECK (topology_class_type_id <= 3 AND topology_class_type_id >=3) NOT NULL DEFAULT 3,
-    "topology_base_component_id" int8 DEFAULT next_id(),
+    "topology_base_component_id" int8 NOT NULL DEFAULT next_id(),
     "topology_base_name" text NOT NULL
 );
 ALTER TABLE "public"."topology_base_components" ADD CONSTRAINT "topology_base_components_pk" PRIMARY KEY ("topology_base_component_id");
@@ -56,7 +56,7 @@ CREATE TABLE "public"."topology_skeleton_base_components" (
     "org_id" int8 NOT NULL REFERENCES orgs(org_id),
     "topology_base_component_id" int8 NOT NULL REFERENCES topology_base_components(topology_base_component_id) NOT NULL,
     "topology_class_type_id" int8 NOT NULL REFERENCES topology_class_types(topology_class_type_id) CHECK (topology_class_type_id <= 2 AND topology_class_type_id >=2) NOT NULL DEFAULT 2,
-    "topology_skeleton_base_id" int8 DEFAULT next_id(),
+    "topology_skeleton_base_id" int8 NOT NULL DEFAULT next_id(),
     "topology_skeleton_base_name" text NOT NULL
 );
 
@@ -66,7 +66,7 @@ ALTER TABLE "public"."topology_skeleton_base_components" ADD CONSTRAINT "topolog
 -- links topology to kubernetes package
 CREATE TABLE "public"."topology_infrastructure_components" (
     "topology_skeleton_base_id" int8 NOT NULL REFERENCES topology_skeleton_base_components(topology_skeleton_base_id) NOT NULL,
-    "topology_infrastructure_component_id" int8 DEFAULT next_id(),
+    "topology_infrastructure_component_id" int8 NOT NULL DEFAULT next_id(),
     "topology_id" int8 NOT NULL REFERENCES topologies(topology_id),
     "chart_package_id" int8 NOT NULL REFERENCES chart_packages(chart_package_id),
     "tag" text NOT NULL DEFAULT 'latest'

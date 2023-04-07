@@ -3,7 +3,7 @@ import inMemoryJWT from "../auth/InMemoryJWT";
 
 class ClustersApiGateway {
     async previewCreateCluster(params: any): Promise<any>  {
-        const url = `/v1/infra/ui/preview/create`;
+        const url = `/v1/infra/ui/cluster/preview`;
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {
@@ -23,7 +23,7 @@ class ClustersApiGateway {
         }
     }
     async createCluster(params: any): Promise<any>  {
-        const url = `/v1/infra/ui/create`;
+        const url = `/v1/infra/ui/cluster/create`;
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {

@@ -1,4 +1,4 @@
-import {Box, Button, Card, CardContent, CircularProgress, Container, Stack} from "@mui/material";
+import {Box, Button, Card, CardContent, CircularProgress, Container, Divider, Stack} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import {SelectedComponentBaseName} from "./DefineComponentBases";
 import * as React from "react";
@@ -39,20 +39,45 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
 
     const [configError, setConfigError] = useState('');
 
+    let buttonLabelCreate;
+    let buttonDisabledCreate;
+    let statusMessageCreate;
+    const [requestCreateStatus, setCreateRequestStatus] = useState('');
+    switch (requestCreateStatus) {
+        case 'pending':
+            buttonLabelCreate = <CircularProgress size={20} />;
+            buttonDisabledCreate = true;
+            break;
+        case 'success':
+            buttonLabelCreate = 'Register Cluster';
+            buttonDisabledCreate = true;
+            statusMessageCreate = 'Cluster definition generated successfully!';
+            break;
+        case 'error':
+            buttonLabelCreate = 'Resubmit';
+            buttonDisabledCreate = false;
+            statusMessageCreate = 'An error occurred while submitting, there\'s likely a problem with your configuration, check that your ports, resource values, etc are valid. ' + configError;
+            break;
+        default:
+            buttonLabelCreate = 'Register Cluster';
+            buttonDisabledCreate = true;
+            break;
+    }
+
     let buttonLabel;
     let buttonDisabled;
     let statusMessage;
     const [requestStatus, setRequestStatus] = useState('');
     const dispatch = useDispatch();
-
     switch (requestStatus) {
         case 'pending':
             buttonLabel = <CircularProgress size={20} />;
             buttonDisabled = true;
             break;
         case 'success':
-            buttonLabel = 'Generate Preview';
-            buttonDisabled = true;
+            buttonLabel = 'Regenerate Preview';
+            buttonDisabled = false;
+            buttonDisabledCreate = false;
             statusMessage = 'Preview generated successfully!';
             break;
         case 'error':
@@ -65,6 +90,7 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
             buttonDisabled = false;
             break;
     }
+
     const onClickView = (newPreviewType: string) => {
         setPreviewType(newPreviewType);
     }
@@ -90,16 +116,34 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
         }
     }
 
+    const onClickCreate = async () => {
+        try {
+            setCreateRequestStatus('pending');
+            let res: any = await clustersApiGateway.createCluster(cluster)
+            const cp =  res.data as ClusterPreview;
+            const statusCode = res.status;
+            if (statusCode === 200 || statusCode === 204) {
+                dispatch(setClusterPreview(cp));
+                setCreateRequestStatus('success');
+            } else {
+                setConfigError('')
+                setCreateRequestStatus('error');
+            }
+        } catch (e) {
+            setCreateRequestStatus('error');
+        }
+    }
+
     return (
         <div>
             <Stack direction="row" spacing={2}>
-                <Card sx={{ minWidth: 250, maxWidth: 400 }}>
+                <Card sx={{ minWidth: 250, maxWidth: 300 }}>
                     <CardContent>
                         <Typography gutterBottom variant="h5" component="div">
                             Workload Config
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            Sets Infra and App Configs
+                            Once you generate a preview you'll be able to inspect the generated workload and submit your cluster definition.
                         </Typography>
                     </CardContent>
                     <Container maxWidth="xl" sx={{ mb: 4 }}>
@@ -121,12 +165,8 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
                                 </Typography>
                             )}
                         </Box>
-                        {/*<Box mt={2}>*/}
-                        {/*    <Button variant="contained">*/}
-                        {/*        Create Cluster*/}
-                        {/*    </Button>*/}
-                        {/*</Box>*/}
                     </Container>
+                    <Divider/>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Stack direction="column" spacing={2}>
                             {addDeployment && (
@@ -165,6 +205,19 @@ export function WorkloadPreviewAndSubmitPage(props: any) {
                                 </Stack>
                             )}
                         </Stack>
+                    </Container>
+                    <Divider/>
+                    <Container maxWidth="xl" sx={{ mb: 4 }}>
+                        <Box mt={2}>
+                            <Button variant="contained" onClick={onClickCreate} disabled={buttonDisabledCreate}>
+                                {buttonLabelCreate}
+                            </Button>
+                            {statusMessageCreate && (
+                                <Typography variant="body2" color={requestCreateStatus === 'error' ? 'error' : 'success'}>
+                                    {statusMessageCreate}
+                                </Typography>
+                            )}
+                        </Box>
                     </Container>
                 </Card>
                 <YamlTextField previewType={previewType}/>

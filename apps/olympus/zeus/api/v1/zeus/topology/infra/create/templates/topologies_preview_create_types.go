@@ -1,5 +1,7 @@
 package zeus_templates
 
+import zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
+
 type Cluster struct {
 	ClusterName     string                 `json:"clusterName"`
 	ComponentBases  ComponentBases         `json:"componentBases"`
@@ -25,6 +27,8 @@ type SkeletonBase struct {
 	Deployment        Deployment  `json:"deployment"`
 	StatefulSet       StatefulSet `json:"statefulSet"`
 	Containers        Containers  `json:"containers"`
+
+	ResourceSums zeus_core.ResourceSums `json:"resourceSums,omitempty"`
 }
 
 type ConfigMap map[string]string

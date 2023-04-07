@@ -51,6 +51,16 @@ export interface SkeletonBase {
     deployment: Deployment;
     statefulSet: StatefulSet;
     containers: Containers;
+    resourceSums?: ResourceSums;
+}
+
+export interface ResourceSums {
+    memRequests: string;
+    memLimits: string;
+    cpuRequests: string;
+    cpuLimits: string;
+    diskRequests: string;
+    diskLimits: string;
 }
 
 export interface ConfigMap {

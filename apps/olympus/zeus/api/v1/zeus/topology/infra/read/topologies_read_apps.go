@@ -10,6 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
+	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	zeus_templates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
 )
 
@@ -85,11 +86,15 @@ func (t *TopologyReadPrivateAppsRequest) GetPrivateAppDetailsRequest(c echo.Cont
 			sbTemplate := zeus_templates.SkeletonBase{
 				TopologyID: fmt.Sprintf("%d", sb.TopologyID),
 			}
+			rs := zeus_core.ResourceSums{}
 			if nk.StatefulSet != nil {
 				sbTemplate.AddStatefulSet = true
+				zeus_core.GetResourceRequirements(ctx, nk.StatefulSet.Spec.Template.Spec, &rs)
+				zeus_core.GetDiskRequirements(ctx, nk.StatefulSet.Spec.VolumeClaimTemplates, &rs)
 			}
 			if nk.Deployment != nil {
 				sbTemplate.AddDeployment = true
+				zeus_core.GetResourceRequirements(ctx, nk.Deployment.Spec.Template.Spec, &rs)
 			}
 			if nk.Service != nil {
 				sbTemplate.AddService = true
@@ -103,6 +108,7 @@ func (t *TopologyReadPrivateAppsRequest) GetPrivateAppDetailsRequest(c echo.Cont
 			if nk.ServiceMonitor != nil {
 				sbTemplate.AddServiceMonitor = true
 			}
+			sbTemplate.ResourceSums = rs
 			sbUI[sbName] = sbTemplate
 		}
 		resp.Cluster.ComponentBases[cbName] = sbUI

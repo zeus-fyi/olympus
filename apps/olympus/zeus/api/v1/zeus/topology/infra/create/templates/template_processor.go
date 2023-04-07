@@ -49,23 +49,6 @@ func GenerateSkeletonBaseChartsPreview(ctx context.Context, cluster Cluster) (Cl
 	return pcg, nil
 }
 
-func GenerateClusterFromUI(ctx context.Context, cluster Cluster) (zeus_cluster_config_drivers.GeneratedClusterCreationRequests, error) {
-	cd := PreviewTemplateGeneration(ctx, cluster)
-	cd.UseEmbeddedWorkload = true
-	cd.DisablePrint = true
-	_, err := cd.GenerateSkeletonBaseCharts()
-	if err != nil {
-		log.Ctx(ctx).Err(err)
-		return zeus_cluster_config_drivers.GeneratedClusterCreationRequests{}, err
-	}
-	gcd := cd.BuildClusterDefinitions()
-	if err != nil {
-		log.Ctx(ctx).Err(err)
-		return gcd, err
-	}
-	return gcd, nil
-}
-
 func PreviewTemplateGeneration(ctx context.Context, cluster Cluster) zeus_cluster_config_drivers.ClusterDefinition {
 	templateClusterDefinition := zeus_cluster_config_drivers.ClusterDefinition{
 		ClusterClassName: cluster.ClusterName,

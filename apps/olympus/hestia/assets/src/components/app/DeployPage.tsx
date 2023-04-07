@@ -29,6 +29,8 @@ export function DeployPage(props: any) {
     const [cloudProvider, setCloudProvider] = useState('do');
     const [region, setRegion] = useState('nyc1');
     const nodes = useSelector((state: RootState) => state.apps.nodes);
+    const [node, setNode] = useState(nodes.length > 0 ? nodes[0].description : '');
+
     let buttonLabel;
     let buttonDisabled;
     let statusMessage;
@@ -71,12 +73,16 @@ export function DeployPage(props: any) {
             console.log("error", error);
         }};
 
-    function handleChangeSelectPathType(cloudProvider: string) {
+    function handleChangeSelectCloudProvider(cloudProvider: string) {
         setCloudProvider(cloudProvider);
     }
 
-    function handleAddNode(server: string) {
+    function handleChangeSelectRegion(region: string) {
+        setRegion(region);
+    }
 
+    function handleAddNode(node: string) {
+        setNode(node)
     }
 
     return (
@@ -104,7 +110,7 @@ export function DeployPage(props: any) {
                                         id={`cloudProvider`}
                                         name="cloudProvider"
                                         value={cloudProvider}
-                                        onChange={(event) => handleChangeSelectPathType(event.target.value)}
+                                        onChange={(event) => handleChangeSelectCloudProvider(event.target.value)}
                                         label="Cloud Provider"
                                     >
                                         <MenuItem value="do">DigitalOcean</MenuItem>
@@ -119,7 +125,7 @@ export function DeployPage(props: any) {
                                         id={`region`}
                                         name="region"
                                         value={region}
-                                        onChange={(event) => handleChangeSelectPathType(event.target.value)}
+                                        onChange={(event) => handleChangeSelectRegion(event.target.value)}
                                         label="Region"
                                     >
                                         <MenuItem value="nyc1">Nyc1</MenuItem>
@@ -143,8 +149,8 @@ export function DeployPage(props: any) {
                                         labelId={`nodesLabel`}
                                         id={`nodes`}
                                         name="nodes"
-                                        value={""}
-                                        onChange={(event) => handleChangeSelectPathType(event.target.value)}
+                                        value={node}
+                                        onChange={(event) => handleAddNode(event.target.value)}
                                         label="Nodes"
                                     >
                                         {nodes.map((node) => (

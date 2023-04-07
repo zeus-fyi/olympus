@@ -4,7 +4,6 @@ import Box from "@mui/material/Box";
 import Stepper from "@mui/material/Stepper";
 import Step from "@mui/material/Step";
 import StepButton from "@mui/material/StepButton";
-import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import {AppPage} from "./AppPage";
@@ -31,7 +30,7 @@ export default function DeployConfigToggle(props: any) {
     }>({});
 
     const totalSteps = () => {
-        return clusterBuilderSteps.length;
+        return appBuildToggleSteps.length;
     };
 
     const completedSteps = () => {
@@ -92,17 +91,6 @@ export default function DeployConfigToggle(props: any) {
                     ))}
                 </Stepper>
                 <div>
-                    {allStepsCompleted() ? (
-                        <React.Fragment>
-                            <Typography sx={{ mt: 2, mb: 1 }}>
-                                All steps completed - you&apos;re finished
-                            </Typography>
-                            <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-                                <Box sx={{ flex: '1 1 auto' }} />
-                                <Button onClick={handleReset}>Reset</Button>
-                            </Box>
-                        </React.Fragment>
-                    ) : (
                         <React.Fragment>
                             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                                 {appPageStepComponents(activeStep,
@@ -121,20 +109,8 @@ export default function DeployConfigToggle(props: any) {
                                 <Button onClick={handleNext} sx={{ mr: 1 }}>
                                     Next
                                 </Button>
-                                {activeStep !== clusterBuilderSteps.length &&
-                                    (completed[activeStep] ? (
-                                        <Typography variant="caption" sx={{ display: 'inline-block' }}>
-                                        </Typography>
-                                    ) : (
-                                        <Button onClick={handleComplete}>
-                                            {completedSteps() === totalSteps() - 1
-                                                ? 'Finish'
-                                                : 'Complete Step'}
-                                        </Button>
-                                    ))}
                             </Box>
                         </React.Fragment>
-                    )}
                 </div>
             </Box>
         </div>

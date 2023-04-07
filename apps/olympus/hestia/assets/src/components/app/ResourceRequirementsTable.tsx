@@ -64,6 +64,7 @@ export function ResourceRequirementsTable(props: any) {
                         <TableCell style={{ color: 'white'}} align="left">CPU</TableCell>
                         <TableCell style={{ color: 'white'}} align="left">Memory</TableCell>
                         <TableCell style={{ color: 'white'}} align="left">Disk</TableCell>
+                        <TableCell style={{ color: 'white'}} align="left">Count</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -79,6 +80,7 @@ export function ResourceRequirementsTable(props: any) {
                             <TableCell align="left">{row.resourceSumsCPU === '0' ? '-' : row.resourceSumsCPU}</TableCell>
                             <TableCell align="left">{row.resourceSumsMemory === '0' ? '-' : row.resourceSumsMemory}</TableCell>
                             <TableCell align="left">{row.resourceSumsDisk === '0' ? '-' : row.resourceSumsDisk}</TableCell>
+                            <TableCell align="left">{row.replicas === '0x' ? '-' : row.replicas}</TableCell>
                         </TableRow>
                     ))}
                     {emptyRows > 0 && (
@@ -100,7 +102,7 @@ function createResourceRequirementsData(cluster: Cluster): Array<{componentBaseN
     for (const [componentBaseName, skeletonBases] of Object.entries(cluster.componentBases)) {
         for (const [skeletonBaseName, skeletonBase] of Object.entries(skeletonBases)) {
             if (skeletonBase.resourceSums) {
-                const {cpuRequests, memRequests, diskRequests} = skeletonBase.resourceSums;
+                const {cpuRequests, memRequests, diskRequests, replicas} = skeletonBase.resourceSums;
 
                 if ((cpuRequests && cpuRequests !== '0') ||  (memRequests && memRequests !== '0') || (diskRequests && diskRequests !== '0')) {
                     resourceRequirementsData.push({
@@ -109,6 +111,7 @@ function createResourceRequirementsData(cluster: Cluster): Array<{componentBaseN
                         resourceSumsCPU: cpuRequests?.toString() ?? '',
                         resourceSumsMemory: memRequests?.toString() ?? '',
                         resourceSumsDisk: diskRequests?.toString() ?? '',
+                        replicas: replicas?.toString() ?? '',
                     });
                 }
             }

@@ -61,6 +61,7 @@ export interface ResourceSums {
     cpuLimits: string;
     diskRequests: string;
     diskLimits: string;
+    replicas: string;
 }
 
 export interface ConfigMap {

@@ -8,6 +8,7 @@ import (
 )
 
 type ResourceSums struct {
+	Replicas     string `json:"replicas"`
 	MemRequests  string `json:"memRequests"`
 	MemLimits    string `json:"memLimits"`
 	CpuRequests  string `json:"cpuRequests"`

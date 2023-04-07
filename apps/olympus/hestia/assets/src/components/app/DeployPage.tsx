@@ -2,6 +2,7 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import {
+    Box,
     Card,
     CardActions,
     CardContent,
@@ -17,6 +18,7 @@ import {useState} from "react";
 import {appsApiGateway} from "../../gateway/apps";
 import {useParams} from "react-router-dom";
 import {ThemeProvider} from "@mui/material/styles";
+import {ResourceRequirementsTable} from "./ResourceRequirementsTable";
 
 const mdTheme = createTheme();
 
@@ -76,7 +78,7 @@ export function DeployPage(props: any) {
                 <Card sx={{ maxWidth: 700 }}>
                     <CardContent>
                         <Typography gutterBottom variant="h5" component="div">
-                            App Deployment & Management
+                            Deployment & Management
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
                             Currently, you cannot deploy clusters without getting authorization manually first, until we have automated billing setup.
@@ -124,8 +126,24 @@ export function DeployPage(props: any) {
                             </CardActions>
                         </Stack>
                     </Container>
+                    <CardContent>
+                        <Typography gutterBottom variant="h5" component="div">
+                            Config Options
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            Select which components and config options you want to deploy for this app.
+                        </Typography>
+                    </CardContent>
+                    <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
+                        <Box sx={{ mt: 2, display: 'flex' }}>
+                            <ResourceRequirementsTable />
+                        </Box>
+                    </Container>
                 </Card>
             </Container>
+            {/*<Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>*/}
+            {/*    <ResourceRequirementsTable />*/}
+            {/*</Container>*/}
             {/*<Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>*/}
             {/*    <Card sx={{ maxWidth: 700 }}>*/}
             {/*        <CardContent>*/}

@@ -42,6 +42,28 @@ class AppsApiGateway {
             return {} as AppPageResponse
         }
     }
+    async deployApp(id: string, params: any): Promise<any>  {
+        const url = `/v1/infra/ui/deploy/app/${id}`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
+            const payload = {
+                params: params
+            }
+            return await zeusApi.post(url, payload, config).then((response) => {
+                return response.data;
+            })
+        } catch (exc) {
+            console.error('error sending app deployment request');
+            console.error(exc);
+            return {}
+        }
+    }
 }
 
 export const appsApiGateway = new AppsApiGateway();

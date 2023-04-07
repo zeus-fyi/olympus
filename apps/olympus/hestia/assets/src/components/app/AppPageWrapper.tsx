@@ -17,7 +17,6 @@ import Divider from "@mui/material/Divider";
 import List from "@mui/material/List";
 import MainListItems from "../dashboard/listItems";
 import Container from "@mui/material/Container";
-import {AppPage} from "./AppPage";
 import {appsApiGateway} from "../../gateway/apps";
 import {RootState} from "../../redux/store";
 import {
@@ -26,6 +25,7 @@ import {
     setSelectedComponentBaseName,
     setSelectedSkeletonBaseName
 } from "../../redux/apps/apps.reducer";
+import DeployConfigToggle from "./DeployConfigToggle";
 
 const mdTheme = createTheme();
 
@@ -146,7 +146,7 @@ export function AppPageWrapper() {
                     <Toolbar />
                     <div style={{ display: 'flex' }}>
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                            <AppPage />
+                            <DeployConfigToggle />
                         </Container>
                     </div>
                 </Box>

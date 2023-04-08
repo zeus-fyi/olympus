@@ -98,7 +98,7 @@ func (t *TopologyReadPrivateAppsRequest) GetPrivateAppDetailsRequest(c echo.Cont
 			if nk.StatefulSet != nil {
 				sbTemplate.AddStatefulSet = true
 				if nk.StatefulSet.Spec.Replicas != nil {
-					rs.Replicas = fmt.Sprintf("%dx", *nk.StatefulSet.Spec.Replicas)
+					rs.Replicas = fmt.Sprintf("%d", *nk.StatefulSet.Spec.Replicas)
 				}
 				zeus_core.GetResourceRequirements(ctx, nk.StatefulSet.Spec.Template.Spec, &rs)
 				zeus_core.GetDiskRequirements(ctx, nk.StatefulSet.Spec.VolumeClaimTemplates, &rs)
@@ -106,7 +106,7 @@ func (t *TopologyReadPrivateAppsRequest) GetPrivateAppDetailsRequest(c echo.Cont
 			if nk.Deployment != nil {
 				sbTemplate.AddDeployment = true
 				if nk.Deployment.Spec.Replicas != nil {
-					rs.Replicas = fmt.Sprintf("%dx", *nk.Deployment.Spec.Replicas)
+					rs.Replicas = fmt.Sprintf("%d", *nk.Deployment.Spec.Replicas)
 				}
 				zeus_core.GetResourceRequirements(ctx, nk.Deployment.Spec.Template.Spec, &rs)
 			}

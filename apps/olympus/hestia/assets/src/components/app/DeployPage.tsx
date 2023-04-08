@@ -22,7 +22,7 @@ import {useEffect, useState} from "react";
 import {appsApiGateway} from "../../gateway/apps";
 import {useParams} from "react-router-dom";
 import {ThemeProvider} from "@mui/material/styles";
-import {ResourceRequirementsTable} from "./ResourceRequirementsTable";
+import {createDiskResourceRequirements, ResourceRequirementsTable} from "./ResourceRequirementsTable";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import {Nodes} from "../../redux/apps/apps.types";
@@ -41,10 +41,11 @@ interface NodeMap {
     [nodeId: number]: Nodes;
 }
 
-
 export function DeployPage(props: any) {
     const [cloudProvider, setCloudProvider] = useState('do');
     const [region, setRegion] = useState('nyc1');
+    const cluster = useSelector((state: RootState) => state.apps.cluster);
+    const resourceRequirements = createDiskResourceRequirements(cluster);
     let nodes = useSelector((state: RootState) => state.apps.nodes);
     const nodeMap: NodeMap = {};
     const [count, setCount] = useState(0);
@@ -166,10 +167,18 @@ export function DeployPage(props: any) {
         }
     }
     function totalCost() {
-        return node.priceMonthly * count;
+        let totalBlockStorageCost = 0;
+        for (const resource of resourceRequirements) {
+            totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * 10 * parseInt(resource.replicas));
+        }
+        return node.priceMonthly * count + totalBlockStorageCost;
     }
     function totalHourlyCost() {
-        return node.priceHourly * count;
+        let totalBlockStorageCost = 0;
+        for (const resource of resourceRequirements) {
+            totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * 0.10 * parseInt(resource.replicas));
+        }
+        return node.priceHourly * count + totalBlockStorageCost;
     }
     return (
         <div>
@@ -184,7 +193,13 @@ export function DeployPage(props: any) {
                             Currently, you cannot deploy clusters without getting authorization manually first until we have automated billing setup.
                         </Typography>
                     </CardContent>
-                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                    <Divider />
+                    <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
+                        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between' }}>
+                            <Typography variant="h6" color="text.secondary">
+                                Node Selection
+                            </Typography>
+                        </Box>
                         <Stack direction="column" spacing={2}>
                             <Stack direction="row" >
                                 <FormControl sx={{ mr: 2 }} fullWidth variant="outlined">
@@ -257,20 +272,20 @@ export function DeployPage(props: any) {
                                     style={{ width: "50%" }}
                                 />
                                 <CardActions >
-                                        <Stack direction="row" >
-                                            <IconButton onClick={handleDecrement} aria-label="decrement" >
-                                                <Remove />
-                                            </IconButton>
-                                            <TextField
-                                                value={count}
-                                                variant="outlined"
-                                                size="small"
-                                                inputProps={{ style: { textAlign: 'center' }, min: 0 }}
-                                            />
-                                            <IconButton onClick={handleIncrement} aria-label="increment">
-                                                <Add />
-                                            </IconButton>
-                                        </Stack>
+                                    <Stack direction="row" >
+                                        <IconButton onClick={handleDecrement} aria-label="decrement" >
+                                            <Remove />
+                                        </IconButton>
+                                        <TextField
+                                            value={count}
+                                            variant="outlined"
+                                            size="small"
+                                            inputProps={{ style: { textAlign: 'center' }, min: 0 }}
+                                        />
+                                        <IconButton onClick={handleIncrement} aria-label="increment">
+                                            <Add />
+                                        </IconButton>
+                                    </Stack>
                                 </CardActions>
                             </Stack>
                             <Stack direction="row" >
@@ -297,6 +312,47 @@ export function DeployPage(props: any) {
                                 />
                             </Stack>
                             <Divider />
+                            <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between' }}>
+                                <Typography variant="h6" color="text.secondary">
+                                    Block Storage
+                                </Typography>
+                            </Box>
+                            {resourceRequirements.map((resourceRequirement, index) => (
+                                <div key={index}>
+                                    <Stack direction="row" >
+                                        <TextField
+                                            fullWidth
+                                            id={`componentName-${index}`}
+                                            label="Cluster Base"
+                                            variant="outlined"
+                                            value={resourceRequirement.componentBaseName}
+                                            sx={{ flex: 1, mr: 2 }}
+                                        />
+                                        <TextField
+                                            fullWidth
+                                            id={`blockStorageSize-${index}`}
+                                            label="PVC Disk Size SSD"
+                                            variant="outlined"
+                                            value={resourceRequirement.resourceSumsDisk}
+                                            sx={{ flex: 1, mr: 2 }}
+                                        />
+                                        <TextField
+                                            value={resourceRequirement.replicas}
+                                            fullWidth
+                                            id={`replicas-${index}`}
+                                            label="Replicas"
+                                            variant="outlined"
+                                            sx={{ flex: 1, mr: 2 }}
+                                        />
+                                    </Stack>
+                                </div>
+                            ))}
+                            <Divider />
+                            <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between' }}>
+                                <Typography variant="h6" color="text.secondary">
+                                    Total Costs
+                                </Typography>
+                            </Box>
                             <Stack direction="row" >
                                 <TextField
                                     fullWidth

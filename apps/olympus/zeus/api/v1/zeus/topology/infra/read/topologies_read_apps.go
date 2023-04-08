@@ -10,7 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	hestia_nodes "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/nodes"
+	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	zeus_templates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
@@ -133,7 +133,7 @@ func (t *TopologyReadPrivateAppsRequest) GetPrivateAppDetailsRequest(c echo.Cont
 		resp.Cluster.ComponentBases[cbName] = sbUI
 		resp.ClusterPreviewWorkloadsOlympus.ComponentBases[cbName] = uiSbs
 	}
-	nf := hestia_nodes.NodeFilter{
+	nf := hestia_compute_resources.NodeFilter{
 		CloudProvider: "do",
 		Region:        "nyc1",
 		ResourceSums: zeus_core.ResourceSums{
@@ -141,7 +141,7 @@ func (t *TopologyReadPrivateAppsRequest) GetPrivateAppDetailsRequest(c echo.Cont
 			CpuRequests: rsMinMax.Min.CpuRequests,
 		},
 	}
-	nodes, err := hestia_nodes.SelectNodes(ctx, nf)
+	nodes, err := hestia_compute_resources.SelectNodes(ctx, nf)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: SelectNodes")
 		return c.JSON(http.StatusInternalServerError, nil)

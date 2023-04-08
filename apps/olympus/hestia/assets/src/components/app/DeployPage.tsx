@@ -232,14 +232,6 @@ export function DeployPage(props: any) {
                                         <MenuItem value="nyc1">Nyc1</MenuItem>
                                     </Select>
                                 </FormControl>
-                                <CardActions >
-                                    <Button variant="contained" onClick={handleDeploy} disabled={buttonDisabled}>{buttonLabel}</Button>
-                                    {statusMessage && (
-                                        <Typography variant="body2" color={requestStatus === 'error' ? 'error' : 'success'}>
-                                            {statusMessage}
-                                        </Typography>
-                                    )}
-                                </CardActions>
                             </Stack>
                             <Stack direction="row" >
                                 {isNodeInMap(node.nodeID) &&
@@ -370,6 +362,14 @@ export function DeployPage(props: any) {
                                     value={node ? totalHourlyCost().toFixed(2) : ""}
                                     sx={{ flex: 1, mr: 2 }}
                                 />
+                                <CardActions >
+                                    <Button variant="contained" onClick={handleDeploy} disabled={buttonDisabled}>{buttonLabel}</Button>
+                                    {statusMessage && (
+                                        <Typography variant="body2" color={requestStatus === 'error' ? 'error' : 'success'}>
+                                            {statusMessage}
+                                        </Typography>
+                                    )}
+                                </CardActions>
                             </Stack>
                         </Stack>
                     </Container>
@@ -381,6 +381,7 @@ export function DeployPage(props: any) {
                             Select which components and config options you want to deploy for this app.
                         </Typography>
                     </CardContent>
+
                     <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
                         <Box sx={{ mt: 2, display: 'flex' }}>
                             <ResourceRequirementsTable />

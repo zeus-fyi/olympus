@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
-	hestia_nodes "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/nodes"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/nodes"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 

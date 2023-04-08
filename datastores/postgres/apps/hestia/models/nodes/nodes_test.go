@@ -8,15 +8,32 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
+	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 )
 
 var ctx = context.Background()
 
-type CreateNodesTestSuite struct {
+type NodesTestSuite struct {
 	hestia_test.BaseHestiaTestSuite
 }
 
-func (s *CreateNodesTestSuite) TestInsertOrg() {
+func (s *NodesTestSuite) TestSelectNodes() {
+	s.InitLocalConfigs()
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	nf := NodeFilter{
+		CloudProvider: "do",
+		Region:        "nyc1",
+		ResourceSums: zeus_core.ResourceSums{
+			MemRequests: "12Gi",
+			CpuRequests: "6",
+		},
+	}
+	nodes, err := SelectNodes(ctx, nf)
+	s.Require().NoError(err)
+	s.Assert().NotEmpty(nodes)
+}
+
+func (s *NodesTestSuite) TestInsertNodes() {
 	s.InitLocalConfigs()
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 
@@ -37,5 +54,5 @@ func (s *CreateNodesTestSuite) TestInsertOrg() {
 }
 
 func TestCreateNodesTestSuite(t *testing.T) {
-	suite.Run(t, new(CreateNodesTestSuite))
+	suite.Run(t, new(NodesTestSuite))
 }

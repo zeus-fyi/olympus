@@ -1,4 +1,4 @@
-import {AppsState, TopologySystemComponentsSlice} from "./apps.types";
+import {AppsState, Nodes, TopologySystemComponentsSlice} from "./apps.types";
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {Cluster, ClusterPreview, ComponentBases, Ingress, IngressPaths} from "../clusters/clusters.types";
 
@@ -13,6 +13,18 @@ const initialState: AppsState = {
     clusterPreview: {} as ClusterPreview,
     selectedComponentBaseName: '',
     selectedSkeletonBaseName: '',
+    nodes: [{
+        nodeID: 0,
+        description: '',
+        slug: '',
+        disk: 0,
+        priceHourly: 0,
+        cloudProvider: '',
+        vcpus: 0,
+        priceMonthly: 0,
+        region: '',
+        memory: 0,
+    }],
 }
 
 const appsSlice = createSlice({
@@ -34,8 +46,11 @@ const appsSlice = createSlice({
         setSelectedSkeletonBaseName: (state, action: PayloadAction<string>) => {
             state.selectedSkeletonBaseName = action.payload;
         },
+        setNodes: (state, action: PayloadAction<Nodes[]>) => {
+            state.nodes = action.payload;
+        },
     }
 });
 
-export const { setPrivateOrgApps,setClusterPreview, setCluster, setSelectedSkeletonBaseName, setSelectedComponentBaseName } = appsSlice.actions;
+export const { setNodes, setPrivateOrgApps,setClusterPreview, setCluster, setSelectedSkeletonBaseName, setSelectedComponentBaseName } = appsSlice.actions;
 export default appsSlice.reducer;

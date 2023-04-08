@@ -61,9 +61,10 @@ export function ResourceRequirementsTable(props: any) {
                     <TableRow style={{ backgroundColor: '#8991B0'}} >
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >ClusterBase</TableCell>
                         <TableCell style={{ color: 'white'}} align="left">Workload</TableCell>
-                        <TableCell style={{ color: 'white'}} align="left">CPU</TableCell>
+                        <TableCell style={{ color: 'white'}} align="left">vCPU</TableCell>
                         <TableCell style={{ color: 'white'}} align="left">Memory</TableCell>
                         <TableCell style={{ color: 'white'}} align="left">Disk</TableCell>
+                        <TableCell style={{ color: 'white'}} align="left">Count</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -79,6 +80,7 @@ export function ResourceRequirementsTable(props: any) {
                             <TableCell align="left">{row.resourceSumsCPU === '0' ? '-' : row.resourceSumsCPU}</TableCell>
                             <TableCell align="left">{row.resourceSumsMemory === '0' ? '-' : row.resourceSumsMemory}</TableCell>
                             <TableCell align="left">{row.resourceSumsDisk === '0' ? '-' : row.resourceSumsDisk}</TableCell>
+                            <TableCell align="left">{row.replicas === '0' ? '-' : row.replicas + 'x'}</TableCell>
                         </TableRow>
                     ))}
                     {emptyRows > 0 && (
@@ -100,7 +102,7 @@ function createResourceRequirementsData(cluster: Cluster): Array<{componentBaseN
     for (const [componentBaseName, skeletonBases] of Object.entries(cluster.componentBases)) {
         for (const [skeletonBaseName, skeletonBase] of Object.entries(skeletonBases)) {
             if (skeletonBase.resourceSums) {
-                const {cpuRequests, memRequests, diskRequests} = skeletonBase.resourceSums;
+                const {cpuRequests, memRequests, diskRequests, replicas} = skeletonBase.resourceSums;
 
                 if ((cpuRequests && cpuRequests !== '0') ||  (memRequests && memRequests !== '0') || (diskRequests && diskRequests !== '0')) {
                     resourceRequirementsData.push({
@@ -109,6 +111,7 @@ function createResourceRequirementsData(cluster: Cluster): Array<{componentBaseN
                         resourceSumsCPU: cpuRequests?.toString() ?? '',
                         resourceSumsMemory: memRequests?.toString() ?? '',
                         resourceSumsDisk: diskRequests?.toString() ?? '',
+                        replicas: replicas?.toString() ?? '',
                     });
                 }
             }
@@ -116,4 +119,75 @@ function createResourceRequirementsData(cluster: Cluster): Array<{componentBaseN
     }
 
     return resourceRequirementsData;
+}
+
+export function createDiskResourceRequirements(cluster: Cluster): Array<{componentBaseName: string, skeletonBaseName: string, resourceSumsDisk: string, replicas: string, blockStorageCostUnit: number}> {
+    const resourceRequirementsData = [];
+    for (const [componentBaseName, skeletonBases] of Object.entries(cluster.componentBases)) {
+        for (const [skeletonBaseName, skeletonBase] of Object.entries(skeletonBases)) {
+            if (skeletonBase.resourceSums) {
+                const {cpuRequests, memRequests, diskRequests, replicas} = skeletonBase.resourceSums;
+                let blockStorageCostUnit = divideBy100GiB(diskRequests.toString());
+                if ((cpuRequests && cpuRequests !== '0') ||  (memRequests && memRequests !== '0') || (diskRequests && diskRequests !== '0')) {
+                    resourceRequirementsData.push({
+                        componentBaseName,
+                        skeletonBaseName,
+                        resourceSumsDisk: diskRequests?.toString() ?? '',
+                        replicas: replicas?.toString() ?? '',
+                        blockStorageCostUnit: blockStorageCostUnit,
+                    });
+
+                }
+            }
+        }
+    }
+    return resourceRequirementsData;
+}
+type DiskSize = {
+    value: number;
+    unit?: 'B' | 'KiB' | 'Ki' | 'MiB' | 'Mi' | 'GiB' | 'Gi' | 'TiB' | 'Ti' | 'PiB' | 'Pi' | 'EiB' | 'Ei';
+};
+
+function parseDiskSize(input: string): DiskSize {
+    const regex = /^(\d+(?:\.\d+)?)\s*(([KMGTPE]i)?B?)$/i;
+    const match = input.match(regex);
+
+    if (!match) {
+        return {value: 0};
+    }
+
+    const value = parseFloat(match[1]);
+    const unit = (match[3]?.toUpperCase() + (match[4]?.toUpperCase() ?? "")) as 'B' | 'KiB' | 'Ki' | 'MiB' | 'Mi' | 'GiB' | 'Gi' | 'TiB' | 'Ti' | 'PiB' | 'Pi' | 'EiB' | 'Ei' | undefined;
+
+    return { value, unit: unit && (unit.charAt(0) + unit.slice(1).toLowerCase()) as 'B' | 'KiB' | 'Ki' | 'MiB' | 'Mi' | 'GiB' | 'Gi' | 'TiB' | 'Ti' | 'PiB' | 'Pi' | 'EiB' | 'Ei' };
+}
+
+function convertToBibiBytes(size: DiskSize): number {
+    if (!size.unit) {
+        return size.value;
+    }
+
+    const unitMap = {
+        B: 1,
+        KiB: 1 << 10,
+        Ki: 1 << 10,
+        MiB: 1 << 20,
+        Mi: 1 << 20,
+        GiB: 1 << 30,
+        Gi: 1 << 30,
+        TiB: BigInt(1) << BigInt(40),
+        Ti: BigInt(1) << BigInt(40),
+        PiB: BigInt(1) << BigInt(50),
+        Pi: BigInt(1) << BigInt(50),
+        EiB: BigInt(1) << BigInt(60),
+        Ei: BigInt(1) << BigInt(60),
+    };
+    const unitMultiplier = unitMap[size.unit];
+    return Number(BigInt(size.value) * BigInt(unitMultiplier));
+}
+
+export function divideBy100GiB(input: string): number {
+    const diskSize = parseDiskSize(input);
+    const bibiBytes = convertToBibiBytes(diskSize);
+    return Number(BigInt(bibiBytes) / BigInt(100*1024**3));
 }

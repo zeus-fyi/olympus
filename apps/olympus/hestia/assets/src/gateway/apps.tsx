@@ -1,6 +1,6 @@
 import {zeusApi} from './axios/axios';
 import inMemoryJWT from "../auth/InMemoryJWT";
-import {TopologySystemComponents} from "../redux/apps/apps.types";
+import {Nodes, TopologySystemComponents} from "../redux/apps/apps.types";
 import {Cluster, ClusterPreview} from "../redux/clusters/clusters.types";
 
 class AppsApiGateway {
@@ -73,4 +73,5 @@ export interface AppPageResponse {
     clusterPreview: ClusterPreview;
     selectedComponentBaseName: string;
     selectedSkeletonBaseName: string;
+    nodes: Nodes[];
 }

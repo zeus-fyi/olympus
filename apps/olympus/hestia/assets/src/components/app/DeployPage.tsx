@@ -171,14 +171,14 @@ export function DeployPage(props: any) {
         for (const resource of resourceRequirements) {
             totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * 10 * parseInt(resource.replicas));
         }
-        return node.priceMonthly * count + totalBlockStorageCost;
+        return node.priceMonthly * count + (totalBlockStorageCost*1.1);
     }
     function totalHourlyCost() {
         let totalBlockStorageCost = 0;
         for (const resource of resourceRequirements) {
             totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * 0.10 * parseInt(resource.replicas));
         }
-        return node.priceHourly * count + totalBlockStorageCost;
+        return node.priceHourly * count + (totalBlockStorageCost*1.1);
     }
     return (
         <div>

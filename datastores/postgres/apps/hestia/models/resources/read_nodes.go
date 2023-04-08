@@ -1,4 +1,4 @@
-package hestia_nodes
+package hestia_compute_resources
 
 import (
 	"context"

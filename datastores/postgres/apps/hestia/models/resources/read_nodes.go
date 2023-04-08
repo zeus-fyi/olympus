@@ -1,4 +1,4 @@
-package hestia_nodes
+package hestia_compute_resources
 
 import (
 	"context"
@@ -35,7 +35,7 @@ func SelectNodes(ctx context.Context, nf NodeFilter) (hestia_autogen_bases.Nodes
 	cpuRequestsCores := cpuRequests.Value()
 
 	// Build the SQL query
-	q := `SELECT node_id, description, slug, memory, vcpus, disk, price_monthly, price_hourly, region, cloud_provider
+	q := `SELECT resource_id, description, slug, memory, memory_units, vcpus, disk, disk_units, price_monthly, price_hourly, region, cloud_provider
     	  FROM nodes
     	  WHERE cloud_provider = $1 AND region = $2 AND memory >= $3 AND vcpus >= $4
     	  ORDER BY price_hourly ASC`
@@ -57,12 +57,14 @@ func SelectNodes(ctx context.Context, nf NodeFilter) (hestia_autogen_bases.Nodes
 	for rows.Next() {
 		var node hestia_autogen_bases.Nodes
 		err = rows.Scan(
-			&node.NodeID,
+			&node.ResourceID,
 			&node.Description,
 			&node.Slug,
 			&node.Memory,
+			&node.MemoryUnits,
 			&node.Vcpus,
 			&node.Disk,
+			&node.DiskUnits,
 			&node.PriceMonthly,
 			&node.PriceHourly,
 			&node.Region,

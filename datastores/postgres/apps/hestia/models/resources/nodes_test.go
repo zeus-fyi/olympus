@@ -19,7 +19,7 @@ type NodesTestSuite struct {
 
 func (s *NodesTestSuite) TestSelectNodes() {
 	s.InitLocalConfigs()
-	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	nf := NodeFilter{
 		CloudProvider: "do",
 		Region:        "nyc1",

@@ -20,12 +20,12 @@ func (s *DisksTestSuite) TestInsertDisk() {
 	disk := hestia_autogen_bases.Disks{
 		PriceMonthly:  10,
 		PriceHourly:   0.015,
-		Region:        "nyc1",
+		Region:        "sfo3",
 		CloudProvider: "do",
 		Description:   "Digital Ocean Block Storage SSD",
 		Type:          "ssd",
-		Size:          100,
-		Units:         "Gi",
+		DiskSize:      100,
+		DiskUnits:     "Gi",
 	}
 	err := InsertDisk(ctx, disk)
 	s.Require().NoError(err)

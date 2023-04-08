@@ -19,18 +19,28 @@ var ts chronos.Chronos
 func InsertNodes(ctx context.Context, nodes autogen_bases.NodesSlice) error {
 	q := sql_query_templates.NewQueryParam("InsertNodes", "nodes", "where", 1000, []string{})
 	cte := sql_query_templates.CTE{Name: "InsertNodes"}
-	cte.SubCTEs = make([]sql_query_templates.SubCTE, len(nodes))
+	cte.SubCTEs = []sql_query_templates.SubCTE{}
 	cte.Params = []interface{}{}
 
-	for i, node := range nodes {
+	for _, node := range nodes {
 		tmp := &node
-		node.NodeID = ts.UnixTimeStampNow()
-		queryName := fmt.Sprintf("nodes_insert_%d", node.NodeID)
+		re := autogen_bases.Resources{
+			ResourceID: ts.UnixTimeStampNow(),
+			Type:       "node",
+		}
+		node.ResourceID = re.ResourceID
+		queryResourceId := fmt.Sprintf("resource_id_insert_%d", node.ResourceID)
+		scteRe := sql_query_templates.NewSubInsertCTE(queryResourceId)
+		scteRe.TableName = re.GetTableName()
+		scteRe.Columns = re.GetTableColumns()
+		scteRe.Values = []apps.RowValues{re.GetRowValues(queryResourceId)}
+		cte.SubCTEs = append(cte.SubCTEs, scteRe)
+		queryName := fmt.Sprintf("nodes_insert_%d", node.ResourceID)
 		scte := sql_query_templates.NewSubInsertCTE(queryName)
 		scte.TableName = tmp.GetTableName()
 		scte.Columns = tmp.GetTableColumns()
 		scte.Values = []apps.RowValues{tmp.GetRowValues(queryName)}
-		cte.SubCTEs[i] = scte
+		cte.SubCTEs = append(cte.SubCTEs, scte)
 	}
 	q.RawQuery = cte.GenerateChainedCTE()
 	r, err := apps.Pg.Exec(ctx, q.RawQuery, cte.Params...)

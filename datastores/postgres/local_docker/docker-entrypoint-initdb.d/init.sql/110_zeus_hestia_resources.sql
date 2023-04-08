@@ -1,15 +1,23 @@
+CREATE TABLE resources (
+   resource_id int8 NOT NULL DEFAULT next_id(),
+   type text NOT NULL,
+   PRIMARY KEY (resource_id)
+);
+
 CREATE TABLE nodes (
-   node_id int8 NOT NULL DEFAULT next_id(),
+   resource_id int8 NOT NULL REFERENCES resources(resource_id),
    description text NOT NULL,
    slug text NOT NULL,
    memory int NOT NULL,
+   memory_units text NOT NULL,
    vcpus int NOT NULL,
    disk int NOT NULL,
+   disk_units text NOT NULL,
    price_monthly float8 NOT NULL,
    price_hourly float8 NOT NULL,
    region text NOT NULL,
    cloud_provider text NOT NULL,
-   PRIMARY KEY (node_id)
+   PRIMARY KEY (resource_id)
 );
 
 CREATE INDEX nodes_region_idx ON nodes (region);
@@ -20,14 +28,28 @@ CREATE INDEX nodes_price_monthly_idx ON nodes (price_monthly);
 CREATE INDEX nodes_price_hourly_idx ON nodes (price_hourly);
 
 CREATE TABLE disks (
-   disk_id int8 NOT NULL DEFAULT next_id(),
+   resource_id int8 NOT NULL REFERENCES resources(resource_id),
    description text NOT NULL,
    type text NOT NULL,
-   units text NOT NULL,
-   size int NOT NULL,
+   disk_units text NOT NULL,
+   disk_size int NOT NULL,
    price_monthly float8 NOT NULL,
    price_hourly float8 NOT NULL,
    region text NOT NULL,
    cloud_provider text NOT NULL,
-   PRIMARY KEY (disk_id)
+   PRIMARY KEY (resource_id)
 );
+
+CREATE INDEX disks_cloud_provider_idx ON disks (region);
+CREATE INDEX disks_region_idx ON disks (cloud_provider);
+
+CREATE TABLE org_resources (
+   resource_id int8 NOT NULL REFERENCES resources(resource_id),
+   org_id int8 NOT NULL REFERENCES orgs(org_id),
+   begin_service timestamptz NOT NULL DEFAULT NOW(),
+   end_service timestamptz DEFAULT NULL,
+   PRIMARY KEY (resource_id, org_id)
+);
+
+CREATE INDEX begin_resource_idx ON org_resources (begin_service);
+CREATE INDEX end_resource_idx ON org_resources (end_service);

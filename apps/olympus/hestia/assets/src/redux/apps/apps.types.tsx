@@ -16,7 +16,7 @@ export interface AppsState {
 }
 
 export interface Nodes {
-    nodeID: number;
+    resourceID: number;
     description: string;
     slug: string;
     disk: number;

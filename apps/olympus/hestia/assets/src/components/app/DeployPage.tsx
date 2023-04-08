@@ -38,7 +38,7 @@ import {
 const mdTheme = createTheme();
 
 interface NodeMap {
-    [nodeId: number]: Nodes;
+    [resourceID: number]: Nodes;
 }
 
 export function DeployPage(props: any) {
@@ -84,7 +84,7 @@ export function DeployPage(props: any) {
             } catch (e) {
             }
         }
-        if (nodes[0].nodeID === 0) {
+        if (nodes[0].resourceID === 0) {
             fetchData().then(r => {
                 setNode(nodes[0]);
             });
@@ -105,10 +105,10 @@ export function DeployPage(props: any) {
     };
 
     nodes.forEach((node) => {
-        if (node.nodeID === 0) {
+        if (node.resourceID === 0) {
             return;
         }
-        nodeMap[node.nodeID] = node;
+        nodeMap[node.resourceID] = node;
     });
     let buttonLabel;
     let buttonDisabled;
@@ -157,13 +157,13 @@ export function DeployPage(props: any) {
         setRegion(region);
     }
 
-    function isNodeInMap(nodeID: number) {
-        return nodeID in nodeMap;
+    function isNodeInMap(resourceID: number) {
+        return resourceID in nodeMap;
     }
 
-    function handleAddNode(nodeID: number) {
-        if (nodeID in nodeMap) {
-            setNode(nodeMap[nodeID]);
+    function handleAddNode(resourceID: number) {
+        if (resourceID in nodeMap) {
+            setNode(nodeMap[resourceID]);
         }
     }
     function totalCost() {
@@ -234,7 +234,7 @@ export function DeployPage(props: any) {
                                 </FormControl>
                             </Stack>
                             <Stack direction="row" >
-                                {isNodeInMap(node.nodeID) &&
+                                {isNodeInMap(node.resourceID) &&
                                 <FormControl  sx={{ mr: 1 }} fullWidth variant="outlined">
                                     <InputLabel key={`nodesLabel`} id={`nodes`}>
                                         Nodes
@@ -243,12 +243,12 @@ export function DeployPage(props: any) {
                                         labelId={`nodesLabel`}
                                         id={`nodes`}
                                         name="nodes"
-                                        value={node.nodeID}
+                                        value={node.resourceID}
                                         onChange={(event) => handleAddNode(event.target.value as number)}
                                         label="Nodes"
                                     >
                                         {nodes.map((node) => (
-                                            <MenuItem key={node.nodeID} value={node.nodeID}>
+                                            <MenuItem key={node.resourceID} value={node.resourceID}>
                                                 {node.slug}
                                             </MenuItem>
                                         ))}

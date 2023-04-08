@@ -14,7 +14,7 @@ const initialState: AppsState = {
     selectedComponentBaseName: '',
     selectedSkeletonBaseName: '',
     nodes: [{
-        nodeID: 0,
+        resourceID: 0,
         description: '',
         slug: '',
         disk: 0,

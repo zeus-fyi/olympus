@@ -8,6 +8,7 @@ import (
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	clean_deployed_workflow "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/clean"
 	deploy_workflow "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/create"
+	deploy_workflow_cluster_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/create_setup"
 	destroy_deployed_workflow "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/destroy"
 	"go.temporal.io/sdk/client"
 )
@@ -77,6 +78,23 @@ func (t *TopologyWorker) ExecuteCleanDeploy(ctx context.Context, params base_dep
 	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
 	if err != nil {
 		log.Err(err).Msg("ExecuteCleanDeploy")
+		return err
+	}
+	return err
+}
+
+// TODO update params
+func (t *TopologyWorker) ExecuteCreateSetupCluster(ctx context.Context, params base_deploy_params.TopologyWorkflowRequest) error {
+	c := t.ConnectTemporalClient()
+	defer c.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: t.TaskQueueName,
+	}
+	clusterSetupWf := deploy_workflow_cluster_setup.NewDeployCreateSetupTopologyWorkflow()
+	wf := clusterSetupWf.GetWorkflows()
+	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
+	if err != nil {
+		log.Err(err).Msg("ExecuteCreateSetupCluster")
 		return err
 	}
 	return err

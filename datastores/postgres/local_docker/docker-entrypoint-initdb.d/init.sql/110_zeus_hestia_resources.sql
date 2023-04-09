@@ -46,6 +46,7 @@ CREATE INDEX disks_region_idx ON disks (cloud_provider);
 CREATE TABLE org_resources (
    resource_id int8 NOT NULL REFERENCES resources(resource_id),
    org_id int8 NOT NULL REFERENCES orgs(org_id),
+   quantity float8 NOT NULL,
    begin_service timestamptz NOT NULL DEFAULT NOW(),
    end_service timestamptz DEFAULT NULL,
    PRIMARY KEY (resource_id, org_id)

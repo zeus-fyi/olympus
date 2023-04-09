@@ -13,7 +13,7 @@ func (c *CreateSetupTopologyActivities) GetActivities() ActivitiesSlice {
 		c.AddDiskResourcesToOrg,
 		c.AddDomainRecord,
 		c.SendEmailNotification,
-		c.AddNodePool,
+		c.MakeNodePoolRequest,
 		c.AddNodePoolToOrgResources,
 		c.AddAuthCtxNsOrg,
 	}

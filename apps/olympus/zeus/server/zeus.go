@@ -53,6 +53,7 @@ func Zeus() {
 			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to auth doctl, shutting down the server")
 			misc.DelayedPanic(err)
 		}
+		api_auth_temporal.InitOrchestrationDigitalOceanClient(ctx, sw.DoctlToken)
 	case "production-local":
 		log.Info().Msg("Zeus: production local, auth procedure starting")
 		tc := configs.InitLocalTestConfigs()
@@ -62,7 +63,8 @@ func Zeus() {
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 		temporalAuthCfg = tc.ProdLocalTemporalAuth
 
-		_, _ = auth_startup.RunDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+		_, sw := auth_startup.RunDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+		api_auth_temporal.InitOrchestrationDigitalOceanClient(ctx, sw.DoctlToken)
 	case "local":
 		log.Info().Msg("Zeus: local, auth procedure starting")
 		tc := configs.InitLocalTestConfigs()
@@ -70,6 +72,7 @@ func Zeus() {
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 		temporalAuthCfg = tc.ProdLocalTemporalAuth
+		api_auth_temporal.InitOrchestrationDigitalOceanClient(ctx, tc.DigitalOceanAPIKey)
 	}
 
 	log.Info().Msg("Zeus: PG connection starting")
@@ -127,7 +130,7 @@ func init() {
 // Cmd represents the base command when called without any subcommands
 var Cmd = &cobra.Command{
 	Use:   "zeus",
-	Short: "A transformer for distributed infra actions",
+	Short: "An orchestration engine for distributed infra actions",
 	Run: func(cmd *cobra.Command, args []string) {
 		Zeus()
 	},

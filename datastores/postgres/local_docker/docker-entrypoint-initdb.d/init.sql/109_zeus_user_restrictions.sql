@@ -5,8 +5,10 @@ CREATE TABLE "public"."topologies_org_cloud_ctx_ns" (
     "context" text NOT NULL,
     "region" text NOT NULL,
     "namespace" text NOT NULL,
+    "namespace_alias" text NOT NULL,
     "created_at" timestamptz  NOT NULL DEFAULT NOW()
 );
 
 ALTER TABLE "public"."topologies_org_cloud_ctx_ns" ADD CONSTRAINT "cloud_ctx_ns_id_pk" PRIMARY KEY ("cloud_ctx_ns_id");
 ALTER TABLE "public"."topologies_org_cloud_ctx_ns" ADD CONSTRAINT "cloud_ctx_ns_unique" UNIQUE ("cloud_provider", "context", "region", "namespace");
+ALTER TABLE "public"."topologies_org_cloud_ctx_ns" ADD CONSTRAINT "alias_org_ns_unique" UNIQUE ("org_id", "namespace_alias");

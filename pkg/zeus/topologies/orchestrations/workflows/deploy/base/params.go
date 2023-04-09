@@ -37,8 +37,7 @@ type ClusterSetupRequest struct {
 	ClusterID     uuid.UUID
 	Nodes         hestia_autogen_bases.Nodes
 	NodesQuantity float64
-	Disks         hestia_autogen_bases.Disks
-	DisksQuantity float64
+	Disks         hestia_autogen_bases.DisksSlice
 }
 
 func (t *TopologyWorkflowRequest) GetURL(prefix, target string) url.URL {

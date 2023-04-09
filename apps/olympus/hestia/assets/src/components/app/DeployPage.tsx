@@ -121,17 +121,17 @@ export function DeployPage(props: any) {
             break;
         case 'success':
             buttonLabel = 'Deploy More';
-            buttonDisabled = false;
+            buttonDisabled = count === 0;
             statusMessage = 'Deployment in Progress';
             break;
         case 'error':
             buttonLabel = 'Retry';
-            buttonDisabled = false;
+            buttonDisabled = count === 0;
             statusMessage = 'An error occurred while attempting to deploy.';
             break;
         default:
             buttonLabel = 'Deploy';
-            buttonDisabled = false;
+            buttonDisabled = count === 0;
             break;
     }
     const handleDeploy = async () => {
@@ -139,13 +139,16 @@ export function DeployPage(props: any) {
             setRequestStatus('pending');
             const namespaceAlias = "default";
             const payload = {
-                "node": node,
+                "cloudProvider": cloudProvider,
+                "region": region,
+                "nodes": node,
                 "count": count,
                 "namespaceAlias": namespaceAlias,
                 "cluster": cluster,
                 "resourceRequirements": resourceRequirements,
             }
-            const response = await appsApiGateway.deployApp(params.id as string, payload);
+            console.log("payload", payload)
+            const response = await appsApiGateway.deployApp(payload);
             if (response.status === 200) {
                 setRequestStatus('success');
             } else {

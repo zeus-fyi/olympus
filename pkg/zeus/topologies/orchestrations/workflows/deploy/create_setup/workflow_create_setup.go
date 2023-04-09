@@ -58,10 +58,13 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 	}
 
 	diskOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(diskOrgResourcesCtx, c.CreateSetupTopologyActivities.AddDiskResourcesToOrg, params).Get(diskOrgResourcesCtx, nil)
-	if err != nil {
-		log.Error("Failed to add disk resources to org account", "Error", err)
-		return err
+
+	for _, disk := range params.Disks {
+		err = workflow.ExecuteActivity(diskOrgResourcesCtx, c.CreateSetupTopologyActivities.AddDiskResourcesToOrg, params, disk).Get(diskOrgResourcesCtx, nil)
+		if err != nil {
+			log.Error("Failed to add disk resources to org account", "Error", err)
+			return err
+		}
 	}
 
 	//// TODO params

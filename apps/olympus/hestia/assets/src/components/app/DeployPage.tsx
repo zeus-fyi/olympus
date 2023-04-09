@@ -137,7 +137,15 @@ export function DeployPage(props: any) {
     const handleDeploy = async () => {
         try {
             setRequestStatus('pending');
-            const response = await appsApiGateway.deployApp(params.id as string, {});
+            const namespaceAlias = "default";
+            const payload = {
+                "node": node,
+                "count": count,
+                "namespaceAlias": namespaceAlias,
+                "cluster": cluster,
+                "resourceRequirements": resourceRequirements,
+            }
+            const response = await appsApiGateway.deployApp(params.id as string, payload);
             if (response.status === 200) {
                 setRequestStatus('success');
             } else {

@@ -43,7 +43,7 @@ class AppsApiGateway {
         }
     }
     async deployApp(id: string, params: any): Promise<any>  {
-        const url = `/v1/infra/ui/deploy/app/${id}`;
+        const url = `/v1/deploy/ui/app`;
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {

@@ -13,7 +13,17 @@ import (
 	topology_deployment_status "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/state"
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
+	deploy_workflow_cluster_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/create_setup"
 )
+
+func ExecuteCreateSetupClusterWorkflow(c echo.Context, ctx context.Context, params deploy_workflow_cluster_setup.ClusterSetupRequest) error {
+	err := topology_worker.Worker.ExecuteCreateSetupCluster(ctx, params)
+	if err != nil {
+		log.Err(err).Interface("orgUser", params.Ou.OrgID).Msg("ExecuteDeployClusterWorkflow, ExecuteWorkflow error")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	return c.JSON(http.StatusAccepted, nil)
+}
 
 func ExecuteDeployClusterWorkflow(c echo.Context, ctx context.Context, params base_deploy_params.ClusterTopologyWorkflowRequest) error {
 	err := topology_worker.Worker.ExecuteDeployCluster(ctx, params)

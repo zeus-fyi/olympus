@@ -11,12 +11,14 @@ import (
 func (c *CreateSetupTopologyActivities) AddAuthCtxNsOrg(ctx context.Context, newCloudCtxAuth create_topology.CreateTopologiesOrgCloudCtxNs) error {
 	uuidNamespace, err := uuid.NewUUID()
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("cloudAuth", newCloudCtxAuth).Msg("AddAuthCtxNsOrg error")
+		log.Ctx(ctx).Err(err).Interface("cloudAuth", newCloudCtxAuth).Msg("AddAuthCtxNsOrg: NewUUID error")
+		return err
 	}
 	newCloudCtxAuth.Namespace = uuidNamespace.String()
 	err = newCloudCtxAuth.InsertTopologyAccessCloudCtxNs(ctx)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("cloudAuth", newCloudCtxAuth).Msg("AddAuthCtxNsOrg error")
+		log.Ctx(ctx).Err(err).Interface("cloudAuth", newCloudCtxAuth).Msg("AddAuthCtxNsOrg: InsertTopologyAccessCloudCtxNs error")
+		return err
 	}
 	return err
 }

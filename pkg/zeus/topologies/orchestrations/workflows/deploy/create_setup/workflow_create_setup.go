@@ -3,12 +3,9 @@ package deploy_workflow_cluster_setup
 import (
 	"time"
 
-	"github.com/google/uuid"
-	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	deploy_topology_activities_create_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/cluster_setup"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -31,17 +28,7 @@ func (c *ClusterSetupWorkflow) GetWorkflows() []interface{} {
 	return []interface{}{c.DeployClusterSetupWorkflow}
 }
 
-type ClusterSetupRequest struct {
-	Ou org_users.OrgUser
-	zeus_common_types.CloudCtxNs
-	ClusterID     uuid.UUID
-	Nodes         hestia_autogen_bases.Nodes
-	NodesQuantity float64
-	Disks         hestia_autogen_bases.Disks
-	DisksQuantity float64
-}
-
-func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, params ClusterSetupRequest) error {
+func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, params base_deploy_params.ClusterSetupRequest) error {
 	log := workflow.GetLogger(ctx)
 
 	ao := workflow.ActivityOptions{

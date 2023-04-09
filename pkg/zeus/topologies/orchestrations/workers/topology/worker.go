@@ -83,7 +83,7 @@ func (t *TopologyWorker) ExecuteCleanDeploy(ctx context.Context, params base_dep
 	return err
 }
 
-func (t *TopologyWorker) ExecuteCreateSetupCluster(ctx context.Context, params deploy_workflow_cluster_setup.ClusterSetupRequest) error {
+func (t *TopologyWorker) ExecuteCreateSetupCluster(ctx context.Context, params base_deploy_params.ClusterSetupRequest) error {
 	c := t.ConnectTemporalClient()
 	defer c.Close()
 	workflowOptions := client.StartWorkflowOptions{

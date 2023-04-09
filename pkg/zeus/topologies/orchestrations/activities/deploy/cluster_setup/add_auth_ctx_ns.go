@@ -6,10 +6,10 @@ import (
 	"github.com/rs/zerolog/log"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	create_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/topology"
-	deploy_workflow_cluster_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/create_setup"
+	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 )
 
-func (c *CreateSetupTopologyActivities) AddAuthCtxNsOrg(ctx context.Context, params deploy_workflow_cluster_setup.ClusterSetupRequest) error {
+func (c *CreateSetupTopologyActivities) AddAuthCtxNsOrg(ctx context.Context, params base_deploy_params.ClusterSetupRequest) error {
 	newCloudCtxAuth := create_topology.CreateTopologiesOrgCloudCtxNs{
 		TopologiesOrgCloudCtxNs: autogen_bases.TopologiesOrgCloudCtxNs{
 			OrgID:          params.Ou.OrgID,

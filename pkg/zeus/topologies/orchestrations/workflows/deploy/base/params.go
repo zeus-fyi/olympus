@@ -4,6 +4,8 @@ import (
 	"net/url"
 	"path"
 
+	"github.com/google/uuid"
+	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
@@ -27,6 +29,16 @@ type ClusterTopologyWorkflowRequest struct {
 	Host        string
 
 	RequestChoreographySecret bool
+}
+
+type ClusterSetupRequest struct {
+	Ou org_users.OrgUser
+	zeus_common_types.CloudCtxNs
+	ClusterID     uuid.UUID
+	Nodes         hestia_autogen_bases.Nodes
+	NodesQuantity float64
+	Disks         hestia_autogen_bases.Disks
+	DisksQuantity float64
 }
 
 func (t *TopologyWorkflowRequest) GetURL(prefix, target string) url.URL {

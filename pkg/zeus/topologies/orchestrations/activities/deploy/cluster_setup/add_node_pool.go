@@ -8,10 +8,10 @@ import (
 	"github.com/rs/zerolog/log"
 	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
-	deploy_workflow_cluster_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/create_setup"
+	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 )
 
-func (c *CreateSetupTopologyActivities) AddNodePoolToOrgResources(ctx context.Context, params deploy_workflow_cluster_setup.ClusterSetupRequest) error {
+func (c *CreateSetupTopologyActivities) AddNodePoolToOrgResources(ctx context.Context, params base_deploy_params.ClusterSetupRequest) error {
 	err := hestia_compute_resources.AddResourcesToOrg(ctx, params.Ou.OrgID, params.Nodes.ResourceID, params.NodesQuantity)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("AddNodePoolToOrgResources error")
@@ -20,7 +20,7 @@ func (c *CreateSetupTopologyActivities) AddNodePoolToOrgResources(ctx context.Co
 	return nil
 }
 
-func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context, params deploy_workflow_cluster_setup.ClusterSetupRequest) error {
+func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) error {
 	taint := godo.Taint{
 		Key:   fmt.Sprintf("%d", params.Ou.OrgID),
 		Value: params.ClusterID.String(),

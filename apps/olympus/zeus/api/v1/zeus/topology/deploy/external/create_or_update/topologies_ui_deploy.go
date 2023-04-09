@@ -8,7 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	deploy_workflow_cluster_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/create_setup"
+	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
@@ -39,12 +39,12 @@ func SetupClusterTopologyDeploymentHandler(c echo.Context) error {
 }
 
 func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) error {
-	log.Debug().Msg("DeployClusterTopology")
+	log.Debug().Msg("DeploySetupClusterTopology")
 	ctx := context.Background()
-
+	ou := c.Get("orgUser").(org_users.OrgUser)
 	clusterID := uuid.New()
-	cr := deploy_workflow_cluster_setup.ClusterSetupRequest{
-		Ou:            org_users.OrgUser{},
+	cr := base_deploy_params.ClusterSetupRequest{
+		Ou:            ou,
 		CloudCtxNs:    zeus_common_types.CloudCtxNs{},
 		ClusterID:     clusterID,
 		Nodes:         autogen_bases.Nodes{},

@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
+	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_resp_types/topology_workloads"
 	zeus_cluster_config_drivers "github.com/zeus-fyi/zeus/pkg/zeus/cluster_config_drivers"
@@ -27,6 +28,37 @@ type ClusterPreviewWorkloadsOlympus struct {
 	ComponentBases map[string]map[string]any `json:"componentBases"`
 }
 
+const (
+	AvaxAppID  = 1680924257606485000
+	AppsOrgID  = 7138983863666903883
+	AppsUserID = 7138958574876245565
+)
+
+func GenerateSkeletonBaseChartsCopy(ctx context.Context, cd *zeus_cluster_config_drivers.ClusterDefinition) (ClusterPreviewWorkloads, error) {
+	pcg := ClusterPreviewWorkloads{
+		ClusterName:    cd.ClusterClassName,
+		ComponentBases: make(map[string]map[string]topology_workloads.TopologyBaseInfraWorkload),
+	}
+	for cbName, componentBase := range cd.ComponentBases {
+		pcg.ComponentBases[cbName] = make(map[string]topology_workloads.TopologyBaseInfraWorkload)
+		for sbName, skeletonBase := range componentBase.SkeletonBases {
+			tr := read_topology.NewInfraTopologyReader()
+			tr.TopologyID = skeletonBase.TopologyID
+			// from auth lookup
+			tr.OrgID = AppsOrgID
+			tr.UserID = AppsUserID
+			err := tr.SelectTopologyForOrg(ctx)
+			if err != nil {
+				log.Ctx(ctx).Err(err)
+				return pcg, err
+			}
+			nk := tr.GetTopologyBaseInfraWorkload()
+			skeletonBase.Workload = topology_workloads.TopologyBaseInfraWorkload(nk)
+			pcg.ComponentBases[cbName][sbName] = skeletonBase.Workload
+		}
+	}
+	return pcg, nil
+}
 func GenerateSkeletonBaseChartsPreview(ctx context.Context, cluster Cluster) (ClusterPreviewWorkloads, error) {
 	pcg := ClusterPreviewWorkloads{
 		ClusterName:    cluster.ClusterName,

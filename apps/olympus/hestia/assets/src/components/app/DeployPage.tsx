@@ -124,6 +124,11 @@ export function DeployPage(props: any) {
             buttonDisabled = count === 0;
             statusMessage = 'Deployment in Progress';
             break;
+        case 'missingBilling':
+            buttonLabel = 'Retry';
+            buttonDisabled = count === 0;
+            statusMessage = 'No payment methods have been set. You can set a payment option on the billing page.';
+            break;
         case 'error':
             buttonLabel = 'Retry';
             buttonDisabled = count === 0;
@@ -151,6 +156,8 @@ export function DeployPage(props: any) {
             const response = await appsApiGateway.deployApp(payload);
             if (response.status === 200 || response.status === 202) {
                 setRequestStatus('success');
+            } else if (response.status === 403) {
+                setRequestStatus('missingBilling');
             } else {
                 setRequestStatus('error');
                 return

@@ -5,10 +5,12 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/keys"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
@@ -174,4 +176,51 @@ func (k *OrgUserKey) QueryUserAuthedServices(ctx context.Context, token string) 
 		services = append(services, serviceName)
 	}
 	return services, misc.ReturnIfErr(err, q.LogHeader(Sn))
+}
+
+func (k *OrgUserKey) QueryGetCustomerStripeID() sql_query_templates.QueryParams {
+	var q sql_query_templates.QueryParams
+	query := fmt.Sprintf(`
+	SELECT usk.public_key
+	FROM users_keys usk
+	INNER JOIN key_types kt ON kt.key_type_id = usk.public_key_type_id
+	INNER JOIN org_users ou ON ou.user_id = usk.user_id
+	INNER JOIN users u ON u.user_id = ou.user_id
+	WHERE u.user_id = $1 AND usk.public_key_type_id = $2
+	`)
+	q.RawQuery = query
+	return q
+}
+
+func (k *OrgUserKey) QueryGetUserInfo() sql_query_templates.QueryParams {
+	var q sql_query_templates.QueryParams
+	query := fmt.Sprintf(`
+	SELECT u.first_name, u.last_name, u.email
+	FROM users u
+	WHERE u.user_id = $1
+	`)
+	q.RawQuery = query
+	return q
+}
+
+func (k *OrgUserKey) GetOrCreateCustomerStripeID(ctx context.Context) (string, error) {
+	q := k.QueryGetCustomerStripeID()
+	log.Debug().Interface("GetOrCreateCustomerStripeID:", q.LogHeader(Sn))
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.UserID, keys.StripeCustomerID).Scan(&k.PublicKey)
+	if err == pgx.ErrNoRows {
+		q = k.QueryGetUserInfo()
+		firstName, lastName, email := "", "", ""
+		err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.UserID).Scan(&firstName, &lastName, &email)
+		if err != nil {
+			log.Ctx(ctx).Err(err).Msg("CreateOrGetCustomerStripeID error")
+			return "", err
+		}
+		c, cerr := hestia_stripe.CreateCustomer(ctx, k.UserID, firstName, lastName, email)
+		if cerr != nil {
+			log.Ctx(ctx).Err(cerr).Msg("CreateOrGetCustomerStripeID error")
+			return "", cerr
+		}
+		return c.ID, nil
+	}
+	return k.PublicKey, misc.ReturnIfErr(err, q.LogHeader(Sn))
 }

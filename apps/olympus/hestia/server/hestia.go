@@ -80,7 +80,7 @@ func Hestia() {
 		awsSESAuthCfg.SecretKey = tc.AwsSecretKeySES
 		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesSESEmailNotifications(ctx, awsSESAuthCfg)
 		hermes_email_notifications.InitHermesSendGridClient(ctx, tc.SendGridAPIKey)
-		hestia_stripe.InitStripe(tc.StripeProdSecretAPIKey)
+		hestia_stripe.InitStripe(tc.StripeTestSecretAPIKey)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
@@ -184,7 +184,7 @@ func Hestia() {
 func init() {
 	viper.AutomaticEnv()
 	Cmd.Flags().StringVar(&cfg.Port, "port", "9002", "server port")
-	Cmd.Flags().StringVar(&env, "env", "local", "environment")
+	Cmd.Flags().StringVar(&env, "env", "production-local", "environment")
 	Cmd.Flags().StringVar(&authKeysCfg.AgePubKey, "age-public-key", "age1n97pswc3uqlgt2un9aqn9v4nqu32egmvjulwqp3pv4algyvvuggqaruxjj", "age public key")
 	Cmd.Flags().StringVar(&authKeysCfg.AgePrivKey, "age-private-key", "", "age private key")
 	Cmd.Flags().StringVar(&authKeysCfg.SpacesKey, "do-spaces-key", "", "do s3 spaces key")

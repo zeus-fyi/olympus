@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useEffect} from 'react';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
@@ -13,12 +14,16 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
 import MainListItems from "../dashboard/listItems";
-import {loadStripe} from "@stripe/stripe-js";
-import {PaymentElement,} from "@stripe/react-stripe-js";
+import {CustomerOptions, loadStripe, StripeElementsOptionsMode} from "@stripe/stripe-js";
+import {Elements, PaymentElement,} from "@stripe/react-stripe-js";
 import {configService} from "../../config/config";
+import {Card} from "@mui/material";
+import {stripeApiGateway} from "../../gateway/stripe";
+import {setStripeCustomerID} from "../../redux/billing/billing.reducer";
+import {RootState} from "../../redux/store";
 
 const mdTheme = createTheme();
 
@@ -36,6 +41,18 @@ function BillingContent() {
         dispatch({type: 'LOGOUT_SUCCESS'})
         navigate('/login');
     }
+
+    useEffect(() => {
+        async function fetchCustomerID() {
+            try {
+                const response = await stripeApiGateway.getCustomerID()
+                dispatch(setStripeCustomerID(response.data.clientSecret));
+            } catch (e) {
+            }
+        }
+        fetchCustomerID().then(r => {});
+    }, [dispatch]);
+
 
     return (
         <ThemeProvider theme={mdTheme}>
@@ -122,33 +139,37 @@ export default function Billing() {
 
 const stripe = loadStripe(configService.getStripePubKey());
 
-const clientSecret = {clientSecret: "id_secret_ssdfsd"}
 
-const CheckoutPage = () => (
-    <div>
-        {/*<Elements stripe={stripe} options={clientSecret}>*/}
-        {/*    <CheckoutForm />*/}
-        {/*</Elements>*/}
-    </div>
-);
+function CheckoutPage() {
+    const customerID = useSelector((state: RootState) => state.billing.stripeCustomerID);
+    const options: StripeElementsOptionsMode = {
+        mode: 'setup',
+        currency: 'usd',
+        customerOptions: {
+            customer: customerID,
+            ephemeralKey: ''
+        } as CustomerOptions
+    };
+    return (
+        <div>
+            <Card>
+                <Container maxWidth="lg">
+                    <Box sx={{mt: 4, mb: 4}}>
+                        <Elements stripe={stripe} options={options}>
+                            <CheckoutForm/>
+                        </Elements>
+                    </Box>
+                </Container>
+            </Card>
+        </div>
+    );
+}
 
 export function CheckoutForm() {
     return (
         <form>
-            <h3>Payment</h3>
-
-            <PaymentElement
-                options={{
-                    defaultValues: {
-                        billingDetails: {
-                            email: 'foo@bar.com',
-                            name: 'John Doe',
-                            phone: '888-888-8888',
-                        }
-                    }
-                }}
-            />
-            <button type="submit">Submit</button>
+            <PaymentElement />
+            <button>Submit</button>
         </form>
     );
 }

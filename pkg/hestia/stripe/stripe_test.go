@@ -27,9 +27,15 @@ func (s *StripeTestSuite) SetupTest() {
 	InitStripe(s.Tc.StripeTestSecretAPIKey)
 }
 
-func (s *StripeTestSuite) TestArchiveProducts() {
-	err := ArchiveProducts(ctx)
+//func (s *StripeTestSuite) TestArchiveProducts() {
+//	err := ArchiveProducts(ctx)
+//	s.Require().NoError(err)
+//}
+
+func (s *StripeTestSuite) TestCreateCustomer() {
+	c, err := CreateCustomer(ctx, s.Tc.ProductionLocalTemporalUserID, "Alex", "George", "alex@zeus.fyi")
 	s.Require().NoError(err)
+	s.Require().NotNil(c)
 }
 
 func (s *StripeTestSuite) TestCreateProduct() {

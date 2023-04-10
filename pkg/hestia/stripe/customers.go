@@ -2,37 +2,38 @@ package hestia_stripe
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/rs/zerolog/log"
 	"github.com/stripe/stripe-go/v74"
+	"github.com/stripe/stripe-go/v74/customer"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/keys"
+	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
 )
 
-func CreateCustomer(ctx context.Context, name, email string) error {
+func CreateCustomer(ctx context.Context, userID int, firstName, lastName, email string) (*stripe.Customer, error) {
 	params := &stripe.CustomerParams{
-		Address:             nil,
-		Balance:             nil,
-		CashBalance:         nil,
-		Coupon:              nil,
-		DefaultSource:       nil,
-		Description:         nil,
-		Email:               stripe.String(email),
-		InvoicePrefix:       nil,
-		InvoiceSettings:     nil,
-		Name:                stripe.String(name),
-		NextInvoiceSequence: nil,
-		PaymentMethod:       nil,
-		Phone:               nil,
-		PreferredLocales:    nil,
-		PromotionCode:       nil,
-		Shipping:            nil,
-		Source:              nil,
-		Tax:                 nil,
-		TaxExempt:           nil,
-		TaxIDData:           nil,
-		TestClock:           nil,
-		Validate:            nil,
+		Email: stripe.String(email),
+		Name:  stripe.String(firstName + " " + lastName),
 	}
-	//c, _ := customer.New(params)
-	fmt.Println(params)
-	return nil
+	c, err := customer.New(params)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("CreateCustomer")
+		return nil, err
+	}
+	k := create_keys.Key{}
+	k.PublicKeyVerified = true
+	k.PublicKeyName = "stripeCustomerID"
+	k.PublicKey = c.ID
+	k.PublicKeyTypeID = keys.StripeCustomerID
+	k.UserID = userID
+	err = k.InsertUserKey(ctx)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("CreateCustomer")
+		_, derr := customer.Del(c.ID, nil)
+		if derr != nil {
+			log.Ctx(ctx).Err(derr).Msg("CreateCustomer, Delete Customer Cleanup")
+		}
+		return nil, err
+	}
+	return c, nil
 }

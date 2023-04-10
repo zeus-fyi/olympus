@@ -51,3 +51,4 @@ jobs:
           -t ${{ env.REPO }}/${{ env.NAME }}:${{ env.TAG}} \
           --platform=${{ env.GOOS }}/${{ env.GOARCH }} \
           -f docker/zeus_cloud/Dockerfile . --push
+

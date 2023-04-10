@@ -59,7 +59,7 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
 
-	if ou.UserID != 7138958574876245565 && ou.UserID != 1679520594067032000 {
+	if ou.UserID != 7138958574876245565 {
 		isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(ctx, ou.UserID)
 		if err != nil {
 			log.Ctx(ctx).Error().Err(err).Msg("failed to check if user has billing method")

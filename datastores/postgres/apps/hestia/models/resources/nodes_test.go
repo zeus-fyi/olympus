@@ -24,8 +24,8 @@ func (s *NodesTestSuite) TestSelectNodes() {
 		CloudProvider: "do",
 		Region:        "nyc1",
 		ResourceSums: zeus_core.ResourceSums{
-			MemRequests: "12Gi",
-			CpuRequests: "6",
+			MemRequests: "1Gi",
+			CpuRequests: "1",
 		},
 	}
 	nodes, err := SelectNodes(ctx, nf)

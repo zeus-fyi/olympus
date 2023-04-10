@@ -218,7 +218,8 @@ export function DeployPage(props: any) {
                             Deployment & Management
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            Currently, you cannot deploy clusters without getting authorization manually first until we have automated billing setup.
+                            Currently, you cannot deploy clusters without setting up a payment method. You can set a payment option on the billing page.
+                            Once you've deployed an app you can view it on the clusters page within a few minutes. Click on the cluster namespace to get a detailed view of the live cluster.
                         </Typography>
                     </CardContent>
                     <Divider />

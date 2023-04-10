@@ -66,7 +66,7 @@ func InitV1Routes(e *echo.Echo, k8Cfg autok8s_core.K8Util, mw echo.MiddlewareFun
 				log.Info().Msg("InitV1Routes: Cookie found")
 				token = cookie.Value
 			}
-			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.ZeusService)
+			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.EthereumEphemeryService)
 			if err != nil {
 				log.Err(err).Msg("InitV1Routes")
 				return false, c.JSON(http.StatusUnauthorized, nil)

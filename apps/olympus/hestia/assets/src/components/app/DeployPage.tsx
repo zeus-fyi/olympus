@@ -153,10 +153,6 @@ export function DeployPage(props: any) {
                 "resourceRequirements": resourceRequirements,
             }
             const response = await appsApiGateway.deployApp(payload);
-            const state = response.status;
-            console.log(response, 'responseData');
-            console.log(state, 'status');
-
             if (response.status === 200 || response.status === 202 || response.status === 204) {
                 setRequestStatus('success');
             } else if (response.status === 403) {

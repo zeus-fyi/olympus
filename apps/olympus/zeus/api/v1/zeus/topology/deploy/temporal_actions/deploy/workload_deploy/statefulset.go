@@ -3,12 +3,14 @@ package internal_deploy
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/base_request"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
+	v1 "k8s.io/api/core/v1"
 )
 
 func DeployStatefulSetHandler(c echo.Context) error {
@@ -18,6 +20,16 @@ func DeployStatefulSetHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	if request.StatefulSet != nil {
+		if request.Kns.CloudCtxNs.Context == "do-nyc1-do-nyc1-zeus-demo" {
+			request.StatefulSet.Spec.Template.Spec.Tolerations = []v1.Toleration{
+				{
+					Key:      fmt.Sprintf("org-%d", request.OrgUser.OrgID),
+					Operator: "Equal",
+					Value:    fmt.Sprintf("org-%d", request.OrgUser.OrgID),
+					Effect:   "NoSchedule",
+				},
+			}
+		}
 		log.Debug().Interface("kns", request.Kns).Msg("DeployStatefulSetHandler: CreateStatefulSetIfVersionLabelChangesOrDoesNotExist")
 		_, err := zeus.K8Util.CreateStatefulSetIfVersionLabelChangesOrDoesNotExist(ctx, request.Kns.CloudCtxNs, request.StatefulSet, nil)
 		if err != nil {

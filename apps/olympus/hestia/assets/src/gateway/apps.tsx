@@ -52,9 +52,7 @@ class AppsApiGateway {
                 },
                 withCredentials: true,
             }
-            return await zeusApi.post(url, payload, config).then((response) => {
-                return response.data;
-            })
+            return zeusApi.post(url, payload, config)
         } catch (exc) {
             console.error('error sending app deployment request');
             console.error(exc);

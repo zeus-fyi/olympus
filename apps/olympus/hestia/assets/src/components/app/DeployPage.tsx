@@ -153,7 +153,10 @@ export function DeployPage(props: any) {
                 "resourceRequirements": resourceRequirements,
             }
             const response = await appsApiGateway.deployApp(payload);
-            console.log(response.status, 'status');
+            const state = response.status;
+            console.log(response, 'responseData');
+            console.log(state, 'status');
+
             if (response.status === 200 || response.status === 202 || response.status === 204) {
                 setRequestStatus('success');
             } else if (response.status === 403) {
@@ -162,9 +165,14 @@ export function DeployPage(props: any) {
                 setRequestStatus('error');
                 return
             }
-        } catch (error) {
+        } catch (error: any) {
             setRequestStatus('error');
-            console.log("error", error);
+            const status: number = error.response.status;
+            if (status === 403) {
+                setRequestStatus('missingBilling');
+            } else {
+                setRequestStatus('error');
+            }
         }};
 
     function handleChangeSelectCloudProvider(cloudProvider: string) {
@@ -382,12 +390,14 @@ export function DeployPage(props: any) {
                                     sx={{ flex: 1, mr: 2 }}
                                 />
                                 <CardActions >
-                                    <Button variant="contained" onClick={handleDeploy} disabled={buttonDisabled}>{buttonLabel}</Button>
-                                    {statusMessage && (
-                                        <Typography variant="body2" color={requestStatus === 'error' ? 'error' : 'success'}>
-                                            {statusMessage}
-                                        </Typography>
-                                    )}
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                        <Button variant="contained" onClick={handleDeploy} disabled={buttonDisabled}>{buttonLabel}</Button>
+                                        {statusMessage && (
+                                            <Typography variant="body2" color={requestStatus === 'error' ? 'error' : 'success'}>
+                                                {statusMessage}
+                                            </Typography>
+                                        )}
+                                    </div>
                                 </CardActions>
                             </Stack>
                         </Stack>
@@ -400,7 +410,6 @@ export function DeployPage(props: any) {
                             Select which components and config options you want to deploy for this app.
                         </Typography>
                     </CardContent>
-
                     <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
                         <Box sx={{ mt: 2, display: 'flex' }}>
                             <ResourceRequirementsTable />

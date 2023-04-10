@@ -2,7 +2,7 @@ import {hestiaApi} from './axios/axios';
 import inMemoryJWT from "../auth/InMemoryJWT";
 
 class StripeApiGateway {
-    async getCustomerID(): Promise<any>  {
+    async getClientSecret(): Promise<any>  {
         const url = `/v1/stripe/customer/id`;
         try {
             const sessionID = inMemoryJWT.getToken();

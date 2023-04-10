@@ -14,16 +14,15 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
-import {useDispatch, useSelector} from "react-redux";
+import {useDispatch} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
 import MainListItems from "../dashboard/listItems";
-import {CustomerOptions, loadStripe, StripeElementsOptionsMode} from "@stripe/stripe-js";
+import {loadStripe, StripeElementsOptionsMode} from "@stripe/stripe-js";
 import {Elements, PaymentElement,} from "@stripe/react-stripe-js";
 import {configService} from "../../config/config";
-import {Card} from "@mui/material";
+import {Card, CardContent} from "@mui/material";
 import {stripeApiGateway} from "../../gateway/stripe";
-import {setStripeCustomerID} from "../../redux/billing/billing.reducer";
-import {RootState} from "../../redux/store";
+import {setStripeCustomerClientSecret} from "../../redux/billing/billing.reducer";
 
 const mdTheme = createTheme();
 
@@ -45,8 +44,8 @@ function BillingContent() {
     useEffect(() => {
         async function fetchCustomerID() {
             try {
-                const response = await stripeApiGateway.getCustomerID()
-                dispatch(setStripeCustomerID(response.data.clientSecret));
+                const response = await stripeApiGateway.getClientSecret()
+                dispatch(setStripeCustomerClientSecret(response.data.clientSecret));
             } catch (e) {
             }
         }
@@ -141,18 +140,23 @@ const stripe = loadStripe(configService.getStripePubKey());
 
 
 function CheckoutPage() {
-    const customerID = useSelector((state: RootState) => state.billing.stripeCustomerID);
     const options: StripeElementsOptionsMode = {
-        mode: 'setup',
+        paymentMethodTypes: ['card'],
         currency: 'usd',
-        customerOptions: {
-            customer: customerID,
-            ephemeralKey: ''
-        } as CustomerOptions
+        mode: 'setup'
     };
+
     return (
         <div>
             <Card>
+                <CardContent>
+                    <Typography gutterBottom variant="h5" component="div">
+                        Billing Info
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        To use cluster deployments & other premium features, you must enter your billing information.
+                    </Typography>
+                </CardContent>
                 <Container maxWidth="lg">
                     <Box sx={{mt: 4, mb: 4}}>
                         <Elements stripe={stripe} options={options}>

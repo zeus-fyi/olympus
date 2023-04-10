@@ -2,17 +2,17 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {BillingState} from "./billing.types";
 
 const initialState: BillingState = {
-    stripeCustomerID: '',
+    stripeCustomerClientSecret: '',
 }
 const billingSlice = createSlice({
     name: 'billing',
     initialState,
     reducers: {
-        setStripeCustomerID: (state, action: PayloadAction<string>) => {
-            state.stripeCustomerID = action.payload;
+        setStripeCustomerClientSecret: (state, action: PayloadAction<string>) => {
+            state.stripeCustomerClientSecret = action.payload;
         },
     }
 });
 
-export const { setStripeCustomerID } = billingSlice.actions;
+export const { setStripeCustomerClientSecret } = billingSlice.actions;
 export default billingSlice.reducer

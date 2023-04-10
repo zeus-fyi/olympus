@@ -45,10 +45,28 @@ func (s *StripeBillingRequest) GetCustomerID(c echo.Context) error {
 		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("GetOrCreateCustomerStripeID error")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	// GET customer ID from session
+
+	// &stripe.SetupIntentPaymentMethodDataParams{},
 	params := &stripe.SetupIntentParams{
-		Customer:           stripe.String(cID),
-		PaymentMethodTypes: []*string{stripe.String("card")},
+		Params: stripe.Params{
+			Context:        nil,
+			Expand:         nil,
+			Extra:          nil,
+			Headers:        nil,
+			IdempotencyKey: nil,
+			Metadata:       nil,
+			StripeAccount:  nil,
+		},
+		AutomaticPaymentMethods: nil,
+		ClientSecret:            nil,
+		Customer:                stripe.String(cID),
+		PaymentMethod:           stripe.String("card"),
+		PaymentMethodData:       nil,
+		PaymentMethodOptions:    nil,
+		PaymentMethodTypes:      []*string{stripe.String("card")},
+		ReturnURL:               nil,
+		SingleUse:               nil,
+		Usage:                   nil,
 	}
 	result, err := setupintent.New(params)
 	if err != nil {

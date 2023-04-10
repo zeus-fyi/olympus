@@ -90,6 +90,7 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 		},
 		NodesQuantity: t.Count,
 		Disks:         autogen_bases.DisksSlice{},
+		Cluster:       t.Cluster,
 	}
 
 	ds := make(autogen_bases.DisksSlice, len(t.ResourceRequirements))

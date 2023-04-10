@@ -152,9 +152,9 @@ export function DeployPage(props: any) {
                 "cluster": cluster,
                 "resourceRequirements": resourceRequirements,
             }
-            console.log("payload", payload)
             const response = await appsApiGateway.deployApp(payload);
-            if (response.status === 200 || response.status === 202) {
+            console.log(response.status, 'status');
+            if (response.status === 200 || response.status === 202 || response.status === 204) {
                 setRequestStatus('success');
             } else if (response.status === 403) {
                 setRequestStatus('missingBilling');

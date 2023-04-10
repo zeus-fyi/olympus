@@ -11,15 +11,17 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	zeus_endpoints "github.com/zeus-fyi/olympus/pkg/zeus/client/endpoints"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
 )
 
-func (c *CreateSetupTopologyActivities) DeployClusterTopology(ctx context.Context, params zeus_req_types.ClusterTopologyDeployRequest, ou org_users.OrgUser) error {
-	return c.postDeployClusterTopology(params, ou)
-}
-
-func (c *CreateSetupTopologyActivities) GetDeployURL(target string) url.URL {
-	return c.GetURL(zeus_endpoints.InternalDeployPath, target)
+func (c *CreateSetupTopologyActivities) DeployClusterTopologyFromUI(ctx context.Context, clusterName string, sbBases []string, cloudCtxNs zeus_common_types.CloudCtxNs, ou org_users.OrgUser) error {
+	cdRequest := zeus_req_types.ClusterTopologyDeployRequest{
+		ClusterClassName:    clusterName,
+		SkeletonBaseOptions: sbBases,
+		CloudCtxNs:          cloudCtxNs,
+	}
+	return c.postDeployClusterTopology(cdRequest, ou)
 }
 
 func (c *CreateSetupTopologyActivities) postDeployClusterTopology(params zeus_req_types.ClusterTopologyDeployRequest, ou org_users.OrgUser) error {

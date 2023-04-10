@@ -6,7 +6,6 @@ import (
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	deploy_topology_activities_create_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/cluster_setup"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
-	create_or_update_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/create_or_update"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -91,14 +90,9 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 			sbNames = append(sbNames, sbName)
 		}
 	}
-	cdRequest := create_or_update_deploy.TopologyClusterDeployRequest{
-		ClusterClassName:    params.Cluster.ClusterName,
-		SkeletonBaseOptions: sbNames,
-		CloudCtxNs:          params.CloudCtxNs,
-	}
 
 	clusterDeployCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(clusterDeployCtx, c.CreateSetupTopologyActivities.DeployClusterTopology, cdRequest, params.Ou).Get(clusterDeployCtx, nil)
+	err = workflow.ExecuteActivity(clusterDeployCtx, c.CreateSetupTopologyActivities.DeployClusterTopologyFromUI, params.Cluster.ClusterName, sbNames, params.CloudCtxNs, params.Ou).Get(clusterDeployCtx, nil)
 	if err != nil {
 		log.Error("Failed to add deploy cluster", "Error", err)
 		return err

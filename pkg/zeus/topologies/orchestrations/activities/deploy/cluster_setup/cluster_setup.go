@@ -14,6 +14,6 @@ func (c *CreateSetupTopologyActivities) GetActivities() ActivitiesSlice {
 		c.MakeNodePoolRequest,
 		c.AddNodePoolToOrgResources,
 		c.AddAuthCtxNsOrg,
-		c.DeployClusterTopology,
+		c.DeployClusterTopologyFromUI,
 	}
 }

@@ -57,7 +57,6 @@ func (s *StripeBillingRequest) GetCustomerID(c echo.Context) error {
 			StripeAccount:  nil,
 		},
 		Customer:           stripe.String(cID),
-		PaymentMethod:      stripe.String("card"),
 		PaymentMethodTypes: []*string{stripe.String("card")},
 	}
 	result, err := setupintent.New(params)

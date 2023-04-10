@@ -6,6 +6,7 @@ import (
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	deploy_topology_activities_create_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/cluster_setup"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
+	create_or_update_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/create_or_update"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -14,7 +15,7 @@ type ClusterSetupWorkflow struct {
 	deploy_topology_activities_create_setup.CreateSetupTopologyActivities
 }
 
-const defaultTimeout = 10 * time.Minute
+const defaultTimeout = 60 * time.Minute
 
 func NewDeployCreateSetupTopologyWorkflow() ClusterSetupWorkflow {
 	deployWf := ClusterSetupWorkflow{
@@ -22,6 +23,10 @@ func NewDeployCreateSetupTopologyWorkflow() ClusterSetupWorkflow {
 		CreateSetupTopologyActivities: deploy_topology_activities_create_setup.CreateSetupTopologyActivities{},
 	}
 	return deployWf
+}
+
+func (c *ClusterSetupWorkflow) GetDeployClusterSetupWorkflow() interface{} {
+	return c.DeployClusterSetupWorkflow
 }
 
 func (c *ClusterSetupWorkflow) GetWorkflows() []interface{} {
@@ -36,7 +41,6 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 	}
 
 	// TODO add billing email step
-
 	authCloudCtxNsCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(authCloudCtxNsCtx, c.CreateSetupTopologyActivities.AddAuthCtxNsOrg, params).Get(authCloudCtxNsCtx, nil)
 	if err != nil {
@@ -58,7 +62,6 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 	}
 
 	diskOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
-
 	for _, disk := range params.Disks {
 		err = workflow.ExecuteActivity(diskOrgResourcesCtx, c.CreateSetupTopologyActivities.AddDiskResourcesToOrg, params, disk).Get(diskOrgResourcesCtx, nil)
 		if err != nil {
@@ -81,5 +84,24 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 	//	log.Error("Failed to send email notification", "Error", err)
 	//	return err
 	//}
+
+	var sbNames []string
+	for _, cb := range params.Cluster.ComponentBases {
+		for sbName, _ := range cb {
+			sbNames = append(sbNames, sbName)
+		}
+	}
+	cdRequest := create_or_update_deploy.TopologyClusterDeployRequest{
+		ClusterClassName:    params.Cluster.ClusterName,
+		SkeletonBaseOptions: sbNames,
+		CloudCtxNs:          params.CloudCtxNs,
+	}
+
+	clusterDeployCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(clusterDeployCtx, c.CreateSetupTopologyActivities.DeployClusterTopology, cdRequest, params.Ou).Get(clusterDeployCtx, nil)
+	if err != nil {
+		log.Error("Failed to add deploy cluster", "Error", err)
+		return err
+	}
 	return err
 }

@@ -131,8 +131,7 @@ export function DeployPage(props: any) {
             break;
         default:
             buttonLabel = 'Deploy';
-            buttonDisabled = true
-            //buttonDisabled = count === 0;
+            buttonDisabled = count === 0;
             break;
     }
     const handleDeploy = async () => {
@@ -150,7 +149,7 @@ export function DeployPage(props: any) {
             }
             console.log("payload", payload)
             const response = await appsApiGateway.deployApp(payload);
-            if (response.status === 200) {
+            if (response.status === 200 || response.status === 202) {
                 setRequestStatus('success');
             } else {
                 setRequestStatus('error');

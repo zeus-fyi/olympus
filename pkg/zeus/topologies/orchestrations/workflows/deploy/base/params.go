@@ -9,6 +9,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
+	zeus_templates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
@@ -38,6 +39,7 @@ type ClusterSetupRequest struct {
 	Nodes         hestia_autogen_bases.Nodes
 	NodesQuantity float64
 	Disks         hestia_autogen_bases.DisksSlice
+	Cluster       zeus_templates.Cluster
 }
 
 func (t *TopologyWorkflowRequest) GetURL(prefix, target string) url.URL {

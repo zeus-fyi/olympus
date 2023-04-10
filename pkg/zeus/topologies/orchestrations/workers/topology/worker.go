@@ -90,7 +90,7 @@ func (t *TopologyWorker) ExecuteCreateSetupCluster(ctx context.Context, params b
 		TaskQueue: t.TaskQueueName,
 	}
 	clusterSetupWf := deploy_workflow_cluster_setup.NewDeployCreateSetupTopologyWorkflow()
-	wf := clusterSetupWf.GetWorkflows()
+	wf := clusterSetupWf.GetDeployClusterSetupWorkflow()
 	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
 	if err != nil {
 		log.Err(err).Msg("ExecuteCreateSetupCluster")

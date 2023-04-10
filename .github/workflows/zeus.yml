@@ -13,7 +13,6 @@ on:
       - .github/workflows/zeus.yml
     branches:
       - main
-      - dev
 env:
   REPO: registry.digitalocean.com/zeus-fyi
   NAME: zeus
@@ -73,4 +72,3 @@ jobs:
           --build-arg CA_KEY="${{ secrets.CA_KEY }}" \
           --platform=${{ env.GOOS }}/${{ env.GOARCH }} \
           -f docker/zeus/Dockerfile . --push
-

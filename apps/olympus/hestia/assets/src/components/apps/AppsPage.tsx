@@ -12,12 +12,12 @@ import Container from '@mui/material/Container';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
-import {useNavigate} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
 import MainListItems from "../dashboard/listItems";
 import {PrivateAppsTable} from "./AppsTable";
-import {Card, CardContent, Stack} from "@mui/material";
+import {Card, CardContent, CardMedia, Stack} from "@mui/material";
 
 const mdTheme = createTheme();
 
@@ -107,8 +107,31 @@ function AppsPageContent() {
                 >
                     <Toolbar />
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        <div style={{ display: 'flex' }}>
+                            <Stack direction="column" spacing={2} sx={{ mt: 4}}>
+                                <Container maxWidth="xs" >
+                                        <Card style={{ padding: '20px', maxWidth: '300px' }}>
+                                            <Link to="/avax/apps">
+                                            <CardMedia
+                                                component="img"
+                                                style={{ height: '70%', width: '70%', objectFit: 'contain', margin: 'auto', display: 'block' }}
+                                                image={require("../../static/avax-logo.png")}
+                                                alt="avax"
+                                            />
+                                            </Link>
+                                            <CardContent style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <Typography gutterBottom variant="h5" component="div">
+                                                    Avax Apps
+                                                </Typography>
+                                            </CardContent>
+                                        </Card>
+                                </Container>
+                            </Stack>
+                        </div>
+                    </Container>
+                    <Container maxWidth="xl" >
                     <div style={{ display: 'flex' }}>
-                        <Stack direction="column" spacing={2} sx={{ mt: 4, mb: 4 }}>
+                        <Stack direction="column" spacing={2} sx={{mb: 4 }}>
                             <Container maxWidth="xl" sx={{ mt: 0, mb: 0 }}>
                                 <Card>
                                     <CardContent>

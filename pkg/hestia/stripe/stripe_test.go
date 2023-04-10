@@ -32,6 +32,13 @@ func (s *StripeTestSuite) SetupTest() {
 //	s.Require().NoError(err)
 //}
 
+func (s *StripeTestSuite) TestDoesUserHaveBillingMethod() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	isBillingSetup, err := DoesUserHaveBillingMethod(ctx, 7138958574876245565)
+	s.Require().NoError(err)
+	s.Require().True(isBillingSetup)
+}
+
 func (s *StripeTestSuite) TestCreateCustomer() {
 	c, err := CreateCustomer(ctx, s.Tc.ProductionLocalTemporalUserID, "Alex", "George", "alex@zeus.fyi")
 	s.Require().NoError(err)

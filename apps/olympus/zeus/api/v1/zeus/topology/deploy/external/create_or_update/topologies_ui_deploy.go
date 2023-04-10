@@ -3,6 +3,7 @@ package create_or_update_deploy
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/google/uuid"
@@ -10,6 +11,7 @@ import (
 	"github.com/rs/zerolog/log"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	zeus_templates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
@@ -56,6 +58,15 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 	log.Debug().Msg("DeploySetupClusterTopology")
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
+	isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(ctx, ou.UserID)
+	if err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg("failed to check if user has billing method")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	if !isBillingSetup {
+		log.Ctx(ctx).Error().Err(err).Msg("user does not have billing method")
+		return c.JSON(http.StatusForbidden, nil)
+	}
 	clusterID := uuid.New()
 	suffix := strings.Split(clusterID.String(), "-")[0]
 	cr := base_deploy_params.ClusterSetupRequest{
@@ -69,8 +80,7 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 		},
 		ClusterID: clusterID,
 		Nodes: autogen_bases.Nodes{
-			Region: t.Region,
-
+			Region:        t.Region,
 			CloudProvider: t.CloudProvider,
 			ResourceID:    t.Node.ResourceID,
 		},

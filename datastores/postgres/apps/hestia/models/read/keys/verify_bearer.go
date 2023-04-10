@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/keys"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
@@ -201,6 +202,17 @@ func (k *OrgUserKey) QueryGetUserInfo() sql_query_templates.QueryParams {
 	`)
 	q.RawQuery = query
 	return q
+}
+
+func GetOrCreateCustomerStripeIDWithUserID(ctx context.Context, userID int) (string, error) {
+	k := OrgUserKey{
+		Key: keys.Key{
+			UsersKeys: autogen_bases.UsersKeys{
+				UserID: userID,
+			},
+		},
+	}
+	return k.GetOrCreateCustomerStripeID(ctx)
 }
 
 func (k *OrgUserKey) GetOrCreateCustomerStripeID(ctx context.Context) (string, error) {

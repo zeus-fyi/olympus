@@ -93,6 +93,7 @@ func RunDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg Aut
 	sw := SecretsWrapper{}
 	sw.DoctlToken = sw.ReadSecret(ctx, inMemSecrets, doctlSecret)
 	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
+	sw.StripeSecretKey = sw.ReadSecret(ctx, inMemSecrets, stripeSecretKey)
 	return inMemSecrets, sw
 }
 

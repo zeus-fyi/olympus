@@ -45,16 +45,6 @@ func (s *StripeBillingRequest) GetCustomerID(c echo.Context) error {
 		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("GetOrCreateCustomerStripeID error")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	//paramsCheckout := &stripe.CheckoutSessionParams{
-	//	PaymentMethodTypes: stripe.StringSlice([]string{
-	//		"card",
-	//	}),
-	//	Mode:       stripe.String(string(stripe.CheckoutSessionModeSetup)),
-	//	Customer:   stripe.String(cID),
-	//	SuccessURL: stripe.String("https://example.com/success?session_id={CHECKOUT_SESSION_ID}"),
-	//	CancelURL:  stripe.String("https://example.com/cancel"),
-	//}
-
 	// &stripe.SetupIntentPaymentMethodDataParams{},
 	params := &stripe.SetupIntentParams{
 		Params: stripe.Params{
@@ -66,16 +56,9 @@ func (s *StripeBillingRequest) GetCustomerID(c echo.Context) error {
 			Metadata:       nil,
 			StripeAccount:  nil,
 		},
-		AutomaticPaymentMethods: nil,
-		ClientSecret:            nil,
-		Customer:                stripe.String(cID),
-		PaymentMethod:           stripe.String("card"),
-		PaymentMethodData:       nil,
-		PaymentMethodOptions:    nil,
-		PaymentMethodTypes:      []*string{stripe.String("card")},
-		ReturnURL:               nil,
-		SingleUse:               nil,
-		Usage:                   nil,
+		Customer:           stripe.String(cID),
+		PaymentMethod:      stripe.String("card"),
+		PaymentMethodTypes: []*string{stripe.String("card")},
 	}
 	result, err := setupintent.New(params)
 	if err != nil {

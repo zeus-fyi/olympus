@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/cookbooks"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
@@ -20,6 +21,14 @@ type TopologyCreateClassRequestTestSuite struct {
 	test.TopologyActionRequestTestSuite
 	c conversions_test.ConversionsTestSuite
 	h hestia_test.BaseHestiaTestSuite
+}
+
+func (t *TopologyCreateClassRequestTestSuite) TestRead() {
+	apps.Pg.InitPG(context.Background(), t.Tc.ProdLocalDbPgconn)
+	ctx := context.Background()
+	cl, err := read_topology.SelectClusterTopology(ctx, 1679515557647002001, "avaxFujiNode", []string{"avax"})
+	t.Require().Nil(err)
+	t.Assert().NotEmpty(cl)
 }
 
 func (t *TopologyCreateClassRequestTestSuite) TestEndToEnd() {

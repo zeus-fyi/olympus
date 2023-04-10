@@ -67,7 +67,7 @@ func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error
 		TopologySystemComponentName: t.Cluster.ClusterName,
 	}}
 
-	tx, err = create_clusters.InsertCluster(ctx, tx, &sys, pcg)
+	tx, err = create_clusters.InsertCluster(ctx, tx, &sys, pcg, ou)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("error creating transaction")
 		return c.JSON(http.StatusInternalServerError, nil)

@@ -90,7 +90,7 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 			sbNames = append(sbNames, sbName)
 		}
 	}
-
+	params.CloudCtxNs.Namespace = params.ClusterID.String()
 	clusterDeployCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(clusterDeployCtx, c.CreateSetupTopologyActivities.DeployClusterTopologyFromUI, params.Cluster.ClusterName, sbNames, params.CloudCtxNs, params.Ou).Get(clusterDeployCtx, nil)
 	if err != nil {

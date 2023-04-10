@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/class_types"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/topology/classes/systems"
@@ -56,6 +57,7 @@ func (s *CreateClustersTestSuite) TestInsertCluster() {
 		ComponentBases: make(map[string]map[string]topology_workloads.TopologyBaseInfraWorkload),
 	}
 
+	ou := org_users.OrgUser{}
 	sbOne := make(map[string]topology_workloads.TopologyBaseInfraWorkload)
 	sbOne["sbTestBase1Test1"] = topology_workloads.TopologyBaseInfraWorkload{}
 	sbOne["sbTestBase1Test2"] = topology_workloads.TopologyBaseInfraWorkload{}
@@ -64,7 +66,7 @@ func (s *CreateClustersTestSuite) TestInsertCluster() {
 	sbTwo["sbTestBase2Test1"] = topology_workloads.TopologyBaseInfraWorkload{}
 	sbTwo["sbTestBase2Test2"] = topology_workloads.TopologyBaseInfraWorkload{}
 	pcg.ComponentBases["baseTest2"] = sbTwo
-	tx, err = InsertCluster(ctx, tx, &sys, pcg)
+	tx, err = InsertCluster(ctx, tx, &sys, pcg, ou)
 	s.Require().Nil(err)
 
 	err = tx.Commit(ctx)
@@ -73,7 +75,7 @@ func (s *CreateClustersTestSuite) TestInsertCluster() {
 	tx, err = apps.Pg.Begin(ctx)
 	s.Require().Nil(err)
 	sbTwo["sbTestBase2Test3"] = topology_workloads.TopologyBaseInfraWorkload{}
-	tx, err = InsertCluster(ctx, tx, &sys, pcg)
+	tx, err = InsertCluster(ctx, tx, &sys, pcg, ou)
 	s.Require().Nil(err)
 	err = tx.Commit(ctx)
 	s.Require().Nil(err)
@@ -84,7 +86,7 @@ func (s *CreateClustersTestSuite) TestInsertCluster() {
 	sbThree["sbTestBase3Test1"] = topology_workloads.TopologyBaseInfraWorkload{}
 	pcg.ComponentBases["baseTest3"] = sbThree
 
-	tx, err = InsertCluster(ctx, tx, &sys, pcg)
+	tx, err = InsertCluster(ctx, tx, &sys, pcg, ou)
 	s.Require().Nil(err)
 	err = tx.Commit(ctx)
 

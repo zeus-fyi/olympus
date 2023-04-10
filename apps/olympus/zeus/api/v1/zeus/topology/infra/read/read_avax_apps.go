@@ -7,8 +7,13 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
+	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/class_types"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/topology/classes/systems"
+	create_clusters "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/topology/classes/cluster"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	zeus_templates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
@@ -35,56 +40,64 @@ func (a *AvaxAppsPageRequest) GetAvaxApp(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	ctx := context.Background()
 
-	apps, err := read_topology.SelectAppTopologyByID(ctx, AppsOrgID, AvaxAppID)
+	avaxApp, err := read_topology.SelectAppTopologyByID(ctx, AppsOrgID, AvaxAppID)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("ListPrivateAppsRequest: SelectOrgApps")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	resp := TopologyUIAppDetailsResponse{
 		Cluster: zeus_templates.Cluster{
-			ClusterName:     apps.ClusterClassName,
+			ClusterName:     avaxApp.ClusterClassName,
 			ComponentBases:  make(map[string]zeus_templates.SkeletonBases),
 			IngressSettings: zeus_templates.Ingress{},
 			IngressPaths:    nil,
 		},
 		ClusterPreviewWorkloadsOlympus: zeus_templates.ClusterPreviewWorkloadsOlympus{
-			ClusterName:    apps.ClusterClassName,
+			ClusterName:    avaxApp.ClusterClassName,
 			ComponentBases: make(map[string]map[string]any),
 		},
 		SelectedComponentBaseName: "",
 		SelectedSkeletonBaseName:  "",
 	}
-
+	pcg, _ := zeus_templates.GenerateSkeletonBaseChartsCopy(ctx, &avaxApp)
 	rsMinMax := zeus_core.ResourceMinMax{
 		Max: zeus_core.ResourceAggregate{},
 		Min: zeus_core.ResourceAggregate{},
 	}
+	tx, err := apps.Pg.Begin(ctx)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("error creating transaction")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	defer tx.Rollback(ctx)
+	sys := systems.Systems{TopologySystemComponents: autogen_bases.TopologySystemComponents{
+		OrgID:                       ou.OrgID,
+		TopologyClassTypeID:         class_types.ClusterClassTypeID,
+		TopologySystemComponentName: avaxApp.ClusterClassName,
+	}}
 
-	for cbName, cb := range apps.ComponentBases {
+	tx, err = create_clusters.InsertCluster(ctx, tx, &sys, pcg, ou)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("error creating transaction")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("error creating transaction")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	for cbName, cb := range pcg.ComponentBases {
 		uiSbs := make(map[string]any)
 		resp.ClusterPreviewWorkloadsOlympus.ComponentBases[cbName] = make(map[string]any)
 		resp.SelectedComponentBaseName = cbName
 		sbUI := make(map[string]zeus_templates.SkeletonBase)
-		for sbName, sb := range cb.SkeletonBases {
+		for sbName, nk := range cb {
+			sb := zeus_templates.SkeletonBase{}
 			resp.SelectedSkeletonBaseName = sbName
-			tr := read_topology.NewInfraTopologyReader()
-			tr.TopologyID = sb.TopologyID
-			// from auth lookup
-			tr.OrgID = AppsOrgID
-			tr.UserID = AppsUserID
-			err = tr.SelectTopologyForOrg(ctx)
-			if err != nil {
-				log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: SelectTopology")
-				return c.JSON(http.StatusInternalServerError, nil)
-			}
-			nk := tr.GetTopologyBaseInfraWorkload()
 			uiSbs[sbName] = nk
-			sbTemplate := zeus_templates.SkeletonBase{
-				TopologyID: fmt.Sprintf("%d", sb.TopologyID),
-			}
+
 			rs := zeus_core.ResourceSums{}
 			if nk.StatefulSet != nil {
-				sbTemplate.AddStatefulSet = true
+				sb.AddStatefulSet = true
 				if nk.StatefulSet.Spec.Replicas != nil {
 					rs.Replicas = fmt.Sprintf("%d", *nk.StatefulSet.Spec.Replicas)
 				}
@@ -92,31 +105,31 @@ func (a *AvaxAppsPageRequest) GetAvaxApp(c echo.Context) error {
 				zeus_core.GetDiskRequirements(ctx, nk.StatefulSet.Spec.VolumeClaimTemplates, &rs)
 			}
 			if nk.Deployment != nil {
-				sbTemplate.AddDeployment = true
+				sb.AddDeployment = true
 				if nk.Deployment.Spec.Replicas != nil {
 					rs.Replicas = fmt.Sprintf("%d", *nk.Deployment.Spec.Replicas)
 				}
 				zeus_core.GetResourceRequirements(ctx, nk.Deployment.Spec.Template.Spec, &rs)
 			}
 			if nk.Service != nil {
-				sbTemplate.AddService = true
+				sb.AddService = true
 			}
 			if nk.ConfigMap != nil {
-				sbTemplate.AddConfigMap = true
+				sb.AddConfigMap = true
 			}
 			if nk.Ingress != nil {
-				sbTemplate.AddIngress = true
+				sb.AddIngress = true
 			}
 			if nk.ServiceMonitor != nil {
-				sbTemplate.AddServiceMonitor = true
+				sb.AddServiceMonitor = true
 			}
 			rsMinMax, err = zeus_core.ApplyMinMaxConstraints(rs, rsMinMax)
 			if err != nil {
 				log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: ApplyMinMaxConstraints")
 				return c.JSON(http.StatusInternalServerError, nil)
 			}
-			sbTemplate.ResourceSums = rs
-			sbUI[sbName] = sbTemplate
+			sb.ResourceSums = rs
+			sbUI[sbName] = sb
 		}
 		resp.Cluster.ComponentBases[cbName] = sbUI
 		resp.ClusterPreviewWorkloadsOlympus.ComponentBases[cbName] = uiSbs

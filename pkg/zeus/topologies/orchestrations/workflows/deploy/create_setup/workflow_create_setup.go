@@ -40,19 +40,19 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 	}
 
 	// TODO add billing email step
+	nodePoolRequestStatusCtxKns := workflow.WithActivityOptions(ctx, ao)
+	err := workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.MakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, nil)
+	if err != nil {
+		log.Error("Failed to complete node pool request", "Error", err)
+		return err
+	}
 	authCloudCtxNsCtx := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(authCloudCtxNsCtx, c.CreateSetupTopologyActivities.AddAuthCtxNsOrg, params).Get(authCloudCtxNsCtx, nil)
+	err = workflow.ExecuteActivity(authCloudCtxNsCtx, c.CreateSetupTopologyActivities.AddAuthCtxNsOrg, params).Get(authCloudCtxNsCtx, nil)
 	if err != nil {
 		log.Error("Failed to authorize auth ns to org account", "Error", err)
 		return err
 	}
 
-	nodePoolRequestStatusCtxKns := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.MakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, nil)
-	if err != nil {
-		log.Error("Failed to complete node pool request", "Error", err)
-		return err
-	}
 	nodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.AddNodePoolToOrgResources, params).Get(nodePoolOrgResourcesCtx, nil)
 	if err != nil {

@@ -3,6 +3,7 @@ package deploy_topology_activities_create_setup
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/digitalocean/godo"
 	"github.com/rs/zerolog/log"
@@ -26,8 +27,9 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 		Value:  fmt.Sprintf("org-%d", params.Ou.OrgID),
 		Effect: "NoSchedule",
 	}
+	suffix := strings.Split(params.ClusterID.String(), "-")[0]
 	nodesReq := &godo.KubernetesNodePoolCreateRequest{
-		Name:   params.ClusterID.String() + "-node-pool",
+		Name:   fmt.Sprintf("nodepool-%d-%s", params.Ou.OrgID, suffix),
 		Size:   params.Nodes.Slug,
 		Count:  int(params.NodesQuantity),
 		Tags:   nil,

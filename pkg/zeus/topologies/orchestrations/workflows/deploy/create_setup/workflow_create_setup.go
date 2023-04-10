@@ -24,6 +24,10 @@ func NewDeployCreateSetupTopologyWorkflow() ClusterSetupWorkflow {
 	return deployWf
 }
 
+func (c *ClusterSetupWorkflow) GetDeployClusterSetupWorkflow() interface{} {
+	return c.DeployClusterSetupWorkflow
+}
+
 func (c *ClusterSetupWorkflow) GetWorkflows() []interface{} {
 	return []interface{}{c.DeployClusterSetupWorkflow}
 }

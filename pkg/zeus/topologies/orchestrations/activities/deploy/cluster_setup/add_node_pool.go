@@ -33,7 +33,8 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 		Labels: nil,
 		Taints: []godo.Taint{taint},
 	}
-	_, err := api_auth_temporal.DigitalOcean.AddToNodePool(ctx, params.ClusterID.String(), nodesReq)
+
+	_, err := api_auth_temporal.DigitalOcean.AddToNodePool(ctx, params.Context, nodesReq)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("MakeNodePoolRequest error")
 		return err

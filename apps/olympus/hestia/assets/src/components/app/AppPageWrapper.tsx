@@ -58,7 +58,6 @@ export function AppPageWrapper(props: any) {
                     id = "avax"
                 }
                 const response = await appsApiGateway.getPrivateAppDetails(id);
-                console.log(response, 'response')
                 clusterPreview = await response.clusterPreview;
                 dispatch(setClusterPreview(clusterPreview));
                 cluster = await response.cluster;
@@ -79,11 +78,10 @@ export function AppPageWrapper(props: any) {
                 }
                 return response;
             } catch (e) {
-                console.log(e, 'error')
+                //console.log(e, 'error')
             }
         }
         fetchData().then(r => {
-            console.log(r, 'r')
         });
     }, [params.id, app]);
     return (

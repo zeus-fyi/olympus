@@ -56,7 +56,6 @@ class AppsApiGateway {
                 withCredentials: true,
             }
             return await zeusApi.get(url, config).then((response) => {
-                console.log(response, 'response')
                 return response.data;
             })
         } catch (exc) {

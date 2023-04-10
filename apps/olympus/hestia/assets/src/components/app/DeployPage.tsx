@@ -131,7 +131,8 @@ export function DeployPage(props: any) {
             break;
         default:
             buttonLabel = 'Deploy';
-            buttonDisabled = count === 0;
+            buttonDisabled = true
+            //buttonDisabled = count === 0;
             break;
     }
     const handleDeploy = async () => {

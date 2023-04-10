@@ -14,16 +14,16 @@ export const appBuildToggleSteps = [
     'Preview Configs',
 ];
 
-export function appPageStepComponents(activeStep: number,
-) {
+export function appPageStepComponents(activeStep: number, app: string) {
     const steps = [
-        <DeployPage />,
+        <DeployPage app={app}/>,
         <AppPage />
     ];
     return (steps[activeStep])
 }
 
 export default function DeployConfigToggle(props: any) {
+    const {app} = props
     const [activeStep, setActiveStep] = React.useState(0);
     const [completed, setCompleted] = React.useState<{
         [k: number]: boolean;
@@ -93,8 +93,7 @@ export default function DeployConfigToggle(props: any) {
                 <div>
                         <React.Fragment>
                             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                                {appPageStepComponents(activeStep,
-                                )}
+                                {appPageStepComponents(activeStep, app)}
                             </Container>
                             <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                                 <Button

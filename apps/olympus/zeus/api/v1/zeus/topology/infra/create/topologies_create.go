@@ -200,6 +200,8 @@ func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error
 }
 
 func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {
+	ou := c.Get("orgUser").(org_users.OrgUser)
+
 	nk, err := zeus.DecompressUserInfraWorkload(c)
 	if err != nil {
 		log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: CreateTopology, DecompressUserInfraWorkload")
@@ -214,6 +216,7 @@ func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {
 		err = errors.New("cannot include both a stateful set and deployment, must only choose one per topology infra chart components")
 		return c.JSON(http.StatusBadRequest, err)
 	}
+
 	inf := create_infra.NewCreateInfrastructure()
 	ctx := context.Background()
 	inf.ChartWorkload = cw
@@ -233,7 +236,6 @@ func (t *TopologyCreateRequest) CreateTopology(c echo.Context) error {
 	inf.Tag = c.FormValue("tag")
 
 	// from auth lookup
-	ou := c.Get("orgUser").(org_users.OrgUser)
 	inf.OrgID = ou.OrgID
 	inf.UserID = ou.UserID
 	inf.ChartVersion = version

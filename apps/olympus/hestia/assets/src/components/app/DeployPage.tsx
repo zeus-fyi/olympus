@@ -42,6 +42,7 @@ interface NodeMap {
 }
 
 export function DeployPage(props: any) {
+    const {app} = props
     const [cloudProvider, setCloudProvider] = useState('do');
     const [region, setRegion] = useState('nyc1');
     const cluster = useSelector((state: RootState) => state.apps.cluster);
@@ -60,7 +61,11 @@ export function DeployPage(props: any) {
             let selectedComponentBaseName;
             let selectedSkeletonBaseName;
             try {
-                const response = await appsApiGateway.getPrivateAppDetails(params.id as string);
+                let id = params.id as string;
+                if (app === "avax") {
+                    id = "avax"
+                }
+                const response = await appsApiGateway.getPrivateAppDetails(id);
                 clusterPreview = await response.clusterPreview;
                 dispatch(setClusterPreview(clusterPreview));
                 cluster = await response.cluster;
@@ -153,7 +158,6 @@ export function DeployPage(props: any) {
                 "resourceRequirements": resourceRequirements,
             }
             const response = await appsApiGateway.deployApp(payload);
-            console.log(response.status, 'status');
             if (response.status === 200 || response.status === 202 || response.status === 204) {
                 setRequestStatus('success');
             } else if (response.status === 403) {
@@ -162,9 +166,14 @@ export function DeployPage(props: any) {
                 setRequestStatus('error');
                 return
             }
-        } catch (error) {
+        } catch (error: any) {
             setRequestStatus('error');
-            console.log("error", error);
+            const status: number = error.response.status;
+            if (status === 403) {
+                setRequestStatus('missingBilling');
+            } else {
+                setRequestStatus('error');
+            }
         }};
 
     function handleChangeSelectCloudProvider(cloudProvider: string) {
@@ -382,12 +391,14 @@ export function DeployPage(props: any) {
                                     sx={{ flex: 1, mr: 2 }}
                                 />
                                 <CardActions >
-                                    <Button variant="contained" onClick={handleDeploy} disabled={buttonDisabled}>{buttonLabel}</Button>
-                                    {statusMessage && (
-                                        <Typography variant="body2" color={requestStatus === 'error' ? 'error' : 'success'}>
-                                            {statusMessage}
-                                        </Typography>
-                                    )}
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                        <Button variant="contained" onClick={handleDeploy} disabled={buttonDisabled}>{buttonLabel}</Button>
+                                        {statusMessage && (
+                                            <Typography variant="body2" color={requestStatus === 'error' ? 'error' : 'success'}>
+                                                {statusMessage}
+                                            </Typography>
+                                        )}
+                                    </div>
                                 </CardActions>
                             </Stack>
                         </Stack>
@@ -400,7 +411,6 @@ export function DeployPage(props: any) {
                             Select which components and config options you want to deploy for this app.
                         </Typography>
                     </CardContent>
-
                     <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
                         <Box sx={{ mt: 2, display: 'flex' }}>
                             <ResourceRequirementsTable />

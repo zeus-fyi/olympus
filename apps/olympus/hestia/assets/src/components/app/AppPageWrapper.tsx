@@ -30,7 +30,8 @@ import DeployConfigToggle from "./DeployConfigToggle";
 
 const mdTheme = createTheme();
 
-export function AppPageWrapper() {
+export function AppPageWrapper(props: any) {
+    const {app} = props
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
@@ -52,7 +53,11 @@ export function AppPageWrapper() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await appsApiGateway.getPrivateAppDetails(params.id as string);
+                let id = params.id as string;
+                if (app === "avax") {
+                    id = "avax"
+                }
+                const response = await appsApiGateway.getPrivateAppDetails(id);
                 clusterPreview = await response.clusterPreview;
                 dispatch(setClusterPreview(clusterPreview));
                 cluster = await response.cluster;
@@ -73,11 +78,12 @@ export function AppPageWrapper() {
                 }
                 return response;
             } catch (e) {
+                //console.log(e, 'error')
             }
         }
         fetchData().then(r => {
         });
-    }, [params.id]);
+    }, [params.id, app]);
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
@@ -150,7 +156,7 @@ export function AppPageWrapper() {
                     <Toolbar />
                     <div style={{ display: 'flex' }}>
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                            <DeployConfigToggle />
+                            <DeployConfigToggle app={app} />
                         </Container>
                     </div>
                 </Box>

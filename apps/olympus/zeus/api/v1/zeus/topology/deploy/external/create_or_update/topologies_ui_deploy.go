@@ -87,6 +87,7 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 			Region:        t.Region,
 			CloudProvider: t.CloudProvider,
 			ResourceID:    t.Node.ResourceID,
+			Slug:          t.Node.Slug,
 		},
 		NodesQuantity: t.Count,
 		Disks:         autogen_bases.DisksSlice{},

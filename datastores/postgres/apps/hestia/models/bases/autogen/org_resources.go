@@ -12,6 +12,7 @@ type OrgResources struct {
 	ResourceID   int          `db:"resource_id" json:"resourceID"`
 	OrgID        int          `db:"org_id" json:"orgID"`
 	BeginService time.Time    `db:"begin_service" json:"beginService"`
+	Quantity     float64      `db:"quantity" json:"quantity"`
 }
 type OrgResourcesSlice []OrgResources
 
@@ -19,12 +20,12 @@ func (o *OrgResources) GetRowValues(queryName string) apps.RowValues {
 	pgValues := apps.RowValues{}
 	switch queryName {
 	default:
-		pgValues = apps.RowValues{o.EndService, o.ResourceID, o.OrgID, o.BeginService}
+		pgValues = apps.RowValues{o.EndService, o.ResourceID, o.OrgID, o.BeginService, o.Quantity}
 	}
 	return pgValues
 }
 func (o *OrgResources) GetTableColumns() (columnValues []string) {
-	columnValues = []string{"end_service", "resource_id", "org_id", "begin_service"}
+	columnValues = []string{"end_service", "resource_id", "org_id", "begin_service", "quantity"}
 	return columnValues
 }
 func (o *OrgResources) GetTableName() (tableName string) {

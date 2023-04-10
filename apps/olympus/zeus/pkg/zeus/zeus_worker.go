@@ -15,6 +15,15 @@ import (
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 )
 
+func ExecuteCreateSetupClusterWorkflow(c echo.Context, ctx context.Context, params base_deploy_params.ClusterSetupRequest) error {
+	err := topology_worker.Worker.ExecuteCreateSetupCluster(ctx, params)
+	if err != nil {
+		log.Err(err).Interface("orgUser", params.Ou.OrgID).Msg("ExecuteCreateSetupClusterWorkflow, ExecuteWorkflow error")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	return c.JSON(http.StatusAccepted, nil)
+}
+
 func ExecuteDeployClusterWorkflow(c echo.Context, ctx context.Context, params base_deploy_params.ClusterTopologyWorkflowRequest) error {
 	err := topology_worker.Worker.ExecuteDeployCluster(ctx, params)
 	if err != nil {

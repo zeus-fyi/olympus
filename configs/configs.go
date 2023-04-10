@@ -21,6 +21,11 @@ type TestURLs struct {
 type TestContainer struct {
 	Env string
 
+	StripeTestPublicAPIKey string
+	StripeTestSecretAPIKey string
+	StripeProdPublicAPIKey string
+	StripeProdSecretAPIKey string
+
 	DigitalOceanAPIKey      string
 	LocalDbPgconn           string
 	StagingDbPgconn         string
@@ -138,6 +143,12 @@ func InitArtemisLocalAccounts() {
 
 func InitLocalTestConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
+
+	testCont.StripeTestPublicAPIKey = viper.GetString("STRIPE_TEST_API_PUBLIC_KEY")
+	testCont.StripeTestSecretAPIKey = viper.GetString("STRIPE_TEST_API_SECRET_KEY")
+
+	testCont.StripeProdPublicAPIKey = viper.GetString("STRIPE_PROD_API_PUBLIC_KEY")
+	testCont.StripeProdSecretAPIKey = viper.GetString("STRIPE_PROD_API_SECRET_KEY")
 
 	testCont.DigitalOceanAPIKey = viper.GetString("DO_API_KEY")
 	testCont.SendGridAPIKey = viper.GetString("SENDGRID_API_KEY")

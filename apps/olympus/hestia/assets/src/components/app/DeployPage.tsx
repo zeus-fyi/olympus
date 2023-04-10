@@ -121,23 +121,35 @@ export function DeployPage(props: any) {
             break;
         case 'success':
             buttonLabel = 'Deploy More';
-            buttonDisabled = false;
+            buttonDisabled = count === 0;
             statusMessage = 'Deployment in Progress';
             break;
         case 'error':
             buttonLabel = 'Retry';
-            buttonDisabled = false;
+            buttonDisabled = count === 0;
             statusMessage = 'An error occurred while attempting to deploy.';
             break;
         default:
             buttonLabel = 'Deploy';
-            buttonDisabled = true;
+            buttonDisabled = true
+            //buttonDisabled = count === 0;
             break;
     }
     const handleDeploy = async () => {
         try {
             setRequestStatus('pending');
-            const response = await appsApiGateway.deployApp(params.id as string, {});
+            const namespaceAlias = "default";
+            const payload = {
+                "cloudProvider": cloudProvider,
+                "region": region,
+                "nodes": node,
+                "count": count,
+                "namespaceAlias": namespaceAlias,
+                "cluster": cluster,
+                "resourceRequirements": resourceRequirements,
+            }
+            console.log("payload", payload)
+            const response = await appsApiGateway.deployApp(payload);
             if (response.status === 200) {
                 setRequestStatus('success');
             } else {
@@ -178,7 +190,8 @@ export function DeployPage(props: any) {
         for (const resource of resourceRequirements) {
             totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * 0.10 * parseInt(resource.replicas));
         }
-        return node.priceHourly * count + (totalBlockStorageCost*1.1);
+        let roundedNum = Math.ceil(node.priceHourly * Math.pow(10, 2)) / Math.pow(10, 2);
+        return roundedNum * count + (totalBlockStorageCost*1.1);
     }
     return (
         <div>

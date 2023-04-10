@@ -10,6 +10,7 @@ INSERT INTO "public"."key_types" VALUES (7, 'password');
 INSERT INTO "public"."key_types" VALUES (8, 'session');
 INSERT INTO "public"."key_types" VALUES (9, 'verifyEmail');
 INSERT INTO "public"."key_types" VALUES (10, 'resetPassword');
+INSERT INTO "public"."key_types" VALUES (11, 'stripeCustomerID');
 COMMIT;
 
 BEGIN;

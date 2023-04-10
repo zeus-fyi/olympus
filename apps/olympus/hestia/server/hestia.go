@@ -22,6 +22,7 @@ import (
 	artemis_validator_signature_service_routing "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/signature_routing"
 	eth_validators_service_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validators_service_requests"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
+	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
@@ -67,6 +68,7 @@ func Hestia() {
 		artemis_validator_service_groups_models.ArtemisClient = artemis_client.NewDefaultArtemisClient(sw.BearerToken)
 		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesSESEmailNotifications(ctx, sw.SESAuthAWS)
 		hermes_email_notifications.InitHermesSendGridClient(ctx, sw.SendGridAPIKey)
+		hestia_stripe.InitStripe(sw.StripeSecretKey)
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
@@ -78,6 +80,7 @@ func Hestia() {
 		awsSESAuthCfg.SecretKey = tc.AwsSecretKeySES
 		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesSESEmailNotifications(ctx, awsSESAuthCfg)
 		hermes_email_notifications.InitHermesSendGridClient(ctx, tc.SendGridAPIKey)
+		hestia_stripe.InitStripe(tc.StripeTestSecretAPIKey)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
@@ -89,6 +92,7 @@ func Hestia() {
 		awsSESAuthCfg.SecretKey = tc.AwsSecretKeySES
 		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesSESEmailNotifications(ctx, awsSESAuthCfg)
 		hermes_email_notifications.InitHermesSendGridClient(ctx, tc.SendGridAPIKey)
+		hestia_stripe.InitStripe(tc.StripeTestSecretAPIKey)
 	}
 	log.Info().Msg("Hestia: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)

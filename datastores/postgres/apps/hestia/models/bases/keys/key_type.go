@@ -14,6 +14,7 @@ const (
 	SessionIDKeyTypeID       = 8
 	VerifyEmailTokenTypeID   = 9
 	PasswordResetTokenTypeID = 10
+	StripeCustomerID         = 11
 )
 
 type KeyType struct {

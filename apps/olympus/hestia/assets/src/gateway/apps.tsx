@@ -42,8 +42,8 @@ class AppsApiGateway {
             return {} as AppPageResponse
         }
     }
-    async deployApp(id: string, params: any): Promise<any>  {
-        const url = `/v1/infra/ui/deploy/app/${id}`;
+    async deployApp(payload: any): Promise<any>  {
+        const url = `/v1/deploy/ui/app`;
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {
@@ -51,9 +51,6 @@ class AppsApiGateway {
                     'Authorization': `Bearer ${sessionID}`
                 },
                 withCredentials: true,
-            }
-            const payload = {
-                params: params
             }
             return await zeusApi.post(url, payload, config).then((response) => {
                 return response.data;

@@ -11,6 +11,7 @@ import (
 	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	hestia_delete "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/delete"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
+	hestia_billing "github.com/zeus-fyi/olympus/hestia/web/billing"
 	hestia_login "github.com/zeus-fyi/olympus/hestia/web/login"
 	hestia_signup "github.com/zeus-fyi/olympus/hestia/web/signup"
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
@@ -33,6 +34,11 @@ func InitV1Routes(e *echo.Echo) {
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()
+			cookie, err := c.Cookie(aegis_sessions.SessionIDNickname)
+			if err == nil && cookie != nil {
+				log.Info().Msg("InitV1ActionsRoutes: Cookie found")
+				token = cookie.Value
+			}
 			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.EthereumEphemeryService)
 			if err != nil {
 				log.Err(err).Msg("InitV1Routes")
@@ -44,6 +50,7 @@ func InitV1Routes(e *echo.Echo) {
 			return key.PublicKeyVerified, err
 		},
 	}))
+	eg.GET("/stripe/customer/id", hestia_billing.StripeBillingRequestHandler)
 	eg.GET("/refresh/token", hestia_login.TokenRefreshRequestHandler)
 }
 

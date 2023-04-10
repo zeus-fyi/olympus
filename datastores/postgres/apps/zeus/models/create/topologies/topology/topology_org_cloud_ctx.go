@@ -33,8 +33,8 @@ func (c *CreateTopologiesOrgCloudCtxNs) GetInsertTopologyOrgCtxQueryParams() sql
 	q.Values = []apps.RowValues{c.GetRowValues("default")}
 
 	q.RawQuery = `
-			INSERT INTO topologies_org_cloud_ctx_ns(org_id, cloud_provider, context, region, namespace)
-			VALUES ($1, $2, $3, $4, $5)
+			INSERT INTO topologies_org_cloud_ctx_ns(org_id, cloud_provider, context, region, namespace, namespace_alias)
+			VALUES ($1, $2, $3, $4, $5, $6)
 			ON CONFLICT (cloud_provider, context, region, namespace) DO NOTHING
 			RETURNING cloud_ctx_ns_id`
 	return q
@@ -43,7 +43,7 @@ func (c *CreateTopologiesOrgCloudCtxNs) GetInsertTopologyOrgCtxQueryParams() sql
 func (c *CreateTopologiesOrgCloudCtxNs) InsertTopologyAccessCloudCtxNs(ctx context.Context) error {
 	q := c.GetInsertTopologyOrgCtxQueryParams()
 	log.Debug().Interface("InsertTopologyAccessCloudCtxNs:", q.LogHeader(Sn))
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, c.OrgID, c.CloudProvider, c.Context, c.Region, c.Namespace).Scan(&c.CloudCtxNsID)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, c.OrgID, c.CloudProvider, c.Context, c.Region, c.Namespace, c.NamespaceAlias).Scan(&c.CloudCtxNsID)
 	if err.Error() == "no rows in result set" {
 		return nil
 	}

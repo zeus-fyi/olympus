@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {FormEvent, useState} from 'react';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
@@ -16,6 +17,11 @@ import {useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
 import MainListItems from "../dashboard/listItems";
+import {loadStripe, StripeElementsOptionsMode, StripeError} from "@stripe/stripe-js";
+import {Elements, PaymentElement, useElements, useStripe,} from "@stripe/react-stripe-js";
+import {configService} from "../../config/config";
+import {Card, CardContent} from "@mui/material";
+import {stripeApiGateway} from "../../gateway/stripe";
 
 const mdTheme = createTheme();
 
@@ -36,9 +42,9 @@ function BillingContent() {
 
     return (
         <ThemeProvider theme={mdTheme}>
-            <Box sx={{ display: 'flex' }}>
-                <CssBaseline />
-                <AppBar position="absolute" open={open} style={{ backgroundColor: '#8991B0'}}>
+            <Box sx={{display: 'flex'}}>
+                <CssBaseline/>
+                <AppBar position="absolute" open={open} style={{backgroundColor: '#8991B0'}}>
                     <Toolbar
                         sx={{
                             pr: '24px', // keep right padding when drawer closed
@@ -51,17 +57,17 @@ function BillingContent() {
                             onClick={toggleDrawer}
                             sx={{
                                 marginRight: '36px',
-                                ...(open && { display: 'none' }),
+                                ...(open && {display: 'none'}),
                             }}
                         >
-                            <MenuIcon />
+                            <MenuIcon/>
                         </IconButton>
                         <Typography
                             component="h1"
                             variant="h6"
                             color="inherit"
                             noWrap
-                            sx={{ flexGrow: 1 }}
+                            sx={{flexGrow: 1}}
                         >
                             Billing
                         </Typography>
@@ -82,13 +88,13 @@ function BillingContent() {
                         }}
                     >
                         <IconButton onClick={toggleDrawer}>
-                            <ChevronLeftIcon />
+                            <ChevronLeftIcon/>
                         </IconButton>
                     </Toolbar>
-                    <Divider />
+                    <Divider/>
                     <List component="nav">
-                        <MainListItems />
-                        <Divider sx={{ my: 1 }} />
+                        <MainListItems/>
+                        <Divider sx={{my: 1}}/>
                     </List>
                 </Drawer>
                 <Box
@@ -103,9 +109,9 @@ function BillingContent() {
                         overflow: 'auto',
                     }}
                 >
-                    <Toolbar />
-                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                        {/*{<ApiKeys />}*/}
+                    <Toolbar/>
+                    <Container maxWidth="lg" sx={{mt: 4, mb: 4}}>
+                        <CheckoutPage/>
                     </Container>
                 </Box>
             </Box>
@@ -114,5 +120,98 @@ function BillingContent() {
 }
 
 export default function Billing() {
-    return <BillingContent />;
+    return <BillingContent/>;
+}
+
+const stripe = loadStripe(configService.getStripePubKey());
+
+
+function CheckoutPage() {
+    const options: StripeElementsOptionsMode = {
+        paymentMethodTypes: ['card'],
+        currency: 'usd',
+        mode: 'setup'
+    };
+
+    return (
+        <div>
+            <Card>
+                <CardContent>
+                    <Typography gutterBottom variant="h5" component="div">
+                        Billing Info
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        To use cluster deployments & other premium features, you must enter your billing information.
+                    </Typography>
+                </CardContent>
+                <Container maxWidth="lg">
+                    <Box sx={{mt: 4, mb: 4}}>
+                        <Elements stripe={stripe} options={options}>
+                            <CheckoutForm/>
+                        </Elements>
+                    </Box>
+                </Container>
+            </Card>
+        </div>
+    );
+}
+
+export function CheckoutForm() {
+    const stripe = useStripe();
+    const elements = useElements();
+
+    const [errorMessage, setErrorMessage] = useState<string | undefined>();
+    const [loading, setLoading] = useState<boolean>(false);
+
+    const handleError = (error: StripeError) => {
+        setLoading(false);
+        setErrorMessage(error.message);
+    };
+
+    const handleSubmit = async (event: FormEvent) => {
+        event.preventDefault();
+
+        if (!stripe || !elements) {
+            return;
+        }
+
+        setLoading(true);
+
+        const { error: submitError } = await elements.submit();
+        if (submitError) {
+            handleError(submitError);
+            return;
+        }
+
+        async function fetchCustomerID() {
+            try {
+                const response = await stripeApiGateway.getClientSecret()
+                return response.data.clientSecret
+            } catch (e) {
+            }
+        }
+        const clientSecret = await fetchCustomerID()
+        const { error } = await stripe.confirmSetup({
+            elements,
+            clientSecret,
+            confirmParams: {
+                return_url: 'https://cloud.zeus.fyi/dashboard',
+            },
+        });
+
+        if (error) {
+            console.log(error)
+            handleError(error);
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit}>
+            <PaymentElement />
+            <button type="submit" disabled={!stripe || loading}>
+                Submit
+            </button>
+            {errorMessage && <div>{errorMessage}</div>}
+        </form>
+    );
 }

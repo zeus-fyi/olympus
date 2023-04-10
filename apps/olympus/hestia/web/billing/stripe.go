@@ -45,6 +45,15 @@ func (s *StripeBillingRequest) GetCustomerID(c echo.Context) error {
 		log.Ctx(ctx).Err(err).Interface("ou", ou).Msg("GetOrCreateCustomerStripeID error")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	//paramsCheckout := &stripe.CheckoutSessionParams{
+	//	PaymentMethodTypes: stripe.StringSlice([]string{
+	//		"card",
+	//	}),
+	//	Mode:       stripe.String(string(stripe.CheckoutSessionModeSetup)),
+	//	Customer:   stripe.String(cID),
+	//	SuccessURL: stripe.String("https://example.com/success?session_id={CHECKOUT_SESSION_ID}"),
+	//	CancelURL:  stripe.String("https://example.com/cancel"),
+	//}
 
 	// &stripe.SetupIntentPaymentMethodDataParams{},
 	params := &stripe.SetupIntentParams{

@@ -125,7 +125,6 @@ export default function Billing() {
 
 const stripe = loadStripe(configService.getStripePubKey());
 
-
 function CheckoutPage() {
     const options: StripeElementsOptionsMode = {
         paymentMethodTypes: ['card'],

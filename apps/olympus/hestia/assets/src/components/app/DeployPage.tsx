@@ -42,6 +42,7 @@ interface NodeMap {
 }
 
 export function DeployPage(props: any) {
+    const {app} = props
     const [cloudProvider, setCloudProvider] = useState('do');
     const [region, setRegion] = useState('nyc1');
     const cluster = useSelector((state: RootState) => state.apps.cluster);
@@ -60,7 +61,11 @@ export function DeployPage(props: any) {
             let selectedComponentBaseName;
             let selectedSkeletonBaseName;
             try {
-                const response = await appsApiGateway.getPrivateAppDetails(params.id as string);
+                let id = params.id as string;
+                if (app === "avax") {
+                    id = "avax"
+                }
+                const response = await appsApiGateway.getPrivateAppDetails(id);
                 clusterPreview = await response.clusterPreview;
                 dispatch(setClusterPreview(clusterPreview));
                 cluster = await response.cluster;

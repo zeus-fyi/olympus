@@ -111,7 +111,7 @@ function AppsPageContent() {
                             <Stack direction="column" spacing={2} sx={{ mt: 4}}>
                                 <Container maxWidth="xs" >
                                         <Card style={{ padding: '20px', maxWidth: '300px' }}>
-                                            <Link to="/avax/apps">
+                                            <Link to="/apps/avax">
                                             <CardMedia
                                                 component="img"
                                                 style={{ height: '70%', width: '70%', objectFit: 'contain', margin: 'auto', display: 'block' }}

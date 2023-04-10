@@ -15,6 +15,7 @@ import {VerifyEmail} from "../components/signup/VerifyEmail";
 import ClusterBuilderPage from "../components/clusters/wizard/ClusterBuilderPage";
 import AppsPage from "../components/apps/AppsPage";
 import {AppPageWrapper} from "../components/app/AppPageWrapper";
+import Billing from "../components/billing/Billing";
 
 export const App = () => {
     return (
@@ -39,7 +40,7 @@ export const App = () => {
                                 <Route path="services/ethereum/aws" element={<AwsWizard />} />
                             </Route>
                             {/*<Route path="access" element={<Access />} />*/}
-                            {/*<Route path="billing" element={<Billing />} />*/}
+                            <Route path="billing" element={<Billing />} />
                         </Route>
                     </Routes>
                 </BrowserRouter>

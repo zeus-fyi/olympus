@@ -16,6 +16,9 @@ import {useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
 import MainListItems from "../dashboard/listItems";
+import {loadStripe} from "@stripe/stripe-js";
+import {PaymentElement,} from "@stripe/react-stripe-js";
+import {configService} from "../../config/config";
 
 const mdTheme = createTheme();
 
@@ -105,7 +108,7 @@ function BillingContent() {
                 >
                     <Toolbar />
                     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                        {/*{<ApiKeys />}*/}
+                        <CheckoutPage />
                     </Container>
                 </Box>
             </Box>
@@ -115,4 +118,37 @@ function BillingContent() {
 
 export default function Billing() {
     return <BillingContent />;
+}
+
+const stripe = loadStripe(configService.getStripePubKey());
+
+const clientSecret = {clientSecret: "id_secret_ssdfsd"}
+
+const CheckoutPage = () => (
+    <div>
+        {/*<Elements stripe={stripe} options={clientSecret}>*/}
+        {/*    <CheckoutForm />*/}
+        {/*</Elements>*/}
+    </div>
+);
+
+export function CheckoutForm() {
+    return (
+        <form>
+            <h3>Payment</h3>
+
+            <PaymentElement
+                options={{
+                    defaultValues: {
+                        billingDetails: {
+                            email: 'foo@bar.com',
+                            name: 'John Doe',
+                            phone: '888-888-8888',
+                        }
+                    }
+                }}
+            />
+            <button type="submit">Submit</button>
+        </form>
+    );
 }

@@ -24,6 +24,8 @@ type CheckoutData struct {
 }
 
 func (s *StripeBillingRequest) Dothing(c echo.Context) error {
+
+	// GET customer ID from session
 	params := &stripe.SetupIntentParams{
 		Customer:           stripe.String("{{CUSTOMER_ID}}"),
 		PaymentMethodTypes: []*string{stripe.String("card"), stripe.String("link")},

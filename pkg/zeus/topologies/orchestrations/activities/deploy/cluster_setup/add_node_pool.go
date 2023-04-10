@@ -22,8 +22,9 @@ func (c *CreateSetupTopologyActivities) AddNodePoolToOrgResources(ctx context.Co
 
 func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) error {
 	taint := godo.Taint{
-		Key:   fmt.Sprintf("%d", params.Ou.OrgID),
-		Value: params.ClusterID.String(),
+		Key:    fmt.Sprintf("org-%d", params.Ou.OrgID),
+		Value:  fmt.Sprintf("org-%d", params.Ou.OrgID),
+		Effect: "NoSchedule",
 	}
 	nodesReq := &godo.KubernetesNodePoolCreateRequest{
 		Name:   params.ClusterID.String() + "-node-pool",

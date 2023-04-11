@@ -27,7 +27,31 @@ class AppsApiGateway {
         if (id == 'avax') {
             return this.getAvaxAppsDetails()
         }
+        if (id == 'ethereumEphemeralBeacons') {
+            return this.getEthBeaconEphemeralAppsDetails()
+        }
         const url = `/v1/infra/ui/private/app/${id}`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
+            return await zeusApi.get(url, config).then((response) => {
+                return response.data;
+            })
+        } catch (exc) {
+            console.error('error sending get private apps request');
+            console.error(exc);
+            return {} as AppPageResponse
+        }
+    }
+    // "/infra/ui/apps/eth/beacon/ephemeral"
+    async getEthBeaconEphemeralAppsDetails(): Promise<AppPageResponse>  {
+        const url = `/v1/infra/ui/apps/eth/beacon/ephemeral`;
+        console.log('getEthBeaconEphemeralAppsDetails')
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {

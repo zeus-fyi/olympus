@@ -26,6 +26,7 @@ func UIRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
 
 	e.GET("/infra/ui/apps/avax", read_infra.AvaxAppsHandler)
+	e.GET("/infra/ui/apps/eth/beacon/ephemeral", read_infra.EthAppsHandler)
 	e.GET("/infra/ui/private/app/:id", read_infra.ReadOrgAppDetailsHandler)
 	e.GET("/infra/ui/private/apps", read_infra.ReadOrgAppsHandler)
 	e.POST("/infra/ui/cluster/create", create_infra.CreateTopologyInfraActionFromUIRequestHandler)

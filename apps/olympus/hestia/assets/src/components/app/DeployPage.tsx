@@ -65,6 +65,9 @@ export function DeployPage(props: any) {
                 if (app === "avax") {
                     id = "avax"
                 }
+                if (app === "ethereumEphemeralBeacons") {
+                    id = "ethereumEphemeralBeacons"
+                }
                 const response = await appsApiGateway.getPrivateAppDetails(id);
                 clusterPreview = await response.clusterPreview;
                 dispatch(setClusterPreview(clusterPreview));

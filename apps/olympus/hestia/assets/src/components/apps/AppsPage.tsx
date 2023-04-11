@@ -108,23 +108,43 @@ function AppsPageContent() {
                     <Toolbar />
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <div style={{ display: 'flex' }}>
-                            <Stack direction="column" spacing={2} sx={{ mt: 4}}>
-                                <Container maxWidth="xs" >
-                                        <Card style={{ padding: '20px', maxWidth: '300px' }}>
-                                            <Link to="/apps/avax">
+                            <Stack direction="row" spacing={2} sx={{ mt: 4}}>
+                                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                                <Stack direction="column" spacing={2} sx={{ mt: 4}}>
+                                    <Card sx={{ minWidth: 500, maxWidth: 500, maxHeight: 500, minHeight: 450 }}>
+                                        <Link to="/apps/avax">
                                             <CardMedia
                                                 component="img"
-                                                style={{ height: '70%', width: '70%', objectFit: 'contain', margin: 'auto', display: 'block' }}
+                                                style={{ height: '80%', width: '70%', objectFit: 'contain', margin: 'auto', display: 'block',  marginTop: '10px', marginBottom: '30px'}}
                                                 image={require("../../static/avax-logo.png")}
                                                 alt="avax"
                                             />
-                                            </Link>
-                                            <CardContent style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                <Typography gutterBottom variant="h5" component="div">
-                                                    Avax Apps
-                                                </Typography>
-                                            </CardContent>
-                                        </Card>
+                                        </Link>
+                                        <CardContent style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <Typography gutterBottom variant="h5" component="div">
+                                                Avax Apps
+                                            </Typography>
+                                        </CardContent>
+                                    </Card>
+                                </Stack>
+                            </Container>
+
+                                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                                    <Card sx={{ minWidth: 450, maxWidth: 500, maxHeight: 800}}>
+                                        <Link to="/apps/eth">
+                                            <CardMedia
+                                                component="img"
+                                                style={{ height: '50%', width: '55%', objectFit: 'contain', margin: 'auto', display: 'block', marginTop: '20px', marginBottom: '20px' }}
+                                                image={require("../../static/eth.png")}
+                                                alt="eth"
+                                            />
+                                        </Link>
+                                        <CardContent style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <Typography gutterBottom variant="h5" component="div">
+                                                Ethereum Apps
+                                            </Typography>
+                                        </CardContent>
+                                    </Card>
                                 </Container>
                             </Stack>
                         </div>

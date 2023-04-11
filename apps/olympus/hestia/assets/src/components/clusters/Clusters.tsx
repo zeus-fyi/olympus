@@ -131,8 +131,7 @@ function ClustersContent() {
                                         Cloud, Infra, & Cluster Management
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
-                                        If you have access to infra clusters, you can create a new cluster here and manage existing ones. Public signup & access
-                                        coming soon.
+                                       Clusters created will show up here after shortly after app deployment.
                                     </Typography>
                                 </CardContent>
                             </Card>

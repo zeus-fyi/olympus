@@ -30,36 +30,52 @@ func AvaxAppsHandler(c echo.Context) error {
 	return request.GetAvaxApp(c)
 }
 
+func EthAppsHandler(c echo.Context) error {
+	request := new(AvaxAppsPageRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.GetEphemeralBeaconsApp(c)
+}
+
 const (
-	AvaxAppID  = 1680924257606485000
+	AvaxAppID                = 1680924257606485000
+	EphemeralEthBeaconsAppID = 1670997020811171000
+
 	AppsOrgID  = 7138983863666903883
 	AppsUserID = 7138958574876245565
 )
 
+func (a *AvaxAppsPageRequest) GetEphemeralBeaconsApp(c echo.Context) error {
+	return a.GetApp(c, AppsOrgID, EphemeralEthBeaconsAppID)
+}
 func (a *AvaxAppsPageRequest) GetAvaxApp(c echo.Context) error {
+	return a.GetApp(c, AppsOrgID, AvaxAppID)
+}
+func (a *AvaxAppsPageRequest) GetApp(c echo.Context, AppsOrgID, AppID int) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	ctx := context.Background()
 
-	avaxApp, err := read_topology.SelectAppTopologyByID(ctx, AppsOrgID, AvaxAppID)
+	selectedApp, err := read_topology.SelectAppTopologyByID(ctx, AppsOrgID, AppID)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("ListPrivateAppsRequest: SelectOrgApps")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	resp := TopologyUIAppDetailsResponse{
 		Cluster: zeus_templates.Cluster{
-			ClusterName:     avaxApp.ClusterClassName,
+			ClusterName:     selectedApp.ClusterClassName,
 			ComponentBases:  make(map[string]zeus_templates.SkeletonBases),
 			IngressSettings: zeus_templates.Ingress{},
 			IngressPaths:    nil,
 		},
 		ClusterPreviewWorkloadsOlympus: zeus_templates.ClusterPreviewWorkloadsOlympus{
-			ClusterName:    avaxApp.ClusterClassName,
+			ClusterName:    selectedApp.ClusterClassName,
 			ComponentBases: make(map[string]map[string]any),
 		},
 		SelectedComponentBaseName: "",
 		SelectedSkeletonBaseName:  "",
 	}
-	pcg, _ := zeus_templates.GenerateSkeletonBaseChartsCopy(ctx, &avaxApp)
+	pcg, _ := zeus_templates.GenerateSkeletonBaseChartsCopy(ctx, &selectedApp)
 	rsMinMax := zeus_core.ResourceMinMax{
 		Max: zeus_core.ResourceAggregate{},
 		Min: zeus_core.ResourceAggregate{},
@@ -73,7 +89,7 @@ func (a *AvaxAppsPageRequest) GetAvaxApp(c echo.Context) error {
 	sys := systems.Systems{TopologySystemComponents: autogen_bases.TopologySystemComponents{
 		OrgID:                       ou.OrgID,
 		TopologyClassTypeID:         class_types.ClusterClassTypeID,
-		TopologySystemComponentName: avaxApp.ClusterClassName,
+		TopologySystemComponentName: selectedApp.ClusterClassName,
 	}}
 
 	tx, err = create_clusters.InsertCluster(ctx, tx, &sys, pcg, ou)

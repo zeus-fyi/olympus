@@ -57,7 +57,7 @@ func (s *ReadDeploymentStatusesGroup) readClustersDeployedToKns() sql_query_temp
 	q := sql_query_templates.NewQueryParam("ReadState", "read_deployment_status", "where", 1000, []string{})
 
 	query := `WITH cte_get_org_ctx AS (
-					SELECT cloud_provider, region, context, namespace 
+					SELECT cloud_provider, region, context, namespace, namespace_alias
 					FROM topologies_org_cloud_ctx_ns oc 
 					WHERE cloud_ctx_ns_id = $1 AND org_id = $2
 					LIMIT 1
@@ -90,9 +90,11 @@ func (s *ReadDeploymentStatusesGroup) ReadLatestDeployedClusterTopologies(ctx co
 	}
 	defer rows.Close()
 	for rows.Next() {
+
+		namespaceAlias := ""
 		rs := ReadDeploymentStatus{}
 		rowErr := rows.Scan(
-			&rs.TopologyID, &rs.ClusterName, &rs.ComponentBaseName, &rs.SkeletonBaseName,
+			&rs.TopologyID, &rs.ClusterName, &rs.ComponentBaseName, &rs.SkeletonBaseName, &namespaceAlias,
 		)
 		rs.UpdatedAt = time.Unix(0, int64(rs.TopologyID))
 		if rowErr != nil {

@@ -238,8 +238,8 @@ export function DeployPage(props: any) {
                             Deployment & Management
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            Currently, you cannot deploy clusters without setting up a payment method. You can set a payment option on the billing page.
-                            Once you've deployed an app you can view it on the clusters page within a few minutes. Click on the cluster namespace to get a detailed view of the live cluster.
+                            Without setting up a payment method you can only deploy a maximum of one app with a monthly cost less than or equal to $500/month, and if a payment method is not set within one hour it will automatically delete your app.
+                            You can set a payment option on the billing page. Once you've deployed an app you can view it on the clusters page within a few minutes. Click on the cluster namespace to get a detailed view of the live cluster.
                         </Typography>
                     </CardContent>
                     <Divider />

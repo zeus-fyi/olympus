@@ -164,8 +164,7 @@ function DashboardContent() {
                                     Cluster Management & Ethereum Staking
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
-                                    Cluster infra creation, ops, management from natural code & UIs coming soon to public release.
-                                    The Ethereum validators UI is open to anyone.
+                                    Dashboard for managing your cluster and staking your Ethereum, coming soon! Check out the submenus on the left to view and manage these services for now.
                                 </Typography>
                             </CardContent>
                         </Card>

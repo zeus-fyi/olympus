@@ -17,8 +17,8 @@ import {useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
 import MainListItems from "../dashboard/listItems";
-import {loadStripe, StripeElementsOptionsMode, StripeError} from "@stripe/stripe-js";
-import {Elements, PaymentElement, useElements, useStripe,} from "@stripe/react-stripe-js";
+import {Appearance, loadStripe, StripeElementsOptionsMode, StripeError} from "@stripe/stripe-js";
+import {AddressElement, Elements, PaymentElement, useElements, useStripe,} from "@stripe/react-stripe-js";
 import {configService} from "../../config/config";
 import {Card, CardContent} from "@mui/material";
 import {stripeApiGateway} from "../../gateway/stripe";
@@ -126,10 +126,15 @@ export default function Billing() {
 const stripe = loadStripe(configService.getStripePubKey());
 
 function CheckoutPage() {
+    const appearance = {
+        theme: 'stripe'
+    } as Appearance;
+
     const options: StripeElementsOptionsMode = {
         paymentMethodTypes: ['card'],
         currency: 'usd',
-        mode: 'setup'
+        mode: 'setup',
+        appearance: appearance
     };
 
     return (
@@ -175,7 +180,6 @@ export function CheckoutForm() {
         }
 
         setLoading(true);
-
         const { error: submitError } = await elements.submit();
         if (submitError) {
             handleError(submitError);
@@ -187,6 +191,7 @@ export function CheckoutForm() {
                 const response = await stripeApiGateway.getClientSecret()
                 return response.data.clientSecret
             } catch (e) {
+                handleError(error);
             }
         }
         const clientSecret = await fetchCustomerID()
@@ -199,13 +204,13 @@ export function CheckoutForm() {
         });
 
         if (error) {
-            console.log(error)
             handleError(error);
         }
     };
 
     return (
         <form onSubmit={handleSubmit}>
+            <AddressElement options={{mode: 'billing'}} />
             <PaymentElement />
             <button type="submit" disabled={!stripe || loading}>
                 Submit

@@ -135,17 +135,6 @@ function ClustersContent() {
                                     </Typography>
                                 </CardContent>
                             </Card>
-                            <Card sx={{ maxWidth: 600 }}>
-                                <CardContent>
-                                    <Typography gutterBottom variant="h5" component="div">
-                                        In the Meantime, Read More Details Here:
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        Here we cover an example of how we created an Ethereum beacon.
-                                        https://medium.com/@zeusfyi/zeus-k8s-infra-as-code-concepts-47e690c6e3c5
-                                    </Typography>
-                                </CardContent>
-                            </Card>
                         </Stack>
 
                 </Container>

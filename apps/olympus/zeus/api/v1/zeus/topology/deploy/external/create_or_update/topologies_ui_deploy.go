@@ -11,6 +11,7 @@ import (
 	"github.com/rs/zerolog/log"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	zeus_templates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
@@ -37,6 +38,8 @@ type DiskResourceRequirements struct {
 
 type TopologyDeployUIRequest struct {
 	zeus_common_types.CloudCtxNs
+	FreeTrial            bool                       `json:"freeTrial"`
+	MonthlyCost          float64                    `json:"monthlyCost"`
 	CloudProvider        string                     `json:"cloudProvider"`
 	Region               string                     `json:"region"`
 	Node                 autogen_bases.Nodes        `json:"nodes"`
@@ -59,7 +62,22 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
 
-	if ou.UserID != 7138958574876245565 {
+	if t.FreeTrial {
+		isFreeTrialOngoing, err := hestia_compute_resources.DoesOrgHaveOngoingFreeTrial(ctx, ou.OrgID)
+		if err != nil {
+			log.Ctx(ctx).Error().Err(err).Msg("failed to check if org has ongoing free trial")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		if isFreeTrialOngoing {
+			log.Ctx(ctx).Error().Err(err).Msg("org has ongoing free trial")
+			return c.JSON(http.StatusPreconditionFailed, nil)
+		}
+		if t.MonthlyCost > 500 {
+			log.Ctx(ctx).Error().Err(err).Msg("free trial value exceeds max allowed")
+			return c.JSON(http.StatusPreconditionFailed, nil)
+		}
+	}
+	if ou.UserID != 7138958574876245565 && !t.FreeTrial {
 		isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(ctx, ou.UserID)
 		if err != nil {
 			log.Ctx(ctx).Error().Err(err).Msg("failed to check if user has billing method")
@@ -74,7 +92,8 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 	clusterID := uuid.New()
 	suffix := strings.Split(clusterID.String(), "-")[0]
 	cr := base_deploy_params.ClusterSetupRequest{
-		Ou: ou,
+		FreeTrial: t.FreeTrial,
+		Ou:        ou,
 		CloudCtxNs: zeus_common_types.CloudCtxNs{
 			CloudProvider: "do",
 			Region:        "nyc1",

@@ -29,3 +29,8 @@ func (d *DigitalOcean) GetSizes(ctx context.Context) ([]godo.Size, error) {
 	}
 	return sizes, err
 }
+
+type DigitalOceanNodePoolRequestStatus struct {
+	ClusterID  string
+	NodePoolID string
+}

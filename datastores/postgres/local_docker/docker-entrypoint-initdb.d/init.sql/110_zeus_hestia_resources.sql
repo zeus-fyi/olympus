@@ -50,8 +50,17 @@ CREATE TABLE org_resources (
    quantity float8 NOT NULL,
    begin_service timestamptz NOT NULL DEFAULT NOW(),
    end_service timestamptz DEFAULT NULL,
+   free_trial boolean NOT NULL DEFAULT FALSE,
    PRIMARY KEY (org_resource_id)
 );
 
 CREATE INDEX begin_resource_idx ON org_resources (begin_service);
 CREATE INDEX end_resource_idx ON org_resources (end_service);
+
+CREATE TABLE digitalocean_node_pools (
+    org_resource_id int8 NOT NULL REFERENCES org_resources(org_resource_id),
+    resource_id int8 NOT NULL REFERENCES resources(resource_id),
+    node_pool_id text NOT NULL,
+    node_context_id text NOT NULL,
+    PRIMARY KEY (node_pool_id)
+);

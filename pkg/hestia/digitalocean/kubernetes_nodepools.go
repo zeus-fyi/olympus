@@ -15,3 +15,12 @@ func (d *DigitalOcean) AddToNodePool(ctx context.Context, context string, nodesR
 	}
 	return nodePool, err
 }
+
+func (d *DigitalOcean) RemoveNodePool(ctx context.Context, context, poolID string) error {
+	_, err := d.Kubernetes.DeleteNodePool(ctx, context, poolID)
+	if err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg("failed to create node pool")
+		return err
+	}
+	return err
+}

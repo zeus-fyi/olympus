@@ -1,8 +1,10 @@
 package deploy_workflow_cluster_setup
 
 import (
+	"context"
 	"time"
 
+	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	deploy_topology_activities_create_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/cluster_setup"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
@@ -32,6 +34,11 @@ func (c *ClusterSetupWorkflow) GetWorkflows() []interface{} {
 	return []interface{}{c.DeployClusterSetupWorkflow}
 }
 
+type NodePoolRequestStatus struct {
+	ClusterID  string
+	NodePoolID string
+}
+
 func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, params base_deploy_params.ClusterSetupRequest) error {
 	log := workflow.GetLogger(ctx)
 
@@ -41,22 +48,24 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 
 	// TODO add billing email step
 	nodePoolRequestStatusCtxKns := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.MakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, nil)
+	var nodePoolRequestStatus NodePoolRequestStatus
+	err := workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.MakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, &nodePoolRequestStatus)
 	if err != nil {
 		log.Error("Failed to complete node pool request", "Error", err)
 		return err
 	}
+
+	nodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.AddNodePoolToOrgResources, params, nodePoolRequestStatus).Get(nodePoolOrgResourcesCtx, nil)
+	if err != nil {
+		log.Error("Failed to add node resources to org account", "Error", err)
+		return err
+	}
+
 	authCloudCtxNsCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(authCloudCtxNsCtx, c.CreateSetupTopologyActivities.AddAuthCtxNsOrg, params).Get(authCloudCtxNsCtx, nil)
 	if err != nil {
 		log.Error("Failed to authorize auth ns to org account", "Error", err)
-		return err
-	}
-
-	nodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.AddNodePoolToOrgResources, params).Get(nodePoolOrgResourcesCtx, nil)
-	if err != nil {
-		log.Error("Failed to add node resources to org account", "Error", err)
 		return err
 	}
 
@@ -96,6 +105,53 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 	if err != nil {
 		log.Error("Failed to add deploy cluster", "Error", err)
 		return err
+	}
+
+	if params.FreeTrial {
+		err = workflow.Sleep(ctx, 60*time.Hour)
+		if err != nil {
+			log.Error("Failed to sleep for 1 hour", "Error", err)
+			return err
+		}
+		hestiaCtx := context.Background()
+		isBillingSetup, herr := hestia_stripe.DoesUserHaveBillingMethod(hestiaCtx, params.Ou.UserID)
+		if herr != nil {
+			log.Error("Failed to check if user has billing method", "Error", herr)
+			return herr
+		}
+		if !isBillingSetup {
+			destroyClusterCtx := workflow.WithActivityOptions(ctx, ao)
+			err = workflow.ExecuteActivity(destroyClusterCtx, c.CreateSetupTopologyActivities.DestroyCluster, params.CloudCtxNs).Get(destroyClusterCtx, nil)
+			if err != nil {
+				log.Error("Failed to add deploy cluster", "Error", err)
+				return err
+			}
+			removeAuthCtx := workflow.WithActivityOptions(ctx, ao)
+			err = workflow.ExecuteActivity(removeAuthCtx, c.CreateSetupTopologyActivities.RemoveAuthCtxNsOrg, params).Get(removeAuthCtx, nil)
+			if err != nil {
+				log.Error("Failed to add deploy cluster", "Error", err)
+				return err
+			}
+			destroyNodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
+			err = workflow.ExecuteActivity(destroyNodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.RemoveNodePoolRequest, params, destroyNodePoolOrgResourcesCtx).Get(destroyNodePoolOrgResourcesCtx, nil)
+			if err != nil {
+				log.Error("Failed to add remove node resources for account", "Error", err)
+				return err
+			}
+			removeFreeTrialResourcesCtx := workflow.WithActivityOptions(ctx, ao)
+			err = workflow.ExecuteActivity(removeFreeTrialResourcesCtx, c.CreateSetupTopologyActivities.RemoveFreeTrialOrgResources, params).Get(removeFreeTrialResourcesCtx, nil)
+			if err != nil {
+				log.Error("Failed to add remove org free trial resources for account", "Error", err)
+				return err
+			}
+		} else {
+			updateResourcesToPaidCtx := workflow.WithActivityOptions(ctx, ao)
+			err = workflow.ExecuteActivity(updateResourcesToPaidCtx, c.CreateSetupTopologyActivities.UpdateFreeTrialOrgResourcesToPaid, params).Get(updateResourcesToPaidCtx, nil)
+			if err != nil {
+				log.Error("Failed to update org free trial resources to paid for account", "Error", err)
+				return err
+			}
+		}
 	}
 	return err
 }

@@ -15,5 +15,10 @@ func (c *CreateSetupTopologyActivities) GetActivities() ActivitiesSlice {
 		c.AddNodePoolToOrgResources,
 		c.AddAuthCtxNsOrg,
 		c.DeployClusterTopologyFromUI,
+		c.DestroyCluster,
+		c.RemoveAuthCtxNsOrg,
+		c.RemoveNodePoolRequest,
+		c.RemoveFreeTrialOrgResources,
+		c.UpdateFreeTrialOrgResourcesToPaid,
 	}
 }

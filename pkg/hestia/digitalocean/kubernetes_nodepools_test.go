@@ -24,9 +24,15 @@ func (s *DoKubernetesTestSuite) SetupTest() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	//apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 }
+func (s *DoKubernetesTestSuite) TestGetClusterContexts() {
+	k8sContext, _, err := s.do.Client.Kubernetes.List(ctx, nil)
+	s.Require().NoError(err)
+	s.Require().NotEmpty(k8sContext)
+}
 func (s *DoKubernetesTestSuite) TestGetNodePools() {
 
-	nodePools, _, err := s.do.Client.Kubernetes.List(ctx, nil)
+	nycContext := "0de1ee8e-7b90-45ea-b966-e2d2b7976cf9"
+	nodePools, _, err := s.do.Client.Kubernetes.ListNodePools(ctx, nycContext, nil)
 	s.Require().NoError(err)
 	s.Require().NotEmpty(nodePools)
 }

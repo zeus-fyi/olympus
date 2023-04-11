@@ -16,7 +16,7 @@ func (c *CreateSetupTopologyActivities) AddDiskResourcesToOrg(ctx context.Contex
 		log.Ctx(ctx).Err(err).Interface("disks", params.Disks).Msg("AddDiskResourcesToOrg error")
 		return err
 	}
-	err = hestia_compute_resources.AddResourcesToOrg(ctx, params.Ou.OrgID, disk.ResourceID, q)
+	err = hestia_compute_resources.AddResourcesToOrg(ctx, params.Ou.OrgID, disk.ResourceID, q, params.FreeTrial)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("disks", params.Disks).Msg("AddDiskResourcesToOrg error")
 		return err

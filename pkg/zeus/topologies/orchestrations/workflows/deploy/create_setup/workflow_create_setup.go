@@ -52,7 +52,7 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 	}
 
 	nodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.AddNodePoolToOrgResources, params, nodePoolRequestStatus).Get(nodePoolOrgResourcesCtx, nil)
+	err = workflow.ExecuteActivity(nodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.AddNodePoolToOrgResources, params, nodePoolOrgResourcesCtx).Get(nodePoolOrgResourcesCtx, nil)
 	if err != nil {
 		log.Error("Failed to add node resources to org account", "Error", err)
 		return err
@@ -129,7 +129,7 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 				return err
 			}
 			destroyNodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(destroyNodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.RemoveNodePoolRequest, params, destroyNodePoolOrgResourcesCtx).Get(destroyNodePoolOrgResourcesCtx, nil)
+			err = workflow.ExecuteActivity(destroyNodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.RemoveNodePoolRequest, nodePoolRequestStatus).Get(destroyNodePoolOrgResourcesCtx, nil)
 			if err != nil {
 				log.Error("Failed to add remove node resources for account", "Error", err)
 				return err

@@ -39,7 +39,13 @@ func AddDigitalOceanNodePoolResourcesToOrg(ctx context.Context, orgID, resourceI
 
 func RemoveFreeTrialOrgResources(ctx context.Context, orgID int) error {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `DELETE FROM org_resources
+	q.RawQuery = `WITH cte_org_free_trial_resources AS (
+					SELECT org_resources_id FROM org_resources WHERE org_id = $1 AND free_trial = true
+			      ), cte_digitalocean_node_pools AS (
+					DELETE FROM digitalocean_node_pools
+					WHERE org_resources_id IN (SELECT org_resources_id FROM cte_org_free_trial_resources)
+				  )
+				  DELETE FROM org_resources
 				  WHERE org_id = $1	AND free_trial = true
 				  `
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID)

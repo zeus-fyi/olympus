@@ -128,7 +128,8 @@ const Login = () => {
                                 type="submit"
                                 fullWidth
                                 variant="contained"
-                                sx={{mt: 3, mb: 2}}
+                                color="primary"
+                                sx={{mt: 3, mb: 2, backgroundColor: '#333'}}
                                 disabled={buttonDisabled}>{buttonLabel}</Button>
                             {statusMessage && (
                                 <Typography variant="body2" color={requestStatus === 'error' ? 'error' : 'success'}>
@@ -142,7 +143,7 @@ const Login = () => {
                                 {/*    </Link>*/}
                                 {/*</Grid>*/}
                                 <Grid item>
-                                    <Link href="/signup" variant="body2">
+                                    <Link href="/signup" variant="body2" color="text.primary">
                                         {"Don't have an account? Sign Up"}
                                     </Link>
                                 </Grid>

@@ -50,6 +50,7 @@ export function DeployPage(props: any) {
     let nodes = useSelector((state: RootState) => state.apps.nodes);
     const nodeMap: NodeMap = {};
     const [count, setCount] = useState(0);
+    const [freeTrial, setFreeTrial] = useState(false);
     const [node, setNode] = useState(nodes[0]);
     const params = useParams();
     const dispatch = useDispatch();
@@ -133,9 +134,14 @@ export function DeployPage(props: any) {
             statusMessage = 'Deployment in Progress';
             break;
         case 'missingBilling':
-            buttonLabel = 'Retry';
+            buttonLabel = 'Try Free For One Hour';
             buttonDisabled = count === 0;
-            statusMessage = 'No payment methods have been set. You can set a payment option on the billing page.';
+            statusMessage = 'No payment methods have been set. You can set a payment option on the billing page.\n You can deploy it for free for one hour, but if a payment method isn\'t set it will automatically delete after one hour.'
+            break;
+        case 'outOfCredits':
+            buttonLabel = 'Try Free For One Hour';
+            buttonDisabled = count === 0;
+            statusMessage = 'No payment methods have been set. You can set a payment option on the billing page.\n You can deploy one app for free for one hour per day. You\'ve reached the maximum credits for today, if you need more time email alex@zeus.fyi'
             break;
         case 'error':
             buttonLabel = 'Retry';
@@ -159,12 +165,17 @@ export function DeployPage(props: any) {
                 "namespaceAlias": namespaceAlias,
                 "cluster": cluster,
                 "resourceRequirements": resourceRequirements,
+                "freeTrial": freeTrial,
             }
             const response = await appsApiGateway.deployApp(payload);
             if (response.status === 200 || response.status === 202 || response.status === 204) {
                 setRequestStatus('success');
             } else if (response.status === 403) {
                 setRequestStatus('missingBilling');
+                setFreeTrial(true)
+            } else if (response.status === 402) {
+                setRequestStatus('outOfCredits');
+                setFreeTrial(true)
             } else {
                 setRequestStatus('error');
                 return
@@ -174,6 +185,10 @@ export function DeployPage(props: any) {
             const status: number = error.response.status;
             if (status === 403) {
                 setRequestStatus('missingBilling');
+                setFreeTrial(true)
+            } else if (status === 402) {
+                setRequestStatus('outOfCredits');
+                setFreeTrial(true)
             } else {
                 setRequestStatus('error');
             }
@@ -397,14 +412,16 @@ export function DeployPage(props: any) {
                                 <CardActions >
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                         <Button variant="contained" onClick={handleDeploy} disabled={buttonDisabled}>{buttonLabel}</Button>
-                                        {statusMessage && (
-                                            <Typography variant="body2" color={requestStatus === 'error' ? 'error' : 'success'}>
-                                                {statusMessage}
-                                            </Typography>
-                                        )}
                                     </div>
                                 </CardActions>
                             </Stack>
+                            <Box >
+                                {statusMessage && (
+                                    <Typography variant="body2" color={requestStatus === 'error' || 'missingBilling' ? 'error' : 'success'}>
+                                        {statusMessage}
+                                    </Typography>
+                                )}
+                            </Box>
                         </Stack>
                     </Container>
                     <CardContent>

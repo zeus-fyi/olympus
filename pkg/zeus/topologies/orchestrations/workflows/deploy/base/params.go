@@ -33,7 +33,8 @@ type ClusterTopologyWorkflowRequest struct {
 }
 
 type ClusterSetupRequest struct {
-	Ou org_users.OrgUser
+	FreeTrial bool
+	Ou        org_users.OrgUser
 	zeus_common_types.CloudCtxNs
 	ClusterID     uuid.UUID
 	Nodes         hestia_autogen_bases.Nodes

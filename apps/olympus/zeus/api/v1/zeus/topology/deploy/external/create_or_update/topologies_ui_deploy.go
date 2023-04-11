@@ -37,6 +37,7 @@ type DiskResourceRequirements struct {
 
 type TopologyDeployUIRequest struct {
 	zeus_common_types.CloudCtxNs
+	FreeTrial            bool                       `json:"freeTrial"`
 	CloudProvider        string                     `json:"cloudProvider"`
 	Region               string                     `json:"region"`
 	Node                 autogen_bases.Nodes        `json:"nodes"`
@@ -59,7 +60,7 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
 
-	if ou.UserID != 7138958574876245565 {
+	if ou.UserID != 7138958574876245565 && !t.FreeTrial {
 		isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(ctx, ou.UserID)
 		if err != nil {
 			log.Ctx(ctx).Error().Err(err).Msg("failed to check if user has billing method")
@@ -74,7 +75,8 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 	clusterID := uuid.New()
 	suffix := strings.Split(clusterID.String(), "-")[0]
 	cr := base_deploy_params.ClusterSetupRequest{
-		Ou: ou,
+		FreeTrial: t.FreeTrial,
+		Ou:        ou,
 		CloudCtxNs: zeus_common_types.CloudCtxNs{
 			CloudProvider: "do",
 			Region:        "nyc1",

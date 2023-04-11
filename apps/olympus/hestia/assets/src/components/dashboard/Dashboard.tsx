@@ -161,10 +161,10 @@ function DashboardContent() {
                         <Card sx={{ maxWidth: 700 }}>
                             <CardContent>
                                 <Typography gutterBottom variant="h5" component="div">
-                                    Cluster Management & Ethereum Staking
+                                    Cluster & Resource Management
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
-                                    Dashboard for managing your cluster and staking your Ethereum, coming soon! Check out the submenus on the left to view and manage these services for now.
+                                    Dashboard for managing your clusters & resources coming soon! Check out the submenus on the left to view and manage these services for now.
                                 </Typography>
                             </CardContent>
                         </Card>

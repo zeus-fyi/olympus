@@ -107,7 +107,7 @@ function AppsPageContent() {
                     }}
                 >
                     <Toolbar />
-                    <Container maxWidth="xl" >
+                    <Container maxWidth="xl" sx={{mt: 4 }} >
                         <div style={{ display: 'flex' }}>
                             <Stack direction="column" spacing={2} sx={{mb: 4 }}>
                                 <Container maxWidth="xl" sx={{ mt: 0, mb: 0 }}>

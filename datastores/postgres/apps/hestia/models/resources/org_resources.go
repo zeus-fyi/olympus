@@ -67,3 +67,18 @@ func UpdateFreeTrialOrgResourcesToPaid(ctx context.Context, orgID int) error {
 	}
 	return err
 }
+
+func DoesOrgHaveOngoingFreeTrial(ctx context.Context, orgID int) (bool, error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT COUNT(*) > 0 FROM org_resources WHERE org_id = $1 AND free_trial = true
+				  `
+	var isFreeTrialOngoing bool
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, orgID).Scan(&isFreeTrialOngoing)
+	if err == pgx.ErrNoRows {
+		return false, nil
+	}
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
+		return true, returnErr
+	}
+	return isFreeTrialOngoing, err
+}

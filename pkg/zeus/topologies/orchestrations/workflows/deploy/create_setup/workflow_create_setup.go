@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	hestia_digitalocean "github.com/zeus-fyi/olympus/pkg/hestia/digitalocean"
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	deploy_topology_activities_create_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/cluster_setup"
@@ -34,11 +35,6 @@ func (c *ClusterSetupWorkflow) GetWorkflows() []interface{} {
 	return []interface{}{c.DeployClusterSetupWorkflow}
 }
 
-type NodePoolRequestStatus struct {
-	ClusterID  string
-	NodePoolID string
-}
-
 func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, params base_deploy_params.ClusterSetupRequest) error {
 	log := workflow.GetLogger(ctx)
 
@@ -48,7 +44,7 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 
 	// TODO add billing email step
 	nodePoolRequestStatusCtxKns := workflow.WithActivityOptions(ctx, ao)
-	var nodePoolRequestStatus NodePoolRequestStatus
+	var nodePoolRequestStatus hestia_digitalocean.DigitalOceanNodePoolRequestStatus
 	err := workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.MakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, &nodePoolRequestStatus)
 	if err != nil {
 		log.Error("Failed to complete node pool request", "Error", err)
@@ -153,5 +149,5 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 			}
 		}
 	}
-	return err
+	return nil
 }

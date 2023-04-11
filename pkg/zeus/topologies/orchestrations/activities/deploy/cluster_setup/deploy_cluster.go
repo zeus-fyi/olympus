@@ -10,10 +10,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	zeus_endpoints "github.com/zeus-fyi/olympus/pkg/zeus/client/endpoints"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
-	destroy_deploy_request "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/destroy"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
 )
@@ -38,11 +36,9 @@ func (c *CreateSetupTopologyActivities) destroyClusterTopology(cloudCtxNs zeus_c
 		Host: c.Host,
 	}
 
-	params := destroy_deploy_request.TopologyDestroyDeployRequest{
-		TopologyKubeCtxNs: kns.TopologyKubeCtxNs{
-			TopologyID: 0,
-			CloudCtxNs: cloudCtxNs,
-		},
+	params := zeus_req_types.TopologyDeployRequest{
+		TopologyID: 0,
+		CloudCtxNs: cloudCtxNs,
 	}
 	client := resty.New()
 	client.SetBaseURL(u.Host)

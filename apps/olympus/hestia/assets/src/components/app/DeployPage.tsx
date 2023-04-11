@@ -135,13 +135,14 @@ export function DeployPage(props: any) {
             break;
         case 'missingBilling':
             buttonLabel = 'Try Free For One Hour';
-            buttonDisabled = count === 0;
-            statusMessage = 'No payment methods have been set. You can set a payment option on the billing page.\n You can deploy it for free for one hour, but if a payment method isn\'t set it will automatically delete after one hour.'
+            buttonDisabled = count === 0 && totalCost() <= 500;
+            statusMessage = 'No payment methods have been set. You can set a payment option on the billing page.\n You can deploy it for free for one hour, but if a payment method isn\'t set it will automatically delete after one hour. For free trials the total monthly cost must be <= $500'
             break;
         case 'outOfCredits':
             buttonLabel = 'Try Free For One Hour';
-            buttonDisabled = count === 0;
-            statusMessage = 'No payment methods have been set. You can set a payment option on the billing page.\n You can deploy one app for free for one hour per day. You\'ve reached the maximum credits for today, if you need more time email alex@zeus.fyi'
+            buttonDisabled = count === 0 && totalCost() <= 500;
+            statusMessage = 'No payment methods have been set. You can set a payment option on the billing page.\n You can only deploy a maximum of one app at any time using the free trial. For free trials the total monthly cost must be <= $500. You\'ve reached the maximum credits,' +
+                ' if you need more time or a higher free trial limit email alex@zeus.fyi'
             break;
         case 'error':
             buttonLabel = 'Retry';
@@ -166,6 +167,7 @@ export function DeployPage(props: any) {
                 "cluster": cluster,
                 "resourceRequirements": resourceRequirements,
                 "freeTrial": freeTrial,
+                "monthlyCost": totalCost()
             }
             const response = await appsApiGateway.deployApp(payload);
             if (response.status === 200 || response.status === 202 || response.status === 204) {
@@ -173,7 +175,7 @@ export function DeployPage(props: any) {
             } else if (response.status === 403) {
                 setRequestStatus('missingBilling');
                 setFreeTrial(true)
-            } else if (response.status === 402) {
+            } else if (response.status === 412) {
                 setRequestStatus('outOfCredits');
                 setFreeTrial(true)
             } else {
@@ -186,7 +188,7 @@ export function DeployPage(props: any) {
             if (status === 403) {
                 setRequestStatus('missingBilling');
                 setFreeTrial(true)
-            } else if (status === 402) {
+            } else if (status === 412) {
                 setRequestStatus('outOfCredits');
                 setFreeTrial(true)
             } else {

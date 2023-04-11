@@ -12,12 +12,13 @@ import Container from '@mui/material/Container';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
-import {Link, useNavigate} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
 import MainListItems from "../dashboard/listItems";
 import {PrivateAppsTable} from "./AppsTable";
-import {Card, CardContent, CardMedia, Stack} from "@mui/material";
+import {Card, CardContent, Stack} from "@mui/material";
+import {PublicAppsTable} from "./PublicAppsTable";
 
 const mdTheme = createTheme();
 
@@ -106,69 +107,47 @@ function AppsPageContent() {
                     }}
                 >
                     <Toolbar />
-                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                    <Container maxWidth="xl" sx={{mt: 4 }} >
                         <div style={{ display: 'flex' }}>
-                            <Stack direction="row" spacing={2} sx={{ mt: 4}}>
-                                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                                <Stack direction="column" spacing={2} sx={{ mt: 4}}>
-                                    <Card sx={{ minWidth: 500, maxWidth: 500, maxHeight: 500, minHeight: 450 }}>
-                                        <Link to="/apps/avax">
-                                            <CardMedia
-                                                component="img"
-                                                style={{ height: '80%', width: '70%', objectFit: 'contain', margin: 'auto', display: 'block',  marginTop: '10px', marginBottom: '30px'}}
-                                                image={require("../../static/avax-logo.png")}
-                                                alt="avax"
-                                            />
-                                        </Link>
-                                        <CardContent style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Stack direction="column" spacing={2} sx={{mb: 4 }}>
+                                <Container maxWidth="xl" sx={{ mt: 0, mb: 0 }}>
+                                    <Card>
+                                        <CardContent>
                                             <Typography gutterBottom variant="h5" component="div">
-                                                Avax Apps
+                                                Public Registered Apps
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                The table below contains apps template workloads that you can copy, edit, and deploy.
                                             </Typography>
                                         </CardContent>
                                     </Card>
-                                </Stack>
-                            </Container>
-
-                                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                                    <Card sx={{ minWidth: 450, maxWidth: 500, maxHeight: 800}}>
-                                        <Link to="/apps/eth">
-                                            <CardMedia
-                                                component="img"
-                                                style={{ height: '50%', width: '55%', objectFit: 'contain', margin: 'auto', display: 'block', marginTop: '20px', marginBottom: '20px' }}
-                                                image={require("../../static/eth.png")}
-                                                alt="eth"
-                                            />
-                                        </Link>
-                                        <CardContent style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <Typography gutterBottom variant="h5" component="div">
-                                                Ethereum Apps
-                                            </Typography>
-                                        </CardContent>
-                                    </Card>
+                                </Container>
+                                <Container maxWidth="xl" sx={{ mt: 0, mb: 4 }}>
+                                    <PublicAppsTable />
                                 </Container>
                             </Stack>
                         </div>
                     </Container>
                     <Container maxWidth="xl" >
-                    <div style={{ display: 'flex' }}>
-                        <Stack direction="column" spacing={2} sx={{mb: 4 }}>
-                            <Container maxWidth="xl" sx={{ mt: 0, mb: 0 }}>
-                                <Card>
-                                    <CardContent>
-                                        <Typography gutterBottom variant="h5" component="div">
-                                            Private Registered Apps
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            The table below contains apps that are registered workloads that you can deploy, edit, or upgrade.
-                                        </Typography>
-                                    </CardContent>
-                                </Card>
-                            </Container>
-                            <Container maxWidth="xl" sx={{ mt: 0, mb: 4 }}>
-                                <PrivateAppsTable />
-                            </Container>
-                        </Stack>
-                    </div>
+                        <div style={{ display: 'flex' }}>
+                            <Stack direction="column" spacing={2} sx={{mb: 4 }}>
+                                <Container maxWidth="xl" sx={{ mt: 0, mb: 0 }}>
+                                    <Card>
+                                        <CardContent>
+                                            <Typography gutterBottom variant="h5" component="div">
+                                                Private Registered Apps
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                The table below contains apps that are registered workloads that you can deploy, edit, or upgrade.
+                                            </Typography>
+                                        </CardContent>
+                                    </Card>
+                                </Container>
+                                <Container maxWidth="xl" sx={{ mt: 0, mb: 4 }}>
+                                    <PrivateAppsTable />
+                                </Container>
+                            </Stack>
+                        </div>
                     </Container>
                 </Box>
             </Box>

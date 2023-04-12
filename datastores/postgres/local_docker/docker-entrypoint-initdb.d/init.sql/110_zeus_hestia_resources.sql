@@ -62,5 +62,5 @@ CREATE TABLE digitalocean_node_pools (
     resource_id int8 NOT NULL REFERENCES resources(resource_id),
     node_pool_id text NOT NULL,
     node_context_id text NOT NULL,
-    PRIMARY KEY (node_pool_id)
+    PRIMARY KEY (org_resource_id)
 );

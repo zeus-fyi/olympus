@@ -159,7 +159,7 @@ export function DeployPage(props: any) {
             setRequestStatus('pending');
             const namespaceAlias = "default";
             const payload = {
-                "cloudProvider": cloudProvider,
+                "cloudProvider": 'do',
                 "region": region,
                 "nodes": node,
                 "count": count,
@@ -264,6 +264,10 @@ export function DeployPage(props: any) {
                                         label="Cloud Provider"
                                     >
                                         <MenuItem value="do">DigitalOcean</MenuItem>
+                                        <MenuItem value="aws">Amazon Web Services (Coming soon)</MenuItem>
+                                        <MenuItem value="gcp">Google Cloud Platform (Coming soon)</MenuItem>
+                                        <MenuItem value="azure">Azure (Coming soon)</MenuItem>
+                                        <MenuItem value="ovh">Ovh Bare Metal (Coming soon)</MenuItem>
                                     </Select>
                                 </FormControl>
                                 <FormControl sx={{ mr: 1 }} fullWidth variant="outlined">

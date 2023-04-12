@@ -119,6 +119,8 @@ export function DeployPage(props: any) {
         }
         nodeMap[node.resourceID] = node;
     });
+
+
     let buttonLabel;
     let buttonDisabled;
     let statusMessage;
@@ -129,8 +131,8 @@ export function DeployPage(props: any) {
             buttonDisabled = true;
             break;
         case 'success':
-            buttonLabel = 'Deploy More';
-            buttonDisabled = count === 0;
+            buttonLabel = 'Refresh To Deploy More';
+            buttonDisabled = true;
             statusMessage = 'Deployment in Progress';
             break;
         case 'missingBilling':
@@ -190,6 +192,7 @@ export function DeployPage(props: any) {
                 setFreeTrial(true)
             } else if (status === 412) {
                 setRequestStatus('outOfCredits');
+                // Disable the button for 30 seconds
                 setFreeTrial(true)
             } else {
                 setRequestStatus('error');

@@ -68,6 +68,7 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 			log.Ctx(ctx).Error().Err(err).Msg("failed to check if org has ongoing free trial")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
+		log.Ctx(ctx).Info().Interface("isFreeTrialOngoing", isFreeTrialOngoing).Interface("ou", ou).Msg("isFreeTrialOngoing")
 		if isFreeTrialOngoing {
 			log.Ctx(ctx).Error().Err(err).Msg("org has ongoing free trial")
 			return c.JSON(http.StatusPreconditionFailed, nil)

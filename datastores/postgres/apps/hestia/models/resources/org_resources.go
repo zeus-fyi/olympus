@@ -26,7 +26,7 @@ func AddDigitalOceanNodePoolResourcesToOrg(ctx context.Context, orgID, resourceI
 	q.RawQuery = ` WITH cte_org_resources AS (
 					  INSERT INTO org_resources(org_id, resource_id, quantity, free_trial)
 					  VALUES ($1, $2, $3, $6)
-					  RETURNING org_resources_id
+					  RETURNING org_resource_id
 				  ) INSERT INTO digitalocean_node_pools(org_resources_id, resource_id, node_pool_id, node_context_id)
 					VALUES ((SELECT org_resources_id FROM cte_org_resources), $2, $4, $5)
 				  `

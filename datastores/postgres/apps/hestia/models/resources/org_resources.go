@@ -14,7 +14,7 @@ func AddResourcesToOrg(ctx context.Context, orgID, resourceID int, quantity floa
 	q.RawQuery = `INSERT INTO org_resources(org_id, resource_id, quantity, free_trial)
 				  VALUES ($1, $2, $3, $4)
 				  `
-	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, resourceID, quantity)
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, resourceID, quantity, freeTrial)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
 		return returnErr
 	}

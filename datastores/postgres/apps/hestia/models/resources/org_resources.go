@@ -27,8 +27,8 @@ func AddDigitalOceanNodePoolResourcesToOrg(ctx context.Context, orgID, resourceI
 					  INSERT INTO org_resources(org_id, resource_id, quantity, free_trial)
 					  VALUES ($1, $2, $3, $6)
 					  RETURNING org_resource_id
-				  ) INSERT INTO digitalocean_node_pools(org_resources_id, resource_id, node_pool_id, node_context_id)
-					VALUES ((SELECT org_resources_id FROM cte_org_resources), $2, $4, $5)
+				  ) INSERT INTO digitalocean_node_pools(org_resource_id, resource_id, node_pool_id, node_context_id)
+					VALUES ((SELECT org_resource_id FROM cte_org_resources), $2, $4, $5)
 				  `
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, resourceID, quantity, nodePoolID, nodeContextID, freeTrial)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
@@ -40,10 +40,10 @@ func AddDigitalOceanNodePoolResourcesToOrg(ctx context.Context, orgID, resourceI
 func RemoveFreeTrialOrgResources(ctx context.Context, orgID int) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `WITH cte_org_free_trial_resources AS (
-					SELECT org_resources_id FROM org_resources WHERE org_id = $1 AND free_trial = true
+					SELECT org_resource_id FROM org_resources WHERE org_id = $1 AND free_trial = true
 			      ), cte_digitalocean_node_pools AS (
 					DELETE FROM digitalocean_node_pools
-					WHERE org_resources_id IN (SELECT org_resources_id FROM cte_org_free_trial_resources)
+					WHERE org_resource_id IN (SELECT org_resource_id FROM cte_org_free_trial_resources)
 				  )
 				  DELETE FROM org_resources
 				  WHERE org_id = $1	AND free_trial = true

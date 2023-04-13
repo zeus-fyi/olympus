@@ -1,6 +1,7 @@
 package hestia_digitalocean
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -9,6 +10,7 @@ import (
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 type DigitalOceanTestSuite struct {
@@ -57,6 +59,26 @@ func (s *DigitalOceanTestSuite) TestInsertSizes() {
 	err = hestia_compute_resources.InsertNodes(ctx, n)
 	s.Require().NoError(err)
 	fmt.Println(n)
+}
+
+func (s *DigitalOceanTestSuite) TestQuantity() {
+
+	qty, err := digitalOceanBlockStorageBillingUnits(ctx, "10Gi")
+	s.Require().NoError(err)
+	s.Require().Equal(0.1, qty)
+}
+
+func digitalOceanBlockStorageBillingUnits(ctx context.Context, qtyString string) (float64, error) {
+	r, err := resource.ParseQuantity(qtyString)
+	if err != nil {
+		return 0, err
+	}
+	rawValue := r.Value()
+	q := resource.NewQuantity(rawValue, resource.BinarySI)
+	q.ScaledValue(resource.Giga)
+	miValue := float64(q.AsDec().UnscaledBig().Int64() / (1024 * 1024 * 1024))
+	billableUnits := miValue / 100
+	return billableUnits, nil
 }
 
 func TestDigitalOceanTestSuite(t *testing.T) {

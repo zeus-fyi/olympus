@@ -33,7 +33,7 @@ func digitalOceanBlockStorageBillingUnits(ctx context.Context, qtyString string)
 	rawValue := r.Value()
 	q := resource.NewQuantity(rawValue, resource.BinarySI)
 	q.ScaledValue(resource.Mega)
-	miValue := q.AsDec().UnscaledBig().Int64() / (1024 * 1024 * 1024)
-	billableUnits := float64(miValue / 100)
+	miValue := float64(q.AsDec().UnscaledBig().Int64() / (1024 * 1024 * 1024))
+	billableUnits := miValue / 100
 	return billableUnits, nil
 }

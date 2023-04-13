@@ -64,7 +64,7 @@ func (c *CreateTopologiesOrgCloudCtxNs) GetDeleteTopologyOrgCtxQueryParams() sql
 	return q
 }
 func (c *CreateTopologiesOrgCloudCtxNs) DeleteTopologyAccessCloudCtxNs(ctx context.Context) error {
-	q := c.GetInsertTopologyOrgCtxQueryParams()
+	q := c.GetDeleteTopologyOrgCtxQueryParams()
 	log.Debug().Interface("DeleteTopologyAccessCloudCtxNs:", q.LogHeader(Sn))
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, c.OrgID, c.CloudProvider, c.Context, c.Region, c.Namespace)
 	if err == pgx.ErrNoRows {

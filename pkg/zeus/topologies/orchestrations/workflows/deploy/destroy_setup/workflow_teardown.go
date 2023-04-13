@@ -41,7 +41,7 @@ func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflow(ctx workflow.C
 		StartToCloseTimeout: defaultTimeout,
 	}
 	if params.FreeTrial {
-		err := workflow.Sleep(ctx, 60*time.Hour)
+		err := workflow.Sleep(ctx, 60*time.Minute)
 		if err != nil {
 			log.Error("Failed to sleep for 1 hour", "Error", err)
 			return err

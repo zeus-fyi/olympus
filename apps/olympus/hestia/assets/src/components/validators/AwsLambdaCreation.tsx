@@ -1,6 +1,6 @@
 import * as React from "react";
 import {useState} from "react";
-import {Card, CardActions, CardContent, CircularProgress} from "@mui/material";
+import {Box, Card, CardActions, CardContent, CircularProgress} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import {awsApiGateway} from "../../gateway/aws";
@@ -69,16 +69,18 @@ export function LambdaFunctionSecretsCreation() {
                     Creates a lambda function in AWS that securely generates a mnemonic, hdWalletPassword, and Age Encryption key and stores them in your secrets manager.
                 </Typography>
             </CardContent>
-            <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="secretGenLambdaFnUrl"
-                label="SecretGenLambdaFnUrl"
-                name="secretGenLambdaFnUrl"
-                value={sgLambdaURL}
-                autoFocus
-            />
+            <Box ml={2} mr={2}>
+                <TextField
+                    margin="normal"
+                    required
+                    fullWidth
+                    id="secretGenLambdaFnUrl"
+                    label="SecretGenLambdaFnUrl"
+                    name="secretGenLambdaFnUrl"
+                    value={sgLambdaURL}
+                    autoFocus
+                />
+            </Box>
             <CardActions>
                 <Button onClick={onCreateLambdaSecretsFn} size="small" disabled={buttonDisabled}>{buttonLabel}</Button>
             </CardActions>
@@ -148,16 +150,18 @@ export function LambdaFunctionGenValidatorDepositsCreation() {
                     Creates a lambda function in AWS that securely generates validator deposit messages using your mnemonic from secrets manager.
                 </Typography>
             </CardContent>
-            <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="depositsGenLambdaFnUrl"
-                label="DepositsGenLambdaFnUrl"
-                name="depositsGenLambdaFnUrl"
-                value={depositsGenLambdaFnUrl}
-                autoFocus
-            />
+            <Box ml={2} mr={2}>
+                <TextField
+                    margin="normal"
+                    required
+                    fullWidth
+                    id="depositsGenLambdaFnUrl"
+                    label="DepositsGenLambdaFnUrl"
+                    name="depositsGenLambdaFnUrl"
+                    value={depositsGenLambdaFnUrl}
+                    autoFocus
+                />
+            </Box>
             <CardActions>
                 <Button onClick={onCreateLambdaValidatorDepositsFn} size="small" disabled={buttonDisabled}>{buttonLabel}</Button>
             </CardActions>
@@ -228,16 +232,18 @@ export function LambdaFunctionGenEncZipFileCreation() {
                     using your mnemonic from secret manager.
                 </Typography>
             </CardContent>
-            <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="encKeystoresZipLambdaFnUrl"
-                label="EncryptedKeystoresZipLambdaFnUrl"
-                name="encKeystoresZipLambdaFnUrl"
-                value={encKeystoresZipLambdaFnUrl}
-                autoFocus
-            />
+            <Box ml={2} mr={2}>
+                <TextField
+                    margin="normal"
+                    required
+                    fullWidth
+                    id="encKeystoresZipLambdaFnUrl"
+                    label="EncryptedKeystoresZipLambdaFnUrl"
+                    name="encKeystoresZipLambdaFnUrl"
+                    value={encKeystoresZipLambdaFnUrl}
+                    autoFocus
+                />
+            </Box>
             <CardActions>
                 <Button onClick={onCreateLambdaEncryptedKeystoresZipFn} size="small" disabled={buttonDisabled}>{buttonLabel}</Button>
             </CardActions>

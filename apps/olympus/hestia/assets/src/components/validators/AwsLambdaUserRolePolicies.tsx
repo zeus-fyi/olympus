@@ -1,6 +1,6 @@
 import * as React from "react";
 import {useState} from "react";
-import {Card, CardActions, CardContent, CircularProgress, Container, Stack} from "@mui/material";
+import {Box, Card, CardActions, CardContent, CircularProgress, Container, Stack} from "@mui/material";
 import {AwsUploadActionAreaCard} from "./AwsPanel";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
@@ -97,16 +97,18 @@ export function InternalLambdaUserRolePolicySetup() {
                     Creates a new user and role policy for your own internal usage, e.g. for running, testing, development, etc.
                 </Typography>
             </CardContent>
-            <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="internalLambdaUser"
-                label="internalLambdaUser"
-                name="internalLambdaUser"
-                value={"internalLambdaUser"}
-                autoFocus
-            />
+            <Box ml={2} mr={2}>
+                <TextField
+                    margin="normal"
+                    required
+                    fullWidth
+                    id="internalLambdaUser"
+                    label="internalLambdaUser"
+                    name="internalLambdaUser"
+                    value={"internalLambdaUser"}
+                    autoFocus
+                />
+            </Box>
             <CardActions>
                 <Button size="small" onClick={handleCreateUser} disabled={buttonDisabled}>{buttonLabel}</Button>
             </CardActions>

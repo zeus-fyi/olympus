@@ -91,7 +91,7 @@ export function AppPageWrapper(props: any) {
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />
-                <AppBar position="absolute" open={open} style={{ backgroundColor: '#8991B0'}}>
+                <AppBar position="absolute" open={open} style={{ backgroundColor: '#333'}}>
                     <Toolbar
                         sx={{
                             pr: '24px', // keep right padding when drawer closed

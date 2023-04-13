@@ -53,7 +53,7 @@ export function ValidatorsDepositsTable(props: any) {
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 1000 }} aria-label="validators pagination table">
                 <TableHead>
-                    <TableRow style={{ backgroundColor: '#8991B0'}} >
+                    <TableRow style={{ backgroundColor: '#333'}} >
                         {activeStep === 5 && (
                             <TableCell style={{ fontWeight: 'normal', color: 'white' }} align="left">Verified</TableCell>
                         )}

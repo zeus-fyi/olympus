@@ -58,7 +58,7 @@ export function ResourceRequirementsTable(props: any) {
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 400 }} aria-label="app resource requirements table">
                 <TableHead>
-                    <TableRow style={{ backgroundColor: '#8991B0'}} >
+                    <TableRow style={{ backgroundColor: '#333'}} >
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >ClusterBase</TableCell>
                         <TableCell style={{ color: 'white'}} align="left">Workload</TableCell>
                         <TableCell style={{ color: 'white'}} align="left">vCPU</TableCell>

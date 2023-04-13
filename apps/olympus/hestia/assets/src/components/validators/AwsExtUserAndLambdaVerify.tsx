@@ -1,4 +1,4 @@
-import {Card, CardActions, CardContent, CircularProgress, Container, Stack} from "@mui/material";
+import {Box, Card, CardActions, CardContent, CircularProgress, Container, Stack} from "@mui/material";
 import * as React from "react";
 import {useState} from "react";
 import Typography from "@mui/material/Typography";
@@ -102,17 +102,21 @@ export function CreateAwsExternalLambdaUser() {
                     that we will use to send authorized messages to your validators.
                 </Typography>
             </CardContent>
-            <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="externalAccessUserName"
-                label="ExternalAccessUserName"
-                name="externalAccessUserName"
-                value={externalAccessUserName}
-                autoFocus
-            />
-            <ExternalAccessSecretName />
+            <Box ml={2} mr={2}>
+                <TextField
+                    margin="normal"
+                    required
+                    fullWidth
+                    id="externalAccessUserName"
+                    label="ExternalAccessUserName"
+                    name="externalAccessUserName"
+                    value={externalAccessUserName}
+                    autoFocus
+                />
+            </Box>
+            <Box ml={2} mr={2}>
+                <ExternalAccessSecretName />
+            </Box>
             <CardActions>
                 <Button size="small" onClick={handleCreateUser} disabled={buttonDisabled}>{buttonLabel}</Button>
             </CardActions>
@@ -129,16 +133,16 @@ export function ExternalAccessSecretName(props: any) {
     const externalAccessSecretName = useSelector((state: RootState) => state.awsCredentials.externalAccessSecretName);
 
     return (
-        <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="externalAccessSecretName"
-            label="ExternalAccessSecretName"
-            name="externalAccessSecretName"
-            value={externalAccessSecretName}
-            autoFocus
-        />
+            <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="externalAccessSecretName"
+                label="ExternalAccessSecretName"
+                name="externalAccessSecretName"
+                value={externalAccessSecretName}
+                autoFocus
+            />
     );
 }
 export function AwsLambdaFunctionVerifyAreaCard(props: any) {
@@ -173,16 +177,18 @@ export function LambdaVerifyCard(props: any) {
                 </Typography>
             </CardContent>
            <SignerFunctionName />
-            <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="ageEncryptionKeySecretName"
-                label="AgeEncryptionKeySecretName"
-                name="ageEncryptionKeySecretName"
-                value={ageSecretName}
-                autoFocus
-            />
+            <Box ml={2} mr={2}>
+                <TextField
+                    margin="normal"
+                    required
+                    fullWidth
+                    id="ageEncryptionKeySecretName"
+                    label="AgeEncryptionKeySecretName"
+                    name="ageEncryptionKeySecretName"
+                    value={ageSecretName}
+                    autoFocus
+                />
+            </Box>
             <CardActions>
                 <Button size="small" onClick={onHandleVerifySigners} disabled={buttonDisabledVerify}>{buttonLabelVerify}</Button>
             </CardActions>
@@ -199,15 +205,17 @@ export function SignerFunctionName(props: any) {
     const blsSignerFunctionName = useSelector((state: RootState) => state.awsCredentials.blsSignerFunctionName);
 
     return (
-        <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="blsSignerLambdaFunctionName"
-            label="BlsSignerLambdaFunctionName"
-            name="blsSignerLambdaFunctionName"
-            value={blsSignerFunctionName}
-            autoFocus
-        />
+        <Box ml={2} mr={2}>
+            <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="blsSignerLambdaFunctionName"
+                label="BlsSignerLambdaFunctionName"
+                name="blsSignerLambdaFunctionName"
+                value={blsSignerFunctionName}
+                autoFocus
+            />
+        </Box>
     );
 }

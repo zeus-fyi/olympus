@@ -56,7 +56,7 @@ function ClustersPageContent() {
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />
-                <AppBar position="absolute" open={open} style={{ backgroundColor: '#8991B0'}}>
+                <AppBar position="absolute" open={open} style={{ backgroundColor: '#333'}}>
                     <Toolbar
                         sx={{
                             pr: '24px', // keep right padding when drawer closed
@@ -155,7 +155,7 @@ function ClustersPageTable(cluster: any) {
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
                 <TableHead>
-                    <TableRow style={{ backgroundColor: '#8991B0'}} >
+                    <TableRow style={{ backgroundColor: '#333'}} >
                         <TableCell style={{ color: 'white'}}>TopologyID</TableCell>
                         <TableCell style={{ color: 'white'}} align="left">ClusterName</TableCell>
                         <TableCell style={{ color: 'white'}} align="left">ClusterBaseName</TableCell>

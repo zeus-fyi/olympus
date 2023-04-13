@@ -57,7 +57,7 @@ function ValidatorsServiceContent() {
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />
-                <AppBar position="absolute" open={open} style={{ backgroundColor: '#8991B0'}}>
+                <AppBar position="absolute" open={open} style={{ backgroundColor: '#333'}}>
                     <Toolbar
                         sx={{
                             pr: '24px', // keep right padding when drawer closed
@@ -188,7 +188,7 @@ function Validators() {
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 1000 }} aria-label="validators pagination table">
                 <TableHead>
-                    <TableRow style={{ backgroundColor: '#8991B0'}} >
+                    <TableRow style={{ backgroundColor: '#333'}} >
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Network</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">GroupName</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} align="left">PublicKey</TableCell>

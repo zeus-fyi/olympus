@@ -25,12 +25,14 @@ export function AwsUploadActionAreaCard(props: any) {
         <Card sx={{ maxWidth: 750 }}>
             <div style={{ display: 'flex' }}>
             <CardActionArea>
-                <CardMedia
-                    component="img"
-                    height="230"
-                    image={require("../../static/aws.jpg")}
-                    alt="aws"
-                />
+                <Box ml={4}>
+                    <CardMedia
+                        component="img"
+                        height="230"
+                        image={require("../../static/aws.jpg")}
+                        alt="aws"
+                    />
+                </Box>
             </CardActionArea>
                 <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                     <Box mt={2}>

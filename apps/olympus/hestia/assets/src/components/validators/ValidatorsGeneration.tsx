@@ -92,16 +92,18 @@ export function GenerateZipValidatorActionsCard(props: any) {
                     the age encryption key name you've set on the left.
                 </Typography>
             </CardContent>
-            <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="encKeystoresZipLambdaFnUrl"
-                label="EncryptedKeystoresZipLambdaFnUrl"
-                name="encKeystoresZipLambdaFnUrl"
-                value={encKeystoresZipLambdaFnUrl}
-                autoFocus
-            />
+            <Box ml={2} mr={2}>
+                <TextField
+                    margin="normal"
+                    required
+                    fullWidth
+                    id="encKeystoresZipLambdaFnUrl"
+                    label="EncryptedKeystoresZipLambdaFnUrl"
+                    name="encKeystoresZipLambdaFnUrl"
+                    value={encKeystoresZipLambdaFnUrl}
+                    autoFocus
+                />
+            </Box>
             <CardActions>
                 <Button onClick={onGenerateValidatorEncryptedKeystoresZip} size="small" disabled={zipGenButtonEnabled}>{zipGenButtonLabel}</Button>
             </CardActions>
@@ -130,16 +132,18 @@ export function GenValidatorDepositsCreationActionsCard(props: any) {
                     from secrets manager with the secret key name you've set on the left.
                 </Typography>
             </CardContent>
-            <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="depositsGenLambdaFnUrl"
-                label="DepositsGenLambdaFnUrl"
-                name="depositsGenLambdaFnUrl"
-                value={depositsGenLambdaFnUrl}
-                autoFocus
-            />
+            <Box ml={2} mr={2}>
+                <TextField
+                    margin="normal"
+                    required
+                    fullWidth
+                    id="depositsGenLambdaFnUrl"
+                    label="DepositsGenLambdaFnUrl"
+                    name="depositsGenLambdaFnUrl"
+                    value={depositsGenLambdaFnUrl}
+                    autoFocus
+                />
+            </Box>
             <CardActions>
                 <Button onClick={onGenerateValidatorDeposits} size="small" disabled={buttonDisabledVd}>{buttonLabelVd}</Button>
             </CardActions>

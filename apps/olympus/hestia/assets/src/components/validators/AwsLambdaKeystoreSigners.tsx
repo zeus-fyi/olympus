@@ -8,6 +8,7 @@ import {
     setSignerFunctionName
 } from "../../redux/aws_wizard/aws.wizard.reducer";
 import {
+    Box,
     Card,
     CardActionArea,
     CardActions,
@@ -125,27 +126,31 @@ export function LambdaFunctionCreation() {
                     key name reference, not the actual public or private key.
                 </Typography>
             </CardContent>
-            <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="blsSignerLambdaFunctionName"
-                label="BlsSignerLambdaFunctionName"
-                name="blsSignerLambdaFunctionName"
-                value={blsSignerFunctionName}
-                onChange={onBlsSignerFunctionName}
-                autoFocus
-            />
-            <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="blsSignerLambdaFnUrl"
-                label="BlsSignerLambdaFnUrl"
-                name="blsSignerLambdaFnUrl"
-                value={signerUrl}
-                autoFocus
-            />
+            <Box ml={2} mr={2}>
+                <TextField
+                    margin="normal"
+                    required
+                    fullWidth
+                    id="blsSignerLambdaFunctionName"
+                    label="BlsSignerLambdaFunctionName"
+                    name="blsSignerLambdaFunctionName"
+                    value={blsSignerFunctionName}
+                    onChange={onBlsSignerFunctionName}
+                    autoFocus
+                />
+            </Box>
+            <Box ml={2} mr={2}>
+                <TextField
+                    margin="normal"
+                    required
+                    fullWidth
+                    id="blsSignerLambdaFnUrl"
+                    label="BlsSignerLambdaFnUrl"
+                    name="blsSignerLambdaFnUrl"
+                    value={signerUrl}
+                    autoFocus
+                />
+            </Box>
             <CardActions>
                 <Button onClick={onCreateLambdaSignerFn} size="small" disabled={buttonDisabled}>{buttonLabel}</Button>
             </CardActions>
@@ -246,28 +251,32 @@ export function LambdaFunctionKeystoresLayerCreation(props: any) {
                     the signer function with the new layer.
                 </Typography>
             </CardContent>
-            <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="blsSignerKeystoresLayerName"
-                label="BlsSignerKeystoresLayerName"
-                name="blsSignerKeystoresLayerName"
-                value={blsSignerKeystoresLayerName}
-                onChange={onBlsSignerKeystoresLayerNameChange}
-                autoFocus
-            />
-            <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="keystoresLayerNumber"
-                label="KeystoresLayerNumber"
-                name="keystoresLayerNumber"
-                type={"number"}
-                value={keystoresLayerNumber}
-                autoFocus
-            />
+            <Box ml={2} mr={2}>
+                <TextField
+                    margin="normal"
+                    required
+                    fullWidth
+                    id="blsSignerKeystoresLayerName"
+                    label="BlsSignerKeystoresLayerName"
+                    name="blsSignerKeystoresLayerName"
+                    value={blsSignerKeystoresLayerName}
+                    onChange={onBlsSignerKeystoresLayerNameChange}
+                    autoFocus
+                />
+            </Box>
+            <Box ml={2} mr={2}>
+                <TextField
+                    margin="normal"
+                    required
+                    fullWidth
+                    id="keystoresLayerNumber"
+                    label="KeystoresLayerNumber"
+                    name="keystoresLayerNumber"
+                    type={"number"}
+                    value={keystoresLayerNumber}
+                    autoFocus
+                />
+            </Box>
             <CardActions>
                 <Button size="small" onClick={onCreateLambdaKeystoresLayer} disabled={buttonDisabled}>{buttonLabel}</Button>
             </CardActions>

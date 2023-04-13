@@ -28,13 +28,16 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 		Value:  fmt.Sprintf("org-%d", params.Ou.OrgID),
 		Effect: "NoSchedule",
 	}
+	label := make(map[string]string)
+	label["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
+	label["app"] = params.Cluster.ClusterName
 	suffix := strings.Split(params.ClusterID.String(), "-")[0]
 	nodesReq := &godo.KubernetesNodePoolCreateRequest{
 		Name:   fmt.Sprintf("nodepool-%d-%s", params.Ou.OrgID, suffix),
 		Size:   params.Nodes.Slug,
 		Count:  int(params.NodesQuantity),
 		Tags:   nil,
-		Labels: nil,
+		Labels: label,
 		Taints: []godo.Taint{taint},
 	}
 	// TODO remove hard code cluster id

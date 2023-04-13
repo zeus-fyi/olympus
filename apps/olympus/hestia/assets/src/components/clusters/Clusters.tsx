@@ -34,8 +34,9 @@ function createData(
     region: string,
     context: string,
     namespace: string,
+    namespaceAlias: string,
 ) {
-    return {cloudCtxNsID, cloudProvider, region, context, namespace};
+    return {cloudCtxNsID, cloudProvider, region, context, namespace, namespaceAlias};
 }
 
 function ClustersContent() {
@@ -166,6 +167,7 @@ function ClustersTable(clusters: any) {
                     <TableCell style={{ color: 'white'}} align="left">Region</TableCell>
                     <TableCell style={{ color: 'white'}} align="left">Context</TableCell>
                     <TableCell style={{ color: 'white'}} align="left">Namespace</TableCell>
+                    <TableCell style={{ color: 'white'}} align="left">Alias</TableCell>
                 </TableRow>
             </TableHead>
             <TableBody>
@@ -182,6 +184,7 @@ function ClustersTable(clusters: any) {
                         <TableCell align="left">{row.region}</TableCell>
                         <TableCell align="left">{row.context}</TableCell>
                         <TableCell align="left">{row.namespace}</TableCell>
+                        <TableCell align="left">{row.namespaceAlias}</TableCell>
                     </TableRow>
                 ))}
             </TableBody>
@@ -198,7 +201,7 @@ function CloudClusters() {
                 const response = await clustersApiGateway.getClusters();
                 const clustersData: any[] = response.data;
                 const clusterRows = clustersData.map((cluster: any) =>
-                    createData(cluster.cloudCtxNsID, cluster.cloudProvider, cluster.region, cluster.context, cluster.namespace),
+                    createData(cluster.cloudCtxNsID, cluster.cloudProvider, cluster.region, cluster.context, cluster.namespace, cluster.namespaceAlias),
                 );
                 setClusters(clusterRows)
             } catch (error) {

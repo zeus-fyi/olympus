@@ -15,12 +15,12 @@ type DisksTestSuite struct {
 
 func (s *DisksTestSuite) TestInsertDisk() {
 	s.InitLocalConfigs()
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 
 	disk := hestia_autogen_bases.Disks{
 		PriceMonthly:  10,
 		PriceHourly:   0.015,
-		Region:        "sfo3",
+		Region:        "nyc1",
 		CloudProvider: "do",
 		Description:   "Digital Ocean Block Storage SSD",
 		Type:          "ssd",

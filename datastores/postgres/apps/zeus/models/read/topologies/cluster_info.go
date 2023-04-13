@@ -13,10 +13,10 @@ import (
 func readClusterSummaryQuery() sql_query_templates.QueryParams {
 	q := sql_query_templates.NewQueryParam("ReadState", "read_deployment_status", "where", 1000, []string{})
 
-	query := `SELECT tp.cloud_ctx_ns_id, tp.cloud_provider, tp.region, tp.context, tp.namespace, tp.created_at
+	query := `SELECT tp.cloud_ctx_ns_id, tp.cloud_provider, tp.region, tp.context, tp.namespace, tp.namespace_alias, tp.created_at
 			  FROM topologies_org_cloud_ctx_ns tp
 			  WHERE tp.org_id = $1 
-			  ORDER BY tp.cloud_provider, tp.region, tp.context, tp.namespace, tp.created_at DESC
+			  ORDER BY tp.cloud_provider, tp.region, tp.context, tp.namespace_alias, tp.created_at DESC
 			  LIMIT 1000
 			  `
 	q.RawQuery = query
@@ -36,7 +36,7 @@ func SelectTopologiesMetadata(ctx context.Context, orgID int) (autogen_bases.Top
 	for rows.Next() {
 		tpCtx := autogen_bases.TopologiesOrgCloudCtxNs{}
 		rowErr := rows.Scan(
-			&tpCtx.CloudCtxNsID, &tpCtx.CloudProvider, &tpCtx.Region, &tpCtx.Context, &tpCtx.Namespace, &tpCtx.CreatedAt,
+			&tpCtx.CloudCtxNsID, &tpCtx.CloudProvider, &tpCtx.Region, &tpCtx.Context, &tpCtx.Namespace, &tpCtx.NamespaceAlias, &tpCtx.CreatedAt,
 		)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader(Sn))

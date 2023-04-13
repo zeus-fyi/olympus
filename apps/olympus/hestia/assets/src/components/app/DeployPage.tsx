@@ -159,13 +159,12 @@ export function DeployPage(props: any) {
     const handleDeploy = async () => {
         try {
             setRequestStatus('pending');
-            const namespaceAlias = "default";
             const payload = {
                 "cloudProvider": 'do',
                 "region": region,
                 "nodes": node,
                 "count": count,
-                "namespaceAlias": namespaceAlias,
+                "namespaceAlias": cluster.clusterName,
                 "cluster": cluster,
                 "resourceRequirements": resourceRequirements,
                 "freeTrial": freeTrial,

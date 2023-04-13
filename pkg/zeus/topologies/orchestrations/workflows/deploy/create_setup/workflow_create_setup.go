@@ -43,7 +43,7 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 
 	// TODO add billing email step
 	nodePoolRequestStatusCtxKns := workflow.WithActivityOptions(ctx, ao)
-	var nodePoolRequestStatus *hestia_digitalocean.DigitalOceanNodePoolRequestStatus
+	var nodePoolRequestStatus hestia_digitalocean.DigitalOceanNodePoolRequestStatus
 	err := workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.MakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, &nodePoolRequestStatus)
 	if err != nil {
 		log.Error("Failed to complete node pool request", "Error", err)
@@ -51,7 +51,7 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 	}
 
 	nodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(nodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.AddNodePoolToOrgResources, params, nodePoolOrgResourcesCtx).Get(nodePoolOrgResourcesCtx, nil)
+	err = workflow.ExecuteActivity(nodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.AddNodePoolToOrgResources, params, nodePoolRequestStatus).Get(nodePoolOrgResourcesCtx, nil)
 	if err != nil {
 		log.Error("Failed to add node resources to org account", "Error", err)
 		return err
@@ -108,7 +108,7 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
 	ftDestroy := base_deploy_params.DestroyClusterSetupRequest{
 		ClusterSetupRequest:               params,
-		DigitalOceanNodePoolRequestStatus: nodePoolRequestStatus,
+		DigitalOceanNodePoolRequestStatus: &nodePoolRequestStatus,
 	}
 	childWorkflowFuture := workflow.ExecuteChildWorkflow(ctx, "DestroyClusterSetupWorkflow", ftDestroy)
 	var childWE workflow.Execution

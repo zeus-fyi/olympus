@@ -22,7 +22,7 @@ func (c *CreateSetupTopologyActivities) AddNodePoolToOrgResources(ctx context.Co
 	return nil
 }
 
-func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (*hestia_digitalocean.DigitalOceanNodePoolRequestStatus, error) {
+func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (hestia_digitalocean.DigitalOceanNodePoolRequestStatus, error) {
 	taint := godo.Taint{
 		Key:    fmt.Sprintf("org-%d", params.Ou.OrgID),
 		Value:  fmt.Sprintf("org-%d", params.Ou.OrgID),
@@ -42,10 +42,10 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 	node, err := api_auth_temporal.DigitalOcean.AddToNodePool(ctx, clusterID, nodesReq)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("AddToNodePool error")
-		return &hestia_digitalocean.DigitalOceanNodePoolRequestStatus{}, err
+		return hestia_digitalocean.DigitalOceanNodePoolRequestStatus{}, err
 	}
 
-	return &hestia_digitalocean.DigitalOceanNodePoolRequestStatus{
+	return hestia_digitalocean.DigitalOceanNodePoolRequestStatus{
 		ClusterID:  clusterID,
 		NodePoolID: node.ID,
 	}, nil

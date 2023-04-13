@@ -19,6 +19,7 @@ import {useDispatch} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
 import {Card, CardContent} from "@mui/material";
 import {ZeusCopyright} from "../copyright/ZeusCopyright";
+import {OrgNodesResourcesTable} from "./org_resources/OrgResourceNodesTable";
 
 const drawerWidth: number = 240;
 
@@ -164,10 +165,13 @@ function DashboardContent() {
                                     Cluster & Resource Management
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
-                                    Dashboard for managing your clusters & resources coming soon! Check out the submenus on the left to view and manage these services for now.
+                                    Summary of your active cloud resources
                                 </Typography>
                             </CardContent>
                         </Card>
+                    </Container>
+                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                        <OrgNodesResourcesTable/>
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />
                 </Box>

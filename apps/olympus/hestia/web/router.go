@@ -13,6 +13,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	hestia_billing "github.com/zeus-fyi/olympus/hestia/web/billing"
 	hestia_login "github.com/zeus-fyi/olympus/hestia/web/login"
+	hestia_resources "github.com/zeus-fyi/olympus/hestia/web/resources"
 	hestia_signup "github.com/zeus-fyi/olympus/hestia/web/signup"
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 )
@@ -50,6 +51,7 @@ func InitV1Routes(e *echo.Echo) {
 			return key.PublicKeyVerified, err
 		},
 	}))
+	eg.GET("/resources", hestia_resources.ResourceListRequestHandler)
 	eg.GET("/stripe/customer/id", hestia_billing.StripeBillingRequestHandler)
 	eg.GET("/refresh/token", hestia_login.TokenRefreshRequestHandler)
 }

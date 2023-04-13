@@ -35,7 +35,7 @@ type ClusterTopologyWorkflowRequest struct {
 
 type DestroyClusterSetupRequest struct {
 	ClusterSetupRequest
-	hestia_digitalocean.DigitalOceanNodePoolRequestStatus
+	*hestia_digitalocean.DigitalOceanNodePoolRequestStatus
 }
 
 type ClusterSetupRequest struct {

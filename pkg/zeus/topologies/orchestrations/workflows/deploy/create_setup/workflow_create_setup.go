@@ -43,7 +43,7 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 
 	// TODO add billing email step
 	nodePoolRequestStatusCtxKns := workflow.WithActivityOptions(ctx, ao)
-	var nodePoolRequestStatus hestia_digitalocean.DigitalOceanNodePoolRequestStatus
+	var nodePoolRequestStatus *hestia_digitalocean.DigitalOceanNodePoolRequestStatus
 	err := workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.MakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, &nodePoolRequestStatus)
 	if err != nil {
 		log.Error("Failed to complete node pool request", "Error", err)

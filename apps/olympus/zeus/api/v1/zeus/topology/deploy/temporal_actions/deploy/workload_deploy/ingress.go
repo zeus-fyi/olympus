@@ -20,7 +20,7 @@ func DeployIngressHandler(c echo.Context) error {
 	}
 	if request.Ingress != nil {
 		if request.Kns.CloudCtxNs.Context == "do-nyc1-do-nyc1-zeus-demo" {
-			ns := request.Namespace
+			ns := request.Kns.CloudCtxNs.Namespace
 			if request.Ingress.Spec.Rules != nil {
 				for ind, _ := range request.Ingress.Spec.Rules {
 					request.Ingress.Spec.Rules[ind].Host = fmt.Sprintf("%s.zeus.fyi", ns)

@@ -91,10 +91,9 @@ func (s *ReadDeploymentStatusesGroup) ReadLatestDeployedClusterTopologies(ctx co
 	defer rows.Close()
 	for rows.Next() {
 
-		namespaceAlias := ""
 		rs := ReadDeploymentStatus{}
 		rowErr := rows.Scan(
-			&rs.TopologyID, &rs.ClusterName, &rs.ComponentBaseName, &rs.SkeletonBaseName, &namespaceAlias,
+			&rs.TopologyID, &rs.ClusterName, &rs.ComponentBaseName, &rs.SkeletonBaseName,
 		)
 		rs.UpdatedAt = time.Unix(0, int64(rs.TopologyID))
 		if rowErr != nil {

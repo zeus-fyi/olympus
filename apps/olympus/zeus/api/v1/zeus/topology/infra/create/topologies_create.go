@@ -120,6 +120,12 @@ func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error
 			}
 
 			if skeleton.Ingress != nil {
+				if t.IngressSettings.AuthServerURL == "aegis.zeus.fyi" {
+					if skeleton.Ingress.Annotations == nil {
+						skeleton.Ingress.Annotations = make(map[string]string)
+					}
+					skeleton.Ingress.Annotations["nginx.ingress.kubernetes.io/auth-url"] = fmt.Sprintf("https://auth.zeus.fyi/auth/%d", ou.OrgID)
+				}
 				b, berr := json.Marshal(skeleton.Ingress)
 				if berr != nil {
 					log.Err(berr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")

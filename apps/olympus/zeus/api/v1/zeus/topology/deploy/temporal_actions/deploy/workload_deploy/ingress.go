@@ -3,6 +3,7 @@ package internal_deploy
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -18,6 +19,22 @@ func DeployIngressHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	if request.Ingress != nil {
+		if request.Kns.CloudCtxNs.Context == "do-nyc1-do-nyc1-zeus-demo" {
+			ns := request.Namespace
+			if request.Ingress.Spec.Rules != nil {
+				for ind, _ := range request.Ingress.Spec.Rules {
+					request.Ingress.Spec.Rules[ind].Host = fmt.Sprintf("%s.zeus.fyi", ns)
+				}
+			}
+			if request.Ingress.Spec.TLS != nil {
+				for ind, _ := range request.Ingress.Spec.TLS {
+					for ind2, _ := range request.Ingress.Spec.TLS[ind].Hosts {
+						request.Ingress.Spec.TLS[ind].Hosts[ind2] = fmt.Sprintf("%s.zeus.fyi", ns)
+					}
+					request.Ingress.Spec.TLS[ind].SecretName = fmt.Sprintf("%s-tls", ns)
+				}
+			}
+		}
 		log.Debug().Interface("kns", request.Kns).Msg("DeployIngressHandler: CreateIngressIfVersionLabelChangesOrDoesNotExist")
 		_, err := zeus.K8Util.CreateIngressIfVersionLabelChangesOrDoesNotExist(ctx, request.Kns.CloudCtxNs, request.Ingress, nil)
 		if err != nil {

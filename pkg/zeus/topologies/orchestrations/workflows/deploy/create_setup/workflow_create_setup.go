@@ -17,7 +17,7 @@ type ClusterSetupWorkflow struct {
 	deploy_topology_activities_create_setup.CreateSetupTopologyActivities
 }
 
-const defaultTimeout = 60 * time.Minute
+const defaultTimeout = 120 * time.Minute
 
 func NewDeployCreateSetupTopologyWorkflow() ClusterSetupWorkflow {
 	deployWf := ClusterSetupWorkflow{

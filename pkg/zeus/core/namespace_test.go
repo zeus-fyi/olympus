@@ -36,7 +36,7 @@ func (s *NamespaceTestSuite) TestCreateNamespaceIfDoesNotExist() {
 func (s *NamespaceTestSuite) TestListK8Namespaces() {
 	ctx := context.Background()
 	s.K.SetContext("do-sfo3-dev-do-sfo3-zeus")
-	nsl, err := s.K.GetNamespaces(ctx)
+	nsl, err := s.K.GetNamespaces(ctx, zeus_common_types.CloudCtxNs{})
 	s.Nil(err)
 	s.Greater(len(nsl.Items), 0)
 	for _, n := range nsl.Items {
@@ -45,7 +45,7 @@ func (s *NamespaceTestSuite) TestListK8Namespaces() {
 
 	fmt.Println("=========== new context ===========")
 	s.K.SetContext("do-nyc1-do-nyc1-zeus-demo")
-	nsl, err = s.K.GetNamespaces(ctx)
+	nsl, err = s.K.GetNamespaces(ctx, zeus_common_types.CloudCtxNs{})
 	s.Nil(err)
 	s.Greater(len(nsl.Items), 0)
 	for _, n := range nsl.Items {

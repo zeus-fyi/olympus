@@ -9,7 +9,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (k *K8Util) GetNamespaces(ctx context.Context) (*v1.NamespaceList, error) {
+func (k *K8Util) GetNamespaces(ctx context.Context, kns zeus_common_types.CloudCtxNs) (*v1.NamespaceList, error) {
+	k.SetContext(kns.Context)
 	return k.kc.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
 }
 

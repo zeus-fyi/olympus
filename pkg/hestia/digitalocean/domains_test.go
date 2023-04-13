@@ -5,19 +5,23 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
 type DomainsTestSuite struct {
-	test_suites_base.TestSuite
+	DigitalOceanTestSuite
 }
 
 var ctx = context.Background()
 
 func (s *DomainsTestSuite) TestCreateSubdomain() {
-	s.InitLocalConfigs()
+	dr, err := s.do.CreateDomain(ctx, "b9e8864a-a829-4d1c-9c36-56e21bb95eab")
+	s.Require().NoError(err)
+	s.Require().NotNil(dr)
+}
 
-	InitDoClient(ctx, "token")
+func (s *DomainsTestSuite) TestRemoveSubDomainARecord() {
+	err := s.do.RemoveSubDomainARecord(ctx, "b9e8864a-a829-4d1c-9c36-56e21bb95eab")
+	s.Require().NoError(err)
 }
 
 func TestDomainsTestSuite(t *testing.T) {

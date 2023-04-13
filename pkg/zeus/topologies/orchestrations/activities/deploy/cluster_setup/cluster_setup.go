@@ -20,5 +20,6 @@ func (c *CreateSetupTopologyActivities) GetActivities() ActivitiesSlice {
 		c.RemoveNodePoolRequest,
 		c.RemoveFreeTrialOrgResources,
 		c.UpdateFreeTrialOrgResourcesToPaid,
+		c.RemoveDomainRecord,
 	}
 }

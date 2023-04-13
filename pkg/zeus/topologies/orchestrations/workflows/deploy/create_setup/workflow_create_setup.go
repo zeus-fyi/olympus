@@ -73,14 +73,6 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 		}
 	}
 
-	//// TODO params
-	//domainRequestCtx := workflow.WithActivityOptions(ctx, ao)
-	//err = workflow.ExecuteActivity(domainRequestCtx, c.CreateSetupTopologyActivities.AddDomainRecord, params).Get(domainRequestCtx, nil)
-	//if err != nil {
-	//	log.Error("Failed to add subdomain resources to org account", "Error", err)
-	//	return err
-	//}
-
 	//emailStatusCtx := workflow.WithActivityOptions(ctx, ao)
 	//err = workflow.ExecuteActivity(emailStatusCtx, c.CreateSetupTopologyActivities.SendEmailNotification, params).Get(emailStatusCtx, nil)
 	//if err != nil {
@@ -95,6 +87,12 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 		}
 	}
 	params.CloudCtxNs.Namespace = params.ClusterID.String()
+	domainRequestCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(domainRequestCtx, c.CreateSetupTopologyActivities.AddDomainRecord, params.Namespace).Get(domainRequestCtx, nil)
+	if err != nil {
+		log.Error("Failed to add subdomain resources to org account", "Error", err)
+		return err
+	}
 	clusterDeployCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(clusterDeployCtx, c.CreateSetupTopologyActivities.DeployClusterTopologyFromUI, params.Cluster.ClusterName, sbNames, params.CloudCtxNs, params.Ou).Get(clusterDeployCtx, nil)
 	if err != nil {

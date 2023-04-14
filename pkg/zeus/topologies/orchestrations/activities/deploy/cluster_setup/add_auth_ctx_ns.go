@@ -30,12 +30,11 @@ func (c *CreateSetupTopologyActivities) AddAuthCtxNsOrg(ctx context.Context, par
 func (c *CreateSetupTopologyActivities) RemoveAuthCtxNsOrg(ctx context.Context, params base_deploy_params.ClusterSetupRequest) error {
 	newCloudCtxAuth := create_topology.CreateTopologiesOrgCloudCtxNs{
 		TopologiesOrgCloudCtxNs: autogen_bases.TopologiesOrgCloudCtxNs{
-			OrgID:          params.Ou.OrgID,
-			CloudProvider:  params.CloudProvider,
-			Context:        params.Context,
-			Region:         params.Region,
-			Namespace:      params.ClusterID.String(),
-			NamespaceAlias: params.Namespace,
+			OrgID:         params.Ou.OrgID,
+			CloudProvider: params.CloudProvider,
+			Context:       params.Context,
+			Region:        params.Region,
+			Namespace:     params.Namespace,
 		}}
 	err := newCloudCtxAuth.DeleteTopologyAccessCloudCtxNs(ctx)
 	if err != nil {

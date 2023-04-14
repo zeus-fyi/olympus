@@ -69,7 +69,7 @@ func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflow(ctx workflow.C
 			removeAuthCtx := workflow.WithActivityOptions(ctx, ao)
 			err = workflow.ExecuteActivity(removeAuthCtx, c.CreateSetupTopologyActivities.RemoveAuthCtxNsOrg, params).Get(removeAuthCtx, nil)
 			if err != nil {
-				log.Error("Failed to add deploy cluster", "Error", err)
+				log.Error("Failed to remove auth ctx ns", "Error", err)
 				return err
 			}
 			selectFreeTrialDoNodesCtx := workflow.WithActivityOptions(ctx, ao)

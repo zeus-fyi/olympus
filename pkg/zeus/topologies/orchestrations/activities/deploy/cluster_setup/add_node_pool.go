@@ -44,7 +44,7 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 	clusterID := "0de1ee8e-7b90-45ea-b966-e2d2b7976cf9"
 	node, err := api_auth_temporal.DigitalOcean.CreateNodePool(ctx, clusterID, nodesReq)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("AddToNodePool error")
+		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("CreateNodePool error")
 		return hestia_digitalocean.DigitalOceanNodePoolRequestStatus{}, err
 	}
 

@@ -30,7 +30,7 @@ ARG GOCACHE
 ARG GOOS
 ARG GOARCH
 
-COPY . .
+COPY go.mod go.sum ./
 
 RUN --mount=type=cache,target=${GOMODCACHE} go mod download
 

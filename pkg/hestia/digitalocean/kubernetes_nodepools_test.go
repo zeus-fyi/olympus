@@ -35,6 +35,10 @@ func (s *DoKubernetesTestSuite) TestGetNodePools() {
 	nodePools, _, err := s.do.Client.Kubernetes.ListNodePools(ctx, nycContext, nil)
 	s.Require().NoError(err)
 	s.Require().NotEmpty(nodePools)
+
+	for _, np := range nodePools {
+		fmt.Println(np.ID)
+	}
 }
 
 func (s *DoKubernetesTestSuite) TestCreateNodePool() {

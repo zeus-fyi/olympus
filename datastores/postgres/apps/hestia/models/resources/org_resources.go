@@ -5,6 +5,7 @@ import (
 
 	"github.com/jackc/pgx/v4"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	do_types "github.com/zeus-fyi/olympus/pkg/hestia/digitalocean/types"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
@@ -35,6 +36,30 @@ func AddDigitalOceanNodePoolResourcesToOrg(ctx context.Context, orgID, resourceI
 		return returnErr
 	}
 	return err
+}
+
+func SelectFreeTrialDigitalOceanNodes(ctx context.Context, orgID int) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT node_pool_id, node_context_id
+ 				  FROM digitalocean_node_pools
+ 				  JOIN org_resources USING (org_resource_id)
+				  WHERE org_id = $1 AND free_trial = true AND begin_service <= CURRENT_TIMESTAMP - INTERVAL '1 hour'
+				  `
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID)
+	if err == pgx.ErrNoRows {
+		return nil, nil
+	}
+	defer rows.Close()
+	var nodePools []do_types.DigitalOceanNodePoolRequestStatus
+	for rows.Next() {
+		np := do_types.DigitalOceanNodePoolRequestStatus{}
+		err = rows.Scan(&np.NodePoolID, &np.ClusterID)
+		if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
+			return nil, returnErr
+		}
+		nodePools = append(nodePools, np)
+	}
+	return nodePools, err
 }
 
 func RemoveFreeTrialOrgResources(ctx context.Context, orgID int) error {

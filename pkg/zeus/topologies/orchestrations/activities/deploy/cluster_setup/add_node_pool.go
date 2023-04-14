@@ -8,12 +8,12 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/rs/zerolog/log"
 	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
-	hestia_digitalocean "github.com/zeus-fyi/olympus/pkg/hestia/digitalocean"
+	do_types "github.com/zeus-fyi/olympus/pkg/hestia/digitalocean/types"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 )
 
-func (c *CreateSetupTopologyActivities) AddNodePoolToOrgResources(ctx context.Context, params base_deploy_params.ClusterSetupRequest, npStatus hestia_digitalocean.DigitalOceanNodePoolRequestStatus) error {
+func (c *CreateSetupTopologyActivities) AddNodePoolToOrgResources(ctx context.Context, params base_deploy_params.ClusterSetupRequest, npStatus do_types.DigitalOceanNodePoolRequestStatus) error {
 	err := hestia_compute_resources.AddDigitalOceanNodePoolResourcesToOrg(ctx, params.Ou.OrgID, params.Nodes.ResourceID, params.NodesQuantity, npStatus.NodePoolID, npStatus.ClusterID, params.FreeTrial)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("AddNodePoolToOrgResources error")
@@ -22,7 +22,7 @@ func (c *CreateSetupTopologyActivities) AddNodePoolToOrgResources(ctx context.Co
 	return nil
 }
 
-func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (hestia_digitalocean.DigitalOceanNodePoolRequestStatus, error) {
+func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (do_types.DigitalOceanNodePoolRequestStatus, error) {
 	taint := godo.Taint{
 		Key:    fmt.Sprintf("org-%d", params.Ou.OrgID),
 		Value:  fmt.Sprintf("org-%d", params.Ou.OrgID),
@@ -45,17 +45,17 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 	node, err := api_auth_temporal.DigitalOcean.CreateNodePool(ctx, clusterID, nodesReq)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("CreateNodePool error")
-		return hestia_digitalocean.DigitalOceanNodePoolRequestStatus{}, err
+		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}
 
-	return hestia_digitalocean.DigitalOceanNodePoolRequestStatus{
+	return do_types.DigitalOceanNodePoolRequestStatus{
 		ClusterID:  clusterID,
 		NodePoolID: node.ID,
 	}, nil
 }
 
 // clusterID := "0de1ee8e-7b90-45ea-b966-e2d2b7976cf9"
-func (c *CreateSetupTopologyActivities) RemoveNodePoolRequest(ctx context.Context, nodePool hestia_digitalocean.DigitalOceanNodePoolRequestStatus) error {
+func (c *CreateSetupTopologyActivities) RemoveNodePoolRequest(ctx context.Context, nodePool do_types.DigitalOceanNodePoolRequestStatus) error {
 	log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("RemoveNodePoolRequest")
 	err := api_auth_temporal.DigitalOcean.RemoveNodePool(ctx, nodePool.ClusterID, nodePool.NodePoolID)
 	if err != nil {
@@ -81,4 +81,13 @@ func (c *CreateSetupTopologyActivities) UpdateFreeTrialOrgResourcesToPaid(ctx co
 		return err
 	}
 	return nil
+}
+
+func (c *CreateSetupTopologyActivities) SelectFreeTrialNodes(ctx context.Context, orgID int) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
+	nps, err := hestia_compute_resources.SelectFreeTrialDigitalOceanNodes(ctx, orgID)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Int("orgID", orgID).Msg("SelectFreeTrialNodes: SelectFreeTrialDigitalOceanNodes error")
+		return nps, err
+	}
+	return nps, err
 }

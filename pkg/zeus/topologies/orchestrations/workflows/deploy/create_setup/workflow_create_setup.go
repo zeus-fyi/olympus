@@ -3,7 +3,7 @@ package deploy_workflow_cluster_setup
 import (
 	"time"
 
-	hestia_digitalocean "github.com/zeus-fyi/olympus/pkg/hestia/digitalocean"
+	do_types "github.com/zeus-fyi/olympus/pkg/hestia/digitalocean/types"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	deploy_topology_activities_create_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/cluster_setup"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
@@ -43,7 +43,7 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 
 	// TODO add billing email step
 	nodePoolRequestStatusCtxKns := workflow.WithActivityOptions(ctx, ao)
-	var nodePoolRequestStatus hestia_digitalocean.DigitalOceanNodePoolRequestStatus
+	var nodePoolRequestStatus do_types.DigitalOceanNodePoolRequestStatus
 	err := workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.MakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, &nodePoolRequestStatus)
 	if err != nil {
 		log.Error("Failed to complete node pool request", "Error", err)
@@ -105,8 +105,7 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 	}
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
 	ftDestroy := base_deploy_params.DestroyClusterSetupRequest{
-		ClusterSetupRequest:               params,
-		DigitalOceanNodePoolRequestStatus: &nodePoolRequestStatus,
+		ClusterSetupRequest: params,
 	}
 	childWorkflowFuture := workflow.ExecuteChildWorkflow(ctx, "DestroyClusterSetupWorkflow", ftDestroy)
 	var childWE workflow.Execution

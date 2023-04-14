@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	do_types "github.com/zeus-fyi/olympus/pkg/hestia/digitalocean/types"
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	deploy_topology_activities_create_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/cluster_setup"
@@ -71,15 +72,23 @@ func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflow(ctx workflow.C
 				log.Error("Failed to add deploy cluster", "Error", err)
 				return err
 			}
-			if params.DigitalOceanNodePoolRequestStatus != nil {
+			selectFreeTrialDoNodesCtx := workflow.WithActivityOptions(ctx, ao)
+			var nodes []do_types.DigitalOceanNodePoolRequestStatus
+			err = workflow.ExecuteActivity(removeAuthCtx, c.CreateSetupTopologyActivities.SelectFreeTrialNodes, params).Get(selectFreeTrialDoNodesCtx, &nodes)
+			if err != nil {
+				log.Error("Failed to select digital ocean free trial nodes", "Error", err)
+				return err
+			}
+			for _, node := range nodes {
 				destroyNodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
-				log.Info("Destroying node pool org resources", "NodePoolRequestStatus", params.DigitalOceanNodePoolRequestStatus)
-				err = workflow.ExecuteActivity(destroyNodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.RemoveNodePoolRequest, *params.DigitalOceanNodePoolRequestStatus).Get(destroyNodePoolOrgResourcesCtx, nil)
+				log.Info("Destroying node pool org resources", "NodePoolRequestStatus", node)
+				err = workflow.ExecuteActivity(destroyNodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.RemoveNodePoolRequest, node).Get(destroyNodePoolOrgResourcesCtx, nil)
 				if err != nil {
-					log.Error("Failed to add remove node resources for account", "Error", err)
+					log.Error("Failed to remove node resources for account", "Error", err)
 					return err
 				}
 			}
+
 			removeFreeTrialResourcesCtx := workflow.WithActivityOptions(ctx, ao)
 			err = workflow.ExecuteActivity(removeFreeTrialResourcesCtx, c.CreateSetupTopologyActivities.RemoveFreeTrialOrgResources, params).Get(removeFreeTrialResourcesCtx, nil)
 			if err != nil {

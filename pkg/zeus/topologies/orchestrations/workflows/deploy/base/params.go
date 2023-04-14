@@ -9,7 +9,6 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
-	hestia_digitalocean "github.com/zeus-fyi/olympus/pkg/hestia/digitalocean"
 	zeus_templates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
@@ -35,7 +34,6 @@ type ClusterTopologyWorkflowRequest struct {
 
 type DestroyClusterSetupRequest struct {
 	ClusterSetupRequest
-	*hestia_digitalocean.DigitalOceanNodePoolRequestStatus
 }
 
 type ClusterSetupRequest struct {

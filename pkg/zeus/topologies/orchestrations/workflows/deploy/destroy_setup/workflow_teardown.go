@@ -74,7 +74,7 @@ func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflow(ctx workflow.C
 			}
 			selectFreeTrialDoNodesCtx := workflow.WithActivityOptions(ctx, ao)
 			var nodes []do_types.DigitalOceanNodePoolRequestStatus
-			err = workflow.ExecuteActivity(removeAuthCtx, c.CreateSetupTopologyActivities.SelectFreeTrialNodes, params).Get(selectFreeTrialDoNodesCtx, &nodes)
+			err = workflow.ExecuteActivity(removeAuthCtx, c.CreateSetupTopologyActivities.SelectFreeTrialNodes, params.Ou.OrgID).Get(selectFreeTrialDoNodesCtx, &nodes)
 			if err != nil {
 				log.Error("Failed to select digital ocean free trial nodes", "Error", err)
 				return err

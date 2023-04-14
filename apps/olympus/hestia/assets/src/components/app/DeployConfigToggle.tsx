@@ -8,16 +8,19 @@ import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import {AppPage} from "./AppPage";
 import {DeployPage} from "./DeployPage";
+import {AppResourceNodesResourcesTable} from "./AppResourceNodesTable";
 
 export const appBuildToggleSteps = [
     'Deploy App',
     'Preview Configs',
+    'Resource Management'
 ];
 
 export function appPageStepComponents(activeStep: number, app: string) {
     const steps = [
         <DeployPage app={app}/>,
-        <AppPage />
+        <AppPage />,
+        <AppResourceNodesResourcesTable />
     ];
     return (steps[activeStep])
 }

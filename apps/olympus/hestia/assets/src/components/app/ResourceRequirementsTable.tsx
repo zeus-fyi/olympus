@@ -186,6 +186,21 @@ function convertToBibiBytes(size: DiskSize): number {
     return Number(BigInt(size.value) * BigInt(unitMultiplier));
 }
 
+export function convertToPercentage(allocatable: string, capacity: string): number {
+    const diskSize = parseDiskSize(allocatable);
+    const bibiBytes = convertToBibiBytes(diskSize);
+
+    const diskSizeCap = parseDiskSize(capacity);
+    const bibiBytesCap = convertToBibiBytes(diskSizeCap);
+    return 100-100*Number(Number(BigInt(bibiBytes)) / Number(BigInt(bibiBytesCap)));
+}
+
+export function convertToMi(input: string): number {
+    const diskSize = parseDiskSize(input);
+    const bibiBytes = convertToBibiBytes(diskSize);
+    return Number(BigInt(bibiBytes) / BigInt(1024**2));
+}
+
 export function divideBy100GiB(input: string): number {
     const diskSize = parseDiskSize(input);
     const bibiBytes = convertToBibiBytes(diskSize);

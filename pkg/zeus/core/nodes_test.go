@@ -2,6 +2,7 @@ package zeus_core
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -27,9 +28,18 @@ func (t *NodesTestSuite) TestGetNodesByLabel() {
 	//var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: ""}
 	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "nyc1", Context: "do-nyc1-do-nyc1-zeus-demo", Namespace: ""}
 	// org -> 1679515557647002001
-	nodes, err := t.K.GetNodesByLabel(ctx, kns, "org=1679515557647002001")
+	m := make(map[string]string)
+	m["org"] = "1679515557647002001"
+	m["app"] = "ethereumEphemeralBeacons"
+
+	var labelString string
+	for key, value := range m {
+		labelString += key + "=" + value + ","
+	}
+	labelString = strings.TrimSuffix(labelString, ",")
+	nl, err := t.K.GetNodesAuditByLabel(ctx, kns, labelString)
 	t.Require().Nil(err)
-	t.Require().NotEmpty(nodes)
+	t.Require().NotEmpty(nl)
 }
 
 func TestNodesTestSuite(t *testing.T) {

@@ -2,26 +2,12 @@
 FROM golang:1.20.1-buster as builder
 
 WORKDIR /app
-ARG CA_CRT
-RUN if [ -z "${CA_CRT}" ]; then \
-      COPY configs/ca-certificate.crt .; \
-    else \
-      echo "${CA_CRT}" > ca-certificate.crt; \
-    fi
+COPY . .
 
-ARG CA_PEM
-RUN if [ -z "${CA_PEM}" ]; then \
-      COPY configs/zeus.fyi/ca.pem .; \
-    else \
-      echo "${CA_PEM}" > ca.pem; \
-    fi
+COPY configs/ca-certificate.crt .
+COPY configs/zeus.fyi/ca.pem .
+COPY configs/zeus.fyi/ca.key .
 
-ARG CA_KEY
-RUN if [ -z "${CA_KEY}"]; then \
-      COPY configs/zeus.fyi/ca.key .; \
-    else \
-      echo "${CA_KEY}" > ca.key; \
-    fi
 
 ARG GOMODCACHE
 ARG GOCACHE

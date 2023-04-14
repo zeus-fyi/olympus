@@ -16,10 +16,14 @@ func ListNodesRequest(c echo.Context, request *ActionRequest) error {
 	log.Ctx(ctx).Debug().Msg("ListNodesRequest")
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	label := fmt.Sprintf("org=%d", ou.OrgID)
-	nl, err := zeus.K8Util.GetNodesByLabel(ctx, request.CloudCtxNs, label)
+	for k, v := range request.Labels {
+		label += fmt.Sprintf(",%s=%s", k, v)
+	}
+	nl, err := zeus.K8Util.GetNodesAuditByLabel(ctx, request.CloudCtxNs, label)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("ListNodesRequest")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+
 	return c.JSON(http.StatusOK, nl)
 }

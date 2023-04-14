@@ -28,22 +28,6 @@ func (d *DigitalOcean) CreateDomain(ctx context.Context, name string) (*godo.Dom
 	return dr, err
 }
 
-func (d *DigitalOcean) RemoveDomain(ctx context.Context, name string) (*godo.DomainRecord, error) {
-	createRequest := &godo.DomainRecordEditRequest{
-		Type: "A",
-		Name: fmt.Sprintf("%s.zeus.fyi", name),
-		Data: NycLoadBalancerIp,
-		TTL:  3600,
-	}
-
-	dr, _, err := d.Domains.CreateRecord(ctx, "zeus.fyi", createRequest)
-	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("failed to create domain record")
-		return dr, err
-	}
-	return dr, err
-}
-
 func (d *DigitalOcean) RemoveSubDomainARecord(ctx context.Context, name string) error {
 	dl, _, err := d.Domains.RecordsByType(ctx, "zeus.fyi", "A", &godo.ListOptions{})
 	if err != nil {

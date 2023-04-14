@@ -17,9 +17,9 @@ func (c *CreateSetupTopologyActivities) AddDomainRecord(ctx context.Context, nam
 }
 
 func (c *CreateSetupTopologyActivities) RemoveDomainRecord(ctx context.Context, name string) error {
-	dr, err := api_auth_temporal.DigitalOcean.RemoveDomain(ctx, name)
+	err := api_auth_temporal.DigitalOcean.RemoveSubDomainARecord(ctx, name)
 	if err != nil {
-		log.Ctx(ctx).Error().Interface("dr", dr).Err(err).Msg("failed to create domain record")
+		log.Ctx(ctx).Error().Err(err).Msg("failed to remove domain record")
 		return err
 	}
 	return nil

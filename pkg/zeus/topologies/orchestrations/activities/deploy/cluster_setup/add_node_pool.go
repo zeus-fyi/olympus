@@ -42,7 +42,7 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 	}
 	// TODO remove hard code cluster id
 	clusterID := "0de1ee8e-7b90-45ea-b966-e2d2b7976cf9"
-	node, err := api_auth_temporal.DigitalOcean.AddToNodePool(ctx, clusterID, nodesReq)
+	node, err := api_auth_temporal.DigitalOcean.CreateNodePool(ctx, clusterID, nodesReq)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("AddToNodePool error")
 		return hestia_digitalocean.DigitalOceanNodePoolRequestStatus{}, err
@@ -56,6 +56,7 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 
 // clusterID := "0de1ee8e-7b90-45ea-b966-e2d2b7976cf9"
 func (c *CreateSetupTopologyActivities) RemoveNodePoolRequest(ctx context.Context, nodePool hestia_digitalocean.DigitalOceanNodePoolRequestStatus) error {
+	log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("RemoveNodePoolRequest")
 	err := api_auth_temporal.DigitalOcean.RemoveNodePool(ctx, nodePool.ClusterID, nodePool.NodePoolID)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("nodePool", nodePool).Msg("RemoveNodePool error")

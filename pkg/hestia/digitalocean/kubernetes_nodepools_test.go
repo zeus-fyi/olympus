@@ -56,10 +56,12 @@ func (s *DoKubernetesTestSuite) TestCreateNodePool() {
 	}
 
 	clusterID := "0de1ee8e-7b90-45ea-b966-e2d2b7976cf9"
-	np, err := s.do.AddToNodePool(ctx, clusterID, nodesReq)
+	np, err := s.do.CreateNodePool(ctx, clusterID, nodesReq)
 	s.Require().NoError(err)
 	s.Require().NotNil(np)
 	// TODO
+	err = s.do.RemoveNodePool(ctx, clusterID, np.ID)
+	s.Require().NoError(err)
 }
 
 func TestDoKubernetesTestSuite(t *testing.T) {

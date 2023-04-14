@@ -71,11 +71,14 @@ func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflow(ctx workflow.C
 				log.Error("Failed to add deploy cluster", "Error", err)
 				return err
 			}
-			destroyNodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(destroyNodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.RemoveNodePoolRequest, params.DigitalOceanNodePoolRequestStatus).Get(destroyNodePoolOrgResourcesCtx, nil)
-			if err != nil {
-				log.Error("Failed to add remove node resources for account", "Error", err)
-				return err
+			if params.DigitalOceanNodePoolRequestStatus != nil {
+				destroyNodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
+				log.Info("Destroying node pool org resources", "NodePoolRequestStatus", params.DigitalOceanNodePoolRequestStatus)
+				err = workflow.ExecuteActivity(destroyNodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.RemoveNodePoolRequest, *params.DigitalOceanNodePoolRequestStatus).Get(destroyNodePoolOrgResourcesCtx, nil)
+				if err != nil {
+					log.Error("Failed to add remove node resources for account", "Error", err)
+					return err
+				}
 			}
 			removeFreeTrialResourcesCtx := workflow.WithActivityOptions(ctx, ao)
 			err = workflow.ExecuteActivity(removeFreeTrialResourcesCtx, c.CreateSetupTopologyActivities.RemoveFreeTrialOrgResources, params).Get(removeFreeTrialResourcesCtx, nil)

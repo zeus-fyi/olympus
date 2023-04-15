@@ -19,17 +19,7 @@ docker.build:
 	@ docker build -t ${IMG} -t ${LATEST} -f ../../docker/zeus/Dockerfile ../../
 
 docker.pubbuildx:
-	@ docker buildx build \
-				-t ${IMG} \
-				-t ${LATEST} \
-				--build-arg GOMODCACHE=${GOMODCACHE} \
-				--build-arg GOCACHE=${GOCACHE} \
-				--build-arg CA_CRT=./configs/ca-certificate.crt \
-				--build-arg CA_PEM=./configs/zeus.fyi/ca.pem \
-				--build-arg CA_KEY=./configs/zeus.fyi/ca.key \
-				--platform=${GOOS}/${GOARCH} \
-				-f ../../docker/zeus/Dockerfile \
-				../../ --push
+	@ docker buildx build -t ${IMG} -t ${LATEST} --build-arg GOMODCACHE=${GOMODCACHE} --build-arg GOCACHE=${GOCACHE} --platform=${GOOS}/${GOARCH} -f ../../docker/zeus/Dockerfile ../../ --push
 
 docker.buildx.prune:
 	@ docker buildx prune

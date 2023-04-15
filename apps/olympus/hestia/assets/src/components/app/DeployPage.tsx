@@ -305,7 +305,7 @@ export function DeployPage(props: any) {
                                     >
                                         {nodes.map((node) => (
                                             <MenuItem key={node.resourceID} value={node.resourceID}>
-                                                {node.slug}
+                                                {node.slug + ' ($' + node.priceMonthly.toFixed(2) + '/month)'}
                                             </MenuItem>
                                         ))}
                                     </Select>

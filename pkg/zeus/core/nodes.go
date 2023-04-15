@@ -2,7 +2,6 @@ package zeus_core
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
@@ -34,7 +33,6 @@ func (k *K8Util) GetNodesAuditByLabel(ctx context.Context, kns zeus_common_types
 		na.Status = n.Status
 		na.Taints = n.Spec.Taints
 		for key, v := range n.Labels {
-			fmt.Println(key, v)
 			switch key {
 			case "region":
 				na.Region = v

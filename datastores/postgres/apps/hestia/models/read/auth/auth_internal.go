@@ -55,7 +55,6 @@ func FetchTemporalAuthToken(ctx context.Context) (read_keys.OrgUserKey, error) {
 		return read_keys.OrgUserKey{}, err
 	}
 	return key, err
-
 }
 
 func FetchUserAuthToken(ctx context.Context, ou org_users.OrgUser) (read_keys.OrgUserKey, error) {

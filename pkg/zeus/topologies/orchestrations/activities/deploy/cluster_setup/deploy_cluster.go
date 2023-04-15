@@ -22,7 +22,7 @@ func (c *CreateSetupTopologyActivities) DeployClusterTopologyFromUI(ctx context.
 		SkeletonBaseOptions: sbBases,
 		CloudCtxNs:          cloudCtxNs,
 	}
-	return c.postDeployClusterTopology(cdRequest, ou)
+	return c.postDeployClusterTopology(ctx, cdRequest, ou)
 }
 
 func (c *CreateSetupTopologyActivities) DestroyCluster(ctx context.Context, cloudCtxNs zeus_common_types.CloudCtxNs) error {
@@ -54,7 +54,9 @@ func (c *CreateSetupTopologyActivities) destroyClusterTopology(cloudCtxNs zeus_c
 	return err
 }
 
-func (c *CreateSetupTopologyActivities) postDeployClusterTopology(params zeus_req_types.ClusterTopologyDeployRequest, ou org_users.OrgUser) error {
+func (c *CreateSetupTopologyActivities) postDeployClusterTopology(ctx context.Context, params zeus_req_types.ClusterTopologyDeployRequest, ou org_users.OrgUser) error {
+	//ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
+	//defer cancel()
 	if len(c.Host) <= 0 {
 		c.Host = "https://api.zeus.fyi"
 	}

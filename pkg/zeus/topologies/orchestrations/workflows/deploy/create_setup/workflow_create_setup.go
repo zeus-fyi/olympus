@@ -99,7 +99,7 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 	clusterDeployCtx := workflow.WithActivityOptions(ctx, aoDeploy)
 	err = workflow.ExecuteActivity(clusterDeployCtx, c.CreateSetupTopologyActivities.DeployClusterTopologyFromUI, params.Cluster.ClusterName, sbNames, params.CloudCtxNs, params.Ou).Get(clusterDeployCtx, nil)
 	if err != nil {
-		log.Error("Failed to  deploy cluster", "Error", err)
+		log.Error("Failed to deploy cluster", "Error", err)
 		return err
 	}
 

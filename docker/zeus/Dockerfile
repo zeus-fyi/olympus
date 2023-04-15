@@ -3,7 +3,6 @@ FROM golang:1.20.1-buster as builder
 
 WORKDIR /app
 
-COPY . .
 ARG CA_CRT
 RUN if [ -z "${CA_CRT}" ]; then \
       COPY configs/ca-certificate.crt .; \
@@ -30,7 +29,7 @@ ARG GOCACHE
 ARG GOOS
 ARG GOARCH
 
-COPY . .
+COPY go.mod go.sum ./
 
 RUN --mount=type=cache,target=${GOMODCACHE} go mod download
 

@@ -48,10 +48,8 @@ class AppsApiGateway {
             return {} as AppPageResponse
         }
     }
-    // "/infra/ui/apps/eth/beacon/ephemeral"
     async getEthBeaconEphemeralAppsDetails(): Promise<AppPageResponse>  {
         const url = `/v1/infra/ui/apps/eth/beacon/ephemeral`;
-        console.log('getEthBeaconEphemeralAppsDetails')
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {

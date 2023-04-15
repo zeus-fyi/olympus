@@ -8,6 +8,7 @@ import (
 	deploy_topology_activities_create_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/cluster_setup"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"go.temporal.io/api/enums/v1"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -93,8 +94,13 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 		log.Error("Failed to add subdomain resources to org account", "Error", err)
 		return err
 	}
+	deployRetryPolicy := &temporal.RetryPolicy{
+		InitialInterval:    time.Second * 15,
+		BackoffCoefficient: 2,
+	}
 	aoDeploy := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 10,
+		StartToCloseTimeout: time.Minute * 5,
+		RetryPolicy:         deployRetryPolicy,
 	}
 	clusterDeployCtx := workflow.WithActivityOptions(ctx, aoDeploy)
 	err = workflow.ExecuteActivity(clusterDeployCtx, c.CreateSetupTopologyActivities.DeployClusterTopologyFromUI, params.Cluster.ClusterName, sbNames, params.CloudCtxNs, params.Ou).Get(clusterDeployCtx, nil)

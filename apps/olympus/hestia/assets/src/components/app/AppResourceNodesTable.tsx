@@ -12,7 +12,7 @@ import {RootState} from "../../redux/store";
 import {resourcesApiGateway} from "../../gateway/resources";
 import {setAppNodes} from "../../redux/resources/resources.reducer";
 import {NodeAudit} from "../../redux/resources/resources.types";
-import {convertToMi, convertToPercentage} from "./ResourceRequirementsTable";
+import {convertToMi} from "./ResourceRequirementsTable";
 
 export function AppResourceNodesResourcesTable(props: any) {
     const [page, setPage] = React.useState(0);
@@ -68,7 +68,7 @@ export function AppResourceNodesResourcesTable(props: any) {
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Kubernetes Version</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >CPU Allocatable/Capacity</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >RAM Allocatable/Capacity</TableCell>
-                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >RAM Utilization %</TableCell>
+                        {/*<TableCell style={{ fontWeight: 'normal', color: 'white'}} >RAM Utilization %</TableCell>*/}
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -85,7 +85,7 @@ export function AppResourceNodesResourcesTable(props: any) {
                             <TableCell align="left">{row.kubernetesVersion}</TableCell>
                             <TableCell align="left">{row.status.allocatable['cpu'] +' / ' + row.status.capacity['cpu'] + ' vCPUs'}</TableCell>
                             <TableCell align="left">{convertToMi(row.status.allocatable['memory'])+'Mi' + ' / ' + convertToMi(row.status.capacity['memory'])+'Mi'}</TableCell>
-                            <TableCell align="left">{convertToPercentage(row.status.allocatable['memory'], row.status.capacity['memory']).toFixed(2)}</TableCell>
+                            {/*<TableCell align="left">{convertToPercentage(row.status.allocatable['memory'], row.status.capacity['memory']).toFixed(2)}</TableCell>*/}
                         </TableRow>
                     ))}
                     {emptyRows > 0 && (

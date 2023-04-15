@@ -66,6 +66,10 @@ func (c *CreateSetupTopologyActivities) postDeployClusterTopology(params zeus_re
 		log.Err(err).Interface("path", u.Path).Msg("CreateSetupTopologyActivities: FetchUserAuthToken failed")
 		return err
 	}
+	if len(token.PublicKey) <= 0 {
+		log.Err(err).Interface("path", u.Path).Msg("CreateSetupTopologyActivities: FetchUserAuthToken failed")
+		return err
+	}
 	client := resty.New()
 	client.SetBaseURL(u.Host)
 	resp, err := client.R().

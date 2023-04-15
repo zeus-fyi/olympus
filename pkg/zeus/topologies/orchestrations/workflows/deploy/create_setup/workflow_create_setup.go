@@ -93,10 +93,13 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 		log.Error("Failed to add subdomain resources to org account", "Error", err)
 		return err
 	}
-	clusterDeployCtx := workflow.WithActivityOptions(ctx, ao)
+	aoDeploy := workflow.ActivityOptions{
+		StartToCloseTimeout: time.Minute * 10,
+	}
+	clusterDeployCtx := workflow.WithActivityOptions(ctx, aoDeploy)
 	err = workflow.ExecuteActivity(clusterDeployCtx, c.CreateSetupTopologyActivities.DeployClusterTopologyFromUI, params.Cluster.ClusterName, sbNames, params.CloudCtxNs, params.Ou).Get(clusterDeployCtx, nil)
 	if err != nil {
-		log.Error("Failed to add deploy cluster", "Error", err)
+		log.Error("Failed to  deploy cluster", "Error", err)
 		return err
 	}
 

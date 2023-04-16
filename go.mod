@@ -88,6 +88,7 @@ require (
 	github.com/edsrzf/mmap-go v1.1.0 // indirect
 	github.com/emicklei/go-restful/v3 v3.10.1 // indirect
 	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
+	github.com/g8rswimmer/go-twitter/v2 v2.1.5 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
@@ -117,6 +118,7 @@ require (
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/stripe/stripe-go/v74 v74.13.0 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220614013038-64ee5596c38a // indirect
+	github.com/vartanbeno/go-reddit/v2 v2.0.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	go.temporal.io/api v1.11.1-0.20220907050538-6de5285cf463 // indirect
 	go.uber.org/atomic v1.10.0 // indirect

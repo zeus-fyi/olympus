@@ -15,6 +15,7 @@ import (
 
 func Routes(e *echo.Echo) *echo.Echo {
 	e.GET("/health", Health)
+	e.GET("/callback/oauth2", Health)
 	InitV1BetaRoutes(e)
 	return e
 }

@@ -21,6 +21,13 @@ type TestURLs struct {
 type TestContainer struct {
 	Env string
 
+	TwitterBearerToken     string
+	TwitterPublicAPIKey    string
+	TwitterSecretAPIKey    string
+	RedditUsername         string
+	RedditPassword         string
+	RedditSecretOAuth2     string
+	RedditPublicOAuth2     string
 	StripeTestPublicAPIKey string
 	StripeTestSecretAPIKey string
 	StripeProdPublicAPIKey string
@@ -144,6 +151,13 @@ func InitArtemisLocalAccounts() {
 func InitLocalTestConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
 
+	testCont.TwitterBearerToken = viper.GetString("TWITTER_BEARER_TOKEN")
+	testCont.TwitterPublicAPIKey = viper.GetString("TWITTER_PUBLIC_API_KEY")
+	testCont.TwitterSecretAPIKey = viper.GetString("TWITTER_SECRET_API_KEY")
+	testCont.RedditUsername = viper.GetString("REDDIT_USERNAME")
+	testCont.RedditPassword = viper.GetString("REDDIT_PASSWORD")
+	testCont.RedditPublicOAuth2 = viper.GetString("REDDIT_PUBLIC_OAUTH2")
+	testCont.RedditSecretOAuth2 = viper.GetString("REDDIT_SECRET_OAUTH2")
 	testCont.StripeTestPublicAPIKey = viper.GetString("STRIPE_TEST_API_PUBLIC_KEY")
 	testCont.StripeTestSecretAPIKey = viper.GetString("STRIPE_TEST_API_SECRET_KEY")
 

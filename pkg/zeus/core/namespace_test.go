@@ -36,7 +36,13 @@ func (s *NamespaceTestSuite) TestCreateNamespaceIfDoesNotExist() {
 func (s *NamespaceTestSuite) TestListK8Namespaces() {
 	ctx := context.Background()
 	s.K.SetContext("do-sfo3-dev-do-sfo3-zeus")
-	nsl, err := s.K.GetNamespaces(ctx, zeus_common_types.CloudCtxNs{})
+	nsl, err := s.K.GetNamespaces(ctx, zeus_common_types.CloudCtxNs{
+		CloudProvider: "",
+		Region:        "",
+		Context:       "do-sfo3-dev-do-sfo3-zeus",
+		Namespace:     "",
+		Env:           "",
+	})
 	s.Nil(err)
 	s.Greater(len(nsl.Items), 0)
 	for _, n := range nsl.Items {
@@ -45,7 +51,28 @@ func (s *NamespaceTestSuite) TestListK8Namespaces() {
 
 	fmt.Println("=========== new context ===========")
 	s.K.SetContext("do-nyc1-do-nyc1-zeus-demo")
-	nsl, err = s.K.GetNamespaces(ctx, zeus_common_types.CloudCtxNs{})
+	nsl, err = s.K.GetNamespaces(ctx, zeus_common_types.CloudCtxNs{
+		CloudProvider: "",
+		Region:        "",
+		Context:       "do-nyc1-do-nyc1-zeus-demo",
+		Namespace:     "",
+		Env:           "",
+	})
+	s.Nil(err)
+	s.Greater(len(nsl.Items), 0)
+	for _, n := range nsl.Items {
+		fmt.Println(n.Name)
+	}
+
+	fmt.Println("=========== new context ===========")
+	s.K.SetContext("gke_zeusfyi_us-central1-a_zeus-gcp-pilot-0")
+	nsl, err = s.K.GetNamespaces(ctx, zeus_common_types.CloudCtxNs{
+		CloudProvider: "",
+		Region:        "",
+		Context:       "gke_zeusfyi_us-central1-a_zeus-gcp-pilot-0",
+		Namespace:     "",
+		Env:           "",
+	})
 	s.Nil(err)
 	s.Greater(len(nsl.Items), 0)
 	for _, n := range nsl.Items {

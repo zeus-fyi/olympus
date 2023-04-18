@@ -14,6 +14,11 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
+const (
+	GcpContext          = "gke_zeusfyi_us-central1-a_zeus-gcp-pilot-0"
+	DigitalOceanContext = "do-nyc1-do-nyc1-zeus-demo"
+)
+
 type K8Util struct {
 	kc        *kubernetes.Clientset
 	cfgAccess clientcmd.ConfigAccess

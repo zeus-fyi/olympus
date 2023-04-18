@@ -80,3 +80,4 @@ Thumbs.db
 /configs/web3signer.ephemery/
 /apps/zeus/test/configs/config.yaml
 /configs/ca-certificate.crt
+/configs/gcp/

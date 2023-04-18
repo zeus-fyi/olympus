@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
@@ -21,6 +22,7 @@ func ExternalApiPodsRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group
 
 func PodsCloudCtxNsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		log.Info().Msg("PodsCloudCtxNsMiddleware")
 		ctx := context.Background()
 		ou := c.Get("orgUser").(org_users.OrgUser)
 		request := new(PodActionRequest)

@@ -23,6 +23,8 @@ CREATE TABLE "public"."topologies_kns" (
     "env" text NOT NULL
 );
 ALTER TABLE "public"."topologies_kns" ADD CONSTRAINT "kns_pk" PRIMARY KEY ("topology_id", "cloud_provider", "region", "context","namespace", "env");
+CREATE INDEX topologies_kns_topology_id_idx ON topologies_kns (topology_id);
+
 
 -- specific deployed topology to user (statuses can be pending, terminated, etc)
 CREATE TABLE "public"."topologies_deployed" (
@@ -32,6 +34,8 @@ CREATE TABLE "public"."topologies_deployed" (
    "updated_at" timestamptz  NOT NULL DEFAULT NOW()
 );
 ALTER TABLE "public"."topologies_deployed" ADD CONSTRAINT "topologies_deployed_pk" PRIMARY KEY ("topology_id","deployment_id");
+CREATE INDEX status_idx ON topologies_deployed (topology_status);
+CREATE INDEX topologies_deployed_idx ON topologies_deployed (topology_id);
 
 -- if needed again per different schema. eg zeus.DB, vs eth.DB
 -- CREATE OR REPLACE FUNCTION trigger_set_timestamp()

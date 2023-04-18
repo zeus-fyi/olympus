@@ -5,6 +5,7 @@ import (
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
 type OrgResourcesGroups struct {
@@ -49,7 +50,7 @@ func SelectOrgResourcesNodes(ctx context.Context, orgID int) ([]OrgResourceNodes
 			&orgResourceNodes.BeginService,
 			&orgResourceNodes.EndService,
 			&orgResourceNodes.FreeTrial,
-			&orgResourceNodes.Nodes.ResourceID,
+			&orgResourceNodes.OrgResources.ResourceID,
 			&orgResourceNodes.Slug,
 			&orgResourceNodes.Description,
 			&orgResourceNodes.Memory,
@@ -62,6 +63,7 @@ func SelectOrgResourcesNodes(ctx context.Context, orgID int) ([]OrgResourceNodes
 			&orgResourceNodes.Region,
 			&orgResourceNodes.CloudProvider,
 		)
+		orgResourceNodes.Nodes.ResourceID = orgResourceNodes.OrgResources.ResourceID
 		orgResourceNodes.PriceHourly *= 1.1  // Add 10% to the price
 		orgResourceNodes.PriceMonthly *= 1.1 // Add 10% to the price
 
@@ -87,6 +89,65 @@ func SelectOrgResourcesDisks(ctx context.Context, orgID int) ([]OrgResourceDisks
 		WHERE org_id = $1`
 	args := []interface{}{
 		orgID,
+	}
+	// Execute the SQL query
+	rows, err := apps.Pg.Query(ctx, q, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Parse the result into a NodesSlice
+	var orgResourceDisksSlice []OrgResourceDisks
+	for rows.Next() {
+		orgResourceNodes := OrgResourceDisks{}
+
+		err = rows.Scan(
+			&orgResourceNodes.Quantity,
+			&orgResourceNodes.BeginService,
+			&orgResourceNodes.EndService,
+			&orgResourceNodes.FreeTrial,
+			&orgResourceNodes.Disks.ResourceID,
+			&orgResourceNodes.Description,
+			&orgResourceNodes.DiskSize,
+			&orgResourceNodes.DiskUnits,
+			&orgResourceNodes.PriceMonthly,
+			&orgResourceNodes.PriceHourly,
+			&orgResourceNodes.Region,
+			&orgResourceNodes.CloudProvider,
+		)
+		orgResourceNodes.PriceHourly *= 1.1  // Add 10% to the price
+		orgResourceNodes.PriceMonthly *= 1.1 // Add 10% to the price
+
+		if err != nil {
+			return nil, err
+		}
+		orgResourceDisksSlice = append(orgResourceDisksSlice, orgResourceNodes)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return orgResourceDisksSlice, nil
+}
+
+func SelectOrgResourcesDisksAtCloudCtxNs(ctx context.Context, orgID int, cloudCtxNs zeus_common_types.CloudCtxNs) ([]OrgResourceDisks, error) {
+	// Build the SQL query
+	q := `
+		WITH cte_get_cloud_ctx AS (
+			SELECT cloud_ctx_ns_id 
+			FROM topologies_org_cloud_ctx_ns
+			WHERE cloud_provider = $2 AND region = $3 AND context = $4 AND namespace = $5 AND org_id = $1
+			LIMIT 1
+		)
+		SELECT ou.quantity, ou.begin_service, ou.end_service, ou.free_trial, ou.resource_id,
+		 d.description, d.disk_size, d.disk_units, d.price_monthly, d.price_hourly, d.region, d.cloud_provider
+		FROM org_resources ou
+		JOIN disks d ON d.resource_id = ou.resource_id
+		WHERE org_id = $1`
+	args := []interface{}{
+		orgID, cloudCtxNs.CloudProvider, cloudCtxNs.Region, cloudCtxNs.Context, cloudCtxNs.Namespace,
 	}
 	// Execute the SQL query
 	rows, err := apps.Pg.Query(ctx, q, args...)

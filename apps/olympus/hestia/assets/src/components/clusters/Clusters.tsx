@@ -25,6 +25,7 @@ import MainListItems from "../dashboard/listItems";
 import {clustersApiGateway} from "../../gateway/clusters";
 import {ThemeProvider} from "@mui/material/styles";
 import Stack from "@mui/material/Stack";
+import {CloudCtxNs, resourcesApiGateway} from "../../gateway/resources";
 
 const mdTheme = createTheme();
 
@@ -132,7 +133,7 @@ function ClustersContent() {
                                         Cloud, Infra, & Cluster Management
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
-                                       Clusters created will show up here after shortly after app deployment.
+                                       Clusters created will show up here after shortly after app deployment. Click the cluster row to get a detailed view of the cluster.
                                     </Typography>
                                 </CardContent>
                             </Card>
@@ -151,13 +152,36 @@ function ClustersContent() {
 function ClustersTable(clusters: any) {
     let navigate = useNavigate();
     const [cluster, setCluster] = useState([{}]);
+    const [statusMessage, setStatusMessage] = useState('');
 
     const handleClick = async (event: any, cluster: any) => {
+        const tableRow = event.currentTarget;
+        const tableCells = tableRow.children;
+        if (event.target === tableCells[tableCells.length - 1]) {
+            return;
+        }
         event.preventDefault();
         setCluster(cluster);
         navigate('/clusters/'+cluster.cloudCtxNsID);
     }
 
+    const handleDeleteNamespace = async (cloudCtxNsId: number, cloudProvider: string, region: string, context: string, namespace: string) => {
+        try {
+            const cloudCtxNs = {
+                cloudProvider: cloudProvider,
+                region: region,
+                context: context,
+                namespace: namespace,
+            } as CloudCtxNs;
+            const response = await resourcesApiGateway.destroyDeploy(cloudCtxNs);
+            const data = await response.json();
+            console.log(`Response: ${JSON.stringify(data)}`);
+            setStatusMessage(`Destroy in progress`);
+        } catch (error) {
+            console.error(error);
+            setStatusMessage(`Error deleting resource ID ${cloudCtxNsId}`);
+        }
+    }
     return( <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
             <TableHead>
@@ -168,6 +192,7 @@ function ClustersTable(clusters: any) {
                     <TableCell style={{ color: 'white'}} align="left">Context</TableCell>
                     <TableCell style={{ color: 'white'}} align="left">Namespace</TableCell>
                     <TableCell style={{ color: 'white'}} align="left">Alias</TableCell>
+                    <TableCell style={{ color: 'white'}} align="left"></TableCell>
                 </TableRow>
             </TableHead>
             <TableBody>
@@ -185,6 +210,19 @@ function ClustersTable(clusters: any) {
                         <TableCell align="left">{row.context}</TableCell>
                         <TableCell align="left">{row.namespace}</TableCell>
                         <TableCell align="left">{row.namespaceAlias}</TableCell>
+                        <TableCell align="left">
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    handleDeleteNamespace(row.cloudCtxNsID, row.cloudProvider, row.region, row.context, row.namespace);
+                                }}
+                            >
+                                Delete
+                            </Button>
+                            <div>{statusMessage}</div>
+                        </TableCell>
                     </TableRow>
                 ))}
             </TableBody>

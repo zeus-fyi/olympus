@@ -29,3 +29,17 @@ func (t *TopologyDestroyDeployRequest) DestroyDeployedTopology(c echo.Context) e
 	}
 	return zeus.ExecuteDestroyDeployWorkflow(c, ctx, ou, t.TopologyKubeCtxNs, tr.GetTopologyBaseInfraWorkload())
 }
+
+func (t *TopologyDestroyDeployRequest) DestroyNamespace(c echo.Context) error {
+	log.Debug().Msg("DestroyNamespace")
+	ctx := context.Background()
+	ou := c.Get("orgUser").(org_users.OrgUser)
+	tr := read_topology.NewInfraTopologyReaderWithOrgUser(ou)
+	tr.TopologyID = t.TopologyID
+	err := tr.SelectTopology(ctx)
+	if err != nil {
+		log.Err(err).Interface("orgUser", ou).Msg("TopologyDestroyDeployRequest, DestroyNamespace error")
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+	return zeus.ExecuteDestroyNamespaceWorkflow(c, ctx, ou, t.TopologyKubeCtxNs, tr.GetTopologyBaseInfraWorkload())
+}

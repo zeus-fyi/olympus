@@ -1,8 +1,8 @@
 import * as React from "react";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../../redux/store";
-import {TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
+import {Button, TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
@@ -17,6 +17,7 @@ export function OrgNodesResourcesTable(props: any) {
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const resources = useSelector((state: RootState) => state.resources.resources);
     const dispatch = useDispatch();
+    const [statusMessage, setStatusMessage] = useState('');
 
     useEffect(() => {
         async function fetchData() {
@@ -44,8 +45,18 @@ export function OrgNodesResourcesTable(props: any) {
         setPage(newPage);
     };
 
-
-    if (resources == null) {
+    const handleRemoveRow = async (resourceID: number) => {
+        try {
+            const response = await resourcesApiGateway.destroyAppResource(resourceID);
+            const data = await response.json();
+            console.log(`Response: ${JSON.stringify(data)}`);
+            setStatusMessage(`Resource ID ${resourceID} deletion in progress`);
+        } catch (error) {
+            console.error(error);
+            setStatusMessage(`Error deleting resource ID ${resourceID}`);
+        }
+    }
+    if (resources === null || resources === undefined) {
         return (<div></div>)
     }
 
@@ -57,12 +68,14 @@ export function OrgNodesResourcesTable(props: any) {
             <Table sx={{ minWidth: 1000 }} aria-label="private apps pagination table">
                 <TableHead>
                     <TableRow style={{ backgroundColor: '#333'}} >
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >ResourceID</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >CloudProvider</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Region</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Slug</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Description</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >PriceHourly</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >PriceMonthly</TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} ></TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -72,13 +85,20 @@ export function OrgNodesResourcesTable(props: any) {
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >
                             <TableCell component="th" scope="row">
-                                {row.cloudProvider}
+                                {row.resourceID}
                             </TableCell>
+                            <TableCell align="left">{row.cloudProvider}</TableCell>
                             <TableCell align="left">{row.region}</TableCell>
                             <TableCell align="left">{row.slug}</TableCell>
                             <TableCell align="left">{row.description}</TableCell>
                             <TableCell align="left">{(row.priceHourly*1.1).toFixed(2)}</TableCell>
                             <TableCell align="left">{(row.priceMonthly*1.1).toFixed(2)}</TableCell>
+                            <TableCell align="left">
+                                <Button variant="contained" color="primary" disabled={row.freeTrial} onClick={() => handleRemoveRow(row.resourceID)}>
+                                    Delete
+                                </Button>
+                                <div>{statusMessage}</div>
+                            </TableCell>
                         </TableRow>
                     ))}
                     {emptyRows > 0 && (

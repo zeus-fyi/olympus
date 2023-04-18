@@ -32,6 +32,11 @@ type ClusterTopologyWorkflowRequest struct {
 	RequestChoreographySecret bool
 }
 
+type DestroyResourcesRequest struct {
+	Ou          org_users.OrgUser
+	ResourceIDs []int
+}
+
 type DestroyClusterSetupRequest struct {
 	ClusterSetupRequest
 }

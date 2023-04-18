@@ -65,6 +65,7 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 		return err
 	}
 
+	params.CloudCtxNs.Namespace = params.ClusterID.String()
 	diskOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
 	for _, disk := range params.Disks {
 		err = workflow.ExecuteActivity(diskOrgResourcesCtx, c.CreateSetupTopologyActivities.AddDiskResourcesToOrg, params, disk).Get(diskOrgResourcesCtx, nil)
@@ -87,7 +88,6 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 			sbNames = append(sbNames, sbName)
 		}
 	}
-	params.CloudCtxNs.Namespace = params.ClusterID.String()
 	domainRequestCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(domainRequestCtx, c.CreateSetupTopologyActivities.AddDomainRecord, params.Namespace).Get(domainRequestCtx, nil)
 	if err != nil {
@@ -116,7 +116,7 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 	ftDestroy := base_deploy_params.DestroyClusterSetupRequest{
 		ClusterSetupRequest: params,
 	}
-	childWorkflowFuture := workflow.ExecuteChildWorkflow(ctx, "DestroyClusterSetupWorkflow", ftDestroy)
+	childWorkflowFuture := workflow.ExecuteChildWorkflow(ctx, "DestroyClusterSetupWorkflowFreeTrial", ftDestroy)
 	var childWE workflow.Execution
 	if err = childWorkflowFuture.GetChildWorkflowExecution().Get(ctx, &childWE); err != nil {
 		return err

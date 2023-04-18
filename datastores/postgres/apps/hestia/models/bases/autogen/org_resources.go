@@ -9,7 +9,7 @@ import (
 
 type OrgResources struct {
 	EndService   sql.NullTime `db:"end_service" json:"endService"`
-	ResourceID   int          `db:"resource_id" json:"resourceID"`
+	ResourceID   int          `db:"resource_id" json:"rID"`
 	OrgID        int          `db:"org_id" json:"orgID"`
 	BeginService time.Time    `db:"begin_service" json:"beginService"`
 	Quantity     float64      `db:"quantity" json:"quantity"`

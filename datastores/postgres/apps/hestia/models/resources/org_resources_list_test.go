@@ -13,6 +13,18 @@ type OrgResourcesListTestSuite struct {
 	hestia_test.BaseHestiaTestSuite
 }
 
+func (s *DisksTestSuite) TestSelectOrgResourceNodes() {
+	s.InitLocalConfigs()
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	orgID := 1679515557647002001
+
+	resourceID := 0
+	orSlice, err := SelectNodeResources(ctx, orgID, resourceID)
+	s.Require().NoError(err)
+	s.Require().NotEmpty(orSlice)
+	fmt.Println(orSlice)
+}
+
 func (s *DisksTestSuite) TestSelectFreeTrialDoNodes() {
 	s.InitLocalConfigs()
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)

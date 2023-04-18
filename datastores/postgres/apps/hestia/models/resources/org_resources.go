@@ -4,18 +4,30 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v4"
+	"github.com/lib/pq"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	do_types "github.com/zeus-fyi/olympus/pkg/hestia/digitalocean/types"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
-func AddResourcesToOrg(ctx context.Context, orgID, resourceID int, quantity float64, freeTrial bool) error {
+func AddResourcesToOrgAndCtx(ctx context.Context, orgID, resourceID int, quantity float64, freeTrial bool, cloudCtxNs zeus_common_types.CloudCtxNs) error {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `INSERT INTO org_resources(org_id, resource_id, quantity, free_trial)
-				  VALUES ($1, $2, $3, $4)
+	q.RawQuery = `WITH cte_org_resources AS (
+					  INSERT INTO org_resources(org_id, resource_id, quantity, free_trial)
+					  VALUES ($1, $2, $3, $4)
+				  	  RETURNING org_resource_id
+				  ), cte_get_cloud_ctx AS (
+					SELECT cloud_ctx_ns_id 
+					FROM topologies_org_cloud_ctx_ns
+					WHERE cloud_provider = $5 AND region = $6 AND context = $7 AND namespace = $8 AND org_id = $1
+					LIMIT 1
+				  ) INSERT INTO org_resources_cloud_ctx(org_resource_id, cloud_ctx_ns_id)
+					VALUES ((SELECT org_resource_id FROM cte_org_resources), (SELECT cloud_ctx_ns_id FROM cte_get_cloud_ctx))
 				  `
-	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, resourceID, quantity, freeTrial)
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, resourceID, quantity, freeTrial, cloudCtxNs.CloudProvider, cloudCtxNs.Region, cloudCtxNs.Context, cloudCtxNs.Namespace)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
 		return returnErr
 	}
@@ -69,6 +81,8 @@ func RemoveFreeTrialOrgResources(ctx context.Context, orgID int) error {
 			      ), cte_digitalocean_node_pools AS (
 					DELETE FROM digitalocean_node_pools
 					WHERE org_resource_id IN (SELECT org_resource_id FROM cte_org_free_trial_resources)
+				  ), cte_org_resource_ctx_id_delete AS (
+  					DELETE FROM org_resources_cloud_ctx WHERE org_resource_id IN (SELECT org_resource_id FROM cte_org_free_trial_resources)	
 				  )
 				  DELETE FROM org_resources
 				  WHERE org_id = $1	AND free_trial = true
@@ -101,7 +115,7 @@ func UpdateFreeTrialOrgResourcesToPaid(ctx context.Context, orgID int) error {
 
 func DoesOrgHaveOngoingFreeTrial(ctx context.Context, orgID int) (bool, error) {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `SELECT COUNT(*) > 0 FROM org_resources WHERE org_id = $1 AND free_trial = true
+	q.RawQuery = `SELECT COUNT(*) > 0 FROM org_resources WHERE org_id = $1 AND free_trial = true AND end_service IS NULL
 				  `
 	var isFreeTrialOngoing bool
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, orgID).Scan(&isFreeTrialOngoing)
@@ -112,4 +126,45 @@ func DoesOrgHaveOngoingFreeTrial(ctx context.Context, orgID int) (bool, error) {
 		return true, returnErr
 	}
 	return isFreeTrialOngoing, err
+}
+
+func SelectNodeResources(ctx context.Context, orgID int, resourceIDs []int) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT node_pool_id, node_context_id
+ 				  FROM digitalocean_node_pools
+ 				  JOIN org_resources USING (org_resource_id)
+				  WHERE org_id = $1 AND resourceID IN($2) AND free_trial = false
+				  `
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, pq.Array(resourceIDs))
+	if err == pgx.ErrNoRows {
+		return nil, nil
+	}
+	defer rows.Close()
+	var nodePools []do_types.DigitalOceanNodePoolRequestStatus
+	for rows.Next() {
+		np := do_types.DigitalOceanNodePoolRequestStatus{}
+		err = rows.Scan(&np.NodePoolID, &np.ClusterID)
+		if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
+			return nil, returnErr
+		}
+		nodePools = append(nodePools, np)
+	}
+	return nodePools, err
+}
+
+func UpdateEndServiceOrgResources(ctx context.Context, orgID int, resourceIDs []int) error {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `UPDATE org_resources
+				  SET end_service = NOW()
+				  WHERE org_id = $1	AND resourceID IN($2) AND end_service IS NULL
+				  `
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, pq.Array(resourceIDs))
+	if err == pgx.ErrNoRows {
+		log.Ctx(ctx).Info().Msg("No org resources to update end service")
+		return nil
+	}
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
+		return returnErr
+	}
+	return err
 }

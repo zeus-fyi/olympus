@@ -20,6 +20,49 @@ class ResourcesApiGateway {
             return
         }
     }
+    async destroyAppResource(resourceID: number): Promise<any>  {
+        const url = `/v1/resources/delete`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
+            const payload = {
+                resourceID: resourceID,
+            }
+            return await zeusApi.post(url, payload,config)
+        } catch (exc) {
+            console.error('error sending delete customer node resources request');
+            console.error(exc);
+            return []
+        }
+    }
+    async destroyDeploy(cloudCtxNs: CloudCtxNs): Promise<any>  {
+        const url = `/v1/deploy/ui/destroy`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
+            const payload = {
+                cloudProvider: cloudCtxNs.cloudProvider,
+                region: cloudCtxNs.region,
+                context: cloudCtxNs.context,
+                namespace: cloudCtxNs.namespace,
+            }
+            return await zeusApi.post(url, payload,config)
+        } catch (exc) {
+            console.error('error sending delete customer node resources request');
+            console.error(exc);
+            return []
+        }
+    }
     async getAppResources(cluster: Cluster): Promise<any>  {
         const url = `/v1/nodes`;
         try {
@@ -50,3 +93,10 @@ interface ActionRequest {
     labels?: Record<string, string>;
     action: string;
 }
+
+export type CloudCtxNs = {
+    cloudProvider: string;
+    region: string;
+    context: string;
+    namespace: string;
+};

@@ -24,9 +24,13 @@ func ExternalDeployRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group 
 	e.POST("/deploy/ui/app", create_or_update_deploy.SetupClusterTopologyDeploymentHandler)
 	e.POST("/deploy/clean/namespace", clean_deploy_request.TopologyCleanNamespaceHandler)
 	e.POST("/deploy/replace", replace_topology.TopologyDeploymentReplaceHandler)
-	e.POST("/deploy/destroy", destroy_deploy_request.TopologyDestroyDeploymentHandler)
 	e.POST("/deploy/status", deployment_status.TopologyDeploymentStatusHandler)
 	e.POST("/deploy/cluster/status", deployment_status.ClusterDeploymentStatusHandler)
+
+	// DELETE
+	e.POST("/deploy/destroy", destroy_deploy_request.TopologyDestroyDeploymentHandler)
+	e.POST("/deploy/ui/destroy", destroy_deploy_request.DestroyNamespaceHandler)
+	e.POST("/resources/delete", destroy_deploy_request.DestroyResourceHandler)
 	return e
 }
 

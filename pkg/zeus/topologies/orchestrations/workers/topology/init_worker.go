@@ -33,6 +33,10 @@ func InitTopologyWorker(temporalAuthCfg temporal_auth.TemporalAuth) {
 	deployWfClusterSetup := deploy_workflow_cluster_setup.NewDeployCreateSetupTopologyWorkflow()
 	// teardown setup
 	deployDestroyWfClusterSetup := deploy_workflow_destroy_setup.NewDeployDestroyClusterSetupWorkflow()
+	// resource removal
+	resourcesDestroyWf := deploy_workflow_destroy_setup.NewDestroyResourcesWorkflow()
+	// namespace destroy from ui
+	deployDestroyNamespaceWf := deploy_workflow_destroy_setup.NewDestroyNamespaceSetupWorkflow()
 
 	// workflows added
 	w.AddWorkflows(deployWf.GetWorkflows())
@@ -40,6 +44,8 @@ func InitTopologyWorker(temporalAuthCfg temporal_auth.TemporalAuth) {
 	w.AddWorkflow(cleanDeployWf.GetWorkflow())
 	w.AddWorkflows(deployWfClusterSetup.GetWorkflows())
 	w.AddWorkflow(deployDestroyWfClusterSetup.GetWorkflow())
+	w.AddWorkflow(resourcesDestroyWf.GetWorkflow())
+	w.AddWorkflow(deployDestroyNamespaceWf.GetWorkflow())
 	// activities added
 	w.AddActivities(statusActivity.GetActivities())
 	w.AddActivities(deployWf.GetActivities())

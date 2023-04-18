@@ -25,17 +25,30 @@ export function AppResourceNodesResourcesTable(props: any) {
     useEffect(() => {
         async function fetchData() {
             try {
+                if (cluster === undefined) {
+                    return;
+                }
+                if (cluster.clusterName === '') {
+                    return;
+                }
                 const response = await resourcesApiGateway.getAppResources(cluster);
                 const nodes = await response.data as NodeAudit[];
+                console.log(nodes)
                 dispatch(setAppNodes(nodes));
             } catch (e) {
+                const nodes = [] as NodeAudit[];
             }
         }
         fetchData().then(r => {
-
         });
     }, [cluster,dispatch]);
 
+    if (appNodes === undefined) {
+        return (<div></div>)
+    }
+    if (appNodes.length === 0) {
+        return (<div></div>)
+    }
     const handleChangeRowsPerPage = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {

@@ -10,7 +10,7 @@ import (
 )
 
 type ResourceDestroyRequest struct {
-	OrgResourceID int `json:"resourceID"`
+	OrgResourceID int `json:"orgResourceID"`
 }
 
 func (r *ResourceDestroyRequest) DestroyResource(c echo.Context) error {

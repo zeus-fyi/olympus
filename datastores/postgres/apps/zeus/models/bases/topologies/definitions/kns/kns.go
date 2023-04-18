@@ -5,8 +5,8 @@ import (
 )
 
 type TopologyKubeCtxNs struct {
-	TopologyID int `db:"topology_id" json:"topologyID"`
-	zeus_common_types.CloudCtxNs
+	TopologyID                   int `db:"topology_id" json:"topologyID"`
+	zeus_common_types.CloudCtxNs `json:"cloudCtxNs"`
 }
 
 func NewKns() TopologyKubeCtxNs {

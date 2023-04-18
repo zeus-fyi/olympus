@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
 func ListNodesRequest(c echo.Context, request *ActionRequest) error {
@@ -19,7 +20,15 @@ func ListNodesRequest(c echo.Context, request *ActionRequest) error {
 	for k, v := range request.Labels {
 		label += fmt.Sprintf(",%s=%s", k, v)
 	}
-	nl, err := zeus.K8Util.GetNodesAuditByLabel(ctx, request.CloudCtxNs, label)
+	// TODO update later
+	cloudCtx := zeus_common_types.CloudCtxNs{
+		CloudProvider: "",
+		Region:        "",
+		Context:       "do-nyc1-do-nyc1-zeus-demo",
+		Namespace:     "",
+		Env:           "",
+	}
+	nl, err := zeus.K8Util.GetNodesAuditByLabel(ctx, cloudCtx, label)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("ListNodesRequest")
 		return c.JSON(http.StatusInternalServerError, nil)

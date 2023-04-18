@@ -77,7 +77,7 @@ class ResourcesApiGateway {
                 action: 'list',
                 labels: {
                     'app': cluster.clusterName
-                }
+                },
             }
             return await zeusApi.post(url, payload,config)
         } catch (exc) {
@@ -100,3 +100,8 @@ export type CloudCtxNs = {
     context: string;
     namespace: string;
 };
+
+export interface TopologyKubeCtxNs {
+    topologyID: number;
+    cloudCtxNs: CloudCtxNs;
+}

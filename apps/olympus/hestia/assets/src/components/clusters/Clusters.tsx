@@ -174,8 +174,6 @@ function ClustersTable(clusters: any) {
                 namespace: namespace,
             } as CloudCtxNs;
             const response = await resourcesApiGateway.destroyDeploy(cloudCtxNs);
-            const data = await response.json();
-            console.log(`Response: ${JSON.stringify(data)}`);
             setStatusMessage(`Destroy in progress`);
         } catch (error) {
             console.error(error);
@@ -214,9 +212,9 @@ function ClustersTable(clusters: any) {
                             <Button
                                 variant="contained"
                                 color="primary"
-                                onClick={(event) => {
+                                onClick={async (event) => {
                                     event.stopPropagation();
-                                    handleDeleteNamespace(row.cloudCtxNsID, row.cloudProvider, row.region, row.context, row.namespace);
+                                    await handleDeleteNamespace(row.cloudCtxNsID, row.cloudProvider, row.region, row.context, row.namespace);
                                 }}
                             >
                                 Delete

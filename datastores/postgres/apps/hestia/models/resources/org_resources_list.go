@@ -24,7 +24,7 @@ type OrgResourceNodes struct {
 
 func SelectOrgResourcesNodes(ctx context.Context, orgID int) ([]OrgResourceNodes, error) {
 	// Build the SQL query
-	q := `SELECT ou.quantity, ou.begin_service, ou.end_service, ou.free_trial, ou.resource_id,
+	q := `SELECT ou.org_resource_id, ou.quantity, ou.begin_service, ou.end_service, ou.free_trial, ou.resource_id,
 		 n.slug, n.description,n.memory, n.memory_units, n.vcpus, n.disk, n.disk_units,
 		  n.price_monthly, n.price_hourly, n.region, n.cloud_provider
 		FROM org_resources ou
@@ -46,6 +46,7 @@ func SelectOrgResourcesNodes(ctx context.Context, orgID int) ([]OrgResourceNodes
 		orgResourceNodes := OrgResourceNodes{}
 
 		err = rows.Scan(
+			&orgResourceNodes.OrgResourceID,
 			&orgResourceNodes.Quantity,
 			&orgResourceNodes.BeginService,
 			&orgResourceNodes.EndService,
@@ -133,7 +134,6 @@ func SelectOrgResourcesDisks(ctx context.Context, orgID int) ([]OrgResourceDisks
 }
 
 func SelectOrgResourcesDisksAtCloudCtxNs(ctx context.Context, orgID int, cloudCtxNs zeus_common_types.CloudCtxNs) ([]OrgResourceDisks, error) {
-	// Build the SQL query
 	q := `
 		WITH cte_get_cloud_ctx AS (
 			SELECT cloud_ctx_ns_id 
@@ -141,11 +141,12 @@ func SelectOrgResourcesDisksAtCloudCtxNs(ctx context.Context, orgID int, cloudCt
 			WHERE cloud_provider = $2 AND region = $3 AND context = $4 AND namespace = $5 AND org_id = $1
 			LIMIT 1
 		)
-		SELECT ou.quantity, ou.begin_service, ou.end_service, ou.free_trial, ou.resource_id,
-		 d.description, d.disk_size, d.disk_units, d.price_monthly, d.price_hourly, d.region, d.cloud_provider
+		SELECT ou.org_resource_id, r.resource_id
 		FROM org_resources ou
-		JOIN disks d ON d.resource_id = ou.resource_id
-		WHERE org_id = $1`
+		LEFT JOIN org_resources_cloud_ctx oc ON oc.org_resource_id = ou.org_resource_id
+		LEFT JOIN resources r ON r.resource_id = ou.resource_id
+		LEFT JOIN disks d ON d.resource_id = r.resource_id
+		WHERE org_id = $1 AND r.type = 'disk' AND oc.cloud_ctx_ns_id IN (SELECT cloud_ctx_ns_id FROM cte_get_cloud_ctx)`
 	args := []interface{}{
 		orgID, cloudCtxNs.CloudProvider, cloudCtxNs.Region, cloudCtxNs.Context, cloudCtxNs.Namespace,
 	}
@@ -159,29 +160,17 @@ func SelectOrgResourcesDisksAtCloudCtxNs(ctx context.Context, orgID int, cloudCt
 	// Parse the result into a NodesSlice
 	var orgResourceDisksSlice []OrgResourceDisks
 	for rows.Next() {
-		orgResourceNodes := OrgResourceDisks{}
+		orgResourceDisks := OrgResourceDisks{}
 
 		err = rows.Scan(
-			&orgResourceNodes.Quantity,
-			&orgResourceNodes.BeginService,
-			&orgResourceNodes.EndService,
-			&orgResourceNodes.FreeTrial,
-			&orgResourceNodes.Disks.ResourceID,
-			&orgResourceNodes.Description,
-			&orgResourceNodes.DiskSize,
-			&orgResourceNodes.DiskUnits,
-			&orgResourceNodes.PriceMonthly,
-			&orgResourceNodes.PriceHourly,
-			&orgResourceNodes.Region,
-			&orgResourceNodes.CloudProvider,
+			&orgResourceDisks.OrgResources.OrgResourceID,
+			&orgResourceDisks.OrgResources.ResourceID,
 		)
-		orgResourceNodes.PriceHourly *= 1.1  // Add 10% to the price
-		orgResourceNodes.PriceMonthly *= 1.1 // Add 10% to the price
-
+		orgResourceDisks.Disks.ResourceID = orgResourceDisks.OrgResources.ResourceID
 		if err != nil {
 			return nil, err
 		}
-		orgResourceDisksSlice = append(orgResourceDisksSlice, orgResourceNodes)
+		orgResourceDisksSlice = append(orgResourceDisksSlice, orgResourceDisks)
 	}
 
 	if err = rows.Err(); err != nil {

@@ -1,7 +1,6 @@
 import * as React from "react";
 import {useEffect} from "react";
 import {useDispatch, useSelector} from "react-redux";
-import {useNavigate} from "react-router-dom";
 import {TableContainer, TableFooter, TableRow} from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
@@ -11,14 +10,12 @@ import TableBody from "@mui/material/TableBody";
 import {RootState} from "../../redux/store";
 import {Cluster} from "../../redux/clusters/clusters.types";
 
-
 export function ResourceRequirementsTable(props: any) {
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const cluster = useSelector((state: RootState) => state.apps.cluster);
     const resourceRequirements = createResourceRequirementsData(cluster);
     const dispatch = useDispatch();
-    let navigate = useNavigate();
 
     useEffect(() => {
         async function fetchData() {
@@ -51,6 +48,9 @@ export function ResourceRequirementsTable(props: any) {
         return (<div></div>)
     }
 
+    if (resourceRequirements === undefined || resourceRequirements === null) {
+        return (<div></div>)
+    }
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - resourceRequirements.length) : 0;
 

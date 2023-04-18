@@ -52,15 +52,23 @@ func (c *CreateTopologiesOrgCloudCtxNs) InsertTopologyAccessCloudCtxNs(ctx conte
 }
 
 func (c *CreateTopologiesOrgCloudCtxNs) GetDeleteTopologyOrgCtxQueryParams() sql_query_templates.QueryParams {
-	q := sql_query_templates.NewQueryParam("InsertTopologyAccessCloudCtxNs", "topologies_org_cloud_ctx_ns", "where", 1000, []string{})
+	q := sql_query_templates.NewQueryParam("DeleteTopologyAccessCloudCtxNs", "topologies_org_cloud_ctx_ns", "where", 1000, []string{})
 	q.TableName = c.GetTableName()
 	q.Columns = c.GetTableColumns()
 	q.Values = []apps.RowValues{c.GetRowValues("default")}
 
 	q.RawQuery = `
-			DELETE FROM topologies_org_cloud_ctx_ns
-			WHERE org_id = $1 AND cloud_provider = $2 AND context = $3 AND region = $4 AND namespace = $5
-			`
+		WITH cte_get_cloud_ctx AS (
+			SELECT cloud_ctx_ns_id
+			FROM topologies_org_cloud_ctx_ns
+			WHERE org_id = $1 AND cloud_provider = $2 AND region = $3 AND context = $4 AND namespace = $5
+			LIMIT 1
+		), cte_remove_cloud_ctx_res AS (
+			DELETE FROM org_resources_cloud_ctx
+			WHERE cloud_ctx_ns_id IN (SELECT cloud_ctx_ns_id FROM cte_get_cloud_ctx)
+		)
+		DELETE FROM topologies_org_cloud_ctx_ns
+		WHERE org_id = $1 AND cloud_provider = $2 AND region = $3 AND context = $4 AND namespace = $5;`
 	return q
 }
 func (c *CreateTopologiesOrgCloudCtxNs) DeleteTopologyAccessCloudCtxNs(ctx context.Context) error {

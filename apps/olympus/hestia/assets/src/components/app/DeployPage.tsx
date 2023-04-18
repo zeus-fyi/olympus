@@ -174,12 +174,15 @@ export function DeployPage(props: any) {
             const response = await appsApiGateway.deployApp(payload);
             if (response.status === 200 || response.status === 202 || response.status === 204) {
                 setRequestStatus('success');
+                return
             } else if (response.status === 403) {
                 setRequestStatus('missingBilling');
                 setFreeTrial(true)
+                return
             } else if (response.status === 412) {
                 setRequestStatus('outOfCredits');
                 setFreeTrial(true)
+                return
             } else {
                 setRequestStatus('error');
                 return
@@ -426,7 +429,7 @@ export function DeployPage(props: any) {
                             </Stack>
                             <Box >
                                 {statusMessage && (
-                                    <Typography variant="body2" color={requestStatus === 'error' || 'missingBilling' ? 'error' : 'success'}>
+                                    <Typography variant="body2" color={requestStatus === 'error' || requestStatus === 'missingBilling' || requestStatus === 'outOfCredits' ? 'error' : 'success'}>
                                         {statusMessage}
                                     </Typography>
                                 )}

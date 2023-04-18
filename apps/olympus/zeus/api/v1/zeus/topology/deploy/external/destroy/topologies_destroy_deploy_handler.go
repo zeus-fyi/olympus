@@ -42,5 +42,5 @@ func DestroyNamespaceHandler(c echo.Context) error {
 	if authed != true {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	return request.DestroyDeployedTopology(c)
+	return request.DestroyNamespace(c)
 }

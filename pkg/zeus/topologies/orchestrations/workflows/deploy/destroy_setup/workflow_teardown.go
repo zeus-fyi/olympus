@@ -28,14 +28,14 @@ func NewDeployDestroyClusterSetupWorkflow() DestroyClusterSetupWorkflow {
 }
 
 func (c *DestroyClusterSetupWorkflow) GetWorkflow() interface{} {
-	return c.DestroyClusterSetupWorkflow
+	return c.DestroyClusterSetupWorkflowFreeTrial
 }
 
 func (c *DestroyClusterSetupWorkflow) GetWorkflows() []interface{} {
-	return []interface{}{c.DestroyClusterSetupWorkflow}
+	return []interface{}{c.DestroyClusterSetupWorkflowFreeTrial}
 }
 
-func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflow(ctx workflow.Context, params base_deploy_params.DestroyClusterSetupRequest) error {
+func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflowFreeTrial(ctx workflow.Context, params base_deploy_params.DestroyClusterSetupRequest) error {
 	log := workflow.GetLogger(ctx)
 
 	ao := workflow.ActivityOptions{

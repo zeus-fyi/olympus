@@ -25,6 +25,8 @@ func (s *Status) SetTopologyID(id int) {
 	s.TopologyKubeCtxNs.TopologyID = id
 }
 
+const ResourceDestroyPending = "ResourceDestroyPending"
+
 const DeployPending = "DeployPending"
 const DeployInProgress = "DeployInProgress"
 const DeployComplete = "DeployComplete"

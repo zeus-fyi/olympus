@@ -64,3 +64,10 @@ CREATE TABLE digitalocean_node_pools (
     node_context_id text NOT NULL,
     PRIMARY KEY (org_resource_id)
 );
+
+CREATE TABLE org_resources_cloud_ctx (
+   org_resource_id int8 NOT NULL REFERENCES org_resources(org_resource_id),
+   cloud_ctx_ns_id int8 NOT NULL REFERENCES topologies_org_cloud_ctx_ns(cloud_ctx_ns_id),
+   PRIMARY KEY (org_resource_id)
+);
+CREATE INDEX org_resources_cloud_ctx_id_idx ON org_resources_cloud_ctx (cloud_ctx_ns_id);

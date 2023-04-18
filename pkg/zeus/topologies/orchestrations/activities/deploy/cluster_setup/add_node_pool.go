@@ -54,6 +54,26 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 	}, nil
 }
 
+func (c *CreateSetupTopologyActivities) SelectNodeResources(ctx context.Context, request base_deploy_params.DestroyResourcesRequest) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
+	log.Ctx(ctx).Info().Interface("request", request).Msg("SelectNodeResources")
+	nps, err := hestia_compute_resources.SelectNodeResources(ctx, request.Ou.OrgID, request.ResourceIDs)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Interface("request", request).Msg("SelectNodeResources: SelectNodeResources error")
+		return nps, err
+	}
+	return nps, err
+}
+
+func (c *CreateSetupTopologyActivities) EndResourceService(ctx context.Context, request base_deploy_params.DestroyResourcesRequest) error {
+	log.Ctx(ctx).Info().Interface("request", request).Msg("EndResourceService")
+	err := hestia_compute_resources.UpdateEndServiceOrgResources(ctx, request.Ou.OrgID, request.ResourceIDs)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Interface("request", request).Msg("EndResourceService: UpdateEndServiceOrgResources error")
+		return err
+	}
+	return err
+}
+
 // clusterID := "0de1ee8e-7b90-45ea-b966-e2d2b7976cf9"
 func (c *CreateSetupTopologyActivities) RemoveNodePoolRequest(ctx context.Context, nodePool do_types.DigitalOceanNodePoolRequestStatus) error {
 	log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("RemoveNodePoolRequest")

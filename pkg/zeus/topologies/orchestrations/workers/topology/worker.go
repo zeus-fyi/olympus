@@ -10,6 +10,7 @@ import (
 	deploy_workflow "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/create"
 	deploy_workflow_cluster_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/create_setup"
 	destroy_deployed_workflow "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/destroy"
+	deploy_workflow_destroy_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/destroy_setup"
 	"go.temporal.io/sdk/client"
 )
 
@@ -94,6 +95,38 @@ func (t *TopologyWorker) ExecuteCreateSetupCluster(ctx context.Context, params b
 	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
 	if err != nil {
 		log.Err(err).Msg("ExecuteCreateSetupCluster")
+		return err
+	}
+	return err
+}
+
+func (t *TopologyWorker) ExecuteDestroyResources(ctx context.Context, params base_deploy_params.DestroyResourcesRequest) error {
+	c := t.ConnectTemporalClient()
+	defer c.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: t.TaskQueueName,
+	}
+	clusterSetupWf := deploy_workflow_destroy_setup.NewDestroyResourcesWorkflow()
+	wf := clusterSetupWf.GetWorkflow()
+	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
+	if err != nil {
+		log.Err(err).Msg("ExecuteDestroyResources")
+		return err
+	}
+	return err
+}
+
+func (t *TopologyWorker) ExecuteDestroyNamespace(ctx context.Context, params base_deploy_params.TopologyWorkflowRequest) error {
+	c := t.ConnectTemporalClient()
+	defer c.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: t.TaskQueueName,
+	}
+	deployDestroyWf := deploy_workflow_destroy_setup.NewDestroyNamespaceSetupWorkflow()
+	wf := deployDestroyWf.GetWorkflow()
+	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
+	if err != nil {
+		log.Err(err).Msg("ExecuteDestroyNamespace")
 		return err
 	}
 	return err

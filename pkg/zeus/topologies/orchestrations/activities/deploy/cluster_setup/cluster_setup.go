@@ -22,5 +22,8 @@ func (c *CreateSetupTopologyActivities) GetActivities() ActivitiesSlice {
 		c.UpdateFreeTrialOrgResourcesToPaid,
 		c.RemoveDomainRecord,
 		c.SelectFreeTrialNodes,
+		c.SelectNodeResources,
+		c.EndResourceService,
+		c.SelectDiskResourcesAtCloudCtxNs,
 	}
 }

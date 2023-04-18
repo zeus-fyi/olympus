@@ -22,3 +22,25 @@ func TopologyDestroyDeploymentHandler(c echo.Context) error {
 	}
 	return request.DestroyDeployedTopology(c)
 }
+
+func DestroyResourceHandler(c echo.Context) error {
+	request := new(ResourceDestroyRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.DestroyResource(c)
+}
+
+func DestroyNamespaceHandler(c echo.Context) error {
+	request := new(TopologyDestroyDeployRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	ctx := context.Background()
+	ou := c.Get("orgUser").(org_users.OrgUser)
+	authed, err := read_topology.IsOrgCloudCtxNsAuthorized(ctx, ou.OrgID, request.CloudCtxNs)
+	if authed != true {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+	return request.DestroyDeployedTopology(c)
+}

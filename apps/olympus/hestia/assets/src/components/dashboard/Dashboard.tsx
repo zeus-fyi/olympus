@@ -165,7 +165,8 @@ function DashboardContent() {
                                     Cluster & Resource Management
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
-                                    Summary of your active cloud resources
+                                    Summary of your active cloud resources.
+                                    Free trial nodes cannot be deleted on demand, you'll need to wait for the trial to expire to deploy new nodes.
                                 </Typography>
                             </CardContent>
                         </Card>

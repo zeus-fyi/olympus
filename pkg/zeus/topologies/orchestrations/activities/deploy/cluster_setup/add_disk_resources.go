@@ -7,6 +7,7 @@ import (
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
@@ -16,12 +17,22 @@ func (c *CreateSetupTopologyActivities) AddDiskResourcesToOrg(ctx context.Contex
 		log.Ctx(ctx).Err(err).Interface("disks", params.Disks).Msg("AddDiskResourcesToOrg error")
 		return err
 	}
-	err = hestia_compute_resources.AddResourcesToOrg(ctx, params.Ou.OrgID, disk.ResourceID, q, params.FreeTrial)
+	err = hestia_compute_resources.AddResourcesToOrgAndCtx(ctx, params.Ou.OrgID, disk.ResourceID, q, params.FreeTrial, params.CloudCtxNs)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("disks", params.Disks).Msg("AddDiskResourcesToOrg error")
 		return err
 	}
 	return nil
+}
+
+func (c *CreateSetupTopologyActivities) SelectDiskResourcesAtCloudCtxNs(ctx context.Context, orgID int, cloudCtxNs zeus_common_types.CloudCtxNs) ([]hestia_compute_resources.OrgResourceDisks, error) {
+	log.Ctx(ctx).Info().Interface("cloudCtxNs", cloudCtxNs).Interface("orgID", orgID).Msg("SelectDiskResourcesAtCloudCtxNs")
+	dsks, err := hestia_compute_resources.SelectOrgResourcesDisksAtCloudCtxNs(ctx, orgID, cloudCtxNs)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Interface("cloudCtxNs", cloudCtxNs).Msg("SelectDiskResourcesAtCloudCtxNs: SelectOrgResourcesDisksAtCloudCtxNs error")
+		return dsks, err
+	}
+	return dsks, err
 }
 
 func digitalOceanBlockStorageBillingUnits(ctx context.Context, qtyString string) (float64, error) {

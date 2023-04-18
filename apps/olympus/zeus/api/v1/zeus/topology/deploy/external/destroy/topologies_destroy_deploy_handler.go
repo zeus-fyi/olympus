@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 )
@@ -34,13 +35,15 @@ func DestroyResourceHandler(c echo.Context) error {
 func DestroyNamespaceHandler(c echo.Context) error {
 	request := new(TopologyDestroyDeployRequest)
 	if err := c.Bind(request); err != nil {
+		log.Err(err).Msg("DestroyNamespaceHandler: Bind error")
 		return err
 	}
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	authed, err := read_topology.IsOrgCloudCtxNsAuthorized(ctx, ou.OrgID, request.CloudCtxNs)
 	if authed != true {
-		return c.JSON(http.StatusInternalServerError, err)
+		log.Err(err).Interface("ou", ou).Msg("DestroyNamespaceHandler: IsOrgCloudCtxNsAuthorized error")
+		return c.JSON(http.StatusForbidden, err)
 	}
 	return request.DestroyNamespaceCluster(c)
 }

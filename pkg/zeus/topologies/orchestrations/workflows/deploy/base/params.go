@@ -33,8 +33,8 @@ type ClusterTopologyWorkflowRequest struct {
 }
 
 type DestroyResourcesRequest struct {
-	Ou          org_users.OrgUser
-	ResourceIDs []int
+	Ou             org_users.OrgUser
+	OrgResourceIDs []int
 }
 
 type DestroyClusterSetupRequest struct {

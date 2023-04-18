@@ -179,7 +179,7 @@ function ClustersTable(clusters: any) {
             setStatusMessage(`Destroy in progress`);
         } catch (error) {
             console.error(error);
-            setStatusMessage(`Error deleting resource ID ${cloudCtxNsId}`);
+            setStatusMessage(`Error deleting cloudCtxNs ID ${cloudCtxNsId}`);
         }
     }
     return( <TableContainer component={Paper}>

@@ -45,15 +45,15 @@ export function OrgNodesResourcesTable(props: any) {
         setPage(newPage);
     };
 
-    const handleRemoveRow = async (resourceID: number) => {
+    const handleRemoveRow = async (orgResourceID: number) => {
         try {
-            const response = await resourcesApiGateway.destroyAppResource(resourceID);
+            const response = await resourcesApiGateway.destroyAppResource(orgResourceID);
             const data = await response.json();
             console.log(`Response: ${JSON.stringify(data)}`);
-            setStatusMessage(`Resource ID ${resourceID} deletion in progress`);
+            setStatusMessage(`OrgResourceID ${orgResourceID} deletion in progress`);
         } catch (error) {
             console.error(error);
-            setStatusMessage(`Error deleting resource ID ${resourceID}`);
+            setStatusMessage(`Error deleting resource ID ${orgResourceID}`);
         }
     }
     if (resources === null || resources === undefined) {
@@ -85,7 +85,7 @@ export function OrgNodesResourcesTable(props: any) {
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >
                             <TableCell component="th" scope="row">
-                                {row.resourceID}
+                                {row.orgResourceID}
                             </TableCell>
                             <TableCell align="left">{row.cloudProvider}</TableCell>
                             <TableCell align="left">{row.region}</TableCell>
@@ -94,7 +94,7 @@ export function OrgNodesResourcesTable(props: any) {
                             <TableCell align="left">{(row.priceHourly*1.1).toFixed(2)}</TableCell>
                             <TableCell align="left">{(row.priceMonthly*1.1).toFixed(2)}</TableCell>
                             <TableCell align="left">
-                                <Button variant="contained" color="primary" disabled={row.freeTrial} onClick={() => handleRemoveRow(row.resourceID)}>
+                                <Button variant="contained" color="primary" disabled={row.freeTrial} onClick={() => handleRemoveRow(row.orgResourceID)}>
                                     Delete
                                 </Button>
                                 <div>{statusMessage}</div>

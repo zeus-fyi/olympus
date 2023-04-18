@@ -3,6 +3,7 @@ CREATE TABLE resources (
    type text NOT NULL,
    PRIMARY KEY (resource_id)
 );
+CREATE INDEX resources_type_idx ON resources (type);
 
 CREATE TABLE nodes (
    resource_id int8 NOT NULL REFERENCES resources(resource_id),

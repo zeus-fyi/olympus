@@ -20,7 +20,7 @@ class ResourcesApiGateway {
             return
         }
     }
-    async destroyAppResource(resourceID: number): Promise<any>  {
+    async destroyAppResource(orgResourceID: number): Promise<any>  {
         const url = `/v1/resources/delete`;
         try {
             const sessionID = inMemoryJWT.getToken();
@@ -31,7 +31,7 @@ class ResourcesApiGateway {
                 withCredentials: true,
             }
             const payload = {
-                resourceID: resourceID,
+                orgResourceID: orgResourceID,
             }
             return await zeusApi.post(url, payload,config)
         } catch (exc) {

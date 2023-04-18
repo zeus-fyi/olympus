@@ -94,8 +94,8 @@ func ExecuteCleanDeployWorkflow(c echo.Context, ctx context.Context, ou org_user
 
 func ExecuteDestroyResourcesWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, resources []int) error {
 	dr := base_deploy_params.DestroyResourcesRequest{
-		Ou:          ou,
-		ResourceIDs: resources,
+		Ou:             ou,
+		OrgResourceIDs: resources,
 	}
 	err := topology_worker.Worker.ExecuteDestroyResources(ctx, dr)
 	if err != nil {

@@ -152,13 +152,13 @@ func SelectNodeResources(ctx context.Context, orgID int, resourceIDs []int) ([]d
 	return nodePools, err
 }
 
-func UpdateEndServiceOrgResources(ctx context.Context, orgID int, resourceIDs []int) error {
+func UpdateEndServiceOrgResources(ctx context.Context, orgID int, orgResourceIDs []int) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `UPDATE org_resources
 				  SET end_service = NOW()
-				  WHERE org_id = $1	AND resourceID IN($2) AND end_service IS NULL
+				  WHERE org_id = $1	AND org_resource_id IN($2) AND end_service IS NULL
 				  `
-	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, pq.Array(resourceIDs))
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, pq.Array(orgResourceIDs))
 	if err == pgx.ErrNoRows {
 		log.Ctx(ctx).Info().Msg("No org resources to update end service")
 		return nil

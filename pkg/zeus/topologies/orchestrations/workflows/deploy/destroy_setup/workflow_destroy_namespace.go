@@ -57,12 +57,12 @@ func (c *DestroyNamespaceSetupWorkflow) DestroyNamespaceSetupWorkflow(ctx workfl
 	if len(disks) > 0 {
 		resourceIDs := make([]int, len(disks))
 		for i, disk := range disks {
-			resourceIDs[i] = disk.Disks.ResourceID
+			resourceIDs[i] = disk.OrgResources.OrgResourceID
 		}
 		endDiskServiceCtx := workflow.WithActivityOptions(ctx, ao)
 		req := base_deploy_params.DestroyResourcesRequest{
-			Ou:          params.OrgUser,
-			ResourceIDs: resourceIDs,
+			Ou:             params.OrgUser,
+			OrgResourceIDs: resourceIDs,
 		}
 		err = workflow.ExecuteActivity(endDiskServiceCtx, c.CreateSetupTopologyActivities.EndResourceService, req).Get(endDiskServiceCtx, nil)
 		if err != nil {

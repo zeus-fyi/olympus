@@ -33,7 +33,7 @@ func DestroyResourceHandler(c echo.Context) error {
 }
 
 func DestroyNamespaceHandler(c echo.Context) error {
-	request := new(TopologyDestroyDeployRequest)
+	request := new(TopologyUIDestroyDeployRequest)
 	if err := c.Bind(request); err != nil {
 		log.Err(err).Msg("DestroyNamespaceHandler: Bind error")
 		return err

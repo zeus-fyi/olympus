@@ -10,6 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
 type TopologyDestroyDeployRequest struct {
@@ -30,16 +31,17 @@ func (t *TopologyDestroyDeployRequest) DestroyDeployedTopology(c echo.Context) e
 	return zeus.ExecuteDestroyDeployWorkflow(c, ctx, ou, t.TopologyKubeCtxNs, tr.GetTopologyBaseInfraWorkload())
 }
 
-func (t *TopologyDestroyDeployRequest) DestroyNamespaceCluster(c echo.Context) error {
+type TopologyUIDestroyDeployRequest struct {
+	zeus_common_types.CloudCtxNs
+}
+
+func (t *TopologyUIDestroyDeployRequest) DestroyNamespaceCluster(c echo.Context) error {
 	log.Debug().Msg("DestroyNamespaceCluster")
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	tr := read_topology.NewInfraTopologyReaderWithOrgUser(ou)
-	tr.TopologyID = t.TopologyID
-	err := tr.SelectTopology(ctx)
-	if err != nil {
-		log.Err(err).Interface("orgUser", ou).Msg("TopologyDestroyDeployRequest, DestroyNamespaceCluster error")
-		return c.JSON(http.StatusInternalServerError, err)
+	knsIn := kns.TopologyKubeCtxNs{
+		CloudCtxNs: t.CloudCtxNs,
 	}
-	return zeus.ExecuteDestroyNamespaceWorkflow(c, ctx, ou, t.TopologyKubeCtxNs, tr.GetTopologyBaseInfraWorkload())
+	return zeus.ExecuteDestroyNamespaceWorkflow(c, ctx, ou, knsIn, tr.GetTopologyBaseInfraWorkload())
 }

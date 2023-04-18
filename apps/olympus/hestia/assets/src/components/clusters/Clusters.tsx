@@ -133,7 +133,7 @@ function ClustersContent() {
                                         Cloud, Infra, & Cluster Management
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
-                                       Clusters created will show up here after shortly after app deployment.
+                                       Clusters created will show up here after shortly after app deployment. Click the cluster row to get a detailed view of the cluster.
                                     </Typography>
                                 </CardContent>
                             </Card>

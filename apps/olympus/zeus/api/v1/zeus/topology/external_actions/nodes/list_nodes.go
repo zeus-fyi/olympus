@@ -13,7 +13,7 @@ import (
 
 func ListNodesRequest(c echo.Context, request *ActionRequest) error {
 	ctx := context.Background()
-	log.Ctx(ctx).Debug().Msg("ListNodesRequest")
+	log.Ctx(ctx).Info().Msg("ListNodesRequest")
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	label := fmt.Sprintf("org=%d", ou.OrgID)
 	for k, v := range request.Labels {

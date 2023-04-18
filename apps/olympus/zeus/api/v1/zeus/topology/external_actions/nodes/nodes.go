@@ -23,6 +23,7 @@ type ActionRequest struct {
 }
 
 func NodeActionsRequestHandler(c echo.Context) error {
+	log.Info().Msg("NodeActionsRequestHandler")
 	request := new(ActionRequest)
 	if err := c.Bind(request); err != nil {
 		log.Err(err).Msg("NodeActionsRequestHandler, Bind error")

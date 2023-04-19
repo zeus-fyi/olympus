@@ -43,7 +43,7 @@ func (d *DestroyDeployTopologyActivities) postDestroyDeployTarget(target string,
 		log.Err(err).Interface("path", u.Path).Msg("DestroyDeployTopologyActivities: postDestroyDeployTarget failed")
 		return err
 	}
-	if resp.StatusCode() != http.StatusAccepted {
+	if resp.StatusCode() != http.StatusOK {
 		log.Err(err).Interface("path", u.Path).Msg("DeployTopologyActivities: postDestroyDeployTarget failed")
 		return errors.New("DeployTopologyActivities: postDestroyDeployTarget failed")
 	}

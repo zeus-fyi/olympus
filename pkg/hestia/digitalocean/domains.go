@@ -34,9 +34,8 @@ func (d *DigitalOcean) RemoveSubDomainARecord(ctx context.Context, name string) 
 		log.Ctx(ctx).Err(err).Msg("failed to create domain record")
 		return err
 	}
-	sbName := fmt.Sprintf("%s.zeus.fyi", name)
 	for _, dn := range dl {
-		if dn.Name == sbName {
+		if dn.Name == name {
 			fmt.Println("deleting", dn.Name, dn.ID)
 			_, err = d.Domains.DeleteRecord(ctx, "zeus.fyi", dn.ID)
 			if err != nil {

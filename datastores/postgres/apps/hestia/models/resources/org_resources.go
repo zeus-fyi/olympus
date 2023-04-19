@@ -156,7 +156,7 @@ func UpdateEndServiceOrgResources(ctx context.Context, orgID int, orgResourceIDs
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `UPDATE org_resources
 				  SET end_service = NOW()
-				  WHERE org_id = $1	AND org_resource_id IN($2::bigint[]) AND end_service IS NULL
+				  WHERE org_id = $1	AND org_resource_id = ANY($2::bigint[]) AND end_service IS NULL
 				  `
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, pq.Array(orgResourceIDs))
 	if err == pgx.ErrNoRows {

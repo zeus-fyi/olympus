@@ -119,6 +119,7 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 	childWorkflowFuture := workflow.ExecuteChildWorkflow(ctx, "DestroyClusterSetupWorkflowFreeTrial", ftDestroy)
 	var childWE workflow.Execution
 	if err = childWorkflowFuture.GetChildWorkflowExecution().Get(ctx, &childWE); err != nil {
+		log.Error("Failed to get child workflow execution", "Error", err)
 		return err
 	}
 	return nil

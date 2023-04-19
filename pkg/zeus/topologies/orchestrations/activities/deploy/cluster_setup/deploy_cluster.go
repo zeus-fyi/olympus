@@ -52,6 +52,10 @@ func (c *CreateSetupTopologyActivities) destroyClusterTopology(cloudCtxNs zeus_c
 		log.Err(err).Interface("path", u.Path).Msg("CreateSetupTopologyActivities: destroyClusterTopology failed")
 		return err
 	}
+	if resp.StatusCode() != http.StatusAccepted {
+		log.Err(err).Interface("path", u.Path).Msg("CreateSetupTopologyActivities: destroyClusterTopology failed")
+		return errors.New("CreateSetupTopologyActivities: destroyClusterTopology failed")
+	}
 	return err
 }
 
@@ -85,7 +89,7 @@ func (c *CreateSetupTopologyActivities) postDeployClusterTopology(ctx context.Co
 		return err
 	}
 	if resp.StatusCode() != http.StatusAccepted {
-		log.Err(err).Interface("path", u.Path).Msg("CreateSetupTopologyActivities: postDeployClusterTopology failed")
+		log.Err(err).Interface("path", u.Path).Msg("CreateSetupTopologyActivities: postDeployClusterTopology failed with bad status code")
 		return errors.New("CreateSetupTopologyActivities: postDeployClusterTopology failed")
 	}
 	return err

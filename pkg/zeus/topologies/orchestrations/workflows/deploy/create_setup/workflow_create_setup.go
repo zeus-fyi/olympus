@@ -68,6 +68,9 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 		return err
 	}
 	for _, disk := range params.Disks {
+		if disk.DiskSize == 0 {
+			continue
+		}
 		diskActivityOptions := ao
 		retryPolicy = &temporal.RetryPolicy{
 			InitialInterval:    time.Second * 60,

@@ -2,6 +2,7 @@ package deploy_topology_activities_create_setup
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/url"
 	"path"
@@ -79,9 +80,13 @@ func (c *CreateSetupTopologyActivities) postDeployClusterTopology(ctx context.Co
 		SetBody(params).
 		Post(zeus_endpoints.DeployClusterTopologyV1Path)
 
-	if err != nil || resp.StatusCode() != http.StatusAccepted {
+	if err != nil {
 		log.Err(err).Interface("path", u.Path).Msg("CreateSetupTopologyActivities: postDeployClusterTopology failed")
 		return err
+	}
+	if resp.StatusCode() != http.StatusAccepted {
+		log.Err(err).Interface("path", u.Path).Msg("CreateSetupTopologyActivities: postDeployClusterTopology failed")
+		return errors.New("CreateSetupTopologyActivities: postDeployClusterTopology failed")
 	}
 	return err
 }

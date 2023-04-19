@@ -31,6 +31,7 @@ func GetServiceTemplate(ctx context.Context, name string) *v1.Service {
 			APIVersion: "v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
+			Name:   GetServiceName(ctx, name),
 			Labels: labels,
 		},
 		Spec: v1.ServiceSpec{

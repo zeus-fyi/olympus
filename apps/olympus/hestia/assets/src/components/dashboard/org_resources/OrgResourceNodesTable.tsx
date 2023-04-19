@@ -18,6 +18,7 @@ export function OrgNodesResourcesTable(props: any) {
     const resources = useSelector((state: RootState) => state.resources.resources);
     const dispatch = useDispatch();
     const [statusMessage, setStatusMessage] = useState('');
+    const [statusMessageRowIndex, setStatusMessageRowIndex] = useState<number | null>(null);
 
     useEffect(() => {
         async function fetchData() {
@@ -45,12 +46,14 @@ export function OrgNodesResourcesTable(props: any) {
         setPage(newPage);
     };
 
-    const handleRemoveRow = async (orgResourceID: number) => {
+    const handleRemoveRow = async (rowIndex: number, orgResourceID: number) => {
         try {
             const response = await resourcesApiGateway.destroyAppResource(orgResourceID);
+            setStatusMessageRowIndex(rowIndex);
             setStatusMessage(`OrgResourceID ${orgResourceID} deletion in progress`);
         } catch (error) {
             console.error(error);
+            setStatusMessageRowIndex(rowIndex);
             setStatusMessage(`Error deleting resource ID ${orgResourceID}`);
         }
     }
@@ -92,10 +95,10 @@ export function OrgNodesResourcesTable(props: any) {
                             <TableCell align="left">{(row.priceHourly*1.1).toFixed(2)}</TableCell>
                             <TableCell align="left">{(row.priceMonthly*1.1).toFixed(2)}</TableCell>
                             <TableCell align="left">
-                                <Button variant="contained" color="primary" disabled={row.freeTrial} onClick={() => handleRemoveRow(row.orgResourceID)}>
+                                <Button variant="contained" color="primary" disabled={row.freeTrial} onClick={() => handleRemoveRow(i, row.orgResourceID)}>
                                     Delete
                                 </Button>
-                                <div>{statusMessage}</div>
+                                {statusMessageRowIndex === i && <div>{statusMessage}</div>}
                             </TableCell>
                         </TableRow>
                     ))}

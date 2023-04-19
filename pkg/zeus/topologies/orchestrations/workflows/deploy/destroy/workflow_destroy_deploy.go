@@ -39,7 +39,7 @@ func (t *DestroyDeployTopologyWorkflow) DestroyDeployedTopologyWorkflow(ctx work
 	retryPolicy := &temporal.RetryPolicy{
 		InitialInterval:    time.Second * 60,
 		BackoffCoefficient: 1.0,
-		MaximumInterval:    time.Second * 60,
+		MaximumInterval:    time.Minute * 60,
 	}
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
@@ -115,7 +115,14 @@ func (t *DestroyDeployTopologyWorkflow) DestroyDeployedTopologyWorkflow(ctx work
 		}
 	}
 
-	nsCtx := workflow.WithActivityOptions(ctx, ao)
+	nsAo := ao
+	nsDeleteRetryPolicy := &temporal.RetryPolicy{
+		InitialInterval:    time.Second * 60,
+		BackoffCoefficient: 1.0,
+		MaximumInterval:    time.Minute * 10,
+	}
+	nsAo.RetryPolicy = nsDeleteRetryPolicy
+	nsCtx := workflow.WithActivityOptions(ctx, nsAo)
 	err = workflow.ExecuteActivity(nsCtx, t.DestroyDeployTopologyActivities.DestroyNamespace, deployParams).Get(nsCtx, nil)
 	if err != nil {
 		log.Error("Failed to destroy namespace", "Error", err)

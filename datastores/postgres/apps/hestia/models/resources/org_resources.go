@@ -128,14 +128,14 @@ func DoesOrgHaveOngoingFreeTrial(ctx context.Context, orgID int) (bool, error) {
 	return isFreeTrialOngoing, err
 }
 
-func SelectNodeResources(ctx context.Context, orgID int, resourceIDs []int) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
+func SelectNodeResources(ctx context.Context, orgID int, orgResourceIDs []int) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `SELECT node_pool_id, node_context_id
  				  FROM digitalocean_node_pools
  				  JOIN org_resources USING (org_resource_id)
-				  WHERE org_id = $1 AND resourceID IN($2) AND free_trial = false
+				  WHERE org_id = $1 AND org_resource_id IN($2) AND free_trial = false
 				  `
-	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, pq.Array(resourceIDs))
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, pq.Array(orgResourceIDs))
 	if err == pgx.ErrNoRows {
 		return nil, nil
 	}

@@ -58,7 +58,14 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 		return err
 	}
 
-	authCloudCtxNsCtx := workflow.WithActivityOptions(ctx, ao)
+	authCloudCtxNsCtxOptions := ao
+	retryPolicy := &temporal.RetryPolicy{
+		InitialInterval:    time.Second * 60,
+		BackoffCoefficient: 1.0,
+		MaximumInterval:    time.Second * 60,
+	}
+	authCloudCtxNsCtxOptions.RetryPolicy = retryPolicy
+	authCloudCtxNsCtx := workflow.WithActivityOptions(ctx, authCloudCtxNsCtxOptions)
 	err = workflow.ExecuteActivity(authCloudCtxNsCtx, c.CreateSetupTopologyActivities.AddAuthCtxNsOrg, params).Get(authCloudCtxNsCtx, nil)
 	if err != nil {
 		log.Error("Failed to authorize auth ns to org account", "Error", err)
@@ -66,8 +73,15 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 	}
 
 	params.CloudCtxNs.Namespace = params.ClusterID.String()
-	diskOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
 	for _, disk := range params.Disks {
+		diskActivityOptions := ao
+		retryPolicy = &temporal.RetryPolicy{
+			InitialInterval:    time.Second * 60,
+			BackoffCoefficient: 1.0,
+			MaximumInterval:    time.Second * 60,
+		}
+		diskActivityOptions.RetryPolicy = retryPolicy
+		diskOrgResourcesCtx := workflow.WithActivityOptions(ctx, diskActivityOptions)
 		err = workflow.ExecuteActivity(diskOrgResourcesCtx, c.CreateSetupTopologyActivities.AddDiskResourcesToOrg, params, disk).Get(diskOrgResourcesCtx, nil)
 		if err != nil {
 			log.Error("Failed to add disk resources to org account", "Error", err)

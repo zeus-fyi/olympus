@@ -125,7 +125,7 @@ func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error
 					if skeleton.Ingress.Annotations == nil {
 						skeleton.Ingress.Annotations = make(map[string]string)
 					}
-					skeleton.Ingress.Annotations["nginx.ingress.kubernetes.io/auth-url"] = fmt.Sprintf("https://auth.zeus.fyi/auth/%d", ou.OrgID)
+					skeleton.Ingress.Annotations["nginx.ingress.kubernetes.io/auth-url"] = fmt.Sprintf("https://aegis.zeus.fyi/auth/%d", ou.OrgID)
 				}
 				b, berr := json.Marshal(skeleton.Ingress)
 				if berr != nil {

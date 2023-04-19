@@ -15,7 +15,7 @@ const NycLoadBalancerIp = "164.90.252.115"
 func (d *DigitalOcean) CreateDomain(ctx context.Context, name string) (*godo.DomainRecord, error) {
 	createRequest := &godo.DomainRecordEditRequest{
 		Type: "A",
-		Name: fmt.Sprintf("%s.zeus.fyi", name),
+		Name: name,
 		Data: NycLoadBalancerIp,
 		TTL:  3600,
 	}

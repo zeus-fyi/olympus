@@ -50,7 +50,7 @@ func (d *DeployTopologyActivities) postDeployTarget(target string, params base_r
 		log.Err(err).Interface("path", u.Path).Msg("DeployTopologyActivities: postDeployTarget failed")
 		return err
 	}
-	if resp.StatusCode() != http.StatusAccepted {
+	if resp.StatusCode() != http.StatusOK {
 		log.Err(err).Interface("path", u.Path).Msg("DeployTopologyActivities: postDeployClusterTopology failed")
 		return errors.New("DeployTopologyActivities: postDeployClusterTopology failed")
 	}

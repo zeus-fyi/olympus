@@ -51,8 +51,9 @@ func (d *DeployTopologyActivities) postDeployTarget(target string, params base_r
 		return err
 	}
 	if resp.StatusCode() != http.StatusOK {
+		err = errors.New("DeployTopologyActivities: postDeployTarget failed")
 		log.Err(err).Interface("path", u.Path).Msg("DeployTopologyActivities: postDeployTarget failed")
-		return errors.New("DeployTopologyActivities: postDeployTarget failed")
+		return err
 	}
 	return err
 }
@@ -86,8 +87,9 @@ func (d *DeployTopologyActivities) postDeployClusterTopology(params zeus_req_typ
 		return err
 	}
 	if resp.StatusCode() != http.StatusAccepted {
+		err = errors.New("DeployTopologyActivities: postDeployClusterTopology failed")
 		log.Err(err).Interface("path", u.Path).Msg("DeployTopologyActivities: postDeployClusterTopology failed")
-		return errors.New("DeployTopologyActivities: postDeployClusterTopology failed")
+		return err
 	}
 	return err
 }

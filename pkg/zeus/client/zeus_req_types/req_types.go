@@ -45,9 +45,9 @@ type TopologyCreateOrAddSkeletonBasesToClassesRequest struct {
 }
 
 type ClusterTopologyDeployRequest struct {
-	ClusterClassName    string   `json:"clusterClassName"`
-	SkeletonBaseOptions []string `json:"skeletonBaseOptions"`
-	zeus_common_types.CloudCtxNs
+	ClusterClassName             string   `json:"clusterClassName"`
+	SkeletonBaseOptions          []string `json:"skeletonBaseOptions"`
+	zeus_common_types.CloudCtxNs `json:"cloudCtxNs"`
 }
 
 type ClusterTopology struct {

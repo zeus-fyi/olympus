@@ -22,6 +22,14 @@ import (
 type AvaxAppsPageRequest struct {
 }
 
+func MicroserviceAppsHandler(c echo.Context) error {
+	request := new(AvaxAppsPageRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.GetMicroserviceApp(c)
+}
+
 func AvaxAppsHandler(c echo.Context) error {
 	request := new(AvaxAppsPageRequest)
 	if err := c.Bind(request); err != nil {
@@ -41,11 +49,15 @@ func EthAppsHandler(c echo.Context) error {
 const (
 	AvaxAppID                = 1680924257606485000
 	EphemeralEthBeaconsAppID = 1670997020811171000
+	MicroserviceAppID        = 1681932523630136000
 
 	AppsOrgID  = 7138983863666903883
 	AppsUserID = 7138958574876245565
 )
 
+func (a *AvaxAppsPageRequest) GetMicroserviceApp(c echo.Context) error {
+	return a.GetApp(c, AppsOrgID, MicroserviceAppID)
+}
 func (a *AvaxAppsPageRequest) GetEphemeralBeaconsApp(c echo.Context) error {
 	return a.GetApp(c, AppsOrgID, EphemeralEthBeaconsAppID)
 }

@@ -34,6 +34,7 @@ export const App = () => {
                                 <Route path="clusters/app/:id" element={<AppPageWrapper />} />
                                 <Route path="clusters/builder" element={<ClusterBuilderPage />} />
                                 <Route path="clusters/:id" element={<ClustersPage />} />
+                                <Route path="apps/microservice" element={<AppPageWrapper app={"microservice"} />} />
                                 <Route path="apps/avax" element={<AppPageWrapper app={"avax"} />} />
                                 <Route path="apps/eth" element={<AppPageWrapper app={"ethereumEphemeralBeacons"} />} />
                             </Route>

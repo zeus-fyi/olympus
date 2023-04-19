@@ -49,6 +49,19 @@ export function PublicAppsTable(props: any) {
                 </TableHead>
                 <TableBody>
                         <TableRow
+                            onClick={(event) => handleClickApp(event, 'microservice')}
+                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                        >
+                            <TableCell style={{ width: 200 }}>
+                                <img src={require("../../static/microservice.png")} alt={'templates'} style={{ width: '25%', height: '40%'}} />
+                            </TableCell>
+                            <TableCell component="th" scope="row">
+                                {'templates'}
+                            </TableCell>
+                            <TableCell align="left">{'Microservice'}</TableCell>
+                            <TableCell align="left">{ 'Cluster'}</TableCell>
+                        </TableRow>
+                        <TableRow
                             onClick={(event) => handleClickApp(event, 'avax')}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >

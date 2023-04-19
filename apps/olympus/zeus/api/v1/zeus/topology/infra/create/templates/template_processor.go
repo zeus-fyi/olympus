@@ -237,16 +237,8 @@ func BuildServiceDriver(ctx context.Context, containers Containers) (zeus_topolo
 }
 
 func BuildIngressDriver(ctx context.Context, cbName string, containers Containers, ing Ingress, ip IngressPaths) (zeus_topology_config_drivers.IngressDriver, error) {
-	portName := ""
 	uid := uuid.New()
 	ing.Host = GetIngressHostName(ctx, uid.String())
-	for _, container := range containers {
-		for _, p := range container.DockerImage.Ports {
-			if p.IngressEnabledPort {
-				portName = p.Name
-			}
-		}
-	}
 	var httpPaths []v1networking.HTTPIngressPath
 	for _, pa := range ip {
 		pt := v1networking.PathType(pa.PathType)
@@ -258,7 +250,6 @@ func BuildIngressDriver(ctx context.Context, cbName string, containers Container
 					Name: GetServiceName(ctx, cbName),
 					Port: v1networking.ServiceBackendPort{
 						Number: int32(80),
-						Name:   portName,
 					},
 				},
 			},

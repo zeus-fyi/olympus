@@ -60,6 +60,9 @@ export function AppPageWrapper(props: any) {
                 if (app === "ethereumEphemeralBeacons" ){
                     id = 'ethereumEphemeralBeacons'
                 }
+                if (app === "microservice" ){
+                    id = 'microservice'
+                }
                 const response = await appsApiGateway.getPrivateAppDetails(id);
                 clusterPreview = await response.clusterPreview;
                 dispatch(setClusterPreview(clusterPreview));

@@ -1,6 +1,8 @@
 package deploy_workflow
 
 import (
+	"errors"
+
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"go.temporal.io/sdk/workflow"
@@ -17,6 +19,9 @@ func (t *DeployTopologyWorkflow) DeployClusterTopologyWorkflow(ctx workflow.Cont
 			TopologyID:                      topID,
 			CloudCtxNs:                      params.CloudCtxNS,
 			RequestChoreographySecretDeploy: params.RequestChoreographySecret,
+		}
+		if req.Context == "" || req.Namespace == "" || req.Region == "" || req.CloudProvider == "" {
+			return errors.New("cloudCtxNs is empty")
 		}
 		err := workflow.ExecuteActivity(deployStatusCtx, t.DeployTopologyActivities.DeployClusterTopology, req, params.OrgUser).Get(deployStatusCtx, nil)
 		if err != nil {

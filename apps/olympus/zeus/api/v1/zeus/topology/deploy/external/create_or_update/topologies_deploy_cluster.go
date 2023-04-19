@@ -14,9 +14,9 @@ import (
 )
 
 type TopologyClusterDeployRequest struct {
-	ClusterClassName    string   `json:"clusterClassName"`
-	SkeletonBaseOptions []string `json:"skeletonBaseOptions"`
-	zeus_common_types.CloudCtxNs
+	ClusterClassName             string   `json:"clusterClassName"`
+	SkeletonBaseOptions          []string `json:"skeletonBaseOptions"`
+	zeus_common_types.CloudCtxNs `json:"cloudCtxNs"`
 }
 
 func ClusterTopologyDeploymentHandler(c echo.Context) error {

@@ -25,7 +25,7 @@ type TopologyWorkflowRequest struct {
 type ClusterTopologyWorkflowRequest struct {
 	ClusterName string
 	TopologyIDs []int
-	CloudCtxNS  zeus_common_types.CloudCtxNs
+	CloudCtxNS  zeus_common_types.CloudCtxNs `json:"cloudCtxNs"`
 	OrgUser     org_users.OrgUser
 	Host        string
 

@@ -89,7 +89,7 @@ func (c *CreateSetupTopologyActivities) postDeployClusterTopology(ctx context.Co
 		return err
 	}
 	if resp.StatusCode() != http.StatusAccepted {
-		log.Err(err).Interface("path", u.Path).Msg("CreateSetupTopologyActivities: postDeployClusterTopology failed with bad status code")
+		log.Err(err).Interface("path", u.Path).Interface("statusCode", resp.StatusCode()).Msg("CreateSetupTopologyActivities: postDeployClusterTopology failed with bad status code")
 		return errors.New("CreateSetupTopologyActivities: postDeployClusterTopology failed")
 	}
 	return err

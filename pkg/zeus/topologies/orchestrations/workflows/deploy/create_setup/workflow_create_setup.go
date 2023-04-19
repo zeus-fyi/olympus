@@ -88,7 +88,6 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 			return err
 		}
 	}
-
 	//emailStatusCtx := workflow.WithActivityOptions(ctx, ao)
 	//err = workflow.ExecuteActivity(emailStatusCtx, c.CreateSetupTopologyActivities.SendEmailNotification, params).Get(emailStatusCtx, nil)
 	//if err != nil {
@@ -96,12 +95,6 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 	//	return err
 	//}
 
-	var sbNames []string
-	for _, cb := range params.Cluster.ComponentBases {
-		for sbName, _ := range cb {
-			sbNames = append(sbNames, sbName)
-		}
-	}
 	domainRequestCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(domainRequestCtx, c.CreateSetupTopologyActivities.AddDomainRecord, params.Namespace).Get(domainRequestCtx, nil)
 	if err != nil {
@@ -115,6 +108,12 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 	aoDeploy := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute * 15,
 		RetryPolicy:         deployRetryPolicy,
+	}
+	var sbNames []string
+	for _, cb := range params.Cluster.ComponentBases {
+		for sbName, _ := range cb {
+			sbNames = append(sbNames, sbName)
+		}
 	}
 	clusterDeployCtx := workflow.WithActivityOptions(ctx, aoDeploy)
 	err = workflow.ExecuteActivity(clusterDeployCtx, c.CreateSetupTopologyActivities.DeployClusterTopologyFromUI, params.Cluster.ClusterName, sbNames, params.CloudCtxNs, params.Ou).Get(clusterDeployCtx, nil)

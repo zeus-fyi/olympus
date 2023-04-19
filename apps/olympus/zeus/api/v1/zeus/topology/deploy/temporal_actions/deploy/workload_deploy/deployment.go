@@ -20,7 +20,7 @@ func DeployDeploymentHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	if request.Deployment != nil {
-		if request.Kns.CloudCtxNs.Context == "do-nyc1-do-nyc1-zeus-demo" {
+		if request.Kns.CloudCtxNs.Context != "do-sfo3-dev-do-sfo3-zeus" {
 			request.Deployment.Spec.Template.Spec.Tolerations = []v1.Toleration{
 				{
 					Key:      fmt.Sprintf("org-%d", request.OrgUser.OrgID),

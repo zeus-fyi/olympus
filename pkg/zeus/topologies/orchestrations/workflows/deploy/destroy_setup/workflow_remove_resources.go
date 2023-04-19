@@ -29,7 +29,7 @@ func (c *DestroyResourcesWorkflow) GetWorkflows() []interface{} {
 	return []interface{}{c.DestroyClusterResourcesWorkflow}
 }
 
-func (c *DestroyResourcesWorkflow) DestroyClusterResourcesWorkflow(ctx workflow.Context, params base_deploy_params.DestroyClusterSetupRequest) error {
+func (c *DestroyResourcesWorkflow) DestroyClusterResourcesWorkflow(ctx workflow.Context, params base_deploy_params.DestroyResourcesRequest) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,

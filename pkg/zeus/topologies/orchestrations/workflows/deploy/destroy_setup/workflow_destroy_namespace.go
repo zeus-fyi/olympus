@@ -36,7 +36,11 @@ func (c *DestroyNamespaceSetupWorkflow) DestroyNamespaceSetupWorkflow(ctx workfl
 		StartToCloseTimeout: defaultTimeout,
 	}
 	removeAuthCtx := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(removeAuthCtx, c.CreateSetupTopologyActivities.RemoveAuthCtxNsOrg, params).Get(removeAuthCtx, nil)
+	removeParams := base_deploy_params.ClusterSetupRequest{
+		Ou:         params.OrgUser,
+		CloudCtxNs: params.Kns.CloudCtxNs,
+	}
+	err := workflow.ExecuteActivity(removeAuthCtx, c.CreateSetupTopologyActivities.RemoveAuthCtxNsOrg, removeParams).Get(removeAuthCtx, nil)
 	if err != nil {
 		log.Error("Failed to remove auth ctx ns", "Error", err)
 		return err

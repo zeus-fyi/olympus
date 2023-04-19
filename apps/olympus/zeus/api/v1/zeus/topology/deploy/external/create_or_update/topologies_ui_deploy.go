@@ -99,10 +99,10 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 			CloudProvider: "do",
 			Region:        "nyc1",
 			Context:       "do-nyc1-do-nyc1-zeus-demo",
-			Namespace:     fmt.Sprintf("%s-%s", t.NamespaceAlias, suffix),
+			Namespace:     clusterID.String(),
+			Alias:         fmt.Sprintf("%s-%s", t.NamespaceAlias, suffix),
 			Env:           "",
 		},
-		ClusterID: clusterID,
 		Nodes: autogen_bases.Nodes{
 			Region:        t.Region,
 			CloudProvider: t.CloudProvider,

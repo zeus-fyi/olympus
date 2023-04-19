@@ -37,11 +37,9 @@ func (c *ClusterSetupWorkflow) GetWorkflows() []interface{} {
 
 func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, params base_deploy_params.ClusterSetupRequest) error {
 	log := workflow.GetLogger(ctx)
-
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
 	}
-
 	// TODO add billing email step
 	nodePoolRequestStatusCtxKns := workflow.WithActivityOptions(ctx, ao)
 	var nodePoolRequestStatus do_types.DigitalOceanNodePoolRequestStatus
@@ -50,14 +48,12 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 		log.Error("Failed to complete node pool request", "Error", err)
 		return err
 	}
-
 	nodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(nodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.AddNodePoolToOrgResources, params, nodePoolRequestStatus).Get(nodePoolOrgResourcesCtx, nil)
 	if err != nil {
 		log.Error("Failed to add node resources to org account", "Error", err)
 		return err
 	}
-
 	authCloudCtxNsCtxOptions := ao
 	retryPolicy := &temporal.RetryPolicy{
 		InitialInterval:    time.Second * 60,
@@ -71,8 +67,6 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 		log.Error("Failed to authorize auth ns to org account", "Error", err)
 		return err
 	}
-
-	params.CloudCtxNs.Namespace = params.ClusterID.String()
 	for _, disk := range params.Disks {
 		diskActivityOptions := ao
 		retryPolicy = &temporal.RetryPolicy{
@@ -94,7 +88,6 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 	//	log.Error("Failed to send email notification", "Error", err)
 	//	return err
 	//}
-
 	domainRequestCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(domainRequestCtx, c.CreateSetupTopologyActivities.AddDomainRecord, params.Namespace).Get(domainRequestCtx, nil)
 	if err != nil {
@@ -121,7 +114,6 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 		log.Error("Failed to deploy cluster", "Error", err)
 		return err
 	}
-
 	childWorkflowOptions := workflow.ChildWorkflowOptions{
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
 	}

@@ -27,7 +27,7 @@ func (t *CreateTopologiesOrgCloudCtxNsRequest) CreateTopologiesOrgCloudCtxNsRequ
 	ctx := context.Background()
 
 	orgCloudReq := create_topology.NewCreateTopologiesOrgCloudCtxNs(t.OrgID, t.CloudCtxNs)
-	err := orgCloudReq.InsertTopologyAccessCloudCtxNs(ctx)
+	err := orgCloudReq.InsertTopologyAccessCloudCtxNs(ctx, t.OrgID, t.CloudCtxNs)
 	if err != nil {
 		log.Err(err).Interface("orgCloudReq", orgCloudReq).Msg("CreateTopologiesOrgCloudCtxNsRequest error")
 		return c.JSON(http.StatusBadRequest, nil)

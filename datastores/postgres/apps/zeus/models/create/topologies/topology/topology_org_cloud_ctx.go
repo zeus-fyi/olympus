@@ -41,11 +41,12 @@ func (c *CreateTopologiesOrgCloudCtxNs) GetInsertTopologyOrgCtxQueryParams() sql
 	return q
 }
 
-func (c *CreateTopologiesOrgCloudCtxNs) InsertTopologyAccessCloudCtxNs(ctx context.Context) error {
+func (c *CreateTopologiesOrgCloudCtxNs) InsertTopologyAccessCloudCtxNs(ctx context.Context, orgID int, cloudCtxNs zeus_common_types.CloudCtxNs) error {
 	q := c.GetInsertTopologyOrgCtxQueryParams()
 	log.Debug().Interface("InsertTopologyAccessCloudCtxNs:", q.LogHeader(Sn))
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, c.OrgID, c.CloudProvider, c.Context, c.Region, c.Namespace, c.NamespaceAlias).Scan(&c.CloudCtxNsID)
-	if err.Error() == "no rows in result set" {
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, orgID, cloudCtxNs.CloudProvider, cloudCtxNs.Region, cloudCtxNs.Context, cloudCtxNs.Namespace, cloudCtxNs.Alias).Scan(&c.CloudCtxNsID)
+	if err == pgx.ErrNoRows {
+		log.Ctx(ctx).Info().Msg("InsertTopologyAccessCloudCtxNs: no rows to insert")
 		return nil
 	}
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))

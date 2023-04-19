@@ -23,13 +23,12 @@ type OrgResourceNodes struct {
 }
 
 func SelectOrgResourcesNodes(ctx context.Context, orgID int) ([]OrgResourceNodes, error) {
-	// Build the SQL query
 	q := `SELECT ou.org_resource_id, ou.quantity, ou.begin_service, ou.end_service, ou.free_trial, ou.resource_id,
 		 n.slug, n.description,n.memory, n.memory_units, n.vcpus, n.disk, n.disk_units,
 		  n.price_monthly, n.price_hourly, n.region, n.cloud_provider
 		FROM org_resources ou
 		JOIN nodes n ON n.resource_id = ou.resource_id
-		WHERE org_id = $1`
+		WHERE org_id = $1 AND ou.end_service IS NULL`
 	args := []interface{}{
 		orgID,
 	}

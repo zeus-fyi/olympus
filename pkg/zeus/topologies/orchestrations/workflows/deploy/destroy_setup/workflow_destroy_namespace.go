@@ -35,14 +35,8 @@ func (c *DestroyNamespaceSetupWorkflow) DestroyNamespaceSetupWorkflow(ctx workfl
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
 	}
-	removeAuthCtx := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(removeAuthCtx, c.CreateSetupTopologyActivities.RemoveAuthCtxNsOrg, params.OrgUser.OrgID, params.Kns.CloudCtxNs).Get(removeAuthCtx, nil)
-	if err != nil {
-		log.Error("Failed to remove auth ctx ns", "Error", err)
-		return err
-	}
 	removeSubdomainCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(removeSubdomainCtx, c.CreateSetupTopologyActivities.RemoveDomainRecord, params.Kns.CloudCtxNs.Namespace).Get(removeSubdomainCtx, nil)
+	err := workflow.ExecuteActivity(removeSubdomainCtx, c.CreateSetupTopologyActivities.RemoveDomainRecord, params.Kns.CloudCtxNs.Namespace).Get(removeSubdomainCtx, nil)
 	if err != nil {
 		log.Error("Failed to remove domain record", "Error", err)
 		return err
@@ -69,6 +63,12 @@ func (c *DestroyNamespaceSetupWorkflow) DestroyNamespaceSetupWorkflow(ctx workfl
 			log.Error("Failed to update org_resources to end disk service", "Error", err)
 			return err
 		}
+	}
+	removeAuthCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(removeAuthCtx, c.CreateSetupTopologyActivities.RemoveAuthCtxNsOrg, params.OrgUser.OrgID, params.Kns.CloudCtxNs).Get(removeAuthCtx, nil)
+	if err != nil {
+		log.Error("Failed to remove auth ctx ns", "Error", err)
+		return err
 	}
 	childWorkflowOptions := workflow.ChildWorkflowOptions{
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,

@@ -2,6 +2,7 @@ package destroy_deploy_activities
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 
@@ -44,8 +45,8 @@ func (d *DestroyDeployTopologyActivities) postDestroyDeployTarget(target string,
 		return err
 	}
 	if resp.StatusCode() != http.StatusOK {
-		log.Err(err).Interface("path", u.Path).Msg("DeployTopologyActivities: postDestroyDeployTarget failed")
-		return errors.New("DeployTopologyActivities: postDestroyDeployTarget failed")
+		log.Err(err).Interface("path", u.Path).Interface("statusCode", resp.StatusCode()).Msg("DeployTopologyActivities: postDestroyDeployTarget failed bad status code")
+		return errors.New(fmt.Sprintf("DeployTopologyActivities: postDestroyDeployTarget failed statusCode: %d", resp.StatusCode()))
 	}
 	return err
 }

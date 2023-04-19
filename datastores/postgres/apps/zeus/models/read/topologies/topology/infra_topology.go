@@ -55,6 +55,10 @@ func (t *InfraBaseTopology) SelectTopologyForOrg(ctx context.Context) error {
 
 	log.Debug().Interface("SelectTopologyQuery", q.LogHeader(Sn))
 	err := t.SelectSingleChartsResources(ctx, q)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Interface("topology", t).Msg("SelectTopology, SelectSingleChartsResources error")
+		return err
+	}
 	return err
 }
 

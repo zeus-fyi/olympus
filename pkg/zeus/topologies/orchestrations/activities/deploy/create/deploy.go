@@ -87,8 +87,8 @@ func (d *DeployTopologyActivities) postDeployClusterTopology(params zeus_req_typ
 		return err
 	}
 	if resp.StatusCode() != http.StatusAccepted {
-		err = errors.New("DeployTopologyActivities: postDeployClusterTopology failed")
-		log.Err(err).Interface("path", u.Path).Msg("DeployTopologyActivities: postDeployClusterTopology failed")
+		err = errors.New("DeployTopologyActivities: postDeployClusterTopology failed bad status code")
+		log.Err(err).Interface("path", u.Path).Interface("statusCode", resp.StatusCode()).Msg("DeployTopologyActivities: postDeployClusterTopology failed")
 		return err
 	}
 	return err

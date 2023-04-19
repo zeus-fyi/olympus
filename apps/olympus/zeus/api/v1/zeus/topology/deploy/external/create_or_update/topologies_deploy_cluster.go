@@ -38,7 +38,6 @@ func (t *TopologyClusterDeployRequest) DeployClusterTopology(c echo.Context) err
 	log.Debug().Msg("DeployClusterTopology")
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
-
 	orgID := ou.OrgID
 	cl, err := read_topology.SelectClusterTopology(ctx, orgID, t.ClusterClassName, t.SkeletonBaseOptions)
 	if err != nil {

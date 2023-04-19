@@ -121,7 +121,7 @@ func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error
 			}
 
 			if skeleton.Ingress != nil {
-				if t.IngressSettings.AuthServerURL == "aegis.zeus.fyi" {
+				if t.IngressSettings.AuthServerURL == "aegis.zeus.fyi" || t.IngressSettings.AuthServerURL == "https://aegis.zeus.fyi/auth/7138983863666903883" {
 					if skeleton.Ingress.Annotations == nil {
 						skeleton.Ingress.Annotations = make(map[string]string)
 					}

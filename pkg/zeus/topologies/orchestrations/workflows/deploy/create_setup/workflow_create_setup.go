@@ -99,7 +99,7 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 		BackoffCoefficient: 2,
 	}
 	aoDeploy := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute * 5,
+		StartToCloseTimeout: time.Minute * 15,
 		RetryPolicy:         deployRetryPolicy,
 	}
 	clusterDeployCtx := workflow.WithActivityOptions(ctx, aoDeploy)

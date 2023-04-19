@@ -3,6 +3,7 @@ package zeus_core
 import (
 	"context"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -24,6 +25,10 @@ func (k *K8Util) DeleteNamespace(ctx context.Context, kns zeus_common_types.Clou
 	err := k.kc.CoreV1().Namespaces().Delete(ctx, kns.Namespace, metav1.DeleteOptions{})
 	if errors.IsNotFound(err) {
 		return nil
+	}
+	if err != nil {
+		log.Ctx(ctx).Err(err).Interface("kns", kns).Msg("DeleteNamespace: error")
+		return err
 	}
 	return err
 }

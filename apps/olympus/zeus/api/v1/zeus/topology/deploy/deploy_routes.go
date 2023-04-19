@@ -30,7 +30,7 @@ func ExternalDeployRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group 
 	// DELETE
 	e.POST("/deploy/destroy", destroy_deploy_request.TopologyDestroyDeploymentHandler)
 	e.POST("/deploy/ui/destroy", destroy_deploy_request.DestroyNamespaceHandler)
-	e.POST("/resources/delete", destroy_deploy_request.DestroyResourceHandler)
+	e.POST("/resources/destroy", destroy_deploy_request.DestroyResourceHandler)
 	return e
 }
 

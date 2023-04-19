@@ -21,7 +21,7 @@ class ResourcesApiGateway {
         }
     }
     async destroyAppResource(orgResourceID: number): Promise<any>  {
-        const url = `/v1/resources/delete`;
+        const url = `/v1/resources/destroy`;
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {

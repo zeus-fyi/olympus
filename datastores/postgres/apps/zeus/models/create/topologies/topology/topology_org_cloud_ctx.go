@@ -64,10 +64,12 @@ func (c *CreateTopologiesOrgCloudCtxNs) GetDeleteTopologyOrgCtxQueryParams() sql
 			WHERE org_id = $1 AND cloud_provider = $2 AND region = $3 AND context = $4 AND namespace = $5
 			LIMIT 1
 		), cte_remove_cloud_ctx_res AS (
-			DELETE FROM org_resources_cloud_ctx
+			DELETE
+			FROM org_resources_cloud_ctx
 			WHERE cloud_ctx_ns_id IN (SELECT cloud_ctx_ns_id FROM cte_get_cloud_ctx)
 		)
-		DELETE FROM topologies_org_cloud_ctx_ns
+		DELETE
+		FROM topologies_org_cloud_ctx_ns
 		WHERE org_id = $1 AND cloud_provider = $2 AND region = $3 AND context = $4 AND namespace = $5;`
 	return q
 }

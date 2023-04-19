@@ -75,6 +75,7 @@ func DeleteTopologyAccessCloudCtxNs(ctx context.Context, orgID int, cloudCtxNs z
 	log.Info().Interface("cloudCtxNs", cloudCtxNs).Interface("orgID:", orgID).Interface("DeleteTopologyAccessCloudCtxNs:", q.LogHeader(Sn))
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, cloudCtxNs.CloudProvider, cloudCtxNs.Region, cloudCtxNs.Context, cloudCtxNs.Namespace)
 	if err == pgx.ErrNoRows {
+		log.Ctx(ctx).Info().Msg("DeleteTopologyAccessCloudCtxNs: no rows to delete")
 		return nil
 	}
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))

@@ -9,6 +9,7 @@ import (
 	deployment_status "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/status"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/base_request"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -35,14 +36,19 @@ func (t *DestroyDeployTopologyWorkflow) DestroyDeployedTopologyWorkflow(ctx work
 	log := workflow.GetLogger(ctx)
 
 	t.DestroyDeployTopologyActivities.TopologyWorkflowRequest = params
+	retryPolicy := &temporal.RetryPolicy{
+		InitialInterval:    time.Second * 60,
+		BackoffCoefficient: 1.0,
+		MaximumInterval:    time.Second * 60,
+	}
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
+		RetryPolicy:         retryPolicy,
 	}
 
 	statusCtx := workflow.WithActivityOptions(ctx, ao)
 	status := topology_deployment_status.NewPopulatedTopologyStatus(params.Kns, topology_deployment_status.DestroyDeployInProgress)
 	statusActivity := deployment_status.TopologyActivityDeploymentStatusActivity{}
-
 	err := workflow.ExecuteActivity(statusCtx, statusActivity.PostStatusUpdate, status.DeployStatus).Get(statusCtx, nil)
 	if err != nil {
 		log.Error("Failed to update topology status", "Error", err)

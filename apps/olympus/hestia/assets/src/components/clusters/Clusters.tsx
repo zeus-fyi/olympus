@@ -153,6 +153,7 @@ function ClustersTable(clusters: any) {
     let navigate = useNavigate();
     const [cluster, setCluster] = useState([{}]);
     const [statusMessage, setStatusMessage] = useState('');
+    const [statusMessageRowIndex, setStatusMessageRowIndex] = useState(-1);
 
     const handleClick = async (event: any, cluster: any) => {
         const tableRow = event.currentTarget;
@@ -165,7 +166,7 @@ function ClustersTable(clusters: any) {
         navigate('/clusters/'+cluster.cloudCtxNsID);
     }
 
-    const handleDeleteNamespace = async (cloudCtxNsId: number, cloudProvider: string, region: string, context: string, namespace: string) => {
+    const handleDeleteNamespace = async (index: number, cloudCtxNsId: number, cloudProvider: string, region: string, context: string, namespace: string) => {
         try {
             const cloudCtxNs = {
                 cloudProvider: cloudProvider,
@@ -214,12 +215,12 @@ function ClustersTable(clusters: any) {
                                 color="primary"
                                 onClick={async (event) => {
                                     event.stopPropagation();
-                                    await handleDeleteNamespace(row.cloudCtxNsID, row.cloudProvider, row.region, row.context, row.namespace);
+                                    await handleDeleteNamespace(i,row.cloudCtxNsID, row.cloudProvider, row.region, row.context, row.namespace);
                                 }}
                             >
                                 Delete
                             </Button>
-                            <div>{statusMessage}</div>
+                            {statusMessageRowIndex === i && <div>{statusMessage}</div>}
                         </TableCell>
                     </TableRow>
                 ))}

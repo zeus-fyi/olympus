@@ -34,7 +34,7 @@ func (c *CreateTopologiesOrgCloudCtxNs) GetInsertTopologyOrgCtxQueryParams() sql
 	q.Values = []apps.RowValues{c.GetRowValues("default")}
 
 	q.RawQuery = `
-			INSERT INTO topologies_org_cloud_ctx_ns(org_id, cloud_provider, context, region, namespace, namespace_alias)
+			INSERT INTO topologies_org_cloud_ctx_ns(org_id, cloud_provider, region, context, namespace, namespace_alias)
 			VALUES ($1, $2, $3, $4, $5, $6)
 			ON CONFLICT (cloud_provider, context, region, namespace) DO NOTHING
 			RETURNING cloud_ctx_ns_id`

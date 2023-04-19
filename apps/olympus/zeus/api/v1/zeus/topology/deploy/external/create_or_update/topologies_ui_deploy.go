@@ -98,7 +98,7 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 		CloudCtxNs: zeus_common_types.CloudCtxNs{
 			CloudProvider: "do",
 			Region:        "nyc1",
-			Context:       "do-nyc1-do-nyc1-zeus-demo",
+			Context:       "do-nyc1-do-nyc1-zeus-demo", // hardcoded for now
 			Namespace:     clusterID.String(),
 			Alias:         fmt.Sprintf("%s-%s", t.NamespaceAlias, suffix),
 			Env:           "",

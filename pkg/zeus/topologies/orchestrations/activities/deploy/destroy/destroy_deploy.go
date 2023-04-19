@@ -1,6 +1,7 @@
 package destroy_deploy_activities
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 
@@ -38,9 +39,13 @@ func (d *DestroyDeployTopologyActivities) postDestroyDeployTarget(target string,
 		SetAuthToken(api_auth_temporal.Bearer).
 		SetBody(params).
 		Post(u.Path)
-	if err != nil || resp.StatusCode() != http.StatusOK {
+	if err != nil {
 		log.Err(err).Interface("path", u.Path).Msg("DestroyDeployTopologyActivities: postDestroyDeployTarget failed")
 		return err
+	}
+	if resp.StatusCode() != http.StatusAccepted {
+		log.Err(err).Interface("path", u.Path).Msg("DeployTopologyActivities: postDestroyDeployTarget failed")
+		return errors.New("DeployTopologyActivities: postDestroyDeployTarget failed")
 	}
 	return err
 }

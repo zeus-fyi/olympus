@@ -2,6 +2,7 @@ package hestia_digitalocean
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/digitalocean/godo"
 	"github.com/rs/zerolog/log"
@@ -17,7 +18,11 @@ func (d *DigitalOcean) CreateNodePool(ctx context.Context, context string, nodes
 }
 
 func (d *DigitalOcean) RemoveNodePool(ctx context.Context, context, poolID string) error {
-	_, err := d.Kubernetes.DeleteNodePool(ctx, context, poolID)
+	r, err := d.Kubernetes.DeleteNodePool(ctx, context, poolID)
+	if r.StatusCode == http.StatusNotFound {
+		log.Ctx(ctx).Error().Err(err).Msg("node pool doesn't exist, it may have been removed already")
+		return nil
+	}
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("failed to create node pool")
 		return err

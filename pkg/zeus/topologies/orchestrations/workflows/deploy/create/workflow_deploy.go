@@ -9,6 +9,7 @@ import (
 	deployment_status "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/status"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/base_request"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -35,8 +36,14 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 	log := workflow.GetLogger(ctx)
 
 	t.DeployTopologyActivities.TopologyWorkflowRequest = params
+	retryPolicy := &temporal.RetryPolicy{
+		InitialInterval:    time.Second * 60,
+		BackoffCoefficient: 1.0,
+		MaximumInterval:    time.Second * 60,
+	}
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
+		RetryPolicy:         retryPolicy,
 	}
 
 	statusCtxKns := workflow.WithActivityOptions(ctx, ao)

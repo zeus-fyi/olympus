@@ -36,8 +36,11 @@ func ExecuteDeployClusterWorkflow(c echo.Context, ctx context.Context, params ba
 }
 
 func ExecuteDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDeploy kns.TopologyKubeCtxNs, nk chart_workload.TopologyBaseInfraWorkload, deployChoreographySecret bool) error {
+	if nk.Service == nil && nk.Deployment == nil && nk.StatefulSet == nil && nk.ServiceMonitor == nil && nk.Ingress == nil && nk.ConfigMap == nil {
+		log.Err(nil).Interface("orgUser", ou).Msg("DeployTopology, payload is nil")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
 	tar := PackageCommonTopologyRequest(knsDeploy, ou, nk, deployChoreographySecret)
-
 	err := topology_worker.Worker.ExecuteDeploy(ctx, tar)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("DeployTopology, ExecuteWorkflow error")

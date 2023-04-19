@@ -16,6 +16,7 @@ func DestroyDeployNamespaceHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
+	log.Ctx(ctx).Info().Interface("request", request).Msg("DestroyDeployNamespaceHandler")
 	err := zeus.K8Util.DeleteNamespace(ctx, request.Kns.CloudCtxNs)
 	if err != nil {
 		log.Err(err).Msg("DestroyDeployNamespaceHandler")

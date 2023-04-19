@@ -48,8 +48,6 @@ export function OrgNodesResourcesTable(props: any) {
     const handleRemoveRow = async (orgResourceID: number) => {
         try {
             const response = await resourcesApiGateway.destroyAppResource(orgResourceID);
-            const data = await response.json();
-            console.log(`Response: ${JSON.stringify(data)}`);
             setStatusMessage(`OrgResourceID ${orgResourceID} deletion in progress`);
         } catch (error) {
             console.error(error);

@@ -89,7 +89,7 @@ func (s *NamespaceTestSuite) TestCreateK8sNamespace() {
 		Status:     v1.NamespaceStatus{},
 	}
 	ns.Name = "demo"
-	newNamespace, err := s.K.CreateNamespace(ctx, &ns)
+	newNamespace, err := s.K.CreateNamespace(ctx, zeus_common_types.CloudCtxNs{}, &ns)
 	s.Require().Nil(err)
 	s.NotEmpty(newNamespace)
 }

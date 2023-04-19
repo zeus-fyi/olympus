@@ -14,7 +14,8 @@ func (k *K8Util) GetNamespaces(ctx context.Context, kns zeus_common_types.CloudC
 	return k.kc.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
 }
 
-func (k *K8Util) CreateNamespace(ctx context.Context, namespace *v1.Namespace) (*v1.Namespace, error) {
+func (k *K8Util) CreateNamespace(ctx context.Context, kns zeus_common_types.CloudCtxNs, namespace *v1.Namespace) (*v1.Namespace, error) {
+	k.SetContext(kns.Context)
 	return k.kc.CoreV1().Namespaces().Create(ctx, namespace, metav1.CreateOptions{})
 }
 

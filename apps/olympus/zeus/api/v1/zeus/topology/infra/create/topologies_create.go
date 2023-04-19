@@ -75,6 +75,7 @@ func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error
 	for componentBaseName, component := range pcg.ComponentBases {
 		for skeletonBaseName, skeleton := range component {
 			nk := chart_workload.TopologyBaseInfraWorkload{}
+
 			if skeleton.Deployment != nil {
 				b, berr := json.Marshal(skeleton.Deployment)
 				if berr != nil {

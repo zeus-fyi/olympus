@@ -87,7 +87,11 @@ func (a *AvaxAppsPageRequest) GetApp(c echo.Context, AppsOrgID, AppID int) error
 		SelectedComponentBaseName: "",
 		SelectedSkeletonBaseName:  "",
 	}
-	pcg, _ := zeus_templates.GenerateSkeletonBaseChartsCopy(ctx, &selectedApp)
+	pcg, err := zeus_templates.GenerateSkeletonBaseChartsCopy(ctx, &selectedApp)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("error creating transaction")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 	rsMinMax := zeus_core.ResourceMinMax{
 		Max: zeus_core.ResourceAggregate{},
 		Min: zeus_core.ResourceAggregate{},
@@ -105,10 +109,6 @@ func (a *AvaxAppsPageRequest) GetApp(c echo.Context, AppsOrgID, AppID int) error
 	}}
 
 	tx, err = create_clusters.InsertCluster(ctx, tx, &sys, pcg, ou)
-	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("error creating transaction")
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("error creating transaction")
 		return c.JSON(http.StatusInternalServerError, nil)

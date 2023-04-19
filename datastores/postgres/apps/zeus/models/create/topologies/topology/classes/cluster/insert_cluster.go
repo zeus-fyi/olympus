@@ -245,6 +245,16 @@ func InsertCluster(ctx context.Context, tx pgx.Tx, sys *systems.Systems, cbMap z
 				log.Err(err).Interface("orgUser", ou).Msg("TopologyActionCreateRequest: CreateTopology, InsertInfraBase")
 				return nil, err
 			}
+			err = tx.Commit(ctx)
+			if err != nil {
+				log.Ctx(ctx).Error().Err(err).Msg("InsertCluster: failed to insert system")
+				return tx, err
+			}
+			tx, err = apps.Pg.Begin(ctx)
+			if err != nil {
+				log.Ctx(ctx).Error().Err(err).Msg("InsertCluster: failed to start tx")
+				return tx, err
+			}
 		}
 	}
 	return tx, nil

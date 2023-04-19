@@ -133,6 +133,7 @@ func (t *TopologyReadPrivateAppsRequest) GetPrivateAppDetailsRequest(c echo.Cont
 		resp.Cluster.ComponentBases[cbName] = sbUI
 		resp.ClusterPreviewWorkloadsOlympus.ComponentBases[cbName] = uiSbs
 	}
+	// TODO remove hard coded
 	nf := hestia_compute_resources.NodeFilter{
 		CloudProvider: "do",
 		Region:        "nyc1",

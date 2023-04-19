@@ -34,6 +34,14 @@ func (t *TopologyReadActionRequestTestSuite) TestReadTopologiesOrgCloudCtxNs() {
 	t.Require().NotEmpty(resp)
 }
 
+func (t *TopologyReadActionRequestTestSuite) TestReadClusterDefinition() {
+	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
+
+	cl, err := read_topology.SelectClusterTopology(ctx, t.Tc.ProductionLocalTemporalOrgID, "ethereumEphemeralBeacons", []string{"lighthouseHercules", "gethHercules"})
+	t.Require().Nil(err)
+	t.Require().NotNil(cl)
+}
+
 func (t *TopologyReadActionRequestTestSuite) TestReadChart() {
 	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
 	tr := read_topology.NewInfraTopologyReader()

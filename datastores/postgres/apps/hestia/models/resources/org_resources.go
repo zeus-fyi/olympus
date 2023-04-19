@@ -133,7 +133,7 @@ func SelectNodeResources(ctx context.Context, orgID int, orgResourceIDs []int) (
 	q.RawQuery = `SELECT node_pool_id, node_context_id
  				  FROM digitalocean_node_pools
  				  JOIN org_resources USING (org_resource_id)
-				  WHERE org_id = $1 AND org_resource_id IN($2) AND free_trial = false
+				  WHERE org_id = $1 AND org_resource_id = ANY($2::bigint[]) AND free_trial = false
 				  `
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, pq.Array(orgResourceIDs))
 	if err == pgx.ErrNoRows {

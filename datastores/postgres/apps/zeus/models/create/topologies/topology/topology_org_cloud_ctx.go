@@ -60,7 +60,6 @@ func GetDeleteTopologyOrgCtxQueryParams() sql_query_templates.QueryParams {
 			FROM topologies_org_cloud_ctx_ns
 			WHERE org_id = $1 AND cloud_provider = $2 AND region = $3 AND context = $4 AND namespace = $5
 			LIMIT 1
-			RETURNING cloud_ctx_ns_id
 		), cte_remove_cloud_ctx_res AS (
 			DELETE
 			FROM org_resources_cloud_ctx

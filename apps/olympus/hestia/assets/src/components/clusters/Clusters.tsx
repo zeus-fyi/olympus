@@ -176,9 +176,11 @@ function ClustersTable(clusters: any) {
             } as CloudCtxNs;
             const response = await resourcesApiGateway.destroyDeploy(cloudCtxNs);
             setStatusMessage(`Destroy in progress`);
+            setStatusMessageRowIndex(index);
         } catch (error) {
             console.error(error);
             setStatusMessage(`Error deleting cloudCtxNs ID ${cloudCtxNsId}`);
+            setStatusMessageRowIndex(index);
         }
     }
     return( <TableContainer component={Paper}>

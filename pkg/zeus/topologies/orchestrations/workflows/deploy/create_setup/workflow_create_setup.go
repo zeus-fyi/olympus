@@ -68,7 +68,7 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 		return err
 	}
 	for _, disk := range params.Disks {
-		if disk.DiskSize == 0 {
+		if disk.DiskSize == 0 || disk.DiskUnits == "" {
 			continue
 		}
 		diskActivityOptions := ao

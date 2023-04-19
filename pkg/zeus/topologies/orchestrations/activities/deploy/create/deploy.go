@@ -2,6 +2,7 @@ package deploy_topology_activities
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/url"
 
@@ -45,9 +46,13 @@ func (d *DeployTopologyActivities) postDeployTarget(target string, params base_r
 		SetBody(params).
 		Post(u.Path)
 
-	if err != nil || resp.StatusCode() != http.StatusOK {
+	if err != nil {
 		log.Err(err).Interface("path", u.Path).Msg("DeployTopologyActivities: postDeployTarget failed")
 		return err
+	}
+	if resp.StatusCode() != http.StatusAccepted {
+		log.Err(err).Interface("path", u.Path).Msg("DeployTopologyActivities: postDeployClusterTopology failed")
+		return errors.New("DeployTopologyActivities: postDeployClusterTopology failed")
 	}
 	return err
 }
@@ -76,9 +81,13 @@ func (d *DeployTopologyActivities) postDeployClusterTopology(params zeus_req_typ
 		SetBody(params).
 		Post(zeus_endpoints.DeployTopologyV1Path)
 
-	if err != nil || resp.StatusCode() != http.StatusOK {
+	if err != nil {
 		log.Err(err).Interface("path", u.Path).Msg("DeployTopologyActivities: postDeployClusterTopology failed")
 		return err
+	}
+	if resp.StatusCode() != http.StatusAccepted {
+		log.Err(err).Interface("path", u.Path).Msg("DeployTopologyActivities: postDeployClusterTopology failed")
+		return errors.New("DeployTopologyActivities: postDeployClusterTopology failed")
 	}
 	return err
 }

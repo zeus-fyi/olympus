@@ -47,12 +47,12 @@ func (d *DeployTopologyActivities) postDeployTarget(target string, params base_r
 		Post(u.Path)
 
 	if err != nil {
-		log.Err(err).Interface("path", u.Path).Msg("DeployTopologyActivities: postDeployTarget failed")
+		log.Err(err).Interface("path", u.Path).Interface("err", err).Msg("DeployTopologyActivities: postDeployTarget failed")
 		return err
 	}
 	if resp.StatusCode() != http.StatusOK {
 		err = errors.New("DeployTopologyActivities: postDeployTarget failed")
-		log.Err(err).Interface("path", u.Path).Interface("err", err).Msg("DeployTopologyActivities: postDeployTarget failed")
+		log.Err(err).Interface("path", u.Path).Interface("err", err).Interface("statusCode", resp.StatusCode()).Msg("DeployTopologyActivities: postDeployTarget failed with bad status code")
 		return err
 	}
 	return err

@@ -101,7 +101,6 @@ export function DeployPage(props: any) {
                 setNode(nodes[0]);
             });
         }
-
     }, [params.id, nodes]);
 
     const handleIncrement = () => {

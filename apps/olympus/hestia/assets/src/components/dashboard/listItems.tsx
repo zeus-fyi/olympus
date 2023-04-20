@@ -100,6 +100,12 @@ export default function MainListItems() {
                 </ListItemIcon>
                 <ListItemText primary="Billing" />
             </ListItemButton>
+            {/*<ListItemButton component={Link} to="/access">*/}
+            {/*    <ListItemIcon>*/}
+            {/*        <SecurityIcon />*/}
+            {/*    </ListItemIcon>*/}
+            {/*    <ListItemText primary="Access" />*/}
+            {/*</ListItemButton>*/}
         </List>
     );
 }

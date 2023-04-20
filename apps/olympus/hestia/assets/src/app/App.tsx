@@ -44,6 +44,7 @@ export const App = () => {
                             </Route>
                             {/*<Route path="access" element={<Access />} />*/}
                             <Route path="billing" element={<Billing />} />
+                            <Route path="access" element={<Billing />} />
                         </Route>
                     </Routes>
                 </BrowserRouter>

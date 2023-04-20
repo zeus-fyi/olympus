@@ -54,6 +54,7 @@ func InsertCluster(ctx context.Context, tx pgx.Tx, sys *systems.Systems, cbMap z
 			log.Ctx(ctx).Error().Err(err).Msg("InsertCluster: failed to start tx")
 			return tx, err
 		}
+		defer tx.Rollback(ctx)
 	}
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("InsertCluster: failed to insert system")
@@ -86,6 +87,7 @@ func InsertCluster(ctx context.Context, tx pgx.Tx, sys *systems.Systems, cbMap z
 				log.Ctx(ctx).Error().Err(err).Msg("InsertCluster: failed to start tx")
 				return tx, err
 			}
+			defer tx.Rollback(ctx)
 		}
 		if err != nil {
 			log.Ctx(ctx).Error().Err(err).Msg("InsertCluster: failed to insert system")
@@ -121,6 +123,7 @@ func InsertCluster(ctx context.Context, tx pgx.Tx, sys *systems.Systems, cbMap z
 					log.Ctx(ctx).Error().Err(err).Msg("InsertCluster: failed to start tx")
 					return tx, err
 				}
+				defer tx.Rollback(ctx)
 			}
 			if err != nil {
 				log.Ctx(ctx).Error().Err(err).Msg("InsertCluster: failed to insert system")
@@ -261,7 +264,13 @@ func InsertCluster(ctx context.Context, tx pgx.Tx, sys *systems.Systems, cbMap z
 				log.Ctx(ctx).Error().Err(err).Msg("InsertCluster: failed to start tx")
 				return tx, err
 			}
+			defer tx.Rollback(ctx)
 		}
+	}
+	err = tx.Commit(ctx)
+	if err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg("InsertCluster: failed to insert system")
+		return tx, err
 	}
 	return tx, nil
 }

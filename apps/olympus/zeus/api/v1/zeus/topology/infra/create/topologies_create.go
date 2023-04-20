@@ -66,8 +66,13 @@ func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error
 		TopologyClassTypeID:         class_types.ClusterClassTypeID,
 		TopologySystemComponentName: t.Cluster.ClusterName,
 	}}
-
 	tx, err = create_clusters.InsertCluster(ctx, tx, &sys, pcg, ou)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("error creating transaction")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	defer tx.Rollback(ctx)
+	tx, err = apps.Pg.Begin(ctx)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("error creating transaction")
 		return c.JSON(http.StatusInternalServerError, nil)

@@ -13,6 +13,7 @@ import MiscellaneousServicesIcon from '@mui/icons-material/MiscellaneousServices
 import ConstructionIcon from '@mui/icons-material/Construction';
 import AppsIcon from '@mui/icons-material/Apps';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
+import SecurityIcon from '@mui/icons-material/Security';
 
 export default function MainListItems() {
     const [open, setOpen] = React.useState(true);
@@ -88,24 +89,18 @@ export default function MainListItems() {
                     </ListItemButton>
                 </List>
             </Collapse>
-            {/*<ListItemButton component={Link} to="/access">*/}
-            {/*    <ListItemIcon>*/}
-            {/*        <SecurityIcon />*/}
-            {/*    </ListItemIcon>*/}
-            {/*    <ListItemText primary="Access"/>*/}
-            {/*</ListItemButton>*/}
             <ListItemButton component={Link} to="/billing">
                 <ListItemIcon>
                     <CreditCardIcon />
                 </ListItemIcon>
                 <ListItemText primary="Billing" />
             </ListItemButton>
-            {/*<ListItemButton component={Link} to="/access">*/}
-            {/*    <ListItemIcon>*/}
-            {/*        <SecurityIcon />*/}
-            {/*    </ListItemIcon>*/}
-            {/*    <ListItemText primary="Access" />*/}
-            {/*</ListItemButton>*/}
+            <ListItemButton component={Link} to="/access">
+                <ListItemIcon>
+                    <SecurityIcon />
+                </ListItemIcon>
+                <ListItemText primary="Access" />
+            </ListItemButton>
         </List>
     );
 }

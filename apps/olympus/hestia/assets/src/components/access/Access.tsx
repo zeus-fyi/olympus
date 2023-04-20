@@ -38,7 +38,7 @@ const rows = [
     createData('Validators', 'DemoValidators', '4ULNVVsqHfxnZ8HwkMTrnvLMuzsjpeU2jVG5oFw9gfXMbSgrFXnRSYN'),
 ];
 
-function DashboardIntegrationContent() {
+function AccessKeys() {
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
@@ -124,7 +124,7 @@ function DashboardIntegrationContent() {
                 >
                     <Toolbar />
                     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                        {/*{<ApiKeys />}*/}
+                        {<ApiKeys />}
                     </Container>
                 </Box>
             </Box>
@@ -133,7 +133,7 @@ function DashboardIntegrationContent() {
 }
 
 export default function Access() {
-    return <DashboardIntegrationContent />;
+    return <AccessKeys />;
 }
 
 function ApiKeys() {

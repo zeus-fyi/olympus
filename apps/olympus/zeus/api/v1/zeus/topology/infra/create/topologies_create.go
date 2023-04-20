@@ -72,6 +72,7 @@ func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error
 		log.Ctx(ctx).Err(err).Msg("error creating transaction")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
+	defer tx.Rollback(ctx)
 	for componentBaseName, component := range pcg.ComponentBases {
 		for skeletonBaseName, skeleton := range component {
 			nk := chart_workload.TopologyBaseInfraWorkload{}

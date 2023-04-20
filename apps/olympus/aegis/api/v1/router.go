@@ -100,7 +100,7 @@ func BeaconAuthHandler(c echo.Context) error {
 }
 
 func OrgNginxAuthHandler(c echo.Context) error {
-	ou := c.Get("orgUser").(*org_users.OrgUser)
+	ou := c.Get("orgUser").(org_users.OrgUser)
 	authID := c.Param("id")
 	id, err := strconv.Atoi(authID)
 	if err != nil {

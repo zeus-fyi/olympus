@@ -125,13 +125,12 @@ func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error
 					return c.JSON(http.StatusBadRequest, nil)
 				}
 			}
-
 			if skeleton.Ingress != nil {
 				if t.IngressSettings.AuthServerURL == "aegis.zeus.fyi" || t.IngressSettings.AuthServerURL == "https://aegis.zeus.fyi/auth/7138983863666903883" {
 					if skeleton.Ingress.Annotations == nil {
 						skeleton.Ingress.Annotations = make(map[string]string)
 					}
-					skeleton.Ingress.Annotations["nginx.ingress.kubernetes.io/auth-url"] = fmt.Sprintf("https://aegis.zeus.fyi/auth/%d", ou.OrgID)
+					skeleton.Ingress.Annotations["nginx.ingress.kubernetes.io/auth-url"] = fmt.Sprintf("https://aegis.zeus.fyi/v1/auth/%d", ou.OrgID)
 				}
 				b, berr := json.Marshal(skeleton.Ingress)
 				if berr != nil {

@@ -11,6 +11,7 @@ import (
 	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	hestia_delete "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/delete"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
+	hestia_access_keygen "github.com/zeus-fyi/olympus/hestia/web/access"
 	hestia_billing "github.com/zeus-fyi/olympus/hestia/web/billing"
 	hestia_login "github.com/zeus-fyi/olympus/hestia/web/login"
 	hestia_resources "github.com/zeus-fyi/olympus/hestia/web/resources"
@@ -51,6 +52,7 @@ func InitV1Routes(e *echo.Echo) {
 			return key.PublicKeyVerified, err
 		},
 	}))
+	eg.GET("/api/key/create", hestia_access_keygen.AccessKeyGenRequestHandler)
 	eg.GET("/resources", hestia_resources.ResourceListRequestHandler)
 	eg.GET("/stripe/customer/id", hestia_billing.StripeBillingRequestHandler)
 	eg.GET("/refresh/token", hestia_login.TokenRefreshRequestHandler)

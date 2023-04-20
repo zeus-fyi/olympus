@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useState} from 'react';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
@@ -19,24 +20,12 @@ import authProvider from "../../redux/auth/auth.actions";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
-import {TableContainer, TableRow} from '@mui/material';
+import {Card, CardContent, TableContainer, TableRow} from '@mui/material';
 import TableBody from "@mui/material/TableBody";
 import MainListItems from "../dashboard/listItems";
+import {accessApiGateway} from "../../gateway/access";
 
 const mdTheme = createTheme();
-
-function createData(
-    service: string,
-    keyName: string,
-    accessKey: string,
-) {
-    return {service, keyName, accessKey };
-}
-
-const rows = [
-    createData('Zeus', 'Default','4ULNVVsqHfxnZ8HwkMTrnvLMuzsjpeU2jVG5oFw9gfXMbSgrFXnRSYN'),
-    createData('Validators', 'DemoValidators', '4ULNVVsqHfxnZ8HwkMTrnvLMuzsjpeU2jVG5oFw9gfXMbSgrFXnRSYN'),
-];
 
 function AccessKeys() {
     const [open, setOpen] = React.useState(true);
@@ -136,18 +125,62 @@ export default function Access() {
     return <AccessKeys />;
 }
 
+function createData(
+    service: string,
+    keyName: string,
+    accessKey: string,
+) {
+    return {service, keyName, accessKey };
+}
+
+const initialRows = [
+    createData('Zeus', 'API Access Key','*******************************************************************'),
+];
+
 function ApiKeys() {
+    const [rows, setRows] = useState(initialRows);
+
+    const handleRequestApiKey = async (rowIndex: number) => {
+        const response = await accessApiGateway.sendApiKeyGenRequest();
+        console.log(response.data)
+        const data = response.data;
+        const updatedRows = rows.map((row, index) => {
+            if (index === rowIndex) {
+                return { ...row, service: 'Zeus', keyName: data.apiKeyName, accessKey: data.apiKeySecret };
+            }
+            return row;
+        });
+        setRows(updatedRows);
+    };
+
     return (
-        <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 650 }} aria-label="simple table">
+        <div>
+            <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+            <Card>
+                <CardContent>
+                    <Typography gutterBottom variant="h5" component="div">
+                        API Key Access
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        You won't be able to see your API key again after you generate it, so if you lose it you'll have to generate a new one.
+                    </Typography>
+                </CardContent>
+            </Card>
+            </Container>
+                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+
+                <TableContainer component={Paper}>
+            <Table sx={{ minWidth: 300 }} aria-label="simple table">
                 <TableHead>
-                    <TableRow style={{ backgroundColor: '#333'}} >
-                        <TableCell style={{ color: 'white'}}>Service</TableCell>
-                        <TableCell style={{ color: 'white'}} align="left">KeyName</TableCell>
+                    <TableRow style={{ backgroundColor: '#333' }}>
+                        <TableCell style={{ color: 'white' }}>Service</TableCell>
+                        <TableCell style={{ color: 'white' }} align="left">Key Name</TableCell>
+                        <TableCell style={{ color: 'white' }} align="left">Access Key</TableCell>
+                        <TableCell style={{ color: 'white' }} align="left"></TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {rows.map((row) => (
+                    {rows.map((row, index) => (
                         <TableRow
                             key={row.service}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
@@ -156,10 +189,23 @@ function ApiKeys() {
                                 {row.service}
                             </TableCell>
                             <TableCell align="left">{row.keyName}</TableCell>
+                            <TableCell align="left" sx={{ maxWidth: 100 }}>{row.accessKey}</TableCell>
+                            <TableCell align="right" sx={{ paddingLeft: 1 }}>
+                                <Button
+                                    color="primary"
+                                    variant="contained"
+                                    onClick={() => handleRequestApiKey(index)}
+                                >
+                                    Request API Key
+                                </Button>
+                            </TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
             </Table>
         </TableContainer>
+            </Container>
+
+        </div>
     );
 }

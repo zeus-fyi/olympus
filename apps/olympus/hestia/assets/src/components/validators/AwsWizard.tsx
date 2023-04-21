@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useState} from 'react';
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import {AppBar, Drawer} from '../dashboard/Dashboard';
@@ -25,6 +26,8 @@ function AwsWizardServiceContent() {
     const toggleDrawer = () => {
         setOpen(!open);
     };
+    const [pageView, setPageView] = useState<boolean>(false);
+
     let navigate = useNavigate();
     const dispatch = useDispatch();
 
@@ -107,7 +110,7 @@ function AwsWizardServiceContent() {
                     <Toolbar />
                     <div style={{ display: 'flex' }}>
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                            <AwsWizardPanel />
+                            <AwsWizardPanel pageView={pageView} setPageView={setPageView}/>
                         </Container>
                     </div>
                 </Box>

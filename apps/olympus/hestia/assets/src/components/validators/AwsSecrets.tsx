@@ -44,17 +44,17 @@ export function CreateAwsInternalLambdasActionAreaCardWrapper(props: any) {
 }
 
 export function CreateAwsSecretsActionAreaCardWrapper(props: any) {
-    const {authorizedNetworks} = props;
+    const {authorizedNetworks, pageView,onGenerateValidatorDepositsAndZip } = props;
 
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <CreateAwsSecretNamesAreaCard authorizedNetworks={authorizedNetworks} />
+            <CreateAwsSecretNamesAreaCard pageView={pageView} authorizedNetworks={authorizedNetworks} onGenerateValidatorDepositsAndZip={onGenerateValidatorDepositsAndZip}/>
         </Stack>
     );
 }
 
 export function CreateAwsSecretNamesAreaCard(props: any) {
-    const {authorizedNetworks} = props;
+    const {authorizedNetworks, pageView,onGenerateValidatorDepositsAndZip } = props;
     const sgLambdaURL = useSelector((state: RootState) => state.awsCredentials.secretGenLambdaFnUrl);
     const ak = useSelector((state: RootState) => state.awsCredentials.accessKey);
     const sk = useSelector((state: RootState) => state.awsCredentials.secretKey);

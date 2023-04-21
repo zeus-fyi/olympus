@@ -26,11 +26,17 @@ import {useState} from "react";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 
 export function CreateAwsLambdaFunctionActionAreaCardWrapper(props: any) {
-    const { activeStep, onEncZipFileUpload, zipBlob } = props;
+    const { activeStep, onEncZipFileUpload, zipBlob, pageView, onHandleVerifySigners} = props;
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
-            <EncryptedKeystoresZipUploadActionAreaCard onEncZipFileUpload={onEncZipFileUpload} />
-            <CreateAwsLambdaFunctionAreaCard zipBlob={zipBlob} />
+            {pageView ? (
+                <React.Fragment>
+                    <EncryptedKeystoresZipUploadActionAreaCard onEncZipFileUpload={onEncZipFileUpload} />
+                    <CreateAwsLambdaFunctionAreaCard zipBlob={zipBlob} />
+                </React.Fragment>
+                ) : (
+                <LambdaFunctionCreationBundled zipBlob={zipBlob} onHandleVerifySigners={onHandleVerifySigners}/>
+            )}
         </Stack>
     );
 }
@@ -46,6 +52,105 @@ export function CreateAwsLambdaFunctionAreaCard(props: any) {
                 <LambdaFunctionCreation />
             </Container >
         </div>
+    );
+}
+
+
+export function LambdaFunctionCreationBundled(props: any) {
+    const { zipBlob, onHandleVerifySigners} = props;
+    const acKey = useSelector((state: RootState) => state.awsCredentials.accessKey);
+    const seKey = useSelector((state: RootState) => state.awsCredentials.secretKey);
+    const signerName = useSelector((state: RootState) => state.awsCredentials.blsSignerFunctionName);
+    const signerLayerName = useSelector((state: RootState) => state.awsCredentials.blsSignerKeystoresLayerName);
+
+    const dispatch = useDispatch();
+
+    let buttonLabel;
+    let buttonDisabled;
+    let statusMessage;
+    const [requestStatus, setRequestStatus] = useState('');
+
+    switch (requestStatus) {
+        case 'pending':
+            buttonLabel = <CircularProgress size={20} />;
+            buttonDisabled = true;
+            break;
+        case 'success':
+            buttonLabel = 'Successfully updated, or created function';
+            buttonDisabled = true;
+            statusMessage = 'Lambda function created successfully!';
+            break;
+        case 'error':
+            buttonLabel = 'Retry';
+            buttonDisabled = false;
+            statusMessage = 'An error occurred while creating or updating the lambda function.';
+            break;
+        case 'errorAuth':
+            buttonLabel = 'Retry';
+            buttonDisabled = false;
+            statusMessage = 'An error occurred while creating or updating the lambda function.';
+            break;
+        default:
+            buttonLabel = 'Create | Update';
+            buttonDisabled = false;
+            break;
+    }
+
+    const onCreateLambdaSignerFn = async () => {
+        try {
+            if (zipBlob.size === 0) {
+                console.log("ZipBlob is empty. Skipping creation of Lambda Keystores Layer.");
+                setRequestStatus('errorNoZip');
+                return;
+            }
+            const creds = {accessKeyId: acKey, secretAccessKey: seKey};
+            if (!creds.accessKeyId || !creds.secretAccessKey) {
+                setRequestStatus('errorAuth');
+                return;
+            }
+            setRequestStatus('pending')
+            const responseKeystores = await awsApiGateway.createLambdaFunctionKeystoresLayer(creds, signerLayerName, zipBlob);
+            if (responseKeystores.status === 200) {
+            } else {
+                setRequestStatus('error');
+                return
+            }
+            dispatch(setKeystoreLayerNumber(responseKeystores.data));
+            const response = await awsApiGateway.createLambdaSignerFunction(creds, signerName, signerLayerName);
+            if (response.status === 200) {
+                setRequestStatus('success');
+            } else {
+                setRequestStatus('error');
+                return
+            }
+            dispatch(setBlsSignerLambdaFnUrl(response.data));
+            await onHandleVerifySigners();
+        } catch (error) {
+            setRequestStatus('error');
+            console.log("error", error);
+        }};
+
+
+    return (
+        <Card sx={{ maxWidth: 400 }}>
+            <CardContent>
+                <Typography gutterBottom variant="h5" component="div">
+                    Lambda Function Signer Creation
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                    Creates a BLS signer lambda function in AWS that decrypts your keystores layer
+                    with your Age Encryption key, and will sign messages for your validators.
+                </Typography>
+            </CardContent>
+            <CardActions>
+                <Button onClick={onCreateLambdaSignerFn} size="small" disabled={buttonDisabled}>{buttonLabel}</Button>
+            </CardActions>
+            {statusMessage && (
+                <Typography variant="body2" color={requestStatus === 'error' ? 'error' : 'success'}>
+                    {statusMessage}
+                </Typography>
+            )}
+        </Card>
     );
 }
 

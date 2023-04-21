@@ -26,6 +26,7 @@ import {
     setSignerFunctionName,
     setValidatorSecretsName
 } from "../../redux/aws_wizard/aws.wizard.reducer";
+import {PageToggleView} from './SimplifiedView';
 import {awsApiGateway} from "../../gateway/aws";
 import {awsLambdaApiGateway} from "../../gateway/aws.lambda";
 import {CreateAwsLambdaFunctionActionAreaCardWrapper} from './AwsLambdaKeystoreSigners';
@@ -36,7 +37,7 @@ import {
     setKeyGroupName,
     setNetworkAppended
 } from "../../redux/validators/ethereum.validators.reducer";
-import {CircularProgress} from "@mui/material";
+import {CircularProgress, Stack} from "@mui/material";
 
 const steps = [
     'AWS Auth & Internal User Roles',
@@ -45,6 +46,13 @@ const steps = [
     'Generate Validator Keys/Deposits',
     'Create/Update External Lambda Function',
     'Verify Lambda Function',
+    'Request Zeus Service',
+    'Submit Deposits',
+];
+
+const stepsSimplified = [
+    'AWS Setup',
+    'Generate Validator Keys/Deposits',
     'Request Zeus Service',
     'Submit Deposits',
 ];
@@ -59,9 +67,12 @@ function stepComponents(activeStep: number,
                         zipGenButtonLabel: any, zipGenButtonEnabled: any, zipGenStatus: any, requestStatusZipGen: any,
                         buttonLabelVd: any, buttonDisabledVd: any,statusMessageVd: any, requestStatusVd: any,
                         buttonLabelVerify: any, buttonDisabledVerify: any, statusMessageVerify: any, statusVerify: any,
+                        pageView: any, onGenerateValidatorDepositsAndZip: any
 ) {
-    const steps = [
+
+    const steps = pageView ? ([
         <CreateInternalAwsLambdaUserRolesActionAreaCardWrapper
+            pageView={pageView}
             activeStep={activeStep}
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
@@ -75,6 +86,7 @@ function stepComponents(activeStep: number,
             activeStep={activeStep}
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
+            onGenerateValidatorDepositsAndZip={onGenerateValidatorDepositsAndZip}
         />,
         <GenerateValidatorKeysAndDepositsAreaCardWrapper
             activeStep={activeStep}
@@ -87,6 +99,8 @@ function stepComponents(activeStep: number,
             zipGenButtonEnabled={zipGenButtonEnabled}
             zipGenStatus={zipGenStatus}
             requestStatusZipGen={requestStatusZipGen}
+            pageView={pageView}
+            onGenerateValidatorDepositsAndZip={onGenerateValidatorDepositsAndZip}
         />,
         <CreateAwsLambdaFunctionActionAreaCardWrapper
             activeStep={activeStep}
@@ -94,6 +108,8 @@ function stepComponents(activeStep: number,
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
             onEncZipFileUpload={onEncZipFileUpload}
             zipBlob={zipBlob}
+            pageView={pageView}
+            onHandleVerifySigners={onHandleVerifySigners}
         />,
         <LambdaExtUserVerify
             activeStep={activeStep}
@@ -116,11 +132,67 @@ function stepComponents(activeStep: number,
             onGenerateValidatorDeposits={onGenerateValidatorDeposits}
             onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
             onValidatorsDepositsUpload={onValidatorsDepositsUpload}
-        />]
+        />]) :
+        ([
+            <CreateInternalAwsLambdaUserRolesActionAreaCardWrapper
+                pageView={pageView}
+                activeStep={activeStep}
+                onGenerateValidatorDeposits={onGenerateValidatorDeposits}
+                onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
+            />,
+            <div>
+                <Stack direction="row" spacing={2}>
+                    <CreateAwsSecretsActionAreaCardWrapper
+                        activeStep={activeStep}
+                        onGenerateValidatorDeposits={onGenerateValidatorDeposits}
+                        onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
+                        pageView={pageView}
+                        onGenerateValidatorDepositsAndZip={onGenerateValidatorDepositsAndZip}
+                    />
+                    <GenerateValidatorKeysAndDepositsAreaCardWrapper
+                        activeStep={activeStep}
+                        onGenerateValidatorDeposits={onGenerateValidatorDeposits}
+                        onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
+                        buttonLabelVd={buttonLabelVd}
+                        buttonDisabledVd={buttonDisabledVd}
+                        statusMessageVd={statusMessageVd}
+                        zipGenButtonLabel={zipGenButtonLabel}
+                        zipGenButtonEnabled={zipGenButtonEnabled}
+                        zipGenStatus={zipGenStatus}
+                        requestStatusZipGen={requestStatusZipGen}
+                        pageView={pageView}
+                        onGenerateValidatorDepositsAndZip={onGenerateValidatorDepositsAndZip}
+                    />
+                </Stack>
+            </div>,
+            <Stack direction="row" spacing={2}>
+                <CreateAwsLambdaFunctionActionAreaCardWrapper
+                    activeStep={activeStep}
+                    onGenerateValidatorDeposits={onGenerateValidatorDeposits}
+                    onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
+                    onEncZipFileUpload={onEncZipFileUpload}
+                    zipBlob={zipBlob}
+                    pageView={pageView}
+                    onHandleVerifySigners={onHandleVerifySigners}
+                />
+                <ZeusServiceRequestAreaCardWrapper
+                    activeStep={activeStep}
+                    onGenerateValidatorDeposits={onGenerateValidatorDeposits}
+                    onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
+                />,
+            </Stack>,
+            <ValidatorsDepositRequestAreaCardWrapper
+                activeStep={activeStep}
+                onGenerateValidatorDeposits={onGenerateValidatorDeposits}
+                onGenerateValidatorEncryptedKeystoresZip={onGenerateValidatorEncryptedKeystoresZip}
+                onValidatorsDepositsUpload={onValidatorsDepositsUpload}
+            />
+        ]);
     return steps[activeStep]
 }
 
 export default function AwsWizardPanel(props: any) {
+    const {pageView, setPageView} = props;
     const [activeStep, setActiveStep] = React.useState(0);
     const [completed, setCompleted] = React.useState<{
         [k: number]: boolean;
@@ -255,11 +327,11 @@ export default function AwsWizardPanel(props: any) {
         } finally {
         }
     };
+
     const network = useSelector((state: RootState) => state.validatorSecrets.network);
     let depositsGenLambdaFnUrl = useSelector((state: RootState) => state.awsCredentials.depositsGenLambdaFnUrl);
     const depositData = useSelector((state: RootState) => state.awsCredentials.depositData);
     const withdrawalCredentials = useSelector((state: RootState) => state.validatorSecrets.withdrawalCredentials);
-
     let buttonLabelVd;
     let buttonDisabledVd;
     let statusMessageVd;
@@ -293,7 +365,6 @@ export default function AwsWizardPanel(props: any) {
 
     const onGenerateValidatorDeposits = async () => {
         setRequestStatusVd('pending');
-
         const creds = {accessKeyId: akey, secretAccessKey: skey};
         if (!akey || !skey) {
             setRequestStatusVd('errorAuth');
@@ -336,6 +407,74 @@ export default function AwsWizardPanel(props: any) {
             return
         }
     };
+
+    const onGenerateValidatorDepositsAndZip = async () => {
+        setRequestStatusVd('pending');
+        const creds = {accessKeyId: akey, secretAccessKey: skey};
+        if (!akey || !skey) {
+            setRequestStatusVd('errorAuth');
+            return;
+        }
+        try {
+            const creds = { accessKeyId: akey, secretAccessKey: skey };
+            if (!akey || !skey) {
+                setRequestStatusVd('errorAuth');
+                return;
+            }
+            const res = await awsApiGateway.createValidatorsAgeEncryptedKeystoresZipLambda(creds);
+            if (res.status !== 200) {
+                setRequestStatusVd('error');
+                return
+            }
+            const updatedEncKeystoresZipLambdaFnUrl = res.data;
+            dispatch(setEncKeystoresZipLambdaFnUrl(updatedEncKeystoresZipLambdaFnUrl));
+            const zip = await awsLambdaApiGateway.invokeEncryptedKeystoresZipGeneration(updatedEncKeystoresZipLambdaFnUrl, creds, ageSecretName, validatorSecretsName, validatorCount, hdOffset);
+            if (zip.status !== 200) {
+                setRequestStatusVd('error');
+                return
+            }
+            const zipBlob = await zip.blob();
+            const blob = new Blob([zipBlob], { type: 'application/octet-stream' });
+            download(blob, "keystores.zip");
+            setEncZipFile(blob);
+
+            const response = await awsApiGateway.createValidatorsDepositDataLambda(creds);
+            if (response.status !== 200) {
+                setRequestStatusVd('error');
+                return
+            }
+            dispatch(setDepositsGenLambdaFnUrl(response.data));
+            depositsGenLambdaFnUrl = response.data;
+        } catch (error) {
+            setRequestStatusVd('error');
+            console.log("error", error);
+            return
+        }
+        try {
+            const dpSlice = await awsLambdaApiGateway.invokeValidatorDepositsGeneration(depositsGenLambdaFnUrl,creds,network,validatorSecretsName,validatorCount,hdOffset,withdrawalCredentials);
+            if (dpSlice.status === 200) {
+                setRequestStatusVd('success');
+            } else {
+                setRequestStatusVd('error');
+                return
+            }
+            const body = await dpSlice.json();
+            const jsonString = JSON.stringify(body, null, 2); // Convert JSON object to string with 2-space indentation
+            const blob = new Blob([jsonString], { type: 'application/json' }); // Create a blob from the JSON string
+            download(blob, "deposit_data.json");
+
+            body.forEach((item: any) => {
+                item.verified = false;
+                item.rx = '';
+            });
+            dispatch(setDepositData(body));
+        } catch (error) {
+            setRequestStatusVd('error');
+            console.log("error", error);
+            return
+        }
+    };
+
     const onValidatorsDepositsUpload = (event: ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
@@ -424,7 +563,6 @@ export default function AwsWizardPanel(props: any) {
         }}
 
     const networkAppended = useSelector((state: RootState) => state.validatorSecrets.networkAppended);
-
     const handleNetworkAppend = () => {
         if (!networkAppended) {
             dispatch(setKeystoreLayerNumber(initialState.keystoreLayerNumber));
@@ -457,15 +595,31 @@ export default function AwsWizardPanel(props: any) {
     return (
         <div>
         <Box sx={{ width: '100%' }}>
-            <Stepper nonLinear activeStep={activeStep}>
-                {steps.map((label, index) => (
-                    <Step key={label} completed={completed[index]}>
-                        <StepButton color="inherit" onClick={handleStep(index)}>
-                            {label}
-                        </StepButton>
-                    </Step>
-                ))}
-            </Stepper>
+            {pageView ? (
+                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                    <Stepper nonLinear activeStep={activeStep}>
+                        {steps.map((label, index) => (
+                            <Step key={label} completed={completed[index]}>
+                                <StepButton color="inherit" onClick={handleStep(index)}>
+                                    {label}
+                                </StepButton>
+                            </Step>
+                        ))}
+                    </Stepper>
+                </Container>
+            ) :
+                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                    <Stepper nonLinear activeStep={activeStep}>
+                        {stepsSimplified.map((label, index) => (
+                            <Step key={label} completed={completed[index]}>
+                                <StepButton color="inherit" onClick={handleStep(index)}>
+                                    {label}
+                                </StepButton>
+                            </Step>
+                        ))}
+                    </Stepper>
+                </Container>
+            }
             <div>
                 {allStepsCompleted() ? (
                     <React.Fragment>
@@ -480,7 +634,7 @@ export default function AwsWizardPanel(props: any) {
                 ) : (
                     <React.Fragment>
                         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                            {stepComponents(activeStep, 
+                            {stepComponents(activeStep,
                                 onGenerateValidatorDeposits,
                                 onGenerateValidatorEncryptedKeystoresZip,
                                 onEncZipFileUpload,
@@ -499,8 +653,14 @@ export default function AwsWizardPanel(props: any) {
                                 buttonDisabledVerify,
                                 statusMessageVerify,
                                 statusVerify,
+                                pageView,
+                                onGenerateValidatorDepositsAndZip
                             )}
                         </Container>
+
+                        <Box sx={{mb: 2}}>
+                            <PageToggleView pageView={pageView} setPageView={setPageView}/>
+                        </Box>
                         <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                             <Button
                                 color="inherit"

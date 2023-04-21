@@ -129,7 +129,7 @@ func InsertCluster(ctx context.Context, tx pgx.Tx, sys *systems.Systems, cbMap z
 				log.Ctx(ctx).Error().Err(err).Msg("InsertCluster: failed to insert system")
 				return tx, err
 			}
-			if skeleton.Service == nil && skeleton.ServiceMonitor == nil && skeleton.ConfigMap == nil && skeleton.Deployment == nil && skeleton.StatefulSet == nil {
+			if skeleton.Service == nil && skeleton.ServiceMonitor == nil && skeleton.ConfigMap == nil && skeleton.Deployment == nil && skeleton.StatefulSet == nil && skeleton.Ingress == nil {
 				continue
 			}
 			nk := chart_workload.TopologyBaseInfraWorkload{}

@@ -37,7 +37,6 @@ export default function YamlTextFieldAppPage(props: any) {
             ) {
                 switch (previewType) {
                     case 'service':
-                        console.log(clusterPreviewComponentBases[selectedSkeletonBaseName].service, 'dsaf')
                         setCode(yaml.dump(clusterPreviewComponentBases[selectedSkeletonBaseName].service));
                         break;
                     case 'configMap':

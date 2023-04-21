@@ -40,12 +40,17 @@ func (t *TopologyReadActionRequestTestSuite) TestReadClusterDefinition() {
 	cl, err := read_topology.SelectClusterTopology(ctx, t.Tc.ProductionLocalTemporalOrgID, "ethereumEphemeralBeacons", []string{"lighthouseHercules", "gethHercules"})
 	t.Require().Nil(err)
 	t.Require().NotNil(cl)
+
+	AppID := 1670997020811171000
+	selectedApp, err := read_topology.SelectAppTopologyByID(ctx, AppsOrgID, AppID)
+	t.Require().Nil(err)
+	t.Require().NotNil(selectedApp)
 }
 
 func (t *TopologyReadActionRequestTestSuite) TestReadChart() {
 	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
 	tr := read_topology.NewInfraTopologyReader()
-	tr.TopologyID = 1677822630388650000
+	tr.TopologyID = 1682096088004688941
 	// from auth lookup
 	tr.OrgID = t.Tc.ProductionLocalTemporalOrgID
 	tr.UserID = t.Tc.ProductionLocalTemporalUserID

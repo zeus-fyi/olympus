@@ -2,7 +2,7 @@ import {useParams} from "react-router-dom";
 import * as React from "react";
 import {useEffect, useState} from "react";
 import {clustersApiGateway} from "../../gateway/clusters";
-import {Box, Button, TableContainer, TableRow} from "@mui/material";
+import {Box, Button, FormControl, MenuItem, Select, TableContainer, TableRow} from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
@@ -12,16 +12,26 @@ import PodLogStreamClusterPage from "./PodLogStreamClusterPage";
 
 function createPodsData(
     podName: string,
-    podPhase: string
+    podPhase: string,
+    containers: string[],
 ) {
-    return {podName, podPhase};
+    return {podName, podPhase, containers};
 }
 
 export function PodsPageTable() {
     const params = useParams();
     const [pods, setPods] = useState([{}]);
     const [code, setCode] = useState('');
+    const [selectedContainers, setSelectedContainers] = useState<Array<string>>([]);
 
+    const handleContainerChange = (event: any, rowIndex: number) => {
+        const selectedContainer = event.target.value as string;
+        setSelectedContainers((prevSelectedContainers) => {
+            const updatedContainers = [...prevSelectedContainers];
+            updatedContainers[rowIndex] = selectedContainer;
+            return updatedContainers;
+        });
+    };
     const onClickStreamLogs = async (podName: string) => {
         try {
             let res: any = await clustersApiGateway.getClusterPodLogs(params.id, podName)
@@ -42,14 +52,16 @@ export function PodsPageTable() {
                 let podsRows: any[] = [];
                 for (const [key, value] of Object.entries(podSummaries)) {
                     let podInfo: any = value;
-                    podsRows.push(createPodsData(key, podInfo.podPhase));
+                    podsRows.push(createPodsData(key, podInfo.podPhase, podInfo.containers));
                 }
+                console.log(podsRows)
                 setPods(podsRows);
             } catch (error) {
                 console.log("error", error);
             }}
         fetchData(params);
     }, []);
+
     return (
         <div>
                 <TableContainer component={Paper}>
@@ -58,11 +70,12 @@ export function PodsPageTable() {
                             <TableRow style={{ backgroundColor: '#333'}} >
                                 <TableCell style={{ color: 'white'}}>PodName</TableCell>
                                 <TableCell style={{ color: 'white'}} align="left">Status</TableCell>
+                                <TableCell style={{ color: 'white'}} align="left">Containers</TableCell>
                                 <TableCell style={{ color: 'white'}} align="right"></TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {pods.map((row: any, i: number) => (
+                            {pods && pods.map((row: any, i: number) => (
                                 <TableRow
                                     key={i}
                                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
@@ -71,8 +84,23 @@ export function PodsPageTable() {
                                         {row.podName}
                                     </TableCell>
                                     <TableCell align="left">{row.podPhase}</TableCell>
+                                    <TableCell align="left">
+                                        <FormControl fullWidth>
+                                            <Select
+                                                labelId={`container-select-label-${i}`}
+                                                value={row.containers && row.containers[row.containers.length - 1]}
+                                                onChange={(event) => handleContainerChange(event, i)}
+                                            >
+                                                {row.containers && row.containers.map((container: string, index: number) => (
+                                                    <MenuItem key={index} value={container}>
+                                                        {container}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+                                    </TableCell>
                                     <TableCell align="right">
-                                        <Button onClick={() => onClickStreamLogs(row.podName)} variant="contained">Stream Logs</Button>
+                                        <Button onClick={() => onClickStreamLogs(row.podName)} variant="contained">Get Logs</Button>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -98,6 +126,7 @@ interface PodSummary {
     message: string;
     reason: string;
     startTime: string;
+    containers: string[];
     podConditions: Array<{
         // fields for v1.PodCondition
         type: string;

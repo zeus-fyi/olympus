@@ -26,6 +26,12 @@ func parseResp(pods *v1.PodList) PodsSummary {
 		for _, cont := range pod.Status.ContainerStatuses {
 			contStatuses[cont.Name] = cont
 		}
+
+		cs := make([]string, len(pod.Spec.Containers))
+		for i, cont := range pod.Spec.Containers {
+			cs[i] = cont.Name
+		}
+		podSum.Containers = cs
 		ps.Pods[pod.GetName()] = podSum
 	}
 	return ps

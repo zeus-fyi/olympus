@@ -46,4 +46,5 @@ type PodSummary struct {
 	PodConditions         []v1.PodCondition             `json:"podConditions"`
 	InitContainerStatuses map[string]v1.ContainerStatus `json:"initContainerConditions"`
 	ContainerStatuses     map[string]v1.ContainerStatus `json:"containerStatuses"`
+	Containers            []string                      `json:"containers"`
 }

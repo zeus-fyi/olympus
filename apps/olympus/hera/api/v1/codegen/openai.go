@@ -3,6 +3,7 @@ package ai_codegen
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"path/filepath"
@@ -10,9 +11,9 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-
+	openai "github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	"github.com/zeus-fyi/olympus/pkg/hera/openai"
+	"github.com/zeus-fyi/olympus/pkg/hera/hera_openai"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/compression"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
@@ -20,7 +21,43 @@ import (
 
 func CodeGenRoutes(e *echo.Group) *echo.Group {
 	e.POST("/openai/codegen", CreateCodeGenAPIRequestHandler)
+	e.POST("/ui/openai/codegen", CreateUICodeGenAPIRequestHandler)
 	return e
+}
+
+func CreateUICodeGenAPIRequestHandler(c echo.Context) error {
+	request := new(UICodeGenAPIRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.CompleteUICodeGenRequest(c)
+}
+func (ai *UICodeGenAPIRequest) CompleteUICodeGenRequest(c echo.Context) error {
+	ctx := context.Background()
+	ou := c.Get("orgUser").(org_users.OrgUser)
+	resp, err := hera_openai.HeraOpenAI.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model: openai.GPT3Dot5Turbo,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: ai.Prompt,
+					Name:    fmt.Sprintf("%d", ou.UserID),
+				},
+			},
+		},
+	)
+	if err != nil || len(resp.Choices) == 0 {
+		log.Ctx(ctx).Info().Interface("ou", ou).Err(err).Msg("CompleteUICodeGenRequest: CreateChatCompletion")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	err = hera_openai.HeraOpenAI.RecordUIChatRequestUsage(ctx, ou, resp)
+	if err != nil {
+		log.Ctx(ctx).Info().Interface("ou", ou).Err(err).Msg("CompleteUICodeGenRequest: RecordUIChatRequestUsage")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	return c.JSON(http.StatusOK, resp.Choices[0].Message.Content)
 }
 
 func CreateCodeGenAPIRequestHandler(c echo.Context) error {
@@ -62,17 +99,22 @@ func (ai *CodeGenAPIRequest) CompleteCodeGenRequest(c echo.Context) error {
 		log.Err(err)
 		return c.JSON(http.StatusBadRequest, err)
 	}
-	params := openai.OpenAIParams{
+	params := hera_openai.OpenAIParams{
 		Model:     model,
 		MaxTokens: tokens,
 		Prompt:    prompt,
 	}
-	cg, err := openai.HeraOpenAI.MakeCodeGenRequest(ctx, ou, params)
+	cg, err := hera_openai.HeraOpenAI.MakeCodeGenRequest(ctx, ou, params)
 	if err != nil {
 		log.Err(err)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, cg)
+}
+
+type UICodeGenAPIRequest struct {
+	TokenEstimate int    `json:"tokenEstimate"`
+	Prompt        string `json:"prompt"`
 }
 
 type CodeGenAPIRequest struct {

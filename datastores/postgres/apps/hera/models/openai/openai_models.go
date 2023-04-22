@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/rs/zerolog/log"
-	gogpt "github.com/sashabaranov/go-gpt3"
+	"github.com/sashabaranov/go-openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -32,7 +32,7 @@ func insertCompletionResp() sql_query_templates.QueryParams {
 
 const Sn = "OpenAI"
 
-func InsertCompletionResponse(ctx context.Context, ou org_users.OrgUser, response gogpt.CompletionResponse) error {
+func InsertCompletionResponse(ctx context.Context, ou org_users.OrgUser, response openai.CompletionResponse) error {
 	q := insertCompletionResp()
 	completionChoices, err := json.Marshal(response.Choices)
 	if err != nil {

@@ -3,6 +3,8 @@ package hera_server
 import (
 	"context"
 
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -11,7 +13,7 @@ import (
 	v1_hera "github.com/zeus-fyi/olympus/hera/api/v1"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
-	"github.com/zeus-fyi/olympus/pkg/hera/openai"
+	"github.com/zeus-fyi/olympus/pkg/hera/hera_openai"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 )
 
@@ -43,14 +45,29 @@ func Hera() {
 		tc := configs.InitLocalTestConfigs()
 		authKeysCfg = tc.ProdLocalAuthKeysCfg
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
-		openai.InitHeraOpenAI(tc.OpenAIAuth)
+		hera_openai.InitHeraOpenAI(tc.OpenAIAuth)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		authKeysCfg = tc.DevAuthKeysCfg
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
-		openai.InitHeraOpenAI(tc.OpenAIAuth)
+		hera_openai.InitHeraOpenAI(tc.OpenAIAuth)
 	}
 
+	if env == "local" || env == "production-local" {
+		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins:     []string{"http://localhost:3000"},
+			AllowMethods:     []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
+			AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization, echo.HeaderAccessControlAllowHeaders, "X-CSRF-Token", "Accept-Encoding"},
+			AllowCredentials: true,
+		}))
+	} else {
+		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins:     []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi"},
+			AllowMethods:     []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
+			AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization, echo.HeaderAccessControlAllowHeaders, "X-CSRF-Token", "Accept-Encoding"},
+			AllowCredentials: true,
+		}))
+	}
 	log.Info().Msg("Hera: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	srv.Start()

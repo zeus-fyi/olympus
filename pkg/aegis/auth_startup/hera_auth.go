@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/hera/openai"
+	"github.com/zeus-fyi/olympus/pkg/hera/hera_openai"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 )
 
@@ -26,7 +26,7 @@ func InitHera(ctx context.Context, inMemSecrets memfs.MemFS) SecretsWrapper {
 	secrets := SecretsWrapper{}
 	secrets.PostgresAuth = secrets.ReadSecret(ctx, inMemSecrets, pgSecret)
 	secrets.OpenAIToken = secrets.ReadSecret(ctx, inMemSecrets, heraOpenAIAuth)
-	openai.InitHeraOpenAI(secrets.OpenAIToken)
+	hera_openai.InitHeraOpenAI(secrets.OpenAIToken)
 	log.Info().Msg("Hera: InitHera done")
 	return secrets
 }

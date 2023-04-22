@@ -1,4 +1,4 @@
-package openai
+package hera_openai
 
 import (
 	"os"

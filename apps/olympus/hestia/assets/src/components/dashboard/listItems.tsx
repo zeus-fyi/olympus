@@ -14,6 +14,7 @@ import ConstructionIcon from '@mui/icons-material/Construction';
 import AppsIcon from '@mui/icons-material/Apps';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import SecurityIcon from '@mui/icons-material/Security';
+import ChatIcon from '@mui/icons-material/Chat';
 
 export default function MainListItems() {
     const [open, setOpen] = React.useState(true);
@@ -75,6 +76,12 @@ export default function MainListItems() {
             </ListItemButton>
             <Collapse in={open} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
+                    <ListItemButton sx={{ pl: 4 }} component={Link} to="/services/chatgpt">
+                        <ListItemIcon>
+                            <ChatIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="ChatGPT" />
+                    </ListItemButton>
                     <ListItemButton sx={{ pl: 4 }} component={Link} to="/services/ethereum/aws">
                         <ListItemIcon>
                             <AutoFixHighIcon />

@@ -1,4 +1,4 @@
-package openai
+package hera_openai
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/go-resty/resty/v2"
 	gogpt "github.com/sashabaranov/go-gpt3"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -15,6 +16,16 @@ import (
 
 type HeraTestSuite struct {
 	test_suites_base.TestSuite
+}
+
+func (s *HeraTestSuite) TestOpenAIGetModels() {
+	r := resty.New()
+	r.SetAuthToken(s.Tc.OpenAIAuth)
+	resp, err := r.R().
+		Get("https://api.openai.com/v1/models")
+	s.Require().Nil(err)
+	fmt.Println(string(resp.Body()))
+
 }
 
 func (s *HeraTestSuite) TestOpenAITokenCount() {

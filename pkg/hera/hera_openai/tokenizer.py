@@ -1,8 +1,9 @@
 import sys
+
 import transformers
 
 # Load the GPT-2 tokenizer
-tokenizer = transformers.OpenAIGPTTokenizer.from_pretrained('openai-gpt')
+tokenizer = transformers.OpenAIGPTTokenizer.from_pretrained('hera_openai-gpt')
 
 # Encode a string using the GPT-2 tokenizer
 prompt = sys.argv[1]

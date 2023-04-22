@@ -16,3 +16,7 @@ export const artemisApi = axios.create({
 export const zeusApi = axios.create({
     baseURL: configService.getZeusApiUrl(),
 });
+
+export const heraApi = axios.create({
+    baseURL: configService.getHeraApiUrl(),
+});

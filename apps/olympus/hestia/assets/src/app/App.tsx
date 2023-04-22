@@ -17,6 +17,7 @@ import AppsPage from "../components/apps/AppsPage";
 import {AppPageWrapper} from "../components/app/AppPageWrapper";
 import Billing from "../components/billing/Billing";
 import Access from "../components/access/Access";
+import {ChatGPTPage} from "../components/chatgpt/ChatGPTWrapper";
 
 export const App = () => {
     return (
@@ -40,6 +41,7 @@ export const App = () => {
                                 <Route path="apps/eth" element={<AppPageWrapper app={"ethereumEphemeralBeacons"} />} />
                             </Route>
                             <Route>
+                                <Route path="services/chatgpt" element={<ChatGPTPage />} />
                                 <Route path="services/ethereum/validators" element={<ValidatorsServices />} />
                                 <Route path="services/ethereum/aws" element={<AwsWizard />} />
                             </Route>

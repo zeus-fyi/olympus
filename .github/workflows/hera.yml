@@ -15,7 +15,7 @@ env:
   GO111MODULE: on
   GOOS: linux
   GOARCH: amd64
-  CGO_ENABLED: 0
+  CGO_ENABLED: 1
   GOCACHE: ~/go-build
   GOMODCACHE: ~/go/pkg/mod
 

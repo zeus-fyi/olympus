@@ -4,11 +4,6 @@ FROM golang:1.20.1-buster as src_builder
 WORKDIR /app
 
 COPY . .
-ARG GOMODCACHE
-ARG GOCACHE
-ARG GOOS
-ARG GOARCH
-
 ARG CA_CRT
 RUN if [ -z "${CA_CRT}" ]; then \
       COPY configs/ca-certificate.crt .; \
@@ -30,11 +25,16 @@ RUN if [ -z "${CA_KEY}"]; then \
       echo "${CA_KEY}" > ca.key; \
     fi
 
+ARG GOMODCACHE
+ARG GOCACHE
+
+COPY go.mod go.sum ./
+
 RUN --mount=type=cache,target=${GOMODCACHE} go mod download
 
 COPY . .
 
-RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o hera apps/olympus/hera/main.go
+RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o hera apps/olympus/hera/main.go
 
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates

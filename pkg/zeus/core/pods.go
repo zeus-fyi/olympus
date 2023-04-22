@@ -33,9 +33,9 @@ func (k *K8Util) GetPodsUsingCtxNs(ctx context.Context, kubeCtxNs zeus_common_ty
 	}
 	pods, err := k.GetPods(ctx, kubeCtxNs, metav1.ListOptions{})
 	if err != nil {
+		log.Ctx(ctx).Err(err).Interface("kns", kubeCtxNs).Msg("GetPodsUsingCtxNs: GetPods")
 		return pods, err
 	}
-
 	if filter != nil {
 		filteredPods := v1.PodList{}
 		for _, pod := range pods.Items {
@@ -43,11 +43,8 @@ func (k *K8Util) GetPodsUsingCtxNs(ctx context.Context, kubeCtxNs zeus_common_ty
 				filteredPods.Items = append(filteredPods.Items, pod)
 			}
 		}
-		_, err = k.K8Printer(filteredPods, kubeCtxNs.Env)
 		return &filteredPods, nil
 	}
-
-	_, err = k.K8Printer(pods, kubeCtxNs.Env)
 	return pods, err
 }
 

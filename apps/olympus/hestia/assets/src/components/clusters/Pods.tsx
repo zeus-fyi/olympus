@@ -58,6 +58,9 @@ export function PodsPageTable() {
         const fetchData = async (params: any) => {
             try {
                 const response = await clustersApiGateway.getClusterPodsAudit(params.id);
+                if (response.status !== 200) {
+                    return;
+                }
                 const podSummaries = response.data.pods
                 let podsRows: any[] = [];
                 for (const [key, value] of Object.entries(podSummaries)) {

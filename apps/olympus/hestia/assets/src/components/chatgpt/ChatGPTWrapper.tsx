@@ -98,8 +98,8 @@ export function ChatGPTPage() {
     }
     const onChange = async (textInput: string) => {
         setCode(textInput);
-        const tokenCount = await heraApiGateway.getTokenCountEstimate(textInput);
-        setTokenEstimate(tokenCount);
+        // const tokenCount = await heraApiGateway.getTokenCountEstimate(textInput);
+        // setTokenEstimate(tokenCount);
     };
     return (
         <ThemeProvider theme={mdTheme}>

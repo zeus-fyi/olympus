@@ -53,7 +53,7 @@ func (ai *OpenAI) RecordUIChatRequestUsage(ctx context.Context, ou org_users.Org
 	}
 	err := hera_openai_dbmodels.InsertCompletionResponse(ctx, ou, resp)
 	if err != nil {
-		log.Ctx(ctx).Err(err)
+		log.Ctx(ctx).Err(err).Interface("params", params).Msg("RecordUIChatRequestUsage")
 		return err
 	}
 	return err

@@ -42,10 +42,10 @@ func Hera() {
 			HostPort:         "production-hera.ngb72.tmprl.cloud:7233",
 		}
 	case "production-local":
-		tc := configs.InitLocalTestConfigs()
-		authKeysCfg = tc.ProdLocalAuthKeysCfg
-		cfg.PGConnStr = tc.ProdLocalDbPgconn
-		hera_openai.InitHeraOpenAI(tc.OpenAIAuth)
+		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
+		_, sw := auth_startup.RunHeraDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+		cfg.PGConnStr = sw.PostgresAuth
+		hera_openai.InitHeraOpenAI(sw.OpenAIToken)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		authKeysCfg = tc.DevAuthKeysCfg

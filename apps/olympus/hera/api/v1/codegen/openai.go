@@ -48,13 +48,13 @@ func (ai *UICodeGenAPIRequest) CompleteUICodeGenRequest(c echo.Context) error {
 			},
 		},
 	)
-	if err != nil || len(resp.Choices) == 0 {
-		log.Ctx(ctx).Info().Interface("ou", ou).Err(err).Msg("CompleteUICodeGenRequest: CreateChatCompletion")
+	if err != nil {
+		log.Ctx(ctx).Info().Interface("ou", ou).Interface("prompt", ai.Prompt).Interface("resp", resp).Err(err).Msg("CompleteUICodeGenRequest: CreateChatCompletion")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	err = hera_openai.HeraOpenAI.RecordUIChatRequestUsage(ctx, ou, resp)
 	if err != nil {
-		log.Ctx(ctx).Info().Interface("ou", ou).Err(err).Msg("CompleteUICodeGenRequest: RecordUIChatRequestUsage")
+		log.Ctx(ctx).Info().Interface("ou", ou).Interface("prompt", ai.Prompt).Interface("resp", resp).Err(err).Msg("CompleteUICodeGenRequest: RecordUIChatRequestUsage")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, resp.Choices[0].Message.Content)
@@ -113,7 +113,7 @@ func (ai *CodeGenAPIRequest) CompleteCodeGenRequest(c echo.Context) error {
 }
 
 type UICodeGenAPIRequest struct {
-	TokenEstimate int    `json:"tokenEstimate"`
+	TokenEstimate int    `json:"tokenEstimate,omitempty"`
 	Prompt        string `json:"prompt"`
 }
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	gogpt "github.com/sashabaranov/go-gpt3"
+	"github.com/sashabaranov/go-openai"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -26,6 +27,35 @@ func (s *HeraTestSuite) TestOpenAIGetModels() {
 	s.Require().Nil(err)
 	fmt.Println(string(resp.Body()))
 
+}
+
+func (s *HeraTestSuite) TestOpenAIChatGptInsert() {
+	ctx := context.Background()
+
+	s.InitLocalConfigs()
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+
+	InitHeraOpenAI(s.Tc.OpenAIAuth)
+
+	ou := org_users.OrgUser{}
+	ou.OrgID = s.Tc.ProductionLocalTemporalOrgID
+	ou.UserID = s.Tc.ProductionLocalTemporalUserID
+	resp, err := HeraOpenAI.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model: openai.GPT3Dot5Turbo,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: "write me a go for loop and be brief",
+					Name:    fmt.Sprintf("%d", ou.UserID),
+				},
+			},
+		},
+	)
+	s.Require().Nil(err)
+	err = HeraOpenAI.RecordUIChatRequestUsage(ctx, ou, resp)
+	s.Require().Nil(err)
 }
 
 func (s *HeraTestSuite) TestOpenAITokenCount() {

@@ -164,8 +164,10 @@ export function AppPage(props: any) {
                             Workload Config
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            Here you can inspect the saved workload. You'll be able to edit this from the UI in a future release.
-                            For now, you'll need to use the API to edit the workload after it's been created.
+                            Here you can inspect the saved workload. You can also edit the workload inline
+                            and then click the update button to save your changes, however there's not any strong validation to
+                            prevent user errors, so we recommend you only change simple fields like replica counts, a docker image value, etc.
+                            For larger changes, it's recommended to update via API, since that allows for strong type checking.
                         </Typography>
                     </CardContent>
                     <Container maxWidth="xl" sx={{ mb: 4 }}>

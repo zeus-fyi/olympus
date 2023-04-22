@@ -18,6 +18,15 @@ spec:
         app.kubernetes.io/instance: "zeus-cloud"
     spec:
       containers:
+        - name: "tokenizer"
+          image: "registry.digitalocean.com/zeus-fyi/tokenizer:latest"
+          imagePullPolicy: Always
+          ports:
+            - name: "http-api"
+              containerPort: 5001
+              protocol: "TCP"
+          resources:
+            {}
         - name: "zeus-cloud"
           image: "registry.digitalocean.com/zeus-fyi/zeus-cloud:latest"
           imagePullPolicy: Always

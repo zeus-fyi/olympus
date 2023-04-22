@@ -32,9 +32,9 @@ export function PodsPageTable() {
             return updatedContainers;
         });
     };
-    const onClickStreamLogs = async (podName: string) => {
+    const onClickStreamLogs = async (podName: string, containerName: string) => {
         try {
-            let res: any = await clustersApiGateway.getClusterPodLogs(params.id, podName)
+            let res: any = await clustersApiGateway.getClusterPodLogs(params.id, podName, containerName)
             const statusCode = res.status;
             if (statusCode === 200 || statusCode === 204) {
                 setCode(res.data)
@@ -48,22 +48,25 @@ export function PodsPageTable() {
             try {
                 const response = await clustersApiGateway.getClusterPodsAudit(params.id);
                 const podSummaries = response.data.pods
-                //console.log(podSummaries)
                 let podsRows: any[] = [];
                 for (const [key, value] of Object.entries(podSummaries)) {
                     let podInfo: any = value;
                     podsRows.push(createPodsData(key, podInfo.podPhase, podInfo.containers));
                 }
-                console.log(podsRows)
                 setPods(podsRows);
             } catch (error) {
                 console.log("error", error);
             }}
-        fetchData(params);
+        fetchData(params).then(r =>
+            console.log("")
+        );
     }, []);
+    useEffect(() => {
+    }, [pods, selectedContainers]);
 
     return (
         <div>
+            {pods && (
                 <TableContainer component={Paper}>
                     <Table sx={{ minWidth: 650 }} aria-label="simple table">
                         <TableHead>
@@ -75,7 +78,7 @@ export function PodsPageTable() {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {pods && pods.map((row: any, i: number) => (
+                            {pods.map((row: any, i: number) => (
                                 <TableRow
                                     key={i}
                                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
@@ -85,28 +88,31 @@ export function PodsPageTable() {
                                     </TableCell>
                                     <TableCell align="left">{row.podPhase}</TableCell>
                                     <TableCell align="left">
-                                        <FormControl fullWidth>
-                                            <Select
-                                                labelId={`container-select-label-${i}`}
-                                                value={row.containers && row.containers[row.containers.length - 1]}
-                                                onChange={(event) => handleContainerChange(event, i)}
-                                            >
-                                                {row.containers && row.containers.map((container: string, index: number) => (
-                                                    <MenuItem key={index} value={container}>
-                                                        {container}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
+                                        {row.containers && (
+                                            <FormControl fullWidth>
+                                                <Select
+                                                    labelId={`container-select-label-${i}`}
+                                                    value={selectedContainers[i] || row.containers[row.containers.length-1]}
+                                                    onChange={(event) => handleContainerChange(event, i)}
+                                                >
+                                                    {row.containers.map((container: string, index: number) => (
+                                                        <MenuItem key={index} value={container}>
+                                                            {container}
+                                                        </MenuItem>
+                                                    ))}
+                                                </Select>
+                                            </FormControl>
+                                        )}
                                     </TableCell>
                                     <TableCell align="right">
-                                        <Button onClick={() => onClickStreamLogs(row.podName)} variant="contained">Get Logs</Button>
+                                        <Button onClick={() => onClickStreamLogs(row.podName, (selectedContainers[i] || row.containers[row.containers.length-1]))} variant="contained">Get Logs</Button>
                                     </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
                     </Table>
                 </TableContainer>
+            )}
             <Box mt={4}>
                 <PodLogStreamClusterPage code={code} setCode={setCode} />
             </Box>

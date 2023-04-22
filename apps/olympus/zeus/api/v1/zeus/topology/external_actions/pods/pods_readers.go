@@ -35,13 +35,13 @@ func PodLogsActionRequest(c echo.Context, request *PodActionRequest) error {
 			p = pod
 		}
 	}
+	if request.LogOpts == nil {
+		request.LogOpts = &v1.PodLogOptions{
+			Container: request.ContainerName,
+		}
+	}
 	if request.ContainerName == "" {
 		request.ContainerName = p.Spec.Containers[len(p.Spec.Containers)-1].Name
-		if request.LogOpts == nil {
-			request.LogOpts = &v1.PodLogOptions{
-				Container: request.ContainerName,
-			}
-		}
 		request.LogOpts.Container = request.ContainerName
 	}
 	logs, err := zeus.K8Util.GetPodLogs(ctx, p.GetName(), request.CloudCtxNs, request.LogOpts, request.FilterOpts)

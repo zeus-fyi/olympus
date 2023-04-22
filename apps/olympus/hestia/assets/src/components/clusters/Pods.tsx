@@ -43,6 +43,17 @@ export function PodsPageTable() {
         } catch (e) {
         }
     }
+    const onDeletePod = async (podName: string) => {
+        try {
+            let res: any = await clustersApiGateway.deletePod(params.id, podName)
+            const statusCode = res.status;
+            if (statusCode === 200 || statusCode === 204) {
+                setCode(res.data)
+            } else {
+            }
+        } catch (e) {
+        }
+    }
     useEffect(() => {
         const fetchData = async (params: any) => {
             try {
@@ -74,6 +85,7 @@ export function PodsPageTable() {
                                 <TableCell style={{ color: 'white'}}>PodName</TableCell>
                                 <TableCell style={{ color: 'white'}} align="left">Status</TableCell>
                                 <TableCell style={{ color: 'white'}} align="left">Containers</TableCell>
+                                <TableCell style={{ color: 'white'}} align="left"></TableCell>
                                 <TableCell style={{ color: 'white'}} align="right"></TableCell>
                             </TableRow>
                         </TableHead>
@@ -87,6 +99,7 @@ export function PodsPageTable() {
                                         {row.podName}
                                     </TableCell>
                                     <TableCell align="left">{row.podPhase}</TableCell>
+
                                     <TableCell align="left">
                                         {row.containers && (
                                             <FormControl fullWidth>
@@ -106,6 +119,9 @@ export function PodsPageTable() {
                                     </TableCell>
                                     <TableCell align="right">
                                         <Button onClick={() => onClickStreamLogs(row.podName, (selectedContainers[i] || row.containers[row.containers.length-1]))} variant="contained">Get Logs</Button>
+                                    </TableCell>
+                                    <TableCell align="right">
+                                        <Button onClick={() => onDeletePod(row.podName)} variant="contained">Delete Pod</Button>
                                     </TableCell>
                                 </TableRow>
                             ))}

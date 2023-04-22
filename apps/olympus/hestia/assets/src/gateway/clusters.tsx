@@ -100,6 +100,28 @@ class ClustersApiGateway {
             return
         }
     }
+    async deletePod(clusterID: any, podName: string): Promise<any>  {
+        const url = `/v1/pods`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`,
+                    'CloudCtxNsID': `${clusterID}`
+                },
+                withCredentials: true,
+            }
+            const payload = {
+                podName: podName,
+                action: "delete-all",
+            }
+            return await zeusApi.post(url, payload, config)
+        } catch (exc) {
+            console.error('error sending get cluster topologies at cloud ctx ns request');
+            console.error(exc);
+            return
+        }
+    }
     async getClusterPodLogs(clusterID: any, podName: string, containerName: string): Promise<any>  {
         const url = `/v1/pods`;
         try {

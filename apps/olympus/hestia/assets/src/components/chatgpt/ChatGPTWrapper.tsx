@@ -60,6 +60,11 @@ export function ChatGPTPage() {
             buttonDisabledCreate = false;
             statusMessageCreate = 'Request Sent Successfully!';
             break;
+        case 'insufficientTokenBalance':
+            buttonLabelCreate = 'Send';
+            buttonDisabledCreate = true;
+            statusMessageCreate = 'Insufficient Token Balance. Email alex@zeus.fyi to request more tokens.'
+            break;
         case 'error':
             buttonLabelCreate = 'Send';
             buttonDisabledCreate = false;
@@ -78,10 +83,16 @@ export function ChatGPTPage() {
             if (statusCode === 200 || statusCode === 204) {
                 setCode(code +  "\n" + res.data)
                 setChatRequestStatus('success');
+            } else if (statusCode === 412) {
+                setChatRequestStatus('insufficientTokenBalance');
             } else {
                 setChatRequestStatus('error');
             }
-        } catch (e) {
+        } catch (e: any) {
+            const status: number = e.response.status;
+            if (status === 412) {
+                setChatRequestStatus('insufficientTokenBalance');
+            }
             setChatRequestStatus('error');
         }
     }

@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
+	hera_openai_dbmodels "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/openai"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
@@ -39,15 +40,15 @@ func InitV1BetaRoutes(e *echo.Echo) {
 			}
 			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
 			c.Set("orgUser", ou)
-			//c.Set("bearer", key.PublicKey)
-			//b, err := hera_openai_dbmodels.CheckTokenBalance(ctx, ou)
-			//if err != nil || b.TokensRemaining < 8000 {
-			//	log.Err(err).Msg("InitV1BetaRoutes")
-			//	if b.TokensRemaining < 8000 {
-			//		return false, c.JSON(http.StatusBadRequest, "insufficient token balance, you need 8k min balance")
-			//	}
-			//	return false, c.JSON(http.StatusInternalServerError, "insufficient token balance, you need 8k min balance")
-			//}
+			c.Set("bearer", key.PublicKey)
+			b, err := hera_openai_dbmodels.CheckTokenBalance(ctx, ou)
+			if err != nil || b.TokensRemaining < 8000 {
+				log.Err(err).Msg("InitV1BetaRoutes")
+				if b.TokensRemaining < 8000 {
+					return false, c.JSON(http.StatusPreconditionFailed, "insufficient token balance, you need 8k min balance")
+				}
+				return false, c.JSON(http.StatusInternalServerError, "insufficient token balance, you need 8k min balance")
+			}
 			return key.PublicKeyVerified, err
 		},
 	}))

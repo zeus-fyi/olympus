@@ -1,0 +1,4 @@
+Flask==2.1.1
+Flask-Cors==3.0.10
+tiktorch==0.2.0
+tiktok-api==0.10.0

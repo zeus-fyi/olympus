@@ -81,7 +81,7 @@ export function ChatGPTPage() {
             let res: any = await heraApiGateway.sendChatGPTRequest(code)
             const statusCode = res.status;
             if (statusCode === 200 || statusCode === 204) {
-                setCode(code +  "\n" + res.data)
+                setCode(code + "\n" + "\n" + res.data)
                 setChatRequestStatus('success');
             } else if (statusCode === 412) {
                 setChatRequestStatus('insufficientTokenBalance');

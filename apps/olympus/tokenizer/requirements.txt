@@ -1,4 +1,4 @@
-Flask==2.1.1
+Flask==2.2.3
 Flask-Cors==3.0.10
-tiktorch==0.2.0
-tiktok-api==0.10.0
+tokenizer==3.4.2
+tiktoken==0.3.3

@@ -3,7 +3,7 @@ import React, {useEffect, useRef, useState} from "react";
 import {SelectionText} from "@uiw/react-textarea-code-editor";
 import MonacoEditor from "react-monaco-editor/lib/editor";
 import {editor} from "monaco-editor";
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 // @ts-ignore
 import yaml from 'js-yaml';
 import {RootState} from "../../redux/store";
@@ -23,11 +23,11 @@ export const languageData = [
 ];
 
 export default function YamlTextFieldAppPage(props: any) {
-    const { previewType } = props;
+    const { previewType, code, setCode, onChange} = props;
     const clusterPreview = useSelector((state: RootState) => state.apps.clusterPreview);
     const selectedComponentBaseName = useSelector((state: RootState) => state.apps.selectedComponentBaseName);
     const selectedSkeletonBaseName = useSelector((state: RootState) => state.apps.selectedSkeletonBaseName);
-    const [code, setCode] = useState('');
+    const dispatch = useDispatch();
     useEffect(() => {
         const clusterPreviewComponentBases = clusterPreview?.componentBases?.[selectedComponentBaseName];
         if (clusterPreviewComponentBases && Object.keys(clusterPreviewComponentBases).length > 0) {
@@ -58,9 +58,6 @@ export default function YamlTextFieldAppPage(props: any) {
         }
     }, [previewType, clusterPreview, selectedComponentBaseName, selectedSkeletonBaseName]);
 
-    const onChange = (textInput: string) => {
-        setCode(textInput);
-    };
 
     const themeRef = useRef<string>()
     function onSelectThemeChange(e: React.ChangeEvent<HTMLSelectElement>) {
@@ -87,4 +84,13 @@ export default function YamlTextFieldAppPage(props: any) {
                 />
             </div>
     );
+}
+export function loadYaml<T>(data: string, opts?: yaml.LoadOptions): T {
+    return yaml.load(data, opts) as any as T;
+}
+export function loadAllYaml(data: string, opts?: yaml.LoadOptions): any[] {
+    return yaml.loadAll(data, undefined, opts);
+}
+export function dumpYaml(object: any, opts?: yaml.DumpOptions): string {
+    return yaml.dump(object, opts);
 }

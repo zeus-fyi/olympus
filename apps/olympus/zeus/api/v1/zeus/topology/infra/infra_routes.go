@@ -5,6 +5,7 @@ import (
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	create_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create"
 	read_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/read"
+	update_infra "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/update"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
 
@@ -32,5 +33,6 @@ func UIRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	e.GET("/infra/ui/private/apps", read_infra.ReadOrgAppsHandler)
 	e.POST("/infra/ui/cluster/create", create_infra.CreateTopologyInfraActionFromUIRequestHandler)
 	e.POST("/infra/ui/cluster/preview", create_infra.PreviewCreateTopologyInfraActionRequestHandler)
+	e.POST("/infra/ui/cluster/update", update_infra.UpdateClusterInfraRequestHandler)
 	return e
 }

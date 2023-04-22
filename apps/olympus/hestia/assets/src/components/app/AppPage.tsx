@@ -16,16 +16,19 @@ import {
     Select,
     Stack
 } from "@mui/material";
-import {clustersApiGateway} from "../../gateway/clusters";
-import {ClusterPreview} from "../../redux/clusters/clusters.types";
+import structuredClone from '@ungap/structured-clone';
 import {
     setClusterPreview,
     setSelectedComponentBaseName,
     setSelectedSkeletonBaseName
 } from "../../redux/apps/apps.reducer";
 import Typography from "@mui/material/Typography";
-import YamlTextFieldAppPage from "./YamlFormattedTextAppPage";
+import YamlTextFieldAppPage, {loadYaml} from "./YamlFormattedTextAppPage";
 import TextField from "@mui/material/TextField";
+import yaml from "js-yaml";
+import {V1ConfigMap, V1Deployment, V1Ingress, V1Service, V1StatefulSet} from "@kubernetes/client-node";
+import {clustersApiGateway} from "../../gateway/clusters";
+import {ClusterPreview} from "../../redux/clusters/clusters.types";
 
 export function AppPage(props: any) {
     const {} = props;
@@ -33,7 +36,7 @@ export function AppPage(props: any) {
     const cluster = useSelector((state: RootState) => state.apps.cluster);
     const [viewField, setViewField] = useState('');
     const [previewType, setPreviewType] = useState('');
-    const clusterPreview = useSelector((state: RootState) => state.apps.clusterPreview);
+    let clusterPreview = useSelector((state: RootState) => state.apps.clusterPreview);
     const selectedComponentBaseName = useSelector((state: RootState) => state.apps.selectedComponentBaseName);
     const selectedSkeletonBaseName = useSelector((state: RootState) => state.apps.selectedSkeletonBaseName);
     const [addDeployment, setAddDeployment] = useState(false);
@@ -41,7 +44,11 @@ export function AppPage(props: any) {
     const [addIngress, setAddIngress] = useState(false);
     const [addService, setAddService] = useState(false);
     const [addStatefulSet, setAddStatefulSet] = useState(false);
+    const [code, setCode] = useState('');
 
+    const onChange = (textInput: string) => {
+        setCode(textInput);
+    };
     useEffect(() => {
         const skeletonBasePreview = clusterPreview?.componentBases?.[selectedComponentBaseName]?.[selectedSkeletonBaseName];
         if (skeletonBasePreview) {
@@ -65,9 +72,9 @@ export function AppPage(props: any) {
             buttonDisabledCreate = true;
             break;
         case 'success':
-            buttonLabelCreate = 'Register Cluster';
-            buttonDisabledCreate = true;
-            statusMessageCreate = 'Cluster definition generated successfully!';
+            buttonLabelCreate = 'Update ' + previewType;
+            buttonDisabledCreate = false;
+            statusMessageCreate = 'Cluster definition updated successfully!';
             break;
         case 'error':
             buttonLabelCreate = 'Resubmit';
@@ -75,8 +82,8 @@ export function AppPage(props: any) {
             statusMessageCreate = 'An error occurred while submitting, there\'s likely a problem with your configuration, check that your ports, resource values, etc are valid. ' + configError;
             break;
         default:
-            buttonLabelCreate = 'Register Cluster';
-            buttonDisabledCreate = true;
+            buttonLabelCreate = 'Update ' + previewType;
+            buttonDisabledCreate = false;
             break;
     }
 
@@ -95,10 +102,45 @@ export function AppPage(props: any) {
         }
     }
 
-    const onClickCreate = async () => {
+    const onSave = (code: string) => {
+        yaml.load(code)
+        let clusterPreviewComponentBases = clusterPreview?.componentBases?.[selectedComponentBaseName];
+        const selectedComponentBase = { ...clusterPreviewComponentBases[selectedSkeletonBaseName] };
+        switch (previewType) {
+            case 'service':
+                let svc = loadYaml<V1Service>(code);
+                selectedComponentBase.service = svc;
+                break;
+            case 'configMap':
+                const cm = loadYaml<V1ConfigMap>(code);
+                selectedComponentBase.configMap = cm;
+                break;
+            case 'deployment':
+                const dep = loadYaml<V1Deployment>(code);
+                selectedComponentBase.deployment = dep;
+                break;
+            case 'statefulSet':
+                const sts = loadYaml<V1StatefulSet>(code);
+                selectedComponentBase.statefulSet = sts;
+                break;
+            case 'ingress':
+                const ing = loadYaml<V1Ingress>(code);
+                selectedComponentBase.ingress = ing;
+                break;
+            default:
+                break;
+        }
+        let updatedClusterPreview = structuredClone(clusterPreview)
+        updatedClusterPreview.componentBases[selectedComponentBaseName][selectedSkeletonBaseName] = selectedComponentBase;
+        clusterPreview = updatedClusterPreview;
+        dispatch(setClusterPreview(clusterPreview));
+    }
+
+    const onClickUpdate = async () => {
+        onSave(code);
         try {
             setCreateRequestStatus('pending');
-            let res: any = await clustersApiGateway.createCluster(cluster)
+            let res: any = await clustersApiGateway.updateCluster(cluster, clusterPreview)
             const cp =  res.data as ClusterPreview;
             const statusCode = res.status;
             if (statusCode === 200 || statusCode === 204) {
@@ -185,21 +227,23 @@ export function AppPage(props: any) {
                             )}
                         </Stack>
                     </Container>
-                    {/*<Divider/>*/}
-                    {/*<Container maxWidth="xl" sx={{ mb: 4 }}>*/}
-                    {/*    <Box mt={2}>*/}
-                    {/*        <Button variant="contained" onClick={onClickCreate} disabled={buttonDisabledCreate}>*/}
-                    {/*            {buttonLabelCreate}*/}
-                    {/*        </Button>*/}
-                    {/*        {statusMessageCreate && (*/}
-                    {/*            <Typography variant="body2" color={requestCreateStatus === 'error' ? 'error' : 'success'}>*/}
-                    {/*                {statusMessageCreate}*/}
-                    {/*            </Typography>*/}
-                    {/*        )}*/}
-                    {/*    </Box>*/}
-                    {/*</Container>*/}
+                    <Divider/>
+                    <Container maxWidth="xl" sx={{ mb: 4 }}>
+                        <Box mt={2}>
+                            {previewType !== '' && (
+                                <Button variant="contained" onClick={onClickUpdate} disabled={buttonDisabledCreate}>
+                                    {buttonLabelCreate}
+                                </Button>
+                            )}
+                            {statusMessageCreate && (
+                                <Typography variant="body2" color={requestCreateStatus === 'error' ? 'error' : 'success'}>
+                                    {statusMessageCreate}
+                                </Typography>
+                            )}
+                        </Box>
+                    </Container>
                 </Card>
-                <YamlTextFieldAppPage previewType={previewType}/>
+                <YamlTextFieldAppPage previewType={previewType} onChange={onChange} code={code} setCode={setCode}/>
             </Stack>
         </div>
     );

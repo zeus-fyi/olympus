@@ -42,6 +42,27 @@ class ClustersApiGateway {
             return
         }
     }
+    async updateCluster(cluster: any, clusterPreview: any): Promise<any>  {
+        const url = `/v1/infra/ui/cluster/update`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
+            const payload = {
+                cluster: cluster,
+                clusterPreview: clusterPreview
+            }
+            return await zeusApi.post(url, payload, config)
+        } catch (exc) {
+            console.error('error sending cluster update request');
+            console.error(exc);
+            return
+        }
+    }
     async getClusters(): Promise<any>  {
         const url = `/v1/infra/read/org/topologies`;
         try {

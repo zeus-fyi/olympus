@@ -17,7 +17,7 @@ class HeraApiGateway {
                 },
                 withCredentials: true,
             }
-            return await heraApi.post(url, {
+            return heraApi.post(url, {
                 prompt: prompt,
             }, config)
         } catch (exc) {

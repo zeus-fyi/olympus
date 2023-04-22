@@ -36,22 +36,8 @@ type OpenAIParams struct {
 }
 
 func (ai *OpenAI) RecordUIChatRequestUsage(ctx context.Context, ou org_users.OrgUser, params openai.ChatCompletionResponse) error {
-	cmpChoices := make([]openai.CompletionChoice, len(params.Choices))
-	for i, ch := range params.Choices {
-		cmpChoices[i].Text = ch.Message.Content
-		cmpChoices[i].Index = ch.Index
-		cmpChoices[i].FinishReason = ch.FinishReason
-	}
-
-	resp := openai.CompletionResponse{
-		ID:      params.ID,
-		Object:  params.Object,
-		Created: params.Created,
-		Model:   params.Model,
-		Usage:   params.Usage,
-		Choices: cmpChoices,
-	}
-	err := hera_openai_dbmodels.InsertCompletionResponse(ctx, ou, resp)
+	log.Ctx(ctx).Info().Interface("params", params).Msg("RecordUIChatRequestUsage")
+	err := hera_openai_dbmodels.InsertCompletionResponseChatGpt(ctx, ou, params)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("params", params).Msg("RecordUIChatRequestUsage")
 		return err

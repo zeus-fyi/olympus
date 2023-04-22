@@ -55,7 +55,7 @@ func (ai *UICodeGenAPIRequest) CompleteUICodeGenRequest(c echo.Context) error {
 	err = hera_openai.HeraOpenAI.RecordUIChatRequestUsage(ctx, ou, resp)
 	if err != nil {
 		log.Ctx(ctx).Info().Interface("ou", ou).Interface("prompt", ai.Prompt).Interface("resp", resp).Err(err).Msg("CompleteUICodeGenRequest: RecordUIChatRequestUsage")
-		return c.JSON(http.StatusInternalServerError, nil)
+		//return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, resp.Choices[0].Message.Content)
 }

@@ -32,6 +32,24 @@ func insertCompletionResp() sql_query_templates.QueryParams {
 
 const Sn = "OpenAI"
 
+func InsertCompletionResponseChatGpt(ctx context.Context, ou org_users.OrgUser, response openai.ChatCompletionResponse) error {
+	q := insertCompletionResp()
+	completionChoices, err := json.Marshal(response.Choices)
+	if err != nil {
+		log.Ctx(ctx).Info().Interface("resp", response).Err(err).Msgf("Error inserting completion response: %s", q.LogHeader(Sn))
+		return err
+	}
+	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
+	r, err := apps.Pg.Exec(ctx, q.RawQuery, ou.OrgID, ou.UserID, response.Usage.PromptTokens, response.Usage.CompletionTokens, response.Usage.TotalTokens, response.Model, completionChoices)
+	if err != nil {
+		log.Ctx(ctx).Info().Interface("resp", response).Err(err).Msgf("Error inserting completion response: %s", q.LogHeader(Sn))
+		return err
+	}
+	rowsAffected := r.RowsAffected()
+	log.Debug().Msgf("OrgUser: %s, Rows Affected: %d", q.LogHeader(Sn), rowsAffected)
+	return err
+}
+
 func InsertCompletionResponse(ctx context.Context, ou org_users.OrgUser, response openai.CompletionResponse) error {
 	q := insertCompletionResp()
 	completionChoices, err := json.Marshal(response.Choices)

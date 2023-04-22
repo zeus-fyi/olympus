@@ -6,7 +6,7 @@ app = Flask(__name__)
 CORS(app, resources={r"*": {"origins": ["http://localhost:3000", "https://cloud.zeus.fyi"]}})
 
 
-@app.route('/token-count', methods=['POST'])
+@app.route('/token-count', methods=['POST', 'OPTIONS'])
 def token_count():
     try:
         text = request.get_json().get('text', '')

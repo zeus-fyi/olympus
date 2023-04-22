@@ -19,7 +19,7 @@ import authProvider from "../../redux/auth/auth.actions";
 import {AppBar, Drawer} from "../dashboard/Dashboard";
 import MainListItems from "../dashboard/listItems";
 import ChatGPTPageText from "./ChatGPT";
-import {Card, CardContent, CircularProgress, FormControl, MenuItem, Select, Stack, TextField} from "@mui/material";
+import {Card, CardContent, CircularProgress, FormControl, MenuItem, Select, Stack} from "@mui/material";
 import {heraApiGateway} from "../../gateway/hera";
 
 const mdTheme = createTheme();
@@ -89,11 +89,11 @@ export function ChatGPTPage() {
                 setChatRequestStatus('error');
             }
         } catch (e: any) {
-            const status: number = e.response.status;
-            if (status === 412) {
+            if (e.response && e.response.status === 412) {
                 setChatRequestStatus('insufficientTokenBalance');
+            } else {
+                setChatRequestStatus('error');
             }
-            setChatRequestStatus('error');
         }
     }
     const onChange = async (textInput: string) => {
@@ -182,17 +182,17 @@ export function ChatGPTPage() {
                                     and assist with code analysis and error checking.
                                 </Typography>
                             </CardContent>
-                            <Box sx={{ mt: 4, ml: 4, display: 'flex', alignItems: 'center' }}>
-                                <Typography variant="subtitle1">Token Estimate</Typography>
-                                <TextField
-                                    sx={{ width: '80px', ml: 2, mr: 4 }}
-                                    type="number"
-                                    value={tokenEstimate}
-                                    inputProps={{ min: 0 }}
-                                    variant="outlined"
-                                    size="small"
-                                />
-                            </Box>
+                            {/*<Box sx={{ mt: 4, ml: 4, display: 'flex', alignItems: 'center' }}>*/}
+                            {/*    <Typography variant="subtitle1">Token Estimate</Typography>*/}
+                            {/*    <TextField*/}
+                            {/*        sx={{ width: '80px', ml: 2, mr: 4 }}*/}
+                            {/*        type="number"*/}
+                            {/*        value={tokenEstimate}*/}
+                            {/*        inputProps={{ min: 0 }}*/}
+                            {/*        variant="outlined"*/}
+                            {/*        size="small"*/}
+                            {/*    />*/}
+                            {/*</Box>*/}
                             <Box sx={{ mt: 4, ml: 4, display: 'flex', alignItems: 'center' }}>
                                 <Typography variant="subtitle1">Code Syntax</Typography>
                                 <FormControl sx={{  ml: 4 }}>

@@ -180,7 +180,7 @@ func InsertCluster(ctx context.Context, tx pgx.Tx, sys *systems.Systems, cbMap z
 			if skeleton.Ingress != nil {
 				if len(skeleton.Ingress.Labels) > 0 {
 					v, ok := skeleton.Ingress.Annotations["nginx.ingress.kubernetes.io/auth-url"]
-					if ok && (v == "https://auth.zeus.fyi/auth/7138983863666903883" || v == "https://aegis.zeus.fyi/auth/7138983863666903883/") {
+					if ok && strings.Contains(v, "aegis.zeus.fyi") {
 						skeleton.Ingress.Annotations["nginx.ingress.kubernetes.io/auth-url"] = fmt.Sprintf("https://aegis.zeus.fyi/v1/auth/%d", ou.OrgID)
 					}
 				}

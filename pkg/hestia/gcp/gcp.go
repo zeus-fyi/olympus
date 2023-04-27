@@ -13,8 +13,8 @@ type GcpClient struct {
 	*container.Service
 }
 
-func InitGcpClient(ctx context.Context) (GcpClient, error) {
-	client, err := container.NewService(ctx, option.WithScopes(container.CloudPlatformScope))
+func InitGcpClient(ctx context.Context, authJsonBytes []byte) (GcpClient, error) {
+	client, err := container.NewService(ctx, option.WithCredentialsJSON(authJsonBytes), option.WithScopes(container.CloudPlatformScope))
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("Failed to create GKE API client")
 		return GcpClient{}, err

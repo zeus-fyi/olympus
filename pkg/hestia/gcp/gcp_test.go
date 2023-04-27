@@ -18,7 +18,7 @@ var ctx = context.Background()
 
 func (s *GcpTestSuite) SetupTest() {
 	s.InitLocalConfigs()
-	g, err := InitGcpClient(ctx)
+	g, err := InitGcpClient(ctx, s.Tc.GcpAuthJson)
 	s.Require().NoError(err)
 	s.g = g
 	s.Require().NotNil(s.g.Service)

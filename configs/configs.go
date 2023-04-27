@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	temporal_client "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
 var testCont TestContainer
@@ -21,6 +22,7 @@ type TestURLs struct {
 type TestContainer struct {
 	Env string
 
+	GcpAuthJson                 []byte
 	TwitterAccessToken          string
 	TwitterAccessTokenSecret    string
 	TwitterBearerToken          string
@@ -152,7 +154,16 @@ func InitArtemisLocalAccounts() {
 
 func InitLocalTestConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
-
+	p := filepaths.Path{
+		PackageName: "",
+		DirIn:       "gcp",
+		FnIn:        "zeusfyi-23264580e41d.json",
+	}
+	b, err := p.ReadFileInPath()
+	if err != nil {
+		panic(err)
+	}
+	testCont.GcpAuthJson = b
 	testCont.TwitterAccessToken = viper.GetString("TWITTER_ACCESS_TOKEN_KEY")
 	testCont.TwitterAccessTokenSecret = viper.GetString("TWITTER_ACCESS_TOKEN_SECRET_KEY")
 

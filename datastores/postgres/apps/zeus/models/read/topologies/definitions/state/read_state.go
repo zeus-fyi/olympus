@@ -61,7 +61,7 @@ func (s *ReadDeploymentStatusesGroup) readClustersDeployedToKns() sql_query_temp
 					FROM topologies_org_cloud_ctx_ns oc 
 					WHERE cloud_ctx_ns_id = $1 AND org_id = $2
 					LIMIT 1
-				) 
+				), cte_max_topology_id AS (
 				SELECT MAX(td.topology_id) as topology_id, topology_system_component_name, topology_base_name, topology_skeleton_base_name
 				FROM topologies_deployed td
 				JOIN topologies_kns kns ON kns.topology_id = td.topology_id
@@ -70,10 +70,18 @@ func (s *ReadDeploymentStatusesGroup) readClustersDeployedToKns() sql_query_temp
 				JOIN topology_skeleton_base_components sb ON sb.topology_skeleton_base_id = tip.topology_skeleton_base_id
 				JOIN topology_base_components bc ON bc.topology_base_component_id = sb.topology_base_component_id
 				JOIN topology_system_components tsys ON tsys.topology_system_component_id = bc.topology_system_component_id
-				WHERE kns.cloud_provider = (SELECT cloud_provider FROM cte_get_org_ctx) AND kns.region = (SELECT region FROM cte_get_org_ctx) AND kns.context = (SELECT context FROM cte_get_org_ctx) AND kns.namespace = (SELECT namespace FROM cte_get_org_ctx) AND out.org_id = $2 AND td.topology_status != 'DestroyDeployComplete'
+				WHERE kns.cloud_provider = (SELECT cloud_provider FROM cte_get_org_ctx) AND kns.region = (SELECT region FROM cte_get_org_ctx) AND kns.context = (SELECT context FROM cte_get_org_ctx) AND kns.namespace = (SELECT namespace FROM cte_get_org_ctx) AND out.org_id = $2
 				GROUP BY topology_system_component_name, topology_base_name, topology_skeleton_base_name
 				ORDER BY topology_system_component_name, topology_base_name, topology_skeleton_base_name
 			  	LIMIT 1000
+				)
+				SELECT topology_id, topology_system_component_name, topology_base_name, topology_skeleton_base_name
+				FROM cte_max_topology_id td
+				WHERE NOT EXISTS (
+					SELECT 1
+					FROM topologies_deployed tdd
+					WHERE tdd.topology_id = td.topology_id AND tdd.topology_status = 'DestroyDeployComplete'
+				)
 			  `
 	q.RawQuery = query
 	return q
@@ -90,7 +98,6 @@ func (s *ReadDeploymentStatusesGroup) ReadLatestDeployedClusterTopologies(ctx co
 	}
 	defer rows.Close()
 	for rows.Next() {
-
 		rs := ReadDeploymentStatus{}
 		rowErr := rows.Scan(
 			&rs.TopologyID, &rs.ClusterName, &rs.ComponentBaseName, &rs.SkeletonBaseName,

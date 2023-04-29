@@ -34,7 +34,6 @@ type ClusterDeploymentStatusRequest struct {
 func (t *ClusterDeploymentStatusRequest) ReadDeployedClusterTopologies(c echo.Context) error {
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
-
 	id, err := strconv.Atoi(t.CloudCtxNsID)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("ClusterDeploymentInfoRequest: ReadDeployedClusterTopologies")

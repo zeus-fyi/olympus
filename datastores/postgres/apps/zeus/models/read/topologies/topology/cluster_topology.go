@@ -24,13 +24,13 @@ func selectClusterTopologiesQ(cte *sql_query_templates.CTE, orgID int, clusterNa
 	}
 	cte.Params = append(cte.Params, pq.Array(sbs))
 
-	query := `SELECT topology_skeleton_base_name, MAX(topology_id)
+	query := `  SELECT topology_base_name, topology_skeleton_base_name, MAX(topology_id)
 				FROM topology_system_components ts
 				INNER JOIN topology_base_components tb ON tb.topology_system_component_id = ts.topology_system_component_id
 				INNER JOIN topology_skeleton_base_components sb ON tb.topology_base_component_id = sb.topology_base_component_id
 				INNER JOIN topology_infrastructure_components ti ON ti.topology_skeleton_base_id = sb.topology_skeleton_base_id
 				WHERE (ts.org_id = $1 AND ts.topology_system_component_name = $2) AND sb.topology_skeleton_base_name = ANY($3::text[])
-				GROUP BY topology_skeleton_base_name`
+				GROUP BY topology_base_name, topology_skeleton_base_name`
 
 	q.RawQuery = query
 	return q
@@ -78,14 +78,30 @@ func (c ClusterTopology) CheckForChoreographyOption() bool {
 }
 
 type ClusterTopologies struct {
-	TopologyID       int    `json:"topologyID"`
-	SkeletonBaseName string `json:"skeletonBaseName"`
-	Tag              string `json:"tag"`
+	TopologyID        int    `json:"topologyID"`
+	ComponentBaseName string `json:"componentBaseName"`
+	SkeletonBaseName  string `json:"skeletonBaseName"`
+	Tag               string `json:"tag"`
+}
+
+func SelectClusterTopologyFiltered(ctx context.Context, orgID int, clusterName string, clusterSkeletonBases []string, filter map[string]map[string]bool) (ClusterTopology, error) {
+	res, err := SelectClusterTopology(ctx, orgID, clusterName, clusterSkeletonBases)
+	if err != nil {
+		return res, err
+	}
+	filteredTop := []ClusterTopologies{}
+	for _, val := range res.Topologies {
+		_, ok := filter[val.ComponentBaseName][val.SkeletonBaseName]
+		if ok {
+			filteredTop = append(filteredTop, val)
+		}
+	}
+	res.Topologies = filteredTop
+	return res, nil
 }
 
 func SelectClusterTopology(ctx context.Context, orgID int, clusterName string, clusterSkeletonBases []string) (ClusterTopology, error) {
 	cte := sql_query_templates.CTE{}
-
 	cl := ClusterTopology{ClusterClassName: clusterName}
 	cl.Topologies = []ClusterTopologies{}
 	q := selectClusterTopologiesQ(&cte, orgID, clusterName, clusterSkeletonBases)
@@ -99,7 +115,7 @@ func SelectClusterTopology(ctx context.Context, orgID int, clusterName string, c
 	for rows.Next() {
 		ct := ClusterTopologies{Tag: "latest"}
 		rowErr := rows.Scan(
-			&ct.SkeletonBaseName, &ct.TopologyID,
+			&ct.ComponentBaseName, &ct.SkeletonBaseName, &ct.TopologyID,
 		)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader(Sn))

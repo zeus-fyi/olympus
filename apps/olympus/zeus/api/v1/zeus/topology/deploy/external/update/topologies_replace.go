@@ -1,4 +1,4 @@
-package replace_topology
+package deploy_updates
 
 import (
 	"context"
@@ -38,10 +38,10 @@ func (t *TopologyReplaceRequest) ReplaceTopology(c echo.Context) error {
 
 type DeployClusterUpdateRequestUI struct {
 	ClusterClassName string                        `json:"clusterClassName"`
-	ClustersDeployed []ClusterTopologyAtCloutCtxNs `json:"clustersDeployed"`
+	ClustersDeployed []ClusterTopologyAtCloudCtxNs `json:"clustersDeployed"`
 }
 
-type ClusterTopologyAtCloutCtxNs struct {
+type ClusterTopologyAtCloudCtxNs struct {
 	TopologyID        int    `json:"topologyID"`
 	ClusterName       string `json:"clusterName"`
 	ComponentBaseName string `json:"componentBaseName"`
@@ -62,7 +62,14 @@ func (t *DeployClusterUpdateRequestUI) TopologyUpdateRequestUI(c echo.Context) e
 		return c.JSON(http.StatusUnauthorized, nil)
 	}
 	existingTopologyIDs, sbOptions := getSkeletonBaseNamesByClusterClassName(t.ClusterClassName, t.ClustersDeployed)
-	cl, err := read_topology.SelectClusterTopology(ctx, ou.OrgID, t.ClusterClassName, sbOptions)
+	m := make(map[string]map[string]bool)
+	for _, val := range t.ClustersDeployed {
+		if _, ok := m[val.ComponentBaseName]; !ok {
+			m[val.ComponentBaseName] = make(map[string]bool)
+		}
+		m[val.ComponentBaseName][val.SkeletonBaseName] = true
+	}
+	cl, err := read_topology.SelectClusterTopologyFiltered(ctx, ou.OrgID, t.ClusterClassName, sbOptions, m)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("DeployClusterTopology: SelectClusterTopology")
 		return c.JSON(http.StatusInternalServerError, nil)
@@ -87,7 +94,7 @@ func (t *DeployClusterUpdateRequestUI) TopologyUpdateRequestUI(c echo.Context) e
 	return zeus.ExecuteDeployClusterWorkflow(c, ctx, clDeploy)
 }
 
-func getSkeletonBaseNamesByClusterClassName(clusterClassName string, clustersDeployedTopologies []ClusterTopologyAtCloutCtxNs) (map[int]bool, []string) {
+func getSkeletonBaseNamesByClusterClassName(clusterClassName string, clustersDeployedTopologies []ClusterTopologyAtCloudCtxNs) (map[int]bool, []string) {
 	var names []string
 	m := make(map[int]bool)
 	for _, cluster := range clustersDeployedTopologies {

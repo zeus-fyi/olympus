@@ -1,4 +1,4 @@
-package replace_topology
+package deploy_updates
 
 import (
 	"context"

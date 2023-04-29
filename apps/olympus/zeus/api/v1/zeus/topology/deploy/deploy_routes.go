@@ -7,7 +7,7 @@ import (
 	create_or_update_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/create_or_update"
 	destroy_deploy_request "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/destroy"
 	deployment_status "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/read"
-	replace_topology "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/replace"
+	deploy_updates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/external/update"
 	internal_secrets_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/deploy/secrets_deploy"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/deploy/workload_deploy"
 	internal_destroy_deploy "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/deploy/workload_destroy"
@@ -22,12 +22,12 @@ func ExternalDeployRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group 
 	e.POST("/deploy", create_or_update_deploy.TopologyDeploymentHandler)
 	e.POST("/deploy/ui/app", create_or_update_deploy.SetupClusterTopologyDeploymentHandler)
 	e.POST("/deploy/clean/namespace", clean_deploy_request.TopologyCleanNamespaceHandler)
-	e.POST("/deploy/replace", replace_topology.TopologyDeploymentReplaceHandler)
+	e.POST("/deploy/replace", deploy_updates.TopologyDeploymentReplaceHandler)
 	e.POST("/deploy/status", deployment_status.TopologyDeploymentStatusHandler)
 	e.POST("/deploy/cluster/status", deployment_status.ClusterDeploymentStatusHandler)
 
 	// UPDATE
-	e.POST("/deploy/ui/update", replace_topology.DeployUIClusterUpdateRequestHandler)
+	e.POST("/deploy/ui/update", deploy_updates.DeployUIClusterUpdateRequestHandler)
 
 	// DELETE
 	e.POST("/deploy/destroy", destroy_deploy_request.TopologyDestroyDeploymentHandler)

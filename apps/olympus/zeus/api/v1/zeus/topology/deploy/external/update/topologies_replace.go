@@ -74,10 +74,13 @@ func (t *DeployClusterUpdateRequestUI) TopologyUpdateRequestUI(c echo.Context) e
 		log.Ctx(ctx).Err(err).Msg("DeployClusterTopology: SelectClusterTopology")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	topIDs := cl.GetTopologyIDs()
+	latestClTops := make(map[int]read_topology.ClusterTopologies)
+	for _, top := range cl.Topologies {
+		latestClTops[top.TopologyID] = top
+	}
 	var newTopIDs []int
-	for _, topID := range topIDs {
-		if _, ok := existingTopologyIDs[topID]; !ok {
+	for topID, _ := range existingTopologyIDs {
+		if _, ok := latestClTops[topID]; !ok {
 			newTopIDs = append(newTopIDs, topID)
 		}
 	}

@@ -31,3 +31,11 @@ func TopologyDeploymentReplaceHandler(c echo.Context) error {
 	}
 	return request.ReplaceTopology(c)
 }
+
+func DeployUIClusterUpdateRequestHandler(c echo.Context) error {
+	request := new(DeployClusterUpdateRequestUI)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.TopologyUpdateRequestUI(c)
+}

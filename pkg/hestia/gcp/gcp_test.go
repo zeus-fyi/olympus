@@ -26,8 +26,29 @@ func (s *GcpTestSuite) SetupTest() {
 
 	//apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 }
-func (s *GcpTestSuite) TestListSizes() {
 
+func (s *GcpTestSuite) TestNodesToAdd() {
+	ci := GcpClusterInfo{
+		ClusterName: "zeus-gcp-pilot-0",
+		ProjectID:   "zeusfyi",
+		Zone:        "us-central1-a",
+	}
+
+	ns, err := s.g.ListNodes(ctx, ci)
+	s.Require().NoError(err)
+	s.Require().NotNil(ns)
+}
+
+func (s *GcpTestSuite) TestListNodes() {
+	ci := GcpClusterInfo{
+		ClusterName: "zeus-gcp-pilot-0",
+		ProjectID:   "zeusfyi",
+		Zone:        "us-central1-a",
+	}
+
+	ns, err := s.g.ListNodes(ctx, ci)
+	s.Require().NoError(err)
+	s.Require().NotNil(ns)
 }
 
 func TestGcpTestSuite(t *testing.T) {

@@ -42,6 +42,28 @@ class ClustersApiGateway {
             return
         }
     }
+    async deployClusterToCloudCtxNs(cloudCtxNsID: any, clusterClassName: any, clustersDeployed: any): Promise<any>  {
+        const url = `/v1/deploy/ui/update`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`,
+                    'CloudCtxNsID': `${cloudCtxNsID}`
+                },
+                withCredentials: true,
+            }
+            const payload = {
+                clusterClassName: clusterClassName,
+                clustersDeployed: clustersDeployed
+            }
+            return await zeusApi.post(url, payload, config)
+        } catch (exc) {
+            console.error('error sending cluster deploy to ns request');
+            console.error(exc);
+            return
+        }
+    }
     async updateCluster(cluster: any, clusterPreview: any): Promise<any>  {
         const url = `/v1/infra/ui/cluster/update`;
         try {

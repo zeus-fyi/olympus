@@ -1,7 +1,7 @@
 import * as React from "react";
 import {useEffect, useState} from "react";
 import {clustersApiGateway} from "../../gateway/clusters";
-import {TableContainer, TableRow} from "@mui/material";
+import {Card, CardContent, TableContainer, TableRow} from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
@@ -122,10 +122,22 @@ function ClustersPageContent() {
                     }}
                 >
                     <Toolbar />
-                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        <Card>
+                            <CardContent>
+                                <Typography gutterBottom variant="h5" component="div">
+                                    Cluster Details
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    You can see the details of the cluster here, and interact, debug, and rollout changes.
+                                </Typography>
+                            </CardContent>
+                        </Card>
+                    </Container>
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <ClustersPageTable />
                     </Container>
-                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <PodsPageTable />
                     </Container>
                 </Box>
@@ -137,6 +149,29 @@ function ClustersPageContent() {
 function ClustersPageTable(cluster: any) {
     const params = useParams();
     const [activeClusterTopologies, setActiveClusterTopologies] = useState([{}]);
+    const [statusMessage, setStatusMessage] = useState('');
+    const [statusMessageRowIndex, setStatusMessageRowIndex] = useState<number | null>(null);
+
+    const onClickRolloutUpgrade = async (index: number, clusterClassName: string) => {
+        try {
+            const response = await clustersApiGateway.deployClusterToCloudCtxNs(params.id, clusterClassName, activeClusterTopologies);
+            const statusCode = response.status;
+            if (statusCode === 202) {
+                setStatusMessageRowIndex(index);
+                setStatusMessage(`Cluster ${clusterClassName} update in progress`);
+            } else if (statusCode === 200){
+                setStatusMessageRowIndex(index);
+                setStatusMessage(`Cluster ${clusterClassName} already up to date`);
+            } else {
+                setStatusMessageRowIndex(index);
+                setStatusMessage(`Cluster ${clusterClassName} had an unexpected response: status code ${statusCode}`);
+            }
+        } catch (e) {
+            setStatusMessageRowIndex(index);
+            setStatusMessage(`Cluster ${clusterClassName} failed to update`);
+        }
+    }
+
     useEffect(() => {
         const fetchData = async (params: any) => {
             try {
@@ -152,6 +187,52 @@ function ClustersPageTable(cluster: any) {
         fetchData(params);
     }, []);
     return (
+        <div>
+        <Box sx={{ mt: 4, mb: 4 }}>
+            <TableContainer component={Paper}>
+                <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                    <TableHead>
+                        <TableRow style={{ backgroundColor: '#333'}} >
+                            <TableCell style={{ color: 'white'}} align="left">ClusterName</TableCell>
+                            <TableCell style={{ color: 'white'}} align="left"></TableCell>
+                            <TableCell style={{ color: 'white'}} align="left"></TableCell>
+                            <TableCell style={{ color: 'white'}} align="left"></TableCell>
+                            <TableCell style={{ color: 'white'}} align="left"></TableCell>
+                            <TableCell style={{ color: 'white'}} align="left"></TableCell>
+                            <TableCell style={{ color: 'white'}} align="left"></TableCell>
+                            <TableCell style={{ color: 'white'}} align="left"></TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {activeClusterTopologies
+                            .filter(
+                                (item: any, index: number, self: any) =>
+                                    index ===
+                                    self.findIndex(
+                                        (otherItem: any) => otherItem.clusterName === item.clusterName
+                                    )
+                            )
+                            .map((row: any, i: number) => (
+                            <TableRow
+                                key={i}
+                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                            >
+                                <TableCell component="th" scope="row">
+                                    {row.clusterName}
+                                </TableCell>
+                                <TableCell align="left">
+                                    <Button onClick={() => onClickRolloutUpgrade(i, row.clusterName)} variant="contained">Deploy Latest</Button>
+                                    {statusMessageRowIndex === i && <div>{statusMessage}</div>}
+                                </TableCell>
+                                <TableCell align="left">
+                                    The Deploy Latest button will deploy the latest version configs to the cluster.
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </Box>
         <TableContainer component={Paper}>
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
                 <TableHead>
@@ -179,6 +260,7 @@ function ClustersPageTable(cluster: any) {
                 </TableBody>
             </Table>
         </TableContainer>
+        </div>
     );
 }
 

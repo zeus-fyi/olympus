@@ -19,6 +19,9 @@ func (k *K8Util) GetPodLogs(ctx context.Context, name string, kns zeus_common_ty
 		logOpts = &v1.PodLogOptions{}
 	}
 	req := k.kc.CoreV1().Pods(kns.Namespace).GetLogs(name, logOpts)
+	if req == nil {
+		return nil, fmt.Errorf("GetPodLogs: req is nil")
+	}
 	buf := new(bytes.Buffer)
 	podLogs, err := req.Stream(ctx)
 	defer func(podLogs io.ReadCloser) {

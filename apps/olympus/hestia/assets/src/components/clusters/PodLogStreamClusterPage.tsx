@@ -43,8 +43,8 @@ export default function PodLogStreamClusterPage(props: any) {
     return (
             <div>
                 <MonacoEditor
-                    height="800px"
-                    width="1150px"
+                    height="1000px"
+                    width="1480x"
                     language="json"
                     theme={'vs-dark'}
                     onChange={(event) => onChange(event)}

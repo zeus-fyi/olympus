@@ -2,12 +2,17 @@ package hestia_gcp
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/rs/zerolog/log"
 	"google.golang.org/api/container/v1"
 	"google.golang.org/api/option"
 )
+
+type GcpClusterInfo struct {
+	ClusterName string
+	ProjectID   string
+	Zone        string
+}
 
 type GcpClient struct {
 	*container.Service
@@ -22,22 +27,20 @@ func InitGcpClient(ctx context.Context, authJsonBytes []byte) (GcpClient, error)
 	return GcpClient{client}, nil
 }
 
-type GcpClusterInfo struct {
-	ClusterName string
-	ProjectID   string
-	Zone        string
-}
+//func (g *GcpClient) ListNodeTypes(ctx context.Context, client *container.Service, projectID, zone, clusterID string) error {
+//	c, err := compute.NewNodeTypesRESTClient(ctx)
+//	if err != nil {
+//		log.Ctx(ctx).Err(err).Msg("Failed to create compute client")
+//		return err
+//	}
+//	return nil
+//}
 
-func (g *GcpClient) GetNodeSizes(ctx context.Context, ci GcpClusterInfo) ([]string, error) {
+func (g *GcpClient) ListNodes(ctx context.Context, ci GcpClusterInfo) ([]*container.NodePool, error) {
 	nodePools, err := g.Projects.Zones.Clusters.NodePools.List(ci.ProjectID, ci.Zone, ci.ClusterName).Context(ctx).Do()
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("Failed to retrieve node pools")
 		return nil, err
 	}
-
-	// Print the name and status of each node pool
-	for _, np := range nodePools.NodePools {
-		fmt.Printf("%s: %s\n", np.Name, np.Status)
-	}
-	return nil, err
+	return nodePools.NodePools, err
 }

@@ -79,9 +79,10 @@ func (t *DeployClusterUpdateRequestUI) TopologyUpdateRequestUI(c echo.Context) e
 		latestClTops[top.TopologyID] = top
 	}
 	var newTopIDs []int
-	for topID, _ := range existingTopologyIDs {
-		if _, ok := latestClTops[topID]; !ok {
-			newTopIDs = append(newTopIDs, topID)
+	for key, v := range latestClTops {
+		if _, exists := existingTopologyIDs[key]; !exists {
+			newTopIDs = append(newTopIDs, key)
+			log.Info().Str("clusterName", t.ClusterClassName).Interface("replacing", v).Msg("DeployClusterTopology: replacing")
 		}
 	}
 	if len(newTopIDs) == 0 {

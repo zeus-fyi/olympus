@@ -36,7 +36,6 @@ func (t *TopologyReadActionRequestTestSuite) TestReadTopologiesOrgCloudCtxNs() {
 
 func (t *TopologyReadActionRequestTestSuite) TestReadClusterDefinition() {
 	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
-
 	cl, err := read_topology.SelectClusterTopology(ctx, t.Tc.ProductionLocalTemporalOrgID, "ethereumEphemeralBeacons", []string{"lighthouseHercules", "gethHercules"})
 	t.Require().Nil(err)
 	t.Require().NotNil(cl)
@@ -50,11 +49,11 @@ func (t *TopologyReadActionRequestTestSuite) TestReadClusterDefinition() {
 func (t *TopologyReadActionRequestTestSuite) TestReadChart() {
 	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
 	tr := read_topology.NewInfraTopologyReader()
-	tr.TopologyID = 1682795123064094000
+	tr.TopologyID = 1682812982874555000
 	// from auth lookup
 	tr.OrgID = t.Tc.ProductionLocalTemporalOrgID
 	tr.UserID = t.Tc.ProductionLocalTemporalUserID
-	err := tr.SelectTopology(ctx)
+	err := tr.SelectTopologyForOrg(ctx)
 	t.Require().Nil(err)
 }
 

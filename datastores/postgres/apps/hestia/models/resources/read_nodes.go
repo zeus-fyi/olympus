@@ -31,8 +31,9 @@ func SelectNodes(ctx context.Context, nf NodeFilter) (hestia_autogen_bases.Nodes
 		return nil, err
 	}
 	// Convert to MegaBytes and vCores
-	memRequestsMegaBytes := memRequests.Value() / (1024 * 1024)
-	cpuRequestsCores := cpuRequests.Value()
+	// 1.5Gi = (1024*1024+1024) * 1.5, adds this as overhead
+	memRequestsMegaBytes := (memRequests.Value() + ((1024 * 1024 * 1024) * 1.5)) / (1024 * 1024)
+	cpuRequestsCores := cpuRequests.Value() + 1
 
 	// TODO need to add price filter only for Digital ocean
 	// Build the SQL query

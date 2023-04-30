@@ -248,6 +248,7 @@ export function DeployPage(props: any) {
                         <Typography variant="body2" color="text.secondary">
                             Without setting up a payment method you can only deploy a maximum of one app with a monthly cost up to $500/month, and if a payment method is not set within one hour it will automatically delete your app.
                             You can set a payment option on the billing page. Once you've deployed an app you can view it on the clusters page within a few minutes. Click on the cluster namespace to get a detailed view of the live cluster.
+                            The node sizing selection filter adds an additional 1 vCPU and 1.5Gi as overhead from the server to prevent selecting nodes that won't schedule this workload.
                         </Typography>
                     </CardContent>
                     <Divider />

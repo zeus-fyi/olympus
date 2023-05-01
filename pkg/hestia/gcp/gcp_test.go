@@ -23,20 +23,18 @@ func (s *GcpTestSuite) SetupTest() {
 	s.g = g
 	s.Require().NotNil(s.g.Service)
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
-
-	//apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 }
 
-func (s *GcpTestSuite) TestNodesToAdd() {
+func (s *GcpTestSuite) TestListMachineTypes() {
 	ci := GcpClusterInfo{
 		ClusterName: "zeus-gcp-pilot-0",
 		ProjectID:   "zeusfyi",
 		Zone:        "us-central1-a",
 	}
 
-	ns, err := s.g.ListNodes(ctx, ci)
+	mt, err := s.g.ListMachineTypes(ctx, ci, s.Tc.GcpAuthJson)
 	s.Require().NoError(err)
-	s.Require().NotNil(ns)
+	s.Require().NotEmpty(mt)
 }
 
 func (s *GcpTestSuite) TestListNodes() {

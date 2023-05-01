@@ -60,7 +60,7 @@ require (
 )
 
 require (
-	cloud.google.com/go/compute v1.19.0 // indirect
+	cloud.google.com/go/compute v1.19.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/allegro/bigcache v1.2.1 // indirect
@@ -138,7 +138,7 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	google.golang.org/api v0.118.0 // indirect
-	google.golang.org/genproto v0.0.0-20230403163135-c38d8f061ccd // indirect
+	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
 	google.golang.org/grpc v1.54.0 // indirect
 	gopkg.in/cenkalti/backoff.v1 v1.1.0 // indirect
 	k8s.io/apiextensions-apiserver v0.26.1 // indirect

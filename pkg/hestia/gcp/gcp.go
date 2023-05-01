@@ -87,56 +87,35 @@ func (g *GcpClient) ListMachineTypes(ctx context.Context, ci GcpClusterInfo, aut
 	return mt, err
 }
 
-func (g *GcpClient) AddNode(ctx context.Context, ci GcpClusterInfo) (any, error) {
-	// func (r *ProjectsZonesClustersNodePoolsService) Create(projectId string, zone string, clusterId string, createnodepoolrequest *CreateNodePoolRequest) *ProjectsZonesClustersNodePoolsCreateCall
+type GkeNodePoolAddition struct {
+	MachineType      string `json:"machineType"`
+	InitialNodeCount int64  `json:"initialNodeCount"`
+}
+
+func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNodePoolAddition) (any, error) {
 	cnReq := &container.CreateNodePoolRequest{
 		ClusterId: ci.ClusterName,
 		NodePool: &container.NodePool{
-			Autoscaling: nil,
-			Conditions:  nil,
+			Name:             "node-pool-1",
+			InitialNodeCount: ni.InitialNodeCount,
+			Autoscaling: &container.NodePoolAutoscaling{
+				Autoprovisioned: false,
+				Enabled:         false,
+			},
 			Config: &container.NodeConfig{
-				Accelerators:                   nil,
-				AdvancedMachineFeatures:        nil,
-				BootDiskKmsKey:                 "",
-				ConfidentialNodes:              nil,
-				DiskSizeGb:                     0,
-				DiskType:                       "",
-				EphemeralStorageLocalSsdConfig: nil,
-				FastSocket:                     nil,
-				GcfsConfig:                     nil,
-				Gvnic:                          nil,
-				ImageType:                      "",
-				KubeletConfig:                  nil,
-				Labels:                         nil,
-				LinuxNodeConfig:                nil,
-				LocalNvmeSsdBlockConfig:        nil,
-				LocalSsdCount:                  0,
-				LoggingConfig:                  nil,
-				MachineType:                    "",
-				Metadata:                       nil,
-				MinCpuPlatform:                 "",
-				NodeGroup:                      "",
-				OauthScopes:                    nil,
-				Preemptible:                    false,
-				ReservationAffinity:            nil,
-				ResourceLabels:                 nil,
-				SandboxConfig:                  nil,
-				ServiceAccount:                 "",
-				ShieldedInstanceConfig:         nil,
-				Spot:                           false,
-				Tags:                           nil,
-				Taints:                         nil,
-				WindowsNodeConfig:              nil,
-				WorkloadMetadataConfig:         nil,
-				ForceSendFields:                nil,
-				NullFields:                     nil,
+				Labels:         nil,
+				MachineType:    ni.MachineType,
+				Metadata:       nil,
+				NodeGroup:      "",
+				ResourceLabels: nil,
+				ServiceAccount: "",
+				Spot:           false,
+				Tags:           nil,
+				Taints:         nil,
 			},
 		},
-		Parent:          "",
-		ProjectId:       "",
-		Zone:            "",
-		ForceSendFields: nil,
-		NullFields:      nil,
+		ProjectId: ci.ProjectID,
+		Zone:      ci.Zone,
 	}
 	resp, err := g.Projects.Zones.Clusters.NodePools.Create(ci.ProjectID, ci.Zone, ci.ClusterName, cnReq).Context(ctx).Do()
 	if err != nil {

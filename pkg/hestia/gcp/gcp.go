@@ -19,19 +19,17 @@ const (
 )
 
 /*
+https://www.googleapis.com/auth/cloud-billing
+https://www.googleapis.com/auth/cloud-billing.readonly
+*/
+
+/*
 	General-purpose—best price-performance ratio for a variety of workloads.
 	Compute-optimized—highest performance per core on Compute Engine and optimized for compute-intensive workloads.
 	Memory-optimized—ideal for memory-intensive workloads, offering more memory per core than other machine families, with up to 12 TB of memory.
 	Accelerator-optimized—ideal for massively parallelized Compute Unified Device Architecture (CUDA) compute workloads, such as machine learning (ML) and high performance computing (HPC).
 	This family is the best option for workloads that require GPUs.
 */
-
-type GkeMachineTypes struct {
-}
-
-func (m *GkeMachineTypes) GeneralPurpose() string {
-	return ""
-}
 
 type GcpClusterInfo struct {
 	ClusterName string
@@ -85,6 +83,7 @@ func (g *GcpClient) ListMachineTypes(ctx context.Context, ci GcpClusterInfo, aut
 		fmt.Printf("Error: API responded with status code %d\n", resp.StatusCode())
 		return mt, err
 	}
+	fmt.Println(resp.String())
 	return mt, err
 }
 

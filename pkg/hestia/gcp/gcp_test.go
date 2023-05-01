@@ -2,6 +2,7 @@ package hestia_gcp
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -35,6 +36,33 @@ func (s *GcpTestSuite) TestListMachineTypes() {
 	mt, err := s.g.ListMachineTypes(ctx, ci, s.Tc.GcpAuthJson)
 	s.Require().NoError(err)
 	s.Require().NotEmpty(mt)
+	fmt.Println(mt)
+	//
+	//pf := hestia_infracost.ProductFilter{
+	//	VendorName:    "gcp",
+	//	Service:       "Compute Engine",
+	//	ProductFamily: "Compute Instance",
+	//	Region:        "us-central1",
+	//	SKU:           "",
+	//	AttributeFilters: []*hestia_infracost.AttributeFilter{
+	//		{
+	//			Key:   "machineType",
+	//			Value: "n1-standard-64",
+	//		},
+	//	},
+	//}
+	//ic := hestia_infracost.InitInfraCostClient(ctx, s.Tc.InfraCostAPIKey)
+	//for _, m := range mt.Items {
+	//	fmt.Println(m)
+	//	pf.AttributeFilters = []*hestia_infracost.AttributeFilter{
+	//		{
+	//			Key:   "machineType",
+	//			Value: m.Name,
+	//		},
+	//	}
+	//	err = ic.GetCost(ctx, pf)
+	//	s.Require().NoError(err)
+	//}
 }
 
 func (s *GcpTestSuite) TestListNodes() {

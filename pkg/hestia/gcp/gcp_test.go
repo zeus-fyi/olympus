@@ -33,7 +33,7 @@ func (s *GcpTestSuite) TestAddNodePool() {
 		Zone:        "us-central1-a",
 	}
 	mt := "e2-medium"
-	ni := GkeNodePoolAddition{
+	ni := GkeNodePoolInfo{
 		MachineType:      mt,
 		InitialNodeCount: 1,
 	}
@@ -41,6 +41,23 @@ func (s *GcpTestSuite) TestAddNodePool() {
 	s.Require().NoError(err)
 	s.Require().NotNil(r)
 }
+
+func (s *GcpTestSuite) TestRemoveNodePool() {
+	ci := GcpClusterInfo{
+		ClusterName: "zeus-gcp-pilot-0",
+		ProjectID:   "zeusfyi",
+		Zone:        "us-central1-a",
+	}
+	mt := "e2-medium"
+	ni := GkeNodePoolInfo{
+		MachineType:      mt,
+		InitialNodeCount: 1,
+	}
+	r, err := s.g.AddNodePool(ctx, ci, ni)
+	s.Require().NoError(err)
+	s.Require().NotNil(r)
+}
+
 func (s *GcpTestSuite) TestListMachineTypes() {
 	ci := GcpClusterInfo{
 		ClusterName: "zeus-gcp-pilot-0",

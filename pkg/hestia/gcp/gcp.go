@@ -87,12 +87,33 @@ func (g *GcpClient) ListMachineTypes(ctx context.Context, ci GcpClusterInfo, aut
 	return mt, err
 }
 
-type GkeNodePoolAddition struct {
+type GkeNodePoolInfo struct {
+	NodePoolID       string `json:"nodePoolID,omitempty"`
+	Name             string `json:"name"`
 	MachineType      string `json:"machineType"`
 	InitialNodeCount int64  `json:"initialNodeCount"`
 }
 
-func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNodePoolAddition) (any, error) {
+func (g *GcpClient) RemoveNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNodePoolInfo) (any, error) {
+	resp, err := g.Projects.Zones.Clusters.NodePools.Delete(ci.ProjectID, ci.Zone, ci.ClusterName, ni.NodePoolID).Context(ctx).Do()
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("failed to delete node pool")
+		return nil, err
+	}
+	return resp, err
+}
+
+func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNodePoolInfo) (any, error) {
+
+	// TODO: add taints
+	//t := container.NodeTaint{
+	//	Effect:          "",
+	//	Key:             "",
+	//	Value:           "",
+	//	ForceSendFields: nil,
+	//	NullFields:      nil,
+	//}
+
 	cnReq := &container.CreateNodePoolRequest{
 		ClusterId: ci.ClusterName,
 		NodePool: &container.NodePool{
@@ -119,7 +140,7 @@ func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNo
 	}
 	resp, err := g.Projects.Zones.Clusters.NodePools.Create(ci.ProjectID, ci.Zone, ci.ClusterName, cnReq).Context(ctx).Do()
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("Failed to create node pool")
+		log.Ctx(ctx).Err(err).Msg("failed to create node pool")
 		return nil, err
 	}
 	return resp, err

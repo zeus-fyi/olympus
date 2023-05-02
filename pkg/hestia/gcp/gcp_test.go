@@ -68,7 +68,9 @@ func (s *GcpTestSuite) TestListMachineTypes() {
 	mt, err := s.g.ListMachineTypes(ctx, ci, s.Tc.GcpAuthJson)
 	s.Require().NoError(err)
 	s.Require().NotEmpty(mt)
+	fmt.Println(len(mt.Items))
 	fmt.Println(mt)
+
 	//
 	//pf := hestia_infracost.ProductFilter{
 	//	VendorName:    "gcp",

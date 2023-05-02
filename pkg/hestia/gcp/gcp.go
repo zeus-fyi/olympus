@@ -39,6 +39,7 @@ type GcpClusterInfo struct {
 
 type GcpClient struct {
 	*container.Service
+	*resty.Client
 }
 
 func InitGcpClient(ctx context.Context, authJsonBytes []byte) (GcpClient, error) {
@@ -47,44 +48,49 @@ func InitGcpClient(ctx context.Context, authJsonBytes []byte) (GcpClient, error)
 		log.Ctx(ctx).Err(err).Msg("Failed to create GKE API client")
 		return GcpClient{}, err
 	}
-	return GcpClient{client}, nil
+	jwtConfig, jerr := google.JWTConfigFromJSON(authJsonBytes, container.CloudPlatformScope, ComputeScope, ComputeReadOnlyScope)
+	if jerr != nil {
+		log.Ctx(ctx).Err(jerr).Msgf("Error creating JWT config: %v\n", jerr)
+		return GcpClient{}, jerr
+	}
+	httpClient := jwtConfig.Client(ctx)
+	restyClient := resty.NewWithClient(httpClient)
+	return GcpClient{client, restyClient}, nil
 }
 
 func (g *GcpClient) ListMachineTypes(ctx context.Context, ci GcpClusterInfo, authJsonBytes []byte) (MachineTypes, error) {
 	mt := MachineTypes{}
-	jwtConfig, err := google.JWTConfigFromJSON(authJsonBytes, container.CloudPlatformScope, ComputeScope, ComputeReadOnlyScope)
-	if err != nil {
-		fmt.Printf("Error creating JWT config: %v\n", err)
-		return mt, err
-	}
-	httpClient := jwtConfig.Client(ctx)
-	restyClient := resty.NewWithClient(httpClient)
 	project := ci.ProjectID
 	zone := ci.Zone
 	maxResults := 500
 	orderBy := "creationTimestamp desc"
-	returnPartialSuccess := false
 	queryParams := url.Values{}
 	queryParams.Set("maxResults", fmt.Sprintf("%d", maxResults))
 	queryParams.Set("orderBy", orderBy)
-	queryParams.Set("returnPartialSuccess", fmt.Sprintf("%t", returnPartialSuccess))
+	queryParams.Set("pageToken", mt.NextPageToken)
+	for {
+		// GET /compute/v1/projects/{project}/zones/{zone}/machineTypes
+		requestURL := fmt.Sprintf("https://compute.googleapis.com/compute/v1/projects/%s/zones/%s/machineTypes", project, zone)
+		requestURL = fmt.Sprintf("%s?%s", requestURL, queryParams.Encode())
+		// Execute the request
 
-	// GET /compute/v1/projects/{project}/zones/{zone}/machineTypes
-	requestURL := fmt.Sprintf("https://compute.googleapis.com/compute/v1/projects/%s/zones/%s/machineTypes", project, zone)
-	requestURL = fmt.Sprintf("%s?%s", requestURL, queryParams.Encode())
-	// Execute the request
-	resp, err := restyClient.R().SetResult(&mt).Get(requestURL)
-	if err != nil {
-		fmt.Printf("Error executing request: %v\n", err)
-		return mt, err
+		tmp := MachineTypes{}
+		resp, err := g.R().SetResult(&tmp).Get(requestURL)
+		if err != nil {
+			fmt.Printf("Error executing request: %v\n", err)
+			return mt, err
+		}
+		mt.Items = append(mt.Items, tmp.Items...)
+		// Check for non-2xx status codes
+		if resp.StatusCode() < 200 || resp.StatusCode() >= 300 {
+			fmt.Printf("Error: API responded with status code %d\n", resp.StatusCode())
+			return mt, err
+		}
+		if tmp.NextPageToken == "" {
+			return mt, nil
+		}
+		queryParams.Set("pageToken", tmp.NextPageToken)
 	}
-	// Check for non-2xx status codes
-	if resp.StatusCode() < 200 || resp.StatusCode() >= 300 {
-		fmt.Printf("Error: API responded with status code %d\n", resp.StatusCode())
-		return mt, err
-	}
-	fmt.Println(resp.String())
-	return mt, err
 }
 
 type GkeNodePoolInfo struct {

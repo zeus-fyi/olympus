@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
@@ -109,6 +110,20 @@ func (s *GcpTestSuite) TestListNodes() {
 	ns, err := s.g.ListNodes(ctx, ci)
 	s.Require().NoError(err)
 	s.Require().NotNil(ns)
+}
+
+func (s *GcpTestSuite) TestListServices() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	services, err := s.g.ListServices(ctx)
+	s.Require().NoError(err)
+	err = hestia_compute_resources.InsertGcpServices(ctx, services.Services)
+	s.Require().NoError(err)
+
+	for _, srv := range services.Services {
+		err = s.g.ListServiceSKUs(ctx, srv.Name, srv.ServiceID)
+		s.Require().NoError(err)
+	}
+
 }
 
 func TestGcpTestSuite(t *testing.T) {

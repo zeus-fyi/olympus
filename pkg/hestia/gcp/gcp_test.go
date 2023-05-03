@@ -70,7 +70,23 @@ func (s *GcpTestSuite) TestListMachineTypes() {
 	s.Require().NoError(err)
 	s.Require().NotEmpty(mt)
 	fmt.Println(len(mt.Items))
-	fmt.Println(mt)
+	for _, m := range mt.Items {
+		if m.Name == "g2-standard-96" {
+			fmt.Println(m.Name)
+			fmt.Println("GB: ", m.CountGB())
+			fmt.Println("vCPUs: ", m.CountCPUs())
+			gpuName, gpuCount := m.CountGPUs()
+			fmt.Println("GPU type: ", gpuName)
+			fmt.Println("GPUs: ", gpuCount)
+			fmt.Println(m.GetSkuLookup())
+			skuLookup := m.GetSkuLookup()
+			hourlyCost, monthlyCost, perr := hestia_compute_resources.SelectGcpPrices(ctx, skuLookup.Name, skuLookup.GPUType, skuLookup.GPUs, skuLookup.CPUs, skuLookup.MemGB)
+			s.Require().NoError(perr)
+			fmt.Println("Hourly cost: ", hourlyCost)
+			fmt.Println("Monthly cost: ", monthlyCost)
+		}
+
+	}
 
 	//
 	//pf := hestia_infracost.ProductFilter{
@@ -124,6 +140,46 @@ func (s *GcpTestSuite) TestListServices() {
 		s.Require().NoError(err)
 	}
 
+}
+
+func (s *GcpTestSuite) TestPriceAggregation() {
+	sku := SkusResponse{
+		Skus: []Sku{
+			{
+				PricingInfo: []PricingInfo{
+					{
+						PricingExpression: PricingExpression{
+							UsageUnit:                "h",
+							BaseUnit:                 "s",
+							TieredRates:              []TierRate{{UnitPrice: Money{Nanos: 21811590}}},
+							BaseUnitConversionFactor: 3600,
+						},
+					},
+					{
+						PricingExpression: PricingExpression{
+							UsageUnit:                "GiBy.h",
+							BaseUnit:                 "By.s",
+							TieredRates:              []TierRate{{UnitPrice: Money{Nanos: 2923530}}},
+							BaseUnitConversionFactor: 3865470566400,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	cpus := 2
+	memoryGB := 8.0
+	hoursPerMonth := 730.0
+	expectedMonthlyCost := 48.90834
+	monthlyCost, err := GetPrice(sku, cpus, memoryGB, hoursPerMonth)
+	s.Require().NoError(err)
+	fmt.Println(monthlyCost)
+	s.Assert().True(monthlyCost >= expectedMonthlyCost*0.999 && monthlyCost <= expectedMonthlyCost*1.001)
+
+	hourlyCost, err := GetPrice(sku, cpus, memoryGB, 1)
+	s.Require().NoError(err)
+	fmt.Println(hourlyCost)
 }
 
 func TestGcpTestSuite(t *testing.T) {

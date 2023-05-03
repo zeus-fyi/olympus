@@ -2,8 +2,10 @@ package hestia_gcp
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
@@ -187,6 +189,68 @@ type ComputeEngineItem struct {
 	SelfLink                     string                     `json:"selfLink"`
 	IsSharedCpu                  bool                       `json:"isSharedCpu"`
 	Accelerators                 []ComputeEngineAccelerator `json:"accelerators"`
+}
+
+type SkuPricesLookup struct {
+	GPUType string `json:"gpuType"`
+	GPUs    int    `json:"gpus"`
+	CPUs    int    `json:"cpus"`
+	MemGB   int    `json:"gb"`
+	Name    string `json:"name"`
+}
+
+func (c *ComputeEngineItem) GetSkuLookup() SkuPricesLookup {
+	name, err := c.GetSkuInstanceNamePrefix()
+	if err != nil {
+		return SkuPricesLookup{}
+	}
+	gpuType, gpuCount := c.CountGPUs()
+	skuInfo := SkuPricesLookup{
+		GPUType: gpuType,
+		GPUs:    gpuCount,
+		CPUs:    c.CountCPUs(),
+		MemGB:   c.CountGB(),
+		Name:    name,
+	}
+	return skuInfo
+}
+
+func (c *ComputeEngineItem) CountGPUs() (string, int) {
+	gpus := 0
+	if len(c.Accelerators) > 1 {
+		panic("more than one accelerator, not supported")
+	}
+	name := ""
+	for _, ac := range c.Accelerators {
+		gpus += ac.GuestAcceleratorCount
+		parts := strings.Split(ac.GuestAcceleratorType, "-")
+		if len(parts) < 1 || parts[0] == "" {
+			err := errors.New("invalid input")
+			panic(err)
+		}
+		name = strings.ToUpper(parts[len(parts)-1]) + " GPU"
+	}
+	return name, gpus
+}
+
+func (c *ComputeEngineItem) CountCPUs() int {
+	vCPUs := 0
+	vCPUs += c.GuestCpus
+	return vCPUs
+}
+
+func (c *ComputeEngineItem) CountGB() int {
+	return c.MemoryMb / 1024
+}
+
+func (c *ComputeEngineItem) GetSkuInstanceNamePrefix() (string, error) {
+	parts := strings.Split(c.Name, "-")
+	if len(parts) < 1 || parts[0] == "" {
+		err := errors.New("invalid input")
+		return "", err
+	}
+	firstPart := strings.ToUpper(parts[0]) + " Instance"
+	return firstPart, nil
 }
 
 type ComputeEngineDisk struct {

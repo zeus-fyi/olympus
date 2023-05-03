@@ -71,21 +71,14 @@ func (s *GcpTestSuite) TestListMachineTypes() {
 	s.Require().NotEmpty(mt)
 	fmt.Println(len(mt.Items))
 	for _, m := range mt.Items {
-		if m.Name == "g2-standard-96" {
-			fmt.Println(m.Name)
-			fmt.Println("GB: ", m.CountGB())
-			fmt.Println("vCPUs: ", m.CountCPUs())
-			gpuName, gpuCount := m.CountGPUs()
-			fmt.Println("GPU type: ", gpuName)
-			fmt.Println("GPUs: ", gpuCount)
-			fmt.Println(m.GetSkuLookup())
-			skuLookup := m.GetSkuLookup()
-			hourlyCost, monthlyCost, perr := hestia_compute_resources.SelectGcpPrices(ctx, skuLookup.Name, skuLookup.GPUType, skuLookup.GPUs, skuLookup.CPUs, skuLookup.MemGB)
-			s.Require().NoError(perr)
-			fmt.Println("Hourly cost: ", hourlyCost)
-			fmt.Println("Monthly cost: ", monthlyCost)
+		if NonSupported(m.Name) == 0 {
+			fmt.Println("Skipping: ", m.Name)
+			continue
 		}
-
+		skuLookup := m.GetSkuLookup()
+		hourlyCost, monthlyCost, perr := hestia_compute_resources.SelectGcpPrices(ctx, skuLookup.Name, skuLookup.GPUType, skuLookup.GPUs, skuLookup.CPUs, skuLookup.MemGB)
+		s.Require().NoError(perr)
+		fmt.Println("Name", m.Name, "Hourly cost: ", hourlyCost, "Monthly cost: ", monthlyCost)
 	}
 
 	//

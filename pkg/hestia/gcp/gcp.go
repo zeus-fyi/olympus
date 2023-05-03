@@ -44,6 +44,46 @@ type GcpClient struct {
 	*resty.Client
 }
 
+func NonSupported(name string) float64 {
+	if strings.HasPrefix(name, "f1-micro") {
+		return 0
+	}
+	if strings.HasPrefix(name, "g1-small") {
+		return 0
+	}
+	if strings.HasPrefix(name, "n1-ultramem") {
+		return 0
+	}
+	if strings.HasPrefix(name, "n1-megamem") {
+		return 0
+	}
+	if strings.HasPrefix(name, "n1-highcpu-96") {
+		return 0
+	}
+	if strings.HasPrefix(name, "n1-standard-96") {
+		return 0
+	}
+	if strings.HasPrefix(name, "m2") {
+		return 0
+	}
+	if strings.HasPrefix(name, "m1") {
+		return 0
+	}
+	if strings.Contains(name, "node") {
+		return 0
+	}
+	if strings.Contains(name, "a2-ultragpu") {
+		return 0
+	}
+	if strings.Contains(name, "a2-highgpu") {
+		return 0
+	}
+	if strings.Contains(name, "a2-megagpu") {
+		return 0
+	}
+	return 1
+}
+
 func InitGcpClient(ctx context.Context, authJsonBytes []byte) (GcpClient, error) {
 	client, err := container.NewService(ctx, option.WithCredentialsJSON(authJsonBytes), option.WithScopes(container.CloudPlatformScope))
 	if err != nil {
@@ -192,11 +232,11 @@ type ComputeEngineItem struct {
 }
 
 type SkuPricesLookup struct {
-	GPUType string `json:"gpuType"`
-	GPUs    int    `json:"gpus"`
-	CPUs    int    `json:"cpus"`
-	MemGB   int    `json:"gb"`
-	Name    string `json:"name"`
+	GPUType string  `json:"gpuType"`
+	GPUs    int     `json:"gpus"`
+	CPUs    float64 `json:"cpus"`
+	MemGB   float64 `json:"gb"`
+	Name    string  `json:"name"`
 }
 
 func (c *ComputeEngineItem) GetSkuLookup() SkuPricesLookup {
@@ -233,14 +273,23 @@ func (c *ComputeEngineItem) CountGPUs() (string, int) {
 	return name, gpus
 }
 
-func (c *ComputeEngineItem) CountCPUs() int {
-	vCPUs := 0
-	vCPUs += c.GuestCpus
+func (c *ComputeEngineItem) CountCPUs() float64 {
+	vCPUs := float64(0)
+	vCPUs += float64(c.GuestCpus)
+	if c.Name == "e2-medium" {
+		vCPUs /= 2
+	}
+	if c.Name == "e2-small" {
+		vCPUs /= 4
+	}
+	if c.Name == "e2-micro" {
+		vCPUs /= 8
+	}
 	return vCPUs
 }
 
-func (c *ComputeEngineItem) CountGB() int {
-	return c.MemoryMb / 1024
+func (c *ComputeEngineItem) CountGB() float64 {
+	return float64(c.MemoryMb) / 1024
 }
 
 func (c *ComputeEngineItem) GetSkuInstanceNamePrefix() (string, error) {
@@ -249,7 +298,29 @@ func (c *ComputeEngineItem) GetSkuInstanceNamePrefix() (string, error) {
 		err := errors.New("invalid input")
 		return "", err
 	}
-	firstPart := strings.ToUpper(parts[0]) + " Instance"
+	prefixName := strings.ToUpper(parts[0])
+	if prefixName == "M3" {
+		prefixName = "M3 Memory-optimized"
+	}
+	if prefixName == "T2A" {
+		prefixName = "T2A Arm"
+	}
+	if prefixName == "T2D" {
+		prefixName = "T2D AMD"
+	}
+	if prefixName == "C2D" {
+		prefixName = "C2D AMD"
+	}
+	if prefixName == "N2D" {
+		prefixName = "N2D AMD"
+	}
+	if prefixName == "N1" {
+		prefixName = "N1 Predefined"
+	}
+	firstPart := prefixName + " Instance"
+	if prefixName == "C2" {
+		firstPart = "Compute optimized"
+	}
 	return firstPart, nil
 }
 

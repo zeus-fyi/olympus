@@ -2,7 +2,6 @@ package zeus_server
 
 import (
 	"context"
-	"fmt"
 	"os/exec"
 
 	"github.com/labstack/echo/v4"
@@ -66,8 +65,6 @@ func Zeus() {
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 		temporalAuthCfg = tc.DevTemporalAuth
-		fmt.Println("temporalAuthCfg", temporalAuthCfg)
-		fmt.Println("ProdtemporalAuthCfg", tc.ProdLocalTemporalAuth)
 		_, sw := auth_startup.RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		api_auth_temporal.InitOrchestrationDigitalOceanClient(ctx, sw.DoctlToken)
 		api_auth_temporal.InitOrchestrationGcpClient(ctx, sw.GcpAuthJsonBytes)

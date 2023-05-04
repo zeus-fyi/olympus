@@ -42,16 +42,15 @@ interface NodeMap {
 }
 
 export function DeployPage(props: any) {
-    const {app} = props
-    const [cloudProvider, setCloudProvider] = useState('do');
-    const [region, setRegion] = useState('nyc1');
+    const {app, region, setRegion, cloudProvider, setCloudProvider} = props
     const cluster = useSelector((state: RootState) => state.apps.cluster);
     const resourceRequirements = createDiskResourceRequirements(cluster);
     let nodes = useSelector((state: RootState) => state.apps.nodes);
     const nodeMap: NodeMap = {};
     const [count, setCount] = useState(0);
     const [freeTrial, setFreeTrial] = useState(false);
-    const [node, setNode] = useState(nodes[0]);
+    let filteredNodes = nodes.filter((node) => node.cloudProvider === cloudProvider && node.region === region);
+    const [node, setNode] = useState(filteredNodes[0]);
     const params = useParams();
     const dispatch = useDispatch();
 
@@ -92,16 +91,24 @@ export function DeployPage(props: any) {
                     dispatch(setNodes(response.nodes))
                 }
                 nodes = response.nodes
+                filteredNodes = nodes.filter((node) => node.cloudProvider === cloudProvider && node.region === region);
+                filteredNodes.forEach((node) => {
+                    if (node.resourceID === 0) {
+                        return;
+                    }
+                    nodeMap[node.resourceID] = node;
+                });
                 return response;
             } catch (e) {
             }
         }
-        if (nodes[0].resourceID === 0) {
+
+        if (filteredNodes.length > 0 && filteredNodes[0].resourceID === 0) {
             fetchData().then(r => {
-                setNode(nodes[0]);
+                setNode(filteredNodes[0]);
             });
         }
-    }, [params.id, nodes]);
+    }, [params.id, nodes, filteredNodes, nodeMap, cloudProvider, region, node]);
 
     const handleIncrement = () => {
         setCount(count + 1);
@@ -115,7 +122,7 @@ export function DeployPage(props: any) {
         setCount(count - 1);
     };
 
-    nodes.forEach((node) => {
+    filteredNodes.forEach((node) => {
         if (node.resourceID === 0) {
             return;
         }
@@ -206,14 +213,22 @@ export function DeployPage(props: any) {
 
     function handleChangeSelectCloudProvider(cloudProvider: string) {
         setCloudProvider(cloudProvider);
+        if (cloudProvider === 'gcp') {
+            setRegion('us-central1');
+        }
+        if (cloudProvider === 'do') {
+            setRegion('nyc1');
+        }
     }
-
+    filteredNodes = nodes.filter((node) => node.cloudProvider === cloudProvider && node.region === region);
+    filteredNodes.forEach((node) => {
+        if (node.resourceID === 0) {
+            return;
+        }
+        nodeMap[node.resourceID] = node;
+    });
     function handleChangeSelectRegion(region: string) {
         setRegion(region);
-    }
-
-    function isNodeInMap(resourceID: number) {
-        return resourceID in nodeMap;
     }
 
     function handleAddNode(resourceID: number) {
@@ -249,6 +264,8 @@ export function DeployPage(props: any) {
                             Without setting up a payment method you can only deploy a maximum of one app with a monthly cost up to $500/month, and if a payment method is not set within one hour it will automatically delete your app.
                             You can set a payment option on the billing page. Once you've deployed an app you can view it on the clusters page within a few minutes. Click on the cluster namespace to get a detailed view of the live cluster.
                             The node sizing selection filter adds an additional 1 vCPU and 1.5Gi as overhead from the server to prevent selecting nodes that won't schedule this workload.
+
+                            GCP is currently in beta, ingresses and servicemonitors are not supported yet in GCP
                         </Typography>
                     </CardContent>
                     <Divider />
@@ -273,8 +290,8 @@ export function DeployPage(props: any) {
                                         label="Cloud Provider"
                                     >
                                         <MenuItem value="do">DigitalOcean</MenuItem>
+                                        <MenuItem value="gcp">Google Cloud Platform</MenuItem>
                                         <MenuItem value="aws">Amazon Web Services (Coming soon)</MenuItem>
-                                        <MenuItem value="gcp">Google Cloud Platform (Coming soon)</MenuItem>
                                         <MenuItem value="azure">Azure (Coming soon)</MenuItem>
                                         <MenuItem value="ovh">Ovh Bare Metal (Coming soon)</MenuItem>
                                     </Select>
@@ -291,12 +308,16 @@ export function DeployPage(props: any) {
                                         onChange={(event) => handleChangeSelectRegion(event.target.value)}
                                         label="Region"
                                     >
-                                        <MenuItem value="nyc1">Nyc1</MenuItem>
+                                        {cloudProvider === "gcp" ? (
+                                            <MenuItem value="us-central1">us-central1</MenuItem>
+                                        ) : (
+                                            <MenuItem value="nyc1">nyc1</MenuItem>
+                                        )}
                                     </Select>
                                 </FormControl>
                             </Stack>
                             <Stack direction="row" >
-                                {isNodeInMap(node.resourceID) &&
+                                {node &&
                                 <FormControl  sx={{ mr: 1 }} fullWidth variant="outlined">
                                     <InputLabel key={`nodesLabel`} id={`nodes`}>
                                         Nodes
@@ -309,7 +330,9 @@ export function DeployPage(props: any) {
                                         onChange={(event) => handleAddNode(event.target.value as number)}
                                         label="Nodes"
                                     >
-                                        {nodes.map((node) => (
+                                        {nodes
+                                            .filter((node) => node.cloudProvider === cloudProvider && node.region === region)
+                                            .map((node) => (
                                             <MenuItem key={node.resourceID} value={node.resourceID}>
                                                 {node.slug + ' ($' + node.priceMonthly.toFixed(2) + '/month)'}
                                             </MenuItem>

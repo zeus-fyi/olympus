@@ -31,19 +31,24 @@ func SelectNodes(ctx context.Context, nf NodeFilter) (hestia_autogen_bases.Nodes
 		return nil, err
 	}
 	// Convert to MegaBytes and vCores
-	// 1.5Gi = (1024*1024+1024) * 1.5, adds this as overhead
+	// 1.5Gi = (1024*1024+1024) * 0.1 vCPU, adds this as overhead
 	memRequestsMegaBytes := (memRequests.Value() + ((1024 * 1024 * 1024) * 1.5)) / (1024 * 1024)
-	cpuRequestsCores := cpuRequests.Value() + 1
-
+	cpuRequestsMilli := cpuRequests.MilliValue()
+	cpuRequestsCores := float64(cpuRequestsMilli) / 1000
 	// TODO need to add price filter only for Digital ocean
 	// Build the SQL query
 	q := `SELECT resource_id, description, slug, memory, memory_units, vcpus, disk, disk_units, price_monthly, price_hourly, region, cloud_provider
     	  FROM nodes
-    	  WHERE cloud_provider = $1 AND region = $2 AND memory >= $3 AND vcpus >= $4 AND price_monthly >= 12
-    	  ORDER BY price_hourly ASC`
+    	  WHERE memory >= $1 AND (vcpus + .1) >= $2
+		  AND (
+				(cloud_provider = 'do' AND price_monthly >= 12)
+				OR
+				(cloud_provider = 'gcp')
+			  )
+		  AND (region = 'us-central1' OR region = 'nyc1')
+    	AND price_monthly < 3000
+		ORDER BY price_hourly ASC;`
 	args := []interface{}{
-		nf.CloudProvider,
-		nf.Region,
 		memRequestsMegaBytes,
 		cpuRequestsCores,
 	}
@@ -72,8 +77,14 @@ func SelectNodes(ctx context.Context, nf NodeFilter) (hestia_autogen_bases.Nodes
 			&node.Region,
 			&node.CloudProvider,
 		)
-		node.PriceHourly *= 1.1  // Add 10% to the price
-		node.PriceMonthly *= 1.1 // Add 10% to the price
+		switch node.CloudProvider {
+		case "do":
+			node.PriceHourly *= 1.1  // Add 10% to the price
+			node.PriceMonthly *= 1.1 // Add 10% to the price
+		case "gcp":
+			node.PriceHourly *= 1.40  // Add 40% to the price
+			node.PriceMonthly *= 1.40 // Add 40% to the price
+		}
 
 		if err != nil {
 			return nil, err

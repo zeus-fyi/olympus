@@ -16,9 +16,9 @@ export const appBuildToggleSteps = [
     'Resource Management'
 ];
 
-export function appPageStepComponents(activeStep: number, app: string) {
+export function appPageStepComponents(activeStep: number, app: string, cloudProvider: any, setCloudProvider: any, region: any, setRegion:any) {
     const steps = [
-        <DeployPage app={app}/>,
+        <DeployPage app={app} cloudProvider={cloudProvider} setCloudProvider={setCloudProvider} region={region} setRegion={setRegion}/>,
         <AppPage />,
         <AppResourceNodesResourcesTable />
     ];
@@ -26,7 +26,7 @@ export function appPageStepComponents(activeStep: number, app: string) {
 }
 
 export default function DeployConfigToggle(props: any) {
-    const {app} = props
+    const {app, region, setRegion, cloudProvider, setCloudProvider} = props
     const [activeStep, setActiveStep] = React.useState(0);
     const [completed, setCompleted] = React.useState<{
         [k: number]: boolean;
@@ -96,7 +96,7 @@ export default function DeployConfigToggle(props: any) {
                 <div>
                         <React.Fragment>
                             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                                {appPageStepComponents(activeStep, app)}
+                                {appPageStepComponents(activeStep, app, cloudProvider, setCloudProvider, region, setRegion)}
                             </Container>
                             <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                                 <Button

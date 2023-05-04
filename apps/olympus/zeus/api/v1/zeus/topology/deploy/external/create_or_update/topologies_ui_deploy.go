@@ -92,6 +92,10 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 
 	clusterID := uuid.New()
 	suffix := strings.Split(clusterID.String(), "-")[0]
+
+	//switch expr {
+	//
+	//}
 	cr := base_deploy_params.ClusterSetupRequest{
 		FreeTrial: t.FreeTrial,
 		Ou:        ou,

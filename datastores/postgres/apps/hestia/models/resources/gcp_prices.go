@@ -15,7 +15,7 @@ WITH selected_skus AS (
     AND usage_type = 'OnDemand'
     AND resource_family = 'Compute'
     AND (resource_group = 'CPU' OR resource_group='RAM' OR resource_group='N1Standard')
-    AND service_regions::text LIKE '%' || 'us-central1' || '%'
+    AND service_regions::text LIKE '%' || $6 || '%'
 ), selected_sku_gpus AS (
   SELECT *
   FROM gcp_services_skus
@@ -60,9 +60,11 @@ SELECT
   (COALESCE((SELECT total_cpu_cost FROM cpu_cost), 0) + COALESCE((SELECT total_memory_cost FROM memory_cost), 0) + COALESCE((SELECT total_gpu_cost FROM gpu_cost), 0)) * 730 AS total_monthly_cost;
 `
 
+// SelectGcpPrices returns the total hourly and monthly cost of a GCP instance, TODO select by regions vs hardcoded
 func SelectGcpPrices(ctx context.Context, name, gpuName string, gpuCount int, cpuCount, memSizeGB float64) (float64, float64, error) {
 	var cpuUnitCost, memUnitCost, gpuUnitCost, totalHourlyCost, totalMonthlyCost float64
-	err := apps.Pg.QueryRowWArgs(ctx, gcpPriceQuery, name, gpuName, gpuCount, cpuCount, memSizeGB).Scan(&cpuUnitCost, &memUnitCost, &gpuUnitCost, &totalHourlyCost, &totalMonthlyCost)
+	region := "us-central1"
+	err := apps.Pg.QueryRowWArgs(ctx, gcpPriceQuery, name, gpuName, gpuCount, cpuCount, memSizeGB, region).Scan(&cpuUnitCost, &memUnitCost, &gpuUnitCost, &totalHourlyCost, &totalMonthlyCost)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("SelectGcpPrices: Error")
 		return totalHourlyCost, totalMonthlyCost, err

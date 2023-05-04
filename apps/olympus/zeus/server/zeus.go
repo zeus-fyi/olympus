@@ -54,6 +54,12 @@ func Zeus() {
 			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to auth doctl, shutting down the server")
 			misc.DelayedPanic(err)
 		}
+		cmd = exec.Command("doctl", "auth", "init", "-t", sw.DoctlToken)
+		err = cmd.Run()
+		if err != nil {
+			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to auth doctl, shutting down the server")
+			misc.DelayedPanic(err)
+		}
 		api_auth_temporal.InitOrchestrationDigitalOceanClient(ctx, sw.DoctlToken)
 		api_auth_temporal.InitOrchestrationGcpClient(ctx, sw.GcpAuthJsonBytes)
 		hestia_stripe.InitStripe(sw.StripeSecretKey)

@@ -29,6 +29,14 @@ func DeployDeploymentHandler(c echo.Context) error {
 					Effect:   "NoSchedule",
 				},
 			}
+			if request.ClusterName != "" {
+				request.Deployment.Spec.Template.Spec.Tolerations = append(request.Deployment.Spec.Template.Spec.Tolerations, v1.Toleration{
+					Key:      "app",
+					Operator: "Equal",
+					Value:    request.ClusterName,
+					Effect:   "NoSchedule",
+				})
+			}
 		}
 		log.Debug().Interface("kns", request.Kns).Msg("DeployDeploymentHandler: CreateDeploymentIfVersionLabelChangesOrDoesNotExist")
 		_, err := zeus.K8Util.CreateDeploymentIfVersionLabelChangesOrDoesNotExist(ctx, request.Kns.CloudCtxNs, request.Deployment, nil)

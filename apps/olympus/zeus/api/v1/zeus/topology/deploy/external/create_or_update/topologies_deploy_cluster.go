@@ -16,6 +16,7 @@ import (
 type TopologyClusterDeployRequest struct {
 	ClusterClassName             string   `json:"clusterClassName"`
 	SkeletonBaseOptions          []string `json:"skeletonBaseOptions"`
+	AppTaint                     bool     `json:"appTaint,omitempty"`
 	zeus_common_types.CloudCtxNs `json:"cloudCtxNs"`
 }
 
@@ -51,6 +52,7 @@ func (t *TopologyClusterDeployRequest) DeployClusterTopology(c echo.Context) err
 		CloudCtxNS:                t.CloudCtxNs,
 		OrgUser:                   ou,
 		RequestChoreographySecret: cl.CheckForChoreographyOption(),
+		AppTaint:                  t.AppTaint,
 	}
 	return zeus.ExecuteDeployClusterWorkflow(c, ctx, clDeploy)
 }

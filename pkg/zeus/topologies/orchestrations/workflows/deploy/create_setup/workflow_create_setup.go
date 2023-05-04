@@ -35,6 +35,7 @@ func (c *ClusterSetupWorkflow) GetWorkflows() []interface{} {
 	return []interface{}{c.DeployClusterSetupWorkflow}
 }
 
+// TODO, make app taints optional
 func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, params base_deploy_params.ClusterSetupRequest) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{

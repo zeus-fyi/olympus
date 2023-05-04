@@ -17,6 +17,7 @@ type TopologyWorkflowRequest struct {
 	OrgUser                   org_users.OrgUser
 	Host                      string
 	RequestChoreographySecret bool
+	ClusterName               string
 
 	chart_workload.TopologyBaseInfraWorkload
 }
@@ -27,6 +28,7 @@ type ClusterTopologyWorkflowRequest struct {
 	CloudCtxNS  zeus_common_types.CloudCtxNs `json:"cloudCtxNs"`
 	OrgUser     org_users.OrgUser
 	Host        string
+	AppTaint    bool
 
 	RequestChoreographySecret bool
 }

@@ -151,7 +151,7 @@ func (g *GcpClient) RemoveNodePool(ctx context.Context, ci GcpClusterInfo, ni Gk
 	return resp, err
 }
 
-func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNodePoolInfo, taints []*container.NodeTaint) (*container.Operation, error) {
+func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNodePoolInfo, taints []*container.NodeTaint, labels map[string]string) (*container.Operation, error) {
 	cnReq := &container.CreateNodePoolRequest{
 		ClusterId: ci.ClusterName,
 		NodePool: &container.NodePool{
@@ -162,7 +162,7 @@ func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNo
 				Enabled:         false,
 			},
 			Config: &container.NodeConfig{
-				Labels:         nil,
+				Labels:         labels,
 				MachineType:    ni.MachineType,
 				Metadata:       nil,
 				NodeGroup:      "",

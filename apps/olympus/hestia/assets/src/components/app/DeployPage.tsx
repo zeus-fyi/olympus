@@ -220,15 +220,26 @@ export function DeployPage(props: any) {
             setRegion('nyc1');
         }
     }
-    filteredNodes = nodes.filter((node) => node.cloudProvider === cloudProvider && node.region === region);
-    filteredNodes.forEach((node) => {
-        if (node.resourceID === 0) {
-            return;
+
+    useEffect(() => {
+        filteredNodes = nodes.filter((node) => node.cloudProvider === cloudProvider && node.region === region);
+        filteredNodes.forEach((node) => {
+            if (node.resourceID === 0) {
+                return;
+            }
+            nodeMap[node.resourceID] = node;
+        });
+        if (filteredNodes.length > 0 ) {
+            setNode(filteredNodes[0]);
         }
-        nodeMap[node.resourceID] = node;
-    });
+    }, [cloudProvider, region, nodeMap]);
+
     function handleChangeSelectRegion(region: string) {
         setRegion(region);
+    }
+
+    function isNodeInMap(resourceID: number) {
+        return resourceID in nodeMap;
     }
 
     function handleAddNode(resourceID: number) {
@@ -317,7 +328,7 @@ export function DeployPage(props: any) {
                                 </FormControl>
                             </Stack>
                             <Stack direction="row" >
-                                {node &&
+                                {node && isNodeInMap(node.resourceID) &&
                                 <FormControl  sx={{ mr: 1 }} fullWidth variant="outlined">
                                     <InputLabel key={`nodesLabel`} id={`nodes`}>
                                         Nodes

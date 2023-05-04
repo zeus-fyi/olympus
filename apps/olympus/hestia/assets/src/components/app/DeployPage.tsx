@@ -108,7 +108,7 @@ export function DeployPage(props: any) {
                 setNode(filteredNodes[0]);
             });
         }
-    }, [params.id, nodes, filteredNodes, nodeMap, cloudProvider, region, node]);
+    }, [params.id, nodes, filteredNodes, nodeMap, cloudProvider, region]);
 
     const handleIncrement = () => {
         setCount(count + 1);
@@ -229,10 +229,16 @@ export function DeployPage(props: any) {
             }
             nodeMap[node.resourceID] = node;
         });
-        if (filteredNodes.length > 0 ) {
-            setNode(filteredNodes[0]);
+        if (filteredNodes.length > 0) {
+            if (node) {
+                if (!isNodeInMap(node.resourceID)) {
+                    setNode(filteredNodes[0]);
+                }
+            } else {
+                setNode(filteredNodes[0]);
+            }
         }
-    }, [cloudProvider, region, nodeMap]);
+    }, [cloudProvider, region, nodeMap,node]);
 
     function handleChangeSelectRegion(region: string) {
         setRegion(region);
@@ -246,6 +252,7 @@ export function DeployPage(props: any) {
         if (resourceID in nodeMap) {
             setNode(nodeMap[resourceID]);
         }
+        console.log(node, 'sdfdsafasdfdsafsda')
     }
     function totalCost() {
         let totalBlockStorageCost = 0;
@@ -361,14 +368,6 @@ export function DeployPage(props: any) {
                                     </Select>
                                 </FormControl>
                                 }
-                                <TextField
-                                    fullWidth
-                                    id="description"
-                                    label="Description"
-                                    variant="outlined"
-                                    value={node ? node.description : ""}
-                                    style={{ width: "50%" }}
-                                />
                                 <CardActions >
                                     <Stack direction="row" >
                                         <IconButton onClick={handleDecrement} aria-label="decrement" >
@@ -386,6 +385,14 @@ export function DeployPage(props: any) {
                                     </Stack>
                                 </CardActions>
                             </Stack>
+                            <TextField
+                                fullWidth
+                                id="description"
+                                label="Description"
+                                variant="outlined"
+                                value={node ? node.description : ""}
+                                style={{ width: "100%" }}
+                            />
                             <Stack direction="row" >
                                 <TextField
                                     id="vcpus"
@@ -409,6 +416,24 @@ export function DeployPage(props: any) {
                                     sx={{ flex: 1, mr: 2 }}
                                 />
                             </Stack>
+                            {node && node.gpus > 0 &&
+                                <Stack direction="row" >
+                                    <TextField
+                                        id="gpuType"
+                                        label="gpuType"
+                                        variant="outlined"
+                                        value={node.gpuType}
+                                        sx={{ flex: 1, mr: 2 }}
+                                    />
+                                    <TextField
+                                        id="gpus"
+                                        label="gpus"
+                                        variant="outlined"
+                                        value={node.gpus}
+                                        sx={{ flex: 1, mr: 2 }}
+                                    />
+                                </Stack>
+                            }
                             <Divider />
                             <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between' }}>
                                 <Typography variant="h6" color="text.secondary">

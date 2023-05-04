@@ -37,7 +37,7 @@ func SelectNodes(ctx context.Context, nf NodeFilter) (hestia_autogen_bases.Nodes
 	cpuRequestsCores := float64(cpuRequestsMilli) / 1000
 	// TODO need to add price filter only for Digital ocean
 	// Build the SQL query
-	q := `SELECT resource_id, description, slug, memory, memory_units, vcpus, disk, disk_units, price_monthly, price_hourly, region, cloud_provider
+	q := `SELECT resource_id, description, slug, memory, memory_units, vcpus, disk, disk_units, price_monthly, price_hourly, region, cloud_provider, gpus, gpu_type
     	  FROM nodes
     	  WHERE memory >= $1 AND (vcpus + .1) >= $2
 		  AND (
@@ -76,6 +76,8 @@ func SelectNodes(ctx context.Context, nf NodeFilter) (hestia_autogen_bases.Nodes
 			&node.PriceHourly,
 			&node.Region,
 			&node.CloudProvider,
+			&node.Gpus,
+			&node.GpuType,
 		)
 		switch node.CloudProvider {
 		case "do":

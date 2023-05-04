@@ -157,7 +157,7 @@ func InitLocalTestConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
 	p := filepaths.Path{
 		PackageName: "",
-		DirIn:       "gcp",
+		DirIn:       "secrets",
 		FnIn:        "zeusfyi-23264580e41d.json",
 	}
 	b, err := p.ReadFileInPath()

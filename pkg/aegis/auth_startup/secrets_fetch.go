@@ -25,7 +25,7 @@ const (
 	secretBucketName     = "zeus-fyi"
 	pagerDutySecret      = "secrets/pagerduty.txt"
 	pagerDutyRoutingKey  = "secrets/pagerduty.routing.key.txt"
-	gcpAuthJson          = "gcp/zeusfyi-23264580e41d.json"
+	gcpAuthJson          = "secrets/zeusfyi-23264580e41d.json"
 )
 
 type SecretsWrapper struct {

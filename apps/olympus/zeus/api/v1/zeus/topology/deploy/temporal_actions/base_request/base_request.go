@@ -10,6 +10,7 @@ type InternalDeploymentActionRequest struct {
 	Kns     kns.TopologyKubeCtxNs
 	OrgUser org_users.OrgUser
 	chart_workload.TopologyBaseInfraWorkload
+	ClusterName string
 }
 
 type ClusterDeployActionRequest struct {

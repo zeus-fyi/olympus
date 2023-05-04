@@ -23,10 +23,14 @@ spec:
           volumeMounts:
             - mountPath: "/scripts"
               name: "cm-zeus"
+            - mountPath: "/secrets"
+              name: "secrets"
           imagePullPolicy: Always
           command: [ "/bin/sh" ]
           args: [ "-c","/scripts/start.sh" ]
           env:
+            - name: USE_GKE_GCLOUD_AUTH_PLUGIN
+              value: "true"
             - name: PG_CONN_STR
               valueFrom:
                 secretKeyRef:
@@ -70,6 +74,9 @@ spec:
           configMap:
             name: cm-zeus
             defaultMode: 0744
+        - name: secrets
+          emptyDir:
+            medium: Memory
       nodeSelector:
         {}
       affinity:

@@ -55,7 +55,8 @@ class ClustersApiGateway {
             }
             const payload = {
                 clusterClassName: clusterClassName,
-                clustersDeployed: clustersDeployed
+                clustersDeployed: clustersDeployed,
+                appTaint: true,
             }
             return await zeusApi.post(url, payload, config)
         } catch (exc) {

@@ -29,6 +29,14 @@ func DeployStatefulSetHandler(c echo.Context) error {
 					Effect:   "NoSchedule",
 				},
 			}
+			if request.ClusterName != "" {
+				request.Deployment.Spec.Template.Spec.Tolerations = append(request.Deployment.Spec.Template.Spec.Tolerations, v1.Toleration{
+					Key:      "app",
+					Operator: "Equal",
+					Value:    request.ClusterName,
+					Effect:   "NoSchedule",
+				})
+			}
 		}
 		log.Debug().Interface("kns", request.Kns).Msg("DeployStatefulSetHandler: CreateStatefulSetIfVersionLabelChangesOrDoesNotExist")
 		_, err := zeus.K8Util.CreateStatefulSetIfVersionLabelChangesOrDoesNotExist(ctx, request.Kns.CloudCtxNs, request.StatefulSet, nil)

@@ -61,7 +61,7 @@ func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Conte
 		MachineType:      params.Nodes.Slug,
 		InitialNodeCount: int64(params.NodesQuantity),
 	}
-	node, err := api_auth_temporal.GCP.AddNodePool(ctx, ci, ni, taints)
+	node, err := api_auth_temporal.GCP.AddNodePool(ctx, ci, ni, taints, label)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("CreateNodePool error")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
@@ -79,6 +79,11 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 		Value:  fmt.Sprintf("org-%d", params.Ou.OrgID),
 		Effect: "NoSchedule",
 	}
+	appTaint := godo.Taint{
+		Key:    "app",
+		Value:  params.Cluster.ClusterName,
+		Effect: "NoSchedule",
+	}
 	label := make(map[string]string)
 	label["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
 	label["app"] = params.Cluster.ClusterName
@@ -89,7 +94,7 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 		Count:  int(params.NodesQuantity),
 		Tags:   nil,
 		Labels: label,
-		Taints: []godo.Taint{taint},
+		Taints: []godo.Taint{taint, appTaint},
 	}
 	// TODO remove hard code cluster id
 	clusterID := "0de1ee8e-7b90-45ea-b966-e2d2b7976cf9"

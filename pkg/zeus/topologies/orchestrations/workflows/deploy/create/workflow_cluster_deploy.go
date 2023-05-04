@@ -23,6 +23,9 @@ func (t *DeployTopologyWorkflow) DeployClusterTopologyWorkflow(ctx workflow.Cont
 		if req.Context == "" || req.Namespace == "" || req.Region == "" || req.CloudProvider == "" {
 			return errors.New("cloudCtxNs is empty")
 		}
+		if params.AppTaint {
+			req.ClusterName = params.ClusterName
+		}
 		err := workflow.ExecuteActivity(deployStatusCtx, t.DeployTopologyActivities.DeployClusterTopology, req, params.OrgUser).Get(deployStatusCtx, nil)
 		if err != nil {
 			log.Error("Failed to deploy topology from cluster definition", "Error", err)

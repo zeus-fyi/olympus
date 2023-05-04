@@ -19,6 +19,7 @@ import (
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
 	router "github.com/zeus-fyi/olympus/zeus/api"
+	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
 var (
@@ -54,7 +55,20 @@ func Zeus() {
 			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to auth doctl, shutting down the server")
 			misc.DelayedPanic(err)
 		}
-		cmd = exec.Command("doctl", "auth", "init", "-t", sw.DoctlToken)
+		p := filepaths.Path{
+			PackageName: "",
+			DirIn:       "",
+			DirOut:      "/secrets",
+			FnOut:       "/gcp_auth.json",
+			Env:         "",
+			FilterFiles: nil,
+		}
+		err = p.WriteToFileOutPath(sw.GcpAuthJsonBytes)
+		if err != nil {
+			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to write gcp auth json, shutting down the server")
+			misc.DelayedPanic(err)
+		}
+		cmd = exec.Command("./google-cloud-sdk/bin/gcloud", "auth", "login", "--cred-file", "/secrets/gcp_auth.json")
 		err = cmd.Run()
 		if err != nil {
 			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to auth doctl, shutting down the server")

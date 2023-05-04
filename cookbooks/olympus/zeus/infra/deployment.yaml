@@ -23,6 +23,8 @@ spec:
           volumeMounts:
             - mountPath: "/scripts"
               name: "cm-zeus"
+            - mountPath: "/secrets"
+              name: "secrets"
           imagePullPolicy: Always
           command: [ "/bin/sh" ]
           args: [ "-c","/scripts/start.sh" ]
@@ -70,6 +72,9 @@ spec:
           configMap:
             name: cm-zeus
             defaultMode: 0744
+        - name: secrets
+          emptyDir:
+            medium: Memory
       nodeSelector:
         {}
       affinity:

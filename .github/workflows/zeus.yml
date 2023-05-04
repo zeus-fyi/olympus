@@ -12,7 +12,7 @@ on:
       - docker/zeus/Dockerfile
       - .github/workflows/zeus.yml
     branches:
-      - dev
+      - main
 env:
   REPO: registry.digitalocean.com/zeus-fyi
   NAME: zeus

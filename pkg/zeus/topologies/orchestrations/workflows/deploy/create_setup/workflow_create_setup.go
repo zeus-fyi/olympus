@@ -41,7 +41,6 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 		StartToCloseTimeout: defaultTimeout,
 	}
 	// TODO add billing email step
-
 	switch params.CloudCtxNs.CloudProvider {
 	case "do":
 		nodePoolRequestStatusCtxKns := workflow.WithActivityOptions(ctx, ao)
@@ -88,7 +87,7 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 
 	// TODO needs to add option for gcp
 	for _, disk := range params.Disks {
-		if disk.DiskSize == 0 || disk.DiskUnits == "" {
+		if disk.DiskSize == 0 && disk.DiskUnits == "" {
 			continue
 		}
 		diskActivityOptions := ao

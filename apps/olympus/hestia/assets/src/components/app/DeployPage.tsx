@@ -170,7 +170,7 @@ export function DeployPage(props: any) {
             setRequestStatus('pending');
             const namespaceAlias = cluster.clusterName;
             const payload = {
-                "cloudProvider": 'do',
+                "cloudProvider": cloudProvider,
                 "region": region,
                 "nodes": node,
                 "count": count,
@@ -210,7 +210,6 @@ export function DeployPage(props: any) {
                 setRequestStatus('error');
             }
         }};
-
     function handleChangeSelectCloudProvider(cloudProvider: string) {
         setCloudProvider(cloudProvider);
         if (cloudProvider === 'gcp') {
@@ -220,7 +219,6 @@ export function DeployPage(props: any) {
             setRegion('nyc1');
         }
     }
-
     useEffect(() => {
         filteredNodes = nodes.filter((node) => node.cloudProvider === cloudProvider && node.region === region);
         filteredNodes.forEach((node) => {
@@ -239,15 +237,12 @@ export function DeployPage(props: any) {
             }
         }
     }, [cloudProvider, region, nodeMap,node]);
-
     function handleChangeSelectRegion(region: string) {
         setRegion(region);
     }
-
     function isNodeInMap(resourceID: number) {
         return resourceID in nodeMap;
     }
-
     function handleAddNode(resourceID: number) {
         if (resourceID in nodeMap) {
             setNode(nodeMap[resourceID]);

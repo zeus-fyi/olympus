@@ -11,13 +11,15 @@ CREATE TABLE nodes (
    slug text NOT NULL,
    memory int NOT NULL,
    memory_units text NOT NULL,
-   vcpus int NOT NULL,
+   vcpus float4 NOT NULL,
    disk int NOT NULL,
    disk_units text NOT NULL,
    price_monthly float8 NOT NULL,
    price_hourly float8 NOT NULL,
    region text NOT NULL,
    cloud_provider text NOT NULL,
+   gpus int NOT NULL DEFAULT 0,
+   gpu_type text NOT NULL DEFAULT 'none',
    PRIMARY KEY (resource_id)
 );
 
@@ -59,6 +61,14 @@ CREATE INDEX begin_resource_idx ON org_resources (begin_service);
 CREATE INDEX end_resource_idx ON org_resources (end_service);
 
 CREATE TABLE digitalocean_node_pools (
+    org_resource_id int8 NOT NULL REFERENCES org_resources(org_resource_id),
+    resource_id int8 NOT NULL REFERENCES resources(resource_id),
+    node_pool_id text NOT NULL,
+    node_context_id text NOT NULL,
+    PRIMARY KEY (org_resource_id)
+);
+
+CREATE TABLE gke_node_pools (
     org_resource_id int8 NOT NULL REFERENCES org_resources(org_resource_id),
     resource_id int8 NOT NULL REFERENCES resources(resource_id),
     node_pool_id text NOT NULL,

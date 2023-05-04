@@ -31,6 +31,24 @@ func (s *DisksTestSuite) TestInsertDisk() {
 	s.Require().NoError(err)
 }
 
+func (s *DisksTestSuite) TestInsertDiskGcp() {
+	s.InitLocalConfigs()
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+
+	disk := hestia_autogen_bases.Disks{
+		PriceMonthly:  17,
+		PriceHourly:   0.02329,
+		Region:        "us-central1",
+		CloudProvider: "gcp",
+		Description:   "GCP Block Storage SSD",
+		Type:          "ssd",
+		DiskSize:      100,
+		DiskUnits:     "Gi",
+	}
+	err := InsertDisk(ctx, disk)
+	s.Require().NoError(err)
+}
+
 func TestDisksTestSuite(t *testing.T) {
 	suite.Run(t, new(DisksTestSuite))
 }

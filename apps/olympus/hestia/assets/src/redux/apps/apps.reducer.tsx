@@ -24,6 +24,8 @@ const initialState: AppsState = {
         priceMonthly: 0,
         region: '',
         memory: 0,
+        gpus: 0,
+        gpuType: 'none',
     }],
 }
 

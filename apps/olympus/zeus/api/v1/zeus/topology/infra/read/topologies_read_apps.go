@@ -14,9 +14,12 @@ import (
 	read_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/topologies/topology"
 	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	zeus_templates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
 type TopologyReadPrivateAppsRequest struct {
+	AppID                        string `json:"appID"`
+	zeus_common_types.CloudCtxNs `json:"cloudCtxNs"`
 }
 
 func (t *TopologyReadPrivateAppsRequest) ListPrivateAppsRequest(c echo.Context) error {
@@ -133,10 +136,7 @@ func (t *TopologyReadPrivateAppsRequest) GetPrivateAppDetailsRequest(c echo.Cont
 		resp.Cluster.ComponentBases[cbName] = sbUI
 		resp.ClusterPreviewWorkloadsOlympus.ComponentBases[cbName] = uiSbs
 	}
-	// TODO remove hard coded
 	nf := hestia_compute_resources.NodeFilter{
-		CloudProvider: "do",
-		Region:        "nyc1",
 		ResourceSums: zeus_core.ResourceSums{
 			MemRequests: rsMinMax.Min.MemRequests,
 			CpuRequests: rsMinMax.Min.CpuRequests,

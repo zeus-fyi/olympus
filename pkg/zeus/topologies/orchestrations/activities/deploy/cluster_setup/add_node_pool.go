@@ -9,8 +9,10 @@ import (
 	"github.com/rs/zerolog/log"
 	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
 	do_types "github.com/zeus-fyi/olympus/pkg/hestia/digitalocean/types"
+	hestia_gcp "github.com/zeus-fyi/olympus/pkg/hestia/gcp"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
+	"google.golang.org/api/container/v1"
 )
 
 func (c *CreateSetupTopologyActivities) AddNodePoolToOrgResources(ctx context.Context, params base_deploy_params.ClusterSetupRequest, npStatus do_types.DigitalOceanNodePoolRequestStatus) error {
@@ -20,6 +22,55 @@ func (c *CreateSetupTopologyActivities) AddNodePoolToOrgResources(ctx context.Co
 		return err
 	}
 	return nil
+}
+
+func (c *CreateSetupTopologyActivities) GkeAddNodePoolToOrgResources(ctx context.Context, params base_deploy_params.ClusterSetupRequest, npStatus do_types.DigitalOceanNodePoolRequestStatus) error {
+	err := hestia_compute_resources.AddGkeNodePoolResourcesToOrg(ctx, params.Ou.OrgID, params.Nodes.ResourceID, params.NodesQuantity, npStatus.NodePoolID, npStatus.ClusterID, params.FreeTrial)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("GkeAddNodePoolToOrgResources error")
+		return err
+	}
+	return nil
+}
+
+func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (do_types.DigitalOceanNodePoolRequestStatus, error) {
+	label := make(map[string]string)
+	label["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
+	label["app"] = params.Cluster.ClusterName
+	suffix := strings.Split(params.Namespace, "-")[0]
+	tOrg := container.NodeTaint{
+		Effect: "NO_SCHEDULE",
+		Key:    fmt.Sprintf("org-%d", params.Ou.OrgID),
+		Value:  fmt.Sprintf("org-%d", params.Ou.OrgID),
+	}
+	tApp := container.NodeTaint{
+		Effect: "NO_SCHEDULE",
+		Key:    "app",
+		Value:  params.Cluster.ClusterName,
+	}
+	taints := []*container.NodeTaint{&tOrg, &tApp}
+	// TODO remove hard code cluster info
+	clusterID := "zeus-gcp-pilot-0"
+	ci := hestia_gcp.GcpClusterInfo{
+		ClusterName: clusterID,
+		ProjectID:   "zeusfyi",
+		Zone:        "us-central1-a",
+	}
+	ni := hestia_gcp.GkeNodePoolInfo{
+		Name:             fmt.Sprintf("nodepool-%d-%s", params.Ou.OrgID, suffix),
+		MachineType:      params.Nodes.Slug,
+		InitialNodeCount: int64(params.NodesQuantity),
+	}
+	node, err := api_auth_temporal.GCP.AddNodePool(ctx, ci, ni, taints)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("CreateNodePool error")
+		return do_types.DigitalOceanNodePoolRequestStatus{}, err
+	}
+	fmt.Println(node)
+	return do_types.DigitalOceanNodePoolRequestStatus{
+		ClusterID:  clusterID,
+		NodePoolID: ni.Name,
+	}, err
 }
 
 func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (do_types.DigitalOceanNodePoolRequestStatus, error) {
@@ -54,6 +105,16 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 	}, nil
 }
 
+func (c *CreateSetupTopologyActivities) SelectGkeNodeResources(ctx context.Context, request base_deploy_params.DestroyResourcesRequest) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
+	log.Ctx(ctx).Info().Interface("request", request).Msg("SelectNodeResources")
+	nps, err := hestia_compute_resources.GkeSelectNodeResources(ctx, request.Ou.OrgID, request.OrgResourceIDs)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Interface("request", request).Msg("GkeSelectNodeResources: GkeSelectNodeResources error")
+		return nps, err
+	}
+	return nps, err
+}
+
 func (c *CreateSetupTopologyActivities) SelectNodeResources(ctx context.Context, request base_deploy_params.DestroyResourcesRequest) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
 	log.Ctx(ctx).Info().Interface("request", request).Msg("SelectNodeResources")
 	nps, err := hestia_compute_resources.SelectNodeResources(ctx, request.Ou.OrgID, request.OrgResourceIDs)
@@ -85,6 +146,24 @@ func (c *CreateSetupTopologyActivities) RemoveNodePoolRequest(ctx context.Contex
 	return err
 }
 
+func (c *CreateSetupTopologyActivities) GkeRemoveNodePoolRequest(ctx context.Context, nodePool do_types.DigitalOceanNodePoolRequestStatus) error {
+	log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("RemoveNodePoolRequest")
+	ci := hestia_gcp.GcpClusterInfo{
+		ClusterName: nodePool.ClusterID,
+		ProjectID:   "zeusfyi",
+		Zone:        "us-central1-a",
+	}
+	ni := hestia_gcp.GkeNodePoolInfo{
+		Name: nodePool.NodePoolID,
+	}
+	_, err := api_auth_temporal.GCP.RemoveNodePool(ctx, ci, ni)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Interface("nodePool", nodePool).Msg("GkeRemoveNodePoolRequest error")
+		return err
+	}
+	return err
+}
+
 func (c *CreateSetupTopologyActivities) RemoveFreeTrialOrgResources(ctx context.Context, params base_deploy_params.ClusterSetupRequest) error {
 	err := hestia_compute_resources.RemoveFreeTrialOrgResources(ctx, params.Ou.OrgID)
 	if err != nil {
@@ -110,4 +189,13 @@ func (c *CreateSetupTopologyActivities) SelectFreeTrialNodes(ctx context.Context
 		return nps, err
 	}
 	return nps, err
+}
+
+func (c *CreateSetupTopologyActivities) GkeSelectFreeTrialNodes(ctx context.Context, orgID int) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
+	gkeNps, err := hestia_compute_resources.GkeSelectFreeTrialNodes(ctx, orgID)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Int("orgID", orgID).Msg("GkeSelectFreeTrialNodes: GkeSelectFreeTrialNodes error")
+		return gkeNps, err
+	}
+	return gkeNps, err
 }

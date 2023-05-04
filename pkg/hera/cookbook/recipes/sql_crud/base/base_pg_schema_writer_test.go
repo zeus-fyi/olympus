@@ -40,7 +40,7 @@ var printOutLocationHestia = "/Users/alex/go/Olympus/olympus/datastores/postgres
 func (s *ModelStructBaseGenWriterTestSuite) TestHestiaBaseSchemaWriter() {
 	filter := string_utils.FilterOpts{
 		DoesNotStartWithThese: []string{},
-		StartsWithThese:       []string{"org", "user"},
+		StartsWithThese:       []string{"gcp_services_skus"},
 		Contains:              "",
 		DoesNotInclude:        nil,
 	}

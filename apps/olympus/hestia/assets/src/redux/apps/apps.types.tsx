@@ -26,6 +26,8 @@ export interface Nodes {
     priceMonthly: number;
     region: string;
     memory: number;
+    gpus: number;
+    gpuType: string;
 }
 
 export type TopologySystemComponentsSlice = TopologySystemComponents[];

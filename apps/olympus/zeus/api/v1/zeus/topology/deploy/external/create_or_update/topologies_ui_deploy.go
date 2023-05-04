@@ -92,32 +92,61 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 
 	clusterID := uuid.New()
 	suffix := strings.Split(clusterID.String(), "-")[0]
-	cr := base_deploy_params.ClusterSetupRequest{
-		FreeTrial: t.FreeTrial,
-		Ou:        ou,
-		CloudCtxNs: zeus_common_types.CloudCtxNs{
-			CloudProvider: "do",
-			Region:        "nyc1",
-			Context:       "do-nyc1-do-nyc1-zeus-demo", // hardcoded for now
-			Namespace:     clusterID.String(),
-			Alias:         fmt.Sprintf("%s-%s", t.NamespaceAlias, suffix),
-			Env:           "",
-		},
-		Nodes: autogen_bases.Nodes{
-			Region:        t.Region,
-			CloudProvider: t.CloudProvider,
-			ResourceID:    t.Node.ResourceID,
-			Slug:          t.Node.Slug,
-		},
-		NodesQuantity: t.Count,
-		Disks:         autogen_bases.DisksSlice{},
-		Cluster:       t.Cluster,
+	var cr base_deploy_params.ClusterSetupRequest
+	var diskResourceID int
+	switch t.CloudProvider {
+	case "do":
+		cr = base_deploy_params.ClusterSetupRequest{
+			FreeTrial: t.FreeTrial,
+			Ou:        ou,
+			CloudCtxNs: zeus_common_types.CloudCtxNs{
+				CloudProvider: "do",
+				Region:        "nyc1",
+				Context:       "do-nyc1-do-nyc1-zeus-demo", // hardcoded for now
+				Namespace:     clusterID.String(),
+				Alias:         fmt.Sprintf("%s-%s", t.NamespaceAlias, suffix),
+				Env:           "",
+			},
+			Nodes: autogen_bases.Nodes{
+				Region:        t.Region,
+				CloudProvider: t.CloudProvider,
+				ResourceID:    t.Node.ResourceID,
+				Slug:          t.Node.Slug,
+			},
+			NodesQuantity: t.Count,
+			Disks:         autogen_bases.DisksSlice{},
+			Cluster:       t.Cluster,
+		}
+		diskResourceID = 1681408541855876000
+	case "gcp":
+		cr = base_deploy_params.ClusterSetupRequest{
+			FreeTrial: t.FreeTrial,
+			Ou:        ou,
+			CloudCtxNs: zeus_common_types.CloudCtxNs{
+				CloudProvider: "gcp",
+				Region:        "us-central1",
+				Context:       "gke_zeusfyi_us-central1-a_zeus-gcp-pilot-0", // hardcoded for now
+				Namespace:     clusterID.String(),
+				Alias:         fmt.Sprintf("%s-%s", t.NamespaceAlias, suffix),
+				Env:           "",
+			},
+			Nodes: autogen_bases.Nodes{
+				Region:        t.Region,
+				CloudProvider: t.CloudProvider,
+				ResourceID:    t.Node.ResourceID,
+				Slug:          t.Node.Slug,
+			},
+			NodesQuantity: t.Count,
+			Disks:         autogen_bases.DisksSlice{},
+			Cluster:       t.Cluster,
+		}
+		diskResourceID = 1683165785839881000
 	}
 
 	ds := make(autogen_bases.DisksSlice, len(t.ResourceRequirements))
 	for i, dr := range t.ResourceRequirements {
 		disk := autogen_bases.Disks{
-			ResourceID:    1680989153453105000, // hard coded for now
+			ResourceID:    diskResourceID,
 			Region:        t.Region,
 			CloudProvider: t.CloudProvider,
 			DiskUnits:     dr.ResourceSumsDisk,

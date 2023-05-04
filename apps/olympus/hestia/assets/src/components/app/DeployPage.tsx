@@ -42,16 +42,15 @@ interface NodeMap {
 }
 
 export function DeployPage(props: any) {
-    const {app} = props
-    const [cloudProvider, setCloudProvider] = useState('do');
-    const [region, setRegion] = useState('nyc1');
+    const {app, region, setRegion, cloudProvider, setCloudProvider} = props
     const cluster = useSelector((state: RootState) => state.apps.cluster);
     const resourceRequirements = createDiskResourceRequirements(cluster);
     let nodes = useSelector((state: RootState) => state.apps.nodes);
     const nodeMap: NodeMap = {};
     const [count, setCount] = useState(0);
     const [freeTrial, setFreeTrial] = useState(false);
-    const [node, setNode] = useState(nodes[0]);
+    let filteredNodes = nodes.filter((node) => node.cloudProvider === cloudProvider && node.region === region);
+    const [node, setNode] = useState(filteredNodes[0]);
     const params = useParams();
     const dispatch = useDispatch();
 
@@ -92,16 +91,24 @@ export function DeployPage(props: any) {
                     dispatch(setNodes(response.nodes))
                 }
                 nodes = response.nodes
+                filteredNodes = nodes.filter((node) => node.cloudProvider === cloudProvider && node.region === region);
+                filteredNodes.forEach((node) => {
+                    if (node.resourceID === 0) {
+                        return;
+                    }
+                    nodeMap[node.resourceID] = node;
+                });
                 return response;
             } catch (e) {
             }
         }
-        if (nodes[0].resourceID === 0) {
+
+        if (filteredNodes.length > 0 && filteredNodes[0].resourceID === 0) {
             fetchData().then(r => {
-                setNode(nodes[0]);
+                setNode(filteredNodes[0]);
             });
         }
-    }, [params.id, nodes]);
+    }, [params.id, nodes, filteredNodes, nodeMap, cloudProvider, region]);
 
     const handleIncrement = () => {
         setCount(count + 1);
@@ -115,7 +122,7 @@ export function DeployPage(props: any) {
         setCount(count - 1);
     };
 
-    nodes.forEach((node) => {
+    filteredNodes.forEach((node) => {
         if (node.resourceID === 0) {
             return;
         }
@@ -163,7 +170,7 @@ export function DeployPage(props: any) {
             setRequestStatus('pending');
             const namespaceAlias = cluster.clusterName;
             const payload = {
-                "cloudProvider": 'do',
+                "cloudProvider": cloudProvider,
                 "region": region,
                 "nodes": node,
                 "count": count,
@@ -203,19 +210,39 @@ export function DeployPage(props: any) {
                 setRequestStatus('error');
             }
         }};
-
     function handleChangeSelectCloudProvider(cloudProvider: string) {
         setCloudProvider(cloudProvider);
+        if (cloudProvider === 'gcp') {
+            setRegion('us-central1');
+        }
+        if (cloudProvider === 'do') {
+            setRegion('nyc1');
+        }
     }
-
+    useEffect(() => {
+        filteredNodes = nodes.filter((node) => node.cloudProvider === cloudProvider && node.region === region);
+        filteredNodes.forEach((node) => {
+            if (node.resourceID === 0) {
+                return;
+            }
+            nodeMap[node.resourceID] = node;
+        });
+        if (filteredNodes.length > 0) {
+            if (node) {
+                if (!isNodeInMap(node.resourceID)) {
+                    setNode(filteredNodes[0]);
+                }
+            } else {
+                setNode(filteredNodes[0]);
+            }
+        }
+    }, [cloudProvider, region, nodeMap,node]);
     function handleChangeSelectRegion(region: string) {
         setRegion(region);
     }
-
     function isNodeInMap(resourceID: number) {
         return resourceID in nodeMap;
     }
-
     function handleAddNode(resourceID: number) {
         if (resourceID in nodeMap) {
             setNode(nodeMap[resourceID]);
@@ -223,15 +250,25 @@ export function DeployPage(props: any) {
     }
     function totalCost() {
         let totalBlockStorageCost = 0;
+        // digitalOcean block storage
+        let monthlyDiskCost = 10
+        if (cloudProvider === 'gcp') {
+            monthlyDiskCost = 17
+        }
         for (const resource of resourceRequirements) {
-            totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * 10 * parseInt(resource.replicas));
+            totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * monthlyDiskCost * parseInt(resource.replicas));
         }
         return node.priceMonthly * count + (totalBlockStorageCost*1.1);
     }
     function totalHourlyCost() {
         let totalBlockStorageCost = 0;
+        // digitalOcean block storage
+        let hourlyDiskCost = 0.0137
+        if (cloudProvider === 'gcp') {
+            hourlyDiskCost = 0.02329
+        }
         for (const resource of resourceRequirements) {
-            totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * 0.10 * parseInt(resource.replicas));
+            totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * hourlyDiskCost * parseInt(resource.replicas));
         }
         let roundedNum = Math.ceil(node.priceHourly * Math.pow(10, 2)) / Math.pow(10, 2);
         return roundedNum * count + (totalBlockStorageCost*1.1);
@@ -248,7 +285,9 @@ export function DeployPage(props: any) {
                         <Typography variant="body2" color="text.secondary">
                             Without setting up a payment method you can only deploy a maximum of one app with a monthly cost up to $500/month, and if a payment method is not set within one hour it will automatically delete your app.
                             You can set a payment option on the billing page. Once you've deployed an app you can view it on the clusters page within a few minutes. Click on the cluster namespace to get a detailed view of the live cluster.
-                            The node sizing selection filter adds an additional 1 vCPU and 1.5Gi as overhead from the server to prevent selecting nodes that won't schedule this workload.
+                            The node sizing selection filter adds an additional 0.1 vCPU and 1.5Gi as overhead from the server to prevent selecting nodes that won't schedule this workload.
+
+                            GCP is currently in beta, Ingress and ServiceMonitors are not supported yet in GCP
                         </Typography>
                     </CardContent>
                     <Divider />
@@ -273,8 +312,8 @@ export function DeployPage(props: any) {
                                         label="Cloud Provider"
                                     >
                                         <MenuItem value="do">DigitalOcean</MenuItem>
+                                        <MenuItem value="gcp">Google Cloud Platform</MenuItem>
                                         <MenuItem value="aws">Amazon Web Services (Coming soon)</MenuItem>
-                                        <MenuItem value="gcp">Google Cloud Platform (Coming soon)</MenuItem>
                                         <MenuItem value="azure">Azure (Coming soon)</MenuItem>
                                         <MenuItem value="ovh">Ovh Bare Metal (Coming soon)</MenuItem>
                                     </Select>
@@ -291,12 +330,16 @@ export function DeployPage(props: any) {
                                         onChange={(event) => handleChangeSelectRegion(event.target.value)}
                                         label="Region"
                                     >
-                                        <MenuItem value="nyc1">Nyc1</MenuItem>
+                                        {cloudProvider === "gcp" ? (
+                                            <MenuItem value="us-central1">us-central1</MenuItem>
+                                        ) : (
+                                            <MenuItem value="nyc1">nyc1</MenuItem>
+                                        )}
                                     </Select>
                                 </FormControl>
                             </Stack>
                             <Stack direction="row" >
-                                {isNodeInMap(node.resourceID) &&
+                                {node && isNodeInMap(node.resourceID) &&
                                 <FormControl  sx={{ mr: 1 }} fullWidth variant="outlined">
                                     <InputLabel key={`nodesLabel`} id={`nodes`}>
                                         Nodes
@@ -309,7 +352,9 @@ export function DeployPage(props: any) {
                                         onChange={(event) => handleAddNode(event.target.value as number)}
                                         label="Nodes"
                                     >
-                                        {nodes.map((node) => (
+                                        {nodes
+                                            .filter((node) => node.cloudProvider === cloudProvider && node.region === region)
+                                            .map((node) => (
                                             <MenuItem key={node.resourceID} value={node.resourceID}>
                                                 {node.slug + ' ($' + node.priceMonthly.toFixed(2) + '/month)'}
                                             </MenuItem>
@@ -317,14 +362,6 @@ export function DeployPage(props: any) {
                                     </Select>
                                 </FormControl>
                                 }
-                                <TextField
-                                    fullWidth
-                                    id="description"
-                                    label="Description"
-                                    variant="outlined"
-                                    value={node ? node.description : ""}
-                                    style={{ width: "50%" }}
-                                />
                                 <CardActions >
                                     <Stack direction="row" >
                                         <IconButton onClick={handleDecrement} aria-label="decrement" >
@@ -342,6 +379,14 @@ export function DeployPage(props: any) {
                                     </Stack>
                                 </CardActions>
                             </Stack>
+                            <TextField
+                                fullWidth
+                                id="description"
+                                label="Description"
+                                variant="outlined"
+                                value={node ? node.description : ""}
+                                style={{ width: "100%" }}
+                            />
                             <Stack direction="row" >
                                 <TextField
                                     id="vcpus"
@@ -365,6 +410,24 @@ export function DeployPage(props: any) {
                                     sx={{ flex: 1, mr: 2 }}
                                 />
                             </Stack>
+                            {node && node.gpus > 0 &&
+                                <Stack direction="row" >
+                                    <TextField
+                                        id="gpuType"
+                                        label="gpuType"
+                                        variant="outlined"
+                                        value={node.gpuType}
+                                        sx={{ flex: 1, mr: 2 }}
+                                    />
+                                    <TextField
+                                        id="gpus"
+                                        label="gpus"
+                                        variant="outlined"
+                                        value={node.gpus}
+                                        sx={{ flex: 1, mr: 2 }}
+                                    />
+                                </Stack>
+                            }
                             <Divider />
                             <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between' }}>
                                 <Typography variant="h6" color="text.secondary">

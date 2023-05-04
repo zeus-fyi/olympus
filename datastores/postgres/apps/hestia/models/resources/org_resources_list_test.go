@@ -19,7 +19,7 @@ func (s *DisksTestSuite) TestSelectOrgResourceNodes() {
 	orgID := 1679515557647002001
 
 	resourceID := 0
-	orSlice, err := SelectNodeResources(ctx, orgID, resourceID)
+	orSlice, err := SelectNodeResources(ctx, orgID, []int{resourceID})
 	s.Require().NoError(err)
 	s.Require().NotEmpty(orSlice)
 	fmt.Println(orSlice)

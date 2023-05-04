@@ -22,6 +22,7 @@ type TestURLs struct {
 type TestContainer struct {
 	Env string
 
+	InfraCostAPIKey             string
 	GcpAuthJson                 []byte
 	TwitterAccessToken          string
 	TwitterAccessTokenSecret    string
@@ -156,7 +157,7 @@ func InitLocalTestConfigs() TestContainer {
 	InitEnvFromConfig(forceDirToCallerLocation())
 	p := filepaths.Path{
 		PackageName: "",
-		DirIn:       "gcp",
+		DirIn:       "secrets",
 		FnIn:        "zeusfyi-23264580e41d.json",
 	}
 	b, err := p.ReadFileInPath()
@@ -167,6 +168,7 @@ func InitLocalTestConfigs() TestContainer {
 	testCont.TwitterAccessToken = viper.GetString("TWITTER_ACCESS_TOKEN_KEY")
 	testCont.TwitterAccessTokenSecret = viper.GetString("TWITTER_ACCESS_TOKEN_SECRET_KEY")
 
+	testCont.InfraCostAPIKey = viper.GetString("INFRA_COST_API_KEY")
 	testCont.TwitterBearerToken = viper.GetString("TWITTER_BEARER_TOKEN")
 	testCont.TwitterConsumerPublicAPIKey = viper.GetString("TWITTER_PUBLIC_API_KEY")
 	testCont.TwitterConsumerSecretAPIKey = viper.GetString("TWITTER_SECRET_API_KEY")

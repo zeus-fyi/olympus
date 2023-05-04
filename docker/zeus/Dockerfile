@@ -51,7 +51,7 @@ WORKDIR /app
 RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-429.0.0-linux-x86_64.tar.gz -O google-cloud-cli.tar.gz
 
 FROM ubuntu:22.04
-RUN apt-get update && apt-get install -y ca-certificates google-cloud-sdk-gke-gcloud-auth-plugin
+RUN apt-get update && apt-get install -y ca-certificates
 
 COPY --from=builder /app/ca-certificate.crt /etc/ssl/certs
 COPY --from=builder /app/ca.pem /etc/ssl/certs
@@ -64,5 +64,6 @@ COPY --from=gcp /app/google-cloud-cli.tar.gz /
 RUN tar xf google-cloud-cli.tar.gz
 RUN rm google-cloud-cli.tar.gz
 RUN ./google-cloud-sdk/install.sh
+RUN /google-cloud-sdk/bin/gcloud components install gke-gcloud-auth-plugin
 
 EXPOSE 9001

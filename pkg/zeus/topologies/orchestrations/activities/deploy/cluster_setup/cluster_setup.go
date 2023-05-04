@@ -25,5 +25,9 @@ func (c *CreateSetupTopologyActivities) GetActivities() ActivitiesSlice {
 		c.SelectNodeResources,
 		c.EndResourceService,
 		c.SelectDiskResourcesAtCloudCtxNs,
+		c.GkeMakeNodePoolRequest,
+		c.GkeRemoveNodePoolRequest,
+		c.SelectGkeNodeResources,
+		c.GkeSelectFreeTrialNodes,
 	}
 }

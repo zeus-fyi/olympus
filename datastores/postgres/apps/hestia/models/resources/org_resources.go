@@ -34,6 +34,22 @@ func AddResourcesToOrgAndCtx(ctx context.Context, orgID, resourceID int, quantit
 	return err
 }
 
+func AddGkeNodePoolResourcesToOrg(ctx context.Context, orgID, resourceID int, quantity float64, nodePoolID, nodeContextID string, freeTrial bool) error {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = ` WITH cte_org_resources AS (
+					  INSERT INTO org_resources(org_id, resource_id, quantity, free_trial)
+					  VALUES ($1, $2, $3, $6)
+					  RETURNING org_resource_id
+				  ) INSERT INTO gke_node_pools(org_resource_id, resource_id, node_pool_id, node_context_id)
+					VALUES ((SELECT org_resource_id FROM cte_org_resources), $2, $4, $5)
+				  `
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, resourceID, quantity, nodePoolID, nodeContextID, freeTrial)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
+		return returnErr
+	}
+	return err
+}
+
 func AddDigitalOceanNodePoolResourcesToOrg(ctx context.Context, orgID, resourceID int, quantity float64, nodePoolID, nodeContextID string, freeTrial bool) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = ` WITH cte_org_resources AS (
@@ -74,12 +90,39 @@ func SelectFreeTrialDigitalOceanNodes(ctx context.Context, orgID int) ([]do_type
 	return nodePools, err
 }
 
+func GkeSelectFreeTrialNodes(ctx context.Context, orgID int) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT node_pool_id, node_context_id
+ 				  FROM gke_node_pools
+ 				  JOIN org_resources USING (org_resource_id)
+				  WHERE org_id = $1 AND free_trial = true AND begin_service <= CURRENT_TIMESTAMP - INTERVAL '1 hour'
+				  `
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID)
+	if err == pgx.ErrNoRows {
+		return nil, nil
+	}
+	defer rows.Close()
+	var nodePools []do_types.DigitalOceanNodePoolRequestStatus
+	for rows.Next() {
+		np := do_types.DigitalOceanNodePoolRequestStatus{}
+		err = rows.Scan(&np.NodePoolID, &np.ClusterID)
+		if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
+			return nil, returnErr
+		}
+		nodePools = append(nodePools, np)
+	}
+	return nodePools, err
+}
+
 func RemoveFreeTrialOrgResources(ctx context.Context, orgID int) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `WITH cte_org_free_trial_resources AS (
 					SELECT org_resource_id FROM org_resources WHERE org_id = $1 AND free_trial = true
 			      ), cte_digitalocean_node_pools AS (
 					DELETE FROM digitalocean_node_pools
+					WHERE org_resource_id IN (SELECT org_resource_id FROM cte_org_free_trial_resources)
+				  ), cte_gke_node_pools AS (
+					DELETE FROM gke_node_pools
 					WHERE org_resource_id IN (SELECT org_resource_id FROM cte_org_free_trial_resources)
 				  ), cte_org_resource_ctx_id_delete AS (
   					DELETE FROM org_resources_cloud_ctx WHERE org_resource_id IN (SELECT org_resource_id FROM cte_org_free_trial_resources)	
@@ -126,6 +169,30 @@ func DoesOrgHaveOngoingFreeTrial(ctx context.Context, orgID int) (bool, error) {
 		return true, returnErr
 	}
 	return isFreeTrialOngoing, err
+}
+
+func GkeSelectNodeResources(ctx context.Context, orgID int, orgResourceIDs []int) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT node_pool_id, node_context_id
+ 				  FROM gke_node_pools
+ 				  JOIN org_resources USING (org_resource_id)
+				  WHERE org_id = $1 AND org_resource_id = ANY($2::bigint[]) AND free_trial = false
+				  `
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, pq.Array(orgResourceIDs))
+	if err == pgx.ErrNoRows {
+		return nil, nil
+	}
+	defer rows.Close()
+	var nodePools []do_types.DigitalOceanNodePoolRequestStatus
+	for rows.Next() {
+		np := do_types.DigitalOceanNodePoolRequestStatus{}
+		err = rows.Scan(&np.NodePoolID, &np.ClusterID)
+		if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
+			return nil, returnErr
+		}
+		nodePools = append(nodePools, np)
+	}
+	return nodePools, err
 }
 
 func SelectNodeResources(ctx context.Context, orgID int, orgResourceIDs []int) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {

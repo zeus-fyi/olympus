@@ -41,18 +41,36 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 		StartToCloseTimeout: defaultTimeout,
 	}
 	// TODO add billing email step
-	nodePoolRequestStatusCtxKns := workflow.WithActivityOptions(ctx, ao)
-	var nodePoolRequestStatus do_types.DigitalOceanNodePoolRequestStatus
-	err := workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.MakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, &nodePoolRequestStatus)
-	if err != nil {
-		log.Error("Failed to complete node pool request", "Error", err)
-		return err
-	}
-	nodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(nodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.AddNodePoolToOrgResources, params, nodePoolRequestStatus).Get(nodePoolOrgResourcesCtx, nil)
-	if err != nil {
-		log.Error("Failed to add node resources to org account", "Error", err)
-		return err
+
+	switch params.CloudCtxNs.CloudProvider {
+	case "do":
+		nodePoolRequestStatusCtxKns := workflow.WithActivityOptions(ctx, ao)
+		var nodePoolRequestStatus do_types.DigitalOceanNodePoolRequestStatus
+		err := workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.MakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, &nodePoolRequestStatus)
+		if err != nil {
+			log.Error("Failed to complete node pool request", "Error", err)
+			return err
+		}
+		nodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(nodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.AddNodePoolToOrgResources, params, nodePoolRequestStatus).Get(nodePoolOrgResourcesCtx, nil)
+		if err != nil {
+			log.Error("Failed to add node resources to org account", "Error", err)
+			return err
+		}
+	case "gcp":
+		nodePoolRequestStatusCtxKns := workflow.WithActivityOptions(ctx, ao)
+		var nodePoolRequestStatus do_types.DigitalOceanNodePoolRequestStatus
+		err := workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.GkeMakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, &nodePoolRequestStatus)
+		if err != nil {
+			log.Error("Failed to complete node pool request", "Error", err)
+			return err
+		}
+		nodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(nodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.GkeAddNodePoolToOrgResources, params, nodePoolRequestStatus).Get(nodePoolOrgResourcesCtx, nil)
+		if err != nil {
+			log.Error("Failed to add node resources to org account", "Error", err)
+			return err
+		}
 	}
 	authCloudCtxNsCtxOptions := ao
 	retryPolicy := &temporal.RetryPolicy{
@@ -62,11 +80,13 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 	}
 	authCloudCtxNsCtxOptions.RetryPolicy = retryPolicy
 	authCloudCtxNsCtx := workflow.WithActivityOptions(ctx, authCloudCtxNsCtxOptions)
-	err = workflow.ExecuteActivity(authCloudCtxNsCtx, c.CreateSetupTopologyActivities.AddAuthCtxNsOrg, params).Get(authCloudCtxNsCtx, nil)
+	err := workflow.ExecuteActivity(authCloudCtxNsCtx, c.CreateSetupTopologyActivities.AddAuthCtxNsOrg, params).Get(authCloudCtxNsCtx, nil)
 	if err != nil {
 		log.Error("Failed to authorize auth ns to org account", "Error", err)
 		return err
 	}
+
+	// TODO needs to add option for gcp
 	for _, disk := range params.Disks {
 		if disk.DiskSize == 0 || disk.DiskUnits == "" {
 			continue

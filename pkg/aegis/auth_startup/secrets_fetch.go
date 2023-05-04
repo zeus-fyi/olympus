@@ -25,6 +25,7 @@ const (
 	secretBucketName     = "zeus-fyi"
 	pagerDutySecret      = "secrets/pagerduty.txt"
 	pagerDutyRoutingKey  = "secrets/pagerduty.routing.key.txt"
+	gcpAuthJson          = "gcp/zeusfyi-23264580e41d.json"
 )
 
 type SecretsWrapper struct {
@@ -39,6 +40,7 @@ type SecretsWrapper struct {
 	PagerDutyApiKey        string
 	PagerDutyRoutingKey    string
 	SendGridAPIKey         string
+	GcpAuthJsonBytes       []byte
 
 	StripePubKey    string
 	StripeSecretKey string
@@ -62,6 +64,15 @@ func (s *SecretsWrapper) ReadSecret(ctx context.Context, inMemSecrets memfs.MemF
 	return string(secret)
 }
 
+func (s *SecretsWrapper) ReadSecretBytes(ctx context.Context, inMemSecrets memfs.MemFS, fileName string) []byte {
+	secret, err := inMemSecrets.ReadFile(fileName)
+	if err != nil {
+		log.Ctx(ctx).Fatal().Msgf("SecretsWrapper: ReadSecret failed, shutting down the server: %s", fileName)
+		misc.DelayedPanic(err)
+	}
+	return secret
+}
+
 func ReadEncryptedSecretsData(ctx context.Context, authCfg AuthConfig) memfs.MemFS {
 	authCfg.S3KeyValue = secretsBucket
 	s3Reader := s3reader.NewS3ClientReader(authCfg.s3BaseClient)
@@ -83,6 +94,18 @@ func ReadEncryptedSecretsData(ctx context.Context, authCfg AuthConfig) memfs.Mem
 		misc.DelayedPanic(err)
 	}
 	return s3SecretsReader.MemFS
+}
+
+func RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {
+	log.Info().Msg("Zeus: RunZeusDigitalOceanS3BucketObjSecretsProcedure starting")
+	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
+	log.Info().Msg("RunZeusDigitalOceanS3BucketObjSecretsProcedure finished")
+	sw := SecretsWrapper{}
+	sw.GcpAuthJsonBytes = sw.ReadSecretBytes(ctx, inMemSecrets, gcpAuthJson)
+	sw.DoctlToken = sw.ReadSecret(ctx, inMemSecrets, doctlSecret)
+	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
+	sw.StripeSecretKey = sw.ReadSecret(ctx, inMemSecrets, stripeSecretKey)
+	return inMemSecrets, sw
 }
 
 func RunDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {

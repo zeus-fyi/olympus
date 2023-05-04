@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
@@ -136,14 +137,13 @@ func (g *GcpClient) ListMachineTypes(ctx context.Context, ci GcpClusterInfo, aut
 }
 
 type GkeNodePoolInfo struct {
-	NodePoolID       string `json:"nodePoolID,omitempty"`
 	Name             string `json:"name"`
 	MachineType      string `json:"machineType"`
 	InitialNodeCount int64  `json:"initialNodeCount"`
 }
 
 func (g *GcpClient) RemoveNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNodePoolInfo) (any, error) {
-	resp, err := g.Projects.Zones.Clusters.NodePools.Delete(ci.ProjectID, ci.Zone, ci.ClusterName, ni.NodePoolID).Context(ctx).Do()
+	resp, err := g.Projects.Zones.Clusters.NodePools.Delete(ci.ProjectID, ci.Zone, ci.ClusterName, ni.Name).Context(ctx).Do()
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("failed to delete node pool")
 		return nil, err
@@ -151,21 +151,11 @@ func (g *GcpClient) RemoveNodePool(ctx context.Context, ci GcpClusterInfo, ni Gk
 	return resp, err
 }
 
-func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNodePoolInfo) (any, error) {
-
-	// TODO: add taints
-	//t := container.NodeTaint{
-	//	Effect:          "",
-	//	Key:             "",
-	//	Value:           "",
-	//	ForceSendFields: nil,
-	//	NullFields:      nil,
-	//}
-
+func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNodePoolInfo, taints []*container.NodeTaint) (*container.Operation, error) {
 	cnReq := &container.CreateNodePoolRequest{
 		ClusterId: ci.ClusterName,
 		NodePool: &container.NodePool{
-			Name:             "node-pool-1",
+			Name:             ni.Name,
 			InitialNodeCount: ni.InitialNodeCount,
 			Autoscaling: &container.NodePoolAutoscaling{
 				Autoprovisioned: false,
@@ -180,7 +170,7 @@ func (g *GcpClient) AddNodePool(ctx context.Context, ci GcpClusterInfo, ni GkeNo
 				ServiceAccount: "",
 				Spot:           false,
 				Tags:           nil,
-				Taints:         nil,
+				Taints:         taints,
 			},
 		},
 		ProjectId: ci.ProjectID,
@@ -232,11 +222,12 @@ type ComputeEngineItem struct {
 }
 
 type SkuPricesLookup struct {
-	GPUType string  `json:"gpuType"`
-	GPUs    int     `json:"gpus"`
-	CPUs    float64 `json:"cpus"`
-	MemGB   float64 `json:"gb"`
-	Name    string  `json:"name"`
+	GPUType    string  `json:"gpuType"`
+	GPUs       int     `json:"gpus"`
+	CPUs       float64 `json:"cpus"`
+	MemGB      float64 `json:"gb"`
+	Name       string  `json:"name"`
+	DiskSizeGB int     `json:"diskSizeGB"`
 }
 
 func (c *ComputeEngineItem) GetSkuLookup() SkuPricesLookup {
@@ -246,11 +237,12 @@ func (c *ComputeEngineItem) GetSkuLookup() SkuPricesLookup {
 	}
 	gpuType, gpuCount := c.CountGPUs()
 	skuInfo := SkuPricesLookup{
-		GPUType: gpuType,
-		GPUs:    gpuCount,
-		CPUs:    c.CountCPUs(),
-		MemGB:   c.CountGB(),
-		Name:    name,
+		GPUType:    gpuType,
+		GPUs:       gpuCount,
+		CPUs:       c.CountCPUs(),
+		MemGB:      c.CountGB(),
+		Name:       name,
+		DiskSizeGB: c.GetDiskSizeGB(),
 	}
 	return skuInfo
 }
@@ -270,6 +262,9 @@ func (c *ComputeEngineItem) CountGPUs() (string, int) {
 		}
 		name = strings.ToUpper(parts[len(parts)-1]) + " GPU"
 	}
+	if gpus == 0 {
+		name = "none"
+	}
 	return name, gpus
 }
 
@@ -286,6 +281,13 @@ func (c *ComputeEngineItem) CountCPUs() float64 {
 		vCPUs /= 8
 	}
 	return vCPUs
+}
+func (c *ComputeEngineItem) GetDiskSizeGB() int {
+	size, err := strconv.Atoi(c.MaximumPersistentDisksSizeGb)
+	if err != nil {
+		panic(err)
+	}
+	return size
 }
 
 func (c *ComputeEngineItem) CountGB() float64 {

@@ -46,7 +46,7 @@ func (s *DigitalOceanTestSuite) TestInsertSizes() {
 			dbSize.DiskUnits = "GB"
 			dbSize.PriceHourly = size.PriceHourly
 			dbSize.CloudProvider = "do"
-			dbSize.Vcpus = size.Vcpus
+			dbSize.Vcpus = float64(size.Vcpus)
 			dbSize.Region = reg
 			dbSize.PriceMonthly = size.PriceMonthly
 			dbSize.Memory = size.Memory

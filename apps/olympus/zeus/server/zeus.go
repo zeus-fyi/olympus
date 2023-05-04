@@ -47,7 +47,7 @@ func Zeus() {
 			Namespace:        "production-zeus.ngb72",
 			HostPort:         "production-zeus.ngb72.tmprl.cloud:7233",
 		}
-		_, sw := auth_startup.RunDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+		_, sw := auth_startup.RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		cmd := exec.Command("doctl", "auth", "init", "-t", sw.DoctlToken)
 		err := cmd.Run()
 		if err != nil {
@@ -55,6 +55,7 @@ func Zeus() {
 			misc.DelayedPanic(err)
 		}
 		api_auth_temporal.InitOrchestrationDigitalOceanClient(ctx, sw.DoctlToken)
+		api_auth_temporal.InitOrchestrationGcpClient(ctx, sw.GcpAuthJsonBytes)
 		hestia_stripe.InitStripe(sw.StripeSecretKey)
 	case "production-local":
 		log.Info().Msg("Zeus: production local, auth procedure starting")
@@ -65,8 +66,9 @@ func Zeus() {
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 		temporalAuthCfg = tc.ProdLocalTemporalAuth
 
-		_, sw := auth_startup.RunDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+		_, sw := auth_startup.RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		api_auth_temporal.InitOrchestrationDigitalOceanClient(ctx, sw.DoctlToken)
+		api_auth_temporal.InitOrchestrationGcpClient(ctx, sw.GcpAuthJsonBytes)
 		hestia_stripe.InitStripe(tc.StripeTestSecretAPIKey)
 	case "local":
 		log.Info().Msg("Zeus: local, auth procedure starting")
@@ -76,6 +78,7 @@ func Zeus() {
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 		temporalAuthCfg = tc.ProdLocalTemporalAuth
 		api_auth_temporal.InitOrchestrationDigitalOceanClient(ctx, tc.DigitalOceanAPIKey)
+		api_auth_temporal.InitOrchestrationGcpClient(ctx, tc.GcpAuthJson)
 		hestia_stripe.InitStripe(tc.StripeTestSecretAPIKey)
 	}
 

@@ -41,7 +41,13 @@ func (c *DestroyResourcesWorkflow) DestroyClusterResourcesWorkflow(ctx workflow.
 		log.Error("Failed to select org resource nodes", "Error", err)
 		return err
 	}
-	if len(nodes) == 0 {
+	var gkeNodes []do_types.DigitalOceanNodePoolRequestStatus
+	err = workflow.ExecuteActivity(selectNodesCtx, c.CreateSetupTopologyActivities.SelectGkeNodeResources, params).Get(selectNodesCtx, &gkeNodes)
+	if err != nil {
+		log.Error("Failed to select org resource nodes", "Error", err)
+		return err
+	}
+	if len(nodes) == 0 && len(gkeNodes) == 0 {
 		log.Info("No node resources found to destroy or they were free trial nodes that will be deleted automatically")
 		return nil
 	}
@@ -54,6 +60,15 @@ func (c *DestroyResourcesWorkflow) DestroyClusterResourcesWorkflow(ctx workflow.
 			return err
 		}
 	}
+	for _, node := range gkeNodes {
+		destroyNodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
+		log.Info("Destroying node pool org resources", "GkeRemoveNodePoolRequest", node)
+		err = workflow.ExecuteActivity(destroyNodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.GkeRemoveNodePoolRequest, node).Get(destroyNodePoolOrgResourcesCtx, nil)
+		if err != nil {
+			log.Error("Failed to remove node resources for account", "Error", err)
+			return err
+		}
+	}
 	// TODO billing somewhere usage update
 	endServiceNodesCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(endServiceNodesCtx, c.CreateSetupTopologyActivities.EndResourceService, params).Get(endServiceNodesCtx, &nodes)
@@ -61,6 +76,5 @@ func (c *DestroyResourcesWorkflow) DestroyClusterResourcesWorkflow(ctx workflow.
 		log.Error("Failed to update org_resources to end service", "Error", err)
 		return err
 	}
-
 	return nil
 }

@@ -65,7 +65,9 @@ RUN tar xf google-cloud-cli.tar.gz
 RUN rm google-cloud-cli.tar.gz
 RUN ./google-cloud-sdk/install.sh
 RUN /google-cloud-sdk/bin/gcloud components install gke-gcloud-auth-plugin
-RUN mv /google-cloud-sdk/bin/gcloud /usr/local/bin
-RUN mv /google-cloud-sdk/bin/gke-gcloud-auth-plugin /usr/local/bin
+RUN chmod +x /google-cloud-sdk/bin/gcloud
+RUN chmod +x /google-cloud-sdk/bin/gke-gcloud-auth-plugin
+RUN cp /google-cloud-sdk/bin/gcloud /usr/local/bin
+RUN cp /google-cloud-sdk/bin/gke-gcloud-auth-plugin /usr/local/bin
 
 EXPOSE 9001

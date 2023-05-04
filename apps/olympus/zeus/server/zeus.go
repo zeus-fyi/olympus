@@ -57,9 +57,10 @@ func Zeus() {
 		}
 		p := filepaths.Path{
 			PackageName: "",
-			DirIn:       "",
+			DirIn:       "/secrets",
 			DirOut:      "/secrets",
-			FnOut:       "/gcp_auth.json",
+			FnOut:       "gcp_auth.json",
+			FnIn:        "gcp_auth.json",
 			Env:         "",
 			FilterFiles: nil,
 		}
@@ -72,6 +73,11 @@ func Zeus() {
 		err = cmd.Run()
 		if err != nil {
 			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to auth gcloud, shutting down the server")
+			misc.DelayedPanic(err)
+		}
+		err = p.RemoveFileInPath()
+		if err != nil {
+			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to remove gcp auth json, shutting down the server")
 			misc.DelayedPanic(err)
 		}
 		api_auth_temporal.InitOrchestrationDigitalOceanClient(ctx, sw.DoctlToken)

@@ -26,6 +26,7 @@ func (s *NamespaceTestSuite) TestGetK8Namespace() {
 
 func (s *NamespaceTestSuite) TestCreateNamespaceIfDoesNotExist() {
 	ctx := context.Background()
+	s.K.SetContext("gke_zeusfyi_us-central1-a_zeus-gcp-pilot-0")
 	var kns zeus_common_types.CloudCtxNs
 	kns.Namespace = "demo"
 	nsl, err := s.K.CreateNamespaceIfDoesNotExist(ctx, kns)

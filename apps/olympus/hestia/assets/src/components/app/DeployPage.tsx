@@ -252,7 +252,6 @@ export function DeployPage(props: any) {
         if (resourceID in nodeMap) {
             setNode(nodeMap[resourceID]);
         }
-        console.log(node, 'sdfdsafasdfdsafsda')
     }
     function totalCost() {
         let totalBlockStorageCost = 0;

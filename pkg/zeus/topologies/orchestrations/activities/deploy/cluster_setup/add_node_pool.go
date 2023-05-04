@@ -39,12 +39,12 @@ func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Conte
 	label["app"] = params.Cluster.ClusterName
 	suffix := strings.Split(params.Namespace, "-")[0]
 	tOrg := container.NodeTaint{
-		Effect: "NoSchedule",
+		Effect: "NO_SCHEDULE",
 		Key:    fmt.Sprintf("org-%d", params.Ou.OrgID),
 		Value:  fmt.Sprintf("org-%d", params.Ou.OrgID),
 	}
 	tApp := container.NodeTaint{
-		Effect: "NoSchedule",
+		Effect: "NO_SCHEDULE",
 		Key:    "app",
 		Value:  params.Cluster.ClusterName,
 	}

@@ -249,15 +249,25 @@ export function DeployPage(props: any) {
     }
     function totalCost() {
         let totalBlockStorageCost = 0;
+        // digitalOcean block storage
+        let monthlyDiskCost = 10
+        if (cloudProvider === 'gcp') {
+            monthlyDiskCost = 17
+        }
         for (const resource of resourceRequirements) {
-            totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * 10 * parseInt(resource.replicas));
+            totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * monthlyDiskCost * parseInt(resource.replicas));
         }
         return node.priceMonthly * count + (totalBlockStorageCost*1.1);
     }
     function totalHourlyCost() {
         let totalBlockStorageCost = 0;
+        // digitalOcean block storage
+        let hourlyDiskCost = 0.0137
+        if (cloudProvider === 'gcp') {
+            hourlyDiskCost = 0.02329
+        }
         for (const resource of resourceRequirements) {
-            totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * 0.10 * parseInt(resource.replicas));
+            totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * hourlyDiskCost * parseInt(resource.replicas));
         }
         let roundedNum = Math.ceil(node.priceHourly * Math.pow(10, 2)) / Math.pow(10, 2);
         return roundedNum * count + (totalBlockStorageCost*1.1);
@@ -274,9 +284,9 @@ export function DeployPage(props: any) {
                         <Typography variant="body2" color="text.secondary">
                             Without setting up a payment method you can only deploy a maximum of one app with a monthly cost up to $500/month, and if a payment method is not set within one hour it will automatically delete your app.
                             You can set a payment option on the billing page. Once you've deployed an app you can view it on the clusters page within a few minutes. Click on the cluster namespace to get a detailed view of the live cluster.
-                            The node sizing selection filter adds an additional 1 vCPU and 1.5Gi as overhead from the server to prevent selecting nodes that won't schedule this workload.
+                            The node sizing selection filter adds an additional 0.1 vCPU and 1.5Gi as overhead from the server to prevent selecting nodes that won't schedule this workload.
 
-                            GCP is currently in beta, ingresses and servicemonitors are not supported yet in GCP
+                            GCP is currently in beta, Ingress and ServiceMonitors are not supported yet in GCP
                         </Typography>
                     </CardContent>
                     <Divider />

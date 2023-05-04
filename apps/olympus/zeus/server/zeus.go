@@ -68,7 +68,7 @@ func Zeus() {
 			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to write gcp auth json, shutting down the server")
 			misc.DelayedPanic(err)
 		}
-		cmd = exec.Command("./google-cloud-sdk/bin/gcloud", "auth", "login", "--cred-file", "/secrets/gcp_auth.json")
+		cmd = exec.Command("gcloud", "auth", "login", "--cred-file", "/secrets/gcp_auth.json")
 		err = cmd.Run()
 		if err != nil {
 			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to auth doctl, shutting down the server")

@@ -62,6 +62,7 @@ COPY --from=doctl /app/doctl /usr/local/bin
 COPY --from=gcp /app/google-cloud-cli.tar.gz /
 
 RUN tar xf google-cloud-cli.tar.gz
+RUN rm google-cloud-cli.tar.gz
 RUN ./google-cloud-sdk/install.sh
 
 EXPOSE 9001

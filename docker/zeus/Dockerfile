@@ -67,7 +67,5 @@ RUN ./google-cloud-sdk/install.sh
 RUN /google-cloud-sdk/bin/gcloud components install gke-gcloud-auth-plugin
 RUN chmod +x /google-cloud-sdk/bin/gcloud
 RUN chmod +x /google-cloud-sdk/bin/gke-gcloud-auth-plugin
-RUN cp /google-cloud-sdk/bin/gcloud /usr/local/bin
-RUN cp /google-cloud-sdk/bin/gke-gcloud-auth-plugin /usr/local/bin
 
 EXPOSE 9001

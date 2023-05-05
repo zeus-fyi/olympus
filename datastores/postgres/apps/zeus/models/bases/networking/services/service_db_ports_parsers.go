@@ -7,13 +7,12 @@ import (
 func (s *Service) ServicePortsToDB() {
 	for _, svcPort := range s.K8sService.Spec.Ports {
 		m := make(map[string]string)
-
 		m["port"] = fmt.Sprintf("%d", svcPort.Port)
-
 		if len(svcPort.Name) > 0 {
 			m["name"] = svcPort.Name
 		}
-		if len(svcPort.TargetPort.String()) > 0 {
+		tgtPortStr := svcPort.TargetPort.String()
+		if len(tgtPortStr) > 0 && tgtPortStr != "0" {
 			m["targetPort"] = svcPort.TargetPort.String()
 		}
 		if svcPort.NodePort != 0 {

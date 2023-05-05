@@ -14,7 +14,9 @@ func (s *Service) ParseSvcPorts(portMap map[int][]common_conversions.PC) error {
 			val := portComponent.ChartSubcomponentValue
 			switch portComponent.ChartSubcomponentKeyName {
 			case "targetPort":
-				k8sPort.TargetPort = intstr.FromString(val)
+				if val != "" && val != "0" {
+					k8sPort.TargetPort = intstr.FromString(val)
+				}
 			case "port":
 				k8sPort.Port = string_utils.ConvertStringTo32BitInt(val)
 			case "name":

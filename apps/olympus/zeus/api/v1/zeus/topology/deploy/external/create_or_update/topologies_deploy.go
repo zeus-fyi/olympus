@@ -13,7 +13,7 @@ import (
 
 type TopologyDeployRequest struct {
 	kns.TopologyKubeCtxNs
-	ClusterName                     string `json:"clusterName,omitempty"`
+	ClusterName                     string `json:"clusterClassName,omitempty"`
 	RequestChoreographySecretDeploy bool   `json:"requestChoreographySecretDeploy,omitempty"`
 }
 

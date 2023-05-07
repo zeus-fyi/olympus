@@ -22,6 +22,7 @@ func (c *CreateSetupTopologyActivities) DeployClusterTopologyFromUI(ctx context.
 		ClusterClassName:    clusterName,
 		SkeletonBaseOptions: sbBases,
 		CloudCtxNs:          cloudCtxNs,
+		AppTaint:            true,
 	}
 	return c.postDeployClusterTopology(ctx, cdRequest, ou)
 }

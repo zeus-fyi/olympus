@@ -129,7 +129,6 @@ export function DeployPage(props: any) {
         nodeMap[node.resourceID] = node;
     });
 
-
     let buttonLabel;
     let buttonDisabled;
     let statusMessage;

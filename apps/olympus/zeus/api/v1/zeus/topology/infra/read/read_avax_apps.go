@@ -107,7 +107,6 @@ func (a *AvaxAppsPageRequest) GetApp(c echo.Context, AppsOrgID, AppID int) error
 		TopologyClassTypeID:         class_types.ClusterClassTypeID,
 		TopologySystemComponentName: selectedApp.ClusterClassName,
 	}}
-
 	tx, err = create_clusters.InsertCluster(ctx, tx, &sys, pcg, ou)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("error creating transaction")

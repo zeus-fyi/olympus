@@ -2,6 +2,9 @@ package apollo_client
 
 import (
 	"context"
+	"encoding/json"
+	"io"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -15,6 +18,35 @@ var ctx = context.Background()
 type ApolloClientTestSuite struct {
 	test_suites_base.TestSuite
 	ApolloTestClient Apollo
+}
+
+const (
+	UniSwapV2 = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+)
+
+func (t *ApolloClientTestSuite) TestMempoolPrettyPrint() {
+	jsonFile, err := os.Open("mempool/response.json")
+	t.Require().NoError(err)
+	defer jsonFile.Close()
+
+	// Read the JSON file into a byte slice
+	byteValue, err := io.ReadAll(jsonFile)
+	t.Require().NoError(err)
+
+	// Create an empty interface to hold the decoded JSON data
+	var data interface{}
+
+	// Unmarshal the JSON data into the interface
+	err = json.Unmarshal(byteValue, &data)
+	t.Require().NoError(err)
+
+	// Marshal the interface back into pretty-printed JSON
+	prettyJSON, err := json.MarshalIndent(data, "", "    ")
+	t.Require().NoError(err)
+
+	// Write the new pretty-printed JSON back to the file
+	err = os.WriteFile("mempool/response.json", prettyJSON, 0644)
+	t.Require().NoError(err)
 }
 
 func (t *ApolloClientTestSuite) SetupTest() {

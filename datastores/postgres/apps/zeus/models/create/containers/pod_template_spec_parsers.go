@@ -30,6 +30,14 @@ func (p *PodTemplateSpec) ConvertPodTemplateSpecConfigToDB(ps *v1.PodSpec) error
 		return err
 	}
 
+	// TODO: Add support for Affinity
+	//if ps.Affinity != nil {
+	//	if ps.Affinity.NodeAffinity != nil {
+	//		na := ps.Affinity.NodeAffinity
+	//		fmt.Println(na.RequiredDuringSchedulingIgnoredDuringExecution)
+	//		fmt.Println(na.PreferredDuringSchedulingIgnoredDuringExecution)
+	//	}
+	//}
 	if ps.TerminationGracePeriodSeconds != nil {
 		gps := string_utils.Convert64BitPtrIntToString(ps.TerminationGracePeriodSeconds)
 		csv := structs.ChildClassSingleValue{

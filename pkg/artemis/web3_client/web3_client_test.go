@@ -96,9 +96,10 @@ func (s *Web3ClientTestSuite) TestReadMempool() {
 						fmt.Println("invalid argdata")
 						continue
 					}
-					inputValues, uerr := method.Inputs.UnpackValues(argdata)
-					s.Assert().Nil(uerr)
-					fmt.Println(inputValues)
+					m := make(map[string]interface{})
+					err = method.Inputs.UnpackIntoMap(m, argdata)
+					s.Assert().Nil(err)
+
 				}
 			}
 		}

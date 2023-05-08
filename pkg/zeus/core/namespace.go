@@ -43,7 +43,12 @@ func (k *K8Util) CreateNamespaceIfDoesNotExist(ctx context.Context, kns zeus_com
 	ns, err := k.GetNamespace(ctx, kns)
 	if errors.IsNotFound(err) {
 		ns.Name = kns.Namespace
-		return k.kc.CoreV1().Namespaces().Create(ctx, ns, metav1.CreateOptions{})
+		ns, err = k.kc.CoreV1().Namespaces().Create(ctx, ns, metav1.CreateOptions{})
+		alreadyExists := errors.IsAlreadyExists(err)
+		if alreadyExists {
+			return ns, nil
+		}
+		return ns, err
 	}
 	return ns, err
 }

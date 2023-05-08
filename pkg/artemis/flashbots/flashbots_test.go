@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/metachris/flashbotsrpc"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_encryption"
@@ -22,11 +23,21 @@ func (s *FlashbotsTestSuite) SetupTest() {
 	pkHexString := s.Tc.LocalEcsdaTestPkey
 	newAccount, err := accounts.ParsePrivateKey(pkHexString)
 	s.Assert().Nil(err)
-
 	s.fb = InitFlashbotsClient(ctx, s.Tc.MainnetNodeUrl, hestia_req_types.Mainnet, newAccount)
 }
 
-func (s *FlashbotsTestSuite) TestFlashbots() {
+// TODO: add real payload
+func (s *FlashbotsTestSuite) TestFlashbotsSendBundle() {
+	br := flashbotsrpc.FlashbotsSendBundleRequest{
+		Txs:          nil,
+		BlockNumber:  "",
+		MinTimestamp: nil,
+		MaxTimestamp: nil,
+		RevertingTxs: nil,
+	}
+	resp, err := s.fb.SendBundle(ctx, br)
+	s.Assert().Nil(err)
+	s.Assert().NotNil(resp)
 }
 
 func TestFlashbotsTestSuite(t *testing.T) {

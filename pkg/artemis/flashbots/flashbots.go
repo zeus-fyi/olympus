@@ -2,11 +2,9 @@ package artemis_flashbots
 
 import (
 	"context"
-	"crypto/ecdsa"
 
-	"github.com/gochain/gochain/v4/common/hexutil"
-	"github.com/gochain/gochain/v4/crypto"
 	"github.com/metachris/flashbotsrpc"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/gochain/web3/web3_actions"
 	"github.com/zeus-fyi/olympus/pkg/iris/resty_base"
@@ -25,11 +23,13 @@ type FlashbotsClient struct {
 	resty_base.Resty
 	web3_actions.Web3Actions
 	flashbotsrpc.EthereumAPI
+	*flashbotsrpc.FlashbotsRPC
 }
 
 func InitFlashbotsClient(ctx context.Context, nodeUrl, network string, acc *accounts.Account) FlashbotsClient {
 	w := web3_actions.NewWeb3ActionsClientWithAccount(nodeUrl, acc)
-	client := FlashbotsClient{resty_base.GetBaseRestyClient("", ""), w, flashbotsrpc.New(nodeUrl)}
+	rpc := flashbotsrpc.NewFlashbotsRPC(nodeUrl)
+	client := FlashbotsClient{Resty: resty_base.GetBaseRestyClient("", ""), Web3Actions: w, EthereumAPI: flashbotsrpc.New(nodeUrl), FlashbotsRPC: rpc}
 	w.Network = network
 	switch network {
 	case hestia_req_types.Mainnet:
@@ -40,7 +40,11 @@ func InitFlashbotsClient(ctx context.Context, nodeUrl, network string, acc *acco
 	return client
 }
 
-func (f *FlashbotsClient) CreateFlashbotsHeader(signature []byte, privateKey *ecdsa.PrivateKey) string {
-	return crypto.PubkeyToAddress(privateKey.PublicKey).Hex() +
-		":" + hexutil.Encode(signature)
+func (f *FlashbotsClient) SendBundle(ctx context.Context, bundle flashbotsrpc.FlashbotsSendBundleRequest) (flashbotsrpc.FlashbotsSendBundleResponse, error) {
+	resp, err := f.FlashbotsRPC.FlashbotsSendBundle(f.EcdsaPrivateKey(), bundle)
+	if err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg("FlashbotsSendBundle")
+		return flashbotsrpc.FlashbotsSendBundleResponse{}, err
+	}
+	return resp, nil
 }

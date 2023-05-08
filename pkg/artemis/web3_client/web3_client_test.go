@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_encryption"
-	signing_automation_ethereum "github.com/zeus-fyi/zeus/pkg/artemis/signing_automation/ethereum"
 )
 
 type Web3ClientTestSuite struct {
@@ -73,11 +72,10 @@ func (s *Web3ClientTestSuite) TestReadMempool() {
 	s.Require().Nil(err)
 	s.Assert().NotNil(mempool)
 	//abiConst := artemis_oly_contract_abis.UniswapV2RouterABI
-	addrFilter := "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
-	abiFile, err := signing_automation_ethereum.ABIOpenFile(ctx, "./contract_abis/uniswapV2Abi.json")
+	uswap := InitUniswapV2Client(ctx)
 	s.Require().Nil(err)
 
-	smartContractAddrFilter := common.HexToAddress(addrFilter)
+	smartContractAddrFilter := common.HexToAddress(uswap.SmartContractAddr)
 	smartContractAddrFilterString := smartContractAddrFilter.String()
 	for userAddr, txPoolQueue := range mempool["pending"] {
 		for order, tx := range txPoolQueue {
@@ -87,8 +85,12 @@ func (s *Web3ClientTestSuite) TestReadMempool() {
 				if tx.Input != nil {
 					input := *tx.Input
 					calldata := []byte(input)
+					if len(calldata) < 4 {
+						fmt.Println("invalid calldata")
+						continue
+					}
 					sigdata := calldata[:4]
-					method, merr := abiFile.MethodById(sigdata[:4])
+					method, merr := uswap.Abi.MethodById(sigdata[:4])
 					s.Assert().Nil(merr)
 					fmt.Println(method.Name)
 					argdata := calldata[4:]

@@ -46,6 +46,10 @@ func (w *Web3Client) GetFilteredPendingMempoolTxs(ctx context.Context, mevTxMap 
 				if tx.Input != nil {
 					input := *tx.Input
 					calldata := []byte(input)
+					if len(calldata) < 4 {
+						log.Info().Interface("method", "unknown").Msg("Web3Client| GetFilteredPendingMempoolTxs invalid calldata length")
+						continue
+					}
 					sigdata := calldata[:4]
 					method, merr := mevTxMap.Abi.MethodById(sigdata[:4])
 					if merr != nil {

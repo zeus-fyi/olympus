@@ -29,6 +29,8 @@ func (s *Web3ClientTestSuite) SetupTest() {
 
 	s.GoerliWeb3User = NewWeb3Client(s.Tc.GoerliNodeUrl, newAccount)
 	s.GoerliWeb3User2 = NewWeb3Client(s.Tc.GoerliNodeUrl, secondAccount)
+
+	s.MainnetWeb3User = NewWeb3Client(s.Tc.MainnetNodeUrl, newAccount)
 }
 
 func (s *Web3ClientTestSuite) TestWebGetBalance() {
@@ -56,6 +58,14 @@ func (s *Web3ClientTestSuite) TestWeb3ConnectMainnet() {
 	network, err = s.MainnetWeb3User.GetNetworkName(ctx)
 	s.Require().Nil(err)
 	s.Assert().Equal(Mainnet, network)
+}
+
+func (s *Web3ClientTestSuite) TestReadMempool() {
+	s.MainnetWeb3User.Web3Actions.Dial()
+	defer s.MainnetWeb3User.Close()
+	mempool, err := s.MainnetWeb3User.Web3Actions.GetTxPoolContent(ctx)
+	s.Require().Nil(err)
+	s.Assert().NotNil(mempool)
 }
 
 func TestWeb3ClientTestSuite(t *testing.T) {

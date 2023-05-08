@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/gochain/gochain/v4/common"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_encryption"
@@ -66,6 +67,17 @@ func (s *Web3ClientTestSuite) TestReadMempool() {
 	mempool, err := s.MainnetWeb3User.Web3Actions.GetTxPoolContent(ctx)
 	s.Require().Nil(err)
 	s.Assert().NotNil(mempool)
+	addrFilter := "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+	smartContractAddrFilter := common.HexToAddress(addrFilter)
+	smartContractAddrFilterString := smartContractAddrFilter.String()
+	for userAddr, txPoolQueue := range mempool["pending"] {
+		for order, tx := range txPoolQueue {
+			if tx.To != nil && tx.To.String() == smartContractAddrFilterString {
+				fmt.Println(userAddr, order, tx)
+				fmt.Println("Found")
+			}
+		}
+	}
 }
 
 func TestWeb3ClientTestSuite(t *testing.T) {

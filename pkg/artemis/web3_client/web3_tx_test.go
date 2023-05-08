@@ -55,5 +55,4 @@ func (s *Web3ClientTestSuite) TestWeb3TransferTokenToUserFromPresignedTx() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(tx)
 	fmt.Println(tx.Hash)
-
 }

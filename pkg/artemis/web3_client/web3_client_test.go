@@ -71,10 +71,8 @@ func (s *Web3ClientTestSuite) TestReadMempool() {
 	mempool, err := s.MainnetWeb3User.Web3Actions.GetTxPoolContent(ctx)
 	s.Require().Nil(err)
 	s.Assert().NotNil(mempool)
-	//abiConst := artemis_oly_contract_abis.UniswapV2RouterABI
 	uswap := InitUniswapV2Client(ctx)
 	s.Require().Nil(err)
-
 	smartContractAddrFilter := common.HexToAddress(uswap.SmartContractAddr)
 	smartContractAddrFilterString := smartContractAddrFilter.String()
 	for userAddr, txPoolQueue := range mempool["pending"] {

@@ -33,7 +33,7 @@ func DeployStatefulSetHandler(c echo.Context) error {
 				},
 			}
 			if request.ClusterName != "" {
-				request.Deployment.Spec.Template.Spec.Tolerations = append(request.Deployment.Spec.Template.Spec.Tolerations, v1.Toleration{
+				request.StatefulSet.Spec.Template.Spec.Tolerations = append(request.StatefulSet.Spec.Template.Spec.Tolerations, v1.Toleration{
 					Key:      "app",
 					Operator: "Equal",
 					Value:    request.ClusterName,

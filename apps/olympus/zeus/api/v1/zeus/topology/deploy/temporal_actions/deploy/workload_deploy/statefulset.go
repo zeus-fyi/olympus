@@ -21,6 +21,9 @@ func DeployStatefulSetHandler(c echo.Context) error {
 	}
 	if request.StatefulSet != nil {
 		if request.Kns.CloudCtxNs.Context != "do-sfo3-dev-do-sfo3-zeus" {
+			if request.StatefulSet.Spec.Template.Spec.Tolerations == nil {
+				request.StatefulSet.Spec.Template.Spec.Tolerations = []v1.Toleration{}
+			}
 			request.StatefulSet.Spec.Template.Spec.Tolerations = []v1.Toleration{
 				{
 					Key:      fmt.Sprintf("org-%d", request.OrgUser.OrgID),

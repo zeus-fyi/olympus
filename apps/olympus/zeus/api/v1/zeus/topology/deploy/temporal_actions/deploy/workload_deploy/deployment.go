@@ -21,6 +21,9 @@ func DeployDeploymentHandler(c echo.Context) error {
 	}
 	if request.Deployment != nil {
 		if request.Kns.CloudCtxNs.Context != "do-sfo3-dev-do-sfo3-zeus" {
+			if request.Deployment.Spec.Template.Spec.Tolerations == nil {
+				request.Deployment.Spec.Template.Spec.Tolerations = []v1.Toleration{}
+			}
 			request.Deployment.Spec.Template.Spec.Tolerations = []v1.Toleration{
 				{
 					Key:      fmt.Sprintf("org-%d", request.OrgUser.OrgID),

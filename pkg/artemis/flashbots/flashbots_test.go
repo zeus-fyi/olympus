@@ -40,6 +40,12 @@ func (s *FlashbotsTestSuite) TestFlashbotsSendBundle() {
 	s.Assert().NotNil(resp)
 }
 
+func (s *FlashbotsTestSuite) TestGetFlashbotsBlocksV1() {
+	resp, err := s.fb.GetFlashbotsBlocksV1(ctx)
+	s.Assert().Nil(err)
+	s.Assert().NotNil(resp)
+}
+
 func TestFlashbotsTestSuite(t *testing.T) {
 	suite.Run(t, new(FlashbotsTestSuite))
 }

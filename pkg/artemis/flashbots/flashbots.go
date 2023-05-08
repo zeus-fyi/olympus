@@ -16,6 +16,9 @@ const (
 	GoerliRelay  = "https://relay-goerli.flashbots.net"
 	SepoliaRelay = "https://relay-sepolia.flashbots.net"
 
+	BlocksAPI = "https://blocks.flashbots.net/v1/blocks"
+	TxsAPI    = "https://blocks.flashbots.net/v1/transactions"
+
 	FlashbotXHeader = "X-Flashbots-Signature"
 )
 
@@ -56,4 +59,14 @@ func (f *FlashbotsClient) SendPrivateTx(ctx context.Context, privTx flashbotsrpc
 		return resp, err
 	}
 	return resp, nil
+}
+
+func (f *FlashbotsClient) GetFlashbotsBlocksV1(ctx context.Context) (FlashbotsBlocksV1Response, error) {
+	fbResp := FlashbotsBlocksV1Response{}
+	_, err := f.R().SetResult(&fbResp).Get(BlocksAPI)
+	if err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg("FlashbotsClient: GetFlashbotsBlocksV1")
+		return fbResp, err
+	}
+	return fbResp, nil
 }

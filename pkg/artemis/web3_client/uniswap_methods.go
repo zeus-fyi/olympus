@@ -5,7 +5,6 @@ import (
 	"math/big"
 
 	"github.com/gochain/gochain/v4/common"
-	"github.com/rs/zerolog/log"
 )
 
 type SwapExactTokensForTokensParams struct {
@@ -13,8 +12,7 @@ type SwapExactTokensForTokensParams struct {
 	AmountOutMin *big.Int
 	Path         []common.Address
 	To           common.Address
-	Deadline     uint64
-	Amounts      []*big.Int
+	Deadline     *big.Int
 }
 
 type SwapTokensForExactTokensParams struct {
@@ -146,6 +144,8 @@ type RemoveLiquidityETHWithPermitParams struct {
 
 func ParseBigInt(i interface{}) (*big.Int, error) {
 	switch v := i.(type) {
+	case *big.Int:
+		return i.(*big.Int), nil
 	case string:
 		base := 10
 		result := new(big.Int)
@@ -161,18 +161,22 @@ func ParseBigInt(i interface{}) (*big.Int, error) {
 	}
 }
 
-func ConvertToAddressSlice(input interface{}) ([]common.Address, error) {
-	// First, we need to check that the input is actually a slice of strings.
-	inputSlice, ok := input.([]interface{})
-	if !ok {
-		log.Info().Msgf("input is not a slice: %v", input)
-		return nil, fmt.Errorf("input is not a slice")
+func ConvertToAddressSlice(i interface{}) ([]common.Address, error) {
+	switch v := i.(type) {
+	case []common.Address:
+		return i.([]common.Address), nil
+	default:
+		fmt.Println(v)
+		return nil, fmt.Errorf("input is not a []common.Address")
 	}
-	addresses := make([]common.Address, len(inputSlice))
-	for i, v := range inputSlice {
-		addr := common.HexToAddress(v.(string))
-		addresses[i] = addr
-	}
+}
 
-	return addresses, nil
+func ConvertToAddress(i interface{}) (common.Address, error) {
+	switch v := i.(type) {
+	case common.Address:
+		return i.(common.Address), nil
+	default:
+		fmt.Println(v)
+		return common.Address{}, fmt.Errorf("input is not a  common.Address")
+	}
 }

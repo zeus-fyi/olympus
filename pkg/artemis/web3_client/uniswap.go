@@ -31,6 +31,13 @@ const (
 
 type UniswapV2Client struct {
 	MevSmartContractTxMap
+
+	SwapExactTokensForTokensParamsSlice []SwapExactTokensForTokensParams
+	SwapTokensForExactTokensParamsSlice []SwapTokensForExactTokensParams
+	SwapExactETHForTokensParamsSlice    []SwapExactETHForTokensParams
+	SwapTokensForExactETHParamsSlice    []SwapTokensForExactETHParams
+	SwapExactTokensForETHParamsSlice    []SwapExactTokensForETHParams
+	SwapETHForExactTokensParamsSlice    []SwapETHForExactTokensParams
 }
 
 func InitUniswapV2Client(ctx context.Context) UniswapV2Client {
@@ -40,21 +47,29 @@ func InitUniswapV2Client(ctx context.Context) UniswapV2Client {
 	}
 	f := strings_filter.FilterOpts{
 		DoesNotStartWithThese: nil,
-		StartsWithThese:       []string{},
-		DoesNotInclude:        nil,
+		StartsWithThese:       []string{"swap"},
+		Contains:              "",
+		DoesNotInclude:        []string{"supportingFeeOnTransferTokens"},
 	}
-	return UniswapV2Client{MevSmartContractTxMap{
-		SmartContractAddr: UniswapV2RouterAddress,
-		Abi:               abiFile,
-		MethodTxMap:       map[string]MevTx{},
-		Txs:               []MevTx{},
-		Filter:            &f,
-	}}
+	return UniswapV2Client{
+		MevSmartContractTxMap: MevSmartContractTxMap{
+			SmartContractAddr: UniswapV2RouterAddress,
+			Abi:               abiFile,
+			MethodTxMap:       map[string]MevTx{},
+			Txs:               []MevTx{},
+			Filter:            &f,
+		},
+		SwapExactTokensForTokensParamsSlice: []SwapExactTokensForTokensParams{},
+		SwapTokensForExactTokensParamsSlice: []SwapTokensForExactTokensParams{},
+		SwapExactETHForTokensParamsSlice:    []SwapExactETHForTokensParams{},
+		SwapTokensForExactETHParamsSlice:    []SwapTokensForExactETHParams{},
+		SwapExactTokensForETHParamsSlice:    []SwapExactTokensForETHParams{},
+		SwapETHForExactTokensParamsSlice:    []SwapETHForExactTokensParams{},
+	}
 }
 
 func (u *UniswapV2Client) GetAllTradeMethods() []string {
 	return []string{
-		swapExactETHForTokens,
 		addLiquidity,
 		addLiquidityETH,
 		removeLiquidity,
@@ -71,12 +86,14 @@ func (u *UniswapV2Client) GetAllTradeMethods() []string {
 }
 
 func (u *UniswapV2Client) ProcessTxs() {
+	count := 0
 	for methodName, tx := range u.MethodTxMap {
 		fmt.Println(tx)
 		switch methodName {
 		case addLiquidity:
 			//u.AddLiquidity(tx.Args)
 		case addLiquidityETH:
+			// payable
 			//u.AddLiquidityETH(tx.Args)
 		case removeLiquidity:
 			//u.RemoveLiquidity(tx.Args)
@@ -87,19 +104,29 @@ func (u *UniswapV2Client) ProcessTxs() {
 		case removeLiquidityETHWithPermit:
 			//u.RemoveLiquidityETHWithPermit(tx.Args)
 		case swapExactTokensForTokens:
+			count++
 			u.SwapExactTokensForTokens(tx.Args)
 		case swapTokensForExactTokens:
+			count++
 			u.SwapTokensForExactTokens(tx.Args)
 		case swapExactETHForTokens:
+			// payable
+			count++
 			u.SwapExactETHForTokens(tx.Args)
 		case swapTokensForExactETH:
+			count++
 			u.SwapTokensForExactETH(tx.Args)
 		case swapExactTokensForETH:
+			count++
 			u.SwapExactTokensForETH(tx.Args)
 		case swapETHForExactTokens:
+			// payable
+			count++
 			u.SwapETHForExactTokens(tx.Args)
 		}
 	}
+
+	fmt.Println("count:", count)
 }
 
 func (u *UniswapV2Client) SwapExactTokensForTokens(args map[string]interface{}) {
@@ -115,7 +142,10 @@ func (u *UniswapV2Client) SwapExactTokensForTokens(args map[string]interface{}) 
 	if err != nil {
 		return
 	}
-	to := common.HexToAddress(args["to"].(string))
+	to, err := ConvertToAddress(args["to"])
+	if err != nil {
+		return
+	}
 	deadline, err := ParseBigInt(args["deadline"])
 	if err != nil {
 		return
@@ -125,6 +155,14 @@ func (u *UniswapV2Client) SwapExactTokensForTokens(args map[string]interface{}) 
 	fmt.Println("path:", path)
 	fmt.Println("to:", to)
 	fmt.Println("deadline:", deadline)
+	st := SwapExactTokensForTokensParams{
+		AmountIn:     amountIn,
+		AmountOutMin: amountOutMin,
+		Path:         path,
+		To:           to,
+		Deadline:     deadline,
+	}
+	u.SwapExactTokensForTokensParamsSlice = append(u.SwapExactTokensForTokensParamsSlice, st)
 }
 
 func (u *UniswapV2Client) SwapTokensForExactTokens(args map[string]interface{}) {
@@ -140,7 +178,10 @@ func (u *UniswapV2Client) SwapTokensForExactTokens(args map[string]interface{}) 
 	if err != nil {
 		return
 	}
-	to := common.HexToAddress(args["to"].(string))
+	to, err := ConvertToAddress(args["to"])
+	if err != nil {
+		return
+	}
 	deadline, err := ParseBigInt(args["deadline"])
 	if err != nil {
 		return
@@ -150,6 +191,14 @@ func (u *UniswapV2Client) SwapTokensForExactTokens(args map[string]interface{}) 
 	fmt.Println("path:", path)
 	fmt.Println("to:", to)
 	fmt.Println("deadline:", deadline)
+	st := SwapTokensForExactTokensParams{
+		AmountOut:   amountOut,
+		AmountInMax: amountInMax,
+		Path:        path,
+		To:          to,
+		Deadline:    deadline,
+	}
+	u.SwapTokensForExactTokensParamsSlice = append(u.SwapTokensForExactTokensParamsSlice, st)
 }
 
 func (u *UniswapV2Client) SwapExactETHForTokens(args map[string]interface{}) {
@@ -162,7 +211,10 @@ func (u *UniswapV2Client) SwapExactETHForTokens(args map[string]interface{}) {
 	if err != nil {
 		return
 	}
-	to := common.HexToAddress(args["to"].(string))
+	to, err := ConvertToAddress(args["to"])
+	if err != nil {
+		return
+	}
 	deadline, err := ParseBigInt(args["deadline"])
 	if err != nil {
 		return
@@ -171,6 +223,13 @@ func (u *UniswapV2Client) SwapExactETHForTokens(args map[string]interface{}) {
 	fmt.Println("path:", path)
 	fmt.Println("to:", to)
 	fmt.Println("deadline:", deadline)
+	st := SwapExactETHForTokensParams{
+		AmountOutMin: amountOutMin,
+		Path:         path,
+		To:           common.Address{},
+		Deadline:     deadline,
+	}
+	u.SwapExactETHForTokensParamsSlice = append(u.SwapExactETHForTokensParamsSlice, st)
 }
 
 func (u *UniswapV2Client) SwapTokensForExactETH(args map[string]interface{}) {
@@ -187,7 +246,10 @@ func (u *UniswapV2Client) SwapTokensForExactETH(args map[string]interface{}) {
 	if err != nil {
 		return
 	}
-	to := common.HexToAddress(args["to"].(string))
+	to, err := ConvertToAddress(args["to"])
+	if err != nil {
+		return
+	}
 	deadline, err := ParseBigInt(args["deadline"])
 	if err != nil {
 		return
@@ -197,6 +259,14 @@ func (u *UniswapV2Client) SwapTokensForExactETH(args map[string]interface{}) {
 	fmt.Println("path:", path)
 	fmt.Println("to:", to)
 	fmt.Println("deadline:", deadline)
+	st := SwapTokensForExactETHParams{
+		AmountOut:   amountOut,
+		AmountInMax: amountInMax,
+		Path:        path,
+		To:          to,
+		Deadline:    deadline,
+	}
+	u.SwapTokensForExactETHParamsSlice = append(u.SwapTokensForExactETHParamsSlice, st)
 }
 
 func (u *UniswapV2Client) SwapExactTokensForETH(args map[string]interface{}) {
@@ -213,7 +283,10 @@ func (u *UniswapV2Client) SwapExactTokensForETH(args map[string]interface{}) {
 	if err != nil {
 		return
 	}
-	to := common.HexToAddress(args["to"].(string))
+	to, err := ConvertToAddress(args["to"])
+	if err != nil {
+		return
+	}
 	deadline, err := ParseBigInt(args["deadline"])
 	if err != nil {
 		return
@@ -223,6 +296,14 @@ func (u *UniswapV2Client) SwapExactTokensForETH(args map[string]interface{}) {
 	fmt.Println("path:", path)
 	fmt.Println("to:", to)
 	fmt.Println("deadline:", deadline)
+	st := SwapExactTokensForETHParams{
+		AmountIn:     amountIn,
+		AmountOutMin: amountOutMin,
+		Path:         path,
+		To:           to,
+		Deadline:     deadline,
+	}
+	u.SwapExactTokensForETHParamsSlice = append(u.SwapExactTokensForETHParamsSlice, st)
 }
 
 func (u *UniswapV2Client) SwapETHForExactTokens(args map[string]interface{}) {
@@ -235,7 +316,10 @@ func (u *UniswapV2Client) SwapETHForExactTokens(args map[string]interface{}) {
 	if err != nil {
 		return
 	}
-	to := common.HexToAddress(args["to"].(string))
+	to, err := ConvertToAddress(args["to"])
+	if err != nil {
+		return
+	}
 	deadline, err := ParseBigInt(args["deadline"])
 	if err != nil {
 		return
@@ -244,4 +328,11 @@ func (u *UniswapV2Client) SwapETHForExactTokens(args map[string]interface{}) {
 	fmt.Println("path:", path)
 	fmt.Println("to:", to)
 	fmt.Println("deadline:", deadline)
+	st := SwapETHForExactTokensParams{
+		AmountOut: amountOut,
+		Path:      path,
+		To:        to,
+		Deadline:  deadline,
+	}
+	u.SwapETHForExactTokensParamsSlice = append(u.SwapETHForExactTokensParamsSlice, st)
 }

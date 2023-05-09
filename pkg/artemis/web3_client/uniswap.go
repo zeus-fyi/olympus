@@ -154,16 +154,94 @@ func (u *UniswapV2Client) SwapTokensForExactTokens(args map[string]interface{}) 
 
 func (u *UniswapV2Client) SwapExactETHForTokens(args map[string]interface{}) {
 	fmt.Println("SwapExactETHForTokens", args)
+	amountOutMin, err := ParseBigInt(args["amountOutMin"])
+	if err != nil {
+		return
+	}
+	path, err := ConvertToAddressSlice(args["path"])
+	if err != nil {
+		return
+	}
+	to := common.HexToAddress(args["to"].(string))
+	deadline, err := ParseBigInt(args["deadline"])
+	if err != nil {
+		return
+	}
+	fmt.Println("amountOutMin:", amountOutMin)
+	fmt.Println("path:", path)
+	fmt.Println("to:", to)
+	fmt.Println("deadline:", deadline)
 }
 
 func (u *UniswapV2Client) SwapTokensForExactETH(args map[string]interface{}) {
 	fmt.Println("SwapTokensForExactETH", args)
+	amountOut, err := ParseBigInt(args["amountOut"])
+	if err != nil {
+		return
+	}
+	amountInMax, err := ParseBigInt(args["amountInMax"])
+	if err != nil {
+		return
+	}
+	path, err := ConvertToAddressSlice(args["path"])
+	if err != nil {
+		return
+	}
+	to := common.HexToAddress(args["to"].(string))
+	deadline, err := ParseBigInt(args["deadline"])
+	if err != nil {
+		return
+	}
+	fmt.Println("amountOut:", amountOut)
+	fmt.Println("amountInMax:", amountInMax)
+	fmt.Println("path:", path)
+	fmt.Println("to:", to)
+	fmt.Println("deadline:", deadline)
 }
 
 func (u *UniswapV2Client) SwapExactTokensForETH(args map[string]interface{}) {
 	fmt.Println("SwapExactTokensForETH", args)
+	amountIn, err := ParseBigInt(args["amountIn"])
+	if err != nil {
+		return
+	}
+	amountOutMin, err := ParseBigInt(args["amountOutMin"])
+	if err != nil {
+		return
+	}
+	path, err := ConvertToAddressSlice(args["path"])
+	if err != nil {
+		return
+	}
+	to := common.HexToAddress(args["to"].(string))
+	deadline, err := ParseBigInt(args["deadline"])
+	if err != nil {
+		return
+	}
+	fmt.Println("amountIn:", amountIn)
+	fmt.Println("amountOutMin:", amountOutMin)
+	fmt.Println("path:", path)
+	fmt.Println("to:", to)
+	fmt.Println("deadline:", deadline)
 }
 
 func (u *UniswapV2Client) SwapETHForExactTokens(args map[string]interface{}) {
 	fmt.Println("SwapExactTokensForETH", args)
+	amountOut, err := ParseBigInt(args["amountOut"])
+	if err != nil {
+		return
+	}
+	path, err := ConvertToAddressSlice(args["path"])
+	if err != nil {
+		return
+	}
+	to := common.HexToAddress(args["to"].(string))
+	deadline, err := ParseBigInt(args["deadline"])
+	if err != nil {
+		return
+	}
+	fmt.Println("amountOut:", amountOut)
+	fmt.Println("path:", path)
+	fmt.Println("to:", to)
+	fmt.Println("deadline:", deadline)
 }

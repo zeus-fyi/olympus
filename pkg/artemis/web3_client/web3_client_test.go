@@ -65,7 +65,6 @@ func (s *Web3ClientTestSuite) TestWeb3ConnectMainnet() {
 }
 
 func (s *Web3ClientTestSuite) TestReadMempool() {
-	forceDirToLocation()
 	s.MainnetWeb3User.Web3Actions.Dial()
 	defer s.MainnetWeb3User.Close()
 	mempool, err := s.MainnetWeb3User.Web3Actions.GetTxPoolContent(ctx)
@@ -99,7 +98,6 @@ func (s *Web3ClientTestSuite) TestReadMempool() {
 					m := make(map[string]interface{})
 					err = method.Inputs.UnpackIntoMap(m, argdata)
 					s.Assert().Nil(err)
-
 				}
 			}
 		}

@@ -5,13 +5,17 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gochain/gochain/v4/accounts/abi"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 	signing_automation_ethereum "github.com/zeus-fyi/zeus/pkg/artemis/signing_automation/ethereum"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
 
 const (
-	UniswapV2RouterAddress       = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+	UniswapV2FactoryAddress = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
+	UniswapV2RouterAddress  = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+
+	WETH9ContractAddress         = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
 	addLiquidity                 = "addLiquidity"
 	addLiquidityETH              = "addLiquidityETH"
 	removeLiquidity              = "removeLiquidity"
@@ -26,9 +30,18 @@ const (
 	swapETHForExactTokens        = "swapETHForExactTokens"
 )
 
+/*
+https://docs.uniswap.org/contracts/v2/concepts/advanced-topics/fees
+There is a 0.3% fee for swapping tokens. This fee is split by liquidity providers proportional to their contribution to liquidity reserves.
+*/
+
 // TODO https://docs.uniswap.org/contracts/v2/reference/smart-contracts/router-02
 
 type UniswapV2Client struct {
+	FactorySmartContractAddr string
+	PairAbi                  *abi.ABI
+	ERC20Abi                 *abi.ABI
+	FactoryAbi               *abi.ABI
 	MevSmartContractTxMap
 
 	SwapExactTokensForTokensParamsSlice []SwapExactTokensForTokensParams
@@ -44,6 +57,18 @@ func InitUniswapV2Client(ctx context.Context) UniswapV2Client {
 	if err != nil {
 		panic(err)
 	}
+	erc20AbiFile, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.ERC20ABI))
+	if err != nil {
+		panic(err)
+	}
+	factoryAbiFile, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniswapV2FactoryABI))
+	if err != nil {
+		panic(err)
+	}
+	pairAbiFile, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniswapV2PairAbi))
+	if err != nil {
+		panic(err)
+	}
 	f := strings_filter.FilterOpts{
 		DoesNotStartWithThese: nil,
 		StartsWithThese:       []string{"swap"},
@@ -51,6 +76,10 @@ func InitUniswapV2Client(ctx context.Context) UniswapV2Client {
 		DoesNotInclude:        []string{"supportingFeeOnTransferTokens"},
 	}
 	return UniswapV2Client{
+		FactorySmartContractAddr: UniswapV2FactoryAddress,
+		FactoryAbi:               factoryAbiFile,
+		ERC20Abi:                 erc20AbiFile,
+		PairAbi:                  pairAbiFile,
 		MevSmartContractTxMap: MevSmartContractTxMap{
 			SmartContractAddr: UniswapV2RouterAddress,
 			Abi:               abiFile,

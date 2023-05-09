@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gochain/gochain/v4/common"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 	signing_automation_ethereum "github.com/zeus-fyi/zeus/pkg/artemis/signing_automation/ethereum"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
@@ -126,7 +125,7 @@ func (u *UniswapV2Client) ProcessTxs() {
 		}
 	}
 
-	fmt.Println("count:", count)
+	fmt.Println("totalFilteredCount:", count)
 }
 
 func (u *UniswapV2Client) SwapExactTokensForTokens(args map[string]interface{}) {
@@ -150,11 +149,6 @@ func (u *UniswapV2Client) SwapExactTokensForTokens(args map[string]interface{}) 
 	if err != nil {
 		return
 	}
-	fmt.Println("amountIn:", amountIn)
-	fmt.Println("amountOutMin:", amountOutMin)
-	fmt.Println("path:", path)
-	fmt.Println("to:", to)
-	fmt.Println("deadline:", deadline)
 	st := SwapExactTokensForTokensParams{
 		AmountIn:     amountIn,
 		AmountOutMin: amountOutMin,
@@ -186,11 +180,6 @@ func (u *UniswapV2Client) SwapTokensForExactTokens(args map[string]interface{}) 
 	if err != nil {
 		return
 	}
-	fmt.Println("amountOut:", amountOut)
-	fmt.Println("amountInMax:", amountInMax)
-	fmt.Println("path:", path)
-	fmt.Println("to:", to)
-	fmt.Println("deadline:", deadline)
 	st := SwapTokensForExactTokensParams{
 		AmountOut:   amountOut,
 		AmountInMax: amountInMax,
@@ -219,14 +208,10 @@ func (u *UniswapV2Client) SwapExactETHForTokens(args map[string]interface{}) {
 	if err != nil {
 		return
 	}
-	fmt.Println("amountOutMin:", amountOutMin)
-	fmt.Println("path:", path)
-	fmt.Println("to:", to)
-	fmt.Println("deadline:", deadline)
 	st := SwapExactETHForTokensParams{
 		AmountOutMin: amountOutMin,
 		Path:         path,
-		To:           common.Address{},
+		To:           to,
 		Deadline:     deadline,
 	}
 	u.SwapExactETHForTokensParamsSlice = append(u.SwapExactETHForTokensParamsSlice, st)
@@ -254,11 +239,6 @@ func (u *UniswapV2Client) SwapTokensForExactETH(args map[string]interface{}) {
 	if err != nil {
 		return
 	}
-	fmt.Println("amountOut:", amountOut)
-	fmt.Println("amountInMax:", amountInMax)
-	fmt.Println("path:", path)
-	fmt.Println("to:", to)
-	fmt.Println("deadline:", deadline)
 	st := SwapTokensForExactETHParams{
 		AmountOut:   amountOut,
 		AmountInMax: amountInMax,
@@ -291,11 +271,6 @@ func (u *UniswapV2Client) SwapExactTokensForETH(args map[string]interface{}) {
 	if err != nil {
 		return
 	}
-	fmt.Println("amountIn:", amountIn)
-	fmt.Println("amountOutMin:", amountOutMin)
-	fmt.Println("path:", path)
-	fmt.Println("to:", to)
-	fmt.Println("deadline:", deadline)
 	st := SwapExactTokensForETHParams{
 		AmountIn:     amountIn,
 		AmountOutMin: amountOutMin,
@@ -324,10 +299,6 @@ func (u *UniswapV2Client) SwapETHForExactTokens(args map[string]interface{}) {
 	if err != nil {
 		return
 	}
-	fmt.Println("amountOut:", amountOut)
-	fmt.Println("path:", path)
-	fmt.Println("to:", to)
-	fmt.Println("deadline:", deadline)
 	st := SwapETHForExactTokensParams{
 		AmountOut: amountOut,
 		Path:      path,

@@ -3,7 +3,7 @@ package web3_client
 import "fmt"
 
 func (s *Web3ClientTestSuite) TestUniswapMempoolFilter() {
-	uni := InitUniswapV2Client(ctx)
+	uni := InitUniswapV2Client(ctx, s.MainnetWeb3User)
 	txMap, err := s.MainnetWeb3User.GetFilteredPendingMempoolTxs(ctx, uni.MevSmartContractTxMap)
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(txMap)

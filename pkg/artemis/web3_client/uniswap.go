@@ -15,7 +15,6 @@ const (
 	UniswapV2FactoryAddress = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
 	UniswapV2RouterAddress  = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
 
-	WETH9ContractAddress         = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
 	addLiquidity                 = "addLiquidity"
 	addLiquidityETH              = "addLiquidityETH"
 	removeLiquidity              = "removeLiquidity"
@@ -38,6 +37,7 @@ There is a 0.3% fee for swapping tokens. This fee is split by liquidity provider
 // TODO https://docs.uniswap.org/contracts/v2/reference/smart-contracts/router-02
 
 type UniswapV2Client struct {
+	Web3Client               Web3Client
 	FactorySmartContractAddr string
 	PairAbi                  *abi.ABI
 	ERC20Abi                 *abi.ABI
@@ -52,7 +52,7 @@ type UniswapV2Client struct {
 	SwapETHForExactTokensParamsSlice    []SwapETHForExactTokensParams
 }
 
-func InitUniswapV2Client(ctx context.Context) UniswapV2Client {
+func InitUniswapV2Client(ctx context.Context, w Web3Client) UniswapV2Client {
 	abiFile, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniswapV2RouterABI))
 	if err != nil {
 		panic(err)
@@ -76,6 +76,7 @@ func InitUniswapV2Client(ctx context.Context) UniswapV2Client {
 		DoesNotInclude:        []string{"supportingFeeOnTransferTokens"},
 	}
 	return UniswapV2Client{
+		Web3Client:               w,
 		FactorySmartContractAddr: UniswapV2FactoryAddress,
 		FactoryAbi:               factoryAbiFile,
 		ERC20Abi:                 erc20AbiFile,

@@ -35,12 +35,6 @@ func DeployIngressHandler(c echo.Context) error {
 				}
 			}
 		}
-		if request.Kns.CloudProvider == "gcp" {
-			if request.Ingress.Annotations == nil {
-				request.Ingress.Annotations = map[string]string{}
-			}
-			request.Ingress.Annotations["kubernetes.io/ingress.class"] = "nginx"
-		}
 		log.Debug().Interface("kns", request.Kns).Msg("DeployIngressHandler: CreateIngressIfVersionLabelChangesOrDoesNotExist")
 		_, err := zeus.K8Util.CreateIngressIfVersionLabelChangesOrDoesNotExist(ctx, request.Kns.CloudCtxNs, request.Ingress, nil)
 		if err != nil {

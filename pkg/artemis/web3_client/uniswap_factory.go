@@ -8,8 +8,7 @@ import (
 )
 
 func (u *UniswapV2Client) GetPairContractFromFactory(ctx context.Context, addressOne, addressTwo string) common.Address {
-	addrOne := common.HexToAddress(addressOne)
-	addrTwo := common.HexToAddress(addressTwo)
+	addrOne, addrTwo := StringsToAddresses(addressOne, addressTwo)
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: UniswapV2FactoryAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},

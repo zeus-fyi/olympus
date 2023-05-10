@@ -154,6 +154,8 @@ func ParseBigInt(i interface{}) (*big.Int, error) {
 			return nil, fmt.Errorf("failed to parse string '%s' into big.Int", v)
 		}
 		return result, nil
+	case uint32:
+		return big.NewInt(int64(v)), nil
 	case int64:
 		return big.NewInt(v), nil
 	default:

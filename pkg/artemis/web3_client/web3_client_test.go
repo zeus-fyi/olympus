@@ -2,8 +2,12 @@ package web3_client
 
 import (
 	"fmt"
+	"os"
+	"path"
+	"runtime"
 	"testing"
 
+	"github.com/gochain/gochain/v4/common"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_encryption"
@@ -66,8 +70,49 @@ func (s *Web3ClientTestSuite) TestReadMempool() {
 	mempool, err := s.MainnetWeb3User.Web3Actions.GetTxPoolContent(ctx)
 	s.Require().Nil(err)
 	s.Assert().NotNil(mempool)
+	uswap := InitUniswapV2Client(ctx, s.MainnetWeb3User)
+	s.Require().Nil(err)
+	smartContractAddrFilter := common.HexToAddress(uswap.SmartContractAddr)
+	smartContractAddrFilterString := smartContractAddrFilter.String()
+	for userAddr, txPoolQueue := range mempool["pending"] {
+		for order, tx := range txPoolQueue {
+			if tx.To != nil && tx.To.String() == smartContractAddrFilterString {
+				fmt.Println(userAddr, order, tx)
+				fmt.Println("Found")
+				if tx.Input != nil {
+					input := *tx.Input
+					calldata := []byte(input)
+					if len(calldata) < 4 {
+						fmt.Println("invalid calldata")
+						continue
+					}
+					sigdata := calldata[:4]
+					method, merr := uswap.Abi.MethodById(sigdata[:4])
+					s.Assert().Nil(merr)
+					fmt.Println(method.Name)
+					argdata := calldata[4:]
+					if len(argdata)%32 != 0 {
+						fmt.Println("invalid argdata")
+						continue
+					}
+					m := make(map[string]interface{})
+					err = method.Inputs.UnpackIntoMap(m, argdata)
+					s.Assert().Nil(err)
+				}
+			}
+		}
+	}
 }
 
+func forceDirToLocation() string {
+	_, filename, _, _ := runtime.Caller(0)
+	dir := path.Join(path.Dir(filename), "")
+	err := os.Chdir(dir)
+	if err != nil {
+		panic(err.Error())
+	}
+	return dir
+}
 func TestWeb3ClientTestSuite(t *testing.T) {
 	suite.Run(t, new(Web3ClientTestSuite))
 }

@@ -6,6 +6,7 @@ import (
 	"path"
 	"runtime"
 
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	temporal_client "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
@@ -162,7 +163,7 @@ func InitLocalTestConfigs() TestContainer {
 	}
 	b, err := p.ReadFileInPath()
 	if err != nil {
-		panic(err)
+		log.Info().Err(err).Msg("error reading gcp auth json file")
 	}
 	testCont.GcpAuthJson = b
 	testCont.TwitterAccessToken = viper.GetString("TWITTER_ACCESS_TOKEN_KEY")

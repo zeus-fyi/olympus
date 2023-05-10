@@ -20,7 +20,8 @@ func (s *Web3ClientTestSuite) TestGetPairContractInfo() {
 	pair, err := uni.GetPairContractPrices(ctx, pairContractAddr)
 	s.Assert().Nil(err)
 	s.Assert().NotEmpty(pair)
-
+	pair.Token1Decimals = 18
+	pair.Token0Decimals = 18
 	fmt.Println("token0", pair.Token0.String())
 	fmt.Println("token1", pair.Token1.String())
 	s.Assert().Equal(PepeContractAddr, pair.Token0.String())

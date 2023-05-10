@@ -25,11 +25,9 @@ func (p *UniswapV2Pair) GetToken1Price() (*big.Float, error) {
 	if p.Reserve0 == nil || p.Reserve1 == nil || p.Reserve0.Cmp(big.NewInt(0)) == 0 || p.Reserve1.Cmp(big.NewInt(0)) == 0 {
 		return nil, errors.New("reserves are not initialized or are zero")
 	}
-	// Create big.Float values from the big.Int reserves
-	price0 := new(big.Float).SetInt(p.Reserve0)
-	price1 := new(big.Float).SetInt(p.Reserve1)
-	// Calculate price0 / price1
-	token1Price := new(big.Float).Quo(price0, price1)
+	reserve0 := new(big.Float).SetInt(p.Reserve0)
+	reserve1 := new(big.Float).SetInt(p.Reserve1)
+	token1Price := new(big.Float).Quo(reserve0, reserve1)
 	return token1Price, nil
 }
 
@@ -37,12 +35,10 @@ func (p *UniswapV2Pair) GetToken0Price() (*big.Float, error) {
 	if p.Reserve0 == nil || p.Reserve1 == nil || p.Reserve0.Cmp(big.NewInt(0)) == 0 || p.Reserve1.Cmp(big.NewInt(0)) == 0 {
 		return nil, errors.New("reserves are not initialized or are zero")
 	}
-	// Create big.Float values from the big.Int reserves
-	price0 := new(big.Float).SetInt(p.Reserve1)
-	price1 := new(big.Float).SetInt(p.Reserve0)
-
 	// Calculate price0 / price1
-	token0Price := new(big.Float).Quo(price0, price1)
+	reserve0 := new(big.Float).SetInt(p.Reserve0)
+	reserve1 := new(big.Float).SetInt(p.Reserve1)
+	token0Price := new(big.Float).Quo(reserve1, reserve0)
 	return token0Price, nil
 }
 

@@ -35,7 +35,6 @@ func (s *Web3ClientTestSuite) TestGetPairContractInfoStable() {
 	pair, err := uni.GetPairContractPrices(ctx, pairAddr.String())
 	s.Assert().Nil(err)
 	s.Assert().NotEmpty(pair)
-
 	fmt.Println("token0", pair.Token0.String())
 	fmt.Println("token1", pair.Token1.String())
 	s.Assert().Equal(LinkTokenAddr, pair.Token0.String())
@@ -61,4 +60,37 @@ func (s *Web3ClientTestSuite) TestGetPairContractInfoStable() {
 	price, err = pair.GetPriceWithBaseUnit(LinkTokenAddr)
 	s.Require().Nil(err)
 	fmt.Println("link/weth", "price", price)
+}
+
+func (s *Web3ClientTestSuite) TestGetPairContractInfoMismatchedDecimals() {
+	uni := InitUniswapV2Client(ctx, s.MainnetWeb3User)
+	pairAddr := uni.GetPairContractFromFactory(ctx, WETH9ContractAddress, HexTokenAddr)
+	pair, err := uni.GetPairContractPrices(ctx, pairAddr.String())
+	s.Assert().Nil(err)
+	s.Assert().NotEmpty(pair)
+	fmt.Println("token0", pair.Token0.String())
+	fmt.Println("token1", pair.Token1.String())
+	s.Assert().Equal(HexTokenAddr, pair.Token0.String())
+	s.Assert().Equal(WETH9ContractAddress, pair.Token1.String())
+	fmt.Println("kLast", pair.KLast.Uint64())
+	fmt.Println("reserve0", pair.Reserve0.Uint64())
+	fmt.Println("reserve1", pair.Reserve1.Uint64())
+	fmt.Println("price0CumulativeLast", pair.Price0CumulativeLast.Uint64())
+	fmt.Println("price1CumulativeLast", pair.Price1CumulativeLast.Uint64())
+
+	token0Price, err := pair.GetToken0Price()
+	s.Require().Nil(err)
+	fmt.Println("hex/weth", "token0Price", token0Price, "price0CumuluativeLast", pair.Price0CumulativeLast)
+
+	token1Price, err := pair.GetToken1Price()
+	s.Require().Nil(err)
+	fmt.Println("weth/hex", "token1Price", token1Price, "price1CumuluativeLast", pair.Price1CumulativeLast)
+
+	price, err := pair.GetPriceWithBaseUnit(WETH9ContractAddress)
+	s.Require().Nil(err)
+	fmt.Println("weth/hex", "price", price)
+
+	price, err = pair.GetPriceWithBaseUnit(HexTokenAddr)
+	s.Require().Nil(err)
+	fmt.Println("hex/weth", "price", price)
 }

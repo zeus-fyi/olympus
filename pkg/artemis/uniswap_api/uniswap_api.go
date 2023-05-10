@@ -10,25 +10,22 @@ import (
 	"strings"
 )
 
-type UniswapToken struct {
+type UniswapV2ApiToken struct {
 	Id     string
 	Symbol string
 }
 
-type UniswapPair struct {
+type UniswapV2ApiPair struct {
 	Id       string
-	Token0   UniswapToken
-	Token1   UniswapToken
+	Token0   UniswapV2ApiToken
+	Token1   UniswapV2ApiToken
 	Reserve0 *big.Int
 	Reserve1 *big.Int
 }
 
-const (
-	Endpoint   = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
-	SubgraphId = "QmWTrJJ9W8h3JE19FhCzzPYsJ2tgXZCdUqnbyuo64ToTBN"
-)
+const Endpoint = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
 
-func GetTokenPairsWithVolume(ctx context.Context) ([]UniswapPair, error) {
+func GetTokenPairsWithVolume(ctx context.Context) ([]UniswapV2ApiPair, error) {
 	graphqlQuery := `
         query {
             pairs(
@@ -82,8 +79,8 @@ func GetTokenPairsWithVolume(ctx context.Context) ([]UniswapPair, error) {
 		Data struct {
 			Pairs []struct {
 				Id       string
-				Token0   UniswapToken
-				Token1   UniswapToken
+				Token0   UniswapV2ApiToken
+				Token1   UniswapV2ApiToken
 				Reserve0 string
 				Reserve1 string
 			}
@@ -94,7 +91,7 @@ func GetTokenPairsWithVolume(ctx context.Context) ([]UniswapPair, error) {
 		return nil, err
 	}
 
-	pairs := make([]UniswapPair, len(data.Data.Pairs))
+	pairs := make([]UniswapV2ApiPair, len(data.Data.Pairs))
 	for i, pair := range data.Data.Pairs {
 		reserve0 := new(big.Int)
 		reserve0.SetString(pair.Reserve0, 10)
@@ -102,7 +99,7 @@ func GetTokenPairsWithVolume(ctx context.Context) ([]UniswapPair, error) {
 		reserve1 := new(big.Int)
 		reserve1.SetString(pair.Reserve1, 10)
 
-		pairs[i] = UniswapPair{
+		pairs[i] = UniswapV2ApiPair{
 			Id:       pair.Id,
 			Token0:   pair.Token0,
 			Token1:   pair.Token1,

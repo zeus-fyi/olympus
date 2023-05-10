@@ -6,8 +6,8 @@ import (
 )
 
 func (s *Web3ClientTestSuite) TestCalculateSlippage() {
-	reserve0, _ := new(big.Int).SetString("8352835115956369451", 10)
-	reserve1, _ := new(big.Int).SetString("16292612575348703137", 10)
+	reserve0, _ := new(big.Int).SetString("2859456211217791841082775702235", 10)
+	reserve1, _ := new(big.Int).SetString("3057340484928582107066", 10)
 	price0CumulativeLast, _ := new(big.Int).SetString("16189770433890398272", 10)
 	price1CumulativeLast, _ := new(big.Int).SetString("15199761958283573464", 10)
 	token0Addr, token1Addr := StringsToAddresses(PepeContractAddr, WETH9ContractAddress)
@@ -22,13 +22,37 @@ func (s *Web3ClientTestSuite) TestCalculateSlippage() {
 		Reserve1:             reserve1,
 	}
 	fmt.Println("mockPairResp", mockPairResp)
-	//mockTrade :=
-
 	price, err := mockPairResp.GetPriceWithBaseUnit(WETH9ContractAddress)
 	s.Require().Nil(err)
 	fmt.Println("weth/pepe", "price", price)
+
+	price, err = mockPairResp.GetPriceWithBaseUnit(PepeContractAddr)
+	s.Require().Nil(err)
+	fmt.Println("pepe/weth", "price", price)
 }
 
+func (s *Web3ClientTestSuite) TestGetPepeWETH() {
+	uni := InitUniswapV2Client(ctx, s.MainnetWeb3User)
+	pairAddr := uni.GetPairContractFromFactory(ctx, WETH9ContractAddress, PepeContractAddr)
+	pair, err := uni.GetPairContractPrices(ctx, pairAddr.String())
+	fmt.Println("token0", pair.Token0.String())
+	fmt.Println("token1", pair.Token1.String())
+	s.Assert().Equal(PepeContractAddr, pair.Token0.String())
+	s.Assert().Equal(WETH9ContractAddress, pair.Token1.String())
+	fmt.Println("kLast", pair.KLast.Uint64())
+	fmt.Println("reserve0", pair.Reserve0.String())
+	fmt.Println("reserve1", pair.Reserve1.String())
+	fmt.Println("price0CumulativeLast", pair.Price0CumulativeLast.Uint64())
+	fmt.Println("price1CumulativeLast", pair.Price1CumulativeLast.Uint64())
+
+	price, err := pair.GetPriceWithBaseUnit(WETH9ContractAddress)
+	s.Require().Nil(err)
+	fmt.Println("weth/pepe", "price", price)
+
+	price, err = pair.GetPriceWithBaseUnit(PepeContractAddr)
+	s.Require().Nil(err)
+	fmt.Println("pepe/weth", "price", price)
+}
 func (s *Web3ClientTestSuite) TestGetPairContractInfoStable() {
 	uni := InitUniswapV2Client(ctx, s.MainnetWeb3User)
 	pairAddr := uni.GetPairContractFromFactory(ctx, WETH9ContractAddress, LinkTokenAddr)

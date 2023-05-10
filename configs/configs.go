@@ -143,6 +143,7 @@ func forceDirToCallerLocation() string {
 
 func InitEnvFromConfig(dir string) {
 	viper.AddConfigPath(dir)
+	viper.SetConfigType("yaml") // for a YAML file
 	err := viper.ReadInConfig() // Find and read the config file
 	if err != nil {             // Handle errors reading the config file
 		panic(fmt.Errorf("Fatal error config file: %w \n", err))

@@ -6,17 +6,34 @@ import (
 
 	"github.com/digitalocean/godo"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
 // https://docs.digitalocean.com/reference/api/api-reference/#tag/Domain-Records
 
-const NycLoadBalancerIp = "164.90.252.115"
+const (
+	Sfo3LoadBalancerIp = "143.198.244.181"
+	NycLoadBalancerIp  = "164.90.252.115"
+	GkeUsCentral1Ip    = "34.122.201.76"
+)
 
-func (d *DigitalOcean) CreateDomain(ctx context.Context, name string) (*godo.DomainRecord, error) {
+func (d *DigitalOcean) CreateDomain(ctx context.Context, cloudCtxNs zeus_common_types.CloudCtxNs) (*godo.DomainRecord, error) {
+	loadBalancer := ""
+	switch cloudCtxNs.CloudProvider {
+	case "gcp":
+		loadBalancer = GkeUsCentral1Ip
+	case "do":
+		switch cloudCtxNs.Region {
+		case "nyc1":
+			loadBalancer = NycLoadBalancerIp
+		case "sfo3":
+			loadBalancer = Sfo3LoadBalancerIp
+		}
+	}
 	createRequest := &godo.DomainRecordEditRequest{
 		Type: "A",
-		Name: name,
-		Data: NycLoadBalancerIp,
+		Name: cloudCtxNs.Namespace,
+		Data: loadBalancer,
 		TTL:  3600,
 	}
 

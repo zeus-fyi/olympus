@@ -21,14 +21,39 @@ type UniswapV2Pair struct {
 	BlockTimestampLast   *big.Int
 }
 
-func (p *UniswapV2Pair) GetPriceAndReserveByAddr(addr string) (*big.Int, *big.Int, error) {
+func (p *UniswapV2Pair) GetToken1Price() (*big.Float, error) {
+	if p.Reserve0 == nil || p.Reserve1 == nil || p.Reserve0.Cmp(big.NewInt(0)) == 0 || p.Reserve1.Cmp(big.NewInt(0)) == 0 {
+		return nil, errors.New("reserves are not initialized or are zero")
+	}
+	// Create big.Float values from the big.Int reserves
+	price0 := new(big.Float).SetInt(p.Reserve0)
+	price1 := new(big.Float).SetInt(p.Reserve1)
+	// Calculate price0 / price1
+	token1Price := new(big.Float).Quo(price0, price1)
+	return token1Price, nil
+}
+
+func (p *UniswapV2Pair) GetToken0Price() (*big.Float, error) {
+	if p.Reserve0 == nil || p.Reserve1 == nil || p.Reserve0.Cmp(big.NewInt(0)) == 0 || p.Reserve1.Cmp(big.NewInt(0)) == 0 {
+		return nil, errors.New("reserves are not initialized or are zero")
+	}
+	// Create big.Float values from the big.Int reserves
+	price0 := new(big.Float).SetInt(p.Reserve1)
+	price1 := new(big.Float).SetInt(p.Reserve0)
+
+	// Calculate price0 / price1
+	token0Price := new(big.Float).Quo(price0, price1)
+	return token0Price, nil
+}
+
+func (p *UniswapV2Pair) GetPriceWithBaseUnit(addr string) (*big.Float, error) {
 	if p.Token0 == common.HexToAddress(addr) {
-		return p.Price0CumulativeLast, p.Reserve0, nil
+		return p.GetToken0Price()
 	}
 	if p.Token1 == common.HexToAddress(addr) {
-		return p.Price1CumulativeLast, p.Reserve1, nil
+		return p.GetToken1Price()
 	}
-	return nil, nil, errors.New("token not found")
+	return nil, errors.New("token not found")
 }
 
 func (u *UniswapV2Client) GetPairContractPrices(ctx context.Context, pairContractAddr string) (UniswapV2Pair, error) {

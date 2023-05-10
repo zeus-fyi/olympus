@@ -3,6 +3,7 @@ package web3_client
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"strings"
 
 	"github.com/gochain/gochain/v4/accounts/abi"
@@ -124,6 +125,9 @@ func (u *UniswapV2Client) ProcessTxs() {
 		case addLiquidityETH:
 			// payable
 			//u.AddLiquidityETH(tx.Args)
+			if tx.Tx.Value == nil {
+				continue
+			}
 		case removeLiquidity:
 			//u.RemoveLiquidity(tx.Args)
 		case removeLiquidityETH:
@@ -141,7 +145,10 @@ func (u *UniswapV2Client) ProcessTxs() {
 		case swapExactETHForTokens:
 			// payable
 			count++
-			u.SwapExactETHForTokens(tx.Args)
+			if tx.Tx.Value == nil {
+				continue
+			}
+			u.SwapExactETHForTokens(tx.Args, tx.Tx.Value.ToInt())
 		case swapTokensForExactETH:
 			count++
 			u.SwapTokensForExactETH(tx.Args)
@@ -151,7 +158,10 @@ func (u *UniswapV2Client) ProcessTxs() {
 		case swapETHForExactTokens:
 			// payable
 			count++
-			u.SwapETHForExactTokens(tx.Args)
+			if tx.Tx.Value == nil {
+				continue
+			}
+			u.SwapETHForExactTokens(tx.Args, tx.Tx.Value.ToInt())
 		}
 	}
 
@@ -220,7 +230,7 @@ func (u *UniswapV2Client) SwapTokensForExactTokens(args map[string]interface{}) 
 	u.SwapTokensForExactTokensParamsSlice = append(u.SwapTokensForExactTokensParamsSlice, st)
 }
 
-func (u *UniswapV2Client) SwapExactETHForTokens(args map[string]interface{}) {
+func (u *UniswapV2Client) SwapExactETHForTokens(args map[string]interface{}, payableEth *big.Int) {
 	fmt.Println("SwapExactETHForTokens", args)
 	amountOutMin, err := ParseBigInt(args["amountOutMin"])
 	if err != nil {
@@ -243,6 +253,7 @@ func (u *UniswapV2Client) SwapExactETHForTokens(args map[string]interface{}) {
 		Path:         path,
 		To:           to,
 		Deadline:     deadline,
+		Value:        payableEth,
 	}
 	u.SwapExactETHForTokensParamsSlice = append(u.SwapExactETHForTokensParamsSlice, st)
 }
@@ -311,7 +322,7 @@ func (u *UniswapV2Client) SwapExactTokensForETH(args map[string]interface{}) {
 	u.SwapExactTokensForETHParamsSlice = append(u.SwapExactTokensForETHParamsSlice, st)
 }
 
-func (u *UniswapV2Client) SwapETHForExactTokens(args map[string]interface{}) {
+func (u *UniswapV2Client) SwapETHForExactTokens(args map[string]interface{}, payableEth *big.Int) {
 	fmt.Println("SwapExactTokensForETH", args)
 	amountOut, err := ParseBigInt(args["amountOut"])
 	if err != nil {
@@ -334,6 +345,7 @@ func (u *UniswapV2Client) SwapETHForExactTokens(args map[string]interface{}) {
 		Path:      path,
 		To:        to,
 		Deadline:  deadline,
+		Value:     payableEth,
 	}
 	u.SwapETHForExactTokensParamsSlice = append(u.SwapETHForExactTokensParamsSlice, st)
 }

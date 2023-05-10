@@ -27,6 +27,7 @@ type SwapExactETHForTokensParams struct {
 	AmountOutMin *big.Int
 	Path         []common.Address
 	To           common.Address
+	Value        *big.Int
 	Deadline     *big.Int
 }
 
@@ -51,6 +52,7 @@ type SwapETHForExactTokensParams struct {
 	Path      []common.Address
 	To        common.Address
 	Deadline  *big.Int
+	Value     *big.Int
 }
 
 type SwapExactTokensForTokensSupportingFeeOnTransferTokensParams struct {

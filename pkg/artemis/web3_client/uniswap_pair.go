@@ -124,7 +124,6 @@ func (u *UniswapV2Client) SingleReadMethodAddr(ctx context.Context, methodName s
 
 // TODO
 // function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;
-
 /*
   // if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
     function _mintFee(uint112 _reserve0, uint112 _reserve1) private returns (bool feeOn) {

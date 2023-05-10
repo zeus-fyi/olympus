@@ -39,7 +39,7 @@ func (s *Web3ClientTestSuite) TestGetPepeWETH() {
 	fmt.Println("token1", pair.Token1.String())
 	s.Assert().Equal(PepeContractAddr, pair.Token0.String())
 	s.Assert().Equal(WETH9ContractAddress, pair.Token1.String())
-	fmt.Println("kLast", pair.KLast.Uint64())
+	fmt.Println("kLast", pair.KLast.String())
 	fmt.Println("reserve0", pair.Reserve0.String())
 	fmt.Println("reserve1", pair.Reserve1.String())
 	fmt.Println("price0CumulativeLast", pair.Price0CumulativeLast.Uint64())

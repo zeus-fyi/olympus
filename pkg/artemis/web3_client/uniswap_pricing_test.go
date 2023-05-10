@@ -17,7 +17,9 @@ func (s *Web3ClientTestSuite) TestPricingImpact() {
 		Reserve1: reserve1,
 	}
 	originalRate, _ := mockPairResp.GetToken1Price()
-	newRate := mockPairResp.PriceImpact(big.NewInt(3000))
+	newRateToken1, newRateToken0 := mockPairResp.PriceImpact(big.NewInt(3000))
 	fmt.Println("originalRate", originalRate)
-	fmt.Println("newRate", newRate)
+	fmt.Println("newRateToken0", newRateToken0)
+	fmt.Println("newRateToken1", newRateToken1)
+	s.Assert().Equal("3.015037481", newRateToken0.String())
 }

@@ -115,6 +115,7 @@ func (u *UniswapV2Client) GetAllTradeMethods() []string {
 	}
 }
 
+// ProcessTxs TODO should filter out past deadline or will be past deadline by the time we can execute
 func (u *UniswapV2Client) ProcessTxs() {
 	count := 0
 	for methodName, tx := range u.MethodTxMap {
@@ -164,7 +165,6 @@ func (u *UniswapV2Client) ProcessTxs() {
 			u.SwapETHForExactTokens(tx.Args, tx.Tx.Value.ToInt())
 		}
 	}
-
 	fmt.Println("totalFilteredCount:", count)
 }
 

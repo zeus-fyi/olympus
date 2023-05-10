@@ -21,8 +21,17 @@ type UniswapV2Pair struct {
 	BlockTimestampLast   *big.Int
 }
 
+func (p *UniswapV2Pair) GetPriceAndReserveByAddr(addr string) (*big.Int, *big.Int, error) {
+	if p.Token0 == common.HexToAddress(addr) {
+		return p.Price0CumulativeLast, p.Reserve0, nil
+	}
+	if p.Token1 == common.HexToAddress(addr) {
+		return p.Price1CumulativeLast, p.Reserve1, nil
+	}
+	return nil, nil, errors.New("token not found")
+}
+
 func (u *UniswapV2Client) GetPairContractPrices(ctx context.Context, pairContractAddr string) (UniswapV2Pair, error) {
-	//addrOne, addrTwo := StringsToAddresses(addressOne, addressTwo)
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: pairContractAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},

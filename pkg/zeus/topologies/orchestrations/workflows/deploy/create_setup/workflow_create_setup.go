@@ -112,7 +112,7 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 	//	return err
 	//}
 	domainRequestCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(domainRequestCtx, c.CreateSetupTopologyActivities.AddDomainRecord, params.Namespace).Get(domainRequestCtx, nil)
+	err = workflow.ExecuteActivity(domainRequestCtx, c.CreateSetupTopologyActivities.AddDomainRecord, params.CloudCtxNs).Get(domainRequestCtx, nil)
 	if err != nil {
 		log.Error("Failed to add subdomain resources to org account", "Error", err)
 		return err

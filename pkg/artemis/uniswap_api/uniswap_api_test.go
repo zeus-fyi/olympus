@@ -19,7 +19,13 @@ func (s *UniswapAPITestSuite) SetupTest() {
 }
 
 func (s *UniswapAPITestSuite) TestGetTokenPairsWithVolume() {
-	pairs, err := GetTokenPairsWithVolume(ctx)
+	pairs, err := GetTokenPairsWithVolume(ctx, 10, 1000000, 50000) // 10 pairs, 1M volume, 50k liquidity
+	s.Require().Nil(err)
+	s.Assert().NotEmpty(pairs)
+}
+
+func (s *UniswapAPITestSuite) TestGetPairsForToken() {
+	pairs, err := GetPairsForToken(ctx, 100, "0x6b175474e89094c44da98b954eedeac495271d0f") // DAI token
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(pairs)
 }

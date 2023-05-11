@@ -25,36 +25,7 @@ type UniswapV2ApiPair struct {
 
 const Endpoint = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
 
-func GetTokenPairsWithVolume(ctx context.Context) ([]UniswapV2ApiPair, error) {
-	graphqlQuery := `
-        query {
-            pairs(
-                first: 1000
-                where: {
-                    reserveUSD_gt: 1000000
-                    volumeUSD_gt: 50000
-                }
-                orderBy: reserveUSD
-                orderDirection: asc
-            ) {
-                id
-                token0 {
-                    id
-                    symbol
-                }
-                token1 {
-                    id
-                    symbol
-                }
-				reserve0
-				reserve1
-                reserveUSD
-                volumeUSD
-
-            }
-        }
-    `
-
+func fetchPairs(ctx context.Context, graphqlQuery string) ([]UniswapV2ApiPair, error) {
 	query := fmt.Sprintf(`{"query": %q}`, strings.ReplaceAll(graphqlQuery, "\n", " "))
 
 	client := &http.Client{}
@@ -108,6 +79,72 @@ func GetTokenPairsWithVolume(ctx context.Context) ([]UniswapV2ApiPair, error) {
 		}
 	}
 
-	fmt.Println("Pairs 0:", data.Data.Pairs[0])
 	return pairs, nil
+}
+
+func GetTokenPairsWithVolume(ctx context.Context, limit, reserveMin, volumeMin int) ([]UniswapV2ApiPair, error) {
+	graphqlQuery := fmt.Sprintf(`
+        query {
+            pairs(
+                first: %d
+                where: {
+                    reserveUSD_gt: %d
+                    volumeUSD_gt: %d
+                }
+                orderBy: reserveUSD
+                orderDirection: asc
+            ) {
+                id
+                token0 {
+                    id
+                    symbol
+                }
+                token1 {
+                    id
+                    symbol
+                }
+				reserve0
+				reserve1
+                reserveUSD
+                volumeUSD
+
+            }
+        }
+    `, limit, reserveMin, volumeMin)
+
+	return fetchPairs(ctx, graphqlQuery)
+}
+
+func GetPairsForToken(ctx context.Context, limit int, tokenAddress string) ([]UniswapV2ApiPair, error) {
+	graphqlQuery := fmt.Sprintf(`
+		query {
+			pairs(
+				first: %d
+				where: {
+					or: [
+						{ token0: "%s" }
+						{ token1: "%s" }
+					]
+				}
+				orderBy: reserveUSD
+				orderDirection: asc
+			) {
+				id
+				token0 {
+					id
+					symbol
+				}
+				token1 {
+					id
+					symbol
+				}
+				reserve0
+				reserve1
+				reserveUSD
+				volumeUSD
+			}
+		}
+	`, limit, tokenAddress, tokenAddress)
+
+	return fetchPairs(ctx, graphqlQuery)
 }

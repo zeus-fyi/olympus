@@ -5,19 +5,24 @@ import (
 	"math/big"
 )
 
-// TODO, needs verification still wip
-func (s *Web3ClientTestSuite) TestSlippageSandwich() {
-	ten := big.NewInt(10)
-	pow18 := new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
-	tenTokensEighteenDecimals := new(big.Int).Mul(ten, pow18)
-	oneEther := new(big.Int).Mul(big.NewInt(1), pow18)
+// https://www.defi-sandwi.ch/
+func (s *Web3ClientTestSuite) TestSlippage() {
+	/*
+		Swaps an exact amount of tokens for as much ETH as possible, along the route determined by the path. The first element of path is the input token,
+		the last must be WETH, and any intermediate elements represent intermediate pairs to trade through (if, for example, a direct pair does not exist).
+	*/
+
+	// 1% slippage tolerance
+	amountIn, _ := new(big.Int).SetString("100000000000000000000", 10)
+	amountOut, _ := new(big.Int).SetString("3205740022151532600", 10)
+
 	mockTrade := SwapExactTokensForETHParams{
-		AmountIn:     tenTokensEighteenDecimals,
-		AmountOutMin: oneEther,
+		AmountIn:     amountIn,
+		AmountOutMin: amountOut,
 	}
 	fmt.Println("mockTrade", mockTrade)
-	reserve0, _ := new(big.Int).SetString("1200000000000000000000", 10)   // 1200 WETH
-	reserve1, _ := new(big.Int).SetString("100000000000000000000000", 10) //   100,000 Token
+	reserve0, _ := new(big.Int).SetString("48061248235489400000", 10)   // 48.0612482354894 WETH
+	reserve1, _ := new(big.Int).SetString("1380228284470951400000", 10) //   1380.2282844709514 PEPE
 	token0Addr, token1Addr := StringsToAddresses(PepeContractAddr, WETH9ContractAddress)
 	mockPairResp := UniswapV2Pair{
 		KLast:    big.NewInt(0),
@@ -32,7 +37,7 @@ func (s *Web3ClientTestSuite) TestSlippageSandwich() {
 	fmt.Println("wethToTokenPrice", wethToTokenPrice.String())
 
 	fmt.Println("-----------front run trade-----------")
-	tokenSellAmount := new(big.Int).Mul(big.NewInt(500), pow18)
+	tokenSellAmount, _ := new(big.Int).SetString("7134802376742077000", 10)
 	toFrontRun, price0, price1 := mockPairResp.PriceImpactToken1BuyToken0(tokenSellAmount)
 	fmt.Println("price0", price0.String())
 	fmt.Println("price1", price1.String())
@@ -43,8 +48,9 @@ func (s *Web3ClientTestSuite) TestSlippageSandwich() {
 	fmt.Println("price0", price0.String())
 	fmt.Println("price1", price1.String())
 	fmt.Println("-----------sandwich trade-----------")
-	sandwichAmountToDump, _ := toFrontRun.AmountOut.Int(nil)
-	toSandwich, price0, price1 := mockPairResp.PriceImpactToken0BuyToken1(sandwichAmountToDump)
+	sandwichDump, _ := toFrontRun.AmountOut.Int(nil)
+	fmt.Println("sandwichAmountToDump", sandwichDump)
+	toSandwich, price0, price1 := mockPairResp.PriceImpactToken0BuyToken1(sandwichDump)
 	fmt.Println("price0", price0.String())
 	fmt.Println("price1", price1.String())
 	fmt.Println("endAmount", toSandwich.AmountOut.String())

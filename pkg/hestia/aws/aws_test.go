@@ -2,7 +2,12 @@ package hestia_eks_aws
 
 import (
 	"context"
+	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
@@ -26,6 +31,48 @@ func (s *AwsEKSTestSuite) SetupTest() {
 	s.Require().NotNil(s.ek.Client)
 }
 
-func (s *AwsEKSTestSuite) TestListSizes() {
+func (s *AwsEKSTestSuite) TestCreateNodeGroup() {
+	machineType := "t2.micro"
+	nodeGroupName := "test-node-group"
 
+	//awsTaint := types.Taint{
+	//	Effect: "NoSchedule",
+	//	Key:    aws.String("org"),
+	//	Value:  aws.String("org"),
+	//}
+	params := &eks.CreateNodegroupInput{
+		ClusterName:        aws.String(AwsUsWest1Context),
+		NodeRole:           nil,
+		NodegroupName:      aws.String(nodeGroupName),
+		AmiType:            "",
+		Subnets:            UsWestSubnetIDs,
+		CapacityType:       "",
+		ClientRequestToken: nil,
+		InstanceTypes:      []string{machineType},
+		Labels:             nil,
+		ScalingConfig: &types.NodegroupScalingConfig{
+			DesiredSize: aws.Int32(1),
+			MaxSize:     aws.Int32(1),
+			MinSize:     aws.Int32(1),
+		},
+		Taints: nil,
+	}
+	ngs, err := s.ek.AddNodeGroup(ctx, params)
+	s.Require().Nil(err)
+	s.Require().NotNil(ngs)
+}
+
+func (s *AwsEKSTestSuite) TestListNodeGroups() {
+	results := int32(10)
+	params := &eks.ListNodegroupsInput{
+		ClusterName: aws.String(AwsUsWest1Context),
+		MaxResults:  &results,
+	}
+	ngs, err := s.ek.ListNodegroups(ctx, params)
+	s.Require().Nil(err)
+	s.Require().NotNil(ngs)
+}
+
+func TestAwsEKSTestSuite(t *testing.T) {
+	suite.Run(t, new(AwsEKSTestSuite))
 }

@@ -33,6 +33,14 @@ func (c *CreateSetupTopologyActivities) GkeAddNodePoolToOrgResources(ctx context
 	return nil
 }
 
+func (c *CreateSetupTopologyActivities) EksAddNodePoolToOrgResources(ctx context.Context, params base_deploy_params.ClusterSetupRequest, npStatus do_types.DigitalOceanNodePoolRequestStatus) error {
+	return nil
+}
+
+func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (do_types.DigitalOceanNodePoolRequestStatus, error) {
+	return do_types.DigitalOceanNodePoolRequestStatus{}, nil
+}
+
 func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (do_types.DigitalOceanNodePoolRequestStatus, error) {
 	label := make(map[string]string)
 	label["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
@@ -110,6 +118,10 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 	}, nil
 }
 
+func (c *CreateSetupTopologyActivities) SelectEksNodeResources(ctx context.Context, request base_deploy_params.DestroyResourcesRequest) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
+	return nil, nil
+}
+
 func (c *CreateSetupTopologyActivities) SelectGkeNodeResources(ctx context.Context, request base_deploy_params.DestroyResourcesRequest) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
 	log.Ctx(ctx).Info().Interface("request", request).Msg("SelectNodeResources")
 	nps, err := hestia_compute_resources.GkeSelectNodeResources(ctx, request.Ou.OrgID, request.OrgResourceIDs)
@@ -169,6 +181,10 @@ func (c *CreateSetupTopologyActivities) GkeRemoveNodePoolRequest(ctx context.Con
 	return err
 }
 
+func (c *CreateSetupTopologyActivities) EksRemoveNodePoolRequest(ctx context.Context, nodePool do_types.DigitalOceanNodePoolRequestStatus) error {
+	return nil
+}
+
 func (c *CreateSetupTopologyActivities) RemoveFreeTrialOrgResources(ctx context.Context, params base_deploy_params.ClusterSetupRequest) error {
 	err := hestia_compute_resources.RemoveFreeTrialOrgResources(ctx, params.Ou.OrgID)
 	if err != nil {
@@ -203,4 +219,8 @@ func (c *CreateSetupTopologyActivities) GkeSelectFreeTrialNodes(ctx context.Cont
 		return gkeNps, err
 	}
 	return gkeNps, err
+}
+
+func (c *CreateSetupTopologyActivities) EksSelectFreeTrialNodes(ctx context.Context, orgID int) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
+	return nil, nil
 }

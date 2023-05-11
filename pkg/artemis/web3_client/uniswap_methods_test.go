@@ -44,9 +44,10 @@ func (s *Web3ClientTestSuite) TestSlippage() {
 	fmt.Println("endAmount", toFrontRun.AmountOut.String())
 	fmt.Println("-----------user trade-----------")
 	// now let user sell their tokens
-	_, price0, price1 = mockPairResp.PriceImpactToken1BuyToken0(mockTrade.AmountIn)
+	to, price0, price1 := mockPairResp.PriceImpactToken1BuyToken0(mockTrade.AmountIn)
 	fmt.Println("price0", price0.String())
 	fmt.Println("price1", price1.String())
+	fmt.Println("userEndAmount", to.AmountOut.String())
 	fmt.Println("-----------sandwich trade-----------")
 	sandwichDump, _ := toFrontRun.AmountOut.Int(nil)
 	fmt.Println("sandwichAmountToDump", sandwichDump)

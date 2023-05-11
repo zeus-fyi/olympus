@@ -19,12 +19,12 @@ func (s *Web3ClientTestSuite) TestSlippage() {
 		AmountIn:     amountIn,
 		AmountOutMin: amountOut,
 	}
-	mockTradePair := UniswapV2Pair{
-		Reserve0: amountOut,
-		Reserve1: amountIn,
-	}
-	tradePrice1, _ := mockTradePair.GetToken1Price()
-	fmt.Println("token0Price", tradePrice1)
+	//mockTradePair := UniswapV2Pair{
+	//	Reserve0: amountOut,
+	//	Reserve1: amountIn,
+	//}
+	//tradePrice1, _ := mockTradePair.GetToken1Price()
+	//fmt.Println("token0Price", tradePrice1)
 	reserve0, _ := new(big.Int).SetString("48061248235489400000", 10)   // 48.0612482354894 WETH
 	reserve1, _ := new(big.Int).SetString("1380228284470951400000", 10) //   1380.2282844709514 PEPE
 	token0Addr, token1Addr := StringsToAddresses(PepeContractAddr, WETH9ContractAddress)

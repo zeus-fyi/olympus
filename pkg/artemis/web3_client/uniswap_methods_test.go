@@ -6,7 +6,10 @@ import (
 )
 
 // https://www.defi-sandwi.ch/
-func (s *Web3ClientTestSuite) TestSlippage() {
+
+// upper-bound on the profit is the victim’s trade amount
+// sandwich attacker needs to pay the 0.3% fee twice
+func (s *Web3ClientTestSuite) TestSandwichAttack() {
 	/*
 		Swaps an exact amount of tokens for as much ETH as possible, along the route determined by the path. The first element of path is the input token,
 		the last must be WETH, and any intermediate elements represent intermediate pairs to trade through (if, for example, a direct pair does not exist).

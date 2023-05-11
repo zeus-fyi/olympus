@@ -17,7 +17,7 @@ func (s *Web3ClientTestSuite) TestPricingImpact() {
 		Reserve1: reserve1,
 	}
 	originalRate, _ := mockPairResp.GetToken1Price()
-	newRateToken1, newRateToken0 := mockPairResp.PriceImpactToken1BuyToken0(big.NewInt(3000))
+	_, newRateToken1, newRateToken0 := mockPairResp.PriceImpactToken1BuyToken0(big.NewInt(3000))
 	fmt.Println("originalRate", originalRate)
 	fmt.Println("newRateToken0", newRateToken0)
 	fmt.Println("newRateToken1", newRateToken1)
@@ -33,7 +33,7 @@ func (s *Web3ClientTestSuite) TestPricingImpact() {
 		Reserve1: reserve1,
 	}
 	originalRate, _ = mockPairResp.GetToken1Price()
-	newRateToken1, newRateToken0 = mockPairResp.PriceImpactToken0BuyToken1(big.NewInt(1000))
+	_, newRateToken1, newRateToken0 = mockPairResp.PriceImpactToken0BuyToken1(big.NewInt(1000))
 	fmt.Println("originalRate", originalRate)
 	fmt.Println("newRateToken0", newRateToken0)
 	fmt.Println("newRateToken1", newRateToken1)

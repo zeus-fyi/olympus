@@ -7,7 +7,18 @@ import (
 
 const uniswapPriceFeeConstant = 0.3 / 100
 
-func (p *UniswapV2Pair) PriceImpactToken1BuyToken0(tokenOneBuyAmount *big.Int) (*big.Float, *big.Float) {
+type TradeOutcome struct {
+	AmountIn   *big.Int
+	AmountFees *big.Float
+	AmountOut  *big.Float
+}
+
+func (p *UniswapV2Pair) PriceImpactToken1BuyToken0(tokenOneBuyAmount *big.Int) (TradeOutcome, *big.Float, *big.Float) {
+	to := TradeOutcome{
+		AmountIn:   tokenOneBuyAmount,
+		AmountFees: nil,
+		AmountOut:  nil,
+	}
 	// From example: 3 Token A
 	fmt.Println("tokenOneBuyAmount", tokenOneBuyAmount.String())
 	tokenOneAmountFloat := new(big.Float).SetInt(tokenOneBuyAmount)
@@ -18,12 +29,12 @@ func (p *UniswapV2Pair) PriceImpactToken1BuyToken0(tokenOneBuyAmount *big.Int) (
 	// From example: 1200 Token A / 400 Token B = 3
 	priceToken0, err := p.GetToken0Price()
 	if err != nil {
-		return nil, nil
+		return to, nil, nil
 	}
 	fmt.Println("price token A per token B", priceToken0.String())
 	priceToken1, err := p.GetToken1Price()
 	if err != nil {
-		return nil, nil
+		return to, nil, nil
 	}
 	fmt.Println("price token B per token A", priceToken1.String())
 	tokenZeroReturned := new(big.Float).Mul(tokenOneAmountFloat, priceToken1)
@@ -31,6 +42,10 @@ func (p *UniswapV2Pair) PriceImpactToken1BuyToken0(tokenOneBuyAmount *big.Int) (
 	// From example: 3 Token A * (1 Token B / 3 Token A) = 1 Token B
 	fmt.Println("tokenZeroReturnedBeforeFee", tokenZeroReturned.String())
 	feeTokenZero := new(big.Float).Mul(tokenZeroReturned, big.NewFloat(uniswapPriceFeeConstant))
+	to.AmountFees = feeTokenZero
+	tokeZeroReturnedAfterFee := tokenZeroReturned.Sub(tokenZeroReturned, feeTokenZero)
+	fmt.Println("tokenZeroReturnedAfterFee", tokeZeroReturnedAfterFee.String())
+	to.AmountOut = tokeZeroReturnedAfterFee
 	// From example: 1 Token B * 0.3% fee = 0.003 Token B
 	fmt.Println("feeTokenZero", feeTokenZero.String())
 	// Update reserves
@@ -50,10 +65,14 @@ func (p *UniswapV2Pair) PriceImpactToken1BuyToken0(tokenOneBuyAmount *big.Int) (
 	// Calculate new price
 	newPriceToken1, _ := p.GetToken1Price()
 	newPriceToken0, _ := p.GetToken0Price()
-	return newPriceToken1, newPriceToken0
+	return to, newPriceToken1, newPriceToken0
 }
 
-func (p *UniswapV2Pair) PriceImpactToken0BuyToken1(tokenZeroBuyAmount *big.Int) (*big.Float, *big.Float) {
+func (p *UniswapV2Pair) PriceImpactToken0BuyToken1(tokenZeroBuyAmount *big.Int) (TradeOutcome, *big.Float, *big.Float) {
+	to := TradeOutcome{
+		AmountIn:  tokenZeroBuyAmount,
+		AmountOut: nil,
+	}
 	// From example: 3 Token A
 	fmt.Println("tokenZeroBuyAmount", tokenZeroBuyAmount.String())
 	tokenZeroAmountFloat := new(big.Float).SetInt(tokenZeroBuyAmount)
@@ -64,12 +83,12 @@ func (p *UniswapV2Pair) PriceImpactToken0BuyToken1(tokenZeroBuyAmount *big.Int) 
 	// From example: 1200 Token A / 400 Token B = 3
 	priceToken1, err := p.GetToken1Price()
 	if err != nil {
-		return nil, nil
+		return to, nil, nil
 	}
 	fmt.Println("price token A per token B", priceToken1.String())
 	priceToken0, err := p.GetToken0Price()
 	if err != nil {
-		return nil, nil
+		return to, nil, nil
 	}
 	fmt.Println("price token B per token A", priceToken0.String())
 	tokenOneReturned := new(big.Float).Mul(tokenZeroAmountFloat, priceToken0)
@@ -77,6 +96,10 @@ func (p *UniswapV2Pair) PriceImpactToken0BuyToken1(tokenZeroBuyAmount *big.Int) 
 	// From example: 3 Token A * (1 Token B / 3 Token A) = 1 Token B
 	fmt.Println("tokenOneReturnedBeforeFee", tokenOneReturned.String())
 	feeTokenOne := new(big.Float).Mul(tokenOneReturned, big.NewFloat(uniswapPriceFeeConstant))
+	to.AmountFees = feeTokenOne
+	tokenOneReturnedAfterFee := tokenOneReturned.Sub(tokenOneReturned, feeTokenOne)
+	to.AmountOut = tokenOneReturnedAfterFee
+	fmt.Println("tokenOneReturnedAfterFee", tokenOneReturnedAfterFee.String())
 	// From example: 1 Token B * 0.3% fee = 0.003 Token B
 	fmt.Println("feeTokenOne", feeTokenOne.String())
 	// Update reserves
@@ -96,5 +119,5 @@ func (p *UniswapV2Pair) PriceImpactToken0BuyToken1(tokenZeroBuyAmount *big.Int) 
 	// Calculate new price
 	newPriceToken1, _ := p.GetToken1Price()
 	newPriceToken0, _ := p.GetToken0Price()
-	return newPriceToken1, newPriceToken0
+	return to, newPriceToken1, newPriceToken0
 }

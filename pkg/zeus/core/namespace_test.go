@@ -65,12 +65,28 @@ func (s *NamespaceTestSuite) TestListK8Namespaces() {
 		fmt.Println(n.Name)
 	}
 
+	// gke from inmemfs uses a different src for gcloud binary
+	//fmt.Println("=========== new context ===========")
+	//s.K.SetContext("gke_zeusfyi_us-central1-a_zeus-gcp-pilot-0")
+	//nsl, err = s.K.GetNamespaces(ctx, zeus_common_types.CloudCtxNs{
+	//	CloudProvider: "",
+	//	Region:        "",
+	//	Context:       "gke_zeusfyi_us-central1-a_zeus-gcp-pilot-0",
+	//	Namespace:     "",
+	//	Env:           "",
+	//})
+	//s.Nil(err)
+	//s.Greater(len(nsl.Items), 0)
+	//for _, n := range nsl.Items {
+	//	fmt.Println(n.Name)
+	//}
+
 	fmt.Println("=========== new context ===========")
-	s.K.SetContext("gke_zeusfyi_us-central1-a_zeus-gcp-pilot-0")
+	s.K.SetContext("arn:aws:eks:us-west-1:480391564655:cluster/zeus-us-west-1")
 	nsl, err = s.K.GetNamespaces(ctx, zeus_common_types.CloudCtxNs{
 		CloudProvider: "",
 		Region:        "",
-		Context:       "gke_zeusfyi_us-central1-a_zeus-gcp-pilot-0",
+		Context:       "arn:aws:eks:us-west-1:480391564655:cluster/zeus-us-west-1",
 		Namespace:     "",
 		Env:           "",
 	})

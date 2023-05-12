@@ -235,6 +235,10 @@ func (c *CreateSetupTopologyActivities) EndResourceService(ctx context.Context, 
 func (c *CreateSetupTopologyActivities) RemoveNodePoolRequest(ctx context.Context, nodePool do_types.DigitalOceanNodePoolRequestStatus) error {
 	log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("RemoveNodePoolRequest")
 	err := api_auth_temporal.DigitalOcean.RemoveNodePool(ctx, nodePool.ClusterID, nodePool.NodePoolID)
+	if errors.IsNotFound(err) {
+		log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("RemoveNodePoolRequest: node pool not found")
+		return nil
+	}
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("nodePool", nodePool).Msg("RemoveNodePool error")
 		return err
@@ -270,6 +274,10 @@ func (c *CreateSetupTopologyActivities) EksRemoveNodePoolRequest(ctx context.Con
 		NodegroupName: aws.String(nodePool.NodePoolID),
 	}
 	_, err := api_auth_temporal.Eks.RemoveNodeGroup(ctx, nr)
+	if errors.IsNotFound(err) {
+		log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("EksRemoveNodePoolRequest: node pool not found")
+		return nil
+	}
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("nodePool", nodePool).Msg("EksRemoveNodePoolRequest error")
 		return err

@@ -55,7 +55,7 @@ func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflowFreeTrial(ctx w
 		}
 		if !isBillingSetup {
 			removeSubdomainCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(removeSubdomainCtx, c.CreateSetupTopologyActivities.RemoveDomainRecord, params.CloudCtxNs.Namespace).Get(removeSubdomainCtx, nil)
+			err = workflow.ExecuteActivity(removeSubdomainCtx, c.CreateSetupTopologyActivities.RemoveDomainRecord, params.CloudCtxNs).Get(removeSubdomainCtx, nil)
 			if err != nil {
 				log.Error("Failed to remove domain record", "Error", err)
 				return err

@@ -36,7 +36,7 @@ func (c *DestroyNamespaceSetupWorkflow) DestroyNamespaceSetupWorkflow(ctx workfl
 		StartToCloseTimeout: defaultTimeout,
 	}
 	removeSubdomainCtx := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(removeSubdomainCtx, c.CreateSetupTopologyActivities.RemoveDomainRecord, params.Kns.CloudCtxNs.Namespace).Get(removeSubdomainCtx, nil)
+	err := workflow.ExecuteActivity(removeSubdomainCtx, c.CreateSetupTopologyActivities.RemoveDomainRecord, params.Kns.CloudCtxNs).Get(removeSubdomainCtx, nil)
 	if err != nil {
 		log.Error("Failed to remove domain record", "Error", err)
 		return err

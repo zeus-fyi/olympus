@@ -17,8 +17,8 @@ func (c *CreateSetupTopologyActivities) AddDomainRecord(ctx context.Context, clo
 	return nil
 }
 
-func (c *CreateSetupTopologyActivities) RemoveDomainRecord(ctx context.Context, name string) error {
-	err := api_auth_temporal.DigitalOcean.RemoveSubDomainARecord(ctx, name)
+func (c *CreateSetupTopologyActivities) RemoveDomainRecord(ctx context.Context, cloudCtxNs zeus_common_types.CloudCtxNs) error {
+	err := api_auth_temporal.DigitalOcean.RemoveSubDomainARecord(ctx, cloudCtxNs)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("failed to remove domain record")
 		return err

@@ -115,7 +115,6 @@ func Zeus() {
 			SecretKey:     tc.AwsSecretKeyEks,
 		}
 		api_auth_temporal.InitOrchestrationEksClient(ctx, eksAuth)
-
 	}
 
 	log.Info().Msg("Zeus: PG connection starting")

@@ -72,19 +72,19 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 			return err
 		}
 	case "aws":
-		//nodePoolRequestStatusCtxKns := workflow.WithActivityOptions(ctx, ao)
-		//var nodePoolRequestStatus do_types.DigitalOceanNodePoolRequestStatus
-		//err := workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.EksMakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, &nodePoolRequestStatus)
-		//if err != nil {
-		//	log.Error("Failed to complete node pool request for eks", "Error", err)
-		//	return err
-		//}
-		//nodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
-		//err = workflow.ExecuteActivity(nodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.EksAddNodePoolToOrgResources, params, nodePoolRequestStatus).Get(nodePoolOrgResourcesCtx, nil)
-		//if err != nil {
-		//	log.Error("Failed to add node resources to org account for eks", "Error", err)
-		//	return err
-		//}
+		nodePoolRequestStatusCtxKns := workflow.WithActivityOptions(ctx, ao)
+		var nodePoolRequestStatus do_types.DigitalOceanNodePoolRequestStatus
+		err := workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.EksMakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, &nodePoolRequestStatus)
+		if err != nil {
+			log.Error("Failed to complete node pool request for eks", "Error", err)
+			return err
+		}
+		nodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(nodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.EksAddNodePoolToOrgResources, params, nodePoolRequestStatus).Get(nodePoolOrgResourcesCtx, nil)
+		if err != nil {
+			log.Error("Failed to add node resources to org account for eks", "Error", err)
+			return err
+		}
 	}
 	authCloudCtxNsCtxOptions := ao
 	retryPolicy := &temporal.RetryPolicy{

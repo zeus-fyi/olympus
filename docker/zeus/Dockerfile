@@ -71,7 +71,7 @@ WORKDIR /app
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 
 FROM ubuntu:22.04
-RUN apt-get update && apt-get install -y ca-certificates
+RUN apt-get update && apt-get install -y ca-certificates unzip
 
 COPY --from=builder /app/ca-certificate.crt /etc/ssl/certs
 COPY --from=builder /app/ca.pem /etc/ssl/certs

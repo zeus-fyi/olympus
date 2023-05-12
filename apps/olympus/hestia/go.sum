@@ -52,6 +52,8 @@ github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.27 h1:vFQlirhuM8lLlpI7im
 github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.27/go.mod h1:UrHnn3QV/d0pBZ6QBAEQcqFLf8FAzLmoUfPVIueOvoM=
 github.com/aws/aws-sdk-go-v2/service/eks v1.27.12 h1:eKidf2ebtleLtH67x02syhO9t3FItv9a7/ep9KC3TAM=
 github.com/aws/aws-sdk-go-v2/service/eks v1.27.12/go.mod h1:ZoyBDE311XYRiJpofw4jorVH2u+UhFpzfkrxF3aWu0U=
+github.com/aws/aws-sdk-go-v2/service/pricing v1.19.6 h1:K2Z0cgIAE7h8japUHg4GnIRZ+CzAlRA+Q76ghVE2Q5o=
+github.com/aws/aws-sdk-go-v2/service/pricing v1.19.6/go.mod h1:0M3RD4kWATK59uPAopcN+fPzFtLixgPuSJ2oXEUuX6E=
 github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.18.2 h1:QDVKb2VpuwzIslzshumxksayV5GkpqT+rkVvdPVrA9E=
 github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.18.2/go.mod h1:jAeo/PdIJZuDSwsvxJS94G4d6h8tStj7WXVuKwLHWU8=
 github.com/aws/smithy-go v1.13.5 h1:hgz0X/DX0dGqTYpGALqXJoRKRj5oQ7150i5FdTePzO8=

@@ -50,6 +50,20 @@ WORKDIR /app
 
 RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-429.0.0-linux-x86_64.tar.gz -O google-cloud-cli.tar.gz
 
+FROM ubuntu:22.04 as aws
+RUN apt-get update && apt-get install -y wget
+WORKDIR /app
+
+PLATFORM=Linux_amd64
+RUN curl -sLO "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
+
+# (Optional) Verify checksum
+RUN curl -sL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
+
+RUN tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
+
+RUN mv /tmp/eksctl /
+
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates
 
@@ -58,6 +72,7 @@ COPY --from=builder /app/ca.pem /etc/ssl/certs
 COPY --from=builder /app/ca.key /etc/ssl/certs
 
 COPY --from=builder /app/zeus /usr/bin/zeus
+COPY --from=aws /app/aws /usr/local/bin
 COPY --from=doctl /app/doctl /usr/local/bin
 COPY --from=gcp /app/google-cloud-cli.tar.gz /
 

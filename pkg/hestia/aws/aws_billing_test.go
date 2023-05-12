@@ -15,7 +15,7 @@ type AwsPricingClientTestSuite struct {
 func (s *AwsPricingClientTestSuite) SetupTest() {
 	s.InitLocalConfigs()
 	eksCreds := EksCredentials{
-		Region:       UsWest1,
+		Region:       "us-east-1",
 		AccessKey:    s.Tc.AwsAccessKeyEks,
 		AccessSecret: s.Tc.AwsSecretKeyEks,
 	}
@@ -25,8 +25,9 @@ func (s *AwsPricingClientTestSuite) SetupTest() {
 	s.Require().NotNil(s.pc.Client)
 }
 
-func (s *AwsPricingClientTestSuite) TestGetPrice() {
-
+func (s *AwsPricingClientTestSuite) TestGetEC2Products() {
+	err := s.pc.GetAllProducts(ctx, UsWest1)
+	s.Require().NoError(err)
 }
 
 func TestAwsPricingClientTestSuite(t *testing.T) {

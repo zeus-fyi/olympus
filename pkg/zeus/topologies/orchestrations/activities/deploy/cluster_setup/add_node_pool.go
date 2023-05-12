@@ -7,9 +7,11 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/digitalocean/godo"
 	"github.com/rs/zerolog/log"
 	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
+	hestia_eks_aws "github.com/zeus-fyi/olympus/pkg/hestia/aws"
 	do_types "github.com/zeus-fyi/olympus/pkg/hestia/digitalocean/types"
 	hestia_gcp "github.com/zeus-fyi/olympus/pkg/hestia/gcp"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
@@ -45,7 +47,52 @@ func (c *CreateSetupTopologyActivities) EksAddNodePoolToOrgResources(ctx context
 }
 
 func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (do_types.DigitalOceanNodePoolRequestStatus, error) {
-	return do_types.DigitalOceanNodePoolRequestStatus{}, nil
+	label := make(map[string]string)
+	label["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
+	label["app"] = params.Cluster.ClusterName
+	suffix := strings.Split(params.Namespace, "-")[0]
+	orgTaint := types.Taint{
+		Effect: "NoSchedule",
+		Key:    aws.String(fmt.Sprintf("org-%d", params.Ou.OrgID)),
+		Value:  aws.String(fmt.Sprintf("org-%d", params.Ou.OrgID)),
+	}
+	appTaint := types.Taint{
+		Effect: "NoSchedule",
+		Key:    aws.String("app"),
+		Value:  aws.String(params.Cluster.ClusterName),
+	}
+	nodeGroupName := fmt.Sprintf("nodepool-%d-%s", params.Ou.OrgID, suffix)
+	nr := &eks.CreateNodegroupInput{
+		ClusterName:        aws.String(hestia_eks_aws.AwsUsWest1Context),
+		NodeRole:           aws.String(hestia_eks_aws.AwsEksRole),
+		NodegroupName:      aws.String(nodeGroupName),
+		AmiType:            types.AMITypesAl2X8664,
+		Subnets:            hestia_eks_aws.UsWestSubnetIDs,
+		CapacityType:       "",
+		ClientRequestToken: aws.String(nodeGroupName),
+		InstanceTypes:      []string{params.Nodes.Slug},
+		Labels:             label,
+		ReleaseVersion:     nil,
+		ScalingConfig: &types.NodegroupScalingConfig{
+			DesiredSize: aws.Int32(int32(params.NodesQuantity)),
+			MaxSize:     aws.Int32(int32(params.NodesQuantity)),
+			MinSize:     aws.Int32(int32(params.NodesQuantity)),
+		},
+		Tags: nil,
+		Taints: []types.Taint{
+			orgTaint, appTaint,
+		},
+	}
+	// 		UpdateConfig: nil,
+	_, err := api_auth_temporal.Eks.AddNodeGroup(ctx, nr)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("EksMakeNodePoolRequest error")
+		return do_types.DigitalOceanNodePoolRequestStatus{}, err
+	}
+	return do_types.DigitalOceanNodePoolRequestStatus{
+		ClusterID:  hestia_eks_aws.AwsUsWest1Context,
+		NodePoolID: nodeGroupName,
+	}, nil
 }
 
 func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (do_types.DigitalOceanNodePoolRequestStatus, error) {

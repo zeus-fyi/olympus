@@ -36,12 +36,6 @@ func (s *AwsEKSTestSuite) TestCreateNodeGroup() {
 	machineType := "t2.micro"
 	nodeGroupName := "test-node-group"
 
-	//awsTaint := types.Taint{
-	//	Effect: "NoSchedule",
-	//	Key:    aws.String("org"),
-	//	Value:  aws.String("org"),
-	//}
-
 	params := &eks.CreateNodegroupInput{
 		ClusterName:        aws.String(AwsUsWest1Context),
 		NodeRole:           aws.String(AwsEksRole),

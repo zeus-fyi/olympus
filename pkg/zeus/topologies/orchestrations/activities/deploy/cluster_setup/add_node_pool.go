@@ -85,7 +85,7 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 	}
 	// UpdateConfig: nil,
 	_, err := api_auth_temporal.Eks.AddNodeGroup(ctx, nr)
-	if errors.IsAlreadyExists(err) {
+	if errors.IsConflict(err) {
 		log.Ctx(ctx).Info().Interface("nodeGroup", nodeGroupName).Msg("EksMakeNodePoolRequest already exists")
 		return do_types.DigitalOceanNodePoolRequestStatus{
 			ClusterID:  hestia_eks_aws.AwsUsWest1Context,
@@ -138,6 +138,13 @@ func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Conte
 			NodePoolID: ni.Name,
 		}, nil
 	}
+	if errors.IsConflict(err) {
+		log.Ctx(ctx).Info().Interface("nodeGroup", ni.Name).Msg("GkeMakeNodePoolRequest already exists")
+		return do_types.DigitalOceanNodePoolRequestStatus{
+			ClusterID:  clusterID,
+			NodePoolID: ni.Name,
+		}, nil
+	}
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("GkeMakeNodePoolRequest error")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
@@ -176,6 +183,13 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 	clusterID := "0de1ee8e-7b90-45ea-b966-e2d2b7976cf9"
 	node, err := api_auth_temporal.DigitalOcean.CreateNodePool(ctx, clusterID, nodesReq)
 	if errors.IsAlreadyExists(err) {
+		return do_types.DigitalOceanNodePoolRequestStatus{
+			ClusterID:  clusterID,
+			NodePoolID: node.ID,
+		}, nil
+	}
+	if errors.IsConflict(err) {
+		log.Ctx(ctx).Info().Interface("nodeGroup", nodesReq).Msg("MakeNodePoolRequest already exists")
 		return do_types.DigitalOceanNodePoolRequestStatus{
 			ClusterID:  clusterID,
 			NodePoolID: node.ID,

@@ -50,6 +50,11 @@ func (a *AwsPricing) GetAllProducts(ctx context.Context, region string) error {
 					Type:  "TERM_MATCH",
 					Value: aws.String("OnDemand"),
 				},
+				{
+					Field: aws.String("instanceType"),
+					Type:  "TERM_MATCH",
+					Value: aws.String("t3"),
+				},
 			},
 			NextToken: nil,
 		}
@@ -71,6 +76,51 @@ func (a *AwsPricing) GetAllProducts(ctx context.Context, region string) error {
 		pi.NextToken = pa.NextToken
 		if pa.NextToken == nil {
 			return nil
+		}
+	}
+}
+
+func (a *AwsPricing) GetEC2Product(ctx context.Context, region, instanceType string) (AWSPrice, error) {
+	for {
+		pi := &pricing.GetProductsInput{
+			ServiceCode: aws.String("AmazonEC2"),
+			Filters: []types.Filter{
+				{
+					Field: aws.String("regionCode"),
+					Type:  "TERM_MATCH",
+					Value: aws.String(region),
+				},
+				{
+					Field: aws.String("ServiceCode"),
+					Type:  "TERM_MATCH",
+					Value: aws.String("AmazonEC2"),
+				},
+				{
+					Field: aws.String("marketoption"),
+					Type:  "TERM_MATCH",
+					Value: aws.String("OnDemand"),
+				},
+				{
+					Field: aws.String("instanceType"),
+					Type:  "TERM_MATCH",
+					Value: aws.String(instanceType),
+				},
+			},
+			NextToken: nil,
+		}
+		pa, err := a.GetProducts(ctx, pi)
+		if err != nil {
+			log.Ctx(ctx).Err(err)
+			return AWSPrice{}, err
+		}
+
+		for _, prod := range pa.PriceList {
+			ec2Prod := AWSPrice{}
+			err = json.Unmarshal([]byte(prod), &ec2Prod)
+			if err != nil {
+				return ec2Prod, err
+			}
+			return ec2Prod, nil
 		}
 	}
 }

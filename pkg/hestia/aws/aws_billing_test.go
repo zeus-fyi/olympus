@@ -1,6 +1,7 @@
 package hestia_eks_aws
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -28,6 +29,12 @@ func (s *AwsPricingClientTestSuite) SetupTest() {
 func (s *AwsPricingClientTestSuite) TestGetEC2Products() {
 	err := s.pc.GetAllProducts(ctx, UsWest1)
 	s.Require().NoError(err)
+}
+func (s *AwsPricingClientTestSuite) TestGetEC2Product() {
+	instanceType := "t2.micro"
+	price, err := s.pc.GetEC2Product(ctx, UsWest1, instanceType)
+	s.Require().NoError(err)
+	fmt.Println(price)
 }
 
 func TestAwsPricingClientTestSuite(t *testing.T) {

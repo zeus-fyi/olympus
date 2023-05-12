@@ -54,7 +54,7 @@ FROM ubuntu:22.04 as aws_eks
 RUN apt-get update && apt-get install -y wget
 WORKDIR /app
 
-PLATFORM=Linux_amd64
+ARG PLATFORM=Linux_amd64
 RUN curl -sLO "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
 
 # (Optional) Verify checksum

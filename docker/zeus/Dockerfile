@@ -50,7 +50,7 @@ WORKDIR /app
 
 RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-429.0.0-linux-x86_64.tar.gz -O google-cloud-cli.tar.gz
 
-FROM ubuntu:22.04 as aws
+FROM ubuntu:22.04 as aws_eks
 RUN apt-get update && apt-get install -y wget
 WORKDIR /app
 
@@ -64,6 +64,12 @@ RUN tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
 
 RUN mv /tmp/eksctl /
 
+FROM ubuntu:22.04 as aws_cli
+RUN apt-get update && apt-get install -y wget
+WORKDIR /app
+
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates
 
@@ -71,10 +77,17 @@ COPY --from=builder /app/ca-certificate.crt /etc/ssl/certs
 COPY --from=builder /app/ca.pem /etc/ssl/certs
 COPY --from=builder /app/ca.key /etc/ssl/certs
 
+COPY --from=aws_eks /app/eksctl /usr/local/bin
 COPY --from=builder /app/zeus /usr/bin/zeus
-COPY --from=aws /app/aws /usr/local/bin
 COPY --from=doctl /app/doctl /usr/local/bin
 COPY --from=gcp /app/google-cloud-cli.tar.gz /
+
+COPY --from=aws_cli /app/awscliv2.zip /
+
+RUN unzip awscliv2.zip
+RUN chmod +x ./aws/install
+
+RUN ./aws/install
 
 RUN tar xf google-cloud-cli.tar.gz
 RUN rm google-cloud-cli.tar.gz

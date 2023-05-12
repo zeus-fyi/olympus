@@ -13,14 +13,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
 	"github.com/aws/aws-sdk-go-v2/service/pricing/types"
 	"github.com/rs/zerolog/log"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
 
 type AwsPricing struct {
 	*pricing.Client
 }
 
-func InitPricingClient(ctx context.Context, accessCred EksCredentials) (AwsPricing, error) {
-	creds := credentials.NewStaticCredentialsProvider(accessCred.AccessKey, accessCred.AccessSecret, "")
+func InitPricingClient(ctx context.Context, accessCred aegis_aws_auth.AuthAWS) (AwsPricing, error) {
+	creds := credentials.NewStaticCredentialsProvider(accessCred.AccessKey, accessCred.SecretKey, "")
 	cfg, err := config.LoadDefaultConfig(
 		ctx,
 		config.WithCredentialsProvider(creds),

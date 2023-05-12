@@ -92,8 +92,6 @@ export function DeployPage(props: any) {
                 }
                 nodes = response.nodes
                 filteredNodes = nodes.filter((node) => node.cloudProvider === cloudProvider && node.region === region);
-
-                console.log("filteredNodes", filteredNodes)
                 filteredNodes.forEach((node) => {
                     if (node.resourceID === 0) {
                         return;

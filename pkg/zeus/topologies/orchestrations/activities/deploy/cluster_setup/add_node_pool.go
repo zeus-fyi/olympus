@@ -86,7 +86,6 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 			orgTaint, appTaint,
 		},
 	}
-	// UpdateConfig: nil,
 	_, err := api_auth_temporal.Eks.AddNodeGroup(ctx, nr)
 	errSmithy := err.(*smithy.OperationError)
 	httpErr := errSmithy.Err.(*http.ResponseError)
@@ -137,14 +136,7 @@ func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Conte
 		InitialNodeCount: int64(params.NodesQuantity),
 	}
 	node, err := api_auth_temporal.GCP.AddNodePool(ctx, ci, ni, taints, label)
-	if errors.IsAlreadyExists(err) {
-		log.Ctx(ctx).Info().Interface("nodeGroup", ni.Name).Msg("GkeMakeNodePoolRequest already exists")
-		return do_types.DigitalOceanNodePoolRequestStatus{
-			ClusterID:  clusterID,
-			NodePoolID: ni.Name,
-		}, nil
-	}
-	if errors.IsConflict(err) {
+	if strings.Contains(err.Error(), "already exists") {
 		log.Ctx(ctx).Info().Interface("nodeGroup", ni.Name).Msg("GkeMakeNodePoolRequest already exists")
 		return do_types.DigitalOceanNodePoolRequestStatus{
 			ClusterID:  clusterID,
@@ -188,14 +180,8 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 	// TODO remove hard code cluster id
 	clusterID := "0de1ee8e-7b90-45ea-b966-e2d2b7976cf9"
 	node, err := api_auth_temporal.DigitalOcean.CreateNodePool(ctx, clusterID, nodesReq)
-	if errors.IsAlreadyExists(err) {
-		return do_types.DigitalOceanNodePoolRequestStatus{
-			ClusterID:  clusterID,
-			NodePoolID: node.ID,
-		}, nil
-	}
-	if errors.IsConflict(err) {
-		log.Ctx(ctx).Info().Interface("nodeGroup", nodesReq).Msg("MakeNodePoolRequest already exists")
+	if strings.Contains(err.Error(), "already exists") {
+		log.Ctx(ctx).Info().Interface("nodesReq", nodesReq).Msg("CreateNodePool already exists")
 		return do_types.DigitalOceanNodePoolRequestStatus{
 			ClusterID:  clusterID,
 			NodePoolID: node.ID,

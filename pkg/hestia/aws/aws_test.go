@@ -40,11 +40,12 @@ func (s *AwsEKSTestSuite) TestCreateNodeGroup() {
 	//	Key:    aws.String("org"),
 	//	Value:  aws.String("org"),
 	//}
+
 	params := &eks.CreateNodegroupInput{
 		ClusterName:        aws.String(AwsUsWest1Context),
-		NodeRole:           nil,
+		NodeRole:           aws.String(AwsEksRole),
 		NodegroupName:      aws.String(nodeGroupName),
-		AmiType:            "",
+		AmiType:            types.AMITypesAl2X8664,
 		Subnets:            UsWestSubnetIDs,
 		CapacityType:       "",
 		ClientRequestToken: nil,

@@ -3,6 +3,9 @@ package hestia_eks_aws
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -80,7 +83,7 @@ func (a *AwsPricing) GetAllProducts(ctx context.Context, region string) error {
 	}
 }
 
-func (a *AwsPricing) GetEC2Product(ctx context.Context, region, instanceType string) (AWSPrice, error) {
+func (a *AwsPricing) GetEC2Product(ctx context.Context, region, instanceType string) ([]AWSPrice, error) {
 	for {
 		pi := &pricing.GetProductsInput{
 			ServiceCode: aws.String("AmazonEC2"),
@@ -111,17 +114,19 @@ func (a *AwsPricing) GetEC2Product(ctx context.Context, region, instanceType str
 		pa, err := a.GetProducts(ctx, pi)
 		if err != nil {
 			log.Ctx(ctx).Err(err)
-			return AWSPrice{}, err
+			return []AWSPrice{}, err
 		}
 
+		var prices []AWSPrice
 		for _, prod := range pa.PriceList {
 			ec2Prod := AWSPrice{}
 			err = json.Unmarshal([]byte(prod), &ec2Prod)
 			if err != nil {
-				return ec2Prod, err
+				return prices, err
 			}
-			return ec2Prod, nil
+			prices = append(prices, ec2Prod)
 		}
+		return prices, nil
 	}
 }
 
@@ -159,4 +164,41 @@ type PriceDimension struct {
 	RateCode     string            `json:"rateCode"`
 	BeginRange   string            `json:"beginRange"`
 	PricePerUnit map[string]string `json:"pricePerUnit"`
+}
+
+func (ap *AWSPrice) GetPricePerUnitUSD() (float64, string, error) {
+	for _, v := range ap.Terms.OnDemand {
+		for _, pd := range v.PriceDimensions {
+			if val, ok := pd.PricePerUnit["USD"]; ok {
+				price, err := strconv.ParseFloat(val, 64)
+				if err != nil {
+					return 0, "", err
+				}
+				return price, pd.Unit, nil
+			}
+		}
+	}
+	return 0, "", fmt.Errorf("no USD price per unit found")
+}
+
+func (ap *AWSPrice) GetDescription() string {
+	for _, v := range ap.Terms.OnDemand {
+		for _, pd := range v.PriceDimensions {
+			return pd.Description
+		}
+	}
+	return ""
+}
+
+func (ap *AWSPrice) GetVCpus() string {
+	return ap.Product.Attributes["vcpu"]
+}
+
+func (ap *AWSPrice) GetMemoryAndUnits() (string, string) {
+	memory := strings.Split(ap.Product.Attributes["memory"], " ")
+
+	if len(memory) < 2 {
+		return "", ""
+	}
+	return memory[0], memory[1]
 }

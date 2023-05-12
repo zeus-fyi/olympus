@@ -49,7 +49,7 @@ func SelectNodes(ctx context.Context, nf NodeFilter) (hestia_autogen_bases.Nodes
 			  )
 		  AND (region = 'us-central1' OR region = 'nyc1' OR region = 'us-west-1')
     	AND price_monthly < 3000
-		ORDER BY price_hourly ASC;`
+		ORDER BY cloud_provider, price_hourly ASC;`
 	args := []interface{}{
 		memRequestsMegaBytes,
 		cpuRequestsCores,
@@ -92,7 +92,6 @@ func SelectNodes(ctx context.Context, nf NodeFilter) (hestia_autogen_bases.Nodes
 			node.PriceHourly *= 1.40  // Add 40% to the price
 			node.PriceMonthly *= 1.40 // Add 40% to the price
 		}
-
 		if err != nil {
 			return nil, err
 		}

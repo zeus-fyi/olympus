@@ -15,6 +15,9 @@ const (
 	Sfo3LoadBalancerIp = "143.198.244.181"
 	NycLoadBalancerIp  = "164.90.252.115"
 	GkeUsCentral1Ip    = "34.122.201.76"
+
+	// TODO replace
+	AwsUsWest1Ip = "34.122.201.76"
 )
 
 func (d *DigitalOcean) CreateDomain(ctx context.Context, cloudCtxNs zeus_common_types.CloudCtxNs) (*godo.DomainRecord, error) {
@@ -29,6 +32,8 @@ func (d *DigitalOcean) CreateDomain(ctx context.Context, cloudCtxNs zeus_common_
 		case "sfo3":
 			loadBalancer = Sfo3LoadBalancerIp
 		}
+	case "aws":
+		loadBalancer = AwsUsWest1Ip
 	}
 	createRequest := &godo.DomainRecordEditRequest{
 		Type: "A",

@@ -7,10 +7,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
 
 type AwsPricingClientTestSuite struct {
@@ -20,10 +20,10 @@ type AwsPricingClientTestSuite struct {
 
 func (s *AwsPricingClientTestSuite) SetupTest() {
 	s.InitLocalConfigs()
-	eksCreds := EksCredentials{
-		Region:       "us-east-1",
-		AccessKey:    s.Tc.AwsAccessKeyEks,
-		AccessSecret: s.Tc.AwsSecretKeyEks,
+	eksCreds := aegis_aws_auth.AuthAWS{
+		Region:    "us-east-1",
+		AccessKey: s.Tc.AwsAccessKeyEks,
+		SecretKey: s.Tc.AwsSecretKeyEks,
 	}
 	p, err := InitPricingClient(ctx, eksCreds)
 	s.Require().NoError(err)
@@ -36,7 +36,7 @@ func (s *AwsPricingClientTestSuite) TestGetEC2Products() {
 	s.Require().NoError(err)
 }
 func (s *AwsPricingClientTestSuite) TestGetEC2Product() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	//apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	instanceTypes := []string{
 		//"t2.nano",
 		"t2.micro",

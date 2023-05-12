@@ -81,6 +81,7 @@ export function AppPageWrapper(props: any) {
                         dispatch(setSelectedSkeletonBaseName(selectedSkeletonBaseName));
                     }
                 }
+                console.log('nodes', response.nodes)
                 if (response.nodes.length > 0) {
                     dispatch(setNodes(response.nodes))
                 }

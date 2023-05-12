@@ -92,6 +92,8 @@ export function DeployPage(props: any) {
                 }
                 nodes = response.nodes
                 filteredNodes = nodes.filter((node) => node.cloudProvider === cloudProvider && node.region === region);
+
+                console.log("filteredNodes", filteredNodes)
                 filteredNodes.forEach((node) => {
                     if (node.resourceID === 0) {
                         return;
@@ -229,6 +231,7 @@ export function DeployPage(props: any) {
             }
             nodeMap[node.resourceID] = node;
         });
+
         if (filteredNodes.length > 0) {
             if (node) {
                 if (!isNodeInMap(node.resourceID)) {
@@ -239,9 +242,15 @@ export function DeployPage(props: any) {
             }
         }
     }, [cloudProvider, region, nodeMap,node]);
+
     function handleChangeSelectRegion(region: string) {
-        setRegion(region);
+        if (cloudProvider === 'aws') {
+            setRegion('us-west-1');
+        } else {
+            setRegion(region);
+        }
     }
+
     function isNodeInMap(resourceID: number) {
         return resourceID in nodeMap;
     }
@@ -344,7 +353,7 @@ export function DeployPage(props: any) {
                                                     case 'gcp':
                                                         return <MenuItem value="us-central1">us-central1</MenuItem>;
                                                     case 'aws':
-                                                        return <MenuItem value="us-west-2">us-west-1</MenuItem>; // Add the respective region for AWS
+                                                        return <MenuItem value="us-west-1">us-west-1</MenuItem>; // Add the respective region for AWS
                                                     default:
                                                         return <MenuItem value="nyc1">nyc1</MenuItem>; // Default is for any other provider
                                                 }

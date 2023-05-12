@@ -71,7 +71,7 @@ WORKDIR /app
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 
 FROM ubuntu:22.04
-RUN apt-get update && apt-get install -y ca-certificates unzip
+RUN apt-get update && apt-get install -y ca-certificates unzip less
 
 COPY --from=builder /app/ca-certificate.crt /etc/ssl/certs
 COPY --from=builder /app/ca.pem /etc/ssl/certs
@@ -85,6 +85,7 @@ COPY --from=gcp /app/google-cloud-cli.tar.gz /
 COPY --from=aws_cli /app/awscliv2.zip /
 
 RUN unzip awscliv2.zip
+RUN rm awscliv2.zip
 RUN chmod +x ./aws/install
 
 RUN ./aws/install

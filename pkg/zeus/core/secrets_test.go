@@ -55,6 +55,34 @@ func (s *SecretsTestSuite) TestCreateChoreographySecret() {
 	s.Require().NotEmpty(newSecret)
 }
 
+func (s *SecretsTestSuite) TestCreateAwsSecret() {
+	ctx := context.Background()
+	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "zeus"}
+	m := make(map[string]string)
+	m["aws-access-key"] = s.Tc.AwsAccessKeyEks
+	m["aws-secret-key"] = s.Tc.AwsSecretKeyEks
+	m["aws-default-region"] = "us-west-1"
+	sec := v1.Secret{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Secret",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "aws-auth",
+			Namespace: kns.Namespace,
+		},
+		StringData: m,
+		Type:       "Opaque",
+	}
+
+	_, err := s.K.CreateNamespaceIfDoesNotExist(ctx, kns)
+	s.Require().Nil(err)
+
+	newSecret, err := s.K.CreateSecretWithKns(ctx, kns, &sec, nil)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(newSecret)
+}
+
 func (s *SecretsTestSuite) TestCreateSecrets() {
 	ctx := context.Background()
 	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "eth-indexer"}

@@ -26,6 +26,8 @@ const (
 	pagerDutySecret      = "secrets/pagerduty.txt"
 	pagerDutyRoutingKey  = "secrets/pagerduty.routing.key.txt"
 	gcpAuthJson          = "secrets/zeusfyi-23264580e41d.json"
+	eksAccessKey         = "secrets/aws.eks.access.key.txt"
+	eksSecretKey         = "secrets/aws.eks.secret.key.txt"
 )
 
 type SecretsWrapper struct {
@@ -47,7 +49,9 @@ type SecretsWrapper struct {
 
 	SecretsManagerAuthAWS aegis_aws_auth.AuthAWS
 	SESAuthAWS            aegis_aws_auth.AuthAWS
-	TemporalAuth          temporal_auth.TemporalAuth
+	EksAuthAWS            aegis_aws_auth.AuthAWS
+
+	TemporalAuth temporal_auth.TemporalAuth
 }
 
 var secretsBucket = &s3.GetObjectInput{
@@ -105,6 +109,10 @@ func RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg
 	sw.DoctlToken = sw.ReadSecret(ctx, inMemSecrets, doctlSecret)
 	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
 	sw.StripeSecretKey = sw.ReadSecret(ctx, inMemSecrets, stripeSecretKey)
+	sw.EksAuthAWS.AccessKey = sw.ReadSecret(ctx, inMemSecrets, eksAccessKey)
+	sw.EksAuthAWS.SecretKey = sw.ReadSecret(ctx, inMemSecrets, eksSecretKey)
+	// TODO allow for multiple regions
+	sw.EksAuthAWS.Region = "us-west-1"
 	return inMemSecrets, sw
 }
 

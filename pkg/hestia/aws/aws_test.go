@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
 
 var ctx = context.Background()
@@ -20,10 +21,10 @@ type AwsEKSTestSuite struct {
 
 func (s *AwsEKSTestSuite) SetupTest() {
 	s.InitLocalConfigs()
-	eksCreds := EksCredentials{
-		Region:       UsWest1,
-		AccessKey:    s.Tc.AwsAccessKeyEks,
-		AccessSecret: s.Tc.AwsSecretKeyEks,
+	eksCreds := aegis_aws_auth.AuthAWS{
+		Region:    UsWest1,
+		AccessKey: s.Tc.AwsAccessKeyEks,
+		SecretKey: s.Tc.AwsSecretKeyEks,
 	}
 	eka, err := InitAwsEKS(ctx, eksCreds)
 	s.Require().NoError(err)
@@ -59,6 +60,17 @@ func (s *AwsEKSTestSuite) TestCreateNodeGroup() {
 		Taints: nil,
 	}
 	ngs, err := s.ek.AddNodeGroup(ctx, params)
+	s.Require().Nil(err)
+	s.Require().NotNil(ngs)
+}
+
+func (s *AwsEKSTestSuite) TestRemoveNodeGroup() {
+	nodeGroupName := "test-node-group"
+	params := &eks.DeleteNodegroupInput{
+		ClusterName:   aws.String(AwsUsWest1Context),
+		NodegroupName: aws.String(nodeGroupName),
+	}
+	ngs, err := s.ek.RemoveNodeGroup(ctx, params)
 	s.Require().Nil(err)
 	s.Require().NotNil(ngs)
 }

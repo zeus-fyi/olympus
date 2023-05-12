@@ -182,6 +182,7 @@ func (c *CreateSetupTopologyActivities) GkeRemoveNodePoolRequest(ctx context.Con
 }
 
 func (c *CreateSetupTopologyActivities) EksRemoveNodePoolRequest(ctx context.Context, nodePool do_types.DigitalOceanNodePoolRequestStatus) error {
+
 	return nil
 }
 

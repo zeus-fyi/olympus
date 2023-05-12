@@ -78,12 +78,11 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 			MaxSize:     aws.Int32(int32(params.NodesQuantity)),
 			MinSize:     aws.Int32(int32(params.NodesQuantity)),
 		},
-		Tags: nil,
 		Taints: []types.Taint{
 			orgTaint, appTaint,
 		},
 	}
-	// 		UpdateConfig: nil,
+	// UpdateConfig: nil,
 	_, err := api_auth_temporal.Eks.AddNodeGroup(ctx, nr)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("EksMakeNodePoolRequest error")
@@ -125,7 +124,7 @@ func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Conte
 	}
 	node, err := api_auth_temporal.GCP.AddNodePool(ctx, ci, ni, taints, label)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("CreateNodePool error")
+		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("GkeMakeNodePoolRequest error")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}
 	fmt.Println(node)

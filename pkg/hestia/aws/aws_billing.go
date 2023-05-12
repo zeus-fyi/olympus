@@ -3,7 +3,6 @@ package hestia_eks_aws
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -66,8 +65,9 @@ func (a *AwsPricing) GetAllProducts(ctx context.Context, region string) error {
 			if err != nil {
 				return err
 			}
-			fmt.Println(ec2Prod.Product.Attributes["instanceType"])
+			//fmt.Println(ec2Prod.Product.Attributes["instanceType"])
 		}
+		//fmt.Println(pa.NextToken)
 		pi.NextToken = pa.NextToken
 		if pa.NextToken == nil {
 			return nil

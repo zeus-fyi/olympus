@@ -163,7 +163,7 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 			Disks:         autogen_bases.DisksSlice{},
 			Cluster:       t.Cluster,
 		}
-		// TODO add diskResourceID
+		diskResourceID = 1683860918169422000
 	}
 
 	ds := make(autogen_bases.DisksSlice, len(t.ResourceRequirements))

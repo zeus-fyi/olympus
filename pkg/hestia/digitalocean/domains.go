@@ -7,6 +7,7 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	"k8s.io/apimachinery/pkg/api/errors"
 )
 
 // https://docs.digitalocean.com/reference/api/api-reference/#tag/Domain-Records
@@ -16,7 +17,7 @@ const (
 	NycLoadBalancerIp  = "164.90.252.115"
 	GkeUsCentral1Ip    = "34.122.201.76"
 
-	AwsUsWest1Ip = "a48dca93c6961441e8829cc9e99fd21a-a52026aa1784e018.elb.us-west-1.amazonaws.com"
+	AwsUsWest1Ip = "a48dca93c6961441e8829cc9e99fd21a-a52026aa1784e018.elb.us-west-1.amazonaws.com."
 )
 
 func (d *DigitalOcean) CreateDomain(ctx context.Context, cloudCtxNs zeus_common_types.CloudCtxNs) (*godo.DomainRecord, error) {
@@ -39,11 +40,14 @@ func (d *DigitalOcean) CreateDomain(ctx context.Context, cloudCtxNs zeus_common_
 		}
 	case "aws":
 		createRequest.Type = "CNAME"
+		createRequest.TTL = 43200
 		loadBalancer = AwsUsWest1Ip
 	}
 	createRequest.Data = loadBalancer
-
 	dr, _, err := d.Domains.CreateRecord(ctx, "zeus.fyi", createRequest)
+	if errors.IsAlreadyExists(err) {
+		return nil, err
+	}
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("failed to create domain record")
 		return dr, err

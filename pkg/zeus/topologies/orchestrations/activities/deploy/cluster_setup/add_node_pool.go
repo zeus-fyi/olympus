@@ -85,6 +85,13 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 	}
 	// UpdateConfig: nil,
 	_, err := api_auth_temporal.Eks.AddNodeGroup(ctx, nr)
+	if errors.IsAlreadyExists(err) {
+		log.Ctx(ctx).Info().Interface("nodeGroup", nodeGroupName).Msg("EksMakeNodePoolRequest already exists")
+		return do_types.DigitalOceanNodePoolRequestStatus{
+			ClusterID:  hestia_eks_aws.AwsUsWest1Context,
+			NodePoolID: nodeGroupName,
+		}, nil
+	}
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("EksMakeNodePoolRequest error")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err

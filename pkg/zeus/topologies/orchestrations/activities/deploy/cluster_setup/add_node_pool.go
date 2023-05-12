@@ -3,11 +3,14 @@ package deploy_topology_activities_create_setup
 import (
 	"context"
 	"fmt"
+	ht "net/http"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/transport/http"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/aws/smithy-go"
 	"github.com/digitalocean/godo"
 	"github.com/rs/zerolog/log"
 	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
@@ -85,7 +88,10 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 	}
 	// UpdateConfig: nil,
 	_, err := api_auth_temporal.Eks.AddNodeGroup(ctx, nr)
-	if errors.IsConflict(err) {
+	errSmithy := err.(*smithy.OperationError)
+	httpErr := errSmithy.Err.(*http.ResponseError)
+	httpResponse := httpErr.HTTPStatusCode()
+	if httpResponse == ht.StatusConflict {
 		log.Ctx(ctx).Info().Interface("nodeGroup", nodeGroupName).Msg("EksMakeNodePoolRequest already exists")
 		return do_types.DigitalOceanNodePoolRequestStatus{
 			ClusterID:  hestia_eks_aws.AwsUsWest1Context,

@@ -51,7 +51,7 @@ WORKDIR /app
 RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-429.0.0-linux-x86_64.tar.gz -O google-cloud-cli.tar.gz
 
 FROM ubuntu:22.04 as aws_eks
-RUN apt-get update && apt-get install -y wget
+RUN apt-get update && apt-get install -y wget curl
 WORKDIR /app
 
 ARG PLATFORM=Linux_amd64
@@ -65,7 +65,7 @@ RUN tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
 RUN mv /tmp/eksctl /
 
 FROM ubuntu:22.04 as aws_cli
-RUN apt-get update && apt-get install -y wget
+RUN apt-get update && apt-get install -y wget curl
 WORKDIR /app
 
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"

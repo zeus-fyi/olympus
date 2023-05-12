@@ -53,12 +53,12 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 	label["app"] = params.Cluster.ClusterName
 	suffix := strings.Split(params.Namespace, "-")[0]
 	orgTaint := types.Taint{
-		Effect: "NoSchedule",
+		Effect: "NO_SCHEDULE",
 		Key:    aws.String(fmt.Sprintf("org-%d", params.Ou.OrgID)),
 		Value:  aws.String(fmt.Sprintf("org-%d", params.Ou.OrgID)),
 	}
 	appTaint := types.Taint{
-		Effect: "NoSchedule",
+		Effect: "NO_SCHEDULE",
 		Key:    aws.String("app"),
 		Value:  aws.String(params.Cluster.ClusterName),
 	}

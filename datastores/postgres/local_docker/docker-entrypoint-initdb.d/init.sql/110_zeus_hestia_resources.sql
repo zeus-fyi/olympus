@@ -76,6 +76,14 @@ CREATE TABLE gke_node_pools (
     PRIMARY KEY (org_resource_id)
 );
 
+CREATE TABLE eks_node_pools (
+    org_resource_id int8 NOT NULL REFERENCES org_resources(org_resource_id),
+    resource_id int8 NOT NULL REFERENCES resources(resource_id),
+    node_pool_id text NOT NULL,
+    node_context_id text NOT NULL,
+    PRIMARY KEY (org_resource_id)
+);
+
 CREATE TABLE org_resources_cloud_ctx (
    org_resource_id int8 NOT NULL REFERENCES org_resources(org_resource_id),
    cloud_ctx_ns_id int8 NOT NULL REFERENCES topologies_org_cloud_ctx_ns(cloud_ctx_ns_id),

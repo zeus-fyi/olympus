@@ -71,6 +71,20 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 			log.Error("Failed to add node resources to org account", "Error", err)
 			return err
 		}
+	case "aws":
+		//nodePoolRequestStatusCtxKns := workflow.WithActivityOptions(ctx, ao)
+		//var nodePoolRequestStatus do_types.DigitalOceanNodePoolRequestStatus
+		//err := workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.EksMakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, &nodePoolRequestStatus)
+		//if err != nil {
+		//	log.Error("Failed to complete node pool request for eks", "Error", err)
+		//	return err
+		//}
+		//nodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
+		//err = workflow.ExecuteActivity(nodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.EksAddNodePoolToOrgResources, params, nodePoolRequestStatus).Get(nodePoolOrgResourcesCtx, nil)
+		//if err != nil {
+		//	log.Error("Failed to add node resources to org account for eks", "Error", err)
+		//	return err
+		//}
 	}
 	authCloudCtxNsCtxOptions := ao
 	retryPolicy := &temporal.RetryPolicy{
@@ -86,7 +100,7 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 		return err
 	}
 
-	// TODO needs to add option for gcp
+	// TODO needs to add option for gcp, and aws
 	for _, disk := range params.Disks {
 		if disk.DiskSize == 0 && disk.DiskUnits == "" {
 			continue

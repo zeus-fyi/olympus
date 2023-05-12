@@ -33,7 +33,6 @@ export function AppResourceNodesResourcesTable(props: any) {
                 }
                 const response = await resourcesApiGateway.getAppResources(cluster);
                 const nodes = await response.data as NodeAudit[];
-                console.log(nodes)
                 dispatch(setAppNodes(nodes));
             } catch (e) {
                 const nodes = [] as NodeAudit[];

@@ -141,6 +141,29 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 			Cluster:       t.Cluster,
 		}
 		diskResourceID = 1683165785839881000
+	case "aws":
+		cr = base_deploy_params.ClusterSetupRequest{
+			FreeTrial: t.FreeTrial,
+			Ou:        ou,
+			CloudCtxNs: zeus_common_types.CloudCtxNs{
+				CloudProvider: "aws",
+				Region:        "us-west-1",
+				Context:       "zeus-us-west-1", // hardcoded for now
+				Namespace:     clusterID.String(),
+				Alias:         fmt.Sprintf("%s-%s", t.NamespaceAlias, suffix),
+				Env:           "",
+			},
+			Nodes: autogen_bases.Nodes{
+				Region:        t.Region,
+				CloudProvider: t.CloudProvider,
+				ResourceID:    t.Node.ResourceID,
+				Slug:          t.Node.Slug,
+			},
+			NodesQuantity: t.Count,
+			Disks:         autogen_bases.DisksSlice{},
+			Cluster:       t.Cluster,
+		}
+		diskResourceID = 1683860918169422000
 	}
 
 	ds := make(autogen_bases.DisksSlice, len(t.ResourceRequirements))

@@ -92,7 +92,7 @@ func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflowFreeTrial(ctx w
 			var gkeNodes []do_types.DigitalOceanNodePoolRequestStatus
 			err = workflow.ExecuteActivity(gkeSelectFreeTrialDoNodesCtx, c.CreateSetupTopologyActivities.GkeSelectFreeTrialNodes, params.Ou.OrgID).Get(gkeSelectFreeTrialDoNodesCtx, &gkeNodes)
 			if err != nil {
-				log.Error("Failed to select digital ocean free trial nodes", "Error", err)
+				log.Error("Failed to select gke free trial nodes", "Error", err)
 				return err
 			}
 			for _, node := range gkeNodes {
@@ -101,6 +101,22 @@ func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflowFreeTrial(ctx w
 				err = workflow.ExecuteActivity(gkeDestroyNodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.GkeRemoveNodePoolRequest, node).Get(gkeDestroyNodePoolOrgResourcesCtx, nil)
 				if err != nil {
 					log.Error("Failed to remove gke node resources for account", "Error", err)
+					return err
+				}
+			}
+			eksSelectFreeTrialDoNodesCtx := workflow.WithActivityOptions(ctx, ao)
+			var eksNodes []do_types.DigitalOceanNodePoolRequestStatus
+			err = workflow.ExecuteActivity(eksSelectFreeTrialDoNodesCtx, c.CreateSetupTopologyActivities.EksSelectFreeTrialNodes, params.Ou.OrgID).Get(eksSelectFreeTrialDoNodesCtx, &eksNodes)
+			if err != nil {
+				log.Error("Failed to select eks free trial nodes", "Error", err)
+				return err
+			}
+			for _, node := range eksNodes {
+				eksDestroyNodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
+				log.Info("Destroying node pool org resources", "EksRemoveNodePoolRequest", node)
+				err = workflow.ExecuteActivity(eksDestroyNodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.EksRemoveNodePoolRequest, node).Get(eksDestroyNodePoolOrgResourcesCtx, nil)
+				if err != nil {
+					log.Error("Failed to remove eks node resources for account", "Error", err)
 					return err
 				}
 			}

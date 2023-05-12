@@ -217,6 +217,9 @@ export function DeployPage(props: any) {
         if (cloudProvider === 'do') {
             setRegion('nyc1');
         }
+        if (cloudProvider === 'aws') {
+            setRegion('us-west-1');
+        }
     }
     useEffect(() => {
         filteredNodes = nodes.filter((node) => node.cloudProvider === cloudProvider && node.region === region);
@@ -226,6 +229,7 @@ export function DeployPage(props: any) {
             }
             nodeMap[node.resourceID] = node;
         });
+
         if (filteredNodes.length > 0) {
             if (node) {
                 if (!isNodeInMap(node.resourceID)) {
@@ -236,9 +240,15 @@ export function DeployPage(props: any) {
             }
         }
     }, [cloudProvider, region, nodeMap,node]);
+
     function handleChangeSelectRegion(region: string) {
-        setRegion(region);
+        if (cloudProvider === 'aws') {
+            setRegion('us-west-1');
+        } else {
+            setRegion(region);
+        }
     }
+
     function isNodeInMap(resourceID: number) {
         return resourceID in nodeMap;
     }
@@ -254,6 +264,9 @@ export function DeployPage(props: any) {
         if (cloudProvider === 'gcp') {
             monthlyDiskCost = 17
         }
+        if (cloudProvider === 'aws') {
+            monthlyDiskCost = 12.88
+        }
         for (const resource of resourceRequirements) {
             totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * monthlyDiskCost * parseInt(resource.replicas));
         }
@@ -265,6 +278,9 @@ export function DeployPage(props: any) {
         let hourlyDiskCost = 0.0137
         if (cloudProvider === 'gcp') {
             hourlyDiskCost = 0.02329
+        }
+        if (cloudProvider === 'aws') {
+            hourlyDiskCost = 0.01765
         }
         for (const resource of resourceRequirements) {
             totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * hourlyDiskCost * parseInt(resource.replicas));
@@ -286,7 +302,7 @@ export function DeployPage(props: any) {
                             You can set a payment option on the billing page. Once you've deployed an app you can view it on the clusters page within a few minutes. Click on the cluster namespace to get a detailed view of the live cluster.
                             The node sizing selection filter adds an additional 0.1 vCPU and 1.5Gi as overhead from the server to prevent selecting nodes that won't schedule this workload.
 
-                            GCP is currently in beta, Ingress and ServiceMonitors are not supported yet in GCP
+                            AWS is currently in beta, Ingress and ServiceMonitors are not supported yet in AWS
                         </Typography>
                     </CardContent>
                     <Divider />
@@ -312,7 +328,7 @@ export function DeployPage(props: any) {
                                     >
                                         <MenuItem value="do">DigitalOcean</MenuItem>
                                         <MenuItem value="gcp">Google Cloud Platform</MenuItem>
-                                        <MenuItem value="aws">Amazon Web Services (Coming soon)</MenuItem>
+                                        <MenuItem value="aws">Amazon Web Services (Beta)</MenuItem>
                                         <MenuItem value="azure">Azure (Coming soon)</MenuItem>
                                         <MenuItem value="ovh">Ovh Bare Metal (Coming soon)</MenuItem>
                                     </Select>
@@ -329,11 +345,18 @@ export function DeployPage(props: any) {
                                         onChange={(event) => handleChangeSelectRegion(event.target.value)}
                                         label="Region"
                                     >
-                                        {cloudProvider === "gcp" ? (
-                                            <MenuItem value="us-central1">us-central1</MenuItem>
-                                        ) : (
-                                            <MenuItem value="nyc1">nyc1</MenuItem>
-                                        )}
+                                        {
+                                            (() => {
+                                                switch (cloudProvider) {
+                                                    case 'gcp':
+                                                        return <MenuItem value="us-central1">us-central1</MenuItem>;
+                                                    case 'aws':
+                                                        return <MenuItem value="us-west-1">us-west-1</MenuItem>; // Add the respective region for AWS
+                                                    default:
+                                                        return <MenuItem value="nyc1">nyc1</MenuItem>; // Default is for any other provider
+                                                }
+                                            })()
+                                        }
                                     </Select>
                                 </FormControl>
                             </Stack>

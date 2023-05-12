@@ -48,7 +48,7 @@ func (c *DestroyResourcesWorkflow) DestroyClusterResourcesWorkflow(ctx workflow.
 		return err
 	}
 	var eksNodes []do_types.DigitalOceanNodePoolRequestStatus
-	err = workflow.ExecuteActivity(selectNodesCtx, c.CreateSetupTopologyActivities.SelectEksNodeResources, params).Get(selectNodesCtx, &gkeNodes)
+	err = workflow.ExecuteActivity(selectNodesCtx, c.CreateSetupTopologyActivities.SelectEksNodeResources, params).Get(selectNodesCtx, &eksNodes)
 	if err != nil {
 		log.Error("Failed to select org resource nodes", "Error", err)
 		return err

@@ -20,7 +20,6 @@ import (
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"google.golang.org/api/container/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 )
 
 func (c *CreateSetupTopologyActivities) AddNodePoolToOrgResources(ctx context.Context, params base_deploy_params.ClusterSetupRequest, npStatus do_types.DigitalOceanNodePoolRequestStatus) error {
@@ -241,7 +240,7 @@ func (c *CreateSetupTopologyActivities) EndResourceService(ctx context.Context, 
 func (c *CreateSetupTopologyActivities) RemoveNodePoolRequest(ctx context.Context, nodePool do_types.DigitalOceanNodePoolRequestStatus) error {
 	log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("RemoveNodePoolRequest")
 	err := api_auth_temporal.DigitalOcean.RemoveNodePool(ctx, nodePool.ClusterID, nodePool.NodePoolID)
-	if errors.IsNotFound(err) {
+	if strings.Contains(err.Error(), "Not found") {
 		log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("RemoveNodePoolRequest: node pool not found")
 		return nil
 	}
@@ -263,8 +262,8 @@ func (c *CreateSetupTopologyActivities) GkeRemoveNodePoolRequest(ctx context.Con
 		Name: nodePool.NodePoolID,
 	}
 	_, err := api_auth_temporal.GCP.RemoveNodePool(ctx, ci, ni)
-	if errors.IsNotFound(err) {
-		log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("RemoveNodePoolRequest: node pool not found")
+	if strings.Contains(err.Error(), "Not found") {
+		log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("GkeRemoveNodePoolRequest: node pool not found")
 		return nil
 	}
 	if err != nil {
@@ -280,7 +279,10 @@ func (c *CreateSetupTopologyActivities) EksRemoveNodePoolRequest(ctx context.Con
 		NodegroupName: aws.String(nodePool.NodePoolID),
 	}
 	_, err := api_auth_temporal.Eks.RemoveNodeGroup(ctx, nr)
-	if errors.IsNotFound(err) {
+	errSmithy := err.(*smithy.OperationError)
+	httpErr := errSmithy.Err.(*http.ResponseError)
+	httpResponse := httpErr.HTTPStatusCode()
+	if httpResponse == ht.StatusConflict || httpResponse == ht.StatusNotFound {
 		log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("EksRemoveNodePoolRequest: node pool not found")
 		return nil
 	}

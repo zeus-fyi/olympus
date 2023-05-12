@@ -17,6 +17,7 @@ import (
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	"google.golang.org/api/container/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 )
 
 func (c *CreateSetupTopologyActivities) AddNodePoolToOrgResources(ctx context.Context, params base_deploy_params.ClusterSetupRequest, npStatus do_types.DigitalOceanNodePoolRequestStatus) error {
@@ -233,6 +234,10 @@ func (c *CreateSetupTopologyActivities) GkeRemoveNodePoolRequest(ctx context.Con
 		Name: nodePool.NodePoolID,
 	}
 	_, err := api_auth_temporal.GCP.RemoveNodePool(ctx, ci, ni)
+	if errors.IsNotFound(err) {
+		log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("RemoveNodePoolRequest: node pool not found")
+		return nil
+	}
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("nodePool", nodePool).Msg("GkeRemoveNodePoolRequest error")
 		return err

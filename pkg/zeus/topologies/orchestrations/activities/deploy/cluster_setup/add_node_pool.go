@@ -86,17 +86,17 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 		},
 	}
 	_, err := api_auth_temporal.Eks.AddNodeGroup(ctx, nr)
-	errSmithy := err.(*smithy.OperationError)
-	httpErr := errSmithy.Err.(*http.ResponseError)
-	httpResponse := httpErr.HTTPStatusCode()
-	if httpResponse == ht.StatusConflict {
-		log.Ctx(ctx).Info().Interface("nodeGroup", nodeGroupName).Msg("EksMakeNodePoolRequest already exists")
-		return do_types.DigitalOceanNodePoolRequestStatus{
-			ClusterID:  hestia_eks_aws.AwsUsWest1Context,
-			NodePoolID: nodeGroupName,
-		}, nil
-	}
 	if err != nil {
+		errSmithy := err.(*smithy.OperationError)
+		httpErr := errSmithy.Err.(*http.ResponseError)
+		httpResponse := httpErr.HTTPStatusCode()
+		if httpResponse == ht.StatusConflict {
+			log.Ctx(ctx).Info().Interface("nodeGroup", nodeGroupName).Msg("EksMakeNodePoolRequest already exists")
+			return do_types.DigitalOceanNodePoolRequestStatus{
+				ClusterID:  hestia_eks_aws.AwsUsWest1Context,
+				NodePoolID: nodeGroupName,
+			}, nil
+		}
 		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("EksMakeNodePoolRequest error")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}
@@ -135,14 +135,14 @@ func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Conte
 		InitialNodeCount: int64(params.NodesQuantity),
 	}
 	node, err := api_auth_temporal.GCP.AddNodePool(ctx, ci, ni, taints, label)
-	if strings.Contains(err.Error(), "already exists") {
-		log.Ctx(ctx).Info().Interface("nodeGroup", ni.Name).Msg("GkeMakeNodePoolRequest already exists")
-		return do_types.DigitalOceanNodePoolRequestStatus{
-			ClusterID:  clusterID,
-			NodePoolID: ni.Name,
-		}, nil
-	}
 	if err != nil {
+		if strings.Contains(err.Error(), "already exists") {
+			log.Ctx(ctx).Info().Interface("nodeGroup", ni.Name).Msg("GkeMakeNodePoolRequest already exists")
+			return do_types.DigitalOceanNodePoolRequestStatus{
+				ClusterID:  clusterID,
+				NodePoolID: ni.Name,
+			}, nil
+		}
 		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("GkeMakeNodePoolRequest error")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}
@@ -179,14 +179,14 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 	// TODO remove hard code cluster id
 	clusterID := "0de1ee8e-7b90-45ea-b966-e2d2b7976cf9"
 	node, err := api_auth_temporal.DigitalOcean.CreateNodePool(ctx, clusterID, nodesReq)
-	if strings.Contains(err.Error(), "already exists") {
-		log.Ctx(ctx).Info().Interface("nodesReq", nodesReq).Msg("CreateNodePool already exists")
-		return do_types.DigitalOceanNodePoolRequestStatus{
-			ClusterID:  clusterID,
-			NodePoolID: node.ID,
-		}, nil
-	}
 	if err != nil {
+		if strings.Contains(err.Error(), "already exists") {
+			log.Ctx(ctx).Info().Interface("nodesReq", nodesReq).Msg("CreateNodePool already exists")
+			return do_types.DigitalOceanNodePoolRequestStatus{
+				ClusterID:  clusterID,
+				NodePoolID: node.ID,
+			}, nil
+		}
 		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("CreateNodePool error")
 		return do_types.DigitalOceanNodePoolRequestStatus{}, err
 	}
@@ -240,11 +240,11 @@ func (c *CreateSetupTopologyActivities) EndResourceService(ctx context.Context, 
 func (c *CreateSetupTopologyActivities) RemoveNodePoolRequest(ctx context.Context, nodePool do_types.DigitalOceanNodePoolRequestStatus) error {
 	log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("RemoveNodePoolRequest")
 	err := api_auth_temporal.DigitalOcean.RemoveNodePool(ctx, nodePool.ClusterID, nodePool.NodePoolID)
-	if strings.Contains(err.Error(), "Not found") {
-		log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("RemoveNodePoolRequest: node pool not found")
-		return nil
-	}
 	if err != nil {
+		if strings.Contains(err.Error(), "Not found") {
+			log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("RemoveNodePoolRequest: node pool not found")
+			return nil
+		}
 		log.Ctx(ctx).Err(err).Interface("nodePool", nodePool).Msg("RemoveNodePool error")
 		return err
 	}
@@ -262,11 +262,11 @@ func (c *CreateSetupTopologyActivities) GkeRemoveNodePoolRequest(ctx context.Con
 		Name: nodePool.NodePoolID,
 	}
 	_, err := api_auth_temporal.GCP.RemoveNodePool(ctx, ci, ni)
-	if strings.Contains(err.Error(), "Not found") {
-		log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("GkeRemoveNodePoolRequest: node pool not found")
-		return nil
-	}
 	if err != nil {
+		if strings.Contains(err.Error(), "Not found") {
+			log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("GkeRemoveNodePoolRequest: node pool not found")
+			return nil
+		}
 		log.Ctx(ctx).Err(err).Interface("nodePool", nodePool).Msg("GkeRemoveNodePoolRequest error")
 		return err
 	}
@@ -279,16 +279,17 @@ func (c *CreateSetupTopologyActivities) EksRemoveNodePoolRequest(ctx context.Con
 		NodegroupName: aws.String(nodePool.NodePoolID),
 	}
 	_, err := api_auth_temporal.Eks.RemoveNodeGroup(ctx, nr)
-	errSmithy := err.(*smithy.OperationError)
-	httpErr := errSmithy.Err.(*http.ResponseError)
-	httpResponse := httpErr.HTTPStatusCode()
-	if httpResponse == ht.StatusConflict || httpResponse == ht.StatusNotFound {
-		log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("EksRemoveNodePoolRequest: node pool not found")
-		return nil
-	}
 	if err != nil {
-		log.Ctx(ctx).Err(err).Interface("nodePool", nodePool).Msg("EksRemoveNodePoolRequest error")
-		return err
+		errSmithy := err.(*smithy.OperationError)
+		httpErr := errSmithy.Err.(*http.ResponseError)
+		httpResponse := httpErr.HTTPStatusCode()
+		if httpResponse == ht.StatusConflict || httpResponse == ht.StatusNotFound {
+			log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("EksRemoveNodePoolRequest: node pool not found")
+			return nil
+		} else {
+			log.Ctx(ctx).Err(err).Interface("nodePool", nodePool).Msg("EksRemoveNodePoolRequest error")
+			return err
+		}
 	}
 	return nil
 }

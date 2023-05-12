@@ -2,6 +2,7 @@ package hestia_eks_aws
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -60,19 +61,24 @@ func (s *AwsPricingClientTestSuite) TestGetEC2Product() {
 			fmt.Printf("Description: %s\n", price.GetDescription())
 			mem, memUnits := price.GetMemoryAndUnits()
 			fmt.Printf("Memory: %s, %s\n", mem, memUnits)
+			memInt, merr := strconv.Atoi(mem)
+			s.Require().NoError(merr)
+
+			vcpus, verr := strconv.ParseFloat(price.GetVCpus(), 64)
+			s.Require().NoError(verr)
 			dbSize := hestia_autogen_bases.Nodes{}
 			dbSize.Slug = instanceType
 			dbSize.Disk = 0
 			dbSize.DiskUnits = "GB"
 			dbSize.PriceHourly = usdCost
 			dbSize.CloudProvider = "aws"
-			//dbSize.Vcpus = float64(size.Vcpus)
-			//dbSize.Region = reg
-			//dbSize.PriceMonthly = size.PriceMonthly
-			//dbSize.Memory = size.Memory
-			//dbSize.MemoryUnits = "MB"
-			//dbSize.Description = size.Description
-			//n = append(n, dbSize)
+			dbSize.Vcpus = vcpus
+			dbSize.Region = UsWest1
+			dbSize.PriceMonthly = usdCost * 730
+			dbSize.Memory = memInt
+			dbSize.MemoryUnits = memUnits
+			dbSize.Description = price.GetDescription()
+			n = append(n, dbSize)
 		}
 
 	}

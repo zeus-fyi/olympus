@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/digitalocean/godo"
 	"github.com/rs/zerolog/log"
 	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
@@ -34,6 +36,11 @@ func (c *CreateSetupTopologyActivities) GkeAddNodePoolToOrgResources(ctx context
 }
 
 func (c *CreateSetupTopologyActivities) EksAddNodePoolToOrgResources(ctx context.Context, params base_deploy_params.ClusterSetupRequest, npStatus do_types.DigitalOceanNodePoolRequestStatus) error {
+	err := hestia_compute_resources.AddEksNodePoolResourcesToOrg(ctx, params.Ou.OrgID, params.Nodes.ResourceID, params.NodesQuantity, npStatus.NodePoolID, npStatus.ClusterID, params.FreeTrial)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("EksAddNodePoolToOrgResources error")
+		return err
+	}
 	return nil
 }
 
@@ -119,7 +126,13 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 }
 
 func (c *CreateSetupTopologyActivities) SelectEksNodeResources(ctx context.Context, request base_deploy_params.DestroyResourcesRequest) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
-	return nil, nil
+	log.Ctx(ctx).Info().Interface("request", request).Msg("SelectNodeResources")
+	nps, err := hestia_compute_resources.EksSelectNodeResources(ctx, request.Ou.OrgID, request.OrgResourceIDs)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Interface("request", request).Msg("SelectEksNodeResources: EksSelectNodeResources error")
+		return nps, err
+	}
+	return nps, err
 }
 
 func (c *CreateSetupTopologyActivities) SelectGkeNodeResources(ctx context.Context, request base_deploy_params.DestroyResourcesRequest) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
@@ -182,7 +195,15 @@ func (c *CreateSetupTopologyActivities) GkeRemoveNodePoolRequest(ctx context.Con
 }
 
 func (c *CreateSetupTopologyActivities) EksRemoveNodePoolRequest(ctx context.Context, nodePool do_types.DigitalOceanNodePoolRequestStatus) error {
-
+	nr := &eks.DeleteNodegroupInput{
+		ClusterName:   aws.String(nodePool.ClusterID),
+		NodegroupName: aws.String(nodePool.NodePoolID),
+	}
+	_, err := api_auth_temporal.Eks.RemoveNodeGroup(ctx, nr)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Interface("nodePool", nodePool).Msg("EksRemoveNodePoolRequest error")
+		return err
+	}
 	return nil
 }
 
@@ -223,5 +244,10 @@ func (c *CreateSetupTopologyActivities) GkeSelectFreeTrialNodes(ctx context.Cont
 }
 
 func (c *CreateSetupTopologyActivities) EksSelectFreeTrialNodes(ctx context.Context, orgID int) ([]do_types.DigitalOceanNodePoolRequestStatus, error) {
-	return nil, nil
+	eksNps, err := hestia_compute_resources.EksSelectFreeTrialNodes(ctx, orgID)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Int("orgID", orgID).Msg("EksSelectFreeTrialNodes: EksSelectFreeTrialNodes error")
+		return eksNps, err
+	}
+	return eksNps, err
 }

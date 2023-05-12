@@ -62,7 +62,7 @@ RUN curl -sL "https://github.com/weaveworks/eksctl/releases/latest/download/eksc
 
 RUN tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
 
-RUN mv /tmp/eksctl /
+RUN mv /tmp/eksctl /app/eksctl
 
 FROM ubuntu:22.04 as aws_cli
 RUN apt-get update && apt-get install -y wget curl

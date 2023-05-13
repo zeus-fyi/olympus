@@ -15,13 +15,13 @@ func (s *Web3ClientTestSuite) TestSandwichAttack() {
 		the last must be WETH, and any intermediate elements represent intermediate pairs to trade through (if, for example, a direct pair does not exist).
 	*/
 	amountIn, _ := new(big.Int).SetString("100000000000000000000", 10)
-	amountOut, _ := new(big.Int).SetString("3205740022151532600", 10)
+	amountOut, _ := new(big.Int).SetString("3233555763330265000", 10)
 	mockTrade := SwapExactTokensForETHParams{
 		AmountIn:     amountIn,
 		AmountOutMin: amountOut,
 	}
-	reserve0, _ := new(big.Int).SetString("48061248235489400000", 10)   // 48.0612482354894 WETH
-	reserve1, _ := new(big.Int).SetString("1380228284470951400000", 10) //   1380.2282844709514 PEPE
+	reserve0, _ := new(big.Int).SetString("48154588370189884000", 10)   // 48.154588370189884 WETH
+	reserve1, _ := new(big.Int).SetString("1377660784310055000000", 10) //   1377.660784310055 PEPE
 	token0Addr, token1Addr := StringsToAddresses(PepeContractAddr, WETH9ContractAddress)
 	mockPairResp := UniswapV2Pair{
 		KLast:    big.NewInt(0),
@@ -30,10 +30,6 @@ func (s *Web3ClientTestSuite) TestSandwichAttack() {
 		Reserve0: reserve0,
 		Reserve1: reserve1,
 	}
-	tokenToWETHPrice, _ := mockPairResp.GetToken0Price()
-	wethToTokenPrice, _ := mockPairResp.GetToken1Price()
-	fmt.Println("tokenToWETHPrice", tokenToWETHPrice.String())
-	fmt.Println("wethToTokenPrice", wethToTokenPrice.String())
 	var profitString []string
 	startOffset := big.NewInt(0)
 	for true {
@@ -45,38 +41,30 @@ func (s *Web3ClientTestSuite) TestSandwichAttack() {
 			Reserve1: reserve1,
 		}
 		fmt.Println("-----------front run trade-----------")
-		tokenSellAmount, _ := new(big.Int).SetString("6000000000000000000", 10)
+		tokenSellAmount, _ := new(big.Int).SetString("3000000000000000000", 10)
 		tokenSellAmount = tokenSellAmount.Add(startOffset, tokenSellAmount)
+		fmt.Println("startAmount", tokenSellAmount.String())
+
+		// TODO needs to break if the slippage tolerance breaks
 		if tokenSellAmount.Cmp(mockTrade.AmountIn) > 0 {
 			break
 		}
-		toFrontRun, price0, price1 := mockPairResp.PriceImpactToken1BuyToken0(tokenSellAmount)
-		fmt.Println("price0", price0.String())
-		fmt.Println("price1", price1.String())
+		toFrontRun, _, _ := mockPairResp.PriceImpactToken1BuyToken0(tokenSellAmount)
 		fmt.Println("endAmount", toFrontRun.AmountOut.String())
 		fmt.Println("-----------user trade-----------")
 		// now let user sell their tokens
-		to, price0, price1 := mockPairResp.PriceImpactToken1BuyToken0(mockTrade.AmountIn)
-		fmt.Println("price0", price0.String())
-		fmt.Println("price1", price1.String())
+		to, _, _ := mockPairResp.PriceImpactToken1BuyToken0(mockTrade.AmountIn)
 		fmt.Println("userEndAmount", to.AmountOut.String())
 		fmt.Println("-----------sandwich trade-----------")
 		sandwichDump := toFrontRun.AmountOut
 		fmt.Println("sandwichAmountToDump", sandwichDump)
-		toSandwich, price0, price1 := mockPairResp.PriceImpactToken0BuyToken1(sandwichDump)
-		fmt.Println("price0", price0.String())
-		fmt.Println("price1", price1.String())
-		fmt.Println("-----------summary of trades-----------")
-		fmt.Println("startAmount", toFrontRun.AmountIn.String())
-		fmt.Println("endAmount", toSandwich.AmountOut.String())
-		fmt.Println("frontRunTradeFee", toFrontRun.AmountFees.String())
-		fmt.Println("sandwichTradeFee", toSandwich.AmountFees.String())
-		profit := toSandwich.AmountOut.Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
-		fmt.Println("tokenSellAmount", tokenSellAmount.String())
+		toSandwich, _, _ := mockPairResp.PriceImpactToken0BuyToken1(sandwichDump)
+		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
+		fmt.Println("endTokenAmount", toSandwich.AmountOut.String())
 		fmt.Println("endProfit", profit.String())
 		profitString = append(profitString, profit.String())
-		oneToken, _ := new(big.Int).SetString("1000000000000000000", 10)
-		startOffset = startOffset.Add(startOffset, oneToken)
+		oneTenthToken, _ := new(big.Int).SetString("100000000000000000", 10)
+		startOffset = new(big.Int).Add(startOffset, oneTenthToken)
 	}
 	fmt.Println(profitString)
 }

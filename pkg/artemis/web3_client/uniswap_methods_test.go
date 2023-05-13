@@ -15,79 +15,79 @@ func (s *Web3ClientTestSuite) TestSandwichAttack() {
 		the last must be WETH, and any intermediate elements represent intermediate pairs to trade through (if, for example, a direct pair does not exist).
 	*/
 
-	amountIn, _ := new(big.Int).SetString("100000000000000000000", 10)
-	amountOut, _ := new(big.Int).SetString("3205740022151532600", 10)
-
-	mockTrade := SwapExactTokensForETHParams{
-		AmountIn:     amountIn,
-		AmountOutMin: amountOut,
-	}
-	//mockTradePair := UniswapV2Pair{
-	//	Reserve0: amountOut,
-	//	Reserve1: amountIn,
+	//amountIn, _ := new(big.Int).SetString("100000000000000000000", 10)
+	//amountOut, _ := new(big.Int).SetString("3205740022151532600", 10)
+	//
+	//mockTrade := SwapExactTokensForETHParams{
+	//	AmountIn:     amountIn,
+	//	AmountOutMin: amountOut,
 	//}
-	//tradePrice1, _ := mockTradePair.GetToken1Price()
-	//fmt.Println("token0Price", tradePrice1)
-	reserve0, _ := new(big.Int).SetString("48061248235489400000", 10)   // 48.0612482354894 WETH
-	reserve1, _ := new(big.Int).SetString("1380228284470951400000", 10) //   1380.2282844709514 PEPE
-	token0Addr, token1Addr := StringsToAddresses(PepeContractAddr, WETH9ContractAddress)
-	mockPairResp := UniswapV2Pair{
-		KLast:    big.NewInt(0),
-		Token0:   token0Addr,
-		Token1:   token1Addr,
-		Reserve0: reserve0,
-		Reserve1: reserve1,
-	}
-	tokenToWETHPrice, _ := mockPairResp.GetToken0Price()
-	wethToTokenPrice, _ := mockPairResp.GetToken1Price()
-	fmt.Println("tokenToWETHPrice", tokenToWETHPrice.String())
-	fmt.Println("wethToTokenPrice", wethToTokenPrice.String())
-	var profitString []string
-	startOffset := big.NewInt(0)
-	for true {
-		mockPairResp = UniswapV2Pair{
-			KLast:    big.NewInt(0),
-			Token0:   token0Addr,
-			Token1:   token1Addr,
-			Reserve0: reserve0,
-			Reserve1: reserve1,
-		}
-		fmt.Println("-----------front run trade-----------")
-		tokenSellAmount, _ := new(big.Int).SetString("6000000000000000000", 10)
-		tokenSellAmount = tokenSellAmount.Add(startOffset, tokenSellAmount)
-		if tokenSellAmount.Cmp(mockTrade.AmountIn) > 0 {
-			break
-		}
-		toFrontRun, price0, price1 := mockPairResp.PriceImpactToken1BuyToken0(tokenSellAmount)
-		fmt.Println("price0", price0.String())
-		fmt.Println("price1", price1.String())
-		fmt.Println("endAmount", toFrontRun.AmountOut.String())
-		fmt.Println("-----------user trade-----------")
-		// now let user sell their tokens
-		to, price0, price1 := mockPairResp.PriceImpactToken1BuyToken0(mockTrade.AmountIn)
-		fmt.Println("price0", price0.String())
-		fmt.Println("price1", price1.String())
-		fmt.Println("userEndAmount", to.AmountOut.String())
-		fmt.Println("-----------sandwich trade-----------")
-		sandwichDump, _ := toFrontRun.AmountOut.Int(nil)
-		fmt.Println("sandwichAmountToDump", sandwichDump)
-		toSandwich, price0, price1 := mockPairResp.PriceImpactToken0BuyToken1(sandwichDump)
-		fmt.Println("price0", price0.String())
-		fmt.Println("price1", price1.String())
-		fmt.Println("-----------summary of trades-----------")
-		startAmountFloat := new(big.Float).SetInt(toFrontRun.AmountIn)
-		fmt.Println("startAmount", toFrontRun.AmountIn.String())
-		fmt.Println("endAmount", toSandwich.AmountOut.String())
-		fmt.Println("frontRunTradeFee", toFrontRun.AmountFees.String())
-		fmt.Println("sandwichTradeFee", toSandwich.AmountFees.String())
-		profit := toSandwich.AmountOut.Sub(toSandwich.AmountOut, startAmountFloat)
-		fmt.Println("tokenSellAmount", tokenSellAmount.String())
-		fmt.Println("endProfit", profit.String())
-		profitString = append(profitString, profit.String())
-		oneToken, _ := new(big.Int).SetString("1000000000000000000", 10)
-		startOffset = startOffset.Add(startOffset, oneToken)
-	}
-	fmt.Println(profitString)
+	////mockTradePair := UniswapV2Pair{
+	////	Reserve0: amountOut,
+	////	Reserve1: amountIn,
+	////}
+	////tradePrice1, _ := mockTradePair.GetToken1Price()
+	////fmt.Println("token0Price", tradePrice1)
+	//reserve0, _ := new(big.Int).SetString("48061248235489400000", 10)   // 48.0612482354894 WETH
+	//reserve1, _ := new(big.Int).SetString("1380228284470951400000", 10) //   1380.2282844709514 PEPE
+	//token0Addr, token1Addr := StringsToAddresses(PepeContractAddr, WETH9ContractAddress)
+	//mockPairResp := UniswapV2Pair{
+	//	KLast:    big.NewInt(0),
+	//	Token0:   token0Addr,
+	//	Token1:   token1Addr,
+	//	Reserve0: reserve0,
+	//	Reserve1: reserve1,
+	//}
+	//tokenToWETHPrice, _ := mockPairResp.GetToken0Price()
+	//wethToTokenPrice, _ := mockPairResp.GetToken1Price()
+	//fmt.Println("tokenToWETHPrice", tokenToWETHPrice.String())
+	//fmt.Println("wethToTokenPrice", wethToTokenPrice.String())
+	//var profitString []string
+	//startOffset := big.NewInt(0)
+	//for true {
+	//	mockPairResp = UniswapV2Pair{
+	//		KLast:    big.NewInt(0),
+	//		Token0:   token0Addr,
+	//		Token1:   token1Addr,
+	//		Reserve0: reserve0,
+	//		Reserve1: reserve1,
+	//	}
+	//	fmt.Println("-----------front run trade-----------")
+	//	tokenSellAmount, _ := new(big.Int).SetString("6000000000000000000", 10)
+	//	tokenSellAmount = tokenSellAmount.Add(startOffset, tokenSellAmount)
+	//	if tokenSellAmount.Cmp(mockTrade.AmountIn) > 0 {
+	//		break
+	//	}
+	//	toFrontRun, price0, price1 := mockPairResp.PriceImpactToken1BuyToken0(tokenSellAmount)
+	//	fmt.Println("price0", price0.String())
+	//	fmt.Println("price1", price1.String())
+	//	fmt.Println("endAmount", toFrontRun.AmountOut.String())
+	//	fmt.Println("-----------user trade-----------")
+	//	// now let user sell their tokens
+	//	to, price0, price1 := mockPairResp.PriceImpactToken1BuyToken0(mockTrade.AmountIn)
+	//	fmt.Println("price0", price0.String())
+	//	fmt.Println("price1", price1.String())
+	//	fmt.Println("userEndAmount", to.AmountOut.String())
+	//	fmt.Println("-----------sandwich trade-----------")
+	//	sandwichDump, _ := toFrontRun.AmountOut.Int(nil)
+	//	fmt.Println("sandwichAmountToDump", sandwichDump)
+	//	toSandwich, price0, price1 := mockPairResp.PriceImpactToken0BuyToken1(sandwichDump)
+	//	fmt.Println("price0", price0.String())
+	//	fmt.Println("price1", price1.String())
+	//	fmt.Println("-----------summary of trades-----------")
+	//	startAmountFloat := new(big.Float).SetInt(toFrontRun.AmountIn)
+	//	fmt.Println("startAmount", toFrontRun.AmountIn.String())
+	//	fmt.Println("endAmount", toSandwich.AmountOut.String())
+	//	fmt.Println("frontRunTradeFee", toFrontRun.AmountFees.String())
+	//	fmt.Println("sandwichTradeFee", toSandwich.AmountFees.String())
+	//	profit := toSandwich.AmountOut.Sub(toSandwich.AmountOut, startAmountFloat)
+	//	fmt.Println("tokenSellAmount", tokenSellAmount.String())
+	//	fmt.Println("endProfit", profit.String())
+	//	profitString = append(profitString, profit.String())
+	//	oneToken, _ := new(big.Int).SetString("1000000000000000000", 10)
+	//	startOffset = startOffset.Add(startOffset, oneToken)
+	//}
+	//fmt.Println(profitString)
 }
 
 func (s *Web3ClientTestSuite) TestCalculateSlippage() {

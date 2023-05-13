@@ -16,12 +16,12 @@ func (s *Web3ClientTestSuite) TestPricingImpact() {
 		Reserve0: reserve0,
 		Reserve1: reserve1,
 	}
-	originalRate, _ := mockPairResp.GetToken1Price()
-	_, newRateToken1, newRateToken0 := mockPairResp.PriceImpactToken1BuyToken0(big.NewInt(3000))
-	fmt.Println("originalRate", originalRate)
-	fmt.Println("newRateToken0", newRateToken0)
-	fmt.Println("newRateToken1", newRateToken1)
-	s.Assert().Equal("3.015037481", newRateToken0.String())
+	to, reservesToken0, reservesToken1 := mockPairResp.PriceImpactToken1BuyToken0(big.NewInt(3000))
+	fmt.Println("to.AmountOut", to.AmountOut.String())
+	fmt.Println("reservesToken0", reservesToken0.String())
+	fmt.Println("reservesToken1", reservesToken1.String())
+	s.Assert().Equal(big.NewInt(399003), reservesToken0)
+	s.Assert().Equal(big.NewInt(1203009), reservesToken1)
 
 	reserve0, _ = new(big.Int).SetString("400000", 10)  // TokenB
 	reserve1, _ = new(big.Int).SetString("1200000", 10) // TokenA
@@ -32,10 +32,8 @@ func (s *Web3ClientTestSuite) TestPricingImpact() {
 		Reserve0: reserve0,
 		Reserve1: reserve1,
 	}
-	originalRate, _ = mockPairResp.GetToken1Price()
-	_, newRateToken1, newRateToken0 = mockPairResp.PriceImpactToken0BuyToken1(big.NewInt(1000))
-	fmt.Println("originalRate", originalRate)
-	fmt.Println("newRateToken0", newRateToken0)
-	fmt.Println("newRateToken1", newRateToken1)
-	s.Assert().Equal("2.985037518", newRateToken0.String())
+	to, reservesToken0, reservesToken1 = mockPairResp.PriceImpactToken0BuyToken1(big.NewInt(1000))
+	fmt.Println("to.AmountOut", to.AmountOut.String())
+	fmt.Println("reservesToken0", reservesToken0.String())
+	fmt.Println("reservesToken1", reservesToken1.String())
 }

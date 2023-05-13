@@ -9,115 +9,97 @@ const uniswapPriceFeeConstant = 0.3 / 100
 
 type TradeOutcome struct {
 	AmountIn   *big.Int
-	AmountFees *big.Float
-	AmountOut  *big.Float
+	AmountFees *big.Int
+	AmountOut  *big.Int
 }
 
-func (p *UniswapV2Pair) PriceImpactToken1BuyToken0(tokenOneBuyAmount *big.Int) (TradeOutcome, *big.Float, *big.Float) {
+func (p *UniswapV2Pair) PriceImpactToken1BuyToken0(tokenOneBuyAmount *big.Int) (TradeOutcome, *big.Int, *big.Int) {
 	to := TradeOutcome{
 		AmountIn:   tokenOneBuyAmount,
 		AmountFees: nil,
 		AmountOut:  nil,
 	}
-	// From example: 3 Token A
-	fmt.Println("tokenOneBuyAmount", tokenOneBuyAmount.String())
-	tokenOneAmountFloat := new(big.Float).SetInt(tokenOneBuyAmount)
-	// From example: 3 Token A * 0.3% fee
-	feeTokenOne := new(big.Float).Mul(tokenOneAmountFloat, big.NewFloat(uniswapPriceFeeConstant))
+	tokenOneFeeDivisor := new(big.Int).Mul(tokenOneBuyAmount, big.NewInt(1000))
+	tokenOneFeeDividend := new(big.Int).Mul(tokenOneBuyAmount, big.NewInt(3))
+	tokenOneMinusFees := new(big.Int).Sub(tokenOneFeeDivisor, tokenOneFeeDividend)
+	tokenOneFees := new(big.Int).Div(tokenOneMinusFees, big.NewInt(1000))
+	feeTokenOneNormalized := new(big.Int).Sub(tokenOneBuyAmount, tokenOneFees)
 	// From example: 3 Token A * 0.3% fee = 0.009 Token A
-	fmt.Println("feeOne", feeTokenOne.String())
 	// From example: 1200 Token A / 400 Token B = 3
-	priceToken0, err := p.GetToken0Price()
-	if err != nil {
-		return to, nil, nil
-	}
-	fmt.Println("price token A per token B", priceToken0.String())
-	priceToken1, err := p.GetToken1Price()
-	if err != nil {
-		return to, nil, nil
-	}
-	fmt.Println("price token B per token A", priceToken1.String())
-	tokenZeroReturned := new(big.Float).Mul(tokenOneAmountFloat, priceToken1)
+	to.AmountFees = tokenOneFees
 
+	dividend := new(big.Int).Mul(tokenOneBuyAmount, p.Reserve0)
+	divisor := new(big.Int).Mul(big.NewInt(1), p.Reserve1)
+	if divisor.Cmp(dividend) == 1 {
+		// TODO verify this is correct
+		dividend = new(big.Int).Mul(big.NewInt(1), p.Reserve0)
+		divisor = new(big.Int).Mul(tokenOneBuyAmount, p.Reserve1)
+	}
+	tokenZeroReturnedInt := new(big.Int).Quo(dividend, divisor)
 	// From example: 3 Token A * (1 Token B / 3 Token A) = 1 Token B
-	fmt.Println("tokenZeroReturnedBeforeFee", tokenZeroReturned.String())
-	feeTokenZero := new(big.Float).Mul(tokenZeroReturned, big.NewFloat(uniswapPriceFeeConstant))
-	to.AmountFees = feeTokenZero
-	tokeZeroReturnedAfterFee := tokenZeroReturned.Sub(tokenZeroReturned, feeTokenZero)
-	fmt.Println("tokenZeroReturnedAfterFee", tokeZeroReturnedAfterFee.String())
-	to.AmountOut = tokeZeroReturnedAfterFee
-	// From example: 1 Token B * 0.3% fee = 0.003 Token B
-	fmt.Println("feeTokenZero", feeTokenZero.String())
-	// Update reserves
-	tokenOneFeeInt, _ := feeTokenOne.Int(nil)
-	p.Reserve1.Add(p.Reserve1, tokenOneFeeInt)
-	p.Reserve1.Add(p.Reserve1, tokenOneBuyAmount)
+	fmt.Println("tokenZeroReturnedBeforeFee", tokenZeroReturnedInt.String())
+	part1 := new(big.Int).Mul(tokenZeroReturnedInt, big.NewInt(3))
+	part2 := new(big.Int).Mul(tokenZeroReturnedInt, big.NewInt(1000))
 
-	feeTokenZeroInt, _ := feeTokenZero.Int(nil)
-	p.Reserve0.Add(p.Reserve0, feeTokenZeroInt)
-	tokenZeroPurchaseAmount, _ := tokenZeroReturned.Int(nil)
-	p.Reserve0.Sub(p.Reserve0, tokenZeroPurchaseAmount)
-
-	// From example: 1200 Token A + 3 Token A + 0.009 Token A = 1203.009 Token A
+	fee := new(big.Int).Sub(part2, part1)
+	afterFeeZero := new(big.Int).Div(fee, big.NewInt(1000))
+	fmt.Println("afterFee", afterFeeZero.String())
+	to.AmountOut = afterFeeZero
+	feeZeroNormalized := new(big.Int).Sub(tokenZeroReturnedInt, afterFeeZero)
+	fmt.Println("feeZeroNormalized", feeZeroNormalized.String())
+	p.Reserve0 = new(big.Int).Sub(p.Reserve0, tokenZeroReturnedInt)
+	p.Reserve0 = new(big.Int).Add(p.Reserve0, feeZeroNormalized)
+	p.Reserve1 = new(big.Int).Add(p.Reserve1, tokenOneBuyAmount)
+	p.Reserve1 = new(big.Int).Add(p.Reserve1, feeTokenOneNormalized)
 	fmt.Println("reserve0", p.Reserve0.String())
-	// From example: 400 Token B - 1 Token B + 0.003 Token B = 399.003 Token B
 	fmt.Println("reserve1", p.Reserve1.String())
-	// Calculate new price
-	newPriceToken1, _ := p.GetToken1Price()
-	newPriceToken0, _ := p.GetToken0Price()
-	return to, newPriceToken1, newPriceToken0
+	return to, p.Reserve0, p.Reserve1
 }
 
-func (p *UniswapV2Pair) PriceImpactToken0BuyToken1(tokenZeroBuyAmount *big.Int) (TradeOutcome, *big.Float, *big.Float) {
+func (p *UniswapV2Pair) PriceImpactToken0BuyToken1(tokenZeroBuyAmount *big.Int) (TradeOutcome, *big.Int, *big.Int) {
 	to := TradeOutcome{
-		AmountIn:  tokenZeroBuyAmount,
-		AmountOut: nil,
+		AmountIn:   tokenZeroBuyAmount,
+		AmountFees: nil,
+		AmountOut:  nil,
 	}
-	// From example: 3 Token A
-	fmt.Println("tokenZeroBuyAmount", tokenZeroBuyAmount.String())
-	tokenZeroAmountFloat := new(big.Float).SetInt(tokenZeroBuyAmount)
-	// From example: 3 Token A * 0.3% fee
-	feeTokenZero := new(big.Float).Mul(tokenZeroAmountFloat, big.NewFloat(uniswapPriceFeeConstant))
+	tokenZeroFeeDivisor := new(big.Int).Mul(tokenZeroBuyAmount, big.NewInt(1000))
+	tokenZeroFeeDividend := new(big.Int).Mul(tokenZeroBuyAmount, big.NewInt(3))
+	tokenZeroMinusFees := new(big.Int).Sub(tokenZeroFeeDivisor, tokenZeroFeeDividend)
+	tokenZeroFees := new(big.Int).Div(tokenZeroMinusFees, big.NewInt(1000))
+	feeTokenZeroNormalized := new(big.Int).Sub(tokenZeroBuyAmount, tokenZeroFees)
+	fmt.Println("feeTokenZeroNormalized", feeTokenZeroNormalized.String())
 	// From example: 3 Token A * 0.3% fee = 0.009 Token A
-	fmt.Println("feeTokenZero", feeTokenZero.String())
 	// From example: 1200 Token A / 400 Token B = 3
-	priceToken1, err := p.GetToken1Price()
-	if err != nil {
-		return to, nil, nil
-	}
-	fmt.Println("price token A per token B", priceToken1.String())
-	priceToken0, err := p.GetToken0Price()
-	if err != nil {
-		return to, nil, nil
-	}
-	fmt.Println("price token B per token A", priceToken0.String())
-	tokenOneReturned := new(big.Float).Mul(tokenZeroAmountFloat, priceToken0)
-
-	// From example: 3 Token A * (1 Token B / 3 Token A) = 1 Token B
-	fmt.Println("tokenOneReturnedBeforeFee", tokenOneReturned.String())
-	feeTokenOne := new(big.Float).Mul(tokenOneReturned, big.NewFloat(uniswapPriceFeeConstant))
-	to.AmountFees = feeTokenOne
-	tokenOneReturnedAfterFee := tokenOneReturned.Sub(tokenOneReturned, feeTokenOne)
-	to.AmountOut = tokenOneReturnedAfterFee
-	fmt.Println("tokenOneReturnedAfterFee", tokenOneReturnedAfterFee.String())
-	// From example: 1 Token B * 0.3% fee = 0.003 Token B
-	fmt.Println("feeTokenOne", feeTokenOne.String())
-	// Update reserves
-	tokenZeroFeeInt, _ := feeTokenZero.Int(nil)
-	p.Reserve0.Add(p.Reserve0, tokenZeroFeeInt)
-	p.Reserve0.Add(p.Reserve0, tokenZeroBuyAmount)
-
-	feeTokenOneInt, _ := feeTokenOne.Int(nil)
-	p.Reserve1.Add(p.Reserve1, feeTokenOneInt)
-	tokenOnePurchaseAmount, _ := tokenOneReturned.Int(nil)
-	p.Reserve1.Sub(p.Reserve1, tokenOnePurchaseAmount)
-
-	// From example: 1200 Token A + 3 Token A + 0.009 Token A = 1203.009 Token A
+	to.AmountFees = tokenZeroFees
+	fmt.Println("tokenZeroBuyAmount", tokenZeroBuyAmount.String())
 	fmt.Println("reserve0", p.Reserve0.String())
-	// From example: 400 Token B - 1 Token B + 0.003 Token B = 399.003 Token B
 	fmt.Println("reserve1", p.Reserve1.String())
-	// Calculate new price
-	newPriceToken1, _ := p.GetToken1Price()
-	newPriceToken0, _ := p.GetToken0Price()
-	return to, newPriceToken1, newPriceToken0
+
+	dividend := new(big.Int).Mul(tokenZeroBuyAmount, p.Reserve1)
+	divisor := new(big.Int).Mul(big.NewInt(1), p.Reserve0)
+	if divisor.Cmp(dividend) == 1 {
+		// TODO verify this is correct
+		dividend = new(big.Int).Mul(big.NewInt(1), p.Reserve1)
+		divisor = new(big.Int).Mul(tokenZeroBuyAmount, p.Reserve0)
+	}
+	fmt.Println("dividend", dividend.String())
+	fmt.Println("divisor", divisor.String())
+	tokenOneReturnedInt := new(big.Int).Quo(dividend, divisor)
+	fmt.Println("tokenOneReturnedInt", tokenOneReturnedInt.String())
+	// From example: 3 Token A * (1 Token B / 3 Token A) = 1 Token B
+	fmt.Println("tokenOneReturnedBeforeFee", tokenOneReturnedInt.String())
+	part1 := new(big.Int).Mul(tokenOneReturnedInt, big.NewInt(3))
+	part2 := new(big.Int).Mul(tokenOneReturnedInt, big.NewInt(1000))
+
+	fee := new(big.Int).Sub(part2, part1)
+	afterFeeOne := new(big.Int).Div(fee, big.NewInt(1000))
+	fmt.Println("afterFee", afterFeeOne.String())
+	to.AmountOut = afterFeeOne
+	feeOneNormalized := new(big.Int).Sub(tokenOneReturnedInt, afterFeeOne)
+	fmt.Println("feeOneNormalized", feeOneNormalized.String())
+	p.Reserve1 = new(big.Int).Sub(p.Reserve1, tokenOneReturnedInt)
+	p.Reserve1 = new(big.Int).Add(p.Reserve1, feeOneNormalized)
+	p.Reserve0 = new(big.Int).Add(p.Reserve0, tokenZeroBuyAmount)
+	p.Reserve0 = new(big.Int).Add(p.Reserve0, feeTokenZeroNormalized)
+	return to, p.Reserve0, p.Reserve1
 }

@@ -147,6 +147,38 @@ func (s *Web3ClientTestSuite) TestSandwichAttackBinSearchV2() {
 	fmt.Println("Max profit:", maxProfit.String())
 	fmt.Println("Token sell amount for max profit:", tokenSellAmount.String())
 }
+func (s *Web3ClientTestSuite) TestSandwichAttackBinSearchV3() {
+	amountIn, _ := new(big.Int).SetString("10000000000000000000", 10)
+	amountOut, _ := new(big.Int).SetString("235745150537147960000", 10)
+
+	// 1% slippage, meaning they're willing to receive 1% less than the amountOut as minimum acceptable amount
+	slippage := new(big.Int).Div(amountOut, big.NewInt(100))
+	fmt.Println("slippage", slippage.String())
+	amountOutMin := new(big.Int).Add(amountOut, slippage)
+	//slippageMargin := new(big.Int).Div(amountOut, big.NewInt(10000))
+	//amountOutMinWithMargin := new(big.Int).Add(amountOutMin, slippageMargin)
+	fmt.Println("amountOutMin", amountOutMin)
+	mockTrade := SwapExactTokensForTokensParams{
+		AmountIn:     amountIn,
+		AmountOutMin: amountOut,
+	}
+
+	reserve0, _ := new(big.Int).SetString("47956013761392256000", 10)
+	reserve1, _ := new(big.Int).SetString("1383382537550055000000", 10)
+	token0Addr, token1Addr := StringsToAddresses(PepeContractAddr, WETH9ContractAddress)
+	mockPairResp := UniswapV2Pair{
+		KLast:    big.NewInt(0),
+		Token0:   token0Addr,
+		Token1:   token1Addr,
+		Reserve0: reserve0,
+		Reserve1: reserve1,
+	}
+
+	tokenSellAmount, maxProfit := mockTrade.BinarySearch(mockPairResp)
+	fmt.Println("Max profit:", maxProfit.String())
+	fmt.Println("Token sell amount for max profit:", tokenSellAmount.String())
+}
+
 func (s *Web3ClientTestSuite) TestGetPepeWETH() {
 	uni := InitUniswapV2Client(ctx, s.MainnetWeb3User)
 	pairAddr := uni.GetPairContractFromFactory(ctx, WETH9ContractAddress, PepeContractAddr)

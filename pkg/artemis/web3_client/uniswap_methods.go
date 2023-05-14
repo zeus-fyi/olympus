@@ -47,6 +47,48 @@ type SwapExactTokensForETHParams struct {
 	Deadline     *big.Int
 }
 
+func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) (*big.Int, *big.Int) {
+	low := big.NewInt(0)
+	high := new(big.Int).Set(s.Value)
+	var mid *big.Int
+	var maxProfit *big.Int
+	var tokenSellAmount *big.Int
+	for low.Cmp(high) <= 0 {
+		mockPairResp := pair
+		tokenSellAmount = new(big.Int).Add(low, high)
+		mid = tokenSellAmount.Div(tokenSellAmount, big.NewInt(2))
+		// Front run trade
+		toFrontRun, _, _ := mockPairResp.PriceImpactToken0BuyToken1(tokenSellAmount)
+
+		// User trade
+		to, _, _ := mockPairResp.PriceImpactToken0BuyToken1(s.Value)
+		difference := new(big.Int).Sub(to.AmountOut, s.AmountOutMin)
+		if difference.Cmp(big.NewInt(0)) < 0 {
+			high = new(big.Int).Sub(tokenSellAmount, big.NewInt(1))
+			continue
+		}
+
+		// Sandwich trade
+		sandwichDump := toFrontRun.AmountOut
+		toSandwich, _, _ := mockPairResp.PriceImpactToken1BuyToken0(sandwichDump)
+		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
+		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
+			maxProfit = profit
+			mid = tokenSellAmount
+		}
+
+		// If profit is negative, reduce the high boundary
+		if profit.Cmp(big.NewInt(0)) < 0 {
+			high = new(big.Int).Sub(tokenSellAmount, big.NewInt(1))
+		} else {
+			// If profit is positive, increase the low boundary
+			low = new(big.Int).Add(tokenSellAmount, big.NewInt(1))
+		}
+	}
+	fmt.Println("mid:", mid.String())
+	return tokenSellAmount, maxProfit
+}
+
 func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) (*big.Int, *big.Int) {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountIn)
@@ -74,8 +116,6 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) (*big.Int
 		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
-			maxTokenSellAmount := tokenSellAmount
-			fmt.Println("maxTokenSellAmount:", maxTokenSellAmount.String())
 			mid = tokenSellAmount
 		}
 

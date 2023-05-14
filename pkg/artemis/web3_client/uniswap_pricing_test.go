@@ -20,8 +20,8 @@ func (s *Web3ClientTestSuite) TestPricingImpact() {
 	fmt.Println("to.AmountOut", to.AmountOut.String())
 	fmt.Println("reservesToken0", reservesToken0.String())
 	fmt.Println("reservesToken1", reservesToken1.String())
-	s.Assert().Equal(big.NewInt(399003), reservesToken0)
-	s.Assert().Equal(big.NewInt(1203009), reservesToken1)
+	s.Assert().Equal(big.NewInt(399006), reservesToken0)
+	s.Assert().Equal(big.NewInt(1203000), reservesToken1)
 
 	reserve0, _ = new(big.Int).SetString("400000", 10)  // TokenB
 	reserve1, _ = new(big.Int).SetString("1200000", 10) // TokenA

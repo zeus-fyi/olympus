@@ -2,11 +2,13 @@ package web3_client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/big"
 	"strings"
 
 	"github.com/gochain/gochain/v4/accounts/abi"
+	"github.com/gochain/gochain/v4/common"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 	signing_automation_ethereum "github.com/zeus-fyi/zeus/pkg/artemis/signing_automation/ethereum"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
@@ -43,6 +45,7 @@ type UniswapV2Client struct {
 	PairAbi                  *abi.ABI
 	ERC20Abi                 *abi.ABI
 	FactoryAbi               *abi.ABI
+	printOn                  bool
 	MevSmartContractTxMap
 
 	SwapExactTokensForTokensParamsSlice []SwapExactTokensForTokensParams
@@ -196,7 +199,24 @@ func (u *UniswapV2Client) SwapExactTokensForTokens(args map[string]interface{}) 
 		To:           to,
 		Deadline:     deadline,
 	}
+	pair, err := u.PairToPrices(context.Background(), path)
+	if err != nil {
+		return
+	}
+	sandwich := st.BinarySearch(pair)
+	if u.printOn {
+		fmt.Println(path[0].String(), path[1].String(), sandwich.SellAmount.String(), sandwich.ExpectedProfit.String())
+	}
+
 	u.SwapExactTokensForTokensParamsSlice = append(u.SwapExactTokensForTokensParamsSlice, st)
+}
+
+func (u *UniswapV2Client) PairToPrices(ctx context.Context, pairAddr []common.Address) (UniswapV2Pair, error) {
+	if len(pairAddr) == 2 {
+		pairContractAddr := u.GetPairContractFromFactory(ctx, pairAddr[0].String(), pairAddr[1].String())
+		return u.GetPairContractPrices(ctx, pairContractAddr.String())
+	}
+	return UniswapV2Pair{}, errors.New("pair address length is not 2")
 }
 
 func (u *UniswapV2Client) SwapTokensForExactTokens(args map[string]interface{}) {
@@ -254,6 +274,14 @@ func (u *UniswapV2Client) SwapExactETHForTokens(args map[string]interface{}, pay
 		To:           to,
 		Deadline:     deadline,
 		Value:        payableEth,
+	}
+	pair, err := u.PairToPrices(context.Background(), path)
+	if err != nil {
+		return
+	}
+	sandwich := st.BinarySearch(pair)
+	if u.printOn {
+		fmt.Println(path[0].String(), path[1].String(), sandwich.SellAmount.String(), sandwich.ExpectedProfit.String())
 	}
 	u.SwapExactETHForTokensParamsSlice = append(u.SwapExactETHForTokensParamsSlice, st)
 }
@@ -318,6 +346,14 @@ func (u *UniswapV2Client) SwapExactTokensForETH(args map[string]interface{}) {
 		Path:         path,
 		To:           to,
 		Deadline:     deadline,
+	}
+	pair, err := u.PairToPrices(context.Background(), path)
+	if err != nil {
+		return
+	}
+	sandwich := st.BinarySearch(pair)
+	if u.printOn {
+		fmt.Println(path[0].String(), path[1].String(), sandwich.SellAmount.String(), sandwich.ExpectedProfit.String())
 	}
 	u.SwapExactTokensForETHParamsSlice = append(u.SwapExactTokensForETHParamsSlice, st)
 }

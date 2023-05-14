@@ -47,7 +47,12 @@ type SwapExactTokensForETHParams struct {
 	Deadline     *big.Int
 }
 
-func (s *SwapExactTokensForTokensParams) BinarySearch(pair UniswapV2Pair) (*big.Int, *big.Int) {
+type SandwichTrade struct {
+	SellAmount     *big.Int
+	ExpectedProfit *big.Int
+}
+
+func (s *SwapExactTokensForTokensParams) BinarySearch(pair UniswapV2Pair) SandwichTrade {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountIn)
 	var mid *big.Int
@@ -85,11 +90,13 @@ func (s *SwapExactTokensForTokensParams) BinarySearch(pair UniswapV2Pair) (*big.
 			low = new(big.Int).Add(tokenSellAmount, big.NewInt(1))
 		}
 	}
-	fmt.Println("mid:", mid.String())
-	return tokenSellAmount, maxProfit
+	return SandwichTrade{
+		SellAmount:     mid,
+		ExpectedProfit: maxProfit,
+	}
 }
 
-func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) (*big.Int, *big.Int) {
+func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) SandwichTrade {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.Value)
 	var mid *big.Int
@@ -127,11 +134,13 @@ func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) (*big.Int
 			low = new(big.Int).Add(tokenSellAmount, big.NewInt(1))
 		}
 	}
-	fmt.Println("mid:", mid.String())
-	return tokenSellAmount, maxProfit
+	return SandwichTrade{
+		SellAmount:     mid,
+		ExpectedProfit: maxProfit,
+	}
 }
 
-func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) (*big.Int, *big.Int) {
+func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) SandwichTrade {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountIn)
 	var mid *big.Int
@@ -169,8 +178,10 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) (*big.Int
 			low = new(big.Int).Add(tokenSellAmount, big.NewInt(1))
 		}
 	}
-	fmt.Println("mid:", mid.String())
-	return tokenSellAmount, maxProfit
+	return SandwichTrade{
+		SellAmount:     mid,
+		ExpectedProfit: maxProfit,
+	}
 }
 
 type SwapETHForExactTokensParams struct {

@@ -39,9 +39,8 @@ func (s *Web3ClientTestSuite) TestSandwichAttack() {
 		Reserve0: reserve0,
 		Reserve1: reserve1,
 	}
-	var profitString []string
-	var frontRunAmounts []string
 	startOffset := big.NewInt(0)
+	endProfit := big.NewInt(0)
 	for true {
 		mockPairResp = UniswapV2Pair{
 			KLast:    big.NewInt(0),
@@ -74,13 +73,11 @@ func (s *Web3ClientTestSuite) TestSandwichAttack() {
 		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
 		fmt.Println("endTokenAmount", toSandwich.AmountOut.String())
 		fmt.Println("endProfit", profit.String())
-		profitString = append(profitString, profit.String())
-		frontRunAmounts = append(frontRunAmounts, toFrontRun.AmountIn.String())
 		oneTenthToken, _ := new(big.Int).SetString("100000000000000000", 10)
 		startOffset = new(big.Int).Add(startOffset, oneTenthToken)
+		endProfit = profit
 	}
-	fmt.Println("frontRunAmounts", frontRunAmounts)
-	fmt.Println("profitAmounts", profitString)
+	fmt.Println("endProfit", endProfit.String())
 }
 
 func (s *Web3ClientTestSuite) TestCalculateSlippage() {

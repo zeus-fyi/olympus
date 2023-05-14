@@ -15,13 +15,22 @@ func (s *Web3ClientTestSuite) TestSandwichAttack() {
 		the last must be WETH, and any intermediate elements represent intermediate pairs to trade through (if, for example, a direct pair does not exist).
 	*/
 	amountIn, _ := new(big.Int).SetString("100000000000000000000", 10)
-	amountOut, _ := new(big.Int).SetString("3233555763330265000", 10)
+	amountOut, _ := new(big.Int).SetString("3223835795348941600", 10)
+
+	// 1% slippage, meaning they're willing to receive 1% less than the amountOut as minimum acceptable amount
+	slippage := new(big.Int).Div(amountOut, big.NewInt(100))
+	fmt.Println("slippage", slippage.String())
+	amountOutMin := new(big.Int).Sub(amountOut, slippage)
+	slippageMargin := new(big.Int).Div(amountOut, big.NewInt(10000))
+	amountOutMinWithMargin := new(big.Int).Add(amountOutMin, slippageMargin)
+	fmt.Println("amountOutMin", amountOutMin)
 	mockTrade := SwapExactTokensForETHParams{
 		AmountIn:     amountIn,
 		AmountOutMin: amountOut,
 	}
-	reserve0, _ := new(big.Int).SetString("48154588370189884000", 10)   // 48.154588370189884 WETH
-	reserve1, _ := new(big.Int).SetString("1377660784310055000000", 10) //   1377.660784310055 PEPE
+
+	reserve0, _ := new(big.Int).SetString("47956013761392256000", 10)
+	reserve1, _ := new(big.Int).SetString("1383382537550055000000", 10)
 	token0Addr, token1Addr := StringsToAddresses(PepeContractAddr, WETH9ContractAddress)
 	mockPairResp := UniswapV2Pair{
 		KLast:    big.NewInt(0),
@@ -31,6 +40,7 @@ func (s *Web3ClientTestSuite) TestSandwichAttack() {
 		Reserve1: reserve1,
 	}
 	var profitString []string
+	var frontRunAmounts []string
 	startOffset := big.NewInt(0)
 	for true {
 		mockPairResp = UniswapV2Pair{
@@ -45,16 +55,18 @@ func (s *Web3ClientTestSuite) TestSandwichAttack() {
 		tokenSellAmount = tokenSellAmount.Add(startOffset, tokenSellAmount)
 		fmt.Println("startAmount", tokenSellAmount.String())
 
-		// TODO needs to break if the slippage tolerance breaks
-		if tokenSellAmount.Cmp(mockTrade.AmountIn) > 0 {
-			break
-		}
 		toFrontRun, _, _ := mockPairResp.PriceImpactToken1BuyToken0(tokenSellAmount)
 		fmt.Println("endAmount", toFrontRun.AmountOut.String())
 		fmt.Println("-----------user trade-----------")
 		// now let user sell their tokens
 		to, _, _ := mockPairResp.PriceImpactToken1BuyToken0(mockTrade.AmountIn)
 		fmt.Println("userEndAmount", to.AmountOut.String())
+		difference := new(big.Int).Sub(to.AmountOut, amountOutMinWithMargin)
+		fmt.Println("difference", difference.String())
+		if difference.Cmp(big.NewInt(0)) < 0 {
+			fmt.Println("user trade failed")
+			break
+		}
 		fmt.Println("-----------sandwich trade-----------")
 		sandwichDump := toFrontRun.AmountOut
 		fmt.Println("sandwichAmountToDump", sandwichDump)
@@ -63,10 +75,12 @@ func (s *Web3ClientTestSuite) TestSandwichAttack() {
 		fmt.Println("endTokenAmount", toSandwich.AmountOut.String())
 		fmt.Println("endProfit", profit.String())
 		profitString = append(profitString, profit.String())
+		frontRunAmounts = append(frontRunAmounts, toFrontRun.AmountIn.String())
 		oneTenthToken, _ := new(big.Int).SetString("100000000000000000", 10)
 		startOffset = new(big.Int).Add(startOffset, oneTenthToken)
 	}
-	fmt.Println(profitString)
+	fmt.Println("frontRunAmounts", frontRunAmounts)
+	fmt.Println("profitAmounts", profitString)
 }
 
 func (s *Web3ClientTestSuite) TestCalculateSlippage() {

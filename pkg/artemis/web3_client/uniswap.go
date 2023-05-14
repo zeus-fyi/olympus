@@ -207,7 +207,6 @@ func (u *UniswapV2Client) SwapExactTokensForTokens(args map[string]interface{}) 
 	if u.printOn {
 		fmt.Println(path[0].String(), path[1].String(), sandwich.SellAmount.String(), sandwich.ExpectedProfit.String())
 	}
-
 	u.SwapExactTokensForTokensParamsSlice = append(u.SwapExactTokensForTokensParamsSlice, st)
 }
 

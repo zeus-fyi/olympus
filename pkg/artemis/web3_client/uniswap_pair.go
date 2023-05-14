@@ -21,30 +21,28 @@ type UniswapV2Pair struct {
 	BlockTimestampLast   *big.Int
 }
 
-func (p *UniswapV2Pair) GetToken1Price() (*big.Int, error) {
+func (p *UniswapV2Pair) GetQuoteToken0BuyToken1(token0 *big.Int) (*big.Int, error) {
 	if p.Reserve0 == nil || p.Reserve1 == nil || p.Reserve0.Cmp(big.NewInt(0)) == 0 || p.Reserve1.Cmp(big.NewInt(0)) == 0 {
 		return nil, errors.New("reserves are not initialized or are zero")
 	}
-
-	token1Price := new(big.Int).Quo(p.Reserve0, p.Reserve1)
-	return token1Price, nil
+	numerator := new(big.Int).Mul(token0, p.Reserve1)
+	return numerator.Quo(numerator, p.Reserve0), nil
 }
 
-func (p *UniswapV2Pair) GetToken0Price() (*big.Int, error) {
+func (p *UniswapV2Pair) GetQuoteToken1BuyToken0(token1 *big.Int) (*big.Int, error) {
 	if p.Reserve0 == nil || p.Reserve1 == nil || p.Reserve0.Cmp(big.NewInt(0)) == 0 || p.Reserve1.Cmp(big.NewInt(0)) == 0 {
 		return nil, errors.New("reserves are not initialized or are zero")
 	}
-	// Calculate price0 / price1
-	token0Price := new(big.Int).Quo(p.Reserve1, p.Reserve0)
-	return token0Price, nil
+	numerator := new(big.Int).Mul(token1, p.Reserve0)
+	return numerator.Quo(numerator, p.Reserve1), nil
 }
 
-func (p *UniswapV2Pair) GetPriceWithBaseUnit(addr string) (*big.Int, error) {
+func (p *UniswapV2Pair) GetPriceWithBaseUnit(addr string, amount *big.Int) (*big.Int, error) {
 	if p.Token0 == common.HexToAddress(addr) {
-		return p.GetToken0Price()
+		return p.GetQuoteToken0BuyToken1(amount)
 	}
 	if p.Token1 == common.HexToAddress(addr) {
-		return p.GetToken1Price()
+		return p.GetQuoteToken1BuyToken0(amount)
 	}
 	return nil, errors.New("token not found")
 }

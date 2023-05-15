@@ -301,7 +301,7 @@ func (u *UniswapV2Client) GetQuote(pair UniswapV2Pair, tokenAddr string, amount,
 	fmt.Printf("Expected amount %s %s token from trade at current rate \n", expectedOut.String(), purchasedTokenAddr)
 	fmt.Printf("Amount minimum %s %s token needed from trade \n", amountMin.String(), purchasedTokenAddr)
 	if diff.Cmp(big.NewInt(0)) == 1 {
-		fmt.Printf("Postitive difference between expected and minimum amount is %s %s token \n", diff.String(), tokenAddr)
+		fmt.Printf("Positive difference between expected and minimum amount is %s %s token \n", diff.String(), tokenAddr)
 	} else {
 		fmt.Printf("Negative difference between expected and minimum amount is %s %s token \n", diff.String(), tokenAddr)
 	}

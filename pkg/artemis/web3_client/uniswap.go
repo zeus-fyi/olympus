@@ -298,13 +298,18 @@ func (u *UniswapV2Client) GetQuote(pair UniswapV2Pair, tokenAddr string, amount,
 	}
 	diff := new(big.Int).Sub(expectedOut, amountMin)
 	purchasedTokenAddr := pair.GetOppositeToken(tokenAddr).String()
+	fmt.Printf("Token0 Address: %s Token0 Reserve: %s,\nToken1 Address %s, Token1 Reserve: %s\n", pair.Token0.String(), pair.Reserve0.String(), pair.Token1.String(), pair.Reserve1.String())
 	fmt.Printf("Expected amount %s %s token from trade at current rate \n", expectedOut.String(), purchasedTokenAddr)
 	fmt.Printf("Amount minimum %s %s token needed from trade \n", amountMin.String(), purchasedTokenAddr)
+
 	if diff.Cmp(big.NewInt(0)) == 1 {
 		fmt.Printf("Positive difference between expected and minimum amount is %s %s token \n", diff.String(), tokenAddr)
 	} else {
 		fmt.Printf("Negative difference between expected and minimum amount is %s %s token \n", diff.String(), tokenAddr)
 	}
+	slippage := new(big.Int).Mul(diff, big.NewInt(100))
+	slippagePercent := new(big.Int).Div(slippage, amountMin)
+	fmt.Printf("Slippage is %s %% \n", slippagePercent.String())
 	fmt.Printf("Buy %s %s token for %s %s token \n\n", expectedOut.String(), pair.GetOppositeToken(tokenAddr).String(), amount.String(), tokenAddr)
 	return
 }

@@ -47,6 +47,16 @@ func (p *UniswapV2Pair) GetPriceWithBaseUnit(addr string, amount *big.Int) (*big
 	return nil, errors.New("token not found")
 }
 
+func (p *UniswapV2Pair) GetOppositeToken(addr string) common.Address {
+	if p.Token0 == common.HexToAddress(addr) {
+		return p.Token1
+	}
+	if p.Token1 == common.HexToAddress(addr) {
+		return p.Token0
+	}
+	return common.Address{}
+}
+
 func (u *UniswapV2Client) GetPairContractPrices(ctx context.Context, pairContractAddr string) (UniswapV2Pair, error) {
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: pairContractAddr,

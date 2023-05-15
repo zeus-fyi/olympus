@@ -4,6 +4,7 @@ import "fmt"
 
 func (s *Web3ClientTestSuite) TestUniswapMempoolFilter() {
 	uni := InitUniswapV2Client(ctx, s.MainnetWeb3User)
+	uni.printOn = true
 	txMap, err := s.MainnetWeb3User.GetFilteredPendingMempoolTxs(ctx, uni.MevSmartContractTxMap)
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(txMap)

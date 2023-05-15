@@ -41,7 +41,8 @@ data:
       --authrpc.jwtsecret=/data/jwt.hex \
       --authrpc.addr=0.0.0.0 \
       --authrpc.port=8551 \
-      --authrpc.vhosts=*
+      --authrpc.vhosts=* \
+      --http.api=txpool,eth,net,web3
   gethGoerli.sh: |-
     #!/bin/sh
     exec geth \

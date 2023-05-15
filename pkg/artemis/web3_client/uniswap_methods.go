@@ -102,6 +102,7 @@ func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) SandwichT
 	var mid *big.Int
 	var maxProfit *big.Int
 	var tokenSellAmount *big.Int
+	var tokenSellAmountAtMaxProfit *big.Int
 	for low.Cmp(high) <= 0 {
 		mockPairResp := pair
 		tokenSellAmount = new(big.Int).Add(low, high)
@@ -124,6 +125,7 @@ func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) SandwichT
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			mid = tokenSellAmount
+			tokenSellAmountAtMaxProfit = mid
 		}
 
 		// If profit is negative, reduce the high boundary
@@ -135,17 +137,20 @@ func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) SandwichT
 		}
 	}
 	return SandwichTrade{
-		SellAmount:     mid,
+		SellAmount:     tokenSellAmountAtMaxProfit,
 		ExpectedProfit: maxProfit,
 	}
 }
 
+// SwapExactTokensForETH TODO verify
 func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) SandwichTrade {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountIn)
 	var mid *big.Int
 	var maxProfit *big.Int
 	var tokenSellAmount *big.Int
+	var tokenSellAmountAtMaxProfit *big.Int
+
 	for low.Cmp(high) <= 0 {
 		mockPairResp := pair
 		tokenSellAmount = new(big.Int).Add(low, high)
@@ -168,6 +173,7 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) SandwichT
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			mid = tokenSellAmount
+			tokenSellAmountAtMaxProfit = mid
 		}
 
 		// If profit is negative, reduce the high boundary
@@ -179,7 +185,7 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) SandwichT
 		}
 	}
 	return SandwichTrade{
-		SellAmount:     mid,
+		SellAmount:     tokenSellAmountAtMaxProfit,
 		ExpectedProfit: maxProfit,
 	}
 }

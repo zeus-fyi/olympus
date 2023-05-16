@@ -63,7 +63,6 @@ func (s *SwapETHForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 			tf.UserTrade = to
 			tf.SandwichTrade = toSandwich
 		}
-
 		// If profit is negative, reduce the high boundary
 		if profit.Cmp(big.NewInt(0)) < 0 {
 			high = new(big.Int).Sub(tokenSellAmount, big.NewInt(1))

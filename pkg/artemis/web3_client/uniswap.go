@@ -10,8 +10,8 @@ import (
 
 	"github.com/gochain/gochain/v4/accounts/abi"
 	"github.com/gochain/gochain/v4/common"
+	"github.com/rs/zerolog/log"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
-	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	signing_automation_ethereum "github.com/zeus-fyi/zeus/pkg/artemis/signing_automation/ethereum"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
@@ -50,8 +50,8 @@ type UniswapV2Client struct {
 	FactoryAbi               *abi.ABI
 	printOn                  bool
 	MevSmartContractTxMap
-	Path      filepaths.Path
-	Timestamp int
+	Path        filepaths.Path
+	BlockNumber *big.Int
 
 	SwapExactTokensForTokensParamsSlice []SwapExactTokensForTokensParams
 	SwapTokensForExactTokensParamsSlice []SwapTokensForExactTokensParams
@@ -124,9 +124,13 @@ func (u *UniswapV2Client) GetAllTradeMethods() []string {
 }
 
 // ProcessTxs TODO should filter out past deadline or will be past deadline by the time we can execute
-func (u *UniswapV2Client) ProcessTxs() {
-	ts := chronos.Chronos{}
-	u.Timestamp = ts.UnixTimeStampNow()
+func (u *UniswapV2Client) ProcessTxs(ctx context.Context) {
+	bn, err := u.Web3Client.GetBlockHeight(ctx)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("failed to get block height")
+		return
+	}
+	u.BlockNumber = bn
 	count := 0
 	for methodName, tx := range u.MethodTxMap {
 		switch methodName {
@@ -174,6 +178,7 @@ func (u *UniswapV2Client) ProcessTxs() {
 			u.SwapETHForExactTokens(tx.Args, tx.Tx.Value.ToInt())
 		}
 	}
+
 	fmt.Println("totalFilteredCount:", count)
 }
 
@@ -188,13 +193,23 @@ func (u *UniswapV2Client) PrintTradeSummaries(tf TradeExecutionFlow, pair Uniswa
 	fmt.Printf("Token0 Address: %s Token0 Reserve: %s,\nToken1 Address %s, Token1 Reserve: %s\n", pair.Token0.String(), pair.Reserve0.String(), pair.Token1.String(), pair.Reserve1.String())
 	fmt.Printf("Expected amount %s %s token from trade at current rate \n", expectedOut.String(), purchasedTokenAddr)
 	fmt.Printf("Amount minimum %s %s token needed from trade \n", amountMin.String(), purchasedTokenAddr)
+
+	bn, err := u.Web3Client.GetBlockHeight(ctx)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("failed to get block height")
+		return
+	}
+	if u.BlockNumber.String() != bn.String() {
+		log.Info().Interface("currentBlockNumber", bn.String()).Interface("startingBlockNumber", u.BlockNumber.String()).Msg("block number transition exiting due to stale data")
+		return
+	}
 	if diff.Cmp(big.NewInt(0)) == 1 {
 		fmt.Printf("Positive difference between expected and minimum amount is %s %s token \n", diff.String(), tokenAddr)
 		b, berr := json.MarshalIndent(tf, "", "  ")
 		if berr != nil {
 			return
 		}
-		u.Path.FnOut = fmt.Sprintf("%s-%d.json", tf.TradeMethod, u.Timestamp)
+		u.Path.FnOut = fmt.Sprintf("%s-%d.json", tf.TradeMethod, u.BlockNumber)
 		err = u.Path.WriteToFileOutPath(b)
 		if err != nil {
 			return

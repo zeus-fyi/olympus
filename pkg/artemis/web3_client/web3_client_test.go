@@ -34,7 +34,12 @@ func (s *Web3ClientTestSuite) SetupTest() {
 	s.GoerliWeb3User = NewWeb3Client(s.Tc.GoerliNodeUrl, newAccount)
 	s.GoerliWeb3User2 = NewWeb3Client(s.Tc.GoerliNodeUrl, secondAccount)
 
-	s.MainnetWeb3User = NewWeb3Client(s.Tc.MainnetNodeUrl, newAccount)
+	s.MainnetWeb3User = NewWeb3Client(s.Tc.LocalBeaconConn, newAccount)
+
+	m := map[string]string{
+		"Authorization": "Bearer " + s.Tc.ProductionLocalTemporalBearerToken,
+	}
+	s.MainnetWeb3User.Headers = m
 }
 
 func (s *Web3ClientTestSuite) TestWebGetBalance() {

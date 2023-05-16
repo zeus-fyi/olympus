@@ -21,35 +21,50 @@ type UniswapV2Pair struct {
 	BlockTimestampLast   *big.Int
 }
 
-func (p *UniswapV2Pair) GetToken1Price() (*big.Float, error) {
+func (p *UniswapV2Pair) GetQuoteToken0BuyToken1(token0 *big.Int) (*big.Int, error) {
 	if p.Reserve0 == nil || p.Reserve1 == nil || p.Reserve0.Cmp(big.NewInt(0)) == 0 || p.Reserve1.Cmp(big.NewInt(0)) == 0 {
 		return nil, errors.New("reserves are not initialized or are zero")
 	}
-	reserve0 := new(big.Float).SetInt(p.Reserve0)
-	reserve1 := new(big.Float).SetInt(p.Reserve1)
-	token1Price := new(big.Float).Quo(reserve0, reserve1)
-	return token1Price, nil
+	numerator := new(big.Int).Mul(token0, p.Reserve1)
+	return numerator.Quo(numerator, p.Reserve0), nil
 }
 
-func (p *UniswapV2Pair) GetToken0Price() (*big.Float, error) {
+func (p *UniswapV2Pair) GetQuoteToken1BuyToken0(token1 *big.Int) (*big.Int, error) {
 	if p.Reserve0 == nil || p.Reserve1 == nil || p.Reserve0.Cmp(big.NewInt(0)) == 0 || p.Reserve1.Cmp(big.NewInt(0)) == 0 {
 		return nil, errors.New("reserves are not initialized or are zero")
 	}
-	// Calculate price0 / price1
-	reserve0 := new(big.Float).SetInt(p.Reserve0)
-	reserve1 := new(big.Float).SetInt(p.Reserve1)
-	token0Price := new(big.Float).Quo(reserve1, reserve0)
-	return token0Price, nil
+	numerator := new(big.Int).Mul(token1, p.Reserve0)
+	return numerator.Quo(numerator, p.Reserve1), nil
 }
 
-func (p *UniswapV2Pair) GetPriceWithBaseUnit(addr string) (*big.Float, error) {
+func (p *UniswapV2Pair) GetQuoteUsingTokenAddr(addr string, amount *big.Int) (*big.Int, error) {
 	if p.Token0 == common.HexToAddress(addr) {
-		return p.GetToken0Price()
+		return p.GetQuoteToken0BuyToken1(amount)
 	}
 	if p.Token1 == common.HexToAddress(addr) {
-		return p.GetToken1Price()
+		return p.GetQuoteToken1BuyToken0(amount)
 	}
 	return nil, errors.New("token not found")
+}
+
+func (p *UniswapV2Pair) GetOppositeToken(addr string) common.Address {
+	if p.Token0 == common.HexToAddress(addr) {
+		return p.Token1
+	}
+	if p.Token1 == common.HexToAddress(addr) {
+		return p.Token0
+	}
+	return common.Address{}
+}
+
+func (p *UniswapV2Pair) GetTokenNumber(addr common.Address) int {
+	if p.Token0 == addr {
+		return 0
+	}
+	if p.Token1 == addr {
+		return 1
+	}
+	return -1
 }
 
 func (u *UniswapV2Client) GetPairContractPrices(ctx context.Context, pairContractAddr string) (UniswapV2Pair, error) {
@@ -151,31 +166,3 @@ func (u *UniswapV2Client) SingleReadMethodAddr(ctx context.Context, methodName s
 	}
 	return addr, nil
 }
-
-// TODO
-// function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;
-/*
-  // if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
-    function _mintFee(uint112 _reserve0, uint112 _reserve1) private returns (bool feeOn) {
-        address feeTo = IUniswapV2Factory(factory).feeTo();
-        feeOn = feeTo != address(0);
-        uint _kLast = kLast; // gas savings
-        if (feeOn) {
-            if (_kLast != 0) {
-                uint rootK = Math.sqrt(uint(_reserve0).mul(_reserve1));
-                uint rootKLast = Math.sqrt(_kLast);
-                if (rootK > rootKLast) {
-                    uint numerator = totalSupply.mul(rootK.sub(rootKLast));
-                    uint denominator = rootK.mul(5).add(rootKLast);
-                    uint liquidity = numerator / denominator;
-                    if (liquidity > 0) _mint(feeTo, liquidity);
-                }
-            }
-        } else if (_kLast != 0) {
-            kLast = 0;
-        }
-    }
-*/
-// https://github.com/Uniswap/v2-core/blob/ee547b17853e71ed4e0101ccfd52e70d5acded58/contracts/UniswapV2Pair.sol#L26
-// get k value, x*y=k.
-//   uint public kLast; // reserve0 * reserve1, as of immediately after the most recent liquidity event

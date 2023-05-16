@@ -1,54 +1,89 @@
 package web3_client
 
 import (
-	"fmt"
 	"math/big"
+
+	"github.com/gochain/gochain/v4/common"
 )
 
-const uniswapPriceFeeConstant = 0.3 / 100
+type TradeOutcome struct {
+	AmountIn            *big.Int       `json:"amountIn"`
+	AmountInAddr        common.Address `json:"amountInAddr"`
+	AmountFees          *big.Int       `json:"amountFees"`
+	AmountOut           *big.Int       `json:"amountOut"`
+	AmountOutAddr       common.Address `json:"amountOutAddr"`
+	StartReservesToken0 *big.Int       `json:"startReservesToken0"`
+	StartReservesToken1 *big.Int       `json:"startReservesToken1"`
+	EndReservesToken0   *big.Int       `json:"endReservesToken0"`
+	EndReservesToken1   *big.Int       `json:"endReservesToken1"`
+}
 
-func (p *UniswapV2Pair) PriceImpact(tokenOneBuyAmount *big.Int) (*big.Float, *big.Float) {
-	// From example: 3 Token A
-	fmt.Println("tokenOneBuyAmount", tokenOneBuyAmount.String())
-	tokenOneAmountFloat := new(big.Float).SetInt(tokenOneBuyAmount)
-	// From example: 3 Token A * 0.3% fee
-	feeTokenOne := new(big.Float).Mul(tokenOneAmountFloat, big.NewFloat(uniswapPriceFeeConstant))
-	// From example: 3 Token A * 0.3% fee = 0.009 Token A
-	fmt.Println("feeOne", feeTokenOne.String())
-	// From example: 1200 Token A / 400 Token B = 3
-	priceToken0, err := p.GetToken0Price()
-	if err != nil {
-		return nil, nil
+func (p *UniswapV2Pair) PriceImpact(tokenAddrPath0 common.Address, tokenBuyAmount *big.Int) TradeOutcome {
+	tokenNumber := p.GetTokenNumber(tokenAddrPath0)
+	switch tokenNumber {
+	case 1:
+		to, _, _ := p.PriceImpactToken1BuyToken0(tokenBuyAmount)
+		return to
+	case 0:
+		to, _, _ := p.PriceImpactToken0BuyToken1(tokenBuyAmount)
+		return to
+	default:
+		to := TradeOutcome{}
+		return to
 	}
-	fmt.Println("price token A per token B", priceToken0.String())
-	priceToken1, err := p.GetToken1Price()
-	if err != nil {
-		return nil, nil
+}
+
+func (p *UniswapV2Pair) PriceImpactToken1BuyToken0(tokenOneBuyAmount *big.Int) (TradeOutcome, *big.Int, *big.Int) {
+	to := TradeOutcome{
+		AmountIn:            tokenOneBuyAmount,
+		AmountInAddr:        p.Token1,
+		StartReservesToken0: p.Reserve0,
+		StartReservesToken1: p.Reserve1,
 	}
-	fmt.Println("price token B per token A", priceToken1.String())
-	tokenZeroReturned := new(big.Float).Mul(tokenOneAmountFloat, priceToken1)
+	amountInWithFee := new(big.Int).Mul(tokenOneBuyAmount, big.NewInt(997))
+	//fmt.Println("amountInWithFee", amountInWithFee.String())
+	numerator := new(big.Int).Mul(amountInWithFee, p.Reserve0)
+	denominator := new(big.Int).Mul(p.Reserve1, big.NewInt(1000))
+	denominator = new(big.Int).Add(denominator, amountInWithFee)
+	//fmt.Println("denominator", denominator.String())
+	amountOut := new(big.Int).Div(numerator, denominator)
+	to.AmountOut = amountOut
+	amountInWithFee = new(big.Int).Mul(tokenOneBuyAmount, big.NewInt(3))
+	numerator = new(big.Int).Mul(amountInWithFee, p.Reserve0)
+	denominator = new(big.Int).Mul(p.Reserve1, big.NewInt(1000))
+	denominator = new(big.Int).Add(denominator, amountInWithFee)
+	amountOutFee := new(big.Int).Div(numerator, denominator)
+	//fmt.Println("amountOut", amountOut.String())
+	to.AmountFees = amountOutFee
+	p.Reserve1 = new(big.Int).Add(p.Reserve1, tokenOneBuyAmount)
+	p.Reserve0 = new(big.Int).Sub(p.Reserve0, amountOut)
+	to.EndReservesToken0 = p.Reserve0
+	to.EndReservesToken1 = p.Reserve1
+	return to, p.Reserve0, p.Reserve1
+}
 
-	// From example: 3 Token A * (1 Token B / 3 Token A) = 1 Token B
-	fmt.Println("tokenZeroReturnedBeforeFee", tokenZeroReturned.String())
-	feeTokenZero := new(big.Float).Mul(tokenZeroReturned, big.NewFloat(uniswapPriceFeeConstant))
-	// From example: 1 Token B * 0.3% fee = 0.003 Token B
-	fmt.Println("feeTokenZero", feeTokenZero.String())
-	// Update reserves
-	tokenOneFeeInt, _ := feeTokenOne.Int(nil)
-	p.Reserve1.Add(p.Reserve1, tokenOneFeeInt)
-	p.Reserve1.Add(p.Reserve1, tokenOneBuyAmount)
-
-	feeTokenZeroInt, _ := feeTokenZero.Int(nil)
-	p.Reserve0.Add(p.Reserve0, feeTokenZeroInt)
-	tokenZeroPurchaseAmount, _ := tokenZeroReturned.Int(nil)
-	p.Reserve0.Sub(p.Reserve0, tokenZeroPurchaseAmount)
-
-	// From example: 1200 Token A + 3 Token A + 0.009 Token A = 1203.009 Token A
-	fmt.Println("reserve0", p.Reserve0.String())
-	// From example: 400 Token B - 1 Token B + 0.003 Token B = 399.003 Token B
-	fmt.Println("reserve1", p.Reserve1.String())
-	// Calculate new price
-	newPriceToken1, _ := p.GetToken1Price()
-	newPriceToken0, _ := p.GetToken0Price()
-	return newPriceToken1, newPriceToken0
+func (p *UniswapV2Pair) PriceImpactToken0BuyToken1(tokenZeroBuyAmount *big.Int) (TradeOutcome, *big.Int, *big.Int) {
+	to := TradeOutcome{
+		AmountIn:            tokenZeroBuyAmount,
+		AmountInAddr:        p.Token0,
+		StartReservesToken0: p.Reserve0,
+		StartReservesToken1: p.Reserve1,
+	}
+	amountInWithFee := new(big.Int).Mul(tokenZeroBuyAmount, big.NewInt(997))
+	numerator := new(big.Int).Mul(amountInWithFee, p.Reserve1)
+	denominator := new(big.Int).Mul(p.Reserve0, big.NewInt(1000))
+	denominator = new(big.Int).Add(denominator, amountInWithFee)
+	amountOut := new(big.Int).Div(numerator, denominator)
+	to.AmountOut = amountOut
+	amountInWithFee = new(big.Int).Mul(tokenZeroBuyAmount, big.NewInt(3))
+	numerator = new(big.Int).Mul(amountInWithFee, p.Reserve1)
+	denominator = new(big.Int).Mul(p.Reserve0, big.NewInt(1000))
+	denominator = new(big.Int).Add(denominator, amountInWithFee)
+	amountOutFee := new(big.Int).Div(numerator, denominator)
+	to.AmountFees = amountOutFee
+	p.Reserve0 = new(big.Int).Add(p.Reserve0, tokenZeroBuyAmount)
+	p.Reserve1 = new(big.Int).Sub(p.Reserve1, amountOut)
+	to.EndReservesToken0 = p.Reserve0
+	to.EndReservesToken1 = p.Reserve1
+	return to, p.Reserve0, p.Reserve1
 }

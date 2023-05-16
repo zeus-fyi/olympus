@@ -291,7 +291,7 @@ func (u *UniswapV2Client) SwapExactETHForTokens(args map[string]interface{}, pay
 }
 
 func (u *UniswapV2Client) GetQuote(pair UniswapV2Pair, tokenAddr string, amount, amountMin *big.Int) {
-	expectedOut, err := pair.GetPriceWithBaseUnit(tokenAddr, amount)
+	expectedOut, err := pair.GetQuoteUsingTokenAddr(tokenAddr, amount)
 	if err != nil {
 		fmt.Println("GetQuoteToken0BuyToken1", err)
 		return

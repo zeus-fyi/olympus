@@ -63,10 +63,11 @@ func (s *SwapExactTokensForTokensParams) BinarySearch(pair UniswapV2Pair) Sandwi
 		tokenSellAmount = new(big.Int).Add(low, high)
 		mid = tokenSellAmount.Div(tokenSellAmount, big.NewInt(2))
 		// Front run trade
-		toFrontRun, _, _ := mockPairResp.PriceImpactToken0BuyToken1(tokenSellAmount)
+		toFrontRun := mockPairResp.PriceImpact(s.Path[0], tokenSellAmount)
 
 		// User trade
-		to, _, _ := mockPairResp.PriceImpactToken0BuyToken1(s.AmountIn)
+		to := mockPairResp.PriceImpact(s.Path[0], s.AmountIn)
+
 		difference := new(big.Int).Sub(to.AmountOut, s.AmountOutMin)
 		if difference.Cmp(big.NewInt(0)) < 0 {
 			high = new(big.Int).Sub(tokenSellAmount, big.NewInt(1))
@@ -75,7 +76,8 @@ func (s *SwapExactTokensForTokensParams) BinarySearch(pair UniswapV2Pair) Sandwi
 
 		// Sandwich trade
 		sandwichDump := toFrontRun.AmountOut
-		toSandwich, _, _ := mockPairResp.PriceImpactToken1BuyToken0(sandwichDump)
+		toSandwich := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+
 		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
@@ -108,10 +110,10 @@ func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) SandwichT
 		tokenSellAmount = new(big.Int).Add(low, high)
 		mid = tokenSellAmount.Div(tokenSellAmount, big.NewInt(2))
 		// Front run trade
-		toFrontRun, _, _ := mockPairResp.PriceImpactToken0BuyToken1(tokenSellAmount)
+		toFrontRun := mockPairResp.PriceImpact(s.Path[0], tokenSellAmount)
 
 		// User trade
-		to, _, _ := mockPairResp.PriceImpactToken0BuyToken1(s.Value)
+		to := mockPairResp.PriceImpact(s.Path[0], s.Value)
 		difference := new(big.Int).Sub(to.AmountOut, s.AmountOutMin)
 		if difference.Cmp(big.NewInt(0)) < 0 {
 			high = new(big.Int).Sub(tokenSellAmount, big.NewInt(1))
@@ -120,7 +122,8 @@ func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) SandwichT
 
 		// Sandwich trade
 		sandwichDump := toFrontRun.AmountOut
-		toSandwich, _, _ := mockPairResp.PriceImpactToken1BuyToken0(sandwichDump)
+		toSandwich := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+
 		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
@@ -156,10 +159,10 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) SandwichT
 		tokenSellAmount = new(big.Int).Add(low, high)
 		mid = tokenSellAmount.Div(tokenSellAmount, big.NewInt(2))
 		// Front run trade
-		toFrontRun, _, _ := mockPairResp.PriceImpactToken1BuyToken0(tokenSellAmount)
+		toFrontRun := mockPairResp.PriceImpact(s.Path[0], tokenSellAmount)
 
 		// User trade
-		to, _, _ := mockPairResp.PriceImpactToken1BuyToken0(s.AmountIn)
+		to := mockPairResp.PriceImpact(s.Path[0], s.AmountIn)
 		difference := new(big.Int).Sub(to.AmountOut, s.AmountOutMin)
 		if difference.Cmp(big.NewInt(0)) < 0 {
 			high = new(big.Int).Sub(tokenSellAmount, big.NewInt(1))
@@ -168,7 +171,7 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) SandwichT
 
 		// Sandwich trade
 		sandwichDump := toFrontRun.AmountOut
-		toSandwich, _, _ := mockPairResp.PriceImpactToken0BuyToken1(sandwichDump)
+		toSandwich := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
 		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit

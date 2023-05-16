@@ -42,6 +42,13 @@ func (s *Web3ClientTestSuite) SetupTest() {
 	s.MainnetWeb3User.Headers = m
 }
 
+func (s *Web3ClientTestSuite) TestGetBlockHeight() {
+	b, err := s.MainnetWeb3User.GetBlockHeight(ctx)
+	s.Require().Nil(err)
+	s.Assert().NotNil(b)
+	fmt.Println("blockNumber", b.String())
+}
+
 func (s *Web3ClientTestSuite) TestWebGetBalance() {
 	b, err := s.GoerliWeb3User.GetCurrentBalance(ctx)
 

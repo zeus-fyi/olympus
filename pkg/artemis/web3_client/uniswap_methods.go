@@ -5,16 +5,18 @@ import (
 	"math/big"
 
 	"github.com/gochain/gochain/v4/common"
+	web3_types "github.com/zeus-fyi/gochain/web3/types"
 )
 
 type TradeExecutionFlow struct {
-	TradeMethod        string                  `json:"tradeMethod"`
-	TradeParams        any                     `json:"tradeParams"`
-	InitialPair        UniswapV2Pair           `json:"initialPair"`
-	FrontRunTrade      TradeOutcome            `json:"frontRunTrade"`
-	UserTrade          TradeOutcome            `json:"userTrade"`
-	SandwichTrade      TradeOutcome            `json:"sandwichTrade"`
-	SandwichPrediction SandwichTradePrediction `json:"sandwichPrediction"`
+	Tx                 *web3_types.RpcTransaction `json:"tx"`
+	TradeMethod        string                     `json:"tradeMethod"`
+	TradeParams        any                        `json:"tradeParams"`
+	InitialPair        UniswapV2Pair              `json:"initialPair"`
+	FrontRunTrade      TradeOutcome               `json:"frontRunTrade"`
+	UserTrade          TradeOutcome               `json:"userTrade"`
+	SandwichTrade      TradeOutcome               `json:"sandwichTrade"`
+	SandwichPrediction SandwichTradePrediction    `json:"sandwichPrediction"`
 }
 
 type SwapETHForExactTokensParams struct {

@@ -112,14 +112,13 @@ func (s *Web3ClientTestSuite) TestSandwichAttackBinSearch() {
 	}
 
 	st := mockTrade.BinarySearch(mockPairResp)
-	fmt.Println("Max profit:", st.ExpectedProfit.String())
-	fmt.Println("Token sell amount for max profit:", st.SellAmount.String())
+	fmt.Println("Max profit:", st.SandwichPrediction.ExpectedProfit.String())
+	fmt.Println("Token sell amount for max profit:", st.SandwichPrediction.SellAmount.String())
 }
 
 func (s *Web3ClientTestSuite) TestSandwichAttackBinSearchV2() {
 	amountIn, _ := new(big.Int).SetString("10000000000000000000", 10)
 	amountOut, _ := new(big.Int).SetString("235745150537147960000", 10)
-
 	// 1% slippage, meaning they're willing to receive 1% less than the amountOut as minimum acceptable amount
 	slippage := new(big.Int).Div(amountOut, big.NewInt(100))
 	fmt.Println("slippage", slippage.String())
@@ -131,7 +130,6 @@ func (s *Web3ClientTestSuite) TestSandwichAttackBinSearchV2() {
 		Value:        amountIn,
 		AmountOutMin: amountOut,
 	}
-
 	reserve0, _ := new(big.Int).SetString("47956013761392256000", 10)
 	reserve1, _ := new(big.Int).SetString("1383382537550055000000", 10)
 	token0Addr, token1Addr := StringsToAddresses(PepeContractAddr, WETH9ContractAddress)
@@ -142,15 +140,13 @@ func (s *Web3ClientTestSuite) TestSandwichAttackBinSearchV2() {
 		Reserve0: reserve0,
 		Reserve1: reserve1,
 	}
-
 	st := mockTrade.BinarySearch(mockPairResp)
-	fmt.Println("Max profit:", st.ExpectedProfit.String())
-	fmt.Println("Token sell amount for max profit:", st.SellAmount.String())
+	fmt.Println("Max profit:", st.SandwichPrediction.ExpectedProfit.String())
+	fmt.Println("Token sell amount for max profit:", st.SandwichPrediction.SellAmount.String())
 }
 func (s *Web3ClientTestSuite) TestSandwichAttackBinSearchV3() {
 	amountIn, _ := new(big.Int).SetString("10000000000000000000", 10)
 	amountOut, _ := new(big.Int).SetString("235745150537147960000", 10)
-
 	// 1% slippage, meaning they're willing to receive 1% less than the amountOut as minimum acceptable amount
 	slippage := new(big.Int).Div(amountOut, big.NewInt(100))
 	fmt.Println("slippage", slippage.String())
@@ -162,7 +158,6 @@ func (s *Web3ClientTestSuite) TestSandwichAttackBinSearchV3() {
 		AmountIn:     amountIn,
 		AmountOutMin: amountOut,
 	}
-
 	reserve0, _ := new(big.Int).SetString("47956013761392256000", 10)
 	reserve1, _ := new(big.Int).SetString("1383382537550055000000", 10)
 	token0Addr, token1Addr := StringsToAddresses(PepeContractAddr, WETH9ContractAddress)
@@ -173,10 +168,9 @@ func (s *Web3ClientTestSuite) TestSandwichAttackBinSearchV3() {
 		Reserve0: reserve0,
 		Reserve1: reserve1,
 	}
-
 	st := mockTrade.BinarySearch(mockPairResp)
-	fmt.Println("Max profit:", st.ExpectedProfit.String())
-	fmt.Println("Token sell amount for max profit:", st.SellAmount.String())
+	fmt.Println("Max profit:", st.SandwichPrediction.ExpectedProfit.String())
+	fmt.Println("Token sell amount for max profit:", st.SandwichPrediction.SellAmount.String())
 }
 
 func (s *Web3ClientTestSuite) TestGetPepeWETH() {

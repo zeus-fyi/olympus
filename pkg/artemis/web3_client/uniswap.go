@@ -2,6 +2,7 @@ package web3_client
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -10,7 +11,9 @@ import (
 	"github.com/gochain/gochain/v4/accounts/abi"
 	"github.com/gochain/gochain/v4/common"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	signing_automation_ethereum "github.com/zeus-fyi/zeus/pkg/artemis/signing_automation/ethereum"
+	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
 
@@ -47,6 +50,8 @@ type UniswapV2Client struct {
 	FactoryAbi               *abi.ABI
 	printOn                  bool
 	MevSmartContractTxMap
+	Path      filepaths.Path
+	Timestamp int
 
 	SwapExactTokensForTokensParamsSlice []SwapExactTokensForTokensParams
 	SwapTokensForExactTokensParamsSlice []SwapTokensForExactTokensParams
@@ -120,6 +125,8 @@ func (u *UniswapV2Client) GetAllTradeMethods() []string {
 
 // ProcessTxs TODO should filter out past deadline or will be past deadline by the time we can execute
 func (u *UniswapV2Client) ProcessTxs() {
+	ts := chronos.Chronos{}
+	u.Timestamp = ts.UnixTimeStampNow()
 	count := 0
 	for methodName, tx := range u.MethodTxMap {
 		switch methodName {
@@ -170,6 +177,38 @@ func (u *UniswapV2Client) ProcessTxs() {
 	fmt.Println("totalFilteredCount:", count)
 }
 
+func (u *UniswapV2Client) PrintTradeSummaries(tf TradeExecutionFlow, pair UniswapV2Pair, tokenAddr string, amount, amountMin *big.Int) {
+	expectedOut, err := pair.GetQuoteUsingTokenAddr(tokenAddr, amount)
+	if err != nil {
+		fmt.Println("GetQuoteUsingTokenAddr", err)
+		return
+	}
+	diff := new(big.Int).Sub(expectedOut, amountMin)
+	purchasedTokenAddr := pair.GetOppositeToken(tokenAddr).String()
+	fmt.Printf("Token0 Address: %s Token0 Reserve: %s,\nToken1 Address %s, Token1 Reserve: %s\n", pair.Token0.String(), pair.Reserve0.String(), pair.Token1.String(), pair.Reserve1.String())
+	fmt.Printf("Expected amount %s %s token from trade at current rate \n", expectedOut.String(), purchasedTokenAddr)
+	fmt.Printf("Amount minimum %s %s token needed from trade \n", amountMin.String(), purchasedTokenAddr)
+	if diff.Cmp(big.NewInt(0)) == 1 {
+		fmt.Printf("Positive difference between expected and minimum amount is %s %s token \n", diff.String(), tokenAddr)
+		b, berr := json.MarshalIndent(tf, "", "  ")
+		if berr != nil {
+			return
+		}
+		u.Path.FnOut = fmt.Sprintf("%s-%d.json", tf.TradeMethod, u.Timestamp)
+		err = u.Path.WriteToFileOutPath(b)
+		if err != nil {
+			return
+		}
+	} else {
+		fmt.Printf("Negative difference between expected and minimum amount is %s %s token \n", diff.String(), tokenAddr)
+	}
+	slippage := new(big.Int).Mul(diff, big.NewInt(100))
+	slippagePercent := new(big.Int).Div(slippage, amountMin)
+	fmt.Printf("Slippage is %s %% \n", slippagePercent.String())
+	fmt.Printf("Buy %s %s token for %s %s token \n\n", expectedOut.String(), pair.GetOppositeToken(tokenAddr).String(), amount.String(), tokenAddr)
+	return
+}
+
 func (u *UniswapV2Client) SwapExactTokensForTokens(args map[string]interface{}) {
 	amountIn, err := ParseBigInt(args["amountIn"])
 	if err != nil {
@@ -202,13 +241,14 @@ func (u *UniswapV2Client) SwapExactTokensForTokens(args map[string]interface{}) 
 	if err != nil {
 		return
 	}
-	sandwich := st.BinarySearch(pair)
+	initialPair := pair
+	tf := st.BinarySearch(pair)
+	tf.InitialPair = initialPair
 	if u.printOn {
 		fmt.Println("\nsandwich: ==================================SwapExactTokensForTokens==================================")
-		u.GetQuote(pair, path[0].String(), st.AmountIn, st.AmountOutMin)
-		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", sandwich.SellAmount.String(), "Expected Profit: ", sandwich.ExpectedProfit.String())
+		u.PrintTradeSummaries(tf, pair, path[0].String(), st.AmountIn, st.AmountOutMin)
+		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount.String(), "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit.String())
 		fmt.Println("sandwich: ====================================SwapExactTokensForTokens==================================")
-
 	}
 	u.SwapExactTokensForTokensParamsSlice = append(u.SwapExactTokensForTokensParamsSlice, st)
 }
@@ -276,42 +316,21 @@ func (u *UniswapV2Client) SwapExactETHForTokens(args map[string]interface{}, pay
 		Deadline:     deadline,
 		Value:        payableEth,
 	}
+
 	pair, err := u.PairToPrices(context.Background(), path)
 	if err != nil {
 		return
 	}
-	sandwich := st.BinarySearch(pair)
+	initialPair := pair
+	tf := st.BinarySearch(pair)
+	tf.InitialPair = initialPair
 	if u.printOn {
 		fmt.Println("\nsandwich: ==================================SwapExactETHForTokens==================================")
-		u.GetQuote(pair, path[0].String(), st.Value, st.AmountOutMin)
-		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", sandwich.SellAmount.String(), "Expected Profit: ", sandwich.ExpectedProfit.String())
+		u.PrintTradeSummaries(tf, pair, path[0].String(), st.Value, st.AmountOutMin)
+		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount.String(), "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit.String())
 		fmt.Println("sandwich: ====================================SwapExactETHForTokens==================================")
 	}
 	u.SwapExactETHForTokensParamsSlice = append(u.SwapExactETHForTokensParamsSlice, st)
-}
-
-func (u *UniswapV2Client) GetQuote(pair UniswapV2Pair, tokenAddr string, amount, amountMin *big.Int) {
-	expectedOut, err := pair.GetQuoteUsingTokenAddr(tokenAddr, amount)
-	if err != nil {
-		fmt.Println("GetQuoteToken0BuyToken1", err)
-		return
-	}
-	diff := new(big.Int).Sub(expectedOut, amountMin)
-	purchasedTokenAddr := pair.GetOppositeToken(tokenAddr).String()
-	fmt.Printf("Token0 Address: %s Token0 Reserve: %s,\nToken1 Address %s, Token1 Reserve: %s\n", pair.Token0.String(), pair.Reserve0.String(), pair.Token1.String(), pair.Reserve1.String())
-	fmt.Printf("Expected amount %s %s token from trade at current rate \n", expectedOut.String(), purchasedTokenAddr)
-	fmt.Printf("Amount minimum %s %s token needed from trade \n", amountMin.String(), purchasedTokenAddr)
-
-	if diff.Cmp(big.NewInt(0)) == 1 {
-		fmt.Printf("Positive difference between expected and minimum amount is %s %s token \n", diff.String(), tokenAddr)
-	} else {
-		fmt.Printf("Negative difference between expected and minimum amount is %s %s token \n", diff.String(), tokenAddr)
-	}
-	slippage := new(big.Int).Mul(diff, big.NewInt(100))
-	slippagePercent := new(big.Int).Div(slippage, amountMin)
-	fmt.Printf("Slippage is %s %% \n", slippagePercent.String())
-	fmt.Printf("Buy %s %s token for %s %s token \n\n", expectedOut.String(), pair.GetOppositeToken(tokenAddr).String(), amount.String(), tokenAddr)
-	return
 }
 
 func (u *UniswapV2Client) SwapTokensForExactETH(args map[string]interface{}) {
@@ -377,13 +396,14 @@ func (u *UniswapV2Client) SwapExactTokensForETH(args map[string]interface{}) {
 	if err != nil {
 		return
 	}
-	sandwich := st.BinarySearch(pair)
+	initialPair := pair
+	tf := st.BinarySearch(pair)
+	tf.InitialPair = initialPair
 	if u.printOn {
 		fmt.Println("\nsandwich: ==================================SwapExactTokensForETH==================================")
-		u.GetQuote(pair, path[0].String(), st.AmountIn, st.AmountOutMin)
-		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", sandwich.SellAmount.String(), "Expected Profit: ", sandwich.ExpectedProfit.String())
+		u.PrintTradeSummaries(tf, pair, path[0].String(), st.AmountIn, st.AmountOutMin)
+		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount.String(), "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit.String())
 		fmt.Println("sandwich: ====================================SwapExactTokensForETH==================================")
-
 	}
 	u.SwapExactTokensForETHParamsSlice = append(u.SwapExactTokensForETHParamsSlice, st)
 }
@@ -411,6 +431,19 @@ func (u *UniswapV2Client) SwapETHForExactTokens(args map[string]interface{}, pay
 		To:        to,
 		Deadline:  deadline,
 		Value:     payableEth,
+	}
+	pair, err := u.PairToPrices(context.Background(), path)
+	if err != nil {
+		return
+	}
+	initialPair := pair
+	tf := st.BinarySearch(pair)
+	tf.InitialPair = initialPair
+	if u.printOn {
+		fmt.Println("\nsandwich: ==================================SwapETHForExactTokens==================================")
+		u.PrintTradeSummaries(tf, pair, path[0].String(), st.Value, st.AmountOut)
+		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount.String(), "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit.String())
+		fmt.Println("sandwich: ====================================SwapETHForExactTokens==================================")
 	}
 	u.SwapETHForExactTokensParamsSlice = append(u.SwapETHForExactTokensParamsSlice, st)
 }

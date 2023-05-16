@@ -6,8 +6,6 @@ import (
 	"github.com/gochain/gochain/v4/common"
 )
 
-const uniswapPriceFeeConstant = 0.3 / 100
-
 type TradeOutcome struct {
 	AmountIn            *big.Int       `json:"amountIn"`
 	AmountInAddr        common.Address `json:"amountInAddr"`

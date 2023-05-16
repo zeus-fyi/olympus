@@ -199,8 +199,8 @@ func (u *UniswapV2Client) PrintTradeSummaries(tf TradeExecutionFlow, pair Uniswa
 		log.Ctx(ctx).Err(err).Msg("failed to get block height")
 		return
 	}
-	if u.BlockNumber != bn {
-		log.Info().Msg("block number transition exiting due to stale data")
+	if u.BlockNumber.String() != bn.String() {
+		log.Info().Interface("currentBlockNumber", bn.String()).Interface("startingBlockNumber", u.BlockNumber.String()).Msg("block number transition exiting due to stale data")
 		return
 	}
 	if diff.Cmp(big.NewInt(0)) == 1 {

@@ -387,6 +387,19 @@ func (u *UniswapV2Client) SwapTokensForExactETH(tx MevTx, args map[string]interf
 		To:          to,
 		Deadline:    deadline,
 	}
+	pair, err := u.PairToPrices(context.Background(), path)
+	if err != nil {
+		return
+	}
+	initialPair := pair
+	tf := st.BinarySearch(pair)
+	tf.InitialPair = initialPair
+	if u.printOn {
+		fmt.Println("\nsandwich: ==================================SwapTokensForExactETH==================================")
+		u.PrintTradeSummaries(tx, tf, pair, path[0].String(), st.AmountInMax, st.AmountOut)
+		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount.String(), "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit.String())
+		fmt.Println("sandwich: ====================================SwapTokensForExactETH==================================")
+	}
 	u.SwapTokensForExactETHParamsSlice = append(u.SwapTokensForExactETHParamsSlice, st)
 }
 

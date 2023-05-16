@@ -182,6 +182,7 @@ func (u *UniswapV2Client) ProcessTxs(ctx context.Context) {
 
 func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, pair UniswapV2Pair, tokenAddr string, amount, amountMin *big.Int) {
 	tf.Tx = tx.Tx
+	tf.CurrentBlockNumber = u.BlockNumber
 	expectedOut, err := pair.GetQuoteUsingTokenAddr(tokenAddr, amount)
 	if err != nil {
 		fmt.Println("GetQuoteUsingTokenAddr", err)

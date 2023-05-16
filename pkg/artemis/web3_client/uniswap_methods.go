@@ -9,6 +9,7 @@ import (
 )
 
 type TradeExecutionFlow struct {
+	CurrentBlockNumber *big.Int                   `json:"currentBlockNumber"`
 	Tx                 *web3_types.RpcTransaction `json:"tx"`
 	TradeMethod        string                     `json:"tradeMethod"`
 	TradeParams        any                        `json:"tradeParams"`

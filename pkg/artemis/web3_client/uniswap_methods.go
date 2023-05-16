@@ -89,7 +89,56 @@ type SwapTokensForExactTokensParams struct {
 }
 
 func (s *SwapTokensForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlow {
-	return TradeExecutionFlow{}
+	low := big.NewInt(0)
+	high := new(big.Int).Set(s.AmountInMax)
+	var mid *big.Int
+	var maxProfit *big.Int
+	var tokenSellAmount *big.Int
+	var tokenSellAmountAtMaxProfit *big.Int
+	tf := TradeExecutionFlow{
+		TradeMethod: "swapTokensForExactETH",
+		TradeParams: s,
+	}
+	for low.Cmp(high) <= 0 {
+		mockPairResp := pair
+		tokenSellAmount = new(big.Int).Add(low, high)
+		mid = tokenSellAmount.Div(tokenSellAmount, big.NewInt(2))
+		// Front run trade
+		toFrontRun := mockPairResp.PriceImpact(s.Path[0], tokenSellAmount)
+		// User trade
+		to := mockPairResp.PriceImpact(s.Path[0], s.AmountInMax)
+		difference := new(big.Int).Sub(to.AmountOut, s.AmountOut)
+		// if diff <= 0 then it searches left
+		if difference.Cmp(big.NewInt(0)) < 0 {
+			high = new(big.Int).Sub(tokenSellAmount, big.NewInt(1))
+			continue
+		}
+		// Sandwich trade
+		sandwichDump := toFrontRun.AmountOut
+		toSandwich := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
+		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
+			maxProfit = profit
+			mid = tokenSellAmount
+			tokenSellAmountAtMaxProfit = mid
+			tf.FrontRunTrade = toFrontRun
+			tf.UserTrade = to
+			tf.SandwichTrade = toSandwich
+		}
+		// If profit is negative, reduce the high boundary
+		if profit.Cmp(big.NewInt(0)) < 0 {
+			high = new(big.Int).Sub(tokenSellAmount, big.NewInt(1))
+		} else {
+			// If profit is positive, increase the low boundary
+			low = new(big.Int).Add(tokenSellAmount, big.NewInt(1))
+		}
+	}
+	sp := SandwichTradePrediction{
+		SellAmount:     tokenSellAmountAtMaxProfit,
+		ExpectedProfit: maxProfit,
+	}
+	tf.SandwichPrediction = sp
+	return tf
 }
 
 type SwapTokensForExactETHParams struct {
@@ -101,7 +150,56 @@ type SwapTokensForExactETHParams struct {
 }
 
 func (s *SwapTokensForExactETHParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlow {
-	return TradeExecutionFlow{}
+	low := big.NewInt(0)
+	high := new(big.Int).Set(s.AmountInMax)
+	var mid *big.Int
+	var maxProfit *big.Int
+	var tokenSellAmount *big.Int
+	var tokenSellAmountAtMaxProfit *big.Int
+	tf := TradeExecutionFlow{
+		TradeMethod: "swapTokensForExactETH",
+		TradeParams: s,
+	}
+	for low.Cmp(high) <= 0 {
+		mockPairResp := pair
+		tokenSellAmount = new(big.Int).Add(low, high)
+		mid = tokenSellAmount.Div(tokenSellAmount, big.NewInt(2))
+		// Front run trade
+		toFrontRun := mockPairResp.PriceImpact(s.Path[0], tokenSellAmount)
+		// User trade
+		to := mockPairResp.PriceImpact(s.Path[0], s.AmountInMax)
+		difference := new(big.Int).Sub(to.AmountOut, s.AmountOut)
+		// if diff <= 0 then it searches left
+		if difference.Cmp(big.NewInt(0)) < 0 {
+			high = new(big.Int).Sub(tokenSellAmount, big.NewInt(1))
+			continue
+		}
+		// Sandwich trade
+		sandwichDump := toFrontRun.AmountOut
+		toSandwich := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
+		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
+			maxProfit = profit
+			mid = tokenSellAmount
+			tokenSellAmountAtMaxProfit = mid
+			tf.FrontRunTrade = toFrontRun
+			tf.UserTrade = to
+			tf.SandwichTrade = toSandwich
+		}
+		// If profit is negative, reduce the high boundary
+		if profit.Cmp(big.NewInt(0)) < 0 {
+			high = new(big.Int).Sub(tokenSellAmount, big.NewInt(1))
+		} else {
+			// If profit is positive, increase the low boundary
+			low = new(big.Int).Add(tokenSellAmount, big.NewInt(1))
+		}
+	}
+	sp := SandwichTradePrediction{
+		SellAmount:     tokenSellAmountAtMaxProfit,
+		ExpectedProfit: maxProfit,
+	}
+	tf.SandwichPrediction = sp
+	return tf
 }
 
 type SandwichTradePrediction struct {

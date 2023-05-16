@@ -66,8 +66,6 @@ func (p *UniswapV2Pair) PriceImpactToken0BuyToken1(tokenZeroBuyAmount *big.Int) 
 	to := TradeOutcome{
 		AmountIn:            tokenZeroBuyAmount,
 		AmountInAddr:        p.Token0,
-		AmountFees:          nil,
-		AmountOut:           nil,
 		StartReservesToken0: p.Reserve0,
 		StartReservesToken1: p.Reserve1,
 	}

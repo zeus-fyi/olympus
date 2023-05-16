@@ -25,7 +25,7 @@ func (s *Web3ClientTestSuite) TestUniswapMempoolFilter() {
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(txMap)
 	uni.MevSmartContractTxMap = txMap
-	uni.ProcessTxs()
+	uni.ProcessTxs(ctx)
 	count := len(uni.SwapExactTokensForTokensParamsSlice)
 	count += len(uni.SwapTokensForExactTokensParamsSlice)
 	count += len(uni.SwapExactETHForTokensParamsSlice)

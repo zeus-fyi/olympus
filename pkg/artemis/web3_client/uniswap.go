@@ -123,7 +123,6 @@ func (u *UniswapV2Client) GetAllTradeMethods() []string {
 	}
 }
 
-// ProcessTxs TODO should filter out past deadline or will be past deadline by the time we can execute
 func (u *UniswapV2Client) ProcessTxs(ctx context.Context) {
 	bn, err := u.Web3Client.GetBlockHeight(ctx)
 	if err != nil {
@@ -152,37 +151,37 @@ func (u *UniswapV2Client) ProcessTxs(ctx context.Context) {
 			//u.RemoveLiquidityETHWithPermit(tx.Args)
 		case swapExactTokensForTokens:
 			count++
-			u.SwapExactTokensForTokens(tx.Args)
+			u.SwapExactTokensForTokens(tx, tx.Args)
 		case swapTokensForExactTokens:
 			count++
-			u.SwapTokensForExactTokens(tx.Args)
+			u.SwapTokensForExactTokens(tx, tx.Args)
 		case swapExactETHForTokens:
 			// payable
 			count++
 			if tx.Tx.Value == nil {
 				continue
 			}
-			u.SwapExactETHForTokens(tx.Args, tx.Tx.Value.ToInt())
+			u.SwapExactETHForTokens(tx, tx.Args, tx.Tx.Value.ToInt())
 		case swapTokensForExactETH:
 			count++
-			u.SwapTokensForExactETH(tx.Args)
+			u.SwapTokensForExactETH(tx, tx.Args)
 		case swapExactTokensForETH:
 			count++
-			u.SwapExactTokensForETH(tx.Args)
+			u.SwapExactTokensForETH(tx, tx.Args)
 		case swapETHForExactTokens:
 			// payable
 			count++
 			if tx.Tx.Value == nil {
 				continue
 			}
-			u.SwapETHForExactTokens(tx.Args, tx.Tx.Value.ToInt())
+			u.SwapETHForExactTokens(tx, tx.Args, tx.Tx.Value.ToInt())
 		}
 	}
-
 	fmt.Println("totalFilteredCount:", count)
 }
 
-func (u *UniswapV2Client) PrintTradeSummaries(tf TradeExecutionFlow, pair UniswapV2Pair, tokenAddr string, amount, amountMin *big.Int) {
+func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, pair UniswapV2Pair, tokenAddr string, amount, amountMin *big.Int) {
+	tf.Tx = tx.Tx
 	expectedOut, err := pair.GetQuoteUsingTokenAddr(tokenAddr, amount)
 	if err != nil {
 		fmt.Println("GetQuoteUsingTokenAddr", err)
@@ -193,7 +192,6 @@ func (u *UniswapV2Client) PrintTradeSummaries(tf TradeExecutionFlow, pair Uniswa
 	fmt.Printf("Token0 Address: %s Token0 Reserve: %s,\nToken1 Address %s, Token1 Reserve: %s\n", pair.Token0.String(), pair.Reserve0.String(), pair.Token1.String(), pair.Reserve1.String())
 	fmt.Printf("Expected amount %s %s token from trade at current rate \n", expectedOut.String(), purchasedTokenAddr)
 	fmt.Printf("Amount minimum %s %s token needed from trade \n", amountMin.String(), purchasedTokenAddr)
-
 	bn, err := u.Web3Client.GetBlockHeight(ctx)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("failed to get block height")
@@ -224,7 +222,7 @@ func (u *UniswapV2Client) PrintTradeSummaries(tf TradeExecutionFlow, pair Uniswa
 	return
 }
 
-func (u *UniswapV2Client) SwapExactTokensForTokens(args map[string]interface{}) {
+func (u *UniswapV2Client) SwapExactTokensForTokens(tx MevTx, args map[string]interface{}) {
 	amountIn, err := ParseBigInt(args["amountIn"])
 	if err != nil {
 		return
@@ -261,7 +259,7 @@ func (u *UniswapV2Client) SwapExactTokensForTokens(args map[string]interface{}) 
 	tf.InitialPair = initialPair
 	if u.printOn {
 		fmt.Println("\nsandwich: ==================================SwapExactTokensForTokens==================================")
-		u.PrintTradeSummaries(tf, pair, path[0].String(), st.AmountIn, st.AmountOutMin)
+		u.PrintTradeSummaries(tx, tf, pair, path[0].String(), st.AmountIn, st.AmountOutMin)
 		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount.String(), "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit.String())
 		fmt.Println("sandwich: ====================================SwapExactTokensForTokens==================================")
 	}
@@ -276,7 +274,7 @@ func (u *UniswapV2Client) PairToPrices(ctx context.Context, pairAddr []common.Ad
 	return UniswapV2Pair{}, errors.New("pair address length is not 2")
 }
 
-func (u *UniswapV2Client) SwapTokensForExactTokens(args map[string]interface{}) {
+func (u *UniswapV2Client) SwapTokensForExactTokens(tx MevTx, args map[string]interface{}) {
 	amountOut, err := ParseBigInt(args["amountOut"])
 	if err != nil {
 		return
@@ -304,10 +302,23 @@ func (u *UniswapV2Client) SwapTokensForExactTokens(args map[string]interface{}) 
 		To:          to,
 		Deadline:    deadline,
 	}
+	pair, err := u.PairToPrices(context.Background(), path)
+	if err != nil {
+		return
+	}
+	initialPair := pair
+	tf := st.BinarySearch(pair)
+	tf.InitialPair = initialPair
+	if u.printOn {
+		fmt.Println("\nsandwich: ==================================SwapTokensForExactTokens==================================")
+		u.PrintTradeSummaries(tx, tf, pair, path[0].String(), st.AmountInMax, st.AmountOut)
+		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount.String(), "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit.String())
+		fmt.Println("sandwich: ====================================SwapTokensForExactTokens==================================")
+	}
 	u.SwapTokensForExactTokensParamsSlice = append(u.SwapTokensForExactTokensParamsSlice, st)
 }
 
-func (u *UniswapV2Client) SwapExactETHForTokens(args map[string]interface{}, payableEth *big.Int) {
+func (u *UniswapV2Client) SwapExactETHForTokens(tx MevTx, args map[string]interface{}, payableEth *big.Int) {
 	amountOutMin, err := ParseBigInt(args["amountOutMin"])
 	if err != nil {
 		return
@@ -341,14 +352,14 @@ func (u *UniswapV2Client) SwapExactETHForTokens(args map[string]interface{}, pay
 	tf.InitialPair = initialPair
 	if u.printOn {
 		fmt.Println("\nsandwich: ==================================SwapExactETHForTokens==================================")
-		u.PrintTradeSummaries(tf, pair, path[0].String(), st.Value, st.AmountOutMin)
+		u.PrintTradeSummaries(tx, tf, pair, path[0].String(), st.Value, st.AmountOutMin)
 		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount.String(), "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit.String())
 		fmt.Println("sandwich: ====================================SwapExactETHForTokens==================================")
 	}
 	u.SwapExactETHForTokensParamsSlice = append(u.SwapExactETHForTokensParamsSlice, st)
 }
 
-func (u *UniswapV2Client) SwapTokensForExactETH(args map[string]interface{}) {
+func (u *UniswapV2Client) SwapTokensForExactETH(tx MevTx, args map[string]interface{}) {
 	amountOut, err := ParseBigInt(args["amountOut"])
 	if err != nil {
 		return
@@ -376,10 +387,23 @@ func (u *UniswapV2Client) SwapTokensForExactETH(args map[string]interface{}) {
 		To:          to,
 		Deadline:    deadline,
 	}
+	pair, err := u.PairToPrices(context.Background(), path)
+	if err != nil {
+		return
+	}
+	initialPair := pair
+	tf := st.BinarySearch(pair)
+	tf.InitialPair = initialPair
+	if u.printOn {
+		fmt.Println("\nsandwich: ==================================SwapTokensForExactETH==================================")
+		u.PrintTradeSummaries(tx, tf, pair, path[0].String(), st.AmountInMax, st.AmountOut)
+		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount.String(), "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit.String())
+		fmt.Println("sandwich: ====================================SwapTokensForExactETH==================================")
+	}
 	u.SwapTokensForExactETHParamsSlice = append(u.SwapTokensForExactETHParamsSlice, st)
 }
 
-func (u *UniswapV2Client) SwapExactTokensForETH(args map[string]interface{}) {
+func (u *UniswapV2Client) SwapExactTokensForETH(tx MevTx, args map[string]interface{}) {
 	amountIn, err := ParseBigInt(args["amountIn"])
 	if err != nil {
 		return
@@ -416,14 +440,14 @@ func (u *UniswapV2Client) SwapExactTokensForETH(args map[string]interface{}) {
 	tf.InitialPair = initialPair
 	if u.printOn {
 		fmt.Println("\nsandwich: ==================================SwapExactTokensForETH==================================")
-		u.PrintTradeSummaries(tf, pair, path[0].String(), st.AmountIn, st.AmountOutMin)
+		u.PrintTradeSummaries(tx, tf, pair, path[0].String(), st.AmountIn, st.AmountOutMin)
 		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount.String(), "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit.String())
 		fmt.Println("sandwich: ====================================SwapExactTokensForETH==================================")
 	}
 	u.SwapExactTokensForETHParamsSlice = append(u.SwapExactTokensForETHParamsSlice, st)
 }
 
-func (u *UniswapV2Client) SwapETHForExactTokens(args map[string]interface{}, payableEth *big.Int) {
+func (u *UniswapV2Client) SwapETHForExactTokens(tx MevTx, args map[string]interface{}, payableEth *big.Int) {
 	amountOut, err := ParseBigInt(args["amountOut"])
 	if err != nil {
 		return
@@ -456,7 +480,7 @@ func (u *UniswapV2Client) SwapETHForExactTokens(args map[string]interface{}, pay
 	tf.InitialPair = initialPair
 	if u.printOn {
 		fmt.Println("\nsandwich: ==================================SwapETHForExactTokens==================================")
-		u.PrintTradeSummaries(tf, pair, path[0].String(), st.Value, st.AmountOut)
+		u.PrintTradeSummaries(tx, tf, pair, path[0].String(), st.Value, st.AmountOut)
 		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount.String(), "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit.String())
 		fmt.Println("sandwich: ====================================SwapETHForExactTokens==================================")
 	}

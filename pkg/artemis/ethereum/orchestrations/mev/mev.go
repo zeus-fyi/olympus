@@ -25,12 +25,14 @@ func InitUniswap(ctx context.Context, authHeader string) {
 
 func GetMempoolTxs(ctx context.Context) {
 	for {
-		txMap, err := Uniswap.Web3Client.GetFilteredPendingMempoolTxs(ctx, Uniswap.MevSmartContractTxMap)
-		if err != nil {
-			log.Error().Err(err).Msg("failed to get mempool txs")
-		}
-		Uniswap.MevSmartContractTxMap = txMap
-		Uniswap.ProcessTxs(ctx)
+		go func() {
+			txMap, err := Uniswap.Web3Client.GetFilteredPendingMempoolTxs(ctx, Uniswap.MevSmartContractTxMap)
+			if err != nil {
+				log.Error().Err(err).Msg("failed to get mempool txs")
+			}
+			Uniswap.MevSmartContractTxMap = txMap
+			Uniswap.ProcessTxs(ctx)
+		}()
 		time.Sleep(100 * time.Millisecond)
 	}
 }

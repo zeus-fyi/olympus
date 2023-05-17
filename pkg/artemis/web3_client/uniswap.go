@@ -11,8 +11,11 @@ import (
 	"github.com/gochain/gochain/v4/accounts/abi"
 	"github.com/gochain/gochain/v4/common"
 	"github.com/rs/zerolog/log"
+	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 	signing_automation_ethereum "github.com/zeus-fyi/zeus/pkg/artemis/signing_automation/ethereum"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
@@ -48,7 +51,8 @@ type UniswapV2Client struct {
 	PairAbi                  *abi.ABI
 	ERC20Abi                 *abi.ABI
 	FactoryAbi               *abi.ABI
-	printOn                  bool
+	PrintOn                  bool
+	PrintLocal               bool
 	MevSmartContractTxMap
 	Path        filepaths.Path
 	BlockNumber *big.Int
@@ -208,9 +212,38 @@ func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, p
 		if berr != nil {
 			return
 		}
-		u.Path.FnOut = fmt.Sprintf("%s-%d.json", tf.TradeMethod, u.BlockNumber)
-		err = u.Path.WriteToFileOutPath(b)
+		if u.PrintLocal {
+			u.Path.FnOut = fmt.Sprintf("%s-%d.json", tf.TradeMethod, u.BlockNumber)
+			err = u.Path.WriteToFileOutPath(b)
+			if err != nil {
+				return
+			}
+		}
+		if tx.Tx.Nonce == nil {
+			fmt.Printf("tx.Tx.Nonce is nil")
+			return
+		}
+		btf, berr := json.Marshal(tf)
+		if berr != nil {
+			return
+		}
+		b, berr = json.Marshal(tf.Tx)
+		if berr != nil {
+			return
+		}
+		txMempool := artemis_autogen_bases.EthMempoolMevTx{
+			ProtocolNetworkID: hestia_req_types.EthereumMainnetProtocolNetworkID,
+			Tx:                string(b),
+			TxFlowPrediction:  string(btf),
+			TxHash:            tx.Tx.Hash.String(),
+			Nonce:             int(*tx.Tx.Nonce),
+			From:              tx.Tx.From.String(),
+			To:                tx.Tx.To.String(),
+			BlockNumber:       int(u.BlockNumber.Int64()),
+		}
+		err = artemis_validator_service_groups_models.InsertMempoolTx(ctx, txMempool)
 		if err != nil {
+			fmt.Printf("InsertMempoolTx err: %s", err)
 			return
 		}
 	} else {
@@ -258,7 +291,7 @@ func (u *UniswapV2Client) SwapExactTokensForTokens(tx MevTx, args map[string]int
 	initialPair := pair
 	tf := st.BinarySearch(pair)
 	tf.InitialPair = initialPair
-	if u.printOn {
+	if u.PrintOn {
 		fmt.Println("\nsandwich: ==================================SwapExactTokensForTokens==================================")
 		u.PrintTradeSummaries(tx, tf, pair, path[0].String(), st.AmountIn, st.AmountOutMin)
 		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount.String(), "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit.String())
@@ -310,7 +343,7 @@ func (u *UniswapV2Client) SwapTokensForExactTokens(tx MevTx, args map[string]int
 	initialPair := pair
 	tf := st.BinarySearch(pair)
 	tf.InitialPair = initialPair
-	if u.printOn {
+	if u.PrintOn {
 		fmt.Println("\nsandwich: ==================================SwapTokensForExactTokens==================================")
 		u.PrintTradeSummaries(tx, tf, pair, path[0].String(), st.AmountInMax, st.AmountOut)
 		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount.String(), "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit.String())
@@ -351,7 +384,7 @@ func (u *UniswapV2Client) SwapExactETHForTokens(tx MevTx, args map[string]interf
 	initialPair := pair
 	tf := st.BinarySearch(pair)
 	tf.InitialPair = initialPair
-	if u.printOn {
+	if u.PrintOn {
 		fmt.Println("\nsandwich: ==================================SwapExactETHForTokens==================================")
 		u.PrintTradeSummaries(tx, tf, pair, path[0].String(), st.Value, st.AmountOutMin)
 		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount.String(), "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit.String())
@@ -395,7 +428,7 @@ func (u *UniswapV2Client) SwapTokensForExactETH(tx MevTx, args map[string]interf
 	initialPair := pair
 	tf := st.BinarySearch(pair)
 	tf.InitialPair = initialPair
-	if u.printOn {
+	if u.PrintOn {
 		fmt.Println("\nsandwich: ==================================SwapTokensForExactETH==================================")
 		u.PrintTradeSummaries(tx, tf, pair, path[0].String(), st.AmountInMax, st.AmountOut)
 		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount.String(), "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit.String())
@@ -439,7 +472,7 @@ func (u *UniswapV2Client) SwapExactTokensForETH(tx MevTx, args map[string]interf
 	initialPair := pair
 	tf := st.BinarySearch(pair)
 	tf.InitialPair = initialPair
-	if u.printOn {
+	if u.PrintOn {
 		fmt.Println("\nsandwich: ==================================SwapExactTokensForETH==================================")
 		u.PrintTradeSummaries(tx, tf, pair, path[0].String(), st.AmountIn, st.AmountOutMin)
 		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount.String(), "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit.String())
@@ -479,7 +512,7 @@ func (u *UniswapV2Client) SwapETHForExactTokens(tx MevTx, args map[string]interf
 	initialPair := pair
 	tf := st.BinarySearch(pair)
 	tf.InitialPair = initialPair
-	if u.printOn {
+	if u.PrintOn {
 		fmt.Println("\nsandwich: ==================================SwapETHForExactTokens==================================")
 		u.PrintTradeSummaries(tx, tf, pair, path[0].String(), st.Value, st.AmountOut)
 		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount.String(), "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit.String())

@@ -43,7 +43,7 @@ func (s *Web3ClientTestSuite) SetupTest() {
 }
 
 func (s *Web3ClientTestSuite) TestGetBlockHeight() {
-	b, err := s.MainnetWeb3User.GetBlockHeight(ctx)
+	b, err := s.MainnetWeb3User.GetHeadBlockHeight(ctx)
 	s.Require().Nil(err)
 	s.Assert().NotNil(b)
 	fmt.Println("blockNumber", b.String())

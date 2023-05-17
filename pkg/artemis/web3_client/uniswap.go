@@ -128,7 +128,7 @@ func (u *UniswapV2Client) GetAllTradeMethods() []string {
 }
 
 func (u *UniswapV2Client) ProcessTxs(ctx context.Context) {
-	bn, err := u.Web3Client.GetBlockHeight(ctx)
+	bn, err := u.Web3Client.GetHeadBlockHeight(ctx)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("failed to get block height")
 		return
@@ -197,7 +197,7 @@ func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, p
 	fmt.Printf("Token0 Address: %s Token0 Reserve: %s,\nToken1 Address %s, Token1 Reserve: %s\n", pair.Token0.String(), pair.Reserve0.String(), pair.Token1.String(), pair.Reserve1.String())
 	fmt.Printf("Expected amount %s %s token from trade at current rate \n", expectedOut.String(), purchasedTokenAddr)
 	fmt.Printf("Amount minimum %s %s token needed from trade \n", amountMin.String(), purchasedTokenAddr)
-	bn, err := u.Web3Client.GetBlockHeight(ctx)
+	bn, err := u.Web3Client.GetHeadBlockHeight(ctx)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("failed to get block height")
 		return

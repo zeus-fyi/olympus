@@ -23,7 +23,7 @@ func (s *Web3ClientTestSuite) TestTradeSim() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ForceDirToTestDirLocation()
 	uni := InitUniswapV2Client(ctx, s.MainnetWeb3User)
-	mevTxs, err := artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17277325)
+	mevTxs, err := artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17281436)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(mevTxs)
 
@@ -44,11 +44,12 @@ func (s *Web3ClientTestSuite) TestTradeSim() {
 		fmt.Println("binary search sell amount", tf.SandwichPrediction.SellAmount.String())
 		fmt.Println("binary search max profit", tf.SandwichPrediction.ExpectedProfit.String())
 		fmt.Println("profit from execution path", executedProfit.String())
+		fmt.Println("profit token type", tf.SandwichTrade.AmountOutAddr.String())
 		s.Assert().Equal(tf.SandwichPrediction.ExpectedProfit.String(), executedProfit.String())
 
-		sellAmount, maxProfit := uni.TradeSim(tf)
-		fmt.Println("linear search sell amount", sellAmount.String())
-		fmt.Println("linear search max profit", maxProfit.String())
-		tf.FrontRunTrade.AmountIn = sellAmount
+		//sellAmount, maxProfit := uni.TradeSim(tf)
+		//fmt.Println("linear search sell amount", sellAmount.String())
+		//fmt.Println("linear search max profit", maxProfit.String())
+		//tf.FrontRunTrade.AmountIn = sellAmount
 	}
 }

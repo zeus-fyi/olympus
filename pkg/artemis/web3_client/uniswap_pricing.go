@@ -58,6 +58,10 @@ func (p *UniswapV2Pair) PriceImpactToken1BuyToken0(tokenOneBuyAmount *big.Int) (
 	numerator = new(big.Int).Mul(amountInWithFee, p.Reserve0)
 	denominator = new(big.Int).Mul(p.Reserve1, big.NewInt(1000))
 	denominator = new(big.Int).Add(denominator, amountInWithFee)
+	if denominator.Cmp(big.NewInt(0)) == 0 {
+		log.Warn().Msg("denominator is 0")
+		return to, p.Reserve0, p.Reserve1
+	}
 	amountOutFee := new(big.Int).Div(numerator, denominator)
 	//fmt.Println("amountOut", amountOut.String())
 	to.AmountFees = amountOutFee

@@ -10,15 +10,15 @@ import (
 )
 
 type UniswapV2Pair struct {
-	PairContractAddr     string
-	Price0CumulativeLast *big.Int
-	Price1CumulativeLast *big.Int
-	KLast                *big.Int
-	Token0               common.Address
-	Token1               common.Address
-	Reserve0             *big.Int
-	Reserve1             *big.Int
-	BlockTimestampLast   *big.Int
+	PairContractAddr     string         `json:"pairContractAddr"`
+	Price0CumulativeLast *big.Int       `json:"price0CumulativeLast"`
+	Price1CumulativeLast *big.Int       `json:"price1CumulativeLast"`
+	KLast                *big.Int       `json:"kLast"`
+	Token0               common.Address `json:"token0"`
+	Token1               common.Address `json:"token1"`
+	Reserve0             *big.Int       `json:"reserve0"`
+	Reserve1             *big.Int       `json:"reserve1"`
+	BlockTimestampLast   *big.Int       `json:"blockTimestampLast"`
 }
 
 func (p *UniswapV2Pair) GetQuoteToken0BuyToken1(token0 *big.Int) (*big.Int, error) {

@@ -29,8 +29,11 @@ func (s *Web3ClientTestSuite) TestSandwichAttack() {
 	mockTrade := SwapExactTokensForETHParams{
 		AmountIn:     amountIn,
 		AmountOutMin: amountOut,
+		Path: []common.Address{
+			common.HexToAddress(PepeContractAddr),
+			common.HexToAddress(WETH9ContractAddress),
+		},
 	}
-
 	reserve0, _ := new(big.Int).SetString("47956013761392256000", 10)
 	reserve1, _ := new(big.Int).SetString("1383382537550055000000", 10)
 	token0Addr, token1Addr := StringsToAddresses(PepeContractAddr, WETH9ContractAddress)

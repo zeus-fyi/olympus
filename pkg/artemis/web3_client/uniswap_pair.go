@@ -64,6 +64,14 @@ func (p *UniswapV2Pair) GetTokenNumber(addr common.Address) int {
 	if p.Token1 == addr {
 		return 1
 	}
+	if addr.String() == "0x0000000000000000000000000000000000000000" {
+		if p.Token0.String() == WETH9ContractAddress {
+			return 0
+		}
+		if p.Token1.String() == WETH9ContractAddress {
+			return 1
+		}
+	}
 	return -1
 }
 

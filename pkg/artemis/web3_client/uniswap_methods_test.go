@@ -3,6 +3,8 @@ package web3_client
 import (
 	"fmt"
 	"math/big"
+
+	"github.com/gochain/gochain/v4/common"
 )
 
 // https://www.defi-sandwi.ch/
@@ -98,6 +100,10 @@ func (s *Web3ClientTestSuite) TestSandwichAttackBinSearch() {
 	mockTrade := SwapExactTokensForETHParams{
 		AmountIn:     amountIn,
 		AmountOutMin: amountOut,
+		Path: []common.Address{
+			common.HexToAddress(PepeContractAddr),
+			common.HexToAddress(WETH9ContractAddress),
+		},
 	}
 
 	reserve0, _ := new(big.Int).SetString("47956013761392256000", 10)
@@ -129,10 +135,14 @@ func (s *Web3ClientTestSuite) TestSandwichAttackBinSearchV2() {
 	mockTrade := SwapExactETHForTokensParams{
 		Value:        amountIn,
 		AmountOutMin: amountOut,
+		Path: []common.Address{
+			common.HexToAddress(WETH9ContractAddress),
+			common.HexToAddress(PepeContractAddr),
+		},
 	}
 	reserve0, _ := new(big.Int).SetString("47956013761392256000", 10)
 	reserve1, _ := new(big.Int).SetString("1383382537550055000000", 10)
-	token0Addr, token1Addr := StringsToAddresses(PepeContractAddr, WETH9ContractAddress)
+	token0Addr, token1Addr := StringsToAddresses(WETH9ContractAddress, PepeContractAddr)
 	mockPairResp := UniswapV2Pair{
 		KLast:    big.NewInt(0),
 		Token0:   token0Addr,

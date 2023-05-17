@@ -28,7 +28,7 @@ type MevTx struct {
 }
 
 func (w *Web3Client) GetFilteredPendingMempoolTxs(ctx context.Context, mevTxMap MevSmartContractTxMap) (MevSmartContractTxMap, error) {
-	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 	if mevTxMap.MethodTxMap == nil {
 		mevTxMap.MethodTxMap = make(map[string]MevTx)

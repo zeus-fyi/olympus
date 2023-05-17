@@ -38,6 +38,9 @@ func (p *UniswapV2Pair) GetQuoteToken1BuyToken0(token1 *big.Int) (*big.Int, erro
 }
 
 func (p *UniswapV2Pair) GetQuoteUsingTokenAddr(addr string, amount *big.Int) (*big.Int, error) {
+	if addr == "0x0000000000000000000000000000000000000000" {
+		addr = WETH9ContractAddress
+	}
 	if p.Token0 == common.HexToAddress(addr) {
 		return p.GetQuoteToken0BuyToken1(amount)
 	}
@@ -48,6 +51,9 @@ func (p *UniswapV2Pair) GetQuoteUsingTokenAddr(addr string, amount *big.Int) (*b
 }
 
 func (p *UniswapV2Pair) GetOppositeToken(addr string) common.Address {
+	if addr == "0x0000000000000000000000000000000000000000" {
+		addr = WETH9ContractAddress
+	}
 	if p.Token0 == common.HexToAddress(addr) {
 		return p.Token1
 	}
@@ -58,12 +64,6 @@ func (p *UniswapV2Pair) GetOppositeToken(addr string) common.Address {
 }
 
 func (p *UniswapV2Pair) GetTokenNumber(addr common.Address) int {
-	if p.Token0 == addr {
-		return 0
-	}
-	if p.Token1 == addr {
-		return 1
-	}
 	if addr.String() == "0x0000000000000000000000000000000000000000" {
 		if p.Token0.String() == WETH9ContractAddress {
 			return 0
@@ -71,6 +71,12 @@ func (p *UniswapV2Pair) GetTokenNumber(addr common.Address) int {
 		if p.Token1.String() == WETH9ContractAddress {
 			return 1
 		}
+	}
+	if p.Token0 == addr {
+		return 0
+	}
+	if p.Token1 == addr {
+		return 1
 	}
 	return -1
 }

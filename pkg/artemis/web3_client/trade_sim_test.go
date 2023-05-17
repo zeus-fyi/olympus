@@ -23,7 +23,7 @@ func (s *Web3ClientTestSuite) TestTradeSim() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ForceDirToTestDirLocation()
 	uni := InitUniswapV2Client(ctx, s.MainnetWeb3User)
-	mevTxs, err := artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17276013)
+	mevTxs, err := artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17277004)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(mevTxs)
 
@@ -32,13 +32,21 @@ func (s *Web3ClientTestSuite) TestTradeSim() {
 		b := []byte(mevTx.TxFlowPrediction)
 		berr := json.Unmarshal(b, &tf)
 		s.Require().Nil(berr)
-		s.Require().NotEmpty(tf.UserTrade)
+
+		if tf.FrontRunTrade.AmountIn == nil {
+			continue
+		}
 		fmt.Println(tf.TradeMethod)
-		maxProfit := uni.TradeSimStep(tf)
-		fmt.Println("profit from execution path", maxProfit.String())
+		b, berr = json.MarshalIndent(tf, "", "  ")
+		s.Require().Nil(berr)
+		//fmt.Println(string(b))
+		executedProfit := uni.TradeSimStep(tf)
+		fmt.Println("profit from execution path", executedProfit.String())
 		//maxProfit := uni.TradeSim(tf)
 		//fmt.Println(string(b))
 		//fmt.Println("linear search max profit", maxProfit.String())
+		fmt.Println("binary search sell amount", tf.SandwichPrediction.SellAmount.String())
 		fmt.Println("binary search max profit", tf.SandwichPrediction.ExpectedProfit.String())
+		s.Assert().Equal(tf.SandwichPrediction.ExpectedProfit.String(), executedProfit.String())
 	}
 }

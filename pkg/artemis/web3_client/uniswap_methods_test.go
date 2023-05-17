@@ -230,5 +230,4 @@ func (s *Web3ClientTestSuite) TestGetPairContractInfoMismatchedDecimals() {
 	fmt.Println("reserve1", pair.Reserve1.String())
 	fmt.Println("price0CumulativeLast", pair.Price0CumulativeLast.String())
 	fmt.Println("price1CumulativeLast", pair.Price1CumulativeLast.String())
-
 }

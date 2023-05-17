@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/gochain/gochain/v4/common"
+	"github.com/rs/zerolog/log"
 )
 
 type TradeOutcome struct {
@@ -28,6 +29,7 @@ func (p *UniswapV2Pair) PriceImpact(tokenAddrPath0 common.Address, tokenBuyAmoun
 		to, _, _ := p.PriceImpactToken0BuyToken1(tokenBuyAmount)
 		return to
 	default:
+		log.Warn().Msg("token number not found")
 		to := TradeOutcome{}
 		return to
 	}

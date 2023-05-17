@@ -1,6 +1,7 @@
 package web3_client
 
 import (
+	"fmt"
 	"math/big"
 )
 
@@ -30,9 +31,14 @@ func (u *UniswapV2Client) TradeSim(tf TradeExecutionFlow) *big.Int {
 
 func (u *UniswapV2Client) TradeSimStep(tf TradeExecutionFlow) *big.Int {
 	pair := tf.InitialPair
-	amountOut := pair.PriceImpact(tf.UserTrade.AmountInAddr, tf.FrontRunTrade.AmountIn)
-	pair.PriceImpact(tf.UserTrade.AmountInAddr, tf.FrontRunTrade.AmountIn)
-	revenue := pair.PriceImpact(tf.UserTrade.AmountOutAddr, amountOut.AmountOut)
-	maxProfit := new(big.Int).Sub(revenue.AmountOut, amountOut.AmountOut)
+	//fmt.Println("frontRunAmountIn", tf.FrontRunTrade.AmountIn)
+	frontRunTradeOutcome := pair.PriceImpact(tf.FrontRunTrade.AmountInAddr, tf.FrontRunTrade.AmountIn)
+	pair.PriceImpact(tf.UserTrade.AmountInAddr, tf.UserTrade.AmountIn)
+	//fmt.Println("userTradeAmountIn", tf.UserTrade.AmountIn.String())
+	//fmt.Println("frontRunTradeOutcome", frontRunTradeOutcome.AmountOutAddr.String())
+	//fmt.Println("frontRunTradeOutcome", tf.SandwichTrade.AmountInAddr.String())
+	revenue := pair.PriceImpact(tf.SandwichTrade.AmountInAddr, tf.SandwichTrade.AmountIn)
+	fmt.Println("revenue", revenue.AmountOut.String())
+	maxProfit := new(big.Int).Sub(revenue.AmountOut, frontRunTradeOutcome.AmountIn)
 	return maxProfit
 }

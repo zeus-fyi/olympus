@@ -48,6 +48,10 @@ func (p *UniswapV2Pair) PriceImpactToken1BuyToken0(tokenOneBuyAmount *big.Int) (
 	denominator := new(big.Int).Mul(p.Reserve1, big.NewInt(1000))
 	denominator = new(big.Int).Add(denominator, amountInWithFee)
 	//fmt.Println("denominator", denominator.String())
+	if denominator.Cmp(big.NewInt(0)) == 0 {
+		log.Warn().Msg("denominator is 0")
+		return to, p.Reserve0, p.Reserve1
+	}
 	amountOut := new(big.Int).Div(numerator, denominator)
 	to.AmountOut = amountOut
 	amountInWithFee = new(big.Int).Mul(tokenOneBuyAmount, big.NewInt(3))
@@ -75,12 +79,20 @@ func (p *UniswapV2Pair) PriceImpactToken0BuyToken1(tokenZeroBuyAmount *big.Int) 
 	numerator := new(big.Int).Mul(amountInWithFee, p.Reserve1)
 	denominator := new(big.Int).Mul(p.Reserve0, big.NewInt(1000))
 	denominator = new(big.Int).Add(denominator, amountInWithFee)
+	if denominator.Cmp(big.NewInt(0)) == 0 {
+		log.Warn().Msg("denominator is 0")
+		return to, p.Reserve0, p.Reserve1
+	}
 	amountOut := new(big.Int).Div(numerator, denominator)
 	to.AmountOut = amountOut
 	amountInWithFee = new(big.Int).Mul(tokenZeroBuyAmount, big.NewInt(3))
 	numerator = new(big.Int).Mul(amountInWithFee, p.Reserve1)
 	denominator = new(big.Int).Mul(p.Reserve0, big.NewInt(1000))
 	denominator = new(big.Int).Add(denominator, amountInWithFee)
+	if denominator.Cmp(big.NewInt(0)) == 0 {
+		log.Warn().Msg("denominator is 0")
+		return to, p.Reserve0, p.Reserve1
+	}
 	amountOutFee := new(big.Int).Div(numerator, denominator)
 	to.AmountFees = amountOutFee
 	p.Reserve0 = new(big.Int).Add(p.Reserve0, tokenZeroBuyAmount)

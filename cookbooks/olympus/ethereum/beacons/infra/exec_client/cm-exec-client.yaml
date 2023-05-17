@@ -45,7 +45,8 @@ data:
       --http.api=txpool,eth,net,web3 \
       --txpool.globalqueue=0 \
       --txpool.accountqueue=0 \
-      --txpool.globalslots=10000
+      --txpool.globalslots=10000 \
+      --txpool.pricelimit 50
   gethGoerli.sh: |-
     #!/bin/sh
     exec geth \

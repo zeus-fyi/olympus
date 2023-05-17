@@ -5,28 +5,31 @@ import (
 	"math/big"
 )
 
-func (u *UniswapV2Client) TradeSim(tf TradeExecutionFlow) *big.Int {
-	pair := tf.InitialPair
+// TODO verify this is correct
+func (u *UniswapV2Client) TradeSim(tf TradeExecutionFlow) (*big.Int, *big.Int) {
+	sellAmount := big.NewInt(0)
 	maxProfit := big.NewInt(0)
 	if tf.TradeMethod == "swapExactTokensForETH" {
-		startOffset := tf.FrontRunTrade.AmountIn.Div(tf.FrontRunTrade.AmountIn, big.NewInt(10000))
+		startOffset := big.NewInt(1)
 		offset := startOffset
 		for {
-			if offset.Cmp(tf.FrontRunTrade.AmountIn) == 1 {
+			pair := tf.InitialPair
+			diff := new(big.Int).Sub(offset, tf.UserTrade.AmountIn)
+			if diff.Cmp(big.NewInt(0)) == 1 {
 				break
 			}
-			amountIn := new(big.Int).Add(tf.UserTrade.AmountIn, offset)
-			amountOut := pair.PriceImpact(tf.UserTrade.AmountInAddr, tf.FrontRunTrade.AmountIn)
-			pair.PriceImpact(tf.UserTrade.AmountInAddr, tf.FrontRunTrade.AmountIn)
-			revenue := pair.PriceImpact(tf.UserTrade.AmountOutAddr, amountOut.AmountOut)
-			profit := new(big.Int).Sub(revenue.AmountOut, amountIn)
+			amountOut := pair.PriceImpact(tf.UserTrade.AmountInAddr, offset)
+			pair.PriceImpact(tf.UserTrade.AmountInAddr, tf.UserTrade.AmountIn)
+			revenue := pair.PriceImpact(tf.SandwichTrade.AmountInAddr, amountOut.AmountOut)
+			profit := new(big.Int).Sub(revenue.AmountOut, offset)
 			if profit.Cmp(maxProfit) == 1 {
 				maxProfit = profit
+				sellAmount = offset
 			}
 			offset = offset.Add(offset, startOffset)
 		}
 	}
-	return maxProfit
+	return sellAmount, maxProfit
 }
 
 func (u *UniswapV2Client) TradeSimStep(tf TradeExecutionFlow) *big.Int {

@@ -6,6 +6,7 @@ import (
 	"math/big"
 
 	"github.com/gochain/gochain/v4/common"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/web3_actions"
 )
 
@@ -47,7 +48,7 @@ func (p *UniswapV2Pair) GetQuoteUsingTokenAddr(addr string, amount *big.Int) (*b
 	if p.Token1 == common.HexToAddress(addr) {
 		return p.GetQuoteToken1BuyToken0(amount)
 	}
-	return nil, errors.New("token not found")
+	return nil, errors.New("GetQuoteUsingTokenAddr: token not found")
 }
 
 func (p *UniswapV2Pair) GetOppositeToken(addr string) common.Address {
@@ -60,6 +61,7 @@ func (p *UniswapV2Pair) GetOppositeToken(addr string) common.Address {
 	if p.Token1 == common.HexToAddress(addr) {
 		return p.Token0
 	}
+	log.Warn().Msgf("GetOppositeToken: token not found: %s", addr)
 	return common.Address{}
 }
 
@@ -78,6 +80,7 @@ func (p *UniswapV2Pair) GetTokenNumber(addr common.Address) int {
 	if p.Token1 == addr {
 		return 1
 	}
+	log.Warn().Msgf("GetTokenNumber: token not found: %s", addr)
 	return -1
 }
 

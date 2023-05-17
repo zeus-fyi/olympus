@@ -307,7 +307,6 @@ func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		sandwichDump := toFrontRun.AmountOut
 		toSandwich := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
 		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
-		fmt.Println(profit)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid

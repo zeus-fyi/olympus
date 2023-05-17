@@ -2,6 +2,7 @@ package web3_client
 
 import (
 	"context"
+	"time"
 
 	"github.com/gochain/gochain/v4/accounts/abi"
 	"github.com/gochain/gochain/v4/common"
@@ -27,6 +28,8 @@ type MevTx struct {
 }
 
 func (w *Web3Client) GetFilteredPendingMempoolTxs(ctx context.Context, mevTxMap MevSmartContractTxMap) (MevSmartContractTxMap, error) {
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
 	if mevTxMap.MethodTxMap == nil {
 		mevTxMap.MethodTxMap = make(map[string]MevTx)
 	}

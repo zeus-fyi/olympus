@@ -49,5 +49,6 @@ func (s *Web3ClientTestSuite) TestTradeSim() {
 		sellAmount, maxProfit := uni.TradeSim(tf)
 		fmt.Println("linear search sell amount", sellAmount.String())
 		fmt.Println("linear search max profit", maxProfit.String())
+		tf.FrontRunTrade.AmountIn = sellAmount
 	}
 }

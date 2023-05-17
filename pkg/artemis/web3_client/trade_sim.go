@@ -17,8 +17,8 @@ func (u *UniswapV2Client) TradeSim(tf TradeExecutionFlow) (*big.Int, *big.Int) {
 		amountOut := pair.PriceImpact(tf.UserTrade.AmountInAddr, offset)
 		pair.PriceImpact(tf.UserTrade.AmountInAddr, tf.UserTrade.AmountIn)
 		revenue := pair.PriceImpact(tf.SandwichTrade.AmountInAddr, amountOut.AmountOut)
-		profit := new(big.Int).Sub(revenue.AmountOut, offset)
-		if profit.Cmp(maxProfit) == 1 {
+		profit := new(big.Int).Sub(revenue.AmountOut, amountOut.AmountIn)
+		if profit.Cmp(maxProfit) == 1 && profit.Cmp(big.NewInt(0)) == 1 {
 			maxProfit = profit
 			sellAmount = offset
 		}

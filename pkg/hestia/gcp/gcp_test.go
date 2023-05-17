@@ -40,7 +40,7 @@ func (s *GcpTestSuite) TestAddNodePool() {
 		MachineType:      mt,
 		InitialNodeCount: 1,
 	}
-	r, err := s.g.AddNodePool(ctx, ci, ni, nil)
+	r, err := s.g.AddNodePool(ctx, ci, ni, nil, nil)
 	s.Require().NoError(err)
 	s.Require().NotNil(r)
 

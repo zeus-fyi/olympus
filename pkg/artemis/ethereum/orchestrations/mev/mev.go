@@ -31,6 +31,6 @@ func GetMempoolTxs(ctx context.Context) {
 		}
 		Uniswap.MevSmartContractTxMap = txMap
 		Uniswap.ProcessTxs(ctx)
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 	}
 }

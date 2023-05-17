@@ -249,6 +249,10 @@ func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, p
 	} else {
 		fmt.Printf("Negative difference between expected and minimum amount is %s %s token \n", diff.String(), tokenAddr)
 	}
+	if amountMin.Cmp(big.NewInt(0)) == 0 {
+		fmt.Printf("Amount minimum is 0, so no trade will be executed \n")
+		return
+	}
 	slippage := new(big.Int).Mul(diff, big.NewInt(100))
 	slippagePercent := new(big.Int).Div(slippage, amountMin)
 	fmt.Printf("Slippage is %s %% \n", slippagePercent.String())

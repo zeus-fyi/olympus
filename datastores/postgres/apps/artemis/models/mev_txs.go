@@ -53,3 +53,35 @@ func SelectMempoolTxAtBlockNumber(ctx context.Context, protocolID, blockNumber i
 	}
 	return mempoolTxs, misc.ReturnIfErr(err, q.LogHeader(ModelName))
 }
+
+func SelectMaxMempoolTxAtBlockNumber(ctx context.Context, protocolID, blockNumber int) (artemis_autogen_bases.EthMempoolMevTxSlice, error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `WITH cte_max_block_number AS (
+					SELECT MAX(block_number) AS max_block_number
+					FROM eth_mempool_mev_tx	
+					WHERE protocol_network_id = $1
+				)
+				  SELECT protocol_network_id, tx, tx_id, tx_hash, nonce, "from", "to", block_number, tx_flow_prediction
+				  FROM eth_mempool_mev_tx
+				  WHERE protocol_network_id = $1 AND block_number = (SELECT max_block_number FROM cte_max_block_number)
+				  `
+	log.Debug().Interface("SelectMempoolTxAtBlockNumber", q.LogHeader(ModelName))
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, protocolID, blockNumber)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
+		return nil, err
+	}
+	mempoolTxs := artemis_autogen_bases.EthMempoolMevTxSlice{}
+	defer rows.Close()
+	for rows.Next() {
+		mempoolTx := artemis_autogen_bases.EthMempoolMevTx{}
+		rowErr := rows.Scan(
+			&mempoolTx.ProtocolNetworkID, &mempoolTx.Tx, &mempoolTx.TxID, &mempoolTx.TxHash, &mempoolTx.Nonce, &mempoolTx.From, &mempoolTx.To, &mempoolTx.BlockNumber, &mempoolTx.TxFlowPrediction,
+		)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader(ModelName))
+			return nil, rowErr
+		}
+		mempoolTxs = append(mempoolTxs, mempoolTx)
+	}
+	return mempoolTxs, misc.ReturnIfErr(err, q.LogHeader(ModelName))
+}

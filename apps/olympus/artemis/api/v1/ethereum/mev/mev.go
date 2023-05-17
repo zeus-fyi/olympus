@@ -30,7 +30,7 @@ func (m *MempoolTxRequest) GetMempoolTxs(c echo.Context) error {
 	}
 	switch m.BlockNumber {
 	case 0:
-		resp, err := artemis_validator_service_groups_models.SelectMaxMempoolTxAtBlockNumber(ctx, m.ProtocolID, m.BlockNumber)
+		resp, err := artemis_validator_service_groups_models.SelectMempoolTxAtMaxBlockNumber(ctx, m.ProtocolID)
 		if err != nil {
 			log.Ctx(ctx).Error().Err(err).Msg("failed to get mempool txs")
 			return c.JSON(http.StatusInternalServerError, err)

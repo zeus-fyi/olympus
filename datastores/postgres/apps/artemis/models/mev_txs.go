@@ -54,7 +54,7 @@ func SelectMempoolTxAtBlockNumber(ctx context.Context, protocolID, blockNumber i
 	return mempoolTxs, misc.ReturnIfErr(err, q.LogHeader(ModelName))
 }
 
-func SelectMaxMempoolTxAtBlockNumber(ctx context.Context, protocolID, blockNumber int) (artemis_autogen_bases.EthMempoolMevTxSlice, error) {
+func SelectMempoolTxAtMaxBlockNumber(ctx context.Context, protocolID int) (artemis_autogen_bases.EthMempoolMevTxSlice, error) {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `WITH cte_max_block_number AS (
 					SELECT MAX(block_number) AS max_block_number
@@ -66,7 +66,7 @@ func SelectMaxMempoolTxAtBlockNumber(ctx context.Context, protocolID, blockNumbe
 				  WHERE protocol_network_id = $1 AND block_number = (SELECT max_block_number FROM cte_max_block_number)
 				  `
 	log.Debug().Interface("SelectMempoolTxAtBlockNumber", q.LogHeader(ModelName))
-	rows, err := apps.Pg.Query(ctx, q.RawQuery, protocolID, blockNumber)
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, protocolID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
 		return nil, err
 	}

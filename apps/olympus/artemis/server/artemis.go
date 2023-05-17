@@ -76,6 +76,7 @@ func Artemis() {
 			AllowCredentials: true,
 		}))
 	}
+
 	srv.E = artemis_api_router.Routes(srv.E)
 	srv.Start()
 }

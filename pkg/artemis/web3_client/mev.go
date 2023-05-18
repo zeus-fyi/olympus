@@ -28,7 +28,7 @@ type MevTx struct {
 }
 
 func (w *Web3Client) GetFilteredPendingMempoolTxs(ctx context.Context, mevTxMap MevSmartContractTxMap) (MevSmartContractTxMap, error) {
-	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 	if mevTxMap.MethodTxMap == nil {
 		mevTxMap.MethodTxMap = make(map[string]MevTx)
@@ -54,11 +54,16 @@ func (w *Web3Client) GetFilteredPendingMempoolTxs(ctx context.Context, mevTxMap 
 						continue
 					}
 					sigdata := calldata[:4]
-					method, merr := mevTxMap.Abi.MethodById(sigdata[:4])
-					if merr != nil {
-						log.Info().Err(err).Interface("method", method.Name).Msg("Web3Client| GetFilteredPendingMempoolTxs Method Invalid")
+					if mevTxMap.Abi == nil {
+						log.Info().Interface("method", "unknown").Msg("Web3Client| GetFilteredPendingMempoolTxs Abi Invalid")
 						continue
 					}
+					method, merr := mevTxMap.Abi.MethodById(sigdata[:4])
+					if merr != nil {
+						log.Info().Err(merr).Msg("Web3Client| GetFilteredPendingMempoolTxs Method Invalid")
+						continue
+					}
+
 					if !strings_filter.FilterStringWithOpts(method.Name, mevTxMap.Filter) {
 						log.Info().Interface("method", method.Name).Msg("Web3Client| GetFilteredPendingMempoolTxs Method Filtered")
 						continue

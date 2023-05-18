@@ -45,7 +45,7 @@ ARG VERSION
 RUN apk add --no-cache gcc musl-dev linux-headers git
 
 RUN git clone https://github.com/ethereum/go-ethereum.git --branch ${VERSION} --single-branch
-RUN cd go-ethereum && git checkout ${VERSION} && git pull
+RUN cd /go-ethereum && git checkout ${VERSION} && git pull
 
 # Get dependencies - will also be cached if we won't change go.mod/go.sum
 COPY go.mod /go-ethereum/

@@ -25,7 +25,7 @@ data:
       --txpool.globalqueue=0 \
       --txpool.accountqueue=0 \
       --txpool.globalslots=10000 \
-      --txpool.pricelimit 20 \
+      --txpool.pricelimit 30 \
       --maxpeers=100
   download.sh: |-
     #!/bin/sh
@@ -52,7 +52,7 @@ data:
       --txpool.globalqueue=0 \
       --txpool.accountqueue=0 \
       --txpool.globalslots=10000 \
-      --txpool.pricelimit 20 \
+      --txpool.pricelimit 30 \
       --maxpeers=100
   gethGoerli.sh: |-
     #!/bin/sh

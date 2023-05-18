@@ -4,6 +4,7 @@ on:
     paths:
       - apps/olympus/artemis/**
       - pkg/aegis/auth_startup/**
+      - pkg/artemis/**
       - docker/artemis/Dockerfile
       - .github/workflows/artemis.yml
     branches:

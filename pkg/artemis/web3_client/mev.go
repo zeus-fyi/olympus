@@ -67,6 +67,10 @@ func (w *Web3Client) GetFilteredPendingMempoolTxs(ctx context.Context, mevTxMap 
 						log.Info().Interface("method", "unknown").Msg("Web3Client| GetFilteredPendingMempoolTxs Method Invalid")
 						continue
 					}
+					if method.Name == "" {
+						log.Info().Interface("method", "unknown").Msg("Web3Client| GetFilteredPendingMempoolTxs Method Invalid")
+						continue
+					}
 					if !strings_filter.FilterStringWithOpts(method.Name, mevTxMap.Filter) {
 						log.Info().Msg("Web3Client| GetFilteredPendingMempoolTxs Method Filtered")
 						continue

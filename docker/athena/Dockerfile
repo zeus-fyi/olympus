@@ -37,6 +37,23 @@ COPY . .
 
 RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} go build -ldflags="-s -w" -o athena apps/olympus/athena/main.go
 
+# Build Devp2p in a stock Go builder container
+FROM golang:1.20-alpine as p2p
+
+ARG VERSION
+
+RUN apk add --no-cache gcc musl-dev linux-headers git
+
+RUN git clone https://github.com/ethereum/go-ethereum.git --branch ${VERSION} --single-branch
+RUN cd go-ethereum && git checkout ${VERSION} && git pull
+
+# Get dependencies - will also be cached if we won't change go.mod/go.sum
+COPY go.mod /go-ethereum/
+COPY go.sum /go-ethereum/
+RUN cd /go-ethereum && go mod download
+
+ADD . /go-ethereum
+RUN cd /go-ethereum && go run build/ci.go install -static ./cmd/devp2p
 
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates
@@ -46,5 +63,6 @@ COPY --from=src_builder /app/ca.pem /etc/ssl/certs
 COPY --from=src_builder /app/ca.key /etc/ssl/certs
 
 COPY --from=src_builder /app/athena /usr/bin/athena
+COPY --from=p2p /go-ethereum/build/bin/devp2p /usr/local/bin/
 
 EXPOSE 9003

@@ -18,6 +18,7 @@ env:
   CGO_ENABLED: 0
   GOCACHE: ~/go-build
   GOMODCACHE: ~/go/pkg/mod
+  VERSION: v1.11.6
 
 jobs:
   build:
@@ -60,6 +61,7 @@ jobs:
           docker buildx build \
           -t ${{ env.REPO }}/${{ env.NAME }}:${{ github.sha }} \
           -t ${{ env.REPO }}/${{ env.NAME }}:${{ env.TAG}} \
+          --build-arg VERSION=${{ env.VERSION }} \
           --build-arg GOMODCACHE=${{ env.GOMODCACHE }} \
           --build-arg GOCACHE=${{ env.GOCACHE }} \
           --build-arg GOOS=${{ env.GOOS }} \

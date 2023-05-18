@@ -41,11 +41,9 @@ RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOA
 FROM golang:1.20-alpine as p2p
 
 ARG VERSION
-
 RUN apk add --no-cache gcc musl-dev linux-headers git
 
-RUN git clone https://github.com/ethereum/go-ethereum.git --branch ${VERSION} --single-branch
-RUN cd /go-ethereum && git checkout ${VERSION} && git pull
+RUN git clone https://github.com/ethereum/go-ethereum.git --branch ${VERSION} --single-branch /go-ethereum
 
 # Get dependencies - will also be cached if we won't change go.mod/go.sum
 COPY go.mod /go-ethereum/
@@ -53,7 +51,7 @@ COPY go.sum /go-ethereum/
 RUN cd /go-ethereum && go mod download
 
 ADD . /go-ethereum
-RUN cd /go-ethereum && go run build/ci.go install -static ./cmd/devp2p
+RUN cd /go-ethereum && go run build/ci.go install ./cmd/devp2p
 
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates

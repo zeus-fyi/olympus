@@ -43,7 +43,6 @@ jobs:
           git clone https://github.com/zeus-fyi/jennifer.git --branch master --single-branch
           git clone https://github.com/zeus-fyi/tojen.git --branch master --single-branch
           git clone https://github.com/zeus-fyi/memoryfs.git --branch master --single-branch
-          git clone https://github.com/zeus-fyi/go-ethereum.git --branch turbo-mev- --single-branch
 
       - name: Clone external zeus repo into workspace
         run: |

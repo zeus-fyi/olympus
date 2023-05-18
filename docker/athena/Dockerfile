@@ -37,12 +37,6 @@ COPY . .
 
 RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} go build -ldflags="-s -w" -o athena apps/olympus/athena/main.go
 
-# Fetch the source code
-FROM golang:1.20-alpine as clone
-RUN apk add --no-cache git
-ARG VERSION
-RUN git clone https://github.com/ethereum/go-ethereum.git --branch ${VERSION} --single-branch /go-ethereum
-
 # Build Geth in a stock Go builder container
 FROM registry.digitalocean.com/zeus-fyi/geth-turbo-mev:latest as p2p
 
@@ -54,6 +48,6 @@ COPY --from=src_builder /app/ca.pem /etc/ssl/certs
 COPY --from=src_builder /app/ca.key /etc/ssl/certs
 
 COPY --from=src_builder /app/athena /usr/bin/athena
-COPY --from=p2p /usr/local/bin/ /usr/local/bin/
+COPY --from=p2p /usr/local/bin/devp2p /usr/local/bin/
 
 EXPOSE 9003

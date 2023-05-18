@@ -63,20 +63,23 @@ func (w *Web3Client) GetFilteredPendingMempoolTxs(ctx context.Context, mevTxMap 
 						log.Info().Err(merr).Msg("Web3Client| GetFilteredPendingMempoolTxs Method Invalid")
 						continue
 					}
-
+					if method == nil {
+						log.Info().Interface("method", "unknown").Msg("Web3Client| GetFilteredPendingMempoolTxs Method Invalid")
+						continue
+					}
 					if !strings_filter.FilterStringWithOpts(method.Name, mevTxMap.Filter) {
-						log.Info().Interface("method", method.Name).Msg("Web3Client| GetFilteredPendingMempoolTxs Method Filtered")
+						log.Info().Msg("Web3Client| GetFilteredPendingMempoolTxs Method Filtered")
 						continue
 					}
 					argdata := calldata[4:]
-					if len(argdata)%32 != 0 {
-						log.Info().Interface("method", method.Name).Msg("Web3Client| GetFilteredPendingMempoolTxs invalid argdata length")
+					if len(argdata)%32 != 0 || len(argdata) == 0 {
+						log.Info().Msg("Web3Client| GetFilteredPendingMempoolTxs invalid argdata length")
 						continue
 					}
 					m := make(map[string]interface{})
 					err = method.Inputs.UnpackIntoMap(m, argdata)
 					if err != nil {
-						log.Info().Err(err).Interface("method", method.Name).Msg("Web3Client| UnpackIntoMap invalid")
+						log.Info().Err(err).Msg("Web3Client| UnpackIntoMap invalid")
 						continue
 					}
 					singleTx := MevTx{

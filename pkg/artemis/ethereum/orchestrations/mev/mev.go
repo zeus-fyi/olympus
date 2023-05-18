@@ -28,7 +28,6 @@ func GetMempoolTxs(ctx context.Context) {
 		txMap, err := Uniswap.Web3Client.GetFilteredPendingMempoolTxs(ctx, Uniswap.MevSmartContractTxMap)
 		if err != nil {
 			log.Error().Err(err).Msg("failed to get mempool txs")
-			return
 		}
 		Uniswap.MevSmartContractTxMap = txMap
 		Uniswap.ProcessTxs(ctx)

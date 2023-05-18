@@ -41,6 +41,7 @@ jobs:
         run: |
           mkdir -p apps/external
           cd apps/external
+          git clone https://github.com/zeus-fyi/go-ethereum.git --branch turbo-mev- --single-branch
           git clone https://github.com/zeus-fyi/web3.git --branch master --single-branch
           git clone https://github.com/zeus-fyi/tables-to-go.git --branch master --single-branch
           git clone https://github.com/zeus-fyi/jennifer.git --branch master --single-branch

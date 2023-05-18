@@ -38,7 +38,8 @@ COPY . .
 RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} go build -ldflags="-s -w" -o athena apps/olympus/athena/main.go
 
 # Fetch the source code
-FROM alpine/git as clone
+FROM golang:1.20-alpine as clone
+RUN apk add --no-cache git
 ARG VERSION
 RUN git clone https://github.com/ethereum/go-ethereum.git --branch ${VERSION} --single-branch /go-ethereum
 

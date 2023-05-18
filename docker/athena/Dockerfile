@@ -48,8 +48,8 @@ RUN git clone https://github.com/ethereum/go-ethereum.git --branch ${VERSION} --
 RUN cd /app/go-ethereum && git checkout ${VERSION} && git pull
 
 # Get dependencies - will also be cached if we won't change go.mod/go.sum
-COPY /app/go-ethereum/go.mod /go-ethereum/
-COPY /app/go-ethereum/go.sum /go-ethereum/
+COPY ./go-ethereum/go.mod /go-ethereum/
+COPY ./go-ethereum/go.sum /go-ethereum/
 RUN cd /go-ethereum && go mod download
 
 ADD . /go-ethereum

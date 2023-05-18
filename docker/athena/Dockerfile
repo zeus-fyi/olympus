@@ -55,7 +55,9 @@ RUN cd /go-ethereum && go mod download
 ADD . /go-ethereum
 
 COPY --from=clone /go-ethereum/build/ /go-ethereum/build/
-RUN cd /go-ethereum && go run build/ci.go install -static ./cmd/devp2p
+WORKDIR /go-ethereum
+
+RUN go run build/ci.go install -static ./cmd/devp2p
 
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates

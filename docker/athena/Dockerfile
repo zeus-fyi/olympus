@@ -53,6 +53,8 @@ COPY --from=clone /go-ethereum/go.sum /go-ethereum/
 RUN cd /go-ethereum && go mod download
 
 ADD . /go-ethereum
+
+COPY --from=clone /go-ethereum/build /go-ethereum/
 RUN cd /go-ethereum && go run build/ci.go install -static ./cmd/devp2p
 
 FROM ubuntu:22.04

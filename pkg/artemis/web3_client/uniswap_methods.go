@@ -168,7 +168,7 @@ func (s *SwapTokensForExactETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		difference := new(big.Int).Sub(to.AmountOut, s.AmountOut)
 		// if diff <= 0 then it searches left
 		if difference.Cmp(big.NewInt(0)) < 0 {
-			high = new(big.Int).Sub(high, big.NewInt(1))
+			high = new(big.Int).Sub(mid, big.NewInt(1))
 			continue
 		}
 		// Sandwich trade

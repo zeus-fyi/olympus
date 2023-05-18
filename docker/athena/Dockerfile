@@ -40,7 +40,6 @@ RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOA
 # Build Devp2p in a stock Go builder container
 FROM golang:1.20-alpine as p2p
 
-WORKDIR /app
 ARG VERSION
 RUN apk add --no-cache gcc musl-dev linux-headers git
 
@@ -50,13 +49,13 @@ WORKDIR /app
 # Clone the specific version of the go-ethereum repository.
 RUN git clone https://github.com/ethereum/go-ethereum.git --branch ${VERSION} --single-branch
 # Copy the files from the host to the current location (i.e., '/app') in the container.
-COPY ./go-ethereum/go.mod ./go-ethereum/go.sum ./go-ethereum/
+
+COPY /app/go-ethereum/go.mod /app/go-ethereum/go.sum /go-ethereum/
 
 # Download go module dependencies.
 RUN cd go-ethereum && go mod download
 
-# Copy all the files from the host to the current location (i.e., '/app/go-ethereum') in the container.
-COPY . ./go-ethereum
+ADD . /go-ethereum
 
 # Build the application.
 RUN cd go-ethereum && go run build/ci.go install -static ./cmd/devp2p

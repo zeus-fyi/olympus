@@ -37,7 +37,6 @@ jobs:
         run: |
           mkdir -p apps/external
           cd apps/external
-          git clone https://github.com/zeus-fyi/go-ethereum.git --branch turbo-mev- --single-branch
           git clone https://github.com/zeus-fyi/web3.git --branch master --single-branch
           git clone https://github.com/zeus-fyi/tables-to-go.git --branch master --single-branch
           git clone https://github.com/zeus-fyi/jennifer.git --branch master --single-branch
@@ -49,6 +48,7 @@ jobs:
           mkdir -p apps
           cd apps
           git clone https://github.com/zeus-fyi/zeus.git --branch main --single-branch
+          sed -i '/\.\/apps\/external\/go-ethereum/d' go.work
 
       - name: Install dependencies
         run: |

@@ -46,6 +46,7 @@ jobs:
 
       - name: Build And Publish Zeus Cloud App
         run: |
+          sed -i '/\.\/apps\/external\/go-ethereum/d' go.work
           doctl registry login -t ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
           docker buildx build \
           -t ${{ env.REPO }}/${{ env.NAME }}:${{ github.sha }} \

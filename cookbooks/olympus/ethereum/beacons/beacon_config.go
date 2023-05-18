@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	gethDockerImageEphemery       = "ethpandaops/geth:master"
-	lighthouseDockerImageEphemery = "sigp/lighthouse:v3.5.1"
+	gethDockerImageEphemery       = "ethereum/client-go:v1.11.6"
+	lighthouseDockerImageEphemery = "sigp/lighthouse:v4.1.0"
 )
 
 var (

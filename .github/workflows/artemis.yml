@@ -48,7 +48,6 @@ jobs:
           mkdir -p apps
           cd apps
           git clone https://github.com/zeus-fyi/zeus.git --branch main --single-branch
-          sed -i '/\.\/apps\/external\/go-ethereum/d' go.work
 
       - name: Install dependencies
         run: |
@@ -57,6 +56,7 @@ jobs:
 
       - name: Build And Publish Artemis App
         run: |
+          sed -i '/\.\/apps\/external\/go-ethereum/d' go.work
           doctl registry login -t ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
           docker buildx build \
           -t ${{ env.REPO }}/${{ env.NAME }}:${{ github.sha }} \

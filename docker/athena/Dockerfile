@@ -44,16 +44,25 @@ WORKDIR /app
 ARG VERSION
 RUN apk add --no-cache gcc musl-dev linux-headers git
 
-RUN git clone https://github.com/ethereum/go-ethereum.git --branch ${VERSION} --single-branch /app/go-ethereum
-RUN cd /app/go-ethereum && git checkout ${VERSION} && git pull
+# Set the current working directory inside the container.
+WORKDIR /app
 
-# Get dependencies - will also be cached if we won't change go.mod/go.sum
-COPY ./go-ethereum/go.mod /go-ethereum/
-COPY ./go-ethereum/go.sum /go-ethereum/
-RUN cd /go-ethereum && go mod download
+ARG VERSION
 
-ADD . /go-ethereum
-RUN cd /go-ethereum && go run build/ci.go install -static ./cmd/devp2p
+# Clone the specific version of the go-ethereum repository.
+RUN git clone --depth 1 --branch ${VERSION} https://github.com/ethereum/go-ethereum.git
+
+# Copy the files from the host to the current location (i.e., '/app') in the container.
+COPY ./go-ethereum/go.mod ./go-ethereum/go.sum ./go-ethereum/
+
+# Download go module dependencies.
+RUN cd go-ethereum && go mod download
+
+# Copy all the files from the host to the current location (i.e., '/app/go-ethereum') in the container.
+COPY . ./go-ethereum
+
+# Build the application.
+RUN cd go-ethereum && go run build/ci.go install -static ./cmd/devp2p
 
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates

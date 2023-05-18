@@ -47,11 +47,8 @@ RUN apk add --no-cache gcc musl-dev linux-headers git
 # Set the current working directory inside the container.
 WORKDIR /app
 
-ARG VERSION
-
 # Clone the specific version of the go-ethereum repository.
-RUN git clone --depth 1 --branch ${VERSION} https://github.com/ethereum/go-ethereum.git
-
+RUN git clone https://github.com/ethereum/go-ethereum.git --branch ${VERSION} --single-branch
 # Copy the files from the host to the current location (i.e., '/app') in the container.
 COPY ./go-ethereum/go.mod ./go-ethereum/go.sum ./go-ethereum/
 

@@ -40,19 +40,20 @@ RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOA
 # Build Devp2p in a stock Go builder container
 FROM golang:1.20-alpine as p2p
 
+WORKDIR /app
 ARG VERSION
 RUN apk add --no-cache gcc musl-dev linux-headers git
-WORKDIR /app
 
-RUN git clone https://github.com/ethereum/go-ethereum.git --branch ${VERSION} --single-branch ./
+RUN git clone https://github.com/ethereum/go-ethereum.git --branch ${VERSION} --single-branch /app/go-ethereum
+RUN cd /app/go-ethereum && git checkout ${VERSION} && git pull
 
 # Get dependencies - will also be cached if we won't change go.mod/go.sum
-COPY go.mod /go-ethereum/
-COPY go.sum /go-ethereum/
+COPY /app/go-ethereum/go.mod /go-ethereum/
+COPY /app/go-ethereum/go.sum /go-ethereum/
 RUN cd /go-ethereum && go mod download
 
 ADD . /go-ethereum
-RUN cd /go-ethereum && go run build/ci.go install ./cmd/devp2p
+RUN cd /go-ethereum && go run build/ci.go install -static ./cmd/devp2p
 
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates

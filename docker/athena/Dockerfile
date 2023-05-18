@@ -42,8 +42,9 @@ FROM golang:1.20-alpine as p2p
 
 ARG VERSION
 RUN apk add --no-cache gcc musl-dev linux-headers git
+WORKDIR /app
 
-RUN git clone https://github.com/ethereum/go-ethereum.git --branch ${VERSION} --single-branch /
+RUN git clone https://github.com/ethereum/go-ethereum.git --branch ${VERSION} --single-branch ./
 
 # Get dependencies - will also be cached if we won't change go.mod/go.sum
 COPY go.mod /go-ethereum/

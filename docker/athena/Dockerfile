@@ -37,28 +37,22 @@ COPY . .
 
 RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} go build -ldflags="-s -w" -o athena apps/olympus/athena/main.go
 
-# Build Devp2p in a stock Go builder container
-FROM golang:1.20-alpine as p2p
-
+# Fetch the source code
+FROM alpine/git as clone
 ARG VERSION
+RUN git clone https://github.com/ethereum/go-ethereum.git --branch ${VERSION} --single-branch /go-ethereum
+
+# Build Geth in a stock Go builder container
+FROM golang:1.20-alpine as builder
 RUN apk add --no-cache gcc musl-dev linux-headers git
 
-# Set the current working directory inside the container.
-WORKDIR /app
-
-# Clone the specific version of the go-ethereum repository.
-RUN git clone https://github.com/ethereum/go-ethereum.git --branch ${VERSION} --single-branch
-# Copy the files from the host to the current location (i.e., '/app') in the container.
-
-COPY /app/go-ethereum/go.mod /app/go-ethereum/go.sum /go-ethereum/
-
-# Download go module dependencies.
-RUN cd go-ethereum && go mod download
+# Get dependencies - will also be cached if we won't change go.mod/go.sum
+COPY --from=clone /go-ethereum/go.mod /go-ethereum/
+COPY --from=clone /go-ethereum/go.sum /go-ethereum/
+RUN cd /go-ethereum && go mod download
 
 ADD . /go-ethereum
-
-# Build the application.
-RUN cd go-ethereum && go run build/ci.go install -static ./cmd/devp2p
+RUN cd /go-ethereum && go run build/ci.go install -static ./cmd/devp2p
 
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates

@@ -44,7 +44,7 @@ ARG VERSION
 RUN git clone https://github.com/ethereum/go-ethereum.git --branch ${VERSION} --single-branch /go-ethereum
 
 # Build Geth in a stock Go builder container
-FROM golang:1.20-alpine as builder
+FROM golang:1.20-alpine as p2p
 RUN apk add --no-cache gcc musl-dev linux-headers git
 
 # Get dependencies - will also be cached if we won't change go.mod/go.sum

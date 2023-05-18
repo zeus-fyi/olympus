@@ -8,6 +8,7 @@ use (
 	./apps/external/tables-to-go
 	./apps/external/tojen
 	./apps/external/web3
+	./apps/external/go-ethereum
 
 	./apps/olympus/aegis
 	./apps/olympus/apollo

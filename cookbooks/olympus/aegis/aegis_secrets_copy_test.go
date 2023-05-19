@@ -42,6 +42,35 @@ func (t *AegisCookbookTestSuite) TestAegisSecretsCopy() {
 	t.Require().Nil(err)
 }
 
+func (t *AegisCookbookTestSuite) TestAegisSecretsCopyPG() {
+	s1 := "postgres-auth"
+	req := internal_reqs.InternalSecretsCopyFromTo{
+		SecretNames: []string{s1},
+		FromKns: kns.TopologyKubeCtxNs{
+			TopologyID: 0,
+			CloudCtxNs: zeus_common_types.CloudCtxNs{
+				CloudProvider: "do",
+				Region:        "sfo3",
+				Context:       "do-sfo3-dev-do-sfo3-zeus",
+				Namespace:     "zeus",
+				Env:           "dev",
+			},
+		},
+		ToKns: kns.TopologyKubeCtxNs{
+			TopologyID: 0,
+			CloudCtxNs: zeus_common_types.CloudCtxNs{
+				CloudProvider: "do",
+				Region:        "sfo3",
+				Context:       "do-sfo3-dev-do-sfo3-zeus",
+				Namespace:     "ethereum",
+				Env:           "dev",
+			},
+		},
+	}
+	err := t.ZeusTestClient.CopySecretsFromToNamespace(ctx, req)
+	t.Require().Nil(err)
+}
+
 func (t *AegisCookbookTestSuite) TestMainnetBeaconSecretsCopy() {
 	s1 := "spaces-auth"
 	s2 := "spaces-key"

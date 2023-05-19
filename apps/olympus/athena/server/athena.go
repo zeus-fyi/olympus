@@ -55,6 +55,7 @@ func Athena() {
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	srv.E = athena_router.Routes(srv.E, dataDir)
 	StartAndConfigClientNetworkSettings(ctx, Workload.ProtocolNetworkID, Workload.ClientName)
+	WorkloadStartup(ctx, Workload)
 	srv.Start()
 }
 

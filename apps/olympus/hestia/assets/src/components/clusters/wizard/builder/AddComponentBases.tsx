@@ -9,6 +9,7 @@ import {
     setSelectedComponentBaseName
 } from "../../../../redux/clusters/clusters.builder.reducer";
 import Box from "@mui/material/Box";
+import {FormHelperText, Stack} from "@mui/material";
 
 export function AddComponentBases() {
     const cluster = useSelector((state: RootState) => state.clusterBuilder.cluster);
@@ -16,17 +17,31 @@ export function AddComponentBases() {
     const componentBaseKeys = Object.keys(componentBases);
     const dispatch = useDispatch();
     const [inputField, setInputField] = useState('');
+    const [error, setError] = useState('');
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setInputField(event.target.value);
+        setError('');
     };
 
     const handleAddField = () => {
-        if (inputField) {
-            const cb = { componentBaseName: inputField, skeletonBases: {} }
-            dispatch(addComponentBase(cb));
-            dispatch(setSelectedComponentBaseName(inputField));
-            setInputField('');
+        try {
+            if (inputField) {
+                if (!isValidLabel(inputField)) {
+                    setError('Invalid label. A valid label must not be an empty string or consist of alphanumeric characters, "-", "_" or ".", and must start and end with an alphanumeric character'); // set the error message
+                    return;
+                }
+                const cb = { componentBaseName: inputField, skeletonBases: {} }
+                dispatch(addComponentBase(cb));
+                dispatch(setSelectedComponentBaseName(inputField));
+                setInputField('');
+                setError(''); // clear the error
+            }
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                setError(error.message); // set the error message
+            } else {
+            }
         }
     };
     const handleRemoveField = (key: string) => {
@@ -69,10 +84,35 @@ export function AddComponentBases() {
                 onChange={handleChange}
                 sx={{ flex: 1, mr: 2 }}
             />
-            <Button variant="contained" sx={{ width: '100px' }} onClick={handleAddField}>
-                Add
-            </Button>
+                <Stack spacing={2} direction="column" sx={{ flex: 1, mr: 2 }}>
+                    <div>
+                        {error && <FormHelperText error>{error}</FormHelperText>}
+                    </div>
+                    <Button variant="contained" sx={{ width: '100px' }} onClick={handleAddField}>
+                        Add
+                    </Button>
+                </Stack>
             </Box>
         </div>
     )
+}
+
+function isValidLabel(label: string): boolean {
+    // Check if the label is empty
+    if (label.length === 0) {
+        return false;
+    }
+    // Check for length
+    if (label.length > 63) {
+        return false;
+    }
+    // Check if label starts or ends with alphanumeric characters
+    if (!label.match(/^[a-z0-9].*[a-z0-9]$/i)) {
+        return false;
+    }
+    // Check if label contains only the allowed characters
+    if (!label.match(/^[a-z0-9\-\_\.]*$/i)) {
+        return false;
+    }
+    return true;
 }

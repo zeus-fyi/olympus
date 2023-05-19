@@ -16,12 +16,12 @@ type MevTxTestSuite struct {
 }
 
 func (s *MevTxTestSuite) TestInsertNodes() {
-	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	p := filepaths.Path{
 		PackageName: "",
 		DirIn:       "/Users/alex/go/Olympus/olympus/test/p2p",
 		DirOut:      "",
-		FnIn:        "all-nodes.json",
+		FnIn:        "mainnet-nodes.json",
 		FnOut:       "",
 		Env:         "",
 		FilterFiles: nil,
@@ -31,12 +31,12 @@ func (s *MevTxTestSuite) TestInsertNodes() {
 	err := json.Unmarshal(b, &nodes)
 	s.Require().Nil(err)
 	err = InsertP2PNodes(ctx, artemis_autogen_bases.EthP2PNodes{
-		ID:                0,
-		ProtocolNetworkID: 0,
+		ID:                1,
+		ProtocolNetworkID: 1,
 		Nodes:             string(b),
 	})
 	s.Require().Nil(err)
-	selectedNodes, err := SelectP2PNodes(ctx, 0)
+	selectedNodes, err := SelectP2PNodes(ctx, 1)
 	s.Require().Nil(err)
 	s.Require().Equal(len(nodes), len(selectedNodes))
 }

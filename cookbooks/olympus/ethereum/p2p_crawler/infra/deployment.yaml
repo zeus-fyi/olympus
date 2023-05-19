@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "zeus-p2p-crawler"
+  labels:
+    app.kubernetes.io/instance: "zeus-p2p-crawler"
+    app.kubernetes.io/name: "zeus-p2p-crawler"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: "zeus-p2p-crawler"
+      app.kubernetes.io/instance: "zeus-p2p-crawler"
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: "zeus-p2p-crawler"
+        app.kubernetes.io/instance: "zeus-p2p-crawler"
+    spec:
+      containers:
+        - name: zeus-p2p-crawler
+          image: registry.digitalocean.com/zeus-fyi/athena:latest
+          imagePullPolicy: Always
+          command: [ "/bin/sh" ]
+          args: [ "-c","/scripts/athena.sh" ]
+          env:
+            - name: NS
+              valueFrom:
+                secretKeyRef:
+                  key: ns
+                  name: choreography
+            - name: CTX
+              valueFrom:
+                secretKeyRef:
+                  key: ctx
+                  name: choreography
+            - name: BEARER
+              valueFrom:
+                secretKeyRef:
+                  key: bearer
+                  name: choreography
+            - name: AGE_PKEY
+              valueFrom:
+                secretKeyRef:
+                  key: age-private-key
+                  name: age-auth
+            - name: REPLICA_COUNT
+              value: "1"
+            - name: PROTOCOL_NETWORK_ID
+              value: "5"
+            - name: REGION
+              valueFrom:
+                secretKeyRef:
+                  key: region
+                  name: choreography
+            - name: DO_SPACES_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: do-spaces-key
+                  name: spaces-key
+            - name: CLOUD_PROVIDER
+              valueFrom:
+                secretKeyRef:
+                  key: cloud-provider
+                  name: choreography
+            - name: DO_SPACES_PKEY
+              valueFrom:
+                secretKeyRef:
+                  key: do-spaces-private-key
+                  name: spaces-auth
+          volumeMounts:
+            - name: zeus-p2p-storage
+              mountPath: "/data"
+            - name: cm-p2p-crawler
+              mountPath: "/scripts"
+          ports:
+            - name: p2p-tcp
+              containerPort: 30303
+              protocol: TCP
+            - name: p2p-udp
+              containerPort: 30303
+              protocol: UDP
+            - name: athena
+              containerPort: 9003
+              protocol: TCP
+          livenessProbe:
+            initialDelaySeconds: 60
+            periodSeconds: 120
+            tcpSocket:
+              port: athena
+          readinessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            tcpSocket:
+              port: athena
+          resources:
+            {}
+      volumes:
+      - name: cm-p2p-crawler
+        configMap:
+          name: cm-p2p-crawler
+          defaultMode: 0744
+      - name: zeus-p2p-storage
+        emptyDir: {}  # Use an emptyDir volume for temporary storage
+      nodeSelector:
+        {}
+      affinity:
+        {}
+      tolerations:
+        []

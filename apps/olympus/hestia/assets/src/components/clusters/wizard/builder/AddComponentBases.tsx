@@ -28,7 +28,7 @@ export function AddComponentBases() {
         try {
             if (inputField) {
                 if (!isValidLabel(inputField)) {
-                    setError('Invalid label. A valid label must not be an empty string or consist of alphanumeric characters, "-", "_" or ".", and must start and end with an alphanumeric character'); // set the error message
+                    setError('Invalid label. A valid label must not be an empty string have spaces between letters or consist of alphanumeric characters, "-", "_" or ".", and must start and end with an alphanumeric character'); // set the error message
                     return;
                 }
                 const cb = { componentBaseName: inputField, skeletonBases: {} }

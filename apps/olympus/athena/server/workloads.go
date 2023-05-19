@@ -97,43 +97,43 @@ func WorkloadStartup(ctx context.Context, w athena_workloads.WorkloadInfo) {
 					log.Fatal().Msg("failed to insert p2pCrawler nodes")
 					misc.DelayedPanic(err)
 				}
-				p = filepaths.Path{
-					DirOut: "/data",
-					FnOut:  "goerli-nodes.json",
-				}
-				cmd = exec.Command("devp2p", "nodeset", "filter", p.FileInPath(), "-eth-network", "goerli")
-				outFile, err = os.Create(p.FileOutPath())
-				if err != nil {
-					log.Fatal().Msg("failed to filter p2pCrawler goerli node results")
-					misc.DelayedPanic(err)
-				}
-				cmd.Stdout = outFile
-				err = cmd.Run()
-				if err != nil {
-					log.Fatal().Msg("failed to filter p2pCrawler goerli nodes")
-					misc.DelayedPanic(err)
-				}
-				outFile.Close()
-				p = filepaths.Path{
-					DirIn: "/data",
-					FnIn:  "goerli-nodes.json",
-				}
-				b = p.ReadFileInPath()
-				var goerliNodes artemis_validator_service_groups_models.P2PNodes
-				err = json.Unmarshal(b, &goerliNodes)
-				if err != nil {
-					log.Fatal().Msg("failed to Unmarshal goerli p2pCrawler nodes")
-					misc.DelayedPanic(err)
-				}
-				err = artemis_validator_service_groups_models.InsertP2PNodes(ctx, artemis_autogen_bases.EthP2PNodes{
-					ID:                hestia_req_types.EthereumGoerliProtocolNetworkID,
-					ProtocolNetworkID: hestia_req_types.EthereumGoerliProtocolNetworkID,
-					Nodes:             string(b),
-				})
-				if err != nil {
-					log.Fatal().Msg("failed to insert goerli p2pCrawler nodes")
-					misc.DelayedPanic(err)
-				}
+				//p = filepaths.Path{
+				//	DirOut: "/data",
+				//	FnOut:  "goerli-nodes.json",
+				//}
+				//cmd = exec.Command("devp2p", "nodeset", "filter", p.FileInPath(), "-eth-network", "goerli")
+				//outFile, err = os.Create(p.FileOutPath())
+				//if err != nil {
+				//	log.Fatal().Msg("failed to filter p2pCrawler goerli node results")
+				//	misc.DelayedPanic(err)
+				//}
+				//cmd.Stdout = outFile
+				//err = cmd.Run()
+				//if err != nil {
+				//	log.Fatal().Msg("failed to filter p2pCrawler goerli nodes")
+				//	misc.DelayedPanic(err)
+				//}
+				//outFile.Close()
+				//p = filepaths.Path{
+				//	DirIn: "/data",
+				//	FnIn:  "goerli-nodes.json",
+				//}
+				//b = p.ReadFileInPath()
+				//var goerliNodes artemis_validator_service_groups_models.P2PNodes
+				//err = json.Unmarshal(b, &goerliNodes)
+				//if err != nil {
+				//	log.Fatal().Msg("failed to Unmarshal goerli p2pCrawler nodes")
+				//	misc.DelayedPanic(err)
+				//}
+				//err = artemis_validator_service_groups_models.InsertP2PNodes(ctx, artemis_autogen_bases.EthP2PNodes{
+				//	ID:                hestia_req_types.EthereumGoerliProtocolNetworkID,
+				//	ProtocolNetworkID: hestia_req_types.EthereumGoerliProtocolNetworkID,
+				//	Nodes:             string(b),
+				//})
+				//if err != nil {
+				//	log.Fatal().Msg("failed to insert goerli p2pCrawler nodes")
+				//	misc.DelayedPanic(err)
+				//}
 			}
 		}()
 	}

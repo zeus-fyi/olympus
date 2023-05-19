@@ -16,11 +16,32 @@ type SecretsTestSuite struct {
 
 func (s *SecretsTestSuite) TestGetSecrets() {
 	ctx := context.Background()
-	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "ephemeral-staking"}
+	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "ethereum"}
 
-	secret, err := s.K.GetSecretWithKns(ctx, kns, "spaces-auth", nil)
+	secret, err := s.K.GetSecretWithKns(ctx, kns, "postgres-auth", nil)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(secret)
+
+	//err = s.K.DeleteSecretWithKns(ctx, kns, "postgres-auth", nil)
+	//s.Require().Nil(err)
+	//
+	//m := make(map[string]string)
+	//
+	//sec := v1.Secret{
+	//	TypeMeta: metav1.TypeMeta{
+	//		Kind:       "Secret",
+	//		APIVersion: "v1",
+	//	},
+	//	ObjectMeta: metav1.ObjectMeta{
+	//		Name:      "postgres-auth",
+	//		Namespace: kns.Namespace,
+	//	},
+	//	StringData: m,
+	//	Type:       "Opaque",
+	//}
+	//newSecret, err := s.K.CreateSecretWithKns(ctx, kns, &sec, nil)
+	//s.Require().Nil(err)
+	//s.Require().NotEmpty(newSecret)
 }
 
 func (s *SecretsTestSuite) TestCreateChoreographySecret() {

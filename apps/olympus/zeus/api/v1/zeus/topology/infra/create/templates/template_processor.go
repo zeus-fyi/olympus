@@ -311,6 +311,9 @@ func BuildContainerDriver(ctx context.Context, name string, container Container)
 	}
 
 	for _, p := range container.DockerImage.Ports {
+		if len(p.Name) <= 0 || len(p.Number) <= 0 {
+			continue
+		}
 		// Use strconv.ParseInt to convert the string to int64
 		numberInt64, err := strconv.ParseInt(p.Number, 10, 32)
 		if err != nil {
@@ -325,10 +328,12 @@ func BuildContainerDriver(ctx context.Context, name string, container Container)
 	}
 
 	for _, v := range container.DockerImage.VolumeMounts {
-		c.VolumeMounts = append(c.VolumeMounts, v1.VolumeMount{
-			Name:      v.Name,
-			MountPath: v.MountPath,
-		})
+		if len(v.Name) > 0 && len(v.MountPath) > 0 {
+			c.VolumeMounts = append(c.VolumeMounts, v1.VolumeMount{
+				Name:      v.Name,
+				MountPath: v.MountPath,
+			})
+		}
 	}
 	if len(container.DockerImage.ResourceRequirements.CPU) > 0 {
 		c.Resources.Requests["cpu"] = resource.MustParse(container.DockerImage.ResourceRequirements.CPU)

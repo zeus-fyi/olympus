@@ -66,7 +66,7 @@ func FilterZeroProfit(c echo.Context, ctx context.Context, resp artemis_autogen_
 			log.Ctx(ctx).Error().Err(berr).Msg("failed to unmarshal tx flow prediction")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
-		if tf.SandwichPrediction.ExpectedProfit.String() != "0" {
+		if tf.SandwichPrediction.ExpectedProfit != "0" {
 			tmp = append(tmp, mempoolTx)
 		}
 	}

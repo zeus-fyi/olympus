@@ -213,7 +213,7 @@ func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, p
 			return
 		}
 		if u.PrintLocal {
-			u.Path.FnOut = fmt.Sprintf("%s-%d.json", tf.Trade, u.BlockNumber)
+			u.Path.FnOut = fmt.Sprintf("%s-%d.json", tf.Trade.TradeMethod, u.BlockNumber)
 			err = u.Path.WriteToFileOutPath(b)
 			if err != nil {
 				return
@@ -223,6 +223,7 @@ func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, p
 			fmt.Printf("tx.Tx.Nonce is nil")
 			return
 		}
+		tf.UserTrade.AmountIn, _ = new(big.Int).SetString("746627207819418433569734379647", 10)
 		btf, berr := json.Marshal(tf)
 		if berr != nil {
 			return

@@ -3,6 +3,7 @@ package web3_client
 import (
 	"encoding/json"
 	"fmt"
+	"math/big"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
@@ -18,6 +19,32 @@ import (
 		tokenSellAmount = tokenSellAmount.Div(tokenSellAmount, big.NewInt(2))
 	}
 */
+
+func (s *Web3ClientTestSuite) TestJson() {
+	amountOutMin, _ := new(big.Int).SetString("746627207819418433569734379647", 10)
+	te := TradeExecutionFlow{
+		CurrentBlockNumber: nil,
+		Tx:                 nil,
+		Trade: Trade{
+			TradeMethod:                    "swapExactETHForTokens",
+			SwapETHForExactTokensParams:    nil,
+			SwapTokensForExactTokensParams: nil,
+			SwapExactTokensForTokensParams: nil,
+			SwapExactETHForTokensParams: &SwapExactETHForTokensParams{
+				AmountOutMin: amountOutMin,
+			},
+			SwapExactTokensForETHParams: nil,
+			SwapTokensForExactETHParams: nil,
+		},
+		InitialPair:        UniswapV2Pair{},
+		FrontRunTrade:      TradeOutcome{},
+		SandwichTrade:      TradeOutcome{},
+		SandwichPrediction: SandwichTradePrediction{},
+	}
+
+	b, _ := json.Marshal(te)
+	fmt.Println(string(b))
+}
 
 func (s *Web3ClientTestSuite) TestTradeSim() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)

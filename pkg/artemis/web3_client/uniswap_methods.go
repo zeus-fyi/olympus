@@ -324,6 +324,12 @@ type JSONSandwichTradePrediction struct {
 }
 
 func (s *SandwichTradePrediction) ConvertToJSONType() JSONSandwichTradePrediction {
+	if s.SellAmount == nil {
+		s.SellAmount = big.NewInt(0)
+	}
+	if s.ExpectedProfit == nil {
+		s.ExpectedProfit = big.NewInt(0)
+	}
 	return JSONSandwichTradePrediction{
 		SellAmount:     s.SellAmount.String(),
 		ExpectedProfit: s.ExpectedProfit.String(),

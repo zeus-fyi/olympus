@@ -213,7 +213,7 @@ func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, p
 			return
 		}
 		if u.PrintLocal {
-			u.Path.FnOut = fmt.Sprintf("%s-%d.json", tf.TradeMethod, u.BlockNumber)
+			u.Path.FnOut = fmt.Sprintf("%s-%d.json", tf.Trade.TradeMethod, u.BlockNumber)
 			err = u.Path.WriteToFileOutPath(b)
 			if err != nil {
 				return

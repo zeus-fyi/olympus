@@ -22,6 +22,32 @@ type UniswapV2Pair struct {
 	BlockTimestampLast   *big.Int       `json:"blockTimestampLast"`
 }
 
+type JSONUniswapV2Pair struct {
+	PairContractAddr     string         `json:"pairContractAddr"`
+	Price0CumulativeLast string         `json:"price0CumulativeLast"`
+	Price1CumulativeLast string         `json:"price1CumulativeLast"`
+	KLast                string         `json:"kLast"`
+	Token0               common.Address `json:"token0"`
+	Token1               common.Address `json:"token1"`
+	Reserve0             string         `json:"reserve0"`
+	Reserve1             string         `json:"reserve1"`
+	BlockTimestampLast   string         `json:"blockTimestampLast"`
+}
+
+func (p *UniswapV2Pair) ConvertToJSONType() JSONUniswapV2Pair {
+	return JSONUniswapV2Pair{
+		PairContractAddr:     p.PairContractAddr,
+		Price0CumulativeLast: p.Price0CumulativeLast.String(),
+		Price1CumulativeLast: p.Price1CumulativeLast.String(),
+		KLast:                p.KLast.String(),
+		Token0:               p.Token0,
+		Token1:               p.Token1,
+		Reserve0:             p.Reserve0.String(),
+		Reserve1:             p.Reserve1.String(),
+		BlockTimestampLast:   p.BlockTimestampLast.String(),
+	}
+}
+
 func (p *UniswapV2Pair) GetQuoteToken0BuyToken1(token0 *big.Int) (*big.Int, error) {
 	if p.Reserve0 == nil || p.Reserve1 == nil || p.Reserve0.Cmp(big.NewInt(0)) == 0 || p.Reserve1.Cmp(big.NewInt(0)) == 0 {
 		return nil, errors.New("reserves are not initialized or are zero")

@@ -5,28 +5,29 @@ import (
 	"math/big"
 
 	"github.com/gochain/gochain/v4/common"
+	"github.com/rs/zerolog/log"
 	web3_types "github.com/zeus-fyi/gochain/web3/types"
 )
 
 type TradeExecutionFlow struct {
-	CurrentBlockNumber *big.Int                   `json:"currentBlockNumber"`
-	Tx                 *web3_types.RpcTransaction `json:"tx"`
-	Trade              Trade                      `json:"trade"`
-	InitialPair        UniswapV2Pair              `json:"initialPair"`
-	FrontRunTrade      TradeOutcome               `json:"frontRunTrade"`
-	UserTrade          TradeOutcome               `json:"userTrade"`
-	SandwichTrade      TradeOutcome               `json:"sandwichTrade"`
-	SandwichPrediction SandwichTradePrediction    `json:"sandwichPrediction"`
+	CurrentBlockNumber *big.Int                    `json:"currentBlockNumber"`
+	Tx                 *web3_types.RpcTransaction  `json:"tx"`
+	Trade              Trade                       `json:"trade"`
+	InitialPair        JSONUniswapV2Pair           `json:"initialPair"`
+	FrontRunTrade      JSONTradeOutcome            `json:"frontRunTrade"`
+	UserTrade          JSONTradeOutcome            `json:"userTrade"`
+	SandwichTrade      JSONTradeOutcome            `json:"sandwichTrade"`
+	SandwichPrediction JSONSandwichTradePrediction `json:"sandwichPrediction"`
 }
 
 type Trade struct {
-	TradeMethod                     string `json:"tradeMethod"`
-	*SwapETHForExactTokensParams    `json:"swapETHForExactTokensParams,omitempty"`
-	*SwapTokensForExactTokensParams `json:"swapTokensForExactTokensParams,omitempty"`
-	*SwapExactTokensForTokensParams `json:"swapExactTokensForTokensParams,omitempty"`
-	*SwapExactETHForTokensParams    `json:"swapExactETHForTokensParams,omitempty"`
-	*SwapExactTokensForETHParams    `json:"swapExactTokensForETHParams,omitempty"`
-	*SwapTokensForExactETHParams    `json:"swapTokensForExactETHParams,omitempty"`
+	TradeMethod                         string `json:"tradeMethod"`
+	*JSONSwapETHForExactTokensParams    `json:"swapETHForExactTokensParams,omitempty"`
+	*JSONSwapTokensForExactTokensParams `json:"swapTokensForExactTokensParams,omitempty"`
+	*JSONSwapExactTokensForTokensParams `json:"swapExactTokensForTokensParams,omitempty"`
+	*JSONSwapExactETHForTokensParams    `json:"swapExactETHForTokensParams,omitempty"`
+	*JSONSwapExactTokensForETHParams    `json:"swapExactTokensForETHParams,omitempty"`
+	*JSONSwapTokensForExactETHParams    `json:"swapTokensForExactETHParams,omitempty"`
 }
 
 type SwapETHForExactTokensParams struct {
@@ -37,6 +38,23 @@ type SwapETHForExactTokensParams struct {
 	Value     *big.Int         `json:"value"`
 }
 
+type JSONSwapETHForExactTokensParams struct {
+	AmountOut string           `json:"amountOut"`
+	Path      []common.Address `json:"path"`
+	To        common.Address   `json:"to"`
+	Deadline  string           `json:"deadline"`
+	Value     string           `json:"value"`
+}
+
+func (s *SwapETHForExactTokensParams) ConvertToJSONType() *JSONSwapETHForExactTokensParams {
+	return &JSONSwapETHForExactTokensParams{
+		AmountOut: s.AmountOut.String(),
+		Path:      s.Path,
+		To:        s.To,
+		Deadline:  s.Deadline.String(),
+		Value:     s.Value.String(),
+	}
+}
 func (s *SwapETHForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlow {
 	// Value == variable
 	// AmountOut == required for trade
@@ -47,8 +65,8 @@ func (s *SwapETHForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlow{
 		Trade: Trade{
-			TradeMethod:                 "swapETHForExactTokens",
-			SwapETHForExactTokensParams: s,
+			TradeMethod:                     "swapETHForExactTokens",
+			JSONSwapETHForExactTokensParams: s.ConvertToJSONType(),
 		},
 	}
 	for low.Cmp(high) <= 0 {
@@ -56,9 +74,17 @@ func (s *SwapETHForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		mid = new(big.Int).Add(low, high)
 		mid = mid.Div(mid, big.NewInt(2))
 		// Front run trade
-		toFrontRun := mockPairResp.PriceImpact(s.Path[0], mid)
+		toFrontRun, err := mockPairResp.PriceImpact(s.Path[0], mid)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		// User trade
-		to := mockPairResp.PriceImpact(s.Path[0], s.Value)
+		to, err := mockPairResp.PriceImpact(s.Path[0], s.Value)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		difference := new(big.Int).Sub(to.AmountOut, s.AmountOut)
 		if difference.Cmp(big.NewInt(0)) < 0 {
 			high = new(big.Int).Sub(mid, big.NewInt(1))
@@ -66,14 +92,18 @@ func (s *SwapETHForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		}
 		// Sandwich trade
 		sandwichDump := toFrontRun.AmountOut
-		toSandwich := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		toSandwich, err := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = toFrontRun
-			tf.UserTrade = to
-			tf.SandwichTrade = toSandwich
+			tf.FrontRunTrade = toFrontRun.ConvertToJSONType()
+			tf.UserTrade = to.ConvertToJSONType()
+			tf.SandwichTrade = toSandwich.ConvertToJSONType()
 		}
 		// If profit is negative, reduce the high boundary
 		if profit.Cmp(big.NewInt(0)) < 0 {
@@ -87,7 +117,7 @@ func (s *SwapETHForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		SellAmount:     tokenSellAmountAtMaxProfit,
 		ExpectedProfit: maxProfit,
 	}
-	tf.SandwichPrediction = sp
+	tf.SandwichPrediction = sp.ConvertToJSONType()
 	return tf
 }
 
@@ -99,6 +129,24 @@ type SwapTokensForExactTokensParams struct {
 	Deadline    *big.Int         `json:"deadline"`
 }
 
+type JSONSwapTokensForExactTokensParams struct {
+	AmountOut   string           `json:"amountOut"`
+	AmountInMax string           `json:"amountInMax"`
+	Path        []common.Address `json:"path"`
+	To          common.Address   `json:"to"`
+	Deadline    string           `json:"deadline"`
+}
+
+func (s *SwapTokensForExactTokensParams) ConvertToJSONType() *JSONSwapTokensForExactTokensParams {
+	return &JSONSwapTokensForExactTokensParams{
+		AmountOut:   s.AmountOut.String(),
+		AmountInMax: s.AmountInMax.String(),
+		Path:        s.Path,
+		To:          s.To,
+		Deadline:    s.Deadline.String(),
+	}
+}
+
 func (s *SwapTokensForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlow {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountInMax)
@@ -107,8 +155,8 @@ func (s *SwapTokensForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlow{
 		Trade: Trade{
-			TradeMethod:                    "swapTokensForExactTokens",
-			SwapTokensForExactTokensParams: s,
+			TradeMethod:                        "swapTokensForExactTokens",
+			JSONSwapTokensForExactTokensParams: s.ConvertToJSONType(),
 		},
 	}
 	for low.Cmp(high) <= 0 {
@@ -116,9 +164,17 @@ func (s *SwapTokensForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 		mid = new(big.Int).Add(low, high)
 		mid = mid.Div(mid, big.NewInt(2))
 		// Front run trade
-		toFrontRun := mockPairResp.PriceImpact(s.Path[0], mid)
+		toFrontRun, err := mockPairResp.PriceImpact(s.Path[0], mid)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		// User trade
-		to := mockPairResp.PriceImpact(s.Path[0], s.AmountInMax)
+		to, err := mockPairResp.PriceImpact(s.Path[0], s.AmountInMax)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		difference := new(big.Int).Sub(to.AmountOut, s.AmountOut)
 		// if diff <= 0 then it searches left
 		if difference.Cmp(big.NewInt(0)) < 0 {
@@ -127,14 +183,18 @@ func (s *SwapTokensForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 		}
 		// Sandwich trade
 		sandwichDump := toFrontRun.AmountOut
-		toSandwich := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		toSandwich, err := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = toFrontRun
-			tf.UserTrade = to
-			tf.SandwichTrade = toSandwich
+			tf.FrontRunTrade = toFrontRun.ConvertToJSONType()
+			tf.UserTrade = to.ConvertToJSONType()
+			tf.SandwichTrade = toSandwich.ConvertToJSONType()
 		}
 		// If profit is negative, reduce the high boundary
 		if profit.Cmp(big.NewInt(0)) < 0 {
@@ -148,7 +208,7 @@ func (s *SwapTokensForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 		SellAmount:     tokenSellAmountAtMaxProfit,
 		ExpectedProfit: maxProfit,
 	}
-	tf.SandwichPrediction = sp
+	tf.SandwichPrediction = sp.ConvertToJSONType()
 	return tf
 }
 
@@ -160,6 +220,23 @@ type SwapTokensForExactETHParams struct {
 	Deadline    *big.Int         `json:"deadline"`
 }
 
+type JSONSwapTokensForExactETHParams struct {
+	AmountOut   string           `json:"amountOut"`
+	AmountInMax string           `json:"amountInMax"`
+	Path        []common.Address `json:"path"`
+	To          common.Address   `json:"to"`
+	Deadline    string           `json:"deadline"`
+}
+
+func (s *SwapTokensForExactETHParams) ConvertToJSONType() *JSONSwapTokensForExactETHParams {
+	return &JSONSwapTokensForExactETHParams{
+		AmountOut:   s.AmountOut.String(),
+		AmountInMax: s.AmountInMax.String(),
+		Path:        s.Path,
+		To:          s.To,
+		Deadline:    s.Deadline.String(),
+	}
+}
 func (s *SwapTokensForExactETHParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlow {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountInMax)
@@ -168,8 +245,8 @@ func (s *SwapTokensForExactETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlow{
 		Trade: Trade{
-			TradeMethod:                 "swapTokensForExactETH",
-			SwapTokensForExactETHParams: s,
+			TradeMethod:                     "swapTokensForExactETH",
+			JSONSwapTokensForExactETHParams: s.ConvertToJSONType(),
 		},
 	}
 	for low.Cmp(high) <= 0 {
@@ -177,9 +254,17 @@ func (s *SwapTokensForExactETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		mid = new(big.Int).Add(low, high)
 		mid = DivideByHalf(mid)
 		// Front run trade
-		toFrontRun := mockPairResp.PriceImpact(s.Path[0], mid)
+		toFrontRun, err := mockPairResp.PriceImpact(s.Path[0], mid)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		// User trade
-		to := mockPairResp.PriceImpact(s.Path[0], s.AmountInMax)
+		to, err := mockPairResp.PriceImpact(s.Path[0], s.AmountInMax)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		difference := new(big.Int).Sub(to.AmountOut, s.AmountOut)
 		// if diff <= 0 then it searches left
 		if difference.Cmp(big.NewInt(0)) < 0 {
@@ -188,14 +273,18 @@ func (s *SwapTokensForExactETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		}
 		// Sandwich trade
 		sandwichDump := toFrontRun.AmountOut
-		toSandwich := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		toSandwich, err := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = toFrontRun
-			tf.UserTrade = to
-			tf.SandwichTrade = toSandwich
+			tf.FrontRunTrade = toFrontRun.ConvertToJSONType()
+			tf.UserTrade = to.ConvertToJSONType()
+			tf.SandwichTrade = toSandwich.ConvertToJSONType()
 		}
 		// If profit is negative, reduce the high boundary
 		if profit.Cmp(big.NewInt(0)) < 0 {
@@ -209,7 +298,7 @@ func (s *SwapTokensForExactETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		SellAmount:     tokenSellAmountAtMaxProfit,
 		ExpectedProfit: maxProfit,
 	}
-	tf.SandwichPrediction = sp
+	tf.SandwichPrediction = sp.ConvertToJSONType()
 	return tf
 }
 
@@ -229,6 +318,24 @@ type SandwichTradePrediction struct {
 	ExpectedProfit *big.Int `json:"expectedProfit"`
 }
 
+type JSONSandwichTradePrediction struct {
+	SellAmount     string `json:"sellAmount"`
+	ExpectedProfit string `json:"expectedProfit"`
+}
+
+func (s *SandwichTradePrediction) ConvertToJSONType() JSONSandwichTradePrediction {
+	if s.SellAmount == nil {
+		s.SellAmount = big.NewInt(0)
+	}
+	if s.ExpectedProfit == nil {
+		s.ExpectedProfit = big.NewInt(0)
+	}
+	return JSONSandwichTradePrediction{
+		SellAmount:     s.SellAmount.String(),
+		ExpectedProfit: s.ExpectedProfit.String(),
+	}
+}
+
 type SwapExactTokensForTokensParams struct {
 	AmountIn     *big.Int         `json:"amountIn"`
 	AmountOutMin *big.Int         `json:"amountOutMin"`
@@ -237,6 +344,23 @@ type SwapExactTokensForTokensParams struct {
 	Deadline     *big.Int         `json:"deadline"`
 }
 
+type JSONSwapExactTokensForTokensParams struct {
+	AmountIn     string           `json:"amountIn"`
+	AmountOutMin string           `json:"amountOutMin"`
+	Path         []common.Address `json:"path"`
+	To           common.Address   `json:"to"`
+	Deadline     string           `json:"deadline"`
+}
+
+func (s *SwapExactTokensForTokensParams) ConvertToJSONType() *JSONSwapExactTokensForTokensParams {
+	return &JSONSwapExactTokensForTokensParams{
+		AmountIn:     s.AmountIn.String(),
+		AmountOutMin: s.AmountOutMin.String(),
+		Path:         s.Path,
+		To:           s.To,
+		Deadline:     s.Deadline.String(),
+	}
+}
 func (s *SwapExactTokensForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlow {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountIn)
@@ -245,8 +369,8 @@ func (s *SwapExactTokensForTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlow{
 		Trade: Trade{
-			TradeMethod:                    "swapExactTokensForTokens",
-			SwapExactTokensForTokensParams: s,
+			TradeMethod:                        "swapExactTokensForTokens",
+			JSONSwapExactTokensForTokensParams: s.ConvertToJSONType(),
 		},
 	}
 	for low.Cmp(high) <= 0 {
@@ -254,9 +378,17 @@ func (s *SwapExactTokensForTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 		mid = new(big.Int).Add(low, high)
 		mid = DivideByHalf(mid)
 		// Front run trade
-		toFrontRun := mockPairResp.PriceImpact(s.Path[0], mid)
+		toFrontRun, err := mockPairResp.PriceImpact(s.Path[0], mid)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		// User trade
-		to := mockPairResp.PriceImpact(s.Path[0], s.AmountIn)
+		to, err := mockPairResp.PriceImpact(s.Path[0], s.AmountIn)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		difference := new(big.Int).Sub(to.AmountOut, s.AmountOutMin)
 		if difference.Cmp(big.NewInt(0)) < 0 {
 			high = new(big.Int).Sub(mid, big.NewInt(1))
@@ -264,14 +396,18 @@ func (s *SwapExactTokensForTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 		}
 		// Sandwich trade
 		sandwichDump := toFrontRun.AmountOut
-		toSandwich := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		toSandwich, err := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = toFrontRun
-			tf.UserTrade = to
-			tf.SandwichTrade = toSandwich
+			tf.FrontRunTrade = toFrontRun.ConvertToJSONType()
+			tf.UserTrade = to.ConvertToJSONType()
+			tf.SandwichTrade = toSandwich.ConvertToJSONType()
 		}
 		// If profit is negative, reduce the high boundary
 		if profit.Cmp(big.NewInt(0)) < 0 {
@@ -285,7 +421,7 @@ func (s *SwapExactTokensForTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 		SellAmount:     tokenSellAmountAtMaxProfit,
 		ExpectedProfit: maxProfit,
 	}
-	tf.SandwichPrediction = sp
+	tf.SandwichPrediction = sp.ConvertToJSONType()
 	return tf
 }
 
@@ -297,6 +433,23 @@ type SwapExactETHForTokensParams struct {
 	Deadline     *big.Int         `json:"deadline"`
 }
 
+type JSONSwapExactETHForTokensParams struct {
+	AmountOutMin string           `json:"amountOutMin"`
+	Path         []common.Address `json:"path"`
+	To           common.Address   `json:"to"`
+	Value        string           `json:"value"`
+	Deadline     string           `json:"deadline"`
+}
+
+func (s *SwapExactETHForTokensParams) ConvertToJSONType() *JSONSwapExactETHForTokensParams {
+	return &JSONSwapExactETHForTokensParams{
+		AmountOutMin: s.AmountOutMin.String(),
+		Path:         s.Path,
+		To:           s.To,
+		Value:        s.Value.String(),
+		Deadline:     s.Deadline.String(),
+	}
+}
 func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlow {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.Value)
@@ -305,8 +458,8 @@ func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlow{
 		Trade: Trade{
-			TradeMethod:                 "swapExactETHForTokens",
-			SwapExactETHForTokensParams: s,
+			TradeMethod:                     "swapExactETHForTokens",
+			JSONSwapExactETHForTokensParams: s.ConvertToJSONType(),
 		},
 	}
 	for low.Cmp(high) <= 0 {
@@ -314,9 +467,17 @@ func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		mid = new(big.Int).Add(low, high)
 		mid = DivideByHalf(mid)
 		// Front run trade
-		toFrontRun := mockPairResp.PriceImpact(s.Path[0], mid)
+		toFrontRun, err := mockPairResp.PriceImpact(s.Path[0], mid)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		// User trade
-		to := mockPairResp.PriceImpact(s.Path[0], s.Value)
+		to, err := mockPairResp.PriceImpact(s.Path[0], s.Value)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		difference := new(big.Int).Sub(to.AmountOut, s.AmountOutMin)
 		if difference.Cmp(big.NewInt(0)) < 0 {
 			high = new(big.Int).Sub(mid, big.NewInt(1))
@@ -324,14 +485,18 @@ func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		}
 		// Sandwich trade
 		sandwichDump := toFrontRun.AmountOut
-		toSandwich := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		toSandwich, err := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = toFrontRun
-			tf.UserTrade = to
-			tf.SandwichTrade = toSandwich
+			tf.FrontRunTrade = toFrontRun.ConvertToJSONType()
+			tf.UserTrade = to.ConvertToJSONType()
+			tf.SandwichTrade = toSandwich.ConvertToJSONType()
 		}
 		// If profit is negative, reduce the high boundary
 		if profit.Cmp(big.NewInt(0)) < 0 {
@@ -345,7 +510,7 @@ func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		SellAmount:     tokenSellAmountAtMaxProfit,
 		ExpectedProfit: maxProfit,
 	}
-	tf.SandwichPrediction = sp
+	tf.SandwichPrediction = sp.ConvertToJSONType()
 	return tf
 }
 
@@ -357,6 +522,23 @@ type SwapExactTokensForETHParams struct {
 	Deadline     *big.Int         `json:"deadline"`
 }
 
+type JSONSwapExactTokensForETHParams struct {
+	AmountIn     string           `json:"amountIn"`
+	AmountOutMin string           `json:"amountOutMin"`
+	Path         []common.Address `json:"path"`
+	To           common.Address   `json:"to"`
+	Deadline     string           `json:"deadline"`
+}
+
+func (s *SwapExactTokensForETHParams) ConvertToJSONType() *JSONSwapExactTokensForETHParams {
+	return &JSONSwapExactTokensForETHParams{
+		AmountIn:     s.AmountIn.String(),
+		AmountOutMin: s.AmountOutMin.String(),
+		Path:         s.Path,
+		To:           s.To,
+		Deadline:     s.Deadline.String(),
+	}
+}
 func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlow {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountIn)
@@ -365,8 +547,8 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlow{
 		Trade: Trade{
-			TradeMethod:                 "swapExactTokensForETHP",
-			SwapExactTokensForETHParams: s,
+			TradeMethod:                     "swapExactTokensForETHP",
+			JSONSwapExactTokensForETHParams: s.ConvertToJSONType(),
 		},
 	}
 	for low.Cmp(high) <= 0 {
@@ -374,9 +556,17 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		mid = new(big.Int).Add(low, high)
 		mid = DivideByHalf(mid)
 		// Front run trade
-		toFrontRun := mockPairResp.PriceImpact(s.Path[0], mid)
+		toFrontRun, err := mockPairResp.PriceImpact(s.Path[0], mid)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		// User trade
-		to := mockPairResp.PriceImpact(s.Path[0], s.AmountIn)
+		to, err := mockPairResp.PriceImpact(s.Path[0], s.AmountIn)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		difference := new(big.Int).Sub(to.AmountOut, s.AmountOutMin)
 		if difference.Cmp(big.NewInt(0)) < 0 {
 			high = new(big.Int).Sub(mid, big.NewInt(1))
@@ -384,14 +574,18 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		}
 		// Sandwich trade
 		sandwichDump := toFrontRun.AmountOut
-		toSandwich := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		toSandwich, err := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = toFrontRun
-			tf.UserTrade = to
-			tf.SandwichTrade = toSandwich
+			tf.FrontRunTrade = toFrontRun.ConvertToJSONType()
+			tf.UserTrade = to.ConvertToJSONType()
+			tf.SandwichTrade = toSandwich.ConvertToJSONType()
 		}
 		// If profit is negative, reduce the high boundary
 		if profit.Cmp(big.NewInt(0)) < 0 {
@@ -405,7 +599,7 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		SellAmount:     tokenSellAmountAtMaxProfit,
 		ExpectedProfit: maxProfit,
 	}
-	tf.SandwichPrediction = sp
+	tf.SandwichPrediction = sp.ConvertToJSONType()
 	return tf
 }
 

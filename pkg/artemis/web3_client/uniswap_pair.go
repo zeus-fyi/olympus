@@ -34,6 +34,25 @@ type JSONUniswapV2Pair struct {
 	BlockTimestampLast   string         `json:"blockTimestampLast"`
 }
 
+func (p *JSONUniswapV2Pair) ConvertToBigIntType() UniswapV2Pair {
+	p0, _ := new(big.Int).SetString(p.Price0CumulativeLast, 10)
+	p1, _ := new(big.Int).SetString(p.Price1CumulativeLast, 10)
+	k, _ := new(big.Int).SetString(p.KLast, 10)
+	r0, _ := new(big.Int).SetString(p.Reserve0, 10)
+	r1, _ := new(big.Int).SetString(p.Reserve1, 10)
+	bt, _ := new(big.Int).SetString(p.BlockTimestampLast, 10)
+	return UniswapV2Pair{
+		PairContractAddr:     p.PairContractAddr,
+		Price0CumulativeLast: p0,
+		Price1CumulativeLast: p1,
+		KLast:                k,
+		Token0:               p.Token0,
+		Token1:               p.Token1,
+		Reserve0:             r0,
+		Reserve1:             r1,
+		BlockTimestampLast:   bt,
+	}
+}
 func (p *UniswapV2Pair) ConvertToJSONType() JSONUniswapV2Pair {
 	return JSONUniswapV2Pair{
 		PairContractAddr:     p.PairContractAddr,

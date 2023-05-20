@@ -15,9 +15,10 @@ import (
 
 type Web3ClientTestSuite struct {
 	test_suites_encryption.EncryptionTestSuite
-	GoerliWeb3User  Web3Client
-	GoerliWeb3User2 Web3Client
-	MainnetWeb3User Web3Client
+	GoerliWeb3User       Web3Client
+	GoerliWeb3User2      Web3Client
+	MainnetWeb3User      Web3Client
+	LocalMainnetWeb3User Web3Client
 }
 
 func (s *Web3ClientTestSuite) SetupTest() {
@@ -40,6 +41,7 @@ func (s *Web3ClientTestSuite) SetupTest() {
 		"Authorization": "Bearer " + s.Tc.ProductionLocalTemporalBearerToken,
 	}
 	s.MainnetWeb3User.Headers = m
+	s.LocalMainnetWeb3User = NewWeb3Client("http://localhost:8545", newAccount)
 }
 
 func (s *Web3ClientTestSuite) TestGetBlockHeight() {

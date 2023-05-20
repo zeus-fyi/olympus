@@ -27,7 +27,7 @@ type MevTx struct {
 	Tx          *web3_types.RpcTransaction
 }
 
-func (w *Web3Client) ProcessUnvalidatedMempoolTxs(ctx context.Context, mempool map[string]map[string]map[string]*web3_types.RpcTransaction, mevTxMap MevSmartContractTxMap) (MevSmartContractTxMap, error) {
+func ProcessUnvalidatedMempoolTxs(ctx context.Context, mempool map[string]map[string]map[string]*web3_types.RpcTransaction, mevTxMap MevSmartContractTxMap) (MevSmartContractTxMap, error) {
 	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 	if mevTxMap.MethodTxMap == nil {

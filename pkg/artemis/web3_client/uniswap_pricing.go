@@ -1,6 +1,7 @@
 package web3_client
 
 import (
+	"errors"
 	"math/big"
 
 	"github.com/gochain/gochain/v4/common"
@@ -19,19 +20,18 @@ type TradeOutcome struct {
 	EndReservesToken1   *big.Int       `json:"endReservesToken1"`
 }
 
-func (p *UniswapV2Pair) PriceImpact(tokenAddrPath0 common.Address, tokenBuyAmount *big.Int) TradeOutcome {
+func (p *UniswapV2Pair) PriceImpact(tokenAddrPath0 common.Address, tokenBuyAmount *big.Int) (TradeOutcome, error) {
 	tokenNumber := p.GetTokenNumber(tokenAddrPath0)
 	switch tokenNumber {
 	case 1:
 		to, _, _ := p.PriceImpactToken1BuyToken0(tokenBuyAmount)
-		return to
+		return to, nil
 	case 0:
 		to, _, _ := p.PriceImpactToken0BuyToken1(tokenBuyAmount)
-		return to
+		return to, nil
 	default:
-		log.Warn().Msg("token number not found")
 		to := TradeOutcome{}
-		return to
+		return to, errors.New("token number not found")
 	}
 }
 

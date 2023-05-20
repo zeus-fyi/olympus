@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	"github.com/gochain/gochain/v4/common"
+	"github.com/rs/zerolog/log"
 	web3_types "github.com/zeus-fyi/gochain/web3/types"
 )
 
@@ -56,9 +57,17 @@ func (s *SwapETHForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		mid = new(big.Int).Add(low, high)
 		mid = mid.Div(mid, big.NewInt(2))
 		// Front run trade
-		toFrontRun := mockPairResp.PriceImpact(s.Path[0], mid)
+		toFrontRun, err := mockPairResp.PriceImpact(s.Path[0], mid)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		// User trade
-		to := mockPairResp.PriceImpact(s.Path[0], s.Value)
+		to, err := mockPairResp.PriceImpact(s.Path[0], s.Value)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		difference := new(big.Int).Sub(to.AmountOut, s.AmountOut)
 		if difference.Cmp(big.NewInt(0)) < 0 {
 			high = new(big.Int).Sub(mid, big.NewInt(1))
@@ -66,7 +75,11 @@ func (s *SwapETHForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		}
 		// Sandwich trade
 		sandwichDump := toFrontRun.AmountOut
-		toSandwich := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		toSandwich, err := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
@@ -116,9 +129,17 @@ func (s *SwapTokensForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 		mid = new(big.Int).Add(low, high)
 		mid = mid.Div(mid, big.NewInt(2))
 		// Front run trade
-		toFrontRun := mockPairResp.PriceImpact(s.Path[0], mid)
+		toFrontRun, err := mockPairResp.PriceImpact(s.Path[0], mid)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		// User trade
-		to := mockPairResp.PriceImpact(s.Path[0], s.AmountInMax)
+		to, err := mockPairResp.PriceImpact(s.Path[0], s.AmountInMax)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		difference := new(big.Int).Sub(to.AmountOut, s.AmountOut)
 		// if diff <= 0 then it searches left
 		if difference.Cmp(big.NewInt(0)) < 0 {
@@ -127,7 +148,11 @@ func (s *SwapTokensForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 		}
 		// Sandwich trade
 		sandwichDump := toFrontRun.AmountOut
-		toSandwich := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		toSandwich, err := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
@@ -177,9 +202,17 @@ func (s *SwapTokensForExactETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		mid = new(big.Int).Add(low, high)
 		mid = DivideByHalf(mid)
 		// Front run trade
-		toFrontRun := mockPairResp.PriceImpact(s.Path[0], mid)
+		toFrontRun, err := mockPairResp.PriceImpact(s.Path[0], mid)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		// User trade
-		to := mockPairResp.PriceImpact(s.Path[0], s.AmountInMax)
+		to, err := mockPairResp.PriceImpact(s.Path[0], s.AmountInMax)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		difference := new(big.Int).Sub(to.AmountOut, s.AmountOut)
 		// if diff <= 0 then it searches left
 		if difference.Cmp(big.NewInt(0)) < 0 {
@@ -188,7 +221,11 @@ func (s *SwapTokensForExactETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		}
 		// Sandwich trade
 		sandwichDump := toFrontRun.AmountOut
-		toSandwich := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		toSandwich, err := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
@@ -254,9 +291,17 @@ func (s *SwapExactTokensForTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 		mid = new(big.Int).Add(low, high)
 		mid = DivideByHalf(mid)
 		// Front run trade
-		toFrontRun := mockPairResp.PriceImpact(s.Path[0], mid)
+		toFrontRun, err := mockPairResp.PriceImpact(s.Path[0], mid)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		// User trade
-		to := mockPairResp.PriceImpact(s.Path[0], s.AmountIn)
+		to, err := mockPairResp.PriceImpact(s.Path[0], s.AmountIn)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		difference := new(big.Int).Sub(to.AmountOut, s.AmountOutMin)
 		if difference.Cmp(big.NewInt(0)) < 0 {
 			high = new(big.Int).Sub(mid, big.NewInt(1))
@@ -264,7 +309,11 @@ func (s *SwapExactTokensForTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 		}
 		// Sandwich trade
 		sandwichDump := toFrontRun.AmountOut
-		toSandwich := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		toSandwich, err := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
@@ -314,9 +363,17 @@ func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		mid = new(big.Int).Add(low, high)
 		mid = DivideByHalf(mid)
 		// Front run trade
-		toFrontRun := mockPairResp.PriceImpact(s.Path[0], mid)
+		toFrontRun, err := mockPairResp.PriceImpact(s.Path[0], mid)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		// User trade
-		to := mockPairResp.PriceImpact(s.Path[0], s.Value)
+		to, err := mockPairResp.PriceImpact(s.Path[0], s.Value)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		difference := new(big.Int).Sub(to.AmountOut, s.AmountOutMin)
 		if difference.Cmp(big.NewInt(0)) < 0 {
 			high = new(big.Int).Sub(mid, big.NewInt(1))
@@ -324,7 +381,11 @@ func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		}
 		// Sandwich trade
 		sandwichDump := toFrontRun.AmountOut
-		toSandwich := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		toSandwich, err := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
@@ -374,9 +435,17 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		mid = new(big.Int).Add(low, high)
 		mid = DivideByHalf(mid)
 		// Front run trade
-		toFrontRun := mockPairResp.PriceImpact(s.Path[0], mid)
+		toFrontRun, err := mockPairResp.PriceImpact(s.Path[0], mid)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		// User trade
-		to := mockPairResp.PriceImpact(s.Path[0], s.AmountIn)
+		to, err := mockPairResp.PriceImpact(s.Path[0], s.AmountIn)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		difference := new(big.Int).Sub(to.AmountOut, s.AmountOutMin)
 		if difference.Cmp(big.NewInt(0)) < 0 {
 			high = new(big.Int).Sub(mid, big.NewInt(1))
@@ -384,7 +453,11 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		}
 		// Sandwich trade
 		sandwichDump := toFrontRun.AmountOut
-		toSandwich := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		toSandwich, err := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		if err != nil {
+			log.Err(err).Msg("error in price impact")
+			return tf
+		}
 		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit

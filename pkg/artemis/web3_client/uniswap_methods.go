@@ -13,10 +13,10 @@ type TradeExecutionFlow struct {
 	CurrentBlockNumber *big.Int                    `json:"currentBlockNumber"`
 	Tx                 *web3_types.RpcTransaction  `json:"tx"`
 	Trade              Trade                       `json:"trade"`
-	InitialPair        UniswapV2Pair               `json:"initialPair"`
-	FrontRunTrade      TradeOutcome                `json:"frontRunTrade"`
-	UserTrade          TradeOutcome                `json:"userTrade"`
-	SandwichTrade      TradeOutcome                `json:"sandwichTrade"`
+	InitialPair        JSONUniswapV2Pair           `json:"initialPair"`
+	FrontRunTrade      JSONTradeOutcome            `json:"frontRunTrade"`
+	UserTrade          JSONTradeOutcome            `json:"userTrade"`
+	SandwichTrade      JSONTradeOutcome            `json:"sandwichTrade"`
 	SandwichPrediction JSONSandwichTradePrediction `json:"sandwichPrediction"`
 }
 
@@ -101,9 +101,9 @@ func (s *SwapETHForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = toFrontRun
-			tf.UserTrade = to
-			tf.SandwichTrade = toSandwich
+			tf.FrontRunTrade = toFrontRun.ConvertToJSONType()
+			tf.UserTrade = to.ConvertToJSONType()
+			tf.SandwichTrade = toSandwich.ConvertToJSONType()
 		}
 		// If profit is negative, reduce the high boundary
 		if profit.Cmp(big.NewInt(0)) < 0 {
@@ -192,9 +192,9 @@ func (s *SwapTokensForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = toFrontRun
-			tf.UserTrade = to
-			tf.SandwichTrade = toSandwich
+			tf.FrontRunTrade = toFrontRun.ConvertToJSONType()
+			tf.UserTrade = to.ConvertToJSONType()
+			tf.SandwichTrade = toSandwich.ConvertToJSONType()
 		}
 		// If profit is negative, reduce the high boundary
 		if profit.Cmp(big.NewInt(0)) < 0 {
@@ -282,9 +282,9 @@ func (s *SwapTokensForExactETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = toFrontRun
-			tf.UserTrade = to
-			tf.SandwichTrade = toSandwich
+			tf.FrontRunTrade = toFrontRun.ConvertToJSONType()
+			tf.UserTrade = to.ConvertToJSONType()
+			tf.SandwichTrade = toSandwich.ConvertToJSONType()
 		}
 		// If profit is negative, reduce the high boundary
 		if profit.Cmp(big.NewInt(0)) < 0 {
@@ -399,9 +399,9 @@ func (s *SwapExactTokensForTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = toFrontRun
-			tf.UserTrade = to
-			tf.SandwichTrade = toSandwich
+			tf.FrontRunTrade = toFrontRun.ConvertToJSONType()
+			tf.UserTrade = to.ConvertToJSONType()
+			tf.SandwichTrade = toSandwich.ConvertToJSONType()
 		}
 		// If profit is negative, reduce the high boundary
 		if profit.Cmp(big.NewInt(0)) < 0 {
@@ -488,9 +488,9 @@ func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = toFrontRun
-			tf.UserTrade = to
-			tf.SandwichTrade = toSandwich
+			tf.FrontRunTrade = toFrontRun.ConvertToJSONType()
+			tf.UserTrade = to.ConvertToJSONType()
+			tf.SandwichTrade = toSandwich.ConvertToJSONType()
 		}
 		// If profit is negative, reduce the high boundary
 		if profit.Cmp(big.NewInt(0)) < 0 {
@@ -577,9 +577,9 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = toFrontRun
-			tf.UserTrade = to
-			tf.SandwichTrade = toSandwich
+			tf.FrontRunTrade = toFrontRun.ConvertToJSONType()
+			tf.UserTrade = to.ConvertToJSONType()
+			tf.SandwichTrade = toSandwich.ConvertToJSONType()
 		}
 		// If profit is negative, reduce the high boundary
 		if profit.Cmp(big.NewInt(0)) < 0 {

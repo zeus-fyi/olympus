@@ -20,6 +20,32 @@ type TradeOutcome struct {
 	EndReservesToken1   *big.Int       `json:"endReservesToken1"`
 }
 
+type JSONTradeOutcome struct {
+	AmountIn            string         `json:"amountIn"`
+	AmountInAddr        common.Address `json:"amountInAddr"`
+	AmountFees          string         `json:"amountFees"`
+	AmountOut           string         `json:"amountOut"`
+	AmountOutAddr       common.Address `json:"amountOutAddr"`
+	StartReservesToken0 string         `json:"startReservesToken0"`
+	StartReservesToken1 string         `json:"startReservesToken1"`
+	EndReservesToken0   string         `json:"endReservesToken0"`
+	EndReservesToken1   string         `json:"endReservesToken1"`
+}
+
+func (t *TradeOutcome) ConvertToJSONType() JSONTradeOutcome {
+	return JSONTradeOutcome{
+		AmountIn:            t.AmountIn.String(),
+		AmountInAddr:        t.AmountInAddr,
+		AmountFees:          t.AmountFees.String(),
+		AmountOut:           t.AmountOut.String(),
+		AmountOutAddr:       t.AmountOutAddr,
+		StartReservesToken0: t.StartReservesToken0.String(),
+		StartReservesToken1: t.StartReservesToken1.String(),
+		EndReservesToken0:   t.EndReservesToken0.String(),
+		EndReservesToken1:   t.EndReservesToken1.String(),
+	}
+}
+
 func (p *UniswapV2Pair) PriceImpact(tokenAddrPath0 common.Address, tokenBuyAmount *big.Int) (TradeOutcome, error) {
 	tokenNumber := p.GetTokenNumber(tokenAddrPath0)
 	switch tokenNumber {

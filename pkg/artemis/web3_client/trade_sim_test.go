@@ -23,7 +23,7 @@ func (s *Web3ClientTestSuite) TestTradeSim() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ForceDirToTestDirLocation()
 	uni := InitUniswapV2Client(ctx, s.MainnetWeb3User)
-	mevTxs, err := artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17283230)
+	mevTxs, err := artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17290284)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(mevTxs)
 
@@ -36,7 +36,7 @@ func (s *Web3ClientTestSuite) TestTradeSim() {
 		if tf.FrontRunTrade.AmountIn == nil {
 			continue
 		}
-		fmt.Println(tf.TradeMethod)
+		fmt.Println(tf.Trade.TradeMethod)
 		b, berr = json.MarshalIndent(tf, "", "  ")
 		s.Require().Nil(berr)
 		//fmt.Println(string(b))

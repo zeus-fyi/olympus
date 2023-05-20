@@ -11,13 +11,22 @@ import (
 type TradeExecutionFlow struct {
 	CurrentBlockNumber *big.Int                   `json:"currentBlockNumber"`
 	Tx                 *web3_types.RpcTransaction `json:"tx"`
-	TradeMethod        string                     `json:"tradeMethod"`
-	TradeParams        any                        `json:"tradeParams"`
+	Trade              Trade                      `json:"trade"`
 	InitialPair        UniswapV2Pair              `json:"initialPair"`
 	FrontRunTrade      TradeOutcome               `json:"frontRunTrade"`
 	UserTrade          TradeOutcome               `json:"userTrade"`
 	SandwichTrade      TradeOutcome               `json:"sandwichTrade"`
 	SandwichPrediction SandwichTradePrediction    `json:"sandwichPrediction"`
+}
+
+type Trade struct {
+	TradeMethod                     string `json:"tradeMethod"`
+	*SwapETHForExactTokensParams    `json:"swapETHForExactTokensParams,omitempty"`
+	*SwapTokensForExactTokensParams `json:"swapTokensForExactTokensParams,omitempty"`
+	*SwapExactTokensForTokensParams `json:"swapExactTokensForTokensParams,omitempty"`
+	*SwapExactETHForTokensParams    `json:"swapExactETHForTokensParams,omitempty"`
+	*SwapExactTokensForETHParams    `json:"swapExactTokensForETHParams,omitempty"`
+	*SwapTokensForExactETHParams    `json:"swapTokensForExactETHParams,omitempty"`
 }
 
 type SwapETHForExactTokensParams struct {
@@ -37,8 +46,10 @@ func (s *SwapETHForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlow{
-		TradeMethod: "swapExactTokensForTokens",
-		TradeParams: s,
+		Trade: Trade{
+			TradeMethod:                 "swapETHForExactTokens",
+			SwapETHForExactTokensParams: s,
+		},
 	}
 	for low.Cmp(high) <= 0 {
 		mockPairResp := pair
@@ -95,8 +106,10 @@ func (s *SwapTokensForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlow{
-		TradeMethod: "swapTokensForExactETH",
-		TradeParams: s,
+		Trade: Trade{
+			TradeMethod:                    "swapTokensForExactTokens",
+			SwapTokensForExactTokensParams: s,
+		},
 	}
 	for low.Cmp(high) <= 0 {
 		mockPairResp := pair
@@ -154,8 +167,10 @@ func (s *SwapTokensForExactETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlow{
-		TradeMethod: "swapTokensForExactETH",
-		TradeParams: s,
+		Trade: Trade{
+			TradeMethod:                 "swapTokensForExactETH",
+			SwapTokensForExactETHParams: s,
+		},
 	}
 	for low.Cmp(high) <= 0 {
 		mockPairResp := pair
@@ -229,8 +244,10 @@ func (s *SwapExactTokensForTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlow{
-		TradeMethod: "swapExactTokensForTokens",
-		TradeParams: s,
+		Trade: Trade{
+			TradeMethod:                    "swapExactTokensForTokens",
+			SwapExactTokensForTokensParams: s,
+		},
 	}
 	for low.Cmp(high) <= 0 {
 		mockPairResp := pair
@@ -287,8 +304,10 @@ func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlow{
-		TradeMethod: "swapExactETHForTokens",
-		TradeParams: s,
+		Trade: Trade{
+			TradeMethod:                 "swapExactETHForTokens",
+			SwapExactETHForTokensParams: s,
+		},
 	}
 	for low.Cmp(high) <= 0 {
 		mockPairResp := pair
@@ -345,8 +364,10 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlow{
-		TradeMethod: "swapExactTokensForETH",
-		TradeParams: s,
+		Trade: Trade{
+			TradeMethod:                 "swapExactTokensForETHP",
+			SwapExactTokensForETHParams: s,
+		},
 	}
 	for low.Cmp(high) <= 0 {
 		mockPairResp := pair

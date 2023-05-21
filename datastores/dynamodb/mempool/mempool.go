@@ -2,9 +2,12 @@ package mempool_txs
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamodb"
 )
@@ -41,12 +44,13 @@ type MempoolTxsDynamoDB struct {
 
 // GetMempoolTxs TODO add > ttl batch get query
 func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) ([]MempoolTxsDynamoDB, error) {
-	//var mempoolTxsTableName *string
-	//if network == "mainnet" {
-	//	mempoolTxsTableName = MainnetMempoolTxsTableName
-	//} else if network == "goerli" {
-	//	mempoolTxsTableName = GoerliMempoolTxsTableName
-	//}
+	var mempoolTxsTableName *string
+	if network == "mainnet" {
+		mempoolTxsTableName = MainnetMempoolTxsTableName
+	} else if network == "goerli" {
+		mempoolTxsTableName = GoerliMempoolTxsTableName
+	}
+	fmt.Println(*mempoolTxsTableName)
 	//r, err := m.Query(ctx, &dynamodb.QueryInput{
 	//	TableName:                 mempoolTxsTableName,
 	//	AttributesToGet:           nil,
@@ -66,5 +70,18 @@ func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) (
 	//	ScanIndexForward:          nil,
 	//	Select:                    "",
 	//})
+
+	tmp := []MempoolTxsDynamoDB{}
+	for _, tx := range tmp {
+		b, err := json.Marshal(tx.Tx)
+		if err != nil {
+			return tmp, err
+		}
+		txIn := &types.Transaction{}
+		err = json.Unmarshal(b, txIn)
+		if err != nil {
+			return tmp, err
+		}
+	}
 	return []MempoolTxsDynamoDB{}, nil
 }

@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "zeus-tx-fetcher"
+  labels:
+    app.kubernetes.io/instance: "zeus-tx-fetcher"
+    app.kubernetes.io/name: "zeus-tx-fetcher"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: "zeus-tx-fetcher"
+      app.kubernetes.io/instance: "zeus-tx-fetcher"
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: "zeus-tx-fetcher"
+        app.kubernetes.io/instance: "zeus-tx-fetcher"
+    spec:
+      containers:
+        - name: zeus-tx-fetcher
+          image: registry.digitalocean.com/zeus-fyi/geth-turbo-mev:latest
+          imagePullPolicy: Always
+          command: [ "/bin/sh" ]
+          args: [ "-c","/scripts/start.sh" ]
+          env:
+            - name: DYNAMODB_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: dynamodb-access-key
+                  name: dynamodb-auth
+            - name: DYNAMODB_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: dynamodb-secret-key
+                  name: dynamodb-auth
+            - name: PG_CONN_STR
+              valueFrom:
+                secretKeyRef:
+                  key: postgres-conn-str
+                  name: postgres-auth
+          volumeMounts:
+            - name: zeus-tx-fetcher-storage
+              mountPath: "/data"
+            - name: cm-tx-fetcher
+              mountPath: "/scripts"
+          ports:
+            - name: p2p-tcp
+              containerPort: 30303
+              protocol: TCP
+            - name: p2p-udp
+              containerPort: 30303
+              protocol: UDP
+            - name: http-rpc
+              containerPort: 8545
+              protocol: TCP
+            - name: ws-rpc
+              containerPort: 8546
+              protocol: TCP
+            - name: auth-rpc
+              containerPort: 8551
+              protocol: TCP
+            - name: metrics
+              containerPort: 6060
+              protocol: TCP
+          livenessProbe:
+            initialDelaySeconds: 60
+            periodSeconds: 120
+            tcpSocket:
+              port: http-rpc
+          readinessProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            tcpSocket:
+              port: http-rpc
+          resources:
+            {}
+      volumes:
+      - name: cm-tx-fetcher
+        configMap:
+          name: cm-tx-fetcher
+          defaultMode: 0744
+      - name: zeus-tx-fetcher-storage
+        emptyDir: {}  # Use an emptyDir volume for temporary storage
+      nodeSelector:
+        {}
+      affinity:
+        {}
+      tolerations:
+        []

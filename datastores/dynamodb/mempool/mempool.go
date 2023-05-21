@@ -2,12 +2,10 @@ package mempool_txs
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamodb"
 )
@@ -71,17 +69,5 @@ func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) (
 	//	Select:                    "",
 	//})
 
-	tmp := []MempoolTxsDynamoDB{}
-	for _, tx := range tmp {
-		b, err := json.Marshal(tx.Tx)
-		if err != nil {
-			return tmp, err
-		}
-		txIn := &types.Transaction{}
-		err = json.Unmarshal(b, txIn)
-		if err != nil {
-			return tmp, err
-		}
-	}
 	return []MempoolTxsDynamoDB{}, nil
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/rs/zerolog/log"
 	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamodb"
@@ -24,15 +25,15 @@ func NewMempoolTxDynamoDB(creds dynamodb_client.DynamoDBCredentials) MempoolTxDy
 	}
 }
 
-type MempoolTxDynamoDBTableKeys struct {
-	Pubkey  string `dynamodbav:"pubkey"`
-	TxOrder int    `dynamodbav:"txOrder"`
-}
-
 var (
 	MainnetMempoolTxsTableName = aws.String("MempoolTxsMainnet")
 	GoerliMempoolTxsTableName  = aws.String("MempoolTxsGoerli")
 )
+
+type MempoolTxDynamoDBTableKeys struct {
+	Pubkey  string `dynamodbav:"pubkey"`
+	TxOrder int    `dynamodbav:"txOrder"`
+}
 
 type MempoolTxsDynamoDB struct {
 	MempoolTxDynamoDBTableKeys
@@ -40,7 +41,6 @@ type MempoolTxsDynamoDB struct {
 	TTL int    `dynamodbav:"ttl"`
 }
 
-// GetMempoolTxs TODO add > ttl batch get query
 func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) ([]MempoolTxsDynamoDB, error) {
 	var mempoolTxsTableName *string
 	if network == "mainnet" {
@@ -49,25 +49,18 @@ func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) (
 		mempoolTxsTableName = GoerliMempoolTxsTableName
 	}
 	fmt.Println(*mempoolTxsTableName)
-	//r, err := m.Query(ctx, &dynamodb.QueryInput{
-	//	TableName:                 mempoolTxsTableName,
-	//	AttributesToGet:           nil,
-	//	ConditionalOperator:       "",
-	//	ConsistentRead:            nil,
-	//	ExclusiveStartKey:         nil,
-	//	ExpressionAttributeNames:  nil,
-	//	ExpressionAttributeValues: nil,
-	//	FilterExpression:          nil,
-	//	IndexName:                 nil,
-	//	KeyConditionExpression:    nil,
-	//	KeyConditions:             nil,
-	//	Limit:                     nil,
-	//	ProjectionExpression:      nil,
-	//	QueryFilter:               nil,
-	//	ReturnConsumedCapacity:    "",
-	//	ScanIndexForward:          nil,
-	//	Select:                    "",
-	//})
+	scanInput := &dynamodb.ScanInput{
+		TableName: mempoolTxsTableName,
+	}
+	r, err := m.Scan(ctx, scanInput)
+	if err != nil {
+		return nil, err
+	}
 
-	return []MempoolTxsDynamoDB{}, nil
+	var mempoolTxs []MempoolTxsDynamoDB
+	err = attributevalue.UnmarshalListOfMaps(r.Items, &mempoolTxs)
+	if err != nil {
+		return nil, err
+	}
+	return mempoolTxs, nil
 }

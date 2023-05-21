@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	mempool_txs "github.com/zeus-fyi/olympus/datastores/dynamodb/mempool"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
@@ -31,8 +30,8 @@ func (d *ArtemisMevActivities) GetMempoolTxs(ctx context.Context) ([]mempool_txs
 		if err != nil {
 			return nil, err
 		}
-		txIn := &types.Transaction{}
-		err = json.Unmarshal(b, txIn)
+		txIn := map[string]interface{}{}
+		err = json.Unmarshal(b, &txIn)
 		if err != nil {
 			return nil, err
 		}

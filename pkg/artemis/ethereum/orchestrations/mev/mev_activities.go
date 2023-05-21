@@ -23,22 +23,21 @@ func (d *ArtemisMevActivities) GetMempoolTxs(ctx context.Context) ([]mempool_txs
 		log.Err(terr).Str("network", d.Network).Msg("GetMempoolTxs failed")
 		return nil, terr
 	}
+	return txs, nil
+}
 
+func (d *ArtemisMevActivities) DecodeMempoolTxs(ctx context.Context, txs []mempool_txs.MempoolTxsDynamoDB) error {
 	// TODO filter and process w/uniswap
 	for _, tx := range txs {
 		b, err := json.Marshal(tx.Tx)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		txIn := map[string]interface{}{}
 		err = json.Unmarshal(b, &txIn)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
-	return txs, nil
-}
-
-func (d *ArtemisMevActivities) DecodeMempoolTxs(ctx context.Context) error {
 	return nil
 }

@@ -29,7 +29,8 @@ type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
 func (d *ArtemisMevActivities) GetActivities() ActivitiesSlice {
-	return []interface{}{d.SendEther, d.SubmitSignedTx, d.WaitForTxReceipt}
+	return []interface{}{d.SendEther, d.SubmitSignedTx, d.WaitForTxReceipt,
+		d.GetMempoolTxs, d.DecodeMempoolTxs, d.SimulateAndValidateBundle, d.SubmitFlashbotsBundle}
 }
 
 func (d *ArtemisMevActivities) SendEther(ctx context.Context, payload web3_actions.SendEtherPayload) (common.Hash, error) {

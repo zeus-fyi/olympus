@@ -23,6 +23,11 @@ func InitUniswap(ctx context.Context, authHeader string) {
 	go GetMempoolTxs(ctx)
 }
 
+func InitUniswapAndGetMempoolTxs(ctx context.Context, authHeader string) {
+	InitUniswap(ctx, authHeader)
+	go GetMempoolTxs(ctx)
+}
+
 func GetMempoolTxs(ctx context.Context) {
 	for {
 		txMap, err := Uniswap.Web3Client.GetFilteredPendingMempoolTxs(ctx, Uniswap.MevSmartContractTxMap)

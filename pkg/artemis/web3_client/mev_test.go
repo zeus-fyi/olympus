@@ -25,7 +25,7 @@ func (s *Web3ClientTestSuite) TestRawMempoolTxFilter() {
 		FnOut:       "",
 		Env:         "",
 	}
-	txMap, err := ProcessUnvalidatedMempoolTxs(ctx, mempool, uni.MevSmartContractTxMap)
+	txMap, err := ProcessMempoolTxs(ctx, mempool["mempool"], uni.MevSmartContractTxMap)
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(txMap)
 	uni.MevSmartContractTxMap = txMap

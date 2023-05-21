@@ -66,14 +66,18 @@ func (t *TradeOutcome) ConvertToJSONType() JSONTradeOutcome {
 	}
 }
 
-func (p *UniswapV2Pair) PriceImpact(tokenAddrPath0 common.Address, tokenBuyAmount *big.Int) (TradeOutcome, error) {
-	tokenNumber := p.GetTokenNumber(tokenAddrPath0)
+func (p *UniswapV2Pair) PriceImpact(tokenAddrPath common.Address, tokenBuyAmount *big.Int) (TradeOutcome, error) {
+	tokenNumber := p.GetTokenNumber(tokenAddrPath)
 	switch tokenNumber {
 	case 1:
 		to, _, _ := p.PriceImpactToken1BuyToken0(tokenBuyAmount)
+		to.AmountInAddr = tokenAddrPath
+		to.AmountOutAddr = p.GetOppositeToken(tokenAddrPath.String())
 		return to, nil
 	case 0:
 		to, _, _ := p.PriceImpactToken0BuyToken1(tokenBuyAmount)
+		to.AmountInAddr = tokenAddrPath
+		to.AmountOutAddr = p.GetOppositeToken(tokenAddrPath.String())
 		return to, nil
 	default:
 		to := TradeOutcome{}

@@ -74,9 +74,9 @@ func (s *Web3ClientTestSuite) TestTradeSim() {
 		fmt.Println("profit token type", tf.SandwichTrade.AmountOutAddr.String())
 		s.Assert().Equal(tf.SandwichPrediction.ExpectedProfit, executedProfit.String())
 
-		//sellAmount, maxProfit := uni.TradeSim(tf)
-		//fmt.Println("linear search sell amount", sellAmount.String())
-		//fmt.Println("linear search max profit", maxProfit.String())
-		//tf.FrontRunTrade.AmountIn = sellAmount
+		sellAmount, maxProfit := uni.TradeSim(tfConv)
+		fmt.Println("linear search sell amount", sellAmount.String())
+		fmt.Println("linear search max profit", maxProfit.String())
+		tf.FrontRunTrade.AmountIn = sellAmount.String()
 	}
 }

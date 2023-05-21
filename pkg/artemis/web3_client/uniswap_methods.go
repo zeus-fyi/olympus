@@ -20,6 +20,30 @@ type TradeExecutionFlow struct {
 	SandwichPrediction JSONSandwichTradePrediction `json:"sandwichPrediction"`
 }
 
+func (t *TradeExecutionFlow) ConvertToBigIntType() TradeExecutionFlowInBigInt {
+	return TradeExecutionFlowInBigInt{
+		CurrentBlockNumber: t.CurrentBlockNumber,
+		Tx:                 t.Tx,
+		Trade:              t.Trade,
+		InitialPair:        t.InitialPair.ConvertToBigIntType(),
+		FrontRunTrade:      t.FrontRunTrade.ConvertToBigIntType(),
+		UserTrade:          t.UserTrade.ConvertToBigIntType(),
+		SandwichTrade:      t.SandwichTrade.ConvertToBigIntType(),
+		SandwichPrediction: t.SandwichPrediction.ConvertToBigIntType(),
+	}
+}
+
+type TradeExecutionFlowInBigInt struct {
+	CurrentBlockNumber *big.Int                   `json:"currentBlockNumber"`
+	Tx                 *web3_types.RpcTransaction `json:"tx"`
+	Trade              Trade                      `json:"trade"`
+	InitialPair        UniswapV2Pair              `json:"initialPair"`
+	FrontRunTrade      TradeOutcome               `json:"frontRunTrade"`
+	UserTrade          TradeOutcome               `json:"userTrade"`
+	SandwichTrade      TradeOutcome               `json:"sandwichTrade"`
+	SandwichPrediction SandwichTradePrediction    `json:"sandwichPrediction"`
+}
+
 type Trade struct {
 	TradeMethod                         string `json:"tradeMethod"`
 	*JSONSwapETHForExactTokensParams    `json:"swapETHForExactTokensParams,omitempty"`
@@ -323,6 +347,15 @@ type JSONSandwichTradePrediction struct {
 	ExpectedProfit string `json:"expectedProfit"`
 }
 
+func (s *JSONSandwichTradePrediction) ConvertToBigIntType() SandwichTradePrediction {
+	sellAmount, _ := new(big.Int).SetString(s.SellAmount, 10)
+	expectedProfit, _ := new(big.Int).SetString(s.ExpectedProfit, 10)
+	return SandwichTradePrediction{
+		SellAmount:     sellAmount,
+		ExpectedProfit: expectedProfit,
+	}
+}
+
 func (s *SandwichTradePrediction) ConvertToJSONType() JSONSandwichTradePrediction {
 	if s.SellAmount == nil {
 		s.SellAmount = big.NewInt(0)
@@ -547,7 +580,7 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlow{
 		Trade: Trade{
-			TradeMethod:                     "swapExactTokensForETHP",
+			TradeMethod:                     "swapExactTokensForETH",
 			JSONSwapExactTokensForETHParams: s.ConvertToJSONType(),
 		},
 	}

@@ -1,4 +1,4 @@
-package artemis_mev_tx_fetcher
+package artemis_mev_transcations
 
 import (
 	"context"

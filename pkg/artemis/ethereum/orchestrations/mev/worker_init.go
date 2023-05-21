@@ -63,7 +63,7 @@ func InitMevWorkers(ctx context.Context, temporalAuthCfg temporal_auth.TemporalA
 	InitWeb3Clients(ctx)
 	log.Ctx(ctx).Info().Msg("Artemis: InitMevWorkers: InitMainnetEthereumTxBroadcastWorker")
 	InitMainnetEthereumTxBroadcastWorker(ctx, temporalAuthCfg)
-	log.Ctx(ctx).Info().Msg("Artemis: IInitMevWorkers: nitGoerliEthereumTxBroadcastWorker")
+	log.Ctx(ctx).Info().Msg("Artemis: IInitMevWorkers: InitGoerliEthereumTxBroadcastWorker")
 	InitGoerliEthereumTxBroadcastWorker(ctx, temporalAuthCfg)
 	log.Ctx(ctx).Info().Msg("Artemis: InitMevWorkers succeeded")
 }

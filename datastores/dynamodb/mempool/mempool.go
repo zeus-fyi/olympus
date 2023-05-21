@@ -2,6 +2,7 @@ package mempool_txs
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -39,31 +40,34 @@ type MempoolTxsDynamoDB struct {
 	TTL int    `dynamodbav:"ttl"`
 }
 
-func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) (*dynamodb.QueryOutput, error) {
+// GetMempoolTxs TODO add > ttl batch get query
+func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) ([]MempoolTxsDynamoDB, error) {
 	var mempoolTxsTableName *string
 	if network == "mainnet" {
 		mempoolTxsTableName = MainnetMempoolTxsTableName
 	} else if network == "goerli" {
 		mempoolTxsTableName = GoerliMempoolTxsTableName
 	}
-	r, err := m.Query(ctx, &dynamodb.QueryInput{
-		TableName:                 mempoolTxsTableName,
-		AttributesToGet:           nil,
-		ConditionalOperator:       "",
-		ConsistentRead:            nil,
-		ExclusiveStartKey:         nil,
-		ExpressionAttributeNames:  nil,
-		ExpressionAttributeValues: nil,
-		FilterExpression:          nil,
-		IndexName:                 nil,
-		KeyConditionExpression:    nil,
-		KeyConditions:             nil,
-		Limit:                     nil,
-		ProjectionExpression:      nil,
-		QueryFilter:               nil,
-		ReturnConsumedCapacity:    "",
-		ScanIndexForward:          nil,
-		Select:                    "",
-	})
-	return r, err
+	fmt.Println(*mempoolTxsTableName)
+	//r, err := m.Query(ctx, &dynamodb.QueryInput{
+	//	TableName:                 mempoolTxsTableName,
+	//	AttributesToGet:           nil,
+	//	ConditionalOperator:       "",
+	//	ConsistentRead:            nil,
+	//	ExclusiveStartKey:         nil,
+	//	ExpressionAttributeNames:  nil,
+	//	ExpressionAttributeValues: nil,
+	//	FilterExpression:          nil,
+	//	IndexName:                 nil,
+	//	KeyConditionExpression:    nil,
+	//	KeyConditions:             nil,
+	//	Limit:                     nil,
+	//	ProjectionExpression:      nil,
+	//	QueryFilter:               nil,
+	//	ReturnConsumedCapacity:    "",
+	//	ScanIndexForward:          nil,
+	//	Select:                    "",
+	//})
+
+	return []MempoolTxsDynamoDB{}, nil
 }

@@ -38,12 +38,12 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
 		inMemSecrets, sw := auth_startup.RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
-		temporalAuthCfg = tc.ProdLocalTemporalAuthArtemis
+		temporalAuthCfg = tc.DevTemporalAuth
 		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
-		temporalAuthCfg = tc.ProdLocalTemporalAuthArtemis
+		temporalAuthCfg = tc.DevTemporalAuth
 		artemis_network_cfgs.InitArtemisLocalTestConfigs()
 	}
 
@@ -57,7 +57,11 @@ func SetConfigByEnv(ctx context.Context, env string) {
 
 	artemis_mev_tx_fetcher.InitUniswap(ctx, artemis_orchestration_auth.Bearer)
 
-	log.Info().Msgf("Artemis %s temporal auth and init procedure starting", env)
+	log.Info().Msgf("Artemis InitEthereumBroadcasters: %s temporal auth and init procedure starting", env)
 	artemis_ethereum_transcations.InitEthereumBroadcasters(ctx, temporalAuthCfg)
-	log.Info().Msgf("Artemis %s temporal auth and init procedure succeeded", env)
+	log.Info().Msgf("Artemis InitEthereumBroadcasters: %s temporal auth and init procedure succeeded", env)
+
+	log.Info().Msgf("Artemis InitMevWorkers: %s temporal auth and init procedure starting", env)
+	artemis_mev_tx_fetcher.InitMevWorkers(ctx, temporalAuthCfg)
+	log.Info().Msgf("Artemis InitMevWorkers: %s temporal auth and init procedure succeeded", env)
 }

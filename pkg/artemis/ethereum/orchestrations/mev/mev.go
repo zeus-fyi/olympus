@@ -1,4 +1,4 @@
-package artemis_mev_tx_fetcher
+package artemis_mev_transcations
 
 import (
 	"context"
@@ -20,6 +20,11 @@ func InitUniswap(ctx context.Context, authHeader string) {
 	Uniswap = web3_client.InitUniswapV2Client(ctx, wc)
 	Uniswap.PrintOn = true
 	Uniswap.PrintLocal = false
+	go GetMempoolTxs(ctx)
+}
+
+func InitUniswapAndGetMempoolTxs(ctx context.Context, authHeader string) {
+	InitUniswap(ctx, authHeader)
 	go GetMempoolTxs(ctx)
 }
 

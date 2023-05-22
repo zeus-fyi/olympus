@@ -51,6 +51,7 @@ type UniswapV2Client struct {
 	PairAbi                  *abi.ABI
 	ERC20Abi                 *abi.ABI
 	FactoryAbi               *abi.ABI
+	PrintDetails             bool
 	PrintOn                  bool
 	PrintLocal               bool
 	MevSmartContractTxMap
@@ -195,9 +196,12 @@ func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, p
 	}
 	diff := new(big.Int).Sub(expectedOut, amountMin)
 	purchasedTokenAddr := pair.GetOppositeToken(tokenAddr).String()
-	fmt.Printf("Token0 Address: %s Token0 Reserve: %s,\nToken1 Address %s, Token1 Reserve: %s\n", pair.Token0.String(), pair.Reserve0.String(), pair.Token1.String(), pair.Reserve1.String())
-	fmt.Printf("Expected amount %s %s token from trade at current rate \n", expectedOut.String(), purchasedTokenAddr)
-	fmt.Printf("Amount minimum %s %s token needed from trade \n", amountMin.String(), purchasedTokenAddr)
+	if u.PrintDetails {
+		fmt.Printf("Token0 Address: %s Token0 Reserve: %s,\nToken1 Address %s, Token1 Reserve: %s\n", pair.Token0.String(), pair.Reserve0.String(), pair.Token1.String(), pair.Reserve1.String())
+		fmt.Printf("Expected amount %s %s token from trade at current rate \n", expectedOut.String(), purchasedTokenAddr)
+		fmt.Printf("Amount minimum %s %s token needed from trade \n", amountMin.String(), purchasedTokenAddr)
+	}
+
 	bn, err := u.Web3Client.GetHeadBlockHeight(ctx)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("failed to get block height")
@@ -249,7 +253,9 @@ func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, p
 			return
 		}
 	} else {
-		fmt.Printf("Negative difference between expected and minimum amount is %s %s token \n", diff.String(), tokenAddr)
+		if u.PrintDetails {
+			fmt.Printf("Negative difference between expected and minimum amount is %s %s token \n", diff.String(), tokenAddr)
+		}
 	}
 	if amountMin.Cmp(big.NewInt(0)) == 0 {
 		fmt.Printf("Amount minimum is 0, so no trade will be executed \n")
@@ -257,8 +263,10 @@ func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, p
 	}
 	slippage := new(big.Int).Mul(diff, big.NewInt(100))
 	slippagePercent := new(big.Int).Div(slippage, amountMin)
-	fmt.Printf("Slippage is %s %% \n", slippagePercent.String())
-	fmt.Printf("Buy %s %s token for %s %s token \n\n", expectedOut.String(), pair.GetOppositeToken(tokenAddr).String(), amount.String(), tokenAddr)
+	if u.PrintDetails {
+		fmt.Printf("Slippage is %s %% \n", slippagePercent.String())
+		fmt.Printf("Buy %s %s token for %s %s token \n\n", expectedOut.String(), pair.GetOppositeToken(tokenAddr).String(), amount.String(), tokenAddr)
+	}
 	return
 }
 

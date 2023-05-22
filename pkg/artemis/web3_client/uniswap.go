@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+	"sync"
 
 	"github.com/gochain/gochain/v4/accounts/abi"
 	"github.com/gochain/gochain/v4/common"
@@ -46,6 +47,7 @@ There is a 0.3% fee for swapping tokens. This fee is split by liquidity provider
 // TODO https://docs.uniswap.org/contracts/v2/reference/smart-contracts/router-02
 
 type UniswapV2Client struct {
+	mu                       sync.Mutex
 	Web3Client               Web3Client
 	FactorySmartContractAddr string
 	PairAbi                  *abi.ABI
@@ -130,6 +132,8 @@ func (u *UniswapV2Client) GetAllTradeMethods() []string {
 }
 
 func (u *UniswapV2Client) ProcessTxs(ctx context.Context) {
+	u.mu.Lock()
+	defer u.mu.Unlock()
 	bn, err := u.Web3Client.GetHeadBlockHeight(ctx)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("failed to get block height")
@@ -201,7 +205,6 @@ func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, p
 		fmt.Printf("Expected amount %s %s token from trade at current rate \n", expectedOut.String(), purchasedTokenAddr)
 		fmt.Printf("Amount minimum %s %s token needed from trade \n", amountMin.String(), purchasedTokenAddr)
 	}
-
 	bn, err := u.Web3Client.GetHeadBlockHeight(ctx)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("failed to get block height")
@@ -261,9 +264,9 @@ func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, p
 		fmt.Printf("Amount minimum is 0, so no trade will be executed \n")
 		return
 	}
-	slippage := new(big.Int).Mul(diff, big.NewInt(100))
-	slippagePercent := new(big.Int).Div(slippage, amountMin)
 	if u.PrintDetails {
+		slippage := new(big.Int).Mul(diff, big.NewInt(100))
+		slippagePercent := new(big.Int).Div(slippage, amountMin)
 		fmt.Printf("Slippage is %s %% \n", slippagePercent.String())
 		fmt.Printf("Buy %s %s token for %s %s token \n\n", expectedOut.String(), pair.GetOppositeToken(tokenAddr).String(), amount.String(), tokenAddr)
 	}

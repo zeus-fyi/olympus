@@ -13,6 +13,7 @@ var Uniswap web3_client.UniswapV2Client
 
 func InitUniswap(ctx context.Context, authHeader string) {
 	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnet.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
+
 	m := map[string]string{
 		"Authorization": "Bearer " + authHeader,
 	}
@@ -20,22 +21,15 @@ func InitUniswap(ctx context.Context, authHeader string) {
 	Uniswap = web3_client.InitUniswapV2Client(ctx, wc)
 	Uniswap.PrintOn = true
 	Uniswap.PrintLocal = false
-	go GetMempoolTxs(ctx)
+	go ProcessMempoolTxs(ctx)
 }
 
-func InitUniswapAndGetMempoolTxs(ctx context.Context, authHeader string) {
-	InitUniswap(ctx, authHeader)
-	go GetMempoolTxs(ctx)
-}
-
-func GetMempoolTxs(ctx context.Context) {
+func ProcessMempoolTxs(ctx context.Context) {
 	for {
-		txMap, err := Uniswap.Web3Client.GetFilteredPendingMempoolTxs(ctx, Uniswap.MevSmartContractTxMap)
+		err := ArtemisMevWorkerMainnet.ExecuteArtemisMevWorkflow(ctx)
 		if err != nil {
-			log.Error().Err(err).Msg("failed to get mempool txs")
+			log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
 		}
-		Uniswap.MevSmartContractTxMap = txMap
-		Uniswap.ProcessTxs(ctx)
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 	}
 }

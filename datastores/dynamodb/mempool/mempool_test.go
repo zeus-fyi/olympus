@@ -27,8 +27,8 @@ func (t *MempoolTxDynamoDBTestSuite) SetupTest() {
 func (t *MempoolTxDynamoDBTestSuite) TestGetMempoolTxs() {
 	creds := dynamodb_client.DynamoDBCredentials{
 		Region:       region,
-		AccessKey:    t.Tc.AwsAccessKey,
-		AccessSecret: t.Tc.AwsSecretKey,
+		AccessKey:    t.Tc.AwsAccessKeyDynamoDB,
+		AccessSecret: t.Tc.AwsSecretKeyDynamoDB,
 	}
 	m := NewMempoolTxDynamoDB(creds)
 	memTxs, err := m.GetMempoolTxs(ctx, "mainnet")

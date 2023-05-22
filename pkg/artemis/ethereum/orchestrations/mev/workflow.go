@@ -17,7 +17,7 @@ type ArtemisMevWorkflow struct {
 	ArtemisMevActivities
 }
 
-const defaultTimeout = 30 * time.Minute
+const defaultTimeout = 6 * time.Second
 
 func NewArtemisMevWorkflow() ArtemisMevWorkflow {
 	deployWf := ArtemisMevWorkflow{

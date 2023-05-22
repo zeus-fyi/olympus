@@ -17,16 +17,17 @@ var ArtemisMevWorkerMainnet ArtemisMevWorker
 
 const EthereumMainnetTaskQueue = "EthereumMainnetTaskQueue"
 
-func InitMainnetEthereumTxBroadcastWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
-	log.Ctx(ctx).Info().Msg("Artemis: InitMainnetEthereumTxBroadcastWorker")
+func InitMainnetEthereumMevWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
+	log.Ctx(ctx).Info().Msg("Artemis: InitMainnetEthereumMevWorker")
 	tc, err := temporal_base.NewTemporalClient(temporalAuthCfg)
 	if err != nil {
-		log.Err(err).Msg("InitMainnetEthereumTxBroadcastWorker: NewTemporalClient failed")
+		log.Err(err).Msg("InitMainnetEthereumMevWorker: NewTemporalClient failed")
 		misc.DelayedPanic(err)
 	}
 	taskQueueName := EthereumMainnetTaskQueue
 	w := temporal_base.NewWorker(taskQueueName)
 	activityDef := NewArtemisMevActivities(ArtemisMevClientMainnet)
+	activityDef.Network = "mainnet"
 	wf := NewArtemisMevWorkflow()
 
 	w.AddWorkflows(wf.GetWorkflows())
@@ -40,16 +41,18 @@ var ArtemisMevWorkerGoerli ArtemisMevWorker
 
 const EthereumGoerliTaskQueue = "EthereumGoerliTaskQueue"
 
-func InitGoerliEthereumTxBroadcastWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
-	log.Ctx(ctx).Info().Msg("Artemis: InitGoerliEthereumTxBroadcastWorker")
+func InitGoerliEthereumMevWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
+	log.Ctx(ctx).Info().Msg("Artemis: InitGoerliEthereumMevWorker")
 	tc, err := temporal_base.NewTemporalClient(temporalAuthCfg)
 	if err != nil {
-		log.Err(err).Msg("InitGoerliEthereumTxBroadcastWorker: NewTemporalClient failed")
+		log.Err(err).Msg("InitGoerliEthereumMevWorker: NewTemporalClient failed")
 		misc.DelayedPanic(err)
 	}
 	taskQueueName := EthereumGoerliTaskQueue
 	w := temporal_base.NewWorker(taskQueueName)
 	activityDef := NewArtemisMevActivities(ArtemisMevClientGoerli)
+	activityDef.Network = "goerli"
+
 	wf := NewArtemisMevWorkflow()
 	w.AddWorkflows(wf.GetWorkflows())
 	w.AddActivities(activityDef.GetActivities())
@@ -61,9 +64,9 @@ func InitGoerliEthereumTxBroadcastWorker(ctx context.Context, temporalAuthCfg te
 func InitMevWorkers(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
 	log.Ctx(ctx).Info().Msg("Artemis: InitMevWorkers: InitWeb3Clients")
 	InitWeb3Clients(ctx)
-	log.Ctx(ctx).Info().Msg("Artemis: InitMevWorkers: InitMainnetEthereumTxBroadcastWorker")
-	InitMainnetEthereumTxBroadcastWorker(ctx, temporalAuthCfg)
-	log.Ctx(ctx).Info().Msg("Artemis: IInitMevWorkers: InitGoerliEthereumTxBroadcastWorker")
-	InitGoerliEthereumTxBroadcastWorker(ctx, temporalAuthCfg)
+	log.Ctx(ctx).Info().Msg("Artemis: InitMevWorkers: InitMainnetEthereumMevWorker")
+	InitMainnetEthereumMevWorker(ctx, temporalAuthCfg)
+	log.Ctx(ctx).Info().Msg("Artemis: IInitMevWorkers: InitGoerliEthereumMevWorker")
+	InitGoerliEthereumMevWorker(ctx, temporalAuthCfg)
 	log.Ctx(ctx).Info().Msg("Artemis: InitMevWorkers succeeded")
 }

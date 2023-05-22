@@ -134,6 +134,8 @@ func RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, auth
 	log.Info().Msg("Artemis: RunArtemisDigitalOceanS3BucketObjSecretsProcedure finished")
 	sw := SecretsWrapper{}
 	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
+	sw.AccessKeyHydraDynamoDB = sw.ReadSecret(ctx, inMemSecrets, hydraAccessKeyDynamoDB)
+	sw.SecretKeyHydraDynamoDB = sw.ReadSecret(ctx, inMemSecrets, hydraSecretKeyDynamoDB)
 	log.Info().Msg("Artemis: RunArtemisDigitalOceanS3BucketObjSecretsProcedure succeeded")
 	return inMemSecrets, sw
 }

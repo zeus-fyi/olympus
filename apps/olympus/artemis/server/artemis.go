@@ -11,6 +11,7 @@ import (
 	artemis_api_router "github.com/zeus-fyi/olympus/artemis/api"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	artemis_mev_tx_fetcher "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/mev"
+	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_ethereum_transcations "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/transcations"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
@@ -94,6 +95,7 @@ func Artemis() {
 		}))
 	}
 
+	artemis_mev_tx_fetcher.InitUniswap(ctx, artemis_orchestration_auth.Bearer)
 	srv.E = artemis_api_router.Routes(srv.E)
 	srv.Start()
 }

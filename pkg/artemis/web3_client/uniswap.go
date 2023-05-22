@@ -56,6 +56,7 @@ type UniswapV2Client struct {
 	MevSmartContractTxMap
 	Path        filepaths.Path
 	BlockNumber *big.Int
+	Trades      []artemis_autogen_bases.EthMempoolMevTx
 
 	SwapExactTokensForTokensParamsSlice []SwapExactTokensForTokensParams
 	SwapTokensForExactTokensParamsSlice []SwapTokensForExactTokensParams
@@ -241,6 +242,7 @@ func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, p
 			To:                tx.Tx.To.String(),
 			BlockNumber:       int(u.BlockNumber.Int64()),
 		}
+		u.Trades = append(u.Trades, txMempool)
 		err = artemis_validator_service_groups_models.InsertMempoolTx(ctx, txMempool)
 		if err != nil {
 			fmt.Printf("InsertMempoolTx err: %s", err)

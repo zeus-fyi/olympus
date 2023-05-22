@@ -45,7 +45,7 @@ type MempoolTxsDynamoDB struct {
 	TTL int    `dynamodbav:"ttl"`
 }
 
-func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) ([]MempoolTxsDynamoDB, error) {
+func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) (map[string]map[string]*web3_types.RpcTransaction, error) {
 	var mempoolTxsTableName *string
 	if network == "mainnet" {
 		mempoolTxsTableName = MainnetMempoolTxsTableName
@@ -70,7 +70,6 @@ func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) (
 	}
 
 	txMap := make(map[string]map[string]*web3_types.RpcTransaction)
-
 	for _, tx := range mempoolTxs {
 		if txMap[tx.Pubkey] == nil {
 			txMap[tx.Pubkey] = make(map[string]*web3_types.RpcTransaction)
@@ -110,7 +109,7 @@ func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) (
 		txMap[tx.Pubkey] = tmp
 	}
 
-	return mempoolTxs, nil
+	return txMap, nil
 }
 
 type Transaction struct {

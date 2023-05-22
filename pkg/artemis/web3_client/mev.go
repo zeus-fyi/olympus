@@ -70,7 +70,7 @@ func ProcessMempoolTxs(ctx context.Context, mempool map[string]map[string]*web3_
 					}
 					argdata := calldata[4:]
 					if len(argdata)%32 != 0 || len(argdata) == 0 {
-						log.Info().Msg("Web3Client| GetFilteredPendingMempoolTxs invalid argdata length")
+						//log.Info().Msg("Web3Client| GetFilteredPendingMempoolTxs invalid argdata length")
 						continue
 					}
 					m := make(map[string]interface{})

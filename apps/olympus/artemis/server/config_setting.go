@@ -22,7 +22,6 @@ var temporalProdAuthConfig = temporal_auth.TemporalAuth{
 }
 
 func SetConfigByEnv(ctx context.Context, env string) {
-
 	switch env {
 	case "production":
 		log.Info().Msg("Artemis: production auth procedure starting")
@@ -33,12 +32,10 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
-		temporalAuthCfg = temporalProdAuthConfig
-		authKeysCfg = tc.ProdLocalAuthKeysCfg
-		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
-		inMemSecrets, sw := auth_startup.RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
+		authCfg := auth_startup.NewDefaultAuthClient(ctx, tc.ProdLocalAuthKeysCfg)
 		temporalAuthCfg = tc.DevTemporalAuth
+		inMemSecrets, sw := auth_startup.RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
@@ -54,8 +51,6 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	log.Info().Msgf("Artemis %s orchestration retrieving auth token", env)
 	artemis_orchestration_auth.Bearer = auth_startup.FetchTemporalAuthBearer(ctx)
 	log.Info().Msgf("Artemis %s orchestration retrieving auth token done", env)
-
-	artemis_mev_tx_fetcher.InitUniswap(ctx, artemis_orchestration_auth.Bearer)
 
 	log.Info().Msgf("Artemis InitEthereumBroadcasters: %s temporal auth and init procedure starting", env)
 	artemis_ethereum_transcations.InitEthereumBroadcasters(ctx, temporalAuthCfg)

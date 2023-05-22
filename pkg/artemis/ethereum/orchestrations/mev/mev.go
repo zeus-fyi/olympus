@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
 
 var (
@@ -32,11 +33,33 @@ func InitNewUniswap(ctx context.Context) *web3_client.UniswapV2Client {
 }
 
 func ProcessMempoolTxs(ctx context.Context) {
+	c := chronos.Chronos{}
+	ticker := time.NewTicker(100 * time.Millisecond)
+	defer ticker.Stop()
+
 	for {
-		err := ArtemisMevWorkerMainnet.ExecuteArtemisMevWorkflow(ctx)
-		if err != nil {
-			log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
+		select {
+		case <-ticker.C:
+			currentSlot := c.GetPendingMainnetSlotNum()
+			secondsLeftInSlot := 12 - c.GetSecsSinceLastMainnetSlot()
+			//log.Info().Int("current_slot", currentSlot).Interface("timeToNextSlot", secondsLeftInSlot).Msg("current_slot")
+
+			if secondsLeftInSlot <= 4 {
+				// when 4 seconds remaining execute this
+				log.Info().Int("current_slot", currentSlot).Interface("timeToNextSlot", secondsLeftInSlot).Msg("current_slot")
+				log.Info().Msg("ExecuteArtemisMevWorkflow")
+				err := ArtemisMevWorkerMainnet.ExecuteArtemisMevWorkflow(ctx)
+				if err != nil {
+					log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
+				}
+				time.Sleep(4 * time.Second)
+			}
+
+			if secondsLeftInSlot <= 0 {
+				// when 0 seconds remaining go to start of loop
+				secondsLeftInSlot = 12 - c.GetSecsSinceLastMainnetSlot()
+				ticker.Reset(time.Duration(secondsLeftInSlot) * time.Second)
+			}
 		}
-		time.Sleep(200 * time.Millisecond)
 	}
 }

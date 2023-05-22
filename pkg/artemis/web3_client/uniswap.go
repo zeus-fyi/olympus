@@ -15,6 +15,7 @@ import (
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	signing_automation_ethereum "github.com/zeus-fyi/zeus/pkg/artemis/signing_automation/ethereum"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
@@ -57,10 +58,10 @@ type UniswapV2Client struct {
 	PrintOn                  bool
 	PrintLocal               bool
 	MevSmartContractTxMap
-	Path        filepaths.Path
-	BlockNumber *big.Int
-	Trades      []artemis_autogen_bases.EthMempoolMevTx
-
+	Path                                filepaths.Path
+	BlockNumber                         *big.Int
+	Trades                              []artemis_autogen_bases.EthMempoolMevTx
+	chronus                             chronos.Chronos
 	SwapExactTokensForTokensParamsSlice []SwapExactTokensForTokensParams
 	SwapTokensForExactTokensParamsSlice []SwapTokensForExactTokensParams
 	SwapExactETHForTokensParamsSlice    []SwapExactETHForTokensParams
@@ -94,6 +95,7 @@ func InitUniswapV2Client(ctx context.Context, w Web3Client) UniswapV2Client {
 	}
 	return UniswapV2Client{
 		Web3Client:               w,
+		chronus:                  chronos.Chronos{},
 		FactorySmartContractAddr: UniswapV2FactoryAddress,
 		FactoryAbi:               factoryAbiFile,
 		ERC20Abi:                 erc20AbiFile,
@@ -134,12 +136,7 @@ func (u *UniswapV2Client) GetAllTradeMethods() []string {
 func (u *UniswapV2Client) ProcessTxs(ctx context.Context) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	bn, err := u.Web3Client.GetHeadBlockHeight(ctx)
-	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("failed to get block height")
-		return
-	}
-	u.BlockNumber = bn
+	u.BlockNumber = new(big.Int).SetInt64(int64(u.chronus.GetLatestMainnetBlockNumber()))
 	count := 0
 	for methodName, tx := range u.MethodTxMap {
 		switch methodName {
@@ -192,7 +189,7 @@ func (u *UniswapV2Client) ProcessTxs(ctx context.Context) {
 
 func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, pair UniswapV2Pair, tokenAddr string, amount, amountMin *big.Int) {
 	tf.Tx = tx.Tx
-	tf.CurrentBlockNumber = u.BlockNumber
+	tf.CurrentBlockNumber = new(big.Int).SetInt64(int64(u.chronus.GetLatestMainnetBlockNumber()))
 	expectedOut, err := pair.GetQuoteUsingTokenAddr(tokenAddr, amount)
 	if err != nil {
 		fmt.Println("GetQuoteUsingTokenAddr", err)
@@ -205,13 +202,9 @@ func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, p
 		fmt.Printf("Expected amount %s %s token from trade at current rate \n", expectedOut.String(), purchasedTokenAddr)
 		fmt.Printf("Amount minimum %s %s token needed from trade \n", amountMin.String(), purchasedTokenAddr)
 	}
-	bn, err := u.Web3Client.GetHeadBlockHeight(ctx)
-	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("failed to get block height")
-		return
-	}
-	if u.BlockNumber.String() != bn.String() {
-		log.Info().Interface("currentBlockNumber", bn.String()).Interface("startingBlockNumber", u.BlockNumber.String()).Msg("block number transition exiting due to stale data")
+
+	if u.BlockNumber.String() != tf.CurrentBlockNumber.String() {
+		log.Info().Interface("currentBlockNumber", tf.CurrentBlockNumber.String()).Interface("startingBlockNumber", u.BlockNumber.String()).Msg("block number transition exiting due to stale data")
 		return
 	}
 	if diff.Cmp(big.NewInt(0)) == 1 {

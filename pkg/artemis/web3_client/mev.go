@@ -65,7 +65,7 @@ func ProcessMempoolTxs(ctx context.Context, mempool map[string]map[string]*web3_
 						continue
 					}
 					if !strings_filter.FilterStringWithOpts(method.Name, mevTxMap.Filter) {
-						log.Debug().Msg("Web3Client| GetFilteredPendingMempoolTxs Method Filtered")
+						//log.Debug().Msg("Web3Client| GetFilteredPendingMempoolTxs Method Filtered")
 						continue
 					}
 					argdata := calldata[4:]

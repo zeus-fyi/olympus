@@ -63,7 +63,12 @@ spec:
             successThreshold: 1
             timeoutSeconds: 3
           resources:
-            {}
+            limits:
+              cpu: 4
+              memory: 4Gi
+            requests:
+              cpu: 4
+              memory: 4Gi
       volumes:
         - name: cm-artemis
           configMap:

@@ -51,6 +51,7 @@ func WorkloadStartup(ctx context.Context, w athena_workloads.WorkloadInfo) {
 					log.Fatal().Msg("failed to start p2pCrawler")
 					misc.DelayedPanic(err)
 				}
+				log.Info().Msg("p2pCrawler main loop complete")
 				p := filepaths.Path{
 					DirIn:  "/data",
 					FnIn:   "all-nodes.json",
@@ -67,12 +68,14 @@ func WorkloadStartup(ctx context.Context, w athena_workloads.WorkloadInfo) {
 					log.Fatal().Msg("failed to insert p2pCrawler node results")
 					misc.DelayedPanic(err)
 				}
-				cmd = exec.Command("devp2p", "nodeset", "filter", p.FileInPath(), "-eth-network", "mainnet")
+				log.Info().Msg("p2pCrawler mainnet filter start")
+				cmd = exec.Command("devp2p", "nodeset", "filter", p.FileInPath(), "-eth-network", "mainnet", "-limit", "200")
 				outFile, err := os.Create(p.FileOutPath())
 				if err != nil {
 					log.Fatal().Msg("failed to filter p2pCrawler mainnet node results")
 					misc.DelayedPanic(err)
 				}
+				log.Info().Msg("p2pCrawler mainnet filter start")
 				cmd.Stdout = outFile
 				err = cmd.Run()
 				if err != nil {
@@ -80,11 +83,16 @@ func WorkloadStartup(ctx context.Context, w athena_workloads.WorkloadInfo) {
 					misc.DelayedPanic(err)
 				}
 				outFile.Close()
+				log.Info().Msg("p2pCrawler mainnet filter done")
 				p = filepaths.Path{
 					DirIn: "/data",
 					FnIn:  "mainnet-nodes.json",
 				}
 				b = p.ReadFileInPath()
+				if b == nil {
+					log.Fatal().Msg("failed to read p2pCrawler mainnet node results")
+					misc.DelayedPanic(err)
+				}
 				var nodes artemis_validator_service_groups_models.P2PNodes
 				err = json.Unmarshal(b, &nodes)
 				if err != nil {

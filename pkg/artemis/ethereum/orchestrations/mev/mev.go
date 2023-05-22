@@ -2,6 +2,7 @@ package artemis_mev_transcations
 
 import (
 	"context"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
@@ -12,6 +13,7 @@ var Uniswap web3_client.UniswapV2Client
 
 func InitUniswap(ctx context.Context, authHeader string) {
 	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnet.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
+
 	m := map[string]string{
 		"Authorization": "Bearer " + authHeader,
 	}
@@ -28,6 +30,6 @@ func ProcessMempoolTxs(ctx context.Context) {
 		if err != nil {
 			log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
 		}
-		//time.Sleep(100 * time.Millisecond)
+		time.Sleep(100000 * time.Millisecond)
 	}
 }

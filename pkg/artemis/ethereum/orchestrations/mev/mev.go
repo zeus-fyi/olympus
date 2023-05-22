@@ -30,6 +30,6 @@ func ProcessMempoolTxs(ctx context.Context) {
 		if err != nil {
 			log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 	}
 }

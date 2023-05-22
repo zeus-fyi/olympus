@@ -3,6 +3,7 @@ package zeus_core
 import (
 	"context"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 	v1 "k8s.io/api/apps/v1"
@@ -19,6 +20,10 @@ func (k *K8Util) GetDeploymentList(ctx context.Context, kns zeus_common_types.Cl
 func (k *K8Util) GetDeployment(ctx context.Context, kns zeus_common_types.CloudCtxNs, name string, filter *string_utils.FilterOpts) (*v1.Deployment, error) {
 	k.SetContext(kns.Context)
 	d, err := k.kc.AppsV1().Deployments(kns.Namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		log.Err(err).Interface("kns", kns).Msg("GetDeployment: error")
+		return nil, err
+	}
 	return d, err
 }
 
@@ -26,6 +31,11 @@ func (k *K8Util) CreateDeployment(ctx context.Context, kns zeus_common_types.Clo
 	k.SetContext(kns.Context)
 	opts := metav1.CreateOptions{}
 	d, err := k.kc.AppsV1().Deployments(kns.Namespace).Create(ctx, d, opts)
+	alreadyExists := errors.IsAlreadyExists(err)
+	if alreadyExists {
+		log.Err(err).Interface("kns", kns).Msg("Deployment already exists, skipping creation")
+		return d, nil
+	}
 	return d, err
 }
 

@@ -2,7 +2,6 @@ package artemis_mev_transcations
 
 import (
 	"context"
-	"time"
 
 	"github.com/rs/zerolog/log"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
@@ -29,6 +28,6 @@ func ProcessMempoolTxs(ctx context.Context) {
 		if err != nil {
 			log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
 		}
-		time.Sleep(100 * time.Millisecond)
+		//time.Sleep(100 * time.Millisecond)
 	}
 }

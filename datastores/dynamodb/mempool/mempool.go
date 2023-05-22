@@ -52,7 +52,6 @@ func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) (
 	} else if network == "goerli" {
 		mempoolTxsTableName = GoerliMempoolTxsTableName
 	}
-	fmt.Println(*mempoolTxsTableName)
 	scanInput := &dynamodb.ScanInput{
 		TableName: mempoolTxsTableName,
 	}

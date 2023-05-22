@@ -27,6 +27,7 @@ func InitMainnetEthereumMevWorker(ctx context.Context, temporalAuthCfg temporal_
 	taskQueueName := EthereumMainnetTaskQueue
 	w := temporal_base.NewWorker(taskQueueName)
 	activityDef := NewArtemisMevActivities(ArtemisMevClientMainnet)
+	activityDef.Network = "mainnet"
 	wf := NewArtemisMevWorkflow()
 
 	w.AddWorkflows(wf.GetWorkflows())
@@ -50,6 +51,8 @@ func InitGoerliEthereumMevWorker(ctx context.Context, temporalAuthCfg temporal_a
 	taskQueueName := EthereumGoerliTaskQueue
 	w := temporal_base.NewWorker(taskQueueName)
 	activityDef := NewArtemisMevActivities(ArtemisMevClientGoerli)
+	activityDef.Network = "goerli"
+
 	wf := NewArtemisMevWorkflow()
 	w.AddWorkflows(wf.GetWorkflows())
 	w.AddActivities(activityDef.GetActivities())

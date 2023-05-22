@@ -46,7 +46,7 @@ func (s *SecretsTestSuite) TestGetSecrets() {
 
 func (s *SecretsTestSuite) TestCreateChoreographySecret() {
 	ctx := context.Background()
-	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "ephemeral-staking"}
+	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "p2p-crawler"}
 	m := make(map[string]string)
 
 	m["bearer"] = "bearer"
@@ -68,8 +68,8 @@ func (s *SecretsTestSuite) TestCreateChoreographySecret() {
 		Type:       "Opaque",
 	}
 
-	_, err := s.K.CreateNamespaceIfDoesNotExist(ctx, kns)
-	s.Require().Nil(err)
+	//_, err := s.K.CreateNamespaceIfDoesNotExist(ctx, kns)
+	//s.Require().Nil(err)
 
 	newSecret, err := s.K.CreateSecretWithKns(ctx, kns, &sec, nil)
 	s.Require().Nil(err)

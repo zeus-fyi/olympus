@@ -95,6 +95,7 @@
     "@redux-devtools/core": "^3.13.1",
     "@types/aws4": "^1.11.2",
     "@types/js-yaml": "^4.0.5",
+    "@types/lodash": "^4.14.194",
     "@types/node": "^16.18.14",
     "@types/ungap__structured-clone": "^0.3.0"
   }

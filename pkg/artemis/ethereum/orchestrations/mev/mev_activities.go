@@ -28,7 +28,7 @@ func (d *ArtemisMevActivities) GetMempoolTxs(ctx context.Context) (map[string]ma
 }
 
 func (d *ArtemisMevActivities) ProcessMempoolTxs(ctx context.Context, mempoolTxs map[string]map[string]*web3_types.RpcTransaction) ([]artemis_autogen_bases.EthMempoolMevTx, error) {
-	uni := Uniswap
+	uni := InitNewUniswap(ctx)
 	mevTxMap := uni.MevSmartContractTxMap
 	processedMevTxMap, err := web3_client.ProcessMempoolTxs(ctx, mempoolTxs, mevTxMap)
 	if err != nil {

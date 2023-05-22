@@ -9,19 +9,26 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-var Uniswap web3_client.UniswapV2Client
+var (
+	AuthHeader string
+)
 
 func InitUniswap(ctx context.Context, authHeader string) {
+	AuthHeader = authHeader
+	go ProcessMempoolTxs(ctx)
+}
+
+func InitNewUniswap(ctx context.Context) *web3_client.UniswapV2Client {
 	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnet.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
 
 	m := map[string]string{
-		"Authorization": "Bearer " + authHeader,
+		"Authorization": "Bearer " + AuthHeader,
 	}
 	wc.Headers = m
-	Uniswap = web3_client.InitUniswapV2Client(ctx, wc)
-	Uniswap.PrintOn = true
-	Uniswap.PrintLocal = false
-	go ProcessMempoolTxs(ctx)
+	uni := web3_client.InitUniswapV2Client(ctx, wc)
+	uni.PrintOn = true
+	uni.PrintLocal = false
+	return &uni
 }
 
 func ProcessMempoolTxs(ctx context.Context) {
@@ -30,6 +37,6 @@ func ProcessMempoolTxs(ctx context.Context) {
 		if err != nil {
 			log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 	}
 }

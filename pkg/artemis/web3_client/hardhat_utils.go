@@ -61,3 +61,25 @@ func (w *Web3Client) SetERC20BalanceAtSlotNumber(ctx context.Context, scAddr, us
 	}
 	return nil
 }
+
+func (w *Web3Client) SetERC20BalanceBruteForce(ctx context.Context, scAddr, userAddr string, value *big.Int) error {
+	for i := 0; i < 100; i++ {
+		slotHex, err := getSlot(userAddr, new(big.Int).SetUint64(uint64(i)))
+		if err != nil {
+			return err
+		}
+		newBalance := common.LeftPadBytes(value.Bytes(), 32)
+		err = w.SetStorageAt(ctx, scAddr, slotHex, common.BytesToHash(newBalance).Hex())
+		if err != nil {
+			continue
+		}
+		b, err := w.ReadERC20TokenBalance(ctx, scAddr, userAddr)
+		if err != nil {
+			return err
+		}
+		if b.String() == value.String() {
+			return nil
+		}
+	}
+	return errors.New("unable to overwrite balance")
+}

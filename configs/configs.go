@@ -23,6 +23,7 @@ type TestURLs struct {
 type TestContainer struct {
 	Env string
 
+	HardhatNode                 string
 	AwsAccessKeyEks             string
 	AwsSecretKeyEks             string
 	InfraCostAPIKey             string
@@ -169,6 +170,7 @@ func InitLocalTestConfigs() TestContainer {
 		log.Info().Err(err).Msg("error reading gcp auth json file")
 	}
 	testCont.GcpAuthJson = b
+	testCont.HardhatNode = viper.GetString("HARDHAT_NODE_URL")
 	testCont.TwitterAccessToken = viper.GetString("TWITTER_ACCESS_TOKEN_KEY")
 	testCont.TwitterAccessTokenSecret = viper.GetString("TWITTER_ACCESS_TOKEN_SECRET_KEY")
 

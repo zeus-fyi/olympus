@@ -15,3 +15,13 @@ func (w *Web3Client) SetBalance(ctx context.Context, addr string, balance hexuti
 	}
 	return err
 }
+
+func (w *Web3Client) ResetNetwork(ctx context.Context, nodeURL string, blockNumber int) error {
+	w.Dial()
+	defer w.Close()
+	err := w.Client.ResetNetwork(ctx, nodeURL, blockNumber)
+	if err != nil {
+		return err
+	}
+	return err
+}

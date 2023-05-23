@@ -119,6 +119,8 @@ type TestContainer struct {
 	PagerDutyApiKey     string
 	PagerDutyRoutingKey string
 	AdminLoginPassword  string
+
+	EtherScanAPIKey string
 }
 
 type ArtemisHexKeys struct {
@@ -170,6 +172,7 @@ func InitLocalTestConfigs() TestContainer {
 		log.Info().Err(err).Msg("error reading gcp auth json file")
 	}
 	testCont.GcpAuthJson = b
+	testCont.EtherScanAPIKey = viper.GetString("ETHERSCAN_API_KEY")
 	testCont.HardhatNode = viper.GetString("HARDHAT_NODE_URL")
 	testCont.TwitterAccessToken = viper.GetString("TWITTER_ACCESS_TOKEN_KEY")
 	testCont.TwitterAccessTokenSecret = viper.GetString("TWITTER_ACCESS_TOKEN_SECRET_KEY")

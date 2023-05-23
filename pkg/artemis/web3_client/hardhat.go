@@ -25,3 +25,13 @@ func (w *Web3Client) ResetNetwork(ctx context.Context, nodeURL string, blockNumb
 	}
 	return err
 }
+
+func (w *Web3Client) ImpersonateAccount(ctx context.Context, userAddr string) error {
+	w.Dial()
+	defer w.Close()
+	err := w.Client.ImpersonateAccount(ctx, userAddr)
+	if err != nil {
+		return err
+	}
+	return err
+}

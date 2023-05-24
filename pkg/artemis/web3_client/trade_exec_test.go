@@ -50,8 +50,6 @@ func (s *Web3ClientTestSuite) TestTradeExec() {
 }
 
 func (s *Web3ClientTestSuite) TestMatchInputs() {
-	rerr := s.LocalHardhatMainnetUser.ResetNetwork(ctx, s.Tc.HardhatNode, 17326550)
-	s.Require().Nil(rerr)
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ForceDirToTestDirLocation()
 	//uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
@@ -69,8 +67,18 @@ func (s *Web3ClientTestSuite) TestMatchInputs() {
 			continue
 		}
 
+		txHash := *tf.Tx.Hash
+		fmt.Println(txHash.String())
+
+		s.MainnetWeb3User.Dial()
+		rx, err := s.MainnetWeb3User.GetTransactionByHash(ctx, txHash)
+		s.MainnetWeb3User.Close()
+		s.Require().Nil(err)
+		err = s.LocalHardhatMainnetUser.ResetNetwork(ctx, s.Tc.HardhatNode, int(rx.BlockNumber.Int64()-1))
+		s.Require().Nil(err)
+
 		tfRegular := tf.ConvertToBigIntType()
-		err := s.LocalHardhatMainnetUser.MatchFrontRunTradeValues(tfRegular)
+		err = s.LocalHardhatMainnetUser.MatchFrontRunTradeValues(tfRegular)
 		s.Require().Nil(err)
 		b, err := s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountInAddr.String(), s.LocalHardhatMainnetUser.PublicKey())
 		s.Require().Nil(err)

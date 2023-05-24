@@ -6,4 +6,5 @@ func (s *Web3ClientTestSuite) TestTradeExec() {
 	s.Require().NoError(err)
 	s.Require().NotNil(swapAbi)
 	s.Require().NotNil(bc)
+
 }

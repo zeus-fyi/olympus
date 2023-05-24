@@ -39,6 +39,20 @@ func LoadERC20AbiPayload() (web3_actions.SendContractTxPayload, string, error) {
 	}
 	return params, m["bytecode"].(string), nil
 }
+func LoadERC20DeployedByteCode() (string, error) {
+	fp := filepaths.Path{
+		PackageName: "",
+		DirIn:       "./contract_abis",
+		FnIn:        "Token.json",
+	}
+	fi := fp.ReadFileInPath()
+	m := map[string]interface{}{}
+	err := json.Unmarshal(fi, &m)
+	if err != nil {
+		return "", err
+	}
+	return m["deployedBytecode"].(string), nil
+}
 
 func LoadUniswapFactoryAbiPayload() (web3_actions.SendContractTxPayload, string, error) {
 	fp := filepaths.Path{

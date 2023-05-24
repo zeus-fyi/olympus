@@ -2,24 +2,58 @@ package web3_client
 
 import (
 	"context"
-	"math/big"
+	"errors"
 	"strings"
 
 	web3_types "github.com/zeus-fyi/gochain/web3/types"
 	"github.com/zeus-fyi/gochain/web3/web3_actions"
 )
 
-func (w *Web3Client) ExecSwapTrade(tf TradeExecutionFlowInBigInt) (*big.Int, *big.Int) {
-	sellAmount := big.NewInt(0)
-	maxProfit := big.NewInt(0)
-	paramsTx, _, err := LoadSwapAbiPayload()
-	if err != nil {
-		return sellAmount, maxProfit
+// TODO, low level swap implementation
+// Swap (index_topic_1 address sender, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out, index_topic_2 address to)
+// Sync (uint112 reserve0, uint112 reserve1)
+
+func (u *UniswapV2Client) ExecFrontRunTrade(tf TradeExecutionFlowInBigInt) error {
+	amount0In := ""
+	amount1In := ""
+	amount0Out := ""
+	amount1Out := ""
+	scInfo := &web3_actions.SendContractTxPayload{
+		SmartContractAddr: u.MevSmartContractTxMap.SmartContractAddr,
+		SendEtherPayload:  web3_actions.SendEtherPayload{},
+		ContractABI:       u.MevSmartContractTxMap.Abi,
+		MethodName:        swap,
+		Params:            []interface{}{amount0In, amount1In, amount0Out, amount1Out},
 	}
-	// Pair address in contract
-	pairContract := ""
-	paramsTx.Params = []interface{}{pairContract, tf.FrontRunTrade.AmountIn, tf.FrontRunTrade.AmountOut}
-	return sellAmount, maxProfit
+
+	signedTx, err := u.Web3Client.GetSignedTxToCallFunctionWithArgs(ctx, scInfo)
+	if err != nil {
+		return err
+	}
+	err = u.Web3Client.SendSignedTransaction(ctx, signedTx)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
+func (u *UniswapV2Client) ExecTradeByMethod(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+	switch tf.Trade.TradeMethod {
+	case swapTokensForExactETH:
+		return u.SwapTokensForExactETHParams(tf)
+	case swapExactTokensForETH:
+		return u.SwapExactTokensForETHParams(tf)
+	case swapExactTokensForTokens:
+		return u.SwapExactTokensForTokensParams(tf)
+	case swapTokensForExactTokens:
+		return u.SwapTokensForExactTokensParams(tf)
+	case swapExactETHForTokens:
+		return u.SwapExactETHForTokensParams(tf)
+	case swapETHForExactTokens:
+		return u.SwapETHForExactTokensParams(tf)
+	default:
+	}
+	return nil, errors.New("invalid trade method")
 }
 
 func (u *UniswapV2Client) SwapExactTokensForETHParams(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
@@ -30,7 +64,6 @@ func (u *UniswapV2Client) SwapExactTokensForETHParams(tf TradeExecutionFlowInBig
 		pathSlice[i] = p.String()
 	}
 	pathString := "[" + strings.Join(pathSlice, ",") + "]"
-
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: u.MevSmartContractTxMap.SmartContractAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},

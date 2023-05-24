@@ -6,7 +6,7 @@ const (
 	mainnetGenesis = 1606824000
 	goerliGenesis  = 1614588812
 
-	mainnetBlockOffset = 10820265
+	mainnetBlockOffset = 10820069
 )
 
 func (c *LibV0) GetPendingMainnetSlotNum() int {

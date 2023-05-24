@@ -136,7 +136,12 @@ func (u *UniswapV2Client) GetAllTradeMethods() []string {
 func (u *UniswapV2Client) ProcessTxs(ctx context.Context) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	u.BlockNumber = new(big.Int).SetInt64(int64(u.chronus.GetLatestMainnetBlockNumber()))
+	bn, err := u.Web3Client.GetBlockNumber(ctx)
+	if err != nil {
+		log.Err(err).Msg("failed to get block number")
+		return
+	}
+	u.BlockNumber = bn
 	count := 0
 	for methodName, tx := range u.MethodTxMap {
 		switch methodName {
@@ -189,7 +194,12 @@ func (u *UniswapV2Client) ProcessTxs(ctx context.Context) {
 
 func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, pair UniswapV2Pair, tokenAddr string, amount, amountMin *big.Int) {
 	tf.Tx = tx.Tx
-	tf.CurrentBlockNumber = new(big.Int).SetInt64(int64(u.chronus.GetLatestMainnetBlockNumber()))
+	bn, err := u.Web3Client.GetBlockNumber(ctx)
+	if err != nil {
+		fmt.Println("GetBlockNumber Error", err)
+		return
+	}
+	tf.CurrentBlockNumber = bn
 	expectedOut, err := pair.GetQuoteUsingTokenAddr(tokenAddr, amount)
 	if err != nil {
 		fmt.Println("GetQuoteUsingTokenAddr", err)

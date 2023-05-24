@@ -52,7 +52,6 @@ func (s *Web3ClientTestSuite) TestTradeExec() {
 func (s *Web3ClientTestSuite) TestMatchInputs() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ForceDirToTestDirLocation()
-	//uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
 	mevTxs, merr := artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17332368)
 	s.Require().Nil(merr)
 	s.Require().NotEmpty(mevTxs)
@@ -62,14 +61,11 @@ func (s *Web3ClientTestSuite) TestMatchInputs() {
 		by := []byte(mevTx.TxFlowPrediction)
 		berr := json.Unmarshal(by, &tf)
 		s.Require().Nil(berr)
-
 		if tf.FrontRunTrade.AmountIn == "" {
 			continue
 		}
-
 		txHash := *tf.Tx.Hash
 		fmt.Println(txHash.String())
-
 		s.MainnetWeb3User.Dial()
 		rx, err := s.MainnetWeb3User.GetTransactionByHash(ctx, txHash)
 		s.MainnetWeb3User.Close()

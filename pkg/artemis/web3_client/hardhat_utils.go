@@ -18,7 +18,6 @@ func getSlot(userAddress string, slot *big.Int) (string, error) {
 		common.LeftPadBytes(addr.Bytes(), 32),
 		common.LeftPadBytes(slot.Bytes(), 32),
 	)
-
 	// return hex string of the hash
 	return hash.Hex(), nil
 }

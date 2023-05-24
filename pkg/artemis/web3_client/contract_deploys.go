@@ -43,7 +43,6 @@ func LoadERC20AbiPayload() (web3_actions.SendContractTxPayload, string, error) {
 func (w *Web3Client) DeployERC20Token(ctx context.Context, bc string, scParams web3_actions.SendContractTxPayload) (*web3_types.Transaction, error) {
 	w.Dial()
 	defer w.Close()
-
 	tx, err := w.DeployContract(ctx, bc, scParams)
 	if err != nil {
 		return nil, err

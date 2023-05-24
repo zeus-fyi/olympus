@@ -136,11 +136,14 @@ func (u *UniswapV2Client) GetAllTradeMethods() []string {
 func (u *UniswapV2Client) ProcessTxs(ctx context.Context) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
+	u.Web3Client.Dial()
 	bn, err := u.Web3Client.GetBlockNumber(ctx)
 	if err != nil {
 		log.Err(err).Msg("failed to get block number")
+		u.Web3Client.Close()
 		return
 	}
+	u.Web3Client.Close()
 	u.BlockNumber = bn
 	count := 0
 	for methodName, tx := range u.MethodTxMap {
@@ -194,6 +197,8 @@ func (u *UniswapV2Client) ProcessTxs(ctx context.Context) {
 
 func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, pair UniswapV2Pair, tokenAddr string, amount, amountMin *big.Int) {
 	tf.Tx = tx.Tx
+	u.Web3Client.Dial()
+	defer u.Web3Client.Close()
 	bn, err := u.Web3Client.GetBlockNumber(ctx)
 	if err != nil {
 		fmt.Println("GetBlockNumber Error", err)

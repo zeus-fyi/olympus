@@ -7,6 +7,7 @@ import (
 	"math/big"
 
 	"github.com/gochain/gochain/v4/common"
+	"github.com/gochain/gochain/v4/common/hexutil"
 	"github.com/gochain/gochain/v4/crypto"
 )
 
@@ -82,4 +83,18 @@ func (w *Web3Client) SetERC20BalanceBruteForce(ctx context.Context, scAddr, user
 		}
 	}
 	return errors.New("unable to overwrite balance")
+}
+
+func (w *Web3Client) MineNextBlock(ctx context.Context) error {
+	w.Dial()
+	defer w.Close()
+	oneBlock := hexutil.Big{}
+	bigInt := oneBlock.ToInt()
+	bigInt.Set(new(big.Int).SetUint64(0))
+	oneBlock = hexutil.Big(*bigInt)
+	err := w.MineBlock(ctx, oneBlock)
+	if err != nil {
+		return err
+	}
+	return nil
 }

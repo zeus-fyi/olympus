@@ -1,6 +1,7 @@
 package web3_client
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
@@ -30,4 +31,24 @@ func (s *Web3ClientTestSuite) TestDeployContract() {
 	s.Require().Nil(err)
 	s.Assert().NotZero(b)
 	s.Assert().Equal(mintAmount.String(), b.String())
+}
+
+func (s *Web3ClientTestSuite) TestDeployUniswapFactoryContract() {
+	forceDirToLocation()
+	factoryPayload, bc, err := LoadUniswapFactoryAbiPayload()
+	s.Require().Nil(err)
+	newAccount, err := accounts.ParsePrivateKey("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
+	s.Assert().Nil(err)
+	s.LocalHardhatMainnetUser.Account = newAccount
+	factoryPayload.GasLimit = 2400000
+	factoryPayload.Params = []interface{}{newAccount.PublicKey()}
+
+	tx, err := s.LocalHardhatMainnetUser.DeployContract(ctx, bc, factoryPayload)
+	s.Require().Nil(err)
+	s.Assert().NotNil(tx)
+
+	rx, err := s.LocalHardhatMainnetUser.WaitForReceipt(ctx, tx.Hash)
+	s.Assert().Nil(err)
+	s.Assert().NotNil(rx)
+	fmt.Println(rx.ContractAddress.String())
 }

@@ -38,6 +38,8 @@ const (
 	swapTokensForExactETH        = "swapTokensForExactETH"
 	swapExactTokensForETH        = "swapExactTokensForETH"
 	swapETHForExactTokens        = "swapETHForExactTokens"
+
+	swap = "swap"
 )
 
 /*

@@ -80,3 +80,19 @@ func (s *Web3ClientTestSuite) TestSetERC20BalanceAtSlotNumber() {
 	s.Require().Nil(err)
 	s.Assert().Equal(Ether.String(), b.String())
 }
+
+func (s *Web3ClientTestSuite) TestSetERC20BalanceBruteForce() {
+	// block set to 17317757
+	err := s.LocalMainnetWeb3User.ResetNetwork(ctx, s.Tc.HardhatNode, 17317757)
+	s.Require().Nil(err)
+	usdtAddr := "0xdac17f958d2ee523a2206206994597c13d831ec7"
+	b, err := s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, usdtAddr, s.LocalHardhatMainnetUser.PublicKey())
+	s.Require().Nil(err)
+	fmt.Println("startingBalance", b.String())
+	err = s.LocalHardhatMainnetUser.SetERC20BalanceBruteForce(ctx, usdtAddr, s.LocalHardhatMainnetUser.PublicKey(), Ether)
+	s.Require().Nil(err)
+	b, err = s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, usdtAddr, s.LocalHardhatMainnetUser.PublicKey())
+	s.Require().Nil(err)
+	s.Assert().Equal(Ether.String(), b.String())
+	fmt.Println("endingBalance", b.String())
+}

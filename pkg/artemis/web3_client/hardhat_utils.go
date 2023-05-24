@@ -7,6 +7,7 @@ import (
 	"math/big"
 
 	"github.com/gochain/gochain/v4/common"
+	"github.com/gochain/gochain/v4/common/hexutil"
 	"github.com/gochain/gochain/v4/crypto"
 )
 
@@ -17,7 +18,6 @@ func getSlot(userAddress string, slot *big.Int) (string, error) {
 		common.LeftPadBytes(addr.Bytes(), 32),
 		common.LeftPadBytes(slot.Bytes(), 32),
 	)
-
 	// return hex string of the hash
 	return hash.Hex(), nil
 }
@@ -56,6 +56,42 @@ func (w *Web3Client) SetERC20BalanceAtSlotNumber(ctx context.Context, scAddr, us
 	}
 	newBalance := common.LeftPadBytes(value.Bytes(), 32)
 	err = w.SetStorageAt(ctx, scAddr, slotHex, common.BytesToHash(newBalance).Hex())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (w *Web3Client) SetERC20BalanceBruteForce(ctx context.Context, scAddr, userAddr string, value *big.Int) error {
+	for i := 0; i < 100; i++ {
+		slotHex, err := getSlot(userAddr, new(big.Int).SetUint64(uint64(i)))
+		if err != nil {
+			return err
+		}
+		newBalance := common.LeftPadBytes(value.Bytes(), 32)
+		err = w.SetStorageAt(ctx, scAddr, slotHex, common.BytesToHash(newBalance).Hex())
+		if err != nil {
+			continue
+		}
+		b, err := w.ReadERC20TokenBalance(ctx, scAddr, userAddr)
+		if err != nil {
+			return err
+		}
+		if b.String() == value.String() {
+			return nil
+		}
+	}
+	return errors.New("unable to overwrite balance")
+}
+
+func (w *Web3Client) MineNextBlock(ctx context.Context) error {
+	w.Dial()
+	defer w.Close()
+	oneBlock := hexutil.Big{}
+	bigInt := oneBlock.ToInt()
+	bigInt.Set(new(big.Int).SetUint64(0))
+	oneBlock = hexutil.Big(*bigInt)
+	err := w.MineBlock(ctx, oneBlock)
 	if err != nil {
 		return err
 	}

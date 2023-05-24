@@ -2,6 +2,7 @@ package web3_client
 
 import (
 	"math/big"
+	"strings"
 
 	"github.com/zeus-fyi/gochain/web3/web3_actions"
 )
@@ -22,24 +23,29 @@ func (w *Web3Client) ExecSwapTrade(tf TradeExecutionFlowInBigInt) (*big.Int, *bi
 func (u *UniswapV2Client) SwapExactTokensForETHParams(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
 	trade := tf.Trade
 	params := *trade.JSONSwapExactTokensForETHParams
-	//	pairAddr := u.GetPairContractFromFactory(ctx, params.Path[0].String(), params.Path[1].String())
+	pathSlice := make([]string, len(params.Path))
+	for i, p := range params.Path {
+		pathSlice[i] = p.String()
+	}
+	pathString := "[" + strings.Join(pathSlice, ",") + "]"
 
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: u.MevSmartContractTxMap.SmartContractAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
 		ContractABI:       u.MevSmartContractTxMap.Abi,
 		MethodName:        swapExactTokensForETH,
-		Params:            []interface{}{params.AmountIn, params.AmountOutMin, params.Path, params.To, params.Deadline},
+		Params:            []interface{}{params.AmountIn, params.AmountOutMin, pathString, params.To, params.Deadline},
 	}
+
 	err := u.Web3Client.ImpersonateAccount(ctx, tf.Tx.From.String())
 	if err != nil {
 		return nil, err
 	}
-	signedTx, err := u.Web3Client.GetSignedTxToCallFunctionWithArgs(ctx, scInfo)
+	err = u.Web3Client.SendTransaction(ctx, tf.Tx)
 	if err != nil {
 		return nil, err
 	}
-	err = u.Web3Client.SendSignedTransaction(ctx, signedTx)
+	err = u.Web3Client.StopImpersonatingAccount(ctx, tf.Tx.From.String())
 	if err != nil {
 		return nil, err
 	}

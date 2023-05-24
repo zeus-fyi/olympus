@@ -46,6 +46,7 @@ type TradeExecutionFlowInBigInt struct {
 
 type Trade struct {
 	TradeMethod                         string `json:"tradeMethod"`
+	RawTx                               string `json:"rawTx,omitempty"`
 	*JSONSwapETHForExactTokensParams    `json:"swapETHForExactTokensParams,omitempty"`
 	*JSONSwapTokensForExactTokensParams `json:"swapTokensForExactTokensParams,omitempty"`
 	*JSONSwapExactTokensForTokensParams `json:"swapExactTokensForTokensParams,omitempty"`

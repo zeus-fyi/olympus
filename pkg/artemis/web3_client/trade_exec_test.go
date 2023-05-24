@@ -50,12 +50,8 @@ func (s *Web3ClientTestSuite) TestTradeExec() {
 }
 
 func (s *Web3ClientTestSuite) TestMatchInputs() {
-	//forceDirToLocation()
-	//swapAbi, bc, err := LoadSwapAbiPayload()
-	//s.Require().NoError(err)
-	//s.Require().NotNil(swapAbi)
-	//s.Require().NotNil(bc)
-
+	rerr := s.LocalHardhatMainnetUser.ResetNetwork(ctx, s.Tc.HardhatNode, 17326550)
+	s.Require().Nil(rerr)
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ForceDirToTestDirLocation()
 	//uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
@@ -82,11 +78,8 @@ func (s *Web3ClientTestSuite) TestMatchInputs() {
 		fmt.Println(b.String(), tfRegular.FrontRunTrade.AmountIn.String())
 
 		uni := InitUniswapV2Client(ctx, s.LocalMainnetWeb3User)
-		pair := uni.GetPairContractFromFactory(ctx, tf.FrontRunTrade.AmountInAddr.String(), tf.FrontRunTrade.AmountOutAddr.String())
-		fmt.Println(pair.String())
-
 		aa, err := uni.SwapExactTokensForETHParams(tfRegular)
 		s.Require().Nil(err)
-		fmt.Println(aa)
+		s.Require().NotNil(aa)
 	}
 }

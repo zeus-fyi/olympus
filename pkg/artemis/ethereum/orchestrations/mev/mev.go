@@ -40,11 +40,9 @@ func ProcessMempoolTxs(ctx context.Context) {
 	for {
 		select {
 		case <-ticker.C:
-			currentSlot := c.GetPendingMainnetSlotNum()
 			secondsLeftInSlot := 12 - c.GetSecsSinceLastMainnetSlot()
 			if secondsLeftInSlot <= 4 {
 				// when 4 seconds remaining execute this
-				log.Info().Int("currentSlotNumber", currentSlot).Int("currentBlockNumber", c.GetLatestMainnetBlockNumber()).Interface("timeToNextSlot", secondsLeftInSlot)
 				log.Info().Msg("ExecuteArtemisMevWorkflow")
 				err := ArtemisMevWorkerMainnet.ExecuteArtemisMevWorkflow(ctx)
 				if err != nil {

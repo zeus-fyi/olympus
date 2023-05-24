@@ -97,3 +97,18 @@ func (w *Web3Client) MineNextBlock(ctx context.Context) error {
 	}
 	return nil
 }
+
+func (w *Web3Client) MatchFrontRunTradeValues(tf TradeExecutionFlowInBigInt) error {
+	err := w.SetERC20BalanceBruteForce(ctx, tf.FrontRunTrade.AmountInAddr.String(), w.PublicKey(), tf.FrontRunTrade.AmountIn)
+	if err != nil {
+		return err
+	}
+	b, err := w.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountInAddr.String(), w.PublicKey())
+	if err != nil {
+		return err
+	}
+	if b.String() != tf.FrontRunTrade.AmountIn.String() {
+		return errors.New("amount in not set correctly")
+	}
+	return nil
+}

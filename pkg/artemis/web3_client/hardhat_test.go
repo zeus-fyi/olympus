@@ -22,7 +22,7 @@ func (s *Web3ClientTestSuite) TestSetBalance() {
 }
 
 func (s *Web3ClientTestSuite) TestResetNetwork() {
-	err := s.LocalMainnetWeb3User.ResetNetwork(ctx, s.Tc.HardhatNode, 17317757)
+	err := s.LocalMainnetWeb3User.ResetNetwork(ctx, s.Tc.HardhatNode, 17326677)
 	s.Require().Nil(err)
 }
 

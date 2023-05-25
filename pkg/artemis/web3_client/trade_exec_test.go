@@ -89,6 +89,7 @@ func (s *Web3ClientTestSuite) TestMatchInputs() {
 		//s.Require().Nil(err)
 		//s.Require().NotNil(aa)
 		forceDirToLocation()
+		// TODO, needs to give our user gas
 
 		tfRegular.Trade.TradeMethod = swap
 		out, err := uni.ExecTradeByMethod(tfRegular)

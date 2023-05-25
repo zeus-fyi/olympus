@@ -5,10 +5,11 @@ import (
 
 	"github.com/rs/zerolog/log"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
-func (c *CreateSetupTopologyActivities) AddDomainRecord(ctx context.Context, name string) error {
-	dr, err := api_auth_temporal.DigitalOcean.CreateDomain(ctx, name)
+func (c *CreateSetupTopologyActivities) AddDomainRecord(ctx context.Context, cloudCtxNs zeus_common_types.CloudCtxNs) error {
+	dr, err := api_auth_temporal.DigitalOcean.CreateDomain(ctx, cloudCtxNs)
 	if err != nil {
 		log.Ctx(ctx).Error().Interface("dr", dr).Err(err).Msg("failed to create domain record")
 		return err
@@ -16,8 +17,8 @@ func (c *CreateSetupTopologyActivities) AddDomainRecord(ctx context.Context, nam
 	return nil
 }
 
-func (c *CreateSetupTopologyActivities) RemoveDomainRecord(ctx context.Context, name string) error {
-	err := api_auth_temporal.DigitalOcean.RemoveSubDomainARecord(ctx, name)
+func (c *CreateSetupTopologyActivities) RemoveDomainRecord(ctx context.Context, cloudCtxNs zeus_common_types.CloudCtxNs) error {
+	err := api_auth_temporal.DigitalOcean.RemoveSubDomainARecord(ctx, cloudCtxNs)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("failed to remove domain record")
 		return err

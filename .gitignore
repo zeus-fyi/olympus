@@ -81,3 +81,4 @@ Thumbs.db
 /apps/zeus/test/configs/config.yaml
 /configs/ca-certificate.crt
 /configs/gcp/
+/configs/backup.txt

@@ -3,6 +3,7 @@ package zeus_core
 import (
 	"context"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 	v1 "k8s.io/api/core/v1"
@@ -22,7 +23,12 @@ func (k *K8Util) GetServiceWithKns(ctx context.Context, kns zeus_common_types.Cl
 
 func (k *K8Util) CreateServiceWithKns(ctx context.Context, kns zeus_common_types.CloudCtxNs, s *v1.Service, filter *string_utils.FilterOpts) (*v1.Service, error) {
 	k.SetContext(kns.Context)
-	return k.kc.CoreV1().Services(kns.Namespace).Create(ctx, s, metav1.CreateOptions{})
+	svc, err := k.kc.CoreV1().Services(kns.Namespace).Create(ctx, s, metav1.CreateOptions{})
+	if errors.IsAlreadyExists(err) {
+		log.Err(err).Msg("Service already exists, skipping creation")
+		return s, nil
+	}
+	return svc, err
 }
 
 func (k *K8Util) DeleteServiceWithKns(ctx context.Context, kns zeus_common_types.CloudCtxNs, name string, filter *string_utils.FilterOpts) error {

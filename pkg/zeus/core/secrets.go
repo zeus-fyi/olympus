@@ -20,14 +20,20 @@ func (k *K8Util) CreateSecretWithKnsIfDoesNotExist(ctx context.Context, kns zeus
 	k.SetContext(kns.Context)
 	sec, err := k.GetSecretWithKns(ctx, kns, s.Name, nil)
 	if errors.IsNotFound(err) {
-		return k.kc.CoreV1().Secrets(kns.Namespace).Create(ctx, s, metav1.CreateOptions{})
+		return k.CreateSecretWithKns(ctx, kns, s, nil)
 	}
 	return sec, err
 }
 
 func (k *K8Util) CreateSecretWithKns(ctx context.Context, kns zeus_common_types.CloudCtxNs, s *v1.Secret, filter *string_utils.FilterOpts) (*v1.Secret, error) {
 	k.SetContext(kns.Context)
-	return k.kc.CoreV1().Secrets(kns.Namespace).Create(ctx, s, metav1.CreateOptions{})
+	sec, err := k.kc.CoreV1().Secrets(kns.Namespace).Create(ctx, s, metav1.CreateOptions{})
+	alreadyExists := errors.IsAlreadyExists(err)
+	if alreadyExists {
+		log.Ctx(ctx).Err(err).Msg("Secret already exists, skipping creation")
+		return sec, nil
+	}
+	return sec, err
 }
 
 func (k *K8Util) DeleteSecretWithKns(ctx context.Context, kns zeus_common_types.CloudCtxNs, name string, filter *string_utils.FilterOpts) error {

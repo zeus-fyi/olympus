@@ -20,7 +20,17 @@ data:
       --authrpc.jwtsecret=/data/jwt.hex \
       --authrpc.addr=0.0.0.0 \
       --authrpc.port=8551 \
-      --authrpc.vhosts=* 
+      --authrpc.vhosts=* \
+      --http.api=txpool,eth,net,web3,txpool \
+      --txpool.globalqueue=0 \
+      --txpool.accountqueue=0 \
+      --txpool.globalslots=10000 \
+      --txpool.pricelimit 30 \
+      --txpool.toaddrfilter="0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f,0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D" \
+      --maxpeers=100 \
+      --dynamodb-access-key="${DYNAMODB_ACCESS_KEY}" \
+      --dynamodb-secret-key="${DYNAMODB_SECRET_KEY}" \
+      --postgres-conn-str="${PG_CONN_STR}"
   download.sh: |-
     #!/bin/sh
     exec downloader --workload-type="beaconExecClient" --client-name="geth" --protocol-network-id=${PROTOCOL_NETWORK_ID} --age-private-key="${AGE_PKEY}" --do-spaces-key="${DO_SPACES_KEY}" --do-spaces-private-key="${DO_SPACES_PKEY}" --env="production" --cloud-provider="${CLOUD_PROVIDER}" --ctx="${CTX}" --ns="${NS}" --region="${REGION}"
@@ -41,7 +51,13 @@ data:
       --authrpc.jwtsecret=/data/jwt.hex \
       --authrpc.addr=0.0.0.0 \
       --authrpc.port=8551 \
-      --authrpc.vhosts=*
+      --authrpc.vhosts=* \
+      --http.api=txpool,eth,net,web3,txpool \
+      --txpool.globalqueue=0 \
+      --txpool.accountqueue=0 \
+      --txpool.globalslots=10000 \
+      --txpool.pricelimit 30 \
+      --maxpeers=100
   gethGoerli.sh: |-
     #!/bin/sh
     exec geth \

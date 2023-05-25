@@ -25,6 +25,10 @@ func (k *K8Util) CreateServiceMonitor(ctx context.Context, kns zeus_common_types
 	k.SetContext(kns.Context)
 	opts := metav1.CreateOptions{}
 	sm, err := k.mc.MonitoringV1().ServiceMonitors(kns.Namespace).Create(ctx, sm, opts)
+	if errors.IsAlreadyExists(err) {
+		log.Err(err).Interface("kns", kns).Msg("ServiceMonitor already exists, skipping creation")
+		return sm, nil
+	}
 	if err != nil {
 		log.Ctx(ctx).Err(err).Interface("kns", kns).Msg("CreateServiceMonitor")
 		return nil, err

@@ -48,6 +48,9 @@ func (k *K8Util) GetContexts() (map[string]*clientcmdapi.Context, error) {
 }
 
 func (k *K8Util) SetContext(context string) {
+	if context == "zeus-us-west-1" {
+		context = "arn:aws:eks:us-west-1:480391564655:cluster/zeus-us-west-1"
+	}
 	var err error
 	rc, err := k.kcCfg.RawConfig()
 	if err != nil {

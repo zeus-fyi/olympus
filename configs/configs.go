@@ -23,6 +23,9 @@ type TestURLs struct {
 type TestContainer struct {
 	Env string
 
+	HardhatNode                 string
+	AwsAccessKeyEks             string
+	AwsSecretKeyEks             string
 	InfraCostAPIKey             string
 	GcpAuthJson                 []byte
 	TwitterAccessToken          string
@@ -116,6 +119,8 @@ type TestContainer struct {
 	PagerDutyApiKey     string
 	PagerDutyRoutingKey string
 	AdminLoginPassword  string
+
+	EtherScanAPIKey string
 }
 
 type ArtemisHexKeys struct {
@@ -167,6 +172,8 @@ func InitLocalTestConfigs() TestContainer {
 		log.Info().Err(err).Msg("error reading gcp auth json file")
 	}
 	testCont.GcpAuthJson = b
+	testCont.EtherScanAPIKey = viper.GetString("ETHERSCAN_API_KEY")
+	testCont.HardhatNode = viper.GetString("HARDHAT_NODE_URL")
 	testCont.TwitterAccessToken = viper.GetString("TWITTER_ACCESS_TOKEN_KEY")
 	testCont.TwitterAccessTokenSecret = viper.GetString("TWITTER_ACCESS_TOKEN_SECRET_KEY")
 
@@ -199,6 +206,8 @@ func InitLocalTestConfigs() TestContainer {
 	testCont.AwsAccessKey = viper.GetString("AWS_ACCESS_KEY")
 	testCont.AwsSecretKey = viper.GetString("AWS_SECRET_KEY")
 
+	testCont.AwsAccessKeyEks = viper.GetString("AWS_ACCESS_KEY_EKS")
+	testCont.AwsSecretKeyEks = viper.GetString("AWS_SECRET_KEY_EKS")
 	testCont.AwsAccessKeySecretManager = viper.GetString("AWS_ACCESS_KEY_SECRET_MANAGER")
 	testCont.AwsSecretKeySecretManager = viper.GetString("AWS_SECRET_KEY_SECRET_MANAGER")
 

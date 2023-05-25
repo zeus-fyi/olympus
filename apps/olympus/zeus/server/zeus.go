@@ -19,6 +19,7 @@ import (
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
 	topology_worker "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workers/topology"
 	router "github.com/zeus-fyi/olympus/zeus/api"
+	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
@@ -82,6 +83,7 @@ func Zeus() {
 		}
 		api_auth_temporal.InitOrchestrationDigitalOceanClient(ctx, sw.DoctlToken)
 		api_auth_temporal.InitOrchestrationGcpClient(ctx, sw.GcpAuthJsonBytes)
+		api_auth_temporal.InitOrchestrationEksClient(ctx, sw.EksAuthAWS)
 		hestia_stripe.InitStripe(sw.StripeSecretKey)
 	case "production-local":
 		log.Info().Msg("Zeus: production local, auth procedure starting")
@@ -94,6 +96,7 @@ func Zeus() {
 		_, sw := auth_startup.RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		api_auth_temporal.InitOrchestrationDigitalOceanClient(ctx, sw.DoctlToken)
 		api_auth_temporal.InitOrchestrationGcpClient(ctx, sw.GcpAuthJsonBytes)
+		api_auth_temporal.InitOrchestrationEksClient(ctx, sw.EksAuthAWS)
 		hestia_stripe.InitStripe(tc.StripeTestSecretAPIKey)
 	case "local":
 		log.Info().Msg("Zeus: local, auth procedure starting")
@@ -105,6 +108,13 @@ func Zeus() {
 		api_auth_temporal.InitOrchestrationDigitalOceanClient(ctx, tc.DigitalOceanAPIKey)
 		api_auth_temporal.InitOrchestrationGcpClient(ctx, tc.GcpAuthJson)
 		hestia_stripe.InitStripe(tc.StripeTestSecretAPIKey)
+		eksAuth := aegis_aws_auth.AuthAWS{
+			AccountNumber: "",
+			Region:        "us-west-1",
+			AccessKey:     tc.AwsAccessKeyEks,
+			SecretKey:     tc.AwsSecretKeyEks,
+		}
+		api_auth_temporal.InitOrchestrationEksClient(ctx, eksAuth)
 	}
 
 	log.Info().Msg("Zeus: PG connection starting")

@@ -14,6 +14,13 @@ func (w *Web3Client) GetCurrentBalance(ctx context.Context) (*big.Int, error) {
 	return b, err
 }
 
+func (w *Web3Client) GetUserCurrentBalance(ctx context.Context, userAddr string) (*big.Int, error) {
+	w.Dial()
+	defer w.Close()
+	b, err := w.Client.GetBalance(ctx, userAddr, nil)
+	return b, err
+}
+
 func (w *Web3Client) GetCurrentBalanceGwei(ctx context.Context) (string, error) {
 	w.Dial()
 	defer w.Close()

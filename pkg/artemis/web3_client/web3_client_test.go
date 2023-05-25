@@ -15,9 +15,11 @@ import (
 
 type Web3ClientTestSuite struct {
 	test_suites_encryption.EncryptionTestSuite
-	GoerliWeb3User  Web3Client
-	GoerliWeb3User2 Web3Client
-	MainnetWeb3User Web3Client
+	GoerliWeb3User          Web3Client
+	GoerliWeb3User2         Web3Client
+	MainnetWeb3User         Web3Client
+	LocalMainnetWeb3User    Web3Client
+	LocalHardhatMainnetUser Web3Client
 }
 
 func (s *Web3ClientTestSuite) SetupTest() {
@@ -34,7 +36,21 @@ func (s *Web3ClientTestSuite) SetupTest() {
 	s.GoerliWeb3User = NewWeb3Client(s.Tc.GoerliNodeUrl, newAccount)
 	s.GoerliWeb3User2 = NewWeb3Client(s.Tc.GoerliNodeUrl, secondAccount)
 
-	s.MainnetWeb3User = NewWeb3Client(s.Tc.MainnetNodeUrl, newAccount)
+	s.MainnetWeb3User = NewWeb3Client(s.Tc.LocalBeaconConn, newAccount)
+	m := map[string]string{
+		"Authorization": "Bearer " + s.Tc.ProductionLocalTemporalBearerToken,
+	}
+	s.MainnetWeb3User.Headers = m
+	s.LocalMainnetWeb3User = NewWeb3Client("http://localhost:8545", newAccount)
+
+	s.LocalHardhatMainnetUser = NewWeb3Client("http://localhost:8545", newAccount)
+}
+
+func (s *Web3ClientTestSuite) TestGetBlockHeight() {
+	b, err := s.MainnetWeb3User.GetHeadBlockHeight(ctx)
+	s.Require().Nil(err)
+	s.Assert().NotNil(b)
+	fmt.Println("blockNumber", b.String())
 }
 
 func (s *Web3ClientTestSuite) TestWebGetBalance() {

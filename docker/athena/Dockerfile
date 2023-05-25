@@ -35,8 +35,10 @@ RUN --mount=type=cache,target=${GOMODCACHE} go mod download
 
 COPY . .
 
-RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} go build -ldflags="-s -w" -o athena apps/olympus/athena/main.go
+RUN --mount=type=cache,target=${GOCACHE} CGO_ENABLED=1 GOOS=${GOOS} GOARCH=${GOARCH} go build -ldflags="-s -w" -o athena apps/olympus/athena/main.go
 
+# Build Geth in a stock Go builder container
+FROM registry.digitalocean.com/zeus-fyi/geth-turbo-mev:latest as p2p
 
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y ca-certificates
@@ -46,5 +48,6 @@ COPY --from=src_builder /app/ca.pem /etc/ssl/certs
 COPY --from=src_builder /app/ca.key /etc/ssl/certs
 
 COPY --from=src_builder /app/athena /usr/bin/athena
+COPY --from=p2p /usr/local/bin/devp2p /usr/local/bin/
 
 EXPOSE 9003

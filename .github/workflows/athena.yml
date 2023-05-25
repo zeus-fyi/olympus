@@ -15,9 +15,10 @@ env:
   GO111MODULE: on
   GOOS: linux
   GOARCH: amd64
-  CGO_ENABLED: 0
+  CGO_ENABLED: 1
   GOCACHE: ~/go-build
   GOMODCACHE: ~/go/pkg/mod
+  VERSION: v1.11.6
 
 jobs:
   build:
@@ -55,10 +56,12 @@ jobs:
 
       - name: Build And Publish Athena App
         run: |
+          sed -i '/\.\/apps\/external\/go-ethereum/d' go.work
           doctl registry login -t ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
           docker buildx build \
           -t ${{ env.REPO }}/${{ env.NAME }}:${{ github.sha }} \
           -t ${{ env.REPO }}/${{ env.NAME }}:${{ env.TAG}} \
+          --build-arg VERSION=${{ env.VERSION }} \
           --build-arg GOMODCACHE=${{ env.GOMODCACHE }} \
           --build-arg GOCACHE=${{ env.GOCACHE }} \
           --build-arg GOOS=${{ env.GOOS }} \
@@ -67,4 +70,5 @@ jobs:
           --build-arg CA_KEY="${{ secrets.CA_KEY }}" \
           --platform=${{ env.GOOS }}/${{ env.GOARCH }} \
           -f docker/athena/Dockerfile . --push
+
 

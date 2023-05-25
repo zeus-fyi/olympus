@@ -45,7 +45,7 @@ RUN cd rclone-*-linux-amd64 && cp rclone /usr/bin/
 RUN chown root:root /usr/bin/rclone
 RUN chmod 755 /usr/bin/rclone
 
-FROM ethpandaops/geth:master as geth
+FROM ethereum/client-go:v1.11.6 as geth
 WORKDIR /app
 
 FROM ubuntu:22.04

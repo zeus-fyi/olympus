@@ -1,6 +1,7 @@
 package hestia_compute_resources
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -49,6 +50,25 @@ func (s *DisksTestSuite) TestInsertDiskGcp() {
 	s.Require().NoError(err)
 }
 
+func (s *DisksTestSuite) TestInsertDiskAws() {
+	s.InitLocalConfigs()
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	gbInGi := 107.374
+	gbInGi *= 0.12
+	fmt.Println(gbInGi, gbInGi/730)
+	disk := hestia_autogen_bases.Disks{
+		PriceMonthly:  gbInGi,
+		PriceHourly:   gbInGi / 730,
+		Region:        "us-west-1",
+		CloudProvider: "aws",
+		Description:   "EBS gp2 Block Storage SSD",
+		Type:          "ssd",
+		DiskSize:      100,
+		DiskUnits:     "Gi",
+	}
+	err := InsertDisk(ctx, disk)
+	s.Require().NoError(err)
+}
 func TestDisksTestSuite(t *testing.T) {
 	suite.Run(t, new(DisksTestSuite))
 }

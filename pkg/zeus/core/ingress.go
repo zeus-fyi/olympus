@@ -3,6 +3,7 @@ package zeus_core
 import (
 	"context"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 	v1 "k8s.io/api/networking/v1"
@@ -22,7 +23,12 @@ func (k *K8Util) GetIngressWithKns(ctx context.Context, kns zeus_common_types.Cl
 
 func (k *K8Util) CreateIngressWithKns(ctx context.Context, kns zeus_common_types.CloudCtxNs, ing *v1.Ingress, filter *string_utils.FilterOpts) (*v1.Ingress, error) {
 	k.SetContext(kns.Context)
-	return k.kc.NetworkingV1().Ingresses(kns.Namespace).Create(ctx, ing, metav1.CreateOptions{})
+	ing, err := k.kc.NetworkingV1().Ingresses(kns.Namespace).Create(ctx, ing, metav1.CreateOptions{})
+	if errors.IsAlreadyExists(err) {
+		log.Err(err).Interface("kns", kns).Msg("Ingress already exists, skipping creation")
+		return ing, nil
+	}
+	return ing, err
 }
 
 func (k *K8Util) DeleteIngressWithKns(ctx context.Context, kns zeus_common_types.CloudCtxNs, name string, filter *string_utils.FilterOpts) error {

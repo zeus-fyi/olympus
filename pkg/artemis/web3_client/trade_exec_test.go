@@ -52,7 +52,7 @@ func (s *Web3ClientTestSuite) TestTradeExec() {
 func (s *Web3ClientTestSuite) TestMatchInputs() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ForceDirToTestDirLocation()
-	mevTxs, merr := artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17332368)
+	mevTxs, merr := artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17332497)
 	s.Require().Nil(merr)
 	s.Require().NotEmpty(mevTxs)
 
@@ -74,6 +74,7 @@ func (s *Web3ClientTestSuite) TestMatchInputs() {
 		s.Require().Nil(err)
 
 		tfRegular := tf.ConvertToBigIntType()
+		fmt.Println("amountInAddr", tf.FrontRunTrade.AmountInAddr.String())
 		err = s.LocalHardhatMainnetUser.MatchFrontRunTradeValues(tfRegular)
 		s.Require().Nil(err)
 		b, err := s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountInAddr.String(), s.LocalHardhatMainnetUser.PublicKey())
@@ -81,9 +82,17 @@ func (s *Web3ClientTestSuite) TestMatchInputs() {
 		s.Require().Equal(tfRegular.FrontRunTrade.AmountIn.String(), b.String())
 		fmt.Println(b.String(), tfRegular.FrontRunTrade.AmountIn.String())
 
-		uni := InitUniswapV2Client(ctx, s.LocalMainnetWeb3User)
-		aa, err := uni.ExecTradeByMethod(tfRegular)
+		uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
+		//fmt.Println("tradeMethod", tf.Trade.TradeMethod)
+		//fmt.Println("userAddr", tf.Tx.From.String())
+		//aa, err := uni.ExecTradeByMethod(tfRegular)
+		//s.Require().Nil(err)
+		//s.Require().NotNil(aa)
+		forceDirToLocation()
+
+		tfRegular.Trade.TradeMethod = swap
+		out, err := uni.ExecTradeByMethod(tfRegular)
 		s.Require().Nil(err)
-		s.Require().NotNil(aa)
+		s.Require().NotNil(out)
 	}
 }

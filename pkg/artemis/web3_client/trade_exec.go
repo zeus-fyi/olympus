@@ -8,13 +8,11 @@ import (
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
-const SwapContractAddr = ""
-
-func LoadSwapAbiPayload() (web3_actions.SendContractTxPayload, string, error) {
+func LoadSwapAbiPayload(pairContractAddr string) (web3_actions.SendContractTxPayload, string, error) {
 	fp := filepaths.Path{
 		PackageName: "",
 		DirIn:       "./contract_abis",
-		FnIn:        "RawSwap.json",
+		FnIn:        "swapABI.json",
 	}
 	fi := fp.ReadFileInPath()
 	m := map[string]interface{}{}
@@ -33,12 +31,12 @@ func LoadSwapAbiPayload() (web3_actions.SendContractTxPayload, string, error) {
 		return web3_actions.SendContractTxPayload{}, "", err
 	}
 	params := web3_actions.SendContractTxPayload{
-		SmartContractAddr: SwapContractAddr,
+		SmartContractAddr: pairContractAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
 		ContractFile:      "",
 		ContractABI:       abf,
-		MethodName:        "executeSwap",
+		MethodName:        swap,
 		Params:            []interface{}{},
 	}
-	return params, m["bytecode"].(string), nil
+	return params, "", nil
 }

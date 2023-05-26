@@ -36,3 +36,13 @@ func (w *Web3Client) GetTxLifecycleStats(ctx context.Context, txHash common.Hash
 		RxBlockNum: rx.BlockNumber,
 	}, err
 }
+
+func (w *Web3Client) GetEthBalance(ctx context.Context, addr string, blockNum *big.Int) (*big.Int, error) {
+	w.Dial()
+	defer w.Close()
+	balance, err := w.GetBalance(ctx, addr, blockNum)
+	if err != nil {
+		return balance, err
+	}
+	return balance, err
+}

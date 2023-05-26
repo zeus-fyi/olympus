@@ -65,16 +65,9 @@ func (s *Web3ClientTestSuite) TestMatchInputs() {
 		if tf.FrontRunTrade.AmountIn == "" {
 			continue
 		}
-		txHash := *tf.Tx.Hash
-		fmt.Println(txHash.String())
-		s.MainnetWeb3User.Dial()
-		rx, err := s.MainnetWeb3User.GetTransactionByHash(ctx, txHash)
-		s.MainnetWeb3User.Close()
+		err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlockBeforeTxMined(ctx, s.Tc.HardhatNode, s.LocalHardhatMainnetUser, s.MainnetWeb3User, *tf.Tx.Hash)
 		s.Require().Nil(err)
-		err = s.LocalHardhatMainnetUser.ResetNetwork(ctx, s.Tc.HardhatNode, int(rx.BlockNumber.Int64()-1))
-		s.Require().Nil(err)
-
-		ethBalance, err := s.LocalHardhatMainnetUser.GetBalance(ctx, s.LocalHardhatMainnetUser.PublicKey(), nil)
+		ethBalance, err := s.LocalHardhatMainnetUser.GetEthBalance(ctx, s.LocalHardhatMainnetUser.PublicKey(), nil)
 		s.Require().Nil(err)
 		s.Require().NotNil(ethBalance)
 		fmt.Println("tradeUserEthBalance", ethBalance.String())

@@ -33,3 +33,19 @@ func getSlot(userAddress string, slot *big.Int) (string, error) {
 	// return hex string of the hash
 	return hash.Hex(), nil
 }
+
+func (w *Web3Client) HardhatResetNetworkToBlockBeforeTxMined(ctx context.Context, simNodeUrl string, simNetworkClient, realNetworkClient Web3Client, txHash common.Hash) error {
+	realNetworkClient.Dial()
+	rx, err := realNetworkClient.Client.GetTransactionByHash(ctx, txHash)
+	if err != nil {
+		return err
+	}
+	realNetworkClient.Close()
+	simNetworkClient.Dial()
+	err = simNetworkClient.Client.ResetNetwork(ctx, simNodeUrl, int(rx.BlockNumber.Int64()-1))
+	if err != nil {
+		return err
+	}
+	simNetworkClient.Close()
+	return nil
+}

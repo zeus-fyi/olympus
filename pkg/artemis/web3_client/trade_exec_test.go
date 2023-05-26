@@ -95,10 +95,7 @@ func (s *Web3ClientTestSuite) TestMatchInputs() {
 
 		err = uni.RouterApproveAndSend(ctx, tfRegular.FrontRunTrade, tfRegular.InitialPair.PairContractAddr)
 		s.Require().Nil(err)
-		userTradeMethod := tfRegular.Trade.TradeMethod
-		tfRegular.Trade.TradeMethod = swapFrontRun
-
-		out, err := uni.ExecTradeByMethod(tfRegular)
+		out, err := uni.ExecFrontRunTradeStep(tfRegular)
 		s.Require().Nil(err)
 		s.Require().NotNil(out)
 
@@ -113,7 +110,6 @@ func (s *Web3ClientTestSuite) TestMatchInputs() {
 		startBal, err := s.LocalHardhatMainnetUser.GetBalance(ctx, tfRegular.Tx.From.String(), nil)
 		fmt.Println("userTradeStartEthBal", startBal.String())
 
-		tfRegular.Trade.TradeMethod = userTradeMethod
 		aa, err := uni.ExecTradeByMethod(tfRegular)
 		s.Require().Nil(err)
 		s.Require().NotNil(aa)

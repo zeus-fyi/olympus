@@ -128,6 +128,11 @@ func ConvertAmountsToBigIntSlice(amounts []interface{}) []*big.Int {
 	return amountsBigInt
 }
 
+func (u *UniswapV2Client) ExecFrontRunTradeStep(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+	tf.Trade.TradeMethod = swapFrontRun
+	return u.ExecTradeByMethod(tf)
+}
+
 func (u *UniswapV2Client) ExecTradeByMethod(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
 	switch tf.Trade.TradeMethod {
 	case swapTokensForExactETH:

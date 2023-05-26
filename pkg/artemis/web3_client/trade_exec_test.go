@@ -128,5 +128,14 @@ func (s *Web3ClientTestSuite) TestMatchInputs() {
 		balanceDiff = new(big.Int).Add(balanceDiff, gasUsed)
 		fmt.Println("balanceDiff", balanceDiff.String())
 
+		amounts, err = uni.SandwichTradeGetAmountsOut(tfRegular)
+		fmt.Println("sandwich expected amounts in/out", tfRegular.SandwichTrade.AmountIn.String(), tfRegular.SandwichTrade.AmountOut.String())
+		fmt.Println("sandwich expected amounts", amounts[0].String(), amounts[1].String())
+		s.Require().Nil(err)
+
+		err = uni.RouterApproveAndSend(ctx, tfRegular.SandwichTrade, tfRegular.InitialPair.PairContractAddr)
+		s.Require().Nil(err)
+		_, err = uni.ExecSandwichTradeStep(tfRegular)
+		s.Require().Nil(err)
 	}
 }

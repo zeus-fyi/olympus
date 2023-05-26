@@ -58,6 +58,7 @@ type UniswapV2Client struct {
 	mu                       sync.Mutex
 	Web3Client               Web3Client
 	FactorySmartContractAddr string
+	RouterSmartContractAddr  string
 	PairAbi                  *abi.ABI
 	ERC20Abi                 *abi.ABI
 	FactoryAbi               *abi.ABI
@@ -104,6 +105,7 @@ func InitUniswapV2Client(ctx context.Context, w Web3Client) UniswapV2Client {
 		Web3Client:               w,
 		chronus:                  chronos.Chronos{},
 		FactorySmartContractAddr: UniswapV2FactoryAddress,
+		RouterSmartContractAddr:  UniswapV2RouterAddress,
 		FactoryAbi:               factoryAbiFile,
 		ERC20Abi:                 erc20AbiFile,
 		PairAbi:                  pairAbiFile,

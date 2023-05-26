@@ -3,6 +3,7 @@ package web3_client
 import (
 	"encoding/json"
 	"fmt"
+	"math/big"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
@@ -52,7 +53,7 @@ func (s *Web3ClientTestSuite) TestTradeExec() {
 func (s *Web3ClientTestSuite) TestMatchInputs() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ForceDirToTestDirLocation()
-	mevTxs, merr := artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17332497)
+	mevTxs, merr := artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17332397)
 	s.Require().Nil(merr)
 	s.Require().NotEmpty(mevTxs)
 
@@ -84,29 +85,59 @@ func (s *Web3ClientTestSuite) TestMatchInputs() {
 		s.Require().Nil(err)
 		s.Require().Equal(tfRegular.FrontRunTrade.AmountIn.String(), b.String())
 		fmt.Println("frontRunAmountIn", b.String(), tfRegular.FrontRunTrade.AmountIn.String())
-
+		//
 		uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
-		amounts, err := uni.GetAmountsOutFrontRunTrade(tfRegular)
-		s.Require().Nil(err)
-		s.Require().NotEmpty(amounts)
-		s.Require().Len(amounts, 2)
-		s.Assert().Equal(tfRegular.FrontRunTrade.AmountIn.String(), amounts[0].String())
-		s.Assert().Equal(tfRegular.FrontRunTrade.AmountOut.String(), amounts[1].String())
+		//amounts, err := uni.FrontRunTradeGetAmountsOut(tfRegular)
+		//s.Require().Nil(err)
+		//s.Require().NotEmpty(amounts)
+		//s.Require().Len(amounts, 2)
+		//s.Assert().Equal(tfRegular.FrontRunTrade.AmountIn.String(), amounts[0].String())
+		//s.Assert().Equal(tfRegular.FrontRunTrade.AmountOut.String(), amounts[1].String())
+		//
+		//fmt.Println("amountIn", tfRegular.FrontRunTrade.AmountInAddr.String(), tfRegular.FrontRunTrade.AmountIn.String())
+		//fmt.Println("amountOut", tfRegular.FrontRunTrade.AmountOutAddr.String(), tfRegular.FrontRunTrade.AmountOut.String())
+		//
+		amounts, err := uni.UserTradeGetAmountsOut(tfRegular)
+		fmt.Println("user expected amounts without front run", amounts[0].String(), amounts[1].String())
 
-		fmt.Println(tfRegular.FrontRunTrade.AmountInAddr.String(), tfRegular.FrontRunTrade.AmountIn.String())
-		fmt.Println(tfRegular.FrontRunTrade.AmountOutAddr.String(), tfRegular.FrontRunTrade.AmountOut.String())
+		err = uni.RouterApproveAndSend(ctx, tfRegular.FrontRunTrade, tfRegular.InitialPair.PairContractAddr)
+		s.Require().Nil(err)
+		userTradeMethod := tfRegular.Trade.TradeMethod
 		tfRegular.Trade.TradeMethod = swapFrontRun
+
 		out, err := uni.ExecTradeByMethod(tfRegular)
 		s.Require().Nil(err)
 		s.Require().NotNil(out)
 
-		//fmt.Println("tradeMethod", tf.Trade.TradeMethod)
-		//fmt.Println("userAddr", tf.Tx.From.String())
-		//aa, err := uni.ExecTradeByMethod(tfRegular)
-		//s.Require().Nil(err)
-		//s.Require().NotNil(aa)
-		//forceDirToLocation()
-		//// TODO, needs to give our user gas
-		//// TODO is sync needed before this?
+		b, err = s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountOutAddr.String(), s.LocalHardhatMainnetUser.PublicKey())
+		s.Require().Nil(err)
+		s.Require().Equal(tfRegular.FrontRunTrade.AmountOut.String(), b.String())
+
+		amounts, err = uni.UserTradeGetAmountsOut(tfRegular)
+		fmt.Println("user expected amounts post front run", amounts[0].String(), amounts[1].String())
+		// must exceed 33073549076721602
+
+		startBal, err := s.LocalHardhatMainnetUser.GetBalance(ctx, tfRegular.Tx.From.String(), nil)
+		fmt.Println("userTradeStartEthBal", startBal.String())
+
+		tfRegular.Trade.TradeMethod = userTradeMethod
+		aa, err := uni.ExecTradeByMethod(tfRegular)
+		s.Require().Nil(err)
+		s.Require().NotNil(aa)
+
+		fmt.Println("userAddr", tfRegular.Tx.From.String())
+		fmt.Println("amountOutAddr", tf.UserTrade.AmountOutAddr.String())
+
+		ethBalance, err = s.LocalHardhatMainnetUser.GetBalance(ctx, tfRegular.Tx.From.String(), nil)
+		s.Require().Nil(err)
+		s.Require().NotNil(ethBalance)
+		fmt.Println("userTradeAmountOut", ethBalance.String())
+		s.Require().Nil(err)
+
+		gasUsed := new(big.Int).SetInt64(36627061988 * 114409)
+		balanceDiff := new(big.Int).Sub(ethBalance, startBal)
+		balanceDiff = new(big.Int).Add(balanceDiff, gasUsed)
+		fmt.Println("balanceDiff", balanceDiff.String())
+
 	}
 }

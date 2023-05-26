@@ -3,9 +3,11 @@ package web3_client
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/big"
 	"strings"
 
+	"github.com/rs/zerolog/log"
 	web3_types "github.com/zeus-fyi/gochain/web3/types"
 	"github.com/zeus-fyi/gochain/web3/web3_actions"
 )
@@ -79,7 +81,7 @@ func (u *UniswapV2Client) GetAmountsOut(amountIn *big.Int, pathSlice []string) (
 	return amountsOut, err
 }
 
-func (u *UniswapV2Client) GetAmountsOutFrontRunTrade(tf TradeExecutionFlowInBigInt) ([]*big.Int, error) {
+func (u *UniswapV2Client) FrontRunTradeGetAmountsOut(tf TradeExecutionFlowInBigInt) ([]*big.Int, error) {
 	pathSlice := []string{tf.FrontRunTrade.AmountInAddr.String(), tf.FrontRunTrade.AmountOutAddr.String()}
 	amountsOut, err := u.GetAmountsOut(tf.FrontRunTrade.AmountIn, pathSlice)
 	amountsOutFirstPair := ConvertAmountsToBigIntSlice(amountsOut)
@@ -87,10 +89,30 @@ func (u *UniswapV2Client) GetAmountsOutFrontRunTrade(tf TradeExecutionFlowInBigI
 		return nil, errors.New("amounts out not equal to expected")
 	}
 	if tf.FrontRunTrade.AmountIn.String() != amountsOutFirstPair[0].String() {
-		return nil, errors.New("amount in not equal to expected")
+		log.Warn().Msgf(fmt.Sprintf("amount in not equal to expected amount in %s, actual amount in: %s", tf.FrontRunTrade.AmountIn.String(), amountsOutFirstPair[0].String()))
+		return amountsOutFirstPair, errors.New("amount in not equal to expected")
 	}
 	if tf.FrontRunTrade.AmountOut.String() != amountsOutFirstPair[1].String() {
-		return nil, errors.New("amount out not equal to expected")
+		log.Warn().Msgf(fmt.Sprintf("amount out not equal to expected amount out %s, actual amount out: %s", tf.FrontRunTrade.AmountOut.String(), amountsOutFirstPair[1].String()))
+		return amountsOutFirstPair, errors.New("amount out not equal to expected")
+	}
+	return amountsOutFirstPair, err
+}
+
+func (u *UniswapV2Client) UserTradeGetAmountsOut(tf TradeExecutionFlowInBigInt) ([]*big.Int, error) {
+	pathSlice := []string{tf.UserTrade.AmountInAddr.String(), tf.UserTrade.AmountOutAddr.String()}
+	amountsOut, err := u.GetAmountsOut(tf.UserTrade.AmountIn, pathSlice)
+	amountsOutFirstPair := ConvertAmountsToBigIntSlice(amountsOut)
+	if len(amountsOutFirstPair) != 2 {
+		return nil, errors.New("amounts out not equal to expected")
+	}
+	if tf.UserTrade.AmountIn.String() != amountsOutFirstPair[0].String() {
+		log.Warn().Msgf(fmt.Sprintf("amount in not equal to expected amount in %s, actual amount in: %s", tf.UserTrade.AmountIn.String(), amountsOutFirstPair[0].String()))
+		return amountsOutFirstPair, errors.New("amount in not equal to expected")
+	}
+	if tf.UserTrade.AmountOut.String() != amountsOutFirstPair[1].String() {
+		log.Warn().Msgf(fmt.Sprintf("amount out not equal to expected amount out %s, actual amount out: %s", tf.UserTrade.AmountOut.String(), amountsOutFirstPair[1].String()))
+		return amountsOutFirstPair, errors.New("amount out not equal to expected")
 	}
 	return amountsOutFirstPair, err
 }
@@ -321,5 +343,14 @@ func (w *Web3Client) SendImpersonatedTx(ctx context.Context, tx *web3_types.RpcT
 	if err != nil {
 		return err
 	}
+	//txHash := common.HexToHash("0x6154c2f46973cecb3f4bc4c1508e3271f3e8dbf7cbcd3c3747b699b8b06b8185")
+	//rx, err := w.GetTransactionReceipt(ctx, txHash)
+	//if err != nil {
+	//	return err
+	//}
+	//// 36627061988 * 114409
+	//fmt.Println(tx.GasPrice.ToInt().String())
+	//fmt.Println(rx.GasUsed)
+	//fmt.Println(rx.CumulativeGasUsed)
 	return nil
 }

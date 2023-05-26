@@ -73,14 +73,17 @@ func (s *Web3ClientTestSuite) TestMatchInputs() {
 		err = s.LocalHardhatMainnetUser.ResetNetwork(ctx, s.Tc.HardhatNode, int(rx.BlockNumber.Int64()-1))
 		s.Require().Nil(err)
 
+		ethBalance, err := s.LocalHardhatMainnetUser.GetBalance(ctx, s.LocalHardhatMainnetUser.PublicKey(), nil)
+		s.Require().Nil(err)
+		s.Require().NotNil(ethBalance)
+		fmt.Println("tradeUserEthBalance", ethBalance.String())
 		tfRegular := tf.ConvertToBigIntType()
-		fmt.Println("amountInAddr", tf.FrontRunTrade.AmountInAddr.String())
 		err = s.LocalHardhatMainnetUser.MatchFrontRunTradeValues(tfRegular)
 		s.Require().Nil(err)
 		b, err := s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountInAddr.String(), s.LocalHardhatMainnetUser.PublicKey())
 		s.Require().Nil(err)
 		s.Require().Equal(tfRegular.FrontRunTrade.AmountIn.String(), b.String())
-		fmt.Println(b.String(), tfRegular.FrontRunTrade.AmountIn.String())
+		fmt.Println("frontRunAmountIn", b.String(), tfRegular.FrontRunTrade.AmountIn.String())
 
 		uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
 		amounts, err := uni.GetAmountsOutFrontRunTrade(tfRegular)
@@ -92,10 +95,10 @@ func (s *Web3ClientTestSuite) TestMatchInputs() {
 
 		fmt.Println(tfRegular.FrontRunTrade.AmountInAddr.String(), tfRegular.FrontRunTrade.AmountIn.String())
 		fmt.Println(tfRegular.FrontRunTrade.AmountOutAddr.String(), tfRegular.FrontRunTrade.AmountOut.String())
-		//tfRegular.Trade.TradeMethod = getAmountsOutFrontRunTrade
-		//out, err := uni.ExecTradeByMethod(tfRegular)
-		//s.Require().Nil(err)
-		//s.Require().NotNil(out)
+		tfRegular.Trade.TradeMethod = swapFrontRun
+		out, err := uni.ExecTradeByMethod(tfRegular)
+		s.Require().Nil(err)
+		s.Require().NotNil(out)
 
 		//fmt.Println("tradeMethod", tf.Trade.TradeMethod)
 		//fmt.Println("userAddr", tf.Tx.From.String())
@@ -105,9 +108,5 @@ func (s *Web3ClientTestSuite) TestMatchInputs() {
 		//forceDirToLocation()
 		//// TODO, needs to give our user gas
 		//// TODO is sync needed before this?
-		//tfRegular.Trade.TradeMethod = swap
-		//out, err := uni.ExecTradeByMethod(tfRegular)
-		//s.Require().Nil(err)
-		//s.Require().NotNil(out)
 	}
 }

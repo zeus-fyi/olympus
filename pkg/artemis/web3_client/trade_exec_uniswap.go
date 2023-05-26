@@ -3,7 +3,6 @@ package web3_client
 import (
 	"context"
 	"errors"
-	"fmt"
 	"math/big"
 	"strings"
 
@@ -15,42 +14,31 @@ import (
 // Swap (index_topic_1 address sender, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out, index_topic_2 address to)
 // Sync (uint112 reserve0, uint112 reserve1)
 
-func (u *UniswapV2Client) ExecFrontRunTrade(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
-	//tokenNum := tf.InitialPair.GetTokenNumber(tf.FrontRunTrade.AmountInAddr)
+/*
+   the swap function is used to trade from one token to another
 
-	//amount0In := tf.FrontRunTrade.AmountIn.String()
-	//amount1In := "0"
-	//amount0Out := "0"
-	//amount1Out := tf.FrontRunTrade.AmountOut.String()
-	//
-	//
-	//if tokenNum == 1 {
-	//	amount0In = "0"
-	//	amount1In = tf.FrontRunTrade.AmountIn.String()
-	//	amount0Out = tf.FrontRunTrade.AmountOut.String()
-	//	amount1Out = "0"
-	//}
-	scInfo, _, err := LoadSwapAbiPayload(tf.InitialPair.PairContractAddr)
+   token in = the token address you want to trade out of
+   token out = the token address you want as the output of this trade
+   amount in = the amount of tokens you are sending in
+   amount out Min = the minimum amount of tokens you want out of the trade
+   to = the address you want the tokens to be sent to
+*/
+
+//   function swap(address _tokenIn, address _tokenOut, uint256 _amountIn, uint256 _amountOutMin, address _to) external
+
+func (u *UniswapV2Client) ExecSwap(pair UniswapV2Pair, to TradeOutcome) (*web3_actions.SendContractTxPayload, error) {
+	scInfo, _, err := LoadSwapAbiPayload(pair.PairContractAddr)
 	if err != nil {
 		return &web3_actions.SendContractTxPayload{}, err
 	}
-	fmt.Println("00", tf.FrontRunTrade.AmountIn.String())
-	fmt.Println("00", tf.FrontRunTrade.AmountInAddr.String())
+	tokenNum := pair.GetTokenNumber(to.AmountInAddr)
+	if tokenNum == 0 {
+		scInfo.Params = []interface{}{"0", to.AmountOut, u.Web3Client.Address(), []byte{}}
+	} else {
+		scInfo.Params = []interface{}{to.AmountOut, "0", u.Web3Client.Address(), []byte{}}
 
-	fmt.Println("out", tf.FrontRunTrade.AmountOut.String())
-	fmt.Println("out", tf.FrontRunTrade.AmountOutAddr.String())
-
-	b, err := u.Web3Client.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountInAddr.String(), u.Web3Client.PublicKey())
-	if err != nil {
-		return &web3_actions.SendContractTxPayload{}, err
 	}
-	fmt.Println("balance", b.String())
-	ethBal, err := u.Web3Client.GetBalance(ctx, u.Web3Client.PublicKey(), nil)
-	if err != nil {
-		return &web3_actions.SendContractTxPayload{}, err
-	}
-	fmt.Println("eth balance", ethBal.String())
-	scInfo.Params = []interface{}{tf.FrontRunTrade.AmountOut.String(), tf.FrontRunTrade.AmountIn.String(), u.Web3Client.Address(), []byte{}}
+	scInfo.GasLimit = 3000000
 	signedTx, err := u.Web3Client.GetSignedTxToCallFunctionWithArgs(ctx, &scInfo)
 	if err != nil {
 		return &web3_actions.SendContractTxPayload{}, err
@@ -59,7 +47,15 @@ func (u *UniswapV2Client) ExecFrontRunTrade(tf TradeExecutionFlowInBigInt) (*web
 	if err != nil {
 		return &web3_actions.SendContractTxPayload{}, err
 	}
-	return &scInfo, err
+	return &scInfo, nil
+}
+
+func (u *UniswapV2Client) ExecFrontRunTrade(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+	return u.ExecSwap(tf.InitialPair, tf.FrontRunTrade)
+}
+
+func (u *UniswapV2Client) ExecSandwichTrade(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+	return u.ExecSwap(tf.InitialPair, tf.FrontRunTrade)
 }
 
 /*
@@ -124,8 +120,10 @@ func (u *UniswapV2Client) ExecTradeByMethod(tf TradeExecutionFlowInBigInt) (*web
 		return u.SwapExactETHForTokensParams(tf)
 	case swapETHForExactTokens:
 		return u.SwapETHForExactTokensParams(tf)
-	case swap:
-		return u.ExecFrontRunTrade(tf)
+	case swapFrontRun:
+		return u.ExecSwap(tf.InitialPair, tf.FrontRunTrade)
+	case swapSandwich:
+		return u.ExecSwap(tf.InitialPair, tf.SandwichTrade)
 	default:
 	}
 	return nil, errors.New("invalid trade method")

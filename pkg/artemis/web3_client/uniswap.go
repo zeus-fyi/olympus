@@ -42,7 +42,9 @@ const (
 	getAmountsOut                = "getAmountsOut"
 	getAmountsIn                 = "getAmountsIn"
 
-	swap = "swap"
+	swap         = "swap"
+	swapFrontRun = "swapFrontRun"
+	swapSandwich = "swapSandwich"
 )
 
 /*

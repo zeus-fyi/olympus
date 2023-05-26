@@ -84,6 +84,10 @@ func (w *Web3Client) SetERC20BalanceBruteForce(ctx context.Context, scAddr, user
 	return errors.New("unable to overwrite balance")
 }
 
+func (w *Web3Client) ERC20ApproveSpender() {
+	// TODO: implement
+}
+
 func (w *Web3Client) MineNextBlock(ctx context.Context) error {
 	w.Dial()
 	defer w.Close()

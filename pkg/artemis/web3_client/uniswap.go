@@ -38,6 +38,9 @@ const (
 	swapTokensForExactETH        = "swapTokensForExactETH"
 	swapExactTokensForETH        = "swapExactTokensForETH"
 	swapETHForExactTokens        = "swapETHForExactTokens"
+	getAmountsOutFrontRunTrade   = "getAmountsOutFrontRunTrade"
+	getAmountsOut                = "getAmountsOut"
+	getAmountsIn                 = "getAmountsIn"
 
 	swap = "swap"
 )

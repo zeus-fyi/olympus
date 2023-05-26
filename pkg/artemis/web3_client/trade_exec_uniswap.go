@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/big"
 	"strings"
 
 	web3_types "github.com/zeus-fyi/gochain/web3/types"
@@ -61,6 +62,54 @@ func (u *UniswapV2Client) ExecFrontRunTrade(tf TradeExecutionFlowInBigInt) (*web
 	return &scInfo, err
 }
 
+/*
+Given an output asset amount and an array of token addresses, calculates all preceding minimum
+input token amounts by calling getReserves for each pair of token addresses in the path in turn,
+and using these to call getAmountIn.
+*/
+func (u *UniswapV2Client) GetAmountsOut(amountIn *big.Int, pathSlice []string) ([]interface{}, error) {
+	pathString := "[" + strings.Join(pathSlice, ",") + "]"
+	scInfo := &web3_actions.SendContractTxPayload{
+		SmartContractAddr: u.MevSmartContractTxMap.SmartContractAddr,
+		SendEtherPayload:  web3_actions.SendEtherPayload{},
+		ContractABI:       u.MevSmartContractTxMap.Abi,
+		MethodName:        getAmountsOut,
+		Params:            []interface{}{amountIn, pathString},
+	}
+	amountsOut, err := u.Web3Client.GetContractConst(ctx, scInfo)
+	if err != nil {
+		return nil, err
+	}
+	return amountsOut, err
+}
+
+func (u *UniswapV2Client) GetAmountsOutFrontRunTrade(tf TradeExecutionFlowInBigInt) ([]*big.Int, error) {
+	pathSlice := []string{tf.FrontRunTrade.AmountInAddr.String(), tf.FrontRunTrade.AmountOutAddr.String()}
+	amountsOut, err := u.GetAmountsOut(tf.FrontRunTrade.AmountIn, pathSlice)
+	amountsOutFirstPair := ConvertAmountsToBigIntSlice(amountsOut)
+	if len(amountsOutFirstPair) != 2 {
+		return nil, errors.New("amounts out not equal to expected")
+	}
+	if tf.FrontRunTrade.AmountIn.String() != amountsOutFirstPair[0].String() {
+		return nil, errors.New("amount in not equal to expected")
+	}
+	if tf.FrontRunTrade.AmountOut.String() != amountsOutFirstPair[1].String() {
+		return nil, errors.New("amount out not equal to expected")
+	}
+	return amountsOutFirstPair, err
+}
+
+func ConvertAmountsToBigIntSlice(amounts []interface{}) []*big.Int {
+	var amountsBigInt []*big.Int
+	for _, amount := range amounts {
+		pair := amount.([]*big.Int)
+		for _, p := range pair {
+			amountsBigInt = append(amountsBigInt, p)
+		}
+	}
+	return amountsBigInt
+}
+
 func (u *UniswapV2Client) ExecTradeByMethod(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
 	switch tf.Trade.TradeMethod {
 	case swapTokensForExactETH:
@@ -80,6 +129,39 @@ func (u *UniswapV2Client) ExecTradeByMethod(tf TradeExecutionFlowInBigInt) (*web
 	default:
 	}
 	return nil, errors.New("invalid trade method")
+}
+
+func (u *UniswapV2Client) GetAmounts(to TradeOutcome, method string) ([]interface{}, error) {
+	switch method {
+	case getAmountsOut:
+		pathSlice := []string{to.AmountInAddr.String(), to.AmountOutAddr.String()}
+		return u.GetAmountsOut(to.AmountIn, pathSlice)
+	case getAmountsIn:
+		pathSlice := []string{to.AmountOutAddr.String(), to.AmountInAddr.String()}
+		return u.GetAmountsIn(to.AmountOut, pathSlice)
+	}
+	return nil, errors.New("invalid method")
+}
+
+/*
+Given an output asset amount and an array of token addresses, calculates all preceding minimum
+input token amounts by calling getReserves for each pair of token addresses in the path in turn,
+and using these to call getAmountIn.
+*/
+func (u *UniswapV2Client) GetAmountsIn(amountOut *big.Int, pathSlice []string) ([]interface{}, error) {
+	pathString := "[" + strings.Join(pathSlice, ",") + "]"
+	scInfo := &web3_actions.SendContractTxPayload{
+		SmartContractAddr: u.MevSmartContractTxMap.SmartContractAddr,
+		SendEtherPayload:  web3_actions.SendEtherPayload{},
+		ContractABI:       u.MevSmartContractTxMap.Abi,
+		MethodName:        getAmountsIn,
+		Params:            []interface{}{amountOut, pathString},
+	}
+	amountsIn, err := u.Web3Client.GetContractConst(ctx, scInfo)
+	if err != nil {
+		return nil, err
+	}
+	return amountsIn, err
 }
 
 func (u *UniswapV2Client) SwapExactTokensForETHParams(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {

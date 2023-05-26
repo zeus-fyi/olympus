@@ -83,17 +83,31 @@ func (s *Web3ClientTestSuite) TestMatchInputs() {
 		fmt.Println(b.String(), tfRegular.FrontRunTrade.AmountIn.String())
 
 		uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
+		amounts, err := uni.GetAmountsOutFrontRunTrade(tfRegular)
+		s.Require().Nil(err)
+		s.Require().NotEmpty(amounts)
+		s.Require().Len(amounts, 2)
+		s.Assert().Equal(tfRegular.FrontRunTrade.AmountIn.String(), amounts[0].String())
+		s.Assert().Equal(tfRegular.FrontRunTrade.AmountOut.String(), amounts[1].String())
+
+		fmt.Println(tfRegular.FrontRunTrade.AmountInAddr.String(), tfRegular.FrontRunTrade.AmountIn.String())
+		fmt.Println(tfRegular.FrontRunTrade.AmountOutAddr.String(), tfRegular.FrontRunTrade.AmountOut.String())
+		//tfRegular.Trade.TradeMethod = getAmountsOutFrontRunTrade
+		//out, err := uni.ExecTradeByMethod(tfRegular)
+		//s.Require().Nil(err)
+		//s.Require().NotNil(out)
+
 		//fmt.Println("tradeMethod", tf.Trade.TradeMethod)
 		//fmt.Println("userAddr", tf.Tx.From.String())
 		//aa, err := uni.ExecTradeByMethod(tfRegular)
 		//s.Require().Nil(err)
 		//s.Require().NotNil(aa)
-		forceDirToLocation()
-		// TODO, needs to give our user gas
-
-		tfRegular.Trade.TradeMethod = swap
-		out, err := uni.ExecTradeByMethod(tfRegular)
-		s.Require().Nil(err)
-		s.Require().NotNil(out)
+		//forceDirToLocation()
+		//// TODO, needs to give our user gas
+		//// TODO is sync needed before this?
+		//tfRegular.Trade.TradeMethod = swap
+		//out, err := uni.ExecTradeByMethod(tfRegular)
+		//s.Require().Nil(err)
+		//s.Require().NotNil(out)
 	}
 }

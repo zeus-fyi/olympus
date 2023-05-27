@@ -39,11 +39,6 @@ func (u *UniswapV2Client) ExecSandwichTradeStep(tf *TradeExecutionFlowInBigInt) 
 	return u.ExecSwap(tf.InitialPair, &tf.SandwichTrade)
 }
 
-func (u *UniswapV2Client) ExecUserTradeByMethod(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
-	tf.UserTrade.AddTxHash(*tf.Tx.Hash)
-	return u.ExecTradeByMethod(tf)
-}
-
 func (u *UniswapV2Client) FrontRunTradeGetAmountsOut(tf TradeExecutionFlowInBigInt) ([]*big.Int, error) {
 	pathSlice := []string{tf.FrontRunTrade.AmountInAddr.String(), tf.FrontRunTrade.AmountOutAddr.String()}
 	amountsOut, err := u.GetAmountsOut(tf.FrontRunTrade.AmountIn, pathSlice)

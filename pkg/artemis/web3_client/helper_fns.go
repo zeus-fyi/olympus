@@ -2,9 +2,11 @@ package web3_client
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 
 	"github.com/gochain/gochain/v4/common"
+	"github.com/rs/zerolog/log"
 )
 
 func StringsToAddresses(addressOne, addressTwo string) (common.Address, common.Address) {
@@ -20,13 +22,27 @@ type TxLifecycleStats struct {
 	RxBlockNum uint64
 }
 
+/*
+	txHash := common.HexToHash("0x6154c2f46973cecb3f4bc4c1508e3271f3e8dbf7cbcd3c3747b699b8b06b8185")
+	rx, err := w.GetTransactionReceipt(ctx, txHash)
+	if err != nil {
+		return err
+	}
+	// 36627061988 * 114409
+	fmt.Println(tx.GasPrice.ToInt().String())
+	fmt.Println(rx.GasUsed)
+	fmt.Println(rx.CumulativeGasUsed)
+*/
+
 func (w *Web3Client) GetTxLifecycleStats(ctx context.Context, txHash common.Hash) (TxLifecycleStats, error) {
 	tx, err := w.GetTransactionByHash(ctx, txHash)
 	if err != nil {
+		log.Err(err).Msg("GetTxLifecycleStats: error getting tx by hash")
 		return TxLifecycleStats{}, err
 	}
 	rx, err := w.GetTransactionReceipt(ctx, txHash)
 	if err != nil {
+		log.Err(err).Msg("GetTxLifecycleStats: error getting rx by hash")
 		return TxLifecycleStats{}, err
 	}
 	return TxLifecycleStats{
@@ -56,4 +72,45 @@ func ConvertAmountsToBigIntSlice(amounts []interface{}) []*big.Int {
 		}
 	}
 	return amountsBigInt
+}
+
+func ParseBigInt(i interface{}) (*big.Int, error) {
+	switch v := i.(type) {
+	case *big.Int:
+		return i.(*big.Int), nil
+	case string:
+		base := 10
+		result := new(big.Int)
+		_, ok := result.SetString(v, base)
+		if !ok {
+			return nil, fmt.Errorf("failed to parse string '%s' into big.Int", v)
+		}
+		return result, nil
+	case uint32:
+		return big.NewInt(int64(v)), nil
+	case int64:
+		return big.NewInt(v), nil
+	default:
+		return nil, fmt.Errorf("input is not a string or int64")
+	}
+}
+
+func ConvertToAddressSlice(i interface{}) ([]common.Address, error) {
+	switch v := i.(type) {
+	case []common.Address:
+		return i.([]common.Address), nil
+	default:
+		fmt.Println(v)
+		return nil, fmt.Errorf("input is not a []common.Address")
+	}
+}
+
+func ConvertToAddress(i interface{}) (common.Address, error) {
+	switch v := i.(type) {
+	case common.Address:
+		return i.(common.Address), nil
+	default:
+		fmt.Println(v)
+		return common.Address{}, fmt.Errorf("input is not a  common.Address")
+	}
 }

@@ -1,7 +1,7 @@
 package web3_client
 
 import (
-	"fmt"
+	"context"
 	"math/big"
 
 	"github.com/gochain/gochain/v4/common"
@@ -44,8 +44,28 @@ type TradeExecutionFlowInBigInt struct {
 	SandwichPrediction SandwichTradePrediction    `json:"sandwichPrediction"`
 }
 
+func (t *TradeExecutionFlowInBigInt) GetAggregateGasUsage(ctx context.Context, w Web3Client) error {
+	err := t.FrontRunTrade.GetGasUsageForAllTxs(ctx, w)
+	if err != nil {
+		log.Err(err).Msg("error getting gas usage for front run trade")
+		return err
+	}
+	err = t.UserTrade.GetGasUsageForAllTxs(ctx, w)
+	if err != nil {
+		log.Err(err).Msg("error getting gas usage for user trade")
+		return err
+	}
+	err = t.SandwichTrade.GetGasUsageForAllTxs(ctx, w)
+	if err != nil {
+		log.Err(err).Msg("error getting gas usage for sandwich trade")
+		return err
+	}
+	return nil
+}
+
 type Trade struct {
-	TradeMethod                         string `json:"tradeMethod"`
+	TradeMethod                         string      `json:"tradeMethod"`
+	TxHash                              common.Hash `json:"txHash,omitempty"`
 	*JSONSwapETHForExactTokensParams    `json:"swapETHForExactTokensParams,omitempty"`
 	*JSONSwapTokensForExactTokensParams `json:"swapTokensForExactTokensParams,omitempty"`
 	*JSONSwapExactTokensForTokensParams `json:"swapExactTokensForTokensParams,omitempty"`
@@ -723,45 +743,4 @@ type RemoveLiquidityETHWithPermitParams struct {
 	V              uint8          `json:"v"`
 	R              [32]byte       `json:"r"`
 	S              [32]byte       `json:"s"`
-}
-
-func ParseBigInt(i interface{}) (*big.Int, error) {
-	switch v := i.(type) {
-	case *big.Int:
-		return i.(*big.Int), nil
-	case string:
-		base := 10
-		result := new(big.Int)
-		_, ok := result.SetString(v, base)
-		if !ok {
-			return nil, fmt.Errorf("failed to parse string '%s' into big.Int", v)
-		}
-		return result, nil
-	case uint32:
-		return big.NewInt(int64(v)), nil
-	case int64:
-		return big.NewInt(v), nil
-	default:
-		return nil, fmt.Errorf("input is not a string or int64")
-	}
-}
-
-func ConvertToAddressSlice(i interface{}) ([]common.Address, error) {
-	switch v := i.(type) {
-	case []common.Address:
-		return i.([]common.Address), nil
-	default:
-		fmt.Println(v)
-		return nil, fmt.Errorf("input is not a []common.Address")
-	}
-}
-
-func ConvertToAddress(i interface{}) (common.Address, error) {
-	switch v := i.(type) {
-	case common.Address:
-		return i.(common.Address), nil
-	default:
-		fmt.Println(v)
-		return common.Address{}, fmt.Errorf("input is not a  common.Address")
-	}
 }

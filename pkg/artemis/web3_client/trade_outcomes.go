@@ -1,6 +1,7 @@
 package web3_client
 
 import (
+	"context"
 	"math/big"
 
 	"github.com/gochain/gochain/v4/common"
@@ -18,7 +19,7 @@ type TradeOutcome struct {
 	EndReservesToken1   *big.Int       `json:"endReservesToken1"`
 
 	OrderedTxs   []common.Hash `json:"orderedTxs,omitempty"`
-	TotalGasCost *big.Int      `json:"totalGasCost,omitempty"`
+	TotalGasCost uint64        `json:"totalGasCost,omitempty"`
 }
 
 func (t *TradeOutcome) AddTxHash(tx common.Hash) {
@@ -26,6 +27,17 @@ func (t *TradeOutcome) AddTxHash(tx common.Hash) {
 		t.OrderedTxs = []common.Hash{}
 	}
 	t.OrderedTxs = append(t.OrderedTxs, tx)
+}
+
+func (t *TradeOutcome) GetGasUsageForAllTxs(ctx context.Context, w Web3Client) error {
+	for _, tx := range t.OrderedTxs {
+		txInfo, err := w.GetTxLifecycleStats(ctx, tx)
+		if err != nil {
+			return err
+		}
+		t.TotalGasCost += txInfo.GasUsed
+	}
+	return nil
 }
 
 type JSONTradeOutcome struct {

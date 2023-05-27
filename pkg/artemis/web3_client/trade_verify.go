@@ -9,18 +9,6 @@ import (
 func (u *UniswapV2Client) VerifyTradeResults(tf *TradeExecutionFlowInBigInt) error {
 	if u.DebugPrint {
 		fmt.Println("verifying full sandwich trade")
-
-		fmt.Println("front run trade")
-		fmt.Println(tf.FrontRunTrade.AmountOut.String())
-		fmt.Println(tf.FrontRunTrade.SimulatedAmountOut.String())
-
-		fmt.Println("user trade")
-		fmt.Println(tf.UserTrade.AmountOut.String())
-		fmt.Println(tf.UserTrade.SimulatedAmountOut.String())
-
-		fmt.Println("sandwich trade")
-		fmt.Println(tf.SandwichTrade.AmountOut.String())
-		fmt.Println(tf.SandwichTrade.SimulatedAmountOut.String())
 	}
 
 	switch tf.Trade.TradeMethod {

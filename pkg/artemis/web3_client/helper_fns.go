@@ -46,3 +46,14 @@ func (w *Web3Client) GetEthBalance(ctx context.Context, addr string, blockNum *b
 	}
 	return balance, err
 }
+
+func ConvertAmountsToBigIntSlice(amounts []interface{}) []*big.Int {
+	var amountsBigInt []*big.Int
+	for _, amount := range amounts {
+		pair := amount.([]*big.Int)
+		for _, p := range pair {
+			amountsBigInt = append(amountsBigInt, p)
+		}
+	}
+	return amountsBigInt
+}

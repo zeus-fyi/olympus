@@ -16,12 +16,12 @@ import (
 	"time"
 
 	"github.com/LK4D4/trylock"
+	"github.com/ethereum/go-ethereum/v4/common"
+	"github.com/ethereum/go-ethereum/web3/web3_actions"
 	"github.com/jellydator/ttlcache/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/negroni"
-	"github.com/zeus-fyi/gochain/v4/common"
-	"github.com/zeus-fyi/gochain/web3/web3_actions"
 	artemis_ethereum_transcations "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/transcations"
 )
 

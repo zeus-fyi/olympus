@@ -4,7 +4,8 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/zeus-fyi/gochain/web3/web3_actions"
+	"github.com/zeus-fyi/gochain/web3/accounts"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 )
 
 func (u *UniswapV2Client) ExecTradeByMethod(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
@@ -43,7 +44,7 @@ func (u *UniswapV2Client) ExecSwap(pair UniswapV2Pair, to *TradeOutcome) (*web3_
 	if err != nil {
 		return &web3_actions.SendContractTxPayload{}, err
 	}
-	to.AddTxHash(signedTx.Hash())
+	to.AddTxHash(accounts.Hash(signedTx.Hash()))
 	err = u.Web3Client.SendSignedTransaction(ctx, signedTx)
 	if err != nil {
 		return &web3_actions.SendContractTxPayload{}, err
@@ -132,8 +133,8 @@ func (u *UniswapV2Client) SwapExactETHForTokensParams(tf *TradeExecutionFlowInBi
 		SmartContractAddr: u.MevSmartContractTxMap.SmartContractAddr,
 		SendEtherPayload: web3_actions.SendEtherPayload{
 			TransferArgs: web3_actions.TransferArgs{
-				Amount:    tf.Tx.Value.ToInt(),
-				ToAddress: params.To,
+				Amount:    tf.Tx.Value(),
+				ToAddress: accounts.Address(params.To),
 			},
 		},
 		ContractABI: u.MevSmartContractTxMap.Abi,
@@ -160,7 +161,7 @@ func (u *UniswapV2Client) SwapETHForExactTokensParams(tf *TradeExecutionFlowInBi
 		SmartContractAddr: u.MevSmartContractTxMap.SmartContractAddr,
 		SendEtherPayload: web3_actions.SendEtherPayload{
 			TransferArgs: web3_actions.TransferArgs{
-				Amount:    tf.Tx.Value.ToInt(),
+				Amount:    tf.Tx.Value(),
 				ToAddress: params.To,
 			},
 		},

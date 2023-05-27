@@ -23,7 +23,7 @@ func (s *Web3ClientTestSuite) TestDeployContract() {
 	s.Require().Nil(err)
 	s.Assert().NotNil(tx)
 
-	rx, err := s.LocalHardhatMainnetUser.WaitForReceipt(ctx, tx.Hash)
+	rx, err := s.LocalHardhatMainnetUser.WaitForReceipt(ctx, tx.Hash())
 	s.Assert().Nil(err)
 	s.Assert().NotNil(rx)
 
@@ -47,7 +47,7 @@ func (s *Web3ClientTestSuite) TestDeployUniswapFactoryContract() {
 	s.Require().Nil(err)
 	s.Assert().NotNil(tx)
 
-	rx, err := s.LocalHardhatMainnetUser.WaitForReceipt(ctx, tx.Hash)
+	rx, err := s.LocalHardhatMainnetUser.WaitForReceipt(ctx, tx.Hash())
 	s.Assert().Nil(err)
 	s.Assert().NotNil(rx)
 	fmt.Println(rx.ContractAddress.String())

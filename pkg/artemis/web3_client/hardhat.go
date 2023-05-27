@@ -4,63 +4,63 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/zeus-fyi/gochain/v4/common/hexutil"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-func (w *Web3Client) SetBalance(ctx context.Context, addr string, balance hexutil.Big) error {
+func (w *Web3Client) HardHatSetBalance(ctx context.Context, addr string, balance hexutil.Big) error {
 	w.Dial()
 	defer w.Close()
-	err := w.Client.SetBalance(ctx, addr, balance)
+	err := w.SetBalance(ctx, addr, balance)
 	if err != nil {
 		return err
 	}
 	return err
 }
 
-func (w *Web3Client) ResetNetwork(ctx context.Context, nodeURL string, blockNumber int) error {
+func (w *Web3Client) HardHatResetNetwork(ctx context.Context, nodeURL string, blockNumber int) error {
 	w.Dial()
 	defer w.Close()
-	err := w.Client.ResetNetwork(ctx, nodeURL, blockNumber)
+	err := w.ResetNetwork(ctx, nodeURL, blockNumber)
 	if err != nil {
 		return err
 	}
 	return err
 }
 
-func (w *Web3Client) ImpersonateAccount(ctx context.Context, userAddr string) error {
+func (w *Web3Client) HardhatImpersonateAccount(ctx context.Context, userAddr string) error {
 	w.Dial()
 	defer w.Close()
-	err := w.Client.ImpersonateAccount(ctx, userAddr)
+	err := w.ImpersonateAccount(ctx, userAddr)
 	if err != nil {
 		return err
 	}
 	return err
 }
 
-func (w *Web3Client) SetStorageAt(ctx context.Context, addr, slot, value string) error {
+func (w *Web3Client) HardhatSetStorageAt(ctx context.Context, addr, slot, value string) error {
 	w.Dial()
 	defer w.Close()
-	err := w.Client.SetStorageAt(ctx, addr, slot, value)
+	err := w.SetStorageAt(ctx, addr, slot, value)
 	if err != nil {
 		return err
 	}
 	return err
 }
 
-func (w *Web3Client) GetStorageAt(ctx context.Context, addr, slot string) (hexutil.Bytes, error) {
+func (w *Web3Client) HardHatGetStorageAt(ctx context.Context, addr, slot string) (hexutil.Bytes, error) {
 	w.Dial()
 	defer w.Close()
-	result, err := w.Client.GetStorageAt(ctx, addr, slot)
+	result, err := w.GetStorageAt(ctx, addr, slot)
 	if err != nil {
 		return result, err
 	}
 	return result, err
 }
 
-func (w *Web3Client) GetEvmSnapshot(ctx context.Context) (*big.Int, error) {
+func (w *Web3Client) HardHatGetEvmSnapshot(ctx context.Context) (*big.Int, error) {
 	w.Dial()
 	defer w.Close()
-	ss, err := w.Client.GetEVMSnapshot(ctx)
+	ss, err := w.GetEVMSnapshot(ctx)
 	if err != nil {
 		return ss, err
 	}

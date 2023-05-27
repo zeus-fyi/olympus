@@ -3,8 +3,8 @@ package artemis_mev_transcations
 import (
 	"context"
 
+	web3_types "github.com/ethereum/go-ethereum/web3/types"
 	"github.com/rs/zerolog/log"
-	web3_types "github.com/zeus-fyi/gochain/web3/types"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"

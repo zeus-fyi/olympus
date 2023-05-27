@@ -24,7 +24,7 @@ func (s *Web3ClientTestSuite) TestTradeExec() {
 		if tf.FrontRunTrade.AmountIn == "" {
 			continue
 		}
-		err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlockBeforeTxMined(ctx, s.Tc.HardhatNode, s.LocalHardhatMainnetUser, s.MainnetWeb3User, *tf.Tx.Hash)
+		err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlockBeforeTxMined(ctx, s.Tc.HardhatNode, s.LocalHardhatMainnetUser, s.MainnetWeb3User, tf.Tx.Hash())
 		s.Require().Nil(err)
 
 		tfRegular := tf.ConvertToBigIntType()

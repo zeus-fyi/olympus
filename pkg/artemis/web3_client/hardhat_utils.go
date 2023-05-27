@@ -4,10 +4,10 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/zeus-fyi/gochain/v4/common"
-	"github.com/zeus-fyi/gochain/v4/common/hexutil"
-	"github.com/zeus-fyi/gochain/v4/crypto"
-	web3_types "github.com/zeus-fyi/gochain/web3/types"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 func (w *Web3Client) MineNextBlock(ctx context.Context) error {
@@ -37,13 +37,13 @@ func getSlot(userAddress string, slot *big.Int) (string, error) {
 
 func (w *Web3Client) HardhatResetNetworkToBlockBeforeTxMined(ctx context.Context, simNodeUrl string, simNetworkClient, realNetworkClient Web3Client, txHash common.Hash) error {
 	realNetworkClient.Dial()
-	rx, err := realNetworkClient.Client.GetTransactionByHash(ctx, txHash)
+	rx, err := realNetworkClient.C.TransactionReceipt(ctx, txHash)
 	if err != nil {
 		return err
 	}
 	realNetworkClient.Close()
 	simNetworkClient.Dial()
-	err = simNetworkClient.Client.ResetNetwork(ctx, simNodeUrl, int(rx.BlockNumber.Int64()-1))
+	err = simNetworkClient.HardHatResetNetwork(ctx, simNodeUrl, int(rx.BlockNumber.Int64()-1))
 	if err != nil {
 		return err
 	}
@@ -51,16 +51,21 @@ func (w *Web3Client) HardhatResetNetworkToBlockBeforeTxMined(ctx context.Context
 	return nil
 }
 
-func (w *Web3Client) SendImpersonatedTx(ctx context.Context, tx *web3_types.RpcTransaction) error {
-	err := w.ImpersonateAccount(ctx, tx.From.String())
+func (w *Web3Client) SendImpersonatedTx(ctx context.Context, tx *types.Transaction) error {
+	sender := types.LatestSignerForChainID(tx.ChainId())
+	from, err := sender.Sender(tx)
 	if err != nil {
 		return err
 	}
-	err = w.SendTransaction(ctx, tx)
+	err = w.HardhatImpersonateAccount(ctx, from.String())
 	if err != nil {
 		return err
 	}
-	err = w.StopImpersonatingAccount(ctx, tx.From.String())
+	err = w.SendSignedTransaction(ctx, tx)
+	if err != nil {
+		return err
+	}
+	err = w.StopImpersonatingAccount(ctx, from.String())
 	if err != nil {
 		return err
 	}

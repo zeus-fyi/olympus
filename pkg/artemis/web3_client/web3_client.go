@@ -6,7 +6,7 @@ import (
 	"math/big"
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
-	"github.com/zeus-fyi/gochain/web3/web3_actions"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 )
 
 type Web3Client struct {
@@ -27,28 +27,23 @@ func NewWeb3Client(nodeUrl string, acc *accounts.Account) Web3Client {
 func (w *Web3Client) GetBlockHeight(ctx context.Context) (*big.Int, error) {
 	w.Dial()
 	defer w.Close()
-	blockNumber, err := w.GetBlockNumber(ctx)
+	blockNumber, err := w.C.BlockNumber(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return blockNumber, nil
+	return new(big.Int).SetUint64(blockNumber), nil
 }
 
 func (w *Web3Client) GetHeadBlockHeight(ctx context.Context) (*big.Int, error) {
 	w.Dial()
-	defer w.Close()
-	isSyncing, err := w.GetSyncStatus(ctx)
+	defer w.C.Close()
+	isSyncing, err := w.C.SyncProgress(ctx)
 	if err != nil {
 		fmt.Println("error getting sync status", isSyncing)
 		return nil, err
 	}
-	if isSyncing {
+	if isSyncing != nil && isSyncing.CurrentBlock != isSyncing.HighestBlock {
 		return nil, fmt.Errorf("node is not synced")
 	}
-
-	blockNumber, err := w.GetBlockNumber(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return blockNumber, nil
+	return w.GetBlockHeight(ctx)
 }

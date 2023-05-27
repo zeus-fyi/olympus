@@ -7,7 +7,7 @@ import (
 	"path"
 	"runtime"
 
-	web3_types "github.com/zeus-fyi/gochain/web3/types"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
@@ -55,12 +55,12 @@ func (s *Web3ClientTestSuite) TestMevTxSelect() {
 		s.Require().Nil(berr)
 		s.Require().NotEmpty(tf.UserTrade)
 
-		txRpc := web3_types.RpcTransaction{}
+		txRpc := types.Transaction{}
 		b = []byte(mevTx.Tx)
 		berr = json.Unmarshal(b, &txRpc)
 		s.Require().Nil(berr)
 		s.Require().NotEmpty(txRpc)
-		s.Assert().Equal(txRpc.Hash.String(), mevTx.TxHash)
+		s.Assert().Equal(txRpc.Hash().String(), mevTx.TxHash)
 	}
 }
 

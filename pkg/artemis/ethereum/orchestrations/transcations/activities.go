@@ -4,11 +4,11 @@ import (
 	"context"
 	"time"
 
+	"github.com/ethereum/go-ethereum/v4/common"
+	"github.com/ethereum/go-ethereum/v4/core/types"
+	web3_types "github.com/ethereum/go-ethereum/web3/types"
+	"github.com/ethereum/go-ethereum/web3/web3_actions"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/gochain/v4/common"
-	"github.com/zeus-fyi/gochain/v4/core/types"
-	web3_types "github.com/zeus-fyi/gochain/web3/types"
-	"github.com/zeus-fyi/gochain/web3/web3_actions"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 

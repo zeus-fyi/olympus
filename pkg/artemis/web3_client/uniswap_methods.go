@@ -4,14 +4,14 @@ import (
 	"context"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/gochain/v4/common"
-	web3_types "github.com/zeus-fyi/gochain/web3/types"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 )
 
 type TradeExecutionFlow struct {
 	CurrentBlockNumber *big.Int                    `json:"currentBlockNumber"`
-	Tx                 *web3_types.RpcTransaction  `json:"tx"`
+	Tx                 *types.Transaction          `json:"tx"`
 	Trade              Trade                       `json:"trade"`
 	InitialPair        JSONUniswapV2Pair           `json:"initialPair"`
 	FrontRunTrade      JSONTradeOutcome            `json:"frontRunTrade"`
@@ -34,14 +34,14 @@ func (t *TradeExecutionFlow) ConvertToBigIntType() TradeExecutionFlowInBigInt {
 }
 
 type TradeExecutionFlowInBigInt struct {
-	CurrentBlockNumber *big.Int                   `json:"currentBlockNumber"`
-	Tx                 *web3_types.RpcTransaction `json:"tx"`
-	Trade              Trade                      `json:"trade"`
-	InitialPair        UniswapV2Pair              `json:"initialPair"`
-	FrontRunTrade      TradeOutcome               `json:"frontRunTrade"`
-	UserTrade          TradeOutcome               `json:"userTrade"`
-	SandwichTrade      TradeOutcome               `json:"sandwichTrade"`
-	SandwichPrediction SandwichTradePrediction    `json:"sandwichPrediction"`
+	CurrentBlockNumber *big.Int                `json:"currentBlockNumber"`
+	Tx                 *types.Transaction      `json:"tx"`
+	Trade              Trade                   `json:"trade"`
+	InitialPair        UniswapV2Pair           `json:"initialPair"`
+	FrontRunTrade      TradeOutcome            `json:"frontRunTrade"`
+	UserTrade          TradeOutcome            `json:"userTrade"`
+	SandwichTrade      TradeOutcome            `json:"sandwichTrade"`
+	SandwichPrediction SandwichTradePrediction `json:"sandwichPrediction"`
 }
 
 func (t *TradeExecutionFlowInBigInt) GetAggregateGasUsage(ctx context.Context, w Web3Client) error {
@@ -74,19 +74,19 @@ type Trade struct {
 }
 
 type SwapETHForExactTokensParams struct {
-	AmountOut *big.Int         `json:"amountOut"`
-	Path      []common.Address `json:"path"`
-	To        common.Address   `json:"to"`
-	Deadline  *big.Int         `json:"deadline"`
-	Value     *big.Int         `json:"value"`
+	AmountOut *big.Int           `json:"amountOut"`
+	Path      []accounts.Address `json:"path"`
+	To        accounts.Address   `json:"to"`
+	Deadline  *big.Int           `json:"deadline"`
+	Value     *big.Int           `json:"value"`
 }
 
 type JSONSwapETHForExactTokensParams struct {
-	AmountOut string           `json:"amountOut"`
-	Path      []common.Address `json:"path"`
-	To        common.Address   `json:"to"`
-	Deadline  string           `json:"deadline"`
-	Value     string           `json:"value"`
+	AmountOut string             `json:"amountOut"`
+	Path      []accounts.Address `json:"path"`
+	To        accounts.Address   `json:"to"`
+	Deadline  string             `json:"deadline"`
+	Value     string             `json:"value"`
 }
 
 func (s *SwapETHForExactTokensParams) ConvertToJSONType() *JSONSwapETHForExactTokensParams {
@@ -165,19 +165,19 @@ func (s *SwapETHForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 }
 
 type SwapTokensForExactTokensParams struct {
-	AmountOut   *big.Int         `json:"amountOut"`
-	AmountInMax *big.Int         `json:"amountInMax"`
-	Path        []common.Address `json:"path"`
-	To          common.Address   `json:"to"`
-	Deadline    *big.Int         `json:"deadline"`
+	AmountOut   *big.Int           `json:"amountOut"`
+	AmountInMax *big.Int           `json:"amountInMax"`
+	Path        []accounts.Address `json:"path"`
+	To          accounts.Address   `json:"to"`
+	Deadline    *big.Int           `json:"deadline"`
 }
 
 type JSONSwapTokensForExactTokensParams struct {
-	AmountOut   string           `json:"amountOut"`
-	AmountInMax string           `json:"amountInMax"`
-	Path        []common.Address `json:"path"`
-	To          common.Address   `json:"to"`
-	Deadline    string           `json:"deadline"`
+	AmountOut   string             `json:"amountOut"`
+	AmountInMax string             `json:"amountInMax"`
+	Path        []accounts.Address `json:"path"`
+	To          accounts.Address   `json:"to"`
+	Deadline    string             `json:"deadline"`
 }
 
 func (s *SwapTokensForExactTokensParams) ConvertToJSONType() *JSONSwapTokensForExactTokensParams {
@@ -256,19 +256,19 @@ func (s *SwapTokensForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 }
 
 type SwapTokensForExactETHParams struct {
-	AmountOut   *big.Int         `json:"amountOut"`
-	AmountInMax *big.Int         `json:"amountInMax"`
-	Path        []common.Address `json:"path"`
-	To          common.Address   `json:"to"`
-	Deadline    *big.Int         `json:"deadline"`
+	AmountOut   *big.Int           `json:"amountOut"`
+	AmountInMax *big.Int           `json:"amountInMax"`
+	Path        []accounts.Address `json:"path"`
+	To          accounts.Address   `json:"to"`
+	Deadline    *big.Int           `json:"deadline"`
 }
 
 type JSONSwapTokensForExactETHParams struct {
-	AmountOut   string           `json:"amountOut"`
-	AmountInMax string           `json:"amountInMax"`
-	Path        []common.Address `json:"path"`
-	To          common.Address   `json:"to"`
-	Deadline    string           `json:"deadline"`
+	AmountOut   string             `json:"amountOut"`
+	AmountInMax string             `json:"amountInMax"`
+	Path        []accounts.Address `json:"path"`
+	To          accounts.Address   `json:"to"`
+	Deadline    string             `json:"deadline"`
 }
 
 func (s *SwapTokensForExactETHParams) ConvertToJSONType() *JSONSwapTokensForExactETHParams {
@@ -389,19 +389,19 @@ func (s *SandwichTradePrediction) ConvertToJSONType() JSONSandwichTradePredictio
 }
 
 type SwapExactTokensForTokensParams struct {
-	AmountIn     *big.Int         `json:"amountIn"`
-	AmountOutMin *big.Int         `json:"amountOutMin"`
-	Path         []common.Address `json:"path"`
-	To           common.Address   `json:"to"`
-	Deadline     *big.Int         `json:"deadline"`
+	AmountIn     *big.Int           `json:"amountIn"`
+	AmountOutMin *big.Int           `json:"amountOutMin"`
+	Path         []accounts.Address `json:"path"`
+	To           accounts.Address   `json:"to"`
+	Deadline     *big.Int           `json:"deadline"`
 }
 
 type JSONSwapExactTokensForTokensParams struct {
-	AmountIn     string           `json:"amountIn"`
-	AmountOutMin string           `json:"amountOutMin"`
-	Path         []common.Address `json:"path"`
-	To           common.Address   `json:"to"`
-	Deadline     string           `json:"deadline"`
+	AmountIn     string             `json:"amountIn"`
+	AmountOutMin string             `json:"amountOutMin"`
+	Path         []accounts.Address `json:"path"`
+	To           accounts.Address   `json:"to"`
+	Deadline     string             `json:"deadline"`
 }
 
 func (s *SwapExactTokensForTokensParams) ConvertToJSONType() *JSONSwapExactTokensForTokensParams {
@@ -478,19 +478,19 @@ func (s *SwapExactTokensForTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 }
 
 type SwapExactETHForTokensParams struct {
-	AmountOutMin *big.Int         `json:"amountOutMin"`
-	Path         []common.Address `json:"path"`
-	To           common.Address   `json:"to"`
-	Value        *big.Int         `json:"value"`
-	Deadline     *big.Int         `json:"deadline"`
+	AmountOutMin *big.Int           `json:"amountOutMin"`
+	Path         []accounts.Address `json:"path"`
+	To           accounts.Address   `json:"to"`
+	Value        *big.Int           `json:"value"`
+	Deadline     *big.Int           `json:"deadline"`
 }
 
 type JSONSwapExactETHForTokensParams struct {
-	AmountOutMin string           `json:"amountOutMin"`
-	Path         []common.Address `json:"path"`
-	To           common.Address   `json:"to"`
-	Value        string           `json:"value"`
-	Deadline     string           `json:"deadline"`
+	AmountOutMin string             `json:"amountOutMin"`
+	Path         []accounts.Address `json:"path"`
+	To           accounts.Address   `json:"to"`
+	Value        string             `json:"value"`
+	Deadline     string             `json:"deadline"`
 }
 
 func (s *SwapExactETHForTokensParams) ConvertToJSONType() *JSONSwapExactETHForTokensParams {
@@ -567,19 +567,19 @@ func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 }
 
 type SwapExactTokensForETHParams struct {
-	AmountIn     *big.Int         `json:"amountIn"`
-	AmountOutMin *big.Int         `json:"amountOutMin"`
-	Path         []common.Address `json:"path"`
-	To           common.Address   `json:"to"`
-	Deadline     *big.Int         `json:"deadline"`
+	AmountIn     *big.Int           `json:"amountIn"`
+	AmountOutMin *big.Int           `json:"amountOutMin"`
+	Path         []accounts.Address `json:"path"`
+	To           accounts.Address   `json:"to"`
+	Deadline     *big.Int           `json:"deadline"`
 }
 
 type JSONSwapExactTokensForETHParams struct {
-	AmountIn     string           `json:"amountIn"`
-	AmountOutMin string           `json:"amountOutMin"`
-	Path         []common.Address `json:"path"`
-	To           common.Address   `json:"to"`
-	Deadline     string           `json:"deadline"`
+	AmountIn     string             `json:"amountIn"`
+	AmountOutMin string             `json:"amountOutMin"`
+	Path         []accounts.Address `json:"path"`
+	To           accounts.Address   `json:"to"`
+	Deadline     string             `json:"deadline"`
 }
 
 func (s *SwapExactTokensForETHParams) ConvertToJSONType() *JSONSwapExactTokensForETHParams {
@@ -656,90 +656,90 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 }
 
 type SwapExactTokensForTokensSupportingFeeOnTransferTokensParams struct {
-	AmountIn     *big.Int         `json:"amountIn"`
-	AmountOutMin *big.Int         `json:"amountOutMin"`
-	Path         []common.Address `json:"path"`
-	To           common.Address   `json:"to"`
-	Deadline     *big.Int         `json:"deadline"`
+	AmountIn     *big.Int           `json:"amountIn"`
+	AmountOutMin *big.Int           `json:"amountOutMin"`
+	Path         []accounts.Address `json:"path"`
+	To           accounts.Address   `json:"to"`
+	Deadline     *big.Int           `json:"deadline"`
 }
 
 type SwapExactETHForTokensSupportingFeeOnTransferTokensParams struct {
-	AmountOutMin *big.Int         `json:"amountOutMin"`
-	Path         []common.Address `json:"path"`
-	To           common.Address   `json:"to"`
-	Deadline     *big.Int         `json:"deadline"`
+	AmountOutMin *big.Int           `json:"amountOutMin"`
+	Path         []accounts.Address `json:"path"`
+	To           accounts.Address   `json:"to"`
+	Deadline     *big.Int           `json:"deadline"`
 }
 
 type SwapExactTokensForETHSupportingFeeOnTransferTokensParams struct {
-	AmountIn     *big.Int         `json:"amountIn"`
-	AmountOutMin *big.Int         `json:"amountOutMin"`
-	Path         []common.Address `json:"path"`
-	To           common.Address   `json:"to"`
-	Deadline     *big.Int         `json:"deadline"`
+	AmountIn     *big.Int           `json:"amountIn"`
+	AmountOutMin *big.Int           `json:"amountOutMin"`
+	Path         []accounts.Address `json:"path"`
+	To           accounts.Address   `json:"to"`
+	Deadline     *big.Int           `json:"deadline"`
 }
 
 type AddLiquidityParams struct {
-	TokenA         common.Address `json:"tokenA"`
-	TokenB         common.Address `json:"tokenB"`
-	AmountADesired *big.Int       `json:"amountADesired"`
-	AmountBDesired *big.Int       `json:"amountBDesired"`
-	AmountAMin     *big.Int       `json:"amountAMin"`
-	AmountBMin     *big.Int       `json:"amountBMin"`
-	To             common.Address `json:"to"`
-	Deadline       *big.Int       `json:"deadline"`
+	TokenA         accounts.Address `json:"tokenA"`
+	TokenB         accounts.Address `json:"tokenB"`
+	AmountADesired *big.Int         `json:"amountADesired"`
+	AmountBDesired *big.Int         `json:"amountBDesired"`
+	AmountAMin     *big.Int         `json:"amountAMin"`
+	AmountBMin     *big.Int         `json:"amountBMin"`
+	To             accounts.Address `json:"to"`
+	Deadline       *big.Int         `json:"deadline"`
 }
 
 type AddLiquidityETHParams struct {
-	Token              common.Address `json:"token"`
-	AmountTokenDesired *big.Int       `json:"amountTokenDesired"`
-	AmountTokenMin     *big.Int       `json:"amountTokenMin"`
-	AmountETHMin       *big.Int       `json:"amountETHMin"`
-	To                 common.Address `json:"to"`
-	Deadline           *big.Int       `json:"deadline"`
+	Token              accounts.Address `json:"token"`
+	AmountTokenDesired *big.Int         `json:"amountTokenDesired"`
+	AmountTokenMin     *big.Int         `json:"amountTokenMin"`
+	AmountETHMin       *big.Int         `json:"amountETHMin"`
+	To                 accounts.Address `json:"to"`
+	Deadline           *big.Int         `json:"deadline"`
 }
 
 type RemoveLiquidityParams struct {
-	TokenA     common.Address `json:"tokenA"`
-	TokenB     common.Address `json:"tokenB"`
-	Liquidity  *big.Int       `json:"liquidity"`
-	AmountAMin *big.Int       `json:"amountAMin"`
-	AmountBMin *big.Int       `json:"amountBMin"`
-	To         common.Address `json:"to"`
-	Deadline   *big.Int       `json:"deadline"`
+	TokenA     accounts.Address `json:"tokenA"`
+	TokenB     accounts.Address `json:"tokenB"`
+	Liquidity  *big.Int         `json:"liquidity"`
+	AmountAMin *big.Int         `json:"amountAMin"`
+	AmountBMin *big.Int         `json:"amountBMin"`
+	To         accounts.Address `json:"to"`
+	Deadline   *big.Int         `json:"deadline"`
 }
 
 type RemoveLiquidityETHParams struct {
-	Token          common.Address `json:"token"`
-	Liquidity      *big.Int       `json:"liquidity"`
-	AmountTokenMin *big.Int       `json:"amountTokenMin"`
-	AmountETHMin   *big.Int       `json:"amountETHMin"`
-	To             common.Address `json:"to"`
-	Deadline       *big.Int       `json:"deadline"`
+	Token          accounts.Address `json:"token"`
+	Liquidity      *big.Int         `json:"liquidity"`
+	AmountTokenMin *big.Int         `json:"amountTokenMin"`
+	AmountETHMin   *big.Int         `json:"amountETHMin"`
+	To             accounts.Address `json:"to"`
+	Deadline       *big.Int         `json:"deadline"`
 }
 
 type RemoveLiquidityWithPermitParams struct {
-	TokenA     common.Address `json:"tokenA"`
-	TokenB     common.Address `json:"tokenB"`
-	Liquidity  *big.Int       `json:"liquidity"`
-	AmountAMin *big.Int       `json:"amountAMin"`
-	AmountBMin *big.Int       `json:"amountBMin"`
-	To         common.Address `json:"to"`
-	Deadline   *big.Int       `json:"deadline"`
-	ApproveMax bool           `json:"approveMax"`
-	V          uint8          `json:"v"`
-	R          [32]byte       `json:"r"`
-	S          [32]byte       `json:"s"`
+	TokenA     accounts.Address `json:"tokenA"`
+	TokenB     accounts.Address `json:"tokenB"`
+	Liquidity  *big.Int         `json:"liquidity"`
+	AmountAMin *big.Int         `json:"amountAMin"`
+	AmountBMin *big.Int         `json:"amountBMin"`
+	To         accounts.Address `json:"to"`
+	Deadline   *big.Int         `json:"deadline"`
+	ApproveMax bool             `json:"approveMax"`
+	V          uint8            `json:"v"`
+	R          [32]byte         `json:"r"`
+	S          [32]byte         `json:"s"`
 }
 
 type RemoveLiquidityETHWithPermitParams struct {
-	Token          common.Address `json:"token"`
-	Liquidity      *big.Int       `json:"liquidity"`
-	AmountTokenMin *big.Int       `json:"amountTokenMin"`
-	AmountETHMin   *big.Int       `json:"amountETHMin"`
-	To             common.Address `json:"to"`
-	Deadline       *big.Int       `json:"deadline"`
-	ApproveMax     bool           `json:"approveMax"`
-	V              uint8          `json:"v"`
-	R              [32]byte       `json:"r"`
-	S              [32]byte       `json:"s"`
+	Token          accounts.Address `json:"token"`
+	Liquidity      *big.Int         `json:"liquidity"`
+	AmountTokenMin *big.Int         `json:"amountTokenMin"`
+	AmountETHMin   *big.Int         `json:"amountETHMin"`
+	To             accounts.Address `json:"to"`
+	Deadline       *big.Int         `json:"deadline"`
+	ApproveMax     bool             `json:"approveMax"`
+	V              uint8            `json:"v"`
+	R              [32]byte         `json:"r"`
+	S              [32]byte         `json:"s"`
 }

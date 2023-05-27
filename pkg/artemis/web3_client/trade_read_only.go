@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/zeus-fyi/gochain/web3/web3_actions"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 )
 
 func (u *UniswapV2Client) GetAmounts(to TradeOutcome, method string) ([]interface{}, error) {

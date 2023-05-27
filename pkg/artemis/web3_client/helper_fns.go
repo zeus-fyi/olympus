@@ -5,39 +5,38 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/gochain/v4/common"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 )
 
-func StringsToAddresses(addressOne, addressTwo string) (common.Address, common.Address) {
-	addrOne := common.HexToAddress(addressOne)
-	addrTwo := common.HexToAddress(addressTwo)
+func StringsToAddresses(addressOne, addressTwo string) (accounts.Address, accounts.Address) {
+	addrOne := accounts.HexToAddress(addressOne)
+	addrTwo := accounts.HexToAddress(addressTwo)
 	return addrOne, addrTwo
 }
 
 type TxLifecycleStats struct {
-	TxHash     common.Hash
+	TxHash     accounts.Hash
 	GasUsed    uint64
-	TxBlockNum *big.Int
 	RxBlockNum uint64
 }
 
-func (w *Web3Client) GetTxLifecycleStats(ctx context.Context, txHash common.Hash) (TxLifecycleStats, error) {
-	tx, err := w.GetTransactionByHash(ctx, txHash)
+func (w *Web3Client) GetTxLifecycleStats(ctx context.Context, txHash accounts.Hash) (TxLifecycleStats, error) {
+	tx, _, err := w.C.TransactionByHash(ctx, common.Hash(txHash))
 	if err != nil {
 		log.Err(err).Msg("GetTxLifecycleStats: error getting tx by hash")
 		return TxLifecycleStats{}, err
 	}
-	rx, err := w.GetTransactionReceipt(ctx, txHash)
+	rx, err := w.C.TransactionReceipt(ctx, common.Hash(txHash))
 	if err != nil {
 		log.Err(err).Msg("GetTxLifecycleStats: error getting rx by hash")
 		return TxLifecycleStats{}, err
 	}
 	return TxLifecycleStats{
 		TxHash:     txHash,
-		GasUsed:    rx.GasUsed * tx.GasPrice.Uint64(),
-		TxBlockNum: tx.BlockNumber,
-		RxBlockNum: rx.BlockNumber,
+		GasUsed:    rx.GasUsed * tx.GasPrice().Uint64(),
+		RxBlockNum: rx.BlockNumber.Uint64(),
 	}, err
 }
 
@@ -83,22 +82,22 @@ func ParseBigInt(i interface{}) (*big.Int, error) {
 	}
 }
 
-func ConvertToAddressSlice(i interface{}) ([]common.Address, error) {
+func ConvertToAddressSlice(i interface{}) ([]accounts.Address, error) {
 	switch v := i.(type) {
-	case []common.Address:
-		return i.([]common.Address), nil
+	case []accounts.Address:
+		return i.([]accounts.Address), nil
 	default:
 		fmt.Println(v)
 		return nil, fmt.Errorf("input is not a []common.Address")
 	}
 }
 
-func ConvertToAddress(i interface{}) (common.Address, error) {
+func ConvertToAddress(i interface{}) (accounts.Address, error) {
 	switch v := i.(type) {
-	case common.Address:
-		return i.(common.Address), nil
+	case accounts.Address:
+		return i.(accounts.Address), nil
 	default:
 		fmt.Println(v)
-		return common.Address{}, fmt.Errorf("input is not a  common.Address")
+		return accounts.Address{}, fmt.Errorf("input is not a  common.Address")
 	}
 }

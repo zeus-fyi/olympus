@@ -3,7 +3,8 @@ package web3_client
 import (
 	"fmt"
 
-	"github.com/zeus-fyi/gochain/web3/web3_actions"
+	"github.com/zeus-fyi/gochain/web3/accounts"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 )
 
 func (s *Web3ClientTestSuite) TestWeb3SendEther() {
@@ -14,7 +15,7 @@ func (s *Web3ClientTestSuite) TestWeb3SendEther() {
 	params := web3_actions.SendEtherPayload{
 		TransferArgs: web3_actions.TransferArgs{
 			Amount:    Finney,
-			ToAddress: s.GoerliWeb3User2.Address(),
+			ToAddress: accounts.Address(s.GoerliWeb3User2.Address()),
 		},
 		GasPriceLimits: web3_actions.GasPriceLimits{},
 	}
@@ -55,5 +56,5 @@ func (s *Web3ClientTestSuite) TestWeb3TransferTokenToUserFromPresignedTx() {
 	tx, err := s.GoerliWeb3User.SubmitSignedTxAndReturnTxData(ctx, signedTx)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(tx)
-	fmt.Println(tx.Hash)
+	fmt.Println(tx.Hash())
 }

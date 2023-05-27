@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/gochain/v4/accounts/abi"
 	"github.com/zeus-fyi/gochain/v4/common"
-	web3_types "github.com/zeus-fyi/gochain/web3/types"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
 )
 
@@ -23,11 +23,11 @@ type MevTx struct {
 	UserAddr    string
 	Args        map[string]interface{}
 	Order       string
-	TxPoolQueue map[string]*web3_types.RpcTransaction
-	Tx          *web3_types.RpcTransaction
+	TxPoolQueue map[string]*types.Transaction
+	Tx          *types.Transaction
 }
 
-func ProcessMempoolTxs(ctx context.Context, mempool map[string]map[string]*web3_types.RpcTransaction, mevTxMap MevSmartContractTxMap) (MevSmartContractTxMap, error) {
+func ProcessMempoolTxs(ctx context.Context, mempool map[string]map[string]*types.Transaction, mevTxMap MevSmartContractTxMap) (MevSmartContractTxMap, error) {
 	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 	if mevTxMap.MethodTxMap == nil {
@@ -38,9 +38,9 @@ func ProcessMempoolTxs(ctx context.Context, mempool map[string]map[string]*web3_
 	smartContractAddrFilterString := smartContractAddrFilter.String()
 	for userAddr, txPoolQueue := range mempool {
 		for order, tx := range txPoolQueue {
-			if tx.To != nil && tx.To.String() == smartContractAddrFilterString {
-				if tx.Input != nil {
-					input := *tx.Input
+			if tx.To() != nil && tx.To().String() == smartContractAddrFilterString {
+				if tx.Data() != nil {
+					input := tx.Data()
 					calldata := []byte(input)
 					if len(calldata) < 4 {
 						log.Info().Interface("method", "unknown").Msg("Web3Client| GetFilteredPendingMempoolTxs invalid calldata length")
@@ -102,7 +102,7 @@ func (w *Web3Client) GetFilteredPendingMempoolTxs(ctx context.Context, mevTxMap 
 	if mevTxMap.MethodTxMap == nil {
 		mevTxMap.MethodTxMap = make(map[string]MevTx)
 	}
-	w.Web3Actions.Dial()
+	w.Dial()
 	defer w.Close()
 	mempool, err := w.Web3Actions.GetTxPoolContent(ctx)
 	if err != nil {

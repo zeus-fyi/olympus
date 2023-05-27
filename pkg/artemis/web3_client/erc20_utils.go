@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/zeus-fyi/gochain/v4/common"
-	web3_types "github.com/zeus-fyi/gochain/web3/types"
-	"github.com/zeus-fyi/gochain/web3/web3_actions"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 )
 
-func (w *Web3Client) ERC20ApproveSpender(ctx context.Context, scAddr, spenderAddr string, amount *big.Int) (*web3_types.Transaction, error) {
+func (w *Web3Client) ERC20ApproveSpender(ctx context.Context, scAddr, spenderAddr string, amount *big.Int) (*types.Transaction, error) {
 	w.Dial()
 	defer w.Close()
 	abiFile := LoadERC20Abi()
@@ -43,7 +43,7 @@ func (w *Web3Client) FindSlotFromUserWithBalance(ctx context.Context, scAddr, us
 		if err != nil {
 			return -1, "", err
 		}
-		resp, err := w.GetStorageAt(ctx, scAddr, hexStr)
+		resp, err := w.HardHatGetStorageAt(ctx, scAddr, hexStr)
 		if err != nil {
 			fmt.Println("error", err)
 			return -1, "", err
@@ -62,7 +62,7 @@ func (w *Web3Client) SetERC20BalanceAtSlotNumber(ctx context.Context, scAddr, us
 		return err
 	}
 	newBalance := common.LeftPadBytes(value.Bytes(), 32)
-	err = w.SetStorageAt(ctx, scAddr, slotHex, common.BytesToHash(newBalance).Hex())
+	err = w.HardhatSetStorageAt(ctx, scAddr, slotHex, common.BytesToHash(newBalance).Hex())
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func (w *Web3Client) SetERC20BalanceBruteForce(ctx context.Context, scAddr, user
 			return err
 		}
 		newBalance := common.LeftPadBytes(value.Bytes(), 32)
-		err = w.SetStorageAt(ctx, scAddr, slotHex, common.BytesToHash(newBalance).Hex())
+		err = w.HardhatSetStorageAt(ctx, scAddr, slotHex, common.BytesToHash(newBalance).Hex())
 		if err != nil {
 			continue
 		}

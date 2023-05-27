@@ -18,24 +18,16 @@ type TradeOutcome struct {
 	EndReservesToken0   *big.Int       `json:"endReservesToken0"`
 	EndReservesToken1   *big.Int       `json:"endReservesToken1"`
 
-	SimulatedAmountOut *big.Int      `json:"simulatedAmountOut,omitempty"`
-	PreTradeEthBalance *big.Int      `json:"userStartingEthBalance,omitempty"`
-	OrderedTxs         []common.Hash `json:"orderedTxs,omitempty"`
-	TotalGasCost       uint64        `json:"totalGasCost,omitempty"`
+	SimulatedAmountOut  *big.Int      `json:"simulatedAmountOut,omitempty"`
+	PostTradeEthBalance *big.Int      `json:"postTradeEthBalance,omitempty"`
+	PreTradeEthBalance  *big.Int      `json:"preTradeEthBalance,omitempty"`
+	OrderedTxs          []common.Hash `json:"orderedTxs,omitempty"`
+	TotalGasCost        uint64        `json:"totalGasCost,omitempty"`
 }
 
-func (t *TradeOutcome) SetPreTradeEthBalance(ctx context.Context, addr string, w Web3Client) error {
-	ethBal, err := w.GetBalance(ctx, addr, nil)
-	if err != nil {
-		return err
-	}
-	t.PreTradeEthBalance = ethBal
-	return nil
-}
-
-func (t *TradeOutcome) PostTradeZeroGasFeeBalance() *big.Int {
+func (t *TradeOutcome) PostTradeGasAdjustedBalance() *big.Int {
 	tgCost := new(big.Int).SetUint64(t.TotalGasCost)
-	return new(big.Int).Add(t.PreTradeEthBalance, tgCost)
+	return new(big.Int).Sub(t.SimulatedAmountOut, tgCost)
 }
 
 func (t *TradeOutcome) AddTxHash(tx common.Hash) {

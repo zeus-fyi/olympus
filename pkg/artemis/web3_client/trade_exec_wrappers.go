@@ -9,34 +9,6 @@ import (
 	"github.com/zeus-fyi/gochain/web3/web3_actions"
 )
 
-func (u *UniswapV2Client) SimFullSandwichTrade(tf *TradeExecutionFlowInBigInt) error {
-	if u.DebugPrint {
-		fmt.Println("executing full sandwich trade")
-	}
-	err := u.Web3Client.MatchFrontRunTradeValues(tf)
-	if err != nil {
-		log.Err(err).Msg("error executing front run balance setup")
-		return err
-	}
-	_, err = u.ExecFrontRunTradeStepTokenTransfer(tf)
-	if err != nil {
-		log.Err(err).Msg("error executing front run trade step token transfer")
-		return err
-	}
-
-	_, err = u.ExecUserTradeStep(tf)
-	if err != nil {
-		log.Err(err).Msg("error executing user trade step")
-		return err
-	}
-	_, err = u.ExecSandwichTradeStepTokenTransfer(tf)
-	if err != nil {
-		log.Err(err).Msg("error executing sandwich trade step token transfer")
-		return err
-	}
-	return err
-}
-
 func (u *UniswapV2Client) ExecFrontRunTrade(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
 	return u.ExecSwap(tf.InitialPair, &tf.FrontRunTrade)
 }
@@ -49,15 +21,23 @@ func (u *UniswapV2Client) ExecFrontRunTradeStepTokenTransfer(tf *TradeExecutionF
 	if u.DebugPrint {
 		fmt.Println("executing front run trade")
 	}
-	err := tf.FrontRunTrade.SetPreTradeEthBalance(ctx, u.Web3Client.PublicKey(), u.Web3Client)
+	_, _ = u.FrontRunTradeGetAmountsOut(tf)
+	ethBal, err := u.Web3Client.GetBalance(ctx, u.Web3Client.PublicKey(), nil)
 	if err != nil {
-		log.Err(err).Msg("error getting starting eth balance")
+		log.Err(err).Msg("error getting pre trade eth balance")
 		return nil, err
 	}
+	tf.FrontRunTrade.PreTradeEthBalance = ethBal
 	err = u.RouterApproveAndSend(ctx, &tf.FrontRunTrade, tf.InitialPair.PairContractAddr)
 	if err != nil {
 		return nil, err
 	}
+	ethBal, err = u.Web3Client.GetBalance(ctx, u.Web3Client.PublicKey(), nil)
+	if err != nil {
+		log.Err(err).Msg("error getting post trade eth balance")
+		return nil, err
+	}
+	tf.FrontRunTrade.PostTradeEthBalance = ethBal
 	return u.ExecFrontRunTradeStep(tf)
 }
 
@@ -65,15 +45,23 @@ func (u *UniswapV2Client) ExecUserTradeStep(tf *TradeExecutionFlowInBigInt) (*we
 	if u.DebugPrint {
 		fmt.Println("executing user trade")
 	}
-	err := tf.UserTrade.SetPreTradeEthBalance(ctx, tf.Tx.From.String(), u.Web3Client)
+	_, _ = u.UserTradeGetAmountsOut(tf)
+	ethBal, err := u.Web3Client.GetBalance(ctx, tf.Tx.From.String(), nil)
 	if err != nil {
-		log.Err(err).Msg("error getting starting eth balance")
+		log.Err(err).Msg("error getting pre trade eth balance")
 		return nil, err
 	}
+	tf.UserTrade.PreTradeEthBalance = ethBal
 	scInfo, err := u.ExecTradeByMethod(tf)
 	if err != nil {
 		return nil, err
 	}
+	ethBal, err = u.Web3Client.GetBalance(ctx, tf.Tx.From.String(), nil)
+	if err != nil {
+		log.Err(err).Msg("error getting ending eth balance")
+		return nil, err
+	}
+	tf.UserTrade.PostTradeEthBalance = ethBal
 	tf.UserTrade.AddTxHash(*tf.Tx.Hash)
 	return scInfo, err
 }
@@ -86,10 +74,23 @@ func (u *UniswapV2Client) ExecFrontRunTradeStep(tf *TradeExecutionFlowInBigInt) 
 }
 
 func (u *UniswapV2Client) ExecSandwichTradeStepTokenTransfer(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
-	err := u.RouterApproveAndSend(ctx, &tf.SandwichTrade, tf.InitialPair.PairContractAddr)
+	_, _ = u.SandwichTradeGetAmountsOut(tf)
+	ethBal, err := u.Web3Client.GetBalance(ctx, u.Web3Client.PublicKey(), nil)
+	if err != nil {
+		log.Err(err).Msg("error getting pre trade eth balance")
+		return nil, err
+	}
+	tf.SandwichTrade.PreTradeEthBalance = ethBal
+	err = u.RouterApproveAndSend(ctx, &tf.SandwichTrade, tf.InitialPair.PairContractAddr)
 	if err != nil {
 		return nil, err
 	}
+	ethBal, err = u.Web3Client.GetBalance(ctx, u.Web3Client.PublicKey(), nil)
+	if err != nil {
+		log.Err(err).Msg("error getting post trade eth balance")
+		return nil, err
+	}
+	tf.SandwichTrade.PostTradeEthBalance = ethBal
 	return u.ExecSandwichTradeStep(tf)
 }
 
@@ -97,7 +98,7 @@ func (u *UniswapV2Client) ExecSandwichTradeStep(tf *TradeExecutionFlowInBigInt) 
 	return u.ExecSwap(tf.InitialPair, &tf.SandwichTrade)
 }
 
-func (u *UniswapV2Client) FrontRunTradeGetAmountsOut(tf TradeExecutionFlowInBigInt) ([]*big.Int, error) {
+func (u *UniswapV2Client) FrontRunTradeGetAmountsOut(tf *TradeExecutionFlowInBigInt) ([]*big.Int, error) {
 	pathSlice := []string{tf.FrontRunTrade.AmountInAddr.String(), tf.FrontRunTrade.AmountOutAddr.String()}
 	amountsOut, err := u.GetAmountsOut(tf.FrontRunTrade.AmountIn, pathSlice)
 	if err != nil {
@@ -119,7 +120,7 @@ func (u *UniswapV2Client) FrontRunTradeGetAmountsOut(tf TradeExecutionFlowInBigI
 		log.Warn().Msgf(fmt.Sprintf("amount out not equal to expected amount out %s, actual amount out: %s", tf.FrontRunTrade.AmountOut.String(), amountsOutFirstPair[1].String()))
 		return amountsOutFirstPair, errors.New("amount out not equal to expected")
 	}
-	tf.UserTrade.SimulatedAmountOut = amountsOutFirstPair[1]
+	tf.FrontRunTrade.SimulatedAmountOut = amountsOutFirstPair[1]
 	return amountsOutFirstPair, err
 }
 
@@ -149,7 +150,7 @@ func (u *UniswapV2Client) UserTradeGetAmountsOut(tf *TradeExecutionFlowInBigInt)
 	return amountsOutFirstPair, err
 }
 
-func (u *UniswapV2Client) SandwichTradeGetAmountsOut(tf TradeExecutionFlowInBigInt) ([]*big.Int, error) {
+func (u *UniswapV2Client) SandwichTradeGetAmountsOut(tf *TradeExecutionFlowInBigInt) ([]*big.Int, error) {
 	pathSlice := []string{tf.SandwichTrade.AmountInAddr.String(), tf.SandwichTrade.AmountOutAddr.String()}
 	amountsOut, err := u.GetAmountsOut(tf.SandwichTrade.AmountIn, pathSlice)
 	if err != nil {

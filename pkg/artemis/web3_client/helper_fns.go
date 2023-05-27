@@ -86,6 +86,12 @@ func ConvertToAddressSlice(i interface{}) ([]accounts.Address, error) {
 	switch v := i.(type) {
 	case []accounts.Address:
 		return i.([]accounts.Address), nil
+	case []common.Address:
+		m := make([]accounts.Address, len(i.([]common.Address)))
+		for ind, addr := range i.([]common.Address) {
+			m[ind] = accounts.HexToAddress(addr.Hex())
+		}
+		return m, nil
 	default:
 		fmt.Println(v)
 		return nil, fmt.Errorf("input is not a []common.Address")
@@ -94,8 +100,11 @@ func ConvertToAddressSlice(i interface{}) ([]accounts.Address, error) {
 
 func ConvertToAddress(i interface{}) (accounts.Address, error) {
 	switch v := i.(type) {
+	case common.Address:
+		return accounts.Address(v), nil
 	case accounts.Address:
-		return i.(accounts.Address), nil
+		addr := i.(common.Address)
+		return accounts.HexToAddress(addr.Hex()), nil
 	default:
 		fmt.Println(v)
 		return accounts.Address{}, fmt.Errorf("input is not a  common.Address")

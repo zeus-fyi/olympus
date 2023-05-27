@@ -85,10 +85,11 @@ func (s *Web3ClientTestSuite) TestMatchInputs() {
 		startBal, err := s.LocalHardhatMainnetUser.GetBalance(ctx, tfRegular.Tx.From.String(), nil)
 		fmt.Println("userTradeStartEthBal", startBal.String())
 
-		aa, err := uni.ExecTradeByMethod(&tfRegular)
+		aa, err := uni.ExecUserTradeStep(&tfRegular)
 		s.Require().Nil(err)
 		s.Require().NotNil(aa)
 
+		fmt.Println(tfRegular.Tx.Hash.String())
 		ethBalance, err := s.LocalHardhatMainnetUser.GetBalance(ctx, tfRegular.Tx.From.String(), nil)
 		s.Require().Nil(err)
 		s.Require().NotNil(ethBalance)
@@ -109,6 +110,5 @@ func (s *Web3ClientTestSuite) TestMatchInputs() {
 
 		err = tfRegular.GetAggregateGasUsage(ctx, s.LocalHardhatMainnetUser)
 		s.Require().Nil(err)
-
 	}
 }

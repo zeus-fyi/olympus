@@ -9,6 +9,14 @@ import (
 	"github.com/zeus-fyi/gochain/web3/web3_actions"
 )
 
+func (u *UniswapV2Client) ExecFrontRunTrade(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+	return u.ExecSwap(tf.InitialPair, &tf.FrontRunTrade)
+}
+
+func (u *UniswapV2Client) ExecSandwichTrade(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+	return u.ExecSwap(tf.InitialPair, &tf.SandwichTrade)
+}
+
 func (u *UniswapV2Client) ExecFrontRunTradeStepTokenTransfer(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
 	if u.DebugPrint {
 		fmt.Println("executing front run trade")
@@ -18,6 +26,19 @@ func (u *UniswapV2Client) ExecFrontRunTradeStepTokenTransfer(tf *TradeExecutionF
 		return nil, err
 	}
 	return u.ExecFrontRunTradeStep(tf)
+}
+
+func (u *UniswapV2Client) ExecUserTradeStep(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+	if u.DebugPrint {
+		fmt.Println("executing user trade")
+	}
+	scInfo, err := u.ExecTradeByMethod(tf)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("user trade tx hash", tf.Tx.Hash.String())
+	tf.UserTrade.AddTxHash(*tf.Tx.Hash)
+	return scInfo, err
 }
 
 func (u *UniswapV2Client) ExecFrontRunTradeStep(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {

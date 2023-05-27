@@ -7,6 +7,7 @@ import (
 	"github.com/gochain/gochain/v4/common"
 	"github.com/gochain/gochain/v4/common/hexutil"
 	"github.com/gochain/gochain/v4/crypto"
+	web3_types "github.com/zeus-fyi/gochain/web3/types"
 )
 
 func (w *Web3Client) MineNextBlock(ctx context.Context) error {
@@ -47,5 +48,21 @@ func (w *Web3Client) HardhatResetNetworkToBlockBeforeTxMined(ctx context.Context
 		return err
 	}
 	simNetworkClient.Close()
+	return nil
+}
+
+func (w *Web3Client) SendImpersonatedTx(ctx context.Context, tx *web3_types.RpcTransaction) error {
+	err := w.ImpersonateAccount(ctx, tx.From.String())
+	if err != nil {
+		return err
+	}
+	err = w.SendTransaction(ctx, tx)
+	if err != nil {
+		return err
+	}
+	err = w.StopImpersonatingAccount(ctx, tx.From.String())
+	if err != nil {
+		return err
+	}
 	return nil
 }

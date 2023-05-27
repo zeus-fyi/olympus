@@ -64,8 +64,7 @@ func (t *TradeExecutionFlowInBigInt) GetAggregateGasUsage(ctx context.Context, w
 }
 
 type Trade struct {
-	TradeMethod                         string      `json:"tradeMethod"`
-	TxHash                              common.Hash `json:"txHash,omitempty"`
+	TradeMethod                         string `json:"tradeMethod"`
 	*JSONSwapETHForExactTokensParams    `json:"swapETHForExactTokensParams,omitempty"`
 	*JSONSwapTokensForExactTokensParams `json:"swapTokensForExactTokensParams,omitempty"`
 	*JSONSwapExactTokensForTokensParams `json:"swapExactTokensForTokensParams,omitempty"`

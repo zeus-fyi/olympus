@@ -11,7 +11,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/params"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
@@ -256,19 +255,22 @@ func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, p
 		if berr != nil {
 			return
 		}
-		sender := types.LatestSigner(&params.ChainConfig{ChainID: tx.Tx.ChainId()})
+		fromStr := ""
+		sender := types.LatestSignerForChainID(tx.Tx.ChainId())
 		from, ferr := sender.Sender(tx.Tx)
 		if ferr != nil {
 			log.Err(err).Msg("failed to get sender")
-			return
+		} else {
+			fromStr = from.String()
 		}
+
 		txMempool := artemis_autogen_bases.EthMempoolMevTx{
 			ProtocolNetworkID: hestia_req_types.EthereumMainnetProtocolNetworkID,
 			Tx:                string(b),
 			TxFlowPrediction:  string(btf),
 			TxHash:            tx.Tx.Hash().String(),
 			Nonce:             int(tx.Tx.Nonce()),
-			From:              from.String(),
+			From:              fromStr,
 			To:                tx.Tx.To().String(),
 			BlockNumber:       int(u.BlockNumber.Int64()),
 		}

@@ -5,10 +5,10 @@ import (
 	"math/big"
 	"net/http"
 
-	"github.com/ethereum/go-ethereum/v4/core/types"
-	"github.com/ethereum/go-ethereum/web3/web3_actions"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	artemis_ethereum_transcations "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/transcations"
 )

@@ -4,11 +4,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/ethereum/go-ethereum/v4/common"
-	"github.com/ethereum/go-ethereum/v4/core/types"
-	web3_types "github.com/ethereum/go-ethereum/web3/types"
-	"github.com/ethereum/go-ethereum/web3/web3_actions"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -36,12 +35,12 @@ func (d *ArtemisEthereumBroadcastTxActivities) SendEther(ctx context.Context, pa
 	send, err := d.Send(ctx, payload)
 	if err != nil {
 		log.Err(err).Str("network", d.Network).Str("nodeURL", d.NodeURL).Interface("tx", send).Interface("payload", payload).Msg("ArtemisEthereumBroadcastTxActivities: Send failed")
-		return send.Hash, err
+		return send.Hash(), err
 	}
-	return send.Hash, err
+	return send.Hash(), err
 }
 
-func (d *ArtemisEthereumBroadcastTxActivities) SubmitSignedTx(ctx context.Context, signedTx *types.Transaction) (*web3_types.Transaction, error) {
+func (d *ArtemisEthereumBroadcastTxActivities) SubmitSignedTx(ctx context.Context, signedTx *types.Transaction) (*types.Transaction, error) {
 	ctx, cancelFn := context.WithTimeout(ctx, submitSignedTxTimeout)
 	defer cancelFn()
 	txData, err := d.Web3Actions.SubmitSignedTxAndReturnTxData(ctx, signedTx)
@@ -52,7 +51,7 @@ func (d *ArtemisEthereumBroadcastTxActivities) SubmitSignedTx(ctx context.Contex
 	return txData, err
 }
 
-func (d *ArtemisEthereumBroadcastTxActivities) WaitForTxReceipt(ctx context.Context, hash common.Hash) (*web3_types.Receipt, error) {
+func (d *ArtemisEthereumBroadcastTxActivities) WaitForTxReceipt(ctx context.Context, hash common.Hash) (*types.Receipt, error) {
 	ctx, cancelFn := context.WithTimeout(ctx, waitForTxRxTimeout)
 	defer cancelFn()
 	rx, err := d.WaitForReceipt(ctx, hash)

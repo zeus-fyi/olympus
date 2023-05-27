@@ -16,12 +16,12 @@ import (
 	"time"
 
 	"github.com/LK4D4/trylock"
-	"github.com/ethereum/go-ethereum/v4/common"
-	"github.com/ethereum/go-ethereum/web3/web3_actions"
 	"github.com/jellydator/ttlcache/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/negroni"
+	"github.com/zeus-fyi/gochain/web3/accounts"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_ethereum_transcations "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/transcations"
 )
 
@@ -123,10 +123,10 @@ func renderJSON(w http.ResponseWriter, v interface{}, code int) error {
 }
 
 func IsValidAddress(address string, checksummed bool) bool {
-	if !common.IsHexAddress(address) {
+	if !accounts.IsHexAddress(address) {
 		return false
 	}
-	return !checksummed || common.HexToAddress(address).Hex() == address
+	return !checksummed || accounts.HexToAddress(address).Hex() == address
 }
 
 type Limiter struct {
@@ -250,7 +250,7 @@ func (s *FaucetServer) consumeQueue() {
 		address := <-s.queue
 		sendEthTransferPayload := web3_actions.TransferArgs{
 			Amount:    EtherToWei(int64(s.cfg.payout)),
-			ToAddress: common.StringToAddress(address),
+			ToAddress: accounts.StringToAddress(address),
 		}
 		sendEthPayload := web3_actions.SendEtherPayload{
 			TransferArgs:   sendEthTransferPayload,
@@ -300,7 +300,7 @@ func (s *FaucetServer) FaucetHandler(c echo.Context) error {
 	}
 	sendEthTransferPayload := web3_actions.TransferArgs{
 		Amount:    EtherToWei(int64(s.cfg.payout)),
-		ToAddress: common.StringToAddress(address),
+		ToAddress: accounts.StringToAddress(address),
 	}
 	sendEthPayload := web3_actions.SendEtherPayload{
 		TransferArgs:   sendEthTransferPayload,

@@ -119,10 +119,11 @@ func (u *UniswapV2Client) FrontRunTradeGetAmountsOut(tf TradeExecutionFlowInBigI
 		log.Warn().Msgf(fmt.Sprintf("amount out not equal to expected amount out %s, actual amount out: %s", tf.FrontRunTrade.AmountOut.String(), amountsOutFirstPair[1].String()))
 		return amountsOutFirstPair, errors.New("amount out not equal to expected")
 	}
+	tf.UserTrade.SimulatedAmountOut = amountsOutFirstPair[1]
 	return amountsOutFirstPair, err
 }
 
-func (u *UniswapV2Client) UserTradeGetAmountsOut(tf TradeExecutionFlowInBigInt) ([]*big.Int, error) {
+func (u *UniswapV2Client) UserTradeGetAmountsOut(tf *TradeExecutionFlowInBigInt) ([]*big.Int, error) {
 	pathSlice := []string{tf.UserTrade.AmountInAddr.String(), tf.UserTrade.AmountOutAddr.String()}
 	amountsOut, err := u.GetAmountsOut(tf.UserTrade.AmountIn, pathSlice)
 	if err != nil {
@@ -144,6 +145,7 @@ func (u *UniswapV2Client) UserTradeGetAmountsOut(tf TradeExecutionFlowInBigInt) 
 		log.Warn().Msgf(fmt.Sprintf("amount out not equal to expected amount out %s, actual amount out: %s", tf.UserTrade.AmountOut.String(), amountsOutFirstPair[1].String()))
 		return amountsOutFirstPair, errors.New("amount out not equal to expected")
 	}
+	tf.UserTrade.SimulatedAmountOut = amountsOutFirstPair[1]
 	return amountsOutFirstPair, err
 }
 
@@ -169,5 +171,6 @@ func (u *UniswapV2Client) SandwichTradeGetAmountsOut(tf TradeExecutionFlowInBigI
 		log.Warn().Msgf(fmt.Sprintf("amount out not equal to expected amount out %s, actual amount out: %s", tf.UserTrade.AmountOut.String(), amountsOutFirstPair[1].String()))
 		return amountsOutFirstPair, errors.New("amount out not equal to expected")
 	}
+	tf.SandwichTrade.SimulatedAmountOut = amountsOutFirstPair[1]
 	return amountsOutFirstPair, err
 }

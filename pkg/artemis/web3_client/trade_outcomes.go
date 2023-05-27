@@ -18,6 +18,7 @@ type TradeOutcome struct {
 	EndReservesToken0   *big.Int       `json:"endReservesToken0"`
 	EndReservesToken1   *big.Int       `json:"endReservesToken1"`
 
+	SimulatedAmountOut *big.Int      `json:"simulatedAmountOut,omitempty"`
 	PreTradeEthBalance *big.Int      `json:"userStartingEthBalance,omitempty"`
 	OrderedTxs         []common.Hash `json:"orderedTxs,omitempty"`
 	TotalGasCost       uint64        `json:"totalGasCost,omitempty"`

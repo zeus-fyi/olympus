@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/gochain/gochain/v4/accounts/abi"
+	"github.com/zeus-fyi/gochain/v4/accounts/abi"
 	"github.com/zeus-fyi/gochain/web3/web3_actions"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 	signing_automation_ethereum "github.com/zeus-fyi/zeus/pkg/artemis/signing_automation/ethereum"

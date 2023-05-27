@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/gochain/gochain/v4/common/hexutil"
+	"github.com/zeus-fyi/gochain/v4/common/hexutil"
 )
 
 func (s *Web3ClientTestSuite) TestSetBalance() {

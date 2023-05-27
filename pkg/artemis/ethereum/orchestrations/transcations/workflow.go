@@ -3,8 +3,8 @@ package artemis_ethereum_transcations
 import (
 	"time"
 
-	"github.com/gochain/gochain/v4/common"
-	"github.com/gochain/gochain/v4/core/types"
+	"github.com/zeus-fyi/gochain/v4/common"
+	"github.com/zeus-fyi/gochain/v4/core/types"
 	web3_types "github.com/zeus-fyi/gochain/web3/types"
 	"github.com/zeus-fyi/gochain/web3/web3_actions"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"

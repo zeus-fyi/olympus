@@ -7,8 +7,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/gochain/gochain/v4/common"
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/gochain/v4/common"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_encryption"
 )

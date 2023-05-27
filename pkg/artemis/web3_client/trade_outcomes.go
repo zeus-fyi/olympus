@@ -4,25 +4,25 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/zeus-fyi/gochain/v4/common"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 )
 
 type TradeOutcome struct {
-	AmountIn            *big.Int       `json:"amountIn"`
-	AmountInAddr        common.Address `json:"amountInAddr"`
-	AmountFees          *big.Int       `json:"amountFees"`
-	AmountOut           *big.Int       `json:"amountOut"`
-	AmountOutAddr       common.Address `json:"amountOutAddr"`
-	StartReservesToken0 *big.Int       `json:"startReservesToken0"`
-	StartReservesToken1 *big.Int       `json:"startReservesToken1"`
-	EndReservesToken0   *big.Int       `json:"endReservesToken0"`
-	EndReservesToken1   *big.Int       `json:"endReservesToken1"`
+	AmountIn            *big.Int         `json:"amountIn"`
+	AmountInAddr        accounts.Address `json:"amountInAddr"`
+	AmountFees          *big.Int         `json:"amountFees"`
+	AmountOut           *big.Int         `json:"amountOut"`
+	AmountOutAddr       accounts.Address `json:"amountOutAddr"`
+	StartReservesToken0 *big.Int         `json:"startReservesToken0"`
+	StartReservesToken1 *big.Int         `json:"startReservesToken1"`
+	EndReservesToken0   *big.Int         `json:"endReservesToken0"`
+	EndReservesToken1   *big.Int         `json:"endReservesToken1"`
 
-	SimulatedAmountOut  *big.Int      `json:"simulatedAmountOut,omitempty"`
-	PostTradeEthBalance *big.Int      `json:"postTradeEthBalance,omitempty"`
-	PreTradeEthBalance  *big.Int      `json:"preTradeEthBalance,omitempty"`
-	OrderedTxs          []common.Hash `json:"orderedTxs,omitempty"`
-	TotalGasCost        uint64        `json:"totalGasCost,omitempty"`
+	SimulatedAmountOut  *big.Int        `json:"simulatedAmountOut,omitempty"`
+	PostTradeEthBalance *big.Int        `json:"postTradeEthBalance,omitempty"`
+	PreTradeEthBalance  *big.Int        `json:"preTradeEthBalance,omitempty"`
+	OrderedTxs          []accounts.Hash `json:"orderedTxs,omitempty"`
+	TotalGasCost        uint64          `json:"totalGasCost,omitempty"`
 }
 
 func (t *TradeOutcome) PostTradeGasAdjustedBalance() *big.Int {
@@ -30,16 +30,16 @@ func (t *TradeOutcome) PostTradeGasAdjustedBalance() *big.Int {
 	return new(big.Int).Sub(t.SimulatedAmountOut, tgCost)
 }
 
-func (t *TradeOutcome) AddTxHash(tx common.Hash) {
+func (t *TradeOutcome) AddTxHash(tx accounts.Hash) {
 	if t.OrderedTxs == nil {
-		t.OrderedTxs = []common.Hash{}
+		t.OrderedTxs = []accounts.Hash{}
 	}
 	t.OrderedTxs = append(t.OrderedTxs, tx)
 }
 
 func (t *TradeOutcome) GetGasUsageForAllTxs(ctx context.Context, w Web3Client) error {
 	for _, tx := range t.OrderedTxs {
-		txInfo, err := w.GetTxLifecycleStats(ctx, tx)
+		txInfo, err := w.GetTxLifecycleStats(ctx, accounts.HexToHash(tx.Hex()))
 		if err != nil {
 			return err
 		}
@@ -49,15 +49,15 @@ func (t *TradeOutcome) GetGasUsageForAllTxs(ctx context.Context, w Web3Client) e
 }
 
 type JSONTradeOutcome struct {
-	AmountIn            string         `json:"amountIn"`
-	AmountInAddr        common.Address `json:"amountInAddr"`
-	AmountFees          string         `json:"amountFees"`
-	AmountOut           string         `json:"amountOut"`
-	AmountOutAddr       common.Address `json:"amountOutAddr"`
-	StartReservesToken0 string         `json:"startReservesToken0"`
-	StartReservesToken1 string         `json:"startReservesToken1"`
-	EndReservesToken0   string         `json:"endReservesToken0"`
-	EndReservesToken1   string         `json:"endReservesToken1"`
+	AmountIn            string           `json:"amountIn"`
+	AmountInAddr        accounts.Address `json:"amountInAddr"`
+	AmountFees          string           `json:"amountFees"`
+	AmountOut           string           `json:"amountOut"`
+	AmountOutAddr       accounts.Address `json:"amountOutAddr"`
+	StartReservesToken0 string           `json:"startReservesToken0"`
+	StartReservesToken1 string           `json:"startReservesToken1"`
+	EndReservesToken0   string           `json:"endReservesToken0"`
+	EndReservesToken1   string           `json:"endReservesToken1"`
 }
 
 func (t *JSONTradeOutcome) ConvertToBigIntType() TradeOutcome {

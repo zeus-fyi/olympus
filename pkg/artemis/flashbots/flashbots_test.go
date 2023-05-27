@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/web3/accounts"
 	"github.com/metachris/flashbotsrpc"
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_encryption"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )

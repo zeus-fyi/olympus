@@ -1,7 +1,7 @@
 package artemis_mev_transcations
 
 import (
-	web3_types "github.com/zeus-fyi/gochain/web3/types"
+	web3_types "github.com/ethereum/go-ethereum/web3/types"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"go.temporal.io/sdk/workflow"
 )

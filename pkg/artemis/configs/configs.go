@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
+	"github.com/ethereum/go-ethereum/web3/accounts"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/configs"
 )
 

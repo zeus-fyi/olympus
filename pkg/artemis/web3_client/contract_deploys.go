@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/zeus-fyi/gochain/v4/accounts/abi"
-	web3_types "github.com/zeus-fyi/gochain/web3/types"
-	"github.com/zeus-fyi/gochain/web3/web3_actions"
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/core/types"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
@@ -40,7 +40,7 @@ func LoadUniswapFactoryAbiPayload() (web3_actions.SendContractTxPayload, string,
 	return params, m["bytecode"].(string), nil
 }
 
-func (w *Web3Client) DeployERC20Token(ctx context.Context, bc string, scParams web3_actions.SendContractTxPayload) (*web3_types.Transaction, error) {
+func (w *Web3Client) DeployERC20Token(ctx context.Context, bc string, scParams web3_actions.SendContractTxPayload) (*types.Transaction, error) {
 	w.Dial()
 	defer w.Close()
 	tx, err := w.DeployContract(ctx, bc, scParams)

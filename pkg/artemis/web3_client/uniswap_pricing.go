@@ -5,10 +5,10 @@ import (
 	"math/big"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/gochain/v4/common"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 )
 
-func (p *UniswapV2Pair) PriceImpact(tokenAddrPath common.Address, tokenBuyAmount *big.Int) (TradeOutcome, error) {
+func (p *UniswapV2Pair) PriceImpact(tokenAddrPath accounts.Address, tokenBuyAmount *big.Int) (TradeOutcome, error) {
 	tokenNumber := p.GetTokenNumber(tokenAddrPath)
 	switch tokenNumber {
 	case 1:

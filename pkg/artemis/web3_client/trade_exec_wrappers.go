@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/gochain/web3/web3_actions"
+	"github.com/zeus-fyi/gochain/web3/accounts"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 )
 
 func (u *UniswapV2Client) ExecFrontRunTrade(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
@@ -46,7 +48,13 @@ func (u *UniswapV2Client) ExecUserTradeStep(tf *TradeExecutionFlowInBigInt) (*we
 		fmt.Println("executing user trade")
 	}
 	_, _ = u.UserTradeGetAmountsOut(tf)
-	ethBal, err := u.Web3Client.GetBalance(ctx, tf.Tx.From.String(), nil)
+	sender := types.LatestSignerForChainID(tf.Tx.ChainId())
+	from, err := sender.Sender(tf.Tx)
+	if err != nil {
+		log.Err(err).Msg("error getting sender")
+		return nil, err
+	}
+	ethBal, err := u.Web3Client.GetBalance(ctx, from.String(), nil)
 	if err != nil {
 		log.Err(err).Msg("error getting pre trade eth balance")
 		return nil, err
@@ -56,13 +64,13 @@ func (u *UniswapV2Client) ExecUserTradeStep(tf *TradeExecutionFlowInBigInt) (*we
 	if err != nil {
 		return nil, err
 	}
-	ethBal, err = u.Web3Client.GetBalance(ctx, tf.Tx.From.String(), nil)
+	ethBal, err = u.Web3Client.GetBalance(ctx, from.String(), nil)
 	if err != nil {
 		log.Err(err).Msg("error getting ending eth balance")
 		return nil, err
 	}
 	tf.UserTrade.PostTradeEthBalance = ethBal
-	tf.UserTrade.AddTxHash(*tf.Tx.Hash)
+	tf.UserTrade.AddTxHash(accounts.Hash(tf.Tx.Hash()))
 	return scInfo, err
 }
 

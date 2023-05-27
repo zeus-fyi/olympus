@@ -6,32 +6,32 @@ import (
 	"math/big"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/gochain/v4/common"
-	"github.com/zeus-fyi/gochain/web3/web3_actions"
+	"github.com/zeus-fyi/gochain/web3/accounts"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 )
 
 type UniswapV2Pair struct {
-	PairContractAddr     string         `json:"pairContractAddr"`
-	Price0CumulativeLast *big.Int       `json:"price0CumulativeLast"`
-	Price1CumulativeLast *big.Int       `json:"price1CumulativeLast"`
-	KLast                *big.Int       `json:"kLast"`
-	Token0               common.Address `json:"token0"`
-	Token1               common.Address `json:"token1"`
-	Reserve0             *big.Int       `json:"reserve0"`
-	Reserve1             *big.Int       `json:"reserve1"`
-	BlockTimestampLast   *big.Int       `json:"blockTimestampLast"`
+	PairContractAddr     string           `json:"pairContractAddr"`
+	Price0CumulativeLast *big.Int         `json:"price0CumulativeLast"`
+	Price1CumulativeLast *big.Int         `json:"price1CumulativeLast"`
+	KLast                *big.Int         `json:"kLast"`
+	Token0               accounts.Address `json:"token0"`
+	Token1               accounts.Address `json:"token1"`
+	Reserve0             *big.Int         `json:"reserve0"`
+	Reserve1             *big.Int         `json:"reserve1"`
+	BlockTimestampLast   *big.Int         `json:"blockTimestampLast"`
 }
 
 type JSONUniswapV2Pair struct {
-	PairContractAddr     string         `json:"pairContractAddr"`
-	Price0CumulativeLast string         `json:"price0CumulativeLast"`
-	Price1CumulativeLast string         `json:"price1CumulativeLast"`
-	KLast                string         `json:"kLast"`
-	Token0               common.Address `json:"token0"`
-	Token1               common.Address `json:"token1"`
-	Reserve0             string         `json:"reserve0"`
-	Reserve1             string         `json:"reserve1"`
-	BlockTimestampLast   string         `json:"blockTimestampLast"`
+	PairContractAddr     string           `json:"pairContractAddr"`
+	Price0CumulativeLast string           `json:"price0CumulativeLast"`
+	Price1CumulativeLast string           `json:"price1CumulativeLast"`
+	KLast                string           `json:"kLast"`
+	Token0               accounts.Address `json:"token0"`
+	Token1               accounts.Address `json:"token1"`
+	Reserve0             string           `json:"reserve0"`
+	Reserve1             string           `json:"reserve1"`
+	BlockTimestampLast   string           `json:"blockTimestampLast"`
 }
 
 func (p *JSONUniswapV2Pair) ConvertToBigIntType() UniswapV2Pair {
@@ -87,30 +87,30 @@ func (p *UniswapV2Pair) GetQuoteUsingTokenAddr(addr string, amount *big.Int) (*b
 	if addr == "0x0000000000000000000000000000000000000000" {
 		addr = WETH9ContractAddress
 	}
-	if p.Token0 == common.HexToAddress(addr) {
+	if p.Token0 == accounts.HexToAddress(addr) {
 		return p.GetQuoteToken0BuyToken1(amount)
 	}
-	if p.Token1 == common.HexToAddress(addr) {
+	if p.Token1 == accounts.HexToAddress(addr) {
 		return p.GetQuoteToken1BuyToken0(amount)
 	}
 	return nil, errors.New("GetQuoteUsingTokenAddr: token not found")
 }
 
-func (p *UniswapV2Pair) GetOppositeToken(addr string) common.Address {
+func (p *UniswapV2Pair) GetOppositeToken(addr string) accounts.Address {
 	if addr == "0x0000000000000000000000000000000000000000" {
 		addr = WETH9ContractAddress
 	}
-	if p.Token0 == common.HexToAddress(addr) {
+	if p.Token0 == accounts.HexToAddress(addr) {
 		return p.Token1
 	}
-	if p.Token1 == common.HexToAddress(addr) {
+	if p.Token1 == accounts.HexToAddress(addr) {
 		return p.Token0
 	}
 	log.Warn().Msgf("GetOppositeToken: token not found: %s", addr)
-	return common.Address{}
+	return accounts.Address{}
 }
 
-func (p *UniswapV2Pair) GetTokenNumber(addr common.Address) int {
+func (p *UniswapV2Pair) GetTokenNumber(addr accounts.Address) int {
 	if addr.String() == "0x0000000000000000000000000000000000000000" {
 		if p.Token0.String() == WETH9ContractAddress {
 			return 0
@@ -140,8 +140,8 @@ func (u *UniswapV2Client) GetPairContractPrices(ctx context.Context, pairContrac
 		Price0CumulativeLast: nil,
 		Price1CumulativeLast: nil,
 		KLast:                nil,
-		Token0:               common.Address{},
-		Token1:               common.Address{},
+		Token0:               accounts.Address{},
+		Token1:               accounts.Address{},
 		Reserve0:             nil,
 		Reserve1:             nil,
 		BlockTimestampLast:   nil,
@@ -213,18 +213,18 @@ func (u *UniswapV2Client) SingleReadMethodBigInt(ctx context.Context, methodName
 	return bi, nil
 }
 
-func (u *UniswapV2Client) SingleReadMethodAddr(ctx context.Context, methodName string, scInfo *web3_actions.SendContractTxPayload) (common.Address, error) {
+func (u *UniswapV2Client) SingleReadMethodAddr(ctx context.Context, methodName string, scInfo *web3_actions.SendContractTxPayload) (accounts.Address, error) {
 	scInfo.MethodName = methodName
 	resp, err := u.Web3Client.CallConstantFunction(ctx, scInfo)
 	if err != nil {
-		return common.Address{}, err
+		return accounts.Address{}, err
 	}
 	if len(resp) == 0 {
-		return common.Address{}, errors.New("empty response")
+		return accounts.Address{}, errors.New("empty response")
 	}
 	addr, err := ConvertToAddress(resp[0])
 	if err != nil {
-		return common.Address{}, err
+		return accounts.Address{}, err
 	}
 	return addr, nil
 }

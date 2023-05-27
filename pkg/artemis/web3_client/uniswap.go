@@ -9,9 +9,11 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/gochain/v4/accounts/abi"
-	"github.com/zeus-fyi/gochain/v4/common"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
@@ -147,7 +149,7 @@ func (u *UniswapV2Client) ProcessTxs(ctx context.Context) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 	u.Web3Client.Dial()
-	bn, err := u.Web3Client.GetBlockNumber(ctx)
+	bn, err := u.Web3Client.GetHeadBlockHeight(ctx)
 	if err != nil {
 		log.Err(err).Msg("failed to get block number")
 		u.Web3Client.Close()
@@ -163,7 +165,7 @@ func (u *UniswapV2Client) ProcessTxs(ctx context.Context) {
 		case addLiquidityETH:
 			// payable
 			//u.AddLiquidityETH(tx.Args)
-			if tx.Tx.Value == nil {
+			if tx.Tx.Value() == nil {
 				continue
 			}
 		case removeLiquidity:
@@ -183,10 +185,10 @@ func (u *UniswapV2Client) ProcessTxs(ctx context.Context) {
 		case swapExactETHForTokens:
 			// payable
 			count++
-			if tx.Tx.Value == nil {
+			if tx.Tx.Value() == nil {
 				continue
 			}
-			u.SwapExactETHForTokens(tx, tx.Args, tx.Tx.Value.ToInt())
+			u.SwapExactETHForTokens(tx, tx.Args, tx.Tx.Value())
 		case swapTokensForExactETH:
 			count++
 			u.SwapTokensForExactETH(tx, tx.Args)
@@ -196,10 +198,10 @@ func (u *UniswapV2Client) ProcessTxs(ctx context.Context) {
 		case swapETHForExactTokens:
 			// payable
 			count++
-			if tx.Tx.Value == nil {
+			if tx.Tx.Value() == nil {
 				continue
 			}
-			u.SwapETHForExactTokens(tx, tx.Args, tx.Tx.Value.ToInt())
+			u.SwapETHForExactTokens(tx, tx.Args, tx.Tx.Value())
 		}
 	}
 	fmt.Println("totalFilteredCount:", count)
@@ -209,7 +211,7 @@ func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, p
 	tf.Tx = tx.Tx
 	u.Web3Client.Dial()
 	defer u.Web3Client.Close()
-	bn, err := u.Web3Client.GetBlockNumber(ctx)
+	bn, err := u.Web3Client.GetHeadBlockHeight(ctx)
 	if err != nil {
 		fmt.Println("GetBlockNumber Error", err)
 		return
@@ -245,10 +247,7 @@ func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, p
 				return
 			}
 		}
-		if tx.Tx.Nonce == nil {
-			fmt.Printf("tx.Tx.Nonce is nil")
-			return
-		}
+
 		btf, berr := json.Marshal(tf)
 		if berr != nil {
 			return
@@ -257,14 +256,20 @@ func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, p
 		if berr != nil {
 			return
 		}
+		sender := types.LatestSigner(&params.ChainConfig{ChainID: tx.Tx.ChainId()})
+		from, ferr := sender.Sender(tx.Tx)
+		if ferr != nil {
+			log.Err(err).Msg("failed to get sender")
+			return
+		}
 		txMempool := artemis_autogen_bases.EthMempoolMevTx{
 			ProtocolNetworkID: hestia_req_types.EthereumMainnetProtocolNetworkID,
 			Tx:                string(b),
 			TxFlowPrediction:  string(btf),
-			TxHash:            tx.Tx.Hash.String(),
-			Nonce:             int(*tx.Tx.Nonce),
-			From:              tx.Tx.From.String(),
-			To:                tx.Tx.To.String(),
+			TxHash:            tx.Tx.Hash().String(),
+			Nonce:             int(tx.Tx.Nonce()),
+			From:              from.String(),
+			To:                tx.Tx.To().String(),
 			BlockNumber:       int(u.BlockNumber.Int64()),
 		}
 		u.Trades = append(u.Trades, txMempool)
@@ -335,7 +340,7 @@ func (u *UniswapV2Client) SwapExactTokensForTokens(tx MevTx, args map[string]int
 	u.SwapExactTokensForTokensParamsSlice = append(u.SwapExactTokensForTokensParamsSlice, st)
 }
 
-func (u *UniswapV2Client) PairToPrices(ctx context.Context, pairAddr []common.Address) (UniswapV2Pair, error) {
+func (u *UniswapV2Client) PairToPrices(ctx context.Context, pairAddr []accounts.Address) (UniswapV2Pair, error) {
 	if len(pairAddr) == 2 {
 		pairContractAddr := u.GetPairContractFromFactory(ctx, pairAddr[0].String(), pairAddr[1].String())
 		return u.GetPairContractPrices(ctx, pairContractAddr.String())

@@ -23,7 +23,7 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSim() {
 		if tf.FrontRunTrade.AmountIn == "" {
 			continue
 		}
-		err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlockBeforeTxMined(ctx, s.Tc.HardhatNode, s.LocalHardhatMainnetUser, s.MainnetWeb3User, *tf.Tx.Hash)
+		err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlockBeforeTxMined(ctx, s.Tc.HardhatNode, s.LocalHardhatMainnetUser, s.MainnetWeb3User, tf.Tx.Hash())
 		s.Require().Nil(err)
 		tfRegular := tf.ConvertToBigIntType()
 		uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)

@@ -95,12 +95,11 @@ func (s *Web3ClientTestSuite) TestReadMempool() {
 	smartContractAddrFilterString := smartContractAddrFilter.String()
 	for userAddr, txPoolQueue := range mempool["pending"] {
 		for order, tx := range txPoolQueue {
-			if tx.To != nil && tx.To.String() == smartContractAddrFilterString {
+			if tx.To() != nil && tx.To().String() == smartContractAddrFilterString {
 				fmt.Println(userAddr, order, tx)
 				fmt.Println("Found")
-				if tx.Input != nil {
-					input := *tx.Input
-					calldata := []byte(input)
+				if tx.Data() != nil {
+					calldata := tx.Data()
 					if len(calldata) < 4 {
 						fmt.Println("invalid calldata")
 						continue

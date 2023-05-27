@@ -91,7 +91,7 @@ func (w *Web3Client) SetERC20BalanceBruteForce(ctx context.Context, scAddr, user
 	return errors.New("unable to overwrite balance")
 }
 
-func (w *Web3Client) MatchFrontRunTradeValues(tf TradeExecutionFlowInBigInt) error {
+func (w *Web3Client) MatchFrontRunTradeValues(tf *TradeExecutionFlowInBigInt) error {
 	err := w.SetERC20BalanceBruteForce(ctx, tf.FrontRunTrade.AmountInAddr.String(), w.PublicKey(), tf.FrontRunTrade.AmountIn)
 	if err != nil {
 		return err

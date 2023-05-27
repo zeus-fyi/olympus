@@ -9,11 +9,16 @@ import (
 	"github.com/zeus-fyi/gochain/web3/web3_actions"
 )
 
-func (u *UniswapV2Client) ExecFullSandwichTrade(tf *TradeExecutionFlowInBigInt) error {
+func (u *UniswapV2Client) SimFullSandwichTrade(tf *TradeExecutionFlowInBigInt) error {
 	if u.DebugPrint {
 		fmt.Println("executing full sandwich trade")
 	}
-	_, err := u.ExecFrontRunTradeStepTokenTransfer(tf)
+	err := u.Web3Client.MatchFrontRunTradeValues(tf)
+	if err != nil {
+		log.Err(err).Msg("error executing front run balance setup")
+		return err
+	}
+	_, err = u.ExecFrontRunTradeStepTokenTransfer(tf)
 	if err != nil {
 		log.Err(err).Msg("error executing front run trade step token transfer")
 		return err

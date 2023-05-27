@@ -8,9 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/ethereum/go-ethereum/v4/common"
-	"github.com/ethereum/go-ethereum/v4/common/hexutil"
-	web3_types "github.com/ethereum/go-ethereum/web3/types"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamodb"
 )
@@ -45,7 +43,7 @@ type MempoolTxsDynamoDB struct {
 	TTL int    `dynamodbav:"ttl"`
 }
 
-func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) (map[string]map[string]*web3_types.RpcTransaction, error) {
+func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) (map[string]map[string]*types.Transaction, error) {
 	var mempoolTxsTableName *string
 	if network == "mainnet" {
 		mempoolTxsTableName = MainnetMempoolTxsTableName
@@ -68,12 +66,12 @@ func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) (
 		return nil, err
 	}
 
-	txMap := make(map[string]map[string]*web3_types.RpcTransaction)
+	txMap := make(map[string]map[string]*types.Transaction)
 	for _, tx := range mempoolTxs {
 		if txMap[tx.Pubkey] == nil {
-			txMap[tx.Pubkey] = make(map[string]*web3_types.RpcTransaction)
+			txMap[tx.Pubkey] = make(map[string]*types.Transaction)
 		}
-		txRpc := &Transaction{}
+		txRpc := &types.Transaction{}
 		b, berr := json.Marshal(tx.Tx)
 		if berr != nil {
 			log.Err(berr).Msg("GetMempoolTxs: error marshalling tx")
@@ -95,54 +93,10 @@ func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) (
 			log.Err(berr).Msg("GetMempoolTxs: error marshalling tx")
 			return nil, berr
 		}
-		txGoRpc, berr := ProcessTransaction(*txRpc)
-		if berr != nil {
-			log.Err(berr).Msg("GetMempoolTxs: error marshalling tx")
-			return nil, berr
-		}
-
 		tmp := txMap[tx.Pubkey]
-		from := common.HexToAddress(tx.Pubkey)
-		txGoRpc.From = &from
-		tmp[fmt.Sprintf("%d", tx.TxOrder)] = txGoRpc
+		tmp[fmt.Sprintf("%d", tx.TxOrder)] = txRpc
 		txMap[tx.Pubkey] = tmp
 	}
 
 	return txMap, nil
-}
-
-type Transaction struct {
-	Type                 string          `json:"type"`
-	Nonce                *hexutil.Uint64 `json:"nonce"`
-	GasPrice             *hexutil.Big    `json:"gasPrice"`
-	MaxPriorityFeePerGas *hexutil.Big    `json:"maxPriorityFeePerGas,omitempty"`
-	MaxFeePerGas         *hexutil.Big    `json:"maxFeePerGas,omitempty"`
-	Gas                  *hexutil.Uint64 `json:"gas"`
-	Value                *hexutil.Big    `json:"value"`
-	Input                *hexutil.Bytes  `json:"input"`
-	V                    *hexutil.Big    `json:"v"`
-	R                    *hexutil.Big    `json:"r"`
-	S                    *hexutil.Big    `json:"s"`
-	To                   *common.Address `json:"to"`
-	ChainID              string          `json:"chainId"`
-	AccessList           []interface{}   `json:"accessList"`
-	Hash                 *common.Hash    `json:"hash"`
-}
-
-func ProcessTransaction(tx Transaction) (*web3_types.RpcTransaction, error) {
-	rpcTx := &web3_types.RpcTransaction{
-		Nonce:     tx.Nonce,
-		GasPrice:  tx.GasPrice,
-		GasLimit:  tx.Gas,
-		GasFeeCap: tx.MaxFeePerGas,
-		GasTipCap: tx.MaxPriorityFeePerGas,
-		To:        tx.To,
-		Value:     tx.Value,
-		Input:     tx.Input,
-		V:         tx.V,
-		R:         tx.R,
-		S:         tx.S,
-		Hash:      tx.Hash,
-	}
-	return rpcTx, nil
 }

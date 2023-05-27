@@ -22,18 +22,6 @@ type TxLifecycleStats struct {
 	RxBlockNum uint64
 }
 
-/*
-	txHash := common.HexToHash("0x6154c2f46973cecb3f4bc4c1508e3271f3e8dbf7cbcd3c3747b699b8b06b8185")
-	rx, err := w.GetTransactionReceipt(ctx, txHash)
-	if err != nil {
-		return err
-	}
-	// 36627061988 * 114409
-	fmt.Println(tx.GasPrice.ToInt().String())
-	fmt.Println(rx.GasUsed)
-	fmt.Println(rx.CumulativeGasUsed)
-*/
-
 func (w *Web3Client) GetTxLifecycleStats(ctx context.Context, txHash common.Hash) (TxLifecycleStats, error) {
 	tx, err := w.GetTransactionByHash(ctx, txHash)
 	if err != nil {

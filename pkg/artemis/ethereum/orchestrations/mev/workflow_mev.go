@@ -1,7 +1,7 @@
 package artemis_mev_transcations
 
 import (
-	web3_types "github.com/ethereum/go-ethereum/web3/types"
+	"github.com/ethereum/go-ethereum/core/types"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"go.temporal.io/sdk/workflow"
 )
@@ -14,7 +14,7 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context) error {
 		StartToCloseTimeout: defaultTimeout,
 	}
 	getMempoolTxsCtx := workflow.WithActivityOptions(ctx, ao)
-	var mempoolTxs map[string]map[string]*web3_types.RpcTransaction
+	var mempoolTxs map[string]map[string]*types.Transaction
 	err := workflow.ExecuteActivity(getMempoolTxsCtx, t.GetMempoolTxs).Get(getMempoolTxsCtx, &mempoolTxs)
 	if err != nil {
 		log.Error("Failed to get mempool txs", "Error", err)

@@ -3,10 +3,9 @@ package artemis_ethereum_transcations
 import (
 	"time"
 
-	"github.com/ethereum/go-ethereum/v4/common"
-	"github.com/ethereum/go-ethereum/v4/core/types"
-	web3_types "github.com/ethereum/go-ethereum/web3/types"
-	"github.com/ethereum/go-ethereum/web3/web3_actions"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -52,7 +51,7 @@ func (t *ArtemisEthereumTxBroadcastWorkflow) ArtemisSendEthTxWorkflow(ctx workfl
 	}
 	ao.RetryPolicy = retryPolicy
 	rxCtx := workflow.WithActivityOptions(ctx, ao)
-	var rx *web3_types.Receipt
+	var rx *types.Receipt
 
 	err = workflow.ExecuteActivity(rxCtx, t.WaitForTxReceipt, txHash).Get(rxCtx, &rx)
 	if err != nil {
@@ -71,7 +70,7 @@ func (t *ArtemisEthereumTxBroadcastWorkflow) ArtemisSendSignedTxWorkflow(ctx wor
 		StartToCloseTimeout: defaultTimeout,
 	}
 	sendCtx := workflow.WithActivityOptions(ctx, ao)
-	var txData *web3_types.Transaction
+	var txData *types.Transaction
 	err := workflow.ExecuteActivity(sendCtx, t.SubmitSignedTx, params).Get(sendCtx, &txData)
 	if err != nil {
 		log.Info("params", params)
@@ -80,8 +79,8 @@ func (t *ArtemisEthereumTxBroadcastWorkflow) ArtemisSendSignedTxWorkflow(ctx wor
 		return err
 	}
 	rxCtx := workflow.WithActivityOptions(ctx, ao)
-	var rx *web3_types.Receipt
-	err = workflow.ExecuteActivity(rxCtx, t.WaitForTxReceipt, txData.Hash).Get(rxCtx, &rx)
+	var rx *types.Receipt
+	err = workflow.ExecuteActivity(rxCtx, t.WaitForTxReceipt, txData.Hash()).Get(rxCtx, &rx)
 	if err != nil {
 		log.Info("params", params)
 		log.Info("txData", txData)

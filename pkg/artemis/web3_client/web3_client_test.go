@@ -43,6 +43,9 @@ func (s *Web3ClientTestSuite) SetupTest() {
 	s.MainnetWeb3User.Headers = m
 	s.LocalMainnetWeb3User = NewWeb3Client("http://localhost:8545", newAccount)
 
+	newAccount, err = accounts.ParsePrivateKey("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
+	s.Assert().Nil(err)
+	s.LocalHardhatMainnetUser.Account = newAccount
 	s.LocalHardhatMainnetUser = NewWeb3Client("http://localhost:8545", newAccount)
 }
 

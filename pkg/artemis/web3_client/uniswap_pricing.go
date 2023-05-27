@@ -4,8 +4,8 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/gochain/gochain/v4/common"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/gochain/v4/common"
 )
 
 func (p *UniswapV2Pair) PriceImpact(tokenAddrPath common.Address, tokenBuyAmount *big.Int) (TradeOutcome, error) {

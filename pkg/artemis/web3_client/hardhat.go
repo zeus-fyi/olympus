@@ -4,7 +4,7 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/gochain/gochain/v4/common/hexutil"
+	"github.com/zeus-fyi/gochain/v4/common/hexutil"
 )
 
 func (w *Web3Client) SetBalance(ctx context.Context, addr string, balance hexutil.Big) error {

@@ -9,9 +9,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/gochain/gochain/v4/accounts/abi"
-	"github.com/gochain/gochain/v4/common"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/gochain/v4/accounts/abi"
+	"github.com/zeus-fyi/gochain/v4/common"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"

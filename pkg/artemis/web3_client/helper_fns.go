@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/gochain/gochain/v4/common"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/gochain/v4/common"
 )
 
 func StringsToAddresses(addressOne, addressTwo string) (common.Address, common.Address) {

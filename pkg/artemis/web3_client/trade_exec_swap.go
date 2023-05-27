@@ -3,7 +3,7 @@ package web3_client
 import (
 	"encoding/json"
 
-	"github.com/gochain/gochain/v4/accounts/abi"
+	"github.com/zeus-fyi/gochain/v4/accounts/abi"
 	"github.com/zeus-fyi/gochain/web3/web3_actions"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )

@@ -3,7 +3,7 @@ package web3_client
 import (
 	"context"
 
-	"github.com/gochain/gochain/v4/common"
+	"github.com/zeus-fyi/gochain/v4/common"
 	"github.com/zeus-fyi/gochain/web3/web3_actions"
 )
 

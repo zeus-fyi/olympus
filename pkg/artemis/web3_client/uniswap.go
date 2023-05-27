@@ -65,6 +65,7 @@ type UniswapV2Client struct {
 	PrintDetails             bool
 	PrintOn                  bool
 	PrintLocal               bool
+	DebugPrint               bool
 	MevSmartContractTxMap
 	Path                                filepaths.Path
 	BlockNumber                         *big.Int

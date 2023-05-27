@@ -18,6 +18,16 @@ type TradeOutcome struct {
 	StartReservesToken1 *big.Int       `json:"startReservesToken1"`
 	EndReservesToken0   *big.Int       `json:"endReservesToken0"`
 	EndReservesToken1   *big.Int       `json:"endReservesToken1"`
+
+	OrderedTxs   []common.Hash `json:"orderedTxs,omitempty"`
+	TotalGasCost *big.Int      `json:"totalGasCost,omitempty"`
+}
+
+func (t *TradeOutcome) AddTxHash(tx common.Hash) {
+	if t.OrderedTxs == nil {
+		t.OrderedTxs = []common.Hash{}
+	}
+	t.OrderedTxs = append(t.OrderedTxs, tx)
 }
 
 type JSONTradeOutcome struct {

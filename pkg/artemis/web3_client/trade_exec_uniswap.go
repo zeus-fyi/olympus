@@ -28,7 +28,7 @@ import (
 
 //   function swap(address _tokenIn, address _tokenOut, uint256 _amountIn, uint256 _amountOutMin, address _to) external
 
-func (u *UniswapV2Client) ExecSwap(pair UniswapV2Pair, to TradeOutcome) (*web3_actions.SendContractTxPayload, error) {
+func (u *UniswapV2Client) ExecSwap(pair UniswapV2Pair, to *TradeOutcome) (*web3_actions.SendContractTxPayload, error) {
 	scInfo, _, err := LoadSwapAbiPayload(pair.PairContractAddr)
 	if err != nil {
 		return &web3_actions.SendContractTxPayload{}, err
@@ -45,6 +45,7 @@ func (u *UniswapV2Client) ExecSwap(pair UniswapV2Pair, to TradeOutcome) (*web3_a
 	if err != nil {
 		return &web3_actions.SendContractTxPayload{}, err
 	}
+	to.AddTxHash(signedTx.Hash())
 	err = u.Web3Client.SendSignedTransaction(ctx, signedTx)
 	if err != nil {
 		return &web3_actions.SendContractTxPayload{}, err
@@ -53,11 +54,11 @@ func (u *UniswapV2Client) ExecSwap(pair UniswapV2Pair, to TradeOutcome) (*web3_a
 }
 
 func (u *UniswapV2Client) ExecFrontRunTrade(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
-	return u.ExecSwap(tf.InitialPair, tf.FrontRunTrade)
+	return u.ExecSwap(tf.InitialPair, &tf.FrontRunTrade)
 }
 
 func (u *UniswapV2Client) ExecSandwichTrade(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
-	return u.ExecSwap(tf.InitialPair, tf.SandwichTrade)
+	return u.ExecSwap(tf.InitialPair, &tf.SandwichTrade)
 }
 
 /*
@@ -91,6 +92,10 @@ func (u *UniswapV2Client) FrontRunTradeGetAmountsOut(tf TradeExecutionFlowInBigI
 	if len(amountsOutFirstPair) != 2 {
 		return nil, errors.New("amounts out not equal to expected")
 	}
+	if u.DebugPrint {
+		fmt.Println("front run trade trade path", pathSlice[0], pathSlice[1])
+		fmt.Println("front run trade expected amounts", amountsOutFirstPair[0].String(), amountsOutFirstPair[1].String())
+	}
 	if tf.FrontRunTrade.AmountIn.String() != amountsOutFirstPair[0].String() {
 		log.Warn().Msgf(fmt.Sprintf("amount in not equal to expected amount in %s, actual amount in: %s", tf.FrontRunTrade.AmountIn.String(), amountsOutFirstPair[0].String()))
 		return amountsOutFirstPair, errors.New("amount in not equal to expected")
@@ -112,6 +117,10 @@ func (u *UniswapV2Client) UserTradeGetAmountsOut(tf TradeExecutionFlowInBigInt) 
 	if len(amountsOutFirstPair) != 2 {
 		return nil, errors.New("amounts out not equal to expected")
 	}
+	if u.DebugPrint {
+		fmt.Println("user trade trade path", pathSlice[0], pathSlice[1])
+		fmt.Println("user trade expected amounts", amountsOutFirstPair[0].String(), amountsOutFirstPair[1].String())
+	}
 	if tf.UserTrade.AmountIn.String() != amountsOutFirstPair[0].String() {
 		log.Warn().Msgf(fmt.Sprintf("amount in not equal to expected amount in %s, actual amount in: %s", tf.UserTrade.AmountIn.String(), amountsOutFirstPair[0].String()))
 		return amountsOutFirstPair, errors.New("amount in not equal to expected")
@@ -132,6 +141,10 @@ func (u *UniswapV2Client) SandwichTradeGetAmountsOut(tf TradeExecutionFlowInBigI
 	amountsOutFirstPair := ConvertAmountsToBigIntSlice(amountsOut)
 	if len(amountsOutFirstPair) != 2 {
 		return nil, errors.New("amounts out not equal to expected")
+	}
+	if u.DebugPrint {
+		fmt.Println("sandwich trade trade path", pathSlice[0], pathSlice[1])
+		fmt.Println("sandwich trade expected amounts", amountsOutFirstPair[0].String(), amountsOutFirstPair[1].String())
 	}
 	if tf.SandwichTrade.AmountIn.String() != amountsOutFirstPair[0].String() {
 		log.Warn().Msgf(fmt.Sprintf("amount in not equal to expected amount in %s, actual amount in: %s", tf.UserTrade.AmountIn.String(), amountsOutFirstPair[0].String()))
@@ -155,17 +168,42 @@ func ConvertAmountsToBigIntSlice(amounts []interface{}) []*big.Int {
 	return amountsBigInt
 }
 
-func (u *UniswapV2Client) ExecFrontRunTradeStep(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
-	tf.Trade.TradeMethod = swapFrontRun
+func (u *UniswapV2Client) ExecFrontRunTradeStepTokenTransfer(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+	if u.DebugPrint {
+		fmt.Println("executing front run trade")
+	}
+	err := u.RouterApproveAndSend(ctx, &tf.FrontRunTrade, tf.InitialPair.PairContractAddr)
+	if err != nil {
+		return nil, err
+	}
+	return u.ExecFrontRunTradeStep(tf)
+}
+
+func (u *UniswapV2Client) ExecFrontRunTradeStep(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+	if u.DebugPrint {
+		fmt.Println("executing front run trade")
+	}
+	return u.ExecSwap(tf.InitialPair, &tf.FrontRunTrade)
+}
+
+func (u *UniswapV2Client) ExecSandwichTradeStepTokenTransfer(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+	err := u.RouterApproveAndSend(ctx, &tf.SandwichTrade, tf.InitialPair.PairContractAddr)
+	if err != nil {
+		return nil, err
+	}
+	return u.ExecSandwichTradeStep(tf)
+}
+
+func (u *UniswapV2Client) ExecSandwichTradeStep(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+	return u.ExecSwap(tf.InitialPair, &tf.SandwichTrade)
+}
+
+func (u *UniswapV2Client) ExecUserTradeByMethod(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+	tf.UserTrade.AddTxHash(*tf.Tx.Hash)
 	return u.ExecTradeByMethod(tf)
 }
 
-func (u *UniswapV2Client) ExecSandwichTradeStep(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
-	tf.Trade.TradeMethod = swapSandwich
-	return u.ExecTradeByMethod(tf)
-}
-
-func (u *UniswapV2Client) ExecTradeByMethod(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+func (u *UniswapV2Client) ExecTradeByMethod(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
 	switch tf.Trade.TradeMethod {
 	case swapTokensForExactETH:
 		return u.SwapTokensForExactETHParams(tf)
@@ -179,10 +217,6 @@ func (u *UniswapV2Client) ExecTradeByMethod(tf TradeExecutionFlowInBigInt) (*web
 		return u.SwapExactETHForTokensParams(tf)
 	case swapETHForExactTokens:
 		return u.SwapETHForExactTokensParams(tf)
-	case swapFrontRun:
-		return u.ExecSwap(tf.InitialPair, tf.FrontRunTrade)
-	case swapSandwich:
-		return u.ExecSwap(tf.InitialPair, tf.SandwichTrade)
 	default:
 	}
 	return nil, errors.New("invalid trade method")
@@ -221,7 +255,7 @@ func (u *UniswapV2Client) GetAmountsIn(amountOut *big.Int, pathSlice []string) (
 	return amountsIn, err
 }
 
-func (u *UniswapV2Client) SwapExactTokensForETHParams(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+func (u *UniswapV2Client) SwapExactTokensForETHParams(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
 	trade := tf.Trade
 	params := *trade.JSONSwapExactTokensForETHParams
 	pathSlice := make([]string, len(params.Path))
@@ -243,7 +277,7 @@ func (u *UniswapV2Client) SwapExactTokensForETHParams(tf TradeExecutionFlowInBig
 	return scInfo, nil
 }
 
-func (u *UniswapV2Client) SwapTokensForExactETHParams(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+func (u *UniswapV2Client) SwapTokensForExactETHParams(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
 	trade := tf.Trade
 	params := *trade.JSONSwapTokensForExactETHParams
 	pathSlice := make([]string, len(params.Path))
@@ -266,7 +300,7 @@ func (u *UniswapV2Client) SwapTokensForExactETHParams(tf TradeExecutionFlowInBig
 	return scInfo, nil
 }
 
-func (u *UniswapV2Client) SwapExactTokensForTokensParams(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+func (u *UniswapV2Client) SwapExactTokensForTokensParams(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
 	trade := tf.Trade
 	params := *trade.JSONSwapExactTokensForTokensParams
 	pathSlice := make([]string, len(params.Path))
@@ -289,7 +323,7 @@ func (u *UniswapV2Client) SwapExactTokensForTokensParams(tf TradeExecutionFlowIn
 	return scInfo, nil
 }
 
-func (u *UniswapV2Client) SwapExactETHForTokensParams(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+func (u *UniswapV2Client) SwapExactETHForTokensParams(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
 	trade := tf.Trade
 	params := *trade.JSONSwapExactETHForTokensParams
 	pathSlice := make([]string, len(params.Path))
@@ -317,7 +351,7 @@ func (u *UniswapV2Client) SwapExactETHForTokensParams(tf TradeExecutionFlowInBig
 	return scInfo, nil
 }
 
-func (u *UniswapV2Client) SwapETHForExactTokensParams(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+func (u *UniswapV2Client) SwapETHForExactTokensParams(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
 	trade := tf.Trade
 	params := *trade.JSONSwapETHForExactTokensParams
 	pathSlice := make([]string, len(params.Path))
@@ -345,7 +379,7 @@ func (u *UniswapV2Client) SwapETHForExactTokensParams(tf TradeExecutionFlowInBig
 	return scInfo, nil
 }
 
-func (u *UniswapV2Client) SwapTokensForExactTokensParams(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+func (u *UniswapV2Client) SwapTokensForExactTokensParams(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
 	trade := tf.Trade
 	params := *trade.JSONSwapTokensForExactTokensParams
 	pathSlice := make([]string, len(params.Path))
@@ -380,14 +414,5 @@ func (w *Web3Client) SendImpersonatedTx(ctx context.Context, tx *web3_types.RpcT
 	if err != nil {
 		return err
 	}
-	//txHash := common.HexToHash("0x6154c2f46973cecb3f4bc4c1508e3271f3e8dbf7cbcd3c3747b699b8b06b8185")
-	//rx, err := w.GetTransactionReceipt(ctx, txHash)
-	//if err != nil {
-	//	return err
-	//}
-	//// 36627061988 * 114409
-	//fmt.Println(tx.GasPrice.ToInt().String())
-	//fmt.Println(rx.GasUsed)
-	//fmt.Println(rx.CumulativeGasUsed)
 	return nil
 }

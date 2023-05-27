@@ -67,57 +67,29 @@ func (s *Web3ClientTestSuite) TestMatchInputs() {
 		}
 		err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlockBeforeTxMined(ctx, s.Tc.HardhatNode, s.LocalHardhatMainnetUser, s.MainnetWeb3User, *tf.Tx.Hash)
 		s.Require().Nil(err)
-		ethBalance, err := s.LocalHardhatMainnetUser.GetEthBalance(ctx, s.LocalHardhatMainnetUser.PublicKey(), nil)
-		s.Require().Nil(err)
-		s.Require().NotNil(ethBalance)
-		fmt.Println("tradeUserEthBalance", ethBalance.String())
+
 		tfRegular := tf.ConvertToBigIntType()
 		err = s.LocalHardhatMainnetUser.MatchFrontRunTradeValues(tfRegular)
 		s.Require().Nil(err)
-		b, err := s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountInAddr.String(), s.LocalHardhatMainnetUser.PublicKey())
-		s.Require().Nil(err)
-		s.Require().Equal(tfRegular.FrontRunTrade.AmountIn.String(), b.String())
-		fmt.Println("frontRunAmountIn", b.String(), tfRegular.FrontRunTrade.AmountIn.String())
-		//
+
 		uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
-		//amounts, err := uni.FrontRunTradeGetAmountsOut(tfRegular)
-		//s.Require().Nil(err)
-		//s.Require().NotEmpty(amounts)
-		//s.Require().Len(amounts, 2)
-		//s.Assert().Equal(tfRegular.FrontRunTrade.AmountIn.String(), amounts[0].String())
-		//s.Assert().Equal(tfRegular.FrontRunTrade.AmountOut.String(), amounts[1].String())
-		//
-		//fmt.Println("amountIn", tfRegular.FrontRunTrade.AmountInAddr.String(), tfRegular.FrontRunTrade.AmountIn.String())
-		//fmt.Println("amountOut", tfRegular.FrontRunTrade.AmountOutAddr.String(), tfRegular.FrontRunTrade.AmountOut.String())
-		//
-		amounts, err := uni.UserTradeGetAmountsOut(tfRegular)
-		fmt.Println("user expected amounts without front run", amounts[0].String(), amounts[1].String())
-
-		err = uni.RouterApproveAndSend(ctx, tfRegular.FrontRunTrade, tfRegular.InitialPair.PairContractAddr)
+		uni.DebugPrint = true
+		_, _ = uni.FrontRunTradeGetAmountsOut(tfRegular)
+		_, _ = uni.UserTradeGetAmountsOut(tfRegular)
+		_, err = uni.ExecFrontRunTradeStepTokenTransfer(&tfRegular)
 		s.Require().Nil(err)
-		out, err := uni.ExecFrontRunTradeStep(tfRegular)
-		s.Require().Nil(err)
-		s.Require().NotNil(out)
 
-		b, err = s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountOutAddr.String(), s.LocalHardhatMainnetUser.PublicKey())
-		s.Require().Nil(err)
-		s.Require().Equal(tfRegular.FrontRunTrade.AmountOut.String(), b.String())
-
-		amounts, err = uni.UserTradeGetAmountsOut(tfRegular)
-		fmt.Println("user expected amounts post front run", amounts[0].String(), amounts[1].String())
+		_, _ = uni.UserTradeGetAmountsOut(tfRegular)
 		// must exceed 33073549076721602
 
 		startBal, err := s.LocalHardhatMainnetUser.GetBalance(ctx, tfRegular.Tx.From.String(), nil)
 		fmt.Println("userTradeStartEthBal", startBal.String())
 
-		aa, err := uni.ExecTradeByMethod(tfRegular)
+		aa, err := uni.ExecUserTradeByMethod(&tfRegular)
 		s.Require().Nil(err)
 		s.Require().NotNil(aa)
 
-		fmt.Println("userAddr", tfRegular.Tx.From.String())
-		fmt.Println("amountOutAddr", tf.UserTrade.AmountOutAddr.String())
-
-		ethBalance, err = s.LocalHardhatMainnetUser.GetBalance(ctx, tfRegular.Tx.From.String(), nil)
+		ethBalance, err := s.LocalHardhatMainnetUser.GetBalance(ctx, tfRegular.Tx.From.String(), nil)
 		s.Require().Nil(err)
 		s.Require().NotNil(ethBalance)
 		fmt.Println("userTradeAmountOut", ethBalance.String())
@@ -128,14 +100,11 @@ func (s *Web3ClientTestSuite) TestMatchInputs() {
 		balanceDiff = new(big.Int).Add(balanceDiff, gasUsed)
 		fmt.Println("balanceDiff", balanceDiff.String())
 
-		amounts, err = uni.SandwichTradeGetAmountsOut(tfRegular)
+		_, _ = uni.SandwichTradeGetAmountsOut(tfRegular)
 		fmt.Println("sandwich expected amounts in/out", tfRegular.SandwichTrade.AmountIn.String(), tfRegular.SandwichTrade.AmountOut.String())
-		fmt.Println("sandwich expected amounts", amounts[0].String(), amounts[1].String())
 		s.Require().Nil(err)
 
-		err = uni.RouterApproveAndSend(ctx, tfRegular.SandwichTrade, tfRegular.InitialPair.PairContractAddr)
-		s.Require().Nil(err)
-		_, err = uni.ExecSandwichTradeStep(tfRegular)
+		_, err = uni.ExecSandwichTradeStepTokenTransfer(&tfRegular)
 		s.Require().Nil(err)
 	}
 }

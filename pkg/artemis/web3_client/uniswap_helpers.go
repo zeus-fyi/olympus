@@ -8,12 +8,13 @@ import (
 	"github.com/zeus-fyi/gochain/web3/web3_actions"
 )
 
-func (u *UniswapV2Client) RouterApproveAndSend(ctx context.Context, to TradeOutcome, pairContractAddr string) error {
+func (u *UniswapV2Client) RouterApproveAndSend(ctx context.Context, to *TradeOutcome, pairContractAddr string) error {
 	approveTx, err := u.Web3Client.ERC20ApproveSpender(ctx, to.AmountInAddr.String(), u.RouterSmartContractAddr, to.AmountIn)
 	if err != nil {
 		log.Warn().Interface("approveTx", approveTx).Err(err).Msg("error approving router")
 		return err
 	}
+	to.AddTxHash(approveTx.Hash)
 	transferTxParams := web3_actions.SendContractTxPayload{
 		SmartContractAddr: to.AmountInAddr.String(),
 		SendEtherPayload: web3_actions.SendEtherPayload{
@@ -29,5 +30,6 @@ func (u *UniswapV2Client) RouterApproveAndSend(ctx context.Context, to TradeOutc
 		log.Warn().Interface("transferTx", transferTx).Err(err).Msg("error approving router")
 		return err
 	}
+	to.AddTxHash(transferTx.Hash)
 	return err
 }

@@ -9,6 +9,29 @@ import (
 	"github.com/zeus-fyi/gochain/web3/web3_actions"
 )
 
+func (u *UniswapV2Client) ExecFullSandwichTrade(tf *TradeExecutionFlowInBigInt) error {
+	if u.DebugPrint {
+		fmt.Println("executing full sandwich trade")
+	}
+	_, err := u.ExecFrontRunTradeStepTokenTransfer(tf)
+	if err != nil {
+		log.Err(err).Msg("error executing front run trade step token transfer")
+		return err
+	}
+
+	_, err = u.ExecUserTradeStep(tf)
+	if err != nil {
+		log.Err(err).Msg("error executing user trade step")
+		return err
+	}
+	_, err = u.ExecSandwichTradeStepTokenTransfer(tf)
+	if err != nil {
+		log.Err(err).Msg("error executing sandwich trade step token transfer")
+		return err
+	}
+	return err
+}
+
 func (u *UniswapV2Client) ExecFrontRunTrade(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
 	return u.ExecSwap(tf.InitialPair, &tf.FrontRunTrade)
 }
@@ -21,7 +44,12 @@ func (u *UniswapV2Client) ExecFrontRunTradeStepTokenTransfer(tf *TradeExecutionF
 	if u.DebugPrint {
 		fmt.Println("executing front run trade")
 	}
-	err := u.RouterApproveAndSend(ctx, &tf.FrontRunTrade, tf.InitialPair.PairContractAddr)
+	err := tf.FrontRunTrade.SetPreTradeEthBalance(ctx, u.Web3Client.PublicKey(), u.Web3Client)
+	if err != nil {
+		log.Err(err).Msg("error getting starting eth balance")
+		return nil, err
+	}
+	err = u.RouterApproveAndSend(ctx, &tf.FrontRunTrade, tf.InitialPair.PairContractAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -32,11 +60,15 @@ func (u *UniswapV2Client) ExecUserTradeStep(tf *TradeExecutionFlowInBigInt) (*we
 	if u.DebugPrint {
 		fmt.Println("executing user trade")
 	}
+	err := tf.UserTrade.SetPreTradeEthBalance(ctx, tf.Tx.From.String(), u.Web3Client)
+	if err != nil {
+		log.Err(err).Msg("error getting starting eth balance")
+		return nil, err
+	}
 	scInfo, err := u.ExecTradeByMethod(tf)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("user trade tx hash", tf.Tx.Hash.String())
 	tf.UserTrade.AddTxHash(*tf.Tx.Hash)
 	return scInfo, err
 }

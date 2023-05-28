@@ -103,6 +103,23 @@ class ClustersApiGateway {
             return
         }
     }
+    async getAppClustersView(): Promise<any>  {
+        const url = `/v1/infra/read/org/topologies/apps`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
+            return await zeusApi.get(url, config)
+        } catch (exc) {
+            console.error('error sending cluster get request');
+            console.error(exc);
+            return
+        }
+    }
     async getClusterTopologies(params: any): Promise<any>  {
         const url = `/v1/deploy/cluster/status`;
         try {

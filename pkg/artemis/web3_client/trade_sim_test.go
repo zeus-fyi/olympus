@@ -54,12 +54,12 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSimAny() {
 		fmt.Println("txHash", tf.Tx.Hash())
 
 		err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlockBeforeTxMined(ctx, s.Tc.HardhatNode, s.LocalHardhatMainnetUser, s.MainnetWeb3User, tf.Tx.Hash())
-		s.Require().Nil(err)
+		s.Assert().Nil(err)
 		tfRegular := tf.ConvertToBigIntType()
 		uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
 		uni.DebugPrint = true
 		err = uni.SimFullSandwichTrade(&tfRegular)
-		s.Require().Nil(err)
+		s.Assert().Nil(err)
 	}
 }
 
@@ -68,4 +68,9 @@ blockNum 17354228
 TRANSFER_FAILED
 tradeMethod swapTokensForExactTokens
 txHash 0x5f29de88cd07de0582923590cdaf77dcc35c73d458549e6ec103f8e5e80b06ed
+
+blockNum 17354235
+tradeMethod swapETHForExactTokens
+txHash 0xfc3ae1c4ef163d8a974bea83dd23f7a81c168dc02c61a2d4d5f536223d683509
+VM Exception while processing transaction: reverted with reason string 'SafeMath: subtraction overflow'
 */

@@ -49,12 +49,22 @@ function createClusterAppViewData(
     context: string,
     namespace: string,
     namespaceAlias: string,
+    appName: string,
 ) {
-    return {cloudCtxNsID, clusterClassName, cloudProvider, region, context, namespace, namespaceAlias};
+    if (appName !== '' && clusterClassName == appName) {
+        return {cloudCtxNsID, clusterClassName, cloudProvider, region, context, namespace, namespaceAlias};
+    }
+    if (appName === '') {
+        return {cloudCtxNsID, clusterClassName, cloudProvider, region, context, namespace, namespaceAlias};
+    }
+    return {}
 }
 function ClustersContent() {
     const [open, setOpen] = React.useState(true);
     const [pageView, setPageView] = useState(false);
+    const [appName, setAppName] = React.useState('');
+    const [clusters, setClusters] = useState([{}]);
+    const [allClusters, setAllClusters] = useState([{}]);
 
     const toggleDrawer = () => {
         setOpen(!open);
@@ -151,14 +161,14 @@ function ClustersContent() {
                                 </CardContent>
                             </Card>
                         </Stack>
-                        </Container>
+                    </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Card sx={{ maxWidth: 600 }}>
-                            <ClusterViews pageView={pageView} setPageView={setPageView}/>
+                            <ClusterViews pageView={pageView} setPageView={setPageView} appName={appName} setAppName={setAppName} clusters={clusters} allClusters={allClusters}/>
                         </Card>
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        {pageView ? <CloudClustersAppsView /> : <CloudClusters />}
+                        {pageView ? <CloudClustersAppsView clusters={clusters} setClusters={setClusters} appName={appName} setAllClusters={setAllClusters} /> : <CloudClusters />}
                     </Container>
                 </Box>
             </Box>
@@ -274,23 +284,27 @@ export default function Clusters(props: any) {
     return <ClustersContent />
 }
 
-function CloudClustersAppsView() {
-    const [clusters, setClusters] = useState([{}]);
+function CloudClustersAppsView(props: any) {
+    const { appName, clusters, setClusters, setAllClusters } = props;
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const response = await clustersApiGateway.getAppClustersView();
                 const clustersData: any[] = response.data;
+                const allClusters = clustersData.map((cluster: any) =>
+                    createClusterAppViewData(cluster.cloudCtxNsID, cluster.clusterClassName,cluster.cloudProvider, cluster.region, cluster.context, cluster.namespace, cluster.namespaceAlias, ''),
+                )
+                setAllClusters(allClusters);
                 const clusterRows = clustersData.map((cluster: any) =>
-                    createClusterAppViewData(cluster.cloudCtxNsID, cluster.clusterClassName,cluster.cloudProvider, cluster.region, cluster.context, cluster.namespace, cluster.namespaceAlias),
-                );
+                    createClusterAppViewData(cluster.cloudCtxNsID, cluster.clusterClassName,cluster.cloudProvider, cluster.region, cluster.context, cluster.namespace, cluster.namespaceAlias, appName),
+                ).filter((clusterViewData: any) => Object.keys(clusterViewData).length !== 0);
                 setClusters(clusterRows)
             } catch (error) {
                 console.log("error", error);
             }}
         fetchData().then(r => '');
-    }, []);
+    }, [appName]);
     return (
         CloudClustersAppViewTable(clusters)
     )

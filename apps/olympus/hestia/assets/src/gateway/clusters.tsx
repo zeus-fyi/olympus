@@ -65,6 +65,26 @@ class ClustersApiGateway {
             return
         }
     }
+    async deployUpdateFleet(clusterClassName: any): Promise<any>  {
+        const url = `/v1/deploy/ui/update/fleet`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`,
+                },
+                withCredentials: true,
+            }
+            const payload = {
+                clusterClassName: clusterClassName,
+            }
+            return await zeusApi.post(url, payload, config)
+        } catch (exc) {
+            console.error('error sending cluster deploy fleet upgrade');
+            console.error(exc);
+            return
+        }
+    }
     async updateCluster(cluster: any, clusterPreview: any): Promise<any>  {
         const url = `/v1/infra/ui/cluster/update`;
         try {

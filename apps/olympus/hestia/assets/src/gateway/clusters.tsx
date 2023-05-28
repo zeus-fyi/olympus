@@ -65,7 +65,7 @@ class ClustersApiGateway {
             return
         }
     }
-    async deployUpdateFleet(clusterClassName: any): Promise<any>  {
+    async deployUpdateFleet(clusterClassName: any, appTaint: boolean): Promise<any>  {
         const url = `/v1/deploy/ui/update/fleet`;
         try {
             const sessionID = inMemoryJWT.getToken();
@@ -77,6 +77,7 @@ class ClustersApiGateway {
             }
             const payload = {
                 clusterClassName: clusterClassName,
+                appTaint: appTaint,
             }
             return await zeusApi.post(url, payload, config)
         } catch (exc) {

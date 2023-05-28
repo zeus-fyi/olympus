@@ -24,6 +24,17 @@ func ExecuteCreateSetupClusterWorkflow(c echo.Context, ctx context.Context, para
 	return c.JSON(http.StatusAccepted, nil)
 }
 
+func ExecuteDeployFleetUpgradeWorkflow(c echo.Context, ctx context.Context, params base_deploy_params.FleetUpgradeWorkflowRequest) error {
+	err := topology_worker.Worker.ExecuteDeployFleetUpgrade(ctx, params)
+	if err != nil {
+		log.Err(err).Interface("orgUser", params.OrgUser).Msg("ExecuteDeployFleetUpgradeWorkflow, ExecuteWorkflow error")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	resp := topology_deployment_status.NewClusterTopologyStatus(params.ClusterName)
+	resp.Status = topology_deployment_status.DeployPending
+	return c.JSON(http.StatusAccepted, resp)
+}
+
 func ExecuteDeployClusterWorkflow(c echo.Context, ctx context.Context, params base_deploy_params.ClusterTopologyWorkflowRequest) error {
 	err := topology_worker.Worker.ExecuteDeployCluster(ctx, params)
 	if err != nil {

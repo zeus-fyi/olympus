@@ -22,6 +22,13 @@ type TopologyWorkflowRequest struct {
 	chart_workload.TopologyBaseInfraWorkload
 }
 
+type FleetUpgradeWorkflowRequest struct {
+	OrgUser     org_users.OrgUser
+	Host        string
+	ClusterName string
+	AppTaint    bool
+}
+
 type ClusterTopologyWorkflowRequest struct {
 	ClusterName string
 	TopologyIDs []int

@@ -65,6 +65,7 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSimAny() {
 }
 
 /*
+
 blockNum 17354228
 TRANSFER_FAILED
 tradeMethod swapTokensForExactTokens
@@ -79,4 +80,21 @@ blockNum 17354245
 tradeMethod swapExactETHForTokens
 txHash 0xdb714f01986223f24dad83b4b358b7be60efc9ef4ac1ba28b2176166f564d2d6
 "Error: VM Exception while processing transaction: reverted with reason string 'UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT'
+
+blockNum 17354253
+tradeMethod swapETHForExactTokens
+txHash 0xa20a8c998191ccc779cbefaad8f51324be2a06a9d81b44c2a2ce9db32eb1a52d
+executing full sandwich trade
+executing front run trade
+executing front run trade
+{"level":"error","error":"Error: VM Exception while processing transaction: reverted with reason string 'UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT'","time":"2023-05-27T18:29:28-07:00","message":"error executing front run trade step token transfer"}
+Error: VM Exception while processing transaction: reverted with reason string 'UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT'
+
+blockNum 17354304
+tradeMethod swapTokensForExactETH
+txHash 0xe166c3d418b084f1359c7f9f5f71b6ab0254760d6ad4b10678ed23976a8c8347
+executing full sandwich trade
+{"level":"error","error":"unable to overwrite balance","time":"2023-05-27T18:40:41-07:00","message":"error executing front run balance setup"}
+unable to overwrite balance
+
 */

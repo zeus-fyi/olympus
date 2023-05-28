@@ -26,6 +26,7 @@ import {clustersApiGateway} from "../../gateway/clusters";
 import {ThemeProvider} from "@mui/material/styles";
 import Stack from "@mui/material/Stack";
 import {CloudCtxNs, resourcesApiGateway} from "../../gateway/resources";
+import {ClusterViews} from "./ClusterAppViews";
 
 const mdTheme = createTheme();
 
@@ -53,7 +54,7 @@ function createClusterAppViewData(
 }
 function ClustersContent() {
     const [open, setOpen] = React.useState(true);
-    const [clustersAppViewEnabled, setClustersAppViewEnabled] = useState(false);
+    const [pageView, setPageView] = useState(false);
 
     const toggleDrawer = () => {
         setOpen(!open);
@@ -150,10 +151,14 @@ function ClustersContent() {
                                 </CardContent>
                             </Card>
                         </Stack>
-
-                </Container>
+                        </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        {clustersAppViewEnabled ? <CloudClustersAppsView /> : <CloudClusters />}
+                        <Card sx={{ maxWidth: 600 }}>
+                            <ClusterViews pageView={pageView} setPageView={setPageView}/>
+                        </Card>
+                    </Container>
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        {pageView ? <CloudClustersAppsView /> : <CloudClusters />}
                     </Container>
                 </Box>
             </Box>

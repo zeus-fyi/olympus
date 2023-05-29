@@ -11,6 +11,7 @@ import (
 	deploy_workflow_cluster_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/create_setup"
 	destroy_deployed_workflow "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/destroy"
 	deploy_workflow_destroy_setup "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/destroy_setup"
+	deploy_workflow_cluster_updates "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/update"
 )
 
 func InitTopologyWorker(temporalAuthCfg temporal_auth.TemporalAuth) {
@@ -37,6 +38,8 @@ func InitTopologyWorker(temporalAuthCfg temporal_auth.TemporalAuth) {
 	resourcesDestroyWf := deploy_workflow_destroy_setup.NewDestroyResourcesWorkflow()
 	// namespace destroy from ui
 	deployDestroyNamespaceWf := deploy_workflow_destroy_setup.NewDestroyNamespaceSetupWorkflow()
+	// fleet upgrades
+	upgradeFleetWf := deploy_workflow_cluster_updates.NewDeployFleetUpgradeWorkflow()
 
 	// workflows added
 	w.AddWorkflows(deployWf.GetWorkflows())
@@ -46,11 +49,13 @@ func InitTopologyWorker(temporalAuthCfg temporal_auth.TemporalAuth) {
 	w.AddWorkflow(deployDestroyWfClusterSetup.GetWorkflow())
 	w.AddWorkflow(resourcesDestroyWf.GetWorkflow())
 	w.AddWorkflow(deployDestroyNamespaceWf.GetWorkflow())
+	w.AddWorkflows(upgradeFleetWf.GetWorkflows())
 	// activities added
 	w.AddActivities(statusActivity.GetActivities())
 	w.AddActivities(deployWf.GetActivities())
 	w.AddActivities(deployDestroyWf.GetActivities())
 	w.AddActivities(deployWfClusterSetup.GetActivities())
+	w.AddActivities(upgradeFleetWf.GetActivities())
 
 	Worker = TopologyWorker{w}
 	Worker.TemporalClient = tc

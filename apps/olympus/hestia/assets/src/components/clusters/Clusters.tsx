@@ -26,6 +26,7 @@ import {clustersApiGateway} from "../../gateway/clusters";
 import {ThemeProvider} from "@mui/material/styles";
 import Stack from "@mui/material/Stack";
 import {CloudCtxNs, resourcesApiGateway} from "../../gateway/resources";
+import {ClusterViews} from "./ClusterAppViews";
 
 const mdTheme = createTheme();
 
@@ -40,8 +41,30 @@ function createData(
     return {cloudCtxNsID, cloudProvider, region, context, namespace, namespaceAlias};
 }
 
+function createClusterAppViewData(
+    cloudCtxNsID: number,
+    clusterClassName: string,
+    cloudProvider: string,
+    region: string,
+    context: string,
+    namespace: string,
+    namespaceAlias: string,
+    appName: string,
+) {
+    if (appName !== '' && clusterClassName == appName) {
+        return {cloudCtxNsID, clusterClassName, cloudProvider, region, context, namespace, namespaceAlias};
+    }
+    if (appName === '') {
+        return {cloudCtxNsID, clusterClassName, cloudProvider, region, context, namespace, namespaceAlias};
+    }
+    return {}
+}
 function ClustersContent() {
     const [open, setOpen] = React.useState(true);
+    const [pageView, setPageView] = useState(false);
+    const [appName, setAppName] = React.useState('');
+    const [clusters, setClusters] = useState([{}]);
+    const [allClusters, setAllClusters] = useState([{}]);
 
     const toggleDrawer = () => {
         setOpen(!open);
@@ -125,7 +148,7 @@ function ClustersContent() {
                     }}
                 >
                     <Toolbar />
-                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Stack direction="row" alignItems="center" spacing={2}>
                             <Card sx={{ maxWidth: 600 }}>
                                 <CardContent>
@@ -138,10 +161,14 @@ function ClustersContent() {
                                 </CardContent>
                             </Card>
                         </Stack>
-
-                </Container>
-                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                        <CloudClusters />
+                    </Container>
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        <Card sx={{ maxWidth: 600 }}>
+                            <ClusterViews pageView={pageView} setPageView={setPageView} appName={appName} setAppName={setAppName} clusters={clusters} allClusters={allClusters}/>
+                        </Card>
+                    </Container>
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        {pageView ? <CloudClustersAppsView clusters={clusters} setClusters={setClusters} appName={appName} setAllClusters={setAllClusters} /> : <CloudClusters />}
                     </Container>
                 </Box>
             </Box>
@@ -246,13 +273,123 @@ function CloudClusters() {
             } catch (error) {
                 console.log("error", error);
             }}
-        fetchData();
+        fetchData().then(r => '');
     }, []);
     return (
         ClustersTable(clusters)
     )
 }
 
-export default function Clusters() {
+export default function Clusters(props: any) {
     return <ClustersContent />
+}
+
+function CloudClustersAppsView(props: any) {
+    const { appName, clusters, setClusters, setAllClusters } = props;
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await clustersApiGateway.getAppClustersView();
+                const clustersData: any[] = response.data;
+                const allClusters = clustersData.map((cluster: any) =>
+                    createClusterAppViewData(cluster.cloudCtxNsID, cluster.clusterClassName,cluster.cloudProvider, cluster.region, cluster.context, cluster.namespace, cluster.namespaceAlias, ''),
+                )
+                setAllClusters(allClusters);
+                const clusterRows = clustersData.map((cluster: any) =>
+                    createClusterAppViewData(cluster.cloudCtxNsID, cluster.clusterClassName,cluster.cloudProvider, cluster.region, cluster.context, cluster.namespace, cluster.namespaceAlias, appName),
+                ).filter((clusterViewData: any) => Object.keys(clusterViewData).length !== 0);
+                setClusters(clusterRows)
+            } catch (error) {
+                console.log("error", error);
+            }}
+        fetchData().then(r => '');
+    }, [appName]);
+    return (
+        CloudClustersAppViewTable(clusters)
+    )
+}
+
+function CloudClustersAppViewTable(clusters: any) {
+    let navigate = useNavigate();
+    const [cluster, setCluster] = useState([{}]);
+    const [statusMessage, setStatusMessage] = useState('');
+    const [statusMessageRowIndex, setStatusMessageRowIndex] = useState(-1);
+
+    const handleClick = async (event: any, cluster: any) => {
+        const tableRow = event.currentTarget;
+        const tableCells = tableRow.children;
+        if (event.target === tableCells[tableCells.length - 1]) {
+            return;
+        }
+        event.preventDefault();
+        setCluster(cluster);
+        navigate('/clusters/'+cluster.cloudCtxNsID);
+    }
+
+    const handleDeleteNamespace = async (index: number, cloudCtxNsId: number, cloudProvider: string, region: string, context: string, namespace: string) => {
+        try {
+            const cloudCtxNs = {
+                cloudProvider: cloudProvider,
+                region: region,
+                context: context,
+                namespace: namespace,
+            } as CloudCtxNs;
+            const response = await resourcesApiGateway.destroyDeploy(cloudCtxNs);
+            setStatusMessage(`Destroy in progress`);
+            setStatusMessageRowIndex(index);
+        } catch (error) {
+            console.error(error);
+            setStatusMessage(`Error deleting cloudCtxNs ID ${cloudCtxNsId}`);
+            setStatusMessageRowIndex(index);
+        }
+    }
+    return( <TableContainer component={Paper}>
+        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+            <TableHead>
+                <TableRow style={{ backgroundColor: '#333'}} >
+                    <TableCell style={{ color: 'white'}}>CloudCtxNsID</TableCell>
+                    <TableCell style={{ color: 'white'}} align="left">AppName</TableCell>
+                    <TableCell style={{ color: 'white'}} align="left">CloudProvider</TableCell>
+                    <TableCell style={{ color: 'white'}} align="left">Region</TableCell>
+                    <TableCell style={{ color: 'white'}} align="left">Context</TableCell>
+                    <TableCell style={{ color: 'white'}} align="left">Namespace</TableCell>
+                    <TableCell style={{ color: 'white'}} align="left">Alias</TableCell>
+                    <TableCell style={{ color: 'white'}} align="left"></TableCell>
+                </TableRow>
+            </TableHead>
+            <TableBody>
+                {clusters.map((row: any, i: number) => (
+                    <TableRow
+                        key={i}
+                        onClick={(event) => handleClick(event, row)}
+                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                    >
+                        <TableCell component="th" scope="row">
+                            {row.cloudCtxNsID}
+                        </TableCell>
+                        <TableCell align="left">{row.clusterClassName}</TableCell>
+                        <TableCell align="left">{row.cloudProvider}</TableCell>
+                        <TableCell align="left">{row.region}</TableCell>
+                        <TableCell align="left">{row.context}</TableCell>
+                        <TableCell align="left">{row.namespace}</TableCell>
+                        <TableCell align="left">{row.namespaceAlias}</TableCell>
+                        <TableCell align="left">
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={async (event) => {
+                                    event.stopPropagation();
+                                    await handleDeleteNamespace(i,row.cloudCtxNsID, row.cloudProvider, row.region, row.context, row.namespace);
+                                }}
+                            >
+                                Delete
+                            </Button>
+                            {statusMessageRowIndex === i && <div>{statusMessage}</div>}
+                        </TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
+    </TableContainer>)
 }

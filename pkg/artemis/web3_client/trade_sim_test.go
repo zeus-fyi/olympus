@@ -41,6 +41,11 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSimAny() {
 	s.Require().Nil(merr)
 	s.Require().NotEmpty(mevTxs)
 
+	// 17367361
+	mevTxs, merr = artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17367361)
+	s.Require().Nil(merr)
+	s.Require().NotEmpty(mevTxs)
+
 	for _, mevTx := range mevTxs {
 		tf := TradeExecutionFlow{}
 		by := []byte(mevTx.TxFlowPrediction)
@@ -55,9 +60,13 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSimAny() {
 
 		err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlockBeforeTxMined(ctx, s.Tc.HardhatNode, s.LocalHardhatMainnetUser, s.MainnetWeb3User, tf.Tx.Hash())
 		s.Assert().Nil(err)
+
 		tfRegular := tf.ConvertToBigIntType()
 		uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
 		uni.DebugPrint = true
+
+		//err = uni.SimUserOnlyTrade(&tfRegular)
+
 		err = uni.SimFullSandwichTrade(&tfRegular)
 		fmt.Println(err)
 		err = nil

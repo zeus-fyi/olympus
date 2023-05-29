@@ -37,3 +37,27 @@ func (u *UniswapV2Client) SimFullSandwichTrade(tf *TradeExecutionFlowInBigInt) e
 	}
 	return u.VerifyTradeResults(tf)
 }
+
+func (u *UniswapV2Client) SimUserOnlyTrade(tf *TradeExecutionFlowInBigInt) error {
+	if u.DebugPrint {
+		fmt.Println("executing stand alone user trade")
+	}
+
+	to, err := tf.InitialPair.PriceImpact(tf.UserTrade.AmountInAddr, tf.UserTrade.AmountIn)
+	if err != nil {
+		log.Err(err).Msg("error executing user trade prediction")
+		return err
+	}
+	tf.UserTrade.AmountOut = to.AmountOut
+	_, err = u.ExecUserTradeStep(tf)
+	if err != nil {
+		log.Err(err).Msg("error executing user trade step")
+		return err
+	}
+
+	fmt.Println("amountInAddr", to.AmountInAddr.String())
+	fmt.Println("amountIn", to.AmountIn.String())
+	fmt.Println("amountOutAddr", to.AmountOutAddr.String())
+	fmt.Println("amountOut", to.AmountOut.String())
+	return nil
+}

@@ -8,6 +8,7 @@ import (
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	deploy_topology_update_activities "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/activities/deploy/update"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
+	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -16,7 +17,7 @@ type FleetUpgradeWorkflow struct {
 	deploy_topology_update_activities.TopologyUpdateActivity
 }
 
-const defaultTimeout = 10 * time.Minute
+const defaultTimeout = 60 * time.Minute
 
 func NewDeployFleetUpgradeWorkflow() FleetUpgradeWorkflow {
 	deployWf := FleetUpgradeWorkflow{
@@ -40,10 +41,9 @@ func (t *FleetUpgradeWorkflow) UpgradeFleetWorkflow(ctx workflow.Context, params
 	workerCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(workerCtx, t.TopologyUpdateActivity.GetClustersToUpdate, params).Get(workerCtx, &clusterToUpgrade)
 	if err != nil {
-		log.Error("Failed to get clusters", "Error", err)
+		log.Error("Failed to get clusters to update", "Error", err)
 		return err
 	}
-
 	for _, clusterInfo := range clusterToUpgrade {
 		var topologyView read_topology_deployment_status.ReadDeploymentStatusesGroup
 		getTopologiesAtCloudCtxNsCtx := workflow.WithActivityOptions(ctx, ao)
@@ -52,18 +52,26 @@ func (t *FleetUpgradeWorkflow) UpgradeFleetWorkflow(ctx workflow.Context, params
 			log.Error("Failed to get ClusterTopologyAtCloudCtxNs", "Error", err)
 			return err
 		}
-		//childWorkflowOptions := workflow.ChildWorkflowOptions{
-		//	ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
-		//}
-		//childCtx := workflow.WithChildOptions(ctx, childWorkflowOptions)
-		//
-		//childWorkflowFuture := workflow.ExecuteChildWorkflow(ctx, "DestroyClusterSetupWorkflowFreeTrial", ftDestroy)
-		//var childWE workflow.Execution
-		//if err = childWorkflowFuture.GetChildWorkflowExecution().Get(ctx, &childWE); err != nil {
-		//	log.Error("Failed to get child workflow execution", "Error", err)
-		//	return err
-		//}
+		var clusterReq base_deploy_params.ClusterTopologyWorkflowRequest
+		diffTopologiesAtCloudCtxNsCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(diffTopologiesAtCloudCtxNsCtx, t.TopologyUpdateActivity.DiffClusterUpdate, params, clusterInfo, topologyView).Get(diffTopologiesAtCloudCtxNsCtx, &clusterReq)
+		if err != nil {
+			log.Error("Failed to DiffClusterUpdate", "Error", err)
+			return err
+		}
+		if clusterReq.ClusterName == "" {
+			continue
+		}
+		childWorkflowOptions := workflow.ChildWorkflowOptions{
+			ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+		}
+		childCtx := workflow.WithChildOptions(ctx, childWorkflowOptions)
+		childWorkflowFuture := workflow.ExecuteChildWorkflow(childCtx, "DeployClusterTopologyWorkflow", clusterReq)
+		var childWE workflow.Execution
+		if err = childWorkflowFuture.GetChildWorkflowExecution().Get(ctx, &childWE); err != nil {
+			log.Error("Failed to get child workflow execution", "Error", err)
+			return err
+		}
 	}
-
 	return nil
 }

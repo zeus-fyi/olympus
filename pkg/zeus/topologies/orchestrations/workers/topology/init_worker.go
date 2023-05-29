@@ -55,6 +55,7 @@ func InitTopologyWorker(temporalAuthCfg temporal_auth.TemporalAuth) {
 	w.AddActivities(deployWf.GetActivities())
 	w.AddActivities(deployDestroyWf.GetActivities())
 	w.AddActivities(deployWfClusterSetup.GetActivities())
+	w.AddActivities(upgradeFleetWf.GetActivities())
 
 	Worker = TopologyWorker{w}
 	Worker.TemporalClient = tc

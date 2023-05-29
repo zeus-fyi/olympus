@@ -89,7 +89,7 @@ func SelectClusterAppView(ctx context.Context, orgID int) ([]ClusterAppView, err
 
 func SelectClusterSingleAppView(ctx context.Context, orgID int, appName string) ([]ClusterAppView, error) {
 	var TopologiesOrgCloudCtxNs []ClusterAppView
-	q := readClusterAppViewSummaryQuery()
+	q := readClusterAppViewSummaryQueryForApp()
 	log.Debug().Interface("SelectClusterSingleAppView:", q.LogHeader(Sn))
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, appName)
 	if err != nil {

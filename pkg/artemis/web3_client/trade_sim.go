@@ -1,6 +1,7 @@
 package web3_client
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/rs/zerolog/log"
@@ -36,6 +37,47 @@ func (u *UniswapV2Client) SimFullSandwichTrade(tf *TradeExecutionFlowInBigInt) e
 		return err
 	}
 	return u.VerifyTradeResults(tf)
+}
+
+func (u *UniswapV2Client) SimFrontRunTradeOnly(tf *TradeExecutionFlowInBigInt) error {
+	err := u.Web3Client.MatchFrontRunTradeValues(tf)
+	if err != nil {
+		log.Err(err).Msg("error executing front run balance setup")
+		return err
+	}
+	fmt.Println("amountIn", tf.FrontRunTrade.AmountIn.String())
+	tokenBal, err := u.Web3Client.ReadERC20TokenBalance(context.Background(), tf.FrontRunTrade.AmountInAddr.String(), u.Web3Client.PublicKey())
+	if err != nil {
+		log.Err(err).Msg("error reading token balance")
+		return err
+	}
+	tokenBalOut, err := u.Web3Client.ReadERC20TokenBalance(context.Background(), tf.FrontRunTrade.AmountOutAddr.String(), u.Web3Client.PublicKey())
+	if err != nil {
+		log.Err(err).Msg("error reading token balance")
+		return err
+	}
+	fmt.Println("token balance amountIn", tokenBal.String())
+	fmt.Println("token balance amountOut", tokenBalOut.String())
+	_, err = u.ExecFrontRunTradeStepTokenTransfer(tf)
+	if err != nil {
+		log.Err(err).Msg("error executing front run trade step token transfer")
+		return err
+	}
+	fmt.Println("post-trade")
+
+	tokenBal, err = u.Web3Client.ReadERC20TokenBalance(context.Background(), tf.FrontRunTrade.AmountInAddr.String(), u.Web3Client.PublicKey())
+	if err != nil {
+		log.Err(err).Msg("error reading token balance")
+		return err
+	}
+	tokenBalOut, err = u.Web3Client.ReadERC20TokenBalance(context.Background(), tf.FrontRunTrade.AmountOutAddr.String(), u.Web3Client.PublicKey())
+	if err != nil {
+		log.Err(err).Msg("error reading token balance")
+		return err
+	}
+	fmt.Println("token balance amountIn", tokenBal.String())
+	fmt.Println("token balance amountOut", tokenBalOut.String())
+	return err
 }
 
 func (u *UniswapV2Client) SimUserOnlyTrade(tf *TradeExecutionFlowInBigInt) error {

@@ -35,20 +35,20 @@ func getSlot(userAddress string, slot *big.Int) (string, error) {
 	return hash.Hex(), nil
 }
 
-func (w *Web3Client) HardhatResetNetworkToBlockBeforeTxMined(ctx context.Context, simNodeUrl string, simNetworkClient, realNetworkClient Web3Client, txHash common.Hash) error {
+func (w *Web3Client) HardhatResetNetworkToBlockBeforeTxMined(ctx context.Context, simNodeUrl string, simNetworkClient, realNetworkClient Web3Client, txHash common.Hash) (int, error) {
 	realNetworkClient.Dial()
 	rx, err := realNetworkClient.C.TransactionReceipt(ctx, txHash)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	realNetworkClient.Close()
 	simNetworkClient.Dial()
 	err = simNetworkClient.HardHatResetNetwork(ctx, simNodeUrl, int(rx.BlockNumber.Int64()-1))
 	if err != nil {
-		return err
+		return 0, err
 	}
 	simNetworkClient.Close()
-	return nil
+	return int(rx.BlockNumber.Int64()), nil
 }
 
 func (w *Web3Client) SendImpersonatedTx(ctx context.Context, tx *types.Transaction) error {

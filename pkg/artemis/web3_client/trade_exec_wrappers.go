@@ -118,7 +118,7 @@ func (u *UniswapV2Client) FrontRunTradeGetAmountsOut(tf *TradeExecutionFlowInBig
 	}
 	if u.DebugPrint {
 		fmt.Println("front run trade trade path", pathSlice[0], pathSlice[1])
-		fmt.Println("front run trade expected amounts", amountsOutFirstPair[0].String(), amountsOutFirstPair[1].String())
+		fmt.Println("front run trade expected amount in", amountsOutFirstPair[0].String(), "amount out", amountsOutFirstPair[1].String())
 	}
 	if tf.FrontRunTrade.AmountIn.String() != amountsOutFirstPair[0].String() {
 		log.Warn().Msgf(fmt.Sprintf("amount in not equal to expected amount in %s, actual amount in: %s", tf.FrontRunTrade.AmountIn.String(), amountsOutFirstPair[0].String()))

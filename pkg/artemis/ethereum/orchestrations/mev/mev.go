@@ -32,6 +32,14 @@ func InitNewUniswap(ctx context.Context) *web3_client.UniswapV2Client {
 	return &uni
 }
 
+func InitNewUniswapQuiknode(ctx context.Context) *web3_client.UniswapV2Client {
+	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnetQuiknode.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
+	uni := web3_client.InitUniswapV2Client(ctx, wc)
+	uni.PrintOn = true
+	uni.PrintLocal = false
+	return &uni
+}
+
 func ProcessMempoolTxs(ctx context.Context) {
 	c := chronos.Chronos{}
 	ticker := time.NewTicker(100 * time.Millisecond)

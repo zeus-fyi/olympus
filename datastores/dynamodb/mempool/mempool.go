@@ -30,6 +30,8 @@ func NewMempoolTxDynamoDB(creds dynamodb_client.DynamoDBCredentials) MempoolTxDy
 var (
 	MainnetMempoolTxsTableName = aws.String("MempoolTxsMainnet")
 	GoerliMempoolTxsTableName  = aws.String("MempoolTxsGoerli")
+
+	MainnetTxBlacklistTableName = aws.String("MainnetTxBlacklist")
 )
 
 type MempoolTxDynamoDBTableKeys struct {

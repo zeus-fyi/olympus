@@ -42,12 +42,6 @@ func (u *UniswapV2Client) GetAmountsIn(amountOut *big.Int, pathSlice []string) (
 	return amountsIn, err
 }
 
-/*
-	Given an output asset amount and an array of token addresses, calculates all preceding minimum
-	input token amounts by calling getReserves for each pair of token addresses in the path in turn,
-	and using these to call getAmountIn.
-*/
-
 func (u *UniswapV2Client) GetAmountsOut(amountIn *big.Int, pathSlice []string) ([]interface{}, error) {
 	pathString := "[" + strings.Join(pathSlice, ",") + "]"
 	scInfo := &web3_actions.SendContractTxPayload{

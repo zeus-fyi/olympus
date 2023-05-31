@@ -18,6 +18,7 @@ type Web3ClientTestSuite struct {
 	GoerliWeb3User          Web3Client
 	GoerliWeb3User2         Web3Client
 	MainnetWeb3User         Web3Client
+	MainnetWeb3UserExternal Web3Client
 	LocalMainnetWeb3User    Web3Client
 	LocalHardhatMainnetUser Web3Client
 }
@@ -31,7 +32,7 @@ func (s *Web3ClientTestSuite) SetupTest() {
 	pkHexString2 := s.Tc.LocalEcsdaTestPkey2
 	secondAccount, err := accounts.ParsePrivateKey(pkHexString2)
 	s.Assert().Nil(err)
-	s.MainnetWeb3User = NewWeb3Client(s.Tc.MainnetNodeUrl, newAccount)
+	s.MainnetWeb3UserExternal = NewWeb3Client(s.Tc.MainnetNodeUrl, newAccount)
 
 	s.GoerliWeb3User = NewWeb3Client(s.Tc.GoerliNodeUrl, newAccount)
 	s.GoerliWeb3User2 = NewWeb3Client(s.Tc.GoerliNodeUrl, secondAccount)

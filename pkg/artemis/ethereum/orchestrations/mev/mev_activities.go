@@ -44,13 +44,11 @@ func (d *ArtemisMevActivities) BlacklistMinedTxs(ctx context.Context) error {
 	return nil
 }
 
-func (d *ArtemisMevActivities) RemoveProcessedTxs(ctx context.Context, seenTxs []mempool_txs.MempoolTxsDynamoDB) error {
-	for _, tx := range seenTxs {
-		err := artemis_orchestration_auth.MevDynamoDBClient.RemoveMempoolTx(ctx, tx)
-		if err != nil {
-			log.Err(err).Str("network", d.Network).Msg("RemoveMempoolTx failed")
-			return err
-		}
+func (d *ArtemisMevActivities) RemoveProcessedTx(ctx context.Context, tx mempool_txs.MempoolTxsDynamoDB) error {
+	err := artemis_orchestration_auth.MevDynamoDBClient.RemoveMempoolTx(ctx, tx)
+	if err != nil {
+		log.Err(err).Str("network", d.Network).Msg("RemoveMempoolTx failed")
+		return err
 	}
 	return nil
 }

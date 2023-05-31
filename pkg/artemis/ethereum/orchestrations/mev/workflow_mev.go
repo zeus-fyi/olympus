@@ -6,6 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	mempool_txs "github.com/zeus-fyi/olympus/datastores/dynamodb/mempool"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
+	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -19,6 +20,22 @@ func (t *ArtemisMevWorkflow) ArtemisTxBlacklistWorkflow(ctx workflow.Context) er
 	if err != nil {
 		log.Error("Failed to blacklist mempool txs", "Error", err)
 		return err
+	}
+	return nil
+}
+
+func (t *ArtemisMevWorkflow) ArtemisRemoveProcessedTxsWorkflow(ctx workflow.Context, mempoolTxs []mempool_txs.MempoolTxsDynamoDB) error {
+	log := workflow.GetLogger(ctx)
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: time.Second * 12,
+	}
+	removeMempoolTxsCtx := workflow.WithActivityOptions(ctx, ao)
+	for _, tx := range mempoolTxs {
+		err := workflow.ExecuteActivity(removeMempoolTxsCtx, t.RemoveProcessedTx, tx).Get(removeMempoolTxsCtx, nil)
+		if err != nil {
+			log.Error("Failed to remove mempool txs", "Error", err)
+			return err
+		}
 	}
 	return nil
 }
@@ -53,14 +70,16 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context) error {
 		log.Error("Failed to process mempool txs", "Error", err)
 		return err
 	}
-
-	removeMempoolTxsCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(removeMempoolTxsCtx, t.RemoveProcessedTxs, mempoolTxs).Get(removeMempoolTxsCtx, nil)
-	if err != nil {
-		log.Error("Failed to remove mempool txs", "Error", err)
+	childWorkflowOptions := workflow.ChildWorkflowOptions{
+		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+	}
+	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
+	childWorkflowFuture := workflow.ExecuteChildWorkflow(ctx, "ArtemisRemoveProcessedTxsWorkflow", mempoolTxs)
+	var childWE workflow.Execution
+	if err = childWorkflowFuture.GetChildWorkflowExecution().Get(ctx, &childWE); err != nil {
+		log.Error("Failed to get child workflow execution", "Error", err)
 		return err
 	}
-
 	// Validate txs to bundle
 
 	// Discard any bad txs

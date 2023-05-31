@@ -7,25 +7,21 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
-
-var ts chronos.Chronos
 
 func InsertOrgSecretRef(ctx context.Context, orgSecretRef autogen_bases.OrgSecretReferences, secretRef autogen_bases.OrgSecretKeyValReferences) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `WITH new_secret AS (
 						INSERT INTO org_secret_references(org_id, secret_name, secret_id)
 						VALUES($1, $2, $3) 
-						RETURNING secret_id
+						ON CONFLICT DO NOTHING
 					)
 					INSERT INTO org_secret_key_val_references(secret_id, secret_env_var_ref, secret_key_ref, secret_name_ref)
 					SELECT $3, $4, $5, $6 
 				  	ON CONFLICT DO NOTHING;`
-	secretID := ts.UnixTimeStampNow()
-	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgSecretRef.OrgID, orgSecretRef.SecretName, secretID, secretRef.SecretEnvVarRef, secretRef.SecretKeyRef, secretRef.SecretNameRef)
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgSecretRef.OrgID, orgSecretRef.SecretName, orgSecretRef.SecretID, secretRef.SecretEnvVarRef, secretRef.SecretKeyRef, secretRef.SecretNameRef)
 	if err == pgx.ErrNoRows {
 		err = nil
 	}

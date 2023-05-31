@@ -36,7 +36,7 @@ func (t *AegisSecretsTestSuite) TestDoesExist() {
 }
 
 func (t *AegisSecretsTestSuite) TestInsertSecret() {
-
+	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
 	ref := autogen_bases.OrgSecretKeyValReferences{
 		SecretEnvVarRef: "RPC_URL",
 		SecretKeyRef:    auth_startup.QuikNodeSecret,
@@ -50,8 +50,10 @@ func (t *AegisSecretsTestSuite) TestInsertSecret() {
 	err := InsertOrgSecretRef(ctx, secRef, ref)
 	t.Require().Nil(err)
 
+	// test 1671408416567169792
+	prod := 1685553743752077000
 	refTop := autogen_bases.TopologySystemComponentsSecrets{
-		TopologySystemComponentID: 1671408416567169792,
+		TopologySystemComponentID: prod,
 		SecretID:                  secRef.SecretID,
 	}
 	err = InsertOrgSecretTopologyRef(ctx, refTop)

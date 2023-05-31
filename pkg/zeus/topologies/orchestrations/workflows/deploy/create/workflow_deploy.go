@@ -66,7 +66,7 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 		Kns:                       params.Kns,
 		OrgUser:                   params.OrgUser,
 		TopologyBaseInfraWorkload: params.TopologyBaseInfraWorkload,
-		ClusterName:               params.ClusterName,
+		ClusterName:               params.ClusterClassName,
 		SecretRef:                 params.SecretRef,
 	}
 	nsCtx := workflow.WithActivityOptions(ctx, ao)

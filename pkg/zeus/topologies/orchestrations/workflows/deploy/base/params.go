@@ -17,8 +17,8 @@ type TopologyWorkflowRequest struct {
 	OrgUser                   org_users.OrgUser
 	Host                      string
 	RequestChoreographySecret bool
-	ClusterName               string
-	SecretRef                 string
+	ClusterClassName          string `json:"clusterClassName"`
+	SecretRef                 string `json:"secretRef"`
 
 	chart_workload.TopologyBaseInfraWorkload
 }
@@ -31,12 +31,12 @@ type FleetUpgradeWorkflowRequest struct {
 }
 
 type ClusterTopologyWorkflowRequest struct {
-	ClusterName string
-	TopologyIDs []int
-	CloudCtxNS  zeus_common_types.CloudCtxNs `json:"cloudCtxNs"`
-	OrgUser     org_users.OrgUser
-	Host        string
-	AppTaint    bool
+	ClusterClassName string `json:"clusterClassName"`
+	TopologyIDs      []int
+	CloudCtxNS       zeus_common_types.CloudCtxNs `json:"cloudCtxNs"`
+	OrgUser          org_users.OrgUser
+	Host             string
+	AppTaint         bool
 
 	RequestChoreographySecret bool
 }

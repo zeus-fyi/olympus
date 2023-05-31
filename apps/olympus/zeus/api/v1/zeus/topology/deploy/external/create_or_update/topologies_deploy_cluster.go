@@ -47,7 +47,7 @@ func (t *TopologyClusterDeployRequest) DeployClusterTopology(c echo.Context) err
 	}
 	log.Ctx(ctx).Info().Interface("cl", cl).Msg("DeployClusterTopology: SelectClusterTopology")
 	clDeploy := base_deploy_params.ClusterTopologyWorkflowRequest{
-		ClusterName:               t.ClusterClassName,
+		ClusterClassName:          t.ClusterClassName,
 		TopologyIDs:               cl.GetTopologyIDs(),
 		CloudCtxNS:                t.CloudCtxNs,
 		OrgUser:                   ou,

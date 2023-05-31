@@ -4,11 +4,6 @@ CREATE TABLE "public"."org_secret_references" (
     "org_id" int8 NOT NULL REFERENCES orgs(org_id)
 );
 
-CREATE TABLE "public"."org_secret_references" (
-    "secret_id" int8 NOT NULL DEFAULT next_id(),
-    "secret_name" text NOT NULL,
-    "org_id" int8 NOT NULL REFERENCES orgs(org_id)
-);
 ALTER TABLE "public"."org_secret_references" ADD CONSTRAINT "org_secret_references_pk" PRIMARY KEY ("secret_id");
 ALTER TABLE "public"."org_secret_references" ADD CONSTRAINT "uniq_secret_name" UNIQUE ("secret_name","org_id");
 

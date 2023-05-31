@@ -40,7 +40,7 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSimAny() {
 	s.Require().Nil(merr)
 	s.Require().NotEmpty(mevTxs)
 
-	mevTxs, merr = artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17375685)
+	mevTxs, merr = artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17375761)
 	s.Require().Nil(merr)
 	s.Require().NotEmpty(mevTxs)
 
@@ -91,6 +91,7 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSimAny() {
 
 		//err = uni.SimFrontRunTradeOnly(&tfRegular)
 		//err = uni.SimUserOnlyTrade(&tfRegular)
-		//err = uni.SimFullSandwichTrade(&tfRegular)
+		err = uni.SimFullSandwichTrade(&tfRegular)
+		s.Assert().Nil(err)
 	}
 }

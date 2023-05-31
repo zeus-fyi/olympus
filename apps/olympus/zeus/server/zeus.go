@@ -13,6 +13,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
+	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/dynamic_secrets"
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
@@ -41,6 +42,7 @@ func Zeus() {
 		log.Info().Msg("Zeus: production auth procedure starting")
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
+		dynamic_secrets.AegisInMemSecrets = inMemFs
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 
 		temporalAuthCfg = temporal_auth.TemporalAuth{
@@ -91,6 +93,7 @@ func Zeus() {
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, tc.ProdLocalAuthKeysCfg)
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
+		dynamic_secrets.AegisInMemSecrets = inMemFs
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 		temporalAuthCfg = tc.DevTemporalAuth
 		_, sw := auth_startup.RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
@@ -103,6 +106,7 @@ func Zeus() {
 		tc := configs.InitLocalTestConfigs()
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, tc.DevAuthKeysCfg)
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
+		dynamic_secrets.AegisInMemSecrets = inMemFs
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 		temporalAuthCfg = tc.DevTemporalAuth
 		api_auth_temporal.InitOrchestrationDigitalOceanClient(ctx, tc.DigitalOceanAPIKey)

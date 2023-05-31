@@ -41,16 +41,31 @@ type OrgSecretRef struct {
 	autogen_bases.OrgSecretKeyValReferencesSlice
 }
 
-func SelectOrgSecretRef(ctx context.Context, orgID, topologyID int) (OrgSecretRef, error) {
+func DoesOrgSecretExistForTopology(ctx context.Context, orgID int, topName string) (bool, error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT true
+   				  FROM topology_system_components_secrets ts
+   				  INNER JOIN topology_system_components tsys ON tsys.topology_system_component_id = ts.topology_system_component_id
+   				  WHERE tsys.org_id = $1 AND tsys.topology_system_component_name = $2;`
+	exists := false
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, orgID, topName).Scan(&exists)
+	if err == pgx.ErrNoRows {
+		return false, nil
+	}
+	return exists, misc.ReturnIfErr(err, q.LogHeader("DoesOrgSecretExistForTopology"))
+}
+
+func SelectOrgSecretRef(ctx context.Context, orgID int, topologyName string) (OrgSecretRef, error) {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `	
 				  SELECT secret_name, secret_env_var_ref, secret_key_ref, secret_name_ref
 				  FROM org_secret_references osr
 				  INNER JOIN org_secret_key_val_references os ON os.secret_id = osr.secret_id
 				  INNER JOIN topology_system_components_secrets ts ON ts.secret_id = osr.secret_id
-				  WHERE osr.org_id = $1 AND ts.topology_system_component_id = $2;`
+				  INNER JOIN topology_system_components tsys ON tsys.topology_system_component_id = ts.topology_system_component_id
+				  WHERE osr.org_id = $1 AND tsys.topology_system_component_name = $2;`
 	log.Debug().Interface("SelectOrgSecretRef", q.LogHeader("SelectOrgSecretRef"))
-	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, topologyID)
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, topologyName)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SelectOrgSecretRef")); returnErr != nil {
 		return OrgSecretRef{}, err
 	}

@@ -24,8 +24,8 @@ func RunHeraDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg
 func InitHera(ctx context.Context, inMemSecrets memfs.MemFS) SecretsWrapper {
 	log.Info().Msg("Hera: InitHera starting")
 	secrets := SecretsWrapper{}
-	secrets.PostgresAuth = secrets.ReadSecret(ctx, inMemSecrets, pgSecret)
-	secrets.OpenAIToken = secrets.ReadSecret(ctx, inMemSecrets, heraOpenAIAuth)
+	secrets.PostgresAuth = secrets.MustReadSecret(ctx, inMemSecrets, pgSecret)
+	secrets.OpenAIToken = secrets.MustReadSecret(ctx, inMemSecrets, heraOpenAIAuth)
 	hera_openai.InitHeraOpenAI(secrets.OpenAIToken)
 	log.Info().Msg("Hera: InitHera done")
 	return secrets

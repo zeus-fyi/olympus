@@ -46,12 +46,12 @@ func ExecuteDeployClusterWorkflow(c echo.Context, ctx context.Context, params ba
 	return c.JSON(http.StatusAccepted, resp)
 }
 
-func ExecuteDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDeploy kns.TopologyKubeCtxNs, nk chart_workload.TopologyBaseInfraWorkload, deployChoreographySecret bool, clusterName string) error {
+func ExecuteDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDeploy kns.TopologyKubeCtxNs, nk chart_workload.TopologyBaseInfraWorkload, deployChoreographySecret bool, clusterName, secretRef string) error {
 	if nk.Service == nil && nk.Deployment == nil && nk.StatefulSet == nil && nk.ServiceMonitor == nil && nk.Ingress == nil && nk.ConfigMap == nil {
 		log.Err(nil).Interface("orgUser", ou).Interface("topologyID", knsDeploy.TopologyID).Msg("DeployTopology, payload is nil")
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-	tar := PackageCommonTopologyRequest(knsDeploy, ou, nk, deployChoreographySecret, clusterName)
+	tar := PackageCommonTopologyRequest(knsDeploy, ou, nk, deployChoreographySecret, clusterName, secretRef)
 	err := topology_worker.Worker.ExecuteDeploy(ctx, tar)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("DeployTopology, ExecuteWorkflow error")
@@ -65,7 +65,7 @@ func ExecuteDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.Org
 }
 
 func ExecuteDestroyDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDestroyDeploy kns.TopologyKubeCtxNs, nk chart_workload.TopologyBaseInfraWorkload) error {
-	tar := PackageCommonTopologyRequest(knsDestroyDeploy, ou, nk, false, "")
+	tar := PackageCommonTopologyRequest(knsDestroyDeploy, ou, nk, false, "", "")
 	err := topology_worker.Worker.ExecuteDestroyDeploy(ctx, tar)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("DestroyDeployedTopology, ExecuteWorkflow error")
@@ -79,7 +79,7 @@ func ExecuteDestroyDeployWorkflow(c echo.Context, ctx context.Context, ou org_us
 }
 
 func ExecuteDestroyNamespaceWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDestroyDeploy kns.TopologyKubeCtxNs, nk chart_workload.TopologyBaseInfraWorkload) error {
-	tar := PackageCommonTopologyRequest(knsDestroyDeploy, ou, nk, false, "")
+	tar := PackageCommonTopologyRequest(knsDestroyDeploy, ou, nk, false, "", "")
 	err := topology_worker.Worker.ExecuteDestroyNamespace(ctx, tar)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("ExecuteDestroyNamespace, ExecuteDestroyNamespaceWorkflow error")
@@ -93,7 +93,7 @@ func ExecuteDestroyNamespaceWorkflow(c echo.Context, ctx context.Context, ou org
 }
 
 func ExecuteCleanDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsCleanDeploy kns.TopologyKubeCtxNs, nk chart_workload.TopologyBaseInfraWorkload) error {
-	tar := PackageCommonTopologyRequest(knsCleanDeploy, ou, nk, false, "")
+	tar := PackageCommonTopologyRequest(knsCleanDeploy, ou, nk, false, "", "")
 	err := topology_worker.Worker.ExecuteCleanDeploy(ctx, tar)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("ExecuteCleanDeploy, ExecuteWorkflow error")

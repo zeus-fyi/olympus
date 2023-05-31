@@ -9,7 +9,7 @@ import (
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
-func PackageCommonTopologyRequest(topCtxNs kns.TopologyKubeCtxNs, ou org_users.OrgUser, nk chart_workload.TopologyBaseInfraWorkload, deployChoreographySecret bool, clusterClassName string) base_deploy_params.TopologyWorkflowRequest {
+func PackageCommonTopologyRequest(topCtxNs kns.TopologyKubeCtxNs, ou org_users.OrgUser, nk chart_workload.TopologyBaseInfraWorkload, deployChoreographySecret bool, clusterClassName, secretRef string) base_deploy_params.TopologyWorkflowRequest {
 	tar := base_deploy_params.TopologyWorkflowRequest{
 		Kns:                       topCtxNs,
 		OrgUser:                   ou,
@@ -17,7 +17,7 @@ func PackageCommonTopologyRequest(topCtxNs kns.TopologyKubeCtxNs, ou org_users.O
 		TopologyBaseInfraWorkload: nk,
 		RequestChoreographySecret: deployChoreographySecret,
 		ClusterClassName:          clusterClassName,
-		SecretRef:                 clusterClassName,
+		SecretRef:                 secretRef,
 	}
 	return tar
 }

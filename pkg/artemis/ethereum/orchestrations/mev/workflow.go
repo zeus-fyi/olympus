@@ -27,7 +27,7 @@ func NewArtemisMevWorkflow() ArtemisMevWorkflow {
 }
 
 func (t *ArtemisMevWorkflow) GetWorkflows() []interface{} {
-	return []interface{}{t.ArtemisSendEthTxWorkflow, t.ArtemisSendSignedTxWorkflow, t.ArtemisMevWorkflow}
+	return []interface{}{t.ArtemisSendEthTxWorkflow, t.ArtemisSendSignedTxWorkflow, t.ArtemisMevWorkflow, t.ArtemisTxBlacklistWorkflow}
 }
 
 func (t *ArtemisMevWorkflow) ArtemisSendEthTxWorkflow(ctx workflow.Context, params web3_actions.SendEtherPayload) error {

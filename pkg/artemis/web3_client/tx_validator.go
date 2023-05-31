@@ -3,19 +3,17 @@ package web3_client
 import (
 	"context"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/rs/zerolog/log"
 )
 
-func (w *Web3Client) ValidateTxIsPending(ctx context.Context, txHashStr string) (bool, error) {
+func (w *Web3Client) GetBlockTxs(ctx context.Context) (types.Transactions, error) {
 	w.Dial()
 	defer w.Close()
-	txHash := common.HexToHash(txHashStr)
-	_, isPending, err := w.Web3Actions.C.TransactionByHash(ctx, txHash)
+	block, err := w.C.BlockByNumber(ctx, nil)
 	if err != nil {
-		return false, err
+		log.Err(err).Msg("failed to get nonce")
+		return nil, err
 	}
-	if isPending {
-		return true, nil
-	}
-	return false, nil
+	return block.Transactions(), nil
 }

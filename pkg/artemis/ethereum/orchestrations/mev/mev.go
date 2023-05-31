@@ -57,6 +57,10 @@ func ProcessMempoolTxs(ctx context.Context) {
 					log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
 				}
 				time.Sleep(4 * time.Second)
+				err = ArtemisMevWorkerMainnet.ExecuteArtemisBlacklistTxWorkflow(ctx)
+				if err != nil {
+					log.Err(err).Msg("ExecuteArtemisBlacklistTxWorkflow failed")
+				}
 			}
 
 			if secondsLeftInSlot <= 0 {

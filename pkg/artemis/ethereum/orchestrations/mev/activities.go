@@ -29,7 +29,7 @@ type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
 func (d *ArtemisMevActivities) GetActivities() ActivitiesSlice {
-	return []interface{}{d.SendEther, d.SubmitSignedTx, d.WaitForTxReceipt,
+	return []interface{}{d.SendEther, d.SubmitSignedTx, d.WaitForTxReceipt, d.BlacklistMinedTxs,
 		d.GetMempoolTxs, d.ProcessMempoolTxs, d.SimulateAndValidateBundle, d.SubmitFlashbotsBundle}
 }
 

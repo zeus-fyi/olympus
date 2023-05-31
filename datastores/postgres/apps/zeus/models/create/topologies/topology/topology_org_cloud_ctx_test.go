@@ -26,7 +26,7 @@ func (t *TopologiesOrgCloudCtxNsTestSuite) TestInsertTopologyAccessCloudCtxNs() 
 
 	nc := NewCreateTopologiesOrgCloudCtxNs(orgID, newKns)
 	ctx := context.Background()
-	err := nc.InsertTopologyAccessCloudCtxNs(ctx)
+	err := nc.InsertTopologyAccessCloudCtxNs(ctx, orgID, newKns)
 	t.Require().Nil(err)
 }
 

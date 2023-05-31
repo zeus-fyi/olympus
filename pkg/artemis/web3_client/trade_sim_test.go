@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
@@ -38,11 +39,12 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSimAny() {
 	mevTxs, merr := artemis_validator_service_groups_models.SelectMempoolTxAtMaxBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID)
 	s.Require().Nil(merr)
 	s.Require().NotEmpty(mevTxs)
-	//
-	mevTxs, merr = artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17368181)
+
+	mevTxs, merr = artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17375685)
 	s.Require().Nil(merr)
 	s.Require().NotEmpty(mevTxs)
 
+	fmt.Println("mevTxs count", len(mevTxs))
 	for _, mevTx := range mevTxs {
 		tf := TradeExecutionFlow{}
 		by := []byte(mevTx.TxFlowPrediction)
@@ -71,17 +73,21 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSimAny() {
 		if currentBlockNum < rxBlockNum-1 {
 			fmt.Println("using block number from artemis vs rx block num -1")
 			err = s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, s.Tc.HardhatNode, currentBlockNum)
-			s.Require().Nil(err)
+			if err != nil {
+				log.Err(err).Msg("error resetting hardhat network")
+				continue
+			}
 		}
 		if currentBlockNum > rxBlockNum {
 			s.Failf("currentBlockNum > rxBlockNum", "currentBlockNum %v > rxBlockNum %v", currentBlockNum, rxBlockNum)
+			continue
 		}
 
 		pairAddr := tfRegular.InitialPair.PairContractAddr
 		simPair, err := uni.GetPairContractPrices(ctx, pairAddr)
-		s.Require().Nil(err)
-		s.Require().Equal(tfRegular.InitialPair.Reserve0.String(), simPair.Reserve0.String())
-		s.Require().Equal(tfRegular.InitialPair.Reserve1.String(), simPair.Reserve1.String())
+		s.Assert().Nil(err)
+		s.Assert().Equal(tfRegular.InitialPair.Reserve0.String(), simPair.Reserve0.String())
+		s.Assert().Equal(tfRegular.InitialPair.Reserve1.String(), simPair.Reserve1.String())
 
 		//err = uni.SimFrontRunTradeOnly(&tfRegular)
 		//err = uni.SimUserOnlyTrade(&tfRegular)

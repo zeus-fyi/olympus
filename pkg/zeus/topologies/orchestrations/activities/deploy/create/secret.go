@@ -12,10 +12,10 @@ func (d *DeployTopologyActivities) CreateChoreographySecret(ctx context.Context,
 }
 
 func (d *DeployTopologyActivities) CreateSecret(ctx context.Context, params base_request.InternalDeploymentActionRequest) error {
-	if params.ClusterName == "" {
+	if params.SecretRef == "" {
 		return nil
 	}
-	exists, err := aegis_secrets.DoesOrgSecretExistForTopology(ctx, params.OrgUser.OrgID, params.ClusterName)
+	exists, err := aegis_secrets.DoesOrgSecretExistForTopology(ctx, params.OrgUser.OrgID, params.SecretRef)
 	if err != nil {
 		return err
 	}

@@ -18,6 +18,7 @@ type TopologyWorkflowRequest struct {
 	Host                      string
 	RequestChoreographySecret bool
 	ClusterName               string
+	SecretRef                 string
 
 	chart_workload.TopologyBaseInfraWorkload
 }

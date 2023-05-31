@@ -26,6 +26,9 @@ func (t *DeployTopologyWorkflow) DeployClusterTopologyWorkflow(ctx workflow.Cont
 		if params.AppTaint {
 			req.ClusterName = params.ClusterName
 		}
+		if params.ClusterName != "" {
+			req.SecretRef = params.ClusterName
+		}
 		err := workflow.ExecuteActivity(deployStatusCtx, t.DeployTopologyActivities.DeployClusterTopology, req, params.OrgUser).Get(deployStatusCtx, nil)
 		if err != nil {
 			log.Error("Failed to deploy topology from cluster definition", "Error", err)

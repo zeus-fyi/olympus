@@ -52,10 +52,6 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSimAny() {
 		    multi trade
 			blockNum 17375834
 
-			blockNum 17375869
-			tradeMethod swapExactETHForTokens
-			txHash 0xe11f91fe084c02eb92b72c42a053edade40a28c62b459f3404d7179face2e7f5
-
 	*/
 	mevTxs, merr = artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17375869)
 	s.Require().Nil(merr)

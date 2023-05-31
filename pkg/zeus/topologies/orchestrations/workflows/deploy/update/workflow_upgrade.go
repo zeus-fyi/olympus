@@ -59,7 +59,7 @@ func (t *FleetUpgradeWorkflow) UpgradeFleetWorkflow(ctx workflow.Context, params
 			log.Error("Failed to DiffClusterUpdate", "Error", err)
 			return err
 		}
-		if clusterReq.ClusterName == "" {
+		if clusterReq.ClusterClassName == "" {
 			continue
 		}
 		childWorkflowOptions := workflow.ChildWorkflowOptions{

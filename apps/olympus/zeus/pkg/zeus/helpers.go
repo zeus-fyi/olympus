@@ -16,7 +16,7 @@ func PackageCommonTopologyRequest(topCtxNs kns.TopologyKubeCtxNs, ou org_users.O
 		Host:                      "",
 		TopologyBaseInfraWorkload: nk,
 		RequestChoreographySecret: deployChoreographySecret,
-		ClusterName:               clusterClassName,
+		ClusterClassName:          clusterClassName,
 		SecretRef:                 clusterClassName,
 	}
 	return tar

@@ -41,7 +41,7 @@ func ExecuteDeployClusterWorkflow(c echo.Context, ctx context.Context, params ba
 		log.Err(err).Interface("orgUser", params.OrgUser).Msg("ExecuteDeployClusterWorkflow, ExecuteWorkflow error")
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-	resp := topology_deployment_status.NewClusterTopologyStatus(params.ClusterName)
+	resp := topology_deployment_status.NewClusterTopologyStatus(params.ClusterClassName)
 	resp.Status = topology_deployment_status.DeployPending
 	return c.JSON(http.StatusAccepted, resp)
 }

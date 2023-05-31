@@ -70,7 +70,7 @@ func (d *TopologyUpdateActivity) DiffClusterUpdate(ctx context.Context, params b
 		return base_deploy_params.ClusterTopologyWorkflowRequest{}, nil
 	}
 	clDeploy := base_deploy_params.ClusterTopologyWorkflowRequest{
-		ClusterName: params.ClusterName,
+		ClusterClassName: params.ClusterName,
 		CloudCtxNS: zeus_common_types.CloudCtxNs{
 			CloudProvider: clusterInfo.CloudProvider,
 			Region:        clusterInfo.Region,

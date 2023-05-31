@@ -2,13 +2,10 @@ package mempool_txs
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamodb"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
@@ -45,7 +42,7 @@ type MempoolTxsDynamoDB struct {
 	TTL int    `dynamodbav:"ttl"`
 }
 
-func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) (map[string]map[string]*types.Transaction, error) {
+func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) ([]MempoolTxsDynamoDB, error) {
 	var mempoolTxsTableName *string
 	if network == "mainnet" {
 		mempoolTxsTableName = MainnetMempoolTxsTableName
@@ -67,39 +64,25 @@ func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) (
 		log.Err(err).Msg("GetMempoolTxs: error UnmarshalListOfMaps mempool txs")
 		return nil, err
 	}
-	txMap := make(map[string]map[string]*types.Transaction)
-	for _, tx := range mempoolTxs {
-		if txMap[tx.Pubkey] == nil {
-			txMap[tx.Pubkey] = make(map[string]*types.Transaction)
-		}
-		txRpc := &types.Transaction{}
-		b, berr := json.Marshal(tx.Tx)
-		if berr != nil {
-			log.Err(berr).Msg("GetMempoolTxs: error marshalling tx")
-			return nil, berr
-		}
-		var txRpcMapStr string
-		berr = json.Unmarshal(b, &txRpcMapStr)
-		if berr != nil {
-			log.Err(berr).Msg("GetMempoolTxs: error marshalling tx")
-			return nil, berr
-		}
-		berr = json.Unmarshal([]byte(txRpcMapStr), &txRpc)
-		if berr != nil {
-			log.Err(berr).Msg("GetMempoolTxs: error marshalling tx")
-			return nil, berr
-		}
-		berr = json.Unmarshal(b, &txRpcMapStr)
-		if berr != nil {
-			log.Err(berr).Msg("GetMempoolTxs: error marshalling tx")
-			return nil, berr
-		}
-		tmp := txMap[tx.Pubkey]
-		tmp[fmt.Sprintf("%d", tx.TxOrder)] = txRpc
-		txMap[tx.Pubkey] = tmp
-	}
+
 	//fmt.Println("startingTxCount", len(mempoolTxs))
 	//fmt.Println("endFilteredTxCount", len(txMap))
 	//fmt.Println("filteredCount", len(mempoolTxs)-len(txMap))
-	return txMap, nil
+	return mempoolTxs, nil
+}
+
+func (m *MempoolTxDynamoDB) RemoveMempoolTx(ctx context.Context, tx MempoolTxsDynamoDB) error {
+	keymap, err := attributevalue.MarshalMap(tx.MempoolTxDynamoDBTableKeys)
+	if err != nil {
+		return err
+	}
+	_, err = m.DeleteItem(ctx, &dynamodb.DeleteItemInput{
+		TableName: MainnetMempoolTxsTableName,
+		Key:       keymap,
+	})
+	if err != nil {
+		log.Err(err).Msg("RemoveMempoolTx: error deleting mempool tx")
+		return nil
+	}
+	return nil
 }

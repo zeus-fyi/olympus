@@ -40,10 +40,26 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSimAny() {
 	s.Require().Nil(merr)
 	s.Require().NotEmpty(mevTxs)
 
-	mevTxs, merr = artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17375685)
+	/*
+			should be fully working
+			blockNum 17375815
+			tradeMethod swapExactETHForTokens
+			txHash 0xd40864c0f1d3ad3d2fe4c8e678460d36c4310facfb6be839ca2912c396ef709e
+
+			captures a valid tx with an expired deadline that should be caught before submitting any trades
+			blockNum 17375781
+
+		    multi trade
+			blockNum 17375834
+
+			blockNum 17375869
+			tradeMethod swapExactETHForTokens
+			txHash 0xe11f91fe084c02eb92b72c42a053edade40a28c62b459f3404d7179face2e7f5
+
+	*/
+	mevTxs, merr = artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17375869)
 	s.Require().Nil(merr)
 	s.Require().NotEmpty(mevTxs)
-
 	fmt.Println("mevTxs count", len(mevTxs))
 	for _, mevTx := range mevTxs {
 		tf := TradeExecutionFlow{}
@@ -59,6 +75,7 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSimAny() {
 
 		rxBlockNum, err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlockBeforeTxMined(ctx, s.Tc.HardhatNode, s.LocalHardhatMainnetUser, s.MainnetWeb3User, tf.Tx.Hash())
 		s.Assert().Nil(err)
+		blockBeforeRx := rxBlockNum - 1
 		tfRegular := tf.ConvertToBigIntType()
 		uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
 		uni.DebugPrint = true
@@ -70,7 +87,7 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSimAny() {
 		fmt.Println("blockNum recorded from artemis", currentBlockNum)
 		fmt.Println("rxBlockNum - artemisBlock", rxBlockNum-currentBlockNum)
 
-		if currentBlockNum < rxBlockNum-1 {
+		if currentBlockNum < blockBeforeRx {
 			fmt.Println("using block number from artemis vs rx block num -1")
 			err = s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, s.Tc.HardhatNode, currentBlockNum)
 			if err != nil {
@@ -91,6 +108,7 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSimAny() {
 
 		//err = uni.SimFrontRunTradeOnly(&tfRegular)
 		//err = uni.SimUserOnlyTrade(&tfRegular)
-		//err = uni.SimFullSandwichTrade(&tfRegular)
+		err = uni.SimFullSandwichTrade(&tfRegular)
+		s.Assert().Nil(err)
 	}
 }

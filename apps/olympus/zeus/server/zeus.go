@@ -50,8 +50,8 @@ func Zeus() {
 			Namespace:        "production-zeus.ngb72",
 			HostPort:         "production-zeus.ngb72.tmprl.cloud:7233",
 		}
-		_, sw := auth_startup.RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
-		dynamic_secrets.AegisInMemSecrets = inMemFs
+		dynMemFs, sw := auth_startup.RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+		dynamic_secrets.AegisInMemSecrets = dynMemFs
 		cmd := exec.Command("doctl", "auth", "init", "-t", sw.DoctlToken)
 		err := cmd.Run()
 		if err != nil {
@@ -95,8 +95,8 @@ func Zeus() {
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 		temporalAuthCfg = tc.DevTemporalAuth
-		_, sw := auth_startup.RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
-		dynamic_secrets.AegisInMemSecrets = inMemFs
+		dynMemFs, sw := auth_startup.RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+		dynamic_secrets.AegisInMemSecrets = dynMemFs
 		api_auth_temporal.InitOrchestrationDigitalOceanClient(ctx, sw.DoctlToken)
 		api_auth_temporal.InitOrchestrationGcpClient(ctx, sw.GcpAuthJsonBytes)
 		api_auth_temporal.InitOrchestrationEksClient(ctx, sw.EksAuthAWS)
@@ -106,7 +106,6 @@ func Zeus() {
 		tc := configs.InitLocalTestConfigs()
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, tc.DevAuthKeysCfg)
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
-		dynamic_secrets.AegisInMemSecrets = inMemFs
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 		temporalAuthCfg = tc.DevTemporalAuth
 		api_auth_temporal.InitOrchestrationDigitalOceanClient(ctx, tc.DigitalOceanAPIKey)
@@ -119,6 +118,8 @@ func Zeus() {
 			SecretKey:     tc.AwsSecretKeyEks,
 		}
 		api_auth_temporal.InitOrchestrationEksClient(ctx, eksAuth)
+		dynMemFs, _ := auth_startup.RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+		dynamic_secrets.AegisInMemSecrets = dynMemFs
 	}
 
 	log.Info().Msg("Zeus: PG connection starting")

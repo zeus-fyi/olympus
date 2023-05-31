@@ -5,6 +5,7 @@ on:
     paths:
       - .github/workflows/hardhat.yml
       - apps/olympus/hardhat/**
+      - docker/hardhat/**
     branches:
       - main
 

@@ -1,4 +1,4 @@
-name: Build Zeus Cloud App
+name: Build Hardhat Cloud App
 
 on:
   push:

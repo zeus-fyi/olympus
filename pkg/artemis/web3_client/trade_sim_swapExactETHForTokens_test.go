@@ -30,24 +30,8 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSim_SwapExactETHForTokens() {
 		if tf.FrontRunTrade.AmountIn == "0" || tf.FrontRunTrade.AmountIn == "" {
 			continue
 		}
+		s.Require().Equal(swapExactETHForTokens, tf.Trade.TradeMethod)
 		fmt.Println("blockNum recorded from artemis", tf.CurrentBlockNumber)
-		fmt.Println("tradeMethod", tf.Trade.TradeMethod)
-		fmt.Println("txHash", tf.Tx.Hash())
-		blockNum, err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlockBeforeTxMined(ctx, s.Tc.HardhatNode, s.LocalHardhatMainnetUser, s.MainnetWeb3User, tf.Tx.Hash())
-		fmt.Println("blockNumSet to -1 before tx included", blockNum-1)
-		s.Require().Nil(err)
-		tfRegular := tf.ConvertToBigIntType()
-		uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
-		pairAddr := tfRegular.InitialPair.PairContractAddr
-		simPair, err := uni.GetPairContractPrices(ctx, pairAddr)
-		s.Require().Nil(err)
-		s.Require().Equal(tfRegular.InitialPair.Reserve0.String(), simPair.Reserve0.String())
-		s.Require().Equal(tfRegular.InitialPair.Reserve1.String(), simPair.Reserve1.String())
-
-		uni.DebugPrint = true
-		err = uni.SimFullSandwichTrade(&tfRegular)
-		s.Require().Nil(err)
-
 		currentBlockStr := tf.CurrentBlockNumber.String()
 		currentBlockNum, err := strconv.Atoi(currentBlockStr)
 		s.Require().Nil(err)
@@ -55,10 +39,10 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSim_SwapExactETHForTokens() {
 		err = s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, s.Tc.HardhatNode, currentBlockNum)
 		s.Require().Nil(err)
 
-		tfRegular = tf.ConvertToBigIntType()
-		uni = InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
-		pairAddr = tfRegular.InitialPair.PairContractAddr
-		simPair, err = uni.GetPairContractPrices(ctx, pairAddr)
+		tfRegular := tf.ConvertToBigIntType()
+		uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
+		pairAddr := tfRegular.InitialPair.PairContractAddr
+		simPair, err := uni.GetPairContractPrices(ctx, pairAddr)
 		s.Require().Nil(err)
 		s.Require().Equal(tfRegular.InitialPair.Reserve0.String(), simPair.Reserve0.String())
 		s.Require().Equal(tfRegular.InitialPair.Reserve1.String(), simPair.Reserve1.String())

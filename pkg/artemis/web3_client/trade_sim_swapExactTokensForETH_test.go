@@ -32,6 +32,8 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSim_SwapExactTokensForETH() {
 		if tf.FrontRunTrade.AmountIn == "0" || tf.FrontRunTrade.AmountIn == "" {
 			continue
 		}
+		s.Require().Equal(swapExactTokensForETH, tf.Trade.TradeMethod)
+
 		fmt.Println("blockNum recorded from artemis", tf.CurrentBlockNumber)
 		fmt.Println("tradeMethod", tf.Trade.TradeMethod)
 		fmt.Println("txHash", tf.Tx.Hash())

@@ -23,8 +23,6 @@ func (u *UniswapV2Client) VerifyTradeResults(tf *TradeExecutionFlowInBigInt) err
 	case swapExactTokensForTokens:
 	case swapTokensForExactTokens:
 	case swapExactETHForTokens:
-
-		fmt.Println(swapExactETHForTokens)
 	case swapETHForExactTokens:
 
 	default:
@@ -36,25 +34,19 @@ func (u *UniswapV2Client) VerifyTradeResults(tf *TradeExecutionFlowInBigInt) err
 	totalSandwichTradeGasCost := new(big.Int).Add(frontRunGasCost, sandwichRunGasCost)
 	fmt.Println("total gas cost", totalSandwichTradeGasCost.String())
 
-	if tf.SandwichTrade.AmountOutAddr.String() != WETH9ContractAddress {
-		endingTokenBalance, err := u.Web3Client.ReadERC20TokenBalance(ctx, tf.SandwichTrade.AmountOutAddr.String(), u.Web3Client.PublicKey())
-		if err != nil {
-			return err
-		}
-		profitTokenBalance := new(big.Int).Sub(endingTokenBalance, tf.FrontRunTrade.AmountIn)
-		fmt.Println("profit currency", tf.SandwichTrade.AmountOutAddr.String())
-		fmt.Println("profitTokenBalance", profitTokenBalance.String())
-		fmt.Println("sandwichCalculatedProfit", tf.SandwichPrediction.ExpectedProfit.String())
-		if profitTokenBalance.String() != tf.SandwichPrediction.ExpectedProfit.String() {
-			return errors.New("profit token balance mismatch")
-		}
-	} else {
-		// TODO wtf.. is this ETH or in WETH?
-		fmt.Println("profit currency", tf.SandwichTrade.AmountOutAddr.String())
-		fmt.Println("sandwichCalculatedProfit", tf.SandwichPrediction.ExpectedProfit.String())
-		//if profitTokenBalance.String() != tf.SandwichPrediction.ExpectedProfit.String() {
-		//	return errors.New("profit token balance mismatch")
-		//}
+	endingTokenBalance, err := u.Web3Client.ReadERC20TokenBalance(ctx, tf.SandwichTrade.AmountOutAddr.String(), u.Web3Client.PublicKey())
+	if err != nil {
+		return err
 	}
+	fmt.Println("profit currency", tf.SandwichTrade.AmountOutAddr.String())
+	fmt.Println("starting amount", tf.FrontRunTrade.AmountIn.String())
+	fmt.Println("ending amount", tf.SandwichTrade.AmountOut.String())
+	profitTokenBalance := new(big.Int).Sub(endingTokenBalance, tf.FrontRunTrade.AmountIn)
+	fmt.Println("profitTokenBalance", profitTokenBalance.String())
+	fmt.Println("sandwichCalculatedProfit", tf.SandwichPrediction.ExpectedProfit.String())
+	if profitTokenBalance.String() != tf.SandwichPrediction.ExpectedProfit.String() {
+		return errors.New("profit token balance mismatch")
+	}
+
 	return nil
 }

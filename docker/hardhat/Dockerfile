@@ -12,10 +12,7 @@ RUN npm ci
 COPY apps/olympus/hardhat/ ./
 
 # Build the React app for production
-RUN npm run build --nomaps
 
 ENV NODE_ENV=production
 
-EXPOSE 3000
-
-CMD ["node", "/app/node_modules/.bin/serve", "-s", "/app/build", "-l", "3000"]
+EXPOSE 8545

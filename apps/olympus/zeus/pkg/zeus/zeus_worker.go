@@ -53,6 +53,7 @@ func ExecuteDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.Org
 	}
 	tar := PackageCommonTopologyRequest(knsDeploy, ou, nk, deployChoreographySecret, clusterName)
 	tar.ClusterName = clusterName
+	tar.SecretRef = clusterName
 	err := topology_worker.Worker.ExecuteDeploy(ctx, tar)
 	if err != nil {
 		log.Err(err).Interface("orgUser", ou).Msg("DeployTopology, ExecuteWorkflow error")

@@ -21,7 +21,7 @@ func (u *UniswapV2Client) ExecSandwichTrade(tf TradeExecutionFlowInBigInt) (*web
 
 func (u *UniswapV2Client) ExecFrontRunTradeStepTokenTransfer(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
 	if u.DebugPrint {
-		fmt.Println("executing front run trade")
+		fmt.Println("executing front run token transfer")
 	}
 	_, _ = u.FrontRunTradeGetAmountsOut(tf)
 	ethBal, err := u.Web3Client.GetBalance(ctx, u.Web3Client.PublicKey(), nil)
@@ -118,7 +118,8 @@ func (u *UniswapV2Client) FrontRunTradeGetAmountsOut(tf *TradeExecutionFlowInBig
 	}
 	if u.DebugPrint {
 		fmt.Println("front run trade trade path", pathSlice[0], pathSlice[1])
-		fmt.Println("front run trade expected amount in", amountsOutFirstPair[0].String(), "amount out", amountsOutFirstPair[1].String())
+		fmt.Println("front run trade expected amount in", tf.FrontRunTrade.AmountIn.String(), "amount out", tf.FrontRunTrade.AmountOut.String())
+		fmt.Println("front run trade simulated amount in", amountsOutFirstPair[0].String(), "amount out", amountsOutFirstPair[1].String())
 	}
 	if tf.FrontRunTrade.AmountIn.String() != amountsOutFirstPair[0].String() {
 		log.Warn().Msgf(fmt.Sprintf("amount in not equal to expected amount in %s, actual amount in: %s", tf.FrontRunTrade.AmountIn.String(), amountsOutFirstPair[0].String()))
@@ -148,7 +149,8 @@ func (u *UniswapV2Client) UserTradeGetAmountsOut(tf *TradeExecutionFlowInBigInt)
 	}
 	if u.DebugPrint {
 		fmt.Println("user trade trade path", pathSlice[0], pathSlice[1])
-		fmt.Println("user trade expected amounts", amountsOutFirstPair[0].String(), amountsOutFirstPair[1].String())
+		fmt.Println("user trade expected amount in", tf.UserTrade.AmountIn.String(), "amount out", tf.UserTrade.AmountOut.String())
+		fmt.Println("user trade simulated amount in", amountsOutFirstPair[0].String(), "amount out", amountsOutFirstPair[1].String())
 	}
 	if tf.UserTrade.AmountIn.String() != amountsOutFirstPair[0].String() {
 		log.Warn().Msgf(fmt.Sprintf("amount in not equal to expected amount in %s, actual amount in: %s", tf.UserTrade.AmountIn.String(), amountsOutFirstPair[0].String()))
@@ -178,7 +180,8 @@ func (u *UniswapV2Client) SandwichTradeGetAmountsOut(tf *TradeExecutionFlowInBig
 	}
 	if u.DebugPrint {
 		fmt.Println("sandwich trade trade path", pathSlice[0], pathSlice[1])
-		fmt.Println("sandwich trade expected amounts", amountsOutFirstPair[0].String(), amountsOutFirstPair[1].String())
+		fmt.Println("sandwich trade expected amount in", tf.SandwichTrade.AmountIn.String(), "amount out", tf.SandwichTrade.AmountOut.String())
+		fmt.Println("sandwich trade simulated amount in", amountsOutFirstPair[0].String(), "amount out", amountsOutFirstPair[1].String())
 	}
 	if tf.SandwichTrade.AmountIn.String() != amountsOutFirstPair[0].String() {
 		log.Warn().Msgf(fmt.Sprintf("amount in not equal to expected amount in %s, actual amount in: %s", tf.UserTrade.AmountIn.String(), amountsOutFirstPair[0].String()))

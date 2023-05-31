@@ -10,24 +10,35 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
 	zeus_client "github.com/zeus-fyi/zeus/pkg/zeus/client"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
 )
 
 var ctx = context.Background()
 
-func (t *ZeusP2PCrawlerTestSuite) TestClusterDeploy() {
+func (t *HardhatCookbookTestSuite) TestClusterDeploy() {
 	olympus_cookbooks.ChangeToCookbookDir()
 	cdep := hardhatClusterDefinition.GenerateDeploymentRequest()
 
 	_, err := t.ZeusTestClient.DeployCluster(ctx, cdep)
 	t.Require().Nil(err)
 }
-func (t *ZeusP2PCrawlerTestSuite) TestChartUpload() {
+
+func (t *HardhatCookbookTestSuite) TestClusterDestroy() {
+	d := zeus_req_types.TopologyDeployRequest{
+		CloudCtxNs: hardhatCtxNs,
+	}
+	resp, err := t.ZeusTestClient.DestroyDeploy(ctx, d)
+	t.Require().Nil(err)
+	t.Assert().NotEmpty(resp)
+}
+
+func (t *HardhatCookbookTestSuite) TestChartUpload() {
 	cd := hardhatClusterDefinition
 	_, err := cd.UploadChartsFromClusterDefinition(ctx, t.ZeusTestClient, true)
 	t.Require().Nil(err)
 }
 
-func (t *ZeusP2PCrawlerTestSuite) TestCreateClusterClass() {
+func (t *HardhatCookbookTestSuite) TestCreateClusterClass() {
 	cd := hardhatClusterDefinition
 	gcd := cd.BuildClusterDefinitions()
 	t.Assert().NotEmpty(gcd)
@@ -37,12 +48,12 @@ func (t *ZeusP2PCrawlerTestSuite) TestCreateClusterClass() {
 	t.Require().Nil(err)
 }
 
-type ZeusP2PCrawlerTestSuite struct {
+type HardhatCookbookTestSuite struct {
 	test_suites_base.TestSuite
 	ZeusTestClient zeus_client.ZeusClient
 }
 
-func (t *ZeusP2PCrawlerTestSuite) SetupTest() {
+func (t *HardhatCookbookTestSuite) SetupTest() {
 	// points dir to test/configs
 	tc := api_configs.InitLocalTestConfigs()
 
@@ -52,6 +63,6 @@ func (t *ZeusP2PCrawlerTestSuite) SetupTest() {
 	olympus_cookbooks.ChangeToCookbookDir()
 }
 
-func TestZeusP2PCrawlerTestSuite(t *testing.T) {
-	suite.Run(t, new(ZeusP2PCrawlerTestSuite))
+func TestHardhatCookbookTestSuite(t *testing.T) {
+	suite.Run(t, new(HardhatCookbookTestSuite))
 }

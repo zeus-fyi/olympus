@@ -40,8 +40,8 @@ spec:
             periodSeconds: 10
             tcpSocket:
               port: hercules
-        - name: zeus-hardhat
-          image: registry.digitalocean.com/zeus-fyi/hardhat:latest
+        - name: hardhat
+          image: "registry.digitalocean.com/zeus-fyi/hardhat:latest"
           imagePullPolicy: Always
           command: [ "/bin/sh" ]
           args: [ "-c","/scripts/start.sh" ]

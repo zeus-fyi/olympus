@@ -85,6 +85,15 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 		}
 	}
 
+	if params.SecretRef != "" {
+		secCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(secCtx, t.DeployTopologyActivities.CreateSecret, deployParams).Get(secCtx, nil)
+		if err != nil {
+			log.Error("Failed to get or deploy secret relationships", "Error", err)
+			return err
+		}
+	}
+
 	if params.ConfigMap != nil {
 		cmCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(cmCtx, t.DeployTopologyActivities.DeployConfigMap, deployParams).Get(cmCtx, nil)

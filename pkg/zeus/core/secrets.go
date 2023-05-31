@@ -11,6 +11,27 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+func CreateSecretWrapper(sec *v1.Secret, kns zeus_common_types.CloudCtxNs, secretName, key, value string) *v1.Secret {
+	if sec == nil {
+		sec = &v1.Secret{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "Secret",
+				APIVersion: "v1",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      secretName,
+				Namespace: kns.Namespace,
+			},
+			Type: "Opaque",
+		}
+	}
+	if sec.StringData == nil {
+		sec.StringData = make(map[string]string)
+	}
+	sec.StringData[key] = value
+	return sec
+}
+
 func (k *K8Util) GetSecretWithKns(ctx context.Context, kns zeus_common_types.CloudCtxNs, name string, filter *string_utils.FilterOpts) (*v1.Secret, error) {
 	k.SetContext(kns.Context)
 	return k.kc.CoreV1().Secrets(kns.Namespace).Get(ctx, name, metav1.GetOptions{})

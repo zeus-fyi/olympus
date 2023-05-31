@@ -18,14 +18,14 @@ func RunHydraDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCf
 	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
 	log.Info().Msg("Hydra: RunHydraDigitalOceanS3BucketObjSecretsProcedure finished")
 	sw := SecretsWrapper{}
-	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
-	sw.AccessKeyHydraDynamoDB = sw.ReadSecret(ctx, inMemSecrets, hydraAccessKeyDynamoDB)
-	sw.SecretKeyHydraDynamoDB = sw.ReadSecret(ctx, inMemSecrets, hydraSecretKeyDynamoDB)
-	sw.PagerDutyApiKey = sw.ReadSecret(ctx, inMemSecrets, pagerDutySecret)
-	sw.PagerDutyRoutingKey = sw.ReadSecret(ctx, inMemSecrets, pagerDutyRoutingKey)
+	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, pgSecret)
+	sw.AccessKeyHydraDynamoDB = sw.MustReadSecret(ctx, inMemSecrets, hydraAccessKeyDynamoDB)
+	sw.SecretKeyHydraDynamoDB = sw.MustReadSecret(ctx, inMemSecrets, hydraSecretKeyDynamoDB)
+	sw.PagerDutyApiKey = sw.MustReadSecret(ctx, inMemSecrets, pagerDutySecret)
+	sw.PagerDutyRoutingKey = sw.MustReadSecret(ctx, inMemSecrets, pagerDutyRoutingKey)
 
-	sw.SecretsManagerAuthAWS.AccessKey = sw.ReadSecret(ctx, inMemSecrets, secretsManagerAccessKey)
-	sw.SecretsManagerAuthAWS.SecretKey = sw.ReadSecret(ctx, inMemSecrets, secretsManagerSecretKey)
+	sw.SecretsManagerAuthAWS.AccessKey = sw.MustReadSecret(ctx, inMemSecrets, secretsManagerAccessKey)
+	sw.SecretsManagerAuthAWS.SecretKey = sw.MustReadSecret(ctx, inMemSecrets, secretsManagerSecretKey)
 	log.Info().Msg("Hydra: RunHydraDigitalOceanS3BucketObjSecretsProcedure succeeded")
 	return inMemSecrets, sw
 }

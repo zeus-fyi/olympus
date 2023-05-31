@@ -9,20 +9,20 @@ import (
 )
 
 const (
-	quikNodeSecret = "secrets/artemis.ethereum.mainnet.quiknode.txt"
+	QuikNodeSecret = "secrets/artemis.ethereum.mainnet.quiknode.txt"
 )
 
 func InitArtemisEthereum(ctx context.Context, inMemSecrets memfs.MemFS, secrets SecretsWrapper) {
 	log.Info().Msg("Artemis: InitArtemisEthereum starting")
 	for _, cfg := range artemis_network_cfgs.GlobalArtemisConfigs {
 		beaconKey := cfg.GetBeaconSecretKey()
-		beaconUrl := secrets.ReadSecret(ctx, inMemSecrets, beaconKey)
+		beaconUrl := secrets.MustReadSecret(ctx, inMemSecrets, beaconKey)
 		cfg.NodeURL = beaconUrl
-		key := secrets.ReadSecret(ctx, inMemSecrets, cfg.GetBeaconWalletKey())
+		key := secrets.MustReadSecret(ctx, inMemSecrets, cfg.GetBeaconWalletKey())
 		cfg.AddAccountFromHexPk(ctx, key)
 	}
 
-	artemis_network_cfgs.ArtemisEthereumMainnetQuiknode.NodeURL = secrets.ReadSecret(ctx, inMemSecrets, quikNodeSecret)
+	artemis_network_cfgs.ArtemisEthereumMainnetQuiknode.NodeURL = secrets.MustReadSecret(ctx, inMemSecrets, QuikNodeSecret)
 	artemis_network_cfgs.ArtemisEthereumMainnetQuiknode.Account = artemis_network_cfgs.ArtemisEthereumMainnet.Account
 	log.Info().Msg("Artemis: InitArtemisEthereum done")
 	return

@@ -1,7 +1,7 @@
 package aegis_secrets
 
 import (
-	"fmt"
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -15,6 +15,8 @@ type AegisSecretsTestSuite struct {
 	conversions_test.ConversionsTestSuite
 }
 
+var ctx = context.Background()
+
 func (t *AegisSecretsTestSuite) TestInsertSecret() {
 	ref := autogen_bases.OrgSecretKeyValReferences{
 		SecretID:        0,
@@ -22,20 +24,28 @@ func (t *AegisSecretsTestSuite) TestInsertSecret() {
 		SecretKeyRef:    "rpc",
 		SecretNameRef:   "hardhat",
 	}
-	fmt.Println(ref)
 	secRef := autogen_bases.OrgSecretReferences{
 		OrgID:      t.Tc.ProductionLocalTemporalOrgID,
 		SecretID:   0,
 		SecretName: "artemis.ethereum.mainnet.quiknode.txt",
 	}
-	fmt.Println(secRef)
+	err := InsertOrgSecretRef(ctx, secRef, ref)
+	t.Require().Nil(err)
+
 	refTop := autogen_bases.TopologySystemComponentsSecrets{
 		TopologySystemComponentID: 0,
 		SecretID:                  0,
 	}
-	fmt.Println(refTop)
+	err = InsertOrgSecretTopologyRef(ctx, refTop)
+	t.Require().Nil(err)
 }
 
+func (t *AegisSecretsTestSuite) TestSelectOrgTopSecretRefs() {
+	topId := 0
+	orgSecrets, err := SelectOrgSecretRef(ctx, t.Tc.ProductionLocalTemporalOrgID, topId)
+	t.Require().Nil(err)
+	t.Require().NotNil(orgSecrets)
+}
 func TestAegisSecretsTestSuite(t *testing.T) {
 	suite.Run(t, new(AegisSecretsTestSuite))
 }

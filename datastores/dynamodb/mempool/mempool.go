@@ -11,19 +11,21 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamodb"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
 type MempoolTxDynamoDB struct {
 	*dynamodb.Client
+	*web3_client.Web3Client
 }
 
-func NewMempoolTxDynamoDB(creds dynamodb_client.DynamoDBCredentials) MempoolTxDynamoDB {
+func NewMempoolTxDynamoDB(creds dynamodb_client.DynamoDBCredentials, wc *web3_client.Web3Client) MempoolTxDynamoDB {
 	d, err := dynamodb_client.NewDynamoDBClient(context.Background(), creds)
 	if err != nil {
 		log.Err(err)
 	}
 	return MempoolTxDynamoDB{
-		d.Client,
+		d.Client, wc,
 	}
 }
 
@@ -93,10 +95,21 @@ func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) (
 			log.Err(berr).Msg("GetMempoolTxs: error marshalling tx")
 			return nil, berr
 		}
+		isPending, perr := m.ValidateTxIsPending(ctx, txRpc.Hash().Hex())
+		if perr != nil {
+			log.Err(perr).Msg("GetMempoolTxs: error validating tx")
+			continue
+		}
+		if !isPending {
+			log.Warn().Msg("GetMempoolTxs: tx not pending")
+			continue
+		}
 		tmp := txMap[tx.Pubkey]
 		tmp[fmt.Sprintf("%d", tx.TxOrder)] = txRpc
 		txMap[tx.Pubkey] = tmp
 	}
-
+	//fmt.Println("startingTxCount", len(mempoolTxs))
+	//fmt.Println("endFilteredTxCount", len(txMap))
+	//fmt.Println("filteredCount", len(mempoolTxs)-len(txMap))
 	return txMap, nil
 }

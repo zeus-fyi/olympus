@@ -25,6 +25,22 @@ func (t *ArtemisMevWorker) ExecuteArtemisMevWorkflow(ctx context.Context) error 
 	return err
 }
 
+func (t *ArtemisMevWorker) ExecuteArtemisBlacklistTxWorkflow(ctx context.Context) error {
+	c := t.ConnectTemporalClient()
+	defer c.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: t.TaskQueueName,
+	}
+	txWf := NewArtemisMevWorkflow()
+	wf := txWf.ArtemisTxBlacklistWorkflow
+	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf)
+	if err != nil {
+		log.Err(err).Msg("ExecuteArtemisBlacklistTxWorkflow")
+		return err
+	}
+	return err
+}
+
 func (t *ArtemisMevWorker) ExecuteArtemisSendSignedTxWorkflow(ctx context.Context, params *types.Transaction) error {
 	c := t.ConnectTemporalClient()
 	defer c.Close()

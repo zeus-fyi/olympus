@@ -67,7 +67,6 @@ func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) (
 		log.Err(err).Msg("GetMempoolTxs: error UnmarshalListOfMaps mempool txs")
 		return nil, err
 	}
-
 	txMap := make(map[string]map[string]*types.Transaction)
 	for _, tx := range mempoolTxs {
 		if txMap[tx.Pubkey] == nil {
@@ -94,15 +93,6 @@ func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) (
 		if berr != nil {
 			log.Err(berr).Msg("GetMempoolTxs: error marshalling tx")
 			return nil, berr
-		}
-		isPending, perr := m.ValidateTxIsPending(ctx, txRpc.Hash().Hex())
-		if perr != nil {
-			log.Err(perr).Msg("GetMempoolTxs: error validating tx")
-			continue
-		}
-		if !isPending {
-			log.Warn().Msg("GetMempoolTxs: tx not pending")
-			continue
 		}
 		tmp := txMap[tx.Pubkey]
 		tmp[fmt.Sprintf("%d", tx.TxOrder)] = txRpc

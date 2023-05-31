@@ -6,6 +6,21 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
+func (t *ArtemisMevWorkflow) ArtemisTxBlacklistWorkflow(ctx workflow.Context) error {
+	log := workflow.GetLogger(ctx)
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: defaultTimeout,
+	}
+	getMempoolTxsCtx := workflow.WithActivityOptions(ctx, ao)
+	var mempoolTxs map[string]map[string]*types.Transaction
+	err := workflow.ExecuteActivity(getMempoolTxsCtx, t.BlacklistMinedTxs).Get(getMempoolTxsCtx, &mempoolTxs)
+	if err != nil {
+		log.Error("Failed to get mempool txs", "Error", err)
+		return err
+	}
+	return nil
+}
+
 // TODO update timeouts and finish this workflow, sync times with mainnet/goerli block times
 
 func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context) error {

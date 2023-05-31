@@ -40,9 +40,10 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSimAny() {
 	s.Require().Nil(merr)
 	s.Require().NotEmpty(mevTxs)
 
-	mevTxs, merr = artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17375761)
-	s.Require().Nil(merr)
-	s.Require().NotEmpty(mevTxs)
+	// 17375781 captures a valid tx with an expired deadline that should be caught before submitting any trades
+	//mevTxs, merr = artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17375781)
+	//s.Require().Nil(merr)
+	//s.Require().NotEmpty(mevTxs)
 
 	fmt.Println("mevTxs count", len(mevTxs))
 	for _, mevTx := range mevTxs {
@@ -59,6 +60,7 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSimAny() {
 
 		rxBlockNum, err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlockBeforeTxMined(ctx, s.Tc.HardhatNode, s.LocalHardhatMainnetUser, s.MainnetWeb3User, tf.Tx.Hash())
 		s.Assert().Nil(err)
+		blockBeforeRx := rxBlockNum - 1
 		tfRegular := tf.ConvertToBigIntType()
 		uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
 		uni.DebugPrint = true
@@ -70,7 +72,7 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSimAny() {
 		fmt.Println("blockNum recorded from artemis", currentBlockNum)
 		fmt.Println("rxBlockNum - artemisBlock", rxBlockNum-currentBlockNum)
 
-		if currentBlockNum < rxBlockNum-1 {
+		if currentBlockNum < blockBeforeRx {
 			fmt.Println("using block number from artemis vs rx block num -1")
 			err = s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, s.Tc.HardhatNode, currentBlockNum)
 			if err != nil {

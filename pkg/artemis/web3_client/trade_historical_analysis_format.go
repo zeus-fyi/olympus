@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func UnmarshallTradeExecutionFlow(tfStr string) (TradeExecutionFlow, error) {
+func UnmarshalTradeExecutionFlow(tfStr string) (TradeExecutionFlow, error) {
 	tf := TradeExecutionFlow{}
 	by := []byte(tfStr)
 	berr := json.Unmarshal(by, &tf)
@@ -74,7 +74,7 @@ type TradeFailureReport struct {
 
 func (u *UniswapV2Client) RunHistoricalTradeAnalysis(ctx context.Context, tfStr string, liveNetworkClient Web3Client) error {
 	u.TradeAnalysisReport = &TradeAnalysisReport{}
-	tfJSON, err := UnmarshallTradeExecutionFlow(tfStr)
+	tfJSON, err := UnmarshalTradeExecutionFlow(tfStr)
 	if err != nil {
 		return u.MarkEndOfSimDueToErr(err)
 	}

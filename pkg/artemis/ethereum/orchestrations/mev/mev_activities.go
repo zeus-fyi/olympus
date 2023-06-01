@@ -85,10 +85,16 @@ func (d *ArtemisMevActivities) ConvertMempoolTxs(ctx context.Context, mempoolTxs
 			log.Err(berr).Msg("ConvertMempoolTxs: error marshalling tx")
 			return nil, berr
 		}
-		berr = json.Unmarshal(b, &txRpcMapStr)
-		if berr != nil {
-			log.Err(berr).Msg("ConvertMempoolTxs: error marshalling tx")
-			return nil, berr
+		isBlacklisted, err := artemis_orchestration_auth.MevDynamoDBClient.GetTxBlacklist(ctx, mempool_txs.TxBlacklistDynamoDB{
+			TxBlacklistDynamoDBTableKeys: mempool_txs.TxBlacklistDynamoDBTableKeys{TxHash: txRpc.Hash().String()},
+			TTL:                          0,
+		})
+		if err != nil {
+			log.Err(err).Msg("GetTxBlacklist failed")
+		}
+		if isBlacklisted {
+			log.Info().Msg("ConvertMempoolTxs: tx is blacklisted")
+			continue
 		}
 		tmp := txMap[tx.Pubkey]
 		tmp[fmt.Sprintf("%d", tx.TxOrder)] = txRpc

@@ -68,6 +68,7 @@ type UniswapV2Client struct {
 	PrintLocal               bool
 	DebugPrint               bool
 	MevSmartContractTxMap
+	*TradeAnalysisReport
 	Path                                filepaths.Path
 	BlockNumber                         *big.Int
 	Trades                              []artemis_autogen_bases.EthMempoolMevTx
@@ -118,6 +119,7 @@ func InitUniswapV2Client(ctx context.Context, w Web3Client) UniswapV2Client {
 			Txs:               []MevTx{},
 			Filter:            &f,
 		},
+		TradeAnalysisReport:                 &TradeAnalysisReport{},
 		SwapExactTokensForTokensParamsSlice: []SwapExactTokensForTokensParams{},
 		SwapTokensForExactTokensParamsSlice: []SwapTokensForExactTokensParams{},
 		SwapExactETHForTokensParamsSlice:    []SwapExactETHForTokensParams{},

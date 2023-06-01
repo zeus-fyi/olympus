@@ -11,35 +11,25 @@ import (
 )
 
 /*
-	blockNum 17375869
-	tradeMethod swapExactETHForTokens
-	txHash 0xe11f91fe084c02eb92b72c42a053edade40a28c62b459f3404d7179face2e7f5
-
-	blockNum 17383929
-	tradeMethod swapExactETHForTokens
-	txHash 0xeac16063a5968c7c338d869b9283a95b7b1482e7e0cdf687ef98c245c3e54915
-
-	blockNum 17383953
-	tradeMethod swapExactETHForTokens
-	txHash 0xa3b79b88b70d734aa55d89dd75285b73b56112feca95caad1c861e1583ea4923
-
-	blockNum 17384011
-	tradeMethod swapExactETHForTokens
-	txHash 0x6762d5ec93238c65421b04f966c7c802caab5d979e62c0d6d090eaf25acf2e12
+	blockNum 17383905
+	tradeMethod swapETHForExactTokens
+	txHash 0x7666aee2aeef8c6a069c3e4204d4ccf7462a15641df01f5f806ce6f40860d947
+	rxBlockNum 17383906
+	blockNum recorded from artemis 17383905
 
 ERRORS
 
-blockNum 17383946
-tradeMethod swapExactETHForTokens
-txHash 0x0e305555d8ed6afd7e63fad455a03830a1c3f8ad1c064b77786ec9b2141181a3
-{"level":"warn","transferTx":null,"error":"Error: VM Exception while processing transaction: reverted with reason string 'Insufficient Balance'","time":"2023-05-31T22:41:39-07:00","message":"error approving router"}
+blockNum 17384004
+tradeMethod swapETHForExactTokens
+txHash 0x8fd935462b382f20133824263d5a598bc71087714b515ae5400b68d062acdc30
+{"level":"error","error":"Error: VM Exception while processing transaction: reverted with reason string 'Insufficient Balance'","time":"2023-05-31T22:53:04-07:00","message":"error executing sandwich trade step token transfer"}
 
 */
 
-func (s *Web3ClientTestSuite) TestFullSandwichTradeSim_SwapExactETHForTokens() {
+func (s *Web3ClientTestSuite) TestFullSandwichTradeSim_SwapETHForExactTokens() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ForceDirToTestDirLocation()
-	mevTxs, merr := artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17375869)
+	mevTxs, merr := artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17383905)
 	s.Require().Nil(merr)
 	s.Require().NotEmpty(mevTxs)
 	for _, mevTx := range mevTxs {
@@ -50,7 +40,10 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSim_SwapExactETHForTokens() {
 		if tf.FrontRunTrade.AmountIn == "0" || tf.FrontRunTrade.AmountIn == "" {
 			continue
 		}
-		s.Require().Equal(swapExactETHForTokens, tf.Trade.TradeMethod)
+		if tf.Trade.TradeMethod != swapETHForExactTokens {
+			continue
+		}
+		s.Require().Equal(swapETHForExactTokens, tf.Trade.TradeMethod)
 		fmt.Println("blockNum recorded from artemis", tf.CurrentBlockNumber)
 		currentBlockStr := tf.CurrentBlockNumber.String()
 		currentBlockNum, err := strconv.Atoi(currentBlockStr)

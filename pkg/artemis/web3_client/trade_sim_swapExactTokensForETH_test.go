@@ -15,6 +15,10 @@ blockNum 17332397
 tradeMethod swapExactTokensForETH
 txHash 0xed1d8212026203c2ae1c84d132f81e0c107f738d53462459fc1b68cd0f97b743
 frontRunTradeToken = 0
+
+blockNum 17384016
+tradeMethod swapExactTokensForETH
+txHash 0xde078377d909ad0cc5c05e7f854d168ba9192fc41815eaf83f730b0b337eaaac
 */
 
 func (s *Web3ClientTestSuite) TestFullSandwichTradeSim_SwapExactTokensForETH() {

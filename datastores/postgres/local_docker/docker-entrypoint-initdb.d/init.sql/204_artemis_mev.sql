@@ -19,3 +19,10 @@ CREATE TABLE "public"."eth_p2p_nodes" (
   "nodes" jsonb NOT NULL
 );
 ALTER TABLE "public"."eth_p2p_nodes" ADD CONSTRAINT "eth_p2p_nodes_pk" PRIMARY KEY ("id");
+
+CREATE TABLE "public"."erc20_token_info" (
+    "address" text NOT NULL,
+    "protocol_network_id" int8 NOT NULL REFERENCES protocol_networks(protocol_network_id) DEFAULT 1,
+    "balance_of_slot_num" int8 NOT NULL
+);
+ALTER TABLE "public"."erc20_token_info" ADD CONSTRAINT "erc20_token_info_pk" PRIMARY KEY ("address");

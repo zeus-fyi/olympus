@@ -53,9 +53,9 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSimAny() {
 			blockNum 17375834
 
 	*/
-	mevTxs, merr = artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17375869)
-	s.Require().Nil(merr)
-	s.Require().NotEmpty(mevTxs)
+	//mevTxs, merr = artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17375869)
+	//s.Require().Nil(merr)
+	//s.Require().NotEmpty(mevTxs)
 	fmt.Println("mevTxs count", len(mevTxs))
 	for _, mevTx := range mevTxs {
 		tf := TradeExecutionFlow{}

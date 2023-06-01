@@ -19,4 +19,4 @@ deploy.localhost:
 deploy.token:
 	npx hardhat run scripts/deploy_token.ts  --network localhost
 
-export MAINNET_RPC_URL="https://virulent-alien-cloud.quiknode.pro/fa84e631e9545d76b9e1b1c5db6607fedf3cb654"
+export MAINNET_RPC_URL="https://proud-alpha-spree.discover.quiknode.pro/175cd672179555f519dd93e21ba1f29b6069de00/"

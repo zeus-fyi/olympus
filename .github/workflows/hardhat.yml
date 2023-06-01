@@ -8,7 +8,6 @@ on:
       - docker/hardhat/**
     branches:
       - main
-
 env:
   REPO: registry.digitalocean.com/zeus-fyi
   NAME: hardhat

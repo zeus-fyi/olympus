@@ -28,15 +28,17 @@ type TradeAnalysisReport struct {
 	TradeMethod        string
 	ArtemisBlockNumber int
 	RxBlockNumber      int
+
 	GasReport
 	TradeFailureReport
 	SimulationResults
 }
 
 type SimulationResults struct {
-	ProfitTokenAddr string
-	ActualProfit    string
-	ExpectedProfit  string
+	StartingTokenAddr string
+	ProfitTokenAddr   string
+	ActualProfit      string
+	ExpectedProfit    string
 }
 
 type GasReport struct {
@@ -51,6 +53,7 @@ type TradeFailureReport struct {
 }
 
 func (u *UniswapV2Client) RunHistoricalTradeAnalysis(ctx context.Context, tfStr string, liveNetworkClient Web3Client) error {
+	u.TradeAnalysisReport = &TradeAnalysisReport{}
 	tfJSON, err := UnmarshallTradeExecutionFlow(tfStr)
 	if err != nil {
 		return u.MarkEndOfSimDueToErr(err)
@@ -61,7 +64,6 @@ func (u *UniswapV2Client) RunHistoricalTradeAnalysis(ctx context.Context, tfStr 
 		return u.MarkEndOfSimDueToErr(err)
 	}
 	tf := tfJSON.ConvertToBigIntType()
-
 	artemisBlockNum, err := u.CheckBlockRxAndNetworkReset(&tf, liveNetworkClient)
 	if err != nil {
 		return u.MarkEndOfSimDueToErr(err)
@@ -70,15 +72,16 @@ func (u *UniswapV2Client) RunHistoricalTradeAnalysis(ctx context.Context, tfStr 
 	if err != nil {
 		return u.MarkEndOfSimDueToErr(err)
 	}
-
 	err = u.CheckExpectedReserves(&tf)
 	if err != nil {
 		return u.MarkEndOfSimDueToErr(err)
 	}
+	u.TradeAnalysisReport.StartingTokenAddr = tf.FrontRunTrade.AmountInAddr.String()
 	err = u.SimFullSandwichTrade(&tf)
 	if err != nil {
 		return u.MarkEndOfSimDueToErr(err)
 	}
+	u.EndReason = "success"
 	return nil
 }
 
@@ -95,7 +98,7 @@ func (u *UniswapV2Client) CheckBlockRxAndNetworkReset(tf *TradeExecutionFlowInBi
 	u.TradeAnalysisReport.ArtemisBlockNumber = currentBlockNum
 	u.TradeAnalysisReport.RxBlockNumber = int(rx.BlockNumber.Int64())
 	if currentBlockNum >= int(rx.BlockNumber.Int64()) {
-		return -1, fmt.Errorf("artmeis block number is greater than or equal to rx block number")
+		return -1, fmt.Errorf("artmeis block number %d is greater than or equal to rx block number %d", currentBlockNum, int(rx.BlockNumber.Int64()))
 	}
 	return currentBlockNum, nil
 }
@@ -120,7 +123,6 @@ func (u *UniswapV2Client) CheckExpectedReserves(tf *TradeExecutionFlowInBigInt) 
 
 func (u *TradeAnalysisReport) MarkEndOfSimDueToErr(err error) error {
 	// mark end of test
-	fmt.Println("trade failed due to err: ", err)
 	u.EndReason = err.Error()
 	return err
 }

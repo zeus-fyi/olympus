@@ -9,7 +9,10 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/rs/zerolog/log"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 )
 
 func (w *Web3Client) ERC20ApproveSpender(ctx context.Context, scAddr, spenderAddr string, amount *big.Int) (*types.Transaction, error) {
@@ -72,6 +75,26 @@ func (w *Web3Client) SetERC20BalanceAtSlotNumber(ctx context.Context, scAddr, us
 }
 
 func (w *Web3Client) SetERC20BalanceBruteForce(ctx context.Context, scAddr, userAddr string, value *big.Int) error {
+	// TODO assumes only mainnet for now
+	protocolNetworkID := 1
+	slotNum, serr := artemis_validator_service_groups_models.SelectERC20TokenInfo(ctx, artemis_autogen_bases.Erc20TokenInfo{
+		Address:           scAddr,
+		ProtocolNetworkID: protocolNetworkID,
+	})
+	if serr != nil {
+		return serr
+	}
+
+	if slotNum > -1 {
+		slotHex, err := getSlot(userAddr, new(big.Int).SetUint64(uint64(slotNum)))
+		if err != nil {
+			return err
+		}
+		newBalance := common.LeftPadBytes(value.Bytes(), 32)
+		err = w.HardhatSetStorageAt(ctx, scAddr, slotHex, common.BytesToHash(newBalance).Hex())
+		return err
+	}
+
 	for i := 0; i < 100; i++ {
 		slotHex, err := getSlot(userAddr, new(big.Int).SetUint64(uint64(i)))
 		if err != nil {
@@ -87,6 +110,14 @@ func (w *Web3Client) SetERC20BalanceBruteForce(ctx context.Context, scAddr, user
 			return err
 		}
 		if b.String() == value.String() {
+			err = artemis_validator_service_groups_models.InsertERC20TokenInfo(ctx, artemis_autogen_bases.Erc20TokenInfo{
+				Address:           scAddr,
+				ProtocolNetworkID: 1,
+				BalanceOfSlotNum:  i,
+			})
+			if err != nil {
+				log.Err(err)
+			}
 			return nil
 		}
 	}

@@ -34,6 +34,26 @@ type TradeAnalysisReport struct {
 	SimulationResults
 }
 
+func (t *TradeAnalysisReport) PrintResults() {
+	if t.EndReason == "trade failed due to invalid amount in" {
+		return
+	}
+	fmt.Println("Trade Method:", t.TradeMethod)
+	fmt.Println("Artemis Block Number:", t.ArtemisBlockNumber)
+	fmt.Println("Rx Block Number:", t.RxBlockNumber)
+
+	if t.EndStage == "success" {
+		fmt.Println("Starting Token Addr:", t.StartingTokenAddr)
+		fmt.Println("Profit Token Addr:", t.ProfitTokenAddr)
+		fmt.Println("Actual Profit:", t.ActualProfit)
+		fmt.Println("Expected Profit:", t.ExpectedProfit)
+		fmt.Println("Total Gas Used:", t.TotalGasUsed)
+	} else {
+		fmt.Println("End Reason:", t.EndReason)
+		fmt.Println("End Stage:", t.EndStage)
+	}
+}
+
 type SimulationResults struct {
 	StartingTokenAddr string
 	ProfitTokenAddr   string
@@ -121,8 +141,8 @@ func (u *UniswapV2Client) CheckExpectedReserves(tf *TradeExecutionFlowInBigInt) 
 	return nil
 }
 
-func (u *TradeAnalysisReport) MarkEndOfSimDueToErr(err error) error {
+func (t *TradeAnalysisReport) MarkEndOfSimDueToErr(err error) error {
 	// mark end of test
-	u.EndReason = err.Error()
+	t.EndReason = err.Error()
 	return err
 }

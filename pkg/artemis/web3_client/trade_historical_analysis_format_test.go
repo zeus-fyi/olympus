@@ -1,8 +1,6 @@
 package web3_client
 
 import (
-	"fmt"
-
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
@@ -17,12 +15,7 @@ func (s *Web3ClientTestSuite) TestHistoricalAnalysis() {
 	for _, mevTx := range mevTxs {
 		uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
 		uni.DebugPrint = true
-		err := uni.RunHistoricalTradeAnalysis(ctx, mevTx.TxFlowPrediction, s.MainnetWeb3UserExternal)
-		fmt.Println("tradeMethod", uni.TradeAnalysisReport.TradeMethod)
-		fmt.Println("seenBlockNum", uni.TradeAnalysisReport.ArtemisBlockNumber)
-		fmt.Println("rxBlockNum", uni.TradeAnalysisReport.RxBlockNumber)
-		if err != nil {
-			fmt.Println(uni.TradeAnalysisReport.EndReason)
-		}
+		_ = uni.RunHistoricalTradeAnalysis(ctx, mevTx.TxFlowPrediction, s.MainnetWeb3UserExternal)
+		uni.TradeAnalysisReport.PrintResults()
 	}
 }

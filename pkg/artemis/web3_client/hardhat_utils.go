@@ -35,6 +35,16 @@ func getSlot(userAddress string, slot *big.Int) (string, error) {
 	return hash.Hex(), nil
 }
 
+func (w *Web3Client) GetTxReceipt(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {
+	w.Dial()
+	defer w.Close()
+	rx, err := w.C.TransactionReceipt(ctx, txHash)
+	if err != nil {
+		return rx, err
+	}
+	return rx, nil
+}
+
 func (w *Web3Client) HardhatResetNetworkToBlockBeforeTxMined(ctx context.Context, simNodeUrl string, simNetworkClient, realNetworkClient Web3Client, txHash common.Hash) (int, error) {
 	realNetworkClient.Dial()
 	rx, err := realNetworkClient.C.TransactionReceipt(ctx, txHash)

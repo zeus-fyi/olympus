@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -52,6 +53,7 @@ func (w *Web3Client) FindSlotFromUserWithBalance(ctx context.Context, scAddr, us
 		if val.String() == b.String() {
 			return i, hexStr, nil
 		}
+		time.Sleep(25 * time.Millisecond)
 	}
 	return -1, "", errors.New("no slot found")
 }

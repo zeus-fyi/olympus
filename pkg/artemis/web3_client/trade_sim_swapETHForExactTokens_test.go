@@ -16,6 +16,14 @@ import (
 	txHash 0x7666aee2aeef8c6a069c3e4204d4ccf7462a15641df01f5f806ce6f40860d947
 	rxBlockNum 17383906
 	blockNum recorded from artemis 17383905
+
+ERRORS
+
+blockNum 17384004
+tradeMethod swapETHForExactTokens
+txHash 0x8fd935462b382f20133824263d5a598bc71087714b515ae5400b68d062acdc30
+{"level":"error","error":"Error: VM Exception while processing transaction: reverted with reason string 'Insufficient Balance'","time":"2023-05-31T22:53:04-07:00","message":"error executing sandwich trade step token transfer"}
+
 */
 
 func (s *Web3ClientTestSuite) TestFullSandwichTradeSim_SwapETHForExactTokens() {

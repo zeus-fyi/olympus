@@ -16,7 +16,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-const hardhatSvc = "http://hardhat.hardhat.svc.cluster.local:8545"
+const hardhatSvc = "http://zeus-hardhat.hardhat.svc.cluster.local:8545"
 
 func (d *ArtemisMevActivities) HistoricalSimulateAndValidateTx(ctx context.Context, trade artemis_autogen_bases.EthMempoolMevTx) error {
 	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnetQuiknode.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)

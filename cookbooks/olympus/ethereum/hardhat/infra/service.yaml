@@ -17,6 +17,10 @@ spec:
       targetPort: http-rpc
       protocol: TCP
       name: http-rpc
+    - port: 80
+      targetPort: http-rpc
+      protocol: TCP
+      name: http
   selector:
     app.kubernetes.io/instance: "zeus-hardhat"
     app.kubernetes.io/name: "zeus-hardhat"

@@ -87,6 +87,7 @@ func (u *UniswapV2Client) VerifyTradeResults(tf *TradeExecutionFlowInBigInt) err
 	if profitTokenBalance.String() != tf.SandwichPrediction.ExpectedProfit.String() {
 		return errors.New("profit token balance mismatch")
 	}
+	u.EndReason = "success"
 
 	return nil
 }

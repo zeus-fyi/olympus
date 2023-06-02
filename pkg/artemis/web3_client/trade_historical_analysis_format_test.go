@@ -15,10 +15,9 @@ func (s *Web3ClientTestSuite) TestHistoricalAnalysis() {
 	for _, mevTx := range mevTxs {
 		uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
 		uni.DebugPrint = true
-		_ = uni.RunHistoricalTradeAnalysis(ctx, mevTx.TxFlowPrediction, s.MainnetWeb3UserExternal)
+		err := uni.RunHistoricalTradeAnalysis(ctx, mevTx.TxFlowPrediction, s.MainnetWeb3UserExternal)
 		uni.PrintResults()
-		err := uni.TradeAnalysisReport.SaveResultsInDb(ctx)
-		s.Require().Nil(err)
+		s.Assert().Nil(err)
 	}
 }
 

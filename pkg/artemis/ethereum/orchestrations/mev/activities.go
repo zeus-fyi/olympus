@@ -30,7 +30,9 @@ type ActivitiesSlice []interface{}
 
 func (d *ArtemisMevActivities) GetActivities() ActivitiesSlice {
 	return []interface{}{d.SendEther, d.SubmitSignedTx, d.WaitForTxReceipt, d.BlacklistMinedTxs, d.ConvertMempoolTxs,
-		d.GetMempoolTxs, d.ProcessMempoolTxs, d.SimulateAndValidateBundle, d.SubmitFlashbotsBundle, d.RemoveProcessedTx}
+		d.GetMempoolTxs, d.ProcessMempoolTxs, d.SimulateAndValidateBundle, d.SubmitFlashbotsBundle, d.RemoveProcessedTx,
+		d.HistoricalSimulateAndValidateTx,
+	}
 }
 
 func (d *ArtemisMevActivities) SendEther(ctx context.Context, payload web3_actions.SendEtherPayload) (common.Hash, error) {

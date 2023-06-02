@@ -19,6 +19,14 @@ func InitUniswap(ctx context.Context, authHeader string) {
 	go ProcessMempoolTxs(ctx)
 }
 
+func InitNewUniHardhat(ctx context.Context) *web3_client.UniswapV2Client {
+	wc := web3_client.NewWeb3Client(hardhatSvc, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
+	uni := web3_client.InitUniswapV2Client(ctx, wc)
+	uni.PrintOn = true
+	uni.PrintLocal = false
+	return &uni
+}
+
 func InitNewUniswap(ctx context.Context) *web3_client.UniswapV2Client {
 	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnet.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
 
@@ -41,14 +49,14 @@ func InitNewUniswapQuiknode(ctx context.Context) *web3_client.UniswapV2Client {
 }
 
 func ProcessMempoolTxs(ctx context.Context) {
-	c := chronos.Chronos{}
+	cr := chronos.Chronos{}
 	ticker := time.NewTicker(100 * time.Millisecond)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
-			secondsLeftInSlot := 12 - c.GetSecsSinceLastMainnetSlot()
+			secondsLeftInSlot := 12 - cr.GetSecsSinceLastMainnetSlot()
 			if secondsLeftInSlot <= 4 {
 				// when 4 seconds remaining execute this
 				log.Info().Msg("ExecuteArtemisMevWorkflow")
@@ -65,7 +73,7 @@ func ProcessMempoolTxs(ctx context.Context) {
 
 			if secondsLeftInSlot <= 0 {
 				// when 0 seconds remaining go to start of loop
-				secondsLeftInSlot = 12 - c.GetSecsSinceLastMainnetSlot()
+				secondsLeftInSlot = 12 - cr.GetSecsSinceLastMainnetSlot()
 				ticker.Reset(time.Duration(secondsLeftInSlot) * time.Second)
 			}
 		}

@@ -42,7 +42,14 @@ func (u *UniswapV2Client) SimFullSandwichTrade(tf *TradeExecutionFlowInBigInt) e
 		log.Err(err).Msg("error getting aggregate gas usage")
 		return u.MarkEndOfSimDueToErr(err)
 	}
-	return u.VerifyTradeResults(tf)
+	err = u.VerifyTradeResults(tf)
+	if err != nil {
+		u.TradeFailureReport.EndStage = "verifying trade results"
+		log.Err(err).Msg("error verifying trade results")
+		return u.MarkEndOfSimDueToErr(err)
+	}
+
+	return u.MarkEndOfSimDueToErr(nil)
 }
 
 func (u *UniswapV2Client) SimFrontRunTradeOnly(tf *TradeExecutionFlowInBigInt) error {

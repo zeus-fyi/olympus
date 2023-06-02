@@ -3,8 +3,10 @@ package web3_client
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
@@ -57,6 +59,9 @@ func (t *TradeAnalysisReport) SaveResultsInDb(ctx context.Context) error {
 		RxBlockNumber:           t.RxBlockNumber,
 		AmountInAddr:            t.AmountInAddr,
 		ActualProfitAmountOut:   t.AmountOut,
+	}
+	if strings.HasSuffix(t.EndReason, "quiknode.com") {
+		return errors.New("rate limit error")
 	}
 	err = artemis_validator_service_groups_models.InsertEthMevTxAnalysis(ctx, txAnalysis)
 	if err != nil {
@@ -131,11 +136,11 @@ func (u *UniswapV2Client) RunHistoricalTradeAnalysis(ctx context.Context, tfStr 
 	}
 	u.TradeAnalysisReport.AmountIn = tf.FrontRunTrade.AmountIn.String()
 	u.TradeAnalysisReport.AmountInAddr = tf.FrontRunTrade.AmountInAddr.String()
+	u.TradeAnalysisReport.AmountOutAddr = tf.SandwichTrade.AmountOutAddr.String()
 	err = u.SimFullSandwichTrade(&tf)
 	if err != nil {
 		return u.MarkEndOfSimDueToErr(err)
 	}
-	u.EndReason = "success"
 	return nil
 }
 
@@ -177,6 +182,10 @@ func (u *UniswapV2Client) CheckExpectedReserves(tf *TradeExecutionFlowInBigInt) 
 
 func (t *TradeAnalysisReport) MarkEndOfSimDueToErr(err error) error {
 	// mark end of test
-	t.EndReason = err.Error()
-	return err
+	if err != nil {
+		t.EndReason = err.Error()
+	} else {
+		t.EndReason = "success"
+	}
+	return t.SaveResultsInDb(ctx)
 }

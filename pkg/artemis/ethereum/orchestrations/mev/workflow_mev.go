@@ -10,6 +10,28 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
+type HistoricalTxAnalysis struct {
+	StartTimeDelay time.Duration
+	Trades         []artemis_autogen_bases.EthMempoolMevTx
+}
+
+func (t *ArtemisMevWorkflow) ArtemisHistoricalSimTxWorkflow(ctx workflow.Context, trades HistoricalTxAnalysis) error {
+	log := workflow.GetLogger(ctx)
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: time.Second * 60,
+	}
+	time.Sleep(trades.StartTimeDelay)
+	histSimTxCtx := workflow.WithActivityOptions(ctx, ao)
+	for _, trade := range trades.Trades {
+		err := workflow.ExecuteActivity(histSimTxCtx, t.HistoricalSimulateAndValidateTx, trade.TxFlowPrediction).Get(histSimTxCtx, nil)
+		if err != nil {
+			log.Error("Failed to sim historical mempool tx", "Error", err)
+			return err
+		}
+	}
+	return nil
+}
+
 func (t *ArtemisMevWorkflow) ArtemisTxBlacklistWorkflow(ctx workflow.Context) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
@@ -78,6 +100,18 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context) error {
 	var childWE workflow.Execution
 	if err = childWorkflowFuture.GetChildWorkflowExecution().Get(ctx, &childWE); err != nil {
 		log.Error("Failed to get child workflow execution", "Error", err)
+		return err
+	}
+
+	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
+	histTxTrades := HistoricalTxAnalysis{
+		StartTimeDelay: 12 * time.Second,
+		Trades:         trades,
+	}
+	childWorkflowFutureHistoricalSimTx := workflow.ExecuteChildWorkflow(ctx, "ArtemisHistoricalSimTxWorkflow", histTxTrades)
+	var childWEHistoricalSimTx workflow.Execution
+	if err = childWorkflowFutureHistoricalSimTx.GetChildWorkflowExecution().Get(ctx, &childWEHistoricalSimTx); err != nil {
+		log.Error("Failed to get sim historical tx workflow execution", "Error", err)
 		return err
 	}
 	// Validate txs to bundle

@@ -17,7 +17,17 @@ func InsertEthMevTxAnalysis(ctx context.Context, txHistory artemis_autogen_bases
                                 amount_out_addr, expected_profit_amount_out, rx_block_number, amount_in_addr,
                                 actual_profit_amount_out)
 				  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-				  ON CONFLICT (tx_hash) DO NOTHING;`
+				  ON CONFLICT (tx_hash) DO UPDATE SET
+							  gas_used_wei = EXCLUDED.gas_used_wei,
+							  metadata = EXCLUDED.metadata,
+							  trade_method = EXCLUDED.trade_method,
+							  end_reason = EXCLUDED.end_reason,
+							  amount_in = EXCLUDED.amount_in,
+							  amount_out_addr = EXCLUDED.amount_out_addr,
+							  expected_profit_amount_out = EXCLUDED.expected_profit_amount_out,
+							  rx_block_number = EXCLUDED.rx_block_number,
+							  amount_in_addr = EXCLUDED.amount_in_addr,
+							  actual_profit_amount_out = EXCLUDED.actual_profit_amount_out;`
 
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, txHistory.GetRowValues("InsertEthMevTxAnalysis")...)
 	if err == pgx.ErrNoRows {

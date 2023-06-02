@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
 	mempool_txs "github.com/zeus-fyi/olympus/datastores/dynamodb/mempool"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
@@ -22,6 +24,8 @@ func (d *ArtemisMevActivities) SubmitFlashbotsBundle(ctx context.Context) error 
 	return nil
 }
 
+var c = cache.New(5*time.Hour, 10*time.Hour)
+
 func (d *ArtemisMevActivities) BlacklistMinedTxs(ctx context.Context) error {
 	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnetQuiknode.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
 	txs, terr := wc.GetBlockTxs(ctx)
@@ -30,6 +34,7 @@ func (d *ArtemisMevActivities) BlacklistMinedTxs(ctx context.Context) error {
 		return terr
 	}
 	for _, tx := range txs {
+		c.Set(tx.Hash().String(), tx, cache.DefaultExpiration)
 		txBlackList := mempool_txs.TxBlacklistDynamoDB{
 			TxBlacklistDynamoDBTableKeys: mempool_txs.TxBlacklistDynamoDBTableKeys{
 				TxHash: tx.Hash().String(),
@@ -84,6 +89,11 @@ func (d *ArtemisMevActivities) ConvertMempoolTxs(ctx context.Context, mempoolTxs
 		if berr != nil {
 			log.Err(berr).Msg("ConvertMempoolTxs: error marshalling tx")
 			return nil, berr
+		}
+		_, found := c.Get(txRpc.Hash().String())
+		if found {
+			log.Info().Str("txHash", txRpc.Hash().String()).Msg("tx already mined")
+			continue
 		}
 		tmp := txMap[tx.Pubkey]
 		tmp[fmt.Sprintf("%d", tx.TxOrder)] = txRpc

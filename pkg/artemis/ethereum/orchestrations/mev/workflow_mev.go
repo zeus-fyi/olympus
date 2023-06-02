@@ -27,7 +27,7 @@ func (t *ArtemisMevWorkflow) ArtemisHistoricalSimTxWorkflow(ctx workflow.Context
 	}
 	histSimTxCtx := workflow.WithActivityOptions(ctx, ao)
 	for _, trade := range trades.Trades {
-		err := workflow.ExecuteActivity(histSimTxCtx, t.HistoricalSimulateAndValidateTx, trade.TxFlowPrediction).Get(histSimTxCtx, nil)
+		err := workflow.ExecuteActivity(histSimTxCtx, t.HistoricalSimulateAndValidateTx, trade).Get(histSimTxCtx, nil)
 		if err != nil {
 			log.Error("Failed to sim historical mempool tx", "Error", err)
 			return err

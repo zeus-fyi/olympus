@@ -25,22 +25,6 @@ func (t *ArtemisMevWorker) ExecuteArtemisMevWorkflow(ctx context.Context) error 
 	return err
 }
 
-func (t *ArtemisMevWorker) ExecuteArtemisMevHistSimTxWorkflow(ctx context.Context) error {
-	tc := t.ConnectTemporalClient()
-	defer tc.Close()
-	workflowOptions := client.StartWorkflowOptions{
-		TaskQueue: t.TaskQueueName,
-	}
-	txWf := NewArtemisMevWorkflow()
-	wf := txWf.ArtemisHistoricalSimTxWorkflow
-	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf)
-	if err != nil {
-		log.Err(err).Msg("ExecuteArtemisMevWorkflow")
-		return err
-	}
-	return err
-}
-
 func (t *ArtemisMevWorker) ExecuteArtemisBlacklistTxWorkflow(ctx context.Context) error {
 	tc := t.ConnectTemporalClient()
 	defer tc.Close()

@@ -18,7 +18,7 @@ type HistoricalTxAnalysis struct {
 func (t *ArtemisMevWorkflow) ArtemisHistoricalSimTxWorkflow(ctx workflow.Context, trades HistoricalTxAnalysis) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Second * 60,
+		StartToCloseTimeout: time.Second * 300,
 	}
 	srr := workflow.Sleep(ctx, trades.StartTimeDelay)
 	if srr != nil {
@@ -107,6 +107,10 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context) error {
 		return err
 	}
 
+	childWorkflowOptions = workflow.ChildWorkflowOptions{
+		TaskQueue:         EthereumMainnetMevHistoricalTxTaskQueue,
+		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+	}
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
 	histTxTrades := HistoricalTxAnalysis{
 		StartTimeDelay: 12 * time.Second,

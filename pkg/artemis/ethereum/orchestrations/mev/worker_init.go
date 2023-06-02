@@ -40,26 +40,6 @@ func InitMainnetEthereumMevWorker(ctx context.Context, temporalAuthCfg temporal_
 	return
 }
 
-func InitMainnetEthereumMevHistoricalWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
-	log.Ctx(ctx).Info().Msg("Artemis: InitMainnetEthereumMevHistoricalWorker")
-	tc, err := temporal_base.NewTemporalClient(temporalAuthCfg)
-	if err != nil {
-		log.Err(err).Msg("InitMainnetEthereumMevHistoricalWorker: NewTemporalClient failed")
-		misc.DelayedPanic(err)
-	}
-	taskQueueName := EthereumMainnetMevHistoricalTxTaskQueue
-	w := temporal_base.NewWorker(taskQueueName)
-	activityDef := NewArtemisMevActivities(ArtemisMevClientMainnet)
-	activityDef.Network = "mainnet"
-	wf := NewArtemisMevWorkflow()
-
-	w.AddWorkflows(wf.GetWorkflows())
-	w.AddActivities(activityDef.GetActivities())
-	ArtemisMevWorkerMainnet.Worker = w
-	ArtemisMevWorkerMainnet.TemporalClient = tc
-	return
-}
-
 var ArtemisMevWorkerGoerli ArtemisMevWorker
 
 const EthereumGoerliTaskQueue = "EthereumGoerliTaskQueue"

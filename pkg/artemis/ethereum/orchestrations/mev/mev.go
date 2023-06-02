@@ -5,22 +5,30 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
 
 var (
-	AuthHeader string
+	AuthHeader     string
+	HardHatAccount *accounts.Account
 )
 
 func InitUniswap(ctx context.Context, authHeader string) {
 	AuthHeader = authHeader
+	newAccount, err := accounts.ParsePrivateKey("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
+	if err != nil {
+		panic(err)
+	}
+	HardHatAccount = newAccount
 	go ProcessMempoolTxs(ctx)
 }
 
 func InitNewUniHardhat(ctx context.Context) *web3_client.UniswapV2Client {
-	wc := web3_client.NewWeb3Client(hardhatSvc, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
+
+	wc := web3_client.NewWeb3Client(hardhatSvc, HardHatAccount)
 	m := map[string]string{
 		"Authorization": "Bearer " + AuthHeader,
 	}

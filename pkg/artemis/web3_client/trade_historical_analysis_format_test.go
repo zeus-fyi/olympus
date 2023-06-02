@@ -11,7 +11,7 @@ import (
 func (s *Web3ClientTestSuite) TestHistoricalAnalysisReplay() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ForceDirToTestDirLocation()
-	mevTxs, merr := artemis_validator_service_groups_models.SelectEthMevTxAnalysisByTxHash(ctx, "0xfeecf284f777901a6346e3f6ef34c666a60663c6c8b3800b9e2f1643a45cab4d")
+	mevTxs, merr := artemis_validator_service_groups_models.SelectEthMevTxAnalysisByTxHash(ctx, "0xb653a3cf525a0fc9df716203d893fe1479422aed29489efd0acfd31bb09dec9b")
 	s.Require().Nil(merr)
 	s.Require().NotEmpty(mevTxs)
 	for _, mevTx := range mevTxs {
@@ -31,7 +31,7 @@ func (s *Web3ClientTestSuite) TestHistoricalAnalysis() {
 	s.Require().Nil(merr)
 	s.Require().NotEmpty(mevTxs)
 	for _, mevTx := range mevTxs {
-		uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
+		uni := InitUniswapV2Client(ctx, s.HostedHardhatMainnetUser)
 		uni.DebugPrint = true
 		err := uni.RunHistoricalTradeAnalysis(ctx, mevTx.TxFlowPrediction, s.MainnetWeb3UserExternal)
 		uni.PrintResults()

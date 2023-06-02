@@ -5,6 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+
+	"github.com/rs/zerolog/log"
+	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 )
 
 func UnmarshalTradeExecutionFlow(tfStr string) (TradeExecutionFlow, error) {
@@ -25,15 +29,42 @@ func FilterNonActionTradeExecutionFlows(tf TradeExecutionFlow) error {
 }
 
 type TradeAnalysisReport struct {
-	TradeMethod        string
-	ArtemisBlockNumber int
-	RxBlockNumber      int
+	TxHash             string `json:"tx_hash"`
+	TradeMethod        string `json:"trade_method"`
+	ArtemisBlockNumber int    `json:"artemis_block_number"`
+	RxBlockNumber      int    `json:"rx_block_number"`
 
-	GasReport
-	TradeFailureReport
-	SimulationResults
+	GasReport          `json:"gas_report"`
+	TradeFailureReport `json:"trade_failure_report"`
+	SimulationResults  `json:"simulation_results"`
 }
 
+func (t *TradeAnalysisReport) SaveResultsInDb(ctx context.Context) error {
+	b, err := json.Marshal(t)
+	if err != nil {
+		log.Err(err).Msg("error marshalling trade analysis report")
+		return err
+	}
+	txAnalysis := artemis_autogen_bases.EthMevTxAnalysis{
+		GasUsedWei:              t.TotalGasUsed,
+		Metadata:                string(b),
+		TxHash:                  t.TxHash,
+		TradeMethod:             t.TradeMethod,
+		EndReason:               t.EndReason,
+		AmountIn:                t.AmountIn,
+		AmountOutAddr:           t.AmountOutAddr,
+		ExpectedProfitAmountOut: t.ExpectedProfitAmountOut,
+		RxBlockNumber:           t.RxBlockNumber,
+		AmountInAddr:            t.AmountInAddr,
+		ActualProfitAmountOut:   t.AmountOut,
+	}
+	err = artemis_validator_service_groups_models.InsertEthMevTxAnalysis(ctx, txAnalysis)
+	if err != nil {
+		log.Err(err).Msg("error inserting into eth_mev_tx_analysis")
+		return err
+	}
+	return nil
+}
 func (t *TradeAnalysisReport) PrintResults() {
 	if t.EndReason == "trade failed due to invalid amount in" {
 		return
@@ -43,10 +74,10 @@ func (t *TradeAnalysisReport) PrintResults() {
 	fmt.Println("Rx Block Number:", t.RxBlockNumber)
 
 	if t.EndStage == "success" {
-		fmt.Println("Starting Token Addr:", t.StartingTokenAddr)
-		fmt.Println("Profit Token Addr:", t.ProfitTokenAddr)
-		fmt.Println("Actual Profit:", t.ActualProfit)
-		fmt.Println("Expected Profit:", t.ExpectedProfit)
+		fmt.Println("Starting Token Addr:", t.AmountInAddr)
+		fmt.Println("Profit Token Addr:", t.AmountOutAddr)
+		fmt.Println("Actual Profit:", t.AmountOut)
+		fmt.Println("Expected Profit:", t.ExpectedProfitAmountOut)
 		fmt.Println("Total Gas Used:", t.TotalGasUsed)
 	} else {
 		fmt.Println("End Reason:", t.EndReason)
@@ -55,21 +86,22 @@ func (t *TradeAnalysisReport) PrintResults() {
 }
 
 type SimulationResults struct {
-	StartingTokenAddr string
-	ProfitTokenAddr   string
-	ActualProfit      string
-	ExpectedProfit    string
+	AmountInAddr            string `json:"amount_in_addr"`
+	AmountIn                string `json:"amount_in"`
+	AmountOutAddr           string `json:"amount_out_addr"`
+	AmountOut               string `json:"amount_out"`
+	ExpectedProfitAmountOut string `json:"expected_profit_amount_out"`
 }
 
 type GasReport struct {
-	TotalGasUsed         string
-	FrontRunGasUsed      string
-	SandwichTradeGasUsed string
+	TotalGasUsed         string `json:"total_gas_used"`
+	FrontRunGasUsed      string `json:"front_run_gas_used"`
+	SandwichTradeGasUsed string `json:"sandwich_trade_gas_used"`
 }
 
 type TradeFailureReport struct {
-	EndReason string
-	EndStage  string
+	EndReason string `json:"end_reason"`
+	EndStage  string `json:"end_stage"`
 }
 
 func (u *UniswapV2Client) RunHistoricalTradeAnalysis(ctx context.Context, tfStr string, liveNetworkClient Web3Client) error {
@@ -78,6 +110,7 @@ func (u *UniswapV2Client) RunHistoricalTradeAnalysis(ctx context.Context, tfStr 
 	if err != nil {
 		return u.MarkEndOfSimDueToErr(err)
 	}
+	u.TradeAnalysisReport.TxHash = tfJSON.Tx.Hash().String()
 	u.TradeAnalysisReport.TradeMethod = tfJSON.Trade.TradeMethod
 	err = FilterNonActionTradeExecutionFlows(tfJSON)
 	if err != nil {
@@ -96,7 +129,8 @@ func (u *UniswapV2Client) RunHistoricalTradeAnalysis(ctx context.Context, tfStr 
 	if err != nil {
 		return u.MarkEndOfSimDueToErr(err)
 	}
-	u.TradeAnalysisReport.StartingTokenAddr = tf.FrontRunTrade.AmountInAddr.String()
+	u.TradeAnalysisReport.AmountIn = tf.FrontRunTrade.AmountIn.String()
+	u.TradeAnalysisReport.AmountInAddr = tf.FrontRunTrade.AmountInAddr.String()
 	err = u.SimFullSandwichTrade(&tf)
 	if err != nil {
 		return u.MarkEndOfSimDueToErr(err)

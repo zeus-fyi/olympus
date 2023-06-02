@@ -16,6 +16,15 @@ func (s *Web3ClientTestSuite) TestHistoricalAnalysis() {
 		uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
 		uni.DebugPrint = true
 		_ = uni.RunHistoricalTradeAnalysis(ctx, mevTx.TxFlowPrediction, s.MainnetWeb3UserExternal)
-		uni.TradeAnalysisReport.PrintResults()
+		uni.PrintResults()
+		err := uni.TradeAnalysisReport.SaveResultsInDb(ctx)
+		s.Require().Nil(err)
 	}
 }
+
+/*
+Artemis Block Number: 17390664
+Rx Block Number: 17390665
+End Reason: unable to overwrite balance
+End Stage: executing front run balance setup
+*/

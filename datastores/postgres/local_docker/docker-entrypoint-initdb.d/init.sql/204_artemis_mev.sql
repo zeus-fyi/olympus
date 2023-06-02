@@ -26,3 +26,23 @@ CREATE TABLE "public"."erc20_token_info" (
     "balance_of_slot_num" int8 NOT NULL
 );
 ALTER TABLE "public"."erc20_token_info" ADD CONSTRAINT "erc20_token_info_pk" PRIMARY KEY ("address");
+
+CREATE TABLE "public"."eth_mev_tx_analysis" (
+    "tx_hash" text NOT NULL REFERENCES eth_mempool_mev_tx(tx_hash),
+    "trade_method" text NOT NULL,
+    "rx_block_number" int8 NOT NULL,
+    "end_reason" text NOT NULL,
+    "amount_in_addr" text NOT NULL,
+    "amount_in" text NOT NULL,
+    "amount_out_addr" text NOT NULL,
+    "amount_out" text NOT NULL,
+    "expected_profit_amount_out" text NOT NULL,
+    "actual_profit_amount_out" text NOT NULL,
+    "gas_used_wei" text NOT NULL,
+    "metadata" jsonb NOT NULL
+);
+ALTER TABLE "public"."eth_mev_tx_analysis" ADD CONSTRAINT "eth_mev_tx_analysis_pk" PRIMARY KEY ("tx_hash");
+CREATE INDEX eth_mev_tx_analysis_trade_method ON "public"."eth_mev_tx_analysis" ("trade_method");
+CREATE INDEX eth_mev_tx_analysis_end_reason ON "public"."eth_mev_tx_analysis" ("end_reason");
+CREATE INDEX eth_mev_tx_analysis_amount_in_addr ON "public"."eth_mev_tx_analysis" ("amount_in_addr");
+CREATE INDEX eth_mev_tx_analysis_amount_out_addr ON "public"."eth_mev_tx_analysis" ("amount_out_addr");

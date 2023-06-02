@@ -5,7 +5,7 @@ metadata:
 data:
   start.sh: |-
     #!/bin/sh 
-    exec npx hardhat node --fork ${RPC_URL}
+    exec npx hardhat node --fork ${RPC_URL} --hostname 0.0.0.0
   hercules.sh: |-
     #!/bin/sh 
     hercules

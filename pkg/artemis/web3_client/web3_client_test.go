@@ -15,12 +15,13 @@ import (
 
 type Web3ClientTestSuite struct {
 	test_suites_encryption.EncryptionTestSuite
-	GoerliWeb3User          Web3Client
-	GoerliWeb3User2         Web3Client
-	MainnetWeb3User         Web3Client
-	MainnetWeb3UserExternal Web3Client
-	LocalMainnetWeb3User    Web3Client
-	LocalHardhatMainnetUser Web3Client
+	GoerliWeb3User           Web3Client
+	GoerliWeb3User2          Web3Client
+	MainnetWeb3User          Web3Client
+	MainnetWeb3UserExternal  Web3Client
+	LocalMainnetWeb3User     Web3Client
+	LocalHardhatMainnetUser  Web3Client
+	HostedHardhatMainnetUser Web3Client
 }
 
 func (s *Web3ClientTestSuite) SetupTest() {
@@ -33,7 +34,7 @@ func (s *Web3ClientTestSuite) SetupTest() {
 	secondAccount, err := accounts.ParsePrivateKey(pkHexString2)
 	s.Assert().Nil(err)
 	s.MainnetWeb3UserExternal = NewWeb3Client(s.Tc.MainnetNodeUrl, newAccount)
-
+	s.HostedHardhatMainnetUser = NewWeb3Client("https://hardhat.zeus.fyi", newAccount)
 	s.GoerliWeb3User = NewWeb3Client(s.Tc.GoerliNodeUrl, newAccount)
 	s.GoerliWeb3User2 = NewWeb3Client(s.Tc.GoerliNodeUrl, secondAccount)
 
@@ -42,6 +43,8 @@ func (s *Web3ClientTestSuite) SetupTest() {
 		"Authorization": "Bearer " + s.Tc.ProductionLocalTemporalBearerToken,
 	}
 	s.MainnetWeb3User.Headers = m
+	s.HostedHardhatMainnetUser.Headers = m
+
 	s.LocalMainnetWeb3User = NewWeb3Client("http://localhost:8545", newAccount)
 
 	newAccount, err = accounts.ParsePrivateKey("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")

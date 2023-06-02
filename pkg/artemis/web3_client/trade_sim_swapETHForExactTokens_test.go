@@ -49,11 +49,11 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSim_SwapETHForExactTokens() {
 		currentBlockNum, err := strconv.Atoi(currentBlockStr)
 		s.Require().Nil(err)
 		fmt.Println("blockNum recorded from artemis", currentBlockNum)
-		err = s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, s.Tc.HardhatNode, currentBlockNum)
+		err = s.HostedHardhatMainnetUser.HardHatResetNetwork(ctx, s.Tc.HardhatNode, currentBlockNum)
 		s.Require().Nil(err)
 
 		tfRegular := tf.ConvertToBigIntType()
-		uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
+		uni := InitUniswapV2Client(ctx, s.HostedHardhatMainnetUser)
 		pairAddr := tfRegular.InitialPair.PairContractAddr
 		simPair, err := uni.GetPairContractPrices(ctx, pairAddr)
 		s.Require().Nil(err)

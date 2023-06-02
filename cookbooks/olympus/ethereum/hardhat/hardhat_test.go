@@ -17,6 +17,9 @@ var ctx = context.Background()
 
 func (t *HardhatCookbookTestSuite) TestClusterDeploy() {
 	olympus_cookbooks.ChangeToCookbookDir()
+	cd := hardhatClusterDefinition
+	_, rerr := cd.UploadChartsFromClusterDefinition(ctx, t.ZeusTestClient, true)
+	t.Require().Nil(rerr)
 	cdep := hardhatClusterDefinition.GenerateDeploymentRequest()
 
 	_, err := t.ZeusTestClient.DeployCluster(ctx, cdep)

@@ -4,6 +4,7 @@ import {ContractFactory, utils} from "ethers";
 import factoryArtifact from "@uniswap/v2-core/build/UniswapV2Factory.json";
 import routerArtifact from "@uniswap/v2-periphery/build/UniswapV2Router02.json";
 import wethArtifact from "@uniswap/v2-periphery/build/WETH9.json";
+// @ts-ignore
 import pepeTokenArtifact from "../artifacts/contracts/Pepe.sol/PepeToken.json";
 
 async function deployUniswap() {

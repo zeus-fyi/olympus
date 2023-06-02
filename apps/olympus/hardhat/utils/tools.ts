@@ -4,6 +4,7 @@ import fetch from "node-fetch";
 
 dotenv.config();
 
+// @ts-ignore
 async function getContractFromAddress(address: string): Promise<ethers.Contract | undefined> {
   const apiKey = process.env.ETHERSCAN_API_KEY;
 
@@ -26,7 +27,8 @@ async function getContractFromAddress(address: string): Promise<ethers.Contract 
             return contract;
         }
     } catch (error) {
-        throw new Error(error);
+        // @ts-ignore
+      throw new Error(error);
     }
   }
 

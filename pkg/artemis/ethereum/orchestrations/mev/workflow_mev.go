@@ -20,7 +20,11 @@ func (t *ArtemisMevWorkflow) ArtemisHistoricalSimTxWorkflow(ctx workflow.Context
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Second * 60,
 	}
-	time.Sleep(trades.StartTimeDelay)
+	srr := workflow.Sleep(ctx, trades.StartTimeDelay)
+	if srr != nil {
+		log.Error("Failed to sleep before tx analysis", "Error", srr)
+		return srr
+	}
 	histSimTxCtx := workflow.WithActivityOptions(ctx, ao)
 	for _, trade := range trades.Trades {
 		err := workflow.ExecuteActivity(histSimTxCtx, t.HistoricalSimulateAndValidateTx, trade.TxFlowPrediction).Get(histSimTxCtx, nil)

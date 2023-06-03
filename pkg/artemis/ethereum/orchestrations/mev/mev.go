@@ -70,8 +70,12 @@ func ProcessMempoolTxs(ctx context.Context) {
 			secondsLeftInSlot := 12 - cr.GetSecsSinceLastMainnetSlot()
 			if secondsLeftInSlot <= 4 {
 				// when 4 seconds remaining execute this
+				log.Info().Msg("ExecuteArtemisMevWorkflow: ExecuteArtemisBlacklistTxWorkflow")
+				err := ArtemisMevWorkerMainnet.ExecuteArtemisBlacklistTxWorkflow(ctx)
+				secondsLeftInSlot = 12 - cr.GetSecsSinceLastMainnetSlot()
 				log.Info().Msg("ExecuteArtemisMevWorkflow")
-				err := ArtemisMevWorkerMainnet.ExecuteArtemisMevWorkflow(ctx)
+				log.Info().Msgf("Seconds Left Till Next Slot: %d", secondsLeftInSlot)
+				err = ArtemisMevWorkerMainnet.ExecuteArtemisMevWorkflow(ctx)
 				if err != nil {
 					log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
 				}

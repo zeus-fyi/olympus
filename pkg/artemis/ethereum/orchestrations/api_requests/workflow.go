@@ -3,6 +3,7 @@ package artemis_api_requests
 import (
 	"time"
 
+	"github.com/labstack/echo/v4"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	"go.temporal.io/sdk/workflow"
 )
@@ -27,8 +28,10 @@ func (a *ArtemisApiRequestsWorkflow) GetWorkflows() []interface{} {
 }
 
 type ApiProxyRequest struct {
-	Url     string
-	Payload []byte
+	Url        string
+	Payload    echo.Map
+	Response   echo.Map
+	IsInternal bool
 }
 
 func (a *ArtemisApiRequestsWorkflow) ProxyRequest(ctx workflow.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
@@ -37,7 +40,7 @@ func (a *ArtemisApiRequestsWorkflow) ProxyRequest(ctx workflow.Context, pr *ApiP
 		StartToCloseTimeout: time.Second * 300,
 	}
 	sendCtx := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(sendCtx, a.RelayRequest, pr).Get(sendCtx, &pr.Payload)
+	err := workflow.ExecuteActivity(sendCtx, a.RelayRequest, pr).Get(sendCtx, &pr)
 	if err != nil {
 		log.Error("Failed to relay api request", "Error", err)
 		return pr, err

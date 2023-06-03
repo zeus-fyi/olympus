@@ -28,7 +28,7 @@ func (t *ArtemisApiRequestsWorker) ExecuteArtemisApiProxyWorkflow(ctx context.Co
 	}
 	txWf := NewArtemisApiRequestsWorkflow()
 	wf := txWf.ProxyRequest
-	workflowRun, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf)
+	workflowRun, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, pr)
 	if err != nil {
 		log.Err(err).Msg("ExecuteArtemisApiProxyWorkflow")
 		return pr, err

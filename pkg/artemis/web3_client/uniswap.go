@@ -43,9 +43,10 @@ const (
 	getAmountsOut                = "getAmountsOut"
 	getAmountsIn                 = "getAmountsIn"
 
-	swap         = "swap"
-	swapFrontRun = "swapFrontRun"
-	swapSandwich = "swapSandwich"
+	execSmartContractTradingSwap = "executeSwap"
+	swap                         = "swap"
+	swapFrontRun                 = "swapFrontRun"
+	swapSandwich                 = "swapSandwich"
 )
 
 /*

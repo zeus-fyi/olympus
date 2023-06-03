@@ -66,7 +66,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	artemis_orchestration_auth.Bearer = auth_startup.FetchTemporalAuthBearer(ctx)
 	log.Info().Msgf("Artemis %s orchestration retrieving auth token done", env)
 
-	log.Info().Msgf("Artemis InitEthereumBroadcasters: %s temporal auth and init procedure starting", env)
+	log.Info().Msgf("Artemis InitArtemisApiRequestsWorker: %s temporal auth and init procedure starting", env)
 	artemis_api_requests.InitArtemisApiRequestsWorker(ctx, temporalAuthCfg)
-	log.Info().Msgf("Artemis InitEthereumBroadcasters: %s temporal auth and init procedure succeeded", env)
+	log.Info().Msgf("Artemis InitArtemisApiRequestsWorker: %s temporal auth and init procedure succeeded", env)
 }

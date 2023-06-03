@@ -27,7 +27,6 @@ func InitUniswap(ctx context.Context, authHeader string) {
 }
 
 func InitNewUniHardhat(ctx context.Context) *web3_client.UniswapV2Client {
-
 	wc := web3_client.NewWeb3Client(hardhatSvc, HardHatAccount)
 	m := map[string]string{
 		"Authorization": "Bearer " + AuthHeader,

@@ -17,15 +17,15 @@ var (
 		CloudCtxNs:       hardhatCtxNs,
 		ComponentBases:   HardhatComponentBases,
 	}
-	HardhatComponentBases = map[string]zeus_cluster_config_drivers.ComponentBaseDefinition{
-		"hardhat": hardhatComponentBase,
-	}
 	hardhatCtxNs = zeus_common_types.CloudCtxNs{
 		CloudProvider: "do",
 		Region:        "sfo3",
 		Context:       "do-sfo3-dev-do-sfo3-zeus",
 		Namespace:     "hardhat", // set with your own namespace
 		Env:           "production",
+	}
+	HardhatComponentBases = map[string]zeus_cluster_config_drivers.ComponentBaseDefinition{
+		"hardhat": hardhatComponentBase,
 	}
 	hardhatComponentBase = zeus_cluster_config_drivers.ComponentBaseDefinition{
 		SkeletonBases: map[string]zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{

@@ -15,13 +15,14 @@ import (
 
 type Web3ClientTestSuite struct {
 	test_suites_encryption.EncryptionTestSuite
-	GoerliWeb3User           Web3Client
-	GoerliWeb3User2          Web3Client
-	MainnetWeb3User          Web3Client
-	MainnetWeb3UserExternal  Web3Client
-	LocalMainnetWeb3User     Web3Client
-	LocalHardhatMainnetUser  Web3Client
-	HostedHardhatMainnetUser Web3Client
+	GoerliWeb3User                Web3Client
+	GoerliWeb3User2               Web3Client
+	MainnetWeb3User               Web3Client
+	MainnetWeb3UserExternal       Web3Client
+	LocalMainnetWeb3User          Web3Client
+	LocalHardhatMainnetUser       Web3Client
+	HostedHardhatMainnetUser      Web3Client
+	ProxyHostedHardhatMainnetUser Web3Client
 }
 
 func (s *Web3ClientTestSuite) SetupTest() {
@@ -50,8 +51,25 @@ func (s *Web3ClientTestSuite) SetupTest() {
 	newAccount, err = accounts.ParsePrivateKey("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
 	s.Assert().Nil(err)
 	s.HostedHardhatMainnetUser.Account = newAccount
+	s.ProxyHostedHardhatMainnetUser = NewWeb3Client("http://localhost:8080", newAccount)
+
 	s.LocalHardhatMainnetUser.Account = newAccount
 	s.LocalHardhatMainnetUser = NewWeb3Client("http://localhost:8545", newAccount)
+
+}
+
+func (s *Web3ClientTestSuite) TestGetProxyHardhat() {
+	pb, err := s.ProxyHostedHardhatMainnetUser.GetCurrentBalance(ctx)
+	s.Require().Nil(err)
+	s.Assert().NotNil(pb)
+	fmt.Println("bal", pb.String())
+
+	hb, err := s.HostedHardhatMainnetUser.GetCurrentBalance(ctx)
+	s.Require().Nil(err)
+	s.Assert().NotNil(hb)
+	fmt.Println("bal", hb.String())
+
+	s.Assert().Equal(hb.String(), pb.String())
 }
 
 func (s *Web3ClientTestSuite) TestGetBlockHeight() {

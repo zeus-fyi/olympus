@@ -120,6 +120,7 @@ func (w *Web3Client) SetERC20BalanceBruteForce(ctx context.Context, scAddr, user
 			}
 			return nil
 		}
+		time.Sleep(25 * time.Millisecond)
 	}
 	return errors.New("unable to overwrite balance")
 }

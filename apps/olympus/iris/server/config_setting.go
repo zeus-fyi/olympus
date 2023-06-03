@@ -1,4 +1,4 @@
-package artemis_server
+package iris_server
 
 import (
 	"context"
@@ -10,9 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_api_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/api_requests"
-	artemis_mev_tx_fetcher "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/mev"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
-	artemis_ethereum_transcations "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/transcations"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 )
 
@@ -70,10 +68,5 @@ func SetConfigByEnv(ctx context.Context, env string) {
 
 	log.Info().Msgf("Artemis InitEthereumBroadcasters: %s temporal auth and init procedure starting", env)
 	artemis_api_requests.InitArtemisApiRequestsWorker(ctx, temporalAuthCfg)
-	artemis_ethereum_transcations.InitEthereumBroadcasters(ctx, temporalAuthCfg)
 	log.Info().Msgf("Artemis InitEthereumBroadcasters: %s temporal auth and init procedure succeeded", env)
-
-	log.Info().Msgf("Artemis InitMevWorkers: %s temporal auth and init procedure starting", env)
-	artemis_mev_tx_fetcher.InitMevWorkers(ctx, temporalAuthCfg)
-	log.Info().Msgf("Artemis InitMevWorkers: %s temporal auth and init procedure succeeded", env)
 }

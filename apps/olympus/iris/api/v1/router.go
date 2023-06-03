@@ -8,7 +8,7 @@ import (
 
 func Routes(e *echo.Echo) *echo.Echo {
 	// Routes
-	e.POST("/", Proxy)
+	e.POST("/", ProxyRequestHandler)
 	e.GET("/health", Health)
 	return e
 }

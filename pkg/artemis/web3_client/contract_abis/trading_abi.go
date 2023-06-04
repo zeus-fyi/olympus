@@ -1,6 +1,6 @@
 package artemis_oly_contract_abis
 
-const TradingAbi = `
+const RawdawgAbi = `
 [
     {
       "inputs": [

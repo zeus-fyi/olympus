@@ -3,6 +3,9 @@
 mainnet.fork:
 	npx hardhat node --fork ${MAINNET_RPC_URL}
 
+compile:
+	npx hardhat compile
+
 BLOCK_NUMBER ?= 17326550
 mainnet.replay.fork:
 	npx hardhat node --fork ${MAINNET_RPC_URL} --fork-block-number ${BLOCK_NUMBER}
@@ -19,4 +22,3 @@ deploy.localhost:
 deploy.token:
 	npx hardhat run scripts/deploy_token.ts  --network localhost
 
-export MAINNET_RPC_URL="https://proud-alpha-spree.discover.quiknode.pro/175cd672179555f519dd93e21ba1f29b6069de00/"

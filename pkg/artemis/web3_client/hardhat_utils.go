@@ -45,6 +45,16 @@ func (w *Web3Client) GetTxReceipt(ctx context.Context, txHash common.Hash) (*typ
 	return rx, nil
 }
 
+func (w *Web3Client) HardhatResetNetworkToBlock(ctx context.Context, simNodeUrl string, blockNum int) error {
+	w.Dial()
+	defer w.Close()
+	err := w.HardHatResetNetwork(ctx, simNodeUrl, blockNum)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
 func (w *Web3Client) HardhatResetNetworkToBlockBeforeTxMined(ctx context.Context, simNodeUrl string, simNetworkClient, realNetworkClient Web3Client, txHash common.Hash) (int, error) {
 	realNetworkClient.Dial()
 	rx, err := realNetworkClient.C.TransactionReceipt(ctx, txHash)

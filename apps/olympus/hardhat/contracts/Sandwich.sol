@@ -6,7 +6,7 @@ import "./interface/IERC20.sol";
 import "./lib/SafeTransfer.sol";
 
 contract Sandwich {
-    using SafeTransfer for IERC20;
+    using SafeTransfer for _IERC20;
 
     // Authorized
     address internal immutable user;
@@ -27,9 +27,9 @@ contract Sandwich {
     // *** Receive profits from contract *** //
     function recoverERC20(address token) public {
         require(msg.sender == user, "shoo");
-        IERC20(token).safeTransfer(
+        _IERC20(token).safeTransfer(
             msg.sender,
-            IERC20(token).balanceOf(address(this))
+            _IERC20(token).balanceOf(address(this))
         );
     }
 

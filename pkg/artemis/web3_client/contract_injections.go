@@ -3,7 +3,7 @@ package web3_client
 import artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 
 const (
-	RawDawgAddr = "0x7623e9dc0da6ff821ddb9ebaba794054e078f8c4"
+	RawDawgAddr = "0x7623e9DC0DA6FF821ddb9EbABA794054E078f8c4"
 )
 
 func (w *Web3Client) MustInjectRawDawg() {

@@ -6,14 +6,14 @@ import "../interface/IERC20.sol";
 
 library SafeTransfer {
     function safeTransferFrom(
-        IERC20 token,
+        _IERC20 token,
         address from,
         address to,
         uint256 value
     ) internal {
         (bool s, ) = address(token).call(
             abi.encodeWithSelector(
-                IERC20.transferFrom.selector,
+                _IERC20.transferFrom.selector,
                 from,
                 to,
                 value
@@ -23,23 +23,23 @@ library SafeTransfer {
     }
 
     function safeTransfer(
-        IERC20 token,
+        _IERC20 token,
         address to,
         uint256 value
     ) internal {
         (bool s, ) = address(token).call(
-            abi.encodeWithSelector(IERC20.transfer.selector, to, value)
+            abi.encodeWithSelector(_IERC20.transfer.selector, to, value)
         );
         require(s, "safeTransfer failed");
     }
 
     function safeApprove(
-        IERC20 token,
+        _IERC20 token,
         address to,
         uint256 value
     ) internal {
         (bool s, ) = address(token).call(
-            abi.encodeWithSelector(IERC20.approve.selector, to, value)
+            abi.encodeWithSelector(_IERC20.approve.selector, to, value)
         );
         require(s, "safeApprove failed");
     }

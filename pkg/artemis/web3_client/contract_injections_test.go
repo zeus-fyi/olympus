@@ -36,7 +36,9 @@ func (s *Web3ClientTestSuite) TestRawDawgInjection() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(pair)
 
-	// needs to give contract tokens
+	amountOut, err := pair.GetQuoteUsingTokenAddr(daiAddr, EtherMultiple(2000))
+	s.Require().Nil(err)
+	fmt.Println("amountOut", amountOut.String())
 
 	// now try doing a swap
 	// just fork mainnet and try to swap a common token pair

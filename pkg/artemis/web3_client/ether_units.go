@@ -2,7 +2,10 @@ package web3_client
 
 import "math/big"
 
-var Gwei = big.NewInt(1e9)
-var Finney = big.NewInt(1e15)
-var TenFinney = big.NewInt(1e16)
-var Ether = big.NewInt(1e18)
+var (
+	Gwei             = big.NewInt(1e9)
+	Finney           = big.NewInt(1e15)
+	TenFinney        = big.NewInt(1e16)
+	Ether            = big.NewInt(1e18)
+	TenThousandEther = new(big.Int).Mul(big.NewInt(10000), Ether)
+)

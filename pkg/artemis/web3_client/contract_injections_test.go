@@ -4,9 +4,11 @@ import (
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 )
 
 func (s *Web3ClientTestSuite) TestRawDawgInjection() {
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	s.LocalHardhatMainnetUser.MustInjectRawDawg()
 	bal := hexutil.Big{}
 	bigInt := bal.ToInt()
@@ -24,8 +26,11 @@ func (s *Web3ClientTestSuite) TestRawDawgInjection() {
 	s.Require().Nil(err)
 	fmt.Println(owner.String())
 
+	daiAddr := "0x6b175474e89094c44da98b954eedeac495271d0f"
+	err = s.LocalHardhatMainnetUser.SetERC20BalanceBruteForce(ctx, daiAddr, RawDawgAddr, TenThousandEther)
+	s.Require().Nil(err)
 	// DAI-USDC pair contract
-	daiUsdcPairContractAddr := "0xAE461cA67B15dc8dc81CE7615e0320dA1A9aB8D5"
+	daiUsdcPairContractAddr := "0xa478c2975ab1ea89e8196811f51a7b7ade33eb11"
 	uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
 	pair, err := uni.GetPairContractPrices(ctx, daiUsdcPairContractAddr)
 	s.Require().Nil(err)

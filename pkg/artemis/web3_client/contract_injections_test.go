@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 )
 
@@ -36,18 +37,18 @@ func (s *Web3ClientTestSuite) TestRawDawgInjection() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(pair)
 
-	amountOut, err := pair.GetQuoteUsingTokenAddr(daiAddr, EtherMultiple(2000))
+	amountIn := EtherMultiple(2000)
+	amountOut, err := pair.GetQuoteUsingTokenAddr(daiAddr, amountIn)
 	s.Require().Nil(err)
 	fmt.Println("amountOut", amountOut.String())
 
-	// now try doing a swap
-	// just fork mainnet and try to swap a common token pair
+	to := &TradeOutcome{
+		AmountInAddr:  accounts.HexToAddress(daiAddr),
+		AmountIn:      amountIn,
+		AmountOutAddr: accounts.HexToAddress(WETH9ContractAddress),
+		AmountOut:     amountOut,
+	}
+	_, err = uni.ExecSmartContractTradingSwap(pair, to)
+	s.Require().Nil(err)
 
-	/*
-	   address _pair,
-	   address _token_in,
-	   uint256 _amountIn,
-	   uint256 _amountOut,
-	   bool _isToken0
-	*/
 }

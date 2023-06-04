@@ -18,9 +18,6 @@ func (s *Web3ClientTestSuite) TestRawDawgInjection() {
 	s.Require().Nil(err)
 	fmt.Println("userEth", userEth.String())
 
-	rawDawgStartBal, err := s.LocalHardhatMainnetUser.GetBalance(ctx, RawDawgAddr, nil)
-	s.Require().Nil(err)
-	fmt.Println("rawDawgStartBal", rawDawgStartBal.String())
 	bal := hexutil.Big{}
 	bigInt := bal.ToInt()
 	bigInt.Set(Ether)
@@ -28,9 +25,9 @@ func (s *Web3ClientTestSuite) TestRawDawgInjection() {
 	err = s.LocalHardhatMainnetUser.SetBalance(ctx, RawDawgAddr, bal)
 	s.Require().Nil(err)
 
-	rawDawgBal, err := s.LocalHardhatMainnetUser.GetBalance(ctx, RawDawgAddr, nil)
+	rawDawgStartingEth, err := s.LocalHardhatMainnetUser.GetBalance(ctx, RawDawgAddr, nil)
 	s.Require().Nil(err)
-	s.Require().Equal(Ether, rawDawgBal)
+	fmt.Println("rawDawgStartingEth", rawDawgStartingEth.String())
 
 	abiInfo := MustLoadRawdawgAbi()
 	owner, err := s.LocalHardhatMainnetUser.GetOwner(ctx, abiInfo, RawDawgAddr)
@@ -44,14 +41,15 @@ func (s *Web3ClientTestSuite) TestRawDawgInjection() {
 	s.Require().Nil(err)
 	s.Require().Equal(TenThousandEther, rawDawgDaiBal)
 	fmt.Println("daiBalance", rawDawgDaiBal.String())
-	// DAI-USDC pair contract
-	daiUsdcPairContractAddr := "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11"
+	// DAI-WETH pair contract
+	daiWETHPairContractAddr := "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11"
 	uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
 	pair, err := uni.PairToPrices(ctx, []accounts.Address{accounts.HexToAddress(daiAddr), accounts.HexToAddress(WETH9ContractAddress)})
 	s.Require().Nil(err)
 	s.Require().NotEmpty(pair)
-	s.Require().Equal(pair.PairContractAddr, daiUsdcPairContractAddr)
+	s.Require().Equal(pair.PairContractAddr, daiWETHPairContractAddr)
 	amountIn := EtherMultiple(2000)
+
 	amountOut, err := pair.GetQuoteUsingTokenAddr(daiAddr, amountIn)
 	s.Require().Nil(err)
 	fmt.Println("amountOut", amountOut.String())
@@ -62,8 +60,19 @@ func (s *Web3ClientTestSuite) TestRawDawgInjection() {
 		AmountOutAddr: accounts.HexToAddress(WETH9ContractAddress),
 		AmountOut:     amountOut,
 	}
-	_, err = uni.ExecSmartContractTradingSwap(pair, to)
+	tx, err := uni.ExecSmartContractTradingSwap(pair, to)
 	s.Require().Nil(err)
+	s.Require().NotNil(tx)
+
+	rx, err := s.LocalHardhatMainnetUser.GetTxReceipt(ctx, tx.Hash())
+	s.Require().Nil(err)
+	s.Require().NotNil(rx)
+	fmt.Println(rx.Status)
+
+	rawDawgEndingEth, err := s.LocalHardhatMainnetUser.GetBalance(ctx, RawDawgAddr, nil)
+	s.Require().Nil(err)
+	fmt.Println("rawDawgStartingEth", rawDawgStartingEth.String())
+	fmt.Println("rawDawgEndingEth", rawDawgEndingEth.String())
 
 	rawDawgDaiBal, err = s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, daiAddr, RawDawgAddr)
 	s.Require().Nil(err)

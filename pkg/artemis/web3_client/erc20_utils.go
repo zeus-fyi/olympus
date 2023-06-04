@@ -18,7 +18,7 @@ import (
 func (w *Web3Client) ERC20ApproveSpender(ctx context.Context, scAddr, spenderAddr string, amount *big.Int) (*types.Transaction, error) {
 	w.Dial()
 	defer w.Close()
-	abiFile := LoadERC20Abi()
+	abiFile := MustLoadERC20Abi()
 	payload := web3_actions.SendContractTxPayload{
 		SmartContractAddr: scAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},

@@ -48,7 +48,7 @@ func (s *Web3ClientTestSuite) TestJson() {
 func (s *Web3ClientTestSuite) TestTradeSim() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ForceDirToTestDirLocation()
-	uni := InitUniswapV2Client(ctx, s.MainnetWeb3User)
+	uni := InitUniswapClient(ctx, s.MainnetWeb3User)
 	mevTxs, err := artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17326677)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(mevTxs)

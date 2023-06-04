@@ -11,7 +11,15 @@ import (
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
-func LoadERC20Abi() *abi.ABI {
+func MustLoadUniversalRouterAbi() *abi.ABI {
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniversalRouterAbi))
+	if err != nil {
+		panic(err)
+	}
+	return readAbi
+}
+
+func MustLoadERC20Abi() *abi.ABI {
 	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.ERC20ABI))
 	if err != nil {
 		panic(err)

@@ -34,7 +34,7 @@ func (s *Web3ClientTestSuite) TestTradeExec() {
 		err = s.LocalHardhatMainnetUser.MatchFrontRunTradeValues(&tfRegular)
 		s.Require().Nil(err)
 
-		uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
+		uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
 		uni.DebugPrint = true
 
 		_, err = uni.ExecFrontRunTradeStepTokenTransfer(&tfRegular)

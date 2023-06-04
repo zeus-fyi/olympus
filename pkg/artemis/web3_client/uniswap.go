@@ -24,8 +24,9 @@ import (
 )
 
 const (
-	UniswapV2FactoryAddress = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
-	UniswapV2RouterAddress  = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+	UniswapUniversalRouterAddress = "0xEf1c6E67703c7BD7107eed8303Fbe6EC2554BF6B"
+	UniswapV2FactoryAddress       = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
+	UniswapV2RouterAddress        = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
 
 	addLiquidity                 = "addLiquidity"
 	addLiquidityETH              = "addLiquidityETH"
@@ -57,17 +58,18 @@ There is a 0.3% fee for swapping tokens. This fee is split by liquidity provider
 // TODO https://docs.uniswap.org/contracts/v2/reference/smart-contracts/router-02
 
 type UniswapV2Client struct {
-	mu                       sync.Mutex
-	Web3Client               Web3Client
-	FactorySmartContractAddr string
-	RouterSmartContractAddr  string
-	PairAbi                  *abi.ABI
-	ERC20Abi                 *abi.ABI
-	FactoryAbi               *abi.ABI
-	PrintDetails             bool
-	PrintOn                  bool
-	PrintLocal               bool
-	DebugPrint               bool
+	mu                               sync.Mutex
+	Web3Client                       Web3Client
+	UniversalRouterSmartContractAddr string
+	FactorySmartContractAddr         string
+	RouterSmartContractAddr          string
+	PairAbi                          *abi.ABI
+	ERC20Abi                         *abi.ABI
+	FactoryAbi                       *abi.ABI
+	PrintDetails                     bool
+	PrintOn                          bool
+	PrintLocal                       bool
+	DebugPrint                       bool
 	MevSmartContractTxMap
 	*TradeAnalysisReport
 	Path                                filepaths.Path
@@ -82,7 +84,7 @@ type UniswapV2Client struct {
 	SwapETHForExactTokensParamsSlice    []SwapETHForExactTokensParams
 }
 
-func InitUniswapV2Client(ctx context.Context, w Web3Client) UniswapV2Client {
+func InitUniswapClient(ctx context.Context, w Web3Client) UniswapV2Client {
 	abiFile, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniswapV2RouterABI))
 	if err != nil {
 		panic(err)

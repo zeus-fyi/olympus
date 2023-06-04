@@ -44,7 +44,7 @@ func (s *Web3ClientTestSuite) TestMintTokens() {
 				ToAddress: accounts.HexToAddress(swapContractAddr),
 			},
 		},
-		ContractABI: LoadERC20Abi(),
+		ContractABI: MustLoadERC20Abi(),
 		Params:      []interface{}{accounts.HexToAddress(swapContractAddr), Ether},
 	}
 	_, err = s.LocalHardhatMainnetUser.TransferERC20Token(ctx, transferTxParams)

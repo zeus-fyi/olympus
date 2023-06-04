@@ -14,7 +14,7 @@ func (s *Web3ClientTestSuite) TestRawMempoolTxFilter() {
 	defer s.LocalMainnetWeb3User.Close()
 	mempool, err := s.LocalMainnetWeb3User.Web3Actions.GetTxPoolContent(ctx)
 	s.Require().NoError(err)
-	uni := InitUniswapV2Client(ctx, s.MainnetWeb3User)
+	uni := InitUniswapClient(ctx, s.MainnetWeb3User)
 	uni.PrintOn = true
 	uni.PrintLocal = true
 	uni.Path = filepaths.Path{
@@ -46,7 +46,7 @@ func (s *Web3ClientTestSuite) TestRawMempoolTxFilter() {
 }
 
 func (s *Web3ClientTestSuite) TestMevTxFilter() {
-	uni := InitUniswapV2Client(ctx, s.MainnetWeb3User)
+	uni := InitUniswapClient(ctx, s.MainnetWeb3User)
 	txMap, err := s.MainnetWeb3User.GetFilteredPendingMempoolTxs(ctx, uni.MevSmartContractTxMap)
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(txMap)

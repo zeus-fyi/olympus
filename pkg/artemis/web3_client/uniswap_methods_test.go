@@ -187,7 +187,7 @@ func (s *Web3ClientTestSuite) TestSandwichAttackBinSearchV3() {
 }
 
 func (s *Web3ClientTestSuite) TestGetPepeWETH() {
-	uni := InitUniswapV2Client(ctx, s.MainnetWeb3User)
+	uni := InitUniswapClient(ctx, s.MainnetWeb3User)
 	pairAddr := uni.GetPairContractFromFactory(ctx, WETH9ContractAddress, PepeContractAddr)
 	pair, err := uni.GetPairContractPrices(ctx, pairAddr.String())
 	s.Require().Nil(err)
@@ -202,7 +202,7 @@ func (s *Web3ClientTestSuite) TestGetPepeWETH() {
 	fmt.Println("price1CumulativeLast", pair.Price1CumulativeLast.Uint64())
 }
 func (s *Web3ClientTestSuite) TestGetPairContractInfoStable() {
-	uni := InitUniswapV2Client(ctx, s.MainnetWeb3User)
+	uni := InitUniswapClient(ctx, s.MainnetWeb3User)
 	pairAddr := uni.GetPairContractFromFactory(ctx, WETH9ContractAddress, LinkTokenAddr)
 	pair, err := uni.GetPairContractPrices(ctx, pairAddr.String())
 	s.Assert().Nil(err)
@@ -219,7 +219,7 @@ func (s *Web3ClientTestSuite) TestGetPairContractInfoStable() {
 }
 
 func (s *Web3ClientTestSuite) TestGetPairContractInfoMismatchedDecimals() {
-	uni := InitUniswapV2Client(ctx, s.MainnetWeb3User)
+	uni := InitUniswapClient(ctx, s.MainnetWeb3User)
 	pairAddr := uni.GetPairContractFromFactory(ctx, WETH9ContractAddress, HexTokenAddr)
 	pair, err := uni.GetPairContractPrices(ctx, pairAddr.String())
 	s.Assert().Nil(err)

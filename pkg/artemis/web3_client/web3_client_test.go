@@ -116,7 +116,7 @@ func (s *Web3ClientTestSuite) TestReadMempool() {
 	mempool, err := s.MainnetWeb3User.Web3Actions.GetTxPoolContent(ctx)
 	s.Require().Nil(err)
 	s.Assert().NotNil(mempool)
-	uswap := InitUniswapV2Client(ctx, s.MainnetWeb3User)
+	uswap := InitUniswapClient(ctx, s.MainnetWeb3User)
 	s.Require().Nil(err)
 	smartContractAddrFilter := common.HexToAddress(uswap.SmartContractAddr)
 	smartContractAddrFilterString := smartContractAddrFilter.String()

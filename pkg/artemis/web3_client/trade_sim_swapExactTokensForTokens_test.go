@@ -41,7 +41,7 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSim_SwapExactTokensForTokens(
 		s.Require().Nil(err)
 
 		tfRegular := tf.ConvertToBigIntType()
-		uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
+		uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
 		pairAddr := tfRegular.InitialPair.PairContractAddr
 		simPair, err := uni.GetPairContractPrices(ctx, pairAddr)
 		s.Require().Nil(err)

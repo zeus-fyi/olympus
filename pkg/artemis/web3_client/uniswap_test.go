@@ -17,7 +17,7 @@ import (
 func (s *Web3ClientTestSuite) TestUniswapMempoolFilter() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	ForceDirToTestDirLocation()
-	uni := InitUniswapV2Client(ctx, s.MainnetWeb3User)
+	uni := InitUniswapClient(ctx, s.MainnetWeb3User)
 	uni.PrintOn = true
 	uni.PrintLocal = true
 	uni.Path = filepaths.Path{

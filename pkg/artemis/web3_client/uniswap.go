@@ -66,6 +66,7 @@ type UniswapV2Client struct {
 	PairAbi                          *abi.ABI
 	ERC20Abi                         *abi.ABI
 	FactoryAbi                       *abi.ABI
+	UniversalRouterAbi               *abi.ABI
 	PrintDetails                     bool
 	PrintOn                          bool
 	PrintLocal                       bool
@@ -108,13 +109,15 @@ func InitUniswapClient(ctx context.Context, w Web3Client) UniswapV2Client {
 		DoesNotInclude:        []string{"supportingFeeOnTransferTokens"},
 	}
 	return UniswapV2Client{
-		Web3Client:               w,
-		chronus:                  chronos.Chronos{},
-		FactorySmartContractAddr: UniswapV2FactoryAddress,
-		RouterSmartContractAddr:  UniswapV2RouterAddress,
-		FactoryAbi:               factoryAbiFile,
-		ERC20Abi:                 erc20AbiFile,
-		PairAbi:                  pairAbiFile,
+		Web3Client:                       w,
+		chronus:                          chronos.Chronos{},
+		FactorySmartContractAddr:         UniswapV2FactoryAddress,
+		RouterSmartContractAddr:          UniswapV2RouterAddress,
+		UniversalRouterSmartContractAddr: UniswapUniversalRouterAddress,
+		FactoryAbi:                       factoryAbiFile,
+		ERC20Abi:                         erc20AbiFile,
+		PairAbi:                          pairAbiFile,
+		UniversalRouterAbi:               MustLoadUniversalRouterAbi(),
 		MevSmartContractTxMap: MevSmartContractTxMap{
 			SmartContractAddr: UniswapV2RouterAddress,
 			Abi:               abiFile,

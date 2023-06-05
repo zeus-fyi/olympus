@@ -23,7 +23,7 @@ contract Rawdawg is Ownable {
         for (uint256 i = 0; i < _swap.length;) {
             _executeSwap(_swap[i]._pair, _swap[i]._token_in, _swap[i]._amountIn, _swap[i]._amountOut, _swap[i]._isToken0);
             unchecked {
-                i++;
+                ++i;
             }
         }
     }

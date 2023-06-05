@@ -62,6 +62,19 @@ func (s *Web3ClientTestSuite) SetupTest() {
 
 }
 
+func (s *Web3ClientTestSuite) TestRelayProxyHeader() {
+	newAccount, err := accounts.ParsePrivateKey("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
+	s.Assert().Nil(err)
+	s.ProxyHostedHardhatMainnetUser = NewWeb3ClientWithRelay("http://localhost:8545", "http://localhost:8080/v1/", newAccount)
+	s.ProxyHostedHardhatMainnetUser.Headers = map[string]string{
+		"Authorization": "Bearer " + s.Tc.ProductionLocalTemporalBearerToken,
+	}
+	pb, err := s.ProxyHostedHardhatMainnetUser.GetCurrentBalance(ctx)
+	s.Require().Nil(err)
+	s.Assert().NotNil(pb)
+	fmt.Println("bal", pb.String())
+}
+
 func (s *Web3ClientTestSuite) TestGetProxyHardhat() {
 	pb, err := s.ProxyHostedHardhatMainnetUser.GetCurrentBalance(ctx)
 	s.Require().Nil(err)

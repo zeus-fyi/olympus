@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -32,12 +33,17 @@ type ApiProxyRequest struct {
 	Payload    echo.Map
 	Response   echo.Map
 	IsInternal bool
+	Timeout    time.Duration
 }
 
 func (a *ArtemisApiRequestsWorkflow) ProxyRequest(ctx workflow.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Second * 300,
+		StartToCloseTimeout: pr.Timeout,
+		RetryPolicy: &temporal.RetryPolicy{
+			InitialInterval:    50 * time.Millisecond,
+			BackoffCoefficient: 1.2,
+		},
 	}
 	sendCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(sendCtx, a.RelayRequest, pr).Get(sendCtx, &pr)

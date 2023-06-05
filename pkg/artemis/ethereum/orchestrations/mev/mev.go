@@ -11,6 +11,11 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
 
+const (
+	irisSvc    = "https://iris.zeus.fyi/v1/internal/"
+	hardhatSvc = "https://hardhat.zeus.fyi/"
+)
+
 var (
 	AuthHeader     string
 	HardHatAccount *accounts.Account
@@ -27,7 +32,7 @@ func InitUniswap(ctx context.Context, authHeader string) {
 }
 
 func InitNewUniHardhat(ctx context.Context) *web3_client.UniswapV2Client {
-	wc := web3_client.NewWeb3Client(hardhatSvc, HardHatAccount)
+	wc := web3_client.NewWeb3ClientWithRelay(irisSvc, hardhatSvc, HardHatAccount)
 	m := map[string]string{
 		"Authorization": "Bearer " + AuthHeader,
 	}

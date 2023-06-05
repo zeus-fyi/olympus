@@ -139,14 +139,3 @@ func MustLoadRawdawgContractDeployPayload() (web3_actions.SendContractTxPayload,
 	}
 	return params, artemis_oly_contract_abis.RawdawgByteCode
 }
-
-func GetRawdawgSwapAbiPayload(tradingSwapContractAddr, pairContractAddr string, to *TradeOutcome, isToken0 bool) web3_actions.SendContractTxPayload {
-	params := web3_actions.SendContractTxPayload{
-		SmartContractAddr: tradingSwapContractAddr,
-		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       MustLoadRawdawgAbi(),
-		MethodName:        execSmartContractTradingSwap,
-		Params:            []interface{}{pairContractAddr, to.AmountInAddr.String(), to.AmountIn.String(), to.AmountOut.String(), isToken0},
-	}
-	return params
-}

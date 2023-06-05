@@ -8,7 +8,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 )
 
-func (s *Web3ClientTestSuite) TestRawDawgInjection() {
+func (s *Web3ClientTestSuite) TestRawDawgExecSwaps() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlock(ctx, "https://virulent-alien-cloud.quiknode.pro/fa84e631e9545d76b9e1b1c5db6607fedf3cb654", 17408822)
 	rawDawgPayload, bc := MustLoadRawdawgContractDeployPayload()
@@ -55,13 +55,22 @@ func (s *Web3ClientTestSuite) TestRawDawgInjection() {
 	s.Require().Nil(err)
 	s.Require().Equal(TenThousandEther, rawDawgDaiBal)
 	fmt.Println("daiBalance", rawDawgDaiBal.String())
-	// DAI-WETH pair contract
-	daiWETHPairContractAddr := "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11"
+
+	rawDawgStartingLinkBal, err := s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, LinkTokenAddr, rawdawgAddr)
+	s.Require().Nil(err)
+	fmt.Println("rawDawgStartinLinkBal", rawDawgStartingLinkBal.String())
+	rawDawgStartingWETHbal, err := s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, WETH9ContractAddress, rawdawgAddr)
+	s.Require().Nil(err)
+	fmt.Println("rawDawgStartingWETHbal", rawDawgStartingWETHbal.String())
+
 	uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
-	pair, err := uni.PairToPrices(ctx, []accounts.Address{accounts.HexToAddress(daiAddr), accounts.HexToAddress(WETH9ContractAddress)})
+
+	batchParams := BatchRawDawgParams{}
+	// DAI-LINK pair contract
+
+	pair, err := uni.PairToPrices(ctx, []accounts.Address{accounts.HexToAddress(daiAddr), accounts.HexToAddress(LinkTokenAddr)})
 	s.Require().Nil(err)
 	s.Require().NotEmpty(pair)
-	s.Require().Equal(pair.PairContractAddr, daiWETHPairContractAddr)
 	amountIn := EtherMultiple(2000)
 
 	amountOut, err := pair.GetQuoteUsingTokenAddr(daiAddr, amountIn)
@@ -71,20 +80,32 @@ func (s *Web3ClientTestSuite) TestRawDawgInjection() {
 	to := &TradeOutcome{
 		AmountInAddr:  accounts.HexToAddress(daiAddr),
 		AmountIn:      amountIn,
-		AmountOutAddr: accounts.HexToAddress(WETH9ContractAddress),
+		AmountOutAddr: accounts.HexToAddress(LinkTokenAddr),
 		AmountOut:     amountOut,
 	}
 
-	pathSlice := []string{to.AmountInAddr.String(), to.AmountOutAddr.String()}
-	amountsOut, err := uni.GetAmountsOut(to.AmountIn, pathSlice)
-	s.Require().Nil(err)
-	amountsOutFirstPair := ConvertAmountsToBigIntSlice(amountsOut)
-	fmt.Println("amountsOutFirstPair", amountsOutFirstPair)
-	for _, v := range amountsOutFirstPair {
-		fmt.Println(v.String())
-	}
+	batchParams.AddRawdawgParams(pair, to)
 
-	tx, err = uni.ExecSmartContractTradingSwap(rawdawgAddr, pair, to)
+	// DAI-WETH pair contract
+	pair, err = uni.PairToPrices(ctx, []accounts.Address{accounts.HexToAddress(daiAddr), accounts.HexToAddress(WETH9ContractAddress)})
+	s.Require().Nil(err)
+	s.Require().NotEmpty(pair)
+	amountIn = EtherMultiple(2000)
+	amountOut, err = pair.GetQuoteUsingTokenAddr(daiAddr, amountIn)
+	s.Require().Nil(err)
+	fmt.Println("amountOut", amountOut.String())
+	to = &TradeOutcome{
+		AmountInAddr:  accounts.HexToAddress(daiAddr),
+		AmountIn:      amountIn,
+		AmountOutAddr: accounts.HexToAddress(WETH9ContractAddress),
+		AmountOut:     amountOut,
+	}
+	batchParams.AddRawdawgParams(pair, to)
+
+	// done adding params
+	s.Require().Len(batchParams.Swap, 2)
+
+	tx, err = uni.ExecSmartContractTradingBatchSwap(rawdawgAddr, batchParams)
 	s.Require().Nil(err)
 	s.Require().NotNil(tx)
 
@@ -96,6 +117,10 @@ func (s *Web3ClientTestSuite) TestRawDawgInjection() {
 	rawDawgDaiBal, err = s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, daiAddr, rawdawgAddr)
 	s.Require().Nil(err)
 	fmt.Println("rawDawgDaiBal", rawDawgDaiBal.String())
+
+	rawDawgLinkBal, err := s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, LinkTokenAddr, rawdawgAddr)
+	s.Require().Nil(err)
+	fmt.Println("rawDawgLinkBal", rawDawgLinkBal.String())
 
 	rawDawgWETHbal, err := s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, WETH9ContractAddress, rawdawgAddr)
 	s.Require().Nil(err)

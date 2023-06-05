@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
 contract Rawdawg is Ownable {
+    address public constant routerAddress = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
 
     function executeSwap(
         address _pair,
@@ -15,8 +16,8 @@ contract Rawdawg is Ownable {
         uint256 _amountOut,
         bool _isToken0
     ) external {
-        TransferHelper.safeTransferFrom(_token_in,address(this), _pair, _amountIn);
-        TransferHelper.safeApprove(_token_in, _pair, _amountIn);
+        TransferHelper.safeTransfer(_token_in, _pair, _amountIn);
+        TransferHelper.safeApprove(_token_in, routerAddress, _amountIn);
         // Execute swap
         if (_isToken0) {
             IUniswapV2Pair(_pair).swap(0, _amountOut, address(this), new bytes(0));

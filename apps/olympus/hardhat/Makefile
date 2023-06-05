@@ -13,8 +13,8 @@ mainnet.replay.fork:
 start.local:
 	npx hardhat node
 
-deploy.raw.swap:
-	npx hardhat run scripts/deploy_rawswap.ts  --network localhost
+deploy.rawdawg:
+	npx hardhat run scripts/deploy_rawdawg.ts  --network localhost
 
 deploy.localhost:
 	npx hardhat run scripts/deploy_uniswap.ts  --network localhost

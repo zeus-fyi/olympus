@@ -71,16 +71,32 @@ func (p *UniswapV2Pair) GetQuoteToken0BuyToken1(token0 *big.Int) (*big.Int, erro
 	if p.Reserve0 == nil || p.Reserve1 == nil || p.Reserve0.Cmp(big.NewInt(0)) == 0 || p.Reserve1.Cmp(big.NewInt(0)) == 0 {
 		return nil, errors.New("reserves are not initialized or are zero")
 	}
-	numerator := new(big.Int).Mul(token0, p.Reserve1)
-	return numerator.Quo(numerator, p.Reserve0), nil
+	amountInWithFee := new(big.Int).Mul(token0, big.NewInt(997))
+	numerator := new(big.Int).Mul(amountInWithFee, p.Reserve1)
+	denominator := new(big.Int).Mul(p.Reserve0, big.NewInt(1000))
+	denominator = new(big.Int).Add(denominator, amountInWithFee)
+	if denominator.Cmp(big.NewInt(0)) == 0 {
+		log.Warn().Msg("denominator is 0")
+		return nil, errors.New("denominator is 0")
+	}
+	amountOut := new(big.Int).Div(numerator, denominator)
+	return amountOut, nil
 }
 
 func (p *UniswapV2Pair) GetQuoteToken1BuyToken0(token1 *big.Int) (*big.Int, error) {
 	if p.Reserve0 == nil || p.Reserve1 == nil || p.Reserve0.Cmp(big.NewInt(0)) == 0 || p.Reserve1.Cmp(big.NewInt(0)) == 0 {
 		return nil, errors.New("reserves are not initialized or are zero")
 	}
-	numerator := new(big.Int).Mul(token1, p.Reserve0)
-	return numerator.Quo(numerator, p.Reserve1), nil
+	amountInWithFee := new(big.Int).Mul(token1, big.NewInt(997))
+	numerator := new(big.Int).Mul(amountInWithFee, p.Reserve0)
+	denominator := new(big.Int).Mul(p.Reserve1, big.NewInt(1000))
+	denominator = new(big.Int).Add(denominator, amountInWithFee)
+	if denominator.Cmp(big.NewInt(0)) == 0 {
+		log.Warn().Msg("denominator is 0")
+		return nil, errors.New("denominator is 0")
+	}
+	amountOut := new(big.Int).Div(numerator, denominator)
+	return amountOut, nil
 }
 
 func (p *UniswapV2Pair) GetQuoteUsingTokenAddr(addr string, amount *big.Int) (*big.Int, error) {

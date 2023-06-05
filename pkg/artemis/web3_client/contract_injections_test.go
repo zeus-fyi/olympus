@@ -11,9 +11,24 @@ import (
 func (s *Web3ClientTestSuite) TestRawDawgInjection() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlock(ctx, "https://virulent-alien-cloud.quiknode.pro/fa84e631e9545d76b9e1b1c5db6607fedf3cb654", 17408822)
+	rawDawgPayload, bc := MustLoadRawdawgContractDeployPayload()
+	newAccount, err := accounts.ParsePrivateKey("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
+	s.Assert().Nil(err)
+	s.LocalHardhatMainnetUser.Account = newAccount
+	rawDawgPayload.GasLimit = 2000000
+	rawDawgPayload.Params = []interface{}{}
+
+	tx, err := s.LocalHardhatMainnetUser.DeploySmartContract(ctx, bc, rawDawgPayload)
 	s.Require().Nil(err)
+	s.Assert().NotNil(tx)
+
+	rx, err := s.LocalHardhatMainnetUser.WaitForReceipt(ctx, tx.Hash())
+	s.Assert().Nil(err)
+	s.Assert().NotNil(rx)
+	s.Require().Nil(err)
+
+	rawdawgAddr := rx.ContractAddress.String()
 	daiAddr := "0x6B175474E89094C44Da98b954EedeAC495271d0F"
-	s.LocalHardhatMainnetUser.MustInjectRawDawg()
 	userEth, err := s.LocalHardhatMainnetUser.GetBalance(ctx, s.LocalHardhatMainnetUser.PublicKey(), nil)
 	s.Require().Nil(err)
 	fmt.Println("userEth", userEth.String())
@@ -22,22 +37,22 @@ func (s *Web3ClientTestSuite) TestRawDawgInjection() {
 	bigInt := bal.ToInt()
 	bigInt.Set(Ether)
 	bal = hexutil.Big(*bigInt)
-	err = s.LocalHardhatMainnetUser.SetBalance(ctx, RawDawgAddr, bal)
+	err = s.LocalHardhatMainnetUser.SetBalance(ctx, rawdawgAddr, bal)
 	s.Require().Nil(err)
 
-	rawDawgStartingEth, err := s.LocalHardhatMainnetUser.GetBalance(ctx, RawDawgAddr, nil)
+	rawDawgStartingEth, err := s.LocalHardhatMainnetUser.GetBalance(ctx, rawdawgAddr, nil)
 	s.Require().Nil(err)
 	fmt.Println("rawDawgStartingEth", rawDawgStartingEth.String())
 
 	abiInfo := MustLoadRawdawgAbi()
-	owner, err := s.LocalHardhatMainnetUser.GetOwner(ctx, abiInfo, RawDawgAddr)
+	owner, err := s.LocalHardhatMainnetUser.GetOwner(ctx, abiInfo, rawdawgAddr)
 	s.Require().Nil(err)
 	fmt.Println(owner.String())
 
-	err = s.LocalHardhatMainnetUser.SetERC20BalanceBruteForce(ctx, daiAddr, RawDawgAddr, TenThousandEther)
+	err = s.LocalHardhatMainnetUser.SetERC20BalanceBruteForce(ctx, daiAddr, rawdawgAddr, TenThousandEther)
 	s.Require().Nil(err)
 
-	rawDawgDaiBal, err := s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, daiAddr, RawDawgAddr)
+	rawDawgDaiBal, err := s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, daiAddr, rawdawgAddr)
 	s.Require().Nil(err)
 	s.Require().Equal(TenThousandEther, rawDawgDaiBal)
 	fmt.Println("daiBalance", rawDawgDaiBal.String())
@@ -60,25 +75,30 @@ func (s *Web3ClientTestSuite) TestRawDawgInjection() {
 		AmountOutAddr: accounts.HexToAddress(WETH9ContractAddress),
 		AmountOut:     amountOut,
 	}
-	tx, err := uni.ExecSmartContractTradingSwap(pair, to)
+
+	pathSlice := []string{to.AmountInAddr.String(), to.AmountOutAddr.String()}
+	amountsOut, err := uni.GetAmountsOut(to.AmountIn, pathSlice)
+	s.Require().Nil(err)
+	amountsOutFirstPair := ConvertAmountsToBigIntSlice(amountsOut)
+	fmt.Println("amountsOutFirstPair", amountsOutFirstPair)
+	for _, v := range amountsOutFirstPair {
+		fmt.Println(v.String())
+	}
+
+	tx, err = uni.ExecSmartContractTradingSwap(rawdawgAddr, pair, to)
 	s.Require().Nil(err)
 	s.Require().NotNil(tx)
 
-	rx, err := s.LocalHardhatMainnetUser.GetTxReceipt(ctx, tx.Hash())
-	s.Require().Nil(err)
-	s.Require().NotNil(rx)
-	fmt.Println(rx.Status)
-
-	rawDawgEndingEth, err := s.LocalHardhatMainnetUser.GetBalance(ctx, RawDawgAddr, nil)
+	rawDawgEndingEth, err := s.LocalHardhatMainnetUser.GetBalance(ctx, rawdawgAddr, nil)
 	s.Require().Nil(err)
 	fmt.Println("rawDawgStartingEth", rawDawgStartingEth.String())
 	fmt.Println("rawDawgEndingEth", rawDawgEndingEth.String())
 
-	rawDawgDaiBal, err = s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, daiAddr, RawDawgAddr)
+	rawDawgDaiBal, err = s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, daiAddr, rawdawgAddr)
 	s.Require().Nil(err)
 	fmt.Println("rawDawgDaiBal", rawDawgDaiBal.String())
 
-	rawDawgWETHbal, err := s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, WETH9ContractAddress, RawDawgAddr)
+	rawDawgWETHbal, err := s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, WETH9ContractAddress, rawdawgAddr)
 	s.Require().Nil(err)
 	fmt.Println("rawDawgWETHbal", rawDawgWETHbal.String())
 	s.Require().Equal(amountOut.String(), rawDawgWETHbal.String())

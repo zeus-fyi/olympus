@@ -20,7 +20,7 @@ func (s *Web3ClientTestSuite) TestMintTokens() {
 	mintAmount := new(big.Int).Mul(big.NewInt(10000000), Ether)
 	tokenPayload.Params = []interface{}{mintAmount}
 
-	tx, err := s.LocalHardhatMainnetUser.DeployERC20Token(ctx, bc, tokenPayload)
+	tx, err := s.LocalHardhatMainnetUser.DeploySmartContract(ctx, bc, tokenPayload)
 	s.Require().Nil(err)
 	s.Assert().NotNil(tx)
 

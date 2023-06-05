@@ -19,8 +19,8 @@ func NewWeb3ClientFakeSigner(nodeUrl string) Web3Client {
 	return Web3Client{w}
 }
 
-func NewWeb3ClientWithRelay(nodeUrl, relayUrl string, acc *accounts.Account) Web3Client {
-	w := web3_actions.NewWeb3ActionsClientWithRelay(nodeUrl, relayUrl, acc)
+func NewWeb3ClientWithRelay(relayProxyUrl, nodeUrl string, acc *accounts.Account) Web3Client {
+	w := web3_actions.NewWeb3ActionsClientWithRelayProxy(relayProxyUrl, nodeUrl, acc)
 	return Web3Client{w}
 }
 

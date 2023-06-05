@@ -32,7 +32,7 @@ func InitNewUniHardhat(ctx context.Context) *web3_client.UniswapV2Client {
 		"Authorization": "Bearer " + AuthHeader,
 	}
 	wc.Headers = m
-	uni := web3_client.InitUniswapV2Client(ctx, wc)
+	uni := web3_client.InitUniswapClient(ctx, wc)
 	uni.PrintOn = true
 	uni.PrintLocal = false
 	return &uni
@@ -45,7 +45,7 @@ func InitNewUniswap(ctx context.Context) *web3_client.UniswapV2Client {
 		"Authorization": "Bearer " + AuthHeader,
 	}
 	wc.Headers = m
-	uni := web3_client.InitUniswapV2Client(ctx, wc)
+	uni := web3_client.InitUniswapClient(ctx, wc)
 	uni.PrintOn = true
 	uni.PrintLocal = false
 	return &uni
@@ -53,7 +53,7 @@ func InitNewUniswap(ctx context.Context) *web3_client.UniswapV2Client {
 
 func InitNewUniswapQuiknode(ctx context.Context) *web3_client.UniswapV2Client {
 	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnetQuiknode.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
-	uni := web3_client.InitUniswapV2Client(ctx, wc)
+	uni := web3_client.InitUniswapClient(ctx, wc)
 	uni.PrintOn = true
 	uni.PrintLocal = false
 	return &uni

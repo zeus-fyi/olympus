@@ -16,7 +16,7 @@ func (s *Web3ClientTestSuite) TestHistoricalAnalysisReplay() {
 	s.Require().NotEmpty(mevTxs)
 	for _, mevTx := range mevTxs {
 		fmt.Println(mevTx.TradeMethod)
-		uni := InitUniswapV2Client(ctx, s.HostedHardhatMainnetUser)
+		uni := InitUniswapClient(ctx, s.HostedHardhatMainnetUser)
 		uni.DebugPrint = true
 		err := uni.RunHistoricalTradeAnalysis(ctx, mevTx.TxFlowPrediction, s.MainnetWeb3UserExternal)
 		uni.PrintResults()
@@ -31,7 +31,7 @@ func (s *Web3ClientTestSuite) TestHistoricalAnalysis() {
 	s.Require().Nil(merr)
 	s.Require().NotEmpty(mevTxs)
 	for _, mevTx := range mevTxs {
-		uni := InitUniswapV2Client(ctx, s.HostedHardhatMainnetUser)
+		uni := InitUniswapClient(ctx, s.HostedHardhatMainnetUser)
 		uni.DebugPrint = true
 		err := uni.RunHistoricalTradeAnalysis(ctx, mevTx.TxFlowPrediction, s.MainnetWeb3UserExternal)
 		uni.PrintResults()

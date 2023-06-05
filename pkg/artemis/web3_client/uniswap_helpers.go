@@ -22,7 +22,7 @@ func (u *UniswapV2Client) RouterApproveAndSend(ctx context.Context, to *TradeOut
 				ToAddress: accounts.HexToAddress(pairContractAddr),
 			},
 		},
-		ContractABI: LoadERC20Abi(),
+		ContractABI: MustLoadERC20Abi(),
 		Params:      []interface{}{accounts.HexToAddress(pairContractAddr), to.AmountIn},
 	}
 	transferTx, err := u.Web3Client.TransferERC20Token(ctx, transferTxParams)

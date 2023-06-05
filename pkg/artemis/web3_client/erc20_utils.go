@@ -18,7 +18,7 @@ import (
 func (w *Web3Client) ERC20ApproveSpender(ctx context.Context, scAddr, spenderAddr string, amount *big.Int) (*types.Transaction, error) {
 	w.Dial()
 	defer w.Close()
-	abiFile := LoadERC20Abi()
+	abiFile := MustLoadERC20Abi()
 	payload := web3_actions.SendContractTxPayload{
 		SmartContractAddr: scAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
@@ -126,11 +126,15 @@ func (w *Web3Client) SetERC20BalanceBruteForce(ctx context.Context, scAddr, user
 }
 
 func (w *Web3Client) MatchFrontRunTradeValues(tf *TradeExecutionFlowInBigInt) error {
-	err := w.SetERC20BalanceBruteForce(ctx, tf.FrontRunTrade.AmountInAddr.String(), w.PublicKey(), tf.FrontRunTrade.AmountIn)
+	pubkey := w.PublicKey()
+	if pubkey == "execSwap" {
+		pubkey = "0xsmartcontractaddr"
+	}
+	err := w.SetERC20BalanceBruteForce(ctx, tf.FrontRunTrade.AmountInAddr.String(), pubkey, tf.FrontRunTrade.AmountIn)
 	if err != nil {
 		return err
 	}
-	b, err := w.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountInAddr.String(), w.PublicKey())
+	b, err := w.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountInAddr.String(), pubkey)
 	if err != nil {
 		return err
 	}

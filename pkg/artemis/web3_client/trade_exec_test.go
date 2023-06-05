@@ -9,6 +9,9 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
+func (s *Web3ClientTestSuite) TestTradeSmartContractExecSwap() {
+}
+
 func (s *Web3ClientTestSuite) TestTradeExec() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ForceDirToTestDirLocation()
@@ -31,7 +34,7 @@ func (s *Web3ClientTestSuite) TestTradeExec() {
 		err = s.LocalHardhatMainnetUser.MatchFrontRunTradeValues(&tfRegular)
 		s.Require().Nil(err)
 
-		uni := InitUniswapV2Client(ctx, s.LocalHardhatMainnetUser)
+		uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
 		uni.DebugPrint = true
 
 		_, err = uni.ExecFrontRunTradeStepTokenTransfer(&tfRegular)

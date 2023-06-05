@@ -2,7 +2,10 @@ package v1_iris
 
 import (
 	"context"
+	"errors"
 	"net/http"
+	"net/url"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -54,11 +57,19 @@ func (p *ProxyRequest) Process(c echo.Context, isInternal bool) error {
 	// start of session
 	// queue -> dynamodb
 	// end of session
-
+	relayTo := c.Request().Header.Get("Proxy-Relay-To")
+	if relayTo == "" {
+		return c.JSON(http.StatusBadRequest, errors.New("Proxy-Relay-To header is required"))
+	}
+	urlVal, err := url.ParseRequestURI(relayTo)
+	if err != nil {
+		return c.JSON(http.StatusNotAcceptable, err)
+	}
 	apiPr := &artemis_api_requests.ApiProxyRequest{
-		Url:        "https://hardhat.zeus.fyi/",
+		Url:        urlVal.String(),
 		Payload:    p.Body,
 		IsInternal: isInternal,
+		Timeout:    15 * time.Minute,
 	}
 	ctx := context.Background()
 	resp, err := artemis_api_requests.ArtemisProxyWorker.ExecuteArtemisApiProxyWorkflow(ctx, apiPr)

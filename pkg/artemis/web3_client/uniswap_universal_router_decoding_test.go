@@ -8,7 +8,6 @@ import (
 
 func (s *Web3ClientTestSuite) TestUniswapUniversalRouterDecoding() {
 	// needs to get txs sent to UR
-	// can lookup a tx hash on etherscan and get the input data
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	ForceDirToTestDirLocation()
 	uni := InitUniswapClient(ctx, s.MainnetWeb3User)

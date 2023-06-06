@@ -53,7 +53,16 @@ func GenerateSkeletonBaseChartsCopy(ctx context.Context, cd *zeus_cluster_config
 				return pcg, err
 			}
 			nk := tr.GetTopologyBaseInfraWorkload()
-			skeletonBase.Workload = topology_workloads.TopologyBaseInfraWorkload(nk)
+			skeletonBase.Workload = topology_workloads.TopologyBaseInfraWorkload{
+				Service:        nk.Service,
+				ConfigMap:      nk.ConfigMap,
+				Deployment:     nk.Deployment,
+				StatefulSet:    nk.StatefulSet,
+				Ingress:        nk.Ingress,
+				ServiceMonitor: nk.ServiceMonitor,
+				Job:            nk.Job,
+				CronJob:        nk.CronJob,
+			}
 			pcg.ComponentBases[cbName][sbName] = skeletonBase.Workload
 		}
 	}

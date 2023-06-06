@@ -94,7 +94,6 @@ func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error
 					return c.JSON(http.StatusBadRequest, nil)
 				}
 			}
-
 			if skeleton.StatefulSet != nil {
 				b, berr := json.Marshal(skeleton.StatefulSet)
 				if berr != nil {
@@ -107,12 +106,42 @@ func (t *TopologyCreateRequestFromUI) CreateTopologyFromUI(c echo.Context) error
 					return c.JSON(http.StatusBadRequest, nil)
 				}
 			}
-
+			if skeleton.Job != nil {
+				b, berr := json.Marshal(skeleton.Job)
+				if berr != nil {
+					log.Err(berr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+					return c.JSON(http.StatusBadRequest, berr)
+				}
+				err = nk.DecodeBytes(b)
+				if err != nil {
+					log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+					return c.JSON(http.StatusBadRequest, err)
+				}
+			}
+			if skeleton.CronJob != nil {
+				b, berr := json.Marshal(skeleton.CronJob)
+				if berr != nil {
+					log.Err(berr).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+					return c.JSON(http.StatusBadRequest, berr)
+				}
+				err = nk.DecodeBytes(b)
+				if err != nil {
+					log.Err(err).Interface("kubernetesWorkload", nk).Msg("TopologyActionCreateRequest: TopologyCreateRequestFromUI, CreateChartWorkloadFromTopologyBaseInfraWorkload")
+					return c.JSON(http.StatusBadRequest, err)
+				}
+			}
+			if nk.Job != nil && nk.CronJob != nil {
+				err = errors.New("cannot include both a job and cronjob, must only choose one per topology infra chart components")
+				return c.JSON(http.StatusBadRequest, err)
+			}
+			if (nk.Job != nil || nk.CronJob != nil) && (nk.Deployment != nil || nk.StatefulSet != nil) {
+				err = errors.New("cannot include both a job or cronjob with statefulset or deployment, must only choose one class type per infra chart package")
+				return c.JSON(http.StatusBadRequest, err)
+			}
 			if nk.StatefulSet != nil && nk.Deployment != nil {
 				err = errors.New("cannot include both a stateful set and deployment, must only choose one per topology infra chart components")
 				return c.JSON(http.StatusBadRequest, err)
 			}
-
 			if skeleton.Service != nil {
 				b, berr := json.Marshal(skeleton.Service)
 				if berr != nil {

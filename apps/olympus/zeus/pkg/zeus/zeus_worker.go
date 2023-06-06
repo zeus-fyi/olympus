@@ -45,6 +45,41 @@ func ExecuteDeployClusterWorkflow(c echo.Context, ctx context.Context, params ba
 	resp.Status = topology_deployment_status.DeployPending
 	return c.JSON(http.StatusAccepted, resp)
 }
+func ExecuteDeployCronJobWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDeploy kns.TopologyKubeCtxNs, nk chart_workload.TopologyBaseInfraWorkload, deployChoreographySecret bool, clusterName, secretRef string) error {
+	if nk.CronJob == nil && nk.ConfigMap == nil && nk.ServiceMonitor == nil {
+		log.Err(nil).Interface("orgUser", ou).Interface("topologyID", knsDeploy.TopologyID).Msg("ExecuteDeployCronJobWorkflow, payload is nil")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	tar := PackageCommonTopologyRequest(knsDeploy, ou, nk, deployChoreographySecret, clusterName, secretRef)
+	err := topology_worker.Worker.ExecuteDeployCronJob(ctx, tar)
+	if err != nil {
+		log.Err(err).Interface("orgUser", ou).Msg("DeployCronJob, ExecuteWorkflow error")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	resp := topology_deployment_status.NewTopologyStatus()
+	resp.DeployStatus.TopologyID = knsDeploy.TopologyID
+	resp.TopologyStatus = topology_deployment_status.DeployPending
+	resp.UpdatedAt = time.Now().UTC()
+	return c.JSON(http.StatusAccepted, resp.DeployStatus)
+}
+
+func ExecuteDeployJobWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDeploy kns.TopologyKubeCtxNs, nk chart_workload.TopologyBaseInfraWorkload, deployChoreographySecret bool, clusterName, secretRef string) error {
+	if nk.Job == nil && nk.ConfigMap == nil && nk.ServiceMonitor == nil {
+		log.Err(nil).Interface("orgUser", ou).Interface("topologyID", knsDeploy.TopologyID).Msg("ExecuteDeployJobWorkflow, payload is nil")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	tar := PackageCommonTopologyRequest(knsDeploy, ou, nk, deployChoreographySecret, clusterName, secretRef)
+	err := topology_worker.Worker.ExecuteDeployJob(ctx, tar)
+	if err != nil {
+		log.Err(err).Interface("orgUser", ou).Msg("DeployJob, ExecuteWorkflow error")
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	resp := topology_deployment_status.NewTopologyStatus()
+	resp.DeployStatus.TopologyID = knsDeploy.TopologyID
+	resp.TopologyStatus = topology_deployment_status.DeployPending
+	resp.UpdatedAt = time.Now().UTC()
+	return c.JSON(http.StatusAccepted, resp.DeployStatus)
+}
 
 func ExecuteDeployWorkflow(c echo.Context, ctx context.Context, ou org_users.OrgUser, knsDeploy kns.TopologyKubeCtxNs, nk chart_workload.TopologyBaseInfraWorkload, deployChoreographySecret bool, clusterName, secretRef string) error {
 	if nk.Service == nil && nk.Deployment == nil && nk.StatefulSet == nil && nk.ServiceMonitor == nil && nk.Ingress == nil && nk.ConfigMap == nil {

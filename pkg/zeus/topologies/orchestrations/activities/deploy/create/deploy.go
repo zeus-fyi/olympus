@@ -36,6 +36,8 @@ func (d *DeployTopologyActivities) GetActivities() ActivitiesSlice {
 		d.DeployServiceMonitor,
 		d.CreateChoreographySecret,
 		d.CreateSecret,
+		d.CreateJob,
+		d.CreateCronJob,
 	}
 }
 

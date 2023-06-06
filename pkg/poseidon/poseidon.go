@@ -32,6 +32,25 @@ type BucketRequest struct {
 	CompressionType string `json:"compressionType,omitempty"`
 }
 
+func GetBinBuildBucket(appName string) BucketRequest {
+	appName = strings.ToLower(appName)
+	b := BucketRequest{}
+	b.BucketName = appName
+	b.BucketKey = appName
+	b.CompressionType = "tar.lz4"
+	return b
+}
+
+func GetBinBuildBucketKey(appName string) string {
+	appName = strings.ToLower(appName)
+	b := BucketRequest{}
+	b.BucketName = appName
+	b.BucketKey = appName
+	b.CompressionType = "tar.lz4"
+	key := []string{b.BucketKey, b.CompressionType}
+	return strings.Join(key, ".")
+}
+
 func (b *BucketRequest) GetBucketKey() string {
 	key := []string{strings.ToLower(b.Protocol), strings.ToLower(b.Network), strings.ToLower(b.ClientType), strings.ToLower(b.ClientName)}
 	if len(b.CompressionType) == 0 {

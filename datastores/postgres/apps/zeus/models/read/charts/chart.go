@@ -10,12 +10,14 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/configuration"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/containers"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/jobs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/ingresses"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/servicemonitors"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulsets"
 	read_configuration "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/configuration"
 	read_deployments "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/deployments"
+	read_jobs "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/jobs"
 	read_networking "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/networking"
 	read_servicemonitors "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/servicemonitors"
 	read_statefulsets "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/read/statefulsets"
@@ -134,6 +136,26 @@ func (c *Chart) SelectSingleChartsResources(ctx context.Context, q sql_query_tem
 				if serr != nil {
 					log.Err(serr).Msg(q.LogHeader(ModelName))
 					return serr
+				}
+			}
+		case "Job":
+			if c.Job == nil {
+				j := jobs.NewJob()
+				c.Job = &j
+				jerr := read_jobs.DBJobResource(c.Job, ckagg)
+				if jerr != nil {
+					log.Err(jerr).Msg(q.LogHeader(ModelName))
+					return jerr
+				}
+			}
+		case "CronJob":
+			if c.CronJob == nil {
+				cj := jobs.NewCronJob()
+				c.CronJob = &cj
+				cjerr := read_jobs.DBCronJobResource(c.CronJob, ckagg)
+				if cjerr != nil {
+					log.Err(cjerr).Msg(q.LogHeader(ModelName))
+					return cjerr
 				}
 			}
 		}

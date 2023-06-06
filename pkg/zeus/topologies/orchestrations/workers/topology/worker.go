@@ -37,6 +37,38 @@ func (t *TopologyWorker) ExecuteDeployFleetUpgrade(ctx context.Context, params b
 	return err
 }
 
+func (t *TopologyWorker) ExecuteDeployCronJob(ctx context.Context, params base_deploy_params.TopologyWorkflowRequest) error {
+	c := t.ConnectTemporalClient()
+	defer c.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: t.TaskQueueName,
+	}
+	deployWf := deploy_workflow.NewDeployTopologyWorkflow()
+	wf := deployWf.DeployCronJobWorkflow
+	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
+	if err != nil {
+		log.Err(err).Msg("DeployCronJobWorkflow")
+		return err
+	}
+	return err
+}
+
+func (t *TopologyWorker) ExecuteDeployJob(ctx context.Context, params base_deploy_params.TopologyWorkflowRequest) error {
+	c := t.ConnectTemporalClient()
+	defer c.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: t.TaskQueueName,
+	}
+	deployWf := deploy_workflow.NewDeployTopologyWorkflow()
+	wf := deployWf.DeployJobWorkflow
+	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
+	if err != nil {
+		log.Err(err).Msg("ExecuteDeployJob")
+		return err
+	}
+	return err
+}
+
 func (t *TopologyWorker) ExecuteDeployCluster(ctx context.Context, params base_deploy_params.ClusterTopologyWorkflowRequest) error {
 	c := t.ConnectTemporalClient()
 	defer c.Close()
@@ -76,7 +108,7 @@ func (t *TopologyWorker) ExecuteDestroyDeploy(ctx context.Context, params base_d
 		TaskQueue: t.TaskQueueName,
 	}
 	deployDestroyWf := destroy_deployed_workflow.NewDestroyDeployTopologyWorkflow()
-	wf := deployDestroyWf.GetWorkflow()
+	wf := deployDestroyWf.DestroyDeployDeployment
 	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
 	if err != nil {
 		log.Err(err).Msg("ExecuteDestroyDeploy")

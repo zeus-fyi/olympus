@@ -43,7 +43,7 @@ func InitTopologyWorker(temporalAuthCfg temporal_auth.TemporalAuth) {
 
 	// workflows added
 	w.AddWorkflows(deployWf.GetWorkflows())
-	w.AddWorkflow(deployDestroyWf.GetWorkflow())
+	w.AddWorkflows(deployDestroyWf.GetWorkflows())
 	w.AddWorkflow(cleanDeployWf.GetWorkflow())
 	w.AddWorkflows(deployWfClusterSetup.GetWorkflows())
 	w.AddWorkflow(deployDestroyWfClusterSetup.GetWorkflow())

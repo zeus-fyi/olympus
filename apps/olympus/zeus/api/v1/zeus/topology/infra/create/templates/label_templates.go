@@ -42,6 +42,14 @@ func GetConfigMapName(ctx context.Context, name string) string {
 	return fmt.Sprintf("cm-%s", name)
 }
 
+func GetJobName(ctx context.Context, name string) string {
+	return fmt.Sprintf("job-%s", name)
+}
+
+func GetCronJobName(ctx context.Context, name string) string {
+	return fmt.Sprintf("cronjob-%s", name)
+}
+
 func GetSelector(ctx context.Context, name string) map[string]string {
 	labels := map[string]string{
 		"app.kubernetes.io/name":     name,

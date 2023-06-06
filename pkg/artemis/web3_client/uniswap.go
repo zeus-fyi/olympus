@@ -58,19 +58,20 @@ There is a 0.3% fee for swapping tokens. This fee is split by liquidity provider
 // TODO https://docs.uniswap.org/contracts/v2/reference/smart-contracts/router-02
 
 type UniswapV2Client struct {
-	mu                               sync.Mutex
-	Web3Client                       Web3Client
-	UniversalRouterSmartContractAddr string
-	FactorySmartContractAddr         string
-	RouterSmartContractAddr          string
-	PairAbi                          *abi.ABI
-	ERC20Abi                         *abi.ABI
-	FactoryAbi                       *abi.ABI
-	UniversalRouterAbi               *abi.ABI
-	PrintDetails                     bool
-	PrintOn                          bool
-	PrintLocal                       bool
-	DebugPrint                       bool
+	mu                                   sync.Mutex
+	Web3Client                           Web3Client
+	UniversalRouterSmartContractAddr     string
+	FactorySmartContractAddr             string
+	RouterSmartContractAddr              string
+	PairAbi                              *abi.ABI
+	ERC20Abi                             *abi.ABI
+	FactoryAbi                           *abi.ABI
+	UniversalRouterAbi                   *abi.ABI
+	PrintDetails                         bool
+	PrintOn                              bool
+	PrintLocal                           bool
+	DebugPrint                           bool
+	MevSmartContractTxMapUniversalRouter MevSmartContractTxMap
 	MevSmartContractTxMap
 	*TradeAnalysisReport
 	Path                                filepaths.Path
@@ -118,6 +119,12 @@ func InitUniswapClient(ctx context.Context, w Web3Client) UniswapV2Client {
 		ERC20Abi:                         erc20AbiFile,
 		PairAbi:                          pairAbiFile,
 		UniversalRouterAbi:               MustLoadUniversalRouterAbi(),
+		MevSmartContractTxMapUniversalRouter: MevSmartContractTxMap{
+			SmartContractAddr: UniswapUniversalRouterAddress,
+			Abi:               MustLoadUniversalRouterAbi(),
+			MethodTxMap:       map[string]MevTx{},
+			Txs:               []MevTx{},
+		},
 		MevSmartContractTxMap: MevSmartContractTxMap{
 			SmartContractAddr: UniswapV2RouterAddress,
 			Abi:               abiFile,

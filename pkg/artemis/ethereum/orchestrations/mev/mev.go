@@ -31,7 +31,7 @@ func InitUniswap(ctx context.Context, authHeader string) {
 	go ProcessMempoolTxs(ctx)
 }
 
-func InitNewUniHardhat(ctx context.Context) *web3_client.UniswapV2Client {
+func InitNewUniHardhat(ctx context.Context) *web3_client.UniswapClient {
 	wc := web3_client.NewWeb3ClientWithRelay(irisSvc, hardhatSvc, HardHatAccount)
 	m := map[string]string{
 		"Authorization": "Bearer " + AuthHeader,
@@ -43,7 +43,7 @@ func InitNewUniHardhat(ctx context.Context) *web3_client.UniswapV2Client {
 	return &uni
 }
 
-func InitNewUniswap(ctx context.Context) *web3_client.UniswapV2Client {
+func InitNewUniswap(ctx context.Context) *web3_client.UniswapClient {
 	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnet.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
 
 	m := map[string]string{
@@ -56,7 +56,7 @@ func InitNewUniswap(ctx context.Context) *web3_client.UniswapV2Client {
 	return &uni
 }
 
-func InitNewUniswapQuiknode(ctx context.Context) *web3_client.UniswapV2Client {
+func InitNewUniswapQuiknode(ctx context.Context) *web3_client.UniswapClient {
 	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnetQuiknode.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
 	uni := web3_client.InitUniswapClient(ctx, wc)
 	uni.PrintOn = true

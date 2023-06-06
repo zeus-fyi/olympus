@@ -158,7 +158,6 @@ func InsertCluster(ctx context.Context, tx pgx.Tx, sys *systems.Systems, cbMap z
 					return nil, err
 				}
 			}
-
 			if skeleton.Job != nil {
 				b, berr := json.Marshal(skeleton.Job)
 				if berr != nil {
@@ -187,7 +186,6 @@ func InsertCluster(ctx context.Context, tx pgx.Tx, sys *systems.Systems, cbMap z
 				err = errors.New("cannot include both a job and cronjob, must only choose one per topology infra chart components")
 				return nil, err
 			}
-
 			if (nk.Job != nil || nk.CronJob != nil) && (nk.Deployment != nil || nk.StatefulSet != nil) {
 				err = errors.New("cannot include both a job or cronjob with statefulset or deployment, must only choose one class type per infra chart package")
 				return nil, err

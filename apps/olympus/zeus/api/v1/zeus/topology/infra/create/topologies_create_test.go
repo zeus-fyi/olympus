@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/cookbooks"
 	olympus_hydra_cookbooks "github.com/zeus-fyi/olympus/cookbooks/olympus/ethereum/hydra"
+	hephaestus_olympus_cookbook "github.com/zeus-fyi/olympus/cookbooks/olympus/hephaestus"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/test"
@@ -17,6 +18,33 @@ type TopologyCreateActionRequestTestSuite struct {
 	test.TopologyActionRequestTestSuite
 	c conversions_test.ConversionsTestSuite
 	h hestia_test.BaseHestiaTestSuite
+}
+
+func (t *TopologyCreateActionRequestTestSuite) TestInternalChartUploadJobs() {
+	t.InitLocalConfigs()
+	t.Eg.POST("/infra/create", CreateTopologyInfraActionRequestHandler)
+
+	start := make(chan struct{}, 1)
+	go func() {
+		close(start)
+		_ = t.E.Start(":9010")
+	}()
+
+	<-start
+	ctx := context.Background()
+	defer t.E.Shutdown(ctx)
+
+	olympus_cookbooks.ChangeToCookbookDir()
+	cdCfg := hephaestus_olympus_cookbook.HephaestusClusterDefinition
+
+	bcs, err := cdCfg.GenerateSkeletonBaseCharts()
+	t.Require().Nil(err)
+
+	for _, bc := range bcs {
+		resp, uerr := t.ZeusClient.UploadChart(ctx, bc.SkeletonBaseNameChartPath, bc.SkeletonBaseChart)
+		t.Require().Nil(uerr)
+		t.Assert().NotEmpty(resp)
+	}
 }
 
 func (t *TopologyCreateActionRequestTestSuite) TestUploadWithSkeletonBaseName() {
@@ -70,7 +98,6 @@ func (t *TopologyCreateActionRequestTestSuite) TestInternalChartUpload() {
 		t.Require().Nil(uerr)
 		t.Assert().NotEmpty(resp)
 	}
-
 }
 
 func (t *TopologyCreateActionRequestTestSuite) TestUpload() {

@@ -30,7 +30,7 @@ func (j *Job) ConvertDBSpecToK8s(pcSlice []common_conversions.PC) error {
 		value := pc.ChartSubcomponentValue
 		switch subClassName {
 		case "JobSpec":
-			j.K8sJob = &v1Batch.Job{}
+			j.K8sJob = v1Batch.Job{}
 			err := json.Unmarshal([]byte(value), &j.K8sJob.Spec)
 			if err != nil {
 				log.Err(err)

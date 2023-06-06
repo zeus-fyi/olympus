@@ -79,7 +79,7 @@ func GetRawdawgSwapAbiBatchPayload(tradingSwapContractAddr string, rawDawgBatch 
 	return params
 }
 
-func (u *UniswapV2Client) ExecSmartContractTradingBatchSwap(tradingContractAddr string, params BatchRawDawgParams) (*types.Transaction, error) {
+func (u *UniswapClient) ExecSmartContractTradingBatchSwap(tradingContractAddr string, params BatchRawDawgParams) (*types.Transaction, error) {
 	scInfo := GetRawdawgSwapAbiBatchPayload(tradingContractAddr, params)
 	scInfo.MethodName = batchExecuteSwap
 	// TODO implement better gas estimation
@@ -95,7 +95,7 @@ func (u *UniswapV2Client) ExecSmartContractTradingBatchSwap(tradingContractAddr 
 	return signedTx, nil
 }
 
-func (u *UniswapV2Client) ExecSmartContractTradingSwap(tradingContractAddr string, pair UniswapV2Pair, to *TradeOutcome) (*types.Transaction, error) {
+func (u *UniswapClient) ExecSmartContractTradingSwap(tradingContractAddr string, pair UniswapV2Pair, to *TradeOutcome) (*types.Transaction, error) {
 	tokenNum := pair.GetTokenNumber(to.AmountInAddr)
 	scInfo := GetRawdawgSwapAbiPayload(tradingContractAddr, pair.PairContractAddr, to, tokenNum == 0)
 	// TODO implement better gas estimation

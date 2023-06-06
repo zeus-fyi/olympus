@@ -8,7 +8,7 @@ import (
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 )
 
-func (u *UniswapV2Client) GetAmounts(to TradeOutcome, method string) ([]interface{}, error) {
+func (u *UniswapClient) GetAmounts(to TradeOutcome, method string) ([]interface{}, error) {
 	switch method {
 	case getAmountsOut:
 		pathSlice := []string{to.AmountInAddr.String(), to.AmountOutAddr.String()}
@@ -26,7 +26,7 @@ func (u *UniswapV2Client) GetAmounts(to TradeOutcome, method string) ([]interfac
 	and using these to call getAmountIn.
 */
 
-func (u *UniswapV2Client) GetAmountsIn(amountOut *big.Int, pathSlice []string) ([]interface{}, error) {
+func (u *UniswapClient) GetAmountsIn(amountOut *big.Int, pathSlice []string) ([]interface{}, error) {
 	pathString := "[" + strings.Join(pathSlice, ",") + "]"
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: u.MevSmartContractTxMap.SmartContractAddr,
@@ -42,7 +42,7 @@ func (u *UniswapV2Client) GetAmountsIn(amountOut *big.Int, pathSlice []string) (
 	return amountsIn, err
 }
 
-func (u *UniswapV2Client) GetAmountsOut(amountIn *big.Int, pathSlice []string) ([]interface{}, error) {
+func (u *UniswapClient) GetAmountsOut(amountIn *big.Int, pathSlice []string) ([]interface{}, error) {
 	pathString := "[" + strings.Join(pathSlice, ",") + "]"
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: u.MevSmartContractTxMap.SmartContractAddr,

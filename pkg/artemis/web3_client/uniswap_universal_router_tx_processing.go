@@ -7,7 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (u *UniswapV2Client) ProcessUniversalRouterTxs(ctx context.Context) {
+func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 	u.Web3Client.Dial()
@@ -23,16 +23,15 @@ func (u *UniswapV2Client) ProcessUniversalRouterTxs(ctx context.Context) {
 	for methodName, tx := range u.MevSmartContractTxMapUniversalRouter.MethodTxMap {
 		switch methodName {
 		case V3SwapExactIn:
-			fmt.Println(tx)
+			u.V3SwapExactIn(tx, tx.Args)
 		case V3SwapExactOut:
+			u.V3SwapExactOut(tx, tx.Args)
 		case V2SwapExactIn:
+			u.V2SwapExactIn(tx, tx.Args)
 		case V2SwapExactOut:
-		case Permit2TransferFrom:
-		case Permit2PermitBatch:
-		case Permit2TransferFromBatch:
+			u.V2SwapExactOut(tx, tx.Args)
 		default:
 		}
-
 	}
 	fmt.Println("totalFilteredCount:", count)
 }

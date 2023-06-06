@@ -2,7 +2,7 @@ package web3_client
 
 import "math/big"
 
-func (u *UniswapV2Client) TradeSim(tf TradeExecutionFlowInBigInt) (*big.Int, *big.Int) {
+func (u *UniswapClient) TradeSim(tf TradeExecutionFlowInBigInt) (*big.Int, *big.Int) {
 	sellAmount := big.NewInt(0)
 	maxProfit := big.NewInt(0)
 	startOffset := big.NewInt(1000000000000)
@@ -25,7 +25,7 @@ func (u *UniswapV2Client) TradeSim(tf TradeExecutionFlowInBigInt) (*big.Int, *bi
 	return sellAmount, maxProfit
 }
 
-func (u *UniswapV2Client) TradeSimStep(tf TradeExecutionFlowInBigInt) *big.Int {
+func (u *UniswapClient) TradeSimStep(tf TradeExecutionFlowInBigInt) *big.Int {
 	pair := tf.InitialPair
 	//fmt.Println("frontRunAmountIn", tf.FrontRunTrade.AmountIn)
 	frontRunTradeOutcome, _ := pair.PriceImpact(tf.FrontRunTrade.AmountInAddr, tf.FrontRunTrade.AmountIn)

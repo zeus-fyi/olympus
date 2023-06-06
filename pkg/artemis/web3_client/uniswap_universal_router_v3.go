@@ -38,6 +38,8 @@ type JSONV3SwapExactInParams struct {
 	InputFromSender bool               `json:"inputFromSender"`
 }
 
+func (u *UniswapClient) V3SwapExactIn(tx MevTx, args map[string]interface{}) {}
+
 func (s *JSONV3SwapExactInParams) ConvertToBigIntType() *V3SwapExactInParams {
 	amountIn, _ := new(big.Int).SetString(s.AmountIn, 10)
 	amountOutMin, _ := new(big.Int).SetString(s.AmountOutMin, 10)
@@ -84,6 +86,8 @@ type JSONV3SwapExactOutParams struct {
 	To              accounts.Address   `json:"to"`
 	InputFromSender bool               `json:"inputFromSender"`
 }
+
+func (u *UniswapClient) V3SwapExactOut(tx MevTx, args map[string]interface{}) {}
 
 func (s *JSONV3SwapExactOutParams) ConvertToBigIntType() *V3SwapExactOutParams {
 	amountInMax, _ := new(big.Int).SetString(s.AmountInMax, 10)

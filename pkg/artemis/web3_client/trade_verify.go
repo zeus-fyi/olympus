@@ -26,7 +26,7 @@ Rx Block Number: 17390767
 End Reason: user trade amount out mismatch
 */
 
-func (u *UniswapV2Client) VerifyTradeResults(tf *TradeExecutionFlowInBigInt) error {
+func (u *UniswapClient) VerifyTradeResults(tf *TradeExecutionFlowInBigInt) error {
 	if u.DebugPrint {
 		fmt.Println("verifying full sandwich trade")
 	}

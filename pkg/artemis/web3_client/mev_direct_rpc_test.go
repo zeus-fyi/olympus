@@ -6,5 +6,5 @@ func (s *Web3ClientTestSuite) TestMevTxFilter() {
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(txMap)
 	uni.MevSmartContractTxMap = txMap
-	uni.ProcessTxs(ctx)
+	uni.ProcessV2Txs(ctx)
 }

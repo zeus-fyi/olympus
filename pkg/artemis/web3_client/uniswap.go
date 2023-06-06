@@ -77,7 +77,7 @@ type UniswapClient struct {
 	Path                                filepaths.Path
 	BlockNumber                         *big.Int
 	Trades                              []artemis_autogen_bases.EthMempoolMevTx
-	chronus                             chronos.Chronos
+	chronos                             chronos.Chronos
 	SwapExactTokensForTokensParamsSlice []SwapExactTokensForTokensParams
 	SwapTokensForExactTokensParamsSlice []SwapTokensForExactTokensParams
 	SwapExactETHForTokensParamsSlice    []SwapExactETHForTokensParams
@@ -111,7 +111,7 @@ func InitUniswapClient(ctx context.Context, w Web3Client) UniswapClient {
 	}
 	return UniswapClient{
 		Web3Client:                       w,
-		chronus:                          chronos.Chronos{},
+		chronos:                          chronos.Chronos{},
 		FactorySmartContractAddr:         UniswapV2FactoryAddress,
 		RouterSmartContractAddr:          UniswapV2RouterAddress,
 		UniversalRouterSmartContractAddr: UniswapUniversalRouterAddress,

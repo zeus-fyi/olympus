@@ -81,3 +81,22 @@ func (s *S3ClientUploader) CheckIfKeyExists(ctx context.Context, s3KeyValue *s3.
 	}
 	return true, nil
 }
+
+func (s *S3ClientUploader) UploadBuildBinary(ctx context.Context, p filepaths.Path, s3KeyValue *s3.PutObjectInput) error {
+	f, err := p.OpenFileInPath()
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("S3ClientUploader:  UploadBuildBinary, p.OpenFileInPath()")
+		return err
+	}
+	defer f.Close()
+	s3KeyValue.Body = f
+	uploader := manager.NewUploader(s.AwsS3Client)
+	_, err = uploader.Upload(ctx, s3KeyValue, func(u *manager.Uploader) {
+		u.LeavePartsOnError = true // Don't delete the parts if the upload fails.
+	})
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("S3ClientUploader: UploadBuildBinary, uploader.Upload(ctx, s3KeyValue)")
+		return err
+	}
+	return err
+}

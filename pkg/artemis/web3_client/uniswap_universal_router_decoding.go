@@ -11,3 +11,8 @@ package web3_client
 0x0a	PERMIT2_PERMIT
 0x0d	PERMIT2_TRANSFER_FROM_BATCH
 */
+
+func (u *UniswapClient) DecodeUniversalRouterMessage() {
+	// TODO
+	// get command from bytes
+}

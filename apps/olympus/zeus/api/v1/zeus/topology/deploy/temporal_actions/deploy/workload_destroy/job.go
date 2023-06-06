@@ -11,7 +11,7 @@ import (
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
 
-func DestroyDeployJobHandler(c echo.Context) error {
+func DestroyJobHandler(c echo.Context) error {
 	ctx := context.Background()
 	request := new(base_request.InternalDeploymentActionRequest)
 	if err := c.Bind(request); err != nil {
@@ -20,7 +20,7 @@ func DestroyDeployJobHandler(c echo.Context) error {
 	if request.Job != nil {
 		err := zeus.K8Util.DeleteJob(ctx, request.Kns.CloudCtxNs, request.Job.Name)
 		if err != nil {
-			log.Err(err).Msg("DestroyDeployJobHandler")
+			log.Err(err).Msg("DestroyJobHandler")
 			return c.JSON(http.StatusInternalServerError, err)
 		}
 	} else {

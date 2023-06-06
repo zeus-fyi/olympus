@@ -11,7 +11,7 @@ import (
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 )
 
-func DestroyDeployCronJobHandler(c echo.Context) error {
+func DestroyCronJobHandler(c echo.Context) error {
 	ctx := context.Background()
 	request := new(base_request.InternalDeploymentActionRequest)
 	if err := c.Bind(request); err != nil {
@@ -20,7 +20,7 @@ func DestroyDeployCronJobHandler(c echo.Context) error {
 	if request.CronJob != nil {
 		err := zeus.K8Util.DeleteCronJob(ctx, request.Kns.CloudCtxNs, request.CronJob.Name)
 		if err != nil {
-			log.Err(err).Msg("DestroyDeployCronJobHandler")
+			log.Err(err).Msg("DestroyCronJobHandler")
 			return c.JSON(http.StatusInternalServerError, err)
 		}
 	} else {

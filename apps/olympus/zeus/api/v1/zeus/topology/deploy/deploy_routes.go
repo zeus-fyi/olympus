@@ -77,8 +77,8 @@ func InternalDeployRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group 
 
 func InternalDeployDestroyRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
-	e.POST("/deploy/destroy/cronjob", internal_destroy_deploy.DestroyDeployCronJobHandler)
-	e.POST("/deploy/destroy/job", internal_destroy_deploy.DestroyDeployJobHandler)
+	e.POST("/deploy/destroy/cronjob", internal_destroy_deploy.DestroyCronJobHandler)
+	e.POST("/deploy/destroy/job", internal_destroy_deploy.DestroyJobHandler)
 	e.POST("/deploy/destroy/namespace", internal_destroy_deploy.DestroyDeployNamespaceHandler)
 	e.POST("/deploy/destroy/deployment", internal_destroy_deploy.DestroyDeployDeploymentHandler)
 	e.POST("/deploy/destroy/statefulset", internal_destroy_deploy.DestroyDeployStatefulSetHandler)

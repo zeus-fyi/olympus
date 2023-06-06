@@ -9,7 +9,7 @@ import (
 )
 
 type Job struct {
-	K8sJob         *v1Batch.Job
+	K8sJob         v1Batch.Job
 	KindDefinition autogen_bases.ChartComponentResources
 
 	Metadata structs.ParentMetaData
@@ -29,7 +29,7 @@ func NewJob() Job {
 		Kind:       "Job",
 		APIVersion: "batch/v1",
 	}
-	j.K8sJob = &v1Batch.Job{TypeMeta: typeMeta}
+	j.K8sJob = v1Batch.Job{TypeMeta: typeMeta}
 	j.KindDefinition = autogen_bases.ChartComponentResources{
 		ChartComponentKindName:   "Job",
 		ChartComponentApiVersion: "batch/v1",

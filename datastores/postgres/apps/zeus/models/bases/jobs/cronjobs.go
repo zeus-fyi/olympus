@@ -11,7 +11,7 @@ import (
 const CronJobChartComponentResourceID = 7
 
 type CronJob struct {
-	K8sCronJob     *v1Batch.CronJob
+	K8sCronJob     v1Batch.CronJob
 	KindDefinition autogen_bases.ChartComponentResources
 
 	Metadata structs.ParentMetaData
@@ -29,7 +29,7 @@ func NewCronJob() CronJob {
 		Kind:       "CronJob",
 		APIVersion: "batch/v1",
 	}
-	cj.K8sCronJob = &v1Batch.CronJob{TypeMeta: typeMeta}
+	cj.K8sCronJob = v1Batch.CronJob{TypeMeta: typeMeta}
 	cj.KindDefinition = autogen_bases.ChartComponentResources{
 		ChartComponentKindName:   "CronJob",
 		ChartComponentApiVersion: "batch/v1",

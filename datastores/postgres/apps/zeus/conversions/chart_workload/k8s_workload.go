@@ -91,11 +91,21 @@ func (nk *TopologyBaseInfraWorkload) CreateChartWorkloadFromTopologyBaseInfraWor
 	}
 	if nk.Job != nil {
 		j := jobs.NewJob()
-		j.K8sJob = nk.Job
+		j.K8sJob = *nk.Job
+		err := j.ConvertK8sJobSpecToDB()
+		if err != nil {
+			return cw, err
+		}
+		cw.Job = &j
 	}
 	if nk.CronJob != nil {
-		j := jobs.NewCronJob()
-		j.K8sCronJob = nk.CronJob
+		cj := jobs.NewCronJob()
+		cj.K8sCronJob = *nk.CronJob
+		err := cj.ConvertK8sCronJobSpecToDB()
+		if err != nil {
+			return cw, err
+		}
+		cw.CronJob = &cj
 	}
 	return cw, nil
 }

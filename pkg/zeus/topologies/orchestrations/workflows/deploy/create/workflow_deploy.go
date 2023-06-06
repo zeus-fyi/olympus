@@ -29,7 +29,7 @@ func NewDeployTopologyWorkflow() DeployTopologyWorkflow {
 }
 
 func (t *DeployTopologyWorkflow) GetWorkflows() []interface{} {
-	return []interface{}{t.DeployTopologyWorkflow, t.DeployClusterTopologyWorkflow}
+	return []interface{}{t.DeployTopologyWorkflow, t.DeployClusterTopologyWorkflow, t.DeployCronJobWorkflow, t.DeployJobWorkflow}
 }
 
 func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, params base_deploy_params.TopologyWorkflowRequest) error {

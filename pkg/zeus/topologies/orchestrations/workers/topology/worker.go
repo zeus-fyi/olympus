@@ -76,7 +76,7 @@ func (t *TopologyWorker) ExecuteDestroyDeploy(ctx context.Context, params base_d
 		TaskQueue: t.TaskQueueName,
 	}
 	deployDestroyWf := destroy_deployed_workflow.NewDestroyDeployTopologyWorkflow()
-	wf := deployDestroyWf.GetWorkflow()
+	wf := deployDestroyWf.DestroyDeployDeployment
 	_, err := c.ExecuteWorkflow(ctx, workflowOptions, wf, params)
 	if err != nil {
 		log.Err(err).Msg("ExecuteDestroyDeploy")

@@ -123,6 +123,6 @@ func (d *ArtemisMevActivities) ProcessMempoolTxs(ctx context.Context, mempoolTxs
 		return nil, err
 	}
 	uni.MevSmartContractTxMap = processedMevTxMap
-	uni.ProcessTxs(ctx)
+	uni.ProcessV2Txs(ctx)
 	return uni.Trades, nil
 }

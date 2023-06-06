@@ -29,7 +29,7 @@ func (s *Web3ClientTestSuite) TestRawMempoolTxFilter() {
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(txMap)
 	uni.MevSmartContractTxMap = txMap
-	uni.ProcessTxs(ctx)
+	uni.ProcessV2Txs(ctx)
 	count := len(uni.SwapExactTokensForTokensParamsSlice)
 	fmt.Println("Total SwapExactTokensForTokensParamsSlice found", len(uni.SwapExactTokensForTokensParamsSlice))
 	count += len(uni.SwapTokensForExactTokensParamsSlice)
@@ -43,13 +43,4 @@ func (s *Web3ClientTestSuite) TestRawMempoolTxFilter() {
 	count += len(uni.SwapETHForExactTokensParamsSlice)
 	fmt.Println("Total SwapETHForExactTokensParamsSlice found", len(uni.SwapETHForExactTokensParamsSlice))
 	fmt.Println("Total trades found", count)
-}
-
-func (s *Web3ClientTestSuite) TestMevTxFilter() {
-	uni := InitUniswapClient(ctx, s.MainnetWeb3User)
-	txMap, err := s.MainnetWeb3User.GetFilteredPendingMempoolTxs(ctx, uni.MevSmartContractTxMap)
-	s.Require().Nil(err)
-	s.Assert().NotEmpty(txMap)
-	uni.MevSmartContractTxMap = txMap
-	uni.ProcessTxs(ctx)
 }

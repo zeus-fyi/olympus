@@ -7,7 +7,7 @@ import (
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 )
 
-func (u *UniswapV2Client) GetPairContractFromFactory(ctx context.Context, addressOne, addressTwo string) accounts.Address {
+func (u *UniswapClient) GetPairContractFromFactory(ctx context.Context, addressOne, addressTwo string) accounts.Address {
 	addrOne, addrTwo := StringsToAddresses(addressOne, addressTwo)
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: UniswapV2FactoryAddress,

@@ -7,7 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (u *UniswapV2Client) SimFullSandwichTrade(tf *TradeExecutionFlowInBigInt) error {
+func (u *UniswapClient) SimFullSandwichTrade(tf *TradeExecutionFlowInBigInt) error {
 	if u.DebugPrint {
 		fmt.Println("executing full sandwich trade")
 	}
@@ -52,7 +52,7 @@ func (u *UniswapV2Client) SimFullSandwichTrade(tf *TradeExecutionFlowInBigInt) e
 	return u.MarkEndOfSimDueToErr(nil)
 }
 
-func (u *UniswapV2Client) SimFrontRunTradeOnly(tf *TradeExecutionFlowInBigInt) error {
+func (u *UniswapClient) SimFrontRunTradeOnly(tf *TradeExecutionFlowInBigInt) error {
 	err := u.Web3Client.MatchFrontRunTradeValues(tf)
 	if err != nil {
 		log.Err(err).Msg("error executing front run balance setup")
@@ -93,7 +93,7 @@ func (u *UniswapV2Client) SimFrontRunTradeOnly(tf *TradeExecutionFlowInBigInt) e
 	return err
 }
 
-func (u *UniswapV2Client) SimUserOnlyTrade(tf *TradeExecutionFlowInBigInt) error {
+func (u *UniswapClient) SimUserOnlyTrade(tf *TradeExecutionFlowInBigInt) error {
 	if u.DebugPrint {
 		fmt.Println("executing stand alone user trade")
 	}

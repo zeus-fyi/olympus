@@ -109,7 +109,7 @@ type TradeFailureReport struct {
 	EndStage  string `json:"end_stage"`
 }
 
-func (u *UniswapV2Client) RunHistoricalTradeAnalysis(ctx context.Context, tfStr string, liveNetworkClient Web3Client) error {
+func (u *UniswapClient) RunHistoricalTradeAnalysis(ctx context.Context, tfStr string, liveNetworkClient Web3Client) error {
 	u.TradeAnalysisReport = &TradeAnalysisReport{}
 	tfJSON, err := UnmarshalTradeExecutionFlow(tfStr)
 	if err != nil {
@@ -144,7 +144,7 @@ func (u *UniswapV2Client) RunHistoricalTradeAnalysis(ctx context.Context, tfStr 
 	return nil
 }
 
-func (u *UniswapV2Client) CheckBlockRxAndNetworkReset(tf *TradeExecutionFlowInBigInt, liveNetworkClient Web3Client) (int, error) {
+func (u *UniswapClient) CheckBlockRxAndNetworkReset(tf *TradeExecutionFlowInBigInt, liveNetworkClient Web3Client) (int, error) {
 	rx, err := liveNetworkClient.GetTxReceipt(ctx, tf.Tx.Hash())
 	if err != nil {
 		return -1, err
@@ -162,7 +162,7 @@ func (u *UniswapV2Client) CheckBlockRxAndNetworkReset(tf *TradeExecutionFlowInBi
 	return currentBlockNum, nil
 }
 
-func (u *UniswapV2Client) CheckExpectedReserves(tf *TradeExecutionFlowInBigInt) error {
+func (u *UniswapClient) CheckExpectedReserves(tf *TradeExecutionFlowInBigInt) error {
 	pairAddr := tf.InitialPair.PairContractAddr
 	simPair, err := u.GetPairContractPrices(ctx, pairAddr)
 	if err != nil {

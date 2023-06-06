@@ -145,7 +145,7 @@ func (p *UniswapV2Pair) GetTokenNumber(addr accounts.Address) int {
 	return -1
 }
 
-func (u *UniswapV2Client) GetPairContractPrices(ctx context.Context, pairContractAddr string) (UniswapV2Pair, error) {
+func (u *UniswapClient) GetPairContractPrices(ctx context.Context, pairContractAddr string) (UniswapV2Pair, error) {
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: pairContractAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
@@ -213,7 +213,7 @@ func (u *UniswapV2Client) GetPairContractPrices(ctx context.Context, pairContrac
 	return pairInfo, nil
 }
 
-func (u *UniswapV2Client) SingleReadMethodBigInt(ctx context.Context, methodName string, scInfo *web3_actions.SendContractTxPayload) (*big.Int, error) {
+func (u *UniswapClient) SingleReadMethodBigInt(ctx context.Context, methodName string, scInfo *web3_actions.SendContractTxPayload) (*big.Int, error) {
 	scInfo.MethodName = methodName
 	resp, err := u.Web3Client.CallConstantFunction(ctx, scInfo)
 	if err != nil {
@@ -229,7 +229,7 @@ func (u *UniswapV2Client) SingleReadMethodBigInt(ctx context.Context, methodName
 	return bi, nil
 }
 
-func (u *UniswapV2Client) SingleReadMethodAddr(ctx context.Context, methodName string, scInfo *web3_actions.SendContractTxPayload) (accounts.Address, error) {
+func (u *UniswapClient) SingleReadMethodAddr(ctx context.Context, methodName string, scInfo *web3_actions.SendContractTxPayload) (accounts.Address, error) {
 	scInfo.MethodName = methodName
 	resp, err := u.Web3Client.CallConstantFunction(ctx, scInfo)
 	if err != nil {

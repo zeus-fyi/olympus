@@ -57,26 +57,27 @@ There is a 0.3% fee for swapping tokens. This fee is split by liquidity provider
 
 // TODO https://docs.uniswap.org/contracts/v2/reference/smart-contracts/router-02
 
-type UniswapV2Client struct {
-	mu                               sync.Mutex
-	Web3Client                       Web3Client
-	UniversalRouterSmartContractAddr string
-	FactorySmartContractAddr         string
-	RouterSmartContractAddr          string
-	PairAbi                          *abi.ABI
-	ERC20Abi                         *abi.ABI
-	FactoryAbi                       *abi.ABI
-	UniversalRouterAbi               *abi.ABI
-	PrintDetails                     bool
-	PrintOn                          bool
-	PrintLocal                       bool
-	DebugPrint                       bool
+type UniswapClient struct {
+	mu                                   sync.Mutex
+	Web3Client                           Web3Client
+	UniversalRouterSmartContractAddr     string
+	FactorySmartContractAddr             string
+	RouterSmartContractAddr              string
+	PairAbi                              *abi.ABI
+	ERC20Abi                             *abi.ABI
+	FactoryAbi                           *abi.ABI
+	UniversalRouterAbi                   *abi.ABI
+	PrintDetails                         bool
+	PrintOn                              bool
+	PrintLocal                           bool
+	DebugPrint                           bool
+	MevSmartContractTxMapUniversalRouter MevSmartContractTxMap
 	MevSmartContractTxMap
 	*TradeAnalysisReport
 	Path                                filepaths.Path
 	BlockNumber                         *big.Int
 	Trades                              []artemis_autogen_bases.EthMempoolMevTx
-	chronus                             chronos.Chronos
+	chronos                             chronos.Chronos
 	SwapExactTokensForTokensParamsSlice []SwapExactTokensForTokensParams
 	SwapTokensForExactTokensParamsSlice []SwapTokensForExactTokensParams
 	SwapExactETHForTokensParamsSlice    []SwapExactETHForTokensParams
@@ -85,7 +86,7 @@ type UniswapV2Client struct {
 	SwapETHForExactTokensParamsSlice    []SwapETHForExactTokensParams
 }
 
-func InitUniswapClient(ctx context.Context, w Web3Client) UniswapV2Client {
+func InitUniswapClient(ctx context.Context, w Web3Client) UniswapClient {
 	abiFile, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniswapV2RouterABI))
 	if err != nil {
 		panic(err)
@@ -108,9 +109,9 @@ func InitUniswapClient(ctx context.Context, w Web3Client) UniswapV2Client {
 		Contains:              "",
 		DoesNotInclude:        []string{"supportingFeeOnTransferTokens"},
 	}
-	return UniswapV2Client{
+	return UniswapClient{
 		Web3Client:                       w,
-		chronus:                          chronos.Chronos{},
+		chronos:                          chronos.Chronos{},
 		FactorySmartContractAddr:         UniswapV2FactoryAddress,
 		RouterSmartContractAddr:          UniswapV2RouterAddress,
 		UniversalRouterSmartContractAddr: UniswapUniversalRouterAddress,
@@ -118,6 +119,12 @@ func InitUniswapClient(ctx context.Context, w Web3Client) UniswapV2Client {
 		ERC20Abi:                         erc20AbiFile,
 		PairAbi:                          pairAbiFile,
 		UniversalRouterAbi:               MustLoadUniversalRouterAbi(),
+		MevSmartContractTxMapUniversalRouter: MevSmartContractTxMap{
+			SmartContractAddr: UniswapUniversalRouterAddress,
+			Abi:               MustLoadUniversalRouterAbi(),
+			MethodTxMap:       map[string]MevTx{},
+			Txs:               []MevTx{},
+		},
 		MevSmartContractTxMap: MevSmartContractTxMap{
 			SmartContractAddr: UniswapV2RouterAddress,
 			Abi:               abiFile,
@@ -135,7 +142,7 @@ func InitUniswapClient(ctx context.Context, w Web3Client) UniswapV2Client {
 	}
 }
 
-func (u *UniswapV2Client) GetAllTradeMethods() []string {
+func (u *UniswapClient) GetAllTradeMethods() []string {
 	return []string{
 		addLiquidity,
 		addLiquidityETH,
@@ -152,7 +159,7 @@ func (u *UniswapV2Client) GetAllTradeMethods() []string {
 	}
 }
 
-func (u *UniswapV2Client) ProcessTxs(ctx context.Context) {
+func (u *UniswapClient) ProcessV2Txs(ctx context.Context) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 	u.Web3Client.Dial()
@@ -214,7 +221,7 @@ func (u *UniswapV2Client) ProcessTxs(ctx context.Context) {
 	fmt.Println("totalFilteredCount:", count)
 }
 
-func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, pair UniswapV2Pair, tokenAddr string, amount, amountMin *big.Int) {
+func (u *UniswapClient) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, pair UniswapV2Pair, tokenAddr string, amount, amountMin *big.Int) {
 	tf.Tx = tx.Tx
 	u.Web3Client.Dial()
 	defer u.Web3Client.Close()
@@ -306,7 +313,7 @@ func (u *UniswapV2Client) PrintTradeSummaries(tx MevTx, tf TradeExecutionFlow, p
 	return
 }
 
-func (u *UniswapV2Client) SwapExactTokensForTokens(tx MevTx, args map[string]interface{}) {
+func (u *UniswapClient) SwapExactTokensForTokens(tx MevTx, args map[string]interface{}) {
 	amountIn, err := ParseBigInt(args["amountIn"])
 	if err != nil {
 		return
@@ -350,7 +357,7 @@ func (u *UniswapV2Client) SwapExactTokensForTokens(tx MevTx, args map[string]int
 	u.SwapExactTokensForTokensParamsSlice = append(u.SwapExactTokensForTokensParamsSlice, st)
 }
 
-func (u *UniswapV2Client) PairToPrices(ctx context.Context, pairAddr []accounts.Address) (UniswapV2Pair, error) {
+func (u *UniswapClient) PairToPrices(ctx context.Context, pairAddr []accounts.Address) (UniswapV2Pair, error) {
 	if len(pairAddr) == 2 {
 		pairContractAddr := u.GetPairContractFromFactory(ctx, pairAddr[0].String(), pairAddr[1].String())
 		return u.GetPairContractPrices(ctx, pairContractAddr.String())
@@ -358,7 +365,7 @@ func (u *UniswapV2Client) PairToPrices(ctx context.Context, pairAddr []accounts.
 	return UniswapV2Pair{}, errors.New("pair address length is not 2")
 }
 
-func (u *UniswapV2Client) SwapTokensForExactTokens(tx MevTx, args map[string]interface{}) {
+func (u *UniswapClient) SwapTokensForExactTokens(tx MevTx, args map[string]interface{}) {
 	amountOut, err := ParseBigInt(args["amountOut"])
 	if err != nil {
 		return
@@ -402,7 +409,7 @@ func (u *UniswapV2Client) SwapTokensForExactTokens(tx MevTx, args map[string]int
 	u.SwapTokensForExactTokensParamsSlice = append(u.SwapTokensForExactTokensParamsSlice, st)
 }
 
-func (u *UniswapV2Client) SwapExactETHForTokens(tx MevTx, args map[string]interface{}, payableEth *big.Int) {
+func (u *UniswapClient) SwapExactETHForTokens(tx MevTx, args map[string]interface{}, payableEth *big.Int) {
 	amountOutMin, err := ParseBigInt(args["amountOutMin"])
 	if err != nil {
 		return
@@ -443,7 +450,7 @@ func (u *UniswapV2Client) SwapExactETHForTokens(tx MevTx, args map[string]interf
 	u.SwapExactETHForTokensParamsSlice = append(u.SwapExactETHForTokensParamsSlice, st)
 }
 
-func (u *UniswapV2Client) SwapTokensForExactETH(tx MevTx, args map[string]interface{}) {
+func (u *UniswapClient) SwapTokensForExactETH(tx MevTx, args map[string]interface{}) {
 	amountOut, err := ParseBigInt(args["amountOut"])
 	if err != nil {
 		return
@@ -487,7 +494,7 @@ func (u *UniswapV2Client) SwapTokensForExactETH(tx MevTx, args map[string]interf
 	u.SwapTokensForExactETHParamsSlice = append(u.SwapTokensForExactETHParamsSlice, st)
 }
 
-func (u *UniswapV2Client) SwapExactTokensForETH(tx MevTx, args map[string]interface{}) {
+func (u *UniswapClient) SwapExactTokensForETH(tx MevTx, args map[string]interface{}) {
 	amountIn, err := ParseBigInt(args["amountIn"])
 	if err != nil {
 		return
@@ -531,7 +538,7 @@ func (u *UniswapV2Client) SwapExactTokensForETH(tx MevTx, args map[string]interf
 	u.SwapExactTokensForETHParamsSlice = append(u.SwapExactTokensForETHParamsSlice, st)
 }
 
-func (u *UniswapV2Client) SwapETHForExactTokens(tx MevTx, args map[string]interface{}, payableEth *big.Int) {
+func (u *UniswapClient) SwapETHForExactTokens(tx MevTx, args map[string]interface{}, payableEth *big.Int) {
 	amountOut, err := ParseBigInt(args["amountOut"])
 	if err != nil {
 		return

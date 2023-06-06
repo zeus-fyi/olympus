@@ -25,6 +25,12 @@ bytes The signature to provide to Permit2
 The individual that signed the permits must be the msg.sender of the transaction
 */
 
+const (
+	Permit2TransferFrom      = "PERMIT2_TRANSFER_FROM"
+	Permit2PermitBatch       = "PERMIT2_PERMIT_BATCH"
+	Permit2TransferFromBatch = "PERMIT2_TRANSFER_FROM_BATCH"
+)
+
 type Permit2PermitTransferFrom struct {
 	TokenAddr accounts.Address `json:"tokenAddr"`
 	Recipient accounts.Address `json:"recipient"`

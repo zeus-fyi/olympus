@@ -188,7 +188,7 @@ func InsertCluster(ctx context.Context, tx pgx.Tx, sys *systems.Systems, cbMap z
 				return nil, err
 			}
 
-			if (nk.Job != nil || nk.CronJob != nil) && nk.Deployment != nil || nk.StatefulSet != nil {
+			if (nk.Job != nil || nk.CronJob != nil) && (nk.Deployment != nil || nk.StatefulSet != nil) {
 				err = errors.New("cannot include both a job or cronjob with statefulset or deployment, must only choose one class type per infra chart package")
 				return nil, err
 			}

@@ -29,4 +29,5 @@ func (s *Web3ClientTestSuite) TestUniswapUniversalRouterDecoding() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(mn)
 	s.Require().NotEmpty(args)
+	NewDecodedUniversalRouterExecCmdFromMap(args)
 }

@@ -26,6 +26,7 @@ The individual that signed the permits must be the msg.sender of the transaction
 */
 
 const (
+	Permit2Permit            = "PERMIT2_PERMIT"
 	Permit2TransferFrom      = "PERMIT2_TRANSFER_FROM"
 	Permit2PermitBatch       = "PERMIT2_PERMIT_BATCH"
 	Permit2TransferFromBatch = "PERMIT2_TRANSFER_FROM_BATCH"
@@ -37,7 +38,7 @@ type Permit2PermitTransferFrom struct {
 	Amount    *big.Int         `json:"amount"`
 }
 
-type Permit2Permit struct {
+type Permit2PermitVal struct {
 	Permit2PermitTransferFrom
 	Signature []byte `json:"signature"`
 }

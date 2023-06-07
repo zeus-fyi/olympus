@@ -92,7 +92,6 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 	//ref := (data & 0x60) >> 5  // extract bits 6-5
 	cmd := data & 0x1F // extract bits 4-0
 
-	fmt.Println("flag", Permit2AbiDecoder.Methods)
 	switch cmd {
 	case V3_SWAP_EXACT_IN:
 		ur.Command = V3SwapExactIn
@@ -127,6 +126,15 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 		}
 		ur.DecodedInputs = params
 		ur.Command = V2SwapExactOut
+	case PERMIT2_TRANSFER_FROM_BATCH:
+		// TODO
+		params := Permit2PermitTransferFromBatchParams{}
+		err = params.Decode(ctx, ur.Inputs)
+		if err != nil {
+			return err
+		}
+		ur.DecodedInputs = params
+		ur.Command = Permit2TransferFromBatch
 	case PERMIT2_TRANSFER_FROM:
 		params := Permit2PermitTransferFromParams{}
 		err = params.Decode(ctx, ur.Inputs)
@@ -136,6 +144,7 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 		ur.DecodedInputs = params
 		ur.Command = Permit2TransferFrom
 	case PERMIT2_PERMIT_BATCH:
+		// TODO
 		ur.Command = Permit2PermitBatch
 	case PERMIT2_PERMIT:
 		params := Permit2PermitParams{}

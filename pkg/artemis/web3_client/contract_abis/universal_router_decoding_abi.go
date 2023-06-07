@@ -190,6 +190,43 @@ const UniversalRouterDecodingAbi = `
       "type": "address"
     },
     {
+      "name": "amount",
+      "type": "uint160"
+    },
+    {
+      "name": "expiration",
+      "type": "uint48"
+    },
+    {
+      "name": "nonce",
+      "type": "uint48"
+    },
+    {
+      "name": "spender",
+      "type": "address"
+    },
+    {
+      "name": "sigDeadline",
+      "type": "uint256"
+    },
+    {
+      "name": "signature",
+      "type": "bytes"
+    }
+  ],
+  "name": "PERMIT2_PERMIT",
+  "outputs": [],
+  "payable": false,
+  "stateMutability": "nonpayable",
+  "type": "function"
+},
+{
+  "inputs": [
+    {
+      "name": "token",
+      "type": "address"
+    },
+    {
       "name": "recipient",
       "type": "address"
     },

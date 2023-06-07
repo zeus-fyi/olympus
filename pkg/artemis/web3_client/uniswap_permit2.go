@@ -4,7 +4,6 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 )
 
@@ -64,6 +63,67 @@ func (p *Permit2PermitTransferFromParams) Decode(ctx context.Context, data []byt
 	return nil
 }
 
+type Permit2PermitParams struct {
+	PermitSingle
+	Signature []byte `json:"signature"`
+}
+
+// equivalent: abi.decode(inputs, (IAllowanceTransfer.PermitSingle, bytes))
+
+type PermitSingle struct {
+	PermitDetails
+	Spender     accounts.Address
+	SigDeadline *big.Int
+}
+
+type PermitDetails struct {
+	Token      accounts.Address
+	Amount     *big.Int // uint160 can be represented as *big.Int in Go
+	Expiration *big.Int // uint48 can be represented as uint64 in Go
+	Nonce      *big.Int // uint48 can be represented as uint64 in Go
+}
+
+func (p *Permit2PermitParams) Decode(ctx context.Context, data []byte) error {
+	args := make(map[string]interface{})
+	err := UniversalRouterDecoder.Methods[Permit2Permit].Inputs.UnpackIntoMap(args, data)
+	if err != nil {
+		return err
+	}
+	token, err := ConvertToAddress(args["token"])
+	if err != nil {
+		return err
+	}
+	amount, err := ParseBigInt(args["amount"])
+	if err != nil {
+		return err
+	}
+	expiration, err := ParseBigInt(args["expiration"])
+	if err != nil {
+		return err
+	}
+	nonce, err := ParseBigInt(args["nonce"])
+	if err != nil {
+		return err
+	}
+	spender, err := ConvertToAddress(args["spender"])
+	if err != nil {
+		return err
+	}
+	sigDeadline, err := ParseBigInt(args["sigDeadline"])
+	if err != nil {
+		return err
+	}
+	signature := args["signature"].([]byte)
+	p.Token = token
+	p.Amount = amount
+	p.Expiration = expiration
+	p.Nonce = nonce
+	p.Spender = spender
+	p.SigDeadline = sigDeadline
+	p.Signature = signature
+	return nil
+}
+
 type Permit2PermitBatchParams struct {
 }
 
@@ -75,41 +135,6 @@ func (p *Permit2PermitBatchParams) Decode(ctx context.Context, data []byte) erro
 	if err != nil {
 		return err
 	}
-	return nil
-}
-
-type Permit2PermitParams struct {
-	Permit2PermitTransferFromParams
-	Signature []byte `json:"signature"`
-}
-
-// equivalent: abi.decode(inputs, (IAllowanceTransfer.PermitSingle, bytes))
-
-type Permit struct {
-	Owner        common.Address
-	PermitSingle PermitSingle
-	Signature    []byte
-}
-
-type PermitSingle struct {
-	Details     PermitDetails
-	Spender     common.Address
-	SigDeadline *big.Int
-}
-
-type PermitDetails struct {
-	Token      common.Address
-	Amount     *big.Int // uint160 can be represented as *big.Int in Go
-	Expiration uint64   // uint48 can be represented as uint64 in Go
-	Nonce      uint64   // uint48 can be represented as uint64 in Go
-}
-
-func (p *Permit2PermitParams) Decode(ctx context.Context, data []byte) error {
-	//args := make(map[string]interface{})
-	//err := Permit2AbiDecoder.Methods[""].Inputs.UnpackIntoMap(args, data)
-	//if err != nil {
-	//	//return err
-	//}
 	return nil
 }
 

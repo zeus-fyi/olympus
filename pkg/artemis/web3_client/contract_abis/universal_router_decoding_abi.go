@@ -134,6 +134,52 @@ const UniversalRouterDecodingAbi = `
       "type": "address"
     },
     {
+      "name": "amount",
+      "type": "uint256"
+    }
+  ],
+  "name": "PERMIT2_TRANSFER_FROM",
+  "type": "function"
+},
+{
+  "inputs": [
+    {
+      "name": "recipient",
+      "type": "address"
+    },
+    {
+      "name": "amountMin",
+      "type": "uint256"
+    }
+  ],
+  "name": "WRAP_ETH",
+  "type": "function"
+},
+{
+  "inputs": [
+    {
+      "name": "recipient",
+      "type": "address"
+    },
+    {
+      "name": "amountMin",
+      "type": "uint256"
+    }
+  ],
+  "name": "UNWRAP_WETH",
+  "type": "function"
+},
+{
+  "inputs": [
+    {
+      "name": "token",
+      "type": "address"
+    },
+    {
+      "name": "recipient",
+      "type": "address"
+    },
+    {
       "name": "value",
       "type": "uint256"
     }

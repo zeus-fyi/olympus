@@ -28,7 +28,7 @@ func (u *UniswapClient) DecodeUniversalRouterMessage() {
 	// get command from bytes
 }
 
-func NewDecodedUniversalRouterExecCmdFromMap(m map[string]interface{}) UniversalRouterExecCmd {
+func NewDecodedUniversalRouterExecCmdFromMap(m map[string]interface{}) (UniversalRouterExecCmd, error) {
 	cmds := UniversalRouterExecCmd{
 		Commands: []UniversalRouterExecSubCmd{},
 	}
@@ -44,15 +44,18 @@ func NewDecodedUniversalRouterExecCmdFromMap(m map[string]interface{}) Universal
 			cmds.Deadline = v.(*big.Int)
 		}
 	}
-
 	subCmds := make([]UniversalRouterExecSubCmd, len(commandsVal))
 	for i, byteSize := range commandsVal {
 		subCmd := UniversalRouterExecSubCmd{}
-		subCmd.DecodeCommand(byteSize, inputsVal[i])
+		err := subCmd.DecodeCommand(byteSize)
+		if err != nil {
+			return cmds, err
+		}
+		subCmd.Inputs = inputsVal[i]
 		subCmds[i] = subCmd
 	}
 	cmds.Commands = subCmds
-	return cmds
+	return cmds, nil
 }
 
 type UniversalRouterExecCmd struct {
@@ -61,19 +64,18 @@ type UniversalRouterExecCmd struct {
 }
 
 type UniversalRouterExecSubCmd struct {
-	Command   string   `json:"command"`
-	CanRevert bool     `json:"canRevert"`
-	Inputs    []string `json:"inputs"`
+	Command   string `json:"command"`
+	CanRevert bool   `json:"canRevert"`
+	Inputs    []byte `json:"inputs"`
 }
 
-func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, inputs []byte) error {
+func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte) error {
 	buf := bytes.NewBuffer([]byte{command})
 	var data uint8
 	err := binary.Read(buf, binary.BigEndian, &data)
 	if err != nil {
 		return fmt.Errorf("could not read command: %v", err)
 	}
-
 	flag := (data & 0x80) >> 7 // extract bit 7
 	//ref := (data & 0x60) >> 5  // extract bits 6-5
 	cmd := data & 0x1F // extract bits 4-0
@@ -96,7 +98,6 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, inputs []byte) 
 	case SUDOSWAP:
 		ur.Command = SudoSwap
 	}
-
 	ur.CanRevert = flag == 1
 	return nil
 }

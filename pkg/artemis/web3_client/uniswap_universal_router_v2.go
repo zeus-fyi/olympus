@@ -1,6 +1,7 @@
 package web3_client
 
 import (
+	"context"
 	"math/big"
 
 	"github.com/rs/zerolog/log"
@@ -29,19 +30,50 @@ const (
 )
 
 type V2SwapExactInParams struct {
-	AmountIn        *big.Int           `json:"amountIn"`
-	AmountOutMin    *big.Int           `json:"amountOutMin"`
-	Path            []accounts.Address `json:"path"`
-	To              accounts.Address   `json:"to"`
-	InputFromSender bool               `json:"inputFromSender"`
+	AmountIn      *big.Int           `json:"amountIn"`
+	AmountOutMin  *big.Int           `json:"amountOutMin"`
+	Path          []accounts.Address `json:"path"`
+	To            accounts.Address   `json:"to"`
+	PayerIsSender bool               `json:"inputFromSender"`
 }
 
 type JSONV2SwapExactInParams struct {
-	AmountIn        string             `json:"amountIn"`
-	AmountOutMin    string             `json:"amountOutMin"`
-	Path            []accounts.Address `json:"path"`
-	To              accounts.Address   `json:"to"`
-	InputFromSender bool               `json:"inputFromSender"`
+	AmountIn      string             `json:"amountIn"`
+	AmountOutMin  string             `json:"amountOutMin"`
+	Path          []accounts.Address `json:"path"`
+	To            accounts.Address   `json:"to"`
+	PayerIsSender bool               `json:"payerIsSender"`
+}
+
+func (s *V2SwapExactInParams) Decode(ctx context.Context, data []byte) error {
+	args := make(map[string]interface{})
+	err := UniversalRouterDecoder.Methods[V2SwapExactIn].Inputs.UnpackIntoMap(args, data)
+	if err != nil {
+		return err
+	}
+	amountIn, err := ParseBigInt(args["amountIn"])
+	if err != nil {
+		return err
+	}
+	amountOutMin, err := ParseBigInt(args["amountOutMin"])
+	if err != nil {
+		return err
+	}
+	path, err := ConvertToAddressSlice(args["path"])
+	if err != nil {
+		return err
+	}
+	to, err := ConvertToAddress(args["recipient"])
+	if err != nil {
+		return err
+	}
+	payerIsSender := args["payerIsSender"].(bool)
+	s.AmountIn = amountIn
+	s.AmountOutMin = amountOutMin
+	s.Path = path
+	s.To = to
+	s.PayerIsSender = payerIsSender
+	return nil
 }
 
 func (u *UniswapClient) V2SwapExactIn(tx MevTx, args map[string]interface{}) {}
@@ -50,61 +82,91 @@ func (s *JSONV2SwapExactInParams) ConvertToBigIntType() *V2SwapExactInParams {
 	amountIn, _ := new(big.Int).SetString(s.AmountIn, 10)
 	amountOutMin, _ := new(big.Int).SetString(s.AmountOutMin, 10)
 	return &V2SwapExactInParams{
-		AmountIn:        amountIn,
-		AmountOutMin:    amountOutMin,
-		Path:            s.Path,
-		To:              s.To,
-		InputFromSender: s.InputFromSender,
+		AmountIn:      amountIn,
+		AmountOutMin:  amountOutMin,
+		Path:          s.Path,
+		To:            s.To,
+		PayerIsSender: s.PayerIsSender,
 	}
 }
 
 func (s *V2SwapExactInParams) ConvertToJSONType() *JSONV2SwapExactInParams {
 	return &JSONV2SwapExactInParams{
-		AmountIn:        s.AmountIn.String(),
-		AmountOutMin:    s.AmountOutMin.String(),
-		Path:            s.Path,
-		To:              s.To,
-		InputFromSender: s.InputFromSender,
+		AmountIn:      s.AmountIn.String(),
+		AmountOutMin:  s.AmountOutMin.String(),
+		Path:          s.Path,
+		To:            s.To,
+		PayerIsSender: s.PayerIsSender,
 	}
 }
 
 type V2SwapExactOutParams struct {
-	AmountInMax     *big.Int           `json:"amountInMax"`
-	AmountOut       *big.Int           `json:"amountOut"`
-	Path            []accounts.Address `json:"path"`
-	To              accounts.Address   `json:"to"`
-	InputFromSender bool               `json:"inputFromSender"`
+	AmountInMax   *big.Int           `json:"amountInMax"`
+	AmountOut     *big.Int           `json:"amountOut"`
+	Path          []accounts.Address `json:"path"`
+	To            accounts.Address   `json:"to"`
+	PayerIsSender bool               `json:"payerIsSender"`
 }
 
 type JSONV2SwapExactOutParams struct {
-	AmountInMax     string             `json:"amountInMax"`
-	AmountOut       string             `json:"amountOut"`
-	Path            []accounts.Address `json:"path"`
-	To              accounts.Address   `json:"to"`
-	InputFromSender bool               `json:"inputFromSender"`
+	AmountInMax   string             `json:"amountInMax"`
+	AmountOut     string             `json:"amountOut"`
+	Path          []accounts.Address `json:"path"`
+	To            accounts.Address   `json:"to"`
+	PayerIsSender bool               `json:"payerIsSender"`
 }
 
+func (s *V2SwapExactOutParams) Decode(ctx context.Context, data []byte) error {
+	args := make(map[string]interface{})
+	err := UniversalRouterDecoder.Methods[V2SwapExactOut].Inputs.UnpackIntoMap(args, data)
+	if err != nil {
+		return err
+	}
+	amountInMax, err := ParseBigInt(args["amountInMax"])
+	if err != nil {
+		return err
+	}
+	amountOut, err := ParseBigInt(args["amountOut"])
+	if err != nil {
+		return err
+	}
+	path, err := ConvertToAddressSlice(args["path"])
+	if err != nil {
+		return err
+	}
+	to, err := ConvertToAddress(args["recipient"])
+	if err != nil {
+		return err
+	}
+	payerIsSender := args["payerIsSender"].(bool)
+	s.AmountInMax = amountInMax
+	s.AmountOut = amountOut
+	s.Path = path
+	s.To = to
+	s.PayerIsSender = payerIsSender
+	return nil
+}
 func (u *UniswapClient) V2SwapExactOut(tx MevTx, args map[string]interface{}) {}
 
 func (s *JSONV2SwapExactOutParams) ConvertToBigIntType() *V2SwapExactOutParams {
 	amountInMax, _ := new(big.Int).SetString(s.AmountInMax, 10)
 	amountOut, _ := new(big.Int).SetString(s.AmountOut, 10)
 	return &V2SwapExactOutParams{
-		AmountInMax:     amountInMax,
-		AmountOut:       amountOut,
-		Path:            s.Path,
-		To:              s.To,
-		InputFromSender: s.InputFromSender,
+		AmountInMax:   amountInMax,
+		AmountOut:     amountOut,
+		Path:          s.Path,
+		To:            s.To,
+		PayerIsSender: s.PayerIsSender,
 	}
 }
 
 func (s *V2SwapExactOutParams) ConvertToJSONType() *JSONV2SwapExactOutParams {
 	return &JSONV2SwapExactOutParams{
-		AmountInMax:     s.AmountInMax.String(),
-		AmountOut:       s.AmountOut.String(),
-		Path:            s.Path,
-		To:              s.To,
-		InputFromSender: s.InputFromSender,
+		AmountInMax:   s.AmountInMax.String(),
+		AmountOut:     s.AmountOut.String(),
+		Path:          s.Path,
+		To:            s.To,
+		PayerIsSender: s.PayerIsSender,
 	}
 }
 

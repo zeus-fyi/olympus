@@ -19,6 +19,22 @@ func MustLoadUniversalRouterAbi() *abi.ABI {
 	return readAbi
 }
 
+func MustLoadUniversalRouterDecodingAbi() *abi.ABI {
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniversalRouterDecodingAbi))
+	if err != nil {
+		panic(err)
+	}
+	return readAbi
+}
+
+func MustLoadPermit2Abi() *abi.ABI {
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.Permit2Abi))
+	if err != nil {
+		panic(err)
+	}
+	return readAbi
+}
+
 func MustLoadERC20Abi() *abi.ABI {
 	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.ERC20ABI))
 	if err != nil {

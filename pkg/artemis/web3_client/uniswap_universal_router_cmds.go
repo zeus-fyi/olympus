@@ -29,3 +29,5 @@ const (
 	FOUNDATION                  = 0x1c
 	SWEEP_ERC1155               = 0x1d
 )
+
+var UniversalRouterDecoder = MustLoadUniversalRouterDecodingAbi()

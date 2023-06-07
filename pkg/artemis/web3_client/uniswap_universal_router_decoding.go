@@ -2,9 +2,12 @@ package web3_client
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"fmt"
 	"math/big"
+
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // todo exec
@@ -47,11 +50,11 @@ func NewDecodedUniversalRouterExecCmdFromMap(m map[string]interface{}) (Universa
 	subCmds := make([]UniversalRouterExecSubCmd, len(commandsVal))
 	for i, byteSize := range commandsVal {
 		subCmd := UniversalRouterExecSubCmd{}
-		err := subCmd.DecodeCommand(byteSize)
+		subCmd.Inputs = inputsVal[i]
+		err := subCmd.DecodeCommand(byteSize, inputsVal[i])
 		if err != nil {
 			return cmds, err
 		}
-		subCmd.Inputs = inputsVal[i]
 		subCmds[i] = subCmd
 	}
 	cmds.Commands = subCmds
@@ -64,12 +67,23 @@ type UniversalRouterExecCmd struct {
 }
 
 type UniversalRouterExecSubCmd struct {
-	Command   string `json:"command"`
-	CanRevert bool   `json:"canRevert"`
-	Inputs    []byte `json:"inputs"`
+	Command       string `json:"command"`
+	CanRevert     bool   `json:"canRevert"`
+	Inputs        []byte `json:"inputs"`
+	DecodedInputs any    `json:"decodedInputs"`
 }
 
-func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte) error {
+type Wrapper struct {
+	recipient    common.Address
+	amountIn     *big.Int
+	amountOutMin *big.Int
+	path         []common.Address
+	payerIsUser  bool
+}
+
+func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) error {
+	ur.Inputs = args
+	ctx = context.Background()
 	buf := bytes.NewBuffer([]byte{command})
 	var data uint8
 	err := binary.Read(buf, binary.BigEndian, &data)
@@ -83,11 +97,36 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte) error {
 	switch cmd {
 	case V3_SWAP_EXACT_IN:
 		ur.Command = V3SwapExactIn
+		params := V3SwapExactInParams{}
+		//toPool(ur.Inputs)
+		err = params.Decode(ctx, ur.Inputs)
+		if err != nil {
+			return err
+		}
+		ur.DecodedInputs = params
 	case V3_SWAP_EXACT_OUT:
+		params := V3SwapExactOutParams{}
+		err = params.Decode(ctx, ur.Inputs)
+		if err != nil {
+			return err
+		}
+		ur.DecodedInputs = params
 		ur.Command = V3SwapExactOut
 	case V2_SWAP_EXACT_IN:
+		params := V2SwapExactInParams{}
+		err = params.Decode(ctx, ur.Inputs)
+		if err != nil {
+			return err
+		}
+		ur.DecodedInputs = params
 		ur.Command = V2SwapExactIn
 	case V2_SWAP_EXACT_OUT:
+		params := V2SwapExactOutParams{}
+		err = params.Decode(ctx, ur.Inputs)
+		if err != nil {
+			return err
+		}
+		ur.DecodedInputs = params
 		ur.Command = V2SwapExactOut
 	case PERMIT2_TRANSFER_FROM:
 		ur.Command = Permit2TransferFrom

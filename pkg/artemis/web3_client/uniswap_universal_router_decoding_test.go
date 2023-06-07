@@ -21,7 +21,7 @@ func (s *Web3ClientTestSuite) TestUniswapUniversalRouterDecoding() {
 		FnOut:       "",
 		Env:         "",
 	}
-	hashStr := "0xb841ae58afb7c6e0e7c321e2d151d93599dfd826ac3835f3c7cd8c029b6fd9a7"
+	hashStr := "0x52e63b75f41a352ad9182f9e0f923c8557064c3b1047d1778c1ea5b11b979dd9"
 	tx, _, err := s.MainnetWeb3User.GetTxByHash(ctx, common.HexToHash(hashStr))
 	s.Require().Nil(err)
 	s.Require().NotNil(tx)

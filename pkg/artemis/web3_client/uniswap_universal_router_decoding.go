@@ -96,7 +96,6 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 	case V3_SWAP_EXACT_IN:
 		ur.Command = V3SwapExactIn
 		params := V3SwapExactInParams{}
-		//toPool(ur.Inputs)
 		err = params.Decode(ctx, ur.Inputs)
 		if err != nil {
 			return err
@@ -128,12 +127,12 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 		ur.Command = V2SwapExactOut
 	case PERMIT2_TRANSFER_FROM_BATCH:
 		// TODO
-		params := Permit2PermitTransferFromBatchParams{}
-		err = params.Decode(ctx, ur.Inputs)
-		if err != nil {
-			return err
-		}
-		ur.DecodedInputs = params
+		//params := Permit2PermitTransferFromBatchParams{}
+		//err = params.Decode(ctx, ur.Inputs)
+		//if err != nil {
+		//	return err
+		//}
+		//ur.DecodedInputs = params
 		ur.Command = Permit2TransferFromBatch
 	case PERMIT2_TRANSFER_FROM:
 		params := Permit2PermitTransferFromParams{}
@@ -145,6 +144,11 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 		ur.Command = Permit2TransferFrom
 	case PERMIT2_PERMIT_BATCH:
 		// TODO
+		//params := Permit2PermitBatchParams{}
+		//err = params.Decode(ctx, ur.Inputs)
+		//if err != nil {
+		//	return err
+		//}
 		ur.Command = Permit2PermitBatch
 	case PERMIT2_PERMIT:
 		params := Permit2PermitParams{}

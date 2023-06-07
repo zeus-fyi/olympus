@@ -126,6 +126,20 @@ const UniversalRouterDecodingAbi = `
 {
   "inputs": [
     {
+      "name": "value",
+      "type": "uint256"
+    },
+    {
+      "name": "data",
+      "type": "bytes"
+    }
+  ],
+  "name": "SUDOSWAP",
+  "type": "function"
+},
+{
+  "inputs": [
+    {
       "name": "token",
       "type": "address"
     },

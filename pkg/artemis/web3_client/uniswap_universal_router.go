@@ -7,27 +7,19 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/rs/zerolog/log"
 )
 
-// todo exec
-/* priority list
-0x00	V3_SWAP_EXACT_IN
-0x01	V3_SWAP_EXACT_OUT
-0x02	PERMIT2_TRANSFER_FROM
-0x03	PERMIT2_PERMIT_BATCH
-0x08	V2_SWAP_EXACT_IN
-0x09	V2_SWAP_EXACT_OUT
-0x0a	PERMIT2_PERMIT
-0x0d	PERMIT2_TRANSFER_FROM_BATCH
-*/
+type UniversalRouterExecCmd struct {
+	Commands []UniversalRouterExecSubCmd `json:"commands"`
+	Deadline *big.Int                    `json:"deadline"`
+}
 
-var Permit2AbiDecoder = MustLoadPermit2Abi()
-
-func (u *UniswapClient) DecodeUniversalRouterMessage() {
-	// TODO
-	// get command from bytes
+type UniversalRouterExecSubCmd struct {
+	Command       string `json:"command"`
+	CanRevert     bool   `json:"canRevert"`
+	Inputs        []byte `json:"inputs"`
+	DecodedInputs any    `json:"decodedInputs"`
 }
 
 func NewDecodedUniversalRouterExecCmdFromMap(m map[string]interface{}) (UniversalRouterExecCmd, error) {
@@ -62,26 +54,6 @@ func NewDecodedUniversalRouterExecCmdFromMap(m map[string]interface{}) (Universa
 	return cmds, nil
 }
 
-type UniversalRouterExecCmd struct {
-	Commands []UniversalRouterExecSubCmd `json:"commands"`
-	Deadline *big.Int                    `json:"deadline"`
-}
-
-type UniversalRouterExecSubCmd struct {
-	Command       string `json:"command"`
-	CanRevert     bool   `json:"canRevert"`
-	Inputs        []byte `json:"inputs"`
-	DecodedInputs any    `json:"decodedInputs"`
-}
-
-type Wrapper struct {
-	recipient    common.Address
-	amountIn     *big.Int
-	amountOutMin *big.Int
-	path         []common.Address
-	payerIsUser  bool
-}
-
 func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) error {
 	ur.Inputs = args
 	ctx = context.Background()
@@ -94,11 +66,9 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 	flag := (data & 0x80) >> 7 // extract bit 7
 	//ref := (data & 0x60) >> 5  // extract bits 6-5
 	cmd := data & 0x1F // extract bits 4-0
-
 	switch cmd {
 	case V3_SWAP_EXACT_IN:
 		log.Info().Msg("DecodeCommand V3_SWAP_EXACT_IN")
-
 		ur.Command = V3SwapExactIn
 		params := V3SwapExactInParams{}
 		err = params.Decode(ctx, ur.Inputs)

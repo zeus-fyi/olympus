@@ -1,0 +1,45 @@
+package web3_client
+
+import (
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/zeus-fyi/gochain/web3/accounts"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+)
+
+const (
+	executeUniversalRouter = "executeUniversalRouter"
+)
+
+/*
+   		bytes calldata commands,
+        bytes[] calldata inputs,
+        uint256 deadline
+*/
+
+func GetRawdawgUniversalRouterPayload(tradingSwapContractAddr, pairContractAddr string, to *TradeOutcome, isToken0 bool) web3_actions.SendContractTxPayload {
+	params := web3_actions.SendContractTxPayload{
+		SmartContractAddr: tradingSwapContractAddr,
+		SendEtherPayload:  web3_actions.SendEtherPayload{},
+		ContractABI:       RawdawgAbi,
+		MethodName:        executeUniversalRouter,
+		Params:            []interface{}{pairContractAddr, to.AmountInAddr.String(), to.AmountIn.String(), to.AmountOut.String(), isToken0},
+	}
+	return params
+}
+
+func (u *UniswapClient) ExecSmartContractTradingExecUniveralRouterSwap(tradingContractAddr string, pair UniswapV2Pair, to *TradeOutcome) (*types.Transaction, error) {
+	tokenNum := pair.GetTokenNumber(to.AmountInAddr)
+	scInfo := GetRawdawgUniversalRouterPayload(tradingContractAddr, pair.PairContractAddr, to, tokenNum == 0)
+	// TODO implement better gas estimation
+	scInfo.GasLimit = 3000000
+	signedTx, err := u.Web3Client.GetSignedTxToCallFunctionWithArgs(ctx, &scInfo)
+	if err != nil {
+		return nil, err
+	}
+	to.AddTxHash(accounts.Hash(signedTx.Hash()))
+	err = u.Web3Client.SendSignedTransaction(ctx, signedTx)
+	if err != nil {
+		return nil, err
+	}
+	return signedTx, nil
+}

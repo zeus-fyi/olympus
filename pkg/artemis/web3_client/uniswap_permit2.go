@@ -33,6 +33,8 @@ const (
 	Permit2TransferFromBatch = "PERMIT2_TRANSFER_FROM_BATCH"
 )
 
+var Permit2AbiDecoder = MustLoadPermit2Abi()
+
 type Permit2PermitTransferFromParams struct {
 	Token     accounts.Address `json:"token"`
 	Recipient accounts.Address `json:"recipient"`

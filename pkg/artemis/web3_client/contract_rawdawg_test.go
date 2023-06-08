@@ -84,7 +84,7 @@ func (s *Web3ClientTestSuite) TestRawDawgExecBatchSwaps() {
 		AmountOut:     amountOut,
 	}
 
-	batchParams.AddRawdawgParams(pair, to)
+	batchParams.AddRawdawgSwapParams(pair, to)
 
 	// DAI-WETH pair contract
 	pair, err = uni.PairToPrices(ctx, []accounts.Address{accounts.HexToAddress(daiAddr), accounts.HexToAddress(WETH9ContractAddress)})
@@ -100,7 +100,7 @@ func (s *Web3ClientTestSuite) TestRawDawgExecBatchSwaps() {
 		AmountOutAddr: accounts.HexToAddress(WETH9ContractAddress),
 		AmountOut:     amountOut,
 	}
-	batchParams.AddRawdawgParams(pair, to)
+	batchParams.AddRawdawgSwapParams(pair, to)
 
 	// done adding params
 	s.Require().Len(batchParams.Swap, 2)

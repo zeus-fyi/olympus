@@ -50,13 +50,6 @@ const (
 	swapSandwich                 = "swapSandwich"
 )
 
-/*
-https://docs.uniswap.org/contracts/v2/concepts/advanced-topics/fees
-There is a 0.3% fee for swapping tokens. This fee is split by liquidity providers proportional to their contribution to liquidity reserves.
-*/
-
-// TODO https://docs.uniswap.org/contracts/v2/reference/smart-contracts/router-02
-
 type UniswapClient struct {
 	mu                                   sync.Mutex
 	Web3Client                           Web3Client
@@ -87,10 +80,6 @@ type UniswapClient struct {
 }
 
 func InitUniswapClient(ctx context.Context, w Web3Client) UniswapClient {
-	abiFile, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniswapV2RouterABI))
-	if err != nil {
-		panic(err)
-	}
 	erc20AbiFile, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.ERC20ABI))
 	if err != nil {
 		panic(err)
@@ -122,13 +111,11 @@ func InitUniswapClient(ctx context.Context, w Web3Client) UniswapClient {
 		MevSmartContractTxMapUniversalRouter: MevSmartContractTxMap{
 			SmartContractAddr: UniswapUniversalRouterAddress,
 			Abi:               MustLoadUniversalRouterAbi(),
-			MethodTxMap:       map[string]MevTx{},
 			Txs:               []MevTx{},
 		},
 		MevSmartContractTxMap: MevSmartContractTxMap{
 			SmartContractAddr: UniswapV2RouterAddress,
-			Abi:               abiFile,
-			MethodTxMap:       map[string]MevTx{},
+			Abi:               MustLoadUniswapV2RouterABI(),
 			Txs:               []MevTx{},
 			Filter:            &f,
 		},
@@ -142,24 +129,7 @@ func InitUniswapClient(ctx context.Context, w Web3Client) UniswapClient {
 	}
 }
 
-func (u *UniswapClient) GetAllTradeMethods() []string {
-	return []string{
-		addLiquidity,
-		addLiquidityETH,
-		removeLiquidity,
-		removeLiquidityETH,
-		removeLiquidityWithPermit,
-		removeLiquidityETHWithPermit,
-		swapExactTokensForTokens,
-		swapTokensForExactTokens,
-		swapExactETHForTokens,
-		swapTokensForExactETH,
-		swapExactTokensForETH,
-		swapETHForExactTokens,
-	}
-}
-
-func (u *UniswapClient) ProcessV2Txs(ctx context.Context) {
+func (u *UniswapClient) ProcessTxs(ctx context.Context) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 	u.Web3Client.Dial()
@@ -172,8 +142,11 @@ func (u *UniswapClient) ProcessV2Txs(ctx context.Context) {
 	u.Web3Client.Close()
 	u.BlockNumber = bn
 	count := 0
-	for methodName, tx := range u.MethodTxMap {
-		switch methodName {
+	for _, tx := range u.MevSmartContractTxMapUniversalRouter.Txs {
+		u.ProcessUniversalRouterTxs(ctx, tx)
+	}
+	for _, tx := range u.MevSmartContractTxMap.Txs {
+		switch tx.MethodName {
 		case addLiquidity:
 			//u.AddLiquidity(tx.Args)
 		case addLiquidityETH:

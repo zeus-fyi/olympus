@@ -9,13 +9,13 @@ import (
 type MevSmartContractTxMap struct {
 	SmartContractAddr string
 	Abi               *abi.ABI
-	MethodTxMap       map[string]MevTx
 	Txs               []MevTx
 	Filter            *strings_filter.FilterOpts
 }
 
 type MevTx struct {
 	UserAddr    string
+	MethodName  string
 	Args        map[string]interface{}
 	Order       string
 	TxPoolQueue map[string]*types.Transaction

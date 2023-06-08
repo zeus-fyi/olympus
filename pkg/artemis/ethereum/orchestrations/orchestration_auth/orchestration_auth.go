@@ -14,5 +14,5 @@ var (
 
 func InitMevDynamoDBClient(creds dynamodb_client.DynamoDBCredentials) {
 	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnetQuiknode.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
-	MevDynamoDBClient = mempool_txs.NewMempoolTxDynamoDB(creds, &wc)
+	MevDynamoDBClient = mempool_txs.NewMempoolTxDynamoDB(creds)
 }

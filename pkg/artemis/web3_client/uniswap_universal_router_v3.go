@@ -9,16 +9,6 @@ import (
 	"github.com/zeus-fyi/gochain/web3/accounts"
 )
 
-/*
-The inputs for V3_SWAP_EXACT_IN is the encoding of 5 parameters:
-
-address The recipient of the output of the trade
-uint256 The amount of input tokens for the trade
-uint256 The minimum amount of output tokens the user wants
-bytes The UniswapV3 path you want to trade along
-bool A flag for whether the input funds should come from the caller (through Permit2) or whether the funds are already in the UniversalRouter
-*/
-
 const (
 	V3SwapExactIn  = "V3_SWAP_EXACT_IN"
 	V3SwapExactOut = "V3_SWAP_EXACT_OUT"
@@ -71,7 +61,10 @@ func (s *V3SwapExactInParams) Decode(ctx context.Context, data []byte) error {
 	return err
 }
 
-func (u *UniswapClient) V3SwapExactIn(tx MevTx, args map[string]interface{}) {}
+func (u *UniswapClient) V3SwapExactIn(pair UniswapV2Pair, inputs *V3SwapExactInParams) {
+	tf := inputs.BinarySearch(pair)
+	tf.InitialPair = pair.ConvertToJSONType()
+}
 
 func (s *JSONV3SwapExactInParams) ConvertToBigIntType() *V3SwapExactInParams {
 	amountIn, _ := new(big.Int).SetString(s.AmountIn, 10)
@@ -94,15 +87,6 @@ func (s *V3SwapExactInParams) ConvertToJSONType() *JSONV3SwapExactInParams {
 		PayerIsUser:  s.PayerIsUser,
 	}
 }
-
-/*
-V3_SWAP_EXACT_OUT
-address The recipient of the output of the trade
-uint256 The amount of output tokens to receive
-uint256 The maximum number of input tokens that should be spent
-bytes The UniswapV3 encoded path to trade along
-bool A flag for whether the input tokens should come from the msg.sender (through Permit2) or whether the funds are already in the UniversalRouter
-*/
 
 type V3SwapExactOutParams struct {
 	AmountInMax *big.Int           `json:"amountInMax"`

@@ -116,13 +116,11 @@ func (d *ArtemisMevActivities) ConvertMempoolTxs(ctx context.Context, mempoolTxs
 
 func (d *ArtemisMevActivities) ProcessMempoolTxs(ctx context.Context, mempoolTxs map[string]map[string]*types.Transaction) ([]artemis_autogen_bases.EthMempoolMevTx, error) {
 	uni := InitNewUniswapQuiknode(ctx)
-	mevTxMap := uni.MevSmartContractTxMap
-	processedMevTxMap, err := web3_client.ProcessMempoolTxs(ctx, mempoolTxs, mevTxMap)
+	err := uni.ProcessMempoolTxs(ctx, mempoolTxs)
 	if err != nil {
 		log.Err(err).Msg("ProcessMempoolTxs failed")
 		return nil, err
 	}
-	uni.MevSmartContractTxMap = processedMevTxMap
-	uni.ProcessV2Txs(ctx)
+	uni.ProcessTxs(ctx)
 	return uni.Trades, nil
 }

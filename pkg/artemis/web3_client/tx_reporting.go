@@ -15,12 +15,12 @@ import (
 )
 
 type TradeSummary struct {
-	Tx        MevTx
-	Pd        *PricingData
-	Tf        TradeExecutionFlowJSON
-	TokenAddr string
-	Amount    *big.Int
-	AmountMin *big.Int
+	Tx            MevTx
+	Pd            *PricingData
+	Tf            TradeExecutionFlowJSON
+	TokenAddr     string
+	BuyWithAmount *big.Int
+	MinimumAmount *big.Int
 }
 
 func (u *UniswapClient) PrintTradeSummaries(ts *TradeSummary) {
@@ -34,17 +34,17 @@ func (u *UniswapClient) PrintTradeSummaries(ts *TradeSummary) {
 	}
 	pair := ts.Pd.v2Pair
 	ts.Tf.CurrentBlockNumber = bn
-	expectedOut, err := pair.GetQuoteUsingTokenAddr(ts.TokenAddr, ts.Amount)
+	expectedOut, err := pair.GetQuoteUsingTokenAddr(ts.TokenAddr, ts.BuyWithAmount)
 	if err != nil {
 		fmt.Println("GetQuoteUsingTokenAddr", err)
 		return
 	}
-	diff := new(big.Int).Sub(expectedOut, ts.AmountMin)
+	diff := new(big.Int).Sub(expectedOut, ts.MinimumAmount)
 	purchasedTokenAddr := pair.GetOppositeToken(ts.TokenAddr).String()
 	if u.PrintDetails {
 		fmt.Printf("Token0 Address: %s Token0 Reserve: %s,\nToken1 Address %s, Token1 Reserve: %s\n", pair.Token0.String(), pair.Reserve0.String(), pair.Token1.String(), pair.Reserve1.String())
 		fmt.Printf("Expected amount %s %s token from trade at current rate \n", expectedOut.String(), purchasedTokenAddr)
-		fmt.Printf("Amount minimum %s %s token needed from trade \n", ts.AmountMin.String(), purchasedTokenAddr)
+		fmt.Printf("BuyWithAmount minimum %s %s token needed from trade \n", ts.MinimumAmount.String(), purchasedTokenAddr)
 	}
 
 	if u.BlockNumber.String() != ts.Tf.CurrentBlockNumber.String() {
@@ -103,15 +103,15 @@ func (u *UniswapClient) PrintTradeSummaries(ts *TradeSummary) {
 			fmt.Printf("Negative difference between expected and minimum amount is %s %s token \n", diff.String(), ts.TokenAddr)
 		}
 	}
-	if ts.AmountMin.Cmp(big.NewInt(0)) == 0 {
-		fmt.Printf("Amount minimum is 0, so no trade will be executed \n")
+	if ts.MinimumAmount.Cmp(big.NewInt(0)) == 0 {
+		fmt.Printf("BuyWithAmount minimum is 0, so no trade will be executed \n")
 		return
 	}
 	if u.PrintDetails {
 		slippage := new(big.Int).Mul(diff, big.NewInt(100))
-		slippagePercent := new(big.Int).Div(slippage, ts.AmountMin)
+		slippagePercent := new(big.Int).Div(slippage, ts.MinimumAmount)
 		fmt.Printf("Slippage is %s %% \n", slippagePercent.String())
-		fmt.Printf("Buy %s %s token for %s %s token \n\n", expectedOut.String(), pair.GetOppositeToken(ts.TokenAddr).String(), ts.Amount.String(), ts.TokenAddr)
+		fmt.Printf("Buy %s %s token for %s %s token \n\n", expectedOut.String(), pair.GetOppositeToken(ts.TokenAddr).String(), ts.BuyWithAmount.String(), ts.TokenAddr)
 	}
 	return
 }
@@ -151,7 +151,7 @@ func (u *UniswapClient) GetPricingData(ctx context.Context, path []accounts.Addr
 //	if u.PrintDetails {
 //		fmt.Printf("Token0 Address: %s Token0 Reserve: %s,\nToken1 Address %s, Token1 Reserve: %s\n", pair.Token0.String(), pair.Reserve0.String(), pair.Token1.String(), pair.Reserve1.String())
 //		fmt.Printf("Expected amount %s %s token from trade at current rate \n", expectedOut.String(), purchasedTokenAddr)
-//		fmt.Printf("Amount minimum %s %s token needed from trade \n", amountMin.String(), purchasedTokenAddr)
+//		fmt.Printf("BuyWithAmount minimum %s %s token needed from trade \n", amountMin.String(), purchasedTokenAddr)
 //	}
 //
 //	if u.BlockNumber.String() != tf.CurrentBlockNumber.String() {
@@ -211,7 +211,7 @@ func (u *UniswapClient) GetPricingData(ctx context.Context, path []accounts.Addr
 //		}
 //	}
 //	if amountMin.Cmp(big.NewInt(0)) == 0 {
-//		fmt.Printf("Amount minimum is 0, so no trade will be executed \n")
+//		fmt.Printf("BuyWithAmount minimum is 0, so no trade will be executed \n")
 //		return
 //	}
 //	if u.PrintDetails {

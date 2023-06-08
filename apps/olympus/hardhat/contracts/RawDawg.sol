@@ -9,7 +9,7 @@ import '@uniswap/universal-router/contracts/interfaces/IUniversalRouter.sol';
 
 contract Rawdawg is Ownable {
     address public constant universalRouterAddress = 0xEf1c6E67703c7BD7107eed8303Fbe6EC2554BF6B;
-    address public constant routerAddress = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
+    address public constant v2routerAddress = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
 
     function executeUniversalRouter(
         bytes calldata commands,
@@ -58,7 +58,7 @@ contract Rawdawg is Ownable {
     ) internal {
         TransferHelper.safeTransfer(_token_in, _pair, _amountIn);
         // wondering if just two functions eg. swapTokenZero, or swapTokenOne is better?
-        TransferHelper.safeApprove(_token_in, routerAddress, _amountIn);
+        TransferHelper.safeApprove(_token_in, v2routerAddress, _amountIn);
         // Execute swap
         if (_isToken0) {
             IUniswapV2Pair(_pair).swap(0, _amountOut, address(this), new bytes(0));

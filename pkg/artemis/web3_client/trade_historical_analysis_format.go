@@ -13,8 +13,8 @@ import (
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 )
 
-func UnmarshalTradeExecutionFlow(tfStr string) (TradeExecutionFlow, error) {
-	tf := TradeExecutionFlow{}
+func UnmarshalTradeExecutionFlow(tfStr string) (TradeExecutionFlowJSON, error) {
+	tf := TradeExecutionFlowJSON{}
 	by := []byte(tfStr)
 	berr := json.Unmarshal(by, &tf)
 	if berr != nil {
@@ -23,7 +23,7 @@ func UnmarshalTradeExecutionFlow(tfStr string) (TradeExecutionFlow, error) {
 	return tf, nil
 }
 
-func FilterNonActionTradeExecutionFlows(tf TradeExecutionFlow) error {
+func FilterNonActionTradeExecutionFlows(tf TradeExecutionFlowJSON) error {
 	if tf.FrontRunTrade.AmountIn == "0" || tf.FrontRunTrade.AmountIn == "" {
 		return fmt.Errorf("trade failed due to invalid amount in")
 	}
@@ -144,7 +144,7 @@ func (u *UniswapClient) RunHistoricalTradeAnalysis(ctx context.Context, tfStr st
 	return nil
 }
 
-func (u *UniswapClient) CheckBlockRxAndNetworkReset(tf *TradeExecutionFlowInBigInt, liveNetworkClient Web3Client) (int, error) {
+func (u *UniswapClient) CheckBlockRxAndNetworkReset(tf *TradeExecutionFlow, liveNetworkClient Web3Client) (int, error) {
 	rx, err := liveNetworkClient.GetTxReceipt(ctx, tf.Tx.Hash())
 	if err != nil {
 		return -1, err
@@ -162,7 +162,7 @@ func (u *UniswapClient) CheckBlockRxAndNetworkReset(tf *TradeExecutionFlowInBigI
 	return currentBlockNum, nil
 }
 
-func (u *UniswapClient) CheckExpectedReserves(tf *TradeExecutionFlowInBigInt) error {
+func (u *UniswapClient) CheckExpectedReserves(tf *TradeExecutionFlow) error {
 	pairAddr := tf.InitialPair.PairContractAddr
 	simPair, err := u.GetPairContractPrices(ctx, pairAddr)
 	if err != nil {

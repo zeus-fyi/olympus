@@ -47,7 +47,7 @@ func (s *Web3ClientTestSuite) TestMevTxSelect() {
 	s.Require().NotEmpty(mevTxs)
 
 	for _, mevTx := range mevTxs {
-		tf := TradeExecutionFlow{}
+		tf := TradeExecutionFlowJSON{}
 		b := []byte(mevTx.TxFlowPrediction)
 		berr := json.Unmarshal(b, &tf)
 		s.Require().Nil(berr)

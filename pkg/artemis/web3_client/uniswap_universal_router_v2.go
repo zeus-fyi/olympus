@@ -154,13 +154,13 @@ func (s *V2SwapExactOutParams) ConvertToJSONType() *JSONV2SwapExactOutParams {
 	}
 }
 
-func (s *V2SwapExactOutParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlow {
+func (s *V2SwapExactOutParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlowJSON {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountInMax)
 	var mid *big.Int
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
-	tf := TradeExecutionFlow{
+	tf := TradeExecutionFlowJSON{
 		Trade: Trade{
 			TradeMethod:              V2SwapExactOut,
 			JSONV2SwapExactOutParams: s.ConvertToJSONType(),
@@ -219,13 +219,13 @@ func (s *V2SwapExactOutParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFl
 	return tf
 }
 
-func (s *V2SwapExactInParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlow {
+func (s *V2SwapExactInParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlowJSON {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountIn)
 	var mid *big.Int
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
-	tf := TradeExecutionFlow{
+	tf := TradeExecutionFlowJSON{
 		Trade: Trade{
 			TradeMethod:             V2SwapExactIn,
 			JSONV2SwapExactInParams: s.ConvertToJSONType(),

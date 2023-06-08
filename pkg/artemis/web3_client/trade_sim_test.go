@@ -58,7 +58,7 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSimAny() {
 	//s.Require().NotEmpty(mevTxs)
 	fmt.Println("mevTxs count", len(mevTxs))
 	for _, mevTx := range mevTxs {
-		tf := TradeExecutionFlow{}
+		tf := TradeExecutionFlowJSON{}
 		by := []byte(mevTx.TxFlowPrediction)
 		berr := json.Unmarshal(by, &tf)
 		s.Assert().Nil(berr)

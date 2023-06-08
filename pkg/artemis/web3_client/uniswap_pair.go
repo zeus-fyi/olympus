@@ -145,6 +145,14 @@ func (p *UniswapV2Pair) GetTokenNumber(addr accounts.Address) int {
 	return -1
 }
 
+func (u *UniswapClient) PairToPrices(ctx context.Context, pairAddr []accounts.Address) (UniswapV2Pair, error) {
+	if len(pairAddr) == 2 {
+		pairContractAddr := u.GetPairContractFromFactory(ctx, pairAddr[0].String(), pairAddr[1].String())
+		return u.GetPairContractPrices(ctx, pairContractAddr.String())
+	}
+	return UniswapV2Pair{}, errors.New("pair address length is not 2")
+}
+
 func (u *UniswapClient) GetPairContractPrices(ctx context.Context, pairContractAddr string) (UniswapV2Pair, error) {
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: pairContractAddr,
@@ -211,36 +219,4 @@ func (u *UniswapClient) GetPairContractPrices(ctx context.Context, pairContractA
 	}
 	pairInfo.BlockTimestampLast = blockTimestampLast
 	return pairInfo, nil
-}
-
-func (u *UniswapClient) SingleReadMethodBigInt(ctx context.Context, methodName string, scInfo *web3_actions.SendContractTxPayload) (*big.Int, error) {
-	scInfo.MethodName = methodName
-	resp, err := u.Web3Client.CallConstantFunction(ctx, scInfo)
-	if err != nil {
-		return &big.Int{}, err
-	}
-	if len(resp) == 0 {
-		return &big.Int{}, errors.New("empty response")
-	}
-	bi, err := ParseBigInt(resp[0])
-	if err != nil {
-		return &big.Int{}, err
-	}
-	return bi, nil
-}
-
-func (u *UniswapClient) SingleReadMethodAddr(ctx context.Context, methodName string, scInfo *web3_actions.SendContractTxPayload) (accounts.Address, error) {
-	scInfo.MethodName = methodName
-	resp, err := u.Web3Client.CallConstantFunction(ctx, scInfo)
-	if err != nil {
-		return accounts.Address{}, err
-	}
-	if len(resp) == 0 {
-		return accounts.Address{}, errors.New("empty response")
-	}
-	addr, err := ConvertToAddress(resp[0])
-	if err != nil {
-		return accounts.Address{}, err
-	}
-	return addr, nil
 }

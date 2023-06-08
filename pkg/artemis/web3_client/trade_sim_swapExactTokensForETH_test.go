@@ -29,7 +29,7 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSim_SwapExactTokensForETH() {
 	s.Require().NotEmpty(mevTxs)
 
 	for _, mevTx := range mevTxs {
-		tf := TradeExecutionFlow{}
+		tf := TradeExecutionFlowJSON{}
 		by := []byte(mevTx.TxFlowPrediction)
 		berr := json.Unmarshal(by, &tf)
 		s.Require().Nil(berr)
@@ -65,12 +65,14 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSim_SwapExactTokensForETH() {
 
 		tfRegular = tf.ConvertToBigIntType()
 		uni = InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
+		uni.PrintDetails = true
+
 		pairAddr = tfRegular.InitialPair.PairContractAddr
 		simPair, err = uni.GetPairContractPrices(ctx, pairAddr)
 		s.Require().Nil(err)
 		s.Require().Equal(tfRegular.InitialPair.Reserve0.String(), simPair.Reserve0.String())
 		s.Require().Equal(tfRegular.InitialPair.Reserve1.String(), simPair.Reserve1.String())
-
+		uni.PrintOn = true
 		uni.DebugPrint = true
 		err = uni.SimFullSandwichTrade(&tfRegular)
 		s.Require().Nil(err)

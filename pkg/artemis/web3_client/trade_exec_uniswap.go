@@ -8,7 +8,7 @@ import (
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 )
 
-func (u *UniswapClient) ExecTradeByMethod(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+func (u *UniswapClient) ExecTradeByMethod(tf *TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
 	switch tf.Trade.TradeMethod {
 	case swapTokensForExactETH:
 		return u.SwapTokensForExactETHParams(tf)
@@ -27,7 +27,7 @@ func (u *UniswapClient) ExecTradeByMethod(tf *TradeExecutionFlowInBigInt) (*web3
 	return nil, errors.New("invalid trade method")
 }
 
-func (u *UniswapClient) SwapExactTokensForETHParams(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+func (u *UniswapClient) SwapExactTokensForETHParams(tf *TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
 	trade := tf.Trade
 	params := *trade.JSONSwapExactTokensForETHParams
 	pathSlice := make([]string, len(params.Path))
@@ -49,7 +49,7 @@ func (u *UniswapClient) SwapExactTokensForETHParams(tf *TradeExecutionFlowInBigI
 	return scInfo, nil
 }
 
-func (u *UniswapClient) SwapTokensForExactETHParams(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+func (u *UniswapClient) SwapTokensForExactETHParams(tf *TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
 	trade := tf.Trade
 	params := *trade.JSONSwapTokensForExactETHParams
 	pathSlice := make([]string, len(params.Path))
@@ -72,7 +72,7 @@ func (u *UniswapClient) SwapTokensForExactETHParams(tf *TradeExecutionFlowInBigI
 	return scInfo, nil
 }
 
-func (u *UniswapClient) SwapExactTokensForTokensParams(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+func (u *UniswapClient) SwapExactTokensForTokensParams(tf *TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
 	trade := tf.Trade
 	params := *trade.JSONSwapExactTokensForTokensParams
 	pathSlice := make([]string, len(params.Path))
@@ -95,7 +95,7 @@ func (u *UniswapClient) SwapExactTokensForTokensParams(tf *TradeExecutionFlowInB
 	return scInfo, nil
 }
 
-func (u *UniswapClient) SwapExactETHForTokensParams(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+func (u *UniswapClient) SwapExactETHForTokensParams(tf *TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
 	trade := tf.Trade
 	params := *trade.JSONSwapExactETHForTokensParams
 	pathSlice := make([]string, len(params.Path))
@@ -123,7 +123,7 @@ func (u *UniswapClient) SwapExactETHForTokensParams(tf *TradeExecutionFlowInBigI
 	return scInfo, nil
 }
 
-func (u *UniswapClient) SwapETHForExactTokensParams(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+func (u *UniswapClient) SwapETHForExactTokensParams(tf *TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
 	trade := tf.Trade
 	params := *trade.JSONSwapETHForExactTokensParams
 	pathSlice := make([]string, len(params.Path))
@@ -151,7 +151,7 @@ func (u *UniswapClient) SwapETHForExactTokensParams(tf *TradeExecutionFlowInBigI
 	return scInfo, nil
 }
 
-func (u *UniswapClient) SwapTokensForExactTokensParams(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+func (u *UniswapClient) SwapTokensForExactTokensParams(tf *TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
 	trade := tf.Trade
 	params := *trade.JSONSwapTokensForExactTokensParams
 	pathSlice := make([]string, len(params.Path))

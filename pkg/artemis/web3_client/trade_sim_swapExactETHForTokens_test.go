@@ -43,7 +43,7 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSim_SwapExactETHForTokens() {
 	s.Require().Nil(merr)
 	s.Require().NotEmpty(mevTxs)
 	for _, mevTx := range mevTxs {
-		tf := TradeExecutionFlow{}
+		tf := TradeExecutionFlowJSON{}
 		by := []byte(mevTx.TxFlowPrediction)
 		berr := json.Unmarshal(by, &tf)
 		s.Require().Nil(berr)

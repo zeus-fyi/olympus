@@ -36,15 +36,15 @@ func (u *UniswapClient) ExecSwap(pair UniswapV2Pair, to *TradeOutcome) (*web3_ac
 	return &scInfo, nil
 }
 
-func (u *UniswapClient) ExecFrontRunTrade(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+func (u *UniswapClient) ExecFrontRunTrade(tf TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
 	return u.ExecSwap(tf.InitialPair, &tf.FrontRunTrade)
 }
 
-func (u *UniswapClient) ExecSandwichTrade(tf TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+func (u *UniswapClient) ExecSandwichTrade(tf TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
 	return u.ExecSwap(tf.InitialPair, &tf.SandwichTrade)
 }
 
-func (u *UniswapClient) ExecFrontRunTradeStepTokenTransfer(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+func (u *UniswapClient) ExecFrontRunTradeStepTokenTransfer(tf *TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
 	if u.DebugPrint {
 		fmt.Println("executing front run token transfer")
 	}
@@ -68,7 +68,7 @@ func (u *UniswapClient) ExecFrontRunTradeStepTokenTransfer(tf *TradeExecutionFlo
 	return u.ExecFrontRunTradeStep(tf)
 }
 
-func (u *UniswapClient) ExecUserTradeStep(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+func (u *UniswapClient) ExecUserTradeStep(tf *TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
 	if u.DebugPrint {
 		fmt.Println("executing user trade")
 	}
@@ -99,14 +99,14 @@ func (u *UniswapClient) ExecUserTradeStep(tf *TradeExecutionFlowInBigInt) (*web3
 	return scInfo, err
 }
 
-func (u *UniswapClient) ExecFrontRunTradeStep(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+func (u *UniswapClient) ExecFrontRunTradeStep(tf *TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
 	if u.DebugPrint {
 		fmt.Println("executing front run trade")
 	}
 	return u.ExecSwap(tf.InitialPair, &tf.FrontRunTrade)
 }
 
-func (u *UniswapClient) ExecSandwichTradeStepTokenTransfer(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+func (u *UniswapClient) ExecSandwichTradeStepTokenTransfer(tf *TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
 	_, _ = u.SandwichTradeGetAmountsOut(tf)
 	ethBal, err := u.Web3Client.GetBalance(ctx, u.Web3Client.PublicKey(), nil)
 	if err != nil {
@@ -127,11 +127,11 @@ func (u *UniswapClient) ExecSandwichTradeStepTokenTransfer(tf *TradeExecutionFlo
 	return u.ExecSandwichTradeStep(tf)
 }
 
-func (u *UniswapClient) ExecSandwichTradeStep(tf *TradeExecutionFlowInBigInt) (*web3_actions.SendContractTxPayload, error) {
+func (u *UniswapClient) ExecSandwichTradeStep(tf *TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
 	return u.ExecSwap(tf.InitialPair, &tf.SandwichTrade)
 }
 
-func (u *UniswapClient) FrontRunTradeGetAmountsOut(tf *TradeExecutionFlowInBigInt) ([]*big.Int, error) {
+func (u *UniswapClient) FrontRunTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*big.Int, error) {
 	pathSlice := []string{tf.FrontRunTrade.AmountInAddr.String(), tf.FrontRunTrade.AmountOutAddr.String()}
 	amountsOut, err := u.GetAmountsOut(tf.FrontRunTrade.AmountIn, pathSlice)
 	if err != nil {
@@ -162,7 +162,7 @@ func (u *UniswapClient) FrontRunTradeGetAmountsOut(tf *TradeExecutionFlowInBigIn
 	return amountsOutFirstPair, err
 }
 
-func (u *UniswapClient) UserTradeGetAmountsOut(tf *TradeExecutionFlowInBigInt) ([]*big.Int, error) {
+func (u *UniswapClient) UserTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*big.Int, error) {
 	pathSlice := []string{tf.UserTrade.AmountInAddr.String(), tf.UserTrade.AmountOutAddr.String()}
 	amountsOut, err := u.GetAmountsOut(tf.UserTrade.AmountIn, pathSlice)
 	if err != nil {
@@ -193,7 +193,7 @@ func (u *UniswapClient) UserTradeGetAmountsOut(tf *TradeExecutionFlowInBigInt) (
 	return amountsOutFirstPair, err
 }
 
-func (u *UniswapClient) SandwichTradeGetAmountsOut(tf *TradeExecutionFlowInBigInt) ([]*big.Int, error) {
+func (u *UniswapClient) SandwichTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*big.Int, error) {
 	pathSlice := []string{tf.SandwichTrade.AmountInAddr.String(), tf.SandwichTrade.AmountOutAddr.String()}
 	amountsOut, err := u.GetAmountsOut(tf.SandwichTrade.AmountIn, pathSlice)
 	if err != nil {

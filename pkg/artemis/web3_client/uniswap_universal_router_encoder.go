@@ -22,9 +22,12 @@ func (ur *UniversalRouterExecCmd) EncodeCommands(ctx context.Context) (*Universa
 	return encodedCmd, nil
 }
 
-func (ur *UniversalRouterExecSubCmd) EncodeCommandByte() byte {
-	var cmdByte byte
-	return cmdByte
+func (ur *UniversalRouterExecSubCmd) EncodeCommandByte(flag bool, command int) byte {
+	data := command // start with command in the lower 5 bits
+	if flag {       // if flag is true, set the highest bit
+		data |= 0x80
+	}
+	return byte(data)
 }
 
 func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, []byte, error) {
@@ -37,6 +40,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 		if err != nil {
 			return cmdByte, nil, err
 		}
+		cmdByte = ur.EncodeCommandByte(ur.CanRevert, V3_SWAP_EXACT_IN)
 		return cmdByte, inputs, nil
 	case V3SwapExactOut:
 		log.Info().Msg("DecodeCommand V3_SWAP_EXACT_OUT")
@@ -46,6 +50,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 			return cmdByte, nil, err
 		}
 		ur.Inputs = inputs
+		cmdByte = ur.EncodeCommandByte(ur.CanRevert, V3_SWAP_EXACT_OUT)
 		return cmdByte, inputs, nil
 	case V2SwapExactIn:
 		log.Info().Msg("DecodeCommand V2_SWAP_EXACT_IN")
@@ -55,6 +60,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 			return cmdByte, nil, err
 		}
 		ur.Inputs = inputs
+		cmdByte = ur.EncodeCommandByte(ur.CanRevert, V2_SWAP_EXACT_IN)
 		return cmdByte, inputs, nil
 	case V2SwapExactOut:
 		log.Info().Msg("DecodeCommand V2_SWAP_EXACT_OUT")
@@ -64,6 +70,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 			return cmdByte, nil, err
 		}
 		ur.Inputs = inputs
+		cmdByte = ur.EncodeCommandByte(ur.CanRevert, V2_SWAP_EXACT_OUT)
 		return cmdByte, inputs, nil
 	case Permit2TransferFromBatch:
 		log.Info().Msg("DecodeCommand PERMIT2_TRANSFER_FROM_BATCH")
@@ -74,6 +81,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 		//	return err
 		//}
 		//ur.DecodedInputs = params
+		cmdByte = ur.EncodeCommandByte(ur.CanRevert, PERMIT2_TRANSFER_FROM_BATCH)
 		ur.Command = Permit2TransferFromBatch
 	case Permit2TransferFrom:
 		log.Info().Msg("DecodeCommand PERMIT2_TRANSFER_FROM")
@@ -83,6 +91,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 			return cmdByte, nil, err
 		}
 		ur.Inputs = inputs
+		cmdByte = ur.EncodeCommandByte(ur.CanRevert, PERMIT2_TRANSFER_FROM)
 		return cmdByte, inputs, nil
 	case Permit2PermitBatch:
 		log.Info().Msg("DecodeCommand PERMIT2_PERMIT_BATCH")
@@ -93,6 +102,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 		//if err != nil {
 		//	return err
 		//}
+		cmdByte = ur.EncodeCommandByte(ur.CanRevert, PERMIT2_PERMIT_BATCH)
 		ur.Command = Permit2PermitBatch
 	case Permit2Permit:
 		log.Info().Msg("DecodeCommand PERMIT2_PERMIT")
@@ -102,6 +112,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 			return cmdByte, nil, err
 		}
 		ur.Inputs = inputs
+		cmdByte = ur.EncodeCommandByte(ur.CanRevert, PERMIT2_PERMIT)
 		return cmdByte, inputs, nil
 	case SudoSwap:
 		log.Info().Msg("DecodeCommand SUDOSWAP")
@@ -111,6 +122,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 			return cmdByte, nil, err
 		}
 		ur.Inputs = inputs
+		cmdByte = ur.EncodeCommandByte(ur.CanRevert, SUDOSWAP)
 		return cmdByte, inputs, nil
 	default:
 	}

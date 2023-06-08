@@ -6,6 +6,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
+	"strings"
 )
 
 type SwapQuote struct {
@@ -75,28 +77,30 @@ func NewClient() *Client {
 	}
 }
 
-func sendSwapRequest(ctx context.Context, endpoint string, params map[string]string) (string, error) {
-	client := &http.Client{}
-	baseURL := "https://api.0x.org/swap/v1/"
-	url := baseURL + endpoint
-
-	first := true
-	for key, value := range params {
-		if first {
-			url += "?" + key + "=" + value
-			first = false
-		} else {
-			url += "&" + key + "=" + value
-		}
-	}
-
-	req, err := client.Get(url)
+func (c *Client) sendSwapRequest(ctx context.Context, endpoint string, params map[string]string) (string, error) {
+	u, err := url.Parse(c.url + endpoint)
 	if err != nil {
-		log.Fatal(err)
 		return "", err
 	}
-	defer req.Body.Close()
-	body, err := io.ReadAll(req.Body)
+
+	query := u.Query()
+	for key, value := range params {
+		query.Set(key, value)
+	}
+	u.RawQuery = query.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), strings.NewReader(""))
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
 		return "", err
@@ -112,7 +116,8 @@ func GetUSDSwapQuote(ctx context.Context, token string) (*SwapQuote, error) {
 		"buyToken":   "USDC",
 		"sellToken":  token,
 	}
-	body, err := sendSwapRequest(ctx, "quote", params)
+	client := NewClient()
+	body, err := client.sendSwapRequest(ctx, "quote", params)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +137,8 @@ func GetETHSwapQuote(ctx context.Context, token string) (*SwapQuote, error) {
 		"buyToken":   "ETH",
 		"sellToken":  token,
 	}
-	body, err := sendSwapRequest(ctx, "quote", params)
+	client := NewClient()
+	body, err := client.sendSwapRequest(ctx, "quote", params)
 	if err != nil {
 		return nil, err
 	}

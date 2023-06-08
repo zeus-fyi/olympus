@@ -11,6 +11,7 @@ import (
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
+	price_quoter "github.com/zeus-fyi/zeus/pkg/artemis/price_quoter"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
@@ -118,7 +119,11 @@ func (u *UniswapClient) PrintTradeSummaries(ts *TradeSummary) {
 }
 
 type PricingData struct {
-	v2Pair UniswapV2Pair
+	v2Pair         UniswapV2Pair
+	token0EthPrice *big.Int
+	token0UsdPrice *big.Int
+	token1EthPrice *big.Int
+	token1UsdPrice *big.Int
 }
 
 func (u *UniswapClient) GetPricingData(ctx context.Context, path []accounts.Address) (*PricingData, error) {
@@ -126,6 +131,24 @@ func (u *UniswapClient) GetPricingData(ctx context.Context, path []accounts.Addr
 	if err != nil {
 		return nil, err
 	}
+
+	token0EthPrice, err := price_quoter.GetETHSwapQuote(ctx, pair.Token0.String())
+	if err != nil {
+		log.Err(err).Msg("failed to get eth price for token0")
+	}
+	token0UsdPrice, err := price_quoter.GetUSDSwapQuote(ctx, pair.Token0.String())
+	if err != nil {
+		log.Err(err).Msg("failed to get usd price for token0")
+	}
+	token1EthPrice, err := price_quoter.GetETHSwapQuote(ctx, pair.Token1.String())
+	if err != nil {
+		log.Err(err).Msg("failed to get eth price for token1")
+	}
+	token1UsdPrice, err := price_quoter.GetUSDSwapQuote(ctx, pair.Token1.String())
+	if err != nil {
+		log.Err(err).Msg("failed to get usd price for token1")
+	}
+
 	return &PricingData{
 		v2Pair: pair,
 	}, nil

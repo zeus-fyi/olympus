@@ -25,7 +25,8 @@ func (s *PriceQuoterTestSuite) TestSendSwapRequest() {
 		"buyToken":   "0x6b175474e89094c44da98b954eedeac495271d0f", // DAI
 		"sellToken":  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE", // ETH
 	}
-	quote, err := sendSwapRequest(ctx, "quote", params)
+	client := NewClient()
+	quote, err := client.sendSwapRequest(ctx, "quote", params)
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(quote)
 	fmt.Println(quote)
@@ -39,7 +40,7 @@ func (s *PriceQuoterTestSuite) TestGetUSDSwapQuote() {
 	quote, err := GetUSDSwapQuote(ctx, testToken)
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(quote)
-	fmt.Println("USDC Guaranteed Price: ", quote.GuaranteedPrice)
+	fmt.Println("USDC Guaranteed Price for 1 PEPE: ", quote.GuaranteedPrice)
 
 }
 

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gochain/gochain/v4/core/types"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -75,7 +75,7 @@ func (v *DepositEthereumValidatorsService) DepositValidators(c echo.Context) err
 			}
 			resp[i] = ValidatorDepositResponse{
 				Pubkey: d.Pubkey,
-				Rx:     rx.Hash.String(),
+				Rx:     rx.Hash().String(),
 			}
 		}
 		return c.JSON(http.StatusAccepted, resp)
@@ -110,7 +110,7 @@ func (v *DepositEthereumValidatorsService) DepositValidators(c echo.Context) err
 			}
 			resp[i] = ValidatorDepositResponse{
 				Pubkey: d.Pubkey,
-				Rx:     rx.Hash.String(),
+				Rx:     rx.Hash().String(),
 			}
 		}
 		return c.JSON(http.StatusAccepted, resp)

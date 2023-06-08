@@ -20,3 +20,14 @@ func (t *TopologyReadRequest) ReadTopologiesOrgCloudCtxNs(c echo.Context) error 
 	}
 	return c.JSON(http.StatusOK, resp)
 }
+
+func (t *TopologyReadRequest) ReadClusterAppViewOrgCloudCtxNs(c echo.Context) error {
+	ou := c.Get("orgUser").(org_users.OrgUser)
+	ctx := context.Background()
+	resp, err := read_topologies.SelectClusterAppView(ctx, ou.OrgID)
+	if err != nil {
+		log.Err(err).Interface("orgUser", ou).Msg("ReadTopologyChart: SelectTopology")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	return c.JSON(http.StatusOK, resp)
+}

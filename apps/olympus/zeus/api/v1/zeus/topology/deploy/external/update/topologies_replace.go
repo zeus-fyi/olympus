@@ -34,7 +34,7 @@ func (t *TopologyReplaceRequest) ReplaceTopology(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	diffReplacement := zeus.DiffChartUpdate(nk, tr.GetTopologyBaseInfraWorkload())
-	return zeus.ExecuteDeployWorkflow(c, ctx, ou, t.TopologyKubeCtxNs, diffReplacement, false, t.ClusterName)
+	return zeus.ExecuteDeployWorkflow(c, ctx, ou, t.TopologyKubeCtxNs, diffReplacement, false, t.ClusterName, t.ClusterName)
 }
 
 type DeployClusterUpdateRequestUI struct {
@@ -91,11 +91,11 @@ func (t *DeployClusterUpdateRequestUI) TopologyUpdateRequestUI(c echo.Context) e
 		return c.JSON(http.StatusOK, nil)
 	}
 	clDeploy := base_deploy_params.ClusterTopologyWorkflowRequest{
-		ClusterName: t.ClusterClassName,
-		TopologyIDs: newTopIDs,
-		CloudCtxNS:  cctx,
-		OrgUser:     ou,
-		AppTaint:    t.AppTaint,
+		ClusterClassName: t.ClusterClassName,
+		TopologyIDs:      newTopIDs,
+		CloudCtxNS:       cctx,
+		OrgUser:          ou,
+		AppTaint:         t.AppTaint,
 	}
 	log.Info().Interface("clDeploy", clDeploy).Msg("TopologyUpdateRequestUI")
 	return zeus.ExecuteDeployClusterWorkflow(c, ctx, clDeploy)

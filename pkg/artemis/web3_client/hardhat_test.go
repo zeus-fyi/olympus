@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/gochain/gochain/v4/common/hexutil"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 func (s *Web3ClientTestSuite) TestSetBalance() {
@@ -14,7 +14,7 @@ func (s *Web3ClientTestSuite) TestSetBalance() {
 	bigInt := bal.ToInt()
 	bigInt.Set(Ether)
 	bal = hexutil.Big(*bigInt)
-	err = s.LocalHardhatMainnetUser.SetBalance(ctx, s.LocalMainnetWeb3User.PublicKey(), bal)
+	err = s.LocalHardhatMainnetUser.HardHatSetBalance(ctx, s.LocalMainnetWeb3User.PublicKey(), bal)
 	s.Require().Nil(err)
 	cb, err = s.LocalMainnetWeb3User.GetCurrentBalance(ctx)
 	s.Require().Nil(err)
@@ -22,13 +22,13 @@ func (s *Web3ClientTestSuite) TestSetBalance() {
 }
 
 func (s *Web3ClientTestSuite) TestResetNetwork() {
-	err := s.LocalMainnetWeb3User.ResetNetwork(ctx, s.Tc.HardhatNode, 17326677)
+	err := s.LocalMainnetWeb3User.HardHatResetNetwork(ctx, s.Tc.HardhatNode, 17326677)
 	s.Require().Nil(err)
 }
 
 func (s *Web3ClientTestSuite) TestAccountImpersonation() {
 	userToImpersonate := "0x5c3fd6932ce20b60af632d8983c0121db7beef46"
-	err := s.LocalMainnetWeb3User.ImpersonateAccount(ctx, userToImpersonate)
+	err := s.LocalMainnetWeb3User.HardhatImpersonateAccount(ctx, userToImpersonate)
 	s.Require().Nil(err)
 	err = s.LocalMainnetWeb3User.StopImpersonatingAccount(ctx, userToImpersonate)
 	s.Require().Nil(err)
@@ -38,7 +38,7 @@ func (s *Web3ClientTestSuite) TestAccountImpersonation() {
 }
 
 func (s *Web3ClientTestSuite) TestGetEvmSnapshot() {
-	ss, err := s.LocalMainnetWeb3User.GetEvmSnapshot(ctx)
+	ss, err := s.LocalMainnetWeb3User.HardHatGetEvmSnapshot(ctx)
 	s.Require().Nil(err)
 	s.Assert().NotZero(ss)
 }
@@ -62,7 +62,7 @@ func (s *Web3ClientTestSuite) TestGetSlotFromKnownNonZeroERC20Balance() {
 	s.Require().Nil(err)
 	fmt.Println("slotHex", slotHex)
 
-	resp, err := s.LocalHardhatMainnetUser.GetStorageAt(ctx, usdtAddr, slotHex)
+	resp, err := s.LocalHardhatMainnetUser.HardHatGetStorageAt(ctx, usdtAddr, slotHex)
 	s.Require().Nil(err)
 	foundBal := new(big.Int).SetBytes(resp)
 	s.Assert().Equal(b.String(), foundBal.String())
@@ -83,7 +83,7 @@ func (s *Web3ClientTestSuite) TestSetERC20BalanceAtSlotNumber() {
 
 func (s *Web3ClientTestSuite) TestSetERC20BalanceBruteForce() {
 	// block set to 17317757
-	err := s.LocalMainnetWeb3User.ResetNetwork(ctx, s.Tc.HardhatNode, 17317757)
+	err := s.LocalMainnetWeb3User.HardHatResetNetwork(ctx, s.Tc.HardhatNode, 17317757)
 	s.Require().Nil(err)
 	usdtAddr := "0xdac17f958d2ee523a2206206994597c13d831ec7"
 	b, err := s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, usdtAddr, s.LocalHardhatMainnetUser.PublicKey())

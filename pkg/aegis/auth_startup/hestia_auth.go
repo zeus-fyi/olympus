@@ -25,16 +25,16 @@ func RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authC
 	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
 	log.Info().Msg("Hestia: RunDigitalOceanS3BucketObjSecretsProcedure finished")
 	sw := SecretsWrapper{}
-	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
-	sw.BearerToken = sw.ReadSecret(ctx, inMemSecrets, temporalBearerSecret)
-	sw.SecretsManagerAuthAWS.AccessKey = sw.ReadSecret(ctx, inMemSecrets, secretsManagerAccessKey)
-	sw.SecretsManagerAuthAWS.SecretKey = sw.ReadSecret(ctx, inMemSecrets, secretsManagerSecretKey)
+	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, pgSecret)
+	sw.BearerToken = sw.MustReadSecret(ctx, inMemSecrets, temporalBearerSecret)
+	sw.SecretsManagerAuthAWS.AccessKey = sw.MustReadSecret(ctx, inMemSecrets, secretsManagerAccessKey)
+	sw.SecretsManagerAuthAWS.SecretKey = sw.MustReadSecret(ctx, inMemSecrets, secretsManagerSecretKey)
 
-	sw.SESAuthAWS.AccessKey = sw.ReadSecret(ctx, inMemSecrets, sesAccessKey)
-	sw.SESAuthAWS.SecretKey = sw.ReadSecret(ctx, inMemSecrets, sesSecretKey)
-	sw.SendGridAPIKey = sw.ReadSecret(ctx, inMemSecrets, sendGridAPIKey)
-	sw.StripePubKey = sw.ReadSecret(ctx, inMemSecrets, stripePublishableKey)
-	sw.StripeSecretKey = sw.ReadSecret(ctx, inMemSecrets, stripeSecretKey)
+	sw.SESAuthAWS.AccessKey = sw.MustReadSecret(ctx, inMemSecrets, sesAccessKey)
+	sw.SESAuthAWS.SecretKey = sw.MustReadSecret(ctx, inMemSecrets, sesSecretKey)
+	sw.SendGridAPIKey = sw.MustReadSecret(ctx, inMemSecrets, sendGridAPIKey)
+	sw.StripePubKey = sw.MustReadSecret(ctx, inMemSecrets, stripePublishableKey)
+	sw.StripeSecretKey = sw.MustReadSecret(ctx, inMemSecrets, stripeSecretKey)
 	log.Info().Msg("Hestia: RunDigitalOceanS3BucketObjSecretsProcedure succeeded")
 	return inMemSecrets, sw
 }

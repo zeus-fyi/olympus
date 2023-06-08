@@ -3,6 +3,7 @@ package chart_workload
 import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/configuration"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/jobs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/ingresses"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/servicemonitors"
@@ -16,6 +17,8 @@ type ChartWorkload struct {
 	*configuration.ConfigMap
 	*statefulsets.StatefulSet
 	*servicemonitors.ServiceMonitor
+	*jobs.Job
+	*jobs.CronJob
 }
 
 func NewChartWorkload() ChartWorkload {
@@ -26,6 +29,8 @@ func NewChartWorkload() ChartWorkload {
 		ConfigMap:      nil,
 		StatefulSet:    nil,
 		ServiceMonitor: nil,
+		Job:            nil,
+		CronJob:        nil,
 	}
 	return k8s
 }
@@ -50,6 +55,12 @@ func (c *ChartWorkload) GetTopologyBaseInfraWorkload() TopologyBaseInfraWorkload
 	}
 	if c.ServiceMonitor != nil {
 		nk.ServiceMonitor = &c.K8sServiceMonitor
+	}
+	if c.Job != nil {
+		nk.Job = &c.K8sJob
+	}
+	if c.CronJob != nil {
+		nk.CronJob = &c.K8sCronJob
 	}
 	return nk
 }

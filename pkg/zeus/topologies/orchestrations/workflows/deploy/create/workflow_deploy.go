@@ -29,7 +29,7 @@ func NewDeployTopologyWorkflow() DeployTopologyWorkflow {
 }
 
 func (t *DeployTopologyWorkflow) GetWorkflows() []interface{} {
-	return []interface{}{t.DeployTopologyWorkflow, t.DeployClusterTopologyWorkflow}
+	return []interface{}{t.DeployTopologyWorkflow, t.DeployClusterTopologyWorkflow, t.DeployCronJobWorkflow, t.DeployJobWorkflow}
 }
 
 func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, params base_deploy_params.TopologyWorkflowRequest) error {
@@ -66,7 +66,8 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 		Kns:                       params.Kns,
 		OrgUser:                   params.OrgUser,
 		TopologyBaseInfraWorkload: params.TopologyBaseInfraWorkload,
-		ClusterName:               params.ClusterName,
+		ClusterName:               params.ClusterClassName,
+		SecretRef:                 params.SecretRef,
 	}
 	nsCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(nsCtx, t.DeployTopologyActivities.CreateNamespace, deployParams).Get(nsCtx, nil)
@@ -81,6 +82,15 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 		err = workflow.ExecuteActivity(cmCtx, t.DeployTopologyActivities.CreateChoreographySecret, deployParams).Get(chorCtx, nil)
 		if err != nil {
 			log.Error("Failed to create choreographySecret", "Error", err)
+			return err
+		}
+	}
+
+	if params.SecretRef != "" {
+		secCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(secCtx, t.DeployTopologyActivities.CreateSecret, deployParams).Get(secCtx, nil)
+		if err != nil {
+			log.Error("Failed to get or deploy secret relationships", "Error", err)
 			return err
 		}
 	}

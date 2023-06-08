@@ -25,6 +25,14 @@ func (t *TopologiesTestSuite) TestSelectTopologiesMetadata() {
 	t.Assert().NotEmpty(tps)
 }
 
+func (t *TopologiesTestSuite) TestReadClusterAppView() {
+	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
+	orgID := 7138983863666903883
+	view, err := SelectClusterAppView(ctx, orgID)
+	t.Require().Nil(err)
+	t.Assert().NotEmpty(view)
+}
+
 func (t *TopologiesTestSuite) TestRead() {
 	dr := NewReadTopologiesMetadataGroup()
 	orgID := 1667452524363177528

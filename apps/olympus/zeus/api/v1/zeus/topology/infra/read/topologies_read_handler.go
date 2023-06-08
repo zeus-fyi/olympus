@@ -33,3 +33,11 @@ func ReadOrgAppDetailsHandler(c echo.Context) error {
 	}
 	return request.GetPrivateAppDetailsRequest(c)
 }
+
+func ReadClusterAppViewOrgCloudCtxNsHandler(c echo.Context) error {
+	request := new(TopologyReadRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.ReadClusterAppViewOrgCloudCtxNs(c)
+}

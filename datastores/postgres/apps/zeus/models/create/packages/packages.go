@@ -69,5 +69,13 @@ func (p *Packages) InsertPackagesCTE() sql_query_templates.CTE {
 		smCte := p.GetServiceMonitorCTE(&p.Chart)
 		p.CTE.AppendSubCtes(smCte.SubCTEs)
 	}
+	if p.Job != nil {
+		jCte := p.GetJobCTE(&p.Chart)
+		p.CTE.AppendSubCtes(jCte.SubCTEs)
+	}
+	if p.CronJob != nil {
+		cjCte := p.GetServiceMonitorCTE(&p.Chart)
+		p.CTE.AppendSubCtes(cjCte.SubCTEs)
+	}
 	return p.CTE
 }

@@ -14,6 +14,7 @@ import (
 type TopologyDeployRequest struct {
 	kns.TopologyKubeCtxNs
 	ClusterName                     string `json:"clusterClassName,omitempty"`
+	SecretRef                       string `json:"secretRef,omitempty"`
 	RequestChoreographySecretDeploy bool   `json:"requestChoreographySecretDeploy,omitempty"`
 }
 
@@ -26,5 +27,12 @@ func (t *TopologyDeployRequest) DeployTopology(c echo.Context) error {
 		log.Err(err).Interface("orgUser", ou).Msg("DeployTopology, ReadUserTopologyConfig error")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	return zeus.ExecuteDeployWorkflow(c, ctx, ou, t.TopologyKubeCtxNs, tr.GetTopologyBaseInfraWorkload(), t.RequestChoreographySecretDeploy, t.ClusterName)
+	nk := tr.GetTopologyBaseInfraWorkload()
+	if nk.Job != nil {
+		return zeus.ExecuteDeployJobWorkflow(c, ctx, ou, t.TopologyKubeCtxNs, tr.GetTopologyBaseInfraWorkload(), t.RequestChoreographySecretDeploy, t.ClusterName, t.SecretRef)
+	}
+	if nk.CronJob != nil {
+		return zeus.ExecuteDeployCronJobWorkflow(c, ctx, ou, t.TopologyKubeCtxNs, tr.GetTopologyBaseInfraWorkload(), t.RequestChoreographySecretDeploy, t.ClusterName, t.SecretRef)
+	}
+	return zeus.ExecuteDeployWorkflow(c, ctx, ou, t.TopologyKubeCtxNs, tr.GetTopologyBaseInfraWorkload(), t.RequestChoreographySecretDeploy, t.ClusterName, t.SecretRef)
 }

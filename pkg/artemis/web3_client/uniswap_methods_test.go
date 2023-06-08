@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/gochain/gochain/v4/common"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 )
 
 // https://www.defi-sandwi.ch/
@@ -29,9 +29,9 @@ func (s *Web3ClientTestSuite) TestSandwichAttack() {
 	mockTrade := SwapExactTokensForETHParams{
 		AmountIn:     amountIn,
 		AmountOutMin: amountOut,
-		Path: []common.Address{
-			common.HexToAddress(PepeContractAddr),
-			common.HexToAddress(WETH9ContractAddress),
+		Path: []accounts.Address{
+			accounts.HexToAddress(PepeContractAddr),
+			accounts.HexToAddress(WETH9ContractAddress),
 		},
 	}
 	reserve0, _ := new(big.Int).SetString("47956013761392256000", 10)
@@ -103,9 +103,9 @@ func (s *Web3ClientTestSuite) TestSandwichAttackBinSearch() {
 	mockTrade := SwapExactTokensForETHParams{
 		AmountIn:     amountIn,
 		AmountOutMin: amountOut,
-		Path: []common.Address{
-			common.HexToAddress(PepeContractAddr),
-			common.HexToAddress(WETH9ContractAddress),
+		Path: []accounts.Address{
+			accounts.HexToAddress(PepeContractAddr),
+			accounts.HexToAddress(WETH9ContractAddress),
 		},
 	}
 
@@ -138,9 +138,9 @@ func (s *Web3ClientTestSuite) TestSandwichAttackBinSearchV2() {
 	mockTrade := SwapExactETHForTokensParams{
 		Value:        amountIn,
 		AmountOutMin: amountOut,
-		Path: []common.Address{
-			common.HexToAddress(WETH9ContractAddress),
-			common.HexToAddress(PepeContractAddr),
+		Path: []accounts.Address{
+			accounts.HexToAddress(WETH9ContractAddress),
+			accounts.HexToAddress(PepeContractAddr),
 		},
 	}
 	reserve0, _ := new(big.Int).SetString("47956013761392256000", 10)
@@ -187,7 +187,7 @@ func (s *Web3ClientTestSuite) TestSandwichAttackBinSearchV3() {
 }
 
 func (s *Web3ClientTestSuite) TestGetPepeWETH() {
-	uni := InitUniswapV2Client(ctx, s.MainnetWeb3User)
+	uni := InitUniswapClient(ctx, s.MainnetWeb3User)
 	pairAddr := uni.GetPairContractFromFactory(ctx, WETH9ContractAddress, PepeContractAddr)
 	pair, err := uni.GetPairContractPrices(ctx, pairAddr.String())
 	s.Require().Nil(err)
@@ -202,7 +202,7 @@ func (s *Web3ClientTestSuite) TestGetPepeWETH() {
 	fmt.Println("price1CumulativeLast", pair.Price1CumulativeLast.Uint64())
 }
 func (s *Web3ClientTestSuite) TestGetPairContractInfoStable() {
-	uni := InitUniswapV2Client(ctx, s.MainnetWeb3User)
+	uni := InitUniswapClient(ctx, s.MainnetWeb3User)
 	pairAddr := uni.GetPairContractFromFactory(ctx, WETH9ContractAddress, LinkTokenAddr)
 	pair, err := uni.GetPairContractPrices(ctx, pairAddr.String())
 	s.Assert().Nil(err)
@@ -219,7 +219,7 @@ func (s *Web3ClientTestSuite) TestGetPairContractInfoStable() {
 }
 
 func (s *Web3ClientTestSuite) TestGetPairContractInfoMismatchedDecimals() {
-	uni := InitUniswapV2Client(ctx, s.MainnetWeb3User)
+	uni := InitUniswapClient(ctx, s.MainnetWeb3User)
 	pairAddr := uni.GetPairContractFromFactory(ctx, WETH9ContractAddress, HexTokenAddr)
 	pair, err := uni.GetPairContractPrices(ctx, pairAddr.String())
 	s.Assert().Nil(err)

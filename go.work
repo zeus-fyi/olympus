@@ -21,6 +21,8 @@ use (
 	./apps/olympus/hydra
 	./apps/olympus/hypnos
 	./apps/olympus/poseidon
+	./apps/olympus/iris
+	./apps/olympus/hephaestus
 
 	./apps/olympus/zeus
 

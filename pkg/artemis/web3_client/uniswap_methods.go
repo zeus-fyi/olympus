@@ -1,74 +1,26 @@
 package web3_client
 
 import (
-	"fmt"
 	"math/big"
 
-	"github.com/gochain/gochain/v4/common"
 	"github.com/rs/zerolog/log"
-	web3_types "github.com/zeus-fyi/gochain/web3/types"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 )
 
-type TradeExecutionFlow struct {
-	CurrentBlockNumber *big.Int                    `json:"currentBlockNumber"`
-	Tx                 *web3_types.RpcTransaction  `json:"tx"`
-	Trade              Trade                       `json:"trade"`
-	InitialPair        JSONUniswapV2Pair           `json:"initialPair"`
-	FrontRunTrade      JSONTradeOutcome            `json:"frontRunTrade"`
-	UserTrade          JSONTradeOutcome            `json:"userTrade"`
-	SandwichTrade      JSONTradeOutcome            `json:"sandwichTrade"`
-	SandwichPrediction JSONSandwichTradePrediction `json:"sandwichPrediction"`
-}
-
-func (t *TradeExecutionFlow) ConvertToBigIntType() TradeExecutionFlowInBigInt {
-	return TradeExecutionFlowInBigInt{
-		CurrentBlockNumber: t.CurrentBlockNumber,
-		Tx:                 t.Tx,
-		Trade:              t.Trade,
-		InitialPair:        t.InitialPair.ConvertToBigIntType(),
-		FrontRunTrade:      t.FrontRunTrade.ConvertToBigIntType(),
-		UserTrade:          t.UserTrade.ConvertToBigIntType(),
-		SandwichTrade:      t.SandwichTrade.ConvertToBigIntType(),
-		SandwichPrediction: t.SandwichPrediction.ConvertToBigIntType(),
-	}
-}
-
-type TradeExecutionFlowInBigInt struct {
-	CurrentBlockNumber *big.Int                   `json:"currentBlockNumber"`
-	Tx                 *web3_types.RpcTransaction `json:"tx"`
-	Trade              Trade                      `json:"trade"`
-	InitialPair        UniswapV2Pair              `json:"initialPair"`
-	FrontRunTrade      TradeOutcome               `json:"frontRunTrade"`
-	UserTrade          TradeOutcome               `json:"userTrade"`
-	SandwichTrade      TradeOutcome               `json:"sandwichTrade"`
-	SandwichPrediction SandwichTradePrediction    `json:"sandwichPrediction"`
-}
-
-type Trade struct {
-	TradeMethod                         string `json:"tradeMethod"`
-	RawTx                               string `json:"rawTx,omitempty"`
-	*JSONSwapETHForExactTokensParams    `json:"swapETHForExactTokensParams,omitempty"`
-	*JSONSwapTokensForExactTokensParams `json:"swapTokensForExactTokensParams,omitempty"`
-	*JSONSwapExactTokensForTokensParams `json:"swapExactTokensForTokensParams,omitempty"`
-	*JSONSwapExactETHForTokensParams    `json:"swapExactETHForTokensParams,omitempty"`
-	*JSONSwapExactTokensForETHParams    `json:"swapExactTokensForETHParams,omitempty"`
-	*JSONSwapTokensForExactETHParams    `json:"swapTokensForExactETHParams,omitempty"`
-}
-
 type SwapETHForExactTokensParams struct {
-	AmountOut *big.Int         `json:"amountOut"`
-	Path      []common.Address `json:"path"`
-	To        common.Address   `json:"to"`
-	Deadline  *big.Int         `json:"deadline"`
-	Value     *big.Int         `json:"value"`
+	AmountOut *big.Int           `json:"amountOut"`
+	Path      []accounts.Address `json:"path"`
+	To        accounts.Address   `json:"to"`
+	Deadline  *big.Int           `json:"deadline"`
+	Value     *big.Int           `json:"value"`
 }
 
 type JSONSwapETHForExactTokensParams struct {
-	AmountOut string           `json:"amountOut"`
-	Path      []common.Address `json:"path"`
-	To        common.Address   `json:"to"`
-	Deadline  string           `json:"deadline"`
-	Value     string           `json:"value"`
+	AmountOut string             `json:"amountOut"`
+	Path      []accounts.Address `json:"path"`
+	To        accounts.Address   `json:"to"`
+	Deadline  string             `json:"deadline"`
+	Value     string             `json:"value"`
 }
 
 func (s *SwapETHForExactTokensParams) ConvertToJSONType() *JSONSwapETHForExactTokensParams {
@@ -80,7 +32,7 @@ func (s *SwapETHForExactTokensParams) ConvertToJSONType() *JSONSwapETHForExactTo
 		Value:     s.Value.String(),
 	}
 }
-func (s *SwapETHForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlow {
+func (s *SwapETHForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlowJSON {
 	// Value == variable
 	// AmountOut == required for trade
 	low := big.NewInt(0)
@@ -88,7 +40,7 @@ func (s *SwapETHForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 	var mid *big.Int
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
-	tf := TradeExecutionFlow{
+	tf := TradeExecutionFlowJSON{
 		Trade: Trade{
 			TradeMethod:                     "swapETHForExactTokens",
 			JSONSwapETHForExactTokensParams: s.ConvertToJSONType(),
@@ -147,19 +99,19 @@ func (s *SwapETHForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 }
 
 type SwapTokensForExactTokensParams struct {
-	AmountOut   *big.Int         `json:"amountOut"`
-	AmountInMax *big.Int         `json:"amountInMax"`
-	Path        []common.Address `json:"path"`
-	To          common.Address   `json:"to"`
-	Deadline    *big.Int         `json:"deadline"`
+	AmountOut   *big.Int           `json:"amountOut"`
+	AmountInMax *big.Int           `json:"amountInMax"`
+	Path        []accounts.Address `json:"path"`
+	To          accounts.Address   `json:"to"`
+	Deadline    *big.Int           `json:"deadline"`
 }
 
 type JSONSwapTokensForExactTokensParams struct {
-	AmountOut   string           `json:"amountOut"`
-	AmountInMax string           `json:"amountInMax"`
-	Path        []common.Address `json:"path"`
-	To          common.Address   `json:"to"`
-	Deadline    string           `json:"deadline"`
+	AmountOut   string             `json:"amountOut"`
+	AmountInMax string             `json:"amountInMax"`
+	Path        []accounts.Address `json:"path"`
+	To          accounts.Address   `json:"to"`
+	Deadline    string             `json:"deadline"`
 }
 
 func (s *SwapTokensForExactTokensParams) ConvertToJSONType() *JSONSwapTokensForExactTokensParams {
@@ -172,13 +124,13 @@ func (s *SwapTokensForExactTokensParams) ConvertToJSONType() *JSONSwapTokensForE
 	}
 }
 
-func (s *SwapTokensForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlow {
+func (s *SwapTokensForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlowJSON {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountInMax)
 	var mid *big.Int
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
-	tf := TradeExecutionFlow{
+	tf := TradeExecutionFlowJSON{
 		Trade: Trade{
 			TradeMethod:                        "swapTokensForExactTokens",
 			JSONSwapTokensForExactTokensParams: s.ConvertToJSONType(),
@@ -238,19 +190,19 @@ func (s *SwapTokensForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 }
 
 type SwapTokensForExactETHParams struct {
-	AmountOut   *big.Int         `json:"amountOut"`
-	AmountInMax *big.Int         `json:"amountInMax"`
-	Path        []common.Address `json:"path"`
-	To          common.Address   `json:"to"`
-	Deadline    *big.Int         `json:"deadline"`
+	AmountOut   *big.Int           `json:"amountOut"`
+	AmountInMax *big.Int           `json:"amountInMax"`
+	Path        []accounts.Address `json:"path"`
+	To          accounts.Address   `json:"to"`
+	Deadline    *big.Int           `json:"deadline"`
 }
 
 type JSONSwapTokensForExactETHParams struct {
-	AmountOut   string           `json:"amountOut"`
-	AmountInMax string           `json:"amountInMax"`
-	Path        []common.Address `json:"path"`
-	To          common.Address   `json:"to"`
-	Deadline    string           `json:"deadline"`
+	AmountOut   string             `json:"amountOut"`
+	AmountInMax string             `json:"amountInMax"`
+	Path        []accounts.Address `json:"path"`
+	To          accounts.Address   `json:"to"`
+	Deadline    string             `json:"deadline"`
 }
 
 func (s *SwapTokensForExactETHParams) ConvertToJSONType() *JSONSwapTokensForExactETHParams {
@@ -262,13 +214,13 @@ func (s *SwapTokensForExactETHParams) ConvertToJSONType() *JSONSwapTokensForExac
 		Deadline:    s.Deadline.String(),
 	}
 }
-func (s *SwapTokensForExactETHParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlow {
+func (s *SwapTokensForExactETHParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlowJSON {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountInMax)
 	var mid *big.Int
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
-	tf := TradeExecutionFlow{
+	tf := TradeExecutionFlowJSON{
 		Trade: Trade{
 			TradeMethod:                     "swapTokensForExactETH",
 			JSONSwapTokensForExactETHParams: s.ConvertToJSONType(),
@@ -371,19 +323,19 @@ func (s *SandwichTradePrediction) ConvertToJSONType() JSONSandwichTradePredictio
 }
 
 type SwapExactTokensForTokensParams struct {
-	AmountIn     *big.Int         `json:"amountIn"`
-	AmountOutMin *big.Int         `json:"amountOutMin"`
-	Path         []common.Address `json:"path"`
-	To           common.Address   `json:"to"`
-	Deadline     *big.Int         `json:"deadline"`
+	AmountIn     *big.Int           `json:"amountIn"`
+	AmountOutMin *big.Int           `json:"amountOutMin"`
+	Path         []accounts.Address `json:"path"`
+	To           accounts.Address   `json:"to"`
+	Deadline     *big.Int           `json:"deadline"`
 }
 
 type JSONSwapExactTokensForTokensParams struct {
-	AmountIn     string           `json:"amountIn"`
-	AmountOutMin string           `json:"amountOutMin"`
-	Path         []common.Address `json:"path"`
-	To           common.Address   `json:"to"`
-	Deadline     string           `json:"deadline"`
+	AmountIn     string             `json:"amountIn"`
+	AmountOutMin string             `json:"amountOutMin"`
+	Path         []accounts.Address `json:"path"`
+	To           accounts.Address   `json:"to"`
+	Deadline     string             `json:"deadline"`
 }
 
 func (s *SwapExactTokensForTokensParams) ConvertToJSONType() *JSONSwapExactTokensForTokensParams {
@@ -395,13 +347,14 @@ func (s *SwapExactTokensForTokensParams) ConvertToJSONType() *JSONSwapExactToken
 		Deadline:     s.Deadline.String(),
 	}
 }
-func (s *SwapExactTokensForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlow {
+
+func (s *SwapExactTokensForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlowJSON {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountIn)
 	var mid *big.Int
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
-	tf := TradeExecutionFlow{
+	tf := TradeExecutionFlowJSON{
 		Trade: Trade{
 			TradeMethod:                        "swapExactTokensForTokens",
 			JSONSwapExactTokensForTokensParams: s.ConvertToJSONType(),
@@ -460,19 +413,19 @@ func (s *SwapExactTokensForTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 }
 
 type SwapExactETHForTokensParams struct {
-	AmountOutMin *big.Int         `json:"amountOutMin"`
-	Path         []common.Address `json:"path"`
-	To           common.Address   `json:"to"`
-	Value        *big.Int         `json:"value"`
-	Deadline     *big.Int         `json:"deadline"`
+	AmountOutMin *big.Int           `json:"amountOutMin"`
+	Path         []accounts.Address `json:"path"`
+	To           accounts.Address   `json:"to"`
+	Value        *big.Int           `json:"value"`
+	Deadline     *big.Int           `json:"deadline"`
 }
 
 type JSONSwapExactETHForTokensParams struct {
-	AmountOutMin string           `json:"amountOutMin"`
-	Path         []common.Address `json:"path"`
-	To           common.Address   `json:"to"`
-	Value        string           `json:"value"`
-	Deadline     string           `json:"deadline"`
+	AmountOutMin string             `json:"amountOutMin"`
+	Path         []accounts.Address `json:"path"`
+	To           accounts.Address   `json:"to"`
+	Value        string             `json:"value"`
+	Deadline     string             `json:"deadline"`
 }
 
 func (s *SwapExactETHForTokensParams) ConvertToJSONType() *JSONSwapExactETHForTokensParams {
@@ -484,13 +437,13 @@ func (s *SwapExactETHForTokensParams) ConvertToJSONType() *JSONSwapExactETHForTo
 		Deadline:     s.Deadline.String(),
 	}
 }
-func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlow {
+func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlowJSON {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.Value)
 	var mid *big.Int
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
-	tf := TradeExecutionFlow{
+	tf := TradeExecutionFlowJSON{
 		Trade: Trade{
 			TradeMethod:                     "swapExactETHForTokens",
 			JSONSwapExactETHForTokensParams: s.ConvertToJSONType(),
@@ -549,19 +502,19 @@ func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 }
 
 type SwapExactTokensForETHParams struct {
-	AmountIn     *big.Int         `json:"amountIn"`
-	AmountOutMin *big.Int         `json:"amountOutMin"`
-	Path         []common.Address `json:"path"`
-	To           common.Address   `json:"to"`
-	Deadline     *big.Int         `json:"deadline"`
+	AmountIn     *big.Int           `json:"amountIn"`
+	AmountOutMin *big.Int           `json:"amountOutMin"`
+	Path         []accounts.Address `json:"path"`
+	To           accounts.Address   `json:"to"`
+	Deadline     *big.Int           `json:"deadline"`
 }
 
 type JSONSwapExactTokensForETHParams struct {
-	AmountIn     string           `json:"amountIn"`
-	AmountOutMin string           `json:"amountOutMin"`
-	Path         []common.Address `json:"path"`
-	To           common.Address   `json:"to"`
-	Deadline     string           `json:"deadline"`
+	AmountIn     string             `json:"amountIn"`
+	AmountOutMin string             `json:"amountOutMin"`
+	Path         []accounts.Address `json:"path"`
+	To           accounts.Address   `json:"to"`
+	Deadline     string             `json:"deadline"`
 }
 
 func (s *SwapExactTokensForETHParams) ConvertToJSONType() *JSONSwapExactTokensForETHParams {
@@ -573,13 +526,13 @@ func (s *SwapExactTokensForETHParams) ConvertToJSONType() *JSONSwapExactTokensFo
 		Deadline:     s.Deadline.String(),
 	}
 }
-func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlow {
+func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlowJSON {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountIn)
 	var mid *big.Int
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
-	tf := TradeExecutionFlow{
+	tf := TradeExecutionFlowJSON{
 		Trade: Trade{
 			TradeMethod:                     "swapExactTokensForETH",
 			JSONSwapExactTokensForETHParams: s.ConvertToJSONType(),
@@ -638,131 +591,90 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 }
 
 type SwapExactTokensForTokensSupportingFeeOnTransferTokensParams struct {
-	AmountIn     *big.Int         `json:"amountIn"`
-	AmountOutMin *big.Int         `json:"amountOutMin"`
-	Path         []common.Address `json:"path"`
-	To           common.Address   `json:"to"`
-	Deadline     *big.Int         `json:"deadline"`
+	AmountIn     *big.Int           `json:"amountIn"`
+	AmountOutMin *big.Int           `json:"amountOutMin"`
+	Path         []accounts.Address `json:"path"`
+	To           accounts.Address   `json:"to"`
+	Deadline     *big.Int           `json:"deadline"`
 }
 
 type SwapExactETHForTokensSupportingFeeOnTransferTokensParams struct {
-	AmountOutMin *big.Int         `json:"amountOutMin"`
-	Path         []common.Address `json:"path"`
-	To           common.Address   `json:"to"`
-	Deadline     *big.Int         `json:"deadline"`
+	AmountOutMin *big.Int           `json:"amountOutMin"`
+	Path         []accounts.Address `json:"path"`
+	To           accounts.Address   `json:"to"`
+	Deadline     *big.Int           `json:"deadline"`
 }
 
 type SwapExactTokensForETHSupportingFeeOnTransferTokensParams struct {
-	AmountIn     *big.Int         `json:"amountIn"`
-	AmountOutMin *big.Int         `json:"amountOutMin"`
-	Path         []common.Address `json:"path"`
-	To           common.Address   `json:"to"`
-	Deadline     *big.Int         `json:"deadline"`
+	AmountIn     *big.Int           `json:"amountIn"`
+	AmountOutMin *big.Int           `json:"amountOutMin"`
+	Path         []accounts.Address `json:"path"`
+	To           accounts.Address   `json:"to"`
+	Deadline     *big.Int           `json:"deadline"`
 }
 
 type AddLiquidityParams struct {
-	TokenA         common.Address `json:"tokenA"`
-	TokenB         common.Address `json:"tokenB"`
-	AmountADesired *big.Int       `json:"amountADesired"`
-	AmountBDesired *big.Int       `json:"amountBDesired"`
-	AmountAMin     *big.Int       `json:"amountAMin"`
-	AmountBMin     *big.Int       `json:"amountBMin"`
-	To             common.Address `json:"to"`
-	Deadline       *big.Int       `json:"deadline"`
+	TokenA         accounts.Address `json:"tokenA"`
+	TokenB         accounts.Address `json:"tokenB"`
+	AmountADesired *big.Int         `json:"amountADesired"`
+	AmountBDesired *big.Int         `json:"amountBDesired"`
+	AmountAMin     *big.Int         `json:"amountAMin"`
+	AmountBMin     *big.Int         `json:"amountBMin"`
+	To             accounts.Address `json:"to"`
+	Deadline       *big.Int         `json:"deadline"`
 }
 
 type AddLiquidityETHParams struct {
-	Token              common.Address `json:"token"`
-	AmountTokenDesired *big.Int       `json:"amountTokenDesired"`
-	AmountTokenMin     *big.Int       `json:"amountTokenMin"`
-	AmountETHMin       *big.Int       `json:"amountETHMin"`
-	To                 common.Address `json:"to"`
-	Deadline           *big.Int       `json:"deadline"`
+	Token              accounts.Address `json:"token"`
+	AmountTokenDesired *big.Int         `json:"amountTokenDesired"`
+	AmountTokenMin     *big.Int         `json:"amountTokenMin"`
+	AmountETHMin       *big.Int         `json:"amountETHMin"`
+	To                 accounts.Address `json:"to"`
+	Deadline           *big.Int         `json:"deadline"`
 }
 
 type RemoveLiquidityParams struct {
-	TokenA     common.Address `json:"tokenA"`
-	TokenB     common.Address `json:"tokenB"`
-	Liquidity  *big.Int       `json:"liquidity"`
-	AmountAMin *big.Int       `json:"amountAMin"`
-	AmountBMin *big.Int       `json:"amountBMin"`
-	To         common.Address `json:"to"`
-	Deadline   *big.Int       `json:"deadline"`
+	TokenA     accounts.Address `json:"tokenA"`
+	TokenB     accounts.Address `json:"tokenB"`
+	Liquidity  *big.Int         `json:"liquidity"`
+	AmountAMin *big.Int         `json:"amountAMin"`
+	AmountBMin *big.Int         `json:"amountBMin"`
+	To         accounts.Address `json:"to"`
+	Deadline   *big.Int         `json:"deadline"`
 }
 
 type RemoveLiquidityETHParams struct {
-	Token          common.Address `json:"token"`
-	Liquidity      *big.Int       `json:"liquidity"`
-	AmountTokenMin *big.Int       `json:"amountTokenMin"`
-	AmountETHMin   *big.Int       `json:"amountETHMin"`
-	To             common.Address `json:"to"`
-	Deadline       *big.Int       `json:"deadline"`
+	Token          accounts.Address `json:"token"`
+	Liquidity      *big.Int         `json:"liquidity"`
+	AmountTokenMin *big.Int         `json:"amountTokenMin"`
+	AmountETHMin   *big.Int         `json:"amountETHMin"`
+	To             accounts.Address `json:"to"`
+	Deadline       *big.Int         `json:"deadline"`
 }
 
 type RemoveLiquidityWithPermitParams struct {
-	TokenA     common.Address `json:"tokenA"`
-	TokenB     common.Address `json:"tokenB"`
-	Liquidity  *big.Int       `json:"liquidity"`
-	AmountAMin *big.Int       `json:"amountAMin"`
-	AmountBMin *big.Int       `json:"amountBMin"`
-	To         common.Address `json:"to"`
-	Deadline   *big.Int       `json:"deadline"`
-	ApproveMax bool           `json:"approveMax"`
-	V          uint8          `json:"v"`
-	R          [32]byte       `json:"r"`
-	S          [32]byte       `json:"s"`
+	TokenA     accounts.Address `json:"tokenA"`
+	TokenB     accounts.Address `json:"tokenB"`
+	Liquidity  *big.Int         `json:"liquidity"`
+	AmountAMin *big.Int         `json:"amountAMin"`
+	AmountBMin *big.Int         `json:"amountBMin"`
+	To         accounts.Address `json:"to"`
+	Deadline   *big.Int         `json:"deadline"`
+	ApproveMax bool             `json:"approveMax"`
+	V          uint8            `json:"v"`
+	R          [32]byte         `json:"r"`
+	S          [32]byte         `json:"s"`
 }
 
 type RemoveLiquidityETHWithPermitParams struct {
-	Token          common.Address `json:"token"`
-	Liquidity      *big.Int       `json:"liquidity"`
-	AmountTokenMin *big.Int       `json:"amountTokenMin"`
-	AmountETHMin   *big.Int       `json:"amountETHMin"`
-	To             common.Address `json:"to"`
-	Deadline       *big.Int       `json:"deadline"`
-	ApproveMax     bool           `json:"approveMax"`
-	V              uint8          `json:"v"`
-	R              [32]byte       `json:"r"`
-	S              [32]byte       `json:"s"`
-}
-
-func ParseBigInt(i interface{}) (*big.Int, error) {
-	switch v := i.(type) {
-	case *big.Int:
-		return i.(*big.Int), nil
-	case string:
-		base := 10
-		result := new(big.Int)
-		_, ok := result.SetString(v, base)
-		if !ok {
-			return nil, fmt.Errorf("failed to parse string '%s' into big.Int", v)
-		}
-		return result, nil
-	case uint32:
-		return big.NewInt(int64(v)), nil
-	case int64:
-		return big.NewInt(v), nil
-	default:
-		return nil, fmt.Errorf("input is not a string or int64")
-	}
-}
-
-func ConvertToAddressSlice(i interface{}) ([]common.Address, error) {
-	switch v := i.(type) {
-	case []common.Address:
-		return i.([]common.Address), nil
-	default:
-		fmt.Println(v)
-		return nil, fmt.Errorf("input is not a []common.Address")
-	}
-}
-
-func ConvertToAddress(i interface{}) (common.Address, error) {
-	switch v := i.(type) {
-	case common.Address:
-		return i.(common.Address), nil
-	default:
-		fmt.Println(v)
-		return common.Address{}, fmt.Errorf("input is not a  common.Address")
-	}
+	Token          accounts.Address `json:"token"`
+	Liquidity      *big.Int         `json:"liquidity"`
+	AmountTokenMin *big.Int         `json:"amountTokenMin"`
+	AmountETHMin   *big.Int         `json:"amountETHMin"`
+	To             accounts.Address `json:"to"`
+	Deadline       *big.Int         `json:"deadline"`
+	ApproveMax     bool             `json:"approveMax"`
+	V              uint8            `json:"v"`
+	R              [32]byte         `json:"r"`
+	S              [32]byte         `json:"s"`
 }

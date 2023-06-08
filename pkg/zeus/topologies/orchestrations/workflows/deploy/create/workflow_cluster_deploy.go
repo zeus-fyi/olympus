@@ -24,7 +24,10 @@ func (t *DeployTopologyWorkflow) DeployClusterTopologyWorkflow(ctx workflow.Cont
 			return errors.New("cloudCtxNs is empty")
 		}
 		if params.AppTaint {
-			req.ClusterName = params.ClusterName
+			req.ClusterClassName = params.ClusterClassName
+		}
+		if params.ClusterClassName != "" {
+			req.SecretRef = params.ClusterClassName
 		}
 		err := workflow.ExecuteActivity(deployStatusCtx, t.DeployTopologyActivities.DeployClusterTopology, req, params.OrgUser).Get(deployStatusCtx, nil)
 		if err != nil {

@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
+	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/dynamic_secrets"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/base_request"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 	v1 "k8s.io/api/core/v1"
@@ -46,6 +47,25 @@ func DeployChoreographySecretsHandler(c echo.Context) error {
 	_, err = zeus.K8Util.CreateSecretWithKnsIfDoesNotExist(ctx, request.Kns.CloudCtxNs, &sec, nil)
 	if err != nil {
 		log.Err(err).Msg("DeployChoreographySecretsHandler")
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+	return c.JSON(http.StatusOK, nil)
+}
+
+func DeployDynamicSecretsHandler(c echo.Context) error {
+	request := new(base_request.InternalDeploymentActionRequest)
+	if err := c.Bind(request); err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+	ctx := context.Background()
+	sec, err := dynamic_secrets.LookupAndCreateSecret(ctx, request.OrgUser.OrgID, request.SecretRef, request.Kns.CloudCtxNs)
+	if err != nil {
+		log.Err(err).Msg("DeployDynamicSecretsHandler")
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+	_, err = zeus.K8Util.CreateSecretWithKnsIfDoesNotExist(ctx, request.Kns.CloudCtxNs, sec, nil)
+	if err != nil {
+		log.Err(err).Msg("DeployDynamicSecretsHandler")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusOK, nil)

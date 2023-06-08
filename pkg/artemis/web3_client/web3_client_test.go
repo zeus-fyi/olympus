@@ -7,19 +7,22 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/gochain/gochain/v4/common"
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/gochain/v4/common"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_encryption"
 )
 
 type Web3ClientTestSuite struct {
 	test_suites_encryption.EncryptionTestSuite
-	GoerliWeb3User          Web3Client
-	GoerliWeb3User2         Web3Client
-	MainnetWeb3User         Web3Client
-	LocalMainnetWeb3User    Web3Client
-	LocalHardhatMainnetUser Web3Client
+	GoerliWeb3User                Web3Client
+	GoerliWeb3User2               Web3Client
+	MainnetWeb3User               Web3Client
+	MainnetWeb3UserExternal       Web3Client
+	LocalMainnetWeb3User          Web3Client
+	LocalHardhatMainnetUser       Web3Client
+	HostedHardhatMainnetUser      Web3Client
+	ProxyHostedHardhatMainnetUser Web3Client
 }
 
 func (s *Web3ClientTestSuite) SetupTest() {
@@ -31,8 +34,8 @@ func (s *Web3ClientTestSuite) SetupTest() {
 	pkHexString2 := s.Tc.LocalEcsdaTestPkey2
 	secondAccount, err := accounts.ParsePrivateKey(pkHexString2)
 	s.Assert().Nil(err)
-	s.MainnetWeb3User = NewWeb3Client(s.Tc.MainnetNodeUrl, newAccount)
-
+	s.MainnetWeb3UserExternal = NewWeb3Client(s.Tc.MainnetNodeUrl, newAccount)
+	s.HostedHardhatMainnetUser = NewWeb3Client("https://hardhat.zeus.fyi", newAccount)
 	s.GoerliWeb3User = NewWeb3Client(s.Tc.GoerliNodeUrl, newAccount)
 	s.GoerliWeb3User2 = NewWeb3Client(s.Tc.GoerliNodeUrl, secondAccount)
 
@@ -41,9 +44,49 @@ func (s *Web3ClientTestSuite) SetupTest() {
 		"Authorization": "Bearer " + s.Tc.ProductionLocalTemporalBearerToken,
 	}
 	s.MainnetWeb3User.Headers = m
+	s.HostedHardhatMainnetUser.Headers = m
+
 	s.LocalMainnetWeb3User = NewWeb3Client("http://localhost:8545", newAccount)
 
+	newAccount, err = accounts.ParsePrivateKey("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
+	s.Assert().Nil(err)
+	s.HostedHardhatMainnetUser.Account = newAccount
+	// iris.zeus.fyi
+	s.ProxyHostedHardhatMainnetUser = NewWeb3Client("https://iris.zeus.fyi/v1/internal/", newAccount)
+	//s.ProxyHostedHardhatMainnetUser = NewWeb3Client("http://localhost:8080/v1/internal/", newAccount)
+	s.ProxyHostedHardhatMainnetUser.Headers = map[string]string{
+		"Authorization": "Bearer " + s.Tc.ProductionLocalTemporalBearerToken,
+	}
+	s.LocalHardhatMainnetUser.Account = newAccount
 	s.LocalHardhatMainnetUser = NewWeb3Client("http://localhost:8545", newAccount)
+
+}
+
+func (s *Web3ClientTestSuite) TestRelayProxyHeader() {
+	newAccount, err := accounts.ParsePrivateKey("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
+	s.Assert().Nil(err)
+	s.ProxyHostedHardhatMainnetUser = NewWeb3ClientWithRelay("http://localhost:8545", "http://localhost:8080/v1/", newAccount)
+	s.ProxyHostedHardhatMainnetUser.Headers = map[string]string{
+		"Authorization": "Bearer " + s.Tc.ProductionLocalTemporalBearerToken,
+	}
+	pb, err := s.ProxyHostedHardhatMainnetUser.GetCurrentBalance(ctx)
+	s.Require().Nil(err)
+	s.Assert().NotNil(pb)
+	fmt.Println("bal", pb.String())
+}
+
+func (s *Web3ClientTestSuite) TestGetProxyHardhat() {
+	pb, err := s.ProxyHostedHardhatMainnetUser.GetCurrentBalance(ctx)
+	s.Require().Nil(err)
+	s.Assert().NotNil(pb)
+	fmt.Println("bal", pb.String())
+
+	hb, err := s.HostedHardhatMainnetUser.GetCurrentBalance(ctx)
+	s.Require().Nil(err)
+	s.Assert().NotNil(hb)
+	fmt.Println("bal", hb.String())
+
+	s.Assert().Equal(hb.String(), pb.String())
 }
 
 func (s *Web3ClientTestSuite) TestGetBlockHeight() {
@@ -86,18 +129,17 @@ func (s *Web3ClientTestSuite) TestReadMempool() {
 	mempool, err := s.MainnetWeb3User.Web3Actions.GetTxPoolContent(ctx)
 	s.Require().Nil(err)
 	s.Assert().NotNil(mempool)
-	uswap := InitUniswapV2Client(ctx, s.MainnetWeb3User)
+	uswap := InitUniswapClient(ctx, s.MainnetWeb3User)
 	s.Require().Nil(err)
 	smartContractAddrFilter := common.HexToAddress(uswap.SmartContractAddr)
 	smartContractAddrFilterString := smartContractAddrFilter.String()
 	for userAddr, txPoolQueue := range mempool["pending"] {
 		for order, tx := range txPoolQueue {
-			if tx.To != nil && tx.To.String() == smartContractAddrFilterString {
+			if tx.To() != nil && tx.To().String() == smartContractAddrFilterString {
 				fmt.Println(userAddr, order, tx)
 				fmt.Println("Found")
-				if tx.Input != nil {
-					input := *tx.Input
-					calldata := []byte(input)
+				if tx.Data() != nil {
+					calldata := tx.Data()
 					if len(calldata) < 4 {
 						fmt.Println("invalid calldata")
 						continue

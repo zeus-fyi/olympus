@@ -45,6 +45,27 @@ func (nk *TopologyBaseInfraWorkload) PrintWorkload(p filepaths.Path) error {
 			return err
 		}
 	}
+	if nk.ServiceMonitor != nil {
+		name := addPrefixAndYamlSuffixIfNotExists("sm", nk.ServiceMonitor.Name)
+		err := nk.printYaml(&p, name, nk.ServiceMonitor)
+		if err != nil {
+			return err
+		}
+	}
+	if nk.Job != nil {
+		name := addPrefixAndYamlSuffixIfNotExists("job", nk.Job.Name)
+		err := nk.printYaml(&p, name, nk.Job)
+		if err != nil {
+			return err
+		}
+	}
+	if nk.CronJob != nil {
+		name := addPrefixAndYamlSuffixIfNotExists("cronjob", nk.CronJob.Name)
+		err := nk.printYaml(&p, name, nk.CronJob)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

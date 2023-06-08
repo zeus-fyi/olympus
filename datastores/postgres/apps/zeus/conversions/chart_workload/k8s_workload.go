@@ -4,16 +4,20 @@ import (
 	v1sm "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/configuration"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/deployments"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/jobs"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/ingresses"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/networking/services"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/servicemonitors"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/statefulsets"
 	v1 "k8s.io/api/apps/v1"
+	v1Batch "k8s.io/api/batch/v1"
 	v1core "k8s.io/api/core/v1"
 	v1networking "k8s.io/api/networking/v1"
 )
 
 type TopologyBaseInfraWorkload struct {
+	*v1Batch.CronJob      `json:"cronjob"`
+	*v1Batch.Job          `json:"job"`
 	*v1core.Service       `json:"service"`
 	*v1core.ConfigMap     `json:"configMap"`
 	*v1.Deployment        `json:"deployment"`
@@ -24,6 +28,8 @@ type TopologyBaseInfraWorkload struct {
 
 func NewTopologyBaseInfraWorkload() TopologyBaseInfraWorkload {
 	return TopologyBaseInfraWorkload{
+		CronJob:        nil,
+		Job:            nil,
 		Service:        nil,
 		ConfigMap:      nil,
 		Deployment:     nil,
@@ -82,6 +88,24 @@ func (nk *TopologyBaseInfraWorkload) CreateChartWorkloadFromTopologyBaseInfraWor
 			return cw, err
 		}
 		cw.ServiceMonitor = &sm
+	}
+	if nk.Job != nil {
+		j := jobs.NewJob()
+		j.K8sJob = *nk.Job
+		err := j.ConvertK8sJobSpecToDB()
+		if err != nil {
+			return cw, err
+		}
+		cw.Job = &j
+	}
+	if nk.CronJob != nil {
+		cj := jobs.NewCronJob()
+		cj.K8sCronJob = *nk.CronJob
+		err := cj.ConvertK8sCronJobSpecToDB()
+		if err != nil {
+			return cw, err
+		}
+		cw.CronJob = &cj
 	}
 	return cw, nil
 }

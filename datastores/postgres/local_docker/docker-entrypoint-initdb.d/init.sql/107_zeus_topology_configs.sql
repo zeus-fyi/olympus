@@ -70,7 +70,6 @@ CREATE TABLE "public"."topology_infrastructure_components" (
     "topology_id" int8 NOT NULL REFERENCES topologies(topology_id),
     "chart_package_id" int8 NOT NULL REFERENCES chart_packages(chart_package_id),
     "tag" text NOT NULL DEFAULT 'latest'
-
 );
 ALTER TABLE "public"."topology_infrastructure_components" ADD CONSTRAINT "topology_infrastructure_components_pk" PRIMARY KEY ("topology_infrastructure_component_id");
 
@@ -78,3 +77,4 @@ ALTER TABLE "public"."topology_infrastructure_components" ADD CONSTRAINT "topolo
 -- ALTER TABLE topology_infrastructure_components ADD COLUMN topology_skeleton_base_id int8 SET NOT NULL;
 -- ALTER TABLE topology_infrastructure_components ALTER COLUMN topology_skeleton_base_id SET NOT NULL;
 -- ALTER TABLE topology_infrastructure_components ADD CONSTRAINT topology_infrastructure_components_fk FOREIGN KEY (topology_skeleton_base_id) REFERENCES topology_skeleton_base_components (topology_skeleton_base_id) MATCH FULL;
+

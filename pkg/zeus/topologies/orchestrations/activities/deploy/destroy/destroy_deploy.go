@@ -29,6 +29,8 @@ func (d *DestroyDeployTopologyActivities) GetActivities() ActivitiesSlice {
 		d.DestroyDeployService,
 		d.DestroyDeployIngress,
 		d.DestroyDeployServiceMonitor,
+		d.DestroyJob,
+		d.DestroyCronJob,
 	}
 }
 

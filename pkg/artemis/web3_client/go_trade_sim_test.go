@@ -21,7 +21,7 @@ import (
 
 func (s *Web3ClientTestSuite) TestJson() {
 	//amountOutMin, _ := new(big.Int).SetString("746627207819418433569734379647", 10)
-	//te := TradeExecutionFlow{
+	//te := TradeExecutionFlowJSON{
 	//	CurrentBlockNumber: nil,
 	//	Tx:                 nil,
 	//	Trade: Trade{
@@ -54,7 +54,7 @@ func (s *Web3ClientTestSuite) TestTradeSim() {
 	s.Require().NotEmpty(mevTxs)
 
 	for _, mevTx := range mevTxs {
-		tf := TradeExecutionFlow{}
+		tf := TradeExecutionFlowJSON{}
 		b := []byte(mevTx.TxFlowPrediction)
 		berr := json.Unmarshal(b, &tf)
 		s.Require().Nil(berr)

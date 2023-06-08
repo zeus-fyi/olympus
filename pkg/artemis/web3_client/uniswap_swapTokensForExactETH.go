@@ -1,0 +1,58 @@
+package web3_client
+
+import (
+	"fmt"
+)
+
+func (u *UniswapClient) SwapTokensForExactETH(tx MevTx, args map[string]interface{}) {
+	amountOut, err := ParseBigInt(args["amountOut"])
+	if err != nil {
+		return
+	}
+	amountInMax, err := ParseBigInt(args["amountInMax"])
+	if err != nil {
+		return
+	}
+	path, err := ConvertToAddressSlice(args["path"])
+	if err != nil {
+		return
+	}
+	to, err := ConvertToAddress(args["to"])
+	if err != nil {
+		return
+	}
+	deadline, err := ParseBigInt(args["deadline"])
+	if err != nil {
+		return
+	}
+	st := SwapTokensForExactETHParams{
+		AmountOut:   amountOut,
+		AmountInMax: amountInMax,
+		Path:        path,
+		To:          to,
+		Deadline:    deadline,
+	}
+	pd, err := u.GetPricingData(ctx, path)
+	if err != nil {
+		return
+	}
+	initialPair := pd.v2Pair
+	tf := st.BinarySearch(pd.v2Pair)
+	tf.InitialPair = initialPair.ConvertToJSONType()
+	if u.PrintOn {
+		fmt.Println("\nsandwich: ==================================SwapTokensForExactETH==================================")
+		//u.PrintTradeSummaries(tx, tf, pd.v2Pair, path[0].String(), st.AmountInMax, st.AmountOut)
+		ts := TradeSummary{
+			Tx:        tx,
+			Pd:        pd,
+			Tf:        tf,
+			TokenAddr: path[0].String(),
+			Amount:    st.AmountInMax,
+			AmountMin: st.AmountOut,
+		}
+		u.PrintTradeSummaries(&ts)
+		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
+		fmt.Println("sandwich: ====================================SwapTokensForExactETH==================================")
+	}
+	u.SwapTokensForExactETHParamsSlice = append(u.SwapTokensForExactETHParamsSlice, st)
+}

@@ -25,7 +25,7 @@ type Trade struct {
 	*JSONV3SwapExactOutParams `json:"v3SwapExactOutParams,omitempty"`
 }
 
-type TradeExecutionFlow struct {
+type TradeExecutionFlowJSON struct {
 	CurrentBlockNumber *big.Int                    `json:"currentBlockNumber"`
 	Tx                 *types.Transaction          `json:"tx"`
 	Trade              Trade                       `json:"trade"`
@@ -36,8 +36,8 @@ type TradeExecutionFlow struct {
 	SandwichPrediction JSONSandwichTradePrediction `json:"sandwichPrediction"`
 }
 
-func (t *TradeExecutionFlow) ConvertToBigIntType() TradeExecutionFlowInBigInt {
-	return TradeExecutionFlowInBigInt{
+func (t *TradeExecutionFlowJSON) ConvertToBigIntType() TradeExecutionFlow {
+	return TradeExecutionFlow{
 		CurrentBlockNumber: t.CurrentBlockNumber,
 		Tx:                 t.Tx,
 		Trade:              t.Trade,
@@ -49,7 +49,7 @@ func (t *TradeExecutionFlow) ConvertToBigIntType() TradeExecutionFlowInBigInt {
 	}
 }
 
-type TradeExecutionFlowInBigInt struct {
+type TradeExecutionFlow struct {
 	CurrentBlockNumber *big.Int                `json:"currentBlockNumber"`
 	Tx                 *types.Transaction      `json:"tx"`
 	Trade              Trade                   `json:"trade"`
@@ -60,7 +60,7 @@ type TradeExecutionFlowInBigInt struct {
 	SandwichPrediction SandwichTradePrediction `json:"sandwichPrediction"`
 }
 
-func (t *TradeExecutionFlowInBigInt) GetAggregateGasUsage(ctx context.Context, w Web3Client) error {
+func (t *TradeExecutionFlow) GetAggregateGasUsage(ctx context.Context, w Web3Client) error {
 	err := t.FrontRunTrade.GetGasUsageForAllTxs(ctx, w)
 	if err != nil {
 		log.Err(err).Msg("error getting gas usage for front run trade")

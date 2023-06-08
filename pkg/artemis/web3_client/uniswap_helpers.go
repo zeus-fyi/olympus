@@ -2,34 +2,41 @@ package web3_client
 
 import (
 	"context"
+	"errors"
+	"math/big"
 
-	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 )
 
-func (u *UniswapClient) RouterApproveAndSend(ctx context.Context, to *TradeOutcome, pairContractAddr string) error {
-	approveTx, err := u.Web3Client.ERC20ApproveSpender(ctx, to.AmountInAddr.String(), u.RouterSmartContractAddr, to.AmountIn)
+func (u *UniswapClient) SingleReadMethodBigInt(ctx context.Context, methodName string, scInfo *web3_actions.SendContractTxPayload) (*big.Int, error) {
+	scInfo.MethodName = methodName
+	resp, err := u.Web3Client.CallConstantFunction(ctx, scInfo)
 	if err != nil {
-		log.Warn().Interface("approveTx", approveTx).Err(err).Msg("error approving router")
-		return err
+		return &big.Int{}, err
 	}
-	to.AddTxHash(accounts.Hash(approveTx.Hash()))
-	transferTxParams := web3_actions.SendContractTxPayload{
-		SmartContractAddr: to.AmountInAddr.String(),
-		SendEtherPayload: web3_actions.SendEtherPayload{
-			TransferArgs: web3_actions.TransferArgs{
-				ToAddress: accounts.HexToAddress(pairContractAddr),
-			},
-		},
-		ContractABI: MustLoadERC20Abi(),
-		Params:      []interface{}{accounts.HexToAddress(pairContractAddr), to.AmountIn},
+	if len(resp) == 0 {
+		return &big.Int{}, errors.New("empty response")
 	}
-	transferTx, err := u.Web3Client.TransferERC20Token(ctx, transferTxParams)
+	bi, err := ParseBigInt(resp[0])
 	if err != nil {
-		log.Warn().Interface("transferTx", transferTx).Err(err).Msg("error approving router")
-		return err
+		return &big.Int{}, err
 	}
-	to.AddTxHash(accounts.Hash(transferTx.Hash()))
-	return err
+	return bi, nil
+}
+
+func (u *UniswapClient) SingleReadMethodAddr(ctx context.Context, methodName string, scInfo *web3_actions.SendContractTxPayload) (accounts.Address, error) {
+	scInfo.MethodName = methodName
+	resp, err := u.Web3Client.CallConstantFunction(ctx, scInfo)
+	if err != nil {
+		return accounts.Address{}, err
+	}
+	if len(resp) == 0 {
+		return accounts.Address{}, errors.New("empty response")
+	}
+	addr, err := ConvertToAddress(resp[0])
+	if err != nil {
+		return accounts.Address{}, err
+	}
+	return addr, nil
 }

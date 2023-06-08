@@ -125,7 +125,7 @@ func (w *Web3Client) SetERC20BalanceBruteForce(ctx context.Context, scAddr, user
 	return errors.New("unable to overwrite balance")
 }
 
-func (w *Web3Client) MatchFrontRunTradeValues(tf *TradeExecutionFlowInBigInt) error {
+func (w *Web3Client) MatchFrontRunTradeValues(tf *TradeExecutionFlow) error {
 	pubkey := w.PublicKey()
 	if pubkey == "execSwap" {
 		pubkey = "0xsmartcontractaddr"

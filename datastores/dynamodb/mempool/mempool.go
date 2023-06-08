@@ -8,21 +8,19 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/rs/zerolog/log"
 	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamodb"
-	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
 type MempoolTxDynamoDB struct {
 	*dynamodb.Client
-	*web3_client.Web3Client
 }
 
-func NewMempoolTxDynamoDB(creds dynamodb_client.DynamoDBCredentials, wc *web3_client.Web3Client) MempoolTxDynamoDB {
+func NewMempoolTxDynamoDB(creds dynamodb_client.DynamoDBCredentials) MempoolTxDynamoDB {
 	d, err := dynamodb_client.NewDynamoDBClient(context.Background(), creds)
 	if err != nil {
 		log.Err(err)
 	}
 	return MempoolTxDynamoDB{
-		d.Client, wc,
+		d.Client,
 	}
 }
 

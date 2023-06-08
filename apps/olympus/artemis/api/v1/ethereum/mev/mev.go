@@ -59,7 +59,7 @@ func (m *MempoolTxRequest) GetMempoolTxs(c echo.Context) error {
 func FilterZeroProfit(c echo.Context, ctx context.Context, resp artemis_autogen_bases.EthMempoolMevTxSlice) error {
 	tmp := artemis_autogen_bases.EthMempoolMevTxSlice{}
 	for _, mempoolTx := range resp {
-		tf := web3_client.TradeExecutionFlow{}
+		tf := web3_client.TradeExecutionFlowJSON{}
 		b := []byte(mempoolTx.TxFlowPrediction)
 		berr := json.Unmarshal(b, &tf)
 		if berr != nil {

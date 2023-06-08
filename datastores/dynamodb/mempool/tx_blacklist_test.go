@@ -10,7 +10,7 @@ func (t *MempoolTxDynamoDBTestSuite) TestPutBlacklistTx() {
 		AccessKey:    t.Tc.AwsAccessKeyDynamoDB,
 		AccessSecret: t.Tc.AwsSecretKeyDynamoDB,
 	}
-	m := NewMempoolTxDynamoDB(creds, nil)
+	m := NewMempoolTxDynamoDB(creds)
 
 	txBlacklist := TxBlacklistDynamoDB{
 		TxBlacklistDynamoDBTableKeys: TxBlacklistDynamoDBTableKeys{
@@ -27,7 +27,7 @@ func (t *MempoolTxDynamoDBTestSuite) TestGetBlacklistTx() {
 		AccessKey:    t.Tc.AwsAccessKeyDynamoDB,
 		AccessSecret: t.Tc.AwsSecretKeyDynamoDB,
 	}
-	m := NewMempoolTxDynamoDB(creds, nil)
+	m := NewMempoolTxDynamoDB(creds)
 	txBlacklist := TxBlacklistDynamoDB{
 		TxBlacklistDynamoDBTableKeys: TxBlacklistDynamoDBTableKeys{
 			TxHash: "0x123",

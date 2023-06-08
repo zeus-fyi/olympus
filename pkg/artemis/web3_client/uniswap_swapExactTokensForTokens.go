@@ -49,7 +49,7 @@ func (u *UniswapClient) SwapExactTokensForTokens(tx MevTx, args map[string]inter
 			Amount:    st.AmountIn,
 			AmountMin: st.AmountOutMin,
 		}
-		u.PrintTradeSummaries2(ts)
+		u.PrintTradeSummaries(ts)
 		// u.PrintTradeSummaries(tx, tf, pd.v2Pair, path[0].String(), st.AmountIn, st.AmountOutMin)
 		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
 		fmt.Println("sandwich: ====================================SwapExactTokensForTokens==================================")

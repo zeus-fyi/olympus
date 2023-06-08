@@ -24,6 +24,7 @@ type TradeSummary struct {
 }
 
 func (u *UniswapClient) PrintTradeSummaries(ts *TradeSummary) {
+	log.Info().Msgf("TradeSummary")
 	ts.Tf.Tx = ts.Tx.Tx
 	u.Web3Client.Dial()
 	defer u.Web3Client.Close()

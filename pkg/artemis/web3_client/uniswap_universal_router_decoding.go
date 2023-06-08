@@ -8,6 +8,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/rs/zerolog/log"
 )
 
 // todo exec
@@ -30,6 +31,7 @@ func (u *UniswapClient) DecodeUniversalRouterMessage() {
 }
 
 func NewDecodedUniversalRouterExecCmdFromMap(m map[string]interface{}) (UniversalRouterExecCmd, error) {
+	log.Info().Msg("NewDecodedUniversalRouterExecCmdFromMap")
 	cmds := UniversalRouterExecCmd{
 		Commands: []UniversalRouterExecSubCmd{},
 	}
@@ -51,6 +53,7 @@ func NewDecodedUniversalRouterExecCmdFromMap(m map[string]interface{}) (Universa
 		subCmd.Inputs = inputsVal[i]
 		err := subCmd.DecodeCommand(byteSize, inputsVal[i])
 		if err != nil {
+			log.Err(err).Msg("could not decode command")
 			return cmds, err
 		}
 		subCmds[i] = subCmd
@@ -94,6 +97,8 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 
 	switch cmd {
 	case V3_SWAP_EXACT_IN:
+		log.Info().Msg("DecodeCommand V3_SWAP_EXACT_IN")
+
 		ur.Command = V3SwapExactIn
 		params := V3SwapExactInParams{}
 		err = params.Decode(ctx, ur.Inputs)
@@ -102,6 +107,7 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 		}
 		ur.DecodedInputs = params
 	case V3_SWAP_EXACT_OUT:
+		log.Info().Msg("DecodeCommand V3_SWAP_EXACT_OUT")
 		params := V3SwapExactOutParams{}
 		err = params.Decode(ctx, ur.Inputs)
 		if err != nil {
@@ -110,6 +116,7 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 		ur.DecodedInputs = params
 		ur.Command = V3SwapExactOut
 	case V2_SWAP_EXACT_IN:
+		log.Info().Msg("DecodeCommand V2_SWAP_EXACT_IN")
 		params := V2SwapExactInParams{}
 		err = params.Decode(ctx, ur.Inputs)
 		if err != nil {
@@ -118,6 +125,7 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 		ur.DecodedInputs = params
 		ur.Command = V2SwapExactIn
 	case V2_SWAP_EXACT_OUT:
+		log.Info().Msg("DecodeCommand V2_SWAP_EXACT_OUT")
 		params := V2SwapExactOutParams{}
 		err = params.Decode(ctx, ur.Inputs)
 		if err != nil {
@@ -126,6 +134,7 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 		ur.DecodedInputs = params
 		ur.Command = V2SwapExactOut
 	case PERMIT2_TRANSFER_FROM_BATCH:
+		log.Info().Msg("DecodeCommand PERMIT2_TRANSFER_FROM_BATCH")
 		// TODO
 		//params := Permit2PermitTransferFromBatchParams{}
 		//err = params.Decode(ctx, ur.Inputs)
@@ -135,6 +144,7 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 		//ur.DecodedInputs = params
 		ur.Command = Permit2TransferFromBatch
 	case PERMIT2_TRANSFER_FROM:
+		log.Info().Msg("DecodeCommand PERMIT2_TRANSFER_FROM")
 		params := Permit2PermitTransferFromParams{}
 		err = params.Decode(ctx, ur.Inputs)
 		if err != nil {
@@ -143,6 +153,7 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 		ur.DecodedInputs = params
 		ur.Command = Permit2TransferFrom
 	case PERMIT2_PERMIT_BATCH:
+		log.Info().Msg("DecodeCommand PERMIT2_PERMIT_BATCH")
 		// TODO
 		//params := Permit2PermitBatchParams{}
 		//err = params.Decode(ctx, ur.Inputs)
@@ -151,6 +162,7 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 		//}
 		ur.Command = Permit2PermitBatch
 	case PERMIT2_PERMIT:
+		log.Info().Msg("DecodeCommand PERMIT2_PERMIT")
 		params := Permit2PermitParams{}
 		err = params.Decode(ctx, ur.Inputs)
 		if err != nil {
@@ -159,6 +171,7 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 		ur.DecodedInputs = params
 		ur.Command = Permit2Permit
 	case SUDOSWAP:
+		log.Info().Msg("DecodeCommand SUDOSWAP")
 		params := SudoSwapParams{}
 		err = params.Decode(ctx, ur.Inputs)
 		if err != nil {

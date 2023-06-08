@@ -1,14 +1,12 @@
 package web3_client
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
@@ -115,20 +113,6 @@ func (u *UniswapClient) PrintTradeSummaries(ts *TradeSummary) {
 		fmt.Printf("Buy %s %s token for %s %s token \n\n", expectedOut.String(), pair.GetOppositeToken(ts.TokenAddr).String(), ts.BuyWithAmount.String(), ts.TokenAddr)
 	}
 	return
-}
-
-type PricingData struct {
-	v2Pair UniswapV2Pair
-}
-
-func (u *UniswapClient) GetPricingData(ctx context.Context, path []accounts.Address) (*PricingData, error) {
-	pair, err := u.PairToPrices(ctx, path)
-	if err != nil {
-		return nil, err
-	}
-	return &PricingData{
-		v2Pair: pair,
-	}, nil
 }
 
 //

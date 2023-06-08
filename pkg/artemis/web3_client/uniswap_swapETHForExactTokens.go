@@ -39,15 +39,15 @@ func (u *UniswapClient) SwapETHForExactTokens(tx MevTx, args map[string]interfac
 	if u.PrintOn {
 		fmt.Println("\nsandwich: ==================================SwapETHForExactTokens==================================")
 		ts := TradeSummary{
-			Tx:        tx,
-			Pd:        pd,
-			Tf:        tf,
-			TokenAddr: path[0].String(),
-			Amount:    st.Value,
-			AmountMin: st.AmountOut,
+			Tx:            tx,
+			Pd:            pd,
+			Tf:            tf,
+			TokenAddr:     path[0].String(),
+			BuyWithAmount: st.Value,
+			MinimumAmount: st.AmountOut,
 		}
 		u.PrintTradeSummaries(&ts)
-		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
+		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell BuyWithAmount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
 		fmt.Println("sandwich: ====================================SwapETHForExactTokens==================================")
 	}
 	u.SwapETHForExactTokensParamsSlice = append(u.SwapETHForExactTokensParamsSlice, st)

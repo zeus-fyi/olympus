@@ -30,7 +30,7 @@ func (s *EthScheduledDeliveryTestSuite) TestSelect() {
 	//	addr := common.HexToAddress(sd.PublicKey)
 	//	rr := artemis_req_types.SendEtherPayload{
 	//		TransferArgs: artemis_req_types.TransferArgs{
-	//			Amount:    big.NewInt(1).Mul(signing_automation_ethereum.Gwei, big.NewInt(int64(sd.Amount))),
+	//			BuyWithAmount:    big.NewInt(1).Mul(signing_automation_ethereum.Gwei, big.NewInt(int64(sd.BuyWithAmount))),
 	//			ToAddress: addr,
 	//		},
 	//	}
@@ -47,7 +47,7 @@ func (s *EthScheduledDeliveryTestSuite) TestInsert() {
 	//addr := common.HexToAddress(pubKey)
 	//rr := artemis_req_types.SendEtherPayload{
 	//	TransferArgs: artemis_req_types.TransferArgs{
-	//		Amount:    big.NewInt(1).Mul(signing_automation_ethereum.Gwei, big.NewInt(int64(GweiThirtyTwoEth))),
+	//		BuyWithAmount:    big.NewInt(1).Mul(signing_automation_ethereum.Gwei, big.NewInt(int64(GweiThirtyTwoEth))),
 	//		ToAddress: addr,
 	//	},
 	//}

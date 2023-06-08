@@ -29,6 +29,10 @@ type JSONV2SwapExactInParams struct {
 	PayerIsSender bool               `json:"payerIsSender"`
 }
 
+func (s *V2SwapExactInParams) Encode(ctx context.Context) ([]byte, error) {
+	return nil, nil
+}
+
 func (s *V2SwapExactInParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
 	err := UniversalRouterDecoder.Methods[V2SwapExactIn].Inputs.UnpackIntoMap(args, data)
@@ -98,6 +102,10 @@ type JSONV2SwapExactOutParams struct {
 	Path          []accounts.Address `json:"path"`
 	To            accounts.Address   `json:"to"`
 	PayerIsSender bool               `json:"payerIsSender"`
+}
+
+func (s *V2SwapExactOutParams) Encode(ctx context.Context) ([]byte, error) {
+	return nil, nil
 }
 
 func (s *V2SwapExactOutParams) Decode(ctx context.Context, data []byte) error {

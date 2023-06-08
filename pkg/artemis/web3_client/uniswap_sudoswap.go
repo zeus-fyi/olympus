@@ -14,6 +14,10 @@ type SudoSwapParams struct {
 	Data  []byte   `json:"bytes"`
 }
 
+func (s *SudoSwapParams) Encode(ctx context.Context) ([]byte, error) {
+	return nil, nil
+}
+
 func (s *SudoSwapParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
 	err := UniversalRouterDecoder.Methods[SudoSwap].Inputs.UnpackIntoMap(args, data)

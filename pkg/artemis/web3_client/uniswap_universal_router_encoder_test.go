@@ -37,4 +37,6 @@ func (s *Web3ClientTestSuite) TestUniversalRouterEncodeCommandByte() {
 		s.Require().NoError(err)
 		s.Assert().Equal(uint8(V2_SWAP_EXACT_IN), cmdByte)
 	}
+
+	// TODO needs to now verify it can encode the inputs
 }

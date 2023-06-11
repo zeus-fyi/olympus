@@ -30,7 +30,11 @@ type JSONV2SwapExactInParams struct {
 }
 
 func (s *V2SwapExactInParams) Encode(ctx context.Context) ([]byte, error) {
-	return nil, nil
+	inputs, err := UniversalRouterDecoder.Methods[V2SwapExactIn].Inputs.Pack(s.To, s.AmountIn, s.AmountOutMin, s.Path, s.PayerIsSender)
+	if err != nil {
+		return nil, err
+	}
+	return inputs, nil
 }
 
 func (s *V2SwapExactInParams) Decode(ctx context.Context, data []byte) error {
@@ -105,7 +109,12 @@ type JSONV2SwapExactOutParams struct {
 }
 
 func (s *V2SwapExactOutParams) Encode(ctx context.Context) ([]byte, error) {
-	return nil, nil
+	inputs, err := UniversalRouterDecoder.Methods[V2SwapExactOut].Inputs.Pack(s.To, s.AmountOut, s.AmountInMax, s.Path, s.PayerIsSender)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to encode")
+		return nil, err
+	}
+	return inputs, nil
 }
 
 func (s *V2SwapExactOutParams) Decode(ctx context.Context, data []byte) error {

@@ -15,7 +15,11 @@ type SudoSwapParams struct {
 }
 
 func (s *SudoSwapParams) Encode(ctx context.Context) ([]byte, error) {
-	return nil, nil
+	inputs, err := UniversalRouterDecoder.Methods[SudoSwap].Inputs.Pack(s.Value, s.Data)
+	if err != nil {
+		return nil, err
+	}
+	return inputs, nil
 }
 
 func (s *SudoSwapParams) Decode(ctx context.Context, data []byte) error {

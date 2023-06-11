@@ -90,7 +90,11 @@ type PermitDetails struct {
 }
 
 func (p *Permit2PermitParams) Encode(ctx context.Context) ([]byte, error) {
-	return nil, nil
+	inputs, err := UniversalRouterDecoder.Methods[Permit2Permit].Inputs.Pack(p.Token, p.Amount, p.Expiration, p.Nonce, p.Spender, p.SigDeadline, p.Signature)
+	if err != nil {
+		return nil, err
+	}
+	return inputs, nil
 }
 func (p *Permit2PermitParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
@@ -139,6 +143,8 @@ type Permit2PermitBatchParams struct {
 // abi.decode(inputs, (IAllowanceTransfer.PermitBatch, bytes));
 
 func (p *Permit2PermitBatchParams) Encode(ctx context.Context) ([]byte, error) {
+	//inputs, err := UniversalRouterDecoder.Methods[Permit2PermitBatch].Inputs.Pack()
+	//
 	return nil, nil
 }
 

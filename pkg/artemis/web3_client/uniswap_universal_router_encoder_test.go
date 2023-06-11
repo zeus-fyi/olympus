@@ -21,7 +21,7 @@ func (s *Web3ClientTestSuite) TestUniversalRouterEncodeCommandByte() {
 		Commands: []UniversalRouterExecSubCmd{
 			{
 				Command:       V2SwapExactIn,
-				CanRevert:     false,
+				CanRevert:     true,
 				Inputs:        nil,
 				DecodedInputs: v2ExactInTrade,
 			},
@@ -30,13 +30,18 @@ func (s *Web3ClientTestSuite) TestUniversalRouterEncodeCommandByte() {
 	encCmd, err := ur.EncodeCommands(ctx)
 	s.Require().NoError(err)
 	s.Require().NotNil(encCmd)
-	var cmdByte uint8
+	s.Require().NotNil(encCmd.Commands)
 	subCmd := UniversalRouterExecSubCmd{}
-	for _, byteVal := range encCmd.Commands {
-		_, cmdByte, err = subCmd.DecodeCmdByte(byteVal)
+	for i, byteVal := range encCmd.Commands {
+		err = subCmd.DecodeCommand(byteVal, encCmd.Inputs[i])
 		s.Require().NoError(err)
-		s.Assert().Equal(uint8(V2_SWAP_EXACT_IN), cmdByte)
+		s.Assert().Equal(true, subCmd.CanRevert)
+		s.Assert().Equal(V2SwapExactIn, subCmd.Command)
+		decodedInputs := subCmd.DecodedInputs.(V2SwapExactInParams)
+		s.Assert().Equal(v2ExactInTrade.Path, decodedInputs.Path)
+		s.Assert().Equal(v2ExactInTrade.AmountIn.String(), decodedInputs.AmountIn.String())
+		s.Assert().Equal(v2ExactInTrade.AmountOutMin.String(), decodedInputs.AmountOutMin.String())
+		s.Assert().Equal(v2ExactInTrade.To, decodedInputs.To)
+		s.Assert().Equal(v2ExactInTrade.PayerIsSender, decodedInputs.PayerIsSender)
 	}
-
-	// TODO needs to now verify it can encode the inputs
 }

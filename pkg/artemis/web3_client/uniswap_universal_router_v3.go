@@ -30,6 +30,14 @@ type JSONV3SwapExactInParams struct {
 	PayerIsUser  bool               `json:"payerIsUser"`
 }
 
+func (s *V3SwapExactInParams) Encode(ctx context.Context) ([]byte, error) {
+	inputs, err := UniversalRouterDecoder.Methods[V3SwapExactIn].Inputs.Pack(s.To, s.AmountIn, s.AmountOutMin, s.Path, s.PayerIsUser)
+	if err != nil {
+		return nil, err
+	}
+	return inputs, nil
+}
+
 func (s *V3SwapExactInParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
 	err := UniversalRouterDecoder.Methods[V3SwapExactIn].Inputs.UnpackIntoMap(args, data)
@@ -102,6 +110,14 @@ type JSONV3SwapExactOutParams struct {
 	Path        []accounts.Address `json:"path"`
 	To          accounts.Address   `json:"to"`
 	PayerIsUser bool               `json:"payerIsUser"`
+}
+
+func (s *V3SwapExactOutParams) Encode(ctx context.Context) ([]byte, error) {
+	inputs, err := UniversalRouterDecoder.Methods[V3SwapExactOut].Inputs.Pack(s.To, s.AmountOut, s.AmountInMax, s.Path, s.PayerIsUser)
+	if err != nil {
+		return nil, err
+	}
+	return inputs, nil
 }
 
 func (s *V3SwapExactOutParams) Decode(ctx context.Context, data []byte) error {

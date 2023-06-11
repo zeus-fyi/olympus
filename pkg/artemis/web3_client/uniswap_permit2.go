@@ -33,13 +33,19 @@ const (
 	Permit2TransferFromBatch = "PERMIT2_TRANSFER_FROM_BATCH"
 )
 
-type Permit2PermitTransferFromParams struct {
+var Permit2AbiDecoder = MustLoadPermit2Abi()
+
+type Permit2TransferFromParams struct {
 	Token     accounts.Address `json:"token"`
 	Recipient accounts.Address `json:"recipient"`
 	Amount    *big.Int         `json:"amount"`
 }
 
-func (p *Permit2PermitTransferFromParams) Decode(ctx context.Context, data []byte) error {
+func (p *Permit2TransferFromParams) Encode(ctx context.Context) ([]byte, error) {
+	return nil, nil
+}
+
+func (p *Permit2TransferFromParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
 	err := UniversalRouterDecoder.Methods[Permit2TransferFrom].Inputs.UnpackIntoMap(args, data)
 	if err != nil {
@@ -83,6 +89,13 @@ type PermitDetails struct {
 	Nonce      *big.Int // uint48 can be represented as uint64 in Go
 }
 
+func (p *Permit2PermitParams) Encode(ctx context.Context) ([]byte, error) {
+	inputs, err := UniversalRouterDecoder.Methods[Permit2Permit].Inputs.Pack(p.Token, p.Amount, p.Expiration, p.Nonce, p.Spender, p.SigDeadline, p.Signature)
+	if err != nil {
+		return nil, err
+	}
+	return inputs, nil
+}
 func (p *Permit2PermitParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
 	err := UniversalRouterDecoder.Methods[Permit2Permit].Inputs.UnpackIntoMap(args, data)
@@ -129,6 +142,12 @@ type Permit2PermitBatchParams struct {
 
 // abi.decode(inputs, (IAllowanceTransfer.PermitBatch, bytes));
 
+func (p *Permit2PermitBatchParams) Encode(ctx context.Context) ([]byte, error) {
+	//inputs, err := UniversalRouterDecoder.Methods[Permit2PermitBatch].Inputs.Pack()
+	//
+	return nil, nil
+}
+
 func (p *Permit2PermitBatchParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
 	err := UniversalRouterDecoder.Methods[Permit2PermitBatch].Inputs.UnpackIntoMap(args, data)
@@ -143,6 +162,9 @@ type Permit2PermitTransferFromBatchParams struct {
 
 // abi.decode(inputs, (IAllowanceTransfer.AllowanceTransferDetails[]));
 
+func (p *Permit2PermitTransferFromBatchParams) Encode(ctx context.Context) ([]byte, error) {
+	return nil, nil
+}
 func (p *Permit2PermitTransferFromBatchParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
 	err := UniversalRouterDecoder.Methods[Permit2TransferFromBatch].Inputs.UnpackIntoMap(args, data)

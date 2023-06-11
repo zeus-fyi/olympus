@@ -2,9 +2,7 @@ package web3_client
 
 import (
 	"bytes"
-	"context"
 	"encoding/binary"
-	"fmt"
 	"math/big"
 
 	"github.com/rs/zerolog/log"
@@ -42,18 +40,25 @@ func NewDecodedUniversalRouterExecCmdFromMap(m map[string]interface{}) (Universa
 	return cmds, nil
 }
 
-func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) error {
-	ur.Inputs = args
-	ctx = context.Background()
+func (ur *UniversalRouterExecSubCmd) DecodeCmdByte(command byte) (bool, uint8, error) {
 	buf := bytes.NewBuffer([]byte{command})
 	var data uint8
 	err := binary.Read(buf, binary.BigEndian, &data)
 	if err != nil {
-		return fmt.Errorf("could not read command: %v", err)
+		return false, 0, err
 	}
 	flag := (data & 0x80) >> 7 // extract bit 7
 	//ref := (data & 0x60) >> 5  // extract bits 6-5
 	cmd := data & 0x1F // extract bits 4-0
+	return flag == 1, cmd, nil
+}
+
+func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) error {
+	ur.Inputs = args
+	flag, cmd, err := ur.DecodeCmdByte(command)
+	if err != nil {
+		return err
+	}
 	switch cmd {
 	case V3_SWAP_EXACT_IN:
 		log.Info().Msg("DecodeCommand V3_SWAP_EXACT_IN")
@@ -138,6 +143,6 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 		ur.DecodedInputs = params
 		ur.Command = SudoSwap
 	}
-	ur.CanRevert = flag == 1
+	ur.CanRevert = flag
 	return nil
 }

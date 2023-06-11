@@ -30,4 +30,11 @@ func (s *Web3ClientTestSuite) TestUniversalRouterEncodeCommandByte() {
 	encCmd, err := ur.EncodeCommands(ctx)
 	s.Require().NoError(err)
 	s.Require().NotNil(encCmd)
+	var cmdByte uint8
+	subCmd := UniversalRouterExecSubCmd{}
+	for _, byteVal := range encCmd.Commands {
+		_, cmdByte, err = subCmd.DecodeCmdByte(byteVal)
+		s.Require().NoError(err)
+		s.Assert().Equal(uint8(V2_SWAP_EXACT_IN), cmdByte)
+	}
 }

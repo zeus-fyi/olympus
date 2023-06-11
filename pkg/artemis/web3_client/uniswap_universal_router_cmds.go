@@ -30,4 +30,12 @@ const (
 	SWEEP_ERC1155               = 0x1d
 )
 
+const (
+	Sweep      = "SWEEP"
+	PayPortion = "PAY_PORTION"
+	Transfer   = "TRANSFER"
+	UnwrapWETH = "UNWRAP_WETH"
+	WrapETH    = "WRAP_ETH"
+)
+
 var UniversalRouterDecoder = MustLoadUniversalRouterDecodingAbi()

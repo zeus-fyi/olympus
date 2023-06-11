@@ -138,14 +138,24 @@ func (p *Permit2PermitParams) Decode(ctx context.Context, data []byte) error {
 }
 
 type Permit2PermitBatchParams struct {
+	PermitBatch PermitBatch `json:"permitBatch"`
+	Signature   []byte      `json:"signature"`
+}
+
+type PermitBatch struct {
+	Details     []PermitDetails  `json:"details"`
+	Spender     accounts.Address `json:"spender"`
+	SigDeadline *big.Int         `json:"sigDeadline"`
 }
 
 // abi.decode(inputs, (IAllowanceTransfer.PermitBatch, bytes));
 
 func (p *Permit2PermitBatchParams) Encode(ctx context.Context) ([]byte, error) {
-	//inputs, err := UniversalRouterDecoder.Methods[Permit2PermitBatch].Inputs.Pack()
-	//
-	return nil, nil
+	inputs, err := UniversalRouterDecoder.Methods[Permit2PermitBatch].Inputs.Pack(p.PermitBatch.Details, p.Signature)
+	if err != nil {
+		return nil, err
+	}
+	return inputs, nil
 }
 
 func (p *Permit2PermitBatchParams) Decode(ctx context.Context, data []byte) error {
@@ -158,12 +168,24 @@ func (p *Permit2PermitBatchParams) Decode(ctx context.Context, data []byte) erro
 }
 
 type Permit2PermitTransferFromBatchParams struct {
+	Details []AllowanceTransferDetails
+}
+
+type AllowanceTransferDetails struct {
+	From   accounts.Address
+	To     accounts.Address
+	Amount *big.Int
+	Token  accounts.Address
 }
 
 // abi.decode(inputs, (IAllowanceTransfer.AllowanceTransferDetails[]));
 
 func (p *Permit2PermitTransferFromBatchParams) Encode(ctx context.Context) ([]byte, error) {
-	return nil, nil
+	inputs, err := UniversalRouterDecoder.Methods[Permit2TransferFromBatch].Inputs.Pack(p.Details)
+	if err != nil {
+		return nil, err
+	}
+	return inputs, nil
 }
 func (p *Permit2PermitTransferFromBatchParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})

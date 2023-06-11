@@ -24,7 +24,7 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 		case V3SwapExactIn:
 			fmt.Println("V3SwapExactIn: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(V3SwapExactInParams)
-			pd, perr := u.GetPricingData(ctx, inputs.Path)
+			pd, perr := u.GetPricingData(ctx, inputs.Path.GetPath())
 			if perr != nil {
 				log.Err(perr).Msg("V3SwapExactIn: error getting pricing data")
 				return
@@ -38,17 +38,17 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 				Tx:            tx,
 				Pd:            pd,
 				Tf:            tf,
-				TokenAddr:     inputs.Path[0].String(),
+				TokenAddr:     inputs.Path.TokenIn.String(),
 				BuyWithAmount: inputs.AmountIn,
 				MinimumAmount: inputs.AmountOutMin,
 			}
 			u.PrintTradeSummaries(&ts)
-			fmt.Println("Sell Token: ", inputs.Path[0].String(), "Buy Token", inputs.Path[1].String(), "Sell BuyWithAmount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
+			fmt.Println("Sell Token: ", inputs.Path.TokenIn.String(), "Buy Token", inputs.Path.GetEndToken().String(), "Sell BuyWithAmount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
 			fmt.Println("sandwich: ====================================V3SwapExactIn==================================")
 		case V3SwapExactOut:
 			fmt.Println("V3SwapExactOut: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(V3SwapExactOutParams)
-			pd, perr := u.GetPricingData(ctx, inputs.Path)
+			pd, perr := u.GetPricingData(ctx, inputs.Path.GetPath())
 			if perr != nil {
 				log.Err(perr).Msg("V3SwapExactOut: error getting pricing data")
 				return
@@ -61,12 +61,12 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 				Tx:            tx,
 				Pd:            pd,
 				Tf:            tf,
-				TokenAddr:     inputs.Path[0].String(),
+				TokenAddr:     inputs.Path.TokenIn.String(),
 				BuyWithAmount: inputs.AmountInMax,
 				MinimumAmount: inputs.AmountOut,
 			}
 			u.PrintTradeSummaries(&ts)
-			fmt.Println("Sell Token: ", inputs.Path[0].String(), "Buy Token", inputs.Path[1].String(), "Sell BuyWithAmount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
+			fmt.Println("Sell Token: ", inputs.Path.TokenIn.String(), "Buy Token", inputs.Path.GetEndToken().String(), "Sell BuyWithAmount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
 			fmt.Println("sandwich: ====================================V3SwapExactOut==================================")
 		case V2SwapExactIn:
 			fmt.Println("V2SwapExactIn: ProcessUniversalRouterTxs")

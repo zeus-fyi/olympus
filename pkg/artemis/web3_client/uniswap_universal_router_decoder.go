@@ -97,15 +97,14 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 		ur.DecodedInputs = params
 		ur.Command = V2SwapExactOut
 	case PERMIT2_TRANSFER_FROM_BATCH:
-		log.Info().Msg("DecodeCommand PERMIT2_TRANSFER_FROM_BATCH")
-		// TODO
+		//log.Info().Msg("DecodeCommand PERMIT2_TRANSFER_FROM_BATCH")
 		//params := Permit2PermitTransferFromBatchParams{}
 		//err = params.Decode(ctx, ur.Inputs)
 		//if err != nil {
 		//	return err
 		//}
 		//ur.DecodedInputs = params
-		ur.Command = Permit2TransferFromBatch
+		//ur.Command = Permit2TransferFromBatch
 	case PERMIT2_TRANSFER_FROM:
 		log.Info().Msg("DecodeCommand PERMIT2_TRANSFER_FROM")
 		params := Permit2TransferFromParams{}
@@ -116,14 +115,14 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 		ur.DecodedInputs = params
 		ur.Command = Permit2TransferFrom
 	case PERMIT2_PERMIT_BATCH:
-		log.Info().Msg("DecodeCommand PERMIT2_PERMIT_BATCH")
-		// TODO
+		//log.Info().Msg("DecodeCommand PERMIT2_PERMIT_BATCH")
 		//params := Permit2PermitBatchParams{}
 		//err = params.Decode(ctx, ur.Inputs)
 		//if err != nil {
 		//	return err
 		//}
-		ur.Command = Permit2PermitBatch
+		//ur.DecodedInputs = params
+		//ur.Command = Permit2PermitBatch
 	case PERMIT2_PERMIT:
 		log.Info().Msg("DecodeCommand PERMIT2_PERMIT")
 		params := Permit2PermitParams{}
@@ -142,6 +141,21 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 		}
 		ur.DecodedInputs = params
 		ur.Command = SudoSwap
+	case PAY_PORTION:
+		log.Info().Msg("DecodeCommand PAY_PORTION")
+		ur.Command = PayPortion
+	case SWEEP:
+		log.Info().Msg("DecodeCommand SWEEP")
+		ur.Command = Sweep
+	case TRANSFER:
+		log.Info().Msg("DecodeCommand TRANSFER")
+		ur.Command = Transfer
+	case UNWRAP_WETH:
+		log.Info().Msg("DecodeCommand UNWRAP_WETH")
+		ur.Command = UnwrapWETH
+	case WRAP_ETH:
+		log.Info().Msg("DecodeCommand WRAP_ETH")
+		ur.Command = WrapETH
 	}
 	ur.CanRevert = flag
 	return nil

@@ -74,15 +74,18 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 		return cmdByte, inputs, nil
 	case Permit2TransferFromBatch:
 		log.Info().Msg("DecodeCommand PERMIT2_TRANSFER_FROM_BATCH")
-		// TODO
-		//params := ur.DecodedInputs.(Permit2PermitTransferFromBatchParams)
-		//err = params.Decode(ctx, ur.Inputs)
-		//if err != nil {
-		//	return err
-		//}
-		//ur.DecodedInputs = params
+		params := ur.DecodedInputs.(Permit2PermitTransferFromBatchParams)
+		inputs, err := params.Encode(ctx)
+		if err != nil {
+			return cmdByte, nil, err
+		}
+		ur.Inputs = inputs
 		cmdByte = ur.EncodeCommandByte(ur.CanRevert, PERMIT2_TRANSFER_FROM_BATCH)
 		ur.Command = Permit2TransferFromBatch
+		return cmdByte, inputs, nil
+	case Transfer:
+		cmdByte = ur.EncodeCommandByte(ur.CanRevert, TRANSFER)
+		return cmdByte, nil, nil
 	case Permit2TransferFrom:
 		log.Info().Msg("DecodeCommand PERMIT2_TRANSFER_FROM")
 		params := ur.DecodedInputs.(Permit2TransferFromParams)
@@ -95,15 +98,14 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 		return cmdByte, inputs, nil
 	case Permit2PermitBatch:
 		log.Info().Msg("DecodeCommand PERMIT2_PERMIT_BATCH")
-		// TODO
-		//params := ur.DecodedInputs.(Permit2PermitBatchParams)
-
-		//err = params.Decode(ctx, ur.Inputs)
-		//if err != nil {
-		//	return err
-		//}
+		params := ur.DecodedInputs.(Permit2PermitBatchParams)
+		inputs, err := params.Encode(ctx)
+		if err != nil {
+			return cmdByte, nil, err
+		}
+		ur.Inputs = inputs
 		cmdByte = ur.EncodeCommandByte(ur.CanRevert, PERMIT2_PERMIT_BATCH)
-		ur.Command = Permit2PermitBatch
+		return cmdByte, inputs, nil
 	case Permit2Permit:
 		log.Info().Msg("DecodeCommand PERMIT2_PERMIT")
 		params := ur.DecodedInputs.(Permit2PermitParams)
@@ -119,7 +121,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 		params := ur.DecodedInputs.(SudoSwapParams)
 		inputs, err := params.Encode(ctx)
 		if err != nil {
-			return cmdByte, nil, err
+			return cmdByte, inputs, err
 		}
 		ur.Inputs = inputs
 		cmdByte = ur.EncodeCommandByte(ur.CanRevert, SUDOSWAP)

@@ -2,7 +2,6 @@ package web3_client
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 
 	"github.com/rs/zerolog/log"
@@ -15,19 +14,19 @@ const (
 )
 
 type V3SwapExactInParams struct {
-	AmountIn     *big.Int           `json:"amountIn"`
-	AmountOutMin *big.Int           `json:"amountOutMin"`
-	Path         []accounts.Address `json:"path"`
-	To           accounts.Address   `json:"to"`
-	PayerIsUser  bool               `json:"payerIsUser"`
+	AmountIn     *big.Int         `json:"amountIn"`
+	AmountOutMin *big.Int         `json:"amountOutMin"`
+	Path         TokenFeePath     `json:"path"`
+	To           accounts.Address `json:"to"`
+	PayerIsUser  bool             `json:"payerIsUser"`
 }
 
 type JSONV3SwapExactInParams struct {
-	AmountIn     string             `json:"amountIn"`
-	AmountOutMin string             `json:"amountOutMin"`
-	Path         []accounts.Address `json:"path"`
-	To           accounts.Address   `json:"to"`
-	PayerIsUser  bool               `json:"payerIsUser"`
+	AmountIn     string           `json:"amountIn"`
+	AmountOutMin string           `json:"amountOutMin"`
+	Path         TokenFeePath     `json:"path"`
+	To           accounts.Address `json:"to"`
+	PayerIsUser  bool             `json:"payerIsUser"`
 }
 
 func (s *V3SwapExactInParams) Encode(ctx context.Context) ([]byte, error) {
@@ -38,11 +37,40 @@ func (s *V3SwapExactInParams) Encode(ctx context.Context) ([]byte, error) {
 	return inputs, nil
 }
 
+type TokenFee struct {
+	Token accounts.Address
+	Fee   *big.Int
+}
+
+type TokenFeePath struct {
+	TokenIn accounts.Address
+	Path    []TokenFee
+}
+
+func (tfp *TokenFeePath) GetEndToken() accounts.Address {
+	return tfp.Path[len(tfp.Path)-1].Token
+}
+
+func (tfp *TokenFeePath) GetPath() []accounts.Address {
+	path := []accounts.Address{tfp.TokenIn}
+	for _, p := range tfp.Path {
+		path = append(path, p.Token)
+	}
+	return path
+}
+
+func (tfp *TokenFeePath) Reverse() {
+	pathList := tfp.Path
+	for i, j := 0, len(pathList)-1; i < j; i, j = i+1, j-1 {
+		pathList[i], pathList[j] = pathList[j], pathList[i]
+	}
+	pathList[len(pathList)-1].Token, tfp.TokenIn = tfp.TokenIn, pathList[len(pathList)-1].Token
+}
 func (s *V3SwapExactInParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
 	err := UniversalRouterDecoder.Methods[V3SwapExactIn].Inputs.UnpackIntoMap(args, data)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 	amountIn, err := ParseBigInt(args["amountIn"])
 	if err != nil {
@@ -52,10 +80,24 @@ func (s *V3SwapExactInParams) Decode(ctx context.Context, data []byte) error {
 	if err != nil {
 		return err
 	}
-	path, err := ConvertToAddressSlice(args["path"])
-	if err != nil {
-		return err
+	pathBytes := args["path"].([]byte)
+	hexStr := accounts.Bytes2Hex(pathBytes)
+	tfp := TokenFeePath{
+		TokenIn: accounts.HexToAddress(hexStr[:40]),
 	}
+	var pathList []TokenFee
+	for i := 0; i < len(hexStr[40:]); i += 46 {
+		fee, _ := new(big.Int).SetString(hexStr[40:][i:i+6], 16)
+		token := accounts.HexToAddress(hexStr[40:][i+6 : i+46])
+		tf := TokenFee{
+			Token: token,
+			Fee:   fee,
+		}
+		pathList = append(pathList, tf)
+	}
+	tfp.Path = pathList
+	tfp.Reverse()
+
 	to, err := ConvertToAddress(args["recipient"])
 	if err != nil {
 		return err
@@ -63,7 +105,7 @@ func (s *V3SwapExactInParams) Decode(ctx context.Context, data []byte) error {
 	payerIsSender := args["payerIsUser"].(bool)
 	s.AmountIn = amountIn
 	s.AmountOutMin = amountOutMin
-	s.Path = path
+	s.Path = tfp
 	s.To = to
 	s.PayerIsUser = payerIsSender
 	return err
@@ -97,19 +139,19 @@ func (s *V3SwapExactInParams) ConvertToJSONType() *JSONV3SwapExactInParams {
 }
 
 type V3SwapExactOutParams struct {
-	AmountInMax *big.Int           `json:"amountInMax"`
-	AmountOut   *big.Int           `json:"amountOut"`
-	Path        []accounts.Address `json:"path"`
-	To          accounts.Address   `json:"to"`
-	PayerIsUser bool               `json:"payerIsUser"`
+	AmountInMax *big.Int         `json:"amountInMax"`
+	AmountOut   *big.Int         `json:"amountOut"`
+	Path        TokenFeePath     `json:"path"`
+	To          accounts.Address `json:"to"`
+	PayerIsUser bool             `json:"payerIsUser"`
 }
 
 type JSONV3SwapExactOutParams struct {
-	AmountInMax string             `json:"amountInMax"`
-	AmountOut   string             `json:"amountOut"`
-	Path        []accounts.Address `json:"path"`
-	To          accounts.Address   `json:"to"`
-	PayerIsUser bool               `json:"payerIsUser"`
+	AmountInMax string           `json:"amountInMax"`
+	AmountOut   string           `json:"amountOut"`
+	Path        TokenFeePath     `json:"path"`
+	To          accounts.Address `json:"to"`
+	PayerIsUser bool             `json:"payerIsUser"`
 }
 
 func (s *V3SwapExactOutParams) Encode(ctx context.Context) ([]byte, error) {
@@ -134,10 +176,22 @@ func (s *V3SwapExactOutParams) Decode(ctx context.Context, data []byte) error {
 	if err != nil {
 		return err
 	}
-	path, err := ConvertToAddressSlice(args["path"])
-	if err != nil {
-		return err
+	pathBytes := args["path"].([]byte)
+	hexStr := accounts.Bytes2Hex(pathBytes)
+	tfp := TokenFeePath{
+		TokenIn: accounts.HexToAddress(hexStr[:40]),
 	}
+	var pathList []TokenFee
+	for i := 0; i < len(hexStr[40:]); i += 46 {
+		fee, _ := new(big.Int).SetString(hexStr[40:][i:i+6], 16)
+		token := accounts.HexToAddress(hexStr[40:][i+6 : i+46])
+		tf := TokenFee{
+			Token: token,
+			Fee:   fee,
+		}
+		pathList = append(pathList, tf)
+	}
+	tfp.Path = pathList
 	to, err := ConvertToAddress(args["recipient"])
 	if err != nil {
 		return err
@@ -145,7 +199,7 @@ func (s *V3SwapExactOutParams) Decode(ctx context.Context, data []byte) error {
 	payerIsUser := args["payerIsUser"].(bool)
 	s.AmountInMax = amountInMax
 	s.AmountOut = amountOut
-	s.Path = path
+	s.Path = tfp
 	s.To = to
 	s.PayerIsUser = payerIsUser
 	return nil
@@ -192,13 +246,13 @@ func (s *V3SwapExactInParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlo
 		mid = new(big.Int).Add(low, high)
 		mid = DivideByHalf(mid)
 		// Front run trade
-		toFrontRun, err := mockPairResp.PriceImpact(s.Path[0], mid)
+		toFrontRun, err := mockPairResp.PriceImpact(s.Path.TokenIn, mid)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
 			return tf
 		}
 		// User trade
-		to, err := mockPairResp.PriceImpact(s.Path[0], s.AmountIn)
+		to, err := mockPairResp.PriceImpact(s.Path.TokenIn, s.AmountIn)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
 			return tf
@@ -210,7 +264,7 @@ func (s *V3SwapExactInParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlo
 		}
 		// Sandwich trade
 		sandwichDump := toFrontRun.AmountOut
-		toSandwich, err := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		toSandwich, err := mockPairResp.PriceImpact(s.Path.GetEndToken(), sandwichDump)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
 			return tf
@@ -256,13 +310,13 @@ func (s *V3SwapExactOutParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFl
 		mid = new(big.Int).Add(low, high)
 		mid = DivideByHalf(mid)
 		// Front run trade
-		toFrontRun, err := mockPairResp.PriceImpact(s.Path[0], mid)
+		toFrontRun, err := mockPairResp.PriceImpact(s.Path.TokenIn, mid)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
 			return tf
 		}
 		// User trade
-		to, err := mockPairResp.PriceImpact(s.Path[0], s.AmountInMax)
+		to, err := mockPairResp.PriceImpact(s.Path.TokenIn, s.AmountInMax)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
 			return tf
@@ -275,7 +329,7 @@ func (s *V3SwapExactOutParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFl
 		}
 		// Sandwich trade
 		sandwichDump := toFrontRun.AmountOut
-		toSandwich, err := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
+		toSandwich, err := mockPairResp.PriceImpact(s.Path.GetEndToken(), sandwichDump)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
 			return tf

@@ -17,7 +17,7 @@ const UniversalRouterDecodingAbi = `
     },
     {
       "name": "path",
-      "type": "address[]"
+      "type": "bytes"
     },
     {
       "name": "payerIsUser",
@@ -43,7 +43,7 @@ const UniversalRouterDecodingAbi = `
     },
     {
       "name": "path",
-      "type": "address[]"
+      "type": "bytes"
     },
     {
       "name": "payerIsUser",
@@ -215,6 +215,96 @@ const UniversalRouterDecodingAbi = `
     }
   ],
   "name": "PERMIT2_PERMIT",
+  "outputs": [],
+  "payable": false,
+  "stateMutability": "nonpayable",
+  "type": "function"
+},
+{
+  "inputs": [
+    {
+      "name": "permitBatch",
+      "type": "tuple",
+      "components": [
+        {
+          "name": "details",
+          "type": "tuple[]",
+          "components": [
+            {
+              "name": "token",
+              "type": "address"
+            },
+            {
+              "name": "amount",
+              "type": "uint160"
+            },
+            {
+              "name": "expiration",
+              "type": "uint48"
+            },
+            {
+              "name": "nonce",
+              "type": "uint48"
+            }
+          ]
+        },
+        {
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "name": "sigDeadline",
+          "type": "uint256"
+        }
+      ]
+    },
+    {
+      "name": "signature",
+      "type": "bytes"
+    }
+  ],
+  "name": "PERMIT2_PERMIT_BATCH",
+  "outputs": [],
+  "payable": false,
+  "stateMutability": "nonpayable",
+  "type": "function"
+},
+{
+  "inputs": [
+    {
+      "name": "permitBatchTransferFrom",
+      "type": "tuple",
+      "components": [
+        {
+          "name": "permitted",
+          "type": "tuple[]",
+          "components": [
+            {
+              "name": "token",
+              "type": "address"
+            },
+            {
+              "name": "amount",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "name": "nonce",
+          "type": "uint256"
+        },
+        {
+          "name": "deadline",
+          "type": "uint256"
+        }
+      ]
+    },
+    {
+      "name": "signature",
+      "type": "bytes"
+    }
+  ],
+  "name": "PERMIT2_TRANSFER_FROM_BATCH",
   "outputs": [],
   "payable": false,
   "stateMutability": "nonpayable",

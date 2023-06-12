@@ -1,5 +1,12 @@
 package web3_client
 
+import (
+	"context"
+	"math/big"
+
+	"github.com/zeus-fyi/gochain/web3/accounts"
+)
+
 const (
 	V3_SWAP_EXACT_IN            = 0x00
 	V3_SWAP_EXACT_OUT           = 0x01
@@ -39,3 +46,143 @@ const (
 )
 
 var UniversalRouterDecoder = MustLoadUniversalRouterDecodingAbi()
+
+type UnwrapWETHParams struct {
+	Recipient accounts.Address `json:"recipient"`
+	AmountMin *big.Int         `json:"amountMin"`
+}
+
+func (u *UnwrapWETHParams) Decode(ctx context.Context, data []byte) error {
+	args := make(map[string]interface{})
+	err := UniversalRouterDecoder.Methods[UnwrapWETH].Inputs.UnpackIntoMap(args, data)
+	if err != nil {
+		return err
+	}
+	amountMin, err := ParseBigInt(args["amountMin"])
+	if err != nil {
+		return err
+	}
+	recipient, err := ConvertToAddress(args["recipient"])
+	if err != nil {
+		return err
+	}
+	u.Recipient = recipient
+	u.AmountMin = amountMin
+	return nil
+}
+
+func (u *UnwrapWETHParams) Encode(ctx context.Context) ([]byte, error) {
+	inputs, err := UniversalRouterDecoder.Methods[UnwrapWETH].Inputs.Pack(u.Recipient, u.AmountMin)
+	if err != nil {
+		return nil, err
+	}
+	return inputs, nil
+}
+
+type WrapETHParams struct {
+	Recipient accounts.Address `json:"recipient"`
+	AmountMin *big.Int         `json:"amountMin"`
+}
+
+func (w *WrapETHParams) Decode(ctx context.Context, data []byte) error {
+	args := make(map[string]interface{})
+	err := UniversalRouterDecoder.Methods[WrapETH].Inputs.UnpackIntoMap(args, data)
+	if err != nil {
+		return err
+	}
+	amountMin, err := ParseBigInt(args["amountMin"])
+	if err != nil {
+		return err
+	}
+	recipient, err := ConvertToAddress(args["recipient"])
+	if err != nil {
+		return err
+	}
+	w.Recipient = recipient
+	w.AmountMin = amountMin
+	return nil
+}
+
+func (w *WrapETHParams) Encode(ctx context.Context) ([]byte, error) {
+	inputs, err := UniversalRouterDecoder.Methods[WrapETH].Inputs.Pack(w.Recipient, w.AmountMin)
+	if err != nil {
+		return nil, err
+	}
+	return inputs, nil
+}
+
+func (t *TransferParams) Decode(ctx context.Context, data []byte) error {
+	args := make(map[string]interface{})
+	err := UniversalRouterDecoder.Methods[Transfer].Inputs.UnpackIntoMap(args, data)
+	if err != nil {
+		return err
+	}
+	value, err := ParseBigInt(args["value"])
+	if err != nil {
+		return err
+	}
+	token, err := ConvertToAddress(args["token"])
+	if err != nil {
+		return err
+	}
+	recipient, err := ConvertToAddress(args["recipient"])
+	if err != nil {
+		return err
+	}
+	t.Token = token
+	t.Recipient = recipient
+	t.Value = value
+	return nil
+}
+
+func (t *TransferParams) Encode(ctx context.Context) ([]byte, error) {
+	inputs, err := UniversalRouterDecoder.Methods[Transfer].Inputs.Pack(t.Token, t.Recipient, t.Value)
+	if err != nil {
+		return nil, err
+	}
+	return inputs, nil
+}
+
+type TransferParams struct {
+	Token     accounts.Address `json:"token"`
+	Recipient accounts.Address `json:"recipient"`
+	Value     *big.Int         `json:"value"`
+}
+
+type PayPortionParams struct {
+	Token     accounts.Address `json:"token"`
+	Recipient accounts.Address `json:"recipient"`
+	Bips      *big.Int         `json:"bips"`
+}
+
+func (p *PayPortionParams) Decode(ctx context.Context, data []byte) error {
+	args := make(map[string]interface{})
+	err := UniversalRouterDecoder.Methods[PayPortion].Inputs.UnpackIntoMap(args, data)
+	if err != nil {
+		return err
+	}
+	value, err := ParseBigInt(args["bips"])
+	if err != nil {
+		return err
+	}
+	token, err := ConvertToAddress(args["token"])
+	if err != nil {
+		return err
+	}
+	recipient, err := ConvertToAddress(args["recipient"])
+	if err != nil {
+		return err
+	}
+	p.Token = token
+	p.Recipient = recipient
+	p.Bips = value
+	return nil
+}
+
+func (p *PayPortionParams) Encode(ctx context.Context) ([]byte, error) {
+	inputs, err := UniversalRouterDecoder.Methods[PayPortion].Inputs.Pack(p.Token, p.Recipient, p.Bips)
+	if err != nil {
+		return nil, err
+	}
+	return inputs, nil
+}

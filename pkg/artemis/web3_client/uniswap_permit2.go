@@ -43,7 +43,11 @@ type Permit2TransferFromParams struct {
 }
 
 func (p *Permit2TransferFromParams) Encode(ctx context.Context) ([]byte, error) {
-	return nil, nil
+	inputs, err := UniversalRouterDecoder.Methods[Permit2TransferFrom].Inputs.Pack(p.Token, p.Recipient, p.Amount)
+	if err != nil {
+		return nil, err
+	}
+	return inputs, nil
 }
 
 func (p *Permit2TransferFromParams) Decode(ctx context.Context, data []byte) error {
@@ -199,6 +203,7 @@ func (p *Permit2PermitTransferFromBatchParams) Encode(ctx context.Context) ([]by
 	}
 	return inputs, nil
 }
+
 func (p *Permit2PermitTransferFromBatchParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
 	err := UniversalRouterDecoder.Methods[Permit2TransferFromBatch].Inputs.UnpackIntoMap(args, data)

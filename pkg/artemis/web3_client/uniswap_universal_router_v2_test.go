@@ -54,7 +54,6 @@ func (s *Web3ClientTestSuite) TestUniversalRouterV2() {
 
 	for _, cmd := range subCmds.Commands {
 		fmt.Println(cmd.Command)
-
 		if cmd.Command == WrapETH {
 			dec := cmd.DecodedInputs.(WrapETHParams)
 			fmt.Println("recipient", dec.Recipient.String())
@@ -69,6 +68,11 @@ func (s *Web3ClientTestSuite) TestUniversalRouterV2() {
 			fmt.Println("payerIsSender", dec.PayerIsSender)
 			fmt.Println("amountOut", dec.AmountOut.String())
 			fmt.Println("amountInMax", dec.AmountInMax.String())
+		}
+		if cmd.Command == UnwrapWETH {
+			dec := cmd.DecodedInputs.(UnwrapWETHParams)
+			fmt.Println("recipient", dec.Recipient.String())
+			fmt.Println("amountMin", dec.AmountMin.String())
 		}
 	}
 }

@@ -83,8 +83,8 @@ type Permit2PermitParams struct {
 
 type PermitSingle struct {
 	PermitDetails
-	Spender     accounts.Address
-	SigDeadline *big.Int
+	Spender     accounts.Address `json:"spender"`
+	SigDeadline *big.Int         `json:"sigDeadline"` // uint48 can be represented as uint64 in Go
 }
 
 type PermitDetails struct {

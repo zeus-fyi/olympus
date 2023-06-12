@@ -2,6 +2,7 @@ package web3_client
 
 import (
 	"context"
+	"encoding/json"
 	"math/big"
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
@@ -42,7 +43,11 @@ type Permit2TransferFromParams struct {
 }
 
 func (p *Permit2TransferFromParams) Encode(ctx context.Context) ([]byte, error) {
-	return nil, nil
+	inputs, err := UniversalRouterDecoder.Methods[Permit2TransferFrom].Inputs.Pack(p.Token, p.Recipient, p.Amount)
+	if err != nil {
+		return nil, err
+	}
+	return inputs, nil
 }
 
 func (p *Permit2TransferFromParams) Decode(ctx context.Context, data []byte) error {
@@ -78,15 +83,15 @@ type Permit2PermitParams struct {
 
 type PermitSingle struct {
 	PermitDetails
-	Spender     accounts.Address
-	SigDeadline *big.Int
+	Spender     accounts.Address `json:"spender"`
+	SigDeadline *big.Int         `json:"sigDeadline"` // uint48 can be represented as uint64 in Go
 }
 
 type PermitDetails struct {
-	Token      accounts.Address
-	Amount     *big.Int // uint160 can be represented as *big.Int in Go
-	Expiration *big.Int // uint48 can be represented as uint64 in Go
-	Nonce      *big.Int // uint48 can be represented as uint64 in Go
+	Token      accounts.Address `json:"token"`
+	Amount     *big.Int         `json:"amount"`     // uint160 can be represented as *big.Int in Go
+	Expiration *big.Int         `json:"expiration"` // uint48 can be represented as uint64 in Go
+	Nonce      *big.Int         `json:"nonce"`      // uint48 can be represented as uint64 in Go
 }
 
 func (p *Permit2PermitParams) Encode(ctx context.Context) ([]byte, error) {
@@ -151,10 +156,11 @@ type PermitBatch struct {
 // abi.decode(inputs, (IAllowanceTransfer.PermitBatch, bytes));
 
 func (p *Permit2PermitBatchParams) Encode(ctx context.Context) ([]byte, error) {
-	inputs, err := UniversalRouterDecoder.Methods[Permit2PermitBatch].Inputs.Pack(p.PermitBatch.Details, p.Signature)
+	inputs, err := UniversalRouterDecoder.Methods[Permit2PermitBatch].Inputs.Pack(p.PermitBatch, p.Signature)
 	if err != nil {
 		return nil, err
 	}
+
 	return inputs, nil
 }
 
@@ -164,18 +170,28 @@ func (p *Permit2PermitBatchParams) Decode(ctx context.Context, data []byte) erro
 	if err != nil {
 		return err
 	}
+	b, err := json.Marshal(args["permitBatch"])
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(b, &p.PermitBatch)
+	if err != nil {
+		return err
+	}
+	signature := args["signature"].([]byte)
+	p.Signature = signature
 	return nil
 }
 
 type Permit2PermitTransferFromBatchParams struct {
-	Details []AllowanceTransferDetails
+	Details []AllowanceTransferDetails `json:"batchDetails"`
 }
 
 type AllowanceTransferDetails struct {
-	From   accounts.Address
-	To     accounts.Address
-	Amount *big.Int
-	Token  accounts.Address
+	From   accounts.Address `json:"from"`
+	To     accounts.Address `json:"to"`
+	Amount *big.Int         `json:"amount"`
+	Token  accounts.Address `json:"token"`
 }
 
 // abi.decode(inputs, (IAllowanceTransfer.AllowanceTransferDetails[]));
@@ -187,9 +203,18 @@ func (p *Permit2PermitTransferFromBatchParams) Encode(ctx context.Context) ([]by
 	}
 	return inputs, nil
 }
+
 func (p *Permit2PermitTransferFromBatchParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
 	err := UniversalRouterDecoder.Methods[Permit2TransferFromBatch].Inputs.UnpackIntoMap(args, data)
+	if err != nil {
+		return err
+	}
+	b, err := json.Marshal(args["batchDetails"])
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(b, &p.Details)
 	if err != nil {
 		return err
 	}

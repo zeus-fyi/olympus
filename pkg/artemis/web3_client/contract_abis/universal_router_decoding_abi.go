@@ -270,45 +270,33 @@ const UniversalRouterDecodingAbi = `
   "type": "function"
 },
 {
-  "inputs": [
-    {
-      "name": "permitBatchTransferFrom",
-      "type": "tuple",
-      "components": [
-        {
-          "name": "permitted",
-          "type": "tuple[]",
-          "components": [
-            {
-              "name": "token",
-              "type": "address"
-            },
-            {
-              "name": "amount",
-              "type": "uint256"
-            }
-          ]
-        },
-        {
-          "name": "nonce",
-          "type": "uint256"
-        },
-        {
-          "name": "deadline",
-          "type": "uint256"
-        }
-      ]
-    },
-    {
-      "name": "signature",
-      "type": "bytes"
-    }
-  ],
-  "name": "PERMIT2_TRANSFER_FROM_BATCH",
-  "outputs": [],
-  "payable": false,
-  "stateMutability": "nonpayable",
-  "type": "function"
+"inputs": [
+	{
+		"name": "batchDetails",
+		"type": "tuple[]",
+		"components": [
+			{
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"name": "amount",
+				"type": "uint160"
+			},
+			{
+				"name": "token",
+				"type": "address"
+			}
+		]
+	}
+],
+"name": "PERMIT2_TRANSFER_FROM_BATCH",
+"outputs": [],
+"type": "function"
 },
 {
   "inputs": [

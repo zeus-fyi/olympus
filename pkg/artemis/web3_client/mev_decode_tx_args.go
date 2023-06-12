@@ -14,6 +14,10 @@ func DecodeTxArgData(ctx context.Context, tx *types.Transaction, mevMap MevSmart
 		return "", nil, errors.New("tx data is nil")
 	}
 	input := tx.Data()
+	return DecodeTxData(ctx, input, mevMap)
+}
+
+func DecodeTxData(ctx context.Context, input []byte, mevMap MevSmartContractTxMap) (string, map[string]interface{}, error) {
 	calldata := input
 	if len(calldata) < 4 {
 		log.Info().Interface("method", "unknown").Msg("Web3Client| GetFilteredPendingMempoolTxs invalid calldata length")

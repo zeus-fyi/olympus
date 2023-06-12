@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/rs/zerolog/log"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 )
 
@@ -13,8 +14,9 @@ const (
 )
 
 type UniversalRouterExecCmd struct {
-	Commands []UniversalRouterExecSubCmd `json:"commands"`
-	Deadline *big.Int                    `json:"deadline"`
+	Commands []UniversalRouterExecSubCmd    `json:"commands"`
+	Deadline *big.Int                       `json:"deadline"`
+	Payable  *web3_actions.SendEtherPayload `json:"payable,omitempty"`
 }
 
 type UniversalRouterExecSubCmd struct {
@@ -24,24 +26,40 @@ type UniversalRouterExecSubCmd struct {
 	DecodedInputs any    `json:"decodedInputs"`
 }
 
-func GetUniswapUniversalRouterAbiPayload(payload *UniversalRouterExecParams) web3_actions.SendContractTxPayload {
+func GetUniswapUniversalRouterAbiPayload(payload *UniversalRouterExecParams, payable *web3_actions.SendEtherPayload) web3_actions.SendContractTxPayload {
+	if payload == nil {
+		payload = &UniversalRouterExecParams{}
+		log.Warn().Msg("GetUniswapUniversalRouterAbiPayload: payload is nil")
+		return web3_actions.SendContractTxPayload{}
+	}
+	if payable == nil {
+		payable = &web3_actions.SendEtherPayload{
+			TransferArgs:   web3_actions.TransferArgs{},
+			GasPriceLimits: web3_actions.GasPriceLimits{},
+		}
+	}
+	fnParams := []interface{}{payload.Commands, payload.Inputs}
+	methodName := execute
+	if payload.Deadline != nil {
+		methodName = execute0
+		fnParams = append(fnParams, payload.Deadline.String())
+	}
 	params := web3_actions.SendContractTxPayload{
 		SmartContractAddr: UniswapUniversalRouterAddress,
-		SendEtherPayload:  web3_actions.SendEtherPayload{},
+		SendEtherPayload:  *payable,
 		ContractABI:       MustLoadUniversalRouterAbi(),
-		MethodName:        execute0,
-		Params:            []interface{}{payload.Commands, payload.Inputs, payload.Deadline.String()},
+		MethodName:        methodName,
+		Params:            fnParams,
 	}
 	return params
 }
 
 func (u *UniswapClient) ExecUniswapUniversalRouterCmd(payload UniversalRouterExecCmd) (*types.Transaction, error) {
-	ur, err := payload.EncodeCommands(ctx)
+	data, err := payload.EncodeCommands(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	scInfo := GetUniswapUniversalRouterAbiPayload(ur)
+	scInfo := GetUniswapUniversalRouterAbiPayload(data, payload.Payable)
 	// TODO implement better gas estimation
 	scInfo.GasLimit = 3000000
 	signedTx, err := u.Web3Client.GetSignedTxToCallFunctionWithArgs(ctx, &scInfo)

@@ -20,6 +20,7 @@ func (ur *UniversalRouterExecCmd) EncodeCommands(ctx context.Context) (*Universa
 		encodedCmd.Inputs = append(encodedCmd.Inputs, inputs)
 	}
 	encodedCmd.Deadline = ur.Deadline
+	encodedCmd.Payable = ur.Payable
 	return encodedCmd, nil
 }
 

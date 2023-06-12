@@ -5,10 +5,59 @@ import (
 	"math/big"
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
+func (s *Web3ClientTestSuite) TestWrapETHFuncs() {
+	node := "https://virulent-alien-cloud.quiknode.pro/fa84e631e9545d76b9e1b1c5db6607fedf3cb654"
+	err := s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, node, 17461070)
+	s.Require().Nil(err)
+	userAddr := s.LocalHardhatMainnetUser.Address()
+	b, err := s.LocalHardhatMainnetUser.GetBalance(ctx, userAddr.String(), nil)
+	s.Require().Nil(err)
+	fmt.Println("ethBalance", b.String())
+	routerRecipient := accounts.HexToAddress("0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266")
+	wethParams := WrapETHParams{
+		Recipient: routerRecipient,
+		AmountMin: Ether,
+	}
+	payable := &web3_actions.SendEtherPayload{
+		TransferArgs: web3_actions.TransferArgs{
+			Amount:    Ether,
+			ToAddress: wethParams.Recipient,
+		},
+		GasPriceLimits: web3_actions.GasPriceLimits{},
+	}
+	deadline, _ := new(big.Int).SetString("1461501637330902918203684832716283019655932542975", 10)
+	ur := UniversalRouterExecCmd{
+		Commands: []UniversalRouterExecSubCmd{
+			{
+				Command:       WrapETH,
+				CanRevert:     false,
+				Inputs:        nil,
+				DecodedInputs: wethParams,
+			},
+		},
+		Deadline: deadline,
+		Payable:  payable,
+	}
+	encCmd, err := ur.EncodeCommands(ctx)
+	s.Require().NoError(err)
+	s.Require().NotNil(encCmd)
+
+	uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
+	tx, err := uni.ExecUniswapUniversalRouterCmd(ur)
+	s.Assert().NoError(err)
+	s.Assert().NotNil(tx)
+
+	endTokenBalance, err := s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, WETH9ContractAddress, userAddr.String())
+	s.Require().Nil(err)
+	s.Assert().Equal(Ether.String(), endTokenBalance.String())
+}
+
+// TODO finish test case
 func (s *Web3ClientTestSuite) TestExecV2TradeMethodUR() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	node := "https://virulent-alien-cloud.quiknode.pro/fa84e631e9545d76b9e1b1c5db6607fedf3cb654"

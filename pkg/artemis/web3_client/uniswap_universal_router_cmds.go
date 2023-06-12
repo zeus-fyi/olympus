@@ -45,7 +45,10 @@ const (
 	WrapETH    = "WRAP_ETH"
 )
 
-var UniversalRouterDecoder = MustLoadUniversalRouterDecodingAbi()
+var (
+	UniversalRouterDecoderAbi = MustLoadUniversalRouterDecodingAbi()
+	UniversalRouterAbi        = MustLoadUniversalRouterAbi()
+)
 
 type UnwrapWETHParams struct {
 	Recipient accounts.Address `json:"recipient"`
@@ -54,7 +57,7 @@ type UnwrapWETHParams struct {
 
 func (u *UnwrapWETHParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
-	err := UniversalRouterDecoder.Methods[UnwrapWETH].Inputs.UnpackIntoMap(args, data)
+	err := UniversalRouterDecoderAbi.Methods[UnwrapWETH].Inputs.UnpackIntoMap(args, data)
 	if err != nil {
 		return err
 	}
@@ -72,7 +75,7 @@ func (u *UnwrapWETHParams) Decode(ctx context.Context, data []byte) error {
 }
 
 func (u *UnwrapWETHParams) Encode(ctx context.Context) ([]byte, error) {
-	inputs, err := UniversalRouterDecoder.Methods[UnwrapWETH].Inputs.Pack(u.Recipient, u.AmountMin)
+	inputs, err := UniversalRouterDecoderAbi.Methods[UnwrapWETH].Inputs.Pack(u.Recipient, u.AmountMin)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +89,7 @@ type WrapETHParams struct {
 
 func (w *WrapETHParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
-	err := UniversalRouterDecoder.Methods[WrapETH].Inputs.UnpackIntoMap(args, data)
+	err := UniversalRouterDecoderAbi.Methods[WrapETH].Inputs.UnpackIntoMap(args, data)
 	if err != nil {
 		return err
 	}
@@ -104,7 +107,7 @@ func (w *WrapETHParams) Decode(ctx context.Context, data []byte) error {
 }
 
 func (w *WrapETHParams) Encode(ctx context.Context) ([]byte, error) {
-	inputs, err := UniversalRouterDecoder.Methods[WrapETH].Inputs.Pack(w.Recipient, w.AmountMin)
+	inputs, err := UniversalRouterDecoderAbi.Methods[WrapETH].Inputs.Pack(w.Recipient, w.AmountMin)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +116,7 @@ func (w *WrapETHParams) Encode(ctx context.Context) ([]byte, error) {
 
 func (t *TransferParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
-	err := UniversalRouterDecoder.Methods[Transfer].Inputs.UnpackIntoMap(args, data)
+	err := UniversalRouterDecoderAbi.Methods[Transfer].Inputs.UnpackIntoMap(args, data)
 	if err != nil {
 		return err
 	}
@@ -136,7 +139,7 @@ func (t *TransferParams) Decode(ctx context.Context, data []byte) error {
 }
 
 func (t *TransferParams) Encode(ctx context.Context) ([]byte, error) {
-	inputs, err := UniversalRouterDecoder.Methods[Transfer].Inputs.Pack(t.Token, t.Recipient, t.Value)
+	inputs, err := UniversalRouterDecoderAbi.Methods[Transfer].Inputs.Pack(t.Token, t.Recipient, t.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +160,7 @@ type PayPortionParams struct {
 
 func (p *PayPortionParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
-	err := UniversalRouterDecoder.Methods[PayPortion].Inputs.UnpackIntoMap(args, data)
+	err := UniversalRouterDecoderAbi.Methods[PayPortion].Inputs.UnpackIntoMap(args, data)
 	if err != nil {
 		return err
 	}
@@ -180,7 +183,7 @@ func (p *PayPortionParams) Decode(ctx context.Context, data []byte) error {
 }
 
 func (p *PayPortionParams) Encode(ctx context.Context) ([]byte, error) {
-	inputs, err := UniversalRouterDecoder.Methods[PayPortion].Inputs.Pack(p.Token, p.Recipient, p.Bips)
+	inputs, err := UniversalRouterDecoderAbi.Methods[PayPortion].Inputs.Pack(p.Token, p.Recipient, p.Bips)
 	if err != nil {
 		return nil, err
 	}

@@ -30,7 +30,7 @@ type JSONV3SwapExactInParams struct {
 }
 
 func (s *V3SwapExactInParams) Encode(ctx context.Context) ([]byte, error) {
-	inputs, err := UniversalRouterDecoder.Methods[V3SwapExactIn].Inputs.Pack(s.To, s.AmountIn, s.AmountOutMin, s.Path, s.PayerIsUser)
+	inputs, err := UniversalRouterDecoderAbi.Methods[V3SwapExactIn].Inputs.Pack(s.To, s.AmountIn, s.AmountOutMin, s.Path, s.PayerIsUser)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (tfp *TokenFeePath) Reverse() {
 }
 func (s *V3SwapExactInParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
-	err := UniversalRouterDecoder.Methods[V3SwapExactIn].Inputs.UnpackIntoMap(args, data)
+	err := UniversalRouterDecoderAbi.Methods[V3SwapExactIn].Inputs.UnpackIntoMap(args, data)
 	if err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ type JSONV3SwapExactOutParams struct {
 }
 
 func (s *V3SwapExactOutParams) Encode(ctx context.Context) ([]byte, error) {
-	inputs, err := UniversalRouterDecoder.Methods[V3SwapExactOut].Inputs.Pack(s.To, s.AmountOut, s.AmountInMax, s.Path, s.PayerIsUser)
+	inputs, err := UniversalRouterDecoderAbi.Methods[V3SwapExactOut].Inputs.Pack(s.To, s.AmountOut, s.AmountInMax, s.Path, s.PayerIsUser)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +164,7 @@ func (s *V3SwapExactOutParams) Encode(ctx context.Context) ([]byte, error) {
 
 func (s *V3SwapExactOutParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
-	err := UniversalRouterDecoder.Methods[V3SwapExactOut].Inputs.UnpackIntoMap(args, data)
+	err := UniversalRouterDecoderAbi.Methods[V3SwapExactOut].Inputs.UnpackIntoMap(args, data)
 	if err != nil {
 		return err
 	}

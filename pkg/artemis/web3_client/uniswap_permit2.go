@@ -180,14 +180,14 @@ func (p *Permit2PermitBatchParams) Decode(ctx context.Context, data []byte) erro
 }
 
 type Permit2PermitTransferFromBatchParams struct {
-	Details []AllowanceTransferDetails
+	Details []AllowanceTransferDetails `json:"batchDetails"`
 }
 
 type AllowanceTransferDetails struct {
-	From   accounts.Address
-	To     accounts.Address
-	Amount *big.Int
-	Token  accounts.Address
+	From   accounts.Address `json:"from"`
+	To     accounts.Address `json:"to"`
+	Amount *big.Int         `json:"amount"`
+	Token  accounts.Address `json:"token"`
 }
 
 // abi.decode(inputs, (IAllowanceTransfer.AllowanceTransferDetails[]));
@@ -202,6 +202,14 @@ func (p *Permit2PermitTransferFromBatchParams) Encode(ctx context.Context) ([]by
 func (p *Permit2PermitTransferFromBatchParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
 	err := UniversalRouterDecoder.Methods[Permit2TransferFromBatch].Inputs.UnpackIntoMap(args, data)
+	if err != nil {
+		return err
+	}
+	b, err := json.Marshal(args["batchDetails"])
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(b, &p.Details)
 	if err != nil {
 		return err
 	}

@@ -143,6 +143,12 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 		ur.Command = SudoSwap
 	case PAY_PORTION:
 		log.Info().Msg("DecodeCommand PAY_PORTION")
+		params := PayPortionParams{}
+		err = params.Decode(ctx, ur.Inputs)
+		if err != nil {
+			return err
+		}
+		ur.DecodedInputs = params
 		ur.Command = PayPortion
 	case SWEEP:
 		log.Info().Msg("DecodeCommand SWEEP")
@@ -155,6 +161,12 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 		if err != nil {
 			return err
 		}
+		params := TransferParams{}
+		err = params.Decode(ctx, ur.Inputs)
+		if err != nil {
+			return err
+		}
+		ur.DecodedInputs = params
 		ur.Command = Transfer
 	case UNWRAP_WETH:
 		log.Info().Msg("DecodeCommand UNWRAP_WETH")

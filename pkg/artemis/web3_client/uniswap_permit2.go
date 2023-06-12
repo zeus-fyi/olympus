@@ -43,7 +43,7 @@ type Permit2TransferFromParams struct {
 }
 
 func (p *Permit2TransferFromParams) Encode(ctx context.Context) ([]byte, error) {
-	inputs, err := UniversalRouterDecoder.Methods[Permit2TransferFrom].Inputs.Pack(p.Token, p.Recipient, p.Amount)
+	inputs, err := UniversalRouterDecoderAbi.Methods[Permit2TransferFrom].Inputs.Pack(p.Token, p.Recipient, p.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (p *Permit2TransferFromParams) Encode(ctx context.Context) ([]byte, error) 
 
 func (p *Permit2TransferFromParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
-	err := UniversalRouterDecoder.Methods[Permit2TransferFrom].Inputs.UnpackIntoMap(args, data)
+	err := UniversalRouterDecoderAbi.Methods[Permit2TransferFrom].Inputs.UnpackIntoMap(args, data)
 	if err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ type PermitDetails struct {
 }
 
 func (p *Permit2PermitParams) Encode(ctx context.Context) ([]byte, error) {
-	inputs, err := UniversalRouterDecoder.Methods[Permit2Permit].Inputs.Pack(p.Token, p.Amount, p.Expiration, p.Nonce, p.Spender, p.SigDeadline, p.Signature)
+	inputs, err := UniversalRouterDecoderAbi.Methods[Permit2Permit].Inputs.Pack(p.Token, p.Amount, p.Expiration, p.Nonce, p.Spender, p.SigDeadline, p.Signature)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (p *Permit2PermitParams) Encode(ctx context.Context) ([]byte, error) {
 }
 func (p *Permit2PermitParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
-	err := UniversalRouterDecoder.Methods[Permit2Permit].Inputs.UnpackIntoMap(args, data)
+	err := UniversalRouterDecoderAbi.Methods[Permit2Permit].Inputs.UnpackIntoMap(args, data)
 	if err != nil {
 		return err
 	}
@@ -156,7 +156,7 @@ type PermitBatch struct {
 // abi.decode(inputs, (IAllowanceTransfer.PermitBatch, bytes));
 
 func (p *Permit2PermitBatchParams) Encode(ctx context.Context) ([]byte, error) {
-	inputs, err := UniversalRouterDecoder.Methods[Permit2PermitBatch].Inputs.Pack(p.PermitBatch, p.Signature)
+	inputs, err := UniversalRouterDecoderAbi.Methods[Permit2PermitBatch].Inputs.Pack(p.PermitBatch, p.Signature)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func (p *Permit2PermitBatchParams) Encode(ctx context.Context) ([]byte, error) {
 
 func (p *Permit2PermitBatchParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
-	err := UniversalRouterDecoder.Methods[Permit2PermitBatch].Inputs.UnpackIntoMap(args, data)
+	err := UniversalRouterDecoderAbi.Methods[Permit2PermitBatch].Inputs.UnpackIntoMap(args, data)
 	if err != nil {
 		return err
 	}
@@ -197,7 +197,7 @@ type AllowanceTransferDetails struct {
 // abi.decode(inputs, (IAllowanceTransfer.AllowanceTransferDetails[]));
 
 func (p *Permit2PermitTransferFromBatchParams) Encode(ctx context.Context) ([]byte, error) {
-	inputs, err := UniversalRouterDecoder.Methods[Permit2TransferFromBatch].Inputs.Pack(p.Details)
+	inputs, err := UniversalRouterDecoderAbi.Methods[Permit2TransferFromBatch].Inputs.Pack(p.Details)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +206,7 @@ func (p *Permit2PermitTransferFromBatchParams) Encode(ctx context.Context) ([]by
 
 func (p *Permit2PermitTransferFromBatchParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
-	err := UniversalRouterDecoder.Methods[Permit2TransferFromBatch].Inputs.UnpackIntoMap(args, data)
+	err := UniversalRouterDecoderAbi.Methods[Permit2TransferFromBatch].Inputs.UnpackIntoMap(args, data)
 	if err != nil {
 		return err
 	}

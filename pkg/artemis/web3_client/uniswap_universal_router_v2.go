@@ -30,7 +30,7 @@ type JSONV2SwapExactInParams struct {
 }
 
 func (s *V2SwapExactInParams) Encode(ctx context.Context) ([]byte, error) {
-	inputs, err := UniversalRouterDecoder.Methods[V2SwapExactIn].Inputs.Pack(s.To, s.AmountIn, s.AmountOutMin, s.Path, s.PayerIsSender)
+	inputs, err := UniversalRouterDecoderAbi.Methods[V2SwapExactIn].Inputs.Pack(s.To, s.AmountIn, s.AmountOutMin, s.Path, s.PayerIsSender)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (s *V2SwapExactInParams) Encode(ctx context.Context) ([]byte, error) {
 
 func (s *V2SwapExactInParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
-	err := UniversalRouterDecoder.Methods[V2SwapExactIn].Inputs.UnpackIntoMap(args, data)
+	err := UniversalRouterDecoderAbi.Methods[V2SwapExactIn].Inputs.UnpackIntoMap(args, data)
 	if err != nil {
 		return err
 	}
@@ -109,7 +109,7 @@ type JSONV2SwapExactOutParams struct {
 }
 
 func (s *V2SwapExactOutParams) Encode(ctx context.Context) ([]byte, error) {
-	inputs, err := UniversalRouterDecoder.Methods[V2SwapExactOut].Inputs.Pack(s.To, s.AmountOut, s.AmountInMax, s.Path, s.PayerIsSender)
+	inputs, err := UniversalRouterDecoderAbi.Methods[V2SwapExactOut].Inputs.Pack(s.To, s.AmountOut, s.AmountInMax, s.Path, s.PayerIsSender)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to encode")
 		return nil, err
@@ -119,7 +119,7 @@ func (s *V2SwapExactOutParams) Encode(ctx context.Context) ([]byte, error) {
 
 func (s *V2SwapExactOutParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
-	err := UniversalRouterDecoder.Methods[V2SwapExactOut].Inputs.UnpackIntoMap(args, data)
+	err := UniversalRouterDecoderAbi.Methods[V2SwapExactOut].Inputs.UnpackIntoMap(args, data)
 	if err != nil {
 		return err
 	}

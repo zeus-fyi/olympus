@@ -13,9 +13,10 @@ const (
 )
 
 type UniversalRouterExecParams struct {
-	Commands []byte   `json:"commands"`
-	Inputs   [][]byte `json:"inputs"`
-	Deadline *big.Int `json:"deadline"`
+	Commands []byte                         `json:"commands"`
+	Inputs   [][]byte                       `json:"inputs"`
+	Deadline *big.Int                       `json:"deadline"`
+	Payable  *web3_actions.SendEtherPayload `json:"payable,omitempty"`
 }
 
 func GetRawdawgUniversalRouterPayload(tradeParams UniversalRouterExecParams) web3_actions.SendContractTxPayload {

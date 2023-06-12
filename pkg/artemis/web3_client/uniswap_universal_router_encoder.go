@@ -19,6 +19,8 @@ func (ur *UniversalRouterExecCmd) EncodeCommands(ctx context.Context) (*Universa
 		encodedCmd.Commands = append(encodedCmd.Commands, cmdByteStr)
 		encodedCmd.Inputs = append(encodedCmd.Inputs, inputs)
 	}
+	encodedCmd.Deadline = ur.Deadline
+	encodedCmd.Payable = ur.Payable
 	return encodedCmd, nil
 }
 
@@ -43,7 +45,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 		cmdByte = ur.EncodeCommandByte(ur.CanRevert, V3_SWAP_EXACT_IN)
 		return cmdByte, inputs, nil
 	case V3SwapExactOut:
-		log.Info().Msg("DecodeCommand V3_SWAP_EXACT_OUT")
+		log.Info().Msg("EncodeCommand V3_SWAP_EXACT_OUT")
 		params := ur.DecodedInputs.(V3SwapExactOutParams)
 		inputs, err := params.Encode(ctx)
 		if err != nil {
@@ -53,7 +55,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 		cmdByte = ur.EncodeCommandByte(ur.CanRevert, V3_SWAP_EXACT_OUT)
 		return cmdByte, inputs, nil
 	case V2SwapExactIn:
-		log.Info().Msg("DecodeCommand V2_SWAP_EXACT_IN")
+		log.Info().Msg("EncodeCommand V2_SWAP_EXACT_IN")
 		params := ur.DecodedInputs.(V2SwapExactInParams)
 		inputs, err := params.Encode(ctx)
 		if err != nil {
@@ -63,7 +65,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 		cmdByte = ur.EncodeCommandByte(ur.CanRevert, V2_SWAP_EXACT_IN)
 		return cmdByte, inputs, nil
 	case V2SwapExactOut:
-		log.Info().Msg("DecodeCommand V2_SWAP_EXACT_OUT")
+		log.Info().Msg("EncodeCommand V2_SWAP_EXACT_OUT")
 		params := ur.DecodedInputs.(V2SwapExactOutParams)
 		inputs, err := params.Encode(ctx)
 		if err != nil {
@@ -73,7 +75,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 		cmdByte = ur.EncodeCommandByte(ur.CanRevert, V2_SWAP_EXACT_OUT)
 		return cmdByte, inputs, nil
 	case Permit2TransferFromBatch:
-		log.Info().Msg("DecodeCommand PERMIT2_TRANSFER_FROM_BATCH")
+		log.Info().Msg("EncodeCommand PERMIT2_TRANSFER_FROM_BATCH")
 		params := ur.DecodedInputs.(Permit2PermitTransferFromBatchParams)
 		inputs, err := params.Encode(ctx)
 		if err != nil {
@@ -87,7 +89,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 		cmdByte = ur.EncodeCommandByte(ur.CanRevert, TRANSFER)
 		return cmdByte, nil, nil
 	case Permit2TransferFrom:
-		log.Info().Msg("DecodeCommand PERMIT2_TRANSFER_FROM")
+		log.Info().Msg("EncodeCommand PERMIT2_TRANSFER_FROM")
 		params := ur.DecodedInputs.(Permit2TransferFromParams)
 		inputs, err := params.Encode(ctx)
 		if err != nil {
@@ -97,7 +99,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 		cmdByte = ur.EncodeCommandByte(ur.CanRevert, PERMIT2_TRANSFER_FROM)
 		return cmdByte, inputs, nil
 	case Permit2PermitBatch:
-		log.Info().Msg("DecodeCommand PERMIT2_PERMIT_BATCH")
+		log.Info().Msg("EncodeCommand PERMIT2_PERMIT_BATCH")
 		params := ur.DecodedInputs.(Permit2PermitBatchParams)
 		inputs, err := params.Encode(ctx)
 		if err != nil {
@@ -107,7 +109,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 		cmdByte = ur.EncodeCommandByte(ur.CanRevert, PERMIT2_PERMIT_BATCH)
 		return cmdByte, inputs, nil
 	case Permit2Permit:
-		log.Info().Msg("DecodeCommand PERMIT2_PERMIT")
+		log.Info().Msg("EncodeCommand PERMIT2_PERMIT")
 		params := ur.DecodedInputs.(Permit2PermitParams)
 		inputs, err := params.Encode(ctx)
 		if err != nil {
@@ -117,7 +119,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 		cmdByte = ur.EncodeCommandByte(ur.CanRevert, PERMIT2_PERMIT)
 		return cmdByte, inputs, nil
 	case SudoSwap:
-		log.Info().Msg("DecodeCommand SUDOSWAP")
+		log.Info().Msg("EncodeCommand SUDOSWAP")
 		params := ur.DecodedInputs.(SudoSwapParams)
 		inputs, err := params.Encode(ctx)
 		if err != nil {
@@ -125,6 +127,26 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 		}
 		ur.Inputs = inputs
 		cmdByte = ur.EncodeCommandByte(ur.CanRevert, SUDOSWAP)
+		return cmdByte, inputs, nil
+	case WrapETH:
+		log.Info().Msg("EncodeCommand WRAP_ETH")
+		params := ur.DecodedInputs.(WrapETHParams)
+		inputs, err := params.Encode(ctx)
+		if err != nil {
+			return cmdByte, inputs, err
+		}
+		ur.Inputs = inputs
+		cmdByte = ur.EncodeCommandByte(ur.CanRevert, WRAP_ETH)
+		return cmdByte, inputs, nil
+	case UnwrapWETH:
+		log.Info().Msg("EncodeCommand UNWRAP_WETH")
+		params := ur.DecodedInputs.(UnwrapWETHParams)
+		inputs, err := params.Encode(ctx)
+		if err != nil {
+			return cmdByte, inputs, err
+		}
+		ur.Inputs = inputs
+		cmdByte = ur.EncodeCommandByte(ur.CanRevert, UNWRAP_WETH)
 		return cmdByte, inputs, nil
 	default:
 	}

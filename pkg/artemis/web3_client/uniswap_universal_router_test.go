@@ -113,7 +113,7 @@ func (s *Web3ClientTestSuite) TestExecV2TradeMethodUR() {
 		To:            accounts.HexToAddress(pair.PairContractAddr),
 		PayerIsSender: true,
 	}
-	// convert to command
+	deadline, _ := new(big.Int).SetString("1461501637330902918203684832716283019655932542975", 10)
 	var ur = UniversalRouterExecCmd{
 		Commands: []UniversalRouterExecSubCmd{
 			{
@@ -123,7 +123,7 @@ func (s *Web3ClientTestSuite) TestExecV2TradeMethodUR() {
 				DecodedInputs: v2ExactInTrade,
 			},
 		},
-		Deadline: new(big.Int).SetUint64(1000000000000000),
+		Deadline: deadline,
 	}
 	encCmd, err := ur.EncodeCommands(ctx)
 	s.Require().NoError(err)

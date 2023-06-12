@@ -26,12 +26,13 @@ type UniversalRouterExecSubCmd struct {
 	DecodedInputs any    `json:"decodedInputs"`
 }
 
-func GetUniswapUniversalRouterAbiPayload(payload *UniversalRouterExecParams, payable *web3_actions.SendEtherPayload) web3_actions.SendContractTxPayload {
+func GetUniswapUniversalRouterAbiPayload(payload *UniversalRouterExecParams) web3_actions.SendContractTxPayload {
 	if payload == nil {
 		payload = &UniversalRouterExecParams{}
 		log.Warn().Msg("GetUniswapUniversalRouterAbiPayload: payload is nil")
 		return web3_actions.SendContractTxPayload{}
 	}
+	payable := payload.Payable
 	if payable == nil {
 		payable = &web3_actions.SendEtherPayload{
 			TransferArgs:   web3_actions.TransferArgs{},
@@ -59,7 +60,7 @@ func (u *UniswapClient) ExecUniswapUniversalRouterCmd(payload UniversalRouterExe
 	if err != nil {
 		return nil, err
 	}
-	scInfo := GetUniswapUniversalRouterAbiPayload(data, payload.Payable)
+	scInfo := GetUniswapUniversalRouterAbiPayload(data)
 	// TODO implement better gas estimation
 	scInfo.GasLimit = 3000000
 	signedTx, err := u.Web3Client.GetSignedTxToCallFunctionWithArgs(ctx, &scInfo)

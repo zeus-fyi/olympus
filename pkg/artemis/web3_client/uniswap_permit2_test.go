@@ -64,7 +64,7 @@ func (s *Web3ClientTestSuite) TestPermit2() {
 		FnOut:       "",
 		Env:         "",
 	}
-	hashStr := "0x3247555a5dbc877ade17c4b49362bc981af5fb5064e0b3cbd91411e085fe3093"
+	hashStr := "0x3ef9d552a195050508400f9a71b70a000cb1eb0e1ebd8d496a2fc7781cc32f3f"
 	tx, _, err := s.MainnetWeb3User.GetTxByHash(ctx, common.HexToHash(hashStr))
 	s.Require().Nil(err)
 

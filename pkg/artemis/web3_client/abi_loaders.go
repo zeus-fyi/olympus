@@ -159,7 +159,7 @@ func MustLoadRawdawgAbi() *abi.ABI {
 func MustLoadRawdawgContractDeployPayload() (web3_actions.SendContractTxPayload, string) {
 	params := web3_actions.SendContractTxPayload{
 		SendEtherPayload: web3_actions.SendEtherPayload{},
-		ContractABI:      RawdawgAbi,
+		ContractABI:      MustLoadRawdawgAbi(),
 		Params:           []interface{}{},
 	}
 	return params, artemis_oly_contract_abis.RawdawgByteCode

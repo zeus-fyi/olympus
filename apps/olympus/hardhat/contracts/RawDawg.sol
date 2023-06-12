@@ -11,11 +11,13 @@ contract Rawdawg is Ownable {
     address public constant universalRouterAddress = 0xEf1c6E67703c7BD7107eed8303Fbe6EC2554BF6B;
     address public constant v2routerAddress = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
 
+    receive() external payable {}
+
     function executeUniversalRouter(
         bytes calldata commands,
         bytes[] calldata inputs,
         uint256 deadline
-    ) payable external {
+    ) external payable {
         IUniversalRouter(universalRouterAddress).execute(commands, inputs, deadline);
     }
 

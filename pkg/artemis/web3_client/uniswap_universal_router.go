@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	execute = "execute"
+	execute0 = "execute0"
+	execute  = "execute"
 )
 
 type UniversalRouterExecCmd struct {
@@ -23,19 +24,24 @@ type UniversalRouterExecSubCmd struct {
 	DecodedInputs any    `json:"decodedInputs"`
 }
 
-func GetUniswapUniversalRouterAbiPayload(payload UniversalRouterExecCmd) web3_actions.SendContractTxPayload {
+func GetUniswapUniversalRouterAbiPayload(payload *UniversalRouterExecParams) web3_actions.SendContractTxPayload {
 	params := web3_actions.SendContractTxPayload{
 		SmartContractAddr: UniswapUniversalRouterAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       UniversalRouterDecoder,
-		MethodName:        execute,
-		Params:            []interface{}{payload.Commands, payload.Deadline},
+		ContractABI:       MustLoadUniversalRouterAbi(),
+		MethodName:        execute0,
+		Params:            []interface{}{payload.Commands, payload.Inputs, payload.Deadline.String()},
 	}
 	return params
 }
 
 func (u *UniswapClient) ExecUniswapUniversalRouterCmd(payload UniversalRouterExecCmd) (*types.Transaction, error) {
-	scInfo := GetUniswapUniversalRouterAbiPayload(payload)
+	ur, err := payload.EncodeCommands(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	scInfo := GetUniswapUniversalRouterAbiPayload(ur)
 	// TODO implement better gas estimation
 	scInfo.GasLimit = 3000000
 	signedTx, err := u.Web3Client.GetSignedTxToCallFunctionWithArgs(ctx, &scInfo)

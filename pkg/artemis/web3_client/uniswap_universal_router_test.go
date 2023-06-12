@@ -18,7 +18,7 @@ func (s *Web3ClientTestSuite) TestExecV2TradeMethodUR() {
 		PayerIsSender: true,
 	}
 	// convert to command
-	ur := UniversalRouterExecCmd{
+	var ur = UniversalRouterExecCmd{
 		Commands: []UniversalRouterExecSubCmd{
 			{
 				Command:       V2SwapExactIn,
@@ -27,12 +27,13 @@ func (s *Web3ClientTestSuite) TestExecV2TradeMethodUR() {
 				DecodedInputs: v2ExactInTrade,
 			},
 		},
+		Deadline: new(big.Int).SetUint64(1000000000000000000),
 	}
 	encCmd, err := ur.EncodeCommands(ctx)
 	s.Require().NoError(err)
 	s.Require().NotNil(encCmd)
 
-	uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
+	uni := InitUniswapClient(ctx, s.HostedHardhatMainnetUser)
 	uni.PrintOn = true
 	uni.PrintLocal = true
 	uni.Path = filepaths.Path{
@@ -43,7 +44,7 @@ func (s *Web3ClientTestSuite) TestExecV2TradeMethodUR() {
 		FnOut:       "",
 		Env:         "",
 	}
-	err = s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, s.Tc.HardhatNode, 0)
+	err = s.HostedHardhatMainnetUser.HardHatResetNetwork(ctx, s.Tc.HardhatNode, 0)
 	s.Require().Nil(err)
 	tx, err := uni.ExecUniswapUniversalRouterCmd(ur)
 	s.Require().NoError(err)

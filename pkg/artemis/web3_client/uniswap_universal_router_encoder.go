@@ -19,6 +19,7 @@ func (ur *UniversalRouterExecCmd) EncodeCommands(ctx context.Context) (*Universa
 		encodedCmd.Commands = append(encodedCmd.Commands, cmdByteStr)
 		encodedCmd.Inputs = append(encodedCmd.Inputs, inputs)
 	}
+	encodedCmd.Deadline = ur.Deadline
 	return encodedCmd, nil
 }
 

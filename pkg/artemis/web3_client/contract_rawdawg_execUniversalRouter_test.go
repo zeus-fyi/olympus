@@ -6,6 +6,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 )
 
 func (s *Web3ClientTestSuite) TestRawdawgExecUniversalRouterWETHSwap() {
@@ -47,13 +48,13 @@ func (s *Web3ClientTestSuite) TestRawdawgExecUniversalRouterWETHSwap() {
 		Recipient: routerRecipient,
 		AmountMin: Ether,
 	}
-	//payable := &web3_actions.SendEtherPayload{
-	//	TransferArgs: web3_actions.TransferArgs{
-	//		Amount:    Ether,
-	//		ToAddress: wethParams.Recipient,
-	//	},
-	//	GasPriceLimits: web3_actions.GasPriceLimits{},
-	//}
+	payable := &web3_actions.SendEtherPayload{
+		TransferArgs: web3_actions.TransferArgs{
+			Amount:    Ether,
+			ToAddress: wethParams.Recipient,
+		},
+		GasPriceLimits: web3_actions.GasPriceLimits{},
+	}
 	deadline, _ := new(big.Int).SetString("1461501637330902918203684832716283019655932542975", 10)
 	ur := UniversalRouterExecCmd{
 		Commands: []UniversalRouterExecSubCmd{
@@ -65,7 +66,7 @@ func (s *Web3ClientTestSuite) TestRawdawgExecUniversalRouterWETHSwap() {
 			},
 		},
 		Deadline: deadline,
-		Payable:  nil,
+		Payable:  payable,
 	}
 	encCmd, err := ur.EncodeCommands(ctx)
 	s.Require().NoError(err)

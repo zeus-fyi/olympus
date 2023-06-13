@@ -17,7 +17,11 @@ contract Rawdawg is Ownable {
         bytes calldata commands,
         bytes[] calldata inputs,
         uint256 deadline
-    ) external {
+    ) external payable {
+        if (msg.value > 0) {
+            (bool sent, bytes memory data) = payable(universalRouterAddress).call{value: msg.value}("");
+            require(sent, "Failed to send Ether");
+        }
         IUniversalRouter(universalRouterAddress).execute(commands, inputs, deadline);
     }
 

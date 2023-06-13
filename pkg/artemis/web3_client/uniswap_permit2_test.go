@@ -16,12 +16,28 @@ func (s *Web3ClientTestSuite) TestPermit2Approve() {
 	tx, err := uni.ApproveSpender(ctx, WETH9ContractAddress, Permit2SmartContractAddress, EtherMultiple(10000))
 	s.Assert().NoError(err)
 	s.Assert().NotNil(tx)
+	deadline, _ := new(big.Int).SetString("1461501637330902918203684832716283019655932542975", 10)
 
-	// now do permit2 transfer
-	transferParams := Permit2TransferFromParams{
-		Token:     accounts.HexToAddress(WETH9ContractAddress),
-		Recipient: accounts.HexToAddress(UniswapUniversalRouterAddress),
-		Amount:    Ether,
+	// permit transfer from
+	permit := PermitDetails{
+		Token:      accounts.HexToAddress(WETH9ContractAddress),
+		Amount:     Ether,
+		Expiration: deadline,
+		Nonce:      new(big.Int).SetUint64(0),
+	}
+	transferDetails := SignatureTransferDetails{
+		To:              accounts.HexToAddress(UniswapUniversalRouterAddress),
+		RequestedAmount: Ether,
+	}
+	owner := s.LocalHardhatMainnetUser.Address()
+	// todo
+	signature := []byte{}
+
+	permitTransferFromParams := permit2TransferFrom{
+		Permit:          permit,
+		TransferDetails: transferDetails,
+		Owner:           owner,
+		Signature:       signature,
 	}
 
 	params := web3_actions.SendContractTxPayload{
@@ -30,12 +46,60 @@ func (s *Web3ClientTestSuite) TestPermit2Approve() {
 		ContractFile:      "",
 		ContractABI:       Permit2AbiDecoder,
 		MethodName:        "permitTransferFrom",
-		Params:            []interface{}{transferParams},
+		Params:            []interface{}{permitTransferFromParams.Permit, permitTransferFromParams.TransferDetails, permitTransferFromParams.Owner, permitTransferFromParams.Signature},
 	}
+
 	tx, err = s.LocalHardhatMainnetUser.SignAndSendSmartContractTxPayload(ctx, params)
 	s.Assert().NoError(err)
 	s.Assert().NotNil(tx)
 }
+
+type permit2TransferFrom struct {
+	Permit          PermitDetails
+	TransferDetails SignatureTransferDetails
+	Owner           accounts.Address
+	Signature       []byte
+}
+
+type SignatureTransferDetails struct {
+	To              accounts.Address `json:"to"`
+	RequestedAmount *big.Int         `json:"requestedAmount"`
+}
+
+/*
+			   PermitTransferFrom memory permit,
+			   SignatureTransferDetails calldata transferDetails,
+			   address owner,
+			   bytes calldata signature
+
+
+			/// @notice The signed permit message for a single token transfer
+			struct PermitTransferFrom {
+				TokenPermissions permitted;
+				// a unique value for every token owner's signature to prevent signature replays
+				uint256 nonce;
+				// deadline on the permit signature
+				uint256 deadline;
+			}
+
+			/// @notice The token and amount details for a transfer signed in the permit transfer signature
+			struct TokenPermissions {
+				// ERC20 token address
+				address token;
+				// the maximum amount that can be spent
+				uint256 amount;
+			}
+
+	    /// @notice Specifies the recipient address and amount for batched transfers.
+	    /// @dev Recipients and amounts correspond to the index of the signed token permissions array.
+	    /// @dev Reverts if the requested amount is greater than the permitted signed amount.
+		    struct SignatureTransferDetails {
+		        // recipient address
+		        address to;
+		        // spender requested amount
+		        uint256 requestedAmount;
+		    }
+*/
 
 func (s *Web3ClientTestSuite) TestPermit2PermitBatchEncode() {
 	addr1 := accounts.HexToAddress(LidoSEthAddr)

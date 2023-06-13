@@ -17,7 +17,7 @@ contract Rawdawg is Ownable {
         bytes calldata commands,
         bytes[] calldata inputs,
         uint256 deadline
-    ) external payable {
+    ) external {
         IUniversalRouter(universalRouterAddress).execute(commands, inputs, deadline);
     }
 

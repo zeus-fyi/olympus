@@ -4,7 +4,38 @@ import (
 	"math/big"
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 )
+
+func (s *Web3ClientTestSuite) TestPermit2Approve() {
+	node := "https://virulent-alien-cloud.quiknode.pro/fa84e631e9545d76b9e1b1c5db6607fedf3cb654"
+	err := s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, node, 17461070)
+	s.Require().Nil(err)
+
+	uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
+	tx, err := uni.ApproveSpender(ctx, WETH9ContractAddress, Permit2SmartContractAddress, EtherMultiple(10000))
+	s.Assert().NoError(err)
+	s.Assert().NotNil(tx)
+
+	// now do permit2 transfer
+	transferParams := Permit2TransferFromParams{
+		Token:     accounts.HexToAddress(WETH9ContractAddress),
+		Recipient: accounts.HexToAddress(UniswapUniversalRouterAddress),
+		Amount:    Ether,
+	}
+
+	params := web3_actions.SendContractTxPayload{
+		SmartContractAddr: Permit2SmartContractAddress,
+		SendEtherPayload:  web3_actions.SendEtherPayload{},
+		ContractFile:      "",
+		ContractABI:       Permit2AbiDecoder,
+		MethodName:        "permitTransferFrom",
+		Params:            []interface{}{transferParams},
+	}
+	tx, err = s.LocalHardhatMainnetUser.SignAndSendSmartContractTxPayload(ctx, params)
+	s.Assert().NoError(err)
+	s.Assert().NotNil(tx)
+}
 
 func (s *Web3ClientTestSuite) TestPermit2PermitBatchEncode() {
 	addr1 := accounts.HexToAddress(LidoSEthAddr)

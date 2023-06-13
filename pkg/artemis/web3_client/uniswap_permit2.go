@@ -32,6 +32,8 @@ const (
 	Permit2PermitBatch       = "PERMIT2_PERMIT_BATCH"
 	Permit2Permit            = "PERMIT2_PERMIT"
 	Permit2TransferFromBatch = "PERMIT2_TRANSFER_FROM_BATCH"
+
+	Permit2SmartContractAddress = "0x000000000022D473030F116dDEE9F6B43aC78BA3"
 )
 
 var Permit2AbiDecoder = MustLoadPermit2Abi()

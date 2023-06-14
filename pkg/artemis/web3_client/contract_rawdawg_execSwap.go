@@ -23,7 +23,7 @@ func GetRawdawgSwapAbiPayload(tradingSwapContractAddr, pairContractAddr string, 
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
 		ContractABI:       RawdawgAbi,
 		MethodName:        execSmartContractTradingSwap,
-		Params:            []interface{}{pairContractAddr, to.AmountInAddr.String(), to.AmountIn.String(), to.AmountOut.String(), isToken0},
+		Params:            []interface{}{pairContractAddr, to.AmountInAddr.String(), isToken0, to.AmountIn.String(), to.AmountOut.String()},
 	}
 	return params
 }

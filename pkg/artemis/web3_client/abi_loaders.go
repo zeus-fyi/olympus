@@ -6,6 +6,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	apps_hardhat "github.com/zeus-fyi/olympus/apps/olympus/hardhat"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 	signing_automation_ethereum "github.com/zeus-fyi/zeus/pkg/artemis/signing_automation/ethereum"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
@@ -162,4 +163,36 @@ func MustLoadRawdawgContractDeployPayload() (web3_actions.SendContractTxPayload,
 		Params:           []interface{}{},
 	}
 	return params, artemis_oly_contract_abis.RawdawgByteCode
+}
+
+func LoadLocalRawdawgAbiPayload() (web3_actions.SendContractTxPayload, string, error) {
+	apps_hardhat.ForceDirToLocation()
+	fp := filepaths.Path{
+		PackageName: "",
+		DirIn:       "./artifacts/contracts/RawDawg.sol",
+		FnIn:        "Rawdawg.json",
+	}
+	fi := fp.ReadFileInPath()
+	m := map[string]interface{}{}
+	err := json.Unmarshal(fi, &m)
+	if err != nil {
+		return web3_actions.SendContractTxPayload{}, "", err
+	}
+	abiInput := m["abi"]
+	b, err := json.Marshal(abiInput)
+	if err != nil {
+		return web3_actions.SendContractTxPayload{}, "", err
+	}
+	abf := &abi.ABI{}
+	err = abf.UnmarshalJSON(b)
+	if err != nil {
+		return web3_actions.SendContractTxPayload{}, "", err
+	}
+	RawdawgAbi = abf
+	params := web3_actions.SendContractTxPayload{
+		SendEtherPayload: web3_actions.SendEtherPayload{},
+		ContractABI:      abf,
+		Params:           []interface{}{},
+	}
+	return params, m["bytecode"].(string), nil
 }

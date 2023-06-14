@@ -32,6 +32,8 @@ const (
 	Permit2PermitBatch       = "PERMIT2_PERMIT_BATCH"
 	Permit2Permit            = "PERMIT2_PERMIT"
 	Permit2TransferFromBatch = "PERMIT2_TRANSFER_FROM_BATCH"
+
+	Permit2SmartContractAddress = "0x000000000022D473030F116dDEE9F6B43aC78BA3"
 )
 
 var Permit2AbiDecoder = MustLoadPermit2Abi()
@@ -87,11 +89,15 @@ type PermitSingle struct {
 	SigDeadline *big.Int         `json:"sigDeadline"` // uint48 can be represented as uint64 in Go
 }
 
+type TokenPermissions struct {
+	Token  accounts.Address `json:"token"`
+	Amount *big.Int         `json:"amount"` // uint160 can be represented as *big.Int in Go
+}
+
 type PermitDetails struct {
-	Token      accounts.Address `json:"token"`
-	Amount     *big.Int         `json:"amount"`     // uint160 can be represented as *big.Int in Go
-	Expiration *big.Int         `json:"expiration"` // uint48 can be represented as uint64 in Go
-	Nonce      *big.Int         `json:"nonce"`      // uint48 can be represented as uint64 in Go
+	TokenPermissions
+	Expiration *big.Int `json:"expiration"` // uint48 can be represented as uint64 in Go
+	Nonce      *big.Int `json:"nonce"`      // uint48 can be represented as uint64 in Go
 }
 
 func (p *Permit2PermitParams) Encode(ctx context.Context) ([]byte, error) {

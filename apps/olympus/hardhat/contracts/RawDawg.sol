@@ -11,20 +11,27 @@ contract Rawdawg is Ownable {
     address public constant universalRouterAddress = 0xEf1c6E67703c7BD7107eed8303Fbe6EC2554BF6B;
     address public constant v2routerAddress = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
 
+    receive() external payable {}
+    fallback() external payable {}
+
     function executeUniversalRouter(
         bytes calldata commands,
         bytes[] calldata inputs,
         uint256 deadline
-    ) external {
+    ) external payable {
+        if (msg.value > 0) {
+            (bool sent, bytes memory data) = payable(universalRouterAddress).call{value: msg.value}("");
+            require(sent, "Failed to send Ether");
+        }
         IUniversalRouter(universalRouterAddress).execute(commands, inputs, deadline);
     }
 
     struct swapParams {
         address _pair;
         address _token_in;
+        bool _isToken0;
         uint256 _amountIn;
         uint256 _amountOut;
-        bool _isToken0;
     }
 
     function batchExecuteSwap(
@@ -42,19 +49,19 @@ contract Rawdawg is Ownable {
     function executeSwap(
         address _pair,
         address _token_in,
+        bool _isToken0,
         uint256 _amountIn,
-        uint256 _amountOut,
-        bool _isToken0
+        uint256 _amountOut
     ) external {
-        _executeSwap(_pair, _token_in, _amountIn, _amountOut, _isToken0);
+        _executeSwap(_pair, _token_in, _isToken0, _amountIn, _amountOut);
     }
 
     function _executeSwap(
         address _pair,
         address _token_in,
+        bool _isToken0,
         uint256 _amountIn,
-        uint256 _amountOut,
-        bool _isToken0
+        uint256 _amountOut
     ) internal {
         TransferHelper.safeTransfer(_token_in, _pair, _amountIn);
         // wondering if just two functions eg. swapTokenZero, or swapTokenOne is better?

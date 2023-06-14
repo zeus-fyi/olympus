@@ -21,13 +21,14 @@ func (s *Web3ClientTestSuite) TestWrapETHFuncs() {
 	routerRecipient := accounts.HexToAddress("0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266")
 	wethParams := WrapETHParams{
 		Recipient: routerRecipient,
-		AmountMin: Ether,
+		AmountMin: EtherMultiple(10),
 	}
 	payable := &web3_actions.SendEtherPayload{
 		TransferArgs: web3_actions.TransferArgs{
-			Amount:    Ether,
+			Amount:    EtherMultiple(10),
 			ToAddress: wethParams.Recipient,
 		},
+
 		GasPriceLimits: web3_actions.GasPriceLimits{},
 	}
 	deadline, _ := new(big.Int).SetString("1461501637330902918203684832716283019655932542975", 10)
@@ -54,7 +55,48 @@ func (s *Web3ClientTestSuite) TestWrapETHFuncs() {
 
 	endTokenBalance, err := s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, WETH9ContractAddress, userAddr.String())
 	s.Require().Nil(err)
-	s.Assert().Equal(Ether.String(), endTokenBalance.String())
+	s.Assert().Equal(EtherMultiple(10).String(), endTokenBalance.String())
+	fmt.Println("endTokenBalance", endTokenBalance.String())
+
+	approveTx, err := s.LocalHardhatMainnetUser.ERC20ApproveSpender(ctx, WETH9ContractAddress, UniswapUniversalRouterAddress, EtherMultiple(1000))
+	s.Require().Nil(err)
+	s.Require().NotNil(approveTx)
+	unwrapWETHParams := UnwrapWETHParams{
+		Recipient: routerRecipient,
+		AmountMin: Ether,
+	}
+	transferTxParams := web3_actions.SendContractTxPayload{
+		SmartContractAddr: WETH9ContractAddress,
+		SendEtherPayload: web3_actions.SendEtherPayload{
+			TransferArgs: web3_actions.TransferArgs{
+				ToAddress: accounts.HexToAddress(UniswapUniversalRouterAddress),
+			},
+		},
+		ContractABI: MustLoadERC20Abi(),
+		Params:      []interface{}{accounts.HexToAddress(UniswapUniversalRouterAddress), Ether},
+	}
+	transferTx, err := s.LocalHardhatMainnetUser.TransferERC20Token(ctx, transferTxParams)
+	s.Require().Nil(err)
+	s.Require().NotNil(transferTx)
+
+	ur = UniversalRouterExecCmd{
+		Commands: []UniversalRouterExecSubCmd{
+			{
+				Command:       UnwrapWETH,
+				CanRevert:     false,
+				Inputs:        nil,
+				DecodedInputs: unwrapWETHParams,
+			},
+		},
+		Deadline: deadline,
+		Payable:  nil,
+	}
+	encCmd, err = ur.EncodeCommands(ctx)
+	s.Require().NoError(err)
+	s.Require().NotNil(encCmd)
+	tx, err = uni.ExecUniswapUniversalRouterCmd(ur)
+	s.Assert().NoError(err)
+	s.Assert().NotNil(tx)
 }
 
 // TODO finish test case
@@ -113,7 +155,7 @@ func (s *Web3ClientTestSuite) TestExecV2TradeMethodUR() {
 		To:            accounts.HexToAddress(pair.PairContractAddr),
 		PayerIsSender: true,
 	}
-	// convert to command
+	deadline, _ := new(big.Int).SetString("1461501637330902918203684832716283019655932542975", 10)
 	var ur = UniversalRouterExecCmd{
 		Commands: []UniversalRouterExecSubCmd{
 			{
@@ -123,7 +165,7 @@ func (s *Web3ClientTestSuite) TestExecV2TradeMethodUR() {
 				DecodedInputs: v2ExactInTrade,
 			},
 		},
-		Deadline: new(big.Int).SetUint64(1000000000000000),
+		Deadline: deadline,
 	}
 	encCmd, err := ur.EncodeCommands(ctx)
 	s.Require().NoError(err)

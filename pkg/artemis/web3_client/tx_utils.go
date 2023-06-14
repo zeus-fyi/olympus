@@ -2,6 +2,7 @@ package web3_client
 
 import (
 	"context"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -33,7 +34,7 @@ func (w *Web3Client) GetTxByHash(ctx context.Context, hash common.Hash) (*types.
 }
 
 func (u *UniswapClient) RouterApproveAndSend(ctx context.Context, to *TradeOutcome, pairContractAddr string) error {
-	approveTx, err := u.Web3Client.ERC20ApproveSpender(ctx, to.AmountInAddr.String(), u.RouterSmartContractAddr, to.AmountIn)
+	approveTx, err := u.ApproveSpender(ctx, to.AmountInAddr.String(), u.RouterSmartContractAddr, to.AmountIn)
 	if err != nil {
 		log.Warn().Interface("approveTx", approveTx).Err(err).Msg("error approving router")
 		return err
@@ -56,4 +57,28 @@ func (u *UniswapClient) RouterApproveAndSend(ctx context.Context, to *TradeOutco
 	}
 	to.AddTxHash(accounts.Hash(transferTx.Hash()))
 	return err
+}
+
+func (u *UniswapClient) ApproveSpender(ctx context.Context, tokenAddress, spenderAddr string, amount *big.Int) (*types.Transaction, error) {
+	approveTx, err := u.Web3Client.ERC20ApproveSpender(ctx, tokenAddress, spenderAddr, amount)
+	if err != nil {
+		log.Warn().Interface("approveTx", approveTx).Err(err).Msg("error approving spender")
+		return approveTx, err
+	}
+	return approveTx, err
+}
+
+func (w *Web3Client) SignAndSendSmartContractTxPayload(ctx context.Context, scInfo web3_actions.SendContractTxPayload) (*types.Transaction, error) {
+	// TODO improve gas estimation
+	scInfo.GasLimit = 3000000
+	signedTx, err := w.GetSignedTxToCallFunctionWithArgs(ctx, &scInfo)
+	if err != nil {
+		return nil, err
+	}
+	err = w.SendSignedTransaction(ctx, signedTx)
+	if err != nil {
+		log.Err(err).Msg("SignAndSendSmartContractTxPayload: failed to send signed tx")
+		return nil, err
+	}
+	return signedTx, nil
 }

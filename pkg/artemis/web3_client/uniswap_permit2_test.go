@@ -56,7 +56,10 @@ func (s *Web3ClientTestSuite) TestPermit2Approve() {
 		},
 		Signature: nil,
 	}
-	s.Assert().NotEmpty(pp)
+
+	err = pp.Sign(s.LocalHardhatMainnetUser.Account, chainID, accounts.HexToAddress(UniswapUniversalRouterAddress))
+	s.Assert().NoError(err)
+	s.Assert().NotNil(pp.Signature)
 	/*
 		    function hash(ISignatureTransfer.PermitTransferFrom memory permit) internal view returns (bytes32) {
 		        bytes32 tokenPermissionsHash = _hashTokenPermissions(permit.permitted);

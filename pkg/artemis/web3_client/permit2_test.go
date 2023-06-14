@@ -5,7 +5,76 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 )
+
+func (s *Web3ClientTestSuite) TestPermit2TransferSubmission() {
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	wethAddress := accounts.HexToAddress(WETH9ContractAddress)
+	spender := accounts.HexToAddress(UniswapUniversalRouterAddress)
+
+	err := s.LocalHardhatMainnetUser.SetERC20BalanceBruteForce(ctx, wethAddress.String(), s.LocalMainnetWeb3User.PublicKey(), TenThousandEther)
+	s.Require().Nil(err)
+
+	uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
+	tx, err := uni.ApproveSpender(ctx, WETH9ContractAddress, Permit2SmartContractAddress, TenThousandEther)
+	s.Assert().NoError(err)
+	s.Assert().NotNil(tx)
+
+	expiration, _ := new(big.Int).SetString("16785444080", 10)
+	sigDeadline, _ := new(big.Int).SetString("16759542080", 10)
+	pp := Permit2PermitParams{
+		PermitSingle: PermitSingle{
+			PermitDetails: PermitDetails{
+				TokenPermissions: TokenPermissions{
+					Token:  wethAddress,
+					Amount: EtherMultiple(1),
+				},
+				Expiration: expiration,
+				Nonce:      new(big.Int).SetUint64(0),
+			},
+			Spender:     spender,
+			SigDeadline: sigDeadline,
+		},
+		Signature: nil,
+	}
+
+	err = pp.Sign(s.LocalHardhatMainnetUser.Account, chainID, spender)
+	s.Assert().NoError(err)
+	s.Assert().NotNil(pp.Signature)
+
+	scInfo := &web3_actions.SendContractTxPayload{
+		SmartContractAddr: Permit2SmartContractAddress,
+		SendEtherPayload:  web3_actions.SendEtherPayload{},
+		ContractABI:       MustLoadPermit2Abi(),
+		MethodName:        permit0,
+		Params:            []interface{}{s.LocalHardhatMainnetUser.Account.Address(), pp.PermitDetails, pp.Signature},
+	}
+	tx, err = s.LocalHardhatMainnetUser.SignAndSendSmartContractTxPayload(ctx, scInfo)
+	s.Assert().NoError(err)
+	s.Assert().NotNil(tx)
+
+	/*
+		Transfer approved tokens from one address to another
+		Requires the from address to have approved at least the desired amount of tokens to msg.sender.
+		from := ""
+		to := ""
+		amount := ""
+		token := ""
+	*/
+
+	//scInfo = &web3_actions.SendContractTxPayload{
+	//	SmartContractAddr: Permit2SmartContractAddress,
+	//	SendEtherPayload:  web3_actions.SendEtherPayload{},
+	//	ContractABI:       MustLoadPermit2Abi(),
+	//	MethodName:        transferFrom0,
+	//	Params:            []interface{}{s.LocalHardhatMainnetUser.Account.Address(), spender, pp.Amount, pp.Token},
+	//}
+	//tx, err = s.LocalHardhatMainnetUser.SignAndSendSmartContractTxPayload(ctx, scInfo)
+	//s.Assert().NoError(err)
+	//s.Assert().NotNil(tx)
+}
 
 func (s *Web3ClientTestSuite) TestPermit2Transfer() {
 	sigDeadline, _ := new(big.Int).SetString("146902158100", 10)

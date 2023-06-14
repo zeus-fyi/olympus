@@ -78,8 +78,8 @@ func (p *Permit2TransferFromParams) Decode(ctx context.Context, data []byte) err
 }
 
 type Permit2PermitParams struct {
-	PermitSingle
-	Signature []byte `json:"signature"`
+	PermitSingle `json:"permitSingle"`
+	Signature    []byte `json:"signature"`
 }
 
 func (p *Permit2PermitParams) Sign(acc *accounts.Account, chainID *big.Int, contractAddress accounts.Address) error {
@@ -107,9 +107,9 @@ type PermitTransferFrom struct {
 }
 
 type PermitSingle struct {
-	PermitDetails
-	Spender     accounts.Address `json:"spender"`
-	SigDeadline *big.Int         `json:"sigDeadline"` // uint48 can be represented as uint64 in Go
+	PermitDetails `json:"permitDetails"`
+	Spender       accounts.Address `json:"spender"`
+	SigDeadline   *big.Int         `json:"sigDeadline"` // uint48 can be represented as uint64 in Go
 }
 
 type TokenPermissions struct {
@@ -118,9 +118,9 @@ type TokenPermissions struct {
 }
 
 type PermitDetails struct {
-	TokenPermissions
-	Expiration *big.Int `json:"expiration"` // uint48 can be represented as uint64 in Go
-	Nonce      *big.Int `json:"nonce"`      // uint48 can be represented as uint64 in Go
+	TokenPermissions `json:"permitted"`
+	Expiration       *big.Int `json:"expiration"` // uint48 can be represented as uint64 in Go
+	Nonce            *big.Int `json:"nonce"`      // uint48 can be represented as uint64 in Go
 }
 
 func (p *Permit2PermitParams) Encode(ctx context.Context) ([]byte, error) {

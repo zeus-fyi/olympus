@@ -68,10 +68,10 @@ func (u *UniswapClient) ApproveSpender(ctx context.Context, tokenAddress, spende
 	return approveTx, err
 }
 
-func (w *Web3Client) SignAndSendSmartContractTxPayload(ctx context.Context, scInfo web3_actions.SendContractTxPayload) (*types.Transaction, error) {
+func (w *Web3Client) SignAndSendSmartContractTxPayload(ctx context.Context, scInfo *web3_actions.SendContractTxPayload) (*types.Transaction, error) {
 	// TODO improve gas estimation
 	scInfo.GasLimit = 3000000
-	signedTx, err := w.GetSignedTxToCallFunctionWithArgs(ctx, &scInfo)
+	signedTx, err := w.GetSignedTxToCallFunctionWithArgs(ctx, scInfo)
 	if err != nil {
 		return nil, err
 	}

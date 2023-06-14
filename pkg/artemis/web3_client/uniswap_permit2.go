@@ -89,11 +89,15 @@ type PermitSingle struct {
 	SigDeadline *big.Int         `json:"sigDeadline"` // uint48 can be represented as uint64 in Go
 }
 
+type TokenPermissions struct {
+	Token  accounts.Address `json:"token"`
+	Amount *big.Int         `json:"amount"` // uint160 can be represented as *big.Int in Go
+}
+
 type PermitDetails struct {
-	Token      accounts.Address `json:"token"`
-	Amount     *big.Int         `json:"amount"`     // uint160 can be represented as *big.Int in Go
-	Expiration *big.Int         `json:"expiration"` // uint48 can be represented as uint64 in Go
-	Nonce      *big.Int         `json:"nonce"`      // uint48 can be represented as uint64 in Go
+	TokenPermissions
+	Expiration *big.Int `json:"expiration"` // uint48 can be represented as uint64 in Go
+	Nonce      *big.Int `json:"nonce"`      // uint48 can be represented as uint64 in Go
 }
 
 func (p *Permit2PermitParams) Encode(ctx context.Context) ([]byte, error) {

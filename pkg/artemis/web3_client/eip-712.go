@@ -1,7 +1,6 @@
 package web3_client
 
 import (
-	"fmt"
 	"math/big"
 	"strings"
 
@@ -52,7 +51,6 @@ func (e *EIP712) DomainSeparator() common.Hash {
 
 func (e *EIP712) HashTypedData(dataHash common.Hash) common.Hash {
 	domainSeparator := e.DomainSeparator()
-	fmt.Println("domainSeparator", domainSeparator.Hex())
 	encodedData := append([]byte("\x19\x01"), domainSeparator.Bytes()...)
 	encodedData = append(encodedData, dataHash.Bytes()...)
 	return crypto.Keccak256Hash(encodedData)

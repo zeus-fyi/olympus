@@ -60,4 +60,8 @@ func (s *Web3ClientTestSuite) TestPermit2() {
 	verified, err := s.LocalHardhatMainnetUser.VerifySignature(s.LocalHardhatMainnetUser.Address(), hashed.Bytes(), sig)
 	s.NoError(err)
 	s.True(verified)
+
+	err = pp.Sign(s.LocalHardhatMainnetUser.Account, chainID, accounts.HexToAddress("0xCe71065D4017F316EC606Fe4422e11eB2c47c246"))
+	s.NoError(err)
+	s.Equal(sig, pp.Signature)
 }

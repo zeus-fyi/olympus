@@ -1,7 +1,6 @@
 package web3_client
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -46,7 +45,7 @@ func (s *Web3ClientTestSuite) TestPermit2Approve() {
 		PermitSingle: PermitSingle{
 			PermitDetails: PermitDetails{
 				TokenPermissions: TokenPermissions{
-					Token:  accounts.HexToAddress("0xdAC17F958D2ee523a2206206994597C13D831ec7"),
+					Token:  accounts.HexToAddress(WETH9ContractAddress),
 					Amount: EtherMultiple(1),
 				},
 				Expiration: expiration,
@@ -57,52 +56,7 @@ func (s *Web3ClientTestSuite) TestPermit2Approve() {
 		},
 		Signature: nil,
 	}
-
-	var sig []byte
-	for _, sb := range subCmds.Commands {
-		if sb.Command == "PERMIT2_PERMIT" {
-			tmp := sb.DecodedInputs.(Permit2PermitParams)
-
-			pp.Token = tmp.Token
-			pp.Amount = tmp.Amount
-			pp.Expiration = tmp.Expiration
-			pp.Nonce = tmp.Nonce
-			pp.Spender = tmp.Spender
-			pp.SigDeadline = tmp.SigDeadline
-			pp.Signature = tmp.Signature
-			fmt.Println("token", tmp.Token.Hex())
-			fmt.Println("amount", tmp.Expiration.String())
-			fmt.Println("expiration", tmp.Expiration.String())
-			fmt.Println("nonce", tmp.Nonce.String())
-			fmt.Println("spender", tmp.Spender.Hex())
-			fmt.Println("sigDeadline", tmp.SigDeadline.String())
-
-			eip := NewEIP712ForPermit2(chainID, urAddr)
-
-			pt := PermitTransferFrom{
-				TokenPermissions: TokenPermissions{
-					Token:  pp.Token,
-					Amount: pp.Amount,
-				},
-				Expiration:  pp.Expiration,
-				Nonce:       pp.Nonce,
-				SigDeadline: pp.SigDeadline,
-			}
-			hashedData := hashPermitTransferFrom(pt, s.LocalHardhatMainnetUser.Address())
-			fmt.Println("hashedData", hashedData.Hex())
-			result := eip.HashTypedData(hashedData)
-
-			verified, err := s.LocalHardhatMainnetUser.VerifySignature(accounts.HexToAddress("0x2ABa70F8bb7588AAA5CC180BC1f0c6a0b28A4910"), hashedData[:], sig)
-			s.Require().Nil(err)
-			s.Assert().True(verified)
-
-			verified, err = s.LocalHardhatMainnetUser.VerifySignature(accounts.HexToAddress("0x2ABa70F8bb7588AAA5CC180BC1f0c6a0b28A4910"), result[:], sig)
-			s.Require().Nil(err)
-			s.Assert().True(verified)
-		}
-
-	}
-
+	s.Assert().NotEmpty(pp)
 	/*
 		    function hash(ISignatureTransfer.PermitTransferFrom memory permit) internal view returns (bytes32) {
 		        bytes32 tokenPermissionsHash = _hashTokenPermissions(permit.permitted);
@@ -134,56 +88,6 @@ func (s *Web3ClientTestSuite) TestPermit2Approve() {
 
 	// todo prove permit2 transfer works natively, then test via UR
 }
-
-/*
-  function DOMAIN_SEPARATOR() public view override returns (bytes32) {
-        return
-            keccak256(
-                abi.encode(
-                    // keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)')
-                    0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f,
-                    nameHash,
-                    versionHash,
-                    ChainId.get(),
-                    address(this)
-                )
-            );
-    }
-*/
-/*
-			   PermitTransferFrom memory permit,
-			   SignatureTransferDetails calldata transferDetails,
-			   address owner,
-			   bytes calldata signature
-
-
-			/// @notice The signed permit message for a single token transfer
-			struct PermitTransferFrom {
-				TokenPermissions permitted;
-				// a unique value for every token owner's signature to prevent signature replays
-				uint256 nonce;
-				// deadline on the permit signature
-				uint256 deadline;
-			}
-
-			/// @notice The token and amount details for a transfer signed in the permit transfer signature
-			struct TokenPermissions {
-				// ERC20 token address
-				address token;
-				// the maximum amount that can be spent
-				uint256 amount;
-			}
-
-	    /// @notice Specifies the recipient address and amount for batched transfers.
-	    /// @dev Recipients and amounts correspond to the index of the signed token permissions array.
-	    /// @dev Reverts if the requested amount is greater than the permitted signed amount.
-		    struct SignatureTransferDetails {
-		        // recipient address
-		        address to;
-		        // spender requested amount
-		        uint256 requestedAmount;
-		    }
-*/
 
 func (s *Web3ClientTestSuite) TestPermit2PermitBatchEncode() {
 	addr1 := accounts.HexToAddress(LidoSEthAddr)

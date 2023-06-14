@@ -3,6 +3,7 @@ package web3_client
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"math/big"
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
@@ -79,6 +80,21 @@ func (p *Permit2TransferFromParams) Decode(ctx context.Context, data []byte) err
 type Permit2PermitParams struct {
 	PermitSingle
 	Signature []byte `json:"signature"`
+}
+
+func (p *Permit2PermitParams) Sign(acc *accounts.Account, chainID *big.Int, contractAddress accounts.Address) error {
+	if acc == nil {
+		return errors.New("account is nil")
+	}
+	hashed := hashPermitSingle(p.PermitSingle)
+	eip := NewEIP712ForPermit2(chainID, contractAddress)
+	hashed = eip.HashTypedData(hashed)
+	sig, err := acc.Sign(hashed.Bytes())
+	if err != nil {
+		return err
+	}
+	p.Signature = sig
+	return nil
 }
 
 // equivalent: abi.decode(inputs, (IAllowanceTransfer.PermitSingle, bytes))

@@ -33,23 +33,21 @@ func NewEIP712ForPermit2(chainID *big.Int, contractAddress accounts.Address) *EI
 }
 
 func buildDomainSeparator(typeHash common.Hash, nameHash common.Hash, chainID *big.Int, contractAddress accounts.Address) common.Hash {
-	parsedABI, err := abi.JSON(strings.NewReader(`[{"type":"function","inputs":[{"type":"bytes32"},{"type":"bytes32"},{"type":"uint256"},{"type":"address"}],"name":"abiEncode","outputs":[{"type":"bytes"}]}]`))
+	parsedABI, err := abi.JSON(strings.NewReader(`[{"type":"function","inputs":[{"type":"bytes32"},{"type":"bytes32"},{"type":"uint256"},{"type":"address"}],"name":"abiEncode"}]`))
 	if err != nil {
 		log.Err(err)
 		panic(err)
 	}
-
-	data, err := parsedABI.Pack("abiEncode", typeHash, nameHash, chainID, contractAddress) // replace common.Address{} with the contract address
+	data, err := parsedABI.Methods["abiEncode"].Inputs.Pack(typeHash, nameHash, chainID, contractAddress) // replace common.Address{} with the contract address
 	if err != nil {
 		log.Err(err)
 		panic(err)
 	}
-
 	return crypto.Keccak256Hash(data)
 }
 
 func (e *EIP712) DomainSeparator() common.Hash {
-	return buildDomainSeparator(e.typeHash, e.hashedName, e.cachedChainID, e.contractAddress)
+	return e.cachedDomainSeparator
 }
 
 func (e *EIP712) HashTypedData(dataHash common.Hash) common.Hash {

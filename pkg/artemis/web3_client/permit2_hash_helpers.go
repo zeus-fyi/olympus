@@ -54,7 +54,7 @@ func _hashTokenPermissions(permitted TokenPermissions) []byte {
 	if err != nil {
 		panic(err)
 	}
-	data, err := parsedABI.Pack("abiEncode", TokenPermissionsTypeHash, permitted.Token, permitted.Amount)
+	data, err := parsedABI.Methods["abiEncode"].Inputs.Pack(TokenPermissionsTypeHash, permitted.Token, permitted.Amount)
 	if err != nil {
 		panic(err)
 	}
@@ -68,11 +68,9 @@ func hashPermitTransferFrom(permitted TokenPermissions, sender accounts.Address,
 	if err != nil {
 		panic(err)
 	}
-
-	data, err := parsedABI.Pack("abiEncode", common.BytesToHash(PermitTransferFromTypeHash.Bytes()), common.BytesToHash(tokenPermissions), common.HexToAddress(sender.String()), nonce, deadline)
+	data, err := parsedABI.Methods["abiEncode"].Inputs.Pack(common.BytesToHash(PermitTransferFromTypeHash.Bytes()), common.BytesToHash(tokenPermissions), common.HexToAddress(sender.String()), nonce, deadline)
 	if err != nil {
 		panic(err)
 	}
-
 	return crypto.Keccak256Hash(data)
 }

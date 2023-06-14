@@ -38,7 +38,7 @@ func buildDomainSeparator(typeHash common.Hash, nameHash common.Hash, chainID *b
 		log.Err(err)
 		panic(err)
 	}
-	data, err := parsedABI.Methods["abiEncode"].Inputs.Pack(typeHash, nameHash, chainID, contractAddress) // replace common.Address{} with the contract address
+	data, err := parsedABI.Methods["abiEncode"].Inputs.Pack(typeHash, nameHash, chainID, contractAddress)
 	if err != nil {
 		log.Err(err)
 		panic(err)

@@ -1,7 +1,6 @@
 package web3_client
 
 import (
-	"math/big"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -62,13 +61,13 @@ func _hashTokenPermissions(permitted TokenPermissions) []byte {
 	return hashed
 }
 
-func hashPermitTransferFrom(permitted TokenPermissions, sender accounts.Address, nonce *big.Int, deadline *big.Int) common.Hash {
-	tokenPermissions := _hashTokenPermissions(permitted)
+func hashPermitTransferFrom(permitTransferFrom PermitTransferFrom, sender accounts.Address) common.Hash {
+	tokenPermissions := _hashTokenPermissions(permitTransferFrom.TokenPermissions)
 	parsedABI, err := abi.JSON(strings.NewReader(`[{"type":"function","inputs":[{"type":"bytes32"},{"type":"bytes32"},{"type":"address"},{"type":"uint256"},{"type":"uint256"}],"name":"abiEncode"}]`))
 	if err != nil {
 		panic(err)
 	}
-	data, err := parsedABI.Methods["abiEncode"].Inputs.Pack(common.BytesToHash(PermitTransferFromTypeHash.Bytes()), common.BytesToHash(tokenPermissions), common.HexToAddress(sender.String()), nonce, deadline)
+	data, err := parsedABI.Methods["abiEncode"].Inputs.Pack(common.BytesToHash(PermitTransferFromTypeHash.Bytes()), common.BytesToHash(tokenPermissions), sender, permitTransferFrom.Nonce, permitTransferFrom.SigDeadline)
 	if err != nil {
 		panic(err)
 	}

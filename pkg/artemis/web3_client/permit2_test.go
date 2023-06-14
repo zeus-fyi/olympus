@@ -7,6 +7,24 @@ import (
 	"github.com/zeus-fyi/gochain/web3/accounts"
 )
 
+func (s *Web3ClientTestSuite) TestPermit2Transfer() {
+	sigDeadline, _ := new(big.Int).SetString("146902158100", 10)
+	amount, _ := new(big.Int).SetString("100", 10)
+	pt := PermitTransferFrom{
+		TokenPermissions: TokenPermissions{
+			Token:  accounts.HexToAddress("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"),
+			Amount: amount,
+		},
+		Nonce:       new(big.Int).SetUint64(0),
+		SigDeadline: sigDeadline,
+	}
+	hash := _hashTokenPermissions(pt.TokenPermissions)
+	s.Equal("73dffa388f7cfcea85654f48d7cd2ff5daf542e0b51bba732287bdd89e73b35c", common.Bytes2Hex(hash[:]))
+
+	hashVal := hashPermitTransferFrom(pt, s.LocalHardhatMainnetUser.Address())
+	s.Equal("0x9b9bc3959c07ca67947b15a7d6e7fcab56c8c17a5755d7852f6081a8917efb5d", hashVal.String())
+}
+
 func (s *Web3ClientTestSuite) TestPermit2() {
 	expiration, _ := new(big.Int).SetString("946902158100", 10)
 	sigDeadline, _ := new(big.Int).SetString("146902158100", 10)

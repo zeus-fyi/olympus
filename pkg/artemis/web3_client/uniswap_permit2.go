@@ -83,6 +83,13 @@ type Permit2PermitParams struct {
 
 // equivalent: abi.decode(inputs, (IAllowanceTransfer.PermitSingle, bytes))
 
+type PermitTransferFrom struct {
+	TokenPermissions
+	Expiration  *big.Int `json:"expiration"`  // uint48 can be represented as uint64 in Go
+	Nonce       *big.Int `json:"nonce"`       // uint48 can be represented as uint64 in Go
+	SigDeadline *big.Int `json:"sigDeadline"` // uint48 can be represented as uint64 in Go
+}
+
 type PermitSingle struct {
 	PermitDetails
 	Spender     accounts.Address `json:"spender"`

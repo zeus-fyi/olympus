@@ -79,7 +79,16 @@ func (s *Web3ClientTestSuite) TestPermit2Approve() {
 
 			eip := NewEIP712ForPermit2(chainID, urAddr)
 
-			hashedData := hashPermitTransferFrom(pp.TokenPermissions, s.LocalHardhatMainnetUser.Address(), pp.Nonce, pp.Expiration)
+			pt := PermitTransferFrom{
+				TokenPermissions: TokenPermissions{
+					Token:  pp.Token,
+					Amount: pp.Amount,
+				},
+				Expiration:  pp.Expiration,
+				Nonce:       pp.Nonce,
+				SigDeadline: pp.SigDeadline,
+			}
+			hashedData := hashPermitTransferFrom(pt, s.LocalHardhatMainnetUser.Address())
 			fmt.Println("hashedData", hashedData.Hex())
 			result := eip.HashTypedData(hashedData)
 
@@ -93,18 +102,6 @@ func (s *Web3ClientTestSuite) TestPermit2Approve() {
 		}
 
 	}
-
-	eip := NewEIP712ForPermit2(chainID, urAddr)
-
-	hashedData := hashPermitTransferFrom(pp.TokenPermissions, s.LocalHardhatMainnetUser.Address(), pp.Nonce, pp.Expiration)
-	fmt.Println("hashedData", hashedData.Hex())
-	result := eip.HashTypedData(hashedData)
-
-	signed, err := s.LocalHardhatMainnetUser.Sign(result[:])
-	s.Require().Nil(err)
-	verified, err := s.LocalHardhatMainnetUser.VerifySignature(s.LocalHardhatMainnetUser.Address(), result[:], signed)
-	s.Require().Nil(err)
-	s.Require().True(verified)
 
 	/*
 		    function hash(ISignatureTransfer.PermitTransferFrom memory permit) internal view returns (bytes32) {

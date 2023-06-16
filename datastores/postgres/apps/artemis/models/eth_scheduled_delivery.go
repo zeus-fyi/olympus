@@ -4,8 +4,8 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/gochain/gochain/v4/common"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
@@ -42,7 +42,7 @@ func InsertDeliverySchedule(ctx context.Context, sd artemis_autogen_bases.EthSch
 		return err
 	}
 
-	addr := common.HexToAddress(sd.PublicKey)
+	addr := accounts.HexToAddress(sd.PublicKey)
 	rr := artemis_req_types.SendEtherPayload{
 		TransferArgs: artemis_req_types.TransferArgs{
 			Amount:    big.NewInt(1).Mul(signing_automation_ethereum.Gwei, big.NewInt(int64(sd.Amount))),

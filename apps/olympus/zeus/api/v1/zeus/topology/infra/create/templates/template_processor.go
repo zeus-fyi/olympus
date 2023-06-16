@@ -53,7 +53,16 @@ func GenerateSkeletonBaseChartsCopy(ctx context.Context, cd *zeus_cluster_config
 				return pcg, err
 			}
 			nk := tr.GetTopologyBaseInfraWorkload()
-			skeletonBase.Workload = topology_workloads.TopologyBaseInfraWorkload(nk)
+			skeletonBase.Workload = topology_workloads.TopologyBaseInfraWorkload{
+				Service:        nk.Service,
+				ConfigMap:      nk.ConfigMap,
+				Deployment:     nk.Deployment,
+				StatefulSet:    nk.StatefulSet,
+				Ingress:        nk.Ingress,
+				ServiceMonitor: nk.ServiceMonitor,
+				Job:            nk.Job,
+				CronJob:        nk.CronJob,
+			}
 			pcg.ComponentBases[cbName][sbName] = skeletonBase.Workload
 		}
 	}
@@ -311,6 +320,9 @@ func BuildContainerDriver(ctx context.Context, name string, container Container)
 	}
 
 	for _, p := range container.DockerImage.Ports {
+		if len(p.Name) <= 0 || len(p.Number) <= 0 {
+			continue
+		}
 		// Use strconv.ParseInt to convert the string to int64
 		numberInt64, err := strconv.ParseInt(p.Number, 10, 32)
 		if err != nil {
@@ -325,10 +337,12 @@ func BuildContainerDriver(ctx context.Context, name string, container Container)
 	}
 
 	for _, v := range container.DockerImage.VolumeMounts {
-		c.VolumeMounts = append(c.VolumeMounts, v1.VolumeMount{
-			Name:      v.Name,
-			MountPath: v.MountPath,
-		})
+		if len(v.Name) > 0 && len(v.MountPath) > 0 {
+			c.VolumeMounts = append(c.VolumeMounts, v1.VolumeMount{
+				Name:      v.Name,
+				MountPath: v.MountPath,
+			})
+		}
 	}
 	if len(container.DockerImage.ResourceRequirements.CPU) > 0 {
 		c.Resources.Requests["cpu"] = resource.MustParse(container.DockerImage.ResourceRequirements.CPU)

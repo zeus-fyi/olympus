@@ -29,6 +29,7 @@ func SelectOrgResourcesNodes(ctx context.Context, orgID int) ([]OrgResourceNodes
 		FROM org_resources ou
 		JOIN nodes n ON n.resource_id = ou.resource_id
 		WHERE org_id = $1 AND ou.end_service IS NULL`
+
 	args := []interface{}{
 		orgID,
 	}
@@ -64,9 +65,17 @@ func SelectOrgResourcesNodes(ctx context.Context, orgID int) ([]OrgResourceNodes
 			&orgResourceNodes.CloudProvider,
 		)
 		orgResourceNodes.Nodes.ResourceID = orgResourceNodes.OrgResources.ResourceID
-		orgResourceNodes.PriceHourly *= 1.1  // Add 10% to the price
-		orgResourceNodes.PriceMonthly *= 1.1 // Add 10% to the price
-
+		switch orgResourceNodes.CloudProvider {
+		case "aws":
+			orgResourceNodes.PriceHourly *= 1.40  // Add 40% to the price
+			orgResourceNodes.PriceMonthly *= 1.40 // Add 40% to the price
+		case "gcp":
+			orgResourceNodes.PriceHourly *= 1.40  // Add 40% to the price
+			orgResourceNodes.PriceMonthly *= 1.40 // Add 40% to the price
+		default:
+			orgResourceNodes.PriceHourly *= 1.1  // Add 10% to the price
+			orgResourceNodes.PriceMonthly *= 1.1 // Add 10% to the price
+		}
 		if err != nil {
 			return nil, err
 		}

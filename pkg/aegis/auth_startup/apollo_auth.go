@@ -24,9 +24,9 @@ func RunApolloDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authC
 func InitApolloEthereum(ctx context.Context, inMemSecrets memfs.MemFS) SecretsWrapper {
 	log.Info().Msg("Apollo: InitApolloEthereum starting")
 	secrets := SecretsWrapper{}
-	secrets.MainnetBeaconURL = secrets.ReadSecret(ctx, inMemSecrets, apolloMainnetBeacon)
-	secrets.PostgresAuth = secrets.ReadSecret(ctx, inMemSecrets, apolloPostgresAuth)
-	secrets.AegisPostgresAuth = secrets.ReadSecret(ctx, inMemSecrets, pgSecret)
+	secrets.MainnetBeaconURL = secrets.MustReadSecret(ctx, inMemSecrets, apolloMainnetBeacon)
+	secrets.PostgresAuth = secrets.MustReadSecret(ctx, inMemSecrets, apolloPostgresAuth)
+	secrets.AegisPostgresAuth = secrets.MustReadSecret(ctx, inMemSecrets, pgSecret)
 	log.Info().Msg("Apollo: InitApolloEthereum done")
 	return secrets
 }

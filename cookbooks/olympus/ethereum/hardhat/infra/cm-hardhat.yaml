@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-hardhat
+data:
+  start.sh: |-
+    #!/bin/sh 
+    exec npx hardhat node --fork ${RPC_URL} --hostname 0.0.0.0
+  hercules.sh: |-
+    #!/bin/sh 
+    hercules

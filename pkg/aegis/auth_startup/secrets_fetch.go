@@ -59,19 +59,28 @@ var secretsBucket = &s3.GetObjectInput{
 	Key:    aws.String(encryptedSecret),
 }
 
-func (s *SecretsWrapper) ReadSecret(ctx context.Context, inMemSecrets memfs.MemFS, fileName string) string {
+func (s *SecretsWrapper) MustReadSecret(ctx context.Context, inMemSecrets memfs.MemFS, fileName string) string {
 	secret, err := inMemSecrets.ReadFile(fileName)
 	if err != nil {
-		log.Ctx(ctx).Fatal().Msgf("SecretsWrapper: ReadSecret failed, shutting down the server: %s", fileName)
+		log.Ctx(ctx).Fatal().Msgf("SecretsWrapper: MustReadSecret failed, shutting down the server: %s", fileName)
 		misc.DelayedPanic(err)
 	}
 	return string(secret)
 }
 
+func (s *SecretsWrapper) ReadSecret(ctx context.Context, inMemSecrets memfs.MemFS, fileName string) (string, error) {
+	secret, err := inMemSecrets.ReadFile(fileName)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msgf("SecretsWrapper: ReadSecret failed, shutting down the server: %s", fileName)
+		return "", err
+	}
+	return string(secret), err
+}
+
 func (s *SecretsWrapper) ReadSecretBytes(ctx context.Context, inMemSecrets memfs.MemFS, fileName string) []byte {
 	secret, err := inMemSecrets.ReadFile(fileName)
 	if err != nil {
-		log.Ctx(ctx).Fatal().Msgf("SecretsWrapper: ReadSecret failed, shutting down the server: %s", fileName)
+		log.Ctx(ctx).Fatal().Msgf("SecretsWrapper: MustReadSecret failed, shutting down the server: %s", fileName)
 		misc.DelayedPanic(err)
 	}
 	return secret
@@ -106,11 +115,11 @@ func RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg
 	log.Info().Msg("RunZeusDigitalOceanS3BucketObjSecretsProcedure finished")
 	sw := SecretsWrapper{}
 	sw.GcpAuthJsonBytes = sw.ReadSecretBytes(ctx, inMemSecrets, gcpAuthJson)
-	sw.DoctlToken = sw.ReadSecret(ctx, inMemSecrets, doctlSecret)
-	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
-	sw.StripeSecretKey = sw.ReadSecret(ctx, inMemSecrets, stripeSecretKey)
-	sw.EksAuthAWS.AccessKey = sw.ReadSecret(ctx, inMemSecrets, eksAccessKey)
-	sw.EksAuthAWS.SecretKey = sw.ReadSecret(ctx, inMemSecrets, eksSecretKey)
+	sw.DoctlToken = sw.MustReadSecret(ctx, inMemSecrets, doctlSecret)
+	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, pgSecret)
+	sw.StripeSecretKey = sw.MustReadSecret(ctx, inMemSecrets, stripeSecretKey)
+	sw.EksAuthAWS.AccessKey = sw.MustReadSecret(ctx, inMemSecrets, eksAccessKey)
+	sw.EksAuthAWS.SecretKey = sw.MustReadSecret(ctx, inMemSecrets, eksSecretKey)
 	// TODO allow for multiple regions
 	sw.EksAuthAWS.Region = "us-west-1"
 	return inMemSecrets, sw
@@ -122,9 +131,9 @@ func RunDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg Aut
 	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
 	log.Info().Msg("RunDigitalOceanS3BucketObjSecretsProcedure finished")
 	sw := SecretsWrapper{}
-	sw.DoctlToken = sw.ReadSecret(ctx, inMemSecrets, doctlSecret)
-	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
-	sw.StripeSecretKey = sw.ReadSecret(ctx, inMemSecrets, stripeSecretKey)
+	sw.DoctlToken = sw.MustReadSecret(ctx, inMemSecrets, doctlSecret)
+	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, pgSecret)
+	sw.StripeSecretKey = sw.MustReadSecret(ctx, inMemSecrets, stripeSecretKey)
 	return inMemSecrets, sw
 }
 
@@ -133,7 +142,9 @@ func RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, auth
 	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
 	log.Info().Msg("Artemis: RunArtemisDigitalOceanS3BucketObjSecretsProcedure finished")
 	sw := SecretsWrapper{}
-	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
+	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, pgSecret)
+	sw.AccessKeyHydraDynamoDB = sw.MustReadSecret(ctx, inMemSecrets, hydraAccessKeyDynamoDB)
+	sw.SecretKeyHydraDynamoDB = sw.MustReadSecret(ctx, inMemSecrets, hydraSecretKeyDynamoDB)
 	log.Info().Msg("Artemis: RunArtemisDigitalOceanS3BucketObjSecretsProcedure succeeded")
 	return inMemSecrets, sw
 }
@@ -143,8 +154,8 @@ func RunPoseidonDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, aut
 	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
 	log.Info().Msg("RunPoseidonDigitalOceanS3BucketObjSecretsProcedure finished")
 	sw := SecretsWrapper{}
-	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
-	sw.BearerToken = sw.ReadSecret(ctx, inMemSecrets, temporalBearerSecret)
+	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, pgSecret)
+	sw.BearerToken = sw.MustReadSecret(ctx, inMemSecrets, temporalBearerSecret)
 	log.Info().Msg("RunPoseidonDigitalOceanS3BucketObjSecretsProcedure succeeded")
 	return inMemSecrets, sw
 }
@@ -155,7 +166,7 @@ func RunAthenaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authC
 	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
 	log.Info().Msg("Athena: RunDigitalOceanS3BucketObjSecretsProcedure finished")
 	sw := SecretsWrapper{}
-	sw.PostgresAuth = sw.ReadSecret(ctx, inMemSecrets, pgSecret)
+	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, pgSecret)
 
 	p := filepaths.Path{
 		PackageName: "",

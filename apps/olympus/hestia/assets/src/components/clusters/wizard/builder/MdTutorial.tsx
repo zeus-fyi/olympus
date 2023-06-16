@@ -57,7 +57,7 @@ type TopologyBaseInfraWorkload struct {
     1..N Workload Bases -> One Cluster Base
  
 Workload bases that fall under one Cluster are only registered to this cluster base definition
- ->Each workload base can be switched out interchangable. Allowing multiple configuration options
+ ->Each workload base can be switched out interchangeably. Allowing multiple configuration options
     Lighthouse:
         -> Goerli version
             -> v3.5.0

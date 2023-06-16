@@ -20,8 +20,8 @@ type DestroyDeployTopologyWorkflow struct {
 
 const defaultTimeout = 10 * time.Minute
 
-func (t *DestroyDeployTopologyWorkflow) GetWorkflow() interface{} {
-	return t.DestroyDeployedTopologyWorkflow
+func (t *DestroyDeployTopologyWorkflow) GetWorkflows() []interface{} {
+	return []interface{}{t.DestroyDeployedTopologyWorkflow, t.DestroyJobWorkflow, t.DestroyCronJobWorkflow}
 }
 
 func NewDestroyDeployTopologyWorkflow() DestroyDeployTopologyWorkflow {

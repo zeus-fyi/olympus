@@ -8,6 +8,7 @@ use (
 	./apps/external/tables-to-go
 	./apps/external/tojen
 	./apps/external/web3
+	./apps/external/go-ethereum
 
 	./apps/olympus/aegis
 	./apps/olympus/apollo
@@ -20,6 +21,8 @@ use (
 	./apps/olympus/hydra
 	./apps/olympus/hypnos
 	./apps/olympus/poseidon
+	./apps/olympus/iris
+	./apps/olympus/hephaestus
 
 	./apps/olympus/zeus
 

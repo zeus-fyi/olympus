@@ -3,9 +3,9 @@ package artemis_ethereum_transcations
 import (
 	"context"
 
-	"github.com/gochain/gochain/v4/core/types"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/gochain/web3/web3_actions"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	"go.temporal.io/sdk/client"
 )
 

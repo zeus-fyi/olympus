@@ -15,6 +15,8 @@ type AuthStartupTestSuite struct {
 	s3secrets.S3SecretsManagerTestSuite
 }
 
+var ctx = context.Background()
+
 // TestRead, you'll need to set the secret values to run the test
 
 func (t *AuthStartupTestSuite) TestSecretsEncrypt() {
@@ -32,8 +34,6 @@ func (t *AuthStartupTestSuite) TestSecretsEncrypt() {
 }
 
 func (t *AuthStartupTestSuite) TestAuthStartup() {
-	ctx := context.Background()
-
 	keysCfg := auth_keys_config.AuthKeysCfg{
 		AgePrivKey:    t.Tc.LocalAgePkey,
 		AgePubKey:     t.Tc.LocalAgePubkey,
@@ -64,8 +64,6 @@ func (t *AuthStartupTestSuite) TestAuthStartup() {
 }
 
 func (t *AuthStartupTestSuite) TestArtemisAuthStartup() {
-	ctx := context.Background()
-
 	keysCfg := auth_keys_config.AuthKeysCfg{
 		AgePrivKey:    t.Tc.LocalAgePkey,
 		AgePubKey:     t.Tc.LocalAgePubkey,

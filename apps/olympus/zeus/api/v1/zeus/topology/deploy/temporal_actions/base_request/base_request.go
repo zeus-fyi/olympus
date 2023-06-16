@@ -11,6 +11,7 @@ type InternalDeploymentActionRequest struct {
 	OrgUser org_users.OrgUser
 	chart_workload.TopologyBaseInfraWorkload
 	ClusterName string `json:"clusterClassName,omitempty"`
+	SecretRef   string `json:"secretRef,omitempty"`
 }
 
 type ClusterDeployActionRequest struct {

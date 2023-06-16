@@ -1,8 +1,9 @@
 import * as React from "react";
-import {useMemo} from "react";
+import {useMemo, useState} from "react";
 import TextField from "@mui/material/TextField";
+import debounce from 'lodash/debounce';
 import Button from "@mui/material/Button";
-import {Box, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent} from "@mui/material";
+import {Box, FormControl, FormHelperText, InputLabel, MenuItem, Select, SelectChangeEvent, Stack} from "@mui/material";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../../../redux/store";
 import {
@@ -20,6 +21,7 @@ export function AddPortsInputFields() {
     const skeletonBaseKeys = cluster.componentBases[selectedComponentBaseName];
     let selectedDockerImage = cluster.componentBases[selectedComponentBaseName]?.[selectedSkeletonBaseName]?.containers[selectedContainerName]?.dockerImage
     const ports = useMemo(() => selectedDockerImage?.ports || [{name: "", number: "", protocol: "TCP"}], [selectedDockerImage?.ports]);
+    const [error, setError] = useState('');
 
     if (cluster.componentBases === undefined) {
         return <div></div>
@@ -34,8 +36,17 @@ export function AddPortsInputFields() {
     if (!show) {
         return <div></div>
     }
+    const debouncedValidation = debounce((value: string) => {
+        if (!isValidPortName(value)) {
+            setError('Invalid port name. http is a reserved port name for nginx'); // set the error message
+            return;
+        } else {
+            setError(''); // clear the error
+        }
+    }, 100); // 500ms delay
 
     const handleChange = (index: number, event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        debouncedValidation(event.target.value);
         const values = [...(selectedDockerImage.ports)];
         values[index] = {...values[index], [event.target.name]: event.target.value};
         dispatch(setDockerImagePort({
@@ -138,10 +149,19 @@ export function AddPortsInputFields() {
                         </Box>
                     </Box>
                 ))}
+                <Stack spacing={2} direction="column" sx={{ flex: 1, mr: 2 }}>
+                    <div>
+                        {error && <FormHelperText error>{error}</FormHelperText>}
+                    </div>
+                </Stack>
                 <Button variant="contained" onClick={handleAddField}>
                     Add Port
                 </Button>
             </Box>
         </div>
     );
+}
+
+function isValidPortName(name: string): boolean {
+    return name !== 'http';
 }

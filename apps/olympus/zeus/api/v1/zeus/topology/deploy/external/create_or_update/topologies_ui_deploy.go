@@ -62,31 +62,35 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 	ctx := context.Background()
 	ou := c.Get("orgUser").(org_users.OrgUser)
 
-	if t.FreeTrial {
-		isFreeTrialOngoing, err := hestia_compute_resources.DoesOrgHaveOngoingFreeTrial(ctx, ou.OrgID)
-		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Msg("failed to check if org has ongoing free trial")
-			return c.JSON(http.StatusInternalServerError, nil)
+	if ou.UserID == 1685378241971196000 {
+		t.FreeTrial = false
+	} else {
+		if t.FreeTrial {
+			isFreeTrialOngoing, err := hestia_compute_resources.DoesOrgHaveOngoingFreeTrial(ctx, ou.OrgID)
+			if err != nil {
+				log.Ctx(ctx).Error().Err(err).Msg("failed to check if org has ongoing free trial")
+				return c.JSON(http.StatusInternalServerError, nil)
+			}
+			log.Ctx(ctx).Info().Interface("isFreeTrialOngoing", isFreeTrialOngoing).Interface("ou", ou).Msg("isFreeTrialOngoing")
+			if isFreeTrialOngoing {
+				log.Ctx(ctx).Error().Err(err).Msg("org has ongoing free trial")
+				return c.JSON(http.StatusPreconditionFailed, nil)
+			}
+			if t.MonthlyCost > 500 {
+				log.Ctx(ctx).Error().Err(err).Msg("free trial value exceeds max allowed")
+				return c.JSON(http.StatusPreconditionFailed, nil)
+			}
 		}
-		log.Ctx(ctx).Info().Interface("isFreeTrialOngoing", isFreeTrialOngoing).Interface("ou", ou).Msg("isFreeTrialOngoing")
-		if isFreeTrialOngoing {
-			log.Ctx(ctx).Error().Err(err).Msg("org has ongoing free trial")
-			return c.JSON(http.StatusPreconditionFailed, nil)
-		}
-		if t.MonthlyCost > 500 {
-			log.Ctx(ctx).Error().Err(err).Msg("free trial value exceeds max allowed")
-			return c.JSON(http.StatusPreconditionFailed, nil)
-		}
-	}
-	if ou.UserID != 7138958574876245565 && !t.FreeTrial {
-		isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(ctx, ou.UserID)
-		if err != nil {
-			log.Ctx(ctx).Error().Err(err).Msg("failed to check if user has billing method")
-			return c.JSON(http.StatusInternalServerError, nil)
-		}
-		if !isBillingSetup {
-			log.Ctx(ctx).Error().Err(err).Msg("user does not have billing method")
-			return c.JSON(http.StatusForbidden, nil)
+		if ou.UserID != 7138958574876245565 && !t.FreeTrial {
+			isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(ctx, ou.UserID)
+			if err != nil {
+				log.Ctx(ctx).Error().Err(err).Msg("failed to check if user has billing method")
+				return c.JSON(http.StatusInternalServerError, nil)
+			}
+			if !isBillingSetup {
+				log.Ctx(ctx).Error().Err(err).Msg("user does not have billing method")
+				return c.JSON(http.StatusForbidden, nil)
+			}
 		}
 	}
 

@@ -10,6 +10,8 @@ import (
 	"github.com/spf13/viper"
 	artemis_api_router "github.com/zeus-fyi/olympus/artemis/api"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
+	artemis_mev_tx_fetcher "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/mev"
+	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_ethereum_transcations "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/transcations"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
@@ -40,6 +42,14 @@ func Artemis() {
 		misc.DelayedPanic(err)
 	}
 	log.Info().Msg("Artemis: ArtemisEthereumGoerliTxBroadcastWorker Started")
+	log.Info().Msg("Artemis: Starting ArtemisMevWorkerGoerli")
+	artemis_mev_tx_fetcher.ArtemisMevWorkerGoerli.Worker.RegisterWorker(c)
+	err = artemis_mev_tx_fetcher.ArtemisMevWorkerGoerli.Worker.Start()
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Artemis: %s ArtemisMevWorkerGoerli Worker.Start failed", env)
+		misc.DelayedPanic(err)
+	}
+	log.Info().Msg("Artemis: ArtemisMevWorkerGoerli Started")
 	// mainnet
 	log.Info().Msg("Artemis: Starting ArtemisEthereumMainnetTxBroadcastWorker")
 	artemis_ethereum_transcations.ArtemisEthereumMainnetTxBroadcastWorker.Worker.RegisterWorker(c)
@@ -49,6 +59,22 @@ func Artemis() {
 		misc.DelayedPanic(err)
 	}
 	log.Info().Msg("Artemis: ArtemisEthereumMainnetTxBroadcastWorker Started")
+	log.Info().Msg("Artemis: Starting ArtemisMevWorkerMainnet")
+	artemis_mev_tx_fetcher.ArtemisMevWorkerMainnet.Worker.RegisterWorker(c)
+	err = artemis_mev_tx_fetcher.ArtemisMevWorkerMainnet.Worker.Start()
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Artemis: %s ArtemisMevWorkerMainnet Worker.Start failed", env)
+		misc.DelayedPanic(err)
+	}
+	log.Info().Msg("Artemis: ArtemisMevWorkerMainnet Started")
+	log.Info().Msg("Artemis: Starting ArtemisMevWorkerMainnetHistoricalTxs")
+	artemis_mev_tx_fetcher.ArtemisMevWorkerMainnetHistoricalTxs.Worker.RegisterWorker(c)
+	err = artemis_mev_tx_fetcher.ArtemisMevWorkerMainnetHistoricalTxs.Worker.Start()
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Artemis: %s ArtemisMevWorkerMainnetHistoricalTxs Worker.Start failed", env)
+		misc.DelayedPanic(err)
+	}
+	log.Info().Msg("Artemis: ArtemisMevWorkerMainnetHistoricalTxs Started")
 	// ephemeral
 	log.Info().Msg("Artemis: Starting ArtemisEthereumEphemeralTxBroadcastWorker")
 	artemis_ethereum_transcations.ArtemisEthereumEphemeralTxBroadcastWorker.Worker.RegisterWorker(c)
@@ -76,6 +102,8 @@ func Artemis() {
 			AllowCredentials: true,
 		}))
 	}
+
+	artemis_mev_tx_fetcher.InitUniswap(ctx, artemis_orchestration_auth.Bearer)
 	srv.E = artemis_api_router.Routes(srv.E)
 	srv.Start()
 }

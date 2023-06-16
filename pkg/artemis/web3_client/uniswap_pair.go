@@ -5,54 +5,155 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/gochain/gochain/v4/common"
-	"github.com/zeus-fyi/gochain/web3/web3_actions"
+	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/gochain/web3/accounts"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 )
 
 type UniswapV2Pair struct {
-	PairContractAddr     string
-	Price0CumulativeLast *big.Int
-	Price1CumulativeLast *big.Int
-	KLast                *big.Int
-	Token0               common.Address
-	Token1               common.Address
-	Reserve0             *big.Int
-	Reserve1             *big.Int
-	BlockTimestampLast   *big.Int
+	PairContractAddr     string           `json:"pairContractAddr"`
+	Price0CumulativeLast *big.Int         `json:"price0CumulativeLast"`
+	Price1CumulativeLast *big.Int         `json:"price1CumulativeLast"`
+	KLast                *big.Int         `json:"kLast"`
+	Token0               accounts.Address `json:"token0"`
+	Token1               accounts.Address `json:"token1"`
+	Reserve0             *big.Int         `json:"reserve0"`
+	Reserve1             *big.Int         `json:"reserve1"`
+	BlockTimestampLast   *big.Int         `json:"blockTimestampLast"`
 }
 
-func (p *UniswapV2Pair) GetToken1Price() (*big.Float, error) {
+type JSONUniswapV2Pair struct {
+	PairContractAddr     string           `json:"pairContractAddr"`
+	Price0CumulativeLast string           `json:"price0CumulativeLast"`
+	Price1CumulativeLast string           `json:"price1CumulativeLast"`
+	KLast                string           `json:"kLast"`
+	Token0               accounts.Address `json:"token0"`
+	Token1               accounts.Address `json:"token1"`
+	Reserve0             string           `json:"reserve0"`
+	Reserve1             string           `json:"reserve1"`
+	BlockTimestampLast   string           `json:"blockTimestampLast"`
+}
+
+func (p *JSONUniswapV2Pair) ConvertToBigIntType() UniswapV2Pair {
+	p0, _ := new(big.Int).SetString(p.Price0CumulativeLast, 10)
+	p1, _ := new(big.Int).SetString(p.Price1CumulativeLast, 10)
+	k, _ := new(big.Int).SetString(p.KLast, 10)
+	r0, _ := new(big.Int).SetString(p.Reserve0, 10)
+	r1, _ := new(big.Int).SetString(p.Reserve1, 10)
+	bt, _ := new(big.Int).SetString(p.BlockTimestampLast, 10)
+	return UniswapV2Pair{
+		PairContractAddr:     p.PairContractAddr,
+		Price0CumulativeLast: p0,
+		Price1CumulativeLast: p1,
+		KLast:                k,
+		Token0:               p.Token0,
+		Token1:               p.Token1,
+		Reserve0:             r0,
+		Reserve1:             r1,
+		BlockTimestampLast:   bt,
+	}
+}
+func (p *UniswapV2Pair) ConvertToJSONType() JSONUniswapV2Pair {
+	return JSONUniswapV2Pair{
+		PairContractAddr:     p.PairContractAddr,
+		Price0CumulativeLast: p.Price0CumulativeLast.String(),
+		Price1CumulativeLast: p.Price1CumulativeLast.String(),
+		KLast:                p.KLast.String(),
+		Token0:               p.Token0,
+		Token1:               p.Token1,
+		Reserve0:             p.Reserve0.String(),
+		Reserve1:             p.Reserve1.String(),
+		BlockTimestampLast:   p.BlockTimestampLast.String(),
+	}
+}
+
+func (p *UniswapV2Pair) GetQuoteToken0BuyToken1(token0 *big.Int) (*big.Int, error) {
 	if p.Reserve0 == nil || p.Reserve1 == nil || p.Reserve0.Cmp(big.NewInt(0)) == 0 || p.Reserve1.Cmp(big.NewInt(0)) == 0 {
 		return nil, errors.New("reserves are not initialized or are zero")
 	}
-	reserve0 := new(big.Float).SetInt(p.Reserve0)
-	reserve1 := new(big.Float).SetInt(p.Reserve1)
-	token1Price := new(big.Float).Quo(reserve0, reserve1)
-	return token1Price, nil
+	amountInWithFee := new(big.Int).Mul(token0, big.NewInt(997))
+	numerator := new(big.Int).Mul(amountInWithFee, p.Reserve1)
+	denominator := new(big.Int).Mul(p.Reserve0, big.NewInt(1000))
+	denominator = new(big.Int).Add(denominator, amountInWithFee)
+	if denominator.Cmp(big.NewInt(0)) == 0 {
+		log.Warn().Msg("denominator is 0")
+		return nil, errors.New("denominator is 0")
+	}
+	amountOut := new(big.Int).Div(numerator, denominator)
+	return amountOut, nil
 }
 
-func (p *UniswapV2Pair) GetToken0Price() (*big.Float, error) {
+func (p *UniswapV2Pair) GetQuoteToken1BuyToken0(token1 *big.Int) (*big.Int, error) {
 	if p.Reserve0 == nil || p.Reserve1 == nil || p.Reserve0.Cmp(big.NewInt(0)) == 0 || p.Reserve1.Cmp(big.NewInt(0)) == 0 {
 		return nil, errors.New("reserves are not initialized or are zero")
 	}
-	// Calculate price0 / price1
-	reserve0 := new(big.Float).SetInt(p.Reserve0)
-	reserve1 := new(big.Float).SetInt(p.Reserve1)
-	token0Price := new(big.Float).Quo(reserve1, reserve0)
-	return token0Price, nil
+	amountInWithFee := new(big.Int).Mul(token1, big.NewInt(997))
+	numerator := new(big.Int).Mul(amountInWithFee, p.Reserve0)
+	denominator := new(big.Int).Mul(p.Reserve1, big.NewInt(1000))
+	denominator = new(big.Int).Add(denominator, amountInWithFee)
+	if denominator.Cmp(big.NewInt(0)) == 0 {
+		log.Warn().Msg("denominator is 0")
+		return nil, errors.New("denominator is 0")
+	}
+	amountOut := new(big.Int).Div(numerator, denominator)
+	return amountOut, nil
 }
 
-func (p *UniswapV2Pair) GetPriceWithBaseUnit(addr string) (*big.Float, error) {
-	if p.Token0 == common.HexToAddress(addr) {
-		return p.GetToken0Price()
+func (p *UniswapV2Pair) GetQuoteUsingTokenAddr(addr string, amount *big.Int) (*big.Int, error) {
+	if addr == "0x0000000000000000000000000000000000000000" {
+		addr = WETH9ContractAddress
 	}
-	if p.Token1 == common.HexToAddress(addr) {
-		return p.GetToken1Price()
+	if p.Token0 == accounts.HexToAddress(addr) {
+		return p.GetQuoteToken0BuyToken1(amount)
 	}
-	return nil, errors.New("token not found")
+	if p.Token1 == accounts.HexToAddress(addr) {
+		return p.GetQuoteToken1BuyToken0(amount)
+	}
+	return nil, errors.New("GetQuoteUsingTokenAddr: token not found")
 }
 
-func (u *UniswapV2Client) GetPairContractPrices(ctx context.Context, pairContractAddr string) (UniswapV2Pair, error) {
+func (p *UniswapV2Pair) GetOppositeToken(addr string) accounts.Address {
+	if addr == "0x0000000000000000000000000000000000000000" {
+		addr = WETH9ContractAddress
+	}
+	if p.Token0 == accounts.HexToAddress(addr) {
+		return p.Token1
+	}
+	if p.Token1 == accounts.HexToAddress(addr) {
+		return p.Token0
+	}
+	log.Warn().Msgf("GetOppositeToken: token not found: %s", addr)
+	return accounts.Address{}
+}
+
+func (p *UniswapV2Pair) GetTokenNumber(addr accounts.Address) int {
+	if addr.String() == "0x0000000000000000000000000000000000000000" {
+		if p.Token0.String() == WETH9ContractAddress {
+			return 0
+		}
+		if p.Token1.String() == WETH9ContractAddress {
+			return 1
+		}
+	}
+	if p.Token0 == addr {
+		return 0
+	}
+	if p.Token1 == addr {
+		return 1
+	}
+	log.Warn().Msgf("GetTokenNumber: token not found: %s", addr)
+	return -1
+}
+
+func (u *UniswapClient) PairToPrices(ctx context.Context, pairAddr []accounts.Address) (UniswapV2Pair, error) {
+	if len(pairAddr) == 2 {
+		pairContractAddr := u.GetPairContractFromFactory(ctx, pairAddr[0].String(), pairAddr[1].String())
+		return u.GetPairContractPrices(ctx, pairContractAddr.String())
+	}
+	return UniswapV2Pair{}, errors.New("pair address length is not 2")
+}
+
+func (u *UniswapClient) GetPairContractPrices(ctx context.Context, pairContractAddr string) (UniswapV2Pair, error) {
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: pairContractAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
@@ -63,8 +164,8 @@ func (u *UniswapV2Client) GetPairContractPrices(ctx context.Context, pairContrac
 		Price0CumulativeLast: nil,
 		Price1CumulativeLast: nil,
 		KLast:                nil,
-		Token0:               common.Address{},
-		Token1:               common.Address{},
+		Token0:               accounts.Address{},
+		Token1:               accounts.Address{},
 		Reserve0:             nil,
 		Reserve1:             nil,
 		BlockTimestampLast:   nil,
@@ -119,63 +220,3 @@ func (u *UniswapV2Client) GetPairContractPrices(ctx context.Context, pairContrac
 	pairInfo.BlockTimestampLast = blockTimestampLast
 	return pairInfo, nil
 }
-
-func (u *UniswapV2Client) SingleReadMethodBigInt(ctx context.Context, methodName string, scInfo *web3_actions.SendContractTxPayload) (*big.Int, error) {
-	scInfo.MethodName = methodName
-	resp, err := u.Web3Client.CallConstantFunction(ctx, scInfo)
-	if err != nil {
-		return &big.Int{}, err
-	}
-	if len(resp) == 0 {
-		return &big.Int{}, errors.New("empty response")
-	}
-	bi, err := ParseBigInt(resp[0])
-	if err != nil {
-		return &big.Int{}, err
-	}
-	return bi, nil
-}
-
-func (u *UniswapV2Client) SingleReadMethodAddr(ctx context.Context, methodName string, scInfo *web3_actions.SendContractTxPayload) (common.Address, error) {
-	scInfo.MethodName = methodName
-	resp, err := u.Web3Client.CallConstantFunction(ctx, scInfo)
-	if err != nil {
-		return common.Address{}, err
-	}
-	if len(resp) == 0 {
-		return common.Address{}, errors.New("empty response")
-	}
-	addr, err := ConvertToAddress(resp[0])
-	if err != nil {
-		return common.Address{}, err
-	}
-	return addr, nil
-}
-
-// TODO
-// function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;
-/*
-  // if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
-    function _mintFee(uint112 _reserve0, uint112 _reserve1) private returns (bool feeOn) {
-        address feeTo = IUniswapV2Factory(factory).feeTo();
-        feeOn = feeTo != address(0);
-        uint _kLast = kLast; // gas savings
-        if (feeOn) {
-            if (_kLast != 0) {
-                uint rootK = Math.sqrt(uint(_reserve0).mul(_reserve1));
-                uint rootKLast = Math.sqrt(_kLast);
-                if (rootK > rootKLast) {
-                    uint numerator = totalSupply.mul(rootK.sub(rootKLast));
-                    uint denominator = rootK.mul(5).add(rootKLast);
-                    uint liquidity = numerator / denominator;
-                    if (liquidity > 0) _mint(feeTo, liquidity);
-                }
-            }
-        } else if (_kLast != 0) {
-            kLast = 0;
-        }
-    }
-*/
-// https://github.com/Uniswap/v2-core/blob/ee547b17853e71ed4e0101ccfd52e70d5acded58/contracts/UniswapV2Pair.sol#L26
-// get k value, x*y=k.
-//   uint public kLast; // reserve0 * reserve1, as of immediately after the most recent liquidity event

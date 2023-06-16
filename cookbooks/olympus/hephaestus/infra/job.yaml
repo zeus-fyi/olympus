@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: hephaestus
+spec:
+  template:
+    spec:
+      containers:
+        - name: "hephaestus"
+          image: "registry.digitalocean.com/zeus-fyi/hephaestus:latest"
+          volumeMounts:
+            - mountPath: "/scripts"
+              name: "cm-hephaestus"
+          imagePullPolicy: Always
+          command: [ "/bin/sh" ]
+          args: [ "-c","/scripts/start.sh" ]
+          env:
+            - name: AGE_PKEY
+              valueFrom:
+                secretKeyRef:
+                  name: age-auth
+                  key: age-private-key
+            - name: DO_SPACES_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: spaces-key
+                  key: do-spaces-key
+            - name: DO_SPACES_PKEY
+              valueFrom:
+                secretKeyRef:
+                  name: spaces-auth
+                  key: do-spaces-private-key
+          volumes:
+            - name: cm-hephaestus
+              configMap:
+                name: cm-hephaestus
+                defaultMode: 0744
+      restartPolicy: OnFailure
+  backoffLimit: 4

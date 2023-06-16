@@ -51,6 +51,21 @@ spec:
                 secretKeyRef:
                   name: spaces-auth
                   key: do-spaces-private-key
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aws-auth
+                  key: aws-access-key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws-auth
+                  key: aws-secret-key
+            - name: AWS_DEFAULT_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: aws-auth
+                  key: aws-default-region
           ports:
             - name: "http"
               containerPort: 9001

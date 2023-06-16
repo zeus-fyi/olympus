@@ -28,6 +28,7 @@ func ExternalDeployRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group 
 
 	// UPDATE
 	e.POST("/deploy/ui/update", deploy_updates.DeployUIClusterUpdateRequestHandler)
+	e.POST("/deploy/ui/update/fleet", deploy_updates.FleetUpgradeRequestHandler)
 
 	// DELETE
 	e.POST("/deploy/destroy", destroy_deploy_request.TopologyDestroyDeploymentHandler)
@@ -60,12 +61,15 @@ func InternalSecretsRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group
 
 func InternalDeployRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
+	e.POST("/deploy/cronjob", internal_deploy.DeployCronJobsHandler)
+	e.POST("/deploy/job", internal_deploy.DeployJobHandler)
 	e.POST("/deploy/namespace", internal_deploy.DeployNamespaceHandler)
 	e.POST("/deploy/deployment", internal_deploy.DeployDeploymentHandler)
 	e.POST("/deploy/statefulset", internal_deploy.DeployStatefulSetHandler)
 	e.POST("/deploy/configmap", internal_deploy.DeployConfigMapHandler)
 	e.POST("/deploy/service", internal_deploy.DeployServiceHandler)
 	e.POST("/deploy/ingress", internal_deploy.DeployIngressHandler)
+	e.POST("/deploy/dynamic/secrets", internal_deploy.DeployDynamicSecretsHandler)
 	e.POST("/deploy/choreography/secrets", internal_deploy.DeployChoreographySecretsHandler)
 	e.POST("/deploy/servicemonitor", internal_deploy.DeployServiceMonitorHandler)
 	return e
@@ -73,6 +77,8 @@ func InternalDeployRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group 
 
 func InternalDeployDestroyRoutes(e *echo.Group, k8Cfg autok8s_core.K8Util) *echo.Group {
 	zeus.K8Util = k8Cfg
+	e.POST("/deploy/destroy/cronjob", internal_destroy_deploy.DestroyCronJobHandler)
+	e.POST("/deploy/destroy/job", internal_destroy_deploy.DestroyJobHandler)
 	e.POST("/deploy/destroy/namespace", internal_destroy_deploy.DestroyDeployNamespaceHandler)
 	e.POST("/deploy/destroy/deployment", internal_destroy_deploy.DestroyDeployDeploymentHandler)
 	e.POST("/deploy/destroy/statefulset", internal_destroy_deploy.DestroyDeployStatefulSetHandler)

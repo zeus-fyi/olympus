@@ -82,7 +82,7 @@ func (s *NamespaceTestSuite) TestListK8Namespaces() {
 	//}
 
 	fmt.Println("=========== new context ===========")
-	s.K.SetContext("arn:aws:eks:us-west-1:480391564655:cluster/zeus-us-west-1")
+	s.K.SetContext("zeus-us-west-1")
 	nsl, err = s.K.GetNamespaces(ctx, zeus_common_types.CloudCtxNs{
 		CloudProvider: "",
 		Region:        "",

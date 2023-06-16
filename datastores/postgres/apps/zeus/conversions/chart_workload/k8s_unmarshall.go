@@ -7,6 +7,7 @@ import (
 	v1sm "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/rs/zerolog/log"
 	v1 "k8s.io/api/apps/v1"
+	v1Batch "k8s.io/api/batch/v1"
 	v1core "k8s.io/api/core/v1"
 	v1networking "k8s.io/api/networking/v1"
 )
@@ -23,6 +24,12 @@ func (nk *TopologyBaseInfraWorkload) DecodeBytes(jsonBytes []byte) error {
 	case "StatefulSet":
 		nk.StatefulSet = &v1.StatefulSet{}
 		err = json.Unmarshal(jsonBytes, nk.StatefulSet)
+	case "Job":
+		nk.Job = &v1Batch.Job{}
+		err = json.Unmarshal(jsonBytes, nk.Job)
+	case "CronJob":
+		nk.CronJob = &v1Batch.CronJob{}
+		err = json.Unmarshal(jsonBytes, nk.CronJob)
 	case "ConfigMap":
 		nk.ConfigMap = &v1core.ConfigMap{}
 		err = json.Unmarshal(jsonBytes, nk.ConfigMap)

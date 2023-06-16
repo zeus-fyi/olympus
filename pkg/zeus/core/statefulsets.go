@@ -3,6 +3,7 @@ package zeus_core
 import (
 	"context"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 	v1 "k8s.io/api/apps/v1"
@@ -26,7 +27,7 @@ func (k *K8Util) GetStatefulSet(ctx context.Context, kns zeus_common_types.Cloud
 	if err != nil {
 		return ss, err
 	}
-	_, err = k.K8Printer(ss, kns.Env)
+	//_, err = k.K8Printer(ss, kns.Env)
 	return ss, err
 }
 
@@ -51,6 +52,11 @@ func (k *K8Util) CreateStatefulSet(ctx context.Context, kns zeus_common_types.Cl
 	k.SetContext(kns.Context)
 	opts := metav1.CreateOptions{}
 	ss, err := k.kc.AppsV1().StatefulSets(kns.Namespace).Create(ctx, ss, opts)
+	alreadyExists := errors.IsAlreadyExists(err)
+	if alreadyExists {
+		log.Err(err).Interface("kns", kns).Msg("StatefulSet already exists, skipping creation")
+		return ss, nil
+	}
 	return ss, err
 }
 

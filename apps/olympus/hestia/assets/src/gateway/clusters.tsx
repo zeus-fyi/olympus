@@ -65,6 +65,27 @@ class ClustersApiGateway {
             return
         }
     }
+    async deployUpdateFleet(clusterClassName: any, appTaint: boolean): Promise<any>  {
+        const url = `/v1/deploy/ui/update/fleet`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`,
+                },
+                withCredentials: true,
+            }
+            const payload = {
+                clusterClassName: clusterClassName,
+                appTaint: appTaint,
+            }
+            return await zeusApi.post(url, payload, config)
+        } catch (exc) {
+            console.error('error sending cluster deploy fleet upgrade');
+            console.error(exc);
+            return
+        }
+    }
     async updateCluster(cluster: any, clusterPreview: any): Promise<any>  {
         const url = `/v1/infra/ui/cluster/update`;
         try {
@@ -88,6 +109,23 @@ class ClustersApiGateway {
     }
     async getClusters(): Promise<any>  {
         const url = `/v1/infra/read/org/topologies`;
+        try {
+            const sessionID = inMemoryJWT.getToken();
+            let config = {
+                headers: {
+                    'Authorization': `Bearer ${sessionID}`
+                },
+                withCredentials: true,
+            }
+            return await zeusApi.get(url, config)
+        } catch (exc) {
+            console.error('error sending cluster get request');
+            console.error(exc);
+            return
+        }
+    }
+    async getAppClustersView(): Promise<any>  {
+        const url = `/v1/infra/read/org/topologies/apps`;
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {

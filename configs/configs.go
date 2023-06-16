@@ -23,6 +23,7 @@ type TestURLs struct {
 type TestContainer struct {
 	Env string
 
+	HardhatNode                 string
 	AwsAccessKeyEks             string
 	AwsSecretKeyEks             string
 	InfraCostAPIKey             string
@@ -118,6 +119,8 @@ type TestContainer struct {
 	PagerDutyApiKey     string
 	PagerDutyRoutingKey string
 	AdminLoginPassword  string
+
+	EtherScanAPIKey string
 }
 
 type ArtemisHexKeys struct {
@@ -145,6 +148,7 @@ func forceDirToCallerLocation() string {
 
 func InitEnvFromConfig(dir string) {
 	viper.AddConfigPath(dir)
+	viper.SetConfigType("yaml") // for a YAML file
 	err := viper.ReadInConfig() // Find and read the config file
 	if err != nil {             // Handle errors reading the config file
 		panic(fmt.Errorf("Fatal error config file: %w \n", err))
@@ -168,6 +172,8 @@ func InitLocalTestConfigs() TestContainer {
 		log.Info().Err(err).Msg("error reading gcp auth json file")
 	}
 	testCont.GcpAuthJson = b
+	testCont.EtherScanAPIKey = viper.GetString("ETHERSCAN_API_KEY")
+	testCont.HardhatNode = viper.GetString("HARDHAT_NODE_URL")
 	testCont.TwitterAccessToken = viper.GetString("TWITTER_ACCESS_TOKEN_KEY")
 	testCont.TwitterAccessTokenSecret = viper.GetString("TWITTER_ACCESS_TOKEN_SECRET_KEY")
 

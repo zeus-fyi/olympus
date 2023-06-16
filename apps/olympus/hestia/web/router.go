@@ -52,6 +52,7 @@ func InitV1Routes(e *echo.Echo) {
 			return key.PublicKeyVerified, err
 		},
 	}))
+	eg.GET("/auth/status", hestia_access_keygen.AccessRequestHandler)
 	eg.GET("/api/key/create", hestia_access_keygen.AccessKeyGenRequestHandler)
 	eg.GET("/resources", hestia_resources.ResourceListRequestHandler)
 	eg.GET("/stripe/customer/id", hestia_billing.StripeBillingRequestHandler)

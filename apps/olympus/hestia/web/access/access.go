@@ -40,3 +40,18 @@ func (a *AccessKeyGenRequest) KeyGen(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, resp)
 }
+
+func AccessRequestHandler(c echo.Context) error {
+	request := new(AccessRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.AuthCheck(c)
+}
+
+type AccessRequest struct {
+}
+
+func (a *AccessRequest) AuthCheck(c echo.Context) error {
+	return c.JSON(http.StatusOK, nil)
+}

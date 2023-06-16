@@ -5,8 +5,10 @@ import clusterBuilderReducer from './clusters/clusters.builder.reducer';
 import appsReducer from "./apps/apps.reducer";
 import billingReducer from "./billing/billing.reducer";
 import resourcesReducer from "./resources/resources.reducer";
+import sessionReducer from "./auth/session.reducer";
 
 const rootReducer = combineReducers({
+    sessionState: sessionReducer,
     apps: appsReducer,
     resources: resourcesReducer,
     clusterBuilder: clusterBuilderReducer,

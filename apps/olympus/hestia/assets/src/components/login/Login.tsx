@@ -15,9 +15,7 @@ import {LOGIN_FAIL, LOGIN_SUCCESS,} from "../../redux/auth/auth.types";
 import {ZeusCopyright} from "../copyright/ZeusCopyright";
 import Link from "@mui/material/Link";
 import {CircularProgress} from "@mui/material";
-
-const ethImage = require("../../static/eth.png")
-
+import {setSessionAuth} from "../../redux/auth/session.reducer";
 
 const theme = createTheme();
 
@@ -60,13 +58,16 @@ const Login = () => {
             const statusCode = res.status;
             if (statusCode === 200 || statusCode === 204) {
                 setRequestStatus('success');
+                dispatch(setSessionAuth(true))
                 dispatch({type: 'LOGIN_SUCCESS', payload: res.data})
                 navigate('/dashboard');
             } else {
+                dispatch(setSessionAuth(false))
                 dispatch({type: 'LOGIN_FAIL', payload: res.data})
                 setRequestStatus('error');
             }
         } catch (e) {
+            dispatch(setSessionAuth(false))
             setRequestStatus('error');
         }
     }

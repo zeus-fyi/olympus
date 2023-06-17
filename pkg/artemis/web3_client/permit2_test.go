@@ -1,79 +1,150 @@
 package web3_client
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 )
 
-func (s *Web3ClientTestSuite) TestPermit2TransferSubmission() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
-	wethAddress := accounts.HexToAddress(WETH9ContractAddress)
-	spender := accounts.HexToAddress(UniswapUniversalRouterAddress)
+const (
+	maxUINT = "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+)
 
-	err := s.LocalHardhatMainnetUser.SetERC20BalanceBruteForce(ctx, wethAddress.String(), s.LocalMainnetWeb3User.PublicKey(), TenThousandEther)
-	s.Require().Nil(err)
-
-	uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
-	tx, err := uni.ApproveSpender(ctx, WETH9ContractAddress, Permit2SmartContractAddress, TenThousandEther)
-	s.Assert().NoError(err)
-	s.Assert().NotNil(tx)
-
-	expiration, _ := new(big.Int).SetString("16785444080", 10)
-	sigDeadline, _ := new(big.Int).SetString("16759542080", 10)
+func (s *Web3ClientTestSuite) TestCopyPermitTest() {
+	expiration, _ := new(big.Int).SetString("3000000000000", 10)
+	sigDeadline, _ := new(big.Int).SetString("3000000000000", 10)
 	pp := Permit2PermitParams{
 		PermitSingle: PermitSingle{
 			PermitDetails: PermitDetails{
-				TokenPermissions: TokenPermissions{
-					Token:  wethAddress,
-					Amount: EtherMultiple(1),
-				},
+				Token:      accounts.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
+				Amount:     new(big.Int).SetUint64(1000000000),
 				Expiration: expiration,
 				Nonce:      new(big.Int).SetUint64(0),
 			},
-			Spender:     spender,
+			Spender:     accounts.HexToAddress("0xe808c1cfeebb6cb36b537b82fa7c9eef31415a05"),
 			SigDeadline: sigDeadline,
 		},
 		Signature: nil,
 	}
 
-	err = pp.Sign(s.LocalHardhatMainnetUser.Account, chainID, spender)
+	permitAddress := "0x4a873bdd49f7f9cc0a5458416a12973fab208f8d"
+	err := pp.Sign(s.LocalHardhatMainnetUser.Account, chainID, accounts.HexToAddress(permitAddress), "Permit2")
+	s.Require().Nil(err)
+	s.Require().NotNil(pp.Signature)
+
+	hashed := hashPermitSingle(pp.PermitSingle)
+	eip := NewEIP712(chainID, accounts.HexToAddress(permitAddress), "Permit2")
+	hashed = eip.HashTypedData(hashed)
+
+	err = pp.Sign(s.LocalHardhatMainnetUser.Account, chainID, accounts.HexToAddress(permitAddress), "Permit2")
+	s.Require().Nil(err)
+
+	verified, err := s.LocalHardhatMainnetUser.VerifySignature(s.LocalHardhatMainnetUser.Address(), hashed.Bytes(), pp.Signature)
+	s.Require().Nil(err)
+	s.Require().True(verified)
+
+	// this is why solidity and its idiotic js ecosystem is fucking stupid
+	pp.Signature[64] += 27
+	fmt.Println(common.Bytes2Hex(pp.Signature))
+	jsSig := "1a622a5fb555e46f58b11ace6176bfc6d1f8ac4be3711612e5f89027de9aae96490d65fc3dce716c08cef58f1d78856fa0a50d13512cd207206d7aca11017ed11b"
+	s.Equal(jsSig, common.Bytes2Hex(pp.Signature))
+}
+
+func (s *Web3ClientTestSuite) TestPermit2TransferSubmission() {
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+
+	node := "https://virulent-alien-cloud.quiknode.pro/fa84e631e9545d76b9e1b1c5db6607fedf3cb654"
+	err := s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, node, 17461010)
+	s.Require().Nil(err)
+	uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
+	wethAddress := accounts.HexToAddress(WETH9ContractAddress)
+	permit2Address := accounts.HexToAddress(Permit2SmartContractAddress)
+
+	fmt.Println(permit2Address.String())
+	err = s.LocalHardhatMainnetUser.SetERC20BalanceBruteForce(ctx, wethAddress.String(), s.LocalHardhatMainnetUser.PublicKey(), EtherMultiple(10000000))
+	s.Require().Nil(err)
+
+	bal, err := s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, wethAddress.String(), s.LocalHardhatMainnetUser.PublicKey())
+	s.Require().Nil(err)
+	s.Require().NotNil(bal)
+	fmt.Println(bal.String())
+	fmt.Println(s.HostedHardhatMainnetUser.PublicKey())
+	bal, err = s.LocalHardhatMainnetUser.GetBalance(ctx, s.LocalHardhatMainnetUser.PublicKey(), nil)
+	s.Require().Nil(err)
+	s.Require().NotNil(bal)
+	fmt.Println(bal.String())
+	nbal := hexutil.Big{}
+	bigInt := nbal.ToInt()
+	bigInt.Set(EtherMultiple(10000000))
+	nbal = hexutil.Big(*bigInt)
+	err = s.LocalHardhatMainnetUser.SetBalance(ctx, s.LocalHardhatMainnetUser.PublicKey(), nbal)
+	s.Require().Nil(err)
+	bal, err = s.LocalHardhatMainnetUser.GetBalance(ctx, s.LocalHardhatMainnetUser.PublicKey(), nil)
+	s.Require().Nil(err)
+	s.Require().NotNil(bal)
+	fmt.Println(bal.String())
+	max, _ := new(big.Int).SetString(maxUINT, 10)
+	expiration, _ := new(big.Int).SetString("1785444080", 10)
+	sigDeadline, _ := new(big.Int).SetString("1785444080", 10)
+
+	tx, err := uni.ApproveSpender(ctx, WETH9ContractAddress, WETH9ContractAddress, max)
 	s.Assert().NoError(err)
-	s.Assert().NotNil(pp.Signature)
+	s.Assert().NotNil(tx)
+	bal, err = s.LocalHardhatMainnetUser.ReadERC20Allowance(ctx, wethAddress.String(), s.LocalHardhatMainnetUser.PublicKey(), Permit2SmartContractAddress)
+	s.Assert().NoError(err)
+	s.Assert().NotNil(bal)
+	fmt.Println(bal.String())
+	s.Require().Equal(max, bal)
 
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: Permit2SmartContractAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
 		ContractABI:       MustLoadPermit2Abi(),
-		MethodName:        permit0,
-		Params:            []interface{}{s.LocalHardhatMainnetUser.Account.Address(), pp.PermitDetails, pp.Signature},
+		MethodName:        "approve",
+		Params:            []interface{}{wethAddress, urAddr, max, sigDeadline},
 	}
+	scInfo.GasLimit = 3000000
 	tx, err = s.LocalHardhatMainnetUser.SignAndSendSmartContractTxPayload(ctx, scInfo)
 	s.Assert().NoError(err)
 	s.Assert().NotNil(tx)
 
-	/*
-		Transfer approved tokens from one address to another
-		Requires the from address to have approved at least the desired amount of tokens to msg.sender.
-		from := ""
-		to := ""
-		amount := ""
-		token := ""
-	*/
+	name, err := s.LocalHardhatMainnetUser.ReadERC20TokenName(ctx, wethAddress.String())
+	s.Assert().NoError(err)
+	s.Assert().Equal("Wrapped Ether", name)
 
-	//scInfo = &web3_actions.SendContractTxPayload{
-	//	SmartContractAddr: Permit2SmartContractAddress,
-	//	SendEtherPayload:  web3_actions.SendEtherPayload{},
-	//	ContractABI:       MustLoadPermit2Abi(),
-	//	MethodName:        transferFrom0,
-	//	Params:            []interface{}{s.LocalHardhatMainnetUser.Account.Address(), spender, pp.Amount, pp.Token},
-	//}
-	//tx, err = s.LocalHardhatMainnetUser.SignAndSendSmartContractTxPayload(ctx, scInfo)
-	//s.Assert().NoError(err)
-	//s.Assert().NotNil(tx)
+	pp := Permit2PermitParams{
+		PermitSingle: PermitSingle{
+			PermitDetails: PermitDetails{
+				Token:      wethAddress,
+				Amount:     EtherMultiple(1),
+				Expiration: expiration,
+				Nonce:      new(big.Int).SetUint64(0),
+			},
+			Spender:     urAddr,
+			SigDeadline: sigDeadline,
+		},
+		Signature: nil,
+	}
+
+	err = pp.Sign(s.LocalHardhatMainnetUser.Account, chainID, wethAddress, name)
+	s.Assert().NoError(err)
+	s.Assert().NotNil(pp.Signature)
+
+	scInfo = &web3_actions.SendContractTxPayload{
+		SmartContractAddr: Permit2SmartContractAddress,
+		SendEtherPayload:  web3_actions.SendEtherPayload{},
+		ContractABI:       MustLoadPermit2Abi(),
+		MethodName:        permit0,
+		Params:            []interface{}{s.LocalHardhatMainnetUser.Account.Address().String(), pp.PermitSingle, pp.Signature},
+	}
+	tx, err = s.LocalHardhatMainnetUser.SignAndSendSmartContractTxPayload(ctx, scInfo)
+	s.Assert().NoError(err)
+	s.Assert().NotNil(tx)
 }
 
 func (s *Web3ClientTestSuite) TestPermit2Transfer() {
@@ -101,10 +172,8 @@ func (s *Web3ClientTestSuite) TestPermit2() {
 	pp := Permit2PermitParams{
 		PermitSingle: PermitSingle{
 			PermitDetails: PermitDetails{
-				TokenPermissions: TokenPermissions{
-					Token:  accounts.HexToAddress("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"),
-					Amount: amount,
-				},
+				Token:      accounts.HexToAddress("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"),
+				Amount:     amount,
 				Expiration: expiration,
 				Nonce:      new(big.Int).SetUint64(0),
 			},
@@ -130,7 +199,7 @@ func (s *Web3ClientTestSuite) TestPermit2() {
 	s.NoError(err)
 	s.True(verified)
 
-	err = pp.Sign(s.LocalHardhatMainnetUser.Account, chainID, accounts.HexToAddress("0xCe71065D4017F316EC606Fe4422e11eB2c47c246"))
+	err = pp.Sign(s.LocalHardhatMainnetUser.Account, chainID, accounts.HexToAddress("0xCe71065D4017F316EC606Fe4422e11eB2c47c246"), "Permit2")
 	s.NoError(err)
 	s.Equal(sig, pp.Signature)
 }

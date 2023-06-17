@@ -78,16 +78,16 @@ func (p *Permit2TransferFromParams) Decode(ctx context.Context, data []byte) err
 }
 
 type Permit2PermitParams struct {
-	PermitSingle `json:"permitSingle"`
+	PermitSingle `abi:"permitSingle"`
 	Signature    []byte `json:"signature"`
 }
 
-func (p *Permit2PermitParams) Sign(acc *accounts.Account, chainID *big.Int, contractAddress accounts.Address) error {
+func (p *Permit2PermitParams) Sign(acc *accounts.Account, chainID *big.Int, contractAddress accounts.Address, name string) error {
 	if acc == nil {
 		return errors.New("account is nil")
 	}
 	hashed := hashPermitSingle(p.PermitSingle)
-	eip := NewEIP712ForPermit2(chainID, contractAddress)
+	eip := NewEIP712(chainID, contractAddress, name)
 	hashed = eip.HashTypedData(hashed)
 	sig, err := acc.Sign(hashed.Bytes())
 	if err != nil {
@@ -101,26 +101,27 @@ func (p *Permit2PermitParams) Sign(acc *accounts.Account, chainID *big.Int, cont
 
 type PermitTransferFrom struct {
 	TokenPermissions
-	Expiration  *big.Int `json:"expiration"`  // uint48 can be represented as uint64 in Go
-	Nonce       *big.Int `json:"nonce"`       // uint48 can be represented as uint64 in Go
-	SigDeadline *big.Int `json:"sigDeadline"` // uint48 can be represented as uint64 in Go
+	Expiration  *big.Int `abi:"expiration"`  // uint48 can be represented as uint64 in Go
+	Nonce       *big.Int `abi:"nonce"`       // uint48 can be represented as uint64 in Go
+	SigDeadline *big.Int `abi:"sigDeadline"` // uint48 can be represented as uint64 in Go
 }
 
 type PermitSingle struct {
-	PermitDetails `json:"permitDetails"`
-	Spender       accounts.Address `json:"spender"`
-	SigDeadline   *big.Int         `json:"sigDeadline"` // uint48 can be represented as uint64 in Go
+	PermitDetails `abi:"details"`
+	Spender       accounts.Address `abi:"spender"`
+	SigDeadline   *big.Int         `abi:"sigDeadline"` // uint48 can be represented as uint64 in Go
 }
 
 type TokenPermissions struct {
-	Token  accounts.Address `json:"token"`
-	Amount *big.Int         `json:"amount"` // uint160 can be represented as *big.Int in Go
+	Token  accounts.Address `abi:"token"`
+	Amount *big.Int         `abi:"amount"` // uint160 can be represented as *big.Int in Go
 }
 
 type PermitDetails struct {
-	TokenPermissions `json:"permitted"`
-	Expiration       *big.Int `json:"expiration"` // uint48 can be represented as uint64 in Go
-	Nonce            *big.Int `json:"nonce"`      // uint48 can be represented as uint64 in Go
+	Token      accounts.Address `abi:"token"`
+	Amount     *big.Int         `abi:"amount"`     // uint160 can be represented as *big.Int in Go
+	Expiration *big.Int         `abi:"expiration"` // uint48 can be represented as uint64 in Go
+	Nonce      *big.Int         `abi:"nonce"`      // uint48 can be represented as uint64 in Go
 }
 
 func (p *Permit2PermitParams) Encode(ctx context.Context) ([]byte, error) {

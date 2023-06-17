@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
@@ -23,11 +24,11 @@ func (w *Web3Client) ERC20ApproveSpender(ctx context.Context, scAddr, spenderAdd
 		SmartContractAddr: scAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
 		ContractABI:       abiFile,
-		Params:            []interface{}{spenderAddr, amount},
+		Params:            []interface{}{accounts.HexToAddress(spenderAddr), amount},
 	}
 	tx, err := w.ApproveSpenderERC20Token(ctx, payload)
 	if err != nil {
-		fmt.Println("error", err)
+		log.Err(err).Msg("failed to approve spender")
 		return tx, err
 	}
 	return tx, err

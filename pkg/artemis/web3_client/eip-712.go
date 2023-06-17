@@ -19,8 +19,8 @@ type EIP712 struct {
 	typeHash              common.Hash
 }
 
-func NewEIP712ForPermit2(chainID *big.Int, contractAddress accounts.Address) *EIP712 {
-	hashedName := crypto.Keccak256Hash([]byte("Permit2"))
+func NewEIP712(chainID *big.Int, contractAddress accounts.Address, name string) *EIP712 {
+	hashedName := crypto.Keccak256Hash([]byte(name))
 	typeHash := crypto.Keccak256Hash([]byte("EIP712Domain(string name,uint256 chainId,address verifyingContract)"))
 
 	return &EIP712{
@@ -29,6 +29,10 @@ func NewEIP712ForPermit2(chainID *big.Int, contractAddress accounts.Address) *EI
 		hashedName:            hashedName,
 		typeHash:              typeHash,
 	}
+}
+
+func NewEIP712ForPermit2(chainID *big.Int, contractAddress accounts.Address) *EIP712 {
+	return NewEIP712(chainID, contractAddress, "Permit2")
 }
 
 func buildDomainSeparator(typeHash common.Hash, nameHash common.Hash, chainID *big.Int, contractAddress accounts.Address) common.Hash {

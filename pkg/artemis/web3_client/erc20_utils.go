@@ -22,16 +22,16 @@ func (w *Web3Client) ERC20ApproveSpender(ctx context.Context, scAddr, spenderAdd
 	abiFile := MustLoadERC20Abi()
 	payload := web3_actions.SendContractTxPayload{
 		SmartContractAddr: scAddr,
+		MethodName:        "approve",
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
 		ContractABI:       abiFile,
 		Params:            []interface{}{accounts.HexToAddress(spenderAddr), amount},
 	}
-	tx, err := w.ApproveSpenderERC20Token(ctx, payload)
+	signedTx, err := w.CallFunctionWithArgs(ctx, &payload)
 	if err != nil {
-		log.Err(err).Msg("failed to approve spender")
-		return tx, err
+		return nil, err
 	}
-	return tx, err
+	return signedTx, err
 }
 
 func (w *Web3Client) FindSlotFromUserWithBalance(ctx context.Context, scAddr, userAddr string) (int, string, error) {

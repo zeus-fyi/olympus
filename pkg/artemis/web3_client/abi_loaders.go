@@ -45,7 +45,7 @@ func MustLoadPermit2Abi() *abi.ABI {
 }
 
 func MustLoadERC20Abi() *abi.ABI {
-	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.ERC20ABI))
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.Erc20Abi))
 	if err != nil {
 		panic(err)
 	}

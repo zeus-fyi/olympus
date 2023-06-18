@@ -11,6 +11,11 @@ import (
 )
 
 // encodes a single exactInput USDC->ETH swap with permit
+func (s *Web3ClientTestSuite) TestV2EthToUsdcSwapWithPermitExec() {
+
+}
+
+// encodes a single exactInput USDC->ETH swap with permit
 func (s *Web3ClientTestSuite) TestV2EthToUsdcSwapWithPermit() {
 	expiration, _ := new(big.Int).SetString("3000000000000", 10)
 	sigDeadline, _ := new(big.Int).SetString("3000000000000", 10)
@@ -73,7 +78,7 @@ func (s *Web3ClientTestSuite) TestV2EthToUsdcSwapWithPermit() {
 		CanRevert:     false,
 		DecodedInputs: pp,
 	}
-
+	// export const TEST_RECIPIENT_ADDRESS = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
 	uwEthParams := UnwrapWETHParams{
 		Recipient: accounts.HexToAddress("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
 		AmountMin: amountOut,
@@ -123,6 +128,7 @@ func (s *Web3ClientTestSuite) TestV2EthToUsdcSwapWithPermit() {
 		"bba9e3f61"
 
 	s.Require().Equal(expCallData, common.Bytes2Hex(signedTx.Data()))
+
 }
 func (s *Web3ClientTestSuite) TestUniversalRouterV2() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)

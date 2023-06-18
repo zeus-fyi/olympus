@@ -72,7 +72,7 @@ type UniswapClient struct {
 }
 
 func InitUniswapClient(ctx context.Context, w Web3Client) UniswapClient {
-	erc20AbiFile, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.ERC20ABI))
+	erc20AbiFile, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.Erc20Abi))
 	if err != nil {
 		panic(err)
 	}

@@ -45,10 +45,17 @@ func (s *Web3ClientTestSuite) TestDeployContract() {
 	s.Assert().Nil(err)
 	s.Assert().NotNil(rx)
 
-	b, err := s.LocalMainnetWeb3User.ReadERC20TokenBalance(ctx, rx.ContractAddress.String(), s.LocalHardhatMainnetUser.PublicKey())
+	b, err := s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, rx.ContractAddress.String(), s.LocalHardhatMainnetUser.PublicKey())
 	s.Require().Nil(err)
 	s.Assert().NotZero(b)
 	s.Assert().Equal(mintAmount.String(), b.String())
+
+	b, err = s.LocalHardhatMainnetUser.GetBalance(ctx, s.LocalHardhatMainnetUser.PublicKey(), nil)
+	s.Require().Nil(err)
+	s.Assert().NotZero(b)
+
+	s.Require().Nil(err)
+	s.Assert().NotNil(tx)
 }
 
 func (s *Web3ClientTestSuite) TestDeployUniswapFactoryContract() {

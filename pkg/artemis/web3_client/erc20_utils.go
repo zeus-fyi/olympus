@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
@@ -21,16 +22,16 @@ func (w *Web3Client) ERC20ApproveSpender(ctx context.Context, scAddr, spenderAdd
 	abiFile := MustLoadERC20Abi()
 	payload := web3_actions.SendContractTxPayload{
 		SmartContractAddr: scAddr,
+		MethodName:        "approve",
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
 		ContractABI:       abiFile,
-		Params:            []interface{}{spenderAddr, amount},
+		Params:            []interface{}{accounts.HexToAddress(spenderAddr), amount},
 	}
-	tx, err := w.ApproveSpenderERC20Token(ctx, payload)
+	signedTx, err := w.CallFunctionWithArgs(ctx, &payload)
 	if err != nil {
-		fmt.Println("error", err)
-		return tx, err
+		return nil, err
 	}
-	return tx, err
+	return signedTx, err
 }
 
 func (w *Web3Client) FindSlotFromUserWithBalance(ctx context.Context, scAddr, userAddr string) (int, string, error) {

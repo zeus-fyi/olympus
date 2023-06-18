@@ -1,0 +1,81 @@
+{
+  "currentBlockNumber": 17432994,
+  "tx": {
+    "type": "0x2",
+    "chainId": "0x1",
+    "nonce": "0x6c",
+    "to": "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+    "gas": "0x2a3fd",
+    "gasPrice": null,
+    "maxPriorityFeePerGas": "0x184253c0",
+    "maxFeePerGas": "0x733925880",
+    "value": "0xf8b0a10e470000",
+    "input": "0x7ff36ab5000000000000000000000000000000000000000a0844f49fbddfd8880e052e4a00000000000000000000000000000000000000000000000000000000000000800000000000000000000000004441848cb5aec99a6fe09f151b19e599918d185800000000000000000000000000000000000000000000000000000000648155030000000000000000000000000000000000000000000000000000000000000002000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc20000000000000000000000001a94124ed71c2459f398c334b8be9b5dd75220d9",
+    "accessList": [],
+    "v": "0x0",
+    "r": "0x5447b17df5432b9a6590d1d937820a0b0b0cba01b624cab0a8cc3f54b9d07588",
+    "s": "0x5f7ae5c44212ad9e64760b19a6eeb129ded096e0192aef72ca9b0f77e0397191",
+    "hash": "0x7d8ccddf7b4109a989e3d3a6e8a95dca018f26b412cdb78a83d86a6aab8ba030"
+  },
+  "trade": {
+    "tradeMethod": "swapExactETHForTokens",
+    "swapExactETHForTokensParams": {
+      "amountOutMin": "794840867381083951454205849162",
+      "path": [
+        "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+        "0x1a94124ed71c2459f398c334b8be9b5dd75220d9"
+      ],
+      "to": "0x4441848cb5aec99a6fe09f151b19e599918d1858",
+      "value": "70000000000000000",
+      "deadline": "1686197507"
+    }
+  },
+  "initialPair": {
+    "pairContractAddr": "0xf3867885c47f5b4363908E77Fa734e39ACe87eDf",
+    "price0CumulativeLast": "1354928263674398346619132248",
+    "price1CumulativeLast": "18797738510659038494353624724184829729182236560126800",
+    "kLast": "0",
+    "token0": "0x1a94124ed71c2459f398c334b8be9b5dd75220d9",
+    "token1": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "reserve0": "216926775450520337933383702772005",
+    "reserve1": "18422425491009193291",
+    "blockTimestampLast": "1686195659"
+  },
+  "frontRunTrade": {
+    "amountIn": "69999999999999504",
+    "amountInAddr": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "amountFees": "2472752764762728455967942323",
+    "amountOut": "818686093402510690915085767128",
+    "amountOutAddr": "0x1a94124ed71c2459f398c334b8be9b5dd75220d9",
+    "startReservesToken0": "216926775450520337933383702772005",
+    "startReservesToken1": "18422425491009193291",
+    "endReservesToken0": "216108089357117827242468617004877",
+    "endReservesToken1": "18492425491009192795"
+  },
+  "userTrade": {
+    "amountIn": "70000000000000000",
+    "amountInAddr": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "amountFees": "2454095782456699898918692234",
+    "amountOut": "812520658621729165626779450580",
+    "amountOutAddr": "0x1a94124ed71c2459f398c334b8be9b5dd75220d9",
+    "startReservesToken0": "216108089357117827242468617004877",
+    "startReservesToken1": "18492425491009192795",
+    "endReservesToken0": "215295568698496098076841837554297",
+    "endReservesToken1": "18562425491009192795"
+  },
+  "sandwichTrade": {
+    "amountIn": "818686093402510690915085767128",
+    "amountInAddr": "0x1a94124ed71c2459f398c334b8be9b5dd75220d9",
+    "amountFees": "211754840200843",
+    "amountOut": "70108200011592626",
+    "amountOutAddr": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "startReservesToken0": "215295568698496098076841837554297",
+    "startReservesToken1": "18562425491009192795",
+    "endReservesToken0": "216114254791898608767756923321425",
+    "endReservesToken1": "18492317290997600169"
+  },
+  "sandwichPrediction": {
+    "sellAmount": "69999999999999504",
+    "expectedProfit": "108200011593122"
+  }
+}

@@ -114,6 +114,12 @@ func (w *WrapETHParams) Encode(ctx context.Context) ([]byte, error) {
 	return inputs, nil
 }
 
+type TransferParams struct {
+	Token     accounts.Address `json:"token"`
+	Recipient accounts.Address `json:"recipient"`
+	Value     *big.Int         `json:"value"`
+}
+
 func (t *TransferParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
 	err := UniversalRouterDecoderAbi.Methods[Transfer].Inputs.UnpackIntoMap(args, data)
@@ -144,12 +150,6 @@ func (t *TransferParams) Encode(ctx context.Context) ([]byte, error) {
 		return nil, err
 	}
 	return inputs, nil
-}
-
-type TransferParams struct {
-	Token     accounts.Address `json:"token"`
-	Recipient accounts.Address `json:"recipient"`
-	Value     *big.Int         `json:"value"`
 }
 
 type PayPortionParams struct {

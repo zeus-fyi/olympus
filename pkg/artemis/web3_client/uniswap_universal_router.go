@@ -11,6 +11,9 @@ import (
 const (
 	execute0 = "execute0"
 	execute  = "execute"
+
+	universalRouterSender    = "0x0000000000000000000000000000000000000001"
+	universalRouterRecipient = "0x0000000000000000000000000000000000000002"
 )
 
 type UniversalRouterExecCmd struct {

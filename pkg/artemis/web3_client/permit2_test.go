@@ -91,11 +91,7 @@ func (s *Web3ClientTestSuite) TestPermit2TransferSubmission() {
 	expiration, _ := new(big.Int).SetString("1785444080", 10)
 	sigDeadline, _ := new(big.Int).SetString("1785444080", 10)
 
-	tx, err := uni.ApproveSpender(ctx, WETH9ContractAddress, UniswapUniversalRouterAddress, max)
-	s.Assert().NoError(err)
-	s.Assert().NotNil(tx)
-
-	tx, err = uni.ApproveSpender(ctx, WETH9ContractAddress, Permit2SmartContractAddress, max)
+	tx, err := uni.ApproveSpender(ctx, WETH9ContractAddress, Permit2SmartContractAddress, max)
 	s.Assert().NoError(err)
 	s.Assert().NotNil(tx)
 	bal, err = s.LocalHardhatMainnetUser.ReadERC20Allowance(ctx, wethAddress.String(), s.LocalHardhatMainnetUser.PublicKey(), Permit2SmartContractAddress)

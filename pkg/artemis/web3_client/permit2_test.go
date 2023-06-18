@@ -48,10 +48,7 @@ func (s *Web3ClientTestSuite) TestCopyPermitTest() {
 	s.Require().Nil(err)
 	s.Require().True(verified)
 
-	// this is why solidity and its idiotic js ecosystem is fucking stupid
-	pp.Signature[64] += 27
-	fmt.Println(common.Bytes2Hex(pp.Signature))
-	jsSig := "1a622a5fb555e46f58b11ace6176bfc6d1f8ac4be3711612e5f89027de9aae96490d65fc3dce716c08cef58f1d78856fa0a50d13512cd207206d7aca11017ed11b"
+	jsSig := "1a622a5fb555e46f58b11ace6176bfc6d1f8ac4be3711612e5f89027de9aae96490d65fc3dce716c08cef58f1d78856fa0a50d13512cd207206d7aca11017ed100"
 	s.Equal(jsSig, common.Bytes2Hex(pp.Signature))
 }
 

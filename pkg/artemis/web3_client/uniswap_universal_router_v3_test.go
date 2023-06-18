@@ -2,8 +2,10 @@ package web3_client
 
 import (
 	"fmt"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
@@ -73,7 +75,65 @@ func (s *Web3ClientTestSuite) TestUniversalRouterV3ExactOut() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(subCmds)
 
-	for _, val := range subCmds.Commands {
-		fmt.Println(val.Command)
+	amountIn := ""
+	for _, cmd := range subCmds.Commands {
+		fmt.Println(cmd.Command)
+		if cmd.Command == WrapETH {
+			dec := cmd.DecodedInputs.(WrapETHParams)
+			fmt.Println("recipient", dec.Recipient.String())
+			fmt.Println("amountMin", dec.AmountMin.String())
+			amountIn = dec.AmountMin.String()
+		}
+		if cmd.Command == V2SwapExactOut {
+			dec := cmd.DecodedInputs.(V2SwapExactOutParams)
+			for _, pa := range dec.Path {
+				fmt.Println(pa)
+			}
+			fmt.Println("to", dec.To.String())
+			fmt.Println("payerIsSender", dec.PayerIsSender)
+			fmt.Println("amountOut", dec.AmountOut.String())
+			fmt.Println("amountInMax", dec.AmountInMax.String())
+			cmd.CanRevert = false
+		}
+		if cmd.Command == V3SwapExactOut {
+			// TODO fix this broken encoder
+			dec := cmd.DecodedInputs.(V3SwapExactOutParams)
+			for _, pa := range dec.Path.Path {
+				fmt.Println(pa)
+			}
+			fmt.Println("to", dec.To.String())
+			fmt.Println("payerIsUser", dec.PayerIsUser)
+			fmt.Println("amountOut", dec.AmountOut.String())
+			fmt.Println("amountInMax", dec.AmountInMax.String())
+			cmd.CanRevert = false
+		}
+		if cmd.Command == UnwrapWETH {
+			dec := cmd.DecodedInputs.(UnwrapWETHParams)
+			fmt.Println("recipient", dec.Recipient.String())
+			fmt.Println("amountMin", dec.AmountMin.String())
+
+			cmd.CanRevert = false
+		}
 	}
+	pl, _ := new(big.Int).SetString(amountIn, 10)
+	wethParams := WrapETHParams{
+		Recipient: s.LocalHardhatMainnetUser.Address(),
+		AmountMin: pl,
+	}
+	payable := &web3_actions.SendEtherPayload{
+		TransferArgs: web3_actions.TransferArgs{
+			Amount:    pl,
+			ToAddress: wethParams.Recipient,
+		},
+		GasPriceLimits: web3_actions.GasPriceLimits{},
+	}
+	subCmds.Payable = payable
+	data, err := subCmds.EncodeCommands(ctx)
+	s.Require().Nil(err)
+	s.Require().NotNil(data)
+
+	scInfo := GetUniswapUniversalRouterAbiPayload(data)
+	signedTx, err := s.LocalHardhatMainnetUser.CallFunctionWithArgs(ctx, &scInfo)
+	s.Require().Nil(err)
+	s.Require().NotNil(signedTx)
 }

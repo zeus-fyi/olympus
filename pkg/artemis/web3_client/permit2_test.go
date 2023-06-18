@@ -87,31 +87,21 @@ func (s *Web3ClientTestSuite) TestPermit2TransferSubmission() {
 	bal, err = s.LocalHardhatMainnetUser.GetBalance(ctx, s.LocalHardhatMainnetUser.PublicKey(), nil)
 	s.Require().Nil(err)
 	s.Require().NotNil(bal)
-	fmt.Println(bal.String())
 	max, _ := new(big.Int).SetString(maxUINT, 10)
 	expiration, _ := new(big.Int).SetString("1785444080", 10)
 	sigDeadline, _ := new(big.Int).SetString("1785444080", 10)
 
-	tx, err := uni.ApproveSpender(ctx, WETH9ContractAddress, WETH9ContractAddress, max)
+	tx, err := uni.ApproveSpender(ctx, WETH9ContractAddress, UniswapUniversalRouterAddress, max)
+	s.Assert().NoError(err)
+	s.Assert().NotNil(tx)
+
+	tx, err = uni.ApproveSpender(ctx, WETH9ContractAddress, Permit2SmartContractAddress, max)
 	s.Assert().NoError(err)
 	s.Assert().NotNil(tx)
 	bal, err = s.LocalHardhatMainnetUser.ReadERC20Allowance(ctx, wethAddress.String(), s.LocalHardhatMainnetUser.PublicKey(), Permit2SmartContractAddress)
 	s.Assert().NoError(err)
 	s.Assert().NotNil(bal)
-	fmt.Println(bal.String())
 	s.Require().Equal(max, bal)
-
-	scInfo := &web3_actions.SendContractTxPayload{
-		SmartContractAddr: Permit2SmartContractAddress,
-		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       MustLoadPermit2Abi(),
-		MethodName:        "approve",
-		Params:            []interface{}{wethAddress, urAddr, max, sigDeadline},
-	}
-	scInfo.GasLimit = 3000000
-	tx, err = s.LocalHardhatMainnetUser.SignAndSendSmartContractTxPayload(ctx, scInfo)
-	s.Assert().NoError(err)
-	s.Assert().NotNil(tx)
 
 	name, err := s.LocalHardhatMainnetUser.ReadERC20TokenName(ctx, wethAddress.String())
 	s.Assert().NoError(err)
@@ -131,11 +121,12 @@ func (s *Web3ClientTestSuite) TestPermit2TransferSubmission() {
 		Signature: nil,
 	}
 
-	err = pp.Sign(s.LocalHardhatMainnetUser.Account, chainID, wethAddress, name)
+	err = pp.Sign(s.LocalHardhatMainnetUser.Account, chainID, permit2Address, "Permit2")
 	s.Assert().NoError(err)
 	s.Assert().NotNil(pp.Signature)
+	pp.Signature[64] += 27
 
-	scInfo = &web3_actions.SendContractTxPayload{
+	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: Permit2SmartContractAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
 		ContractABI:       MustLoadPermit2Abi(),

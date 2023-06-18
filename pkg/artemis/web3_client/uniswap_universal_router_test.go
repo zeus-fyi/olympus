@@ -144,7 +144,11 @@ func (s *Web3ClientTestSuite) TestExecV2TradeMethodUR() {
 	_, err = s.LocalHardhatMainnetUser.ERC20ApproveSpender(ctx, to.AmountInAddr.String(), UniswapUniversalRouterAddress, to.AmountIn)
 	s.Require().Nil(err)
 
-	startTokenBalance, err = s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, LinkTokenAddr, userAddr.String())
+	_, err = s.LocalHardhatMainnetUser.ERC20ApproveSpender(ctx, to.AmountInAddr.String(), WETH9ContractAddress, to.AmountIn)
+	s.Require().Nil(err)
+
+	startTokenBalance,
+		err = s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, LinkTokenAddr, userAddr.String())
 	s.Require().Nil(err)
 	fmt.Println("startTokenBalance", startTokenBalance.String())
 

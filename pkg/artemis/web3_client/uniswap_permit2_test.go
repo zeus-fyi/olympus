@@ -5,6 +5,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 )
 
 var (
@@ -64,43 +65,40 @@ func (s *Web3ClientTestSuite) TestPermit2Approve() {
 	tx, err := uni.ApproveSpender(ctx, WETH9ContractAddress, Permit2SmartContractAddress, EtherMultiple(10000))
 	s.Assert().NoError(err)
 	s.Assert().NotNil(tx)
-	//
-	//expiration, _ := new(big.Int).SetString("1678544408", 10)
-	//sigDeadline, _ := new(big.Int).SetString("1675954208", 10)
-	//
-	//pp := Permit2PermitParams{
-	//	PermitSingle: PermitSingle{
-	//		PermitDetails: PermitDetails{
-	//			Token:      accounts.HexToAddress(WETH9ContractAddress),
-	//			Amount:     EtherMultiple(1),
-	//			Expiration: expiration,
-	//			Nonce:      new(big.Int).SetUint64(0),
-	//		},
-	//		Spender:     accounts.HexToAddress(UniswapUniversalRouterAddress),
-	//		SigDeadline: sigDeadline,
-	//	},
-	//	Signature: nil,
-	//}
-	//
-	//err = pp.Sign(s.LocalHardhatMainnetUser.Account, chainID, accounts.HexToAddress(WETH9ContractAddress), "W")
-	//s.Assert().NoError(err)
-	//s.Assert().NotNil(pp.Signature)
-	/*
-		    function hash(ISignatureTransfer.PermitTransferFrom memory permit) internal view returns (bytes32) {
-		        bytes32 tokenPermissionsHash = _hashTokenPermissions(permit.permitted);
-		        return keccak256(
-		            abi.encode(_PERMIT_TRANSFER_FROM_TYPEHASH, tokenPermissionsHash, msg.sender, permit.nonce, permit.deadline)
-		        );
-		    }
 
-			token 0xdAC17F958D2ee523a2206206994597C13D831ec7
-			amount 1678544408
-			expiration 1678544408
-			nonce 0
-			spender 0xEf1c6E67703c7BD7107eed8303Fbe6EC2554BF6B
-			sigDeadline 1675954208
-	*/
+	expiration, _ := new(big.Int).SetString("1678544408", 10)
+	sigDeadline, _ := new(big.Int).SetString("1675954208", 10)
 
+	pp := Permit2PermitParams{
+		PermitSingle: PermitSingle{
+			PermitDetails: PermitDetails{
+				Token:      accounts.HexToAddress(WETH9ContractAddress),
+				Amount:     EtherMultiple(1),
+				Expiration: expiration,
+				Nonce:      new(big.Int).SetUint64(0),
+			},
+			Spender:     accounts.HexToAddress(UniswapUniversalRouterAddress),
+			SigDeadline: sigDeadline,
+		},
+		Signature: nil,
+	}
+
+	err = pp.Sign(s.LocalHardhatMainnetUser.Account, chainID, accounts.HexToAddress(Permit2SmartContractAddress), "Permit2")
+	s.Assert().NoError(err)
+	s.Assert().NotNil(pp.Signature)
+
+	params := web3_actions.SendContractTxPayload{
+		SmartContractAddr: Permit2SmartContractAddress,
+		SendEtherPayload:  web3_actions.SendEtherPayload{},
+		ContractFile:      "",
+		ContractABI:       Permit2AbiDecoder,
+		MethodName:        permit0,
+		Params:            []interface{}{s.LocalHardhatMainnetUser.Address(), pp.PermitSingle, pp.Signature},
+	}
+
+	signedTx, err := s.LocalHardhatMainnetUser.CallFunctionWithArgs(ctx, &params)
+	s.Require().Nil(err)
+	s.Require().NotNil(signedTx)
 }
 
 func (s *Web3ClientTestSuite) TestPermit2PermitBatchEncode() {

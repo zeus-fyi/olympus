@@ -128,8 +128,8 @@ func (s *Web3ClientTestSuite) TestV2EthToUsdcSwapWithPermit() {
 		"bba9e3f61"
 
 	s.Require().Equal(expCallData, common.Bytes2Hex(signedTx.Data()))
-
 }
+
 func (s *Web3ClientTestSuite) TestUniversalRouterV2() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	ForceDirToTestDirLocation()

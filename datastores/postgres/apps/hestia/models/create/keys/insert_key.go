@@ -40,6 +40,28 @@ func (k *Key) InsertUserKey(ctx context.Context) error {
 	return misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
 
+func (k *Key) UpdateUserSignInKey(ctx context.Context) error {
+	q := sql_query_templates.QueryParams{}
+	if k.PublicKeyTypeID == keys.PassphraseKeyTypeID {
+		hashedPassword, err := HashPassword(k.PublicKey)
+		if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
+			return err
+		}
+		k.PublicKey = hashedPassword
+	}
+	q.RawQuery = `UPDATE users_keys
+				  SET public_key = $1
+				  WHERE user_id = $2 AND public_key_type_id = $3
+				  `
+	r, err := apps.Pg.Exec(ctx, q.RawQuery, k.PublicKey, k.UserID, k.PublicKeyTypeID)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
+		return err
+	}
+	rowsAffected := r.RowsAffected()
+	log.Debug().Msgf("InsertUserKey: %s, Rows Affected: %d", q.LogHeader(Sn), rowsAffected)
+	return misc.ReturnIfErr(err, q.LogHeader(Sn))
+}
+
 func (k *Key) InsertUserSessionKey(ctx context.Context) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `WITH cte_delete_prev_session_keys AS (

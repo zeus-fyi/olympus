@@ -7,11 +7,9 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
 	zeus_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/test"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
 var ctx = context.Background()
@@ -32,16 +30,7 @@ func (t *NodesActionsRequestTestSuite) TestNodes() {
 	}()
 
 	req := ActionRequest{
-		TopologyKubeCtxNs: kns.TopologyKubeCtxNs{
-			TopologyID: 0,
-			CloudCtxNs: zeus_common_types.CloudCtxNs{
-				CloudProvider: "",
-				Region:        "",
-				Context:       "do-nyc1-do-nyc1-zeus-demo",
-				Namespace:     "",
-				Env:           "",
-			},
-		},
+
 		Action: "list",
 	}
 

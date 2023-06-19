@@ -32,6 +32,7 @@ func InsertEthMevTxAnalysis(ctx context.Context, txHistory artemis_autogen_bases
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, txHistory.GetRowValues("InsertEthMevTxAnalysis")...)
 	if err == pgx.ErrNoRows {
 		err = nil
+		return err
 	}
 	return misc.ReturnIfErr(err, q.LogHeader("InsertEthMevTxAnalysis"))
 }

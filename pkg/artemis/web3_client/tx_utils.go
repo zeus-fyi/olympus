@@ -33,6 +33,74 @@ func (w *Web3Client) GetTxByHash(ctx context.Context, hash common.Hash) (*types.
 	return tx, isPending, nil
 }
 
+/*
+0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2
+239999999999999788
+0xf9974c3357Ba17a6B8A8326B65233e17c83AFc91
+*/
+
+// Eth in -> WETH out -> token out
+
+func (u *UniswapClient) RouterApproveAndSendV2(ctx context.Context, to *TradeOutcome, pairContractAddr string) error {
+	// todo max this window more appropriate vs near infinite
+
+	sigDeadline, _ := new(big.Int).SetString("3000000000000", 10)
+	ur := UniversalRouterExecCmd{
+		Commands: []UniversalRouterExecSubCmd{},
+		Deadline: sigDeadline,
+		Payable:  nil,
+	}
+
+	sc1 := UniversalRouterExecSubCmd{
+		Command:   WrapETH,
+		CanRevert: false,
+		Inputs:    nil,
+		DecodedInputs: WrapETHParams{
+			Recipient: u.Web3Client.Address(),
+			AmountMin: to.AmountIn,
+		},
+	}
+	ur.Commands = append(ur.Commands, sc1)
+	sc2 := UniversalRouterExecSubCmd{
+		Command:   V2SwapExactIn,
+		CanRevert: false,
+		Inputs:    nil,
+		DecodedInputs: V2SwapExactInParams{
+			AmountIn:      to.AmountIn,
+			AmountOutMin:  to.AmountOut,
+			Path:          []accounts.Address{to.AmountInAddr, to.AmountOutAddr},
+			To:            u.Web3Client.Address(),
+			PayerIsSender: false,
+		},
+	}
+	ur.Commands = append(ur.Commands, sc2)
+	sc3 := UniversalRouterExecSubCmd{
+		Command:   UnwrapWETH,
+		CanRevert: false,
+		Inputs:    nil,
+		DecodedInputs: UnwrapWETHParams{
+			Recipient: u.Web3Client.Address(),
+			AmountMin: new(big.Int).SetUint64(0),
+		},
+	}
+	ur.Commands = append(ur.Commands, sc3)
+	payable := &web3_actions.SendEtherPayload{
+		TransferArgs: web3_actions.TransferArgs{
+			Amount:    to.AmountIn,
+			ToAddress: u.Web3Client.Address(),
+		},
+		GasPriceLimits: web3_actions.GasPriceLimits{},
+	}
+	ur.Payable = payable
+
+	tx, err := u.ExecUniswapUniversalRouterCmd(ur)
+	if err != nil {
+		return err
+	}
+	to.AddTxHash(accounts.Hash(tx.Hash()))
+	return err
+}
+
 func (u *UniswapClient) RouterApproveAndSend(ctx context.Context, to *TradeOutcome, pairContractAddr string) error {
 	approveTx, err := u.ApproveSpender(ctx, to.AmountInAddr.String(), u.RouterSmartContractAddr, to.AmountIn)
 	if err != nil {

@@ -48,7 +48,10 @@ func (u *UniswapClient) SimFullSandwichTrade(tf *TradeExecutionFlow) error {
 		log.Err(err).Msg("error verifying trade results")
 		return u.MarkEndOfSimDueToErr(err)
 	}
-	return u.MarkEndOfSimDueToErr(nil)
+	if !u.TestMode {
+		return u.MarkEndOfSimDueToErr(nil)
+	}
+	return nil
 }
 
 func (u *UniswapClient) SimFrontRunTradeOnly(tf *TradeExecutionFlow) error {

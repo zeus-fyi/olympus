@@ -1,4 +1,4 @@
-import {Navigate, useOutlet} from "react-router-dom";
+import {Navigate} from "react-router-dom";
 import React, {useEffect, useState} from "react";
 import {accessApiGateway} from "../gateway/access";
 import {useDispatch, useSelector} from "react-redux";
@@ -6,7 +6,6 @@ import {RootState} from "../redux/store";
 import {setSessionAuth} from "../redux/auth/session.reducer";
 
 export const ProtectedLayout = (props: any) => {
-    const outlet = useOutlet();
     const {children} = props;
     const sessionAuthed = useSelector((state: RootState) => state.sessionState.sessionAuth);
     const [loading, setLoading] = useState(true);
@@ -23,7 +22,6 @@ export const ProtectedLayout = (props: any) => {
                 dispatch(setSessionAuth(true));
             } catch (error) {
                 dispatch(setSessionAuth(false));
-                console.log("error", error);
                 setLoading(false);
             }
             setLoading(false);

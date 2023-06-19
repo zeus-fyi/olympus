@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/keys"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
 )
@@ -17,6 +18,18 @@ type CreateKeyTestSuite struct {
 
 var ctx = context.Background()
 
+func (s *CreateKeyTestSuite) TestUpdateUserPassword() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	pw := s.Tc.AdminLoginPassword
+	userID := 1685378241971196000
+	nk := NewCreateKey(userID, pw)
+	nk.PublicKeyVerified = true
+	nk.PublicKeyName = "userLoginPassword"
+	nk.PublicKeyTypeID = keys.PassphraseKeyTypeID
+	nk.CreatedAt = time.Now()
+	err := nk.UpdateUserSignInKey(ctx)
+	s.Require().Nil(err)
+}
 func (s *CreateKeyTestSuite) TestInsertUserPassword() {
 	pw := s.Tc.AdminLoginPassword
 	nk := NewCreateKey(s.Tc.ProductionLocalTemporalUserID, pw)

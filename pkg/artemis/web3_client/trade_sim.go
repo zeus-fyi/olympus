@@ -3,6 +3,7 @@ package web3_client
 import (
 	"context"
 	"fmt"
+	"math/big"
 
 	"github.com/rs/zerolog/log"
 )
@@ -12,7 +13,25 @@ func (u *UniswapClient) SimFullSandwichTrade(tf *TradeExecutionFlow) error {
 		fmt.Println("executing full sandwich trade")
 	}
 	u.TradeAnalysisReport.TradeMethod = tf.Trade.TradeMethod
-	err := u.Web3Client.MatchFrontRunTradeValues(tf)
+	// todo needs to amortize gas costs for permit2
+	max, _ := new(big.Int).SetString(maxUINT, 10)
+	approveTx, err := u.ApproveSpender(ctx, WETH9ContractAddress, Permit2SmartContractAddress, max)
+	if err != nil {
+		log.Warn().Interface("approveTx", approveTx).Err(err).Msg("error approving permit2")
+		return err
+	}
+
+	secondToken := tf.SandwichTrade.AmountInAddr.String()
+	if tf.FrontRunTrade.AmountInAddr.String() == WETH9ContractAddress {
+		secondToken = tf.FrontRunTrade.AmountOutAddr.String()
+	}
+	approveTx, err = u.ApproveSpender(ctx, secondToken, Permit2SmartContractAddress, max)
+	if err != nil {
+		log.Warn().Interface("approveTx", approveTx).Err(err).Msg("error approving permit2")
+		return err
+	}
+
+	err = u.Web3Client.MatchFrontRunTradeValues(tf)
 	if err != nil {
 		u.TradeFailureReport.EndStage = "executing front run balance setup"
 		log.Err(err).Msg("error executing front run balance setup")

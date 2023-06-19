@@ -3,7 +3,6 @@ package web3_client
 import (
 	"context"
 	"errors"
-	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -43,7 +42,7 @@ func (w *Web3Client) GetTxByHash(ctx context.Context, hash common.Hash) (*types.
 
 // Eth in -> WETH out -> token out
 
-func (u *UniswapClient) ExecTradeV2SwapPayable(ctx context.Context, to *TradeOutcome, pairContractAddr string) error {
+func (u *UniswapClient) ExecTradeV2SwapPayable(ctx context.Context, to *TradeOutcome) error {
 	// todo max this window more appropriate vs near infinite
 
 	sigDeadline, _ := new(big.Int).SetString("3000000000000", 10)
@@ -103,7 +102,7 @@ func (u *UniswapClient) ExecTradeV2SwapPayable(ctx context.Context, to *TradeOut
 	return err
 }
 
-func (u *UniswapClient) ExecTradeV2SwapFromToken(ctx context.Context, to *TradeOutcome, pairContractAddr string) error {
+func (u *UniswapClient) ExecTradeV2SwapFromTokenToToken(ctx context.Context, to *TradeOutcome) error {
 	// todo max this window more appropriate vs near infinite
 
 	sigDeadline, _ := new(big.Int).SetString("3000000000000", 10)
@@ -113,20 +112,83 @@ func (u *UniswapClient) ExecTradeV2SwapFromToken(ctx context.Context, to *TradeO
 		Payable:  nil,
 	}
 
-	max, _ := new(big.Int).SetString(maxUINT, 10)
-	approveTx, err := u.ApproveSpender(ctx, to.AmountInAddr.String(), Permit2SmartContractAddress, max)
-	if err != nil {
-		log.Warn().Interface("approveTx", approveTx).Err(err).Msg("error approving permit2")
-		return err
-	}
 	sc1 := UniversalRouterExecSubCmd{
 		Command:   Permit2Permit,
 		CanRevert: false,
 		Inputs:    nil,
 	}
 
-	fmt.Println(to.AmountInAddr.String(), "to.AmountInAddr.String()")
-	fmt.Println(to.AmountOutAddr.String(), "to.AmountOutAddr.String()")
+	psp := Permit2PermitParams{
+		PermitSingle{
+			PermitDetails: PermitDetails{
+				Token:      to.AmountInAddr,
+				Amount:     to.AmountIn,
+				Expiration: sigDeadline,
+				// todo this needs to update a nonce count in db or track them somehow
+				Nonce: new(big.Int).SetUint64(0),
+			},
+			Spender:     accounts.HexToAddress(UniswapUniversalRouterAddress),
+			SigDeadline: sigDeadline,
+		},
+		nil,
+	}
+	err := psp.SignPermit2Mainnet(u.Web3Client.Account)
+	if err != nil {
+		log.Warn().Err(err).Msg("error signing permit")
+		return err
+	}
+	if psp.Signature == nil {
+		log.Warn().Msg("signature is nil")
+		return errors.New("signature is nil")
+	}
+	sc1.DecodedInputs = psp
+	ur.Commands = append(ur.Commands, sc1)
+	sc2 := UniversalRouterExecSubCmd{
+		Command:   V2SwapExactIn,
+		CanRevert: false,
+		Inputs:    nil,
+		DecodedInputs: V2SwapExactInParams{
+			AmountIn:      to.AmountIn,
+			AmountOutMin:  to.AmountOut,
+			Path:          []accounts.Address{to.AmountInAddr, to.AmountOutAddr},
+			To:            accounts.HexToAddress(universalRouterSender),
+			PayerIsSender: true,
+		},
+	}
+	ur.Commands = append(ur.Commands, sc2)
+	tx, err := u.ExecUniswapUniversalRouterCmd(ur)
+	if err != nil {
+		return err
+	}
+	to.AddTxHash(accounts.Hash(tx.Hash()))
+	return err
+}
+
+func (u *UniswapClient) ExecTradeV2SwapFromTokenBackToEth(ctx context.Context, to *TradeOutcome) error {
+	// todo max this window more appropriate vs near infinite
+
+	sigDeadline, _ := new(big.Int).SetString("3000000000000", 10)
+	ur := UniversalRouterExecCmd{
+		Commands: []UniversalRouterExecSubCmd{},
+		Deadline: sigDeadline,
+		Payable:  nil,
+	}
+
+	// todo needs to amortize gas costs for permit2
+	max, _ := new(big.Int).SetString(maxUINT, 10)
+	approveTx, err := u.ApproveSpender(ctx, to.AmountInAddr.String(), Permit2SmartContractAddress, max)
+	if err != nil {
+		log.Warn().Interface("approveTx", approveTx).Err(err).Msg("error approving permit2")
+		return err
+	}
+	to.AddTxHash(accounts.Hash(approveTx.Hash()))
+
+	sc1 := UniversalRouterExecSubCmd{
+		Command:   Permit2Permit,
+		CanRevert: false,
+		Inputs:    nil,
+	}
+
 	psp := Permit2PermitParams{
 		PermitSingle{
 			PermitDetails: PermitDetails{
@@ -160,30 +222,21 @@ func (u *UniswapClient) ExecTradeV2SwapFromToken(ctx context.Context, to *TradeO
 			AmountIn:      to.AmountIn,
 			AmountOutMin:  to.AmountOut,
 			Path:          []accounts.Address{to.AmountInAddr, to.AmountOutAddr},
-			To:            accounts.HexToAddress(u.Web3Client.Address().Hex()),
+			To:            accounts.HexToAddress(universalRouterSender),
 			PayerIsSender: true,
 		},
 	}
 	ur.Commands = append(ur.Commands, sc2)
 	sc3 := UniversalRouterExecSubCmd{
 		Command:   UnwrapWETH,
-		CanRevert: true,
+		CanRevert: false,
 		Inputs:    nil,
 		DecodedInputs: UnwrapWETHParams{
-			Recipient: accounts.HexToAddress(u.Web3Client.PublicKey()),
+			Recipient: accounts.HexToAddress(universalRouterSender),
 			AmountMin: new(big.Int).SetUint64(0),
 		},
 	}
 	ur.Commands = append(ur.Commands, sc3)
-	//payable := &web3_actions.SendEtherPayload{
-	//	TransferArgs: web3_actions.TransferArgs{
-	//		Amount:    to.AmountIn,
-	//		ToAddress: u.Web3Client.Address(),
-	//	},
-	//	GasPriceLimits: web3_actions.GasPriceLimits{},
-	//}
-	//ur.Payable = payable
-
 	tx, err := u.ExecUniswapUniversalRouterCmd(ur)
 	if err != nil {
 		return err
@@ -240,4 +293,15 @@ func (w *Web3Client) SignAndSendSmartContractTxPayload(ctx context.Context, scIn
 		return nil, err
 	}
 	return signedTx, nil
+}
+
+func DivideByHalf(input *big.Int) *big.Int {
+	modEven := new(big.Int).Mod(input, big.NewInt(2))
+	if modEven.String() == "0" {
+		input = input.Div(input, big.NewInt(2))
+	} else {
+		input = input.Add(input, big.NewInt(1))
+		input = input.Div(input, big.NewInt(2))
+	}
+	return input
 }

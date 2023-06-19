@@ -2,6 +2,7 @@ package web3_client
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
@@ -18,11 +19,21 @@ type TradeOutcome struct {
 	EndReservesToken0   *big.Int         `json:"endReservesToken0"`
 	EndReservesToken1   *big.Int         `json:"endReservesToken1"`
 
-	SimulatedAmountOut  *big.Int        `json:"simulatedAmountOut,omitempty"`
+	SimulatedAmountOut    *big.Int `json:"simulatedAmountOut,omitempty"`
+	PreTradeTokenBalance  *big.Int `json:"preTradeTokenBalance,omitempty"`
+	PostTradeTokenBalance *big.Int `json:"postTradeTokenBalance,omitempty"`
+	DiffTradeTokenBalance *big.Int `json:"diffTradeTokenBalance,omitempty"`
+
 	PostTradeEthBalance *big.Int        `json:"postTradeEthBalance,omitempty"`
 	PreTradeEthBalance  *big.Int        `json:"preTradeEthBalance,omitempty"`
+	DiffTradeEthBalance *big.Int        `json:"diffTradeEthBalance,omitempty"`
 	OrderedTxs          []accounts.Hash `json:"orderedTxs,omitempty"`
 	TotalGasCost        uint64          `json:"totalGasCost,omitempty"`
+}
+
+func (t *TradeOutcome) PrintDebug() {
+	fmt.Println("amountInAddr", t.AmountInAddr.String(), "amountIn", t.AmountIn.String())
+	fmt.Println("amountOutAddr", t.AmountOutAddr.String(), "amountOut", t.AmountOut.String())
 }
 
 func (t *TradeOutcome) PostTradeGasAdjustedBalance() *big.Int {

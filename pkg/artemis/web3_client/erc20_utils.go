@@ -128,9 +128,7 @@ func (w *Web3Client) SetERC20BalanceBruteForce(ctx context.Context, scAddr, user
 
 func (w *Web3Client) MatchFrontRunTradeValues(tf *TradeExecutionFlow) error {
 	pubkey := w.PublicKey()
-	if pubkey == "execSwap" {
-		pubkey = "0xsmartcontractaddr"
-	}
+
 	err := w.SetERC20BalanceBruteForce(ctx, tf.FrontRunTrade.AmountInAddr.String(), pubkey, tf.FrontRunTrade.AmountIn)
 	if err != nil {
 		return err

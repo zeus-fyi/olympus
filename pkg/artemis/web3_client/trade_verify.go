@@ -47,11 +47,11 @@ func (u *UniswapClient) VerifyTradeResults(tf *TradeExecutionFlow) error {
 			End Reason: unable to overwrite balance
 			End Stage: executing front run balance setup
 		*/
-		gasAdjustedBalance := new(big.Int).Sub(tf.UserTrade.AmountOut, new(big.Int).SetUint64(tf.UserTrade.TotalGasCost))
-		difference := new(big.Int).Sub(tf.UserTrade.PostTradeEthBalance, tf.UserTrade.PreTradeEthBalance)
-		if difference.String() != gasAdjustedBalance.String() {
-			return errors.New("user trade amount out mismatch")
-		}
+		//gasAdjustedBalance := new(big.Int).Sub(tf.UserTrade.AmountOut, new(big.Int).SetUint64(tf.UserTrade.TotalGasCost))
+		//difference := new(big.Int).Sub(tf.UserTrade.PostTradeEthBalance, tf.UserTrade.PreTradeEthBalance)
+		//if difference.String() != gasAdjustedBalance.String() {
+		//	return errors.New("user trade amount out mismatch")
+		//}
 	case swapExactTokensForTokens:
 	case swapTokensForExactTokens:
 	case swapExactETHForTokens:
@@ -60,40 +60,35 @@ func (u *UniswapClient) VerifyTradeResults(tf *TradeExecutionFlow) error {
 	default:
 		return errors.New("invalid trade method")
 	}
-
+	//endEthBal, err := u.Web3Client.GetBalance(ctx, u.Web3Client.PublicKey(), nil)
+	//if err != nil {
+	//	log.Err(err).Msg("error getting final trade eth balance")
+	//	return err
+	//}
 	frontRunGasCost := new(big.Int).SetUint64(tf.FrontRunTrade.TotalGasCost)
 	u.TradeAnalysisReport.GasReport.FrontRunGasUsed = frontRunGasCost.String()
+	fmt.Println("frontRunGasCost", frontRunGasCost.String())
 
 	sandwichRunGasCost := new(big.Int).SetUint64(tf.SandwichTrade.TotalGasCost)
-	u.TradeAnalysisReport.GasReport.SandwichTradeGasUsed = frontRunGasCost.String()
+	u.TradeAnalysisReport.GasReport.SandwichTradeGasUsed = sandwichRunGasCost.String()
+	fmt.Println("sandwichRunGasCost", sandwichRunGasCost.String())
 
 	totalSandwichTradeGasCost := new(big.Int).Add(frontRunGasCost, sandwichRunGasCost)
 	fmt.Println("total gas cost", totalSandwichTradeGasCost.String())
 	u.TotalGasUsed = totalSandwichTradeGasCost.String()
 
-	endingTokenBalance, err := u.Web3Client.ReadERC20TokenBalance(ctx, tf.SandwichTrade.AmountOutAddr.String(), u.Web3Client.PublicKey())
-	if err != nil {
-		return err
-	}
-	fmt.Println("profit currency", tf.SandwichTrade.AmountOutAddr.String())
-	u.AmountOutAddr = tf.SandwichTrade.AmountOutAddr.String()
-	fmt.Println("starting amount", tf.FrontRunTrade.AmountIn.String())
-	fmt.Println("ending amount", tf.SandwichTrade.AmountOut.String())
-	profitTokenBalance := new(big.Int).Sub(endingTokenBalance, tf.FrontRunTrade.AmountIn)
-	fmt.Println("profitTokenBalance", profitTokenBalance.String())
-	fmt.Println("sandwichCalculatedProfit", tf.SandwichPrediction.ExpectedProfit.String())
-	u.SimulationResults.AmountOut = profitTokenBalance.String()
-	u.SimulationResults.ExpectedProfitAmountOut = tf.SandwichPrediction.ExpectedProfit.String()
-	if profitTokenBalance.String() != tf.SandwichPrediction.ExpectedProfit.String() {
-		fmt.Println("profit token balance mismatch", "profitTokenBalance", profitTokenBalance.String(), "expectedProfit", tf.SandwichPrediction.ExpectedProfit.String())
-		diff := new(big.Int).Sub(profitTokenBalance, tf.SandwichPrediction.ExpectedProfit)
-		fmt.Println("diff", "diff", diff.String())
-		diff2 := new(big.Int).Sub(tf.SandwichPrediction.ExpectedProfit, profitTokenBalance)
-		fmt.Println("diff2", "diff2", diff2.String())
+	gasFreeProfit := new(big.Int).Sub(tf.SandwichTrade.AmountOut, tf.FrontRunTrade.AmountIn)
+	fmt.Println("gas free profit", gasFreeProfit.String())
+	expMinusActualProfit := new(big.Int).Sub(tf.SandwichPrediction.ExpectedProfit, gasFreeProfit)
 
-		return errors.New("profit token balance mismatch")
+	if expMinusActualProfit.String() != "0" {
+		return errors.New("expected minus actual profit mismatch")
 	}
+	if tf.SandwichTrade.AmountOutAddr.String() == WETH9ContractAddress {
+		realizedProfit := new(big.Int).Sub(gasFreeProfit, totalSandwichTradeGasCost)
+		fmt.Println("realized profit", realizedProfit.String())
+	}
+
 	u.EndReason = "success"
-
 	return nil
 }

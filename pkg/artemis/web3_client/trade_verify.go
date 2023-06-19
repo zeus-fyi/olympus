@@ -85,6 +85,12 @@ func (u *UniswapClient) VerifyTradeResults(tf *TradeExecutionFlow) error {
 	u.SimulationResults.AmountOut = profitTokenBalance.String()
 	u.SimulationResults.ExpectedProfitAmountOut = tf.SandwichPrediction.ExpectedProfit.String()
 	if profitTokenBalance.String() != tf.SandwichPrediction.ExpectedProfit.String() {
+		fmt.Println("profit token balance mismatch", "profitTokenBalance", profitTokenBalance.String(), "expectedProfit", tf.SandwichPrediction.ExpectedProfit.String())
+		diff := new(big.Int).Sub(profitTokenBalance, tf.SandwichPrediction.ExpectedProfit)
+		fmt.Println("diff", "diff", diff.String())
+		diff2 := new(big.Int).Sub(tf.SandwichPrediction.ExpectedProfit, profitTokenBalance)
+		fmt.Println("diff2", "diff2", diff2.String())
+
 		return errors.New("profit token balance mismatch")
 	}
 	u.EndReason = "success"

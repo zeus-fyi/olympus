@@ -54,18 +54,31 @@ func (u *UniswapClient) ExecFrontRunTradeStepTokenTransfer(tf *TradeExecutionFlo
 		log.Err(err).Msg("error getting pre trade eth balance")
 		return nil, err
 	}
+	if u.DebugPrint {
+		fmt.Println("pre trade eth balance", ethBal)
+		bal, _ := u.Web3Client.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountInAddr.String(), u.Web3Client.PublicKey())
+		fmt.Println("pre trade token balance", bal.String())
+	}
 	tf.FrontRunTrade.PreTradeEthBalance = ethBal
-	err = u.RouterApproveAndSend(ctx, &tf.FrontRunTrade, tf.InitialPair.PairContractAddr)
+	err = u.ExecTradeV2SwapPayable(ctx, &tf.FrontRunTrade, tf.InitialPair.PairContractAddr)
 	if err != nil {
 		return nil, err
 	}
+
 	ethBal, err = u.Web3Client.GetBalance(ctx, u.Web3Client.PublicKey(), nil)
 	if err != nil {
 		log.Err(err).Msg("error getting post trade eth balance")
 		return nil, err
 	}
+	if u.DebugPrint {
+		fmt.Println("post trade eth balance", ethBal)
+		bal, _ := u.Web3Client.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountOutAddr.String(), u.Web3Client.PublicKey())
+		fmt.Println("post trade token balance", bal.String())
+		fmt.Println("post trade expected amount out", tf.FrontRunTrade.AmountOut.String())
+	}
 	tf.FrontRunTrade.PostTradeEthBalance = ethBal
-	return u.ExecFrontRunTradeStep(tf)
+	return nil, nil
+	//return u.ExecFrontRunTradeStep(tf)
 }
 
 func (u *UniswapClient) ExecUserTradeStep(tf *TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
@@ -113,8 +126,13 @@ func (u *UniswapClient) ExecSandwichTradeStepTokenTransfer(tf *TradeExecutionFlo
 		log.Err(err).Msg("error getting pre trade eth balance")
 		return nil, err
 	}
+	if u.DebugPrint {
+		fmt.Println("pre trade eth balance", ethBal)
+		bal, _ := u.Web3Client.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountInAddr.String(), u.Web3Client.PublicKey())
+		fmt.Println("pre trade token balance", bal.String())
+	}
 	tf.SandwichTrade.PreTradeEthBalance = ethBal
-	err = u.RouterApproveAndSend(ctx, &tf.SandwichTrade, tf.InitialPair.PairContractAddr)
+	err = u.ExecTradeV2SwapFromToken(ctx, &tf.SandwichTrade, tf.InitialPair.PairContractAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -123,8 +141,16 @@ func (u *UniswapClient) ExecSandwichTradeStepTokenTransfer(tf *TradeExecutionFlo
 		log.Err(err).Msg("error getting post trade eth balance")
 		return nil, err
 	}
+	if u.DebugPrint {
+		fmt.Println("post trade eth balance", ethBal)
+		bal, _ := u.Web3Client.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountOutAddr.String(), u.Web3Client.PublicKey())
+		fmt.Println("post trade token balance", bal.String())
+		fmt.Println("post trade expected amount out", tf.FrontRunTrade.AmountOut.String())
+	}
+
 	tf.SandwichTrade.PostTradeEthBalance = ethBal
-	return u.ExecSandwichTradeStep(tf)
+	return nil, nil
+	//return u.ExecSandwichTradeStep(tf)
 }
 
 func (u *UniswapClient) ExecSandwichTradeStep(tf *TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {

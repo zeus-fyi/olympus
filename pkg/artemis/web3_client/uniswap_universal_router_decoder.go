@@ -142,13 +142,14 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte) er
 		ur.DecodedInputs = params
 		ur.Command = SudoSwap
 	case PAY_PORTION:
-		log.Info().Msg("DecodeCommand PAY_PORTION")
-		params := PayPortionParams{}
-		err = params.Decode(ctx, ur.Inputs)
-		if err != nil {
-			return err
-		}
-		ur.DecodedInputs = params
+		// todo need to verify with test case
+		//log.Info().Msg("DecodeCommand PAY_PORTION")
+		//params := PayPortionParams{}
+		//err = params.Decode(ctx, ur.Inputs)
+		//if err != nil {
+		//	return err
+		//}
+		//ur.DecodedInputs = params
 		ur.Command = PayPortion
 	case SWEEP:
 		log.Info().Msg("DecodeCommand SWEEP")

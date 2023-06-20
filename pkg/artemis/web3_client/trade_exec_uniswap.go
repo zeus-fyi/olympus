@@ -22,6 +22,8 @@ func (u *UniswapClient) ExecTradeByMethod(tf *TradeExecutionFlow) (*web3_actions
 		return u.SwapExactETHForTokensParams(tf)
 	case swapETHForExactTokens:
 		return u.SwapETHForExactTokensParams(tf)
+	case V2SwapExactIn, V2SwapExactOut, V3SwapExactIn, V3SwapExactOut:
+		return nil, u.Web3Client.SendImpersonatedTx(ctx, tf.Tx)
 	default:
 	}
 	return nil, errors.New("invalid trade method")

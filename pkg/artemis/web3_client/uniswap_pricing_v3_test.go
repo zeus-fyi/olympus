@@ -13,19 +13,30 @@ import (
 // example v3 pool: 0x4b5Ab61593A2401B1075b90c04cBCDD3F87CE011
 
 func (s *Web3ClientTestSuite) TestUniswapV3DataFetcher() {
+	//factoryAddress := accounts.HexToAddress("0x1F98431c8aD98523631AE4a59f267346ea31F984")
+	tokenA := core_entities.NewToken(1, accounts.HexToAddress(WETH9ContractAddress), 18, "WETH", "Wrapped Ether")
+	tokenB := core_entities.NewToken(1, accounts.HexToAddress(LooksTokenAddr), 18, "LOOKS", "LooksRare Token")
+
 	p := UniswapPoolV3{
 		PoolAddress: "0x4b5Ab61593A2401B1075b90c04cBCDD3F87CE011",
 		Web3Actions: s.LocalHardhatMainnetUser.Web3Actions,
 	}
 
-	tick, err := p.GetTick(0)
+	tick, err := p.GetTickFromContract(0)
 	s.Require().NoError(err)
 	s.Require().NotNil(tick)
 
 	err = p.GetSlot0()
 	s.Require().NoError(err)
 
+	err = p.GetLiquidity()
+	s.Require().NoError(err)
+
+	v3Pool, err := entities.NewPool(tokenA, tokenB, constants.FeeLow, p.Slot0.SqrtPriceX96, p.Liquidity, p.Slot0.Tick, &p)
+	s.Require().NoError(err)
+	s.Require().NotNil(v3Pool)
 }
+
 func (s *Web3ClientTestSuite) TestUniswapV3() {
 	factoryAddress := accounts.HexToAddress("0x1111111111111111111111111111111111111111")
 	tokenA := core_entities.NewToken(1, accounts.HexToAddress(UsdCoinAddr), 18, "USDC", "USD Coin")

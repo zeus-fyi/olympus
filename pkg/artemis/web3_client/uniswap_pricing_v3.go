@@ -8,20 +8,43 @@ import (
 )
 
 const (
-	ticks = "ticks"
-	slot0 = "slot0"
+	ticks     = "ticks"
+	slot0     = "slot0"
+	liquidity = "liquidity"
 )
 
 type UniswapPoolV3 struct {
 	web3_actions.Web3Actions
 	PoolAddress string
 	Slot0       Slot0
+	Liquidity   *big.Int
 }
 
 type Slot0 struct {
 	SqrtPriceX96 *big.Int
 	Tick         int
 	FeeProtocol  int
+}
+
+func (p *UniswapPoolV3) GetLiquidity() error {
+	scInfo := &web3_actions.SendContractTxPayload{
+		SmartContractAddr: p.PoolAddress,
+		SendEtherPayload:  web3_actions.SendEtherPayload{},
+		ContractABI:       MustLoadPoolV3Abi(),
+		MethodName:        liquidity,
+		Params:            []interface{}{},
+	}
+	resp, err := p.CallConstantFunction(ctx, scInfo)
+	if err != nil {
+		return err
+	}
+	for i, val := range resp {
+		switch i {
+		case 0:
+			p.Liquidity = val.(*big.Int)
+		}
+	}
+	return err
 }
 
 func (p *UniswapPoolV3) GetSlot0() error {
@@ -32,12 +55,10 @@ func (p *UniswapPoolV3) GetSlot0() error {
 		MethodName:        slot0,
 		Params:            []interface{}{},
 	}
-
 	resp, err := p.CallConstantFunction(ctx, scInfo)
 	if err != nil {
 		return err
 	}
-
 	for i, val := range resp {
 		switch i {
 		case 0:
@@ -52,7 +73,16 @@ func (p *UniswapPoolV3) GetSlot0() error {
 	}
 	return nil
 }
-func (p *UniswapPoolV3) GetTick(tickNum int) (entities.Tick, error) {
+
+func (p *UniswapPoolV3) GetTick(tickNum int) entities.Tick {
+	tick, err := p.GetTickFromContract(tickNum)
+	if err != nil {
+		return tick
+	}
+	return tick
+}
+
+func (p *UniswapPoolV3) GetTickFromContract(tickNum int) (entities.Tick, error) {
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: p.PoolAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},

@@ -24,7 +24,11 @@ func (u *UniswapClient) ExecSandwichTradeStepTokenTransfer(tf *TradeExecutionFlo
 		log.Err(err).Msg("error getting pre trade eth balance")
 		return nil, err
 	}
-	bal, _ := u.Web3Client.ReadERC20TokenBalance(ctx, tf.SandwichTrade.AmountOutAddr.String(), u.Web3Client.PublicKey())
+	bal, err := u.Web3Client.ReadERC20TokenBalance(ctx, tf.SandwichTrade.AmountOutAddr.String(), u.Web3Client.PublicKey())
+	if err != nil {
+		log.Err(err).Msg("error getting pre trade amount out token balance")
+		return nil, err
+	}
 	tf.SandwichTrade.PreTradeTokenBalance = bal
 	fmt.Println("pre trade amount out token balance", bal.String())
 
@@ -39,7 +43,11 @@ func (u *UniswapClient) ExecSandwichTradeStepTokenTransfer(tf *TradeExecutionFlo
 		return nil, err
 	}
 
-	bal, _ = u.Web3Client.ReadERC20TokenBalance(ctx, tf.SandwichTrade.AmountOutAddr.String(), u.Web3Client.PublicKey())
+	bal, err = u.Web3Client.ReadERC20TokenBalance(ctx, tf.SandwichTrade.AmountOutAddr.String(), u.Web3Client.PublicKey())
+	if err != nil {
+		log.Err(err).Msg("error getting post trade amount out token balance")
+		return nil, err
+	}
 	tf.SandwichTrade.PostTradeTokenBalance = bal
 	tf.SandwichTrade.DiffTradeTokenBalance = new(big.Int).Sub(tf.SandwichTrade.PostTradeTokenBalance, tf.SandwichTrade.PreTradeTokenBalance)
 	fmt.Println("actual amount out", tf.SandwichTrade.DiffTradeTokenBalance.String())

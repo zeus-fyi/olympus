@@ -30,8 +30,11 @@ func (u *UniswapClient) ExecFrontRunTradeStepTokenTransfer(tf *TradeExecutionFlo
 		log.Err(err).Msg("error getting pre trade eth balance")
 		return nil, err
 	}
-
-	bal, _ := u.Web3Client.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountOutAddr.String(), u.Web3Client.PublicKey())
+	bal, err := u.Web3Client.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountOutAddr.String(), u.Web3Client.PublicKey())
+	if err != nil {
+		log.Err(err).Msg("error getting pre trade amount out token balance")
+		return nil, err
+	}
 	tf.FrontRunTrade.PreTradeTokenBalance = bal
 	fmt.Println("pre trade amount out token balance", bal.String())
 
@@ -47,7 +50,11 @@ func (u *UniswapClient) ExecFrontRunTradeStepTokenTransfer(tf *TradeExecutionFlo
 		return nil, err
 	}
 
-	bal, _ = u.Web3Client.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountOutAddr.String(), u.Web3Client.PublicKey())
+	bal, err = u.Web3Client.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountOutAddr.String(), u.Web3Client.PublicKey())
+	if err != nil {
+		log.Err(err).Msg("error getting post trade amount out token balance")
+		return nil, err
+	}
 	tf.FrontRunTrade.PostTradeTokenBalance = bal
 	fmt.Println("post trade amount out token balance", bal.String())
 	tf.FrontRunTrade.PostTradeTokenBalance = bal

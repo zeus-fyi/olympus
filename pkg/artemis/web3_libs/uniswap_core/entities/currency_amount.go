@@ -17,6 +17,7 @@ type CurrencyAmount struct {
  * @param currency the currency in the amount
  * @param rawAmount the raw token or ether amount
  */
+
 func FromRawAmount(currency Currency, rawAmount *big.Int) *CurrencyAmount {
 	return newCurrencyAmount(currency, rawAmount, big.NewInt(1))
 }
@@ -27,6 +28,7 @@ func FromRawAmount(currency Currency, rawAmount *big.Int) *CurrencyAmount {
  * @param numerator the numerator of the fractional token amount
  * @param denominator the denominator of the fractional token amount
  */
+
 func FromFractionalAmount(currency Currency, numerator *big.Int, denominator *big.Int) *CurrencyAmount {
 	return newCurrencyAmount(currency, numerator, denominator)
 }

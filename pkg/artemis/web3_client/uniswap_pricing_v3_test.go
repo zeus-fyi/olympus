@@ -32,9 +32,23 @@ func (s *Web3ClientTestSuite) TestUniswapV3DataFetcher() {
 	err = p.GetLiquidity()
 	s.Require().NoError(err)
 
-	v3Pool, err := entities.NewPool(tokenA, tokenB, constants.FeeLow, p.Slot0.SqrtPriceX96, p.Liquidity, p.Slot0.Tick, &p)
+	v3Pool, err := entities.NewPool(tokenA, tokenB, constants.FeeMedium, p.Slot0.SqrtPriceX96, p.Liquidity, p.Slot0.Tick, &p)
 	s.Require().NoError(err)
 	s.Require().NotNil(v3Pool)
+
+	cur := &core_entities.CurrencyAmount{
+		Fraction: &core_entities.Fraction{
+			Numerator:   big.NewInt(1),
+			Denominator: big.NewInt(1),
+		},
+		Currency:     tokenA,
+		DecimalScale: big.NewInt(18),
+	}
+
+	output, pool, err := v3Pool.GetOutputAmount(cur, big.NewInt(0))
+	s.Require().NoError(err)
+	s.Require().NotNil(output)
+	s.Require().NotNil(pool)
 }
 
 func (s *Web3ClientTestSuite) TestUniswapV3() {

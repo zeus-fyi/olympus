@@ -56,6 +56,7 @@ type UniswapClient struct {
 	PrintOn                              bool
 	PrintLocal                           bool
 	DebugPrint                           bool
+	TestMode                             bool
 	MevSmartContractTxMapUniversalRouter MevSmartContractTxMap
 	MevSmartContractTxMap
 	*TradeAnalysisReport

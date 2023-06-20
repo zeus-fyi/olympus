@@ -62,6 +62,7 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSim_SwapETHForExactTokens() {
 
 		uni.DebugPrint = true
 		uni.PrintOn = true
+		uni.TestMode = true
 		err = uni.SimFullSandwichTrade(&tfRegular)
 		s.Require().Nil(err)
 	}

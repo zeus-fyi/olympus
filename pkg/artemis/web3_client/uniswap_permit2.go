@@ -35,6 +35,8 @@ const (
 	Permit2TransferFromBatch = "PERMIT2_TRANSFER_FROM_BATCH"
 
 	Permit2SmartContractAddress = "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+
+	maxUINT = "115792089237316195423570985008687907853269984665640564039457584007913129639935"
 )
 
 var Permit2AbiDecoder = MustLoadPermit2Abi()
@@ -83,6 +85,24 @@ type Permit2PermitParams struct {
 }
 
 func (p *Permit2PermitParams) Sign(acc *accounts.Account, chainID *big.Int, contractAddress accounts.Address, name string) error {
+	if acc == nil {
+		return errors.New("account is nil")
+	}
+	hashed := hashPermitSingle(p.PermitSingle)
+	eip := NewEIP712(chainID, contractAddress, name)
+	hashed = eip.HashTypedData(hashed)
+	sig, err := acc.Sign(hashed.Bytes())
+	if err != nil {
+		return err
+	}
+	p.Signature = sig
+	return nil
+}
+
+func (p *Permit2PermitParams) SignPermit2Mainnet(acc *accounts.Account) error {
+	chainID := big.NewInt(1)
+	name := "Permit2"
+	contractAddress := accounts.HexToAddress(Permit2SmartContractAddress)
 	if acc == nil {
 		return errors.New("account is nil")
 	}

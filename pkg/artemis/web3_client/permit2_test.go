@@ -11,10 +11,6 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 )
 
-const (
-	maxUINT = "115792089237316195423570985008687907853269984665640564039457584007913129639935"
-)
-
 func (s *Web3ClientTestSuite) TestCopyPermitTest() {
 	expiration, _ := new(big.Int).SetString("3000000000000", 10)
 	sigDeadline, _ := new(big.Int).SetString("3000000000000", 10)
@@ -84,9 +80,9 @@ func (s *Web3ClientTestSuite) TestPermit2TransferSubmission() {
 	bal, err = s.LocalHardhatMainnetUser.GetBalance(ctx, s.LocalHardhatMainnetUser.PublicKey(), nil)
 	s.Require().Nil(err)
 	s.Require().NotNil(bal)
-	max, _ := new(big.Int).SetString(maxUINT, 10)
 	expiration, _ := new(big.Int).SetString("1785444080", 10)
 	sigDeadline, _ := new(big.Int).SetString("1785444080", 10)
+	max, _ := new(big.Int).SetString(maxUINT, 10)
 
 	tx, err := uni.ApproveSpender(ctx, WETH9ContractAddress, Permit2SmartContractAddress, max)
 	s.Assert().NoError(err)

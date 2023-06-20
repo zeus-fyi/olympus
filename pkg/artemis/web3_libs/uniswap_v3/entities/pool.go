@@ -28,7 +28,7 @@ type StepComputations struct {
 	feeAmount         *big.Int
 }
 
-// Represents a V3 pool
+// Pool Represents a V3 pool
 type Pool struct {
 	Token0           *entities.Token
 	Token1           *entities.Token
@@ -44,6 +44,10 @@ type Pool struct {
 
 func GetAddress(tokenA, tokenB *entities.Token, fee constants.FeeAmount, initCodeHashManualOverride string) (accounts.Address, error) {
 	return utils.ComputePoolAddress(constants.FactoryAddress, tokenA, tokenB, fee, initCodeHashManualOverride)
+}
+
+func (p *Pool) GetAddress() (accounts.Address, error) {
+	return utils.ComputePoolAddress(constants.FactoryAddress, p.Token0, p.Token1, p.Fee, "")
 }
 
 /**
@@ -153,6 +157,9 @@ func (p *Pool) ChainID() uint {
  */
 
 func (p *Pool) GetOutputAmount(inputAmount *entities.CurrencyAmount, sqrtPriceLimitX96 *big.Int) (*entities.CurrencyAmount, *Pool, error) {
+	if sqrtPriceLimitX96 == nil {
+		sqrtPriceLimitX96 = new(big.Int).SetUint64(0)
+	}
 	if !(inputAmount.Currency.IsToken() && p.InvolvesToken(inputAmount.Currency.Wrapped())) {
 		return nil, nil, ErrTokenNotInvolved
 	}
@@ -182,6 +189,9 @@ func (p *Pool) GetOutputAmount(inputAmount *entities.CurrencyAmount, sqrtPriceLi
  */
 
 func (p *Pool) GetInputAmount(outputAmount *entities.CurrencyAmount, sqrtPriceLimitX96 *big.Int) (*entities.CurrencyAmount, *Pool, error) {
+	if sqrtPriceLimitX96 == nil {
+		sqrtPriceLimitX96 = new(big.Int).SetUint64(0)
+	}
 	if !(outputAmount.Currency.IsToken() && p.InvolvesToken(outputAmount.Currency.Wrapped())) {
 		return nil, nil, ErrTokenNotInvolved
 	}

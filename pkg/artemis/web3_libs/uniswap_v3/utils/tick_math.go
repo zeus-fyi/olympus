@@ -57,6 +57,7 @@ var (
  * Returns the sqrt ratio as a Q64.96 for the given tick. The sqrt ratio is computed as sqrt(1.0001)^tick
  * @param tick the tick for which to compute the sqrt ratio
  */
+
 func GetSqrtRatioAtTick(tick int) (*big.Int, error) {
 	if tick < MinTick || tick > MaxTick {
 		return nil, ErrInvalidTick
@@ -151,6 +152,7 @@ var (
  * and #getSqrtRatioAtTick(tick + 1) > sqrtRatioX96
  * @param sqrtRatioX96 the sqrt ratio as a Q64.96 for which to compute the tick
  */
+
 func GetTickAtSqrtRatio(sqrtRatioX96 *big.Int) (int, error) {
 	if sqrtRatioX96.Cmp(MinSqrtRatio) < 0 || sqrtRatioX96.Cmp(MaxSqrtRatio) >= 0 {
 		return 0, ErrInvalidSqrtRatio

@@ -9,11 +9,14 @@ type Tick struct {
 }
 
 // Provides information about ticks
+
 type TickDataProvider interface {
+
 	/**
 	 * Return information corresponding to a specific tick
 	 * @param tick the tick to load
 	 */
+
 	GetTick(tick int) Tick
 
 	/**
@@ -22,5 +25,6 @@ type TickDataProvider interface {
 	 * @param lte Whether the next tick should be lte the current tick
 	 * @param tickSpacing The tick spacing of the pool
 	 */
+
 	NextInitializedTickWithinOneWord(tick int, lte bool, tickSpacing int) (int, bool)
 }

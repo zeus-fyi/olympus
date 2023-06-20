@@ -32,7 +32,6 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 			pair = pd.v2Pair
 			tf := inputs.BinarySearch(pair)
 			tf.InitialPair = pair.ConvertToJSONType()
-
 			fmt.Println("\nsandwich: ==================================V3SwapExactIn==================================")
 			ts := TradeSummary{
 				Tx:            tx,
@@ -43,7 +42,8 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 				MinimumAmount: inputs.AmountOutMin,
 			}
 			u.PrintTradeSummaries(&ts)
-			fmt.Println("Sell Token: ", inputs.Path.TokenIn.String(), "Buy Token", inputs.Path.GetEndToken().String(), "Sell BuyWithAmount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
+			fmt.Println("txHash: ", tx.Tx.Hash().String())
+			fmt.Println("Sell Token: ", inputs.Path.TokenIn.String(), "Buy Token", inputs.Path.GetEndToken().String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
 			fmt.Println("sandwich: ====================================V3SwapExactIn==================================")
 		case V3SwapExactOut:
 			fmt.Println("V3SwapExactOut: ProcessUniversalRouterTxs")
@@ -66,7 +66,8 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 				MinimumAmount: inputs.AmountOut,
 			}
 			u.PrintTradeSummaries(&ts)
-			fmt.Println("Sell Token: ", inputs.Path.TokenIn.String(), "Buy Token", inputs.Path.GetEndToken().String(), "Sell BuyWithAmount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
+			fmt.Println("txHash: ", tx.Tx.Hash().String())
+			fmt.Println("Sell Token: ", inputs.Path.TokenIn.String(), "Buy Token", inputs.Path.GetEndToken().String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
 			fmt.Println("sandwich: ====================================V3SwapExactOut==================================")
 		case V2SwapExactIn:
 			fmt.Println("V2SwapExactIn: ProcessUniversalRouterTxs")
@@ -90,7 +91,8 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 				MinimumAmount: inputs.AmountOutMin,
 			}
 			u.PrintTradeSummaries(&ts)
-			fmt.Println("Sell Token: ", inputs.Path[0].String(), "Buy Token", inputs.Path[1].String(), "Sell BuyWithAmount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
+			fmt.Println("txHash: ", tx.Tx.Hash().String())
+			fmt.Println("Sell Token: ", inputs.Path[0].String(), "Buy Token", inputs.Path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
 			fmt.Println("sandwich: ====================================V2SwapExactIn==================================")
 		case V2SwapExactOut:
 			fmt.Println("V2SwapExactOut: ProcessUniversalRouterTxs")
@@ -115,7 +117,8 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 				MinimumAmount: inputs.AmountOut,
 			}
 			u.PrintTradeSummaries(&ts)
-			fmt.Println("Sell Token: ", inputs.Path[0].String(), "Buy Token", inputs.Path[1].String(), "Sell BuyWithAmount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
+			fmt.Println("txHash: ", tx.Tx.Hash().String())
+			fmt.Println("Sell Token: ", inputs.Path[0].String(), "Buy Token", inputs.Path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
 			fmt.Println("sandwich: ====================================V2SwapExactOut==================================")
 		default:
 		}

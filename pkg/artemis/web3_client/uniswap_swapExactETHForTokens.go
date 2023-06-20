@@ -140,6 +140,7 @@ func (u *UniswapClient) SwapExactETHForTokens(tx MevTx, args map[string]interfac
 		}
 		u.PrintTradeSummaries(ts)
 		//u.PrintTradeSummaries(tx, tf, pd.v2Pair, path[0].String(), st.Value, st.AmountOutMin)
+		fmt.Println("txHash: ", tx.Tx.Hash().String())
 		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "Sell BuyWithAmount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
 		fmt.Println("sandwich: ====================================SwapExactETHForTokens==================================")
 	}

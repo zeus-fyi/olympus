@@ -11,6 +11,43 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
+type TradeMethodStats struct {
+	TradeMethod string `json:"trade_method"`
+	Count       int    `json:"count"`
+}
+
+func SelectTradeMethodStatsBySuccess(ctx context.Context) ([]TradeMethodStats, error) {
+	return SelectTradeMethodStatsByEndReason(ctx, "success")
+}
+
+func SelectTradeMethodStatsByEndReason(ctx context.Context, endReason string) ([]TradeMethodStats, error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `	SELECT trade_method, count(*)
+					FROM eth_mev_tx_analysis
+					WHERE end_reason = $1
+					GROUP BY trade_method
+				  `
+	var txAnalysisSlice []TradeMethodStats
+	log.Debug().Interface("SelectEthMevTxAnalysis", q.LogHeader("SelectEthMevTxAnalysis"))
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, endReason)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SelectEthMevTxAnalysis")); returnErr != nil {
+		return txAnalysisSlice, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		tms := TradeMethodStats{}
+		rowErr := rows.Scan(
+			&tms.TradeMethod, &tms.Count,
+		)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader("TradeMethodStats"))
+			return nil, rowErr
+		}
+		txAnalysisSlice = append(txAnalysisSlice, tms)
+	}
+	return txAnalysisSlice, nil
+}
+
 func InsertEthMevTxAnalysis(ctx context.Context, txHistory artemis_autogen_bases.EthMevTxAnalysis) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `INSERT INTO eth_mev_tx_analysis(gas_used_wei, metadata, tx_hash, trade_method, end_reason, amount_in,

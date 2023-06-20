@@ -43,6 +43,7 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 				BuyWithAmount: inputs.AmountIn,
 				MinimumAmount: inputs.AmountOutMin,
 			}
+			tf.Trade.TradeMethod = V3SwapExactIn
 			u.PrintTradeSummaries(&ts)
 			fmt.Println("txHash: ", tx.Tx.Hash().String())
 			fmt.Println("Sell Token: ", inputs.Path.TokenIn.String(), "Buy Token", inputs.Path.GetEndToken().String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
@@ -67,6 +68,7 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 				BuyWithAmount: inputs.AmountInMax,
 				MinimumAmount: inputs.AmountOut,
 			}
+			tf.Trade.TradeMethod = V3SwapExactOut
 			u.PrintTradeSummaries(&ts)
 			fmt.Println("txHash: ", tx.Tx.Hash().String())
 			fmt.Println("Sell Token: ", inputs.Path.TokenIn.String(), "Buy Token", inputs.Path.GetEndToken().String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
@@ -82,7 +84,6 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 			pair = pd.v2Pair
 			tf := inputs.BinarySearch(pair)
 			tf.InitialPair = pair.ConvertToJSONType()
-
 			fmt.Println("\nsandwich: ==================================V2SwapExactIn==================================")
 			ts := TradeSummary{
 				Tx:            tx,
@@ -92,6 +93,7 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 				BuyWithAmount: inputs.AmountIn,
 				MinimumAmount: inputs.AmountOutMin,
 			}
+			tf.Trade.TradeMethod = V2SwapExactIn
 			u.PrintTradeSummaries(&ts)
 			fmt.Println("txHash: ", tx.Tx.Hash().String())
 			fmt.Println("Sell Token: ", inputs.Path[0].String(), "Buy Token", inputs.Path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
@@ -118,6 +120,7 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 				BuyWithAmount: inputs.AmountInMax,
 				MinimumAmount: inputs.AmountOut,
 			}
+			tf.Trade.TradeMethod = V2SwapExactOut
 			u.PrintTradeSummaries(&ts)
 			fmt.Println("txHash: ", tx.Tx.Hash().String())
 			fmt.Println("Sell Token: ", inputs.Path[0].String(), "Buy Token", inputs.Path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)

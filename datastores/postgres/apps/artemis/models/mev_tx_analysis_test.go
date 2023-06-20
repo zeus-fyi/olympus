@@ -1,6 +1,7 @@
 package artemis_validator_service_groups_models
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -13,9 +14,18 @@ type MevTxAnalysisTestSuite struct {
 	hestia_test.BaseHestiaTestSuite
 }
 
+func (s *MevTxAnalysisTestSuite) TestSelectTradeMethodStatsBySuccess() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	tms, err := SelectTradeMethodStatsBySuccess(ctx)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(tms)
+	for _, tm := range tms {
+		fmt.Println(tm.TradeMethod, tm.Count)
+	}
+}
+
 func (s *MevTxAnalysisTestSuite) TestInsertNodes() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
-
 	txHistory := artemis_autogen_bases.EthMevTxAnalysis{
 		GasUsedWei:              "1000",
 		Metadata:                "{}",

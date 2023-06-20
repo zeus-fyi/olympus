@@ -8,6 +8,7 @@ import (
 	"reflect"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/entities"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/utils"
@@ -38,6 +39,7 @@ type QuoteOptions struct {
  * @param tradeType The trade type, either exact input or exact output
  * @returns The formatted calldata
  */
+
 func QuoteCallParameters(
 	route *entities.Route,
 	amount *uniswap_core_entities.CurrencyAmount,
@@ -93,6 +95,7 @@ func QuoteCallParameters(
  * @param route the v3 path to convert to an encoded path
  * @param exactOutput whether the route should be encoded in reverse, for making exact output swaps
  */
+
 func EncodeRouteToPath(route *entities.Route, exactOutput bool) ([]byte, error) {
 	var (
 		inputToken = route.Input.Wrapped()
@@ -131,7 +134,7 @@ func EncodeRouteToPath(route *entities.Route, exactOutput bool) ([]byte, error) 
 	for i, t := range types {
 		switch t {
 		case addressTy:
-			packedPath = append(packedPath, path[i].(common.Address).Bytes())
+			packedPath = append(packedPath, path[i].(accounts.Address).Bytes())
 		case uint24Ty:
 			packedPath = append(packedPath, common.LeftPadBytes(PutUint24(path[i].(uint64)), 24/8))
 		default:

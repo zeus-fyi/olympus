@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"sort"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/constants"
 )
@@ -366,7 +366,7 @@ func newTrade(routes []*Swap, tradeType entities.TradeType) (*Trade, error) {
 		numPools += len(route.Route.Pools)
 	}
 
-	var poolAddressSet = make(map[common.Address]bool)
+	var poolAddressSet = make(map[accounts.Address]bool)
 	for _, route := range routes {
 		for _, pool := range route.Route.Pools {
 			addr, err := GetAddress(pool.Token0, pool.Token1, pool.Fee, "")

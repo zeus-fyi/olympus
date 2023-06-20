@@ -3,20 +3,19 @@ package periphery
 import (
 	"math/big"
 
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/entities"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/utils"
-
-	"github.com/ethereum/go-ethereum/common"
 )
 
 var (
 	ether  = uniswap_core_entities.EtherOnChain(1)
-	token0 = uniswap_core_entities.NewToken(1, common.HexToAddress("0x0000000000000000000000000000000000000001"), 18, "t0", "token0")
-	token1 = uniswap_core_entities.NewToken(1, common.HexToAddress("0x0000000000000000000000000000000000000002"), 18, "t1", "token1")
-	token2 = uniswap_core_entities.NewToken(1, common.HexToAddress("0x0000000000000000000000000000000000000003"), 18, "t2", "token2")
-	token3 = uniswap_core_entities.NewToken(1, common.HexToAddress("0x0000000000000000000000000000000000000004"), 18, "t2", "token3")
+	token0 = uniswap_core_entities.NewToken(1, accounts.HexToAddress("0x0000000000000000000000000000000000000001"), 18, "t0", "token0")
+	token1 = uniswap_core_entities.NewToken(1, accounts.HexToAddress("0x0000000000000000000000000000000000000002"), 18, "t1", "token1")
+	token2 = uniswap_core_entities.NewToken(1, accounts.HexToAddress("0x0000000000000000000000000000000000000003"), 18, "t2", "token2")
+	token3 = uniswap_core_entities.NewToken(1, accounts.HexToAddress("0x0000000000000000000000000000000000000004"), 18, "t2", "token3")
 
 	weth = ether.Wrapped()
 

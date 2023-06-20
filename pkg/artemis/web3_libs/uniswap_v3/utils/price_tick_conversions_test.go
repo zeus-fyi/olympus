@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/shopspring/decimal"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 )
 
@@ -15,7 +15,7 @@ func token(sortOrder, decimals, chainID uint) *entities.Token {
 	if sortOrder > 9 || sortOrder%1 != 0 {
 		panic("invalid sort order")
 	}
-	address := common.HexToAddress("0x" + strings.Repeat(fmt.Sprint(sortOrder), 40))
+	address := accounts.HexToAddress("0x" + strings.Repeat(fmt.Sprint(sortOrder), 40))
 	return entities.NewToken(chainID, address, decimals, fmt.Sprintf("T%d", sortOrder), fmt.Sprintf("token%d", sortOrder))
 }
 

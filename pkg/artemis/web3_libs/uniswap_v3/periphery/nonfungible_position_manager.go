@@ -7,7 +7,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/entities"
@@ -35,8 +35,8 @@ func getNonFungiblePositionManagerABI() abi.ABI {
 var MaxUint128 = new(big.Int).Sub(new(big.Int).Exp(big.NewInt(2), big.NewInt(128), nil), big.NewInt(1))
 
 type MintSpecificOptions struct {
-	Recipient  common.Address // The account that should receive the minted NFT
-	CreatePool bool           // Creates pool if not initialized before mint
+	Recipient  accounts.Address // The account that should receive the minted NFT
+	CreatePool bool             // Creates pool if not initialized before mint
 }
 
 type IncreaseSpecificOptions struct {
@@ -69,10 +69,10 @@ type AddLiquidityOptions struct {
 }
 
 type SafeTransferOptions struct {
-	Sender    common.Address // The account sending the NFT
-	Recipient common.Address // The account that should receive the NFT
-	TokenID   *big.Int       //  The id of the token being sent
-	Data      []byte         // The optional parameter that passes data to the `onERC721Received` call for the staker
+	Sender    accounts.Address // The account sending the NFT
+	Recipient accounts.Address // The account that should receive the NFT
+	TokenID   *big.Int         //  The id of the token being sent
+	Data      []byte           // The optional parameter that passes data to the `onERC721Received` call for the staker
 }
 
 type CollectOptions struct {
@@ -81,7 +81,7 @@ type CollectOptions struct {
 	ExpectedCurrencyOwed1 *uniswap_core_entities.CurrencyAmount // Expected value of tokensOwed1, including as-of-yet-unaccounted-for fees/liquidity value to be burned
 	ExpectedTokenOwed0    uniswap_core_entities.Currency
 	ExpectedTokenOwed1    uniswap_core_entities.Currency
-	Recipient             common.Address // The account that should receive the tokens
+	Recipient             accounts.Address // The account that should receive the tokens
 }
 
 type NFTPermitOptions struct {
@@ -104,8 +104,8 @@ type RemoveLiquidityOptions struct {
 }
 
 type MintParams struct {
-	Token0         common.Address
-	Token1         common.Address
+	Token0         accounts.Address
+	Token1         accounts.Address
 	Fee            *big.Int
 	TickLower      *big.Int
 	TickUpper      *big.Int
@@ -113,7 +113,7 @@ type MintParams struct {
 	Amount1Desired *big.Int
 	Amount0Min     *big.Int
 	Amount1Min     *big.Int
-	Recipient      common.Address
+	Recipient      accounts.Address
 	Deadline       *big.Int
 }
 
@@ -128,7 +128,7 @@ type IncreaseLiquidityParams struct {
 
 type CollectParams struct {
 	TokenId    *big.Int
-	Recipient  common.Address
+	Recipient  accounts.Address
 	Amount0Max *big.Int
 	Amount1Max *big.Int
 }

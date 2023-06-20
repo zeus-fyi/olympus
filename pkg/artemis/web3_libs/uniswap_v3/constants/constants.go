@@ -3,15 +3,15 @@ package constants
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 )
 
 const PoolInitCodeHash = "0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54"
 
 var (
-	FactoryAddress = common.HexToAddress("0x1F98431c8aD98523631AE4a59f267346ea31F984")
-	AddressZero    = common.HexToAddress("0x0000000000000000000000000000000000000000")
+	FactoryAddress = accounts.HexToAddress("0x1F98431c8aD98523631AE4a59f267346ea31F984")
+	AddressZero    = accounts.HexToAddress("0x0000000000000000000000000000000000000000")
 )
 
 // The default factory enabled fee amounts, denominated in hundredths of bips.

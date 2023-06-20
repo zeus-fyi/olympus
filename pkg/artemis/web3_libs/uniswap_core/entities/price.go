@@ -16,7 +16,7 @@ type Price struct {
 	Scalar        *Fraction // used to adjust the raw fraction w/r/t the decimals of the {base,quote}Token
 }
 
-// Construct a price, either with the base and quote currency amount, or the args
+// NewPrice Construct a price, either with the base and quote currency amount, or the args
 func NewPrice(baseCurrency, quoteCurrency Currency, denominator, numerator *big.Int) *Price {
 	return &Price{
 		Fraction:      NewFraction(numerator, denominator),

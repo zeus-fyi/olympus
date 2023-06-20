@@ -4,8 +4,8 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/utils"
@@ -13,10 +13,10 @@ import (
 
 var (
 	Ether  = entities.EtherOnChain(1)
-	token0 = entities.NewToken(1, common.HexToAddress("0x0000000000000000000000000000000000000001"), 18, "t0", "token0")
-	token1 = entities.NewToken(1, common.HexToAddress("0x0000000000000000000000000000000000000002"), 18, "t1", "token1")
-	token2 = entities.NewToken(1, common.HexToAddress("0x0000000000000000000000000000000000000003"), 18, "t2", "token2")
-	token3 = entities.NewToken(1, common.HexToAddress("0x0000000000000000000000000000000000000004"), 18, "t3", "token3")
+	token0 = entities.NewToken(1, accounts.HexToAddress("0x0000000000000000000000000000000000000001"), 18, "t0", "token0")
+	token1 = entities.NewToken(1, accounts.HexToAddress("0x0000000000000000000000000000000000000002"), 18, "t1", "token1")
+	token2 = entities.NewToken(1, accounts.HexToAddress("0x0000000000000000000000000000000000000003"), 18, "t2", "token2")
+	token3 = entities.NewToken(1, accounts.HexToAddress("0x0000000000000000000000000000000000000004"), 18, "t3", "token3")
 
 	pool_0_1 = v2StylePool(
 		token0,

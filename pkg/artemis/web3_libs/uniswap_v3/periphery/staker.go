@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/entities"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/utils"
@@ -27,28 +27,28 @@ type IncentiveKey struct {
 	Pool        *entities.Pool               // The pool that the staked positions must provide in.
 	StartTime   *big.Int                     // The time when the incentive program begins.
 	EndTime     *big.Int                     // The time that the incentive program ends.
-	Refundee    common.Address               // The address which receives any remaining reward tokens at `endTime`.
+	Refundee    accounts.Address             // The address which receives any remaining reward tokens at `endTime`.
 }
 
 type IncentiveKeyParams struct {
-	RewardToken common.Address
-	Pool        common.Address
+	RewardToken accounts.Address
+	Pool        accounts.Address
 	StartTime   *big.Int
 	EndTime     *big.Int
-	Refundee    common.Address
+	Refundee    accounts.Address
 }
 
 // Options to specify when claiming rewards.
 type ClaimOptions struct {
-	TokenID   *big.Int       // The id of the NFT
-	Recipient common.Address // Address to send rewards to.
-	Amount    *big.Int       // The amount of `rewardToken` to claim. 0 claims all.
+	TokenID   *big.Int         // The id of the NFT
+	Recipient accounts.Address // Address to send rewards to.
+	Amount    *big.Int         // The amount of `rewardToken` to claim. 0 claims all.
 }
 
 // Options to specify when withdrawing a position.
 type WithdrawOptions struct {
-	Owner common.Address // Set when withdrawing. The position will be sent to `owner` on withdraw.
-	Data  []byte         // Set when withdrawing. `data` is passed to `safeTransferFrom` when transferring the position from contract back to owner.
+	Owner accounts.Address // Set when withdrawing. The position will be sent to `owner` on withdraw.
+	Data  []byte           // Set when withdrawing. `data` is passed to `safeTransferFrom` when transferring the position from contract back to owner.
 }
 
 /**

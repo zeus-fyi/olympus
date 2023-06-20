@@ -4,18 +4,18 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/daoleno/uniswap-sdk-core/entities"
-	"github.com/daoleno/uniswapv3-sdk/constants"
-	"github.com/daoleno/uniswapv3-sdk/utils"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeus-fyi/gochain/web3/accounts"
+	entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/constants"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/utils"
 )
 
 var (
 	rEther  = entities.EtherOnChain(1).Wrapped()
-	rtoken0 = entities.NewToken(1, common.HexToAddress("0x0000000000000000000000000000000000000001"), 18, "t0", "token0")
-	rtoken1 = entities.NewToken(1, common.HexToAddress("0x0000000000000000000000000000000000000002"), 18, "t1", "token1")
-	rtoken2 = entities.NewToken(1, common.HexToAddress("0x0000000000000000000000000000000000000003"), 18, "t2", "token2")
+	rtoken0 = entities.NewToken(1, accounts.HexToAddress("0x0000000000000000000000000000000000000001"), 18, "t0", "token0")
+	rtoken1 = entities.NewToken(1, accounts.HexToAddress("0x0000000000000000000000000000000000000002"), 18, "t1", "token1")
+	rtoken2 = entities.NewToken(1, accounts.HexToAddress("0x0000000000000000000000000000000000000003"), 18, "t2", "token2")
 	rweth   = entities.WETH9[1]
 
 	rpool_0_1, _    = NewPool(rtoken0, rtoken1, constants.FeeMedium, utils.EncodeSqrtRatioX96(constants.One, constants.One), big.NewInt(0), 0, nil)

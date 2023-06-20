@@ -5,7 +5,7 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/entities"
@@ -25,7 +25,7 @@ var (
 // Options for producing the arguments to send calls to the router.
 type SwapOptions struct {
 	SlippageTolerance *uniswap_core_entities.Percent // How much the execution price is allowed to move unfavorably from the trade execution price.
-	Recipient         common.Address                 // The account that should receive the output.
+	Recipient         accounts.Address               // The account that should receive the output.
 	Deadline          *big.Int                       // When the transaction expires, in epoch seconds.
 	InputTokenPermit  *PermitOptions                 // The optional permit parameters for spending the input.
 	SqrtPriceLimitX96 *big.Int                       // The optional price limit for the trade.
@@ -33,10 +33,10 @@ type SwapOptions struct {
 }
 
 type ExactInputSingleParams struct {
-	TokenIn           common.Address
-	TokenOut          common.Address
+	TokenIn           accounts.Address
+	TokenOut          accounts.Address
 	Fee               *big.Int
-	Recipient         common.Address
+	Recipient         accounts.Address
 	Deadline          *big.Int
 	AmountIn          *big.Int
 	AmountOutMinimum  *big.Int
@@ -44,10 +44,10 @@ type ExactInputSingleParams struct {
 }
 
 type ExactOutputSingleParams struct {
-	TokenIn           common.Address
-	TokenOut          common.Address
+	TokenIn           accounts.Address
+	TokenOut          accounts.Address
 	Fee               *big.Int
-	Recipient         common.Address
+	Recipient         accounts.Address
 	Deadline          *big.Int
 	AmountOut         *big.Int
 	AmountInMaximum   *big.Int
@@ -56,7 +56,7 @@ type ExactOutputSingleParams struct {
 
 type ExactInputParams struct {
 	Path             []byte
-	Recipient        common.Address
+	Recipient        accounts.Address
 	Deadline         *big.Int
 	AmountIn         *big.Int
 	AmountOutMinimum *big.Int
@@ -64,7 +64,7 @@ type ExactInputParams struct {
 
 type ExactOutputParams struct {
 	Path            []byte
-	Recipient       common.Address
+	Recipient       accounts.Address
 	Deadline        *big.Int
 	AmountOut       *big.Int
 	AmountInMaximum *big.Int

@@ -6,6 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/constants"
 )
@@ -18,10 +19,11 @@ import (
  * @param fee The fee tier of the pool
  * @returns The pool address
  */
-func ComputePoolAddress(factoryAddress common.Address, tokenA *entities.Token, tokenB *entities.Token, fee constants.FeeAmount, initCodeHashManualOverride string) (common.Address, error) {
+
+func ComputePoolAddress(factoryAddress accounts.Address, tokenA *entities.Token, tokenB *entities.Token, fee constants.FeeAmount, initCodeHashManualOverride string) (accounts.Address, error) {
 	isSorted, err := tokenA.SortsBefore(tokenB)
 	if err != nil {
-		return common.Address{}, err
+		return accounts.Address{}, err
 	}
 	var (
 		token0 *entities.Token
@@ -37,17 +39,17 @@ func ComputePoolAddress(factoryAddress common.Address, tokenA *entities.Token, t
 	return getCreate2Address(factoryAddress, token0.Address, token1.Address, fee, initCodeHashManualOverride), nil
 }
 
-func getCreate2Address(factoyAddress, addressA, addressB common.Address, fee constants.FeeAmount, initCodeHashManualOverride string) common.Address {
+func getCreate2Address(factoyAddress, addressA, addressB accounts.Address, fee constants.FeeAmount, initCodeHashManualOverride string) accounts.Address {
 	var salt [32]byte
 	copy(salt[:], crypto.Keccak256(abiEncode(addressA, addressB, fee)))
 
 	if initCodeHashManualOverride != "" {
-		crypto.CreateAddress2(factoyAddress, salt, common.FromHex(initCodeHashManualOverride))
+		crypto.CreateAddress2(common.HexToAddress(factoyAddress.Hex()), salt, common.FromHex(initCodeHashManualOverride))
 	}
-	return crypto.CreateAddress2(factoyAddress, salt, common.FromHex(constants.PoolInitCodeHash))
+	return accounts.HexToAddress(crypto.CreateAddress2(common.HexToAddress(factoyAddress.Hex()), salt, common.FromHex(constants.PoolInitCodeHash)).Hex())
 }
 
-func abiEncode(addressA, addressB common.Address, fee constants.FeeAmount) []byte {
+func abiEncode(addressA, addressB accounts.Address, fee constants.FeeAmount) []byte {
 	addressTy, _ := abi.NewType("address", "address", nil)
 	uint256Ty, _ := abi.NewType("uint256", "uint256", nil)
 

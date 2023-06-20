@@ -4,9 +4,9 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/entities"
@@ -14,9 +14,9 @@ import (
 )
 
 func TestCollectRewards(t *testing.T) {
-	reward := uniswap_core_entities.NewToken(1, common.HexToAddress("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"), 18, "r", "reward")
-	token0 := uniswap_core_entities.NewToken(1, common.HexToAddress("0x0000000000000000000000000000000000000001"), 18, "t0", "token0")
-	token1 := uniswap_core_entities.NewToken(1, common.HexToAddress("0x0000000000000000000000000000000000000002"), 18, "t1", "token1")
+	reward := uniswap_core_entities.NewToken(1, accounts.HexToAddress("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"), 18, "r", "reward")
+	token0 := uniswap_core_entities.NewToken(1, accounts.HexToAddress("0x0000000000000000000000000000000000000001"), 18, "t0", "token0")
+	token1 := uniswap_core_entities.NewToken(1, accounts.HexToAddress("0x0000000000000000000000000000000000000002"), 18, "t1", "token1")
 
 	pool_0_1, _ := entities.NewPool(token0, token1, constants.FeeMedium, utils.EncodeSqrtRatioX96(constants.One, constants.One), big.NewInt(0), 0, nil)
 
@@ -25,18 +25,18 @@ func TestCollectRewards(t *testing.T) {
 		Pool:        pool_0_1,
 		StartTime:   big.NewInt(100),
 		EndTime:     big.NewInt(200),
-		Refundee:    common.HexToAddress("0x0000000000000000000000000000000000000001"),
+		Refundee:    accounts.HexToAddress("0x0000000000000000000000000000000000000001"),
 	}}
 	incentiveKeys := append(incentiveKey, &IncentiveKey{
 		RewardToken: reward,
 		Pool:        pool_0_1,
 		StartTime:   big.NewInt(50),
 		EndTime:     big.NewInt(100),
-		Refundee:    common.HexToAddress("0x0000000000000000000000000000000000000089"),
+		Refundee:    accounts.HexToAddress("0x0000000000000000000000000000000000000089"),
 	})
 
-	recipient := common.HexToAddress("0x0000000000000000000000000000000000000003")
-	// sender := common.HexToAddress("0x0000000000000000000000000000000000000004")
+	recipient := accounts.HexToAddress("0x0000000000000000000000000000000000000003")
+	// sender := accounts.HexToAddress("0x0000000000000000000000000000000000000004")
 	tokenID := big.NewInt(1)
 
 	// succeeds with amount
@@ -69,9 +69,9 @@ func TestCollectRewards(t *testing.T) {
 }
 
 func TestWithdrawToken(t *testing.T) {
-	reward := uniswap_core_entities.NewToken(1, common.HexToAddress("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"), 18, "r", "reward")
-	token0 := uniswap_core_entities.NewToken(1, common.HexToAddress("0x0000000000000000000000000000000000000001"), 18, "t0", "token0")
-	token1 := uniswap_core_entities.NewToken(1, common.HexToAddress("0x0000000000000000000000000000000000000002"), 18, "t1", "token1")
+	reward := uniswap_core_entities.NewToken(1, accounts.HexToAddress("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"), 18, "r", "reward")
+	token0 := uniswap_core_entities.NewToken(1, accounts.HexToAddress("0x0000000000000000000000000000000000000001"), 18, "t0", "token0")
+	token1 := uniswap_core_entities.NewToken(1, accounts.HexToAddress("0x0000000000000000000000000000000000000002"), 18, "t1", "token1")
 
 	pool_0_1, _ := entities.NewPool(token0, token1, constants.FeeMedium, utils.EncodeSqrtRatioX96(constants.One, constants.One), big.NewInt(0), 0, nil)
 
@@ -80,18 +80,18 @@ func TestWithdrawToken(t *testing.T) {
 		Pool:        pool_0_1,
 		StartTime:   big.NewInt(100),
 		EndTime:     big.NewInt(200),
-		Refundee:    common.HexToAddress("0x0000000000000000000000000000000000000001"),
+		Refundee:    accounts.HexToAddress("0x0000000000000000000000000000000000000001"),
 	}}
 	incentiveKeys := append(incentiveKey, &IncentiveKey{
 		RewardToken: reward,
 		Pool:        pool_0_1,
 		StartTime:   big.NewInt(50),
 		EndTime:     big.NewInt(100),
-		Refundee:    common.HexToAddress("0x0000000000000000000000000000000000000089"),
+		Refundee:    accounts.HexToAddress("0x0000000000000000000000000000000000000089"),
 	})
 
-	recipient := common.HexToAddress("0x0000000000000000000000000000000000000003")
-	sender := common.HexToAddress("0x0000000000000000000000000000000000000004")
+	recipient := accounts.HexToAddress("0x0000000000000000000000000000000000000003")
+	sender := accounts.HexToAddress("0x0000000000000000000000000000000000000004")
 	tokenID := big.NewInt(1)
 
 	// succeeds with one keys
@@ -103,7 +103,7 @@ func TestWithdrawToken(t *testing.T) {
 		},
 		WithdrawOptions: WithdrawOptions{
 			Owner: sender,
-			Data:  common.FromHex("0x0000000000000000000000000000000000000008"),
+			Data:  accounts.FromHex("0x0000000000000000000000000000000000000008"),
 		},
 	})
 
@@ -120,7 +120,7 @@ func TestWithdrawToken(t *testing.T) {
 		},
 		WithdrawOptions: WithdrawOptions{
 			Owner: sender,
-			Data:  common.FromHex("0x0000000000000000000000000000000000000008"),
+			Data:  accounts.FromHex("0x0000000000000000000000000000000000000008"),
 		},
 	})
 	assert.NoError(t, err)
@@ -129,13 +129,13 @@ func TestWithdrawToken(t *testing.T) {
 }
 
 func TestEncodeDeposit(t *testing.T) {
-	reward := uniswap_core_entities.NewToken(1, common.HexToAddress("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"), 18, "r", "reward")
-	token0 := uniswap_core_entities.NewToken(1, common.HexToAddress("0x0000000000000000000000000000000000000001"), 18, "t0", "token0")
-	token1 := uniswap_core_entities.NewToken(1, common.HexToAddress("0x0000000000000000000000000000000000000002"), 18, "t1", "token1")
+	reward := uniswap_core_entities.NewToken(1, accounts.HexToAddress("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"), 18, "r", "reward")
+	token0 := uniswap_core_entities.NewToken(1, accounts.HexToAddress("0x0000000000000000000000000000000000000001"), 18, "t0", "token0")
+	token1 := uniswap_core_entities.NewToken(1, accounts.HexToAddress("0x0000000000000000000000000000000000000002"), 18, "t1", "token1")
 
 	pool_0_1, _ := entities.NewPool(token0, token1, constants.FeeMedium, utils.EncodeSqrtRatioX96(constants.One, constants.One), big.NewInt(0), 0, nil)
-	recipient := common.HexToAddress("0x0000000000000000000000000000000000000003")
-	sender := common.HexToAddress("0x0000000000000000000000000000000000000004")
+	recipient := accounts.HexToAddress("0x0000000000000000000000000000000000000003")
+	sender := accounts.HexToAddress("0x0000000000000000000000000000000000000004")
 	tokenID := big.NewInt(1)
 
 	incentiveKey := []*IncentiveKey{{
@@ -143,14 +143,14 @@ func TestEncodeDeposit(t *testing.T) {
 		Pool:        pool_0_1,
 		StartTime:   big.NewInt(100),
 		EndTime:     big.NewInt(200),
-		Refundee:    common.HexToAddress("0x0000000000000000000000000000000000000001"),
+		Refundee:    accounts.HexToAddress("0x0000000000000000000000000000000000000001"),
 	}}
 	incentiveKeys := append(incentiveKey, &IncentiveKey{
 		RewardToken: reward,
 		Pool:        pool_0_1,
 		StartTime:   big.NewInt(50),
 		EndTime:     big.NewInt(100),
-		Refundee:    common.HexToAddress("0x0000000000000000000000000000000000000089"),
+		Refundee:    accounts.HexToAddress("0x0000000000000000000000000000000000000089"),
 	})
 
 	// succeeds single key

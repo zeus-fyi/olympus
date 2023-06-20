@@ -4,16 +4,16 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/utils"
 )
 
 var (
-	USDC     = entities.NewToken(1, common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"), 6, "USDC", "USD Coin")
-	DAI      = entities.NewToken(1, common.HexToAddress("0x6B175474E89094C44Da98b954EedeAC495271d0F"), 18, "DAI", "Dai Stablecoin")
+	USDC     = entities.NewToken(1, accounts.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"), 6, "USDC", "USD Coin")
+	DAI      = entities.NewToken(1, accounts.HexToAddress("0x6B175474E89094C44Da98b954EedeAC495271d0F"), 18, "DAI", "Dai Stablecoin")
 	OneEther = big.NewInt(1e18)
 )
 
@@ -45,7 +45,7 @@ func TestNewPool(t *testing.T) {
 
 func TestGetAddress(t *testing.T) {
 	addr, _ := GetAddress(USDC, DAI, constants.FeeLow, "")
-	assert.Equal(t, addr, common.HexToAddress("0x6c6Bc977E13Df9b0de53b251522280BB72383700"), "matches an example")
+	assert.Equal(t, addr, accounts.HexToAddress("0x6c6Bc977E13Df9b0de53b251522280BB72383700"), "matches an example")
 }
 
 func TestToken0(t *testing.T) {

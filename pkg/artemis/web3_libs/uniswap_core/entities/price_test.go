@@ -4,14 +4,14 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 )
 
 var (
-	AddressZero = common.HexToAddress("0x0000000000000000000000000000000000000000")
-	AddressOne  = common.HexToAddress("0x0000000000000000000000000000000000000001")
-	AddressTwo  = common.HexToAddress("0x0000000000000000000000000000000000000002")
+	AddressZero = accounts.HexToAddress("0x0000000000000000000000000000000000000000")
+	AddressOne  = accounts.HexToAddress("0x0000000000000000000000000000000000000001")
+	AddressTwo  = accounts.HexToAddress("0x0000000000000000000000000000000000000002")
 
 	t0   = NewToken(1, AddressZero, 18, "", "")
 	t0_6 = NewToken(1, AddressZero, 6, "", "")

@@ -11,6 +11,7 @@ import (
  * @param tick the target tick
  * @param tickSpacing the spacing of the pool
  */
+
 func NearestUsableTick(tick int, tickSpacing int) int {
 	if tickSpacing <= 0 {
 		panic("tickSpacing must be greater than 0")

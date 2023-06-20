@@ -4,9 +4,9 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/entities"
@@ -14,16 +14,16 @@ import (
 )
 
 var (
-	token0T = uniswap_core_entities.NewToken(1, common.HexToAddress("0x0000000000000000000000000000000000000001"), 18, "t0", "token0")
-	token1T = uniswap_core_entities.NewToken(1, common.HexToAddress("0x0000000000000000000000000000000000000002"), 18, "t1", "token1")
+	token0T = uniswap_core_entities.NewToken(1, accounts.HexToAddress("0x0000000000000000000000000000000000000001"), 18, "t0", "token0")
+	token1T = uniswap_core_entities.NewToken(1, accounts.HexToAddress("0x0000000000000000000000000000000000000002"), 18, "t1", "token1")
 
 	feeT = constants.FeeMedium
 
 	pool01T, _    = entities.NewPool(token0T, token1T, feeT, utils.EncodeSqrtRatioX96(big.NewInt(1), big.NewInt(1)), big.NewInt(0), 0, nil)
 	pool1wethT, _ = entities.NewPool(token1T, uniswap_core_entities.WETH9[1], feeT, utils.EncodeSqrtRatioX96(big.NewInt(1), big.NewInt(1)), big.NewInt(0), 0, nil)
 
-	recipientT         = common.HexToAddress("0x0000000000000000000000000000000000000003")
-	senderT            = common.HexToAddress("0x0000000000000000000000000000000000000004")
+	recipientT         = accounts.HexToAddress("0x0000000000000000000000000000000000000003")
+	senderT            = accounts.HexToAddress("0x0000000000000000000000000000000000000004")
 	tokenIDT           = big.NewInt(1)
 	slippageToleranceT = uniswap_core_entities.NewPercent(big.NewInt(1), big.NewInt(100))
 	deadlineT          = big.NewInt(123)
@@ -316,7 +316,7 @@ func TestSafeTransferFromParameters(t *testing.T) {
 		Sender:    senderT,
 		Recipient: recipientT,
 		TokenID:   tokenIDT,
-		Data:      common.FromHex("0x0000000000000000000000000000000000009004"),
+		Data:      accounts.FromHex("0x0000000000000000000000000000000000009004"),
 	}
 	params, err = SafeTransferFromParameters(opts)
 	assert.NoError(t, err)

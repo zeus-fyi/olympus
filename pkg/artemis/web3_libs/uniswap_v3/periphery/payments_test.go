@@ -4,20 +4,20 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 )
 
 var (
-	recipient  = common.HexToAddress("0x0000000000000000000000000000000000000003")
+	recipient  = accounts.HexToAddress("0x0000000000000000000000000000000000000003")
 	amount     = big.NewInt(123)
 	feeOptions = &FeeOptions{
 		Fee:       entities.NewPercent(big.NewInt(1), big.NewInt(1000)),
-		Recipient: common.HexToAddress("0x0000000000000000000000000000000000000009"),
+		Recipient: accounts.HexToAddress("0x0000000000000000000000000000000000000009"),
 	}
-	token = entities.NewToken(1, common.HexToAddress("0x0000000000000000000000000000000000000001"), 18, "t0", "token0")
+	token = entities.NewToken(1, accounts.HexToAddress("0x0000000000000000000000000000000000000001"), 18, "t0", "token0")
 )
 
 func TestEncodeUnwrapWETH9(t *testing.T) {

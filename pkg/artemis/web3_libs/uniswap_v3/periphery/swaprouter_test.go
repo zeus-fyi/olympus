@@ -4,9 +4,9 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/entities"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/utils"
@@ -22,7 +22,7 @@ func TestSwapCallParametersSingleTradeInput(t *testing.T) {
 	// pool_1_3 := makePool(token3, token1)
 
 	slippageTolerance := uniswap_core_entities.NewPercent(big.NewInt(1), big.NewInt(100))
-	recipient := common.HexToAddress("0x0000000000000000000000000000000000000003")
+	recipient := accounts.HexToAddress("0x0000000000000000000000000000000000000003")
 	deadline := big.NewInt(123)
 
 	// single trade input
@@ -218,7 +218,7 @@ func TestSwapCallParametersMultipleTradeInput(t *testing.T) {
 	pool_1_3 := makePool(token3, token1)
 
 	slippageTolerance := uniswap_core_entities.NewPercent(big.NewInt(1), big.NewInt(100))
-	recipient := common.HexToAddress("0x0000000000000000000000000000000000000003")
+	recipient := accounts.HexToAddress("0x0000000000000000000000000000000000000003")
 	deadline := big.NewInt(123)
 
 	// multiple trade input
@@ -488,7 +488,7 @@ func TestSwapCallParametersTradeWithMultipleRoutes(t *testing.T) {
 	pool_1_3 := makePool(token3, token1)
 
 	slippageTolerance := uniswap_core_entities.NewPercent(big.NewInt(1), big.NewInt(100))
-	recipient := common.HexToAddress("0x0000000000000000000000000000000000000003")
+	recipient := accounts.HexToAddress("0x0000000000000000000000000000000000000003")
 	deadline := big.NewInt(123)
 
 	// trade with multiple routes

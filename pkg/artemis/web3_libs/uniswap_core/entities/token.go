@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 )
 
 var (
@@ -15,11 +15,11 @@ var (
 // Token represents an ERC20 token with a unique address and some metadata.
 type Token struct {
 	*baseCurrency
-	Address common.Address // The contract address on the chain on which this token lives
+	Address accounts.Address // The contract address on the chain on which this token lives
 }
 
 // NewToken creates a new token with the given currency and address.
-func NewToken(chainID uint, address common.Address, decimals uint, symbol string, name string) *Token {
+func NewToken(chainID uint, address accounts.Address, decimals uint, symbol string, name string) *Token {
 	if decimals >= 255 {
 		panic("Token currency decimals must be less than 255")
 	}

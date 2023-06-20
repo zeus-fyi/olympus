@@ -18,6 +18,8 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 	// todo, update this from stub to real
 	pair := UniswapV2Pair{}
 
+	// todo needs to compound all trades per execution command
+
 	// todo needs to save trade analysis results
 	for _, subtx := range subcmd.Commands {
 		switch subtx.Command {

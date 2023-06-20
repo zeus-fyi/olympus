@@ -60,7 +60,6 @@ func (u *UniswapClient) ExecFrontRunTradeStepTokenTransfer(tf *TradeExecutionFlo
 	tf.FrontRunTrade.PostTradeEthBalance = endEthBal
 	tf.FrontRunTrade.DiffTradeEthBalance = new(big.Int).Sub(endEthBal, startEthBal)
 	return nil, nil
-	//return u.ExecFrontRunTradeStep(tf)
 }
 
 func (u *UniswapClient) FrontRunTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*big.Int, error) {

@@ -60,11 +60,7 @@ func (u *UniswapClient) VerifyTradeResults(tf *TradeExecutionFlow) error {
 	default:
 		return errors.New("invalid trade method")
 	}
-	//endEthBal, err := u.Web3Client.GetBalance(ctx, u.Web3Client.PublicKey(), nil)
-	//if err != nil {
-	//	log.Err(err).Msg("error getting final trade eth balance")
-	//	return err
-	//}
+
 	frontRunGasCost := new(big.Int).SetUint64(tf.FrontRunTrade.TotalGasCost)
 	u.TradeAnalysisReport.GasReport.FrontRunGasUsed = frontRunGasCost.String()
 	fmt.Println("frontRunGasCost", frontRunGasCost.String())
@@ -78,9 +74,8 @@ func (u *UniswapClient) VerifyTradeResults(tf *TradeExecutionFlow) error {
 	u.TotalGasUsed = totalSandwichTradeGasCost.String()
 
 	gasFreeProfit := new(big.Int).Sub(tf.SandwichTrade.AmountOut, tf.FrontRunTrade.AmountIn)
-	fmt.Println("gas free profit", gasFreeProfit.String())
+	fmt.Println("gas free profit", gasFreeProfit.String(), "profitToken", tf.SandwichTrade.AmountOutAddr.String())
 	expMinusActualProfit := new(big.Int).Sub(tf.SandwichPrediction.ExpectedProfit, gasFreeProfit)
-
 	if expMinusActualProfit.String() != "0" {
 		return errors.New("expected minus actual profit mismatch")
 	}

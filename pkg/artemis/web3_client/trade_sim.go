@@ -21,7 +21,7 @@ func (u *UniswapClient) SimFullSandwichTrade(tf *TradeExecutionFlow) error {
 		return err
 	}
 
-	secondToken := tf.SandwichTrade.AmountInAddr.String()
+	secondToken := tf.FrontRunTrade.AmountInAddr.String()
 	if tf.FrontRunTrade.AmountInAddr.String() == WETH9ContractAddress {
 		secondToken = tf.FrontRunTrade.AmountOutAddr.String()
 	}

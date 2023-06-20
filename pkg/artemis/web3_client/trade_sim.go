@@ -13,7 +13,7 @@ func (u *UniswapClient) SimFullSandwichTrade(tf *TradeExecutionFlow) error {
 		fmt.Println("executing full sandwich trade")
 	}
 	u.TradeAnalysisReport.TradeMethod = tf.Trade.TradeMethod
-	// todo needs to amortize gas costs for permit2
+	// this isn't included in trade gas costs since we amortize one time gas costs for permit2
 	max, _ := new(big.Int).SetString(maxUINT, 10)
 	approveTx, err := u.ApproveSpender(ctx, WETH9ContractAddress, Permit2SmartContractAddress, max)
 	if err != nil {

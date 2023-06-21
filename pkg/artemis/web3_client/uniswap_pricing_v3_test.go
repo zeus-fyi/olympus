@@ -32,6 +32,10 @@ func (s *Web3ClientTestSuite) TestUniswapV3DataFetcher() {
 	err = p.GetLiquidity()
 	s.Require().NoError(err)
 
+	val, err := p.GetTickMappingValueFromContract(0)
+	s.Require().NoError(err)
+	s.Require().NotNil(val)
+
 	v3Pool, err := entities.NewPool(tokenA, tokenB, constants.FeeMedium, p.Slot0.SqrtPriceX96, p.Liquidity, p.Slot0.Tick, &p)
 	s.Require().NoError(err)
 	s.Require().NotNil(v3Pool)

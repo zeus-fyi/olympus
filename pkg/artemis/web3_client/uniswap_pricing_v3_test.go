@@ -14,17 +14,15 @@ import (
 // example v3 pool: 0x4b5Ab61593A2401B1075b90c04cBCDD3F87CE011
 
 func (s *Web3ClientTestSuite) TestUniswapV3DataFetcher() {
+	factoryAddress := accounts.HexToAddress("0x1F98431c8aD98523631AE4a59f267346ea31F984")
 	tokenA := core_entities.NewToken(1, accounts.HexToAddress(WETH9ContractAddress), 18, "WETH", "Wrapped Ether")
-	tokenB := core_entities.NewToken(1, accounts.HexToAddress(LooksTokenAddr), 18, "LOOKS", "LooksRare Token")
-
+	tokenB := core_entities.NewToken(1, accounts.HexToAddress(UsdCoinAddr), 6, "USDC", "USD Coin")
+	result, err := utils.ComputePoolAddress(factoryAddress, tokenA, tokenB, constants.FeeMedium, "")
+	s.Require().NoError(err)
 	p := UniswapPoolV3{
-		PoolAddress: "0x4b5Ab61593A2401B1075b90c04cBCDD3F87CE011",
+		PoolAddress: result.String(),
 		Web3Actions: s.LocalHardhatMainnetUser.Web3Actions,
 	}
-
-	tick, err := p.GetTickFromContract(0)
-	s.Require().NoError(err)
-	s.Require().NotNil(tick)
 
 	err = p.GetSlot0()
 	s.Require().NoError(err)
@@ -32,22 +30,26 @@ func (s *Web3ClientTestSuite) TestUniswapV3DataFetcher() {
 	err = p.GetLiquidity()
 	s.Require().NoError(err)
 
-	val, err := p.GetTickMappingValueFromContract(0)
-	s.Require().NoError(err)
-	s.Require().NotNil(val)
+	tickVal := p.GetTick(p.Slot0.Tick)
 
-	v3Pool, err := entities.NewPool(tokenA, tokenB, constants.FeeMedium, p.Slot0.SqrtPriceX96, p.Liquidity, p.Slot0.Tick, &p)
+	tdp, err := entities.NewTickListDataProvider([]entities.Tick{tickVal}, constants.TickSpacings[constants.FeeMedium])
+	s.Require().NoError(err)
+
+	v3Pool, err := entities.NewPool(tokenA, tokenB, constants.FeeMedium, p.Slot0.SqrtPriceX96, p.Liquidity, p.Slot0.Tick, tdp)
 	s.Require().NoError(err)
 	s.Require().NotNil(v3Pool)
 
-	inputAmount := core_entities.FromRawAmount(tokenA, big.NewInt(100))
+	inputAmount := core_entities.FromRawAmount(tokenA, Ether)
+
 	output, pool, err := v3Pool.GetOutputAmount(inputAmount, nil)
 	s.Require().NoError(err)
 	s.Require().NotNil(output)
 	s.Require().NotNil(pool)
 
 	fmt.Println(output.Numerator.String())
-	fmt.Println(output.Currency.Name())
+	fmt.Println(output.Denominator.String())
+	usdAmount := new(big.Int).Div(output.Numerator, new(big.Int).SetInt64(1000000))
+	fmt.Println("usdcAmount", usdAmount.String())
 }
 
 func (s *Web3ClientTestSuite) TestUniswapV3() {

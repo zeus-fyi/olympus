@@ -66,7 +66,7 @@ func (p *UniswapPoolV3) GetSlot0() error {
 		case 1:
 			tmp := val.(*big.Int)
 			p.Slot0.Tick = int(tmp.Int64())
-		case 7:
+		case 5:
 			tmp := val.(uint8)
 			p.Slot0.FeeProtocol = int(tmp)
 		}

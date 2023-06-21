@@ -1,6 +1,7 @@
 package web3_client
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
@@ -13,7 +14,6 @@ import (
 // example v3 pool: 0x4b5Ab61593A2401B1075b90c04cBCDD3F87CE011
 
 func (s *Web3ClientTestSuite) TestUniswapV3DataFetcher() {
-	//factoryAddress := accounts.HexToAddress("0x1F98431c8aD98523631AE4a59f267346ea31F984")
 	tokenA := core_entities.NewToken(1, accounts.HexToAddress(WETH9ContractAddress), 18, "WETH", "Wrapped Ether")
 	tokenB := core_entities.NewToken(1, accounts.HexToAddress(LooksTokenAddr), 18, "LOOKS", "LooksRare Token")
 
@@ -36,19 +36,14 @@ func (s *Web3ClientTestSuite) TestUniswapV3DataFetcher() {
 	s.Require().NoError(err)
 	s.Require().NotNil(v3Pool)
 
-	cur := &core_entities.CurrencyAmount{
-		Fraction: &core_entities.Fraction{
-			Numerator:   big.NewInt(1),
-			Denominator: big.NewInt(1),
-		},
-		Currency:     tokenA,
-		DecimalScale: big.NewInt(18),
-	}
-
-	output, pool, err := v3Pool.GetOutputAmount(cur, big.NewInt(0))
+	inputAmount := core_entities.FromRawAmount(tokenA, big.NewInt(100))
+	output, pool, err := v3Pool.GetOutputAmount(inputAmount, nil)
 	s.Require().NoError(err)
 	s.Require().NotNil(output)
 	s.Require().NotNil(pool)
+
+	fmt.Println(output.Numerator.String())
+	fmt.Println(output.Currency.Name())
 }
 
 func (s *Web3ClientTestSuite) TestUniswapV3() {

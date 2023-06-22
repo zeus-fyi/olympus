@@ -19,7 +19,7 @@ type UniswapPoolV3 struct {
 	TickListDataProvider *entities.TickListDataProvider
 }
 
-type UniswapPoolV3JSON struct {
+type JSONUniswapPoolV3 struct {
 	*entities.Pool
 	PoolAddress          string
 	Fee                  constants.FeeAmount
@@ -29,13 +29,13 @@ type UniswapPoolV3JSON struct {
 	TickListDataProvider *entities.JSONTickListDataProvider
 }
 
-func (p *UniswapPoolV3) ConvertToJSONType() UniswapPoolV3JSON {
+func (p *UniswapPoolV3) ConvertToJSONType() JSONUniswapPoolV3 {
 
 	var tickListDataProviderJSON entities.JSONTickListDataProvider
 	if p.TickDataProvider != nil {
 		tickListDataProviderJSON = p.TickListDataProvider.ConvertToJSONType()
 	}
-	return UniswapPoolV3JSON{
+	return JSONUniswapPoolV3{
 		PoolAddress:          p.PoolAddress,
 		Fee:                  p.Fee,
 		Slot0:                p.Slot0.ConvertToJSONType(),

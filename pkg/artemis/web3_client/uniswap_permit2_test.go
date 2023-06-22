@@ -10,7 +10,7 @@ import (
 
 var (
 	chainID = big.NewInt(1)
-	urAddr  = accounts.HexToAddress(UniswapUniversalRouterAddress)
+	urAddr  = accounts.HexToAddress(UniswapUniversalRouterAddressOld)
 )
 
 func (s *Web3ClientTestSuite) TestCopyPermitTest1() {
@@ -77,7 +77,7 @@ func (s *Web3ClientTestSuite) TestPermit2Approve() {
 				Expiration: expiration,
 				Nonce:      new(big.Int).SetUint64(0),
 			},
-			Spender:     accounts.HexToAddress(UniswapUniversalRouterAddress),
+			Spender:     accounts.HexToAddress(UniswapUniversalRouterAddressOld),
 			SigDeadline: sigDeadline,
 		},
 		Signature: nil,
@@ -150,7 +150,7 @@ func (s *Web3ClientTestSuite) TestPermit2PermitBatchEncode2() {
 		Details: []AllowanceTransferDetails{
 			{
 				From:   s.LocalMainnetWeb3User.Address(),
-				To:     accounts.HexToAddress(UniswapUniversalRouterAddress),
+				To:     accounts.HexToAddress(UniswapUniversalRouterAddressOld),
 				Amount: new(big.Int).SetUint64(1000000000000000000),
 				Token:  addr1,
 			},

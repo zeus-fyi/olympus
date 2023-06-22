@@ -16,9 +16,10 @@ import (
 )
 
 const (
-	UniswapUniversalRouterAddress = "0xEf1c6E67703c7BD7107eed8303Fbe6EC2554BF6B"
-	UniswapV2FactoryAddress       = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
-	UniswapV2RouterAddress        = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+	UniswapUniversalRouterAddress    = "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD"
+	UniswapUniversalRouterAddressOld = "0xEf1c6E67703c7BD7107eed8303Fbe6EC2554BF6B"
+	UniswapV2FactoryAddress          = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
+	UniswapV2RouterAddress           = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
 
 	addLiquidity                 = "addLiquidity"
 	addLiquidityETH              = "addLiquidityETH"
@@ -97,14 +98,14 @@ func InitUniswapClient(ctx context.Context, w Web3Client) UniswapClient {
 		chronos:                          chronos.Chronos{},
 		FactorySmartContractAddr:         UniswapV2FactoryAddress,
 		RouterSmartContractAddr:          UniswapV2RouterAddress,
-		UniversalRouterSmartContractAddr: UniswapUniversalRouterAddress,
+		UniversalRouterSmartContractAddr: UniswapUniversalRouterAddressOld,
 		FactoryAbi:                       factoryAbiFile,
 		ERC20Abi:                         erc20AbiFile,
 		PoolV3Abi:                        MustLoadPoolV3Abi(),
 		PairAbi:                          pairAbiFile,
 		UniversalRouterAbi:               MustLoadUniversalRouterAbi(),
 		MevSmartContractTxMapUniversalRouter: MevSmartContractTxMap{
-			SmartContractAddr: UniswapUniversalRouterAddress,
+			SmartContractAddr: UniswapUniversalRouterAddressOld,
 			Abi:               MustLoadUniversalRouterAbi(),
 			Txs:               []MevTx{},
 		},

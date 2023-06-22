@@ -39,6 +39,7 @@ func (p *UniswapPoolV3) PricingData(ctx context.Context, path TokenFeePath) erro
 	if err != nil {
 		return err
 	}
+	// todo, store decimals in db
 	tokenA := core_entities.NewToken(1, accounts.HexToAddress(path.TokenIn.Hex()), uint(decimals), "", "")
 	decimals, err = p.GetContractDecimals(ctx, path.GetEndToken().Hex())
 	if err != nil {

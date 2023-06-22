@@ -98,7 +98,6 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 			count++
 		case V2SwapExactOut:
 			fmt.Println("V2SwapExactOut: ProcessUniversalRouterTxs")
-
 			inputs := subtx.DecodedInputs.(V2SwapExactOutParams)
 			pd, perr := u.GetPricingData(ctx, inputs.Path)
 			if perr != nil {

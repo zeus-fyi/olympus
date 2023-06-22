@@ -16,7 +16,7 @@ func (u *UniswapClient) ProcessMempoolTxs(ctx context.Context, mempool map[strin
 				continue
 			}
 			switch tx.To().String() {
-			case UniswapUniversalRouterAddress:
+			case UniswapUniversalRouterAddressOld, UniswapUniversalRouterAddress:
 				if u.MevSmartContractTxMapUniversalRouter.Txs == nil {
 					u.MevSmartContractTxMapUniversalRouter.Txs = []MevTx{}
 				}
@@ -36,7 +36,7 @@ func (u *UniswapClient) ProcessMempoolTxs(ctx context.Context, mempool map[strin
 				tmp := u.MevSmartContractTxMapUniversalRouter.Txs
 				tmp = append(tmp, singleTx)
 				u.MevSmartContractTxMapUniversalRouter.Txs = tmp
-			case UniswapV2RouterAddress:
+			case UniswapV2RouterAddress, UniswapV2RouterAddress2:
 				if u.MevSmartContractTxMap.Txs == nil {
 					u.MevSmartContractTxMap.Txs = []MevTx{}
 				}

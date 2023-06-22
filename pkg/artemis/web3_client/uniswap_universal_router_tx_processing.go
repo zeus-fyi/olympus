@@ -50,7 +50,7 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 			inputs := subtx.DecodedInputs.(V3SwapExactOutParams)
 			pd, perr := u.GetV3PricingData(ctx, inputs.Path)
 			if perr != nil {
-				log.Err(perr).Msg("V3SwapExactIn: error getting pricing data")
+				log.Err(perr).Msg("V3SwapExactOut: error getting pricing data")
 				return
 			}
 			tf := inputs.BinarySearch(pd)

@@ -141,6 +141,9 @@ func (p *UniswapPoolV3) GetTickFromContract(tickNum int) (entities.Tick, error) 
 }
 
 func (p *UniswapPoolV3) GetPopulatedTicksMap() ([]entities.Tick, error) {
+	if p.Fee == 0 {
+		p.Fee = constants.FeeMedium
+	}
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: TickLensAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},

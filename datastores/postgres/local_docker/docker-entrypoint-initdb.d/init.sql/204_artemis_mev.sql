@@ -46,3 +46,10 @@ CREATE INDEX eth_mev_tx_analysis_trade_method ON "public"."eth_mev_tx_analysis" 
 CREATE INDEX eth_mev_tx_analysis_end_reason ON "public"."eth_mev_tx_analysis" ("end_reason");
 CREATE INDEX eth_mev_tx_analysis_amount_in_addr ON "public"."eth_mev_tx_analysis" ("amount_in_addr");
 CREATE INDEX eth_mev_tx_analysis_amount_out_addr ON "public"."eth_mev_tx_analysis" ("amount_out_addr");
+
+CREATE TABLE "public"."eth_mev_address_filter" (
+    "address" text NOT NULL,
+    "protocol_network_id" int8 NOT NULL REFERENCES protocol_networks(protocol_network_id) DEFAULT 1
+);
+ALTER TABLE "public"."eth_mev_address_filter" ADD CONSTRAINT "eth_mev_address_filter_pk" PRIMARY KEY ("address");
+

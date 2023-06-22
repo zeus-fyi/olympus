@@ -20,3 +20,27 @@ func (p *TickListDataProvider) GetTick(tick int) Tick {
 func (p *TickListDataProvider) NextInitializedTickWithinOneWord(tick int, lte bool, tickSpacing int) (int, bool) {
 	return NextInitializedTickWithinOneWord(p.ticks, tick, lte, tickSpacing)
 }
+
+type JSONTickListDataProvider struct {
+	ticks []JSONTick `abi:"populatedTicks"`
+}
+
+func (p *TickListDataProvider) ConvertToJSONType() JSONTickListDataProvider {
+	jticks := make([]JSONTick, len(p.ticks))
+	for i, t := range p.ticks {
+		jticks[i] = t.ConvertToJSONType()
+	}
+	return JSONTickListDataProvider{
+		ticks: jticks,
+	}
+}
+
+func (p *JSONTickListDataProvider) ConvertToBigIntType() TickListDataProvider {
+	ticks := make([]Tick, len(p.ticks))
+	for i, t := range p.ticks {
+		ticks[i] = t.ConvertToBigIntType()
+	}
+	return TickListDataProvider{
+		ticks: ticks,
+	}
+}

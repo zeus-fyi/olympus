@@ -28,3 +28,27 @@ type TickDataProvider interface {
 
 	NextInitializedTickWithinOneWord(tick int, lte bool, tickSpacing int) (int, bool)
 }
+
+type JSONTick struct {
+	Index          int    `json:"tick"`
+	LiquidityGross string `json:"liquidityGross"`
+	LiquidityNet   string `json:"liquidityNet"`
+}
+
+func (t *Tick) ConvertToJSONType() JSONTick {
+	return JSONTick{
+		Index:          t.Index,
+		LiquidityGross: t.LiquidityGross.String(),
+		LiquidityNet:   t.LiquidityNet.String(),
+	}
+}
+
+func (jt *JSONTick) ConvertToBigIntType() Tick {
+	lg, _ := new(big.Int).SetString(jt.LiquidityGross, 10)
+	ln, _ := new(big.Int).SetString(jt.LiquidityNet, 10)
+	return Tick{
+		Index:          jt.Index,
+		LiquidityGross: lg,
+		LiquidityNet:   ln,
+	}
+}

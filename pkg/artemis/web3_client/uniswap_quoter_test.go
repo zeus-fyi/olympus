@@ -21,10 +21,10 @@ func (s *Web3ClientTestSuite) TestUniswapQuoterV2() {
 		PoolAddress: result.String(),
 		Web3Actions: s.LocalHardhatMainnetUser.Web3Actions,
 	}
-	err = p.GetSlot0()
+	err = p.GetSlot0(ctx)
 	s.Require().NoError(err)
 
-	err = p.GetLiquidity()
+	err = p.GetLiquidity(ctx)
 	s.Require().NoError(err)
 
 	v3Pool, err := entities.NewPool(tokenA, tokenB, constants.FeeMedium, p.Slot0.SqrtPriceX96, p.Liquidity, p.Slot0.Tick, nil)

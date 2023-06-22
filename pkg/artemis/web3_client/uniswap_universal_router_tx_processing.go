@@ -7,7 +7,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// todo add counter
 // todo fix this
 // {"level":"error","error":"pair address length is not 2","time":1687224704,"message":"V2SwapExactIn: error getting pricing data"}
 
@@ -17,25 +16,20 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 		return
 	}
 
-	// todo, update this from stub to real
-	pair := UniswapV2Pair{}
-
 	// todo needs to compound all trades per execution command
 	count := 0
-	// todo needs to save trade analysis results
 	for _, subtx := range subcmd.Commands {
 		switch subtx.Command {
 		case V3SwapExactIn:
 			fmt.Println("V3SwapExactIn: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(V3SwapExactInParams)
-			pd, perr := u.GetPricingData(ctx, inputs.Path.GetPath())
+			pd, perr := u.GetV3PricingData(ctx, inputs.Path)
 			if perr != nil {
 				log.Err(perr).Msg("V3SwapExactIn: error getting pricing data")
 				return
 			}
-			pair = pd.v2Pair
-			tf := inputs.BinarySearch(pair)
-			tf.InitialPair = pair.ConvertToJSONType()
+			tf := inputs.BinarySearch(pd)
+			tf.InitialPairV3 = pd.v3Pair.ConvertToJSONType()
 			fmt.Println("\nsandwich: ==================================V3SwapExactIn==================================")
 			ts := TradeSummary{
 				Tx:            tx,
@@ -54,14 +48,13 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 		case V3SwapExactOut:
 			fmt.Println("V3SwapExactOut: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(V3SwapExactOutParams)
-			pd, perr := u.GetPricingData(ctx, inputs.Path.GetPath())
+			pd, perr := u.GetV3PricingData(ctx, inputs.Path)
 			if perr != nil {
-				log.Err(perr).Msg("V3SwapExactOut: error getting pricing data")
+				log.Err(perr).Msg("V3SwapExactIn: error getting pricing data")
 				return
 			}
-			pair = pd.v2Pair
-			tf := inputs.BinarySearch(pair)
-			tf.InitialPair = pair.ConvertToJSONType()
+			tf := inputs.BinarySearch(pd)
+			tf.InitialPairV3 = pd.v3Pair.ConvertToJSONType()
 			fmt.Println("\nsandwich: ==================================V3SwapExactOut==================================")
 			ts := TradeSummary{
 				Tx:            tx,
@@ -85,7 +78,7 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 				log.Err(perr).Msg("V2SwapExactIn: error getting pricing data")
 				return
 			}
-			pair = pd.v2Pair
+			pair := pd.v2Pair
 			tf := inputs.BinarySearch(pair)
 			tf.InitialPair = pair.ConvertToJSONType()
 			fmt.Println("\nsandwich: ==================================V2SwapExactIn==================================")
@@ -112,7 +105,7 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 				log.Err(perr).Msg("V2SwapExactOut: error getting pricing data")
 				return
 			}
-			pair = pd.v2Pair
+			pair := pd.v2Pair
 			tf := inputs.BinarySearch(pair)
 			tf.InitialPair = pair.ConvertToJSONType()
 

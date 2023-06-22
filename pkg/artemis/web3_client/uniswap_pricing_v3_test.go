@@ -13,6 +13,37 @@ import (
 
 // example v3 pool: 0x4b5Ab61593A2401B1075b90c04cBCDD3F87CE011
 
+func (s *Web3ClientTestSuite) TestUniswapV3DataFetcherV2() {
+	factoryAddress := accounts.HexToAddress("0x1F98431c8aD98523631AE4a59f267346ea31F984")
+	tokenA := core_entities.NewToken(1, accounts.HexToAddress(WETH9ContractAddress), 18, "WETH", "Wrapped Ether")
+	tokenB := core_entities.NewToken(1, accounts.HexToAddress(UsdCoinAddr), 6, "USDC", "USD Coin")
+	result, err := utils.ComputePoolAddress(factoryAddress, tokenA, tokenB, constants.FeeMedium, "")
+	s.Require().NoError(err)
+
+	p := UniswapPoolV3{
+		PoolAddress: result.String(),
+		Web3Actions: s.MainnetWeb3User.Web3Actions,
+		Fee:         constants.FeeMedium,
+	}
+	tfp := TokenFeePath{
+		TokenIn: tokenA.Address,
+		Path: []TokenFee{
+			{
+				Token: tokenB.Address,
+				Fee:   new(big.Int).SetInt64(int64(constants.FeeMedium)),
+			},
+		},
+	}
+	err = p.PricingData(ctx, tfp)
+	s.Require().NoError(err)
+	fmt.Println(p.PoolAddress)
+	output, _, err := p.PriceImpact(ctx, tokenA, Ether)
+	s.Require().NoError(err)
+	s.Require().NotNil(output)
+	usdAmountSim := new(big.Int).Div(output.Numerator, new(big.Int).SetInt64(1000000))
+	fmt.Println("usdAmountSim", usdAmountSim.String())
+}
+
 func (s *Web3ClientTestSuite) TestUniswapV3DataFetcher() {
 	factoryAddress := accounts.HexToAddress("0x1F98431c8aD98523631AE4a59f267346ea31F984")
 	tokenA := core_entities.NewToken(1, accounts.HexToAddress(WETH9ContractAddress), 18, "WETH", "Wrapped Ether")
@@ -25,10 +56,10 @@ func (s *Web3ClientTestSuite) TestUniswapV3DataFetcher() {
 		Fee:         constants.FeeMedium,
 	}
 	fmt.Println(p.PoolAddress)
-	err = p.GetSlot0()
+	err = p.GetSlot0(ctx)
 	s.Require().NoError(err)
 
-	err = p.GetLiquidity()
+	err = p.GetLiquidity(ctx)
 	s.Require().NoError(err)
 	ts, err := p.GetPopulatedTicksMap()
 	s.Require().NoError(err)

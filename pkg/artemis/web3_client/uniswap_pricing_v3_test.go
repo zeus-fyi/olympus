@@ -21,18 +21,20 @@ func (s *Web3ClientTestSuite) TestUniswapV3DataFetcher() {
 	s.Require().NoError(err)
 	p := UniswapPoolV3{
 		PoolAddress: result.String(),
-		Web3Actions: s.LocalHardhatMainnetUser.Web3Actions,
+		Web3Actions: s.MainnetWeb3User.Web3Actions,
+		Fee:         constants.FeeMedium,
 	}
-
+	fmt.Println(p.PoolAddress)
 	err = p.GetSlot0()
 	s.Require().NoError(err)
 
 	err = p.GetLiquidity()
 	s.Require().NoError(err)
+	ts, err := p.GetPopulatedTicksMap()
+	s.Require().NoError(err)
+	s.Require().NotEmpty(ts)
 
-	tickVal := p.GetTick(p.Slot0.Tick)
-
-	tdp, err := entities.NewTickListDataProvider([]entities.Tick{tickVal}, constants.TickSpacings[constants.FeeMedium])
+	tdp, err := entities.NewTickListDataProvider(ts, constants.TickSpacings[constants.FeeMedium])
 	s.Require().NoError(err)
 
 	v3Pool, err := entities.NewPool(tokenA, tokenB, constants.FeeMedium, p.Slot0.SqrtPriceX96, p.Liquidity, p.Slot0.Tick, tdp)
@@ -46,10 +48,32 @@ func (s *Web3ClientTestSuite) TestUniswapV3DataFetcher() {
 	s.Require().NotNil(output)
 	s.Require().NotNil(pool)
 
-	fmt.Println(output.Numerator.String())
-	fmt.Println(output.Denominator.String())
-	usdAmount := new(big.Int).Div(output.Numerator, new(big.Int).SetInt64(1000000))
-	fmt.Println("usdcAmount", usdAmount.String())
+	usdAmountSim := new(big.Int).Div(output.Numerator, new(big.Int).SetInt64(1000000))
+	fmt.Println("usdAmountSim", usdAmountSim.String())
+
+	uni := InitUniswapClient(ctx, s.MainnetWeb3User)
+	tfp := TokenFeePath{
+		TokenIn: tokenA.Address,
+		Path: []TokenFee{{
+			Token: tokenB.Address,
+			Fee:   new(big.Int).SetInt64(int64(v3Pool.Fee)),
+		}},
+	}
+	qp := QuoteExactInputSingleParams{
+		TokenIn:           tfp.TokenIn,
+		TokenOut:          tfp.GetEndToken(),
+		Fee:               new(big.Int).SetInt64(int64(v3Pool.Fee)),
+		AmountIn:          Ether,
+		SqrtPriceLimitX96: big.NewInt(0),
+	}
+	resp, err := uni.GetPoolV3ExactInputSingleQuoteFromQuoterV2(ctx, qp)
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+
+	usdAmountActual := new(big.Int).Div(resp.AmountOut, new(big.Int).SetInt64(1000000))
+	fmt.Println("usdcAmount", usdAmountActual.String())
+
+	s.Equal(usdAmountActual.String(), usdAmountSim.String())
 }
 
 func (s *Web3ClientTestSuite) TestUniswapV3() {

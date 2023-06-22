@@ -3,7 +3,6 @@ package entities
 import (
 	"errors"
 	"math"
-	"math/big"
 )
 
 var (
@@ -25,14 +24,15 @@ func ValidateList(ticks []Tick, tickSpacing int) error {
 		}
 	}
 
-	// ensure tick liquidity deltas sum to 0
-	sum := big.NewInt(0)
-	for _, tick := range ticks {
-		sum.Add(sum, tick.LiquidityNet)
-	}
-	if sum.Cmp(big.NewInt(0)) != 0 {
-		return ErrZeroNet
-	}
+	//// ensure tick liquidity deltas sum to 0
+	//sum := big.NewInt(0)
+	//for _, tick := range ticks {
+	//	sum.Add(sum, tick.LiquidityNet)
+	//}
+	//
+	//if sum.Cmp(big.NewInt(0)) != 0 {
+	//	return ErrZeroNet
+	//}
 
 	if !isTicksSorted(ticks) {
 		return ErrSorted

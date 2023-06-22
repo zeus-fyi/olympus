@@ -3,9 +3,9 @@ package entities
 import "math/big"
 
 type Tick struct {
-	Index          int
-	LiquidityGross *big.Int
-	LiquidityNet   *big.Int
+	Index          int      `json:"tick"`
+	LiquidityGross *big.Int `json:"liquidityGross"`
+	LiquidityNet   *big.Int `json:"liquidityNet"`
 }
 
 // Provides information about ticks

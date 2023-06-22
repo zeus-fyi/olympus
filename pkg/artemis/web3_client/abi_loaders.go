@@ -20,6 +20,14 @@ func MustLoadQuoterV1Abi() *abi.ABI {
 	return readAbi
 }
 
+func MustLoadTickLensAbi() *abi.ABI {
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.TickLensAbi))
+	if err != nil {
+		panic(err)
+	}
+	return readAbi
+}
+
 func MustLoadQuoterV2Abi() *abi.ABI {
 	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.QuoterV2Abi))
 	if err != nil {

@@ -49,7 +49,7 @@ func (p *UniswapPoolV3) PricingData(ctx context.Context, path TokenFeePath) erro
 	tokenB := core_entities.NewToken(1, accounts.HexToAddress(path.GetEndToken().Hex()), uint(decimals), "", "")
 	// todo not sure if this factoryAddress covers all cases
 	factoryAddress := accounts.HexToAddress(UniswapV3FactoryAddress)
-	pa, err := utils.ComputePoolAddress(factoryAddress, tokenA, tokenB, constants.FeeMedium, "")
+	pa, err := utils.ComputePoolAddress(factoryAddress, tokenA, tokenB, p.Fee, "")
 	if err != nil {
 		return err
 	}

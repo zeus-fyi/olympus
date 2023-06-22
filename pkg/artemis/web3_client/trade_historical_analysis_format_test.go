@@ -36,6 +36,7 @@ func (s *Web3ClientTestSuite) TestHistoricalAnalysis() {
 		uni.PrintLocal = true
 		uni.PrintDetails = true
 		uni.PrintOn = true
+		uni.TestMode = true
 		err := uni.RunHistoricalTradeAnalysis(ctx, mevTx.TxFlowPrediction, s.MainnetWeb3UserExternal)
 		uni.PrintResults()
 		s.Assert().Nil(err)

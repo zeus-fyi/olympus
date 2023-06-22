@@ -8,6 +8,8 @@ import (
 )
 
 // todo add counter
+// todo fix this
+// {"level":"error","error":"pair address length is not 2","time":1687224704,"message":"V2SwapExactIn: error getting pricing data"}
 
 func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx) {
 	subcmd, err := NewDecodedUniversalRouterExecCmdFromMap(tx.Args)
@@ -19,7 +21,7 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 	pair := UniswapV2Pair{}
 
 	// todo needs to compound all trades per execution command
-
+	count := 0
 	// todo needs to save trade analysis results
 	for _, subtx := range subcmd.Commands {
 		switch subtx.Command {
@@ -48,6 +50,7 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 			fmt.Println("txHash: ", tx.Tx.Hash().String())
 			fmt.Println("Sell Token: ", inputs.Path.TokenIn.String(), "Buy Token", inputs.Path.GetEndToken().String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
 			fmt.Println("sandwich: ====================================V3SwapExactIn==================================")
+			count++
 		case V3SwapExactOut:
 			fmt.Println("V3SwapExactOut: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(V3SwapExactOutParams)
@@ -73,6 +76,7 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 			fmt.Println("txHash: ", tx.Tx.Hash().String())
 			fmt.Println("Sell Token: ", inputs.Path.TokenIn.String(), "Buy Token", inputs.Path.GetEndToken().String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
 			fmt.Println("sandwich: ====================================V3SwapExactOut==================================")
+			count++
 		case V2SwapExactIn:
 			fmt.Println("V2SwapExactIn: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(V2SwapExactInParams)
@@ -98,6 +102,7 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 			fmt.Println("txHash: ", tx.Tx.Hash().String())
 			fmt.Println("Sell Token: ", inputs.Path[0].String(), "Buy Token", inputs.Path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
 			fmt.Println("sandwich: ====================================V2SwapExactIn==================================")
+			count++
 		case V2SwapExactOut:
 			fmt.Println("V2SwapExactOut: ProcessUniversalRouterTxs")
 
@@ -125,7 +130,9 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 			fmt.Println("txHash: ", tx.Tx.Hash().String())
 			fmt.Println("Sell Token: ", inputs.Path[0].String(), "Buy Token", inputs.Path[1].String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
 			fmt.Println("sandwich: ====================================V2SwapExactOut==================================")
+			count++
 		default:
 		}
 	}
+	fmt.Println("filtered total trades: ", count)
 }

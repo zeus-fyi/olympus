@@ -48,6 +48,7 @@ type UniswapClient struct {
 	UniversalRouterSmartContractAddr     string
 	FactorySmartContractAddr             string
 	RouterSmartContractAddr              string
+	PoolV3Abi                            *abi.ABI
 	PairAbi                              *abi.ABI
 	ERC20Abi                             *abi.ABI
 	FactoryAbi                           *abi.ABI
@@ -99,6 +100,7 @@ func InitUniswapClient(ctx context.Context, w Web3Client) UniswapClient {
 		UniversalRouterSmartContractAddr: UniswapUniversalRouterAddress,
 		FactoryAbi:                       factoryAbiFile,
 		ERC20Abi:                         erc20AbiFile,
+		PoolV3Abi:                        MustLoadPoolV3Abi(),
 		PairAbi:                          pairAbiFile,
 		UniversalRouterAbi:               MustLoadUniversalRouterAbi(),
 		MevSmartContractTxMapUniversalRouter: MevSmartContractTxMap{

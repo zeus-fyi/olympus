@@ -33,10 +33,8 @@ func (p *UniswapPoolV3) PriceImpact(ctx context.Context, token *core_entities.To
 }
 
 func (p *UniswapPoolV3) PricingData(ctx context.Context, path TokenFeePath) error {
-	// todo get fee from pool vs hardcode
-	if p.Fee == 0 {
-		p.Fee = constants.FeeMedium
-	}
+	// todo, need to handle multi-hops, not sure if this is sufficient for that
+	p.Fee = constants.FeeAmount(path.GetFirstFee().Int64())
 	decimals, err := p.GetContractDecimals(ctx, path.TokenIn.Hex())
 	if err != nil {
 		return err

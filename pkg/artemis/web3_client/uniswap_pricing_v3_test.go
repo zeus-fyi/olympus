@@ -87,12 +87,6 @@ func (s *Web3ClientTestSuite) TestUniswapV3() {
 	}
 	s.Equal(result, accounts.HexToAddress("0x90B1b09A9715CaDbFD9331b3A7652B24BfBEfD32"))
 
-	/*
-		func NewPool(tokenA, tokenB *entities.Token, fee constants.FeeAmount, sqrtRatioX96 *big.Int, liquidity *big.Int, tickCurrent int, ticks TickDataProvider) (*Pool, error) {
-
-	*/
-	// 	rpool_0_1, _    = NewPool(rtoken0, rtoken1, constants.FeeMedium, utils.EncodeSqrtRatioX96(constants.One, constants.One), big.NewInt(0), 0, nil)
-
 	v3Pool, err := entities.NewPool(tokenA, tokenB, constants.FeeLow, nil, nil, 0, nil)
 	s.Require().NoError(err)
 	s.Require().NotNil(v3Pool)

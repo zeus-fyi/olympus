@@ -9,28 +9,27 @@ import (
 )
 
 type UniswapPoolV3 struct {
-	web3_actions.Web3Actions
-	*entities.Pool
-	PoolAddress          string
-	Fee                  constants.FeeAmount
-	Slot0                Slot0
-	Liquidity            *big.Int
-	TokenFeePath         TokenFeePath
-	TickListDataProvider *entities.TickListDataProvider
+	web3_actions.Web3Actions `json:"-,omitempty"`
+	*entities.Pool           `json:"pool,omitempty"`
+	PoolAddress              string                         `json:"poolAddress"`
+	Fee                      constants.FeeAmount            `json:"fee"`
+	Slot0                    Slot0                          `json:"slot0"`
+	Liquidity                *big.Int                       `json:"liquidity"`
+	TokenFeePath             TokenFeePath                   `json:"tokenFeePath"`
+	TickListDataProvider     *entities.TickListDataProvider `json:"tickListDataProvider,omitempty"`
 }
 
 type JSONUniswapPoolV3 struct {
-	*entities.Pool
-	PoolAddress          string
-	Fee                  constants.FeeAmount
-	Slot0                JSONSlot0
-	Liquidity            string
-	TokenFeePath         TokenFeePath
-	TickListDataProvider *entities.JSONTickListDataProvider
+	*entities.Pool       `json:"pool,omitempty"`
+	PoolAddress          string                             `json:"poolAddress"`
+	Fee                  constants.FeeAmount                `json:"fee"`
+	Slot0                JSONSlot0                          `json:"slot0"`
+	Liquidity            string                             `json:"liquidity"`
+	TokenFeePath         TokenFeePath                       `json:"tokenFeePath"`
+	TickListDataProvider *entities.JSONTickListDataProvider `json:"tickListDataProvider,omitempty"`
 }
 
 func (p *UniswapPoolV3) ConvertToJSONType() JSONUniswapPoolV3 {
-
 	var tickListDataProviderJSON entities.JSONTickListDataProvider
 	if p.TickDataProvider != nil {
 		tickListDataProviderJSON = p.TickListDataProvider.ConvertToJSONType()
@@ -46,15 +45,15 @@ func (p *UniswapPoolV3) ConvertToJSONType() JSONUniswapPoolV3 {
 }
 
 type Slot0 struct {
-	SqrtPriceX96 *big.Int
-	Tick         int
-	FeeProtocol  int
+	SqrtPriceX96 *big.Int `json:"sqrtPriceX96"`
+	Tick         int      `json:"tick"`
+	FeeProtocol  int      `json:"feeProtocol"`
 }
 
 type JSONSlot0 struct {
-	SqrtPriceX96 string
-	Tick         int
-	FeeProtocol  int
+	SqrtPriceX96 string `json:"sqrtPriceX96"`
+	Tick         int    `json:"tick"`
+	FeeProtocol  int    `json:"feeProtocol"`
 }
 
 func (s *JSONSlot0) ConvertToBigIntType() Slot0 {

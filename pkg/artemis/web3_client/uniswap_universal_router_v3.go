@@ -7,13 +7,13 @@ import (
 )
 
 type TokenFee struct {
-	Token accounts.Address
-	Fee   *big.Int
+	Token accounts.Address `json:"token"`
+	Fee   *big.Int         `json:"fee"`
 }
 
 type TokenFeePath struct {
-	TokenIn accounts.Address
-	Path    []TokenFee
+	TokenIn accounts.Address `json:"tokenIn"`
+	Path    []TokenFee       `json:"path"`
 }
 
 func (tfp *TokenFeePath) Encode() []byte {

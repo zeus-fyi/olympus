@@ -19,7 +19,8 @@ const (
 	tickBitmap              = "tickBitmap"
 	getPopulatedTicksInWord = "getPopulatedTicksInWord"
 
-	TickLensAddress = "0xbfd8137f7d1516D3ea5cA83523914859ec47F573"
+	TickLensAddress         = "0xbfd8137f7d1516D3ea5cA83523914859ec47F573"
+	UniswapV3FactoryAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984"
 )
 
 func (p *UniswapPoolV3) PriceImpact(ctx context.Context, token *core_entities.Token, amountIn *big.Int) (*uniswap_core_entities.CurrencyAmount, *entities.Pool, error) {
@@ -47,7 +48,7 @@ func (p *UniswapPoolV3) PricingData(ctx context.Context, path TokenFeePath) erro
 	}
 	tokenB := core_entities.NewToken(1, accounts.HexToAddress(path.GetEndToken().Hex()), uint(decimals), "", "")
 	// todo not sure if this factoryAddress covers all cases
-	factoryAddress := accounts.HexToAddress("0x1F98431c8aD98523631AE4a59f267346ea31F984")
+	factoryAddress := accounts.HexToAddress(UniswapV3FactoryAddress)
 	pa, err := utils.ComputePoolAddress(factoryAddress, tokenA, tokenB, constants.FeeMedium, "")
 	if err != nil {
 		return err

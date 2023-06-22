@@ -16,6 +16,13 @@ type TokenFeePath struct {
 	Path    []TokenFee       `json:"path"`
 }
 
+func (tfp *TokenFeePath) GetFirstFee() *big.Int {
+	if len(tfp.Path) == 0 {
+		return nil
+	}
+	return tfp.Path[0].Fee
+}
+
 func (tfp *TokenFeePath) Encode() []byte {
 	// Convert TokenIn into bytes
 	tokenIn := tfp.TokenIn.Bytes()

@@ -33,10 +33,8 @@ func (p *UniswapPoolV3) PriceImpact(ctx context.Context, token *core_entities.To
 }
 
 func (p *UniswapPoolV3) PricingData(ctx context.Context, path TokenFeePath) error {
-	// todo get fee from pool vs hardcode
-	if p.Fee == 0 {
-		p.Fee = constants.FeeMedium
-	}
+	// todo, need to handle multi-hops, not sure if this is sufficient for that
+	p.Fee = constants.FeeAmount(path.GetFirstFee().Int64())
 	decimals, err := p.GetContractDecimals(ctx, path.TokenIn.Hex())
 	if err != nil {
 		return err
@@ -49,7 +47,7 @@ func (p *UniswapPoolV3) PricingData(ctx context.Context, path TokenFeePath) erro
 	tokenB := core_entities.NewToken(1, accounts.HexToAddress(path.GetEndToken().Hex()), uint(decimals), "", "")
 	// todo not sure if this factoryAddress covers all cases
 	factoryAddress := accounts.HexToAddress(UniswapV3FactoryAddress)
-	pa, err := utils.ComputePoolAddress(factoryAddress, tokenA, tokenB, constants.FeeMedium, "")
+	pa, err := utils.ComputePoolAddress(factoryAddress, tokenA, tokenB, p.Fee, "")
 	if err != nil {
 		return err
 	}

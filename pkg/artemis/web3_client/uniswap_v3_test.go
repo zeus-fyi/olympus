@@ -46,3 +46,21 @@ func (s *Web3ClientTestSuite) TestSwapExactTokensForTokens() {
 	ss.Decode(ctx, args)
 	s.Assert().NotEmpty(ss)
 }
+
+func (s *Web3ClientTestSuite) TestDecodeMulticall() {
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	ForceDirToTestDirLocation()
+	uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
+
+	hashStr := "0x44aaf794774c4900edc4c30eef29d5c56065c5e8f50c04fc8e2da79ce9420e26"
+	tx, _, err := s.MainnetWeb3User.GetTxByHash(ctx, common.HexToHash(hashStr))
+	s.Require().Nil(err)
+	s.Require().NotNil(tx)
+	mn, args, err := DecodeTxArgData(ctx, tx, uni.MevSmartContractTxMapV3)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(mn)
+	s.Require().NotEmpty(args)
+	mc := Multicall{}
+	err = mc.Decode(ctx, args)
+	s.Require().Nil(err)
+}

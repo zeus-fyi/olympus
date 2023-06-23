@@ -11,7 +11,8 @@ const (
 	swapExactOutputSingle   = "swapExactOutputSingle"
 	swapExactInputMultihop  = "swapExactInputMultihop"
 	swapExactOutputMultihop = "swapExactOutputMultihop"
-	multicall               = "multicall"
+	multicall0              = "multicall0"
+	multicall1              = "multicall1"
 )
 
 func (u *UniswapClient) ProcessUniswapV3RouterTxs(ctx context.Context, tx MevTx) {
@@ -32,7 +33,13 @@ func (u *UniswapClient) ProcessUniswapV3RouterTxs(ctx context.Context, tx MevTx)
 			return
 		}
 		// convert, get pricing data, run bin search
-	case multicall:
+	case multicall0, multicall1:
+		inputs := &Multicall{}
+		err := inputs.Decode(ctx, tx.Args)
+		if err != nil {
+			log.Err(err).Msg("failed to decode multicall args")
+			return
+		}
 	case swapExactInputMultihop:
 	case swapExactOutputMultihop:
 	}

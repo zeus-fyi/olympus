@@ -23,6 +23,9 @@ func (u *UniswapClient) ProcessTxs(ctx context.Context) {
 	for _, tx := range u.MevSmartContractTxMapUniversalRouter.Txs {
 		u.ProcessUniversalRouterTxs(ctx, tx)
 	}
+	for _, tx := range u.MevSmartContractTxMapV3.Txs {
+		u.ProcessUniswapV3RouterTxs(ctx, tx)
+	}
 	for _, tx := range u.MevSmartContractTxMap.Txs {
 		switch tx.MethodName {
 		case addLiquidity:

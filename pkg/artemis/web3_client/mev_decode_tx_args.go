@@ -46,7 +46,8 @@ func DecodeTxData(ctx context.Context, input []byte, mevMap MevSmartContractTxMa
 		return "", nil, errors.New("no methods left after filtering")
 	}
 	argdata := calldata[4:]
-	if len(argdata)%32 != 0 || len(argdata) == 0 {
+	// argdata)%32 != 0 ||
+	if len(argdata) == 0 {
 		//log.Info().Msg("Web3Client| GetFilteredPendingMempoolTxs invalid argdata length")
 		return "", nil, errors.New("invalid argdata length")
 	}

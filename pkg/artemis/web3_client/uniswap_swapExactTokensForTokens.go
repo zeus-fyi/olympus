@@ -1,6 +1,7 @@
 package web3_client
 
 import (
+	"context"
 	"fmt"
 	"math/big"
 
@@ -98,7 +99,7 @@ func (s *SwapExactTokensForTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 	return tf
 }
 
-func (u *UniswapClient) SwapExactTokensForTokens(tx MevTx, args map[string]interface{}) {
+func (s *SwapExactTokensForTokensParams) Decode(ctx context.Context, args map[string]interface{}) {
 	amountIn, err := ParseBigInt(args["amountIn"])
 	if err != nil {
 		return
@@ -119,17 +120,21 @@ func (u *UniswapClient) SwapExactTokensForTokens(tx MevTx, args map[string]inter
 	if err != nil {
 		return
 	}
-	st := SwapExactTokensForTokensParams{
-		AmountIn:     amountIn,
-		AmountOutMin: amountOutMin,
-		Path:         path,
-		To:           to,
-		Deadline:     deadline,
-	}
-	pd, err := u.GetPricingData(ctx, path)
+	s.AmountIn = amountIn
+	s.AmountOutMin = amountOutMin
+	s.Path = path
+	s.To = to
+	s.Deadline = deadline
+}
+
+func (u *UniswapClient) SwapExactTokensForTokens(tx MevTx, args map[string]interface{}) {
+	st := SwapExactTokensForTokensParams{}
+	st.Decode(ctx, args)
+	pd, err := u.GetPricingData(ctx, st.Path)
 	if err != nil {
 		return
 	}
+	path := st.Path
 	initialPair := pd.v2Pair
 	tf := st.BinarySearch(pd.v2Pair)
 	tf.InitialPair = initialPair.ConvertToJSONType()

@@ -19,6 +19,45 @@ type SwapExactInputSingleArgs struct {
 	SqrtPriceLimitX96 *big.Int         `json:"sqrtPriceLimitX96"`
 }
 
+type JSONSwapExactInputSingleArgs struct {
+	TokenIn           accounts.Address `json:"tokenIn"`
+	AmountIn          string           `json:"amountIn"`
+	TokenOut          accounts.Address `json:"tokenOut"`
+	AmountOutMinimum  string           `json:"amountOutMinimum"`
+	Fee               string           `json:"fee"`
+	Recipient         accounts.Address `json:"recipient"`
+	SqrtPriceLimitX96 string           `json:"sqrtPriceLimitX96"`
+}
+
+func (s *JSONSwapExactInputSingleArgs) ConvertToBigIntType() SwapExactInputSingleArgs {
+	amountIn, _ := new(big.Int).SetString(s.AmountIn, 10)
+	amountOutMinimum, _ := new(big.Int).SetString(s.AmountOutMinimum, 10)
+	fee, _ := new(big.Int).SetString(s.Fee, 10)
+	sqrtPriceLimitX96, _ := new(big.Int).SetString(s.SqrtPriceLimitX96, 10)
+
+	return SwapExactInputSingleArgs{
+		TokenIn:           s.TokenIn,
+		AmountIn:          amountIn,
+		TokenOut:          s.TokenOut,
+		AmountOutMinimum:  amountOutMinimum,
+		Fee:               fee,
+		Recipient:         s.Recipient,
+		SqrtPriceLimitX96: sqrtPriceLimitX96,
+	}
+}
+
+func (s *SwapExactInputSingleArgs) ConvertToJSONType() *JSONSwapExactInputSingleArgs {
+	return &JSONSwapExactInputSingleArgs{
+		TokenIn:           s.TokenIn,
+		AmountIn:          s.AmountIn.String(),
+		TokenOut:          s.TokenOut,
+		AmountOutMinimum:  s.AmountOutMinimum.String(),
+		Fee:               s.Fee.String(),
+		Recipient:         s.Recipient,
+		SqrtPriceLimitX96: s.SqrtPriceLimitX96.String(),
+	}
+}
+
 func (s *SwapExactInputSingleArgs) Decode(ctx context.Context, args map[string]interface{}) error {
 	params, ok := args["params"].(struct {
 		TokenIn           common.Address "json:\"tokenIn\""

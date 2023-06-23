@@ -22,6 +22,4 @@ func (s *Web3ClientTestSuite) TestUniversalRouterV3() {
 	ss := SwapExactInputSingleArgs{}
 	err = ss.Decode(ctx, args)
 	s.Require().Nil(err)
-
-	//scInfo := MustLoadUniswapV3RouterAbi()
 }

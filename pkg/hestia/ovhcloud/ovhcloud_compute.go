@@ -16,13 +16,10 @@ type OvhInstanceType struct {
 	VCPUs    int    `json:"vCPUs"`
 }
 
-// curl -X GET "/v1/cloud/project/serviceName/capabilities/kube/flavors?region=US-WEST-OR-1" \
-// func (c *Client) CallAPIWithContext(ctx context.Context, method string, path string, reqBody interface{}, resType interface{}, needAuth bool) error
-
 func (o *OvhCloud) GetSizes(ctx context.Context, serviceName, region string) ([]OvhInstanceType, error) {
-	endpoint := fmt.Sprintf("/v1/cloud/project/%s/capabilities/kube/flavors?region=%s", serviceName, region)
+	endpoint := fmt.Sprintf("/cloud/project/%s/capabilities/kube/flavors?region=%s", serviceName, region)
 	var instances []OvhInstanceType
-	err := o.CallAPIWithContext(ctx, "GET", endpoint, "", instances, true)
+	err := o.Get(endpoint, &instances)
 	if err != nil {
 		log.Err(err).Msg("OvhCloud: GetSizes")
 		return nil, err

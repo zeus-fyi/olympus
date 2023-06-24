@@ -6,15 +6,27 @@ import (
 	hestia_eks_aws "github.com/zeus-fyi/olympus/pkg/hestia/aws"
 	hestia_digitalocean "github.com/zeus-fyi/olympus/pkg/hestia/digitalocean"
 	hestia_gcp "github.com/zeus-fyi/olympus/pkg/hestia/gcp"
+	hestia_ovhcloud "github.com/zeus-fyi/olympus/pkg/hestia/ovhcloud"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 )
 
 var (
 	Bearer       string
 	DigitalOcean hestia_digitalocean.DigitalOcean
+	OvhCloud     hestia_ovhcloud.OvhCloud
 	GCP          hestia_gcp.GcpClient
 	Eks          hestia_eks_aws.AwsEKS
 )
+
+func InitOrchestrationOvhCloudClient(ctx context.Context, appKey, secretKey, consumerKey string) {
+	creds := hestia_ovhcloud.OvhCloudCreds{
+		Region:      hestia_ovhcloud.OvhUS,
+		AppKey:      appKey,
+		AppSecret:   secretKey,
+		ConsumerKey: consumerKey,
+	}
+	OvhCloud = hestia_ovhcloud.InitOvhClient(ctx, creds)
+}
 
 func InitOrchestrationDigitalOceanClient(ctx context.Context, bearer string) {
 	Bearer = bearer

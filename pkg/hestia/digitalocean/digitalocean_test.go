@@ -23,9 +23,9 @@ func (s *DigitalOceanTestSuite) SetupTest() {
 	s.do = InitDoClient(ctx, s.Tc.DigitalOceanAPIKey)
 	s.Require().NotNil(s.do.Client)
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
-
 	//apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 }
+
 func (s *DigitalOceanTestSuite) TestListSizes() {
 	sizes, err := s.do.GetSizes(ctx)
 	s.Require().NoError(err)

@@ -7,6 +7,7 @@ import (
 	mempool_txs "github.com/zeus-fyi/olympus/datastores/dynamodb/mempool"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"go.temporal.io/api/enums/v1"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -81,15 +82,27 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context) error {
 		return err
 	}
 
+	convertAo := workflow.ActivityOptions{
+		StartToCloseTimeout: time.Second * 1,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 2,
+		},
+	}
 	var convertedMempoolTxs map[string]map[string]*types.Transaction
-	convertMempoolTxsCtx := workflow.WithActivityOptions(ctx, ao)
+	convertMempoolTxsCtx := workflow.WithActivityOptions(ctx, convertAo)
 	err = workflow.ExecuteActivity(convertMempoolTxsCtx, t.ConvertMempoolTxs, mempoolTxs).Get(convertMempoolTxsCtx, &convertedMempoolTxs)
 	if err != nil {
 		log.Error("Failed to convert mempool txs", "Error", err)
 		return err
 	}
 
-	processMempoolTxsCtx := workflow.WithActivityOptions(ctx, ao)
+	processAo := workflow.ActivityOptions{
+		StartToCloseTimeout: time.Second * 2,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 2,
+		},
+	}
+	processMempoolTxsCtx := workflow.WithActivityOptions(ctx, processAo)
 	var trades []artemis_autogen_bases.EthMempoolMevTx
 	err = workflow.ExecuteActivity(processMempoolTxsCtx, t.ProcessMempoolTxs, convertedMempoolTxs).Get(processMempoolTxsCtx, &trades)
 	if err != nil {

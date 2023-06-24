@@ -13,11 +13,19 @@ var ctx = context.Background()
 
 type OvhCloudTestSuite struct {
 	test_suites_base.TestSuite
+	o OvhCloud
 }
 
 func (s *OvhCloudTestSuite) SetupTest() {
 	s.InitLocalConfigs()
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	creds := OvhCloudCreds{
+		Region:      OvhUS,
+		AppKey:      s.Tc.OvhAppKey,
+		AppSecret:   s.Tc.OvhSecretKey,
+		ConsumerKey: s.Tc.OvhConsumerKey,
+	}
+	s.o = InitOvhClient(ctx, creds)
 	//apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 }
 func (s *OvhCloudTestSuite) TestListSizes() {

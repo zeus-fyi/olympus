@@ -117,12 +117,35 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) {
 			log.Err(err).Msg("failed to decode swap exact input single args")
 			return
 		}
-		// convert, get pricing data, run bin search
-		//pd, perr := u.GetV3PricingData(ctx, inputs.Path)
-		//if perr != nil {
-		//	log.Err(perr).Msg("V3SwapExactOut: error getting pricing data")
-		//	return
-		//}
+		tfp := TokenFeePath{
+			TokenIn: inputs.TokenIn,
+			Path: []TokenFee{{
+				Token: inputs.TokenOut,
+				Fee:   inputs.Fee,
+			}},
+		}
+		inputs.TokenFeePath = tfp
+		pd, perr := u.GetV3PricingData(ctx, tfp)
+		if perr != nil {
+			log.Err(perr).Msg("SwapExactInputSingle: error getting pricing data")
+			return
+		}
+		tf := inputs.BinarySearch(pd)
+		tf.Trade.TradeMethod = swapExactInputSingle
+		tf.InitialPairV3 = pd.v3Pair.ConvertToJSONType()
+		fmt.Println("\nsandwich: ==================================SwapExactInputSingle==================================")
+		ts := TradeSummary{
+			Tx:            tx,
+			Pd:            pd,
+			Tf:            tf,
+			TokenAddr:     inputs.TokenFeePath.TokenIn.String(),
+			BuyWithAmount: inputs.AmountIn,
+			MinimumAmount: inputs.AmountOutMinimum,
+		}
+		u.PrintTradeSummaries(&ts)
+		fmt.Println("txHash: ", tx.Tx.Hash().String())
+		fmt.Println("Sell Token: ", inputs.TokenFeePath.TokenIn.String(), "Buy Token", inputs.TokenFeePath.GetEndToken().String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
+		fmt.Println("sandwich: ====================================SwapExactInputSingle==================================")
 	case swapExactOutputSingle:
 		inputs := &SwapExactOutputSingleArgs{}
 		err := inputs.Decode(ctx, tx.Args)
@@ -130,7 +153,35 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) {
 			log.Err(err).Msg("failed to decode swap exact output single args")
 			return
 		}
-		// convert, get pricing data, run bin search
+		tfp := TokenFeePath{
+			TokenIn: inputs.TokenIn,
+			Path: []TokenFee{{
+				Token: inputs.TokenOut,
+				Fee:   inputs.Fee,
+			}},
+		}
+		inputs.TokenFeePath = tfp
+		pd, perr := u.GetV3PricingData(ctx, tfp)
+		if perr != nil {
+			log.Err(perr).Msg("SwapExactOutputSingle: error getting pricing data")
+			return
+		}
+		tf := inputs.BinarySearch(pd)
+		tf.Trade.TradeMethod = swapExactOutputSingle
+		tf.InitialPairV3 = pd.v3Pair.ConvertToJSONType()
+		fmt.Println("\nsandwich: ==================================SwapExactOutputSingle==================================")
+		ts := TradeSummary{
+			Tx:            tx,
+			Pd:            pd,
+			Tf:            tf,
+			TokenAddr:     inputs.TokenFeePath.TokenIn.String(),
+			BuyWithAmount: inputs.AmountInMaximum,
+			MinimumAmount: inputs.AmountOut,
+		}
+		u.PrintTradeSummaries(&ts)
+		fmt.Println("txHash: ", tx.Tx.Hash().String())
+		fmt.Println("Sell Token: ", inputs.TokenFeePath.TokenIn.String(), "Buy Token", inputs.TokenFeePath.GetEndToken().String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
+		fmt.Println("sandwich: ====================================SwapExactOutputSingle==================================")
 	case swapExactInputMultihop:
 	case swapExactOutputMultihop:
 	}

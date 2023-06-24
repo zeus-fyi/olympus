@@ -34,12 +34,6 @@ func (w *Web3Client) GetTxByHash(ctx context.Context, hash common.Hash) (*types.
 	return tx, isPending, nil
 }
 
-/*
-0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2
-239999999999999788
-0xf9974c3357Ba17a6B8A8326B65233e17c83AFc91
-*/
-
 // Eth in -> WETH out -> token out
 
 func (u *UniswapClient) ExecTradeV2SwapPayable(ctx context.Context, to *TradeOutcome) error {

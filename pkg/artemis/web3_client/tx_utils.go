@@ -121,7 +121,7 @@ func (u *UniswapClient) ExecTradeV2SwapFromTokenToToken(ctx context.Context, to 
 				// todo this needs to update a nonce count in db or track them somehow
 				Nonce: new(big.Int).SetUint64(0),
 			},
-			Spender:     accounts.HexToAddress(UniswapUniversalRouterAddress),
+			Spender:     accounts.HexToAddress(UniswapUniversalRouterAddressNew),
 			SigDeadline: sigDeadline,
 		},
 		nil,
@@ -192,7 +192,7 @@ func (u *UniswapClient) ExecTradeV2SwapFromTokenBackToEth(ctx context.Context, t
 				// todo this needs to update a nonce count in db or track them somehow
 				Nonce: new(big.Int).SetUint64(0),
 			},
-			Spender:     accounts.HexToAddress(UniswapUniversalRouterAddress),
+			Spender:     accounts.HexToAddress(UniswapUniversalRouterAddressNew),
 			SigDeadline: sigDeadline,
 		},
 		nil,

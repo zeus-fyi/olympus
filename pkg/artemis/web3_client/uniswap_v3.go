@@ -36,7 +36,7 @@ func (u *UniswapClient) ProcessUniswapV3RouterTxs(ctx context.Context, tx MevTx)
 			return
 		}
 		for _, data := range inputs.Data {
-			mn, args, derr := DecodeTxData(ctx, data, u.MevSmartContractTxMapV3)
+			mn, args, derr := DecodeTxData(ctx, data, u.MevSmartContractTxMapV3SwapRouterV2)
 			if derr != nil {
 				log.Err(derr).Msg("failed to decode tx data")
 				continue

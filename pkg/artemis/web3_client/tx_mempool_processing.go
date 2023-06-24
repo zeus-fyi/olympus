@@ -16,11 +16,11 @@ func (u *UniswapClient) ProcessMempoolTxs(ctx context.Context, mempool map[strin
 				continue
 			}
 			switch tx.To().String() {
-			case UniswapUniversalRouterAddressOld, UniswapUniversalRouterAddress:
-				if u.MevSmartContractTxMapUniversalRouter.Txs == nil {
-					u.MevSmartContractTxMapUniversalRouter.Txs = []MevTx{}
+			case UniswapUniversalRouterAddressOld:
+				if u.MevSmartContractTxMapUniversalRouterOld.Txs == nil {
+					u.MevSmartContractTxMapUniversalRouterOld.Txs = []MevTx{}
 				}
-				methodName, args, err := DecodeTxArgData(ctx, tx, u.MevSmartContractTxMapUniversalRouter)
+				methodName, args, err := DecodeTxArgData(ctx, tx, u.MevSmartContractTxMapUniversalRouterOld)
 				if err != nil {
 					continue
 				}
@@ -33,14 +33,14 @@ func (u *UniswapClient) ProcessMempoolTxs(ctx context.Context, mempool map[strin
 					Tx:          tx,
 				}
 
-				tmp := u.MevSmartContractTxMapUniversalRouter.Txs
+				tmp := u.MevSmartContractTxMapUniversalRouterOld.Txs
 				tmp = append(tmp, singleTx)
-				u.MevSmartContractTxMapUniversalRouter.Txs = tmp
-			case UniswapV2RouterAddress, UniswapV2RouterAddress2:
-				if u.MevSmartContractTxMap.Txs == nil {
-					u.MevSmartContractTxMap.Txs = []MevTx{}
+				u.MevSmartContractTxMapUniversalRouterOld.Txs = tmp
+			case UniswapUniversalRouterAddressNew:
+				if u.MevSmartContractTxMapUniversalRouterNew.Txs == nil {
+					u.MevSmartContractTxMapUniversalRouterNew.Txs = []MevTx{}
 				}
-				methodName, args, err := DecodeTxArgData(ctx, tx, u.MevSmartContractTxMap)
+				methodName, args, err := DecodeTxArgData(ctx, tx, u.MevSmartContractTxMapUniversalRouterNew)
 				if err != nil {
 					continue
 				}
@@ -52,14 +52,15 @@ func (u *UniswapClient) ProcessMempoolTxs(ctx context.Context, mempool map[strin
 					TxPoolQueue: txPoolQueue,
 					Tx:          tx,
 				}
-				tmp := u.MevSmartContractTxMap.Txs
+
+				tmp := u.MevSmartContractTxMapUniversalRouterNew.Txs
 				tmp = append(tmp, singleTx)
-				u.MevSmartContractTxMap.Txs = tmp
-			case UniswapV3RouterAddress2, UniswapV3RouterAddress:
-				if u.MevSmartContractTxMapV3.Txs == nil {
-					u.MevSmartContractTxMapV3.Txs = []MevTx{}
+				u.MevSmartContractTxMapUniversalRouterNew.Txs = tmp
+			case UniswapV2Router02Address:
+				if u.MevSmartContractTxMapV2Router02.Txs == nil {
+					u.MevSmartContractTxMapV2Router02.Txs = []MevTx{}
 				}
-				methodName, args, err := DecodeTxArgData(ctx, tx, u.MevSmartContractTxMapV3)
+				methodName, args, err := DecodeTxArgData(ctx, tx, u.MevSmartContractTxMapV2Router02)
 				if err != nil {
 					continue
 				}
@@ -71,9 +72,66 @@ func (u *UniswapClient) ProcessMempoolTxs(ctx context.Context, mempool map[strin
 					TxPoolQueue: txPoolQueue,
 					Tx:          tx,
 				}
-				tmp := u.MevSmartContractTxMapV3.Txs
+				tmp := u.MevSmartContractTxMapV2Router02.Txs
 				tmp = append(tmp, singleTx)
-				u.MevSmartContractTxMapV3.Txs = tmp
+				u.MevSmartContractTxMapV2Router02.Txs = tmp
+			case UniswapV2Router01Address:
+				if u.MevSmartContractTxMapV2Router01.Txs == nil {
+					u.MevSmartContractTxMapV2Router01.Txs = []MevTx{}
+				}
+				methodName, args, err := DecodeTxArgData(ctx, tx, u.MevSmartContractTxMapV2Router01)
+				if err != nil {
+					continue
+				}
+				singleTx := MevTx{
+					MethodName:  methodName,
+					UserAddr:    userAddr,
+					Args:        args,
+					Order:       order,
+					TxPoolQueue: txPoolQueue,
+					Tx:          tx,
+				}
+				tmp := u.MevSmartContractTxMapV2Router01.Txs
+				tmp = append(tmp, singleTx)
+				u.MevSmartContractTxMapV2Router01.Txs = tmp
+			case UniswapV3Router01Address:
+				if u.MevSmartContractTxMapV3SwapRouterV1.Txs == nil {
+					u.MevSmartContractTxMapV3SwapRouterV1.Txs = []MevTx{}
+				}
+				methodName, args, err := DecodeTxArgData(ctx, tx, u.MevSmartContractTxMapV3SwapRouterV1)
+				if err != nil {
+					continue
+				}
+				singleTx := MevTx{
+					MethodName:  methodName,
+					UserAddr:    userAddr,
+					Args:        args,
+					Order:       order,
+					TxPoolQueue: txPoolQueue,
+					Tx:          tx,
+				}
+				tmp := u.MevSmartContractTxMapV3SwapRouterV1.Txs
+				tmp = append(tmp, singleTx)
+				u.MevSmartContractTxMapV3SwapRouterV1.Txs = tmp
+			case UniswapV3Router02Address:
+				if u.MevSmartContractTxMapV3SwapRouterV2.Txs == nil {
+					u.MevSmartContractTxMapV3SwapRouterV2.Txs = []MevTx{}
+				}
+				methodName, args, err := DecodeTxArgData(ctx, tx, u.MevSmartContractTxMapV3SwapRouterV2)
+				if err != nil {
+					continue
+				}
+				singleTx := MevTx{
+					MethodName:  methodName,
+					UserAddr:    userAddr,
+					Args:        args,
+					Order:       order,
+					TxPoolQueue: txPoolQueue,
+					Tx:          tx,
+				}
+				tmp := u.MevSmartContractTxMapV3SwapRouterV2.Txs
+				tmp = append(tmp, singleTx)
+				u.MevSmartContractTxMapV3SwapRouterV2.Txs = tmp
 			}
 		}
 	}

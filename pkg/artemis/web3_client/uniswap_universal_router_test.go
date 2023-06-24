@@ -58,7 +58,7 @@ func (s *Web3ClientTestSuite) TestWrapETHFuncs() {
 	s.Assert().Equal(EtherMultiple(10).String(), endTokenBalance.String())
 	fmt.Println("endTokenBalance", endTokenBalance.String())
 
-	approveTx, err := s.LocalHardhatMainnetUser.ERC20ApproveSpender(ctx, WETH9ContractAddress, UniswapUniversalRouterAddress, EtherMultiple(1000))
+	approveTx, err := s.LocalHardhatMainnetUser.ERC20ApproveSpender(ctx, WETH9ContractAddress, UniswapUniversalRouterAddressNew, EtherMultiple(1000))
 	s.Require().Nil(err)
 	s.Require().NotNil(approveTx)
 	unwrapWETHParams := UnwrapWETHParams{
@@ -69,11 +69,11 @@ func (s *Web3ClientTestSuite) TestWrapETHFuncs() {
 		SmartContractAddr: WETH9ContractAddress,
 		SendEtherPayload: web3_actions.SendEtherPayload{
 			TransferArgs: web3_actions.TransferArgs{
-				ToAddress: accounts.HexToAddress(UniswapUniversalRouterAddress),
+				ToAddress: accounts.HexToAddress(UniswapUniversalRouterAddressNew),
 			},
 		},
 		ContractABI: MustLoadERC20Abi(),
-		Params:      []interface{}{accounts.HexToAddress(UniswapUniversalRouterAddress), Ether},
+		Params:      []interface{}{accounts.HexToAddress(UniswapUniversalRouterAddressNew), Ether},
 	}
 	transferTx, err := s.LocalHardhatMainnetUser.TransferERC20Token(ctx, transferTxParams)
 	s.Require().Nil(err)
@@ -141,7 +141,7 @@ func (s *Web3ClientTestSuite) TestExecV2TradeMethodUR() {
 		AmountOut:     amountOut,
 		AmountOutAddr: accounts.HexToAddress(WETH9ContractAddress),
 	}
-	_, err = s.LocalHardhatMainnetUser.ERC20ApproveSpender(ctx, to.AmountInAddr.String(), UniswapUniversalRouterAddress, to.AmountIn)
+	_, err = s.LocalHardhatMainnetUser.ERC20ApproveSpender(ctx, to.AmountInAddr.String(), UniswapUniversalRouterAddressNew, to.AmountIn)
 	s.Require().Nil(err)
 
 	_, err = s.LocalHardhatMainnetUser.ERC20ApproveSpender(ctx, to.AmountInAddr.String(), WETH9ContractAddress, to.AmountIn)

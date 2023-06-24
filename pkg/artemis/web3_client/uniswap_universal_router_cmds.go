@@ -47,7 +47,7 @@ const (
 
 var (
 	UniversalRouterDecoderAbi = MustLoadUniversalRouterDecodingAbi()
-	UniversalRouterAbi        = MustLoadUniversalRouterAbi()
+	UniversalRouterAbi        = MustLoadOldUniversalRouterAbi()
 )
 
 type UnwrapWETHParams struct {

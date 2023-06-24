@@ -20,13 +20,65 @@ func (u *UniswapClient) ProcessTxs(ctx context.Context) {
 	u.Web3Client.Close()
 	u.BlockNumber = bn
 	count := 0
-	for _, tx := range u.MevSmartContractTxMapUniversalRouter.Txs {
+	for _, tx := range u.MevSmartContractTxMapUniversalRouterOld.Txs {
 		u.ProcessUniversalRouterTxs(ctx, tx)
 	}
-	for _, tx := range u.MevSmartContractTxMapV3.Txs {
+	for _, tx := range u.MevSmartContractTxMapUniversalRouterNew.Txs {
+		u.ProcessUniversalRouterTxs(ctx, tx)
+	}
+	for _, tx := range u.MevSmartContractTxMapV3SwapRouterV1.Txs {
 		u.ProcessUniswapV3RouterTxs(ctx, tx)
 	}
-	for _, tx := range u.MevSmartContractTxMap.Txs {
+	for _, tx := range u.MevSmartContractTxMapV3SwapRouterV2.Txs {
+		u.ProcessUniswapV3RouterTxs(ctx, tx)
+	}
+	for _, tx := range u.MevSmartContractTxMapV2Router01.Txs {
+		switch tx.MethodName {
+		case addLiquidity:
+			//u.AddLiquidity(tx.Args)
+		case addLiquidityETH:
+			// payable
+			//u.AddLiquidityETH(tx.Args)
+			if tx.Tx.Value() == nil {
+				continue
+			}
+		case removeLiquidity:
+			//u.RemoveLiquidity(tx.Args)
+		case removeLiquidityETH:
+			//u.RemoveLiquidityETH(tx.Args)
+		case removeLiquidityWithPermit:
+			//u.RemoveLiquidityWithPermit(tx.Args)
+		case removeLiquidityETHWithPermit:
+			//u.RemoveLiquidityETHWithPermit(tx.Args)
+		case swapExactTokensForTokens:
+			count++
+			u.SwapExactTokensForTokens(tx, tx.Args)
+		case swapTokensForExactTokens:
+			count++
+			u.SwapTokensForExactTokens(tx, tx.Args)
+		case swapExactETHForTokens:
+			// payable
+			count++
+			if tx.Tx.Value() == nil {
+				continue
+			}
+			u.SwapExactETHForTokens(tx, tx.Args, tx.Tx.Value())
+		case swapTokensForExactETH:
+			count++
+			u.SwapTokensForExactETH(tx, tx.Args)
+		case swapExactTokensForETH:
+			count++
+			u.SwapExactTokensForETH(tx, tx.Args)
+		case swapETHForExactTokens:
+			// payable
+			count++
+			if tx.Tx.Value() == nil {
+				continue
+			}
+			u.SwapETHForExactTokens(tx, tx.Args, tx.Tx.Value())
+		}
+	}
+	for _, tx := range u.MevSmartContractTxMapV2Router02.Txs {
 		switch tx.MethodName {
 		case addLiquidity:
 			//u.AddLiquidity(tx.Args)

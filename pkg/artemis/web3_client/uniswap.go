@@ -16,14 +16,14 @@ import (
 )
 
 const (
-	UniswapUniversalRouterAddress    = "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD"
+	UniswapUniversalRouterAddressNew = "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD"
 	UniswapUniversalRouterAddressOld = "0xEf1c6E67703c7BD7107eed8303Fbe6EC2554BF6B"
 	UniswapV2FactoryAddress          = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
-	UniswapV2RouterAddress           = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
-	UniswapV2RouterAddress2          = "0xf164fC0Ec4E93095b804a4795bBe1e041497b92a"
+	UniswapV2Router02Address         = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+	UniswapV2Router01Address         = "0xf164fC0Ec4E93095b804a4795bBe1e041497b92a"
 
-	UniswapV3RouterAddress  = "0xE592427A0AEce92De3Edee1F18E0157C05861564"
-	UniswapV3RouterAddress2 = "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45"
+	UniswapV3Router01Address = "0xE592427A0AEce92De3Edee1F18E0157C05861564"
+	UniswapV3Router02Address = "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45"
 
 	addLiquidity                 = "addLiquidity"
 	addLiquidityETH              = "addLiquidityETH"
@@ -64,9 +64,12 @@ type UniswapClient struct {
 	DebugPrint                       bool
 	TestMode                         bool
 
-	MevSmartContractTxMapV3              MevSmartContractTxMap
-	MevSmartContractTxMapUniversalRouter MevSmartContractTxMap
-	MevSmartContractTxMap
+	MevSmartContractTxMapV3SwapRouterV1     MevSmartContractTxMap
+	MevSmartContractTxMapV3SwapRouterV2     MevSmartContractTxMap
+	MevSmartContractTxMapUniversalRouterNew MevSmartContractTxMap
+	MevSmartContractTxMapUniversalRouterOld MevSmartContractTxMap
+	MevSmartContractTxMapV2Router01         MevSmartContractTxMap
+	MevSmartContractTxMapV2Router02         MevSmartContractTxMap
 	*TradeAnalysisReport
 	Path                                filepaths.Path
 	BlockNumber                         *big.Int
@@ -103,27 +106,43 @@ func InitUniswapClient(ctx context.Context, w Web3Client) UniswapClient {
 		Web3Client:                       w,
 		chronos:                          chronos.Chronos{},
 		FactorySmartContractAddr:         UniswapV2FactoryAddress,
-		RouterSmartContractAddr:          UniswapV2RouterAddress,
-		UniversalRouterSmartContractAddr: UniswapUniversalRouterAddress,
+		RouterSmartContractAddr:          UniswapV2Router02Address,
+		UniversalRouterSmartContractAddr: UniswapUniversalRouterAddressNew,
 		FactoryAbi:                       factoryAbiFile,
 		ERC20Abi:                         erc20AbiFile,
 		PoolV3Abi:                        MustLoadPoolV3Abi(),
 		PairAbi:                          pairAbiFile,
-		UniversalRouterAbi:               MustLoadUniversalRouterAbi(),
-		MevSmartContractTxMapUniversalRouter: MevSmartContractTxMap{
-			SmartContractAddr: UniswapUniversalRouterAddress,
-			Abi:               MustLoadUniversalRouterAbi(),
+		UniversalRouterAbi:               MustLoadNewUniversalRouterAbi(),
+		MevSmartContractTxMapUniversalRouterNew: MevSmartContractTxMap{
+			SmartContractAddr: UniswapUniversalRouterAddressNew,
+			Abi:               MustLoadNewUniversalRouterAbi(),
 			Txs:               []MevTx{},
 		},
-		MevSmartContractTxMap: MevSmartContractTxMap{
-			SmartContractAddr: UniswapV2RouterAddress,
-			Abi:               MustLoadUniswapV2RouterABI(),
+		MevSmartContractTxMapUniversalRouterOld: MevSmartContractTxMap{
+			SmartContractAddr: UniswapUniversalRouterAddressOld,
+			Abi:               MustLoadOldUniversalRouterAbi(),
+			Txs:               []MevTx{},
+		},
+		MevSmartContractTxMapV2Router02: MevSmartContractTxMap{
+			SmartContractAddr: UniswapV2Router02Address,
+			Abi:               MustLoadUniswapV2Router02ABI(),
 			Txs:               []MevTx{},
 			Filter:            &f,
 		},
-		MevSmartContractTxMapV3: MevSmartContractTxMap{
-			SmartContractAddr: UniswapV3RouterAddress2,
-			Abi:               MustLoadUniswapV3RouterAbi(),
+		MevSmartContractTxMapV2Router01: MevSmartContractTxMap{
+			SmartContractAddr: UniswapV2Router01Address,
+			Abi:               MustLoadUniswapV2Router01ABI(),
+			Txs:               []MevTx{},
+			Filter:            &f,
+		},
+		MevSmartContractTxMapV3SwapRouterV1: MevSmartContractTxMap{
+			SmartContractAddr: UniswapV3Router01Address,
+			Abi:               MustLoadUniswapV3Swap1RouterAbi(),
+			Txs:               []MevTx{},
+		},
+		MevSmartContractTxMapV3SwapRouterV2: MevSmartContractTxMap{
+			SmartContractAddr: UniswapV3Router02Address,
+			Abi:               MustLoadUniswapV3Swap2RouterAbi(),
 			Txs:               []MevTx{},
 		},
 		TradeAnalysisReport:                 &TradeAnalysisReport{},

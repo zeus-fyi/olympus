@@ -19,7 +19,7 @@ func (s *Web3ClientTestSuite) TestUniversalRouterV2() {
 	tx, _, err := s.MainnetWeb3User.GetTxByHash(ctx, common.HexToHash(hashStr))
 	s.Require().Nil(err)
 	s.Require().NotNil(tx)
-	mn, args, err := DecodeTxArgData(ctx, tx, uni.MevSmartContractTxMapUniversalRouter)
+	mn, args, err := DecodeTxArgData(ctx, tx, uni.MevSmartContractTxMapUniversalRouterNew)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(mn)
 	s.Require().NotEmpty(args)

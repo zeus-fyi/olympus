@@ -12,8 +12,16 @@ import (
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
-func MustLoadUniswapV3RouterAbi() *abi.ABI {
-	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniswapV3RouterABI))
+func MustLoadUniswapV3Swap1RouterAbi() *abi.ABI {
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniswapV3RouterSwapV1ABI))
+	if err != nil {
+		panic(err)
+	}
+	return readAbi
+}
+
+func MustLoadUniswapV3Swap2RouterAbi() *abi.ABI {
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniswapV3RouterSwapV2ABI))
 	if err != nil {
 		panic(err)
 	}
@@ -52,16 +60,32 @@ func MustLoadPoolV3Abi() *abi.ABI {
 	return readAbi
 }
 
-func MustLoadUniswapV2RouterABI() *abi.ABI {
-	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniswapV2RouterABI))
+func MustLoadUniswapV2Router02ABI() *abi.ABI {
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniswapV2Router02ABI))
 	if err != nil {
 		panic(err)
 	}
 	return readAbi
 
 }
-func MustLoadUniversalRouterAbi() *abi.ABI {
+func MustLoadUniswapV2Router01ABI() *abi.ABI {
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniswapV2Router01ABI))
+	if err != nil {
+		panic(err)
+	}
+	return readAbi
+
+}
+func MustLoadOldUniversalRouterAbi() *abi.ABI {
 	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniversalRouterAbi))
+	if err != nil {
+		panic(err)
+	}
+	return readAbi
+}
+
+func MustLoadNewUniversalRouterAbi() *abi.ABI {
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniversalRouterNewAbi))
 	if err != nil {
 		panic(err)
 	}

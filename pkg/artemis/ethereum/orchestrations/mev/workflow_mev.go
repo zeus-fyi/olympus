@@ -73,9 +73,6 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
-		RetryPolicy: &temporal.RetryPolicy{
-			MaximumAttempts: 3,
-		},
 	}
 	getMempoolTxsCtx := workflow.WithActivityOptions(ctx, ao)
 	var mempoolTxs []mempool_txs.MempoolTxsDynamoDB
@@ -86,7 +83,7 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context) error {
 	}
 
 	convertAo := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Second * 1,
+		StartToCloseTimeout: time.Second * 2,
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 2,
 		},

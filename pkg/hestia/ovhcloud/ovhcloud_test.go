@@ -28,7 +28,55 @@ func (s *OvhCloudTestSuite) SetupTest() {
 	s.o = InitOvhClient(ctx, creds)
 	//apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 }
+
+// 	Flavor == instance type
+// service name: zeusfyi
+// clusterID: 750cf38b-0965-4b2b-b6ba-9728ca3f239e
+// nodePoolID: 0f696c39-46cb-442c-bdc7-981887a5f08c
+// nodePoolName: nodepool-7452815c-94ca-40d8-8334-cda7bbcc8f73
+
 func (s *OvhCloudTestSuite) TestListSizes() {
+
+}
+
+func (s *OvhCloudTestSuite) TestCreateNodePool() {
+	poolName := "testpool"
+	flavorName := ""
+	req := OvhNodePoolCreationRequest{
+		ServiceName: "zeusfyi",
+		KubeId:      "750cf38b-0965-4b2b-b6ba-9728ca3f239e",
+		ProjectKubeNodePoolCreation: ProjectKubeNodePoolCreation{
+			AntiAffinity:  false,
+			Autoscale:     false,
+			DesiredNodes:  1,
+			FlavorName:    flavorName,
+			MaxNodes:      1,
+			MinNodes:      1,
+			MonthlyBilled: false,
+			Name:          poolName,
+			Template: struct {
+				Metadata struct {
+					Annotations struct{} `json:"annotations"`
+					Finalizers  []string `json:"finalizers"`
+					Labels      struct{} `json:"labels"`
+				} `json:"metadata"`
+				Spec struct {
+					Taints []struct {
+						Effect string `json:"effect"`
+						Key    string `json:"key"`
+						Value  string `json:"value"`
+					} `json:"taints"`
+					Unschedulable bool `json:"unschedulable"`
+				} `json:"spec"`
+			}{},
+		},
+	}
+	resp, err := s.o.CreateNodePool(ctx, req)
+	s.Require().NoError(err)
+	s.Assert().NotNil(resp)
+}
+
+func (s *OvhCloudTestSuite) TestRemoveNodePool() {
 
 }
 

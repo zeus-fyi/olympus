@@ -83,9 +83,9 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context) error {
 	}
 
 	convertAo := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Second * 5,
+		StartToCloseTimeout: time.Second * 60,
 		RetryPolicy: &temporal.RetryPolicy{
-			MaximumAttempts: 2,
+			MaximumAttempts: 20,
 		},
 	}
 	var convertedMempoolTxs map[string]map[string]*types.Transaction
@@ -97,7 +97,7 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context) error {
 	}
 
 	processAo := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Second * 10,
+		StartToCloseTimeout: time.Second * 60,
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 5,
 		},
@@ -126,7 +126,7 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context) error {
 	}
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
 	histTxTrades := HistoricalTxAnalysis{
-		StartTimeDelay: 12 * time.Second,
+		StartTimeDelay: 1 * time.Second,
 		Trades:         trades,
 	}
 	childWorkflowFutureHistoricalSimTx := workflow.ExecuteChildWorkflow(ctx, "ArtemisHistoricalSimTxWorkflow", histTxTrades)

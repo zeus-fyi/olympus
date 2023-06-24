@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 )
@@ -28,6 +29,7 @@ func (u *UniswapClient) ExecTradeByMethod(tf *TradeExecutionFlow) (*web3_actions
 		return nil, u.Web3Client.SendImpersonatedTx(ctx, tf.Tx)
 	default:
 	}
+	log.Warn().Interface("trade", tf.Trade).Msg("invalid trade method")
 	return nil, errors.New("invalid trade method")
 }
 

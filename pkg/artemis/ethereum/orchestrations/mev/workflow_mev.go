@@ -83,7 +83,7 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context) error {
 	}
 
 	convertAo := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Second * 2,
+		StartToCloseTimeout: time.Second * 5,
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 2,
 		},
@@ -97,9 +97,9 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context) error {
 	}
 
 	processAo := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Second * 2,
+		StartToCloseTimeout: time.Second * 10,
 		RetryPolicy: &temporal.RetryPolicy{
-			MaximumAttempts: 2,
+			MaximumAttempts: 5,
 		},
 	}
 	processMempoolTxsCtx := workflow.WithActivityOptions(ctx, processAo)

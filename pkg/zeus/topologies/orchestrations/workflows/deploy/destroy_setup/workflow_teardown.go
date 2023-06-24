@@ -104,6 +104,22 @@ func (c *DestroyClusterSetupWorkflow) DestroyClusterSetupWorkflowFreeTrial(ctx w
 					return err
 				}
 			}
+			ovhSelectFreeTrialDoNodesCtx := workflow.WithActivityOptions(ctx, ao)
+			var ovhNodes []do_types.DigitalOceanNodePoolRequestStatus
+			err = workflow.ExecuteActivity(ovhSelectFreeTrialDoNodesCtx, c.CreateSetupTopologyActivities.OvhSelectFreeTrialNodes, params.Ou.OrgID).Get(ovhSelectFreeTrialDoNodesCtx, &ovhNodes)
+			if err != nil {
+				log.Error("Failed to select ovh free trial nodes", "Error", err)
+				return err
+			}
+			for _, node := range ovhNodes {
+				ovhDestroyNodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
+				log.Info("Destroying node pool org resources", "OvhRemoveNodePoolRequest", node)
+				err = workflow.ExecuteActivity(ovhDestroyNodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.OvhRemoveNodePoolRequest, node).Get(ovhDestroyNodePoolOrgResourcesCtx, nil)
+				if err != nil {
+					log.Error("Failed to remove ovh node resources for account", "Error", err)
+					return err
+				}
+			}
 			eksSelectFreeTrialDoNodesCtx := workflow.WithActivityOptions(ctx, ao)
 			var eksNodes []do_types.DigitalOceanNodePoolRequestStatus
 			err = workflow.ExecuteActivity(eksSelectFreeTrialDoNodesCtx, c.CreateSetupTopologyActivities.EksSelectFreeTrialNodes, params.Ou.OrgID).Get(eksSelectFreeTrialDoNodesCtx, &eksNodes)

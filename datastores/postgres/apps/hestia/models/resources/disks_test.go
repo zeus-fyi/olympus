@@ -32,6 +32,25 @@ func (s *DisksTestSuite) TestInsertDisk() {
 	s.Require().NoError(err)
 }
 
+func (s *DisksTestSuite) TestInsertDiskOvh() {
+	s.InitLocalConfigs()
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	// hourlyDiskCost = 0.01643835616
+	// monthly = 12
+	disk := hestia_autogen_bases.Disks{
+		PriceMonthly:  12,
+		PriceHourly:   0.01643835616,
+		Region:        "us-west-or-1",
+		CloudProvider: "ovh",
+		Description:   "OvhCloud Block Storage High Speed SSD",
+		Type:          "ssd",
+		DiskSize:      100,
+		DiskUnits:     "Gi",
+	}
+	err := InsertDisk(ctx, disk)
+	s.Require().NoError(err)
+}
+
 func (s *DisksTestSuite) TestInsertDiskGcp() {
 	s.InitLocalConfigs()
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)

@@ -29,6 +29,8 @@ func (d *DigitalOcean) CreateDomain(ctx context.Context, cloudCtxNs zeus_common_
 		TTL:  3600,
 	}
 	switch cloudCtxNs.CloudProvider {
+	case "ovh":
+		// todo
 	case "gcp":
 		loadBalancer = GkeUsCentral1Ip
 	case "do":

@@ -220,6 +220,9 @@ export function DeployPage(props: any) {
         if (cloudProvider === 'aws') {
             setRegion('us-west-1');
         }
+        if (cloudProvider === 'ovh') {
+            setRegion('us-west-or-1');
+        }
     }
     useEffect(() => {
         filteredNodes = nodes.filter((node) => node.cloudProvider === cloudProvider && node.region === region);
@@ -244,6 +247,10 @@ export function DeployPage(props: any) {
     function handleChangeSelectRegion(region: string) {
         if (cloudProvider === 'aws') {
             setRegion('us-west-1');
+        } else if (cloudProvider === 'gcp') {
+            setRegion('us-central1')
+        } else if (cloudProvider == 'ovh') {
+            setRegion('us-west-or-1');
         } else {
             setRegion(region);
         }
@@ -358,7 +365,7 @@ export function DeployPage(props: any) {
                                                     case 'aws':
                                                         return <MenuItem value="us-west-1">us-west-1</MenuItem>; // Add the respective region for AWS
                                                     case 'ovh':
-                                                        return <MenuItem value="us-west-1">us-west-or-1</MenuItem>;
+                                                        return <MenuItem value="us-west-or-1">us-west-or-1</MenuItem>;
                                                     default:
                                                         return <MenuItem value="nyc1">nyc1</MenuItem>; // Default is for any other provider
                                                 }

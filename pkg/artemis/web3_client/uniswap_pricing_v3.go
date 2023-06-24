@@ -2,6 +2,7 @@ package web3_client
 
 import (
 	"context"
+	"errors"
 	"math/big"
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
@@ -64,6 +65,9 @@ func (p *UniswapPoolV3) PricingData(ctx context.Context, path TokenFeePath) erro
 	ts, err := p.GetPopulatedTicksMap()
 	if err != nil {
 		return err
+	}
+	if len(ts) <= 0 {
+		return errors.New("no populated ticks")
 	}
 	tdp, err := entities.NewTickListDataProvider(ts, constants.TickSpacings[p.Fee])
 	if err != nil {

@@ -45,7 +45,8 @@ func (s *Web3ClientTestSuite) TestSwapExactTokensForTokens() {
 	s.Require().NotEmpty(args)
 
 	ss := SwapExactTokensForTokensParamsV3{}
-	ss.Decode(ctx, args)
+	err = ss.Decode(ctx, args)
+	s.Require().Nil(err)
 	s.Assert().NotEmpty(ss)
 }
 

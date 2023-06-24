@@ -86,27 +86,28 @@ func (s *SwapExactTokensForTokensParamsV3) BinarySearch(pair UniswapV2Pair) Trad
 	return tf
 }
 
-func (s *SwapExactTokensForTokensParamsV3) Decode(ctx context.Context, args map[string]interface{}) {
+func (s *SwapExactTokensForTokensParamsV3) Decode(ctx context.Context, args map[string]interface{}) error {
 	amountIn, err := ParseBigInt(args["amountIn"])
 	if err != nil {
-		return
+		return err
 	}
 	amountOutMin, err := ParseBigInt(args["amountOutMin"])
 	if err != nil {
-		return
+		return err
 	}
 	path, err := ConvertToAddressSlice(args["path"])
 	if err != nil {
-		return
+		return err
 	}
 	to, err := ConvertToAddress(args["to"])
 	if err != nil {
-		return
+		return err
 	}
 	s.AmountIn = amountIn
 	s.AmountOutMin = amountOutMin
 	s.Path = path
 	s.To = to
+	return nil
 }
 
 func (s *SwapExactTokensForTokensParamsV3) ConvertToJSONType() *JSONSwapExactTokensForTokensParamsV3 {

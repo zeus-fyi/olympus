@@ -182,6 +182,34 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) {
 		fmt.Println("txHash: ", tx.Tx.Hash().String())
 		fmt.Println("Sell Token: ", inputs.TokenFeePath.TokenIn.String(), "Buy Token", inputs.TokenFeePath.GetEndToken().String(), "Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
 		fmt.Println("sandwich: ====================================SwapExactOutputSingle==================================")
+	case swapExactTokensForTokens:
+		inputs := &SwapExactTokensForTokensParamsV3{}
+		err := inputs.Decode(ctx, tx.Args)
+		if err != nil {
+			log.Err(err).Msg("swapExactTokensForTokens: failed to decode swap exact tokens for tokens args")
+			return
+		}
+		pd, err := u.GetPricingData(ctx, inputs.Path)
+		if err != nil {
+			return
+		}
+		path := inputs.Path
+		initialPair := pd.v2Pair
+		tf := inputs.BinarySearch(pd.v2Pair)
+		tf.InitialPair = initialPair.ConvertToJSONType()
+		fmt.Println("\nsandwich: ==================================SwapExactTokensForTokens==================================")
+		ts := &TradeSummary{
+			Tx:            tx,
+			Pd:            pd,
+			Tf:            tf,
+			TokenAddr:     path[0].String(),
+			BuyWithAmount: inputs.AmountIn,
+			MinimumAmount: inputs.AmountOutMin,
+		}
+		u.PrintTradeSummaries(ts)
+		fmt.Println("txHash: ", tx.Tx.Hash().String())
+		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "SandwichPrediction Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
+		fmt.Println("sandwich: ====================================SwapExactTokensForTokens==================================")
 	case swapExactInputMultihop:
 	case swapExactOutputMultihop:
 	}

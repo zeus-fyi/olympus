@@ -55,6 +55,25 @@ func (u *UniswapClient) ProcessMempoolTxs(ctx context.Context, mempool map[strin
 				tmp := u.MevSmartContractTxMap.Txs
 				tmp = append(tmp, singleTx)
 				u.MevSmartContractTxMap.Txs = tmp
+			case UniswapV3RouterAddress2, UniswapV3RouterAddress:
+				if u.MevSmartContractTxMapV3.Txs == nil {
+					u.MevSmartContractTxMapV3.Txs = []MevTx{}
+				}
+				methodName, args, err := DecodeTxArgData(ctx, tx, u.MevSmartContractTxMapV3)
+				if err != nil {
+					continue
+				}
+				singleTx := MevTx{
+					MethodName:  methodName,
+					UserAddr:    userAddr,
+					Args:        args,
+					Order:       order,
+					TxPoolQueue: txPoolQueue,
+					Tx:          tx,
+				}
+				tmp := u.MevSmartContractTxMapV3.Txs
+				tmp = append(tmp, singleTx)
+				u.MevSmartContractTxMapV3.Txs = tmp
 			}
 		}
 	}

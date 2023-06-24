@@ -12,6 +12,14 @@ import (
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
+func MustLoadUniswapV3RouterAbi() *abi.ABI {
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniswapV3RouterABI))
+	if err != nil {
+		panic(err)
+	}
+	return readAbi
+}
+
 func MustLoadQuoterV1Abi() *abi.ABI {
 	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.QuoterV1Abi))
 	if err != nil {

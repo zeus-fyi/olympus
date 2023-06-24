@@ -2,40 +2,27 @@ package web3_client
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 )
 
-type SwapExactTokensForTokensParams struct {
+type SwapExactTokensForTokensParamsV3 struct {
 	AmountIn     *big.Int           `json:"amountIn"`
 	AmountOutMin *big.Int           `json:"amountOutMin"`
 	Path         []accounts.Address `json:"path"`
 	To           accounts.Address   `json:"to"`
-	Deadline     *big.Int           `json:"deadline"`
 }
 
-type JSONSwapExactTokensForTokensParams struct {
+type JSONSwapExactTokensForTokensParamsV3 struct {
 	AmountIn     string             `json:"amountIn"`
 	AmountOutMin string             `json:"amountOutMin"`
 	Path         []accounts.Address `json:"path"`
 	To           accounts.Address   `json:"to"`
-	Deadline     string             `json:"deadline"`
 }
 
-func (s *SwapExactTokensForTokensParams) ConvertToJSONType() *JSONSwapExactTokensForTokensParams {
-	return &JSONSwapExactTokensForTokensParams{
-		AmountIn:     s.AmountIn.String(),
-		AmountOutMin: s.AmountOutMin.String(),
-		Path:         s.Path,
-		To:           s.To,
-		Deadline:     s.Deadline.String(),
-	}
-}
-
-func (s *SwapExactTokensForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlowJSON {
+func (s *SwapExactTokensForTokensParamsV3) BinarySearch(pair UniswapV2Pair) TradeExecutionFlowJSON {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountIn)
 	var mid *big.Int
@@ -43,8 +30,8 @@ func (s *SwapExactTokensForTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlowJSON{
 		Trade: Trade{
-			TradeMethod:                        "swapExactTokensForTokens",
-			JSONSwapExactTokensForTokensParams: s.ConvertToJSONType(),
+			TradeMethod:                          swapExactTokensForTokens,
+			JSONSwapExactTokensForTokensParamsV3: s.ConvertToJSONType(),
 		},
 	}
 	for low.Cmp(high) <= 0 {
@@ -99,60 +86,35 @@ func (s *SwapExactTokensForTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 	return tf
 }
 
-func (s *SwapExactTokensForTokensParams) Decode(ctx context.Context, args map[string]interface{}) {
+func (s *SwapExactTokensForTokensParamsV3) Decode(ctx context.Context, args map[string]interface{}) error {
 	amountIn, err := ParseBigInt(args["amountIn"])
 	if err != nil {
-		return
+		return err
 	}
 	amountOutMin, err := ParseBigInt(args["amountOutMin"])
 	if err != nil {
-		return
+		return err
 	}
 	path, err := ConvertToAddressSlice(args["path"])
 	if err != nil {
-		return
+		return err
 	}
 	to, err := ConvertToAddress(args["to"])
 	if err != nil {
-		return
-	}
-	deadline, err := ParseBigInt(args["deadline"])
-	if err != nil {
-		return
+		return err
 	}
 	s.AmountIn = amountIn
 	s.AmountOutMin = amountOutMin
 	s.Path = path
 	s.To = to
-	s.Deadline = deadline
+	return nil
 }
 
-func (u *UniswapClient) SwapExactTokensForTokens(tx MevTx, args map[string]interface{}) {
-	st := SwapExactTokensForTokensParams{}
-	st.Decode(ctx, args)
-	pd, err := u.GetPricingData(ctx, st.Path)
-	if err != nil {
-		return
+func (s *SwapExactTokensForTokensParamsV3) ConvertToJSONType() *JSONSwapExactTokensForTokensParamsV3 {
+	return &JSONSwapExactTokensForTokensParamsV3{
+		AmountIn:     s.AmountIn.String(),
+		AmountOutMin: s.AmountOutMin.String(),
+		Path:         s.Path,
+		To:           s.To,
 	}
-	path := st.Path
-	initialPair := pd.v2Pair
-	tf := st.BinarySearch(pd.v2Pair)
-	tf.InitialPair = initialPair.ConvertToJSONType()
-	if u.PrintOn {
-		fmt.Println("\nsandwich: ==================================SwapExactTokensForTokens==================================")
-		ts := &TradeSummary{
-			Tx:            tx,
-			Pd:            pd,
-			Tf:            tf,
-			TokenAddr:     path[0].String(),
-			BuyWithAmount: st.AmountIn,
-			MinimumAmount: st.AmountOutMin,
-		}
-		u.PrintTradeSummaries(ts)
-		// u.PrintTradeSummaries(tx, tf, pd.v2Pair, path[0].String(), st.AmountIn, st.AmountOutMin)
-		fmt.Println("txHash: ", tx.Tx.Hash().String())
-		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "SandwichPrediction Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
-		fmt.Println("sandwich: ====================================SwapExactTokensForTokens==================================")
-	}
-	u.SwapExactTokensForTokensParamsSlice = append(u.SwapExactTokensForTokensParamsSlice, st)
 }

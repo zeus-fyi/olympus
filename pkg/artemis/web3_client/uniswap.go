@@ -22,6 +22,9 @@ const (
 	UniswapV2RouterAddress           = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
 	UniswapV2RouterAddress2          = "0xf164fC0Ec4E93095b804a4795bBe1e041497b92a"
 
+	UniswapV3RouterAddress  = ""
+	UniswapV3RouterAddress2 = "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45"
+
 	addLiquidity                 = "addLiquidity"
 	addLiquidityETH              = "addLiquidityETH"
 	removeLiquidity              = "removeLiquidity"
@@ -45,21 +48,23 @@ const (
 )
 
 type UniswapClient struct {
-	mu                                   sync.Mutex
-	Web3Client                           Web3Client
-	UniversalRouterSmartContractAddr     string
-	FactorySmartContractAddr             string
-	RouterSmartContractAddr              string
-	PoolV3Abi                            *abi.ABI
-	PairAbi                              *abi.ABI
-	ERC20Abi                             *abi.ABI
-	FactoryAbi                           *abi.ABI
-	UniversalRouterAbi                   *abi.ABI
-	PrintDetails                         bool
-	PrintOn                              bool
-	PrintLocal                           bool
-	DebugPrint                           bool
-	TestMode                             bool
+	mu                               sync.Mutex
+	Web3Client                       Web3Client
+	UniversalRouterSmartContractAddr string
+	FactorySmartContractAddr         string
+	RouterSmartContractAddr          string
+	PoolV3Abi                        *abi.ABI
+	PairAbi                          *abi.ABI
+	ERC20Abi                         *abi.ABI
+	FactoryAbi                       *abi.ABI
+	UniversalRouterAbi               *abi.ABI
+	PrintDetails                     bool
+	PrintOn                          bool
+	PrintLocal                       bool
+	DebugPrint                       bool
+	TestMode                         bool
+
+	MevSmartContractTxMapV3              MevSmartContractTxMap
 	MevSmartContractTxMapUniversalRouter MevSmartContractTxMap
 	MevSmartContractTxMap
 	*TradeAnalysisReport
@@ -115,6 +120,11 @@ func InitUniswapClient(ctx context.Context, w Web3Client) UniswapClient {
 			Abi:               MustLoadUniswapV2RouterABI(),
 			Txs:               []MevTx{},
 			Filter:            &f,
+		},
+		MevSmartContractTxMapV3: MevSmartContractTxMap{
+			SmartContractAddr: UniswapV3RouterAddress2,
+			Abi:               MustLoadUniswapV3RouterAbi(),
+			Txs:               []MevTx{},
 		},
 		TradeAnalysisReport:                 &TradeAnalysisReport{},
 		SwapExactTokensForTokensParamsSlice: []SwapExactTokensForTokensParams{},

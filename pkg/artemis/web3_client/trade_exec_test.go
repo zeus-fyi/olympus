@@ -9,9 +9,6 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-func (s *Web3ClientTestSuite) TestTradeSmartContractExecSwap() {
-}
-
 func (s *Web3ClientTestSuite) TestTradeExec() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ForceDirToTestDirLocation()

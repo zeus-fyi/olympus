@@ -49,7 +49,7 @@ func GetUniswapUniversalRouterAbiPayload(payload *UniversalRouterExecParams) web
 		fnParams = append(fnParams, payload.Deadline.String())
 	}
 	params := web3_actions.SendContractTxPayload{
-		SmartContractAddr: UniswapUniversalRouterAddressOld,
+		SmartContractAddr: UniswapUniversalRouterAddress,
 		SendEtherPayload:  *payable,
 		ContractABI:       MustLoadUniversalRouterAbi(),
 		MethodName:        methodName,

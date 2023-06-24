@@ -22,6 +22,8 @@ func (u *UniswapClient) ExecTradeByMethod(tf *TradeExecutionFlow) (*web3_actions
 		return u.SwapExactETHForTokensParams(tf)
 	case swapETHForExactTokens:
 		return u.SwapETHForExactTokensParams(tf)
+	case exactInput, exactOutput, swapExactInputSingle, swapExactOutputSingle:
+		return nil, u.Web3Client.SendImpersonatedTx(ctx, tf.Tx)
 	case V2SwapExactIn, V2SwapExactOut, V3SwapExactIn, V3SwapExactOut:
 		return nil, u.Web3Client.SendImpersonatedTx(ctx, tf.Tx)
 	default:
@@ -59,7 +61,6 @@ func (u *UniswapClient) SwapTokensForExactETHParams(tf *TradeExecutionFlow) (*we
 		pathSlice[i] = p.String()
 	}
 	pathString := "[" + strings.Join(pathSlice, ",") + "]"
-
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: u.MevSmartContractTxMap.SmartContractAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
@@ -82,7 +83,6 @@ func (u *UniswapClient) SwapExactTokensForTokensParams(tf *TradeExecutionFlow) (
 		pathSlice[i] = p.String()
 	}
 	pathString := "[" + strings.Join(pathSlice, ",") + "]"
-
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: u.MevSmartContractTxMap.SmartContractAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
@@ -105,7 +105,6 @@ func (u *UniswapClient) SwapExactETHForTokensParams(tf *TradeExecutionFlow) (*we
 		pathSlice[i] = p.String()
 	}
 	pathString := "[" + strings.Join(pathSlice, ",") + "]"
-
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: u.MevSmartContractTxMap.SmartContractAddr,
 		SendEtherPayload: web3_actions.SendEtherPayload{
@@ -133,7 +132,6 @@ func (u *UniswapClient) SwapETHForExactTokensParams(tf *TradeExecutionFlow) (*we
 		pathSlice[i] = p.String()
 	}
 	pathString := "[" + strings.Join(pathSlice, ",") + "]"
-
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: u.MevSmartContractTxMap.SmartContractAddr,
 		SendEtherPayload: web3_actions.SendEtherPayload{

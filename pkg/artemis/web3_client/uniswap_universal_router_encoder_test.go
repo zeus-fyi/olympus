@@ -13,7 +13,7 @@ func (s *Web3ClientTestSuite) TestUniversalRouterEncodeCommandByte() {
 		AmountIn:      big.NewInt(1000000000000000000),
 		AmountOutMin:  big.NewInt(0),
 		Path:          []accounts.Address{addr1, addr2},
-		To:            accounts.HexToAddress(UniswapUniversalRouterAddressOld),
+		To:            accounts.HexToAddress(UniswapUniversalRouterAddress),
 		PayerIsSender: true,
 	}
 	// convert to command

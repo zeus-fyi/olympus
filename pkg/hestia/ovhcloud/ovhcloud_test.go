@@ -19,6 +19,7 @@ type OvhCloudTestSuite struct {
 func (s *OvhCloudTestSuite) SetupTest() {
 	s.InitLocalConfigs()
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	//apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	creds := OvhCloudCreds{
 		Region:      OvhUS,
 		AppKey:      s.Tc.OvhAppKey,
@@ -26,14 +27,18 @@ func (s *OvhCloudTestSuite) SetupTest() {
 		ConsumerKey: s.Tc.OvhConsumerKey,
 	}
 	s.o = InitOvhClient(ctx, creds)
-	//apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 }
+
+// zeusfyi-shared
+// clusterID: a7ea8ded-fa8f-48f3-83d7-ce01410552bc
+// 2vdfsl.c1.or1.k8s.ovh.us
 
 // 	Flavor == instance type
 // service name: zeusfyi
 // clusterID: 750cf38b-0965-4b2b-b6ba-9728ca3f239e
 // nodePoolID: 0f696c39-46cb-442c-bdc7-981887a5f08c
 // nodePoolName: nodepool-7452815c-94ca-40d8-8334-cda7bbcc8f73
+// unx0wx.c1.or1.k8s.ovh.us
 
 func (s *OvhCloudTestSuite) TestListSizes() {
 
@@ -77,7 +82,8 @@ func (s *OvhCloudTestSuite) TestCreateNodePool() {
 }
 
 func (s *OvhCloudTestSuite) TestRemoveNodePool() {
-
+	err := s.o.RemoveNodePool(ctx, "", "")
+	s.Require().Nil(err)
 }
 
 func TestOvhCloudTestSuite(t *testing.T) {

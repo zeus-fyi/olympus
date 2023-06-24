@@ -7,7 +7,8 @@ import (
 )
 
 const (
-	OvhUS = "ovh-us"
+	OvhUS              = "ovh-us"
+	OvhRegionUsWestOr1 = "us-west-or-1"
 )
 
 type OvhCloud struct {

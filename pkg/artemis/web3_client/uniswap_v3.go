@@ -196,6 +196,7 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) {
 		path := inputs.Path
 		initialPair := pd.v2Pair
 		tf := inputs.BinarySearch(pd.v2Pair)
+		tf.Trade.TradeMethod = swapExactTokensForTokens
 		tf.InitialPair = initialPair.ConvertToJSONType()
 		fmt.Println("\nsandwich: ==================================SwapExactTokensForTokens==================================")
 		ts := &TradeSummary{

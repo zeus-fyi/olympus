@@ -267,6 +267,9 @@ export function DeployPage(props: any) {
         if (cloudProvider === 'aws') {
             monthlyDiskCost = 12.88
         }
+        if (cloudProvider === 'ovh') {
+            monthlyDiskCost = 12
+        }
         for (const resource of resourceRequirements) {
             totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * monthlyDiskCost * parseInt(resource.replicas));
         }
@@ -281,6 +284,9 @@ export function DeployPage(props: any) {
         }
         if (cloudProvider === 'aws') {
             hourlyDiskCost = 0.01765
+        }
+        if (cloudProvider == 'ovh') {
+            hourlyDiskCost = 0.01643835616
         }
         for (const resource of resourceRequirements) {
             totalBlockStorageCost += (Number(resource.blockStorageCostUnit) * hourlyDiskCost * parseInt(resource.replicas));
@@ -302,8 +308,6 @@ export function DeployPage(props: any) {
                             You can set a payment option on the billing page. Once you've deployed an app you can view it on the clusters page within a few minutes. Click on the cluster namespace to get a detailed view of the live cluster.
                             The node sizing selection filter adds an additional 0.1 vCPU and 1.5Gi as overhead from the server to prevent selecting nodes that won't schedule this workload.
                             If a machine type you'd like isn't listed please contact us at alex@zeus.fyi
-
-                            AWS is currently in beta.
                         </Typography>
                     </CardContent>
                     <Divider />
@@ -330,8 +334,8 @@ export function DeployPage(props: any) {
                                         <MenuItem value="do">DigitalOcean</MenuItem>
                                         <MenuItem value="gcp">Google Cloud Platform</MenuItem>
                                         <MenuItem value="aws">Amazon Web Services</MenuItem>
+                                        <MenuItem value="ovh">Ovh Cloud</MenuItem>
                                         <MenuItem value="azure">Azure (Coming soon)</MenuItem>
-                                        <MenuItem value="ovh">Ovh Bare Metal (Coming soon)</MenuItem>
                                     </Select>
                                 </FormControl>
                                 <FormControl sx={{ mr: 1 }} fullWidth variant="outlined">
@@ -353,6 +357,8 @@ export function DeployPage(props: any) {
                                                         return <MenuItem value="us-central1">us-central1</MenuItem>;
                                                     case 'aws':
                                                         return <MenuItem value="us-west-1">us-west-1</MenuItem>; // Add the respective region for AWS
+                                                    case 'ovh':
+                                                        return <MenuItem value="us-west-1">us-west-or-1</MenuItem>;
                                                     default:
                                                         return <MenuItem value="nyc1">nyc1</MenuItem>; // Default is for any other provider
                                                 }

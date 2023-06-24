@@ -22,7 +22,7 @@ type JSONSwapExactTokensForTokensParamsV3 struct {
 	To           accounts.Address   `json:"to"`
 }
 
-func (s *SwapExactTokensForTokensParamsV3) BinarySearch(ctx context.Context, pd *PricingData) TradeExecutionFlowJSON {
+func (s *SwapExactTokensForTokensParamsV3) BinarySearch(pair UniswapV2Pair) TradeExecutionFlowJSON {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountIn)
 	var mid *big.Int
@@ -34,66 +34,41 @@ func (s *SwapExactTokensForTokensParamsV3) BinarySearch(ctx context.Context, pd 
 			JSONSwapExactTokensForTokensParamsV3: s.ConvertToJSONType(),
 		},
 	}
-	if len(s.Path) < 2 {
-		log.Error().Msg("invalid path length")
-		return tf
-	}
-	frontRunTokenIn := pd.v3Pair.Token0
-	sandwichTokenIn := pd.v3Pair.Token1
-	if s.Path[0].Hex() == pd.v3Pair.Token1.Address.Hex() {
-		frontRunTokenIn = pd.v3Pair.Token1
-		sandwichTokenIn = pd.v3Pair.Token0
-	}
 	for low.Cmp(high) <= 0 {
-		mockPairResp := pd.v3Pair
+		mockPairResp := pair
 		mid = new(big.Int).Add(low, high)
 		mid = DivideByHalf(mid)
 		// Front run trade
-		amountInFrontRun := mid
-		toFrontRun, _, err := mockPairResp.PriceImpact(ctx, frontRunTokenIn, amountInFrontRun)
+		toFrontRun, err := mockPairResp.PriceImpact(s.Path[0], mid)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
 			return tf
 		}
 		// User trade
-		userTrade, _, err := mockPairResp.PriceImpact(ctx, frontRunTokenIn, s.AmountIn)
+		to, err := mockPairResp.PriceImpact(s.Path[0], s.AmountIn)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
 			return tf
 		}
-		difference := new(big.Int).Sub(userTrade.Quotient(), s.AmountOutMin)
+		difference := new(big.Int).Sub(to.AmountOut, s.AmountOutMin)
 		if difference.Cmp(big.NewInt(0)) < 0 {
 			high = new(big.Int).Sub(mid, big.NewInt(1))
 			continue
 		}
 		// Sandwich trade
-		toSandwich, _, err := mockPairResp.PriceImpact(ctx, sandwichTokenIn, toFrontRun.Quotient())
+		sandwichDump := toFrontRun.AmountOut
+		toSandwich, err := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
 			return tf
 		}
-		profit := new(big.Int).Sub(toSandwich.Quotient(), toFrontRun.Quotient())
+		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = JSONTradeOutcome{
-				AmountIn:      amountInFrontRun.String(),
-				AmountInAddr:  frontRunTokenIn.Address,
-				AmountOut:     toFrontRun.Quotient().String(),
-				AmountOutAddr: sandwichTokenIn.Address,
-			}
-			tf.UserTrade = JSONTradeOutcome{
-				AmountIn:      s.AmountIn.String(),
-				AmountInAddr:  frontRunTokenIn.Address,
-				AmountOut:     userTrade.Quotient().String(),
-				AmountOutAddr: sandwichTokenIn.Address,
-			}
-			tf.SandwichTrade = JSONTradeOutcome{
-				AmountIn:      toFrontRun.Quotient().String(),
-				AmountInAddr:  sandwichTokenIn.Address,
-				AmountOut:     toSandwich.Quotient().String(),
-				AmountOutAddr: frontRunTokenIn.Address,
-			}
+			tf.FrontRunTrade = toFrontRun.ConvertToJSONType()
+			tf.UserTrade = to.ConvertToJSONType()
+			tf.SandwichTrade = toSandwich.ConvertToJSONType()
 		}
 		// If profit is negative, reduce the high boundary
 		if profit.Cmp(big.NewInt(0)) < 0 {

@@ -1,6 +1,8 @@
 package web3_client
 
 import (
+	"fmt"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 )
@@ -52,7 +54,7 @@ func (s *Web3ClientTestSuite) TestDecodeMulticall() {
 	ForceDirToTestDirLocation()
 	uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
 
-	hashStr := "0x44aaf794774c4900edc4c30eef29d5c56065c5e8f50c04fc8e2da79ce9420e26"
+	hashStr := "0x5179d5430f7217356829c913036b187d910cd71080f6cb30c2d3ae96671a2bff"
 	tx, _, err := s.MainnetWeb3User.GetTxByHash(ctx, common.HexToHash(hashStr))
 	s.Require().Nil(err)
 	s.Require().NotNil(tx)
@@ -63,4 +65,18 @@ func (s *Web3ClientTestSuite) TestDecodeMulticall() {
 	mc := Multicall{}
 	err = mc.Decode(ctx, args)
 	s.Require().Nil(err)
+
+	for _, data := range mc.Data {
+		mn, args, err = DecodeTxData(ctx, data, uni.MevSmartContractTxMapV3)
+		s.Require().Nil(err)
+		s.Require().NotEmpty(mn)
+		s.Require().NotEmpty(args)
+		in := ExactInputParams{}
+		if mn == exactInput {
+			err = in.Decode(ctx, args)
+			s.Require().Nil(err)
+			fmt.Println(in.TokenFeePath.TokenIn.String())
+			fmt.Println(in.TokenFeePath.GetEndToken().String())
+		}
+	}
 }

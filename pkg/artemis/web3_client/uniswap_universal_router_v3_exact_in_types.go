@@ -65,7 +65,6 @@ func (s *V3SwapExactInParams) Decode(ctx context.Context, data []byte) error {
 		pathList = append(pathList, tf)
 	}
 	tfp.Path = pathList
-	tfp.Reverse()
 
 	to, err := ConvertToAddress(args["recipient"])
 	if err != nil {

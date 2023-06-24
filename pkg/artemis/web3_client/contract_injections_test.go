@@ -76,7 +76,7 @@ func (s *Web3ClientTestSuite) TestRawDawgInjection() {
 	}
 
 	pathSlice := []string{to.AmountInAddr.String(), to.AmountOutAddr.String()}
-	amountsOut, err := uni.GetAmountsOut(to.AmountIn, pathSlice)
+	amountsOut, err := uni.GetAmountsOut(nil, to.AmountIn, pathSlice)
 	s.Require().Nil(err)
 	amountsOutFirstPair := ConvertAmountsToBigIntSlice(amountsOut)
 	fmt.Println("amountsOutFirstPair", amountsOutFirstPair)

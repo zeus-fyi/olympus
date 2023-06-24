@@ -5,17 +5,18 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/ethereum/go-ethereum/common"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 )
 
-func (u *UniswapClient) GetAmounts(to TradeOutcome, method string) ([]interface{}, error) {
+func (u *UniswapClient) GetAmounts(address *common.Address, to TradeOutcome, method string) ([]interface{}, error) {
 	switch method {
 	case getAmountsOut:
 		pathSlice := []string{to.AmountInAddr.String(), to.AmountOutAddr.String()}
-		return u.GetAmountsOut(to.AmountIn, pathSlice)
+		return u.GetAmountsOut(address, to.AmountIn, pathSlice)
 	case getAmountsIn:
 		pathSlice := []string{to.AmountOutAddr.String(), to.AmountInAddr.String()}
-		return u.GetAmountsIn(to.AmountOut, pathSlice)
+		return u.GetAmountsIn(address, to.AmountOut, pathSlice)
 	}
 	return nil, errors.New("invalid method")
 }
@@ -26,12 +27,18 @@ func (u *UniswapClient) GetAmounts(to TradeOutcome, method string) ([]interface{
 	and using these to call getAmountIn.
 */
 
-func (u *UniswapClient) GetAmountsIn(amountOut *big.Int, pathSlice []string) ([]interface{}, error) {
+func (u *UniswapClient) GetAmountsIn(address *common.Address, amountOut *big.Int, pathSlice []string) ([]interface{}, error) {
+	mm := u.MevSmartContractTxMapV2Router02
+	if address != nil {
+		if address.String() == u.MevSmartContractTxMapV2Router01.SmartContractAddr {
+			mm = u.MevSmartContractTxMapV2Router01
+		}
+	}
 	pathString := "[" + strings.Join(pathSlice, ",") + "]"
 	scInfo := &web3_actions.SendContractTxPayload{
-		SmartContractAddr: u.MevSmartContractTxMap.SmartContractAddr,
+		SmartContractAddr: mm.SmartContractAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       u.MevSmartContractTxMap.Abi,
+		ContractABI:       mm.Abi,
 		MethodName:        getAmountsIn,
 		Params:            []interface{}{amountOut, pathString},
 	}
@@ -42,12 +49,18 @@ func (u *UniswapClient) GetAmountsIn(amountOut *big.Int, pathSlice []string) ([]
 	return amountsIn, err
 }
 
-func (u *UniswapClient) GetAmountsOut(amountIn *big.Int, pathSlice []string) ([]interface{}, error) {
+func (u *UniswapClient) GetAmountsOut(address *common.Address, amountIn *big.Int, pathSlice []string) ([]interface{}, error) {
+	mm := u.MevSmartContractTxMapV2Router02
+	if address != nil {
+		if address.String() == u.MevSmartContractTxMapV2Router01.SmartContractAddr {
+			mm = u.MevSmartContractTxMapV2Router01
+		}
+	}
 	pathString := "[" + strings.Join(pathSlice, ",") + "]"
 	scInfo := &web3_actions.SendContractTxPayload{
-		SmartContractAddr: u.MevSmartContractTxMap.SmartContractAddr,
+		SmartContractAddr: mm.SmartContractAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       u.MevSmartContractTxMap.Abi,
+		ContractABI:       mm.Abi,
 		MethodName:        getAmountsOut,
 		Params:            []interface{}{amountIn, pathString},
 	}

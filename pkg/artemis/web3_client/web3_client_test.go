@@ -131,7 +131,7 @@ func (s *Web3ClientTestSuite) TestReadMempool() {
 	s.Assert().NotNil(mempool)
 	uswap := InitUniswapClient(ctx, s.MainnetWeb3User)
 	s.Require().Nil(err)
-	smartContractAddrFilter := common.HexToAddress(uswap.SmartContractAddr)
+	smartContractAddrFilter := common.HexToAddress(uswap.MevSmartContractTxMapV2Router02.SmartContractAddr)
 	smartContractAddrFilterString := smartContractAddrFilter.String()
 	for userAddr, txPoolQueue := range mempool["pending"] {
 		for order, tx := range txPoolQueue {
@@ -145,7 +145,7 @@ func (s *Web3ClientTestSuite) TestReadMempool() {
 						continue
 					}
 					sigdata := calldata[:4]
-					method, merr := uswap.Abi.MethodById(sigdata[:4])
+					method, merr := uswap.MevSmartContractTxMapV2Router02.Abi.MethodById(sigdata[:4])
 					s.Assert().Nil(merr)
 					fmt.Println(method.Name)
 					argdata := calldata[4:]

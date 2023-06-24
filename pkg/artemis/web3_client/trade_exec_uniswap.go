@@ -42,9 +42,9 @@ func (u *UniswapClient) SwapExactTokensForETHParams(tf *TradeExecutionFlow) (*we
 	}
 	pathString := "[" + strings.Join(pathSlice, ",") + "]"
 	scInfo := &web3_actions.SendContractTxPayload{
-		SmartContractAddr: u.MevSmartContractTxMap.SmartContractAddr,
+		SmartContractAddr: u.MevSmartContractTxMapV2Router02.SmartContractAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       u.MevSmartContractTxMap.Abi,
+		ContractABI:       u.MevSmartContractTxMapV2Router02.Abi,
 		MethodName:        swapExactTokensForETH,
 		Params:            []interface{}{params.AmountIn, params.AmountOutMin, pathString, params.To, params.Deadline},
 	}
@@ -64,9 +64,9 @@ func (u *UniswapClient) SwapTokensForExactETHParams(tf *TradeExecutionFlow) (*we
 	}
 	pathString := "[" + strings.Join(pathSlice, ",") + "]"
 	scInfo := &web3_actions.SendContractTxPayload{
-		SmartContractAddr: u.MevSmartContractTxMap.SmartContractAddr,
+		SmartContractAddr: u.MevSmartContractTxMapV2Router02.SmartContractAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       u.MevSmartContractTxMap.Abi,
+		ContractABI:       u.MevSmartContractTxMapV2Router02.Abi,
 		MethodName:        swapTokensForExactETH,
 		Params:            []interface{}{params.AmountOut, params.AmountInMax, pathString, params.To, params.Deadline},
 	}
@@ -86,9 +86,9 @@ func (u *UniswapClient) SwapExactTokensForTokensParams(tf *TradeExecutionFlow) (
 	}
 	pathString := "[" + strings.Join(pathSlice, ",") + "]"
 	scInfo := &web3_actions.SendContractTxPayload{
-		SmartContractAddr: u.MevSmartContractTxMap.SmartContractAddr,
+		SmartContractAddr: u.MevSmartContractTxMapV2Router02.SmartContractAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       u.MevSmartContractTxMap.Abi,
+		ContractABI:       u.MevSmartContractTxMapV2Router02.Abi,
 		MethodName:        swapExactTokensForTokens,
 		Params:            []interface{}{params.AmountIn, params.AmountOutMin, pathString, params.To, params.Deadline},
 	}
@@ -108,14 +108,14 @@ func (u *UniswapClient) SwapExactETHForTokensParams(tf *TradeExecutionFlow) (*we
 	}
 	pathString := "[" + strings.Join(pathSlice, ",") + "]"
 	scInfo := &web3_actions.SendContractTxPayload{
-		SmartContractAddr: u.MevSmartContractTxMap.SmartContractAddr,
+		SmartContractAddr: u.MevSmartContractTxMapV2Router02.SmartContractAddr,
 		SendEtherPayload: web3_actions.SendEtherPayload{
 			TransferArgs: web3_actions.TransferArgs{
 				Amount:    tf.Tx.Value(),
 				ToAddress: accounts.Address(params.To),
 			},
 		},
-		ContractABI: u.MevSmartContractTxMap.Abi,
+		ContractABI: u.MevSmartContractTxMapV2Router02.Abi,
 		MethodName:  swapExactETHForTokens,
 		Params:      []interface{}{params.AmountOutMin, pathString, params.To, params.Deadline},
 	}
@@ -135,14 +135,14 @@ func (u *UniswapClient) SwapETHForExactTokensParams(tf *TradeExecutionFlow) (*we
 	}
 	pathString := "[" + strings.Join(pathSlice, ",") + "]"
 	scInfo := &web3_actions.SendContractTxPayload{
-		SmartContractAddr: u.MevSmartContractTxMap.SmartContractAddr,
+		SmartContractAddr: u.MevSmartContractTxMapV2Router02.SmartContractAddr,
 		SendEtherPayload: web3_actions.SendEtherPayload{
 			TransferArgs: web3_actions.TransferArgs{
 				Amount:    tf.Tx.Value(),
 				ToAddress: params.To,
 			},
 		},
-		ContractABI: u.MevSmartContractTxMap.Abi,
+		ContractABI: u.MevSmartContractTxMapV2Router02.Abi,
 		MethodName:  swapETHForExactTokens,
 		Params:      []interface{}{params.AmountOut, pathString, params.To, params.Deadline},
 	}
@@ -162,9 +162,9 @@ func (u *UniswapClient) SwapTokensForExactTokensParams(tf *TradeExecutionFlow) (
 	}
 	pathString := "[" + strings.Join(pathSlice, ",") + "]"
 	scInfo := &web3_actions.SendContractTxPayload{
-		SmartContractAddr: u.MevSmartContractTxMap.SmartContractAddr,
+		SmartContractAddr: u.MevSmartContractTxMapV2Router02.SmartContractAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       u.MevSmartContractTxMap.Abi,
+		ContractABI:       u.MevSmartContractTxMapV2Router02.Abi,
 		MethodName:        swapTokensForExactTokens,
 		Params:            []interface{}{params.AmountOut, params.AmountInMax, pathString, params.To, params.Deadline},
 	}

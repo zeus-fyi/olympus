@@ -24,6 +24,9 @@ func ValidateList(ticks []Tick, tickSpacing int) error {
 		}
 	}
 
+	if len(ticks) == 0 {
+		return errors.New("empty tick list")
+	}
 	//// ensure tick liquidity deltas sum to 0
 	//sum := big.NewInt(0)
 	//for _, tick := range ticks {

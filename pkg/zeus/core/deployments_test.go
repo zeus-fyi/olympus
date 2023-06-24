@@ -1,7 +1,6 @@
 package zeus_core
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -13,7 +12,6 @@ type DeploymentsTestSuite struct {
 }
 
 func (d *DeploymentsTestSuite) TestCreateDeployment() {
-	ctx := context.Background()
 	var kns = zeus_common_types.CloudCtxNs{Env: "", CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "p2p-crawler"}
 	dep, err := d.K.GetDeployment(ctx, kns, "zeus-p2p-crawler", nil)
 	d.Require().Nil(err)
@@ -25,7 +23,6 @@ func (d *DeploymentsTestSuite) TestCreateDeployment() {
 }
 
 func (d *DeploymentsTestSuite) TestGetDeployment() {
-	ctx := context.Background()
 	var kns = zeus_common_types.CloudCtxNs{Env: "", CloudProvider: "", Region: "", Context: "data", Namespace: "eth-indexer"}
 	dep, err := d.K.GetDeployment(ctx, kns, "eth-indexer", nil)
 	d.Require().Nil(err)

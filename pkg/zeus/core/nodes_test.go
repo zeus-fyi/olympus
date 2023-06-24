@@ -1,7 +1,6 @@
 package zeus_core
 
 import (
-	"context"
 	"strings"
 	"testing"
 
@@ -14,7 +13,6 @@ type NodesTestSuite struct {
 }
 
 func (t *NodesTestSuite) TestGetNodes() {
-	ctx := context.Background()
 	//var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: ""}
 	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "nyc1", Context: "do-nyc1-do-nyc1-zeus-demo", Namespace: ""}
 
@@ -24,7 +22,6 @@ func (t *NodesTestSuite) TestGetNodes() {
 }
 
 func (t *NodesTestSuite) TestGetNodesByLabel() {
-	ctx := context.Background()
 	//var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: ""}
 	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "nyc1", Context: "do-nyc1-do-nyc1-zeus-demo", Namespace: ""}
 	// org -> 1679515557647002001

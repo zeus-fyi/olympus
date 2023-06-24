@@ -16,7 +16,6 @@ type NamespaceTestSuite struct {
 }
 
 func (s *NamespaceTestSuite) TestGetK8Namespace() {
-	ctx := context.Background()
 	var kns zeus_common_types.CloudCtxNs
 	kns.Namespace = "ephemeral"
 	nsl, err := s.K.GetNamespace(ctx, kns)
@@ -25,7 +24,6 @@ func (s *NamespaceTestSuite) TestGetK8Namespace() {
 }
 
 func (s *NamespaceTestSuite) TestCreateNamespaceIfDoesNotExist() {
-	ctx := context.Background()
 	s.K.SetContext("gke_zeusfyi_us-central1-a_zeus-gcp-pilot-0")
 	var kns zeus_common_types.CloudCtxNs
 	kns.Namespace = "demo"
@@ -35,7 +33,6 @@ func (s *NamespaceTestSuite) TestCreateNamespaceIfDoesNotExist() {
 }
 
 func (s *NamespaceTestSuite) TestListK8Namespaces() {
-	ctx := context.Background()
 	s.K.SetContext("do-sfo3-dev-do-sfo3-zeus")
 	nsl, err := s.K.GetNamespaces(ctx, zeus_common_types.CloudCtxNs{
 		CloudProvider: "",
@@ -112,7 +109,6 @@ func (s *NamespaceTestSuite) TestCreateK8sNamespace() {
 }
 
 func (s *NamespaceTestSuite) TestDeleteNamespace() {
-	ctx := context.Background()
 	var kns zeus_common_types.CloudCtxNs
 	kns.Namespace = "demo"
 	err := s.K.DeleteNamespace(ctx, kns)

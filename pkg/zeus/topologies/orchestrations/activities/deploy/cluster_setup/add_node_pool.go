@@ -61,6 +61,12 @@ func (c *CreateSetupTopologyActivities) OvhAddNodePoolToOrgResources(ctx context
 
 func (c *CreateSetupTopologyActivities) OvhMakeNodePoolRequest(ctx context.Context, params base_deploy_params.ClusterSetupRequest) (do_types.DigitalOceanNodePoolRequestStatus, error) {
 	kubeId := hestia_ovhcloud.OvhSharedKubeID
+	switch params.Ou.UserID {
+	case 7138958574876245565:
+		if params.Ou.OrgID == 7138983863666903883 {
+			kubeId = hestia_ovhcloud.OvhInternalKubeID
+		}
+	}
 	autoscaleEnabled := false
 	suffix := strings.Split(params.Namespace, "-")[0]
 	nodeGroupName := fmt.Sprintf("nodepool-%d-%s", params.Ou.OrgID, suffix)
@@ -107,7 +113,7 @@ func (c *CreateSetupTopologyActivities) OvhMakeNodePoolRequest(ctx context.Conte
 			log.Info().Msg("Node pool already exists")
 			return do_types.DigitalOceanNodePoolRequestStatus{
 				ClusterID:  kubeId,
-				NodePoolID: nodeGroupName,
+				NodePoolID: resp.Id,
 			}, nil
 		}
 		log.Ctx(ctx).Err(err).Interface("nodes", params.Nodes).Msg("OvhMakeNodePoolRequest error")

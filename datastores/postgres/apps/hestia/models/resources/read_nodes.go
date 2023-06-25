@@ -94,8 +94,8 @@ func SelectNodes(ctx context.Context, nf NodeFilter) (hestia_autogen_bases.Nodes
 			node.PriceHourly *= 1.40  // Add 40% to the price
 			node.PriceMonthly *= 1.40 // Add 40% to the price
 		case "ovh":
-			node.PriceHourly *= 1.20  // Add 40% to the price
-			node.PriceMonthly *= 1.20 // Add 40% to the price
+			node.PriceHourly *= 1.20  // Add 20% to the price
+			node.PriceMonthly *= 1.20 // Add 20% to the price
 		}
 		if err != nil {
 			return nil, err

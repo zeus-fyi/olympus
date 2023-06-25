@@ -73,8 +73,8 @@ func SelectOrgResourcesNodes(ctx context.Context, orgID int) ([]OrgResourceNodes
 			orgResourceNodes.PriceHourly *= 1.40  // Add 40% to the price
 			orgResourceNodes.PriceMonthly *= 1.40 // Add 40% to the price
 		case "ovh":
-			orgResourceNodes.PriceHourly *= 1.20  // Add 40% to the price
-			orgResourceNodes.PriceMonthly *= 1.20 // Add 40% to the price
+			orgResourceNodes.PriceHourly *= 1.20  // Add 20% to the price
+			orgResourceNodes.PriceMonthly *= 1.20 // Add 20% to the price
 		default:
 			orgResourceNodes.PriceHourly *= 1.1  // Add 10% to the price
 			orgResourceNodes.PriceMonthly *= 1.1 // Add 10% to the price

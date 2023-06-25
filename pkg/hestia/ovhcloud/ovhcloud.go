@@ -12,6 +12,10 @@ const (
 	OvhRegionUsWestOr1ENUM = "US-WEST-OR-1"
 	OvhServiceName         = "e39851e46915473bb1c50dd56f987c26"
 	OvhInternalKubeID      = "750cf38b-0965-4b2b-b6ba-9728ca3f239e"
+	OvhSharedKubeID        = "a7ea8ded-fa8f-48f3-83d7-ce01410552bc"
+
+	OvhSharedContext   = "zeusfyi-shared"
+	OvhInternalContext = "zeusfyi"
 )
 
 type OvhCloud struct {

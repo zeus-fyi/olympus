@@ -28,19 +28,6 @@ func (o *OvhCloud) CreateNodePool(ctx context.Context, nodesReq OvhNodePoolCreat
 	return resp, nil
 }
 
-type Body struct {
-	AntiAffinity  bool   `json:"antiAffinity"`
-	Autoscale     bool   `json:"autoscale"`
-	DesiredNodes  int    `json:"desiredNodes"`
-	FlavorName    string `json:"flavorName"`
-	MaxNodes      int    `json:"maxNodes"`
-	MinNodes      int    `json:"minNodes"`
-	MonthlyBilled bool   `json:"monthlyBilled"`
-	Name          string `json:"name"`
-}
-
-// /cloud/project/{serviceName}/kube/{kubeId}/nodepool/{nodePoolId}
-
 func (o *OvhCloud) RemoveNodePool(ctx context.Context, context, poolID string) error {
 	endpoint := fmt.Sprintf("/cloud/project/%s/kube/%s/nodepool/%s", OvhServiceName, context, poolID)
 	err := o.CallAPIWithContext(ctx, "DELETE", endpoint, nil, nil, true)

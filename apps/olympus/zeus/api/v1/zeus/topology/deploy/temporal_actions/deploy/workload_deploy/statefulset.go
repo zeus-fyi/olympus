@@ -20,6 +20,11 @@ func DeployStatefulSetHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	if request.StatefulSet != nil {
+		if request.Kns.CloudProvider == "ovh" && request.Kns.Context == "zeusfyi" && request.StatefulSet.Spec.Template.Spec.ImagePullSecrets == nil {
+			request.StatefulSet.Spec.Template.Spec.ImagePullSecrets = []v1.LocalObjectReference{{
+				Name: "zeus-fyi",
+			}}
+		}
 		if request.Kns.CloudCtxNs.Context != "do-sfo3-dev-do-sfo3-zeus" {
 			if request.StatefulSet.Spec.Template.Spec.Tolerations == nil {
 				request.StatefulSet.Spec.Template.Spec.Tolerations = []v1.Toleration{}

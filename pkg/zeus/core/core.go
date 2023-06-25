@@ -1,6 +1,7 @@
 package zeus_core
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -17,6 +18,8 @@ import (
 const (
 	GcpContext          = "gke_zeusfyi_us-central1-a_zeus-gcp-pilot-0"
 	DigitalOceanContext = "do-nyc1-do-nyc1-zeus-demo"
+	zeusfyi             = "zeusfyi"
+	zeusfyiShared       = "zeusfyi-shared"
 )
 
 type K8Util struct {
@@ -48,8 +51,13 @@ func (k *K8Util) GetContexts() (map[string]*clientcmdapi.Context, error) {
 }
 
 func (k *K8Util) SetContext(context string) {
-	if context == "zeus-us-west-1" {
+	switch context {
+	case "zeus-us-west-1":
 		context = "arn:aws:eks:us-west-1:480391564655:cluster/zeus-us-west-1"
+	case zeusfyi:
+		context = fmt.Sprintf("kubernetes-admin@%s", zeusfyi)
+	case zeusfyiShared:
+		context = fmt.Sprintf("kubernetes-admin@%s", zeusfyiShared)
 	}
 	var err error
 	rc, err := k.kcCfg.RawConfig()

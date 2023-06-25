@@ -1,7 +1,6 @@
 package zeus_core
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -13,9 +12,10 @@ type NamespaceWorkloadTestSuite struct {
 }
 
 func (s *NamespaceWorkloadTestSuite) TestGetNamespaceWorkload() {
-	ctx := context.Background()
 	var kns zeus_common_types.CloudCtxNs
-	kns.Namespace = "ethereum"
+	kns.Namespace = "nginx"
+	kns.CloudProvider = "ovh"
+	kns.Context = zeusfyi
 	w, err := s.K.GetWorkloadAtNamespace(ctx, kns)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(w)

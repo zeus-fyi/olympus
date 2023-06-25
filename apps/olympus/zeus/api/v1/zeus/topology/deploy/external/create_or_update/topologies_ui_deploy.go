@@ -162,13 +162,20 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 		}
 		diskResourceID = 1683860918169422000
 	case "ovh":
+		ovhContext := hestia_ovhcloud.OvhSharedContext
+		switch ou.UserID {
+		case 7138958574876245565:
+			if ou.OrgID == 7138983863666903883 {
+				ovhContext = hestia_ovhcloud.OvhInternalContext
+			}
+		}
 		cr = base_deploy_params.ClusterSetupRequest{
 			FreeTrial: t.FreeTrial,
 			Ou:        ou,
 			CloudCtxNs: zeus_common_types.CloudCtxNs{
 				CloudProvider: "ovh",
 				Region:        hestia_ovhcloud.OvhRegionUsWestOr1,
-				Context:       hestia_ovhcloud.OvhSharedContext, // hardcoded for now
+				Context:       ovhContext, // hardcoded for now
 				Namespace:     clusterID.String(),
 				Alias:         fmt.Sprintf("%s-%s", t.NamespaceAlias, suffix),
 				Env:           "",
@@ -182,12 +189,6 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 			NodesQuantity: t.Count,
 			Disks:         autogen_bases.DisksSlice{},
 			Cluster:       t.Cluster,
-		}
-		switch ou.UserID {
-		case 7138958574876245565:
-			if ou.OrgID == 7138983863666903883 {
-				cr.CloudCtxNs.Context = hestia_ovhcloud.OvhInternalContext
-			}
 		}
 		diskResourceID = 1687637679066833000
 	}

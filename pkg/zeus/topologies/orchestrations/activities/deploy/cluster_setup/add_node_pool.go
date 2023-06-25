@@ -99,7 +99,9 @@ func (c *CreateSetupTopologyActivities) OvhMakeNodePoolRequest(ctx context.Conte
 			MonthlyBilled: nil,
 			Name:          nodeGroupName,
 			Template: &hestia_ovhcloud.NodeTemplate{
-				Metadata: nil,
+				Metadata: &hestia_ovhcloud.Metadata{
+					Labels: label,
+				},
 				Spec: &hestia_ovhcloud.Spec{
 					Taints:        taints,
 					Unschedulable: false,

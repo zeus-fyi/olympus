@@ -35,14 +35,14 @@ type Autoscaling struct {
 }
 
 type NodeTemplate struct {
-	Metadata *Metadata `json:"metadata,omitempty"`
-	Spec     *Spec     `json:"spec,omitempty"`
+	Metadata *Metadata `json:"metadata"`
+	Spec     *Spec     `json:"spec"`
 }
 
 type Metadata struct {
-	Annotations map[string]string `json:"annotations,omitempty"`
-	Finalizers  []string          `json:"finalizers,omitempty"`
-	Labels      map[string]string `json:"labels,omitempty"`
+	Annotations map[string]string `json:"annotations"`
+	Finalizers  []string          `json:"finalizers"`
+	Labels      map[string]string `json:"labels"`
 }
 
 type Spec struct {

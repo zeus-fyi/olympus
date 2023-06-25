@@ -100,7 +100,9 @@ func (c *CreateSetupTopologyActivities) OvhMakeNodePoolRequest(ctx context.Conte
 			Name:          nodeGroupName,
 			Template: &hestia_ovhcloud.NodeTemplate{
 				Metadata: &hestia_ovhcloud.Metadata{
-					Labels: label,
+					Annotations: make(map[string]string),
+					Finalizers:  []string{},
+					Labels:      label,
 				},
 				Spec: &hestia_ovhcloud.Spec{
 					Taints:        taints,

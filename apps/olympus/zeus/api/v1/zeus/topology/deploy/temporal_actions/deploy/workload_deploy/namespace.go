@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/base_request"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
+	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
 
 func DeployNamespaceHandler(c echo.Context) error {
@@ -21,6 +22,22 @@ func DeployNamespaceHandler(c echo.Context) error {
 	if err != nil {
 		log.Err(err).Msg("DeployNamespaceHandler")
 		return c.JSON(http.StatusInternalServerError, err)
+	}
+	if request.Kns.CloudCtxNs.Context == "zeusfyi" && request.Kns.CloudCtxNs.CloudProvider == "ovh" {
+		fromKns := zeus_common_types.CloudCtxNs{
+			CloudProvider: "do",
+			Region:        "sfo3",
+			Context:       "do-sfo3-dev-do-sfo3-zeus",
+			Namespace:     "zeus",
+			Alias:         "zeus",
+			Env:           "",
+		}
+
+		_, err = zeus.K8Util.CopySecretToAnotherKns(ctx, fromKns, request.Kns.CloudCtxNs, "zeus-fyi", nil)
+		if err != nil {
+			log.Err(err).Msg("DeploySecretsHandler")
+			return c.JSON(http.StatusInternalServerError, err)
+		}
 	}
 	return c.JSON(http.StatusOK, nil)
 }

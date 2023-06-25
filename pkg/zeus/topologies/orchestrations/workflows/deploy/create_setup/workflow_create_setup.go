@@ -48,13 +48,13 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 		var nodePoolRequestStatus do_types.DigitalOceanNodePoolRequestStatus
 		err := workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.MakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, &nodePoolRequestStatus)
 		if err != nil {
-			log.Error("Failed to complete node pool request", "Error", err)
+			log.Error("Failed to complete node pool request for do", "Error", err)
 			return err
 		}
 		nodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(nodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.AddNodePoolToOrgResources, params, nodePoolRequestStatus).Get(nodePoolOrgResourcesCtx, nil)
 		if err != nil {
-			log.Error("Failed to add node resources to org account", "Error", err)
+			log.Error("Failed to add node resources to org account for do", "Error", err)
 			return err
 		}
 	case "gcp":
@@ -62,13 +62,13 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 		var nodePoolRequestStatus do_types.DigitalOceanNodePoolRequestStatus
 		err := workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.GkeMakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, &nodePoolRequestStatus)
 		if err != nil {
-			log.Error("Failed to complete node pool request", "Error", err)
+			log.Error("Failed to complete node pool request for gke", "Error", err)
 			return err
 		}
 		nodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(nodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.GkeAddNodePoolToOrgResources, params, nodePoolRequestStatus).Get(nodePoolOrgResourcesCtx, nil)
 		if err != nil {
-			log.Error("Failed to add node resources to org account", "Error", err)
+			log.Error("Failed to add node resources to org account for gke", "Error", err)
 			return err
 		}
 	case "aws":
@@ -83,6 +83,20 @@ func (c *ClusterSetupWorkflow) DeployClusterSetupWorkflow(ctx workflow.Context, 
 		err = workflow.ExecuteActivity(nodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.EksAddNodePoolToOrgResources, params, nodePoolRequestStatus).Get(nodePoolOrgResourcesCtx, nil)
 		if err != nil {
 			log.Error("Failed to add node resources to org account for eks", "Error", err)
+			return err
+		}
+	case "ovh":
+		nodePoolRequestStatusCtxKns := workflow.WithActivityOptions(ctx, ao)
+		var nodePoolRequestStatus do_types.DigitalOceanNodePoolRequestStatus
+		err := workflow.ExecuteActivity(nodePoolRequestStatusCtxKns, c.CreateSetupTopologyActivities.OvhMakeNodePoolRequest, params).Get(nodePoolRequestStatusCtxKns, &nodePoolRequestStatus)
+		if err != nil {
+			log.Error("Failed to complete node pool request for ovh", "Error", err)
+			return err
+		}
+		nodePoolOrgResourcesCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(nodePoolOrgResourcesCtx, c.CreateSetupTopologyActivities.OvhAddNodePoolToOrgResources, params, nodePoolRequestStatus).Get(nodePoolOrgResourcesCtx, nil)
+		if err != nil {
+			log.Error("Failed to add node resources to org account for ovh", "Error", err)
 			return err
 		}
 	}

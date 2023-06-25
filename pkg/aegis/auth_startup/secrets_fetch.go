@@ -28,9 +28,16 @@ const (
 	gcpAuthJson          = "secrets/zeusfyi-23264580e41d.json"
 	eksAccessKey         = "secrets/aws.eks.access.key.txt"
 	eksSecretKey         = "secrets/aws.eks.secret.key.txt"
+
+	ovhAppKey      = "secrets/ovh.app.key.txt"
+	ovhSecretKey   = "secrets/ovh.secret.key.txt"
+	ovhConsumerKey = "secrets/ovh.consumer.key.txt"
 )
 
 type SecretsWrapper struct {
+	OvhAppKey              string
+	OvhSecretKey           string
+	OvhConsumerKey         string
 	PostgresAuth           string
 	AegisPostgresAuth      string
 	DoctlToken             string
@@ -107,22 +114,6 @@ func ReadEncryptedSecretsData(ctx context.Context, authCfg AuthConfig) memfs.Mem
 		misc.DelayedPanic(err)
 	}
 	return s3SecretsReader.MemFS
-}
-
-func RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {
-	log.Info().Msg("Zeus: RunZeusDigitalOceanS3BucketObjSecretsProcedure starting")
-	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
-	log.Info().Msg("RunZeusDigitalOceanS3BucketObjSecretsProcedure finished")
-	sw := SecretsWrapper{}
-	sw.GcpAuthJsonBytes = sw.ReadSecretBytes(ctx, inMemSecrets, gcpAuthJson)
-	sw.DoctlToken = sw.MustReadSecret(ctx, inMemSecrets, doctlSecret)
-	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, pgSecret)
-	sw.StripeSecretKey = sw.MustReadSecret(ctx, inMemSecrets, stripeSecretKey)
-	sw.EksAuthAWS.AccessKey = sw.MustReadSecret(ctx, inMemSecrets, eksAccessKey)
-	sw.EksAuthAWS.SecretKey = sw.MustReadSecret(ctx, inMemSecrets, eksSecretKey)
-	// TODO allow for multiple regions
-	sw.EksAuthAWS.Region = "us-west-1"
-	return inMemSecrets, sw
 }
 
 func RunDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {

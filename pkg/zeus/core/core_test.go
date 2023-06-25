@@ -16,6 +16,9 @@ func (s *CoreTestSuite) TestK8Contexts() {
 	s.Nil(err)
 	s.Greater(len(kctx), 0)
 
+	for k, ct := range kctx {
+		fmt.Println(k, ct.Cluster)
+	}
 	s.K.SetContext("do-nyc1-do-nyc1-zeus-demo")
 	fmt.Println(kctx)
 }

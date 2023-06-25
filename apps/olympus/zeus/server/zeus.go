@@ -83,6 +83,7 @@ func Zeus() {
 			log.Fatal().Msg("RunDigitalOceanS3BucketObjSecretsProcedure: failed to remove gcp auth json, shutting down the server")
 			misc.DelayedPanic(err)
 		}
+		api_auth_temporal.InitOrchestrationOvhCloudClient(ctx, sw.OvhAppKey, sw.OvhSecretKey, sw.OvhConsumerKey)
 		api_auth_temporal.InitOrchestrationDigitalOceanClient(ctx, sw.DoctlToken)
 		api_auth_temporal.InitOrchestrationGcpClient(ctx, sw.GcpAuthJsonBytes)
 		api_auth_temporal.InitOrchestrationEksClient(ctx, sw.EksAuthAWS)
@@ -97,6 +98,7 @@ func Zeus() {
 		temporalAuthCfg = tc.DevTemporalAuth
 		dynMemFs, sw := auth_startup.RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		dynamic_secrets.AegisInMemSecrets = dynMemFs
+		api_auth_temporal.InitOrchestrationOvhCloudClient(ctx, sw.OvhAppKey, sw.OvhSecretKey, sw.OvhConsumerKey)
 		api_auth_temporal.InitOrchestrationDigitalOceanClient(ctx, sw.DoctlToken)
 		api_auth_temporal.InitOrchestrationGcpClient(ctx, sw.GcpAuthJsonBytes)
 		api_auth_temporal.InitOrchestrationEksClient(ctx, sw.EksAuthAWS)
@@ -108,6 +110,7 @@ func Zeus() {
 		inMemFs := auth_startup.RunDigitalOceanS3BucketObjAuthProcedure(ctx, authCfg)
 		cfg.K8sUtil.ConnectToK8sFromInMemFsCfgPath(inMemFs)
 		temporalAuthCfg = tc.DevTemporalAuth
+		api_auth_temporal.InitOrchestrationOvhCloudClient(ctx, tc.OvhAppKey, tc.OvhSecretKey, tc.OvhConsumerKey)
 		api_auth_temporal.InitOrchestrationDigitalOceanClient(ctx, tc.DigitalOceanAPIKey)
 		api_auth_temporal.InitOrchestrationGcpClient(ctx, tc.GcpAuthJson)
 		hestia_stripe.InitStripe(tc.StripeTestSecretAPIKey)

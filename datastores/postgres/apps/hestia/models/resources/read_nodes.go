@@ -46,8 +46,10 @@ func SelectNodes(ctx context.Context, nf NodeFilter) (hestia_autogen_bases.Nodes
 				(cloud_provider = 'gcp')
 		      	OR 
 				(cloud_provider = 'aws')
+		      	OR 
+				(cloud_provider = 'ovh')
 			  )
-		  AND (region = 'us-central1' OR region = 'nyc1' OR region = 'us-west-1')
+		  AND (region = 'us-central1' OR region = 'nyc1' OR region = 'us-west-1' OR region = 'us-west-or-1')
     	AND price_monthly < 3000
 		ORDER BY cloud_provider, price_hourly ASC;`
 	args := []interface{}{
@@ -91,6 +93,9 @@ func SelectNodes(ctx context.Context, nf NodeFilter) (hestia_autogen_bases.Nodes
 		case "aws":
 			node.PriceHourly *= 1.40  // Add 40% to the price
 			node.PriceMonthly *= 1.40 // Add 40% to the price
+		case "ovh":
+			node.PriceHourly *= 1.20  // Add 20% to the price
+			node.PriceMonthly *= 1.20 // Add 20% to the price
 		}
 		if err != nil {
 			return nil, err

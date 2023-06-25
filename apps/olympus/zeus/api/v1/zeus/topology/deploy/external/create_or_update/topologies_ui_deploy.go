@@ -12,20 +12,13 @@ import (
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
+	hestia_ovhcloud "github.com/zeus-fyi/olympus/pkg/hestia/ovhcloud"
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
 	zeus_templates "github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/infra/create/templates"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
-
-//const payload = {
-//"node": node,
-//"count": count,
-//"namespaceAlias": namespaceAlias,
-//"cluster": cluster,
-//"resourceRequirements": resourceRequirements,
-//}
 
 type DiskResourceRequirements struct {
 	ResourceID           string  `json:"resourceID"`
@@ -168,6 +161,36 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 			Cluster:       t.Cluster,
 		}
 		diskResourceID = 1683860918169422000
+	case "ovh":
+		ovhContext := hestia_ovhcloud.OvhSharedContext
+		switch ou.UserID {
+		case 7138958574876245565:
+			if ou.OrgID == 7138983863666903883 {
+				ovhContext = hestia_ovhcloud.OvhInternalContext
+			}
+		}
+		cr = base_deploy_params.ClusterSetupRequest{
+			FreeTrial: t.FreeTrial,
+			Ou:        ou,
+			CloudCtxNs: zeus_common_types.CloudCtxNs{
+				CloudProvider: "ovh",
+				Region:        hestia_ovhcloud.OvhRegionUsWestOr1,
+				Context:       ovhContext, // hardcoded for now
+				Namespace:     clusterID.String(),
+				Alias:         fmt.Sprintf("%s-%s", t.NamespaceAlias, suffix),
+				Env:           "",
+			},
+			Nodes: autogen_bases.Nodes{
+				Region:        t.Region,
+				CloudProvider: t.CloudProvider,
+				ResourceID:    t.Node.ResourceID,
+				Slug:          t.Node.Slug,
+			},
+			NodesQuantity: t.Count,
+			Disks:         autogen_bases.DisksSlice{},
+			Cluster:       t.Cluster,
+		}
+		diskResourceID = 1687637679066833000
 	}
 
 	ds := make(autogen_bases.DisksSlice, len(t.ResourceRequirements))

@@ -8,7 +8,7 @@ func (s *OvhCloudTestSuite) TestInsertSizes() {
 	s.Require().NotEmpty(sizes)
 
 	for _, sa := range sizes {
-		fmt.Println(sa.Category)
+		fmt.Println(sa)
 	}
 
 	//n := hestia_autogen_bases.NodesSlice{}

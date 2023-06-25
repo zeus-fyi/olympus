@@ -7,22 +7,46 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (o *OvhCloud) CreateNodePool(ctx context.Context, nodesReq OvhNodePoolCreationRequest) (*OvhNodePoolCreationResponse, error) {
-	resp := &OvhNodePoolCreationResponse{}
-	err := o.CallAPIWithContext(ctx, "POST", nodesReq.GetEndpoint(), nodesReq, resp, true)
+func (o *OvhCloud) GetNodePool(ctx context.Context, nodesReq OvhNodePoolCreationRequest) (any, error) {
+	var resp any
+	err := o.GetWithContext(ctx, nodesReq.GetEndpoint(), resp)
 	if err != nil {
 		log.Err(err).Msg("CreateNodePool: Ovh")
+		return nil, err
 	}
 	return resp, nil
+}
+
+func (o *OvhCloud) CreateNodePool(ctx context.Context, nodesReq OvhNodePoolCreationRequest) (*OvhNodePoolCreationResponse, error) {
+	resp := &OvhNodePoolCreationResponse{}
+	endpoint := nodesReq.GetEndpoint()
+	err := o.PostWithContext(ctx, endpoint, nodesReq.ProjectKubeNodePoolCreation, resp)
+	if err != nil {
+		log.Err(err).Msg("CreateNodePool: Ovh")
+		return nil, err
+	}
+	return resp, nil
+}
+
+type Body struct {
+	AntiAffinity  bool   `json:"antiAffinity"`
+	Autoscale     bool   `json:"autoscale"`
+	DesiredNodes  int    `json:"desiredNodes"`
+	FlavorName    string `json:"flavorName"`
+	MaxNodes      int    `json:"maxNodes"`
+	MinNodes      int    `json:"minNodes"`
+	MonthlyBilled bool   `json:"monthlyBilled"`
+	Name          string `json:"name"`
 }
 
 // /cloud/project/{serviceName}/kube/{kubeId}/nodepool/{nodePoolId}
 
 func (o *OvhCloud) RemoveNodePool(ctx context.Context, context, poolID string) error {
-	endpoint := fmt.Sprintf("/v1/cloud/project/%s/kube/nodepool/%s", context, poolID)
-	err := o.CallAPIWithContext(ctx, "DELETE", endpoint, "", "", true)
+	endpoint := fmt.Sprintf("/cloud/project/%s/kube/%s/nodepool/%s", OvhServiceName, context, poolID)
+	err := o.CallAPIWithContext(ctx, "DELETE", endpoint, nil, nil, true)
 	if err != nil {
 		log.Err(err).Msg("RemoveNodePool: Ovh")
+		return err
 	}
 	return nil
 }

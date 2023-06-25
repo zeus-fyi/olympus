@@ -33,7 +33,7 @@ func DeployNamespaceHandler(c echo.Context) error {
 			Env:           "",
 		}
 
-		_, err = zeus.K8Util.CopySecretToAnotherKns(ctx, fromKns, request.Kns.CloudCtxNs, "zeus-fyi", nil)
+		_, err = zeus.K8Util.CopySecretToAnotherKns(ctx, fromKns, request.Kns.CloudCtxNs, "zeus-fyi-ext", nil)
 		if err != nil {
 			log.Err(err).Msg("DeploySecretsHandler")
 			return c.JSON(http.StatusInternalServerError, err)

@@ -22,7 +22,7 @@ func DeployStatefulSetHandler(c echo.Context) error {
 	if request.StatefulSet != nil {
 		if request.Kns.CloudProvider == "ovh" && request.Kns.Context == "zeusfyi" && request.StatefulSet.Spec.Template.Spec.ImagePullSecrets == nil {
 			request.StatefulSet.Spec.Template.Spec.ImagePullSecrets = []v1.LocalObjectReference{{
-				Name: "zeus-fyi",
+				Name: "zeus-fyi-ext",
 			}}
 		}
 		if request.Kns.CloudCtxNs.Context != "do-sfo3-dev-do-sfo3-zeus" {

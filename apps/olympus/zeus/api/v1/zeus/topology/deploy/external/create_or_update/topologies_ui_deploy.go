@@ -173,6 +173,15 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 			if ou.OrgID == 7138983863666903883 {
 				ovhContext = hestia_ovhcloud.OvhInternalContext
 				switch t.NamespaceAlias {
+				case "mainnet-staking":
+					namespace = "mainnet-staking"
+				case "ephemeral-staking":
+					namespace = "ephemeral-staking"
+				case "goerli-staking":
+					namespace = "goerli-staking"
+				case "poseidon":
+					namespace = "poseidon"
+					appTaint = false
 				case "artemis":
 					namespace = "artemis"
 					appTaint = false
@@ -193,6 +202,9 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 					appTaint = false
 				case "hardhat":
 					namespace = "hardhat"
+					appTaint = false
+				case "olympus":
+					namespace = "olympus"
 					appTaint = false
 				}
 			}

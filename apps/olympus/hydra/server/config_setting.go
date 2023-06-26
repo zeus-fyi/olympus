@@ -38,7 +38,7 @@ var (
 func SetConfigByEnv(ctx context.Context, env string) {
 	switch env {
 	case "production":
-		log.Info().Msg("Artemis: production auth procedure starting")
+		log.Info().Msg("Hydra: production auth procedure starting")
 		temporalAuthCfg = temporalProdAuthConfig
 		authCfg := auth_startup.NewDefaultAuthClient(ctx, authKeysCfg)
 		_, sw := auth_startup.RunHydraDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)

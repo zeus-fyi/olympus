@@ -32,15 +32,19 @@ type FlashbotsClient struct {
 func InitFlashbotsClient(ctx context.Context, nodeUrl, network string, acc *accounts.Account) FlashbotsClient {
 	w := web3_actions.NewWeb3ActionsClientWithAccount(nodeUrl, acc)
 	rpc := flashbotsrpc.NewFlashbotsRPC(nodeUrl)
-	client := FlashbotsClient{Resty: resty_base.GetBaseRestyClient("", ""), Web3Actions: w, EthereumAPI: flashbotsrpc.New(nodeUrl), FlashbotsRPC: rpc}
 	w.Network = network
 	switch network {
 	case hestia_req_types.Mainnet:
-		client.SetBaseURL(MainnetRelay)
+		rpc = flashbotsrpc.New(MainnetRelay)
 	case hestia_req_types.Goerli:
-		client.SetBaseURL(GoerliRelay)
+		rpc = flashbotsrpc.New(GoerliRelay)
 	}
-	return client
+	return FlashbotsClient{
+		Resty:        resty_base.Resty{},
+		Web3Actions:  w,
+		EthereumAPI:  nil,
+		FlashbotsRPC: rpc,
+	}
 }
 
 func (f *FlashbotsClient) SendBundle(ctx context.Context, bundle flashbotsrpc.FlashbotsSendBundleRequest) (flashbotsrpc.FlashbotsSendBundleResponse, error) {

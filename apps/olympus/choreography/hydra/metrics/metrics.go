@@ -1,4 +1,4 @@
-package hyrda_choreography_metrics
+package hydra_choreography_metrics
 
 import (
 	"context"

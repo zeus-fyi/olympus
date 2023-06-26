@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	hyrda_choreography_metrics "github.com/zeus-fyi/olympus/choreography/hydra/metrics"
+	hydra_choreography_metrics "github.com/zeus-fyi/olympus/choreography/hydra/metrics"
 	zeus_client "github.com/zeus-fyi/zeus/pkg/zeus/client"
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 )
@@ -17,7 +17,7 @@ var (
 func Routes(e *echo.Echo) *echo.Echo {
 	e.GET("/health", Health)
 	e.GET("/delete/pods", RestartPods)
-	e.GET("/metrics", hyrda_choreography_metrics.MetricsRequestHandler)
+	e.GET("/metrics", hydra_choreography_metrics.MetricsRequestHandler)
 	return e
 }
 

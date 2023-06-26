@@ -2,6 +2,7 @@ package aegis_secrets
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -118,11 +119,15 @@ func (t *AegisSecretsTestSuite) TestInsertSecretTxFetcher2() {
 }
 
 func (t *AegisSecretsTestSuite) TestSelectOrgTopSecretRefs() {
-	apps.Pg.InitPG(ctx, t.Tc.LocalDbPgconn)
-	topName := "rqhppnzghs"
+	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
+	topName := "txFetcher"
 	orgSecrets, err := SelectOrgSecretRef(ctx, t.Tc.ProductionLocalTemporalOrgID, topName)
 	t.Require().Nil(err)
 	t.Require().NotNil(orgSecrets)
+
+	for _, sec := range orgSecrets.OrgSecretKeyValReferencesSlice {
+		fmt.Println(sec.SecretNameRef)
+	}
 }
 func TestAegisSecretsTestSuite(t *testing.T) {
 	suite.Run(t, new(AegisSecretsTestSuite))

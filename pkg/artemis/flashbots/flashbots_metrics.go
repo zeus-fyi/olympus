@@ -7,11 +7,11 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (f *FlashbotsClient) GetBundleStats(ctx context.Context, bundle flashbotsrpc.FlashbotsGetBundleStatsParam) (flashbotsrpc.FlashbotsGetBundleStatsResponse, error) {
-	resp, err := f.FlashbotsRPC.FlashbotsGetBundleStats(f.EcdsaPrivateKey(), bundle)
+func (f *FlashbotsClient) GetBundleStatsV2(ctx context.Context, bundle flashbotsrpc.FlashbotsGetBundleStatsParam) (flashbotsrpc.FlashbotsGetBundleStatsResponseV2, error) {
+	resp, err := f.FlashbotsRPC.FlashbotsGetBundleStatsV2(f.EcdsaPrivateKey(), bundle)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("FlashbotsClient: FlashbotsSendBundle")
-		return flashbotsrpc.FlashbotsGetBundleStatsResponse{}, err
+		return flashbotsrpc.FlashbotsGetBundleStatsResponseV2{}, err
 	}
 	return resp, nil
 }

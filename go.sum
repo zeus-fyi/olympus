@@ -702,6 +702,8 @@ github.com/matttproud/golang_protobuf_extensions v1.0.4 h1:mmDVorXM7PCGKw94cs5zk
 github.com/matttproud/golang_protobuf_extensions v1.0.4/go.mod h1:BSXmuO+STAnVfrANrmjBb36TMTDstsz7MSK+HVaYKv4=
 github.com/metachris/flashbotsrpc v0.5.0 h1:5OLpm6+6n4kXxeh3TZBeSj0PQWDxqUsOFwy7xertXQQ=
 github.com/metachris/flashbotsrpc v0.5.0/go.mod h1:UrS249kKA1PK27sf12M6tUxo/M4ayfFrBk7IMFY1TNw=
+github.com/metachris/flashbotsrpc v0.6.0 h1:EnMdkd/jgct8kaDYpuMgEZpOew92+ok8Elr4qxbjmu8=
+github.com/metachris/flashbotsrpc v0.6.0/go.mod h1:UrS249kKA1PK27sf12M6tUxo/M4ayfFrBk7IMFY1TNw=
 github.com/mitchellh/cli v1.0.0/go.mod h1:hNIlj7HEI86fIcpObd7a0FcrxTWetlwJDGcceTlRvqc=
 github.com/mitchellh/go-homedir v1.1.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
 github.com/mitchellh/go-wordwrap v1.0.1 h1:TLuKupo69TCn6TQSyGxwI1EblZZEsQ0vMlAFQflz0v0=

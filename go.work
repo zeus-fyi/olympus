@@ -9,6 +9,7 @@ use (
 	./apps/external/tojen
 	./apps/external/web3
 	./apps/external/go-ethereum
+	./apps/external/flashbotsrpc
 
 	./apps/olympus/aegis
 	./apps/olympus/apollo

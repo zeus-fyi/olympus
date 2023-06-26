@@ -80,11 +80,13 @@ func (c *CreateSetupTopologyActivities) OvhMakeNodePoolRequest(ctx context.Conte
 			Value:  fmt.Sprintf("org-%d", params.Ou.OrgID),
 			Effect: "NoSchedule",
 		},
-		{
+	}
+	if params.AppTaint {
+		taints = append(taints, hestia_ovhcloud.KubernetesTaint{
 			Key:    "app",
 			Value:  params.Cluster.ClusterName,
 			Effect: "NoSchedule",
-		},
+		})
 	}
 	npr := hestia_ovhcloud.OvhNodePoolCreationRequest{
 		ServiceName: hestia_ovhcloud.OvhServiceName,
@@ -145,6 +147,12 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 		Key:    aws.String("app"),
 		Value:  aws.String(params.Cluster.ClusterName),
 	}
+	taints := []types.Taint{
+		orgTaint,
+	}
+	if params.AppTaint {
+		taints = append(taints, appTaint)
+	}
 	nodeGroupName := fmt.Sprintf("nodepool-%d-%s", params.Ou.OrgID, suffix)
 	nr := &eks.CreateNodegroupInput{
 		ClusterName:        aws.String(hestia_eks_aws.AwsUsWest1Context),
@@ -162,9 +170,7 @@ func (c *CreateSetupTopologyActivities) EksMakeNodePoolRequest(ctx context.Conte
 			MaxSize:     aws.Int32(int32(params.NodesQuantity)),
 			MinSize:     aws.Int32(int32(params.NodesQuantity)),
 		},
-		Taints: []types.Taint{
-			orgTaint, appTaint,
-		},
+		Taints: taints,
 	}
 	_, err := api_auth_temporal.Eks.AddNodeGroup(ctx, nr)
 	if err != nil {
@@ -202,7 +208,10 @@ func (c *CreateSetupTopologyActivities) GkeMakeNodePoolRequest(ctx context.Conte
 		Key:    "app",
 		Value:  params.Cluster.ClusterName,
 	}
-	taints := []*container.NodeTaint{&tOrg, &tApp}
+	taints := []*container.NodeTaint{&tOrg}
+	if params.AppTaint {
+		taints = append(taints, &tApp)
+	}
 	// TODO remove hard code cluster info
 	clusterID := "zeus-gcp-pilot-0"
 	ci := hestia_gcp.GcpClusterInfo{
@@ -249,13 +258,17 @@ func (c *CreateSetupTopologyActivities) MakeNodePoolRequest(ctx context.Context,
 	label["org"] = fmt.Sprintf("%d", params.Ou.OrgID)
 	label["app"] = params.Cluster.ClusterName
 	suffix := strings.Split(params.Namespace, "-")[0]
+	taints := []godo.Taint{taint}
+	if params.AppTaint {
+		taints = append(taints, appTaint)
+	}
 	nodesReq := &godo.KubernetesNodePoolCreateRequest{
 		Name:   fmt.Sprintf("nodepool-%d-%s", params.Ou.OrgID, suffix),
 		Size:   params.Nodes.Slug,
 		Count:  int(params.NodesQuantity),
 		Tags:   nil,
 		Labels: label,
-		Taints: []godo.Taint{taint, appTaint},
+		Taints: taints,
 	}
 	// TODO remove hard code cluster id
 	clusterID := "0de1ee8e-7b90-45ea-b966-e2d2b7976cf9"
@@ -328,6 +341,7 @@ func (c *CreateSetupTopologyActivities) EndResourceService(ctx context.Context, 
 }
 
 // clusterID := "0de1ee8e-7b90-45ea-b966-e2d2b7976cf9"
+
 func (c *CreateSetupTopologyActivities) RemoveNodePoolRequest(ctx context.Context, nodePool do_types.DigitalOceanNodePoolRequestStatus) error {
 	log.Ctx(ctx).Info().Interface("nodePool", nodePool).Msg("RemoveNodePoolRequest")
 	err := api_auth_temporal.DigitalOcean.RemoveNodePool(ctx, nodePool.ClusterID, nodePool.NodePoolID)

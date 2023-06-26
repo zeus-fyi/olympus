@@ -113,6 +113,7 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 			NodesQuantity: t.Count,
 			Disks:         autogen_bases.DisksSlice{},
 			Cluster:       t.Cluster,
+			AppTaint:      true,
 		}
 		diskResourceID = 1681408541855876000
 	case "gcp":
@@ -136,6 +137,7 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 			NodesQuantity: t.Count,
 			Disks:         autogen_bases.DisksSlice{},
 			Cluster:       t.Cluster,
+			AppTaint:      true,
 		}
 		diskResourceID = 1683165785839881000
 	case "aws":
@@ -159,11 +161,13 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 			NodesQuantity: t.Count,
 			Disks:         autogen_bases.DisksSlice{},
 			Cluster:       t.Cluster,
+			AppTaint:      true,
 		}
 		diskResourceID = 1683860918169422000
 	case "ovh":
 		ovhContext := hestia_ovhcloud.OvhSharedContext
 		namespace := clusterID.String()
+		appTaint := true
 		switch ou.UserID {
 		case 7138958574876245565:
 			if ou.OrgID == 7138983863666903883 {
@@ -171,18 +175,25 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 				switch t.NamespaceAlias {
 				case "artemis":
 					namespace = "artemis"
+					appTaint = false
 				case "zeus":
 					namespace = "zeus"
+					appTaint = false
 				case "iris":
 					namespace = "iris"
+					appTaint = false
 				case "hestia":
 					namespace = "hestia"
+					appTaint = false
 				case "hera":
 					namespace = "hera"
+					appTaint = false
 				case "aegis":
 					namespace = "aegis"
+					appTaint = false
 				case "hardhat":
 					namespace = "hardhat"
+					appTaint = false
 				}
 			}
 		}
@@ -207,6 +218,7 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 			NodesQuantity: t.Count,
 			Disks:         autogen_bases.DisksSlice{},
 			Cluster:       t.Cluster,
+			AppTaint:      appTaint,
 		}
 		diskResourceID = 1687637679066833000
 	}

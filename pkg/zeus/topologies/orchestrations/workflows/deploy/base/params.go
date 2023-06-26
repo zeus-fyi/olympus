@@ -58,6 +58,7 @@ type ClusterSetupRequest struct {
 	NodesQuantity float64
 	Disks         hestia_autogen_bases.DisksSlice
 	Cluster       zeus_templates.Cluster
+	AppTaint      bool
 }
 
 func (t *TopologyWorkflowRequest) GetURL(prefix, target string) url.URL {

@@ -9,7 +9,7 @@ import (
 
 func InitDownloaderAuth(ctx context.Context, inMemSecrets memfs.MemFS, secrets SecretsWrapper) {
 	log.Info().Msg("Downloader: InitDownloaderAuth starting")
-	secrets.PostgresAuth = secrets.MustReadSecret(ctx, inMemSecrets, pgSecret)
+	secrets.PostgresAuth = secrets.MustReadSecret(ctx, inMemSecrets, PgSecret)
 	log.Info().Msg("Downloader: InitDownloaderAuth done")
 	return
 }

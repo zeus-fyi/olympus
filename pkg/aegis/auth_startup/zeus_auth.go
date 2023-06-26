@@ -14,7 +14,7 @@ func RunZeusDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg
 	sw := SecretsWrapper{}
 	sw.GcpAuthJsonBytes = sw.ReadSecretBytes(ctx, inMemSecrets, gcpAuthJson)
 	sw.DoctlToken = sw.MustReadSecret(ctx, inMemSecrets, doctlSecret)
-	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, pgSecret)
+	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, PgSecret)
 	sw.StripeSecretKey = sw.MustReadSecret(ctx, inMemSecrets, stripeSecretKey)
 	sw.EksAuthAWS.AccessKey = sw.MustReadSecret(ctx, inMemSecrets, eksAccessKey)
 	sw.EksAuthAWS.SecretKey = sw.MustReadSecret(ctx, inMemSecrets, eksSecretKey)

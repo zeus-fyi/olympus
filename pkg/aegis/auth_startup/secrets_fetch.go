@@ -18,7 +18,7 @@ import (
 
 const (
 	temporalBearerSecret = "secrets/temporal.bearer.txt"
-	pgSecret             = "secrets/postgres-auth.txt"
+	PgSecret             = "secrets/postgres-auth.txt"
 	doctlSecret          = "secrets/doctl.txt"
 	rcloneSecret         = "secrets/rclone.conf"
 	encryptedSecret      = "secrets.tar.gz.age"
@@ -123,7 +123,7 @@ func RunDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg Aut
 	log.Info().Msg("RunDigitalOceanS3BucketObjSecretsProcedure finished")
 	sw := SecretsWrapper{}
 	sw.DoctlToken = sw.MustReadSecret(ctx, inMemSecrets, doctlSecret)
-	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, pgSecret)
+	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, PgSecret)
 	sw.StripeSecretKey = sw.MustReadSecret(ctx, inMemSecrets, stripeSecretKey)
 	return inMemSecrets, sw
 }
@@ -133,9 +133,9 @@ func RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, auth
 	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
 	log.Info().Msg("Artemis: RunArtemisDigitalOceanS3BucketObjSecretsProcedure finished")
 	sw := SecretsWrapper{}
-	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, pgSecret)
-	sw.AccessKeyHydraDynamoDB = sw.MustReadSecret(ctx, inMemSecrets, hydraAccessKeyDynamoDB)
-	sw.SecretKeyHydraDynamoDB = sw.MustReadSecret(ctx, inMemSecrets, hydraSecretKeyDynamoDB)
+	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, PgSecret)
+	sw.AccessKeyHydraDynamoDB = sw.MustReadSecret(ctx, inMemSecrets, HydraAccessKeyDynamoDB)
+	sw.SecretKeyHydraDynamoDB = sw.MustReadSecret(ctx, inMemSecrets, HydraSecretKeyDynamoDB)
 	log.Info().Msg("Artemis: RunArtemisDigitalOceanS3BucketObjSecretsProcedure succeeded")
 	return inMemSecrets, sw
 }
@@ -145,7 +145,7 @@ func RunPoseidonDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, aut
 	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
 	log.Info().Msg("RunPoseidonDigitalOceanS3BucketObjSecretsProcedure finished")
 	sw := SecretsWrapper{}
-	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, pgSecret)
+	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, PgSecret)
 	sw.BearerToken = sw.MustReadSecret(ctx, inMemSecrets, temporalBearerSecret)
 	log.Info().Msg("RunPoseidonDigitalOceanS3BucketObjSecretsProcedure succeeded")
 	return inMemSecrets, sw
@@ -157,7 +157,7 @@ func RunAthenaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authC
 	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
 	log.Info().Msg("Athena: RunDigitalOceanS3BucketObjSecretsProcedure finished")
 	sw := SecretsWrapper{}
-	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, pgSecret)
+	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, PgSecret)
 
 	p := filepaths.Path{
 		PackageName: "",

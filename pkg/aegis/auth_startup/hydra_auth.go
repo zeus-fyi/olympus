@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	hydraAccessKeyDynamoDB = "secrets/hydra.dynamodb.access.key.txt"
-	hydraSecretKeyDynamoDB = "secrets/hydra.dynamodb.secret.key.txt"
+	HydraAccessKeyDynamoDB = "secrets/hydra.dynamodb.access.key.txt"
+	HydraSecretKeyDynamoDB = "secrets/hydra.dynamodb.secret.key.txt"
 )
 
 func RunHydraDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {
@@ -18,9 +18,9 @@ func RunHydraDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCf
 	inMemSecrets := ReadEncryptedSecretsData(ctx, authCfg)
 	log.Info().Msg("Hydra: RunHydraDigitalOceanS3BucketObjSecretsProcedure finished")
 	sw := SecretsWrapper{}
-	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, pgSecret)
-	sw.AccessKeyHydraDynamoDB = sw.MustReadSecret(ctx, inMemSecrets, hydraAccessKeyDynamoDB)
-	sw.SecretKeyHydraDynamoDB = sw.MustReadSecret(ctx, inMemSecrets, hydraSecretKeyDynamoDB)
+	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, PgSecret)
+	sw.AccessKeyHydraDynamoDB = sw.MustReadSecret(ctx, inMemSecrets, HydraAccessKeyDynamoDB)
+	sw.SecretKeyHydraDynamoDB = sw.MustReadSecret(ctx, inMemSecrets, HydraSecretKeyDynamoDB)
 	sw.PagerDutyApiKey = sw.MustReadSecret(ctx, inMemSecrets, pagerDutySecret)
 	sw.PagerDutyRoutingKey = sw.MustReadSecret(ctx, inMemSecrets, pagerDutyRoutingKey)
 

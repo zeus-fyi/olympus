@@ -85,6 +85,38 @@ func (t *AegisSecretsTestSuite) TestInsertSecretTxFetcher() {
 	t.Require().Nil(err)
 }
 
+func (t *AegisSecretsTestSuite) TestInsertSecretTxFetcher2() {
+	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
+	//refKey := autogen_bases.OrgSecretKeyValReferences{
+	//	SecretEnvVarRef: "DYNAMODB_ACCESS_KEY",
+	//	SecretKeyRef:    auth_startup.HydraAccessKeyDynamoDB,
+	//	SecretNameRef:   "dynamodb-access-key",
+	//}
+	refSec := autogen_bases.OrgSecretKeyValReferences{
+		SecretEnvVarRef: "DYNAMODB_SECRET_KEY",
+		SecretKeyRef:    auth_startup.HydraSecretKeyDynamoDB,
+		SecretNameRef:   "dynamodb-secret-key",
+	}
+	secRef := autogen_bases.OrgSecretReferences{
+		OrgID:      t.Tc.ProductionLocalTemporalOrgID,
+		SecretID:   ts.UnixTimeStampNow(),
+		SecretName: "dynamodb-auth",
+	}
+
+	//err := InsertOrgSecretRef(ctx, secRef, refKey)
+	//t.Require().Nil(err)
+	err := InsertOrgSecretRef(ctx, secRef, refSec)
+	t.Require().Nil(err)
+
+	prod := 1684692146539966000
+	refTop := autogen_bases.TopologySystemComponentsSecrets{
+		TopologySystemComponentID: prod,
+		SecretID:                  secRef.SecretID,
+	}
+	err = InsertOrgSecretTopologyRef(ctx, refTop)
+	t.Require().Nil(err)
+}
+
 func (t *AegisSecretsTestSuite) TestSelectOrgTopSecretRefs() {
 	apps.Pg.InitPG(ctx, t.Tc.LocalDbPgconn)
 	topName := "rqhppnzghs"

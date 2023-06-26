@@ -17,7 +17,6 @@ func beaconSubscriptionSSE(ctx context.Context, nodeEndpointURL, topic string) e
 
 	url := nodeEndpointURL + "/" + topicsPath + topic
 	client := sse.NewClient(url)
-	fmt.Println("ssssss")
 
 	err := client.SubscribeRaw(func(msg *sse.Event) {
 		// Got some data!

@@ -58,15 +58,17 @@ func DeployDynamicSecretsHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	ctx := context.Background()
-	sec, err := dynamic_secrets.LookupAndCreateSecret(ctx, request.OrgUser.OrgID, request.SecretRef, request.Kns.CloudCtxNs)
+	secrets, err := dynamic_secrets.LookupAndCreateSecrets(ctx, request.OrgUser.OrgID, request.SecretRef, request.Kns.CloudCtxNs)
 	if err != nil {
 		log.Err(err).Msg("DeployDynamicSecretsHandler")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	_, err = zeus.K8Util.CreateSecretWithKnsIfDoesNotExist(ctx, request.Kns.CloudCtxNs, sec, nil)
-	if err != nil {
-		log.Err(err).Msg("DeployDynamicSecretsHandler")
-		return c.JSON(http.StatusInternalServerError, err)
+	for _, sec := range secrets {
+		_, err = zeus.K8Util.CreateSecretWithKnsIfDoesNotExist(ctx, request.Kns.CloudCtxNs, sec, nil)
+		if err != nil {
+			log.Err(err).Msg("DeployDynamicSecretsHandler")
+			return c.JSON(http.StatusInternalServerError, err)
+		}
 	}
 	return c.JSON(http.StatusOK, nil)
 }

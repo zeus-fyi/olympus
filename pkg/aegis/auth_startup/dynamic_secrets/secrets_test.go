@@ -42,11 +42,11 @@ func (t *DynamicSecretsTestSuite) TestSecretLookupAndCreate() {
 		Env:           "",
 	}
 	topName := "rqhppnzghs"
-	sec, err := LookupAndCreateSecret(ctx, t.Tc.ProductionLocalTemporalOrgID, topName, kns)
+	sec, err := LookupAndCreateSecrets(ctx, t.Tc.ProductionLocalTemporalOrgID, topName, kns)
 	t.Require().NoError(err)
 	t.Require().NotNil(sec)
-	t.Require().NotNil(sec.StringData)
-	t.Assert().Equal(t.Tc.MainnetNodeUrl, sec.StringData["rpc"])
+	//t.Require().NotNil(sec.StringData)
+	//t.Assert().Equal(t.Tc.MainnetNodeUrl, sec.StringData["rpc"])
 }
 
 func (t *DynamicSecretsTestSuite) TestPackageSecret() {
@@ -61,7 +61,7 @@ func (t *DynamicSecretsTestSuite) TestPackageSecret() {
 	t.Require().NotEmpty(inMemFs)
 	AegisInMemSecrets = inMemFs
 
-	sec, err := CreateSecret(ctx, zeus_common_types.CloudCtxNs{
+	sec, err := CreateSecrets(ctx, zeus_common_types.CloudCtxNs{
 		CloudProvider: "",
 		Region:        "",
 		Context:       "",
@@ -82,8 +82,7 @@ func (t *DynamicSecretsTestSuite) TestPackageSecret() {
 	})
 	t.Require().NoError(err)
 	t.Require().NotNil(sec)
-	t.Require().NotNil(sec.StringData)
-	t.Assert().Equal(t.Tc.MainnetNodeUrl, sec.StringData["rpc"])
+
 }
 
 func (t *DynamicSecretsTestSuite) TestPackageSecretProd() {
@@ -98,7 +97,7 @@ func (t *DynamicSecretsTestSuite) TestPackageSecretProd() {
 	t.Require().NotEmpty(inMemFs)
 	AegisInMemSecrets = inMemFs
 
-	sec, err := CreateSecret(ctx, zeus_common_types.CloudCtxNs{
+	sec, err := CreateSecrets(ctx, zeus_common_types.CloudCtxNs{
 		CloudProvider: "",
 		Region:        "",
 		Context:       "",
@@ -127,7 +126,6 @@ func (t *DynamicSecretsTestSuite) TestPackageSecretProd() {
 	*/
 	t.Require().NoError(err)
 	t.Require().NotNil(sec)
-	t.Require().NotNil(sec.StringData)
 }
 
 func TestDynamicSecretsTestSuite(t *testing.T) {

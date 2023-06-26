@@ -15,24 +15,26 @@ var (
 	AegisInMemSecrets memfs.MemFS
 )
 
-func LookupAndCreateSecret(ctx context.Context, orgID int, topName string, kns zeus_common_types.CloudCtxNs) (*v1.Secret, error) {
+func LookupAndCreateSecrets(ctx context.Context, orgID int, topName string, kns zeus_common_types.CloudCtxNs) ([]*v1.Secret, error) {
 	orgSecrets, err := aegis_secrets.SelectOrgSecretRef(ctx, orgID, topName)
 	if err != nil {
 		return nil, err
 	}
-	return CreateSecret(ctx, kns, orgSecrets)
+	return CreateSecrets(ctx, kns, orgSecrets)
 }
 
-func CreateSecret(ctx context.Context, kns zeus_common_types.CloudCtxNs, os aegis_secrets.OrgSecretRef) (*v1.Secret, error) {
+func CreateSecrets(ctx context.Context, kns zeus_common_types.CloudCtxNs, os aegis_secrets.OrgSecretRef) ([]*v1.Secret, error) {
 	var sec *v1.Secret
-	for _, kv := range os.OrgSecretKeyValReferencesSlice {
+	secrets := make([]*v1.Secret, len(os.OrgSecretKeyValReferencesSlice))
+	for i, kv := range os.OrgSecretKeyValReferencesSlice {
 		value, err := getSecretValue(ctx, kv.SecretKeyRef)
 		if err != nil {
 			return nil, err
 		}
 		sec = zeus_core.CreateSecretWrapper(sec, kns, os.SecretName, kv.SecretNameRef, value)
+		secrets[i] = sec
 	}
-	return sec, nil
+	return secrets, nil
 }
 
 func getSecretValue(ctx context.Context, refName string) (string, error) {

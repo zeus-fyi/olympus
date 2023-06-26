@@ -23,9 +23,9 @@ var (
 		"artemis": ArtemisComponentBase,
 	}
 	ArtemisCloudCtxNs = zeus_common_types.CloudCtxNs{
-		CloudProvider: "do",
-		Region:        "sfo3",
-		Context:       "do-sfo3-dev-do-sfo3-zeus",
+		CloudProvider: "ovh",
+		Region:        "us-west-or-1",
+		Context:       "kubernetes-admin@zeusfyi",
 		Namespace:     "artemis", // set with your own namespace
 		Env:           "production",
 	}

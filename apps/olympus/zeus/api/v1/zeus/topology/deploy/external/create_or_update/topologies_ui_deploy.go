@@ -163,12 +163,30 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 		diskResourceID = 1683860918169422000
 	case "ovh":
 		ovhContext := hestia_ovhcloud.OvhSharedContext
+		namespace := clusterID.String()
 		switch ou.UserID {
 		case 7138958574876245565:
 			if ou.OrgID == 7138983863666903883 {
 				ovhContext = hestia_ovhcloud.OvhInternalContext
+				switch t.NamespaceAlias {
+				case "artemis":
+					namespace = "artemis"
+				case "zeus":
+					namespace = "zeus"
+				case "iris":
+					namespace = "iris"
+				case "hestia":
+					namespace = "hestia"
+				case "hera":
+					namespace = "hera"
+				case "aegis":
+					namespace = "aegis"
+				case "hardhat":
+					namespace = "hardhat"
+				}
 			}
 		}
+
 		cr = base_deploy_params.ClusterSetupRequest{
 			FreeTrial: t.FreeTrial,
 			Ou:        ou,
@@ -176,7 +194,7 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 				CloudProvider: "ovh",
 				Region:        hestia_ovhcloud.OvhRegionUsWestOr1,
 				Context:       ovhContext, // hardcoded for now
-				Namespace:     clusterID.String(),
+				Namespace:     namespace,
 				Alias:         fmt.Sprintf("%s-%s", t.NamespaceAlias, suffix),
 				Env:           "",
 			},

@@ -42,6 +42,37 @@ func (t *AegisCookbookTestSuite) TestAegisSecretsCopy() {
 	t.Require().Nil(err)
 }
 
+func (t *AegisCookbookTestSuite) TestAegisSecretsCopyToOvh() {
+	s1 := "spaces-auth"
+	s2 := "spaces-key"
+	s3 := "age-auth"
+	req := internal_reqs.InternalSecretsCopyFromTo{
+		SecretNames: []string{s1, s2, s3},
+		FromKns: kns.TopologyKubeCtxNs{
+			TopologyID: 0,
+			CloudCtxNs: zeus_common_types.CloudCtxNs{
+				CloudProvider: "do",
+				Region:        "sfo3",
+				Context:       "do-sfo3-dev-do-sfo3-zeus",
+				Namespace:     "zeus",
+				Env:           "dev",
+			},
+		},
+		ToKns: kns.TopologyKubeCtxNs{
+			TopologyID: 0,
+			CloudCtxNs: zeus_common_types.CloudCtxNs{
+				CloudProvider: "ovh",
+				Region:        "us-west-or-1",
+				Context:       "kubernetes-admin@zeusfyi",
+				Namespace:     "c9bbfe9e-9922-4d25-bc31-e7c776cfb349",
+				Env:           "dev",
+			},
+		},
+	}
+	err := t.ZeusTestClient.CopySecretsFromToNamespace(ctx, req)
+	t.Require().Nil(err)
+}
+
 func (t *AegisCookbookTestSuite) TestAegisSecretsCopyTxFetcher() {
 	s1 := "postgres-auth"
 	s2 := "dynamodb-auth"

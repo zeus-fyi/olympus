@@ -69,6 +69,7 @@ func (c *CreateSetupTopologyActivities) OvhMakeNodePoolRequest(ctx context.Conte
 	}
 	autoscaleEnabled := false
 	suffix := strings.Split(params.Namespace, "-")[0]
+
 	nodeGroupName := fmt.Sprintf("nodepool-%d-%s", params.Ou.OrgID, suffix)
 	label := make(map[string]string)
 	label["org"] = fmt.Sprintf("%d", params.Ou.OrgID)

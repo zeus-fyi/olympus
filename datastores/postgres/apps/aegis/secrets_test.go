@@ -60,6 +60,31 @@ func (t *AegisSecretsTestSuite) TestInsertSecret() {
 	t.Require().Nil(err)
 }
 
+func (t *AegisSecretsTestSuite) TestInsertSecretTxFetcher() {
+	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
+	ref := autogen_bases.OrgSecretKeyValReferences{
+		SecretEnvVarRef: "PG_CONN_STR",
+		SecretKeyRef:    auth_startup.PgSecret,
+		SecretNameRef:   "postgres-conn-str",
+	}
+	secRef := autogen_bases.OrgSecretReferences{
+		OrgID:      t.Tc.ProductionLocalTemporalOrgID,
+		SecretID:   ts.UnixTimeStampNow(),
+		SecretName: "postgres-auth",
+	}
+
+	err := InsertOrgSecretRef(ctx, secRef, ref)
+	t.Require().Nil(err)
+
+	prod := 1684692146539966000
+	refTop := autogen_bases.TopologySystemComponentsSecrets{
+		TopologySystemComponentID: prod,
+		SecretID:                  secRef.SecretID,
+	}
+	err = InsertOrgSecretTopologyRef(ctx, refTop)
+	t.Require().Nil(err)
+}
+
 func (t *AegisSecretsTestSuite) TestSelectOrgTopSecretRefs() {
 	apps.Pg.InitPG(ctx, t.Tc.LocalDbPgconn)
 	topName := "rqhppnzghs"

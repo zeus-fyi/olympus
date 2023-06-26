@@ -1,7 +1,6 @@
 package zeus_core
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -44,7 +43,6 @@ func (s *SecretsTestSuite) TestGetSecrets() {
 }
 
 func (s *SecretsTestSuite) TestCreateChoreographySecret() {
-	ctx := context.Background()
 	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "p2p-crawler"}
 	m := make(map[string]string)
 
@@ -76,8 +74,7 @@ func (s *SecretsTestSuite) TestCreateChoreographySecret() {
 }
 
 func (s *SecretsTestSuite) TestCreateAwsDynamoDBSecret() {
-	ctx := context.Background()
-	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "ethereum"}
+	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "ovh", Region: "us-west-or-1", Context: "kubernetes-admin@zeusfyi", Namespace: "3cfa3022-5f71-478c-bebd-3b2e20f4caea"}
 	m := make(map[string]string)
 	m["dynamodb-access-key"] = s.Tc.AwsAccessKeyDynamoDB
 	m["dynamodb-secret-key"] = s.Tc.AwsSecretKeyDynamoDB
@@ -103,7 +100,6 @@ func (s *SecretsTestSuite) TestCreateAwsDynamoDBSecret() {
 }
 
 func (s *SecretsTestSuite) TestCreateAwsSecret() {
-	ctx := context.Background()
 	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "zeus"}
 	m := make(map[string]string)
 	m["aws-access-key"] = s.Tc.AwsAccessKeyEks
@@ -131,7 +127,6 @@ func (s *SecretsTestSuite) TestCreateAwsSecret() {
 }
 
 func (s *SecretsTestSuite) TestCreateSecrets() {
-	ctx := context.Background()
 	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "eth-indexer"}
 
 	secret, err := s.K.GetSecretWithKns(ctx, kns, "postgres-auth", nil)
@@ -150,7 +145,6 @@ func (s *SecretsTestSuite) TestCreateSecrets() {
 }
 
 func (s *SecretsTestSuite) TestCopySecrets() {
-	ctx := context.Background()
 	var knsFrom = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "zeus"}
 	var knsTo = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "beacon"}
 
@@ -159,7 +153,6 @@ func (s *SecretsTestSuite) TestCopySecrets() {
 }
 
 func (s *SecretsTestSuite) TestCopySecretToAnotherNs() {
-	ctx := context.Background()
 	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "eth-indexer"}
 
 	secret, err := s.K.GetSecretWithKns(ctx, kns, "postgres-auth", nil)
@@ -178,8 +171,7 @@ func (s *SecretsTestSuite) TestCopySecretToAnotherNs() {
 	s.Require().NotEmpty(newSecret)
 }
 
-func (s *SecretsTestSuite) TestCreateCWeb3SignerSecret() {
-	ctx := context.Background()
+func (s *SecretsTestSuite) TestCreateWeb3SignerSecret() {
 	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "ephemeral-staking"}
 	m := make(map[string]string)
 

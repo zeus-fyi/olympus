@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	PgSecret           = "secrets/postgres-auth.txt"
 	QuikNodeSecret     = "secrets/artemis.ethereum.mainnet.quiknode.txt"
 	QuikNodeSecretLive = "secrets/artemis.ethereum.mainnet.quicknode.live.txt"
 )

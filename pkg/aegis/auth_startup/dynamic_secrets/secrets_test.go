@@ -85,6 +85,51 @@ func (t *DynamicSecretsTestSuite) TestPackageSecret() {
 	t.Require().NotNil(sec.StringData)
 	t.Assert().Equal(t.Tc.MainnetNodeUrl, sec.StringData["rpc"])
 }
+
+func (t *DynamicSecretsTestSuite) TestPackageSecretProd() {
+	keysCfg := auth_keys_config.AuthKeysCfg{
+		AgePrivKey:    t.Tc.LocalAgePkey,
+		AgePubKey:     t.Tc.LocalAgePubkey,
+		SpacesKey:     t.Tc.LocalS3SpacesKey,
+		SpacesPrivKey: t.Tc.LocalS3SpacesSecret,
+	}
+	authCfg := auth_startup.NewDefaultAuthClient(ctx, keysCfg)
+	inMemFs := auth_startup.ReadEncryptedSecretsData(ctx, authCfg)
+	t.Require().NotEmpty(inMemFs)
+	AegisInMemSecrets = inMemFs
+
+	sec, err := CreateSecret(ctx, zeus_common_types.CloudCtxNs{
+		CloudProvider: "",
+		Region:        "",
+		Context:       "",
+		Namespace:     "test",
+		Alias:         "",
+		Env:           "",
+	}, aegis_secrets.OrgSecretRef{
+		OrgSecretReferences: autogen_bases.OrgSecretReferences{
+			SecretName: "postgres-auth",
+		},
+		OrgSecretKeyValReferencesSlice: []autogen_bases.OrgSecretKeyValReferences{
+			{
+				SecretEnvVarRef: "PG_CONN_STR",
+				SecretNameRef:   "postgres-conn-str",
+				SecretKeyRef:    auth_startup.PgSecret,
+			},
+		},
+	})
+
+	/*
+	   - name: PG_CONN_STR
+	     valueFrom:
+	       secretKeyRef:
+	         name: postgres-auth
+	         key: postgres-conn-str
+	*/
+	t.Require().NoError(err)
+	t.Require().NotNil(sec)
+	t.Require().NotNil(sec.StringData)
+}
+
 func TestDynamicSecretsTestSuite(t *testing.T) {
 	suite.Run(t, new(DynamicSecretsTestSuite))
 }

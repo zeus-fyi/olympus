@@ -1,6 +1,11 @@
 package artemis_realtime_trading
 
-import "github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
+import (
+	"context"
+
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
+)
 
 /*
 	part 0. trade filter
@@ -30,4 +35,8 @@ type ActiveTrading struct {
 
 func NewActiveTradingModule(u *web3_client.UniswapClient) ActiveTrading {
 	return ActiveTrading{u}
+}
+
+func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) {
+	a.ProcessTx(ctx, tx)
 }

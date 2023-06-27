@@ -18,5 +18,9 @@ func NewActiveTradingModule(u *web3_client.UniswapClient) ActiveTrading {
 }
 
 func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) {
+	a.FilterTx(ctx, tx)
+	a.DecodeTx(ctx, tx)
 	a.ProcessTx(ctx, tx)
+	a.SimulateTx(ctx, tx)
+	a.SendToBundleStack(ctx, tx)
 }

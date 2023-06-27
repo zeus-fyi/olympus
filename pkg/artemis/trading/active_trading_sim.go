@@ -1,5 +1,15 @@
 package artemis_realtime_trading
 
+import (
+	"context"
+
+	"github.com/ethereum/go-ethereum/core/types"
+)
+
+func (a *ActiveTrading) SimulateTx(ctx context.Context, tx *types.Transaction) {
+
+}
+
 //func (u *UniswapClient) ActiveTradingRealTimeTxAnalysis(ctx context.Context, tf *TradeExecutionFlow) error {
 //	u.TradeAnalysisReport.TradeMethod = tf.Trade.TradeMethod
 //	u.TradeAnalysisReport.AmountInAddr = tf.FrontRunTrade.AmountInAddr.String()

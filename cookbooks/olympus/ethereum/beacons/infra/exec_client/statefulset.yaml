@@ -75,10 +75,10 @@ spec:
             tcpSocket:
               port: athena
         - name: zeus-exec-client
-          image: "ethpandaops/geth:master"
-          imagePullPolicy: IfNotPresent
+          image: registry.digitalocean.com/zeus-fyi/geth-turbo-mev:latest
+          imagePullPolicy: Always
           command: [ "/bin/sh" ]
-          args: [ "-c","/scripts/gethEphemeral.sh" ]
+          args: [ "-c","/scripts/start.sh" ]
           volumeMounts:
             - name: exec-client-storage
               mountPath: "/data"

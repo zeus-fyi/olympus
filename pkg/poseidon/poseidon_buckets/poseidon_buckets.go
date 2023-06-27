@@ -37,3 +37,13 @@ func LighthouseBucket(network string) poseidon.BucketRequest {
 		ClientName: "lighthouse",
 	}
 }
+
+func RethBucket(network string) poseidon.BucketRequest {
+	return poseidon.BucketRequest{
+		BucketName: "zeus-fyi-ethereum",
+		Protocol:   "ethereum",
+		Network:    network,
+		ClientType: "exec.client.archive",
+		ClientName: "reth",
+	}
+}

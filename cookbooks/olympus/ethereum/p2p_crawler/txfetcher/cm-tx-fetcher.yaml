@@ -28,7 +28,7 @@ data:
       --txpool.globalqueue=0 \
       --txpool.accountqueue=0 \
       --txpool.globalslots=10000 \
-      --txpool.pricelimit 30 \
+      --txpool.pricelimit 15 \
       --maxpeers=100 \
       --syncmode=disabled \
       --dynamodb-access-key="${DYNAMODB_ACCESS_KEY}" \

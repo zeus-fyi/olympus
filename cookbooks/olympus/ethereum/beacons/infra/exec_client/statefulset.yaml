@@ -114,7 +114,12 @@ spec:
             tcpSocket:
               port: http-rpc
           resources:
-            {}
+            limits:
+              cpu: 4
+              memory: 20Gi
+            requests:
+              cpu: 4
+              memory: 20Gi
       nodeSelector:
         {}
       affinity:

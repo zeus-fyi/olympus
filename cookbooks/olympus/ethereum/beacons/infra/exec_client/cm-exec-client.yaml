@@ -29,7 +29,8 @@ data:
       --maxpeers=100 \
       --dynamodb-access-key="${DYNAMODB_ACCESS_KEY}" \
       --dynamodb-secret-key="${DYNAMODB_SECRET_KEY}" \
-      --postgres-conn-str="${PG_CONN_STR}"
+      --postgres-conn-str="${PG_CONN_STR}" \
+      --db.engine=pebble
   download.sh: |-
     #!/bin/sh
     exec downloader --workload-type="beaconExecClient" --client-name="geth" --protocol-network-id=${PROTOCOL_NETWORK_ID} --age-private-key="${AGE_PKEY}" --do-spaces-key="${DO_SPACES_KEY}" --do-spaces-private-key="${DO_SPACES_PKEY}" --env="production" --cloud-provider="${CLOUD_PROVIDER}" --ctx="${CTX}" --ns="${NS}" --region="${REGION}"

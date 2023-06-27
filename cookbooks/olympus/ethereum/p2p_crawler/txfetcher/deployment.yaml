@@ -38,7 +38,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   key: postgres-conn-str
-                  name: postgres-auth
+                  name: dynamodb-auth
           volumeMounts:
             - name: zeus-tx-fetcher-storage
               mountPath: "/data"

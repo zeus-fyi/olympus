@@ -58,7 +58,7 @@ func GetGethPresignedURL(c echo.Context) error {
 	reader := s3reader.NewS3ClientReader(poseidon_orchestrations.PoseidonS3Manager)
 
 	input := &s3.GetObjectInput{
-		Bucket: aws.String("zeus-fyi-snapshots"),
+		Bucket: aws.String("zeus-fyi-ethereum"),
 		Key:    aws.String(poseidon_buckets.GethMainnetBucket.GetBucketKey()),
 	}
 
@@ -74,7 +74,7 @@ func GetLighthousePresignedURL(c echo.Context) error {
 	ctx := context.Background()
 	reader := s3reader.NewS3ClientReader(poseidon_orchestrations.PoseidonS3Manager)
 	input := &s3.GetObjectInput{
-		Bucket: aws.String("zeus-fyi-snapshots"),
+		Bucket: aws.String("zeus-fyi-ethereum"),
 		Key:    aws.String(poseidon_buckets.LighthouseMainnetBucket.GetBucketKey()),
 	}
 	url, err := reader.GeneratePresignedURL(ctx, input)

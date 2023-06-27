@@ -17,6 +17,8 @@ func Health(c echo.Context) error {
 
 /*
 
+needs an endpoint to kickoff active trade analysis
+
 peers -> get total peer count
 
 decoder

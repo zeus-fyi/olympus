@@ -1,4 +1,4 @@
-package metrics_txfetcher
+package metrics_trading
 
 import (
 	"testing"

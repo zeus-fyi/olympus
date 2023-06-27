@@ -28,6 +28,7 @@ func (a *ActiveTrading) DecodeTx(ctx context.Context, tx *types.Transaction) {
 		tmp := a.u.MevSmartContractTxMapUniversalRouterOld.Txs
 		tmp = append(tmp, singleTx)
 		a.u.MevSmartContractTxMapUniversalRouterOld.Txs = tmp
+		a.m.TxFetcherMetrics.TransactionGroup(web3_client.UniswapUniversalRouterAddressOld, methodName)
 	case web3_client.UniswapUniversalRouterAddressNew:
 		if a.u.MevSmartContractTxMapUniversalRouterNew.Txs == nil {
 			a.u.MevSmartContractTxMapUniversalRouterNew.Txs = []web3_client.MevTx{}
@@ -47,6 +48,7 @@ func (a *ActiveTrading) DecodeTx(ctx context.Context, tx *types.Transaction) {
 		tmp := a.u.MevSmartContractTxMapUniversalRouterNew.Txs
 		tmp = append(tmp, singleTx)
 		a.u.MevSmartContractTxMapUniversalRouterNew.Txs = tmp
+		a.m.TxFetcherMetrics.TransactionGroup(web3_client.UniswapUniversalRouterAddressNew, methodName)
 	case web3_client.UniswapV2Router02Address:
 		if a.u.MevSmartContractTxMapV2Router02.Txs == nil {
 			a.u.MevSmartContractTxMapV2Router02.Txs = []web3_client.MevTx{}
@@ -66,6 +68,7 @@ func (a *ActiveTrading) DecodeTx(ctx context.Context, tx *types.Transaction) {
 		tmp := a.u.MevSmartContractTxMapV2Router02.Txs
 		tmp = append(tmp, singleTx)
 		a.u.MevSmartContractTxMapV2Router02.Txs = tmp
+		a.m.TxFetcherMetrics.TransactionGroup(web3_client.UniswapV2Router02Address, methodName)
 	case web3_client.UniswapV2Router01Address:
 		if a.u.MevSmartContractTxMapV2Router01.Txs == nil {
 			a.u.MevSmartContractTxMapV2Router01.Txs = []web3_client.MevTx{}
@@ -85,6 +88,7 @@ func (a *ActiveTrading) DecodeTx(ctx context.Context, tx *types.Transaction) {
 		tmp := a.u.MevSmartContractTxMapV2Router01.Txs
 		tmp = append(tmp, singleTx)
 		a.u.MevSmartContractTxMapV2Router01.Txs = tmp
+		a.m.TxFetcherMetrics.TransactionGroup(web3_client.UniswapV2Router01Address, methodName)
 	case web3_client.UniswapV3Router01Address:
 		if a.u.MevSmartContractTxMapV3SwapRouterV1.Txs == nil {
 			a.u.MevSmartContractTxMapV3SwapRouterV1.Txs = []web3_client.MevTx{}
@@ -104,6 +108,7 @@ func (a *ActiveTrading) DecodeTx(ctx context.Context, tx *types.Transaction) {
 		tmp := a.u.MevSmartContractTxMapV3SwapRouterV1.Txs
 		tmp = append(tmp, singleTx)
 		a.u.MevSmartContractTxMapV3SwapRouterV1.Txs = tmp
+		a.m.TxFetcherMetrics.TransactionGroup(web3_client.UniswapV3Router01Address, methodName)
 	case web3_client.UniswapV3Router02Address:
 		if a.u.MevSmartContractTxMapV3SwapRouterV2.Txs == nil {
 			a.u.MevSmartContractTxMapV3SwapRouterV2.Txs = []web3_client.MevTx{}
@@ -123,5 +128,6 @@ func (a *ActiveTrading) DecodeTx(ctx context.Context, tx *types.Transaction) {
 		tmp := a.u.MevSmartContractTxMapV3SwapRouterV2.Txs
 		tmp = append(tmp, singleTx)
 		a.u.MevSmartContractTxMapV3SwapRouterV2.Txs = tmp
+		a.m.TxFetcherMetrics.TransactionGroup(web3_client.UniswapV3Router02Address, methodName)
 	}
 }

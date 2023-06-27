@@ -16,5 +16,13 @@ func (tx *TxFetcherMetrics) TransactionGroup(address string, method string) {
 	if !ok {
 		return
 	}
-	tx.Stats.WithLabelValues(label, method).Inc()
+	tx.TradeMethodStats.WithLabelValues(label, method).Inc()
 }
+
+//func (tx *TxFetcherMetrics) TransactionCurrency(address string, method string) {
+//	label, ok := AddressLabelMap[address]
+//	if !ok {
+//		return
+//	}
+//	tx.CurrencyStats.WithLabelValues(label, method).Inc()
+//}

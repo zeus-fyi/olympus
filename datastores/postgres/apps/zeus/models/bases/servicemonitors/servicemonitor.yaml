@@ -1,16 +1,20 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: zeus-consensus-client-monitor
+  name: zeus-tx-fetcher-monitor
   labels:
-    app: "zeus-consensus-client"
+    app: "zeus-tx-fetcher"
     release: kube-prometheus-stack
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/instance: "zeus-consensus-client"
-      app.kubernetes.io/name: "zeus-consensus-client"
+      app.kubernetes.io/instance: "zeus-tx-fetcher"
+      app.kubernetes.io/name: "zeus-tx-fetcher"
   endpoints:
     - port: metrics
       interval: 30s
-      path: /metrics
+      path: /debug/metrics/prometheus
+    - metricRelabelings:
+        - sourceLabels: [__name__]
+          regex: "(txpool_invalid|txpool_unique)"
+          action: keep

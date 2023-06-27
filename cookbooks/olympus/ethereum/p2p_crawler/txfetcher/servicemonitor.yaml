@@ -14,7 +14,7 @@ spec:
     - port: metrics
       interval: 30s
       path: /debug/metrics/prometheus
-  metricRelabelings:
-    - sourceLabels: [__name__]
-      regex: "(txpool_invalid|txpool_unique)"
-      action: keep
+    - metricRelabelings:
+      - sourceLabels: [__name__]
+        regex: "(txpool_invalid|txpool_unique)"
+        action: keep

@@ -21,7 +21,7 @@ data:
       --authrpc.addr=0.0.0.0 \
       --authrpc.port=8551 \
       --authrpc.vhosts=* \
-      --http.api=txpool,eth,net,web3,txpool \
+      --http.api=txpool,eth,net,web3 \
       --txpool.globalqueue=0 \
       --txpool.accountqueue=0 \
       --txpool.globalslots=10000 \

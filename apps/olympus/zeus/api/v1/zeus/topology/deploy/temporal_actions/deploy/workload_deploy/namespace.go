@@ -55,6 +55,22 @@ func DeployNamespaceHandler(c echo.Context) error {
 				log.Err(err).Msg("DeploySecretsHandler")
 				return c.JSON(http.StatusInternalServerError, err)
 			}
+		default:
+			_, err = zeus.K8Util.CopySecretToAnotherKns(ctx, fromKns, request.Kns.CloudCtxNs, "age-auth", nil)
+			if err != nil {
+				log.Err(err).Msg("DeploySecretsHandler")
+				return c.JSON(http.StatusInternalServerError, err)
+			}
+			_, err = zeus.K8Util.CopySecretToAnotherKns(ctx, fromKns, request.Kns.CloudCtxNs, "spaces-auth", nil)
+			if err != nil {
+				log.Err(err).Msg("DeploySecretsHandler")
+				return c.JSON(http.StatusInternalServerError, err)
+			}
+			_, err = zeus.K8Util.CopySecretToAnotherKns(ctx, fromKns, request.Kns.CloudCtxNs, "spaces-key", nil)
+			if err != nil {
+				log.Err(err).Msg("DeploySecretsHandler")
+				return c.JSON(http.StatusInternalServerError, err)
+			}
 		}
 	}
 	return c.JSON(http.StatusOK, nil)

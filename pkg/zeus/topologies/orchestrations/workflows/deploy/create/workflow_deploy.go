@@ -67,7 +67,7 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 		OrgUser:                   params.OrgUser,
 		TopologyBaseInfraWorkload: params.TopologyBaseInfraWorkload,
 		ClusterName:               params.ClusterClassName,
-		SecretRef:                 params.SecretRef,
+		SecretRef:                 params.ClusterClassName,
 	}
 	nsCtx := workflow.WithActivityOptions(ctx, ao)
 	err = workflow.ExecuteActivity(nsCtx, t.DeployTopologyActivities.CreateNamespace, deployParams).Get(nsCtx, nil)

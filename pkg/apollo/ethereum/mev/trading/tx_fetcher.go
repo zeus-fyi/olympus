@@ -5,20 +5,19 @@ import (
 )
 
 type TxFetcherMetrics struct {
-	MevTxStats *prometheus.GaugeVec
+	Stats *prometheus.GaugeVec
 }
 
-func NewTxFetcherMetrics() TxFetcherMetrics {
+func NewTxFetcherMetrics(reg prometheus.Registerer) TxFetcherMetrics {
 	tx := TxFetcherMetrics{}
-	tx.MevTxStats = prometheus.NewGaugeVec(
+	tx.Stats = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Namespace: "",
-			Subsystem: "",
-			Name:      "ethereum_unique_txs_count",
-			Help:      "Count of unique txs added by the tx fetcher with additional stats",
+			Name: "ethereum_mev_tx_stats",
+			Help: "Count of unique mev txs added by the tx fetcher with additional stats",
 		},
 		[]string{"address", "method"},
 	)
+	reg.MustRegister(tx.Stats)
 	return tx
 }
 

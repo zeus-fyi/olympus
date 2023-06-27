@@ -16,5 +16,5 @@ func (tx *TxFetcherMetrics) TransactionGroup(address string, method string) {
 	if !ok {
 		return
 	}
-	tx.MevTxStats.WithLabelValues(label, method).Inc()
+	tx.Stats.WithLabelValues(label, method).Inc()
 }

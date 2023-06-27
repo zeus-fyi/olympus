@@ -43,7 +43,7 @@ func InitBaseRoute() *echo.Echo {
 		middleware.Recover(),
 		middleware.Logger(),
 	)
-	p := prometheus.NewPrometheus("hydra", nil)
+	p := prometheus.NewPrometheus("tyche", nil)
 	p.Use(e)
 	return e
 }

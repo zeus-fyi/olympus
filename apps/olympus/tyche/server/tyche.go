@@ -58,8 +58,8 @@ func init() {
 
 // Cmd represents the base command when called without any subcommands
 var Cmd = &cobra.Command{
-	Use:   "Web3signing proxy router",
-	Short: "Proxy",
+	Use:   "MEV Active Trading Module",
+	Short: "Tyche",
 	Run: func(cmd *cobra.Command, args []string) {
 		Tyche()
 	},

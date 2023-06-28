@@ -9,7 +9,6 @@ on:
       - .github/workflows/aegis.yml
     branches:
       - main
-      - dev-mev-alex
 env:
   REPO: registry.digitalocean.com/zeus-fyi
   NAME: aegis

@@ -61,14 +61,14 @@ func (in *ExactInputParams) BinarySearch(pd *PricingData) TradeExecutionFlowJSON
 			JSONExactInputParams: in.ConvertToJSONType(),
 		},
 	}
-	frontRunTokenIn := pd.v3Pair.Token0
-	sandwichTokenIn := pd.v3Pair.Token1
-	if in.TokenFeePath.TokenIn.Hex() == pd.v3Pair.Token1.Address.Hex() {
-		frontRunTokenIn = pd.v3Pair.Token1
-		sandwichTokenIn = pd.v3Pair.Token0
+	frontRunTokenIn := pd.V3Pair.Token0
+	sandwichTokenIn := pd.V3Pair.Token1
+	if in.TokenFeePath.TokenIn.Hex() == pd.V3Pair.Token1.Address.Hex() {
+		frontRunTokenIn = pd.V3Pair.Token1
+		sandwichTokenIn = pd.V3Pair.Token0
 	}
 	for low.Cmp(high) <= 0 {
-		mockPairResp := pd.v3Pair
+		mockPairResp := pd.V3Pair
 		mid = new(big.Int).Add(low, high)
 		mid = DivideByHalf(mid)
 		// Front run trade

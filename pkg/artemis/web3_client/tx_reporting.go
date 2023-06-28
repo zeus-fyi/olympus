@@ -31,7 +31,7 @@ func (u *UniswapClient) PrintTradeSummaries(ts *TradeSummary) {
 		fmt.Println("GetBlockNumber Error", err)
 		return
 	}
-	pair := ts.Pd.v2Pair
+	pair := ts.Pd.V2Pair
 	ts.Tf.CurrentBlockNumber = bn
 	expectedOut, err := pair.GetQuoteUsingTokenAddr(ts.TokenAddr, ts.BuyWithAmount)
 	if err != nil {

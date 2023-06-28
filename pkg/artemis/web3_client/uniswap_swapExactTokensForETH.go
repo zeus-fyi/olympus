@@ -129,12 +129,12 @@ func (u *UniswapClient) SwapExactTokensForETH(tx MevTx, args map[string]interfac
 	st := SwapExactTokensForETHParams{}
 	st.Decode(args)
 	path := st.Path
-	pd, err := u.GetPricingData(ctx, path)
+	pd, err := u.GetV2PricingData(ctx, path)
 	if err != nil {
 		return
 	}
-	initialPair := pd.v2Pair
-	tf := st.BinarySearch(pd.v2Pair)
+	initialPair := pd.V2Pair
+	tf := st.BinarySearch(pd.V2Pair)
 	tf.InitialPair = initialPair.ConvertToJSONType()
 	if u.PrintOn {
 		fmt.Println("\nsandwich: ==================================SwapExactTokensForETH==================================")
@@ -147,7 +147,7 @@ func (u *UniswapClient) SwapExactTokensForETH(tx MevTx, args map[string]interfac
 			MinimumAmount: st.AmountOutMin,
 		}
 		u.PrintTradeSummaries(ts)
-		//u.PrintTradeSummaries(tx, tf, pd.v2Pair, path[0].String(), st.AmountIn, st.AmountOutMin)
+		//u.PrintTradeSummaries(tx, tf, pd.V2Pair, path[0].String(), st.AmountIn, st.AmountOutMin)
 		fmt.Println("txHash: ", tx.Tx.Hash().String())
 		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "SandwichPrediction Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
 		fmt.Println("sandwich: ====================================SwapExactTokensForETH==================================")

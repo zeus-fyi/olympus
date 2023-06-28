@@ -130,16 +130,16 @@ func (u *UniswapClient) SwapTokensForExactETH(tx MevTx, args map[string]interfac
 	st := SwapTokensForExactETHParams{}
 	st.Decode(args)
 	path := st.Path
-	pd, err := u.GetPricingData(ctx, path)
+	pd, err := u.GetV2PricingData(ctx, path)
 	if err != nil {
 		return
 	}
-	initialPair := pd.v2Pair
-	tf := st.BinarySearch(pd.v2Pair)
+	initialPair := pd.V2Pair
+	tf := st.BinarySearch(pd.V2Pair)
 	tf.InitialPair = initialPair.ConvertToJSONType()
 	if u.PrintOn {
 		fmt.Println("\nsandwich: ==================================SwapTokensForExactETH==================================")
-		//u.PrintTradeSummaries(tx, tf, pd.v2Pair, path[0].String(), st.AmountInMax, st.AmountOut)
+		//u.PrintTradeSummaries(tx, tf, pd.V2Pair, path[0].String(), st.AmountInMax, st.AmountOut)
 		ts := TradeSummary{
 			Tx:            tx,
 			Pd:            pd,

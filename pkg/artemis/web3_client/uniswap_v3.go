@@ -68,7 +68,7 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) {
 		}
 		tf := inputs.BinarySearch(pd)
 		tf.Trade.TradeMethod = exactInput
-		tf.InitialPairV3 = pd.v3Pair.ConvertToJSONType()
+		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 		fmt.Println("\nsandwich: ==================================ExactInput==================================")
 		ts := TradeSummary{
 			Tx:            tx,
@@ -96,7 +96,7 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) {
 		}
 		tf := inputs.BinarySearch(pd)
 		tf.Trade.TradeMethod = exactOutput
-		tf.InitialPairV3 = pd.v3Pair.ConvertToJSONType()
+		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 		fmt.Println("\nsandwich: ==================================ExactOut==================================")
 		ts := TradeSummary{
 			Tx:            tx,
@@ -132,7 +132,7 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) {
 		}
 		tf := inputs.BinarySearch(pd)
 		tf.Trade.TradeMethod = swapExactInputSingle
-		tf.InitialPairV3 = pd.v3Pair.ConvertToJSONType()
+		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 		fmt.Println("\nsandwich: ==================================SwapExactInputSingle==================================")
 		ts := TradeSummary{
 			Tx:            tx,
@@ -168,7 +168,7 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) {
 		}
 		tf := inputs.BinarySearch(pd)
 		tf.Trade.TradeMethod = swapExactOutputSingle
-		tf.InitialPairV3 = pd.v3Pair.ConvertToJSONType()
+		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 		fmt.Println("\nsandwich: ==================================SwapExactOutputSingle==================================")
 		ts := TradeSummary{
 			Tx:            tx,
@@ -189,13 +189,13 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) {
 			log.Err(err).Msg("swapExactTokensForTokens: failed to decode swap exact tokens for tokens args")
 			return
 		}
-		pd, err := u.GetPricingData(ctx, inputs.Path)
+		pd, err := u.GetV2PricingData(ctx, inputs.Path)
 		if err != nil {
 			return
 		}
 		path := inputs.Path
-		initialPair := pd.v2Pair
-		tf := inputs.BinarySearch(pd.v2Pair)
+		initialPair := pd.V2Pair
+		tf := inputs.BinarySearch(pd.V2Pair)
 		tf.Trade.TradeMethod = swapExactTokensForTokens
 		tf.InitialPair = initialPair.ConvertToJSONType()
 		fmt.Println("\nsandwich: ==================================SwapExactTokensForTokens==================================")

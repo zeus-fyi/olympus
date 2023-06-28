@@ -57,7 +57,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			a.m.TxFetcherMetrics.TransactionGroup(toAddr, web3_client.V2SwapExactIn)
 			pend := len(inputs.Path) - 1
 			a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path[0].String(), inputs.Path[pend].String())
-			//pd, perr := u.GetPricingData(ctx, inputs.Path)
+			//pd, perr := u.GetV2PricingData(ctx, inputs.Path)
 			//if perr != nil {
 			//	log.Err(perr).Msg("V2SwapExactIn: error getting pricing data")
 			//	return
@@ -79,7 +79,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			a.m.TxFetcherMetrics.TransactionGroup(toAddr, web3_client.V2SwapExactOut)
 			pend := len(inputs.Path) - 1
 			a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path[0].String(), inputs.Path[pend].String())
-			//pd, perr := u.GetPricingData(ctx, inputs.Path)
+			//pd, perr := u.GetV2PricingData(ctx, inputs.Path)
 			//if perr != nil {
 			//	log.Err(perr).Msg("V2SwapExactOut: error getting pricing data")
 			//	return

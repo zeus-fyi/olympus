@@ -8,17 +8,17 @@ import (
 )
 
 type PricingData struct {
-	v2Pair UniswapV2Pair
-	v3Pair UniswapPoolV3
+	V2Pair UniswapV2Pair
+	V3Pair UniswapPoolV3
 }
 
-func (u *UniswapClient) GetPricingData(ctx context.Context, path []accounts.Address) (*PricingData, error) {
+func (u *UniswapClient) GetV2PricingData(ctx context.Context, path []accounts.Address) (*PricingData, error) {
 	pair, err := u.PairToPrices(ctx, path)
 	if err != nil {
 		return nil, err
 	}
 	return &PricingData{
-		v2Pair: pair,
+		V2Pair: pair,
 	}, nil
 }
 
@@ -37,6 +37,6 @@ func (u *UniswapClient) GetV3PricingData(ctx context.Context, path TokenFeePath)
 		return nil, err
 	}
 	return &PricingData{
-		v3Pair: pairV3,
+		V3Pair: pairV3,
 	}, nil
 }

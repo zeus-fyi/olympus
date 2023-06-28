@@ -44,18 +44,15 @@ func (p *UniswapV2Pair) PairForV2(tokenA, tokenB string) error {
 		return errors.New("identical addresses")
 	}
 	p.sortTokens(accounts.HexToAddress(tokenA), accounts.HexToAddress(tokenB))
-	// GeneratePairAddress generates a pair address for the given tokens
-
-	// 255 is required as a prefix for this to work
-	// see: https://uniswap.org/docs/v2/javascript-SDK/getting-pair-addresses/
 	message := []byte{255}
 	message = append(message, common.HexToAddress(UniswapV2FactoryAddress).Bytes()...)
 	addrSum := p.Token0.Bytes()
 	addrSum = append(addrSum, p.Token1.Bytes()...)
-
 	message = append(message, crypto.Keccak256(addrSum)...)
-
-	b, _ := hex.DecodeString(pairAddressSuffix)
+	b, err := hex.DecodeString(pairAddressSuffix)
+	if err != nil {
+		return err
+	}
 	message = append(message, b...)
 	hashed := crypto.Keccak256(message)
 	addressBytes := big.NewInt(0).SetBytes(hashed)

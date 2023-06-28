@@ -39,9 +39,9 @@ type JSONUniswapV2Pair struct {
 
 const pairAddressSuffix = "96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f"
 
-func (p *UniswapV2Pair) PairForV2(tokenA, tokenB string) (common.Address, error) {
+func (p *UniswapV2Pair) PairForV2(tokenA, tokenB string) error {
 	if tokenA == tokenB {
-		return common.Address{}, errors.New("identical addresses")
+		return errors.New("identical addresses")
 	}
 	p.sortTokens(accounts.HexToAddress(tokenA), accounts.HexToAddress(tokenB))
 	// GeneratePairAddress generates a pair address for the given tokens
@@ -49,9 +49,7 @@ func (p *UniswapV2Pair) PairForV2(tokenA, tokenB string) (common.Address, error)
 	// 255 is required as a prefix for this to work
 	// see: https://uniswap.org/docs/v2/javascript-SDK/getting-pair-addresses/
 	message := []byte{255}
-
 	message = append(message, common.HexToAddress(UniswapV2FactoryAddress).Bytes()...)
-
 	addrSum := p.Token0.Bytes()
 	addrSum = append(addrSum, p.Token1.Bytes()...)
 
@@ -62,7 +60,8 @@ func (p *UniswapV2Pair) PairForV2(tokenA, tokenB string) (common.Address, error)
 	hashed := crypto.Keccak256(message)
 	addressBytes := big.NewInt(0).SetBytes(hashed)
 	addressBytes = addressBytes.Abs(addressBytes)
-	return common.BytesToAddress(addressBytes.Bytes()), nil
+	p.PairContractAddr = common.BytesToAddress(addressBytes.Bytes()).String()
+	return nil
 }
 
 func (p *JSONUniswapV2Pair) ConvertToBigIntType() UniswapV2Pair {

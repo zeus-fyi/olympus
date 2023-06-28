@@ -29,7 +29,7 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 				return
 			}
 			tf := inputs.BinarySearch(pd)
-			tf.InitialPairV3 = pd.v3Pair.ConvertToJSONType()
+			tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 			fmt.Println("\nsandwich: ==================================V3SwapExactIn==================================")
 			ts := TradeSummary{
 				Tx:            tx,
@@ -54,7 +54,7 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 				return
 			}
 			tf := inputs.BinarySearch(pd)
-			tf.InitialPairV3 = pd.v3Pair.ConvertToJSONType()
+			tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 			fmt.Println("\nsandwich: ==================================V3SwapExactOut==================================")
 			ts := TradeSummary{
 				Tx:            tx,
@@ -73,12 +73,12 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 		case V2SwapExactIn:
 			fmt.Println("V2SwapExactIn: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(V2SwapExactInParams)
-			pd, perr := u.GetPricingData(ctx, inputs.Path)
+			pd, perr := u.GetV2PricingData(ctx, inputs.Path)
 			if perr != nil {
 				log.Err(perr).Msg("V2SwapExactIn: error getting pricing data")
 				return
 			}
-			pair := pd.v2Pair
+			pair := pd.V2Pair
 			tf := inputs.BinarySearch(pair)
 			tf.InitialPair = pair.ConvertToJSONType()
 			fmt.Println("\nsandwich: ==================================V2SwapExactIn==================================")
@@ -99,12 +99,12 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx)
 		case V2SwapExactOut:
 			fmt.Println("V2SwapExactOut: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(V2SwapExactOutParams)
-			pd, perr := u.GetPricingData(ctx, inputs.Path)
+			pd, perr := u.GetV2PricingData(ctx, inputs.Path)
 			if perr != nil {
 				log.Err(perr).Msg("V2SwapExactOut: error getting pricing data")
 				return
 			}
-			pair := pd.v2Pair
+			pair := pd.V2Pair
 			tf := inputs.BinarySearch(pair)
 			tf.InitialPair = pair.ConvertToJSONType()
 

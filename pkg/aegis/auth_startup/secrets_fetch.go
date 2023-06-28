@@ -32,6 +32,8 @@ const (
 	ovhAppKey      = "secrets/ovh.app.key.txt"
 	ovhSecretKey   = "secrets/ovh.secret.key.txt"
 	ovhConsumerKey = "secrets/ovh.consumer.key.txt"
+
+	zeroXApiKey = "secrets/zero.x.api.key.txt"
 )
 
 type SecretsWrapper struct {
@@ -53,6 +55,7 @@ type SecretsWrapper struct {
 
 	StripePubKey    string
 	StripeSecretKey string
+	ZeroXApiKey     string
 
 	SecretsManagerAuthAWS aegis_aws_auth.AuthAWS
 	SESAuthAWS            aegis_aws_auth.AuthAWS
@@ -136,6 +139,7 @@ func RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, auth
 	sw.PostgresAuth = sw.MustReadSecret(ctx, inMemSecrets, PgSecret)
 	sw.AccessKeyHydraDynamoDB = sw.MustReadSecret(ctx, inMemSecrets, HydraAccessKeyDynamoDB)
 	sw.SecretKeyHydraDynamoDB = sw.MustReadSecret(ctx, inMemSecrets, HydraSecretKeyDynamoDB)
+	sw.ZeroXApiKey = sw.MustReadSecret(ctx, inMemSecrets, zeroXApiKey)
 	log.Info().Msg("Artemis: RunArtemisDigitalOceanS3BucketObjSecretsProcedure succeeded")
 	return inMemSecrets, sw
 }

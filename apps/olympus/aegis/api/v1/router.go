@@ -33,11 +33,13 @@ func InitV1OrgLevelAuthRoutes(e *echo.Echo) {
 				log.Info().Msg("InitV1Routes: Cookie found")
 				token = cookie.Value
 			}
+
 			key, err := auth.VerifyBearerToken(ctx, token)
 			if err != nil {
 				log.Err(err).Msg("InitV1Routes")
 				return false, c.JSON(http.StatusInternalServerError, nil)
 			}
+
 			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
 			c.Set("orgUser", ou)
 			c.Set("bearer", key.PublicKey)

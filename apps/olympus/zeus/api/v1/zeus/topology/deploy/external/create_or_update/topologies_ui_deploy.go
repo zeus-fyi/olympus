@@ -179,6 +179,9 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 					namespace = "ephemeral-staking"
 				case "goerli-staking":
 					namespace = "goerli-staking"
+				case "tyche":
+					namespace = "tyche"
+					appTaint = false
 				case "poseidon":
 					namespace = "poseidon"
 					appTaint = false

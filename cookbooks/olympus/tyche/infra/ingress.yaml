@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "tyche"
+  namespace: "tyche"
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/auth-url: https://aegis.zeus.fyi/v1/auth/7138983863666903883
+spec:
+  ingressClassName: "nginx"
+  tls:
+    - secretName: tyche-tls
+      hosts:
+        - tyche.zeus.fyi
+  rules:
+    - host: tyche.zeus.fyi
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: tyche
+                port:
+                  number: 80

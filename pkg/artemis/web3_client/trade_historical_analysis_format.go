@@ -163,8 +163,8 @@ func (u *UniswapClient) CheckBlockRxAndNetworkReset(tf *TradeExecutionFlow, live
 }
 
 func (u *UniswapClient) CheckExpectedReserves(tf *TradeExecutionFlow) error {
-	pairAddr := tf.InitialPair.PairContractAddr
-	simPair, err := u.GetPairContractPrices(ctx, pairAddr)
+	simPair := tf.InitialPair
+	err := u.GetPairContractPrices(ctx, &simPair)
 	if err != nil {
 		return err
 	}

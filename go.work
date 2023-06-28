@@ -24,6 +24,7 @@ use (
 	./apps/olympus/poseidon
 	./apps/olympus/iris
 	./apps/olympus/hephaestus
+	./apps/olympus/tyche
 
 	./apps/olympus/zeus
 

@@ -8,17 +8,17 @@ import (
 )
 
 type PricingData struct {
-	v2Pair UniswapV2Pair
-	v3Pair UniswapPoolV3
+	V2Pair UniswapV2Pair
+	V3Pair UniswapPoolV3
 }
 
-func (u *UniswapClient) GetPricingData(ctx context.Context, path []accounts.Address) (*PricingData, error) {
-	pair, err := u.PairToPrices(ctx, path)
+func (u *UniswapClient) GetV2PricingData(ctx context.Context, path []accounts.Address) (*PricingData, error) {
+	pair, err := u.V2PairToPrices(ctx, path)
 	if err != nil {
 		return nil, err
 	}
 	return &PricingData{
-		v2Pair: pair,
+		V2Pair: pair,
 	}, nil
 }
 
@@ -37,6 +37,32 @@ func (u *UniswapClient) GetV3PricingData(ctx context.Context, path TokenFeePath)
 		return nil, err
 	}
 	return &PricingData{
-		v3Pair: pairV3,
+		V3Pair: pairV3,
 	}, nil
 }
+
+/*
+type PricingData struct {
+	v2Pair         UniswapV2Pair
+	token0EthPrice *big.Int
+	token0UsdPrice *big.Int
+	token1EthPrice *big.Int
+	token1UsdPrice *big.Int
+}
+	token0EthPrice, err := price_quoter.GetETHSwapQuote(ctx, pair.Token0.String())
+	if err != nil {
+		log.Err(err).Msg("failed to get eth price for token0")
+	}
+	token0UsdPrice, err := price_quoter.GetUSDSwapQuote(ctx, pair.Token0.String())
+	if err != nil {
+		log.Err(err).Msg("failed to get usd price for token0")
+	}
+	token1EthPrice, err := price_quoter.GetETHSwapQuote(ctx, pair.Token1.String())
+	if err != nil {
+		log.Err(err).Msg("failed to get eth price for token1")
+	}
+	token1UsdPrice, err := price_quoter.GetUSDSwapQuote(ctx, pair.Token1.String())
+	if err != nil {
+		log.Err(err).Msg("failed to get usd price for token1")
+	}
+*/

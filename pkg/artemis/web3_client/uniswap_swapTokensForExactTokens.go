@@ -99,7 +99,7 @@ func (s *SwapTokensForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeE
 	return tf
 }
 
-func (u *UniswapClient) SwapTokensForExactTokens(tx MevTx, args map[string]interface{}) {
+func (s *SwapTokensForExactTokensParams) Decode(args map[string]interface{}) {
 	amountOut, err := ParseBigInt(args["amountOut"])
 	if err != nil {
 		return
@@ -120,19 +120,23 @@ func (u *UniswapClient) SwapTokensForExactTokens(tx MevTx, args map[string]inter
 	if err != nil {
 		return
 	}
-	st := SwapTokensForExactTokensParams{
-		AmountOut:   amountOut,
-		AmountInMax: amountInMax,
-		Path:        path,
-		To:          to,
-		Deadline:    deadline,
-	}
-	pd, err := u.GetPricingData(ctx, path)
+	s.AmountOut = amountOut
+	s.AmountInMax = amountInMax
+	s.Path = path
+	s.To = to
+	s.Deadline = deadline
+}
+
+func (u *UniswapClient) SwapTokensForExactTokens(tx MevTx, args map[string]interface{}) {
+	st := SwapTokensForExactTokensParams{}
+	st.Decode(args)
+	path := st.Path
+	pd, err := u.GetV2PricingData(ctx, path)
 	if err != nil {
 		return
 	}
-	initialPair := pd.v2Pair
-	tf := st.BinarySearch(pd.v2Pair)
+	initialPair := pd.V2Pair
+	tf := st.BinarySearch(pd.V2Pair)
 	tf.InitialPair = initialPair.ConvertToJSONType()
 	if u.PrintOn {
 		fmt.Println("\nsandwich: ==================================SwapTokensForExactTokens==================================")
@@ -145,7 +149,7 @@ func (u *UniswapClient) SwapTokensForExactTokens(tx MevTx, args map[string]inter
 			MinimumAmount: st.AmountOut,
 		}
 		u.PrintTradeSummaries(&ts)
-		//u.PrintTradeSummaries(tx, tf, pd.v2Pair, path[0].String(), st.AmountInMax, st.AmountOut)
+		//u.PrintTradeSummaries(tx, tf, pd.V2Pair, path[0].String(), st.AmountInMax, st.AmountOut)
 		fmt.Println("txHash: ", tx.Tx.Hash().String())
 		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "SandwichPrediction Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
 		fmt.Println("sandwich: ====================================SwapTokensForExactTokens==================================")

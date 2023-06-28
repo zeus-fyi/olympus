@@ -2,12 +2,21 @@ package web3_client
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+)
+
+const (
+	getReserves       = "getReserves"
+	pairAddressSuffix = "96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f"
+	ZeroEthAddress    = "0x0000000000000000000000000000000000000000"
 )
 
 type UniswapV2Pair struct {
@@ -22,81 +31,54 @@ type UniswapV2Pair struct {
 	BlockTimestampLast   *big.Int         `json:"blockTimestampLast"`
 }
 
-type JSONUniswapV2Pair struct {
-	PairContractAddr     string           `json:"pairContractAddr"`
-	Price0CumulativeLast string           `json:"price0CumulativeLast"`
-	Price1CumulativeLast string           `json:"price1CumulativeLast"`
-	KLast                string           `json:"kLast"`
-	Token0               accounts.Address `json:"token0"`
-	Token1               accounts.Address `json:"token1"`
-	Reserve0             string           `json:"reserve0"`
-	Reserve1             string           `json:"reserve1"`
-	BlockTimestampLast   string           `json:"blockTimestampLast"`
+func (p *UniswapV2Pair) PairForV2FromAddresses(tokenA, tokenB accounts.Address) error {
+	return p.PairForV2(tokenA.String(), tokenB.String())
 }
 
-func (p *JSONUniswapV2Pair) ConvertToBigIntType() UniswapV2Pair {
-	p0, _ := new(big.Int).SetString(p.Price0CumulativeLast, 10)
-	p1, _ := new(big.Int).SetString(p.Price1CumulativeLast, 10)
-	k, _ := new(big.Int).SetString(p.KLast, 10)
-	r0, _ := new(big.Int).SetString(p.Reserve0, 10)
-	r1, _ := new(big.Int).SetString(p.Reserve1, 10)
-	bt, _ := new(big.Int).SetString(p.BlockTimestampLast, 10)
-	return UniswapV2Pair{
-		PairContractAddr:     p.PairContractAddr,
-		Price0CumulativeLast: p0,
-		Price1CumulativeLast: p1,
-		KLast:                k,
-		Token0:               p.Token0,
-		Token1:               p.Token1,
-		Reserve0:             r0,
-		Reserve1:             r1,
-		BlockTimestampLast:   bt,
+func (p *UniswapV2Pair) PairForV2(tokenA, tokenB string) error {
+	if tokenA == ZeroEthAddress {
+		tokenA = WETH9ContractAddress
 	}
-}
-func (p *UniswapV2Pair) ConvertToJSONType() JSONUniswapV2Pair {
-	return JSONUniswapV2Pair{
-		PairContractAddr:     p.PairContractAddr,
-		Price0CumulativeLast: p.Price0CumulativeLast.String(),
-		Price1CumulativeLast: p.Price1CumulativeLast.String(),
-		KLast:                p.KLast.String(),
-		Token0:               p.Token0,
-		Token1:               p.Token1,
-		Reserve0:             p.Reserve0.String(),
-		Reserve1:             p.Reserve1.String(),
-		BlockTimestampLast:   p.BlockTimestampLast.String(),
+	if tokenB == ZeroEthAddress {
+		tokenB = WETH9ContractAddress
 	}
+	if tokenA == tokenB {
+		return errors.New("identical addresses")
+	}
+	p.sortTokens(accounts.HexToAddress(tokenA), accounts.HexToAddress(tokenB))
+	message := []byte{255}
+	message = append(message, common.HexToAddress(UniswapV2FactoryAddress).Bytes()...)
+	addrSum := p.Token0.Bytes()
+	addrSum = append(addrSum, p.Token1.Bytes()...)
+	message = append(message, crypto.Keccak256(addrSum)...)
+	b, err := hex.DecodeString(pairAddressSuffix)
+	if err != nil {
+		return err
+	}
+	message = append(message, b...)
+	hashed := crypto.Keccak256(message)
+	addressBytes := big.NewInt(0).SetBytes(hashed)
+	addressBytes = addressBytes.Abs(addressBytes)
+	p.PairContractAddr = common.BytesToAddress(addressBytes.Bytes()).String()
+	return nil
 }
 
-func (p *UniswapV2Pair) GetQuoteToken0BuyToken1(token0 *big.Int) (*big.Int, error) {
-	if p.Reserve0 == nil || p.Reserve1 == nil || p.Reserve0.Cmp(big.NewInt(0)) == 0 || p.Reserve1.Cmp(big.NewInt(0)) == 0 {
-		return nil, errors.New("reserves are not initialized or are zero")
+func (u *UniswapClient) V2PairToPrices(ctx context.Context, pairAddr []accounts.Address) (UniswapV2Pair, error) {
+	p := UniswapV2Pair{}
+	if len(pairAddr) == 2 {
+		err := p.PairForV2(pairAddr[0].String(), pairAddr[1].String())
+		if err != nil {
+			log.Err(err).Msg("V2PairToPrices: PairForV2")
+			return p, err
+		}
+		err = u.GetPairContractPrices(ctx, &p)
+		if err != nil {
+			log.Err(err).Msg("V2PairToPrices: GetPairContractPrices")
+			return p, err
+		}
+		return p, err
 	}
-	amountInWithFee := new(big.Int).Mul(token0, big.NewInt(997))
-	numerator := new(big.Int).Mul(amountInWithFee, p.Reserve1)
-	denominator := new(big.Int).Mul(p.Reserve0, big.NewInt(1000))
-	denominator = new(big.Int).Add(denominator, amountInWithFee)
-	if denominator.Cmp(big.NewInt(0)) == 0 {
-		log.Warn().Msg("denominator is 0")
-		return nil, errors.New("denominator is 0")
-	}
-	amountOut := new(big.Int).Div(numerator, denominator)
-	return amountOut, nil
-}
-
-func (p *UniswapV2Pair) GetQuoteToken1BuyToken0(token1 *big.Int) (*big.Int, error) {
-	if p.Reserve0 == nil || p.Reserve1 == nil || p.Reserve0.Cmp(big.NewInt(0)) == 0 || p.Reserve1.Cmp(big.NewInt(0)) == 0 {
-		return nil, errors.New("reserves are not initialized or are zero")
-	}
-	amountInWithFee := new(big.Int).Mul(token1, big.NewInt(997))
-	numerator := new(big.Int).Mul(amountInWithFee, p.Reserve0)
-	denominator := new(big.Int).Mul(p.Reserve1, big.NewInt(1000))
-	denominator = new(big.Int).Add(denominator, amountInWithFee)
-	if denominator.Cmp(big.NewInt(0)) == 0 {
-		log.Warn().Msg("denominator is 0")
-		return nil, errors.New("denominator is 0")
-	}
-	amountOut := new(big.Int).Div(numerator, denominator)
-	return amountOut, nil
+	return UniswapV2Pair{}, errors.New("pair address length is not 2, multi-hops not implemented yet")
 }
 
 func (p *UniswapV2Pair) GetQuoteUsingTokenAddr(addr string, amount *big.Int) (*big.Int, error) {
@@ -145,31 +127,39 @@ func (p *UniswapV2Pair) GetTokenNumber(addr accounts.Address) int {
 	return -1
 }
 
-func (u *UniswapClient) PairToPrices(ctx context.Context, pairAddr []accounts.Address) (UniswapV2Pair, error) {
-	if len(pairAddr) == 2 {
-		pairContractAddr := u.GetPairContractFromFactory(ctx, pairAddr[0].String(), pairAddr[1].String())
-		return u.GetPairContractPrices(ctx, pairContractAddr.String())
-	}
-	return UniswapV2Pair{}, errors.New("pair address length is not 2")
-}
-
-func (u *UniswapClient) GetPairContractPrices(ctx context.Context, pairContractAddr string) (UniswapV2Pair, error) {
+func (u *UniswapClient) GetPairContractPrices(ctx context.Context, p *UniswapV2Pair) error {
 	scInfo := &web3_actions.SendContractTxPayload{
-		SmartContractAddr: pairContractAddr,
+		SmartContractAddr: p.PairContractAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
 		ContractABI:       u.PairAbi,
 	}
-	pairInfo := UniswapV2Pair{
-		PairContractAddr:     pairContractAddr,
-		Price0CumulativeLast: nil,
-		Price1CumulativeLast: nil,
-		KLast:                nil,
-		Token0:               accounts.Address{},
-		Token1:               accounts.Address{},
-		Reserve0:             nil,
-		Reserve1:             nil,
-		BlockTimestampLast:   nil,
+	scInfo.MethodName = getReserves
+	resp, err := u.Web3Client.CallConstantFunction(ctx, scInfo)
+	if err != nil {
+		return err
 	}
+	if len(resp) <= 2 {
+		return err
+	}
+	reserve0, err := ParseBigInt(resp[0])
+	if err != nil {
+		return err
+	}
+	p.Reserve0 = reserve0
+	reserve1, err := ParseBigInt(resp[1])
+	if err != nil {
+		return err
+	}
+	p.Reserve1 = reserve1
+	blockTimestampLast, err := ParseBigInt(resp[2])
+	if err != nil {
+		return err
+	}
+	p.BlockTimestampLast = blockTimestampLast
+	return nil
+}
+
+/*
 	price0, err := u.SingleReadMethodBigInt(ctx, "price0CumulativeLast", scInfo)
 	if err != nil {
 		return UniswapV2Pair{}, err
@@ -194,29 +184,4 @@ func (u *UniswapClient) GetPairContractPrices(ctx context.Context, pairContractA
 	if err != nil {
 		return UniswapV2Pair{}, err
 	}
-	pairInfo.Token1 = token1
-	scInfo.MethodName = "getReserves"
-	resp, err := u.Web3Client.CallConstantFunction(ctx, scInfo)
-	if err != nil {
-		return UniswapV2Pair{}, err
-	}
-	if len(resp) <= 2 {
-		return UniswapV2Pair{}, err
-	}
-	reserve0, err := ParseBigInt(resp[0])
-	if err != nil {
-		return UniswapV2Pair{}, err
-	}
-	pairInfo.Reserve0 = reserve0
-	reserve1, err := ParseBigInt(resp[1])
-	if err != nil {
-		return UniswapV2Pair{}, err
-	}
-	pairInfo.Reserve1 = reserve1
-	blockTimestampLast, err := ParseBigInt(resp[2])
-	if err != nil {
-		return UniswapV2Pair{}, err
-	}
-	pairInfo.BlockTimestampLast = blockTimestampLast
-	return pairInfo, nil
-}
+*/

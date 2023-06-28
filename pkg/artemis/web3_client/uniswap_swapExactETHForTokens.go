@@ -33,6 +33,7 @@ func (s *SwapExactETHForTokensParams) ConvertToJSONType() *JSONSwapExactETHForTo
 		Deadline:     s.Deadline.String(),
 	}
 }
+
 func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlowJSON {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.Value)
@@ -41,7 +42,7 @@ func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlowJSON{
 		Trade: Trade{
-			TradeMethod:                     "swapExactETHForTokens",
+			TradeMethod:                     swapExactETHForTokens,
 			JSONSwapExactETHForTokensParams: s.ConvertToJSONType(),
 		},
 	}
@@ -97,7 +98,7 @@ func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 	return tf
 }
 
-func (u *UniswapClient) SwapExactETHForTokens(tx MevTx, args map[string]interface{}, payableEth *big.Int) {
+func (s *SwapExactETHForTokensParams) Decode(args map[string]interface{}, payableEth *big.Int) {
 	amountOutMin, err := ParseBigInt(args["amountOutMin"])
 	if err != nil {
 		return
@@ -114,19 +115,23 @@ func (u *UniswapClient) SwapExactETHForTokens(tx MevTx, args map[string]interfac
 	if err != nil {
 		return
 	}
-	st := SwapExactETHForTokensParams{
-		AmountOutMin: amountOutMin,
-		Path:         path,
-		To:           to,
-		Deadline:     deadline,
-		Value:        payableEth,
-	}
-	pd, err := u.GetPricingData(ctx, path)
+	s.AmountOutMin = amountOutMin
+	s.Path = path
+	s.To = to
+	s.Deadline = deadline
+	s.Value = payableEth
+}
+
+func (u *UniswapClient) SwapExactETHForTokens(tx MevTx, args map[string]interface{}, payableEth *big.Int) {
+	st := SwapExactETHForTokensParams{}
+	st.Decode(args, payableEth)
+	path := st.Path
+	pd, err := u.GetV2PricingData(ctx, path)
 	if err != nil {
 		return
 	}
-	initialPair := pd.v2Pair
-	tf := st.BinarySearch(pd.v2Pair)
+	initialPair := pd.V2Pair
+	tf := st.BinarySearch(pd.V2Pair)
 	tf.InitialPair = initialPair.ConvertToJSONType()
 	if u.PrintOn {
 		fmt.Println("\nsandwich: ==================================SwapExactETHForTokens==================================")
@@ -139,7 +144,7 @@ func (u *UniswapClient) SwapExactETHForTokens(tx MevTx, args map[string]interfac
 			MinimumAmount: st.AmountOutMin,
 		}
 		u.PrintTradeSummaries(ts)
-		//u.PrintTradeSummaries(tx, tf, pd.v2Pair, path[0].String(), st.Value, st.AmountOutMin)
+		//u.PrintTradeSummaries(tx, tf, pd.V2Pair, path[0].String(), st.Value, st.AmountOutMin)
 		fmt.Println("txHash: ", tx.Tx.Hash().String())
 		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "SandwichPrediction Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
 		fmt.Println("sandwich: ====================================SwapExactETHForTokens==================================")

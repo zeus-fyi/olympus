@@ -41,7 +41,7 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlowJSON{
 		Trade: Trade{
-			TradeMethod:                     "swapExactTokensForETH",
+			TradeMethod:                     swapExactTokensForETH,
 			JSONSwapExactTokensForETHParams: s.ConvertToJSONType(),
 		},
 	}
@@ -97,7 +97,7 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 	return tf
 }
 
-func (u *UniswapClient) SwapExactTokensForETH(tx MevTx, args map[string]interface{}) {
+func (s *SwapExactTokensForETHParams) Decode(args map[string]interface{}) {
 	amountIn, err := ParseBigInt(args["amountIn"])
 	if err != nil {
 		return
@@ -118,19 +118,23 @@ func (u *UniswapClient) SwapExactTokensForETH(tx MevTx, args map[string]interfac
 	if err != nil {
 		return
 	}
-	st := SwapExactTokensForETHParams{
-		AmountIn:     amountIn,
-		AmountOutMin: amountOutMin,
-		Path:         path,
-		To:           to,
-		Deadline:     deadline,
-	}
-	pd, err := u.GetPricingData(ctx, path)
+	s.AmountIn = amountIn
+	s.AmountOutMin = amountOutMin
+	s.Path = path
+	s.To = to
+	s.Deadline = deadline
+}
+
+func (u *UniswapClient) SwapExactTokensForETH(tx MevTx, args map[string]interface{}) {
+	st := SwapExactTokensForETHParams{}
+	st.Decode(args)
+	path := st.Path
+	pd, err := u.GetV2PricingData(ctx, path)
 	if err != nil {
 		return
 	}
-	initialPair := pd.v2Pair
-	tf := st.BinarySearch(pd.v2Pair)
+	initialPair := pd.V2Pair
+	tf := st.BinarySearch(pd.V2Pair)
 	tf.InitialPair = initialPair.ConvertToJSONType()
 	if u.PrintOn {
 		fmt.Println("\nsandwich: ==================================SwapExactTokensForETH==================================")
@@ -143,7 +147,7 @@ func (u *UniswapClient) SwapExactTokensForETH(tx MevTx, args map[string]interfac
 			MinimumAmount: st.AmountOutMin,
 		}
 		u.PrintTradeSummaries(ts)
-		//u.PrintTradeSummaries(tx, tf, pd.v2Pair, path[0].String(), st.AmountIn, st.AmountOutMin)
+		//u.PrintTradeSummaries(tx, tf, pd.V2Pair, path[0].String(), st.AmountIn, st.AmountOutMin)
 		fmt.Println("txHash: ", tx.Tx.Hash().String())
 		fmt.Println("Sell Token: ", path[0].String(), "Buy Token", path[1].String(), "SandwichPrediction Sell Amount: ", tf.SandwichPrediction.SellAmount, "Expected Profit: ", tf.SandwichPrediction.ExpectedProfit)
 		fmt.Println("sandwich: ====================================SwapExactTokensForETH==================================")

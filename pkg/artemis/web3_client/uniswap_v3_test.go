@@ -68,7 +68,7 @@ func (s *Web3ClientTestSuite) TestDecodeMulticall() {
 	s.Require().Nil(err)
 
 	for _, data := range mc.Data {
-		mn, args, err = DecodeTxData(ctx, data, uni.MevSmartContractTxMapV3SwapRouterV2)
+		mn, args, err = DecodeTxData(ctx, data, uni.MevSmartContractTxMapV3SwapRouterV2.Abi, uni.MevSmartContractTxMapV3SwapRouterV2.Filter)
 		s.Require().Nil(err)
 		s.Require().NotEmpty(mn)
 		s.Require().NotEmpty(args)

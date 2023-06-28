@@ -1,4 +1,4 @@
-package pricequoter
+package price_quoter
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
@@ -41,7 +42,14 @@ func (s *PriceQuoterTestSuite) TestGetUSDSwapQuote() {
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(quote)
 	fmt.Println("USDC Guaranteed Price for 1 PEPE: ", quote.GuaranteedPrice)
+}
 
+func (s *PriceQuoterTestSuite) TestGet_ETH_USD_SwapQuote() {
+	testToken := web3_client.WETH9ContractAddress
+	quote, err := GetUSDSwapQuote(ctx, testToken)
+	s.Require().Nil(err)
+	s.Assert().NotEmpty(quote)
+	fmt.Println("USDC Guaranteed Price for 1 Eth: ", quote.GuaranteedPrice)
 }
 
 func TestPriceQuoterTestSuite(t *testing.T) {

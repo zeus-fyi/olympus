@@ -33,6 +33,7 @@ func (s *SwapExactETHForTokensParams) ConvertToJSONType() *JSONSwapExactETHForTo
 		Deadline:     s.Deadline.String(),
 	}
 }
+
 func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlowJSON {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.Value)
@@ -41,7 +42,7 @@ func (s *SwapExactETHForTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlowJSON{
 		Trade: Trade{
-			TradeMethod:                     "swapExactETHForTokens",
+			TradeMethod:                     swapExactETHForTokens,
 			JSONSwapExactETHForTokensParams: s.ConvertToJSONType(),
 		},
 	}

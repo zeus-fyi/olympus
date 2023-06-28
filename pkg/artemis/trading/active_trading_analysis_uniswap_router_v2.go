@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/pkg/artemis/price_quoter"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -29,20 +31,26 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 	toAddr := tx.Tx.To().String()
 	switch tx.MethodName {
 	case addLiquidity:
+		a.m.TxFetcherMetrics.TransactionGroup(toAddr, addLiquidity)
 		//u.AddLiquidity(tx.Args)
 	case addLiquidityETH:
+		a.m.TxFetcherMetrics.TransactionGroup(toAddr, addLiquidityETH)
 		// payable
 		//u.AddLiquidityETH(tx.Args)
 		if tx.Tx.Value() == nil {
 			return
 		}
 	case removeLiquidity:
+		a.m.TxFetcherMetrics.TransactionGroup(toAddr, removeLiquidity)
 		//u.RemoveLiquidity(tx.Args)
 	case removeLiquidityETH:
+		a.m.TxFetcherMetrics.TransactionGroup(toAddr, removeLiquidityETH)
 		//u.RemoveLiquidityETH(tx.Args)
 	case removeLiquidityWithPermit:
+		a.m.TxFetcherMetrics.TransactionGroup(toAddr, removeLiquidityWithPermit)
 		//u.RemoveLiquidityWithPermit(tx.Args)
 	case removeLiquidityETHWithPermit:
+		a.m.TxFetcherMetrics.TransactionGroup(toAddr, removeLiquidityETHWithPermit)
 		//u.RemoveLiquidityETHWithPermit(tx.Args)
 	case swapExactTokensForTokens:
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokens)
@@ -84,6 +92,13 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		}
 		tf := st.BinarySearch(pd.V2Pair)
 		fmt.Println("tf", tf)
+
+		quote, err := price_quoter.GetUSDSwapQuoteWithAmount(ctx, st.Path[0].String(), tf.SandwichPrediction.ExpectedProfit)
+		if err != nil {
+			log.Err(err).Msg("failed to get usd quote for profit currency")
+		}
+		fmt.Println(quote.GuaranteedPrice)
+		// tf.SandwichPrediction.ExpectedProfit
 	case swapTokensForExactETH:
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapTokensForExactETH)
 		st := web3_client.SwapTokensForExactETHParams{}

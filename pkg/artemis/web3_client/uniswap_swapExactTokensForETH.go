@@ -41,7 +41,7 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlowJSON{
 		Trade: Trade{
-			TradeMethod:                     "swapExactTokensForETH",
+			TradeMethod:                     swapExactTokensForETH,
 			JSONSwapExactTokensForETHParams: s.ConvertToJSONType(),
 		},
 	}

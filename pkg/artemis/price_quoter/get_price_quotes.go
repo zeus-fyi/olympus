@@ -1,4 +1,4 @@
-package pricequoter
+package price_quoter
 
 import (
 	"context"
@@ -106,7 +106,25 @@ func (c *Client) sendSwapRequest(ctx context.Context, endpoint string, params ma
 		return "", err
 	}
 	return string(body), nil
+}
 
+func GetUSDSwapQuoteWithAmount(ctx context.Context, token, amount string) (*SwapQuote, error) {
+	params := map[string]string{
+		"sellAmount": amount,
+		"buyToken":   "USDC",
+		"sellToken":  token,
+	}
+	client := NewClient()
+	body, err := client.sendSwapRequest(ctx, "quote", params)
+	if err != nil {
+		return nil, err
+	}
+	var quote SwapQuote
+	err = json.Unmarshal([]byte(body), &quote)
+	if err != nil {
+		return nil, err
+	}
+	return &quote, nil
 }
 
 func GetUSDSwapQuote(ctx context.Context, token string) (*SwapQuote, error) {

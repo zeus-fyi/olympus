@@ -19,35 +19,7 @@ func Routes(e *echo.Echo) *echo.Echo {
 	InitV1Routes(e)
 	InitWeb3SignerRoutes(e)
 	InitV1OrgLevelAuthRoutes(e)
-	InitV1OrgLevelAuthMevRoutes(e)
 	return e
-}
-
-const (
-	UserID = 7138958574876245567
-	OrgID  = 7138983863666903883
-)
-
-func InitV1OrgLevelAuthMevRoutes(e *echo.Echo) {
-	eg := e.Group("/v1/mev/mempool")
-	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
-		AuthScheme: "Bearer",
-		Validator: func(token string, c echo.Context) (bool, error) {
-			//ctx := context.Background()
-			cookie, err := c.Cookie(aegis_sessions.SessionIDNickname)
-			if err == nil && cookie != nil {
-				log.Info().Msg("InitV1Routes: Cookie found")
-				token = cookie.Value
-			}
-			if token != "J3amjH@DgEB7JGhsfCv$eRDm2^EEM%$F&D$Ce9TK@QPSR8@&87#rVKvHcQu!6" {
-				return false, c.JSON(http.StatusInternalServerError, nil)
-			}
-			ou := org_users.NewOrgUserWithID(OrgID, UserID)
-			c.Set("orgUser", ou)
-			return true, nil
-		},
-	}))
-	eg.GET("/tx/", OrgNginxAuthHandler)
 }
 
 func InitV1OrgLevelAuthRoutes(e *echo.Echo) {

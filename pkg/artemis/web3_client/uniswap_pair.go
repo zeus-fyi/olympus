@@ -43,6 +43,10 @@ type JSONUniswapV2Pair struct {
 	BlockTimestampLast   string           `json:"blockTimestampLast"`
 }
 
+func (p *UniswapV2Pair) PairForV2FromAddresses(tokenA, tokenB accounts.Address) error {
+	return p.PairForV2(tokenA.String(), tokenB.String())
+}
+
 func (p *UniswapV2Pair) PairForV2(tokenA, tokenB string) error {
 	if tokenA == ZeroEthAddress {
 		tokenA = WETH9ContractAddress
@@ -69,6 +73,24 @@ func (p *UniswapV2Pair) PairForV2(tokenA, tokenB string) error {
 	addressBytes = addressBytes.Abs(addressBytes)
 	p.PairContractAddr = common.BytesToAddress(addressBytes.Bytes()).String()
 	return nil
+}
+
+func (u *UniswapClient) PairToPrices(ctx context.Context, pairAddr []accounts.Address) (UniswapV2Pair, error) {
+	p := UniswapV2Pair{}
+	if len(pairAddr) == 2 {
+		err := p.PairForV2(pairAddr[0].String(), pairAddr[1].String())
+		if err != nil {
+			log.Err(err).Msg("PairToPrices: PairForV2")
+			return p, err
+		}
+		err = u.GetPairContractPrices(ctx, &p)
+		if err != nil {
+			log.Err(err).Msg("PairToPrices: GetPairContractPrices")
+			return p, err
+		}
+		return p, err
+	}
+	return UniswapV2Pair{}, errors.New("pair address length is not 2, multi-hops not implemented yet")
 }
 
 func (p *UniswapV2Pair) GetQuoteUsingTokenAddr(addr string, amount *big.Int) (*big.Int, error) {
@@ -115,24 +137,6 @@ func (p *UniswapV2Pair) GetTokenNumber(addr accounts.Address) int {
 	}
 	log.Warn().Msgf("GetTokenNumber: token not found: %s", addr)
 	return -1
-}
-
-func (u *UniswapClient) PairToPrices(ctx context.Context, pairAddr []accounts.Address) (UniswapV2Pair, error) {
-	p := UniswapV2Pair{}
-	if len(pairAddr) == 2 {
-		err := p.PairForV2(pairAddr[0].String(), pairAddr[1].String())
-		if err != nil {
-			log.Err(err).Msg("PairToPrices: PairForV2")
-			return p, err
-		}
-		err = u.GetPairContractPrices(ctx, &p)
-		if err != nil {
-			log.Err(err).Msg("PairToPrices: GetPairContractPrices")
-			return p, err
-		}
-		return p, err
-	}
-	return UniswapV2Pair{}, errors.New("pair address length is not 2, multi-hops not implemented yet")
 }
 
 func (u *UniswapClient) GetPairContractPrices(ctx context.Context, p *UniswapV2Pair) error {

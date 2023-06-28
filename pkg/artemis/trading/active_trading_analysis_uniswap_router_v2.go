@@ -2,6 +2,7 @@ package artemis_realtime_trading
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
@@ -49,46 +50,79 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		st.Decode(ctx, tx.Args)
 		pend := len(st.Path) - 1
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
+		pd, err := a.u.GetV2PricingData(ctx, st.Path)
+		if err != nil {
+			return
+		}
+		tf := st.BinarySearch(pd.V2Pair)
+		fmt.Println("tf", tf)
 	case swapTokensForExactTokens:
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapTokensForExactTokens)
 		st := web3_client.SwapTokensForExactTokensParams{}
 		st.Decode(tx.Args)
 		pend := len(st.Path) - 1
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
+		pd, err := a.u.GetV2PricingData(ctx, st.Path)
+		if err != nil {
+			return
+		}
+		tf := st.BinarySearch(pd.V2Pair)
+		fmt.Println("tf", tf)
 	case swapExactETHForTokens:
-		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactETHForTokens)
 		// payable
 		if tx.Tx.Value() == nil {
 			return
 		}
+		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactETHForTokens)
 		st := web3_client.SwapExactETHForTokensParams{}
 		st.Decode(tx.Args, tx.Tx.Value())
 		pend := len(st.Path) - 1
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
+		pd, err := a.u.GetV2PricingData(ctx, st.Path)
+		if err != nil {
+			return
+		}
+		tf := st.BinarySearch(pd.V2Pair)
+		fmt.Println("tf", tf)
 	case swapTokensForExactETH:
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapTokensForExactETH)
-		//a.u.SwapTokensForExactETH(tx, tx.Args)
 		st := web3_client.SwapTokensForExactETHParams{}
 		st.Decode(tx.Args)
 		pend := len(st.Path) - 1
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
+		pd, err := a.u.GetV2PricingData(ctx, st.Path)
+		if err != nil {
+			return
+		}
+		tf := st.BinarySearch(pd.V2Pair)
+		fmt.Println("tf", tf)
 	case swapExactTokensForETH:
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForETH)
-		//a.u.SwapExactTokensForETH(tx, tx.Args)
 		st := web3_client.SwapExactTokensForETHParams{}
 		st.Decode(tx.Args)
 		pend := len(st.Path) - 1
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
+		pd, err := a.u.GetV2PricingData(ctx, st.Path)
+		if err != nil {
+			return
+		}
+		tf := st.BinarySearch(pd.V2Pair)
+		fmt.Println("tf", tf)
 	case swapETHForExactTokens:
-		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapETHForExactTokens)
 		// payable
 		if tx.Tx.Value() == nil {
 			return
 		}
-		//a.u.SwapETHForExactTokens(tx, tx.Args, tx.Tx.Value())
+		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapETHForExactTokens)
 		st := web3_client.SwapETHForExactTokensParams{}
 		st.Decode(tx.Args, tx.Tx.Value())
 		pend := len(st.Path) - 1
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
+		pd, err := a.u.GetV2PricingData(ctx, st.Path)
+		if err != nil {
+			return
+		}
+		tf := st.BinarySearch(pd.V2Pair)
+		fmt.Println("tf", tf)
 	}
 }

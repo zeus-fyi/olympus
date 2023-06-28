@@ -60,16 +60,4 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	log.Info().Msg("Tyche: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	log.Info().Msg("Tyche: PG connection succeeded")
-
-	//log.Info().Msgf("Tyche %s orchestration retrieving auth token", env)
-	//artemis_orchestration_auth.Bearer = auth_startup.FetchTemporalAuthBearer(ctx)
-	//log.Info().Msgf("Tyche %s orchestration retrieving auth token done", env)
-	//
-	//log.Info().Msgf("Tyche InitEthereumBroadcasters: %s temporal auth and init procedure starting", env)
-	//artemis_ethereum_transcations.InitEthereumBroadcasters(ctx, temporalAuthCfg)
-	//log.Info().Msgf("Tyche InitEthereumBroadcasters: %s temporal auth and init procedure succeeded", env)
-	//
-	//log.Info().Msgf("Tyche InitMevWorkers: %s temporal auth and init procedure starting", env)
-	//artemis_mev_tx_fetcher.InitMevWorkers(ctx, temporalAuthCfg)
-	//log.Info().Msgf("Tyche InitMevWorkers: %s temporal auth and init procedure succeeded", env)
 }

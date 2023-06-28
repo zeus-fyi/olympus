@@ -57,15 +57,51 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 	toAddr := tx.Tx.To().String()
 	switch tx.MethodName {
 	case exactInput:
+		inputs := &web3_client.ExactInputParams{}
+		err := inputs.Decode(ctx, tx.Args)
+		if err != nil {
+			log.Err(err).Msg("failed to decode exact input args")
+			return
+		}
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, exactInput)
+		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 	case exactOutput:
+		inputs := &web3_client.ExactOutputParams{}
+		err := inputs.Decode(ctx, tx.Args)
+		if err != nil {
+			log.Err(err).Msg("failed to decode exact output args")
+			return
+		}
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, exactOutput)
+		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 	case swapExactInputSingle:
+		inputs := &web3_client.SwapExactInputSingleArgs{}
+		err := inputs.Decode(ctx, tx.Args)
+		if err != nil {
+			log.Err(err).Msg("failed to decode swap exact input single args")
+			return
+		}
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactInputSingle)
+		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 	case swapExactOutputSingle:
+		inputs := &web3_client.SwapExactOutputSingleArgs{}
+		err := inputs.Decode(ctx, tx.Args)
+		if err != nil {
+			log.Err(err).Msg("failed to decode swap exact output single args")
+			return
+		}
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactOutputSingle)
+		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 	case swapExactTokensForTokens:
+		inputs := &web3_client.SwapExactTokensForTokensParamsV3{}
+		err := inputs.Decode(ctx, tx.Args)
+		if err != nil {
+			log.Err(err).Msg("swapExactTokensForTokens: failed to decode swap exact tokens for tokens args")
+			return
+		}
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokens)
+		pend := len(inputs.Path) - 1
+		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path[0].String(), inputs.Path[pend].String())
 	case swapExactInputMultihop:
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactInputMultihop)
 	case swapExactOutputMultihop:

@@ -97,7 +97,7 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair UniswapV2Pair) TradeExec
 	return tf
 }
 
-func (u *UniswapClient) SwapExactTokensForETH(tx MevTx, args map[string]interface{}) {
+func (s *SwapExactTokensForETHParams) Decode(args map[string]interface{}) {
 	amountIn, err := ParseBigInt(args["amountIn"])
 	if err != nil {
 		return
@@ -118,13 +118,17 @@ func (u *UniswapClient) SwapExactTokensForETH(tx MevTx, args map[string]interfac
 	if err != nil {
 		return
 	}
-	st := SwapExactTokensForETHParams{
-		AmountIn:     amountIn,
-		AmountOutMin: amountOutMin,
-		Path:         path,
-		To:           to,
-		Deadline:     deadline,
-	}
+	s.AmountIn = amountIn
+	s.AmountOutMin = amountOutMin
+	s.Path = path
+	s.To = to
+	s.Deadline = deadline
+}
+
+func (u *UniswapClient) SwapExactTokensForETH(tx MevTx, args map[string]interface{}) {
+	st := SwapExactTokensForETHParams{}
+	st.Decode(args)
+	path := st.Path
 	pd, err := u.GetPricingData(ctx, path)
 	if err != nil {
 		return

@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
-	apollo_metrics_workload_info "github.com/zeus-fyi/olympus/pkg/apollo/metrics/workload_info"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	v1_tyche "github.com/zeus-fyi/olympus/tyche/api/v1"
 	tyche_metrics "github.com/zeus-fyi/olympus/tyche/metrics"
@@ -35,8 +34,7 @@ func Tyche() {
 	srv := NewTycheServer(cfg)
 	log.Ctx(ctx).Info().Msg("Tyche: Initializing configs by environment type")
 	SetConfigByEnv(ctx, env)
-	mwi := apollo_metrics_workload_info.NewWorkloadInfo("tyche", Workload.CloudCtxNs)
-	tyche_metrics.InitTycheMetrics(ctx, mwi)
+	tyche_metrics.InitTycheMetrics(ctx)
 	srv.E = v1_tyche.Routes(srv.E)
 	srv.Start()
 }

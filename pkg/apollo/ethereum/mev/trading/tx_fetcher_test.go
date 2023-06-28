@@ -26,7 +26,7 @@ func (t *TxFetcherMetricsTestSuite) TestNewTxFetcherMetrics() {
 	txMetrics.TransactionGroup(web3_client.UniswapUniversalRouterAddressNew, "swapExactETHForTokens")
 
 	// Use the GatherAndCount helper function to count the number of occurrences of the metric
-	count, err := testutil.GatherAndCount(reg, "ethereum_mev_tx_stats")
+	count, err := testutil.GatherAndCount(reg, "eth_mempool_mev_tx_stats")
 	t.Require().NoError(err)
 
 	// Assert that the count is 1

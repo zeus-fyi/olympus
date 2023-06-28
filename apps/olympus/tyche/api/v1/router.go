@@ -8,7 +8,7 @@ import (
 
 func Routes(e *echo.Echo) *echo.Echo {
 	e.GET("/health", Health)
-	e.POST("/mev/tx", TxProcessingRequestHandler)
+	e.POST("/mev/incoming/tx", TxProcessingRequestHandler)
 	return e
 }
 

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/prometheus/client_golang/prometheus"
 	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
@@ -14,8 +13,8 @@ type ActiveTrading struct {
 	m metrics_trading.TradingMetrics
 }
 
-func NewActiveTradingModule(u *web3_client.UniswapClient, reg prometheus.Registerer) ActiveTrading {
-	return ActiveTrading{u, metrics_trading.NewTradingMetrics(reg)}
+func NewActiveTradingModule(u *web3_client.UniswapClient, tm metrics_trading.TradingMetrics) ActiveTrading {
+	return ActiveTrading{u, tm}
 }
 
 func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) {

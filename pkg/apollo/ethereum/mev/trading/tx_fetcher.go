@@ -6,14 +6,14 @@ import (
 
 type TxFetcherMetrics struct {
 	TradeMethodStats *prometheus.GaugeVec
-	CurrencyStats    *prometheus.GaugeVec
+	//CurrencyStats    *prometheus.GaugeVec
 }
 
 func NewTxFetcherMetrics(reg prometheus.Registerer) TxFetcherMetrics {
 	tx := TxFetcherMetrics{}
 	tx.TradeMethodStats = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "ethereum_incoming_mev_tx_stats",
+			Name: "eth_mempool_mev_tx_stats",
 			Help: "Count of unique incoming mev txs added by the tx fetcher with additional stats",
 		},
 		[]string{"address", "method"},

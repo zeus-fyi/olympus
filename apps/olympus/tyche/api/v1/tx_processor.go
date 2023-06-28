@@ -4,11 +4,14 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_realtime_trading "github.com/zeus-fyi/olympus/pkg/artemis/trading"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
+	tyche_metrics "github.com/zeus-fyi/olympus/tyche/metrics"
 )
 
 type TxProcessingRequest struct {
-	Txs []*types.Transaction
+	Txs []*types.Transaction `json:"txs"`
 }
 
 func TxProcessingRequestHandler(c echo.Context) error {
@@ -21,9 +24,14 @@ func TxProcessingRequestHandler(c echo.Context) error {
 }
 
 func (t *TxProcessingRequest) ProcessTx(c echo.Context) error {
-	a := artemis_realtime_trading.ActiveTrading{}
-
+	ctx := c.Request().Context()
+	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnetQuiknode.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
+	uni := web3_client.InitUniswapClient(ctx, wc)
+	a := artemis_realtime_trading.NewActiveTradingModule(&uni, tyche_metrics.TradeMetrics)
 	// should process in parallel
-	a.ProcessTx(c.Request().Context(), nil)
+
+	for _, tx := range t.Txs {
+		a.IngestTx(ctx, tx)
+	}
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
@@ -14,21 +15,21 @@ func DecodeTxArgData(ctx context.Context, tx *types.Transaction, mevMap MevSmart
 		return "", nil, errors.New("tx data is nil")
 	}
 	input := tx.Data()
-	return DecodeTxData(ctx, input, mevMap)
+	return DecodeTxData(ctx, input, mevMap.Abi, mevMap.Filter)
 }
 
-func DecodeTxData(ctx context.Context, input []byte, mevMap MevSmartContractTxMap) (string, map[string]interface{}, error) {
+func DecodeTxData(ctx context.Context, input []byte, abiDefinition *abi.ABI, filter *strings_filter.FilterOpts) (string, map[string]interface{}, error) {
 	calldata := input
 	if len(calldata) < 4 {
 		log.Info().Interface("method", "unknown").Msg("Web3Client| GetFilteredPendingMempoolTxs invalid calldata length")
 		return "", nil, errors.New("invalid calldata length")
 	}
 	sigdata := calldata[:4]
-	if mevMap.Abi == nil {
+	if abiDefinition == nil {
 		log.Info().Interface("method", "unknown").Msg("Web3Client| GetFilteredPendingMempoolTxs Abi Invalid")
 		return "", nil, errors.New("abi invalid")
 	}
-	method, merr := mevMap.Abi.MethodById(sigdata[:4])
+	method, merr := abiDefinition.MethodById(sigdata[:4])
 	if merr != nil {
 		log.Info().Err(merr).Msg("Web3Client| GetFilteredPendingMempoolTxs Method Invalid")
 		return "", nil, errors.New("abi method invalid")
@@ -41,7 +42,7 @@ func DecodeTxData(ctx context.Context, input []byte, mevMap MevSmartContractTxMa
 		log.Info().Interface("method", "unknown").Msg("Web3Client| GetFilteredPendingMempoolTxs Method Invalid")
 		return "", nil, errors.New("abi method name empty")
 	}
-	if !strings_filter.FilterStringWithOpts(method.Name, mevMap.Filter) {
+	if !strings_filter.FilterStringWithOpts(method.Name, filter) {
 		//log.Debug().Msg("Web3Client| GetFilteredPendingMempoolTxs Method Filtered")
 		return "", nil, errors.New("no methods left after filtering")
 	}

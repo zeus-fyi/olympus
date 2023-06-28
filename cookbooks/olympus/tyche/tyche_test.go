@@ -24,7 +24,7 @@ var ctx = context.Background()
 func (t *TycheCookbookTestSuite) TestDeploy() {
 	_, rerr := TycheClusterDefinition.UploadChartsFromClusterDefinition(ctx, t.ZeusExtTestClient, true)
 	t.Require().Nil(rerr)
-	//cdep := PoseidonClusterDefinition.GenerateDeploymentRequest()
+	//cdep := TycheClusterDefinition.GenerateDeploymentRequest()
 
 	//_, err := t.ZeusExtTestClient.DeployCluster(ctx, cdep)
 	//t.Require().Nil(err)

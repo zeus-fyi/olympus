@@ -58,7 +58,7 @@ func (s *Web3ClientTestSuite) TestRawDawgInjection() {
 	// DAI-WETH pair contract
 	daiWETHPairContractAddr := "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11"
 	uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
-	pair, err := uni.PairToPrices(ctx, []accounts.Address{accounts.HexToAddress(daiAddr), accounts.HexToAddress(WETH9ContractAddress)})
+	pair, err := uni.V2PairToPrices(ctx, []accounts.Address{accounts.HexToAddress(daiAddr), accounts.HexToAddress(WETH9ContractAddress)})
 	s.Require().Nil(err)
 	s.Require().NotEmpty(pair)
 	s.Require().Equal(pair.PairContractAddr, daiWETHPairContractAddr)

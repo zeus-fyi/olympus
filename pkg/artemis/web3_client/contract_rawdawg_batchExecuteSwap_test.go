@@ -68,7 +68,7 @@ func (s *Web3ClientTestSuite) TestRawDawgExecBatchSwaps() {
 	batchParams := BatchRawDawgParams{}
 	// DAI-LINK pair contract
 
-	pair, err := uni.PairToPrices(ctx, []accounts.Address{accounts.HexToAddress(daiAddr), accounts.HexToAddress(LinkTokenAddr)})
+	pair, err := uni.V2PairToPrices(ctx, []accounts.Address{accounts.HexToAddress(daiAddr), accounts.HexToAddress(LinkTokenAddr)})
 	s.Require().Nil(err)
 	s.Require().NotEmpty(pair)
 	amountIn := EtherMultiple(2000)
@@ -87,7 +87,7 @@ func (s *Web3ClientTestSuite) TestRawDawgExecBatchSwaps() {
 	batchParams.AddRawdawgSwapParams(pair, to)
 
 	// DAI-WETH pair contract
-	pair, err = uni.PairToPrices(ctx, []accounts.Address{accounts.HexToAddress(daiAddr), accounts.HexToAddress(WETH9ContractAddress)})
+	pair, err = uni.V2PairToPrices(ctx, []accounts.Address{accounts.HexToAddress(daiAddr), accounts.HexToAddress(WETH9ContractAddress)})
 	s.Require().Nil(err)
 	s.Require().NotEmpty(pair)
 	amountIn = EtherMultiple(2000)

@@ -13,7 +13,7 @@ type PricingData struct {
 }
 
 func (u *UniswapClient) GetV2PricingData(ctx context.Context, path []accounts.Address) (*PricingData, error) {
-	pair, err := u.PairToPrices(ctx, path)
+	pair, err := u.V2PairToPrices(ctx, path)
 	if err != nil {
 		return nil, err
 	}

@@ -75,17 +75,17 @@ func (p *UniswapV2Pair) PairForV2(tokenA, tokenB string) error {
 	return nil
 }
 
-func (u *UniswapClient) PairToPrices(ctx context.Context, pairAddr []accounts.Address) (UniswapV2Pair, error) {
+func (u *UniswapClient) V2PairToPrices(ctx context.Context, pairAddr []accounts.Address) (UniswapV2Pair, error) {
 	p := UniswapV2Pair{}
 	if len(pairAddr) == 2 {
 		err := p.PairForV2(pairAddr[0].String(), pairAddr[1].String())
 		if err != nil {
-			log.Err(err).Msg("PairToPrices: PairForV2")
+			log.Err(err).Msg("V2PairToPrices: PairForV2")
 			return p, err
 		}
 		err = u.GetPairContractPrices(ctx, &p)
 		if err != nil {
-			log.Err(err).Msg("PairToPrices: GetPairContractPrices")
+			log.Err(err).Msg("V2PairToPrices: GetPairContractPrices")
 			return p, err
 		}
 		return p, err

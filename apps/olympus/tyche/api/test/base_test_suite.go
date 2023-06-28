@@ -7,25 +7,39 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
 	zeus_client "github.com/zeus-fyi/olympus/pkg/zeus/client"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
+	tyche_metrics "github.com/zeus-fyi/olympus/tyche/metrics"
 )
+
+var ctx = context.Background()
 
 type TycheBaseTestSuite struct {
 	E  *echo.Echo
 	Eg *echo.Group
 	autok8s_core.K8TestSuite
-	D        test_suites.DatastoresTestSuite
-	Ts       chronos.Chronos
-	Endpoint string
+	D               test_suites.DatastoresTestSuite
+	Ts              chronos.Chronos
+	Endpoint        string
+	MainnetWeb3User web3_client.Web3Client
 
 	zeus_client.ZeusClient
 }
 
 func (t *TycheBaseTestSuite) SetupTest() {
 	t.InitLocalConfigs()
+	newAccount, err := accounts.ParsePrivateKey("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
+	t.Assert().Nil(err)
+	t.MainnetWeb3User = web3_client.NewWeb3Client(t.Tc.QuiknodeLiveNode, newAccount)
+
+	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL = t.Tc.QuiknodeLiveNode
+	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.Account = newAccount
+	tyche_metrics.InitTycheMetrics(ctx)
 	t.E = echo.New()
 	//t.Eg = t.E.Group("/")
 	//t.Eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{

@@ -9,7 +9,7 @@ import (
 
 func Routes(e *echo.Echo) *echo.Echo {
 	e.GET("/health", Health)
-	e.POST("/v1/mev/mempool/tx", TxProcessingRequestHandler)
+	e.POST(txProcessorRoute, TxProcessingRequestHandler)
 	e.GET("/metrics", tyche_metrics.MetricsRequestHandler)
 	return e
 }

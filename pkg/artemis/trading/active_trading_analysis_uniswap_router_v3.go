@@ -2,6 +2,7 @@ package artemis_realtime_trading
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -65,6 +66,13 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, exactInput)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
+		pd, err := a.u.GetV3PricingData(ctx, inputs.TokenFeePath)
+		if err != nil {
+			log.Err(err).Msg("failed to get pricing data")
+			return
+		}
+		tf := inputs.BinarySearch(pd)
+		fmt.Println("tf", tf)
 	case exactOutput:
 		inputs := &web3_client.ExactOutputParams{}
 		err := inputs.Decode(ctx, tx.Args)
@@ -74,6 +82,13 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, exactOutput)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
+		pd, err := a.u.GetV3PricingData(ctx, inputs.TokenFeePath)
+		if err != nil {
+			log.Err(err).Msg("failed to get pricing data")
+			return
+		}
+		tf := inputs.BinarySearch(pd)
+		fmt.Println("tf", tf)
 	case swapExactInputSingle:
 		inputs := &web3_client.SwapExactInputSingleArgs{}
 		err := inputs.Decode(ctx, tx.Args)
@@ -83,6 +98,13 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactInputSingle)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
+		pd, err := a.u.GetV3PricingData(ctx, inputs.TokenFeePath)
+		if err != nil {
+			log.Err(err).Msg("failed to get pricing data")
+			return
+		}
+		tf := inputs.BinarySearch(pd)
+		fmt.Println("tf", tf)
 	case swapExactOutputSingle:
 		inputs := &web3_client.SwapExactOutputSingleArgs{}
 		err := inputs.Decode(ctx, tx.Args)
@@ -92,6 +114,13 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactOutputSingle)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
+		pd, err := a.u.GetV3PricingData(ctx, inputs.TokenFeePath)
+		if err != nil {
+			log.Err(err).Msg("failed to get pricing data")
+			return
+		}
+		tf := inputs.BinarySearch(pd)
+		fmt.Println("tf", tf)
 	case swapExactTokensForTokens:
 		inputs := &web3_client.SwapExactTokensForTokensParamsV3{}
 		err := inputs.Decode(ctx, tx.Args)
@@ -102,6 +131,13 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokens)
 		pend := len(inputs.Path) - 1
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path[0].String(), inputs.Path[pend].String())
+		pd, err := a.u.GetV2PricingData(ctx, inputs.Path)
+		if err != nil {
+			log.Err(err).Msg("failed to get pricing data")
+			return
+		}
+		tf := inputs.BinarySearch(pd.V2Pair)
+		fmt.Println("tf", tf)
 	case swapExactInputMultihop:
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactInputMultihop)
 	case swapExactOutputMultihop:

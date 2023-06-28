@@ -40,3 +40,14 @@ func (u *UniswapClient) SingleReadMethodAddr(ctx context.Context, methodName str
 	}
 	return addr, nil
 }
+
+func (p *UniswapV2Pair) sortTokens(tkn0, tkn1 accounts.Address) {
+	token0Rep := big.NewInt(0).SetBytes(tkn0.Bytes())
+	token1Rep := big.NewInt(0).SetBytes(tkn1.Bytes())
+
+	if token0Rep.Cmp(token1Rep) > 0 {
+		tkn0, tkn1 = tkn1, tkn0
+	}
+	p.Token0 = tkn0
+	p.Token1 = tkn1
+}

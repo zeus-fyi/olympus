@@ -2,9 +2,12 @@ package web3_client
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
@@ -32,6 +35,34 @@ type JSONUniswapV2Pair struct {
 	Reserve0             string           `json:"reserve0"`
 	Reserve1             string           `json:"reserve1"`
 	BlockTimestampLast   string           `json:"blockTimestampLast"`
+}
+
+const pairAddressSuffix = "96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f"
+
+func (p *UniswapV2Pair) PairForV2(tokenA, tokenB string) (common.Address, error) {
+	if tokenA == tokenB {
+		return common.Address{}, errors.New("identical addresses")
+	}
+	p.sortTokens(accounts.HexToAddress(tokenA), accounts.HexToAddress(tokenB))
+	// GeneratePairAddress generates a pair address for the given tokens
+
+	// 255 is required as a prefix for this to work
+	// see: https://uniswap.org/docs/v2/javascript-SDK/getting-pair-addresses/
+	message := []byte{255}
+
+	message = append(message, common.HexToAddress(UniswapV2FactoryAddress).Bytes()...)
+
+	addrSum := p.Token0.Bytes()
+	addrSum = append(addrSum, p.Token1.Bytes()...)
+
+	message = append(message, crypto.Keccak256(addrSum)...)
+
+	b, _ := hex.DecodeString(pairAddressSuffix)
+	message = append(message, b...)
+	hashed := crypto.Keccak256(message)
+	addressBytes := big.NewInt(0).SetBytes(hashed)
+	addressBytes = addressBytes.Abs(addressBytes)
+	return common.BytesToAddress(addressBytes.Bytes()), nil
 }
 
 func (p *JSONUniswapV2Pair) ConvertToBigIntType() UniswapV2Pair {

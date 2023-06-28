@@ -34,3 +34,12 @@ func (tx *TxFetcherMetrics) TransactionCurrencyOut(address, method, out string) 
 	}
 	tx.CurrencyStatsOut.WithLabelValues(label, method, out).Inc()
 }
+
+func (tx *TxFetcherMetrics) TransactionCurrencyInOut(address, method, in, out string) {
+	label, ok := AddressLabelMap[address]
+	if !ok {
+		return
+	}
+	tx.CurrencyStatsIn.WithLabelValues(label, method, in).Inc()
+	tx.CurrencyStatsOut.WithLabelValues(label, method, out).Inc()
+}

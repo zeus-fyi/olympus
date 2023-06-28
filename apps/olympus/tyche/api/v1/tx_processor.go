@@ -25,7 +25,7 @@ func TxProcessingRequestHandler(c echo.Context) error {
 
 func (t *TxProcessingRequest) ProcessTx(c echo.Context) error {
 	ctx := c.Request().Context()
-	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnetQuiknode.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
+	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
 	uni := web3_client.InitUniswapClient(ctx, wc)
 	a := artemis_realtime_trading.NewActiveTradingModule(&uni, tyche_metrics.TradeMetrics)
 	// should process in parallel

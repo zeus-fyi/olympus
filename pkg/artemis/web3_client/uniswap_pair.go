@@ -31,18 +31,6 @@ type UniswapV2Pair struct {
 	BlockTimestampLast   *big.Int         `json:"blockTimestampLast"`
 }
 
-type JSONUniswapV2Pair struct {
-	PairContractAddr     string           `json:"pairContractAddr"`
-	Price0CumulativeLast string           `json:"price0CumulativeLast"`
-	Price1CumulativeLast string           `json:"price1CumulativeLast"`
-	KLast                string           `json:"kLast"`
-	Token0               accounts.Address `json:"token0"`
-	Token1               accounts.Address `json:"token1"`
-	Reserve0             string           `json:"reserve0"`
-	Reserve1             string           `json:"reserve1"`
-	BlockTimestampLast   string           `json:"blockTimestampLast"`
-}
-
 func (p *UniswapV2Pair) PairForV2FromAddresses(tokenA, tokenB accounts.Address) error {
 	return p.PairForV2(tokenA.String(), tokenB.String())
 }

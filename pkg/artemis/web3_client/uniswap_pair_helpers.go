@@ -5,7 +5,20 @@ import (
 	"math/big"
 
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 )
+
+type JSONUniswapV2Pair struct {
+	PairContractAddr     string           `json:"pairContractAddr"`
+	Price0CumulativeLast string           `json:"price0CumulativeLast"`
+	Price1CumulativeLast string           `json:"price1CumulativeLast"`
+	KLast                string           `json:"kLast"`
+	Token0               accounts.Address `json:"token0"`
+	Token1               accounts.Address `json:"token1"`
+	Reserve0             string           `json:"reserve0"`
+	Reserve1             string           `json:"reserve1"`
+	BlockTimestampLast   string           `json:"blockTimestampLast"`
+}
 
 func (p *JSONUniswapV2Pair) ConvertToBigIntType() UniswapV2Pair {
 	p0, _ := new(big.Int).SetString(p.Price0CumulativeLast, 10)

@@ -10,6 +10,10 @@ import (
 	tyche_metrics "github.com/zeus-fyi/olympus/tyche/metrics"
 )
 
+const (
+	txProcessorRoute = "/v1/mev/mempool/tx"
+)
+
 type TxProcessingRequest struct {
 	Txs []*types.Transaction `json:"txs"`
 }

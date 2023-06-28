@@ -19,10 +19,18 @@ func (tx *TxFetcherMetrics) TransactionGroup(address string, method string) {
 	tx.TradeMethodStats.WithLabelValues(label, method).Inc()
 }
 
-//func (tx *TxFetcherMetrics) TransactionCurrency(address string, method string) {
-//	label, ok := AddressLabelMap[address]
-//	if !ok {
-//		return
-//	}
-//	tx.CurrencyStats.WithLabelValues(label, method).Inc()
-//}
+func (tx *TxFetcherMetrics) TransactionCurrencyIn(address, method, in string) {
+	label, ok := AddressLabelMap[address]
+	if !ok {
+		return
+	}
+	tx.CurrencyStatsIn.WithLabelValues(label, method, in).Inc()
+}
+
+func (tx *TxFetcherMetrics) TransactionCurrencyOut(address, method, out string) {
+	label, ok := AddressLabelMap[address]
+	if !ok {
+		return
+	}
+	tx.CurrencyStatsOut.WithLabelValues(label, method, out).Inc()
+}

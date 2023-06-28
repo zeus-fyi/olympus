@@ -22,16 +22,16 @@ func NewTxFetcherMetrics(reg prometheus.Registerer) TxFetcherMetrics {
 	tx.CurrencyStatsIn = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "eth_mempool_mev_currency_in_stats",
-			Help: "Trade currency in and value",
+			Help: "Trade currency in address",
 		},
-		[]string{"address", "method", "in"},
+		[]string{"address", "in"},
 	)
 	tx.CurrencyStatsOut = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "eth_mempool_mev_currency_out_stats",
-			Help: "Trade currency out address & value",
+			Help: "Trade currency out address",
 		},
-		[]string{"address", "method", "out"},
+		[]string{"address", "out"},
 	)
 	reg.MustRegister(tx.TradeMethodStats, tx.CurrencyStatsIn, tx.CurrencyStatsOut)
 	return tx

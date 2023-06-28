@@ -32,14 +32,14 @@ func (t *TxFetcherMetricsTestSuite) TestNewTxFetcherMetrics() {
 	// Assert that the count is 1
 	t.Equal(1, count)
 
-	txMetrics.TransactionCurrencyIn(web3_client.UniswapUniversalRouterAddressNew, "swapExactETHForTokens", "ETH")
+	txMetrics.transactionCurrencyIn(web3_client.UniswapUniversalRouterAddressNew, "ETH")
 	count, err = testutil.GatherAndCount(reg, "eth_mempool_mev_currency_in_stats")
 	t.Require().NoError(err)
 
 	// Assert that the count is 1
 	t.Equal(1, count)
 
-	txMetrics.TransactionCurrencyOut(web3_client.UniswapUniversalRouterAddressNew, "swapExactETHForTokens", "DAI")
+	txMetrics.transactionCurrencyOut(web3_client.UniswapUniversalRouterAddressNew, "DAI")
 	count, err = testutil.GatherAndCount(reg, "eth_mempool_mev_currency_out_stats")
 	t.Equal(1, count)
 }

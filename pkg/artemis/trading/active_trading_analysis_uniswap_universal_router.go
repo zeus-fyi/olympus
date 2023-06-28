@@ -30,7 +30,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 				return
 			}
 			tf := inputs.BinarySearch(pd)
-			fmt.Println("tf", tf)
+			go a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V3SwapExactIn, inputs.Path.TokenIn.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		case web3_client.V3SwapExactOut:
 			fmt.Println("V3SwapExactOut: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(web3_client.V3SwapExactOutParams)
@@ -42,7 +42,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 				return
 			}
 			tf := inputs.BinarySearch(pd)
-			fmt.Println("tf", tf)
+			go a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V3SwapExactOut, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		case web3_client.V2SwapExactIn:
 			fmt.Println("V2SwapExactIn: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(web3_client.V2SwapExactInParams)
@@ -55,7 +55,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 				return
 			}
 			tf := inputs.BinarySearch(pd.V2Pair)
-			fmt.Println("tf", tf)
+			go a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V2SwapExactIn, inputs.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		case web3_client.V2SwapExactOut:
 			fmt.Println("V2SwapExactOut: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(web3_client.V2SwapExactOutParams)
@@ -64,11 +64,11 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path[0].String(), inputs.Path[pend].String())
 			pd, perr := a.u.GetV2PricingData(ctx, inputs.Path)
 			if perr != nil {
-				log.Err(perr).Msg("V2SwapExactIn: error getting pricing data")
+				log.Err(perr).Msg("V2SwapExactOut: error getting pricing data")
 				return
 			}
 			tf := inputs.BinarySearch(pd.V2Pair)
-			fmt.Println("tf", tf)
+			go a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V2SwapExactOut, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		default:
 		}
 	}

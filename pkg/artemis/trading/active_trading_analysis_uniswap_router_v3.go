@@ -2,7 +2,6 @@ package artemis_realtime_trading
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -72,7 +71,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			return
 		}
 		tf := inputs.BinarySearch(pd)
-		fmt.Println("tf", tf)
+		go a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, exactInput, inputs.TokenFeePath.TokenIn.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 	case exactOutput:
 		inputs := &web3_client.ExactOutputParams{}
 		err := inputs.Decode(ctx, tx.Args)
@@ -88,7 +87,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			return
 		}
 		tf := inputs.BinarySearch(pd)
-		fmt.Println("tf", tf)
+		go a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, exactOutput, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 	case swapExactInputSingle:
 		inputs := &web3_client.SwapExactInputSingleArgs{}
 		err := inputs.Decode(ctx, tx.Args)
@@ -104,7 +103,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			return
 		}
 		tf := inputs.BinarySearch(pd)
-		fmt.Println("tf", tf)
+		go a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactInputSingle, inputs.TokenFeePath.TokenIn.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 	case swapExactOutputSingle:
 		inputs := &web3_client.SwapExactOutputSingleArgs{}
 		err := inputs.Decode(ctx, tx.Args)
@@ -120,7 +119,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			return
 		}
 		tf := inputs.BinarySearch(pd)
-		fmt.Println("tf", tf)
+		go a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactOutputSingle, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 	case swapExactTokensForTokens:
 		inputs := &web3_client.SwapExactTokensForTokensParamsV3{}
 		err := inputs.Decode(ctx, tx.Args)
@@ -137,7 +136,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			return
 		}
 		tf := inputs.BinarySearch(pd.V2Pair)
-		fmt.Println("tf", tf)
+		go a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForTokens, inputs.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 	case swapExactInputMultihop:
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactInputMultihop)
 	case swapExactOutputMultihop:

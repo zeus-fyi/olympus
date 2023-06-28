@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+var ZeroXApiKey string
+
 type SwapQuote struct {
 	ChainID              int      `json:"chainId"`
 	Price                string   `json:"price"`
@@ -66,8 +68,9 @@ type Fill struct {
 }
 
 type Client struct {
-	http *http.Client
-	url  string
+	apiKey string
+	http   *http.Client
+	url    string
 }
 
 func NewClient() *Client {
@@ -82,24 +85,26 @@ func (c *Client) sendSwapRequest(ctx context.Context, endpoint string, params ma
 	if err != nil {
 		return "", err
 	}
-
 	query := u.Query()
 	for key, value := range params {
 		query.Set(key, value)
 	}
 	u.RawQuery = query.Encode()
-
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), strings.NewReader(""))
 	if err != nil {
 		return "", err
 	}
-
+	if len(c.apiKey) > 0 {
+		req.Header.Set("0x-api-key", c.apiKey)
+	}
+	if len(ZeroXApiKey) > 0 {
+		req.Header.Set("0x-api-key", ZeroXApiKey)
+	}
 	resp, err := c.http.Do(req)
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
-
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
@@ -115,6 +120,7 @@ func GetUSDSwapQuoteWithAmount(ctx context.Context, token, amount string) (*Swap
 		"sellToken":  token,
 	}
 	client := NewClient()
+	client.apiKey = "35072f9e-c6dd-40f8-95d4-b4d325b003f8"
 	body, err := client.sendSwapRequest(ctx, "quote", params)
 	if err != nil {
 		return nil, err

@@ -10,6 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
+	"github.com/zeus-fyi/olympus/pkg/artemis/price_quoter"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 )
 
@@ -33,6 +34,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		cfg.PGConnStr = sw.PostgresAuth
 		dynamoDBCreds.AccessKey = sw.AccessKeyHydraDynamoDB
 		dynamoDBCreds.AccessSecret = sw.SecretKeyHydraDynamoDB
+		price_quoter.ZeroXApiKey = sw.ZeroXApiKey
 		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
@@ -42,6 +44,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		inMemSecrets, sw := auth_startup.RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		dynamoDBCreds.AccessKey = sw.AccessKeyHydraDynamoDB
 		dynamoDBCreds.AccessSecret = sw.SecretKeyHydraDynamoDB
+		price_quoter.ZeroXApiKey = sw.ZeroXApiKey
 		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
@@ -49,6 +52,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		temporalAuthCfg = tc.DevTemporalAuth
 		dynamoDBCreds.AccessKey = tc.AwsAccessKeyDynamoDB
 		dynamoDBCreds.AccessSecret = tc.AwsSecretKeyDynamoDB
+		price_quoter.ZeroXApiKey = tc.ZeroXApiKey
 		artemis_network_cfgs.InitArtemisLocalTestConfigs()
 	}
 	dynamoDBCreds.Region = "us-west-1"

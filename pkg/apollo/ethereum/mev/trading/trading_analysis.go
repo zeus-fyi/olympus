@@ -1,8 +1,12 @@
 package metrics_trading
 
 import (
+	"context"
+	"strconv"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/pkg/artemis/price_quoter"
 )
 
 type TradeAnalysisMetrics struct {
@@ -44,6 +48,29 @@ func NewTradeAnalysisMetrics(reg prometheus.Registerer) TradeAnalysisMetrics {
 	)
 	reg.MustRegister(tx.SandwichCalculatedRevenueGauge, tx.SandwichCalculatedRevenueHistogram, tx.SandwichCalculatedROIHistogram, tx.SandwichCalculatedUpFrontCostHistogram)
 	return tx
+}
+
+func (t *TradeAnalysisMetrics) CalculatedSandwichWithPriceLookup(ctx context.Context, method, in, upfrontCost, revenue string) {
+	if revenue == "0" {
+		return
+	}
+	upfrontCostUSD, err := price_quoter.GetUSDSwapQuoteWithAmount(ctx, in, upfrontCost)
+	if err != nil || upfrontCostUSD == nil {
+		return
+	}
+	upfrontCostUSDVal, err := strconv.ParseFloat(upfrontCostUSD.GuaranteedPrice, 64)
+	if err != nil {
+		return
+	}
+	revenueUSD, err := price_quoter.GetUSDSwapQuoteWithAmount(ctx, in, revenue)
+	if err != nil || revenueUSD == nil {
+		return
+	}
+	revenueUSDVal, err := strconv.ParseFloat(revenueUSD.GuaranteedPrice, 64)
+	if err != nil {
+		return
+	}
+	t.CalculatedSandwich(method, in, upfrontCostUSDVal, revenueUSDVal)
 }
 
 func (t *TradeAnalysisMetrics) CalculatedSandwich(method, in string, upfrontCost, revenue float64) {

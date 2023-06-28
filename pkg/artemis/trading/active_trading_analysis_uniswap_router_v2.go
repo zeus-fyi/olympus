@@ -2,10 +2,7 @@ package artemis_realtime_trading
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/artemis/price_quoter"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -63,7 +60,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 			return
 		}
 		tf := st.BinarySearch(pd.V2Pair)
-		fmt.Println("tf", tf)
+		go a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForTokens, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 	case swapTokensForExactTokens:
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapTokensForExactTokens)
 		st := web3_client.SwapTokensForExactTokensParams{}
@@ -75,7 +72,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 			return
 		}
 		tf := st.BinarySearch(pd.V2Pair)
-		fmt.Println("tf", tf)
+		go a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapTokensForExactTokens, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 	case swapExactETHForTokens:
 		// payable
 		if tx.Tx.Value() == nil {
@@ -91,14 +88,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 			return
 		}
 		tf := st.BinarySearch(pd.V2Pair)
-		fmt.Println("tf", tf)
-
-		quote, err := price_quoter.GetUSDSwapQuoteWithAmount(ctx, st.Path[0].String(), tf.SandwichPrediction.ExpectedProfit)
-		if err != nil {
-			log.Err(err).Msg("failed to get usd quote for profit currency")
-		}
-		fmt.Println(quote.GuaranteedPrice)
-		// tf.SandwichPrediction.ExpectedProfit
+		go a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactETHForTokens, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 	case swapTokensForExactETH:
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapTokensForExactETH)
 		st := web3_client.SwapTokensForExactETHParams{}
@@ -110,7 +100,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 			return
 		}
 		tf := st.BinarySearch(pd.V2Pair)
-		fmt.Println("tf", tf)
+		go a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapTokensForExactETH, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 	case swapExactTokensForETH:
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForETH)
 		st := web3_client.SwapExactTokensForETHParams{}
@@ -122,7 +112,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 			return
 		}
 		tf := st.BinarySearch(pd.V2Pair)
-		fmt.Println("tf", tf)
+		go a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForETH, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 	case swapETHForExactTokens:
 		// payable
 		if tx.Tx.Value() == nil {
@@ -138,6 +128,6 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 			return
 		}
 		tf := st.BinarySearch(pd.V2Pair)
-		fmt.Println("tf", tf)
+		go a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapETHForExactTokens, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 	}
 }

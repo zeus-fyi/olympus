@@ -147,6 +147,7 @@ require (
 	google.golang.org/grpc v1.54.0 // indirect
 	gopkg.in/cenkalti/backoff.v1 v1.1.0 // indirect
 	k8s.io/apiextensions-apiserver v0.26.1 // indirect
+	nhooyr.io/websocket v1.8.7 // indirect
 	sigs.k8s.io/controller-runtime v0.14.4 // indirect
 )
 

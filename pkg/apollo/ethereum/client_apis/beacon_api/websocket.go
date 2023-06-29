@@ -28,11 +28,11 @@ type Message struct {
 	} `json:"params"`
 }
 
-func SubscribeToEvent() {
-	ctx, cancel := context.WithCancel(context.Background())
+func SubscribeToEvent(ctx context.Context, wsAddr string) {
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	// Connect to WebSocket server.
-	ws, _, err := websocket.Dial(ctx, "wss://boldest-warmhearted-silence.quiknode.pro", nil)
+	ws, _, err := websocket.Dial(ctx, wsAddr, &websocket.DialOptions{})
 	if err != nil {
 		log.Err(err).Msg("failed to connect to WebSocket server")
 	}

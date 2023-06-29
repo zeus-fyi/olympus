@@ -43,6 +43,7 @@ func NewArtemisConfig(protocol, network string) ArtemisConfig {
 }
 
 var (
+	ArtemisQuicknodeStreamWebsocket    = ""
 	ArtemisEthereumMainnet             = NewArtemisConfig(Ethereum, Mainnet)
 	ArtemisEthereumMainnetQuiknode     = NewArtemisConfig(Ethereum, Mainnet)
 	ArtemisEthereumMainnetQuiknodeLive = NewArtemisConfig(Ethereum, Mainnet)

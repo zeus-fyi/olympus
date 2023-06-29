@@ -27,6 +27,7 @@ type TestContainer struct {
 	OvhAppKey                   string
 	OvhSecretKey                string
 	OvhConsumerKey              string
+	QuiknodeStreamWsNode        string
 	QuiknodeLiveNode            string
 	HardhatNode                 string
 	AwsAccessKeyEks             string
@@ -187,7 +188,7 @@ func InitLocalTestConfigs() TestContainer {
 	testCont.OvhAppKey = viper.GetString("OVH_APP_KEY")
 	testCont.OvhSecretKey = viper.GetString("OVH_SECRET_KEY")
 	testCont.OvhConsumerKey = viper.GetString("OVH_CONSUMER_KEY")
-
+	testCont.QuiknodeStreamWsNode = viper.GetString("QUIKNODE_STREAM_WS_URL")
 	testCont.InfraCostAPIKey = viper.GetString("INFRA_COST_API_KEY")
 	testCont.TwitterBearerToken = viper.GetString("TWITTER_BEARER_TOKEN")
 	testCont.TwitterConsumerPublicAPIKey = viper.GetString("TWITTER_PUBLIC_API_KEY")

@@ -9,8 +9,9 @@ import (
 )
 
 const (
-	QuikNodeSecret     = "secrets/artemis.ethereum.mainnet.quiknode.txt"
-	QuikNodeSecretLive = "secrets/artemis.ethereum.mainnet.quicknode.live.txt"
+	QuiknodeStreamWsSecret = "secrets/artemis.ethereum.mainnet.quiknode.stream.ws.txt"
+	QuikNodeSecret         = "secrets/artemis.ethereum.mainnet.quiknode.txt"
+	QuikNodeSecretLive     = "secrets/artemis.ethereum.mainnet.quiknode.live.txt"
 )
 
 func InitArtemisEthereum(ctx context.Context, inMemSecrets memfs.MemFS, secrets SecretsWrapper) {
@@ -23,6 +24,7 @@ func InitArtemisEthereum(ctx context.Context, inMemSecrets memfs.MemFS, secrets 
 		cfg.AddAccountFromHexPk(ctx, key)
 	}
 
+	artemis_network_cfgs.ArtemisQuicknodeStreamWebsocket = secrets.MustReadSecret(ctx, inMemSecrets, QuiknodeStreamWsSecret)
 	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL = secrets.MustReadSecret(ctx, inMemSecrets, QuikNodeSecretLive)
 	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.Account = artemis_network_cfgs.ArtemisEthereumMainnet.Account
 

@@ -24,12 +24,15 @@ func (t *TradeAnalysisMetricsTestSuite) TestTradeAnalysisMetrics() {
 	token := "token1"
 	revenue := 100.0
 	cost := 10.0
-	txMetrics.TradeAnalysisMetrics.CalculatedSandwich(method, token, revenue, cost)
+	pair := "pair1"
+	txMetrics.TradeAnalysisMetrics.CalculatedSandwich(method, pair, token, revenue, cost)
 	// Use the GatherAndCount helper function to count the number of occurrences of the metric
-	count, err := testutil.GatherAndCount(reg, "eth_mev_sandwich_calculated_revenue")
+	count, err := testutil.GatherAndCount(reg, "eth_mev_sandwich_calculated_pair_revenue")
 	t.Require().NoError(err)
 	// Assert that the count is 1
 	t.Equal(1, count)
+	count, err = testutil.GatherAndCount(reg, "eth_mev_sandwich_calculated_method_revenue")
+	t.Require().NoError(err)
 	count, err = testutil.GatherAndCount(reg, "eth_mev_sandwich_calculated_revenue_event")
 	t.Require().NoError(err)
 	t.Equal(1, count)

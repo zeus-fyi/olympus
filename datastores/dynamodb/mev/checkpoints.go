@@ -34,7 +34,7 @@ func (m *MevDynamoDB) PutCheckpoint(ctx context.Context, checkpoint CheckpointsD
 	}
 	_, err = m.PutItem(ctx, &dynamodb.PutItemInput{
 		Item:      item,
-		TableName: MainnetTxBlacklistTableName,
+		TableName: MainnetCheckpointsDynamoDBTable,
 	})
 	if err != nil {
 		return err
@@ -47,7 +47,7 @@ func (m *MevDynamoDB) GetCheckpoint(ctx context.Context, checkpoint CheckpointsD
 	if err != nil {
 		return false, err
 	}
-	tableName := MainnetTxBlacklistTableName
+	tableName := MainnetCheckpointsDynamoDBTable
 	resp, err := m.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName:      tableName,
 		Key:            keymap,

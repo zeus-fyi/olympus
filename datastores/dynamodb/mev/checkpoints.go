@@ -1,4 +1,4 @@
-package mempool_txs
+package dynamodb_mev
 
 import (
 	"context"
@@ -9,26 +9,26 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
-type TxBlacklistDynamoDBTableKeys struct {
-	TxHash string `dynamodbav:"txHash"`
+type CheckpointsDynamoDBTableKeys struct {
+	CheckpointName string `dynamodbav:"checkpointName"`
 }
 
 var (
-	MainnetTxBlacklistTableName = aws.String("MempoolTxsBlacklistMainnet")
+	MainnetCheckpointsDynamoDBTable = aws.String("MainnetEthereumCheckpoints")
 )
 
-type TxBlacklistDynamoDB struct {
-	TxBlacklistDynamoDBTableKeys
+type CheckpointsDynamoDB struct {
+	CheckpointsDynamoDBTableKeys
 	TTL int `dynamodbav:"ttl"`
 }
 
-func (m *MempoolTxDynamoDB) PutTxBlacklist(ctx context.Context, txBlacklist TxBlacklistDynamoDB) error {
+func (m *MevDynamoDB) PutCheckpoint(ctx context.Context, checkpoint CheckpointsDynamoDB) error {
 	now := time.Now()
 	fourHours := now.Add(time.Hour * 4)
 	unixTimestamp := fourHours.Unix()
 	ttl := unixTimestamp
-	txBlacklist.TTL = int(ttl)
-	item, err := attributevalue.MarshalMap(txBlacklist)
+	checkpoint.TTL = int(ttl)
+	item, err := attributevalue.MarshalMap(checkpoint)
 	if err != nil {
 		return err
 	}
@@ -42,8 +42,8 @@ func (m *MempoolTxDynamoDB) PutTxBlacklist(ctx context.Context, txBlacklist TxBl
 	return err
 }
 
-func (m *MempoolTxDynamoDB) GetTxBlacklist(ctx context.Context, txBlacklist TxBlacklistDynamoDB) (bool, error) {
-	keymap, err := attributevalue.MarshalMap(txBlacklist.TxBlacklistDynamoDBTableKeys)
+func (m *MevDynamoDB) GetCheckpoint(ctx context.Context, checkpoint CheckpointsDynamoDB) (bool, error) {
+	keymap, err := attributevalue.MarshalMap(checkpoint.CheckpointsDynamoDBTableKeys)
 	if err != nil {
 		return false, err
 	}

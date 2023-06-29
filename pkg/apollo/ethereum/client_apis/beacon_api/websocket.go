@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	"nhooyr.io/websocket"
@@ -22,10 +24,28 @@ type Request struct {
 type Message struct {
 	Jsonrpc string `json:"jsonrpc"`
 	Method  string `json:"method"`
-	Params  struct {
-		Result       map[string]interface{} `json:"result"`
-		Subscription string                 `json:"subscription"`
-	} `json:"params"`
+	Params  Params `json:"params"`
+}
+
+type Params struct {
+	Result       Result `json:"result"`
+	Subscription string `json:"subscription"`
+}
+type Result struct {
+	Difficulty       string `json:"difficulty"`
+	ExtraData        string `json:"extraData"`
+	GasLimit         string `json:"gasLimit"`
+	GasUsed          string `json:"gasUsed"`
+	LogsBloom        string `json:"logsBloom"`
+	Miner            string `json:"miner"`
+	Nonce            string `json:"nonce"`
+	Number           string `json:"number"`
+	ParentHash       string `json:"parentHash"`
+	ReceiptRoot      string `json:"receiptRoot"`
+	Sha3Uncles       string `json:"sha3Uncles"`
+	StateRoot        string `json:"stateRoot"`
+	Timestamp        string `json:"timestamp"`
+	TransactionsRoot string `json:"transactionsRoot"`
 }
 
 func SubscribeToEvent(ctx context.Context, wsAddr string) {
@@ -55,12 +75,37 @@ func SubscribeToEvent(ctx context.Context, wsAddr string) {
 		err = wsjson.Read(ctx, ws, &msg)
 		if err != nil {
 			log.Err(err).Msg("Failed to read message from the WebSocket server")
+			time.Sleep(1 * time.Second)
+			continue
 		}
 		// Print the received message.
-		result, rerr := json.MarshalIndent(msg, "", "  ")
+		_, rerr := json.MarshalIndent(msg, "", "  ")
 		if rerr != nil {
 			log.Err(err).Msg("Failed to parse the received message")
+			time.Sleep(1 * time.Second)
+			continue
 		}
-		fmt.Println(string(result))
+		if msg.Params.Result.Timestamp == "" {
+			continue
+		}
+		t, terr := hexToTime(msg.Params.Result.Timestamp)
+		if terr != nil {
+			log.Err(err).Msg("Failed to convert timestamp")
+			continue
+		}
+		fmt.Println(t.Unix())
 	}
+}
+func hexToTime(hexStr string) (time.Time, error) {
+	// strip the '0x' prefix
+	cleanHex := hexStr[2:]
+
+	// convert hex to int64 (base 16)
+	sec, err := strconv.ParseInt(cleanHex, 16, 64)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	// convert seconds to time
+	return time.Unix(sec, 0), nil
 }

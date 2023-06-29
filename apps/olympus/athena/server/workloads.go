@@ -69,7 +69,7 @@ func WorkloadStartup(ctx context.Context, w athena_workloads.WorkloadInfo) {
 					misc.DelayedPanic(err)
 				}
 				log.Info().Msg("p2pCrawler mainnet filter start")
-				cmd = exec.Command("devp2p", "nodeset", "filter", p.FileInPath(), "-eth-network", "mainnet", "-limit", "200")
+				cmd = exec.Command("devp2p", "nodeset", "filter", p.FileInPath(), "-eth-network", "mainnet", "-limit", "2000")
 				outFile, err := os.Create(p.FileOutPath())
 				if err != nil {
 					log.Fatal().Msg("failed to filter p2pCrawler mainnet node results")

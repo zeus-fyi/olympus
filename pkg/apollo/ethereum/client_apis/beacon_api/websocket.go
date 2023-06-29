@@ -48,7 +48,7 @@ type Result struct {
 	TransactionsRoot string `json:"transactionsRoot"`
 }
 
-func SubscribeToEvent(ctx context.Context, wsAddr string) {
+func TriggerWorkflowOnNewBlockHeaderEvent(ctx context.Context, wsAddr string, timestampChan chan<- time.Time) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	// Connect to WebSocket server.
@@ -93,7 +93,8 @@ func SubscribeToEvent(ctx context.Context, wsAddr string) {
 			log.Err(err).Msg("Failed to convert timestamp")
 			continue
 		}
-		fmt.Println(t.Unix())
+		timestampChan <- t
+		log.Info().Msg(fmt.Sprintf("New block header event received at %s", t))
 	}
 }
 func hexToTime(hexStr string) (time.Time, error) {

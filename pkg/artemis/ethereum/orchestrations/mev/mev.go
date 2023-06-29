@@ -2,13 +2,14 @@ package artemis_mev_transcations
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	"github.com/zeus-fyi/olympus/pkg/apollo/ethereum/client_apis/beacon_api"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
-	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
 
 const (
@@ -65,36 +66,20 @@ func InitNewUniswapQuiknode(ctx context.Context) *web3_client.UniswapClient {
 }
 
 func ProcessMempoolTxs(ctx context.Context) {
-	cr := chronos.Chronos{}
-	ticker := time.NewTicker(100 * time.Millisecond)
-	defer ticker.Stop()
+	timestampChan := make(chan time.Time)
+	go beacon_api.TriggerWorkflowOnNewBlockHeaderEvent(ctx, artemis_network_cfgs.ArtemisQuicknodeStreamWebsocket, timestampChan)
 
 	for {
 		select {
-		case <-ticker.C:
-			secondsLeftInSlot := 12 - cr.GetSecsSinceLastMainnetSlot()
-			if secondsLeftInSlot <= 4 {
-				// when 4 seconds remaining execute this
-				log.Info().Msg("ExecuteArtemisMevWorkflow: ExecuteArtemisBlacklistTxWorkflow")
-				err := ArtemisMevWorkerMainnet.ExecuteArtemisBlacklistTxWorkflow(ctx)
-				secondsLeftInSlot = 12 - cr.GetSecsSinceLastMainnetSlot()
-				log.Info().Msg("ExecuteArtemisMevWorkflow")
-				log.Info().Msgf("Seconds Left Till Next Slot: %d", secondsLeftInSlot)
-				err = ArtemisMevWorkerMainnet.ExecuteArtemisMevWorkflow(ctx)
-				if err != nil {
-					log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
-				}
-				time.Sleep(4 * time.Second)
-				err = ArtemisMevWorkerMainnet.ExecuteArtemisBlacklistTxWorkflow(ctx)
-				if err != nil {
-					log.Err(err).Msg("ExecuteArtemisBlacklistTxWorkflow failed")
-				}
-			}
-
-			if secondsLeftInSlot <= 0 {
-				// when 0 seconds remaining go to start of loop
-				secondsLeftInSlot = 12 - cr.GetSecsSinceLastMainnetSlot()
-				ticker.Reset(time.Duration(secondsLeftInSlot) * time.Second)
+		case t := <-timestampChan:
+			log.Info().Msg(fmt.Sprintf("Received new timestamp: %s", t))
+			log.Info().Msg("ExecuteArtemisMevWorkflow: ExecuteArtemisBlacklistTxWorkflow")
+			err := ArtemisMevWorkerMainnet.ExecuteArtemisBlacklistTxWorkflow(ctx)
+			log.Info().Msg("ExecuteArtemisMevWorkflow")
+			time.Sleep(t.Add(8 * time.Second).Sub(time.Now()))
+			err = ArtemisMevWorkerMainnet.ExecuteArtemisMevWorkflow(ctx)
+			if err != nil {
+				log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
 			}
 		}
 	}

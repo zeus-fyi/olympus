@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
-	mempool_txs "github.com/zeus-fyi/olympus/datastores/dynamodb/mempool"
+	dynamodb_mev "github.com/zeus-fyi/olympus/datastores/dynamodb/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/temporal"
@@ -51,7 +51,7 @@ func (t *ArtemisMevWorkflow) ArtemisTxBlacklistWorkflow(ctx workflow.Context) er
 	return nil
 }
 
-func (t *ArtemisMevWorkflow) ArtemisRemoveProcessedTxsWorkflow(ctx workflow.Context, mempoolTxs []mempool_txs.MempoolTxsDynamoDB) error {
+func (t *ArtemisMevWorkflow) ArtemisRemoveProcessedTxsWorkflow(ctx workflow.Context, mempoolTxs []dynamodb_mev.MempoolTxsDynamoDB) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Second * 12,
@@ -75,7 +75,7 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context) error {
 		StartToCloseTimeout: defaultTimeout,
 	}
 	getMempoolTxsCtx := workflow.WithActivityOptions(ctx, ao)
-	var mempoolTxs []mempool_txs.MempoolTxsDynamoDB
+	var mempoolTxs []dynamodb_mev.MempoolTxsDynamoDB
 	err := workflow.ExecuteActivity(getMempoolTxsCtx, t.GetMempoolTxs).Get(getMempoolTxsCtx, &mempoolTxs)
 	if err != nil {
 		log.Error("Failed to get mempool txs", "Error", err)

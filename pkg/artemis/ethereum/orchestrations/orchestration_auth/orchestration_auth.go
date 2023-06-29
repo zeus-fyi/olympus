@@ -2,14 +2,14 @@ package artemis_orchestration_auth
 
 import (
 	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamodb"
-	mempool_txs "github.com/zeus-fyi/olympus/datastores/dynamodb/mempool"
+	dynamodb_mev "github.com/zeus-fyi/olympus/datastores/dynamodb/mev"
 )
 
 var (
 	Bearer            string
-	MevDynamoDBClient mempool_txs.MempoolTxDynamoDB
+	MevDynamoDBClient dynamodb_mev.MevDynamoDB
 )
 
 func InitMevDynamoDBClient(creds dynamodb_client.DynamoDBCredentials) {
-	MevDynamoDBClient = mempool_txs.NewMempoolTxDynamoDB(creds)
+	MevDynamoDBClient = dynamodb_mev.NewMevDynamoDB(creds)
 }

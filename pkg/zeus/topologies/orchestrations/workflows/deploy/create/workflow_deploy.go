@@ -40,6 +40,7 @@ func (t *DeployTopologyWorkflow) DeployTopologyWorkflow(ctx workflow.Context, pa
 		InitialInterval:    time.Second * 60,
 		BackoffCoefficient: 1.0,
 		MaximumInterval:    time.Second * 60,
+		MaximumAttempts:    100,
 	}
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,

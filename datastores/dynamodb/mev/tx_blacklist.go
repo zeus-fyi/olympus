@@ -1,4 +1,4 @@
-package mempool_txs
+package dynamodb_mev
 
 import (
 	"context"
@@ -22,7 +22,7 @@ type TxBlacklistDynamoDB struct {
 	TTL int `dynamodbav:"ttl"`
 }
 
-func (m *MempoolTxDynamoDB) PutTxBlacklist(ctx context.Context, txBlacklist TxBlacklistDynamoDB) error {
+func (m *MevDynamoDB) PutTxBlacklist(ctx context.Context, txBlacklist TxBlacklistDynamoDB) error {
 	now := time.Now()
 	fourHours := now.Add(time.Hour * 4)
 	unixTimestamp := fourHours.Unix()
@@ -42,7 +42,7 @@ func (m *MempoolTxDynamoDB) PutTxBlacklist(ctx context.Context, txBlacklist TxBl
 	return err
 }
 
-func (m *MempoolTxDynamoDB) GetTxBlacklist(ctx context.Context, txBlacklist TxBlacklistDynamoDB) (bool, error) {
+func (m *MevDynamoDB) GetTxBlacklist(ctx context.Context, txBlacklist TxBlacklistDynamoDB) (bool, error) {
 	keymap, err := attributevalue.MarshalMap(txBlacklist.TxBlacklistDynamoDBTableKeys)
 	if err != nil {
 		return false, err

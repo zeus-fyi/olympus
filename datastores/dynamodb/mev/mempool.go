@@ -1,4 +1,4 @@
-package mempool_txs
+package dynamodb_mev
 
 import (
 	"context"
@@ -10,16 +10,16 @@ import (
 	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamodb"
 )
 
-type MempoolTxDynamoDB struct {
+type MevDynamoDB struct {
 	*dynamodb.Client
 }
 
-func NewMempoolTxDynamoDB(creds dynamodb_client.DynamoDBCredentials) MempoolTxDynamoDB {
+func NewMevDynamoDB(creds dynamodb_client.DynamoDBCredentials) MevDynamoDB {
 	d, err := dynamodb_client.NewDynamoDBClient(context.Background(), creds)
 	if err != nil {
 		log.Err(err)
 	}
-	return MempoolTxDynamoDB{
+	return MevDynamoDB{
 		d.Client,
 	}
 }
@@ -40,7 +40,7 @@ type MempoolTxsDynamoDB struct {
 	TTL int    `dynamodbav:"ttl"`
 }
 
-func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) ([]MempoolTxsDynamoDB, error) {
+func (m *MevDynamoDB) GetMempoolTxs(ctx context.Context, network string) ([]MempoolTxsDynamoDB, error) {
 	var mempoolTxsTableName *string
 	if network == "mainnet" {
 		mempoolTxsTableName = MainnetMempoolTxsTableName
@@ -69,7 +69,7 @@ func (m *MempoolTxDynamoDB) GetMempoolTxs(ctx context.Context, network string) (
 	return mempoolTxs, nil
 }
 
-func (m *MempoolTxDynamoDB) RemoveMempoolTx(ctx context.Context, tx MempoolTxsDynamoDB) error {
+func (m *MevDynamoDB) RemoveMempoolTx(ctx context.Context, tx MempoolTxsDynamoDB) error {
 	keymap, err := attributevalue.MarshalMap(tx.MempoolTxDynamoDBTableKeys)
 	if err != nil {
 		return err

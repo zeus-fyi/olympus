@@ -14,7 +14,6 @@ import (
 const topicsPath = "eth/v1/events?topics="
 
 func beaconSubscriptionSSE(ctx context.Context, nodeEndpointURL, topic string) error {
-
 	url := nodeEndpointURL + "/" + topicsPath + topic
 	client := sse.NewClient(url)
 

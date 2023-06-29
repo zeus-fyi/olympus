@@ -1,4 +1,4 @@
-package mempool_txs
+package dynamodb_mev
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
-type MempoolTxDynamoDBTestSuite struct {
+type MevDynamoDBTestSuite struct {
 	m MempoolTxsDynamoDB
 	test_suites_base.TestSuite
 }
@@ -20,22 +20,22 @@ var (
 	region = "us-west-1"
 )
 
-func (t *MempoolTxDynamoDBTestSuite) SetupTest() {
+func (t *MevDynamoDBTestSuite) SetupTest() {
 	t.Tc = configs.InitLocalTestConfigs()
 }
 
-func (t *MempoolTxDynamoDBTestSuite) TestGetMempoolTxs() {
+func (t *MevDynamoDBTestSuite) TestGetMempoolTxs() {
 	creds := dynamodb_client.DynamoDBCredentials{
 		Region:       region,
 		AccessKey:    t.Tc.AwsAccessKeyDynamoDB,
 		AccessSecret: t.Tc.AwsSecretKeyDynamoDB,
 	}
-	m := NewMempoolTxDynamoDB(creds)
+	m := NewMevDynamoDB(creds)
 	memTxs, err := m.GetMempoolTxs(ctx, "mainnet")
 	t.Require().Nil(err)
 	t.Require().NotNil(memTxs)
 }
 
-func TestMempoolTxDynamoDBTestSuite(t *testing.T) {
-	suite.Run(t, new(MempoolTxDynamoDBTestSuite))
+func TestMevDynamoDBTestSuite(t *testing.T) {
+	suite.Run(t, new(MevDynamoDBTestSuite))
 }

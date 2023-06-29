@@ -1,16 +1,16 @@
-package mempool_txs
+package dynamodb_mev
 
 import (
 	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamodb"
 )
 
-func (t *MempoolTxDynamoDBTestSuite) TestPutBlacklistTx() {
+func (t *MevDynamoDBTestSuite) TestPutBlacklistTx() {
 	creds := dynamodb_client.DynamoDBCredentials{
 		Region:       region,
 		AccessKey:    t.Tc.AwsAccessKeyDynamoDB,
 		AccessSecret: t.Tc.AwsSecretKeyDynamoDB,
 	}
-	m := NewMempoolTxDynamoDB(creds)
+	m := NewMevDynamoDB(creds)
 
 	txBlacklist := TxBlacklistDynamoDB{
 		TxBlacklistDynamoDBTableKeys: TxBlacklistDynamoDBTableKeys{
@@ -21,13 +21,13 @@ func (t *MempoolTxDynamoDBTestSuite) TestPutBlacklistTx() {
 	t.Require().Nil(err)
 }
 
-func (t *MempoolTxDynamoDBTestSuite) TestGetBlacklistTx() {
+func (t *MevDynamoDBTestSuite) TestGetBlacklistTx() {
 	creds := dynamodb_client.DynamoDBCredentials{
 		Region:       region,
 		AccessKey:    t.Tc.AwsAccessKeyDynamoDB,
 		AccessSecret: t.Tc.AwsSecretKeyDynamoDB,
 	}
-	m := NewMempoolTxDynamoDB(creds)
+	m := NewMevDynamoDB(creds)
 	txBlacklist := TxBlacklistDynamoDB{
 		TxBlacklistDynamoDBTableKeys: TxBlacklistDynamoDBTableKeys{
 			TxHash: "0x123",

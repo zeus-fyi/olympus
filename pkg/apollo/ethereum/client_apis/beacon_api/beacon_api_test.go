@@ -13,7 +13,7 @@ import (
 
 const disableHighDataAPITests = true
 
-var ctx context.Context
+var ctx = context.Background()
 
 type BeaconAPITestSuite struct {
 	test_suites_base.TestSuite

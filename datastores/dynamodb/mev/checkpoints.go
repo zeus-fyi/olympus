@@ -51,7 +51,7 @@ func (m *MevDynamoDB) GetCheckpoint(ctx context.Context, checkpoint CheckpointsD
 	resp, err := m.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName:      tableName,
 		Key:            keymap,
-		ConsistentRead: aws.Bool(false),
+		ConsistentRead: aws.Bool(true),
 	})
 	if err != nil {
 		return false, err

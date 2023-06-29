@@ -4,6 +4,7 @@ on:
     paths:
       - apps/olympus/tyche/**
       - pkg/aegis/auth_startup/**
+      - pkg/artemis/trading/**
       - pkg/tyche/**
       - docker/tyche/Dockerfile
       - .github/workflows/tyche.yml

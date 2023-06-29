@@ -9,7 +9,7 @@ on:
       - docker/tyche/Dockerfile
       - .github/workflows/tyche.yml
     branches:
-      - dev-mev-alex
+      - main
 env:
   REPO: registry.digitalocean.com/zeus-fyi
   NAME: tyche

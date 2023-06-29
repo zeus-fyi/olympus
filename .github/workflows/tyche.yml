@@ -4,11 +4,12 @@ on:
     paths:
       - apps/olympus/tyche/**
       - pkg/aegis/auth_startup/**
+      - pkg/artemis/trading/**
       - pkg/tyche/**
       - docker/tyche/Dockerfile
       - .github/workflows/tyche.yml
     branches:
-      - dev-mev-alex
+      - main
 env:
   REPO: registry.digitalocean.com/zeus-fyi
   NAME: tyche

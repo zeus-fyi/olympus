@@ -14,3 +14,9 @@ func (t *HardhatCookbookTestSuite) TestCreateClusterClassAnvil() {
 	err := gcd.CreateClusterClassDefinitions(context.Background(), t.ZeusTestClient)
 	t.Require().Nil(err)
 }
+
+func (t *HardhatCookbookTestSuite) TestChartUploadAnvil() {
+	cd := anvilClusterDefinition
+	_, err := cd.UploadChartsFromClusterDefinition(ctx, t.ZeusTestClient, true)
+	t.Require().Nil(err)
+}

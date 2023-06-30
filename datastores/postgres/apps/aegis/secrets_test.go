@@ -52,7 +52,9 @@ func (t *AegisSecretsTestSuite) TestInsertSecret() {
 	t.Require().Nil(err)
 
 	// test 1671408416567169792
-	prod := 1685553743752077000
+	// hardhat 1685553743752077000
+	// anvil 	// 1688095422829068000
+	prod := 1688095422829068000
 	refTop := autogen_bases.TopologySystemComponentsSecrets{
 		TopologySystemComponentID: prod,
 		SecretID:                  secRef.SecretID,

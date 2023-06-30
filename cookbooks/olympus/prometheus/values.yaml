@@ -1,3 +1,19 @@
+grafana:
+  persistence:
+    enabled: true
+    type: pvc
+    accessModes:
+      - ReadWriteOnce
+    size: 10Gi
+    finalizers:
+      - kubernetes.io/pvc-protection
+  resources:
+    limits:
+      cpu: "1"
+      memory: "5Gi"
+    requests:
+      cpu: "1"
+      memory: "5Gi"
 prometheus:
   prometheusSpec:
     storageSpec:

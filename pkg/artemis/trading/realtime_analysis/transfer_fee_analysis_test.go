@@ -45,7 +45,6 @@ func (s *ArtemisRealTimeTradingTestSuite) SetupTest() {
 	s.Assert().Nil(err)
 	s.UserA = web3_client.NewWeb3Client("http://localhost:8545", newAccount)
 	s.UserB = web3_client.NewWeb3Client("http://localhost:8545", secondAccount)
-
 }
 
 func TestArtemisRealTimeTradingTestSuite(t *testing.T) {

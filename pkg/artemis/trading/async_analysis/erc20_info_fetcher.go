@@ -3,6 +3,7 @@ package async_analysis
 import (
 	"context"
 
+	"github.com/rs/zerolog/log"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 )
@@ -13,7 +14,6 @@ func (c *ContractAnalysis) FindERC20TokenInfo(ctx context.Context) error {
 		2. storage slot for balanceOf
 		3. transfer tax percentage
 	*/
-
 	num := 1
 	den := 1
 	name, sym := "", ""
@@ -32,6 +32,7 @@ func (c *ContractAnalysis) FindERC20TokenInfo(ctx context.Context) error {
 	}
 	err := artemis_validator_service_groups_models.InsertERC20TokenInfo(ctx, token)
 	if err != nil {
+		log.Err(err).Msg("ContractAnalysis: InsertERC20TokenInfo")
 		return err
 	}
 	return nil

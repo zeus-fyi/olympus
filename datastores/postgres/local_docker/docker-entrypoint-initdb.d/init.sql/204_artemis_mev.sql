@@ -23,7 +23,12 @@ ALTER TABLE "public"."eth_p2p_nodes" ADD CONSTRAINT "eth_p2p_nodes_pk" PRIMARY K
 CREATE TABLE "public"."erc20_token_info" (
     "address" text NOT NULL,
     "protocol_network_id" int8 NOT NULL REFERENCES protocol_networks(protocol_network_id) DEFAULT 1,
-    "balance_of_slot_num" int8 NOT NULL
+    "balance_of_slot_num" int8 NOT NULL,
+    "name" text NOT NULL,
+    "symbol" text NOT NULL,
+    "decimals" int4 NOT NULL,
+    "transfer_tax_percentage" float8 NOT NULL DEFAULT 0,
+    "trading_enabled" bool NOT NULL DEFAULT false,
 );
 ALTER TABLE "public"."erc20_token_info" ADD CONSTRAINT "erc20_token_info_pk" PRIMARY KEY ("address");
 

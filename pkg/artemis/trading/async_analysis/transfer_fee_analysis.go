@@ -1,4 +1,4 @@
-package artemis_realtime_analysis
+package async_analysis
 
 import (
 	"context"
@@ -15,6 +15,10 @@ type ContractAnalysis struct {
 	web3_actions.SendContractTxPayload
 	UserA web3_client.Web3Client
 	UserB web3_client.Web3Client
+}
+
+func NewERC20ContractAnalysis(u *web3_client.UniswapClient, address string) ContractAnalysis {
+	return NewContractAnalysis(u, address, web3_client.MustLoadERC20Abi())
 }
 
 func NewContractAnalysis(u *web3_client.UniswapClient, address string, abiFile *abi.ABI) ContractAnalysis {

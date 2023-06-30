@@ -1,4 +1,4 @@
-package artemis_realtime_analysis
+package async_analysis
 
 import (
 	"context"
@@ -25,14 +25,22 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysis() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	uni := web3_client.InitUniswapClient(ctx, s.UserA)
 
-	abiFile := web3_client.MustLoadERC20Abi()
 	shib2Contract := "0x34ba042827996821CFFEB06477D48a2Ff9474483"
-	s.ca = NewContractAnalysis(&uni, shib2Contract, abiFile)
+	s.ca = NewERC20ContractAnalysis(&uni, shib2Contract)
 	s.ca.UserB = s.UserB
 
 	percent, err := s.ca.CalculateTransferFeeTax(ctx, web3_client.EtherMultiple(1))
 	s.Assert().Nil(err)
 	s.Assert().Equal(int64(2), percent)
+
+	/*
+		ALTER TABLE "public"."erc20_token_info"
+		ADD COLUMN "name" text,
+		ADD COLUMN "symbol" text,
+		ADD COLUMN "decimals" int4,
+		ADD COLUMN "transfer_tax_percentage" float8,
+		ADD COLUMN "trading_enabled" bool NOT NULL DEFAULT false;
+	*/
 }
 
 func (s *ArtemisRealTimeTradingTestSuite) SetupTest() {

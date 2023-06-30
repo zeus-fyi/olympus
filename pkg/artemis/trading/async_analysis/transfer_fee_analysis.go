@@ -54,6 +54,9 @@ func (c *ContractAnalysis) CalculateTransferFeeTax(ctx context.Context, amount *
 	}
 	transferAmount := new(big.Int).Sub(endBal, startBal)
 	feeAmount := new(big.Int).Sub(amount, transferAmount)
+	if feeAmount.String() == "0" {
+		return uniswap_core_entities.NewPercent(big.NewInt(1), big.NewInt(1)), nil
+	}
 	gcd := new(big.Int).GCD(nil, nil, amount, feeAmount)
 	numerator := new(big.Int).Div(feeAmount, gcd)
 	denominator := new(big.Int).Div(amount, gcd)

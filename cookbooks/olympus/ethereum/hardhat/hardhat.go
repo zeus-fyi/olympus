@@ -48,7 +48,7 @@ var (
 	}
 	hardhatChartPath = filepaths.Path{
 		PackageName: "",
-		DirIn:       "./olympus/ethereum/hardhat/infra",
+		DirIn:       "./olympus/ethereum/hardhat/hardhat",
 		DirOut:      "./olympus/outputs",
 		FnIn:        "hardhat", // filename for your gzip workload
 		FnOut:       "",

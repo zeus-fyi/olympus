@@ -24,10 +24,11 @@ CREATE TABLE "public"."erc20_token_info" (
     "address" text NOT NULL,
     "protocol_network_id" int8 NOT NULL REFERENCES protocol_networks(protocol_network_id) DEFAULT 1,
     "balance_of_slot_num" int8 NOT NULL,
-    "name" text NOT NULL,
-    "symbol" text NOT NULL,
-    "decimals" int4 NOT NULL,
-    "transfer_tax_percentage" float8 NOT NULL DEFAULT 0,
+    "name" text,
+    "symbol" text,
+    "decimals" int4,
+    "transfer_tax_numerator" int8,
+    "transfer_tax_denominator" int8,
     "trading_enabled" bool NOT NULL DEFAULT false,
 );
 ALTER TABLE "public"."erc20_token_info" ADD CONSTRAINT "erc20_token_info_pk" PRIMARY KEY ("address");

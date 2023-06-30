@@ -62,6 +62,32 @@ func SelectERC20TokenInfo(ctx context.Context, token artemis_autogen_bases.Erc20
 	return token.BalanceOfSlotNum, misc.ReturnIfErr(err, q.LogHeader("SelectERC20TokenInfo"))
 }
 
+func SelectERC20TokensWithoutMetadata(ctx context.Context) ([]artemis_autogen_bases.Erc20TokenInfo, error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT address
+				  FROM erc20_token_info
+				  WHERE protocol_network_id = $1 AND decimals IS NULL;`
+
+	var tokens []artemis_autogen_bases.Erc20TokenInfo
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, 1)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SelectERC20Tokens")); returnErr != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var token artemis_autogen_bases.Erc20TokenInfo
+		rowErr := rows.Scan(
+			&token.Address,
+		)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader("SelectERC20Tokens"))
+			return nil, rowErr
+		}
+		tokens = append(tokens, token)
+	}
+	return tokens, misc.ReturnIfErr(err, q.LogHeader("SelectERC20Tokens"))
+}
+
 func SelectERC20Tokens(ctx context.Context) ([]artemis_autogen_bases.Erc20TokenInfo, error) {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `SELECT address

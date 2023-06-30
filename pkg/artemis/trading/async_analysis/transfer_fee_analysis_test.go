@@ -58,7 +58,8 @@ func (s *ArtemisRealTimeTradingTestSuite) SetupTest() {
 	pkHexString := s.Tc.LocalEcsdaTestPkey
 	secondAccount, err := accounts.ParsePrivateKey(pkHexString)
 	s.Assert().Nil(err)
-	s.UserA = web3_client.NewWeb3Client("http://localhost:8545", newAccount)
+	s.UserA = web3_client.NewWeb3Client(s.Tc.QuiknodeLiveNode, newAccount)
+	//s.UserA = web3_client.NewWeb3Client("http://localhost:8545", newAccount)
 	s.UserB = web3_client.NewWeb3Client("http://localhost:8545", secondAccount)
 }
 

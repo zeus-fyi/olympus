@@ -8,12 +8,8 @@ import (
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 )
 
-func (c *ContractAnalysis) FindERC20TokenInfo(ctx context.Context) error {
-	/*
-		1. erc20 decimals, symbol, name
-		2. storage slot for balanceOf
-		3. transfer tax percentage
-	*/
+// FindERC20TokenMetadataInfo finds the erc20 token decimals, symbol, name and updates the database
+func (c *ContractAnalysis) FindERC20TokenMetadataInfo(ctx context.Context) error {
 	num := 1
 	den := 1
 	name, sym := "", ""
@@ -30,7 +26,25 @@ func (c *ContractAnalysis) FindERC20TokenInfo(ctx context.Context) error {
 		TransferTaxDenominator: &den,
 		TradingEnabled:         &tradingEnabled,
 	}
-	err := artemis_validator_service_groups_models.InsertERC20TokenInfo(ctx, token)
+	decimals, err := c.u.Web3Client.GetContractDecimals(ctx, c.SmartContractAddr)
+	if err != nil {
+		log.Err(err).Msg("ContractAnalysis: GetContractDecimals")
+		return err
+	}
+	token.Decimals = &decimals
+	name, err = c.u.Web3Client.GetContractName(ctx, c.SmartContractAddr)
+	if err != nil {
+		log.Err(err).Msg("ContractAnalysis: GetContractName")
+		return err
+	}
+	token.Name = &name
+	sym, err = c.u.Web3Client.GetContractSymbol(ctx, c.SmartContractAddr)
+	if err != nil {
+		log.Err(err).Msg("ContractAnalysis: GetContractSymbol")
+		return err
+	}
+	token.Symbol = &sym
+	err = artemis_validator_service_groups_models.UpdateERC20TokenInfo(ctx, token)
 	if err != nil {
 		log.Err(err).Msg("ContractAnalysis: InsertERC20TokenInfo")
 		return err

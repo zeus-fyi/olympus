@@ -35,12 +35,14 @@ func (a *ActiveTrading) EntryTxFilter(ctx context.Context, tx *types.Transaction
 	to := tx.To().String()
 	tmTradingEnabled := TokenMap[tx.To().String()].TradingEnabled
 	if tmTradingEnabled == nil {
+		tradeEnabled := false
 		log.Info().Msgf("ActiveTrading: EntryTxFilter, erc20 at address %s not registered", to)
 		chainId := tx.ChainId().Int64()
 		err := artemis_validator_service_groups_models.InsertERC20TokenInfo(ctx, artemis_autogen_bases.Erc20TokenInfo{
 			Address:           to,
 			ProtocolNetworkID: int(chainId),
 			BalanceOfSlotNum:  -2, // -1 means balanceOf it wasn't cracked within 100 slots, -2 means cracking hasn't been attempted yet
+			TradingEnabled:    &tradeEnabled,
 		})
 		if err != nil {
 			log.Err(err).Msg("ActiveTrading: EntryTxFilter, InsertERC20TokenInfo")

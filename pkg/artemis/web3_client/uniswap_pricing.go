@@ -23,7 +23,6 @@ func ApplyTransferTax(tokenAddress accounts.Address, amount *big.Int) *big.Int {
 	transferFee := new(big.Int).Mul(amount, transferTax.Numerator)
 	transferFee = transferFee.Div(transferFee, transferTax.Denominator)
 	adjustedOut := new(big.Int).Sub(amount, transferFee)
-	log.Info().Str("token", tokenAddress.String()).Str("amount", amount.String()).Str("transferFee", transferFee.String()).Str("adjustedOut", adjustedOut.String()).Msg("transfer tax")
 	return adjustedOut
 }
 

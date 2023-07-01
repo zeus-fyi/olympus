@@ -126,7 +126,7 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context) error {
 	}
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
 	histTxTrades := HistoricalTxAnalysis{
-		StartTimeDelay: 1 * time.Second,
+		StartTimeDelay: 12 * time.Second,
 		Trades:         trades,
 	}
 	childWorkflowFutureHistoricalSimTx := workflow.ExecuteChildWorkflow(ctx, "ArtemisHistoricalSimTxWorkflow", histTxTrades)

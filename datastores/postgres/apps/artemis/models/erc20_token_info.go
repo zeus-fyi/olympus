@@ -127,6 +127,47 @@ func SelectERC20TokensWithoutMetadata(ctx context.Context) ([]artemis_autogen_ba
 	return tokens, misc.ReturnIfErr(err, q.LogHeader("SelectERC20Tokens"))
 }
 
+func SelectERC20TokensWithNullTransferTax(ctx context.Context) ([]artemis_autogen_bases.Erc20TokenInfo, map[string]artemis_autogen_bases.Erc20TokenInfo, error) {
+	m := make(map[string]artemis_autogen_bases.Erc20TokenInfo)
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT address, name, symbol, decimals, transfer_tax_numerator, transfer_tax_denominator, balance_of_slot_num, trading_enabled
+				  FROM erc20_token_info
+				  WHERE protocol_network_id = $1 AND transfer_tax_denominator IS NULL;`
+
+	var tokens []artemis_autogen_bases.Erc20TokenInfo
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, 1)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SelectERC20Tokens")); returnErr != nil {
+		return nil, m, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var token artemis_autogen_bases.Erc20TokenInfo
+		rowErr := rows.Scan(
+			&token.Address,
+			&token.Name,
+			&token.Symbol,
+			&token.Decimals,
+			&token.TransferTaxNumerator,
+			&token.TransferTaxDenominator,
+			&token.BalanceOfSlotNum,
+			&token.TradingEnabled,
+		)
+		if token.TransferTaxNumerator != nil && token.TransferTaxDenominator != nil && token.BalanceOfSlotNum >= 0 {
+			if *token.TransferTaxNumerator == 1 && *token.TransferTaxDenominator == 1 {
+				tnEnabled := true
+				token.TradingEnabled = &tnEnabled
+			}
+		}
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader("SelectERC20Tokens"))
+			return nil, m, rowErr
+		}
+		m[token.Address] = token
+		tokens = append(tokens, token)
+	}
+	return tokens, m, misc.ReturnIfErr(err, q.LogHeader("SelectERC20Tokens"))
+}
+
 func SelectERC20Tokens(ctx context.Context) ([]artemis_autogen_bases.Erc20TokenInfo, map[string]artemis_autogen_bases.Erc20TokenInfo, error) {
 	m := make(map[string]artemis_autogen_bases.Erc20TokenInfo)
 	q := sql_query_templates.QueryParams{}

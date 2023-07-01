@@ -12,6 +12,7 @@ import (
 	artemis_mev_tx_fetcher "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/mev"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_ethereum_transcations "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/transcations"
+	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 )
 
@@ -62,6 +63,10 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	log.Info().Msg("Artemis: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	log.Info().Msg("Artemis: PG connection succeeded")
+
+	log.Info().Msg("Artemis: InitTokenFilter starting")
+	artemis_trading_cache.InitTokenFilter(ctx)
+	log.Info().Msg("Artemis: InitTokenFilter succeeded")
 
 	log.Info().Msgf("Artemis %s orchestration retrieving auth token", env)
 	artemis_orchestration_auth.Bearer = auth_startup.FetchTemporalAuthBearer(ctx)

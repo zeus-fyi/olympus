@@ -6,7 +6,18 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 )
+
+func ApplyTransferTax(amount *big.Int, transferTax *uniswap_core_entities.Percent) *big.Int {
+	if transferTax == nil {
+		return amount
+	}
+	transferFee := new(big.Int).Mul(amount, transferTax.Numerator)
+	transferFee = transferFee.Div(transferFee, transferTax.Denominator)
+	adjustedOut := new(big.Int).Sub(amount, transferFee)
+	return adjustedOut
+}
 
 func (p *UniswapV2Pair) PriceImpact(tokenAddrPath accounts.Address, tokenBuyAmount *big.Int) (TradeOutcome, error) {
 	tokenNumber := p.GetTokenNumber(tokenAddrPath)
@@ -15,11 +26,13 @@ func (p *UniswapV2Pair) PriceImpact(tokenAddrPath accounts.Address, tokenBuyAmou
 		to, _, _ := p.PriceImpactToken1BuyToken0(tokenBuyAmount)
 		to.AmountInAddr = tokenAddrPath
 		to.AmountOutAddr = p.GetOppositeToken(tokenAddrPath.String())
+		to.AmountOut = ApplyTransferTax(to.AmountOut, p.Token0TransferTax)
 		return to, nil
 	case 0:
 		to, _, _ := p.PriceImpactToken0BuyToken1(tokenBuyAmount)
 		to.AmountInAddr = tokenAddrPath
 		to.AmountOutAddr = p.GetOppositeToken(tokenAddrPath.String())
+		to.AmountOut = ApplyTransferTax(to.AmountOut, p.Token1TransferTax)
 		return to, nil
 	default:
 		to := TradeOutcome{}
@@ -34,6 +47,7 @@ func (p *UniswapV2Pair) PriceImpactToken1BuyToken0(tokenOneBuyAmount *big.Int) (
 		StartReservesToken0: p.Reserve0,
 		StartReservesToken1: p.Reserve1,
 	}
+
 	amountInWithFee := new(big.Int).Mul(tokenOneBuyAmount, big.NewInt(997))
 	//fmt.Println("amountInWithFee", amountInWithFee.String())
 	numerator := new(big.Int).Mul(amountInWithFee, p.Reserve0)

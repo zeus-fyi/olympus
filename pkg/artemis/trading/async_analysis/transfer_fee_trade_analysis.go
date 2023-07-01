@@ -48,17 +48,13 @@ func (c *ContractAnalysis) SimEthTransferFeeTaxTrade(ctx context.Context, amount
 		return nil, errors.New("amounts out not equal to expected")
 	}
 
-	transferFee := new(big.Int).Mul(calculatedOut.AmountOut, transferTaxPercent.Numerator)
-	transferFee = transferFee.Div(transferFee, transferTaxPercent.Denominator)
-	fmt.Println("transferFee", transferFee.String())
-
-	adjustedOut := new(big.Int).Sub(calculatedOut.AmountOut, transferFee)
-	fmt.Println("adjustedOut", adjustedOut.String())
+	amountOut := web3_client.ApplyTransferTax(calculatedOut.AmountOut, transferTaxPercent)
+	fmt.Println("amount out", amountOut.String())
 
 	trade := &web3_client.TradeOutcome{
 		AmountIn:      amount,
 		AmountInAddr:  WETH,
-		AmountOut:     adjustedOut,
+		AmountOut:     amountOut,
 		AmountOutAddr: accounts.HexToAddress(c.SmartContractAddr),
 	}
 	err = c.u.ExecTradeV2SwapFromTokenToToken(ctx, trade)

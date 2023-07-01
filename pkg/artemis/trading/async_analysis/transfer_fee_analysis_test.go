@@ -51,11 +51,13 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysisBulk() {
 	shib2Contract := "0x34ba042827996821CFFEB06477D48a2Ff9474483"
 	s.ca = NewERC20ContractAnalysis(&uni, shib2Contract)
 	s.ca.UserB = s.UserB
-	tokens, terr := artemis_validator_service_groups_models.SelectERC20TokensWithoutTransferTaxInfo(ctx)
+	tokens, terr := artemis_validator_service_groups_models.SelectERC20Tokens(ctx)
 	s.Assert().Nil(terr)
 	s.Assert().NotNil(tokens)
-
+	s.ca.UserA.IsAnvilNode = true
 	for _, token := range tokens {
+		err := s.ca.UserA.HardHatResetNetwork(ctx, s.Tc.QuiknodeLiveNode, 17595510)
+		s.Require().Nil(err)
 		s.ca.SmartContractAddr = token.Address
 		percent, err := s.ca.CalculateTransferFeeTax(ctx, web3_client.EtherMultiple(1))
 		s.Assert().Nil(err)

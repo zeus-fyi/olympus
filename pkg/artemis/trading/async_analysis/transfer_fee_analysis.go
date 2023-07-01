@@ -2,9 +2,11 @@ package async_analysis
 
 import (
 	"context"
+	"errors"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/rs/zerolog/log"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
@@ -38,9 +40,17 @@ func (c *ContractAnalysis) CalculateTransferFeeTax(ctx context.Context, amount *
 	if err != nil {
 		return nil, err
 	}
-	startBal, err := c.u.Web3Client.ReadERC20TokenBalance(ctx, c.SmartContractAddr, c.UserB.Address().String())
+	startBalUserB, err := c.u.Web3Client.ReadERC20TokenBalance(ctx, c.SmartContractAddr, c.UserB.Address().String())
 	if err != nil {
 		return nil, err
+	}
+	initBalUserA, err := c.u.Web3Client.ReadERC20TokenBalance(ctx, c.SmartContractAddr, c.UserA.Address().String())
+	if err != nil {
+		return nil, err
+	}
+	if initBalUserA.String() != amount.String() {
+		log.Err(err).Interface("token", c.SendContractTxPayload.SmartContractAddr).Msg("erc20Diff is not equal to amount")
+		return uniswap_core_entities.NewPercent(big.NewInt(0), big.NewInt(1)), errors.New("erc20Diff is 0")
 	}
 	c.MethodName = "transfer"
 	c.Params = []interface{}{c.UserB.Address(), amount}
@@ -48,12 +58,17 @@ func (c *ContractAnalysis) CalculateTransferFeeTax(ctx context.Context, amount *
 	if err != nil {
 		return nil, err
 	}
-	endBal, err := c.u.Web3Client.ReadERC20TokenBalance(ctx, c.SmartContractAddr, c.UserB.Address().String())
+	endBalUserB, err := c.u.Web3Client.ReadERC20TokenBalance(ctx, c.SmartContractAddr, c.UserB.Address().String())
 	if err != nil {
 		return nil, err
 	}
-	transferAmount := new(big.Int).Sub(endBal, startBal)
+	transferAmount := new(big.Int).Sub(endBalUserB, startBalUserB)
 	feeAmount := new(big.Int).Sub(amount, transferAmount)
+	total := new(big.Int).Add(transferAmount, feeAmount)
+	if total.String() != amount.String() {
+		log.Err(err).Interface("token", c.SendContractTxPayload.SmartContractAddr).Msg("total is not equal to amount")
+		return uniswap_core_entities.NewPercent(big.NewInt(0), big.NewInt(1)), errors.New("total is not equal to amount")
+	}
 	if feeAmount.String() == "0" {
 		return uniswap_core_entities.NewPercent(big.NewInt(1), big.NewInt(1)), nil
 	}

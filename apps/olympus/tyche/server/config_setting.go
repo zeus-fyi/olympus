@@ -11,6 +11,7 @@ import (
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	"github.com/zeus-fyi/olympus/pkg/artemis/price_quoter"
+	artemis_realtime_trading "github.com/zeus-fyi/olympus/pkg/artemis/trading"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 )
 
@@ -56,7 +57,6 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		artemis_network_cfgs.InitArtemisLocalTestConfigs()
 	}
 	dynamoDBCreds.Region = "us-west-1"
-
 	log.Info().Msg("Tyche: DynamoDB connection starting")
 	artemis_orchestration_auth.InitMevDynamoDBClient(dynamoDBCreds)
 	log.Info().Msg("Tyche: DynamoDB connection succeeded")
@@ -64,4 +64,8 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	log.Info().Msg("Tyche: PG connection starting")
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	log.Info().Msg("Tyche: PG connection succeeded")
+
+	log.Info().Msg("Tyche: InitTokenFilter starting")
+	artemis_realtime_trading.InitTokenFilter(ctx)
+	log.Info().Msg("Tyche: InitTokenFilter succeeded")
 }

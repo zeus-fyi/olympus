@@ -20,10 +20,7 @@ const (
 	exactOutput             = "exactOutput"
 )
 
-func (a *ActiveTrading) RealTimeProcessUniswapV3RouterTx(ctx context.Context, tx web3_client.MevTx, abiFile *abi.ABI, filter *strings_filter.FilterOpts) {
-	if tx.Tx.To() == nil {
-		return
-	}
+func (a *ActiveTrading) RealTimeProcessUniswapV3RouterTx(ctx context.Context, tx web3_client.MevTx, abiFile *abi.ABI, filter *strings_filter.FilterOpts) error {
 	toAddr := tx.Tx.To().String()
 	if strings.HasPrefix(tx.MethodName, multicall) {
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, multicall)
@@ -31,7 +28,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV3RouterTx(ctx context.Context, tx
 		err := inputs.Decode(ctx, tx.Args)
 		if err != nil {
 			log.Err(err).Msg("failed to decode multicall args")
-			return
+			return err
 		}
 		for _, data := range inputs.Data {
 			mn, args, derr := web3_client.DecodeTxData(ctx, data, abiFile, filter)
@@ -42,18 +39,22 @@ func (a *ActiveTrading) RealTimeProcessUniswapV3RouterTx(ctx context.Context, tx
 			newTx := tx
 			newTx.MethodName = mn
 			newTx.Args = args
-			a.processUniswapV3Txs(ctx, newTx)
+			err = a.processUniswapV3Txs(ctx, newTx)
+			if err != nil {
+				return err
+			}
 		}
 	} else {
-		a.processUniswapV3Txs(ctx, tx)
+		err := a.processUniswapV3Txs(ctx, tx)
+		if err != nil {
+			log.Err(err).Msg("failed to process uniswap v3 tx")
+			return err
+		}
 	}
-	return
+	return nil
 }
 
-func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx) {
-	if tx.Tx.To() == nil {
-		return
-	}
+func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx) error {
 	toAddr := tx.Tx.To().String()
 	switch tx.MethodName {
 	case exactInput:
@@ -61,14 +62,14 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		err := inputs.Decode(ctx, tx.Args)
 		if err != nil {
 			log.Err(err).Msg("failed to decode exact input args")
-			return
+			return err
 		}
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, exactInput)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 		pd, err := a.u.GetV3PricingData(ctx, inputs.TokenFeePath)
 		if err != nil {
 			log.Err(err).Msg("failed to get pricing data")
-			return
+			return err
 		}
 		tf := inputs.BinarySearch(pd)
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, exactInput, pd.V3Pair.PoolAddress, inputs.TokenFeePath.TokenIn.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
@@ -77,14 +78,14 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		err := inputs.Decode(ctx, tx.Args)
 		if err != nil {
 			log.Err(err).Msg("failed to decode exact output args")
-			return
+			return err
 		}
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, exactOutput)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 		pd, err := a.u.GetV3PricingData(ctx, inputs.TokenFeePath)
 		if err != nil {
 			log.Err(err).Msg("failed to get pricing data")
-			return
+			return err
 		}
 		tf := inputs.BinarySearch(pd)
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, exactOutput, pd.V3Pair.PoolAddress, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
@@ -93,14 +94,14 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		err := inputs.Decode(ctx, tx.Args)
 		if err != nil {
 			log.Err(err).Msg("failed to decode swap exact input single args")
-			return
+			return err
 		}
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactInputSingle)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 		pd, err := a.u.GetV3PricingData(ctx, inputs.TokenFeePath)
 		if err != nil {
 			log.Err(err).Msg("failed to get pricing data")
-			return
+			return err
 		}
 		tf := inputs.BinarySearch(pd)
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactInputSingle, pd.V3Pair.PoolAddress, inputs.TokenFeePath.TokenIn.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
@@ -109,14 +110,14 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		err := inputs.Decode(ctx, tx.Args)
 		if err != nil {
 			log.Err(err).Msg("failed to decode swap exact output single args")
-			return
+			return err
 		}
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactOutputSingle)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 		pd, err := a.u.GetV3PricingData(ctx, inputs.TokenFeePath)
 		if err != nil {
 			log.Err(err).Msg("failed to get pricing data")
-			return
+			return err
 		}
 		tf := inputs.BinarySearch(pd)
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactOutputSingle, pd.V3Pair.PoolAddress, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
@@ -125,7 +126,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		err := inputs.Decode(ctx, tx.Args)
 		if err != nil {
 			log.Err(err).Msg("swapExactTokensForTokens: failed to decode swap exact tokens for tokens args")
-			return
+			return err
 		}
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokens)
 		pend := len(inputs.Path) - 1
@@ -133,7 +134,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		pd, err := a.u.GetV2PricingData(ctx, inputs.Path)
 		if err != nil {
 			log.Err(err).Msg("failed to get pricing data")
-			return
+			return err
 		}
 		tf := inputs.BinarySearch(pd.V2Pair)
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForTokens, pd.V2Pair.PairContractAddr, inputs.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
@@ -142,4 +143,5 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 	case swapExactOutputMultihop:
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactOutputMultihop)
 	}
+	return nil
 }

@@ -8,13 +8,10 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx) {
+func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx) error {
 	subcmd, err := web3_client.NewDecodedUniversalRouterExecCmdFromMap(tx.Args)
 	if err != nil {
-		return
-	}
-	if tx.Tx.To() == nil {
-		return
+		return err
 	}
 	toAddr := tx.Tx.To().String()
 	for _, subtx := range subcmd.Commands {
@@ -27,7 +24,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			pd, perr := a.u.GetV3PricingData(ctx, inputs.Path)
 			if perr != nil {
 				log.Err(perr).Msg("V3SwapExactIn: error getting pricing data")
-				return
+				return perr
 			}
 			tf := inputs.BinarySearch(pd)
 			a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V3SwapExactIn, pd.V3Pair.PoolAddress, inputs.Path.TokenIn.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
@@ -39,7 +36,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			pd, perr := a.u.GetV3PricingData(ctx, inputs.Path)
 			if perr != nil {
 				log.Err(perr).Msg("V3SwapExactIn: error getting pricing data")
-				return
+				return perr
 			}
 			tf := inputs.BinarySearch(pd)
 			a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V3SwapExactOut, pd.V3Pair.PoolAddress, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
@@ -52,7 +49,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			pd, perr := a.u.GetV2PricingData(ctx, inputs.Path)
 			if perr != nil {
 				log.Err(perr).Msg("V2SwapExactIn: error getting pricing data")
-				return
+				return perr
 			}
 			tf := inputs.BinarySearch(pd.V2Pair)
 			a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V2SwapExactIn, pd.V2Pair.PairContractAddr, inputs.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
@@ -65,11 +62,12 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			pd, perr := a.u.GetV2PricingData(ctx, inputs.Path)
 			if perr != nil {
 				log.Err(perr).Msg("V2SwapExactOut: error getting pricing data")
-				return
+				return perr
 			}
 			tf := inputs.BinarySearch(pd.V2Pair)
 			a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V2SwapExactOut, pd.V2Pair.PairContractAddr, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		default:
 		}
 	}
+	return nil
 }

@@ -2,6 +2,7 @@ package artemis_realtime_trading
 
 import (
 	"context"
+	"errors"
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
@@ -27,9 +28,9 @@ func InitTokenFilter(ctx context.Context) {
 	TokenMap = tm
 }
 
-func (a *ActiveTrading) FilterTx(ctx context.Context, tx *types.Transaction) *types.Transaction {
+func (a *ActiveTrading) FilterTx(ctx context.Context, tx *types.Transaction) error {
 	if tx.To() == nil {
-		return nil
+		return errors.New("ActiveTrading: FilterTx, tx.To() is nil")
 	}
 	to := tx.To().String()
 	tradingEnabled := false
@@ -46,11 +47,12 @@ func (a *ActiveTrading) FilterTx(ctx context.Context, tx *types.Transaction) *ty
 		})
 		if err != nil {
 			log.Err(err).Msg("ActiveTrading: FilterTx, InsertERC20TokenInfo")
+			return err
 		}
-		return nil
+		return errors.New("ActiveTrading: FilterTx, erc20 at address not registered")
 	}
 	if !tradingEnabled {
-		return nil
+		return errors.New("ActiveTrading: FilterTx, trading not enabled for this token")
 	}
-	return tx
+	return nil
 }

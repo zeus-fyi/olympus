@@ -19,6 +19,9 @@ func ApplyTransferTax(tokenAddress accounts.Address, amount *big.Int) *big.Int {
 	if num == nil || denom == nil {
 		return amount
 	}
+	if *num == 1 && *denom == 1 {
+		return amount
+	}
 	transferTax := uniswap_core_entities.NewPercent(new(big.Int).SetInt64(int64(*num)), new(big.Int).SetInt64(int64(*denom)))
 	transferFee := new(big.Int).Mul(amount, transferTax.Numerator)
 	transferFee = transferFee.Div(transferFee, transferTax.Denominator)

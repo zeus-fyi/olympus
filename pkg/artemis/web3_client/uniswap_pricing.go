@@ -6,16 +6,24 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 )
 
-func ApplyTransferTax(amount *big.Int, transferTax *uniswap_core_entities.Percent) *big.Int {
-	if transferTax == nil {
+func ApplyTransferTax(tokenAddress accounts.Address, amount *big.Int) *big.Int {
+	if artemis_trading_cache.TokenMap == nil {
 		return amount
 	}
+	num := artemis_trading_cache.TokenMap[tokenAddress.String()].TransferTaxNumerator
+	denom := artemis_trading_cache.TokenMap[tokenAddress.String()].TransferTaxDenominator
+	if num == nil || denom == nil {
+		return amount
+	}
+	transferTax := uniswap_core_entities.NewPercent(new(big.Int).SetInt64(int64(*num)), new(big.Int).SetInt64(int64(*denom)))
 	transferFee := new(big.Int).Mul(amount, transferTax.Numerator)
 	transferFee = transferFee.Div(transferFee, transferTax.Denominator)
 	adjustedOut := new(big.Int).Sub(amount, transferFee)
+	log.Info().Str("token", tokenAddress.String()).Str("amount", amount.String()).Str("transferFee", transferFee.String()).Str("adjustedOut", adjustedOut.String()).Msg("transfer tax")
 	return adjustedOut
 }
 
@@ -26,13 +34,13 @@ func (p *UniswapV2Pair) PriceImpact(tokenAddrPath accounts.Address, tokenBuyAmou
 		to, _, _ := p.PriceImpactToken1BuyToken0(tokenBuyAmount)
 		to.AmountInAddr = tokenAddrPath
 		to.AmountOutAddr = p.GetOppositeToken(tokenAddrPath.String())
-		to.AmountOut = ApplyTransferTax(to.AmountOut, p.Token0TransferTax)
+		to.AmountOut = ApplyTransferTax(to.AmountOutAddr, to.AmountOut)
 		return to, nil
 	case 0:
 		to, _, _ := p.PriceImpactToken0BuyToken1(tokenBuyAmount)
 		to.AmountInAddr = tokenAddrPath
 		to.AmountOutAddr = p.GetOppositeToken(tokenAddrPath.String())
-		to.AmountOut = ApplyTransferTax(to.AmountOut, p.Token1TransferTax)
+		to.AmountOut = ApplyTransferTax(to.AmountOutAddr, to.AmountOut)
 		return to, nil
 	default:
 		to := TradeOutcome{}

@@ -11,7 +11,7 @@ import (
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	"github.com/zeus-fyi/olympus/pkg/artemis/price_quoter"
-	artemis_realtime_trading "github.com/zeus-fyi/olympus/pkg/artemis/trading"
+	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 )
 
@@ -66,6 +66,6 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	log.Info().Msg("Tyche: PG connection succeeded")
 
 	log.Info().Msg("Tyche: InitTokenFilter starting")
-	artemis_realtime_trading.InitTokenFilter(ctx)
+	artemis_trading_cache.InitTokenFilter(ctx)
 	log.Info().Msg("Tyche: InitTokenFilter succeeded")
 }

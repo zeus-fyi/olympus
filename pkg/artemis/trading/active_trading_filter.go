@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
+	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 )
 
 /*
@@ -18,22 +19,12 @@ import (
 	  - adds sourcing of new blocks
 */
 
-var TokenMap map[string]artemis_autogen_bases.Erc20TokenInfo
-
-func InitTokenFilter(ctx context.Context) {
-	_, tm, terr := artemis_validator_service_groups_models.SelectERC20Tokens(ctx)
-	if terr != nil {
-		panic(terr)
-	}
-	TokenMap = tm
-}
-
 func (a *ActiveTrading) EntryTxFilter(ctx context.Context, tx *types.Transaction) error {
 	if tx.To() == nil {
 		return errors.New("ActiveTrading: EntryTxFilter, tx.To() is nil")
 	}
 	to := tx.To().String()
-	tmTradingEnabled := TokenMap[tx.To().String()].TradingEnabled
+	tmTradingEnabled := artemis_trading_cache.TokenMap[tx.To().String()].TradingEnabled
 	if tmTradingEnabled == nil {
 		tradeEnabled := false
 		log.Info().Msgf("ActiveTrading: EntryTxFilter, erc20 at address %s not registered", to)
@@ -67,11 +58,11 @@ func (a *ActiveTrading) SimTxFilter(ctx context.Context, tx *types.Transaction) 
 			return errors.New("ActiveTrading: EntryTxFilter, trading not enabled for this token")
 		}
 	*/
-	if TokenMap[to].BalanceOfSlotNum < 0 {
+	if artemis_trading_cache.TokenMap[to].BalanceOfSlotNum < 0 {
 		return errors.New("ActiveTrading: EntryTxFilter, balanceOf not cracked yet")
 	}
-	num := TokenMap[to].TransferTaxNumerator
-	den := TokenMap[to].TransferTaxDenominator
+	num := artemis_trading_cache.TokenMap[to].TransferTaxNumerator
+	den := artemis_trading_cache.TokenMap[to].TransferTaxDenominator
 	if num == nil || den == nil {
 		return errors.New("ActiveTrading: EntryTxFilter, transfer tax not set")
 	}

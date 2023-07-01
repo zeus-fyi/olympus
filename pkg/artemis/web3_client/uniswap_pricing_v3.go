@@ -30,6 +30,9 @@ func (p *UniswapPoolV3) PriceImpact(ctx context.Context, token *core_entities.To
 	if err != nil {
 		return nil, nil, err
 	}
+	adjOut := ApplyTransferTax(token.Address, out.Quotient())
+	out.Numerator = adjOut
+	out.Denominator = big.NewInt(1)
 	return out, pool, nil
 }
 

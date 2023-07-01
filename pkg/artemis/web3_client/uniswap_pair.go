@@ -11,7 +11,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
-	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 )
 
 const (
@@ -21,17 +20,15 @@ const (
 )
 
 type UniswapV2Pair struct {
-	PairContractAddr     string                         `json:"pairContractAddr"`
-	Price0CumulativeLast *big.Int                       `json:"price0CumulativeLast"`
-	Price1CumulativeLast *big.Int                       `json:"price1CumulativeLast"`
-	KLast                *big.Int                       `json:"kLast"`
-	Token0               accounts.Address               `json:"token0"`
-	Token0TransferTax    *uniswap_core_entities.Percent `json:"token0TransferTax,omitempty"`
-	Token1               accounts.Address               `json:"token1"`
-	Token1TransferTax    *uniswap_core_entities.Percent `json:"token1TransferTax,omitempty"`
-	Reserve0             *big.Int                       `json:"reserve0"`
-	Reserve1             *big.Int                       `json:"reserve1"`
-	BlockTimestampLast   *big.Int                       `json:"blockTimestampLast"`
+	PairContractAddr     string           `json:"pairContractAddr"`
+	Price0CumulativeLast *big.Int         `json:"price0CumulativeLast"`
+	Price1CumulativeLast *big.Int         `json:"price1CumulativeLast"`
+	KLast                *big.Int         `json:"kLast"`
+	Token0               accounts.Address `json:"token0"`
+	Token1               accounts.Address `json:"token1"`
+	Reserve0             *big.Int         `json:"reserve0"`
+	Reserve1             *big.Int         `json:"reserve1"`
+	BlockTimestampLast   *big.Int         `json:"blockTimestampLast"`
 }
 
 func (p *UniswapV2Pair) PairForV2FromAddresses(tokenA, tokenB accounts.Address) error {

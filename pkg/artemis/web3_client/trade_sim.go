@@ -16,7 +16,7 @@ func (u *UniswapClient) SimFullSandwichTrade(tf *TradeExecutionFlow) error {
 	u.TradeAnalysisReport.AmountInAddr = tf.FrontRunTrade.AmountInAddr.String()
 	u.TradeAnalysisReport.AmountOutAddr = tf.SandwichTrade.AmountOutAddr.String()
 	// this isn't included in trade gas costs since we amortize one time gas costs for permit2
-	max, _ := new(big.Int).SetString(maxUINT, 10)
+	max, _ := new(big.Int).SetString(MaxUINT, 10)
 	approveTx, err := u.ApproveSpender(ctx, WETH9ContractAddress, Permit2SmartContractAddress, max)
 	if err != nil {
 		log.Warn().Interface("approveTx", approveTx).Err(err).Msg("error approving permit2")

@@ -82,7 +82,7 @@ func (s *Web3ClientTestSuite) TestPermit2TransferSubmission() {
 	s.Require().NotNil(bal)
 	expiration, _ := new(big.Int).SetString("1785444080", 10)
 	sigDeadline, _ := new(big.Int).SetString("1785444080", 10)
-	max, _ := new(big.Int).SetString(maxUINT, 10)
+	max, _ := new(big.Int).SetString(MaxUINT, 10)
 
 	tx, err := uni.ApproveSpender(ctx, WETH9ContractAddress, Permit2SmartContractAddress, max)
 	s.Assert().NoError(err)

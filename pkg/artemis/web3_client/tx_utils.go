@@ -169,7 +169,7 @@ func (u *UniswapClient) ExecTradeV2SwapFromTokenBackToEth(ctx context.Context, t
 	}
 
 	// todo needs to amortize gas costs for permit2
-	max, _ := new(big.Int).SetString(maxUINT, 10)
+	max, _ := new(big.Int).SetString(MaxUINT, 10)
 	approveTx, err := u.ApproveSpender(ctx, to.AmountInAddr.String(), Permit2SmartContractAddress, max)
 	if err != nil {
 		log.Warn().Interface("approveTx", approveTx).Err(err).Msg("error approving permit2")

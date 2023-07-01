@@ -54,14 +54,30 @@ func (a *ActiveTrading) EntryTxFilter(ctx context.Context, tx *types.Transaction
 
 func (a *ActiveTrading) SimTxFilter(ctx context.Context, tx *types.Transaction) error {
 	to := tx.To().String()
-	tradingEnabled := false
-	tmTradingEnabled := TokenMap[to].TradingEnabled
-	if tmTradingEnabled == nil {
-		return errors.New("ActiveTrading: EntryTxFilter, erc20 at address not registered")
+	/*
+		tmTradingEnabled := TokenMap[to].TradingEnabled
+		if tmTradingEnabled == nil {
+			return errors.New("ActiveTrading: EntryTxFilter, erc20 at address not registered")
+		}
+		tradingEnabled := false
+		tradingEnabled = *TokenMap[to].TradingEnabled
+		if !tradingEnabled {
+			return errors.New("ActiveTrading: EntryTxFilter, trading not enabled for this token")
+		}
+	*/
+	if TokenMap[to].BalanceOfSlotNum < 0 {
+		return errors.New("ActiveTrading: EntryTxFilter, balanceOf not cracked yet")
 	}
-	tradingEnabled = *TokenMap[to].TradingEnabled
-	if !tradingEnabled {
-		return errors.New("ActiveTrading: EntryTxFilter, trading not enabled for this token")
+	num := TokenMap[to].TransferTaxNumerator
+	den := TokenMap[to].TransferTaxDenominator
+	if num == nil || den == nil {
+		return errors.New("ActiveTrading: EntryTxFilter, transfer tax not set")
 	}
-	return nil
+	if *num == 0 || *den == 0 {
+		return errors.New("ActiveTrading: EntryTxFilter, transfer tax not set")
+	}
+	if *num == 1 && *den == 1 {
+		return nil
+	}
+	return errors.New("ActiveTrading: EntryTxFilter, transfer tax not set")
 }

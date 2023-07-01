@@ -19,27 +19,32 @@ func NewActiveTradingModule(u *web3_client.UniswapClient, tm metrics_trading.Tra
 	return ActiveTrading{u, tm}
 }
 
-func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) {
+func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) error {
 	// TODO add metrics pass rate & timing for each stage
 	err := a.EntryTxFilter(ctx, tx)
 	if err != nil {
-		return
+		return err
 	}
 	err = a.DecodeTx(ctx, tx)
 	if err != nil {
-		return
+		return err
 	}
 	err = a.ProcessTxs(ctx)
 	if err != nil {
-		return
+		return err
 	}
 	err = a.SimTxFilter(ctx, tx)
 	if err != nil {
-		return
+		return err
 	}
-	err = a.SimulateTx(ctx, tx)
+	return err
+}
+
+func (a *ActiveTrading) ProcessTx(ctx context.Context, tx *types.Transaction) error {
+	err := a.SimulateTx(ctx, tx)
 	if err != nil {
-		return
+		return err
 	}
-	//a.SendToBundleStack(ctx, tx)
+	a.SendToBundleStack(ctx, tx)
+	return nil
 }

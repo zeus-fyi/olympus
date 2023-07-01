@@ -22,8 +22,6 @@ func (c *ContractAnalysis) SimEthTransferFeeTaxTrade(ctx context.Context, amount
 	if err != nil {
 		return nil, err
 	}
-	path := []string{web3_client.WETH9ContractAddress, c.SmartContractAddr}
-	addressIn := &common.Address{}
 	pd, err := c.u.GetV2PricingData(ctx, []accounts.Address{WETH, accounts.HexToAddress(c.SmartContractAddr)})
 	if err != nil {
 		return nil, err
@@ -32,29 +30,10 @@ func (c *ContractAnalysis) SimEthTransferFeeTaxTrade(ctx context.Context, amount
 	if err != nil {
 		return nil, err
 	}
-	simAmountOutSlice, err := c.u.GetAmountsOut(addressIn, web3_client.EtherMultiple(1), path)
-	if err != nil {
-		return nil, err
-	}
-	amountsOutFirstPair := web3_client.ConvertAmountsToBigIntSlice(simAmountOutSlice)
-	if len(amountsOutFirstPair) != 2 {
-		return nil, errors.New("amounts out not equal to expected")
-	}
-	simAmountOut := amountsOutFirstPair[1].String()
-	fmt.Println("simulated amount out", simAmountOut)
-	calcAmountOut := calculatedOut.AmountOut.String()
-	fmt.Println("calculated amount out", calcAmountOut)
-	if simAmountOut != calcAmountOut {
-		return nil, errors.New("amounts out not equal to expected")
-	}
-
-	amountOut := web3_client.ApplyTransferTax(calculatedOut.AmountOut, transferTaxPercent)
-	fmt.Println("amount out", amountOut.String())
-
 	trade := &web3_client.TradeOutcome{
 		AmountIn:      amount,
 		AmountInAddr:  WETH,
-		AmountOut:     amountOut,
+		AmountOut:     calculatedOut.AmountOut,
 		AmountOutAddr: accounts.HexToAddress(c.SmartContractAddr),
 	}
 	err = c.u.ExecTradeV2SwapFromTokenToToken(ctx, trade)
@@ -77,6 +56,6 @@ func (c *ContractAnalysis) SimEthTransferFeeTaxTrade(ctx context.Context, amount
 		return nil, err
 	}
 
-	fmt.Println("end balance user a", endBalUserA.String())
+	fmt.Println("end balance userA", endBalUserA.String())
 	return nil, nil
 }

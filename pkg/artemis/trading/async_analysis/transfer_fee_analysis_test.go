@@ -11,6 +11,7 @@ import (
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
@@ -75,6 +76,9 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysisBulk() {
 }
 func (s *ArtemisRealTimeTradingTestSuite) SetupTest() {
 	s.InitLocalConfigs()
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	artemis_trading_cache.InitTokenFilter(ctx)
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	newAccount, err := accounts.ParsePrivateKey("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
 	s.Assert().Nil(err)
 

@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/gochain/v4/common"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_encryption"
 )
 
@@ -27,6 +29,9 @@ type Web3ClientTestSuite struct {
 
 func (s *Web3ClientTestSuite) SetupTest() {
 	s.InitLocalConfigs()
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	artemis_trading_cache.InitTokenFilter(ctx)
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	pkHexString := s.Tc.LocalEcsdaTestPkey
 	newAccount, err := accounts.ParsePrivateKey(pkHexString)
 	s.Assert().Nil(err)

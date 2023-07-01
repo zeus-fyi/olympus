@@ -51,7 +51,7 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysisBulk() {
 	shib2Contract := "0x34ba042827996821CFFEB06477D48a2Ff9474483"
 	s.ca = NewERC20ContractAnalysis(&uni, shib2Contract)
 	s.ca.UserB = s.UserB
-	tokens, terr := artemis_validator_service_groups_models.SelectERC20Tokens(ctx)
+	tokens, _, terr := artemis_validator_service_groups_models.SelectERC20TokensWithNullTransferTax(ctx)
 	s.Assert().Nil(terr)
 	s.Assert().NotNil(tokens)
 	s.ca.UserA.IsAnvilNode = true

@@ -38,14 +38,6 @@ func (s *SandwichTradePrediction) ConvertToJSONType() JSONSandwichTradePredictio
 	}
 }
 
-type SwapExactTokensForTokensSupportingFeeOnTransferTokensParams struct {
-	AmountIn     *big.Int           `json:"amountIn"`
-	AmountOutMin *big.Int           `json:"amountOutMin"`
-	Path         []accounts.Address `json:"path"`
-	To           accounts.Address   `json:"to"`
-	Deadline     *big.Int           `json:"deadline"`
-}
-
 type AddLiquidityParams struct {
 	TokenA         accounts.Address `json:"tokenA"`
 	TokenB         accounts.Address `json:"tokenB"`

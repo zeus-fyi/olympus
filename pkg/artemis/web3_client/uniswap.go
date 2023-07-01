@@ -83,6 +83,7 @@ type UniswapClient struct {
 	SwapETHForExactTokensParamsSlice                              []SwapETHForExactTokensParams
 	SwapExactTokensForETHSupportingFeeOnTransferTokensParamsSlice []SwapExactTokensForETHSupportingFeeOnTransferTokensParams
 	SwapExactETHForTokensSupportingFeeOnTransferTokensParamsSlice []SwapExactETHForTokensSupportingFeeOnTransferTokensParams
+	SwapExactTokensForTokensSupportingFeeOnTransferTokensSlice    []SwapExactTokensForTokensSupportingFeeOnTransferTokensParams
 }
 
 func InitUniswapClient(ctx context.Context, w Web3Client) UniswapClient {

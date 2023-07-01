@@ -21,15 +21,16 @@ type Trade struct {
 	*JSONV2SwapExactInParams  `json:"v2SwapExactInParams,omitempty"`
 	*JSONV2SwapExactOutParams `json:"v2SwapExactOutParams,omitempty"`
 
-	*JSONSwapExactETHForTokensSupportingFeeOnTransferTokensParams `json:"swapExactETHForTokensSupportingFeeOnTransferTokensParams,omitempty"`
-	*JSONSwapExactTokensForETHSupportingFeeOnTransferTokensParams `json:"swapExactTokensForETHSupportingFeeOnTransferTokensParams,omitempty"`
-	*JSONExactInputParams                                         `json:"exactInputParams,omitempty"`
-	*JSONExactOutputParams                                        `json:"exactOutputParams,omitempty"`
-	*JSONSwapExactInputSingleArgs                                 `json:"swapExactInputSingleArgs,omitempty"`
-	*JSONSwapExactOutputSingleArgs                                `json:"swapExactOutputSingleArgs,omitempty"`
-	*JSONV3SwapExactInParams                                      `json:"v3SwapExactInParams,omitempty"`
-	*JSONV3SwapExactOutParams                                     `json:"v3SwapExactOutParams,omitempty"`
-	*JSONSwapExactTokensForTokensParamsV3                         `json:"swapExactTokensForTokensParamsV3,omitempty"`
+	*JSONSwapExactTokensForTokensSupportingFeeOnTransferTokensParams `json:"swapExactTokensForTokensSupportingFeeOnTransferTokensParams,omitempty"`
+	*JSONSwapExactETHForTokensSupportingFeeOnTransferTokensParams    `json:"swapExactETHForTokensSupportingFeeOnTransferTokensParams,omitempty"`
+	*JSONSwapExactTokensForETHSupportingFeeOnTransferTokensParams    `json:"swapExactTokensForETHSupportingFeeOnTransferTokensParams,omitempty"`
+	*JSONExactInputParams                                            `json:"exactInputParams,omitempty"`
+	*JSONExactOutputParams                                           `json:"exactOutputParams,omitempty"`
+	*JSONSwapExactInputSingleArgs                                    `json:"swapExactInputSingleArgs,omitempty"`
+	*JSONSwapExactOutputSingleArgs                                   `json:"swapExactOutputSingleArgs,omitempty"`
+	*JSONV3SwapExactInParams                                         `json:"v3SwapExactInParams,omitempty"`
+	*JSONV3SwapExactOutParams                                        `json:"v3SwapExactOutParams,omitempty"`
+	*JSONSwapExactTokensForTokensParamsV3                            `json:"swapExactTokensForTokensParamsV3,omitempty"`
 }
 
 type TradeExecutionFlowJSON struct {

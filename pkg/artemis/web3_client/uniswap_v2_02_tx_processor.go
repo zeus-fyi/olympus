@@ -47,6 +47,8 @@ func (u *UniswapClient) ProcessV2Router02Txs() {
 				continue
 			}
 			u.SwapExactETHForTokensSupportingFeeOnTransferTokensParams(tx, tx.Args, tx.Tx.Value())
+		case swapExactTokensForTokensSupportingFeeOnTransferTokens:
+			u.SwapExactTokensForTokensSupportingFeeOnTransferTokens(tx, tx.Args)
 		}
 	}
 }

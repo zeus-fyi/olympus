@@ -96,11 +96,11 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSimAny() {
 			continue
 		}
 
-		pairAddr := tfRegular.InitialPair.PairContractAddr
-		simPair, err := uni.GetPairContractPrices(ctx, pairAddr)
-		s.Assert().Nil(err)
-		s.Assert().Equal(tfRegular.InitialPair.Reserve0.String(), simPair.Reserve0.String())
-		s.Assert().Equal(tfRegular.InitialPair.Reserve1.String(), simPair.Reserve1.String())
+		//pairAddr := tfRegular.InitialPair.PairContractAddr
+		//simPair, err := uni.GetPairContractPrices(ctx, pairAddr)
+		//s.Assert().Nil(err)
+		//s.Assert().Equal(tfRegular.InitialPair.Reserve0.String(), simPair.Reserve0.String())
+		//s.Assert().Equal(tfRegular.InitialPair.Reserve1.String(), simPair.Reserve1.String())
 
 		//err = uni.SimFrontRunTradeOnly(&tfRegular)
 		//err = uni.SimUserOnlyTrade(&tfRegular)

@@ -3,9 +3,12 @@ package async_analysis
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/big"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
@@ -36,15 +39,15 @@ func NewContractAnalysis(u *web3_client.UniswapClient, address string, abiFile *
 }
 
 func (c *ContractAnalysis) CalculateTransferFeeTax(ctx context.Context, amount *big.Int) (*uniswap_core_entities.Percent, error) {
-	err := c.u.Web3Client.SetERC20BalanceBruteForce(ctx, c.SmartContractAddr, c.UserA.Address().String(), amount)
+	err := c.UserA.SetERC20BalanceBruteForce(ctx, c.SmartContractAddr, c.UserA.Address().String(), amount)
 	if err != nil {
 		return nil, err
 	}
-	startBalUserB, err := c.u.Web3Client.ReadERC20TokenBalance(ctx, c.SmartContractAddr, c.UserB.Address().String())
+	startBalUserB, err := c.UserA.ReadERC20TokenBalance(ctx, c.SmartContractAddr, c.UserB.Address().String())
 	if err != nil {
 		return nil, err
 	}
-	initBalUserA, err := c.u.Web3Client.ReadERC20TokenBalance(ctx, c.SmartContractAddr, c.UserA.Address().String())
+	initBalUserA, err := c.UserA.ReadERC20TokenBalance(ctx, c.SmartContractAddr, c.UserA.Address().String())
 	if err != nil {
 		return nil, err
 	}
@@ -54,13 +57,27 @@ func (c *ContractAnalysis) CalculateTransferFeeTax(ctx context.Context, amount *
 	}
 	c.MethodName = "transfer"
 	c.Params = []interface{}{c.UserB.Address(), amount}
-	_, err = c.u.Web3Client.TransferERC20Token(ctx, c.SendContractTxPayload)
+	tx, err := c.UserA.TransferERC20Token(ctx, c.SendContractTxPayload)
 	if err != nil {
 		return nil, err
 	}
-	endBalUserB, err := c.u.Web3Client.ReadERC20TokenBalance(ctx, c.SmartContractAddr, c.UserB.Address().String())
+	time.Sleep(5 * time.Second)
+	fmt.Println("tx hash", tx.Hash().String())
+	rx, err := c.UserA.GetTxReceipt(ctx, tx.Hash())
+	if err != nil {
+		panic(err)
+	}
+	if rx.Status == types.ReceiptStatusFailed {
+		log.Err(err).Interface("token", c.SendContractTxPayload.SmartContractAddr).Msg("tx failed, amount is 0")
+		return uniswap_core_entities.NewPercent(big.NewInt(0), big.NewInt(1)), errors.New("tx failed, amount is 0")
+	}
+	endBalUserB, err := c.UserA.ReadERC20TokenBalance(ctx, c.SmartContractAddr, c.UserB.Address().String())
 	if err != nil {
 		return nil, err
+	}
+	if endBalUserB.String() == "0" {
+		log.Err(err).Interface("token", c.SendContractTxPayload.SmartContractAddr).Msg("transfer amount is 0")
+		return uniswap_core_entities.NewPercent(big.NewInt(0), big.NewInt(1)), errors.New("transfer amount is 0")
 	}
 	transferAmount := new(big.Int).Sub(endBalUserB, startBalUserB)
 	feeAmount := new(big.Int).Sub(amount, transferAmount)

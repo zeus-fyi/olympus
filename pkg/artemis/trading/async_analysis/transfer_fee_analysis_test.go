@@ -58,6 +58,7 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysisBulk() {
 	for _, token := range tokens {
 		err := s.ca.UserA.HardHatResetNetwork(ctx, s.Tc.QuiknodeLiveNode, 17595510)
 		s.Require().Nil(err)
+		fmt.Println("token", token.Address)
 		s.ca.SmartContractAddr = token.Address
 		percent, err := s.ca.CalculateTransferFeeTax(ctx, web3_client.EtherMultiple(1))
 		s.Assert().Nil(err)
@@ -66,7 +67,6 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysisBulk() {
 		denom := int(percent.Denominator.Int64())
 		token.TransferTaxDenominator = &denom
 		s.Require().NotZero(token.TransferTaxDenominator)
-
 		fmt.Println("token", token.Address, "percent", percent.Numerator.String(), "/", percent.Denominator.String())
 		err = artemis_validator_service_groups_models.UpdateERC20TokenTransferTaxInfo(ctx, token)
 		s.Assert().Nil(err)

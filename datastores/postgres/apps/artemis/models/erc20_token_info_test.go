@@ -1,6 +1,7 @@
 package artemis_validator_service_groups_models
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -27,6 +28,12 @@ func (s *ERC20TokenInfoTestSuite) TestInsert() {
 	s.Require().Nil(err)
 }
 
+func (s *ERC20TokenInfoTestSuite) TestSelectAll() {
+	tokens, _, err := SelectERC20Tokens(ctx)
+	s.Require().Nil(err)
+	fmt.Println(len(tokens))
+}
+
 func (s *ERC20TokenInfoTestSuite) TestSelect() {
 	tokenInfo := artemis_autogen_bases.Erc20TokenInfo{}
 	slotNum, err := SelectERC20TokenInfo(ctx, tokenInfo)
@@ -40,6 +47,7 @@ func (s *ERC20TokenInfoTestSuite) TestSelect() {
 	slotNum, err = SelectERC20TokenInfo(ctx, tokenInfo)
 	s.Require().Nil(err)
 	s.Assert().Equal(0, slotNum)
+
 }
 
 func TestERC20TokenInfoTestSuite(t *testing.T) {

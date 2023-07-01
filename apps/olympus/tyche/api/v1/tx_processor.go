@@ -1,6 +1,9 @@
 package v1_tyche
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -15,7 +18,8 @@ const (
 )
 
 type TxProcessingRequest struct {
-	Txs []*types.Transaction `json:"txs"`
+	SeenAt time.Time            `json:"seenAt"`
+	Txs    []*types.Transaction `json:"txs"`
 }
 
 func TxProcessingRequestHandler(c echo.Context) error {
@@ -35,7 +39,11 @@ func (t *TxProcessingRequest) ProcessTx(c echo.Context) error {
 	// should process in parallel
 
 	for _, tx := range t.Txs {
-		a.IngestTx(ctx, tx)
+		err := a.IngestTx(ctx, tx)
+		if err != nil {
+			log.Err(err).Msg("error processing tx")
+			return c.JSON(http.StatusPreconditionFailed, err)
+		}
 	}
-	return nil
+	return c.JSON(http.StatusOK, "ok")
 }

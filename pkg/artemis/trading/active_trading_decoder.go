@@ -7,7 +7,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *ActiveTrading) DecodeTx(ctx context.Context, tx *types.Transaction) {
+func (a *ActiveTrading) DecodeTx(ctx context.Context, tx *types.Transaction) error {
 	switch tx.To().String() {
 	case web3_client.UniswapUniversalRouterAddressOld:
 		if a.u.MevSmartContractTxMapUniversalRouterOld.Txs == nil {
@@ -15,7 +15,7 @@ func (a *ActiveTrading) DecodeTx(ctx context.Context, tx *types.Transaction) {
 		}
 		methodName, args, err := web3_client.DecodeTxArgData(ctx, tx, a.u.MevSmartContractTxMapUniversalRouterOld)
 		if err != nil {
-			return
+			return err
 		}
 		singleTx := web3_client.MevTx{
 			MethodName: methodName,
@@ -35,7 +35,7 @@ func (a *ActiveTrading) DecodeTx(ctx context.Context, tx *types.Transaction) {
 		}
 		methodName, args, err := web3_client.DecodeTxArgData(ctx, tx, a.u.MevSmartContractTxMapUniversalRouterNew)
 		if err != nil {
-			return
+			return err
 		}
 		singleTx := web3_client.MevTx{
 			MethodName: methodName,
@@ -55,7 +55,7 @@ func (a *ActiveTrading) DecodeTx(ctx context.Context, tx *types.Transaction) {
 		}
 		methodName, args, err := web3_client.DecodeTxArgData(ctx, tx, a.u.MevSmartContractTxMapV2Router02)
 		if err != nil {
-			return
+			return err
 		}
 		singleTx := web3_client.MevTx{
 			MethodName: methodName,
@@ -75,7 +75,7 @@ func (a *ActiveTrading) DecodeTx(ctx context.Context, tx *types.Transaction) {
 		}
 		methodName, args, err := web3_client.DecodeTxArgData(ctx, tx, a.u.MevSmartContractTxMapV2Router01)
 		if err != nil {
-			return
+			return err
 		}
 		singleTx := web3_client.MevTx{
 			MethodName: methodName,
@@ -95,7 +95,7 @@ func (a *ActiveTrading) DecodeTx(ctx context.Context, tx *types.Transaction) {
 		}
 		methodName, args, err := web3_client.DecodeTxArgData(ctx, tx, a.u.MevSmartContractTxMapV3SwapRouterV1)
 		if err != nil {
-			return
+			return err
 		}
 		singleTx := web3_client.MevTx{
 			MethodName: methodName,
@@ -115,7 +115,7 @@ func (a *ActiveTrading) DecodeTx(ctx context.Context, tx *types.Transaction) {
 		}
 		methodName, args, err := web3_client.DecodeTxArgData(ctx, tx, a.u.MevSmartContractTxMapV3SwapRouterV2)
 		if err != nil {
-			return
+			return err
 		}
 		singleTx := web3_client.MevTx{
 			MethodName: methodName,
@@ -130,4 +130,5 @@ func (a *ActiveTrading) DecodeTx(ctx context.Context, tx *types.Transaction) {
 		a.u.MevSmartContractTxMapV3SwapRouterV2.Txs = tmp
 		a.m.TxFetcherMetrics.TransactionGroup(web3_client.UniswapV3Router02Address, methodName)
 	}
+	return nil
 }

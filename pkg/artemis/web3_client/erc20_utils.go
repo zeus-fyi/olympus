@@ -123,6 +123,15 @@ func (w *Web3Client) SetERC20BalanceBruteForce(ctx context.Context, scAddr, user
 		}
 		time.Sleep(25 * time.Millisecond)
 	}
+
+	err := artemis_validator_service_groups_models.InsertERC20TokenInfo(ctx, artemis_autogen_bases.Erc20TokenInfo{
+		Address:           scAddr,
+		ProtocolNetworkID: 1,
+		BalanceOfSlotNum:  -1,
+	})
+	if err != nil {
+		log.Err(err).Msg("error inserting token info")
+	}
 	return errors.New("unable to overwrite balance")
 }
 

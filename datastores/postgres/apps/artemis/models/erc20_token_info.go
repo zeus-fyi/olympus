@@ -3,6 +3,7 @@ package artemis_validator_service_groups_models
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -30,6 +31,7 @@ func InsertERC20TokenInfo(ctx context.Context, token artemis_autogen_bases.Erc20
 	if token.ProtocolNetworkID != 0 {
 		protocolIDNum = token.ProtocolNetworkID
 	}
+	token.TradingEnabled = aws.Bool(false)
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, token.Address, protocolIDNum, token.BalanceOfSlotNum, token.Name, token.Symbol, token.Decimals, token.TransferTaxNumerator, token.TransferTaxDenominator, token.TradingEnabled)
 	if err == pgx.ErrNoRows {
 		err = nil

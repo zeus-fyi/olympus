@@ -11,6 +11,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 )
 
 const (
@@ -134,7 +135,12 @@ func (u *UniswapClient) GetPairContractPrices(ctx context.Context, p *UniswapV2P
 		ContractABI:       u.PairAbi,
 	}
 	scInfo.MethodName = getReserves
-	resp, err := u.Web3Client.CallConstantFunction(ctx, scInfo)
+
+	wc := u.Web3Client
+	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL != "" {
+		wc = NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL, u.Web3Client.Account)
+	}
+	resp, err := wc.CallConstantFunction(ctx, scInfo)
 	if err != nil {
 		return err
 	}

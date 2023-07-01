@@ -8,7 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamodb"
-	mempool_txs "github.com/zeus-fyi/olympus/datastores/dynamodb/mempool"
+	mempool_txs "github.com/zeus-fyi/olympus/datastores/dynamodb/mev"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
@@ -23,7 +23,7 @@ func (s *Web3ClientTestSuite) TestRawMempoolTxFilter() {
 		AccessKey:    s.Tc.AwsAccessKeyDynamoDB,
 		AccessSecret: s.Tc.AwsSecretKeyDynamoDB,
 	}
-	client := mempool_txs.NewMempoolTxDynamoDB(creds)
+	client := mempool_txs.NewMevDynamoDB(creds)
 	s.Require().NotNil(client)
 
 	txs, terr := client.GetMempoolTxs(ctx, "mainnet")

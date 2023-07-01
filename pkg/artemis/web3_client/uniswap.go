@@ -71,16 +71,18 @@ type UniswapClient struct {
 	MevSmartContractTxMapV2Router01         MevSmartContractTxMap
 	MevSmartContractTxMapV2Router02         MevSmartContractTxMap
 	*TradeAnalysisReport
-	Path                                filepaths.Path
-	BlockNumber                         *big.Int
-	Trades                              []artemis_autogen_bases.EthMempoolMevTx
-	chronos                             chronos.Chronos
-	SwapExactTokensForTokensParamsSlice []SwapExactTokensForTokensParams
-	SwapTokensForExactTokensParamsSlice []SwapTokensForExactTokensParams
-	SwapExactETHForTokensParamsSlice    []SwapExactETHForTokensParams
-	SwapTokensForExactETHParamsSlice    []SwapTokensForExactETHParams
-	SwapExactTokensForETHParamsSlice    []SwapExactTokensForETHParams
-	SwapETHForExactTokensParamsSlice    []SwapETHForExactTokensParams
+	Path                                                          filepaths.Path
+	BlockNumber                                                   *big.Int
+	Trades                                                        []artemis_autogen_bases.EthMempoolMevTx
+	chronos                                                       chronos.Chronos
+	SwapExactTokensForTokensParamsSlice                           []SwapExactTokensForTokensParams
+	SwapTokensForExactTokensParamsSlice                           []SwapTokensForExactTokensParams
+	SwapExactETHForTokensParamsSlice                              []SwapExactETHForTokensParams
+	SwapTokensForExactETHParamsSlice                              []SwapTokensForExactETHParams
+	SwapExactTokensForETHParamsSlice                              []SwapExactTokensForETHParams
+	SwapETHForExactTokensParamsSlice                              []SwapETHForExactTokensParams
+	SwapExactTokensForETHSupportingFeeOnTransferTokensParamsSlice []SwapExactTokensForETHSupportingFeeOnTransferTokensParams
+	SwapExactETHForTokensSupportingFeeOnTransferTokensParamsSlice []SwapExactETHForTokensSupportingFeeOnTransferTokensParams
 }
 
 func InitUniswapClient(ctx context.Context, w Web3Client) UniswapClient {

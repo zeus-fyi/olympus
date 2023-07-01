@@ -8,18 +8,20 @@ import (
 )
 
 const (
-	addLiquidity                 = "addLiquidity"
-	addLiquidityETH              = "addLiquidityETH"
-	removeLiquidity              = "removeLiquidity"
-	removeLiquidityETH           = "removeLiquidityETH"
-	removeLiquidityWithPermit    = "removeLiquidityWithPermit"
-	removeLiquidityETHWithPermit = "removeLiquidityETHWithPermit"
-	swapExactTokensForTokens     = "swapExactTokensForTokens"
-	swapTokensForExactTokens     = "swapTokensForExactTokens"
-	swapExactETHForTokens        = "swapExactETHForTokens"
-	swapTokensForExactETH        = "swapTokensForExactETH"
-	swapExactTokensForETH        = "swapExactTokensForETH"
-	swapETHForExactTokens        = "swapETHForExactTokens"
+	addLiquidity                                       = "addLiquidity"
+	addLiquidityETH                                    = "addLiquidityETH"
+	removeLiquidity                                    = "removeLiquidity"
+	removeLiquidityETH                                 = "removeLiquidityETH"
+	removeLiquidityWithPermit                          = "removeLiquidityWithPermit"
+	removeLiquidityETHWithPermit                       = "removeLiquidityETHWithPermit"
+	swapExactTokensForTokens                           = "swapExactTokensForTokens"
+	swapTokensForExactTokens                           = "swapTokensForExactTokens"
+	swapExactETHForTokens                              = "swapExactETHForTokens"
+	swapTokensForExactETH                              = "swapTokensForExactETH"
+	swapExactTokensForETH                              = "swapExactTokensForETH"
+	swapETHForExactTokens                              = "swapETHForExactTokens"
+	swapExactTokensForETHSupportingFeeOnTransferTokens = "swapExactTokensForETHSupportingFeeOnTransferTokens"
+	swapExactETHForTokensSupportingFeeOnTransferTokens = "swapExactETHForTokensSupportingFeeOnTransferTokens"
 )
 
 func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx) error {
@@ -145,6 +147,40 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapETHForExactTokens)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapETHForExactTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+	case swapExactTokensForETHSupportingFeeOnTransferTokens:
+		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForETHSupportingFeeOnTransferTokens)
+		st := web3_client.SwapExactTokensForETHSupportingFeeOnTransferTokensParams{}
+		st.Decode(tx.Args)
+		pend := len(st.Path) - 1
+		pd, err := a.u.GetV2PricingData(ctx, st.Path)
+		if err != nil {
+			return err
+		}
+		tf := st.BinarySearch(pd.V2Pair)
+		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
+			return errors.New("expectedProfit == 0 or 1")
+		}
+		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
+		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForETHSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+	case swapExactETHForTokensSupportingFeeOnTransferTokens:
+		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactETHForTokensSupportingFeeOnTransferTokens)
+		// payable
+		if tx.Tx.Value() == nil {
+			return errors.New("swapExactETHForTokensSupportingFeeOnTransferTokens tx has no value")
+		}
+		st := web3_client.SwapExactETHForTokensSupportingFeeOnTransferTokensParams{}
+		st.Decode(tx.Args, tx.Tx.Value())
+		pend := len(st.Path) - 1
+		pd, err := a.u.GetV2PricingData(ctx, st.Path)
+		if err != nil {
+			return err
+		}
+		tf := st.BinarySearch(pd.V2Pair)
+		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
+			return errors.New("expectedProfit == 0 or 1")
+		}
+		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
+		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactETHForTokensSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 	}
 	return nil
 }

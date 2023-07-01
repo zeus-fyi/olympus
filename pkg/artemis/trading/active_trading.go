@@ -14,8 +14,6 @@ type ActiveTrading struct {
 }
 
 func NewActiveTradingModule(u *web3_client.UniswapClient, tm metrics_trading.TradingMetrics) ActiveTrading {
-	ctx := context.Background()
-	InitTokenFilter(ctx)
 	return ActiveTrading{u, tm}
 }
 

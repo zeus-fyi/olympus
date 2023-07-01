@@ -39,6 +39,14 @@ func (u *UniswapClient) ProcessV2Router02Txs() {
 				continue
 			}
 			u.SwapETHForExactTokens(tx, tx.Args, tx.Tx.Value())
+		case swapExactTokensForETHSupportingFeeOnTransferTokensMoniker:
+			u.SwapExactTokensForETHSupportingFeeOnTransferTokens(tx, tx.Args)
+		case swapExactETHForTokensSupportingFeeOnTransferTokens:
+			// payable
+			if tx.Tx.Value() == nil {
+				continue
+			}
+			u.SwapExactETHForTokensSupportingFeeOnTransferTokensParams(tx, tx.Args, tx.Tx.Value())
 		}
 	}
 }

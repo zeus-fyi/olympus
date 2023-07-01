@@ -2,6 +2,7 @@ package v1_tyche
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/labstack/echo/v4"
@@ -17,7 +18,8 @@ const (
 )
 
 type TxProcessingRequest struct {
-	Txs []*types.Transaction `json:"txs"`
+	SeenAt time.Time            `json:"seenAt"`
+	Txs    []*types.Transaction `json:"txs"`
 }
 
 func TxProcessingRequestHandler(c echo.Context) error {

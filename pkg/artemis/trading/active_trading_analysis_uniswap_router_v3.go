@@ -2,6 +2,7 @@ package artemis_realtime_trading
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -64,14 +65,17 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			log.Err(err).Msg("failed to decode exact input args")
 			return err
 		}
-		a.m.TxFetcherMetrics.TransactionGroup(toAddr, exactInput)
-		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 		pd, err := a.u.GetV3PricingData(ctx, inputs.TokenFeePath)
 		if err != nil {
 			log.Err(err).Msg("failed to get pricing data")
 			return err
 		}
 		tf := inputs.BinarySearch(pd)
+		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
+			return errors.New("expectedProfit == 0 or 1")
+		}
+		a.m.TxFetcherMetrics.TransactionGroup(toAddr, exactInput)
+		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, exactInput, pd.V3Pair.PoolAddress, inputs.TokenFeePath.TokenIn.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 	case exactOutput:
 		inputs := &web3_client.ExactOutputParams{}
@@ -80,14 +84,17 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			log.Err(err).Msg("failed to decode exact output args")
 			return err
 		}
-		a.m.TxFetcherMetrics.TransactionGroup(toAddr, exactOutput)
-		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 		pd, err := a.u.GetV3PricingData(ctx, inputs.TokenFeePath)
 		if err != nil {
 			log.Err(err).Msg("failed to get pricing data")
 			return err
 		}
 		tf := inputs.BinarySearch(pd)
+		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
+			return errors.New("expectedProfit == 0 or 1")
+		}
+		a.m.TxFetcherMetrics.TransactionGroup(toAddr, exactOutput)
+		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, exactOutput, pd.V3Pair.PoolAddress, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 	case swapExactInputSingle:
 		inputs := &web3_client.SwapExactInputSingleArgs{}
@@ -96,14 +103,17 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			log.Err(err).Msg("failed to decode swap exact input single args")
 			return err
 		}
-		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactInputSingle)
-		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 		pd, err := a.u.GetV3PricingData(ctx, inputs.TokenFeePath)
 		if err != nil {
 			log.Err(err).Msg("failed to get pricing data")
 			return err
 		}
 		tf := inputs.BinarySearch(pd)
+		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
+			return errors.New("expectedProfit == 0 or 1")
+		}
+		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactInputSingle)
+		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactInputSingle, pd.V3Pair.PoolAddress, inputs.TokenFeePath.TokenIn.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 	case swapExactOutputSingle:
 		inputs := &web3_client.SwapExactOutputSingleArgs{}
@@ -112,14 +122,17 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			log.Err(err).Msg("failed to decode swap exact output single args")
 			return err
 		}
-		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactOutputSingle)
-		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 		pd, err := a.u.GetV3PricingData(ctx, inputs.TokenFeePath)
 		if err != nil {
 			log.Err(err).Msg("failed to get pricing data")
 			return err
 		}
 		tf := inputs.BinarySearch(pd)
+		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
+			return errors.New("expectedProfit == 0 or 1")
+		}
+		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactOutputSingle)
+		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactOutputSingle, pd.V3Pair.PoolAddress, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 	case swapExactTokensForTokens:
 		inputs := &web3_client.SwapExactTokensForTokensParamsV3{}
@@ -128,15 +141,18 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			log.Err(err).Msg("swapExactTokensForTokens: failed to decode swap exact tokens for tokens args")
 			return err
 		}
-		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokens)
-		pend := len(inputs.Path) - 1
-		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path[0].String(), inputs.Path[pend].String())
 		pd, err := a.u.GetV2PricingData(ctx, inputs.Path)
 		if err != nil {
 			log.Err(err).Msg("failed to get pricing data")
 			return err
 		}
 		tf := inputs.BinarySearch(pd.V2Pair)
+		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
+			return errors.New("expectedProfit == 0 or 1")
+		}
+		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokens)
+		pend := len(inputs.Path) - 1
+		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path[0].String(), inputs.Path[pend].String())
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForTokens, pd.V2Pair.PairContractAddr, inputs.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 	case swapExactInputMultihop:
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactInputMultihop)

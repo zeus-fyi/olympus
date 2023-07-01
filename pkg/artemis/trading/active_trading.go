@@ -35,6 +35,12 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	if err != nil {
 		return err
 	}
+	//go func() {
+	//	err = a.ProcessTx(ctx, tx)
+	//	if err != nil {
+	//		return
+	//	}
+	//}()
 	return err
 }
 

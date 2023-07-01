@@ -14,12 +14,20 @@ type ActiveTrading struct {
 }
 
 func NewActiveTradingModule(u *web3_client.UniswapClient, tm metrics_trading.TradingMetrics) ActiveTrading {
+	ctx := context.Background()
+	InitTokenFilter(ctx)
 	return ActiveTrading{u, tm}
 }
 
 func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) {
-	a.FilterTx(ctx, tx)
-	a.DecodeTx(ctx, tx)
+	tx = a.FilterTx(ctx, tx)
+	if tx == nil {
+		return
+	}
+	err := a.DecodeTx(ctx, tx)
+	if err != nil {
+		return
+	}
 	a.ProcessTxs(ctx)
 	//a.SimulateTx(ctx, tx)
 	//a.SendToBundleStack(ctx, tx)

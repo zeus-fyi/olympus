@@ -127,7 +127,8 @@ func SelectERC20TokensWithoutMetadata(ctx context.Context) ([]artemis_autogen_ba
 	return tokens, misc.ReturnIfErr(err, q.LogHeader("SelectERC20Tokens"))
 }
 
-func SelectERC20Tokens(ctx context.Context) ([]artemis_autogen_bases.Erc20TokenInfo, error) {
+func SelectERC20Tokens(ctx context.Context) ([]artemis_autogen_bases.Erc20TokenInfo, map[string]artemis_autogen_bases.Erc20TokenInfo, error) {
+	m := make(map[string]artemis_autogen_bases.Erc20TokenInfo)
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `SELECT address
 				  FROM erc20_token_info
@@ -136,7 +137,7 @@ func SelectERC20Tokens(ctx context.Context) ([]artemis_autogen_bases.Erc20TokenI
 	var tokens []artemis_autogen_bases.Erc20TokenInfo
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, 1)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SelectERC20Tokens")); returnErr != nil {
-		return nil, err
+		return nil, m, err
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -146,9 +147,10 @@ func SelectERC20Tokens(ctx context.Context) ([]artemis_autogen_bases.Erc20TokenI
 		)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader("SelectERC20Tokens"))
-			return nil, rowErr
+			return nil, m, rowErr
 		}
+		m[token.Address] = token
 		tokens = append(tokens, token)
 	}
-	return tokens, misc.ReturnIfErr(err, q.LogHeader("SelectERC20Tokens"))
+	return tokens, m, misc.ReturnIfErr(err, q.LogHeader("SelectERC20Tokens"))
 }

@@ -29,7 +29,7 @@ func (s *ERC20TokenInfoTestSuite) TestInsert() {
 }
 
 func (s *ERC20TokenInfoTestSuite) TestSelectAll() {
-	tokens, err := SelectERC20Tokens(ctx)
+	tokens, _, err := SelectERC20Tokens(ctx)
 	s.Require().Nil(err)
 	fmt.Println(len(tokens))
 }

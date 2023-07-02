@@ -67,6 +67,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		pd, err := a.u.GetV3PricingData(ctx, inputs.TokenFeePath)
 		if err != nil {
+			a.m.ErrTrackingMetrics.RecordError(exactInput, pd.V3Pair.PoolAddress)
 			log.Err(err).Msg("failed to get pricing data")
 			return err
 		}
@@ -86,6 +87,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		pd, err := a.u.GetV3PricingData(ctx, inputs.TokenFeePath)
 		if err != nil {
+			a.m.ErrTrackingMetrics.RecordError(exactOutput, pd.V3Pair.PoolAddress)
 			log.Err(err).Msg("failed to get pricing data")
 			return err
 		}
@@ -105,6 +107,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		pd, err := a.u.GetV3PricingData(ctx, inputs.TokenFeePath)
 		if err != nil {
+			a.m.ErrTrackingMetrics.RecordError(swapExactInputSingle, pd.V3Pair.PoolAddress)
 			log.Err(err).Msg("failed to get pricing data")
 			return err
 		}
@@ -124,6 +127,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		pd, err := a.u.GetV3PricingData(ctx, inputs.TokenFeePath)
 		if err != nil {
+			a.m.ErrTrackingMetrics.RecordError(swapExactOutputSingle, pd.V3Pair.PoolAddress)
 			log.Err(err).Msg("failed to get pricing data")
 			return err
 		}
@@ -143,6 +147,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		pd, err := a.u.GetV2PricingData(ctx, inputs.Path)
 		if err != nil {
+			a.m.ErrTrackingMetrics.RecordError(swapExactTokensForTokens, pd.V2Pair.PairContractAddr)
 			log.Err(err).Msg("failed to get pricing data")
 			return err
 		}

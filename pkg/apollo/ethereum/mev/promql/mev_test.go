@@ -2,6 +2,7 @@ package mev_promql
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
@@ -9,6 +10,7 @@ import (
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/stretchr/testify/suite"
 	apollo_prometheus "github.com/zeus-fyi/olympus/pkg/apollo/prometheus"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
@@ -24,6 +26,13 @@ func (t *MevPrometheusTestSuite) SetupTest() {
 	t.pc = NewMevPromQL(apollo_prometheus.NewPrometheusLocalClient(ctx))
 	t.pc.printOn = true
 }
+
+var bytes = []byte(`{	
+		"tokenIn":"0x046eee2cc3188071c02bfc1745a6b17c656e3f3d",
+		"path":[{"token":"0xdac17f958d2ee523a2206206994597c13d831ec7","fee":3000}],
+		"time":1688261227,
+		"message":"error getting v3 pricing data"
+	}`)
 
 func (t *MevPrometheusTestSuite) TestQueryRangePromQL() {
 	t.Require().NotEmpty(t.pc)
@@ -44,6 +53,18 @@ func (t *MevPrometheusTestSuite) TestQueryRangePromQL() {
 	for _, val := range m {
 		fmt.Println(val.Metric.In, val.Metric.Pair)
 	}
+	tfp := web3_client.TokenFeePath{}
+	err = json.Unmarshal(bytes, &tfp)
+	t.Require().NoError(err)
+	fmt.Println("in", tfp.TokenIn.String())
+	fmt.Println("end", tfp.GetEndToken().String())
+	fmt.Println("fee", tfp.Path[0].Fee)
+
+	/*
+		{"level":"error","error":"no populated ticks","time":1688261227,"message":"error processing tx"}
+		{"level":"error","error":"no populated ticks","path":{"tokenIn":"0x046eee2cc3188071c02bfc1745a6b17c656e3f3d","path":[{"token":"0xdac17f958d2ee523a2206206994597c13d831ec7","fee":3000}]},"time":1688261227,"message":"error getting v3 pricing data"}
+	*/
+	// TODO, investigate why this is failing
 }
 
 func TestMevPrometheusTestSuite(t *testing.T) {

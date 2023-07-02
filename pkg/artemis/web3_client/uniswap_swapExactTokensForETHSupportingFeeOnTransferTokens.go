@@ -6,6 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 )
 
 type SwapExactTokensForETHSupportingFeeOnTransferTokensParams struct {
@@ -97,7 +98,7 @@ const (
 	swapExactTokensForETHSupportingFeeOnTransferTokensMoniker = "swapExactTokensForETHSupportingFeeOnTransferTokens"
 )
 
-func (s *SwapExactTokensForETHSupportingFeeOnTransferTokensParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlowJSON {
+func (s *SwapExactTokensForETHSupportingFeeOnTransferTokensParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) TradeExecutionFlowJSON {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountIn)
 	var mid *big.Int

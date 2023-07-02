@@ -6,6 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 )
 
 type SwapTokensForExactTokensParams struct {
@@ -34,7 +35,7 @@ func (s *SwapTokensForExactTokensParams) ConvertToJSONType() *JSONSwapTokensForE
 	}
 }
 
-func (s *SwapTokensForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlowJSON {
+func (s *SwapTokensForExactTokensParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) TradeExecutionFlowJSON {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountInMax)
 	var mid *big.Int

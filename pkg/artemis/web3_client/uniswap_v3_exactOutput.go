@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
 
 type ExactOutputParams struct {
@@ -79,19 +80,19 @@ func (o *ExactOutputParams) BinarySearch(pd *PricingData) TradeExecutionFlowJSON
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = JSONTradeOutcome{
+			tf.FrontRunTrade = artemis_trading_types.JSONTradeOutcome{
 				AmountIn:      amountInFrontRun.String(),
 				AmountInAddr:  frontRunTokenIn.Address,
 				AmountOut:     toFrontRun.Quotient().String(),
 				AmountOutAddr: sandwichTokenIn.Address,
 			}
-			tf.UserTrade = JSONTradeOutcome{
+			tf.UserTrade = artemis_trading_types.JSONTradeOutcome{
 				AmountIn:      o.AmountInMaximum.String(),
 				AmountInAddr:  frontRunTokenIn.Address,
 				AmountOut:     userTrade.Quotient().String(),
 				AmountOutAddr: sandwichTokenIn.Address,
 			}
-			tf.SandwichTrade = JSONTradeOutcome{
+			tf.SandwichTrade = artemis_trading_types.JSONTradeOutcome{
 				AmountIn:      toFrontRun.Quotient().String(),
 				AmountInAddr:  sandwichTokenIn.Address,
 				AmountOut:     toSandwich.Quotient().String(),

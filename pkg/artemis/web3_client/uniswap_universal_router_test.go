@@ -7,6 +7,7 @@ import (
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
@@ -134,7 +135,7 @@ func (s *Web3ClientTestSuite) TestExecV2TradeMethodUR() {
 	amountOut, err := pair.GetQuoteUsingTokenAddr(WETH9ContractAddress, amountIn)
 	s.Require().Nil(err)
 	fmt.Println("amountOut", amountOut.String())
-	to := TradeOutcome{
+	to := artemis_trading_types.TradeOutcome{
 		AmountIn:      amountIn,
 		AmountInAddr:  accounts.HexToAddress(LinkTokenAddr),
 		AmountFees:    nil,

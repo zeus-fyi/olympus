@@ -6,6 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
 
 func (s *Web3ClientTestSuite) TestRawDawgInjection() {
@@ -68,7 +69,7 @@ func (s *Web3ClientTestSuite) TestRawDawgInjection() {
 	s.Require().Nil(err)
 	fmt.Println("amountOut", amountOut.String())
 
-	to := &TradeOutcome{
+	to := &artemis_trading_types.TradeOutcome{
 		AmountInAddr:  accounts.HexToAddress(daiAddr),
 		AmountIn:      amountIn,
 		AmountOutAddr: accounts.HexToAddress(WETH9ContractAddress),

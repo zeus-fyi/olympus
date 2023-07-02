@@ -1,7 +1,6 @@
-package web3_client
+package artemis_trading_types
 
 import (
-	"context"
 	"fmt"
 	"math/big"
 
@@ -46,17 +45,6 @@ func (t *TradeOutcome) AddTxHash(tx accounts.Hash) {
 		t.OrderedTxs = []accounts.Hash{}
 	}
 	t.OrderedTxs = append(t.OrderedTxs, tx)
-}
-
-func (t *TradeOutcome) GetGasUsageForAllTxs(ctx context.Context, w Web3Client) error {
-	for _, tx := range t.OrderedTxs {
-		txInfo, err := w.GetTxLifecycleStats(ctx, accounts.HexToHash(tx.Hex()))
-		if err != nil {
-			return err
-		}
-		t.TotalGasCost += txInfo.GasUsed
-	}
-	return nil
 }
 
 type JSONTradeOutcome struct {

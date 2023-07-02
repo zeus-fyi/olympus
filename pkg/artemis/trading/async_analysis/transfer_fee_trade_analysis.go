@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 )
@@ -30,7 +31,7 @@ func (c *ContractAnalysis) SimEthTransferFeeTaxTrade(ctx context.Context, amount
 	if err != nil {
 		return nil, err
 	}
-	trade := &web3_client.TradeOutcome{
+	trade := &artemis_trading_types.TradeOutcome{
 		AmountIn:      amount,
 		AmountInAddr:  WETH,
 		AmountOut:     calculatedOut.AmountOut,

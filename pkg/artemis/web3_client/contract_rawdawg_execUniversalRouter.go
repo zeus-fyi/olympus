@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
 
 const (
@@ -43,7 +44,7 @@ func GetRawdawgUniversalRouterPayload(payload *UniversalRouterExecParams) web3_a
 	return params
 }
 
-func (u *UniswapClient) ExecRawdawgUniversalRouterCmd(payload UniversalRouterExecCmd, to *TradeOutcome) (*types.Transaction, error) {
+func (u *UniswapClient) ExecRawdawgUniversalRouterCmd(payload UniversalRouterExecCmd, to *artemis_trading_types.TradeOutcome) (*types.Transaction, error) {
 	data, err := payload.EncodeCommands(ctx)
 	if err != nil {
 		log.Err(err).Msg("ExecRawdawgUniversalRouterCmd: failed to encode commands")

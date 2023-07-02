@@ -6,6 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 )
 
 type SwapETHForExactTokensParams struct {
@@ -33,7 +34,7 @@ func (s *SwapETHForExactTokensParams) ConvertToJSONType() *JSONSwapETHForExactTo
 		Value:     s.Value.String(),
 	}
 }
-func (s *SwapETHForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeExecutionFlowJSON {
+func (s *SwapETHForExactTokensParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) TradeExecutionFlowJSON {
 	// Value == variable
 	// AmountOut == required for trade
 	low := big.NewInt(0)
@@ -43,7 +44,7 @@ func (s *SwapETHForExactTokensParams) BinarySearch(pair UniswapV2Pair) TradeExec
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlowJSON{
 		Trade: Trade{
-			TradeMethod:                     "swapETHForExactTokens",
+			TradeMethod:                     swapETHForExactTokens,
 			JSONSwapETHForExactTokensParams: s.ConvertToJSONType(),
 		},
 	}

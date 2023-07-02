@@ -9,6 +9,7 @@ import (
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	artemis_pricing_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/utils"
 	core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/constants"
@@ -33,7 +34,7 @@ func (p *UniswapPoolV3) PriceImpact(ctx context.Context, token *core_entities.To
 	if err != nil {
 		return nil, nil, err
 	}
-	adjOut := ApplyTransferTax(token.Address, out.Quotient())
+	adjOut := artemis_pricing_utils.ApplyTransferTax(token.Address, out.Quotient())
 	out.Numerator = adjOut
 	out.Denominator = big.NewInt(1)
 	return out, pool, nil

@@ -5,10 +5,11 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 )
 
 type PricingData struct {
-	V2Pair UniswapV2Pair
+	V2Pair uniswap_pricing.UniswapV2Pair
 	V3Pair UniswapPoolV3
 }
 

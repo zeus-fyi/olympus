@@ -7,7 +7,9 @@ import (
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 )
 
-var TokenMap map[string]artemis_autogen_bases.Erc20TokenInfo
+var (
+	TokenMap map[string]artemis_autogen_bases.Erc20TokenInfo
+)
 
 func InitTokenFilter(ctx context.Context) {
 	_, tm, terr := artemis_validator_service_groups_models.SelectERC20Tokens(ctx)

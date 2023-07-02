@@ -34,7 +34,8 @@ func (s *Web3ClientTestSuite) TestUniswapV3DataFetcherV2() {
 			},
 		},
 	}
-	err = p.PricingData(ctx, tfp)
+
+	err = p.PricingData(ctx, tfp, false)
 	s.Require().NoError(err)
 	fmt.Println(p.PoolAddress)
 	output, _, err := p.PriceImpact(ctx, tokenA, Ether)

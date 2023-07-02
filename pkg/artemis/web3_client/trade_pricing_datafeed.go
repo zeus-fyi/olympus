@@ -16,7 +16,9 @@ func (u *UniswapClient) GetV2PricingData(ctx context.Context, path []accounts.Ad
 	pair, err := u.V2PairToPrices(ctx, path)
 	if err != nil {
 		log.Err(err).Interface("path", path).Interface("simMode", u.SimMode).Msg("error getting v2 pricing data")
-		return nil, err
+		return &PricingData{
+			V2Pair: pair,
+		}, err
 	}
 	return &PricingData{
 		V2Pair: pair,
@@ -35,7 +37,9 @@ func (u *UniswapClient) GetV3PricingData(ctx context.Context, path TokenFeePath)
 	err := pairV3.PricingData(ctx, path, u.SimMode)
 	if err != nil {
 		log.Err(err).Interface("path", path).Interface("simMode", u.SimMode).Msg("error getting v3 pricing data")
-		return nil, err
+		return &PricingData{
+			V3Pair: pairV3,
+		}, err
 	}
 	return &PricingData{
 		V3Pair: pairV3,

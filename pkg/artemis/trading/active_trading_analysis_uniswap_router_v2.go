@@ -54,6 +54,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		st.Decode(ctx, tx.Args)
 		pd, err := a.u.GetV2PricingData(ctx, st.Path)
 		if err != nil {
+			a.m.ErrTrackingMetrics.RecordError(swapExactTokensForTokens, pd.V2Pair.PairContractAddr)
 			return err
 		}
 		tf := st.BinarySearch(pd.V2Pair)
@@ -70,6 +71,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		pend := len(st.Path) - 1
 		pd, err := a.u.GetV2PricingData(ctx, st.Path)
 		if err != nil {
+			a.m.ErrTrackingMetrics.RecordError(swapTokensForExactTokens, pd.V2Pair.PairContractAddr)
 			return err
 		}
 		tf := st.BinarySearch(pd.V2Pair)
@@ -89,6 +91,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		pend := len(st.Path) - 1
 		pd, err := a.u.GetV2PricingData(ctx, st.Path)
 		if err != nil {
+			a.m.ErrTrackingMetrics.RecordError(swapExactETHForTokens, pd.V2Pair.PairContractAddr)
 			return err
 		}
 		tf := st.BinarySearch(pd.V2Pair)
@@ -104,6 +107,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		pend := len(st.Path) - 1
 		pd, err := a.u.GetV2PricingData(ctx, st.Path)
 		if err != nil {
+			a.m.ErrTrackingMetrics.RecordError(swapTokensForExactETH, pd.V2Pair.PairContractAddr)
 			return err
 		}
 		tf := st.BinarySearch(pd.V2Pair)
@@ -119,6 +123,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		pend := len(st.Path) - 1
 		pd, err := a.u.GetV2PricingData(ctx, st.Path)
 		if err != nil {
+			a.m.ErrTrackingMetrics.RecordError(swapExactTokensForETH, pd.V2Pair.PairContractAddr)
 			return err
 		}
 		tf := st.BinarySearch(pd.V2Pair)
@@ -138,6 +143,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		pend := len(st.Path) - 1
 		pd, err := a.u.GetV2PricingData(ctx, st.Path)
 		if err != nil {
+			a.m.ErrTrackingMetrics.RecordError(swapETHForExactTokens, pd.V2Pair.PairContractAddr)
 			return err
 		}
 		tf := st.BinarySearch(pd.V2Pair)
@@ -163,6 +169,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		pend := len(st.Path) - 1
 		pd, err := a.u.GetV2PricingData(ctx, st.Path)
 		if err != nil {
+			a.m.ErrTrackingMetrics.RecordError(swapExactTokensForETHSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr)
 			return err
 		}
 		tf := st.BinarySearch(pd.V2Pair)
@@ -182,6 +189,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		pend := len(st.Path) - 1
 		pd, err := a.u.GetV2PricingData(ctx, st.Path)
 		if err != nil {
+			a.m.ErrTrackingMetrics.RecordError(swapExactETHForTokensSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr)
 			return err
 		}
 		tf := st.BinarySearch(pd.V2Pair)
@@ -197,6 +205,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		pend := len(st.Path) - 1
 		pd, err := a.u.GetV2PricingData(ctx, st.Path)
 		if err != nil {
+			a.m.ErrTrackingMetrics.RecordError(swapExactTokensForTokensSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr)
 			return err
 		}
 		tf := st.BinarySearch(pd.V2Pair)

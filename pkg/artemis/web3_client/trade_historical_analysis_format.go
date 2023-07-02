@@ -123,6 +123,9 @@ func (u *UniswapClient) RunHistoricalTradeAnalysis(ctx context.Context, tfStr st
 	}
 	u.TradeAnalysisReport.TxHash = tfJSON.Tx.Hash().String()
 	u.TradeAnalysisReport.TradeMethod = tfJSON.Trade.TradeMethod
+	u.TradeAnalysisReport.AmountIn = tfJSON.FrontRunTrade.AmountIn
+	u.TradeAnalysisReport.AmountInAddr = tfJSON.FrontRunTrade.AmountInAddr.String()
+	u.TradeAnalysisReport.AmountOutAddr = tfJSON.FrontRunTrade.AmountOutAddr.String()
 	err = FilterNonActionTradeExecutionFlows(tfJSON)
 	if err != nil {
 		return u.MarkEndOfSimDueToErr(err)
@@ -140,9 +143,6 @@ func (u *UniswapClient) RunHistoricalTradeAnalysis(ctx context.Context, tfStr st
 	if err != nil {
 		return u.MarkEndOfSimDueToErr(err)
 	}
-	u.TradeAnalysisReport.AmountIn = tf.FrontRunTrade.AmountIn.String()
-	u.TradeAnalysisReport.AmountInAddr = tf.FrontRunTrade.AmountInAddr.String()
-	u.TradeAnalysisReport.AmountOutAddr = tf.SandwichTrade.AmountOutAddr.String()
 	err = u.SimFullSandwichTrade(&tf)
 	if err != nil {
 		return u.MarkEndOfSimDueToErr(err)

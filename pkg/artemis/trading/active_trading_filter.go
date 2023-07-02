@@ -69,8 +69,5 @@ func (a *ActiveTrading) SimTxFilter(ctx context.Context, tx *types.Transaction) 
 	if *num == 0 || *den == 0 {
 		return errors.New("ActiveTrading: EntryTxFilter, transfer tax not set")
 	}
-	if *num == 1 && *den == 1 {
-		return nil
-	}
-	return errors.New("ActiveTrading: EntryTxFilter, transfer tax not set")
+	return nil
 }

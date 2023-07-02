@@ -17,6 +17,7 @@ type UniswapPoolV3 struct {
 	Liquidity                *big.Int                       `json:"liquidity"`
 	TokenFeePath             TokenFeePath                   `json:"tokenFeePath"`
 	TickListDataProvider     *entities.TickListDataProvider `json:"tickListDataProvider,omitempty"`
+	SimMode                  bool                           `json:"simMode,omitempty"`
 }
 
 type JSONUniswapPoolV3 struct {

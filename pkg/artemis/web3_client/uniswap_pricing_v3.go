@@ -38,12 +38,12 @@ func (p *UniswapPoolV3) PriceImpact(ctx context.Context, token *core_entities.To
 	return out, pool, nil
 }
 
-func (p *UniswapPoolV3) PricingData(ctx context.Context, path TokenFeePath) error {
+func (p *UniswapPoolV3) PricingData(ctx context.Context, path TokenFeePath, simMode bool) error {
 	// todo, need to handle multi-hops, not sure if this is sufficient for that
 	p.Fee = constants.FeeAmount(path.GetFirstFee().Int64())
-
+	p.SimMode = simMode
 	wc := p.Web3Actions
-	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL != "" {
+	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL != "" && !simMode {
 		wc = web3_actions.NewWeb3ActionsClientWithAccount(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.Account)
 	}
 	decimals, err := wc.GetContractDecimals(ctx, path.TokenIn.Hex())

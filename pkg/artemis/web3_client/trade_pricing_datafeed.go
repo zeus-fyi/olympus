@@ -31,7 +31,7 @@ func (u *UniswapClient) GetV3PricingData(ctx context.Context, path TokenFeePath)
 		Liquidity:            nil,
 		TickListDataProvider: nil,
 	}
-	err := pairV3.PricingData(ctx, path)
+	err := pairV3.PricingData(ctx, path, u.SimMode)
 	if err != nil {
 		log.Err(err).Interface("path", path).Msg("error getting v3 pricing data")
 		return nil, err

@@ -48,22 +48,22 @@ const (
 )
 
 type UniswapClient struct {
-	mu                               sync.Mutex
-	Web3Client                       Web3Client
-	UniversalRouterSmartContractAddr string
-	FactorySmartContractAddr         string
-	RouterSmartContractAddr          string
-	PoolV3Abi                        *abi.ABI
-	PairAbi                          *abi.ABI
-	ERC20Abi                         *abi.ABI
-	FactoryAbi                       *abi.ABI
-	UniversalRouterAbi               *abi.ABI
-	PrintDetails                     bool
-	PrintOn                          bool
-	PrintLocal                       bool
-	DebugPrint                       bool
-	TestMode                         bool
-
+	mu                                      sync.Mutex
+	Web3Client                              Web3Client
+	UniversalRouterSmartContractAddr        string
+	FactorySmartContractAddr                string
+	RouterSmartContractAddr                 string
+	PoolV3Abi                               *abi.ABI
+	PairAbi                                 *abi.ABI
+	ERC20Abi                                *abi.ABI
+	FactoryAbi                              *abi.ABI
+	UniversalRouterAbi                      *abi.ABI
+	PrintDetails                            bool
+	PrintOn                                 bool
+	PrintLocal                              bool
+	DebugPrint                              bool
+	TestMode                                bool
+	SimMode                                 bool
 	MevSmartContractTxMapV3SwapRouterV1     MevSmartContractTxMap
 	MevSmartContractTxMapV3SwapRouterV2     MevSmartContractTxMap
 	MevSmartContractTxMapUniversalRouterNew MevSmartContractTxMap

@@ -109,7 +109,13 @@ type TradeFailureReport struct {
 	EndStage  string `json:"end_stage"`
 }
 
+func (u *UniswapClient) ToggleSimMode() {
+	u.SimMode = !u.SimMode
+}
+
 func (u *UniswapClient) RunHistoricalTradeAnalysis(ctx context.Context, tfStr string, liveNetworkClient Web3Client) error {
+	u.SimMode = true
+	defer u.ToggleSimMode()
 	u.TradeAnalysisReport = &TradeAnalysisReport{}
 	tfJSON, err := UnmarshalTradeExecutionFlow(tfStr)
 	if err != nil {

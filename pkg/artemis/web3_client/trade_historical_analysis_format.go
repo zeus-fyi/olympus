@@ -77,7 +77,7 @@ func (t *TradeAnalysisReport) PrintResults() {
 	fmt.Println("Trade Method:", t.TradeMethod)
 	fmt.Println("Artemis Block Number:", t.ArtemisBlockNumber)
 	fmt.Println("Rx Block Number:", t.RxBlockNumber)
-
+	fmt.Println("Tx Hash:", t.TxHash)
 	if t.EndStage == "success" {
 		fmt.Println("Starting Token Addr:", t.AmountInAddr)
 		fmt.Println("Profit Token Addr:", t.AmountOutAddr)

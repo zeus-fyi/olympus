@@ -58,11 +58,11 @@ func (u *UniswapClient) UserTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*big.I
 		fmt.Println("user trade simulated amount in", amountsOutFirstPair[0].String(), "amount out", amountsOutFirstPair[1].String())
 	}
 	if tf.UserTrade.AmountIn.String() != amountsOutFirstPair[0].String() {
-		log.Warn().Msgf(fmt.Sprintf("amount in not equal to expected amount in %s, actual amount in: %s", tf.UserTrade.AmountIn.String(), amountsOutFirstPair[0].String()))
+		log.Warn().Msgf(fmt.Sprintf("txhash %s: amount in not equal to expected amount in %s, actual amount in: %s", tf.Tx.Hash().String(), tf.UserTrade.AmountIn.String(), amountsOutFirstPair[0].String()))
 		return amountsOutFirstPair, errors.New("amount in not equal to expected")
 	}
 	if tf.UserTrade.AmountOut.String() != amountsOutFirstPair[1].String() {
-		log.Warn().Msgf(fmt.Sprintf("amount out not equal to expected amount out %s, actual amount out: %s", tf.UserTrade.AmountOut.String(), amountsOutFirstPair[1].String()))
+		log.Warn().Msgf(fmt.Sprintf("txhash %s: amount out not equal to expected amount out %s, actual amount out: %s", tf.Tx.Hash().String(), tf.UserTrade.AmountOut.String(), amountsOutFirstPair[1].String()))
 		if u.DebugPrint {
 			diff := new(big.Int).Sub(amountsOutFirstPair[1], tf.UserTrade.AmountOut)
 			fmt.Println("user trade actual - expected ", diff.String())

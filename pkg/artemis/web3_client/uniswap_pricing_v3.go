@@ -6,6 +6,8 @@ import (
 	"math/big"
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/constants"
@@ -39,13 +41,18 @@ func (p *UniswapPoolV3) PriceImpact(ctx context.Context, token *core_entities.To
 func (p *UniswapPoolV3) PricingData(ctx context.Context, path TokenFeePath) error {
 	// todo, need to handle multi-hops, not sure if this is sufficient for that
 	p.Fee = constants.FeeAmount(path.GetFirstFee().Int64())
-	decimals, err := p.GetContractDecimals(ctx, path.TokenIn.Hex())
+
+	wc := p.Web3Actions
+	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL != "" {
+		wc = web3_actions.NewWeb3ActionsClientWithAccount(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.Account)
+	}
+	decimals, err := wc.GetContractDecimals(ctx, path.TokenIn.Hex())
 	if err != nil {
 		return err
 	}
 	// todo, store decimals in db
 	tokenA := core_entities.NewToken(1, accounts.HexToAddress(path.TokenIn.Hex()), uint(decimals), "", "")
-	decimals, err = p.GetContractDecimals(ctx, path.GetEndToken().Hex())
+	decimals, err = wc.GetContractDecimals(ctx, path.GetEndToken().Hex())
 	if err != nil {
 		return err
 	}

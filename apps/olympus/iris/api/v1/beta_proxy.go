@@ -37,6 +37,7 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 	rw := artemis_api_requests.NewArtemisApiRequestsActivities()
 	_, err = rw.InternalSvcRelayRequest(c.Request().Context(), &artemis_api_requests.ApiProxyRequest{
 		Url:        r.Route,
+		Payload:    p.Body,
 		IsInternal: isInternal,
 		Timeout:    1 * time.Minute,
 	})

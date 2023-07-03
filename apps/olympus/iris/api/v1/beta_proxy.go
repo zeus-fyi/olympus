@@ -35,7 +35,7 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 		return c.JSON(http.StatusServiceUnavailable, err)
 	}
 	rw := artemis_api_requests.NewArtemisApiRequestsActivities()
-	_, err = rw.InternalSvcRelayRequest(c.Request().Context(), &artemis_api_requests.ApiProxyRequest{
+	resp, err := rw.InternalSvcRelayRequest(c.Request().Context(), &artemis_api_requests.ApiProxyRequest{
 		Url:        r.Route,
 		Payload:    p.Body,
 		IsInternal: isInternal,
@@ -45,5 +45,5 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 		log.Err(err)
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	return c.JSON(http.StatusOK, nil)
+	return c.JSON(http.StatusOK, resp.Response)
 }

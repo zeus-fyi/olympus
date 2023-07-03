@@ -30,4 +30,7 @@ Define the following:
 	- and to save routing logic
 
 7. metrics
+
+8. actions generator
+	eg. issue a job creation, or deploy infra on a schedule
 */

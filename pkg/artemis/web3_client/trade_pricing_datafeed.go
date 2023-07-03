@@ -9,25 +9,20 @@ import (
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
 
-type PricingData struct {
-	V2Pair uniswap_pricing.UniswapV2Pair
-	V3Pair uniswap_pricing.UniswapPoolV3
-}
-
-func (u *UniswapClient) GetV2PricingData(ctx context.Context, path []accounts.Address) (*PricingData, error) {
+func (u *UniswapClient) GetV2PricingData(ctx context.Context, path []accounts.Address) (*uniswap_pricing.PricingData, error) {
 	pair, err := u.V2PairToPrices(ctx, path)
 	if err != nil {
 		log.Err(err).Interface("path", path).Interface("simMode", u.SimMode).Msg("error getting v2 pricing data")
-		return &PricingData{
+		return &uniswap_pricing.PricingData{
 			V2Pair: pair,
 		}, err
 	}
-	return &PricingData{
+	return &uniswap_pricing.PricingData{
 		V2Pair: pair,
 	}, nil
 }
 
-func (u *UniswapClient) GetV3PricingData(ctx context.Context, path artemis_trading_types.TokenFeePath) (*PricingData, error) {
+func (u *UniswapClient) GetV3PricingData(ctx context.Context, path artemis_trading_types.TokenFeePath) (*uniswap_pricing.PricingData, error) {
 	pairV3 := uniswap_pricing.UniswapPoolV3{
 		Web3Actions:          u.Web3Client.Web3Actions,
 		PoolAddress:          "",
@@ -39,11 +34,11 @@ func (u *UniswapClient) GetV3PricingData(ctx context.Context, path artemis_tradi
 	err := pairV3.PricingData(ctx, path, u.SimMode)
 	if err != nil {
 		log.Err(err).Interface("path", path).Interface("simMode", u.SimMode).Msg("error getting v3 pricing data")
-		return &PricingData{
+		return &uniswap_pricing.PricingData{
 			V3Pair: pairV3,
 		}, err
 	}
-	return &PricingData{
+	return &uniswap_pricing.PricingData{
 		V3Pair: pairV3,
 	}, nil
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
 
@@ -35,7 +36,7 @@ type JSONSwapExactOutputSingleArgs struct {
 	TokenFeePath artemis_trading_types.TokenFeePath `json:"tokenFeePath,omitempty"`
 }
 
-func (s *SwapExactOutputSingleArgs) BinarySearch(pd *PricingData) TradeExecutionFlowJSON {
+func (s *SwapExactOutputSingleArgs) BinarySearch(pd *uniswap_pricing.PricingData) TradeExecutionFlowJSON {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountInMaximum)
 	var mid *big.Int

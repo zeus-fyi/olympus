@@ -4,10 +4,11 @@ import (
 	"math/big"
 
 	"github.com/rs/zerolog/log"
+	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
 
-func (s *V3SwapExactInParams) BinarySearch(pd *PricingData) TradeExecutionFlowJSON {
+func (s *V3SwapExactInParams) BinarySearch(pd *uniswap_pricing.PricingData) TradeExecutionFlowJSON {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountIn)
 	var mid *big.Int

@@ -18,6 +18,7 @@ type AnvilProxy struct {
 	RouteLockTTL      map[int]int
 	routeLockTTLMutex sync.RWMutex // Add a mutex to protect the map
 	LockDefaultTime   time.Duration
+	//RequestCache      *cache.Cache
 }
 
 type Route struct {
@@ -41,6 +42,7 @@ func InitAnvilProxy() {
 		LockDefaultTime: time.Second * 120,
 		SessionRouteMap: make(map[string]int),
 		RouteLockTTL:    make(map[int]int),
+		//RequestCache:    cache.New(3*time.Second, 3*time.Second),
 	}
 }
 
@@ -76,8 +78,7 @@ func (a *AnvilProxy) GetNextAvailableRouteAndAssignToSession(sessionID string) (
 		}
 		return a.setSessionLockOnRoute(r)
 	}
-	_, leastFreqElement := a.LFU.GetLeastFrequentValue()
-	ch := make(chan datastructures.Eviction, 1)
+	leastFreqElement, _ := a.LFU.GetLeastFrequentValue()
 	leastFreqSessionID := leastFreqElement.(string)
 	a.routeLockTTLMutex.Lock()
 	defer a.routeLockTTLMutex.Unlock()
@@ -86,19 +87,24 @@ func (a *AnvilProxy) GetNextAvailableRouteAndAssignToSession(sessionID string) (
 		// if the lock has expired, then remove it from the LFU & the session map
 		delete(a.SessionRouteMap, leastFreqSessionID)
 		delete(a.RouteLockTTL, leastFreqRouteIndex)
-		a.LFU.Evict(1)
-		return a.waitForNextAvailableRoute(ch, sessionID)
+		return a.waitForNextAvailableRoute(sessionID)
 	}
 	return nil, errors.New("no available routes")
 }
 
-func (a *AnvilProxy) waitForNextAvailableRoute(ch chan datastructures.Eviction, sessionID string) (*Route, error) {
+func (a *AnvilProxy) waitForNextAvailableRoute(sessionID string) (*Route, error) {
+	ch := make(chan datastructures.Eviction, 1)
 	a.LFU.EvictionChannel = ch
+	a.LFU.Evict(1)
 	ev := <-ch
 	log.Info().Msgf("evicted: key %v, val %v", ev.Key, ev.Value)
-	return &Route{
+	r := &Route{
 		Index:     ev.Value.(int),
 		SessionID: sessionID,
 		Route:     AnvilRoutes[ev.Value.(int)],
-	}, nil
+	}
+	a.LFU.Set(r.SessionID, r.Index)
+	a.SessionRouteMap[r.SessionID] = r.Index
+	a.RouteLockTTL[r.Index] = ts.UnixTimeStampNow() + int(a.LockDefaultTime.Seconds())
+	return r, nil
 }

@@ -3,6 +3,7 @@ package proxy_anvil
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
@@ -15,6 +16,7 @@ type AnvilTestSuite struct {
 func (t *AnvilTestSuite) SetupTest() {
 	t.InitLocalConfigs()
 	InitAnvilProxy()
+	SessionLocker.LockDefaultTime = time.Second
 	t.Assert().NotNil(SessionLocker.LFU)
 }
 
@@ -32,6 +34,14 @@ func (t *AnvilTestSuite) TestSessionLocker() {
 	t.Assert().NotNil(lfKey)
 	t.Assert().Equal("test1", lfKey)
 	fmt.Println(lfVal)
+
+	nr, err := SessionLocker.GetNextAvailableRouteAndAssignToSession("test3")
+	t.Assert().Nil(err)
+	t.Assert().NotNil(nr)
+
+	lfKey, lfVal = SessionLocker.LFU.GetLeastFrequentValue()
+	t.Assert().NotNil(lfKey)
+	t.Assert().Equal("test3", lfKey)
 }
 
 func TestAnvilTestSuite(t *testing.T) {

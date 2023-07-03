@@ -18,7 +18,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites"
 	zeus_client "github.com/zeus-fyi/olympus/pkg/zeus/client"
 	autok8s_core "github.com/zeus-fyi/olympus/pkg/zeus/core"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 var Kns zeus_common_types.CloudCtxNs

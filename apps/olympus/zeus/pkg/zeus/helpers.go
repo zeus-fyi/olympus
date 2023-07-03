@@ -6,7 +6,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/conversions/chart_workload"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 func PackageCommonTopologyRequest(topCtxNs kns.TopologyKubeCtxNs, ou org_users.OrgUser, nk chart_workload.TopologyBaseInfraWorkload, deployChoreographySecret bool, clusterClassName, secretRef string) base_deploy_params.TopologyWorkflowRequest {

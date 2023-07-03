@@ -13,7 +13,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types"
 	test_base "github.com/zeus-fyi/olympus/test"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 type ZeusClientTestSuite struct {

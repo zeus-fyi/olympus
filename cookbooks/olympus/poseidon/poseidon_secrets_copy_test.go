@@ -3,7 +3,7 @@ package poseidon_olympus_cookbook
 import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types/internal_reqs"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 func (t *PoseidonCookbookTestSuite) TestPoseidonSecretsCopy() {

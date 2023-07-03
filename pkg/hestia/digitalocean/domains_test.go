@@ -7,7 +7,7 @@ import (
 
 	"github.com/digitalocean/godo"
 	"github.com/stretchr/testify/suite"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 type DomainsTestSuite struct {

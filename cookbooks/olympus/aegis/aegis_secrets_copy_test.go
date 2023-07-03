@@ -8,7 +8,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/topologies/definitions/kns"
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types/internal_reqs"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 func (t *AegisCookbookTestSuite) TestAegisSecretsCopy() {

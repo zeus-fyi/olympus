@@ -1,6 +1,6 @@
 package apollo_metrics_workload_info
 
-import "github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+import "github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 
 type WorkloadInfo struct {
 	Namespace string

@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
 	conversions_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/test"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 type TopologiesOrgCloudCtxNsTestSuite struct {

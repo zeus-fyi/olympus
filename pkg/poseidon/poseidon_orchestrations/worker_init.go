@@ -2,6 +2,7 @@ package poseidon_orchestrations
 
 import (
 	"context"
+
 	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
 
 	"github.com/rs/zerolog/log"
@@ -12,7 +13,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	beacon_actions "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons/actions"
 	client_consts "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons/constants"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 type PoseidonWorker struct {

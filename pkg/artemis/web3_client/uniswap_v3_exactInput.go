@@ -51,7 +51,7 @@ func (in *ExactInputParams) ConvertToJSONType() *JSONExactInputParams {
 	}
 }
 
-func (in *ExactInputParams) BinarySearch(pd *uniswap_pricing.PricingData) TradeExecutionFlowJSON {
+func (in *ExactInputParams) BinarySearch(pd *uniswap_pricing.UniswapPricingData) TradeExecutionFlowJSON {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(in.AmountIn)
 	var mid *big.Int

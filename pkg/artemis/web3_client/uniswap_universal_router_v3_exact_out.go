@@ -8,7 +8,7 @@ import (
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
 
-func (s *V3SwapExactOutParams) BinarySearch(pd *uniswap_pricing.PricingData) TradeExecutionFlowJSON {
+func (s *V3SwapExactOutParams) BinarySearch(pd *uniswap_pricing.UniswapPricingData) TradeExecutionFlowJSON {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountInMax)
 	var mid *big.Int

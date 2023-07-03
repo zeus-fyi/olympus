@@ -30,7 +30,7 @@ type JSONExactOutputParams struct {
 	TokenFeePath artemis_trading_types.TokenFeePath `json:"tokenFeePath,omitempty"`
 }
 
-func (o *ExactOutputParams) BinarySearch(pd *uniswap_pricing.PricingData) TradeExecutionFlowJSON {
+func (o *ExactOutputParams) BinarySearch(pd *uniswap_pricing.UniswapPricingData) TradeExecutionFlowJSON {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(o.AmountInMaximum)
 	var mid *big.Int

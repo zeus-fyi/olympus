@@ -15,7 +15,7 @@ import (
 
 type TradeSummary struct {
 	Tx            MevTx
-	Pd            *uniswap_pricing.PricingData
+	Pd            *uniswap_pricing.UniswapPricingData
 	Tf            TradeExecutionFlowJSON
 	TokenAddr     string
 	BuyWithAmount *big.Int

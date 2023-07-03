@@ -1,6 +1,6 @@
 package uniswap_pricing
 
-type PricingData struct {
+type UniswapPricingData struct {
 	V2Pair UniswapV2Pair
 	V3Pair UniswapPoolV3
 }

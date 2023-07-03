@@ -35,7 +35,7 @@ type JSONSwapExactInputSingleArgs struct {
 	TokenFeePath      artemis_trading_types.TokenFeePath `json:"tokenFeePath,omitempty"`
 }
 
-func (s *SwapExactInputSingleArgs) BinarySearch(pd *uniswap_pricing.PricingData) TradeExecutionFlowJSON {
+func (s *SwapExactInputSingleArgs) BinarySearch(pd *uniswap_pricing.UniswapPricingData) TradeExecutionFlowJSON {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountIn)
 	var mid *big.Int

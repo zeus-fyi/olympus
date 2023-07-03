@@ -121,6 +121,7 @@ func (u *UniswapClient) RunHistoricalTradeAnalysis(ctx context.Context, tfStr st
 	if err != nil {
 		return u.MarkEndOfSimDueToErr(err)
 	}
+	u.Web3Client.AddSessionLockHeader(tfJSON.Tx.Hash().String())
 	u.TradeAnalysisReport.TxHash = tfJSON.Tx.Hash().String()
 	u.TradeAnalysisReport.TradeMethod = tfJSON.Trade.TradeMethod
 	u.TradeAnalysisReport.AmountIn = tfJSON.FrontRunTrade.AmountIn

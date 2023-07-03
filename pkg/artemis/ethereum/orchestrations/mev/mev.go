@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	irisSvc    = "https://iris.zeus.fyi/v1/internal/"
-	hardhatSvc = "https://hardhat.zeus.fyi/"
+	irisSvc     = "https://iris.zeus.fyi/v1/internal/"
+	irisBetaSvc = "https://iris.zeus.fyi/v1beta/internal/"
+	hardhatSvc  = "https://hardhat.zeus.fyi/"
 )
 
 var (
@@ -33,7 +34,7 @@ func InitUniswap(ctx context.Context, authHeader string) {
 }
 
 func InitNewUniHardhat(ctx context.Context) *web3_client.UniswapClient {
-	wc := web3_client.NewWeb3ClientWithRelay(irisSvc, hardhatSvc, HardHatAccount)
+	wc := web3_client.NewWeb3Client(irisBetaSvc, HardHatAccount)
 	m := map[string]string{
 		"Authorization": "Bearer " + AuthHeader,
 	}

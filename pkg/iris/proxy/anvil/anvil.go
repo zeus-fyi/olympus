@@ -2,7 +2,6 @@ package proxy_anvil
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 	"time"
 
@@ -43,12 +42,6 @@ func InitAnvilProxy() {
 		SessionRouteMap: make(map[string]int),
 		RouteLockTTL:    make(map[int]int),
 	}
-	for i := 0; i < len(AnvilRoutes); i++ {
-		sessionID := fmt.Sprintf("%d", i)
-		SessionLocker.LFU.Set(AnvilRoutes[i], sessionID)
-		SessionLocker.RouteLockTTL[i] = 0
-		SessionLocker.SessionRouteMap[sessionID] = i
-	}
 }
 
 // setSessionLockOnRoute sets a session lock on a route index & updates its lock time
@@ -83,7 +76,7 @@ func (a *AnvilProxy) GetNextAvailableRouteAndAssignToSession(sessionID string) (
 		}
 		return a.setSessionLockOnRoute(r)
 	}
-	leastFreqElement := a.LFU.GetLeastFrequentValue()
+	_, leastFreqElement := a.LFU.GetLeastFrequentValue()
 	ch := make(chan datastructures.Eviction, 1)
 	leastFreqSessionID := leastFreqElement.(string)
 	a.routeLockTTLMutex.Lock()

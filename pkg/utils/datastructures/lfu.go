@@ -88,11 +88,13 @@ func (c *LFU) Evict(count int) int {
 	return c.evict(count)
 }
 
-func (c *LFU) GetLeastFrequentValue() interface{} {
+func (c *LFU) GetLeastFrequentValue() (interface{}, interface{}) {
 	if place := c.freqs.Front(); place != nil {
-		return place.Value
+		for entry, _ := range place.Value.(*listEntry).entries {
+			return entry.key, entry.value
+		}
 	}
-	return nil
+	return nil, nil
 }
 
 func (c *LFU) evict(count int) int {

@@ -32,7 +32,7 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 
 	rw := artemis_api_requests.NewArtemisApiRequestsActivities()
 	_, err := rw.RelayRequest(c.Request().Context(), &artemis_api_requests.ApiProxyRequest{
-		Url:        "https://hardhat.zeus.fyi/",
+		Url:        "https://hardhat.zeus.fyi/", // TODO, get from proxy session lock list
 		IsInternal: isInternal,
 		Timeout:    1 * time.Minute,
 	})

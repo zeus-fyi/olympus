@@ -1,4 +1,4 @@
-package web3_client
+package uniswap_pricing
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_pricing_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/utils"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/constants"
@@ -55,7 +56,7 @@ type Erc20TokenInfo struct {
 }
 */
 
-func (p *UniswapPoolV3) PricingData(ctx context.Context, path TokenFeePath, simMode bool) error {
+func (p *UniswapPoolV3) PricingData(ctx context.Context, path artemis_trading_types.TokenFeePath, simMode bool) error {
 	// todo, need to handle multi-hops, not sure if this is sufficient for that
 	p.Fee = constants.FeeAmount(path.GetFirstFee().Int64())
 	p.SimMode = simMode

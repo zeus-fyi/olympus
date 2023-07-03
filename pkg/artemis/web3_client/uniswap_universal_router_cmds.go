@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
 const (
@@ -46,8 +47,8 @@ const (
 )
 
 var (
-	UniversalRouterDecoderAbi = MustLoadUniversalRouterDecodingAbi()
-	UniversalRouterAbi        = MustLoadOldUniversalRouterAbi()
+	UniversalRouterDecoderAbi = artemis_oly_contract_abis.MustLoadUniversalRouterDecodingAbi()
+	UniversalRouterAbi        = artemis_oly_contract_abis.MustLoadOldUniversalRouterAbi()
 )
 
 type UnwrapWETHParams struct {

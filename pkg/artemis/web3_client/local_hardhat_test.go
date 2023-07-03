@@ -6,11 +6,12 @@ import (
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
 func (s *Web3ClientTestSuite) TestMintTokens() {
 	forceDirToLocation()
-	tokenPayload, bc, err := LoadERC20AbiPayload()
+	tokenPayload, bc, err := artemis_oly_contract_abis.LoadERC20AbiPayload()
 	s.Require().Nil(err)
 	newAccount, err := accounts.ParsePrivateKey("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
 	s.Assert().Nil(err)
@@ -44,7 +45,7 @@ func (s *Web3ClientTestSuite) TestMintTokens() {
 				ToAddress: accounts.HexToAddress(swapContractAddr),
 			},
 		},
-		ContractABI: MustLoadERC20Abi(),
+		ContractABI: artemis_oly_contract_abis.MustLoadERC20Abi(),
 		Params:      []interface{}{accounts.HexToAddress(swapContractAddr), Ether},
 	}
 	_, err = s.LocalHardhatMainnetUser.TransferERC20Token(ctx, transferTxParams)

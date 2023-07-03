@@ -11,6 +11,7 @@ import (
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
+	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
 func (w *Web3Client) GetBlockTxs(ctx context.Context) (types.Transactions, error) {
@@ -254,7 +255,7 @@ func (u *UniswapClient) RouterApproveAndSend(ctx context.Context, to *artemis_tr
 				ToAddress: accounts.HexToAddress(pairContractAddr),
 			},
 		},
-		ContractABI: MustLoadERC20Abi(),
+		ContractABI: artemis_oly_contract_abis.MustLoadERC20Abi(),
 		Params:      []interface{}{accounts.HexToAddress(pairContractAddr), to.AmountIn},
 	}
 	transferTx, err := u.Web3Client.TransferERC20Token(ctx, transferTxParams)

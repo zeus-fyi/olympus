@@ -1,4 +1,4 @@
-package web3_client
+package uniswap_pricing
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
+	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/entities"
 )
@@ -17,7 +18,7 @@ func (p *UniswapPoolV3) GetLiquidity(ctx context.Context) error {
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: p.PoolAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       MustLoadPoolV3Abi(),
+		ContractABI:       artemis_oly_contract_abis.MustLoadPoolV3Abi(),
 		MethodName:        liquidity,
 		Params:            []interface{}{},
 	}
@@ -42,7 +43,7 @@ func (p *UniswapPoolV3) GetSlot0(ctx context.Context) error {
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: p.PoolAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       MustLoadPoolV3Abi(),
+		ContractABI:       artemis_oly_contract_abis.MustLoadPoolV3Abi(),
 		MethodName:        slot0,
 		Params:            []interface{}{},
 	}
@@ -82,7 +83,7 @@ func (p *UniswapPoolV3) GetTickMappingValueFromContract(tickNum int16) (*big.Int
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: p.PoolAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       MustLoadPoolV3Abi(),
+		ContractABI:       artemis_oly_contract_abis.MustLoadPoolV3Abi(),
 		MethodName:        tickBitmap,
 		Params:            []interface{}{tickNum},
 	}
@@ -90,6 +91,7 @@ func (p *UniswapPoolV3) GetTickMappingValueFromContract(tickNum int16) (*big.Int
 	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL != "" && !p.SimMode {
 		wc = web3_actions.NewWeb3ActionsClientWithAccount(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.Account)
 	}
+	ctx := context.Background()
 	resp, err := wc.CallConstantFunction(ctx, scInfo)
 	if err != nil {
 		return nil, err
@@ -115,7 +117,7 @@ func (p *UniswapPoolV3) GetTickFromContract(tickNum int) (entities.Tick, error) 
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: p.PoolAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       MustLoadPoolV3Abi(),
+		ContractABI:       artemis_oly_contract_abis.MustLoadPoolV3Abi(),
 		MethodName:        ticks,
 		Params:            []interface{}{new(big.Int).SetInt64(int64(tickNum))},
 	}
@@ -126,6 +128,7 @@ func (p *UniswapPoolV3) GetTickFromContract(tickNum int) (entities.Tick, error) 
 	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL != "" && !p.SimMode {
 		wc = web3_actions.NewWeb3ActionsClientWithAccount(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.Account)
 	}
+	ctx := context.Background()
 	resp, err := wc.CallConstantFunction(ctx, scInfo)
 	if err != nil {
 		return tick, err
@@ -163,7 +166,7 @@ func (p *UniswapPoolV3) GetPopulatedTicksMap() ([]entities.Tick, error) {
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: TickLensAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       MustLoadTickLensAbi(),
+		ContractABI:       artemis_oly_contract_abis.MustLoadTickLensAbi(),
 		MethodName:        getPopulatedTicksInWord,
 		Params:            []interface{}{accounts.HexToAddress(p.PoolAddress), GetTickBitmapIndex(new(big.Int).SetInt64(int64(p.Slot0.Tick)), int64(constants.TickSpacings[p.Fee]))},
 	}
@@ -172,6 +175,7 @@ func (p *UniswapPoolV3) GetPopulatedTicksMap() ([]entities.Tick, error) {
 	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL != "" && !p.SimMode {
 		wc = web3_actions.NewWeb3ActionsClientWithAccount(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.Account)
 	}
+	ctx := context.Background()
 	resp, err := wc.CallConstantFunction(ctx, scInfo)
 	if err != nil {
 		return ticksSlice, err

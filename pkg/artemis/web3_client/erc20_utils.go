@@ -14,12 +14,13 @@ import (
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
+	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
 func (w *Web3Client) ERC20ApproveSpender(ctx context.Context, scAddr, spenderAddr string, amount *big.Int) (*types.Transaction, error) {
 	w.Dial()
 	defer w.Close()
-	abiFile := MustLoadERC20Abi()
+	abiFile := artemis_oly_contract_abis.MustLoadERC20Abi()
 	payload := web3_actions.SendContractTxPayload{
 		SmartContractAddr: scAddr,
 		MethodName:        "approve",

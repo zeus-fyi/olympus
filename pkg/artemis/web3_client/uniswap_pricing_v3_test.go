@@ -5,6 +5,8 @@ import (
 	"math/big"
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/entities"
@@ -20,14 +22,14 @@ func (s *Web3ClientTestSuite) TestUniswapV3DataFetcherV2() {
 	result, err := utils.ComputePoolAddress(factoryAddress, tokenA, tokenB, constants.FeeMedium, "")
 	s.Require().NoError(err)
 
-	p := UniswapPoolV3{
+	p := uniswap_pricing.UniswapPoolV3{
 		PoolAddress: result.String(),
 		Web3Actions: s.MainnetWeb3User.Web3Actions,
 		Fee:         constants.FeeMedium,
 	}
-	tfp := TokenFeePath{
+	tfp := artemis_trading_types.TokenFeePath{
 		TokenIn: tokenA.Address,
-		Path: []TokenFee{
+		Path: []artemis_trading_types.TokenFee{
 			{
 				Token: tokenB.Address,
 				Fee:   new(big.Int).SetInt64(int64(constants.FeeMedium)),
@@ -51,7 +53,7 @@ func (s *Web3ClientTestSuite) TestUniswapV3DataFetcher() {
 	tokenB := core_entities.NewToken(1, accounts.HexToAddress(UsdCoinAddr), 6, "USDC", "USD Coin")
 	result, err := utils.ComputePoolAddress(factoryAddress, tokenA, tokenB, constants.FeeMedium, "")
 	s.Require().NoError(err)
-	p := UniswapPoolV3{
+	p := uniswap_pricing.UniswapPoolV3{
 		PoolAddress: result.String(),
 		Web3Actions: s.MainnetWeb3User.Web3Actions,
 		Fee:         constants.FeeMedium,
@@ -84,9 +86,9 @@ func (s *Web3ClientTestSuite) TestUniswapV3DataFetcher() {
 	fmt.Println("usdAmountSim", usdAmountSim.String())
 
 	uni := InitUniswapClient(ctx, s.MainnetWeb3User)
-	tfp := TokenFeePath{
+	tfp := artemis_trading_types.TokenFeePath{
 		TokenIn: tokenA.Address,
-		Path: []TokenFee{{
+		Path: []artemis_trading_types.TokenFee{{
 			Token: tokenB.Address,
 			Fee:   new(big.Int).SetInt64(int64(v3Pool.Fee)),
 		}},

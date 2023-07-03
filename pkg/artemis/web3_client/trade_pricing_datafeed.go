@@ -6,11 +6,12 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
 
 type PricingData struct {
 	V2Pair uniswap_pricing.UniswapV2Pair
-	V3Pair UniswapPoolV3
+	V3Pair uniswap_pricing.UniswapPoolV3
 }
 
 func (u *UniswapClient) GetV2PricingData(ctx context.Context, path []accounts.Address) (*PricingData, error) {
@@ -26,12 +27,12 @@ func (u *UniswapClient) GetV2PricingData(ctx context.Context, path []accounts.Ad
 	}, nil
 }
 
-func (u *UniswapClient) GetV3PricingData(ctx context.Context, path TokenFeePath) (*PricingData, error) {
-	pairV3 := UniswapPoolV3{
+func (u *UniswapClient) GetV3PricingData(ctx context.Context, path artemis_trading_types.TokenFeePath) (*PricingData, error) {
+	pairV3 := uniswap_pricing.UniswapPoolV3{
 		Web3Actions:          u.Web3Client.Web3Actions,
 		PoolAddress:          "",
 		Fee:                  0,
-		Slot0:                Slot0{},
+		Slot0:                uniswap_pricing.Slot0{},
 		Liquidity:            nil,
 		TickListDataProvider: nil,
 	}

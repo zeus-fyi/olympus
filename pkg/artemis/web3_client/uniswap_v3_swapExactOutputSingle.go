@@ -20,7 +20,7 @@ type SwapExactOutputSingleArgs struct {
 	Recipient         accounts.Address `json:"recipient"`
 	SqrtPriceLimitX96 *big.Int         `json:"sqrtPriceLimitX96"`
 
-	TokenFeePath TokenFeePath `json:"tokenFeePath,omitempty"`
+	TokenFeePath artemis_trading_types.TokenFeePath `json:"tokenFeePath,omitempty"`
 }
 
 type JSONSwapExactOutputSingleArgs struct {
@@ -32,7 +32,7 @@ type JSONSwapExactOutputSingleArgs struct {
 	Recipient         accounts.Address `json:"recipient"`
 	SqrtPriceLimitX96 string           `json:"sqrtPriceLimitX96"`
 
-	TokenFeePath TokenFeePath `json:"tokenFeePath,omitempty"`
+	TokenFeePath artemis_trading_types.TokenFeePath `json:"tokenFeePath,omitempty"`
 }
 
 func (s *SwapExactOutputSingleArgs) BinarySearch(pd *PricingData) TradeExecutionFlowJSON {

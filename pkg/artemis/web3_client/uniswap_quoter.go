@@ -6,6 +6,8 @@ import (
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
+	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
 const (
@@ -17,7 +19,7 @@ const (
 )
 
 type QuoteExactInputParams struct {
-	TokenFeePath
+	artemis_trading_types.TokenFeePath
 	AmountIn          *big.Int
 	SqrtPriceLimitX96 *big.Int
 }
@@ -58,7 +60,7 @@ func (u *UniswapClient) GetPoolV3ExactInputSingleQuoteFromQuoterV2(ctx context.C
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: QuoterV2Address,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       MustLoadQuoterV2Abi(),
+		ContractABI:       artemis_oly_contract_abis.MustLoadQuoterV2Abi(),
 		MethodName:        quoteExactInputSingle,
 		Params:            []interface{}{qp},
 	}

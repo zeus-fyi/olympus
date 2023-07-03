@@ -1,9 +1,10 @@
-package web3_client
+package uniswap_pricing
 
 import (
 	"math/big"
 
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/entities"
 )
@@ -11,13 +12,13 @@ import (
 type UniswapPoolV3 struct {
 	web3_actions.Web3Actions `json:"-,omitempty"`
 	*entities.Pool           `json:"pool,omitempty"`
-	PoolAddress              string                         `json:"poolAddress"`
-	Fee                      constants.FeeAmount            `json:"fee"`
-	Slot0                    Slot0                          `json:"slot0"`
-	Liquidity                *big.Int                       `json:"liquidity"`
-	TokenFeePath             TokenFeePath                   `json:"tokenFeePath"`
-	TickListDataProvider     *entities.TickListDataProvider `json:"tickListDataProvider,omitempty"`
-	SimMode                  bool                           `json:"simMode,omitempty"`
+	PoolAddress              string                             `json:"poolAddress"`
+	Fee                      constants.FeeAmount                `json:"fee"`
+	Slot0                    Slot0                              `json:"slot0"`
+	Liquidity                *big.Int                           `json:"liquidity"`
+	TokenFeePath             artemis_trading_types.TokenFeePath `json:"tokenFeePath"`
+	TickListDataProvider     *entities.TickListDataProvider     `json:"tickListDataProvider,omitempty"`
+	SimMode                  bool                               `json:"simMode,omitempty"`
 }
 
 type JSONUniswapPoolV3 struct {
@@ -26,7 +27,7 @@ type JSONUniswapPoolV3 struct {
 	Fee                  constants.FeeAmount                `json:"fee"`
 	Slot0                JSONSlot0                          `json:"slot0"`
 	Liquidity            string                             `json:"liquidity"`
-	TokenFeePath         TokenFeePath                       `json:"tokenFeePath"`
+	TokenFeePath         artemis_trading_types.TokenFeePath `json:"tokenFeePath"`
 	TickListDataProvider *entities.JSONTickListDataProvider `json:"tickListDataProvider,omitempty"`
 }
 

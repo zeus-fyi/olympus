@@ -5,10 +5,11 @@ import (
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
+	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
 func (u *UniswapClient) ExecSwap(pair uniswap_pricing.UniswapV2Pair, to *artemis_trading_types.TradeOutcome) (*web3_actions.SendContractTxPayload, error) {
-	scInfo, _, err := LoadSwapAbiPayload(pair.PairContractAddr)
+	scInfo, _, err := artemis_oly_contract_abis.LoadSwapAbiPayload(pair.PairContractAddr)
 	if err != nil {
 		return &web3_actions.SendContractTxPayload{}, err
 	}

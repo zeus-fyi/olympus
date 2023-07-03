@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
 
 const (
@@ -12,19 +13,19 @@ const (
 )
 
 type V3SwapExactOutParams struct {
-	AmountInMax *big.Int         `json:"amountInMax"`
-	AmountOut   *big.Int         `json:"amountOut"`
-	Path        TokenFeePath     `json:"path"`
-	To          accounts.Address `json:"to"`
-	PayerIsUser bool             `json:"payerIsUser"`
+	AmountInMax *big.Int                           `json:"amountInMax"`
+	AmountOut   *big.Int                           `json:"amountOut"`
+	Path        artemis_trading_types.TokenFeePath `json:"path"`
+	To          accounts.Address                   `json:"to"`
+	PayerIsUser bool                               `json:"payerIsUser"`
 }
 
 type JSONV3SwapExactOutParams struct {
-	AmountInMax string           `json:"amountInMax"`
-	AmountOut   string           `json:"amountOut"`
-	Path        TokenFeePath     `json:"path"`
-	To          accounts.Address `json:"to"`
-	PayerIsUser bool             `json:"payerIsUser"`
+	AmountInMax string                             `json:"amountInMax"`
+	AmountOut   string                             `json:"amountOut"`
+	Path        artemis_trading_types.TokenFeePath `json:"path"`
+	To          accounts.Address                   `json:"to"`
+	PayerIsUser bool                               `json:"payerIsUser"`
 }
 
 func (s *V3SwapExactOutParams) Encode(ctx context.Context) ([]byte, error) {
@@ -51,14 +52,14 @@ func (s *V3SwapExactOutParams) Decode(ctx context.Context, data []byte) error {
 	}
 	pathBytes := args["path"].([]byte)
 	hexStr := accounts.Bytes2Hex(pathBytes)
-	tfp := TokenFeePath{
+	tfp := artemis_trading_types.TokenFeePath{
 		TokenIn: accounts.HexToAddress(hexStr[:40]),
 	}
-	var pathList []TokenFee
+	var pathList []artemis_trading_types.TokenFee
 	for i := 0; i < len(hexStr[40:]); i += 46 {
 		fee, _ := new(big.Int).SetString(hexStr[40:][i:i+6], 16)
 		token := accounts.HexToAddress(hexStr[40:][i+6 : i+46])
-		tf := TokenFee{
+		tf := artemis_trading_types.TokenFee{
 			Token: token,
 			Fee:   fee,
 		}

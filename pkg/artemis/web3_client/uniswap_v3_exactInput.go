@@ -17,7 +17,7 @@ type ExactInputParams struct {
 	AmountIn         *big.Int         `json:"amountIn"`
 	AmountOutMinimum *big.Int         `json:"amountOutMinimum"`
 
-	TokenFeePath TokenFeePath `json:"tokenFeePath,omitempty"`
+	TokenFeePath artemis_trading_types.TokenFeePath `json:"tokenFeePath,omitempty"`
 }
 type JSONExactInputParams struct {
 	Path             []byte           `json:"path"`
@@ -25,7 +25,7 @@ type JSONExactInputParams struct {
 	AmountIn         string           `json:"amountIn"`
 	AmountOutMinimum string           `json:"amountOutMinimum"`
 
-	TokenFeePath TokenFeePath `json:"tokenFeePath,omitempty"`
+	TokenFeePath artemis_trading_types.TokenFeePath `json:"tokenFeePath,omitempty"`
 }
 
 func (in *JSONExactInputParams) ConvertToBigIntType() *ExactInputParams {
@@ -147,14 +147,14 @@ func (in *ExactInputParams) Decode(ctx context.Context, args map[string]interfac
 		return errors.New("invalid params")
 	}
 	hexStr := accounts.Bytes2Hex(params.Path)
-	tfp := TokenFeePath{
+	tfp := artemis_trading_types.TokenFeePath{
 		TokenIn: accounts.HexToAddress(hexStr[:40]),
 	}
-	var pathList []TokenFee
+	var pathList []artemis_trading_types.TokenFee
 	for i := 0; i < len(hexStr[40:]); i += 46 {
 		fee, _ := new(big.Int).SetString(hexStr[40:][i:i+6], 16)
 		token := accounts.HexToAddress(hexStr[40:][i+6 : i+46])
-		tf := TokenFee{
+		tf := artemis_trading_types.TokenFee{
 			Token: token,
 			Fee:   fee,
 		}

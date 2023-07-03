@@ -1,19 +1,21 @@
-package web3_client
+package artemis_oly_contract_abis
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	apps_hardhat "github.com/zeus-fyi/olympus/apps/olympus/hardhat"
-	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 	signing_automation_ethereum "github.com/zeus-fyi/zeus/pkg/artemis/signing_automation/ethereum"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
+var ctx = context.Background()
+
 func MustLoadPepeAbi() *abi.ABI {
-	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.PepeAbi))
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(PepeAbi))
 	if err != nil {
 		panic(err)
 	}
@@ -21,7 +23,7 @@ func MustLoadPepeAbi() *abi.ABI {
 }
 
 func MustLoadUniswapV3Swap1RouterAbi() *abi.ABI {
-	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniswapV3RouterSwapV1ABI))
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(UniswapV3RouterSwapV1ABI))
 	if err != nil {
 		panic(err)
 	}
@@ -29,7 +31,7 @@ func MustLoadUniswapV3Swap1RouterAbi() *abi.ABI {
 }
 
 func MustLoadUniswapV3Swap2RouterAbi() *abi.ABI {
-	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniswapV3RouterSwapV2ABI))
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(UniswapV3RouterSwapV2ABI))
 	if err != nil {
 		panic(err)
 	}
@@ -37,7 +39,7 @@ func MustLoadUniswapV3Swap2RouterAbi() *abi.ABI {
 }
 
 func MustLoadQuoterV1Abi() *abi.ABI {
-	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.QuoterV1Abi))
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(QuoterV1Abi))
 	if err != nil {
 		panic(err)
 	}
@@ -45,7 +47,7 @@ func MustLoadQuoterV1Abi() *abi.ABI {
 }
 
 func MustLoadTickLensAbi() *abi.ABI {
-	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.TickLensAbi))
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(TickLensAbi))
 	if err != nil {
 		panic(err)
 	}
@@ -53,7 +55,7 @@ func MustLoadTickLensAbi() *abi.ABI {
 }
 
 func MustLoadQuoterV2Abi() *abi.ABI {
-	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.QuoterV2Abi))
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(QuoterV2Abi))
 	if err != nil {
 		panic(err)
 	}
@@ -61,7 +63,7 @@ func MustLoadQuoterV2Abi() *abi.ABI {
 }
 
 func MustLoadPoolV3Abi() *abi.ABI {
-	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniswapPoolV3Abi))
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(UniswapPoolV3Abi))
 	if err != nil {
 		panic(err)
 	}
@@ -69,7 +71,7 @@ func MustLoadPoolV3Abi() *abi.ABI {
 }
 
 func MustLoadUniswapV2Router02ABI() *abi.ABI {
-	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniswapV2Router02ABI))
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(UniswapV2Router02ABI))
 	if err != nil {
 		panic(err)
 	}
@@ -77,7 +79,7 @@ func MustLoadUniswapV2Router02ABI() *abi.ABI {
 
 }
 func MustLoadUniswapV2Router01ABI() *abi.ABI {
-	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniswapV2Router01ABI))
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(UniswapV2Router01ABI))
 	if err != nil {
 		panic(err)
 	}
@@ -85,7 +87,7 @@ func MustLoadUniswapV2Router01ABI() *abi.ABI {
 
 }
 func MustLoadOldUniversalRouterAbi() *abi.ABI {
-	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniversalRouterAbi))
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(UniversalRouterAbi))
 	if err != nil {
 		panic(err)
 	}
@@ -93,7 +95,7 @@ func MustLoadOldUniversalRouterAbi() *abi.ABI {
 }
 
 func MustLoadNewUniversalRouterAbi() *abi.ABI {
-	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniversalRouterNewAbi))
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(UniversalRouterNewAbi))
 	if err != nil {
 		panic(err)
 	}
@@ -101,7 +103,7 @@ func MustLoadNewUniversalRouterAbi() *abi.ABI {
 }
 
 func MustLoadUniversalRouterDecodingAbi() *abi.ABI {
-	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.UniversalRouterDecodingAbi))
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(UniversalRouterDecodingAbi))
 	if err != nil {
 		panic(err)
 	}
@@ -109,7 +111,7 @@ func MustLoadUniversalRouterDecodingAbi() *abi.ABI {
 }
 
 func MustLoadPermit2Abi() *abi.ABI {
-	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.Permit2Abi))
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(Permit2Abi))
 	if err != nil {
 		panic(err)
 	}
@@ -117,7 +119,7 @@ func MustLoadPermit2Abi() *abi.ABI {
 }
 
 func MustLoadERC20Abi() *abi.ABI {
-	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.Erc20Abi))
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(Erc20Abi))
 	if err != nil {
 		panic(err)
 	}
@@ -200,7 +202,7 @@ func LoadUniswapFactoryAbiPayload() (web3_actions.SendContractTxPayload, string,
 }
 
 func MustLoadSwapAbi() *abi.ABI {
-	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.SwapABI))
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(SwapABI))
 	if err != nil {
 		panic(err)
 	}
@@ -214,14 +216,14 @@ func LoadSwapAbiPayload(pairContractAddr string) (web3_actions.SendContractTxPay
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
 		ContractFile:      "",
 		ContractABI:       abf,
-		MethodName:        swap,
+		MethodName:        "swap",
 		Params:            []interface{}{},
 	}
 	return params, "", nil
 }
 
 func MustLoadRawdawgAbi() *abi.ABI {
-	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(artemis_oly_contract_abis.RawdawgAbi))
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(RawdawgAbi))
 	if err != nil {
 		panic(err)
 	}
@@ -234,7 +236,7 @@ func MustLoadRawdawgContractDeployPayload() (web3_actions.SendContractTxPayload,
 		ContractABI:      MustLoadRawdawgAbi(),
 		Params:           []interface{}{},
 	}
-	return params, artemis_oly_contract_abis.RawdawgByteCode
+	return params, RawdawgByteCode
 }
 
 func LoadLocalRawdawgAbiPayload() (web3_actions.SendContractTxPayload, string, error) {
@@ -260,7 +262,7 @@ func LoadLocalRawdawgAbiPayload() (web3_actions.SendContractTxPayload, string, e
 	if err != nil {
 		return web3_actions.SendContractTxPayload{}, "", err
 	}
-	RawdawgAbi = abf
+	//RawdawgAbi = abf
 	params := web3_actions.SendContractTxPayload{
 		SendEtherPayload: web3_actions.SendEtherPayload{},
 		ContractABI:      abf,

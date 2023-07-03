@@ -10,7 +10,7 @@ import (
 	do_types "github.com/zeus-fyi/olympus/pkg/hestia/digitalocean/types"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 func AddResourcesToOrgAndCtx(ctx context.Context, orgID, resourceID int, quantity float64, freeTrial bool, cloudCtxNs zeus_common_types.CloudCtxNs) error {

@@ -5,7 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	api_auth_temporal "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 func (c *CreateSetupTopologyActivities) AddDomainRecord(ctx context.Context, cloudCtxNs zeus_common_types.CloudCtxNs) error {

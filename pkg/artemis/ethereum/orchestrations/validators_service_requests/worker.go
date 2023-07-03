@@ -4,11 +4,11 @@ import (
 	"context"
 
 	bls_signer "github.com/zeus-fyi/zeus/pkg/crypto/bls"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 
 	"github.com/rs/zerolog/log"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
 	"go.temporal.io/sdk/client"
 )
 

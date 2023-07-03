@@ -5,7 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	client_consts "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons/constants"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 func (d *PoseidonSyncActivities) RestartBeaconPod(ctx context.Context, clientName string, cctx zeus_common_types.CloudCtxNs) error {

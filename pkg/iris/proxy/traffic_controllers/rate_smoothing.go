@@ -1,20 +1,19 @@
-package v1_iris
+package iris_traffic_controllers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/oleiade/lane/v2"
-	"github.com/rs/zerolog/log"
+	iris_proxy "github.com/zeus-fyi/olympus/pkg/iris/proxy"
 )
 
-func NewRequestQueue() *lane.Queue[ProxyRequest] {
-	return lane.NewQueue[ProxyRequest]()
+func NewRequestQueue() *lane.Queue[iris_proxy.ProxyRequest] {
+	return lane.NewQueue[iris_proxy.ProxyRequest]()
 }
 
 type ProxyRequestPriorityQueue struct {
 	Type          string
-	PriorityQueue *lane.Queue[ProxyRequest]
+	PriorityQueue *lane.Queue[iris_proxy.ProxyRequest]
 }
 
 func (q *ProxyRequestPriorityQueue) ProcessQueue(ctx context.Context) {
@@ -22,7 +21,6 @@ func (q *ProxyRequestPriorityQueue) ProcessQueue(ctx context.Context) {
 	if ql == 0 {
 		return
 	}
-	log.Info().Str("signingType", q.Type).Msg(fmt.Sprintf("queue length: %d", ql))
 	for {
 		ql = q.PriorityQueue.Size()
 		if ql == 0 {

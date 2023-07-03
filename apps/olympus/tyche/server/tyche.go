@@ -10,7 +10,7 @@ import (
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	v1_tyche "github.com/zeus-fyi/olympus/tyche/api/v1"
 	tyche_metrics "github.com/zeus-fyi/olympus/tyche/metrics"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 var (

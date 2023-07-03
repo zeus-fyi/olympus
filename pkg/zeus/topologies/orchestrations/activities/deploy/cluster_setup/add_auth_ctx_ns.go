@@ -6,7 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 	create_topology "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/create/topologies/topology"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 func (c *CreateSetupTopologyActivities) AddAuthCtxNsOrg(ctx context.Context, params base_deploy_params.ClusterSetupRequest) error {

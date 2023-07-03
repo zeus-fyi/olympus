@@ -8,7 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/zeus/api/v1/zeus/topology/deploy/temporal_actions/base_request"
 	"github.com/zeus-fyi/olympus/zeus/pkg/zeus"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 func DeployNamespaceHandler(c echo.Context) error {

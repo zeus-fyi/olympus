@@ -13,9 +13,9 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/zeus/client/zeus_req_types/internal_reqs"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
-	zeus_client "github.com/zeus-fyi/zeus/pkg/zeus/client"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
+	zeus_client "github.com/zeus-fyi/zeus/zeus/z_client"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
 )
 
 type BeaconsTestCookbookTestSuite struct {

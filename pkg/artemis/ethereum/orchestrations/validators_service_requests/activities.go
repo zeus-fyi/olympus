@@ -18,9 +18,10 @@ import (
 	bls_serverless_signing "github.com/zeus-fyi/zeus/pkg/aegis/aws/serverless_signing"
 	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
-	zeus_pods_reqs "github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types/pods"
+	pods_client "github.com/zeus-fyi/zeus/zeus/z_client/workloads/pods"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
+	zeus_pods_reqs "github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types/pods"
 )
 
 const (
@@ -112,7 +113,8 @@ func (a *ArtemisEthereumValidatorsServiceRequestActivities) RestartValidatorClie
 		Action:  zeus_pods_reqs.DeleteAllPods,
 		PodName: podName,
 	}
-	_, err := Zeus.DeletePods(ctx, par)
+	pc := pods_client.NewPodsClientFromZeusClient(Zeus)
+	_, err := pc.DeletePods(ctx, par)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err)
 		return err

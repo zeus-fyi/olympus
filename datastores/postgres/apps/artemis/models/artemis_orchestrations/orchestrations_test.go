@@ -10,7 +10,7 @@ import (
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 var ctx = context.Background()

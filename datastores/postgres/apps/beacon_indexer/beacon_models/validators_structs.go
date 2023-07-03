@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	"github.com/zeus-fyi/olympus/pkg/apollo/ethereum/consensus_client_apis/beacon_api"
+	"github.com/zeus-fyi/olympus/pkg/apollo/ethereum/client_apis/beacon_api"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 )
 

@@ -7,7 +7,7 @@ import (
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	hestia_compute_resources "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/resources"
 	base_deploy_params "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/workflows/deploy/base"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 

@@ -7,7 +7,7 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/rs/zerolog/log"
 	hestia_ovhcloud "github.com/zeus-fyi/olympus/pkg/hestia/ovhcloud"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 

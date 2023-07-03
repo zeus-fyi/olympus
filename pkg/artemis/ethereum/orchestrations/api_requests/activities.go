@@ -19,7 +19,7 @@ type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
 func (a *ArtemisApiRequestsActivities) GetActivities() ActivitiesSlice {
-	return []interface{}{a.RelayRequest}
+	return []interface{}{a.RelayRequest, a.InternalSvcRelayRequest}
 }
 
 func (a *ArtemisApiRequestsActivities) RelayRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
@@ -28,6 +28,17 @@ func (a *ArtemisApiRequestsActivities) RelayRequest(ctx context.Context, pr *Api
 	if pr.IsInternal {
 		r.SetAuthToken(artemis_orchestration_auth.Bearer)
 	}
+	_, err := r.R().SetBody(&pr.Payload).SetResult(&pr.Response).Post(pr.Url)
+	if err != nil {
+		log.Err(err).Msg("Failed to relay api request")
+		return nil, err
+	}
+	return pr, err
+}
+
+func (a *ArtemisApiRequestsActivities) InternalSvcRelayRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
+	r := resty.New()
+	r.SetBaseURL(pr.Url)
 	_, err := r.R().SetBody(&pr.Payload).SetResult(&pr.Response).Post(pr.Url)
 	if err != nil {
 		log.Err(err).Msg("Failed to relay api request")

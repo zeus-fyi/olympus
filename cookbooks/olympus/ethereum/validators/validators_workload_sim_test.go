@@ -2,13 +2,15 @@ package olympus_hydra_validators_cookbooks
 
 import (
 	"context"
+	"testing"
+
 	"github.com/stretchr/testify/suite"
 	olympus_cookbooks "github.com/zeus-fyi/olympus/cookbooks"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	ethereum_web3signer_actions "github.com/zeus-fyi/zeus/cookbooks/ethereum/web3signers/actions"
-	zeus_client "github.com/zeus-fyi/zeus/pkg/zeus/client"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
-	"testing"
+	zeus_client "github.com/zeus-fyi/zeus/zeus/z_client"
+	pods_client "github.com/zeus-fyi/zeus/zeus/z_client/workloads/pods"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 const HydraAddress = "http://zeus-hydra:9000"
@@ -32,7 +34,7 @@ func (t *ValidatorsTestSuite) TestImportValidatorsToSim() {
 	req, err := GetValidatorsAndPrepareRemoteSignEmaulation(ctx, t.Tc.EphemeralNodeUrl, HydraAddress)
 	t.Require().Nil(err)
 
-	w3 := ethereum_web3signer_actions.Web3SignerActionsClient{ZeusClient: t.ZeusTestClient}
+	w3 := ethereum_web3signer_actions.Web3SignerActionsClient{PodsClient: pods_client.NewPodsClientFromZeusClient(t.ZeusTestClient)}
 	resp, err := w3.GetLighthouseAuth(ctx, ValidatorCloudCtxNs)
 	t.Require().Nil(err)
 	t.Assert().NotEmpty(resp)

@@ -11,6 +11,7 @@ import (
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_api_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/api_requests"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
+	proxy_anvil "github.com/zeus-fyi/olympus/pkg/iris/proxy/anvil"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 )
 
@@ -69,4 +70,6 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	log.Info().Msgf("Artemis InitArtemisApiRequestsWorker: %s temporal auth and init procedure starting", env)
 	artemis_api_requests.InitArtemisApiRequestsWorker(ctx, temporalAuthCfg)
 	log.Info().Msgf("Artemis InitArtemisApiRequestsWorker: %s temporal auth and init procedure succeeded", env)
+
+	proxy_anvil.InitAnvilProxy()
 }

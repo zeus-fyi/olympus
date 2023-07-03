@@ -16,7 +16,7 @@ import (
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
 	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
 type HydraSigningAsyncRequestsTestSuite struct {

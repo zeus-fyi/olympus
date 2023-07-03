@@ -6,9 +6,9 @@ import (
 
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_common_types"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
-	zeus_cluster_config_drivers "github.com/zeus-fyi/zeus/pkg/zeus/cluster_config_drivers"
+	zeus_cluster_config_drivers "github.com/zeus-fyi/zeus/zeus/cluster_config_drivers"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
 )
 
 /*

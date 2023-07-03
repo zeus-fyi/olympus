@@ -9,7 +9,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
-	zeus_cluster_config_drivers "github.com/zeus-fyi/zeus/pkg/zeus/cluster_config_drivers"
+	zeus_cluster_config_drivers "github.com/zeus-fyi/zeus/zeus/cluster_config_drivers"
 )
 
 func selectClusterTopologiesQ(cte *sql_query_templates.CTE, orgID int, clusterName string, clusterSkeletonBases []string) sql_query_templates.QueryParams {

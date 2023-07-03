@@ -18,7 +18,6 @@ type AnvilProxy struct {
 	RouteLockTTL      map[int]int
 	routeLockTTLMutex sync.RWMutex // Add a mutex to protect the map
 	LockDefaultTime   time.Duration
-	//RequestCache      *cache.Cache
 }
 
 type Route struct {
@@ -43,7 +42,6 @@ func InitAnvilProxy() {
 		LockDefaultTime: time.Second * 10,
 		SessionRouteMap: make(map[string]int),
 		RouteLockTTL:    make(map[int]int),
-		//RequestCache:    cache.New(3*time.Second, 3*time.Second),
 	}
 }
 

@@ -9,6 +9,7 @@ import (
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
 func (s *Web3ClientTestSuite) TestCopyPermitTest() {
@@ -118,7 +119,7 @@ func (s *Web3ClientTestSuite) TestPermit2TransferSubmission() {
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: Permit2SmartContractAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       MustLoadPermit2Abi(),
+		ContractABI:       artemis_oly_contract_abis.MustLoadPermit2Abi(),
 		MethodName:        permit0,
 		Params:            []interface{}{s.LocalHardhatMainnetUser.Account.Address().String(), pp.PermitSingle, pp.Signature},
 	}

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/rs/zerolog/log"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
 
 const (
@@ -117,9 +118,9 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) {
 			log.Err(err).Msg("failed to decode swap exact input single args")
 			return
 		}
-		tfp := TokenFeePath{
+		tfp := artemis_trading_types.TokenFeePath{
 			TokenIn: inputs.TokenIn,
-			Path: []TokenFee{{
+			Path: []artemis_trading_types.TokenFee{{
 				Token: inputs.TokenOut,
 				Fee:   inputs.Fee,
 			}},
@@ -153,9 +154,9 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) {
 			log.Err(err).Msg("failed to decode swap exact output single args")
 			return
 		}
-		tfp := TokenFeePath{
+		tfp := artemis_trading_types.TokenFeePath{
 			TokenIn: inputs.TokenIn,
-			Path: []TokenFee{{
+			Path: []artemis_trading_types.TokenFee{{
 				Token: inputs.TokenOut,
 				Fee:   inputs.Fee,
 			}},

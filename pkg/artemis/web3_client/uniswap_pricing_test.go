@@ -3,13 +3,15 @@ package web3_client
 import (
 	"fmt"
 	"math/big"
+
+	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 )
 
 func (s *Web3ClientTestSuite) TestPricingImpact() {
 	reserve0, _ := new(big.Int).SetString("400000", 10)  // TokenB
 	reserve1, _ := new(big.Int).SetString("1200000", 10) // TokenA
 	token0Addr, token1Addr := StringsToAddresses(PepeContractAddr, WETH9ContractAddress)
-	mockPairResp := UniswapV2Pair{
+	mockPairResp := uniswap_pricing.UniswapV2Pair{
 		KLast:    big.NewInt(0),
 		Token0:   token0Addr,
 		Token1:   token1Addr,
@@ -25,7 +27,7 @@ func (s *Web3ClientTestSuite) TestPricingImpact() {
 
 	reserve0, _ = new(big.Int).SetString("400000", 10)  // TokenB
 	reserve1, _ = new(big.Int).SetString("1200000", 10) // TokenA
-	mockPairResp = UniswapV2Pair{
+	mockPairResp = uniswap_pricing.UniswapV2Pair{
 		KLast:    big.NewInt(0),
 		Token0:   token0Addr,
 		Token1:   token1Addr,

@@ -5,7 +5,8 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/rs/zerolog/log"
+	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
 
 type Trade struct {
@@ -34,15 +35,15 @@ type Trade struct {
 }
 
 type TradeExecutionFlowJSON struct {
-	CurrentBlockNumber *big.Int                    `json:"currentBlockNumber"`
-	Tx                 *types.Transaction          `json:"tx"`
-	Trade              Trade                       `json:"trade"`
-	InitialPairV3      JSONUniswapPoolV3           `json:"initialPairV3"`
-	InitialPair        JSONUniswapV2Pair           `json:"initialPair"`
-	FrontRunTrade      JSONTradeOutcome            `json:"frontRunTrade"`
-	UserTrade          JSONTradeOutcome            `json:"userTrade"`
-	SandwichTrade      JSONTradeOutcome            `json:"sandwichTrade"`
-	SandwichPrediction JSONSandwichTradePrediction `json:"sandwichPrediction"`
+	CurrentBlockNumber *big.Int                               `json:"currentBlockNumber"`
+	Tx                 *types.Transaction                     `json:"tx"`
+	Trade              Trade                                  `json:"trade"`
+	InitialPairV3      uniswap_pricing.JSONUniswapPoolV3      `json:"initialPairV3"`
+	InitialPair        uniswap_pricing.JSONUniswapV2Pair      `json:"initialPair"`
+	FrontRunTrade      artemis_trading_types.JSONTradeOutcome `json:"frontRunTrade"`
+	UserTrade          artemis_trading_types.JSONTradeOutcome `json:"userTrade"`
+	SandwichTrade      artemis_trading_types.JSONTradeOutcome `json:"sandwichTrade"`
+	SandwichPrediction JSONSandwichTradePrediction            `json:"sandwichPrediction"`
 }
 
 func (t *TradeExecutionFlowJSON) ConvertToBigIntType() TradeExecutionFlow {
@@ -59,31 +60,31 @@ func (t *TradeExecutionFlowJSON) ConvertToBigIntType() TradeExecutionFlow {
 }
 
 type TradeExecutionFlow struct {
-	CurrentBlockNumber *big.Int                `json:"currentBlockNumber"`
-	Tx                 *types.Transaction      `json:"tx"`
-	Trade              Trade                   `json:"trade"`
-	InitialPair        UniswapV2Pair           `json:"initialPair"`
-	FrontRunTrade      TradeOutcome            `json:"frontRunTrade"`
-	UserTrade          TradeOutcome            `json:"userTrade"`
-	SandwichTrade      TradeOutcome            `json:"sandwichTrade"`
-	SandwichPrediction SandwichTradePrediction `json:"sandwichPrediction"`
+	CurrentBlockNumber *big.Int                           `json:"currentBlockNumber"`
+	Tx                 *types.Transaction                 `json:"tx"`
+	Trade              Trade                              `json:"trade"`
+	InitialPair        uniswap_pricing.UniswapV2Pair      `json:"initialPair"`
+	FrontRunTrade      artemis_trading_types.TradeOutcome `json:"frontRunTrade"`
+	UserTrade          artemis_trading_types.TradeOutcome `json:"userTrade"`
+	SandwichTrade      artemis_trading_types.TradeOutcome `json:"sandwichTrade"`
+	SandwichPrediction SandwichTradePrediction            `json:"sandwichPrediction"`
 }
 
 func (t *TradeExecutionFlow) GetAggregateGasUsage(ctx context.Context, w Web3Client) error {
-	err := t.FrontRunTrade.GetGasUsageForAllTxs(ctx, w)
-	if err != nil {
-		log.Err(err).Msg("error getting gas usage for front run trade")
-		return err
-	}
-	err = t.UserTrade.GetGasUsageForAllTxs(ctx, w)
-	if err != nil {
-		log.Err(err).Msg("error getting gas usage for user trade")
-		return err
-	}
-	err = t.SandwichTrade.GetGasUsageForAllTxs(ctx, w)
-	if err != nil {
-		log.Err(err).Msg("error getting gas usage for sandwich trade")
-		return err
-	}
+	//err := t.FrontRunTrade.GetGasUsageForAllTxs(ctx, w)
+	//if err != nil {
+	//	log.Err(err).Msg("error getting gas usage for front run trade")
+	//	return err
+	//}
+	//err = t.UserTrade.GetGasUsageForAllTxs(ctx, w)
+	//if err != nil {
+	//	log.Err(err).Msg("error getting gas usage for user trade")
+	//	return err
+	//}
+	//err = t.SandwichTrade.GetGasUsageForAllTxs(ctx, w)
+	//if err != nil {
+	//	log.Err(err).Msg("error getting gas usage for sandwich trade")
+	//	return err
+	//}
 	return nil
 }

@@ -6,12 +6,14 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
+	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
 func (s *Web3ClientTestSuite) TestRawDawgExecBatchSwaps() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlock(ctx, "https://virulent-alien-cloud.quiknode.pro/fa84e631e9545d76b9e1b1c5db6607fedf3cb654", 17408822)
-	rawDawgPayload, bc := MustLoadRawdawgContractDeployPayload()
+	rawDawgPayload, bc := artemis_oly_contract_abis.MustLoadRawdawgContractDeployPayload()
 	rawDawgPayload.GasLimit = 2000000
 	rawDawgPayload.Params = []interface{}{}
 
@@ -43,7 +45,7 @@ func (s *Web3ClientTestSuite) TestRawDawgExecBatchSwaps() {
 	s.Require().Nil(err)
 	fmt.Println("rawDawgStartingEth", rawDawgStartingEth.String())
 
-	abiInfo := MustLoadRawdawgAbi()
+	abiInfo := artemis_oly_contract_abis.MustLoadRawdawgAbi()
 	owner, err := s.LocalHardhatMainnetUser.GetOwner(ctx, abiInfo, rawdawgAddr)
 	s.Require().Nil(err)
 	fmt.Println(owner.String())
@@ -77,7 +79,7 @@ func (s *Web3ClientTestSuite) TestRawDawgExecBatchSwaps() {
 	s.Require().Nil(err)
 	fmt.Println("amountOut", amountOut.String())
 
-	to := &TradeOutcome{
+	to := &artemis_trading_types.TradeOutcome{
 		AmountInAddr:  accounts.HexToAddress(daiAddr),
 		AmountIn:      amountIn,
 		AmountOutAddr: accounts.HexToAddress(LinkTokenAddr),
@@ -94,7 +96,7 @@ func (s *Web3ClientTestSuite) TestRawDawgExecBatchSwaps() {
 	amountOut, err = pair.GetQuoteUsingTokenAddr(daiAddr, amountIn)
 	s.Require().Nil(err)
 	fmt.Println("amountOut", amountOut.String())
-	to = &TradeOutcome{
+	to = &artemis_trading_types.TradeOutcome{
 		AmountInAddr:  accounts.HexToAddress(daiAddr),
 		AmountIn:      amountIn,
 		AmountOutAddr: accounts.HexToAddress(WETH9ContractAddress),

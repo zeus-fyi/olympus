@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
 // this test shows you can replace any address with any bytecode, this was an erc20 override and I forced the balance to be 1 ether
@@ -12,7 +13,7 @@ func (s *Web3ClientTestSuite) TestSetCodeOverride() {
 
 	randomAddr := "0x7623e9dc0da6ff821ddb9ebaba794054e078f8c4"
 
-	bc, err := LoadERC20DeployedByteCode()
+	bc, err := artemis_oly_contract_abis.LoadERC20DeployedByteCode()
 	s.Require().NoError(err)
 	s.Require().NotNil(bc)
 	err = s.LocalHardhatMainnetUser.SetCodeOverride(ctx, randomAddr, bc)

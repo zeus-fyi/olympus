@@ -6,6 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
 const (
@@ -51,7 +52,7 @@ func GetUniswapUniversalRouterAbiPayload(payload *UniversalRouterExecParams) web
 	params := web3_actions.SendContractTxPayload{
 		SmartContractAddr: UniswapUniversalRouterAddressNew,
 		SendEtherPayload:  *payable,
-		ContractABI:       MustLoadOldUniversalRouterAbi(),
+		ContractABI:       artemis_oly_contract_abis.MustLoadOldUniversalRouterAbi(),
 		MethodName:        methodName,
 		Params:            fnParams,
 	}

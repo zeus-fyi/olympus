@@ -7,9 +7,10 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
 
-func (u *UniswapClient) GetAmounts(address *common.Address, to TradeOutcome, method string) ([]interface{}, error) {
+func (u *UniswapClient) GetAmounts(address *common.Address, to artemis_trading_types.TradeOutcome, method string) ([]interface{}, error) {
 	switch method {
 	case getAmountsOut:
 		pathSlice := []string{to.AmountInAddr.String(), to.AmountOutAddr.String()}

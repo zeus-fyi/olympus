@@ -4,6 +4,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
 
 const (
@@ -14,7 +16,7 @@ type BatchRawDawgParams struct {
 	Swap []RawDawgSwapParams `json:"_swap"`
 }
 
-func (r *BatchRawDawgParams) AddRawdawgSwapParams(pair UniswapV2Pair, to *TradeOutcome) {
+func (r *BatchRawDawgParams) AddRawdawgSwapParams(pair uniswap_pricing.UniswapV2Pair, to *artemis_trading_types.TradeOutcome) {
 	if r.Swap == nil {
 		r.Swap = []RawDawgSwapParams{}
 	}

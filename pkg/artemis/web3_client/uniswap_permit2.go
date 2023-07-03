@@ -7,6 +7,7 @@ import (
 	"math/big"
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
 /*
@@ -39,7 +40,7 @@ const (
 	MaxUINT = "115792089237316195423570985008687907853269984665640564039457584007913129639935"
 )
 
-var Permit2AbiDecoder = MustLoadPermit2Abi()
+var Permit2AbiDecoder = artemis_oly_contract_abis.MustLoadPermit2Abi()
 
 type Permit2TransferFromParams struct {
 	Token     accounts.Address `json:"token"`

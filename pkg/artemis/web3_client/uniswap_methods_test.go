@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 )
 
 // https://www.defi-sandwi.ch/
@@ -37,7 +38,7 @@ func (s *Web3ClientTestSuite) TestSandwichAttack() {
 	reserve0, _ := new(big.Int).SetString("47956013761392256000", 10)
 	reserve1, _ := new(big.Int).SetString("1383382537550055000000", 10)
 	token0Addr, token1Addr := StringsToAddresses(PepeContractAddr, WETH9ContractAddress)
-	mockPairResp := UniswapV2Pair{
+	mockPairResp := uniswap_pricing.UniswapV2Pair{
 		KLast:    big.NewInt(0),
 		Token0:   token0Addr,
 		Token1:   token1Addr,
@@ -48,7 +49,7 @@ func (s *Web3ClientTestSuite) TestSandwichAttack() {
 	endProfit := big.NewInt(0)
 	tokenSellAmountFinal := big.NewInt(0)
 	for true {
-		mockPairResp = UniswapV2Pair{
+		mockPairResp = uniswap_pricing.UniswapV2Pair{
 			KLast:    big.NewInt(0),
 			Token0:   token0Addr,
 			Token1:   token1Addr,
@@ -112,7 +113,7 @@ func (s *Web3ClientTestSuite) TestSandwichAttackBinSearch() {
 	reserve0, _ := new(big.Int).SetString("47956013761392256000", 10)
 	reserve1, _ := new(big.Int).SetString("1383382537550055000000", 10)
 	token0Addr, token1Addr := StringsToAddresses(PepeContractAddr, WETH9ContractAddress)
-	mockPairResp := UniswapV2Pair{
+	mockPairResp := uniswap_pricing.UniswapV2Pair{
 		KLast:    big.NewInt(0),
 		Token0:   token0Addr,
 		Token1:   token1Addr,
@@ -146,7 +147,7 @@ func (s *Web3ClientTestSuite) TestSandwichAttackBinSearchV2() {
 	reserve0, _ := new(big.Int).SetString("47956013761392256000", 10)
 	reserve1, _ := new(big.Int).SetString("1383382537550055000000", 10)
 	token0Addr, token1Addr := StringsToAddresses(WETH9ContractAddress, PepeContractAddr)
-	mockPairResp := UniswapV2Pair{
+	mockPairResp := uniswap_pricing.UniswapV2Pair{
 		KLast:    big.NewInt(0),
 		Token0:   token0Addr,
 		Token1:   token1Addr,
@@ -174,7 +175,7 @@ func (s *Web3ClientTestSuite) TestSandwichAttackBinSearchV3() {
 	reserve0, _ := new(big.Int).SetString("47956013761392256000", 10)
 	reserve1, _ := new(big.Int).SetString("1383382537550055000000", 10)
 	token0Addr, token1Addr := StringsToAddresses(PepeContractAddr, WETH9ContractAddress)
-	mockPairResp := UniswapV2Pair{
+	mockPairResp := uniswap_pricing.UniswapV2Pair{
 		KLast:    big.NewInt(0),
 		Token0:   token0Addr,
 		Token1:   token1Addr,

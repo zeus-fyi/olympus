@@ -8,6 +8,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
 
 type ExactOutputParams struct {
@@ -16,7 +18,7 @@ type ExactOutputParams struct {
 	AmountOut       *big.Int         `json:"amountOut"`
 	AmountInMaximum *big.Int         `json:"amountInMaximum"`
 
-	TokenFeePath TokenFeePath `json:"tokenFeePath,omitempty"`
+	TokenFeePath artemis_trading_types.TokenFeePath `json:"tokenFeePath,omitempty"`
 }
 
 type JSONExactOutputParams struct {
@@ -25,10 +27,10 @@ type JSONExactOutputParams struct {
 	AmountOut       string           `json:"amountOut"`
 	AmountInMaximum string           `json:"amountInMaximum"`
 
-	TokenFeePath TokenFeePath `json:"tokenFeePath,omitempty"`
+	TokenFeePath artemis_trading_types.TokenFeePath `json:"tokenFeePath,omitempty"`
 }
 
-func (o *ExactOutputParams) BinarySearch(pd *PricingData) TradeExecutionFlowJSON {
+func (o *ExactOutputParams) BinarySearch(pd *uniswap_pricing.UniswapPricingData) TradeExecutionFlowJSON {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(o.AmountInMaximum)
 	var mid *big.Int
@@ -79,19 +81,19 @@ func (o *ExactOutputParams) BinarySearch(pd *PricingData) TradeExecutionFlowJSON
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = JSONTradeOutcome{
+			tf.FrontRunTrade = artemis_trading_types.JSONTradeOutcome{
 				AmountIn:      amountInFrontRun.String(),
 				AmountInAddr:  frontRunTokenIn.Address,
 				AmountOut:     toFrontRun.Quotient().String(),
 				AmountOutAddr: sandwichTokenIn.Address,
 			}
-			tf.UserTrade = JSONTradeOutcome{
+			tf.UserTrade = artemis_trading_types.JSONTradeOutcome{
 				AmountIn:      o.AmountInMaximum.String(),
 				AmountInAddr:  frontRunTokenIn.Address,
 				AmountOut:     userTrade.Quotient().String(),
 				AmountOutAddr: sandwichTokenIn.Address,
 			}
-			tf.SandwichTrade = JSONTradeOutcome{
+			tf.SandwichTrade = artemis_trading_types.JSONTradeOutcome{
 				AmountIn:      toFrontRun.Quotient().String(),
 				AmountInAddr:  sandwichTokenIn.Address,
 				AmountOut:     toSandwich.Quotient().String(),
@@ -125,14 +127,14 @@ func (o *ExactOutputParams) Decode(ctx context.Context, args map[string]interfac
 		return errors.New("invalid params")
 	}
 	hexStr := accounts.Bytes2Hex(params.Path)
-	tfp := TokenFeePath{
+	tfp := artemis_trading_types.TokenFeePath{
 		TokenIn: accounts.HexToAddress(hexStr[:40]),
 	}
-	var pathList []TokenFee
+	var pathList []artemis_trading_types.TokenFee
 	for i := 0; i < len(hexStr[40:]); i += 46 {
 		fee, _ := new(big.Int).SetString(hexStr[40:][i:i+6], 16)
 		token := accounts.HexToAddress(hexStr[40:][i+6 : i+46])
-		tf := TokenFee{
+		tf := artemis_trading_types.TokenFee{
 			Token: token,
 			Fee:   fee,
 		}

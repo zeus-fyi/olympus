@@ -8,6 +8,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
 
 type SwapExactOutputSingleArgs struct {
@@ -19,7 +21,7 @@ type SwapExactOutputSingleArgs struct {
 	Recipient         accounts.Address `json:"recipient"`
 	SqrtPriceLimitX96 *big.Int         `json:"sqrtPriceLimitX96"`
 
-	TokenFeePath TokenFeePath `json:"tokenFeePath,omitempty"`
+	TokenFeePath artemis_trading_types.TokenFeePath `json:"tokenFeePath,omitempty"`
 }
 
 type JSONSwapExactOutputSingleArgs struct {
@@ -31,10 +33,10 @@ type JSONSwapExactOutputSingleArgs struct {
 	Recipient         accounts.Address `json:"recipient"`
 	SqrtPriceLimitX96 string           `json:"sqrtPriceLimitX96"`
 
-	TokenFeePath TokenFeePath `json:"tokenFeePath,omitempty"`
+	TokenFeePath artemis_trading_types.TokenFeePath `json:"tokenFeePath,omitempty"`
 }
 
-func (s *SwapExactOutputSingleArgs) BinarySearch(pd *PricingData) TradeExecutionFlowJSON {
+func (s *SwapExactOutputSingleArgs) BinarySearch(pd *uniswap_pricing.UniswapPricingData) TradeExecutionFlowJSON {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountInMaximum)
 	var mid *big.Int
@@ -85,19 +87,19 @@ func (s *SwapExactOutputSingleArgs) BinarySearch(pd *PricingData) TradeExecution
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = JSONTradeOutcome{
+			tf.FrontRunTrade = artemis_trading_types.JSONTradeOutcome{
 				AmountIn:      amountInFrontRun.String(),
 				AmountInAddr:  frontRunTokenIn.Address,
 				AmountOut:     toFrontRun.Quotient().String(),
 				AmountOutAddr: sandwichTokenIn.Address,
 			}
-			tf.UserTrade = JSONTradeOutcome{
+			tf.UserTrade = artemis_trading_types.JSONTradeOutcome{
 				AmountIn:      s.AmountInMaximum.String(),
 				AmountInAddr:  frontRunTokenIn.Address,
 				AmountOut:     userTrade.Quotient().String(),
 				AmountOutAddr: sandwichTokenIn.Address,
 			}
-			tf.SandwichTrade = JSONTradeOutcome{
+			tf.SandwichTrade = artemis_trading_types.JSONTradeOutcome{
 				AmountIn:      toFrontRun.Quotient().String(),
 				AmountInAddr:  sandwichTokenIn.Address,
 				AmountOut:     toSandwich.Quotient().String(),

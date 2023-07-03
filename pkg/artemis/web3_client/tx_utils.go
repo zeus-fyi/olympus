@@ -10,6 +10,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
+	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
 func (w *Web3Client) GetBlockTxs(ctx context.Context) (types.Transactions, error) {
@@ -36,7 +38,7 @@ func (w *Web3Client) GetTxByHash(ctx context.Context, hash common.Hash) (*types.
 
 // Eth in -> WETH out -> token out
 
-func (u *UniswapClient) ExecTradeV2SwapPayable(ctx context.Context, to *TradeOutcome) error {
+func (u *UniswapClient) ExecTradeV2SwapPayable(ctx context.Context, to *artemis_trading_types.TradeOutcome) error {
 	// todo max this window more appropriate vs near infinite
 
 	sigDeadline, _ := new(big.Int).SetString("3000000000000", 10)
@@ -96,7 +98,7 @@ func (u *UniswapClient) ExecTradeV2SwapPayable(ctx context.Context, to *TradeOut
 	return err
 }
 
-func (u *UniswapClient) ExecTradeV2SwapFromTokenToToken(ctx context.Context, to *TradeOutcome) error {
+func (u *UniswapClient) ExecTradeV2SwapFromTokenToToken(ctx context.Context, to *artemis_trading_types.TradeOutcome) error {
 	// todo max this window more appropriate vs near infinite
 
 	sigDeadline, _ := new(big.Int).SetString("3000000000000", 10)
@@ -158,7 +160,7 @@ func (u *UniswapClient) ExecTradeV2SwapFromTokenToToken(ctx context.Context, to 
 	return err
 }
 
-func (u *UniswapClient) ExecTradeV2SwapFromTokenBackToEth(ctx context.Context, to *TradeOutcome) error {
+func (u *UniswapClient) ExecTradeV2SwapFromTokenBackToEth(ctx context.Context, to *artemis_trading_types.TradeOutcome) error {
 	// todo max this window more appropriate vs near infinite
 
 	sigDeadline, _ := new(big.Int).SetString("3000000000000", 10)
@@ -239,7 +241,7 @@ func (u *UniswapClient) ExecTradeV2SwapFromTokenBackToEth(ctx context.Context, t
 	return err
 }
 
-func (u *UniswapClient) RouterApproveAndSend(ctx context.Context, to *TradeOutcome, pairContractAddr string) error {
+func (u *UniswapClient) RouterApproveAndSend(ctx context.Context, to *artemis_trading_types.TradeOutcome, pairContractAddr string) error {
 	approveTx, err := u.ApproveSpender(ctx, to.AmountInAddr.String(), u.RouterSmartContractAddr, to.AmountIn)
 	if err != nil {
 		log.Warn().Interface("approveTx", approveTx).Err(err).Msg("error approving router")
@@ -253,7 +255,7 @@ func (u *UniswapClient) RouterApproveAndSend(ctx context.Context, to *TradeOutco
 				ToAddress: accounts.HexToAddress(pairContractAddr),
 			},
 		},
-		ContractABI: MustLoadERC20Abi(),
+		ContractABI: artemis_oly_contract_abis.MustLoadERC20Abi(),
 		Params:      []interface{}{accounts.HexToAddress(pairContractAddr), to.AmountIn},
 	}
 	transferTx, err := u.Web3Client.TransferERC20Token(ctx, transferTxParams)

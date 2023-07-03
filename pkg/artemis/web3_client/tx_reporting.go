@@ -9,12 +9,13 @@ import (
 	"github.com/rs/zerolog/log"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
+	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
 type TradeSummary struct {
 	Tx            MevTx
-	Pd            *PricingData
+	Pd            *uniswap_pricing.UniswapPricingData
 	Tf            TradeExecutionFlowJSON
 	TokenAddr     string
 	BuyWithAmount *big.Int

@@ -7,6 +7,8 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
 
 type RawDawgSwapParams struct {
@@ -17,7 +19,7 @@ type RawDawgSwapParams struct {
 	IsToken0  bool           `json:"_isToken0"`
 }
 
-func GetRawdawgSwapAbiPayload(tradingSwapContractAddr, pairContractAddr string, to *TradeOutcome, isToken0 bool) web3_actions.SendContractTxPayload {
+func GetRawdawgSwapAbiPayload(tradingSwapContractAddr, pairContractAddr string, to *artemis_trading_types.TradeOutcome, isToken0 bool) web3_actions.SendContractTxPayload {
 	params := web3_actions.SendContractTxPayload{
 		SmartContractAddr: tradingSwapContractAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
@@ -28,7 +30,7 @@ func GetRawdawgSwapAbiPayload(tradingSwapContractAddr, pairContractAddr string, 
 	return params
 }
 
-func (u *UniswapClient) ExecSmartContractTradingSwap(tradingContractAddr string, pair UniswapV2Pair, to *TradeOutcome) (*types.Transaction, error) {
+func (u *UniswapClient) ExecSmartContractTradingSwap(tradingContractAddr string, pair uniswap_pricing.UniswapV2Pair, to *artemis_trading_types.TradeOutcome) (*types.Transaction, error) {
 	tokenNum := pair.GetTokenNumber(to.AmountInAddr)
 	scInfo := GetRawdawgSwapAbiPayload(tradingContractAddr, pair.PairContractAddr, to, tokenNum == 0)
 	// TODO implement better gas estimation

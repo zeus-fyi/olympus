@@ -31,6 +31,19 @@ func (u *UniswapClient) VerifyTradeResults(tf *TradeExecutionFlow) error {
 		fmt.Println("verifying full sandwich trade")
 	}
 
+	/*
+		func (t *artemis_trading_types.TradeOutcome) GetGasUsageForAllTxs(ctx context.Context, w Web3Client) error {
+			for _, tx := range t.OrderedTxs {
+				txInfo, err := w.GetTxLifecycleStats(ctx, accounts.HexToHash(tx.Hex()))
+				if err != nil {
+					return err
+				}
+				t.TotalGasCost += txInfo.GasUsed
+			}
+			return nil
+		}
+
+	*/
 	switch tf.Trade.TradeMethod {
 	case swapTokensForExactETH:
 

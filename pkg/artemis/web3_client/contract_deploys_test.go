@@ -5,10 +5,11 @@ import (
 	"math/big"
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
 func (s *Web3ClientTestSuite) TestDeployRawdawgContract() {
-	rawDawgPayload, bc := MustLoadRawdawgContractDeployPayload()
+	rawDawgPayload, bc := artemis_oly_contract_abis.MustLoadRawdawgContractDeployPayload()
 
 	newAccount, err := accounts.ParsePrivateKey("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
 	s.Assert().Nil(err)
@@ -27,7 +28,7 @@ func (s *Web3ClientTestSuite) TestDeployRawdawgContract() {
 
 func (s *Web3ClientTestSuite) TestDeployContract() {
 	forceDirToLocation()
-	tokenPayload, bc, err := LoadERC20AbiPayload()
+	tokenPayload, bc, err := artemis_oly_contract_abis.LoadERC20AbiPayload()
 	s.Require().Nil(err)
 	newAccount, err := accounts.ParsePrivateKey("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
 	s.Assert().Nil(err)
@@ -60,7 +61,7 @@ func (s *Web3ClientTestSuite) TestDeployContract() {
 
 func (s *Web3ClientTestSuite) TestDeployUniswapFactoryContract() {
 	forceDirToLocation()
-	factoryPayload, bc, err := LoadUniswapFactoryAbiPayload()
+	factoryPayload, bc, err := artemis_oly_contract_abis.LoadUniswapFactoryAbiPayload()
 	s.Require().Nil(err)
 	newAccount, err := accounts.ParsePrivateKey("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
 	s.Assert().Nil(err)

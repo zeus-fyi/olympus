@@ -7,6 +7,8 @@ import (
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
+	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
@@ -72,7 +74,7 @@ func (s *Web3ClientTestSuite) TestWrapETHFuncs() {
 				ToAddress: accounts.HexToAddress(UniswapUniversalRouterAddressNew),
 			},
 		},
-		ContractABI: MustLoadERC20Abi(),
+		ContractABI: artemis_oly_contract_abis.MustLoadERC20Abi(),
 		Params:      []interface{}{accounts.HexToAddress(UniswapUniversalRouterAddressNew), Ether},
 	}
 	transferTx, err := s.LocalHardhatMainnetUser.TransferERC20Token(ctx, transferTxParams)
@@ -134,7 +136,7 @@ func (s *Web3ClientTestSuite) TestExecV2TradeMethodUR() {
 	amountOut, err := pair.GetQuoteUsingTokenAddr(WETH9ContractAddress, amountIn)
 	s.Require().Nil(err)
 	fmt.Println("amountOut", amountOut.String())
-	to := TradeOutcome{
+	to := artemis_trading_types.TradeOutcome{
 		AmountIn:      amountIn,
 		AmountInAddr:  accounts.HexToAddress(LinkTokenAddr),
 		AmountFees:    nil,

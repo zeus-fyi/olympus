@@ -6,7 +6,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/olympus/pkg/artemis/price_quoter"
+	"github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/price_quoter"
 )
 
 type TradeAnalysisMetrics struct {

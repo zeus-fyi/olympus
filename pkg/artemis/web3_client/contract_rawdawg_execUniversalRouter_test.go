@@ -7,13 +7,14 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
 func (s *Web3ClientTestSuite) TestRawdawgExecUniversalRouterWETHSwap() {
 	node := "https://virulent-alien-cloud.quiknode.pro/fa84e631e9545d76b9e1b1c5db6607fedf3cb654"
 	err := s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, node, 17461070)
 	s.Require().Nil(err)
-	rawDawgPayload, bc, err := LoadLocalRawdawgAbiPayload()
+	rawDawgPayload, bc, err := artemis_oly_contract_abis.LoadLocalRawdawgAbiPayload()
 	s.Require().Nil(err)
 	rawDawgPayload.GasLimit = 2000000
 	rawDawgPayload.Params = []interface{}{}

@@ -35,7 +35,7 @@ func (s *Web3ClientTestSuite) TestJson() {
 	//		SwapExactTokensForETHParams: nil,
 	//		SwapTokensForExactETHParams: nil,
 	//	},
-	//	InitialPair:        UniswapV2Pair{},
+	//	InitialPair:        uniswap_pricing.UniswapV2Pair{},
 	//	FrontRunTrade:      TradeOutcome{},
 	//	SandwichTrade:      TradeOutcome{},
 	//	SandwichPrediction: SandwichTradePrediction{},

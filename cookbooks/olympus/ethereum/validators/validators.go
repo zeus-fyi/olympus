@@ -2,7 +2,7 @@ package olympus_hydra_validators_cookbooks
 
 import (
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
-	zeus_cluster_config_drivers "github.com/zeus-fyi/zeus/pkg/zeus/cluster_config_drivers"
+	zeus_cluster_config_drivers "github.com/zeus-fyi/zeus/zeus/cluster_config_drivers"
 )
 
 const HydraValidatorsClientName = "zeus-hydra-validators"

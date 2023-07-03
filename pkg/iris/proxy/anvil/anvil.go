@@ -39,7 +39,7 @@ func InitAnvilProxy() {
 	lfuCache := datastructures.New()
 	SessionLocker = AnvilProxy{
 		LFU:             lfuCache,
-		LockDefaultTime: time.Second * 120,
+		LockDefaultTime: time.Second * 30,
 		SessionRouteMap: make(map[string]int),
 		RouteLockTTL:    make(map[int]int),
 		//RequestCache:    cache.New(3*time.Second, 3*time.Second),

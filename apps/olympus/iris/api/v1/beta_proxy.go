@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	artemis_api_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/api_requests"
+	proxy_anvil "github.com/zeus-fyi/olympus/pkg/iris/proxy/anvil"
 )
 
 type BetaProxyRequest struct {
@@ -30,9 +31,13 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 		return c.JSON(http.StatusBadRequest, errors.New("Session-Lock-ID header is required"))
 	}
 
+	r, err := proxy_anvil.SessionLocker.GetSessionLockedRoute(relayTo)
+	if err != nil {
+		return c.JSON(http.StatusServiceUnavailable, err)
+	}
 	rw := artemis_api_requests.NewArtemisApiRequestsActivities()
-	_, err := rw.RelayRequest(c.Request().Context(), &artemis_api_requests.ApiProxyRequest{
-		Url:        "https://hardhat.zeus.fyi/", // TODO, get from proxy session lock list
+	_, err = rw.RelayRequest(c.Request().Context(), &artemis_api_requests.ApiProxyRequest{
+		Url:        r.Route, // TODO, get from proxy session lock list
 		IsInternal: isInternal,
 		Timeout:    1 * time.Minute,
 	})

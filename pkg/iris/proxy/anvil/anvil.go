@@ -62,11 +62,12 @@ func (a *AnvilProxy) GetSessionLockedRoute(sessionID string) (*Route, error) {
 		return a.GetNextAvailableRouteAndAssignToSession(sessionID)
 	}
 	routePath := AnvilRoutes[routeIndex.(int)]
-	return &Route{
+	r := &Route{
 		Index:     routeIndex.(int),
 		SessionID: sessionID,
 		Route:     routePath,
-	}, nil
+	}
+	return a.setSessionLockOnRoute(r)
 }
 
 func (a *AnvilProxy) GetNextAvailableRouteAndAssignToSession(sessionID string) (*Route, error) {

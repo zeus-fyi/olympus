@@ -12,7 +12,8 @@ import (
 	"github.com/rs/zerolog/log"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
-	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
+	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
+	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_core/entities"
 )
 
 type ContractAnalysis struct {
@@ -23,7 +24,7 @@ type ContractAnalysis struct {
 }
 
 func NewERC20ContractAnalysis(u *web3_client.UniswapClient, address string) ContractAnalysis {
-	return NewContractAnalysis(u, address, web3_client.MustLoadERC20Abi())
+	return NewContractAnalysis(u, address, artemis_oly_contract_abis.MustLoadERC20Abi())
 }
 
 func NewContractAnalysis(u *web3_client.UniswapClient, address string, abiFile *abi.ABI) ContractAnalysis {

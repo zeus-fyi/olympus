@@ -10,8 +10,8 @@ import (
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
-	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/constants"
-	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/entities"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_v3/constants"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_v3/entities"
 )
 
 func (p *UniswapPoolV3) GetLiquidity(ctx context.Context) error {

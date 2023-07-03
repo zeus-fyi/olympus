@@ -3,7 +3,7 @@ package utils
 import (
 	"math/big"
 
-	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/constants"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_v3/constants"
 )
 
 func AddDelta(x, y *big.Int) *big.Int {

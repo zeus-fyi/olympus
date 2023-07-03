@@ -11,11 +11,10 @@ import (
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_pricing_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/utils"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
-	core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
-	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_core/entities"
-	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/constants"
-	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/entities"
-	"github.com/zeus-fyi/olympus/pkg/artemis/web3_libs/uniswap_v3/utils"
+	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_core/entities"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_v3/constants"
+	entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_v3/entities"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_v3/utils"
 )
 
 const (
@@ -29,7 +28,7 @@ const (
 	UniswapV3FactoryAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984"
 )
 
-func (p *UniswapPoolV3) PriceImpact(ctx context.Context, token *core_entities.Token, amountIn *big.Int) (*uniswap_core_entities.CurrencyAmount, *entities.Pool, error) {
+func (p *UniswapPoolV3) PriceImpact(ctx context.Context, token *uniswap_core_entities.Token, amountIn *big.Int) (*uniswap_core_entities.CurrencyAmount, *entities.Pool, error) {
 	amountInTrade := uniswap_core_entities.FromRawAmount(token, amountIn)
 	out, pool, err := p.GetOutputAmount(amountInTrade, nil)
 	if err != nil {
@@ -65,7 +64,7 @@ func (p *UniswapPoolV3) PricingData(ctx context.Context, path artemis_trading_ty
 		if tokenA.Name != nil {
 			name = *tokenA.Name
 		}
-		tokenCurrencyA := core_entities.NewToken(1, accounts.HexToAddress(tokenA.Address), uint(decimals), sym, name)
+		tokenCurrencyA := uniswap_core_entities.NewToken(1, accounts.HexToAddress(tokenA.Address), uint(decimals), sym, name)
 		tokenB := tm[path.GetEndToken().String()]
 		if tokenB.Decimals != nil {
 			decimals = *tokenB.Decimals
@@ -78,7 +77,7 @@ func (p *UniswapPoolV3) PricingData(ctx context.Context, path artemis_trading_ty
 		if tokenB.Name != nil {
 			name = *tokenB.Name
 		}
-		tokenCurrencyB := core_entities.NewToken(1, accounts.HexToAddress(path.GetEndToken().Hex()), uint(decimals), sym, name)
+		tokenCurrencyB := uniswap_core_entities.NewToken(1, accounts.HexToAddress(path.GetEndToken().Hex()), uint(decimals), sym, name)
 		factoryAddress := accounts.HexToAddress(UniswapV3FactoryAddress)
 		pa, err := utils.ComputePoolAddress(factoryAddress, tokenCurrencyA, tokenCurrencyB, p.Fee, "")
 		if err != nil {
@@ -116,12 +115,12 @@ func (p *UniswapPoolV3) PricingData(ctx context.Context, path artemis_trading_ty
 			return err
 		}
 		// todo, store decimals in db
-		tokenA := core_entities.NewToken(1, accounts.HexToAddress(path.TokenIn.Hex()), uint(decimals), "", "")
+		tokenA := uniswap_core_entities.NewToken(1, accounts.HexToAddress(path.TokenIn.Hex()), uint(decimals), "", "")
 		decimals, err = wc.GetContractDecimals(ctx, path.GetEndToken().Hex())
 		if err != nil {
 			return err
 		}
-		tokenB := core_entities.NewToken(1, accounts.HexToAddress(path.GetEndToken().Hex()), uint(decimals), "", "")
+		tokenB := uniswap_core_entities.NewToken(1, accounts.HexToAddress(path.GetEndToken().Hex()), uint(decimals), "", "")
 		// todo not sure if this factoryAddress covers all cases
 		factoryAddress := accounts.HexToAddress(UniswapV3FactoryAddress)
 		pa, err := utils.ComputePoolAddress(factoryAddress, tokenA, tokenB, p.Fee, "")

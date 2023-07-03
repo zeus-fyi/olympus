@@ -16,7 +16,7 @@ type AnvilTestSuite struct {
 func (t *AnvilTestSuite) SetupTest() {
 	t.InitLocalConfigs()
 	InitAnvilProxy()
-	SessionLocker.LockDefaultTime = time.Second
+	SessionLocker.LockDefaultTime = time.Second * 10
 	t.Assert().NotNil(SessionLocker.LFU)
 }
 
@@ -36,14 +36,10 @@ func (t *AnvilTestSuite) TestSessionLocker() {
 	fmt.Println(lfVal)
 
 	nr, err := SessionLocker.GetNextAvailableRouteAndAssignToSession("test3")
-	t.Assert().Nil(err)
-	t.Assert().NotNil(nr)
+	t.Assert().NotNil(err)
+	t.Assert().Nil(nr)
 
-	lfKey, lfVal = SessionLocker.LFU.GetLeastFrequentValue()
-	t.Assert().NotNil(lfKey)
-	t.Assert().Equal("test3", lfKey)
 }
-
 func TestAnvilTestSuite(t *testing.T) {
 	suite.Run(t, new(AnvilTestSuite))
 }

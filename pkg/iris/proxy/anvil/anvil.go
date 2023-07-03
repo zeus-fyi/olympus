@@ -52,7 +52,7 @@ func (a *AnvilProxy) setSessionLockOnRoute(r *Route) (*Route, error) {
 	defer a.routeLockTTLMutex.Unlock()
 	a.LFU.Set(r.SessionID, r.Index)
 	a.SessionRouteMap[r.SessionID] = r.Index
-	a.RouteLockTTL[r.Index] = ts.UnixTimeStampNow() + int(a.LockDefaultTime.Seconds())
+	a.RouteLockTTL[r.Index] = ts.UnixTimeStampNowSec() + int(a.LockDefaultTime.Seconds())
 	return r, nil
 }
 
@@ -83,7 +83,7 @@ func (a *AnvilProxy) GetNextAvailableRouteAndAssignToSession(sessionID string) (
 	a.routeLockTTLMutex.Lock()
 	defer a.routeLockTTLMutex.Unlock()
 	leastFreqRouteIndex := a.SessionRouteMap[leastFreqSessionID]
-	if a.RouteLockTTL[leastFreqRouteIndex] < ts.UnixTimeStampNow() {
+	if a.RouteLockTTL[leastFreqRouteIndex] < ts.UnixTimeStampNowSec() {
 		// if the lock has expired, then remove it from the LFU & the session map
 		delete(a.SessionRouteMap, leastFreqSessionID)
 		delete(a.RouteLockTTL, leastFreqRouteIndex)

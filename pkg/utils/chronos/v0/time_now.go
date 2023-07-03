@@ -30,3 +30,9 @@ func (c *LibV0) UnixTimeStampNowRaw() int {
 	t := time.Now().UnixNano()
 	return int(t)
 }
+
+// UnixTimeStampNowSec does not wait and can possibly provide duplicates when called in parallel
+func (c *LibV0) UnixTimeStampNowSec() int {
+	t := time.Now().Unix()
+	return int(t)
+}

@@ -15,7 +15,7 @@ import (
 	signing_automation_ethereum "github.com/zeus-fyi/zeus/pkg/artemis/signing_automation/ethereum"
 	"github.com/zeus-fyi/zeus/pkg/crypto/ecdsa"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
-	resty_base "github.com/zeus-fyi/zeus/pkg/zeus/client/base"
+	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 )
 
 const (

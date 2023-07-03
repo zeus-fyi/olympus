@@ -1,7 +1,6 @@
 package iris_routers
 
 /*
-
 TODO: Implement the following:
 
 Define the following:
@@ -27,4 +26,8 @@ Define the following:
 
 5. how to delete routing logic
 
+6. how to use headers to route
+	- and to save routing logic
+
+7. metrics
 */

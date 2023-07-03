@@ -69,7 +69,7 @@ func (a *AnvilProxy) GetSessionLockedRoute(sessionID string) (*Route, error) {
 	}
 	a.SessionRouteMap[r.SessionID] = r.Index
 	a.RouteLockTTL[r.Index] = ts.UnixTimeStampNowSec() + int(a.LockDefaultTime.Seconds())
-	return nil, nil
+	return r, nil
 }
 
 func (a *AnvilProxy) GetNextAvailableRouteAndAssignToSession(sessionID string) (*Route, error) {

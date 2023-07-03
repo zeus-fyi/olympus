@@ -41,21 +41,6 @@ func (p *UniswapPoolV3) PriceImpact(ctx context.Context, token *core_entities.To
 	return out, pool, nil
 }
 
-/*
-
-type Erc20TokenInfo struct {
-	Address                string  `db:"address" json:"address"`
-	ProtocolNetworkID      int     `db:"protocol_network_id" json:"protocolNetworkID"`
-	BalanceOfSlotNum       int     `db:"balance_of_slot_num" json:"balanceOfSlotNum"`
-	Name                   *string `db:"name" json:"name"`
-	Symbol                 *string `db:"symbol" json:"symbol"`
-	Decimals               *int    `db:"decimals" json:"decimals"`
-	TransferTaxNumerator   *int    `db:"transfer_tax_numerator" json:"transferTaxNumerator"`
-	TransferTaxDenominator *int    `db:"transfer_tax_denominator" json:"transferTaxDenominator"`
-	TradingEnabled         *bool   `db:"trading_enabled" json:"tradingEnabled"`
-}
-*/
-
 func (p *UniswapPoolV3) PricingData(ctx context.Context, path artemis_trading_types.TokenFeePath, simMode bool) error {
 	// todo, need to handle multi-hops, not sure if this is sufficient for that
 	p.Fee = constants.FeeAmount(path.GetFirstFee().Int64())

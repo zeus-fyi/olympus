@@ -11,7 +11,7 @@ import (
 func (s *Web3ClientTestSuite) TestHistoricalAnalysisReplay() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ForceDirToTestDirLocation()
-	mevTxs, merr := artemis_validator_service_groups_models.SelectEthMevTxAnalysisByTxHash(ctx, "0xb7388ce0bd8681f968be85a4905338e9f9aa3e4037b100f1bc393536b6fc5d2b")
+	mevTxs, merr := artemis_validator_service_groups_models.SelectEthMevTxAnalysisByTxHash(ctx, "0x17833823a688ecdffc8913f87d9bf5572d888a71c6a9b4980ae1e5a2b32ae470")
 	s.Require().Nil(merr)
 	s.Require().NotEmpty(mevTxs)
 	for _, mevTx := range mevTxs {

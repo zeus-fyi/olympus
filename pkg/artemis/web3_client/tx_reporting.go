@@ -29,9 +29,9 @@ func (u *UniswapClient) PrintTradeSummaries(ts *TradeSummary) {
 	ts.Tf.Tx = ts.Tx.Tx
 	wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
 	wc.Dial()
-	bn, berr := wc.C.BlockNumber(ctx)
-	if berr != nil {
-		log.Err(berr)
+	bn, ber := wc.C.BlockNumber(ctx)
+	if ber != nil {
+		log.Err(ber)
 	}
 	fmt.Println("blockNumber:", bn)
 	defer wc.Close()

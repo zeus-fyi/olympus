@@ -30,7 +30,7 @@ func InitUniswap(ctx context.Context, authHeader string) {
 		panic(err)
 	}
 	HardHatAccount = newAccount
-	//go ProcessMempoolTxs(ctx)
+	go ProcessMempoolTxs(ctx)
 }
 
 func InitNewUniHardhat(ctx context.Context) *web3_client.UniswapClient {

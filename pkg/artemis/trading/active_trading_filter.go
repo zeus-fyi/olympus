@@ -41,23 +41,11 @@ func (a *ActiveTrading) EntryTxFilter(ctx context.Context, tx *types.Transaction
 		}
 		return errors.New("ActiveTrading: EntryTxFilter, erc20 at address not registered")
 	}
-
 	return nil
 }
 
 func (a *ActiveTrading) SimTxFilter(ctx context.Context, tx *types.Transaction) error {
 	to := tx.To().String()
-	/*
-		tmTradingEnabled := TokenMap[to].TradingEnabled
-		if tmTradingEnabled == nil {
-			return errors.New("ActiveTrading: EntryTxFilter, erc20 at address not registered")
-		}
-		tradingEnabled := false
-		tradingEnabled = *TokenMap[to].TradingEnabled
-		if !tradingEnabled {
-			return errors.New("ActiveTrading: EntryTxFilter, trading not enabled for this token")
-		}
-	*/
 	if artemis_trading_cache.TokenMap[to].BalanceOfSlotNum < 0 {
 		return errors.New("ActiveTrading: EntryTxFilter, balanceOf not cracked yet")
 	}
@@ -71,3 +59,15 @@ func (a *ActiveTrading) SimTxFilter(ctx context.Context, tx *types.Transaction) 
 	}
 	return nil
 }
+
+/*
+	tmTradingEnabled := TokenMap[to].TradingEnabled
+	if tmTradingEnabled == nil {
+		return errors.New("ActiveTrading: EntryTxFilter, erc20 at address not registered")
+	}
+	tradingEnabled := false
+	tradingEnabled = *TokenMap[to].TradingEnabled
+	if !tradingEnabled {
+		return errors.New("ActiveTrading: EntryTxFilter, trading not enabled for this token")
+	}
+*/

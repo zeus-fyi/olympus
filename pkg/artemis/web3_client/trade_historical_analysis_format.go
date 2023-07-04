@@ -144,7 +144,7 @@ func (u *UniswapClient) RunHistoricalTradeAnalysis(ctx context.Context, tfStr st
 		if u.Web3Client.Headers != nil {
 			sid := u.Web3Client.Headers["Session-Lock-ID"]
 			if sid != "" {
-				defer u.Web3Client.EndHardHatSessionReset(ctx, artemisBlockNum)
+				defer u.Web3Client.EndHardHatSessionReset(ctx, liveNetworkClient.NodeURL, artemisBlockNum)
 			}
 		}
 	}

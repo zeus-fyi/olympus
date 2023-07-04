@@ -71,7 +71,7 @@ func (u *UniswapClient) VerifyTradeResults(tf *TradeExecutionFlow) error {
 	case swapETHForExactTokens:
 
 	default:
-		return errors.New("invalid trade method")
+		//return errors.New("invalid trade method")
 	}
 
 	frontRunGasCost := new(big.Int).SetUint64(tf.FrontRunTrade.TotalGasCost)

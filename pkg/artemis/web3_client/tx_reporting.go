@@ -7,8 +7,10 @@ import (
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
+	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
@@ -25,15 +27,16 @@ type TradeSummary struct {
 func (u *UniswapClient) PrintTradeSummaries(ts *TradeSummary) {
 	log.Info().Msgf("TradeSummary")
 	ts.Tf.Tx = ts.Tx.Tx
-	u.Web3Client.Dial()
-	defer u.Web3Client.Close()
-	bn, err := u.Web3Client.GetHeadBlockHeight(ctx)
-	if err != nil {
-		fmt.Println("GetBlockNumber Error", err)
-		return
+	wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
+	wc.Dial()
+	bn, berr := wc.C.BlockNumber(ctx)
+	if berr != nil {
+		log.Err(berr)
 	}
+	fmt.Println("blockNumber:", bn)
+	defer wc.Close()
 	pair := ts.Pd.V2Pair
-	ts.Tf.CurrentBlockNumber = bn
+	ts.Tf.CurrentBlockNumber = new(big.Int).SetUint64(bn)
 	expectedOut, err := pair.GetQuoteUsingTokenAddr(ts.TokenAddr, ts.BuyWithAmount)
 	if err != nil {
 		fmt.Println("GetQuoteUsingTokenAddr", err)

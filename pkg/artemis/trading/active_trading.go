@@ -44,6 +44,17 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	return err
 }
 
+/*
+	wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
+	wc.Dial()
+	bn, berr := wc.C.BlockNumber(ctx)
+	if berr != nil {
+		return berr
+	}
+	fmt.Println("blockNumber:", bn)
+	defer wc.Close()
+*/
+
 func (a *ActiveTrading) ProcessTx(ctx context.Context, tx *types.Transaction) error {
 	// TODO, simulate tx needs a clean anvil instance
 	err := a.SimulateTx(ctx, tx)

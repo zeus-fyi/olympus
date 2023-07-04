@@ -3,22 +3,23 @@ package web3_client
 import (
 	"context"
 	"fmt"
+	"math/big"
 
 	"github.com/rs/zerolog/log"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 )
 
 func (u *UniswapClient) ProcessTxs(ctx context.Context) {
+	wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
+	wc.Dial()
+	bn, berr := wc.C.BlockNumber(ctx)
+	if berr != nil {
+		log.Err(berr)
+	}
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	u.Web3Client.Dial()
-	bn, err := u.Web3Client.GetHeadBlockHeight(ctx)
-	if err != nil {
-		log.Err(err).Msg("failed to get block number")
-		u.Web3Client.Close()
-		return
-	}
-	u.Web3Client.Close()
-	u.BlockNumber = bn
+	u.BlockNumber = new(big.Int).SetUint64(bn)
 	count := 0
 	for _, tx := range u.MevSmartContractTxMapUniversalRouterOld.Txs {
 		u.ProcessUniversalRouterTxs(ctx, tx)

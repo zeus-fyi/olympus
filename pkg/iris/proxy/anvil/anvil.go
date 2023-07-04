@@ -59,6 +59,7 @@ func (a *AnvilProxy) setSessionLockOnRoute(r *Route) (*Route, error) {
 }
 
 func (a *AnvilProxy) RemoveSessionLockedRoute(sessionID string) {
+	log.Info().Msgf("Removing session lock for sessionID: %s", sessionID)
 	leastFreqRouteIndex := a.SessionRouteMap[sessionID]
 	a.RouteLockTTL[leastFreqRouteIndex] = 0
 }

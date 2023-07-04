@@ -61,6 +61,7 @@ func (u *UniswapClient) ExecFrontRunTradeStepTokenTransfer(tf *TradeExecutionFlo
 	tf.FrontRunTrade.DiffTradeTokenBalance = new(big.Int).Sub(tf.FrontRunTrade.PostTradeTokenBalance, tf.FrontRunTrade.PreTradeTokenBalance)
 	fmt.Println("diff trade token balance", tf.FrontRunTrade.DiffTradeTokenBalance.String())
 	if tf.FrontRunTrade.AmountOut.String() != tf.FrontRunTrade.DiffTradeTokenBalance.String() {
+		log.Info().Msgf("amount out %s does not match diff trade token balance %s", tf.FrontRunTrade.AmountOut.String(), tf.FrontRunTrade.DiffTradeTokenBalance.String())
 		return nil, errors.New("balance change does not match prediction")
 	}
 

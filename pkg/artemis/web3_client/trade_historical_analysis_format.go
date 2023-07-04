@@ -181,6 +181,7 @@ func (u *UniswapClient) CheckExpectedReserves(tf *TradeExecutionFlow) error {
 	simPair := tf.InitialPair
 	err := u.GetPairContractPrices(ctx, &simPair)
 	if err != nil {
+		log.Err(err).Msg("error getting pair contract prices")
 		return err
 	}
 	if tf.InitialPair.Reserve1.String() != simPair.Reserve1.String() && tf.InitialPair.Reserve0.String() != simPair.Reserve0.String() {

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/rs/zerolog/log"
 )
 
@@ -17,20 +16,20 @@ func (u *UniswapClient) SimFullSandwichTrade(tf *TradeExecutionFlow) error {
 	u.TradeAnalysisReport.AmountInAddr = tf.FrontRunTrade.AmountInAddr.String()
 	u.TradeAnalysisReport.AmountOutAddr = tf.SandwichTrade.AmountOutAddr.String()
 	// this isn't included in trade gas costs since we amortize one time gas costs for permit2
-	eb := EtherMultiple(10000)
-	bal := (*hexutil.Big)(eb)
-	err := u.Web3Client.SetBalance(ctx, u.Web3Client.PublicKey(), *bal)
-	if err != nil {
-		log.Err(err).Msg("error setting balance")
-		return err
-	}
-	nv, _ := new(big.Int).SetString("0", 10)
-	nvB := (*hexutil.Big)(nv)
-	err = u.Web3Client.SetNonce(ctx, u.Web3Client.PublicKey(), *nvB)
-	if err != nil {
-		log.Err(err).Msg("error setting nonce")
-		return err
-	}
+	//eb := EtherMultiple(10000)
+	//bal := (*hexutil.Big)(eb)
+	//err := u.Web3Client.SetBalance(ctx, u.Web3Client.PublicKey(), *bal)
+	//if err != nil {
+	//	log.Err(err).Msg("error setting balance")
+	//	return err
+	//}
+	//nv, _ := new(big.Int).SetString("0", 10)
+	//nvB := (*hexutil.Big)(nv)
+	//err = u.Web3Client.SetNonce(ctx, u.Web3Client.PublicKey(), *nvB)
+	//if err != nil {
+	//	log.Err(err).Msg("error setting nonce")
+	//	return err
+	//}
 	max, _ := new(big.Int).SetString(MaxUINT, 10)
 	approveTx, err := u.ApproveSpender(ctx, WETH9ContractAddress, Permit2SmartContractAddress, max)
 	if err != nil {

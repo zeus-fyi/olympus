@@ -8,7 +8,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
-	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 )
 
@@ -71,9 +70,6 @@ func (u *UniswapClient) GetPairContractPrices(ctx context.Context, p *uniswap_pr
 	scInfo.MethodName = "getReserves"
 
 	wc := u.Web3Client
-	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL != "" && u.SimMode == false {
-		wc = NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL, u.Web3Client.Account)
-	}
 	resp, err := wc.CallConstantFunction(ctx, scInfo)
 	if err != nil {
 		return err

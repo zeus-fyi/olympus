@@ -57,6 +57,7 @@ func (s *Web3ClientTestSuite) SetupTest() {
 	s.Assert().Nil(err)
 	s.HostedHardhatMainnetUser.Account = newAccount
 	// iris.zeus.fyi
+	// eeb335ad-78da-458f-9cfb-9928514d65d0
 	s.ProxyHostedHardhatMainnetUser = NewWeb3Client("https://iris.zeus.fyi/v1beta/internal/", newAccount)
 	//s.ProxyHostedHardhatMainnetUser = NewWeb3Client("http://localhost:8080/v1/internal/", newAccount)
 	s.ProxyHostedHardhatMainnetUser.Headers = map[string]string{

@@ -2,44 +2,53 @@ package artemis_realtime_trading
 
 import (
 	"context"
+
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *ActiveTrading) ProcessTxs(ctx context.Context) error {
+func (a *ActiveTrading) ProcessTxs(ctx context.Context) ([]*web3_client.TradeExecutionFlowJSON, error) {
+	var tfSlice []*web3_client.TradeExecutionFlowJSON
 	for _, mevTx := range a.u.MevSmartContractTxMapUniversalRouterOld.Txs {
-		err := a.RealTimeProcessUniversalRouterTx(ctx, mevTx)
+		tf, err := a.RealTimeProcessUniversalRouterTx(ctx, mevTx)
 		if err != nil {
-			return err
+			return nil, err
 		}
+		tfSlice = append(tfSlice, tf...)
 	}
 	for _, mevTx := range a.u.MevSmartContractTxMapUniversalRouterNew.Txs {
-		err := a.RealTimeProcessUniversalRouterTx(ctx, mevTx)
+		tf, err := a.RealTimeProcessUniversalRouterTx(ctx, mevTx)
 		if err != nil {
-			return err
+			return nil, err
 		}
+		tfSlice = append(tfSlice, tf...)
 	}
 	for _, mevTx := range a.u.MevSmartContractTxMapV2Router01.Txs {
-		err := a.RealTimeProcessUniswapV2RouterTx(ctx, mevTx)
+		tf, err := a.RealTimeProcessUniswapV2RouterTx(ctx, mevTx)
 		if err != nil {
-			return err
+			return nil, err
 		}
+		tfSlice = append(tfSlice, tf...)
 	}
 	for _, mevTx := range a.u.MevSmartContractTxMapV2Router02.Txs {
-		err := a.RealTimeProcessUniswapV2RouterTx(ctx, mevTx)
+		tf, err := a.RealTimeProcessUniswapV2RouterTx(ctx, mevTx)
 		if err != nil {
-			return err
+			return nil, err
 		}
+		tfSlice = append(tfSlice, tf...)
 	}
 	for _, mevTx := range a.u.MevSmartContractTxMapV3SwapRouterV2.Txs {
-		err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, a.u.MevSmartContractTxMapV3SwapRouterV2.Abi, a.u.MevSmartContractTxMapV3SwapRouterV2.Filter)
+		tf, err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, a.u.MevSmartContractTxMapV3SwapRouterV2.Abi, a.u.MevSmartContractTxMapV3SwapRouterV2.Filter)
 		if err != nil {
-			return err
+			return nil, err
 		}
+		tfSlice = append(tfSlice, tf...)
 	}
 	for _, mevTx := range a.u.MevSmartContractTxMapV3SwapRouterV1.Txs {
-		err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, a.u.MevSmartContractTxMapV3SwapRouterV1.Abi, a.u.MevSmartContractTxMapV3SwapRouterV1.Filter)
+		tf, err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, a.u.MevSmartContractTxMapV3SwapRouterV1.Abi, a.u.MevSmartContractTxMapV3SwapRouterV1.Filter)
 		if err != nil {
-			return err
+			return nil, err
 		}
+		tfSlice = append(tfSlice, tf...)
 	}
-	return nil
+	return tfSlice, nil
 }

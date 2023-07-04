@@ -39,6 +39,10 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 		return p.ProcessEndSessionLock(c, endLockedSessionLease)
 	}
 	routeInfo, err := proxy_anvil.SessionLocker.GetSessionLockedRoute(relayTo)
+	if err != nil {
+		log.Err(err).Msg("proxy_anvil.SessionLocker.GetSessionLockedRoute")
+		return c.JSON(http.StatusInternalServerError, err)
+	}
 	if routeInfo == nil {
 		return c.JSON(http.StatusServiceUnavailable, errors.New("no available routes"))
 	}

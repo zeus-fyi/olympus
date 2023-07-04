@@ -1,7 +1,6 @@
 package v1_iris
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"time"
@@ -36,9 +35,7 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 	if endLockedSessionLease == relayTo {
 		return p.ProcessEndSessionLock(c, endLockedSessionLease)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	routeInfo, err := proxy_anvil.SessionLocker.GetSessionLockedRoute(ctx, relayTo)
+	routeInfo, err := proxy_anvil.SessionLocker.GetSessionLockedRoute(c.Request().Context(), relayTo)
 	if err != nil {
 		log.Err(err).Msg("proxy_anvil.SessionLocker.GetSessionLockedRoute")
 		return c.JSON(http.StatusInternalServerError, err)

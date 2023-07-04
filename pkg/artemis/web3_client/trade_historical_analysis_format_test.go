@@ -19,7 +19,7 @@ func (s *Web3ClientTestSuite) TestHistoricalAnalysisReplay() {
 		uni := InitUniswapClient(ctx, s.ProxyHostedHardhatMainnetUser)
 		uni.Web3Client.IsAnvilNode = true
 		uni.DebugPrint = true
-		err := uni.RunHistoricalTradeAnalysis(ctx, mevTx.TxFlowPrediction, s.ProxyHostedHardhatMainnetUser)
+		err := uni.RunHistoricalTradeAnalysis(ctx, mevTx.TxFlowPrediction, s.MainnetWeb3UserExternal)
 		uni.PrintResults()
 		s.Assert().Nil(err)
 	}

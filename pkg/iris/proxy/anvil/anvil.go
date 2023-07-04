@@ -94,14 +94,17 @@ func (a *AnvilProxy) GetSessionLockedRoute(ctx context.Context, sessionID string
 			return route, nil
 		}
 		a.PriorityQueue.Push(route, ttl)
-
 		if i >= int(pqSize) {
+			if j > 0 {
+				return "", ErrNoRoutesAvailable
+			}
 			minDuration := 10 * time.Millisecond
 			maxDuration := 50 * time.Millisecond
 			jitter := time.Duration(j) * (time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration)
 			time.Sleep(jitter)
 			j++
 		}
+
 		i++
 	}
 }

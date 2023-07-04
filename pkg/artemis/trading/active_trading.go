@@ -42,7 +42,6 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	if err != nil {
 		return err
 	}
-
 	wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
 	wc.Dial()
 	bn, berr := wc.C.BlockNumber(ctx)
@@ -52,6 +51,11 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	}
 	defer wc.Close()
 	for _, tf := range tfSlice {
+		if tf.InitialPair.PairContractAddr == "" {
+			a.m.StageProgressionMetrics.CountPreSimTx(tf.InitialPair.PairContractAddr, tf.FrontRunTrade.AmountInAddr.String())
+		} else {
+			a.m.StageProgressionMetrics.CountPreSimTx(tf.InitialPairV3.PoolAddress, tf.FrontRunTrade.AmountInAddr.String())
+		}
 		btf, ber := json.Marshal(tf)
 		if ber != nil {
 			log.Err(ber).Msg("failed to marshal tx flow")

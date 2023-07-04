@@ -21,10 +21,10 @@ func (t *AnvilTestSuite) SetupTest() {
 }
 
 func (t *AnvilTestSuite) TestSessionLocker() {
-	r, err := SessionLocker.GetNextAvailableRouteAndAssignToSession("test1")
+	r, err := SessionLocker.getNextAvailableRouteAndAssignToSession("test1")
 	t.Assert().Nil(err)
 	t.Assert().NotNil(r)
-	r2, err := SessionLocker.GetNextAvailableRouteAndAssignToSession("test2")
+	r2, err := SessionLocker.getNextAvailableRouteAndAssignToSession("test2")
 	t.Assert().Nil(err)
 	t.Assert().NotNil(r2)
 
@@ -36,7 +36,7 @@ func (t *AnvilTestSuite) TestSessionLocker() {
 	fmt.Println(lfVal)
 
 	time.Sleep(time.Second * 1)
-	nr, err := SessionLocker.GetNextAvailableRouteAndAssignToSession("test3")
+	nr, err := SessionLocker.getNextAvailableRouteAndAssignToSession("test3")
 	t.Assert().Nil(err)
 	t.Assert().NotNil(nr)
 }

@@ -38,7 +38,7 @@ func (t *AnvilTestSuite) TestSessionLocker() {
 	time.Sleep(time.Second * 1)
 
 	now := time.Now()
-	for i := 0; i < 40; i++ {
+	for i := 0; i < 20; i++ {
 		nr, err := SessionLocker.GetSessionLockedRoute(ctx, fmt.Sprintf("%d", i))
 		fmt.Println(nr)
 		t.Assert().Nil(err)

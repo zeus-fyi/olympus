@@ -100,7 +100,6 @@ func (a *AnvilProxy) GetSessionLockedRoute(ctx context.Context, sessionID string
 			maxDuration := 10 * time.Millisecond
 			jitter := time.Duration(j) * (time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration)
 			time.Sleep(jitter)
-			fmt.Println("locked route, sleeping for ", route, jitter)
 			j++
 		}
 		i++

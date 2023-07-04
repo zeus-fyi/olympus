@@ -43,13 +43,12 @@ func (t *AnvilTestSuite) TestSessionLocker() {
 		fmt.Println(nr)
 		t.Assert().Nil(err)
 		t.Assert().NotNil(nr)
-		if i < 20 {
-			SessionLocker.GetSessionLockedRoute(ctx, fmt.Sprintf("%d", 0))
-			SessionLocker.GetSessionLockedRoute(ctx, fmt.Sprintf("%d", 1))
-			SessionLocker.GetSessionLockedRoute(ctx, fmt.Sprintf("%d", 2))
+		if i == 0 {
+			fmt.Println("locked", nr)
 		}
+		SessionLocker.GetSessionLockedRoute(ctx, fmt.Sprintf("%d", 0))
 	}
-	fmt.Println("locking half", time.Since(now))
+	fmt.Println("locking one", time.Since(now))
 
 	now = time.Now()
 	for i := 0; i < 20; i++ {

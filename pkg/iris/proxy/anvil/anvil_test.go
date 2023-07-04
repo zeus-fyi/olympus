@@ -54,7 +54,10 @@ func (t *AnvilTestSuite) TestSessionLocker() {
 		SessionLocker.RemoveSessionLockedRoute(fmt.Sprintf("%d", i))
 	}
 	fmt.Println("with removals", time.Since(now))
-
+	/*
+		no removals 4.90930125s
+		with removals 1.999989417s
+	*/
 }
 func TestAnvilTestSuite(t *testing.T) {
 	suite.Run(t, new(AnvilTestSuite))

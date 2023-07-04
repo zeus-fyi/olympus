@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand"
 	"strconv"
 	"time"
 
@@ -38,6 +39,7 @@ type AnvilProxy struct {
 
 func InitAnvilProxy() {
 	SessionLocker.PriorityQueue = lane.NewMinPriorityQueue[string, int]()
+	SessionLocker.LockDefaultTime = 6 * time.Second
 	for _, route := range Routes {
 		SessionLocker.PriorityQueue.Push(route, -1)
 	}
@@ -57,6 +59,7 @@ func (a *AnvilProxy) GetSessionLockedRoute(ctx context.Context, sessionID string
 		LockedSessionTTL.Store(sessionID, fmt.Sprintf("%d", ttl))
 		return route, nil
 	}
+	i := 0
 	for {
 		route, ttl, ok := a.PriorityQueue.Pop()
 		if !ok {
@@ -89,5 +92,10 @@ func (a *AnvilProxy) GetSessionLockedRoute(ctx context.Context, sessionID string
 			return route, nil
 		}
 		a.PriorityQueue.Push(route, ttl)
+
+		minDuration := 1 * time.Millisecond
+		maxDuration := 10 * time.Millisecond
+		jitter := time.Duration(i) * (time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration)
+		time.Sleep(jitter)
 	}
 }

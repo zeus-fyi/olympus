@@ -67,6 +67,9 @@ func (p *BetaProxyRequest) ProcessEndSessionLock(c echo.Context, sessionID strin
 }
 
 func (p *BetaProxyRequest) Process(c echo.Context, r *artemis_api_requests.ApiProxyRequest) error {
+	if r == nil {
+		return c.JSON(http.StatusBadRequest, errors.New("request is nil"))
+	}
 	resp, err := artemis_api_requests.ArtemisProxyWorker.ExecuteArtemisInternalSvcApiProxyWorkflow(c.Request().Context(), r)
 	if err != nil {
 		log.Err(err)

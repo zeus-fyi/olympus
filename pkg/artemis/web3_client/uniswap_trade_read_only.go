@@ -13,7 +13,7 @@ import (
 	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_core/entities"
 )
 
-func (u *UniswapClient) GetAmounts(address *common.Address, to artemis_trading_types.TradeOutcome, method string) ([]interface{}, error) {
+func (u *UniswapClient) GetAmounts(address *common.Address, to artemis_trading_types.TradeOutcome, method string) ([]*big.Int, error) {
 	switch method {
 	case getAmountsOut:
 		pathSlice := []string{to.AmountInAddr.String(), to.AmountOutAddr.String()}
@@ -31,7 +31,7 @@ func (u *UniswapClient) GetAmounts(address *common.Address, to artemis_trading_t
 	and using these to call getAmountIn.
 */
 
-func (u *UniswapClient) GetAmountsIn(address *common.Address, amountOut *big.Int, pathSlice []string) ([]interface{}, error) {
+func (u *UniswapClient) GetAmountsIn(address *common.Address, amountOut *big.Int, pathSlice []string) ([]*big.Int, error) {
 	mm := u.MevSmartContractTxMapV2Router02
 	if address != nil {
 		if address.String() == u.MevSmartContractTxMapV2Router01.SmartContractAddr {
@@ -50,11 +50,12 @@ func (u *UniswapClient) GetAmountsIn(address *common.Address, amountOut *big.Int
 	if err != nil {
 		return nil, err
 	}
-	return amountsIn, err
+	amountsInFirstPair := ConvertAmountsToBigIntSlice(amountsIn)
+	return amountsInFirstPair, err
 }
 
 // GetAmountsOut also applies a transfer tax to the output amount
-func (u *UniswapClient) GetAmountsOut(address *common.Address, amountIn *big.Int, pathSlice []string) ([]interface{}, error) {
+func (u *UniswapClient) GetAmountsOut(address *common.Address, amountIn *big.Int, pathSlice []string) ([]*big.Int, error) {
 	mm := u.MevSmartContractTxMapV2Router02
 	if address != nil {
 		if address.String() == u.MevSmartContractTxMapV2Router01.SmartContractAddr {
@@ -73,10 +74,11 @@ func (u *UniswapClient) GetAmountsOut(address *common.Address, amountIn *big.Int
 	if err != nil {
 		return nil, err
 	}
-	for i, amount := range amountsOut {
+	amountsOutFirstPair := ConvertAmountsToBigIntSlice(amountsOut)
+	for i, amount := range amountsOutFirstPair {
 		token := pathSlice[i]
-		out := uniswap_core_entities.NewFraction(amount.(*big.Int), big.NewInt(1))
+		out := uniswap_core_entities.NewFraction(amount, big.NewInt(1))
 		amountsOut[i] = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(token), out.Quotient())
 	}
-	return amountsOut, err
+	return amountsOutFirstPair, err
 }

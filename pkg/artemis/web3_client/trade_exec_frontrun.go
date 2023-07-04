@@ -72,11 +72,10 @@ func (u *UniswapClient) ExecFrontRunTradeStepTokenTransfer(tf *TradeExecutionFlo
 
 func (u *UniswapClient) FrontRunTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*big.Int, error) {
 	pathSlice := []string{tf.FrontRunTrade.AmountInAddr.String(), tf.FrontRunTrade.AmountOutAddr.String()}
-	amountsOut, err := u.GetAmountsOut(tf.Tx.To(), tf.FrontRunTrade.AmountIn, pathSlice)
+	amountsOutFirstPair, err := u.GetAmountsOut(tf.Tx.To(), tf.FrontRunTrade.AmountIn, pathSlice)
 	if err != nil {
 		return nil, err
 	}
-	amountsOutFirstPair := ConvertAmountsToBigIntSlice(amountsOut)
 	if len(amountsOutFirstPair) != 2 {
 		return nil, errors.New("amounts out not equal to expected")
 	}

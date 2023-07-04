@@ -44,11 +44,10 @@ func (u *UniswapClient) ExecUserTradeStep(tf *TradeExecutionFlow) (*web3_actions
 
 func (u *UniswapClient) UserTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*big.Int, error) {
 	pathSlice := []string{tf.UserTrade.AmountInAddr.String(), tf.UserTrade.AmountOutAddr.String()}
-	amountsOut, err := u.GetAmountsOut(tf.Tx.To(), tf.UserTrade.AmountIn, pathSlice)
+	amountsOutFirstPair, err := u.GetAmountsOut(tf.Tx.To(), tf.UserTrade.AmountIn, pathSlice)
 	if err != nil {
 		return nil, err
 	}
-	amountsOutFirstPair := ConvertAmountsToBigIntSlice(amountsOut)
 	if len(amountsOutFirstPair) != 2 {
 		return nil, errors.New("amounts out not equal to expected")
 	}

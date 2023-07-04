@@ -62,12 +62,8 @@ func (a *AnvilProxy) GetSessionLockedRoute(sessionID string) (*Route, error) {
 	a.routeLockTTLMutex.Lock()
 	routeIndex := a.LFU.Get(sessionID)
 	if routeIndex == nil {
-		r, err := a.GetNextAvailableRouteAndAssignToSession(sessionID)
-		if err != nil {
-			log.Err(err).Msg("GetNextAvailableRouteAndAssignToSession: error getting next available route")
-			a.routeLockTTLMutex.Unlock()
-			return r, err
-		}
+		a.routeLockTTLMutex.Unlock()
+		return a.GetNextAvailableRouteAndAssignToSession(sessionID)
 	}
 	routePathID := routeIndex.(int)
 	routePath := AnvilRoutes[routePathID]
@@ -84,7 +80,6 @@ func (a *AnvilProxy) GetSessionLockedRoute(sessionID string) (*Route, error) {
 
 func (a *AnvilProxy) GetNextAvailableRouteAndAssignToSession(sessionID string) (*Route, error) {
 	a.routeLockTTLMutex.Lock()
-
 	if a.LFU.Len() < len(AnvilRoutes) {
 		r := &Route{
 			Index:     a.LFU.Len(),

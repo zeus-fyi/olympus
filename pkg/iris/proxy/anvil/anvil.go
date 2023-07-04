@@ -69,7 +69,11 @@ func (a *AnvilProxy) RemoveSessionLockedRoute(sessionID string) {
 func (a *AnvilProxy) GetSessionLockedRoute(sessionID string) (*Route, error) {
 	routeIndex := a.LFU.Get(sessionID)
 	if routeIndex == nil {
-		return a.GetNextAvailableRouteAndAssignToSession(sessionID)
+		r, err := a.GetNextAvailableRouteAndAssignToSession(sessionID)
+		if err != nil {
+			log.Err(err).Msg("error getting next available route")
+			return r, err
+		}
 	}
 	routePath := AnvilRoutes[routeIndex.(int)]
 	r := &Route{

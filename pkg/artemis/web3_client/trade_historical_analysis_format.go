@@ -116,6 +116,14 @@ func (u *UniswapClient) ToggleSimMode() {
 func (u *UniswapClient) RunHistoricalTradeAnalysis(ctx context.Context, tfStr string, liveNetworkClient Web3Client) error {
 	u.SimMode = true
 	defer u.ToggleSimMode()
+	if u.Web3Client.IsAnvilNode == true {
+		if u.Web3Client.Headers != nil {
+			sid := u.Web3Client.Headers["Session-Lock-ID"]
+			if sid != "" {
+				defer u.Web3Client.EndHardHatSessionReset(ctx)
+			}
+		}
+	}
 	u.TradeAnalysisReport = &TradeAnalysisReport{}
 	tfJSON, err := UnmarshalTradeExecutionFlow(tfStr)
 	if err != nil {

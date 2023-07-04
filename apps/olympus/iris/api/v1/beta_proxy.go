@@ -30,6 +30,10 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 	if relayTo == "" {
 		return c.JSON(http.StatusBadRequest, errors.New("Session-Lock-ID header is required"))
 	}
+	endLockedSessionLease := c.Request().Header.Get("End-Session-Lock-ID")
+	if endLockedSessionLease == relayTo {
+		return p.ProcessEndSessionLock(c, endLockedSessionLease)
+	}
 	r, err := proxy_anvil.SessionLocker.GetSessionLockedRoute(relayTo)
 	if err != nil {
 		log.Err(err).Msg("proxy_anvil.SessionLocker.GetSessionLockedRoute")
@@ -48,10 +52,15 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 	rw := artemis_api_requests.NewArtemisApiRequestsActivities()
 	resp, err := rw.InternalSvcRelayRequest(c.Request().Context(), req)
 	if err != nil {
-		log.Err(err)
+		log.Err(err).Msg("rw.InternalSvcRelayRequest")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusOK, resp.Response)
+}
+
+func (p *BetaProxyRequest) ProcessEndSessionLock(c echo.Context, sessionID string) error {
+	proxy_anvil.SessionLocker.RemoveSessionLockedRoute(sessionID)
+	return c.JSON(http.StatusOK, nil)
 }
 
 func (p *BetaProxyRequest) Process(c echo.Context, r *artemis_api_requests.ApiProxyRequest) error {

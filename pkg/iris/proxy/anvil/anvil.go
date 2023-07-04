@@ -32,6 +32,7 @@ var (
 		"http://anvil.427c5536-4fc0-4257-90b5-1789d290058c.svc.cluster.local:8545",
 		"http://anvil.191aada9-055d-4dba-a906-7dfbc4e632c6.svc.cluster.local:8545",
 		"http://anvil.e56def19-190f-4b45-9fdb-8468ddbe0eb5.svc.cluster.local:8545",
+		"http://anvil.5cf3a2c0-1d65-48cb-8b85-dc777ad956a0.svc.cluster.local:8545",
 	}
 	ts = chronos.Chronos{}
 )
@@ -55,6 +56,11 @@ func (a *AnvilProxy) setSessionLockOnRoute(r *Route) (*Route, error) {
 	a.SessionRouteMap[r.SessionID] = r.Index
 	a.RouteLockTTL[r.Index] = ts.UnixTimeStampNowSec() + int(a.LockDefaultTime.Seconds())
 	return r, nil
+}
+
+func (a *AnvilProxy) RemoveSessionLockedRoute(sessionID string) {
+	leastFreqRouteIndex := a.SessionRouteMap[sessionID]
+	a.RouteLockTTL[leastFreqRouteIndex] = 0
 }
 
 func (a *AnvilProxy) GetSessionLockedRoute(sessionID string) (*Route, error) {

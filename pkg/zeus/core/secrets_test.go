@@ -43,7 +43,7 @@ func (s *SecretsTestSuite) TestGetSecrets() {
 }
 
 func (s *SecretsTestSuite) TestGetSecretsUpdate() {
-	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "ovh", Region: "us-west-or-1", Context: "zeusfyi", Namespace: "191aada9-055d-4dba-a906-7dfbc4e632c6"}
+	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "ovh", Region: "us-west-or-1", Context: "zeusfyi", Namespace: "5cf3a2c0-1d65-48cb-8b85-dc777ad956a0"}
 
 	secret, err := s.K.GetSecretWithKns(ctx, kns, "hardhat", nil)
 	s.Require().Nil(err)
@@ -71,6 +71,10 @@ func (s *SecretsTestSuite) TestGetSecretsUpdate() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(newSecret)
 
+	secret, err = s.K.GetSecretWithKns(ctx, kns, "hardhat", nil)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(secret)
+	s.Require().Equal(secret.Data["rpc"], sb)
 }
 func (s *SecretsTestSuite) TestCreateChoreographySecret() {
 	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "p2p-crawler"}

@@ -49,6 +49,7 @@ var (
 	ArtemisEthereumMainnetQuiknodeLive                = NewArtemisConfig(Ethereum, Mainnet)
 	ArtemisEthereumMainnetQuiknodeHistoricalPrimary   = NewArtemisConfig(Ethereum, Mainnet)
 	ArtemisEthereumMainnetQuiknodeHistoricalSecondary = NewArtemisConfig(Ethereum, Mainnet)
+	ArtemisEthereumMainnetQuiknodeHistoricalTertiary  = NewArtemisConfig(Ethereum, Mainnet)
 	ArtemisEthereumGoerli                             = NewArtemisConfig(Ethereum, Goerli)
 	ArtemisEthereumEphemeral                          = NewArtemisConfig(Ethereum, Ephemery)
 	GlobalArtemisConfigs                              = []*ArtemisConfig{&ArtemisEthereumMainnet, &ArtemisEthereumGoerli, &ArtemisEthereumEphemeral}

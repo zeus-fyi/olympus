@@ -75,6 +75,10 @@ func (a *AnvilProxy) GetSessionLockedRoute(sessionID string) (*Route, error) {
 			return r, err
 		}
 	}
+	if routeIndex == nil {
+		log.Warn().Msg("GetSessionLockedRoute: no available routes")
+		return nil, errors.New("no available routes")
+	}
 	routePathID := routeIndex.(int)
 	routePath := AnvilRoutes[routePathID]
 	r := &Route{

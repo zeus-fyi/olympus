@@ -28,7 +28,6 @@ func InternalBetaProxyRequestHandler(c echo.Context) error {
 func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal bool) error {
 	relayTo := c.Request().Header.Get("Session-Lock-ID")
 	wfExecutor := c.Request().Header.Get("Durable-Execution-ID")
-
 	if relayTo == "" {
 		return c.JSON(http.StatusBadRequest, errors.New("Session-Lock-ID header is required"))
 	}

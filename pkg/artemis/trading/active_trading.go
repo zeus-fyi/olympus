@@ -87,7 +87,6 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 }
 
 func (a *ActiveTrading) ProcessTx(ctx context.Context, tx *types.Transaction) error {
-	// TODO, simulate tx needs a clean anvil instance
 	err := a.SimulateTx(ctx, tx)
 	if err != nil {
 		return err

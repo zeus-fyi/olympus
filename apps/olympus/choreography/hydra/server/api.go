@@ -8,7 +8,7 @@ import (
 	v1_hydra_choreography "github.com/zeus-fyi/olympus/choreography/hydra/api/v1"
 	hydra_choreography_metrics "github.com/zeus-fyi/olympus/choreography/hydra/metrics"
 	apollo_metrics_workload_info "github.com/zeus-fyi/olympus/pkg/apollo/metrics/workload_info"
-	zeus_client "github.com/zeus-fyi/zeus/pkg/zeus/client"
+	zeus_client "github.com/zeus-fyi/zeus/zeus/z_client"
 )
 
 var (

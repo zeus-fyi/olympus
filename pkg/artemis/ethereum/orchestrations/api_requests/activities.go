@@ -46,11 +46,11 @@ func (a *ArtemisApiRequestsActivities) InternalSvcRelayRequest(ctx context.Conte
 	r.SetBaseURL(pr.Url)
 	resp, err := r.R().SetBody(&pr.Payload).SetResult(&pr.Response).Post(pr.Url)
 	if err != nil {
-		log.Err(err).Msg("Failed to relay api request")
+		log.Err(err).Interface("statusCode", resp.StatusCode()).Msg("Failed to relay api request")
 		return nil, err
 	}
 	if resp.StatusCode() >= 400 {
-		log.Err(err).Msg("Failed to relay api request")
+		log.Err(err).Interface("statusCode", resp.StatusCode()).Msg("Failed to relay api request")
 		return nil, fmt.Errorf("failed to relay api request: status code %d", resp.StatusCode())
 	}
 	return pr, err

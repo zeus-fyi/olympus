@@ -48,7 +48,7 @@ func (t *ArtemisApiRequestsWorker) ExecuteArtemisInternalSvcApiProxyWorkflow(ctx
 		TaskQueue: t.TaskQueueName,
 	}
 	txWf := NewArtemisApiRequestsWorkflow()
-	wf := txWf.ProxyRequest
+	wf := txWf.ProxyInternalRequest
 	workflowRun, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, pr)
 	if err != nil {
 		log.Err(err).Msg("ExecuteArtemisApiProxyWorkflow")

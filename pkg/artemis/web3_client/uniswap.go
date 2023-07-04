@@ -103,7 +103,7 @@ func InitUniswapClient(ctx context.Context, w Web3Client) UniswapClient {
 		DoesNotStartWithThese: nil,
 		StartsWithThese:       []string{"swap"},
 		Contains:              "",
-		DoesNotInclude:        []string{"supportingFeeOnTransferTokens"},
+		DoesNotInclude:        []string{""},
 	}
 	return UniswapClient{
 		Web3Client:                       w,

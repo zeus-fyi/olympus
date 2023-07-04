@@ -24,9 +24,16 @@ func (w *Web3Client) ERC20ApproveSpender(ctx context.Context, scAddr, spenderAdd
 	payload := web3_actions.SendContractTxPayload{
 		SmartContractAddr: scAddr,
 		MethodName:        "approve",
-		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       abiFile,
-		Params:            []interface{}{accounts.HexToAddress(spenderAddr), amount},
+		SendEtherPayload: web3_actions.SendEtherPayload{
+			TransferArgs: web3_actions.TransferArgs{},
+			GasPriceLimits: web3_actions.GasPriceLimits{
+				GasLimit:  200000,
+				GasTipCap: GweiMultiple(2),
+				GasFeeCap: GweiMultiple(50),
+			},
+		},
+		ContractABI: abiFile,
+		Params:      []interface{}{accounts.HexToAddress(spenderAddr), amount},
 	}
 	signedTx, err := w.CallFunctionWithArgs(ctx, &payload)
 	if err != nil {

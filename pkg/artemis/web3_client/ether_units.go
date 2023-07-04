@@ -13,3 +13,9 @@ var (
 func EtherMultiple(multiple int) *big.Int {
 	return new(big.Int).Mul(big.NewInt(int64(multiple)), Ether)
 }
+
+// bal := (*hexutil.Big)(eb)
+
+func GweiMultiple(multiple int) *big.Int {
+	return new(big.Int).Mul(big.NewInt(int64(multiple)), Gwei)
+}

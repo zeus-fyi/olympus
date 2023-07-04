@@ -121,6 +121,7 @@ func (u *UniswapClient) RunHistoricalTradeAnalysis(ctx context.Context, tfStr st
 			sid := u.Web3Client.Headers["Session-Lock-ID"]
 			if sid != "" {
 				defer u.Web3Client.EndHardHatSessionReset(ctx)
+				log.Info().Msgf("ending hardhat session %s", sid)
 			}
 		}
 	}

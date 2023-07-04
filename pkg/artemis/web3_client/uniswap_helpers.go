@@ -51,7 +51,7 @@ func (u *UniswapClient) V2PairToPrices(ctx context.Context, pairAddr []accounts.
 			log.Err(err).Msg("V2PairToPrices: PairForV2")
 			return p, err
 		}
-		err = u.GetPairContractPrices(ctx, &p)
+		err = uniswap_pricing.GetPairContractPrices(ctx, &p, u.Web3Client.Web3Actions)
 		if err != nil {
 			log.Err(err).Msg("V2PairToPrices: GetPairContractPrices")
 			return p, err
@@ -59,38 +59,4 @@ func (u *UniswapClient) V2PairToPrices(ctx context.Context, pairAddr []accounts.
 		return p, err
 	}
 	return uniswap_pricing.UniswapV2Pair{}, errors.New("pair address length is not 2, multi-hops not implemented yet")
-}
-
-func (u *UniswapClient) GetPairContractPrices(ctx context.Context, p *uniswap_pricing.UniswapV2Pair) error {
-	scInfo := &web3_actions.SendContractTxPayload{
-		SmartContractAddr: p.PairContractAddr,
-		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       u.PairAbi,
-	}
-	scInfo.MethodName = "getReserves"
-
-	wc := u.Web3Client
-	resp, err := wc.CallConstantFunction(ctx, scInfo)
-	if err != nil {
-		return err
-	}
-	if len(resp) <= 2 {
-		return err
-	}
-	reserve0, err := ParseBigInt(resp[0])
-	if err != nil {
-		return err
-	}
-	p.Reserve0 = reserve0
-	reserve1, err := ParseBigInt(resp[1])
-	if err != nil {
-		return err
-	}
-	p.Reserve1 = reserve1
-	blockTimestampLast, err := ParseBigInt(resp[2])
-	if err != nil {
-		return err
-	}
-	p.BlockTimestampLast = blockTimestampLast
-	return nil
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/rs/zerolog/log"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
+	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 )
 
 func UnmarshalTradeExecutionFlow(tfStr string) (TradeExecutionFlowJSON, error) {
@@ -179,7 +180,7 @@ func (u *UniswapClient) CheckBlockRxAndNetworkReset(tf *TradeExecutionFlow, live
 
 func (u *UniswapClient) CheckExpectedReserves(tf *TradeExecutionFlow) error {
 	simPair := tf.InitialPair
-	err := u.GetPairContractPrices(ctx, &simPair)
+	err := uniswap_pricing.GetPairContractPrices(ctx, &simPair, u.Web3Client.Web3Actions)
 	if err != nil {
 		log.Err(err).Msg("error getting pair contract prices")
 		return err

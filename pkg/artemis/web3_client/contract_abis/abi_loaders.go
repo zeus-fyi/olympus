@@ -22,6 +22,14 @@ func MustLoadPepeAbi() *abi.ABI {
 	return readAbi
 }
 
+func MustLoadUniswapV2PairAbi() *abi.ABI {
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(UniswapV2PairAbi))
+	if err != nil {
+		panic(err)
+	}
+	return readAbi
+}
+
 func MustLoadUniswapV3Swap1RouterAbi() *abi.ABI {
 	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(UniswapV3RouterSwapV1ABI))
 	if err != nil {

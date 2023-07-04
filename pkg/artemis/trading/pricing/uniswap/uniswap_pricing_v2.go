@@ -11,7 +11,6 @@ import (
 )
 
 const (
-	getReserves          = "getReserves"
 	pairAddressSuffix    = "96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f"
 	ZeroEthAddress       = "0x0000000000000000000000000000000000000000"
 	WETH9ContractAddress = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"

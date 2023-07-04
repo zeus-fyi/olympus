@@ -184,12 +184,16 @@ func (u *UniswapClient) CheckExpectedReserves(tf *TradeExecutionFlow) error {
 		return err
 	}
 	if tf.InitialPair.Reserve1.String() != simPair.Reserve1.String() && tf.InitialPair.Reserve0.String() != simPair.Reserve0.String() {
+		fmt.Println("tf.InitialPair.Reserve0", tf.InitialPair.Reserve0.String(), simPair.Reserve0.String(), "simPair.Reserve0")
+		fmt.Println("tf.InitialPair.Reserve1", tf.InitialPair.Reserve1.String(), simPair.Reserve1.String(), "simPair.Reserve1")
 		return fmt.Errorf("reserve mismatch")
 	}
 	if tf.InitialPair.Reserve0.String() != simPair.Reserve0.String() {
+		fmt.Println("tf.InitialPair.Reserve0", tf.InitialPair.Reserve0.String(), simPair.Reserve0.String(), "simPair.Reserve0")
 		return fmt.Errorf("reserve0 mismatch")
 	}
 	if tf.InitialPair.Reserve1.String() != simPair.Reserve1.String() {
+		fmt.Println("tf.InitialPair.Reserve1", tf.InitialPair.Reserve1.String(), simPair.Reserve1.String(), "simPair.Reserve1")
 		return fmt.Errorf("reserve1 mismatch")
 	}
 	return nil

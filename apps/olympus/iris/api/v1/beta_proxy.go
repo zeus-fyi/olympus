@@ -27,10 +27,12 @@ func InternalBetaProxyRequestHandler(c echo.Context) error {
 
 func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal bool, tryNumber int) error {
 	maxRetries := 5 // Specify max retries
+	relayTo := c.Request().Header.Get("Session-Lock-ID")
+	wfExecutor := c.Request().Header.Get("Durable-Execution-ID")
+
 	if tryNumber > maxRetries {
 		return c.JSON(http.StatusInternalServerError, errors.New("max retries exceeded"))
 	}
-	relayTo := c.Request().Header.Get("Session-Lock-ID")
 	if relayTo == "" {
 		return c.JSON(http.StatusBadRequest, errors.New("Session-Lock-ID header is required"))
 	}
@@ -52,7 +54,6 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 		IsInternal: isInternal,
 		Timeout:    1 * time.Minute,
 	}
-	wfExecutor := c.Request().Header.Get("Durable-Execution-ID")
 	if wfExecutor != "" {
 		return p.Process(c, req)
 	}

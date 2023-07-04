@@ -9,9 +9,10 @@ import (
 	athena_endpoints "github.com/zeus-fyi/olympus/pkg/athena/client/endpoints"
 	"github.com/zeus-fyi/olympus/pkg/poseidon"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
-	zeus_pods_reqs "github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types/pods"
-	zeus_pods_resp "github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_resp_types/pods"
+	pods_client "github.com/zeus-fyi/zeus/zeus/z_client/workloads/pods"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
+	zeus_pods_reqs "github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types/pods"
+	zeus_pods_resp "github.com/zeus-fyi/zeus/zeus/z_client/zeus_resp_types/pods"
 )
 
 func (a *AthenaClient) Upload(ctx context.Context, br poseidon.BucketRequest) error {
@@ -50,6 +51,7 @@ func (a *AthenaClient) UploadViaPortForward(ctx context.Context, routeHeader zeu
 		ClientReq:             &cliReq,
 		FilterOpts:            &filter,
 	}
-	resp, err := a.ZeusClient.PortForwardReqToPods(ctx, par)
+	pc := pods_client.NewPodsClientFromZeusClient(a.ZeusClient)
+	resp, err := pc.PortForwardReqToPods(ctx, par)
 	return resp, err
 }

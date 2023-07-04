@@ -42,47 +42,47 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	if err != nil {
 		return err
 	}
-	go func() {
-		wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
-		wc.Dial()
-		bn, berr := wc.C.BlockNumber(ctx)
-		if berr != nil {
-			log.Err(berr).Msg("failed to get block number")
-			return
-		}
-		defer wc.Close()
-		for _, tf := range tfSlice {
-			btf, ber := json.Marshal(tf)
-			if ber != nil {
-				log.Err(ber).Msg("failed to marshal tx flow")
-				return
-			}
-			fromStr := ""
-			sender := types.LatestSignerForChainID(tf.Tx.ChainId())
-			from, ferr := sender.Sender(tf.Tx)
-			if ferr != nil {
-				log.Err(ferr).Msg("failed to get sender")
-			} else {
-				fromStr = from.String()
-			}
 
-			txMempool := artemis_autogen_bases.EthMempoolMevTx{
-				ProtocolNetworkID: hestia_req_types.EthereumMainnetProtocolNetworkID,
-				Tx:                tx.Hash().String(),
-				TxFlowPrediction:  string(btf),
-				TxHash:            tx.Hash().String(),
-				Nonce:             int(tx.Nonce()),
-				From:              fromStr,
-				To:                tx.To().String(),
-				BlockNumber:       int(bn),
-			}
-			err = artemis_validator_service_groups_models.InsertMempoolTx(ctx, txMempool)
-			if err != nil {
-				log.Err(err).Msg("failed to insert mempool tx")
-				return
-			}
+	wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
+	wc.Dial()
+	bn, berr := wc.C.BlockNumber(ctx)
+	if berr != nil {
+		log.Err(berr).Msg("failed to get block number")
+		return berr
+	}
+	defer wc.Close()
+	for _, tf := range tfSlice {
+		btf, ber := json.Marshal(tf)
+		if ber != nil {
+			log.Err(ber).Msg("failed to marshal tx flow")
+			return ber
 		}
-	}()
+		fromStr := ""
+		sender := types.LatestSignerForChainID(tf.Tx.ChainId())
+		from, ferr := sender.Sender(tf.Tx)
+		if ferr != nil {
+			log.Err(ferr).Msg("failed to get sender")
+		} else {
+			fromStr = from.String()
+		}
+
+		txMempool := artemis_autogen_bases.EthMempoolMevTx{
+			ProtocolNetworkID: hestia_req_types.EthereumMainnetProtocolNetworkID,
+			Tx:                tx.Hash().String(),
+			TxFlowPrediction:  string(btf),
+			TxHash:            tx.Hash().String(),
+			Nonce:             int(tx.Nonce()),
+			From:              fromStr,
+			To:                tx.To().String(),
+			BlockNumber:       int(bn),
+		}
+		err = artemis_validator_service_groups_models.InsertMempoolTx(ctx, txMempool)
+		if err != nil {
+			log.Err(err).Msg("failed to insert mempool tx")
+			return err
+		}
+	}
+
 	return err
 }
 

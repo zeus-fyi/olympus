@@ -23,8 +23,8 @@ func (p *UniswapPoolV3) GetLiquidity(ctx context.Context) error {
 		Params:            []interface{}{},
 	}
 	wc := p.Web3Actions
-	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL != "" && !p.SimMode {
-		wc = web3_actions.NewWeb3ActionsClientWithAccount(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.Account)
+	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL != "" && !p.SimMode {
+		wc = web3_actions.NewWeb3ActionsClientWithAccount(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.Account)
 	}
 	resp, err := wc.CallConstantFunction(ctx, scInfo)
 	if err != nil {
@@ -48,8 +48,8 @@ func (p *UniswapPoolV3) GetSlot0(ctx context.Context) error {
 		Params:            []interface{}{},
 	}
 	wc := p.Web3Actions
-	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL != "" && !p.SimMode {
-		wc = web3_actions.NewWeb3ActionsClientWithAccount(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.Account)
+	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL != "" && !p.SimMode {
+		wc = web3_actions.NewWeb3ActionsClientWithAccount(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.Account)
 	}
 	resp, err := wc.CallConstantFunction(ctx, scInfo)
 	if err != nil {
@@ -88,8 +88,8 @@ func (p *UniswapPoolV3) GetTickMappingValueFromContract(tickNum int16) (*big.Int
 		Params:            []interface{}{tickNum},
 	}
 	wc := p.Web3Actions
-	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL != "" && !p.SimMode {
-		wc = web3_actions.NewWeb3ActionsClientWithAccount(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.Account)
+	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL != "" && !p.SimMode {
+		wc = web3_actions.NewWeb3ActionsClientWithAccount(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.Account)
 	}
 	ctx := context.Background()
 	resp, err := wc.CallConstantFunction(ctx, scInfo)
@@ -125,8 +125,8 @@ func (p *UniswapPoolV3) GetTickFromContract(tickNum int) (entities.Tick, error) 
 		Index: tickNum,
 	}
 	wc := p.Web3Actions
-	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL != "" && !p.SimMode {
-		wc = web3_actions.NewWeb3ActionsClientWithAccount(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.Account)
+	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL != "" && !p.SimMode {
+		wc = web3_actions.NewWeb3ActionsClientWithAccount(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.Account)
 	}
 	ctx := context.Background()
 	resp, err := wc.CallConstantFunction(ctx, scInfo)
@@ -172,8 +172,8 @@ func (p *UniswapPoolV3) GetPopulatedTicksMap() ([]entities.Tick, error) {
 	}
 	var ticksSlice []entities.Tick
 	wc := p.Web3Actions
-	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL != "" && !p.SimMode {
-		wc = web3_actions.NewWeb3ActionsClientWithAccount(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.Account)
+	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL != "" && !p.SimMode {
+		wc = web3_actions.NewWeb3ActionsClientWithAccount(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.Account)
 	}
 	ctx := context.Background()
 	resp, err := wc.CallConstantFunction(ctx, scInfo)

@@ -4,7 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/stretchr/testify/suite"
+	s3uploader "github.com/zeus-fyi/olympus/datastores/s3/upload"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	"github.com/zeus-fyi/olympus/pkg/aegis/s3secrets"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
@@ -31,6 +34,17 @@ func (t *AuthStartupTestSuite) TestSecretsEncrypt() {
 
 	err := t.S3Secrets.GzipAndEncrypt(&p)
 	t.Require().Nil(err)
+
+	fn := "secrets.tar.gz.age"
+	bucketName := "zeus-fyi"
+	input := &s3.PutObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(fn),
+	}
+
+	uploader := s3uploader.NewS3ClientUploader(t.S3)
+	err = uploader.Upload(ctx, p, input)
+	t.Require().Nil(err)
 }
 
 func (t *AuthStartupTestSuite) TestAuthStartup() {
@@ -44,7 +58,7 @@ func (t *AuthStartupTestSuite) TestAuthStartup() {
 	inMemFs := ReadEncryptedSecretsData(ctx, authCfg)
 
 	t.Require().NotEmpty(inMemFs)
-	//
+
 	//authCfg.Path.FnIn = "secrets.tar.gz.age"
 	//authCfg.Path.FnOut = "secrets.tar.gz"
 	//inMemSecrets, sw := RunDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)

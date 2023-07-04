@@ -43,14 +43,15 @@ func NewArtemisConfig(protocol, network string) ArtemisConfig {
 }
 
 var (
-	ArtemisQuicknodeStreamWebsocket              = ""
-	ArtemisEthereumMainnet                       = NewArtemisConfig(Ethereum, Mainnet)
-	ArtemisEthereumMainnetQuiknode               = NewArtemisConfig(Ethereum, Mainnet)
-	ArtemisEthereumMainnetQuiknodeLive           = NewArtemisConfig(Ethereum, Mainnet)
-	ArtemisEthereumMainnetQuiknodeHistoricalData = NewArtemisConfig(Ethereum, Mainnet)
-	ArtemisEthereumGoerli                        = NewArtemisConfig(Ethereum, Goerli)
-	ArtemisEthereumEphemeral                     = NewArtemisConfig(Ethereum, Ephemery)
-	GlobalArtemisConfigs                         = []*ArtemisConfig{&ArtemisEthereumMainnet, &ArtemisEthereumGoerli, &ArtemisEthereumEphemeral}
+	ArtemisQuicknodeStreamWebsocket                   = ""
+	ArtemisEthereumMainnet                            = NewArtemisConfig(Ethereum, Mainnet)
+	ArtemisEthereumMainnetQuiknode                    = NewArtemisConfig(Ethereum, Mainnet)
+	ArtemisEthereumMainnetQuiknodeLive                = NewArtemisConfig(Ethereum, Mainnet)
+	ArtemisEthereumMainnetQuiknodeHistoricalPrimary   = NewArtemisConfig(Ethereum, Mainnet)
+	ArtemisEthereumMainnetQuiknodeHistoricalSecondary = NewArtemisConfig(Ethereum, Mainnet)
+	ArtemisEthereumGoerli                             = NewArtemisConfig(Ethereum, Goerli)
+	ArtemisEthereumEphemeral                          = NewArtemisConfig(Ethereum, Ephemery)
+	GlobalArtemisConfigs                              = []*ArtemisConfig{&ArtemisEthereumMainnet, &ArtemisEthereumGoerli, &ArtemisEthereumEphemeral}
 )
 
 func (b *BeaconNetwork) GetBeaconSecretKey() string {

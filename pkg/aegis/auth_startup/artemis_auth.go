@@ -9,10 +9,11 @@ import (
 )
 
 const (
-	QuiknodeStreamWsSecret       = "secrets/artemis.ethereum.mainnet.quiknode.stream.ws.txt"
-	QuikNodeSecret               = "secrets/artemis.ethereum.mainnet.quiknode.txt"
-	QuikNodeSecretLive           = "secrets/artemis.ethereum.mainnet.quiknode.live.txt"
-	QuiknodeHistoricalDataSecret = "secrets/artemis.ethereum.mainnet.quiknode.historical.data.txt"
+	QuiknodeStreamWsSecret            = "secrets/artemis.ethereum.mainnet.quiknode.stream.ws.txt"
+	QuikNodeSecret                    = "secrets/artemis.ethereum.mainnet.quiknode.txt"
+	QuikNodeSecretLive                = "secrets/artemis.ethereum.mainnet.quiknode.live.txt"
+	QuiknodeHistoricalPrimarySecret   = "secrets/artemis.ethereum.mainnet.quiknode.historical.primary.txt"
+	QuiknodeHistoricalSecondarySecret = "secrets/artemis.ethereum.mainnet.quiknode.historical.secondary.txt"
 )
 
 func InitArtemisEthereum(ctx context.Context, inMemSecrets memfs.MemFS, secrets SecretsWrapper) {
@@ -25,8 +26,11 @@ func InitArtemisEthereum(ctx context.Context, inMemSecrets memfs.MemFS, secrets 
 		cfg.AddAccountFromHexPk(ctx, key)
 	}
 
-	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.NodeURL = secrets.MustReadSecret(ctx, inMemSecrets, QuiknodeHistoricalDataSecret)
-	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalData.Account = artemis_network_cfgs.ArtemisEthereumMainnet.Account
+	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL = secrets.MustReadSecret(ctx, inMemSecrets, QuiknodeHistoricalPrimarySecret)
+	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.Account = artemis_network_cfgs.ArtemisEthereumMainnet.Account
+
+	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalSecondary.NodeURL = secrets.MustReadSecret(ctx, inMemSecrets, QuiknodeHistoricalSecondarySecret)
+	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalSecondary.Account = artemis_network_cfgs.ArtemisEthereumMainnet.Account
 
 	artemis_network_cfgs.ArtemisQuicknodeStreamWebsocket = secrets.MustReadSecret(ctx, inMemSecrets, QuiknodeStreamWsSecret)
 	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL = secrets.MustReadSecret(ctx, inMemSecrets, QuikNodeSecretLive)

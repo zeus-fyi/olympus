@@ -36,7 +36,7 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 	if endLockedSessionLease == relayTo {
 		return p.ProcessEndSessionLock(c, endLockedSessionLease)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	routeInfo, err := proxy_anvil.SessionLocker.GetSessionLockedRoute(ctx, relayTo)
 	if err != nil {

@@ -1,7 +1,9 @@
 package v1_iris
 
 import (
+	"context"
 	"errors"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -22,10 +24,10 @@ func InternalBetaProxyRequestHandler(c echo.Context) error {
 		log.Err(err)
 		return err
 	}
-	return request.ProcessInternalHardhat(c, true)
+	return request.ProcessInternalHardhat(c.Request().Context(), c, true)
 }
 
-func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal bool) error {
+func (p *BetaProxyRequest) ProcessInternalHardhat(ctx context.Context, c echo.Context, isInternal bool) error {
 	relayTo := c.Request().Header.Get("Session-Lock-ID")
 	if relayTo == "" {
 		return c.JSON(http.StatusBadRequest, errors.New("Session-Lock-ID header is required"))
@@ -37,8 +39,13 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 	r, err := proxy_anvil.SessionLocker.GetSessionLockedRoute(relayTo)
 	if err != nil {
 		log.Err(err).Interface("relayDestination", relayTo).Msgf("proxy_anvil.SessionLocker.GetSessionLockedRoute %e", err)
-		time.Sleep(50 * time.Millisecond)
-		return p.ProcessInternalHardhat(c, isInternal)
+		newCtx, cancel := context.WithTimeout(ctx, 6*time.Second)
+		defer cancel()
+		minDuration := 25 * time.Millisecond
+		maxDuration := 100 * time.Millisecond
+		jitter := time.Duration(1) * (time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration)
+		time.Sleep(jitter)
+		return p.ProcessInternalHardhat(newCtx, c, isInternal)
 	}
 	req := &artemis_api_requests.ApiProxyRequest{
 		Url:        r.Route,

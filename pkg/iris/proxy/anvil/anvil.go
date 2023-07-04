@@ -60,6 +60,8 @@ func (a *AnvilProxy) GetSessionLockedRoute(ctx context.Context, sessionID string
 		return route, nil
 	}
 	i := 0
+	j := 0
+	pqSize := a.PriorityQueue.Size()
 	for {
 		route, ttl, ok := a.PriorityQueue.Pop()
 		if !ok {
@@ -93,9 +95,14 @@ func (a *AnvilProxy) GetSessionLockedRoute(ctx context.Context, sessionID string
 		}
 		a.PriorityQueue.Push(route, ttl)
 
-		minDuration := 1 * time.Millisecond
-		maxDuration := 10 * time.Millisecond
-		jitter := time.Duration(i) * (time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration)
-		time.Sleep(jitter)
+		if i >= int(pqSize) {
+			minDuration := 1 * time.Millisecond
+			maxDuration := 10 * time.Millisecond
+			jitter := time.Duration(j) * (time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration)
+			time.Sleep(jitter)
+			fmt.Println("locked route, sleeping for ", route, jitter)
+			j++
+		}
+		i++
 	}
 }

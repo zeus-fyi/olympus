@@ -78,5 +78,9 @@ func (p *BetaProxyRequest) Process(c echo.Context, r *artemis_api_requests.ApiPr
 		log.Err(err)
 		return err
 	}
+	if resp == nil {
+		log.Warn().Msg("resp == nil")
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
 	return c.JSON(http.StatusOK, resp.Response)
 }

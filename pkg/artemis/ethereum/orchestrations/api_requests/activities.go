@@ -29,10 +29,14 @@ func (a *ArtemisApiRequestsActivities) RelayRequest(ctx context.Context, pr *Api
 	if pr.IsInternal {
 		r.SetAuthToken(artemis_orchestration_auth.Bearer)
 	}
-	_, err := r.R().SetBody(&pr.Payload).SetResult(&pr.Response).Post(pr.Url)
+	resp, err := r.R().SetBody(&pr.Payload).SetResult(&pr.Response).Post(pr.Url)
 	if err != nil {
 		log.Err(err).Msg("Failed to relay api request")
 		return nil, err
+	}
+	if resp.StatusCode() >= 400 {
+		log.Err(err).Msg("Failed to relay api request")
+		return nil, fmt.Errorf("failed to relay api request: status code %d", resp.StatusCode())
 	}
 	return pr, err
 }

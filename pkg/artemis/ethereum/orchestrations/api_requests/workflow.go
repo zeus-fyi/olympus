@@ -25,7 +25,7 @@ func NewArtemisApiRequestsWorkflow() ArtemisApiRequestsWorkflow {
 }
 
 func (a *ArtemisApiRequestsWorkflow) GetWorkflows() []interface{} {
-	return []interface{}{a.ProxyRequest}
+	return []interface{}{a.ProxyRequest, a.ProxyInternalRequest}
 }
 
 type ApiProxyRequest struct {
@@ -43,6 +43,7 @@ func (a *ArtemisApiRequestsWorkflow) ProxyRequest(ctx workflow.Context, pr *ApiP
 		RetryPolicy: &temporal.RetryPolicy{
 			InitialInterval:    50 * time.Millisecond,
 			BackoffCoefficient: 1.2,
+			MaximumAttempts:    100,
 		},
 	}
 	sendCtx := workflow.WithActivityOptions(ctx, ao)

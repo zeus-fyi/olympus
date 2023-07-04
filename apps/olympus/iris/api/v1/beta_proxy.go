@@ -55,7 +55,7 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 }
 
 func (p *BetaProxyRequest) Process(c echo.Context, r *artemis_api_requests.ApiProxyRequest) error {
-	resp, err := artemis_api_requests.ArtemisProxyWorker.ExecuteArtemisApiProxyWorkflow(c.Request().Context(), r)
+	resp, err := artemis_api_requests.ArtemisProxyWorker.ExecuteArtemisInternalSvcApiProxyWorkflow(c.Request().Context(), r)
 	if err != nil {
 		log.Err(err)
 		return err

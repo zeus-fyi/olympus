@@ -2,7 +2,6 @@ package v1_iris
 
 import (
 	"errors"
-	"math/rand"
 	"net/http"
 	"time"
 
@@ -39,19 +38,9 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 	if endLockedSessionLease == relayTo {
 		return p.ProcessEndSessionLock(c, endLockedSessionLease)
 	}
-	wfExecutor := c.Request().Header.Get("Durable-Execution-ID")
 	routeInfo, err := proxy_anvil.SessionLocker.GetSessionLockedRoute(relayTo)
-	if err != nil {
-		log.Err(err).Interface("relayDestination", relayTo).Msgf("proxy_anvil.SessionLocker.GetSessionLockedRoute %e", err)
-		minDuration := 25 * time.Millisecond
-		maxDuration := 100 * time.Millisecond
-		jitter := time.Duration(1) * (time.Duration(rand.Int63n(int64(maxDuration-minDuration))) + minDuration)
-		time.Sleep(jitter)
-		c.Set("Session-Lock-ID", relayTo)
-		if wfExecutor != "" {
-			c.Set("Durable-Execution-ID", wfExecutor)
-		}
-		return p.ProcessInternalHardhat(c, isInternal, tryNumber+1)
+	if routeInfo == nil {
+		return c.JSON(http.StatusServiceUnavailable, errors.New("no available routes"))
 	}
 	req := &artemis_api_requests.ApiProxyRequest{
 		Url:        routeInfo.Route,
@@ -59,6 +48,7 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 		IsInternal: isInternal,
 		Timeout:    1 * time.Minute,
 	}
+	wfExecutor := c.Request().Header.Get("Durable-Execution-ID")
 	if wfExecutor != "" {
 		return p.Process(c, req)
 	}

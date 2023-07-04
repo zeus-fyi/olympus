@@ -86,7 +86,7 @@ func (a *AnvilProxy) GetSessionLockedRoute(sessionID string) (*Route, error) {
 	return r, nil
 }
 
-func (a *AnvilProxy) GetNextAvailableRouteAndAssignToSession(sessionID string) (*Route, error) {
+func (a *AnvilProxy) GetNextAvailableRouteAndAssignToSession(sessionID string, retryCount int) (*Route, error) {
 	if a.LFU.Len() < len(AnvilRoutes) {
 		r := &Route{
 			Index:     a.LFU.Len(),

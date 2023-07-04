@@ -31,6 +31,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 				return nil, errors.New("expectedProfit == 0 or 1")
 			}
+			tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 			a.m.TxFetcherMetrics.TransactionGroup(toAddr, web3_client.V3SwapExactIn)
 			a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path.TokenIn.String(), inputs.Path.GetEndToken().String())
 			a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V3SwapExactIn, pd.V3Pair.PoolAddress, inputs.Path.TokenIn.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
@@ -48,6 +49,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 				return nil, errors.New("expectedProfit == 0 or 1")
 			}
+			tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 			a.m.TxFetcherMetrics.TransactionGroup(toAddr, web3_client.V3SwapExactOut)
 			a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path.TokenIn.String(), inputs.Path.GetEndToken().String())
 			a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V3SwapExactOut, pd.V3Pair.PoolAddress, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
@@ -65,6 +67,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 				return nil, errors.New("expectedProfit == 0 or 1")
 			}
+			tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 			a.m.TxFetcherMetrics.TransactionGroup(toAddr, web3_client.V2SwapExactIn)
 			pend := len(inputs.Path) - 1
 			a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path[0].String(), inputs.Path[pend].String())
@@ -83,6 +86,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 				return nil, errors.New("expectedProfit == 0 or 1")
 			}
+			tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 			a.m.TxFetcherMetrics.TransactionGroup(toAddr, web3_client.V2SwapExactOut)
 			pend := len(inputs.Path) - 1
 			a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path[0].String(), inputs.Path[pend].String())

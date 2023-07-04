@@ -79,6 +79,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
+		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, exactInput)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, exactInput, pd.V3Pair.PoolAddress, inputs.TokenFeePath.TokenIn.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
@@ -100,6 +101,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
+		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, exactOutput)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, exactOutput, pd.V3Pair.PoolAddress, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
@@ -121,6 +123,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
+		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactInputSingle)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactInputSingle, pd.V3Pair.PoolAddress, inputs.TokenFeePath.TokenIn.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
@@ -142,6 +145,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
+		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactOutputSingle)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactOutputSingle, pd.V3Pair.PoolAddress, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
@@ -163,6 +167,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
+		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokens)
 		pend := len(inputs.Path) - 1
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path[0].String(), inputs.Path[pend].String())

@@ -24,6 +24,13 @@ func (u *UniswapClient) SimFullSandwichTrade(tf *TradeExecutionFlow) error {
 		log.Err(err).Msg("error setting balance")
 		return err
 	}
+	nv, _ := new(big.Int).SetString("0", 10)
+	nvB := (*hexutil.Big)(nv)
+	err = u.Web3Client.SetNonce(ctx, u.Web3Client.PublicKey(), *nvB)
+	if err != nil {
+		log.Err(err).Msg("error setting nonce")
+		return err
+	}
 	max, _ := new(big.Int).SetString(MaxUINT, 10)
 	approveTx, err := u.ApproveSpender(ctx, WETH9ContractAddress, Permit2SmartContractAddress, max)
 	if err != nil {

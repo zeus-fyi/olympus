@@ -35,16 +35,30 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 		log.Err(err).Msg("proxy_anvil.SessionLocker.GetSessionLockedRoute")
 		return c.JSON(http.StatusServiceUnavailable, err)
 	}
-	rw := artemis_api_requests.NewArtemisApiRequestsActivities()
-	resp, err := rw.InternalSvcRelayRequest(c.Request().Context(), &artemis_api_requests.ApiProxyRequest{
+	req := &artemis_api_requests.ApiProxyRequest{
 		Url:        r.Route,
 		Payload:    p.Body,
 		IsInternal: isInternal,
 		Timeout:    1 * time.Minute,
-	})
+	}
+	wfExecutor := c.Request().Header.Get("Durable-Execution-ID")
+	if wfExecutor != "" {
+		return p.Process(c, req)
+	}
+	rw := artemis_api_requests.NewArtemisApiRequestsActivities()
+	resp, err := rw.InternalSvcRelayRequest(c.Request().Context(), req)
 	if err != nil {
 		log.Err(err)
 		return c.JSON(http.StatusInternalServerError, err)
+	}
+	return c.JSON(http.StatusOK, resp.Response)
+}
+
+func (p *BetaProxyRequest) Process(c echo.Context, r *artemis_api_requests.ApiProxyRequest) error {
+	resp, err := artemis_api_requests.ArtemisProxyWorker.ExecuteArtemisApiProxyWorkflow(c.Request().Context(), r)
+	if err != nil {
+		log.Err(err)
+		return err
 	}
 	return c.JSON(http.StatusOK, resp.Response)
 }

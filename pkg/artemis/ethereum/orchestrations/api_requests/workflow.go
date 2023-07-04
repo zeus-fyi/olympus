@@ -53,3 +53,22 @@ func (a *ArtemisApiRequestsWorkflow) ProxyRequest(ctx workflow.Context, pr *ApiP
 	}
 	return pr, err
 }
+
+func (a *ArtemisApiRequestsWorkflow) ProxyInternalRequest(ctx workflow.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
+	log := workflow.GetLogger(ctx)
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: pr.Timeout,
+		RetryPolicy: &temporal.RetryPolicy{
+			InitialInterval:    50 * time.Millisecond,
+			BackoffCoefficient: 1.2,
+			MaximumAttempts:    100,
+		},
+	}
+	sendCtx := workflow.WithActivityOptions(ctx, ao)
+	err := workflow.ExecuteActivity(sendCtx, a.InternalSvcRelayRequest, pr).Get(sendCtx, &pr)
+	if err != nil {
+		log.Error("Failed to relay api request", "Error", err)
+		return pr, err
+	}
+	return pr, err
+}

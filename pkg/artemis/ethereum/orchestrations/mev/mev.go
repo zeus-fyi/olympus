@@ -43,6 +43,7 @@ func InitNewUniHardhat(ctx context.Context) *web3_client.UniswapClient {
 	uni.PrintOn = true
 	uni.PrintLocal = false
 	uni.Web3Client.IsAnvilNode = true
+	uni.Web3Client.DurableExecution = true
 	return &uni
 }
 

@@ -115,6 +115,9 @@ func (a *AnvilProxy) waitForNextAvailableRoute(sessionID string) (*Route, error)
 	a.LFU.Evict(1)
 	ev := <-ch
 	log.Info().Msgf("evicted: key %v, val %v", ev.Key, ev.Value)
+	if ev.Value == nil {
+		return nil, errors.New("no available routes")
+	}
 	r := &Route{
 		Index:     ev.Value.(int),
 		SessionID: sessionID,

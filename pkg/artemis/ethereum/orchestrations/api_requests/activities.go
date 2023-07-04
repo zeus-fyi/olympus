@@ -44,6 +44,9 @@ func (a *ArtemisApiRequestsActivities) RelayRequest(ctx context.Context, pr *Api
 func (a *ArtemisApiRequestsActivities) InternalSvcRelayRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
 	r := resty.New()
 	r.SetBaseURL(pr.Url)
+	if pr.IsInternal {
+		r.SetAuthToken(artemis_orchestration_auth.Bearer)
+	}
 	resp, err := r.R().SetBody(&pr.Payload).SetResult(&pr.Response).Post(pr.Url)
 	if err != nil {
 		log.Err(err).Interface("statusCode", resp.StatusCode()).Msg("Failed to relay api request")

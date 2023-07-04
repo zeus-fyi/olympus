@@ -11,14 +11,15 @@ import (
 func (s *Web3ClientTestSuite) TestHistoricalAnalysisReplay() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ForceDirToTestDirLocation()
-	mevTxs, merr := artemis_validator_service_groups_models.SelectEthMevTxAnalysisByTxHash(ctx, "0xe2cdebffe36fe402e2273a957b84f1b3ad442ff8f2c99376a5ed72a8fb9ad89d")
+	mevTxs, merr := artemis_validator_service_groups_models.SelectEthMevTxAnalysisByTxHash(ctx, "0x616523c105521657036fa3c87b01914ce249c385ab5cc526f5f7e3464321b710")
 	s.Require().Nil(merr)
 	s.Require().NotEmpty(mevTxs)
 	for _, mevTx := range mevTxs {
 		fmt.Println(mevTx.TradeMethod)
-		uni := InitUniswapClient(ctx, s.HostedHardhatMainnetUser)
+		uni := InitUniswapClient(ctx, s.ProxyHostedHardhatMainnetUser)
+		uni.Web3Client.IsAnvilNode = true
 		uni.DebugPrint = true
-		err := uni.RunHistoricalTradeAnalysis(ctx, mevTx.TxFlowPrediction, s.MainnetWeb3UserExternal)
+		err := uni.RunHistoricalTradeAnalysis(ctx, mevTx.TxFlowPrediction, s.ProxyHostedHardhatMainnetUser)
 		uni.PrintResults()
 		s.Assert().Nil(err)
 	}

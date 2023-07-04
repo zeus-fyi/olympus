@@ -30,9 +30,9 @@ type ActivitiesSlice []interface{}
 
 func (d *ArtemisMevActivities) GetActivities() ActivitiesSlice {
 	return []interface{}{d.SendEther, d.SubmitSignedTx, d.WaitForTxReceipt, d.BlacklistMinedTxs, d.ConvertMempoolTxs,
-		d.GetMempoolTxs, d.ProcessMempoolTxs, d.SimulateAndValidateBundle, d.SubmitFlashbotsBundle, d.RemoveProcessedTx,
+		d.GetDynamoDBMempoolTxs, d.ProcessMempoolTxs, d.SimulateAndValidateBundle, d.SubmitFlashbotsBundle, d.RemoveProcessedTx,
 		d.HistoricalSimulateAndValidateTx, d.FetchERC20TokenInfo, d.FetchERC20TokenBalanceOfStorageSlot,
-		d.CalculateTransferTaxFee,
+		d.CalculateTransferTaxFee, d.BlacklistProcessedTxs,
 	}
 }
 

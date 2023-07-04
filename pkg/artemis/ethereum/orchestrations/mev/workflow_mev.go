@@ -3,11 +3,9 @@ package artemis_mev_transcations
 import (
 	"time"
 
-	"github.com/ethereum/go-ethereum/core/types"
 	dynamodb_mev "github.com/zeus-fyi/olympus/datastores/dynamodb/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"go.temporal.io/api/enums/v1"
-	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -67,53 +65,38 @@ func (t *ArtemisMevWorkflow) ArtemisRemoveProcessedTxsWorkflow(ctx workflow.Cont
 	return nil
 }
 
-// TODO update timeouts and finish this workflow, sync times with mainnet/goerli block times
+func (t *ArtemisMevWorkflow) ArtemisTxBlacklistProcessedTxsWorkflow(ctx workflow.Context, txSlice artemis_autogen_bases.EthMempoolMevTxSlice) error {
+	log := workflow.GetLogger(ctx)
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: time.Second * 12,
+	}
+	blacklistTxsCtx := workflow.WithActivityOptions(ctx, ao)
+	err := workflow.ExecuteActivity(blacklistTxsCtx, t.BlacklistProcessedTxs, txSlice).Get(blacklistTxsCtx, nil)
+	if err != nil {
+		log.Error("Failed to blacklist mempool txs", "Error", err)
+		return err
+	}
+	return nil
+}
 
-func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context) error {
+func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context, blockNumber int) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
 	}
 	getMempoolTxsCtx := workflow.WithActivityOptions(ctx, ao)
-	var mempoolTxs []dynamodb_mev.MempoolTxsDynamoDB
-	err := workflow.ExecuteActivity(getMempoolTxsCtx, t.GetMempoolTxs).Get(getMempoolTxsCtx, &mempoolTxs)
+	var mempoolTxs artemis_autogen_bases.EthMempoolMevTxSlice
+	err := workflow.ExecuteActivity(getMempoolTxsCtx, t.GetPostgresMempoolTxs, blockNumber).Get(getMempoolTxsCtx, &mempoolTxs)
 	if err != nil {
 		log.Error("Failed to get mempool txs", "Error", err)
 		return err
 	}
 
-	convertAo := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Second * 60,
-		RetryPolicy: &temporal.RetryPolicy{
-			MaximumAttempts: 20,
-		},
-	}
-	var convertedMempoolTxs map[string]map[string]*types.Transaction
-	convertMempoolTxsCtx := workflow.WithActivityOptions(ctx, convertAo)
-	err = workflow.ExecuteActivity(convertMempoolTxsCtx, t.ConvertMempoolTxs, mempoolTxs).Get(convertMempoolTxsCtx, &convertedMempoolTxs)
-	if err != nil {
-		log.Error("Failed to convert mempool txs", "Error", err)
-		return err
-	}
-
-	processAo := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Second * 60,
-		RetryPolicy: &temporal.RetryPolicy{
-			MaximumAttempts: 5,
-		},
-	}
-	processMempoolTxsCtx := workflow.WithActivityOptions(ctx, processAo)
-	var trades []artemis_autogen_bases.EthMempoolMevTx
-	err = workflow.ExecuteActivity(processMempoolTxsCtx, t.ProcessMempoolTxs, convertedMempoolTxs).Get(processMempoolTxsCtx, &trades)
-	if err != nil {
-		log.Error("Failed to process mempool txs", "Error", err)
-		return err
-	}
 	childWorkflowOptions := workflow.ChildWorkflowOptions{
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
 	}
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
-	childWorkflowFuture := workflow.ExecuteChildWorkflow(ctx, "ArtemisRemoveProcessedTxsWorkflow", mempoolTxs)
+	childWorkflowFuture := workflow.ExecuteChildWorkflow(ctx, "ArtemisTxBlacklistProcessedTxsWorkflow", mempoolTxs)
 	var childWE workflow.Execution
 	if err = childWorkflowFuture.GetChildWorkflowExecution().Get(ctx, &childWE); err != nil {
 		log.Error("Failed to get child workflow execution", "Error", err)
@@ -127,7 +110,7 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context) error {
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
 	histTxTrades := HistoricalTxAnalysis{
 		StartTimeDelay: 12 * time.Second,
-		Trades:         trades,
+		Trades:         mempoolTxs,
 	}
 	childWorkflowFutureHistoricalSimTx := workflow.ExecuteChildWorkflow(ctx, "ArtemisHistoricalSimTxWorkflow", histTxTrades)
 	var childWEHistoricalSimTx workflow.Execution

@@ -10,6 +10,7 @@ import (
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
 	dynamodb_mev "github.com/zeus-fyi/olympus/datastores/dynamodb/mev"
+	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
@@ -42,7 +43,7 @@ func (d *ArtemisMevActivities) BlacklistMinedTxs(ctx context.Context) error {
 	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
 	txs, terr := wc.GetBlockTxs(ctx)
 	if terr != nil {
-		log.Err(terr).Str("network", d.Network).Msg("GetMempoolTxs failed")
+		log.Err(terr).Str("network", d.Network).Msg("GetDynamoDBMempoolTxs failed")
 		return terr
 	}
 	for _, tx := range txs {
@@ -61,6 +62,23 @@ func (d *ArtemisMevActivities) BlacklistMinedTxs(ctx context.Context) error {
 	return nil
 }
 
+func (d *ArtemisMevActivities) BlacklistProcessedTxs(ctx context.Context, txSlice artemis_autogen_bases.EthMempoolMevTxSlice) error {
+	for _, tx := range txSlice {
+		c.Set(tx.Tx, tx, cache.DefaultExpiration)
+		txBlackList := dynamodb_mev.TxBlacklistDynamoDB{
+			TxBlacklistDynamoDBTableKeys: dynamodb_mev.TxBlacklistDynamoDBTableKeys{
+				TxHash: tx.Tx,
+			},
+		}
+		err := artemis_orchestration_auth.MevDynamoDBClient.PutTxBlacklist(ctx, txBlackList)
+		if err != nil {
+			log.Err(err).Str("network", d.Network).Msg("BlacklistProcessedTxs failed")
+			return err
+		}
+	}
+	return nil
+}
+
 func (d *ArtemisMevActivities) RemoveProcessedTx(ctx context.Context, tx dynamodb_mev.MempoolTxsDynamoDB) error {
 	err := artemis_orchestration_auth.MevDynamoDBClient.RemoveMempoolTx(ctx, tx)
 	if err != nil {
@@ -70,10 +88,19 @@ func (d *ArtemisMevActivities) RemoveProcessedTx(ctx context.Context, tx dynamod
 	return nil
 }
 
-func (d *ArtemisMevActivities) GetMempoolTxs(ctx context.Context) ([]dynamodb_mev.MempoolTxsDynamoDB, error) {
+func (d *ArtemisMevActivities) GetDynamoDBMempoolTxs(ctx context.Context) ([]dynamodb_mev.MempoolTxsDynamoDB, error) {
 	txs, terr := artemis_orchestration_auth.MevDynamoDBClient.GetMempoolTxs(ctx, d.Network)
 	if terr != nil {
-		log.Err(terr).Str("network", d.Network).Msg("GetMempoolTxs failed")
+		log.Err(terr).Str("network", d.Network).Msg("GetDynamoDBMempoolTxs failed")
+		return nil, terr
+	}
+	return txs, nil
+}
+
+func (d *ArtemisMevActivities) GetPostgresMempoolTxs(ctx context.Context, bn int) (artemis_autogen_bases.EthMempoolMevTxSlice, error) {
+	txs, terr := artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, 1, bn)
+	if terr != nil {
+		log.Err(terr).Str("network", d.Network).Msg("GetPostgresMempoolTxs failed")
 		return nil, terr
 	}
 	return txs, nil

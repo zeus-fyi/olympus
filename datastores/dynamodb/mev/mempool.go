@@ -52,14 +52,14 @@ func (m *MevDynamoDB) GetMempoolTxs(ctx context.Context, network string) ([]Memp
 	}
 	r, err := m.Scan(ctx, scanInput)
 	if err != nil {
-		log.Err(err).Msg("GetMempoolTxs: error scanning mempool txs")
+		log.Err(err).Msg("GetDynamoDBMempoolTxs: error scanning mempool txs")
 		return nil, err
 	}
 
 	var mempoolTxs []MempoolTxsDynamoDB
 	err = attributevalue.UnmarshalListOfMaps(r.Items, &mempoolTxs)
 	if err != nil {
-		log.Err(err).Msg("GetMempoolTxs: error UnmarshalListOfMaps mempool txs")
+		log.Err(err).Msg("GetDynamoDBMempoolTxs: error UnmarshalListOfMaps mempool txs")
 		return nil, err
 	}
 

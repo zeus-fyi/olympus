@@ -28,8 +28,9 @@ func (w *Web3Client) ERC20ApproveSpender(ctx context.Context, scAddr, spenderAdd
 			TransferArgs: web3_actions.TransferArgs{},
 			GasPriceLimits: web3_actions.GasPriceLimits{
 				GasLimit:  200000,
+				GasPrice:  GweiMultiple(50),
 				GasTipCap: GweiMultiple(2),
-				GasFeeCap: GweiMultiple(50),
+				GasFeeCap: GweiMultiple(100),
 			},
 		},
 		ContractABI: abiFile,

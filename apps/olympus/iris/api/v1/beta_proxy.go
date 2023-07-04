@@ -36,7 +36,7 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 	}
 	r, err := proxy_anvil.SessionLocker.GetSessionLockedRoute(relayTo)
 	if err != nil {
-		log.Err(err).Msg("proxy_anvil.SessionLocker.GetSessionLockedRoute")
+		log.Err(err).Interface("relayDestination", relayTo).Msgf("proxy_anvil.SessionLocker.GetSessionLockedRoute %e", err)
 		return c.JSON(http.StatusServiceUnavailable, err)
 	}
 	req := &artemis_api_requests.ApiProxyRequest{

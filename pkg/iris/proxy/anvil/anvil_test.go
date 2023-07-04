@@ -1,6 +1,7 @@
 package proxy_anvil
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -13,32 +14,47 @@ type AnvilTestSuite struct {
 	test_suites_base.TestSuite
 }
 
+var ctx = context.Background()
+
 func (t *AnvilTestSuite) SetupTest() {
 	t.InitLocalConfigs()
 	InitAnvilProxy()
 	SessionLocker.LockDefaultTime = time.Second * 1
-	t.Assert().NotNil(SessionLocker.LFU)
+	t.Require().NotNil(SessionLocker.PriorityQueue)
 }
 
 func (t *AnvilTestSuite) TestSessionLocker() {
-	r, err := SessionLocker.getNextAvailableRouteAndAssignToSession("test1")
-	t.Assert().Nil(err)
+	r, err := SessionLocker.GetSessionLockedRoute(ctx, "test1")
+	t.Require().Nil(err)
 	t.Assert().NotNil(r)
-	r2, err := SessionLocker.getNextAvailableRouteAndAssignToSession("test2")
-	t.Assert().Nil(err)
+	fmt.Println(r)
+	r2, err := SessionLocker.GetSessionLockedRoute(ctx, "test2")
+	t.Require().Nil(err)
 	t.Assert().NotNil(r2)
-
-	_, err = SessionLocker.GetSessionLockedRoute("test2")
+	fmt.Println(r2)
+	r2again, err := SessionLocker.GetSessionLockedRoute(ctx, "test2")
 	t.Assert().Nil(err)
-	lfKey, lfVal := SessionLocker.LFU.GetLeastFrequentValue()
-	t.Assert().NotNil(lfKey)
-	t.Assert().Equal("test1", lfKey)
-	fmt.Println(lfVal)
-
+	t.Require().Equal(r2again, r2)
 	time.Sleep(time.Second * 1)
-	nr, err := SessionLocker.getNextAvailableRouteAndAssignToSession("test3")
-	t.Assert().Nil(err)
-	t.Assert().NotNil(nr)
+
+	now := time.Now()
+	for i := 0; i < 20; i++ {
+		nr, err := SessionLocker.GetSessionLockedRoute(ctx, fmt.Sprintf("%d", i))
+		t.Assert().Nil(err)
+		t.Assert().NotNil(nr)
+		fmt.Println(nr)
+	}
+	fmt.Println("no removals", time.Since(now))
+	now = time.Now()
+
+	for i := 0; i < 20; i++ {
+		nr, err := SessionLocker.GetSessionLockedRoute(ctx, fmt.Sprintf("%d", i))
+		t.Assert().Nil(err)
+		t.Assert().NotNil(nr)
+		SessionLocker.RemoveSessionLockedRoute(fmt.Sprintf("%d", i))
+	}
+	fmt.Println("with removals", time.Since(now))
+
 }
 func TestAnvilTestSuite(t *testing.T) {
 	suite.Run(t, new(AnvilTestSuite))

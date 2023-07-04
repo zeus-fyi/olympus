@@ -23,7 +23,7 @@ func (s *ChronosTestSuite) TestEthUtils() {
 	for i := 0; i < 100; i++ {
 		time.Sleep(200 * time.Millisecond)
 		slotNumber := c.GetPendingMainnetSlotNum()
-		blockNumber := c.GetPendingMainnetBlockNumber()
+		blockNumber := c.GetPendingMainnetSlotNum()
 		slotNumberOffset := c.GetSecsSinceLastMainnetSlot()
 		fmt.Println(slotNumber, blockNumber, slotNumberOffset)
 	}

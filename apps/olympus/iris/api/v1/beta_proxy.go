@@ -1,6 +1,7 @@
 package v1_iris
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"time"
@@ -35,16 +36,15 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 	if endLockedSessionLease == relayTo {
 		return p.ProcessEndSessionLock(c, endLockedSessionLease)
 	}
-	routeInfo, err := proxy_anvil.SessionLocker.GetSessionLockedRoute(relayTo)
+	ctx, cancel := context.WithTimeout(c.Request().Context(), 3*time.Second)
+	defer cancel()
+	routeInfo, err := proxy_anvil.SessionLocker.GetSessionLockedRoute(ctx, relayTo)
 	if err != nil {
 		log.Err(err).Msg("proxy_anvil.SessionLocker.GetSessionLockedRoute")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	if routeInfo == nil {
-		return c.JSON(http.StatusServiceUnavailable, errors.New("no available routes"))
-	}
 	req := &artemis_api_requests.ApiProxyRequest{
-		Url:        routeInfo.Route,
+		Url:        routeInfo,
 		Payload:    p.Body,
 		IsInternal: isInternal,
 		Timeout:    1 * time.Minute,

@@ -7,6 +7,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	"github.com/zeus-fyi/olympus/pkg/apollo/ethereum/client_apis/beacon_api"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
@@ -72,6 +73,14 @@ func ProcessMempoolTxs(ctx context.Context) {
 	timestampChan := make(chan time.Time)
 	go beacon_api.TriggerWorkflowOnNewBlockHeaderEvent(ctx, artemis_network_cfgs.ArtemisQuicknodeStreamWebsocket, timestampChan)
 
+	wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
+	wc.Dial()
+	bn, berr := wc.C.BlockNumber(ctx)
+	if berr != nil {
+		log.Err(berr).Msg("failed to get block number")
+		return
+	}
+	defer wc.Close()
 	for {
 		select {
 		case t := <-timestampChan:
@@ -80,7 +89,7 @@ func ProcessMempoolTxs(ctx context.Context) {
 			err := ArtemisMevWorkerMainnet.ExecuteArtemisBlacklistTxWorkflow(ctx)
 			log.Info().Msg("ExecuteArtemisMevWorkflow")
 			time.Sleep(t.Add(8 * time.Second).Sub(time.Now()))
-			err = ArtemisMevWorkerMainnet.ExecuteArtemisMevWorkflow(ctx)
+			err = ArtemisMevWorkerMainnet.ExecuteArtemisMevWorkflow(ctx, int(bn))
 			if err != nil {
 				log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
 			}

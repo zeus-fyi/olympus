@@ -9,7 +9,7 @@ import (
 	"go.temporal.io/sdk/client"
 )
 
-func (t *ArtemisMevWorker) ExecuteArtemisMevWorkflow(ctx context.Context) error {
+func (t *ArtemisMevWorker) ExecuteArtemisMevWorkflow(ctx context.Context, blockNum int) error {
 	tc := t.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
@@ -17,7 +17,7 @@ func (t *ArtemisMevWorker) ExecuteArtemisMevWorkflow(ctx context.Context) error 
 	}
 	txWf := NewArtemisMevWorkflow()
 	wf := txWf.ArtemisMevWorkflow
-	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf)
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, blockNum)
 	if err != nil {
 		log.Err(err).Msg("ExecuteArtemisMevWorkflow")
 		return err

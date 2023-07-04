@@ -10,7 +10,7 @@ func NewStageProgressionMetrics(reg prometheus.Registerer) StageProgressionMetri
 	tx := StageProgressionMetrics{}
 	tx.PreSimTxCount = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "eth_pre_sim_tx_count",
+			Name: "eth_mev_pre_sim_tx_stage_count",
 			Help: "Tx count before simulation stage",
 		},
 		[]string{"pair", "in"},

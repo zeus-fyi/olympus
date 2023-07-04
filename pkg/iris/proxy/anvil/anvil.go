@@ -104,7 +104,6 @@ func (a *AnvilProxy) GetSessionLockedRoute(ctx context.Context, sessionID string
 			time.Sleep(jitter)
 			j++
 		}
-
 		i++
 	}
 }

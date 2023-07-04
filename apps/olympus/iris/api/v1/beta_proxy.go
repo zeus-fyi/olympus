@@ -26,16 +26,16 @@ func InternalBetaProxyRequestHandler(c echo.Context) error {
 }
 
 func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal bool) error {
-	relayTo := c.Request().Header.Get("Session-Lock-ID")
+	sessionID := c.Request().Header.Get("Session-Lock-ID")
 	wfExecutor := c.Request().Header.Get("Durable-Execution-ID")
-	if relayTo == "" {
+	if sessionID == "" {
 		return c.JSON(http.StatusBadRequest, errors.New("Session-Lock-ID header is required"))
 	}
 	endLockedSessionLease := c.Request().Header.Get("End-Session-Lock-ID")
-	if endLockedSessionLease == relayTo {
+	if endLockedSessionLease == sessionID {
 		return p.ProcessEndSessionLock(c, endLockedSessionLease)
 	}
-	routeInfo, err := proxy_anvil.SessionLocker.GetSessionLockedRoute(c.Request().Context(), relayTo)
+	routeInfo, err := proxy_anvil.SessionLocker.GetSessionLockedRoute(c.Request().Context(), sessionID)
 	if err != nil {
 		log.Err(err).Msg("proxy_anvil.SessionLocker.GetSessionLockedRoute")
 		return c.JSON(http.StatusInternalServerError, err)

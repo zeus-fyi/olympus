@@ -78,7 +78,7 @@ func (u *UniswapClient) GetAmountsOut(address *common.Address, amountIn *big.Int
 	for i, amount := range amountsOutFirstPair {
 		token := pathSlice[i]
 		out := uniswap_core_entities.NewFraction(amount, big.NewInt(1))
-		amountsOut[i] = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(token), out.Quotient())
+		amountsOutFirstPair[i] = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(token), out.Quotient())
 	}
 	return amountsOutFirstPair, err
 }

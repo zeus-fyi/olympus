@@ -33,7 +33,6 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	if err != nil {
 		return err
 	}
-
 	tfSlice, err := a.ProcessTxs(ctx)
 	if err != nil {
 		return err
@@ -45,6 +44,7 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	if err != nil {
 		return err
 	}
+	log.Info().Msg("tx passed all filters")
 	wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
 	wc.Dial()
 	bn, berr := wc.C.BlockNumber(ctx)

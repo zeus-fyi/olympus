@@ -41,6 +41,9 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	if err != nil {
 		return err
 	}
+	if len(tfSlice) <= 0 {
+		return errors.New("no tx flows to simulate")
+	}
 	a.m.StageProgressionMetrics.CountPostProcessTx(float64(1))
 	err = a.SimTxFilter(ctx, tfSlice)
 	if err != nil {

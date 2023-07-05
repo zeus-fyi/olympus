@@ -41,7 +41,7 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 		return err
 	}
 	a.m.StageProgressionMetrics.CountPostProcessTx(float64(1))
-	err = a.SimTxFilter(ctx, tx)
+	err = a.SimTxFilter(ctx, tfSlice)
 	if err != nil {
 		return err
 	}

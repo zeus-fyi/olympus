@@ -57,7 +57,8 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysisBulk() {
 	s.Assert().NotNil(tokens)
 	s.ca.UserA.IsAnvilNode = true
 	for _, token := range tokens {
-		err := s.ca.UserA.HardHatResetNetwork(ctx, s.Tc.QuiknodeLiveNode, 17595510)
+		s.ca.u.Web3Client.AddSessionLockHeader(token.Address)
+		err := s.ca.UserA.HardHatResetNetwork(ctx, s.ca.UserA.NodeURL, 17595510)
 		s.Require().Nil(err)
 		fmt.Println("token", token.Address)
 		s.ca.SmartContractAddr = token.Address
@@ -74,19 +75,33 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysisBulk() {
 		time.Sleep(100 * time.Millisecond)
 	}
 }
+
 func (s *ArtemisRealTimeTradingTestSuite) SetupTest() {
 	s.InitLocalConfigs()
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	artemis_trading_cache.InitTokenFilter(ctx)
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	//apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	newAccount, err := accounts.ParsePrivateKey("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
 	s.Assert().Nil(err)
 
 	pkHexString := s.Tc.LocalEcsdaTestPkey
 	secondAccount, err := accounts.ParsePrivateKey(pkHexString)
 	s.Assert().Nil(err)
-	//s.UserA = web3_client.NewWeb3Client(s.Tc.QuiknodeLiveNode, newAccount)
-	s.UserA = web3_client.NewWeb3Client("http://localhost:8545", newAccount)
+	irisBetaSvc := "https://iris.zeus.fyi/v1beta/internal/"
+
+	wc := web3_client.NewWeb3Client(irisBetaSvc, newAccount)
+	m := map[string]string{
+		"Authorization": "Bearer " + s.Tc.ProductionLocalTemporalBearerToken,
+	}
+	wc.Headers = m
+	uni := web3_client.InitUniswapClient(ctx, wc)
+	uni.PrintOn = true
+	uni.PrintLocal = false
+	uni.Web3Client.IsAnvilNode = true
+	uni.Web3Client.DurableExecution = true
+	s.UserA = wc
+	// web3_client.NewWeb3Client(s.Tc.QuiknodeLiveNode, newAccount)
+	//s.UserA = web3_client.NewWeb3Client("http://localhost:8545", newAccount)
 	s.UserB = web3_client.NewWeb3Client("http://localhost:8545", secondAccount)
 }
 

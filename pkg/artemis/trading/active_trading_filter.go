@@ -5,7 +5,9 @@ import (
 	"errors"
 
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
 /*
@@ -23,18 +25,24 @@ func (a *ActiveTrading) EntryTxFilter(ctx context.Context, tx *types.Transaction
 	return nil
 }
 
-func (a *ActiveTrading) SimTxFilter(ctx context.Context, tx *types.Transaction) error {
-	to := tx.To().String()
-	if artemis_trading_cache.TokenMap[to].BalanceOfSlotNum < 0 {
-		return errors.New("ActiveTrading: EntryTxFilter, balanceOf not cracked yet")
+func (a *ActiveTrading) SimTxFilter(ctx context.Context, tfSlice []*web3_client.TradeExecutionFlowJSON) error {
+	var addresses []accounts.Address
+	for _, tf := range tfSlice {
+		addresses = append(addresses, tf.UserTrade.AmountInAddr)
+		addresses = append(addresses, tf.UserTrade.AmountOutAddr)
 	}
-	num := artemis_trading_cache.TokenMap[to].TransferTaxNumerator
-	den := artemis_trading_cache.TokenMap[to].TransferTaxDenominator
-	if num == nil || den == nil {
-		return errors.New("ActiveTrading: EntryTxFilter, transfer tax not set")
-	}
-	if *num == 0 || *den == 0 {
-		return errors.New("ActiveTrading: EntryTxFilter, transfer tax not set")
+	for _, addr := range addresses {
+		if artemis_trading_cache.TokenMap[addr.String()].BalanceOfSlotNum < 0 {
+			return errors.New("ActiveTrading: EntryTxFilter, balanceOf not cracked yet")
+		}
+		num := artemis_trading_cache.TokenMap[addr.String()].TransferTaxNumerator
+		den := artemis_trading_cache.TokenMap[addr.String()].TransferTaxDenominator
+		if num == nil || den == nil {
+			return errors.New("ActiveTrading: EntryTxFilter, transfer tax not set")
+		}
+		if *num == 0 || *den == 0 {
+			return errors.New("ActiveTrading: EntryTxFilter, transfer tax not set")
+		}
 	}
 	return nil
 }

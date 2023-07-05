@@ -92,6 +92,10 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context, blockNumbe
 		return err
 	}
 
+	if len(mempoolTxs) == 0 {
+		log.Info("No mempool txs to process")
+		return nil
+	}
 	childWorkflowOptions := workflow.ChildWorkflowOptions{
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
 	}

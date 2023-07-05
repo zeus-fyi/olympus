@@ -80,7 +80,7 @@ func ProcessMempoolTxs(ctx context.Context) {
 		log.Err(berr).Msg("failed to get block number")
 		return
 	}
-	defer wc.Close()
+	wc.Close()
 	for {
 		select {
 		case t := <-timestampChan:

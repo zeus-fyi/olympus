@@ -1,4 +1,4 @@
-package artemis_validator_service_groups_models
+package artemis_mev_models
 
 import (
 	"context"
@@ -10,6 +10,8 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
+
+const ModelName = "MevAnalysis"
 
 type TradeMethodStats struct {
 	TradeMethod string `json:"trade_method"`

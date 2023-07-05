@@ -1,6 +1,7 @@
-package artemis_validator_service_groups_models
+package artemis_mev_models
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 
@@ -10,6 +11,8 @@ import (
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
+
+var ctx = context.Background()
 
 type MevTxTestSuite struct {
 	hestia_test.BaseHestiaTestSuite

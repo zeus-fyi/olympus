@@ -1,4 +1,4 @@
-package artemis_validator_service_groups_models
+package artemis_mev_models
 
 import (
 	"fmt"
@@ -12,6 +12,16 @@ import (
 
 type MevTxAnalysisTestSuite struct {
 	hestia_test.BaseHestiaTestSuite
+}
+
+func (s *MevTxAnalysisTestSuite) TestSelectTradeMethodStatsByPair() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	tms, err := SelectEthMevTxAnalysisByPair(ctx)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(tms)
+	for _, tm := range tms {
+		fmt.Println(tm.AmountInAddr, tm.AmountOutAddr)
+	}
 }
 
 func (s *MevTxAnalysisTestSuite) TestSelectTradeMethodStatsBySuccess() {

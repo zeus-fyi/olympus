@@ -1,114 +1,12 @@
 package uniswap_pricing
 
 import (
-	"encoding/hex"
 	"errors"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 )
-
-type JSONUniswapV2Pair struct {
-	PairContractAddr     string           `json:"pairContractAddr"`
-	Price0CumulativeLast *string          `json:"price0CumulativeLast,omitempty"`
-	Price1CumulativeLast *string          `json:"price1CumulativeLast,omitempty"`
-	KLast                *string          `json:"kLast,omitempty"`
-	Token0               accounts.Address `json:"token0"`
-	Token1               accounts.Address `json:"token1"`
-	Reserve0             string           `json:"reserve0"`
-	Reserve1             string           `json:"reserve1"`
-	BlockTimestampLast   string           `json:"blockTimestampLast,omitempty"`
-}
-
-func (p *JSONUniswapV2Pair) ConvertToBigIntType() *UniswapV2Pair {
-	p0 := new(big.Int)
-	p1 := new(big.Int)
-	k := new(big.Int)
-	if p.Price0CumulativeLast != nil {
-		p0, _ = new(big.Int).SetString(*p.Price0CumulativeLast, 10)
-	}
-	if p.Price1CumulativeLast != nil {
-		p1, _ = new(big.Int).SetString(*p.Price1CumulativeLast, 10)
-	}
-	if p.KLast != nil {
-		k, _ = new(big.Int).SetString(*p.KLast, 10)
-	}
-
-	r0, _ := new(big.Int).SetString(p.Reserve0, 10)
-	r1, _ := new(big.Int).SetString(p.Reserve1, 10)
-	bt, _ := new(big.Int).SetString(p.BlockTimestampLast, 10)
-	return &UniswapV2Pair{
-		PairContractAddr:     p.PairContractAddr,
-		Price0CumulativeLast: p0,
-		Price1CumulativeLast: p1,
-		KLast:                k,
-		Token0:               p.Token0,
-		Token1:               p.Token1,
-		Reserve0:             r0,
-		Reserve1:             r1,
-		BlockTimestampLast:   bt,
-	}
-}
-func (p *UniswapV2Pair) ConvertToJSONType() *JSONUniswapV2Pair {
-	var p0 string
-	if p.Price0CumulativeLast != nil {
-		p0 = p.Price0CumulativeLast.String()
-	}
-	var p1 string
-	if p.Price1CumulativeLast != nil {
-		p1 = p.Price1CumulativeLast.String()
-	}
-	var k string
-	if p.KLast != nil {
-		k = p.KLast.String()
-	}
-	return &JSONUniswapV2Pair{
-		PairContractAddr:     p.PairContractAddr,
-		Price0CumulativeLast: &p0,
-		Price1CumulativeLast: &p1,
-		KLast:                &k,
-		Token0:               p.Token0,
-		Token1:               p.Token1,
-		Reserve0:             p.Reserve0.String(),
-		Reserve1:             p.Reserve1.String(),
-		BlockTimestampLast:   p.BlockTimestampLast.String(),
-	}
-}
-
-func (p *UniswapV2Pair) PairForV2FromAddresses(tokenA, tokenB accounts.Address) error {
-	return p.PairForV2(tokenA.String(), tokenB.String())
-}
-
-func (p *UniswapV2Pair) PairForV2(tokenA, tokenB string) error {
-	if tokenA == ZeroEthAddress {
-		tokenA = WETH.String()
-	}
-	if tokenB == ZeroEthAddress {
-		tokenB = WETH.String()
-	}
-	if tokenA == tokenB {
-		return errors.New("identical addresses")
-	}
-	p.sortTokens(accounts.HexToAddress(tokenA), accounts.HexToAddress(tokenB))
-	message := []byte{255}
-	message = append(message, common.HexToAddress(UniswapV2FactoryAddress.String()).Bytes()...)
-	addrSum := p.Token0.Bytes()
-	addrSum = append(addrSum, p.Token1.Bytes()...)
-	message = append(message, crypto.Keccak256(addrSum)...)
-	b, err := hex.DecodeString(pairAddressSuffix)
-	if err != nil {
-		return err
-	}
-	message = append(message, b...)
-	hashed := crypto.Keccak256(message)
-	addressBytes := big.NewInt(0).SetBytes(hashed)
-	addressBytes = addressBytes.Abs(addressBytes)
-	p.PairContractAddr = common.BytesToAddress(addressBytes.Bytes()).String()
-	return nil
-}
 
 func (p *UniswapV2Pair) GetQuoteUsingTokenAddr(addr string, amount *big.Int) (*big.Int, error) {
 	if addr == "0x0000000000000000000000000000000000000000" {

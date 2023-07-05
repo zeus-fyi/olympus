@@ -8,7 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
-	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
@@ -102,7 +102,7 @@ func (u *UniswapClient) PrintTradeSummaries(ts *TradeSummary) {
 			BlockNumber:       int(u.BlockNumber.Int64()),
 		}
 		u.Trades = append(u.Trades, txMempool)
-		err = artemis_validator_service_groups_models.InsertMempoolTx(ctx, txMempool)
+		err = artemis_mev_models.InsertMempoolTx(ctx, txMempool)
 		if err != nil {
 			fmt.Printf("InsertMempoolTx err: %s", err)
 			return

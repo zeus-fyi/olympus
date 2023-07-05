@@ -23,7 +23,7 @@ func (u *UniswapClient) GetV2PricingData(ctx context.Context, path []accounts.Ad
 }
 
 func (u *UniswapClient) GetV3PricingData(ctx context.Context, path artemis_trading_types.TokenFeePath) (*uniswap_pricing.UniswapPricingData, error) {
-	pairV3 := uniswap_pricing.UniswapPoolV3{
+	pairV3 := uniswap_pricing.UniswapV3Pair{
 		Web3Actions:          u.Web3Client.Web3Actions,
 		PoolAddress:          "",
 		Fee:                  0,

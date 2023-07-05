@@ -3,7 +3,7 @@ package artemis_trading_cache
 import (
 	"context"
 
-	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 )
 
@@ -12,7 +12,7 @@ var (
 )
 
 func InitTokenFilter(ctx context.Context) {
-	_, tm, terr := artemis_validator_service_groups_models.SelectERC20Tokens(ctx)
+	_, tm, terr := artemis_mev_models.SelectERC20Tokens(ctx)
 	if terr != nil {
 		panic(terr)
 	}

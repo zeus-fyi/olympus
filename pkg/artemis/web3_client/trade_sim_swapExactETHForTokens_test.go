@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
@@ -39,7 +39,7 @@ txHash 0x0e305555d8ed6afd7e63fad455a03830a1c3f8ad1c064b77786ec9b2141181a3
 func (s *Web3ClientTestSuite) TestFullSandwichTradeSim_SwapExactETHForTokens() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ForceDirToTestDirLocation()
-	mevTxs, merr := artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17375869)
+	mevTxs, merr := artemis_mev_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17375869)
 	s.Require().Nil(merr)
 	s.Require().NotEmpty(mevTxs)
 	for _, mevTx := range mevTxs {

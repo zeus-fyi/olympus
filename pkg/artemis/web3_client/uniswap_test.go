@@ -10,7 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
@@ -76,7 +76,7 @@ func (s *Web3ClientTestSuite) TestDecode() {
 
 func (s *Web3ClientTestSuite) TestMevTxSelect() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
-	mevTxs, err := artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17275807)
+	mevTxs, err := artemis_mev_models.SelectMempoolTxAtBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID, 17275807)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(mevTxs)
 

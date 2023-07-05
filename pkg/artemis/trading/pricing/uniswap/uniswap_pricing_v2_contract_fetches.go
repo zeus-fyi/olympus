@@ -14,7 +14,7 @@ const (
 
 var v2ABI = artemis_oly_contract_abis.MustLoadUniswapV2PairAbi()
 
-func GetPairContractPrices(ctx context.Context, p *UniswapV2Pair, wc web3_actions.Web3Actions) error {
+func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *UniswapV2Pair) error {
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: p.PairContractAddr,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},

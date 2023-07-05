@@ -19,7 +19,7 @@ func (s *Web3ClientTestSuite) TestUniswapQuoterV2() {
 	tokenB := core_entities.NewToken(1, accounts.HexToAddress(UsdCoinAddr), 6, "USDC", "USD Coin")
 	result, err := utils.ComputePoolAddress(factoryAddress, tokenA, tokenB, constants.FeeMedium, "")
 	s.Require().NoError(err)
-	p := &uniswap_pricing.UniswapPoolV3{
+	p := &uniswap_pricing.UniswapV3Pair{
 		PoolAddress: result.String(),
 		Web3Actions: s.LocalHardhatMainnetUser.Web3Actions,
 	}

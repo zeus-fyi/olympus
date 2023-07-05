@@ -12,7 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
-	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
@@ -87,7 +87,7 @@ func (w *Web3Client) SetERC20BalanceAtSlotNumber(ctx context.Context, scAddr, us
 func (w *Web3Client) SetERC20BalanceBruteForce(ctx context.Context, scAddr, userAddr string, value *big.Int) error {
 	// TODO assumes only mainnet for now
 	protocolNetworkID := 1
-	slotNum, serr := artemis_validator_service_groups_models.SelectERC20TokenInfo(ctx, artemis_autogen_bases.Erc20TokenInfo{
+	slotNum, serr := artemis_mev_models.SelectERC20TokenInfo(ctx, artemis_autogen_bases.Erc20TokenInfo{
 		Address:           scAddr,
 		ProtocolNetworkID: protocolNetworkID,
 	})
@@ -120,20 +120,21 @@ func (w *Web3Client) SetERC20BalanceBruteForce(ctx context.Context, scAddr, user
 			return err
 		}
 		if b.String() == value.String() {
-			err = artemis_validator_service_groups_models.UpdateERC20TokenBalanceOfSlotInfo(ctx, artemis_autogen_bases.Erc20TokenInfo{
+			err = artemis_mev_models.UpdateERC20TokenBalanceOfSlotInfo(ctx, artemis_autogen_bases.Erc20TokenInfo{
 				Address:           scAddr,
 				ProtocolNetworkID: 1,
 				BalanceOfSlotNum:  i,
 			})
 			if err != nil {
 				log.Err(err)
+				return err
 			}
 			return nil
 		}
 		time.Sleep(25 * time.Millisecond)
 	}
 
-	err := artemis_validator_service_groups_models.InsertERC20TokenInfo(ctx, artemis_autogen_bases.Erc20TokenInfo{
+	err := artemis_mev_models.InsertERC20TokenInfo(ctx, artemis_autogen_bases.Erc20TokenInfo{
 		Address:           scAddr,
 		ProtocolNetworkID: 1,
 		BalanceOfSlotNum:  -1,
@@ -146,7 +147,6 @@ func (w *Web3Client) SetERC20BalanceBruteForce(ctx context.Context, scAddr, user
 
 func (w *Web3Client) MatchFrontRunTradeValues(tf *TradeExecutionFlow) error {
 	pubkey := w.PublicKey()
-
 	err := w.SetERC20BalanceBruteForce(ctx, tf.FrontRunTrade.AmountInAddr.String(), pubkey, tf.FrontRunTrade.AmountIn)
 	if err != nil {
 		return err

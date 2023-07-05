@@ -3,6 +3,8 @@ package artemis_pricing_utils
 import (
 	"fmt"
 	"math/big"
+
+	"github.com/zeus-fyi/gochain/web3/accounts"
 )
 
 func ParseBigInt(i interface{}) (*big.Int, error) {
@@ -24,4 +26,10 @@ func ParseBigInt(i interface{}) (*big.Int, error) {
 	default:
 		return nil, fmt.Errorf("input is not a string or int64")
 	}
+}
+
+func StringsToAddresses(addressOne, addressTwo string) (accounts.Address, accounts.Address) {
+	addrOne := accounts.HexToAddress(addressOne)
+	addrTwo := accounts.HexToAddress(addressTwo)
+	return addrOne, addrTwo
 }

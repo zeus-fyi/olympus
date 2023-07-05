@@ -40,13 +40,12 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	if err != nil {
 		return err
 	}
-	for _, tf := range tfSlice {
-		a.m.StageProgressionMetrics.CountPostProcessFilterTx(tf.InitialPair.PairContractAddr, tf.FrontRunTrade.AmountInAddr.String())
-	}
+	a.m.StageProgressionMetrics.CountPostProcessTx(float64(1))
 	err = a.SimTxFilter(ctx, tx)
 	if err != nil {
 		return err
 	}
+	a.m.StageProgressionMetrics.CountPostSimFilterTx(float64(1))
 	log.Info().Msg("tx passed all filters")
 	wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
 	wc.Dial()
@@ -57,11 +56,11 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	}
 	defer wc.Close()
 	for _, tf := range tfSlice {
-		if tf.InitialPair.PairContractAddr == "" {
-			a.m.StageProgressionMetrics.CountPostSimTx(tf.InitialPair.PairContractAddr, tf.FrontRunTrade.AmountInAddr.String())
-		} else {
-			a.m.StageProgressionMetrics.CountPostSimTx(tf.InitialPairV3.PoolAddress, tf.FrontRunTrade.AmountInAddr.String())
-		}
+		//if tf.InitialPair.PairContractAddr == "" {
+		//	a.m.StageProgressionMetrics.CountPostSimTx(tf.InitialPair.PairContractAddr, tf.FrontRunTrade.AmountInAddr.String())
+		//} else {
+		//	a.m.StageProgressionMetrics.CountPostSimTx(tf.InitialPairV3.PoolAddress, tf.FrontRunTrade.AmountInAddr.String())
+		//}
 		btf, ber := json.Marshal(tf)
 		if ber != nil {
 			log.Err(ber).Msg("failed to marshal tx flow")

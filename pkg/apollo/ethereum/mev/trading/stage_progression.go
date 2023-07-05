@@ -6,8 +6,8 @@ type StageProgressionMetrics struct {
 	PreEntryFilterTxCount    prometheus.Counter
 	PostEntryFilterTxCount   prometheus.Counter
 	PostDecodeTxCount        prometheus.Counter
-	PostProcessFilterTxCount *prometheus.GaugeVec
-	PostSimFilterTxCount     *prometheus.GaugeVec
+	PostProcessFilterTxCount prometheus.Counter
+	PostSimFilterTxCount     prometheus.Counter
 }
 
 func NewStageProgressionMetrics(reg prometheus.Registerer) StageProgressionMetrics {
@@ -30,19 +30,17 @@ func NewStageProgressionMetrics(reg prometheus.Registerer) StageProgressionMetri
 			Help: "Tx count pre process tx entry",
 		},
 	)
-	tx.PostProcessFilterTxCount = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Name: "eth_mev_post_process_tx_stage",
-			Help: "Tx count after process tx stage",
+	tx.PostProcessFilterTxCount = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "eth_mev_post_process_tx_stage_count",
+			Help: "Tx count post process tx",
 		},
-		[]string{"pair", "in"},
 	)
-	tx.PostSimFilterTxCount = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
+	tx.PostSimFilterTxCount = prometheus.NewCounter(
+		prometheus.CounterOpts{
 			Name: "eth_mev_post_sim_tx_filter_stage",
 			Help: "Tx count before simulation stage",
 		},
-		[]string{"pair", "in"},
 	)
 	reg.MustRegister(tx.PostSimFilterTxCount, tx.PostProcessFilterTxCount, tx.PostDecodeTxCount, tx.PostEntryFilterTxCount, tx.PreEntryFilterTxCount)
 	return tx
@@ -60,10 +58,10 @@ func (t *StageProgressionMetrics) CountPostEntryFilterTx() {
 	t.PostEntryFilterTxCount.Add(1)
 }
 
-func (t *StageProgressionMetrics) CountPostProcessFilterTx(pair, in string) {
-	t.PostProcessFilterTxCount.WithLabelValues(pair, in).Add(1)
+func (t *StageProgressionMetrics) CountPostProcessTx(count float64) {
+	t.PostProcessFilterTxCount.Add(count)
 }
 
-func (t *StageProgressionMetrics) CountPostSimTx(pair, in string) {
-	t.PostSimFilterTxCount.WithLabelValues(pair, in).Add(1)
+func (t *StageProgressionMetrics) CountPostSimFilterTx(count float64) {
+	t.PostSimFilterTxCount.Add(count)
 }

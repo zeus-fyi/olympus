@@ -21,6 +21,9 @@ func (s *ArtemisRealTimeTradingTestSuite) TestFindERC20BalanceOfSlotNumber() {
 	for _, token := range tokens {
 		s.ca.SmartContractAddr = token.Address
 		fmt.Println("token.Address", token.Address)
+		fmt.Println("token.Name", token.Name)
+		fmt.Println("token.Symbol", token.Symbol)
+		fmt.Println("token.BalanceOfSlotNum", token.BalanceOfSlotNum)
 		//err = s.ca.FindERC20BalanceOfSlotNumber(ctx)
 		//s.Assert().Nil(err)
 		//time.Sleep(100 * time.Millisecond)

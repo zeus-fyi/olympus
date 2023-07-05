@@ -44,7 +44,7 @@ func NewStageProgressionMetrics(reg prometheus.Registerer) StageProgressionMetri
 		},
 		[]string{"pair", "in"},
 	)
-	reg.MustRegister(tx.PostSimFilterTxCount)
+	reg.MustRegister(tx.PostSimFilterTxCount, tx.PostProcessFilterTxCount, tx.PostDecodeTxCount, tx.PostEntryFilterTxCount, tx.PreEntryFilterTxCount)
 	return tx
 }
 

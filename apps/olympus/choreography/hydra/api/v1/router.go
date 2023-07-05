@@ -5,7 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	hydra_choreography_metrics "github.com/zeus-fyi/olympus/choreography/hydra/metrics"
-	zeus_client "github.com/zeus-fyi/zeus/pkg/zeus/client"
+	zeus_client "github.com/zeus-fyi/zeus/zeus/z_client"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 

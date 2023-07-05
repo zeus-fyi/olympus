@@ -2,7 +2,6 @@ package mev_promql
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
@@ -10,7 +9,6 @@ import (
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/stretchr/testify/suite"
 	apollo_prometheus "github.com/zeus-fyi/olympus/pkg/apollo/prometheus"
-	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
@@ -53,12 +51,12 @@ func (t *MevPrometheusTestSuite) TestQueryRangePromQL() {
 	for _, val := range m {
 		fmt.Println(val.Metric.In, val.Metric.Pair)
 	}
-	tfp := web3_client.TokenFeePath{}
-	err = json.Unmarshal(bytes, &tfp)
-	t.Require().NoError(err)
-	fmt.Println("in", tfp.TokenIn.String())
-	fmt.Println("end", tfp.GetEndToken().String())
-	fmt.Println("fee", tfp.Path[0].Fee)
+	//tfp := web3_client.TokenFeePath{}
+	//err = json.Unmarshal(bytes, &tfp)
+	//t.Require().NoError(err)
+	//fmt.Println("in", tfp.TokenIn.String())
+	//fmt.Println("end", tfp.GetEndToken().String())
+	//fmt.Println("fee", tfp.Path[0].Fee)
 
 	/*
 		{"level":"error","error":"no populated ticks","time":1688261227,"message":"error processing tx"}

@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -62,7 +64,13 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
-		tf.Tx = tx.Tx
+		newTx := artemis_trading_types.JSONTx{}
+		err = newTx.UnmarshalTx(tx.Tx)
+		if err != nil {
+			log.Err(err).Msg("failed to unmarshal tx")
+			return nil, err
+		}
+		tf.Tx = newTx
 		tf.Trade.TradeMethod = swapExactTokensForTokens
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		pend := len(st.Path) - 1
@@ -84,7 +92,13 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
 		tf.Trade.TradeMethod = swapTokensForExactTokens
-		tf.Tx = tx.Tx
+		newTx := artemis_trading_types.JSONTx{}
+		err = newTx.UnmarshalTx(tx.Tx)
+		if err != nil {
+			log.Err(err).Msg("failed to unmarshal tx")
+			return nil, err
+		}
+		tf.Tx = newTx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapTokensForExactTokens)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
@@ -108,7 +122,13 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
 		tf.Trade.TradeMethod = swapExactETHForTokens
-		tf.Tx = tx.Tx
+		newTx := artemis_trading_types.JSONTx{}
+		err = newTx.UnmarshalTx(tx.Tx)
+		if err != nil {
+			log.Err(err).Msg("failed to unmarshal tx")
+			return nil, err
+		}
+		tf.Tx = newTx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactETHForTokens)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
@@ -128,7 +148,13 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
 		tf.Trade.TradeMethod = swapTokensForExactETH
-		tf.Tx = tx.Tx
+		newTx := artemis_trading_types.JSONTx{}
+		err = newTx.UnmarshalTx(tx.Tx)
+		if err != nil {
+			log.Err(err).Msg("failed to unmarshal tx")
+			return nil, err
+		}
+		tf.Tx = newTx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapTokensForExactETH)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
@@ -148,7 +174,13 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
 		tf.Trade.TradeMethod = swapExactTokensForETH
-		tf.Tx = tx.Tx
+		newTx := artemis_trading_types.JSONTx{}
+		err = newTx.UnmarshalTx(tx.Tx)
+		if err != nil {
+			log.Err(err).Msg("failed to unmarshal tx")
+			return nil, err
+		}
+		tf.Tx = newTx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForETH)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
@@ -172,7 +204,13 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
 		tf.Trade.TradeMethod = swapETHForExactTokens
-		tf.Tx = tx.Tx
+		newTx := artemis_trading_types.JSONTx{}
+		err = newTx.UnmarshalTx(tx.Tx)
+		if err != nil {
+			log.Err(err).Msg("failed to unmarshal tx")
+			return nil, err
+		}
+		tf.Tx = newTx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapETHForExactTokens)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
@@ -202,7 +240,13 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
 		tf.Trade.TradeMethod = swapExactTokensForETHSupportingFeeOnTransferTokens
-		tf.Tx = tx.Tx
+		newTx := artemis_trading_types.JSONTx{}
+		err = newTx.UnmarshalTx(tx.Tx)
+		if err != nil {
+			log.Err(err).Msg("failed to unmarshal tx")
+			return nil, err
+		}
+		tf.Tx = newTx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForETHSupportingFeeOnTransferTokens)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
@@ -225,7 +269,13 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
-		tf.Tx = tx.Tx
+		newTx := artemis_trading_types.JSONTx{}
+		err = newTx.UnmarshalTx(tx.Tx)
+		if err != nil {
+			log.Err(err).Msg("failed to unmarshal tx")
+			return nil, err
+		}
+		tf.Tx = newTx
 		tf.Trade.TradeMethod = swapExactETHForTokensSupportingFeeOnTransferTokens
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactETHForTokensSupportingFeeOnTransferTokens)
@@ -245,7 +295,13 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
-		tf.Tx = tx.Tx
+		newTx := artemis_trading_types.JSONTx{}
+		err = newTx.UnmarshalTx(tx.Tx)
+		if err != nil {
+			log.Err(err).Msg("failed to unmarshal tx")
+			return nil, err
+		}
+		tf.Tx = newTx
 		tf.Trade.TradeMethod = swapExactTokensForTokensSupportingFeeOnTransferTokens
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokensSupportingFeeOnTransferTokens)

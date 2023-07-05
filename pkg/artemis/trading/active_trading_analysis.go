@@ -57,13 +57,18 @@ func (a *ActiveTrading) ProcessTxs(ctx context.Context) ([]web3_client.TradeExec
 	}
 
 	for _, tf := range tfSlice {
-		chainID := tf.Tx.ChainId()
-		err := CheckTokenRegistry(ctx, tf.UserTrade.AmountInAddr.String(), chainID.Int64())
+		baseTx, err := tf.Tx.ConvertToTx()
+		if err != nil {
+			log.Err(err).Msg("ActiveTrading: EntryTxFilter, ConvertToTx")
+			return nil, err
+		}
+		chainID := baseTx.ChainId().Int64()
+		err = CheckTokenRegistry(ctx, tf.UserTrade.AmountInAddr.String(), chainID)
 		if err != nil {
 			log.Err(err).Msg("ActiveTrading: EntryTxFilter, CheckTokenRegistry")
 			return nil, err
 		}
-		err = CheckTokenRegistry(ctx, tf.UserTrade.AmountOutAddr.String(), chainID.Int64())
+		err = CheckTokenRegistry(ctx, tf.UserTrade.AmountOutAddr.String(), chainID)
 		if err != nil {
 			log.Err(err).Msg("ActiveTrading: EntryTxFilter, CheckTokenRegistry")
 			return nil, err

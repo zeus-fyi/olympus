@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
@@ -40,8 +41,8 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSim_SwapExactTokensForETH() {
 
 		fmt.Println("blockNum recorded from artemis", tf.CurrentBlockNumber)
 		fmt.Println("tradeMethod", tf.Trade.TradeMethod)
-		fmt.Println("txHash", tf.Tx.Hash())
-		blockNum, err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlockBeforeTxMined(ctx, s.Tc.HardhatNode, s.LocalHardhatMainnetUser, s.MainnetWeb3User, tf.Tx.Hash())
+		fmt.Println("txHash", common.HexToHash(tf.Tx.Hash))
+		blockNum, err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlockBeforeTxMined(ctx, s.Tc.HardhatNode, s.LocalHardhatMainnetUser, s.MainnetWeb3User, common.HexToHash(tf.Tx.Hash))
 		fmt.Println("blockNumSet to -1 before tx included", blockNum-1)
 		s.Require().Nil(err)
 		tfRegular := tf.ConvertToBigIntType()

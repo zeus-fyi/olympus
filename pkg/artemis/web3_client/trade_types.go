@@ -36,7 +36,7 @@ type Trade struct {
 
 type TradeExecutionFlowJSON struct {
 	CurrentBlockNumber *big.Int                               `json:"currentBlockNumber"`
-	Tx                 *types.Transaction                     `json:"tx"`
+	Tx                 artemis_trading_types.JSONTx           `json:"tx"`
 	Trade              Trade                                  `json:"trade"`
 	InitialPairV3      *uniswap_pricing.JSONUniswapPoolV3     `json:"initialPairV3,omitempty"`
 	InitialPair        *uniswap_pricing.JSONUniswapV2Pair     `json:"initialPair,omitempty"`
@@ -47,7 +47,6 @@ type TradeExecutionFlowJSON struct {
 }
 
 func (t *TradeExecutionFlowJSON) ConvertToBigIntType() TradeExecutionFlow {
-
 	var p2Pair *uniswap_pricing.UniswapV2Pair
 	if t.InitialPair != nil {
 		p2Pair = t.InitialPair.ConvertToBigIntType()
@@ -56,9 +55,14 @@ func (t *TradeExecutionFlowJSON) ConvertToBigIntType() TradeExecutionFlow {
 	if t.InitialPairV3 != nil {
 		p3Pair = t.InitialPairV3.ConvertToBigIntType()
 	}
+
+	txConv, err := t.Tx.ConvertToTx()
+	if err != nil {
+		panic(err)
+	}
 	return TradeExecutionFlow{
 		CurrentBlockNumber: t.CurrentBlockNumber,
-		Tx:                 t.Tx,
+		Tx:                 txConv,
 		Trade:              t.Trade,
 		InitialPair:        p2Pair,
 		InitialPairV3:      p3Pair,

@@ -72,28 +72,39 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 		//	a.m.StageProgressionMetrics.CountPostSimTx(tf.InitialPairV3.PoolAddress, tf.FrontRunTrade.AmountInAddr.String())
 		//}
 		tradeFlow.CurrentBlockNumber = new(big.Int).SetUint64(bn)
+
 		btf, ber := json.Marshal(tradeFlow)
 		if ber != nil {
 			log.Err(ber).Msg("failed to marshal tx flow")
 			return ber
 		}
+		baseTx, zerr := tradeFlow.Tx.ConvertToTx()
+		if zerr != nil {
+			log.Err(zerr).Msg("ActiveTrading: EntryTxFilter, ConvertToTx")
+			return zerr
+		}
 		fromStr := ""
-		sender := types.LatestSignerForChainID(tradeFlow.Tx.ChainId())
-		from, ferr := sender.Sender(tradeFlow.Tx)
+		sender := types.LatestSignerForChainID(baseTx.ChainId())
+		from, ferr := sender.Sender(baseTx)
 		if ferr != nil {
 			log.Err(ferr).Msg("failed to get sender")
 			return ferr
 		} else {
 			fromStr = from.String()
 		}
+
+		txStr, terr := json.Marshal(tradeFlow.Tx)
+		if terr != nil {
+			return terr
+		}
 		txMempool := artemis_autogen_bases.EthMempoolMevTx{
 			ProtocolNetworkID: hestia_req_types.EthereumMainnetProtocolNetworkID,
-			Tx:                tradeFlow.Tx.Hash().String(),
+			Tx:                string(txStr),
 			TxFlowPrediction:  string(btf),
-			TxHash:            tradeFlow.Tx.Hash().String(),
-			Nonce:             int(tradeFlow.Tx.Nonce()),
+			TxHash:            tradeFlow.Tx.Hash,
+			Nonce:             int(baseTx.Nonce()),
 			From:              fromStr,
-			To:                tradeFlow.Tx.To().String(),
+			To:                tradeFlow.Tx.To,
 			BlockNumber:       int(bn),
 		}
 		err = artemis_validator_service_groups_models.InsertMempoolTx(ctx, txMempool)

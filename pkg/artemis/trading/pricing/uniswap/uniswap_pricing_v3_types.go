@@ -33,6 +33,12 @@ type JSONUniswapPoolV3 struct {
 
 func (p *JSONUniswapPoolV3) ConvertToBigIntType() *UniswapPoolV3 {
 	lq, _ := new(big.Int).SetString(p.Liquidity, 10)
+	var tl *entities.JSONTickListDataProvider
+	var tlBigInt *entities.TickListDataProvider
+	if p.TickListDataProvider != nil {
+		tl = p.TickListDataProvider
+		tlBigInt = tl.ConvertToBigIntType()
+	}
 	return &UniswapPoolV3{
 		Pool:                 p.Pool,
 		PoolAddress:          p.PoolAddress,
@@ -40,7 +46,7 @@ func (p *JSONUniswapPoolV3) ConvertToBigIntType() *UniswapPoolV3 {
 		Slot0:                p.Slot0.ConvertToBigIntType(),
 		Liquidity:            lq,
 		TokenFeePath:         p.TokenFeePath,
-		TickListDataProvider: p.TickListDataProvider.ConvertToBigIntType(),
+		TickListDataProvider: tlBigInt,
 	}
 }
 

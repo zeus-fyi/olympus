@@ -12,6 +12,7 @@ import (
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
@@ -26,7 +27,12 @@ type TradeSummary struct {
 
 func (u *UniswapClient) PrintTradeSummaries(ts *TradeSummary) {
 	log.Info().Msgf("TradeSummary")
-	ts.Tf.Tx = ts.Tx.Tx
+	jsonTX := artemis_trading_types.JSONTx{}
+	err := jsonTX.UnmarshalTx(ts.Tx.Tx)
+	if err != nil {
+		panic(err)
+	}
+	ts.Tf.Tx = jsonTX
 	wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
 	wc.Dial()
 	bn, ber := wc.C.BlockNumber(ctx)
@@ -77,8 +83,8 @@ func (u *UniswapClient) PrintTradeSummaries(ts *TradeSummary) {
 			return
 		}
 		fromStr := ""
-		sender := types.LatestSignerForChainID(ts.Tf.Tx.ChainId())
-		from, ferr := sender.Sender(ts.Tf.Tx)
+		sender := types.LatestSignerForChainID(ts.Tx.Tx.ChainId())
+		from, ferr := sender.Sender(ts.Tx.Tx)
 		if ferr != nil {
 			log.Err(err).Msg("failed to get sender")
 		} else {

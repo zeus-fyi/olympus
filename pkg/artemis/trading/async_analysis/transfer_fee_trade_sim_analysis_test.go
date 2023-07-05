@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -22,11 +23,11 @@ func (s *ArtemisRealTimeTradingTestSuite) TestEthSimTransferFeeAnalysis() {
 
 	// this isn't included in trade gas costs since we amortize one time gas costs for permit2
 	max, _ := new(big.Int).SetString(web3_client.MaxUINT, 10)
-	approveTx, err := s.ca.u.ApproveSpender(ctx, WETH.String(), web3_client.Permit2SmartContractAddress, max)
+	approveTx, err := s.ca.u.ApproveSpender(ctx, artemis_trading_constants.WETH9ContractAddressAccount.String(), web3_client.Permit2SmartContractAddress, max)
 	s.Assert().Nil(err)
 	s.Assert().NotNil(approveTx)
 
-	approveTx, err = s.ca.u.ApproveSpender(ctx, WETH.String(), "0x34ba042827996821CFFEB06477D48a2Ff9474483", max)
+	approveTx, err = s.ca.u.ApproveSpender(ctx, artemis_trading_constants.WETH9ContractAddressAccount.String(), "0x34ba042827996821CFFEB06477D48a2Ff9474483", max)
 	s.Assert().Nil(err)
 	s.Assert().NotNil(approveTx)
 	_, err = s.ca.SimEthTransferFeeTaxTrade(ctx, web3_client.EtherMultiple(1))

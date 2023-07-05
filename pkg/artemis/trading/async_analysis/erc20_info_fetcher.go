@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/rs/zerolog/log"
-	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 )
 
@@ -44,7 +44,7 @@ func (c *ContractAnalysis) FindERC20TokenMetadataInfo(ctx context.Context) error
 		return err
 	}
 	token.Symbol = &sym
-	err = artemis_validator_service_groups_models.UpdateERC20TokenInfo(ctx, token)
+	err = artemis_mev_models.UpdateERC20TokenInfo(ctx, token)
 	if err != nil {
 		log.Err(err).Msg("ContractAnalysis: InsertERC20TokenInfo")
 		return err

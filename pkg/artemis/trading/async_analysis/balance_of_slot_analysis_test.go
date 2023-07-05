@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -16,7 +16,7 @@ func (s *ArtemisRealTimeTradingTestSuite) TestFindERC20BalanceOfSlotNumber() {
 	shib2Contract := "0x34ba042827996821CFFEB06477D48a2Ff9474483"
 	s.ca = NewERC20ContractAnalysis(&uni, shib2Contract)
 	s.ca.UserB = s.UserB
-	tokens, err := artemis_validator_service_groups_models.SelectERC20TokensWithoutBalanceOfSlotNums(ctx)
+	tokens, err := artemis_mev_models.SelectERC20TokensWithoutBalanceOfSlotNums(ctx)
 	s.Assert().Nil(err)
 	s.Assert().NotNil(tokens)
 	s.ca.UserA.IsAnvilNode = true

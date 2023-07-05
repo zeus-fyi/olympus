@@ -7,11 +7,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/units"
 	core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_core/entities"
 
@@ -53,7 +55,7 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysisBulk() {
 	shib2Contract := "0x34ba042827996821CFFEB06477D48a2Ff9474483"
 	s.ca = NewERC20ContractAnalysis(&uni, shib2Contract)
 	s.ca.UserB = s.UserB
-	tokens, _, terr := artemis_validator_service_groups_models.SelectERC20TokensWithNullTransferTax(ctx)
+	tokens, _, terr := artemis_mev_models.SelectERC20TokensWithNullTransferTax(ctx)
 	s.Assert().Nil(terr)
 	s.Assert().NotNil(tokens)
 	s.ca.UserA.IsAnvilNode = true
@@ -74,7 +76,7 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysisBulk() {
 		token.TransferTaxDenominator = &denom
 		s.Require().NotZero(token.TransferTaxDenominator)
 		fmt.Println("token", token.Address, "percent", percent.Numerator.String(), "/", percent.Denominator.String())
-		err = artemis_validator_service_groups_models.UpdateERC20TokenTransferTaxInfo(ctx, token)
+		err = artemis_mev_models.UpdateERC20TokenTransferTaxInfo(ctx, token)
 		s.Assert().Nil(err)
 		time.Sleep(100 * time.Millisecond)
 	}
@@ -91,18 +93,19 @@ func (s *ArtemisRealTimeTradingTestSuite) SetupTest() {
 	pkHexString := s.Tc.LocalEcsdaTestPkey
 	secondAccount, err := accounts.ParsePrivateKey(pkHexString)
 	s.Assert().Nil(err)
-	irisBetaSvc := "https://iris.zeus.fyi/v1beta/internal/"
+	irisBetaSvc := artemis_trading_constants.IrisAnvilRoute
 
 	wc := web3_client.NewWeb3Client(irisBetaSvc, newAccount)
 	m := map[string]string{
 		"Authorization": "Bearer " + s.Tc.ProductionLocalTemporalBearerToken,
 	}
 	wc.Headers = m
+	wc.AddSessionLockHeader(uuid.New().String())
 	uni := web3_client.InitUniswapClient(ctx, wc)
 	uni.PrintOn = true
 	uni.PrintLocal = false
 	uni.Web3Client.IsAnvilNode = true
-	uni.Web3Client.DurableExecution = true
+	uni.Web3Client.DurableExecution = false
 	s.UserA = wc
 	// web3_client.NewWeb3Client(s.Tc.QuiknodeLiveNode, newAccount)
 	//s.UserA = web3_client.NewWeb3Client("http://localhost:8545", newAccount)

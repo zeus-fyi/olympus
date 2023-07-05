@@ -1,4 +1,4 @@
-package web3_client
+package artemis_rawdawg_contract
 
 // TODO
 

@@ -2,9 +2,8 @@ package artemis_trading_constants
 
 import "github.com/zeus-fyi/gochain/web3/accounts"
 
-// TODO should also check decimal places when calculating rates
-
 const (
+	Doge2ContractAddr    = "0xF2ec4a773ef90c58d98ea734c0eBDB538519b988"
 	PepeContractAddr     = "0x6982508145454Ce325dDbE47a25d4ec3d2311933"
 	TetherContractAddr   = "0xdAC17F958D2ee523a2206206994597C13D831ec7"
 	BinanceCoinAddr      = "0xB8c77482e45F1F44dE1745F52C74426C631bDD52"
@@ -32,9 +31,13 @@ const (
 	LinkTokenAddr        = "0x514910771AF9Ca656af840dff83E8264EcF986CA"
 	// 8 decimal places
 	HexTokenAddr = "0x2b591e99afE9f32eAA6214f7B7629768c40Eeb39"
+
+	Permit2SmartContractAddress = "0x000000000022D473030F116dDEE9F6B43aC78BA3"
 )
 
 var (
-	PepeContractAddrAccount     = accounts.HexToAddress(PepeContractAddr)
-	WETH9ContractAddressAccount = accounts.HexToAddress(WETH9ContractAddress)
+	Permit2SmartContractAddressAccount = accounts.HexToAddress(Permit2SmartContractAddress)
+	Doge2ContractAddrAccount           = accounts.HexToAddress(Doge2ContractAddr)
+	PepeContractAddrAccount            = accounts.HexToAddress(PepeContractAddr)
+	WETH9ContractAddressAccount        = accounts.HexToAddress(WETH9ContractAddress)
 )

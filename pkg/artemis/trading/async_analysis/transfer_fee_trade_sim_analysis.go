@@ -11,29 +11,27 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/constants"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
-	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_core/entities"
 )
 
-var WETH = accounts.HexToAddress(web3_client.WETH9ContractAddress)
-
-func (c *ContractAnalysis) SimEthTransferFeeTaxTrade(ctx context.Context, amount *big.Int, transferTaxPercent *uniswap_core_entities.Percent) (*uniswap_core_entities.Percent, error) {
-	err := c.UserA.SetERC20BalanceBruteForce(ctx, WETH.String(), c.UserA.Address().String(), amount)
+func (c *ContractAnalysis) SimEthTransferFeeTaxTrade(ctx context.Context, amount *big.Int) (*uniswap_core_entities.Percent, error) {
+	err := c.UserA.SetERC20BalanceBruteForce(ctx, artemis_trading_constants.WETH9ContractAddressAccount.String(), c.UserA.Address().String(), amount)
 	if err != nil {
 		return nil, err
 	}
-	pd, err := c.u.GetV2PricingData(ctx, []accounts.Address{WETH, accounts.HexToAddress(c.SmartContractAddr)})
+	pd, err := c.u.GetV2PricingData(ctx, []accounts.Address{artemis_trading_constants.WETH9ContractAddressAccount, accounts.HexToAddress(c.SmartContractAddr)})
 	if err != nil {
 		return nil, err
 	}
-	calculatedOut, err := pd.V2Pair.PriceImpact(WETH, amount)
+	calculatedOut, err := pd.V2Pair.PriceImpact(artemis_trading_constants.WETH9ContractAddressAccount, amount)
 	if err != nil {
 		return nil, err
 	}
 	trade := &artemis_trading_types.TradeOutcome{
 		AmountIn:      amount,
-		AmountInAddr:  WETH,
+		AmountInAddr:  artemis_trading_constants.WETH9ContractAddressAccount,
 		AmountOut:     calculatedOut.AmountOut,
 		AmountOutAddr: accounts.HexToAddress(c.SmartContractAddr),
 	}

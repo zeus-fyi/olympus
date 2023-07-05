@@ -8,6 +8,7 @@ import (
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_pricing_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/utils"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_v3/constants"
 )
 
 const (
@@ -31,6 +32,10 @@ type UniswapV2Pair struct {
 	Reserve0             *big.Int         `json:"reserve0,"`
 	Reserve1             *big.Int         `json:"reserve1"`
 	BlockTimestampLast   *big.Int         `json:"blockTimestampLast,omitempty"`
+}
+
+func (p *UniswapV2Pair) GetBaseFee() constants.FeeAmount {
+	return constants.FeeMedium
 }
 
 func (p *UniswapV2Pair) GetQuoteToken0BuyToken1(token0 *big.Int) (*big.Int, error) {

@@ -13,9 +13,9 @@ import (
 
 type JSONUniswapV2Pair struct {
 	PairContractAddr     string           `json:"pairContractAddr"`
-	Price0CumulativeLast string           `json:"price0CumulativeLast,omitempty"`
-	Price1CumulativeLast string           `json:"price1CumulativeLast,omitempty"`
-	KLast                string           `json:"kLast,omitempty"`
+	Price0CumulativeLast *string          `json:"price0CumulativeLast,omitempty"`
+	Price1CumulativeLast *string          `json:"price1CumulativeLast,omitempty"`
+	KLast                *string          `json:"kLast,omitempty"`
 	Token0               accounts.Address `json:"token0"`
 	Token1               accounts.Address `json:"token1"`
 	Reserve0             string           `json:"reserve0"`
@@ -24,9 +24,19 @@ type JSONUniswapV2Pair struct {
 }
 
 func (p *JSONUniswapV2Pair) ConvertToBigIntType() *UniswapV2Pair {
-	p0, _ := new(big.Int).SetString(p.Price0CumulativeLast, 10)
-	p1, _ := new(big.Int).SetString(p.Price1CumulativeLast, 10)
-	k, _ := new(big.Int).SetString(p.KLast, 10)
+	p0 := new(big.Int)
+	p1 := new(big.Int)
+	k := new(big.Int)
+	if p.Price0CumulativeLast != nil {
+		p0, _ = new(big.Int).SetString(*p.Price0CumulativeLast, 10)
+	}
+	if p.Price1CumulativeLast != nil {
+		p1, _ = new(big.Int).SetString(*p.Price1CumulativeLast, 10)
+	}
+	if p.KLast != nil {
+		k, _ = new(big.Int).SetString(*p.KLast, 10)
+	}
+
 	r0, _ := new(big.Int).SetString(p.Reserve0, 10)
 	r1, _ := new(big.Int).SetString(p.Reserve1, 10)
 	bt, _ := new(big.Int).SetString(p.BlockTimestampLast, 10)
@@ -43,21 +53,23 @@ func (p *JSONUniswapV2Pair) ConvertToBigIntType() *UniswapV2Pair {
 	}
 }
 func (p *UniswapV2Pair) ConvertToJSONType() *JSONUniswapV2Pair {
+	var p0 string
 	if p.Price0CumulativeLast == nil {
-		p.Price0CumulativeLast = big.NewInt(0)
+		p0 = p.Price0CumulativeLast.String()
 	}
+	var p1 string
 	if p.Price1CumulativeLast == nil {
-		p.Price1CumulativeLast = big.NewInt(0)
+		p1 = p.Price1CumulativeLast.String()
 	}
-	if p.KLast == nil {
-		p.KLast = big.NewInt(0)
-
+	var k string
+	if p.KLast != nil {
+		k = p.KLast.String()
 	}
 	return &JSONUniswapV2Pair{
 		PairContractAddr:     p.PairContractAddr,
-		Price0CumulativeLast: p.Price0CumulativeLast.String(),
-		Price1CumulativeLast: p.Price1CumulativeLast.String(),
-		KLast:                p.KLast.String(),
+		Price0CumulativeLast: &p0,
+		Price1CumulativeLast: &p1,
+		KLast:                &k,
 		Token0:               p.Token0,
 		Token1:               p.Token1,
 		Reserve0:             p.Reserve0.String(),

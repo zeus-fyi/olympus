@@ -63,6 +63,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
 		tf.Tx = tx.Tx
+		tf.Trade.TradeMethod = swapExactTokensForTokens
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		pend := len(st.Path) - 1
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokens)
@@ -82,6 +83,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
+		tf.Trade.TradeMethod = swapTokensForExactTokens
 		tf.Tx = tx.Tx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapTokensForExactTokens)
@@ -105,6 +107,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
+		tf.Trade.TradeMethod = swapExactETHForTokens
 		tf.Tx = tx.Tx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactETHForTokens)
@@ -124,6 +127,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
+		tf.Trade.TradeMethod = swapTokensForExactETH
 		tf.Tx = tx.Tx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapTokensForExactETH)
@@ -143,6 +147,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
+		tf.Trade.TradeMethod = swapExactTokensForETH
 		tf.Tx = tx.Tx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForETH)
@@ -166,6 +171,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
+		tf.Trade.TradeMethod = swapETHForExactTokens
 		tf.Tx = tx.Tx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapETHForExactTokens)
@@ -195,6 +201,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
+		tf.Trade.TradeMethod = swapExactTokensForETHSupportingFeeOnTransferTokens
 		tf.Tx = tx.Tx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForETHSupportingFeeOnTransferTokens)
@@ -219,6 +226,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
 		tf.Tx = tx.Tx
+		tf.Trade.TradeMethod = swapExactETHForTokensSupportingFeeOnTransferTokens
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactETHForTokensSupportingFeeOnTransferTokens)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
@@ -238,6 +246,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
 		tf.Tx = tx.Tx
+		tf.Trade.TradeMethod = swapExactTokensForTokensSupportingFeeOnTransferTokens
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokensSupportingFeeOnTransferTokens)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())

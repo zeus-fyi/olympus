@@ -79,6 +79,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
+		tf.Trade.TradeMethod = exactInput
 		tf.Tx = tx.Tx
 		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, exactInput)
@@ -102,6 +103,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
+		tf.Trade.TradeMethod = exactOutput
 		tf.Tx = tx.Tx
 		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, exactOutput)
@@ -125,6 +127,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
+		tf.Trade.TradeMethod = swapExactInputSingle
 		tf.Tx = tx.Tx
 		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactInputSingle)
@@ -149,6 +152,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
+		tf.Trade.TradeMethod = swapExactOutputSingle
 		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactOutputSingle)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
@@ -172,6 +176,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
 		tf.Tx = tx.Tx
+		tf.Trade.TradeMethod = swapExactTokensForTokens
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokens)
 		pend := len(inputs.Path) - 1

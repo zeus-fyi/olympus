@@ -25,14 +25,17 @@ func NewActiveTradingModule(u *web3_client.UniswapClient, tm metrics_trading.Tra
 }
 
 func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) error {
+	a.m.StageProgressionMetrics.CountPreEntryFilterTx()
 	err := a.EntryTxFilter(ctx, tx)
 	if err != nil {
 		return err
 	}
+	a.m.StageProgressionMetrics.CountPostEntryFilterTx()
 	_, err = a.DecodeTx(ctx, tx)
 	if err != nil {
 		return err
 	}
+	a.m.StageProgressionMetrics.CountPostDecodeTx()
 	tfSlice, err := a.ProcessTxs(ctx)
 	if err != nil {
 		return err

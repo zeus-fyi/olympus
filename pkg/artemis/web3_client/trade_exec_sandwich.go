@@ -10,11 +10,11 @@ import (
 )
 
 func (u *UniswapClient) ExecSandwichTrade(tf TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
-	return u.ExecSwap(tf.InitialPair, &tf.SandwichTrade)
+	return u.ExecSwap(*tf.InitialPair, &tf.SandwichTrade)
 }
 
 func (u *UniswapClient) ExecSandwichTradeStep(tf *TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
-	return u.ExecSwap(tf.InitialPair, &tf.SandwichTrade)
+	return u.ExecSwap(*tf.InitialPair, &tf.SandwichTrade)
 }
 
 func (u *UniswapClient) ExecSandwichTradeStepTokenTransfer(tf *TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {

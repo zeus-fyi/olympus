@@ -180,7 +180,7 @@ func (u *UniswapClient) CheckBlockRxAndNetworkReset(tf *TradeExecutionFlow, live
 
 func (u *UniswapClient) CheckExpectedReserves(tf *TradeExecutionFlow) error {
 	simPair := tf.InitialPair
-	err := uniswap_pricing.GetPairContractPrices(ctx, &simPair, u.Web3Client.Web3Actions)
+	err := uniswap_pricing.GetPairContractPrices(ctx, simPair, u.Web3Client.Web3Actions)
 	if err != nil {
 		log.Err(err).Msg("error getting pair contract prices")
 		return err

@@ -10,14 +10,14 @@ import (
 )
 
 func (u *UniswapClient) ExecFrontRunTrade(tf TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
-	return u.ExecSwap(tf.InitialPair, &tf.FrontRunTrade)
+	return u.ExecSwap(*tf.InitialPair, &tf.FrontRunTrade)
 }
 
 func (u *UniswapClient) ExecFrontRunTradeStep(tf *TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
 	if u.DebugPrint {
 		fmt.Println("executing front run trade")
 	}
-	return u.ExecSwap(tf.InitialPair, &tf.FrontRunTrade)
+	return u.ExecSwap(*tf.InitialPair, &tf.FrontRunTrade)
 }
 
 func (u *UniswapClient) ExecFrontRunTradeStepTokenTransfer(tf *TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {

@@ -42,8 +42,18 @@ func (p *JSONUniswapV2Pair) ConvertToBigIntType() *UniswapV2Pair {
 		BlockTimestampLast:   bt,
 	}
 }
-func (p *UniswapV2Pair) ConvertToJSONType() JSONUniswapV2Pair {
-	return JSONUniswapV2Pair{
+func (p *UniswapV2Pair) ConvertToJSONType() *JSONUniswapV2Pair {
+	if p.Price0CumulativeLast == nil {
+		p.Price0CumulativeLast = big.NewInt(0)
+	}
+	if p.Price1CumulativeLast == nil {
+		p.Price1CumulativeLast = big.NewInt(0)
+	}
+	if p.KLast == nil {
+		p.KLast = big.NewInt(0)
+
+	}
+	return &JSONUniswapV2Pair{
 		PairContractAddr:     p.PairContractAddr,
 		Price0CumulativeLast: p.Price0CumulativeLast.String(),
 		Price1CumulativeLast: p.Price1CumulativeLast.String(),

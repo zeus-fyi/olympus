@@ -17,7 +17,7 @@ func InsertUniswapPairInfo(ctx context.Context, pair artemis_autogen_bases.Unisw
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `INSERT INTO uniswap_pair_info(address, factory_address, fee, version, token0, token1, protocol_network_id, trading_enabled)
 				  VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-			;`
+				  ON CONFLICT (address) DO NOTHING;`
 
 	protocolIDNum := 1
 	if pair.ProtocolNetworkID != 0 {
@@ -26,6 +26,7 @@ func InsertUniswapPairInfo(ctx context.Context, pair artemis_autogen_bases.Unisw
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, pair.Address, pair.FactoryAddress, pair.Fee, pair.Version, pair.Token0, pair.Token1, protocolIDNum, pair.TradingEnabled)
 	if err == pgx.ErrNoRows {
 		err = nil
+		return err
 	}
 	return misc.ReturnIfErr(err, q.LogHeader("InsertUniswapPairInfo"))
 }

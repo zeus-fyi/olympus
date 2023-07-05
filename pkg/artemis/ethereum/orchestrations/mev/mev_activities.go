@@ -10,7 +10,7 @@ import (
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
 	dynamodb_mev "github.com/zeus-fyi/olympus/datastores/dynamodb/mev"
-	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
@@ -98,7 +98,7 @@ func (d *ArtemisMevActivities) GetDynamoDBMempoolTxs(ctx context.Context) ([]dyn
 }
 
 func (d *ArtemisMevActivities) GetPostgresMempoolTxs(ctx context.Context, bn int) (artemis_autogen_bases.EthMempoolMevTxSlice, error) {
-	txs, terr := artemis_validator_service_groups_models.SelectMempoolTxAtBlockNumber(ctx, 1, bn)
+	txs, terr := artemis_mev_models.SelectMempoolTxAtBlockNumber(ctx, 1, bn)
 	if terr != nil {
 		log.Err(terr).Str("network", d.Network).Msg("GetPostgresMempoolTxs failed")
 		return nil, terr

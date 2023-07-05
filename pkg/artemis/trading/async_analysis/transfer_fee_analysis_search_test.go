@@ -24,5 +24,7 @@ func (s *ArtemisRealTimeTradingTestSuite) TestCalculateTransferFeeTaxRange() {
 	s.testEthSimTransferFeeAnalysisSetup()
 	percent, err := s.ca.CalculateTransferFeeTax(ctx, web3_client.EtherMultiple(1))
 	s.Assert().Nil(err)
+	fmt.Println(percent.Numerator.String())
+	fmt.Println(percent.Denominator.String())
 	fmt.Println(percent.Quotient().String())
 }

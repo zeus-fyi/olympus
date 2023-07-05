@@ -29,6 +29,6 @@ func (s *ArtemisRealTimeTradingTestSuite) TestEthSimTransferFeeAnalysis() {
 	approveTx, err = s.ca.u.ApproveSpender(ctx, WETH.String(), "0x34ba042827996821CFFEB06477D48a2Ff9474483", max)
 	s.Assert().Nil(err)
 	s.Assert().NotNil(approveTx)
-	_, err = s.ca.SimEthTransferFeeTaxTrade(ctx, web3_client.EtherMultiple(1), transferTaxPercent)
+	_, err = s.ca.SimEthTransferFeeTaxTrade(ctx, web3_client.EtherMultiple(1))
 	s.Assert().Nil(err)
 }

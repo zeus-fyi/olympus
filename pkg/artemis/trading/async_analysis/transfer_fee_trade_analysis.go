@@ -18,7 +18,7 @@ import (
 
 var WETH = accounts.HexToAddress(web3_client.WETH9ContractAddress)
 
-func (c *ContractAnalysis) SimEthTransferFeeTaxTrade(ctx context.Context, amount *big.Int, transferTaxPercent *uniswap_core_entities.Percent) (*uniswap_core_entities.Percent, error) {
+func (c *ContractAnalysis) SimEthTransferFeeTaxTrade(ctx context.Context, amount *big.Int) (*uniswap_core_entities.Percent, error) {
 	err := c.UserA.SetERC20BalanceBruteForce(ctx, WETH.String(), c.UserA.Address().String(), amount)
 	if err != nil {
 		return nil, err

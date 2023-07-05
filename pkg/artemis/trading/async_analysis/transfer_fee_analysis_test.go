@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/units"
 	core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_core/entities"
@@ -53,7 +53,7 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysisBulk() {
 	shib2Contract := "0x34ba042827996821CFFEB06477D48a2Ff9474483"
 	s.ca = NewERC20ContractAnalysis(&uni, shib2Contract)
 	s.ca.UserB = s.UserB
-	tokens, _, terr := artemis_validator_service_groups_models.SelectERC20TokensWithNullTransferTax(ctx)
+	tokens, _, terr := artemis_mev_models.SelectERC20TokensWithNullTransferTax(ctx)
 	s.Assert().Nil(terr)
 	s.Assert().NotNil(tokens)
 	s.ca.UserA.IsAnvilNode = true
@@ -74,7 +74,7 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysisBulk() {
 		token.TransferTaxDenominator = &denom
 		s.Require().NotZero(token.TransferTaxDenominator)
 		fmt.Println("token", token.Address, "percent", percent.Numerator.String(), "/", percent.Denominator.String())
-		err = artemis_validator_service_groups_models.UpdateERC20TokenTransferTaxInfo(ctx, token)
+		err = artemis_mev_models.UpdateERC20TokenTransferTaxInfo(ctx, token)
 		s.Assert().Nil(err)
 		time.Sleep(100 * time.Millisecond)
 	}

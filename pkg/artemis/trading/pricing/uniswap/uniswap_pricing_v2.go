@@ -23,14 +23,14 @@ var (
 
 type UniswapV2Pair struct {
 	PairContractAddr     string           `json:"pairContractAddr"`
-	Price0CumulativeLast *big.Int         `json:"price0CumulativeLast"`
-	Price1CumulativeLast *big.Int         `json:"price1CumulativeLast"`
-	KLast                *big.Int         `json:"kLast"`
+	Price0CumulativeLast *big.Int         `json:"price0CumulativeLast,omitempty"`
+	Price1CumulativeLast *big.Int         `json:"price1CumulativeLast,omitempty"`
+	KLast                *big.Int         `json:"kLast,omitempty"`
 	Token0               accounts.Address `json:"token0"`
 	Token1               accounts.Address `json:"token1"`
-	Reserve0             *big.Int         `json:"reserve0"`
+	Reserve0             *big.Int         `json:"reserve0,"`
 	Reserve1             *big.Int         `json:"reserve1"`
-	BlockTimestampLast   *big.Int         `json:"blockTimestampLast"`
+	BlockTimestampLast   *big.Int         `json:"blockTimestampLast,omitempty"`
 }
 
 func (p *UniswapV2Pair) GetQuoteToken0BuyToken1(token0 *big.Int) (*big.Int, error) {

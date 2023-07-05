@@ -58,11 +58,11 @@ func UpdateERC20TokenBalanceOfSlotInfo(ctx context.Context, token artemis_autoge
     			  SET balance_of_slot_num = $2
 				  WHERE address = $1 AND balance_of_slot_num < 0;`
 
-	_, err := apps.Pg.Exec(ctx, q.RawQuery, token.Address)
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, token.Address, token.BalanceOfSlotNum)
 	if err == pgx.ErrNoRows {
 		err = nil
 	}
-	return misc.ReturnIfErr(err, q.LogHeader("UpdateERC20TokenTransferTaxInfo"))
+	return misc.ReturnIfErr(err, q.LogHeader("UpdateERC20TokenBalanceOfSlotInfo"))
 }
 
 func UpdateERC20TokenTransferTaxInfo(ctx context.Context, token artemis_autogen_bases.Erc20TokenInfo) error {

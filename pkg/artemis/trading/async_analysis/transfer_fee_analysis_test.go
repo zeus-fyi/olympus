@@ -12,6 +12,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/units"
 	core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_core/entities"
 
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
@@ -57,12 +58,15 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysisBulk() {
 	s.Assert().NotNil(tokens)
 	s.ca.UserA.IsAnvilNode = true
 	for _, token := range tokens {
+		if token.BalanceOfSlotNum == -1 {
+			continue
+		}
 		s.ca.u.Web3Client.AddSessionLockHeader(token.Address)
 		err := s.ca.UserA.HardHatResetNetwork(ctx, s.ca.UserA.NodeURL, 17595510)
 		s.Require().Nil(err)
 		fmt.Println("token", token.Address)
 		s.ca.SmartContractAddr = token.Address
-		percent, err := s.ca.CalculateTransferFeeTax(ctx, web3_client.EtherMultiple(1))
+		percent, err := s.ca.CalculateTransferFeeTax(ctx, artemis_eth_units.EtherMultiple(1))
 		s.Assert().Nil(err)
 		num := int(percent.Numerator.Int64())
 		token.TransferTaxNumerator = &num

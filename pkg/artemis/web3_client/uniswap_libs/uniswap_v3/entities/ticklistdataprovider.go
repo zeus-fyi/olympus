@@ -35,12 +35,12 @@ func (p *TickListDataProvider) ConvertToJSONType() JSONTickListDataProvider {
 	}
 }
 
-func (p *JSONTickListDataProvider) ConvertToBigIntType() TickListDataProvider {
+func (p *JSONTickListDataProvider) ConvertToBigIntType() *TickListDataProvider {
 	ticks := make([]Tick, len(p.ticks))
 	for i, t := range p.ticks {
 		ticks[i] = t.ConvertToBigIntType()
 	}
-	return TickListDataProvider{
+	return &TickListDataProvider{
 		ticks: ticks,
 	}
 }

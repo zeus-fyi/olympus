@@ -31,12 +31,25 @@ type JSONUniswapPoolV3 struct {
 	TickListDataProvider *entities.JSONTickListDataProvider `json:"tickListDataProvider,omitempty"`
 }
 
-func (p *UniswapPoolV3) ConvertToJSONType() JSONUniswapPoolV3 {
+func (p *JSONUniswapPoolV3) ConvertToBigIntType() *UniswapPoolV3 {
+	lq, _ := new(big.Int).SetString(p.Liquidity, 10)
+	return &UniswapPoolV3{
+		Pool:                 p.Pool,
+		PoolAddress:          p.PoolAddress,
+		Fee:                  p.Fee,
+		Slot0:                p.Slot0.ConvertToBigIntType(),
+		Liquidity:            lq,
+		TokenFeePath:         p.TokenFeePath,
+		TickListDataProvider: p.TickListDataProvider.ConvertToBigIntType(),
+	}
+}
+
+func (p *UniswapPoolV3) ConvertToJSONType() *JSONUniswapPoolV3 {
 	var tickListDataProviderJSON entities.JSONTickListDataProvider
 	if p.TickDataProvider != nil {
 		tickListDataProviderJSON = p.TickListDataProvider.ConvertToJSONType()
 	}
-	return JSONUniswapPoolV3{
+	return &JSONUniswapPoolV3{
 		PoolAddress:          p.PoolAddress,
 		Fee:                  p.Fee,
 		Slot0:                p.Slot0.ConvertToJSONType(),

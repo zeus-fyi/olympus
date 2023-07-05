@@ -38,8 +38,8 @@ type TradeExecutionFlowJSON struct {
 	CurrentBlockNumber *big.Int                               `json:"currentBlockNumber"`
 	Tx                 *types.Transaction                     `json:"tx"`
 	Trade              Trade                                  `json:"trade"`
-	InitialPairV3      uniswap_pricing.JSONUniswapPoolV3      `json:"initialPairV3"`
-	InitialPair        uniswap_pricing.JSONUniswapV2Pair      `json:"initialPair"`
+	InitialPairV3      uniswap_pricing.JSONUniswapPoolV3      `json:"initialPairV3,omitempty"`
+	InitialPair        uniswap_pricing.JSONUniswapV2Pair      `json:"initialPair,omitempty"`
 	FrontRunTrade      artemis_trading_types.JSONTradeOutcome `json:"frontRunTrade"`
 	UserTrade          artemis_trading_types.JSONTradeOutcome `json:"userTrade"`
 	SandwichTrade      artemis_trading_types.JSONTradeOutcome `json:"sandwichTrade"`

@@ -28,7 +28,7 @@ func (a *ActiveTrading) EntryTxFilter(ctx context.Context, tx *types.Transaction
 	return nil
 }
 
-func (a *ActiveTrading) SimTxFilter(ctx context.Context, tfSlice []*web3_client.TradeExecutionFlowJSON) error {
+func (a *ActiveTrading) SimTxFilter(ctx context.Context, tfSlice []web3_client.TradeExecutionFlowJSON) error {
 	var addresses []accounts.Address
 	for _, tf := range tfSlice {
 		addresses = append(addresses, tf.UserTrade.AmountInAddr)

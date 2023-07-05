@@ -31,9 +31,9 @@ const (
 	removeLiquidityETHSupportingFeeOnTransferTokens           = "removeLiquidityETHSupportingFeeOnTransferTokens"
 )
 
-func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx) ([]*web3_client.TradeExecutionFlowJSON, error) {
+func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx) ([]web3_client.TradeExecutionFlowJSON, error) {
 	toAddr := tx.Tx.To().String()
-	var tfSlice []*web3_client.TradeExecutionFlowJSON
+	var tfSlice []web3_client.TradeExecutionFlowJSON
 	switch tx.MethodName {
 	case addLiquidity:
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, addLiquidity)
@@ -68,7 +68,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokens)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
-		tfSlice = append(tfSlice, &tf)
+		tfSlice = append(tfSlice, tf)
 	case swapTokensForExactTokens:
 		st := web3_client.SwapTokensForExactTokensParams{}
 		st.Decode(tx.Args)
@@ -87,7 +87,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapTokensForExactTokens)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapTokensForExactTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
-		tfSlice = append(tfSlice, &tf)
+		tfSlice = append(tfSlice, tf)
 	case swapExactETHForTokens:
 		// payable
 		if tx.Tx.Value() == nil {
@@ -110,7 +110,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactETHForTokens)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactETHForTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
-		tfSlice = append(tfSlice, &tf)
+		tfSlice = append(tfSlice, tf)
 	case swapTokensForExactETH:
 		st := web3_client.SwapTokensForExactETHParams{}
 		st.Decode(tx.Args)
@@ -129,7 +129,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapTokensForExactETH)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapTokensForExactETH, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
-		tfSlice = append(tfSlice, &tf)
+		tfSlice = append(tfSlice, tf)
 	case swapExactTokensForETH:
 		st := web3_client.SwapExactTokensForETHParams{}
 		st.Decode(tx.Args)
@@ -148,7 +148,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForETH)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForETH, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
-		tfSlice = append(tfSlice, &tf)
+		tfSlice = append(tfSlice, tf)
 	case swapETHForExactTokens:
 		// payable
 		if tx.Tx.Value() == nil {
@@ -171,7 +171,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapETHForExactTokens)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapETHForExactTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
-		tfSlice = append(tfSlice, &tf)
+		tfSlice = append(tfSlice, tf)
 	}
 
 	if tx.Tx.To().String() != accounts.HexToAddress(web3_client.UniswapV2Router02Address).String() {
@@ -200,7 +200,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForETHSupportingFeeOnTransferTokens)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForETHSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
-		tfSlice = append(tfSlice, &tf)
+		tfSlice = append(tfSlice, tf)
 	case swapExactETHForTokensSupportingFeeOnTransferTokens:
 		// payable
 		if tx.Tx.Value() == nil {
@@ -223,7 +223,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactETHForTokensSupportingFeeOnTransferTokens)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactETHForTokensSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
-		tfSlice = append(tfSlice, &tf)
+		tfSlice = append(tfSlice, tf)
 	case swapExactTokensForTokensSupportingFeeOnTransferTokens:
 		st := web3_client.SwapExactTokensForTokensSupportingFeeOnTransferTokensParams{}
 		st.Decode(tx.Args)
@@ -242,7 +242,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokensSupportingFeeOnTransferTokens)
 		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
 		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForTokensSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
-		tfSlice = append(tfSlice, &tf)
+		tfSlice = append(tfSlice, tf)
 	}
 	return tfSlice, nil
 }

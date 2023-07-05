@@ -11,8 +11,8 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *ActiveTrading) ProcessTxs(ctx context.Context) ([]*web3_client.TradeExecutionFlowJSON, error) {
-	var tfSlice []*web3_client.TradeExecutionFlowJSON
+func (a *ActiveTrading) ProcessTxs(ctx context.Context) ([]web3_client.TradeExecutionFlowJSON, error) {
+	var tfSlice []web3_client.TradeExecutionFlowJSON
 	for _, mevTx := range a.u.MevSmartContractTxMapUniversalRouterOld.Txs {
 		tf, err := a.RealTimeProcessUniversalRouterTx(ctx, mevTx)
 		if err != nil {

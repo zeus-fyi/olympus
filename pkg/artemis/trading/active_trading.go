@@ -64,12 +64,7 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 		return berr
 	}
 	wc.Close()
-	for _, tf := range tfSlice {
-		if tf == nil {
-			log.Warn().Msg("nil tx flow")
-			continue
-		}
-		tradeFlow := *tf
+	for _, tradeFlow := range tfSlice {
 		//if tf.InitialPair.PairContractAddr == "" {
 		//	a.m.StageProgressionMetrics.CountPostSimTx(tf.InitialPair.PairContractAddr, tf.FrontRunTrade.AmountInAddr.String())
 		//} else {

@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_encryption"
 )
@@ -25,7 +26,8 @@ func (s *ArtemisRealTimeTradingTestSuite) SetupTest() {
 	secondAccount, err := accounts.ParsePrivateKey(pkHexString2)
 	s.Assert().Nil(err)
 	s.MainnetWeb3User = web3_client.NewWeb3Client(s.Tc.MainnetNodeUrl, newAccount)
-	s.ProxiedMainnetUser = web3_client.NewWeb3Client("https://hardhat.zeus.fyi", secondAccount)
+	s.ProxiedMainnetUser = web3_client.NewWeb3Client(artemis_trading_constants.IrisAnvilRoute, secondAccount)
+	s.ProxiedMainnetUser.AddBearerToken(s.Tc.ProductionLocalTemporalBearerToken)
 }
 
 func TestArtemisRealTimeTradingTestSuite(t *testing.T) {

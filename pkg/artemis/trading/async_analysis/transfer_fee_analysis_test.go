@@ -7,11 +7,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/units"
 	core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_core/entities"
 
@@ -91,18 +93,19 @@ func (s *ArtemisRealTimeTradingTestSuite) SetupTest() {
 	pkHexString := s.Tc.LocalEcsdaTestPkey
 	secondAccount, err := accounts.ParsePrivateKey(pkHexString)
 	s.Assert().Nil(err)
-	irisBetaSvc := "https://iris.zeus.fyi/v1beta/internal/"
+	irisBetaSvc := artemis_trading_constants.IrisAnvilRoute
 
 	wc := web3_client.NewWeb3Client(irisBetaSvc, newAccount)
 	m := map[string]string{
 		"Authorization": "Bearer " + s.Tc.ProductionLocalTemporalBearerToken,
 	}
 	wc.Headers = m
+	wc.AddSessionLockHeader(uuid.New().String())
 	uni := web3_client.InitUniswapClient(ctx, wc)
 	uni.PrintOn = true
 	uni.PrintLocal = false
 	uni.Web3Client.IsAnvilNode = true
-	uni.Web3Client.DurableExecution = true
+	uni.Web3Client.DurableExecution = false
 	s.UserA = wc
 	// web3_client.NewWeb3Client(s.Tc.QuiknodeLiveNode, newAccount)
 	//s.UserA = web3_client.NewWeb3Client("http://localhost:8545", newAccount)

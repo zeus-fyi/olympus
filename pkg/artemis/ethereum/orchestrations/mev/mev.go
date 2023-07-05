@@ -73,17 +73,17 @@ func ProcessMempoolTxs(ctx context.Context) {
 	timestampChan := make(chan time.Time)
 	go beacon_api.TriggerWorkflowOnNewBlockHeaderEvent(ctx, artemis_network_cfgs.ArtemisQuicknodeStreamWebsocket, timestampChan)
 
-	wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
-	wc.Dial()
-	bn, berr := wc.C.BlockNumber(ctx)
-	if berr != nil {
-		log.Err(berr).Msg("failed to get block number")
-		return
-	}
-	wc.Close()
 	for {
 		select {
 		case t := <-timestampChan:
+			wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
+			wc.Dial()
+			bn, berr := wc.C.BlockNumber(ctx)
+			if berr != nil {
+				log.Err(berr).Msg("failed to get block number")
+				return
+			}
+			wc.Close()
 			log.Info().Msg(fmt.Sprintf("Received new timestamp: %s", t))
 			log.Info().Msg("ExecuteArtemisMevWorkflow: ExecuteArtemisBlacklistTxWorkflow")
 			err := ArtemisMevWorkerMainnet.ExecuteArtemisBlacklistTxWorkflow(ctx)

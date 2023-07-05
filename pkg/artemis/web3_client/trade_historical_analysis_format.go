@@ -179,6 +179,10 @@ func (u *UniswapClient) CheckBlockRxAndNetworkReset(tf *TradeExecutionFlow, live
 }
 
 func (u *UniswapClient) CheckExpectedReserves(tf *TradeExecutionFlow) error {
+	if tf.InitialPair == nil {
+		return nil
+	}
+	// todo, do v3 pairs
 	simPair := tf.InitialPair
 	err := uniswap_pricing.GetPairContractPrices(ctx, simPair, u.Web3Client.Web3Actions)
 	if err != nil {

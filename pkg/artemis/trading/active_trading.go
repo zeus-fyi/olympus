@@ -32,9 +32,12 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 		return err
 	}
 	a.m.StageProgressionMetrics.CountPostEntryFilterTx()
-	_, err = a.DecodeTx(ctx, tx)
+	mevTxs, err := a.DecodeTx(ctx, tx)
 	if err != nil {
 		return err
+	}
+	if len(mevTxs) <= 0 {
+		return errors.New("DecodeTx: no txs to process")
 	}
 	a.m.StageProgressionMetrics.CountPostDecodeTx()
 	tfSlice, err := a.ProcessTxs(ctx)

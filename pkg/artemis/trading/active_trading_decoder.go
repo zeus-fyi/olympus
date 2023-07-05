@@ -27,6 +27,7 @@ func (a *ActiveTrading) DecodeTx(ctx context.Context, tx *types.Transaction) ([]
 			Tx: tx,
 		}
 		tmp := a.u.MevSmartContractTxMapUniversalRouterOld.Txs
+		tmp = append(tmp, singleTx)
 		mevTxs = append(mevTxs, singleTx)
 		a.u.MevSmartContractTxMapUniversalRouterOld.Txs = tmp
 		a.m.TxFetcherMetrics.TransactionGroup(web3_client.UniswapUniversalRouterAddressOld, methodName)
@@ -47,6 +48,7 @@ func (a *ActiveTrading) DecodeTx(ctx context.Context, tx *types.Transaction) ([]
 			Tx: tx,
 		}
 		tmp := a.u.MevSmartContractTxMapUniversalRouterNew.Txs
+		tmp = append(tmp, singleTx)
 		mevTxs = append(mevTxs, singleTx)
 		a.u.MevSmartContractTxMapUniversalRouterNew.Txs = tmp
 		a.m.TxFetcherMetrics.TransactionGroup(web3_client.UniswapUniversalRouterAddressNew, methodName)
@@ -67,6 +69,7 @@ func (a *ActiveTrading) DecodeTx(ctx context.Context, tx *types.Transaction) ([]
 			Tx: tx,
 		}
 		tmp := a.u.MevSmartContractTxMapV2Router02.Txs
+		tmp = append(tmp, singleTx)
 		mevTxs = append(mevTxs, singleTx)
 		a.u.MevSmartContractTxMapV2Router02.Txs = tmp
 		a.m.TxFetcherMetrics.TransactionGroup(web3_client.UniswapV2Router02Address, methodName)
@@ -87,6 +90,7 @@ func (a *ActiveTrading) DecodeTx(ctx context.Context, tx *types.Transaction) ([]
 			Tx: tx,
 		}
 		tmp := a.u.MevSmartContractTxMapV2Router01.Txs
+		tmp = append(tmp, singleTx)
 		mevTxs = append(mevTxs, singleTx)
 		a.u.MevSmartContractTxMapV2Router01.Txs = tmp
 		a.m.TxFetcherMetrics.TransactionGroup(web3_client.UniswapV2Router01Address, methodName)
@@ -107,6 +111,7 @@ func (a *ActiveTrading) DecodeTx(ctx context.Context, tx *types.Transaction) ([]
 			Tx: tx,
 		}
 		tmp := a.u.MevSmartContractTxMapV3SwapRouterV1.Txs
+		tmp = append(tmp, singleTx)
 		mevTxs = append(mevTxs, singleTx)
 		a.u.MevSmartContractTxMapV3SwapRouterV1.Txs = tmp
 		a.m.TxFetcherMetrics.TransactionGroup(web3_client.UniswapV3Router01Address, methodName)
@@ -127,6 +132,7 @@ func (a *ActiveTrading) DecodeTx(ctx context.Context, tx *types.Transaction) ([]
 			Tx: tx,
 		}
 		tmp := a.u.MevSmartContractTxMapV3SwapRouterV2.Txs
+		tmp = append(tmp, singleTx)
 		mevTxs = append(mevTxs, singleTx)
 		a.u.MevSmartContractTxMapV3SwapRouterV2.Txs = tmp
 		a.m.TxFetcherMetrics.TransactionGroup(web3_client.UniswapV3Router02Address, methodName)

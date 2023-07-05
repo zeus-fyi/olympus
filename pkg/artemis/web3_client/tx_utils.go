@@ -19,7 +19,7 @@ func (w *Web3Client) GetBlockTxs(ctx context.Context) (types.Transactions, error
 	defer w.Close()
 	block, err := w.C.BlockByNumber(ctx, nil)
 	if err != nil {
-		log.Err(err).Msg("failed to get nonce")
+		log.Err(err).Msg("failed to get block txs")
 		return nil, err
 	}
 	return block.Transactions(), nil
@@ -30,7 +30,7 @@ func (w *Web3Client) GetTxByHash(ctx context.Context, hash common.Hash) (*types.
 	defer w.Close()
 	tx, isPending, err := w.C.TransactionByHash(ctx, hash)
 	if err != nil {
-		log.Err(err).Msg("failed to get nonce")
+		log.Err(err).Msg("failed to get tx by hash")
 		return nil, false, err
 	}
 	return tx, isPending, nil

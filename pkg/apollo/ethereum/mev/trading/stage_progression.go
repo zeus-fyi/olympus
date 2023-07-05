@@ -8,6 +8,7 @@ type StageProgressionMetrics struct {
 	PostDecodeTxCount        prometheus.Counter
 	PostProcessFilterTxCount prometheus.Counter
 	PostSimFilterTxCount     prometheus.Counter
+	SavedMempoolTxCount      prometheus.Counter
 }
 
 func NewStageProgressionMetrics(reg prometheus.Registerer) StageProgressionMetrics {
@@ -42,7 +43,13 @@ func NewStageProgressionMetrics(reg prometheus.Registerer) StageProgressionMetri
 			Help: "Tx count before simulation stage",
 		},
 	)
-	reg.MustRegister(tx.PostSimFilterTxCount, tx.PostProcessFilterTxCount, tx.PostDecodeTxCount, tx.PostEntryFilterTxCount, tx.PreEntryFilterTxCount)
+	tx.SavedMempoolTxCount = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "eth_mev_mempool_tx_recorded",
+			Help: "Tx count of mempool tx meeting criteria",
+		},
+	)
+	reg.MustRegister(tx.PostSimFilterTxCount, tx.PostProcessFilterTxCount, tx.PostDecodeTxCount, tx.PostEntryFilterTxCount, tx.PreEntryFilterTxCount, tx.SavedMempoolTxCount)
 	return tx
 }
 
@@ -64,4 +71,8 @@ func (t *StageProgressionMetrics) CountPostProcessTx(count float64) {
 
 func (t *StageProgressionMetrics) CountPostSimFilterTx(count float64) {
 	t.PostSimFilterTxCount.Add(count)
+}
+
+func (t *StageProgressionMetrics) CountSavedMempoolTx(count float64) {
+	t.SavedMempoolTxCount.Add(count)
 }

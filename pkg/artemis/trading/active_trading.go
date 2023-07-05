@@ -46,7 +46,6 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 		return err
 	}
 	a.m.StageProgressionMetrics.CountPostSimFilterTx(float64(1))
-	log.Info().Msg("tx passed all filters")
 	wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
 	wc.Dial()
 	bn, berr := wc.C.BlockNumber(ctx)
@@ -71,10 +70,10 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 		from, ferr := sender.Sender(tf.Tx)
 		if ferr != nil {
 			log.Err(ferr).Msg("failed to get sender")
+			return ferr
 		} else {
 			fromStr = from.String()
 		}
-
 		txMempool := artemis_autogen_bases.EthMempoolMevTx{
 			ProtocolNetworkID: hestia_req_types.EthereumMainnetProtocolNetworkID,
 			Tx:                tx.Hash().String(),
@@ -90,8 +89,8 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 			log.Err(err).Msg("failed to insert mempool tx")
 			return err
 		}
+		a.m.StageProgressionMetrics.CountSavedMempoolTx(float64(1))
 	}
-
 	return err
 }
 

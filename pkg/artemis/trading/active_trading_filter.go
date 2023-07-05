@@ -22,6 +22,9 @@ func (a *ActiveTrading) EntryTxFilter(ctx context.Context, tx *types.Transaction
 	if tx.To() == nil {
 		return errors.New("ActiveTrading: EntryTxFilter, tx.To() is nil")
 	}
+	if tx.ChainId() == nil {
+		return errors.New("ActiveTrading: EntryTxFilter, tx.ChainId() is nil")
+	}
 	return nil
 }
 

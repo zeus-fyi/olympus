@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/constants"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -20,9 +21,18 @@ func (s *ArtemisRealTimeTradingTestSuite) testEthSimTransferFeeAnalysisSetup() {
 
 func (s *ArtemisRealTimeTradingTestSuite) TestCalculateTransferFeeTaxRange() {
 	s.testEthSimTransferFeeAnalysisSetup()
-	percent, err := s.ca.CalculateTransferFeeTax(ctx, web3_client.EtherMultiple(1))
+	percent, err := s.ca.CalculateTransferFeeTax(ctx, artemis_eth_units.EtherMultiple(1))
 	s.Assert().Nil(err)
 	fmt.Println(percent.Numerator.String())
 	fmt.Println(percent.Denominator.String())
-	fmt.Println(percent.Quotient().String())
+
+	percent, err = s.ca.CalculateTransferFeeTax(ctx, artemis_eth_units.GweiMultiple(1))
+	s.Assert().Nil(err)
+	fmt.Println(percent.Numerator.String())
+	fmt.Println(percent.Denominator.String())
+
+	percent, err = s.ca.CalculateTransferFeeTax(ctx, artemis_eth_units.EtherMultiple(100))
+	s.Assert().Nil(err)
+	fmt.Println(percent.Numerator.String())
+	fmt.Println(percent.Denominator.String())
 }

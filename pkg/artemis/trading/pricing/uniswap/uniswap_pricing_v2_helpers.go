@@ -13,14 +13,14 @@ import (
 
 type JSONUniswapV2Pair struct {
 	PairContractAddr     string           `json:"pairContractAddr"`
-	Price0CumulativeLast string           `json:"price0CumulativeLast"`
-	Price1CumulativeLast string           `json:"price1CumulativeLast"`
-	KLast                string           `json:"kLast"`
+	Price0CumulativeLast string           `json:"price0CumulativeLast,omitempty"`
+	Price1CumulativeLast string           `json:"price1CumulativeLast,omitempty"`
+	KLast                string           `json:"kLast,omitempty"`
 	Token0               accounts.Address `json:"token0"`
 	Token1               accounts.Address `json:"token1"`
 	Reserve0             string           `json:"reserve0"`
 	Reserve1             string           `json:"reserve1"`
-	BlockTimestampLast   string           `json:"blockTimestampLast"`
+	BlockTimestampLast   string           `json:"blockTimestampLast,omitempty"`
 }
 
 func (p *JSONUniswapV2Pair) ConvertToBigIntType() *UniswapV2Pair {

@@ -60,7 +60,7 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 		log.Err(berr).Msg("failed to get block number")
 		return berr
 	}
-	defer wc.Close()
+	wc.Close()
 	for _, tf := range tfSlice {
 		//if tf.InitialPair.PairContractAddr == "" {
 		//	a.m.StageProgressionMetrics.CountPostSimTx(tf.InitialPair.PairContractAddr, tf.FrontRunTrade.AmountInAddr.String())

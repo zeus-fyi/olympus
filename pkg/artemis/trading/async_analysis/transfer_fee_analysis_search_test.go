@@ -36,3 +36,5 @@ func (s *ArtemisRealTimeTradingTestSuite) TestCalculateTransferFeeTaxRange() {
 	fmt.Println(percent.Numerator.String())
 	fmt.Println(percent.Denominator.String())
 }
+
+// 0x5327295e1ed6d59faaf98d04697b0316fb8ad4b767d2e7f5addb3981c3b5d3b7

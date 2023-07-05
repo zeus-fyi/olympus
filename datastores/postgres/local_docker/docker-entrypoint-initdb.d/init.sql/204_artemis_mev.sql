@@ -26,7 +26,6 @@ ALTER TABLE "public"."uniswap_pair_info" ADD CONSTRAINT "uniswap_pair_info_pk" P
 CREATE TABLE "public"."eth_mempool_mev_tx" (
     "tx_id" int8 NOT NULL DEFAULT next_id(),
     "tx_hash" text NOT NULL,
-    "pair_address" text,
     "nonce" int8 NOT NULL DEFAULT 0,
     "from" text NOT NULL,
     "to" text NOT NULL,

@@ -9,6 +9,7 @@ ALTER TABLE "public"."eth_p2p_nodes" ADD CONSTRAINT "eth_p2p_nodes_pk" PRIMARY K
 
 CREATE TABLE "public"."eth_mev_tx_analysis" (
     "tx_hash" text NOT NULL REFERENCES eth_mempool_mev_tx(tx_hash),
+    "pair_address" text,
     "trade_method" text NOT NULL,
     "rx_block_number" int8 NOT NULL,
     "end_reason" text NOT NULL,
@@ -32,4 +33,3 @@ CREATE TABLE "public"."eth_mev_address_filter" (
     "protocol_network_id" int8 NOT NULL REFERENCES protocol_networks(protocol_network_id) DEFAULT 1
 );
 ALTER TABLE "public"."eth_mev_address_filter" ADD CONSTRAINT "eth_mev_address_filter_pk" PRIMARY KEY ("address");
-

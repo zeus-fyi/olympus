@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/rs/zerolog/log"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -31,7 +32,12 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 				return nil, errors.New("expectedProfit == 0 or 1")
 			}
-			tf.Tx = tx.Tx
+			newJsonTx := artemis_trading_types.JSONTx{}
+			err = newJsonTx.UnmarshalTx(tx.Tx)
+			if err != nil {
+				return nil, err
+			}
+			tf.Tx = newJsonTx
 			tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 			tf.Trade.TradeMethod = web3_client.V3SwapExactIn
 			a.m.TxFetcherMetrics.TransactionGroup(toAddr, web3_client.V3SwapExactIn)
@@ -48,7 +54,12 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 				return nil, perr
 			}
 			tf := inputs.BinarySearch(pd)
-			tf.Tx = tx.Tx
+			newJsonTx := artemis_trading_types.JSONTx{}
+			err = newJsonTx.UnmarshalTx(tx.Tx)
+			if err != nil {
+				return nil, err
+			}
+			tf.Tx = newJsonTx
 			if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 				return nil, errors.New("expectedProfit == 0 or 1")
 			}
@@ -68,7 +79,12 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 				return nil, perr
 			}
 			tf := inputs.BinarySearch(pd.V2Pair)
-			tf.Tx = tx.Tx
+			newJsonTx := artemis_trading_types.JSONTx{}
+			err = newJsonTx.UnmarshalTx(tx.Tx)
+			if err != nil {
+				return nil, err
+			}
+			tf.Tx = newJsonTx
 			if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 				return nil, errors.New("expectedProfit == 0 or 1")
 			}
@@ -89,7 +105,12 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 				return nil, perr
 			}
 			tf := inputs.BinarySearch(pd.V2Pair)
-			tf.Tx = tx.Tx
+			newJsonTx := artemis_trading_types.JSONTx{}
+			err = newJsonTx.UnmarshalTx(tx.Tx)
+			if err != nil {
+				return nil, err
+			}
+			tf.Tx = newJsonTx
 			if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 				return nil, errors.New("expectedProfit == 0 or 1")
 			}

@@ -31,6 +31,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 				return nil, errors.New("expectedProfit == 0 or 1")
 			}
+			tf.Tx = tx.Tx
 			tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 			a.m.TxFetcherMetrics.TransactionGroup(toAddr, web3_client.V3SwapExactIn)
 			a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path.TokenIn.String(), inputs.Path.GetEndToken().String())
@@ -46,6 +47,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 				return nil, perr
 			}
 			tf := inputs.BinarySearch(pd)
+			tf.Tx = tx.Tx
 			if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 				return nil, errors.New("expectedProfit == 0 or 1")
 			}
@@ -64,6 +66,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 				return nil, perr
 			}
 			tf := inputs.BinarySearch(pd.V2Pair)
+			tf.Tx = tx.Tx
 			if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 				return nil, errors.New("expectedProfit == 0 or 1")
 			}
@@ -83,6 +86,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 				return nil, perr
 			}
 			tf := inputs.BinarySearch(pd.V2Pair)
+			tf.Tx = tx.Tx
 			if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
 				return nil, errors.New("expectedProfit == 0 or 1")
 			}

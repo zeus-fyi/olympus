@@ -25,18 +25,21 @@ func NewActiveTradingModule(u *web3_client.UniswapClient, tm metrics_trading.Tra
 }
 
 func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) error {
-	// TODO add metrics pass rate & timing for each stage
 	err := a.EntryTxFilter(ctx, tx)
 	if err != nil {
 		return err
 	}
-	err = a.DecodeTx(ctx, tx)
+	_, err = a.DecodeTx(ctx, tx)
 	if err != nil {
 		return err
 	}
+
 	tfSlice, err := a.ProcessTxs(ctx)
 	if err != nil {
 		return err
+	}
+	for _, tf := range tfSlice {
+		a.m.StageProgressionMetrics.CountPostProcessFilterTx(tf.InitialPair.PairContractAddr, tf.FrontRunTrade.AmountInAddr.String())
 	}
 	err = a.SimTxFilter(ctx, tx)
 	if err != nil {
@@ -52,9 +55,9 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	defer wc.Close()
 	for _, tf := range tfSlice {
 		if tf.InitialPair.PairContractAddr == "" {
-			a.m.StageProgressionMetrics.CountPreSimTx(tf.InitialPair.PairContractAddr, tf.FrontRunTrade.AmountInAddr.String())
+			a.m.StageProgressionMetrics.CountPostSimTx(tf.InitialPair.PairContractAddr, tf.FrontRunTrade.AmountInAddr.String())
 		} else {
-			a.m.StageProgressionMetrics.CountPreSimTx(tf.InitialPairV3.PoolAddress, tf.FrontRunTrade.AmountInAddr.String())
+			a.m.StageProgressionMetrics.CountPostSimTx(tf.InitialPairV3.PoolAddress, tf.FrontRunTrade.AmountInAddr.String())
 		}
 		btf, ber := json.Marshal(tf)
 		if ber != nil {

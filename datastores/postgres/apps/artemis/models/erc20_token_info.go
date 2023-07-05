@@ -52,6 +52,19 @@ func UpdateERC20TokenInfo(ctx context.Context, token artemis_autogen_bases.Erc20
 	return misc.ReturnIfErr(err, q.LogHeader("UpdateERC20TokenInfo"))
 }
 
+func UpdateERC20TokenBalanceOfSlotInfo(ctx context.Context, token artemis_autogen_bases.Erc20TokenInfo) error {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `UPDATE erc20_token_info
+    			  SET balance_of_slot_num = $2
+				  WHERE address = $1 AND balance_of_slot_num < 0;`
+
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, token.Address)
+	if err == pgx.ErrNoRows {
+		err = nil
+	}
+	return misc.ReturnIfErr(err, q.LogHeader("UpdateERC20TokenTransferTaxInfo"))
+}
+
 func UpdateERC20TokenTransferTaxInfo(ctx context.Context, token artemis_autogen_bases.Erc20TokenInfo) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `UPDATE erc20_token_info
@@ -101,6 +114,32 @@ func SelectERC20TokensWithoutTransferTaxInfo(ctx context.Context) ([]artemis_aut
 		tokens = append(tokens, token)
 	}
 	return tokens, misc.ReturnIfErr(err, q.LogHeader("SelectERC20TokensWithoutTransferTaxInfo"))
+}
+
+func SelectERC20TokensWithoutBalanceOfSlotNums(ctx context.Context) ([]artemis_autogen_bases.Erc20TokenInfo, error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT address
+				  FROM erc20_token_info
+				  WHERE protocol_network_id = $1 AND balance_of_slot_num IS NULL OR balance_of_slot_num = -2;`
+
+	var tokens []artemis_autogen_bases.Erc20TokenInfo
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, 1)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SelectERC20Tokens")); returnErr != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var token artemis_autogen_bases.Erc20TokenInfo
+		rowErr := rows.Scan(
+			&token.Address,
+		)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader("SelectERC20Tokens"))
+			return nil, rowErr
+		}
+		tokens = append(tokens, token)
+	}
+	return tokens, misc.ReturnIfErr(err, q.LogHeader("SelectERC20Tokens"))
 }
 
 func SelectERC20TokensWithoutMetadata(ctx context.Context) ([]artemis_autogen_bases.Erc20TokenInfo, error) {

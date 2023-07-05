@@ -120,7 +120,7 @@ func (w *Web3Client) SetERC20BalanceBruteForce(ctx context.Context, scAddr, user
 			return err
 		}
 		if b.String() == value.String() {
-			err = artemis_validator_service_groups_models.InsertERC20TokenInfo(ctx, artemis_autogen_bases.Erc20TokenInfo{
+			err = artemis_validator_service_groups_models.UpdateERC20TokenBalanceOfSlotInfo(ctx, artemis_autogen_bases.Erc20TokenInfo{
 				Address:           scAddr,
 				ProtocolNetworkID: 1,
 				BalanceOfSlotNum:  i,

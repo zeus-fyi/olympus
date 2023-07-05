@@ -54,11 +54,11 @@ func (p *JSONUniswapV2Pair) ConvertToBigIntType() *UniswapV2Pair {
 }
 func (p *UniswapV2Pair) ConvertToJSONType() *JSONUniswapV2Pair {
 	var p0 string
-	if p.Price0CumulativeLast == nil {
+	if p.Price0CumulativeLast != nil {
 		p0 = p.Price0CumulativeLast.String()
 	}
 	var p1 string
-	if p.Price1CumulativeLast == nil {
+	if p.Price1CumulativeLast != nil {
 		p1 = p.Price1CumulativeLast.String()
 	}
 	var k string

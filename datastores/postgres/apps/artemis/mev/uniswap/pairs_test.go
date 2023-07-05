@@ -2,6 +2,7 @@ package artemis_models_uniswap
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -32,6 +33,9 @@ func (s *UniswapModelsTestSuite) TestInsertPair() {
 		addressStr := to.Address
 		tokenAddr := accounts.HexToAddress(addressStr)
 		if tokenAddr != artemis_trading_constants.WETH9ContractAddressAccount {
+			if to.Symbol != nil {
+				fmt.Println(*to.Symbol, to.Decimals, to.Address)
+			}
 			tokensToAdd = append(tokensToAdd, tokenAddr)
 		}
 	}

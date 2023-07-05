@@ -43,9 +43,15 @@ func NewUniswapPools(pair []accounts.Address) (*UniswapPools, error) {
 			UniswapV2Pair: &UniswapV2Pair{},
 		},
 		V3Pairs: UniswapV3Pools{
-			LowFee:    &UniswapV3Pair{},
-			MediumFee: &UniswapV3Pair{},
-			HighFee:   &UniswapV3Pair{},
+			LowFee: &UniswapV3Pair{
+				Fee: constants.FeeLow,
+			},
+			MediumFee: &UniswapV3Pair{
+				Fee: constants.FeeMedium,
+			},
+			HighFee: &UniswapV3Pair{
+				Fee: constants.FeeHigh,
+			},
 		},
 	}
 	err := pools.getPoolAddress(pair)
@@ -69,30 +75,24 @@ func (u *UniswapPools) PairForV3FromAddresses(token0, token1 accounts.Address) e
 	tokenA := uniswap_core_entities.NewToken(1, token0, 0, "", "")
 	tokenB := uniswap_core_entities.NewToken(1, token1, 0, "", "")
 	factoryAddress := artemis_trading_constants.UniswapV3FactoryAddressAccount
-	v3Pools := UniswapV3Pools{
-		LowFee:    &UniswapV3Pair{},
-		MediumFee: &UniswapV3Pair{},
-		HighFee:   &UniswapV3Pair{},
-	}
 	pa, err := utils.ComputePoolAddress(factoryAddress, tokenA, tokenB, constants.FeeLow, "")
 	if err != nil {
 		log.Err(err).Msg("UniswapV3Pair: PairForV2")
 		return err
 	}
-	v3Pools.LowFee.PoolAddress = pa.String()
+	u.V3Pairs.LowFee.PoolAddress = pa.String()
 	pa, err = utils.ComputePoolAddress(factoryAddress, tokenA, tokenB, constants.FeeMedium, "")
 	if err != nil {
 		log.Err(err).Msg("UniswapV3Pair: PairForV2")
 		return err
 	}
-	v3Pools.MediumFee.PoolAddress = pa.String()
+	u.V3Pairs.MediumFee.PoolAddress = pa.String()
 	pa, err = utils.ComputePoolAddress(factoryAddress, tokenA, tokenB, constants.FeeHigh, "")
 	if err != nil {
 		log.Err(err).Msg("UniswapV3Pair: PairForV2")
 		return err
 	}
-	v3Pools.HighFee.PoolAddress = pa.String()
-	u.V3Pairs = v3Pools
+	u.V3Pairs.HighFee.PoolAddress = pa.String()
 	return err
 }
 

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
+	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	"nhooyr.io/websocket"
 	"nhooyr.io/websocket/wsjson"
 )
@@ -76,6 +77,9 @@ func TriggerWorkflowOnNewBlockHeaderEvent(ctx context.Context, wsAddr string, ti
 		if err != nil {
 			log.Err(err).Msg("Failed to read message from the WebSocket server")
 			time.Sleep(1 * time.Second)
+			cancel()
+			ws.Close(websocket.StatusInternalError, "failed to close conn to WebSocket server")
+			go TriggerWorkflowOnNewBlockHeaderEvent(context.Background(), artemis_network_cfgs.ArtemisQuicknodeStreamWebsocket, timestampChan)
 			continue
 		}
 		// Print the received message.

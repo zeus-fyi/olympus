@@ -14,7 +14,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_v3/entities"
 )
 
-func (p *UniswapPoolV3) GetLiquidity(ctx context.Context) error {
+func (p *UniswapV3Pair) GetLiquidity(ctx context.Context) error {
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: p.PoolAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
@@ -39,7 +39,7 @@ func (p *UniswapPoolV3) GetLiquidity(ctx context.Context) error {
 	return err
 }
 
-func (p *UniswapPoolV3) GetSlot0(ctx context.Context) error {
+func (p *UniswapV3Pair) GetSlot0(ctx context.Context) error {
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: p.PoolAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
@@ -70,7 +70,7 @@ func (p *UniswapPoolV3) GetSlot0(ctx context.Context) error {
 	return nil
 }
 
-func (p *UniswapPoolV3) GetTickMappingValue(tickNum int16) *big.Int {
+func (p *UniswapV3Pair) GetTickMappingValue(tickNum int16) *big.Int {
 	tick, err := p.GetTickMappingValueFromContract(tickNum)
 	if err != nil {
 		log.Err(err).Msg("GetTickMappingValueFromContract")
@@ -79,7 +79,7 @@ func (p *UniswapPoolV3) GetTickMappingValue(tickNum int16) *big.Int {
 	return tick
 }
 
-func (p *UniswapPoolV3) GetTickMappingValueFromContract(tickNum int16) (*big.Int, error) {
+func (p *UniswapV3Pair) GetTickMappingValueFromContract(tickNum int16) (*big.Int, error) {
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: p.PoolAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
@@ -105,7 +105,7 @@ func (p *UniswapPoolV3) GetTickMappingValueFromContract(tickNum int16) (*big.Int
 	return nil, errors.New("tick mapping value not found")
 }
 
-func (p *UniswapPoolV3) GetTick(tickNum int) entities.Tick {
+func (p *UniswapV3Pair) GetTick(tickNum int) entities.Tick {
 	tick, err := p.GetTickFromContract(tickNum)
 	if err != nil {
 		return tick
@@ -113,7 +113,7 @@ func (p *UniswapPoolV3) GetTick(tickNum int) entities.Tick {
 	return tick
 }
 
-func (p *UniswapPoolV3) GetTickFromContract(tickNum int) (entities.Tick, error) {
+func (p *UniswapV3Pair) GetTickFromContract(tickNum int) (entities.Tick, error) {
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: p.PoolAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
@@ -159,7 +159,7 @@ func (p *UniswapPoolV3) GetTickFromContract(tickNum int) (entities.Tick, error) 
 	return tick, nil
 }
 
-func (p *UniswapPoolV3) GetPopulatedTicksMap() ([]entities.Tick, error) {
+func (p *UniswapV3Pair) GetPopulatedTicksMap() ([]entities.Tick, error) {
 	if p.Fee == 0 {
 		p.Fee = constants.FeeMedium
 	}

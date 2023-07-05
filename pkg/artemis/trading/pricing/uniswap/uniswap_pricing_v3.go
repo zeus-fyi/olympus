@@ -28,7 +28,7 @@ const (
 	UniswapV3FactoryAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984"
 )
 
-func (p *UniswapPoolV3) PriceImpact(ctx context.Context, token *uniswap_core_entities.Token, amountIn *big.Int) (*uniswap_core_entities.CurrencyAmount, *entities.Pool, error) {
+func (p *UniswapV3Pair) PriceImpact(ctx context.Context, token *uniswap_core_entities.Token, amountIn *big.Int) (*uniswap_core_entities.CurrencyAmount, *entities.Pool, error) {
 	amountInTrade := uniswap_core_entities.FromRawAmount(token, amountIn)
 	out, pool, err := p.GetOutputAmount(amountInTrade, nil)
 	if err != nil {
@@ -40,7 +40,7 @@ func (p *UniswapPoolV3) PriceImpact(ctx context.Context, token *uniswap_core_ent
 	return out, pool, nil
 }
 
-func (p *UniswapPoolV3) PricingData(ctx context.Context, path artemis_trading_types.TokenFeePath, simMode bool) error {
+func (p *UniswapV3Pair) PricingData(ctx context.Context, path artemis_trading_types.TokenFeePath, simMode bool) error {
 	// todo, need to handle multi-hops, not sure if this is sufficient for that
 	p.Fee = constants.FeeAmount(path.GetFirstFee().Int64())
 	p.SimMode = simMode

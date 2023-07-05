@@ -2,10 +2,7 @@ package uniswap_pricing
 
 import (
 	"context"
-	"errors"
 
-	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_pricing_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/utils"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
@@ -47,22 +44,4 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 	}
 	p.BlockTimestampLast = blockTimestampLast
 	return nil
-}
-
-func V2PairToPrices(ctx context.Context, wc web3_actions.Web3Actions, pairAddr []accounts.Address) (UniswapV2Pair, error) {
-	p := UniswapV2Pair{}
-	if len(pairAddr) == 2 {
-		err := p.PairForV2(pairAddr[0].String(), pairAddr[1].String())
-		if err != nil {
-			log.Err(err).Msg("V2PairToPrices: PairForV2")
-			return p, err
-		}
-		err = GetPairContractPrices(ctx, wc, &p)
-		if err != nil {
-			log.Err(err).Msg("V2PairToPrices: GetPairContractPrices")
-			return p, err
-		}
-		return p, err
-	}
-	return UniswapV2Pair{}, errors.New("pair address length is not 2, multi-hops not implemented yet")
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_v3/entities"
 )
 
-type UniswapPoolV3 struct {
+type UniswapV3Pair struct {
 	web3_actions.Web3Actions `json:"-,omitempty"`
 	*entities.Pool           `json:"pool,omitempty"`
 	PoolAddress              string                             `json:"poolAddress"`
@@ -19,50 +19,6 @@ type UniswapPoolV3 struct {
 	TokenFeePath             artemis_trading_types.TokenFeePath `json:"tokenFeePath"`
 	TickListDataProvider     *entities.TickListDataProvider     `json:"tickListDataProvider,omitempty"`
 	SimMode                  bool                               `json:"simMode,omitempty"`
-}
-
-type JSONUniswapPoolV3 struct {
-	*entities.Pool       `json:"pool,omitempty"`
-	PoolAddress          string                             `json:"poolAddress"`
-	Fee                  constants.FeeAmount                `json:"fee"`
-	Slot0                JSONSlot0                          `json:"slot0"`
-	Liquidity            string                             `json:"liquidity"`
-	TokenFeePath         artemis_trading_types.TokenFeePath `json:"tokenFeePath"`
-	TickListDataProvider *entities.JSONTickListDataProvider `json:"tickListDataProvider,omitempty"`
-}
-
-func (p *JSONUniswapPoolV3) ConvertToBigIntType() *UniswapPoolV3 {
-	lq, _ := new(big.Int).SetString(p.Liquidity, 10)
-	var tl *entities.JSONTickListDataProvider
-	var tlBigInt *entities.TickListDataProvider
-	if p.TickListDataProvider != nil {
-		tl = p.TickListDataProvider
-		tlBigInt = tl.ConvertToBigIntType()
-	}
-	return &UniswapPoolV3{
-		Pool:                 p.Pool,
-		PoolAddress:          p.PoolAddress,
-		Fee:                  p.Fee,
-		Slot0:                p.Slot0.ConvertToBigIntType(),
-		Liquidity:            lq,
-		TokenFeePath:         p.TokenFeePath,
-		TickListDataProvider: tlBigInt,
-	}
-}
-
-func (p *UniswapPoolV3) ConvertToJSONType() *JSONUniswapPoolV3 {
-	var tickListDataProviderJSON entities.JSONTickListDataProvider
-	if p.TickDataProvider != nil {
-		tickListDataProviderJSON = p.TickListDataProvider.ConvertToJSONType()
-	}
-	return &JSONUniswapPoolV3{
-		PoolAddress:          p.PoolAddress,
-		Fee:                  p.Fee,
-		Slot0:                p.Slot0.ConvertToJSONType(),
-		Liquidity:            p.Liquidity.String(),
-		TokenFeePath:         p.TokenFeePath,
-		TickListDataProvider: &tickListDataProviderJSON,
-	}
 }
 
 type Slot0 struct {

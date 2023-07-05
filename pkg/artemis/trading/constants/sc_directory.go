@@ -1,5 +1,7 @@
 package artemis_trading_constants
 
+import "github.com/zeus-fyi/gochain/web3/accounts"
+
 // TODO should also check decimal places when calculating rates
 
 const (
@@ -30,4 +32,9 @@ const (
 	LinkTokenAddr        = "0x514910771AF9Ca656af840dff83E8264EcF986CA"
 	// 8 decimal places
 	HexTokenAddr = "0x2b591e99afE9f32eAA6214f7B7629768c40Eeb39"
+)
+
+var (
+	PepeContractAddrAccount     = accounts.HexToAddress(PepeContractAddr)
+	WETH9ContractAddressAccount = accounts.HexToAddress(WETH9ContractAddress)
 )

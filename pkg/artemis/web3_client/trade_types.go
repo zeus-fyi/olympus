@@ -51,7 +51,7 @@ func (t *TradeExecutionFlowJSON) ConvertToBigIntType() TradeExecutionFlow {
 	if t.InitialPair != nil {
 		p2Pair = t.InitialPair.ConvertToBigIntType()
 	}
-	var p3Pair *uniswap_pricing.UniswapPoolV3
+	var p3Pair *uniswap_pricing.UniswapV3Pair
 	if t.InitialPairV3 != nil {
 		p3Pair = t.InitialPairV3.ConvertToBigIntType()
 	}
@@ -78,7 +78,7 @@ type TradeExecutionFlow struct {
 	Tx                 *types.Transaction                 `json:"tx"`
 	Trade              Trade                              `json:"trade"`
 	InitialPair        *uniswap_pricing.UniswapV2Pair     `json:"initialPair,omitempty"`
-	InitialPairV3      *uniswap_pricing.UniswapPoolV3     `json:"initialPairV3,omitempty"`
+	InitialPairV3      *uniswap_pricing.UniswapV3Pair     `json:"initialPairV3,omitempty"`
 	FrontRunTrade      artemis_trading_types.TradeOutcome `json:"frontRunTrade"`
 	UserTrade          artemis_trading_types.TradeOutcome `json:"userTrade"`
 	SandwichTrade      artemis_trading_types.TradeOutcome `json:"sandwichTrade"`

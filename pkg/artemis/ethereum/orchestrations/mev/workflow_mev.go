@@ -6,6 +6,7 @@ import (
 	dynamodb_mev "github.com/zeus-fyi/olympus/datastores/dynamodb/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"go.temporal.io/api/enums/v1"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -18,6 +19,10 @@ func (t *ArtemisMevWorkflow) ArtemisHistoricalSimTxWorkflow(ctx workflow.Context
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Second * 300,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 10,
+			InitialInterval: time.Second * 5,
+		},
 	}
 	srr := workflow.Sleep(ctx, trades.StartTimeDelay)
 	if srr != nil {

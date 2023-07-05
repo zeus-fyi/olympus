@@ -4,14 +4,14 @@ import (
 	"fmt"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
 func (s *Web3ClientTestSuite) TestHistoricalAnalysisReplay() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ForceDirToTestDirLocation()
-	mevTxs, merr := artemis_validator_service_groups_models.SelectEthMevTxAnalysisByTxHash(ctx, "0xf47b8eb14f06db38ab6e23f04f86e23ae0c0797d62a1f2780e5bba93343a666d")
+	mevTxs, merr := artemis_mev_models.SelectEthMevTxAnalysisByTxHash(ctx, "0xf47b8eb14f06db38ab6e23f04f86e23ae0c0797d62a1f2780e5bba93343a666d")
 	s.Require().Nil(merr)
 	s.Require().NotEmpty(mevTxs)
 	for _, mevTx := range mevTxs {
@@ -30,7 +30,7 @@ func (s *Web3ClientTestSuite) TestHistoricalAnalysisReplay() {
 func (s *Web3ClientTestSuite) TestHistoricalAnalysis() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ForceDirToTestDirLocation()
-	mevTxs, merr := artemis_validator_service_groups_models.SelectMempoolTxAtMaxBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID)
+	mevTxs, merr := artemis_mev_models.SelectMempoolTxAtMaxBlockNumber(ctx, hestia_req_types.EthereumMainnetProtocolNetworkID)
 	s.Require().Nil(merr)
 	s.Require().NotEmpty(mevTxs)
 	for _, mevTx := range mevTxs {

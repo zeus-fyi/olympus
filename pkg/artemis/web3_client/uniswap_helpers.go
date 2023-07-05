@@ -51,7 +51,7 @@ func (u *UniswapClient) V2PairToPrices(ctx context.Context, pairAddr []accounts.
 			log.Err(err).Msg("V2PairToPrices: PairForV2")
 			return p, err
 		}
-		err = uniswap_pricing.GetPairContractPrices(ctx, &p, u.Web3Client.Web3Actions)
+		err = uniswap_pricing.GetPairContractPrices(ctx, u.Web3Client.Web3Actions, &p)
 		if err != nil {
 			log.Err(err).Msg("V2PairToPrices: GetPairContractPrices")
 			return p, err

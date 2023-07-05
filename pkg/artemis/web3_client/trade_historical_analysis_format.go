@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/rs/zerolog/log"
-	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 )
@@ -64,7 +64,7 @@ func (t *TradeAnalysisReport) SaveResultsInDb(ctx context.Context) error {
 	if strings.HasSuffix(t.EndReason, "quiknode.com") {
 		return errors.New("rate limit error")
 	}
-	err = artemis_validator_service_groups_models.InsertEthMevTxAnalysis(ctx, txAnalysis)
+	err = artemis_mev_models.InsertEthMevTxAnalysis(ctx, txAnalysis)
 	if err != nil {
 		log.Err(err).Msg("error inserting into eth_mev_tx_analysis")
 		return err
@@ -184,7 +184,7 @@ func (u *UniswapClient) CheckExpectedReserves(tf *TradeExecutionFlow) error {
 	}
 	// todo, do v3 pairs
 	simPair := tf.InitialPair
-	err := uniswap_pricing.GetPairContractPrices(ctx, simPair, u.Web3Client.Web3Actions)
+	err := uniswap_pricing.GetPairContractPrices(ctx, u.Web3Client.Web3Actions, simPair)
 	if err != nil {
 		log.Err(err).Msg("error getting pair contract prices")
 		return err

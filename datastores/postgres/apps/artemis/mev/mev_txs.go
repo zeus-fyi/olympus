@@ -1,4 +1,4 @@
-package artemis_validator_service_groups_models
+package artemis_mev_models
 
 import (
 	"context"

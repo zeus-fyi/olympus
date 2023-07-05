@@ -42,7 +42,7 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 		return err
 	}
 	if len(tfSlice) <= 0 {
-		return errors.New("no tx flows to simulate")
+		return errors.New("ProcessTxs: no tx flows to simulate")
 	}
 	a.m.StageProgressionMetrics.CountPostProcessTx(float64(1))
 	err = a.SimTxFilter(ctx, tfSlice)
@@ -50,7 +50,7 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 		return err
 	}
 	if len(tfSlice) <= 0 {
-		return errors.New("no tx flows to simulate")
+		return errors.New("SimTxFilter: no tx flows to simulate")
 	}
 	a.m.StageProgressionMetrics.CountPostSimFilterTx(float64(1))
 	wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)

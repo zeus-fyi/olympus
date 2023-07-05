@@ -3,6 +3,7 @@ package artemis_realtime_trading
 import (
 	"context"
 	"encoding/json"
+	"errors"
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
@@ -44,6 +45,9 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	err = a.SimTxFilter(ctx, tfSlice)
 	if err != nil {
 		return err
+	}
+	if len(tfSlice) <= 0 {
+		return errors.New("no tx flows to simulate")
 	}
 	a.m.StageProgressionMetrics.CountPostSimFilterTx(float64(1))
 	wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)

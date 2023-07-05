@@ -26,6 +26,10 @@ func InsertMempoolTx(ctx context.Context, tx artemis_autogen_bases.EthMempoolMev
 	if err == pgx.ErrNoRows {
 		err = nil
 	}
+	if err != nil {
+		log.Err(err).Interface("InsertMempoolTx", tx).Msg("error inserting tx")
+		return err
+	}
 	return misc.ReturnIfErr(err, q.LogHeader("InsertMempoolTx"))
 }
 

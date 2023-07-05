@@ -8,6 +8,8 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
+// TODO, setup global test suite
+
 func (s *ArtemisRealTimeTradingTestSuite) testEthSimTransferFeeAnalysisSetup() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	uni := web3_client.InitUniswapClient(ctx, s.UserA)

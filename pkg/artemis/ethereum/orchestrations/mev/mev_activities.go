@@ -64,10 +64,10 @@ func (d *ArtemisMevActivities) BlacklistMinedTxs(ctx context.Context) error {
 
 func (d *ArtemisMevActivities) BlacklistProcessedTxs(ctx context.Context, txSlice artemis_autogen_bases.EthMempoolMevTxSlice) error {
 	for _, tx := range txSlice {
-		c.Set(tx.Tx, tx, cache.DefaultExpiration)
+		c.Set(tx.TxHash, tx, cache.DefaultExpiration)
 		txBlackList := dynamodb_mev.TxBlacklistDynamoDB{
 			TxBlacklistDynamoDBTableKeys: dynamodb_mev.TxBlacklistDynamoDBTableKeys{
-				TxHash: tx.Tx,
+				TxHash: tx.TxHash,
 			},
 		}
 		err := artemis_orchestration_auth.MevDynamoDBClient.PutTxBlacklist(ctx, txBlackList)

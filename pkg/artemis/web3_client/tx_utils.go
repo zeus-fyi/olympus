@@ -139,6 +139,68 @@ func (u *UniswapClient) ExecTradeV2SwapFromTokenToToken(ctx context.Context, to 
 	return err
 }
 
+func (u *UniswapClient) ExecTradeV3SwapFromTokenToToken(ctx context.Context, to *artemis_trading_types.TradeOutcome) error {
+	// todo max this window more appropriate vs near infinite
+
+	sigDeadline, _ := new(big.Int).SetString("3000000000000", 10)
+	ur := UniversalRouterExecCmd{
+		Commands: []UniversalRouterExecSubCmd{},
+		Deadline: sigDeadline,
+		Payable:  nil,
+	}
+
+	sc1 := UniversalRouterExecSubCmd{
+		Command:   Permit2Permit,
+		CanRevert: false,
+		Inputs:    nil,
+	}
+
+	psp := Permit2PermitParams{
+		PermitSingle{
+			PermitDetails: PermitDetails{
+				Token:      to.AmountInAddr,
+				Amount:     to.AmountIn,
+				Expiration: sigDeadline,
+				// todo this needs to update a nonce count in db or track them somehow
+				Nonce: new(big.Int).SetUint64(0),
+			},
+			Spender:     accounts.HexToAddress(UniswapUniversalRouterAddressNew),
+			SigDeadline: sigDeadline,
+		},
+		nil,
+	}
+	err := psp.SignPermit2Mainnet(u.Web3Client.Account)
+	if err != nil {
+		log.Warn().Err(err).Msg("error signing permit")
+		return err
+	}
+	if psp.Signature == nil {
+		log.Warn().Msg("signature is nil")
+		return errors.New("signature is nil")
+	}
+	sc1.DecodedInputs = psp
+	ur.Commands = append(ur.Commands, sc1)
+	sc2 := UniversalRouterExecSubCmd{
+		Command:   V3SwapExactIn,
+		CanRevert: false,
+		Inputs:    nil,
+		DecodedInputs: V2SwapExactInParams{
+			AmountIn:      to.AmountIn,
+			AmountOutMin:  to.AmountOut,
+			Path:          []accounts.Address{to.AmountInAddr, to.AmountOutAddr},
+			To:            accounts.HexToAddress(universalRouterSender),
+			PayerIsSender: true,
+		},
+	}
+	ur.Commands = append(ur.Commands, sc2)
+	tx, err := u.ExecUniswapUniversalRouterCmd(ur)
+	if err != nil {
+		return err
+	}
+	to.AddTxHash(accounts.Hash(tx.Hash()))
+	return err
+}
+
 func (u *UniswapClient) ExecTradeV2SwapFromTokenBackToEth(ctx context.Context, to *artemis_trading_types.TradeOutcome) error {
 	// todo max this window more appropriate vs near infinite
 

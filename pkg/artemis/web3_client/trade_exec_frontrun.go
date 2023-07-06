@@ -38,11 +38,18 @@ func (u *UniswapClient) ExecFrontRunTradeStepTokenTransfer(tf *TradeExecutionFlo
 	}
 	tf.FrontRunTrade.PreTradeTokenBalance = bal
 	fmt.Println("pre trade amount out token balance", bal.String())
-
 	tf.FrontRunTrade.PreTradeEthBalance = startEthBal
-	err = u.ExecTradeV2SwapFromTokenToToken(ctx, &tf.FrontRunTrade)
-	if err != nil {
-		return nil, err
+
+	if tf.InitialPairV3 != nil {
+		err = u.ExecTradeV3SwapFromTokenToToken(ctx, &tf.FrontRunTrade)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err = u.ExecTradeV2SwapFromTokenToToken(ctx, &tf.FrontRunTrade)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	endEthBal, err := u.Web3Client.GetBalance(ctx, u.Web3Client.PublicKey(), nil)

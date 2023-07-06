@@ -170,7 +170,7 @@ func (u *UniswapClient) CheckBlockRxAndNetworkReset(ctx context.Context, tf *Tra
 		return -1, fmt.Errorf("artmeis block number %d is greater than or equal to rx block number %d", currentBlockNum, int(rx.BlockNumber.Int64()))
 	}
 	u.Web3Client.Dial()
-	defer u.Web3Client.Close()
+	u.Web3Client.Close()
 	nodeInfo, err := u.Web3Client.GetNodeMetadata(ctx)
 	if err != nil {
 		return -1, err
@@ -180,6 +180,14 @@ func (u *UniswapClient) CheckBlockRxAndNetworkReset(ctx context.Context, tf *Tra
 	err = u.Web3Client.ResetNetwork(ctx, liveNetworkClient.NodeURL, currentBlockNum)
 	if err != nil {
 		return -1, err
+	}
+
+	nodeInfo, err = u.Web3Client.GetNodeMetadata(ctx)
+	if err != nil {
+		return -1, err
+	}
+	if nodeInfo.ForkConfig.ForkBlockNumber != currentBlockNum {
+		return -1, fmt.Errorf("CheckBlockRxAndNetworkReset: live network fork block number %d is not equal to current block number %d", nodeInfo.ForkConfig.ForkBlockNumber, currentBlockNum)
 	}
 	return currentBlockNum, nil
 }

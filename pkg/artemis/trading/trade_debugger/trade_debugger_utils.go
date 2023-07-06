@@ -6,6 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -23,6 +24,11 @@ func (t *TradeDebugger) lookupMevTx(ctx context.Context, txHash string) ([]Histo
 		historicalAnalysisDebugs[i] = HistoricalAnalysisDebug{
 			HistoricalAnalysis: mevTx,
 			TradePrediction:    tfPrediction.ConvertToBigIntType(),
+		}
+		switch mevTx.TradeMethod {
+		case artemis_trading_constants.V2SwapExactIn:
+			trade := historicalAnalysisDebugs[i].TradePrediction.Trade.JSONV2SwapExactInParams.ConvertToBigIntType()
+			historicalAnalysisDebugs[i].TradeParams = trade
 		}
 	}
 	return historicalAnalysisDebugs, merr

@@ -47,6 +47,28 @@ type TradeExecutionFlowJSON struct {
 	SandwichPrediction JSONSandwichTradePrediction            `json:"sandwichPrediction"`
 }
 
+func (t *TradeExecutionFlowJSON) ConvertToBigIntTypeWithoutTx() TradeExecutionFlow {
+	var p2Pair *uniswap_pricing.UniswapV2Pair
+	if t.InitialPair != nil {
+		p2Pair = t.InitialPair.ConvertToBigIntType()
+	}
+	var p3Pair *uniswap_pricing.UniswapV3Pair
+	if t.InitialPairV3 != nil {
+		p3Pair = t.InitialPairV3.ConvertToBigIntType()
+	}
+
+	return TradeExecutionFlow{
+		CurrentBlockNumber: t.CurrentBlockNumber,
+		Trade:              t.Trade,
+		InitialPair:        p2Pair,
+		InitialPairV3:      p3Pair,
+		FrontRunTrade:      t.FrontRunTrade.ConvertToBigIntType(),
+		UserTrade:          t.UserTrade.ConvertToBigIntType(),
+		SandwichTrade:      t.SandwichTrade.ConvertToBigIntType(),
+		SandwichPrediction: t.SandwichPrediction.ConvertToBigIntType(),
+	}
+}
+
 func (t *TradeExecutionFlowJSON) ConvertToBigIntType() TradeExecutionFlow {
 	var p2Pair *uniswap_pricing.UniswapV2Pair
 	if t.InitialPair != nil {

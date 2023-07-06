@@ -57,10 +57,15 @@ func (u *UniswapClient) UserTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*big.I
 		fmt.Println("user trade expected amount in", tf.UserTrade.AmountIn.String(), "amount out", tf.UserTrade.AmountOut.String())
 		fmt.Println("user trade simulated amount in", amountsOutFirstPair[0].String(), "amount out", amountsOutFirstPair[1].String())
 	}
-	if tf.UserTrade.AmountIn.String() != amountsOutFirstPair[0].String() {
+
+	if !artemis_eth_units.PercentDiffFloatComparison(tf.UserTrade.AmountIn, amountsOutFirstPair[0], 0.01) {
 		log.Warn().Msgf(fmt.Sprintf("txhash %s: amount in not equal to expected amount in %s, actual amount in: %s", tf.Tx.Hash().String(), tf.UserTrade.AmountIn.String(), amountsOutFirstPair[0].String()))
 		return amountsOutFirstPair, errors.New("amount in not equal to expected")
 	}
+	//if tf.UserTrade.AmountIn.String() != amountsOutFirstPair[0].String() {
+	//	log.Warn().Msgf(fmt.Sprintf("txhash %s: amount in not equal to expected amount in %s, actual amount in: %s", tf.Tx.Hash().String(), tf.UserTrade.AmountIn.String(), amountsOutFirstPair[0].String()))
+	//	return amountsOutFirstPair, errors.New("amount in not equal to expected")
+	//}
 	if !artemis_eth_units.PercentDiffFloatComparison(tf.UserTrade.AmountOut, amountsOutFirstPair[1], 0.01) {
 		log.Info().Msgf("user trade: amount out %s is less than the diff trade token balance %s", tf.UserTrade.AmountOut.String(), tf.UserTrade.DiffTradeTokenBalance.String())
 		actualDiff := new(big.Int).Sub(tf.UserTrade.AmountOut, tf.UserTrade.DiffTradeTokenBalance)

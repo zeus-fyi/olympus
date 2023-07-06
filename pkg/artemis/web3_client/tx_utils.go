@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
@@ -139,7 +140,7 @@ func (u *UniswapClient) ExecTradeV2SwapFromTokenToToken(ctx context.Context, to 
 	return err
 }
 
-func (u *UniswapClient) ExecTradeV3SwapFromTokenToToken(ctx context.Context, to *artemis_trading_types.TradeOutcome) error {
+func (u *UniswapClient) ExecTradeV3SwapFromTokenToToken(ctx context.Context, v3Pair *artemis_uniswap_pricing.UniswapV3Pair, to *artemis_trading_types.TradeOutcome) error {
 	// todo max this window more appropriate vs near infinite
 
 	sigDeadline, _ := new(big.Int).SetString("3000000000000", 10)
@@ -155,6 +156,16 @@ func (u *UniswapClient) ExecTradeV3SwapFromTokenToToken(ctx context.Context, to 
 		Inputs:    nil,
 	}
 
+	fee := v3Pair.Fee
+	tfp := artemis_trading_types.TokenFeePath{
+		TokenIn: to.AmountInAddr,
+		Path: []artemis_trading_types.TokenFee{
+			{
+				Token: to.AmountOutAddr,
+				Fee:   new(big.Int).SetUint64(uint64(fee)),
+			},
+		},
+	}
 	psp := Permit2PermitParams{
 		PermitSingle{
 			PermitDetails: PermitDetails{
@@ -184,14 +195,15 @@ func (u *UniswapClient) ExecTradeV3SwapFromTokenToToken(ctx context.Context, to 
 		Command:   V3SwapExactIn,
 		CanRevert: false,
 		Inputs:    nil,
-		DecodedInputs: V2SwapExactInParams{
-			AmountIn:      to.AmountIn,
-			AmountOutMin:  to.AmountOut,
-			Path:          []accounts.Address{to.AmountInAddr, to.AmountOutAddr},
-			To:            accounts.HexToAddress(universalRouterSender),
-			PayerIsSender: true,
+		DecodedInputs: V3SwapExactInParams{
+			AmountIn:     to.AmountIn,
+			AmountOutMin: to.AmountOut,
+			Path:         tfp,
+			To:           accounts.HexToAddress(universalRouterSender),
+			PayerIsUser:  true,
 		},
 	}
+
 	ur.Commands = append(ur.Commands, sc2)
 	tx, err := u.ExecUniswapUniversalRouterCmd(ur)
 	if err != nil {

@@ -1,4 +1,4 @@
-package uniswap_pricing
+package artemis_uniswap_pricing
 
 import (
 	"testing"

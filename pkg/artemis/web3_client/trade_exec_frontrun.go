@@ -41,7 +41,7 @@ func (u *UniswapClient) ExecFrontRunTradeStepTokenTransfer(tf *TradeExecutionFlo
 	tf.FrontRunTrade.PreTradeEthBalance = startEthBal
 
 	if tf.InitialPairV3 != nil {
-		err = u.ExecTradeV3SwapFromTokenToToken(ctx, &tf.FrontRunTrade)
+		err = u.ExecTradeV3SwapFromTokenToToken(ctx, tf.InitialPairV3, &tf.FrontRunTrade)
 		if err != nil {
 			return nil, err
 		}

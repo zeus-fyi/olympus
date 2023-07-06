@@ -58,8 +58,6 @@ func (u *UniswapClient) ExecSandwichTradeStepTokenTransfer(tf *TradeExecutionFlo
 	}
 	tf.SandwichTrade.PostTradeTokenBalance = bal
 	tf.SandwichTrade.DiffTradeTokenBalance = new(big.Int).Sub(tf.SandwichTrade.PostTradeTokenBalance, tf.SandwichTrade.PreTradeTokenBalance)
-	fmt.Println("actual amount out", tf.SandwichTrade.DiffTradeTokenBalance.String())
-	fmt.Println("expected amount out", tf.SandwichTrade.AmountOut.String())
 	if artemis_eth_units.IsXLessThanY(tf.SandwichTrade.AmountOut, tf.SandwichTrade.DiffTradeTokenBalance) {
 		log.Info().Msgf("amount out %s is less than the diff trade token balance %s", tf.SandwichTrade.AmountOut.String(), tf.SandwichTrade.DiffTradeTokenBalance.String())
 		actualDiff := new(big.Int).Sub(tf.SandwichTrade.AmountOut, tf.SandwichTrade.DiffTradeTokenBalance)
@@ -67,6 +65,10 @@ func (u *UniswapClient) ExecSandwichTradeStepTokenTransfer(tf *TradeExecutionFlo
 		percentDiff := artemis_eth_units.PercentDiff(tf.SandwichTrade.AmountOut, tf.SandwichTrade.DiffTradeTokenBalance)
 		log.Info().Msgf("percent diff %s", percentDiff.String())
 		return nil, errors.New("amount out is less than the diff trade token balance")
+	}
+	if tf.SandwichTrade.AmountOut.String() == "0" {
+		log.Info().Msgf("sandwich amount out is 0")
+		return nil, errors.New("sandwich amount out is 0")
 	}
 
 	tf.SandwichTrade.PostTradeEthBalance = endEthBal

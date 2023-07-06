@@ -58,7 +58,7 @@ func (u *UniswapClient) UserTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*big.I
 		fmt.Println("user trade simulated amount in", amountsOutFirstPair[0].String(), "amount out", amountsOutFirstPair[1].String())
 	}
 
-	if !artemis_eth_units.PercentDiffFloatComparison(tf.UserTrade.AmountIn, amountsOutFirstPair[0], 0.01) {
+	if !artemis_eth_units.PercentDiffFloatComparison(tf.UserTrade.AmountIn, amountsOutFirstPair[0], 0.1) {
 		log.Warn().Msgf(fmt.Sprintf("txhash %s: amount in not equal to expected amount in %s, actual amount in: %s", tf.Tx.Hash().String(), tf.UserTrade.AmountIn.String(), amountsOutFirstPair[0].String()))
 		return amountsOutFirstPair, errors.New("amount in not equal to expected")
 	}
@@ -67,12 +67,13 @@ func (u *UniswapClient) UserTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*big.I
 	//	return amountsOutFirstPair, errors.New("amount in not equal to expected")
 	//}
 	if !artemis_eth_units.IsXGreaterThanOrEqualToY(amountsOutFirstPair[1], tf.UserTrade.AmountOut) {
-		if !artemis_eth_units.PercentDiffFloatComparison(tf.UserTrade.AmountOut, amountsOutFirstPair[1], 0.01) {
-			log.Info().Msgf("user trade: amount out %s is less than the diff trade token balance %s", tf.UserTrade.AmountOut.String(), tf.UserTrade.DiffTradeTokenBalance.String())
-			actualDiff := new(big.Int).Sub(tf.UserTrade.AmountOut, tf.UserTrade.DiffTradeTokenBalance)
+		if !artemis_eth_units.PercentDiffFloatComparison(tf.UserTrade.AmountOut, amountsOutFirstPair[1], 0.1) {
+			log.Info().Msgf("user trade: amount out %s is less than the diff trade token balance %s", tf.UserTrade.AmountOut.String(), amountsOutFirstPair[1])
+			actualDiff := new(big.Int).Sub(tf.UserTrade.AmountOut, amountsOutFirstPair[1])
 			log.Info().Msgf("actual diff %s", actualDiff.String())
-			percentDiff := artemis_eth_units.PercentDiffFloat(tf.UserTrade.AmountIn, tf.UserTrade.DiffTradeTokenBalance)
+			percentDiff := artemis_eth_units.PercentDiffFloat(tf.UserTrade.AmountIn, amountsOutFirstPair[1])
 			log.Info().Msgf("percent diff %f", percentDiff)
+			return nil, errors.New("user trade: amount out not equal to expected")
 		}
 	}
 

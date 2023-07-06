@@ -12,7 +12,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (t *TradeDebugger) ResetAndSetupPreconditions(ctx context.Context, tf *web3_client.TradeExecutionFlow) error {
+func (t *TradeDebugger) ResetAndSetupPreconditions(ctx context.Context, tf web3_client.TradeExecutionFlow) error {
 	err := t.resetNetwork(tf)
 	if err != nil {
 		return err
@@ -21,18 +21,18 @@ func (t *TradeDebugger) ResetAndSetupPreconditions(ctx context.Context, tf *web3
 	if err != nil {
 		return err
 	}
-	err = t.UniswapClient.Web3Client.MatchFrontRunTradeValues(tf)
+	err = t.UniswapClient.Web3Client.MatchFrontRunTradeValues(&tf)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (t *TradeDebugger) resetNetwork(tf *web3_client.TradeExecutionFlow) error {
+func (t *TradeDebugger) resetNetwork(tf web3_client.TradeExecutionFlow) error {
 	if tf.CurrentBlockNumber == nil {
 		return fmt.Errorf("current block number is nil")
 	}
-	bn, err := t.UniswapClient.CheckBlockRxAndNetworkReset(tf, t.LiveNetworkClient)
+	bn, err := t.UniswapClient.CheckBlockRxAndNetworkReset(&tf, t.LiveNetworkClient)
 	if err != nil {
 		log.Err(err).Msg("error checking block and network reset")
 		return err
@@ -41,7 +41,7 @@ func (t *TradeDebugger) resetNetwork(tf *web3_client.TradeExecutionFlow) error {
 	return err
 }
 
-func (t *TradeDebugger) setupCleanEnvironment(ctx context.Context, tf *web3_client.TradeExecutionFlow) error {
+func (t *TradeDebugger) setupCleanEnvironment(ctx context.Context, tf web3_client.TradeExecutionFlow) error {
 	eb := artemis_eth_units.EtherMultiple(10000)
 	bal := (*hexutil.Big)(eb)
 	t.UniswapClient.Web3Client.Dial()

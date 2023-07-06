@@ -31,44 +31,27 @@ func (t *ArtemisTradeDebuggerTestSuite) SetupTest() {
 
 func (t *ArtemisTradeDebuggerTestSuite) TestDebuggerInitEnv() {
 	txHash := "0x5327295e1ed6d59faaf98d04697b0316fb8ad4b767d2e7f5addb3981c3b5d3b7"
-	tfSlice, err := t.td.LookupMevTxs(ctx, txHash)
+	mevTx, err := t.td.lookupMevTx(ctx, txHash)
 	t.Require().Nil(err)
-	t.Require().NotEmpty(tfSlice)
-
-	for _, tf := range tfSlice {
-		err = t.td.ResetAndSetupPreconditions(ctx, &tf)
-		fmt.Println(tf.FrontRunTrade.AmountIn)
-		fmt.Println(tf.FrontRunTrade.AmountOut)
-		b, terr := t.td.UniswapClient.Web3Client.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountInAddr.String(), t.td.UniswapClient.Web3Client.PublicKey())
-		t.Require().Nil(terr)
-		t.Require().Equal(tf.FrontRunTrade.AmountIn.String(), b.String())
-	}
+	t.Require().NotEmpty(mevTx)
+	tf := mevTx.TradePrediction
+	err = t.td.ResetAndSetupPreconditions(ctx, tf)
+	fmt.Println(tf.FrontRunTrade.AmountIn)
+	fmt.Println(tf.FrontRunTrade.AmountOut)
+	b, terr := t.td.UniswapClient.Web3Client.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountInAddr.String(), t.td.UniswapClient.Web3Client.PublicKey())
+	t.Require().Nil(terr)
+	t.Require().Equal(tf.FrontRunTrade.AmountIn.String(), b.String())
 }
 func (t *ArtemisTradeDebuggerTestSuite) TestReplayDebugger1() {
 	txHash := "0x5327295e1ed6d59faaf98d04697b0316fb8ad4b767d2e7f5addb3981c3b5d3b7"
-	hist, err := t.td.lookupMevTx(ctx, txHash)
+	h, err := t.td.lookupMevTx(ctx, txHash)
 	t.Require().Nil(err)
-	t.Require().NotEmpty(hist)
-	for _, h := range hist {
-		fmt.Println(h.HistoricalAnalysis.TradeMethod)
-		fmt.Println(h.HistoricalAnalysis.EndReason)
-		tf, serr := h.BinarySearch()
-		t.Require().Nil(serr)
-		t.Require().NotEmpty(tf)
-	}
-	t.Assert().NotEmpty(hist)
-}
-
-func (t *ArtemisTradeDebuggerTestSuite) TestReplayDebugger2() {
-	txHash := "0x5327295e1ed6d59faaf98d04697b0316fb8ad4b767d2e7f5addb3981c3b5d3b7"
-	hist, err := t.td.lookupMevTx(ctx, txHash)
-	t.Require().Nil(err)
-	t.Require().NotEmpty(hist)
-	for _, h := range hist {
-		err = t.td.resetNetwork(&h.TradePrediction)
-		t.Require().Nil(err)
-	}
-	t.Assert().NotEmpty(hist)
+	t.Require().NotEmpty(h)
+	fmt.Println(h.HistoricalAnalysis.TradeMethod)
+	fmt.Println(h.HistoricalAnalysis.EndReason)
+	tf, serr := h.BinarySearch()
+	t.Require().Nil(serr)
+	t.Require().NotEmpty(tf)
 }
 
 func TestArtemisTradeDebuggerTestSuite(t *testing.T) {

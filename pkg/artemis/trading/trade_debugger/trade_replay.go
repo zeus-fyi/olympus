@@ -2,12 +2,19 @@ package artemis_trade_debugger
 
 import (
 	"context"
-
-	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (t *TradeDebugger) Replay(ctx context.Context, tf *web3_client.TradeExecutionFlow) error {
-	err := t.ResetAndSetupPreconditions(ctx, tf)
+func (t *TradeDebugger) Replay(ctx context.Context, txHash string) error {
+	mevTx, err := t.lookupMevTx(ctx, txHash)
+	if err != nil {
+		return err
+	}
+	tf := mevTx.TradePrediction
+	err = t.ResetAndSetupPreconditions(ctx, tf)
+	if err != nil {
+		return err
+	}
+	_, err = t.UniswapClient.ExecFrontRunTradeStepTokenTransfer(&tf)
 	if err != nil {
 		return err
 	}

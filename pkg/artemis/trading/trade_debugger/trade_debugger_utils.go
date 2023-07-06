@@ -10,39 +10,32 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (t *TradeDebugger) lookupMevTx(ctx context.Context, txHash string) ([]HistoricalAnalysisDebug, error) {
+func (t *TradeDebugger) lookupMevTx(ctx context.Context, txHash string) (HistoricalAnalysisDebug, error) {
 	mevTxs, merr := artemis_mev_models.SelectEthMevTxAnalysisByTxHash(ctx, txHash)
 	if merr != nil {
-		return nil, merr
+		return HistoricalAnalysisDebug{}, merr
 	}
 	historicalAnalysisDebugs := make([]HistoricalAnalysisDebug, len(mevTxs))
 	for i, mevTx := range mevTxs {
 		tfPrediction, err := web3_client.UnmarshalTradeExecutionFlow(mevTx.TxFlowPrediction)
 		if err != nil {
-			return nil, err
+			return HistoricalAnalysisDebug{}, err
 		}
-		historicalAnalysisDebugs[i] = HistoricalAnalysisDebug{
+		wrapper := HistoricalAnalysisDebug{
 			HistoricalAnalysis: mevTx,
 			TradePrediction:    tfPrediction.ConvertToBigIntType(),
 		}
+		historicalAnalysisDebugs[i] = wrapper
 		switch mevTx.TradeMethod {
 		case artemis_trading_constants.V2SwapExactIn:
 			trade := historicalAnalysisDebugs[i].TradePrediction.Trade.JSONV2SwapExactInParams.ConvertToBigIntType()
 			historicalAnalysisDebugs[i].TradeParams = trade
 		}
+		if tfPrediction.Tx.Hash == txHash {
+			return wrapper, nil
+		}
 	}
-	return historicalAnalysisDebugs, merr
-}
-func (t *TradeDebugger) LookupMevTxs(ctx context.Context, txHash string) ([]web3_client.TradeExecutionFlow, error) {
-	hist, err := t.lookupMevTx(ctx, txHash)
-	if err != nil {
-		return nil, err
-	}
-	tfSteps := make([]web3_client.TradeExecutionFlow, 0)
-	for _, h := range hist {
-		tfSteps = append(tfSteps, h.TradePrediction)
-	}
-	return tfSteps, nil
+	return HistoricalAnalysisDebug{}, merr
 }
 
 func (t *TradeDebugger) getTxFromHash(ctx context.Context, txHash string) (*types.Transaction, error) {

@@ -8,16 +8,16 @@ import (
 
 func TestPercentDiff(t *testing.T) {
 
-	valOne := NewBigIntFromStr("30600000000000000000000000000")
-	valTwo := NewBigIntFromStr("30596939999999999893845539780")
+	valOne := NewBigIntFromStr("29999643121717752")
+	valTwo := NewBigIntFromStr("29996643157405581")
 
 	diff := PercentDiff(valOne, valTwo)
 	fmt.Println("diff", diff.String())
 
-	per := new(big.Float).SetInt(diff).Quo(new(big.Float).SetInt(diff), new(big.Float).SetInt(big.NewInt(1000000)))
-	fmt.Println("per", per.String())
+	per := PercentDiffFloat(valOne, valTwo)
+	fmt.Println("per", per)
 
-	meets := PercentDiffFloatComparison(valOne, valTwo, 0.01)
+	meets := PercentDiffFloatComparison(valOne, valTwo, 0.0001)
 	fmt.Println("meets", meets)
 }
 

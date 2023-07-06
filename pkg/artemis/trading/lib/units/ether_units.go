@@ -135,7 +135,7 @@ func PercentDiffFloat(calculated, actual *big.Int) float64 {
 
 func PercentDiffFloatComparison(calculated, actual *big.Int, percentCriteria float64) bool {
 	diff := PercentDiffFloat(calculated, actual)
-	if diff < percentCriteria {
+	if diff <= percentCriteria {
 		return true
 	}
 	return false

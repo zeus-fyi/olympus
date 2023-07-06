@@ -21,6 +21,11 @@ func NewBigInt(amount int) *big.Int {
 	return new(big.Int).SetInt64(int64(amount))
 }
 
+func NewBigIntFromStr(amount string) *big.Int {
+	val, _ := new(big.Int).SetString(amount, 10)
+	return val
+}
+
 func EtherMultiple(multiple int) *big.Int {
 	return new(big.Int).Mul(big.NewInt(int64(multiple)), Ether)
 }
@@ -98,4 +103,40 @@ func PercentDiff(calculated, actual *big.Int) *big.Int {
 	percentDiff.Div(&percentDiff, actual)
 
 	return &percentDiff
+}
+
+func PercentDiffHighPrecision(calculated, actual *big.Int) *big.Int {
+	diff := new(big.Int)
+	absDiff := new(big.Int)
+	percentDiff := new(big.Int)
+	hundred := big.NewInt(1000000) // 100*10000
+
+	// Calculate the difference
+	diff.Sub(calculated, actual)
+
+	// Get absolute difference
+	absDiff.Abs(diff)
+
+	// Multiply by 100 for percentage and by 10000 for precision
+	percentDiff.Mul(absDiff, hundred)
+
+	// Divide by actual
+	percentDiff.Div(percentDiff, actual)
+
+	return percentDiff
+}
+
+func PercentDiffFloat(calculated, actual *big.Int) float64 {
+	diff := PercentDiffHighPrecision(calculated, actual)
+	percentDiff := new(big.Float).SetInt(diff).Quo(new(big.Float).SetInt(diff), new(big.Float).SetInt(big.NewInt(1000000)))
+	val, _ := percentDiff.Float64()
+	return val
+}
+
+func PercentDiffFloatComparison(calculated, actual *big.Int, percentCriteria float64) bool {
+	diff := PercentDiffFloat(calculated, actual)
+	if diff < percentCriteria {
+		return true
+	}
+	return false
 }

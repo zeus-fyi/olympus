@@ -78,7 +78,7 @@ func (c *ContractAnalysis) SimEthTransferFeeTaxTrade(ctx context.Context, amount
 	fmt.Println("tokenFee2", tokenFee2.String())
 
 	fmt.Println("drift after fee", artemis_eth_units.AddBigInt(tokenFee, drift).String())
-	rateOut := artemis_eth_units.PercentDiff(calculatedOut.AmountOut, actualOut)
-	fmt.Println("rateOut", rateOut.String())
+	rateOut := artemis_eth_units.PercentDiffFloat(calculatedOut.AmountOut, actualOut)
+	fmt.Println("rateOut", rateOut)
 	return nil, nil
 }

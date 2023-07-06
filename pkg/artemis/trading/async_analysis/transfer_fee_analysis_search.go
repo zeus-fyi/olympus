@@ -11,7 +11,7 @@ func (c *ContractAnalysis) CalculateTransferFeeTaxRange(ctx context.Context) err
 	stepCountGwei := 2
 	stepCount := 10
 	for i := 1; i < stepCountGwei+1; i++ {
-		size := i * 100
+		size := i * 100 * 13
 		unitValue := artemis_eth_units.GweiMultiple(size)
 		feePerc, err := c.CalculateTransferFeeTax(ctx, unitValue)
 		if err != nil {

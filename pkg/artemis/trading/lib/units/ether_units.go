@@ -72,7 +72,7 @@ func IsXLessThanY(x, y *big.Int) bool {
 }
 
 func SetSlippage(amountOut *big.Int) *big.Int {
-	slippagePerc := NewPercentFromInts(1, 10000)
+	slippagePerc := NewPercentFromInts(1, 5000)
 	slippageAmount := FractionalAmount(amountOut, slippagePerc)
 	return SubBigInt(amountOut, slippageAmount)
 }

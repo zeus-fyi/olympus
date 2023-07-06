@@ -9,6 +9,7 @@ import (
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/pkg/artemis/trading/async_analysis"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
@@ -24,7 +25,11 @@ func (t *TradeDebugger) analyzeToken(ctx context.Context, address accounts.Addre
 	}
 	den := info.TransferTaxDenominator
 	num := info.TransferTaxNumerator
-	fmt.Println("token: ", token, "tradingTax: ", den, "num: ", num)
+	if den != nil && num != nil {
+		fmt.Println("token: ", token, "tradingTax: num: ", *num, "den: ", *den)
+	} else {
+		fmt.Println("token not found in cache")
+	}
 
 	ca := async_analysis.NewContractAnalysis(t.UniswapClient, address.String(), artemis_oly_contract_abis.MustLoadERC20Abi())
 	ca.UserA = t.UniswapClient.Web3Client
@@ -49,4 +54,11 @@ func (t *TradeDebugger) analyzeToken(ctx context.Context, address accounts.Addre
 	}
 	t.ContractAnalysis = ca
 	return nil
+}
+
+func (t *TradeDebugger) analyzeDrift(ctx context.Context, trade artemis_trading_types.TradeOutcome) error {
+	fmt.Println("ANALYZING DRIFT")
+	fmt.Println("trade skew: ", trade.AmountOutDrift.String())
+	trade.PrintDebug()
+	return errors.New("trade skewed")
 }

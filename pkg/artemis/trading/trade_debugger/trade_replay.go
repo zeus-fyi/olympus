@@ -21,12 +21,18 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string) error {
 	if err != nil {
 		return err
 	}
-
-	_, err = t.UniswapClient.FrontRunTradeGetAmountsOut(&tf)
+	amountOutAddr := tf.FrontRunTrade.AmountOutAddr
+	amountOut := tf.FrontRunTrade.AmountOut
+	err = t.analyzeToken(ctx, amountOutAddr, amountOut)
 	if err != nil {
 		return err
 	}
-	_, err = t.UniswapClient.ExecFrontRunTradeStepTokenTransfer(&tf)
+	_, err = t.UniswapClient.FrontRunTradeGetAmountsOut(&tf)
+	if err != nil {
+		err = t.analyzeDrift(ctx, tf.FrontRunTrade)
+		return err
+	}
+	err = t.UniswapClient.ExecTradeV2SwapFromTokenToToken(ctx, &tf.FrontRunTrade)
 	if err != nil {
 		return err
 	}

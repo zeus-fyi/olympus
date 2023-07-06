@@ -23,6 +23,11 @@ func (t *ArtemisTradeDebuggerTestSuite) SetupTest() {
 	t.ArtemisTradingTestSuite.SetupTest()
 	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
 	uni := web3_client.InitUniswapClient(ctx, t.ProxiedMainnetUser)
+	uni.PrintOn = true
+	uni.PrintLocal = false
+	uni.DebugPrint = true
+	uni.Web3Client.IsAnvilNode = true
+	uni.Web3Client.DurableExecution = false
 	at := artemis_realtime_trading.NewActiveTradingModuleWithoutMetrics(&uni)
 	td := NewTradeDebugger(at, &uni, t.MainnetWeb3User)
 	t.Require().NotEmpty(td)

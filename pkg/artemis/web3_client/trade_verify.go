@@ -97,6 +97,7 @@ func (u *UniswapClient) VerifyTradeResults(tf *TradeExecutionFlow) error {
 		fmt.Println("realized profit", realizedProfit.String())
 	}
 
+	u.TradeAnalysisReport.ExpectedProfitAmountOut = tf.SandwichTrade.AmountOut.String()
 	u.EndReason = "success"
 	return nil
 }

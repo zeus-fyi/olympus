@@ -86,7 +86,7 @@ func (u *UniswapClient) SimFullSandwichTrade(tf *TradeExecutionFlow) error {
 	if !u.TestMode {
 		return u.MarkEndOfSimDueToErr(nil)
 	}
-	return nil
+	return u.MarkEndOfSimDueToErr(nil)
 }
 
 func (u *UniswapClient) SimFrontRunTradeOnly(tf *TradeExecutionFlow) error {

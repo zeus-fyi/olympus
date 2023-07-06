@@ -36,23 +36,31 @@ func (t *TradeDebugger) resetNetwork(ctx context.Context, tf web3_client.TradeEx
 	if tf.CurrentBlockNumber == nil {
 		return fmt.Errorf("current block number is nil")
 	}
-	bn, err := t.UniswapClient.CheckBlockRxAndNetworkReset(&tf, t.LiveNetworkClient)
+	nodeInfo, err := t.UniswapClient.Web3Client.GetNodeMetadata(ctx)
+	if err != nil {
+		return err
+	}
+	liveNetwork := nodeInfo.ForkConfig.ForkUrl
+	t.LiveNetworkClient.NodeURL = liveNetwork
+	fmt.Println("liveNetwork ", liveNetwork)
+	bn, err := t.UniswapClient.CheckBlockRxAndNetworkReset(ctx, &tf, t.LiveNetworkClient)
 	if err != nil {
 		log.Err(err).Interface("blockNum", bn).Msg("error checking block and network reset")
 		return err
 	}
 
-	// NOTE: the block height still returns the mainnet head height vs the local sim height
-	//simBlockNum, err := t.UniswapClient.Web3Client.GetBlockHeight(ctx)
+	simBlockNum, err := t.UniswapClient.Web3Client.GetBlockHeight(ctx)
+	if err != nil {
+		return err
+	}
+	//nodeInfo, err = t.UniswapClient.Web3Client.GetNodeMetadata(ctx)
 	//if err != nil {
 	//	return err
 	//}
 
-	nodeInfo, err := t.UniswapClient.Web3Client.GetNodeMetadata(ctx)
-	if err != nil {
-		return err
+	if nodeInfo.ForkConfig.ForkBlockNumber != bn {
+		return fmt.Errorf("sim block num %s != live block num %d", simBlockNum, bn)
 	}
-	log.Info().Interface("nodeInfo", nodeInfo).Msg("node info")
 	return err
 }
 

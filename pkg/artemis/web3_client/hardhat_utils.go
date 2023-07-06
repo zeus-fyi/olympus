@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/rs/zerolog/log"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 )
 
 func (w *Web3Client) MineNextBlock(ctx context.Context) error {
@@ -145,12 +146,12 @@ func (w *Web3Client) GetBlockHeight(ctx context.Context) (*big.Int, error) {
 	return new(big.Int).SetUint64(blockNumber), nil
 }
 
-func (w *Web3Client) GetNodeMetadata(ctx context.Context) (any, error) {
+func (w *Web3Client) GetNodeMetadata(ctx context.Context) (web3_actions.NodeInfo, error) {
 	w.Dial()
 	defer w.Close()
 	info, err := w.GetNodeInfo(ctx)
 	if err != nil {
-		return nil, err
+		return web3_actions.NodeInfo{}, err
 	}
 	return info, nil
 }

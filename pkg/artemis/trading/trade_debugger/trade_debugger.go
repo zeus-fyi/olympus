@@ -6,12 +6,14 @@ import (
 
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_realtime_trading "github.com/zeus-fyi/olympus/pkg/artemis/trading"
+	"github.com/zeus-fyi/olympus/pkg/artemis/trading/async_analysis"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
 type TradeDebugger struct {
 	UniswapClient     *web3_client.UniswapClient
 	ActiveTrading     artemis_realtime_trading.ActiveTrading
+	ContractAnalysis  async_analysis.ContractAnalysis
 	LiveNetworkClient web3_client.Web3Client
 }
 

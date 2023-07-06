@@ -13,8 +13,8 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
-	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/constants"
-	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/units"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_core/entities"
 
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"

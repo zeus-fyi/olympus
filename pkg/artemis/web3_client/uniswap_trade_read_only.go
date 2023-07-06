@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	artemis_pricing_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/utils/pricing"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_core/entities"
@@ -79,6 +80,7 @@ func (u *UniswapClient) GetAmountsOut(address *common.Address, amountIn *big.Int
 		token := pathSlice[i]
 		out := uniswap_core_entities.NewFraction(amount, big.NewInt(1))
 		amountsOutFirstPair[i] = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(token), out.Quotient())
+		amountsOutFirstPair[i] = artemis_eth_units.SetSlippage(out.Quotient())
 	}
 	return amountsOutFirstPair, err
 }

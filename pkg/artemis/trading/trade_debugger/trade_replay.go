@@ -16,6 +16,7 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string) error {
 		return err
 	}
 	fmt.Println("ANALYZING tx: ", tf.Tx.Hash().String(), "at block: ", mevTx.GetBlockNumber())
+
 	amountInAddr := tf.FrontRunTrade.AmountInAddr
 	amountIn := tf.FrontRunTrade.AmountIn
 	err = t.analyzeToken(ctx, amountInAddr, amountIn)
@@ -34,6 +35,10 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string) error {
 		return err
 	}
 	err = t.UniswapClient.ExecTradeV2SwapFromTokenToToken(ctx, &tf.FrontRunTrade)
+	if err != nil {
+		return err
+	}
+	err = t.analyzeUserTrade(ctx, &tf)
 	if err != nil {
 		return err
 	}

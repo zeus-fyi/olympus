@@ -13,7 +13,7 @@ import (
 )
 
 func (t *TradeDebugger) ResetAndSetupPreconditions(ctx context.Context, tf web3_client.TradeExecutionFlow) error {
-	err := t.resetNetwork(tf)
+	err := t.resetNetwork(ctx, tf)
 	if err != nil {
 		return err
 	}
@@ -32,7 +32,7 @@ func (t *TradeDebugger) ResetAndSetupPreconditions(ctx context.Context, tf web3_
 	return nil
 }
 
-func (t *TradeDebugger) resetNetwork(tf web3_client.TradeExecutionFlow) error {
+func (t *TradeDebugger) resetNetwork(ctx context.Context, tf web3_client.TradeExecutionFlow) error {
 	if tf.CurrentBlockNumber == nil {
 		return fmt.Errorf("current block number is nil")
 	}
@@ -41,6 +41,18 @@ func (t *TradeDebugger) resetNetwork(tf web3_client.TradeExecutionFlow) error {
 		log.Err(err).Interface("blockNum", bn).Msg("error checking block and network reset")
 		return err
 	}
+
+	// NOTE: the block height still returns the mainnet head height vs the local sim height
+	//simBlockNum, err := t.UniswapClient.Web3Client.GetBlockHeight(ctx)
+	//if err != nil {
+	//	return err
+	//}
+
+	nodeInfo, err := t.UniswapClient.Web3Client.GetNodeMetadata(ctx)
+	if err != nil {
+		return err
+	}
+	log.Info().Interface("nodeInfo", nodeInfo).Msg("node info")
 	return err
 }
 

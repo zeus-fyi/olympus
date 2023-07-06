@@ -5,7 +5,6 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
@@ -13,28 +12,6 @@ import (
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
-
-func (w *Web3Client) GetBlockTxs(ctx context.Context) (types.Transactions, error) {
-	w.Dial()
-	defer w.Close()
-	block, err := w.C.BlockByNumber(ctx, nil)
-	if err != nil {
-		log.Err(err).Msg("failed to get block txs")
-		return nil, err
-	}
-	return block.Transactions(), nil
-}
-
-func (w *Web3Client) GetTxByHash(ctx context.Context, hash common.Hash) (*types.Transaction, bool, error) {
-	w.Dial()
-	defer w.Close()
-	tx, isPending, err := w.C.TransactionByHash(ctx, hash)
-	if err != nil {
-		log.Err(err).Msg("failed to get tx by hash")
-		return nil, false, err
-	}
-	return tx, isPending, nil
-}
 
 // Eth in -> WETH out -> token out
 

@@ -55,6 +55,13 @@ func IsXGreaterThanY(x, y *big.Int) bool {
 	return x.Cmp(y) > 0
 }
 
+func IsXGreaterThanOrEqualToY(x, y *big.Int) bool {
+	if x.String() == y.String() {
+		return true
+	}
+	return IsXGreaterThanY(x, y)
+}
+
 func IsXLessThanY(x, y *big.Int) bool {
 	return x.Cmp(y) < 0
 }

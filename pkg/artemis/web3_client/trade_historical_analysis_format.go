@@ -44,11 +44,7 @@ func (u *UniswapClient) RunHistoricalTradeAnalysis(ctx context.Context, tfStr st
 		return u.MarkEndOfSimDueToErr(err)
 	}
 	tf := tfJSON.ConvertToBigIntType()
-	artemisBlockNum, err := u.CheckBlockRxAndNetworkReset(ctx, &tf, liveNetworkClient)
-	if err != nil {
-		return u.MarkEndOfSimDueToErr(err)
-	}
-	err = u.Web3Client.HardHatResetNetwork(ctx, liveNetworkClient.NodeURL, artemisBlockNum)
+	artemisBlockNum, err := u.CheckBlockRxAndNetworkReset(ctx, &tf, &liveNetworkClient)
 	if err != nil {
 		return u.MarkEndOfSimDueToErr(err)
 	}
@@ -158,7 +154,7 @@ type TradeFailureReport struct {
 	EndStage  string `json:"end_stage"`
 }
 
-func (u *UniswapClient) CheckBlockRxAndNetworkReset(ctx context.Context, tf *TradeExecutionFlow, liveNetworkClient Web3Client) (int, error) {
+func (u *UniswapClient) CheckBlockRxAndNetworkReset(ctx context.Context, tf *TradeExecutionFlow, liveNetworkClient *Web3Client) (int, error) {
 	rx, err := liveNetworkClient.GetTxReceipt(ctx, tf.Tx.Hash())
 	if err != nil {
 		return -1, err

@@ -175,6 +175,12 @@ func (u *UniswapClient) CheckBlockRxAndNetworkReset(ctx context.Context, tf *Tra
 	}
 	u.Web3Client.Dial()
 	defer u.Web3Client.Close()
+	nodeInfo, err := u.Web3Client.GetNodeMetadata(ctx)
+	if err != nil {
+		return -1, err
+	}
+	liveNetwork := nodeInfo.ForkConfig.ForkUrl
+	liveNetworkClient.NodeURL = liveNetwork
 	err = u.Web3Client.ResetNetwork(ctx, liveNetworkClient.NodeURL, currentBlockNum)
 	if err != nil {
 		return -1, err

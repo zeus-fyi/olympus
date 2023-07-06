@@ -75,6 +75,8 @@ func (u *UniswapClient) ExecTradeV2SwapPayable(ctx context.Context, to *artemis_
 	return err
 }
 
+// TODO needs to add v3 support
+
 func (u *UniswapClient) ExecTradeV2SwapFromTokenToToken(ctx context.Context, to *artemis_trading_types.TradeOutcome) error {
 	// todo max this window more appropriate vs near infinite
 

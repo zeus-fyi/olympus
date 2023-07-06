@@ -57,6 +57,8 @@ func (u *UniswapClient) ExecSandwichTradeStepTokenTransfer(tf *TradeExecutionFlo
 		drift := new(big.Int).Sub(tf.SandwichTrade.AmountOut, tf.SandwichTrade.DiffTradeTokenBalance)
 		log.Info().Msgf("amount out %s is less than the diff trade token balance %s", tf.SandwichTrade.AmountOut.String(), tf.SandwichTrade.DiffTradeTokenBalance.String())
 		log.Info().Msgf("drift %s", drift.String())
+		percentDiff := artemis_eth_units.PercentDiff(tf.SandwichTrade.AmountOut, tf.SandwichTrade.DiffTradeTokenBalance)
+		log.Info().Msgf("percent diff %s", percentDiff.String())
 		return nil, errors.New("amount out is less than the diff trade token balance")
 	}
 
@@ -86,6 +88,8 @@ func (u *UniswapClient) SandwichTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*b
 
 	if artemis_eth_units.IsXLessThanY(tf.SandwichTrade.AmountOut, amountsOutFirstPair[1]) {
 		log.Warn().Msgf(fmt.Sprintf("amount out not equal to expected amount out %s, actual amount out: %s", tf.UserTrade.AmountOut.String(), amountsOutFirstPair[1].String()))
+		percentDiff := artemis_eth_units.PercentDiff(tf.SandwichTrade.AmountOut, amountsOutFirstPair[1])
+		log.Info().Msgf("percent diff %s", percentDiff.String())
 		return amountsOutFirstPair, errors.New("amount out not equal to expected")
 	}
 	tf.SandwichTrade.SimulatedAmountOut = amountsOutFirstPair[1]

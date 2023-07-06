@@ -30,7 +30,15 @@ func (t *TradeDebugger) ResetAndSetupPreconditions(ctx context.Context, tf *web3
 	if err != nil {
 		return err
 	}
-	return t.SetupCleanEnvironment(ctx, tf)
+	err = t.SetupCleanEnvironment(ctx, tf)
+	if err != nil {
+		return err
+	}
+	err = t.UniswapClient.Web3Client.MatchFrontRunTradeValues(tf)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (t *TradeDebugger) SetupCleanEnvironment(ctx context.Context, tf *web3_client.TradeExecutionFlow) error {

@@ -101,7 +101,7 @@ func (u *UniswapClient) FrontRunTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*b
 		return amountsOutFirstPair, errors.New("amount in not equal to expected")
 	}
 
-	if artemis_eth_units.IsXLessThanY(tf.FrontRunTrade.AmountOut, amountsOutFirstPair[1]) {
+	if !artemis_eth_units.IsXGreaterThanOrEqualToY(tf.FrontRunTrade.AmountOut, amountsOutFirstPair[1]) {
 		log.Warn().Msgf(fmt.Sprintf("amount out not equal to expected amount out %s, actual amount out: %s", tf.FrontRunTrade.AmountOut.String(), amountsOutFirstPair[1].String()))
 		diff := new(big.Int).Sub(amountsOutFirstPair[1], tf.FrontRunTrade.AmountOut)
 		if u.DebugPrint {

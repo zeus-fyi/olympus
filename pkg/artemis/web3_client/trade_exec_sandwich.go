@@ -95,7 +95,7 @@ func (u *UniswapClient) SandwichTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*b
 		return amountsOutFirstPair, errors.New("amount in not equal to expected")
 	}
 
-	if artemis_eth_units.IsXLessThanY(tf.SandwichTrade.AmountOut, amountsOutFirstPair[1]) {
+	if !artemis_eth_units.IsXGreaterThanOrEqualToY(tf.SandwichTrade.AmountOut, amountsOutFirstPair[1]) {
 		log.Warn().Msgf(fmt.Sprintf("amount out not equal to expected amount out %s, actual amount out: %s", tf.UserTrade.AmountOut.String(), amountsOutFirstPair[1].String()))
 		percentDiff := artemis_eth_units.PercentDiff(tf.SandwichTrade.AmountOut, amountsOutFirstPair[1])
 		log.Info().Msgf("percent diff %s", percentDiff.String())

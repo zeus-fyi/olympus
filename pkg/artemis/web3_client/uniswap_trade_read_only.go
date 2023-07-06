@@ -55,7 +55,21 @@ func (u *UniswapClient) GetAmountsIn(address *common.Address, amountOut *big.Int
 	return amountsInFirstPair, err
 }
 
-// GetAmountsOut also applies a transfer tax to the output amount
+// GetAmountsOutAndApplyTransferFeeAndSlippage also applies a transfer tax to the output amount
+func (u *UniswapClient) GetAmountsOutAndApplyTransferFeeAndSlippage(address *common.Address, amountIn *big.Int, pathSlice []string) ([]*big.Int, error) {
+	amountsOutFirstPair, err := u.GetAmountsOut(address, amountIn, pathSlice)
+	if err != nil {
+		return nil, err
+	}
+	for i, amount := range amountsOutFirstPair {
+		token := pathSlice[i]
+		out := uniswap_core_entities.NewFraction(amount, big.NewInt(1))
+		amountsOutFirstPair[i] = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(token), out.Quotient())
+		amountsOutFirstPair[i] = artemis_eth_units.SetSlippage(out.Quotient())
+	}
+	return amountsOutFirstPair, err
+}
+
 func (u *UniswapClient) GetAmountsOut(address *common.Address, amountIn *big.Int, pathSlice []string) ([]*big.Int, error) {
 	mm := u.MevSmartContractTxMapV2Router02
 	if address != nil {
@@ -76,11 +90,5 @@ func (u *UniswapClient) GetAmountsOut(address *common.Address, amountIn *big.Int
 		return nil, err
 	}
 	amountsOutFirstPair := ConvertAmountsToBigIntSlice(amountsOut)
-	for i, amount := range amountsOutFirstPair {
-		token := pathSlice[i]
-		out := uniswap_core_entities.NewFraction(amount, big.NewInt(1))
-		amountsOutFirstPair[i] = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(token), out.Quotient())
-		amountsOutFirstPair[i] = artemis_eth_units.SetSlippage(out.Quotient())
-	}
 	return amountsOutFirstPair, err
 }

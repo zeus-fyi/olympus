@@ -80,7 +80,7 @@ func (u *UniswapClient) ExecSandwichTradeStepTokenTransfer(tf *TradeExecutionFlo
 
 func (u *UniswapClient) SandwichTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*big.Int, error) {
 	pathSlice := []string{tf.SandwichTrade.AmountInAddr.String(), tf.SandwichTrade.AmountOutAddr.String()}
-	amountsOutFirstPair, err := u.GetAmountsOut(tf.Tx.To(), tf.SandwichTrade.AmountIn, pathSlice)
+	amountsOutFirstPair, err := u.GetAmountsOutAndApplyTransferFeeAndSlippage(tf.Tx.To(), tf.SandwichTrade.AmountIn, pathSlice)
 	if err != nil {
 		return nil, err
 	}

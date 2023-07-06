@@ -7,6 +7,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 )
 
 func (u *UniswapClient) ExecSandwichTrade(tf TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
@@ -52,10 +53,13 @@ func (u *UniswapClient) ExecSandwichTradeStepTokenTransfer(tf *TradeExecutionFlo
 	tf.SandwichTrade.DiffTradeTokenBalance = new(big.Int).Sub(tf.SandwichTrade.PostTradeTokenBalance, tf.SandwichTrade.PreTradeTokenBalance)
 	fmt.Println("actual amount out", tf.SandwichTrade.DiffTradeTokenBalance.String())
 	fmt.Println("expected amount out", tf.SandwichTrade.AmountOut.String())
-	drift := new(big.Int).Sub(tf.SandwichTrade.AmountOut, tf.SandwichTrade.DiffTradeTokenBalance)
-	if drift.String() != "0" {
-		return nil, errors.New("balance change does not match prediction")
+	if artemis_eth_units.IsXLessThanY(tf.SandwichTrade.AmountOut, tf.SandwichTrade.DiffTradeTokenBalance) {
+		drift := new(big.Int).Sub(tf.SandwichTrade.AmountOut, tf.SandwichTrade.DiffTradeTokenBalance)
+		log.Info().Msgf("amount out %s is less than the diff trade token balance %s", tf.SandwichTrade.AmountOut.String(), tf.SandwichTrade.DiffTradeTokenBalance.String())
+		log.Info().Msgf("drift %s", drift.String())
+		return nil, errors.New("amount out is less than the diff trade token balance")
 	}
+
 	tf.SandwichTrade.PostTradeEthBalance = endEthBal
 	tf.SandwichTrade.DiffTradeEthBalance = new(big.Int).Sub(endEthBal, startEthBal)
 	return nil, nil
@@ -79,7 +83,8 @@ func (u *UniswapClient) SandwichTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*b
 		log.Warn().Msgf(fmt.Sprintf("amount in not equal to expected amount in %s, actual amount in: %s", tf.UserTrade.AmountIn.String(), amountsOutFirstPair[0].String()))
 		return amountsOutFirstPair, errors.New("amount in not equal to expected")
 	}
-	if tf.SandwichTrade.AmountOut.String() != amountsOutFirstPair[1].String() {
+
+	if artemis_eth_units.IsXLessThanY(tf.SandwichTrade.AmountOut, amountsOutFirstPair[1]) {
 		log.Warn().Msgf(fmt.Sprintf("amount out not equal to expected amount out %s, actual amount out: %s", tf.UserTrade.AmountOut.String(), amountsOutFirstPair[1].String()))
 		return amountsOutFirstPair, errors.New("amount out not equal to expected")
 	}

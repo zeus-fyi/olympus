@@ -14,14 +14,54 @@ import (
 	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 )
 
-func UnmarshalTradeExecutionFlow(tfStr string) (TradeExecutionFlowJSON, error) {
-	tf := TradeExecutionFlowJSON{}
-	by := []byte(tfStr)
-	berr := json.Unmarshal(by, &tf)
-	if berr != nil {
-		return tf, berr
+func (u *UniswapClient) ToggleSimMode() {
+	u.SimMode = !u.SimMode
+}
+
+func (u *UniswapClient) RunHistoricalTradeAnalysis(ctx context.Context, tfStr string, liveNetworkClient Web3Client) error {
+	u.SimMode = true
+	defer u.ToggleSimMode()
+	u.TradeAnalysisReport = &TradeAnalysisReport{}
+	tfJSON, err := UnmarshalTradeExecutionFlow(tfStr)
+	if err != nil {
+		return u.MarkEndOfSimDueToErr(err)
 	}
-	return tf, nil
+	u.Web3Client.AddSessionLockHeader(tfJSON.Tx.Hash)
+	u.TradeAnalysisReport.TxHash = tfJSON.Tx.Hash
+	u.TradeAnalysisReport.TradeMethod = tfJSON.Trade.TradeMethod
+	u.TradeAnalysisReport.AmountIn = tfJSON.FrontRunTrade.AmountIn
+	u.TradeAnalysisReport.AmountInAddr = tfJSON.FrontRunTrade.AmountInAddr.String()
+	u.TradeAnalysisReport.AmountOutAddr = tfJSON.FrontRunTrade.AmountOutAddr.String()
+	err = FilterNonActionTradeExecutionFlows(tfJSON)
+	if err != nil {
+		return u.MarkEndOfSimDueToErr(err)
+	}
+	tf := tfJSON.ConvertToBigIntType()
+	artemisBlockNum, err := u.CheckBlockRxAndNetworkReset(&tf, liveNetworkClient)
+	if err != nil {
+		return u.MarkEndOfSimDueToErr(err)
+	}
+	err = u.Web3Client.HardHatResetNetwork(ctx, liveNetworkClient.NodeURL, artemisBlockNum)
+	if err != nil {
+		return u.MarkEndOfSimDueToErr(err)
+	}
+	if u.Web3Client.IsAnvilNode == true {
+		if u.Web3Client.Headers != nil {
+			sid := u.Web3Client.Headers["Session-Lock-ID"]
+			if sid != "" {
+				defer u.Web3Client.EndHardHatSessionReset(ctx, liveNetworkClient.NodeURL, artemisBlockNum)
+			}
+		}
+	}
+	err = u.CheckExpectedReserves(&tf)
+	if err != nil {
+		return u.MarkEndOfSimDueToErr(err)
+	}
+	err = u.SimFullSandwichTrade(&tf)
+	if err != nil {
+		return u.MarkEndOfSimDueToErr(err)
+	}
+	return nil
 }
 
 func FilterNonActionTradeExecutionFlows(tf TradeExecutionFlowJSON) error {
@@ -108,56 +148,6 @@ type GasReport struct {
 type TradeFailureReport struct {
 	EndReason string `json:"end_reason"`
 	EndStage  string `json:"end_stage"`
-}
-
-func (u *UniswapClient) ToggleSimMode() {
-	u.SimMode = !u.SimMode
-}
-
-func (u *UniswapClient) RunHistoricalTradeAnalysis(ctx context.Context, tfStr string, liveNetworkClient Web3Client) error {
-	u.SimMode = true
-	defer u.ToggleSimMode()
-	u.TradeAnalysisReport = &TradeAnalysisReport{}
-	tfJSON, err := UnmarshalTradeExecutionFlow(tfStr)
-	if err != nil {
-		return u.MarkEndOfSimDueToErr(err)
-	}
-	u.Web3Client.AddSessionLockHeader(tfJSON.Tx.Hash)
-	u.TradeAnalysisReport.TxHash = tfJSON.Tx.Hash
-	u.TradeAnalysisReport.TradeMethod = tfJSON.Trade.TradeMethod
-	u.TradeAnalysisReport.AmountIn = tfJSON.FrontRunTrade.AmountIn
-	u.TradeAnalysisReport.AmountInAddr = tfJSON.FrontRunTrade.AmountInAddr.String()
-	u.TradeAnalysisReport.AmountOutAddr = tfJSON.FrontRunTrade.AmountOutAddr.String()
-	err = FilterNonActionTradeExecutionFlows(tfJSON)
-	if err != nil {
-		return u.MarkEndOfSimDueToErr(err)
-	}
-	tf := tfJSON.ConvertToBigIntType()
-	artemisBlockNum, err := u.CheckBlockRxAndNetworkReset(&tf, liveNetworkClient)
-	if err != nil {
-		return u.MarkEndOfSimDueToErr(err)
-	}
-	err = u.Web3Client.HardHatResetNetwork(ctx, liveNetworkClient.NodeURL, artemisBlockNum)
-	if err != nil {
-		return u.MarkEndOfSimDueToErr(err)
-	}
-	if u.Web3Client.IsAnvilNode == true {
-		if u.Web3Client.Headers != nil {
-			sid := u.Web3Client.Headers["Session-Lock-ID"]
-			if sid != "" {
-				defer u.Web3Client.EndHardHatSessionReset(ctx, liveNetworkClient.NodeURL, artemisBlockNum)
-			}
-		}
-	}
-	err = u.CheckExpectedReserves(&tf)
-	if err != nil {
-		return u.MarkEndOfSimDueToErr(err)
-	}
-	err = u.SimFullSandwichTrade(&tf)
-	if err != nil {
-		return u.MarkEndOfSimDueToErr(err)
-	}
-	return nil
 }
 
 func (u *UniswapClient) CheckBlockRxAndNetworkReset(tf *TradeExecutionFlow, liveNetworkClient Web3Client) (int, error) {

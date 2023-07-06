@@ -2,6 +2,7 @@ package web3_client
 
 import (
 	"context"
+	"encoding/json"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/core/types"
@@ -102,4 +103,14 @@ func (t *TradeExecutionFlow) GetAggregateGasUsage(ctx context.Context, w Web3Cli
 	//	return err
 	//}
 	return nil
+}
+
+func UnmarshalTradeExecutionFlow(tfStr string) (TradeExecutionFlowJSON, error) {
+	tf := TradeExecutionFlowJSON{}
+	by := []byte(tfStr)
+	berr := json.Unmarshal(by, &tf)
+	if berr != nil {
+		return tf, berr
+	}
+	return tf, nil
 }

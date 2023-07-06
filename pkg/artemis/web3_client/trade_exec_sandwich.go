@@ -58,7 +58,9 @@ func (u *UniswapClient) ExecSandwichTradeStepTokenTransfer(tf *TradeExecutionFlo
 	}
 	tf.SandwichTrade.PostTradeTokenBalance = bal
 	tf.SandwichTrade.DiffTradeTokenBalance = new(big.Int).Sub(tf.SandwichTrade.PostTradeTokenBalance, tf.SandwichTrade.PreTradeTokenBalance)
-	if !artemis_eth_units.IsXGreaterThanOrEqualToY(tf.SandwichTrade.AmountOut, tf.SandwichTrade.DiffTradeTokenBalance) {
+
+	//if !artemis_eth_units.IsXGreaterThanOrEqualToY(tf.SandwichTrade.AmountOut, tf.SandwichTrade.DiffTradeTokenBalance) {
+	if !artemis_eth_units.PercentDiffFloatComparison(tf.SandwichTrade.AmountIn, tf.SandwichTrade.DiffTradeTokenBalance, 0.0001) {
 		log.Info().Msgf("amount out %s is less than the diff trade token balance %s", tf.SandwichTrade.AmountOut.String(), tf.SandwichTrade.DiffTradeTokenBalance.String())
 		actualDiff := new(big.Int).Sub(tf.SandwichTrade.AmountOut, tf.SandwichTrade.DiffTradeTokenBalance)
 		log.Info().Msgf("actual diff %s", actualDiff.String())

@@ -30,15 +30,17 @@ func (c *ContractAnalysis) SimEthTransferFeeTaxTrade(ctx context.Context, amount
 	if err != nil {
 		return nil, err
 	}
-
 	calculatedOut, err := pd.V2Pair.PriceImpact(artemis_trading_constants.WETH9ContractAddressAccount, amount)
 	if err != nil {
 		return nil, err
 	}
+
+	// test amount artemis_eth_units.NewBigInt(0)
+	// calculatedOut
 	trade := &artemis_trading_types.TradeOutcome{
 		AmountIn:      amount,
 		AmountInAddr:  artemis_trading_constants.WETH9ContractAddressAccount,
-		AmountOut:     artemis_eth_units.NewBigInt(0),
+		AmountOut:     calculatedOut.AmountOut,
 		AmountOutAddr: accounts.HexToAddress(c.SmartContractAddr),
 	}
 	err = c.u.ExecTradeV2SwapFromTokenToToken(ctx, trade)
@@ -71,7 +73,7 @@ func (c *ContractAnalysis) SimEthTransferFeeTaxTrade(ctx context.Context, amount
 	tokenFee := artemis_eth_units.FractionalAmount(calculatedOut.AmountOut, per)
 	fmt.Println("tokenFee", tokenFee.String())
 
-	per2 := artemis_eth_units.NewPercentFromInts(1, 1000000)
+	per2 := artemis_eth_units.NewPercentFromInts(1, 1000000000000)
 	tokenFee2 := artemis_eth_units.FractionalAmount(calculatedOut.AmountOut, per2)
 	fmt.Println("tokenFee2", tokenFee2.String())
 

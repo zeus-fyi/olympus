@@ -51,6 +51,20 @@ func NewPercentFromInts(num, den int) *core_entities.Percent {
 	return core_entities.NewPercent(NewBigInt(num), NewBigInt(den))
 }
 
+func IsXGreaterThanY(x, y *big.Int) bool {
+	return x.Cmp(y) > 0
+}
+
+func IsXLessThanY(x, y *big.Int) bool {
+	return x.Cmp(y) < 0
+}
+
+func SetSlippage(amountOut *big.Int) *big.Int {
+	slippagePerc := NewPercentFromInts(1, 1000000000000)
+	slippageAmount := FractionalAmount(amountOut, slippagePerc)
+	return SubBigInt(amountOut, slippageAmount)
+}
+
 func FractionalAmount(amount *big.Int, perc *core_entities.Percent) *big.Int {
 	amountOut := MulBigInt(amount, perc.Numerator)
 	amountOut = DivBigInt(amountOut, perc.Denominator)

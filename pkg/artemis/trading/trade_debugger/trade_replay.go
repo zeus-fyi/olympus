@@ -2,6 +2,7 @@ package artemis_trade_debugger
 
 import (
 	"context"
+	"fmt"
 )
 
 func (t *TradeDebugger) Replay(ctx context.Context, txHash string) error {
@@ -10,11 +11,11 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string) error {
 		return err
 	}
 	tf := mevTx.TradePrediction
-
 	err = t.ResetAndSetupPreconditions(ctx, tf)
 	if err != nil {
 		return err
 	}
+	fmt.Println("ANALYZING tx: ", tf.Tx.Hash().String(), "at block: ", mevTx.GetBlockNumber())
 	amountInAddr := tf.FrontRunTrade.AmountInAddr
 	amountIn := tf.FrontRunTrade.AmountIn
 	err = t.analyzeToken(ctx, amountInAddr, amountIn)
@@ -36,5 +37,10 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string) error {
 	if err != nil {
 		return err
 	}
+	_, err = t.UniswapClient.ExecTradeByMethod(&tf)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

@@ -38,10 +38,9 @@ func (t *TradeDebugger) resetNetwork(tf web3_client.TradeExecutionFlow) error {
 	}
 	bn, err := t.UniswapClient.CheckBlockRxAndNetworkReset(&tf, t.LiveNetworkClient)
 	if err != nil {
-		log.Err(err).Msg("error checking block and network reset")
+		log.Err(err).Interface("blockNum", bn).Msg("error checking block and network reset")
 		return err
 	}
-	fmt.Println(bn)
 	return err
 }
 

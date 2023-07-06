@@ -7,6 +7,7 @@ import (
 	"math/big"
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	"github.com/zeus-fyi/olympus/pkg/artemis/trading/async_analysis"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
@@ -47,32 +48,36 @@ func (t *TradeDebugger) analyzeToken(ctx context.Context, address accounts.Addre
 		}
 	}
 	if num == nil || den == nil {
-		feePerc, err := ca.CalculateTransferFeeTax(ctx, amountTraded)
+		feePerc, err := ca.CalculateTransferFeeTax(ctx, artemis_eth_units.Ether)
 		if err != nil {
 			return err
 		}
 
 		fmt.Println("trade feePerc: ", feePerc.Numerator, feePerc.Denominator)
-		//calcNum := int(feePerc.Numerator.Int64())
-		//calcDen := int(feePerc.Denominator.Int64())
-		//info.TransferTaxNumerator = &calcNum
-		//info.TransferTaxDenominator = &calcDen
-		//artemis_trading_cache.TokenMap[token] = info
+		calcNum := int(feePerc.Numerator.Int64())
+		calcDen := int(feePerc.Denominator.Int64())
+		info.TransferTaxNumerator = &calcNum
+		info.TransferTaxDenominator = &calcDen
+		artemis_trading_cache.TokenMap[token] = info
+		err = artemis_mev_models.UpdateERC20TokenTransferTaxInfo(ctx, info)
+		if err != nil {
+			return err
+		}
 		//err = ca.CalculateTransferFeeTaxRange(ctx)
 		//if err != nil {
 		//	return err
 		//}
-		amountToTest := artemis_eth_units.EtherMultiple(1)
-		feePerc, err = ca.CalculateTransferFeeTax(ctx, amountToTest)
-		if err != nil {
-			return err
-		}
-		fmt.Println("feePercCalc: ", feePerc.Numerator, feePerc.Denominator)
-		feePerc, err = ca.SimEthTransferFeeTaxTrade(ctx, amountToTest)
-		if err != nil {
-			return err
-		}
-		fmt.Println("feePercSim: ", feePerc.Numerator, feePerc.Denominator)
+		//amountToTest := artemis_eth_units.EtherMultiple(1)
+		//feePerc, err = ca.CalculateTransferFeeTax(ctx, amountToTest)
+		//if err != nil {
+		//	return err
+		//}
+		//fmt.Println("feePercCalc: ", feePerc.Numerator, feePerc.Denominator)
+		//feePerc, err = ca.SimEthTransferFeeTaxTrade(ctx, amountToTest)
+		//if err != nil {
+		//	return err
+		//}
+		//fmt.Println("feePercSim: ", feePerc.Numerator, feePerc.Denominator)
 	}
 
 	t.ContractAnalysis = ca

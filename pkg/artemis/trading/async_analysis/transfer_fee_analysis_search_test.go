@@ -3,8 +3,8 @@ package async_analysis
 import (
 	"fmt"
 
-	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/constants"
-	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/units"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 

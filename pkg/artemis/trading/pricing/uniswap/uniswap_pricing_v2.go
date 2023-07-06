@@ -6,6 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	artemis_pricing_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/utils/pricing"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_v3/constants"
@@ -78,12 +79,14 @@ func (p *UniswapV2Pair) PriceImpact(tokenAddrPath accounts.Address, tokenBuyAmou
 		to.AmountInAddr = tokenAddrPath
 		to.AmountOutAddr = p.GetOppositeToken(tokenAddrPath.String())
 		to.AmountOut = artemis_pricing_utils.ApplyTransferTax(to.AmountOutAddr, to.AmountOut)
+		to.AmountOut = artemis_eth_units.SetSlippage(to.AmountOut)
 		return to, nil
 	case 0:
 		to, _, _ := p.PriceImpactToken0BuyToken1(tokenBuyAmount)
 		to.AmountInAddr = tokenAddrPath
 		to.AmountOutAddr = p.GetOppositeToken(tokenAddrPath.String())
 		to.AmountOut = artemis_pricing_utils.ApplyTransferTax(to.AmountOutAddr, to.AmountOut)
+		to.AmountOut = artemis_eth_units.SetSlippage(to.AmountOut)
 		return to, nil
 	default:
 		to := artemis_trading_types.TradeOutcome{}

@@ -4,7 +4,7 @@ import (
 	"math/big"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/constants"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 

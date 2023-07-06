@@ -42,10 +42,10 @@ func (t *TradeDebugger) analyzeToken(ctx context.Context, address accounts.Addre
 			return err
 		}
 		fmt.Println("feePerc: ", feePerc.Numerator, feePerc.Denominator)
-		err = ca.CalculateTransferFeeTaxRange(ctx)
-		if err != nil {
-			return err
-		}
+		//err = ca.CalculateTransferFeeTaxRange(ctx)
+		//if err != nil {
+		//	return err
+		//}
 	}
 	t.ContractAnalysis = ca
 	return nil

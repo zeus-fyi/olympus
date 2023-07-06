@@ -21,6 +21,11 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string) error {
 	if err != nil {
 		return err
 	}
+
+	_, err = t.UniswapClient.FrontRunTradeGetAmountsOut(&tf)
+	if err != nil {
+		return err
+	}
 	_, err = t.UniswapClient.ExecFrontRunTradeStepTokenTransfer(&tf)
 	if err != nil {
 		return err

@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
-	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
@@ -22,6 +22,9 @@ type ActiveTrading struct {
 	m metrics_trading.TradingMetrics
 }
 
+func NewActiveTradingModuleWithoutMetrics(u *web3_client.UniswapClient) ActiveTrading {
+	return ActiveTrading{u: u}
+}
 func NewActiveTradingModule(u *web3_client.UniswapClient, tm metrics_trading.TradingMetrics) ActiveTrading {
 	return ActiveTrading{u, tm}
 }
@@ -107,7 +110,7 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 			To:                tradeFlow.Tx.To,
 			BlockNumber:       int(bn),
 		}
-		err = artemis_validator_service_groups_models.InsertMempoolTx(ctx, txMempool)
+		err = artemis_mev_models.InsertMempoolTx(ctx, txMempool)
 		if err != nil {
 			log.Err(err).Msg("failed to insert mempool tx")
 			return err

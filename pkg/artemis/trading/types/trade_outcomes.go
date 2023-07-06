@@ -12,6 +12,7 @@ type TradeOutcome struct {
 	AmountInAddr        accounts.Address `json:"amountInAddr"`
 	AmountFees          *big.Int         `json:"amountFees"`
 	AmountOut           *big.Int         `json:"amountOut"`
+	AmountOutDrift      *big.Int         `json:"amountOutDrift,omitempty"`
 	AmountOutAddr       accounts.Address `json:"amountOutAddr"`
 	StartReservesToken0 *big.Int         `json:"startReservesToken0"`
 	StartReservesToken1 *big.Int         `json:"startReservesToken1"`

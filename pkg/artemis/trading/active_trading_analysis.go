@@ -5,7 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
-	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
@@ -82,7 +82,7 @@ func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64)
 	if tmTradingEnabled == nil {
 		tradeEnabled := false
 		log.Info().Msgf("ActiveTrading: EntryTxFilter, erc20 at address %s not registered", tokenAddress)
-		err := artemis_validator_service_groups_models.InsertERC20TokenInfo(ctx, artemis_autogen_bases.Erc20TokenInfo{
+		err := artemis_mev_models.InsertERC20TokenInfo(ctx, artemis_autogen_bases.Erc20TokenInfo{
 			Address:           tokenAddress,
 			ProtocolNetworkID: int(chainID),
 			BalanceOfSlotNum:  -2, // -1 means balanceOf it wasn't cracked within 100 slots, -2 means cracking hasn't been attempted yet

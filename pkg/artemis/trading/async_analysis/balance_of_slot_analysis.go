@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/rs/zerolog/log"
-	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/units"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 )
 
 // FindERC20BalanceOfSlotNumber finds the erc20 token balance of

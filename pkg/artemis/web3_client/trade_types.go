@@ -2,6 +2,7 @@ package web3_client
 
 import (
 	"context"
+	"encoding/json"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/core/types"
@@ -44,6 +45,28 @@ type TradeExecutionFlowJSON struct {
 	UserTrade          artemis_trading_types.JSONTradeOutcome `json:"userTrade"`
 	SandwichTrade      artemis_trading_types.JSONTradeOutcome `json:"sandwichTrade"`
 	SandwichPrediction JSONSandwichTradePrediction            `json:"sandwichPrediction"`
+}
+
+func (t *TradeExecutionFlowJSON) ConvertToBigIntTypeWithoutTx() TradeExecutionFlow {
+	var p2Pair *uniswap_pricing.UniswapV2Pair
+	if t.InitialPair != nil {
+		p2Pair = t.InitialPair.ConvertToBigIntType()
+	}
+	var p3Pair *uniswap_pricing.UniswapV3Pair
+	if t.InitialPairV3 != nil {
+		p3Pair = t.InitialPairV3.ConvertToBigIntType()
+	}
+
+	return TradeExecutionFlow{
+		CurrentBlockNumber: t.CurrentBlockNumber,
+		Trade:              t.Trade,
+		InitialPair:        p2Pair,
+		InitialPairV3:      p3Pair,
+		FrontRunTrade:      t.FrontRunTrade.ConvertToBigIntType(),
+		UserTrade:          t.UserTrade.ConvertToBigIntType(),
+		SandwichTrade:      t.SandwichTrade.ConvertToBigIntType(),
+		SandwichPrediction: t.SandwichPrediction.ConvertToBigIntType(),
+	}
 }
 
 func (t *TradeExecutionFlowJSON) ConvertToBigIntType() TradeExecutionFlow {
@@ -102,4 +125,14 @@ func (t *TradeExecutionFlow) GetAggregateGasUsage(ctx context.Context, w Web3Cli
 	//	return err
 	//}
 	return nil
+}
+
+func UnmarshalTradeExecutionFlow(tfStr string) (TradeExecutionFlowJSON, error) {
+	tf := TradeExecutionFlowJSON{}
+	by := []byte(tfStr)
+	berr := json.Unmarshal(by, &tf)
+	if berr != nil {
+		return tf, berr
+	}
+	return tf, nil
 }

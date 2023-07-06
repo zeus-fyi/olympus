@@ -7,6 +7,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 )
 
 func (u *UniswapClient) ExecFrontRunTrade(tf TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
@@ -49,7 +50,6 @@ func (u *UniswapClient) ExecFrontRunTradeStepTokenTransfer(tf *TradeExecutionFlo
 		log.Err(err).Msg("error getting post trade eth balance")
 		return nil, err
 	}
-
 	bal, err = u.Web3Client.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountOutAddr.String(), u.Web3Client.PublicKey())
 	if err != nil {
 		log.Err(err).Msg("error getting post trade amount out token balance")
@@ -88,14 +88,26 @@ func (u *UniswapClient) FrontRunTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*b
 		log.Warn().Msgf(fmt.Sprintf("amount in not equal to expected amount in %s, actual amount in: %s", tf.FrontRunTrade.AmountIn.String(), amountsOutFirstPair[0].String()))
 		return amountsOutFirstPair, errors.New("amount in not equal to expected")
 	}
-	if tf.FrontRunTrade.AmountOut.String() != amountsOutFirstPair[1].String() {
+
+	if artemis_eth_units.IsXLessThanY(tf.FrontRunTrade.AmountOut, amountsOutFirstPair[1]) {
 		log.Warn().Msgf(fmt.Sprintf("amount out not equal to expected amount out %s, actual amount out: %s", tf.FrontRunTrade.AmountOut.String(), amountsOutFirstPair[1].String()))
+		diff := new(big.Int).Sub(amountsOutFirstPair[1], tf.FrontRunTrade.AmountOut)
 		if u.DebugPrint {
-			diff := new(big.Int).Sub(amountsOutFirstPair[1], tf.FrontRunTrade.AmountOut)
 			fmt.Println("front run trade actual - expected ", diff.String())
 		}
+		tf.FrontRunTrade.AmountOutDrift = diff
 		return amountsOutFirstPair, errors.New("amount out not equal to expected")
 	}
+
+	//if tf.FrontRunTrade.AmountOut.String() != amountsOutFirstPair[1].String() {
+	//	log.Warn().Msgf(fmt.Sprintf("amount out not equal to expected amount out %s, actual amount out: %s", tf.FrontRunTrade.AmountOut.String(), amountsOutFirstPair[1].String()))
+	//	diff := new(big.Int).Sub(amountsOutFirstPair[1], tf.FrontRunTrade.AmountOut)
+	//	if u.DebugPrint {
+	//		fmt.Println("front run trade actual - expected ", diff.String())
+	//	}
+	//	tf.FrontRunTrade.AmountOutDrift = diff
+	//	return amountsOutFirstPair, errors.New("amount out not equal to expected")
+	//}
 	tf.FrontRunTrade.SimulatedAmountOut = amountsOutFirstPair[1]
 	return amountsOutFirstPair, err
 }

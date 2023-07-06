@@ -1,4 +1,4 @@
-package artemis_pricing_utils
+package artemis_utils
 
 import (
 	"fmt"

@@ -14,14 +14,54 @@ import (
 	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 )
 
-func UnmarshalTradeExecutionFlow(tfStr string) (TradeExecutionFlowJSON, error) {
-	tf := TradeExecutionFlowJSON{}
-	by := []byte(tfStr)
-	berr := json.Unmarshal(by, &tf)
-	if berr != nil {
-		return tf, berr
+func (u *UniswapClient) ToggleSimMode() {
+	u.SimMode = !u.SimMode
+}
+
+func (u *UniswapClient) RunHistoricalTradeAnalysis(ctx context.Context, tfStr string, liveNetworkClient Web3Client) error {
+	u.SimMode = true
+	defer u.ToggleSimMode()
+	u.TradeAnalysisReport = &TradeAnalysisReport{}
+	tfJSON, err := UnmarshalTradeExecutionFlow(tfStr)
+	if err != nil {
+		return u.MarkEndOfSimDueToErr(err)
 	}
-	return tf, nil
+	u.Web3Client.AddSessionLockHeader(tfJSON.Tx.Hash)
+	u.TradeAnalysisReport.TxHash = tfJSON.Tx.Hash
+	u.TradeAnalysisReport.TradeMethod = tfJSON.Trade.TradeMethod
+	u.TradeAnalysisReport.AmountIn = tfJSON.FrontRunTrade.AmountIn
+	u.TradeAnalysisReport.AmountInAddr = tfJSON.FrontRunTrade.AmountInAddr.String()
+	u.TradeAnalysisReport.AmountOutAddr = tfJSON.FrontRunTrade.AmountOutAddr.String()
+	err = FilterNonActionTradeExecutionFlows(tfJSON)
+	if err != nil {
+		return u.MarkEndOfSimDueToErr(err)
+	}
+	tf := tfJSON.ConvertToBigIntType()
+	artemisBlockNum, err := u.CheckBlockRxAndNetworkReset(ctx, &tf, liveNetworkClient)
+	if err != nil {
+		return u.MarkEndOfSimDueToErr(err)
+	}
+	err = u.Web3Client.HardHatResetNetwork(ctx, liveNetworkClient.NodeURL, artemisBlockNum)
+	if err != nil {
+		return u.MarkEndOfSimDueToErr(err)
+	}
+	if u.Web3Client.IsAnvilNode == true {
+		if u.Web3Client.Headers != nil {
+			sid := u.Web3Client.Headers["Session-Lock-ID"]
+			if sid != "" {
+				defer u.Web3Client.EndHardHatSessionReset(ctx, liveNetworkClient.NodeURL, artemisBlockNum)
+			}
+		}
+	}
+	err = u.CheckExpectedReserves(&tf)
+	if err != nil {
+		return u.MarkEndOfSimDueToErr(err)
+	}
+	err = u.SimFullSandwichTrade(&tf)
+	if err != nil {
+		return u.MarkEndOfSimDueToErr(err)
+	}
+	return nil
 }
 
 func FilterNonActionTradeExecutionFlows(tf TradeExecutionFlowJSON) error {
@@ -110,57 +150,7 @@ type TradeFailureReport struct {
 	EndStage  string `json:"end_stage"`
 }
 
-func (u *UniswapClient) ToggleSimMode() {
-	u.SimMode = !u.SimMode
-}
-
-func (u *UniswapClient) RunHistoricalTradeAnalysis(ctx context.Context, tfStr string, liveNetworkClient Web3Client) error {
-	u.SimMode = true
-	defer u.ToggleSimMode()
-	u.TradeAnalysisReport = &TradeAnalysisReport{}
-	tfJSON, err := UnmarshalTradeExecutionFlow(tfStr)
-	if err != nil {
-		return u.MarkEndOfSimDueToErr(err)
-	}
-	u.Web3Client.AddSessionLockHeader(tfJSON.Tx.Hash)
-	u.TradeAnalysisReport.TxHash = tfJSON.Tx.Hash
-	u.TradeAnalysisReport.TradeMethod = tfJSON.Trade.TradeMethod
-	u.TradeAnalysisReport.AmountIn = tfJSON.FrontRunTrade.AmountIn
-	u.TradeAnalysisReport.AmountInAddr = tfJSON.FrontRunTrade.AmountInAddr.String()
-	u.TradeAnalysisReport.AmountOutAddr = tfJSON.FrontRunTrade.AmountOutAddr.String()
-	err = FilterNonActionTradeExecutionFlows(tfJSON)
-	if err != nil {
-		return u.MarkEndOfSimDueToErr(err)
-	}
-	tf := tfJSON.ConvertToBigIntType()
-	artemisBlockNum, err := u.CheckBlockRxAndNetworkReset(&tf, liveNetworkClient)
-	if err != nil {
-		return u.MarkEndOfSimDueToErr(err)
-	}
-	err = u.Web3Client.HardHatResetNetwork(ctx, liveNetworkClient.NodeURL, artemisBlockNum)
-	if err != nil {
-		return u.MarkEndOfSimDueToErr(err)
-	}
-	if u.Web3Client.IsAnvilNode == true {
-		if u.Web3Client.Headers != nil {
-			sid := u.Web3Client.Headers["Session-Lock-ID"]
-			if sid != "" {
-				defer u.Web3Client.EndHardHatSessionReset(ctx, liveNetworkClient.NodeURL, artemisBlockNum)
-			}
-		}
-	}
-	err = u.CheckExpectedReserves(&tf)
-	if err != nil {
-		return u.MarkEndOfSimDueToErr(err)
-	}
-	err = u.SimFullSandwichTrade(&tf)
-	if err != nil {
-		return u.MarkEndOfSimDueToErr(err)
-	}
-	return nil
-}
-
-func (u *UniswapClient) CheckBlockRxAndNetworkReset(tf *TradeExecutionFlow, liveNetworkClient Web3Client) (int, error) {
+func (u *UniswapClient) CheckBlockRxAndNetworkReset(ctx context.Context, tf *TradeExecutionFlow, liveNetworkClient Web3Client) (int, error) {
 	rx, err := liveNetworkClient.GetTxReceipt(ctx, tf.Tx.Hash())
 	if err != nil {
 		return -1, err
@@ -174,6 +164,12 @@ func (u *UniswapClient) CheckBlockRxAndNetworkReset(tf *TradeExecutionFlow, live
 	u.TradeAnalysisReport.RxBlockNumber = int(rx.BlockNumber.Int64())
 	if currentBlockNum >= int(rx.BlockNumber.Int64()) {
 		return -1, fmt.Errorf("artmeis block number %d is greater than or equal to rx block number %d", currentBlockNum, int(rx.BlockNumber.Int64()))
+	}
+	u.Web3Client.Dial()
+	defer u.Web3Client.Close()
+	err = u.Web3Client.ResetNetwork(ctx, liveNetworkClient.NodeURL, currentBlockNum)
+	if err != nil {
+		return -1, err
 	}
 	return currentBlockNum, nil
 }

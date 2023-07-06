@@ -4,7 +4,7 @@ import (
 	"context"
 
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
-	artemis_pricing_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/utils"
+	artemis_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/utils"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
@@ -28,17 +28,17 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 	if len(resp) <= 2 {
 		return err
 	}
-	reserve0, err := artemis_pricing_utils.ParseBigInt(resp[0])
+	reserve0, err := artemis_utils.ParseBigInt(resp[0])
 	if err != nil {
 		return err
 	}
 	p.Reserve0 = reserve0
-	reserve1, err := artemis_pricing_utils.ParseBigInt(resp[1])
+	reserve1, err := artemis_utils.ParseBigInt(resp[1])
 	if err != nil {
 		return err
 	}
 	p.Reserve1 = reserve1
-	blockTimestampLast, err := artemis_pricing_utils.ParseBigInt(resp[2])
+	blockTimestampLast, err := artemis_utils.ParseBigInt(resp[2])
 	if err != nil {
 		return err
 	}

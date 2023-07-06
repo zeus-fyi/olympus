@@ -14,6 +14,8 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string) error {
 	if err != nil {
 		return err
 	}
+	amountInAddr := tf.FrontRunTrade.AmountInAddr
+	t.analyzeToken(amountInAddr)
 	_, err = t.UniswapClient.ExecFrontRunTradeStepTokenTransfer(&tf)
 	if err != nil {
 		return err

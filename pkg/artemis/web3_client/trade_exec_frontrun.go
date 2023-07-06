@@ -49,7 +49,6 @@ func (u *UniswapClient) ExecFrontRunTradeStepTokenTransfer(tf *TradeExecutionFlo
 		log.Err(err).Msg("error getting post trade eth balance")
 		return nil, err
 	}
-
 	bal, err = u.Web3Client.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountOutAddr.String(), u.Web3Client.PublicKey())
 	if err != nil {
 		log.Err(err).Msg("error getting post trade amount out token balance")

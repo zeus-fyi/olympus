@@ -3,7 +3,6 @@ package artemis_trade_debugger
 import (
 	"errors"
 	"fmt"
-	"math/big"
 
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_realtime_trading "github.com/zeus-fyi/olympus/pkg/artemis/trading"
@@ -11,14 +10,16 @@ import (
 )
 
 type TradeDebugger struct {
-	UniswapClient *web3_client.UniswapClient
-	ActiveTrading artemis_realtime_trading.ActiveTrading
+	UniswapClient     *web3_client.UniswapClient
+	ActiveTrading     artemis_realtime_trading.ActiveTrading
+	LiveNetworkClient web3_client.Web3Client
 }
 
-func NewTradeDebugger(a artemis_realtime_trading.ActiveTrading, u *web3_client.UniswapClient) TradeDebugger {
+func NewTradeDebugger(a artemis_realtime_trading.ActiveTrading, u *web3_client.UniswapClient, lnc web3_client.Web3Client) TradeDebugger {
 	return TradeDebugger{
-		ActiveTrading: a,
-		UniswapClient: u,
+		ActiveTrading:     a,
+		UniswapClient:     u,
+		LiveNetworkClient: lnc,
 	}
 }
 
@@ -26,6 +27,28 @@ type HistoricalAnalysisDebug struct {
 	HistoricalAnalysis artemis_mev_models.HistoricalAnalysis
 	TradePrediction    web3_client.TradeExecutionFlow
 	TradeParams        any
+}
+
+/*
+type HistoricalAnalysis struct {
+	artemis_autogen_bases.EthMempoolMevTx
+	artemis_autogen_bases.EthMevTxAnalysis
+}
+type EthMempoolMevTx struct {
+	TxID              int    `db:"tx_id" json:"txID"`
+	To                string `db:"to" json:"to"`
+	ProtocolNetworkID int    `db:"protocol_network_id" json:"protocolNetworkID"`
+	TxFlowPrediction  string `db:"tx_flow_prediction" json:"txFlowPrediction"`
+	TxHash            string `db:"tx_hash" json:"txHash"`
+	Nonce             int    `db:"nonce" json:"nonce"`
+	From              string `db:"from" json:"from"`
+	BlockNumber       int    `db:"block_number" json:"blockNumber"`
+	Tx                string `db:"tx" json:"tx"`
+}
+*/
+
+func (h *HistoricalAnalysisDebug) GetBlockNumber() int {
+	return h.HistoricalAnalysis.BlockNumber
 }
 
 func (h *HistoricalAnalysisDebug) BinarySearch() (web3_client.TradeExecutionFlow, error) {
@@ -136,24 +159,3 @@ type Trade struct {
 	*JSONSwapExactTokensForTokensParamsV3                            `json:"swapExactTokensForTokensParamsV3,omitempty"`
 }
 */
-
-func ParseBigInt(i interface{}) (*big.Int, error) {
-	switch v := i.(type) {
-	case *big.Int:
-		return i.(*big.Int), nil
-	case string:
-		base := 10
-		result := new(big.Int)
-		_, ok := result.SetString(v, base)
-		if !ok {
-			return nil, fmt.Errorf("failed to parse string '%s' into big.Int", v)
-		}
-		return result, nil
-	case uint32:
-		return big.NewInt(int64(v)), nil
-	case int64:
-		return big.NewInt(v), nil
-	default:
-		return nil, fmt.Errorf("input is not a string or int64")
-	}
-}

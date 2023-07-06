@@ -10,6 +10,7 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string) error {
 		return err
 	}
 	tf := mevTx.TradePrediction
+
 	err = t.ResetAndSetupPreconditions(ctx, tf)
 	if err != nil {
 		return err

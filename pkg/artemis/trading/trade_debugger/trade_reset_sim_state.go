@@ -21,6 +21,10 @@ func (t *TradeDebugger) ResetAndSetupPreconditions(ctx context.Context, tf web3_
 	if err != nil {
 		return err
 	}
+	err = t.UniswapClient.CheckExpectedReserves(&tf)
+	if err != nil {
+		return err
+	}
 	err = t.UniswapClient.Web3Client.MatchFrontRunTradeValues(&tf)
 	if err != nil {
 		return err

@@ -60,7 +60,7 @@ func (u *UniswapClient) ExecSandwichTradeStepTokenTransfer(tf *TradeExecutionFlo
 	tf.SandwichTrade.DiffTradeTokenBalance = new(big.Int).Sub(tf.SandwichTrade.PostTradeTokenBalance, tf.SandwichTrade.PreTradeTokenBalance)
 
 	//if !artemis_eth_units.IsXGreaterThanOrEqualToY(tf.SandwichTrade.AmountOut, tf.SandwichTrade.DiffTradeTokenBalance) {
-	if !artemis_eth_units.PercentDiffFloatComparison(tf.SandwichTrade.AmountIn, tf.SandwichTrade.DiffTradeTokenBalance, 0.0001) {
+	if !artemis_eth_units.PercentDiffFloatComparison(tf.SandwichTrade.AmountIn, tf.SandwichTrade.DiffTradeTokenBalance, 0.01) {
 		log.Info().Msgf("amount out %s is less than the diff trade token balance %s", tf.SandwichTrade.AmountOut.String(), tf.SandwichTrade.DiffTradeTokenBalance.String())
 		actualDiff := new(big.Int).Sub(tf.SandwichTrade.AmountOut, tf.SandwichTrade.DiffTradeTokenBalance)
 		log.Info().Msgf("actual diff %s", actualDiff.String())
@@ -93,7 +93,7 @@ func (u *UniswapClient) SandwichTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*b
 		fmt.Println("sandwich trade simulated amount in", amountsOutFirstPair[0].String(), "amount out", amountsOutFirstPair[1].String())
 	}
 
-	if !artemis_eth_units.PercentDiffFloatComparison(tf.SandwichTrade.AmountIn, amountsOutFirstPair[0], 0.0001) {
+	if !artemis_eth_units.PercentDiffFloatComparison(tf.SandwichTrade.AmountIn, amountsOutFirstPair[0], 0.01) {
 		artemis_eth_units.PercentDiffHighPrecision(tf.SandwichTrade.AmountIn, amountsOutFirstPair[0])
 		log.Warn().Msgf(fmt.Sprintf("amount in not equal to expected amount in %s, actual amount in: %s", tf.UserTrade.AmountIn.String(), amountsOutFirstPair[0].String()))
 		return amountsOutFirstPair, errors.New("amount in not equal to expected")
@@ -101,7 +101,7 @@ func (u *UniswapClient) SandwichTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*b
 
 	// 	if !artemis_eth_units.PercentDiffFloatComparison(tf.SandwichTrade.AmountOut, amountsOutFirstPair[1], 0.0001) {
 	if !artemis_eth_units.IsXGreaterThanOrEqualToY(amountsOutFirstPair[1], tf.SandwichTrade.AmountOut) {
-		if !artemis_eth_units.PercentDiffFloatComparison(tf.SandwichTrade.AmountOut, amountsOutFirstPair[1], 0.0001) {
+		if !artemis_eth_units.PercentDiffFloatComparison(tf.SandwichTrade.AmountOut, amountsOutFirstPair[1], 0.01) {
 			log.Warn().Msgf(fmt.Sprintf("amount out not equal to expected amount out %s, actual amount out: %s", tf.SandwichTrade.AmountOut.String(), amountsOutFirstPair[1].String()))
 			percentDiff := artemis_eth_units.PercentDiffFloat(tf.SandwichTrade.AmountOut, amountsOutFirstPair[1])
 			log.Info().Msgf("percent diff %f", percentDiff)

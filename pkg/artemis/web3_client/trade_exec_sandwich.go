@@ -100,13 +100,15 @@ func (u *UniswapClient) SandwichTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*b
 	}
 
 	// 	if !artemis_eth_units.PercentDiffFloatComparison(tf.SandwichTrade.AmountOut, amountsOutFirstPair[1], 0.0001) {
-	// 	if !artemis_eth_units.IsXGreaterThanOrEqualToY(tf.SandwichTrade.AmountOut, amountsOutFirstPair[1]) {
-	if !artemis_eth_units.PercentDiffFloatComparison(tf.SandwichTrade.AmountOut, amountsOutFirstPair[1], 0.0001) {
-		log.Warn().Msgf(fmt.Sprintf("amount out not equal to expected amount out %s, actual amount out: %s", tf.UserTrade.AmountOut.String(), amountsOutFirstPair[1].String()))
-		percentDiff := artemis_eth_units.PercentDiffFloat(tf.SandwichTrade.AmountOut, amountsOutFirstPair[1])
-		log.Info().Msgf("percent diff %f", percentDiff)
-		return amountsOutFirstPair, errors.New("amount out not equal to expected")
+	if !artemis_eth_units.IsXGreaterThanOrEqualToY(amountsOutFirstPair[1], tf.SandwichTrade.AmountOut) {
+		if !artemis_eth_units.PercentDiffFloatComparison(tf.SandwichTrade.AmountOut, amountsOutFirstPair[1], 0.0001) {
+			log.Warn().Msgf(fmt.Sprintf("amount out not equal to expected amount out %s, actual amount out: %s", tf.SandwichTrade.AmountOut.String(), amountsOutFirstPair[1].String()))
+			percentDiff := artemis_eth_units.PercentDiffFloat(tf.SandwichTrade.AmountOut, amountsOutFirstPair[1])
+			log.Info().Msgf("percent diff %f", percentDiff)
+			return amountsOutFirstPair, errors.New("amount out not equal to expected")
+		}
 	}
+
 	tf.SandwichTrade.SimulatedAmountOut = amountsOutFirstPair[1]
 	return amountsOutFirstPair, err
 }

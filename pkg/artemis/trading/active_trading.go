@@ -75,7 +75,6 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 		//	a.m.StageProgressionMetrics.CountPostSimTx(tf.InitialPairV3.PoolAddress, tf.FrontRunTrade.AmountInAddr.String())
 		//}
 		tradeFlow.CurrentBlockNumber = new(big.Int).SetUint64(bn)
-
 		btf, ber := json.Marshal(tradeFlow)
 		if ber != nil {
 			log.Err(ber).Msg("failed to marshal tx flow")

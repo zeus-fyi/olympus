@@ -54,8 +54,8 @@ func InsertEthMevTxAnalysis(ctx context.Context, txHistory artemis_autogen_bases
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `INSERT INTO eth_mev_tx_analysis(gas_used_wei, metadata, tx_hash, trade_method, end_reason, amount_in,
                                 amount_out_addr, expected_profit_amount_out, rx_block_number, amount_in_addr,
-                                actual_profit_amount_out)
-				  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                                actual_profit_amount_out, pair_address)
+				  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 				  ON CONFLICT (tx_hash) DO UPDATE SET
 							  gas_used_wei = EXCLUDED.gas_used_wei,
 							  metadata = EXCLUDED.metadata,
@@ -66,6 +66,7 @@ func InsertEthMevTxAnalysis(ctx context.Context, txHistory artemis_autogen_bases
 							  expected_profit_amount_out = EXCLUDED.expected_profit_amount_out,
 							  rx_block_number = EXCLUDED.rx_block_number,
 							  amount_in_addr = EXCLUDED.amount_in_addr,
+				      		  pair_address = EXCLUDED.pair_address,
 							  actual_profit_amount_out = EXCLUDED.actual_profit_amount_out;`
 
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, txHistory.GetRowValues("InsertEthMevTxAnalysis")...)

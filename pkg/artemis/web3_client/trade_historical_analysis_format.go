@@ -26,6 +26,13 @@ func (u *UniswapClient) RunHistoricalTradeAnalysis(ctx context.Context, tfStr st
 	if err != nil {
 		return u.MarkEndOfSimDueToErr(err)
 	}
+	pairAddr := ""
+	if tfJSON.InitialPairV3 != nil {
+		pairAddr = tfJSON.InitialPairV3.PoolAddress
+	} else if tfJSON.InitialPair != nil {
+		pairAddr = tfJSON.InitialPair.PairContractAddr
+	}
+	u.TradeAnalysisReport.PairAddress = pairAddr
 	u.Web3Client.AddSessionLockHeader(tfJSON.Tx.Hash)
 	u.TradeAnalysisReport.TxHash = tfJSON.Tx.Hash
 	u.TradeAnalysisReport.TradeMethod = tfJSON.Trade.TradeMethod
@@ -72,14 +79,14 @@ func FilterNonActionTradeExecutionFlows(tf TradeExecutionFlowJSON) error {
 }
 
 type TradeAnalysisReport struct {
-	TxHash             string `json:"tx_hash"`
-	TradeMethod        string `json:"trade_method"`
-	ArtemisBlockNumber int    `json:"artemis_block_number"`
-	RxBlockNumber      int    `json:"rx_block_number"`
-
-	GasReport          `json:"gas_report"`
-	TradeFailureReport `json:"trade_failure_report"`
-	SimulationResults  `json:"simulation_results"`
+	TxHash             string `json:"txHash"`
+	TradeMethod        string `json:"tradeMethod"`
+	ArtemisBlockNumber int    `json:"artemisBlockNumber"`
+	RxBlockNumber      int    `json:"rxBlockNumber"`
+	PairAddress        string `json:"pairAddress,omitempty"`
+	GasReport          `json:"gasReport"`
+	TradeFailureReport `json:"tradeFailureReport"`
+	SimulationResults  `json:"simulationResults"`
 }
 
 func (t *TradeAnalysisReport) SaveResultsInDb(ctx context.Context) error {
@@ -100,6 +107,7 @@ func (t *TradeAnalysisReport) SaveResultsInDb(ctx context.Context) error {
 		RxBlockNumber:           t.RxBlockNumber,
 		AmountInAddr:            t.AmountInAddr,
 		ActualProfitAmountOut:   t.AmountOut,
+		PairAddress:             t.PairAddress,
 	}
 	if strings.HasSuffix(t.EndReason, "quiknode.com") {
 		return errors.New("rate limit error")

@@ -14,6 +14,7 @@ type EthMevTxAnalysis struct {
 	RxBlockNumber           int    `db:"rx_block_number" json:"rxBlockNumber"`
 	AmountInAddr            string `db:"amount_in_addr" json:"amountInAddr"`
 	ActualProfitAmountOut   string `db:"actual_profit_amount_out" json:"actualProfitAmountOut"`
+	PairAddress             string `db:"pair_address" json:"pairAddress"`
 }
 type EthMevTxAnalysisSlice []EthMevTxAnalysis
 
@@ -21,12 +22,12 @@ func (e *EthMevTxAnalysis) GetRowValues(queryName string) apps.RowValues {
 	pgValues := apps.RowValues{}
 	switch queryName {
 	default:
-		pgValues = apps.RowValues{e.GasUsedWei, e.Metadata, e.TxHash, e.TradeMethod, e.EndReason, e.AmountIn, e.AmountOutAddr, e.ExpectedProfitAmountOut, e.RxBlockNumber, e.AmountInAddr, e.ActualProfitAmountOut}
+		pgValues = apps.RowValues{e.GasUsedWei, e.Metadata, e.TxHash, e.TradeMethod, e.EndReason, e.AmountIn, e.AmountOutAddr, e.ExpectedProfitAmountOut, e.RxBlockNumber, e.AmountInAddr, e.ActualProfitAmountOut, e.PairAddress}
 	}
 	return pgValues
 }
 func (e *EthMevTxAnalysis) GetTableColumns() (columnValues []string) {
-	columnValues = []string{"gas_used_wei", "metadata", "tx_hash", "trade_method", "end_reason", "amount_in", "amount_out_addr", "expected_profit_amount_out", "rx_block_number", "amount_in_addr", "actual_profit_amount_out"}
+	columnValues = []string{"gas_used_wei", "metadata", "tx_hash", "trade_method", "end_reason", "amount_in", "amount_out_addr", "expected_profit_amount_out", "rx_block_number", "amount_in_addr", "actual_profit_amount_out", "pair_address"}
 	return columnValues
 }
 func (e *EthMevTxAnalysis) GetTableName() (tableName string) {

@@ -27,14 +27,11 @@ func (t *ArtemisTradeDebuggerTestSuite) TestReplayDebugger() {
 	for _, h := range hist {
 		fmt.Println(h.HistoricalAnalysis.TradeMethod)
 		fmt.Println(h.HistoricalAnalysis.EndReason)
-		fmt.Println(h.TradeParams)
-
 		tf, serr := h.BinarySearch()
 		t.Require().Nil(serr)
-		fmt.Println(tf)
+		t.Require().NotEmpty(tf)
 	}
 	t.Assert().NotEmpty(hist)
-
 }
 
 func (t *ArtemisTradeDebuggerTestSuite) TestDebugger() {

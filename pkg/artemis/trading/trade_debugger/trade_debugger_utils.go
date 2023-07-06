@@ -33,6 +33,17 @@ func (t *TradeDebugger) lookupMevTx(ctx context.Context, txHash string) ([]Histo
 	}
 	return historicalAnalysisDebugs, merr
 }
+func (t *TradeDebugger) LookupMevTxs(ctx context.Context, txHash string) ([]web3_client.TradeExecutionFlow, error) {
+	hist, err := t.lookupMevTx(ctx, txHash)
+	if err != nil {
+		return nil, err
+	}
+	tfSteps := make([]web3_client.TradeExecutionFlow, 0)
+	for _, h := range hist {
+		tfSteps = append(tfSteps, h.TradePrediction)
+	}
+	return tfSteps, nil
+}
 
 func (t *TradeDebugger) getTxFromHash(ctx context.Context, txHash string) (*types.Transaction, error) {
 	hash := common.HexToHash(txHash)

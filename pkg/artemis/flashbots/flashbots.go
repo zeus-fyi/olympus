@@ -38,6 +38,8 @@ func InitFlashbotsClient(ctx context.Context, nodeUrl, network string, acc *acco
 		rpc = flashbotsrpc.New(MainnetRelay)
 	case hestia_req_types.Goerli:
 		rpc = flashbotsrpc.New(GoerliRelay)
+	default:
+		rpc = flashbotsrpc.New(MainnetRelay)
 	}
 
 	return FlashbotsClient{
@@ -46,15 +48,6 @@ func InitFlashbotsClient(ctx context.Context, nodeUrl, network string, acc *acco
 		EthereumAPI:  nil,
 		FlashbotsRPC: rpc,
 	}
-}
-
-func (f *FlashbotsClient) SendBundle(ctx context.Context, bundle flashbotsrpc.FlashbotsSendBundleRequest) (flashbotsrpc.FlashbotsSendBundleResponse, error) {
-	resp, err := f.FlashbotsRPC.FlashbotsSendBundle(f.EcdsaPrivateKey(), bundle)
-	if err != nil {
-		log.Ctx(ctx).Error().Err(err).Msg("FlashbotsClient: FlashbotsSendBundle")
-		return flashbotsrpc.FlashbotsSendBundleResponse{}, err
-	}
-	return resp, nil
 }
 
 func (f *FlashbotsClient) SendPrivateTx(ctx context.Context, privTx flashbotsrpc.FlashbotsSendPrivateTransactionRequest) (string, error) {

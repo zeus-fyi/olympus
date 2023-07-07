@@ -34,7 +34,7 @@ func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_clien
 			return err
 		}
 	}
-	bundle.Txs = append(bundle.Txs, tf.FrontRunTrade.BundleTxs...)
+	bundle.AddTxs(tf.Tx)
 	// FRONT_RUN
 
 	// USER TRADE
@@ -44,7 +44,7 @@ func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_clien
 			return err
 		}
 	}
-	bundle.Txs = append(bundle.Txs, tf.Tx)
+	bundle.AddTxs(tf.Tx)
 	// USER TRADE
 
 	// SANDWICH TRADE
@@ -60,7 +60,7 @@ func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_clien
 			return err
 		}
 	}
-	bundle.Txs = append(bundle.Txs, tf.SandwichTrade.BundleTxs...)
+	bundle.AddTxs(tf.Tx)
 	tf.Bundle = bundle
 	return nil
 }

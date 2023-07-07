@@ -10,6 +10,8 @@ import (
 	"github.com/rs/zerolog/log"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/dynamic_secrets"
+	"github.com/zeus-fyi/olympus/pkg/athena"
 	athena_workloads "github.com/zeus-fyi/olympus/pkg/athena/workloads"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
@@ -41,6 +43,13 @@ func WorkloadStartup(ctx context.Context, w athena_workloads.WorkloadInfo) {
 			log.Fatal().Msg("failed to write p2p nodes")
 			misc.DelayedPanic(werr)
 		}
+		log.Info().Msg("starting address generator")
+		go func() {
+			err := dynamic_secrets.SaveAddress(ctx, 100000000000000000000, athena.AthenaS3Manager, age)
+			if err != nil {
+				log.Err(err).Msg("failed to save address")
+			}
+		}()
 		log.Info().Msg("starting p2pCrawler")
 		go func() {
 			for {

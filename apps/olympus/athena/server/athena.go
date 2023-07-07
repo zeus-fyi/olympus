@@ -13,6 +13,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	"github.com/zeus-fyi/olympus/pkg/athena"
 	athena_workloads "github.com/zeus-fyi/olympus/pkg/athena/workloads"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
@@ -22,6 +23,7 @@ var (
 	env         string
 	dataDir     filepaths.Path
 	Workload    athena_workloads.WorkloadInfo
+	age         encryption.Age
 )
 
 func Athena() {
@@ -46,6 +48,7 @@ func Athena() {
 		cfg.PGConnStr = tc.LocalDbPgconn
 		dataDir.DirOut = "../"
 	}
+	age = encryption.NewAge(authKeysCfg.AgePrivKey, authKeysCfg.AgePubKey)
 	log.Info().Msg("Athena: DigitalOceanS3AuthClient starting")
 	athena.AthenaS3Manager = auth_startup.NewDigitalOceanS3AuthClient(ctx, authKeysCfg)
 	log.Info().Msg("Athena: DigitalOceanS3AuthClient done")

@@ -63,6 +63,7 @@ func (a *Age) EncryptItem(fs memfs.MemFS, p *filepaths.Path, item []byte) error 
 	if cerr := w.Close(); cerr != nil {
 		return cerr
 	}
+	p.FnOut += ".age"
 	err = fs.MakeFileOut(p, b.Bytes())
 	if err != nil {
 		return err

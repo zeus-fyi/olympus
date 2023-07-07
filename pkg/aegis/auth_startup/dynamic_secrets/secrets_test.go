@@ -11,6 +11,8 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	"github.com/zeus-fyi/olympus/pkg/aegis/s3secrets"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
@@ -19,6 +21,30 @@ type DynamicSecretsTestSuite struct {
 }
 
 var ctx = context.Background()
+
+func (t *DynamicSecretsTestSuite) TestGenAndSave() {
+	t.InitLocalConfigs()
+	pubKey := t.Tc.LocalAgePubkey
+	privKey := t.Tc.LocalAgePkey
+	age := encryption.NewAge(privKey, pubKey)
+	err := SaveAddress(ctx, 10000, t.S3, age)
+	t.Require().NoError(err)
+}
+
+func (t *DynamicSecretsTestSuite) TestReadAndDec() {
+	t.InitLocalConfigs()
+	pubKey := t.Tc.LocalAgePubkey
+	privKey := t.Tc.LocalAgePkey
+	age := encryption.NewAge(privKey, pubKey)
+	p := filepaths.Path{
+		DirIn:  "keygen",
+		DirOut: "keygen",
+		FnIn:   "key-2.txt.age",
+	}
+	val, err := ReadAddress(ctx, p, t.S3, age)
+	t.Require().NoError(err)
+	t.Require().NotEmpty(val)
+}
 
 func (t *DynamicSecretsTestSuite) TestSecretLookupAndCreate() {
 	apps.Pg.InitPG(ctx, t.Tc.LocalDbPgconn)

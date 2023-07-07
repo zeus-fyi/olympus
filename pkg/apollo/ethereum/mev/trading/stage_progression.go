@@ -3,12 +3,13 @@ package metrics_trading
 import "github.com/prometheus/client_golang/prometheus"
 
 type StageProgressionMetrics struct {
-	PreEntryFilterTxCount    prometheus.Counter
-	PostEntryFilterTxCount   prometheus.Counter
-	PostDecodeTxCount        prometheus.Counter
-	PostProcessFilterTxCount prometheus.Counter
-	PostSimFilterTxCount     prometheus.Counter
-	SavedMempoolTxCount      prometheus.Counter
+	PreEntryFilterTxCount             prometheus.Counter
+	PostEntryFilterTxCount            prometheus.Counter
+	PostDecodeTxCount                 prometheus.Counter
+	PostProcessFilterTxCount          prometheus.Counter
+	PostSimFilterTxCount              prometheus.Counter
+	PostActiveTradingSimFilterTxCount prometheus.Counter
+	SavedMempoolTxCount               prometheus.Counter
 }
 
 func NewStageProgressionMetrics(reg prometheus.Registerer) StageProgressionMetrics {
@@ -49,7 +50,14 @@ func NewStageProgressionMetrics(reg prometheus.Registerer) StageProgressionMetri
 			Help: "Tx count of mempool tx meeting criteria",
 		},
 	)
-	reg.MustRegister(tx.PostSimFilterTxCount, tx.PostProcessFilterTxCount, tx.PostDecodeTxCount, tx.PostEntryFilterTxCount, tx.PreEntryFilterTxCount, tx.SavedMempoolTxCount)
+	tx.PostActiveTradingSimFilterTxCount = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "eth_mev_post_active_trading_sim_tx_filter_stage",
+			Help: "Tx count before active simulation stage",
+		},
+	)
+	reg.MustRegister(tx.PostSimFilterTxCount, tx.PostProcessFilterTxCount, tx.PostDecodeTxCount, tx.PostEntryFilterTxCount, tx.PreEntryFilterTxCount, tx.SavedMempoolTxCount,
+		tx.PostActiveTradingSimFilterTxCount)
 	return tx
 }
 

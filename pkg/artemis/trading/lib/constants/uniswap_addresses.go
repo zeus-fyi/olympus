@@ -8,8 +8,9 @@ const (
 )
 
 const (
-	V2SwapExactIn  = "V2_SWAP_EXACT_IN"
-	V2SwapExactOut = "V2_SWAP_EXACT_OUT"
+	V2SwapExactIn            = "V2_SWAP_EXACT_IN"
+	V2SwapExactOut           = "V2_SWAP_EXACT_OUT"
+	SwapExactTokensForTokens = "swapExactTokensForTokens"
 )
 
 var (

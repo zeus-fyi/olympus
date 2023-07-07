@@ -6,6 +6,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
@@ -28,11 +29,12 @@ type TradeOutcome struct {
 	PostTradeTokenBalance *big.Int `json:"postTradeTokenBalance,omitempty"`
 	DiffTradeTokenBalance *big.Int `json:"diffTradeTokenBalance,omitempty"`
 
-	PostTradeEthBalance *big.Int        `json:"postTradeEthBalance,omitempty"`
-	PreTradeEthBalance  *big.Int        `json:"preTradeEthBalance,omitempty"`
-	DiffTradeEthBalance *big.Int        `json:"diffTradeEthBalance,omitempty"`
-	OrderedTxs          []accounts.Hash `json:"orderedTxs,omitempty"`
-	TotalGasCost        uint64          `json:"totalGasCost,omitempty"`
+	PostTradeEthBalance *big.Int             `json:"postTradeEthBalance,omitempty"`
+	PreTradeEthBalance  *big.Int             `json:"preTradeEthBalance,omitempty"`
+	DiffTradeEthBalance *big.Int             `json:"diffTradeEthBalance,omitempty"`
+	OrderedTxs          []accounts.Hash      `json:"orderedTxs,omitempty"`
+	BundleTxs           []*types.Transaction `json:"bundleTxs,omitempty"`
+	TotalGasCost        uint64               `json:"totalGasCost,omitempty"`
 }
 
 type TxLifecycleStats struct {
@@ -85,6 +87,13 @@ func (t *TradeOutcome) AddTxHash(tx accounts.Hash) {
 		t.OrderedTxs = []accounts.Hash{}
 	}
 	t.OrderedTxs = append(t.OrderedTxs, tx)
+}
+
+func (t *TradeOutcome) AddTx(tx *types.Transaction) {
+	if t.BundleTxs == nil {
+		t.BundleTxs = []*types.Transaction{}
+	}
+	t.BundleTxs = append(t.BundleTxs, tx)
 }
 
 type JSONTradeOutcome struct {

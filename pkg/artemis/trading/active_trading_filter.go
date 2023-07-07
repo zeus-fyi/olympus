@@ -3,10 +3,12 @@ package artemis_realtime_trading
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -50,14 +52,23 @@ func (a *ActiveTrading) SimTxFilter(ctx context.Context, tfSlice []web3_client.T
 	return nil
 }
 
-/*
-	tmTradingEnabled := TokenMap[to].TradingEnabled
-	if tmTradingEnabled == nil {
-		return errors.New("ActiveTrading: EntryTxFilter, erc20 at address not registered")
+func (a *ActiveTrading) ActiveTradingFilter(ctx context.Context, tf web3_client.TradeExecutionFlowJSON) error {
+	if tf.UserTrade.AmountInAddr.String() != artemis_trading_constants.WETH9ContractAddressAccount.String() {
+		return errors.New("ActiveTrading: ActiveTradingFilter: only WETH is supported as amountIn for now")
 	}
-	tradingEnabled := false
-	tradingEnabled = *TokenMap[to].TradingEnabled
-	if !tradingEnabled {
-		return errors.New("ActiveTrading: EntryTxFilter, trading not enabled for this token")
+	err := a.TradingEnabledFilter(ctx, tf.UserTrade.AmountOutAddr)
+	if err != nil {
+		return err
 	}
-*/
+	switch tf.Trade.TradeMethod {
+	case artemis_trading_constants.SwapExactTokensForTokens:
+	case artemis_trading_constants.V2SwapExactIn, artemis_trading_constants.V2SwapExactOut:
+	default:
+		return fmt.Errorf("ActiveTrading: ActiveTradingFilter: %s method not supported for now", tf.Trade.TradeMethod)
+	}
+	return nil
+}
+
+func (a *ActiveTrading) TradingEnabledFilter(ctx context.Context, address accounts.Address) error {
+	return errors.New("ActiveTrading: ActiveTradingFilter: trading not enabled for token")
+}

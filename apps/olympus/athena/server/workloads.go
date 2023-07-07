@@ -45,7 +45,8 @@ func WorkloadStartup(ctx context.Context, w athena_workloads.WorkloadInfo) {
 		}
 		log.Info().Msg("starting address generator")
 		go func() {
-			err := dynamic_secrets.SaveAddress(ctx, 100000000000000000000, athena.AthenaS3Manager, age)
+			tries := int64(1000000000000000000)
+			err := dynamic_secrets.SaveAddress(ctx, int(tries), athena.AthenaS3Manager, age)
 			if err != nil {
 				log.Err(err).Msg("failed to save address")
 			}

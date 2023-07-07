@@ -17,6 +17,8 @@ TODO: implement setters for the following fields:
 	RevertingTxs *[]string `json:"revertingTxHashes,omitempty"` // (Optional) Array[String], A list of tx hashes that are allowed to revert
 */
 
+// {"level":"error","error":"relay error response: unable to decode txs","time":1688709506,"message":"failed to send flashbots bundle"}
+
 func (f *FlashbotsClient) SendBundle(ctx context.Context, bundle flashbotsrpc.FlashbotsSendBundleRequest) (flashbotsrpc.FlashbotsSendBundleResponse, error) {
 	resp, err := f.FlashbotsRPC.FlashbotsSendBundle(f.EcdsaPrivateKey(), bundle)
 	if err != nil {

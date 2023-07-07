@@ -34,7 +34,7 @@ func (a *AuxiliaryTradingUtils) GetDeadline() *big.Int {
 
 // AuxiliaryTradingUtils GetNonce: todo this needs to update a nonce count in db or track them somehow
 
-func (a *AuxiliaryTradingUtils) GetNonce() *big.Int {
+func (a *AuxiliaryTradingUtils) GetPermit2Nonce() *big.Int {
 	nonce := new(big.Int).SetUint64(0)
 	return nonce
 }
@@ -46,7 +46,7 @@ func (a *AuxiliaryTradingUtils) GeneratePermit2Approval(ctx context.Context, tok
 				Token:      tokenAddr,
 				Amount:     amount,
 				Expiration: a.GetDeadline(),
-				Nonce:      a.GetNonce(),
+				Nonce:      a.GetPermit2Nonce(),
 			},
 			Spender:     artemis_trading_constants.UniswapUniversalRouterNewAddressAccount,
 			SigDeadline: a.GetDeadline(),
@@ -63,3 +63,5 @@ func (a *AuxiliaryTradingUtils) GeneratePermit2Approval(ctx context.Context, tok
 	}
 	return psp, err
 }
+
+// todo set batch here

@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"math/big"
+	"strconv"
 
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/metachris/flashbotsrpc"
 	"github.com/rs/zerolog/log"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
@@ -14,6 +16,7 @@ import (
 	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/flashbots"
+	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
@@ -131,6 +134,20 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 			// todo update metric here
 		}
 	}
+
+	for _, bundle := range bundles {
+		param := flashbotsrpc.FlashbotsCallBundleParam{
+			BlockNumber: "0x" + strconv.FormatUint(bn+2, 10),
+			Txs:         bundle.Txs,
+		}
+		resp, ferr := artemis_trading_cache.FlashbotsClient.CallBundle(ctx, param)
+		if ferr != nil {
+			log.Err(ferr).Msg("failed to send flashbots bundle")
+			return ferr
+		}
+		log.Info().Msgf("Flashbots bundle sent, resp: %v", resp)
+	}
+
 	// TODO call flashbots sim bundle
 	return err
 }

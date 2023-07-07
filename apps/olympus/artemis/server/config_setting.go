@@ -79,4 +79,8 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	log.Info().Msgf("Artemis InitMevWorkers: %s temporal auth and init procedure starting", env)
 	artemis_mev_tx_fetcher.InitMevWorkers(ctx, temporalAuthCfg)
 	log.Info().Msgf("Artemis InitMevWorkers: %s temporal auth and init procedure succeeded", env)
+
+	log.Info().Msgf("Artemis %s init flashbots client", env)
+	artemis_trading_cache.InitFlashbotsCache(ctx)
+	log.Info().Msgf("Artemis %s done init flashbots client", env)
 }

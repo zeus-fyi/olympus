@@ -33,12 +33,13 @@ func (u *UniswapClient) RunHistoricalTradeAnalysis(ctx context.Context, tfStr st
 		pairAddr = tfJSON.InitialPair.PairContractAddr
 	}
 	u.TradeAnalysisReport.PairAddress = pairAddr
-	u.Web3Client.AddSessionLockHeader(tfJSON.Tx.Hash)
 	u.TradeAnalysisReport.TxHash = tfJSON.Tx.Hash
 	u.TradeAnalysisReport.TradeMethod = tfJSON.Trade.TradeMethod
 	u.TradeAnalysisReport.AmountIn = tfJSON.FrontRunTrade.AmountIn
-	u.TradeAnalysisReport.AmountInAddr = tfJSON.FrontRunTrade.AmountInAddr.String()
-	u.TradeAnalysisReport.AmountOutAddr = tfJSON.FrontRunTrade.AmountOutAddr.String()
+	u.TradeAnalysisReport.AmountInAddr = tfJSON.UserTrade.AmountInAddr.String()
+	u.TradeAnalysisReport.AmountOutAddr = tfJSON.UserTrade.AmountOutAddr.String()
+	u.Web3Client.AddSessionLockHeader(tfJSON.Tx.Hash)
+
 	err = FilterNonActionTradeExecutionFlows(tfJSON)
 	if err != nil {
 		return u.MarkEndOfSimDueToErr(err)

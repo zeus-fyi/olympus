@@ -6,10 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/suite"
-	"github.com/tyler-smith/go-bip32"
-	"github.com/wealdtech/go-ed25519hd"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	aegis_secrets "github.com/zeus-fyi/olympus/datastores/postgres/apps/aegis"
 	autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/zeus/models/bases/autogen"
@@ -53,16 +50,10 @@ func (t *DynamicSecretsTestSuite) TestReadAndDec() {
 	t.Require().NoError(err)
 	t.Require().NotEmpty(val)
 
-	pw := crypto.Keccak256Hash([]byte(val.Mnemonic)).Hex()
-	seed, err := ed25519hd.SeedFromMnemonic(val.Mnemonic, pw)
+	acc, err := GetAccount(val)
 	t.Require().NoError(err)
-	masterKey, err := bip32.NewMasterKey(seed)
-	t.Require().NoError(err)
-
-	child, _ := masterKey.NewChildKey(uint32(val.PathIndex))
-	privateKeyECDSA := crypto.ToECDSAUnsafe(child.Key)
-	address := crypto.PubkeyToAddress(privateKeyECDSA.PublicKey)
-	fmt.Println("address", address.Hex())
+	t.Require().NotEmpty(acc)
+	fmt.Println(acc.PublicKey())
 }
 
 func (t *DynamicSecretsTestSuite) TestSecretLookupAndCreate() {

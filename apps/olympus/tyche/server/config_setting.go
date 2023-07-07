@@ -12,7 +12,9 @@ import (
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	"github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/price_quoter"
+	"github.com/zeus-fyi/olympus/pkg/athena"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
 )
 
 var (
@@ -65,9 +67,16 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	log.Info().Msg("Tyche: PG connection succeeded")
 
+	age := encryption.NewAge(authKeysCfg.AgePrivKey, authKeysCfg.AgePubKey)
+	log.Info().Msg("Athena: DigitalOceanS3AuthClient starting")
+	athena.AthenaS3Manager = auth_startup.NewDigitalOceanS3AuthClient(ctx, authKeysCfg)
+
 	log.Info().Msg("Tyche: InitTokenFilter starting")
 	artemis_trading_cache.InitTokenFilter(ctx)
 	log.Info().Msg("Tyche: InitTokenFilter succeeded")
 
-	artemis_trading_cache.InitFlashbotsCache(ctx)
+	log.Info().Msg("Tyche: InitFlashbots starting")
+	artemis_trading_cache.InitFlashbotsCache(ctx, age)
+	log.Info().Msg("Tyche: InitFlashbots succeeded")
+
 }

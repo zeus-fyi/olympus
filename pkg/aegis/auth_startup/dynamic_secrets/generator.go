@@ -37,8 +37,6 @@ func GetAccount(val zeus_ecdsa.AddressGenerator) (accounts.Account, error) {
 	}
 	child, _ := masterKey.NewChildKey(uint32(val.PathIndex))
 	privateKeyECDSA := crypto.ToECDSAUnsafe(child.Key)
-	address := crypto.PubkeyToAddress(privateKeyECDSA.PublicKey)
-	fmt.Println("address", address.Hex())
 	acc, err := accounts.CreateAccountFromPkey(privateKeyECDSA)
 	if err != nil {
 		return accounts.Account{}, err
@@ -98,6 +96,10 @@ func SaveAddress(ctx context.Context, tries int, s3Client s3base.S3Client, age e
 	input := &s3.PutObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(p.FnOut),
+	}
+	if p.FnOut == "key-4.txt.age" {
+		MaxZeros += 1
+		return errors.New("key already exists")
 	}
 	uploader := s3uploader.NewS3ClientUploader(s3Client)
 	exists, err := uploader.CheckIfKeyExists(ctx, input)

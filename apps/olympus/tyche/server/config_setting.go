@@ -68,4 +68,6 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	log.Info().Msg("Tyche: InitTokenFilter starting")
 	artemis_trading_cache.InitTokenFilter(ctx)
 	log.Info().Msg("Tyche: InitTokenFilter succeeded")
+
+	artemis_trading_cache.InitFlashbotsCache(ctx)
 }

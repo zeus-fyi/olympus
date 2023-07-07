@@ -1,6 +1,7 @@
 package encryption
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -36,6 +37,40 @@ func (s *AgeEncryptionTestSuite) TestEncryption() {
 	}
 	err := s.Age.Encrypt(&p)
 	s.Require().Nil(err)
+}
+
+func (s *AgeEncryptionTestSuite) TestItemEncryption() {
+	p := filepaths.Path{
+		PackageName: "",
+		DirIn:       "./secrets",
+		DirOut:      "./secrets",
+		FnIn:        "key.txt",
+		FnOut:       "key.txt",
+		Env:         "",
+		FilterFiles: string_utils.FilterOpts{},
+	}
+	fs := memfs.NewMemFs()
+	key := []byte("test")
+	err := s.Age.EncryptItem(fs, &p, key)
+	s.Require().Nil(err)
+
+	encOut, err := fs.ReadFileOutPath(&p)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(encOut)
+	fsDec := memfs.NewMemFs()
+
+	p.FnIn = "key.txt.age"
+	err = fsDec.MakeFileIn(&p, encOut)
+	s.Require().Nil(err)
+
+	err = s.Age.DecryptToMemFsFile(&p, fsDec)
+	s.Require().Nil(err)
+
+	decOut, err := fsDec.ReadFileOutPath(&p)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(decOut)
+	s.Require().Equal(string(key), string(decOut))
+	fmt.Println(string(decOut))
 }
 
 // use age-keygen -o private_key.txt to create a pubkey/private key pair for here

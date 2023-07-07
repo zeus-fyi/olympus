@@ -52,7 +52,7 @@ func GetUniswapUniversalRouterAbiPayload(payload *UniversalRouterExecParams) web
 	params := web3_actions.SendContractTxPayload{
 		SmartContractAddr: UniswapUniversalRouterAddressNew,
 		SendEtherPayload:  *payable,
-		ContractABI:       artemis_oly_contract_abis.MustLoadOldUniversalRouterAbi(),
+		ContractABI:       artemis_oly_contract_abis.MustLoadNewUniversalRouterAbi(),
 		MethodName:        methodName,
 		Params:            fnParams,
 	}

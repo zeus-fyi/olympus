@@ -13,6 +13,8 @@ import (
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
+	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/flashbots"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
@@ -68,12 +70,11 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 		return berr
 	}
 	wc.Close()
+	var liveTradingSlice []web3_client.TradeExecutionFlowJSON
 	for _, tradeFlow := range tfSlice {
-		//if tf.InitialPair.PairContractAddr == "" {
-		//	a.m.StageProgressionMetrics.CountPostSimTx(tf.InitialPair.PairContractAddr, tf.FrontRunTrade.AmountInAddr.String())
-		//} else {
-		//	a.m.StageProgressionMetrics.CountPostSimTx(tf.InitialPairV3.PoolAddress, tf.FrontRunTrade.AmountInAddr.String())
-		//}
+		if tradeFlow.UserTrade.AmountInAddr.String() == artemis_trading_constants.WETH9ContractAddressAccount.String() {
+			liveTradingSlice = append(liveTradingSlice, tradeFlow)
+		}
 		tradeFlow.CurrentBlockNumber = new(big.Int).SetUint64(bn)
 		btf, ber := json.Marshal(tradeFlow)
 		if ber != nil {
@@ -116,14 +117,27 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 		}
 		a.m.StageProgressionMetrics.CountSavedMempoolTx(float64(1))
 	}
+
+	var bundles []artemis_flashbots.MevTxBundle
+	for _, tradeFlow := range liveTradingSlice {
+		tf := tradeFlow.ConvertToBigIntType()
+		err = a.SimulateTx(ctx, &tf)
+		if err != nil {
+			return err
+		}
+		if tf.Bundle != nil {
+			bundles = append(bundles, *tf.Bundle)
+		}
+	}
+	// TODO call flashbots sim bundle
 	return err
 }
 
-func (a *ActiveTrading) ProcessTx(ctx context.Context, tx *types.Transaction) error {
-	err := a.SimulateTx(ctx, tx)
-	if err != nil {
-		return err
-	}
-	a.SendToBundleStack(ctx, tx)
-	return nil
-}
+//func (a *ActiveTrading) ProcessTx(ctx context.Context, tx *types.Transaction) error {
+//	err := a.SimulateTx(ctx, tx)
+//	if err != nil {
+//		return err
+//	}
+//	a.SendToBundleStack(ctx, tx)
+//	return nil
+//}

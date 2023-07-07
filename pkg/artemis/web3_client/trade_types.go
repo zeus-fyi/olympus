@@ -7,6 +7,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
+	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/flashbots"
 	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
@@ -107,6 +108,7 @@ type TradeExecutionFlow struct {
 	UserTrade          artemis_trading_types.TradeOutcome `json:"userTrade"`
 	SandwichTrade      artemis_trading_types.TradeOutcome `json:"sandwichTrade"`
 	SandwichPrediction SandwichTradePrediction            `json:"sandwichPrediction"`
+	Bundle             *artemis_flashbots.MevTxBundle     `json:"bundle,omitempty"`
 }
 
 func (t *TradeExecutionFlow) GetAggregateGasUsage(ctx context.Context, w Web3Client) error {

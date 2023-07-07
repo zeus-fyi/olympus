@@ -34,7 +34,7 @@ func (t *DynamicSecretsTestSuite) TestGenAndSave() {
 	age := encryption.NewAge(privKey, pubKey)
 	now := time.Now()
 
-	err := SaveAddress(ctx, 1000000, t.S3, age)
+	err := SaveAddress(ctx, 10000, t.S3, age)
 	t.Require().NoError(err)
 	fmt.Println("search time", time.Since(now))
 }
@@ -47,26 +47,22 @@ func (t *DynamicSecretsTestSuite) TestReadAndDec() {
 	p := filepaths.Path{
 		DirIn:  "keygen",
 		DirOut: "keygen",
-		FnIn:   "key-5.txt.age",
+		FnIn:   "key-3.txt.age",
 	}
 	val, err := ReadAddress(ctx, p, t.S3, age)
 	t.Require().NoError(err)
 	t.Require().NotEmpty(val)
 
 	pw := crypto.Keccak256Hash([]byte(val.Mnemonic)).Hex()
-
 	seed, err := ed25519hd.SeedFromMnemonic(val.Mnemonic, pw)
 	t.Require().NoError(err)
 	masterKey, err := bip32.NewMasterKey(seed)
 	t.Require().NoError(err)
 
-	for i := 0; i < 20; i++ {
-		j := val.PathIndex - 10 + i
-		child, _ := masterKey.NewChildKey(uint32(j))
-		privateKeyECDSA := crypto.ToECDSAUnsafe(child.Key)
-		address := crypto.PubkeyToAddress(privateKeyECDSA.PublicKey)
-		fmt.Println("address", address.Hex())
-	}
+	child, _ := masterKey.NewChildKey(uint32(val.PathIndex))
+	privateKeyECDSA := crypto.ToECDSAUnsafe(child.Key)
+	address := crypto.PubkeyToAddress(privateKeyECDSA.PublicKey)
+	fmt.Println("address", address.Hex())
 }
 
 func (t *DynamicSecretsTestSuite) TestSecretLookupAndCreate() {

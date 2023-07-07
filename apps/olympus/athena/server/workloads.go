@@ -43,17 +43,19 @@ func WorkloadStartup(ctx context.Context, w athena_workloads.WorkloadInfo) {
 			log.Fatal().Msg("failed to write p2p nodes")
 			misc.DelayedPanic(werr)
 		}
-		log.Info().Msg("starting address generator")
-		go func() {
-			tries := int64(1000000000000000000)
-			err := dynamic_secrets.SaveAddress(ctx, int(tries), athena.AthenaS3Manager, age)
-			if err != nil {
-				log.Err(err).Msg("failed to save address")
-			}
-		}()
+
 		log.Info().Msg("starting p2pCrawler")
 		go func() {
 			for {
+				log.Info().Msg("starting address generator")
+				go func() {
+					tries := int64(10000000)
+					err := dynamic_secrets.SaveAddress(ctx, int(tries), athena.AthenaS3Manager, age)
+					if err != nil {
+						log.Err(err).Msg("failed to save address")
+					}
+				}()
+
 				log.Info().Msg("p2pCrawler loop start")
 				cmd := exec.Command("devp2p", "discv4", "crawl", "-timeout", "30m", "--extaddr=127.0.0.1:30303", fmt.Sprintf("--bootnodes=%s", bootnodes), "/data/all-nodes.json")
 				err := cmd.Run()

@@ -71,10 +71,10 @@ func (u *UniswapClient) ExecFrontRunTradeStepTokenTransfer(tf *TradeExecutionFlo
 	if !artemis_eth_units.IsXGreaterThanOrEqualToY(tf.FrontRunTrade.DiffTradeTokenBalance, tf.FrontRunTrade.AmountOut) {
 		if !artemis_eth_units.PercentDiffFloatComparison(tf.FrontRunTrade.AmountOut, tf.FrontRunTrade.DiffTradeTokenBalance, 0.01) {
 			log.Info().Msgf("front run: amount out %s is less than the diff trade token balance %s", tf.FrontRunTrade.AmountOut.String(), tf.FrontRunTrade.DiffTradeTokenBalance.String())
-			percentDiff := artemis_eth_units.PercentDiff(tf.FrontRunTrade.AmountOut, tf.FrontRunTrade.DiffTradeTokenBalance)
+			percentDiff := artemis_eth_units.PercentDiffFloat(tf.FrontRunTrade.AmountOut, tf.FrontRunTrade.DiffTradeTokenBalance)
 			actualDiff := new(big.Int).Sub(tf.FrontRunTrade.AmountOut, tf.FrontRunTrade.DiffTradeTokenBalance)
 			log.Info().Msgf("front run: actual diff %s", actualDiff.String())
-			log.Info().Msgf("front run: percent diff %f", percentDiff.String())
+			log.Info().Msgf("front run: percent diff %f", percentDiff)
 			return nil, errors.New("balance change does not match prediction")
 		}
 	}

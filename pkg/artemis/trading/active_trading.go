@@ -121,12 +121,14 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	var bundles []artemis_flashbots.MevTxBundle
 	for _, tradeFlow := range liveTradingSlice {
 		tf := tradeFlow.ConvertToBigIntType()
-		err = a.SimulateTx(ctx, &tf)
+		// todo, shouldn't necessarily bypass sim stage
+		err = a.SimToPackageTxBundle(ctx, &tf, true)
 		if err != nil {
 			return err
 		}
 		if tf.Bundle != nil {
 			bundles = append(bundles, *tf.Bundle)
+			// todo update metric here
 		}
 	}
 	// TODO call flashbots sim bundle

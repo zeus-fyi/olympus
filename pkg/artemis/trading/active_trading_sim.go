@@ -8,22 +8,19 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *ActiveTrading) PackageTxBundle(ctx context.Context, tf *web3_client.TradeExecutionFlow, bypassSim bool) error {
-	// TODO set hardhat to live network
+func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_client.TradeExecutionFlow, bypassSim bool) error {
 	var bundle *artemis_flashbots.MevTxBundle
-
 	if !bypassSim {
+		// TODO set hardhat to live network
 		err := a.u.Web3Client.MatchFrontRunTradeValues(tf)
 		if err != nil {
 			return err
 		}
-
 		err = a.InitActiveTradingSimEnv(ctx, tf)
 		if err != nil {
 			return err
 		}
 	}
-
 	// FRONT_RUN
 	if tf.InitialPairV3 != nil {
 		//err := a.u.ExecTradeV3SwapFromTokenToToken(ctx, tf.InitialPairV3, &tf.FrontRunTrade)
@@ -57,7 +54,6 @@ func (a *ActiveTrading) PackageTxBundle(ctx context.Context, tf *web3_client.Tra
 		//	return err
 		//}
 		return errors.New("uniswap V3 not supported yet")
-
 	} else {
 		err := a.ExecTradeV2SwapFromTokenToToken(ctx, &tf.SandwichTrade, bypassSim)
 		if err != nil {
@@ -65,21 +61,19 @@ func (a *ActiveTrading) PackageTxBundle(ctx context.Context, tf *web3_client.Tra
 		}
 	}
 	bundle.Txs = append(bundle.Txs, tf.SandwichTrade.BundleTxs...)
-	//err = tf.GetAggregateGasUsage(ctx, u.Web3Client)
-	//if err != nil {
-	//	u.TradeFailureReport.EndStage = "post trade getting gas usage"
-	//	log.Err(err).Msg("error getting aggregate gas usage")
-	//	return u.MarkEndOfSimDueToErr(err)
-	//}
-	//err = u.VerifyTradeResults(tf)
-	//if err != nil {
-	//	u.TradeFailureReport.EndStage = "verifying trade results"
-	//	log.Err(err).Msg("error verifying trade results")
-	//	return u.MarkEndOfSimDueToErr(err)
-	//}
-	//if !u.TestMode {
-	//	return u.MarkEndOfSimDueToErr(nil)
-	//}
 	tf.Bundle = bundle
 	return nil
 }
+
+//err = tf.GetAggregateGasUsage(ctx, u.Web3Client)
+//if err != nil {
+//	u.TradeFailureReport.EndStage = "post trade getting gas usage"
+//	log.Err(err).Msg("error getting aggregate gas usage")
+//	return u.MarkEndOfSimDueToErr(err)
+//}
+//err = u.VerifyTradeResults(tf)
+//if err != nil {
+//	u.TradeFailureReport.EndStage = "verifying trade results"
+//	log.Err(err).Msg("error verifying trade results")
+//	return u.MarkEndOfSimDueToErr(err)
+//}

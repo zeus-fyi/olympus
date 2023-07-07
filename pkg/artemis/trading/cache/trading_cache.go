@@ -34,6 +34,7 @@ func InitFlashbotsCache(ctx context.Context, age encryption.Age) {
 	FlashbotsClient = artemis_flashbots.InitFlashbotsClient(ctx, web3.NodeURL, hestia_req_types.Mainnet, &acc)
 }
 
+// InitAccount pubkey 0x000025e60C7ff32a3470be7FE3ed1666b0E326e2
 func InitAccount(ctx context.Context, age encryption.Age) accounts.Account {
 	p := filepaths.Path{
 		DirIn:  "keygen",

@@ -92,12 +92,15 @@ func (u *UniswapClient) VerifyTradeResults(tf *TradeExecutionFlow) error {
 	if expMinusActualProfit.String() != "0" {
 		return errors.New("expected minus actual profit mismatch")
 	}
+	var realizedProfit *big.Int
 	if tf.SandwichTrade.AmountOutAddr.String() == WETH9ContractAddress {
-		realizedProfit := new(big.Int).Sub(gasFreeProfit, totalSandwichTradeGasCost)
+		realizedProfit = new(big.Int).Sub(gasFreeProfit, totalSandwichTradeGasCost)
 		fmt.Println("realized profit", realizedProfit.String())
+	} else {
+		realizedProfit = gasFreeProfit
 	}
 
-	u.TradeAnalysisReport.ExpectedProfitAmountOut = tf.SandwichTrade.AmountOut.String()
+	u.TradeAnalysisReport.ExpectedProfitAmountOut = realizedProfit.String()
 	u.EndReason = "success"
 	return nil
 }

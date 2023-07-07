@@ -9,6 +9,10 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/tyler-smith/go-bip32"
+	"github.com/wealdtech/go-ed25519hd"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	s3base "github.com/zeus-fyi/olympus/datastores/s3"
 	s3reader "github.com/zeus-fyi/olympus/datastores/s3/read"
 	s3uploader "github.com/zeus-fyi/olympus/datastores/s3/upload"
@@ -19,8 +23,28 @@ import (
 	zeus_ecdsa "github.com/zeus-fyi/zeus/pkg/aegis/crypto/ecdsa"
 )
 
-var MaxZeros = 3
+var MaxZeros = 5
 
+func GetAccount(val zeus_ecdsa.AddressGenerator) (accounts.Account, error) {
+	pw := crypto.Keccak256Hash([]byte(val.Mnemonic)).Hex()
+	seed, err := ed25519hd.SeedFromMnemonic(val.Mnemonic, pw)
+	if err != nil {
+		return accounts.Account{}, err
+	}
+	masterKey, err := bip32.NewMasterKey(seed)
+	if err != nil {
+		return accounts.Account{}, err
+	}
+	child, _ := masterKey.NewChildKey(uint32(val.PathIndex))
+	privateKeyECDSA := crypto.ToECDSAUnsafe(child.Key)
+	address := crypto.PubkeyToAddress(privateKeyECDSA.PublicKey)
+	fmt.Println("address", address.Hex())
+	acc, err := accounts.CreateAccountFromPkey(privateKeyECDSA)
+	if err != nil {
+		return accounts.Account{}, err
+	}
+	return *acc, nil
+}
 func genAddresses(count int) (zeus_ecdsa.AddressGenerator, error) {
 	numWorkers := runtime.NumCPU()
 	addresses, err := aegis_crypto.GenAddresses(count, numWorkers)

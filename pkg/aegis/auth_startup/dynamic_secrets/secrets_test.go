@@ -47,7 +47,7 @@ func (t *DynamicSecretsTestSuite) TestReadAndDec() {
 	p := filepaths.Path{
 		DirIn:  "keygen",
 		DirOut: "keygen",
-		FnIn:   "key-3.txt.age",
+		FnIn:   "key-4.txt.age",
 	}
 	val, err := ReadAddress(ctx, p, t.S3, age)
 	t.Require().NoError(err)

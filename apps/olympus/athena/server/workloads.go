@@ -8,7 +8,7 @@ import (
 	"os/exec"
 
 	"github.com/rs/zerolog/log"
-	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
+	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	athena_workloads "github.com/zeus-fyi/olympus/pkg/athena/workloads"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
@@ -22,7 +22,7 @@ func WorkloadStartup(ctx context.Context, w athena_workloads.WorkloadInfo) {
 	log.Info().Interface("w", w).Msg("starting workload")
 	switch w.WorkloadType {
 	case "p2pCrawler":
-		selectedNodes, serr := artemis_validator_service_groups_models.SelectP2PNodes(ctx, 0)
+		selectedNodes, serr := artemis_mev_models.SelectP2PNodes(ctx, 0)
 		if serr != nil {
 			log.Fatal().Msg("failed to select p2p nodes")
 			misc.DelayedPanic(serr)
@@ -59,7 +59,7 @@ func WorkloadStartup(ctx context.Context, w athena_workloads.WorkloadInfo) {
 					FnOut:  "mainnet-nodes.json",
 				}
 				b = p.ReadFileInPath()
-				err = artemis_validator_service_groups_models.InsertP2PNodes(ctx, artemis_autogen_bases.EthP2PNodes{
+				err = artemis_mev_models.InsertP2PNodes(ctx, artemis_autogen_bases.EthP2PNodes{
 					ID:                0,
 					ProtocolNetworkID: 0,
 					Nodes:             string(b),
@@ -93,14 +93,14 @@ func WorkloadStartup(ctx context.Context, w athena_workloads.WorkloadInfo) {
 					log.Fatal().Msg("failed to read p2pCrawler mainnet node results")
 					misc.DelayedPanic(err)
 				}
-				var nodes artemis_validator_service_groups_models.P2PNodes
+				var nodes artemis_mev_models.P2PNodes
 				err = json.Unmarshal(b, &nodes)
 				if err != nil {
 					log.Fatal().Msg("failed to Unmarshal p2pCrawler nodes")
 					misc.DelayedPanic(err)
 				}
 				log.Info().Int("nodeLen", len(nodes)).Msg("p2pCrawler nodes")
-				err = artemis_validator_service_groups_models.InsertP2PNodes(ctx, artemis_autogen_bases.EthP2PNodes{
+				err = artemis_mev_models.InsertP2PNodes(ctx, artemis_autogen_bases.EthP2PNodes{
 					ID:                hestia_req_types.EthereumMainnetProtocolNetworkID,
 					ProtocolNetworkID: hestia_req_types.EthereumMainnetProtocolNetworkID,
 					Nodes:             string(b),

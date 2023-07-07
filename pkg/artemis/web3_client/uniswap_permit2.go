@@ -6,7 +6,11 @@ import (
 	"errors"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
@@ -48,38 +52,6 @@ type Permit2TransferFromParams struct {
 	Amount    *big.Int         `json:"amount"`
 }
 
-func (p *Permit2TransferFromParams) Encode(ctx context.Context) ([]byte, error) {
-	inputs, err := UniversalRouterDecoderAbi.Methods[Permit2TransferFrom].Inputs.Pack(p.Token, p.Recipient, p.Amount)
-	if err != nil {
-		return nil, err
-	}
-	return inputs, nil
-}
-
-func (p *Permit2TransferFromParams) Decode(ctx context.Context, data []byte) error {
-	args := make(map[string]interface{})
-	err := UniversalRouterDecoderAbi.Methods[Permit2TransferFrom].Inputs.UnpackIntoMap(args, data)
-	if err != nil {
-		return err
-	}
-	token, err := ConvertToAddress(args["token"])
-	if err != nil {
-		return err
-	}
-	recipient, err := ConvertToAddress(args["recipient"])
-	if err != nil {
-		return err
-	}
-	amount, err := ParseBigInt(args["amount"])
-	if err != nil {
-		return err
-	}
-	p.Token = token
-	p.Recipient = recipient
-	p.Amount = amount
-	return nil
-}
-
 type Permit2PermitParams struct {
 	PermitSingle `abi:"permitSingle"`
 	Signature    []byte `json:"signature"`
@@ -98,6 +70,19 @@ func (p *Permit2PermitParams) Sign(acc *accounts.Account, chainID *big.Int, cont
 	}
 	p.Signature = sig
 	return nil
+}
+
+func (w *Web3Client) ApprovePermit2(ctx context.Context, address string) (*types.Transaction, error) {
+	approveTx, err := w.ERC20ApproveSpender(ctx,
+		address,
+		artemis_trading_constants.Permit2SmartContractAddress,
+		artemis_eth_units.MaxUINT)
+	if err != nil {
+		log.Warn().Interface("approveTx", approveTx).Err(err).Msg("error approving permit2")
+		return approveTx, err
+	}
+	log.Info().Interface("approveTx", approveTx).Msg("approved permit2")
+	return approveTx, nil
 }
 
 func (p *Permit2PermitParams) SignPermit2Mainnet(acc *accounts.Account) error {
@@ -204,36 +189,6 @@ type PermitBatch struct {
 	SigDeadline *big.Int         `json:"sigDeadline"`
 }
 
-// abi.decode(inputs, (IAllowanceTransfer.PermitBatch, bytes));
-
-func (p *Permit2PermitBatchParams) Encode(ctx context.Context) ([]byte, error) {
-	inputs, err := UniversalRouterDecoderAbi.Methods[Permit2PermitBatch].Inputs.Pack(p.PermitBatch, p.Signature)
-	if err != nil {
-		return nil, err
-	}
-
-	return inputs, nil
-}
-
-func (p *Permit2PermitBatchParams) Decode(ctx context.Context, data []byte) error {
-	args := make(map[string]interface{})
-	err := UniversalRouterDecoderAbi.Methods[Permit2PermitBatch].Inputs.UnpackIntoMap(args, data)
-	if err != nil {
-		return err
-	}
-	b, err := json.Marshal(args["permitBatch"])
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(b, &p.PermitBatch)
-	if err != nil {
-		return err
-	}
-	signature := args["signature"].([]byte)
-	p.Signature = signature
-	return nil
-}
-
 type Permit2PermitTransferFromBatchParams struct {
 	Details []AllowanceTransferDetails `json:"batchDetails"`
 }
@@ -269,5 +224,67 @@ func (p *Permit2PermitTransferFromBatchParams) Decode(ctx context.Context, data 
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (p *Permit2TransferFromParams) Encode(ctx context.Context) ([]byte, error) {
+	inputs, err := UniversalRouterDecoderAbi.Methods[Permit2TransferFrom].Inputs.Pack(p.Token, p.Recipient, p.Amount)
+	if err != nil {
+		return nil, err
+	}
+	return inputs, nil
+}
+
+func (p *Permit2TransferFromParams) Decode(ctx context.Context, data []byte) error {
+	args := make(map[string]interface{})
+	err := UniversalRouterDecoderAbi.Methods[Permit2TransferFrom].Inputs.UnpackIntoMap(args, data)
+	if err != nil {
+		return err
+	}
+	token, err := ConvertToAddress(args["token"])
+	if err != nil {
+		return err
+	}
+	recipient, err := ConvertToAddress(args["recipient"])
+	if err != nil {
+		return err
+	}
+	amount, err := ParseBigInt(args["amount"])
+	if err != nil {
+		return err
+	}
+	p.Token = token
+	p.Recipient = recipient
+	p.Amount = amount
+	return nil
+}
+
+// abi.decode(inputs, (IAllowanceTransfer.PermitBatch, bytes));
+
+func (p *Permit2PermitBatchParams) Encode(ctx context.Context) ([]byte, error) {
+	inputs, err := UniversalRouterDecoderAbi.Methods[Permit2PermitBatch].Inputs.Pack(p.PermitBatch, p.Signature)
+	if err != nil {
+		return nil, err
+	}
+
+	return inputs, nil
+}
+
+func (p *Permit2PermitBatchParams) Decode(ctx context.Context, data []byte) error {
+	args := make(map[string]interface{})
+	err := UniversalRouterDecoderAbi.Methods[Permit2PermitBatch].Inputs.UnpackIntoMap(args, data)
+	if err != nil {
+		return err
+	}
+	b, err := json.Marshal(args["permitBatch"])
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(b, &p.PermitBatch)
+	if err != nil {
+		return err
+	}
+	signature := args["signature"].([]byte)
+	p.Signature = signature
 	return nil
 }

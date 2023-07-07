@@ -8,10 +8,13 @@ import (
 
 func GenAddresses(count, workers int) (zeus_ecdsa.AddressGenerator, error) {
 	mnemonic, err := aegis_random.GenerateMnemonic()
+	if err != nil {
+		return zeus_ecdsa.AddressGenerator{}, err
+	}
 	pw := crypto.Keccak256Hash([]byte(mnemonic)).Hex()
 	ag, err := zeus_ecdsa.GenerateZeroPrefixAddresses(mnemonic, pw, count, workers)
 	if err != nil {
-		return ag, err
+		return zeus_ecdsa.AddressGenerator{}, err
 	}
 	return ag, err
 }

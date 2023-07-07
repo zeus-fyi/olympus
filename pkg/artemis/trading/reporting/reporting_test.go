@@ -41,7 +41,6 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 
 	fmt.Println("total eth profit", total.String())
 	fmt.Println("total eth profit without negatives", totalWithoutNegatives.String())
-
 }
 
 func (s *ReportingTestSuite) Test1() {

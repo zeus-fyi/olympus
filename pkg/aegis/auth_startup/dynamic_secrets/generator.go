@@ -25,13 +25,13 @@ func genAddresses(count int) (zeus_ecdsa.AddressGenerator, error) {
 	numWorkers := runtime.NumCPU()
 	addresses, err := aegis_crypto.GenAddresses(count, numWorkers)
 	if err != nil {
-		return addresses, err
+		return zeus_ecdsa.AddressGenerator{}, err
 	}
 	if addresses.LeadingZeroesCount > MaxZeros {
 		MaxZeros = addresses.LeadingZeroesCount
 		return addresses, nil
 	}
-	return addresses, errors.New("no addresses found")
+	return zeus_ecdsa.AddressGenerator{}, errors.New("no addresses found")
 }
 
 func encAddress(age encryption.Age, ag zeus_ecdsa.AddressGenerator) (memfs.MemFS, filepaths.Path, error) {
@@ -125,15 +125,3 @@ func ReadAddress(ctx context.Context, p filepaths.Path, s3Client s3base.S3Client
 	}
 	return ag, nil
 }
-
-/*
-	err = age.DecryptToMemFsFile(&p, fsDec)
-	if err != nil {
-		return err
-	}
-	decOut, err := fsDec.ReadFileOutPath(&p)
-	if err != nil {
-		return err
-	}
-
-*/

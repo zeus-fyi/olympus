@@ -39,6 +39,8 @@ func (a *AuxiliaryTradingUtils) GetPermit2Nonce() *big.Int {
 	return nonce
 }
 
+// 649f52fa-fceb-4e33-8734-7983cb0ef6f2
+
 func (a *AuxiliaryTradingUtils) GeneratePermit2Approval(ctx context.Context, tokenAddr accounts.Address, amount *big.Int) (web3_client.Permit2PermitParams, error) {
 	psp := web3_client.Permit2PermitParams{
 		PermitSingle: web3_client.PermitSingle{

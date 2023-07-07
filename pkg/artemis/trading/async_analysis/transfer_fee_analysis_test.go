@@ -65,7 +65,10 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysisBulk() {
 		}
 		s.ca.u.Web3Client.AddSessionLockHeader(token.Address)
 		err := s.ca.UserA.HardHatResetNetwork(ctx, s.ca.UserA.NodeURL, 17595510)
-		s.Require().Nil(err)
+		s.Assert().Nil(err)
+		if err != nil {
+			continue
+		}
 		fmt.Println("token", token.Address)
 		s.ca.SmartContractAddr = token.Address
 		percent, err := s.ca.CalculateTransferFeeTax(ctx, artemis_eth_units.EtherMultiple(1))

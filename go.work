@@ -2,14 +2,14 @@ go 1.20
 
 use (
 	.
+	./apps/external/flashbotsrpc
+	./apps/external/go-ethereum
 
 	./apps/external/jennifer
 	./apps/external/memoryfs
 	./apps/external/tables-to-go
 	./apps/external/tojen
 	./apps/external/web3
-	./apps/external/go-ethereum
-	./apps/external/flashbotsrpc
 
 	./apps/olympus/aegis
 	./apps/olympus/apollo
@@ -17,13 +17,13 @@ use (
 	./apps/olympus/athena
 	./apps/olympus/choreography/hydra
 	./apps/olympus/downloader
+	./apps/olympus/hephaestus
 	./apps/olympus/hera
 	./apps/olympus/hestia
 	./apps/olympus/hydra
 	./apps/olympus/hypnos
-	./apps/olympus/poseidon
 	./apps/olympus/iris
-	./apps/olympus/hephaestus
+	./apps/olympus/poseidon
 	./apps/olympus/tyche
 
 	./apps/olympus/zeus

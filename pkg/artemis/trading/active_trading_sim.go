@@ -9,7 +9,7 @@ import (
 )
 
 func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_client.TradeExecutionFlow, bypassSim bool) error {
-	var bundle *artemis_flashbots.MevTxBundle
+	bundle := &artemis_flashbots.MevTxBundle{}
 	if !bypassSim {
 		// TODO set hardhat to live network
 		err := a.u.Web3Client.MatchFrontRunTradeValues(tf)

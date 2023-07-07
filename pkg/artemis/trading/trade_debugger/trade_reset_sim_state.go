@@ -43,18 +43,18 @@ func (t *TradeDebugger) resetNetwork(ctx context.Context, tf web3_client.TradeEx
 	}
 
 	// FOR DEBUGGING: uncomment this to check if the sim block num is the same as the live block num
-	simBlockNum, err := t.UniswapClient.Web3Client.GetBlockHeight(ctx)
-	if err != nil {
-		return err
-	}
-	nodeInfo, err := t.UniswapClient.Web3Client.GetNodeMetadata(ctx)
-	if err != nil {
-		return err
-	}
-
-	if nodeInfo.ForkConfig.ForkBlockNumber != bn {
-		return fmt.Errorf("sim block num %s != live block num %d", simBlockNum, bn)
-	}
+	//simBlockNum, err := t.UniswapClient.Web3Client.GetBlockHeight(ctx)
+	//if err != nil {
+	//	return err
+	//}
+	//nodeInfo, err := t.UniswapClient.Web3Client.GetNodeMetadata(ctx)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//if nodeInfo.ForkConfig.ForkBlockNumber != bn {
+	//	return fmt.Errorf("sim block num %s != live block num %d", simBlockNum, bn)
+	//}
 	return err
 }
 

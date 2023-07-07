@@ -15,7 +15,7 @@ type TradeExecutionFlow struct {
 */
 
 func (t *ArtemisTradeDebuggerTestSuite) TestReplayer() {
-	txHash := "0x50e8c45ce48c2ba3eae42f3e8b41481381ea6ea2b56cafa352d192a944b228ff"
+	txHash := "0x514ea9b21d98d88949b0ff0f6e643a7618da18dc3e592b0abdb93bf7ff95a7fd"
 
 	err := t.td.Replay(ctx, txHash)
 	t.NoError(err)

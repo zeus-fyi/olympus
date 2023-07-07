@@ -39,6 +39,7 @@ func InitFlashbotsClient(ctx context.Context, nodeUrl, network string, acc *acco
 	case hestia_req_types.Goerli:
 		rpc = flashbotsrpc.New(GoerliRelay)
 	}
+
 	return FlashbotsClient{
 		Resty:        resty_base.Resty{},
 		Web3Actions:  w,

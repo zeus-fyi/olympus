@@ -165,7 +165,7 @@ func (u *UniswapClient) CheckBlockRxAndNetworkReset(ctx context.Context, tf *Tra
 		return -1, fmt.Errorf("artmeis block number %d is greater than or equal to rx block number %d", currentBlockNum, int(rx.BlockNumber.Int64()))
 	}
 	u.Web3Client.Dial()
-	u.Web3Client.Close()
+	defer u.Web3Client.Close()
 	nodeInfo, err := u.Web3Client.GetNodeMetadata(ctx)
 	if err != nil {
 		return -1, err
@@ -176,7 +176,6 @@ func (u *UniswapClient) CheckBlockRxAndNetworkReset(ctx context.Context, tf *Tra
 	if err != nil {
 		return -1, err
 	}
-
 	nodeInfo, err = u.Web3Client.GetNodeMetadata(ctx)
 	if err != nil {
 		return -1, err

@@ -30,7 +30,7 @@ func (t *DynamicSecretsTestSuite) TestGenAndSave() {
 	privKey := t.Tc.LocalAgePkey
 	age := encryption.NewAge(privKey, pubKey)
 	now := time.Now()
-	err := SaveAddress(ctx, 100000, t.S3, age)
+	err := SaveAddress(ctx, 1000000, t.S3, age)
 	t.Require().NoError(err)
 	fmt.Println("search time", time.Since(now))
 }

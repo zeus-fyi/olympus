@@ -19,7 +19,7 @@ import (
 	zeus_ecdsa "github.com/zeus-fyi/zeus/pkg/aegis/crypto/ecdsa"
 )
 
-var MaxZeros = 6
+var MaxZeros = 4
 
 func genAddresses(count int) (zeus_ecdsa.AddressGenerator, error) {
 	numWorkers := runtime.NumCPU()

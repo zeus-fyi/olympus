@@ -12,3 +12,7 @@ func (a *ActiveTrading) SendToBundleStack(ctx context.Context, tx *types.Transac
 func (a *ActiveTrading) BundleTxs(ctx context.Context) {
 
 }
+
+func (a *ActiveTrading) SubmitTxBundle(ctx context.Context) {
+
+}

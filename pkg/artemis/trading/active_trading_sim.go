@@ -2,50 +2,64 @@ package artemis_realtime_trading
 
 import (
 	"context"
+	"errors"
 
 	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/flashbots"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *ActiveTrading) SimulateTx(ctx context.Context, tf *web3_client.TradeExecutionFlow) error {
+func (a *ActiveTrading) PackageTxBundle(ctx context.Context, tf *web3_client.TradeExecutionFlow, bypassSim bool) error {
 	// TODO set hardhat to live network
 	var bundle *artemis_flashbots.MevTxBundle
-	err := a.u.Web3Client.MatchFrontRunTradeValues(tf)
-	if err != nil {
-		return err
-	}
 
-	err = a.InitActiveTradingSimEnv(ctx, tf)
-	if err != nil {
-		return err
-	}
-	// FRONT_RUN
-	if tf.InitialPairV3 != nil {
-		err = a.u.ExecTradeV3SwapFromTokenToToken(ctx, tf.InitialPairV3, &tf.FrontRunTrade)
+	if !bypassSim {
+		err := a.u.Web3Client.MatchFrontRunTradeValues(tf)
 		if err != nil {
 			return err
 		}
+
+		err = a.InitActiveTradingSimEnv(ctx, tf)
+		if err != nil {
+			return err
+		}
+	}
+
+	// FRONT_RUN
+	if tf.InitialPairV3 != nil {
+		//err := a.u.ExecTradeV3SwapFromTokenToToken(ctx, tf.InitialPairV3, &tf.FrontRunTrade)
+		//if err != nil {
+		//	return err
+		//}
+		return errors.New("uniswap V3 not supported yet")
 	} else {
-		err = a.u.ExecTradeV2SwapFromTokenToToken(ctx, &tf.FrontRunTrade)
+		err := a.ExecTradeV2SwapFromTokenToToken(ctx, &tf.FrontRunTrade, bypassSim)
 		if err != nil {
 			return err
 		}
 	}
 	bundle.Txs = append(bundle.Txs, tf.FrontRunTrade.BundleTxs...)
+	// FRONT_RUN
+
 	// USER TRADE
-	err = a.u.Web3Client.SendSignedTransaction(ctx, tf.Tx)
-	if err != nil {
-		return err
-	}
-	bundle.Txs = append(bundle.Txs, tf.Tx)
-	// SANDWICH TRADE
-	if tf.InitialPairV3 != nil {
-		err = a.u.ExecTradeV3SwapFromTokenToToken(ctx, tf.InitialPairV3, &tf.SandwichTrade)
+	if !bypassSim {
+		err := a.u.Web3Client.SendSignedTransaction(ctx, tf.Tx)
 		if err != nil {
 			return err
 		}
+	}
+	bundle.Txs = append(bundle.Txs, tf.Tx)
+	// USER TRADE
+
+	// SANDWICH TRADE
+	if tf.InitialPairV3 != nil {
+		//err = a.u.ExecTradeV3SwapFromTokenToToken(ctx, tf.InitialPairV3, &tf.SandwichTrade)
+		//if err != nil {
+		//	return err
+		//}
+		return errors.New("uniswap V3 not supported yet")
+
 	} else {
-		err = a.u.ExecTradeV2SwapFromTokenToToken(ctx, &tf.SandwichTrade)
+		err := a.ExecTradeV2SwapFromTokenToToken(ctx, &tf.SandwichTrade, bypassSim)
 		if err != nil {
 			return err
 		}

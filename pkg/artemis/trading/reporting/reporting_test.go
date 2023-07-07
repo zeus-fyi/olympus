@@ -28,13 +28,20 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 	s.Assert().NotNil(rw)
 
 	total := artemis_eth_units.NewBigInt(0)
+	totalWithoutNegatives := artemis_eth_units.NewBigInt(0)
+
 	for k, v := range rw.Map {
 		fmt.Println(k)
 		total = artemis_eth_units.AddBigInt(total, v.ExpectedProfitAmountOut)
 		fmt.Println(v.ExpectedProfitAmountOut)
+		if artemis_eth_units.IsXGreaterThanY(v.ExpectedProfitAmountOut, artemis_eth_units.NewBigInt(0)) {
+			totalWithoutNegatives = artemis_eth_units.AddBigInt(totalWithoutNegatives, v.ExpectedProfitAmountOut)
+		}
 	}
 
 	fmt.Println("total eth profit", total.String())
+	fmt.Println("total eth profit without negatives", totalWithoutNegatives.String())
+
 }
 
 func (s *ReportingTestSuite) Test1() {

@@ -25,3 +25,15 @@ func (f *FlashbotsClient) SendBundle(ctx context.Context, bundle flashbotsrpc.Fl
 	}
 	return resp, nil
 }
+
+func (f *FlashbotsClient) CallBundle(ctx context.Context, bundle flashbotsrpc.FlashbotsCallBundleParam) (flashbotsrpc.FlashbotsCallBundleResponse, error) {
+	resp, err := f.FlashbotsRPC.FlashbotsCallBundle(f.EcdsaPrivateKey(), bundle)
+	if err != nil {
+		log.Ctx(ctx).Error().Err(err).Msg("FlashbotsClient: CallBundle")
+		return flashbotsrpc.FlashbotsCallBundleResponse{}, err
+	}
+	log.Info().Msgf("FlashbotsClient: CallBundle: %v", resp)
+	return resp, nil
+}
+
+// FlashbotsCallBundle

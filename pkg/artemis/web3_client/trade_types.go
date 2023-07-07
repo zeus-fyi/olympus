@@ -6,6 +6,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/rs/zerolog/log"
 	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
@@ -109,21 +110,21 @@ type TradeExecutionFlow struct {
 }
 
 func (t *TradeExecutionFlow) GetAggregateGasUsage(ctx context.Context, w Web3Client) error {
-	//err := t.FrontRunTrade.GetGasUsageForAllTxs(ctx, w)
-	//if err != nil {
-	//	log.Err(err).Msg("error getting gas usage for front run trade")
-	//	return err
-	//}
-	//err = t.UserTrade.GetGasUsageForAllTxs(ctx, w)
-	//if err != nil {
-	//	log.Err(err).Msg("error getting gas usage for user trade")
-	//	return err
-	//}
-	//err = t.SandwichTrade.GetGasUsageForAllTxs(ctx, w)
-	//if err != nil {
-	//	log.Err(err).Msg("error getting gas usage for sandwich trade")
-	//	return err
-	//}
+	err := t.FrontRunTrade.GetGasUsageForAllTxs(ctx, w.Web3Actions)
+	if err != nil {
+		log.Err(err).Msg("error getting gas usage for front run trade")
+		return err
+	}
+	err = t.UserTrade.GetGasUsageForAllTxs(ctx, w.Web3Actions)
+	if err != nil {
+		log.Err(err).Msg("error getting gas usage for user trade")
+		return err
+	}
+	err = t.SandwichTrade.GetGasUsageForAllTxs(ctx, w.Web3Actions)
+	if err != nil {
+		log.Err(err).Msg("error getting gas usage for sandwich trade")
+		return err
+	}
 	return nil
 }
 

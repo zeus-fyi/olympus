@@ -1,10 +1,14 @@
 package artemis_trading_types
 
 import (
+	"context"
 	"fmt"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 )
 
 type TradeOutcome struct {
@@ -29,6 +33,41 @@ type TradeOutcome struct {
 	DiffTradeEthBalance *big.Int        `json:"diffTradeEthBalance,omitempty"`
 	OrderedTxs          []accounts.Hash `json:"orderedTxs,omitempty"`
 	TotalGasCost        uint64          `json:"totalGasCost,omitempty"`
+}
+
+type TxLifecycleStats struct {
+	TxHash     accounts.Hash
+	GasUsed    uint64
+	RxBlockNum uint64
+}
+
+func (t *TradeOutcome) GetGasUsageForAllTxs(ctx context.Context, w web3_actions.Web3Actions) error {
+	for _, tx := range t.OrderedTxs {
+		txInfo, err := GetTxLifecycleStats(ctx, w, accounts.HexToHash(tx.Hex()))
+		if err != nil {
+			return err
+		}
+		t.TotalGasCost += txInfo.GasUsed
+	}
+	return nil
+}
+
+func GetTxLifecycleStats(ctx context.Context, w web3_actions.Web3Actions, txHash accounts.Hash) (TxLifecycleStats, error) {
+	tx, _, err := w.C.TransactionByHash(ctx, common.Hash(txHash))
+	if err != nil {
+		log.Err(err).Msg("GetTxLifecycleStats: error getting tx by hash")
+		return TxLifecycleStats{}, err
+	}
+	rx, err := w.C.TransactionReceipt(ctx, common.Hash(txHash))
+	if err != nil {
+		log.Err(err).Msg("GetTxLifecycleStats: error getting rx by hash")
+		return TxLifecycleStats{}, err
+	}
+	return TxLifecycleStats{
+		TxHash:     txHash,
+		GasUsed:    rx.GasUsed * tx.GasPrice().Uint64(),
+		RxBlockNum: rx.BlockNumber.Uint64(),
+	}, err
 }
 
 func (t *TradeOutcome) PrintDebug() {

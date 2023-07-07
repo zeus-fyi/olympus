@@ -19,6 +19,7 @@ type AuxiliaryTradingUtils struct {
 func (a *AuxiliaryTradingUtils) SetPermit2Approval(ctx context.Context, address string) (*types.Transaction, error) {
 	tx, err := a.ApprovePermit2(ctx, address)
 	if err != nil {
+		log.Err(err).Msg("error approving permit")
 		return tx, err
 	}
 	return tx, nil
@@ -53,11 +54,11 @@ func (a *AuxiliaryTradingUtils) GeneratePermit2Approval(ctx context.Context, tok
 	}
 	err := psp.SignPermit2Mainnet(a.Account)
 	if err != nil {
-		log.Warn().Err(err).Msg("error signing permit")
+		log.Err(err).Msg("error signing permit")
 		return web3_client.Permit2PermitParams{}, err
 	}
 	if psp.Signature == nil {
-		log.Warn().Msg("signature is nil")
+		log.Err(err).Msg("signature is nil")
 		return web3_client.Permit2PermitParams{}, errors.New("signature is nil")
 	}
 	return psp, err

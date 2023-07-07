@@ -40,7 +40,6 @@ require (
 	github.com/labstack/echo/v4 v4.10.1
 	github.com/labstack/gommon v0.4.0
 	github.com/lib/pq v1.10.6
-	github.com/metachris/flashbotsrpc v0.6.0
 	github.com/oleiade/lane/v2 v2.0.0
 	github.com/ovh/go-ovh v1.4.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible

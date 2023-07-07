@@ -2,7 +2,9 @@ package dynamic_secrets
 
 import (
 	"context"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -27,8 +29,10 @@ func (t *DynamicSecretsTestSuite) TestGenAndSave() {
 	pubKey := t.Tc.LocalAgePubkey
 	privKey := t.Tc.LocalAgePkey
 	age := encryption.NewAge(privKey, pubKey)
-	err := SaveAddress(ctx, 10000, t.S3, age)
+	now := time.Now()
+	err := SaveAddress(ctx, 100000, t.S3, age)
 	t.Require().NoError(err)
+	fmt.Println("search time", time.Since(now))
 }
 
 func (t *DynamicSecretsTestSuite) TestReadAndDec() {

@@ -12,7 +12,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	"github.com/zeus-fyi/olympus/hestia/api/v1/ethereum/aws"
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
-	age_encryption "github.com/zeus-fyi/zeus/pkg/crypto/age"
+	age_encryption "github.com/zeus-fyi/zeus/pkg/aegis/crypto/age"
 )
 
 func Routes(e *echo.Echo) *echo.Echo {

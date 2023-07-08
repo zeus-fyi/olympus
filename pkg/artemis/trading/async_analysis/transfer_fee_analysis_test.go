@@ -56,6 +56,7 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysisBulk() {
 	shib2Contract := "0x34ba042827996821CFFEB06477D48a2Ff9474483"
 	s.ca = NewERC20ContractAnalysis(&uni, shib2Contract)
 	s.ca.UserB = s.UserB
+
 	tokens, _, terr := artemis_mev_models.SelectERC20TokensWithNullTransferTax(ctx)
 	s.Assert().Nil(terr)
 	s.Assert().NotNil(tokens)
@@ -69,6 +70,7 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysisBulk() {
 		err := s.ca.UserA.HardHatResetNetwork(ctx, 17595510)
 		s.Assert().Nil(err)
 		if err != nil {
+			time.Sleep(100 * time.Millisecond)
 			continue
 		}
 		fmt.Println("token", token.Address)

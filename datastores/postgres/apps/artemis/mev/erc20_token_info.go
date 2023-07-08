@@ -177,7 +177,7 @@ func SelectERC20TokensWithNullTransferTax(ctx context.Context) ([]artemis_autoge
 
 	var tokens []artemis_autogen_bases.Erc20TokenInfo
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, 1)
-	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SelectERC20Tokens")); returnErr != nil {
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SelectERC20TokensWithNullTransferTax")); returnErr != nil {
 		return nil, m, err
 	}
 	defer rows.Close()

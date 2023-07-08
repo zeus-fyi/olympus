@@ -14,17 +14,17 @@ type AuxiliaryTradingUtils struct {
 	OrderedTxs []accounts.Hash
 }
 
-func (a *AuxiliaryTradingUtils) AddTxHash(tx accounts.Hash) {
-	if a.OrderedTxs == nil {
-		a.OrderedTxs = []accounts.Hash{}
-	}
-	a.OrderedTxs = append(a.OrderedTxs, tx)
-}
-
 func InitAuxiliaryTradingUtils(ctx context.Context, nodeURL, network string, acc accounts.Account) AuxiliaryTradingUtils {
 	TradingAuxiliary = AuxiliaryTradingUtils{
 		Web3Client: web3_client.NewWeb3Client(nodeURL, &acc),
 	}
 	TradingAuxiliary.Network = network
 	return TradingAuxiliary
+}
+
+func (a *AuxiliaryTradingUtils) AddTxHash(tx accounts.Hash) {
+	if a.OrderedTxs == nil {
+		a.OrderedTxs = []accounts.Hash{}
+	}
+	a.OrderedTxs = append(a.OrderedTxs, tx)
 }

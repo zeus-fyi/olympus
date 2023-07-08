@@ -12,10 +12,10 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeETHtoWETH(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, amountIn *big.Int, user *accounts.Address) error {
+func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeETHtoWETH(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, amountIn *big.Int, user *accounts.Address) (*web3_client.UniversalRouterExecCmd, error) {
 	ur = a.checkIfCmdEmpty(ur)
 	if a.Account == nil && user == nil {
-		return errors.New("no account or user address provided")
+		return nil, errors.New("no account or user address provided")
 	}
 	if user == nil {
 		addr := a.Account.Address()
@@ -43,5 +43,5 @@ func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeETHtoWETH(ctx context.Conte
 		ur.Payable.Amount = artemis_eth_units.AddBigInt(ur.Payable.Amount, amountIn)
 		ur.Payable.ToAddress = wethParams.Recipient
 	}
-	return nil
+	return ur, nil
 }

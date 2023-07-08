@@ -26,6 +26,7 @@ var (
 		"http://anvil.a49ca82d-ff96-4c4f-8653-001d56cab5e5.svc.cluster.local:8545",
 		"http://anvil.be58f278-1fbe-4bc8-8db5-03d8901cc060.svc.cluster.local:8545",
 		"http://anvil.e56def19-190f-4b45-9fdb-8468ddbe0eb5.svc.cluster.local:8545",
+		"http://anvil.eeb335ad-78da-458f-9cfb-9928514d65d0.svc.cluster.local:8545",
 	}
 	ts                   = chronos.Chronos{}
 	SessionLocker        = AnvilProxy{}

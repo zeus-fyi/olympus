@@ -1,6 +1,7 @@
 package zeus_core
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -45,36 +46,53 @@ func (s *SecretsTestSuite) TestGetSecrets() {
 func (s *SecretsTestSuite) TestGetSecretsUpdate() {
 	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "ovh", Region: "us-west-or-1", Context: "zeusfyi", Namespace: "5cf3a2c0-1d65-48cb-8b85-dc777ad956a0"}
 
-	secret, err := s.K.GetSecretWithKns(ctx, kns, "hardhat", nil)
-	s.Require().Nil(err)
-	s.Require().NotEmpty(secret)
-
-	sb := []byte("")
-	secret.Data["rpc"] = sb
-
-	err = s.K.DeleteSecretWithKns(ctx, kns, "hardhat", nil)
-	s.Require().Nil(err)
-
-	sec := v1.Secret{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Secret",
-			APIVersion: "v1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "hardhat",
-			Namespace: kns.Namespace,
-		},
-		Data: secret.Data,
-		Type: "Opaque",
+	routes := []string{
+		"http://anvil.191aada9-055d-4dba-a906-7dfbc4e632c6.svc.cluster.local:8545",
+		"http://anvil.427c5536-4fc0-4257-90b5-1789d290058c.svc.cluster.local:8545",
+		"http://anvil.5cf3a2c0-1d65-48cb-8b85-dc777ad956a0.svc.cluster.local:8545",
+		"http://anvil.78ab2d4c-82eb-4bbc-b0fb-b702639e78c0.svc.cluster.local:8545",
+		"http://anvil.a49ca82d-ff96-4c4f-8653-001d56cab5e5.svc.cluster.local:8545",
+		"http://anvil.be58f278-1fbe-4bc8-8db5-03d8901cc060.svc.cluster.local:8545",
+		"http://anvil.e56def19-190f-4b45-9fdb-8468ddbe0eb5.svc.cluster.local:8545",
+		"http://anvil.eeb335ad-78da-458f-9cfb-9928514d65d0.svc.cluster.local:8545",
 	}
-	newSecret, err := s.K.CreateSecretWithKns(ctx, kns, &sec, nil)
-	s.Require().Nil(err)
-	s.Require().NotEmpty(newSecret)
+	for i, r := range routes {
+		r = strings.TrimPrefix(r, "http://anvil.")
+		r = strings.TrimSuffix(r, ".svc.cluster.local:8545")
+		kns.Namespace = r
 
-	secret, err = s.K.GetSecretWithKns(ctx, kns, "hardhat", nil)
-	s.Require().Nil(err)
-	s.Require().NotEmpty(secret)
-	s.Require().Equal(secret.Data["rpc"], sb)
+		node := s.Tc.QuikNodeURLS.Routes[i]
+
+		secret, err := s.K.GetSecretWithKns(ctx, kns, "hardhat", nil)
+		s.Require().Nil(err)
+		s.Require().NotEmpty(secret)
+		sb := []byte(node)
+		secret.Data["rpc"] = sb
+
+		err = s.K.DeleteSecretWithKns(ctx, kns, "hardhat", nil)
+		s.Require().Nil(err)
+
+		sec := v1.Secret{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "Secret",
+				APIVersion: "v1",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "hardhat",
+				Namespace: kns.Namespace,
+			},
+			Data: secret.Data,
+			Type: "Opaque",
+		}
+		newSecret, err := s.K.CreateSecretWithKns(ctx, kns, &sec, nil)
+		s.Require().Nil(err)
+		s.Require().NotEmpty(newSecret)
+
+		secret, err = s.K.GetSecretWithKns(ctx, kns, "hardhat", nil)
+		s.Require().Nil(err)
+		s.Require().NotEmpty(secret)
+		s.Require().Equal(secret.Data["rpc"], sb)
+	}
 }
 func (s *SecretsTestSuite) TestCreateChoreographySecret() {
 	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "do-sfo3-dev-do-sfo3-zeus", Namespace: "p2p-crawler"}

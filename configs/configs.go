@@ -20,6 +20,9 @@ type TestURLs struct {
 	LocalZeusApiURL string
 }
 
+type QuikNodeURLS struct {
+	Routes []string
+}
 type TestContainer struct {
 	Env string
 
@@ -127,6 +130,8 @@ type TestContainer struct {
 	AdminLoginPassword  string
 
 	EtherScanAPIKey string
+
+	QuikNodeURLS QuikNodeURLS
 }
 
 type ArtemisHexKeys struct {
@@ -177,6 +182,13 @@ func InitLocalTestConfigs() TestContainer {
 	if err != nil {
 		log.Info().Err(err).Msg("error reading gcp auth json file")
 	}
+	qn := QuikNodeURLS{
+		Routes: []string{},
+	}
+	for i := 1; i < 9; i++ {
+		qn.Routes = append(qn.Routes, viper.GetString(fmt.Sprintf("QUIKNODE_%d", i)))
+	}
+	testCont.QuikNodeURLS = qn
 	testCont.GcpAuthJson = b
 	testCont.EtherScanAPIKey = viper.GetString("ETHERSCAN_API_KEY")
 	testCont.HardhatNode = viper.GetString("HARDHAT_NODE_URL")

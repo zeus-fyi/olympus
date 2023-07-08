@@ -13,7 +13,9 @@ import (
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_ethereum_transcations "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/transcations"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	"github.com/zeus-fyi/olympus/pkg/athena"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
 )
 
 var (
@@ -45,6 +47,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		inMemSecrets, sw := auth_startup.RunArtemisDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
 		dynamoDBCreds.AccessKey = sw.AccessKeyHydraDynamoDB
 		dynamoDBCreds.AccessSecret = sw.SecretKeyHydraDynamoDB
+		authKeysCfg = tc.ProdLocalAuthKeysCfg
 		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
@@ -52,6 +55,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		temporalAuthCfg = tc.DevTemporalAuth
 		dynamoDBCreds.AccessKey = tc.AwsAccessKeyDynamoDB
 		dynamoDBCreds.AccessSecret = tc.AwsSecretKeyDynamoDB
+		authKeysCfg = tc.DevAuthKeysCfg
 		artemis_network_cfgs.InitArtemisLocalTestConfigs()
 	}
 	dynamoDBCreds.Region = "us-west-1"
@@ -81,6 +85,8 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	log.Info().Msgf("Artemis InitMevWorkers: %s temporal auth and init procedure succeeded", env)
 
 	log.Info().Msgf("Artemis %s init flashbots client", env)
-	artemis_trading_cache.InitFlashbotsCache(ctx)
+	athena.AthenaS3Manager = auth_startup.NewDigitalOceanS3AuthClient(ctx, authKeysCfg)
+	age := encryption.NewAge(authKeysCfg.AgePrivKey, authKeysCfg.AgePubKey)
+	artemis_trading_cache.InitFlashbotsCache(ctx, age)
 	log.Info().Msgf("Artemis %s done init flashbots client", env)
 }

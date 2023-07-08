@@ -15,16 +15,21 @@ import (
 func (a *AuxiliaryTradingUtils) UniversalRouterCmdExecutor(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, error) {
 	signedTx, err := a.universalRouterCmdBuilder(ctx, ur)
 	if err != nil {
+		log.Err(err).Msg("error building signed tx")
 		return nil, err
 	}
-	err = a.SendSignedTransaction(ctx, signedTx)
+	return a.universalRouterExecuteTx(ctx, signedTx)
+}
+
+func (a *AuxiliaryTradingUtils) universalRouterExecuteTx(ctx context.Context, signedTx *types.Transaction) (*types.Transaction, error) {
+	err := a.SendSignedTransaction(ctx, signedTx)
 	if err != nil {
 		log.Err(err).Msg("error sending signed tx")
 		return nil, err
 	}
 	// todo track tx
 	a.AddTxHash(accounts.Hash(signedTx.Hash()))
-	return signedTx, nil
+	return signedTx, err
 }
 
 func (a *AuxiliaryTradingUtils) universalRouterCmdBuilder(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, error) {

@@ -39,7 +39,7 @@ type AnvilProxy struct {
 
 func InitAnvilProxy() {
 	SessionLocker.PriorityQueue = lane.NewMinPriorityQueue[string, int]()
-	SessionLocker.LockDefaultTime = 12 * time.Second
+	SessionLocker.LockDefaultTime = 30 * time.Second
 	for _, route := range Routes {
 		SessionLocker.PriorityQueue.Push(route, -1)
 	}

@@ -19,13 +19,17 @@ func (t *ArtemisAuxillaryTestSuite) TestWETH() {
 	for i, sc := range cmd.Commands {
 		if i == 0 && sc.Command == artemis_trading_constants.WrapETH {
 			found = true
-			t.Require().NotNil(cmd.Payable)
+			t.Require().NotNil(cmd.Payable.Amount)
 			t.Require().Equal(toExchAmount.String(), cmd.Payable.Amount.String())
 			t.Require().Equal(toExchAmount.String(), sc.DecodedInputs.(web3_client.WrapETHParams).AmountMin.String())
 			t.Require().Equal(ta.Address().String(), sc.DecodedInputs.(web3_client.WrapETHParams).Recipient.String())
 		}
 	}
 	t.Require().True(found)
+
+	ok, err := ta.checkAuxEthBalanceGreaterThan(ctx, toExchAmount)
+	t.Require().Nil(err)
+	t.Require().True(ok)
 }
 
 func (t *ArtemisAuxillaryTestSuite) TestUnwrapWETH() {

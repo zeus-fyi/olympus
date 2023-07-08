@@ -37,11 +37,14 @@ func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeETHtoWETH(ctx context.Conte
 		DecodedInputs: wethParams,
 		CanRevert:     false,
 	})
-	if ur.Payable == nil {
-		ur.Payable = payable
-	} else {
+	if ur.Payable.ToAddress.String() != artemis_trading_constants.ZeroAddress && ur.Payable.ToAddress.String() != wethParams.Recipient.String() {
+		return nil, errors.New("payable amount and address mismatch")
+	}
+	ur.Payable.ToAddress = wethParams.Recipient
+	if ur.Payable != nil && ur.Payable.Amount != nil {
 		ur.Payable.Amount = artemis_eth_units.AddBigInt(ur.Payable.Amount, amountIn)
-		ur.Payable.ToAddress = wethParams.Recipient
+	} else {
+		ur.Payable = payable
 	}
 	return ur, nil
 }

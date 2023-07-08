@@ -18,9 +18,11 @@ func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeETHtoWETH(ctx context.Conte
 		return nil, errors.New("no account or user address provided")
 	}
 	if user == nil {
+		//addr := artemis_trading_constants.UniversalRouterSenderAddress
 		addr := a.Account.Address()
 		user = &addr
 	}
+
 	wethParams := web3_client.WrapETHParams{
 		Recipient: *user,
 		AmountMin: amountIn,
@@ -28,7 +30,7 @@ func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeETHtoWETH(ctx context.Conte
 	payable := &web3_actions.SendEtherPayload{
 		TransferArgs: web3_actions.TransferArgs{
 			Amount:    amountIn,
-			ToAddress: wethParams.Recipient,
+			ToAddress: artemis_trading_constants.UniswapUniversalRouterNewAddressAccount,
 		},
 		GasPriceLimits: web3_actions.GasPriceLimits{},
 	}

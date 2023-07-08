@@ -42,6 +42,9 @@ var (
 	UniswapUniversalRouterNewAddressAccount = accounts.HexToAddress(UniswapUniversalRouterAddressNew)
 	UniswapV3FactoryAddressAccount          = accounts.HexToAddress(UniswapV3FactoryAddress)
 	UniswapV2FactoryAddressAccount          = accounts.HexToAddress(UniswapV2FactoryAddress)
+
+	UniversalRouterSenderAddress   = accounts.HexToAddress("0x0000000000000000000000000000000000000001")
+	UniversalRouterReceiverAddress = accounts.HexToAddress("0x0000000000000000000000000000000000000002")
 )
 
 var (

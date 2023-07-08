@@ -19,6 +19,7 @@ func (t *ArtemisAuxillaryTestSuite) TestWETH() {
 		if i == 0 && sc.Command == artemis_trading_constants.WrapETH {
 			found = true
 			t.Require().NotNil(cmd.Payable.Amount)
+			t.Require().Equal(artemis_trading_constants.UniswapUniversalRouterNewAddressAccount.String(), cmd.Payable.ToAddress.String())
 			t.Require().Equal(toExchAmount.String(), cmd.Payable.Amount.String())
 			t.Require().Equal(toExchAmount.String(), sc.DecodedInputs.(web3_client.WrapETHParams).AmountMin.String())
 			t.Require().Equal(ta.Address().String(), sc.DecodedInputs.(web3_client.WrapETHParams).Recipient.String())

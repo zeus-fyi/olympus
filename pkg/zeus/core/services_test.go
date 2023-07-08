@@ -1,7 +1,6 @@
 package zeus_core
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -13,7 +12,6 @@ type ServicesTestSuite struct {
 }
 
 func (s *ServicesTestSuite) TestGetServices() {
-	ctx := context.Background()
 	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "do", Region: "sfo3", Context: "dev-sfo3-zeus", Namespace: "eth-indexer"}
 
 	svc, err := s.K.GetServiceWithKns(ctx, kns, "svc", nil)

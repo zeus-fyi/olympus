@@ -65,7 +65,7 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysisBulk() {
 		}
 		s.ca.u.Web3Client.AddSessionLockHeader(token.Address)
 		err := s.ca.UserA.HardHatResetNetwork(ctx, 17595510)
-		s.Require().Nil(err)
+		s.Assert().Nil(err)
 		if err != nil {
 			continue
 		}
@@ -73,7 +73,11 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysisBulk() {
 		s.ca.SmartContractAddr = token.Address
 		percent, err := s.ca.CalculateTransferFeeTax(ctx, artemis_eth_units.EtherMultiple(1))
 		s.Assert().Nil(err)
-		if err != nil || percent.Numerator == nil || percent.Denominator == nil {
+		if err != nil {
+			continue
+		}
+
+		if percent.Numerator == nil || percent.Denominator == nil {
 			num := int(0)
 			token.TransferTaxNumerator = &num
 			denom := int(1)
@@ -119,7 +123,7 @@ func (s *ArtemisRealTimeTradingTestSuite) SetupTest() {
 	uni.PrintOn = true
 	uni.PrintLocal = false
 	uni.Web3Client.IsAnvilNode = true
-	uni.Web3Client.DurableExecution = false
+	uni.Web3Client.DurableExecution = true
 	s.UserA = wc
 	// web3_client.NewWeb3Client(s.Tc.QuiknodeLiveNode, newAccount)
 	//s.UserA = web3_client.NewWeb3Client("http://localhost:8545", newAccount)

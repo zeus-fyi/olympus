@@ -82,8 +82,6 @@ func (a *ActiveTrading) execUniswapUniversalRouterCmd(ctx context.Context, paylo
 		return nil, err
 	}
 	scInfo := GetUniswapUniversalRouterAbiPayload(data)
-	// TODO implement better gas estimation
-	scInfo.GasLimit = 3000000
 	signedTx, err := a.u.Web3Client.GetSignedTxToCallFunctionWithArgs(ctx, &scInfo)
 	if err != nil {
 		return nil, err

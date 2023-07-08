@@ -1,6 +1,7 @@
 package async_analysis
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -29,6 +30,7 @@ func (s *ArtemisRealTimeTradingTestSuite) TestERC20InfoFetcherExisting() {
 	s.Assert().NotNil(tokens)
 
 	for _, token := range tokens {
+		fmt.Println(token.Address)
 		s.ca.SmartContractAddr = token.Address
 		err = s.ca.FindERC20TokenMetadataInfo(ctx)
 		s.Assert().Nil(err)

@@ -14,7 +14,6 @@ func (t *ArtemisAuxillaryTestSuite) TestWETH() {
 	cmd, err := ta.GenerateCmdToExchangeETHtoWETH(ctx, nil, toExchAmount, nil)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(cmd)
-
 	found := false
 	for i, sc := range cmd.Commands {
 		if i == 0 && sc.Command == artemis_trading_constants.WrapETH {
@@ -26,10 +25,13 @@ func (t *ArtemisAuxillaryTestSuite) TestWETH() {
 		}
 	}
 	t.Require().True(found)
-
 	ok, err := ta.checkAuxEthBalanceGreaterThan(ctx, toExchAmount)
 	t.Require().Nil(err)
 	t.Require().True(ok)
+
+	tx, err := ta.universalRouterCmdBuilder(ctx, cmd)
+	t.Require().Nil(err)
+	t.Require().NotEmpty(tx)
 }
 
 func (t *ArtemisAuxillaryTestSuite) TestUnwrapWETH() {
@@ -49,4 +51,11 @@ func (t *ArtemisAuxillaryTestSuite) TestUnwrapWETH() {
 		}
 	}
 	t.Require().True(found)
+	ok, err := ta.checkAuxWETHBalanceGreaterThan(ctx, toExchAmount)
+	t.Require().Nil(err)
+	t.Require().True(ok)
+
+	tx, err := ta.universalRouterCmdBuilder(ctx, cmd)
+	t.Require().Nil(err)
+	t.Require().NotEmpty(tx)
 }

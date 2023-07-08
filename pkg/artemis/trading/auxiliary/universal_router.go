@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
@@ -12,6 +13,21 @@ import (
 )
 
 func (a *AuxiliaryTradingUtils) UniversalRouterCmdExecutor(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, error) {
+	signedTx, err := a.universalRouterCmdBuilder(ctx, ur)
+	if err != nil {
+		return nil, err
+	}
+	err = a.SendSignedTransaction(ctx, signedTx)
+	if err != nil {
+		log.Err(err).Msg("error sending signed tx")
+		return nil, err
+	}
+	// todo track tx
+	a.AddTxHash(accounts.Hash(signedTx.Hash()))
+	return signedTx, nil
+}
+
+func (a *AuxiliaryTradingUtils) universalRouterCmdBuilder(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, error) {
 	data, err := ur.EncodeCommands(ctx)
 	if err != nil {
 		return nil, err
@@ -29,13 +45,7 @@ func (a *AuxiliaryTradingUtils) UniversalRouterCmdExecutor(ctx context.Context, 
 	if err != nil {
 		return nil, err
 	}
-	err = a.SendSignedTransaction(ctx, signedTx)
-	if err != nil {
-		return nil, err
-	}
-	// todo track tx
-	a.AddTxHash(accounts.Hash(signedTx.Hash()))
-	return nil, nil
+	return signedTx, nil
 }
 
 func GetUniswapUniversalRouterAbiPayload(payload *web3_client.UniversalRouterExecParams) web3_actions.SendContractTxPayload {

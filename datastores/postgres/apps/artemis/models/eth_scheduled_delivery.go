@@ -10,10 +10,10 @@ import (
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
+	zeus_ecdsa "github.com/zeus-fyi/zeus/pkg/aegis/crypto/ecdsa"
 	artemis_client "github.com/zeus-fyi/zeus/pkg/artemis/client"
 	artemis_req_types "github.com/zeus-fyi/zeus/pkg/artemis/client/req_types"
 	signing_automation_ethereum "github.com/zeus-fyi/zeus/pkg/artemis/signing_automation/ethereum"
-	"github.com/zeus-fyi/zeus/pkg/crypto/ecdsa"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 )
@@ -25,7 +25,7 @@ const (
 )
 
 var ArtemisClient = artemis_client.ArtemisClient{
-	Account:        ecdsa.Account{},
+	Account:        zeus_ecdsa.Account{},
 	Resty:          resty_base.Resty{},
 	ArtemisConfigs: []*artemis_client.ArtemisConfig{&artemis_client.ArtemisEthereumEphemeral},
 }

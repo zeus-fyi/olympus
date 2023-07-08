@@ -3,7 +3,7 @@ package eth_validators_service_requests
 import (
 	"context"
 
-	bls_signer "github.com/zeus-fyi/zeus/pkg/crypto/bls"
+	bls_signer "github.com/zeus-fyi/zeus/pkg/aegis/crypto/bls"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 
 	"github.com/rs/zerolog/log"

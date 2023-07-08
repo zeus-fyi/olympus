@@ -52,6 +52,7 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysisBulk() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	uni := web3_client.InitUniswapClient(ctx, s.UserA)
 	uni.Web3Client.IsAnvilNode = true
+	uni.Web3Client.DurableExecution = true
 	shib2Contract := "0x34ba042827996821CFFEB06477D48a2Ff9474483"
 	s.ca = NewERC20ContractAnalysis(&uni, shib2Contract)
 	s.ca.UserB = s.UserB
@@ -59,6 +60,7 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysisBulk() {
 	s.Assert().Nil(terr)
 	s.Assert().NotNil(tokens)
 	s.ca.UserA.IsAnvilNode = true
+	s.ca.UserA.DurableExecution = true
 	for _, token := range tokens {
 		if token.BalanceOfSlotNum == -1 {
 			continue

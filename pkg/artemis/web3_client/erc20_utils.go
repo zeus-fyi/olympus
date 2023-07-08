@@ -102,7 +102,7 @@ func (w *Web3Client) SetERC20BalanceBruteForce(ctx context.Context, scAddr, user
 		return err
 	}
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 20; i++ {
 		slotHex, err := getSlot(userAddr, new(big.Int).SetUint64(uint64(i)))
 		if err != nil {
 			return err

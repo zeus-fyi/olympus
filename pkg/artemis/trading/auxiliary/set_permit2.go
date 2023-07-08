@@ -12,10 +12,10 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *AuxiliaryTradingUtils) SetPermit2Approval(ctx context.Context, address string) (*types.Transaction, error) {
+func (a *AuxiliaryTradingUtils) SetPermit2ApprovalForToken(ctx context.Context, address string) (*types.Transaction, error) {
 	tx, err := a.ApprovePermit2(ctx, address)
 	if err != nil {
-		log.Err(err).Msg("error approving permit")
+		log.Err(err).Msg("error approving permit2")
 		return tx, err
 	}
 	return tx, nil

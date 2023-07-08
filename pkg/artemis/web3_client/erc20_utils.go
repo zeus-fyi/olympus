@@ -17,23 +17,25 @@ import (
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
+var Erc20Abi = artemis_oly_contract_abis.MustLoadERC20Abi()
+
 func (w *Web3Client) ERC20ApproveSpender(ctx context.Context, scAddr, spenderAddr string, amount *big.Int) (*types.Transaction, error) {
 	w.Dial()
 	defer w.Close()
-	abiFile := artemis_oly_contract_abis.MustLoadERC20Abi()
+
 	payload := web3_actions.SendContractTxPayload{
 		SmartContractAddr: scAddr,
 		MethodName:        "approve",
 		SendEtherPayload: web3_actions.SendEtherPayload{
-			TransferArgs: web3_actions.TransferArgs{},
+			TransferArgs:   web3_actions.TransferArgs{},
 			GasPriceLimits: web3_actions.GasPriceLimits{
-				GasLimit:  200000,
-				GasPrice:  GweiMultiple(50),
-				GasTipCap: GweiMultiple(2),
-				GasFeeCap: GweiMultiple(100),
+				//GasLimit:  200000,
+				//GasPrice:  GweiMultiple(50),
+				//GasTipCap: GweiMultiple(2),
+				//GasFeeCap: GweiMultiple(100),
 			},
 		},
-		ContractABI: abiFile,
+		ContractABI: Erc20Abi,
 		Params:      []interface{}{accounts.HexToAddress(spenderAddr), amount},
 	}
 	signedTx, err := w.CallFunctionWithArgs(ctx, &payload)

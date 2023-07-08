@@ -28,12 +28,7 @@ func (w *Web3Client) ERC20ApproveSpender(ctx context.Context, scAddr, spenderAdd
 		MethodName:        "approve",
 		SendEtherPayload: web3_actions.SendEtherPayload{
 			TransferArgs:   web3_actions.TransferArgs{},
-			GasPriceLimits: web3_actions.GasPriceLimits{
-				//GasLimit:  200000,
-				//GasPrice:  GweiMultiple(50),
-				//GasTipCap: GweiMultiple(2),
-				//GasFeeCap: GweiMultiple(100),
-			},
+			GasPriceLimits: web3_actions.GasPriceLimits{},
 		},
 		ContractABI: Erc20Abi,
 		Params:      []interface{}{accounts.HexToAddress(spenderAddr), amount},

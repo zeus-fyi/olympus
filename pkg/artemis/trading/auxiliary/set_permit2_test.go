@@ -10,7 +10,7 @@ import (
 
 func (t *ArtemisAuxillaryTestSuite) TestSetPermit2() {
 	nodeURL := t.goerliNode
-	ta := InitAuxiliaryTradingUtils(ctx, nodeURL, hestia_req_types.Mainnet, t.acc)
+	ta := InitAuxiliaryTradingUtils(ctx, nodeURL, hestia_req_types.Goerli, t.acc)
 	t.Require().NotEmpty(ta)
 	fmt.Println(ta.Account.PublicKey())
 }

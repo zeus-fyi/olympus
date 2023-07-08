@@ -1,8 +1,10 @@
 package artemis_trading_auxiliary
 
+import "C"
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/big"
 
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
@@ -13,7 +15,7 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-func (a *AuxiliaryTradingUtils) universalRouterCmdVerifier(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, scInfo web3_actions.SendContractTxPayload) error {
+func (a *AuxiliaryTradingUtils) universalRouterCmdVerifier(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, scInfo *web3_actions.SendContractTxPayload) error {
 	ethRequirements := artemis_eth_units.NewBigInt(0)
 	for _, sc := range ur.Commands {
 		switch sc.Command {
@@ -38,6 +40,17 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdVerifier(ctx context.Context, 
 		return errors.New("user does not have enough ETH to exchange to WETH")
 	}
 
+	est, err := a.C.SuggestGasPrice(ctx)
+	if err != nil {
+		return err
+	}
+	gt, err := a.C.SuggestGasTipCap(ctx)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("estimated gas price", est.String())
+	fmt.Println("estimated gas tip cap", gt.String())
 	return nil
 }
 

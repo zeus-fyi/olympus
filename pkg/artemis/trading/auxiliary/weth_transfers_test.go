@@ -10,7 +10,7 @@ import (
 func (t *ArtemisAuxillaryTestSuite) TestWETH() {
 	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
 	t.Require().NotEmpty(ta)
-	toExchAmount := artemis_eth_units.EtherMultiple(1)
+	toExchAmount := artemis_eth_units.GweiMultiple(1000)
 	cmd, err := ta.GenerateCmdToExchangeETHtoWETH(ctx, nil, toExchAmount, nil)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(cmd)
@@ -32,6 +32,10 @@ func (t *ArtemisAuxillaryTestSuite) TestWETH() {
 	tx, err := ta.universalRouterCmdBuilder(ctx, cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
+
+	//_, err = ta.universalRouterExecuteTx(ctx, tx)
+	//t.Require().Nil(err)
+	//fmt.Println("tx", tx.Hash().String())
 }
 
 func (t *ArtemisAuxillaryTestSuite) TestUnwrapWETH() {

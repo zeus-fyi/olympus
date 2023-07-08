@@ -46,12 +46,14 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdBuilder(ctx context.Context, u
 		return signedTx, err
 	}
 	// todo add gas price
-	err = a.universalRouterCmdVerifier(ctx, ur, scInfo)
+	err = a.universalRouterCmdVerifier(ctx, ur, &scInfo)
 	if err != nil {
 		return nil, err
 	}
 	return signedTx, nil
 }
+
+var urAbi = artemis_oly_contract_abis.MustLoadNewUniversalRouterAbi()
 
 func GetUniswapUniversalRouterAbiPayload(payload *web3_client.UniversalRouterExecParams) web3_actions.SendContractTxPayload {
 	if payload == nil {
@@ -74,7 +76,7 @@ func GetUniswapUniversalRouterAbiPayload(payload *web3_client.UniversalRouterExe
 	params := web3_actions.SendContractTxPayload{
 		SmartContractAddr: artemis_trading_constants.UniswapUniversalRouterAddressNew,
 		SendEtherPayload:  *payable,
-		ContractABI:       artemis_oly_contract_abis.MustLoadNewUniversalRouterAbi(),
+		ContractABI:       urAbi,
 		MethodName:        methodName,
 		Params:            fnParams,
 	}

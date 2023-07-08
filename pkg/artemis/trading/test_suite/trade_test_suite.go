@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
+	artemis_test_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/test_suite/test_cache"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_encryption"
 )
@@ -25,7 +25,7 @@ var ctx = context.Background()
 
 func (s *ArtemisTradingTestSuite) SetupTest() {
 	s.InitLocalConfigs()
-	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLiveTest.NodeURL = s.Tc.QuikNodeURLS.TestRoute
+	artemis_test_cache.InitLiveTestNetwork(s.Tc.QuikNodeURLS.TestRoute)
 
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	artemis_trading_cache.InitTokenFilter(ctx)

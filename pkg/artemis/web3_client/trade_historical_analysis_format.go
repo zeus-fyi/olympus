@@ -164,22 +164,28 @@ func (u *UniswapClient) CheckBlockRxAndNetworkReset(ctx context.Context, tf *Tra
 	if currentBlockNum >= int(rx.BlockNumber.Int64()) {
 		return -1, fmt.Errorf("artmeis block number %d is greater than or equal to rx block number %d", currentBlockNum, int(rx.BlockNumber.Int64()))
 	}
+	u.Web3Client.Dial()
 	nodeInfo, err := u.Web3Client.GetNodeMetadata(ctx)
 	if err != nil {
 		return -1, err
 	}
 	liveNetwork := nodeInfo.ForkConfig.ForkUrl
 	liveNetworkClient.NodeURL = liveNetwork
-	u.Web3Client.Dial()
+	if liveNetworkClient.NodeURL == "" {
+		return -1, fmt.Errorf("live network client node url is empty")
+	}
+	if liveNetworkClient.NodeURL == irisBetaSvc {
+		return -1, fmt.Errorf("iris proxy cannot connect to itself")
+	}
 	err = u.Web3Client.ResetNetwork(ctx, liveNetwork, currentBlockNum)
 	if err != nil {
 		return -1, err
 	}
-	u.Web3Client.Close()
 	nodeInfo, err = u.Web3Client.GetNodeMetadata(ctx)
 	if err != nil {
 		return -1, err
 	}
+	u.Web3Client.Close()
 	if nodeInfo.ForkConfig.ForkBlockNumber != currentBlockNum {
 		return -1, fmt.Errorf("CheckBlockRxAndNetworkReset: live network fork block number %d is not equal to current block number %d", nodeInfo.ForkConfig.ForkBlockNumber, currentBlockNum)
 	}

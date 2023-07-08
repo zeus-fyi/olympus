@@ -10,7 +10,6 @@ import (
 func (t *ArtemisAuxillaryTestSuite) TestWETH() {
 	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
 	t.Require().NotEmpty(ta)
-
 	toExchAmount := artemis_eth_units.EtherMultiple(1)
 	cmd, err := ta.GenerateCmdToExchangeETHtoWETH(ctx, nil, toExchAmount, nil)
 	t.Require().Nil(err)
@@ -24,6 +23,25 @@ func (t *ArtemisAuxillaryTestSuite) TestWETH() {
 			t.Require().Equal(toExchAmount.String(), cmd.Payable.Amount.String())
 			t.Require().Equal(toExchAmount.String(), sc.DecodedInputs.(web3_client.WrapETHParams).AmountMin.String())
 			t.Require().Equal(ta.Address().String(), sc.DecodedInputs.(web3_client.WrapETHParams).Recipient.String())
+		}
+	}
+	t.Require().True(found)
+}
+
+func (t *ArtemisAuxillaryTestSuite) TestUnwrapWETH() {
+	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
+	t.Require().NotEmpty(ta)
+	toExchAmount := artemis_eth_units.EtherMultiple(1)
+	cmd, err := ta.GenerateCmdToExchangeWETHtoETH(ctx, nil, toExchAmount, nil)
+	t.Require().Nil(err)
+	t.Require().NotEmpty(cmd)
+	found := false
+	for i, sc := range cmd.Commands {
+		if i == 0 && sc.Command == artemis_trading_constants.UnwrapWETH {
+			found = true
+			t.Require().Nil(cmd.Payable.Amount)
+			t.Require().Equal(toExchAmount.String(), sc.DecodedInputs.(web3_client.UnwrapWETHParams).AmountMin.String())
+			t.Require().Equal(ta.Address().String(), sc.DecodedInputs.(web3_client.UnwrapWETHParams).Recipient.String())
 		}
 	}
 	t.Require().True(found)

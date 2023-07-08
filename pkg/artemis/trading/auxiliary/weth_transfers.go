@@ -45,3 +45,24 @@ func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeETHtoWETH(ctx context.Conte
 	}
 	return ur, nil
 }
+
+func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeWETHtoETH(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, amountIn *big.Int, user *accounts.Address) (*web3_client.UniversalRouterExecCmd, error) {
+	ur = a.checkIfCmdEmpty(ur)
+	if a.Account == nil && user == nil {
+		return nil, errors.New("no account or user address provided")
+	}
+	if user == nil {
+		addr := a.Account.Address()
+		user = &addr
+	}
+	unwrapParams := web3_client.UnwrapWETHParams{
+		Recipient: *user,
+		AmountMin: amountIn,
+	}
+	ur.Commands = append(ur.Commands, web3_client.UniversalRouterExecSubCmd{
+		Command:       artemis_trading_constants.UnwrapWETH,
+		DecodedInputs: unwrapParams,
+		CanRevert:     false,
+	})
+	return ur, nil
+}

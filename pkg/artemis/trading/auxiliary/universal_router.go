@@ -68,7 +68,21 @@ func GetUniswapUniversalRouterAbiPayload(payload *web3_client.UniversalRouterExe
 
 func (a *AuxiliaryTradingUtils) checkIfCmdEmpty(ur *web3_client.UniversalRouterExecCmd) *web3_client.UniversalRouterExecCmd {
 	if ur == nil {
-		ur = &web3_client.UniversalRouterExecCmd{}
+		ur = &web3_client.UniversalRouterExecCmd{
+			Commands: []web3_client.UniversalRouterExecSubCmd{},
+			Payable: &web3_actions.SendEtherPayload{
+				TransferArgs: web3_actions.TransferArgs{
+					Amount:    nil,
+					ToAddress: accounts.Address{},
+				},
+				GasPriceLimits: web3_actions.GasPriceLimits{
+					GasPrice:  nil,
+					GasLimit:  0,
+					GasTipCap: nil,
+					GasFeeCap: nil,
+				},
+			},
+		}
 	}
 	if ur.Commands == nil {
 		ur.Commands = []web3_client.UniversalRouterExecSubCmd{}

@@ -14,7 +14,7 @@ func (u *UniswapClient) SimFullSandwichTrade(tf *TradeExecutionFlow) error {
 		fmt.Println("executing full sandwich trade")
 	}
 	// this isn't included in trade gas costs since we amortize one time gas costs for permit2
-	eb := EtherMultiple(10000)
+	eb := EtherMultiple(100000)
 	bal := (*hexutil.Big)(eb)
 	err := u.Web3Client.SetBalance(ctx, u.Web3Client.PublicKey(), *bal)
 	if err != nil {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
@@ -59,11 +60,16 @@ func (t *TradeDebugger) resetNetwork(ctx context.Context, tf web3_client.TradeEx
 }
 
 func (t *TradeDebugger) setupCleanEnvironment(ctx context.Context, tf web3_client.TradeExecutionFlow) error {
-	eb := artemis_eth_units.EtherMultiple(10000)
+	eb := artemis_eth_units.EtherMultiple(100000)
 	bal := (*hexutil.Big)(eb)
+	acc, err := accounts.CreateAccount()
+	if err != nil {
+		return err
+	}
+	t.UniswapClient.Web3Client.Account = acc
 	t.UniswapClient.Web3Client.Dial()
 	defer t.UniswapClient.Web3Client.Close()
-	err := t.UniswapClient.Web3Client.SetBalance(ctx, t.UniswapClient.Web3Client.PublicKey(), *bal)
+	err = t.UniswapClient.Web3Client.SetBalance(ctx, t.UniswapClient.Web3Client.PublicKey(), *bal)
 	if err != nil {
 		log.Err(err).Msg("error setting balance")
 		return err

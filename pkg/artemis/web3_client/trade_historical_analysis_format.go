@@ -16,7 +16,7 @@ import (
 	artemis_test_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/test_suite/test_cache"
 )
 
-func (u *UniswapClient) RunHistoricalTradeAnalysis(ctx context.Context, tfStr string, liveNetworkClient Web3Client) error {
+func (u *UniswapClient) RunHistoricalTradeAnalysis(ctx context.Context, tfStr string) error {
 	u.TradeAnalysisReport = &TradeAnalysisReport{}
 	tfJSON, err := UnmarshalTradeExecutionFlow(tfStr)
 	if err != nil {

@@ -20,22 +20,20 @@ const (
 )
 
 var (
-	AuthHeader     string
-	HardHatAccount *accounts.Account
+	AuthHeader string
 )
 
 func InitUniswap(ctx context.Context, authHeader string) {
 	AuthHeader = authHeader
-	newAccount, err := accounts.ParsePrivateKey("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
-	if err != nil {
-		panic(err)
-	}
-	HardHatAccount = newAccount
 	go ProcessMempoolTxs(ctx)
 }
 
 func InitNewUniHardhat(ctx context.Context) *web3_client.UniswapClient {
-	wc := web3_client.NewWeb3Client(irisBetaSvc, HardHatAccount)
+	acc, err := accounts.CreateAccount()
+	if err != nil {
+		panic(err)
+	}
+	wc := web3_client.NewWeb3Client(irisBetaSvc, acc)
 	m := map[string]string{
 		"Authorization": "Bearer " + AuthHeader,
 	}

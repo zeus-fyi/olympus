@@ -18,9 +18,8 @@ import (
 )
 
 func (d *ArtemisMevActivities) HistoricalSimulateAndValidateTx(ctx context.Context, trade artemis_autogen_bases.EthMempoolMevTx) error {
-	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
 	uni := InitNewUniHardhat(ctx)
-	err := uni.RunHistoricalTradeAnalysis(ctx, trade.TxFlowPrediction, wc)
+	err := uni.RunHistoricalTradeAnalysis(ctx, trade.TxFlowPrediction)
 	if err != nil {
 		log.Err(err).Msg("RunHistoricalTradeAnalysis failed")
 		return err

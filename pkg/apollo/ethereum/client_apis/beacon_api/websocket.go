@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	"nhooyr.io/websocket"
 	"nhooyr.io/websocket/wsjson"
 )
@@ -50,14 +49,27 @@ type Result struct {
 }
 
 func TriggerWorkflowOnNewBlockHeaderEvent(ctx context.Context, wsAddr string, timestampChan chan<- time.Time) {
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
+	for {
+		wfCtx, cancel := context.WithCancel(ctx)
+		err := establishWebsocketConnection(wfCtx, wsAddr, timestampChan)
+		if err != nil {
+			log.Err(err).Msg("Error in WebSocket connection or processing, retrying in 1 second...")
+			cancel()
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		cancel()
+	}
+}
+
+func establishWebsocketConnection(ctx context.Context, wsAddr string, timestampChan chan<- time.Time) error {
 	// Connect to WebSocket server.
 	ws, _, err := websocket.Dial(ctx, wsAddr, &websocket.DialOptions{})
 	if err != nil {
-		log.Err(err).Msg("failed to connect to WebSocket server")
+		return err
 	}
 	defer ws.Close(websocket.StatusInternalError, "failed to close conn to WebSocket server")
+
 	// Create subscription request.
 	request := Request{
 		ID:      1,
@@ -65,42 +77,45 @@ func TriggerWorkflowOnNewBlockHeaderEvent(ctx context.Context, wsAddr string, ti
 		Method:  "eth_subscribe",
 		Params:  []string{"newHeads"},
 	}
+
 	// Send the subscription request to the WebSocket server.
 	err = wsjson.Write(ctx, ws, request)
 	if err != nil {
-		log.Err(err).Msg("Failed to send subscription request to the WebSocket server")
+		return err
 	}
+
 	for {
-		// Read messages from the WebSocket server.
-		var msg Message
-		err = wsjson.Read(ctx, ws, &msg)
+		// Read and process messages from the WebSocket server.
+		err = processMessages(ctx, ws, timestampChan)
 		if err != nil {
-			log.Err(err).Msg("Failed to read message from the WebSocket server")
-			time.Sleep(1 * time.Second)
-			cancel()
-			ws.Close(websocket.StatusInternalError, "failed to close conn to WebSocket server")
-			go TriggerWorkflowOnNewBlockHeaderEvent(context.Background(), artemis_network_cfgs.ArtemisQuicknodeStreamWebsocket, timestampChan)
-			continue
+			return err
 		}
-		// Print the received message.
-		_, rerr := json.MarshalIndent(msg, "", "  ")
-		if rerr != nil {
-			log.Err(err).Msg("Failed to parse the received message")
-			time.Sleep(1 * time.Second)
-			continue
-		}
-		if msg.Params.Result.Timestamp == "" {
-			continue
-		}
-		t, terr := hexToTime(msg.Params.Result.Timestamp)
-		if terr != nil {
-			log.Err(err).Msg("Failed to convert timestamp")
-			continue
-		}
-		timestampChan <- t
-		log.Info().Msg(fmt.Sprintf("New block header event received at %s", t))
 	}
 }
+
+func processMessages(ctx context.Context, ws *websocket.Conn, timestampChan chan<- time.Time) error {
+	var msg Message
+	err := wsjson.Read(ctx, ws, &msg)
+	if err != nil {
+		return err
+	}
+	// Print the received message.
+	_, rerr := json.MarshalIndent(msg, "", "  ")
+	if rerr != nil {
+		return rerr
+	}
+	if msg.Params.Result.Timestamp == "" {
+		return nil
+	}
+	t, terr := hexToTime(msg.Params.Result.Timestamp)
+	if terr != nil {
+		return terr
+	}
+	timestampChan <- t
+	log.Info().Msg(fmt.Sprintf("New block header event received at %s", t))
+	return nil
+}
+
 func hexToTime(hexStr string) (time.Time, error) {
 	// strip the '0x' prefix
 	cleanHex := hexStr[2:]

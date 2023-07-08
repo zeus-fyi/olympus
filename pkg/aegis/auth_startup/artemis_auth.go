@@ -31,6 +31,7 @@ func InitArtemisEthereum(ctx context.Context, inMemSecrets memfs.MemFS, secrets 
 
 	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLiveTest.NodeURL = secrets.MustReadSecret(ctx, inMemSecrets, QuikNodeSecretLiveTest)
 	artemis_test_cache.InitLiveTestNetwork(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLiveTest.NodeURL)
+
 	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL = secrets.MustReadSecret(ctx, inMemSecrets, QuiknodeHistoricalPrimarySecret)
 	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.Account = artemis_network_cfgs.ArtemisEthereumMainnet.Account
 

@@ -1,6 +1,8 @@
 package artemis_trading_auxiliary
 
 import (
+	"fmt"
+
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
@@ -34,9 +36,9 @@ func (t *ArtemisAuxillaryTestSuite) TestWETH() {
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 
-	//_, err = ta.universalRouterExecuteTx(ctx, tx)
-	//t.Require().Nil(err)
-	//fmt.Println("tx", tx.Hash().String())
+	_, err = ta.universalRouterExecuteTx(ctx, tx)
+	t.Require().Nil(err)
+	fmt.Println("tx", tx.Hash().String())
 }
 
 func (t *ArtemisAuxillaryTestSuite) TestPermit2EthToWETH() {

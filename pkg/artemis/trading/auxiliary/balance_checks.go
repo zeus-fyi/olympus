@@ -28,9 +28,6 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdVerifier(ctx context.Context, 
 		case artemis_trading_constants.UnwrapWETH:
 		}
 	}
-	// todo: add gas cost using scInfo
-	// scInfo
-
 	gasCost := artemis_eth_units.MulBigInt(scInfo.GasFeeCap, artemis_eth_units.NewBigInt(int(scInfo.GasLimit)))
 	fmt.Println("gasCost", gasCost)
 	ethRequirements = artemis_eth_units.AddBigInt(ethRequirements, gasCost)
@@ -78,7 +75,14 @@ func (a *AuxiliaryTradingUtils) checkAuxEthBalanceGreaterThan(ctx context.Contex
 }
 
 func (a *AuxiliaryTradingUtils) checkAuxWETHBalance(ctx context.Context) (*big.Int, error) {
-	token := core_entities.NewToken(a.getChainID(), artemis_trading_constants.WETH9ContractAddressAccount, 18, "WETH", "Wrapped Ether")
+	wethAddr := artemis_trading_constants.WETH9ContractAddressAccount
+	switch a.Network {
+	case hestia_req_types.Mainnet:
+		wethAddr = artemis_trading_constants.WETH9ContractAddressAccount
+	case hestia_req_types.Goerli:
+		wethAddr = artemis_trading_constants.GoerliWETH9ContractAddressAccount
+	}
+	token := core_entities.NewToken(a.getChainID(), wethAddr, 18, "WETH", "Wrapped Ether")
 	bal, err := a.ReadERC20TokenBalance(ctx, token.Address.String(), a.Account.Address().String())
 	if err != nil {
 		return bal, err

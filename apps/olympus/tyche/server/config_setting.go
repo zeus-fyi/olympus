@@ -48,6 +48,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		dynamoDBCreds.AccessKey = sw.AccessKeyHydraDynamoDB
 		dynamoDBCreds.AccessSecret = sw.SecretKeyHydraDynamoDB
 		price_quoter.ZeroXApiKey = sw.ZeroXApiKey
+		authKeysCfg = tc.ProdLocalAuthKeysCfg
 		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
 	case "local":
 		tc := configs.InitLocalTestConfigs()
@@ -56,6 +57,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		dynamoDBCreds.AccessKey = tc.AwsAccessKeyDynamoDB
 		dynamoDBCreds.AccessSecret = tc.AwsSecretKeyDynamoDB
 		price_quoter.ZeroXApiKey = tc.ZeroXApiKey
+		authKeysCfg = tc.DevAuthKeysCfg
 		artemis_network_cfgs.InitArtemisLocalTestConfigs()
 	}
 	dynamoDBCreds.Region = "us-west-1"

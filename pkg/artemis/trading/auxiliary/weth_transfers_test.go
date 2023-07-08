@@ -49,13 +49,16 @@ func (t *ArtemisAuxillaryTestSuite) TestUnwrapWETH() {
 	t.Require().Nil(err)
 	t.Require().NotEmpty(cmd)
 	found := false
+	t.Require().Len(cmd.Commands, 2)
 	for i, sc := range cmd.Commands {
+		if i == 1 && sc.Command == artemis_trading_constants.Permit2Permit {
+			// todo
+		}
 		if i == 0 && sc.Command == artemis_trading_constants.UnwrapWETH {
 			found = true
 			t.Require().Nil(cmd.Payable.Amount)
 			t.Require().Equal(toExchAmount.String(), sc.DecodedInputs.(web3_client.UnwrapWETHParams).AmountMin.String())
 			t.Require().Equal(artemis_trading_constants.UniversalRouterSender, sc.DecodedInputs.(web3_client.WrapETHParams).Recipient.String())
-
 		}
 	}
 	t.Require().True(found)

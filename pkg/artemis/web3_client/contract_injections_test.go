@@ -12,7 +12,7 @@ import (
 
 func (s *Web3ClientTestSuite) TestRawDawgInjection() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
-	err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlock(ctx, "https://virulent-alien-cloud.quiknode.pro/fa84e631e9545d76b9e1b1c5db6607fedf3cb654", 17408822)
+	err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlock(ctx, 17408822)
 	rawDawgPayload, bc := artemis_oly_contract_abis.MustLoadRawdawgContractDeployPayload()
 	rawDawgPayload.GasLimit = 2000000
 	rawDawgPayload.Params = []interface{}{}

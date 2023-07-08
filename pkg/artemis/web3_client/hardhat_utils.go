@@ -68,10 +68,10 @@ func (w *Web3Client) NonceAt(ctx context.Context, user common.Address, bn *big.I
 	return int(nonce), nil
 }
 
-func (w *Web3Client) HardhatResetNetworkToBlock(ctx context.Context, simNodeUrl string, blockNum int) error {
+func (w *Web3Client) HardhatResetNetworkToBlock(ctx context.Context, blockNum int) error {
 	w.Dial()
 	defer w.Close()
-	err := w.HardHatResetNetwork(ctx, simNodeUrl, blockNum)
+	err := w.HardHatResetNetwork(ctx, blockNum)
 	if err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func (w *Web3Client) HardhatResetNetworkToBlockBeforeTxMined(ctx context.Context
 	}
 	realNetworkClient.Close()
 	simNetworkClient.Dial()
-	err = simNetworkClient.HardHatResetNetwork(ctx, simNodeUrl, int(rx.BlockNumber.Int64()-1))
+	err = simNetworkClient.HardHatResetNetwork(ctx, int(rx.BlockNumber.Int64()-1))
 	if err != nil {
 		return 0, err
 	}

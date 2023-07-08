@@ -13,8 +13,7 @@ import (
 )
 
 func (s *Web3ClientTestSuite) TestWrapETHFuncs() {
-	node := "https://virulent-alien-cloud.quiknode.pro/fa84e631e9545d76b9e1b1c5db6607fedf3cb654"
-	err := s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, node, 17461070)
+	err := s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, 17461070)
 	s.Require().Nil(err)
 	userAddr := s.LocalHardhatMainnetUser.Address()
 	b, err := s.LocalHardhatMainnetUser.GetBalance(ctx, userAddr.String(), nil)
@@ -104,8 +103,7 @@ func (s *Web3ClientTestSuite) TestWrapETHFuncs() {
 // TODO finish test case
 func (s *Web3ClientTestSuite) TestExecV2TradeMethodUR() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
-	node := "https://virulent-alien-cloud.quiknode.pro/fa84e631e9545d76b9e1b1c5db6607fedf3cb654"
-	err := s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, node, 17461070)
+	err := s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, 17461070)
 	s.Require().Nil(err)
 	userAddr := s.LocalHardhatMainnetUser.Address()
 	amountIn := EtherMultiple(2000)

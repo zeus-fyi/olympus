@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/pingcap/errors"
 )
 
 func (w *Web3Client) HardHatSetBalance(ctx context.Context, addr string, balance hexutil.Big) error {
@@ -17,10 +18,28 @@ func (w *Web3Client) HardHatSetBalance(ctx context.Context, addr string, balance
 	return err
 }
 
-func (w *Web3Client) HardHatResetNetwork(ctx context.Context, nodeURL string, blockNumber int) error {
+const irisBetaSvc = "https://iris.zeus.fyi/v1beta/internal/"
+
+func (w *Web3Client) HardHatResetNetwork(ctx context.Context, blockNumber int) error {
 	w.Dial()
 	defer w.Close()
-	err := w.ResetNetwork(ctx, nodeURL, blockNumber)
+
+	nodeURL := ""
+	nodeInfo, err := w.GetNodeInfo(ctx)
+	if err != nil {
+		return err
+	}
+	if nodeInfo.ForkConfig.ForkUrl != "" {
+		nodeURL = nodeInfo.ForkConfig.ForkUrl
+	}
+	if nodeURL == irisBetaSvc {
+		return errors.New("iris beta cannot proxy itself recursively")
+	}
+	if nodeURL == "" {
+		return errors.New("node url is empty")
+	}
+
+	err = w.ResetNetwork(ctx, nodeURL, blockNumber)
 	if err != nil {
 		return err
 	}

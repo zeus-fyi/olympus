@@ -15,7 +15,7 @@ func (s *ArtemisRealTimeTradingTestSuite) testEthSimTransferFeeAnalysisSetup() {
 	doge2 := artemis_trading_constants.Doge2ContractAddr
 	s.ca = NewERC20ContractAnalysis(&uni, doge2)
 	s.ca.UserB = s.UserB
-	err := s.ca.UserA.HardHatResetNetwork(ctx, s.Tc.QuiknodeLiveNode, 17601900)
+	err := s.ca.UserA.HardHatResetNetwork(ctx, 17601900)
 	s.Require().Nil(err)
 }
 

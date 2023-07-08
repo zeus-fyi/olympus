@@ -27,8 +27,7 @@ func (s *Web3ClientTestSuite) TestUniversalRouterV2() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(subCmds)
 
-	node := "https://virulent-alien-cloud.quiknode.pro/fa84e631e9545d76b9e1b1c5db6607fedf3cb654"
-	err = s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, node, 16591736)
+	err = s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, 16591736)
 	s.Require().Nil(err)
 
 	amountIn := ""

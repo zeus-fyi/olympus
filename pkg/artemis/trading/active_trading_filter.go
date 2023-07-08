@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
@@ -58,10 +59,12 @@ func (a *ActiveTrading) ActiveTradingFilter(ctx context.Context, tf web3_client.
 	}
 	err := a.TradingEnabledFilter(ctx, tf.UserTrade.AmountOutAddr)
 	if err != nil {
+		log.Err(err).Msg("ActiveTrading: ActiveTradingFilter: trading not enabled for token")
 		return err
 	}
 	switch tf.Trade.TradeMethod {
 	case artemis_trading_constants.SwapExactTokensForTokens:
+	case artemis_trading_constants.SwapExactTokensForETHSupportingFeeOnTransferTokens:
 	case artemis_trading_constants.V2SwapExactIn, artemis_trading_constants.V2SwapExactOut:
 	default:
 		return fmt.Errorf("ActiveTrading: ActiveTradingFilter: %s method not supported for now", tf.Trade.TradeMethod)

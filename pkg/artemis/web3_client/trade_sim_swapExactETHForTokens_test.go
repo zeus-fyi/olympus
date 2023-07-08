@@ -56,7 +56,7 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSim_SwapExactETHForTokens() {
 		currentBlockNum, err := strconv.Atoi(currentBlockStr)
 		s.Require().Nil(err)
 		fmt.Println("blockNum recorded from artemis", currentBlockNum)
-		err = s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, s.Tc.HardhatNode, currentBlockNum)
+		err = s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, currentBlockNum)
 		s.Require().Nil(err)
 
 		tfRegular := tf.ConvertToBigIntType()

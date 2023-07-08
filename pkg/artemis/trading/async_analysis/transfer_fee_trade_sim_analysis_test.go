@@ -14,7 +14,7 @@ func (s *ArtemisRealTimeTradingTestSuite) TestEthSimTransferFeeAnalysis() {
 	shib2Contract := "0x34ba042827996821CFFEB06477D48a2Ff9474483"
 	s.ca = NewERC20ContractAnalysis(&uni, shib2Contract)
 	s.ca.UserB = s.UserB
-	err := s.ca.UserA.HardHatResetNetwork(ctx, s.Tc.QuiknodeLiveNode, 17601900)
+	err := s.ca.UserA.HardHatResetNetwork(ctx, 17601900)
 	s.Require().Nil(err)
 	transferTaxPercent, err := s.ca.CalculateTransferFeeTax(ctx, web3_client.EtherMultiple(1))
 	s.Assert().Nil(err)

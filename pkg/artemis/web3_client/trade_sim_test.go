@@ -86,7 +86,7 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSimAny() {
 
 		if currentBlockNum < blockBeforeRx {
 			fmt.Println("using block number from artemis vs rx block num -1")
-			err = s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, s.Tc.HardhatNode, currentBlockNum)
+			err = s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, currentBlockNum)
 			if err != nil {
 				log.Err(err).Msg("error resetting hardhat network")
 				continue

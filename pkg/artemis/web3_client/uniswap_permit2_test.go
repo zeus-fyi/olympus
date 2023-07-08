@@ -57,8 +57,7 @@ func (s *Web3ClientTestSuite) TestCopyPermitTest1() {
 }
 
 func (s *Web3ClientTestSuite) TestPermit2Approve() {
-	node := "https://virulent-alien-cloud.quiknode.pro/fa84e631e9545d76b9e1b1c5db6607fedf3cb654"
-	err := s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, node, 17461070)
+	err := s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, 17461070)
 	s.Require().Nil(err)
 	uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
 

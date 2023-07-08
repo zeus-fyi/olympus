@@ -83,8 +83,7 @@ func (s *Web3ClientTestSuite) TestUniversalRouterV3ExactOut() {
 	tx, _, err := s.MainnetWeb3User.GetTxByHash(ctx, common.HexToHash(hashStr))
 	s.Require().Nil(err)
 
-	node := "https://virulent-alien-cloud.quiknode.pro/fa84e631e9545d76b9e1b1c5db6607fedf3cb654"
-	err = s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, node, 16606334)
+	err = s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, 16606334)
 	s.Require().Nil(err)
 	mn, args, err := DecodeTxArgData(ctx, tx, uni.MevSmartContractTxMapUniversalRouterNew)
 	s.Require().Nil(err)

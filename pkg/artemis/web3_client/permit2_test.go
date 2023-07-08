@@ -52,8 +52,7 @@ func (s *Web3ClientTestSuite) TestCopyPermitTest() {
 func (s *Web3ClientTestSuite) TestPermit2TransferSubmission() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 
-	node := "https://virulent-alien-cloud.quiknode.pro/fa84e631e9545d76b9e1b1c5db6607fedf3cb654"
-	err := s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, node, 17461010)
+	err := s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, 17461010)
 	s.Require().Nil(err)
 	uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
 	wethAddress := accounts.HexToAddress(WETH9ContractAddress)

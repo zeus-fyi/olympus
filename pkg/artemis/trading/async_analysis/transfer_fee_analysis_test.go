@@ -64,7 +64,8 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysisBulk() {
 			continue
 		}
 		s.ca.u.Web3Client.AddSessionLockHeader(token.Address)
-		err := s.ca.UserA.HardHatResetNetwork(ctx, s.ca.UserA.NodeURL, 17595510)
+
+		err := s.ca.UserA.HardHatResetNetwork(ctx, 17595510)
 		s.Assert().Nil(err)
 		if err != nil {
 			continue

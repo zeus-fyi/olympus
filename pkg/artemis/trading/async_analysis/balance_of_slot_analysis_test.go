@@ -22,7 +22,7 @@ func (s *ArtemisRealTimeTradingTestSuite) TestFindERC20BalanceOfSlotNumber() {
 	s.ca.UserA.IsAnvilNode = true
 
 	for _, token := range tokens {
-		err = s.ca.UserA.HardHatResetNetwork(ctx, s.Tc.QuiknodeLiveNode, 17624181)
+		err = s.ca.UserA.HardHatResetNetwork(ctx, 17624181)
 		if token.BalanceOfSlotNum == -1 {
 			continue
 		}

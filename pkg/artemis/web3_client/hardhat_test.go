@@ -22,7 +22,7 @@ func (s *Web3ClientTestSuite) TestSetBalance() {
 }
 
 func (s *Web3ClientTestSuite) TestResetNetwork() {
-	err := s.LocalMainnetWeb3User.HardHatResetNetwork(ctx, s.Tc.HardhatNode, 17326677)
+	err := s.LocalMainnetWeb3User.HardHatResetNetwork(ctx, 17326677)
 	s.Require().Nil(err)
 }
 
@@ -83,7 +83,7 @@ func (s *Web3ClientTestSuite) TestSetERC20BalanceAtSlotNumber() {
 
 func (s *Web3ClientTestSuite) TestSetERC20BalanceBruteForce() {
 	// block set to 17317757
-	err := s.LocalMainnetWeb3User.HardHatResetNetwork(ctx, s.Tc.HardhatNode, 17317757)
+	err := s.LocalMainnetWeb3User.HardHatResetNetwork(ctx, 17317757)
 	s.Require().Nil(err)
 	usdtAddr := "0xdac17f958d2ee523a2206206994597c13d831ec7"
 	b, err := s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, usdtAddr, s.LocalHardhatMainnetUser.PublicKey())

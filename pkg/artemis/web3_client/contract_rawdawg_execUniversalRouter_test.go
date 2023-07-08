@@ -11,8 +11,7 @@ import (
 )
 
 func (s *Web3ClientTestSuite) TestRawdawgExecUniversalRouterWETHSwap() {
-	node := "https://virulent-alien-cloud.quiknode.pro/fa84e631e9545d76b9e1b1c5db6607fedf3cb654"
-	err := s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, node, 17461070)
+	err := s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, 17461070)
 	s.Require().Nil(err)
 	rawDawgPayload, bc, err := artemis_oly_contract_abis.LoadLocalRawdawgAbiPayload()
 	s.Require().Nil(err)

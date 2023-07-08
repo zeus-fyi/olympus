@@ -19,9 +19,10 @@ const (
 )
 
 const (
-	V2SwapExactIn            = "V2_SWAP_EXACT_IN"
-	V2SwapExactOut           = "V2_SWAP_EXACT_OUT"
-	SwapExactTokensForTokens = "swapExactTokensForTokens"
+	V2SwapExactIn                                      = "V2_SWAP_EXACT_IN"
+	V2SwapExactOut                                     = "V2_SWAP_EXACT_OUT"
+	SwapExactTokensForTokens                           = "swapExactTokensForTokens"
+	SwapExactTokensForETHSupportingFeeOnTransferTokens = "swapExactTokensForETHSupportingFeeOnTransferTokens"
 
 	Permit2TransferFrom      = "PERMIT2_TRANSFER_FROM"
 	Permit2PermitBatch       = "PERMIT2_PERMIT_BATCH"

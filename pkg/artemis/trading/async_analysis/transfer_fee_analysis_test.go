@@ -72,7 +72,10 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysisBulk() {
 		fmt.Println("token", token.Address)
 		s.ca.SmartContractAddr = token.Address
 		percent, err := s.ca.CalculateTransferFeeTax(ctx, artemis_eth_units.EtherMultiple(1))
-		s.Require().Nil(err)
+		s.Assert().Nil(err)
+		if err != nil {
+			continue
+		}
 		if percent.Numerator == nil || percent.Denominator == nil {
 			num := int(0)
 			token.TransferTaxNumerator = &num

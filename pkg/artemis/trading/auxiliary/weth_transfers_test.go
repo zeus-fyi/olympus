@@ -24,7 +24,7 @@ func (t *ArtemisAuxillaryTestSuite) TestWETH() {
 			t.Require().Equal(artemis_trading_constants.UniswapUniversalRouterNewAddressAccount.String(), cmd.Payable.ToAddress.String())
 			t.Require().Equal(toExchAmount.String(), cmd.Payable.Amount.String())
 			t.Require().Equal(toExchAmount.String(), sc.DecodedInputs.(web3_client.WrapETHParams).AmountMin.String())
-			t.Require().Equal(ta.Address().String(), sc.DecodedInputs.(web3_client.WrapETHParams).Recipient.String())
+			t.Require().Equal(artemis_trading_constants.UniversalRouterSender, sc.DecodedInputs.(web3_client.WrapETHParams).Recipient.String())
 		}
 	}
 	t.Require().True(found)
@@ -41,14 +41,10 @@ func (t *ArtemisAuxillaryTestSuite) TestWETH() {
 	fmt.Println("tx", tx.Hash().String())
 }
 
-func (t *ArtemisAuxillaryTestSuite) TestPermit2EthToWETH() {
-
-}
-
 func (t *ArtemisAuxillaryTestSuite) TestUnwrapWETH() {
 	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
 	t.Require().NotEmpty(ta)
-	toExchAmount := artemis_eth_units.EtherMultiple(1)
+	toExchAmount := artemis_eth_units.GweiMultiple(1000)
 	cmd, err := ta.GenerateCmdToExchangeWETHtoETH(ctx, nil, toExchAmount, nil)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(cmd)
@@ -58,7 +54,8 @@ func (t *ArtemisAuxillaryTestSuite) TestUnwrapWETH() {
 			found = true
 			t.Require().Nil(cmd.Payable.Amount)
 			t.Require().Equal(toExchAmount.String(), sc.DecodedInputs.(web3_client.UnwrapWETHParams).AmountMin.String())
-			t.Require().Equal(ta.Address().String(), sc.DecodedInputs.(web3_client.UnwrapWETHParams).Recipient.String())
+			t.Require().Equal(artemis_trading_constants.UniversalRouterSender, sc.DecodedInputs.(web3_client.WrapETHParams).Recipient.String())
+
 		}
 	}
 	t.Require().True(found)
@@ -69,4 +66,8 @@ func (t *ArtemisAuxillaryTestSuite) TestUnwrapWETH() {
 	tx, err := ta.universalRouterCmdBuilder(ctx, cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
+
+	_, err = ta.universalRouterExecuteTx(ctx, tx)
+	t.Require().Nil(err)
+	fmt.Println("tx", tx.Hash().String())
 }

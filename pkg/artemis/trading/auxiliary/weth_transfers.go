@@ -18,8 +18,7 @@ func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeETHtoWETH(ctx context.Conte
 		return nil, errors.New("no account or user address provided")
 	}
 	if user == nil {
-		//addr := artemis_trading_constants.UniversalRouterSenderAddress
-		addr := a.Account.Address()
+		addr := artemis_trading_constants.UniversalRouterSenderAddress
 		user = &addr
 	}
 
@@ -57,7 +56,7 @@ func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeWETHtoETH(ctx context.Conte
 		return nil, errors.New("no account or user address provided")
 	}
 	if user == nil {
-		addr := a.Account.Address()
+		addr := artemis_trading_constants.UniversalRouterSenderAddress
 		user = &addr
 	}
 	unwrapParams := web3_client.UnwrapWETHParams{

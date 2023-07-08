@@ -64,23 +64,33 @@ func (s *ArtemisRealTimeTradingTestSuite) TestTransferFeeAnalysisBulk() {
 			continue
 		}
 		s.ca.u.Web3Client.AddSessionLockHeader(token.Address)
-
 		err := s.ca.UserA.HardHatResetNetwork(ctx, 17595510)
-		s.Assert().Nil(err)
+		s.Require().Nil(err)
 		if err != nil {
 			continue
 		}
 		fmt.Println("token", token.Address)
 		s.ca.SmartContractAddr = token.Address
 		percent, err := s.ca.CalculateTransferFeeTax(ctx, artemis_eth_units.EtherMultiple(1))
-		s.Assert().Nil(err)
-		num := int(percent.Numerator.Int64())
-		token.TransferTaxNumerator = &num
-		denom := int(percent.Denominator.Int64())
-		token.TransferTaxDenominator = &denom
-		s.Require().NotZero(token.TransferTaxDenominator)
-		fmt.Println("token", token.Address, "percent", percent.Numerator.String(), "/", percent.Denominator.String())
-		err = artemis_mev_models.UpdateERC20TokenTransferTaxInfo(ctx, token)
+		s.Require().Nil(err)
+		if percent.Numerator == nil || percent.Denominator == nil {
+			num := int(0)
+			token.TransferTaxNumerator = &num
+			denom := int(1)
+			token.TransferTaxDenominator = &denom
+			err = artemis_mev_models.UpdateERC20TokenTransferTaxInfo(ctx, token)
+			s.Assert().Nil(err)
+		} else {
+			num := int(percent.Numerator.Int64())
+			token.TransferTaxNumerator = &num
+			denom := int(percent.Denominator.Int64())
+			token.TransferTaxDenominator = &denom
+			s.Require().NotZero(token.TransferTaxDenominator)
+			fmt.Println("token", token.Address, "percent", percent.Numerator.String(), "/", percent.Denominator.String())
+			err = artemis_mev_models.UpdateERC20TokenTransferTaxInfo(ctx, token)
+			s.Assert().Nil(err)
+		}
+
 		s.Assert().Nil(err)
 		time.Sleep(100 * time.Millisecond)
 	}

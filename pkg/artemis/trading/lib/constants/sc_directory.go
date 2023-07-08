@@ -35,6 +35,8 @@ const (
 	Permit2SmartContractAddress = "0x000000000022D473030F116dDEE9F6B43aC78BA3"
 
 	ZeroAddress = "0x0000000000000000000000000000000000000000"
+
+	GoerliWETH9ContractAddress = "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"
 )
 
 var (
@@ -42,4 +44,5 @@ var (
 	Doge2ContractAddrAccount           = accounts.HexToAddress(Doge2ContractAddr)
 	PepeContractAddrAccount            = accounts.HexToAddress(PepeContractAddr)
 	WETH9ContractAddressAccount        = accounts.HexToAddress(WETH9ContractAddress)
+	GoerliWETH9ContractAddressAccount  = accounts.HexToAddress(GoerliWETH9ContractAddress)
 )

@@ -38,6 +38,10 @@ func (t *ArtemisAuxillaryTestSuite) TestWETH() {
 	//fmt.Println("tx", tx.Hash().String())
 }
 
+func (t *ArtemisAuxillaryTestSuite) TestPermit2EthToWETH() {
+
+}
+
 func (t *ArtemisAuxillaryTestSuite) TestUnwrapWETH() {
 	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
 	t.Require().NotEmpty(ta)

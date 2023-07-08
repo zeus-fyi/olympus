@@ -39,14 +39,11 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdBuilder(ctx context.Context, u
 	}
 	data.Deadline = a.GetDeadline()
 	scInfo := GetUniswapUniversalRouterAbiPayload(data)
-	// TODO implement better gas estimation
-	scInfo.GasLimit = 3000000
 	signedTx, err := a.GetSignedTxToCallFunctionWithArgs(ctx, &scInfo)
 	if err != nil {
 		return signedTx, err
 	}
-	// todo add gas price
-	err = a.universalRouterCmdVerifier(ctx, ur, signedTx, &scInfo)
+	err = a.universalRouterCmdVerifier(ctx, ur, &scInfo)
 	if err != nil {
 		return nil, err
 	}

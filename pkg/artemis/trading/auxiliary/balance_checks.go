@@ -7,9 +7,6 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
@@ -18,7 +15,7 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-func (a *AuxiliaryTradingUtils) universalRouterCmdVerifier(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, signedTx *types.Transaction, scInfo *web3_actions.SendContractTxPayload) error {
+func (a *AuxiliaryTradingUtils) universalRouterCmdVerifier(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, scInfo *web3_actions.SendContractTxPayload) error {
 	ethRequirements := artemis_eth_units.NewBigInt(0)
 	for _, sc := range ur.Commands {
 		switch sc.Command {
@@ -33,7 +30,9 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdVerifier(ctx context.Context, 
 	}
 	// todo: add gas cost using scInfo
 	// scInfo
-	gasCost := artemis_eth_units.NewBigInt(0)
+
+	gasCost := artemis_eth_units.MulBigInt(scInfo.GasFeeCap, artemis_eth_units.NewBigInt(int(scInfo.GasLimit)))
+	fmt.Println("gasCost", gasCost)
 	ethRequirements = artemis_eth_units.AddBigInt(ethRequirements, gasCost)
 	hasEnough, err := a.checkAuxEthBalanceGreaterThan(ctx, ethRequirements)
 	if err != nil {
@@ -43,24 +42,6 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdVerifier(ctx context.Context, 
 		return errors.New("user does not have enough ETH to exchange to WETH")
 	}
 
-	est, err := a.C.SuggestGasPrice(ctx)
-	if err != nil {
-		return err
-	}
-	gt, err := a.C.SuggestGasTipCap(ctx)
-	if err != nil {
-		return err
-	}
-
-	toAddr := common.HexToAddress(artemis_trading_constants.UniswapUniversalRouterAddressNew)
-	msg := ethereum.CallMsg{From: common.HexToAddress(a.Address().Hex()), To: &toAddr, Data: signedTx.Data()}
-	gasLimit, err := a.C.EstimateGas(ctx, msg)
-	if err != nil {
-		return err
-	}
-	fmt.Println("estimated gas limit", gasLimit)
-	fmt.Println("estimated gas price", est.String())
-	fmt.Println("estimated gas tip cap", gt.String())
 	return nil
 }
 

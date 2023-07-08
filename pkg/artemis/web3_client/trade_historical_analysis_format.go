@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
@@ -180,27 +181,37 @@ func (u *UniswapClient) CheckBlockRxAndNetworkReset(ctx context.Context, tf *Tra
 		return -1, fmt.Errorf("artmeis block number %d is greater than or equal to rx block number %d", currentBlockNum, int(rx.BlockNumber.Int64()))
 	}
 	u.Web3Client.Dial()
-	nodeInfo, err := u.Web3Client.GetNodeMetadata(ctx)
+	origInfo, err := u.Web3Client.GetNodeMetadata(ctx)
 	if err != nil {
 		return -1, err
 	}
 	u.Web3Client.Close()
 	u.Web3Client.Dial()
-	err = u.Web3Client.ResetNetwork(ctx, nodeInfo.ForkConfig.ForkUrl, currentBlockNum)
+
+	err = u.Web3Client.ResetNetwork(ctx, origInfo.ForkConfig.ForkUrl, currentBlockNum)
 	if err != nil {
 		return -1, err
 	}
 	u.Web3Client.Close()
-	u.Web3Client.Dial()
-	nodeInfo, err = u.Web3Client.GetNodeMetadata(ctx)
-	if err != nil {
-		return -1, err
+	for i := 0; i < 10; i++ {
+		u.Web3Client.Dial()
+		nodeInfo, rerr := u.Web3Client.GetNodeMetadata(ctx)
+		if rerr != nil {
+			return -1, err
+		}
+		u.Web3Client.Close()
+		if nodeInfo.ForkConfig.ForkUrl != origInfo.ForkConfig.ForkUrl {
+			return -1, fmt.Errorf("CheckBlockRxAndNetworkReset: live network fork url %s is not equal to initial fork url %s", nodeInfo.ForkConfig.ForkUrl, nodeInfo.ForkConfig.ForkUrl)
+		}
+		if nodeInfo.ForkConfig.ForkBlockNumber != currentBlockNum {
+			fmt.Println("initForkUrl1", origInfo.ForkConfig.ForkUrl, "CurrentBlockNumber", origInfo.CurrentBlockNumber.ToInt().String(), "ForkBlockNumber", origInfo.ForkConfig.ForkBlockNumber)
+			fmt.Println("initForkUrl2", nodeInfo.ForkConfig.ForkUrl, "CurrentBlockNumber", nodeInfo.CurrentBlockNumber.ToInt().String(), "ForkBlockNumber", nodeInfo.ForkConfig.ForkBlockNumber)
+		} else {
+			return currentBlockNum, nil
+		}
+		time.Sleep(100 * time.Millisecond)
 	}
-	u.Web3Client.Close()
-	if nodeInfo.ForkConfig.ForkBlockNumber != currentBlockNum {
-		return -1, fmt.Errorf("CheckBlockRxAndNetworkReset: live network fork block number %d is not equal to current block number %d", nodeInfo.ForkConfig.ForkBlockNumber, currentBlockNum)
-	}
-	return currentBlockNum, nil
+	return -1, errors.New("CheckBlockRxAndNetworkReset: could not reset network")
 }
 
 func (u *UniswapClient) CheckExpectedReserves(tf *TradeExecutionFlow) error {

@@ -36,7 +36,7 @@ func (t *TradeDebugger) resetNetwork(ctx context.Context, tf web3_client.TradeEx
 	if tf.CurrentBlockNumber == nil {
 		return fmt.Errorf("current block number is nil")
 	}
-	bn, err := t.UniswapClient.CheckBlockRxAndNetworkReset(ctx, &tf, &t.LiveNetworkClient)
+	bn, err := t.UniswapClient.CheckBlockRxAndNetworkReset(ctx, &tf)
 	if err != nil {
 		log.Err(err).Interface("blockNum", bn).Msg("error checking block and network reset")
 		return err

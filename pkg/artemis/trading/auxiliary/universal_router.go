@@ -46,7 +46,7 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdBuilder(ctx context.Context, u
 		return signedTx, err
 	}
 	// todo add gas price
-	err = a.universalRouterCmdVerifier(ctx, ur, &scInfo)
+	err = a.universalRouterCmdVerifier(ctx, ur, signedTx, &scInfo)
 	if err != nil {
 		return nil, err
 	}

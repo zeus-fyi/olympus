@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/configs"
+	artemis_test_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/test_suite/test_cache"
 )
 
 type ArtemisConfig struct {
@@ -47,6 +48,7 @@ var (
 	ArtemisEthereumMainnet                            = NewArtemisConfig(Ethereum, Mainnet)
 	ArtemisEthereumMainnetQuiknode                    = NewArtemisConfig(Ethereum, Mainnet)
 	ArtemisEthereumMainnetQuiknodeLive                = NewArtemisConfig(Ethereum, Mainnet)
+	ArtemisEthereumMainnetQuiknodeLiveTest            = NewArtemisConfig(Ethereum, Mainnet)
 	ArtemisEthereumMainnetQuiknodeHistoricalPrimary   = NewArtemisConfig(Ethereum, Mainnet)
 	ArtemisEthereumMainnetQuiknodeHistoricalSecondary = NewArtemisConfig(Ethereum, Mainnet)
 	ArtemisEthereumMainnetQuiknodeHistoricalTertiary  = NewArtemisConfig(Ethereum, Mainnet)
@@ -83,4 +85,6 @@ func InitArtemisLocalTestConfigs() {
 
 	ArtemisEthereumEphemeral.NodeURL = tc.EphemeralNodeUrl
 	ArtemisEthereumGoerli.AddAccountFromHexPk(ctx, tc.ArtemisEphemeralEcdsaKey)
+
+	artemis_test_cache.InitLiveTestNetwork(tc.QuikNodeURLS.TestRoute)
 }

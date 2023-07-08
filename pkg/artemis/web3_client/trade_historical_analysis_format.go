@@ -12,6 +12,7 @@ import (
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
+	artemis_test_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/test_suite/test_cache"
 )
 
 func (u *UniswapClient) RunHistoricalTradeAnalysis(ctx context.Context, tfStr string, liveNetworkClient Web3Client) error {
@@ -33,24 +34,24 @@ func (u *UniswapClient) RunHistoricalTradeAnalysis(ctx context.Context, tfStr st
 	u.TradeAnalysisReport.AmountInAddr = tfJSON.UserTrade.AmountInAddr.String()
 	u.TradeAnalysisReport.AmountOutAddr = tfJSON.UserTrade.AmountOutAddr.String()
 	u.Web3Client.AddSessionLockHeader(tfJSON.Tx.Hash)
-
+	if u.Web3Client.IsAnvilNode == true {
+		if u.Web3Client.Headers != nil {
+			sid := u.Web3Client.Headers["Session-Lock-ID"]
+			if sid != "" {
+				defer u.EndHardHatSessionAndReset()
+			}
+		}
+	}
 	err = FilterNonActionTradeExecutionFlows(tfJSON)
 	if err != nil {
 		return u.MarkEndOfSimDueToErr(err)
 	}
 	tf := tfJSON.ConvertToBigIntType()
-	artemisBlockNum, err := u.CheckBlockRxAndNetworkReset(ctx, &tf, &liveNetworkClient)
+	_, err = u.CheckBlockRxAndNetworkReset(ctx, &tf)
 	if err != nil {
 		return u.MarkEndOfSimDueToErr(err)
 	}
-	if u.Web3Client.IsAnvilNode == true {
-		if u.Web3Client.Headers != nil {
-			sid := u.Web3Client.Headers["Session-Lock-ID"]
-			if sid != "" {
-				defer u.Web3Client.EndHardHatSessionReset(ctx, liveNetworkClient.NodeURL, artemisBlockNum)
-			}
-		}
-	}
+
 	err = u.CheckExpectedReserves(&tf)
 	if err != nil {
 		return u.MarkEndOfSimDueToErr(err)
@@ -149,11 +150,25 @@ type TradeFailureReport struct {
 	EndStage  string `json:"end_stage"`
 }
 
-func (u *UniswapClient) CheckBlockRxAndNetworkReset(ctx context.Context, tf *TradeExecutionFlow, liveNetworkClient *Web3Client) (int, error) {
-	rx, err := liveNetworkClient.GetTxReceipt(ctx, tf.Tx.Hash())
+func (u *UniswapClient) EndHardHatSessionAndReset() error {
+	nodeInfo, err := u.Web3Client.GetNodeMetadata(ctx)
+	if err != nil {
+		return err
+	}
+	err = u.Web3Client.EndHardHatSessionReset(ctx, nodeInfo.ForkConfig.ForkUrl, 0)
+	if err != nil {
+		log.Err(err).Msg("UniswapClient: EndHardHatSessionReset")
+		return err
+	}
+	return nil
+}
+func (u *UniswapClient) CheckBlockRxAndNetworkReset(ctx context.Context, tf *TradeExecutionFlow) (int, error) {
+	artemis_test_cache.LiveTestNetwork.Dial()
+	rx, err := artemis_test_cache.LiveTestNetwork.C.TransactionReceipt(ctx, tf.Tx.Hash())
 	if err != nil {
 		return -1, err
 	}
+	artemis_test_cache.LiveTestNetwork.Close()
 	currentBlockStr := tf.CurrentBlockNumber.String()
 	currentBlockNum, err := strconv.Atoi(currentBlockStr)
 	if err != nil {
@@ -169,18 +184,14 @@ func (u *UniswapClient) CheckBlockRxAndNetworkReset(ctx context.Context, tf *Tra
 	if err != nil {
 		return -1, err
 	}
-	liveNetwork := nodeInfo.ForkConfig.ForkUrl
-	liveNetworkClient.NodeURL = liveNetwork
-	if liveNetworkClient.NodeURL == "" {
-		return -1, fmt.Errorf("live network client node url is empty")
-	}
-	if liveNetworkClient.NodeURL == irisBetaSvc {
-		return -1, fmt.Errorf("iris proxy cannot connect to itself")
-	}
-	err = u.Web3Client.ResetNetwork(ctx, liveNetwork, currentBlockNum)
+	u.Web3Client.Close()
+	u.Web3Client.Dial()
+	err = u.Web3Client.ResetNetwork(ctx, nodeInfo.ForkConfig.ForkUrl, currentBlockNum)
 	if err != nil {
 		return -1, err
 	}
+	u.Web3Client.Close()
+	u.Web3Client.Dial()
 	nodeInfo, err = u.Web3Client.GetNodeMetadata(ctx)
 	if err != nil {
 		return -1, err

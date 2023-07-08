@@ -5,6 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
+	artemis_test_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/test_suite/test_cache"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/memfs"
 )
 
@@ -12,6 +13,7 @@ const (
 	QuiknodeStreamWsSecret            = "secrets/artemis.ethereum.mainnet.quiknode.stream.ws.txt"
 	QuikNodeSecret                    = "secrets/artemis.ethereum.mainnet.quiknode.txt"
 	QuikNodeSecretLive                = "secrets/artemis.ethereum.mainnet.quiknode.live.txt"
+	QuikNodeSecretLiveTest            = "secrets/artemis.ethereum.mainnet.quiknode.live.test.txt"
 	QuiknodeHistoricalPrimarySecret   = "secrets/artemis.ethereum.mainnet.quiknode.historical.primary.txt"
 	QuiknodeHistoricalSecondarySecret = "secrets/artemis.ethereum.mainnet.quiknode.historical.secondary.txt"
 	QuiknodeHistoricalTertiarySecret  = "secrets/artemis.ethereum.mainnet.quiknode.historical.tertiary.txt"
@@ -27,6 +29,8 @@ func InitArtemisEthereum(ctx context.Context, inMemSecrets memfs.MemFS, secrets 
 		cfg.AddAccountFromHexPk(ctx, key)
 	}
 
+	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLiveTest.NodeURL = secrets.MustReadSecret(ctx, inMemSecrets, QuikNodeSecretLiveTest)
+	artemis_test_cache.InitLiveTestNetwork(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLiveTest.NodeURL)
 	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL = secrets.MustReadSecret(ctx, inMemSecrets, QuiknodeHistoricalPrimarySecret)
 	artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.Account = artemis_network_cfgs.ArtemisEthereumMainnet.Account
 

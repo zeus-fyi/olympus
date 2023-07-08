@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
+	artemis_test_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/test_suite/test_cache"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_encryption"
 )
@@ -18,6 +19,7 @@ type ArtemisRealTimeTradingTestSuite struct {
 
 func (s *ArtemisRealTimeTradingTestSuite) SetupTest() {
 	s.InitLocalConfigs()
+	artemis_test_cache.InitLiveTestNetwork(s.Tc.QuikNodeURLS.TestRoute)
 	pkHexString := s.Tc.LocalEcsdaTestPkey
 	newAccount, err := accounts.ParsePrivateKey(pkHexString)
 	s.Assert().Nil(err)

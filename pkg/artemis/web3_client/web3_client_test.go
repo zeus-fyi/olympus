@@ -12,6 +12,7 @@ import (
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	artemis_test_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/test_suite/test_cache"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_encryption"
 )
 
@@ -29,6 +30,7 @@ type Web3ClientTestSuite struct {
 
 func (s *Web3ClientTestSuite) SetupTest() {
 	s.InitLocalConfigs()
+	artemis_test_cache.InitLiveTestNetwork(s.Tc.QuikNodeURLS.TestRoute)
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	artemis_trading_cache.InitTokenFilter(ctx)
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)

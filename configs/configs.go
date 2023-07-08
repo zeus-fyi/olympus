@@ -21,7 +21,8 @@ type TestURLs struct {
 }
 
 type QuikNodeURLS struct {
-	Routes []string
+	TestRoute string
+	Routes    []string
 }
 type TestContainer struct {
 	Env string
@@ -183,7 +184,8 @@ func InitLocalTestConfigs() TestContainer {
 		log.Info().Err(err).Msg("error reading gcp auth json file")
 	}
 	qn := QuikNodeURLS{
-		Routes: []string{},
+		TestRoute: viper.GetString("QUIKNODE_TEST"),
+		Routes:    []string{},
 	}
 	for i := 1; i < 9; i++ {
 		qn.Routes = append(qn.Routes, viper.GetString(fmt.Sprintf("QUIKNODE_%d", i)))

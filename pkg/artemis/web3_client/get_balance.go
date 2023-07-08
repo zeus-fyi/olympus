@@ -11,6 +11,9 @@ func (w *Web3Client) GetCurrentBalance(ctx context.Context) (*big.Int, error) {
 	w.Dial()
 	defer w.Close()
 	b, err := w.GetBalance(ctx, w.PublicKey(), nil)
+	if err != nil {
+		return nil, err
+	}
 	return b, err
 }
 
@@ -18,6 +21,9 @@ func (w *Web3Client) GetUserCurrentBalance(ctx context.Context, userAddr string)
 	w.Dial()
 	defer w.Close()
 	b, err := w.GetBalance(ctx, userAddr, nil)
+	if err != nil {
+		return nil, err
+	}
 	return b, err
 }
 

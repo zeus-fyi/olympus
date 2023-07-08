@@ -1,7 +1,6 @@
 package web3_client
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/rs/zerolog/log"
@@ -28,9 +27,9 @@ func (u *UniswapClient) ExecTradeByMethod(tf *TradeExecutionFlow) (*web3_actions
 	case V2SwapExactIn, V2SwapExactOut, V3SwapExactIn, V3SwapExactOut:
 		return nil, u.Web3Client.SendImpersonatedTx(ctx, tf.Tx)
 	default:
+		log.Warn().Interface("trade", tf.Trade).Msg("trade method not found")
+		return nil, u.Web3Client.SendImpersonatedTx(ctx, tf.Tx)
 	}
-	log.Warn().Interface("trade", tf.Trade).Msg("invalid trade method")
-	return nil, errors.New("invalid trade method")
 }
 
 func (u *UniswapClient) SwapExactTokensForETHParams(tf *TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {

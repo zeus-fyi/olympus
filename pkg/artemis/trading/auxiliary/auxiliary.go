@@ -9,9 +9,22 @@ import (
 
 var TradingAuxiliary AuxiliaryTradingUtils
 
-func InitAuxiliaryTradingUtils(ctx context.Context, nodeURL string, acc accounts.Account) AuxiliaryTradingUtils {
+type AuxiliaryTradingUtils struct {
+	web3_client.Web3Client
+	OrderedTxs []accounts.Hash
+}
+
+func InitAuxiliaryTradingUtils(ctx context.Context, nodeURL, network string, acc accounts.Account) AuxiliaryTradingUtils {
 	TradingAuxiliary = AuxiliaryTradingUtils{
 		Web3Client: web3_client.NewWeb3Client(nodeURL, &acc),
 	}
+	TradingAuxiliary.Network = network
 	return TradingAuxiliary
+}
+
+func (a *AuxiliaryTradingUtils) AddTxHash(tx accounts.Hash) {
+	if a.OrderedTxs == nil {
+		a.OrderedTxs = []accounts.Hash{}
+	}
+	a.OrderedTxs = append(a.OrderedTxs, tx)
 }

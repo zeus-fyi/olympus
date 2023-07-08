@@ -30,12 +30,21 @@ const (
 
 	Execute0 = "execute0"
 	Execute  = "execute"
+
+	Sweep      = "SWEEP"
+	PayPortion = "PAY_PORTION"
+	Transfer   = "TRANSFER"
+	UnwrapWETH = "UNWRAP_WETH"
+	WrapETH    = "WRAP_ETH"
 )
 
 var (
 	UniswapUniversalRouterNewAddressAccount = accounts.HexToAddress(UniswapUniversalRouterAddressNew)
 	UniswapV3FactoryAddressAccount          = accounts.HexToAddress(UniswapV3FactoryAddress)
 	UniswapV2FactoryAddressAccount          = accounts.HexToAddress(UniswapV2FactoryAddress)
+
+	UniversalRouterSenderAddress   = accounts.HexToAddress("0x0000000000000000000000000000000000000001")
+	UniversalRouterReceiverAddress = accounts.HexToAddress("0x0000000000000000000000000000000000000002")
 )
 
 var (

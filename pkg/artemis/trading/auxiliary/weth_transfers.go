@@ -1,75 +1,57 @@
 package artemis_trading_auxiliary
 
-/*
-func (s *Web3ClientTestSuite) TestUniversalRouterV2() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
-	ForceDirToTestDirLocation()
-	uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
+import (
+	"context"
+	"errors"
+	"math/big"
 
-	hashStr := "0x889b34a27b730dd664cd71579b4310522c3b495fb34f17f08d1131c0cec651fa"
-	tx, _, err := s.MainnetWeb3User.GetTxByHash(ctx, common.HexToHash(hashStr))
-	s.Require().Nil(err)
-	s.Require().NotNil(tx)
-	mn, args, err := DecodeTxArgData(ctx, tx, uni.MevSmartContractTxMapUniversalRouterNew)
-	s.Require().Nil(err)
-	s.Require().NotEmpty(mn)
-	s.Require().NotEmpty(args)
-	subCmds, err := NewDecodedUniversalRouterExecCmdFromMap(args)
-	s.Require().Nil(err)
-	s.Require().NotEmpty(subCmds)
+	"github.com/zeus-fyi/gochain/web3/accounts"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
+)
 
-	node := "https://virulent-alien-cloud.quiknode.pro/fa84e631e9545d76b9e1b1c5db6607fedf3cb654"
-	err = s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, node, 16591736)
-	s.Require().Nil(err)
-
-	amountIn := ""
-	for _, cmd := range subCmds.Commands {
-		fmt.Println(cmd.Command)
-		if cmd.Command == WrapETH {
-			dec := cmd.DecodedInputs.(WrapETHParams)
-			fmt.Println("recipient", dec.Recipient.String())
-			fmt.Println("amountMin", dec.AmountMin.String())
-			amountIn = dec.AmountMin.String()
-		}
-		if cmd.Command == V2SwapExactOut {
-			dec := cmd.DecodedInputs.(V2SwapExactOutParams)
-			for _, pa := range dec.Path {
-				fmt.Println(pa.String())
-			}
-			fmt.Println("to", dec.To.String())
-			fmt.Println("payerIsSender", dec.PayerIsSender)
-			fmt.Println("amountOut", dec.AmountOut.String())
-			fmt.Println("amountInMax", dec.AmountInMax.String())
-			cmd.CanRevert = false
-		}
-		if cmd.Command == UnwrapWETH {
-			dec := cmd.DecodedInputs.(UnwrapWETHParams)
-			fmt.Println("recipient", dec.Recipient.String())
-			fmt.Println("amountMin", dec.AmountMin.String())
-
-			cmd.CanRevert = false
-		}
+func (a *AuxiliaryTradingUtils) checkIfCmdEmpty(ur *web3_client.UniversalRouterExecCmd) *web3_client.UniversalRouterExecCmd {
+	if ur == nil {
+		ur = &web3_client.UniversalRouterExecCmd{}
 	}
-	pl, _ := new(big.Int).SetString(amountIn, 10)
-	wethParams := WrapETHParams{
-		Recipient: s.LocalHardhatMainnetUser.Address(),
-		AmountMin: pl,
+	if ur.Commands == nil {
+		ur.Commands = []web3_client.UniversalRouterExecSubCmd{}
+	}
+	return ur
+}
+
+func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeETHtoWETH(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, amountIn *big.Int, user *accounts.Address) error {
+	ur = a.checkIfCmdEmpty(ur)
+	if a.Account == nil && user == nil {
+		return errors.New("no account or user address provided")
+	}
+	if user == nil {
+		addr := a.Account.Address()
+		user = &addr
+	}
+	wethParams := web3_client.WrapETHParams{
+		Recipient: *user,
+		AmountMin: amountIn,
 	}
 	payable := &web3_actions.SendEtherPayload{
 		TransferArgs: web3_actions.TransferArgs{
-			Amount:    pl,
+			Amount:    amountIn,
 			ToAddress: wethParams.Recipient,
 		},
 		GasPriceLimits: web3_actions.GasPriceLimits{},
 	}
-	subCmds.Payable = payable
-	data, err := subCmds.EncodeCommands(ctx)
-	s.Require().Nil(err)
-	s.Require().NotNil(data)
-
-	scInfo := GetUniswapUniversalRouterAbiPayload(data)
-	signedTx, err := s.LocalHardhatMainnetUser.CallFunctionWithArgs(ctx, &scInfo)
-	s.Require().Nil(err)
-	s.Require().NotNil(signedTx)
+	ur.Commands = append(ur.Commands, web3_client.UniversalRouterExecSubCmd{
+		Command:       artemis_trading_constants.WrapETH,
+		DecodedInputs: wethParams,
+		CanRevert:     false,
+	})
+	if ur.Payable == nil {
+		ur.Payable = payable
+	} else {
+		ur.Payable.Amount = artemis_eth_units.AddBigInt(ur.Payable.Amount, amountIn)
+		ur.Payable.ToAddress = wethParams.Recipient
+	}
+	return nil
 }
-*/

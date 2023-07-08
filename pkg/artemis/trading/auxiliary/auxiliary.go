@@ -9,9 +9,13 @@ import (
 
 var TradingAuxiliary AuxiliaryTradingUtils
 
-func InitAuxiliaryTradingUtils(ctx context.Context, nodeURL string, acc accounts.Account) AuxiliaryTradingUtils {
+func InitAuxiliaryTradingUtils(ctx context.Context, nodeURL, network string, acc accounts.Account) AuxiliaryTradingUtils {
 	TradingAuxiliary = AuxiliaryTradingUtils{
 		Web3Client: web3_client.NewWeb3Client(nodeURL, &acc),
 	}
+	TradingAuxiliary.Network = network
 	return TradingAuxiliary
+}
+
+func (a *AuxiliaryTradingUtils) UniversalRouterCmdBuilder(ctx context.Context, command string) {
 }

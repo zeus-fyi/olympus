@@ -30,6 +30,12 @@ const (
 
 	Execute0 = "execute0"
 	Execute  = "execute"
+
+	Sweep      = "SWEEP"
+	PayPortion = "PAY_PORTION"
+	Transfer   = "TRANSFER"
+	UnwrapWETH = "UNWRAP_WETH"
+	WrapETH    = "WRAP_ETH"
 )
 
 var (

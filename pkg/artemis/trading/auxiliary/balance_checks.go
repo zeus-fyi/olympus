@@ -5,6 +5,7 @@ import (
 	"errors"
 	"math/big"
 
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
@@ -12,16 +13,21 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-func (a *AuxiliaryTradingUtils) UniversalRouterCmdVerifier(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) error {
+func (a *AuxiliaryTradingUtils) universalRouterCmdVerifier(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, scInfo web3_actions.SendContractTxPayload) error {
 	ethRequirements := artemis_eth_units.NewBigInt(0)
 	for _, sc := range ur.Commands {
 		switch sc.Command {
 		case artemis_trading_constants.WrapETH:
 			wp := sc.DecodedInputs.(web3_client.WrapETHParams)
 			ethRequirements = artemis_eth_units.AddBigInt(ethRequirements, wp.AmountMin)
+			if ur.Payable == nil {
+				return errors.New("payable is nil")
+			}
 		case artemis_trading_constants.UnwrapWETH:
 		}
 	}
+	// todo: add gas cost using scInfo
+	// scInfo
 	gasCost := artemis_eth_units.NewBigInt(0)
 	ethRequirements = artemis_eth_units.AddBigInt(ethRequirements, gasCost)
 	hasEnough, err := a.checkAuxEthBalanceGreaterThan(ctx, ethRequirements)
@@ -31,6 +37,7 @@ func (a *AuxiliaryTradingUtils) UniversalRouterCmdVerifier(ctx context.Context, 
 	if !hasEnough {
 		return errors.New("user does not have enough ETH to exchange to WETH")
 	}
+
 	return nil
 }
 

@@ -12,16 +12,6 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *AuxiliaryTradingUtils) checkIfCmdEmpty(ur *web3_client.UniversalRouterExecCmd) *web3_client.UniversalRouterExecCmd {
-	if ur == nil {
-		ur = &web3_client.UniversalRouterExecCmd{}
-	}
-	if ur.Commands == nil {
-		ur.Commands = []web3_client.UniversalRouterExecSubCmd{}
-	}
-	return ur
-}
-
 func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeETHtoWETH(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, amountIn *big.Int, user *accounts.Address) error {
 	ur = a.checkIfCmdEmpty(ur)
 	if a.Account == nil && user == nil {

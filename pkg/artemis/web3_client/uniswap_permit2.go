@@ -12,6 +12,7 @@ import (
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
 /*
@@ -79,15 +80,15 @@ func (w *Web3Client) ApprovePermit2(ctx context.Context, address string) (*types
 	return approveTx, nil
 }
 
-func (p *Permit2PermitParams) SignPermit2Mainnet(acc *accounts.Account) error {
-	chainID := big.NewInt(1)
+func (p *Permit2PermitParams) SignPermit2(acc *accounts.Account, chainID int) error {
+	chain := artemis_eth_units.NewBigInt(chainID)
 	name := "Permit2"
 	contractAddress := accounts.HexToAddress(Permit2SmartContractAddress)
 	if acc == nil {
 		return errors.New("account is nil")
 	}
 	hashed := hashPermitSingle(p.PermitSingle)
-	eip := NewEIP712(chainID, contractAddress, name)
+	eip := NewEIP712(chain, contractAddress, name)
 	hashed = eip.HashTypedData(hashed)
 	sig, err := acc.Sign(hashed.Bytes())
 	if err != nil {
@@ -95,6 +96,14 @@ func (p *Permit2PermitParams) SignPermit2Mainnet(acc *accounts.Account) error {
 	}
 	p.Signature = sig
 	return nil
+}
+
+func (p *Permit2PermitParams) SignPermit2Goerli(acc *accounts.Account) error {
+	return p.SignPermit2(acc, hestia_req_types.EthereumGoerliProtocolNetworkID)
+}
+
+func (p *Permit2PermitParams) SignPermit2Mainnet(acc *accounts.Account) error {
+	return p.SignPermit2(acc, hestia_req_types.EthereumMainnetProtocolNetworkID)
 }
 
 // equivalent: abi.decode(inputs, (IAllowanceTransfer.PermitSingle, bytes))
@@ -122,15 +131,15 @@ type Permit2TransferFromParams struct {
 	Signature                       []byte           `abi:"signature"`
 }
 
-func (p *Permit2TransferFromParams) SignPermit2Mainnet(acc *accounts.Account) error {
-	chainID := big.NewInt(1)
+func (p *Permit2TransferFromParams) SignPermit2(acc *accounts.Account, chainID int) error {
+	chain := big.NewInt(int64(chainID))
 	name := "Permit2"
 	contractAddress := accounts.HexToAddress(Permit2SmartContractAddress)
 	if acc == nil {
 		return errors.New("account is nil")
 	}
 	hashed := hashPermitTransferFrom(p.PermitTransferFrom, acc.Address())
-	eip := NewEIP712(chainID, contractAddress, name)
+	eip := NewEIP712(chain, contractAddress, name)
 	hashed = eip.HashTypedData(hashed)
 	sig, err := acc.Sign(hashed.Bytes())
 	if err != nil {

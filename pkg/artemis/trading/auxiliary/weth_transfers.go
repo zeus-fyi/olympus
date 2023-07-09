@@ -9,6 +9,7 @@ import (
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
+	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
@@ -50,7 +51,8 @@ func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeETHtoWETH(ctx context.Conte
 	return ur, nil
 }
 
-func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeWETHtoETH(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, amountIn *big.Int, user *accounts.Address) (*web3_client.UniversalRouterExecCmd, error) {
+// generateCmdToExchangeWETHtoETH is not production ready
+func (a *AuxiliaryTradingUtils) generateCmdToExchangeWETHtoETH(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, amountIn *big.Int, user *accounts.Address) (*web3_client.UniversalRouterExecCmd, error) {
 	ur = a.checkIfCmdEmpty(ur)
 	if a.Account == nil && user == nil {
 		return nil, errors.New("no account or user address provided")
@@ -63,12 +65,16 @@ func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeWETHtoETH(ctx context.Conte
 	if a.Network == hestia_req_types.Goerli {
 		wethAddr = artemis_trading_constants.GoerliWETH9ContractAddressAccount
 	}
-	permit, err := a.generatePermit2Transfer(ctx, wethAddr, amountIn)
+	to := &artemis_trading_types.TradeOutcome{
+		AmountIn:     amountIn,
+		AmountInAddr: wethAddr,
+	}
+	permit, err := a.generatePermit2Approval(ctx, to)
 	if err != nil {
 		return nil, err
 	}
 	permitCmd := web3_client.UniversalRouterExecSubCmd{
-		Command:       artemis_trading_constants.Permit2TransferFrom,
+		Command:       artemis_trading_constants.Permit2Permit,
 		DecodedInputs: permit,
 		CanRevert:     false,
 	}

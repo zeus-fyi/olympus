@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
@@ -75,14 +77,12 @@ func (a *AuxiliaryTradingUtils) checkAuxEthBalanceGreaterThan(ctx context.Contex
 }
 
 func (a *AuxiliaryTradingUtils) checkAuxWETHBalance(ctx context.Context) (*big.Int, error) {
-	wethAddr := artemis_trading_constants.WETH9ContractAddressAccount
-	switch a.Network {
-	case hestia_req_types.Mainnet:
-		wethAddr = artemis_trading_constants.WETH9ContractAddressAccount
-	case hestia_req_types.Goerli:
-		wethAddr = artemis_trading_constants.GoerliWETH9ContractAddressAccount
+	wethAddr := a.getChainSpecificWETH()
+	chainID, err := a.getChainID(ctx)
+	if err != nil {
+		return nil, err
 	}
-	token := core_entities.NewToken(a.getChainID(), wethAddr, 18, "WETH", "Wrapped Ether")
+	token := core_entities.NewToken(uint(chainID), wethAddr, 18, "WETH", "Wrapped Ether")
 	bal, err := a.ReadERC20TokenBalance(ctx, token.Address.String(), a.Account.Address().String())
 	if err != nil {
 		return bal, err
@@ -98,15 +98,35 @@ func (a *AuxiliaryTradingUtils) checkAuxWETHBalanceGreaterThan(ctx context.Conte
 	return artemis_eth_units.IsXGreaterThanY(bal, amount), err
 }
 
-func (a *AuxiliaryTradingUtils) getChainID() uint {
+func (a *AuxiliaryTradingUtils) getChainID(ctx context.Context) (int, error) {
+	chainID := hestia_req_types.EthereumMainnetProtocolNetworkID
 	switch a.Network {
 	case hestia_req_types.Mainnet:
-		return hestia_req_types.EthereumMainnetProtocolNetworkID
+		chainID = hestia_req_types.EthereumMainnetProtocolNetworkID
 	case hestia_req_types.Goerli:
-		return hestia_req_types.EthereumGoerliProtocolNetworkID
+		chainID = hestia_req_types.EthereumGoerliProtocolNetworkID
 	case hestia_req_types.Ephemery:
-		return hestia_req_types.EthereumEphemeryProtocolNetworkID
+		chainID = hestia_req_types.EthereumEphemeryProtocolNetworkID
 	default:
-		return hestia_req_types.EthereumMainnetProtocolNetworkID
+		a.Dial()
+		chain, err := a.C.ChainID(ctx)
+		if err != nil {
+			log.Warn().Err(err).Msg("error getting chainID")
+			return 0, err
+		}
+		chainID = int(chain.Int64())
+		a.Close()
 	}
+	return chainID, nil
+}
+
+func (a *AuxiliaryTradingUtils) getChainSpecificWETH() accounts.Address {
+	wethAddr := artemis_trading_constants.WETH9ContractAddressAccount
+	switch a.Network {
+	case hestia_req_types.Mainnet:
+		wethAddr = artemis_trading_constants.WETH9ContractAddressAccount
+	case hestia_req_types.Goerli:
+		wethAddr = artemis_trading_constants.GoerliWETH9ContractAddressAccount
+	}
+	return wethAddr
 }

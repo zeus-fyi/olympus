@@ -8,6 +8,7 @@ import (
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
@@ -70,26 +71,38 @@ func (s *Web3ClientTestSuite) TestWrapETHFuncs() {
 	approveTx, err := s.ProxyHostedHardhatMainnetUser.ERC20ApproveSpender(ctx, WETH9ContractAddress, UniswapUniversalRouterAddressNew, EtherMultiple(1000))
 	s.Require().Nil(err)
 	s.Require().NotNil(approveTx)
-	unwrapWETHParams := UnwrapWETHParams{
-		Recipient: routerRecipient,
-		AmountMin: Ether,
-	}
+
 	transferTxParams := web3_actions.SendContractTxPayload{
 		SmartContractAddr: WETH9ContractAddress,
 		SendEtherPayload: web3_actions.SendEtherPayload{
 			TransferArgs: web3_actions.TransferArgs{
-				ToAddress: accounts.HexToAddress(UniswapUniversalRouterAddressNew),
+				ToAddress: artemis_trading_constants.UniswapUniversalRouterNewAddressAccount,
 			},
 		},
 		ContractABI: artemis_oly_contract_abis.MustLoadERC20Abi(),
-		Params:      []interface{}{accounts.HexToAddress(UniswapUniversalRouterAddressNew), Ether},
+		Params:      []interface{}{artemis_trading_constants.UniswapUniversalRouterAddressNew, Ether},
 	}
 	transferTx, err := s.ProxyHostedHardhatMainnetUser.TransferERC20Token(ctx, transferTxParams)
 	s.Require().Nil(err)
 	s.Require().NotNil(transferTx)
+	//txf := TransferParams{
+	//	Token:     artemis_trading_constants.WETH9ContractAddressAccount,
+	//	Recipient: artemis_trading_constants.UniversalRouterReceiverAddress,
+	//	Value:     Ether,
+	//}
 
+	unwrapWETHParams := UnwrapWETHParams{
+		Recipient: artemis_trading_constants.UniversalRouterSenderAddress,
+		AmountMin: Ether,
+	}
 	ur = UniversalRouterExecCmd{
 		Commands: []UniversalRouterExecSubCmd{
+			//{
+			//	Command:       Transfer,
+			//	CanRevert:     false,
+			//	Inputs:        nil,
+			//	DecodedInputs: txf,
+			//},
 			{
 				Command:       UnwrapWETH,
 				CanRevert:     false,

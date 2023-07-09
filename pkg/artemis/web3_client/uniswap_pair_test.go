@@ -2,6 +2,8 @@ package web3_client
 
 import (
 	"fmt"
+
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 )
 
 func (s *Web3ClientTestSuite) TestGetPairContract() {
@@ -12,6 +14,13 @@ func (s *Web3ClientTestSuite) TestGetPairContract() {
 	s.Assert().Equal("0xA43fe16908251ee70EF74718545e4FE6C5cCEc9f", pair.String())
 
 	pair = uni.GetPairContractFromFactory(ctx, PepeContractAddr, WETH9ContractAddress)
+}
+
+func (s *Web3ClientTestSuite) TestGetPairContractGoerli() {
+	uni := InitUniswapClient(ctx, s.GoerliWeb3User)
+	pair := uni.GetPairContractFromFactory(ctx, artemis_trading_constants.GoerliWETH9ContractAddress, artemis_trading_constants.GoerliDaiContractAddress)
+	s.Assert().NotEmpty(pair)
+	fmt.Println(pair.String())
 }
 
 func (s *Web3ClientTestSuite) TestGetPairContractInfo() {

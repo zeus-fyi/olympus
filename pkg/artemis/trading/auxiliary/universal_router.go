@@ -2,12 +2,15 @@ package artemis_trading_auxiliary
 
 import (
 	"context"
+	"math/big"
+	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
@@ -27,17 +30,16 @@ func (a *AuxiliaryTradingUtils) universalRouterExecuteTx(ctx context.Context, si
 		log.Err(err).Msg("error sending signed tx")
 		return nil, err
 	}
-	// todo track tx
-	a.AddTxHash(accounts.Hash(signedTx.Hash()))
+	a.AddTx(signedTx)
 	return signedTx, err
 }
 
 func (a *AuxiliaryTradingUtils) universalRouterCmdBuilder(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, error) {
+	ur.Deadline = a.GetDeadline()
 	data, err := ur.EncodeCommands(ctx)
 	if err != nil {
 		return nil, err
 	}
-	data.Deadline = a.GetDeadline()
 	scInfo := GetUniswapUniversalRouterAbiPayload(data)
 	signedTx, err := a.GetSignedTxToCallFunctionWithArgs(ctx, &scInfo)
 	if err != nil {
@@ -102,4 +104,10 @@ func (a *AuxiliaryTradingUtils) checkIfCmdEmpty(ur *web3_client.UniversalRouterE
 		ur.Commands = []web3_client.UniversalRouterExecSubCmd{}
 	}
 	return ur
+}
+
+func (a *AuxiliaryTradingUtils) GetDeadline() *big.Int {
+	deadline := int(time.Now().Add(60 * time.Second).Unix())
+	sigDeadline := artemis_eth_units.NewBigInt(deadline)
+	return sigDeadline
 }

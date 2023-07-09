@@ -8,8 +8,6 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-// TODO, test with goerli, then set mainnet, needs to approve first before weth transfer
-
 func (t *ArtemisAuxillaryTestSuite) TestSetPermit2() {
 	nodeURL := t.goerliNode
 	ta := InitAuxiliaryTradingUtils(ctx, nodeURL, hestia_req_types.Goerli, t.acc)
@@ -25,6 +23,7 @@ func (t *ArtemisAuxillaryTestSuite) TestSetPermit2() {
 	fmt.Println("approveTx", approveTx.Hash().String())
 }
 
+// don't think this is needed if we use permit2
 func (t *ArtemisAuxillaryTestSuite) TestSetApproveUniversalRouter() {
 	nodeURL := t.goerliNode
 	ta := InitAuxiliaryTradingUtils(ctx, nodeURL, hestia_req_types.Goerli, t.acc)

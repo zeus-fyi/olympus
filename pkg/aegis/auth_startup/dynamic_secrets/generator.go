@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/rs/zerolog/log"
 	"github.com/tyler-smith/go-bip32"
 	"github.com/wealdtech/go-ed25519hd"
 	"github.com/zeus-fyi/gochain/web3/accounts"
@@ -88,6 +89,7 @@ func SaveAddress(ctx context.Context, tries int, s3Client s3base.S3Client, age e
 	if err != nil {
 		return err
 	}
+	log.Info().Interface("address", ag.Address).Msgf("Found address with %d leading zeros", ag.LeadingZeroesCount)
 	fs, p, err := encAddress(age, ag)
 	if err != nil {
 		return err

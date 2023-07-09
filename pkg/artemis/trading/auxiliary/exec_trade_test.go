@@ -14,10 +14,9 @@ func (t *ArtemisAuxillaryTestSuite) TestExecV2Trade() {
 	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
 	t.Require().NotEmpty(ta)
 	toExchAmount := artemis_eth_units.GweiMultiple(1000)
-	wethAddr := artemis_trading_constants.WETH9ContractAddressAccount
+	wethAddr := ta.getChainSpecificWETH()
 	daiAddr := artemis_trading_constants.DaiContractAddressAccount
 	if ta.Network == hestia_req_types.Goerli {
-		wethAddr = artemis_trading_constants.GoerliWETH9ContractAddressAccount
 		daiAddr = artemis_trading_constants.GoerliDaiContractAddressAccount
 	}
 	to := &artemis_trading_types.TradeOutcome{

@@ -10,9 +10,9 @@ type EthEcdsaRxs struct {
 	RxID                          int            `db:"rx_id" json:"rxID"`
 	TxID                          int            `db:"tx_id" json:"txID"`
 	GasUsedCumulativeGwei         sql.NullInt64  `db:"gas_used_cumulative_gwei" json:"gasUsedCumulativeGwei"`
-	GasUsedCumulativeGweiDecimals sql.NullInt64  `db:"gas_used_cumulative_gwei_decimals" json:"gasUsedCumulativeGweiDecimals"`
+	GasUsedCumulativeGweiDecimals sql.NullInt64  `db:"gas_used_cumulative_gwei_decimals" json:"gasUsedCumulativeGweiDecimals,omitempty"`
 	GasUsedGwei                   sql.NullInt64  `db:"gas_used_gwei" json:"gasUsedGwei"`
-	GasUsedGweiDecimals           sql.NullInt64  `db:"gas_used_gwei_decimals" json:"gasUsedGweiDecimals"`
+	GasUsedGweiDecimals           sql.NullInt64  `db:"gas_used_gwei_decimals" json:"gasUsedGweiDecimals,omitempty"`
 	BlockNumber                   sql.NullInt64  `db:"block_number" json:"blockNumber"`
 	BlockTimestamp                sql.NullTime   `db:"block_timestamp" json:"blockTimestamp"`
 	TxIndex                       sql.NullInt64  `db:"tx_index" json:"txIndex"`

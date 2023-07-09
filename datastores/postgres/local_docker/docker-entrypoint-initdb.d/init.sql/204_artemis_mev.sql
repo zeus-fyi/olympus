@@ -23,6 +23,42 @@ CREATE TABLE "public"."uniswap_pair_info" (
 );
 ALTER TABLE "public"."uniswap_pair_info" ADD CONSTRAINT "uniswap_pair_info_pk" PRIMARY KEY ("address");
 
+CREATE TABLE "public"."events" (
+    "event_id" int8 NOT NULL DEFAULT next_id()
+);
+ALTER TABLE "public"."events" ADD CONSTRAINT "events_pk" PRIMARY KEY ("event_id");
+
+CREATE TABLE "public"."tags"
+(
+    "tag_id" int8 NOT NULL DEFAULT next_id()
+);
+ALTER TABLE "public"."tags" ADD CONSTRAINT "tags_pk" PRIMARY KEY ("tag_id");
+
+CREATE TABLE "public"."event_tags"
+(
+    "event_group_id" int8 NOT NULL DEFAULT next_id(),
+    "event_id"       int8 NOT NULL REFERENCES events (event_id),
+    "tag_id"         int8 NOT NULL REFERENCES tags (tag_id),
+);
+CREATE INDEX event_tags_index ON "public"."event_tags" ("event_group_id" DESC);
+ALTER TABLE "public"."event_tags" ADD CONSTRAINT "event_tags_pk" PRIMARY KEY ("event_id");
+
+CREATE TABLE "public"."eth_tx"
+(
+    "event_id"            int8 NOT NULL REFERENCES events (event_id),
+    "protocol_network_id" int8 NOT NULL REFERENCES protocol_networks (protocol_network_id) DEFAULT 1,
+    "tx_hash"             text NOT NULL
+);
+ALTER TABLE "public"."eth_tx" ADD CONSTRAINT "eth_tx_pk" PRIMARY KEY ("tx_hash");
+
+CREATE TABLE "public"."eth_rx"
+(
+    "event_id"            int8 NOT NULL REFERENCES events (event_id),
+    "protocol_network_id" int8 NOT NULL REFERENCES protocol_networks (protocol_network_id) DEFAULT 1,
+    "rx_hash"             text NOT NULL
+);
+ALTER TABLE "public"."eth_rx" ADD CONSTRAINT "eth_rx_pk" PRIMARY KEY ("rx_hash");
+
 CREATE TABLE "public"."eth_mempool_mev_tx" (
     "tx_id" int8 NOT NULL DEFAULT next_id(),
     "tx_hash" text NOT NULL,

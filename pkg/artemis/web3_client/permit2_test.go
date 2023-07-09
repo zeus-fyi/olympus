@@ -135,8 +135,8 @@ func (s *Web3ClientTestSuite) TestPermit2Transfer() {
 			Token:  accounts.HexToAddress("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"),
 			Amount: amount,
 		},
-		Nonce:       new(big.Int).SetUint64(0),
-		SigDeadline: sigDeadline,
+		Nonce:    new(big.Int).SetUint64(0),
+		Deadline: sigDeadline,
 	}
 	hash := _hashTokenPermissions(pt.TokenPermissions)
 	s.Equal("73dffa388f7cfcea85654f48d7cd2ff5daf542e0b51bba732287bdd89e73b35c", common.Bytes2Hex(hash[:]))

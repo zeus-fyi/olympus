@@ -146,12 +146,32 @@ const UniversalRouterDecodingAbi = `
       "type": "address"
     },
     {
-      "name": "recipient",
+      "name": "amount",
+      "type": "uint256"
+    },
+    {
+      "name": "nonce",
+      "type": "uint256"
+    },
+    {
+      "name": "deadline",
+      "type": "uint256"
+    },
+    {
+      "name": "to",
       "type": "address"
     },
     {
-      "name": "amount",
+      "name": "requestedAmount",
       "type": "uint256"
+    },
+    {
+      "name": "owner",
+      "type": "address"
+    },
+    {
+      "name": "signature",
+      "type": "bytes"
     }
   ],
   "name": "PERMIT2_TRANSFER_FROM",

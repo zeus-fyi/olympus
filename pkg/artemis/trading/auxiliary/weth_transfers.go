@@ -10,6 +10,7 @@ import (
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
 func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeETHtoWETH(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, amountIn *big.Int, user *accounts.Address) (*web3_client.UniversalRouterExecCmd, error) {
@@ -21,7 +22,6 @@ func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeETHtoWETH(ctx context.Conte
 		addr := artemis_trading_constants.UniversalRouterSenderAddress
 		user = &addr
 	}
-
 	wethParams := web3_client.WrapETHParams{
 		Recipient: *user,
 		AmountMin: amountIn,
@@ -59,6 +59,20 @@ func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeWETHtoETH(ctx context.Conte
 		addr := artemis_trading_constants.UniversalRouterSenderAddress
 		user = &addr
 	}
+	wethAddr := artemis_trading_constants.WETH9ContractAddressAccount
+	if a.Network == hestia_req_types.Goerli {
+		wethAddr = artemis_trading_constants.GoerliWETH9ContractAddressAccount
+	}
+	permit, err := a.generatePermit2Transfer(ctx, wethAddr, amountIn)
+	if err != nil {
+		return nil, err
+	}
+	permitCmd := web3_client.UniversalRouterExecSubCmd{
+		Command:       artemis_trading_constants.Permit2TransferFrom,
+		DecodedInputs: permit,
+		CanRevert:     false,
+	}
+	ur.Commands = append(ur.Commands, permitCmd)
 	unwrapParams := web3_client.UnwrapWETHParams{
 		Recipient: *user,
 		AmountMin: amountIn,

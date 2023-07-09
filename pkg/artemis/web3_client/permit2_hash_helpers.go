@@ -10,10 +10,18 @@ import (
 )
 
 var (
-	PermitDetailsTypeHash           = crypto.Keccak256Hash([]byte("PermitDetails(address token,uint160 amount,uint48 expiration,uint48 nonce)"))
-	PermitSingleTypeHash            = crypto.Keccak256Hash([]byte("PermitSingle(PermitDetails details,address spender,uint256 sigDeadline)PermitDetails(address token,uint160 amount,uint48 expiration,uint48 nonce)"))
-	TokenPermissionsTypeHash        = crypto.Keccak256Hash([]byte("TokenPermissions(address token,uint256 amount)"))
-	PermitTransferFromTypeHash      = crypto.Keccak256Hash([]byte("PermitTransferFrom(TokenPermissions permitted,address spender,uint256 nonce,uint256 deadline)TokenPermissions(address token,uint256 amount)"))
+	PermitDetailsTypeHash    = crypto.Keccak256Hash([]byte("PermitDetails(address token,uint160 amount,uint48 expiration,uint48 nonce)"))
+	PermitSingleTypeHash     = crypto.Keccak256Hash([]byte("PermitSingle(PermitDetails details,address spender,uint256 sigDeadline)PermitDetails(address token,uint160 amount,uint48 expiration,uint48 nonce)"))
+	TokenPermissionsTypeHash = crypto.Keccak256Hash([]byte("TokenPermissions(address token,uint256 amount)"))
+	/*
+	   bytes32 public constant _TOKEN_PERMISSIONS_TYPEHASH = keccak256("TokenPermissions(address token,uint256 amount)");
+	*/
+	PermitTransferFromTypeHash = crypto.Keccak256Hash([]byte("PermitTransferFrom(TokenPermissions permitted,address spender,uint256 nonce,uint256 deadline)TokenPermissions(address token,uint256 amount)"))
+	/*
+	   bytes32 public constant _PERMIT_TRANSFER_FROM_TYPEHASH = keccak256(
+	       "PermitTransferFrom(TokenPermissions permitted,address spender,uint256 nonce,uint256 deadline)TokenPermissions(address token,uint256 amount)"
+	   );
+	*/
 	PermitBatchTypeHash             = crypto.Keccak256Hash([]byte("PermitBatch(PermitDetails[] details,address spender,uint256 sigDeadline)PermitDetails(address token,uint160 amount,uint48 expiration,uint48 nonce)"))
 	PermitBatchTransferFromTypeHash = crypto.Keccak256Hash([]byte("PermitBatchTransferFrom(TokenPermissions[] permitted,address spender,uint256 nonce,uint256 deadline)TokenPermissions(address token,uint256 amount)"))
 	TokenPermissionsTypeString      = "TokenPermissions(address token,uint256 amount)"
@@ -38,7 +46,6 @@ func hashPermitSingle(permitSingle PermitSingle) common.Hash {
 	if err != nil {
 		panic(err)
 	}
-
 	data, err := parsedABI.Methods["abiEncode"].Inputs.Pack(common.BytesToHash(PermitSingleTypeHash.Bytes()), common.BytesToHash(hashed), permitSingle.Spender, permitSingle.SigDeadline)
 	if err != nil {
 		panic(err)
@@ -65,7 +72,7 @@ func hashPermitTransferFrom(permitTransferFrom PermitTransferFrom, sender accoun
 	if err != nil {
 		panic(err)
 	}
-	data, err := parsedABI.Methods["abiEncode"].Inputs.Pack(common.BytesToHash(PermitTransferFromTypeHash.Bytes()), common.BytesToHash(tokenPermissions), sender, permitTransferFrom.Nonce, permitTransferFrom.SigDeadline)
+	data, err := parsedABI.Methods["abiEncode"].Inputs.Pack(common.BytesToHash(PermitTransferFromTypeHash.Bytes()), common.BytesToHash(tokenPermissions), sender, permitTransferFrom.Nonce, permitTransferFrom.Deadline)
 	if err != nil {
 		panic(err)
 	}

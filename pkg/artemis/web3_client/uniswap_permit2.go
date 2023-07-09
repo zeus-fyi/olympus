@@ -46,12 +46,6 @@ const (
 
 var Permit2AbiDecoder = artemis_oly_contract_abis.MustLoadPermit2Abi()
 
-type Permit2TransferFromParams struct {
-	Token     accounts.Address `json:"token"`
-	Recipient accounts.Address `json:"recipient"`
-	Amount    *big.Int         `json:"amount"`
-}
-
 type Permit2PermitParams struct {
 	PermitSingle `abi:"permitSingle"`
 	Signature    []byte `json:"signature"`
@@ -106,21 +100,50 @@ func (p *Permit2PermitParams) SignPermit2Mainnet(acc *accounts.Account) error {
 // equivalent: abi.decode(inputs, (IAllowanceTransfer.PermitSingle, bytes))
 
 type PermitTransferFrom struct {
-	TokenPermissions
-	Expiration  *big.Int `abi:"expiration"`  // uint48 can be represented as uint64 in Go
-	Nonce       *big.Int `abi:"nonce"`       // uint48 can be represented as uint64 in Go
-	SigDeadline *big.Int `abi:"sigDeadline"` // uint48 can be represented as uint64 in Go
+	TokenPermissions `abi:"permitted"`
+	Nonce            *big.Int `abi:"nonce"`
+	Deadline         *big.Int `abi:"deadline"`
+}
+
+type TokenPermissions struct {
+	Token  accounts.Address `abi:"token"`
+	Amount *big.Int         `abi:"amount"` // uint160 can be represented as *big.Int in Go
+}
+
+type Permit2SignatureTransferDetails struct {
+	To              accounts.Address `abi:"to"`
+	RequestedAmount *big.Int         `abi:"requestedAmount"`
+}
+
+type Permit2TransferFromParams struct {
+	PermitTransferFrom              `abi:"permit"`
+	Permit2SignatureTransferDetails `abi:"transferDetails"`
+	Owner                           accounts.Address `abi:"owner"`
+	Signature                       []byte           `abi:"signature"`
+}
+
+func (p *Permit2TransferFromParams) SignPermit2Mainnet(acc *accounts.Account) error {
+	chainID := big.NewInt(1)
+	name := "Permit2"
+	contractAddress := accounts.HexToAddress(Permit2SmartContractAddress)
+	if acc == nil {
+		return errors.New("account is nil")
+	}
+	hashed := hashPermitTransferFrom(p.PermitTransferFrom, acc.Address())
+	eip := NewEIP712(chainID, contractAddress, name)
+	hashed = eip.HashTypedData(hashed)
+	sig, err := acc.Sign(hashed.Bytes())
+	if err != nil {
+		return err
+	}
+	p.Signature = sig
+	return nil
 }
 
 type PermitSingle struct {
 	PermitDetails `abi:"details"`
 	Spender       accounts.Address `abi:"spender"`
 	SigDeadline   *big.Int         `abi:"sigDeadline"` // uint48 can be represented as uint64 in Go
-}
-
-type TokenPermissions struct {
-	Token  accounts.Address `abi:"token"`
-	Amount *big.Int         `abi:"amount"` // uint160 can be represented as *big.Int in Go
 }
 
 type PermitDetails struct {
@@ -137,6 +160,7 @@ func (p *Permit2PermitParams) Encode(ctx context.Context) ([]byte, error) {
 	}
 	return inputs, nil
 }
+
 func (p *Permit2PermitParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
 	err := UniversalRouterDecoderAbi.Methods[Permit2Permit].Inputs.UnpackIntoMap(args, data)
@@ -178,6 +202,65 @@ func (p *Permit2PermitParams) Decode(ctx context.Context, data []byte) error {
 	return nil
 }
 
+func (p *Permit2TransferFromParams) Encode(ctx context.Context) ([]byte, error) {
+	inputs, err := UniversalRouterDecoderAbi.Methods[Permit2TransferFrom].Inputs.Pack(
+		p.TokenPermissions.Token, p.TokenPermissions.Amount,
+		p.Nonce, p.Deadline,
+		p.Permit2SignatureTransferDetails.To, p.Permit2SignatureTransferDetails.RequestedAmount,
+		p.Owner, p.Signature,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return inputs, nil
+}
+
+func (p *Permit2TransferFromParams) Decode(ctx context.Context, data []byte) error {
+	args := make(map[string]interface{})
+	err := UniversalRouterDecoderAbi.Methods[Permit2TransferFrom].Inputs.UnpackIntoMap(args, data)
+	if err != nil {
+		return err
+	}
+	token, err := ConvertToAddress(args["token"])
+	if err != nil {
+		return err
+	}
+	amount, err := ParseBigInt(args["amount"])
+	if err != nil {
+		return err
+	}
+	nonce, err := ParseBigInt(args["nonce"])
+	if err != nil {
+		return err
+	}
+	deadline, err := ParseBigInt(args["deadline"])
+	if err != nil {
+		return err
+	}
+	to, err := ConvertToAddress(args["to"])
+	if err != nil {
+		return err
+	}
+	requestedAmount, err := ParseBigInt(args["requestedAmount"])
+	if err != nil {
+		return err
+	}
+	owner, err := ConvertToAddress(args["owner"])
+	if err != nil {
+		return err
+	}
+	signature := args["signature"].([]byte)
+	p.TokenPermissions.Token = token
+	p.TokenPermissions.Amount = amount
+	p.Nonce = nonce
+	p.Deadline = deadline
+	p.Permit2SignatureTransferDetails.To = to
+	p.Permit2SignatureTransferDetails.RequestedAmount = requestedAmount
+	p.Owner = owner
+	p.Signature = signature
+	return nil
+}
+
 type Permit2PermitBatchParams struct {
 	PermitBatch PermitBatch `json:"permitBatch"`
 	Signature   []byte      `json:"signature"`
@@ -199,8 +282,6 @@ type AllowanceTransferDetails struct {
 	Amount *big.Int         `json:"amount"`
 	Token  accounts.Address `json:"token"`
 }
-
-// abi.decode(inputs, (IAllowanceTransfer.AllowanceTransferDetails[]));
 
 func (p *Permit2PermitTransferFromBatchParams) Encode(ctx context.Context) ([]byte, error) {
 	inputs, err := UniversalRouterDecoderAbi.Methods[Permit2TransferFromBatch].Inputs.Pack(p.Details)
@@ -224,38 +305,6 @@ func (p *Permit2PermitTransferFromBatchParams) Decode(ctx context.Context, data 
 	if err != nil {
 		return err
 	}
-	return nil
-}
-
-func (p *Permit2TransferFromParams) Encode(ctx context.Context) ([]byte, error) {
-	inputs, err := UniversalRouterDecoderAbi.Methods[Permit2TransferFrom].Inputs.Pack(p.Token, p.Recipient, p.Amount)
-	if err != nil {
-		return nil, err
-	}
-	return inputs, nil
-}
-
-func (p *Permit2TransferFromParams) Decode(ctx context.Context, data []byte) error {
-	args := make(map[string]interface{})
-	err := UniversalRouterDecoderAbi.Methods[Permit2TransferFrom].Inputs.UnpackIntoMap(args, data)
-	if err != nil {
-		return err
-	}
-	token, err := ConvertToAddress(args["token"])
-	if err != nil {
-		return err
-	}
-	recipient, err := ConvertToAddress(args["recipient"])
-	if err != nil {
-		return err
-	}
-	amount, err := ParseBigInt(args["amount"])
-	if err != nil {
-		return err
-	}
-	p.Token = token
-	p.Recipient = recipient
-	p.Amount = amount
 	return nil
 }
 

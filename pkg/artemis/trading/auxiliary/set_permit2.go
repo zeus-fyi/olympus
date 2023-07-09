@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"math/big"
+	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -21,10 +23,9 @@ func (a *AuxiliaryTradingUtils) SetPermit2ApprovalForToken(ctx context.Context, 
 	return tx, nil
 }
 
-// todo, set this based on block time
-
 func (a *AuxiliaryTradingUtils) GetDeadline() *big.Int {
-	sigDeadline, _ := new(big.Int).SetString("3000000000000", 10)
+	deadline := int(time.Now().Add(60 * time.Second).Unix())
+	sigDeadline := artemis_eth_units.NewBigInt(deadline)
 	return sigDeadline
 }
 
@@ -35,19 +36,18 @@ func (a *AuxiliaryTradingUtils) GetPermit2Nonce() *big.Int {
 	return nonce
 }
 
-// 649f52fa-fceb-4e33-8734-7983cb0ef6f2
-
-func (a *AuxiliaryTradingUtils) GeneratePermit2Approval(ctx context.Context, tokenAddr accounts.Address, amount *big.Int) (web3_client.Permit2PermitParams, error) {
+func (a *AuxiliaryTradingUtils) generatePermit2Approval(ctx context.Context, tokenAddr accounts.Address, amount *big.Int) (web3_client.Permit2PermitParams, error) {
+	deadline := a.GetDeadline()
 	psp := web3_client.Permit2PermitParams{
 		PermitSingle: web3_client.PermitSingle{
 			PermitDetails: web3_client.PermitDetails{
 				Token:      tokenAddr,
 				Amount:     amount,
-				Expiration: a.GetDeadline(),
+				Expiration: deadline,
 				Nonce:      a.GetPermit2Nonce(),
 			},
 			Spender:     artemis_trading_constants.UniswapUniversalRouterNewAddressAccount,
-			SigDeadline: a.GetDeadline(),
+			SigDeadline: deadline,
 		},
 	}
 	err := psp.SignPermit2Mainnet(a.Account)
@@ -58,6 +58,36 @@ func (a *AuxiliaryTradingUtils) GeneratePermit2Approval(ctx context.Context, tok
 	if psp.Signature == nil {
 		log.Err(err).Msg("signature is nil")
 		return web3_client.Permit2PermitParams{}, errors.New("signature is nil")
+	}
+	return psp, err
+}
+
+func (a *AuxiliaryTradingUtils) generatePermit2Transfer(ctx context.Context, tokenAddr accounts.Address, amount *big.Int) (web3_client.Permit2TransferFromParams, error) {
+	deadline := a.GetDeadline()
+	psp := web3_client.Permit2TransferFromParams{
+		PermitTransferFrom: web3_client.PermitTransferFrom{
+			TokenPermissions: web3_client.TokenPermissions{
+				Token:  tokenAddr,
+				Amount: amount,
+			},
+			Nonce:    a.GetPermit2Nonce(),
+			Deadline: deadline,
+		},
+		Permit2SignatureTransferDetails: web3_client.Permit2SignatureTransferDetails{
+			To:              artemis_trading_constants.UniswapUniversalRouterNewAddressAccount,
+			RequestedAmount: amount,
+		},
+		Owner:     a.Address(),
+		Signature: nil,
+	}
+	err := psp.SignPermit2Mainnet(a.Account)
+	if err != nil {
+		log.Err(err).Msg("error signing permit")
+		return web3_client.Permit2TransferFromParams{}, err
+	}
+	if psp.Signature == nil {
+		log.Err(err).Msg("signature is nil")
+		return web3_client.Permit2TransferFromParams{}, errors.New("signature is nil")
 	}
 	return psp, err
 }

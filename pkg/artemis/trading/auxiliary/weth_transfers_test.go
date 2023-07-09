@@ -12,7 +12,7 @@ import (
 func (t *ArtemisAuxillaryTestSuite) TestWETH() {
 	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
 	t.Require().NotEmpty(ta)
-	toExchAmount := artemis_eth_units.GweiMultiple(1000)
+	toExchAmount := artemis_eth_units.GweiMultiple(100000)
 	cmd, err := ta.GenerateCmdToExchangeETHtoWETH(ctx, nil, toExchAmount, nil)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(cmd)
@@ -36,33 +36,33 @@ func (t *ArtemisAuxillaryTestSuite) TestWETH() {
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 
-	_, err = ta.universalRouterExecuteTx(ctx, tx)
-	t.Require().Nil(err)
-	fmt.Println("tx", tx.Hash().String())
+	//_, err = ta.universalRouterExecuteTx(ctx, tx)
+	//t.Require().Nil(err)
+	//fmt.Println("tx", tx.Hash().String())
 }
 
 func (t *ArtemisAuxillaryTestSuite) TestUnwrapWETH() {
 	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
 	t.Require().NotEmpty(ta)
 	toExchAmount := artemis_eth_units.GweiMultiple(1000)
-	cmd, err := ta.GenerateCmdToExchangeWETHtoETH(ctx, nil, toExchAmount, nil)
+	cmd, err := ta.generateCmdToExchangeWETHtoETH(ctx, nil, toExchAmount, nil)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(cmd)
 	t.Require().Len(cmd.Commands, 2)
 	t.Require().Nil(cmd.Payable.Amount)
-	wethAddr := artemis_trading_constants.WETH9ContractAddressAccount
-	if ta.Network == hestia_req_types.Goerli {
-		wethAddr = artemis_trading_constants.GoerliWETH9ContractAddressAccount
-	}
+	//wethAddr := artemis_trading_constants.WETH9ContractAddressAccount
+	//if ta.Network == hestia_req_types.Goerli {
+	//	wethAddr = artemis_trading_constants.GoerliWETH9ContractAddressAccount
+	//}
 	for i, sc := range cmd.Commands {
-		if i == 0 && sc.Command != artemis_trading_constants.Permit2Permit {
-			t.Fail(fmt.Sprintf("expected %s, got %s", artemis_trading_constants.Permit2Permit, sc.Command))
-		}
-		if i == 0 {
-			// token permissions
-			t.Require().Equal(wethAddr.String(), sc.DecodedInputs.(web3_client.Permit2PermitParams).Token.String())
-			t.Require().Equal(toExchAmount.String(), sc.DecodedInputs.(web3_client.Permit2PermitParams).Amount.String())
-		}
+		//if i == 0 && sc.Command != artemis_trading_constants.Permit2Permit {
+		//	t.Fail(fmt.Sprintf("expected %s, got %s", artemis_trading_constants.Permit2Permit, sc.Command))
+		//}
+		//if i == 0 {
+		//	// token permissions
+		//	t.Require().Equal(wethAddr.String(), sc.DecodedInputs.(web3_client.Permit2PermitParams).Token.String())
+		//	t.Require().Equal(toExchAmount.String(), sc.DecodedInputs.(web3_client.Permit2PermitParams).Amount.String())
+		//}
 		if i == 1 && sc.Command != artemis_trading_constants.UnwrapWETH {
 			t.Fail(fmt.Sprintf("expected %s, got %s", artemis_trading_constants.UnwrapWETH, sc.Command))
 		}

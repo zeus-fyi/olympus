@@ -3,6 +3,7 @@ package artemis_trading_auxiliary
 import (
 	"context"
 
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
@@ -22,9 +23,10 @@ func InitAuxiliaryTradingUtils(ctx context.Context, nodeURL, network string, acc
 	return TradingAuxiliary
 }
 
-func (a *AuxiliaryTradingUtils) AddTxHash(tx accounts.Hash) {
+func (a *AuxiliaryTradingUtils) AddTx(tx *types.Transaction) {
 	if a.OrderedTxs == nil {
 		a.OrderedTxs = []accounts.Hash{}
 	}
-	a.OrderedTxs = append(a.OrderedTxs, tx)
+	a.OrderedTxs = append(a.OrderedTxs, accounts.HexToHash(tx.Hash().Hex()))
+	a.trackTx(tx)
 }

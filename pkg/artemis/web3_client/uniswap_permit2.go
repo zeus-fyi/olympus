@@ -131,15 +131,15 @@ type Permit2TransferFromParams struct {
 	Signature                       []byte           `abi:"signature"`
 }
 
-func (p *Permit2TransferFromParams) SignPermit2Mainnet(acc *accounts.Account) error {
-	chainID := big.NewInt(1)
+func (p *Permit2TransferFromParams) SignPermit2(acc *accounts.Account, chainID int) error {
+	chain := big.NewInt(int64(chainID))
 	name := "Permit2"
 	contractAddress := accounts.HexToAddress(Permit2SmartContractAddress)
 	if acc == nil {
 		return errors.New("account is nil")
 	}
 	hashed := hashPermitTransferFrom(p.PermitTransferFrom, acc.Address())
-	eip := NewEIP712(chainID, contractAddress, name)
+	eip := NewEIP712(chain, contractAddress, name)
 	hashed = eip.HashTypedData(hashed)
 	sig, err := acc.Sign(hashed.Bytes())
 	if err != nil {

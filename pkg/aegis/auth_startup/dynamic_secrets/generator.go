@@ -89,7 +89,7 @@ func SaveAddress(ctx context.Context, tries int, s3Client s3base.S3Client, age e
 	if err != nil {
 		return err
 	}
-	log.Info().Interface("address", ag.Address).Msgf("Found address with %d leading zeros", ag.LeadingZeroesCount)
+	log.Info().Interface("address", ag.Address).Msgf("found address with %d leading zeros", ag.LeadingZeroesCount)
 	fs, p, err := encAddress(age, ag)
 	if err != nil {
 		return err

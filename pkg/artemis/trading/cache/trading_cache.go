@@ -8,7 +8,7 @@ import (
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/dynamic_secrets"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
-	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/flashbots"
+	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/trading/flashbots"
 	"github.com/zeus-fyi/olympus/pkg/athena"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"

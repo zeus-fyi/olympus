@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/flashbots"
+	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/trading/flashbots"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 

@@ -8,6 +8,13 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
+func (t *ArtemisAuxillaryTestSuite) TestGeneratePermit2Nonce() {
+	for i := 0; i < 10; i++ {
+		val := ts.GeneratePermit2Nonce()
+		fmt.Println(val)
+	}
+}
+
 func (t *ArtemisAuxillaryTestSuite) TestSetPermit2() {
 	nodeURL := t.goerliNode
 	ta := InitAuxiliaryTradingUtils(ctx, nodeURL, hestia_req_types.Goerli, t.acc)

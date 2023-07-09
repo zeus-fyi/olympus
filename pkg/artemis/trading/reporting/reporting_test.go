@@ -38,6 +38,7 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 			totalWithoutNegatives = artemis_eth_units.AddBigInt(totalWithoutNegatives, v.ExpectedProfitAmountOut)
 		}
 		rh := RewardsHistory{
+			FailedCount:             v.FailedCount,
 			AmountOutToken:          v.AmountOutToken,
 			Count:                   v.Count,
 			ExpectedProfitAmountOut: v.ExpectedProfitAmountOut,
@@ -55,7 +56,7 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 			continue
 		}
 		fmt.Println(
-			"tradeCount", v.Count, "expProfits", v.ExpectedProfitAmountOut.String(),
+			"tradeCount", v.Count, "failedCount", v.FailedCount, "expProfits", v.ExpectedProfitAmountOut.String(),
 			v.AmountOutToken.Name(), v.AmountOutToken.Address.String(),
 			"num", v.AmountOutToken.TransferTax.Numerator.String(), "den", v.AmountOutToken.TransferTax.Denominator.String())
 	}

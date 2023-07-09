@@ -33,11 +33,11 @@ func (a *AuxiliaryTradingUtils) universalRouterExecuteTx(ctx context.Context, si
 }
 
 func (a *AuxiliaryTradingUtils) universalRouterCmdBuilder(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, error) {
+	ur.Deadline = a.GetDeadline()
 	data, err := ur.EncodeCommands(ctx)
 	if err != nil {
 		return nil, err
 	}
-	data.Deadline = a.GetDeadline()
 	scInfo := GetUniswapUniversalRouterAbiPayload(data)
 	signedTx, err := a.GetSignedTxToCallFunctionWithArgs(ctx, &scInfo)
 	if err != nil {

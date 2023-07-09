@@ -9,6 +9,7 @@ import (
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
 func (a *AuxiliaryTradingUtils) GenerateTradeV2SwapFromTokenToToken(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, to *artemis_trading_types.TradeOutcome) (*web3_client.UniversalRouterExecCmd, error) {
@@ -31,7 +32,24 @@ func (a *AuxiliaryTradingUtils) GenerateTradeV2SwapFromTokenToToken(ctx context.
 			SigDeadline: deadline,
 		},
 	}
-	err := psp.SignPermit2Mainnet(a.Account)
+
+	chainID := hestia_req_types.EthereumMainnetProtocolNetworkID
+	switch a.Network {
+	case hestia_req_types.Mainnet:
+		chainID = hestia_req_types.EthereumMainnetProtocolNetworkID
+	case hestia_req_types.Goerli:
+		chainID = hestia_req_types.EthereumGoerliProtocolNetworkID
+	default:
+		a.Dial()
+		chain, err := a.C.ChainID(ctx)
+		if err != nil {
+			log.Warn().Err(err).Msg("error getting chainID")
+			return nil, err
+		}
+		chainID = int(chain.Int64())
+		a.Close()
+	}
+	err := psp.SignPermit2(a.Account, chainID)
 	if err != nil {
 		log.Warn().Err(err).Msg("error signing permit")
 		return nil, err

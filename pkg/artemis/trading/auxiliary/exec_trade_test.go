@@ -45,6 +45,7 @@ func (t *ArtemisAuxillaryTestSuite) TestExecV2Trade() {
 			t.Require().Equal(toExchAmount.String(), sc.DecodedInputs.(web3_client.V2SwapExactInParams).AmountIn.String())
 			t.Require().Equal(true, sc.DecodedInputs.(web3_client.V2SwapExactInParams).PayerIsSender)
 			t.Require().Equal([]accounts.Address{to.AmountInAddr, to.AmountOutAddr}, sc.DecodedInputs.(web3_client.V2SwapExactInParams).Path)
+			t.Require().NotEmpty(sc.DecodedInputs.(web3_client.V2SwapExactInParams).AmountOutMin)
 			t.Require().Equal(artemis_trading_constants.UniversalRouterSenderAddress, sc.DecodedInputs.(web3_client.V2SwapExactInParams).To.String())
 		}
 	}
@@ -52,6 +53,7 @@ func (t *ArtemisAuxillaryTestSuite) TestExecV2Trade() {
 	tx, err := ta.universalRouterCmdBuilder(ctx, cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
+	t.Require().NotNil(cmd.Deadline)
 
 	//_, err = ta.universalRouterExecuteTx(ctx, tx)
 	//t.Require().Nil(err)

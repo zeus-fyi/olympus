@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_encryption"
 )
@@ -24,7 +25,12 @@ func (s *ReportingTestSuite) SetupTest() {
 }
 
 func (s *ReportingTestSuite) TestCalculateProfits() {
-	rw, err := GetRewardsHistory(ctx)
+	// init 17639300, current 17658962
+	rhf := RewardHistoryFilter{
+		FromBlock:   17639300,
+		TradeMethod: artemis_trading_constants.V2SwapExactIn,
+	}
+	rw, err := GetRewardsHistory(ctx, rhf)
 	s.Assert().Nil(err)
 	s.Assert().NotNil(rw)
 

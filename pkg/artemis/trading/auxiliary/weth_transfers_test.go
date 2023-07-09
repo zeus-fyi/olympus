@@ -55,19 +55,13 @@ func (t *ArtemisAuxillaryTestSuite) TestUnwrapWETH() {
 		wethAddr = artemis_trading_constants.GoerliWETH9ContractAddressAccount
 	}
 	for i, sc := range cmd.Commands {
-		if i == 0 && sc.Command != artemis_trading_constants.Permit2TransferFrom {
-			t.Fail(fmt.Sprintf("expected %s, got %s", artemis_trading_constants.Permit2TransferFrom, sc.Command))
+		if i == 0 && sc.Command != artemis_trading_constants.Permit2Permit {
+			t.Fail(fmt.Sprintf("expected %s, got %s", artemis_trading_constants.Permit2Permit, sc.Command))
 		}
 		if i == 0 {
 			// token permissions
-			t.Require().Equal(wethAddr.String(), sc.DecodedInputs.(web3_client.Permit2TransferFromParams).TokenPermissions.Token.String())
-			t.Require().Equal(toExchAmount.String(), sc.DecodedInputs.(web3_client.Permit2TransferFromParams).TokenPermissions.Amount.String())
-			// transfer details
-			t.Require().Equal(toExchAmount.String(), sc.DecodedInputs.(web3_client.Permit2TransferFromParams).Permit2SignatureTransferDetails.RequestedAmount.String())
-			t.Require().Equal(artemis_trading_constants.UniswapUniversalRouterAddressNew, sc.DecodedInputs.(web3_client.Permit2TransferFromParams).Permit2SignatureTransferDetails.To.String())
-			// owner details
-			t.Require().Equal(ta.Address().String(), sc.DecodedInputs.(web3_client.Permit2TransferFromParams).Owner.String())
-			t.Require().NotNil(sc.DecodedInputs.(web3_client.Permit2TransferFromParams).Signature)
+			t.Require().Equal(wethAddr.String(), sc.DecodedInputs.(web3_client.Permit2PermitParams).Token.String())
+			t.Require().Equal(toExchAmount.String(), sc.DecodedInputs.(web3_client.Permit2PermitParams).Amount.String())
 		}
 		if i == 1 && sc.Command != artemis_trading_constants.UnwrapWETH {
 			t.Fail(fmt.Sprintf("expected %s, got %s", artemis_trading_constants.UnwrapWETH, sc.Command))
@@ -89,3 +83,14 @@ func (t *ArtemisAuxillaryTestSuite) TestUnwrapWETH() {
 	//t.Require().Nil(err)
 	//fmt.Println("tx", tx.Hash().String())
 }
+
+/*
+	t.Require().Equal(wethAddr.String(), sc.DecodedInputs.(web3_client.Permit2TransferFromParams).TokenPermissions.Token.String())
+		t.Require().Equal(toExchAmount.String(), sc.DecodedInputs.(web3_client.Permit2TransferFromParams).TokenPermissions.Amount.String())
+		// transfer details
+		t.Require().Equal(toExchAmount.String(), sc.DecodedInputs.(web3_client.Permit2TransferFromParams).Permit2SignatureTransferDetails.RequestedAmount.String())
+		t.Require().Equal(artemis_trading_constants.UniswapUniversalRouterAddressNew, sc.DecodedInputs.(web3_client.Permit2TransferFromParams).Permit2SignatureTransferDetails.To.String())
+		// owner details
+		t.Require().Equal(ta.Address().String(), sc.DecodedInputs.(web3_client.Permit2TransferFromParams).Owner.String())
+		t.Require().NotNil(sc.DecodedInputs.(web3_client.Permit2TransferFromParams).Signature)
+*/

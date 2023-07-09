@@ -63,12 +63,12 @@ func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeWETHtoETH(ctx context.Conte
 	if a.Network == hestia_req_types.Goerli {
 		wethAddr = artemis_trading_constants.GoerliWETH9ContractAddressAccount
 	}
-	permit, err := a.generatePermit2Transfer(ctx, wethAddr, amountIn)
+	permit, err := a.generatePermit2Approval(ctx, wethAddr, amountIn)
 	if err != nil {
 		return nil, err
 	}
 	permitCmd := web3_client.UniversalRouterExecSubCmd{
-		Command:       artemis_trading_constants.Permit2TransferFrom,
+		Command:       artemis_trading_constants.Permit2Permit,
 		DecodedInputs: permit,
 		CanRevert:     false,
 	}

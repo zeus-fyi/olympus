@@ -92,4 +92,16 @@ func (a *AuxiliaryTradingUtils) generatePermit2Transfer(ctx context.Context, tok
 	return psp, err
 }
 
+/*
+	permit, err := a.generatePermit2Transfer(ctx, wethAddr, amountIn)
+	if err != nil {
+		return nil, err
+	}
+	permitCmd := web3_client.UniversalRouterExecSubCmd{
+		Command:       artemis_trading_constants.Permit2TransferFrom,
+		DecodedInputs: permit,
+		CanRevert:     false,
+	}
+	ur.Commands = append(ur.Commands, permitCmd)
+*/
 // todo set batch here

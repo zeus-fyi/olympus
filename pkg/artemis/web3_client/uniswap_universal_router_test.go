@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/google/uuid"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -13,10 +14,18 @@ import (
 )
 
 func (s *Web3ClientTestSuite) TestWrapETHFuncs() {
-	err := s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, 17461070)
+	uni := InitUniswapClient(ctx, s.ProxyHostedHardhatMainnetUser)
+	uni.Web3Client.IsAnvilNode = true
+	uni.DebugPrint = true
+	uni.PrintLocal = true
+	uni.PrintDetails = true
+	uni.Web3Client.AddSessionLockHeader(uuid.New().String())
+	err := uni.Web3Client.HardHatResetNetwork(ctx, 17461070)
 	s.Require().Nil(err)
-	userAddr := s.LocalHardhatMainnetUser.Address()
-	b, err := s.LocalHardhatMainnetUser.GetBalance(ctx, userAddr.String(), nil)
+	userAddr := s.ProxyHostedHardhatMainnetUser.Address()
+	s.ProxyHostedHardhatMainnetUser.Dial()
+	defer s.ProxyHostedHardhatMainnetUser.Close()
+	b, err := s.ProxyHostedHardhatMainnetUser.GetBalance(ctx, userAddr.String(), nil)
 	s.Require().Nil(err)
 	fmt.Println("ethBalance", b.String())
 	routerRecipient := accounts.HexToAddress("0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266")
@@ -49,17 +58,16 @@ func (s *Web3ClientTestSuite) TestWrapETHFuncs() {
 	s.Require().NoError(err)
 	s.Require().NotNil(encCmd)
 
-	uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
 	tx, err := uni.ExecUniswapUniversalRouterCmd(ur)
 	s.Assert().NoError(err)
 	s.Assert().NotNil(tx)
 
-	endTokenBalance, err := s.LocalHardhatMainnetUser.ReadERC20TokenBalance(ctx, WETH9ContractAddress, userAddr.String())
+	endTokenBalance, err := s.ProxyHostedHardhatMainnetUser.ReadERC20TokenBalance(ctx, WETH9ContractAddress, userAddr.String())
 	s.Require().Nil(err)
 	s.Assert().Equal(EtherMultiple(10).String(), endTokenBalance.String())
 	fmt.Println("endTokenBalance", endTokenBalance.String())
 
-	approveTx, err := s.LocalHardhatMainnetUser.ERC20ApproveSpender(ctx, WETH9ContractAddress, UniswapUniversalRouterAddressNew, EtherMultiple(1000))
+	approveTx, err := s.ProxyHostedHardhatMainnetUser.ERC20ApproveSpender(ctx, WETH9ContractAddress, UniswapUniversalRouterAddressNew, EtherMultiple(1000))
 	s.Require().Nil(err)
 	s.Require().NotNil(approveTx)
 	unwrapWETHParams := UnwrapWETHParams{
@@ -76,7 +84,7 @@ func (s *Web3ClientTestSuite) TestWrapETHFuncs() {
 		ContractABI: artemis_oly_contract_abis.MustLoadERC20Abi(),
 		Params:      []interface{}{accounts.HexToAddress(UniswapUniversalRouterAddressNew), Ether},
 	}
-	transferTx, err := s.LocalHardhatMainnetUser.TransferERC20Token(ctx, transferTxParams)
+	transferTx, err := s.ProxyHostedHardhatMainnetUser.TransferERC20Token(ctx, transferTxParams)
 	s.Require().Nil(err)
 	s.Require().NotNil(transferTx)
 

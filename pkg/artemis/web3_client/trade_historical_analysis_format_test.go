@@ -21,7 +21,7 @@ func (s *Web3ClientTestSuite) TestHistoricalAnalysisReplay() {
 		uni.DebugPrint = true
 		uni.PrintLocal = true
 		uni.PrintDetails = true
-		err := uni.RunHistoricalTradeAnalysis(ctx, mevTx.TxFlowPrediction, s.MainnetWeb3UserExternal)
+		err := uni.RunHistoricalTradeAnalysis(ctx, mevTx.TxFlowPrediction)
 		uni.PrintResults()
 		s.Assert().Nil(err)
 	}
@@ -40,7 +40,7 @@ func (s *Web3ClientTestSuite) TestHistoricalAnalysis() {
 		uni.PrintDetails = true
 		uni.PrintOn = true
 		uni.TestMode = true
-		err := uni.RunHistoricalTradeAnalysis(ctx, mevTx.TxFlowPrediction, s.MainnetWeb3UserExternal)
+		err := uni.RunHistoricalTradeAnalysis(ctx, mevTx.TxFlowPrediction)
 		uni.PrintResults()
 		s.Assert().Nil(err)
 	}

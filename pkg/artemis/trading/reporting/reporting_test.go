@@ -33,7 +33,7 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 	for _, v := range rw.Map {
 		//fmt.Println(k)
 		total = artemis_eth_units.AddBigInt(total, v.ExpectedProfitAmountOut)
-		fmt.Println(v.ExpectedProfitAmountOut)
+		//fmt.Println(v.ExpectedProfitAmountOut)
 		if artemis_eth_units.IsXGreaterThanY(v.ExpectedProfitAmountOut, artemis_eth_units.NewBigInt(0)) {
 			totalWithoutNegatives = artemis_eth_units.AddBigInt(totalWithoutNegatives, v.ExpectedProfitAmountOut)
 		}

@@ -19,8 +19,6 @@ func (u *UniswapClient) ExecSwap(pair uniswap_pricing.UniswapV2Pair, to *artemis
 	} else {
 		scInfo.Params = []interface{}{to.AmountOut, "0", u.Web3Client.Address(), []byte{}}
 	}
-	// TODO implement better gas estimation
-	scInfo.GasLimit = 3000000
 	signedTx, err := u.Web3Client.GetSignedTxToCallFunctionWithArgs(ctx, &scInfo)
 	if err != nil {
 		return &web3_actions.SendContractTxPayload{}, err

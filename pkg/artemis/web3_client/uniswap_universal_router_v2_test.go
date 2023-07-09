@@ -5,15 +5,20 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/google/uuid"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 )
 
 func (s *Web3ClientTestSuite) TestUniversalRouterV2() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
-	ForceDirToTestDirLocation()
-	uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
+	uni := InitUniswapClient(ctx, s.ProxyHostedHardhatMainnetUser)
+	uni.Web3Client.IsAnvilNode = true
+	uni.DebugPrint = true
+	uni.PrintLocal = true
+	uni.PrintDetails = true
+	uni.Web3Client.AddSessionLockHeader(uuid.New().String())
+	err := uni.Web3Client.HardHatResetNetwork(ctx, 16591736)
+	s.Require().Nil(err)
 
 	hashStr := "0x889b34a27b730dd664cd71579b4310522c3b495fb34f17f08d1131c0cec651fa"
 	tx, _, err := s.MainnetWeb3User.GetTxByHash(ctx, common.HexToHash(hashStr))
@@ -26,9 +31,6 @@ func (s *Web3ClientTestSuite) TestUniversalRouterV2() {
 	subCmds, err := NewDecodedUniversalRouterExecCmdFromMap(args)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(subCmds)
-
-	err = s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, 16591736)
-	s.Require().Nil(err)
 
 	amountIn := ""
 	for _, cmd := range subCmds.Commands {
@@ -54,13 +56,12 @@ func (s *Web3ClientTestSuite) TestUniversalRouterV2() {
 			dec := cmd.DecodedInputs.(UnwrapWETHParams)
 			fmt.Println("recipient", dec.Recipient.String())
 			fmt.Println("amountMin", dec.AmountMin.String())
-
 			cmd.CanRevert = false
 		}
 	}
 	pl, _ := new(big.Int).SetString(amountIn, 10)
 	wethParams := WrapETHParams{
-		Recipient: s.LocalHardhatMainnetUser.Address(),
+		Recipient: s.ProxyHostedHardhatMainnetUser.Address(),
 		AmountMin: pl,
 	}
 	payable := &web3_actions.SendEtherPayload{
@@ -71,12 +72,7 @@ func (s *Web3ClientTestSuite) TestUniversalRouterV2() {
 		GasPriceLimits: web3_actions.GasPriceLimits{},
 	}
 	subCmds.Payable = payable
-	data, err := subCmds.EncodeCommands(ctx)
-	s.Require().Nil(err)
-	s.Require().NotNil(data)
-
-	scInfo := GetUniswapUniversalRouterAbiPayload(data)
-	signedTx, err := s.LocalHardhatMainnetUser.CallFunctionWithArgs(ctx, &scInfo)
+	signedTx, err := uni.ExecUniswapUniversalRouterCmd(subCmds)
 	s.Require().Nil(err)
 	s.Require().NotNil(signedTx)
 }

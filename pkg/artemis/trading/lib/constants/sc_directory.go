@@ -30,13 +30,11 @@ const (
 	ApeCoinTokenAddr     = "0x4d224452801ACEd8B2F0aebE155379bb5D594381"
 	LinkTokenAddr        = "0x514910771AF9Ca656af840dff83E8264EcF986CA"
 	// 8 decimal places
-	HexTokenAddr = "0x2b591e99afE9f32eAA6214f7B7629768c40Eeb39"
-
+	HexTokenAddr                = "0x2b591e99afE9f32eAA6214f7B7629768c40Eeb39"
+	DaiContractAddress          = "0x6b175474e89094c44da98b954eedeac495271d0f"
 	Permit2SmartContractAddress = "0x000000000022D473030F116dDEE9F6B43aC78BA3"
 
 	ZeroAddress = "0x0000000000000000000000000000000000000000"
-
-	GoerliWETH9ContractAddress = "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"
 )
 
 var (
@@ -44,5 +42,17 @@ var (
 	Doge2ContractAddrAccount           = accounts.HexToAddress(Doge2ContractAddr)
 	PepeContractAddrAccount            = accounts.HexToAddress(PepeContractAddr)
 	WETH9ContractAddressAccount        = accounts.HexToAddress(WETH9ContractAddress)
-	GoerliWETH9ContractAddressAccount  = accounts.HexToAddress(GoerliWETH9ContractAddress)
+	DaiContractAddressAccount          = accounts.HexToAddress(DaiContractAddress)
+)
+
+const (
+	GoerliWETH9ContractAddress   = "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"
+	GoerliUniswapContractAddress = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"
+	GoerliDaiContractAddress     = "0x11fE4B6AE13d2a6055C8D9cF65c55bac32B5d844"
+)
+
+var (
+	GoerliWETH9ContractAddressAccount   = accounts.HexToAddress(GoerliWETH9ContractAddress)
+	GoerliUniswapContractAddressAccount = accounts.HexToAddress(GoerliUniswapContractAddress)
+	GoerliDaiContractAddressAccount     = accounts.HexToAddress(GoerliDaiContractAddress)
 )

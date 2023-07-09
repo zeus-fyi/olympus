@@ -48,7 +48,7 @@ var (
 const (
 	GoerliWETH9ContractAddress   = "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"
 	GoerliUniswapContractAddress = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"
-	GoerliDaiContractAddress     = "0x11fE4B6AE13d2a6055C8D9cF65c55bac32B5d844"
+	GoerliDaiContractAddress     = "0xdc31ee1784292379fbb2964b3b9c4124d8f89c60"
 )
 
 var (

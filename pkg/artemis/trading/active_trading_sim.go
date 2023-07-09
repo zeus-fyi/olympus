@@ -29,10 +29,10 @@ func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_clien
 		//}
 		return errors.New("uniswap V3 not supported yet")
 	} else {
-		err := a.ExecTradeV2SwapFromTokenToToken(ctx, &tf.FrontRunTrade, bypassSim)
-		if err != nil {
-			return err
-		}
+		//err := a.ExecTradeV2SwapFromTokenToToken(ctx, &tf.FrontRunTrade, bypassSim)
+		//if err != nil {
+		//	return err
+		//}
 	}
 	bundle.AddTxs(tf.Tx)
 	// FRONT_RUN
@@ -55,10 +55,10 @@ func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_clien
 		//}
 		return errors.New("uniswap V3 not supported yet")
 	} else {
-		err := a.ExecTradeV2SwapFromTokenToToken(ctx, &tf.SandwichTrade, bypassSim)
-		if err != nil {
-			return err
-		}
+		//err := a.ExecTradeV2SwapFromTokenToToken(ctx, &tf.SandwichTrade, bypassSim)
+		//if err != nil {
+		//	return err
+		//}
 	}
 	bundle.AddTxs(tf.Tx)
 	tf.Bundle = bundle

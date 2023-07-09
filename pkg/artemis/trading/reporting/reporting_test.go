@@ -3,6 +3,7 @@ package artemis_reporting
 import (
 	"context"
 	"fmt"
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -29,14 +30,34 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 
 	total := artemis_eth_units.NewBigInt(0)
 	totalWithoutNegatives := artemis_eth_units.NewBigInt(0)
-
+	// Sort slice
+	var historySlice []RewardsHistory
 	for _, v := range rw.Map {
-		//fmt.Println(k)
 		total = artemis_eth_units.AddBigInt(total, v.ExpectedProfitAmountOut)
-		//fmt.Println(v.ExpectedProfitAmountOut)
 		if artemis_eth_units.IsXGreaterThanY(v.ExpectedProfitAmountOut, artemis_eth_units.NewBigInt(0)) {
 			totalWithoutNegatives = artemis_eth_units.AddBigInt(totalWithoutNegatives, v.ExpectedProfitAmountOut)
 		}
+		rh := RewardsHistory{
+			AmountOutToken:          v.AmountOutToken,
+			Count:                   v.Count,
+			ExpectedProfitAmountOut: v.ExpectedProfitAmountOut,
+		}
+		historySlice = append(historySlice, rh)
+	}
+
+	sort.SliceStable(historySlice, func(i, j int) bool {
+		// Descending order
+		return historySlice[i].Count > historySlice[j].Count
+	})
+
+	for _, v := range historySlice {
+		if v.Count < 8 {
+			continue
+		}
+		fmt.Println(
+			"tradeCount", v.Count, "expProfits", v.ExpectedProfitAmountOut.String(),
+			v.AmountOutToken.Name(), v.AmountOutToken.Address.String(),
+			"num", v.AmountOutToken.TransferTax.Numerator.String(), "den", v.AmountOutToken.TransferTax.Denominator.String())
 	}
 
 	fmt.Println("total eth profit", total.String())

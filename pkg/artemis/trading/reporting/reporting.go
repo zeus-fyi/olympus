@@ -28,23 +28,31 @@ type RewardsHistory struct {
 	ExpectedProfitAmountOut *big.Int
 }
 
-var q = `WITH cte_failed_count AS (
+func getQ(blockCheckpoint int) string {
+	var que = fmt.Sprintf(`WITH cte_failed_count AS (
 			SELECT COUNT(*) as failed, amount_out_addr
 			FROM eth_mev_tx_analysis
-			WHERE end_reason != 'success' AND rx_block_number > 17639300 AND amount_in_addr = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
+			WHERE end_reason != 'success'
+		    AND (end_reason = 'expected minus actual profit mismatch' OR end_reason = 'execution reverted' OR end_reason = 'execution reverted: TRANSFER_FROM_FAILED' OR end_reason = 'execution reverted: UniswapV2: TRANSFER_FAILED') 
+			AND rx_block_number > %d AND amount_in_addr = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
 			GROUP BY amount_out_addr
 			) 
 				SELECT me.amount_out_addr, expected_profit_amount_out, et.name, et.symbol, et.decimals, et.transfer_tax_numerator, et.transfer_tax_denominator, COALESCE(fc.failed, 0) as failed_count
 				FROM eth_mev_tx_analysis me
 				INNER JOIN erc20_token_info et ON et.address = me.amount_out_addr
 				LEFT JOIN cte_failed_count fc ON fc.amount_out_addr = me.amount_out_addr
-				WHERE end_reason = 'success' AND rx_block_number > 17639300 AND expected_profit_amount_out IS NOT NULL AND amount_in_addr = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
-			`
+				WHERE end_reason = 'success' AND rx_block_number > %d AND expected_profit_amount_out IS NOT NULL AND amount_in_addr = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
+			`, blockCheckpoint, blockCheckpoint)
+	return que
+}
 
 func GetRewardsHistory(ctx context.Context) (*RewardsGroup, error) {
 	rw := &RewardsGroup{
 		Map: make(map[string]RewardsHistory),
 	}
+
+	// init 17639300, current 17658962
+	q := getQ(17639300)
 	rows, err := apps.Pg.Query(ctx, q)
 	if err != nil {
 		return nil, err

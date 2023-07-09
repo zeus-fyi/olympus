@@ -56,7 +56,7 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 			continue
 		}
 		fmt.Println(
-			"tradeCount", v.Count, "failedCount", v.FailedCount, "expProfits", v.ExpectedProfitAmountOut.String(),
+			"successCount", v.Count, "failedCount", v.FailedCount, "expProfits", v.ExpectedProfitAmountOut.String(),
 			v.AmountOutToken.Name(), v.AmountOutToken.Address.String(),
 			"num", v.AmountOutToken.TransferTax.Numerator.String(), "den", v.AmountOutToken.TransferTax.Denominator.String())
 	}

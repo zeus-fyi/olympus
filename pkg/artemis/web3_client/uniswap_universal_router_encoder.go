@@ -86,6 +86,12 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 		ur.Command = Permit2TransferFromBatch
 		return cmdByte, inputs, nil
 	case Transfer:
+		params := ur.DecodedInputs.(TransferParams)
+		inputs, err := params.Encode(ctx)
+		if err != nil {
+			return cmdByte, nil, err
+		}
+		ur.Inputs = inputs
 		cmdByte = ur.EncodeCommandByte(ur.CanRevert, TRANSFER)
 		return cmdByte, nil, nil
 	case Permit2TransferFrom:

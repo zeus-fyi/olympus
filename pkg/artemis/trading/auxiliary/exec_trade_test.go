@@ -23,7 +23,6 @@ func (t *ArtemisAuxillaryTestSuite) TestExecV2Trade() {
 	to := &artemis_trading_types.TradeOutcome{
 		AmountIn:      toExchAmount,
 		AmountInAddr:  wethAddr,
-		AmountOut:     artemis_eth_units.NewBigInt(0),
 		AmountOutAddr: daiAddr,
 	}
 	path := []accounts.Address{to.AmountInAddr, to.AmountOutAddr}

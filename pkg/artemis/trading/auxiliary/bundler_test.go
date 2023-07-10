@@ -1,14 +1,32 @@
 package artemis_trading_auxiliary
 
-func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeBundle() {
-	ta, cmd, _ := t.TestExecV2TradeCall()
+import (
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
+)
+
+func (t *ArtemisAuxillaryTestSuite) TestCreateExecV2TradeBundle() {
+	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
+	t.Require().NotEmpty(ta)
+	toExchAmount := artemis_eth_units.GweiMultiple(100000)
+	cmd := t.testEthToWETH(&ta, toExchAmount)
+	// part 1 of bundle
+	tx, err := ta.universalRouterCmdBuilder(ctx, cmd)
+	t.Require().Nil(err)
+	t.Require().NotEmpty(tx)
 	t.Require().Equal(1, len(ta.OrderedTxs))
-	bundle := ta.CreateFlashbotsBundle(cmd, "latest")
-	t.Require().NotEmpty(bundle)
-	t.Require().Equal(1, len(bundle.Txs))
+	ta.CreateOrAddToFlashbotsBundle(cmd, "latest")
+	t.Require().NotEmpty(ta.Bundle.Txs)
+	t.Require().Equal(1, len(ta.Bundle.Txs))
 	t.Require().Equal(0, len(ta.OrderedTxs))
 
-	//_, err = ta.universalRouterExecuteTx(ctx, tx)
-	//t.Require().Nil(err)
-	//fmt.Println("tx", tx.Hash().String())
+	// part 2 of bundle
+	cmd = t.testExecV2Trade(&ta)
+	tx, err = ta.universalRouterCmdBuilder(ctx, cmd)
+	t.Require().NotEmpty(tx)
+	t.Require().Equal(1, len(ta.OrderedTxs))
+	ta.CreateOrAddToFlashbotsBundle(cmd, "latest")
+	t.Require().NotEmpty(ta.Bundle.Txs)
+	t.Require().Equal(2, len(ta.Bundle.Txs))
+	t.Require().Equal(0, len(ta.OrderedTxs))
 }

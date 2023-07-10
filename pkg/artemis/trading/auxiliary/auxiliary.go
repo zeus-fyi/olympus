@@ -12,6 +12,7 @@ import (
 type AuxiliaryTradingUtils struct {
 	artemis_flashbots.FlashbotsClient
 	U          *web3_client.UniswapClient
+	Bundle     artemis_flashbots.MevTxBundle
 	OrderedTxs []*types.Transaction
 }
 

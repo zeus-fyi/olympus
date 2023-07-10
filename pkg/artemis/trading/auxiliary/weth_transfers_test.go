@@ -2,6 +2,7 @@ package artemis_trading_auxiliary
 
 import (
 	"fmt"
+	"math/big"
 
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
@@ -9,13 +10,17 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-func (t *ArtemisAuxillaryTestSuite) TestWETH() {
-	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
+func (t *ArtemisAuxillaryTestSuite) testEthToWETH(ta *AuxiliaryTradingUtils, toExchAmount *big.Int) *web3_client.UniversalRouterExecCmd {
 	t.Require().NotEmpty(ta)
-	toExchAmount := artemis_eth_units.GweiMultiple(100000)
 	cmd, err := ta.GenerateCmdToExchangeETHtoWETH(ctx, nil, toExchAmount, nil)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(cmd)
+	return cmd
+}
+func (t *ArtemisAuxillaryTestSuite) TestWETH() {
+	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
+	toExchAmount := artemis_eth_units.GweiMultiple(100000)
+	cmd := t.testEthToWETH(&ta, toExchAmount)
 	found := false
 	for i, sc := range cmd.Commands {
 		if i == 0 && sc.Command == artemis_trading_constants.WrapETH {

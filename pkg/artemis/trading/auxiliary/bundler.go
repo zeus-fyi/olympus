@@ -7,17 +7,18 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *AuxiliaryTradingUtils) CreateFlashbotsBundle(ur *web3_client.UniversalRouterExecCmd, bn string) artemis_flashbots.MevTxBundle {
-	maxTime := ur.Deadline.Uint64()
-	mevBundle := artemis_flashbots.MevTxBundle{
-		FlashbotsSendBundleRequest: flashbotsrpc.FlashbotsSendBundleRequest{
-			Txs:          []string{},
-			BlockNumber:  bn,
-			MaxTimestamp: &maxTime,
-		},
+func (a *AuxiliaryTradingUtils) CreateOrAddToFlashbotsBundle(ur *web3_client.UniversalRouterExecCmd, bn string) {
+	if a.Bundle.Txs == nil {
+		maxTime := ur.Deadline.Uint64()
+		a.Bundle = artemis_flashbots.MevTxBundle{
+			FlashbotsSendBundleRequest: flashbotsrpc.FlashbotsSendBundleRequest{
+				Txs:          []string{},
+				BlockNumber:  bn,
+				MaxTimestamp: &maxTime,
+			},
+		}
 	}
-	mevBundle.AddTxs(a.OrderedTxs...)
+	a.Bundle.AddTxs(a.OrderedTxs...)
 	a.trackTxs(a.OrderedTxs...)
 	a.OrderedTxs = []*types.Transaction{}
-	return mevBundle
 }

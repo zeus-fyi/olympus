@@ -14,8 +14,7 @@ import (
 )
 
 // todo add permit2 nonce getter from db method
-func (t *ArtemisAuxillaryTestSuite) testExecV2Trade() (AuxiliaryTradingUtils, *web3_client.UniversalRouterExecCmd) {
-	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
+func (t *ArtemisAuxillaryTestSuite) testExecV2Trade(ta *AuxiliaryTradingUtils) *web3_client.UniversalRouterExecCmd {
 	t.Require().NotEmpty(ta)
 	toExchAmount := artemis_eth_units.GweiMultiple(100)
 	wethAddr := ta.getChainSpecificWETH()
@@ -61,16 +60,17 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2Trade() (AuxiliaryTradingUtils, *w
 			t.Require().Equal(artemis_trading_constants.UniversalRouterSenderAddress, sc.DecodedInputs.(web3_client.V2SwapExactInParams).To.String())
 		}
 	}
-	return ta, cmd
+	return cmd
 }
 
-func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeCall() (AuxiliaryTradingUtils, *web3_client.UniversalRouterExecCmd, *types.Transaction) {
-	ta, cmd := t.testExecV2Trade()
+func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeCall() (*web3_client.UniversalRouterExecCmd, *types.Transaction) {
+	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
+	cmd := t.testExecV2Trade(&ta)
 	tx, err := ta.universalRouterCmdBuilder(ctx, cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 	t.Require().NotNil(cmd.Deadline)
-	return ta, cmd, tx
+	return cmd, tx
 }
 
 //func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeExec() {

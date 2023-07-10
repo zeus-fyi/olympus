@@ -10,7 +10,6 @@ import (
 	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
-	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/trading/flashbots"
 )
 
 type ActiveTrading struct {
@@ -69,42 +68,13 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 		return err
 	}
 
-	var bundles []artemis_flashbots.MevTxBundle
-	for _, tradeFlow := range tfSlice {
-		tf := tradeFlow.ConvertToBigIntType()
-		// todo, shouldn't necessarily bypass sim stage
-		err = a.SimToPackageTxBundle(ctx, &tf, true)
-		if err != nil {
-			return err
-		}
-		if tf.Bundle != nil {
-			bundles = append(bundles, *tf.Bundle)
-			// todo update metric here
-		}
+	bundles, err := a.BundleTxs(ctx, tfSlice)
+	if err != nil {
+		return err
 	}
-
-	//for _, bundle := range bundles {
-	//	param := flashbotsrpc.FlashbotsCallBundleParam{
-	//		BlockNumber: "0x" + strconv.FormatUint(bn+2, 10),
-	//		Txs:         bundle.Txs,
-	//	}
-	//	resp, ferr := artemis_trading_cache.FlashbotsClient.CallBundle(ctx, param)
-	//	if ferr != nil {
-	//		log.Err(ferr).Msg("failed to send flashbots bundle")
-	//		return ferr
-	//	}
-	//	log.Info().Msgf("Flashbots bundle sent, resp: %v", resp)
-	//}
-
-	// TODO call flashbots sim bundle
+	err = a.SubmitCallBundle(ctx, bn, bundles)
+	if err != nil {
+		return err
+	}
 	return err
 }
-
-//func (a *ActiveTrading) ProcessTx(ctx context.Context, tx *types.Transaction) error {
-//	err := a.SimulateTx(ctx, tx)
-//	if err != nil {
-//		return err
-//	}
-//	a.SendToBundleStack(ctx, tx)
-//	return nil
-//}

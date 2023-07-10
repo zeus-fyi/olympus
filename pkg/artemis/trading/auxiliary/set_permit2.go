@@ -7,10 +7,10 @@ import (
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
+	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
-	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
 
 func (a *AuxiliaryTradingUtils) SetPermit2ApprovalForToken(ctx context.Context, address string) (*types.Transaction, error) {
@@ -22,11 +22,16 @@ func (a *AuxiliaryTradingUtils) SetPermit2ApprovalForToken(ctx context.Context, 
 	return tx, nil
 }
 
-var ts chronos.Chronos
-
 func (a *AuxiliaryTradingUtils) GetPermit2Nonce() *big.Int {
-	nonce := new(big.Int).SetUint64(uint64(ts.GeneratePermit2Nonce()))
+	ethTx := artemis_eth_txs.EthTx{}
+	nonceInt := ethTx.GetPermit2Nonce()
+	nonce := new(big.Int).SetUint64(uint64(nonceInt))
 	return nonce
+}
+
+func (a *AuxiliaryTradingUtils) PutPermit2Nonce() error {
+	ethTx := artemis_eth_txs.EthTx{}
+	return ethTx.PutPermit2Nonce()
 }
 
 func (a *AuxiliaryTradingUtils) generatePermit2Approval(ctx context.Context, to *artemis_trading_types.TradeOutcome) (web3_client.Permit2PermitParams, error) {

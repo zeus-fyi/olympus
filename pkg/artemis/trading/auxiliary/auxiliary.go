@@ -6,7 +6,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/metachris/flashbotsrpc"
 	"github.com/zeus-fyi/gochain/web3/accounts"
-	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/trading/flashbots"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
@@ -19,10 +18,10 @@ type AuxiliaryTradingUtils struct {
 
 func InitAuxiliaryTradingUtils(ctx context.Context, nodeURL, network string, acc accounts.Account) AuxiliaryTradingUtils {
 	fba := artemis_flashbots.InitFlashbotsClient(ctx, nodeURL, network, &acc)
-	aa := web3_client.Web3Client{
-		Web3Actions: web3_actions.NewWeb3ActionsClientWithAccount(nodeURL, &acc),
+	wb3 := web3_client.Web3Client{
+		Web3Actions: fba.Web3Actions,
 	}
-	un := web3_client.InitUniswapClient(ctx, aa)
+	un := web3_client.InitUniswapClient(ctx, wb3)
 	return AuxiliaryTradingUtils{
 		U:               &un,
 		FlashbotsClient: fba,

@@ -13,7 +13,7 @@ import (
 func (t *ArtemisAuxillaryTestSuite) TestExecV2Trade() {
 	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
 	t.Require().NotEmpty(ta)
-	toExchAmount := artemis_eth_units.GweiMultiple(1000)
+	toExchAmount := artemis_eth_units.GweiMultiple(100)
 	wethAddr := ta.getChainSpecificWETH()
 	daiAddr := artemis_trading_constants.DaiContractAddressAccount
 	if ta.Network == hestia_req_types.Goerli {
@@ -25,7 +25,7 @@ func (t *ArtemisAuxillaryTestSuite) TestExecV2Trade() {
 		AmountOutAddr: daiAddr,
 	}
 	path := []accounts.Address{to.AmountInAddr, to.AmountOutAddr}
-	prices, err := artemis_uniswap_pricing.V2PairToPrices(ctx, ta.Web3Actions, path)
+	prices, err := artemis_uniswap_pricing.V2PairToPrices(ctx, ta.U.Web3Client.Web3Actions, path)
 	t.Require().Nil(err)
 	amountOut, err := prices.GetQuoteUsingTokenAddr(to.AmountInAddr.String(), to.AmountIn)
 	t.Require().Nil(err)

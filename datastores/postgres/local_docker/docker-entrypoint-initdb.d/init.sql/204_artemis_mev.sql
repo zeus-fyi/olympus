@@ -67,10 +67,10 @@ CREATE INDEX eth_tx_ordering ON "public"."eth_tx" ("event_id", "nonce", "from" D
 CREATE TABLE "public"."eth_tx_gas"
 (
     "tx_hash"             text NOT NULL REFERENCES eth_tx (tx_hash),
-    "gasPrice" int8,
-    "gasLimit" int8,
-    "gasTipCap" int8,
-    "gasFeeCap" int8
+    "gas_price" int8,
+    "gas_limit" int8,
+    "gas_tip_cap" int8,
+    "gas_fee_cap" int8
 );
 ALTER TABLE "public"."eth_tx_gas" ADD CONSTRAINT "eth_tx_status_pk" PRIMARY KEY ("tx_hash");
 

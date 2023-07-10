@@ -5,7 +5,7 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-func (t *ArtemisAuxillaryTestSuite) TestCreateExecV2TradeBundle() {
+func (t *ArtemisAuxillaryTestSuite) TestCreateFbBundle() *AuxiliaryTradingUtils {
 	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
 	t.Require().NotEmpty(ta)
 	toExchAmount := artemis_eth_units.GweiMultiple(100000)
@@ -29,4 +29,13 @@ func (t *ArtemisAuxillaryTestSuite) TestCreateExecV2TradeBundle() {
 	t.Require().NotEmpty(ta.Bundle.Txs)
 	t.Require().Equal(2, len(ta.Bundle.Txs))
 	t.Require().Equal(0, len(ta.OrderedTxs))
+	return &ta
+}
+
+func (t *ArtemisAuxillaryTestSuite) TestCallBundle() {
+	ta := t.TestCreateFbBundle()
+	t.Require().NotEmpty(ta)
+	resp, err := ta.CallFlashbotsBundle(ctx)
+	t.Require().Nil(err)
+	t.Require().NotNil(resp)
 }

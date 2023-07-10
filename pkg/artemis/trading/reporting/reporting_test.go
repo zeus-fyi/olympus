@@ -73,7 +73,7 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 			"num", v.AmountOutToken.TransferTax.Numerator.String(), "den", v.AmountOutToken.TransferTax.Denominator.String())
 	}
 
-	fmt.Println("total eth profit", total.String())
+	fmt.Println("total eth profit", artemis_eth_units.DivBigIntToFloat(total, artemis_eth_units.Ether).String())
 	fmt.Println("negatives", negCount)
 	fmt.Println("total eth profit without negatives", totalWithoutNegatives.String())
 }

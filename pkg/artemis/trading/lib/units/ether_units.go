@@ -56,6 +56,12 @@ func DivBigInt(x, y *big.Int) *big.Int {
 	return new(big.Int).Div(x, y)
 }
 
+func DivBigIntToFloat(x, y *big.Int) *big.Float {
+	xf := new(big.Float).SetInt(x)
+	xy := new(big.Float).SetInt(y)
+	return new(big.Float).Quo(xf, xy)
+}
+
 func NewPercentFromInts(num, den int) *core_entities.Percent {
 	return core_entities.NewPercent(NewBigInt(num), NewBigInt(den))
 }

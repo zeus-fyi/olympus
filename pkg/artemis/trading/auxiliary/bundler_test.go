@@ -15,17 +15,19 @@ func (t *ArtemisAuxillaryTestSuite) TestCreateFbBundle() *AuxiliaryTradingUtils 
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 	t.Require().Equal(1, len(ta.OrderedTxs))
-	ta.CreateOrAddToFlashbotsBundle(cmd, "latest")
+	err = ta.CreateOrAddToFlashbotsBundle(cmd, "latest")
+	t.Require().Nil(err)
 	t.Require().NotEmpty(ta.Bundle.Txs)
 	t.Require().Equal(1, len(ta.Bundle.Txs))
 	t.Require().Equal(0, len(ta.OrderedTxs))
 
-	// part 2 of bundle
+	//// part 2 of bundle
 	cmd = t.testExecV2Trade(&ta)
 	tx, err = ta.universalRouterCmdBuilder(ctx, cmd)
 	t.Require().NotEmpty(tx)
 	t.Require().Equal(1, len(ta.OrderedTxs))
-	ta.CreateOrAddToFlashbotsBundle(cmd, "latest")
+	err = ta.CreateOrAddToFlashbotsBundle(cmd, "latest")
+	t.Require().Nil(err)
 	t.Require().NotEmpty(ta.Bundle.Txs)
 	t.Require().Equal(2, len(ta.Bundle.Txs))
 	t.Require().Equal(0, len(ta.OrderedTxs))

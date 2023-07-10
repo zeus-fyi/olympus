@@ -2,32 +2,30 @@ package artemis_trading_auxiliary
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/metachris/flashbotsrpc"
 	"github.com/rs/zerolog/log"
-	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/trading/flashbots"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *AuxiliaryTradingUtils) CreateOrAddToFlashbotsBundle(ur *web3_client.UniversalRouterExecCmd, bn string) {
-	if a.Bundle.Txs == nil {
+func (a *AuxiliaryTradingUtils) CreateOrAddToFlashbotsBundle(ur *web3_client.UniversalRouterExecCmd, bn string) error {
+	if a.Bundle.FlashbotsSendBundleRequest == nil {
 		maxTime := ur.Deadline.Uint64()
-		a.Bundle = artemis_flashbots.MevTxBundle{
-			FlashbotsSendBundleRequest: flashbotsrpc.FlashbotsSendBundleRequest{
-				Txs:          []string{},
-				BlockNumber:  bn,
-				MaxTimestamp: &maxTime,
-			},
+		a.Bundle.FlashbotsSendBundleRequest = &flashbotsrpc.FlashbotsSendBundleRequest{
+			BlockNumber:  bn,
+			MaxTimestamp: &maxTime,
 		}
 	}
-	a.Bundle.AddTxs(a.OrderedTxs...)
+	err := a.Bundle.AddTxs(a.OrderedTxs...)
+	if err != nil {
+		return err
+	}
 	a.trackTxs(a.OrderedTxs...)
 	a.OrderedTxs = []*types.Transaction{}
+	return err
 }
-
-//  todo, update with missing params
 
 func (a *AuxiliaryTradingUtils) callFlashbotsBundle(ctx context.Context) (flashbotsrpc.FlashbotsCallBundleResponse, error) {
 	var txsCall []string
@@ -39,7 +37,8 @@ func (a *AuxiliaryTradingUtils) callFlashbotsBundle(ctx context.Context) (flashb
 	txsCall, a.Bundle.Txs = a.Bundle.Txs, txsCall
 	callBundle := flashbotsrpc.FlashbotsCallBundleParam{
 		Txs:         txsCall,
-		BlockNumber: fmt.Sprintf("%x", eventID),
+		BlockNumber: hexutil.EncodeUint64(uint64(eventID + 1)),
+		Timestamp:   a.GetDeadline().Int64(),
 	}
 	resp, err := a.CallBundle(ctx, callBundle)
 	if err != nil {

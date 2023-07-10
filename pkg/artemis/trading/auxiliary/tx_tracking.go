@@ -8,6 +8,6 @@ import (
 
 func (a *AuxiliaryTradingUtils) trackTxs(txs ...*types.Transaction) {
 	for _, tx := range txs {
-		fmt.Println("tx", tx.Hash().String())
+		fmt.Println("tx", tx.Hash().Hex())
 	}
 }

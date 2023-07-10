@@ -31,6 +31,7 @@ type FlashbotsClient struct {
 
 func InitFlashbotsClient(ctx context.Context, nodeUrl, network string, acc *accounts.Account) FlashbotsClient {
 	w := web3_actions.NewWeb3ActionsClientWithAccount(nodeUrl, acc)
+	w.IncrementLocalNonce = true
 	rpc := flashbotsrpc.NewFlashbotsRPC(nodeUrl)
 	w.Network = network
 	switch network {
@@ -43,9 +44,7 @@ func InitFlashbotsClient(ctx context.Context, nodeUrl, network string, acc *acco
 	}
 
 	return FlashbotsClient{
-		Resty:        resty_base.Resty{},
 		Web3Actions:  w,
-		EthereumAPI:  nil,
 		FlashbotsRPC: rpc,
 	}
 }

@@ -16,8 +16,9 @@ import (
 
 type ArtemisAuxillaryTestSuite struct {
 	s3secrets.S3SecretsManagerTestSuite
-	acc        accounts.Account
-	goerliNode string
+	acc         accounts.Account
+	goerliNode  string
+	nonceOffset int
 }
 
 var ctx = context.Background()

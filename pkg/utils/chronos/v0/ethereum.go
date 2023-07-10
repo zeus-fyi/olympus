@@ -26,9 +26,3 @@ func (c *LibV0) GetSecsSinceLastGoerliSlot() int {
 	secondsSinceGenesis := t - goerliGenesis
 	return int(secondsSinceGenesis) % 12
 }
-
-func (c *LibV0) GeneratePermit2Nonce() int {
-	// GenerateNonce uses cache to help prevent duplicate nonce values
-	// 1688945473760446000 is a chosen offset to reduce the nonce value
-	return c.UnixTimeStampNow() - 1688945473760446000
-}

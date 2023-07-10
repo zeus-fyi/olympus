@@ -26,6 +26,8 @@ func (a *AuxiliaryTradingUtils) CreateOrAddToFlashbotsBundle(ur *web3_client.Uni
 	a.OrderedTxs = []*types.Transaction{}
 }
 
+//  todo, update with missing params
+
 func (a *AuxiliaryTradingUtils) CallFlashbotsBundle(ctx context.Context) (flashbotsrpc.FlashbotsCallBundleResponse, error) {
 	var txsCall []string
 	txsCall, a.Bundle.Txs = a.Bundle.Txs, txsCall

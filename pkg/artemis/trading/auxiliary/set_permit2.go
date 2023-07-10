@@ -14,8 +14,7 @@ import (
 )
 
 func (a *AuxiliaryTradingUtils) SetPermit2ApprovalForToken(ctx context.Context, address string) (*types.Transaction, error) {
-	w3c := web3_client.NewWeb3Client(a.NodeURL, a.Account)
-	tx, err := w3c.ApprovePermit2(ctx, address)
+	tx, err := a.getWeb3Client().ApprovePermit2(ctx, address)
 	if err != nil {
 		log.Err(err).Msg("error approving permit2")
 		return tx, err

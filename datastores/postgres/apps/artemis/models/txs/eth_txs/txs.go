@@ -43,12 +43,12 @@ type Permit2Tx struct {
 type EthTx struct {
 	artemis_autogen_bases.EthTx
 	artemis_autogen_bases.EthTxGas
-	NextPermit2Nonce int `db:"next_nonce" json:"nextNonce"`
-	NextUserNonce    int `db:"next_user_nonce" json:"nextUserNonce"`
+	NextUserNonce int `db:"next_user_nonce" json:"nextUserNonce"`
 }
 
 type Permit2Tx struct {
 	artemis_autogen_bases.Permit2Tx
+	NextPermit2Nonce int `db:"next_nonce" json:"nextNonce"`
 }
 
 const ArtemisScheduledDelivery = "EthTx"
@@ -66,8 +66,8 @@ func (e *EthTx) InsertTx(ctx context.Context, pt Permit2Tx) (err error) {
                         INSERT INTO eth_tx_gas(tx_hash, gas_price, gas_limit, gas_tip_cap, gas_fee_cap)
                         VALUES ($2, $7, $8, $9, $10) RETURNING tx_hash
                     )
-                    INSERT INTO permit2_tx(event_id, nonce, owner, deadline, "token") 
-                    VALUES ($1, $11, $12, $13, $14);`
+                    INSERT INTO permit2_tx(event_id, nonce, owner, deadline, "token", protocol_network_id) 
+                    VALUES ($1, $11, $12, $13, $14, $3);`
 	log.Debug().Interface("InsertTx", q.LogHeader(ArtemisScheduledDelivery))
 	if e.ProtocolNetworkID == 0 {
 		e.ProtocolNetworkID = hestia_req_types.EthereumMainnetProtocolNetworkID
@@ -85,7 +85,7 @@ func (e *EthTx) InsertTx(ctx context.Context, pt Permit2Tx) (err error) {
 	return misc.ReturnIfErr(err, q.LogHeader(ArtemisScheduledDelivery))
 }
 
-func (e *EthTx) SelectNextUserTxNonce(ctx context.Context, pt Permit2Tx) (err error) {
+func (e *EthTx) SelectNextUserTxNonce(ctx context.Context) (err error) {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `SELECT COALESCE (MAX(nonce), 0) FROM eth_tx WHERE "from" = $1 AND protocol_network_id = $2;`
 	log.Debug().Interface("SelectNextPermit2Nonce", q.LogHeader(ArtemisScheduledDelivery))
@@ -103,20 +103,17 @@ func (e *EthTx) SelectNextUserTxNonce(ctx context.Context, pt Permit2Tx) (err er
 	return misc.ReturnIfErr(err, q.LogHeader(ArtemisScheduledDelivery))
 }
 
-func (e *EthTx) SelectNextPermit2Nonce(ctx context.Context, pt Permit2Tx) (err error) {
+func (pt *Permit2Tx) SelectNextPermit2Nonce(ctx context.Context) (err error) {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `SELECT COALESCE (MAX(nonce), 0) FROM permit2_tx WHERE owner = $1 AND token = $2;`
+	q.RawQuery = `SELECT COALESCE (MAX(nonce), 0) FROM permit2_tx WHERE owner = $1 AND token = $2 AND protocol_network_id = $3;`
 	log.Debug().Interface("SelectNextPermit2Nonce", q.LogHeader(ArtemisScheduledDelivery))
-	if e.ProtocolNetworkID == 0 {
-		e.ProtocolNetworkID = hestia_req_types.EthereumMainnetProtocolNetworkID
+	if pt.ProtocolNetworkID == 0 {
+		pt.ProtocolNetworkID = hestia_req_types.EthereumMainnetProtocolNetworkID
 	}
-	if e.Type == "" {
-		e.Type = "0x02"
-	}
-	err = apps.Pg.QueryRow2(ctx, q.RawQuery, pt.Owner, pt.Token).Scan(&e.EthTx.Nonce)
+	err = apps.Pg.QueryRow2(ctx, q.RawQuery, pt.Owner, pt.Token, pt.ProtocolNetworkID).Scan(&pt.Nonce)
 	if err != nil {
 		return err
 	}
-	e.NextPermit2Nonce = e.EthTx.Nonce + 1
+	pt.NextPermit2Nonce = pt.Nonce + 1
 	return misc.ReturnIfErr(err, q.LogHeader(ArtemisScheduledDelivery))
 }

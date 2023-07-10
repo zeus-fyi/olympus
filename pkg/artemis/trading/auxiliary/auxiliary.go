@@ -26,3 +26,10 @@ func InitAuxiliaryTradingUtils(ctx context.Context, nodeURL, network string, acc
 		FlashbotsClient: fba,
 	}
 }
+
+func (a *AuxiliaryTradingUtils) AddTx(tx *types.Transaction) {
+	if a.OrderedTxs == nil {
+		a.OrderedTxs = []*types.Transaction{}
+	}
+	a.OrderedTxs = append(a.OrderedTxs, tx)
+}

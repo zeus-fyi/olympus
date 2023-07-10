@@ -1,6 +1,7 @@
 package artemis_trading_auxiliary
 
 import (
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/metachris/flashbotsrpc"
 	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/trading/flashbots"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
@@ -16,5 +17,7 @@ func (a *AuxiliaryTradingUtils) CreateFlashbotsBundle(ur *web3_client.UniversalR
 		},
 	}
 	mevBundle.AddTxs(a.OrderedTxs...)
+	a.trackTxs(a.OrderedTxs...)
+	a.OrderedTxs = []*types.Transaction{}
 	return mevBundle
 }

@@ -91,6 +91,7 @@ ALTER TABLE "public"."event_status" ADD CONSTRAINT "event_status_pk" PRIMARY KEY
 CREATE TABLE "public"."permit2_tx"
 (
     "event_id"            int8 NOT NULL REFERENCES events (event_id),
+    "protocol_network_id" int8 NOT NULL REFERENCES protocol_networks (protocol_network_id) DEFAULT 1,
     "token"               text NOT NULL REFERENCES erc20_token_info (address),
     "nonce"               int8 NOT NULL,
     "owner"               text NOT NULL,

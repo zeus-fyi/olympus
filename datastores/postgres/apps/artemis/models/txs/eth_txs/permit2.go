@@ -9,11 +9,8 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
 
-func (e *EthTx) GetPermit2Nonce() int {
-	return 0
-}
-
-func (e *EthTx) PutPermit2Nonce() error {
+func (e *EthTx) putPermit2Nonce() error {
+	panic("implement me")
 	return nil
 }
 

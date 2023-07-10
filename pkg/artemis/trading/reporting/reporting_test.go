@@ -75,7 +75,7 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 
 	fmt.Println("total eth profit", artemis_eth_units.DivBigIntToFloat(total, artemis_eth_units.Ether).String())
 	fmt.Println("negatives", negCount)
-	fmt.Println("total eth profit without negatives", totalWithoutNegatives.String())
+	fmt.Println("total eth profit without negatives", artemis_eth_units.DivBigIntToFloat(totalWithoutNegatives, artemis_eth_units.Ether).String())
 }
 
 func (s *ReportingTestSuite) Test1() {

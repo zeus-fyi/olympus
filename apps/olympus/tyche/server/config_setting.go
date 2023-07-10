@@ -11,6 +11,7 @@ import (
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	artemis_trade_executor "github.com/zeus-fyi/olympus/pkg/artemis/trading/executor"
 	"github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/price_quoter"
 	"github.com/zeus-fyi/olympus/pkg/athena"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
@@ -78,7 +79,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 
 	log.Info().Msg("Tyche: InitFlashbots starting")
 	age := encryption.NewAge(authKeysCfg.AgePrivKey, authKeysCfg.AgePubKey)
-	artemis_trading_cache.InitFlashbotsCache(ctx, age)
+	artemis_trade_executor.InitMainnetAuxiliaryTradingUtils(ctx, age)
 	log.Info().Msg("Tyche: InitFlashbots succeeded")
 
 }

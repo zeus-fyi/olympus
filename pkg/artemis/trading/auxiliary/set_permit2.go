@@ -14,15 +14,14 @@ import (
 )
 
 func (a *AuxiliaryTradingUtils) SetPermit2ApprovalForToken(ctx context.Context, address string) (*types.Transaction, error) {
-	tx, err := a.ApprovePermit2(ctx, address)
+	w3c := web3_client.NewWeb3Client(a.NodeURL, a.Account)
+	tx, err := w3c.ApprovePermit2(ctx, address)
 	if err != nil {
 		log.Err(err).Msg("error approving permit2")
 		return tx, err
 	}
 	return tx, nil
 }
-
-// AuxiliaryTradingUtils GetNonce: todo this needs to update a nonce count in db or track them somehow
 
 var ts chronos.Chronos
 

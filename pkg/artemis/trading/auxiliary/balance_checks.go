@@ -45,19 +45,27 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdVerifier(ctx context.Context, 
 }
 
 func (a *AuxiliaryTradingUtils) checkAuxEthBalance(ctx context.Context) (*big.Int, error) {
-	bal, err := a.GetCurrentBalance(ctx)
+	bal, err := a.u.Web3Client.GetCurrentBalance(ctx)
 	if err != nil {
 		return bal, err
 	}
 	return bal, err
 }
 
+func (a *AuxiliaryTradingUtils) getAccountAddressString() string {
+	return a.getWeb3Client().Account.Address().String()
+}
+
 func (a *AuxiliaryTradingUtils) checkAuxERC20Balance(ctx context.Context, token core_entities.Token) (*big.Int, error) {
-	bal, err := a.ReadERC20TokenBalance(ctx, token.Address.String(), a.Account.Address().String())
+	bal, err := a.getWeb3Client().ReadERC20TokenBalance(ctx, token.Address.String(), a.getAccountAddressString())
 	if err != nil {
 		return bal, err
 	}
 	return bal, err
+}
+
+func (a *AuxiliaryTradingUtils) getWeb3Client() *web3_client.Web3Client {
+	return &a.u.Web3Client
 }
 
 func (a *AuxiliaryTradingUtils) checkAuxERC20BalanceGreaterThan(ctx context.Context, token core_entities.Token, amount *big.Int) (bool, error) {
@@ -69,7 +77,7 @@ func (a *AuxiliaryTradingUtils) checkAuxERC20BalanceGreaterThan(ctx context.Cont
 }
 
 func (a *AuxiliaryTradingUtils) checkAuxEthBalanceGreaterThan(ctx context.Context, amount *big.Int) (bool, error) {
-	bal, err := a.GetCurrentBalance(ctx)
+	bal, err := a.getWeb3Client().GetCurrentBalance(ctx)
 	if err != nil {
 		return false, err
 	}
@@ -83,7 +91,8 @@ func (a *AuxiliaryTradingUtils) checkAuxWETHBalance(ctx context.Context) (*big.I
 		return nil, err
 	}
 	token := core_entities.NewToken(uint(chainID), wethAddr, 18, "WETH", "Wrapped Ether")
-	bal, err := a.ReadERC20TokenBalance(ctx, token.Address.String(), a.Account.Address().String())
+
+	bal, err := a.getWeb3Client().ReadERC20TokenBalance(ctx, token.Address.String(), a.getAccountAddressString())
 	if err != nil {
 		return bal, err
 	}
@@ -100,7 +109,7 @@ func (a *AuxiliaryTradingUtils) checkAuxWETHBalanceGreaterThan(ctx context.Conte
 
 func (a *AuxiliaryTradingUtils) getChainID(ctx context.Context) (int, error) {
 	chainID := hestia_req_types.EthereumMainnetProtocolNetworkID
-	switch a.Network {
+	switch a.getWeb3Client().Network {
 	case hestia_req_types.Mainnet:
 		chainID = hestia_req_types.EthereumMainnetProtocolNetworkID
 	case hestia_req_types.Goerli:
@@ -108,21 +117,21 @@ func (a *AuxiliaryTradingUtils) getChainID(ctx context.Context) (int, error) {
 	case hestia_req_types.Ephemery:
 		chainID = hestia_req_types.EthereumEphemeryProtocolNetworkID
 	default:
-		a.Dial()
-		chain, err := a.C.ChainID(ctx)
+		a.getWeb3Client().Dial()
+		chain, err := a.getWeb3Client().C.ChainID(ctx)
 		if err != nil {
 			log.Warn().Err(err).Msg("error getting chainID")
 			return 0, err
 		}
 		chainID = int(chain.Int64())
-		a.Close()
+		a.getWeb3Client().Close()
 	}
 	return chainID, nil
 }
 
 func (a *AuxiliaryTradingUtils) getChainSpecificWETH() accounts.Address {
 	wethAddr := artemis_trading_constants.WETH9ContractAddressAccount
-	switch a.Network {
+	switch a.getWeb3Client().Network {
 	case hestia_req_types.Mainnet:
 		wethAddr = artemis_trading_constants.WETH9ContractAddressAccount
 	case hestia_req_types.Goerli:

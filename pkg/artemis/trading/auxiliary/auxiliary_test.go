@@ -7,10 +7,11 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/dynamic_secrets"
 	"github.com/zeus-fyi/olympus/pkg/aegis/s3secrets"
-	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	"github.com/zeus-fyi/olympus/pkg/athena"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
+	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 )
 
 type ArtemisAuxillaryTestSuite struct {
@@ -28,7 +29,25 @@ func (t *ArtemisAuxillaryTestSuite) SetupTest() {
 	athena.AthenaS3Manager = t.S3SecretsManagerTestSuite.S3
 	apps.Pg.InitPG(ctx, tc.ProdLocalDbPgconn)
 	age := encryption.NewAge(tc.LocalAgePkey, tc.LocalAgePubkey)
-	t.acc = artemis_trading_cache.InitAccount(ctx, age)
+	t.acc = initTradingAccount(ctx, age)
+}
+
+// InitTradingAccount pubkey 0x000025e60C7ff32a3470be7FE3ed1666b0E326e2
+func initTradingAccount(ctx context.Context, age encryption.Age) accounts.Account {
+	p := filepaths.Path{
+		DirIn:  "keygen",
+		DirOut: "keygen",
+		FnIn:   "key-4.txt.age",
+	}
+	r, err := dynamic_secrets.ReadAddress(ctx, p, athena.AthenaS3Manager, age)
+	if err != nil {
+		panic(err)
+	}
+	acc, err := dynamic_secrets.GetAccount(r)
+	if err != nil {
+		panic(err)
+	}
+	return acc
 }
 
 func TestArtemisAuxiliaryTestSuite(t *testing.T) {

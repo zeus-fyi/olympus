@@ -4,29 +4,48 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/metachris/flashbotsrpc"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/trading/flashbots"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-var TradingAuxiliary AuxiliaryTradingUtils
-
 type AuxiliaryTradingUtils struct {
-	web3_client.Web3Client
-	OrderedTxs []accounts.Hash
+	artemis_flashbots.FlashbotsClient
+	u          *web3_client.UniswapClient
+	OrderedTxs []*types.Transaction
 }
 
 func InitAuxiliaryTradingUtils(ctx context.Context, nodeURL, network string, acc accounts.Account) AuxiliaryTradingUtils {
-	TradingAuxiliary = AuxiliaryTradingUtils{
-		Web3Client: web3_client.NewWeb3Client(nodeURL, &acc),
+	fba := artemis_flashbots.InitFlashbotsClient(ctx, nodeURL, network, &acc)
+	aa := web3_client.Web3Client{
+		Web3Actions: web3_actions.NewWeb3ActionsClientWithAccount(nodeURL, &acc),
 	}
-	TradingAuxiliary.Network = network
-	return TradingAuxiliary
+	un := web3_client.InitUniswapClient(ctx, aa)
+	return AuxiliaryTradingUtils{
+		u:               &un,
+		FlashbotsClient: fba,
+	}
 }
 
 func (a *AuxiliaryTradingUtils) AddTx(tx *types.Transaction) {
 	if a.OrderedTxs == nil {
-		a.OrderedTxs = []accounts.Hash{}
+		a.OrderedTxs = []*types.Transaction{}
 	}
-	a.OrderedTxs = append(a.OrderedTxs, accounts.HexToHash(tx.Hash().Hex()))
+	a.OrderedTxs = append(a.OrderedTxs, tx)
 	a.trackTx(tx)
+}
+
+func (a *AuxiliaryTradingUtils) CreateFlashbotsBundle(ur *web3_client.UniversalRouterExecCmd, bn string) artemis_flashbots.MevTxBundle {
+	maxTime := ur.Deadline.Uint64()
+	mevBundle := artemis_flashbots.MevTxBundle{
+		FlashbotsSendBundleRequest: flashbotsrpc.FlashbotsSendBundleRequest{
+			Txs:          []string{},
+			BlockNumber:  bn,
+			MaxTimestamp: &maxTime,
+		},
+	}
+	mevBundle.AddTxs(a.OrderedTxs...)
+	return mevBundle
 }

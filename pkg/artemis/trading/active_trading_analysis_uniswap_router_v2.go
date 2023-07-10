@@ -55,7 +55,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 	case swapExactTokensForTokens:
 		st := web3_client.SwapExactTokensForTokensParams{}
 		st.Decode(ctx, tx.Args)
-		pd, err := a.u.GetV2PricingData(ctx, st.Path)
+		pd, err := a.a.U.GetV2PricingData(ctx, st.Path)
 		if err != nil {
 			a.m.ErrTrackingMetrics.RecordError(swapExactTokensForTokens, pd.V2Pair.PairContractAddr)
 			return nil, err
@@ -82,7 +82,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		st := web3_client.SwapTokensForExactTokensParams{}
 		st.Decode(tx.Args)
 		pend := len(st.Path) - 1
-		pd, err := a.u.GetV2PricingData(ctx, st.Path)
+		pd, err := a.a.U.GetV2PricingData(ctx, st.Path)
 		if err != nil {
 			a.m.ErrTrackingMetrics.RecordError(swapTokensForExactTokens, pd.V2Pair.PairContractAddr)
 			return nil, err
@@ -112,7 +112,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		st := web3_client.SwapExactETHForTokensParams{}
 		st.Decode(tx.Args, tx.Tx.Value())
 		pend := len(st.Path) - 1
-		pd, err := a.u.GetV2PricingData(ctx, st.Path)
+		pd, err := a.a.U.GetV2PricingData(ctx, st.Path)
 		if err != nil {
 			a.m.ErrTrackingMetrics.RecordError(swapExactETHForTokens, pd.V2Pair.PairContractAddr)
 			return nil, err
@@ -138,7 +138,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		st := web3_client.SwapTokensForExactETHParams{}
 		st.Decode(tx.Args)
 		pend := len(st.Path) - 1
-		pd, err := a.u.GetV2PricingData(ctx, st.Path)
+		pd, err := a.a.U.GetV2PricingData(ctx, st.Path)
 		if err != nil {
 			a.m.ErrTrackingMetrics.RecordError(swapTokensForExactETH, pd.V2Pair.PairContractAddr)
 			return nil, err
@@ -164,7 +164,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		st := web3_client.SwapExactTokensForETHParams{}
 		st.Decode(tx.Args)
 		pend := len(st.Path) - 1
-		pd, err := a.u.GetV2PricingData(ctx, st.Path)
+		pd, err := a.a.U.GetV2PricingData(ctx, st.Path)
 		if err != nil {
 			a.m.ErrTrackingMetrics.RecordError(swapExactTokensForETH, pd.V2Pair.PairContractAddr)
 			return nil, err
@@ -194,7 +194,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		st := web3_client.SwapETHForExactTokensParams{}
 		st.Decode(tx.Args, tx.Tx.Value())
 		pend := len(st.Path) - 1
-		pd, err := a.u.GetV2PricingData(ctx, st.Path)
+		pd, err := a.a.U.GetV2PricingData(ctx, st.Path)
 		if err != nil {
 			a.m.ErrTrackingMetrics.RecordError(swapETHForExactTokens, pd.V2Pair.PairContractAddr)
 			return nil, err
@@ -230,7 +230,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		st := web3_client.SwapExactTokensForETHSupportingFeeOnTransferTokensParams{}
 		st.Decode(tx.Args)
 		pend := len(st.Path) - 1
-		pd, err := a.u.GetV2PricingData(ctx, st.Path)
+		pd, err := a.a.U.GetV2PricingData(ctx, st.Path)
 		if err != nil {
 			a.m.ErrTrackingMetrics.RecordError(swapExactTokensForETHSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr)
 			return nil, err
@@ -260,7 +260,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		st := web3_client.SwapExactETHForTokensSupportingFeeOnTransferTokensParams{}
 		st.Decode(tx.Args, tx.Tx.Value())
 		pend := len(st.Path) - 1
-		pd, err := a.u.GetV2PricingData(ctx, st.Path)
+		pd, err := a.a.U.GetV2PricingData(ctx, st.Path)
 		if err != nil {
 			a.m.ErrTrackingMetrics.RecordError(swapExactETHForTokensSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr)
 			return nil, err
@@ -286,7 +286,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		st := web3_client.SwapExactTokensForTokensSupportingFeeOnTransferTokensParams{}
 		st.Decode(tx.Args)
 		pend := len(st.Path) - 1
-		pd, err := a.u.GetV2PricingData(ctx, st.Path)
+		pd, err := a.a.U.GetV2PricingData(ctx, st.Path)
 		if err != nil {
 			a.m.ErrTrackingMetrics.RecordError(swapExactTokensForTokensSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr)
 			return nil, err

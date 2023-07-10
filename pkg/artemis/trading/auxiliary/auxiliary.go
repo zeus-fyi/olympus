@@ -13,7 +13,7 @@ import (
 
 type AuxiliaryTradingUtils struct {
 	artemis_flashbots.FlashbotsClient
-	u          *web3_client.UniswapClient
+	U          *web3_client.UniswapClient
 	OrderedTxs []*types.Transaction
 }
 
@@ -24,7 +24,7 @@ func InitAuxiliaryTradingUtils(ctx context.Context, nodeURL, network string, acc
 	}
 	un := web3_client.InitUniswapClient(ctx, aa)
 	return AuxiliaryTradingUtils{
-		u:               &un,
+		U:               &un,
 		FlashbotsClient: fba,
 	}
 }

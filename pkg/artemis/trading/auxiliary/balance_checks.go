@@ -45,7 +45,7 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdVerifier(ctx context.Context, 
 }
 
 func (a *AuxiliaryTradingUtils) checkAuxEthBalance(ctx context.Context) (*big.Int, error) {
-	bal, err := a.u.Web3Client.GetCurrentBalance(ctx)
+	bal, err := a.U.Web3Client.GetCurrentBalance(ctx)
 	if err != nil {
 		return bal, err
 	}
@@ -65,7 +65,7 @@ func (a *AuxiliaryTradingUtils) checkAuxERC20Balance(ctx context.Context, token 
 }
 
 func (a *AuxiliaryTradingUtils) getWeb3Client() *web3_client.Web3Client {
-	return &a.u.Web3Client
+	return &a.U.Web3Client
 }
 
 func (a *AuxiliaryTradingUtils) checkAuxERC20BalanceGreaterThan(ctx context.Context, token core_entities.Token, amount *big.Int) (bool, error) {

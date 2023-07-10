@@ -9,19 +9,20 @@ import (
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
-	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
+	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
+	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/trading/flashbots"
 )
 
 type ActiveTrading struct {
-	u *web3_client.UniswapClient
+	a *artemis_trading_auxiliary.AuxiliaryTradingUtils
 	m metrics_trading.TradingMetrics
 }
 
-func NewActiveTradingModuleWithoutMetrics(u *web3_client.UniswapClient) ActiveTrading {
-	return ActiveTrading{u: u}
+func NewActiveTradingModuleWithoutMetrics(a *artemis_trading_auxiliary.AuxiliaryTradingUtils) ActiveTrading {
+	return ActiveTrading{a: a}
 }
-func NewActiveTradingModule(u *web3_client.UniswapClient, tm metrics_trading.TradingMetrics) ActiveTrading {
-	return ActiveTrading{u, tm}
+func NewActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, tm metrics_trading.TradingMetrics) ActiveTrading {
+	return ActiveTrading{a, tm}
 }
 
 func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) error {
@@ -67,19 +68,20 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	if err != nil {
 		return err
 	}
-	//var bundles []artemis_flashbots.MevTxBundle
-	//for _, tradeFlow := range liveTradingSlice {
-	//	tf := tradeFlow.ConvertToBigIntType()
-	//	// todo, shouldn't necessarily bypass sim stage
-	//	err = a.SimToPackageTxBundle(ctx, &tf, true)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	if tf.Bundle != nil {
-	//		bundles = append(bundles, *tf.Bundle)
-	//		// todo update metric here
-	//	}
-	//}
+
+	var bundles []artemis_flashbots.MevTxBundle
+	for _, tradeFlow := range tfSlice {
+		tf := tradeFlow.ConvertToBigIntType()
+		// todo, shouldn't necessarily bypass sim stage
+		err = a.SimToPackageTxBundle(ctx, &tf, true)
+		if err != nil {
+			return err
+		}
+		if tf.Bundle != nil {
+			bundles = append(bundles, *tf.Bundle)
+			// todo update metric here
+		}
+	}
 
 	//for _, bundle := range bundles {
 	//	param := flashbotsrpc.FlashbotsCallBundleParam{

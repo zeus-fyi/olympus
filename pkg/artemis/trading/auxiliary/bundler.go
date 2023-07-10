@@ -2,6 +2,7 @@ package artemis_trading_auxiliary
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/metachris/flashbotsrpc"
@@ -28,18 +29,17 @@ func (a *AuxiliaryTradingUtils) CreateOrAddToFlashbotsBundle(ur *web3_client.Uni
 
 //  todo, update with missing params
 
-func (a *AuxiliaryTradingUtils) CallFlashbotsBundle(ctx context.Context) (flashbotsrpc.FlashbotsCallBundleResponse, error) {
+func (a *AuxiliaryTradingUtils) callFlashbotsBundle(ctx context.Context) (flashbotsrpc.FlashbotsCallBundleResponse, error) {
 	var txsCall []string
+	eventID, err := a.getEventID(ctx)
+	if err != nil {
+		log.Err(err).Msg("error getting event id")
+		return flashbotsrpc.FlashbotsCallBundleResponse{}, err
+	}
 	txsCall, a.Bundle.Txs = a.Bundle.Txs, txsCall
 	callBundle := flashbotsrpc.FlashbotsCallBundleParam{
-		Txs:              txsCall,
-		BlockNumber:      "",
-		StateBlockNumber: "",
-		Timestamp:        0,
-		Timeout:          0,
-		GasLimit:         0,
-		Difficulty:       0,
-		BaseFee:          0,
+		Txs:         txsCall,
+		BlockNumber: fmt.Sprintf("%x", eventID),
 	}
 	resp, err := a.CallBundle(ctx, callBundle)
 	if err != nil {

@@ -6,6 +6,7 @@ import (
 )
 
 type MevTxBundle struct {
+	EventID int
 	flashbotsrpc.FlashbotsSendBundleRequest
 }
 

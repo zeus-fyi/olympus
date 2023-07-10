@@ -35,7 +35,7 @@ func (t *ArtemisAuxillaryTestSuite) TestCreateFbBundle() *AuxiliaryTradingUtils 
 func (t *ArtemisAuxillaryTestSuite) TestCallBundle() {
 	ta := t.TestCreateFbBundle()
 	t.Require().NotEmpty(ta)
-	resp, err := ta.CallFlashbotsBundle(ctx)
+	resp, err := ta.callFlashbotsBundle(ctx)
 	t.Require().Nil(err)
 	t.Require().NotNil(resp)
 }

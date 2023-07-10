@@ -27,7 +27,6 @@ func (a *AuxiliaryTradingUtils) isProfitHigherThanGasFee(tf *web3_client.TradeEx
 	if !artemis_eth_units.IsXGreaterThanY(tf.SandwichTrade.AmountOut, artemis_eth_units.NewBigIntFromUint(totalGasCost)) {
 		return false, errors.New("profit is not higher than gas fee")
 	}
-
 	return true, nil
 }
 
@@ -69,6 +68,10 @@ func (a *AuxiliaryTradingUtils) isProfitTokenAcceptable(ctx context.Context, tf 
 	if !ok {
 		log.Info().Interface("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut).Msg("profit is not higher than gas fee")
 		return false, errors.New("profit is not higher than gas fee")
+	}
+	if artemis_eth_units.IsXGreaterThanY(tf.FrontRunTrade.AmountIn, a.maxTradeSize()) {
+		log.Info().Interface("tf.FrontRunTrade.AmountIn", tf.FrontRunTrade.AmountIn).Interface("maxTradeSize", a.maxTradeSize()).Msg("trade size is higher than max trade size")
+		return false, errors.New("trade size is higher than max trade size")
 	}
 	return true, nil
 }

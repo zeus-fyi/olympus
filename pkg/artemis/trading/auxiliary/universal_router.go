@@ -49,6 +49,7 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdBuilder(ctx context.Context, u
 	if err != nil {
 		return nil, err
 	}
+	a.OrderedTxs = append(a.OrderedTxs, signedTx)
 	return signedTx, nil
 }
 

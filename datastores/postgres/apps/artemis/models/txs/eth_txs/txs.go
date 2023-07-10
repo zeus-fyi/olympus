@@ -5,5 +5,5 @@ import (
 )
 
 type EthTx struct {
-	artemis_autogen_bases.EthEcdsaTxs
+	artemis_autogen_bases.EthTx
 }

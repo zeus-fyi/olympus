@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_encryption"
 )
@@ -27,8 +28,8 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 	// init 17639300, current 17658962
 	//  artemis_trading_constants.V2SwapExactIn
 	rhf := RewardHistoryFilter{
-		FromBlock:   17639300,
-		TradeMethod: "any",
+		FromBlock:   17658962,
+		TradeMethod: artemis_trading_constants.V2SwapExactIn,
 	}
 	rw, err := GetRewardsHistory(ctx, rhf)
 	s.Assert().Nil(err)
@@ -57,8 +58,13 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 		return historySlice[i].Count > historySlice[j].Count
 	})
 
+	negCount := 0
 	for _, v := range historySlice {
-		if v.Count < 8 {
+		if v.Count < 1 {
+			continue
+		}
+		if artemis_eth_units.IsXGreaterThanY(artemis_eth_units.NewBigInt(0), rw.Map[v.AmountOutToken.Address.String()].ExpectedProfitAmountOut) {
+			negCount++
 			continue
 		}
 		fmt.Println(
@@ -68,6 +74,7 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 	}
 
 	fmt.Println("total eth profit", total.String())
+	fmt.Println("negatives", negCount)
 	fmt.Println("total eth profit without negatives", totalWithoutNegatives.String())
 }
 

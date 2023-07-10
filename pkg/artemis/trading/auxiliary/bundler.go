@@ -2,6 +2,7 @@ package artemis_trading_auxiliary
 
 import (
 	"context"
+	"errors"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -27,6 +28,21 @@ func (a *AuxiliaryTradingUtils) CreateOrAddToFlashbotsBundle(ur *web3_client.Uni
 	return err
 }
 
+func (a *AuxiliaryTradingUtils) CallAndSendFlashbotsBundle(ctx context.Context) (flashbotsrpc.FlashbotsSendBundleResponse, error) {
+	sr := flashbotsrpc.FlashbotsSendBundleResponse{}
+	_, err := a.callFlashbotsBundle(ctx)
+	if err != nil {
+		log.Err(err).Msg("error calling flashbots bundle")
+		return sr, err
+	}
+	sr, err = a.sendFlashbotsBundle(ctx)
+	if err != nil {
+		log.Err(err).Msg("error sending flashbots bundle")
+		return sr, err
+	}
+	return sr, nil
+}
+
 func (a *AuxiliaryTradingUtils) callFlashbotsBundle(ctx context.Context) (flashbotsrpc.FlashbotsCallBundleResponse, error) {
 	var txsCall []string
 	eventID, err := a.getEventID(ctx)
@@ -44,6 +60,21 @@ func (a *AuxiliaryTradingUtils) callFlashbotsBundle(ctx context.Context) (flashb
 	if err != nil {
 		log.Err(err).Msg("error calling flashbots bundle")
 		a.Bundle.Txs = txsCall
+		return resp, err
+	}
+	return resp, nil
+}
+
+func (a *AuxiliaryTradingUtils) sendFlashbotsBundle(ctx context.Context) (flashbotsrpc.FlashbotsSendBundleResponse, error) {
+	if a.Bundle.FlashbotsSendBundleRequest == nil {
+		return flashbotsrpc.FlashbotsSendBundleResponse{}, errors.New("no bundle to send")
+	}
+	var bundle *flashbotsrpc.FlashbotsSendBundleRequest
+	bundle, a.Bundle.FlashbotsSendBundleRequest = a.Bundle.FlashbotsSendBundleRequest, bundle
+	resp, err := a.SendBundle(ctx, *bundle)
+	if err != nil {
+		a.Bundle.FlashbotsSendBundleRequest = bundle
+		log.Err(err).Msg("error calling flashbots bundle")
 		return resp, err
 	}
 	return resp, nil

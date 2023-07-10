@@ -43,6 +43,7 @@ type Permit2Tx struct {
 type EthTx struct {
 	artemis_autogen_bases.EthTx
 	artemis_autogen_bases.EthTxGas
+	NextNonce int `db:"next_nonce" json:"nextNonce"`
 }
 
 type Permit2Tx struct {
@@ -88,5 +89,23 @@ func (e *EthTx) InsertTx(ctx context.Context, pt Permit2Tx) (err error) {
 	if err != nil {
 		return err
 	}
+	return misc.ReturnIfErr(err, q.LogHeader(ArtemisScheduledDelivery))
+}
+
+func (e *EthTx) SelectTx(ctx context.Context, pt Permit2Tx) (err error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT COALESCE (MAX(nonce), 0) FROM permit2_tx WHERE owner = $1 AND token = $2;`
+	log.Debug().Interface("SelectTx", q.LogHeader(ArtemisScheduledDelivery))
+	if e.ProtocolNetworkID == 0 {
+		e.ProtocolNetworkID = hestia_req_types.EthereumMainnetProtocolNetworkID
+	}
+	if e.Type == "" {
+		e.Type = "0x02"
+	}
+	err = apps.Pg.QueryRow2(ctx, q.RawQuery, pt.Owner, pt.Token).Scan(&e.EthTx.Nonce)
+	if err != nil {
+		return err
+	}
+	e.NextNonce = e.EthTx.Nonce + 1
 	return misc.ReturnIfErr(err, q.LogHeader(ArtemisScheduledDelivery))
 }

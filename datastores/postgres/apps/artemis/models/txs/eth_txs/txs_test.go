@@ -3,6 +3,7 @@ package artemis_eth_txs
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"testing"
 	"time"
 
@@ -75,6 +76,27 @@ func (s *TxTestSuite) TestInsertTx() {
 }
 
 func (s *TxTestSuite) TestSelect() {
+	etx := EthTx{
+		EthTx: artemis_autogen_bases.EthTx{
+			ProtocolNetworkID: 1,
+			TxHash:            "0x012fad",
+			Nonce:             0,
+			From:              "0x0gsdg32",
+			Type:              "0x02",
+			EventID:           0,
+		},
+	}
+	pt := Permit2Tx{Permit2Tx: artemis_autogen_bases.Permit2Tx{
+		Nonce:    1,
+		Owner:    "0x0gsdg32",
+		Deadline: int(time.Now().Add(time.Minute * 5).Unix()),
+		EventID:  int(time.Now().Unix()),
+		Token:    "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+	}}
+	err := etx.SelectTx(ctx, pt)
+	s.Require().Nil(err)
+	fmt.Println(etx.Nonce)
+	fmt.Println(etx.NextNonce)
 }
 
 func TestTxTestSuite(t *testing.T) {

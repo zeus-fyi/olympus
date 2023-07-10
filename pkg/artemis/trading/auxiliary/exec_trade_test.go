@@ -3,6 +3,7 @@ package artemis_trading_auxiliary
 import (
 	"fmt"
 
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
@@ -13,7 +14,7 @@ import (
 )
 
 // todo add permit2 nonce getter from db method
-func (t *ArtemisAuxillaryTestSuite) TestExecV2Trade() {
+func (t *ArtemisAuxillaryTestSuite) testExecV2Trade() (AuxiliaryTradingUtils, *web3_client.UniversalRouterExecCmd) {
 	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
 	t.Require().NotEmpty(ta)
 	toExchAmount := artemis_eth_units.GweiMultiple(100)
@@ -60,18 +61,25 @@ func (t *ArtemisAuxillaryTestSuite) TestExecV2Trade() {
 			t.Require().Equal(artemis_trading_constants.UniversalRouterSenderAddress, sc.DecodedInputs.(web3_client.V2SwapExactInParams).To.String())
 		}
 	}
+	return ta, cmd
+}
 
+func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeCall() (AuxiliaryTradingUtils, *web3_client.UniversalRouterExecCmd, *types.Transaction) {
+	ta, cmd := t.testExecV2Trade()
 	tx, err := ta.universalRouterCmdBuilder(ctx, cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 	t.Require().NotNil(cmd.Deadline)
-
-	//_, err = ta.universalRouterExecuteTx(ctx, tx)
-	//t.Require().Nil(err)
-	//fmt.Println("tx", tx.Hash().String())
+	return ta, cmd, tx
 }
 
-// maxTradeSize()
+//func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeExec() {
+//	ta, _, tx := t.TestExecV2TradeCall()
+//	_, err := ta.universalRouterExecuteTx(ctx, tx)
+//	t.Require().Nil(err)
+//	fmt.Println("tx", tx.Hash().String())
+//}
+
 func (t *ArtemisAuxillaryTestSuite) TestMaxTradeSize() {
 	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
 	t.Require().NotEmpty(ta)

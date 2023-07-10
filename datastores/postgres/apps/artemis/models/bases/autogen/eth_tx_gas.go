@@ -8,10 +8,10 @@ import (
 
 type EthTxGas struct {
 	TxHash    string        `db:"tx_hash" json:"txHash"`
-	GasPrice  sql.NullInt64 `db:"gasPrice" json:"gasPrice"`
-	GasLimit  sql.NullInt64 `db:"gasLimit" json:"gasLimit"`
-	GasTipCap sql.NullInt64 `db:"gasTipCap" json:"gasTipCap"`
-	GasFeeCap sql.NullInt64 `db:"gasFeeCap" json:"gasFeeCap"`
+	GasPrice  sql.NullInt64 `db:"gas_price" json:"gasPrice"`
+	GasLimit  sql.NullInt64 `db:"gas_limit" json:"gasLimit"`
+	GasTipCap sql.NullInt64 `db:"gas_tip_cap" json:"gasTipCap"`
+	GasFeeCap sql.NullInt64 `db:"gas_fee_cap" json:"gasFeeCap"`
 }
 type EthTxGasSlice []EthTxGas
 
@@ -24,7 +24,7 @@ func (e *EthTxGas) GetRowValues(queryName string) apps.RowValues {
 	return pgValues
 }
 func (e *EthTxGas) GetTableColumns() (columnValues []string) {
-	columnValues = []string{"tx_hash", "gasPrice", "gasLimit", "gasTipCap", "gasFeeCap"}
+	columnValues = []string{"tx_hash", "gas_price", "gas_limit", "gas_tip_cap", "gas_fee_cap"}
 	return columnValues
 }
 func (e *EthTxGas) GetTableName() (tableName string) {

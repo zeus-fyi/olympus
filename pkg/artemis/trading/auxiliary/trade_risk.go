@@ -14,3 +14,7 @@ func (a *AuxiliaryTradingUtils) maxTradeSize() *big.Int {
 func (a *AuxiliaryTradingUtils) isProfitHigherThanGasFee() bool {
 	return false
 }
+
+func (a *AuxiliaryTradingUtils) isTradingEnabledOnToken() bool {
+	return false
+}

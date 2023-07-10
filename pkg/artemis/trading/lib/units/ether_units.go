@@ -6,6 +6,10 @@ import (
 	core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_core/entities"
 )
 
+const (
+	GweiPerEth = 1000000000
+)
+
 var (
 	Gwei             = big.NewInt(1e9)
 	Finney           = big.NewInt(1e15)

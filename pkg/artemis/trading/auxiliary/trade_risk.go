@@ -10,3 +10,7 @@ func (a *AuxiliaryTradingUtils) maxTradeSize() *big.Int {
 	gweiInEther := artemis_eth_units.GweiPerEth
 	return artemis_eth_units.GweiMultiple(gweiInEther / 4)
 }
+
+func (a *AuxiliaryTradingUtils) isProfitHigherThanGasFee() bool {
+	return false
+}

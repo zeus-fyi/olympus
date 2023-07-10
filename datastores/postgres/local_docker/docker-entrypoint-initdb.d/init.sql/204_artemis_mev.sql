@@ -43,13 +43,62 @@ CREATE TABLE "public"."event_tags"
 CREATE INDEX event_tags_index ON "public"."event_tags" ("event_group_id" DESC);
 ALTER TABLE "public"."event_tags" ADD CONSTRAINT "event_tags_pk" PRIMARY KEY ("event_id");
 
+/*
+ 	LegacyTxType     = 0x00
+	AccessListTxType = 0x01
+	DynamicFeeTxType = 0x02
+	BlobTxType       = 0x03
+ */
+
 CREATE TABLE "public"."eth_tx"
 (
     "event_id"            int8 NOT NULL REFERENCES events (event_id),
     "protocol_network_id" int8 NOT NULL REFERENCES protocol_networks (protocol_network_id) DEFAULT 1,
-    "tx_hash"             text NOT NULL
+    "tx_hash"             text NOT NULL,
+    "nonce"              int8 NOT NULL,
+    "from"               text NOT NULL,
+    "type"              text NOT NULL DEFAULT '0x02'
 );
 ALTER TABLE "public"."eth_tx" ADD CONSTRAINT "eth_tx_pk" PRIMARY KEY ("tx_hash");
+ALTER TABLE "public"."eth_tx" ADD CONSTRAINT "eth_user_tx_nonce_uniq" UNIQUE ("from", "nonce");
+ALTER TABLE "public"."eth_tx" ADD CONSTRAINT "eth_tx_type_uniq" UNIQUE ("tx_hash","type");
+CREATE INDEX eth_tx_ordering ON "public"."eth_tx" ("event_id", "nonce", "from" DESC);
+
+CREATE TABLE "public"."eth_tx_gas"
+(
+    "tx_hash"             text NOT NULL REFERENCES eth_tx (tx_hash),
+    "gasPrice" int8,
+    "gasLimit" int8,
+    "gasTipCap" int8,
+    "gasFeeCap" int8
+);
+ALTER TABLE "public"."eth_tx_gas" ADD CONSTRAINT "eth_tx_status_pk" PRIMARY KEY ("tx_hash");
+
+/*
+ 	GasPrice  *big.Int
+	GasLimit  uint64
+	GasTipCap *big.Int // a.k.a. maxPriorityFeePerGas
+	GasFeeCap *big.Int // a.k.a. maxFeePerGas
+ */
+
+CREATE TABLE "public"."event_status"
+(
+    "event_id"            int8 NOT NULL REFERENCES events (event_id),
+    "status"               text NOT NULL
+);
+ALTER TABLE "public"."event_status" ADD CONSTRAINT "event_status_pk" PRIMARY KEY ("event_id");
+
+CREATE TABLE "public"."permit2_tx"
+(
+    "event_id"            int8 NOT NULL REFERENCES events (event_id),
+    "token"               text NOT NULL REFERENCES erc20_token_info (address),
+    "nonce"               int8 NOT NULL,
+    "owner"               text NOT NULL,
+    "deadline"            int8 NOT NULL
+);
+ALTER TABLE "public"."permit2_tx" ADD CONSTRAINT "permit2_tx_pk" PRIMARY KEY ("event_id");
+CREATE INDEX permit2_tx_nonce ON "public"."permit2_tx" ("event_id", "nonce", "deadline");
+ALTER TABLE "public"."permit2_tx" ADD CONSTRAINT "permit2_nonce_uniq" UNIQUE ("owner", "nonce", "token");
 
 CREATE TABLE "public"."eth_rx"
 (

@@ -22,6 +22,17 @@ func (a *AuxiliaryTradingUtils) SetPermit2ApprovalForToken(ctx context.Context, 
 	return tx, nil
 }
 
+func (a *AuxiliaryTradingUtils) getEventID(ctx context.Context) (int, error) {
+	a.Dial()
+	bn, err := a.C.BlockNumber(ctx)
+	if err != nil {
+		log.Err(err).Msg("failed to get block number")
+		return -1, err
+	}
+	a.Close()
+	return int(bn), err
+}
+
 func (a *AuxiliaryTradingUtils) GetPermit2Nonce() *big.Int {
 	ethTx := artemis_eth_txs.EthTx{}
 	nonceInt := ethTx.GetPermit2Nonce()

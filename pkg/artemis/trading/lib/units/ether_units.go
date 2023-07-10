@@ -21,6 +21,10 @@ var (
 	MaxUINT, _ = new(big.Int).SetString(maxUINT, 10)
 )
 
+func NewBigIntFromUint(amount uint64) *big.Int {
+	return new(big.Int).SetUint64(amount)
+
+}
 func NewBigInt(amount int) *big.Int {
 	return new(big.Int).SetInt64(int64(amount))
 }

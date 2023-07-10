@@ -12,6 +12,7 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
+// todo add permit2 nonce getter from db method
 func (t *ArtemisAuxillaryTestSuite) TestExecV2Trade() {
 	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
 	t.Require().NotEmpty(ta)

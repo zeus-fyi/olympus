@@ -5,6 +5,7 @@ import (
 	"errors"
 	"math/big"
 
+	"github.com/rs/zerolog/log"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
@@ -14,8 +15,13 @@ func (a *AuxiliaryTradingUtils) maxTradeSize() *big.Int {
 	return artemis_eth_units.GweiMultiple(gweiInEther / 4)
 }
 
-func (a *AuxiliaryTradingUtils) isProfitHigherThanGasFee() bool {
-	return false
+func (a *AuxiliaryTradingUtils) isProfitHigherThanGasFee(tf *web3_client.TradeExecutionFlow) (bool, error) {
+	totalGasCost := tf.FrontRunTrade.TotalGasCost + tf.SandwichTrade.TotalGasCost
+	if !artemis_eth_units.IsXGreaterThanY(tf.SandwichTrade.AmountOut, artemis_eth_units.NewBigIntFromUint(totalGasCost)) {
+		return false, errors.New("profit is not higher than gas fee")
+	}
+
+	return true, nil
 }
 
 func (a *AuxiliaryTradingUtils) isTradingEnabledOnToken() bool {
@@ -38,10 +44,13 @@ func (a *AuxiliaryTradingUtils) isProfitTokenAcceptable(ctx context.Context, tf 
 		return false, errors.New("could not get gas usage for sandwich txs")
 	}
 
-	totalGasCost := tf.FrontRunTrade.TotalGasCost + tf.SandwichTrade.TotalGasCost
-	if !artemis_eth_units.IsXGreaterThanY(tf.SandwichTrade.AmountOut, artemis_eth_units.NewBigIntFromUint(totalGasCost)) {
+	ok, err := a.isProfitHigherThanGasFee(tf)
+	if err != nil {
+		return false, err
+	}
+	if !ok {
+		log.Info().Interface("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut).Msg("profit is not higher than gas fee")
 		return false, errors.New("profit is not higher than gas fee")
 	}
-
 	return true, nil
 }

@@ -54,14 +54,6 @@ const ArtemisScheduledDelivery = "EthTx"
 
 var ts chronos.Chronos
 
-/*
-	columnValues = []string{"nonce", "owner", "deadline", "", "token"}
-	return columnValues
-}
-func (p *Permit2Tx) GetTableName() (tableName string) {
-	tableName = "permit2_tx"
-*/
-
 func (e *EthTx) InsertTx(ctx context.Context, pt Permit2Tx) (err error) {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `WITH cte_insert_id AS (
@@ -92,10 +84,10 @@ func (e *EthTx) InsertTx(ctx context.Context, pt Permit2Tx) (err error) {
 	return misc.ReturnIfErr(err, q.LogHeader(ArtemisScheduledDelivery))
 }
 
-func (e *EthTx) SelectTx(ctx context.Context, pt Permit2Tx) (err error) {
+func (e *EthTx) SelectNextTxNonce(ctx context.Context, pt Permit2Tx) (err error) {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `SELECT COALESCE (MAX(nonce), 0) FROM permit2_tx WHERE owner = $1 AND token = $2;`
-	log.Debug().Interface("SelectTx", q.LogHeader(ArtemisScheduledDelivery))
+	log.Debug().Interface("SelectNextTxNonce", q.LogHeader(ArtemisScheduledDelivery))
 	if e.ProtocolNetworkID == 0 {
 		e.ProtocolNetworkID = hestia_req_types.EthereumMainnetProtocolNetworkID
 	}

@@ -93,7 +93,7 @@ func (s *TxTestSuite) TestSelect() {
 		EventID:  int(time.Now().Unix()),
 		Token:    "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
 	}}
-	err := etx.SelectTx(ctx, pt)
+	err := etx.SelectNextTxNonce(ctx, pt)
 	s.Require().Nil(err)
 	fmt.Println(etx.Nonce)
 	fmt.Println(etx.NextNonce)

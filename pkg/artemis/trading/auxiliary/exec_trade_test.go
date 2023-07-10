@@ -1,6 +1,8 @@
 package artemis_trading_auxiliary
 
 import (
+	"fmt"
+
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
@@ -66,4 +68,13 @@ func (t *ArtemisAuxillaryTestSuite) TestExecV2Trade() {
 	//_, err = ta.universalRouterExecuteTx(ctx, tx)
 	//t.Require().Nil(err)
 	//fmt.Println("tx", tx.Hash().String())
+}
+
+// maxTradeSize()
+func (t *ArtemisAuxillaryTestSuite) TestMaxTradeSize() {
+	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
+	t.Require().NotEmpty(ta)
+	mts := ta.maxTradeSize()
+	fmt.Println("maxTradeSize", mts.String())
+	t.Assert().Equal(artemis_eth_units.Ether, artemis_eth_units.MulBigIntFromInt(mts, 4))
 }

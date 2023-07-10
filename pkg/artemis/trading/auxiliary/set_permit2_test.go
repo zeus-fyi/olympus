@@ -8,10 +8,10 @@ import (
 )
 
 func (t *ArtemisAuxillaryTestSuite) TestGeneratePermit2Nonce() {
-	for i := 0; i < 10; i++ {
-		val := ts.GeneratePermit2Nonce()
-		fmt.Println(val)
-	}
+	//for i := 0; i < 10; i++ {
+	//	val := ts.GeneratePermit2Nonce()
+	//	fmt.Println(val)
+	//}
 }
 
 func (t *ArtemisAuxillaryTestSuite) TestSetPermit2() {

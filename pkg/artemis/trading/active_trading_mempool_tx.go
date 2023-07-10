@@ -14,7 +14,7 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-func (a *ActiveTrading) SaveMempoolTx(ctx context.Context, tfSlice []web3_client.TradeExecutionFlowJSON, bn uint64) error {
+func (a *ActiveTrading) SaveMempoolTx(ctx context.Context, bn uint64, tfSlice []web3_client.TradeExecutionFlowJSON) error {
 	var liveTradingSlice []web3_client.TradeExecutionFlowJSON
 	for _, tradeFlow := range tfSlice {
 		if tradeFlow.UserTrade.AmountInAddr.String() == artemis_trading_constants.WETH9ContractAddressAccount.String() {

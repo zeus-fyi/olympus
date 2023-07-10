@@ -55,6 +55,7 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 		return errors.New("SimTxFilter: no tx flows to simulate")
 	}
 	a.m.StageProgressionMetrics.CountPostSimFilterTx(float64(1))
+	// todo refactor this
 	wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
 	wc.Dial()
 	bn, berr := wc.C.BlockNumber(ctx)
@@ -63,16 +64,11 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 		return berr
 	}
 	wc.Close()
-	err = a.SaveMempoolTx(ctx, tfSlice, bn)
+	err = a.SaveMempoolTx(ctx, bn, tfSlice)
 	if err != nil {
 		return err
 	}
-
-	bundles, err := a.BundleTxs(ctx, tfSlice)
-	if err != nil {
-		return err
-	}
-	err = a.SubmitCallBundle(ctx, bn, bundles)
+	err = a.ProcessBundleStage(ctx, bn, tfSlice)
 	if err != nil {
 		return err
 	}

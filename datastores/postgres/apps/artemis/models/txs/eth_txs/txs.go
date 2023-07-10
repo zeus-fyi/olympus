@@ -43,7 +43,8 @@ type Permit2Tx struct {
 type EthTx struct {
 	artemis_autogen_bases.EthTx
 	artemis_autogen_bases.EthTxGas
-	NextNonce int `db:"next_nonce" json:"nextNonce"`
+	NextPermit2Nonce int `db:"next_nonce" json:"nextNonce"`
+	NextUserNonce    int `db:"next_user_nonce" json:"nextUserNonce"`
 }
 
 type Permit2Tx struct {
@@ -84,10 +85,28 @@ func (e *EthTx) InsertTx(ctx context.Context, pt Permit2Tx) (err error) {
 	return misc.ReturnIfErr(err, q.LogHeader(ArtemisScheduledDelivery))
 }
 
-func (e *EthTx) SelectNextTxNonce(ctx context.Context, pt Permit2Tx) (err error) {
+func (e *EthTx) SelectNextUserTxNonce(ctx context.Context, pt Permit2Tx) (err error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT COALESCE (MAX(nonce), 0) FROM eth_tx WHERE "from" = $1 AND protocol_network_id = $2;`
+	log.Debug().Interface("SelectNextPermit2Nonce", q.LogHeader(ArtemisScheduledDelivery))
+	if e.ProtocolNetworkID == 0 {
+		e.ProtocolNetworkID = hestia_req_types.EthereumMainnetProtocolNetworkID
+	}
+	if e.Type == "" {
+		e.Type = "0x02"
+	}
+	err = apps.Pg.QueryRow2(ctx, q.RawQuery, e.From, e.ProtocolNetworkID).Scan(&e.EthTx.Nonce)
+	if err != nil {
+		return err
+	}
+	e.NextUserNonce = e.EthTx.Nonce + 1
+	return misc.ReturnIfErr(err, q.LogHeader(ArtemisScheduledDelivery))
+}
+
+func (e *EthTx) SelectNextPermit2Nonce(ctx context.Context, pt Permit2Tx) (err error) {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `SELECT COALESCE (MAX(nonce), 0) FROM permit2_tx WHERE owner = $1 AND token = $2;`
-	log.Debug().Interface("SelectNextTxNonce", q.LogHeader(ArtemisScheduledDelivery))
+	log.Debug().Interface("SelectNextPermit2Nonce", q.LogHeader(ArtemisScheduledDelivery))
 	if e.ProtocolNetworkID == 0 {
 		e.ProtocolNetworkID = hestia_req_types.EthereumMainnetProtocolNetworkID
 	}
@@ -98,6 +117,6 @@ func (e *EthTx) SelectNextTxNonce(ctx context.Context, pt Permit2Tx) (err error)
 	if err != nil {
 		return err
 	}
-	e.NextNonce = e.EthTx.Nonce + 1
+	e.NextPermit2Nonce = e.EthTx.Nonce + 1
 	return misc.ReturnIfErr(err, q.LogHeader(ArtemisScheduledDelivery))
 }

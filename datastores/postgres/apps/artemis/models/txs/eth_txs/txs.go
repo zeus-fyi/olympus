@@ -60,32 +60,34 @@ func (e *EthTx) InsertTx(ctx context.Context, pt Permit2Tx) (err error) {
 
 func InsertTxsWithBundle(ctx context.Context, txs []EthTx, bundleHash string) error {
 	q0 := sql_query_templates.QueryParams{}
-	q0.RawQuery = `INSERT INTO events(event_id) VALUES ($1) RETURNING event_id`
+	q0.RawQuery = `INSERT INTO events(event_id) VALUES ($1)`
 	q1 := sql_query_templates.QueryParams{}
-	q1.RawQuery = `WITH cte_tx AS (
+	q1.RawQuery = `WITH cte_tx_1 AS (
                         INSERT INTO eth_tx(event_id, tx_hash, protocol_network_id, nonce, "from", type) 
-                        VALUES ($1, $2, $3, $4, $5, $6) RETURNING event_id
+                        VALUES ($1, $2, $3, $4, $5, $6)
                     ), cte_gas AS (
                         INSERT INTO eth_tx_gas(tx_hash, gas_price, gas_limit, gas_tip_cap, gas_fee_cap)
-                        VALUES ($2, $7, $8, $9, $10) RETURNING tx_hash
-                    )
-                    INSERT INTO permit2_tx(event_id, nonce, owner, deadline, "token", protocol_network_id) 
-                    VALUES ($1, $11, $12, $13, $14, $3);`
+                        VALUES ($2, $7, $8, $9, $10)
+                    ) INSERT INTO permit2_tx(event_id, nonce, owner, deadline, "token", protocol_network_id) 
+ 					  VALUES ($1, $11, $12, $13, $14, $3)`
 	q2 := sql_query_templates.QueryParams{}
-	q2.RawQuery = `WITH cte_tx AS (
+	q2.RawQuery = `WITH cte_tx_2 AS (
                         INSERT INTO eth_tx(event_id, tx_hash, protocol_network_id, nonce, "from", type) 
                         VALUES ($1, $2, $3, $4, $5, $6)
                     ) INSERT INTO eth_tx_gas(tx_hash, gas_price, gas_limit, gas_tip_cap, gas_fee_cap)
                       VALUES ($2, $7, $8, $9, $10)`
 	q3 := sql_query_templates.QueryParams{}
-	q3.RawQuery = `INSERT INTO eth_mev_bundle(event_id, bundle_hash, protocol_network_id)`
+	q3.RawQuery = `INSERT INTO eth_mev_bundle(event_id, bundle_hash, protocol_network_id)
+ 			       VALUES ($1, $2, $3)`
 	dbTx, err := apps.Pg.Begin(ctx)
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("error creating transaction")
 		return err
 	}
+	eventID := ts.UnixTimeStampNow()
 	defer dbTx.Rollback(ctx)
 	for i, e := range txs {
+		e.EventID = eventID
 		if i == 0 {
 			_, err = dbTx.Exec(ctx, q0.RawQuery, e.EventID)
 			if err != nil {
@@ -98,9 +100,8 @@ func InsertTxsWithBundle(ctx context.Context, txs []EthTx, bundleHash string) er
 		if e.Type == "" {
 			e.Type = "0x02"
 		}
-		e.EventID = ts.UnixTimeStampNow()
 		if e.Permit2Tx.Owner == "" || e.Permit2Tx.Token == "" {
-			_, err = dbTx.Exec(ctx, q1.RawQuery, e.EventID, e.EthTx.TxHash, e.EthTx.ProtocolNetworkID, e.EthTx.Nonce, e.EthTx.From, e.EthTx.Type,
+			_, err = dbTx.Exec(ctx, q2.RawQuery, e.EventID, e.EthTx.TxHash, e.EthTx.ProtocolNetworkID, e.EthTx.Nonce, e.EthTx.From, e.EthTx.Type,
 				e.EthTxGas.GasPrice.Int64, e.EthTxGas.GasLimit.Int64, e.EthTxGas.GasTipCap.Int64, e.EthTxGas.GasFeeCap.Int64)
 			if err != nil {
 				return err

@@ -33,7 +33,7 @@ func (t *ArtemisTradeDebuggerTestSuite) SetupTest() {
 		U: &uni,
 	}
 	at := artemis_realtime_trading.NewActiveTradingModuleWithoutMetrics(&a)
-	td := NewTradeDebugger(at, &uni, t.MainnetWeb3User)
+	td := NewTradeDebugger(at, t.MainnetWeb3User)
 	t.Require().NotEmpty(td)
 	t.td = td
 }

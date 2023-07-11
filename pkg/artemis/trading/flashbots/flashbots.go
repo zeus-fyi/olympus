@@ -31,7 +31,6 @@ type FlashbotsClient struct {
 
 func InitFlashbotsClient(ctx context.Context, nodeUrl, network string, acc *accounts.Account) FlashbotsClient {
 	w := web3_actions.NewWeb3ActionsClientWithAccount(nodeUrl, acc)
-	w.AutoIncrementLocalNonce = true
 	rpc := flashbotsrpc.NewFlashbotsRPC(nodeUrl)
 	w.Network = network
 	switch network {

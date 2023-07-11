@@ -10,6 +10,7 @@ import (
 	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
 type ActiveTrading struct {
@@ -17,17 +18,15 @@ type ActiveTrading struct {
 	m metrics_trading.TradingMetrics
 }
 
+func (a *ActiveTrading) GetUniswapClient() *web3_client.UniswapClient {
+	return a.a.U
+}
+
 func NewActiveTradingModuleWithoutMetrics(a *artemis_trading_auxiliary.AuxiliaryTradingUtils) ActiveTrading {
-	if a != nil && a.U != nil {
-		a.U.Web3Client.Web3Actions.AutoIncrementLocalNonce = true
-	}
 	return ActiveTrading{a: a}
 }
 
 func NewActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, tm metrics_trading.TradingMetrics) ActiveTrading {
-	if a != nil && a.U != nil {
-		a.U.Web3Client.Web3Actions.AutoIncrementLocalNonce = true
-	}
 	return ActiveTrading{a, tm}
 }
 

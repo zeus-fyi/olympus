@@ -12,6 +12,10 @@ import (
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
+var (
+	urAbi = artemis_oly_contract_abis.MustLoadNewUniversalRouterAbi()
+)
+
 func (a *AuxiliaryTradingUtils) UniversalRouterCmdExecutor(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, error) {
 	signedTx, err := a.universalRouterCmdBuilder(ctx, ur)
 	if err != nil {
@@ -27,7 +31,6 @@ func (a *AuxiliaryTradingUtils) universalRouterExecuteTx(ctx context.Context, si
 		log.Err(err).Msg("error sending signed tx")
 		return nil, err
 	}
-	a.addTx(signedTx)
 	return signedTx, err
 }
 
@@ -55,8 +58,6 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdBuilder(ctx context.Context, u
 	}
 	return signedTx, nil
 }
-
-var urAbi = artemis_oly_contract_abis.MustLoadNewUniversalRouterAbi()
 
 func GetUniswapUniversalRouterAbiPayload(payload *web3_client.UniversalRouterExecParams) web3_actions.SendContractTxPayload {
 	if payload == nil {

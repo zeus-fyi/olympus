@@ -44,6 +44,7 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() *AuxiliaryTradingUt
 	t.Require().Equal(t.acc2.Address().String(), sender.String())
 
 	// part 3 of bundle
+	ctx = ta.CreateBackRunCtx(ctx)
 	cmd = t.testExecV2Trade(&ta)
 	tx, err = ta.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().Nil(err)
@@ -54,7 +55,6 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() *AuxiliaryTradingUt
 	t.Require().NotEmpty(ta.Bundle.Txs)
 	t.Require().Equal(3, len(ta.Bundle.Txs))
 	t.Require().Equal(0, len(ta.MevTxGroup.OrderedTxs))
-
 	return &ta
 }
 func (t *ArtemisAuxillaryTestSuite) TestSandwichCallBundle() {

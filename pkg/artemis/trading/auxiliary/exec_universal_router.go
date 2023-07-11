@@ -93,7 +93,11 @@ func (a *AuxiliaryTradingUtils) GetUniswapUniversalRouterAbiPayload(ctx context.
 	}
 	err = a.SuggestAndSetGasPriceAndLimitForTx(ctx, &params, common.HexToAddress(params.SmartContractAddr))
 	if err != nil {
-		return params, err
+		return web3_actions.SendContractTxPayload{}, err
+	}
+	err = a.txGasAdjuster(ctx, &params)
+	if err != nil {
+		return web3_actions.SendContractTxPayload{}, err
 	}
 	return params, nil
 }

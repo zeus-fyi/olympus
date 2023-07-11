@@ -191,9 +191,118 @@ func (s *TxTestSuite) TestInsertBundle() {
 			},
 		},
 	}
-	bundleHash := "0x012fad"
-	err = InsertTxsWithBundle(ctx, bundleTxs, bundleHash)
+	bundleHash := crypto.Keccak256Hash([]byte("bundle1"), fr.Bytes())
+	err = InsertTxsWithBundle(ctx, bundleTxs, bundleHash.Hex())
 	s.Require().Nil(err)
+
+	fr = crypto.Keccak256Hash(acc1.Address().Bytes(), bundleHash.Bytes())
+	ut = crypto.Keccak256Hash(fr.Bytes(), bundleHash.Bytes())
+	sr = crypto.Keccak256Hash(ut.Bytes(), bundleHash.Bytes())
+
+	bundleTxs = []EthTx{
+		{
+			EthTx: artemis_autogen_bases.EthTx{
+				ProtocolNetworkID: pi,
+				TxHash:            fr.String(),
+				Nonce:             2,
+				From:              acc1.Address().String(),
+				Type:              "0x02",
+			},
+			EthTxGas: artemis_autogen_bases.EthTxGas{
+				TxHash: fr.String(),
+				GasPrice: sql.NullInt64{
+					Valid: false,
+				},
+				GasLimit: sql.NullInt64{
+					Int64: 50000,
+					Valid: true,
+				},
+				GasTipCap: sql.NullInt64{
+					Int64: artemis_eth_units.GweiMultiple(0).Int64(),
+					Valid: true,
+				},
+				GasFeeCap: sql.NullInt64{
+					Int64: artemis_eth_units.GweiMultiple(10).Int64(),
+					Valid: true,
+				},
+			},
+			Permit2Tx: Permit2Tx{
+				Permit2Tx: artemis_autogen_bases.Permit2Tx{
+					Nonce:             1,
+					Owner:             acc1.Address().String(),
+					Deadline:          int(time.Now().Add(time.Minute * 5).Unix()),
+					Token:             artemis_trading_constants.GoerliWETH9ContractAddress,
+					ProtocolNetworkID: pi,
+				},
+			},
+		},
+		{
+			EthTx: artemis_autogen_bases.EthTx{
+				ProtocolNetworkID: pi,
+				TxHash:            ut.String(),
+				Nonce:             1,
+				From:              acc2.Address().String(),
+				Type:              "0x01",
+			},
+			EthTxGas: artemis_autogen_bases.EthTxGas{
+				TxHash: ut.String(),
+				GasPrice: sql.NullInt64{
+					Int64: artemis_eth_units.GweiMultiple(2).Int64(),
+					Valid: true,
+				},
+				GasLimit: sql.NullInt64{
+					Int64: 300000,
+					Valid: true,
+				},
+				GasTipCap: sql.NullInt64{
+					Valid: false,
+				},
+				GasFeeCap: sql.NullInt64{
+					Valid: false,
+				},
+			},
+		},
+		{
+			EthTx: artemis_autogen_bases.EthTx{
+				ProtocolNetworkID: pi,
+				TxHash:            sr.String(),
+				Nonce:             3,
+				From:              acc1.Address().String(),
+				Type:              "0x02",
+			},
+			EthTxGas: artemis_autogen_bases.EthTxGas{
+				TxHash: sr.String(),
+				GasPrice: sql.NullInt64{
+					Valid: false,
+				},
+				GasLimit: sql.NullInt64{
+					Int64: 50000,
+					Valid: true,
+				},
+				GasTipCap: sql.NullInt64{
+					Int64: artemis_eth_units.GweiMultiple(3).Int64(),
+					Valid: true,
+				},
+				GasFeeCap: sql.NullInt64{
+					Int64: artemis_eth_units.GweiMultiple(50).Int64(),
+					Valid: true,
+				},
+			},
+			Permit2Tx: Permit2Tx{
+				Permit2Tx: artemis_autogen_bases.Permit2Tx{
+					Nonce:             1,
+					Owner:             acc1.Address().String(),
+					Deadline:          int(time.Now().Add(time.Minute * 5).Unix()),
+					Token:             artemis_trading_constants.GoerliDaiContractAddress,
+					ProtocolNetworkID: pi,
+				},
+			},
+		},
+	}
+	bundleHash = crypto.Keccak256Hash([]byte("bundle2"), fr.Bytes())
+	err = InsertTxsWithBundle(ctx, bundleTxs, bundleHash.Hex())
+	s.Require().Nil(err)
+
 }
 
 func TestTxTestSuite(t *testing.T) {

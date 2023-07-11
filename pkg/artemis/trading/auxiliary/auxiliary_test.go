@@ -18,6 +18,7 @@ import (
 type ArtemisAuxillaryTestSuite struct {
 	s3secrets.S3SecretsManagerTestSuite
 	acc            accounts.Account
+	acc2           accounts.Account
 	goerliWeb3User web3_client.Web3Client
 	goerliNode     string
 	nonceOffset    int
@@ -35,6 +36,7 @@ func (t *ArtemisAuxillaryTestSuite) SetupTest() {
 	t.acc = initTradingAccount(ctx, age)
 	secondAccount, err := accounts.ParsePrivateKey(t.Tc.ArtemisGoerliEcdsaKey)
 	t.Assert().Nil(err)
+	t.acc2 = *secondAccount
 	t.goerliWeb3User = web3_client.NewWeb3Client(t.Tc.GoerliNodeUrl, secondAccount)
 }
 
@@ -44,6 +46,24 @@ func initTradingAccount(ctx context.Context, age encryption.Age) accounts.Accoun
 		DirIn:  "keygen",
 		DirOut: "keygen",
 		FnIn:   "key-4.txt.age",
+	}
+	r, err := dynamic_secrets.ReadAddress(ctx, p, athena.AthenaS3Manager, age)
+	if err != nil {
+		panic(err)
+	}
+	acc, err := dynamic_secrets.GetAccount(r)
+	if err != nil {
+		panic(err)
+	}
+	return acc
+}
+
+// InitTradingAccount pubkey 0x000000641e80A183c8B736141cbE313E136bc8c6
+func initTradingAccount2(ctx context.Context, age encryption.Age) accounts.Account {
+	p := filepaths.Path{
+		DirIn:  "keygen",
+		DirOut: "keygen",
+		FnIn:   "key-6.txt.age",
 	}
 	r, err := dynamic_secrets.ReadAddress(ctx, p, athena.AthenaS3Manager, age)
 	if err != nil {

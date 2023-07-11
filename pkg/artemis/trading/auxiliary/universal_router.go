@@ -30,7 +30,7 @@ func (a *AuxiliaryTradingUtils) universalRouterExecuteTx(ctx context.Context, si
 		log.Err(err).Msg("error sending signed tx")
 		return nil, err
 	}
-	a.AddTx(signedTx)
+	a.addTx(signedTx)
 	return signedTx, err
 }
 
@@ -49,7 +49,7 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdBuilder(ctx context.Context, u
 	if err != nil {
 		return nil, err
 	}
-	err = a.addToTxGroup(ctx, signedTx)
+	err = a.AddTxToBundleGroup(ctx, signedTx)
 	if err != nil {
 		return nil, err
 	}

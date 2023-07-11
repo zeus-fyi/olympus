@@ -35,7 +35,7 @@ func InitAuxiliaryTradingUtils(ctx context.Context, nodeURL, network string, acc
 	}
 }
 
-func (a *AuxiliaryTradingUtils) AddTx(tx *types.Transaction) {
+func (a *AuxiliaryTradingUtils) addTx(tx *types.Transaction) {
 	if a.MevTxGroup.OrderedTxs == nil {
 		a.MevTxGroup.OrderedTxs = []*types.Transaction{}
 	}

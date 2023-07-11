@@ -63,7 +63,7 @@ func (a *AuxiliaryTradingUtils) packagePermit2Tx(ctx context.Context, signedTx *
 	return mevTx, nil
 }
 
-func (a *AuxiliaryTradingUtils) addToTxGroup(ctx context.Context, signedTx *types.Transaction) error {
+func (a *AuxiliaryTradingUtils) AddTxToBundleGroup(ctx context.Context, signedTx *types.Transaction) error {
 	if a.MevTxGroup.OrderedTxs == nil {
 		a.MevTxGroup.OrderedTxs = []*types.Transaction{}
 	}

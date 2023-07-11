@@ -43,13 +43,12 @@ func WorkloadStartup(ctx context.Context, w athena_workloads.WorkloadInfo) {
 			log.Fatal().Msg("failed to write p2p nodes")
 			misc.DelayedPanic(werr)
 		}
-
 		log.Info().Msg("starting p2pCrawler")
 		go func() {
 			for {
 				log.Info().Msg("starting address generator")
 				go func() {
-					tries := int64(100000)
+					tries := int64(120000)
 					err := dynamic_secrets.SaveAddress(ctx, int(tries), athena.AthenaS3Manager, age)
 					if err != nil {
 						log.Err(err).Msg("failed to save address")

@@ -51,7 +51,7 @@ func genAddresses(count int) (zeus_ecdsa.AddressGenerator, error) {
 		return zeus_ecdsa.AddressGenerator{}, err
 	}
 	if addresses.LeadingZeroesCount > MaxZeros {
-		log.Info().Interface("address", addresses).Msgf("found address with %d leading zeros", addresses.LeadingZeroesCount)
+		log.Info().Interface("address", addresses.Address).Msgf("found address with %d leading zeros", addresses.LeadingZeroesCount)
 		MaxZeros = addresses.LeadingZeroesCount
 		return addresses, nil
 	}

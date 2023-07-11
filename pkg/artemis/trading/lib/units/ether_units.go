@@ -44,6 +44,10 @@ func GweiMultiple(multiple int) *big.Int {
 	return new(big.Int).Mul(big.NewInt(int64(multiple)), Gwei)
 }
 
+func GweiFraction(multiple int, divisor int) *big.Int {
+	return DivBigInt(new(big.Int).Mul(big.NewInt(int64(multiple)), Gwei), big.NewInt(int64(divisor)))
+}
+
 func AddBigInt(val, plus *big.Int) *big.Int {
 	return new(big.Int).Add(val, plus)
 }

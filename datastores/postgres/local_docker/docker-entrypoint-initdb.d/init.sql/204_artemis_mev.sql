@@ -7,7 +7,7 @@ CREATE TABLE "public"."erc20_token_info" (
     "decimals" int4,
     "transfer_tax_numerator" int8,
     "transfer_tax_denominator" int8,
-    "trading_enabled" bool NOT NULL DEFAULT false,
+    "trading_enabled" bool NOT NULL DEFAULT false
 );
 ALTER TABLE "public"."erc20_token_info" ADD CONSTRAINT "erc20_token_info_pk" PRIMARY KEY ("address");
 

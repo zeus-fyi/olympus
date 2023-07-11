@@ -18,8 +18,12 @@ type ActiveTrading struct {
 }
 
 func NewActiveTradingModuleWithoutMetrics(a *artemis_trading_auxiliary.AuxiliaryTradingUtils) ActiveTrading {
+	if a != nil && a.U != nil {
+		a.U.Web3Client.Web3Actions.AutoIncrementLocalNonce = true
+	}
 	return ActiveTrading{a: a}
 }
+
 func NewActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, tm metrics_trading.TradingMetrics) ActiveTrading {
 	return ActiveTrading{a, tm}
 }

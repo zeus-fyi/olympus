@@ -12,43 +12,16 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-/*
-type EthTx struct {
-	ProtocolNetworkID int    `db:"protocol_network_id" json:"protocolNetworkID"`
-	TxHash            string `db:"tx_hash" json:"txHash"`
-	Nonce             int    `db:"nonce" json:"nonce"`
-	From              string `db:"from" json:"from"`
-	Type              string `db:"type" json:"type"`
-	EventID           int    `db:"event_id" json:"eventID"`
-}
-
-type EthTxGas struct {
-	TxHash    string        `db:"tx_hash" json:"txHash"`
-	GasPrice  sql.NullInt64 `db:"gasPrice" json:"gasPrice"`
-	GasLimit  sql.NullInt64 `db:"gasLimit" json:"gasLimit"`
-	GasTipCap sql.NullInt64 `db:"gasTipCap" json:"gasTipCap"`
-	GasFeeCap sql.NullInt64 `db:"gasFeeCap" json:"gasFeeCap"`
-}
-
-
-type Permit2Tx struct {
-	Nonce    int    `db:"nonce" json:"nonce"`
-	Owner    string `db:"owner" json:"owner"`
-	Deadline int    `db:"deadline" json:"deadline"`
-	EventID  int    `db:"event_id" json:"eventID"`
-	Token    string `db:"token" json:"token"`
-}
-*/
-
 type EthTx struct {
 	artemis_autogen_bases.EthTx
 	artemis_autogen_bases.EthTxGas
-	NextUserNonce int `db:"next_user_nonce" json:"nextUserNonce"`
+	Permit2Tx
+	NextUserNonce int `json:"nextUserNonce,omitempty"`
 }
 
 type Permit2Tx struct {
 	artemis_autogen_bases.Permit2Tx
-	NextPermit2Nonce int `db:"next_nonce" json:"nextNonce"`
+	NextPermit2Nonce int `json:"nextNonce,omitempty"`
 }
 
 const ArtemisScheduledDelivery = "EthTx"
@@ -83,6 +56,76 @@ func (e *EthTx) InsertTx(ctx context.Context, pt Permit2Tx) (err error) {
 		return err
 	}
 	return misc.ReturnIfErr(err, q.LogHeader(ArtemisScheduledDelivery))
+}
+
+func InsertTxsWithBundle(ctx context.Context, txs []EthTx, bundleHash string) error {
+	q0 := sql_query_templates.QueryParams{}
+	q0.RawQuery = `INSERT INTO events(event_id) VALUES ($1) RETURNING event_id`
+
+	q1 := sql_query_templates.QueryParams{}
+	q1.RawQuery = `WITH cte_tx AS (
+                        INSERT INTO eth_tx(event_id, tx_hash, protocol_network_id, nonce, "from", type) 
+                        VALUES ($1, $2, $3, $4, $5, $6) RETURNING event_id
+                    ), cte_gas AS (
+                        INSERT INTO eth_tx_gas(tx_hash, gas_price, gas_limit, gas_tip_cap, gas_fee_cap)
+                        VALUES ($2, $7, $8, $9, $10) RETURNING tx_hash
+                    )
+                    INSERT INTO permit2_tx(event_id, nonce, owner, deadline, "token", protocol_network_id) 
+                    VALUES ($1, $11, $12, $13, $14, $3);`
+	q2 := sql_query_templates.QueryParams{}
+	q2.RawQuery = `WITH cte_tx AS (
+                        INSERT INTO eth_tx(event_id, tx_hash, protocol_network_id, nonce, "from", type) 
+                        VALUES ($1, $2, $3, $4, $5, $6)
+                    ) INSERT INTO eth_tx_gas(tx_hash, gas_price, gas_limit, gas_tip_cap, gas_fee_cap)
+                      VALUES ($2, $7, $8, $9, $10)`
+	q3 := sql_query_templates.QueryParams{}
+	q3.RawQuery = `INSERT INTO eth_mev_bundle(event_id, bundle_hash, protocol_network_id)`
+	dbTx, err := apps.Pg.Begin(ctx)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("error creating transaction")
+		return err
+	}
+	defer dbTx.Rollback(ctx)
+	for i, e := range txs {
+		if i == 0 {
+			_, err = dbTx.Exec(ctx, q0.RawQuery, e.EventID)
+			if err != nil {
+				return err
+			}
+		}
+		if e.ProtocolNetworkID == 0 {
+			e.ProtocolNetworkID = hestia_req_types.EthereumMainnetProtocolNetworkID
+		}
+		if e.Type == "" {
+			e.Type = "0x02"
+		}
+		e.EventID = ts.UnixTimeStampNow()
+		if e.Permit2Tx.Owner == "" || e.Permit2Tx.Token == "" {
+			_, err = dbTx.Exec(ctx, q1.RawQuery, e.EventID, e.EthTx.TxHash, e.EthTx.ProtocolNetworkID, e.EthTx.Nonce, e.EthTx.From, e.EthTx.Type,
+				e.EthTxGas.GasPrice.Int64, e.EthTxGas.GasLimit.Int64, e.EthTxGas.GasTipCap.Int64, e.EthTxGas.GasFeeCap.Int64)
+			if err != nil {
+				return err
+			}
+		} else {
+			_, err = dbTx.Exec(ctx, q1.RawQuery, e.EventID, e.EthTx.TxHash, e.EthTx.ProtocolNetworkID, e.EthTx.Nonce, e.EthTx.From, e.EthTx.Type,
+				e.EthTxGas.GasPrice.Int64, e.EthTxGas.GasLimit.Int64, e.EthTxGas.GasTipCap.Int64, e.EthTxGas.GasFeeCap.Int64,
+				e.Permit2Tx.Nonce, e.Permit2Tx.Owner, e.Permit2Tx.Deadline, e.Permit2Tx.Token)
+			if err != nil {
+				return err
+			}
+		}
+		if i == len(txs)-1 {
+			_, err = dbTx.Exec(ctx, q3.RawQuery, e.EventID, bundleHash, e.EthTx.ProtocolNetworkID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	err = dbTx.Commit(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (e *EthTx) SelectNextUserTxNonce(ctx context.Context) (err error) {

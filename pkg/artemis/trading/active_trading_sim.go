@@ -34,17 +34,23 @@ func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_clien
 		//	return err
 		//}
 	}
-	bundle.AddTxs(tf.Tx)
+	err := bundle.AddTxs(tf.Tx)
+	if err != nil {
+		return err
+	}
 	// FRONT_RUN
 
 	// USER TRADE
 	if !bypassSim {
-		err := a.a.U.Web3Client.SendSignedTransaction(ctx, tf.Tx)
+		err = a.a.U.Web3Client.SendSignedTransaction(ctx, tf.Tx)
 		if err != nil {
 			return err
 		}
 	}
-	bundle.AddTxs(tf.Tx)
+	err = bundle.AddTxs(tf.Tx)
+	if err != nil {
+		return err
+	}
 	// USER TRADE
 
 	// SANDWICH TRADE
@@ -60,7 +66,10 @@ func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_clien
 		//	return err
 		//}
 	}
-	bundle.AddTxs(tf.Tx)
+	err = bundle.AddTxs(tf.Tx)
+	if err != nil {
+		return err
+	}
 	tf.Bundle = bundle
 	return nil
 }

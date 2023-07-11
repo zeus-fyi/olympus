@@ -3,7 +3,6 @@ package artemis_eth_txs
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"testing"
 	"time"
 
@@ -79,33 +78,76 @@ func (s *TxTestSuite) TestInsertTx() {
 	s.Assert().NotZerof(etx.EventID, "event id should not be zero")
 }
 
-func (s *TxTestSuite) TestSelect() {
-	etx := EthTx{
-		EthTx: artemis_autogen_bases.EthTx{
-			ProtocolNetworkID: 1,
-			TxHash:            "0x012fad",
-			Nonce:             0,
-			From:              "0x0gsdg32",
-			Type:              "0x02",
-			EventID:           0,
+func (s *TxTestSuite) TestInsertBundle() {
+	pi := hestia_req_types.EthereumGoerliProtocolNetworkID
+	bundleTxs := []EthTx{
+		{
+			EthTx: artemis_autogen_bases.EthTx{
+				ProtocolNetworkID: pi,
+				TxHash:            "0x012fad",
+				Nonce:             0,
+				From:              "0x0gsdg32",
+				Type:              "0x02",
+			},
+			EthTxGas: artemis_autogen_bases.EthTxGas{
+				TxHash:    "",
+				GasPrice:  sql.NullInt64{},
+				GasLimit:  sql.NullInt64{},
+				GasTipCap: sql.NullInt64{},
+				GasFeeCap: sql.NullInt64{},
+			},
+			Permit2Tx: Permit2Tx{
+				Permit2Tx: artemis_autogen_bases.Permit2Tx{
+					Nonce:             0,
+					Owner:             "",
+					Deadline:          0,
+					Token:             "",
+					ProtocolNetworkID: pi,
+				},
+			},
+		},
+		{
+			EthTx: artemis_autogen_bases.EthTx{
+				ProtocolNetworkID: pi,
+				TxHash:            "",
+				Nonce:             0,
+				From:              "",
+				Type:              "",
+			},
+			EthTxGas: artemis_autogen_bases.EthTxGas{
+				TxHash:    "",
+				GasPrice:  sql.NullInt64{},
+				GasLimit:  sql.NullInt64{},
+				GasTipCap: sql.NullInt64{},
+				GasFeeCap: sql.NullInt64{},
+			},
+		},
+		{
+			EthTx: artemis_autogen_bases.EthTx{
+				ProtocolNetworkID: pi,
+			},
+			EthTxGas: artemis_autogen_bases.EthTxGas{
+				TxHash:    "",
+				GasPrice:  sql.NullInt64{},
+				GasLimit:  sql.NullInt64{},
+				GasTipCap: sql.NullInt64{},
+				GasFeeCap: sql.NullInt64{},
+			},
+			Permit2Tx: Permit2Tx{
+				Permit2Tx: artemis_autogen_bases.Permit2Tx{
+					Nonce:             0,
+					Owner:             "",
+					Deadline:          0,
+					Token:             "0xs",
+					ProtocolNetworkID: pi,
+				},
+			},
 		},
 	}
-	pt := Permit2Tx{Permit2Tx: artemis_autogen_bases.Permit2Tx{
-		Nonce:    1,
-		Owner:    "0x0gsdg32",
-		Deadline: int(time.Now().Add(time.Minute * 5).Unix()),
-		EventID:  int(time.Now().Unix()),
-		Token:    "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-	}}
-	err := etx.SelectNextPermit2Nonce(ctx, pt)
+	bundleHash := "0x012fad"
+	err := InsertTxsWithBundle(ctx, bundleTxs, bundleHash)
 	s.Require().Nil(err)
-	fmt.Println(etx.Nonce)
-	fmt.Println(etx.NextPermit2Nonce)
 
-	//err = etx.SelectNextUserTxNonce(ctx, pt)
-	//s.Require().Nil(err)
-	//fmt.Println(etx.EventID)
-	//fmt.Println(etx.NextUserNonce)
 }
 
 func TestTxTestSuite(t *testing.T) {

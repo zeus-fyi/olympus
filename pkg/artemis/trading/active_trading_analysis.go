@@ -55,7 +55,6 @@ func (a *ActiveTrading) ProcessTxs(ctx context.Context) ([]web3_client.TradeExec
 		}
 		tfSlice = append(tfSlice, tf...)
 	}
-
 	for _, tf := range tfSlice {
 		baseTx, err := tf.Tx.ConvertToTx()
 		if err != nil {

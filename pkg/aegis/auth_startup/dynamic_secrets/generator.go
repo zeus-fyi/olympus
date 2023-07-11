@@ -24,7 +24,7 @@ import (
 	zeus_ecdsa "github.com/zeus-fyi/zeus/pkg/aegis/crypto/ecdsa"
 )
 
-var MaxZeros = 5
+var MaxZeros = 6
 
 func GetAccount(val zeus_ecdsa.AddressGenerator) (accounts.Account, error) {
 	pw := crypto.Keccak256Hash([]byte(val.Mnemonic)).Hex()

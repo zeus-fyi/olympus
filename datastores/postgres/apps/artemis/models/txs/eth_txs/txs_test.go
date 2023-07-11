@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
@@ -191,8 +192,16 @@ func (s *TxTestSuite) TestInsertBundle() {
 			},
 		},
 	}
+	dbTx, err := apps.Pg.Begin(ctx)
+	s.Require().Nil(err)
+
 	bundleHash := crypto.Keccak256Hash([]byte("bundle1"), fr.Bytes())
-	err = InsertTxsWithBundle(ctx, bundleTxs, bundleHash.Hex())
+	err = InsertTxsWithBundle(ctx, dbTx, bundleTxs, bundleHash.Hex())
+	if err != nil {
+		dbTx.Rollback(ctx)
+	}
+	s.Require().Nil(err)
+	err = dbTx.Commit(ctx)
 	s.Require().Nil(err)
 
 	fr = crypto.Keccak256Hash(acc1.Address().Bytes(), bundleHash.Bytes())
@@ -300,9 +309,13 @@ func (s *TxTestSuite) TestInsertBundle() {
 		},
 	}
 	bundleHash = crypto.Keccak256Hash([]byte("bundle2"), fr.Bytes())
-	err = InsertTxsWithBundle(ctx, bundleTxs, bundleHash.Hex())
+	dbTx, err = apps.Pg.Begin(ctx)
 	s.Require().Nil(err)
-
+	defer dbTx.Rollback(ctx)
+	err = InsertTxsWithBundle(ctx, dbTx, bundleTxs, bundleHash.Hex())
+	s.Require().Nil(err)
+	err = dbTx.Commit(ctx)
+	s.Require().Nil(err)
 }
 
 func TestTxTestSuite(t *testing.T) {

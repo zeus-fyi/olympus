@@ -23,7 +23,7 @@ func (a *AuxiliaryTradingUtils) SetPermit2ApprovalForToken(ctx context.Context, 
 	return tx, nil
 }
 
-func (a *AuxiliaryTradingUtils) getEventID(ctx context.Context) (int, error) {
+func (a *AuxiliaryTradingUtils) getBlockNumber(ctx context.Context) (int, error) {
 	a.Dial()
 	bn, err := a.C.BlockNumber(ctx)
 	if err != nil {

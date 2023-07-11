@@ -5,6 +5,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
 	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/trading/flashbots"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
@@ -13,7 +14,13 @@ type AuxiliaryTradingUtils struct {
 	artemis_flashbots.FlashbotsClient
 	U          *web3_client.UniswapClient
 	Bundle     artemis_flashbots.MevTxBundle
+	MevTxGroup MevTxGroup
+}
+
+type MevTxGroup struct {
+	EventID    int
 	OrderedTxs []*types.Transaction
+	MevTxs     []artemis_eth_txs.EthTx
 }
 
 func InitAuxiliaryTradingUtils(ctx context.Context, nodeURL, network string, acc accounts.Account) AuxiliaryTradingUtils {
@@ -29,8 +36,8 @@ func InitAuxiliaryTradingUtils(ctx context.Context, nodeURL, network string, acc
 }
 
 func (a *AuxiliaryTradingUtils) AddTx(tx *types.Transaction) {
-	if a.OrderedTxs == nil {
-		a.OrderedTxs = []*types.Transaction{}
+	if a.MevTxGroup.OrderedTxs == nil {
+		a.MevTxGroup.OrderedTxs = []*types.Transaction{}
 	}
-	a.OrderedTxs = append(a.OrderedTxs, tx)
+	a.MevTxGroup.OrderedTxs = append(a.MevTxGroup.OrderedTxs, tx)
 }

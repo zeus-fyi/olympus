@@ -3,6 +3,7 @@ package artemis_eth_txs
 import (
 	"context"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
@@ -58,7 +59,7 @@ func (e *EthTx) InsertTx(ctx context.Context, pt Permit2Tx) (err error) {
 	return misc.ReturnIfErr(err, q.LogHeader(ArtemisScheduledDelivery))
 }
 
-func InsertTxsWithBundle(ctx context.Context, txs []EthTx, bundleHash string) error {
+func InsertTxsWithBundle(ctx context.Context, dbTx pgx.Tx, txs []EthTx, bundleHash string) error {
 	q0 := sql_query_templates.QueryParams{}
 	q0.RawQuery = `INSERT INTO events(event_id) VALUES ($1)`
 	q1 := sql_query_templates.QueryParams{}
@@ -79,17 +80,11 @@ func InsertTxsWithBundle(ctx context.Context, txs []EthTx, bundleHash string) er
 	q3 := sql_query_templates.QueryParams{}
 	q3.RawQuery = `INSERT INTO eth_mev_bundle(event_id, bundle_hash, protocol_network_id)
  			       VALUES ($1, $2, $3)`
-	dbTx, err := apps.Pg.Begin(ctx)
-	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("error creating transaction")
-		return err
-	}
 	eventID := ts.UnixTimeStampNow()
-	defer dbTx.Rollback(ctx)
 	for i, e := range txs {
 		e.EventID = eventID
 		if i == 0 {
-			_, err = dbTx.Exec(ctx, q0.RawQuery, e.EventID)
+			_, err := dbTx.Exec(ctx, q0.RawQuery, e.EventID)
 			if err != nil {
 				return err
 			}
@@ -101,13 +96,13 @@ func InsertTxsWithBundle(ctx context.Context, txs []EthTx, bundleHash string) er
 			e.Type = "0x02"
 		}
 		if e.Permit2Tx.Owner == "" || e.Permit2Tx.Token == "" {
-			_, err = dbTx.Exec(ctx, q2.RawQuery, e.EventID, e.EthTx.TxHash, e.EthTx.ProtocolNetworkID, e.EthTx.Nonce, e.EthTx.From, e.EthTx.Type,
+			_, err := dbTx.Exec(ctx, q2.RawQuery, e.EventID, e.EthTx.TxHash, e.EthTx.ProtocolNetworkID, e.EthTx.Nonce, e.EthTx.From, e.EthTx.Type,
 				e.EthTxGas.GasPrice.Int64, e.EthTxGas.GasLimit.Int64, e.EthTxGas.GasTipCap.Int64, e.EthTxGas.GasFeeCap.Int64)
 			if err != nil {
 				return err
 			}
 		} else {
-			_, err = dbTx.Exec(ctx, q1.RawQuery, e.EventID, e.EthTx.TxHash, e.EthTx.ProtocolNetworkID, e.EthTx.Nonce, e.EthTx.From, e.EthTx.Type,
+			_, err := dbTx.Exec(ctx, q1.RawQuery, e.EventID, e.EthTx.TxHash, e.EthTx.ProtocolNetworkID, e.EthTx.Nonce, e.EthTx.From, e.EthTx.Type,
 				e.EthTxGas.GasPrice.Int64, e.EthTxGas.GasLimit.Int64, e.EthTxGas.GasTipCap.Int64, e.EthTxGas.GasFeeCap.Int64,
 				e.Permit2Tx.Nonce, e.Permit2Tx.Owner, e.Permit2Tx.Deadline, e.Permit2Tx.Token)
 			if err != nil {
@@ -115,15 +110,11 @@ func InsertTxsWithBundle(ctx context.Context, txs []EthTx, bundleHash string) er
 			}
 		}
 		if i == len(txs)-1 {
-			_, err = dbTx.Exec(ctx, q3.RawQuery, e.EventID, bundleHash, e.EthTx.ProtocolNetworkID)
+			_, err := dbTx.Exec(ctx, q3.RawQuery, e.EventID, bundleHash, e.EthTx.ProtocolNetworkID)
 			if err != nil {
 				return err
 			}
 		}
-	}
-	err = dbTx.Commit(ctx)
-	if err != nil {
-		return err
 	}
 	return nil
 }

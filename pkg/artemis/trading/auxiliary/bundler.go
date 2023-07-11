@@ -8,6 +8,8 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/metachris/flashbotsrpc"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -19,12 +21,12 @@ func (a *AuxiliaryTradingUtils) CreateOrAddToFlashbotsBundle(ur *web3_client.Uni
 			MaxTimestamp: &maxTime,
 		}
 	}
-	err := a.Bundle.AddTxs(a.OrderedTxs...)
+	err := a.Bundle.AddTxs(a.MevTxGroup.OrderedTxs...)
 	if err != nil {
 		return err
 	}
-	a.trackTxs(a.OrderedTxs...)
-	a.OrderedTxs = []*types.Transaction{}
+	a.trackTxs(a.MevTxGroup)
+	a.MevTxGroup.OrderedTxs = []*types.Transaction{}
 	return err
 }
 
@@ -35,9 +37,34 @@ func (a *AuxiliaryTradingUtils) CallAndSendFlashbotsBundle(ctx context.Context) 
 		log.Err(err).Msg("error calling flashbots bundle")
 		return sr, err
 	}
+	dbTx, err := apps.Pg.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("error beginning db transaction")
+		return sr, err
+	}
+	defer dbTx.Rollback(ctx)
 	sr, err = a.sendFlashbotsBundle(ctx)
 	if err != nil {
 		log.Err(err).Msg("error sending flashbots bundle")
+		terr := dbTx.Rollback(ctx)
+		if terr != nil {
+			log.Err(terr).Msg("error rolling back db transaction")
+		}
+		return sr, err
+	}
+	var txs []artemis_eth_txs.EthTx
+	err = artemis_eth_txs.InsertTxsWithBundle(ctx, dbTx, txs, sr.BundleHash)
+	if err != nil {
+		log.Err(err).Msg("error inserting txs with bundle")
+		terr := dbTx.Rollback(ctx)
+		if terr != nil {
+			log.Err(terr).Msg("error rolling back db transaction")
+		}
+		return sr, err
+	}
+	err = dbTx.Commit(ctx)
+	if err != nil {
+		log.Err(err).Msg("error committing db transaction")
 		return sr, err
 	}
 	return sr, nil
@@ -45,7 +72,7 @@ func (a *AuxiliaryTradingUtils) CallAndSendFlashbotsBundle(ctx context.Context) 
 
 func (a *AuxiliaryTradingUtils) callFlashbotsBundle(ctx context.Context) (flashbotsrpc.FlashbotsCallBundleResponse, error) {
 	var txsCall []string
-	eventID, err := a.getEventID(ctx)
+	eventID, err := a.getBlockNumber(ctx)
 	if err != nil {
 		log.Err(err).Msg("error getting event id")
 		return flashbotsrpc.FlashbotsCallBundleResponse{}, err

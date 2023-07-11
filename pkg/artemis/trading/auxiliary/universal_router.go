@@ -89,27 +89,13 @@ func (a *AuxiliaryTradingUtils) txGasAdjuster(ctx context.Context, tx *types.Tra
 	return tx, nil
 }
 
-func (a *AuxiliaryTradingUtils) universalRouterCmdBuilder(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, cmdType string) (*types.Transaction, error) {
+func (a *AuxiliaryTradingUtils) universalRouterCmdBuilder(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, error) {
 	ur.Deadline = a.GetDeadline()
 	data, err := ur.EncodeCommands(ctx)
 	if err != nil {
 		return nil, err
 	}
 	scInfo := GetUniswapUniversalRouterAbiPayload(data)
-	payload, err := web3_actions.GetDataPayload(ctx, &scInfo)
-	if err != nil {
-		return nil, err
-	}
-	err = a.SuggestAndSetGasPriceAndLimitForTx(ctx, &scInfo, common.HexToAddress(scInfo.ToAddress.Hex()), payload)
-	if err != nil {
-		return nil, err
-	}
-	switch cmdType {
-	case "frontRun":
-		scInfo.GasTipCap = artemis_eth_units.GweiMultiple(1)
-	case "sandwich":
-		scInfo.GasTipCap = artemis_eth_units.MulBigIntFromInt(scInfo.GasTipCap, 2)
-	}
 	signedTx, err := a.GetSignedTxToCallFunctionWithArgs(ctx, &scInfo)
 	if err != nil {
 		return signedTx, err

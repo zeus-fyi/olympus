@@ -4,7 +4,6 @@ import "C"
 import (
 	"context"
 	"errors"
-	"fmt"
 	"math/big"
 
 	"github.com/rs/zerolog/log"
@@ -31,7 +30,6 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdVerifier(ctx context.Context, 
 		}
 	}
 	gasCost := artemis_eth_units.MulBigInt(scInfo.GasFeeCap, artemis_eth_units.NewBigInt(int(scInfo.GasLimit)))
-	fmt.Println("gasCost", gasCost)
 	ethRequirements = artemis_eth_units.AddBigInt(ethRequirements, gasCost)
 	hasEnough, err := a.checkAuxEthBalanceGreaterThan(ctx, ethRequirements)
 	if err != nil {

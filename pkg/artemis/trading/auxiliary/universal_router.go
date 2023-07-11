@@ -49,7 +49,10 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdBuilder(ctx context.Context, u
 	if err != nil {
 		return nil, err
 	}
-	a.MevTxGroup.OrderedTxs = append(a.MevTxGroup.OrderedTxs, signedTx)
+	err = a.addToTxGroup(ctx, signedTx)
+	if err != nil {
+		return nil, err
+	}
 	return signedTx, nil
 }
 

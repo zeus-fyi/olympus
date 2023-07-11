@@ -44,7 +44,7 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() *AuxiliaryTradingUt
 	t.Require().Equal(t.acc2.Address().String(), sender.String())
 
 	// part 3 of bundle
-	ctx = ta.CreateBackRunCtx(ctx)
+	//ctx = ta.CreateBackRunCtx(ctx)
 	cmd = t.testExecV2Trade(&ta)
 	tx, err = ta.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().Nil(err)

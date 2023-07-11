@@ -73,16 +73,3 @@ func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_clien
 	tf.Bundle = bundle
 	return nil
 }
-
-//err = tf.GetAggregateGasUsage(ctx, U.Web3Client)
-//if err != nil {
-//	U.TradeFailureReport.EndStage = "post trade getting gas usage"
-//	log.Err(err).Msg("error getting aggregate gas usage")
-//	return U.MarkEndOfSimDueToErr(err)
-//}
-//err = U.VerifyTradeResults(tf)
-//if err != nil {
-//	U.TradeFailureReport.EndStage = "verifying trade results"
-//	log.Err(err).Msg("error verifying trade results")
-//	return U.MarkEndOfSimDueToErr(err)
-//}

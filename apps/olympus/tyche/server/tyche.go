@@ -9,7 +9,6 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	v1_tyche "github.com/zeus-fyi/olympus/tyche/api/v1"
-	tyche_metrics "github.com/zeus-fyi/olympus/tyche/metrics"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
 )
 
@@ -33,7 +32,6 @@ func Tyche() {
 	srv := NewTycheServer(cfg)
 	log.Ctx(ctx).Info().Msg("Tyche: Initializing configs by environment type")
 	SetConfigByEnv(ctx, env)
-	tyche_metrics.InitTycheMetrics(ctx)
 	srv.E = v1_tyche.Routes(srv.E)
 	srv.Start()
 }

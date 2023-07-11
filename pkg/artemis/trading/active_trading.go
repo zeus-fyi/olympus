@@ -25,6 +25,9 @@ func NewActiveTradingModuleWithoutMetrics(a *artemis_trading_auxiliary.Auxiliary
 }
 
 func NewActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, tm metrics_trading.TradingMetrics) ActiveTrading {
+	if a != nil && a.U != nil {
+		a.U.Web3Client.Web3Actions.AutoIncrementLocalNonce = true
+	}
 	return ActiveTrading{a, tm}
 }
 

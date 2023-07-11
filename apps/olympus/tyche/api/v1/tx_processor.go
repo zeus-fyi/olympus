@@ -40,6 +40,7 @@ func (t *TxProcessingRequest) ProcessTx(c echo.Context) error {
 		case artemis_eth_units.NewBigInt(hestia_req_types.EthereumMainnetProtocolNetworkID):
 			at = artemis_trade_executor.ActiveTrader
 		case artemis_eth_units.NewBigInt(hestia_req_types.EthereumEphemeryProtocolNetworkID):
+			log.Info().Msgf("tx chain id %s not supported or not supplied, defaulting to mainnet", tx.ChainId().String())
 		default:
 			log.Info().Msgf("tx chain id %s not supported or not supplied, defaulting to mainnet", tx.ChainId().String())
 		}

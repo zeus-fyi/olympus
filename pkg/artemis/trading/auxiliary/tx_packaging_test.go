@@ -10,7 +10,6 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-// todo add permit2 nonce getter from db method
 func (t *ArtemisAuxillaryTestSuite) testExecV2TradeFrontRun(ta *AuxiliaryTradingUtils) *web3_client.UniversalRouterExecCmd {
 	t.Require().NotEmpty(ta)
 	toExchAmount := artemis_eth_units.GweiMultiple(100)

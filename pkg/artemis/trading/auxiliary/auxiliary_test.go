@@ -17,11 +17,14 @@ import (
 
 type ArtemisAuxillaryTestSuite struct {
 	s3secrets.S3SecretsManagerTestSuite
-	acc            accounts.Account
-	acc2           accounts.Account
-	goerliWeb3User web3_client.Web3Client
-	goerliNode     string
-	nonceOffset    int
+	acc             accounts.Account
+	acc2            accounts.Account
+	acc3            accounts.Account
+	goerliWeb3User  web3_client.Web3Client
+	mainnetWeb3User web3_client.Web3Client
+	mainnetNode     string
+	goerliNode      string
+	nonceOffset     int
 }
 
 var ctx = context.Background()
@@ -38,6 +41,12 @@ func (t *ArtemisAuxillaryTestSuite) SetupTest() {
 	t.Assert().Nil(err)
 	t.acc2 = *secondAccount
 	t.goerliWeb3User = web3_client.NewWeb3Client(t.Tc.GoerliNodeUrl, secondAccount)
+	t.mainnetNode = t.Tc.MainnetNodeUrl
+	t.mainnetWeb3User = web3_client.NewWeb3Client(t.Tc.MainnetNodeUrl, &t.acc2)
+	m := map[string]string{
+		"Authorization": "Bearer " + t.Tc.ProductionLocalTemporalBearerToken,
+	}
+	t.mainnetWeb3User.Headers = m
 }
 
 // InitTradingAccount pubkey 0x000025e60C7ff32a3470be7FE3ed1666b0E326e2

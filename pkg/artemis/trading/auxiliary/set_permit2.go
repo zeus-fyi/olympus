@@ -34,11 +34,6 @@ func (a *AuxiliaryTradingUtils) getBlockNumber(ctx context.Context) (int, error)
 	return int(bn), err
 }
 
-//func (a *AuxiliaryTradingUtils) PutPermit2Nonce() error {
-//	ethTx := artemis_eth_txs.EthTx{}
-//	return ethTx.PutPermit2Nonce()
-//}
-
 func (a *AuxiliaryTradingUtils) generatePermit2Approval(ctx context.Context, to *artemis_trading_types.TradeOutcome) (web3_client.Permit2PermitParams, error) {
 	deadline := a.GetDeadline()
 

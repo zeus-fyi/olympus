@@ -61,7 +61,6 @@ func (e *EthTx) InsertTx(ctx context.Context, pt Permit2Tx) (err error) {
 func InsertTxsWithBundle(ctx context.Context, txs []EthTx, bundleHash string) error {
 	q0 := sql_query_templates.QueryParams{}
 	q0.RawQuery = `INSERT INTO events(event_id) VALUES ($1) RETURNING event_id`
-
 	q1 := sql_query_templates.QueryParams{}
 	q1.RawQuery = `WITH cte_tx AS (
                         INSERT INTO eth_tx(event_id, tx_hash, protocol_network_id, nonce, "from", type) 

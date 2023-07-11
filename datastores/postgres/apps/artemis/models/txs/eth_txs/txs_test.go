@@ -80,6 +80,7 @@ func (s *TxTestSuite) TestInsertTx() {
 
 func (s *TxTestSuite) TestInsertBundle() {
 	pi := hestia_req_types.EthereumGoerliProtocolNetworkID
+
 	bundleTxs := []EthTx{
 		{
 			EthTx: artemis_autogen_bases.EthTx{

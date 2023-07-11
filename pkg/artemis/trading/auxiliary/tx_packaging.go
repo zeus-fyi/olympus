@@ -5,20 +5,110 @@ import (
 	"database/sql"
 
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/rs/zerolog/log"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
 )
 
-func (a *AuxiliaryTradingUtils) packagePermit2Tx(ctx context.Context, signedTx *types.Transaction, permit2 artemis_autogen_bases.Permit2Tx, userNonceOffset int) (artemis_eth_txs.EthTx, error) {
-	nonce, err := a.getNonce(ctx)
+const (
+	FrontRun  = "frontRun"
+	UserTrade = "userTrade"
+	BackRun   = "backRun"
+	TradeType = "tradeType"
+
+	TradeCfg = "tradeCfg"
+	Permit2  = "permit2"
+)
+
+func (a *AuxiliaryTradingUtils) getAdditionalTxConfig(ctx context.Context) string {
+	tt := ctx.Value(TradeCfg)
+	if tt == nil {
+		return ""
+	}
+	tt = tt.(string)
+	switch tt {
+	case Permit2:
+		return Permit2
+	}
+	return ""
+}
+
+func (a *AuxiliaryTradingUtils) getTradeTypeFromCtx(ctx context.Context) string {
+	tt := ctx.Value(TradeType)
+	if tt == nil {
+		return ""
+	}
+	tt = tt.(string)
+	switch tt {
+	case FrontRun:
+		return FrontRun
+	case UserTrade:
+		return UserTrade
+	case BackRun:
+		return BackRun
+	}
+	return ""
+}
+
+func (a *AuxiliaryTradingUtils) CreateFrontRunCtx(ctx context.Context) context.Context {
+	ctx = context.WithValue(ctx, TradeType, FrontRun)
+	return ctx
+}
+func (a *AuxiliaryTradingUtils) CreateFrontRunCtxWithPermit2(ctx context.Context) context.Context {
+	ctx = a.CreateFrontRunCtx(ctx)
+	ctx = context.WithValue(ctx, TradeCfg, Permit2)
+	return ctx
+}
+
+func (a *AuxiliaryTradingUtils) CreateBackRunCtx(ctx context.Context) context.Context {
+	ctx = context.WithValue(ctx, TradeType, BackRun)
+	return ctx
+}
+
+func (a *AuxiliaryTradingUtils) CreateBackRunCtxWithPermit2(ctx context.Context) context.Context {
+	ctx = a.CreateBackRunCtx(ctx)
+	ctx = context.WithValue(ctx, TradeCfg, Permit2)
+	return ctx
+}
+
+func (a *AuxiliaryTradingUtils) CreateUserTradeCtx(ctx context.Context) context.Context {
+	ctx = context.WithValue(ctx, TradeType, UserTrade)
+	return ctx
+}
+
+func (a *AuxiliaryTradingUtils) AddTxMetaData(tx *types.Transaction) TxWithMetadata {
+	return TxWithMetadata{
+		Tx: tx,
+	}
+}
+
+func (a *AuxiliaryTradingUtils) packageTxForBundle(ctx context.Context, txWithMetadata TxWithMetadata) (artemis_eth_txs.EthTx, error) {
+	mevTx, err := a.getEthTxByPackageType(ctx, txWithMetadata)
 	if err != nil {
+		log.Err(err).Msg("error getting eth tx by package type")
 		return artemis_eth_txs.EthTx{}, err
 	}
+	a.MevTxGroup.OrderedTxs = append(a.MevTxGroup.OrderedTxs, txWithMetadata)
+	return mevTx, nil
+}
+
+func (a *AuxiliaryTradingUtils) getEthTxByPackageType(ctx context.Context, signedTxWithMetadata TxWithMetadata) (artemis_eth_txs.EthTx, error) {
+	tt := a.getTradeTypeFromCtx(ctx)
+	switch tt {
+	case Permit2:
+		return a.packagePermit2Tx(ctx, signedTxWithMetadata)
+	}
+	return a.packageRegularTx(ctx, signedTxWithMetadata)
+}
+
+func (a *AuxiliaryTradingUtils) packagePermit2Tx(ctx context.Context, signedTxWithMetadata TxWithMetadata) (artemis_eth_txs.EthTx, error) {
+	signedTx := signedTxWithMetadata.Tx
+	permit2 := signedTxWithMetadata.Permit2Tx
 	mevTx := artemis_eth_txs.EthTx{
 		EthTx: artemis_autogen_bases.EthTx{
 			ProtocolNetworkID: permit2.ProtocolNetworkID,
 			TxHash:            signedTx.Hash().String(),
-			Nonce:             int(nonce) + userNonceOffset,
+			Nonce:             int(signedTx.Nonce()),
 			From:              a.U.Web3Client.Address().String(),
 			Type:              "0x02",
 		},
@@ -53,7 +143,8 @@ func (a *AuxiliaryTradingUtils) packagePermit2Tx(ctx context.Context, signedTx *
 	return mevTx, nil
 }
 
-func (a *AuxiliaryTradingUtils) packageRegularTx(ctx context.Context, signedTx *types.Transaction, userNonceOffset int) (artemis_eth_txs.EthTx, error) {
+func (a *AuxiliaryTradingUtils) packageRegularTx(ctx context.Context, signedTxWithMetadata TxWithMetadata) (artemis_eth_txs.EthTx, error) {
+	signedTx := signedTxWithMetadata.Tx
 	pi := signedTx.ChainId()
 	ethGas := artemis_autogen_bases.EthTxGas{
 		TxHash: signedTx.Hash().String(),
@@ -73,7 +164,6 @@ func (a *AuxiliaryTradingUtils) packageRegularTx(ctx context.Context, signedTx *
 			Valid: true,
 		},
 	}
-
 	signerType := int(signedTx.Type())
 	typeEnum := "0x02"
 	if signerType == 1 {

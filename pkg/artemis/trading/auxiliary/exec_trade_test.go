@@ -66,7 +66,7 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2Trade(ta *AuxiliaryTradingUtils) *
 func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeCall() (*web3_client.UniversalRouterExecCmd, *types.Transaction) {
 	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
 	cmd := t.testExecV2Trade(&ta)
-	tx, err := ta.universalRouterCmdBuilder(ctx, cmd)
+	tx, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 	t.Require().NotNil(cmd.Deadline)

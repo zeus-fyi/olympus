@@ -2,7 +2,9 @@ package artemis_trading_auxiliary
 
 import (
 	"context"
+	"errors"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
@@ -17,7 +19,7 @@ var (
 )
 
 func (a *AuxiliaryTradingUtils) UniversalRouterCmdExecutor(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, error) {
-	signedTx, err := a.universalRouterCmdBuilder(ctx, ur)
+	signedTx, err := a.universalRouterCmdToTxBuilder(ctx, ur)
 	if err != nil {
 		log.Err(err).Msg("error building signed tx")
 		return nil, err
@@ -34,14 +36,17 @@ func (a *AuxiliaryTradingUtils) universalRouterExecuteTx(ctx context.Context, si
 	return signedTx, err
 }
 
-func (a *AuxiliaryTradingUtils) universalRouterCmdBuilder(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, error) {
+func (a *AuxiliaryTradingUtils) universalRouterCmdToTxBuilder(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, error) {
 	ur.Deadline = a.GetDeadline()
 	data, err := ur.EncodeCommands(ctx)
 	if err != nil {
 		return nil, err
 	}
-	scInfo := GetUniswapUniversalRouterAbiPayload(data)
-	signedTx, err := a.GetSignedTxToCallFunctionWithArgs(ctx, &scInfo)
+	scInfo, err := a.GetUniswapUniversalRouterAbiPayload(ctx, data)
+	if err != nil {
+		return nil, err
+	}
+	signedTx, err := a.GetSignedTxToCallFunctionWithData(ctx, &scInfo, scInfo.Data)
 	if err != nil {
 		return signedTx, err
 	}
@@ -49,20 +54,17 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdBuilder(ctx context.Context, u
 	if err != nil {
 		return nil, err
 	}
-	txWithMetadata := TxWithMetadata{
-		Tx: signedTx,
-	}
-	err = a.AddTxToBundleGroup(ctx, txWithMetadata)
+	err = a.AddTxToBundleGroup(ctx, signedTx)
 	if err != nil {
 		return nil, err
 	}
 	return signedTx, nil
 }
 
-func GetUniswapUniversalRouterAbiPayload(payload *web3_client.UniversalRouterExecParams) web3_actions.SendContractTxPayload {
+func (a *AuxiliaryTradingUtils) GetUniswapUniversalRouterAbiPayload(ctx context.Context, payload *web3_client.UniversalRouterExecParams) (web3_actions.SendContractTxPayload, error) {
 	if payload == nil {
 		payload = &web3_client.UniversalRouterExecParams{}
-		return web3_actions.SendContractTxPayload{}
+		return web3_actions.SendContractTxPayload{}, errors.New("payload is nil")
 	}
 	payable := payload.Payable
 	if payable == nil {
@@ -84,7 +86,16 @@ func GetUniswapUniversalRouterAbiPayload(payload *web3_client.UniversalRouterExe
 		MethodName:        methodName,
 		Params:            fnParams,
 	}
-	return params
+	err := params.GenerateBinDataFromParamsAbi(ctx)
+	if err != nil {
+		log.Err(err).Msg("error generating bin data from params abi")
+		return web3_actions.SendContractTxPayload{}, err
+	}
+	err = a.SuggestAndSetGasPriceAndLimitForTx(ctx, &params, common.HexToAddress(params.SmartContractAddr))
+	if err != nil {
+		return params, err
+	}
+	return params, nil
 }
 
 func (a *AuxiliaryTradingUtils) checkIfCmdEmpty(ur *web3_client.UniversalRouterExecCmd) *web3_client.UniversalRouterExecCmd {

@@ -14,7 +14,8 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() *AuxiliaryTradingUt
 	toExchAmount := artemis_eth_units.GweiMultiple(100000)
 	cmd := t.testEthToWETH(&ta, toExchAmount)
 	// part 1 of bundle
-	tx, err := ta.universalRouterCmdBuilder(ctx, cmd)
+	//ctx = ta.CreateFrontRunCtx(ctx)
+	tx, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 	t.Require().Equal(toExchAmount, tx.Value())
@@ -25,16 +26,17 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() *AuxiliaryTradingUt
 	t.Require().Equal(1, len(ta.Bundle.Txs))
 	t.Require().Equal(0, len(ta.MevTxGroup.OrderedTxs))
 
+	fmt.Println("frontRun: txGasTipCap", tx.GasTipCap().String())
 	// middle of bundle
+	//ctx = ta.CreateUserTradeCtx(ctx)
 	userTrader := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc2)
+	//nonce, err := userTrader.getNonce(ctx)
+	//t.Require().Nil(err)
+	//fmt.Println("userTrader nonce", nonce)
 	cmd = t.testEthToWETH(&userTrader, toExchAmount)
-	tx, err = userTrader.universalRouterCmdBuilder(ctx, cmd)
+	tx, err = userTrader.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().NotEmpty(tx)
-	txWithMetadata := TxWithMetadata{
-		Tx:        tx,
-		TradeType: "userTrade",
-	}
-	err = ta.AddTxToBundleGroup(ctx, txWithMetadata)
+	err = ta.AddTxToBundleGroup(ctx, tx)
 	t.Require().Nil(err)
 	signer := types.LatestSignerForChainID(artemis_eth_units.NewBigInt(hestia_req_types.EthereumGoerliProtocolNetworkID))
 	sender, err := signer.Sender(tx)
@@ -43,7 +45,7 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() *AuxiliaryTradingUt
 
 	// part 3 of bundle
 	cmd = t.testExecV2Trade(&ta)
-	tx, err = ta.universalRouterCmdBuilder(ctx, cmd)
+	tx, err = ta.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 	t.Require().Equal(2, len(ta.MevTxGroup.OrderedTxs))
@@ -52,6 +54,7 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() *AuxiliaryTradingUt
 	t.Require().NotEmpty(ta.Bundle.Txs)
 	t.Require().Equal(3, len(ta.Bundle.Txs))
 	t.Require().Equal(0, len(ta.MevTxGroup.OrderedTxs))
+
 	return &ta
 }
 func (t *ArtemisAuxillaryTestSuite) TestSandwichCallBundle() {

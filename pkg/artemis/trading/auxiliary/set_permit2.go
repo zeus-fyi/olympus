@@ -14,6 +14,11 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
+func (a *AuxiliaryTradingUtils) addPermit2Ctx(ctx context.Context) context.Context {
+	ctx = context.WithValue(ctx, TradeCfg, Permit2)
+	return ctx
+}
+
 func (a *AuxiliaryTradingUtils) SetPermit2ApprovalForToken(ctx context.Context, address string) (*types.Transaction, error) {
 	tx, err := a.getWeb3Client().ApprovePermit2(ctx, address)
 	if err != nil {
@@ -23,20 +28,8 @@ func (a *AuxiliaryTradingUtils) SetPermit2ApprovalForToken(ctx context.Context, 
 	return tx, nil
 }
 
-func (a *AuxiliaryTradingUtils) getBlockNumber(ctx context.Context) (int, error) {
-	a.Dial()
-	bn, err := a.C.BlockNumber(ctx)
-	if err != nil {
-		log.Err(err).Msg("failed to get block number")
-		return -1, err
-	}
-	a.Close()
-	return int(bn), err
-}
-
 func (a *AuxiliaryTradingUtils) generatePermit2Approval(ctx context.Context, to *artemis_trading_types.TradeOutcome) (web3_client.Permit2PermitParams, error) {
 	deadline := a.GetDeadline()
-
 	chainID, err := a.getChainID(ctx)
 	if err != nil {
 		log.Warn().Err(err).Msg("error getting chainID")

@@ -14,7 +14,8 @@ func (t *ArtemisAuxillaryTestSuite) TestCreateFbBundle() *AuxiliaryTradingUtils 
 	toExchAmount := artemis_eth_units.GweiMultiple(100000)
 	cmd := t.testEthToWETH(&ta, toExchAmount)
 	// part 1 of bundle
-	tx, err := ta.universalRouterCmdBuilder(ctx, cmd)
+
+	tx, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 	t.Require().Equal(toExchAmount, tx.Value())
@@ -27,7 +28,7 @@ func (t *ArtemisAuxillaryTestSuite) TestCreateFbBundle() *AuxiliaryTradingUtils 
 
 	// part 2 of bundle
 	cmd = t.testExecV2Trade(&ta)
-	tx, err = ta.universalRouterCmdBuilder(ctx, cmd)
+	tx, err = ta.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().NotEmpty(tx)
 	t.Require().Equal(1, len(ta.MevTxGroup.OrderedTxs))
 	err = ta.CreateOrAddToFlashbotsBundle(cmd, "latest")
@@ -46,7 +47,7 @@ func (t *ArtemisAuxillaryTestSuite) TestCreateFbSandwichBundle() *AuxiliaryTradi
 	cmd = t.testExecV2Trade(&ta)
 
 	// part 1 of bundle
-	tx, err := ta.universalRouterCmdBuilder(ctx, cmd)
+	tx, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().NotEmpty(tx)
 	t.Require().Equal(1, len(ta.MevTxGroup.OrderedTxs))
 	err = ta.CreateOrAddToFlashbotsBundle(cmd, "latest")
@@ -58,7 +59,7 @@ func (t *ArtemisAuxillaryTestSuite) TestCreateFbSandwichBundle() *AuxiliaryTradi
 	// sandwich amount
 
 	cmd = t.testExecV2Trade(&ta)
-	tx, err = ta.universalRouterCmdBuilder(ctx, cmd)
+	tx, err = ta.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().NotEmpty(tx)
 	t.Require().Equal(1, len(ta.MevTxGroup.OrderedTxs))
 	return &ta

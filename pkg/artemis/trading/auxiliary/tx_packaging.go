@@ -5,19 +5,9 @@ import (
 	"database/sql"
 
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/rs/zerolog/log"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
 )
-
-func (a *AuxiliaryTradingUtils) getNonce(ctx context.Context) (uint64, error) {
-	nonce, err := a.GetNonce(ctx)
-	if err != nil {
-		log.Err(err).Msg("error getting nonce")
-		return nonce, err
-	}
-	return nonce, nil
-}
 
 func (a *AuxiliaryTradingUtils) packagePermit2Tx(ctx context.Context, signedTx *types.Transaction, permit2 artemis_autogen_bases.Permit2Tx, userNonceOffset int) (artemis_eth_txs.EthTx, error) {
 	nonce, err := a.getNonce(ctx)
@@ -63,16 +53,8 @@ func (a *AuxiliaryTradingUtils) packagePermit2Tx(ctx context.Context, signedTx *
 	return mevTx, nil
 }
 
-func (a *AuxiliaryTradingUtils) AddTxToBundleGroup(ctx context.Context, signedTx *types.Transaction) error {
-	if a.MevTxGroup.OrderedTxs == nil {
-		a.MevTxGroup.OrderedTxs = []*types.Transaction{}
-	}
-	pi, err := a.getChainID(ctx)
-	if err != nil {
-		log.Err(err).Msg("error getting chain id")
-		return err
-	}
-
+func (a *AuxiliaryTradingUtils) packageRegularTx(ctx context.Context, signedTx *types.Transaction, userNonceOffset int) (artemis_eth_txs.EthTx, error) {
+	pi := signedTx.ChainId()
 	ethGas := artemis_autogen_bases.EthTxGas{
 		TxHash: signedTx.Hash().String(),
 		GasPrice: sql.NullInt64{
@@ -111,7 +93,7 @@ func (a *AuxiliaryTradingUtils) AddTxToBundleGroup(ctx context.Context, signedTx
 	}
 	mevTx := artemis_eth_txs.EthTx{
 		EthTx: artemis_autogen_bases.EthTx{
-			ProtocolNetworkID: pi,
+			ProtocolNetworkID: int(pi.Int64()),
 			TxHash:            signedTx.Hash().String(),
 			Nonce:             int(signedTx.Nonce()),
 			From:              a.U.Web3Client.Address().String(),
@@ -136,7 +118,5 @@ func (a *AuxiliaryTradingUtils) AddTxToBundleGroup(ctx context.Context, signedTx
 			},
 		},
 	}
-	a.MevTxGroup.MevTxs = append(a.MevTxGroup.MevTxs, mevTx)
-	a.MevTxGroup.OrderedTxs = append(a.MevTxGroup.OrderedTxs, signedTx)
-	return err
+	return mevTx, nil
 }

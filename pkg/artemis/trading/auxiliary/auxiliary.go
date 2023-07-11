@@ -2,11 +2,14 @@ package artemis_trading_auxiliary
 
 import (
 	"context"
+	"math/big"
+	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
 	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/trading/flashbots"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -33,6 +36,12 @@ func InitAuxiliaryTradingUtils(ctx context.Context, nodeURL, network string, acc
 		U:               &un,
 		FlashbotsClient: fba,
 	}
+}
+
+func (a *AuxiliaryTradingUtils) GetDeadline() *big.Int {
+	deadline := int(time.Now().Add(60 * time.Second).Unix())
+	sigDeadline := artemis_eth_units.NewBigInt(deadline)
+	return sigDeadline
 }
 
 func (a *AuxiliaryTradingUtils) addTx(tx *types.Transaction) {

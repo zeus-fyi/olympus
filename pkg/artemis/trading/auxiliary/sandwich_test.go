@@ -30,7 +30,11 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() *AuxiliaryTradingUt
 	cmd = t.testEthToWETH(&userTrader, toExchAmount)
 	tx, err = userTrader.universalRouterCmdBuilder(ctx, cmd)
 	t.Require().NotEmpty(tx)
-	err = ta.AddTxToBundleGroup(ctx, tx)
+	txWithMetadata := TxWithMetadata{
+		Tx:        tx,
+		TradeType: "userTrade",
+	}
+	err = ta.AddTxToBundleGroup(ctx, txWithMetadata)
 	t.Require().Nil(err)
 	signer := types.LatestSignerForChainID(artemis_eth_units.NewBigInt(hestia_req_types.EthereumGoerliProtocolNetworkID))
 	sender, err := signer.Sender(tx)

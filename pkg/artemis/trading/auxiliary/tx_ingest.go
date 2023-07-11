@@ -3,7 +3,6 @@ package artemis_trading_auxiliary
 import (
 	"context"
 
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 )
 
@@ -16,7 +15,7 @@ type TxWithMetadata struct {
 
 func (a *AuxiliaryTradingUtils) AddTxToBundleGroup(ctx context.Context, txWithMetadata TxWithMetadata) error {
 	if a.MevTxGroup.OrderedTxs == nil {
-		a.MevTxGroup.OrderedTxs = []*types.Transaction{}
+		a.MevTxGroup.OrderedTxs = []TxWithMetadata{}
 	}
 	signedTx := txWithMetadata.Tx
 	mevTx, err := a.packageRegularTx(ctx, signedTx, 0)
@@ -25,6 +24,6 @@ func (a *AuxiliaryTradingUtils) AddTxToBundleGroup(ctx context.Context, txWithMe
 		return err
 	}
 	a.MevTxGroup.MevTxs = append(a.MevTxGroup.MevTxs, mevTx)
-	a.MevTxGroup.OrderedTxs = append(a.MevTxGroup.OrderedTxs, signedTx)
+	a.MevTxGroup.OrderedTxs = append(a.MevTxGroup.OrderedTxs, txWithMetadata)
 	return err
 }

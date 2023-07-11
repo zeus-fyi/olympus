@@ -6,6 +6,6 @@ import (
 
 func (a *AuxiliaryTradingUtils) trackTxs(txs MevTxGroup) {
 	for _, tx := range txs.OrderedTxs {
-		fmt.Println("tx", tx.Hash().Hex())
+		fmt.Println("tx", tx.Tx.Hash().Hex())
 	}
 }

@@ -22,8 +22,21 @@ type AuxiliaryTradingUtils struct {
 
 type MevTxGroup struct {
 	EventID    int
-	OrderedTxs []*types.Transaction
+	OrderedTxs []TxWithMetadata
 	MevTxs     []artemis_eth_txs.EthTx
+}
+
+type TxWithMetadata struct {
+	TradeType string
+	Tx        *types.Transaction
+}
+
+func (m *MevTxGroup) GetRawOrderedTxs() []*types.Transaction {
+	txSlice := make([]*types.Transaction, len(m.OrderedTxs))
+	for i, tx := range m.OrderedTxs {
+		txSlice[i] = tx.Tx
+	}
+	return txSlice
 }
 
 func InitAuxiliaryTradingUtils(ctx context.Context, nodeURL, network string, acc accounts.Account) AuxiliaryTradingUtils {
@@ -42,11 +55,4 @@ func (a *AuxiliaryTradingUtils) GetDeadline() *big.Int {
 	deadline := int(time.Now().Add(60 * time.Second).Unix())
 	sigDeadline := artemis_eth_units.NewBigInt(deadline)
 	return sigDeadline
-}
-
-func (a *AuxiliaryTradingUtils) addTx(tx *types.Transaction) {
-	if a.MevTxGroup.OrderedTxs == nil {
-		a.MevTxGroup.OrderedTxs = []*types.Transaction{}
-	}
-	a.MevTxGroup.OrderedTxs = append(a.MevTxGroup.OrderedTxs, tx)
 }

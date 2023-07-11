@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/metachris/flashbotsrpc"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -21,12 +20,12 @@ func (a *AuxiliaryTradingUtils) CreateOrAddToFlashbotsBundle(ur *web3_client.Uni
 			MaxTimestamp: &maxTime,
 		}
 	}
-	err := a.Bundle.AddTxs(a.MevTxGroup.OrderedTxs...)
+	err := a.Bundle.AddTxs(a.MevTxGroup.GetRawOrderedTxs()...)
 	if err != nil {
 		return err
 	}
 	a.trackTxs(a.MevTxGroup)
-	a.MevTxGroup.OrderedTxs = []*types.Transaction{}
+	a.MevTxGroup.OrderedTxs = []TxWithMetadata{}
 	return err
 }
 

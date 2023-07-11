@@ -9,6 +9,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/dynamic_secrets"
 	"github.com/zeus-fyi/olympus/pkg/aegis/s3secrets"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	"github.com/zeus-fyi/olympus/pkg/athena"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
@@ -16,9 +17,10 @@ import (
 
 type ArtemisAuxillaryTestSuite struct {
 	s3secrets.S3SecretsManagerTestSuite
-	acc         accounts.Account
-	goerliNode  string
-	nonceOffset int
+	acc            accounts.Account
+	goerliWeb3User web3_client.Web3Client
+	goerliNode     string
+	nonceOffset    int
 }
 
 var ctx = context.Background()
@@ -31,6 +33,9 @@ func (t *ArtemisAuxillaryTestSuite) SetupTest() {
 	apps.Pg.InitPG(ctx, tc.ProdLocalDbPgconn)
 	age := encryption.NewAge(tc.LocalAgePkey, tc.LocalAgePubkey)
 	t.acc = initTradingAccount(ctx, age)
+	secondAccount, err := accounts.ParsePrivateKey(t.Tc.ArtemisGoerliEcdsaKey)
+	t.Assert().Nil(err)
+	t.goerliWeb3User = web3_client.NewWeb3Client(t.Tc.GoerliNodeUrl, secondAccount)
 }
 
 // InitTradingAccount pubkey 0x000025e60C7ff32a3470be7FE3ed1666b0E326e2

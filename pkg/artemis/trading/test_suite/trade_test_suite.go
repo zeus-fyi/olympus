@@ -19,6 +19,7 @@ type ArtemisTradingTestSuite struct {
 	test_suites_encryption.EncryptionTestSuite
 	MainnetWeb3User    web3_client.Web3Client
 	ProxiedMainnetUser web3_client.Web3Client
+	GoerliWeb3User     web3_client.Web3Client
 }
 
 var ctx = context.Background()
@@ -48,9 +49,10 @@ func (s *ArtemisTradingTestSuite) SetupTest() {
 	uni.Web3Client.DurableExecution = false
 	s.ProxiedMainnetUser = wc
 
-	pkHexString2 := s.Tc.LocalEcsdaTestPkey2
+	pkHexString2 := s.Tc.ArtemisGoerliEcdsaKey
 	secondAccount, err := accounts.ParsePrivateKey(pkHexString2)
 	s.Assert().Nil(err)
+	s.GoerliWeb3User = web3_client.NewWeb3Client(s.Tc.GoerliNodeUrl, secondAccount)
 	s.MainnetWeb3User = web3_client.NewWeb3Client(s.Tc.MainnetNodeUrl, secondAccount)
 }
 

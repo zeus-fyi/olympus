@@ -55,7 +55,8 @@ func NewActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, 
 	auxSimTrader := ActiveTrading{
 		a: &auxSim,
 	}
-	return ActiveTrading{a, &auxSimTrader, tm}
+	at := ActiveTrading{a: a, us: &auxSimTrader, m: tm}
+	return at
 }
 
 func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) error {

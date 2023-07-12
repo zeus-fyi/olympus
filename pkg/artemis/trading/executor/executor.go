@@ -13,6 +13,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/athena"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
 var (
@@ -24,9 +25,8 @@ var (
 
 func InitMainnetAuxiliaryTradingUtils(ctx context.Context, age encryption.Age, tm *metrics_trading.TradingMetrics) artemis_trading_auxiliary.AuxiliaryTradingUtils {
 	acc := InitTradingAccount2(ctx, age)
-	cfg := artemis_network_cfgs.ArtemisEthereumMainnet
-	wc := web3_client.NewWeb3Client(cfg.NodeURL, &acc)
-	wc.Network = cfg.Network
+	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL, &acc)
+	wc.Network = hestia_req_types.Mainnet
 	TradeExecutorMainnet = artemis_trading_auxiliary.InitAuxiliaryTradingUtils(ctx, wc)
 	if tm == nil {
 		ActiveTrader = artemis_realtime_trading.NewActiveTradingModuleWithoutMetrics(&TradeExecutorMainnet)

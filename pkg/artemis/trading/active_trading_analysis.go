@@ -42,14 +42,14 @@ func (a *ActiveTrading) ProcessTxs(ctx context.Context) ([]web3_client.TradeExec
 		tfSlice = append(tfSlice, tf...)
 	}
 	for _, mevTx := range a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV2.Txs {
-		tf, err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, a.a.U.MevSmartContractTxMapV3SwapRouterV2.Abi, a.a.U.MevSmartContractTxMapV3SwapRouterV2.Filter)
+		tf, err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV2.Abi, a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV2.Filter)
 		if err != nil {
 			return nil, err
 		}
 		tfSlice = append(tfSlice, tf...)
 	}
 	for _, mevTx := range a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV1.Txs {
-		tf, err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, a.a.U.MevSmartContractTxMapV3SwapRouterV1.Abi, a.a.U.MevSmartContractTxMapV3SwapRouterV1.Filter)
+		tf, err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV1.Abi, a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV1.Filter)
 		if err != nil {
 			return nil, err
 		}

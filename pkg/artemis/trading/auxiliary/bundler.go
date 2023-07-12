@@ -31,7 +31,14 @@ func (a *AuxiliaryTradingUtils) CreateOrAddToFlashbotsBundle(ur *web3_client.Uni
 
 func (a *AuxiliaryTradingUtils) CallAndSendFlashbotsBundle(ctx context.Context) (flashbotsrpc.FlashbotsSendBundleResponse, error) {
 	sr := flashbotsrpc.FlashbotsSendBundleResponse{}
-	_, err := a.callFlashbotsBundle(ctx)
+	eventID, err := a.getBlockNumber(ctx)
+	if err != nil {
+		log.Err(err).Msg("error getting event id")
+		return flashbotsrpc.FlashbotsSendBundleResponse{}, err
+	}
+	bnStr := hexutil.EncodeUint64(uint64(eventID + 1))
+	ctx = a.setBlockNumberCtx(ctx, bnStr)
+	_, err = a.callFlashbotsBundle(ctx)
 	if err != nil {
 		log.Err(err).Msg("error calling flashbots bundle")
 		return sr, err
@@ -51,8 +58,7 @@ func (a *AuxiliaryTradingUtils) CallAndSendFlashbotsBundle(ctx context.Context) 
 		}
 		return sr, err
 	}
-	var txs []artemis_eth_txs.EthTx
-	err = artemis_eth_txs.InsertTxsWithBundle(ctx, dbTx, txs, sr.BundleHash)
+	err = artemis_eth_txs.InsertTxsWithBundle(ctx, dbTx, a.MevTxGroup.MevTxs, sr.BundleHash)
 	if err != nil {
 		log.Err(err).Msg("error inserting txs with bundle")
 		terr := dbTx.Rollback(ctx)
@@ -71,23 +77,21 @@ func (a *AuxiliaryTradingUtils) CallAndSendFlashbotsBundle(ctx context.Context) 
 
 func (a *AuxiliaryTradingUtils) callFlashbotsBundle(ctx context.Context) (flashbotsrpc.FlashbotsCallBundleResponse, error) {
 	var txsCall []string
-	eventID, err := a.getBlockNumber(ctx)
-	if err != nil {
-		log.Err(err).Msg("error getting event id")
-		return flashbotsrpc.FlashbotsCallBundleResponse{}, err
-	}
+	bnStr := a.getBlockNumberCtx(ctx)
 	txsCall, a.Bundle.Txs = a.Bundle.Txs, txsCall
 	callBundle := flashbotsrpc.FlashbotsCallBundleParam{
 		Txs:         txsCall,
-		BlockNumber: hexutil.EncodeUint64(uint64(eventID + 1)),
+		BlockNumber: bnStr,
 		Timestamp:   a.GetDeadline().Int64(),
 	}
+	ctx = a.setBlockNumberCtx(ctx, bnStr)
 	resp, err := a.f.CallBundle(ctx, callBundle)
 	if err != nil {
 		log.Err(err).Msg("error calling flashbots bundle")
 		a.Bundle.Txs = txsCall
 		return resp, err
 	}
+	a.Bundle.Txs = txsCall
 	return resp, nil
 }
 
@@ -95,8 +99,14 @@ func (a *AuxiliaryTradingUtils) sendFlashbotsBundle(ctx context.Context) (flashb
 	if a.Bundle.FlashbotsSendBundleRequest == nil {
 		return flashbotsrpc.FlashbotsSendBundleResponse{}, errors.New("no bundle to send")
 	}
-	var bundle *flashbotsrpc.FlashbotsSendBundleRequest
-	bundle, a.Bundle.FlashbotsSendBundleRequest = a.Bundle.FlashbotsSendBundleRequest, bundle
+	if len(a.Bundle.Txs) == 0 {
+		return flashbotsrpc.FlashbotsSendBundleResponse{}, errors.New("no txs to send")
+	}
+	bundle := &flashbotsrpc.FlashbotsSendBundleRequest{
+		Txs:          a.Bundle.Txs,
+		BlockNumber:  a.getBlockNumberCtx(ctx),
+		MaxTimestamp: a.Bundle.MaxTimestamp,
+	}
 	resp, err := a.f.SendBundle(ctx, *bundle)
 	if err != nil {
 		a.Bundle.FlashbotsSendBundleRequest = bundle

@@ -28,10 +28,7 @@ func (t *ArtemisTradeDebuggerTestSuite) TestReplayer() {
 
 	err := t.td.Replay(ctx, txHash)
 	t.NoError(err)
-
 }
-
-// 0x035653cdc672256c3ca1da179b9377f59c7290d98b4421d586e227b1a7489a46
 
 func (t *ArtemisTradeDebuggerTestSuite) TestReadTx() {
 	artemis_test_cache.LiveTestNetwork.Dial()

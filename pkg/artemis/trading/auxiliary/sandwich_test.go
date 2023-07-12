@@ -86,11 +86,10 @@ func (t *ArtemisAuxillaryTestSuite) TestSandwichCallBundle() {
 	}
 }
 
-//
-//func (t *ArtemisAuxillaryTestSuite) TestSandwichCallAndSendBundle() {
-//	ta := t.testMockSandwichBundle()
-//	t.Require().NotEmpty(ta)
-//	resp, err := ta.CallAndSendFlashbotsBundle(ctx)
-//	t.Require().Nil(err)
-//	t.Require().NotNil(resp)
-//}
+func (t *ArtemisAuxillaryTestSuite) TestSandwichCallAndSendBundle() {
+	ta := t.testMockSandwichBundle()
+	t.Require().NotEmpty(ta)
+	resp, err := ta.CallAndSendFlashbotsBundle(ctx)
+	t.Require().Nil(err)
+	t.Require().NotNil(resp)
+}

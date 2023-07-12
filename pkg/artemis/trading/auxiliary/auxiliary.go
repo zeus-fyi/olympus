@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/rs/zerolog/log"
@@ -38,6 +39,14 @@ type TxWithMetadata struct {
 }
 
 func (m *MevTxGroup) GetRawOrderedTxs() []*types.Transaction {
+	txSlice := make([]*types.Transaction, len(m.OrderedTxs))
+	for i, tx := range m.OrderedTxs {
+		txSlice[i] = tx.Tx
+	}
+	return txSlice
+}
+
+func (m *MevTxGroup) GetHexEncodedTxs() []*types.Transaction {
 	txSlice := make([]*types.Transaction, len(m.OrderedTxs))
 	for i, tx := range m.OrderedTxs {
 		txSlice[i] = tx.Tx
@@ -101,17 +110,22 @@ const (
 	BlockNumber = "BlockNumber"
 )
 
-func (a *AuxiliaryTradingUtils) setBlockNumberCtx(ctx context.Context, bn int) context.Context {
+func (a *AuxiliaryTradingUtils) setBlockNumberCtx(ctx context.Context, bn string) context.Context {
 	ctx = context.WithValue(ctx, BlockNumber, bn)
 	return ctx
 }
 
-func (a *AuxiliaryTradingUtils) getBlockNumberCtx(ctx context.Context) int {
+func (a *AuxiliaryTradingUtils) getBlockNumberCtx(ctx context.Context) string {
 	td := ctx.Value(BlockNumber)
 	if td != nil {
-		return td.(int)
+		return td.(string)
 	}
-	return -1
+	bn, err := a.getBlockNumber(ctx)
+	if err != nil {
+		return ""
+	}
+	bnStr := hexutil.EncodeUint64(uint64(bn + 1))
+	return bnStr
 }
 
 const (

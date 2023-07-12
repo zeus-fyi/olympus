@@ -38,8 +38,10 @@ func (a *AuxiliaryTradingUtils) txGasAdjuster(ctx context.Context, scInfo *web3_
 	case FrontRun:
 		scInfo.GasTipCap = artemis_eth_units.NewBigInt(1)
 	case UserTrade:
-		scInfo.GasTipCap = artemis_eth_units.NewBigInt(100000000)
+		scInfo.GasTipCap = artemis_eth_units.NewBigInt(1)
+		scInfo.GasLimit *= 2
 	case BackRun:
+		scInfo.GasFeeCap = artemis_eth_units.MulBigIntFromInt(scInfo.GasFeeCap, 2)
 		scInfo.GasTipCap = artemis_eth_units.MulBigIntFromInt(scInfo.GasTipCap, 2)
 	default:
 		return nil

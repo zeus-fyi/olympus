@@ -83,10 +83,6 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 	//s.Assert().Nil(err)
 }
 
-func (s *ReportingTestSuite) Test1() {
-
-}
-
 func TestReportingTestSuite(t *testing.T) {
 	suite.Run(t, new(ReportingTestSuite))
 }

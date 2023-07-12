@@ -88,7 +88,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	log.Info().Msgf("Artemis %s init flashbots client", env)
 	athena.AthenaS3Manager = auth_startup.NewDigitalOceanS3AuthClient(ctx, authKeysCfg)
 	age := encryption.NewAge(authKeysCfg.AgePrivKey, authKeysCfg.AgePubKey)
-	artemis_trade_executor.InitMainnetAuxiliaryTradingUtils(ctx, age, nil)
+	artemis_trade_executor.InitMainnetAuxiliaryTradingUtils(ctx, age)
 	artemis_trade_executor.InitGoerliAuxiliaryTradingUtils(ctx, age)
 	log.Info().Msgf("Artemis %s done init flashbots client", env)
 }

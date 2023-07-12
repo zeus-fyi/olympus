@@ -1,6 +1,9 @@
 package artemis_trading_auxiliary
 
 import (
+	"fmt"
+
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
@@ -10,13 +13,15 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-func (t *ArtemisAuxillaryTestSuite) TestExecV2Trade() {
-	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
+// todo add permit2 nonce getter from db method
+func (t *ArtemisAuxillaryTestSuite) testExecV2Trade(ta *AuxiliaryTradingUtils) *web3_client.UniversalRouterExecCmd {
 	t.Require().NotEmpty(ta)
-	toExchAmount := artemis_eth_units.GweiMultiple(1000)
+	t.Require().Equal(t.goerliNode, ta.w3c().NodeURL)
+	t.Require().Equal(ta.network(), hestia_req_types.Goerli)
+	toExchAmount := artemis_eth_units.GweiMultiple(10000)
 	wethAddr := ta.getChainSpecificWETH()
 	daiAddr := artemis_trading_constants.DaiContractAddressAccount
-	if ta.Network == hestia_req_types.Goerli {
+	if ta.network() == hestia_req_types.Goerli {
 		daiAddr = artemis_trading_constants.GoerliDaiContractAddressAccount
 	}
 	to := &artemis_trading_types.TradeOutcome{
@@ -25,13 +30,15 @@ func (t *ArtemisAuxillaryTestSuite) TestExecV2Trade() {
 		AmountOutAddr: daiAddr,
 	}
 	path := []accounts.Address{to.AmountInAddr, to.AmountOutAddr}
-	prices, err := artemis_uniswap_pricing.V2PairToPrices(ctx, ta.Web3Actions, path)
+	prices, err := artemis_uniswap_pricing.V2PairToPrices(ctx, *ta.w3a(), path)
 	t.Require().Nil(err)
+	t.Require().NotEmpty(prices)
+	fmt.Println("testExecV2Trade: prices", prices.Reserve0.String(), prices.Reserve1.String())
 	amountOut, err := prices.GetQuoteUsingTokenAddr(to.AmountInAddr.String(), to.AmountIn)
 	t.Require().Nil(err)
 	t.Require().NotNil(amountOut)
+	fmt.Println("testExecV2Trade: amountOut", amountOut.String())
 	to.AmountOut = amountOut
-
 	cmd, err := ta.GenerateTradeV2SwapFromTokenToToken(ctx, nil, to)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(cmd)
@@ -57,13 +64,33 @@ func (t *ArtemisAuxillaryTestSuite) TestExecV2Trade() {
 			t.Require().Equal(artemis_trading_constants.UniversalRouterSenderAddress, sc.DecodedInputs.(web3_client.V2SwapExactInParams).To.String())
 		}
 	}
+	return cmd
+}
 
-	tx, err := ta.universalRouterCmdBuilder(ctx, cmd)
+func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeCall() (*web3_client.UniversalRouterExecCmd, *types.Transaction) {
+	ta := t.at2
+	t.Require().Equal(t.goerliNode, t.at2.nodeURL())
+	cmd := t.testExecV2Trade(&ta)
+	tx, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 	t.Require().NotNil(cmd.Deadline)
+	return cmd, tx
+}
 
-	//_, err = ta.universalRouterExecuteTx(ctx, tx)
-	//t.Require().Nil(err)
-	//fmt.Println("tx", tx.Hash().String())
+//func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeExec() {
+//	ta, _, tx := t.TestExecV2TradeCall()
+//	_, err := ta.universalRouterExecuteTx(ctx, tx)
+//	t.Require().Nil(err)
+//	fmt.Println("tx", tx.Hash().String())
+//}
+
+func (t *ArtemisAuxillaryTestSuite) TestMaxTradeSize() {
+	ta := t.at1
+	t.Require().Equal(t.goerliNode, t.at1.nodeURL())
+	t.Require().NotEmpty(ta)
+	mts := ta.maxTradeSize()
+	fmt.Println("oneEther     :", artemis_eth_units.Ether.String())
+	fmt.Println("maxTradeSize :", mts.String())
+	t.Assert().Equal(artemis_eth_units.Ether, artemis_eth_units.MulBigIntFromInt(mts, 4))
 }

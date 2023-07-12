@@ -22,7 +22,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 		case web3_client.V3SwapExactIn:
 			fmt.Println("V3SwapExactIn: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(web3_client.V3SwapExactInParams)
-			pd, perr := a.u.GetV3PricingData(ctx, inputs.Path)
+			pd, perr := a.a.U.GetV3PricingData(ctx, inputs.Path)
 			if perr != nil {
 				a.m.ErrTrackingMetrics.RecordError(web3_client.V3SwapExactIn, pd.V3Pair.PoolAddress)
 				log.Err(perr).Msg("V3SwapExactIn: error getting pricing data")
@@ -47,7 +47,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 		case web3_client.V3SwapExactOut:
 			fmt.Println("V3SwapExactOut: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(web3_client.V3SwapExactOutParams)
-			pd, perr := a.u.GetV3PricingData(ctx, inputs.Path)
+			pd, perr := a.a.U.GetV3PricingData(ctx, inputs.Path)
 			if perr != nil {
 				a.m.ErrTrackingMetrics.RecordError(web3_client.V3SwapExactOut, pd.V3Pair.PoolAddress)
 				log.Err(perr).Msg("V3SwapExactIn: error getting pricing data")
@@ -72,7 +72,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 		case web3_client.V2SwapExactIn:
 			fmt.Println("V2SwapExactIn: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(web3_client.V2SwapExactInParams)
-			pd, perr := a.u.GetV2PricingData(ctx, inputs.Path)
+			pd, perr := a.a.U.GetV2PricingData(ctx, inputs.Path)
 			if perr != nil {
 				a.m.ErrTrackingMetrics.RecordError(web3_client.V2SwapExactIn, pd.V2Pair.PairContractAddr)
 				log.Err(perr).Msg("V2SwapExactIn: error getting pricing data")
@@ -98,7 +98,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 		case web3_client.V2SwapExactOut:
 			fmt.Println("V2SwapExactOut: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(web3_client.V2SwapExactOutParams)
-			pd, perr := a.u.GetV2PricingData(ctx, inputs.Path)
+			pd, perr := a.a.U.GetV2PricingData(ctx, inputs.Path)
 			if perr != nil {
 				a.m.ErrTrackingMetrics.RecordError(web3_client.V2SwapExactOut, pd.V2Pair.PairContractAddr)
 				log.Err(perr).Msg("V2SwapExactOut: error getting pricing data")

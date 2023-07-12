@@ -41,9 +41,9 @@ func (a *ArtemisApiRequestsWorkflow) ProxyRequest(ctx workflow.Context, pr *ApiP
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: pr.Timeout,
 		RetryPolicy: &temporal.RetryPolicy{
-			InitialInterval:    50 * time.Millisecond,
-			BackoffCoefficient: 1.2,
-			MaximumAttempts:    100,
+			InitialInterval:    100 * time.Millisecond,
+			BackoffCoefficient: 2,
+			MaximumAttempts:    20,
 		},
 	}
 	sendCtx := workflow.WithActivityOptions(ctx, ao)
@@ -60,9 +60,9 @@ func (a *ArtemisApiRequestsWorkflow) ProxyInternalRequest(ctx workflow.Context, 
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: pr.Timeout,
 		RetryPolicy: &temporal.RetryPolicy{
-			InitialInterval:    50 * time.Millisecond,
-			BackoffCoefficient: 1.2,
-			MaximumAttempts:    100,
+			InitialInterval:    100 * time.Millisecond,
+			BackoffCoefficient: 2,
+			MaximumAttempts:    20,
 		},
 	}
 	sendCtx := workflow.WithActivityOptions(ctx, ao)

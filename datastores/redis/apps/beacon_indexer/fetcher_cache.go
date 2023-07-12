@@ -9,7 +9,7 @@ import (
 	"github.com/go-redis/redis/v9"
 	"github.com/rs/zerolog/log"
 	apollo_buckets "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/buckets"
-	"github.com/zeus-fyi/olympus/pkg/apollo/ethereum/consensus_client_apis/beacon_api"
+	"github.com/zeus-fyi/olympus/pkg/apollo/ethereum/client_apis/beacon_api"
 )
 
 type FetcherCache struct {

@@ -6,6 +6,10 @@ import (
 	core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_core/entities"
 )
 
+const (
+	GweiPerEth = 1000000000
+)
+
 var (
 	Gwei             = big.NewInt(1e9)
 	Finney           = big.NewInt(1e15)
@@ -17,6 +21,10 @@ var (
 	MaxUINT, _ = new(big.Int).SetString(maxUINT, 10)
 )
 
+func NewBigIntFromUint(amount uint64) *big.Int {
+	return new(big.Int).SetUint64(amount)
+
+}
 func NewBigInt(amount int) *big.Int {
 	return new(big.Int).SetInt64(int64(amount))
 }
@@ -36,6 +44,10 @@ func GweiMultiple(multiple int) *big.Int {
 	return new(big.Int).Mul(big.NewInt(int64(multiple)), Gwei)
 }
 
+func GweiFraction(multiple int, divisor int) *big.Int {
+	return DivBigInt(new(big.Int).Mul(big.NewInt(int64(multiple)), Gwei), big.NewInt(int64(divisor)))
+}
+
 func AddBigInt(val, plus *big.Int) *big.Int {
 	return new(big.Int).Add(val, plus)
 }
@@ -48,8 +60,18 @@ func MulBigInt(x, y *big.Int) *big.Int {
 	return new(big.Int).Mul(x, y)
 }
 
+func MulBigIntFromInt(x *big.Int, y int) *big.Int {
+	return new(big.Int).Mul(x, new(big.Int).SetInt64(int64(y)))
+}
+
 func DivBigInt(x, y *big.Int) *big.Int {
 	return new(big.Int).Div(x, y)
+}
+
+func DivBigIntToFloat(x, y *big.Int) *big.Float {
+	xf := new(big.Float).SetInt(x)
+	xy := new(big.Float).SetInt(y)
+	return new(big.Float).Quo(xf, xy)
 }
 
 func NewPercentFromInts(num, den int) *core_entities.Percent {

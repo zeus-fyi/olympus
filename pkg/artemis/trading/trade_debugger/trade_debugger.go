@@ -17,10 +17,10 @@ type TradeDebugger struct {
 	LiveNetworkClient web3_client.Web3Client
 }
 
-func NewTradeDebugger(a artemis_realtime_trading.ActiveTrading, u *web3_client.UniswapClient, lnc web3_client.Web3Client) TradeDebugger {
+func NewTradeDebugger(a artemis_realtime_trading.ActiveTrading, lnc web3_client.Web3Client) TradeDebugger {
 	return TradeDebugger{
 		ActiveTrading:     a,
-		UniswapClient:     u,
+		UniswapClient:     a.GetUniswapClient(),
 		LiveNetworkClient: lnc,
 	}
 }

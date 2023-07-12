@@ -78,7 +78,7 @@ func (u *UniswapClient) ExecTradeV2SwapPayable(ctx context.Context, to *artemis_
 
 // TODO needs to add v3 support
 
-func (u *UniswapClient) ExecTradeV2SwapFromTokenToToken(ctx context.Context, to *artemis_trading_types.TradeOutcome) error {
+func (u *UniswapClient) execTradeV2SwapFromTokenToToken(ctx context.Context, to *artemis_trading_types.TradeOutcome) (*UniversalRouterExecCmd, error) {
 	// todo max this window more appropriate vs near infinite
 
 	sigDeadline, _ := new(big.Int).SetString("3000000000000", 10)
@@ -111,11 +111,11 @@ func (u *UniswapClient) ExecTradeV2SwapFromTokenToToken(ctx context.Context, to 
 	err := psp.SignPermit2Mainnet(u.Web3Client.Account)
 	if err != nil {
 		log.Warn().Err(err).Msg("error signing permit")
-		return err
+		return nil, err
 	}
 	if psp.Signature == nil {
 		log.Warn().Msg("signature is nil")
-		return errors.New("signature is nil")
+		return nil, errors.New("signature is nil")
 	}
 	sc1.DecodedInputs = psp
 	ur.Commands = append(ur.Commands, sc1)
@@ -132,7 +132,24 @@ func (u *UniswapClient) ExecTradeV2SwapFromTokenToToken(ctx context.Context, to 
 		},
 	}
 	ur.Commands = append(ur.Commands, sc2)
-	tx, err := u.ExecUniswapUniversalRouterCmd(ur)
+	return &ur, err
+}
+
+func (u *UniswapClient) ExecTradeV2SwapFromTokenToToken(ctx context.Context, to *artemis_trading_types.TradeOutcome) error {
+	ur, err := u.execTradeV2SwapFromTokenToToken(ctx, to)
+	if err != nil {
+		return err
+	}
+	tx, err := u.ExecUniswapUniversalRouterCmd(*ur)
+	if err != nil {
+		return err
+	}
+	to.AddTxHash(accounts.Hash(tx.Hash()))
+	return err
+}
+
+func (u *UniswapClient) InjectExecTradeV2SwapFromTokenToToken(ctx context.Context, ur *UniversalRouterExecCmd, to *artemis_trading_types.TradeOutcome) error {
+	tx, err := u.ExecUniswapUniversalRouterCmd(*ur)
 	if err != nil {
 		return err
 	}

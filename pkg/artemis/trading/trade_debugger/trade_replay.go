@@ -33,7 +33,15 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string) error {
 		err = t.analyzeDrift(ctx, tf.FrontRunTrade)
 		return err
 	}
-	err = t.UniswapClient.ExecTradeV2SwapFromTokenToToken(ctx, &tf.FrontRunTrade)
+	ac := t.ActiveTrading.GetAuxClient()
+	ur, err := ac.GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.FrontRunTrade)
+	if err != nil {
+		return err
+	}
+	if ur == nil {
+		return fmt.Errorf("ur is nil")
+	}
+	err = t.UniswapClient.InjectExecTradeV2SwapFromTokenToToken(ctx, ur, &tf.FrontRunTrade)
 	if err != nil {
 		return err
 	}
@@ -45,7 +53,14 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string) error {
 	if err != nil {
 		return err
 	}
-	err = t.UniswapClient.ExecTradeV2SwapFromTokenToToken(ctx, &tf.SandwichTrade)
+	ur, err = ac.GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.SandwichTrade)
+	if err != nil {
+		return err
+	}
+	if ur == nil {
+		return fmt.Errorf("ur is nil")
+	}
+	err = t.UniswapClient.InjectExecTradeV2SwapFromTokenToToken(ctx, ur, &tf.SandwichTrade)
 	if err != nil {
 		return err
 	}

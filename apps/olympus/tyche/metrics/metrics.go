@@ -20,7 +20,8 @@ func MetricsRequestHandler(c echo.Context) error {
 	return echo.WrapHandler(promHandler)(c)
 }
 
-func InitTycheMetrics(ctx context.Context) {
+func InitTycheMetrics(ctx context.Context) metrics_trading.TradingMetrics {
 	TycheMetrics = apollo_metrics.InitMetrics()
 	TradeMetrics = metrics_trading.NewTradingMetrics(TycheMetrics)
+	return TradeMetrics
 }

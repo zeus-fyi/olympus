@@ -3,13 +3,14 @@ package metrics_trading
 import "github.com/prometheus/client_golang/prometheus"
 
 type StageProgressionMetrics struct {
-	PreEntryFilterTxCount             prometheus.Counter
-	PostEntryFilterTxCount            prometheus.Counter
-	PostDecodeTxCount                 prometheus.Counter
-	PostProcessFilterTxCount          prometheus.Counter
-	PostSimFilterTxCount              prometheus.Counter
-	PostActiveTradingSimFilterTxCount prometheus.Counter
-	SavedMempoolTxCount               prometheus.Counter
+	PreEntryFilterTxCount              prometheus.Counter
+	PostEntryFilterTxCount             prometheus.Counter
+	PostDecodeTxCount                  prometheus.Counter
+	PostProcessFilterTxCount           prometheus.Counter
+	PostSimFilterTxCount               prometheus.Counter
+	PostActiveTradingSimFilterTxCount  prometheus.Counter
+	SentFlashbotsBundleSubmissionCount prometheus.Counter
+	SavedMempoolTxCount                prometheus.Counter
 }
 
 func NewStageProgressionMetrics(reg prometheus.Registerer) StageProgressionMetrics {
@@ -56,8 +57,14 @@ func NewStageProgressionMetrics(reg prometheus.Registerer) StageProgressionMetri
 			Help: "Tx count before active simulation stage",
 		},
 	)
+	tx.SentFlashbotsBundleSubmissionCount = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "eth_mev_sent_flashbots_bundle_submission_count",
+			Help: "Tx count of flashbots bundle submissions",
+		},
+	)
 	reg.MustRegister(tx.PostSimFilterTxCount, tx.PostProcessFilterTxCount, tx.PostDecodeTxCount, tx.PostEntryFilterTxCount, tx.PreEntryFilterTxCount, tx.SavedMempoolTxCount,
-		tx.PostActiveTradingSimFilterTxCount)
+		tx.PostActiveTradingSimFilterTxCount, tx.SentFlashbotsBundleSubmissionCount)
 	return tx
 }
 
@@ -71,6 +78,14 @@ func (t *StageProgressionMetrics) CountPreEntryFilterTx() {
 
 func (t *StageProgressionMetrics) CountPostEntryFilterTx() {
 	t.PostEntryFilterTxCount.Add(1)
+}
+
+func (t *StageProgressionMetrics) CountPostActiveTradingFilter(count float64) {
+	t.PostActiveTradingSimFilterTxCount.Add(count)
+}
+
+func (t *StageProgressionMetrics) CountSentFlashbotsBundleSubmission(count float64) {
+	t.SentFlashbotsBundleSubmissionCount.Add(count)
 }
 
 func (t *StageProgressionMetrics) CountPostProcessTx(count float64) {

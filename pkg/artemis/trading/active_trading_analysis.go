@@ -13,49 +13,48 @@ import (
 
 func (a *ActiveTrading) ProcessTxs(ctx context.Context) ([]web3_client.TradeExecutionFlowJSON, error) {
 	var tfSlice []web3_client.TradeExecutionFlowJSON
-	for _, mevTx := range a.u.MevSmartContractTxMapUniversalRouterOld.Txs {
+	for _, mevTx := range a.a.U.MevSmartContractTxMapUniversalRouterOld.Txs {
 		tf, err := a.RealTimeProcessUniversalRouterTx(ctx, mevTx)
 		if err != nil {
 			return nil, err
 		}
 		tfSlice = append(tfSlice, tf...)
 	}
-	for _, mevTx := range a.u.MevSmartContractTxMapUniversalRouterNew.Txs {
+	for _, mevTx := range a.a.U.MevSmartContractTxMapUniversalRouterNew.Txs {
 		tf, err := a.RealTimeProcessUniversalRouterTx(ctx, mevTx)
 		if err != nil {
 			return nil, err
 		}
 		tfSlice = append(tfSlice, tf...)
 	}
-	for _, mevTx := range a.u.MevSmartContractTxMapV2Router01.Txs {
+	for _, mevTx := range a.a.U.MevSmartContractTxMapV2Router01.Txs {
 		tf, err := a.RealTimeProcessUniswapV2RouterTx(ctx, mevTx)
 		if err != nil {
 			return nil, err
 		}
 		tfSlice = append(tfSlice, tf...)
 	}
-	for _, mevTx := range a.u.MevSmartContractTxMapV2Router02.Txs {
+	for _, mevTx := range a.a.U.MevSmartContractTxMapV2Router02.Txs {
 		tf, err := a.RealTimeProcessUniswapV2RouterTx(ctx, mevTx)
 		if err != nil {
 			return nil, err
 		}
 		tfSlice = append(tfSlice, tf...)
 	}
-	for _, mevTx := range a.u.MevSmartContractTxMapV3SwapRouterV2.Txs {
-		tf, err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, a.u.MevSmartContractTxMapV3SwapRouterV2.Abi, a.u.MevSmartContractTxMapV3SwapRouterV2.Filter)
+	for _, mevTx := range a.a.U.MevSmartContractTxMapV3SwapRouterV2.Txs {
+		tf, err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, a.a.U.MevSmartContractTxMapV3SwapRouterV2.Abi, a.a.U.MevSmartContractTxMapV3SwapRouterV2.Filter)
 		if err != nil {
 			return nil, err
 		}
 		tfSlice = append(tfSlice, tf...)
 	}
-	for _, mevTx := range a.u.MevSmartContractTxMapV3SwapRouterV1.Txs {
-		tf, err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, a.u.MevSmartContractTxMapV3SwapRouterV1.Abi, a.u.MevSmartContractTxMapV3SwapRouterV1.Filter)
+	for _, mevTx := range a.a.U.MevSmartContractTxMapV3SwapRouterV1.Txs {
+		tf, err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, a.a.U.MevSmartContractTxMapV3SwapRouterV1.Abi, a.a.U.MevSmartContractTxMapV3SwapRouterV1.Filter)
 		if err != nil {
 			return nil, err
 		}
 		tfSlice = append(tfSlice, tf...)
 	}
-
 	for _, tf := range tfSlice {
 		baseTx, err := tf.Tx.ConvertToTx()
 		if err != nil {

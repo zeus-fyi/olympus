@@ -42,6 +42,6 @@ func (u *UniswapClient) SingleReadMethodAddr(ctx context.Context, methodName str
 	return addr, nil
 }
 
-func (u *UniswapClient) V2PairToPrices(ctx context.Context, pairAddr []accounts.Address) (uniswap_pricing.UniswapV2Pair, error) {
+func (u *UniswapClient) V2PairToPrices(ctx context.Context, pairAddr []accounts.Address) (*uniswap_pricing.UniswapV2Pair, error) {
 	return uniswap_pricing.V2PairToPrices(ctx, u.Web3Client.Web3Actions, pairAddr)
 }

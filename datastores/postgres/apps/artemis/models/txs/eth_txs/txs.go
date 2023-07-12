@@ -147,6 +147,10 @@ func (e *EthTx) SelectNextUserTxNonce(ctx context.Context) (err error) {
 	}
 	tmp := 0
 	err = apps.Pg.QueryRow2(ctx, q.RawQuery, e.From, e.ProtocolNetworkID).Scan(&tmp, &e.EthTx.Nonce)
+	if err == pgx.ErrNoRows {
+		e.Nonce = 0
+		err = nil
+	}
 	if err != nil {
 		return err
 	}
@@ -163,6 +167,10 @@ func (pt *Permit2Tx) SelectNextPermit2Nonce(ctx context.Context) (err error) {
 	}
 	tmp := 0
 	err = apps.Pg.QueryRow2(ctx, q.RawQuery, pt.Owner, pt.Token, pt.ProtocolNetworkID).Scan(&tmp, &pt.Nonce)
+	if err == pgx.ErrNoRows {
+		pt.Nonce = 0
+		err = nil
+	}
 	if err != nil {
 		return err
 	}

@@ -18,9 +18,10 @@ func (t *ArtemisAuxillaryTestSuite) testEthToWETH(ta *AuxiliaryTradingUtils, toE
 }
 
 func (t *ArtemisAuxillaryTestSuite) TestWETH() {
-	ta := t.at1
-	t.Require().Equal(t.goerliNode, t.at1.nodeURL())
-	toExchAmount := artemis_eth_units.GweiMultiple(1000)
+	toExchAmount := artemis_eth_units.GweiMultiple(10000)
+
+	ta := t.at2
+	t.Require().Equal(t.goerliNode, ta.nodeURL())
 	cmd := t.testEthToWETH(&ta, toExchAmount)
 	found := false
 	for i, sc := range cmd.Commands {

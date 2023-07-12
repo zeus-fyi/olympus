@@ -64,19 +64,35 @@ func InsertTxsWithBundle(ctx context.Context, dbTx pgx.Tx, txs []EthTx, bundleHa
 	q0.RawQuery = `INSERT INTO events(event_id) VALUES ($1)`
 	q1 := sql_query_templates.QueryParams{}
 	q1.RawQuery = `WITH cte_tx_1 AS (
-                        INSERT INTO eth_tx(event_id, tx_hash, protocol_network_id, nonce, "from", type) 
-                        VALUES ($1, $2, $3, $4, $5, $6)
+						INSERT INTO eth_tx(event_id, tx_hash, protocol_network_id, nonce, "from", type, nonce_id) 
+                        SELECT $1, $2, $3, $4, $5, $6, $15
+                        RETURNING *
                     ), cte_gas AS (
                         INSERT INTO eth_tx_gas(tx_hash, gas_price, gas_limit, gas_tip_cap, gas_fee_cap)
                         VALUES ($2, $7, $8, $9, $10)
+						ON CONFLICT (tx_hash) 
+						DO UPDATE SET 
+							gas_price = EXCLUDED.gas_price,
+							gas_limit = EXCLUDED.gas_limit,
+							gas_tip_cap = EXCLUDED.gas_tip_cap,
+							gas_fee_cap = EXCLUDED.gas_fee_cap
                     ) INSERT INTO permit2_tx(event_id, nonce, owner, deadline, "token", protocol_network_id) 
  					  VALUES ($1, $11, $12, $13, $14, $3)`
 	q2 := sql_query_templates.QueryParams{}
 	q2.RawQuery = `WITH cte_tx_2 AS (
-                        INSERT INTO eth_tx(event_id, tx_hash, protocol_network_id, nonce, "from", type) 
-                        VALUES ($1, $2, $3, $4, $5, $6)
-                    ) INSERT INTO eth_tx_gas(tx_hash, gas_price, gas_limit, gas_tip_cap, gas_fee_cap)
-                      VALUES ($2, $7, $8, $9, $10)`
+						INSERT INTO eth_tx(event_id, tx_hash, protocol_network_id, nonce, "from", type, nonce_id) 
+                        SELECT $1, $2, $3, $4, $5, $6, $11
+                        RETURNING *
+                    ) 	
+						INSERT INTO eth_tx_gas(tx_hash, gas_price, gas_limit, gas_tip_cap, gas_fee_cap)
+						VALUES ($2, $7, $8, $9, $10)
+						ON CONFLICT (tx_hash) 
+						DO UPDATE SET 
+							gas_price = EXCLUDED.gas_price,
+							gas_limit = EXCLUDED.gas_limit,
+							gas_tip_cap = EXCLUDED.gas_tip_cap,
+							gas_fee_cap = EXCLUDED.gas_fee_cap;
+`
 	q3 := sql_query_templates.QueryParams{}
 	q3.RawQuery = `INSERT INTO eth_mev_bundle(event_id, bundle_hash, protocol_network_id)
  			       VALUES ($1, $2, $3)`
@@ -97,14 +113,14 @@ func InsertTxsWithBundle(ctx context.Context, dbTx pgx.Tx, txs []EthTx, bundleHa
 		}
 		if e.Permit2Tx.Owner == "" || e.Permit2Tx.Token == "" {
 			_, err := dbTx.Exec(ctx, q2.RawQuery, e.EventID, e.EthTx.TxHash, e.EthTx.ProtocolNetworkID, e.EthTx.Nonce, e.EthTx.From, e.EthTx.Type,
-				e.EthTxGas.GasPrice.Int64, e.EthTxGas.GasLimit.Int64, e.EthTxGas.GasTipCap.Int64, e.EthTxGas.GasFeeCap.Int64)
+				e.EthTxGas.GasPrice.Int64, e.EthTxGas.GasLimit.Int64, e.EthTxGas.GasTipCap.Int64, e.EthTxGas.GasFeeCap.Int64, ts.UnixTimeStampNow())
 			if err != nil {
 				return err
 			}
 		} else {
 			_, err := dbTx.Exec(ctx, q1.RawQuery, e.EventID, e.EthTx.TxHash, e.EthTx.ProtocolNetworkID, e.EthTx.Nonce, e.EthTx.From, e.EthTx.Type,
 				e.EthTxGas.GasPrice.Int64, e.EthTxGas.GasLimit.Int64, e.EthTxGas.GasTipCap.Int64, e.EthTxGas.GasFeeCap.Int64,
-				e.Permit2Tx.Nonce, e.Permit2Tx.Owner, e.Permit2Tx.Deadline, e.Permit2Tx.Token)
+				e.Permit2Tx.Nonce, e.Permit2Tx.Owner, e.Permit2Tx.Deadline, e.Permit2Tx.Token, ts.UnixTimeStampNow())
 			if err != nil {
 				return err
 			}
@@ -121,7 +137,7 @@ func InsertTxsWithBundle(ctx context.Context, dbTx pgx.Tx, txs []EthTx, bundleHa
 
 func (e *EthTx) SelectNextUserTxNonce(ctx context.Context) (err error) {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `SELECT COALESCE (MAX(nonce), 0) FROM eth_tx WHERE "from" = $1 AND protocol_network_id = $2;`
+	q.RawQuery = `SELECT COALESCE (MAX(nonce_id), 0), nonce FROM eth_tx WHERE "from" = $1 AND protocol_network_id = $2 GROUP BY nonce;`
 	log.Debug().Interface("SelectNextUserTxNonce", q.LogHeader("SelectNextUserTxNonce"))
 	if e.ProtocolNetworkID == 0 {
 		e.ProtocolNetworkID = hestia_req_types.EthereumMainnetProtocolNetworkID
@@ -129,7 +145,8 @@ func (e *EthTx) SelectNextUserTxNonce(ctx context.Context) (err error) {
 	if e.Type == "" {
 		e.Type = "0x02"
 	}
-	err = apps.Pg.QueryRow2(ctx, q.RawQuery, e.From, e.ProtocolNetworkID).Scan(&e.EthTx.Nonce)
+	tmp := 0
+	err = apps.Pg.QueryRow2(ctx, q.RawQuery, e.From, e.ProtocolNetworkID).Scan(&tmp, &e.EthTx.Nonce)
 	if err != nil {
 		return err
 	}
@@ -139,12 +156,13 @@ func (e *EthTx) SelectNextUserTxNonce(ctx context.Context) (err error) {
 
 func (pt *Permit2Tx) SelectNextPermit2Nonce(ctx context.Context) (err error) {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `SELECT COALESCE (MAX(nonce), 0) FROM permit2_tx WHERE owner = $1 AND token = $2 AND protocol_network_id = $3;`
+	q.RawQuery = `SELECT COALESCE (MAX(nonce_id), 0), nonce FROM permit2_tx WHERE owner = $1 AND token = $2 AND protocol_network_id = $3 GROUP BY nonce;`
 	log.Debug().Interface("SelectNextPermit2Nonce", q.LogHeader("SelectNextPermit2Nonce"))
 	if pt.ProtocolNetworkID == 0 {
 		pt.ProtocolNetworkID = hestia_req_types.EthereumMainnetProtocolNetworkID
 	}
-	err = apps.Pg.QueryRow2(ctx, q.RawQuery, pt.Owner, pt.Token, pt.ProtocolNetworkID).Scan(&pt.Nonce)
+	tmp := 0
+	err = apps.Pg.QueryRow2(ctx, q.RawQuery, pt.Owner, pt.Token, pt.ProtocolNetworkID).Scan(&tmp, &pt.Nonce)
 	if err != nil {
 		return err
 	}

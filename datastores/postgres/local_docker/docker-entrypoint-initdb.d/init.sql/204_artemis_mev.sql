@@ -55,14 +55,17 @@ CREATE TABLE "public"."eth_tx"
     "event_id"            int8 NOT NULL REFERENCES events (event_id),
     "protocol_network_id" int8 NOT NULL REFERENCES protocol_networks (protocol_network_id) DEFAULT 1,
     "tx_hash"             text NOT NULL,
-    "nonce"              int8 NOT NULL,
+    "nonce_id"           int8 NOT NULL,
+    "nonce"               int8 NOT NULL,
     "from"               text NOT NULL,
     "type"              text NOT NULL DEFAULT '0x02'
 );
 ALTER TABLE "public"."eth_tx" ADD CONSTRAINT "eth_tx_pk" PRIMARY KEY ("tx_hash");
-ALTER TABLE "public"."eth_tx" ADD CONSTRAINT "eth_user_tx_nonce_uniq" UNIQUE ("from", "nonce");
+ALTER TABLE "public"."eth_tx" ADD CONSTRAINT "eth_user_tx_nonce_uniq" UNIQUE ("from", "nonce_id");
 ALTER TABLE "public"."eth_tx" ADD CONSTRAINT "eth_tx_type_uniq" UNIQUE ("tx_hash","type");
-CREATE INDEX eth_tx_ordering ON "public"."eth_tx" ("event_id", "nonce", "from" DESC);
+CREATE INDEX eth_tx_ordering ON "public"."eth_tx" ("event_id", "nonce_id", "from" DESC);
+ALTER TABLE "public"."eth_tx" ADD CONSTRAINT "eth_tx_ind" UNIQUE ("from", "nonce_id");
+CREATE INDEX ON eth_tx ("from", nonce DESC);
 
 CREATE TABLE "public"."eth_tx_gas"
 (
@@ -88,6 +91,7 @@ CREATE TABLE "public"."event_status"
 );
 ALTER TABLE "public"."event_status" ADD CONSTRAINT "event_status_pk" PRIMARY KEY ("event_id");
 
+-- permit2_tx
 CREATE TABLE "public"."permit2_tx"
 (
     "event_id"            int8 NOT NULL REFERENCES events (event_id),

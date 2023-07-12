@@ -3,7 +3,6 @@ package artemis_realtime_trading
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/rs/zerolog/log"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
@@ -23,12 +22,12 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 	for _, subtx := range subcmd.Commands {
 		switch subtx.Command {
 		case web3_client.V3SwapExactIn:
-			fmt.Println("V3SwapExactIn: ProcessUniversalRouterTxs")
+			//fmt.Println("V3SwapExactIn: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(web3_client.V3SwapExactInParams)
 			pd, perr := a.GetUniswapClient().GetV3PricingData(ctx, inputs.Path)
 			if perr != nil {
 				a.m.ErrTrackingMetrics.RecordError(web3_client.V3SwapExactIn, pd.V3Pair.PoolAddress)
-				log.Err(perr).Msg("V3SwapExactIn: error getting pricing data")
+				//log.Err(perr).Msg("V3SwapExactIn: error getting pricing data")
 				return nil, perr
 			}
 			tf := inputs.BinarySearch(pd)
@@ -48,12 +47,12 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V3SwapExactIn, pd.V3Pair.PoolAddress, inputs.Path.TokenIn.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 			tfSlice = append(tfSlice, tf)
 		case web3_client.V3SwapExactOut:
-			fmt.Println("V3SwapExactOut: ProcessUniversalRouterTxs")
+			//fmt.Println("V3SwapExactOut: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(web3_client.V3SwapExactOutParams)
 			pd, perr := a.GetUniswapClient().GetV3PricingData(ctx, inputs.Path)
 			if perr != nil {
 				a.m.ErrTrackingMetrics.RecordError(web3_client.V3SwapExactOut, pd.V3Pair.PoolAddress)
-				log.Err(perr).Msg("V3SwapExactIn: error getting pricing data")
+				//log.Err(perr).Msg("V3SwapExactIn: error getting pricing data")
 				return nil, perr
 			}
 			tf := inputs.BinarySearch(pd)
@@ -73,7 +72,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V3SwapExactOut, pd.V3Pair.PoolAddress, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 			tfSlice = append(tfSlice, tf)
 		case web3_client.V2SwapExactIn:
-			fmt.Println("V2SwapExactIn: ProcessUniversalRouterTxs")
+			//fmt.Println("V2SwapExactIn: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(web3_client.V2SwapExactInParams)
 			pd, perr := a.GetUniswapClient().GetV2PricingData(ctx, inputs.Path)
 			if perr != nil {
@@ -99,7 +98,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V2SwapExactIn, pd.V2Pair.PairContractAddr, inputs.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 			tfSlice = append(tfSlice, tf)
 		case web3_client.V2SwapExactOut:
-			fmt.Println("V2SwapExactOut: ProcessUniversalRouterTxs")
+			//fmt.Println("V2SwapExactOut: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(web3_client.V2SwapExactOutParams)
 			pd, perr := a.GetUniswapClient().GetV2PricingData(ctx, inputs.Path)
 			if perr != nil {

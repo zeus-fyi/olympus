@@ -13,10 +13,13 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/athena"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
 type ArtemisAuxillaryTestSuite struct {
 	s3secrets.S3SecretsManagerTestSuite
+	at1             AuxiliaryTradingUtils
+	at2             AuxiliaryTradingUtils
 	acc             accounts.Account
 	acc2            accounts.Account
 	acc3            accounts.Account
@@ -47,6 +50,13 @@ func (t *ArtemisAuxillaryTestSuite) SetupTest() {
 		"Authorization": "Bearer " + t.Tc.ProductionLocalTemporalBearerToken,
 	}
 	t.mainnetWeb3User.Headers = m
+	network := hestia_req_types.Goerli
+	w3a := web3_client.NewWeb3Client(t.goerliNode, &t.acc)
+	w3a.Network = network
+	w3a2 := web3_client.NewWeb3Client(t.goerliNode, &t.acc2)
+	w3a2.Network = network
+	t.at1 = InitAuxiliaryTradingUtils(ctx, w3a)
+	t.at2 = InitAuxiliaryTradingUtils(ctx, w3a2)
 }
 
 // InitTradingAccount pubkey 0x000025e60C7ff32a3470be7FE3ed1666b0E326e2

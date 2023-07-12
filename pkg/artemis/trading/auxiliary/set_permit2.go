@@ -37,7 +37,7 @@ func (a *AuxiliaryTradingUtils) generatePermit2Approval(ctx context.Context, to 
 	}
 	pt := &artemis_eth_txs.Permit2Tx{
 		Permit2Tx: artemis_autogen_bases.Permit2Tx{
-			Owner:             a.U.Web3Client.Address().String(),
+			Owner:             a.tradersAccount().Address().String(),
 			Deadline:          int(deadline.Int64()),
 			Token:             to.AmountInAddr.String(),
 			ProtocolNetworkID: chainID,
@@ -61,7 +61,7 @@ func (a *AuxiliaryTradingUtils) generatePermit2Approval(ctx context.Context, to 
 			SigDeadline: deadline,
 		},
 	}
-	err = psp.SignPermit2(a.Account, chainID)
+	err = psp.SignPermit2(a.tradersAccount(), chainID)
 	if err != nil {
 		log.Warn().Err(err).Msg("error signing permit")
 		return psp, err

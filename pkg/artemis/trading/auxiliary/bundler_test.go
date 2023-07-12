@@ -1,17 +1,19 @@
 package artemis_trading_auxiliary
 
 import (
+	"context"
 	"fmt"
 
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
-	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
 func (t *ArtemisAuxillaryTestSuite) TestCreateFbBundle() *AuxiliaryTradingUtils {
-	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
+	ta := t.at2
+	t.Require().Equal(t.goerliNode, ta.nodeURL())
 	t.Require().NotEmpty(ta)
-	toExchAmount := artemis_eth_units.GweiMultiple(100000)
+	toExchAmount := artemis_eth_units.GweiMultiple(1000)
 	cmd := t.testEthToWETH(&ta, toExchAmount)
 	// part 1 of bundle
 
@@ -27,6 +29,7 @@ func (t *ArtemisAuxillaryTestSuite) TestCreateFbBundle() *AuxiliaryTradingUtils 
 	t.Require().Equal(0, len(ta.MevTxGroup.OrderedTxs))
 
 	// part 2 of bundle
+	ctx = context.WithValue(ctx, web3_actions.NonceOffset, 1)
 	cmd = t.testExecV2Trade(&ta)
 	tx, err = ta.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().NotEmpty(tx)
@@ -36,32 +39,6 @@ func (t *ArtemisAuxillaryTestSuite) TestCreateFbBundle() *AuxiliaryTradingUtils 
 	t.Require().NotEmpty(ta.Bundle.Txs)
 	t.Require().Equal(2, len(ta.Bundle.Txs))
 	t.Require().Equal(0, len(ta.MevTxGroup.OrderedTxs))
-	return &ta
-}
-
-func (t *ArtemisAuxillaryTestSuite) TestCreateFbSandwichBundle() *AuxiliaryTradingUtils {
-	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
-	t.Require().NotEmpty(ta)
-	toExchAmount := artemis_eth_units.GweiMultiple(100000)
-	cmd := t.testEthToWETH(&ta, toExchAmount)
-	cmd = t.testExecV2Trade(&ta)
-
-	// part 1 of bundle
-	tx, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
-	t.Require().NotEmpty(tx)
-	t.Require().Equal(1, len(ta.MevTxGroup.OrderedTxs))
-	err = ta.CreateOrAddToFlashbotsBundle(cmd, "latest")
-	t.Require().Nil(err)
-	t.Require().NotEmpty(ta.Bundle.Txs)
-	t.Require().Equal(2, len(ta.Bundle.Txs))
-	t.Require().Equal(0, len(ta.MevTxGroup.OrderedTxs))
-
-	// sandwich amount
-
-	cmd = t.testExecV2Trade(&ta)
-	tx, err = ta.universalRouterCmdToTxBuilder(ctx, cmd)
-	t.Require().NotEmpty(tx)
-	t.Require().Equal(1, len(ta.MevTxGroup.OrderedTxs))
 	return &ta
 }
 

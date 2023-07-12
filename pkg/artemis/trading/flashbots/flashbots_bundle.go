@@ -22,7 +22,7 @@ TODO: implement setters for the following fields:
 // {"level":"error","error":"relay error response: unable to decode txs","time":1688709506,"message":"failed to send flashbots bundle"}
 
 func (f *FlashbotsClient) SendBundle(ctx context.Context, bundle flashbotsrpc.FlashbotsSendBundleRequest) (flashbotsrpc.FlashbotsSendBundleResponse, error) {
-	resp, err := f.FlashbotsRPC.FlashbotsSendBundle(f.EcdsaPrivateKey(), bundle)
+	resp, err := f.FlashbotsRPC.FlashbotsSendBundle(f.getPrivateKey(), bundle)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("FlashbotsClient: FlashbotsSendBundle")
 		return flashbotsrpc.FlashbotsSendBundleResponse{}, err
@@ -40,7 +40,7 @@ func (f *FlashbotsClient) CallBundle(ctx context.Context, bundle flashbotsrpc.Fl
 	if bundle.StateBlockNumber == "" {
 		bundle.StateBlockNumber = artemis_trading_constants.LatestBlockNumber
 	}
-	resp, err := f.FlashbotsRPC.FlashbotsCallBundle(f.EcdsaPrivateKey(), bundle)
+	resp, err := f.FlashbotsRPC.FlashbotsCallBundle(f.getPrivateKey(), bundle)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("FlashbotsClient: CallBundle")
 		return flashbotsrpc.FlashbotsCallBundleResponse{}, err

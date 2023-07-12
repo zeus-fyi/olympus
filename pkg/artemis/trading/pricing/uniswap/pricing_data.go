@@ -15,22 +15,22 @@ type UniswapPricingData struct {
 	V3Pair UniswapV3Pair
 }
 
-func V2PairToPrices(ctx context.Context, wc web3_actions.Web3Actions, pairAddr []accounts.Address) (UniswapV2Pair, error) {
-	p := UniswapV2Pair{}
+func V2PairToPrices(ctx context.Context, wc web3_actions.Web3Actions, pairAddr []accounts.Address) (*UniswapV2Pair, error) {
+	p := &UniswapV2Pair{}
 	if len(pairAddr) == 2 {
 		err := p.PairForV2(pairAddr[0].String(), pairAddr[1].String())
 		if err != nil {
 			log.Err(err).Msg("V2PairToPrices: PairForV2")
 			return p, err
 		}
-		err = GetPairContractPrices(ctx, wc, &p)
+		err = GetPairContractPrices(ctx, wc, p)
 		if err != nil {
 			log.Err(err).Msg("V2PairToPrices: GetPairContractPrices")
 			return p, err
 		}
 		return p, err
 	}
-	return UniswapV2Pair{}, errors.New("pair address length is not 2, multi-hops not implemented yet")
+	return &UniswapV2Pair{}, errors.New("pair address length is not 2, multi-hops not implemented yet")
 }
 
 func GetV3PricingData(ctx context.Context, wc web3_actions.Web3Actions, path artemis_trading_types.TokenFeePath) (*UniswapPricingData, error) {

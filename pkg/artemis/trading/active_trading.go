@@ -78,7 +78,7 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	if err != nil {
 		return err
 	}
-	err = a.ProcessBundleStage(ctx, bn, tfSlice)
+	err = a.ProcessBundleStage(ctx, tfSlice)
 	if err != nil {
 		return err
 	}

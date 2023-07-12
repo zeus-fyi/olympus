@@ -61,7 +61,8 @@ func (a *AuxiliaryTradingUtils) CreateFrontRunCtxWithPermit2(ctx context.Context
 }
 
 func (a *AuxiliaryTradingUtils) CreateBackRunCtx(ctx context.Context) context.Context {
-	ctx = context.WithValue(ctx, TradeType, BackRun)
+	//ctx = context.WithValue(ctx, TradeType, BackRun)
+	ctx = a.w3a().SetNonceOffset(ctx, 1)
 	return ctx
 }
 

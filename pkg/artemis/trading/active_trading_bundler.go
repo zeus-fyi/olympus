@@ -7,7 +7,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *ActiveTrading) ProcessBundleStage(ctx context.Context, bn uint64, tfSlice []web3_client.TradeExecutionFlowJSON) error {
+func (a *ActiveTrading) ProcessBundleStage(ctx context.Context, tfSlice []web3_client.TradeExecutionFlowJSON) error {
 	for _, tradeFlow := range tfSlice {
 		tf := tradeFlow.ConvertToBigIntType()
 		_, err := a.a.PackageSandwich(ctx, &tf)

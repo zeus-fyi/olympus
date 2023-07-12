@@ -9,9 +9,8 @@ import (
 )
 
 func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() *AuxiliaryTradingUtils {
-	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
-	t.Require().NotEmpty(ta)
-	toExchAmount := artemis_eth_units.GweiMultiple(100000)
+	toExchAmount := artemis_eth_units.GweiMultiple(1000)
+	ta := t.at2
 	cmd := t.testEthToWETH(&ta, toExchAmount)
 	// part 1 of bundle
 	//ctx = ta.CreateFrontRunCtx(ctx)
@@ -28,24 +27,23 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() *AuxiliaryTradingUt
 
 	fmt.Println("frontRun: txGasTipCap", tx.GasTipCap().String())
 	// middle of bundle
-	//ctx = ta.CreateUserTradeCtx(ctx)
-	userTrader := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc2)
-	//nonce, err := userTrader.getNonce(ctx)
-	//t.Require().Nil(err)
-	//fmt.Println("userTrader nonce", nonce)
-	cmd = t.testEthToWETH(&userTrader, toExchAmount)
-	tx, err = userTrader.universalRouterCmdToTxBuilder(ctx, cmd)
+	user := t.at1
+	cmd = t.testEthToWETH(&user, toExchAmount)
+	tx, err = user.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().NotEmpty(tx)
+
 	err = ta.AddTxToBundleGroup(ctx, tx)
 	t.Require().Nil(err)
 	signer := types.LatestSignerForChainID(artemis_eth_units.NewBigInt(hestia_req_types.EthereumGoerliProtocolNetworkID))
 	sender, err := signer.Sender(tx)
 	t.Require().Nil(err)
-	t.Require().Equal(t.acc2.Address().String(), sender.String())
+	t.Require().Equal(user.w3a().Address().String(), sender.String())
+	t.Require().Equal(user.w3c().Address().String(), sender.String())
 
 	// part 3 of bundle
-	//ctx = ta.CreateBackRunCtx(ctx)
 	cmd = t.testExecV2Trade(&ta)
+	ctx = ta.CreateBackRunCtx(ctx)
+	fmt.Println("mainTraderAddr", ta.w3a().Address().String())
 	tx, err = ta.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
@@ -74,3 +72,12 @@ func (t *ArtemisAuxillaryTestSuite) TestSandwichCallBundle() {
 		t.Require().Emptyf(sr.Error, "error in result: %s", sr.Error)
 	}
 }
+
+//
+//func (t *ArtemisAuxillaryTestSuite) TestSandwichCallAndSendBundle() {
+//	ta := t.testMockSandwichBundle()
+//	t.Require().NotEmpty(ta)
+//	resp, err := ta.CallAndSendFlashbotsBundle(ctx)
+//	t.Require().Nil(err)
+//	t.Require().NotNil(resp)
+//}

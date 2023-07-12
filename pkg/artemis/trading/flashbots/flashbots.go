@@ -2,10 +2,10 @@ package artemis_flashbots
 
 import (
 	"context"
+	"crypto/ecdsa"
 
 	"github.com/metachris/flashbotsrpc"
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	"github.com/zeus-fyi/olympus/pkg/iris/resty_base"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
@@ -24,16 +24,14 @@ const (
 
 type FlashbotsClient struct {
 	resty_base.Resty
-	web3_actions.Web3Actions
+	W *web3_actions.Web3Actions
 	flashbotsrpc.EthereumAPI
 	*flashbotsrpc.FlashbotsRPC
 }
 
-func InitFlashbotsClient(ctx context.Context, nodeUrl, network string, acc *accounts.Account) FlashbotsClient {
-	w := web3_actions.NewWeb3ActionsClientWithAccount(nodeUrl, acc)
-	rpc := flashbotsrpc.NewFlashbotsRPC(nodeUrl)
-	w.Network = network
-	switch network {
+func InitFlashbotsClient(ctx context.Context, w *web3_actions.Web3Actions) FlashbotsClient {
+	rpc := flashbotsrpc.NewFlashbotsRPC(w.NodeURL)
+	switch w.Network {
 	case hestia_req_types.Mainnet:
 		rpc = flashbotsrpc.New(MainnetRelay)
 	case hestia_req_types.Goerli:
@@ -42,13 +40,17 @@ func InitFlashbotsClient(ctx context.Context, nodeUrl, network string, acc *acco
 		rpc = flashbotsrpc.New(MainnetRelay)
 	}
 	return FlashbotsClient{
-		Web3Actions:  w,
+		W:            w,
 		FlashbotsRPC: rpc,
 	}
 }
 
+func (f *FlashbotsClient) getPrivateKey() *ecdsa.PrivateKey {
+	return f.W.Account.EcdsaPrivateKey()
+}
+
 func (f *FlashbotsClient) SendPrivateTx(ctx context.Context, privTx flashbotsrpc.FlashbotsSendPrivateTransactionRequest) (string, error) {
-	resp, err := f.FlashbotsRPC.FlashbotsSendPrivateTransaction(f.EcdsaPrivateKey(), privTx)
+	resp, err := f.FlashbotsRPC.FlashbotsSendPrivateTransaction(f.getPrivateKey(), privTx)
 	if err != nil {
 		log.Ctx(ctx).Error().Err(err).Msg("FlashbotsClient: SendPrivateTx")
 		return resp, err

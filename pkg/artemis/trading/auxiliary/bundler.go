@@ -82,7 +82,7 @@ func (a *AuxiliaryTradingUtils) callFlashbotsBundle(ctx context.Context) (flashb
 		BlockNumber: hexutil.EncodeUint64(uint64(eventID + 1)),
 		Timestamp:   a.GetDeadline().Int64(),
 	}
-	resp, err := a.CallBundle(ctx, callBundle)
+	resp, err := a.f.CallBundle(ctx, callBundle)
 	if err != nil {
 		log.Err(err).Msg("error calling flashbots bundle")
 		a.Bundle.Txs = txsCall
@@ -97,7 +97,7 @@ func (a *AuxiliaryTradingUtils) sendFlashbotsBundle(ctx context.Context) (flashb
 	}
 	var bundle *flashbotsrpc.FlashbotsSendBundleRequest
 	bundle, a.Bundle.FlashbotsSendBundleRequest = a.Bundle.FlashbotsSendBundleRequest, bundle
-	resp, err := a.SendBundle(ctx, *bundle)
+	resp, err := a.f.SendBundle(ctx, *bundle)
 	if err != nil {
 		a.Bundle.FlashbotsSendBundleRequest = bundle
 		log.Err(err).Msg("error calling flashbots bundle")

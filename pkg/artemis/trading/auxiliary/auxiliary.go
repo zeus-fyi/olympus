@@ -6,8 +6,10 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
 	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/trading/flashbots"
@@ -16,7 +18,7 @@ import (
 )
 
 type AuxiliaryTradingUtils struct {
-	artemis_flashbots.FlashbotsClient
+	f          artemis_flashbots.FlashbotsClient
 	U          *web3_client.UniswapClient
 	Bundle     artemis_flashbots.MevTxBundle
 	MevTxGroup MevTxGroup
@@ -43,26 +45,55 @@ func (m *MevTxGroup) GetRawOrderedTxs() []*types.Transaction {
 	return txSlice
 }
 
-func InitAuxiliaryTradingUtils(ctx context.Context, nodeURL, network string, acc accounts.Account) AuxiliaryTradingUtils {
-	fba := artemis_flashbots.InitFlashbotsClient(ctx, nodeURL, network, &acc)
-	wb3 := web3_client.Web3Client{
-		Web3Actions: fba.Web3Actions,
-	}
-	un := web3_client.InitUniswapClient(ctx, wb3)
+func InitAuxiliaryTradingUtils(ctx context.Context, wa web3_client.Web3Client) AuxiliaryTradingUtils {
+	uni := web3_client.InitUniswapClient(ctx, wa)
+	fba := artemis_flashbots.InitFlashbotsClient(ctx, &wa.Web3Actions)
 	return AuxiliaryTradingUtils{
-		U:               &un,
-		FlashbotsClient: fba,
+		U: &uni,
+		f: fba,
 	}
 }
 
+func (a *AuxiliaryTradingUtils) network() string {
+	return a.w3c().Network
+}
+
+func (a *AuxiliaryTradingUtils) nodeURL() string {
+	return a.w3c().NodeURL
+}
+
+func (a *AuxiliaryTradingUtils) tradersAccount() *accounts.Account {
+	return a.w3c().Account
+}
+
+func (a *AuxiliaryTradingUtils) dial() {
+	a.w3c().Dial()
+}
+
+func (a *AuxiliaryTradingUtils) close() {
+	a.w3c().Close()
+}
+
+func (a *AuxiliaryTradingUtils) w3c() *web3_client.Web3Client {
+	return &a.U.Web3Client
+}
+
+func (a *AuxiliaryTradingUtils) w3a() *web3_actions.Web3Actions {
+	return &a.w3c().Web3Actions
+}
+
+func (a *AuxiliaryTradingUtils) C() *ethclient.Client {
+	return a.w3a().C
+}
+
 func (a *AuxiliaryTradingUtils) getBlockNumber(ctx context.Context) (int, error) {
-	a.Dial()
-	bn, err := a.C.BlockNumber(ctx)
+	a.dial()
+	defer a.close()
+	bn, err := a.w3c().C.BlockNumber(ctx)
 	if err != nil {
 		log.Err(err).Msg("failed to get block number")
 		return -1, err
 	}
-	a.Close()
 	return int(bn), err
 }
 

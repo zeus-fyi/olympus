@@ -15,7 +15,7 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2TradeFrontRun(ta *AuxiliaryTrading
 	toExchAmount := artemis_eth_units.GweiMultiple(100)
 	wethAddr := ta.getChainSpecificWETH()
 	daiAddr := artemis_trading_constants.DaiContractAddressAccount
-	if ta.Network == hestia_req_types.Goerli {
+	if ta.network() == hestia_req_types.Goerli {
 		daiAddr = artemis_trading_constants.GoerliDaiContractAddressAccount
 	}
 	to := &artemis_trading_types.TradeOutcome{

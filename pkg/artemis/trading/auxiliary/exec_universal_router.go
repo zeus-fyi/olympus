@@ -28,7 +28,7 @@ func (a *AuxiliaryTradingUtils) UniversalRouterCmdExecutor(ctx context.Context, 
 }
 
 func (a *AuxiliaryTradingUtils) universalRouterExecuteTx(ctx context.Context, signedTx *types.Transaction) (*types.Transaction, error) {
-	err := a.SendSignedTransaction(ctx, signedTx)
+	err := a.f.W.SendSignedTransaction(ctx, signedTx)
 	if err != nil {
 		log.Err(err).Msg("error sending signed tx")
 		return nil, err
@@ -45,10 +45,12 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdToTxBuilder(ctx context.Contex
 	}
 	scInfo, err := a.GetUniswapUniversalRouterAbiPayload(ctx, data)
 	if err != nil {
+		log.Err(err).Msg("error getting uniswap universal router abi payload")
 		return nil, err
 	}
-	signedTx, err := a.GetSignedTxToCallFunctionWithData(ctx, &scInfo, scInfo.Data)
+	signedTx, err := a.w3a().GetSignedTxToCallFunctionWithData(ctx, &scInfo, scInfo.Data)
 	if err != nil {
+		log.Err(err).Msg("error getting signed tx to call function with data")
 		return nil, err
 	}
 	err = a.universalRouterCmdVerifier(ctx, ur, &scInfo)
@@ -92,7 +94,7 @@ func (a *AuxiliaryTradingUtils) GetUniswapUniversalRouterAbiPayload(ctx context.
 		log.Err(err).Msg("error generating bin data from params abi")
 		return web3_actions.SendContractTxPayload{}, err
 	}
-	err = a.SuggestAndSetGasPriceAndLimitForTx(ctx, &params, common.HexToAddress(params.SmartContractAddr))
+	err = a.w3a().SuggestAndSetGasPriceAndLimitForTx(ctx, &params, common.HexToAddress(params.SmartContractAddr))
 	if err != nil {
 		return web3_actions.SendContractTxPayload{}, err
 	}

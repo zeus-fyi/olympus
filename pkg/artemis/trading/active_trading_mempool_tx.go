@@ -14,6 +14,7 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
+// SaveMempoolTx Also filters WETH denominated txs for active trading consideration
 func (a *ActiveTrading) SaveMempoolTx(ctx context.Context, bn uint64, tfSlice []web3_client.TradeExecutionFlowJSON) error {
 	var liveTradingSlice []web3_client.TradeExecutionFlowJSON
 	for _, tradeFlow := range tfSlice {

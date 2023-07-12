@@ -19,7 +19,11 @@ type ActiveTrading struct {
 }
 
 func (a *ActiveTrading) GetUniswapClient() *web3_client.UniswapClient {
-	return a.a.U
+	return a.GetAuxClient().U
+}
+
+func (a *ActiveTrading) GetAuxClient() *artemis_trading_auxiliary.AuxiliaryTradingUtils {
+	return a.a
 }
 
 func NewActiveTradingModuleWithoutMetrics(a *artemis_trading_auxiliary.AuxiliaryTradingUtils) ActiveTrading {

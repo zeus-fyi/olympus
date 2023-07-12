@@ -35,7 +35,7 @@ func (t *ArtemisAuxillaryTestSuite) TestWETH() {
 		}
 	}
 	t.Require().True(found)
-	ok, err := ta.checkAuxEthBalanceGreaterThan(ctx, toExchAmount)
+	ok, err := ta.checkEthBalanceGreaterThan(ctx, toExchAmount)
 	t.Require().Nil(err)
 	t.Require().True(ok)
 

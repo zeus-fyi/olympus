@@ -31,7 +31,7 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdVerifier(ctx context.Context, 
 	}
 	gasCost := artemis_eth_units.MulBigInt(scInfo.GasFeeCap, artemis_eth_units.NewBigInt(int(scInfo.GasLimit)))
 	ethRequirements = artemis_eth_units.AddBigInt(ethRequirements, gasCost)
-	hasEnough, err := a.checkAuxEthBalanceGreaterThan(ctx, ethRequirements)
+	hasEnough, err := a.checkEthBalanceGreaterThan(ctx, ethRequirements)
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdVerifier(ctx context.Context, 
 	return nil
 }
 
-func (a *AuxiliaryTradingUtils) checkAuxEthBalance(ctx context.Context) (*big.Int, error) {
+func (a *AuxiliaryTradingUtils) checkEthBalance(ctx context.Context) (*big.Int, error) {
 	bal, err := a.U.Web3Client.GetCurrentBalance(ctx)
 	if err != nil {
 		return bal, err
@@ -74,11 +74,12 @@ func (a *AuxiliaryTradingUtils) checkAuxERC20BalanceGreaterThan(ctx context.Cont
 	return artemis_eth_units.IsXGreaterThanY(bal, amount), err
 }
 
-func (a *AuxiliaryTradingUtils) checkAuxEthBalanceGreaterThan(ctx context.Context, amount *big.Int) (bool, error) {
+func (a *AuxiliaryTradingUtils) checkEthBalanceGreaterThan(ctx context.Context, amount *big.Int) (bool, error) {
 	bal, err := a.getWeb3Client().GetCurrentBalance(ctx)
 	if err != nil {
 		return false, err
 	}
+	log.Info().Msgf("ETH balance: %s", bal.String())
 	return artemis_eth_units.IsXGreaterThanY(bal, amount), err
 }
 
@@ -89,7 +90,6 @@ func (a *AuxiliaryTradingUtils) checkAuxWETHBalance(ctx context.Context) (*big.I
 		return nil, err
 	}
 	token := core_entities.NewToken(uint(chainID), wethAddr, 18, "WETH", "Wrapped Ether")
-
 	bal, err := a.getWeb3Client().ReadERC20TokenBalance(ctx, token.Address.String(), a.getAccountAddressString())
 	if err != nil {
 		return bal, err

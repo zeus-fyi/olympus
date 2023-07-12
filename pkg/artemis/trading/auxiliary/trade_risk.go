@@ -30,7 +30,7 @@ func (a *AuxiliaryTradingUtils) isProfitHigherThanGasFee(tf *web3_client.TradeEx
 	return true, nil
 }
 
-func (a *AuxiliaryTradingUtils) isTradingEnabledOnToken(tk string) (bool, error) {
+func (a *AuxiliaryTradingUtils) IsTradingEnabledOnToken(tk string) (bool, error) {
 	tan := artemis_trading_cache.TokenMap[tk].TradingEnabled
 	if tan == nil {
 		return false, errors.New("token not found in cache")
@@ -42,13 +42,13 @@ func (a *AuxiliaryTradingUtils) isTradingEnabledOnToken(tk string) (bool, error)
 	}
 }
 
-// in sandwich trade the tokenIn on the first trade is the profit currency
-func (a *AuxiliaryTradingUtils) isProfitTokenAcceptable(ctx context.Context, tf *web3_client.TradeExecutionFlow) (bool, error) {
+// IsProfitTokenAcceptable in sandwich trade the tokenIn on the first trade is the profit currency
+func (a *AuxiliaryTradingUtils) IsProfitTokenAcceptable(ctx context.Context, tf *web3_client.TradeExecutionFlow) (bool, error) {
 	wethAddr := a.getChainSpecificWETH()
 	if tf.FrontRunTrade.AmountInAddr.String() != wethAddr.String() {
 		return false, errors.New("profit token is not WETH")
 	}
-	ok, err := a.isTradingEnabledOnToken(tf.FrontRunTrade.AmountOutAddr.String())
+	ok, err := a.IsTradingEnabledOnToken(tf.FrontRunTrade.AmountOutAddr.String())
 	if err != nil {
 		log.Info().Interface("tf.FrontRunTrade.AmountOutAddr", tf.FrontRunTrade.AmountOutAddr.String()).Msg("trading is disabled for token")
 		return false, err
@@ -73,5 +73,15 @@ func (a *AuxiliaryTradingUtils) isProfitTokenAcceptable(ctx context.Context, tf 
 		log.Info().Interface("tf.FrontRunTrade.AmountIn", tf.FrontRunTrade.AmountIn).Interface("maxTradeSize", a.maxTradeSize()).Msg("trade size is higher than max trade size")
 		return false, errors.New("trade size is higher than max trade size")
 	}
+
+	// 0.1 ETH at the moment
+	ok, err = a.checkEthBalanceGreaterThan(ctx, artemis_eth_units.GweiMultiple(100000000))
+	if err != nil {
+		return false, err
+	}
+	if !ok {
+		return false, errors.New("ETH balance is not enough")
+	}
+
 	return true, nil
 }

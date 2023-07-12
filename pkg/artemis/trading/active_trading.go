@@ -78,9 +78,15 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	if err != nil {
 		return err
 	}
+	err = a.ActiveTradingFilterSlice(ctx, tfSlice)
+	if err != nil {
+		return err
+	}
+	a.m.StageProgressionMetrics.CountPostActiveTradingFilter(float64(len(tfSlice)))
 	err = a.ProcessBundleStage(ctx, tfSlice)
 	if err != nil {
 		return err
 	}
+	a.m.StageProgressionMetrics.CountSentFlashbotsBundleSubmission(float64(len(tfSlice)))
 	return err
 }

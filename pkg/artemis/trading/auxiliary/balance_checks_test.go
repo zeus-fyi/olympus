@@ -10,7 +10,7 @@ func (t *ArtemisAuxillaryTestSuite) TestBalanceCheck() {
 	ta := t.at1
 	t.Require().NotEmpty(ta)
 
-	bal, err := ta.checkAuxEthBalance(ctx)
+	bal, err := ta.checkEthBalance(ctx)
 	t.Require().Nil(err)
 	t.Require().NotNil(bal)
 
@@ -21,7 +21,7 @@ func (t *ArtemisAuxillaryTestSuite) TestBalanceCheck() {
 	t.Require().NotNil(bal)
 	fmt.Println("weth bal", bal.String())
 
-	ok, err := ta.checkAuxEthBalanceGreaterThan(ctx, artemis_eth_units.GweiMultiple(10000))
+	ok, err := ta.checkEthBalanceGreaterThan(ctx, artemis_eth_units.GweiMultiple(10000))
 	t.Require().Nil(err)
 	t.Require().True(ok)
 
@@ -32,7 +32,7 @@ func (t *ArtemisAuxillaryTestSuite) TestBalanceCheck() {
 	ta = t.at2
 	t.Require().NotEmpty(ta)
 
-	bal, err = ta.checkAuxEthBalance(ctx)
+	bal, err = ta.checkEthBalance(ctx)
 	fmt.Println("bal", bal.String())
 
 	bal, err = ta.checkAuxWETHBalance(ctx)
@@ -40,7 +40,7 @@ func (t *ArtemisAuxillaryTestSuite) TestBalanceCheck() {
 	t.Require().NotNil(bal)
 	fmt.Println("weth bal", bal.String())
 
-	ok, err = ta.checkAuxEthBalanceGreaterThan(ctx, artemis_eth_units.GweiMultiple(10000))
+	ok, err = ta.checkEthBalanceGreaterThan(ctx, artemis_eth_units.GweiMultiple(10000))
 	t.Require().Nil(err)
 	t.Require().True(ok)
 

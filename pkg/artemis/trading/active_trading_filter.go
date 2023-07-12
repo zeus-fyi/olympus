@@ -53,14 +53,29 @@ func (a *ActiveTrading) SimTxFilter(ctx context.Context, tfSlice []web3_client.T
 	return nil
 }
 
-func (a *ActiveTrading) ActiveTradingFilter(ctx context.Context, tf web3_client.TradeExecutionFlowJSON) error {
-	if tf.UserTrade.AmountInAddr.String() != artemis_trading_constants.WETH9ContractAddressAccount.String() {
-		return errors.New("ActiveTrading: ActiveTradingFilter: only WETH is supported as amountIn for now")
+func (a *ActiveTrading) ActiveTradingFilterSlice(ctx context.Context, tf []web3_client.TradeExecutionFlowJSON) error {
+	for _, tradeFlow := range tf {
+		err := a.ActiveTradingFilter(ctx, tradeFlow)
+		if err != nil {
+			return err
+		}
 	}
-	err := a.TradingEnabledFilter(ctx, tf.UserTrade.AmountOutAddr)
+	return nil
+}
+func (a *ActiveTrading) ActiveTradingFilter(ctx context.Context, tf web3_client.TradeExecutionFlowJSON) error {
+	tfInt := tf.ConvertToBigIntType()
+	_, err := a.a.IsProfitTokenAcceptable(ctx, &tfInt)
+	if err != nil {
+		log.Err(err).Msg("ActiveTrading: ActiveTradingFilter: profit token not acceptable")
+		return err
+	}
+	ok, err := a.a.IsTradingEnabledOnToken(tf.UserTrade.AmountOutAddr.String())
 	if err != nil {
 		log.Err(err).Msg("ActiveTrading: ActiveTradingFilter: trading not enabled for token")
 		return err
+	}
+	if !ok {
+		return fmt.Errorf("ActiveTrading: ActiveTradingFilter: trading not enabled for token")
 	}
 	switch tf.Trade.TradeMethod {
 	case artemis_trading_constants.SwapExactTokensForTokens:
@@ -69,9 +84,6 @@ func (a *ActiveTrading) ActiveTradingFilter(ctx context.Context, tf web3_client.
 	default:
 		return fmt.Errorf("ActiveTrading: ActiveTradingFilter: %s method not supported for now", tf.Trade.TradeMethod)
 	}
-	return nil
-}
 
-func (a *ActiveTrading) TradingEnabledFilter(ctx context.Context, address accounts.Address) error {
-	return errors.New("ActiveTrading: ActiveTradingFilter: trading not enabled for token")
+	return nil
 }

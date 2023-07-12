@@ -34,7 +34,6 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string) error {
 		return err
 	}
 	ac := t.ActiveTrading.GetAuxClient()
-	ac.Account = t.UniswapClient.Web3Client.Account
 	ur, err := ac.GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.FrontRunTrade)
 	if err != nil {
 		return err

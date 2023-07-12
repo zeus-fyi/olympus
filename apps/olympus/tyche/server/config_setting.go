@@ -71,12 +71,16 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	apps.Pg.InitPG(ctx, cfg.PGConnStr)
 	log.Info().Msg("Tyche: PG connection succeeded")
 
-	log.Info().Msg("Athena: DigitalOceanS3AuthClient starting")
+	log.Info().Msg("Tyche: DigitalOceanS3AuthClient starting")
 	athena.AthenaS3Manager = auth_startup.NewDigitalOceanS3AuthClient(ctx, authKeysCfg)
 
 	log.Info().Msg("Tyche: InitTokenFilter starting")
 	artemis_trading_cache.InitTokenFilter(ctx)
 	log.Info().Msg("Tyche: InitTokenFilter succeeded")
+
+	log.Info().Msgf("Tyche %s orchestration retrieving auth token", env)
+	artemis_orchestration_auth.Bearer = auth_startup.FetchTemporalAuthBearer(ctx)
+	log.Info().Msgf("Tyche %s orchestration retrieving auth token done", env)
 
 	log.Info().Msg("Tyche: InitFlashbots starting")
 	age := encryption.NewAge(authKeysCfg.AgePrivKey, authKeysCfg.AgePubKey)

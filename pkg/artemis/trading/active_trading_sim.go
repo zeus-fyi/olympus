@@ -3,20 +3,44 @@ package artemis_realtime_trading
 import (
 	"context"
 	"errors"
+	"fmt"
 
+	"github.com/rs/zerolog/log"
+	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
 	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/trading/flashbots"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_client.TradeExecutionFlow, bypassSim bool) error {
-	bundle := &artemis_flashbots.MevTxBundle{}
-	if !bypassSim {
-		// TODO set hardhat to live network
-		err := a.a.U.Web3Client.MatchFrontRunTradeValues(tf)
+func (a *ActiveTrading) simW3c() *web3_client.Web3Client {
+	return &a.us.a.U.Web3Client
+}
+func (a *ActiveTrading) simAuxUtils() *artemis_trading_auxiliary.AuxiliaryTradingUtils {
+	return a.us.a
+}
+
+func (a *ActiveTrading) SimToPackageTxBundles(ctx context.Context, tfSlide []web3_client.TradeExecutionFlowJSON, bypassSim bool) error {
+	for _, tf := range tfSlide {
+		tfConv := tf.ConvertToBigIntType()
+		err := a.SimToPackageTxBundle(ctx, &tfConv, bypassSim)
 		if err != nil {
 			return err
 		}
-		err = a.InitActiveTradingSimEnv(ctx, tf)
+	}
+	return nil
+}
+
+func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_client.TradeExecutionFlow, bypassSim bool) error {
+	if tf == nil {
+		return errors.New("tf is nil")
+	}
+	bundle := &artemis_flashbots.MevTxBundle{}
+	if !bypassSim {
+		// TODO set hardhat to live network
+		err := a.setupCleanSimEnvironment(ctx, tf)
+		if err != nil {
+			return err
+		}
+		err = a.simW3c().MatchFrontRunTradeValues(tf)
 		if err != nil {
 			return err
 		}
@@ -29,12 +53,20 @@ func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_clien
 		//}
 		return errors.New("uniswap V3 not supported yet")
 	} else {
-		//err := a.ExecTradeV2SwapFromTokenToToken(ctx, &tf.FrontRunTrade, bypassSim)
-		//if err != nil {
-		//	return err
-		//}
+		ur, err := a.simAuxUtils().GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.FrontRunTrade)
+		if err != nil {
+			fmt.Println("failed to generate trade", ur.Commands)
+			log.Err(err).Msg("failed to generate trade")
+			return err
+		}
+		_, err = a.simAuxUtils().U.ExecUniswapUniversalRouterCmd(*ur)
+		if err != nil {
+			log.Err(err).Msg("failed to execute trade")
+			return err
+		}
+
 	}
-	err := bundle.AddTxs(tf.Tx)
+	err := bundle.AddTxs(tf.FrontRunTrade.BundleTxs...)
 	if err != nil {
 		return err
 	}
@@ -42,7 +74,7 @@ func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_clien
 
 	// USER TRADE
 	if !bypassSim {
-		err = a.a.U.Web3Client.SendSignedTransaction(ctx, tf.Tx)
+		err = a.simW3c().SendImpersonatedTx(ctx, tf.Tx)
 		if err != nil {
 			return err
 		}
@@ -61,12 +93,14 @@ func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_clien
 		//}
 		return errors.New("uniswap V3 not supported yet")
 	} else {
-		//err := a.ExecTradeV2SwapFromTokenToToken(ctx, &tf.SandwichTrade, bypassSim)
-		//if err != nil {
-		//	return err
-		//}
+		ur, serr := a.simAuxUtils().GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.SandwichTrade)
+		if serr != nil {
+			fmt.Println("failed to generate trade", ur.Commands)
+			log.Err(serr).Msg("failed to generate trade")
+			return serr
+		}
 	}
-	err = bundle.AddTxs(tf.Tx)
+	err = bundle.AddTxs(tf.SandwichTrade.BundleTxs...)
 	if err != nil {
 		return err
 	}

@@ -4,15 +4,20 @@ import (
 	"context"
 	"errors"
 
+	"github.com/metachris/flashbotsrpc"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_client.TradeExecutionFlow) (*web3_client.UniversalRouterExecCmd, error) {
+func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsSendBundleResponse, error) {
 	if tf == nil || tf.Tx == nil {
 		return nil, errors.New("tf is nil")
 	}
 	// front run
 	ur, err := a.GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.FrontRunTrade)
+	if err != nil {
+		return nil, err
+	}
+	_, err = a.universalRouterCmdToTxBuilder(ctx, ur)
 	if err != nil {
 		return nil, err
 	}
@@ -26,5 +31,13 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_cl
 	if err != nil {
 		return nil, err
 	}
-	return ur, nil
+	_, err = a.universalRouterCmdToTxBuilder(ctx, ur)
+	if err != nil {
+		return nil, err
+	}
+	_, err = a.CallAndSendFlashbotsBundle(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return nil, err
 }

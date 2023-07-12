@@ -36,6 +36,7 @@ func (a *AuxiliaryTradingUtils) universalRouterExecuteTx(ctx context.Context, si
 	return signedTx, err
 }
 
+// takes a universal router command and returns a signed tx
 func (a *AuxiliaryTradingUtils) universalRouterCmdToTxBuilder(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, error) {
 	ur.Deadline = a.GetDeadline()
 	data, err := ur.EncodeCommands(ctx)
@@ -48,7 +49,7 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdToTxBuilder(ctx context.Contex
 	}
 	signedTx, err := a.GetSignedTxToCallFunctionWithData(ctx, &scInfo, scInfo.Data)
 	if err != nil {
-		return signedTx, err
+		return nil, err
 	}
 	err = a.universalRouterCmdVerifier(ctx, ur, &scInfo)
 	if err != nil {

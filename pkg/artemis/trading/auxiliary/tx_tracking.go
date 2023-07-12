@@ -2,11 +2,10 @@ package artemis_trading_auxiliary
 
 import (
 	"fmt"
-
-	"github.com/ethereum/go-ethereum/core/types"
 )
 
-func (a *AuxiliaryTradingUtils) trackTx(tx *types.Transaction) {
-	// todo
-	fmt.Println("tx", tx.Hash().String())
+func (a *AuxiliaryTradingUtils) trackTxs(txs MevTxGroup) {
+	for _, tx := range txs.OrderedTxs {
+		fmt.Println("tx", tx.Tx.Hash().Hex())
+	}
 }

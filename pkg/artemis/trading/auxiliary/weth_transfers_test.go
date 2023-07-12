@@ -2,20 +2,27 @@ package artemis_trading_auxiliary
 
 import (
 	"fmt"
+	"math/big"
 
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
-	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-func (t *ArtemisAuxillaryTestSuite) TestWETH() {
-	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
+func (t *ArtemisAuxillaryTestSuite) testEthToWETH(ta *AuxiliaryTradingUtils, toExchAmount *big.Int) *web3_client.UniversalRouterExecCmd {
 	t.Require().NotEmpty(ta)
-	toExchAmount := artemis_eth_units.GweiMultiple(100000)
 	cmd, err := ta.GenerateCmdToExchangeETHtoWETH(ctx, nil, toExchAmount, nil)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(cmd)
+	return cmd
+}
+
+func (t *ArtemisAuxillaryTestSuite) TestWETH() {
+	toExchAmount := artemis_eth_units.GweiMultiple(10000)
+
+	ta := t.at2
+	t.Require().Equal(t.goerliNode, ta.nodeURL())
+	cmd := t.testEthToWETH(&ta, toExchAmount)
 	found := false
 	for i, sc := range cmd.Commands {
 		if i == 0 && sc.Command == artemis_trading_constants.WrapETH {
@@ -28,21 +35,22 @@ func (t *ArtemisAuxillaryTestSuite) TestWETH() {
 		}
 	}
 	t.Require().True(found)
-	ok, err := ta.checkAuxEthBalanceGreaterThan(ctx, toExchAmount)
+	ok, err := ta.checkEthBalanceGreaterThan(ctx, toExchAmount)
 	t.Require().Nil(err)
 	t.Require().True(ok)
 
-	tx, err := ta.universalRouterCmdBuilder(ctx, cmd)
+	tx, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 
-	//_, err = ta.universalRouterExecuteTx(ctx, tx)
-	//t.Require().Nil(err)
-	//fmt.Println("tx", tx.Hash().String())
+	_, err = ta.universalRouterExecuteTx(ctx, tx)
+	t.Require().Nil(err)
+	fmt.Println("tx", tx.Hash().String())
 }
 
 func (t *ArtemisAuxillaryTestSuite) TestUnwrapWETH() {
-	ta := InitAuxiliaryTradingUtils(ctx, t.goerliNode, hestia_req_types.Goerli, t.acc)
+	ta := t.at1
+	t.Require().Equal(t.goerliNode, ta.nodeURL())
 	t.Require().NotEmpty(ta)
 	toExchAmount := artemis_eth_units.GweiMultiple(1000)
 	cmd, err := ta.generateCmdToExchangeWETHtoETH(ctx, nil, toExchAmount, nil)
@@ -75,7 +83,7 @@ func (t *ArtemisAuxillaryTestSuite) TestUnwrapWETH() {
 	t.Require().Nil(err)
 	t.Require().True(ok)
 
-	tx, err := ta.universalRouterCmdBuilder(ctx, cmd)
+	tx, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 

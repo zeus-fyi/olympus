@@ -2,42 +2,34 @@ package artemis_trading_auxiliary
 
 import (
 	"fmt"
-
-	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
-	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
-	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-func (t *ArtemisAuxillaryTestSuite) TestSetPermit2() {
-	nodeURL := t.goerliNode
-	ta := InitAuxiliaryTradingUtils(ctx, nodeURL, hestia_req_types.Goerli, t.acc)
-	t.Require().NotEmpty(ta)
-	fmt.Println(ta.Account.PublicKey())
-	wethAddr := artemis_trading_constants.WETH9ContractAddress
-	if ta.Network == hestia_req_types.Goerli {
-		wethAddr = artemis_trading_constants.GoerliWETH9ContractAddress
-	}
-	approveTx, err := ta.ApprovePermit2(ctx, wethAddr)
-	t.Require().Nil(err)
-	t.Require().NotEmpty(approveTx)
-	fmt.Println("approveTx", approveTx.Hash().String())
+func (t *ArtemisAuxillaryTestSuite) TestGeneratePermit2Nonce() {
+	//for i := 0; i < 10; i++ {
+	//	val := ts.GeneratePermit2Nonce()
+	//	fmt.Println(val)
+	//}
 }
 
-// don't think this is needed if we use permit2
-func (t *ArtemisAuxillaryTestSuite) TestSetApproveUniversalRouter() {
-	nodeURL := t.goerliNode
-	ta := InitAuxiliaryTradingUtils(ctx, nodeURL, hestia_req_types.Goerli, t.acc)
-	t.Require().NotEmpty(ta)
-	fmt.Println(ta.Account.PublicKey())
+func (t *ArtemisAuxillaryTestSuite) TestSetPermit2Goerli() {
+	t.Require().Equal(t.goerliNode, t.at2.nodeURL())
+	t.testSetPermit2()
+}
 
-	wethAddr := artemis_trading_constants.WETH9ContractAddress
-	if ta.Network == hestia_req_types.Goerli {
-		wethAddr = artemis_trading_constants.GoerliWETH9ContractAddress
-	}
-	approveTx, err := ta.ERC20ApproveSpender(ctx,
-		wethAddr,
-		artemis_trading_constants.UniswapUniversalRouterAddressNew,
-		artemis_eth_units.MaxUINT)
+//func (t *ArtemisAuxillaryTestSuite) TestSetPermit2Mainnet() {
+//	age := encryption.NewAge(t.Tc.LocalAgePkey, t.Tc.LocalAgePubkey)
+//	t.acc3 = initTradingAccount2(ctx, age)
+//	//	t.testSetPermit2(hestia_req_types.Mainnet, t.acc3)
+//}
+
+func (t *ArtemisAuxillaryTestSuite) testSetPermit2() {
+	//t.Require().Equal(t.at1, acc)
+	//t.Require().NotEmpty(t.at1)
+	//fmt.Println(t.at1.getWeb3Client().PublicKey())
+	at := t.at1
+	token := at.getChainSpecificWETH().String()
+	fmt.Println("token", token)
+	approveTx, err := at.SetPermit2ApprovalForToken(ctx, at.getChainSpecificWETH().String())
 	t.Require().Nil(err)
 	t.Require().NotEmpty(approveTx)
 	fmt.Println("approveTx", approveTx.Hash().String())

@@ -15,7 +15,14 @@ var (
 // Token represents an ERC20 token with a unique address and some metadata.
 type Token struct {
 	*baseCurrency
-	Address accounts.Address // The contract address on the chain on which this token lives
+	TransferTax *Fraction        // The transfer tax of the token, i.e. the amount per transfer that is burned
+	Address     accounts.Address // The contract address on the chain on which this token lives
+}
+
+func NewTokenWithTransferTax(chainID uint, address accounts.Address, decimals uint, symbol string, name string, tt *Fraction) *Token {
+	token := NewToken(chainID, address, decimals, symbol, name)
+	token.TransferTax = tt
+	return token
 }
 
 // NewToken creates a new token with the given currency and address.

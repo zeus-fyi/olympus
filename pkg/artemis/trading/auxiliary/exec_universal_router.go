@@ -2,21 +2,24 @@ package artemis_trading_auxiliary
 
 import (
 	"context"
-	"math/big"
-	"time"
+	"errors"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
-	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
+var (
+	urAbi = artemis_oly_contract_abis.MustLoadNewUniversalRouterAbi()
+)
+
 func (a *AuxiliaryTradingUtils) UniversalRouterCmdExecutor(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, error) {
-	signedTx, err := a.universalRouterCmdBuilder(ctx, ur)
+	signedTx, err := a.universalRouterCmdToTxBuilder(ctx, ur)
 	if err != nil {
 		log.Err(err).Msg("error building signed tx")
 		return nil, err
@@ -25,39 +28,46 @@ func (a *AuxiliaryTradingUtils) UniversalRouterCmdExecutor(ctx context.Context, 
 }
 
 func (a *AuxiliaryTradingUtils) universalRouterExecuteTx(ctx context.Context, signedTx *types.Transaction) (*types.Transaction, error) {
-	err := a.SendSignedTransaction(ctx, signedTx)
+	err := a.f.W.SendSignedTransaction(ctx, signedTx)
 	if err != nil {
 		log.Err(err).Msg("error sending signed tx")
 		return nil, err
 	}
-	a.AddTx(signedTx)
 	return signedTx, err
 }
 
-func (a *AuxiliaryTradingUtils) universalRouterCmdBuilder(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, error) {
+// takes a universal router command and returns a signed tx
+func (a *AuxiliaryTradingUtils) universalRouterCmdToTxBuilder(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, error) {
 	ur.Deadline = a.GetDeadline()
 	data, err := ur.EncodeCommands(ctx)
 	if err != nil {
 		return nil, err
 	}
-	scInfo := GetUniswapUniversalRouterAbiPayload(data)
-	signedTx, err := a.GetSignedTxToCallFunctionWithArgs(ctx, &scInfo)
+	scInfo, err := a.GetUniswapUniversalRouterAbiPayload(ctx, data)
 	if err != nil {
-		return signedTx, err
+		log.Err(err).Msg("error getting uniswap universal router abi payload")
+		return nil, err
+	}
+	signedTx, err := a.w3a().GetSignedTxToCallFunctionWithData(ctx, &scInfo, scInfo.Data)
+	if err != nil {
+		log.Err(err).Msg("error getting signed tx to call function with data")
+		return nil, err
 	}
 	err = a.universalRouterCmdVerifier(ctx, ur, &scInfo)
+	if err != nil {
+		return nil, err
+	}
+	err = a.AddTxToBundleGroup(ctx, signedTx)
 	if err != nil {
 		return nil, err
 	}
 	return signedTx, nil
 }
 
-var urAbi = artemis_oly_contract_abis.MustLoadNewUniversalRouterAbi()
-
-func GetUniswapUniversalRouterAbiPayload(payload *web3_client.UniversalRouterExecParams) web3_actions.SendContractTxPayload {
+func (a *AuxiliaryTradingUtils) GetUniswapUniversalRouterAbiPayload(ctx context.Context, payload *web3_client.UniversalRouterExecParams) (web3_actions.SendContractTxPayload, error) {
 	if payload == nil {
 		payload = &web3_client.UniversalRouterExecParams{}
-		return web3_actions.SendContractTxPayload{}
+		return web3_actions.SendContractTxPayload{}, errors.New("payload is nil")
 	}
 	payable := payload.Payable
 	if payable == nil {
@@ -79,7 +89,20 @@ func GetUniswapUniversalRouterAbiPayload(payload *web3_client.UniversalRouterExe
 		MethodName:        methodName,
 		Params:            fnParams,
 	}
-	return params
+	err := params.GenerateBinDataFromParamsAbi(ctx)
+	if err != nil {
+		log.Err(err).Msg("error generating bin data from params abi")
+		return web3_actions.SendContractTxPayload{}, err
+	}
+	err = a.w3a().SuggestAndSetGasPriceAndLimitForTx(ctx, &params, common.HexToAddress(params.SmartContractAddr))
+	if err != nil {
+		return web3_actions.SendContractTxPayload{}, err
+	}
+	err = a.txGasAdjuster(ctx, &params)
+	if err != nil {
+		return web3_actions.SendContractTxPayload{}, err
+	}
+	return params, nil
 }
 
 func (a *AuxiliaryTradingUtils) checkIfCmdEmpty(ur *web3_client.UniversalRouterExecCmd) *web3_client.UniversalRouterExecCmd {
@@ -104,10 +127,4 @@ func (a *AuxiliaryTradingUtils) checkIfCmdEmpty(ur *web3_client.UniversalRouterE
 		ur.Commands = []web3_client.UniversalRouterExecSubCmd{}
 	}
 	return ur
-}
-
-func (a *AuxiliaryTradingUtils) GetDeadline() *big.Int {
-	deadline := int(time.Now().Add(60 * time.Second).Unix())
-	sigDeadline := artemis_eth_units.NewBigInt(deadline)
-	return sigDeadline
 }

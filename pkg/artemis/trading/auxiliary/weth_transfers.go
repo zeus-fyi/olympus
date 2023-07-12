@@ -16,7 +16,7 @@ import (
 
 func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeETHtoWETH(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, amountIn *big.Int, user *accounts.Address) (*web3_client.UniversalRouterExecCmd, error) {
 	ur = a.checkIfCmdEmpty(ur)
-	if a.Account == nil && user == nil {
+	if a.tradersAccount() == nil && user == nil {
 		return nil, errors.New("no account or user address provided")
 	}
 	if user == nil {
@@ -54,7 +54,7 @@ func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeETHtoWETH(ctx context.Conte
 // generateCmdToExchangeWETHtoETH is not production ready
 func (a *AuxiliaryTradingUtils) generateCmdToExchangeWETHtoETH(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, amountIn *big.Int, user *accounts.Address) (*web3_client.UniversalRouterExecCmd, error) {
 	ur = a.checkIfCmdEmpty(ur)
-	if a.Account == nil && user == nil {
+	if a.tradersAccount() == nil && user == nil {
 		return nil, errors.New("no account or user address provided")
 	}
 	if user == nil {
@@ -62,7 +62,7 @@ func (a *AuxiliaryTradingUtils) generateCmdToExchangeWETHtoETH(ctx context.Conte
 		user = &addr
 	}
 	wethAddr := artemis_trading_constants.WETH9ContractAddressAccount
-	if a.Network == hestia_req_types.Goerli {
+	if a.network() == hestia_req_types.Goerli {
 		wethAddr = artemis_trading_constants.GoerliWETH9ContractAddressAccount
 	}
 	to := &artemis_trading_types.TradeOutcome{

@@ -44,7 +44,7 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 		Url:        routeInfo,
 		Payload:    p.Body,
 		IsInternal: isInternal,
-		Timeout:    1 * time.Minute,
+		Timeout:    2 * time.Minute,
 	}
 	if wfExecutor != "" {
 		return p.Process(c, req)

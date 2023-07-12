@@ -70,7 +70,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			log.Err(err).Msg("failed to decode exact input args")
 			return nil, err
 		}
-		pd, err := a.u.GetV3PricingData(ctx, inputs.TokenFeePath)
+		pd, err := a.a.U.GetV3PricingData(ctx, inputs.TokenFeePath)
 		if err != nil {
 			a.m.ErrTrackingMetrics.RecordError(exactInput, pd.V3Pair.PoolAddress)
 			log.Err(err).Msg("failed to get pricing data")
@@ -100,7 +100,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			log.Err(err).Msg("failed to decode exact output args")
 			return nil, err
 		}
-		pd, err := a.u.GetV3PricingData(ctx, inputs.TokenFeePath)
+		pd, err := a.a.U.GetV3PricingData(ctx, inputs.TokenFeePath)
 		if err != nil {
 			a.m.ErrTrackingMetrics.RecordError(exactOutput, pd.V3Pair.PoolAddress)
 			log.Err(err).Msg("failed to get pricing data")
@@ -130,7 +130,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			log.Err(err).Msg("failed to decode swap exact input single args")
 			return nil, err
 		}
-		pd, err := a.u.GetV3PricingData(ctx, inputs.TokenFeePath)
+		pd, err := a.a.U.GetV3PricingData(ctx, inputs.TokenFeePath)
 		if err != nil {
 			a.m.ErrTrackingMetrics.RecordError(swapExactInputSingle, pd.V3Pair.PoolAddress)
 			log.Err(err).Msg("failed to get pricing data")
@@ -160,7 +160,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			log.Err(err).Msg("failed to decode swap exact output single args")
 			return nil, err
 		}
-		pd, err := a.u.GetV3PricingData(ctx, inputs.TokenFeePath)
+		pd, err := a.a.U.GetV3PricingData(ctx, inputs.TokenFeePath)
 		if err != nil {
 			a.m.ErrTrackingMetrics.RecordError(swapExactOutputSingle, pd.V3Pair.PoolAddress)
 			log.Err(err).Msg("failed to get pricing data")
@@ -190,7 +190,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			log.Err(err).Msg("swapExactTokensForTokens: failed to decode swap exact tokens for tokens args")
 			return nil, err
 		}
-		pd, err := a.u.GetV2PricingData(ctx, inputs.Path)
+		pd, err := a.a.U.GetV2PricingData(ctx, inputs.Path)
 		if err != nil {
 			a.m.ErrTrackingMetrics.RecordError(swapExactTokensForTokens, pd.V2Pair.PairContractAddr)
 			log.Err(err).Msg("failed to get pricing data")

@@ -13,6 +13,7 @@ import (
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_ethereum_transcations "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/transcations"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	artemis_trade_executor "github.com/zeus-fyi/olympus/pkg/artemis/trading/executor"
 	"github.com/zeus-fyi/olympus/pkg/athena"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
@@ -87,6 +88,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	log.Info().Msgf("Artemis %s init flashbots client", env)
 	athena.AthenaS3Manager = auth_startup.NewDigitalOceanS3AuthClient(ctx, authKeysCfg)
 	age := encryption.NewAge(authKeysCfg.AgePrivKey, authKeysCfg.AgePubKey)
-	artemis_trading_cache.InitFlashbotsCache(ctx, age)
+	artemis_trade_executor.InitMainnetAuxiliaryTradingUtils(ctx, age)
+	artemis_trade_executor.InitGoerliAuxiliaryTradingUtils(ctx, age)
 	log.Info().Msgf("Artemis %s done init flashbots client", env)
 }

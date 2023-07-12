@@ -5,7 +5,6 @@ import (
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/dynamic_secrets"
-	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_realtime_trading "github.com/zeus-fyi/olympus/pkg/artemis/trading"
 	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
@@ -13,6 +12,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/athena"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
+	tyche_metrics "github.com/zeus-fyi/olympus/tyche/metrics"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
@@ -23,7 +23,8 @@ var (
 	TradeExecutorGoerli  = artemis_trading_auxiliary.AuxiliaryTradingUtils{}
 )
 
-func InitMainnetAuxiliaryTradingUtils(ctx context.Context, age encryption.Age, tm *metrics_trading.TradingMetrics) artemis_trading_auxiliary.AuxiliaryTradingUtils {
+func InitMainnetAuxiliaryTradingUtils(ctx context.Context, age encryption.Age) artemis_trading_auxiliary.AuxiliaryTradingUtils {
+	tm := tyche_metrics.TycheMetrics
 	acc := InitTradingAccount2(ctx, age)
 	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL, &acc)
 	wc.Network = hestia_req_types.Mainnet
@@ -31,7 +32,7 @@ func InitMainnetAuxiliaryTradingUtils(ctx context.Context, age encryption.Age, t
 	if tm == nil {
 		ActiveTrader = artemis_realtime_trading.NewActiveTradingModuleWithoutMetrics(&TradeExecutorMainnet)
 	} else {
-		ActiveTrader = artemis_realtime_trading.NewActiveTradingModule(&TradeExecutorMainnet, *tm)
+		ActiveTrader = artemis_realtime_trading.NewActiveTradingModule(&TradeExecutorMainnet, &tyche_metrics.TradeMetrics)
 	}
 	return TradeExecutorMainnet
 }

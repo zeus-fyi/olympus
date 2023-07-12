@@ -22,7 +22,7 @@ const (
 type ActiveTrading struct {
 	a  *artemis_trading_auxiliary.AuxiliaryTradingUtils
 	us *ActiveTrading
-	m  metrics_trading.TradingMetrics
+	m  *metrics_trading.TradingMetrics
 }
 
 func (a *ActiveTrading) GetUniswapClient() *web3_client.UniswapClient {
@@ -48,7 +48,7 @@ func NewActiveTradingModuleWithoutMetrics(a *artemis_trading_auxiliary.Auxiliary
 	return ActiveTrading{a: a, us: &auxSimTrader}
 }
 
-func NewActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, tm metrics_trading.TradingMetrics) ActiveTrading {
+func NewActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, tm *metrics_trading.TradingMetrics) ActiveTrading {
 	ctx := context.Background()
 	us := web3_client.InitUniswapClient(ctx, createSimClient())
 	auxSim := artemis_trading_auxiliary.InitAuxiliaryTradingUtils(ctx, us.Web3Client)

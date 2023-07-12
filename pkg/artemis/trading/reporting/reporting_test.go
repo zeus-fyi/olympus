@@ -59,6 +59,7 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 	})
 
 	negCount := 0
+	var addresses []string
 	for _, v := range historySlice {
 		if v.Count < 1 {
 			continue
@@ -71,15 +72,15 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 			"successCount", v.Count, "failedCount", v.FailedCount, "expProfits", v.ExpectedProfitAmountOut.String(),
 			v.AmountOutToken.Name(), v.AmountOutToken.Address.String(),
 			"num", v.AmountOutToken.TransferTax.Numerator.String(), "den", v.AmountOutToken.TransferTax.Denominator.String())
+		addresses = append(addresses, v.AmountOutToken.Address.String())
 	}
 
 	fmt.Println("total eth profit", artemis_eth_units.DivBigIntToFloat(total, artemis_eth_units.Ether).String())
 	fmt.Println("negatives", negCount)
 	fmt.Println("total eth profit without negatives", artemis_eth_units.DivBigIntToFloat(totalWithoutNegatives, artemis_eth_units.Ether).String())
-}
 
-func (s *ReportingTestSuite) Test1() {
-
+	//err = artemis_risk_analysis.SetTradingPermission(ctx, addresses, 1)
+	//s.Assert().Nil(err)
 }
 
 func TestReportingTestSuite(t *testing.T) {

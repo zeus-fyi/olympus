@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/metachris/flashbotsrpc"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -35,8 +36,18 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_cl
 	if err != nil {
 		return nil, err
 	}
+	return nil, err
+}
+
+func (a *AuxiliaryTradingUtils) PackageSandwichAndSend(ctx context.Context, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsSendBundleResponse, error) {
+	_, err := a.PackageSandwich(ctx, tf)
+	if err != nil {
+		log.Err(err).Msg("failed to package sandwich")
+		return nil, err
+	}
 	_, err = a.CallAndSendFlashbotsBundle(ctx)
 	if err != nil {
+		log.Err(err).Msg("failed to send sandwich")
 		return nil, err
 	}
 	return nil, err

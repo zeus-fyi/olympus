@@ -9,6 +9,7 @@ import (
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_realtime_trading "github.com/zeus-fyi/olympus/pkg/artemis/trading"
 	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	"github.com/zeus-fyi/olympus/pkg/athena"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
@@ -24,8 +25,9 @@ var (
 func InitMainnetAuxiliaryTradingUtils(ctx context.Context, age encryption.Age, tm *metrics_trading.TradingMetrics) artemis_trading_auxiliary.AuxiliaryTradingUtils {
 	acc := InitTradingAccount2(ctx, age)
 	cfg := artemis_network_cfgs.ArtemisEthereumMainnet
-	TradeExecutorMainnet = artemis_trading_auxiliary.InitAuxiliaryTradingUtils(ctx, cfg.NodeURL, cfg.Network, acc)
-
+	wc := web3_client.NewWeb3Client(cfg.NodeURL, &acc)
+	wc.Network = cfg.Network
+	TradeExecutorMainnet = artemis_trading_auxiliary.InitAuxiliaryTradingUtils(ctx, wc)
 	if tm == nil {
 		ActiveTrader = artemis_realtime_trading.NewActiveTradingModuleWithoutMetrics(&TradeExecutorMainnet)
 	} else {
@@ -37,7 +39,9 @@ func InitMainnetAuxiliaryTradingUtils(ctx context.Context, age encryption.Age, t
 func InitGoerliAuxiliaryTradingUtils(ctx context.Context, age encryption.Age) artemis_trading_auxiliary.AuxiliaryTradingUtils {
 	acc := InitTradingAccount(ctx, age)
 	cfg := artemis_network_cfgs.ArtemisEthereumGoerli
-	TradeExecutorGoerli = artemis_trading_auxiliary.InitAuxiliaryTradingUtils(ctx, cfg.NodeURL, cfg.Network, acc)
+	wc := web3_client.NewWeb3Client(cfg.NodeURL, &acc)
+	wc.Network = cfg.Network
+	TradeExecutorGoerli = artemis_trading_auxiliary.InitAuxiliaryTradingUtils(ctx, wc)
 	return TradeExecutorGoerli
 }
 

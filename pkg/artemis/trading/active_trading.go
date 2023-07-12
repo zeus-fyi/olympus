@@ -9,13 +9,19 @@ import (
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
+	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
+const (
+	irisBetaSvc = "https://iris.zeus.fyi/v1beta/internal/"
+)
+
 type ActiveTrading struct {
-	a *artemis_trading_auxiliary.AuxiliaryTradingUtils
-	m metrics_trading.TradingMetrics
+	a  *artemis_trading_auxiliary.AuxiliaryTradingUtils
+	us *ActiveTrading
+	m  metrics_trading.TradingMetrics
 }
 
 func (a *ActiveTrading) GetUniswapClient() *web3_client.UniswapClient {
@@ -26,12 +32,29 @@ func (a *ActiveTrading) GetAuxClient() *artemis_trading_auxiliary.AuxiliaryTradi
 	return a.a
 }
 
+func createSimClient() web3_client.Web3Client {
+	sw3c := web3_client.NewWeb3ClientFakeSigner(irisBetaSvc)
+	sw3c.AddBearerToken(artemis_orchestration_auth.Bearer)
+	return sw3c
+}
 func NewActiveTradingModuleWithoutMetrics(a *artemis_trading_auxiliary.AuxiliaryTradingUtils) ActiveTrading {
-	return ActiveTrading{a: a}
+	ctx := context.Background()
+	us := web3_client.InitUniswapClient(ctx, createSimClient())
+	auxSim := artemis_trading_auxiliary.InitAuxiliaryTradingUtils(ctx, us.Web3Client)
+	auxSimTrader := ActiveTrading{
+		a: &auxSim,
+	}
+	return ActiveTrading{a: a, us: &auxSimTrader}
 }
 
 func NewActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, tm metrics_trading.TradingMetrics) ActiveTrading {
-	return ActiveTrading{a, tm}
+	ctx := context.Background()
+	us := web3_client.InitUniswapClient(ctx, createSimClient())
+	auxSim := artemis_trading_auxiliary.InitAuxiliaryTradingUtils(ctx, us.Web3Client)
+	auxSimTrader := ActiveTrading{
+		a: &auxSim,
+	}
+	return ActiveTrading{a, &auxSimTrader, tm}
 }
 
 func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) error {
@@ -75,6 +98,10 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	}
 	wc.Close()
 	err = a.SaveMempoolTx(ctx, bn, tfSlice)
+	if err != nil {
+		return err
+	}
+	err = a.SimToPackageTxBundles(ctx, tfSlice, false)
 	if err != nil {
 		return err
 	}

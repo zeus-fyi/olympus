@@ -8,7 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	artemis_trade_executor "github.com/zeus-fyi/olympus/pkg/artemis/trading/executor"
-	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
@@ -34,12 +33,12 @@ func (t *TxProcessingRequest) ProcessTx(c echo.Context) error {
 	ctx := c.Request().Context()
 	at := artemis_trade_executor.ActiveTrader
 	for _, tx := range t.Txs {
-		switch tx.ChainId() {
-		case artemis_eth_units.NewBigInt(hestia_req_types.EthereumGoerliProtocolNetworkID):
+		switch int(tx.ChainId().Int64()) {
+		case hestia_req_types.EthereumGoerliProtocolNetworkID:
 			at = artemis_trade_executor.ActiveGoerliTrader
-		case artemis_eth_units.NewBigInt(hestia_req_types.EthereumMainnetProtocolNetworkID):
+		case hestia_req_types.EthereumMainnetProtocolNetworkID:
 			at = artemis_trade_executor.ActiveTrader
-		case artemis_eth_units.NewBigInt(hestia_req_types.EthereumEphemeryProtocolNetworkID):
+		case hestia_req_types.EthereumEphemeryProtocolNetworkID:
 			log.Info().Msgf("tx chain id %s not supported or not supplied, defaulting to mainnet", tx.ChainId().String())
 		default:
 			log.Info().Msgf("tx chain id %s not supported or not supplied, defaulting to mainnet", tx.ChainId().String())

@@ -2,8 +2,13 @@ package artemis_mev_transcations
 
 import (
 	"context"
+	"fmt"
+	"time"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	"github.com/zeus-fyi/olympus/pkg/apollo/ethereum/client_apis/beacon_api"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
@@ -63,29 +68,29 @@ func InitNewUniswapQuiknode(ctx context.Context) *web3_client.UniswapClient {
 }
 
 func ProcessMempoolTxs(ctx context.Context) {
-	//timestampChan := make(chan time.Time)
-	//go beacon_api.TriggerWorkflowOnNewBlockHeaderEvent(ctx, artemis_network_cfgs.ArtemisQuicknodeStreamWebsocket, timestampChan)
-	//
-	//for {
-	//	select {
-	//	case t := <-timestampChan:
-	//		wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
-	//		wc.Dial()
-	//		bn, berr := wc.C.BlockNumber(ctx)
-	//		if berr != nil {
-	//			log.Err(berr).Msg("failed to get block number")
-	//			return
-	//		}
-	//		wc.Close()
-	//		log.Info().Msg(fmt.Sprintf("Received new timestamp: %s", t))
-	//		log.Info().Msg("ExecuteArtemisMevWorkflow: ExecuteArtemisBlacklistTxWorkflow")
-	//		err := ArtemisMevWorkerMainnet.ExecuteArtemisBlacklistTxWorkflow(ctx)
-	//		log.Info().Msg("ExecuteArtemisMevWorkflow")
-	//		time.Sleep(t.Add(8 * time.Second).Sub(time.Now()))
-	//		err = ArtemisMevWorkerMainnet.ExecuteArtemisMevWorkflow(ctx, int(bn))
-	//		if err != nil {
-	//			log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
-	//		}
-	//	}
-	//}
+	timestampChan := make(chan time.Time)
+	go beacon_api.TriggerWorkflowOnNewBlockHeaderEvent(ctx, artemis_network_cfgs.ArtemisQuicknodeStreamWebsocket, timestampChan)
+
+	for {
+		select {
+		case t := <-timestampChan:
+			wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
+			wc.Dial()
+			//bn, berr := wc.C.BlockNumber(ctx)
+			//if berr != nil {
+			//	log.Err(berr).Msg("failed to get block number")
+			//	return
+			//}
+			wc.Close()
+			log.Info().Msg(fmt.Sprintf("Received new timestamp: %s", t))
+			log.Info().Msg("ExecuteArtemisMevWorkflow: ExecuteArtemisBlacklistTxWorkflow")
+			err := ArtemisMevWorkerMainnet.ExecuteArtemisBlacklistTxWorkflow(ctx)
+			//log.Info().Msg("ExecuteArtemisMevWorkflow")
+			//time.Sleep(t.Add(8 * time.Second).Sub(time.Now()))
+			//err = ArtemisMevWorkerMainnet.ExecuteArtemisMevWorkflow(ctx, int(bn))
+			if err != nil {
+				log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
+			}
+		}
+	}
 }

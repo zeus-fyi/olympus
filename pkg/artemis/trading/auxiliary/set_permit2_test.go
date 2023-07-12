@@ -26,9 +26,10 @@ func (t *ArtemisAuxillaryTestSuite) testSetPermit2() {
 	//t.Require().Equal(t.at1, acc)
 	//t.Require().NotEmpty(t.at1)
 	//fmt.Println(t.at1.getWeb3Client().PublicKey())
-	token := t.at1.getChainSpecificWETH().String()
+	at := t.at1
+	token := at.getChainSpecificWETH().String()
 	fmt.Println("token", token)
-	approveTx, err := t.at2.SetPermit2ApprovalForToken(ctx, t.at1.getChainSpecificWETH().String())
+	approveTx, err := at.SetPermit2ApprovalForToken(ctx, at.getChainSpecificWETH().String())
 	t.Require().Nil(err)
 	t.Require().NotEmpty(approveTx)
 	fmt.Println("approveTx", approveTx.Hash().String())

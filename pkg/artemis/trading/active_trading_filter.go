@@ -64,12 +64,12 @@ func (a *ActiveTrading) ActiveTradingFilterSlice(ctx context.Context, tf []web3_
 }
 func (a *ActiveTrading) ActiveTradingFilter(ctx context.Context, tf web3_client.TradeExecutionFlowJSON) error {
 	tfInt := tf.ConvertToBigIntType()
-	_, err := a.a.IsProfitTokenAcceptable(ctx, &tfInt)
+	_, err := a.GetAuxClient().IsProfitTokenAcceptable(ctx, &tfInt)
 	if err != nil {
 		log.Err(err).Msg("ActiveTrading: ActiveTradingFilter: profit token not acceptable")
 		return err
 	}
-	ok, err := a.a.IsTradingEnabledOnToken(tf.UserTrade.AmountOutAddr.String())
+	ok, err := a.GetAuxClient().IsTradingEnabledOnToken(tf.UserTrade.AmountOutAddr.String())
 	if err != nil {
 		log.Err(err).Msg("ActiveTrading: ActiveTradingFilter: trading not enabled for token")
 		return err

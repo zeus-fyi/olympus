@@ -39,7 +39,7 @@ func GetLatestBlockFromCacheOrProvidedSource(ctx context.Context, w3 web3_action
 		log.Info().Interface("w3_sessionID", w3SessionHeader).Msg("same session lock header, using cache")
 		return GetLatestBlock(ctx)
 	}
-	log.Info().Interface("w3_sessionID", w3.GetSessionLockHeader()).Interface("wc_sessionID", wc.GetSessionLockHeader()).Msg("different session lock header, using provided source")
+	log.Info().Str("w3_sessionID", w3SessionHeader).Str("wc_sessionID", wcSessionHeader).Msg("different session lock header, using provided source")
 	w3.Dial()
 	defer w3.Close()
 	bn, berr := w3.C.BlockNumber(ctx)
@@ -52,7 +52,7 @@ func GetLatestBlockFromCacheOrProvidedSource(ctx context.Context, w3 web3_action
 func GetLatestBlock(ctx context.Context) (uint64, error) {
 	val, ok := Cache.Get("block_number")
 	if ok && val != nil {
-		log.Info().Interface("val", val).Msg("got block number from cache")
+		log.Info().Uint64("val", val.(uint64)).Msg("got block number from cache")
 		return val.(uint64), nil
 	}
 	wc.Dial()

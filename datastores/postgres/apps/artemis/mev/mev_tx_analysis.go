@@ -104,7 +104,8 @@ func SelectEthMevTxAnalysisByTxHash(ctx context.Context, txHash string) ([]Histo
 		e := artemis_autogen_bases.EthMevTxAnalysis{}
 		mem := artemis_autogen_bases.EthMempoolMevTx{}
 		rowErr := rows.Scan(
-			&e.GasUsedWei, &e.Metadata, &e.TxHash, &e.TradeMethod, &e.EndReason, &e.AmountIn, &e.AmountOutAddr, &e.ExpectedProfitAmountOut, &e.RxBlockNumber, &e.AmountInAddr, &e.ActualProfitAmountOut,
+			&e.GasUsedWei, &e.Metadata, &e.TxHash, &e.TradeMethod, &e.EndReason, &e.AmountIn,
+			&e.AmountOutAddr, &e.ExpectedProfitAmountOut, &e.RxBlockNumber, &e.AmountInAddr, &e.ActualProfitAmountOut,
 			&mem.BlockNumber, &mem.TxFlowPrediction, &mem.Nonce, &mem.From,
 		)
 		if rowErr != nil {
@@ -140,13 +141,45 @@ func SelectEthMevTxAnalysis(ctx context.Context) (artemis_autogen_bases.EthMevTx
 	for rows.Next() {
 		e := artemis_autogen_bases.EthMevTxAnalysis{}
 		rowErr := rows.Scan(
-			&e.GasUsedWei, &e.Metadata, &e.TxHash, &e.TradeMethod, &e.EndReason, &e.AmountIn, &e.AmountOutAddr, &e.ExpectedProfitAmountOut, &e.RxBlockNumber, &e.AmountInAddr, &e.ActualProfitAmountOut,
+			&e.GasUsedWei, &e.Metadata, &e.TxHash, &e.TradeMethod, &e.EndReason, &e.AmountIn, &e.AmountOutAddr,
+			&e.ExpectedProfitAmountOut, &e.RxBlockNumber, &e.AmountInAddr, &e.ActualProfitAmountOut,
 		)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader(ModelName))
 			return nil, rowErr
 		}
 		txAnalysisSlice = append(txAnalysisSlice, e)
+	}
+	return txAnalysisSlice, misc.ReturnIfErr(err, q.LogHeader("SelectEthMevTxAnalysis"))
+}
+
+func SelectEthMevMempoolTxByTxHash(ctx context.Context, txHash string) ([]HistoricalAnalysis, error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `
+				  SELECT mem.tx_hash, mem.block_number, mem.tx_flow_prediction, mem.nonce, mem.from, mem.tx
+				  FROM eth_mempool_mev_tx mem
+				  WHERE mem.tx_hash = $1
+				  LIMIT 1000
+				  `
+	var txAnalysisSlice []HistoricalAnalysis
+	log.Debug().Interface("SelectEthMevTxAnalysis", q.LogHeader("SelectEthMevTxAnalysis"))
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, txHash)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SelectEthMevTxAnalysis")); returnErr != nil {
+		return txAnalysisSlice, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		mem := artemis_autogen_bases.EthMempoolMevTx{}
+		rowErr := rows.Scan(
+			&mem.TxHash, &mem.BlockNumber, &mem.TxFlowPrediction, &mem.Nonce, &mem.From, &mem.Tx,
+		)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader(ModelName))
+			return nil, rowErr
+		}
+		txAnalysisSlice = append(txAnalysisSlice, HistoricalAnalysis{
+			EthMempoolMevTx: mem,
+		})
 	}
 	return txAnalysisSlice, misc.ReturnIfErr(err, q.LogHeader("SelectEthMevTxAnalysis"))
 }

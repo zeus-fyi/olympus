@@ -5,8 +5,14 @@ import (
 	"fmt"
 )
 
-func (t *TradeDebugger) Replay(ctx context.Context, txHash string) error {
-	mevTx, err := t.lookupMevTx(ctx, txHash)
+func (t *TradeDebugger) getMevTx(ctx context.Context, txHash string, fromMempoolTx bool) (HistoricalAnalysisDebug, error) {
+	if fromMempoolTx {
+		return t.lookupMevMempoolTx(ctx, txHash)
+	}
+	return t.lookupMevTx(ctx, txHash)
+}
+func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx bool) error {
+	mevTx, err := t.getMevTx(ctx, txHash, fromMempoolTx)
 	if err != nil {
 		return err
 	}

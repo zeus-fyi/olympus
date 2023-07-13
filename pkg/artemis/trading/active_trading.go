@@ -63,12 +63,12 @@ func NewActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, 
 }
 
 func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) error {
-	a.m.StageProgressionMetrics.CountPreEntryFilterTx()
+	a.GetMetricsClient().StageProgressionMetrics.CountPreEntryFilterTx()
 	err := a.EntryTxFilter(ctx, tx)
 	if err != nil {
 		return err
 	}
-	a.m.StageProgressionMetrics.CountPostEntryFilterTx()
+	a.GetMetricsClient().StageProgressionMetrics.CountPostEntryFilterTx()
 	mevTxs, err := a.DecodeTx(ctx, tx)
 	if err != nil {
 		return err
@@ -76,7 +76,7 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	if len(mevTxs) <= 0 {
 		return errors.New("DecodeTx: no txs to process")
 	}
-	a.m.StageProgressionMetrics.CountPostDecodeTx()
+	a.GetMetricsClient().StageProgressionMetrics.CountPostDecodeTx()
 	tfSlice, err := a.ProcessTxs(ctx)
 	if err != nil {
 		return err
@@ -84,7 +84,7 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	if len(tfSlice) <= 0 {
 		return errors.New("ProcessTxs: no tx flows to simulate")
 	}
-	a.m.StageProgressionMetrics.CountPostProcessTx(float64(1))
+	a.GetMetricsClient().StageProgressionMetrics.CountPostProcessTx(float64(1))
 	err = a.SimTxFilter(ctx, tfSlice)
 	if err != nil {
 		return err
@@ -92,7 +92,7 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	if len(tfSlice) <= 0 {
 		return errors.New("SimTxFilter: no tx flows to simulate")
 	}
-	a.m.StageProgressionMetrics.CountPostSimFilterTx(float64(1))
+	a.GetMetricsClient().StageProgressionMetrics.CountPostSimFilterTx(float64(1))
 	// todo refactor this
 	wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
 	wc.Dial()
@@ -110,15 +110,16 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	if err != nil {
 		return err
 	}
+	a.GetMetricsClient().StageProgressionMetrics.CountPostSimStage(float64(len(tfSlice)))
 	err = a.ActiveTradingFilterSlice(ctx, tfSlice)
 	if err != nil {
 		return err
 	}
-	a.m.StageProgressionMetrics.CountPostActiveTradingFilter(float64(len(tfSlice)))
+	a.GetMetricsClient().StageProgressionMetrics.CountPostActiveTradingFilter(float64(len(tfSlice)))
 	err = a.ProcessBundleStage(ctx, tfSlice)
 	if err != nil {
 		return err
 	}
-	a.m.StageProgressionMetrics.CountSentFlashbotsBundleSubmission(float64(len(tfSlice)))
+	a.GetMetricsClient().StageProgressionMetrics.CountSentFlashbotsBundleSubmission(float64(len(tfSlice)))
 	return err
 }

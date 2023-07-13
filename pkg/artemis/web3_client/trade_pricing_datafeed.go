@@ -12,11 +12,11 @@ import (
 func (u *UniswapClient) GetV2PricingData(ctx context.Context, path []accounts.Address) (*uniswap_pricing.UniswapPricingData, error) {
 	pair, err := u.V2PairToPrices(ctx, path)
 	if err != nil {
-		log.Err(err).Interface("path", path).Interface("simMode", u.SimMode).Msg("error getting v2 pricing data")
+		log.Err(err).Interface("path", path).Msg("error getting v2 pricing data")
 		return nil, err
 	}
 	if pair == nil {
-		log.Err(err).Interface("path", path).Interface("simMode", u.SimMode).Msg("pair is nil")
+		log.Err(err).Interface("path", path).Msg("pair is nil")
 		return nil, err
 	}
 	return &uniswap_pricing.UniswapPricingData{
@@ -33,9 +33,9 @@ func (u *UniswapClient) GetV3PricingData(ctx context.Context, path artemis_tradi
 		Liquidity:            nil,
 		TickListDataProvider: nil,
 	}
-	err := pairV3.PricingData(ctx, path, u.SimMode)
+	err := pairV3.PricingData(ctx, path)
 	if err != nil {
-		log.Err(err).Interface("path", path).Interface("simMode", u.SimMode).Msg("error getting v3 pricing data")
+		log.Err(err).Interface("path", path).Msg("error getting v3 pricing data")
 		return &uniswap_pricing.UniswapPricingData{
 			V3Pair: pairV3,
 		}, err

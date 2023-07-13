@@ -63,7 +63,6 @@ type UniswapClient struct {
 	PrintLocal                              bool
 	DebugPrint                              bool
 	TestMode                                bool
-	SimMode                                 bool
 	MevSmartContractTxMapV3SwapRouterV1     MevSmartContractTxMap
 	MevSmartContractTxMapV3SwapRouterV2     MevSmartContractTxMap
 	MevSmartContractTxMapUniversalRouterNew MevSmartContractTxMap

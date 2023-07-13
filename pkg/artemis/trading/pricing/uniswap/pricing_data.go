@@ -42,10 +42,9 @@ func GetV3PricingData(ctx context.Context, wc web3_actions.Web3Actions, path art
 		Liquidity:            nil,
 		TickListDataProvider: nil,
 	}
-	simMode := false
-	err := pairV3.PricingData(ctx, path, simMode)
+	err := pairV3.PricingData(ctx, path)
 	if err != nil {
-		log.Err(err).Interface("path", path).Interface("simMode", simMode).Msg("error getting v3 pricing data")
+		log.Err(err).Interface("path", path).Msg("error getting v3 pricing data")
 		return &UniswapPricingData{
 			V3Pair: pairV3,
 		}, err

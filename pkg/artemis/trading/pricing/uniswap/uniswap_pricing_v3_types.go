@@ -18,7 +18,6 @@ type UniswapV3Pair struct {
 	Liquidity                *big.Int                           `json:"liquidity"`
 	TokenFeePath             artemis_trading_types.TokenFeePath `json:"tokenFeePath"`
 	TickListDataProvider     *entities.TickListDataProvider     `json:"tickListDataProvider,omitempty"`
-	SimMode                  bool                               `json:"simMode,omitempty"`
 }
 
 type Slot0 struct {

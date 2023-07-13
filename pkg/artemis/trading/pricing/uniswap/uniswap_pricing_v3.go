@@ -8,9 +8,8 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
-	web3_actions "github.com/zeus-fyi/gochain/web3/client"
-	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	artemis_pricing_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/utils/pricing"
@@ -46,27 +45,31 @@ func (p *UniswapV3Pair) PriceImpact(ctx context.Context, token *uniswap_core_ent
 	return out, pool, nil
 }
 
-func (p *UniswapV3Pair) PricingData(ctx context.Context, path artemis_trading_types.TokenFeePath, simMode bool) error {
+func (p *UniswapV3Pair) PricingData(ctx context.Context, path artemis_trading_types.TokenFeePath) error {
 	// todo, need to handle multi-hops, not sure if this is sufficient for that
 	p.Fee = constants.FeeAmount(path.GetFirstFee().Int64())
-	p.SimMode = simMode
 	wc := p.Web3Actions
-	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL != "" && !simMode {
-		wc = web3_actions.NewWeb3ActionsClientWithAccount(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.Account)
+	bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(ctx, wc)
+	if berr != nil {
+		return berr
 	}
-	bn, err := artemis_trading_cache.GetLatestBlock(ctx)
-	if err != nil {
-		return err
-	}
-
 	bnst := fmt.Sprintf("%d", bn)
 	hs := crypto.Keccak256Hash([]byte(path.TokenIn.Hex() + bnst + path.GetEndToken().Hex())).String()
 	val, ok := Cache.Get(hs)
-	if ok {
-		p.Pool = val.(*entities.Pool)
-		return nil
+	if ok && val != nil {
+		if assertedVal, tok := val.(*UniswapV3Pair); tok {
+			log.Info().Interface("bn", bn).Interface("pair", p.PoolAddress).Msg("found v3 pair in cache")
+			p.PoolAddress = assertedVal.PoolAddress
+			p.Fee = assertedVal.Fee
+			p.Slot0 = assertedVal.Slot0
+			p.Liquidity = assertedVal.Liquidity
+			p.TickListDataProvider = assertedVal.TickListDataProvider
+			p.Pool = assertedVal.Pool
+			return nil
+		} else {
+			return fmt.Errorf("value is not of type *entities.Pool")
+		}
 	}
-	Cache.Set(hs, bn, time.Minute*5)
 	tm := artemis_trading_cache.TokenMap
 	if tm != nil && tm[path.TokenIn.String()].TransferTaxDenominator != nil && tm[path.GetEndToken().String()].TransferTaxDenominator != nil {
 		decimals := 0
@@ -172,5 +175,6 @@ func (p *UniswapV3Pair) PricingData(ctx context.Context, path artemis_trading_ty
 		}
 		p.Pool = v3Pool
 	}
+	Cache.Set(hs, p, time.Minute*5)
 	return nil
 }

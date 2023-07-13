@@ -23,9 +23,6 @@ func (p *UniswapV3Pair) GetLiquidity(ctx context.Context) error {
 		Params:            []interface{}{},
 	}
 	wc := p.Web3Actions
-	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL != "" && !p.SimMode {
-		wc = web3_actions.NewWeb3ActionsClientWithAccount(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.Account)
-	}
 	resp, err := wc.CallConstantFunction(ctx, scInfo)
 	if err != nil {
 		return err
@@ -48,9 +45,6 @@ func (p *UniswapV3Pair) GetSlot0(ctx context.Context) error {
 		Params:            []interface{}{},
 	}
 	wc := p.Web3Actions
-	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL != "" && !p.SimMode {
-		wc = web3_actions.NewWeb3ActionsClientWithAccount(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.Account)
-	}
 	resp, err := wc.CallConstantFunction(ctx, scInfo)
 	if err != nil {
 		return err

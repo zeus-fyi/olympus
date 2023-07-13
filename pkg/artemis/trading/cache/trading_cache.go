@@ -29,6 +29,25 @@ func InitTokenFilter(ctx context.Context) {
 
 var wc = web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
 
+func GetLatestBlockFromCacheOrProvidedSource(ctx context.Context, w3 web3_actions.Web3Actions) (uint64, error) {
+	if wc.NodeURL != "" {
+		log.Info().Msg("leader beacon source url not set")
+		return GetLatestBlock(ctx)
+	}
+	if w3.GetSessionLockHeader() == wc.GetSessionLockHeader() {
+		log.Info().Interface("sessionID", w3.GetSessionLockHeader()).Msg("same session lock header, using cache")
+		return GetLatestBlock(ctx)
+	}
+	log.Info().Interface("w3_sessionID", w3.GetSessionLockHeader()).Interface("wc_sessionID", wc.GetSessionLockHeader()).Msg("different session lock header, using provided source")
+	w3.Dial()
+	defer w3.Close()
+	bn, berr := w3.C.BlockNumber(ctx)
+	if berr != nil {
+		log.Err(berr).Msg("failed to get block number")
+		return 0, berr
+	}
+	return bn, berr
+}
 func GetLatestBlock(ctx context.Context) (uint64, error) {
 	val, ok := Cache.Get("block_number")
 	if ok && val != nil {

@@ -45,7 +45,7 @@ func (t *TxProcessingRequest) ProcessTx(c echo.Context) error {
 		}
 		werr := at.IngestTx(ctx, tx)
 		if werr.Err != nil && werr.Code != 200 {
-			log.Err(werr.Err).Msg("error processing tx")
+			//log.Err(werr.Err).Msg("error processing tx")
 			return c.JSON(http.StatusPreconditionFailed, werr.Err)
 		}
 	}

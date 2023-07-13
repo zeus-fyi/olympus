@@ -2,17 +2,18 @@ package artemis_trading_auxiliary
 
 import (
 	"context"
+	"errors"
 	"math/big"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
+	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/trading/flashbots"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
@@ -98,12 +99,14 @@ func (a *AuxiliaryTradingUtils) C() *ethclient.Client {
 func (a *AuxiliaryTradingUtils) getBlockNumber(ctx context.Context) (int, error) {
 	a.dial()
 	defer a.close()
-	bn, err := a.w3c().C.BlockNumber(ctx)
-	if err != nil {
-		log.Err(err).Msg("failed to get block number")
-		return -1, err
+	if a.w3a() != nil {
+		bn, err := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(ctx, *a.w3a())
+		if err != nil {
+			return 0, err
+		}
+		return int(bn), nil
 	}
-	return int(bn), err
+	return 0, errors.New("web3 actions is nil")
 }
 
 const (

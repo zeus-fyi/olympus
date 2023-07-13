@@ -43,10 +43,10 @@ func (t *TxProcessingRequest) ProcessTx(c echo.Context) error {
 		default:
 			log.Info().Msgf("tx chain id %s not supported or not supplied, defaulting to mainnet", tx.ChainId().String())
 		}
-		err := at.IngestTx(ctx, tx)
-		if err != nil {
-			log.Err(err).Msg("error processing tx")
-			return c.JSON(http.StatusPreconditionFailed, err)
+		werr := at.IngestTx(ctx, tx)
+		if werr.Err != nil && werr.Code != 200 {
+			log.Err(werr.Err).Msg("error processing tx")
+			return c.JSON(http.StatusPreconditionFailed, werr.Err)
 		}
 	}
 	return c.JSON(http.StatusOK, "ok")

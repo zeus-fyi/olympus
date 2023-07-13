@@ -43,10 +43,12 @@ func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_clien
 		// TODO set hardhat to live network
 		err := a.setupCleanSimEnvironment(ctx, tf)
 		if err != nil {
+			log.Err(err).Msg("failed to setup clean sim environment")
 			return err
 		}
 		err = a.simW3c().MatchFrontRunTradeValues(tf)
 		if err != nil {
+			log.Err(err).Msg("failed to match front run trade values")
 			return err
 		}
 	}
@@ -81,6 +83,7 @@ func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_clien
 	if !bypassSim {
 		err = a.simW3c().SendImpersonatedTx(ctx, tf.Tx)
 		if err != nil {
+			log.Err(err).Msg("failed to send impersonated tx")
 			return err
 		}
 	}

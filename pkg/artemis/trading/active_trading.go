@@ -16,7 +16,7 @@ import (
 
 const (
 	//irisBetaSvc = "https://iris.zeus.fyi/v1beta/internal/"
-	irisBetaSvc = "https://iris.iris.svc.cluster.local:8080/v1beta/internal/"
+	irisBetaSvc = "http://iris.iris.svc.cluster.local:8080/v1beta/internal/"
 )
 
 type ActiveTrading struct {

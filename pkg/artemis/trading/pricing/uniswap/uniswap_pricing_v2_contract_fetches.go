@@ -38,6 +38,33 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 
 	tag := strings.Join([]string{fmt.Sprintf("%s", p.PairContractAddr), fmt.Sprintf("%d", bn)}, "-")
 	if cached, found := Cache.Get(tag); found {
+		if cached == nil {
+			resp, err := wc.CallConstantFunction(ctx, scInfo)
+			if err != nil {
+				return err
+			}
+			reserve0, err := artemis_utils.ParseBigInt(resp[0])
+			if err != nil {
+				return err
+			}
+			p.Reserve0 = reserve0
+			reserve1, err := artemis_utils.ParseBigInt(resp[1])
+			if err != nil {
+				return err
+			}
+			p.Reserve1 = reserve1
+			blockTimestampLast, err := artemis_utils.ParseBigInt(resp[2])
+			if err != nil {
+				return err
+			}
+			p.BlockTimestampLast = blockTimestampLast
+
+			Cache.Set(tag, *p, cache.NoExpiration)
+			if len(resp) <= 2 {
+				return err
+			}
+			return nil
+		}
 		log.Info().Msgf("Found cached pair %s", tag)
 		pair := cached.(UniswapV2Pair)
 		p.Reserve0 = pair.Reserve0

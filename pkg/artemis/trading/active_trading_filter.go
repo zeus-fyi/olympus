@@ -39,15 +39,15 @@ func (a *ActiveTrading) SimTxFilter(ctx context.Context, tfSlice []web3_client.T
 	}
 	for _, addr := range addresses {
 		if artemis_trading_cache.TokenMap[addr.String()].BalanceOfSlotNum < 0 {
-			return errors.New("ActiveTrading: EntryTxFilter, balanceOf not cracked yet")
+			return errors.New("SimTxFilter: EntryTxFilter, balanceOf not cracked yet")
 		}
 		num := artemis_trading_cache.TokenMap[addr.String()].TransferTaxNumerator
 		den := artemis_trading_cache.TokenMap[addr.String()].TransferTaxDenominator
 		if num == nil || den == nil {
-			return errors.New("ActiveTrading: EntryTxFilter, transfer tax not set")
+			return errors.New("SimTxFilter: EntryTxFilter, transfer tax not set")
 		}
 		if *num == 0 || *den == 0 {
-			return errors.New("ActiveTrading: EntryTxFilter, transfer tax not set")
+			return errors.New("SimTxFilter: EntryTxFilter, transfer tax not set")
 		}
 	}
 	return nil

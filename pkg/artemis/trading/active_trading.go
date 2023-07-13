@@ -83,7 +83,7 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 	a.GetMetricsClient().StageProgressionMetrics.CountPostEntryFilterTx()
 	mevTxs, err := a.DecodeTx(ctx, tx)
 	if err != nil {
-		return ErrWrapper{Err: err, Stage: "EntryTxFilter"}
+		return ErrWrapper{Err: err, Stage: "DecodeTx"}
 	}
 	if len(mevTxs) <= 0 {
 		return ErrWrapper{Err: errors.New("DecodeTx: no txs to process"), Stage: "DecodeTx"}

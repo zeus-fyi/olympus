@@ -39,7 +39,6 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 	if wc.GetSessionLockHeader() != "" {
 		bnst = fmt.Sprintf("%s-%s", bnst, sessionID)
 	}
-
 	tag := strings.Join([]string{fmt.Sprintf("%s", p.PairContractAddr), bnst}, "-")
 	if cached, found := Cache.Get(tag); found {
 		if cached == nil {
@@ -69,7 +68,9 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 			}
 			return nil
 		}
-		log.Info().Msgf("Found cached pair %s", tag)
+		if sessionID != "" {
+			log.Info().Msgf("Found cached pair %s", tag)
+		}
 		pair := cached.(UniswapV2Pair)
 		p.Reserve0 = pair.Reserve0
 		p.Reserve1 = pair.Reserve1

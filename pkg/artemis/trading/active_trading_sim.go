@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
 	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/trading/flashbots"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -21,6 +22,9 @@ func (a *ActiveTrading) simAuxUtils() *artemis_trading_auxiliary.AuxiliaryTradin
 func (a *ActiveTrading) SimToPackageTxBundles(ctx context.Context, tfSlide []web3_client.TradeExecutionFlowJSON, bypassSim bool) error {
 	for _, tf := range tfSlide {
 		tfConv := tf.ConvertToBigIntType()
+		if tf.FrontRunTrade.AmountInAddr.String() != artemis_trading_constants.WETH9ContractAddressAccount.String() {
+			return errors.New("profit token is not WETH")
+		}
 		err := a.SimToPackageTxBundle(ctx, &tfConv, bypassSim)
 		if err != nil {
 			return err

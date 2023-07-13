@@ -115,8 +115,10 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 	log.Info().Msg("starting simulation")
 	err = a.SimToPackageTxBundles(ctx, tfSlice, false)
 	if err != nil {
+		log.Err(err).Msg("failed to simulate txs")
 		return ErrWrapper{Err: err, Stage: "SimToPackageTxBundles", Code: 200}
 	}
+	log.Info().Msg("simulation stage complete: starting active trading filter")
 	a.GetMetricsClient().StageProgressionMetrics.CountPostSimStage(float64(len(tfSlice)))
 	err = a.ActiveTradingFilterSlice(ctx, tfSlice)
 	if err != nil {

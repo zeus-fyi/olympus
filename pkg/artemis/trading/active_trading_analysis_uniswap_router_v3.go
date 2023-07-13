@@ -107,7 +107,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			if pd != nil {
 				a.GetMetricsClient().ErrTrackingMetrics.RecordError(exactOutput, pd.V3Pair.PoolAddress)
 			}
-			log.Err(err).Msg("failed to get pricing data")
+			//log.Err(err).Msg("failed to get pricing data")
 			return nil, err
 		}
 		tf := inputs.BinarySearch(pd)
@@ -139,7 +139,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			if pd != nil {
 				a.GetMetricsClient().ErrTrackingMetrics.RecordError(swapExactInputSingle, pd.V3Pair.PoolAddress)
 			}
-			log.Err(err).Msg("failed to get pricing data")
+			//log.Err(err).Msg("failed to get pricing data")
 			return nil, err
 		}
 		tf := inputs.BinarySearch(pd)
@@ -150,7 +150,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		newTx := artemis_trading_types.JSONTx{}
 		err = newTx.UnmarshalTx(tx.Tx)
 		if err != nil {
-			log.Err(err).Msg("failed to unmarshal tx")
+			//log.Err(err).Msg("failed to unmarshal tx")
 			return nil, err
 		}
 		tf.Tx = newTx
@@ -163,7 +163,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		inputs := &web3_client.SwapExactOutputSingleArgs{}
 		err := inputs.Decode(ctx, tx.Args)
 		if err != nil {
-			log.Err(err).Msg("failed to decode swap exact output single args")
+			//log.Err(err).Msg("failed to decode swap exact output single args")
 			return nil, err
 		}
 		pd, err := a.GetUniswapClient().GetV3PricingData(ctx, inputs.TokenFeePath)
@@ -178,7 +178,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		newTx := artemis_trading_types.JSONTx{}
 		err = newTx.UnmarshalTx(tx.Tx)
 		if err != nil {
-			log.Err(err).Msg("failed to unmarshal tx")
+			//log.Err(err).Msg("failed to unmarshal tx")
 			return nil, err
 		}
 		tf.Tx = newTx
@@ -195,7 +195,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		inputs := &web3_client.SwapExactTokensForTokensParamsV3{}
 		err := inputs.Decode(ctx, tx.Args)
 		if err != nil {
-			log.Err(err).Msg("swapExactTokensForTokens: failed to decode swap exact tokens for tokens args")
+			//log.Err(err).Msg("swapExactTokensForTokens: failed to decode swap exact tokens for tokens args")
 			return nil, err
 		}
 		pd, err := a.GetUniswapClient().GetV2PricingData(ctx, inputs.Path)

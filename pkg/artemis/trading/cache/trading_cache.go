@@ -33,13 +33,9 @@ func InitWeb3Client() {
 }
 
 func GetLatestBlockFromCacheOrProvidedSource(ctx context.Context, w3 web3_actions.Web3Actions) (uint64, error) {
-	if wc.NodeURL != "" {
-		log.Info().Msg("leader beacon source url not set")
-		return GetLatestBlock(ctx)
-	}
 	w3SessionHeader := w3.GetSessionLockHeader()
 	wcSessionHeader := wc.GetSessionLockHeader()
-	if len(wcSessionHeader) > 0 && len(w3SessionHeader) > 0 && w3SessionHeader == wcSessionHeader {
+	if wc.NodeURL != "" && len(wcSessionHeader) > 0 && len(w3SessionHeader) > 0 && w3SessionHeader == wcSessionHeader {
 		log.Info().Interface("w3_sessionID", w3SessionHeader).Msg("same session lock header, using cache")
 		return GetLatestBlock(ctx)
 	}

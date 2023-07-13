@@ -32,6 +32,9 @@ func (a *ActiveTrading) GetUniswapClient() *web3_client.UniswapClient {
 func (a *ActiveTrading) GetAuxClient() *artemis_trading_auxiliary.AuxiliaryTradingUtils {
 	return a.a
 }
+func (a *ActiveTrading) GetMetricsClient() *metrics_trading.TradingMetrics {
+	return a.m
+}
 
 func createSimClient() web3_client.Web3Client {
 	sw3c := web3_client.NewWeb3ClientFakeSigner(irisBetaSvc)

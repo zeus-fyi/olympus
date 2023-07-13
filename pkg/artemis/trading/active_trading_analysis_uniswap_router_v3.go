@@ -26,7 +26,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV3RouterTx(ctx context.Context, tx
 	toAddr := tx.Tx.To().String()
 	var tfSlice []web3_client.TradeExecutionFlowJSON
 	if strings.HasPrefix(tx.MethodName, multicall) {
-		a.m.TxFetcherMetrics.TransactionGroup(toAddr, multicall)
+		a.GetMetricsClient().TxFetcherMetrics.TransactionGroup(toAddr, multicall)
 		inputs := &web3_client.Multicall{}
 		err := inputs.Decode(ctx, tx.Args)
 		if err != nil {
@@ -72,8 +72,10 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		pd, err := a.GetUniswapClient().GetV3PricingData(ctx, inputs.TokenFeePath)
 		if err != nil {
-			a.m.ErrTrackingMetrics.RecordError(exactInput, pd.V3Pair.PoolAddress)
-			log.Err(err).Msg("failed to get pricing data")
+			if pd != nil {
+				a.GetMetricsClient().ErrTrackingMetrics.RecordError(exactInput, pd.V3Pair.PoolAddress)
+			}
+			//log.Err(err).Msg("failed to get pricing data")
 			return nil, err
 		}
 		tf := inputs.BinarySearch(pd)
@@ -89,9 +91,9 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		tf.Tx = newTx
 		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
-		a.m.TxFetcherMetrics.TransactionGroup(toAddr, exactInput)
-		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
-		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, exactInput, pd.V3Pair.PoolAddress, inputs.TokenFeePath.TokenIn.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		a.GetMetricsClient().TxFetcherMetrics.TransactionGroup(toAddr, exactInput)
+		a.GetMetricsClient().TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
+		a.GetMetricsClient().TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, exactInput, pd.V3Pair.PoolAddress, inputs.TokenFeePath.TokenIn.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		tfSlice = append(tfSlice, tf)
 	case exactOutput:
 		inputs := &web3_client.ExactOutputParams{}
@@ -102,7 +104,9 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		pd, err := a.GetUniswapClient().GetV3PricingData(ctx, inputs.TokenFeePath)
 		if err != nil {
-			a.m.ErrTrackingMetrics.RecordError(exactOutput, pd.V3Pair.PoolAddress)
+			if pd != nil {
+				a.GetMetricsClient().ErrTrackingMetrics.RecordError(exactOutput, pd.V3Pair.PoolAddress)
+			}
 			log.Err(err).Msg("failed to get pricing data")
 			return nil, err
 		}
@@ -119,9 +123,9 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		tf.Tx = newTx
 		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
-		a.m.TxFetcherMetrics.TransactionGroup(toAddr, exactOutput)
-		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
-		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, exactOutput, pd.V3Pair.PoolAddress, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		a.GetMetricsClient().TxFetcherMetrics.TransactionGroup(toAddr, exactOutput)
+		a.GetMetricsClient().TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
+		a.GetMetricsClient().TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, exactOutput, pd.V3Pair.PoolAddress, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		tfSlice = append(tfSlice, tf)
 	case swapExactInputSingle:
 		inputs := &web3_client.SwapExactInputSingleArgs{}
@@ -132,7 +136,9 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		pd, err := a.GetUniswapClient().GetV3PricingData(ctx, inputs.TokenFeePath)
 		if err != nil {
-			a.m.ErrTrackingMetrics.RecordError(swapExactInputSingle, pd.V3Pair.PoolAddress)
+			if pd != nil {
+				a.GetMetricsClient().ErrTrackingMetrics.RecordError(swapExactInputSingle, pd.V3Pair.PoolAddress)
+			}
 			log.Err(err).Msg("failed to get pricing data")
 			return nil, err
 		}
@@ -149,9 +155,9 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		tf.Tx = newTx
 		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
-		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactInputSingle)
-		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
-		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactInputSingle, pd.V3Pair.PoolAddress, inputs.TokenFeePath.TokenIn.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		a.GetMetricsClient().TxFetcherMetrics.TransactionGroup(toAddr, swapExactInputSingle)
+		a.GetMetricsClient().TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
+		a.GetMetricsClient().TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactInputSingle, pd.V3Pair.PoolAddress, inputs.TokenFeePath.TokenIn.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		tfSlice = append(tfSlice, tf)
 	case swapExactOutputSingle:
 		inputs := &web3_client.SwapExactOutputSingleArgs{}
@@ -162,8 +168,10 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		pd, err := a.GetUniswapClient().GetV3PricingData(ctx, inputs.TokenFeePath)
 		if err != nil {
-			a.m.ErrTrackingMetrics.RecordError(swapExactOutputSingle, pd.V3Pair.PoolAddress)
-			log.Err(err).Msg("failed to get pricing data")
+			if pd != nil {
+				a.GetMetricsClient().ErrTrackingMetrics.RecordError(swapExactOutputSingle, pd.V3Pair.PoolAddress)
+			}
+			//log.Err(err).Msg("failed to get pricing data")
 			return nil, err
 		}
 		tf := inputs.BinarySearch(pd)
@@ -179,9 +187,9 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		tf.Trade.TradeMethod = swapExactOutputSingle
 		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
-		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactOutputSingle)
-		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
-		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactOutputSingle, pd.V3Pair.PoolAddress, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		a.GetMetricsClient().TxFetcherMetrics.TransactionGroup(toAddr, swapExactOutputSingle)
+		a.GetMetricsClient().TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
+		a.GetMetricsClient().TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactOutputSingle, pd.V3Pair.PoolAddress, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		tfSlice = append(tfSlice, tf)
 	case swapExactTokensForTokens:
 		inputs := &web3_client.SwapExactTokensForTokensParamsV3{}
@@ -192,8 +200,10 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		pd, err := a.GetUniswapClient().GetV2PricingData(ctx, inputs.Path)
 		if err != nil {
-			a.m.ErrTrackingMetrics.RecordError(swapExactTokensForTokens, pd.V2Pair.PairContractAddr)
-			log.Err(err).Msg("failed to get pricing data")
+			if pd != nil {
+				a.GetMetricsClient().ErrTrackingMetrics.RecordError(swapExactTokensForTokens, pd.V2Pair.PairContractAddr)
+			}
+			//log.Err(err).Msg("failed to get pricing data")
 			return nil, err
 		}
 		tf := inputs.BinarySearch(pd.V2Pair)
@@ -209,15 +219,15 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		tf.Tx = newTx
 		tf.Trade.TradeMethod = swapExactTokensForTokens
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
-		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokens)
+		a.GetMetricsClient().TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokens)
 		pend := len(inputs.Path) - 1
-		a.m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path[0].String(), inputs.Path[pend].String())
-		a.m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForTokens, pd.V2Pair.PairContractAddr, inputs.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		a.GetMetricsClient().TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path[0].String(), inputs.Path[pend].String())
+		a.GetMetricsClient().TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForTokens, pd.V2Pair.PairContractAddr, inputs.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		tfSlice = append(tfSlice, tf)
 	case swapExactInputMultihop:
-		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactInputMultihop)
+		a.GetMetricsClient().TxFetcherMetrics.TransactionGroup(toAddr, swapExactInputMultihop)
 	case swapExactOutputMultihop:
-		a.m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactOutputMultihop)
+		a.GetMetricsClient().TxFetcherMetrics.TransactionGroup(toAddr, swapExactOutputMultihop)
 	}
 	return tfSlice, nil
 }

@@ -54,11 +54,12 @@ func SetActiveTradingBlockCache(ctx context.Context) {
 		case t := <-timestampChan:
 			Cache.Delete("block_number")
 
-			wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
+			wc = web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
 			wc.Dial()
 			bn, berr := wc.C.BlockNumber(ctx)
 			if berr != nil {
 				log.Err(berr).Msg("failed to get block number")
+				wc.Close()
 				return
 			}
 			Cache.Set("block_number", bn, 12*time.Second)

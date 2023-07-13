@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_core/entities"
@@ -15,10 +16,13 @@ import (
 
 // example v3 pool: 0x4b5Ab61593A2401B1075b90c04cBCDD3F87CE011
 
+// 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
 func (s *Web3ClientTestSuite) TestUniswapV3DataFetcherV2() {
+	// path":{"tokenIn":"0xb48eb8368c9c6e9b0734de1ef4ceb9f484b80b9c","path":[{"token":"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2","fee":3000}]}
 	factoryAddress := accounts.HexToAddress("0x1F98431c8aD98523631AE4a59f267346ea31F984")
-	tokenA := core_entities.NewToken(1, accounts.HexToAddress(WETH9ContractAddress), 18, "WETH", "Wrapped Ether")
-	tokenB := core_entities.NewToken(1, accounts.HexToAddress(UsdCoinAddr), 6, "USDC", "USD Coin")
+	fmt.Println(artemis_trading_constants.UniswapV3FactoryAddressAccount.String())
+	tokenA := core_entities.NewToken(1, accounts.HexToAddress("0xb48eb8368c9c6e9b0734de1ef4ceb9f484b80b9c"), 18, "", "")
+	tokenB := core_entities.NewToken(1, accounts.HexToAddress("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"), 18, "", " ")
 	result, err := utils.ComputePoolAddress(factoryAddress, tokenA, tokenB, constants.FeeMedium, "")
 	s.Require().NoError(err)
 

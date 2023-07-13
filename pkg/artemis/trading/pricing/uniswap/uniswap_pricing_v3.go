@@ -3,8 +3,11 @@ package artemis_uniswap_pricing
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/big"
+	"time"
 
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
@@ -51,7 +54,19 @@ func (p *UniswapV3Pair) PricingData(ctx context.Context, path artemis_trading_ty
 	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL != "" && !simMode {
 		wc = web3_actions.NewWeb3ActionsClientWithAccount(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.Account)
 	}
+	bn, err := artemis_trading_cache.GetLatestBlock(ctx)
+	if err != nil {
+		return err
+	}
 
+	bnst := fmt.Sprintf("%d", bn)
+	hs := crypto.Keccak256Hash([]byte(path.TokenIn.Hex() + bnst + path.GetEndToken().Hex())).String()
+	val, ok := Cache.Get(hs)
+	if ok {
+		p.Pool = val.(*entities.Pool)
+		return nil
+	}
+	Cache.Set(hs, bn, time.Minute*5)
 	tm := artemis_trading_cache.TokenMap
 	if tm != nil && tm[path.TokenIn.String()].TransferTaxDenominator != nil && tm[path.GetEndToken().String()].TransferTaxDenominator != nil {
 		decimals := 0

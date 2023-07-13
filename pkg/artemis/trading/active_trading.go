@@ -99,18 +99,22 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 	a.GetMetricsClient().StageProgressionMetrics.CountPostProcessTx(float64(1))
 	err = a.SimTxFilter(ctx, tfSlice)
 	if err != nil {
+		log.Err(err).Msg("failed to pass sim tx filter")
 		return ErrWrapper{Err: err, Stage: "SimTxFilter"}
 	}
 	if len(tfSlice) <= 0 {
 		return ErrWrapper{Err: errors.New("SimTxFilter: no tx flows to simulate"), Stage: "SimTxFilter"}
 	}
+	log.Info().Msg("saving mempool tx")
 	a.GetMetricsClient().StageProgressionMetrics.CountPostSimFilterTx(float64(1))
 	bn, err := artemis_trading_cache.GetLatestBlock(ctx)
 	if err != nil {
+		log.Err(err).Msg("failed to get latest block")
 		return ErrWrapper{Err: err, Stage: "GetLatestBlock"}
 	}
 	err = a.SaveMempoolTx(ctx, bn, tfSlice)
 	if err != nil {
+		log.Err(err).Msg("failed to pass sim tx filter")
 		return ErrWrapper{Err: err, Stage: "SaveMempoolTx"}
 	}
 	log.Info().Msg("starting simulation")
@@ -123,12 +127,14 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 	a.GetMetricsClient().StageProgressionMetrics.CountPostSimStage(float64(len(tfSlice)))
 	err = a.ActiveTradingFilterSlice(ctx, tfSlice)
 	if err != nil {
+		log.Err(err).Msg("failed to pass active trading filter")
 		return ErrWrapper{Err: err, Stage: "ActiveTradingFilterSlice", Code: 200}
 	}
 	log.Info().Msg("preparing bundles for submission")
 	a.GetMetricsClient().StageProgressionMetrics.CountPostActiveTradingFilter(float64(len(tfSlice)))
 	err = a.ProcessBundleStage(ctx, tfSlice)
 	if err != nil {
+		log.Err(err).Msg("failed to process bundles")
 		return ErrWrapper{Err: err, Stage: "ProcessBundleStage", Code: 200}
 	}
 	log.Info().Msg("bundles successfully sent")

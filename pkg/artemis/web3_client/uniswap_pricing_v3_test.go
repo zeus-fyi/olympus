@@ -25,7 +25,6 @@ func (s *Web3ClientTestSuite) TestUniswapV3DataFetcherV2() {
 	tokenB := core_entities.NewToken(1, accounts.HexToAddress("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"), 18, "", " ")
 	result, err := utils.ComputePoolAddress(factoryAddress, tokenA, tokenB, constants.FeeMedium, "")
 	s.Require().NoError(err)
-
 	p := uniswap_pricing.UniswapV3Pair{
 		PoolAddress: result.String(),
 		Web3Actions: s.MainnetWeb3User.Web3Actions,
@@ -40,7 +39,6 @@ func (s *Web3ClientTestSuite) TestUniswapV3DataFetcherV2() {
 			},
 		},
 	}
-
 	err = p.PricingData(ctx, tfp)
 	s.Require().NoError(err)
 	fmt.Println(p.PoolAddress)

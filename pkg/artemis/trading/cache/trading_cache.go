@@ -34,8 +34,10 @@ func GetLatestBlockFromCacheOrProvidedSource(ctx context.Context, w3 web3_action
 		log.Info().Msg("leader beacon source url not set")
 		return GetLatestBlock(ctx)
 	}
-	if w3.GetSessionLockHeader() == wc.GetSessionLockHeader() {
-		log.Info().Interface("sessionID", w3.GetSessionLockHeader()).Msg("same session lock header, using cache")
+	w3SessionHeader := w3.GetSessionLockHeader()
+	wcSessionHeader := wc.GetSessionLockHeader()
+	if len(wcSessionHeader) > 0 && len(w3SessionHeader) > 0 && w3SessionHeader == wcSessionHeader {
+		log.Info().Interface("w3_sessionID", w3SessionHeader).Msg("same session lock header, using cache")
 		return GetLatestBlock(ctx)
 	}
 	log.Info().Interface("w3_sessionID", w3.GetSessionLockHeader()).Interface("wc_sessionID", wc.GetSessionLockHeader()).Msg("different session lock header, using provided source")
@@ -73,7 +75,6 @@ func SetActiveTradingBlockCache(ctx context.Context) {
 		select {
 		case t := <-timestampChan:
 			Cache.Delete("block_number")
-
 			wc = web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
 			wc.Dial()
 			bn, berr := wc.C.BlockNumber(ctx)

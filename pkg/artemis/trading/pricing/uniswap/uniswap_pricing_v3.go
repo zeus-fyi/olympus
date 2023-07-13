@@ -54,6 +54,10 @@ func (p *UniswapV3Pair) PricingData(ctx context.Context, path artemis_trading_ty
 		return berr
 	}
 	bnst := fmt.Sprintf("%d", bn)
+	sessionID := wc.GetSessionLockHeader()
+	if wc.GetSessionLockHeader() != "" {
+		bnst = fmt.Sprintf("%s-%s", bnst, sessionID)
+	}
 	hs := crypto.Keccak256Hash([]byte(path.TokenIn.Hex() + bnst + path.GetEndToken().Hex())).String()
 	val, ok := Cache.Get(hs)
 	if ok && val != nil {

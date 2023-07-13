@@ -34,7 +34,13 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 	if berr != nil {
 		return berr
 	}
-	tag := strings.Join([]string{fmt.Sprintf("%s", p.PairContractAddr), fmt.Sprintf("%d", bn)}, "-")
+	bnst := fmt.Sprintf("%d", bn)
+	sessionID := wc.GetSessionLockHeader()
+	if wc.GetSessionLockHeader() != "" {
+		bnst = fmt.Sprintf("%s-%s", bnst, sessionID)
+	}
+
+	tag := strings.Join([]string{fmt.Sprintf("%s", p.PairContractAddr), bnst}, "-")
 	if cached, found := Cache.Get(tag); found {
 		if cached == nil {
 			resp, err := wc.CallConstantFunction(ctx, scInfo)

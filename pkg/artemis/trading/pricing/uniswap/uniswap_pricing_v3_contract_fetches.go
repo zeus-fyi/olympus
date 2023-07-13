@@ -8,17 +8,18 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
-	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_v3/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_v3/entities"
 )
 
+var v3PoolAbi = artemis_oly_contract_abis.MustLoadPoolV3Abi()
+
 func (p *UniswapV3Pair) GetLiquidity(ctx context.Context) error {
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: p.PoolAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       artemis_oly_contract_abis.MustLoadPoolV3Abi(),
+		ContractABI:       v3PoolAbi,
 		MethodName:        liquidity,
 		Params:            []interface{}{},
 	}
@@ -40,7 +41,7 @@ func (p *UniswapV3Pair) GetSlot0(ctx context.Context) error {
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: p.PoolAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       artemis_oly_contract_abis.MustLoadPoolV3Abi(),
+		ContractABI:       v3PoolAbi,
 		MethodName:        slot0,
 		Params:            []interface{}{},
 	}
@@ -77,14 +78,11 @@ func (p *UniswapV3Pair) GetTickMappingValueFromContract(tickNum int16) (*big.Int
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: p.PoolAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       artemis_oly_contract_abis.MustLoadPoolV3Abi(),
+		ContractABI:       v3PoolAbi,
 		MethodName:        tickBitmap,
 		Params:            []interface{}{tickNum},
 	}
 	wc := p.Web3Actions
-	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL != "" && !p.SimMode {
-		wc = web3_actions.NewWeb3ActionsClientWithAccount(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.Account)
-	}
 	ctx := context.Background()
 	resp, err := wc.CallConstantFunction(ctx, scInfo)
 	if err != nil {
@@ -111,7 +109,7 @@ func (p *UniswapV3Pair) GetTickFromContract(tickNum int) (entities.Tick, error) 
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: p.PoolAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       artemis_oly_contract_abis.MustLoadPoolV3Abi(),
+		ContractABI:       v3PoolAbi,
 		MethodName:        ticks,
 		Params:            []interface{}{new(big.Int).SetInt64(int64(tickNum))},
 	}
@@ -119,9 +117,6 @@ func (p *UniswapV3Pair) GetTickFromContract(tickNum int) (entities.Tick, error) 
 		Index: tickNum,
 	}
 	wc := p.Web3Actions
-	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL != "" && !p.SimMode {
-		wc = web3_actions.NewWeb3ActionsClientWithAccount(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.Account)
-	}
 	ctx := context.Background()
 	resp, err := wc.CallConstantFunction(ctx, scInfo)
 	if err != nil {
@@ -153,6 +148,8 @@ func (p *UniswapV3Pair) GetTickFromContract(tickNum int) (entities.Tick, error) 
 	return tick, nil
 }
 
+var tickLensAbi = artemis_oly_contract_abis.MustLoadTickLensAbi()
+
 func (p *UniswapV3Pair) GetPopulatedTicksMap() ([]entities.Tick, error) {
 	if p.Fee == 0 {
 		p.Fee = constants.FeeMedium
@@ -160,15 +157,12 @@ func (p *UniswapV3Pair) GetPopulatedTicksMap() ([]entities.Tick, error) {
 	scInfo := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: TickLensAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       artemis_oly_contract_abis.MustLoadTickLensAbi(),
+		ContractABI:       tickLensAbi,
 		MethodName:        getPopulatedTicksInWord,
 		Params:            []interface{}{accounts.HexToAddress(p.PoolAddress), GetTickBitmapIndex(new(big.Int).SetInt64(int64(p.Slot0.Tick)), int64(constants.TickSpacings[p.Fee]))},
 	}
 	var ticksSlice []entities.Tick
 	wc := p.Web3Actions
-	if artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL != "" && !p.SimMode {
-		wc = web3_actions.NewWeb3ActionsClientWithAccount(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeHistoricalPrimary.Account)
-	}
 	ctx := context.Background()
 	resp, err := wc.CallConstantFunction(ctx, scInfo)
 	if err != nil {

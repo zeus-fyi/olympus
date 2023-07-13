@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
@@ -62,7 +61,7 @@ func (p *UniswapV3Pair) PricingData(ctx context.Context, path artemis_trading_ty
 	val, ok := Cache.Get(hs)
 	if ok && val != nil {
 		if assertedVal, tok := val.(*UniswapV3Pair); tok {
-			log.Info().Interface("bn", bn).Interface("pair", p.PoolAddress).Msg("found v3 pair in cache")
+			//log.Info().Interface("bn", bn).Interface("pair", assertedVal.PoolAddress).Msg("found v3 pair in cache")
 			p.PoolAddress = assertedVal.PoolAddress
 			p.Fee = assertedVal.Fee
 			p.Slot0 = assertedVal.Slot0

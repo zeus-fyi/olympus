@@ -32,6 +32,7 @@ var wc = web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumM
 func GetLatestBlock(ctx context.Context) (uint64, error) {
 	val, ok := Cache.Get("block_number")
 	if ok && val != nil {
+		log.Info().Interface("val", val).Msg("got block number from cache")
 		return val.(uint64), nil
 	}
 	wc.Dial()

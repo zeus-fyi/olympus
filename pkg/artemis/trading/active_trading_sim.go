@@ -23,7 +23,7 @@ func (a *ActiveTrading) SimToPackageTxBundles(ctx context.Context, tfSlide []web
 	for _, tf := range tfSlide {
 		tfConv := tf.ConvertToBigIntType()
 		if tf.FrontRunTrade.AmountInAddr.String() != artemis_trading_constants.WETH9ContractAddressAccount.String() {
-			return errors.New("profit token is not WETH")
+			return errors.New("SimToPackageTxBundles: profit token is not WETH")
 		}
 		err := a.SimToPackageTxBundle(ctx, &tfConv, bypassSim)
 		if err != nil {
@@ -43,12 +43,12 @@ func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_clien
 		// TODO set hardhat to live network
 		err := a.setupCleanSimEnvironment(ctx, tf)
 		if err != nil {
-			log.Err(err).Msg("failed to setup clean sim environment")
+			log.Err(err).Msg("SimToPackageTxBundle: failed to setup clean sim environment")
 			return err
 		}
 		err = a.simW3c().MatchFrontRunTradeValues(tf)
 		if err != nil {
-			log.Err(err).Msg("failed to match front run trade values")
+			log.Err(err).Msg("SimToPackageTxBundle: failed to match front run trade values")
 			return err
 		}
 	}
@@ -63,12 +63,12 @@ func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_clien
 		ur, err := a.simAuxUtils().GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.FrontRunTrade)
 		if err != nil {
 			fmt.Println("failed to generate trade", ur.Commands)
-			log.Err(err).Msg("failed to generate trade")
+			log.Err(err).Msg("SimToPackageTxBundle: failed to generate trade")
 			return err
 		}
 		_, err = a.simAuxUtils().U.ExecUniswapUniversalRouterCmd(*ur)
 		if err != nil {
-			log.Err(err).Msg("failed to execute trade")
+			log.Err(err).Msg("SimToPackageTxBundle: failed to execute trade")
 			return err
 		}
 
@@ -83,7 +83,7 @@ func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_clien
 	if !bypassSim {
 		err = a.simW3c().SendImpersonatedTx(ctx, tf.Tx)
 		if err != nil {
-			log.Err(err).Msg("failed to send impersonated tx")
+			log.Err(err).Msg("SimToPackageTxBundle: failed to send impersonated tx")
 			return err
 		}
 	}
@@ -103,7 +103,7 @@ func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_clien
 	} else {
 		ur, serr := a.simAuxUtils().GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.SandwichTrade)
 		if serr != nil {
-			fmt.Println("failed to generate trade", ur.Commands)
+			fmt.Println("SimToPackageTxBundle: failed to generate trade", ur.Commands)
 			log.Err(serr).Msg("failed to generate trade")
 			return serr
 		}

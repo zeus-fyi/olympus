@@ -66,7 +66,7 @@ func GetLatestBlock(ctx context.Context) (uint64, error) {
 		log.Err(berr).Msg("failed to get block number")
 		return 0, berr
 	}
-	log.Info().Interface("bn", bn).Msg("set block number in cache")
+	//log.Info().Interface("bn", bn).Msg("set block number in cache")
 	Cache.Set("block_number", bn, 12*time.Second)
 	return bn, nil
 }

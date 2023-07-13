@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/patrickmn/go-cache"
+	"github.com/rs/zerolog/log"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/utils"
@@ -37,6 +38,7 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 
 	tag := strings.Join([]string{fmt.Sprintf("%s", p.PairContractAddr), fmt.Sprintf("%d", bn)}, "-")
 	if cached, found := Cache.Get(tag); found {
+		log.Info().Msgf("Found cached pair %s", tag)
 		pair := cached.(UniswapV2Pair)
 		p.Reserve0 = pair.Reserve0
 		p.Reserve1 = pair.Reserve1

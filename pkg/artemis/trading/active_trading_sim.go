@@ -35,6 +35,7 @@ func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_clien
 	}
 	bundle := &artemis_flashbots.MevTxBundle{}
 	if !bypassSim {
+		a.simAuxUtils().U.Web3Client.AddSessionLockHeader(tf.Tx.Hash().String())
 		// TODO set hardhat to live network
 		err := a.setupCleanSimEnvironment(ctx, tf)
 		if err != nil {

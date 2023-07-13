@@ -44,6 +44,8 @@ func createSimClient() web3_client.Web3Client {
 func NewActiveTradingModuleWithoutMetrics(a *artemis_trading_auxiliary.AuxiliaryTradingUtils) ActiveTrading {
 	ctx := context.Background()
 	us := web3_client.InitUniswapClient(ctx, createSimClient())
+	us.Web3Client.IsAnvilNode = true
+	us.Web3Client.DurableExecution = true
 	auxSim := artemis_trading_auxiliary.InitAuxiliaryTradingUtils(ctx, us.Web3Client)
 	auxSimTrader := ActiveTrading{
 		a: &auxSim,
@@ -54,6 +56,8 @@ func NewActiveTradingModuleWithoutMetrics(a *artemis_trading_auxiliary.Auxiliary
 func NewActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, tm *metrics_trading.TradingMetrics) ActiveTrading {
 	ctx := context.Background()
 	us := web3_client.InitUniswapClient(ctx, createSimClient())
+	us.Web3Client.IsAnvilNode = true
+	us.Web3Client.DurableExecution = true
 	auxSim := artemis_trading_auxiliary.InitAuxiliaryTradingUtils(ctx, us.Web3Client)
 	auxSimTrader := ActiveTrading{
 		a: &auxSim,

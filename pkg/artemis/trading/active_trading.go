@@ -106,6 +106,7 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	if err != nil {
 		return err
 	}
+	log.Info().Msg("starting simulation")
 	err = a.SimToPackageTxBundles(ctx, tfSlice, false)
 	if err != nil {
 		return err
@@ -115,11 +116,13 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) err
 	if err != nil {
 		return err
 	}
+	log.Info().Msg("preparing bundles for submission")
 	a.GetMetricsClient().StageProgressionMetrics.CountPostActiveTradingFilter(float64(len(tfSlice)))
 	err = a.ProcessBundleStage(ctx, tfSlice)
 	if err != nil {
 		return err
 	}
+	log.Info().Msg("bundles successfully sent")
 	a.GetMetricsClient().StageProgressionMetrics.CountSentFlashbotsBundleSubmission(float64(len(tfSlice)))
 	return err
 }

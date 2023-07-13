@@ -86,6 +86,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	log.Info().Msgf("Artemis InitMevWorkers: %s temporal auth and init procedure succeeded", env)
 
 	log.Info().Msgf("Artemis %s init flashbots client", env)
+	artemis_trading_cache.InitWeb3Client()
 	athena.AthenaS3Manager = auth_startup.NewDigitalOceanS3AuthClient(ctx, authKeysCfg)
 	age := encryption.NewAge(authKeysCfg.AgePrivKey, authKeysCfg.AgePubKey)
 	artemis_trade_executor.InitMainnetAuxiliaryTradingUtils(ctx, age)

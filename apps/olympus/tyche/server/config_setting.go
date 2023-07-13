@@ -85,8 +85,8 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	log.Info().Msg("Tyche: InitFlashbots starting")
 	age := encryption.NewAge(authKeysCfg.AgePrivKey, authKeysCfg.AgePubKey)
 	tyche_metrics.InitTycheMetrics(ctx)
+	artemis_trading_cache.InitWeb3Client()
 	artemis_trade_executor.InitMainnetAuxiliaryTradingUtils(ctx, age)
 	artemis_trade_executor.InitGoerliAuxiliaryTradingUtils(ctx, age)
 	log.Info().Msg("Tyche: InitFlashbots succeeded")
-
 }

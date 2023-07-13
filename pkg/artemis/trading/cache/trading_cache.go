@@ -17,6 +17,7 @@ import (
 var (
 	TokenMap map[string]artemis_autogen_bases.Erc20TokenInfo
 	Cache    = cache.New(12*time.Second, 4*time.Second)
+	wc       web3_actions.Web3Actions
 )
 
 func InitTokenFilter(ctx context.Context) {
@@ -27,7 +28,9 @@ func InitTokenFilter(ctx context.Context) {
 	TokenMap = tm
 }
 
-var wc = web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
+func InitWeb3Client() {
+	wc = web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
+}
 
 func GetLatestBlockFromCacheOrProvidedSource(ctx context.Context, w3 web3_actions.Web3Actions) (uint64, error) {
 	if wc.NodeURL != "" {

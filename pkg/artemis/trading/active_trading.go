@@ -91,6 +91,7 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 	a.GetMetricsClient().StageProgressionMetrics.CountPostDecodeTx()
 	tfSlice, err := a.ProcessTxs(ctx)
 	if err != nil {
+		log.Err(err).Msg("failed to pass process txs")
 		return ErrWrapper{Err: err, Stage: "ProcessTxs"}
 	}
 	if len(tfSlice) <= 0 {

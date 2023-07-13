@@ -8,6 +8,7 @@ import (
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -62,6 +63,11 @@ func (a *ActiveTrading) ProcessTxs(ctx context.Context) ([]web3_client.TradeExec
 			return nil, err
 		}
 		chainID := baseTx.ChainId().Int64()
+		if tf.UserTrade.AmountInAddr.String() == artemis_trading_constants.WETH9ContractAddressAccount.String() {
+			if tf.SandwichPrediction.ExpectedProfit != "0" {
+				log.Info().Msgf("ActiveTrading: EntryTxFilter, WETH9ContractAddressAccount, expected profit: %s, amountOutAddr %s", tf.SandwichPrediction.ExpectedProfit, tf.FrontRunTrade.AmountOutAddr.String())
+			}
+		}
 		err = CheckTokenRegistry(ctx, tf.UserTrade.AmountInAddr.String(), chainID)
 		if err != nil {
 			log.Err(err).Msg("ActiveTrading: EntryTxFilter, CheckTokenRegistry")

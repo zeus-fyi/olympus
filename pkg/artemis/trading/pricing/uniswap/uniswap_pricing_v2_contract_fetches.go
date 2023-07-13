@@ -2,8 +2,12 @@ package artemis_uniswap_pricing
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
+	"github.com/patrickmn/go-cache"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/utils"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
@@ -12,7 +16,11 @@ const (
 	getReserves = "getReserves"
 )
 
-var v2ABI = artemis_oly_contract_abis.MustLoadUniswapV2PairAbi()
+var (
+	v2ABI = artemis_oly_contract_abis.MustLoadUniswapV2PairAbi()
+	Cache = cache.New(cache.NoExpiration, cache.NoExpiration)
+	// blockNumber + pairAddr -> UniswapV2Pair
+)
 
 func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *UniswapV2Pair) error {
 	scInfo := &web3_actions.SendContractTxPayload{
@@ -21,11 +29,22 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 		ContractABI:       v2ABI,
 	}
 	scInfo.MethodName = getReserves
-	resp, err := wc.CallConstantFunction(ctx, scInfo)
+
+	bn, err := artemis_trading_cache.GetLatestBlock(ctx)
 	if err != nil {
 		return err
 	}
-	if len(resp) <= 2 {
+
+	tag := strings.Join([]string{fmt.Sprintf("%s", p.PairContractAddr), fmt.Sprintf("%d", bn)}, "-")
+	if cached, found := Cache.Get(tag); found {
+		pair := cached.(UniswapV2Pair)
+		p.Reserve0 = pair.Reserve0
+		p.Reserve1 = pair.Reserve1
+		p.BlockTimestampLast = pair.BlockTimestampLast
+		return nil
+	}
+	resp, err := wc.CallConstantFunction(ctx, scInfo)
+	if err != nil {
 		return err
 	}
 	reserve0, err := artemis_utils.ParseBigInt(resp[0])
@@ -43,5 +62,10 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 		return err
 	}
 	p.BlockTimestampLast = blockTimestampLast
+
+	Cache.Set(tag, *p, cache.NoExpiration)
+	if len(resp) <= 2 {
+		return err
+	}
 	return nil
 }

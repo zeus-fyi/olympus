@@ -6,11 +6,10 @@ import (
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
-	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
-	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
+	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -41,6 +40,7 @@ func createSimClient() web3_client.Web3Client {
 	sw3c.AddBearerToken(artemis_orchestration_auth.Bearer)
 	return sw3c
 }
+
 func NewActiveTradingModuleWithoutMetrics(a *artemis_trading_auxiliary.AuxiliaryTradingUtils) ActiveTrading {
 	ctx := context.Background()
 	us := web3_client.InitUniswapClient(ctx, createSimClient())
@@ -63,6 +63,8 @@ func NewActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, 
 		a: &auxSim,
 	}
 	at := ActiveTrading{a: a, us: &auxSimTrader, m: tm}
+
+	go artemis_trading_cache.SetActiveTradingBlockCache(ctx)
 	return at
 }
 
@@ -103,15 +105,10 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 		return ErrWrapper{Err: errors.New("SimTxFilter: no tx flows to simulate"), Stage: "SimTxFilter"}
 	}
 	a.GetMetricsClient().StageProgressionMetrics.CountPostSimFilterTx(float64(1))
-	// todo refactor this
-	wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
-	wc.Dial()
-	bn, berr := wc.C.BlockNumber(ctx)
-	if berr != nil {
-		log.Err(berr).Msg("failed to get block number")
-		return ErrWrapper{Err: berr, Stage: "SaveMempoolTx"}
+	bn, err := artemis_trading_cache.GetLatestBlock(ctx)
+	if err != nil {
+		return ErrWrapper{Err: err, Stage: "GetLatestBlock"}
 	}
-	wc.Close()
 	err = a.SaveMempoolTx(ctx, bn, tfSlice)
 	if err != nil {
 		return ErrWrapper{Err: err, Stage: "SaveMempoolTx"}

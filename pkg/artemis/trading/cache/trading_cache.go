@@ -39,6 +39,10 @@ func GetLatestBlockFromCacheOrProvidedSource(ctx context.Context, w3 web3_action
 		log.Info().Interface("w3_sessionID", w3SessionHeader).Msg("same session lock header, using cache")
 		return GetLatestBlock(ctx)
 	}
+	if wc.NodeURL != "" && w3SessionHeader == wcSessionHeader && len(wcSessionHeader) == 0 {
+		log.Info().Interface("w3_sessionID", w3SessionHeader).Msg("same empty session lock header, using cache")
+		return GetLatestBlock(ctx)
+	}
 	log.Info().Str("w3_sessionID", w3SessionHeader).Str("wc_sessionID", wcSessionHeader).Msg("different session lock header, using provided source")
 	w3.Dial()
 	defer w3.Close()

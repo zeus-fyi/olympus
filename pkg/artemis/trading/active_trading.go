@@ -48,16 +48,13 @@ func createExtSimClient() web3_client.Web3Client {
 	return sw3c
 }
 
-func NewActiveTradingDebugger(a *artemis_trading_auxiliary.AuxiliaryTradingUtils) ActiveTrading {
+func NewActiveTradingDebugger(usc *web3_client.UniswapClient) ActiveTrading {
 	ctx := context.Background()
-	us := web3_client.InitUniswapClient(ctx, createExtSimClient())
-	us.Web3Client.IsAnvilNode = true
-	us.Web3Client.DurableExecution = false
-	auxSim := artemis_trading_auxiliary.InitAuxiliaryTradingUtils(ctx, us.Web3Client)
+	auxSim := artemis_trading_auxiliary.InitAuxiliaryTradingUtilsFromUni(ctx, usc)
 	auxSimTrader := ActiveTrading{
 		a: &auxSim,
 	}
-	return ActiveTrading{a: a, us: &auxSimTrader}
+	return ActiveTrading{us: &auxSimTrader}
 }
 
 func NewActiveTradingModuleWithoutMetrics(a *artemis_trading_auxiliary.AuxiliaryTradingUtils) ActiveTrading {

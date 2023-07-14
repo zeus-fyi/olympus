@@ -55,6 +55,14 @@ func (m *MevTxGroup) GetHexEncodedTxs() []*types.Transaction {
 	return txSlice
 }
 
+func InitAuxiliaryTradingUtilsFromUni(ctx context.Context, uni *web3_client.UniswapClient) AuxiliaryTradingUtils {
+	fba := artemis_flashbots.InitFlashbotsClient(ctx, &uni.Web3Client.Web3Actions)
+	return AuxiliaryTradingUtils{
+		U: uni,
+		f: fba,
+	}
+}
+
 func InitAuxiliaryTradingUtils(ctx context.Context, wa web3_client.Web3Client) AuxiliaryTradingUtils {
 	uni := web3_client.InitUniswapClient(ctx, wa)
 	fba := artemis_flashbots.InitFlashbotsClient(ctx, &wa.Web3Actions)

@@ -13,6 +13,10 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
+const (
+	ZeusTestSessionLockHeaderValue = "Zeus-Test"
+)
+
 func (t *TradeDebugger) ResetAndSetupPreconditions(ctx context.Context, tf web3_client.TradeExecutionFlow) error {
 	err := t.resetNetwork(ctx, tf)
 	if err != nil {
@@ -38,7 +42,7 @@ func (t *TradeDebugger) resetNetwork(ctx context.Context, tf web3_client.TradeEx
 		return fmt.Errorf("current block number is nil")
 	}
 
-	t.dat.GetSimUniswapClient().Web3Client.AddSessionLockHeader(tf.Tx.Hash().String())
+	t.dat.GetSimUniswapClient().Web3Client.AddSessionLockHeader(ZeusTestSessionLockHeaderValue)
 	bn, err := t.dat.GetSimUniswapClient().CheckBlockRxAndNetworkReset(ctx, &tf)
 	if err != nil {
 		log.Err(err).Interface("blockNum", bn).Msg("error checking block and network reset")
@@ -71,7 +75,7 @@ func (t *TradeDebugger) setupCleanEnvironment(ctx context.Context, tf web3_clien
 	if tf.Tx == nil {
 		return fmt.Errorf("tx is nil")
 	}
-	t.dat.SimW3c().AddSessionLockHeader(tf.Tx.Hash().String())
+	t.dat.SimW3c().AddSessionLockHeader(ZeusTestSessionLockHeaderValue)
 	t.dat.SimW3c().Account = acc
 	t.dat.SimW3c().Dial()
 	defer t.dat.SimW3c().Close()

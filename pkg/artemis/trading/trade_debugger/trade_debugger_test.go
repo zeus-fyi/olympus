@@ -7,9 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_realtime_trading "github.com/zeus-fyi/olympus/pkg/artemis/trading"
-	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
 	artemis_trading_test_suite "github.com/zeus-fyi/olympus/pkg/artemis/trading/test_suite"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
@@ -24,17 +22,15 @@ var ctx = context.Background()
 func (t *ArtemisTradeDebuggerTestSuite) SetupTest() {
 	t.ArtemisTradingTestSuite.SetupTest()
 	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)
+	t.ProxiedMainnetUser.AddBearerToken(t.Tc.ProductionLocalTemporalBearerToken)
 	uni := web3_client.InitUniswapClient(ctx, t.ProxiedMainnetUser)
 	uni.PrintOn = true
-	uni.PrintLocal = false
-	uni.DebugPrint = true
+	uni.PrintLocal = true
 	uni.Web3Client.IsAnvilNode = true
 	uni.Web3Client.DurableExecution = false
-	a := artemis_trading_auxiliary.AuxiliaryTradingUtils{
-		U: &uni,
-	}
-	artemis_orchestration_auth.Bearer = t.Tc.ProductionLocalTemporalBearerToken
-	at := artemis_realtime_trading.NewActiveTradingDebugger(&a)
+	uni.DebugPrint = true
+
+	at := artemis_realtime_trading.NewActiveTradingDebugger(&uni)
 	td := NewTradeDebugger(at, t.MainnetWeb3User)
 	t.Require().NotEmpty(td)
 	t.td = td

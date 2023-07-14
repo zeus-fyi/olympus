@@ -14,25 +14,48 @@ var ts chronos.Chronos
 
 func (s *IrisTestSuite) TestInsertOrgRoute() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
-	or := iris_autogen_bases.OrgRoutes{
-		RouteID:   ts.UnixTimeStampNow(),
-		OrgID:     s.Tc.ProductionLocalTemporalOrgID,
-		RoutePath: "https://zeus.fyi/iris/test/route1",
+	for _, u := range s.Tc.QuikNodeURLS.Routes {
+		or := iris_autogen_bases.OrgRoutes{
+			RouteID:   ts.UnixTimeStampNow(),
+			OrgID:     s.Tc.ProductionLocalTemporalOrgID,
+			RoutePath: u,
+		}
+		err := InsertOrgRoute(ctx, or)
+		s.Require().Nil(err)
 	}
-	err := InsertOrgRoute(ctx, or)
-	s.Require().Nil(err)
 }
 
 func (s *IrisTestSuite) TestInsertOrgRouteGroup() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ogr := iris_autogen_bases.OrgRouteGroups{
-		RouteGroupID:   0,
+		RouteGroupID:   100,
 		OrgID:          s.Tc.ProductionLocalTemporalOrgID,
-		RouteGroupName: "test",
+		RouteGroupName: "quiknode-mainnet",
 	}
 	err := InsertOrgRouteGroup(ctx, ogr)
 	s.Require().Nil(err)
 }
+func (s *IrisTestSuite) TestInsertOrgRouteQuiknode() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+
+	groupID := 100
+	for _, u := range s.Tc.QuikNodeURLS.Routes {
+		or := iris_autogen_bases.OrgRoutes{
+			RouteID:   ts.UnixTimeStampNow(),
+			OrgID:     s.Tc.ProductionLocalTemporalOrgID,
+			RoutePath: u,
+		}
+		err := InsertOrgRoute(ctx, or)
+		s.Require().Nil(err)
+		group := iris_autogen_bases.OrgRoutesGroups{
+			RouteGroupID: groupID,
+			RouteID:      or.RouteID,
+		}
+		err = InsertOrgRoutesGroups(ctx, group)
+		s.Require().Nil(err)
+	}
+}
+
 func (s *IrisTestSuite) TestInsertOrgRoutesToGroup() {
 	or := iris_autogen_bases.OrgRoutesGroups{
 		RouteGroupID: 0,
@@ -63,7 +86,7 @@ func (s *IrisTestSuite) TestSelectOrgRoutes() {
 }
 
 func (s *IrisTestSuite) TestSelectAllOrgRoutes() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 
 	routes, err := SelectAllOrgRoutes(ctx)
 	s.Require().Nil(err)

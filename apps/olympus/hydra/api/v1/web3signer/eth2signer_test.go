@@ -2,9 +2,10 @@ package hydra_eth2_web3signer
 
 import (
 	"fmt"
-	"github.com/status-im/keycard-go/hexutils"
-	bls_signer "github.com/zeus-fyi/zeus/pkg/crypto/bls"
 	"testing"
+
+	"github.com/status-im/keycard-go/hexutils"
+	bls_signer "github.com/zeus-fyi/zeus/pkg/aegis/crypto/bls"
 
 	"github.com/google/uuid"
 	"github.com/patrickmn/go-cache"

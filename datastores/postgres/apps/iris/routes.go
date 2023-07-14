@@ -69,3 +69,28 @@ func SelectOrgRoutes(ctx context.Context, orgID int) (iris_autogen_bases.OrgRout
 	}
 	return routes, misc.ReturnIfErr(err, q.LogHeader("SelectOrgRoutes"))
 }
+
+func SelectAllOrgRoutes(ctx context.Context) (iris_autogen_bases.OrgRoutesSlice, error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT route_id, org_id, route_path
+				  FROM org_routes`
+
+	var routes iris_autogen_bases.OrgRoutesSlice
+	rows, err := apps.Pg.Query(ctx, q.RawQuery)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SelectOrgRoutes")); returnErr != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var route iris_autogen_bases.OrgRoutes
+		rowErr := rows.Scan(
+			&route.RouteID, &route.OrgID, &route.RoutePath,
+		)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader("SelectOrgRoutes"))
+			return nil, rowErr
+		}
+		routes = append(routes, route)
+	}
+	return routes, misc.ReturnIfErr(err, q.LogHeader("SelectOrgRoutes"))
+}

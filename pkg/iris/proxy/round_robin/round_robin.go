@@ -1,9 +1,11 @@
 package iris_round_robin
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/patrickmn/go-cache"
+	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 )
 
 var (
@@ -35,4 +37,14 @@ func SetRouteTable(orgID int, rgName string, routeTable []string) {
 	tag := orgRouteTag(orgID, rgName)
 	RoundRobinCache.Set(rgName, 0, cache.DefaultExpiration)
 	RoundRobinRouteTable.Set(tag, routeTable, cache.NoExpiration)
+}
+
+func InitRoutingTables(ctx context.Context) {
+	ot, err := iris_models.SelectAllOrgRoutes(ctx)
+	if err != nil {
+		panic(err)
+	}
+	for _, o := range ot {
+		fmt.Println(o.RouteID)
+	}
 }

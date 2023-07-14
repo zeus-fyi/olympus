@@ -21,6 +21,24 @@ func (s *IrisTestSuite) TestInsertOrgRoute() {
 	s.Require().Nil(err)
 }
 
+func (s *IrisTestSuite) TestInsertOrgRouteGroup() {
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	ogr := iris_autogen_bases.OrgRouteGroups{
+		RouteGroupID:   0,
+		OrgID:          0,
+		RouteGroupName: "",
+	}
+	err := InsertOrgRouteGroup(ctx, ogr)
+	s.Require().Nil(err)
+
+	or := iris_autogen_bases.OrgRoutesGroups{
+		RouteGroupID: 0,
+		RouteID:      0,
+	}
+	err = InsertOrgRoutesGroups(ctx, or)
+	s.Require().Nil(err)
+}
+
 func (s *IrisTestSuite) TestSelectOrgRoutes() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 

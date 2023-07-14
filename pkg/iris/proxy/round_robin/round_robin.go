@@ -44,7 +44,9 @@ func InitRoutingTables(ctx context.Context) {
 	if err != nil {
 		panic(err)
 	}
-	for _, o := range ot {
-		fmt.Println(o.RouteID)
+	for orgID, og := range ot.Map {
+		for rgName, routeTable := range og {
+			SetRouteTable(orgID, rgName, routeTable)
+		}
 	}
 }

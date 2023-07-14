@@ -39,6 +39,14 @@ func (s *IrisTestSuite) TestInsertOrgRouteGroup() {
 	s.Require().Nil(err)
 }
 
+func (s *IrisTestSuite) TestSelectAllOrgRoutes() {
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+
+	routes, err := SelectAllOrgRoutes(ctx)
+	s.Require().Nil(err)
+	s.Require().NotNil(routes)
+}
+
 func (s *IrisTestSuite) TestSelectOrgRoutes() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 

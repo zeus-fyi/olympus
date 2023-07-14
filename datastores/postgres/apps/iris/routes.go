@@ -70,27 +70,47 @@ func SelectOrgRoutes(ctx context.Context, orgID int) (iris_autogen_bases.OrgRout
 	return routes, misc.ReturnIfErr(err, q.LogHeader("SelectOrgRoutes"))
 }
 
-func SelectAllOrgRoutes(ctx context.Context) (iris_autogen_bases.OrgRoutesSlice, error) {
-	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `SELECT route_id, org_id, route_path
-				  FROM org_routes`
+// todo finish this
 
-	var routes iris_autogen_bases.OrgRoutesSlice
+type OrgRoutesGroup struct {
+	Map map[int]map[string][]string
+}
+
+func SelectAllOrgRoutes(ctx context.Context) (OrgRoutesGroup, error) {
+	og := OrgRoutesGroup{
+		Map: make(map[int]map[string][]string),
+	}
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT route_id, org_id, route_path, route_group_name
+				  FROM org_routes
+			      LEFT JOIN org_routes_groups orgr ON orgg.route_id = orgr.route_group_id
+				  INNER JOIN org_route_groups orgg ON orgr.route_group_id = orgg.route_group_id
+				  `
+
 	rows, err := apps.Pg.Query(ctx, q.RawQuery)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SelectOrgRoutes")); returnErr != nil {
-		return nil, err
+		return og, err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var route iris_autogen_bases.OrgRoutes
+		gn := ""
 		rowErr := rows.Scan(
-			&route.RouteID, &route.OrgID, &route.RoutePath,
+			&route.RouteID, &route.OrgID, &route.RoutePath, &gn,
 		)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader("SelectOrgRoutes"))
-			return nil, rowErr
+			return og, rowErr
 		}
-		routes = append(routes, route)
+		if _, ok := og.Map[route.OrgID]; !ok {
+			og.Map[route.OrgID] = make(map[string][]string)
+		}
+		if _, ok := og.Map[route.OrgID][gn]; !ok {
+			og.Map[route.OrgID][gn] = []string{}
+		}
+		tmp := og.Map[route.OrgID][gn]
+		tmp = append(tmp, route.RoutePath)
+		og.Map[route.OrgID][gn] = tmp
 	}
-	return routes, misc.ReturnIfErr(err, q.LogHeader("SelectOrgRoutes"))
+	return og, misc.ReturnIfErr(err, q.LogHeader("SelectOrgRoutes"))
 }

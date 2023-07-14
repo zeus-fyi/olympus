@@ -21,6 +21,15 @@ func (s *IrisRoundRobinTestSuite) SetupTest() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 }
 
+func (s *IrisRoundRobinTestSuite) TestInitRoutes() {
+	InitRoutingTables(ctx)
+	for i := 0; i < 10; i++ {
+		routeInfo, err := GetNextRoute(1, "test")
+		s.NoError(err)
+		fmt.Println(routeInfo)
+	}
+}
+
 func (s *IrisRoundRobinTestSuite) TestRoundRobin() {
 	SetRouteTable(1, "test", []string{"1", "2", "3"})
 	for i := 0; i < 10; i++ {

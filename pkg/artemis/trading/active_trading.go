@@ -125,16 +125,6 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 		return ErrWrapper{Err: errors.New("ProcessTxs: no tx flows to simulate"), Stage: "ProcessTxs"}
 	}
 	a.GetMetricsClient().StageProgressionMetrics.CountPostProcessTx(float64(1))
-	err = a.SimTxFilter(ctx, tfSlice)
-	if err != nil {
-		log.Err(err).Msg("failed to pass sim tx filter")
-		return ErrWrapper{Err: err, Stage: "SimTxFilter"}
-	}
-	if len(tfSlice) <= 0 {
-		return ErrWrapper{Err: errors.New("SimTxFilter: no tx flows to simulate"), Stage: "SimTxFilter"}
-	}
-	log.Info().Msg("saving mempool tx")
-	a.GetMetricsClient().StageProgressionMetrics.CountPostSimFilterTx(float64(1))
 	bn, err := artemis_trading_cache.GetLatestBlock(ctx)
 	if err != nil {
 		log.Err(err).Msg("failed to get latest block")
@@ -145,6 +135,17 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 		log.Err(err).Msg("failed to save mempool tx")
 		return ErrWrapper{Err: err, Stage: "SaveMempoolTx"}
 	}
+	err = a.SimTxFilter(ctx, tfSlice)
+	if err != nil {
+		log.Err(err).Msg("failed to pass sim tx filter")
+		return ErrWrapper{Err: err, Stage: "SimTxFilter"}
+	}
+	if len(tfSlice) <= 0 {
+		return ErrWrapper{Err: errors.New("SimTxFilter: no tx flows to simulate"), Stage: "SimTxFilter"}
+	}
+	log.Info().Msg("saving mempool tx")
+	a.GetMetricsClient().StageProgressionMetrics.CountPostSimFilterTx(float64(1))
+
 	log.Info().Msg("starting simulation")
 	err = a.SimToPackageTxBundles(ctx, tfSlice, false)
 	if err != nil {

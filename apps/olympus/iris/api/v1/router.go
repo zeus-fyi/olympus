@@ -39,6 +39,7 @@ func InitV1BetaInternalRoutes(e *echo.Echo) {
 			return key.PublicKeyVerified, err
 		},
 	}))
+	eg.POST("/router/group", InternalRoundRobinRequestHandler)
 	eg.POST("/", InternalBetaProxyRequestHandler)
 }
 

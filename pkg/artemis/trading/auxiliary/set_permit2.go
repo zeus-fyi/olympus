@@ -48,7 +48,7 @@ func (a *AuxiliaryTradingUtils) generatePermit2Approval(ctx context.Context, to 
 		log.Warn().Err(err).Msg("error getting permit2 nonce")
 		return web3_client.Permit2PermitParams{}, err
 	}
-	ptNonce := artemis_eth_units.NewBigInt(pt.NextPermit2Nonce)
+	ptNonce := artemis_eth_units.NewBigInt(pt.Nonce)
 	psp := web3_client.Permit2PermitParams{
 		PermitSingle: web3_client.PermitSingle{
 			PermitDetails: web3_client.PermitDetails{

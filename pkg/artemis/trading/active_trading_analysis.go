@@ -2,6 +2,8 @@ package artemis_realtime_trading
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -57,6 +59,12 @@ func (a *ActiveTrading) ProcessTxs(ctx context.Context) ([]web3_client.TradeExec
 		tfSlice = append(tfSlice, tf...)
 	}
 	for _, tf := range tfSlice {
+		key := fmt.Sprintf("%s-tf", tf.Tx.Hash)
+		_, ok := txCache.Get(key)
+		if ok {
+			log.Info().Msgf("dat: EntryTxFilter, tx already in cache, hash: %s", tf.Tx.Hash)
+			continue
+		}
 		baseTx, err := tf.Tx.ConvertToTx()
 		if err != nil {
 			log.Err(err).Msg("dat: EntryTxFilter, ConvertToTx")
@@ -80,6 +88,7 @@ func (a *ActiveTrading) ProcessTxs(ctx context.Context) ([]web3_client.TradeExec
 			log.Err(err).Msg("dat: EntryTxFilter, CheckTokenRegistry")
 			return nil, err
 		}
+		txCache.Set(key, tf, time.Hour*24)
 	}
 	return tfSlice, nil
 }

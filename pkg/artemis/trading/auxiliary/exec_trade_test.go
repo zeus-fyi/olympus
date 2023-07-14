@@ -36,6 +36,18 @@ func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeCallMainnetSim() (*web3_clien
 	return cmd, tx
 }
 
+func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeCallMainnetSimPepe() (*web3_client.UniversalRouterExecCmd, *types.Transaction) {
+	ta := t.simMainnetTrader
+	err := ta.setupCleanSimEnvironment(ctx)
+	t.Require().Nil(err)
+	cmd := t.testExecV2TradePepe(&ta)
+	tx, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
+	t.Require().Nil(err)
+	t.Require().NotEmpty(tx)
+	t.Require().NotNil(cmd.Deadline)
+	return cmd, tx
+}
+
 // todo add permit2 nonce getter from db method
 func (t *ArtemisAuxillaryTestSuite) testExecV2Trade(ta *AuxiliaryTradingUtils, network string) *web3_client.UniversalRouterExecCmd {
 	t.Require().NotEmpty(ta)
@@ -60,6 +72,61 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2Trade(ta *AuxiliaryTradingUtils, n
 		AmountIn:      toExchAmount,
 		AmountInAddr:  wethAddr,
 		AmountOutAddr: daiAddr,
+	}
+	path := []accounts.Address{to.AmountInAddr, to.AmountOutAddr}
+	prices, err := artemis_uniswap_pricing.V2PairToPrices(ctx, *ta.w3a(), path)
+	t.Require().Nil(err)
+	t.Require().NotEmpty(prices)
+	fmt.Println("testExecV2Trade: prices", prices.Reserve0.String(), prices.Reserve1.String())
+	amountOut, err := prices.GetQuoteUsingTokenAddr(to.AmountInAddr.String(), to.AmountIn)
+	t.Require().Nil(err)
+	t.Require().NotNil(amountOut)
+	fmt.Println("testExecV2Trade: amountOut", amountOut.String())
+	to.AmountOut = amountOut
+
+	cmd, err := ta.GenerateTradeV2SwapFromTokenToToken(ctx, nil, to)
+	t.Require().Nil(err)
+	t.Require().NotEmpty(cmd)
+	t.Require().Len(cmd.Commands, 2)
+	for i, sc := range cmd.Commands {
+		if i == 0 && sc.Command != artemis_trading_constants.Permit2Permit {
+			t.Fail("expected Permit2Permit")
+		}
+		if i == 0 && sc.Command == artemis_trading_constants.Permit2Permit {
+			t.Require().Equal(toExchAmount.String(), sc.DecodedInputs.(web3_client.Permit2PermitParams).Amount.String())
+			t.Require().Equal(wethAddr.String(), sc.DecodedInputs.(web3_client.Permit2PermitParams).Token.String())
+			t.Require().Equal(artemis_trading_constants.UniswapUniversalRouterAddressNew, sc.DecodedInputs.(web3_client.Permit2PermitParams).Spender.String())
+		}
+		if i == 1 && sc.Command != artemis_trading_constants.V2SwapExactIn {
+			t.Fail("expected V2SwapExactIn")
+		}
+		if i == 0 && sc.Command == artemis_trading_constants.V2SwapExactIn {
+			t.Require().Equal(toExchAmount.String(), sc.DecodedInputs.(web3_client.V2SwapExactInParams).AmountIn.String())
+			t.Require().Equal(to.AmountOut.String(), sc.DecodedInputs.(web3_client.V2SwapExactInParams).AmountOutMin.String())
+			t.Require().Equal(true, sc.DecodedInputs.(web3_client.V2SwapExactInParams).PayerIsSender)
+			t.Require().Equal(path, sc.DecodedInputs.(web3_client.V2SwapExactInParams).Path)
+			t.Require().NotEmpty(sc.DecodedInputs.(web3_client.V2SwapExactInParams).AmountOutMin)
+			t.Require().Equal(artemis_trading_constants.UniversalRouterSenderAddress, sc.DecodedInputs.(web3_client.V2SwapExactInParams).To.String())
+		}
+	}
+	return cmd
+}
+
+// todo add permit2 nonce getter from db method
+func (t *ArtemisAuxillaryTestSuite) testExecV2TradePepe(ta *AuxiliaryTradingUtils) *web3_client.UniversalRouterExecCmd {
+	t.Require().NotEmpty(ta)
+	toExchAmount := artemis_eth_units.GweiMultiple(10000)
+	wethAddr := ta.getChainSpecificWETH()
+	pepeAddr := artemis_trading_constants.PepeContractAddrAccount
+
+	t.Require().Equal(ta.network(), hestia_req_types.Mainnet)
+	t.Require().Equal(wethAddr, artemis_trading_constants.WETH9ContractAddressAccount)
+	t.Require().Equal(pepeAddr, artemis_trading_constants.PepeContractAddrAccount)
+
+	to := &artemis_trading_types.TradeOutcome{
+		AmountIn:      toExchAmount,
+		AmountInAddr:  wethAddr,
+		AmountOutAddr: pepeAddr,
 	}
 	path := []accounts.Address{to.AmountInAddr, to.AmountOutAddr}
 	prices, err := artemis_uniswap_pricing.V2PairToPrices(ctx, *ta.w3a(), path)

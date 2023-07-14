@@ -36,7 +36,7 @@ func InsertOrgRouteGroup(ctx context.Context, ogr iris_autogen_bases.OrgRouteGro
 func InsertOrgRoutesGroups(ctx context.Context, ors iris_autogen_bases.OrgRoutesGroups) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `INSERT INTO org_routes_groups(route_group_id,route_id)
-				  VALUES ($1, $2, $3)`
+				  VALUES ($1, $2)`
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, ors.RouteGroupID, ors.RouteID)
 	if err != nil {
 		return err
@@ -81,10 +81,10 @@ func SelectAllOrgRoutes(ctx context.Context) (OrgRoutesGroup, error) {
 		Map: make(map[int]map[string][]string),
 	}
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `SELECT route_id, org_id, route_path, route_group_name
-				  FROM org_routes
-			      LEFT JOIN org_routes_groups orgr ON orgg.route_id = orgr.route_group_id
-				  INNER JOIN org_route_groups orgg ON orgr.route_group_id = orgg.route_group_id
+	q.RawQuery = `SELECT o.route_group_name, o.org_id, org.route_path
+				  FROM org_route_groups o 
+				  INNER JOIN org_routes_groups orgrs ON orgrs.route_group_id = o.route_group_id
+				  LEFT JOIN org_routes org ON org.route_id = orgrs.route_id
 				  `
 
 	rows, err := apps.Pg.Query(ctx, q.RawQuery)
@@ -96,7 +96,7 @@ func SelectAllOrgRoutes(ctx context.Context) (OrgRoutesGroup, error) {
 		var route iris_autogen_bases.OrgRoutes
 		gn := ""
 		rowErr := rows.Scan(
-			&route.RouteID, &route.OrgID, &route.RoutePath, &gn,
+			&gn, &route.OrgID, &route.RoutePath,
 		)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader("SelectOrgRoutes"))

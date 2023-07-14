@@ -12,7 +12,10 @@ type ModelStructBaseGenWriterTestSuite struct {
 	ModelStructBaseGenTestSuite
 }
 
-var printOutLocationZeus = "/Users/alex/go/Olympus/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
+var (
+	printOutLocationZeus = "/Users/alex/go/Olympus/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
+	printOutLocationIris = "/Users/alex/go/Olympus/olympus/datastores/postgres/apps/iris/models/bases/autogen"
+)
 
 func (s *ModelStructBaseGenWriterTestSuite) TestPGBaseSchemaWriter() {
 	filter := string_utils.FilterOpts{

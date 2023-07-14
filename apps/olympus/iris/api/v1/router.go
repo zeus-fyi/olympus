@@ -40,6 +40,7 @@ func InitV1BetaInternalRoutes(e *echo.Echo) {
 		},
 	}))
 	eg.POST("/", InternalBetaProxyRequestHandler)
+	eg.POST("/:routeGroup", InternalRoundRobinRequestHandler)
 }
 
 func InitV1InternalRoutes(e *echo.Echo) {

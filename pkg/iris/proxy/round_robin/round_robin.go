@@ -15,20 +15,20 @@ func orgRouteTag(orgID int, rgName string) string {
 	return fmt.Sprintf("%d-%s", orgID, rgName)
 }
 
-func GetNextRoute(orgID int, rgName string) string {
+func GetNextRoute(orgID int, rgName string) (string, error) {
 	tag := orgRouteTag(orgID, rgName)
 	routeTable, ok := RoundRobinRouteTable.Get(tag)
 	if !ok {
-		panic("no route table found")
+		return "", fmt.Errorf("no route table found")
 	}
 	nr, ok := RoundRobinCache.Get(rgName)
 	if !ok {
-		panic("no route group found")
+		return "", fmt.Errorf("no route group found")
 	}
 	nr = (nr.(int) + 1) % len(routeTable.([]string))
 	RoundRobinCache.Set(rgName, nr, cache.DefaultExpiration)
 	nextRoute := routeTable.([]string)[nr.(int)]
-	return nextRoute
+	return nextRoute, nil
 }
 
 func SetRouteTable(orgID int, rgName string, routeTable []string) {

@@ -20,7 +20,7 @@ func (a *AuxiliaryTradingUtils) addPermit2Ctx(ctx context.Context) context.Conte
 }
 
 func (a *AuxiliaryTradingUtils) SetPermit2ApprovalForToken(ctx context.Context, address string) (*types.Transaction, error) {
-	tx, err := a.getWeb3Client().ApprovePermit2(ctx, address)
+	tx, err := a.w3c().ApprovePermit2(ctx, address)
 	if err != nil {
 		log.Err(err).Msg("error approving permit2")
 		return tx, err

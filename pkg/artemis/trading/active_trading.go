@@ -132,7 +132,7 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 	}
 	err = a.SaveMempoolTx(ctx, bn, tfSlice)
 	if err != nil {
-		log.Err(err).Msg("failed to pass sim tx filter")
+		log.Err(err).Msg("failed to save mempool tx")
 		return ErrWrapper{Err: err, Stage: "SaveMempoolTx"}
 	}
 	log.Info().Msg("starting simulation")

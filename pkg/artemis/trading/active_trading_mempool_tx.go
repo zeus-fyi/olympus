@@ -44,6 +44,7 @@ func (a *ActiveTrading) SaveMempoolTx(ctx context.Context, bn uint64, tfSlice []
 
 		txStr, terr := json.Marshal(tradeFlow.Tx)
 		if terr != nil {
+			log.Err(terr).Msg("failed to marshal tx")
 			return terr
 		}
 		txMempool := artemis_autogen_bases.EthMempoolMevTx{
@@ -61,7 +62,7 @@ func (a *ActiveTrading) SaveMempoolTx(ctx context.Context, bn uint64, tfSlice []
 			log.Err(err).Msg("failed to insert mempool tx")
 			return err
 		}
-		a.m.StageProgressionMetrics.CountSavedMempoolTx(float64(1))
+		a.GetMetricsClient().StageProgressionMetrics.CountSavedMempoolTx(float64(1))
 	}
 	return nil
 }

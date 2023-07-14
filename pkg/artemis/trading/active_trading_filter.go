@@ -3,13 +3,11 @@ package artemis_realtime_trading
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
-	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -24,9 +22,6 @@ import (
 func (a *ActiveTrading) EntryTxFilter(ctx context.Context, tx *types.Transaction) error {
 	if tx.To() == nil {
 		return errors.New("dat: EntryTxFilter, tx.To() is nil")
-	}
-	if tx.ChainId() == nil {
-		return errors.New("dat: EntryTxFilter, tx.ChainId() is nil")
 	}
 	return nil
 }
@@ -69,21 +64,21 @@ func (a *ActiveTrading) ActiveTradingFilter(ctx context.Context, tf web3_client.
 		log.Err(err).Msg("dat: ActiveTradingFilter: profit token not acceptable")
 		return err
 	}
-	ok, err := a.GetAuxClient().IsTradingEnabledOnToken(tf.UserTrade.AmountOutAddr.String())
-	if err != nil {
-		log.Err(err).Msg("dat: ActiveTradingFilter: trading not enabled for token")
-		return err
-	}
-	if !ok {
-		return fmt.Errorf("dat: ActiveTradingFilter: trading not enabled for token")
-	}
-	switch tf.Trade.TradeMethod {
-	case artemis_trading_constants.SwapExactTokensForTokens:
-	case artemis_trading_constants.SwapExactTokensForETHSupportingFeeOnTransferTokens:
-	case artemis_trading_constants.V2SwapExactIn, artemis_trading_constants.V2SwapExactOut:
-	default:
-		return fmt.Errorf("dat: ActiveTradingFilter: %s method not supported for now", tf.Trade.TradeMethod)
-	}
+	//ok, err := a.GetAuxClient().IsTradingEnabledOnToken(tf.UserTrade.AmountOutAddr.String())
+	//if err != nil {
+	//	log.Err(err).Msg("dat: ActiveTradingFilter: trading not enabled for token")
+	//	return err
+	//}
+	//if !ok {
+	//	return fmt.Errorf("dat: ActiveTradingFilter: trading not enabled for token")
+	//}
+	//switch tf.Trade.TradeMethod {
+	//case artemis_trading_constants.SwapExactTokensForTokens:
+	//case artemis_trading_constants.SwapExactTokensForETHSupportingFeeOnTransferTokens:
+	//case artemis_trading_constants.V2SwapExactIn, artemis_trading_constants.V2SwapExactOut:
+	//default:
+	//	return fmt.Errorf("dat: ActiveTradingFilter: %s method not supported for now", tf.Trade.TradeMethod)
+	//}
 
 	return nil
 }

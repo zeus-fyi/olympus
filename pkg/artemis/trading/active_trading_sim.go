@@ -37,6 +37,7 @@ func (a *ActiveTrading) SimToPackageTxBundles(ctx context.Context, tfSlide []web
 }
 
 func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_client.TradeExecutionFlow, bypassSim bool) error {
+	log.Info().Msg("SimToPackageTxBundle: starting")
 	if tf == nil {
 		return errors.New("tf is nil")
 	}

@@ -8,6 +8,8 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
 
+// todo add routes to db for beacon node lb
+
 var ts chronos.Chronos
 
 func (s *IrisTestSuite) TestInsertOrgRoute() {

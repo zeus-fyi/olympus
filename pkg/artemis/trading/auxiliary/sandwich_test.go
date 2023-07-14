@@ -50,7 +50,7 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() *AuxiliaryTradingUt
 
 	ctx = context.Background()
 	// part 3 of bundle
-	cmd = t.testExecV2Trade(&ta)
+	cmd = t.testExecV2Trade(&ta, hestia_req_types.Goerli)
 	ctx = ta.CreateBackRunCtx(ctx)
 	fmt.Println("mainTraderAddr", ta.w3a().Address().String())
 	tx, err = ta.universalRouterCmdToTxBuilder(ctx, cmd)

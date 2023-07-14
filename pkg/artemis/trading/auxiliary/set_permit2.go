@@ -20,7 +20,7 @@ func (a *AuxiliaryTradingUtils) addPermit2Ctx(ctx context.Context) context.Conte
 }
 
 func (a *AuxiliaryTradingUtils) SetPermit2ApprovalForToken(ctx context.Context, address string) (*types.Transaction, error) {
-	tx, err := a.getWeb3Client().ApprovePermit2(ctx, address)
+	tx, err := a.w3c().ApprovePermit2(ctx, address)
 	if err != nil {
 		log.Err(err).Msg("error approving permit2")
 		return tx, err
@@ -48,7 +48,7 @@ func (a *AuxiliaryTradingUtils) generatePermit2Approval(ctx context.Context, to 
 		log.Warn().Err(err).Msg("error getting permit2 nonce")
 		return web3_client.Permit2PermitParams{}, err
 	}
-	ptNonce := artemis_eth_units.NewBigInt(pt.NextPermit2Nonce)
+	ptNonce := artemis_eth_units.NewBigInt(pt.Nonce)
 	psp := web3_client.Permit2PermitParams{
 		PermitSingle: web3_client.PermitSingle{
 			PermitDetails: web3_client.PermitDetails{

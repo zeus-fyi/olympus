@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"math/big"
 
-	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/constants"
-	artemis_pricing_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/utils"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
+	artemis_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/utils"
 )
 
 func (s *UniswapPricingTestSuite) TestPricingImpact() {
 	reserve0, _ := new(big.Int).SetString("400000", 10)  // TokenB
 	reserve1, _ := new(big.Int).SetString("1200000", 10) // TokenA
-	token0Addr, token1Addr := artemis_pricing_utils.StringsToAddresses(artemis_trading_constants.PepeContractAddr, WETH9ContractAddress)
+	token0Addr, token1Addr := artemis_utils.StringsToAddresses(artemis_trading_constants.PepeContractAddr, WETH9ContractAddress)
 	mockPairResp := UniswapV2Pair{
 		KLast:    big.NewInt(0),
 		Token0:   token0Addr,

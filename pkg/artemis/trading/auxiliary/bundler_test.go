@@ -7,6 +7,7 @@ import (
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
 func (t *ArtemisAuxillaryTestSuite) TestCreateFbBundle() *AuxiliaryTradingUtils {
@@ -30,7 +31,7 @@ func (t *ArtemisAuxillaryTestSuite) TestCreateFbBundle() *AuxiliaryTradingUtils 
 
 	// part 2 of bundle
 	ctx = context.WithValue(ctx, web3_actions.NonceOffset, 1)
-	cmd = t.testExecV2Trade(&ta)
+	cmd = t.testExecV2Trade(&ta, hestia_req_types.Goerli)
 	tx, err = ta.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().NotEmpty(tx)
 	t.Require().Equal(1, len(ta.MevTxGroup.OrderedTxs))

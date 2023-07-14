@@ -28,7 +28,7 @@ func (a *AuxiliaryTradingUtils) UniversalRouterCmdExecutor(ctx context.Context, 
 }
 
 func (a *AuxiliaryTradingUtils) universalRouterExecuteTx(ctx context.Context, signedTx *types.Transaction) (*types.Transaction, error) {
-	err := a.f.W.SendSignedTransaction(ctx, signedTx)
+	err := a.w3a().SendSignedTransaction(ctx, signedTx)
 	if err != nil {
 		log.Err(err).Msg("error sending signed tx")
 		return nil, err
@@ -48,7 +48,7 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdToTxBuilder(ctx context.Contex
 		log.Err(err).Msg("error getting uniswap universal router abi payload")
 		return nil, err
 	}
-	signedTx, err := a.w3a().GetSignedTxToCallFunctionWithData(ctx, &scInfo, scInfo.Data)
+	signedTx, err := a.w3c().GetSignedTxToCallFunctionWithData(ctx, &scInfo, scInfo.Data)
 	if err != nil {
 		log.Err(err).Msg("error getting signed tx to call function with data")
 		return nil, err

@@ -68,6 +68,8 @@ func (a *ActiveTrading) ProcessTxs(ctx context.Context) ([]web3_client.TradeExec
 				log.Info().Msgf("dat: EntryTxFilter, WETH9ContractAddressAccount, expected profit: %s, amountOutAddr %s", tf.SandwichPrediction.ExpectedProfit, tf.FrontRunTrade.AmountOutAddr.String())
 			}
 		}
+		log.Info().Interface("userTrade", tf.UserTrade)
+		log.Info().Interface("sandwichPrediction", tf.SandwichPrediction)
 		err = CheckTokenRegistry(ctx, tf.UserTrade.AmountInAddr.String(), chainID)
 		if err != nil {
 			log.Err(err).Msg("dat: EntryTxFilter, CheckTokenRegistry")

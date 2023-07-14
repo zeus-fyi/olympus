@@ -7,6 +7,7 @@ import (
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
 func (t *ArtemisAuxillaryTestSuite) testEthToWETH(ta *AuxiliaryTradingUtils, toExchAmount *big.Int) *web3_client.UniversalRouterExecCmd {
@@ -18,10 +19,23 @@ func (t *ArtemisAuxillaryTestSuite) testEthToWETH(ta *AuxiliaryTradingUtils, toE
 }
 
 func (t *ArtemisAuxillaryTestSuite) TestWETH() {
+	//t.testWETH(hestia_req_types.Goerli)
+
+	t.testWETH(hestia_req_types.Mainnet)
+}
+
+func (t *ArtemisAuxillaryTestSuite) testWETH(network string) {
 	toExchAmount := artemis_eth_units.GweiMultiple(10000)
 
-	ta := t.at2
-	t.Require().Equal(t.goerliNode, ta.nodeURL())
+	ta := t.simMainnetTrader
+	if network == hestia_req_types.Goerli {
+		ta = t.at2
+		t.Require().Equal(t.goerliNode, ta.nodeURL())
+	} else {
+		err := ta.setupCleanSimEnvironment(ctx)
+		t.Require().Nil(err)
+	}
+
 	cmd := t.testEthToWETH(&ta, toExchAmount)
 	found := false
 	for i, sc := range cmd.Commands {

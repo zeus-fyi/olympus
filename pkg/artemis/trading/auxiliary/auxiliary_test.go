@@ -9,6 +9,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/dynamic_secrets"
 	"github.com/zeus-fyi/olympus/pkg/aegis/s3secrets"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	"github.com/zeus-fyi/olympus/pkg/athena"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/encryption"
@@ -18,16 +19,17 @@ import (
 
 type ArtemisAuxillaryTestSuite struct {
 	s3secrets.S3SecretsManagerTestSuite
-	at1             AuxiliaryTradingUtils
-	at2             AuxiliaryTradingUtils
-	acc             accounts.Account
-	acc2            accounts.Account
-	acc3            accounts.Account
-	goerliWeb3User  web3_client.Web3Client
-	mainnetWeb3User web3_client.Web3Client
-	mainnetNode     string
-	goerliNode      string
-	nonceOffset     int
+	simMainnetTrader AuxiliaryTradingUtils
+	at1              AuxiliaryTradingUtils
+	at2              AuxiliaryTradingUtils
+	acc              accounts.Account
+	acc2             accounts.Account
+	acc3             accounts.Account
+	goerliWeb3User   web3_client.Web3Client
+	mainnetWeb3User  web3_client.Web3Client
+	mainnetNode      string
+	goerliNode       string
+	nonceOffset      int
 }
 
 var ctx = context.Background()
@@ -57,6 +59,16 @@ func (t *ArtemisAuxillaryTestSuite) SetupTest() {
 	w3a2.Network = network
 	t.at1 = InitAuxiliaryTradingUtils(ctx, w3a)
 	t.at2 = InitAuxiliaryTradingUtils(ctx, w3a2)
+
+	wc := web3_client.NewWeb3ClientFakeSigner(artemis_trading_constants.IrisAnvilRoute)
+	wc.Headers = m
+	uni := web3_client.InitUniswapClient(ctx, wc)
+	uni.PrintOn = true
+	uni.PrintLocal = false
+	uni.DebugPrint = true
+	uni.Web3Client.IsAnvilNode = true
+	uni.Web3Client.DurableExecution = false
+	t.simMainnetTrader = InitAuxiliaryTradingUtilsFromUni(ctx, &uni)
 }
 
 // InitTradingAccount pubkey 0x000025e60C7ff32a3470be7FE3ed1666b0E326e2

@@ -21,16 +21,16 @@ func V2PairToPrices(ctx context.Context, wc web3_actions.Web3Actions, pairAddr [
 		err := p.PairForV2(pairAddr[0].String(), pairAddr[1].String())
 		if err != nil {
 			log.Err(err).Msg("V2PairToPrices: PairForV2")
-			return p, err
+			return nil, err
 		}
 		err = GetPairContractPrices(ctx, wc, p)
 		if err != nil {
 			log.Err(err).Msg("V2PairToPrices: GetPairContractPrices")
-			return p, err
+			return nil, err
 		}
 		return p, err
 	}
-	return &UniswapV2Pair{}, errors.New("pair address length is not 2, multi-hops not implemented yet")
+	return nil, errors.New("pair address length is not 2, multi-hops not implemented yet")
 }
 
 func GetV3PricingData(ctx context.Context, wc web3_actions.Web3Actions, path artemis_trading_types.TokenFeePath) (*UniswapPricingData, error) {

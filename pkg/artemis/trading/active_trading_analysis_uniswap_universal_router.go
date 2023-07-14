@@ -108,7 +108,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			pd, perr := a.GetUniswapClient().GetV2PricingData(ctx, inputs.Path)
 			if perr != nil {
 				if pd != nil {
-					a.m.ErrTrackingMetrics.RecordError(web3_client.V2SwapExactOut, pd.V2Pair.PairContractAddr)
+					a.GetMetricsClient().ErrTrackingMetrics.RecordError(web3_client.V2SwapExactOut, pd.V2Pair.PairContractAddr)
 				}
 				//log.Err(perr).Msg("V2SwapExactOut: error getting pricing data")
 				return nil, perr

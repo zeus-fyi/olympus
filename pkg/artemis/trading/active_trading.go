@@ -3,8 +3,10 @@ package artemis_realtime_trading
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
 	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
@@ -91,7 +93,15 @@ type ErrWrapper struct {
 	Code  int
 }
 
+var txCache = cache.New(time.Hour*24, time.Hour*24)
+
 func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) ErrWrapper {
+	_, ok := txCache.Get(tx.Hash().String())
+	if ok {
+		return ErrWrapper{Err: errors.New("tx already processed")}
+	}
+	txCache.Set(tx.Hash().String(), tx, cache.DefaultExpiration)
+
 	a.GetMetricsClient().StageProgressionMetrics.CountPreEntryFilterTx()
 	err := a.EntryTxFilter(ctx, tx)
 	if err != nil {

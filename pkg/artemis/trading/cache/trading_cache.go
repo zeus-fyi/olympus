@@ -12,6 +12,11 @@ import (
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/pkg/apollo/ethereum/client_apis/beacon_api"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
+	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
+)
+
+const (
+	irisSvcBeacons = "http://iris.iris.svc.cluster.local:8080/v1beta/internal/router/group?routeGroup=quiknode-mainnet"
 )
 
 var (
@@ -29,7 +34,11 @@ func InitTokenFilter(ctx context.Context) {
 }
 
 func InitWeb3Client() {
-	wc = web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
+	wc = web3_actions.NewWeb3ActionsClient(irisSvcBeacons)
+	if len(artemis_orchestration_auth.Bearer) == 0 {
+		panic(fmt.Errorf("bearer token is empty"))
+	}
+	wc.AddBearerToken(artemis_orchestration_auth.Bearer)
 }
 
 func GetLatestBlockFromCacheOrProvidedSource(ctx context.Context, w3 web3_actions.Web3Actions) (uint64, error) {
@@ -79,7 +88,8 @@ func SetActiveTradingBlockCache(ctx context.Context) {
 		select {
 		case t := <-timestampChan:
 			Cache.Delete("block_number")
-			wc = web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
+			wc = web3_actions.NewWeb3ActionsClient(irisSvcBeacons)
+			wc.AddBearerToken(artemis_orchestration_auth.Bearer)
 			wc.Dial()
 			bn, berr := wc.C.BlockNumber(ctx)
 			if berr != nil {

@@ -21,7 +21,10 @@ func (s *IrisRoundRobinTestSuite) SetupTest() {
 }
 
 func (s *IrisRoundRobinTestSuite) TestRoundRobin() {
-	// todo
+	SetRouteTable(1, "test", []string{"1", "2", "3"})
+	for i := 0; i < 10; i++ {
+		println(GetNextRoute(1, "test"))
+	}
 }
 
 func TestIrisRoundRobinTestSuite(t *testing.T) {

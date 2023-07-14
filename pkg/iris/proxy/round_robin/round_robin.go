@@ -12,8 +12,12 @@ var (
 	RoundRobinRouteTable = cache.New(cache.NoExpiration, cache.NoExpiration)
 )
 
+func orgRouteTag(orgID int, rgName string) string {
+	return fmt.Sprintf("%d-%s", orgID, rgName)
+}
+
 func GetNextRoute(orgID int, rgName string) string {
-	tag := fmt.Sprintf("%d-%s", orgID, rgName)
+	tag := orgRouteTag(orgID, rgName)
 	routeTable, ok := RoundRobinRouteTable.Get(tag)
 	if !ok {
 		panic("no route table found")
@@ -29,6 +33,7 @@ func GetNextRoute(orgID int, rgName string) string {
 }
 
 func SetRouteTable(orgID int, rgName string, routeTable []string) {
-	tag := fmt.Sprintf("%d-%s", orgID, rgName)
+	tag := orgRouteTag(orgID, rgName)
+	RoundRobinCache.Set(rgName, 0, cache.DefaultExpiration)
 	RoundRobinRouteTable.Set(tag, routeTable, cache.NoExpiration)
 }

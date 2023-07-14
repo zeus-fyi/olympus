@@ -14,35 +14,35 @@ const (
 	ZeusTestSessionLockHeaderValue = "Zeus-Test"
 )
 
-func (a *AuxiliaryTradingUtils) setupCleanSimEnvironment(ctx context.Context) error {
-	a.U.Web3Client.Web3Actions.AddSessionLockHeader(ZeusTestSessionLockHeaderValue)
-	a.U.Web3Client.Dial()
-	origInfo, err := a.U.Web3Client.GetNodeMetadata(ctx)
+func (a *AuxiliaryTradingUtils) setupCleanSimEnvironment(ctx context.Context, bn int) error {
+	a.w3c().Web3Actions.AddSessionLockHeader(ZeusTestSessionLockHeaderValue)
+	a.w3c().Dial()
+	origInfo, err := a.w3c().GetNodeMetadata(ctx)
 	if err != nil {
 		panic(err)
 	}
-	a.U.Web3Client.Close()
-	a.U.Web3Client.Dial()
-	err = a.U.Web3Client.ResetNetwork(ctx, origInfo.ForkConfig.ForkUrl, 0)
+	a.w3c().Close()
+	a.w3c().Dial()
+	err = a.w3c().ResetNetwork(ctx, origInfo.ForkConfig.ForkUrl, bn)
 	if err != nil {
 		panic(err)
 	}
-	a.U.Web3Client.Close()
+	a.w3c().Close()
 	eb := artemis_eth_units.EtherMultiple(100000)
 	bal := (*hexutil.Big)(eb)
 	acc, err := accounts.CreateAccount()
 	if err != nil {
 		return err
 	}
-	a.U.Web3Client.Account = acc
-	a.U.Web3Client.Dial()
-	defer a.U.Web3Client.Close()
-	err = a.U.Web3Client.SetBalance(ctx, a.U.Web3Client.PublicKey(), *bal)
+	a.w3c().Account = acc
+	a.w3c().Dial()
+	defer a.w3c().Close()
+	err = a.w3c().SetBalance(ctx, a.w3c().PublicKey(), *bal)
 	if err != nil {
 		log.Err(err).Msg("error setting balance")
 		return err
 	}
-	approveTx, err := a.U.Web3Client.ERC20ApproveSpender(ctx,
+	approveTx, err := a.w3c().ERC20ApproveSpender(ctx,
 		artemis_trading_constants.WETH9ContractAddress,
 		artemis_trading_constants.Permit2SmartContractAddress,
 		artemis_eth_units.MaxUINT)
@@ -50,7 +50,7 @@ func (a *AuxiliaryTradingUtils) setupCleanSimEnvironment(ctx context.Context) er
 		log.Warn().Interface("approveTx", approveTx).Err(err).Msg("error approving permit2")
 		return err
 	}
-	err = a.U.Web3Client.SetERC20BalanceBruteForce(ctx, artemis_trading_constants.WETH9ContractAddress, a.U.Web3Client.PublicKey(), artemis_eth_units.EtherMultiple(10000))
+	err = a.w3c().SetERC20BalanceBruteForce(ctx, artemis_trading_constants.WETH9ContractAddress, a.w3c().PublicKey(), artemis_eth_units.EtherMultiple(10000))
 	if err != nil {
 		return err
 	}

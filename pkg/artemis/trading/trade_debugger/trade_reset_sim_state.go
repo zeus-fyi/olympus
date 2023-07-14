@@ -99,11 +99,12 @@ func (t *TradeDebugger) setupCleanEnvironment(ctx context.Context, tf web3_clien
 		log.Warn().Interface("approveTx", approveTx).Err(err).Msg("error approving permit2")
 		return err
 	}
-	secondToken := tf.FrontRunTrade.AmountInAddr.String()
-	if tf.FrontRunTrade.AmountInAddr.String() == artemis_trading_constants.WETH9ContractAddress {
-		secondToken = tf.FrontRunTrade.AmountOutAddr.String()
+	approveTx, err = t.dat.GetSimUniswapClient().ApproveSpender(ctx, tf.UserTrade.AmountInAddr.String(), artemis_trading_constants.Permit2SmartContractAddress, artemis_eth_units.MaxUINT)
+	if err != nil {
+		log.Warn().Interface("approveTx", approveTx).Err(err).Msg("error approving permit2")
+		return err
 	}
-	approveTx, err = t.dat.GetSimUniswapClient().ApproveSpender(ctx, secondToken, artemis_trading_constants.Permit2SmartContractAddress, artemis_eth_units.MaxUINT)
+	approveTx, err = t.dat.GetSimUniswapClient().ApproveSpender(ctx, tf.UserTrade.AmountOutAddr.String(), artemis_trading_constants.Permit2SmartContractAddress, artemis_eth_units.MaxUINT)
 	if err != nil {
 		log.Warn().Interface("approveTx", approveTx).Err(err).Msg("error approving permit2")
 		return err

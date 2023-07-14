@@ -35,9 +35,10 @@ func (a *AuxiliaryTradingUtils) generatePermit2Approval(ctx context.Context, to 
 		log.Warn().Err(err).Msg("error getting chainID")
 		return web3_client.Permit2PermitParams{}, err
 	}
+	owner := a.tradersAccount().Address().String()
 	pt := &artemis_eth_txs.Permit2Tx{
 		Permit2Tx: artemis_autogen_bases.Permit2Tx{
-			Owner:             a.tradersAccount().Address().String(),
+			Owner:             owner,
 			Deadline:          int(deadline.Int64()),
 			Token:             to.AmountInAddr.String(),
 			ProtocolNetworkID: chainID,

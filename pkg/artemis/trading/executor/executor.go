@@ -6,6 +6,7 @@ import (
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/dynamic_secrets"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
+	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_realtime_trading "github.com/zeus-fyi/olympus/pkg/artemis/trading"
 	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
@@ -23,10 +24,16 @@ var (
 	TradeExecutorGoerli  = artemis_trading_auxiliary.AuxiliaryTradingUtils{}
 )
 
+const irisSvcBeacons = "http://iris.iris.svc.cluster.local:8080/v1beta/internal/router/group?routeGroup=quiknode-mainnet"
+
 func InitMainnetAuxiliaryTradingUtils(ctx context.Context, age encryption.Age) artemis_trading_auxiliary.AuxiliaryTradingUtils {
 	tm := tyche_metrics.TycheMetrics
 	acc := InitTradingAccount2(ctx, age)
-	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL, &acc)
+	wc := web3_client.NewWeb3Client(irisSvcBeacons, &acc)
+	wc.AddBearerToken(artemis_orchestration_auth.Bearer)
+	if len(artemis_orchestration_auth.Bearer) == 0 {
+		panic("bearer token not set")
+	}
 	wc.Network = hestia_req_types.Mainnet
 	TradeExecutorMainnet = artemis_trading_auxiliary.InitAuxiliaryTradingUtils(ctx, wc)
 	if tm == nil {

@@ -13,17 +13,49 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
+func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeCall() (*web3_client.UniversalRouterExecCmd, *types.Transaction) {
+	ta := t.at2
+	t.Require().Equal(t.goerliNode, t.at2.nodeURL())
+	cmd := t.testExecV2Trade(&ta, hestia_req_types.Goerli)
+	tx, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
+	t.Require().Nil(err)
+	t.Require().NotEmpty(tx)
+	t.Require().NotNil(cmd.Deadline)
+	return cmd, tx
+}
+
+func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeCallMainnetSim() (*web3_client.UniversalRouterExecCmd, *types.Transaction) {
+	ta := t.simMainnetTrader
+	err := ta.setupCleanSimEnvironment(ctx)
+	t.Require().Nil(err)
+	cmd := t.testExecV2Trade(&ta, hestia_req_types.Mainnet)
+	tx, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
+	t.Require().Nil(err)
+	t.Require().NotEmpty(tx)
+	t.Require().NotNil(cmd.Deadline)
+	return cmd, tx
+}
+
 // todo add permit2 nonce getter from db method
-func (t *ArtemisAuxillaryTestSuite) testExecV2Trade(ta *AuxiliaryTradingUtils) *web3_client.UniversalRouterExecCmd {
+func (t *ArtemisAuxillaryTestSuite) testExecV2Trade(ta *AuxiliaryTradingUtils, network string) *web3_client.UniversalRouterExecCmd {
 	t.Require().NotEmpty(ta)
-	t.Require().Equal(t.goerliNode, ta.w3c().NodeURL)
-	t.Require().Equal(ta.network(), hestia_req_types.Goerli)
 	toExchAmount := artemis_eth_units.GweiMultiple(10000)
 	wethAddr := ta.getChainSpecificWETH()
 	daiAddr := artemis_trading_constants.DaiContractAddressAccount
 	if ta.network() == hestia_req_types.Goerli {
 		daiAddr = artemis_trading_constants.GoerliDaiContractAddressAccount
 	}
+	if network == hestia_req_types.Goerli {
+		t.Require().Equal(t.goerliNode, ta.w3c().NodeURL)
+		t.Require().Equal(ta.network(), hestia_req_types.Goerli)
+		t.Require().Equal(wethAddr, artemis_trading_constants.GoerliWETH9ContractAddressAccount)
+		t.Require().Equal(daiAddr, artemis_trading_constants.GoerliDaiContractAddressAccount)
+	} else {
+		t.Require().Equal(ta.network(), hestia_req_types.Mainnet)
+		t.Require().Equal(wethAddr, artemis_trading_constants.WETH9ContractAddressAccount)
+		t.Require().Equal(daiAddr, artemis_trading_constants.DaiContractAddressAccount)
+	}
+
 	to := &artemis_trading_types.TradeOutcome{
 		AmountIn:      toExchAmount,
 		AmountInAddr:  wethAddr,
@@ -65,17 +97,6 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2Trade(ta *AuxiliaryTradingUtils) *
 		}
 	}
 	return cmd
-}
-
-func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeCall() (*web3_client.UniversalRouterExecCmd, *types.Transaction) {
-	ta := t.at2
-	t.Require().Equal(t.goerliNode, t.at2.nodeURL())
-	cmd := t.testExecV2Trade(&ta)
-	tx, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
-	t.Require().Nil(err)
-	t.Require().NotEmpty(tx)
-	t.Require().NotNil(cmd.Deadline)
-	return cmd, tx
 }
 
 //func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeExec() {

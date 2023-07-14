@@ -19,7 +19,7 @@ func (t *ArtemisAuxillaryTestSuite) testEthToWETH(ta *AuxiliaryTradingUtils, toE
 }
 
 func (t *ArtemisAuxillaryTestSuite) TestWETH() {
-	//t.testWETH(hestia_req_types.Goerli)
+	t.testWETH(hestia_req_types.Goerli)
 
 	t.testWETH(hestia_req_types.Mainnet)
 }

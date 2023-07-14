@@ -62,6 +62,7 @@ func (t *ArtemisAuxillaryTestSuite) SetupTest() {
 
 	wc := web3_client.NewWeb3ClientFakeSigner(artemis_trading_constants.IrisAnvilRoute)
 	wc.Headers = m
+	wc.Network = hestia_req_types.Mainnet
 	uni := web3_client.InitUniswapClient(ctx, wc)
 	uni.PrintOn = true
 	uni.PrintLocal = false

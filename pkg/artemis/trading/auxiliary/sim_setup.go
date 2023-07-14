@@ -50,5 +50,9 @@ func (a *AuxiliaryTradingUtils) setupCleanSimEnvironment(ctx context.Context) er
 		log.Warn().Interface("approveTx", approveTx).Err(err).Msg("error approving permit2")
 		return err
 	}
+	err = a.U.Web3Client.SetERC20BalanceBruteForce(ctx, artemis_trading_constants.WETH9ContractAddress, a.U.Web3Client.PublicKey(), artemis_eth_units.EtherMultiple(10000))
+	if err != nil {
+		return err
+	}
 	return err
 }

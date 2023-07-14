@@ -16,6 +16,7 @@ import (
 const (
 	irisBetaSvcExt = "https://iris.zeus.fyi/v1beta/internal/"
 	irisBetaSvc    = "http://iris.iris.svc.cluster.local:8080/v1beta/internal/"
+	irisSvcBeacons = "http://iris.iris.svc.cluster.local/v1beta/internal/router/group?routeGroup=quiknode-mainnet"
 )
 
 type ActiveTrading struct {

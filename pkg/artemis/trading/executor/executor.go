@@ -24,7 +24,7 @@ var (
 	TradeExecutorGoerli  = artemis_trading_auxiliary.AuxiliaryTradingUtils{}
 )
 
-const irisSvcBeacons = "http://iris.iris.svc.cluster.local:8080/v1beta/internal/router/group?routeGroup=quiknode-mainnet"
+const irisSvcBeacons = "http://iris.iris.svc.cluster.local/v1beta/internal/router/group?routeGroup=quiknode-mainnet"
 
 func InitMainnetAuxiliaryTradingUtils(ctx context.Context, age encryption.Age) artemis_trading_auxiliary.AuxiliaryTradingUtils {
 	tm := tyche_metrics.TycheMetrics

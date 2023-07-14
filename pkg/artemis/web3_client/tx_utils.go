@@ -80,7 +80,6 @@ func (u *UniswapClient) ExecTradeV2SwapPayable(ctx context.Context, to *artemis_
 
 func (u *UniswapClient) execTradeV2SwapFromTokenToToken(ctx context.Context, to *artemis_trading_types.TradeOutcome) (*UniversalRouterExecCmd, error) {
 	// todo max this window more appropriate vs near infinite
-
 	sigDeadline, _ := new(big.Int).SetString("3000000000000", 10)
 	ur := UniversalRouterExecCmd{
 		Commands: []UniversalRouterExecSubCmd{},
@@ -159,7 +158,6 @@ func (u *UniswapClient) InjectExecTradeV2SwapFromTokenToToken(ctx context.Contex
 
 func (u *UniswapClient) ExecTradeV3SwapFromTokenToToken(ctx context.Context, v3Pair *artemis_uniswap_pricing.UniswapV3Pair, to *artemis_trading_types.TradeOutcome) error {
 	// todo max this window more appropriate vs near infinite
-
 	sigDeadline, _ := new(big.Int).SetString("3000000000000", 10)
 	ur := UniversalRouterExecCmd{
 		Commands: []UniversalRouterExecSubCmd{},

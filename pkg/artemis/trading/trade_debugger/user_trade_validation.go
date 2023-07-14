@@ -16,12 +16,12 @@ func (t *TradeDebugger) analyzeUserTrade(ctx context.Context, tf *web3_client.Tr
 	if err != nil {
 		return err
 	}
-	nonceAt, err := t.UniswapClient.Web3Client.NonceAt(ctx, from, tf.CurrentBlockNumber)
+	nonceAt, err := t.dat.GetSimUniswapClient().Web3Client.NonceAt(ctx, from, tf.CurrentBlockNumber)
 	if err != nil {
 		return err
 	}
 
-	pendingNonce, err := t.UniswapClient.Web3Client.PendingNonce(ctx, from)
+	pendingNonce, err := t.dat.GetSimUniswapClient().Web3Client.PendingNonce(ctx, from)
 	if err != nil {
 		return err
 	}

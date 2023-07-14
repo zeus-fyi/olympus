@@ -37,8 +37,8 @@ func (t *TradeDebugger) analyzeToken(ctx context.Context, address accounts.Addre
 		fmt.Println("token not found in cache")
 	}
 
-	ca := async_analysis.NewContractAnalysis(t.UniswapClient, address.String(), artemis_oly_contract_abis.MustLoadERC20Abi())
-	ca.UserA = t.UniswapClient.Web3Client
+	ca := async_analysis.NewContractAnalysis(t.dat.GetSimUniswapClient(), address.String(), artemis_oly_contract_abis.MustLoadERC20Abi())
+	ca.UserA = t.dat.GetSimUniswapClient().Web3Client
 	ca.UserB = t.LiveNetworkClient
 	//  -1 means balanceOf it wasn't cracked within 100 slots, -2 means cracking hasn't been attempted yet
 	if info.BalanceOfSlotNum == -2 {

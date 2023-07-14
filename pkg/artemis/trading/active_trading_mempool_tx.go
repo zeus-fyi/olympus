@@ -29,7 +29,7 @@ func (a *ActiveTrading) SaveMempoolTx(ctx context.Context, bn uint64, tfSlice []
 		}
 		baseTx, zerr := tradeFlow.Tx.ConvertToTx()
 		if zerr != nil {
-			log.Err(zerr).Msg("ActiveTrading: EntryTxFilter, ConvertToTx")
+			log.Err(zerr).Msg("dat: EntryTxFilter, ConvertToTx")
 			return zerr
 		}
 		fromStr := ""

@@ -23,10 +23,10 @@ import (
 
 func (a *ActiveTrading) EntryTxFilter(ctx context.Context, tx *types.Transaction) error {
 	if tx.To() == nil {
-		return errors.New("ActiveTrading: EntryTxFilter, tx.To() is nil")
+		return errors.New("dat: EntryTxFilter, tx.To() is nil")
 	}
 	if tx.ChainId() == nil {
-		return errors.New("ActiveTrading: EntryTxFilter, tx.ChainId() is nil")
+		return errors.New("dat: EntryTxFilter, tx.ChainId() is nil")
 	}
 	return nil
 }
@@ -66,23 +66,23 @@ func (a *ActiveTrading) ActiveTradingFilter(ctx context.Context, tf web3_client.
 	tfInt := tf.ConvertToBigIntType()
 	_, err := a.GetAuxClient().IsProfitTokenAcceptable(ctx, &tfInt)
 	if err != nil {
-		log.Err(err).Msg("ActiveTrading: ActiveTradingFilter: profit token not acceptable")
+		log.Err(err).Msg("dat: ActiveTradingFilter: profit token not acceptable")
 		return err
 	}
 	ok, err := a.GetAuxClient().IsTradingEnabledOnToken(tf.UserTrade.AmountOutAddr.String())
 	if err != nil {
-		log.Err(err).Msg("ActiveTrading: ActiveTradingFilter: trading not enabled for token")
+		log.Err(err).Msg("dat: ActiveTradingFilter: trading not enabled for token")
 		return err
 	}
 	if !ok {
-		return fmt.Errorf("ActiveTrading: ActiveTradingFilter: trading not enabled for token")
+		return fmt.Errorf("dat: ActiveTradingFilter: trading not enabled for token")
 	}
 	switch tf.Trade.TradeMethod {
 	case artemis_trading_constants.SwapExactTokensForTokens:
 	case artemis_trading_constants.SwapExactTokensForETHSupportingFeeOnTransferTokens:
 	case artemis_trading_constants.V2SwapExactIn, artemis_trading_constants.V2SwapExactOut:
 	default:
-		return fmt.Errorf("ActiveTrading: ActiveTradingFilter: %s method not supported for now", tf.Trade.TradeMethod)
+		return fmt.Errorf("dat: ActiveTradingFilter: %s method not supported for now", tf.Trade.TradeMethod)
 	}
 
 	return nil

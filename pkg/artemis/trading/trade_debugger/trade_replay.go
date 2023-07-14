@@ -34,12 +34,12 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 	if err != nil {
 		return err
 	}
-	_, err = t.UniswapClient.FrontRunTradeGetAmountsOut(&tf)
+	_, err = t.dat.GetSimUniswapClient().FrontRunTradeGetAmountsOut(&tf)
 	if err != nil {
 		err = t.analyzeDrift(ctx, tf.FrontRunTrade)
 		return err
 	}
-	ac := t.ActiveTrading.GetAuxClient()
+	ac := t.dat.GetSimAuxClient()
 	ur, err := ac.GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.FrontRunTrade)
 	if err != nil {
 		return err
@@ -47,7 +47,7 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 	if ur == nil {
 		return fmt.Errorf("ur is nil")
 	}
-	err = t.UniswapClient.InjectExecTradeV2SwapFromTokenToToken(ctx, ur, &tf.FrontRunTrade)
+	err = t.dat.GetSimUniswapClient().InjectExecTradeV2SwapFromTokenToToken(ctx, ur, &tf.FrontRunTrade)
 	if err != nil {
 		return err
 	}
@@ -55,7 +55,7 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 	//if err != nil {
 	//	return err
 	//}
-	_, err = t.UniswapClient.ExecTradeByMethod(&tf)
+	_, err = t.dat.GetSimUniswapClient().ExecTradeByMethod(&tf)
 	if err != nil {
 		return err
 	}
@@ -66,11 +66,11 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 	if ur == nil {
 		return fmt.Errorf("ur is nil")
 	}
-	err = t.UniswapClient.InjectExecTradeV2SwapFromTokenToToken(ctx, ur, &tf.SandwichTrade)
+	err = t.dat.GetSimUniswapClient().InjectExecTradeV2SwapFromTokenToToken(ctx, ur, &tf.SandwichTrade)
 	if err != nil {
 		return err
 	}
-	err = t.UniswapClient.VerifyTradeResults(&tf)
+	err = t.dat.GetSimUniswapClient().VerifyTradeResults(&tf)
 	if err != nil {
 		return err
 	}

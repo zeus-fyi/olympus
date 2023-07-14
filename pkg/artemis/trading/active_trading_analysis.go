@@ -59,23 +59,23 @@ func (a *ActiveTrading) ProcessTxs(ctx context.Context) ([]web3_client.TradeExec
 	for _, tf := range tfSlice {
 		baseTx, err := tf.Tx.ConvertToTx()
 		if err != nil {
-			log.Err(err).Msg("ActiveTrading: EntryTxFilter, ConvertToTx")
+			log.Err(err).Msg("dat: EntryTxFilter, ConvertToTx")
 			return nil, err
 		}
 		chainID := baseTx.ChainId().Int64()
 		if tf.UserTrade.AmountInAddr.String() == artemis_trading_constants.WETH9ContractAddressAccount.String() {
 			if tf.SandwichPrediction.ExpectedProfit != "0" {
-				log.Info().Msgf("ActiveTrading: EntryTxFilter, WETH9ContractAddressAccount, expected profit: %s, amountOutAddr %s", tf.SandwichPrediction.ExpectedProfit, tf.FrontRunTrade.AmountOutAddr.String())
+				log.Info().Msgf("dat: EntryTxFilter, WETH9ContractAddressAccount, expected profit: %s, amountOutAddr %s", tf.SandwichPrediction.ExpectedProfit, tf.FrontRunTrade.AmountOutAddr.String())
 			}
 		}
 		err = CheckTokenRegistry(ctx, tf.UserTrade.AmountInAddr.String(), chainID)
 		if err != nil {
-			log.Err(err).Msg("ActiveTrading: EntryTxFilter, CheckTokenRegistry")
+			log.Err(err).Msg("dat: EntryTxFilter, CheckTokenRegistry")
 			return nil, err
 		}
 		err = CheckTokenRegistry(ctx, tf.UserTrade.AmountOutAddr.String(), chainID)
 		if err != nil {
-			log.Err(err).Msg("ActiveTrading: EntryTxFilter, CheckTokenRegistry")
+			log.Err(err).Msg("dat: EntryTxFilter, CheckTokenRegistry")
 			return nil, err
 		}
 	}
@@ -86,7 +86,7 @@ func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64)
 	tmTradingEnabled := artemis_trading_cache.TokenMap[tokenAddress].TradingEnabled
 	if tmTradingEnabled == nil {
 		tradeEnabled := false
-		log.Info().Msgf("ActiveTrading: EntryTxFilter, erc20 at address %s not registered", tokenAddress)
+		log.Info().Msgf("dat: EntryTxFilter, erc20 at address %s not registered", tokenAddress)
 		err := artemis_mev_models.InsertERC20TokenInfo(ctx, artemis_autogen_bases.Erc20TokenInfo{
 			Address:           tokenAddress,
 			ProtocolNetworkID: int(chainID),
@@ -94,8 +94,8 @@ func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64)
 			TradingEnabled:    &tradeEnabled,
 		})
 		if err != nil {
-			log.Err(err).Msg("ActiveTrading: EntryTxFilter, InsertERC20TokenInfo")
-			return errors.New("ActiveTrading: EntryTxFilter, erc20 at address %s not registered")
+			log.Err(err).Msg("dat: EntryTxFilter, InsertERC20TokenInfo")
+			return errors.New("dat: EntryTxFilter, erc20 at address %s not registered")
 		}
 	}
 	return nil

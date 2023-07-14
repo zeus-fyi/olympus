@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	//irisBetaSvc = "https://iris.zeus.fyi/v1beta/internal/"
-	irisBetaSvc = "http://iris.iris.svc.cluster.local:8080/v1beta/internal/"
+	irisBetaSvcExt = "https://iris.zeus.fyi/v1beta/internal/"
+	irisBetaSvc    = "http://iris.iris.svc.cluster.local:8080/v1beta/internal/"
 )
 
 type ActiveTrading struct {
@@ -31,6 +31,7 @@ func (a *ActiveTrading) GetUniswapClient() *web3_client.UniswapClient {
 func (a *ActiveTrading) GetAuxClient() *artemis_trading_auxiliary.AuxiliaryTradingUtils {
 	return a.a
 }
+
 func (a *ActiveTrading) GetMetricsClient() *metrics_trading.TradingMetrics {
 	return a.m
 }
@@ -39,6 +40,24 @@ func createSimClient() web3_client.Web3Client {
 	sw3c := web3_client.NewWeb3ClientFakeSigner(irisBetaSvc)
 	sw3c.AddBearerToken(artemis_orchestration_auth.Bearer)
 	return sw3c
+}
+
+func createExtSimClient() web3_client.Web3Client {
+	sw3c := web3_client.NewWeb3ClientFakeSigner(irisBetaSvcExt)
+	sw3c.AddBearerToken(artemis_orchestration_auth.Bearer)
+	return sw3c
+}
+
+func NewActiveTradingDebugger(a *artemis_trading_auxiliary.AuxiliaryTradingUtils) ActiveTrading {
+	ctx := context.Background()
+	us := web3_client.InitUniswapClient(ctx, createExtSimClient())
+	us.Web3Client.IsAnvilNode = true
+	us.Web3Client.DurableExecution = false
+	auxSim := artemis_trading_auxiliary.InitAuxiliaryTradingUtils(ctx, us.Web3Client)
+	auxSimTrader := ActiveTrading{
+		a: &auxSim,
+	}
+	return ActiveTrading{a: a, us: &auxSimTrader}
 }
 
 func NewActiveTradingModuleWithoutMetrics(a *artemis_trading_auxiliary.AuxiliaryTradingUtils) ActiveTrading {

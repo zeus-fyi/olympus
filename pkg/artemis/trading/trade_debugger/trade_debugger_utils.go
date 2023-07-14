@@ -70,7 +70,7 @@ func (t *TradeDebugger) lookupMevTx(ctx context.Context, txHash string) (Histori
 
 func (t *TradeDebugger) getTxFromHash(ctx context.Context, txHash string) (*types.Transaction, error) {
 	hash := common.HexToHash(txHash)
-	tx, _, err := t.UniswapClient.Web3Client.GetTxByHash(ctx, hash)
+	tx, _, err := t.dat.SimW3c().GetTxByHash(ctx, hash)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func (t *TradeDebugger) getTxFromHash(ctx context.Context, txHash string) (*type
 
 func (t *TradeDebugger) getRxFromHash(ctx context.Context, txHash string) (*types.Receipt, error) {
 	hash := common.HexToHash(txHash)
-	rx, err := t.UniswapClient.Web3Client.GetTxReceipt(ctx, hash)
+	rx, err := t.dat.SimW3c().GetTxReceipt(ctx, hash)
 	if err != nil {
 		return nil, err
 	}

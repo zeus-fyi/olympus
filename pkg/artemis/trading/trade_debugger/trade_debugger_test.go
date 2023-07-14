@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_realtime_trading "github.com/zeus-fyi/olympus/pkg/artemis/trading"
 	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
 	artemis_trading_test_suite "github.com/zeus-fyi/olympus/pkg/artemis/trading/test_suite"
@@ -32,7 +33,8 @@ func (t *ArtemisTradeDebuggerTestSuite) SetupTest() {
 	a := artemis_trading_auxiliary.AuxiliaryTradingUtils{
 		U: &uni,
 	}
-	at := artemis_realtime_trading.NewActiveTradingModuleWithoutMetrics(&a)
+	artemis_orchestration_auth.Bearer = t.Tc.ProductionLocalTemporalBearerToken
+	at := artemis_realtime_trading.NewActiveTradingDebugger(&a)
 	td := NewTradeDebugger(at, t.MainnetWeb3User)
 	t.Require().NotEmpty(td)
 	t.td = td
@@ -47,7 +49,7 @@ func (t *ArtemisTradeDebuggerTestSuite) TestDebuggerInitEnv() {
 	err = t.td.ResetAndSetupPreconditions(ctx, tf)
 	fmt.Println(tf.FrontRunTrade.AmountIn)
 	fmt.Println(tf.FrontRunTrade.AmountOut)
-	b, terr := t.td.UniswapClient.Web3Client.ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountInAddr.String(), t.td.UniswapClient.Web3Client.PublicKey())
+	b, terr := t.td.dat.SimW3c().ReadERC20TokenBalance(ctx, tf.FrontRunTrade.AmountInAddr.String(), t.td.dat.SimW3c().PublicKey())
 	t.Require().Nil(terr)
 	t.Require().Equal(tf.FrontRunTrade.AmountIn.String(), b.String())
 }

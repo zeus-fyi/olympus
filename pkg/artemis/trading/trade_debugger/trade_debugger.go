@@ -11,16 +11,14 @@ import (
 )
 
 type TradeDebugger struct {
-	UniswapClient     *web3_client.UniswapClient
-	ActiveTrading     artemis_realtime_trading.ActiveTrading
+	dat               artemis_realtime_trading.ActiveTrading
 	ContractAnalysis  async_analysis.ContractAnalysis
 	LiveNetworkClient web3_client.Web3Client
 }
 
 func NewTradeDebugger(a artemis_realtime_trading.ActiveTrading, lnc web3_client.Web3Client) TradeDebugger {
 	return TradeDebugger{
-		ActiveTrading:     a,
-		UniswapClient:     a.GetUniswapClient(),
+		dat:               a,
 		LiveNetworkClient: lnc,
 	}
 }

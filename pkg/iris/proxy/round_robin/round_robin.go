@@ -2,13 +2,12 @@ package iris_round_robin
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/patrickmn/go-cache"
 )
 
 var (
-	RoundRobinCache      = cache.New(5*time.Minute, 10*time.Minute)
+	RoundRobinCache      = cache.New(cache.NoExpiration, cache.NoExpiration)
 	RoundRobinRouteTable = cache.New(cache.NoExpiration, cache.NoExpiration)
 )
 

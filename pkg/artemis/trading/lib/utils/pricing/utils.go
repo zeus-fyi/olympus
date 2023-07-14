@@ -15,6 +15,7 @@ func ApplyTransferTax(tokenAddress accounts.Address, amount *big.Int) *big.Int {
 	num := artemis_trading_cache.TokenMap[tokenAddress.String()].TransferTaxNumerator
 	denom := artemis_trading_cache.TokenMap[tokenAddress.String()].TransferTaxDenominator
 	if num == nil || denom == nil {
+		panic("numerator or denominator is nil")
 		return amount
 	}
 	if *num == 1 && *denom == 1 {

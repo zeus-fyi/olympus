@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
-	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/constants"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_core/entities"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_v3/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_v3/utils"

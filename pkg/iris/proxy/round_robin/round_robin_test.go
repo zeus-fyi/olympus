@@ -24,7 +24,7 @@ func (s *IrisRoundRobinTestSuite) SetupTest() {
 func (s *IrisRoundRobinTestSuite) TestInitRoutes() {
 	InitRoutingTables(ctx)
 	for i := 0; i < 10; i++ {
-		routeInfo, err := GetNextRoute(1, "test")
+		routeInfo, err := GetNextRoute(s.Tc.ProductionLocalTemporalOrgID, "test")
 		s.NoError(err)
 		fmt.Println(routeInfo)
 	}

@@ -32,7 +32,7 @@ func (t *ArtemisAuxillaryTestSuite) testWETH(network string) {
 		ta = t.at2
 		t.Require().Equal(t.goerliNode, ta.nodeURL())
 	} else {
-		err := ta.setupCleanSimEnvironment(ctx)
+		err := ta.setupCleanSimEnvironment(ctx, 0)
 		t.Require().Nil(err)
 	}
 

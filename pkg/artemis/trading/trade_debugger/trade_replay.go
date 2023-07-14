@@ -47,6 +47,8 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 	if ur == nil {
 		return fmt.Errorf("ur is nil")
 	}
+	// 107298366909358958965695136227
+	// 17681149
 	err = t.dat.GetSimUniswapClient().InjectExecTradeV2SwapFromTokenToToken(ctx, ur, &tf.FrontRunTrade)
 	if err != nil {
 		return err

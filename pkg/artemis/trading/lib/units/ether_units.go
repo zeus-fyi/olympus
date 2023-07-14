@@ -100,6 +100,13 @@ func SetSlippage(amountOut *big.Int) *big.Int {
 	return SubBigInt(amountOut, slippageAmount)
 }
 
+func ApplyTransferTax(amountOut *big.Int, num, den int) *big.Int {
+	//slippagePerc := NewPercentFromInts(1, 5000)
+	slippagePerc := NewPercentFromInts(num, den)
+	slippageAmount := FractionalAmount(amountOut, slippagePerc)
+	return SubBigInt(amountOut, slippageAmount)
+}
+
 func FractionalAmount(amount *big.Int, perc *core_entities.Percent) *big.Int {
 	amountOut := MulBigInt(amount, perc.Numerator)
 	amountOut = DivBigInt(amountOut, perc.Denominator)

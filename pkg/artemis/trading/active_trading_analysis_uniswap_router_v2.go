@@ -82,6 +82,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		tf.Trade.TradeMethod = swapExactTokensForTokens
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		pend := len(st.Path) - 1
+		a.GetMetricsClient().StageProgressionMetrics.CountPostProcessTx(float64(1))
 		a.GetMetricsClient().TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokens)
 		a.GetMetricsClient().TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
 		a.GetMetricsClient().TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
@@ -116,6 +117,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		}
 		tf.Tx = newTx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
+		a.GetMetricsClient().StageProgressionMetrics.CountPostProcessTx(float64(1))
 		a.GetMetricsClient().TxFetcherMetrics.TransactionGroup(toAddr, swapTokensForExactTokens)
 		a.GetMetricsClient().TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
 		a.GetMetricsClient().TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapTokensForExactTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
@@ -154,6 +156,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		}
 		tf.Tx = newTx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
+		a.GetMetricsClient().StageProgressionMetrics.CountPostProcessTx(float64(1))
 		a.GetMetricsClient().TxFetcherMetrics.TransactionGroup(toAddr, swapExactETHForTokens)
 		a.GetMetricsClient().TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
 		a.GetMetricsClient().TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactETHForTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
@@ -188,6 +191,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		}
 		tf.Tx = newTx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
+		a.GetMetricsClient().StageProgressionMetrics.CountPostProcessTx(float64(1))
 		a.GetMetricsClient().TxFetcherMetrics.TransactionGroup(toAddr, swapTokensForExactETH)
 		a.GetMetricsClient().TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
 		a.GetMetricsClient().TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapTokensForExactETH, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
@@ -222,6 +226,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		}
 		tf.Tx = newTx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
+		a.GetMetricsClient().StageProgressionMetrics.CountPostProcessTx(float64(1))
 		a.GetMetricsClient().TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForETH)
 		a.GetMetricsClient().TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
 		a.GetMetricsClient().TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForETH, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
@@ -261,6 +266,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		tf.Tx = newTx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		a.GetMetricsClient().TxFetcherMetrics.TransactionGroup(toAddr, swapETHForExactTokens)
+		a.GetMetricsClient().StageProgressionMetrics.CountPostProcessTx(float64(1))
 		a.GetMetricsClient().TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
 		a.GetMetricsClient().TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapETHForExactTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		tfSlice = append(tfSlice, tf)
@@ -304,6 +310,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		}
 		tf.Tx = newTx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
+		a.GetMetricsClient().StageProgressionMetrics.CountPostProcessTx(float64(1))
 		a.GetMetricsClient().TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForETHSupportingFeeOnTransferTokens)
 		a.GetMetricsClient().TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
 		a.GetMetricsClient().TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForETHSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
@@ -342,6 +349,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		tf.Tx = newTx
 		tf.Trade.TradeMethod = swapExactETHForTokensSupportingFeeOnTransferTokens
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
+		a.GetMetricsClient().StageProgressionMetrics.CountPostProcessTx(float64(1))
 		a.GetMetricsClient().TxFetcherMetrics.TransactionGroup(toAddr, swapExactETHForTokensSupportingFeeOnTransferTokens)
 		a.GetMetricsClient().TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
 		a.GetMetricsClient().TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactETHForTokensSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
@@ -376,6 +384,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		tf.Tx = newTx
 		tf.Trade.TradeMethod = swapExactTokensForTokensSupportingFeeOnTransferTokens
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
+		a.GetMetricsClient().StageProgressionMetrics.CountPostProcessTx(float64(1))
 		a.GetMetricsClient().TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokensSupportingFeeOnTransferTokens)
 		a.GetMetricsClient().TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
 		a.GetMetricsClient().TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForTokensSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)

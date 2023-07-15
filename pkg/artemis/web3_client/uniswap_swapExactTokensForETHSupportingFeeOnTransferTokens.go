@@ -6,6 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 )
 
@@ -23,6 +24,16 @@ type JSONSwapExactTokensForETHSupportingFeeOnTransferTokensParams struct {
 	Path         []accounts.Address `json:"path"`
 	To           accounts.Address   `json:"to"`
 	Deadline     string             `json:"deadline"`
+}
+
+func (s *JSONSwapExactTokensForETHSupportingFeeOnTransferTokensParams) ConvertToBigIntType() *SwapExactTokensForETHSupportingFeeOnTransferTokensParams {
+	return &SwapExactTokensForETHSupportingFeeOnTransferTokensParams{
+		AmountIn:     artemis_eth_units.NewBigIntFromStr(s.AmountIn),
+		AmountOutMin: artemis_eth_units.NewBigIntFromStr(s.AmountOutMin),
+		Path:         s.Path,
+		To:           s.To,
+		Deadline:     artemis_eth_units.NewBigIntFromStr(s.Deadline),
+	}
 }
 
 func (s *SwapExactTokensForETHSupportingFeeOnTransferTokensParams) ConvertToJSONType() *JSONSwapExactTokensForETHSupportingFeeOnTransferTokensParams {

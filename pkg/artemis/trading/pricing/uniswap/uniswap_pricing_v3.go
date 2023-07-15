@@ -36,9 +36,11 @@ func (p *UniswapV3Pair) PriceImpact(ctx context.Context, token *uniswap_core_ent
 	if err != nil {
 		return nil, nil, err
 	}
-	adjOut := artemis_pricing_utils.ApplyTransferTax(token.Address, out.Quotient())
+	adjOut, err := artemis_pricing_utils.ApplyTransferTax(token.Address, out.Quotient())
+	if err != nil {
+		return nil, nil, err
+	}
 	adjOut = artemis_eth_units.SetSlippage(adjOut)
-
 	out.Numerator = adjOut
 	out.Denominator = big.NewInt(1)
 	return out, pool, nil

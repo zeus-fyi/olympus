@@ -102,8 +102,14 @@ func (u *UniswapClient) FrontRunTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*b
 	}
 	amountOut := amountsOutFirstPair[1]
 	fmt.Println(amountOut.String())
-	amountOut = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(tf.FrontRunTrade.AmountOutAddr.String()), amountOut)
-	amountOut = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(tf.FrontRunTrade.AmountInAddr.String()), amountOut)
+	amountOut, err = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(tf.FrontRunTrade.AmountOutAddr.String()), amountOut)
+	if err != nil {
+		return nil, err
+	}
+	amountOut, err = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(tf.FrontRunTrade.AmountInAddr.String()), amountOut)
+	if err != nil {
+		return nil, err
+	}
 	amountOut = artemis_eth_units.SetSlippage(amountOut)
 	amountsOutFirstPair[1] = amountOut
 	if u.DebugPrint {

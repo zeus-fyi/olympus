@@ -13,7 +13,7 @@ var ctx = context.Background()
 
 func (s *ArtemisRealTimeTradingTestSuite) TestCalculateTradeValues() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
-	mevMempoolTx, err := artemis_mev_models.SelectEthMevMempoolTxByTxHash(ctx, "0xb647f1939f1ebd9a9de5cd9fe2ae869cd7f8bfc1d34879e29a0ccbdec96876c4")
+	mevMempoolTx, err := artemis_mev_models.SelectEthMevMempoolTxByTxHash(ctx, "0x4a94d6c07a8d97bd94f3d940136860f850df41494fd0976e412898313e33bf49")
 	s.Require().NoError(err)
 	s.Require().Len(mevMempoolTx, 1)
 	tx := mevMempoolTx[0]
@@ -24,6 +24,12 @@ func (s *ArtemisRealTimeTradingTestSuite) TestCalculateTradeValues() {
 	s.Require().NotEmpty(tmp)
 	fmt.Println(j.ConvertToBigIntType())
 
-	err = s.at.SaveMempoolTx(ctx, tmp.CurrentBlockNumber.Uint64(), []web3_client.TradeExecutionFlowJSON{j})
-	s.Require().NoError(err)
+	tp := j.Trade.JSONV2SwapExactInParams.ConvertToBigIntType()
+	s.Require().NotEmpty(tp)
+
+	to := tp.BinarySearch(*tmp.InitialPair)
+	s.Require().NotEmpty(to)
+	// 13802675169811703
+	fmt.Println("orig", tmp.SandwichPrediction.ExpectedProfit)
+	fmt.Println("sand", to.SandwichPrediction.ExpectedProfit)
 }

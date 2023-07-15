@@ -6,10 +6,8 @@ import (
 	"math/big"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
-	artemis_pricing_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/utils/pricing"
 )
 
 func (u *UniswapClient) ExecFrontRunTrade(tf TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
@@ -100,18 +98,18 @@ func (u *UniswapClient) FrontRunTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*b
 		log.Warn().Msgf(fmt.Sprintf("front run: amount in not equal to expected amount in %s, actual amount in: %s", tf.FrontRunTrade.AmountIn.String(), amountsOutFirstPair[0].String()))
 		return amountsOutFirstPair, errors.New("amount in not equal to expected")
 	}
-	amountOut := amountsOutFirstPair[1]
-	fmt.Println(amountOut.String())
-	amountOut, err = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(tf.FrontRunTrade.AmountOutAddr.String()), amountOut)
-	if err != nil {
-		return nil, err
-	}
-	amountOut, err = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(tf.FrontRunTrade.AmountInAddr.String()), amountOut)
-	if err != nil {
-		return nil, err
-	}
-	amountOut = artemis_eth_units.SetSlippage(amountOut)
-	amountsOutFirstPair[1] = amountOut
+	//amountOut := amountsOutFirstPair[1]
+	//fmt.Println(amountOut.String())
+	//amountOut, err = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(tf.FrontRunTrade.AmountOutAddr.String()), amountOut)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//amountOut, err = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(tf.FrontRunTrade.AmountInAddr.String()), amountOut)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//amountOut = artemis_eth_units.SetSlippage(amountOut)
+	//amountsOutFirstPair[1] = amountOut
 	if u.DebugPrint {
 		fmt.Println("front run trade trade path", pathSlice[0], pathSlice[1])
 		fmt.Println("front run trade expected amount in", tf.FrontRunTrade.AmountIn.String(), "amount out", tf.FrontRunTrade.AmountOut.String())

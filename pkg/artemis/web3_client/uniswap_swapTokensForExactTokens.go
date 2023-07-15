@@ -58,7 +58,7 @@ func (s *SwapTokensForExactTokensParams) BinarySearch(pair uniswap_pricing.Unisw
 			return tf
 		}
 		// User trade
-		to, err := mockPairResp.PriceImpactNoSlippage(s.Path[0], s.AmountInMax)
+		to, err := mockPairResp.PriceImpact(s.Path[0], s.AmountInMax)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
 			return tf

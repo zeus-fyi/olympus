@@ -6,10 +6,8 @@ import (
 	"math/big"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
-	artemis_pricing_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/utils/pricing"
 )
 
 func (u *UniswapClient) ExecSandwichTrade(tf TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
@@ -92,17 +90,17 @@ func (u *UniswapClient) SandwichTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*b
 		return nil, errors.New("amounts out not equal to expected")
 	}
 
-	amountOut := amountsOutFirstPair[1]
-	amountOut, err = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(tf.SandwichTrade.AmountOutAddr.String()), amountOut)
-	if err != nil {
-		return nil, err
-	}
-	amountOut, err = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(tf.SandwichTrade.AmountInAddr.String()), amountOut)
-	if err != nil {
-		return nil, err
-	}
-	amountOut = artemis_eth_units.SetSlippage(amountOut)
-	amountsOutFirstPair[1] = amountOut
+	//amountOut := amountsOutFirstPair[1]
+	//amountOut, err = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(tf.SandwichTrade.AmountOutAddr.String()), amountOut)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//amountOut, err = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(tf.SandwichTrade.AmountInAddr.String()), amountOut)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//amountOut = artemis_eth_units.SetSlippage(amountOut)
+	//amountsOutFirstPair[1] = amountOut
 
 	if u.DebugPrint {
 		fmt.Println("sandwich trade trade path", pathSlice[0], pathSlice[1])

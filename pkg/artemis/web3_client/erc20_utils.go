@@ -157,3 +157,34 @@ func (w *Web3Client) MatchFrontRunTradeValues(tf *TradeExecutionFlow) error {
 	}
 	return nil
 }
+
+//func (w *Web3Client) MatchFrontRunTradeValues(tf *TradeExecutionFlow) error {
+//	pubkey := w.PublicKey()
+//	slotHex, err := GetSlot(pubkey, new(big.Int).SetUint64(uint64(0)))
+//	if err != nil {
+//		return err
+//	}
+//	inAddr := tf.FrontRunTrade.AmountInAddr.String()
+//	value := tf.FrontRunTrade.AmountIn
+//	newBalance := common.LeftPadBytes(value.Bytes(), 32)
+//	bc, err := artemis_oly_contract_abis.LoadERC20DeployedByteCode()
+//	if err != nil {
+//		return err
+//	}
+//	err = w.SetCodeOverride(ctx, inAddr, bc)
+//	if err != nil {
+//		return err
+//	}
+//	err = w.HardhatSetStorageAt(ctx, inAddr, slotHex, common.BytesToHash(newBalance).Hex())
+//	if err != nil {
+//		return err
+//	}
+//	b, err := w.ReadERC20TokenBalance(ctx, inAddr, pubkey)
+//	if err != nil {
+//		return err
+//	}
+//	if b.String() != tf.FrontRunTrade.AmountIn.String() {
+//		return errors.New("amount in not set correctly")
+//	}
+//	return nil
+//}

@@ -39,12 +39,12 @@ func (s *ArtemisRealTimeTradingTestSuite) TestFindERC20BalanceOfSlotNumber() {
 	}
 }
 
-func (s *ArtemisRealTimeTradingTestSuite) TestFindERC20BalanceOfSlotNumbe2r() {
+func (s *ArtemisRealTimeTradingTestSuite) TestFindERC20BalanceOfSlotExp() {
 	uni := web3_client.InitUniswapClient(ctx, s.UserA)
 	uni.Web3Client.IsAnvilNode = false
 	uni.Web3Client.AddBearerToken(s.Tc.ProductionLocalTemporalBearerToken)
 	uni.Web3Client.NodeURL = "https://hardhat.zeus.fyi"
-	sc := "0x6dC2994b5Ef7202CD9B9FB13c850dA73d5b0736A"
+	sc := "0x3cda61B56278842876e7fDD56123d83DBAFAe16C"
 	s.ca = NewERC20ContractAnalysis(&uni, sc)
 
 	//tmp, err := artemis_oly_contract_abis.LoadNewERC20AbiPayload()
@@ -58,13 +58,16 @@ func (s *ArtemisRealTimeTradingTestSuite) TestFindERC20BalanceOfSlotNumbe2r() {
 	//	MethodName:        "balanceOf",
 	//	Params:            []interface{}{holder},
 	//}
-	//s.ca.u.Web3Client.Dial()
-	//defer s.ca.u.Web3Client.Close()
-	//bal, err := s.ca.u.Web3Client.CallConstantFunction(ctx, &payload)
+	s.ca.u.Web3Client.Dial()
+	defer s.ca.u.Web3Client.Close()
+	//bc, err := artemis_oly_contract_abis.LoadERC20DeployedByteCode()
+
+	//err = s.ca.u.Web3Client.SetCodeOverride(ctx, sc, bc)
 	//s.Assert().Nil(err)
-	//log.Info().Msgf("bal: %v", bal)
-	err := s.ca.FindERC20BalanceOfSlotNumber(ctx)
-	s.Assert().Nil(err)
+
+	//
+	//err := s.ca.FindERC20BalanceOfSlotNumber(ctx)
+	//s.Assert().Nil(err)
 	b, err := s.ca.u.Web3Client.ReadERC20TokenBalance(ctx, sc, s.UserA.Address().String())
 	log.Info().Msgf("b: %v", b)
 	slotHex, err := web3_client.GetSlot(s.ca.UserA.Address().String(), new(big.Int).SetUint64(uint64(0)))

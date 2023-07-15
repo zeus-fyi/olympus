@@ -79,6 +79,7 @@ func (p *UniswapV2Pair) PriceImpact(tokenAddrPath accounts.Address, tokenBuyAmou
 		to.AmountInAddr = tokenAddrPath
 		to.AmountOutAddr = p.GetOppositeToken(tokenAddrPath.String())
 		to.AmountOut = artemis_pricing_utils.ApplyTransferTax(to.AmountOutAddr, to.AmountOut)
+		to.AmountOut = artemis_pricing_utils.ApplyTransferTax(to.AmountInAddr, to.AmountOut)
 		to.AmountOut = artemis_eth_units.SetSlippage(to.AmountOut)
 		return to, nil
 	case 0:
@@ -86,6 +87,7 @@ func (p *UniswapV2Pair) PriceImpact(tokenAddrPath accounts.Address, tokenBuyAmou
 		to.AmountInAddr = tokenAddrPath
 		to.AmountOutAddr = p.GetOppositeToken(tokenAddrPath.String())
 		to.AmountOut = artemis_pricing_utils.ApplyTransferTax(to.AmountOutAddr, to.AmountOut)
+		to.AmountOut = artemis_pricing_utils.ApplyTransferTax(to.AmountInAddr, to.AmountOut)
 		to.AmountOut = artemis_eth_units.SetSlippage(to.AmountOut)
 		return to, nil
 	default:

@@ -58,11 +58,16 @@ func (a *ActiveTrading) ProcessTxs(ctx context.Context) ([]web3_client.TradeExec
 		}
 		tfSlice = append(tfSlice, tf...)
 	}
+
+	var postFilter []web3_client.TradeExecutionFlowJSON
 	for _, tf := range tfSlice {
 		key := fmt.Sprintf("%s-tf", tf.Tx.Hash)
 		_, ok := txCache.Get(key)
 		if ok {
 			log.Info().Msgf("dat: EntryTxFilter, tx already in cache, hash: %s", tf.Tx.Hash)
+			continue
+		}
+		if tf.SandwichPrediction.ExpectedProfit == "0" {
 			continue
 		}
 		baseTx, err := tf.Tx.ConvertToTx()
@@ -89,8 +94,9 @@ func (a *ActiveTrading) ProcessTxs(ctx context.Context) ([]web3_client.TradeExec
 			return nil, err
 		}
 		txCache.Set(key, tf, time.Hour*24)
+		postFilter = append(postFilter, tf)
 	}
-	return tfSlice, nil
+	return postFilter, nil
 }
 
 func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64) error {

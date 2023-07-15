@@ -24,14 +24,27 @@ func (t *MevPrometheusTestSuite) SetupTest() {
 	t.pc = NewMevPromQL(apollo_prometheus.NewPrometheusLocalClient(ctx))
 	t.pc.printOn = true
 }
+func (t *MevPrometheusTestSuite) TestQueryTopKTokens() {
+	t.Require().NotEmpty(t.pc)
 
-var bytes = []byte(`{	
-		"tokenIn":"0x046eee2cc3188071c02bfc1745a6b17c656e3f3d",
-		"path":[{"token":"0xdac17f958d2ee523a2206206994597c13d831ec7","fee":3000}],
-		"time":1688261227,
-		"message":"error getting v3 pricing data"
-	}`)
+	timeNow := time.Now().UTC()
 
+	window := v1.Range{
+		Start: timeNow.Add(-time.Minute * 60),
+		End:   time.Now().UTC(),
+		Step:  time.Minute,
+	}
+	t.pc.printOn = false
+	m, err := t.pc.GetTopTokens(ctx, window)
+	fmt.Println(m)
+	t.Require().NoError(err)
+	t.Assert().NotEmpty(m)
+
+	for _, val := range m {
+		fmt.Println(val.Metric.In, val.Metric.Pair)
+	}
+	// TODO, investigate why this is failing
+}
 func (t *MevPrometheusTestSuite) TestQueryRangePromQL() {
 	t.Require().NotEmpty(t.pc)
 

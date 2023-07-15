@@ -133,6 +133,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.14 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/mrjones/oauth v0.0.0-20190623134757-126b35219450 // indirect
+	github.com/nanmu42/etherscan-api v1.10.0 // indirect
 	github.com/onsi/ginkgo/v2 v2.8.1 // indirect
 	github.com/onsi/gomega v1.27.1 // indirect
 	github.com/pborman/uuid v1.2.1 // indirect

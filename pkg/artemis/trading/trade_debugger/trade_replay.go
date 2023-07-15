@@ -52,13 +52,13 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 			num = 10
 			denom = 1000
 		case 3:
-			num = 50
+			num = 20
 			denom = 1000
 		case 4:
-			num = 100
+			num = 30
 			denom = 1000
 		case 5:
-			num = 200
+			num = 40
 			denom = 1000
 		default:
 			return errors.New("failed to find a valid transfer tax")

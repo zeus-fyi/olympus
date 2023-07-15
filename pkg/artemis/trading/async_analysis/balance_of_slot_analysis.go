@@ -16,3 +16,13 @@ func (c *ContractAnalysis) FindERC20BalanceOfSlotNumber(ctx context.Context) err
 	}
 	return nil
 }
+
+//// FindERC20BalanceOfSlotNumber2 finds the erc20 token balance of
+//func (c *ContractAnalysis) FindERC20BalanceOfSlotNumber2(ctx context.Context, af *abi.ABI) error {
+//	err := c.u.Web3Client.SetERC20BalanceBruteForceCustomErc20(ctx, c.SmartContractAddr, c.UserA.Address().String(), af, artemis_eth_units.EtherMultiple(100))
+//	if err != nil {
+//		log.Err(err).Msg("ContractAnalysis: SetERC20BalanceBruteForceCustomErc20")
+//		return err
+//	}
+//	return nil
+//}

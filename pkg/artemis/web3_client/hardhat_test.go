@@ -46,7 +46,7 @@ func (s *Web3ClientTestSuite) TestGetEvmSnapshot() {
 func (s *Web3ClientTestSuite) TestGetSlot() {
 	zeroAddr := "0x0000000000000000000000000000000000000000"
 	slotNum := new(big.Int).SetUint64(0)
-	hexStr, _ := getSlot(zeroAddr, slotNum)
+	hexStr, _ := GetSlot(zeroAddr, slotNum)
 	fmt.Println("hexStr", hexStr)
 
 	s.Assert().Equal("0xad3228b676f7d3cd4284a5443f17f1962b36e491b30a40b2405849e597ba5fb5", hexStr)

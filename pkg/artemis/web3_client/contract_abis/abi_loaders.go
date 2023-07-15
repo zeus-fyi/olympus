@@ -3,6 +3,9 @@ package artemis_oly_contract_abis
 import (
 	"context"
 	"encoding/json"
+	"os"
+	"path"
+	"runtime"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -133,6 +136,42 @@ func MustLoadERC20Abi() *abi.ABI {
 	}
 	return readAbi
 }
+func ForceDirToTestDirLocation() string {
+	_, filename, _, _ := runtime.Caller(0)
+	dir := path.Join(path.Dir(filename), "")
+	err := os.Chdir(dir)
+	if err != nil {
+		panic(err.Error())
+	}
+	return dir
+}
+
+func LoadNewERC20AbiPayload() (web3_actions.SendContractTxPayload, error) {
+	ForceDirToTestDirLocation()
+	fp := filepaths.Path{
+		PackageName: "",
+		DirIn:       "./",
+		FnIn:        "tmp.json",
+	}
+	fi := fp.ReadFileInPath()
+	m := map[string]interface{}{}
+	err := json.Unmarshal(fi, &m)
+	if err != nil {
+		return web3_actions.SendContractTxPayload{}, err
+	}
+	abiInput := m["ABI"]
+	abf := &abi.ABI{}
+	err = abf.UnmarshalJSON([]byte(abiInput.(string)))
+	if err != nil {
+		return web3_actions.SendContractTxPayload{}, err
+	}
+	params := web3_actions.SendContractTxPayload{
+		SendEtherPayload: web3_actions.SendEtherPayload{},
+		ContractABI:      abf,
+		Params:           []interface{}{},
+	}
+	return params, nil
+}
 
 func LoadERC20AbiPayload() (web3_actions.SendContractTxPayload, string, error) {
 	fp := filepaths.Path{
@@ -165,9 +204,11 @@ func LoadERC20AbiPayload() (web3_actions.SendContractTxPayload, string, error) {
 }
 
 func LoadERC20DeployedByteCode() (string, error) {
+	ForceDirToTestDirLocation()
+
 	fp := filepaths.Path{
 		PackageName: "",
-		DirIn:       "./contract_abis",
+		DirIn:       "./",
 		FnIn:        "Token.json",
 	}
 	fi := fp.ReadFileInPath()

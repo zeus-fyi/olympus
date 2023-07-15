@@ -116,46 +116,10 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 		return ErrWrapper{Err: errors.New("DecodeTx: no txs to process"), Stage: "DecodeTx"}
 	}
 	a.GetMetricsClient().StageProgressionMetrics.CountPostDecodeTx()
-	tfSlice, err := a.ProcessTxs(ctx)
+	_, err = a.ProcessTxs(ctx)
 	if err != nil {
 		log.Err(err).Msg("failed to pass process txs")
 		return ErrWrapper{Err: err, Stage: "ProcessTxs"}
 	}
-	if len(tfSlice) <= 0 {
-		return ErrWrapper{Err: errors.New("ProcessTxs: no tx flows to simulate"), Stage: "ProcessTxs"}
-	}
-	a.GetMetricsClient().StageProgressionMetrics.CountPostProcessTx(float64(1))
-	err = a.SimTxFilter(ctx, tfSlice)
-	if err != nil {
-		log.Err(err).Msg("failed to pass sim tx filter")
-		return ErrWrapper{Err: err, Stage: "SimTxFilter"}
-	}
-	if len(tfSlice) <= 0 {
-		return ErrWrapper{Err: errors.New("SimTxFilter: no tx flows to simulate"), Stage: "SimTxFilter"}
-	}
-	a.GetMetricsClient().StageProgressionMetrics.CountPostSimFilterTx(float64(1))
-
-	log.Info().Msg("starting simulation")
-	err = a.SimToPackageTxBundles(ctx, tfSlice, false)
-	if err != nil {
-		log.Err(err).Msg("failed to simulate txs")
-		return ErrWrapper{Err: err, Stage: "SimToPackageTxBundles", Code: 200}
-	}
-	log.Info().Msg("simulation stage complete: starting active trading filter")
-	a.GetMetricsClient().StageProgressionMetrics.CountPostSimStage(float64(len(tfSlice)))
-	err = a.ActiveTradingFilterSlice(ctx, tfSlice)
-	if err != nil {
-		log.Err(err).Msg("failed to pass active trading filter")
-		return ErrWrapper{Err: err, Stage: "ActiveTradingFilterSlice", Code: 200}
-	}
-	log.Info().Msg("preparing bundles for submission")
-	a.GetMetricsClient().StageProgressionMetrics.CountPostActiveTradingFilter(float64(len(tfSlice)))
-	err = a.ProcessBundleStage(ctx, tfSlice)
-	if err != nil {
-		log.Err(err).Msg("failed to process bundles")
-		return ErrWrapper{Err: err, Stage: "ProcessBundleStage", Code: 200}
-	}
-	log.Info().Msg("bundles successfully sent")
-	a.GetMetricsClient().StageProgressionMetrics.CountSentFlashbotsBundleSubmission(float64(len(tfSlice)))
 	return ErrWrapper{Err: err, Stage: "Success", Code: 200}
 }

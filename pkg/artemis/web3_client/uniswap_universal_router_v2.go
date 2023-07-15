@@ -195,7 +195,7 @@ func (s *V2SwapExactOutParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) 
 			return tf
 		}
 		// User trade
-		to, err := mockPairResp.PriceImpactNoTransferTaxOrSlippage(s.Path[0], s.AmountInMax)
+		to, err := mockPairResp.PriceImpactNoSlippage(s.Path[0], s.AmountInMax)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
 			return tf
@@ -260,7 +260,7 @@ func (s *V2SwapExactInParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) T
 			return tf
 		}
 		// User trade
-		to, err := mockPairResp.PriceImpactNoTransferTaxOrSlippage(s.Path[0], s.AmountIn)
+		to, err := mockPairResp.PriceImpactNoSlippage(s.Path[0], s.AmountIn)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
 			return tf

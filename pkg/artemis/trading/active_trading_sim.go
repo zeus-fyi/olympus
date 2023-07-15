@@ -9,6 +9,7 @@ import (
 	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
 	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/trading/flashbots"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -64,18 +65,49 @@ func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_clien
 		//}
 		return errors.New("uniswap V3 not supported yet")
 	} else {
-		ur, err := a.GetSimAuxClient().GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.FrontRunTrade)
-		if err != nil {
-			fmt.Println("failed to generate trade", ur.Commands)
-			log.Err(err).Msg("SimToPackageTxBundle: failed to generate trade")
-			return err
-		}
-		_, err = a.GetSimAuxClient().U.ExecUniswapUniversalRouterCmd(*ur)
-		if err != nil {
-			log.Err(err).Msg("SimToPackageTxBundle: failed to execute trade")
-			return err
-		}
 
+		start := tf.FrontRunTrade.AmountOut
+		num := 0
+		denom := 1000
+		for i := 1; i < 7; i++ {
+			switch i {
+			case 0:
+				num = 1
+				denom = 1
+			case 1:
+				num = 1
+				denom = 1000
+			case 2:
+				num = 10
+				denom = 1000
+			case 3:
+				num = 50
+				denom = 1000
+			case 4:
+				num = 100
+				denom = 1000
+			case 5:
+				num = 200
+				denom = 1000
+			default:
+				return errors.New("failed to find a valid transfer tax")
+			}
+			tf.FrontRunTrade.AmountOut = artemis_eth_units.ApplyTransferTax(start, num, denom)
+			if tf.FrontRunTrade.AmountOut.String() == "0" {
+				return errors.New("amount out was set to zero")
+			}
+			ur, err := a.GetSimAuxClient().GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.FrontRunTrade)
+			if err != nil {
+				fmt.Println("failed to generate trade", ur.Commands)
+				log.Err(err).Msg("SimToPackageTxBundle: failed to generate trade")
+				return err
+			}
+			_, err = a.GetSimAuxClient().U.ExecUniswapUniversalRouterCmd(*ur)
+			if err == nil {
+				log.Info().Interface("num", num).Interface("denom", denom).Msgf("Injected trade with amount out: %s", tf.FrontRunTrade.AmountOut.String())
+				break
+			}
+		}
 	}
 	err := bundle.AddTxs(tf.FrontRunTrade.BundleTxs...)
 	if err != nil {
@@ -105,6 +137,12 @@ func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_clien
 		//}
 		return errors.New("uniswap V3 not supported yet")
 	} else {
+		tf.SandwichTrade.AmountIn = tf.FrontRunTrade.AmountOut
+		_, err = a.GetSimAuxClient().U.SandwichTradeGetAmountsOut(tf)
+		if err != nil {
+			return err
+		}
+		tf.SandwichTrade.AmountOut = tf.SandwichTrade.SimulatedAmountOut
 		ur, serr := a.GetSimAuxClient().GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.SandwichTrade)
 		if serr != nil {
 			fmt.Println("SimToPackageTxBundle: failed to generate trade", ur.Commands)

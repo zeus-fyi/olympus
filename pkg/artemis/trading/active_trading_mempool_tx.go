@@ -18,11 +18,11 @@ import (
 func (a *ActiveTrading) SaveMempoolTx(ctx context.Context, bn uint64, tfSlice []web3_client.TradeExecutionFlowJSON) error {
 	var liveTradingSlice []web3_client.TradeExecutionFlowJSON
 	for _, tradeFlow := range tfSlice {
-		if tradeFlow.UserTrade.AmountInAddr.String() == artemis_trading_constants.WETH9ContractAddressAccount.String() {
-			liveTradingSlice = append(liveTradingSlice, tradeFlow)
-		}
 		if tradeFlow.SandwichPrediction.ExpectedProfit == "0" || tradeFlow.SandwichPrediction.ExpectedProfit == "1" {
 			continue
+		}
+		if tradeFlow.UserTrade.AmountInAddr.String() == artemis_trading_constants.WETH9ContractAddressAccount.String() {
+			liveTradingSlice = append(liveTradingSlice, tradeFlow)
 		}
 		tradeFlow.CurrentBlockNumber = new(big.Int).SetUint64(bn)
 		btf, ber := json.Marshal(tradeFlow)
@@ -44,7 +44,6 @@ func (a *ActiveTrading) SaveMempoolTx(ctx context.Context, bn uint64, tfSlice []
 		} else {
 			fromStr = from.String()
 		}
-
 		txStr, terr := json.Marshal(tradeFlow.Tx)
 		if terr != nil {
 			log.Err(terr).Msg("failed to marshal tx")

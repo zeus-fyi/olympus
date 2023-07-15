@@ -79,6 +79,7 @@ func (p *UniswapV2Pair) PriceImpact(tokenAddrPath accounts.Address, tokenBuyAmou
 		to.AmountInAddr = tokenAddrPath
 		to.AmountOutAddr = p.GetOppositeToken(tokenAddrPath.String())
 		to.AmountOut = artemis_pricing_utils.ApplyTransferTax(to.AmountOutAddr, to.AmountOut)
+		to.AmountOut = artemis_pricing_utils.ApplyTransferTax(to.AmountInAddr, to.AmountOut)
 		to.AmountOut = artemis_eth_units.SetSlippage(to.AmountOut)
 		return to, nil
 	case 0:
@@ -86,7 +87,27 @@ func (p *UniswapV2Pair) PriceImpact(tokenAddrPath accounts.Address, tokenBuyAmou
 		to.AmountInAddr = tokenAddrPath
 		to.AmountOutAddr = p.GetOppositeToken(tokenAddrPath.String())
 		to.AmountOut = artemis_pricing_utils.ApplyTransferTax(to.AmountOutAddr, to.AmountOut)
+		to.AmountOut = artemis_pricing_utils.ApplyTransferTax(to.AmountInAddr, to.AmountOut)
 		to.AmountOut = artemis_eth_units.SetSlippage(to.AmountOut)
+		return to, nil
+	default:
+		to := artemis_trading_types.TradeOutcome{}
+		return to, errors.New("token number not found")
+	}
+}
+
+func (p *UniswapV2Pair) PriceImpactNoTransferTaxOrSlippage(tokenAddrPath accounts.Address, tokenBuyAmount *big.Int) (artemis_trading_types.TradeOutcome, error) {
+	tokenNumber := p.GetTokenNumber(tokenAddrPath)
+	switch tokenNumber {
+	case 1:
+		to, _, _ := p.PriceImpactToken1BuyToken0(tokenBuyAmount)
+		to.AmountInAddr = tokenAddrPath
+		to.AmountOutAddr = p.GetOppositeToken(tokenAddrPath.String())
+		return to, nil
+	case 0:
+		to, _, _ := p.PriceImpactToken0BuyToken1(tokenBuyAmount)
+		to.AmountInAddr = tokenAddrPath
+		to.AmountOutAddr = p.GetOppositeToken(tokenAddrPath.String())
 		return to, nil
 	default:
 		to := artemis_trading_types.TradeOutcome{}

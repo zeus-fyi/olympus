@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_realtime_trading "github.com/zeus-fyi/olympus/pkg/artemis/trading"
+	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_trading_test_suite "github.com/zeus-fyi/olympus/pkg/artemis/trading/test_suite"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
@@ -34,6 +35,8 @@ func (t *ArtemisTradeDebuggerTestSuite) SetupTest() {
 	td := NewTradeDebugger(at, t.MainnetWeb3User)
 	t.Require().NotEmpty(td)
 	t.td = td
+
+	artemis_trading_cache.InitTokenFilter(ctx)
 }
 
 func (t *ArtemisTradeDebuggerTestSuite) TestDebuggerInitEnv() {

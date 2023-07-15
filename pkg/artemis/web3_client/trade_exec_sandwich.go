@@ -6,8 +6,10 @@ import (
 	"math/big"
 
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
+	artemis_pricing_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/utils/pricing"
 )
 
 func (u *UniswapClient) ExecSandwichTrade(tf TradeExecutionFlow) (*web3_actions.SendContractTxPayload, error) {
@@ -82,20 +84,27 @@ func (u *UniswapClient) ExecSandwichTradeStepTokenTransfer(tf *TradeExecutionFlo
 
 func (u *UniswapClient) SandwichTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*big.Int, error) {
 	pathSlice := []string{tf.SandwichTrade.AmountInAddr.String(), tf.SandwichTrade.AmountOutAddr.String()}
-	amountsOutFirstPair, err := u.GetAmountsOutAndApplyTransferFeeAndSlippage(tf.Tx.To(), tf.SandwichTrade.AmountIn, pathSlice)
+	amountsOutFirstPair, err := u.GetAmountsOut(tf.Tx.To(), tf.SandwichTrade.AmountIn, pathSlice)
 	if err != nil {
 		return nil, err
 	}
 	if len(amountsOutFirstPair) != 2 {
 		return nil, errors.New("amounts out not equal to expected")
 	}
+
+	amountOut := amountsOutFirstPair[1]
+	amountOut = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(tf.SandwichTrade.AmountOutAddr.String()), amountOut)
+	amountOut = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(tf.SandwichTrade.AmountInAddr.String()), amountOut)
+	amountOut = artemis_eth_units.SetSlippage(amountOut)
+	amountsOutFirstPair[1] = amountOut
+
 	if u.DebugPrint {
 		fmt.Println("sandwich trade trade path", pathSlice[0], pathSlice[1])
 		fmt.Println("sandwich trade expected amount in", tf.SandwichTrade.AmountIn.String(), "amount out", tf.SandwichTrade.AmountOut.String())
 		fmt.Println("sandwich trade simulated amount in", amountsOutFirstPair[0].String(), "amount out", amountsOutFirstPair[1].String())
 	}
 
-	if !artemis_eth_units.PercentDiffFloatComparison(tf.SandwichTrade.AmountIn, amountsOutFirstPair[0], 0.01) {
+	if !artemis_eth_units.PercentDiffFloatComparison(tf.SandwichTrade.AmountIn, amountsOutFirstPair[0], 0.1) {
 		artemis_eth_units.PercentDiffHighPrecision(tf.SandwichTrade.AmountIn, amountsOutFirstPair[0])
 		log.Warn().Msgf(fmt.Sprintf("sandwich trade: amount in not equal to expected amount in %s, actual amount in: %s", tf.SandwichTrade.AmountIn.String(), amountsOutFirstPair[0].String()))
 		return amountsOutFirstPair, errors.New("sandwich trade: amount in not equal to expected")
@@ -103,7 +112,7 @@ func (u *UniswapClient) SandwichTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*b
 
 	// 	if !artemis_eth_units.PercentDiffFloatComparison(tf.SandwichTrade.AmountOut, amountsOutFirstPair[1], 0.0001) {
 	if !artemis_eth_units.IsXGreaterThanOrEqualToY(amountsOutFirstPair[1], tf.SandwichTrade.AmountOut) {
-		if !artemis_eth_units.PercentDiffFloatComparison(tf.SandwichTrade.AmountOut, amountsOutFirstPair[1], 0.01) {
+		if !artemis_eth_units.PercentDiffFloatComparison(tf.SandwichTrade.AmountOut, amountsOutFirstPair[1], 0.1) {
 			log.Warn().Msgf(fmt.Sprintf("sandwich trade: amount out not equal to expected amount out %s, actual amount out: %s", tf.SandwichTrade.AmountOut.String(), amountsOutFirstPair[1].String()))
 			percentDiff := artemis_eth_units.PercentDiffFloat(tf.SandwichTrade.AmountOut, amountsOutFirstPair[1])
 			log.Info().Msgf("sandwich trade: percent diff %f", percentDiff)

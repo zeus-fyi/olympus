@@ -62,6 +62,14 @@ func (a *AuxiliaryTradingUtils) checkAuxERC20Balance(ctx context.Context, token 
 	return bal, err
 }
 
+func (a *AuxiliaryTradingUtils) CheckAuxERC20BalanceFromAddr(ctx context.Context, token string) (*big.Int, error) {
+	bal, err := a.w3c().ReadERC20TokenBalance(ctx, token, a.getAccountAddressString())
+	if err != nil {
+		return bal, err
+	}
+	return bal, err
+}
+
 func (a *AuxiliaryTradingUtils) checkAuxERC20BalanceGreaterThan(ctx context.Context, token core_entities.Token, amount *big.Int) (bool, error) {
 	bal, err := a.checkAuxERC20Balance(ctx, token)
 	if err != nil {

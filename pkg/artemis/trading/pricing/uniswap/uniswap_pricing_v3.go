@@ -10,8 +10,6 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
-	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
-	artemis_pricing_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/utils/pricing"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_core/entities"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_v3/constants"
@@ -36,13 +34,13 @@ func (p *UniswapV3Pair) PriceImpact(ctx context.Context, token *uniswap_core_ent
 	if err != nil {
 		return nil, nil, err
 	}
-	adjOut, err := artemis_pricing_utils.ApplyTransferTax(token.Address, out.Quotient())
-	if err != nil {
-		return nil, nil, err
-	}
-	adjOut = artemis_eth_units.SetSlippage(adjOut)
-	out.Numerator = adjOut
-	out.Denominator = big.NewInt(1)
+	//adjOut, err := artemis_pricing_utils.ApplyTransferTax(token.Address, out.Quotient())
+	//if err != nil {
+	//	return nil, nil, err
+	//}
+	//adjOut = artemis_eth_units.SetSlippage(adjOut)
+	//out.Numerator = adjOut
+	//out.Denominator = big.NewInt(1)
 	return out, pool, nil
 }
 

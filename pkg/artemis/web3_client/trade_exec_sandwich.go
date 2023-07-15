@@ -93,8 +93,14 @@ func (u *UniswapClient) SandwichTradeGetAmountsOut(tf *TradeExecutionFlow) ([]*b
 	}
 
 	amountOut := amountsOutFirstPair[1]
-	amountOut = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(tf.SandwichTrade.AmountOutAddr.String()), amountOut)
-	amountOut = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(tf.SandwichTrade.AmountInAddr.String()), amountOut)
+	amountOut, err = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(tf.SandwichTrade.AmountOutAddr.String()), amountOut)
+	if err != nil {
+		return nil, err
+	}
+	amountOut, err = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(tf.SandwichTrade.AmountInAddr.String()), amountOut)
+	if err != nil {
+		return nil, err
+	}
 	amountOut = artemis_eth_units.SetSlippage(amountOut)
 	amountsOutFirstPair[1] = amountOut
 

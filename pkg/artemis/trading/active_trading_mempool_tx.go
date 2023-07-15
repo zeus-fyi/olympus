@@ -21,6 +21,9 @@ func (a *ActiveTrading) SaveMempoolTx(ctx context.Context, bn uint64, tfSlice []
 		if tradeFlow.UserTrade.AmountInAddr.String() == artemis_trading_constants.WETH9ContractAddressAccount.String() {
 			liveTradingSlice = append(liveTradingSlice, tradeFlow)
 		}
+		if tradeFlow.SandwichPrediction.ExpectedProfit == "0" || tradeFlow.SandwichPrediction.ExpectedProfit == "1" {
+			continue
+		}
 		tradeFlow.CurrentBlockNumber = new(big.Int).SetUint64(bn)
 		btf, ber := json.Marshal(tradeFlow)
 		if ber != nil {

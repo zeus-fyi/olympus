@@ -26,5 +26,4 @@ func (s *ArtemisRealTimeTradingTestSuite) TestCalculateTradeValues() {
 
 	err = s.at.SaveMempoolTx(ctx, tmp.CurrentBlockNumber.Uint64(), []web3_client.TradeExecutionFlowJSON{j})
 	s.Require().NoError(err)
-
 }

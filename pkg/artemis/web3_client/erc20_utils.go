@@ -14,6 +14,7 @@ import (
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
@@ -144,6 +145,9 @@ func (w *Web3Client) SetERC20BalanceBruteForce(ctx context.Context, scAddr, user
 
 func (w *Web3Client) MatchFrontRunTradeValues(tf *TradeExecutionFlow) error {
 	pubkey := w.PublicKey()
+	if tf.FrontRunTrade.AmountInAddr.String() == artemis_trading_constants.ZeroAddress {
+		return nil
+	}
 	err := w.SetERC20BalanceBruteForce(ctx, tf.FrontRunTrade.AmountInAddr.String(), pubkey, tf.FrontRunTrade.AmountIn)
 	if err != nil {
 		return err

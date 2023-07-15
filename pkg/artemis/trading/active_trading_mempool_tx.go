@@ -21,10 +21,10 @@ func (a *ActiveTrading) SaveMempoolTx(ctx context.Context, bn uint64, tfSlice []
 		if tradeFlow.SandwichPrediction.ExpectedProfit == "0" || tradeFlow.SandwichPrediction.ExpectedProfit == "1" {
 			continue
 		}
-		if tradeFlow.UserTrade.AmountIn == "0" {
+		if tradeFlow.UserTrade.AmountIn == "" {
 			continue
 		}
-		if tradeFlow.SandwichTrade.AmountOut == "0" {
+		if tradeFlow.SandwichTrade.AmountOut == "" {
 			continue
 		}
 		if tradeFlow.UserTrade.AmountInAddr.String() == artemis_trading_constants.WETH9ContractAddressAccount.String() {

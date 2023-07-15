@@ -15,6 +15,7 @@ type ArtemisRealTimeTradingTestSuite struct {
 	test_suites_encryption.EncryptionTestSuite
 	MainnetWeb3User    web3_client.Web3Client
 	ProxiedMainnetUser web3_client.Web3Client
+	at                 ActiveTrading
 }
 
 func (s *ArtemisRealTimeTradingTestSuite) SetupTest() {
@@ -30,6 +31,15 @@ func (s *ArtemisRealTimeTradingTestSuite) SetupTest() {
 	s.MainnetWeb3User = web3_client.NewWeb3Client(s.Tc.MainnetNodeUrl, newAccount)
 	s.ProxiedMainnetUser = web3_client.NewWeb3Client(artemis_trading_constants.IrisAnvilRoute, secondAccount)
 	s.ProxiedMainnetUser.AddBearerToken(s.Tc.ProductionLocalTemporalBearerToken)
+
+	uni := web3_client.InitUniswapClient(ctx, s.ProxiedMainnetUser)
+	uni.PrintOn = true
+	uni.PrintLocal = true
+	uni.Web3Client.IsAnvilNode = true
+	uni.Web3Client.DurableExecution = false
+	uni.DebugPrint = true
+
+	s.at = NewActiveTradingDebugger(&uni)
 }
 
 func TestArtemisRealTimeTradingTestSuite(t *testing.T) {

@@ -67,6 +67,9 @@ func (a *ActiveTrading) ProcessTxs(ctx context.Context) ([]web3_client.TradeExec
 			log.Info().Msgf("dat: EntryTxFilter, tx already in cache, hash: %s", tf.Tx.Hash)
 			continue
 		}
+		if tf.SandwichPrediction.ExpectedProfit == "" {
+			continue
+		}
 		if tf.SandwichPrediction.ExpectedProfit == "0" {
 			continue
 		}

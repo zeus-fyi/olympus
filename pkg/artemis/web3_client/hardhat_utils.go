@@ -27,7 +27,7 @@ func (w *Web3Client) MineNextBlock(ctx context.Context) error {
 	return nil
 }
 
-func getSlot(userAddress string, slot *big.Int) (string, error) {
+func GetSlot(userAddress string, slot *big.Int) (string, error) {
 	// compute keccak256 hash
 	addr := common.HexToAddress(userAddress)
 	hash := crypto.Keccak256Hash(

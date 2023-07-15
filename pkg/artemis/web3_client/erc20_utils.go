@@ -50,7 +50,7 @@ func (w *Web3Client) FindSlotFromUserWithBalance(ctx context.Context, scAddr, us
 	}
 	for i := 0; i < 100; i++ {
 		slotNum := new(big.Int).SetUint64(uint64(i))
-		hexStr, err := getSlot(userAddr, slotNum)
+		hexStr, err := GetSlot(userAddr, slotNum)
 		if err != nil {
 			return -1, "", err
 		}
@@ -69,7 +69,7 @@ func (w *Web3Client) FindSlotFromUserWithBalance(ctx context.Context, scAddr, us
 }
 
 func (w *Web3Client) SetERC20BalanceAtSlotNumber(ctx context.Context, scAddr, userAddr string, slotNum int, value *big.Int) error {
-	slotHex, err := getSlot(userAddr, new(big.Int).SetUint64(uint64(slotNum)))
+	slotHex, err := GetSlot(userAddr, new(big.Int).SetUint64(uint64(slotNum)))
 	if err != nil {
 		return err
 	}
@@ -93,7 +93,7 @@ func (w *Web3Client) SetERC20BalanceBruteForce(ctx context.Context, scAddr, user
 	}
 
 	if slotNum > -1 {
-		slotHex, err := getSlot(userAddr, new(big.Int).SetUint64(uint64(slotNum)))
+		slotHex, err := GetSlot(userAddr, new(big.Int).SetUint64(uint64(slotNum)))
 		if err != nil {
 			return err
 		}
@@ -103,7 +103,7 @@ func (w *Web3Client) SetERC20BalanceBruteForce(ctx context.Context, scAddr, user
 	}
 
 	for i := 0; i < 20; i++ {
-		slotHex, err := getSlot(userAddr, new(big.Int).SetUint64(uint64(i)))
+		slotHex, err := GetSlot(userAddr, new(big.Int).SetUint64(uint64(i)))
 		if err != nil {
 			return err
 		}

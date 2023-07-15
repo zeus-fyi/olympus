@@ -7,6 +7,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/rs/zerolog/log"
+	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
@@ -44,7 +45,8 @@ func (a *ActiveTrading) RealTimeProcessUniswapV3RouterTx(ctx context.Context, tx
 			newTx.Args = args
 			tf, terr := a.processUniswapV3Txs(ctx, newTx)
 			if terr != nil {
-				return nil, terr
+				log.Err(terr).Msg("failed to process uniswap v3 tx")
+				continue
 			}
 			tfSlice = append(tfSlice, tf...)
 		}
@@ -60,6 +62,11 @@ func (a *ActiveTrading) RealTimeProcessUniswapV3RouterTx(ctx context.Context, tx
 }
 
 func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx) ([]web3_client.TradeExecutionFlowJSON, error) {
+	bn, berr := artemis_trading_cache.GetLatestBlock(ctx)
+	if berr != nil {
+		log.Err(berr).Msg("failed to get latest block")
+		return nil, errors.New("ailed to get latest block")
+	}
 	var tfSlice []web3_client.TradeExecutionFlowJSON
 	toAddr := tx.Tx.To().String()
 	switch tx.MethodName {
@@ -79,7 +86,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			return nil, err
 		}
 		tf := inputs.BinarySearch(pd)
-		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
+		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" || tf.SandwichPrediction.ExpectedProfit == "" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
 		tf.Trade.TradeMethod = exactInput
@@ -95,6 +102,12 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		a.GetMetricsClient().TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 		a.GetMetricsClient().TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, exactInput, pd.V3Pair.PoolAddress, inputs.TokenFeePath.TokenIn.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		tfSlice = append(tfSlice, tf)
+		log.Info().Msg("saving mempool tx")
+		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf})
+		if err != nil {
+			log.Err(err).Msg("failed to save mempool tx")
+			return nil, errors.New("failed to save mempool tx")
+		}
 	case exactOutput:
 		inputs := &web3_client.ExactOutputParams{}
 		err := inputs.Decode(ctx, tx.Args)
@@ -111,7 +124,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			return nil, err
 		}
 		tf := inputs.BinarySearch(pd)
-		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
+		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" || tf.SandwichPrediction.ExpectedProfit == "" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
 		tf.Trade.TradeMethod = exactOutput
@@ -127,6 +140,12 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		a.GetMetricsClient().TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 		a.GetMetricsClient().TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, exactOutput, pd.V3Pair.PoolAddress, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		tfSlice = append(tfSlice, tf)
+		log.Info().Msg("saving mempool tx")
+		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf})
+		if err != nil {
+			log.Err(err).Msg("failed to save mempool tx")
+			return nil, errors.New("failed to save mempool tx")
+		}
 	case swapExactInputSingle:
 		inputs := &web3_client.SwapExactInputSingleArgs{}
 		err := inputs.Decode(ctx, tx.Args)
@@ -143,7 +162,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			return nil, err
 		}
 		tf := inputs.BinarySearch(pd)
-		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
+		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" || tf.SandwichPrediction.ExpectedProfit == "" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
 		tf.Trade.TradeMethod = swapExactInputSingle
@@ -159,6 +178,12 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		a.GetMetricsClient().TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 		a.GetMetricsClient().TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactInputSingle, pd.V3Pair.PoolAddress, inputs.TokenFeePath.TokenIn.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		tfSlice = append(tfSlice, tf)
+		log.Info().Msg("saving mempool tx")
+		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf})
+		if err != nil {
+			log.Err(err).Msg("failed to save mempool tx")
+			return nil, errors.New("failed to save mempool tx")
+		}
 	case swapExactOutputSingle:
 		inputs := &web3_client.SwapExactOutputSingleArgs{}
 		err := inputs.Decode(ctx, tx.Args)
@@ -182,7 +207,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			return nil, err
 		}
 		tf.Tx = newTx
-		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
+		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" || tf.SandwichPrediction.ExpectedProfit == "" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
 		tf.Trade.TradeMethod = swapExactOutputSingle
@@ -191,6 +216,12 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		a.GetMetricsClient().TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 		a.GetMetricsClient().TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactOutputSingle, pd.V3Pair.PoolAddress, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		tfSlice = append(tfSlice, tf)
+		log.Info().Msg("saving mempool tx")
+		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf})
+		if err != nil {
+			log.Err(err).Msg("failed to save mempool tx")
+			return nil, errors.New("failed to save mempool tx")
+		}
 	case swapExactTokensForTokens:
 		inputs := &web3_client.SwapExactTokensForTokensParamsV3{}
 		err := inputs.Decode(ctx, tx.Args)
@@ -207,7 +238,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			return nil, err
 		}
 		tf := inputs.BinarySearch(pd.V2Pair)
-		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" {
+		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" || tf.SandwichPrediction.ExpectedProfit == "" {
 			return nil, errors.New("expectedProfit == 0 or 1")
 		}
 		newTx := artemis_trading_types.JSONTx{}
@@ -224,6 +255,12 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		a.GetMetricsClient().TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path[0].String(), inputs.Path[pend].String())
 		a.GetMetricsClient().TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForTokens, pd.V2Pair.PairContractAddr, inputs.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		tfSlice = append(tfSlice, tf)
+		log.Info().Msg("saving mempool tx")
+		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf})
+		if err != nil {
+			log.Err(err).Msg("failed to save mempool tx")
+			return nil, errors.New("failed to save mempool tx")
+		}
 	case swapExactInputMultihop:
 		a.GetMetricsClient().TxFetcherMetrics.TransactionGroup(toAddr, swapExactInputMultihop)
 	case swapExactOutputMultihop:

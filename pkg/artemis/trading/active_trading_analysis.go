@@ -19,42 +19,48 @@ func (a *ActiveTrading) ProcessTxs(ctx context.Context) ([]web3_client.TradeExec
 	for _, mevTx := range a.GetUniswapClient().MevSmartContractTxMapUniversalRouterOld.Txs {
 		tf, err := a.RealTimeProcessUniversalRouterTx(ctx, mevTx)
 		if err != nil {
-			return nil, err
+			log.Err(err).Msg("error processing universal router tx")
+			continue
 		}
 		tfSlice = append(tfSlice, tf...)
 	}
 	for _, mevTx := range a.GetUniswapClient().MevSmartContractTxMapUniversalRouterNew.Txs {
 		tf, err := a.RealTimeProcessUniversalRouterTx(ctx, mevTx)
 		if err != nil {
-			return nil, err
+			log.Err(err).Msg("error processing universal router tx")
+			continue
 		}
 		tfSlice = append(tfSlice, tf...)
 	}
 	for _, mevTx := range a.GetUniswapClient().MevSmartContractTxMapV2Router01.Txs {
 		tf, err := a.RealTimeProcessUniswapV2RouterTx(ctx, mevTx)
 		if err != nil {
-			return nil, err
+			log.Err(err).Msg("error processing v2_01 router tx")
+			continue
 		}
 		tfSlice = append(tfSlice, tf...)
 	}
 	for _, mevTx := range a.GetUniswapClient().MevSmartContractTxMapV2Router02.Txs {
 		tf, err := a.RealTimeProcessUniswapV2RouterTx(ctx, mevTx)
 		if err != nil {
-			return nil, err
+			log.Err(err).Msg("error processing v2_02 router tx")
+			continue
 		}
 		tfSlice = append(tfSlice, tf...)
 	}
 	for _, mevTx := range a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV2.Txs {
 		tf, err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV2.Abi, a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV2.Filter)
 		if err != nil {
-			return nil, err
+			log.Err(err).Msg("error processing v3_02 router tx")
+			continue
 		}
 		tfSlice = append(tfSlice, tf...)
 	}
 	for _, mevTx := range a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV1.Txs {
 		tf, err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV1.Abi, a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV1.Filter)
 		if err != nil {
-			return nil, err
+			log.Err(err).Msg("error processing v3_01 router tx")
+			continue
 		}
 		tfSlice = append(tfSlice, tf...)
 	}

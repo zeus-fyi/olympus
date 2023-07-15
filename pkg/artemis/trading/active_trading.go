@@ -125,17 +125,6 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 		return ErrWrapper{Err: errors.New("ProcessTxs: no tx flows to simulate"), Stage: "ProcessTxs"}
 	}
 	a.GetMetricsClient().StageProgressionMetrics.CountPostProcessTx(float64(1))
-	bn, err := artemis_trading_cache.GetLatestBlock(ctx)
-	if err != nil {
-		log.Err(err).Msg("failed to get latest block")
-		return ErrWrapper{Err: err, Stage: "GetLatestBlock"}
-	}
-	log.Info().Msg("saving mempool tx")
-	err = a.SaveMempoolTx(ctx, bn, tfSlice)
-	if err != nil {
-		log.Err(err).Msg("failed to save mempool tx")
-		return ErrWrapper{Err: err, Stage: "SaveMempoolTx"}
-	}
 	err = a.SimTxFilter(ctx, tfSlice)
 	if err != nil {
 		log.Err(err).Msg("failed to pass sim tx filter")

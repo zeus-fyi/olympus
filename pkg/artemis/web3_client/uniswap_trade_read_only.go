@@ -6,12 +6,8 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
-	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
-	artemis_pricing_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/utils/pricing"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
-	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_core/entities"
 )
 
 func (u *UniswapClient) GetAmounts(address *common.Address, to artemis_trading_types.TradeOutcome, method string) ([]*big.Int, error) {
@@ -53,21 +49,6 @@ func (u *UniswapClient) GetAmountsIn(address *common.Address, amountOut *big.Int
 	}
 	amountsInFirstPair := ConvertAmountsToBigIntSlice(amountsIn)
 	return amountsInFirstPair, err
-}
-
-// GetAmountsOutAndApplyTransferFeeAndSlippage also applies a transfer tax to the output amount
-func (u *UniswapClient) GetAmountsOutAndApplyTransferFeeAndSlippage(address *common.Address, amountIn *big.Int, pathSlice []string) ([]*big.Int, error) {
-	amountsOutFirstPair, err := u.GetAmountsOut(address, amountIn, pathSlice)
-	if err != nil {
-		return nil, err
-	}
-	for i, amount := range amountsOutFirstPair {
-		token := pathSlice[i]
-		out := uniswap_core_entities.NewFraction(amount, big.NewInt(1))
-		amountsOutFirstPair[i] = artemis_pricing_utils.ApplyTransferTax(accounts.HexToAddress(token), out.Quotient())
-		amountsOutFirstPair[i] = artemis_eth_units.SetSlippage(out.Quotient())
-	}
-	return amountsOutFirstPair, err
 }
 
 func (u *UniswapClient) GetAmountsOut(address *common.Address, amountIn *big.Int, pathSlice []string) ([]*big.Int, error) {

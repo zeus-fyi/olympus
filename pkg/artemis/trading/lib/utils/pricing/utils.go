@@ -5,7 +5,7 @@ import (
 
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
-	uniswap_core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_core/entities"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 )
 
 func ApplyTransferTax(tokenAddress accounts.Address, amount *big.Int) *big.Int {
@@ -15,14 +15,11 @@ func ApplyTransferTax(tokenAddress accounts.Address, amount *big.Int) *big.Int {
 	num := artemis_trading_cache.TokenMap[tokenAddress.String()].TransferTaxNumerator
 	denom := artemis_trading_cache.TokenMap[tokenAddress.String()].TransferTaxDenominator
 	if num == nil || denom == nil {
+		panic("numerator or denominator is nil")
 		return amount
 	}
 	if *num == 1 && *denom == 1 {
 		return amount
 	}
-	transferTax := uniswap_core_entities.NewPercent(new(big.Int).SetInt64(int64(*num)), new(big.Int).SetInt64(int64(*denom)))
-	transferFee := new(big.Int).Mul(amount, transferTax.Numerator)
-	transferFee = transferFee.Div(transferFee, transferTax.Denominator)
-	adjustedOut := new(big.Int).Sub(amount, transferFee)
-	return adjustedOut
+	return artemis_eth_units.ApplyTransferTax(amount, *num, *denom)
 }

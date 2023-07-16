@@ -70,6 +70,7 @@ func InitNewUniswapQuiknode(ctx context.Context) *web3_client.UniswapClient {
 
 func ProcessMempoolTxs(ctx context.Context) {
 	timestampChan := make(chan time.Time)
+	go artemis_trading_cache.SetActiveTradingBlockCache(ctx)
 	go beacon_api.TriggerWorkflowOnNewBlockHeaderEvent(ctx, artemis_network_cfgs.ArtemisQuicknodeStreamWebsocket, timestampChan)
 
 	for {

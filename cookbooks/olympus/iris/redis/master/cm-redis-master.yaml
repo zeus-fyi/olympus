@@ -5,4 +5,4 @@ metadata:
 data:
   start.sh: |-
     #!/bin/sh
-    exec iris --age-private-key="${AGE_PKEY}" --do-spaces-key="${DO_SPACES_KEY}" --do-spaces-private-key="${DO_SPACES_PKEY}" --env="production"
+    exec redis-server --protected-mode no

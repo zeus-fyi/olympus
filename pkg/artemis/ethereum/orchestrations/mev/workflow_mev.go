@@ -44,6 +44,9 @@ func (t *ArtemisMevWorkflow) ArtemisTxBlacklistWorkflow(ctx workflow.Context) er
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Second * 12,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 3,
+		},
 	}
 	blacklistTxsCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(blacklistTxsCtx, t.BlacklistMinedTxs).Get(blacklistTxsCtx, nil)
@@ -58,6 +61,9 @@ func (t *ArtemisMevWorkflow) ArtemisRemoveProcessedTxsWorkflow(ctx workflow.Cont
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Second * 12,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 3,
+		},
 	}
 	removeMempoolTxsCtx := workflow.WithActivityOptions(ctx, ao)
 	for _, tx := range mempoolTxs {
@@ -74,6 +80,9 @@ func (t *ArtemisMevWorkflow) ArtemisTxBlacklistProcessedTxsWorkflow(ctx workflow
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Second * 12,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 3,
+		},
 	}
 	blacklistTxsCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(blacklistTxsCtx, t.BlacklistProcessedTxs, txSlice).Get(blacklistTxsCtx, nil)
@@ -88,6 +97,9 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context, blockNumbe
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 3,
+		},
 	}
 	getMempoolTxsCtx := workflow.WithActivityOptions(ctx, ao)
 	var mempoolTxs artemis_autogen_bases.EthMempoolMevTxSlice

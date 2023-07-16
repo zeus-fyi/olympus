@@ -85,6 +85,9 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			//log.Err(err).Msg("failed to get pricing data")
 			return nil, err
 		}
+		if pd == nil {
+			return nil, errors.New("pd is nil")
+		}
 		tf := inputs.BinarySearch(pd)
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" || tf.SandwichPrediction.ExpectedProfit == "" {
 			return nil, errors.New("expectedProfit == 0 or 1")
@@ -123,6 +126,9 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			}
 			//log.Err(err).Msg("failed to get pricing data")
 			return nil, err
+		}
+		if pd == nil {
+			return nil, errors.New("pd is nil")
 		}
 		tf := inputs.BinarySearch(pd)
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" || tf.SandwichPrediction.ExpectedProfit == "" {
@@ -164,6 +170,9 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			//log.Err(err).Msg("failed to get pricing data")
 			return nil, err
 		}
+		if pd == nil {
+			return nil, errors.New("pd is nil")
+		}
 		tf := inputs.BinarySearch(pd)
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" || tf.SandwichPrediction.ExpectedProfit == "" {
 			return nil, errors.New("expectedProfit == 0 or 1")
@@ -203,6 +212,9 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			//log.Err(err).Msg("failed to get pricing data")
 			return nil, err
 		}
+		if pd == nil {
+			return nil, errors.New("pd is nil")
+		}
 		tf := inputs.BinarySearch(pd)
 		newTx := artemis_trading_types.JSONTx{}
 		err = newTx.UnmarshalTx(tx.Tx)
@@ -241,6 +253,9 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			}
 			//log.Err(err).Msg("failed to get pricing data")
 			return nil, err
+		}
+		if pd == nil {
+			return nil, errors.New("pd is nil")
 		}
 		tf := inputs.BinarySearch(pd.V2Pair)
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" || tf.SandwichPrediction.ExpectedProfit == "" {

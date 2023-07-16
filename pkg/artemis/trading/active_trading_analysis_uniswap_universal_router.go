@@ -38,6 +38,9 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 				//log.Err(perr).Msg("V3SwapExactIn: error getting pricing data")
 				return nil, perr
 			}
+			if pd == nil {
+				return nil, errors.New("pd is nil")
+			}
 			tf := inputs.BinarySearch(pd)
 			if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" || tf.SandwichPrediction.ExpectedProfit == "" {
 				return nil, errors.New("expectedProfit == 0 or 1")
@@ -72,6 +75,9 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 				}
 				//log.Err(perr).Msg("V3SwapExactIn: error getting pricing data")
 				return nil, perr
+			}
+			if pd == nil {
+				return nil, errors.New("pd is nil")
 			}
 			tf := inputs.BinarySearch(pd)
 			newJsonTx := artemis_trading_types.JSONTx{}
@@ -108,6 +114,9 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 				//log.Err(perr).Msg("V2SwapExactIn: error getting pricing data")
 				return nil, perr
 			}
+			if pd == nil {
+				return nil, errors.New("pd is nil")
+			}
 			tf := inputs.BinarySearch(pd.V2Pair)
 			newJsonTx := artemis_trading_types.JSONTx{}
 			err = newJsonTx.UnmarshalTx(tx.Tx)
@@ -142,6 +151,9 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 				}
 				//log.Err(perr).Msg("V2SwapExactOut: error getting pricing data")
 				return nil, perr
+			}
+			if pd == nil {
+				return nil, errors.New("pd is nil")
 			}
 			tf := inputs.BinarySearch(pd.V2Pair)
 			newJsonTx := artemis_trading_types.JSONTx{}

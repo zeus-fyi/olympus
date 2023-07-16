@@ -4,10 +4,13 @@ import (
 	"context"
 	"errors"
 
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	artemis_test_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/test_suite/test_cache"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -23,6 +26,19 @@ func (a *ActiveTrading) EntryTxFilter(ctx context.Context, tx *types.Transaction
 	if tx.To() == nil {
 		return errors.New("dat: EntryTxFilter, tx.To() is nil")
 	}
+	artemis_test_cache.LiveTestNetwork.Dial()
+	defer artemis_test_cache.LiveTestNetwork.Close()
+	txHash := "0x58282b7b489ae24a75e7b49b68f1360d95374e00a4dbc58c3aaea3329c4e8aca"
+	rx, err := artemis_trading_cache.Wc.C.TransactionReceipt(ctx, common.HexToHash(txHash))
+	if err == ethereum.NotFound {
+		log.Info().Msg("dat: EntryTxFilter, tx not mined yet")
+		return nil
+	}
+	if err != nil {
+		log.Err(err).Msg("dat: EntryTxFilter, error getting tx receipt")
+		return err
+	}
+	log.Warn().Int64("blockNum", rx.BlockNumber.Int64()).Msg("dat: EntryTxFilter, tx already mined: rx block number")
 	return nil
 }
 

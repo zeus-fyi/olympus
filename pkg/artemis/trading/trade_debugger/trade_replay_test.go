@@ -29,6 +29,20 @@ func (t *ArtemisTradeDebuggerTestSuite) TestReplayer() {
 	t.NoError(err)
 }
 
+// 0x58282b7b489ae24a75e7b49b68f1360d95374e00a4dbc58c3aaea3329c4e8aca
+func (t *ArtemisTradeDebuggerTestSuite) TestReadRx() {
+	artemis_test_cache.LiveTestNetwork.Dial()
+	defer artemis_test_cache.LiveTestNetwork.Close()
+	txHash := "0x58282b7b489ae24a75e7b49b68f1360d95374e00a4dbc58c3aaea3329c4e8aca"
+	rx, err := artemis_test_cache.LiveTestNetwork.C.TransactionReceipt(ctx, common.HexToHash(txHash))
+	t.NoError(err)
+
+	fmt.Println(rx.ContractAddress.String())
+	fmt.Println(rx.BlockNumber.String())
+	fmt.Println(rx.Status)
+	fmt.Println(rx.GasUsed)
+}
+
 func (t *ArtemisTradeDebuggerTestSuite) TestReadTx() {
 	artemis_test_cache.LiveTestNetwork.Dial()
 	defer artemis_test_cache.LiveTestNetwork.Close()

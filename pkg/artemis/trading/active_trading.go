@@ -21,6 +21,10 @@ const (
 	irisSvcBeacons = "http://iris.iris.svc.cluster.local/v1beta/internal/router/group?routeGroup=quiknode-mainnet"
 )
 
+var (
+	CacheBeacon = web3_client.NewWeb3ClientFakeSigner(irisSvcBeacons)
+)
+
 type ActiveTrading struct {
 	a  *artemis_trading_auxiliary.AuxiliaryTradingUtils
 	us *ActiveTrading
@@ -42,6 +46,7 @@ func (a *ActiveTrading) GetMetricsClient() *metrics_trading.TradingMetrics {
 func createSimClient() web3_client.Web3Client {
 	sw3c := web3_client.NewWeb3ClientFakeSigner(irisBetaSvc)
 	sw3c.AddBearerToken(artemis_orchestration_auth.Bearer)
+	CacheBeacon.AddBearerToken(artemis_orchestration_auth.Bearer)
 	return sw3c
 }
 
@@ -114,11 +119,21 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 	if len(mevTxs) <= 0 {
 		return ErrWrapper{Err: errors.New("DecodeTx: no txs to process"), Stage: "DecodeTx"}
 	}
+
+	txCache.Set(tx.Hash().String()+"-time", time.Now().UnixMilli(), cache.DefaultExpiration)
 	a.GetMetricsClient().StageProgressionMetrics.CountPostDecodeTx()
 	_, err = a.ProcessTxs(ctx)
 	if err != nil {
 		log.Err(err).Msg("failed to pass process txs")
 		return ErrWrapper{Err: err, Stage: "ProcessTxs"}
+	}
+	found, ok := txCache.Get(tx.Hash().String() + "-time")
+	if ok {
+		now := time.Now().UnixMilli()
+		seen := found.(int64)
+		log.Info().Msgf("tx %s took %d ms to process", now-seen)
+	} else {
+		log.Info().Msgf("tx %s took %d ms to process", tx.Hash().String(), 0)
 	}
 	return ErrWrapper{Err: err, Stage: "Success", Code: 200}
 }

@@ -17,8 +17,8 @@ func (u *UniswapClient) ProcessTxs(ctx context.Context) {
 	if berr != nil {
 		log.Err(berr)
 	}
-	u.mu.Lock()
-	defer u.mu.Unlock()
+	//u.mu.Lock()
+	//defer u.mu.Unlock()
 	u.BlockNumber = new(big.Int).SetUint64(bn)
 	count := 0
 	for _, tx := range u.MevSmartContractTxMapUniversalRouterOld.Txs {

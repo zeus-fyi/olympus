@@ -3,7 +3,6 @@ package artemis_realtime_trading
 import (
 	"context"
 	"errors"
-	"sync"
 	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
@@ -27,10 +26,9 @@ var (
 )
 
 type ActiveTrading struct {
-	lock sync.Mutex
-	a    *artemis_trading_auxiliary.AuxiliaryTradingUtils
-	us   *ActiveTrading
-	m    *metrics_trading.TradingMetrics
+	a  *artemis_trading_auxiliary.AuxiliaryTradingUtils
+	us *ActiveTrading
+	m  *metrics_trading.TradingMetrics
 }
 
 func (a *ActiveTrading) GetUniswapClient() *web3_client.UniswapClient {
@@ -114,30 +112,30 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 		return ErrWrapper{Err: err, Stage: "EntryTxFilter"}
 	}
 	a.GetMetricsClient().StageProgressionMetrics.CountPostEntryFilterTx()
-	a.lock.Lock()
-	defer a.lock.Unlock()
-	mevTxs, err := a.DecodeTx(ctx, tx)
-	if err != nil {
-		return ErrWrapper{Err: err, Stage: "DecodeTx"}
-	}
-	if len(mevTxs) <= 0 {
-		return ErrWrapper{Err: errors.New("DecodeTx: no txs to process"), Stage: "DecodeTx"}
-	}
+	// Start the remainder of the function in a goroutine
+	go func() {
+		mevTxs, merr := a.DecodeTx(ctx, tx)
+		if merr != nil {
+			log.Err(merr).Msg("decoding txs err")
+		}
+		if len(mevTxs) <= 0 {
+			log.Err(merr).Msg("no mev txs found")
+		}
+		txCache.Set(tx.Hash().String()+"-time", time.Now().UnixMilli(), cache.DefaultExpiration)
+		a.GetMetricsClient().StageProgressionMetrics.CountPostDecodeTx()
+		_, err = a.ProcessTxs(ctx)
+		if err != nil {
+			log.Err(err).Msg("failed to pass process txs")
+		}
+		found, ok1 := txCache.Get(tx.Hash().String() + "-time")
+		if ok1 {
+			now := time.Now().UnixMilli()
+			seen := found.(int64)
+			log.Info().Msgf("tx %s took %d ms to process", tx.Hash().String(), now-seen)
+		} else {
+			log.Info().Msgf("tx %s took %d ms to process", tx.Hash().String(), 0)
+		}
+	}()
 
-	txCache.Set(tx.Hash().String()+"-time", time.Now().UnixMilli(), cache.DefaultExpiration)
-	a.GetMetricsClient().StageProgressionMetrics.CountPostDecodeTx()
-	_, err = a.ProcessTxs(ctx)
-	if err != nil {
-		log.Err(err).Msg("failed to pass process txs")
-		return ErrWrapper{Err: err, Stage: "ProcessTxs"}
-	}
-	found, ok := txCache.Get(tx.Hash().String() + "-time")
-	if ok {
-		now := time.Now().UnixMilli()
-		seen := found.(int64)
-		log.Info().Msgf("tx %d took %d ms to process", now-seen)
-	} else {
-		log.Info().Msgf("tx %s took %d ms to process", tx.Hash().String(), 0)
-	}
 	return ErrWrapper{Err: err, Stage: "Success", Code: 200}
 }

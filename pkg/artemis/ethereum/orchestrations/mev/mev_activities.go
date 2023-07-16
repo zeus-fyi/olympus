@@ -14,6 +14,7 @@ import (
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
+	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -52,7 +53,7 @@ func (d *ArtemisMevActivities) SubmitFlashbotsBundle(ctx context.Context) error 
 var c = cache.New(5*time.Hour, 10*time.Hour)
 
 func (d *ArtemisMevActivities) BlacklistMinedTxs(ctx context.Context) error {
-	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
+	wc := web3_client.NewWeb3Client(artemis_trading_cache.Wc.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
 	txs, terr := wc.GetBlockTxs(ctx)
 	if terr != nil {
 		log.Err(terr).Str("network", d.Network).Msg("GetDynamoDBMempoolTxs failed")

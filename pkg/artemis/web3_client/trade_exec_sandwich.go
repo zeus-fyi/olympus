@@ -25,6 +25,8 @@ func (u *UniswapClient) ExecSandwichTradeStepTokenTransfer(tf *TradeExecutionFlo
 		log.Err(err).Msg("error getting pre trade eth balance")
 		return nil, err
 	}
+	// NOTE: permissive transfer tax during historical sim
+	tf.SandwichTrade.AmountOut = artemis_eth_units.ApplyTransferTax(tf.SandwichTrade.SimulatedAmountOut, 3, 1000)
 	bal, err := u.Web3Client.ReadERC20TokenBalance(ctx, tf.SandwichTrade.AmountOutAddr.String(), u.Web3Client.PublicKey())
 	if err != nil {
 		log.Err(err).Msg("error getting pre trade amount out token balance")

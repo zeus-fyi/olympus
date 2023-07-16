@@ -113,30 +113,29 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 	}
 	a.GetMetricsClient().StageProgressionMetrics.CountPostEntryFilterTx()
 	// Start the remainder of the function in a goroutine
-	go func() {
-		mevTxs, merr := a.DecodeTx(ctx, tx)
-		if merr != nil {
-			log.Err(merr).Msg("decoding txs err")
-		}
-		if len(mevTxs) <= 0 {
-			log.Err(merr).Msg("no mev txs found")
-		}
-		txCache.Set(tx.Hash().String()+"-time", time.Now().UnixMilli(), cache.DefaultExpiration)
-		a.GetMetricsClient().StageProgressionMetrics.CountPostDecodeTx()
-		_, err = a.ProcessTxs(ctx)
-		if err != nil {
-			log.Err(err).Msg("failed to pass process txs")
-		}
-		found, ok1 := txCache.Get(tx.Hash().String() + "-time")
-		if ok1 {
-			now := time.Now().UnixMilli()
-			seen := found.(int64)
-			timeTaken := now - seen
-			log.Info().Int64("diff", timeTaken).Str("txHash", tx.Hash().String()).Msgf("tx took ms to process")
-		} else {
-			log.Info().Msgf("tx %s took %d ms to process", tx.Hash().String(), 0)
-		}
-	}()
-
+	mevTxs, merr := a.DecodeTx(ctx, tx)
+	if merr != nil {
+		log.Err(merr).Msg("decoding txs err")
+	}
+	if len(mevTxs) <= 0 {
+		log.Err(merr).Msg("no mev txs found")
+		return ErrWrapper{Err: merr, Stage: "DecodeTx"}
+	}
+	txCache.Set(tx.Hash().String()+"-time", time.Now().UnixMilli(), cache.DefaultExpiration)
+	a.GetMetricsClient().StageProgressionMetrics.CountPostDecodeTx()
+	_, err = a.ProcessTxs(ctx)
+	if err != nil {
+		log.Err(err).Msg("failed to pass process txs")
+		return ErrWrapper{Err: err, Stage: "ProcessTxs"}
+	}
+	found, ok1 := txCache.Get(tx.Hash().String() + "-time")
+	if ok1 {
+		now := time.Now().UnixMilli()
+		seen := found.(int64)
+		timeTaken := now - seen
+		log.Info().Int64("diff", timeTaken).Str("txHash", tx.Hash().String()).Msgf("tx took ms to process")
+	} else {
+		log.Info().Msgf("tx %s took %d ms to process", tx.Hash().String(), 0)
+	}
 	return ErrWrapper{Err: err, Stage: "Success", Code: 200}
 }

@@ -3,6 +3,7 @@ package artemis_realtime_trading
 import (
 	"context"
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
@@ -26,9 +27,10 @@ var (
 )
 
 type ActiveTrading struct {
-	a  *artemis_trading_auxiliary.AuxiliaryTradingUtils
-	us *ActiveTrading
-	m  *metrics_trading.TradingMetrics
+	lock sync.Mutex
+	a    *artemis_trading_auxiliary.AuxiliaryTradingUtils
+	us   *ActiveTrading
+	m    *metrics_trading.TradingMetrics
 }
 
 func (a *ActiveTrading) GetUniswapClient() *web3_client.UniswapClient {
@@ -112,6 +114,8 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 		return ErrWrapper{Err: err, Stage: "EntryTxFilter"}
 	}
 	a.GetMetricsClient().StageProgressionMetrics.CountPostEntryFilterTx()
+	a.lock.Lock()
+	defer a.lock.Unlock()
 	mevTxs, err := a.DecodeTx(ctx, tx)
 	if err != nil {
 		return ErrWrapper{Err: err, Stage: "DecodeTx"}

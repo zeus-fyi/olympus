@@ -8,7 +8,7 @@ import (
 	"github.com/zeus-fyi/olympus/cookbooks"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
-	zeus_client "github.com/zeus-fyi/zeus/pkg/zeus/client"
+	zeus_client "github.com/zeus-fyi/zeus/zeus/z_client"
 )
 
 type IrisCookbookTestSuite struct {

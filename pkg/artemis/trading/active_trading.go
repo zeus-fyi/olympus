@@ -77,7 +77,7 @@ func NewActiveTradingModuleWithoutMetrics(a *artemis_trading_auxiliary.Auxiliary
 	return ActiveTrading{a: a, us: &auxSimTrader}
 }
 
-func NewActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, tm *metrics_trading.TradingMetrics) ActiveTrading {
+func newActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, tm *metrics_trading.TradingMetrics) ActiveTrading {
 	ctx := context.Background()
 	us := web3_client.InitUniswapClient(ctx, createSimClient())
 	us.Web3Client.IsAnvilNode = true
@@ -88,7 +88,11 @@ func NewActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, 
 	}
 	at := ActiveTrading{a: a, us: &auxSimTrader, m: tm}
 
-	go artemis_trading_cache.SetActiveTradingBlockCache(ctx)
+	return at
+}
+func NewActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, tm *metrics_trading.TradingMetrics) ActiveTrading {
+	at := newActiveTradingModule(a, tm)
+	go artemis_trading_cache.SetActiveTradingBlockCache(context.Background())
 	return at
 }
 
@@ -101,19 +105,20 @@ type ErrWrapper struct {
 var txCache = cache.New(time.Hour*24, time.Hour*24)
 
 func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) ErrWrapper {
+	at := newActiveTradingModule(a.a, a.m)
 	_, ok := txCache.Get(tx.Hash().String())
 	if ok {
 		return ErrWrapper{Err: errors.New("tx already processed")}
 	}
 	txCache.Set(tx.Hash().String(), tx, cache.DefaultExpiration)
-	a.GetMetricsClient().StageProgressionMetrics.CountPreEntryFilterTx()
-	err := a.EntryTxFilter(ctx, tx)
+	at.GetMetricsClient().StageProgressionMetrics.CountPreEntryFilterTx()
+	err := at.EntryTxFilter(ctx, tx)
 	if err != nil {
 		return ErrWrapper{Err: err, Stage: "EntryTxFilter"}
 	}
-	a.GetMetricsClient().StageProgressionMetrics.CountPostEntryFilterTx()
+	at.GetMetricsClient().StageProgressionMetrics.CountPostEntryFilterTx()
 	// Start the remainder of the function in a goroutine
-	mevTxs, merr := a.DecodeTx(ctx, tx)
+	mevTxs, merr := at.DecodeTx(ctx, tx)
 	if merr != nil {
 		log.Err(merr).Msg("decoding txs err")
 	}
@@ -122,8 +127,8 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 		return ErrWrapper{Err: merr, Stage: "DecodeTx"}
 	}
 	txCache.Set(tx.Hash().String()+"-time", time.Now().UnixMilli(), cache.DefaultExpiration)
-	a.GetMetricsClient().StageProgressionMetrics.CountPostDecodeTx()
-	_, err = a.ProcessTxs(ctx)
+	at.GetMetricsClient().StageProgressionMetrics.CountPostDecodeTx()
+	_, err = at.ProcessTxs(ctx)
 	if err != nil {
 		log.Err(err).Msg("failed to pass process txs")
 		return ErrWrapper{Err: err, Stage: "ProcessTxs"}

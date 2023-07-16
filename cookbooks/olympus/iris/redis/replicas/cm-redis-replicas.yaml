@@ -5,4 +5,4 @@ metadata:
 data:
   start.sh: |-
     #!/bin/sh
-    exec redis-server --protected-mode no --bind 0.0.0.0 --dir /data --maxmemory 27gb --maxmemory-policy volatile-lru --slaveof redis-master.redis.svc.local 6379
+    exec redis-server --protected-mode no --bind 0.0.0.0 --dir /data --maxmemory 27gb --maxmemory-policy volatile-lru --slaveof "http://redis-master.redis.svc.cluster.local" 6379

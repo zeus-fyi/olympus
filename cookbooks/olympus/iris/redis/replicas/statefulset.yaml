@@ -1,11 +1,11 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: redis-master
+  name: redis-replicas
   labels:
-    app: "redis-master"
-    app.kubernetes.io/name: redis-master
-    app.kubernetes.io/instance: redis-master
+    app: "redis-replicas"
+    app.kubernetes.io/name: redis-replicas
+    app.kubernetes.io/instance: redis-replicas
     app.kubernetes.io/managed-by: zeus
   annotations:
     {}
@@ -14,21 +14,21 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: "redis-master"
-      app.kubernetes.io/name: redis-master
-      app.kubernetes.io/instance: redis-master
-  serviceName: redis-master
+      app: "redis-replicas"
+      app.kubernetes.io/name: redis-replicas
+      app.kubernetes.io/instance: redis-replicas
+  serviceName: redis-replicas
   updateStrategy:
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app: "redis-master"
-        app.kubernetes.io/name: redis-master
-        app.kubernetes.io/instance: redis-master
+        app: "redis-replicas"
+        app.kubernetes.io/name: redis-replicas
+        app.kubernetes.io/instance: redis-replicas
     spec:
       containers:
-        - name: "redis-master"
+        - name: "redis-replicas"
           image: "redis:7.0.12"
           volumeMounts:
             - mountPath: "/data"

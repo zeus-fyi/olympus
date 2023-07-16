@@ -15,7 +15,8 @@ import (
 
 type ArtemisTradeDebuggerTestSuite struct {
 	artemis_trading_test_suite.ArtemisTradingTestSuite
-	td TradeDebugger
+	td      TradeDebugger
+	localTd TradeDebugger
 }
 
 var ctx = context.Background()
@@ -36,6 +37,8 @@ func (t *ArtemisTradeDebuggerTestSuite) SetupTest() {
 	t.Require().NotEmpty(td)
 	t.td = td
 
+	//localUni := web3_client.InitUniswapClient(ctx, web3_client.NewWeb3Client("http://localhost:8545", t.MainnetWeb3User.Account))
+	//t.localTd = NewTradeDebugger(artemis_realtime_trading.NewActiveTradingDebugger(&localUni), t.MainnetWeb3User)
 	artemis_trading_cache.InitTokenFilter(ctx)
 }
 

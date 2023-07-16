@@ -30,7 +30,7 @@ func (r *BeaconIndexerCacheTestSuite) TestTxCache() {
 
 	ttl := time.Minute
 	txHash := "tx"
-	err := fc.SetTxHashCache(ctx, "tx", ttl)
+	err := fc.AddTxHashCache(ctx, "tx", ttl)
 	r.Require().Nil(err)
 
 	doesKeyExist, err := fc.DoesTxExist(ctx, txHash)

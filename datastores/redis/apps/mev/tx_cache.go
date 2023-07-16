@@ -8,7 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (m *MevCache) SetTxHashCache(ctx context.Context, txHash string, ttl time.Duration) error {
+func (m *MevCache) AddTxHashCache(ctx context.Context, txHash string, ttl time.Duration) error {
 	//txHash := tx.Hash().String()
 	statusCmd := m.Set(ctx, txHash, true, ttl)
 	if statusCmd.Err() != nil {

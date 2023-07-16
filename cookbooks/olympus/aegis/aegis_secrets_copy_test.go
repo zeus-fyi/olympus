@@ -43,16 +43,18 @@ func (t *AegisCookbookTestSuite) TestAegisSecretsCopy() {
 }
 
 func (t *AegisCookbookTestSuite) TestAegisSecretsCopyToOvh() {
-	s1 := "dynamodb-auth"
+	s1 := "spaces-auth"
+	s2 := "spaces-key"
+	s3 := "age-auth"
 	req := internal_reqs.InternalSecretsCopyFromTo{
-		SecretNames: []string{s1},
+		SecretNames: []string{s1, s2, s3},
 		FromKns: kns.TopologyKubeCtxNs{
 			TopologyID: 0,
 			CloudCtxNs: zeus_common_types.CloudCtxNs{
-				CloudProvider: "ovh",
-				Region:        "us-west-or-1",
-				Context:       "kubernetes-admin@zeusfyi",
-				Namespace:     "672973a4-087c-40b0-a9aa-cf2e183cd6c3",
+				CloudProvider: "do",
+				Region:        "sfo3",
+				Context:       "do-sfo3-dev-do-sfo3-zeus",
+				Namespace:     "zeus",
 				Env:           "dev",
 			},
 		},
@@ -62,7 +64,7 @@ func (t *AegisCookbookTestSuite) TestAegisSecretsCopyToOvh() {
 				CloudProvider: "ovh",
 				Region:        "us-west-or-1",
 				Context:       "kubernetes-admin@zeusfyi",
-				Namespace:     "cec2d631-0330-4792-8139-fa18752a93d8",
+				Namespace:     "c9bbfe9e-9922-4d25-bc31-e7c776cfb349",
 				Env:           "dev",
 			},
 		},

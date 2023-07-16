@@ -119,15 +119,15 @@ func (s *SecretsTestSuite) TestCreateChoreographySecret() {
 
 	//_, err := s.K.CreateNamespaceIfDoesNotExist(ctx, kns)
 	//s.Require().Nil(err)
-
 	newSecret, err := s.K.CreateSecretWithKns(ctx, kns, &sec, nil)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(newSecret)
 }
 
 func (s *SecretsTestSuite) TestCreateAwsDynamoDBSecret() {
-	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "ovh", Region: "us-west-or-1", Context: "kubernetes-admin@zeusfyi", Namespace: "3cfa3022-5f71-478c-bebd-3b2e20f4caea"}
+	var kns = zeus_common_types.CloudCtxNs{CloudProvider: "ovh", Region: "us-west-or-1", Context: "kubernetes-admin@zeusfyi", Namespace: "cec2d631-0330-4792-8139-fa18752a93d8"}
 	m := make(map[string]string)
+	m["postgres-conn-str"] = s.Tc.ProdLocalDbPgconn
 	m["dynamodb-access-key"] = s.Tc.AwsAccessKeyDynamoDB
 	m["dynamodb-secret-key"] = s.Tc.AwsSecretKeyDynamoDB
 	sec := v1.Secret{
@@ -143,7 +143,7 @@ func (s *SecretsTestSuite) TestCreateAwsDynamoDBSecret() {
 		Type:       "Opaque",
 	}
 
-	_, err := s.K.CreateNamespaceIfDoesNotExist(ctx, kns)
+	err := s.K.DeleteSecretWithKns(ctx, kns, "dynamodb-auth", nil)
 	s.Require().Nil(err)
 
 	newSecret, err := s.K.CreateSecretWithKns(ctx, kns, &sec, nil)

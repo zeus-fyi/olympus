@@ -68,6 +68,9 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 				return nil, err
 			}
 		}
+		if pd == nil {
+			return nil, errors.New("pd is nil")
+		}
 		tf := st.BinarySearch(pd.V2Pair)
 		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" || tf.SandwichPrediction.ExpectedProfit == "" {
 			return nil, errors.New("expectedProfit == 0 or 1")

@@ -2,7 +2,7 @@ package zeus_client
 
 import (
 	beacon_cookbooks "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons"
-	zeus_config_map_reqs "github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types/config_maps"
+	zeus_config_map_reqs "github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types/config_maps"
 )
 
 func (t *ZeusClientTestSuite) TestConfigMapKeySwap() {

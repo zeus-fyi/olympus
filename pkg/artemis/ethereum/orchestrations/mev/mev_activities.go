@@ -28,6 +28,19 @@ func (d *ArtemisMevActivities) HistoricalSimulateAndValidateTx(ctx context.Conte
 	return nil
 }
 
+/*
+	at := artemis_trade_executor.ActiveTrader
+	tfPrediction, err := web3_client.UnmarshalTradeExecutionFlow(trade.TxFlowPrediction)
+	if err != nil {
+		return err
+	}
+	werr := at.SimStage(ctx, []web3_client.TradeExecutionFlowJSON{tfPrediction})
+	if werr.Err != nil {
+		log.Err(err).Msg("RunHistoricalTradeAnalysis failed")
+		return err
+	}
+*/
+
 func (d *ArtemisMevActivities) SimulateAndValidateBundle(ctx context.Context) error {
 	return nil
 }

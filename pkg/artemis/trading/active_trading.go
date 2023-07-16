@@ -101,7 +101,6 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 		return ErrWrapper{Err: errors.New("tx already processed")}
 	}
 	txCache.Set(tx.Hash().String(), tx, cache.DefaultExpiration)
-
 	a.GetMetricsClient().StageProgressionMetrics.CountPreEntryFilterTx()
 	err := a.EntryTxFilter(ctx, tx)
 	if err != nil {

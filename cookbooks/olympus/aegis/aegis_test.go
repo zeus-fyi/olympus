@@ -9,7 +9,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 	zeus_client "github.com/zeus-fyi/olympus/pkg/zeus/client"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
-	zeus_client_ext "github.com/zeus-fyi/zeus/pkg/zeus/client"
+	zeus_client_ext "github.com/zeus-fyi/zeus/zeus/z_client"
 )
 
 type AegisCookbookTestSuite struct {
@@ -25,7 +25,7 @@ func (t *AegisCookbookTestSuite) SetupTest() {
 	tc := api_configs.InitLocalTestConfigs()
 
 	// uses the bearer token from test/configs/config.yaml
-	t.ZeusTestClient = zeus_client.NewDefaultZeusClient(tc.Bearer)
+	//t.ZeusTestClient = zeus_client.NewDefaultZeusClient(tc.Bearer)
 	t.ZeusExtTestClient = zeus_client_ext.NewDefaultZeusClient(tc.Bearer)
 	//t.ZeusTestClient = zeus_client.NewLocalZeusClient(tc.Bearer)
 	olympus_cookbooks.ChangeToCookbookDir()

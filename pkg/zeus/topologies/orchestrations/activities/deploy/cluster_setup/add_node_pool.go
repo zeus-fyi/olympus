@@ -81,7 +81,7 @@ func (c *CreateSetupTopologyActivities) OvhMakeNodePoolRequest(ctx context.Conte
 			Effect: "NoSchedule",
 		},
 	}
-	if params.AppTaint {
+	if params.AppTaint && params.Cluster.ClusterName != "" {
 		taints = append(taints, hestia_ovhcloud.KubernetesTaint{
 			Key:    "app",
 			Value:  params.Cluster.ClusterName,

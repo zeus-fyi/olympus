@@ -88,7 +88,6 @@ func SetActiveTradingBlockCache(ctx context.Context) {
 	for {
 		select {
 		case t := <-timestampChan:
-			Cache.Delete("block_number")
 			Wc = web3_actions.NewWeb3ActionsClient(irisSvcBeacons)
 			Wc.AddBearerToken(artemis_orchestration_auth.Bearer)
 			Wc.Dial()

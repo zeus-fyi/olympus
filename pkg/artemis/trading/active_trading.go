@@ -131,7 +131,8 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 		if ok1 {
 			now := time.Now().UnixMilli()
 			seen := found.(int64)
-			log.Info().Msgf("tx %s took %d ms to process", tx.Hash().String(), now-seen)
+			timeTaken := now - seen
+			log.Info().Int64("diff", timeTaken).Str("txHash", tx.Hash().String()).Msgf("tx took ms to process")
 		} else {
 			log.Info().Msgf("tx %s took %d ms to process", tx.Hash().String(), 0)
 		}

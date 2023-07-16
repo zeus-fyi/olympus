@@ -101,11 +101,6 @@ func ProcessMempoolTxs(ctx context.Context) {
 			if err != nil {
 				log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
 			}
-			log.Info().Msg("ExecuteArtemisMevWorkflow: ExecuteArtemisBlacklistTxWorkflow")
-			err = ArtemisMevWorkerMainnet.ExecuteArtemisBlacklistTxWorkflow(ctx)
-			if err != nil {
-				log.Err(err).Msg("ExecuteArtemisBlacklistTxWorkflow failed")
-			}
 		}
 	}
 }

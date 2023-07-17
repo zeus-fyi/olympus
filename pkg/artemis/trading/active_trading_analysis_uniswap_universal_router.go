@@ -32,7 +32,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 		case web3_client.V3SwapExactIn:
 			//fmt.Println("V3SwapExactIn: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(web3_client.V3SwapExactInParams)
-			pd, perr := a.GetUniswapClient().GetV3PricingData(ctx, inputs.Path)
+			pd, perr := uniswap_pricing.GetV3PricingData(ctx, w3a, inputs.Path)
 			if perr != nil {
 				if pd != nil {
 					a.GetMetricsClient().ErrTrackingMetrics.RecordError(web3_client.V3SwapExactIn, pd.V3Pair.PoolAddress)
@@ -70,7 +70,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 		case web3_client.V3SwapExactOut:
 			//fmt.Println("V3SwapExactOut: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(web3_client.V3SwapExactOutParams)
-			pd, perr := a.GetUniswapClient().GetV3PricingData(ctx, inputs.Path)
+			pd, perr := uniswap_pricing.GetV3PricingData(ctx, w3a, inputs.Path)
 			if perr != nil {
 				if pd != nil {
 					a.GetMetricsClient().ErrTrackingMetrics.RecordError(web3_client.V3SwapExactOut, pd.V3Pair.PoolAddress)

@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/rs/zerolog/log"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
@@ -24,7 +25,6 @@ const (
 )
 
 func (a *ActiveTrading) RealTimeProcessUniswapV3RouterTx(ctx context.Context, tx web3_client.MevTx, abiFile *abi.ABI, filter *strings_filter.FilterOpts) ([]web3_client.TradeExecutionFlowJSON, error) {
-	w3a := a.GetUniswapClient().Web3Client.Web3Actions
 	toAddr := tx.Tx.To().String()
 	var tfSlice []web3_client.TradeExecutionFlowJSON
 	if strings.HasPrefix(tx.MethodName, multicall) {
@@ -63,6 +63,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV3RouterTx(ctx context.Context, tx
 }
 
 func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx) ([]web3_client.TradeExecutionFlowJSON, error) {
+	w3a := a.GetUniswapClient().Web3Client.Web3Actions
 	bn, berr := artemis_trading_cache.GetLatestBlock(ctx)
 	if berr != nil {
 		log.Err(berr).Msg("failed to get latest block")
@@ -78,7 +79,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			log.Err(err).Msg("failed to decode exact input args")
 			return nil, err
 		}
-		pd, err := a.GetUniswapClient().GetV3PricingData(ctx, inputs.TokenFeePath)
+		pd, err := uniswap_pricing.GetV3PricingData(ctx, w3a, inputs.TokenFeePath)
 		if err != nil {
 			if pd != nil {
 				a.GetMetricsClient().ErrTrackingMetrics.RecordError(exactInput, pd.V3Pair.PoolAddress)
@@ -120,7 +121,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			log.Err(err).Msg("failed to decode exact output args")
 			return nil, err
 		}
-		pd, err := a.GetUniswapClient().GetV3PricingData(ctx, inputs.TokenFeePath)
+		pd, err := uniswap_pricing.GetV3PricingData(ctx, w3a, inputs.TokenFeePath)
 		if err != nil {
 			if pd != nil {
 				a.GetMetricsClient().ErrTrackingMetrics.RecordError(exactOutput, pd.V3Pair.PoolAddress)
@@ -163,7 +164,8 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			log.Err(err).Msg("failed to decode swap exact input single args")
 			return nil, err
 		}
-		pd, err := a.GetUniswapClient().GetV3PricingData(ctx, inputs.TokenFeePath)
+
+		pd, err := uniswap_pricing.GetV3PricingData(ctx, w3a, inputs.TokenFeePath)
 		if err != nil {
 			if pd != nil {
 				a.GetMetricsClient().ErrTrackingMetrics.RecordError(swapExactInputSingle, pd.V3Pair.PoolAddress)
@@ -205,7 +207,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			//log.Err(err).Msg("failed to decode swap exact output single args")
 			return nil, err
 		}
-		pd, err := a.GetUniswapClient().GetV3PricingData(ctx, inputs.TokenFeePath)
+		pd, err := uniswap_pricing.GetV3PricingData(ctx, w3a, inputs.TokenFeePath)
 		if err != nil {
 			if pd != nil {
 				a.GetMetricsClient().ErrTrackingMetrics.RecordError(swapExactOutputSingle, pd.V3Pair.PoolAddress)
@@ -247,7 +249,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 			//log.Err(err).Msg("swapExactTokensForTokens: failed to decode swap exact tokens for tokens args")
 			return nil, err
 		}
-		pd, err := a.GetUniswapClient().GetV2PricingData(ctx, inputs.Path)
+		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, inputs.Path)
 		if err != nil {
 			if pd != nil {
 				a.GetMetricsClient().ErrTrackingMetrics.RecordError(swapExactTokensForTokens, pd.V2Pair.PairContractAddr)

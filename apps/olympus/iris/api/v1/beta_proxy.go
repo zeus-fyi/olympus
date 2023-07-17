@@ -35,6 +35,7 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 	if endLockedSessionLease == sessionID {
 		return p.ProcessEndSessionLock(c, endLockedSessionLease)
 	}
+
 	routeInfo, err := proxy_anvil.SessionLocker.GetSessionLockedRoute(c.Request().Context(), sessionID)
 	if err != nil {
 		log.Err(err).Msg("proxy_anvil.SessionLocker.GetSessionLockedRoute")

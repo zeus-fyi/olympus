@@ -8,9 +8,12 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-redis/redis/v9"
 	"github.com/oleiade/lane/v2"
 	"github.com/puzpuzpuz/xsync/v2"
 	"github.com/rs/zerolog/log"
+	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
+	redis_mev "github.com/zeus-fyi/olympus/datastores/redis/apps/mev"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
 
@@ -30,6 +33,18 @@ var (
 	ts                   = chronos.Chronos{}
 	SessionLocker        = AnvilProxy{}
 	ErrNoRoutesAvailable = errors.New("no routes available")
+	writeRedisOpts       = redis.Options{
+		Addr: "redis-master.redis.svc.cluster.local:6379",
+	}
+	ctx           = context.Background()
+	writer        = redis.NewClient(&writeRedisOpts)
+	WriteRedis    = redis_mev.NewMevCache(ctx, writer)
+	readRedisOpts = redis.Options{
+		Addr: "redis-replicas.redis.svc.cluster.local:6379",
+	}
+	reader    = redis.NewClient(&readRedisOpts)
+	ReadRedis = redis_mev.NewMevCache(ctx, reader)
+	IrisCache = iris_redis.NewIrisCache(ctx, writer, reader)
 )
 
 type AnvilProxy struct {
@@ -59,10 +74,16 @@ func (a *AnvilProxy) GetSessionLockedRoute(ctx context.Context, sessionID string
 	}
 
 	if route, ok := LockedSessionToRouteCacheMap.Load(sessionID); ok {
+		// TODO IrisCache here
+		//err := IrisCache.AddOrUpdateLatestSessionCache(ctx, sessionID, a.LockDefaultTime.Abs())
+		//if //err != nil {
+		//	return "", //err
+		//}
 		ttl := ts.UnixTimeStampNowSec() + int(a.LockDefaultTime.Seconds())
 		LockedSessionTTL.Store(sessionID, fmt.Sprintf("%d", ttl))
 		return route, nil
 	}
+
 	i := 0
 	j := 0
 	pqSize := a.PriorityQueue.Size()
@@ -71,6 +92,7 @@ func (a *AnvilProxy) GetSessionLockedRoute(ctx context.Context, sessionID string
 		if !ok {
 			return "", ErrNoRoutesAvailable
 		}
+		// TODO IrisCache here
 		oldSession, exists := LockedRouteToSessionCacheMap.Load(route)
 		if exists {
 			mapTTL, mapTTLExists := LockedSessionTTL.Load(oldSession)
@@ -85,10 +107,12 @@ func (a *AnvilProxy) GetSessionLockedRoute(ctx context.Context, sessionID string
 		}
 		if ttl < ts.UnixTimeStampNowSec() {
 			if exists {
+				// TODO IrisCache here
 				LockedSessionToRouteCacheMap.Delete(oldSession)
 				LockedRouteToSessionCacheMap.Delete(route)
 				LockedSessionTTL.Delete(oldSession)
 			}
+			// TODO IrisCache here
 			LockedSessionToRouteCacheMap.Store(sessionID, route)
 			LockedRouteToSessionCacheMap.Store(route, sessionID)
 			ttl = ts.UnixTimeStampNowSec() + int(a.LockDefaultTime.Seconds())

@@ -18,6 +18,7 @@ func orgRouteTag(orgID int, rgName string) string {
 }
 
 func GetNextRoute(orgID int, rgName string) (string, error) {
+	// TODO IrisCache here
 	tag := orgRouteTag(orgID, rgName)
 	routeTable, ok := RoundRobinRouteTable.Get(tag)
 	if !ok {
@@ -34,12 +35,14 @@ func GetNextRoute(orgID int, rgName string) (string, error) {
 }
 
 func SetRouteTable(orgID int, rgName string, routeTable []string) {
+	// TODO IrisCache here
 	tag := orgRouteTag(orgID, rgName)
 	RoundRobinCache.Set(rgName, 0, cache.DefaultExpiration)
 	RoundRobinRouteTable.Set(tag, routeTable, cache.NoExpiration)
 }
 
 func InitRoutingTables(ctx context.Context) {
+	// TODO IrisCache here
 	ot, err := iris_models.SelectAllOrgRoutes(ctx)
 	if err != nil {
 		panic(err)

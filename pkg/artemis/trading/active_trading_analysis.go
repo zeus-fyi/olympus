@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
@@ -54,47 +55,47 @@ import (
 		Txs:               []MevTx{},
 	},
 */
-func (a *ActiveTrading) ProcessTxs(ctx context.Context, mevTxs []web3_client.MevTx, m *metrics_trading.TradingMetrics) ([]web3_client.TradeExecutionFlowJSON, error) {
+func (a *ActiveTrading) ProcessTxs(ctx context.Context, mevTxs []web3_client.MevTx, m *metrics_trading.TradingMetrics, w3a web3_actions.Web3Actions) ([]web3_client.TradeExecutionFlowJSON, error) {
 	var tfSlice []web3_client.TradeExecutionFlowJSON
 	for _, mevTx := range mevTxs {
 		switch mevTx.Tx.To().String() {
 		case artemis_trading_constants.UniswapUniversalRouterAddressOld:
-			tf, err := a.RealTimeProcessUniversalRouterTx(ctx, mevTx, m)
+			tf, err := RealTimeProcessUniversalRouterTx(ctx, mevTx, m, w3a)
 			if err != nil {
 				log.Err(err).Msg("error processing universal router tx")
 				continue
 			}
 			tfSlice = append(tfSlice, tf...)
 		case artemis_trading_constants.UniswapUniversalRouterAddressNew:
-			tf, err := a.RealTimeProcessUniversalRouterTx(ctx, mevTx, m)
+			tf, err := RealTimeProcessUniversalRouterTx(ctx, mevTx, m, w3a)
 			if err != nil {
 				log.Err(err).Msg("error processing universal router tx")
 				continue
 			}
 			tfSlice = append(tfSlice, tf...)
 		case artemis_trading_constants.UniswapV2Router01Address:
-			tf, err := a.RealTimeProcessUniswapV2RouterTx(ctx, mevTx, m)
+			tf, err := RealTimeProcessUniswapV2RouterTx(ctx, mevTx, m, w3a)
 			if err != nil {
 				log.Err(err).Msg("error processing v2_01 router tx")
 				continue
 			}
 			tfSlice = append(tfSlice, tf...)
 		case artemis_trading_constants.UniswapV2Router02Address:
-			tf, err := a.RealTimeProcessUniswapV2RouterTx(ctx, mevTx, m)
+			tf, err := RealTimeProcessUniswapV2RouterTx(ctx, mevTx, m, w3a)
 			if err != nil {
 				log.Err(err).Msg("error processing v2_02 router tx")
 				continue
 			}
 			tfSlice = append(tfSlice, tf...)
 		case artemis_trading_constants.UniswapV3Router01Address:
-			tf, err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, UniswapV3Router01Abi, nil, m)
+			tf, err := RealTimeProcessUniswapV3RouterTx(ctx, mevTx, UniswapV3Router01Abi, nil, m, w3a)
 			if err != nil {
 				log.Err(err).Msg("error processing v3_01 router tx")
 				continue
 			}
 			tfSlice = append(tfSlice, tf...)
 		case artemis_trading_constants.UniswapV3Router02Address:
-			tf, err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, UniswapV3Router02Abi, nil, m)
+			tf, err := RealTimeProcessUniswapV3RouterTx(ctx, mevTx, UniswapV3Router02Abi, nil, m, w3a)
 			if err != nil {
 				log.Err(err).Msg("error processing v3_02 router tx")
 				continue

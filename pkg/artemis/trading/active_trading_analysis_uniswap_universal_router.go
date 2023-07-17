@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/rs/zerolog/log"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
@@ -12,11 +13,10 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx, m *metrics_trading.TradingMetrics) ([]web3_client.TradeExecutionFlowJSON, error) {
+func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx, m *metrics_trading.TradingMetrics, w3a web3_actions.Web3Actions) ([]web3_client.TradeExecutionFlowJSON, error) {
 	if tx.Tx == nil || tx.Args == nil {
 		return nil, errors.New("tx is nil")
 	}
-	w3a := a.GetUniswapClient().Web3Client.Web3Actions
 	subcmd, err := web3_client.NewDecodedUniversalRouterExecCmdFromMap(tx.Args)
 	if err != nil {
 		return nil, err

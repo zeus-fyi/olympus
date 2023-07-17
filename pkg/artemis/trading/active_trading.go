@@ -114,16 +114,18 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 		return ErrWrapper{Err: err, Stage: "EntryTxFilter"}
 	}
 	a.GetMetricsClient().StageProgressionMetrics.CountPostEntryFilterTx()
-	mevTxs, merr := DecodeTx(ctx, tx, a.m)
+	mevTxs, merr := DecodeTx(ctx, tx, a.GetMetricsClient())
 	if merr != nil {
 		log.Err(merr).Msg("decoding txs err")
+		return ErrWrapper{Err: merr, Stage: "DecodeTx"}
 	}
 	if len(mevTxs) <= 0 {
 		log.Err(merr).Msg("no mev txs found")
 		return ErrWrapper{Err: merr, Stage: "DecodeTx"}
 	}
 	a.GetMetricsClient().StageProgressionMetrics.CountPostDecodeTx()
-	_, err = a.ProcessTxs(ctx, mevTxs, a.m)
+	w3a := artemis_trading_cache.Wc
+	_, err = a.ProcessTxs(ctx, mevTxs, a.GetMetricsClient(), w3a)
 	if err != nil {
 		log.Err(err).Msg("failed to pass process txs")
 		return ErrWrapper{Err: err, Stage: "ProcessTxs"}

@@ -68,9 +68,7 @@ func GetV3PricingData(ctx context.Context, wc web3_actions.Web3Actions, path art
 	err := pairV3.PricingData(ctx, path)
 	if err != nil {
 		log.Err(err).Interface("path", path).Msg("error getting v3 pricing data")
-		return &UniswapPricingData{
-			V3Pair: pairV3,
-		}, err
+		return nil, err
 	}
 	return &UniswapPricingData{
 		V3Pair: pairV3,

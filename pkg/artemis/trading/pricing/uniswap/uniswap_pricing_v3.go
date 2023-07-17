@@ -180,9 +180,11 @@ func (p *UniswapV3Pair) PricingData(ctx context.Context, path artemis_trading_ty
 		pricingData := UniswapPricingData{
 			V3Pair: *p,
 		}
-		err := redisCache.AddOrUpdatePairPricesCache(ctx, hs, pricingData, time.Minute*60)
-		if err != nil {
-			log.Err(err).Msgf("Error adding v3 pair prices to cache for %s", hs)
+		if redisCache.Client != nil {
+			err := redisCache.AddOrUpdatePairPricesCache(ctx, hs, pricingData, time.Minute*60)
+			if err != nil {
+				log.Err(err).Msgf("Error adding v3 pair prices to cache for %s", hs)
+			}
 		}
 		Cache.Set(hs, p, time.Minute*5)
 	}

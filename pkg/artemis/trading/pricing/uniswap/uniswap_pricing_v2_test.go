@@ -4,9 +4,74 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/common"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
+	artemis_multicall "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/multicall"
 	artemis_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/utils"
+	artemis_test_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/test_suite/test_cache"
 )
+
+func (s *UniswapPricingTestSuite) TestMulticall3UniswapV2Batch() {
+	s.InitLocalConfigs()
+	artemis_test_cache.InitLiveTestNetwork(s.Tc.QuikNodeURLS.TestRoute)
+	wc := artemis_test_cache.LiveTestNetwork
+	wc.Dial()
+	defer wc.Close()
+	p0 := "0x6C0207FB939596eCC63b4549ce22dFFF4c928216"
+	p1 := "0xDE2FCae812b9EDda8d658bBBAa60ABB972B4D468"
+
+	m3calls := []artemis_multicall.MultiCallElement{{
+		Name: getReserves,
+		Call: artemis_multicall.Call{
+			Target:       common.HexToAddress(p0),
+			AllowFailure: false,
+			Data:         nil,
+		},
+		AbiFile:       v2ABI,
+		DecodedInputs: []interface{}{},
+	}, {
+		Name: getReserves,
+		Call: artemis_multicall.Call{
+			Target:       common.HexToAddress(p1),
+			AllowFailure: false,
+			Data:         nil,
+		},
+		AbiFile:       v2ABI,
+		DecodedInputs: []interface{}{},
+	}}
+	m := artemis_multicall.Multicall3{
+		Calls:   m3calls,
+		Results: nil,
+	}
+	resp, err := m.PackAndCall(ctx, wc)
+	s.Require().NoError(err)
+	s.Require().NotNil(resp)
+	s.Require().Equal(2, len(resp))
+
+	pairOne := &UniswapV2Pair{}
+	pairTwo := &UniswapV2Pair{}
+	pairs := []*UniswapV2Pair{pairOne, pairTwo}
+	for i, respVal := range resp {
+		respSlice := respVal.DecodedReturnData
+		p := &UniswapV2Pair{}
+		reserve0, rerr := artemis_utils.ParseBigInt(respSlice[0])
+		s.Require().NoError(rerr)
+		p.Reserve0 = reserve0
+		reserve1, rerr := artemis_utils.ParseBigInt(respSlice[1])
+		s.Require().NoError(rerr)
+		p.Reserve1 = reserve1
+
+		fmt.Println("reserve0", reserve0.String())
+		fmt.Println("reserve1", reserve1.String())
+		blockTimestampLast, rerr := artemis_utils.ParseBigInt(respSlice[2])
+		s.Require().NoError(rerr)
+		p.BlockTimestampLast = blockTimestampLast
+		pairs[i] = p
+	}
+
+	s.Require().NotEmpty(pairs[0])
+	s.Require().NotEmpty(pairs[1])
+}
 
 func (s *UniswapPricingTestSuite) TestPricingImpact() {
 	reserve0, _ := new(big.Int).SetString("400000", 10)  // TokenB

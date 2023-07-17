@@ -86,14 +86,14 @@ func (a *ActiveTrading) ProcessTxs(ctx context.Context, mevTxs []web3_client.Mev
 			}
 			tfSlice = append(tfSlice, tf...)
 		case artemis_trading_constants.UniswapV3Router01Address:
-			tf, err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV1.Abi, a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV1.Filter)
+			tf, err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, UniswapV3Router01Abi, nil)
 			if err != nil {
 				log.Err(err).Msg("error processing v3_01 router tx")
 				continue
 			}
 			tfSlice = append(tfSlice, tf...)
 		case artemis_trading_constants.UniswapV3Router02Address:
-			tf, err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV2.Abi, a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV2.Filter)
+			tf, err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, UniswapV3Router02Abi, nil)
 			if err != nil {
 				log.Err(err).Msg("error processing v3_02 router tx")
 				continue

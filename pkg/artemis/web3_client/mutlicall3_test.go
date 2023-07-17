@@ -30,6 +30,7 @@ func (s *Web3ClientTestSuite) TestMulticall3() {
 	s.Assert().NotNil(bal)
 	fmt.Println(bal[0].(*big.Int).String())
 
+	// CreateMulticall3Payload()
 	//scAddr := artemis_trading_constants.Multicall3Address
 	//userAddr := "0x6B44ba0a126a2A1a8aa6cD1AdeeD002e141Bcd44"
 	//payload := web3_actions.SendContractTxPayload{

@@ -43,7 +43,8 @@ func CreateMulticall3Payload(ctx context.Context, calls []Multicall3) (web3_acti
 			return web3_actions.SendContractTxPayload{}, err
 		}
 		ca.CallData = inputs
-		payload.Params = append(payload.Params, ca.Target, ca.CallData)
+		callParams := []interface{}{ca.Target, ca.CallData}
+		payload.Params = append(payload.Params, callParams)
 	}
 	return payload, nil
 }

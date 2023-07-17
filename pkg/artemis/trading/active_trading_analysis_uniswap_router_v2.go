@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
@@ -35,6 +36,7 @@ const (
 )
 
 func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx) ([]web3_client.TradeExecutionFlowJSON, error) {
+	w3a := a.GetUniswapClient().Web3Client.Web3Actions
 	bn, berr := artemis_trading_cache.GetLatestBlock(ctx)
 	if berr != nil {
 		log.Err(berr).Msg("failed to get latest block")
@@ -61,7 +63,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 	case swapExactTokensForTokens:
 		st := web3_client.SwapExactTokensForTokensParams{}
 		st.Decode(ctx, tx.Args)
-		pd, err := a.GetUniswapClient().GetV2PricingData(ctx, st.Path)
+		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
 			if pd != nil {
 				a.GetMetricsClient().ErrTrackingMetrics.RecordError(swapExactTokensForTokens, pd.V2Pair.PairContractAddr)
@@ -100,7 +102,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		st := web3_client.SwapTokensForExactTokensParams{}
 		st.Decode(tx.Args)
 		pend := len(st.Path) - 1
-		pd, err := a.GetUniswapClient().GetV2PricingData(ctx, st.Path)
+		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
 			if pd != nil {
 				a.GetMetricsClient().ErrTrackingMetrics.RecordError(swapTokensForExactTokens, pd.V2Pair.PairContractAddr)
@@ -142,7 +144,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		st := web3_client.SwapExactETHForTokensParams{}
 		st.Decode(tx.Args, tx.Tx.Value())
 		pend := len(st.Path) - 1
-		pd, err := a.GetUniswapClient().GetV2PricingData(ctx, st.Path)
+		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
 			if pd != nil {
 				a.GetMetricsClient().ErrTrackingMetrics.RecordError(swapExactETHForTokens, pd.V2Pair.PairContractAddr)
@@ -180,7 +182,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		st := web3_client.SwapTokensForExactETHParams{}
 		st.Decode(tx.Args)
 		pend := len(st.Path) - 1
-		pd, err := a.GetUniswapClient().GetV2PricingData(ctx, st.Path)
+		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
 			if pd != nil {
 				a.GetMetricsClient().ErrTrackingMetrics.RecordError(swapTokensForExactETH, pd.V2Pair.PairContractAddr)
@@ -218,7 +220,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		st := web3_client.SwapExactTokensForETHParams{}
 		st.Decode(tx.Args)
 		pend := len(st.Path) - 1
-		pd, err := a.GetUniswapClient().GetV2PricingData(ctx, st.Path)
+		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
 			if pd != nil {
 				a.GetMetricsClient().ErrTrackingMetrics.RecordError(swapExactTokensForETH, pd.V2Pair.PairContractAddr)
@@ -260,7 +262,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		st := web3_client.SwapETHForExactTokensParams{}
 		st.Decode(tx.Args, tx.Tx.Value())
 		pend := len(st.Path) - 1
-		pd, err := a.GetUniswapClient().GetV2PricingData(ctx, st.Path)
+		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
 			if pd != nil {
 				a.GetMetricsClient().ErrTrackingMetrics.RecordError(swapETHForExactTokens, pd.V2Pair.PairContractAddr)
@@ -308,7 +310,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		st := web3_client.SwapExactTokensForETHSupportingFeeOnTransferTokensParams{}
 		st.Decode(tx.Args)
 		pend := len(st.Path) - 1
-		pd, err := a.GetUniswapClient().GetV2PricingData(ctx, st.Path)
+		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
 			if pd != nil {
 				a.GetMetricsClient().ErrTrackingMetrics.RecordError(swapExactTokensForETHSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr)
@@ -350,7 +352,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		st := web3_client.SwapExactETHForTokensSupportingFeeOnTransferTokensParams{}
 		st.Decode(tx.Args, tx.Tx.Value())
 		pend := len(st.Path) - 1
-		pd, err := a.GetUniswapClient().GetV2PricingData(ctx, st.Path)
+		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
 			if pd != nil {
 				a.GetMetricsClient().ErrTrackingMetrics.RecordError(swapExactETHForTokensSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr)
@@ -388,7 +390,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		st := web3_client.SwapExactTokensForTokensSupportingFeeOnTransferTokensParams{}
 		st.Decode(tx.Args)
 		pend := len(st.Path) - 1
-		pd, err := a.GetUniswapClient().GetV2PricingData(ctx, st.Path)
+		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
 			if pd != nil {
 				a.GetMetricsClient().ErrTrackingMetrics.RecordError(swapExactTokensForTokensSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr)

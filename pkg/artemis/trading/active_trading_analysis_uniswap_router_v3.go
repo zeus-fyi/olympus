@@ -24,6 +24,7 @@ const (
 )
 
 func (a *ActiveTrading) RealTimeProcessUniswapV3RouterTx(ctx context.Context, tx web3_client.MevTx, abiFile *abi.ABI, filter *strings_filter.FilterOpts) ([]web3_client.TradeExecutionFlowJSON, error) {
+	w3a := a.GetUniswapClient().Web3Client.Web3Actions
 	toAddr := tx.Tx.To().String()
 	var tfSlice []web3_client.TradeExecutionFlowJSON
 	if strings.HasPrefix(tx.MethodName, multicall) {

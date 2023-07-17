@@ -6,6 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
@@ -14,6 +15,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 	if tx.Tx == nil || tx.Args == nil {
 		return nil, errors.New("tx is nil")
 	}
+	w3a := a.GetUniswapClient().Web3Client.Web3Actions
 	subcmd, err := web3_client.NewDecodedUniversalRouterExecCmdFromMap(tx.Args)
 	if err != nil {
 		return nil, err
@@ -106,7 +108,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 		case web3_client.V2SwapExactIn:
 			//fmt.Println("V2SwapExactIn: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(web3_client.V2SwapExactInParams)
-			pd, perr := a.GetUniswapClient().GetV2PricingData(ctx, inputs.Path)
+			pd, perr := uniswap_pricing.GetV2PricingData(ctx, w3a, inputs.Path)
 			if perr != nil {
 				if pd != nil {
 					a.GetMetricsClient().ErrTrackingMetrics.RecordError(web3_client.V2SwapExactIn, pd.V2Pair.PairContractAddr)
@@ -144,7 +146,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 		case web3_client.V2SwapExactOut:
 			//fmt.Println("V2SwapExactOut: ProcessUniversalRouterTxs")
 			inputs := subtx.DecodedInputs.(web3_client.V2SwapExactOutParams)
-			pd, perr := a.GetUniswapClient().GetV2PricingData(ctx, inputs.Path)
+			pd, perr := uniswap_pricing.GetV2PricingData(ctx, w3a, inputs.Path)
 			if perr != nil {
 				if pd != nil {
 					a.GetMetricsClient().ErrTrackingMetrics.RecordError(web3_client.V2SwapExactOut, pd.V2Pair.PairContractAddr)

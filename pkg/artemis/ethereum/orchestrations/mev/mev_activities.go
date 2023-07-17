@@ -62,14 +62,8 @@ func (d *ArtemisMevActivities) BlacklistMinedTxs(ctx context.Context) error {
 	}
 	for _, tx := range txs {
 		c.Set(tx.Hash().String(), tx, cache.DefaultExpiration)
-		txBlackList := dynamodb_mev.TxBlacklistDynamoDB{
-			TxBlacklistDynamoDBTableKeys: dynamodb_mev.TxBlacklistDynamoDBTableKeys{
-				TxHash: tx.Hash().String(),
-			},
-		}
-		err := artemis_orchestration_auth.MevDynamoDBClient.PutTxBlacklist(ctx, txBlackList)
+		err := artemis_trading_cache.WriteRedis.AddTxHashCache(ctx, tx.Hash().String(), time.Hour*24)
 		if err != nil {
-			log.Err(err).Str("network", d.Network).Msg("PutTxBlacklist failed")
 			return err
 		}
 	}

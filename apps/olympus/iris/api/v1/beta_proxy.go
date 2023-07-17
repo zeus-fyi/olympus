@@ -35,7 +35,7 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 	if endLockedSessionLease == sessionID {
 		return p.ProcessEndSessionLock(c, endLockedSessionLease)
 	}
-
+	// TODO Add IrisProxy
 	routeInfo, err := proxy_anvil.SessionLocker.GetSessionLockedRoute(c.Request().Context(), sessionID)
 	if err != nil {
 		log.Err(err).Msg("proxy_anvil.SessionLocker.GetSessionLockedRoute")
@@ -60,6 +60,7 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 }
 
 func (p *BetaProxyRequest) ProcessEndSessionLock(c echo.Context, sessionID string) error {
+	// TODO Add IrisProxy
 	proxy_anvil.SessionLocker.RemoveSessionLockedRoute(sessionID)
 	return c.JSON(http.StatusOK, nil)
 }

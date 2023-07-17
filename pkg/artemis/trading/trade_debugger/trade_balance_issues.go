@@ -90,7 +90,3 @@ func (t *TradeDebugger) analyzeDrift(ctx context.Context, trade artemis_trading_
 	trade.PrintDebug()
 	return errors.New("trade skewed")
 }
-
-/*
-
- */

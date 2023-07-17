@@ -14,45 +14,6 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-/*
-	MevSmartContractTxMapUniversalRouterNew: MevSmartContractTxMap{
-		SmartContractAddr: UniswapUniversalRouterAddressNew,
-		Abi:               artemis_oly_contract_abis.MustLoadNewUniversalRouterAbi(),
-		Txs:               []MevTx{},
-	},
-
-	MevSmartContractTxMapUniversalRouterOld: MevSmartContractTxMap{
-		SmartContractAddr: UniswapUniversalRouterAddressOld,
-		Abi:               artemis_oly_contract_abis.MustLoadOldUniversalRouterAbi(),
-		Txs:               []MevTx{},
-	},
-
-	MevSmartContractTxMapV2Router02: MevSmartContractTxMap{
-		SmartContractAddr: UniswapV2Router02Address,
-		Abi:               artemis_oly_contract_abis.MustLoadUniswapV2Router02ABI(),
-		Txs:               []MevTx{},
-		Filter:            &f,
-	},
-
-	MevSmartContractTxMapV2Router01: MevSmartContractTxMap{
-		SmartContractAddr: UniswapV2Router01Address,
-		Abi:               artemis_oly_contract_abis.MustLoadUniswapV2Router01ABI(),
-		Txs:               []MevTx{},
-		Filter:            &f,
-	},
-
-	MevSmartContractTxMapV3SwapRouterV1: MevSmartContractTxMap{
-		SmartContractAddr: UniswapV3Router01Address,
-		Abi:               artemis_oly_contract_abis.MustLoadUniswapV3Swap1RouterAbi(),
-		Txs:               []MevTx{},
-	},
-
-	MevSmartContractTxMapV3SwapRouterV2: MevSmartContractTxMap{
-		SmartContractAddr: UniswapV3Router02Address,
-		Abi:               artemis_oly_contract_abis.MustLoadUniswapV3Swap2RouterAbi(),
-		Txs:               []MevTx{},
-	},
-*/
 func (a *ActiveTrading) ProcessTxs(ctx context.Context, mevTxs []web3_client.MevTx) ([]web3_client.TradeExecutionFlowJSON, error) {
 	var tfSlice []web3_client.TradeExecutionFlowJSON
 	for _, mevTx := range mevTxs {

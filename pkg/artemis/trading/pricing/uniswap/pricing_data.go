@@ -2,13 +2,20 @@ package artemis_uniswap_pricing
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"time"
 
+	"github.com/go-redis/redis/v9"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
+
+var redisCache = PricingCache{nil}
 
 type UniswapPricingData struct {
 	V2Pair UniswapV2Pair
@@ -39,6 +46,7 @@ func V2PairToPrices(ctx context.Context, wc web3_actions.Web3Actions, pairAddr [
 //}
 
 func GetV2PricingData(ctx context.Context, wc web3_actions.Web3Actions, pairAddr []accounts.Address) (*UniswapPricingData, error) {
+
 	p := UniswapV2Pair{}
 	if len(pairAddr) == 2 {
 		err := p.PairForV2(pairAddr[0].String(), pairAddr[1].String())
@@ -73,4 +81,56 @@ func GetV3PricingData(ctx context.Context, wc web3_actions.Web3Actions, path art
 	return &UniswapPricingData{
 		V3Pair: pairV3,
 	}, nil
+}
+
+type PricingCache struct {
+	*redis.Client
+}
+
+func (m *PricingCache) AddOrUpdatePairPricesCache(ctx context.Context, tag string, pd UniswapPricingData, ttl time.Duration) error {
+	if artemis_trading_cache.WriteRedis.Client == nil {
+		return errors.New("AddOrUpdatePairPricesCache: redis client is nil")
+	}
+	m.Client = artemis_trading_cache.WriteRedis.Client
+	bin, err := m.MarshalBinary(pd)
+	if err != nil {
+		return err
+	}
+	statusCmd := m.Set(ctx, tag, bin, ttl)
+	if statusCmd.Err() != nil {
+		log.Ctx(ctx).Err(statusCmd.Err()).Msgf("AddOrUpdateLatestBlockCache: %s", tag)
+		return statusCmd.Err()
+	}
+	return nil
+}
+
+func (m *PricingCache) MarshalBinary(up UniswapPricingData) ([]byte, error) {
+	return json.Marshal(up)
+}
+
+func (m *PricingCache) UnmarshalBinary(data []byte) (UniswapPricingData, error) {
+	pd := UniswapPricingData{}
+	err := json.Unmarshal(data, &pd)
+	return pd, err
+}
+
+func (m *PricingCache) GetPairPricesFromCacheIfExists(ctx context.Context, tag string) (UniswapPricingData, error) {
+	if artemis_trading_cache.WriteRedis.Client == nil {
+		return UniswapPricingData{}, errors.New("AddOrUpdatePairPricesCache: redis client is nil")
+	}
+	m.Client = artemis_trading_cache.WriteRedis.Client
+	pd := UniswapPricingData{}
+	var bytes []byte
+	err := m.Get(ctx, tag).Scan(&bytes)
+	switch {
+	case err == redis.Nil:
+		return pd, fmt.Errorf("GetPairPricesFromCacheIfExists: %s", tag)
+	case err != nil:
+		log.Err(err).Msgf("GetPairPricesFromCacheIfExists Get failed: %s", tag)
+	}
+	cachedPd, err := m.UnmarshalBinary(bytes)
+	if err != nil {
+		return pd, err
+	}
+	return cachedPd, nil
 }

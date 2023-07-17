@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
@@ -72,6 +73,19 @@ func (p *UniswapV3Pair) PricingData(ctx context.Context, path artemis_trading_ty
 		} else {
 			return fmt.Errorf("value is not of type *entities.Pool")
 		}
+	}
+	pd, err := redisCache.GetPairPricesFromCacheIfExists(ctx, hs)
+	if err != nil {
+		log.Err(err).Msgf("Error getting v3 pair prices from cache for %s", hs)
+	} else {
+		assertedVal := pd.V3Pair
+		p.PoolAddress = assertedVal.PoolAddress
+		p.Fee = assertedVal.Fee
+		p.Slot0 = assertedVal.Slot0
+		p.Liquidity = assertedVal.Liquidity
+		p.TickListDataProvider = assertedVal.TickListDataProvider
+		p.Pool = assertedVal.Pool
+		return nil
 	}
 	tm := artemis_trading_cache.TokenMap
 	if tm != nil && tm[path.TokenIn.String()].TransferTaxDenominator != nil && tm[path.GetEndToken().String()].TransferTaxDenominator != nil {
@@ -178,6 +192,15 @@ func (p *UniswapV3Pair) PricingData(ctx context.Context, path artemis_trading_ty
 		}
 		p.Pool = v3Pool
 	}
-	Cache.Set(hs, p, time.Minute*5)
+	if p != nil {
+		pricingData := UniswapPricingData{
+			V3Pair: *p,
+		}
+		err = redisCache.AddOrUpdatePairPricesCache(ctx, hs, pricingData, time.Minute*60)
+		if err != nil {
+			log.Err(err).Msgf("Error adding v3 pair prices to cache for %s", hs)
+		}
+		Cache.Set(hs, p, time.Minute*5)
+	}
 	return nil
 }

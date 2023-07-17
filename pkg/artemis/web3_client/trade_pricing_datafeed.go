@@ -36,9 +36,7 @@ func (u *UniswapClient) GetV3PricingData(ctx context.Context, path artemis_tradi
 	err := pairV3.PricingData(ctx, path)
 	if err != nil {
 		log.Err(err).Interface("path", path).Msg("error getting v3 pricing data")
-		return &uniswap_pricing.UniswapPricingData{
-			V3Pair: pairV3,
-		}, err
+		return nil, err
 	}
 	return &uniswap_pricing.UniswapPricingData{
 		V3Pair: pairV3,

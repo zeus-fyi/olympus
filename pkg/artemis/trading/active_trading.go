@@ -108,13 +108,12 @@ type ErrWrapper struct {
 var txCache = cache.New(time.Hour*24, time.Hour*24)
 
 func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) ErrWrapper {
-	at := newActiveTradingModule(a.a, a.m)
-	at.GetMetricsClient().StageProgressionMetrics.CountPreEntryFilterTx()
-	err := at.EntryTxFilter(ctx, tx)
+	a.GetMetricsClient().StageProgressionMetrics.CountPreEntryFilterTx()
+	err := a.EntryTxFilter(ctx, tx)
 	if err != nil {
 		return ErrWrapper{Err: err, Stage: "EntryTxFilter"}
 	}
-	at.GetMetricsClient().StageProgressionMetrics.CountPostEntryFilterTx()
+	a.GetMetricsClient().StageProgressionMetrics.CountPostEntryFilterTx()
 	mevTxs, merr := DecodeTx(ctx, tx, a.m)
 	if merr != nil {
 		log.Err(merr).Msg("decoding txs err")
@@ -123,8 +122,8 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 		log.Err(merr).Msg("no mev txs found")
 		return ErrWrapper{Err: merr, Stage: "DecodeTx"}
 	}
-	at.GetMetricsClient().StageProgressionMetrics.CountPostDecodeTx()
-	_, err = at.ProcessTxs(ctx, mevTxs, a.m)
+	a.GetMetricsClient().StageProgressionMetrics.CountPostDecodeTx()
+	_, err = a.ProcessTxs(ctx, mevTxs, a.m)
 	if err != nil {
 		log.Err(err).Msg("failed to pass process txs")
 		return ErrWrapper{Err: err, Stage: "ProcessTxs"}

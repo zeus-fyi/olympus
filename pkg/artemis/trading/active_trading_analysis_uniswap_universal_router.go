@@ -35,7 +35,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			inputs := subtx.DecodedInputs.(web3_client.V3SwapExactInParams)
 			pd, perr := uniswap_pricing.GetV3PricingData(ctx, w3a, inputs.Path)
 			if perr != nil {
-				if pd != nil {
+				if pd != nil && m != nil {
 					m.ErrTrackingMetrics.RecordError(web3_client.V3SwapExactIn, pd.V3Pair.PoolAddress)
 				}
 				//log.Err(perr).Msg("V3SwapExactIn: error getting pricing data")
@@ -56,14 +56,17 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			tf.Tx = newJsonTx
 			tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 			tf.Trade.TradeMethod = web3_client.V3SwapExactIn
-			m.TxFetcherMetrics.TransactionGroup(toAddr, web3_client.V3SwapExactIn)
-			m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path.TokenIn.String(), inputs.Path.GetEndToken().String())
-			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V3SwapExactIn, pd.V3Pair.PoolAddress, inputs.Path.TokenIn.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
-			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
-			tfSlice = append(tfSlice, tf)
 
+			if m != nil {
+				m.StageProgressionMetrics.CountPostProcessTx(float64(1))
+				m.TxFetcherMetrics.TransactionGroup(toAddr, web3_client.V3SwapExactIn)
+				m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path.TokenIn.String(), inputs.Path.GetEndToken().String())
+				m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V3SwapExactIn, pd.V3Pair.PoolAddress, inputs.Path.TokenIn.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+			}
+
+			tfSlice = append(tfSlice, tf)
 			log.Info().Msg("saving mempool tx")
-			err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf})
+			err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 			if err != nil {
 				log.Err(err).Msg("failed to save mempool tx")
 				return nil, errors.New("failed to save mempool tx")
@@ -73,8 +76,8 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			inputs := subtx.DecodedInputs.(web3_client.V3SwapExactOutParams)
 			pd, perr := uniswap_pricing.GetV3PricingData(ctx, w3a, inputs.Path)
 			if perr != nil {
-				if pd != nil {
-					a.GetMetricsClient().ErrTrackingMetrics.RecordError(web3_client.V3SwapExactOut, pd.V3Pair.PoolAddress)
+				if pd != nil && m != nil {
+					m.ErrTrackingMetrics.RecordError(web3_client.V3SwapExactOut, pd.V3Pair.PoolAddress)
 				}
 				//log.Err(perr).Msg("V3SwapExactIn: error getting pricing data")
 				return nil, perr
@@ -94,14 +97,17 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			}
 			tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 			tf.Trade.TradeMethod = web3_client.V3SwapExactOut
-			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
-			m.TxFetcherMetrics.TransactionGroup(toAddr, web3_client.V3SwapExactOut)
-			m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path.TokenIn.String(), inputs.Path.GetEndToken().String())
-			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V3SwapExactOut, pd.V3Pair.PoolAddress, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+			if m != nil {
+				m.StageProgressionMetrics.CountPostProcessTx(float64(1))
+
+				m.TxFetcherMetrics.TransactionGroup(toAddr, web3_client.V3SwapExactOut)
+				m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path.TokenIn.String(), inputs.Path.GetEndToken().String())
+				m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V3SwapExactOut, pd.V3Pair.PoolAddress, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+			}
 			tfSlice = append(tfSlice, tf)
 
 			log.Info().Msg("saving mempool tx")
-			err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf})
+			err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 			if err != nil {
 				log.Err(err).Msg("failed to save mempool tx")
 				return nil, errors.New("failed to save mempool tx")
@@ -111,7 +117,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			inputs := subtx.DecodedInputs.(web3_client.V2SwapExactInParams)
 			pd, perr := uniswap_pricing.GetV2PricingData(ctx, w3a, inputs.Path)
 			if perr != nil {
-				if pd != nil {
+				if pd != nil && m != nil {
 					m.ErrTrackingMetrics.RecordError(web3_client.V2SwapExactIn, pd.V2Pair.PairContractAddr)
 				}
 				//log.Err(perr).Msg("V2SwapExactIn: error getting pricing data")
@@ -132,14 +138,17 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			}
 			tf.Trade.TradeMethod = web3_client.V2SwapExactIn
 			tf.InitialPair = pd.V2Pair.ConvertToJSONType()
-			m.TxFetcherMetrics.TransactionGroup(toAddr, web3_client.V2SwapExactIn)
-			pend := len(inputs.Path) - 1
-			m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path[0].String(), inputs.Path[pend].String())
-			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
-			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V2SwapExactIn, pd.V2Pair.PairContractAddr, inputs.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+
+			if m != nil {
+				m.StageProgressionMetrics.CountPostProcessTx(float64(1))
+				m.TxFetcherMetrics.TransactionGroup(toAddr, web3_client.V2SwapExactIn)
+				pend := len(inputs.Path) - 1
+				m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path[0].String(), inputs.Path[pend].String())
+				m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V2SwapExactIn, pd.V2Pair.PairContractAddr, inputs.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+			}
 			tfSlice = append(tfSlice, tf)
 			log.Info().Msg("saving mempool tx")
-			err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf})
+			err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 			if err != nil {
 				log.Err(err).Msg("failed to save mempool tx")
 				return nil, errors.New("failed to save mempool tx")
@@ -149,7 +158,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			inputs := subtx.DecodedInputs.(web3_client.V2SwapExactOutParams)
 			pd, perr := uniswap_pricing.GetV2PricingData(ctx, w3a, inputs.Path)
 			if perr != nil {
-				if pd != nil {
+				if pd != nil && m != nil {
 					m.ErrTrackingMetrics.RecordError(web3_client.V2SwapExactOut, pd.V2Pair.PairContractAddr)
 				}
 				//log.Err(perr).Msg("V2SwapExactOut: error getting pricing data")
@@ -170,14 +179,16 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			}
 			tf.Trade.TradeMethod = web3_client.V2SwapExactOut
 			tf.InitialPair = pd.V2Pair.ConvertToJSONType()
-			m.TxFetcherMetrics.TransactionGroup(toAddr, web3_client.V2SwapExactOut)
 			pend := len(inputs.Path) - 1
-			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
-			m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path[0].String(), inputs.Path[pend].String())
-			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V2SwapExactOut, pd.V2Pair.PairContractAddr, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+			if m != nil {
+				m.StageProgressionMetrics.CountPostProcessTx(float64(1))
+				m.TxFetcherMetrics.TransactionGroup(toAddr, web3_client.V2SwapExactOut)
+				m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path[0].String(), inputs.Path[pend].String())
+				m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V2SwapExactOut, pd.V2Pair.PairContractAddr, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+			}
 			tfSlice = append(tfSlice, tf)
 			log.Info().Msg("saving mempool tx")
-			err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf})
+			err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 			if err != nil {
 				log.Err(err).Msg("failed to save mempool tx")
 				return nil, errors.New("failed to save mempool tx")

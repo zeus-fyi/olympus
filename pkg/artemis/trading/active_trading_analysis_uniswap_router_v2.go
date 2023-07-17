@@ -47,26 +47,39 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 	var tfSlice []web3_client.TradeExecutionFlowJSON
 	switch tx.MethodName {
 	case addLiquidity:
-		m.TxFetcherMetrics.TransactionGroup(toAddr, addLiquidity)
+		if m != nil {
+			m.TxFetcherMetrics.TransactionGroup(toAddr, addLiquidity)
+		}
 	case addLiquidityETH:
 		if tx.Tx.Value() == nil {
 			return nil, errors.New("addLiquidityETH tx has no value")
 		}
-		m.TxFetcherMetrics.TransactionGroup(toAddr, addLiquidityETH)
+		if m != nil {
+			m.TxFetcherMetrics.TransactionGroup(toAddr, addLiquidityETH)
+		}
 	case removeLiquidity:
-		m.TxFetcherMetrics.TransactionGroup(toAddr, removeLiquidity)
+		if m != nil {
+			m.TxFetcherMetrics.TransactionGroup(toAddr, removeLiquidity)
+		}
 	case removeLiquidityETH:
-		m.TxFetcherMetrics.TransactionGroup(toAddr, removeLiquidityETH)
+		if m != nil {
+			m.TxFetcherMetrics.TransactionGroup(toAddr, removeLiquidityETH)
+		}
 	case removeLiquidityWithPermit:
-		m.TxFetcherMetrics.TransactionGroup(toAddr, removeLiquidityWithPermit)
+		if m != nil {
+			m.TxFetcherMetrics.TransactionGroup(toAddr, removeLiquidityWithPermit)
+		}
 	case removeLiquidityETHWithPermit:
-		m.TxFetcherMetrics.TransactionGroup(toAddr, removeLiquidityETHWithPermit)
+		if m != nil {
+			m.TxFetcherMetrics.TransactionGroup(toAddr, removeLiquidityETHWithPermit)
+		}
+
 	case swapExactTokensForTokens:
 		st := web3_client.SwapExactTokensForTokensParams{}
 		st.Decode(ctx, tx.Args)
 		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
-			if pd != nil {
+			if pd != nil && m != nil {
 				m.ErrTrackingMetrics.RecordError(swapExactTokensForTokens, pd.V2Pair.PairContractAddr)
 				return nil, err
 			}
@@ -88,13 +101,15 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		tf.Trade.TradeMethod = swapExactTokensForTokens
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		pend := len(st.Path) - 1
-		m.StageProgressionMetrics.CountPostProcessTx(float64(1))
-		m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokens)
-		m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
-		m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		if m != nil {
+			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
+			m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokens)
+			m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
+			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		}
 		tfSlice = append(tfSlice, tf)
 		log.Info().Msg("saving mempool tx")
-		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf})
+		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -105,7 +120,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		pend := len(st.Path) - 1
 		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
-			if pd != nil {
+			if pd != nil && m != nil {
 				m.ErrTrackingMetrics.RecordError(swapTokensForExactTokens, pd.V2Pair.PairContractAddr)
 			}
 			return nil, err
@@ -126,13 +141,16 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		}
 		tf.Tx = newTx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
-		m.StageProgressionMetrics.CountPostProcessTx(float64(1))
-		m.TxFetcherMetrics.TransactionGroup(toAddr, swapTokensForExactTokens)
-		m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
-		m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapTokensForExactTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		if m != nil {
+			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
+
+			m.TxFetcherMetrics.TransactionGroup(toAddr, swapTokensForExactTokens)
+			m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
+			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapTokensForExactTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		}
 		tfSlice = append(tfSlice, tf)
 		log.Info().Msg("saving mempool tx")
-		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf})
+		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -147,7 +165,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		pend := len(st.Path) - 1
 		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
-			if pd != nil {
+			if pd != nil && m != nil {
 				m.ErrTrackingMetrics.RecordError(swapExactETHForTokens, pd.V2Pair.PairContractAddr)
 			}
 			return nil, err
@@ -168,13 +186,15 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		}
 		tf.Tx = newTx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
-		m.StageProgressionMetrics.CountPostProcessTx(float64(1))
-		m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactETHForTokens)
-		m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
-		m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactETHForTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		if m != nil {
+			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
+			m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactETHForTokens)
+			m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
+			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactETHForTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		}
 		tfSlice = append(tfSlice, tf)
 		log.Info().Msg("saving mempool tx")
-		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf})
+		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -185,7 +205,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		pend := len(st.Path) - 1
 		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
-			if pd != nil {
+			if pd != nil && m != nil {
 				m.ErrTrackingMetrics.RecordError(swapTokensForExactETH, pd.V2Pair.PairContractAddr)
 			}
 			return nil, err
@@ -206,13 +226,15 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		}
 		tf.Tx = newTx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
-		m.StageProgressionMetrics.CountPostProcessTx(float64(1))
-		m.TxFetcherMetrics.TransactionGroup(toAddr, swapTokensForExactETH)
-		m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
-		m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapTokensForExactETH, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		if m != nil {
+			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
+			m.TxFetcherMetrics.TransactionGroup(toAddr, swapTokensForExactETH)
+			m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
+			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapTokensForExactETH, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		}
 		tfSlice = append(tfSlice, tf)
 		log.Info().Msg("saving mempool tx")
-		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf})
+		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -223,7 +245,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		pend := len(st.Path) - 1
 		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
-			if pd != nil {
+			if pd != nil && m != nil {
 				m.ErrTrackingMetrics.RecordError(swapExactTokensForETH, pd.V2Pair.PairContractAddr)
 			}
 			return nil, err
@@ -244,13 +266,15 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		}
 		tf.Tx = newTx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
-		m.StageProgressionMetrics.CountPostProcessTx(float64(1))
-		m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForETH)
-		m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
-		m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForETH, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		if m != nil {
+			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
+			m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForETH)
+			m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
+			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForETH, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		}
 		tfSlice = append(tfSlice, tf)
 		log.Info().Msg("saving mempool tx")
-		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf})
+		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -265,7 +289,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		pend := len(st.Path) - 1
 		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
-			if pd != nil {
+			if pd != nil && m != nil {
 				m.ErrTrackingMetrics.RecordError(swapETHForExactTokens, pd.V2Pair.PairContractAddr)
 			}
 			return nil, err
@@ -286,13 +310,15 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		}
 		tf.Tx = newTx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
-		m.TxFetcherMetrics.TransactionGroup(toAddr, swapETHForExactTokens)
-		m.StageProgressionMetrics.CountPostProcessTx(float64(1))
-		m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
-		m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapETHForExactTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		if m != nil {
+			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
+			m.TxFetcherMetrics.TransactionGroup(toAddr, swapETHForExactTokens)
+			m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
+			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapETHForExactTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		}
 		tfSlice = append(tfSlice, tf)
 		log.Info().Msg("saving mempool tx")
-		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf})
+		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -304,16 +330,20 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 	}
 	switch tx.MethodName {
 	case removeLiquidityETHWithPermitSupportingFeeOnTransferTokens:
-		m.TxFetcherMetrics.TransactionGroup(toAddr, removeLiquidityETHWithPermitSupportingFeeOnTransferTokens)
+		if m != nil {
+			m.TxFetcherMetrics.TransactionGroup(toAddr, removeLiquidityETHWithPermitSupportingFeeOnTransferTokens)
+		}
 	case removeLiquidityETHSupportingFeeOnTransferTokens:
-		m.TxFetcherMetrics.TransactionGroup(toAddr, removeLiquidityETHSupportingFeeOnTransferTokens)
+		if m != nil {
+			m.TxFetcherMetrics.TransactionGroup(toAddr, removeLiquidityETHSupportingFeeOnTransferTokens)
+		}
 	case swapExactTokensForETHSupportingFeeOnTransferTokens:
 		st := web3_client.SwapExactTokensForETHSupportingFeeOnTransferTokensParams{}
 		st.Decode(tx.Args)
 		pend := len(st.Path) - 1
 		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
-			if pd != nil {
+			if pd != nil && m != nil {
 				m.ErrTrackingMetrics.RecordError(swapExactTokensForETHSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr)
 			}
 			return nil, err
@@ -334,13 +364,15 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		}
 		tf.Tx = newTx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
-		m.StageProgressionMetrics.CountPostProcessTx(float64(1))
-		m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForETHSupportingFeeOnTransferTokens)
-		m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
-		m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForETHSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		if m != nil {
+			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
+			m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForETHSupportingFeeOnTransferTokens)
+			m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
+			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForETHSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		}
 		tfSlice = append(tfSlice, tf)
 		log.Info().Msg("saving mempool tx")
-		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf})
+		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -355,7 +387,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		pend := len(st.Path) - 1
 		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
-			if pd != nil {
+			if pd != nil && m != nil {
 				m.ErrTrackingMetrics.RecordError(swapExactETHForTokensSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr)
 			}
 			return nil, err
@@ -376,13 +408,16 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		tf.Tx = newTx
 		tf.Trade.TradeMethod = swapExactETHForTokensSupportingFeeOnTransferTokens
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
-		m.StageProgressionMetrics.CountPostProcessTx(float64(1))
-		m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactETHForTokensSupportingFeeOnTransferTokens)
-		m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
-		m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactETHForTokensSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		if m != nil {
+			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
+			m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactETHForTokensSupportingFeeOnTransferTokens)
+			m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
+			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactETHForTokensSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		}
 		tfSlice = append(tfSlice, tf)
+
 		log.Info().Msg("saving mempool tx")
-		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf})
+		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -393,7 +428,7 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		pend := len(st.Path) - 1
 		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
-			if pd != nil {
+			if pd != nil && m != nil {
 				m.ErrTrackingMetrics.RecordError(swapExactTokensForTokensSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr)
 			}
 			return nil, err
@@ -414,13 +449,15 @@ func (a *ActiveTrading) RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx
 		tf.Tx = newTx
 		tf.Trade.TradeMethod = swapExactTokensForTokensSupportingFeeOnTransferTokens
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
-		m.StageProgressionMetrics.CountPostProcessTx(float64(1))
-		m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokensSupportingFeeOnTransferTokens)
-		m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
-		m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForTokensSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		if m != nil {
+			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
+			m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokensSupportingFeeOnTransferTokens)
+			m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
+			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForTokensSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		}
 		tfSlice = append(tfSlice, tf)
 		log.Info().Msg("saving mempool tx")
-		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf})
+		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")

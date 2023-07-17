@@ -93,7 +93,7 @@ func GetLatestBlock(ctx context.Context) (uint64, error) {
 		bn, err := ReadRedis.GetLatestBlockNumber(ctx)
 		if err == nil {
 			//log.Info().Uint64("bn", bn).Msg("got block number from redis")
-			Cache.Set("latestBlockNumber", bn, 6*time.Second)
+			Cache.Set(redis_mev.LatestBlockNumberCacheKey, bn, 6*time.Second)
 			return bn, nil
 		}
 		log.Err(err).Msg("failed to get block number from redis")
@@ -112,7 +112,7 @@ func GetLatestBlock(ctx context.Context) (uint64, error) {
 		}
 	}
 	//log.Info().Interface("bn", bn).Msg("set block number in cache")
-	Cache.Set("latestBlockNumber", bn, 6*time.Second)
+	Cache.Set(redis_mev.LatestBlockNumberCacheKey, bn, 6*time.Second)
 	return bn, nil
 }
 
@@ -132,9 +132,15 @@ func SetActiveTradingBlockCache(ctx context.Context) {
 				Wc.Close()
 				return
 			}
-			Cache.Set("block_number", bn, 12*time.Second)
 			Wc.Close()
+			Cache.Set(redis_mev.LatestBlockNumberCacheKey, bn, 6*time.Second)
 			log.Info().Msg(fmt.Sprintf("Received new timestamp: %s", t))
+			if WriteRedis.Client != nil {
+				err := WriteRedis.AddOrUpdateLatestBlockCache(ctx, bn, 12*time.Second)
+				if err != nil {
+					log.Err(err).Msg("failed to set block number in redis")
+				}
+			}
 		}
 	}
 }

@@ -61,7 +61,6 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 				return err
 			}
 			p.BlockTimestampLast = blockTimestampLast
-
 			Cache.Set(tag, *p, cache.NoExpiration)
 			if len(resp) <= 2 {
 				return err

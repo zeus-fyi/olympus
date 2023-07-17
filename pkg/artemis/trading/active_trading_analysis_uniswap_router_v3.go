@@ -7,6 +7,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/rs/zerolog/log"
+	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
@@ -24,7 +25,7 @@ const (
 	exactOutput             = "exactOutput"
 )
 
-func (a *ActiveTrading) RealTimeProcessUniswapV3RouterTx(ctx context.Context, tx web3_client.MevTx, abiFile *abi.ABI, filter *strings_filter.FilterOpts) ([]web3_client.TradeExecutionFlowJSON, error) {
+func (a *ActiveTrading) RealTimeProcessUniswapV3RouterTx(ctx context.Context, tx web3_client.MevTx, abiFile *abi.ABI, filter *strings_filter.FilterOpts, m *metrics_trading.TradingMetrics) ([]web3_client.TradeExecutionFlowJSON, error) {
 	toAddr := tx.Tx.To().String()
 	var tfSlice []web3_client.TradeExecutionFlowJSON
 	if strings.HasPrefix(tx.MethodName, multicall) {

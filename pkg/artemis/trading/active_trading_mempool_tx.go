@@ -16,7 +16,7 @@ import (
 )
 
 // SaveMempoolTx Also filters WETH denominated txs for active trading consideration
-func (a *ActiveTrading) SaveMempoolTx(ctx context.Context, bn uint64, tfSlice []web3_client.TradeExecutionFlowJSON, m *metrics_trading.TradingMetrics) error {
+func SaveMempoolTx(ctx context.Context, bn uint64, tfSlice []web3_client.TradeExecutionFlowJSON, m *metrics_trading.TradingMetrics) error {
 	var liveTradingSlice []web3_client.TradeExecutionFlowJSON
 	for _, tradeFlow := range tfSlice {
 		if tradeFlow.SandwichPrediction.ExpectedProfit == "0" || tradeFlow.SandwichPrediction.ExpectedProfit == "1" {

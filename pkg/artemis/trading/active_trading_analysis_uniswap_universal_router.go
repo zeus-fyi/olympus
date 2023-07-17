@@ -66,7 +66,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 
 			tfSlice = append(tfSlice, tf)
 			log.Info().Msg("saving mempool tx")
-			err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
+			err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 			if err != nil {
 				log.Err(err).Msg("failed to save mempool tx")
 				return nil, errors.New("failed to save mempool tx")
@@ -107,7 +107,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			tfSlice = append(tfSlice, tf)
 
 			log.Info().Msg("saving mempool tx")
-			err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
+			err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 			if err != nil {
 				log.Err(err).Msg("failed to save mempool tx")
 				return nil, errors.New("failed to save mempool tx")
@@ -148,7 +148,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			}
 			tfSlice = append(tfSlice, tf)
 			log.Info().Msg("saving mempool tx")
-			err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
+			err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 			if err != nil {
 				log.Err(err).Msg("failed to save mempool tx")
 				return nil, errors.New("failed to save mempool tx")
@@ -188,7 +188,7 @@ func (a *ActiveTrading) RealTimeProcessUniversalRouterTx(ctx context.Context, tx
 			}
 			tfSlice = append(tfSlice, tf)
 			log.Info().Msg("saving mempool tx")
-			err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
+			err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 			if err != nil {
 				log.Err(err).Msg("failed to save mempool tx")
 				return nil, errors.New("failed to save mempool tx")

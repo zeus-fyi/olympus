@@ -113,7 +113,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		tfSlice = append(tfSlice, tf)
 		log.Info().Msg("saving mempool tx")
-		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
+		err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -158,7 +158,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		tfSlice = append(tfSlice, tf)
 		log.Info().Msg("saving mempool tx")
-		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
+		err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -204,7 +204,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		tfSlice = append(tfSlice, tf)
 		log.Info().Msg("saving mempool tx")
-		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
+		err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -249,7 +249,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		tfSlice = append(tfSlice, tf)
 		log.Info().Msg("saving mempool tx")
-		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
+		err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -294,7 +294,7 @@ func (a *ActiveTrading) processUniswapV3Txs(ctx context.Context, tx web3_client.
 		}
 		tfSlice = append(tfSlice, tf)
 		log.Info().Msg("saving mempool tx")
-		err = a.SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
+		err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")

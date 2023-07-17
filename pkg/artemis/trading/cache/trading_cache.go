@@ -84,10 +84,19 @@ func GetLatestBlockFromCacheOrProvidedSource(ctx context.Context, w3 web3_action
 }
 
 func GetLatestBlock(ctx context.Context) (uint64, error) {
-	val, ok := Cache.Get("block_number")
+	val, ok := Cache.Get("latestBlockNumber")
 	if ok && val != nil {
 		//log.Info().Uint64("val", val.(uint64)).Msg("got block number from cache")
 		return val.(uint64), nil
+	}
+	if ReadRedis.Client != nil {
+		bn, err := ReadRedis.GetLatestBlockNumber(ctx)
+		if err == nil {
+			//log.Info().Uint64("bn", bn).Msg("got block number from redis")
+			Cache.Set("latestBlockNumber", bn, 6*time.Second)
+			return bn, nil
+		}
+		log.Err(err).Msg("failed to get block number from redis")
 	}
 	Wc.Dial()
 	defer Wc.Close()
@@ -96,8 +105,14 @@ func GetLatestBlock(ctx context.Context) (uint64, error) {
 		log.Err(berr).Msg("failed to get block number")
 		return 0, berr
 	}
+	if WriteRedis.Client != nil {
+		err := WriteRedis.AddOrUpdateLatestBlockCache(ctx, bn, 12*time.Second)
+		if err != nil {
+			log.Err(err).Msg("failed to set block number in redis")
+		}
+	}
 	//log.Info().Interface("bn", bn).Msg("set block number in cache")
-	Cache.Set("block_number", bn, 12*time.Second)
+	Cache.Set("latestBlockNumber", bn, 6*time.Second)
 	return bn, nil
 }
 

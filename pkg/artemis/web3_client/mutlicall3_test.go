@@ -70,7 +70,7 @@ func (s *Web3ClientTestSuite) TestMulticall3() {
 		Results: nil,
 	}
 
-	mcResp, err := m.PackAndSend(ctx, wc)
+	mcResp, err := m.PackAndCall(ctx, wc)
 	s.Assert().Nil(err)
 	s.Assert().NotNil(mcResp)
 	s.Require().Len(mcResp, 2)

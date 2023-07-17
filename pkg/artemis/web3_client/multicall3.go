@@ -39,7 +39,7 @@ type Multicall3Result struct {
 	DecodedReturnData []interface{} `json:"decodedReturnData,omitempty"`
 }
 
-func (m *Multicall3) PackAndSend(ctx context.Context, wc web3_actions.Web3Actions) ([]Multicall3Result, error) {
+func (m *Multicall3) PackAndCall(ctx context.Context, wc web3_actions.Web3Actions) ([]Multicall3Result, error) {
 	payload, err := CreateMulticall3Payload(ctx, m.Calls)
 	if err != nil {
 		return nil, err

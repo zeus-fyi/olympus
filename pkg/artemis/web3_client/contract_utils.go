@@ -35,7 +35,7 @@ func (w *Web3Client) GetOwner(ctx context.Context, abiFile *abi.ABI, contractAdd
 
 func (w *Web3Client) EthCall(ctx context.Context, from common.Address, payload *web3_actions.SendContractTxPayload, bn *big.Int) ([]byte, error) {
 	w.Dial()
-	defer w.C.Close()
+	defer w.Close()
 	if payload.Data == nil {
 		payload.Data = []byte{}
 		err := payload.GenerateBinDataFromParamsAbi(ctx)

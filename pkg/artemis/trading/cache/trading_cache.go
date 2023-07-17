@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-redis/redis/v9"
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
+	redis_mev "github.com/zeus-fyi/olympus/datastores/redis/apps/mev"
 	"github.com/zeus-fyi/olympus/pkg/apollo/ethereum/client_apis/beacon_api"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
@@ -20,10 +22,28 @@ const (
 )
 
 var (
-	TokenMap map[string]artemis_autogen_bases.Erc20TokenInfo
-	Cache    = cache.New(12*time.Second, 4*time.Second)
-	Wc       web3_actions.Web3Actions
+	TokenMap   map[string]artemis_autogen_bases.Erc20TokenInfo
+	Cache      = cache.New(12*time.Second, 4*time.Second)
+	Wc         web3_actions.Web3Actions
+	WriteRedis redis_mev.MevCache
+	ReadRedis  redis_mev.MevCache
 )
+
+func InitProductionRedis(ctx context.Context) {
+	redisOpts := redis.Options{
+		Network: "",
+		Addr:    "redis-master.redis.svc.cluster.local:6379",
+	}
+	rdb := redis.NewClient(&redisOpts)
+	WriteRedis = redis_mev.NewMevCache(ctx, rdb)
+	redisOpts = redis.Options{
+		Network: "",
+		Addr:    "redis-replicas.redis.svc.cluster.local:6379",
+	}
+	rdb = redis.NewClient(&redisOpts)
+	ReadRedis = redis_mev.NewMevCache(ctx, rdb)
+	return
+}
 
 func InitTokenFilter(ctx context.Context) {
 	_, tm, terr := artemis_mev_models.SelectERC20Tokens(ctx)

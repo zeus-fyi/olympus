@@ -2,7 +2,6 @@ package artemis_realtime_trading
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
@@ -106,11 +105,6 @@ var txCache = cache.New(time.Hour*24, time.Hour*24)
 
 func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) ErrWrapper {
 	at := newActiveTradingModule(a.a, a.m)
-	_, ok := txCache.Get(tx.Hash().String())
-	if ok {
-		return ErrWrapper{Err: errors.New("tx already processed")}
-	}
-	txCache.Set(tx.Hash().String(), tx, cache.DefaultExpiration)
 	at.GetMetricsClient().StageProgressionMetrics.CountPreEntryFilterTx()
 	err := at.EntryTxFilter(ctx, tx)
 	if err != nil {
@@ -118,7 +112,7 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 	}
 	at.GetMetricsClient().StageProgressionMetrics.CountPostEntryFilterTx()
 	// Start the remainder of the function in a goroutine
-	mevTxs, merr := at.DecodeTx(ctx, tx)
+	mevTxs, merr := DecodeTx(ctx, tx, a.m)
 	if merr != nil {
 		log.Err(merr).Msg("decoding txs err")
 	}

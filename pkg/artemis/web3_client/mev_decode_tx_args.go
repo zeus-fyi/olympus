@@ -18,6 +18,14 @@ func DecodeTxArgData(ctx context.Context, tx *types.Transaction, mevMap MevSmart
 	return DecodeTxData(ctx, input, mevMap.Abi, mevMap.Filter)
 }
 
+func DecodeTxArgDataFromAbi(ctx context.Context, tx *types.Transaction, abiDefinition *abi.ABI) (string, map[string]interface{}, error) {
+	if tx.Data() == nil {
+		return "", nil, errors.New("tx data is nil")
+	}
+	input := tx.Data()
+	return DecodeTxData(ctx, input, abiDefinition, nil)
+}
+
 func DecodeTxData(ctx context.Context, input []byte, abiDefinition *abi.ABI, filter *strings_filter.FilterOpts) (string, map[string]interface{}, error) {
 	calldata := input
 	if len(calldata) < 4 {

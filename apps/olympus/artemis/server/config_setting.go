@@ -39,6 +39,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		cfg.PGConnStr = sw.PostgresAuth
 		dynamoDBCreds.AccessKey = sw.AccessKeyHydraDynamoDB
 		dynamoDBCreds.AccessSecret = sw.SecretKeyHydraDynamoDB
+		artemis_trading_cache.InitProductionRedis(ctx)
 		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()

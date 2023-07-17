@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
@@ -24,19 +23,19 @@ func (a *ActiveTrading) EntryTxFilter(ctx context.Context, tx *types.Transaction
 	if tx.To() == nil {
 		return errors.New("dat: EntryTxFilter, tx.To() is nil")
 	}
-	artemis_trading_cache.Wc.Dial()
-	defer artemis_trading_cache.Wc.Close()
-	rx, err := artemis_trading_cache.Wc.C.TransactionReceipt(ctx, tx.Hash())
-	if err == ethereum.NotFound {
-		log.Info().Msg("dat: EntryTxFilter, tx not mined yet")
-		return nil
-	}
-	if err != nil {
-		log.Err(err).Msg("dat: EntryTxFilter, error getting tx receipt")
-		return err
-	}
-	log.Warn().Int64("blockNum", rx.BlockNumber.Int64()).Msg("dat: EntryTxFilter, tx already mined: rx block number")
-	return errors.New("dat: EntryTxFilter, tx already mined")
+	//_, ok := txCache.Get(tx.Hash().String())
+	//if ok {
+	//	return errors.New("dat: EntryTxFilter, tx already processed")
+	//}
+	//exists, err := artemis_trading_cache.ReadRedis.DoesTxExist(ctx, tx.Hash().String())
+	//if err != nil {
+	//	return nil
+	//}
+	//if exists {
+	//	return errors.New("dat: EntryTxFilter, tx already processed")
+	//}
+	//txCache.Set(tx.Hash().String(), tx, cache.DefaultExpiration)
+	return nil
 }
 
 func (a *ActiveTrading) SimTxFilter(ctx context.Context, tfSlice []web3_client.TradeExecutionFlowJSON) error {

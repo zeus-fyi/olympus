@@ -31,6 +31,7 @@ func (s *IrisRoundRobinTestSuite) TestInitRoutes() {
 }
 
 func (s *IrisRoundRobinTestSuite) TestRoundRobin() {
+	// TODO IrisCache here
 	SetRouteTable(1, "test", []string{"1", "2", "3"})
 	for i := 0; i < 10; i++ {
 		routeInfo, err := GetNextRoute(1, "test")

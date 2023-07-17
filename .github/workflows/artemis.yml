@@ -9,6 +9,7 @@ on:
       - .github/workflows/artemis.yml
     branches:
       - main
+      - dev
 env:
   REPO: registry.digitalocean.com/zeus-fyi
   NAME: artemis

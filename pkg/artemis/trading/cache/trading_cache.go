@@ -75,14 +75,14 @@ func GetLatestBlockFromCacheOrProvidedSource(ctx context.Context, w3 web3_action
 	defer w3.Close()
 	bn, berr := w3.C.BlockNumber(ctx)
 	if berr != nil {
-		log.Err(berr).Msg("failed to get block number")
+		log.Err(berr).Str("w3_sessionID", w3SessionHeader).Str("wc_sessionID", wcSessionHeader).Msg("GetLatestBlockFromCacheOrProvidedSource: failed to get block number")
 		return 0, berr
 	}
 	return bn, berr
 }
 
 func GetLatestBlock(ctx context.Context) (uint64, error) {
-	val, ok := Cache.Get("latestBlockNumber")
+	val, ok := Cache.Get(redis_mev.LatestBlockNumberCacheKey)
 	if ok && val != nil {
 		//log.Info().Uint64("val", val.(uint64)).Msg("got block number from cache")
 		return val.(uint64), nil
@@ -93,20 +93,21 @@ func GetLatestBlock(ctx context.Context) (uint64, error) {
 			//log.Info().Uint64("bn", bn).Msg("got block number from redis")
 			Cache.Set(redis_mev.LatestBlockNumberCacheKey, bn, 6*time.Second)
 			return bn, nil
+		} else {
+			log.Err(err).Msg("GetLatestBlock: failed to get block number from redis")
 		}
-		log.Err(err).Msg("failed to get block number from redis")
 	}
 	Wc.Dial()
 	defer Wc.Close()
 	bn, berr := Wc.C.BlockNumber(ctx)
 	if berr != nil {
-		log.Err(berr).Msg("failed to get block number")
+		log.Err(berr).Msg("GetLatestBlock: failed to get block number")
 		return 0, berr
 	}
 	if WriteRedis.Client != nil {
 		err := WriteRedis.AddOrUpdateLatestBlockCache(ctx, bn, 12*time.Second)
 		if err != nil {
-			log.Err(err).Msg("failed to set block number in redis")
+			log.Err(err).Uint64("bn", bn).Msg("GetLatestBlock: failed to set block number in redis")
 		}
 	}
 	//log.Info().Interface("bn", bn).Msg("set block number in cache")
@@ -136,7 +137,7 @@ func SetActiveTradingBlockCache(ctx context.Context) {
 			if WriteRedis.Client != nil {
 				err := WriteRedis.AddOrUpdateLatestBlockCache(ctx, bn, 12*time.Second)
 				if err != nil {
-					log.Err(err).Msg("failed to set block number in redis")
+					log.Err(err).Str("client", WriteRedis.Client.String()).Msg("SetActiveTradingBlockCache: failed to set block number in redis")
 				}
 			}
 		}

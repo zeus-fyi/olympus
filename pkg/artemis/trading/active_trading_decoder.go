@@ -9,20 +9,6 @@ import (
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
-/*
-
-	MevSmartContractTxMapV3SwapRouterV1: MevSmartContractTxMap{
-		SmartContractAddr: UniswapV3Router01Address,
-		Abi:               artemis_oly_contract_abis.MustLoadUniswapV3Swap1RouterAbi(),
-		Txs:               []MevTx{},
-	},
-	MevSmartContractTxMapV3SwapRouterV2: MevSmartContractTxMap{
-		SmartContractAddr: UniswapV3Router02Address,
-		Abi:               artemis_oly_contract_abis.MustLoadUniswapV3Swap2RouterAbi(),
-		Txs:               []MevTx{},
-	},
-*/
-
 var (
 	OldUniversalRouterAbi = artemis_oly_contract_abis.MustLoadOldUniversalRouterAbi()
 	NewUniversalRouterAbi = artemis_oly_contract_abis.MustLoadNewUniversalRouterAbi()

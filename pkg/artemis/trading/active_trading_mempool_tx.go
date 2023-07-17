@@ -9,13 +9,14 @@ import (
 	"github.com/rs/zerolog/log"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
+	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
 // SaveMempoolTx Also filters WETH denominated txs for active trading consideration
-func (a *ActiveTrading) SaveMempoolTx(ctx context.Context, bn uint64, tfSlice []web3_client.TradeExecutionFlowJSON) error {
+func SaveMempoolTx(ctx context.Context, bn uint64, tfSlice []web3_client.TradeExecutionFlowJSON, m *metrics_trading.TradingMetrics) error {
 	var liveTradingSlice []web3_client.TradeExecutionFlowJSON
 	for _, tradeFlow := range tfSlice {
 		if tradeFlow.SandwichPrediction.ExpectedProfit == "0" || tradeFlow.SandwichPrediction.ExpectedProfit == "1" {
@@ -70,7 +71,9 @@ func (a *ActiveTrading) SaveMempoolTx(ctx context.Context, bn uint64, tfSlice []
 			log.Err(err).Msg("failed to insert mempool tx")
 			return err
 		}
-		a.GetMetricsClient().StageProgressionMetrics.CountSavedMempoolTx(float64(1))
+		if m != nil {
+			m.StageProgressionMetrics.CountSavedMempoolTx(float64(1))
+		}
 	}
 	return nil
 }

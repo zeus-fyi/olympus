@@ -42,6 +42,8 @@ func (a *ActiveTrading) GetMetricsClient() *metrics_trading.TradingMetrics {
 	return a.m
 }
 
+var simClient = createSimClient()
+
 func createSimClient() web3_client.Web3Client {
 	sw3c := web3_client.NewWeb3ClientFakeSigner(irisBetaSvc)
 	sw3c.AddBearerToken(artemis_orchestration_auth.Bearer)
@@ -66,7 +68,8 @@ func NewActiveTradingDebugger(usc *web3_client.UniswapClient) ActiveTrading {
 
 func NewActiveTradingModuleWithoutMetrics(a *artemis_trading_auxiliary.AuxiliaryTradingUtils) ActiveTrading {
 	ctx := context.Background()
-	us := web3_client.InitUniswapClient(ctx, createSimClient())
+	createSimClient()
+	us := web3_client.InitUniswapClient(ctx, simClient)
 	us.Web3Client.IsAnvilNode = true
 	us.Web3Client.DurableExecution = true
 	auxSim := artemis_trading_auxiliary.InitAuxiliaryTradingUtils(ctx, us.Web3Client)
@@ -78,7 +81,8 @@ func NewActiveTradingModuleWithoutMetrics(a *artemis_trading_auxiliary.Auxiliary
 
 func newActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, tm *metrics_trading.TradingMetrics) ActiveTrading {
 	ctx := context.Background()
-	us := web3_client.InitUniswapClient(ctx, createSimClient())
+	createSimClient()
+	us := web3_client.InitUniswapClient(ctx, simClient)
 	us.Web3Client.IsAnvilNode = true
 	us.Web3Client.DurableExecution = true
 	auxSim := artemis_trading_auxiliary.InitAuxiliaryTradingUtils(ctx, us.Web3Client)
@@ -104,23 +108,24 @@ type ErrWrapper struct {
 var txCache = cache.New(time.Hour*24, time.Hour*24)
 
 func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) ErrWrapper {
-	at := newActiveTradingModule(a.a, a.m)
-	at.GetMetricsClient().StageProgressionMetrics.CountPreEntryFilterTx()
-	err := at.EntryTxFilter(ctx, tx)
+	a.GetMetricsClient().StageProgressionMetrics.CountPreEntryFilterTx()
+	err := a.EntryTxFilter(ctx, tx)
 	if err != nil {
 		return ErrWrapper{Err: err, Stage: "EntryTxFilter"}
 	}
-	at.GetMetricsClient().StageProgressionMetrics.CountPostEntryFilterTx()
-	mevTxs, merr := DecodeTx(ctx, tx, a.m)
+	a.GetMetricsClient().StageProgressionMetrics.CountPostEntryFilterTx()
+	mevTxs, merr := DecodeTx(ctx, tx, a.GetMetricsClient())
 	if merr != nil {
 		log.Err(merr).Msg("decoding txs err")
+		return ErrWrapper{Err: merr, Stage: "DecodeTx"}
 	}
 	if len(mevTxs) <= 0 {
 		log.Err(merr).Msg("no mev txs found")
 		return ErrWrapper{Err: merr, Stage: "DecodeTx"}
 	}
-	at.GetMetricsClient().StageProgressionMetrics.CountPostDecodeTx()
-	_, err = at.ProcessTxs(ctx, mevTxs)
+	a.GetMetricsClient().StageProgressionMetrics.CountPostDecodeTx()
+	w3a := artemis_trading_cache.Wc
+	_, err = a.ProcessTxs(ctx, mevTxs, a.GetMetricsClient(), w3a)
 	if err != nil {
 		log.Err(err).Msg("failed to pass process txs")
 		return ErrWrapper{Err: err, Stage: "ProcessTxs"}

@@ -31,9 +31,9 @@ const (
 
 func (p *UniswapV3Pair) PriceImpact(ctx context.Context, token *uniswap_core_entities.Token, amountIn *big.Int) (*uniswap_core_entities.CurrencyAmount, *entities.Pool, error) {
 	amountInTrade := uniswap_core_entities.FromRawAmount(token, amountIn)
-	out, pool, err := p.GetOutputAmount(amountInTrade, nil)
-	if err != nil {
-		return nil, nil, err
+	out, pool, er := p.GetOutputAmount(amountInTrade, nil)
+	if er != nil {
+		return nil, nil, er
 	}
 	//adjOut, err := artemis_pricing_utils.ApplyTransferTax(token.Address, out.Quotient())
 	//if err != nil {
@@ -74,9 +74,9 @@ func (p *UniswapV3Pair) PricingData(ctx context.Context, path artemis_trading_ty
 			return fmt.Errorf("value is not of type *entities.Pool")
 		}
 	}
-	pd, err := redisCache.GetPairPricesFromCacheIfExists(ctx, hs)
-	if err != nil {
-		log.Err(err).Msgf("Error getting v3 pair prices from cache for %s", hs)
+	pd, er := redisCache.GetPairPricesFromCacheIfExists(ctx, hs)
+	if er != nil {
+		log.Err(er).Msgf("Error getting v3 pair prices from cache for %s", hs)
 	} else {
 		assertedVal := pd.V3Pair
 		p.PoolAddress = assertedVal.PoolAddress
@@ -196,7 +196,7 @@ func (p *UniswapV3Pair) PricingData(ctx context.Context, path artemis_trading_ty
 		pricingData := UniswapPricingData{
 			V3Pair: *p,
 		}
-		err = redisCache.AddOrUpdatePairPricesCache(ctx, hs, pricingData, time.Minute*60)
+		err := redisCache.AddOrUpdatePairPricesCache(ctx, hs, pricingData, time.Minute*60)
 		if err != nil {
 			log.Err(err).Msgf("Error adding v3 pair prices to cache for %s", hs)
 		}

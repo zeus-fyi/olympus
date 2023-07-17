@@ -34,7 +34,8 @@ const (
 	DaiContractAddress          = "0x6b175474e89094c44da98b954eedeac495271d0f"
 	Permit2SmartContractAddress = "0x000000000022D473030F116dDEE9F6B43aC78BA3"
 
-	ZeroAddress = "0x0000000000000000000000000000000000000000"
+	ZeroAddress       = "0x0000000000000000000000000000000000000000"
+	Multicall3Address = "0xcA11bde05977b3631167028862bE2a173976CA11"
 )
 
 var (
@@ -43,6 +44,7 @@ var (
 	PepeContractAddrAccount            = accounts.HexToAddress(PepeContractAddr)
 	WETH9ContractAddressAccount        = accounts.HexToAddress(WETH9ContractAddress)
 	DaiContractAddressAccount          = accounts.HexToAddress(DaiContractAddress)
+	Multicall3AddressAccount           = accounts.HexToAddress(Multicall3Address)
 )
 
 const (

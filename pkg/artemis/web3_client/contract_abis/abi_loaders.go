@@ -15,7 +15,19 @@ import (
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
-var ctx = context.Background()
+var (
+	ctx        = context.Background()
+	MultiCall3 = MustLoadMulticall3Abi()
+	Erc20      = MustLoadERC20Abi()
+)
+
+func MustLoadMulticall3Abi() *abi.ABI {
+	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(Multicall3Abi))
+	if err != nil {
+		panic(err)
+	}
+	return readAbi
+}
 
 func MustLoadPepeAbi() *abi.ABI {
 	readAbi, err := signing_automation_ethereum.ReadAbi(ctx, strings.NewReader(PepeAbi))

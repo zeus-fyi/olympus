@@ -71,6 +71,16 @@ func (s *UniswapPricingTestSuite) TestMulticall3UniswapV2Batch() {
 
 	s.Require().NotEmpty(pairs[0])
 	s.Require().NotEmpty(pairs[1])
+
+	mcallResp, err := GetBatchPairContractPricesViaMulticall3(ctx, wc, p0, p1)
+	s.Require().NoError(err)
+	s.Require().NotNil(mcallResp)
+	s.Require().Equal(2, len(mcallResp))
+
+	for i, respVal := range mcallResp {
+		s.Require().Equal(respVal.Reserve0.String(), pairs[i].Reserve0.String())
+		s.Require().Equal(respVal.Reserve1.String(), pairs[i].Reserve1.String())
+	}
 }
 
 func (s *UniswapPricingTestSuite) TestPricingImpact() {

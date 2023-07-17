@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	artemis_multicall "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/multicall"
 	artemis_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/utils"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
@@ -109,4 +111,51 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 		return err
 	}
 	return nil
+}
+
+func GetBatchPairContractPricesViaMulticall3(ctx context.Context, wc web3_actions.Web3Actions, pairAddresses ...string) ([]*UniswapV2Pair, error) {
+	mcalls := make([]artemis_multicall.MultiCallElement, len(pairAddresses))
+	for i, pairAddr := range pairAddresses {
+		addr := common.HexToAddress(pairAddr)
+		mcalls[i] = artemis_multicall.MultiCallElement{
+			Name: getReserves,
+			Call: artemis_multicall.Call{
+				Target:       addr,
+				AllowFailure: false,
+				Data:         nil,
+			},
+			AbiFile:       v2ABI,
+			DecodedInputs: []interface{}{},
+		}
+	}
+	m := artemis_multicall.Multicall3{
+		Calls:   mcalls,
+		Results: nil,
+	}
+	resp, err := m.PackAndCall(ctx, wc)
+	if err != nil {
+		return nil, err
+	}
+	pairs := make([]*UniswapV2Pair, len(resp))
+	for i, respVal := range resp {
+		respSlice := respVal.DecodedReturnData
+		p := &UniswapV2Pair{}
+		reserve0, rerr := artemis_utils.ParseBigInt(respSlice[0])
+		if rerr != nil {
+			return nil, rerr
+		}
+		p.Reserve0 = reserve0
+		reserve1, rerr := artemis_utils.ParseBigInt(respSlice[1])
+		if rerr != nil {
+			return nil, rerr
+		}
+		p.Reserve1 = reserve1
+		blockTimestampLast, rerr := artemis_utils.ParseBigInt(respSlice[2])
+		if rerr != nil {
+			return nil, rerr
+		}
+		p.BlockTimestampLast = blockTimestampLast
+		pairs[i] = p
+	}
+	return pairs, nil
 }

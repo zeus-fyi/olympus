@@ -46,7 +46,6 @@ func V2PairToPrices(ctx context.Context, wc web3_actions.Web3Actions, pairAddr [
 //}
 
 func GetV2PricingData(ctx context.Context, wc web3_actions.Web3Actions, pairAddr []accounts.Address) (*UniswapPricingData, error) {
-
 	p := UniswapV2Pair{}
 	if len(pairAddr) == 2 {
 		err := p.PairForV2(pairAddr[0].String(), pairAddr[1].String())
@@ -115,10 +114,10 @@ func (m *PricingCache) UnmarshalBinary(data []byte) (UniswapPricingData, error) 
 }
 
 func (m *PricingCache) GetPairPricesFromCacheIfExists(ctx context.Context, tag string) (UniswapPricingData, error) {
-	if artemis_trading_cache.WriteRedis.Client == nil {
+	if artemis_trading_cache.ReadRedis.Client == nil {
 		return UniswapPricingData{}, errors.New("AddOrUpdatePairPricesCache: redis client is nil")
 	}
-	m.Client = artemis_trading_cache.WriteRedis.Client
+	m.Client = artemis_trading_cache.ReadRedis.Client
 	pd := UniswapPricingData{}
 	var bytes []byte
 	err := m.Get(ctx, tag).Scan(&bytes)

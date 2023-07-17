@@ -12,12 +12,12 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
 
-type BeaconIndexerCacheTestSuite struct {
+type MevCacheTestSuite struct {
 	test_suites_base.TestSuite
 	Redis *redis.Client
 }
 
-func (r *BeaconIndexerCacheTestSuite) TestTxCache() {
+func (r *MevCacheTestSuite) TestTxCache() {
 	ctx := context.Background()
 	r.InitLocalConfigs()
 	redisOpts := redis.Options{}
@@ -41,6 +41,6 @@ func (r *BeaconIndexerCacheTestSuite) TestTxCache() {
 	r.Require().Nil(err)
 }
 
-func TestBeaconIndexerCacheTestSuite(t *testing.T) {
-	suite.Run(t, new(BeaconIndexerCacheTestSuite))
+func TestMevCacheTestSuite(t *testing.T) {
+	suite.Run(t, new(MevCacheTestSuite))
 }

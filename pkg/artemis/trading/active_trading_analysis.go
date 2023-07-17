@@ -14,57 +14,93 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *ActiveTrading) ProcessTxs(ctx context.Context) ([]web3_client.TradeExecutionFlowJSON, error) {
-	var tfSlice []web3_client.TradeExecutionFlowJSON
-	for _, mevTx := range a.GetUniswapClient().MevSmartContractTxMapUniversalRouterOld.Txs {
-		tf, err := a.RealTimeProcessUniversalRouterTx(ctx, mevTx)
-		if err != nil {
-			log.Err(err).Msg("error processing universal router tx")
-			continue
-		}
-		tfSlice = append(tfSlice, tf...)
-	}
-	for _, mevTx := range a.GetUniswapClient().MevSmartContractTxMapUniversalRouterNew.Txs {
-		tf, err := a.RealTimeProcessUniversalRouterTx(ctx, mevTx)
-		if err != nil {
-			log.Err(err).Msg("error processing universal router tx")
-			continue
-		}
-		tfSlice = append(tfSlice, tf...)
-	}
-	for _, mevTx := range a.GetUniswapClient().MevSmartContractTxMapV2Router01.Txs {
-		tf, err := a.RealTimeProcessUniswapV2RouterTx(ctx, mevTx)
-		if err != nil {
-			log.Err(err).Msg("error processing v2_01 router tx")
-			continue
-		}
-		tfSlice = append(tfSlice, tf...)
-	}
-	for _, mevTx := range a.GetUniswapClient().MevSmartContractTxMapV2Router02.Txs {
-		tf, err := a.RealTimeProcessUniswapV2RouterTx(ctx, mevTx)
-		if err != nil {
-			log.Err(err).Msg("error processing v2_02 router tx")
-			continue
-		}
-		tfSlice = append(tfSlice, tf...)
-	}
-	for _, mevTx := range a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV2.Txs {
-		tf, err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV2.Abi, a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV2.Filter)
-		if err != nil {
-			log.Err(err).Msg("error processing v3_02 router tx")
-			continue
-		}
-		tfSlice = append(tfSlice, tf...)
-	}
-	for _, mevTx := range a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV1.Txs {
-		tf, err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV1.Abi, a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV1.Filter)
-		if err != nil {
-			log.Err(err).Msg("error processing v3_01 router tx")
-			continue
-		}
-		tfSlice = append(tfSlice, tf...)
-	}
+/*
+	MevSmartContractTxMapUniversalRouterNew: MevSmartContractTxMap{
+		SmartContractAddr: UniswapUniversalRouterAddressNew,
+		Abi:               artemis_oly_contract_abis.MustLoadNewUniversalRouterAbi(),
+		Txs:               []MevTx{},
+	},
 
+	MevSmartContractTxMapUniversalRouterOld: MevSmartContractTxMap{
+		SmartContractAddr: UniswapUniversalRouterAddressOld,
+		Abi:               artemis_oly_contract_abis.MustLoadOldUniversalRouterAbi(),
+		Txs:               []MevTx{},
+	},
+
+	MevSmartContractTxMapV2Router02: MevSmartContractTxMap{
+		SmartContractAddr: UniswapV2Router02Address,
+		Abi:               artemis_oly_contract_abis.MustLoadUniswapV2Router02ABI(),
+		Txs:               []MevTx{},
+		Filter:            &f,
+	},
+
+	MevSmartContractTxMapV2Router01: MevSmartContractTxMap{
+		SmartContractAddr: UniswapV2Router01Address,
+		Abi:               artemis_oly_contract_abis.MustLoadUniswapV2Router01ABI(),
+		Txs:               []MevTx{},
+		Filter:            &f,
+	},
+
+	MevSmartContractTxMapV3SwapRouterV1: MevSmartContractTxMap{
+		SmartContractAddr: UniswapV3Router01Address,
+		Abi:               artemis_oly_contract_abis.MustLoadUniswapV3Swap1RouterAbi(),
+		Txs:               []MevTx{},
+	},
+
+	MevSmartContractTxMapV3SwapRouterV2: MevSmartContractTxMap{
+		SmartContractAddr: UniswapV3Router02Address,
+		Abi:               artemis_oly_contract_abis.MustLoadUniswapV3Swap2RouterAbi(),
+		Txs:               []MevTx{},
+	},
+*/
+func (a *ActiveTrading) ProcessTxs(ctx context.Context, mevTxs []web3_client.MevTx) ([]web3_client.TradeExecutionFlowJSON, error) {
+	var tfSlice []web3_client.TradeExecutionFlowJSON
+	for _, mevTx := range mevTxs {
+		switch mevTx.Tx.To().String() {
+		case artemis_trading_constants.UniswapUniversalRouterAddressOld:
+			tf, err := a.RealTimeProcessUniversalRouterTx(ctx, mevTx)
+			if err != nil {
+				log.Err(err).Msg("error processing universal router tx")
+				continue
+			}
+			tfSlice = append(tfSlice, tf...)
+		case artemis_trading_constants.UniswapUniversalRouterAddressNew:
+			tf, err := a.RealTimeProcessUniversalRouterTx(ctx, mevTx)
+			if err != nil {
+				log.Err(err).Msg("error processing universal router tx")
+				continue
+			}
+			tfSlice = append(tfSlice, tf...)
+		case artemis_trading_constants.UniswapV2Router01Address:
+			tf, err := a.RealTimeProcessUniswapV2RouterTx(ctx, mevTx)
+			if err != nil {
+				log.Err(err).Msg("error processing v2_01 router tx")
+				continue
+			}
+			tfSlice = append(tfSlice, tf...)
+		case artemis_trading_constants.UniswapV2Router02Address:
+			tf, err := a.RealTimeProcessUniswapV2RouterTx(ctx, mevTx)
+			if err != nil {
+				log.Err(err).Msg("error processing v2_02 router tx")
+				continue
+			}
+			tfSlice = append(tfSlice, tf...)
+		case artemis_trading_constants.UniswapV3Router01Address:
+			tf, err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV1.Abi, a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV1.Filter)
+			if err != nil {
+				log.Err(err).Msg("error processing v3_01 router tx")
+				continue
+			}
+			tfSlice = append(tfSlice, tf...)
+		case artemis_trading_constants.UniswapV3Router02Address:
+			tf, err := a.RealTimeProcessUniswapV3RouterTx(ctx, mevTx, a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV2.Abi, a.GetUniswapClient().MevSmartContractTxMapV3SwapRouterV2.Filter)
+			if err != nil {
+				log.Err(err).Msg("error processing v3_02 router tx")
+				continue
+			}
+			tfSlice = append(tfSlice, tf...)
+		}
+	}
 	var postFilter []web3_client.TradeExecutionFlowJSON
 	for _, tf := range tfSlice {
 		key := fmt.Sprintf("%s-tf", tf.Tx.Hash)

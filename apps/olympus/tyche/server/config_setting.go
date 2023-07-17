@@ -41,6 +41,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		dynamoDBCreds.AccessSecret = sw.SecretKeyHydraDynamoDB
 		price_quoter.ZeroXApiKey = sw.ZeroXApiKey
 		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
+		artemis_trading_cache.InitProductionRedis(ctx)
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn

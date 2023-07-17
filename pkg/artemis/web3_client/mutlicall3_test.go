@@ -64,4 +64,19 @@ func (s *Web3ClientTestSuite) TestMulticall3() {
 		bi := new(big.Int).SetBytes(encData.ReturnData)
 		fmt.Println(bi.String())
 	}
+
+	m := Multicall3{
+		Calls:   m3,
+		Results: nil,
+	}
+
+	mcResp, err := m.PackAndSend(ctx, wc)
+	s.Assert().Nil(err)
+	s.Assert().NotNil(mcResp)
+	s.Require().Len(mcResp, 2)
+	for _, mcr := range mcResp {
+		s.Assert().True(mcr.Success)
+		fmt.Println(mcr.Success)
+		fmt.Println(mcr.DecodedReturnData)
+	}
 }

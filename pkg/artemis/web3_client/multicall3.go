@@ -28,13 +28,47 @@ type Call struct {
 }
 
 type Multicall3 struct {
-	Calls []Call `json:"calls"`
+	Calls   []MultiCallElement `json:"calls"`
+	Results []Multicall3Result `json:"results"`
 }
 
 // Multicall3Result is an auto generated low-level Go binding around an user-defined struct.
 type Multicall3Result struct {
-	Success    bool   `json:"success"`
-	ReturnData []byte `json:"returnData"`
+	Success           bool          `json:"success"`
+	ReturnData        []byte        `json:"returnData"`
+	DecodedReturnData []interface{} `json:"decodedReturnData,omitempty"`
+}
+
+func (m *Multicall3) PackAndSend(ctx context.Context, wc web3_actions.Web3Actions) ([]Multicall3Result, error) {
+	payload, err := CreateMulticall3Payload(ctx, m.Calls)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := wc.CallConstantFunction(ctx, &payload)
+	if err != nil {
+		return nil, err
+	}
+	encDataResponses := resp[0].([]struct {
+		Success    bool    "json:\"success\""
+		ReturnData []uint8 "json:\"returnData\""
+	})
+	results := make([]Multicall3Result, len(encDataResponses))
+	for i, _ := range encDataResponses {
+		encData := encDataResponses[i]
+		results[i] = Multicall3Result{
+			Success:    encData.Success,
+			ReturnData: encData.ReturnData,
+		}
+		if encData.Success {
+			decoded, derr := m.Calls[i].AbiFile.Methods[m.Calls[i].Name].Outputs.UnpackValues(encData.ReturnData)
+			if derr != nil {
+				return nil, derr
+			}
+			results[i].DecodedReturnData = decoded
+		}
+	}
+	m.Results = results
+	return results, err
 }
 
 func CreateMulticall3Payload(ctx context.Context, calls []MultiCallElement) (web3_actions.SendContractTxPayload, error) {

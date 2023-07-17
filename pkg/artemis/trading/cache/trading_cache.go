@@ -30,18 +30,16 @@ var (
 )
 
 func InitProductionRedis(ctx context.Context) {
-	redisOpts := redis.Options{
-		Network: "",
-		Addr:    "redis-master.redis.svc.cluster.local:6379",
+	writeRedisOpts := redis.Options{
+		Addr: "redis-master.redis.svc.cluster.local:6379",
 	}
-	rdb := redis.NewClient(&redisOpts)
-	WriteRedis = redis_mev.NewMevCache(ctx, rdb)
-	redisOpts = redis.Options{
-		Network: "",
-		Addr:    "redis-replicas.redis.svc.cluster.local:6379",
+	writer := redis.NewClient(&writeRedisOpts)
+	WriteRedis = redis_mev.NewMevCache(ctx, writer)
+	readRedisOpts := redis.Options{
+		Addr: "redis-replicas.redis.svc.cluster.local:6379",
 	}
-	rdb = redis.NewClient(&redisOpts)
-	ReadRedis = redis_mev.NewMevCache(ctx, rdb)
+	reader := redis.NewClient(&readRedisOpts)
+	ReadRedis = redis_mev.NewMevCache(ctx, reader)
 	return
 }
 

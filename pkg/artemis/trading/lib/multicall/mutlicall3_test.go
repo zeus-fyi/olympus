@@ -1,17 +1,23 @@
-package web3_client
+package artemis_multicall
 
 import (
+	"context"
 	"fmt"
 	"math/big"
+	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/stretchr/testify/suite"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_test_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/test_suite/test_cache"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
+	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_encryption"
 )
 
-func (s *Web3ClientTestSuite) TestMulticall3() {
+var ctx = context.Background()
+
+func (s *MulticallTestSuite) TestMulticall3() {
 	wc := artemis_test_cache.LiveTestNetwork
 	wc.Dial()
 	defer wc.Close()
@@ -79,4 +85,17 @@ func (s *Web3ClientTestSuite) TestMulticall3() {
 		fmt.Println(mcr.Success)
 		fmt.Println(mcr.DecodedReturnData)
 	}
+}
+
+type MulticallTestSuite struct {
+	test_suites_encryption.EncryptionTestSuite
+}
+
+func (s *MulticallTestSuite) SetupTest() {
+	s.InitLocalConfigs()
+	artemis_test_cache.InitLiveTestNetwork(s.Tc.QuikNodeURLS.TestRoute)
+}
+
+func TestMulticallTestSuite(t *testing.T) {
+	suite.Run(t, new(MulticallTestSuite))
 }

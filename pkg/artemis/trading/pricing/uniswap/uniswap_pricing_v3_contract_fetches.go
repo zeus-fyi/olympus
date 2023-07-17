@@ -5,15 +5,74 @@ import (
 	"errors"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_multicall "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/multicall"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_v3/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_v3/entities"
 )
 
 var v3PoolAbi = artemis_oly_contract_abis.MustLoadPoolV3Abi()
+
+func (p *UniswapV3Pair) GetLiquidityAndSlot0FromMulticall3(ctx context.Context) error {
+	m3calls := []artemis_multicall.MultiCallElement{{
+		Name: liquidity,
+		Call: artemis_multicall.Call{
+			Target:       common.HexToAddress(p.PoolAddress),
+			AllowFailure: false,
+			Data:         nil,
+		},
+		AbiFile:       v3PoolAbi,
+		DecodedInputs: []interface{}{},
+	}, {
+		Name: slot0,
+		Call: artemis_multicall.Call{
+			Target:       common.HexToAddress(p.PoolAddress),
+			AllowFailure: false,
+			Data:         nil,
+		},
+		AbiFile:       v3PoolAbi,
+		DecodedInputs: []interface{}{},
+	}}
+	m := artemis_multicall.Multicall3{
+		Calls:   m3calls,
+		Results: nil,
+	}
+	resp, err := m.PackAndCall(ctx, p.Web3Actions)
+	if err != nil {
+		return err
+	}
+	for ind, respVal := range resp {
+		switch ind {
+		case 0:
+			respSlice := respVal.DecodedReturnData
+			for i, val := range respSlice {
+				switch i {
+				case 0:
+					p.Liquidity = val.(*big.Int)
+				}
+			}
+		case 1:
+			respSlice := respVal.DecodedReturnData
+			for i, val := range respSlice {
+				switch i {
+				case 0:
+					p.Slot0.SqrtPriceX96 = val.(*big.Int)
+				case 1:
+					tmp := val.(*big.Int)
+					p.Slot0.Tick = int(tmp.Int64())
+				case 5:
+					tmp := val.(uint8)
+					p.Slot0.FeeProtocol = int(tmp)
+				}
+			}
+		}
+	}
+	return nil
+}
 
 func (p *UniswapV3Pair) GetLiquidity(ctx context.Context) error {
 	scInfo := &web3_actions.SendContractTxPayload{

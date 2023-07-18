@@ -73,15 +73,25 @@ func (a *AuxiliaryTradingUtils) IsProfitTokenAcceptable(ctx context.Context, tf 
 		log.Info().Interface("tf.FrontRunTrade.AmountIn", tf.FrontRunTrade.AmountIn).Interface("maxTradeSize", a.maxTradeSize()).Msg("trade size is higher than max trade size")
 		return false, errors.New("trade size is higher than max trade size")
 	}
-
 	// 0.1 ETH at the moment
-	ok, err = a.checkEthBalanceGreaterThan(ctx, artemis_eth_units.GweiMultiple(100000000))
+	minEthAmountGwei := 100000000
+	ok, err = a.checkEthBalanceGreaterThan(ctx, artemis_eth_units.GweiMultiple(minEthAmountGwei))
 	if err != nil {
+		log.Err(err).Msg("could not check eth balance")
 		return false, err
 	}
 	if !ok {
 		return false, errors.New("ETH balance is not enough")
 	}
-
+	// 0.5 WETH at the moment
+	minWethAmountGwei := 500000000
+	ok, err = a.CheckAuxWETHBalanceGreaterThan(ctx, artemis_eth_units.GweiMultiple(minWethAmountGwei))
+	if err != nil {
+		log.Err(err).Msg("could not check aux weth balance")
+		return false, err
+	}
+	if !ok {
+		return false, errors.New("ETH balance is not enough")
+	}
 	return true, nil
 }

@@ -250,7 +250,6 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 		if m != nil {
 			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
-
 			m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactOutputSingle)
 			m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactOutputSingle, pd.V3Pair.PoolAddress, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)

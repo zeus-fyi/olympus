@@ -24,15 +24,21 @@ const (
 )
 
 const (
-	V2SwapExactIn                                      = "V2_SWAP_EXACT_IN"
-	V2SwapExactOut                                     = "V2_SWAP_EXACT_OUT"
-	SwapExactTokensForTokens                           = "swapExactTokensForTokens"
-	SwapExactTokensForETHSupportingFeeOnTransferTokens = "swapExactTokensForETHSupportingFeeOnTransferTokens"
-
-	Permit2TransferFrom      = "PERMIT2_TRANSFER_FROM"
-	Permit2PermitBatch       = "PERMIT2_PERMIT_BATCH"
-	Permit2Permit            = "PERMIT2_PERMIT"
-	Permit2TransferFromBatch = "PERMIT2_TRANSFER_FROM_BATCH"
+	V2SwapExactIn                                         = "V2_SWAP_EXACT_IN"
+	V2SwapExactOut                                        = "V2_SWAP_EXACT_OUT"
+	SwapExactTokensForETH                                 = "swapExactTokensForETH"
+	SwapETHForExactTokens                                 = "swapETHForExactTokens"
+	SwapTokensForExactETH                                 = "swapTokensForExactETH"
+	SwapTokensForExactTokens                              = "swapTokensForExactTokens"
+	SwapExactETHForTokens                                 = "swapExactETHForTokens"
+	SwapExactTokensForTokens                              = "swapExactTokensForTokens"
+	SwapExactTokensForETHSupportingFeeOnTransferTokens    = "swapExactTokensForETHSupportingFeeOnTransferTokens"
+	SwapExactETHForTokensSupportingFeeOnTransferTokens    = "swapExactETHForTokensSupportingFeeOnTransferTokens"
+	SwapExactTokensForTokensSupportingFeeOnTransferTokens = "swapExactTokensForTokensSupportingFeeOnTransferTokens"
+	Permit2TransferFrom                                   = "PERMIT2_TRANSFER_FROM"
+	Permit2PermitBatch                                    = "PERMIT2_PERMIT_BATCH"
+	Permit2Permit                                         = "PERMIT2_PERMIT"
+	Permit2TransferFromBatch                              = "PERMIT2_TRANSFER_FROM_BATCH"
 
 	Execute0 = "execute0"
 	Execute  = "execute"

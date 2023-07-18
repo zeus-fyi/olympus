@@ -3,11 +3,13 @@ package artemis_realtime_trading
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -62,18 +64,33 @@ func (a *ActiveTrading) SimTxFilter(ctx context.Context, tfSlice []web3_client.T
 
 func (a *ActiveTrading) ActiveTradingFilterSlice(ctx context.Context, tf []web3_client.TradeExecutionFlowJSON) error {
 	for _, tradeFlow := range tf {
-		err := a.ActiveTradingFilter(ctx, tradeFlow)
+		tfInt := tradeFlow.ConvertToBigIntType()
+		err := a.ActiveTradingFilter(ctx, tfInt)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
 }
-func (a *ActiveTrading) ActiveTradingFilter(ctx context.Context, tf web3_client.TradeExecutionFlowJSON) error {
-	tfInt := tf.ConvertToBigIntType()
-	_, err := a.GetAuxClient().IsProfitTokenAcceptable(ctx, &tfInt)
+
+func (a *ActiveTrading) ActiveTradingFilter(ctx context.Context, tf web3_client.TradeExecutionFlow) error {
+	switch tf.Trade.TradeMethod {
+	case artemis_trading_constants.SwapExactETHForTokens:
+	case artemis_trading_constants.SwapTokensForExactETH:
+	case artemis_trading_constants.SwapTokensForExactTokens:
+	case artemis_trading_constants.SwapExactTokensForETH:
+	case artemis_trading_constants.SwapExactTokensForTokens:
+	case artemis_trading_constants.SwapETHForExactTokens:
+	case artemis_trading_constants.SwapExactTokensForETHSupportingFeeOnTransferTokens:
+	case artemis_trading_constants.SwapExactETHForTokensSupportingFeeOnTransferTokens:
+	case artemis_trading_constants.SwapExactTokensForTokensSupportingFeeOnTransferTokens:
+	case artemis_trading_constants.V2SwapExactIn, artemis_trading_constants.V2SwapExactOut:
+	default:
+		return fmt.Errorf("dat: ActiveTradingFilter: %s method not supported for now", tf.Trade.TradeMethod)
+	}
+	_, err := a.GetAuxClient().IsProfitTokenAcceptable(ctx, &tf)
 	if err != nil {
-		log.Err(err).Msg("dat: ActiveTradingFilter: profit token not acceptable")
+		log.Err(err).Msg("ActiveTradingFilter: profit token not acceptable")
 		return err
 	}
 	//ok, err := a.GetAuxClient().IsTradingEnabledOnToken(tf.UserTrade.AmountOutAddr.String())
@@ -83,13 +100,6 @@ func (a *ActiveTrading) ActiveTradingFilter(ctx context.Context, tf web3_client.
 	//}
 	//if !ok {
 	//	return fmt.Errorf("dat: ActiveTradingFilter: trading not enabled for token")
-	//}
-	//switch tf.Trade.TradeMethod {
-	//case artemis_trading_constants.SwapExactTokensForTokens:
-	//case artemis_trading_constants.SwapExactTokensForETHSupportingFeeOnTransferTokens:
-	//case artemis_trading_constants.V2SwapExactIn, artemis_trading_constants.V2SwapExactOut:
-	//default:
-	//	return fmt.Errorf("dat: ActiveTradingFilter: %s method not supported for now", tf.Trade.TradeMethod)
 	//}
 
 	return nil

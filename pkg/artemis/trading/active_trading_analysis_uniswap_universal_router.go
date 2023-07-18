@@ -8,6 +8,7 @@ import (
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
@@ -49,11 +50,13 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 			if err != nil {
 				return nil, err
 			}
-
 			newJsonTx := artemis_trading_types.JSONTx{}
 			err = newJsonTx.UnmarshalTx(tx.Tx)
 			if err != nil {
 				return nil, err
+			}
+			if artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.SandwichPrediction.ExpectedProfit) || artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.SandwichTrade.AmountOut) {
+				return nil, errors.New("expectedProfit == 0 or 1")
 			}
 			tf.Tx = newJsonTx
 			tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
@@ -88,22 +91,20 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 				return nil, errors.New("pd is nil")
 			}
 			tf := inputs.BinarySearch(pd)
-			ApplyMaxTransferTax(&tf)
-
+			err = ApplyMaxTransferTax(&tf)
+			if err != nil {
+				return nil, err
+			}
 			newJsonTx := artemis_trading_types.JSONTx{}
 			err = newJsonTx.UnmarshalTx(tx.Tx)
 			if err != nil {
 				return nil, err
 			}
 			tf.Tx = newJsonTx
-			if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" || tf.SandwichPrediction.ExpectedProfit == "" {
-				return nil, errors.New("expectedProfit == 0 or 1")
-			}
 			tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 			tf.Trade.TradeMethod = web3_client.V3SwapExactOut
 			if m != nil {
 				m.StageProgressionMetrics.CountPostProcessTx(float64(1))
-
 				m.TxFetcherMetrics.TransactionGroup(toAddr, web3_client.V3SwapExactOut)
 				m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path.TokenIn.String(), inputs.Path.GetEndToken().String())
 				m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V3SwapExactOut, pd.V3Pair.PoolAddress, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
@@ -131,7 +132,10 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 				return nil, errors.New("pd is nil")
 			}
 			tf := inputs.BinarySearch(pd.V2Pair)
-			ApplyMaxTransferTax(&tf)
+			err = ApplyMaxTransferTax(&tf)
+			if err != nil {
+				return nil, err
+			}
 
 			newJsonTx := artemis_trading_types.JSONTx{}
 			err = newJsonTx.UnmarshalTx(tx.Tx)
@@ -139,12 +143,8 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 				return nil, err
 			}
 			tf.Tx = newJsonTx
-			if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" || tf.SandwichPrediction.ExpectedProfit == "" {
-				return nil, errors.New("expectedProfit == 0 or 1")
-			}
 			tf.Trade.TradeMethod = web3_client.V2SwapExactIn
 			tf.InitialPair = pd.V2Pair.ConvertToJSONType()
-
 			if m != nil {
 				m.StageProgressionMetrics.CountPostProcessTx(float64(1))
 				m.TxFetcherMetrics.TransactionGroup(toAddr, web3_client.V2SwapExactIn)
@@ -174,17 +174,16 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 				return nil, errors.New("pd is nil")
 			}
 			tf := inputs.BinarySearch(pd.V2Pair)
-			ApplyMaxTransferTax(&tf)
-
+			err = ApplyMaxTransferTax(&tf)
+			if err != nil {
+				return nil, err
+			}
 			newJsonTx := artemis_trading_types.JSONTx{}
 			err = newJsonTx.UnmarshalTx(tx.Tx)
 			if err != nil {
 				return nil, err
 			}
 			tf.Tx = newJsonTx
-			if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" || tf.SandwichPrediction.ExpectedProfit == "" {
-				return nil, errors.New("expectedProfit == 0 or 1")
-			}
 			tf.Trade.TradeMethod = web3_client.V2SwapExactOut
 			tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 			pend := len(inputs.Path) - 1

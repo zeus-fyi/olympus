@@ -87,7 +87,7 @@ func (a *AuxiliaryTradingUtils) checkEthBalanceGreaterThan(ctx context.Context, 
 	return artemis_eth_units.IsXGreaterThanY(bal, amount), err
 }
 
-func (a *AuxiliaryTradingUtils) checkAuxWETHBalance(ctx context.Context) (*big.Int, error) {
+func (a *AuxiliaryTradingUtils) CheckAuxWETHBalance(ctx context.Context) (*big.Int, error) {
 	wethAddr := a.getChainSpecificWETH()
 	chainID, err := a.getChainID(ctx)
 	if err != nil {
@@ -101,8 +101,8 @@ func (a *AuxiliaryTradingUtils) checkAuxWETHBalance(ctx context.Context) (*big.I
 	return bal, err
 }
 
-func (a *AuxiliaryTradingUtils) checkAuxWETHBalanceGreaterThan(ctx context.Context, amount *big.Int) (bool, error) {
-	bal, err := a.checkAuxWETHBalance(ctx)
+func (a *AuxiliaryTradingUtils) CheckAuxWETHBalanceGreaterThan(ctx context.Context, amount *big.Int) (bool, error) {
+	bal, err := a.CheckAuxWETHBalance(ctx)
 	if err != nil {
 		return false, err
 	}

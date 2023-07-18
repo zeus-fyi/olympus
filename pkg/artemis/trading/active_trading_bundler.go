@@ -10,6 +10,10 @@ import (
 func (a *ActiveTrading) ProcessBundleStage(ctx context.Context, tfSlice []web3_client.TradeExecutionFlowJSON) error {
 	for _, tradeFlow := range tfSlice {
 		tf := tradeFlow.ConvertToBigIntType()
+		err := a.ActiveTradingFilter(ctx, tf)
+		if err != nil {
+			return err
+		}
 		resp, err := a.GetAuxClient().StagingPackageSandwichAndCall(ctx, &tf)
 		if err != nil {
 			log.Err(err).Msg("failed to package sandwich")

@@ -43,7 +43,7 @@ func (a *AuxiliaryTradingUtils) debugPrintBalances(ctx context.Context) error {
 		return err
 	}
 	fmt.Println("ETH Balance: ", bal.String())
-	bal, err = a.checkAuxWETHBalance(ctx)
+	bal, err = a.CheckAuxWETHBalance(ctx)
 	if err != nil {
 		return err
 	}

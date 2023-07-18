@@ -60,20 +60,22 @@ func (a *ActiveTrading) SimTxFilter(ctx context.Context, tfSlice []web3_client.T
 	return nil
 }
 
-func (a *ActiveTrading) ActiveTradingFilterSlice(ctx context.Context, tf []web3_client.TradeExecutionFlowJSON) error {
-	for _, tradeFlow := range tf {
-		err := a.ActiveTradingFilter(ctx, tradeFlow)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-func (a *ActiveTrading) ActiveTradingFilter(ctx context.Context, tf web3_client.TradeExecutionFlowJSON) error {
-	tfInt := tf.ConvertToBigIntType()
-	_, err := a.GetAuxClient().IsProfitTokenAcceptable(ctx, &tfInt)
+//
+//func (a *ActiveTrading) ActiveTradingFilterSlice(ctx context.Context, tf []web3_client.TradeExecutionFlowJSON) error {
+//	for _, tradeFlow := range tf {
+//
+//		err := a.ActiveTradingFilter(ctx, tradeFlow)
+//		if err != nil {
+//			return err
+//		}
+//	}
+//	return nil
+//}
+
+func (a *ActiveTrading) ActiveTradingFilter(ctx context.Context, tf web3_client.TradeExecutionFlow) error {
+	_, err := a.GetAuxClient().IsProfitTokenAcceptable(ctx, &tf)
 	if err != nil {
-		log.Err(err).Msg("dat: ActiveTradingFilter: profit token not acceptable")
+		log.Err(err).Msg("ActiveTradingFilter: profit token not acceptable")
 		return err
 	}
 	//ok, err := a.GetAuxClient().IsTradingEnabledOnToken(tf.UserTrade.AmountOutAddr.String())

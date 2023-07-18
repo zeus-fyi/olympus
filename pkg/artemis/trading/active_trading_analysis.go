@@ -17,9 +17,8 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *ActiveTrading) ProcessTxs(ctx context.Context, mevTxs *[]web3_client.MevTx, m *metrics_trading.TradingMetrics, w3a web3_actions.Web3Actions) ([]web3_client.TradeExecutionFlowJSON, []web3_client.MevTx, error) {
+func (a *ActiveTrading) ProcessTxs(ctx context.Context, mevTxs *[]web3_client.MevTx, m *metrics_trading.TradingMetrics, w3a web3_actions.Web3Actions) ([]web3_client.TradeExecutionFlowJSON, error) {
 	var tfSlice []web3_client.TradeExecutionFlowJSON
-	var mevTxsReturn []web3_client.MevTx
 
 	for _, mevTx := range *mevTxs {
 		switch mevTx.Tx.To().String() {
@@ -29,7 +28,6 @@ func (a *ActiveTrading) ProcessTxs(ctx context.Context, mevTxs *[]web3_client.Me
 				log.Err(err).Msg("error processing universal router tx")
 				continue
 			}
-			mevTxsReturn = append(mevTxsReturn, mevTx)
 			tfSlice = append(tfSlice, tf...)
 		case artemis_trading_constants.UniswapUniversalRouterAddressNew:
 			tf, err := RealTimeProcessUniversalRouterTx(ctx, mevTx, m, w3a)
@@ -37,7 +35,6 @@ func (a *ActiveTrading) ProcessTxs(ctx context.Context, mevTxs *[]web3_client.Me
 				log.Err(err).Msg("error processing universal router tx")
 				continue
 			}
-			mevTxsReturn = append(mevTxsReturn, mevTx)
 			tfSlice = append(tfSlice, tf...)
 		case artemis_trading_constants.UniswapV2Router01Address:
 			tf, err := RealTimeProcessUniswapV2RouterTx(ctx, mevTx, m, w3a)
@@ -45,7 +42,6 @@ func (a *ActiveTrading) ProcessTxs(ctx context.Context, mevTxs *[]web3_client.Me
 				log.Err(err).Msg("error processing v2_01 router tx")
 				continue
 			}
-			mevTxsReturn = append(mevTxsReturn, mevTx)
 			tfSlice = append(tfSlice, tf...)
 		case artemis_trading_constants.UniswapV2Router02Address:
 			tf, err := RealTimeProcessUniswapV2RouterTx(ctx, mevTx, m, w3a)
@@ -53,7 +49,6 @@ func (a *ActiveTrading) ProcessTxs(ctx context.Context, mevTxs *[]web3_client.Me
 				log.Err(err).Msg("error processing v2_02 router tx")
 				continue
 			}
-			mevTxsReturn = append(mevTxsReturn, mevTx)
 			tfSlice = append(tfSlice, tf...)
 		case artemis_trading_constants.UniswapV3Router01Address:
 			tf, err := RealTimeProcessUniswapV3RouterTx(ctx, mevTx, UniswapV3Router01Abi, nil, m, w3a)
@@ -61,7 +56,6 @@ func (a *ActiveTrading) ProcessTxs(ctx context.Context, mevTxs *[]web3_client.Me
 				log.Err(err).Msg("error processing v3_01 router tx")
 				continue
 			}
-			mevTxsReturn = append(mevTxsReturn, mevTx)
 			tfSlice = append(tfSlice, tf...)
 		case artemis_trading_constants.UniswapV3Router02Address:
 			tf, err := RealTimeProcessUniswapV3RouterTx(ctx, mevTx, UniswapV3Router02Abi, nil, m, w3a)
@@ -69,16 +63,12 @@ func (a *ActiveTrading) ProcessTxs(ctx context.Context, mevTxs *[]web3_client.Me
 				log.Err(err).Msg("error processing v3_02 router tx")
 				continue
 			}
-			mevTxsReturn = append(mevTxsReturn, mevTx)
 			tfSlice = append(tfSlice, tf...)
 		}
 	}
-	if len(tfSlice) != len(mevTxsReturn) {
-		return nil, nil, errors.New("error processing txs, tfSlice and mevTxsReturn are not the same length")
-	}
+
 	var postFilter []web3_client.TradeExecutionFlowJSON
-	var postFilterMevTxs []web3_client.MevTx
-	for i, tf := range tfSlice {
+	for _, tf := range tfSlice {
 		key := fmt.Sprintf("%s-tf", tf.Tx.Hash)
 		_, ok := txCache.Get(key)
 		if ok {
@@ -111,19 +101,17 @@ func (a *ActiveTrading) ProcessTxs(ctx context.Context, mevTxs *[]web3_client.Me
 		err = CheckTokenRegistry(ctx, tf.UserTrade.AmountInAddr.String(), chainID)
 		if err != nil {
 			log.Err(err).Msg("dat: EntryTxFilter, CheckTokenRegistry")
-			return nil, nil, err
+			return nil, err
 		}
 		err = CheckTokenRegistry(ctx, tf.UserTrade.AmountOutAddr.String(), chainID)
 		if err != nil {
 			log.Err(err).Msg("dat: EntryTxFilter, CheckTokenRegistry")
-			return nil, nil, err
+			return nil, err
 		}
 		txCache.Set(key, tf, time.Hour*24)
-		mevTx := mevTxsReturn[i]
-		postFilterMevTxs = append(postFilterMevTxs, mevTx)
 		postFilter = append(postFilter, tf)
 	}
-	return postFilter, postFilterMevTxs, nil
+	return postFilter, nil
 }
 
 func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64) error {
@@ -150,30 +138,33 @@ func ApplyMaxTransferTax(tf *web3_client.TradeExecutionFlowJSON) error {
 	tokenTwo := tf.UserTrade.AmountOutAddr.String()
 	maxNum, maxDen := 0, 1
 	if info, ok := artemis_trading_cache.TokenMap[tokenOne]; ok {
-		den := info.TransferTaxDenominator
-		num := info.TransferTaxNumerator
-		if den != nil && num != nil {
-			fmt.Println("token: ", tokenOne, "transferTax: num: ", *num, "den: ", *den)
-
-			if *num > maxNum {
-				maxNum = *num
-				maxDen = *den
-			}
-		} else {
+		if info.TransferTaxNumerator == nil || info.TransferTaxDenominator == nil {
 			fmt.Println("token not found in cache")
+		} else {
+			den := info.TransferTaxDenominator
+			num := info.TransferTaxNumerator
+			if den != nil && num != nil {
+				fmt.Println("token: ", tokenOne, "transferTax: num: ", *num, "den: ", *den)
+				if *num > maxNum {
+					maxNum = *num
+					maxDen = *den
+				}
+			}
 		}
 	}
 	if info, ok := artemis_trading_cache.TokenMap[tokenTwo]; ok {
-		den := info.TransferTaxDenominator
-		num := info.TransferTaxNumerator
-		if den != nil && num != nil {
-			fmt.Println("token: ", tokenTwo, "tradingTax: num: ", *num, "den: ", *den)
-			if *num > maxNum {
-				maxNum = *num
-				maxDen = *den
-			}
-		} else {
+		if info.TransferTaxNumerator == nil || info.TransferTaxDenominator == nil {
 			fmt.Println("token not found in cache")
+		} else {
+			den := info.TransferTaxDenominator
+			num := info.TransferTaxNumerator
+			if den != nil && num != nil {
+				fmt.Println("token: ", tokenTwo, "tradingTax: num: ", *num, "den: ", *den)
+				if *num > maxNum {
+					maxNum = *num
+					maxDen = *den
+				}
+			}
 		}
 	}
 	amountOutStartFrontRun := artemis_eth_units.NewBigIntFromStr(tf.FrontRunTrade.AmountOut)

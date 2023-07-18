@@ -138,6 +138,8 @@ func (a *AuxiliaryTradingUtils) getChainSpecificWETH() accounts.Address {
 		wethAddr = artemis_trading_constants.WETH9ContractAddressAccount
 	case hestia_req_types.Goerli:
 		wethAddr = artemis_trading_constants.GoerliWETH9ContractAddressAccount
+	default:
+		wethAddr = artemis_trading_constants.WETH9ContractAddressAccount
 	}
 	return wethAddr
 }

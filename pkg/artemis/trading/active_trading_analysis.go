@@ -134,6 +134,12 @@ func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64)
 }
 
 func ApplyMaxTransferTax(tf *web3_client.TradeExecutionFlowJSON) error {
+	bn, berr := artemis_trading_cache.GetLatestBlock(context.Background())
+	if berr != nil {
+		log.Err(berr).Msg("failed to get latest block")
+		return errors.New("ailed to get latest block")
+	}
+	tf.CurrentBlockNumber = artemis_eth_units.NewBigIntFromUint(bn)
 	tokenOne := tf.UserTrade.AmountInAddr.String()
 	tokenTwo := tf.UserTrade.AmountOutAddr.String()
 	if tokenOne == artemis_trading_constants.ZeroAddress && tokenTwo == artemis_trading_constants.ZeroAddress {

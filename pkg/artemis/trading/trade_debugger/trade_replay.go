@@ -29,7 +29,7 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 	}
 	fmt.Println("ANALYZING tx: ", tf.Tx.Hash().String(), "at block: ", mevTx.GetBlockNumber())
 	ac := t.dat.GetSimAuxClient()
-	n, d := t.GetMaxTransferTax(tf)
+	n, d := GetMaxTransferTax(tf)
 	amountOutStartFrontRun := tf.FrontRunTrade.AmountOut
 	amountOutStartSandwich := tf.SandwichTrade.AmountOut
 
@@ -103,7 +103,7 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 	return nil
 }
 
-func (t *TradeDebugger) GetMaxTransferTax(tf web3_client.TradeExecutionFlow) (int, int) {
+func GetMaxTransferTax(tf web3_client.TradeExecutionFlow) (int, int) {
 	tokenOne := tf.UserTrade.AmountInAddr.String()
 	tokenTwo := tf.UserTrade.AmountOutAddr.String()
 	maxNum, maxDen := 1, 1

@@ -45,6 +45,8 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 				return nil, errors.New("pd is nil")
 			}
 			tf := inputs.BinarySearch(pd)
+			ApplyMaxTransferTax(&tf)
+
 			if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" || tf.SandwichPrediction.ExpectedProfit == "" {
 				return nil, errors.New("expectedProfit == 0 or 1")
 			}
@@ -86,6 +88,8 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 				return nil, errors.New("pd is nil")
 			}
 			tf := inputs.BinarySearch(pd)
+			ApplyMaxTransferTax(&tf)
+
 			newJsonTx := artemis_trading_types.JSONTx{}
 			err = newJsonTx.UnmarshalTx(tx.Tx)
 			if err != nil {
@@ -127,6 +131,8 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 				return nil, errors.New("pd is nil")
 			}
 			tf := inputs.BinarySearch(pd.V2Pair)
+			ApplyMaxTransferTax(&tf)
+
 			newJsonTx := artemis_trading_types.JSONTx{}
 			err = newJsonTx.UnmarshalTx(tx.Tx)
 			if err != nil {
@@ -168,6 +174,8 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 				return nil, errors.New("pd is nil")
 			}
 			tf := inputs.BinarySearch(pd.V2Pair)
+			ApplyMaxTransferTax(&tf)
+
 			newJsonTx := artemis_trading_types.JSONTx{}
 			err = newJsonTx.UnmarshalTx(tx.Tx)
 			if err != nil {

@@ -40,7 +40,7 @@ func (t *ArtemisAuxillaryTestSuite) TestSetPermit2Mainnet() {
 	//fmt.Println("approveTx", approveTx.Hash().String())
 }
 
-func (t *ArtemisAuxillaryTestSuite) FundAccount() {
+func (t *ArtemisAuxillaryTestSuite) TestFundAccount() {
 	age := encryption.NewAge(t.Tc.LocalAgePkey, t.Tc.LocalAgePubkey)
 	t.acc3 = initTradingAccount2(ctx, age)
 	w3aMainnet := web3_client.NewWeb3Client(t.mainnetNode, &t.acc3)
@@ -89,7 +89,7 @@ func (t *ArtemisAuxillaryTestSuite) FundAccount() {
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 
-	_, err = atMainnet.universalRouterExecuteTx(ctx, tx)
-	t.Require().Nil(err)
-	fmt.Println("tx", tx.Hash().String())
+	//executedTx, err := atMainnet.universalRouterExecuteTx(ctx, tx)
+	//t.Require().Nil(err)
+	//fmt.Println("executedTx", executedTx.Hash().String())
 }

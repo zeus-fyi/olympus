@@ -198,9 +198,10 @@ func UpdateEthMevTxAnalysis(ctx context.Context, txHash, expectedProfit, gasCost
 
 func SelectReplayEthMevMempoolTxByTxHash(ctx context.Context) ([]HistoricalAnalysis, error) {
 	q := sql_query_templates.QueryParams{}
+	//  AND end_reason != 'success'
 	q.RawQuery = `SELECT tx_hash, end_reason, rx_block_number, amount_out_addr
 					FROM eth_mev_tx_analysis 
-					WHERE amount_in_addr = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2' AND end_reason != 'success'
+					WHERE amount_in_addr = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
 					ORDER BY rx_block_number DESC
 					LIMIT 1000
 				  `

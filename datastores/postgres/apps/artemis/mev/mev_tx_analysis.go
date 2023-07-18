@@ -195,3 +195,34 @@ func UpdateEthMevTxAnalysis(ctx context.Context, txHash, expectedProfit, gasCost
 	}
 	return misc.ReturnIfErr(err, q.LogHeader("UpdateEthMevTxAnalysis"))
 }
+
+func SelectReplayEthMevMempoolTxByTxHash(ctx context.Context) ([]HistoricalAnalysis, error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT tx_hash, end_reason, rx_block_number, amount_out_addr
+					FROM eth_mev_tx_analysis 
+					WHERE amount_in_addr = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2' AND end_reason != 'success'
+					ORDER BY rx_block_number DESC
+					LIMIT 10
+				  `
+	var txAnalysisSlice []HistoricalAnalysis
+	log.Debug().Interface("SelectEthMevTxAnalysis", q.LogHeader("SelectEthMevTxAnalysis"))
+	rows, err := apps.Pg.Query(ctx, q.RawQuery)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SelectEthMevTxAnalysis")); returnErr != nil {
+		return txAnalysisSlice, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		mem := artemis_autogen_bases.EthMevTxAnalysis{}
+		rowErr := rows.Scan(
+			&mem.TxHash, &mem.EndReason, &mem.RxBlockNumber, &mem.AmountOutAddr,
+		)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader(ModelName))
+			return nil, rowErr
+		}
+		txAnalysisSlice = append(txAnalysisSlice, HistoricalAnalysis{
+			EthMevTxAnalysis: mem,
+		})
+	}
+	return txAnalysisSlice, misc.ReturnIfErr(err, q.LogHeader("SelectEthMevTxAnalysis"))
+}

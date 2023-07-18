@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
+	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_test_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/test_suite/test_cache"
 )
 
@@ -30,6 +31,18 @@ func (t *ArtemisTradeDebuggerTestSuite) TestReplayer() {
 	t.NoError(err)
 }
 
+func (t *ArtemisTradeDebuggerTestSuite) TestReplayerBulk() {
+	txs, err := artemis_mev_models.SelectReplayEthMevMempoolTxByTxHash(ctx)
+	t.NoError(err)
+	for _, txMem := range txs {
+		txHash := txMem.EthMevTxAnalysis.TxHash
+		err = t.td.Replay(ctx, txHash, true)
+		t.NoError(err)
+	}
+	t.NoError(err)
+}
+
+// artemis_mev_models
 /*
 0x4a9c05ef46a2a0f4d36577bd38e37502245448a1b52da9c73ca59af37059f89e
 profitToken 0x0359181dCE76bAD4d3f851b3356FdD7b82A41B14

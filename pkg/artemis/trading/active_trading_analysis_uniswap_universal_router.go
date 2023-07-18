@@ -45,11 +45,11 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 				return nil, errors.New("pd is nil")
 			}
 			tf := inputs.BinarySearch(pd)
-			ApplyMaxTransferTax(&tf)
-
-			if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" || tf.SandwichPrediction.ExpectedProfit == "" {
-				return nil, errors.New("expectedProfit == 0 or 1")
+			err = ApplyMaxTransferTax(&tf)
+			if err != nil {
+				return nil, err
 			}
+
 			newJsonTx := artemis_trading_types.JSONTx{}
 			err = newJsonTx.UnmarshalTx(tx.Tx)
 			if err != nil {

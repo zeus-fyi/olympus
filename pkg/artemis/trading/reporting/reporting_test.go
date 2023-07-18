@@ -6,10 +6,11 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
+	artemis_risk_analysis "github.com/zeus-fyi/olympus/pkg/artemis/trading/risk"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_encryption"
 )
 
@@ -29,7 +30,7 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 	//  artemis_trading_constants.V2SwapExactIn
 	rhf := RewardHistoryFilter{
 		FromBlock:   17658962,
-		TradeMethod: artemis_trading_constants.V2SwapExactIn,
+		TradeMethod: "any",
 	}
 	rw, err := GetRewardsHistory(ctx, rhf)
 	s.Assert().Nil(err)
@@ -61,9 +62,13 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 	negCount := 0
 	var addresses []string
 	for _, v := range historySlice {
-		if v.Count < 1 {
+		total1 := v.Count + v.FailedCount
+		if v.Count < 2 || (float64(v.FailedCount) > float64(total1)*0.1) {
+			// v.FailedCount is more than 10% of the total
+			log.Info().Str("token", v.AmountOutToken.Name()).Str("address", v.AmountOutToken.Address.String()).Msg("failed count is more than 10% of the total")
 			continue
 		}
+
 		if artemis_eth_units.IsXGreaterThanY(artemis_eth_units.NewBigInt(0), rw.Map[v.AmountOutToken.Address.String()].ExpectedProfitAmountOut) {
 			negCount++
 			continue
@@ -79,8 +84,8 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 	fmt.Println("negatives", negCount)
 	fmt.Println("total eth profit without negatives", artemis_eth_units.DivBigIntToFloat(totalWithoutNegatives, artemis_eth_units.Ether).String())
 
-	//err = artemis_risk_analysis.SetTradingPermission(ctx, addresses, 1)
-	//s.Assert().Nil(err)
+	err = artemis_risk_analysis.SetTradingPermission(ctx, addresses, 1, true)
+	s.Assert().Nil(err)
 }
 
 func TestReportingTestSuite(t *testing.T) {

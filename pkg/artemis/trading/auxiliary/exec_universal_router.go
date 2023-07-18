@@ -57,8 +57,9 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdToTxBuilder(ctx context.Contex
 	if err != nil {
 		return nil, err
 	}
-	err = a.AddTxToBundleGroup(ctx, signedTx)
+	mevTx, err := a.AddTxToBundleGroup(ctx, signedTx)
 	if err != nil {
+		log.Info().Interface("mevTx", mevTx).Msg("error adding tx to bundle group")
 		return nil, err
 	}
 	return signedTx, nil

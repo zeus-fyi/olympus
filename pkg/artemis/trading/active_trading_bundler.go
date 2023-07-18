@@ -10,10 +10,13 @@ import (
 func (a *ActiveTrading) ProcessBundleStage(ctx context.Context, tfSlice []web3_client.TradeExecutionFlowJSON) error {
 	for _, tradeFlow := range tfSlice {
 		tf := tradeFlow.ConvertToBigIntType()
-		_, err := a.a.PackageSandwich(ctx, &tf)
+		resp, err := a.a.StagingPackageSandwichAndCall(ctx, &tf)
 		if err != nil {
 			log.Err(err).Msg("failed to package sandwich")
 			return err
+		}
+		if resp != nil {
+			log.Info().Interface("fbCallResp", resp).Msg("sent sandwich")
 		}
 	}
 	return nil

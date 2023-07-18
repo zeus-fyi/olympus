@@ -11,6 +11,7 @@ import (
 )
 
 type TradeDebugger struct {
+	onlyWETH          bool
 	dat               artemis_realtime_trading.ActiveTrading
 	ContractAnalysis  async_analysis.ContractAnalysis
 	LiveNetworkClient web3_client.Web3Client

@@ -86,6 +86,28 @@ func IsXGreaterThanY(x, y *big.Int) bool {
 	return x.Cmp(y) > 0
 }
 
+func IsStrXLessThanEqZeroOrOne(x string) bool {
+	if IsXLessThanY(NewBigIntFromStr(x), NewBigInt(0)) || x == "0" || x == "1" {
+		return true
+	}
+	return false
+}
+
+func IsStrXLessThanEqZero(x string) bool {
+	if IsXLessThanY(NewBigIntFromStr(x), NewBigInt(0)) || x == "0" {
+		return true
+	}
+	return false
+}
+
+func IsStrXGreaterThanZero(x string) bool {
+	return IsXGreaterThanZero(NewBigIntFromStr(x))
+}
+
+func IsXGreaterThanZero(x *big.Int) bool {
+	return x.Cmp(NewBigInt(0)) > 0
+}
+
 func IsXGreaterThanOrEqualToY(x, y *big.Int) bool {
 	if x.String() == y.String() {
 		return true

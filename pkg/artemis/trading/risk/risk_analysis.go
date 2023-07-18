@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	"github.com/lib/pq"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	core_entities "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/uniswap_libs/uniswap_core/entities"
@@ -23,19 +24,20 @@ type RiskAnalysis struct {
 	Historical       artemis_mev_models.HistoricalAnalysis `json:"historical"`
 }
 
-func SetTradingPermission(ctx context.Context, addresses []string, pni int) error {
+func SetTradingPermission(ctx context.Context, addresses []string, pni int, enabled bool) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `WITH cte_addresses AS (
 						SELECT unnest($1::text[]) AS addr
 					)
 					UPDATE erc20_token_info 
-					SET trading_enabled = $1 AND protocol_network_id = $2
+					SET trading_enabled = $3 AND protocol_network_id = $2
 					WHERE address IN (SELECT addr FROM cte_addresses)`
 	if pni == 0 {
 		pni = hestia_req_types.EthereumMainnetProtocolNetworkID
 	}
-	_, err := apps.Pg.Exec(ctx, q.RawQuery, pq.Array(addresses), pni)
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, pq.Array(addresses), pni, enabled)
 	if err != nil {
+		log.Err(err).Msg(q.LogHeader("SetTradingPermission"))
 		return err
 	}
 	return err

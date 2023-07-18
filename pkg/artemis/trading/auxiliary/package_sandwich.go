@@ -19,14 +19,17 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_cl
 		OrderedTxs: []TxWithMetadata{},
 		MevTxs:     []artemis_eth_txs.EthTx{},
 	}
+	startCtx := ctx
 	// front run
-	ur, fpt, err := a.GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.FrontRunTrade)
+	frontRunCtx := a.CreateFrontRunCtx(startCtx)
+	ur, fpt, err := a.GenerateTradeV2SwapFromTokenToToken(frontRunCtx, nil, &tf.FrontRunTrade)
 	if err != nil {
+		log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed to generate front run tx")
 		return nil, err
 	}
-	frontRunTx, err := a.universalRouterCmdToTxBuilder(ctx, ur)
+	frontRunTx, err := a.universalRouterCmdToTxBuilder(frontRunCtx, ur)
 	if err != nil {
-		log.Err(err).Interface("txHash", frontRunTx.Hash().String()).Msg("failed to add tx to bundle group")
+		log.Err(err).Interface("txHash", frontRunTx.Hash().String()).Msg("FRONT_RUN: failed to add tx to bundle group")
 		return nil, err
 	}
 	frTx := TxWithMetadata{
@@ -35,29 +38,31 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_cl
 	if fpt != nil {
 		frTx.Permit2Tx = fpt.Permit2Tx
 	}
-	bundle, err = a.AddTxToBundleGroup(ctx, frTx, bundle)
+	bundle, err = a.AddTxToBundleGroup(frontRunCtx, frTx, bundle)
 	if err != nil {
-		log.Info().Interface("mevTx", bundle.MevTxs).Msg("error adding tx to bundle group")
+		log.Info().Interface("mevTx", bundle.MevTxs).Msg("FRONT_RUN: error adding tx to bundle group")
 		return nil, err
 	}
 	// user trade
+	userCtx := a.CreateUserTradeCtx(startCtx)
 	userTx := TxWithMetadata{
 		Tx: tf.Tx,
 	}
-	bundle, err = a.AddTxToBundleGroup(ctx, userTx, bundle)
+	bundle, err = a.AddTxToBundleGroup(userCtx, userTx, bundle)
 	if err != nil {
-		log.Err(err).Interface("mevTx", bundle.MevTxs).Msg("failed to add tx to bundle group")
+		log.Err(err).Interface("mevTx", bundle.MevTxs).Msg("USER_TRADE: failed to add tx to bundle group")
 		return nil, err
 	}
 	// sandwich trade
-	ur, spt, err := a.GenerateTradeV2SwapFromTokenToToken(ctx, ur, &tf.SandwichTrade)
+	backRunCtx := a.CreateBackRunCtx(startCtx)
+	ur, spt, err := a.GenerateTradeV2SwapFromTokenToToken(backRunCtx, ur, &tf.SandwichTrade)
 	if err != nil {
-		log.Err(err).Msg("failed to generate sandwich tx")
+		log.Err(err).Msg("SANDWICH_TRADE: failed to generate sandwich tx")
 		return nil, err
 	}
-	txSand, err := a.universalRouterCmdToTxBuilder(ctx, ur)
+	txSand, err := a.universalRouterCmdToTxBuilder(backRunCtx, ur)
 	if err != nil {
-		log.Err(err).Interface("txSand", txSand.Hash().String()).Msg("failed to add tx to bundle group")
+		log.Err(err).Interface("txSand", txSand.Hash().String()).Msg("SANDWICH_TRADE: failed to add tx to bundle group")
 		return nil, err
 	}
 	sandwichTx := TxWithMetadata{
@@ -66,13 +71,13 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_cl
 	if spt != nil {
 		sandwichTx.Permit2Tx = spt.Permit2Tx
 	}
-	bundle, err = a.AddTxToBundleGroup(ctx, sandwichTx, bundle)
+	bundle, err = a.AddTxToBundleGroup(backRunCtx, sandwichTx, bundle)
 	if err != nil {
-		log.Err(err).Interface("mevTx", bundle.MevTxs).Msg("failed to add tx to bundle group")
+		log.Err(err).Interface("mevTx", bundle.MevTxs).Msg("SANDWICH_TRADE: failed to add tx to bundle group")
 		return nil, err
 	}
 	if len(bundle.MevTxs) != 3 {
-		log.Warn().Int("bundleTxCount", len(bundle.MevTxs)).Msg("sandwich bundle not 3 txs")
+		log.Warn().Int("bundleTxCount", len(bundle.MevTxs)).Msg("SANDWICH_TRADE: sandwich bundle not 3 txs")
 		return nil, errors.New("sandwich bundle not 3 txs")
 	}
 	return bundle, err

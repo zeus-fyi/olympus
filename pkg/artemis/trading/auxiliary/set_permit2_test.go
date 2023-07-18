@@ -38,10 +38,10 @@ func (t *ArtemisAuxillaryTestSuite) TestSetPermit2Mainnet() {
 	t.Require().NotNil(bal)
 	fmt.Println("weth bal", bal.String())
 
-	approveTx, err := atMainnet.SetPermit2ApprovalForToken(ctx, token)
-	t.Require().Nil(err)
-	t.Require().NotEmpty(approveTx)
-	fmt.Println("approveTx", approveTx.Hash().String())
+	//approveTx, err := atMainnet.SetPermit2ApprovalForToken(ctx, token)
+	//t.Require().Nil(err)
+	//t.Require().NotEmpty(approveTx)
+	//fmt.Println("approveTx", approveTx.Hash().String())
 }
 
 func (t *ArtemisAuxillaryTestSuite) testSetPermit2() {

@@ -11,9 +11,11 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
+// 0.333 WETH at the moment
+// minWethAmountGwei := 330000000
 func (a *AuxiliaryTradingUtils) maxTradeSize() *big.Int {
 	gweiInEther := artemis_eth_units.GweiPerEth
-	return artemis_eth_units.GweiMultiple(gweiInEther / 4)
+	return artemis_eth_units.GweiMultiple(gweiInEther / 3)
 }
 
 func (a *AuxiliaryTradingUtils) isProfitHigherThanGasFee(tf *web3_client.TradeExecutionFlow) (bool, error) {
@@ -53,14 +55,6 @@ func (a *AuxiliaryTradingUtils) IsProfitTokenAcceptable(ctx context.Context, tf 
 		log.Info().Interface("tf.FrontRunTrade.AmountOutAddr", tf.FrontRunTrade.AmountOutAddr.String()).Msg("trading is disabled for token")
 		return false, err
 	}
-	err = tf.FrontRunTrade.GetGasUsageForAllTxs(ctx, a.U.Web3Client.Web3Actions)
-	if err != nil {
-		return false, errors.New("could not get gas usage for front run txs")
-	}
-	err = tf.SandwichTrade.GetGasUsageForAllTxs(ctx, a.U.Web3Client.Web3Actions)
-	if err != nil {
-		return false, errors.New("could not get gas usage for sandwich txs")
-	}
 	ok, err = a.isProfitHigherThanGasFee(tf)
 	if err != nil {
 		return false, err
@@ -73,8 +67,8 @@ func (a *AuxiliaryTradingUtils) IsProfitTokenAcceptable(ctx context.Context, tf 
 		log.Info().Interface("tf.FrontRunTrade.AmountIn", tf.FrontRunTrade.AmountIn).Interface("maxTradeSize", a.maxTradeSize()).Msg("trade size is higher than max trade size")
 		return false, errors.New("trade size is higher than max trade size")
 	}
-	// 0.1 ETH at the moment
-	minEthAmountGwei := 100000000
+	// 0.05 ETH at the moment, ~$100
+	minEthAmountGwei := 100000000 / 2
 	ok, err = a.checkEthBalanceGreaterThan(ctx, artemis_eth_units.GweiMultiple(minEthAmountGwei))
 	if err != nil {
 		log.Err(err).Msg("could not check eth balance")
@@ -83,9 +77,7 @@ func (a *AuxiliaryTradingUtils) IsProfitTokenAcceptable(ctx context.Context, tf 
 	if !ok {
 		return false, errors.New("ETH balance is not enough")
 	}
-	// 0.5 WETH at the moment
-	minWethAmountGwei := 500000000
-	ok, err = a.CheckAuxWETHBalanceGreaterThan(ctx, artemis_eth_units.GweiMultiple(minWethAmountGwei))
+	ok, err = a.CheckAuxWETHBalanceGreaterThan(ctx, a.maxTradeSize())
 	if err != nil {
 		log.Err(err).Msg("could not check aux weth balance")
 		return false, err

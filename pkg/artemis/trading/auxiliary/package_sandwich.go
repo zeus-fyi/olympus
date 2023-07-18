@@ -7,6 +7,7 @@ import (
 	"github.com/metachris/flashbotsrpc"
 	"github.com/rs/zerolog/log"
 	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -15,9 +16,10 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_cl
 		return nil, errors.New("tf is nil")
 	}
 	bundle := &MevTxGroup{
-		EventID:    0,
-		OrderedTxs: []TxWithMetadata{},
-		MevTxs:     []artemis_eth_txs.EthTx{},
+		EventID:      0,
+		OrderedTxs:   []TxWithMetadata{},
+		MevTxs:       []artemis_eth_txs.EthTx{},
+		TotalGasCost: artemis_eth_units.NewBigInt(0),
 	}
 	startCtx := ctx
 	// front run
@@ -27,11 +29,16 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_cl
 		log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed to generate front run tx")
 		return nil, err
 	}
-	frontRunTx, err := a.universalRouterCmdToTxBuilder(frontRunCtx, ur)
+	frontRunTx, scInfoFrontRun, err := a.universalRouterCmdToTxBuilder(frontRunCtx, ur)
 	if err != nil {
 		log.Err(err).Interface("txHash", frontRunTx.Hash().String()).Msg("FRONT_RUN: failed to add tx to bundle group")
 		return nil, err
 	}
+
+	frontRunGasCost := artemis_eth_units.MulBigInt(artemis_eth_units.AddBigInt(scInfoFrontRun.GasFeeCap, scInfoFrontRun.GasTipCap), artemis_eth_units.NewBigIntFromUint(scInfoFrontRun.GasLimit))
+	tf.FrontRunTrade.TotalGasCost = frontRunGasCost.Uint64()
+	bundle.TotalGasCost = artemis_eth_units.AddBigInt(bundle.TotalGasCost, frontRunGasCost)
+
 	frTx := TxWithMetadata{
 		Tx: frontRunTx,
 	}
@@ -60,7 +67,8 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_cl
 		log.Err(err).Msg("SANDWICH_TRADE: failed to generate sandwich tx")
 		return nil, err
 	}
-	txSand, err := a.universalRouterCmdToTxBuilder(backRunCtx, ur)
+
+	txSand, scInfoSand, err := a.universalRouterCmdToTxBuilder(backRunCtx, ur)
 	if err != nil {
 		log.Err(err).Interface("txSand", txSand.Hash().String()).Msg("SANDWICH_TRADE: failed to add tx to bundle group")
 		return nil, err
@@ -71,6 +79,9 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_cl
 	if spt != nil {
 		sandwichTx.Permit2Tx = spt.Permit2Tx
 	}
+	sandwichGasCost := artemis_eth_units.MulBigInt(artemis_eth_units.AddBigInt(scInfoSand.GasFeeCap, scInfoSand.GasTipCap), artemis_eth_units.NewBigIntFromUint(scInfoSand.GasLimit))
+	tf.SandwichTrade.TotalGasCost = sandwichGasCost.Uint64()
+	bundle.TotalGasCost = artemis_eth_units.AddBigInt(bundle.TotalGasCost, sandwichGasCost)
 	bundle, err = a.AddTxToBundleGroup(backRunCtx, sandwichTx, bundle)
 	if err != nil {
 		log.Err(err).Interface("mevTx", bundle.MevTxs).Msg("SANDWICH_TRADE: failed to add tx to bundle group")

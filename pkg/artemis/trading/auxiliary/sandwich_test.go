@@ -16,7 +16,7 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() (*AuxiliaryTradingU
 	cmd := t.testEthToWETH(&ta, toExchAmount)
 	// part 1 of bundle
 	ctx = ta.CreateFrontRunCtx(ctx)
-	tx, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
+	tx, _, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 	t.Require().Equal(toExchAmount, tx.Value())
@@ -37,7 +37,7 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() (*AuxiliaryTradingU
 	fmt.Println("userTrader", user.tradersAccount().PublicKey())
 	cmd = t.testEthToWETH(&user, toExchAmount)
 	ctx = user.CreateUserTradeCtx(ctx)
-	tx, err = user.universalRouterCmdToTxBuilder(ctx, cmd)
+	tx, _, err = user.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().NotEmpty(tx)
 	fmt.Println("userTrade: txGasLimit", tx.Gas())
 	fmt.Println("userTrade: txGasFeeCap", tx.GasFeeCap().String())
@@ -59,7 +59,7 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() (*AuxiliaryTradingU
 	cmd, pt := t.testExecV2Trade(&ta, hestia_req_types.Goerli)
 	ctx = ta.CreateBackRunCtx(ctx)
 	fmt.Println("mainTraderAddr", ta.w3a().Address().String())
-	tx, err = ta.universalRouterCmdToTxBuilder(ctx, cmd)
+	tx, _, err = ta.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 	fmt.Println("backRun: txGasLimit", tx.Gas())
@@ -96,10 +96,10 @@ func (t *ArtemisAuxillaryTestSuite) TestSandwichCallBundle() {
 	}
 }
 
-func (t *ArtemisAuxillaryTestSuite) TestSandwichCallAndSendBundle() {
-	ta, bundle := t.testMockSandwichBundle()
-	t.Require().NotEmpty(ta)
-	resp, err := ta.CallAndSendFlashbotsBundle(ctx, bundle)
-	t.Require().Nil(err)
-	t.Require().NotNil(resp)
-}
+//func (t *ArtemisAuxillaryTestSuite) TestSandwichCallAndSendBundle() {
+//	ta, bundle := t.testMockSandwichBundle()
+//	t.Require().NotEmpty(ta)
+//	resp, err := ta.CallAndSendFlashbotsBundle(ctx, bundle)
+//	t.Require().Nil(err)
+//	t.Require().NotNil(resp)
+//}

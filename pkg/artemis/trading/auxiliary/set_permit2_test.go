@@ -9,12 +9,6 @@ func (t *ArtemisAuxillaryTestSuite) TestSetPermit2Goerli() {
 	t.testSetPermit2()
 }
 
-//func (t *ArtemisAuxillaryTestSuite) TestSetPermit2Mainnet() {
-//	age := encryption.NewAge(t.Tc.LocalAgePkey, t.Tc.LocalAgePubkey)
-//	t.acc3 = initTradingAccount2(ctx, age)
-//	//	t.testSetPermit2(hestia_req_types.Mainnet, t.acc3)
-//}
-
 func (t *ArtemisAuxillaryTestSuite) testSetPermit2() {
 	//t.Require().Equal(t.at1, acc)
 	//t.Require().NotEmpty(t.at1)

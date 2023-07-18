@@ -72,7 +72,7 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() *AuxiliaryTradingUt
 func (t *ArtemisAuxillaryTestSuite) TestSandwichCallBundle() {
 	ta := t.testMockSandwichBundle()
 	t.Require().NotEmpty(ta)
-	resp, err := ta.callFlashbotsBundle(ctx)
+	resp, err := ta.CallFlashbotsBundle(ctx)
 	t.Require().Nil(err)
 	t.Require().NotNil(resp)
 

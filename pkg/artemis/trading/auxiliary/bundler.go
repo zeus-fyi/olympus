@@ -38,7 +38,7 @@ func (a *AuxiliaryTradingUtils) CallAndSendFlashbotsBundle(ctx context.Context) 
 	}
 	bnStr := hexutil.EncodeUint64(uint64(eventID + 1))
 	ctx = a.setBlockNumberCtx(ctx, bnStr)
-	_, err = a.callFlashbotsBundle(ctx)
+	_, err = a.CallFlashbotsBundle(ctx)
 	if err != nil {
 		log.Err(err).Msg("error calling flashbots bundle")
 		return sr, err
@@ -75,7 +75,44 @@ func (a *AuxiliaryTradingUtils) CallAndSendFlashbotsBundle(ctx context.Context) 
 	return sr, nil
 }
 
-func (a *AuxiliaryTradingUtils) callFlashbotsBundle(ctx context.Context) (flashbotsrpc.FlashbotsCallBundleResponse, error) {
+func (a *AuxiliaryTradingUtils) CallFlashbotsBundleStaging(ctx context.Context, mevTxs []artemis_eth_txs.EthTx) (flashbotsrpc.FlashbotsCallBundleResponse, error) {
+	sr := flashbotsrpc.FlashbotsCallBundleResponse{}
+	eventID, err := a.getBlockNumber(ctx)
+	if err != nil {
+		log.Err(err).Msg("error getting event id")
+		return flashbotsrpc.FlashbotsCallBundleResponse{}, err
+	}
+	bnStr := hexutil.EncodeUint64(uint64(eventID + 1))
+	ctx = a.setBlockNumberCtx(ctx, bnStr)
+	resp, err := a.CallFlashbotsBundle(ctx)
+	if err != nil {
+		log.Err(err).Msg("error calling flashbots bundle")
+		return sr, err
+	}
+	dbTx, err := apps.Pg.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("error beginning db transaction")
+		return sr, err
+	}
+	defer dbTx.Rollback(ctx)
+	err = artemis_eth_txs.InsertTxsWithBundle(ctx, dbTx, mevTxs, sr.BundleHash)
+	if err != nil {
+		log.Err(err).Msg("error inserting txs with bundle")
+		terr := dbTx.Rollback(ctx)
+		if terr != nil {
+			log.Err(terr).Msg("error rolling back db transaction")
+		}
+		return sr, err
+	}
+	err = dbTx.Commit(ctx)
+	if err != nil {
+		log.Err(err).Msg("error committing db transaction")
+		return sr, err
+	}
+	return resp, nil
+}
+
+func (a *AuxiliaryTradingUtils) CallFlashbotsBundle(ctx context.Context) (flashbotsrpc.FlashbotsCallBundleResponse, error) {
 	var txsCall []string
 	bnStr := a.getBlockNumberCtx(ctx)
 	txsCall, a.Bundle.Txs = a.Bundle.Txs, txsCall

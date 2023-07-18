@@ -18,25 +18,44 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_cl
 	if err != nil {
 		return nil, err
 	}
-	_, err = a.universalRouterCmdToTxBuilder(ctx, ur)
+	tx, err := a.universalRouterCmdToTxBuilder(ctx, ur)
 	if err != nil {
+		log.Err(err).Interface("txHash", tx.Hash().String()).Msg("failed to add tx to bundle group")
 		return nil, err
 	}
 	// user trade
-	err = a.AddTxToBundleGroup(ctx, tf.Tx)
+	mevTx, err := a.AddTxToBundleGroup(ctx, tf.Tx)
 	if err != nil {
+		log.Err(err).Interface("mevTx", mevTx).Msg("failed to add tx to bundle group")
 		return nil, err
 	}
 	// sandwich trade
 	ur, err = a.GenerateTradeV2SwapFromTokenToToken(ctx, ur, &tf.SandwichTrade)
 	if err != nil {
+		log.Err(err).Msg("failed to generate sandwich tx")
 		return nil, err
 	}
-	_, err = a.universalRouterCmdToTxBuilder(ctx, ur)
+	txSand, err := a.universalRouterCmdToTxBuilder(ctx, ur)
 	if err != nil {
+		log.Err(err).Interface("txSand", txSand.Hash().String()).Msg("failed to add tx to bundle group")
 		return nil, err
 	}
 	return nil, err
+}
+
+func (a *AuxiliaryTradingUtils) StagingPackageSandwichAndCall(ctx context.Context, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsCallBundleResponse, error) {
+	_, err := a.PackageSandwich(ctx, tf)
+	if err != nil {
+		log.Err(err).Msg("failed to package sandwich")
+		return nil, err
+	}
+	resp, err := a.CallFlashbotsBundleStaging(ctx, a.MevTxGroup.MevTxs)
+	if err != nil {
+		log.Err(err).Interface("fbCallResp", resp).Msg("failed to send sandwich")
+		return nil, err
+	}
+	log.Info().Interface("fbCallResp", resp).Msg("sent sandwich")
+	return &resp, err
 }
 
 func (a *AuxiliaryTradingUtils) PackageSandwichAndSend(ctx context.Context, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsSendBundleResponse, error) {

@@ -125,10 +125,16 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 	}
 	a.GetMetricsClient().StageProgressionMetrics.CountPostDecodeTx()
 	w3a := artemis_trading_cache.Wc
-	_, err = a.ProcessTxs(ctx, mevTxs, a.GetMetricsClient(), w3a)
+	tfSlice, _, err := a.ProcessTxs(ctx, &mevTxs, a.GetMetricsClient(), w3a)
 	if err != nil {
 		log.Err(err).Msg("failed to pass process txs")
 		return ErrWrapper{Err: err, Stage: "ProcessTxs"}
+	}
+	err = a.ProcessBundleStage(ctx, tfSlice)
+	if err != nil {
+		return ErrWrapper{
+			Err: err, Stage: "ProcessBundleStage",
+		}
 	}
 	return ErrWrapper{Err: err, Stage: "Success", Code: 200}
 }

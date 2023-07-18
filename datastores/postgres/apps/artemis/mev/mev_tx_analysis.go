@@ -202,7 +202,7 @@ func SelectReplayEthMevMempoolTxByTxHash(ctx context.Context) ([]HistoricalAnaly
 					FROM eth_mev_tx_analysis 
 					WHERE amount_in_addr = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2' AND end_reason != 'success'
 					ORDER BY rx_block_number DESC
-					LIMIT 100
+					LIMIT 1000
 				  `
 	var txAnalysisSlice []HistoricalAnalysis
 	log.Debug().Interface("SelectEthMevTxAnalysis", q.LogHeader("SelectEthMevTxAnalysis"))

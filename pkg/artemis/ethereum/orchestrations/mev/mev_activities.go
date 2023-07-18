@@ -15,20 +15,22 @@ import (
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
+	artemis_realtime_trading "github.com/zeus-fyi/olympus/pkg/artemis/trading"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
+	artemis_trade_debugger "github.com/zeus-fyi/olympus/pkg/artemis/trading/trade_debugger"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
 func (d *ArtemisMevActivities) HistoricalSimulateAndValidateTx(ctx context.Context, trade artemis_autogen_bases.EthMempoolMevTx) error {
 	uni := InitNewUniHardhat(ctx)
-	err := uni.RunHistoricalTradeAnalysis(ctx, trade.TxFlowPrediction)
+	at := artemis_realtime_trading.NewActiveTradingDebugger(uni)
+	td := artemis_trade_debugger.NewTradeDebugger(at, uni.Web3Client)
+	err := td.Replay(ctx, trade.TxHash, true)
 	if err != nil {
-		log.Err(err).Msg("RunHistoricalTradeAnalysis failed")
-		return err
+		log.Err(err).Str("network", d.Network).Msg("Replay failed")
 	}
-	uni.PrintResults()
-	return nil
+	return err
 }
 
 func (d *ArtemisMevActivities) SimulateAndValidateBundle(ctx context.Context) error {

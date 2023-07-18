@@ -62,17 +62,16 @@ func (a *ActiveTrading) SimTxFilter(ctx context.Context, tfSlice []web3_client.T
 	return nil
 }
 
-//
-//func (a *ActiveTrading) ActiveTradingFilterSlice(ctx context.Context, tf []web3_client.TradeExecutionFlowJSON) error {
-//	for _, tradeFlow := range tf {
-//
-//		err := a.ActiveTradingFilter(ctx, tradeFlow)
-//		if err != nil {
-//			return err
-//		}
-//	}
-//	return nil
-//}
+func (a *ActiveTrading) ActiveTradingFilterSlice(ctx context.Context, tf []web3_client.TradeExecutionFlowJSON) error {
+	for _, tradeFlow := range tf {
+		tfInt := tradeFlow.ConvertToBigIntType()
+		err := a.ActiveTradingFilter(ctx, tfInt)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 func (a *ActiveTrading) ActiveTradingFilter(ctx context.Context, tf web3_client.TradeExecutionFlow) error {
 	switch tf.Trade.TradeMethod {

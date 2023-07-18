@@ -72,14 +72,8 @@ func (d *ArtemisMevActivities) GetLookaheadPrices(ctx context.Context, bn uint64
 func (d *ArtemisMevActivities) BlacklistProcessedTxs(ctx context.Context, txSlice artemis_autogen_bases.EthMempoolMevTxSlice) error {
 	for _, tx := range txSlice {
 		c.Set(tx.TxHash, tx, cache.DefaultExpiration)
-		txBlackList := dynamodb_mev.TxBlacklistDynamoDB{
-			TxBlacklistDynamoDBTableKeys: dynamodb_mev.TxBlacklistDynamoDBTableKeys{
-				TxHash: tx.TxHash,
-			},
-		}
-		err := artemis_orchestration_auth.MevDynamoDBClient.PutTxBlacklist(ctx, txBlackList)
+		err := artemis_trading_cache.WriteRedis.AddTxHashCache(ctx, tx.TxHash, time.Hour*24)
 		if err != nil {
-			log.Err(err).Str("network", d.Network).Msg("BlacklistProcessedTxs failed")
 			return err
 		}
 	}

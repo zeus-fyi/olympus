@@ -56,6 +56,10 @@ func SubBigInt(val, minus *big.Int) *big.Int {
 	return new(big.Int).Sub(val, minus)
 }
 
+func SubUint64FBigInt(val *big.Int, uintVal uint64) *big.Int {
+	return new(big.Int).Sub(val, new(big.Int).SetUint64(uintVal))
+}
+
 func MulBigInt(x, y *big.Int) *big.Int {
 	return new(big.Int).Mul(x, y)
 }

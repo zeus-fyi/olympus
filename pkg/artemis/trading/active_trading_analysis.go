@@ -13,48 +13,10 @@ import (
 	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-/*
-	MevSmartContractTxMapUniversalRouterNew: MevSmartContractTxMap{
-		SmartContractAddr: UniswapUniversalRouterAddressNew,
-		Abi:               artemis_oly_contract_abis.MustLoadNewUniversalRouterAbi(),
-		Txs:               []MevTx{},
-	},
-
-	MevSmartContractTxMapUniversalRouterOld: MevSmartContractTxMap{
-		SmartContractAddr: UniswapUniversalRouterAddressOld,
-		Abi:               artemis_oly_contract_abis.MustLoadOldUniversalRouterAbi(),
-		Txs:               []MevTx{},
-	},
-
-	MevSmartContractTxMapV2Router02: MevSmartContractTxMap{
-		SmartContractAddr: UniswapV2Router02Address,
-		Abi:               artemis_oly_contract_abis.MustLoadUniswapV2Router02ABI(),
-		Txs:               []MevTx{},
-		Filter:            &f,
-	},
-
-	MevSmartContractTxMapV2Router01: MevSmartContractTxMap{
-		SmartContractAddr: UniswapV2Router01Address,
-		Abi:               artemis_oly_contract_abis.MustLoadUniswapV2Router01ABI(),
-		Txs:               []MevTx{},
-		Filter:            &f,
-	},
-
-	MevSmartContractTxMapV3SwapRouterV1: MevSmartContractTxMap{
-		SmartContractAddr: UniswapV3Router01Address,
-		Abi:               artemis_oly_contract_abis.MustLoadUniswapV3Swap1RouterAbi(),
-		Txs:               []MevTx{},
-	},
-
-	MevSmartContractTxMapV3SwapRouterV2: MevSmartContractTxMap{
-		SmartContractAddr: UniswapV3Router02Address,
-		Abi:               artemis_oly_contract_abis.MustLoadUniswapV3Swap2RouterAbi(),
-		Txs:               []MevTx{},
-	},
-*/
 func (a *ActiveTrading) ProcessTxs(ctx context.Context, mevTxs []web3_client.MevTx, m *metrics_trading.TradingMetrics, w3a web3_actions.Web3Actions) ([]web3_client.TradeExecutionFlowJSON, error) {
 	var tfSlice []web3_client.TradeExecutionFlowJSON
 	for _, mevTx := range mevTxs {
@@ -163,4 +125,48 @@ func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64)
 		}
 	}
 	return nil
+}
+
+func ApplyMaxTransferTax(tf *web3_client.TradeExecutionFlowJSON) {
+	tokenOne := tf.UserTrade.AmountInAddr.String()
+	tokenTwo := tf.UserTrade.AmountOutAddr.String()
+	maxNum, maxDen := 1, 1
+	if info, ok := artemis_trading_cache.TokenMap[tokenOne]; ok {
+		den := info.TransferTaxDenominator
+		num := info.TransferTaxNumerator
+		if den != nil && num != nil {
+			fmt.Println("token: ", tokenOne, "transferTax: num: ", *num, "den: ", *den)
+
+			if *num > maxNum {
+				maxNum = *num
+				maxDen = *den
+			}
+		} else {
+			fmt.Println("token not found in cache")
+		}
+	}
+	if info, ok := artemis_trading_cache.TokenMap[tokenTwo]; ok {
+		den := info.TransferTaxDenominator
+		num := info.TransferTaxNumerator
+		if den != nil && num != nil {
+			fmt.Println("token: ", tokenTwo, "tradingTax: num: ", *num, "den: ", *den)
+			if *num > maxNum {
+				maxNum = *num
+				maxDen = *den
+			}
+		} else {
+			fmt.Println("token not found in cache")
+		}
+	}
+	amountOutStartFrontRun := artemis_eth_units.NewBigIntFromStr(tf.FrontRunTrade.AmountOut)
+	amountOutStartSandwich := artemis_eth_units.NewBigIntFromStr(tf.SandwichTrade.AmountOut)
+
+	adjAmountOutFrontRun := artemis_eth_units.ApplyTransferTax(amountOutStartFrontRun, maxNum, maxDen)
+	tf.FrontRunTrade.AmountOut = adjAmountOutFrontRun.String()
+
+	tf.SandwichTrade.AmountIn = tf.FrontRunTrade.AmountOut
+	adjAmountOutSandwich := artemis_eth_units.ApplyTransferTax(amountOutStartSandwich, maxNum+30, maxDen)
+	tf.SandwichTrade.AmountOut = adjAmountOutSandwich.String()
+	tf.SandwichPrediction.ExpectedProfit = adjAmountOutSandwich.String()
+	fmt.Println("maxNum: ", maxNum, "maxDen: ", maxDen)
 }

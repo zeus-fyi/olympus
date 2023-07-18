@@ -69,8 +69,7 @@ func UpdateERC20TokenTransferTaxInfo(ctx context.Context, token artemis_autogen_
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `UPDATE erc20_token_info
     			  SET transfer_tax_numerator = $2, transfer_tax_denominator = $3
-				  WHERE address = $1;`
-
+				  WHERE address = $1 AND (transfer_tax_numerator IS NULL OR transfer_tax_numerator < $2);`
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, token.Address, token.TransferTaxNumerator, token.TransferTaxDenominator)
 	if err == pgx.ErrNoRows {
 		err = nil

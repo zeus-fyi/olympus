@@ -13,7 +13,7 @@ func (t *ArtemisMevWorker) ExecuteArtemisMevWorkflow(ctx context.Context, bn int
 	tc := t.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
-		TaskQueue: t.TaskQueueName,
+		TaskQueue: "mev-analysis",
 	}
 	txWf := NewArtemisMevWorkflow()
 	wf := txWf.ArtemisMevWorkflow
@@ -44,7 +44,7 @@ func (t *ArtemisMevWorker) ExecuteArtemisBlacklistTxWorkflow(ctx context.Context
 	tc := t.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
-		TaskQueue: t.TaskQueueName,
+		TaskQueue: "tx-blacklist",
 	}
 	txWf := NewArtemisMevWorkflow()
 	wf := txWf.ArtemisTxBlacklistWorkflow

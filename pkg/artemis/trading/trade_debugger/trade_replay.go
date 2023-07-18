@@ -28,6 +28,7 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 		return err
 	}
 	fmt.Println("ANALYZING tx: ", tf.Tx.Hash().String(), "at block: ", mevTx.GetBlockNumber())
+	fmt.Println("FRONT RUN TRADE: ", tf.FrontRunTrade.AmountInAddr.String(), " -> ", tf.FrontRunTrade.AmountOutAddr.String())
 	ac := t.dat.GetSimAuxClient()
 	n, d := GetMaxTransferTax(tf)
 	amountOutStartFrontRun := tf.FrontRunTrade.AmountOut

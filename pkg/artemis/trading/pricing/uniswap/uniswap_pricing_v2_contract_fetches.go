@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/patrickmn/go-cache"
@@ -83,12 +82,6 @@ func GetBatchPairContractPricesViaMulticall3(ctx context.Context, wc web3_action
 		if p != nil {
 			tag := strings.Join([]string{fmt.Sprintf("%s", p.PairContractAddr), bnst}, "-")
 			Cache.Set(tag, *p, cache.NoExpiration)
-			if redisCache.Client != nil {
-				err = redisCache.AddOrUpdatePairPricesCache(ctx, tag, UniswapPricingData{V2Pair: *p}, time.Hour*12)
-				if err != nil {
-					log.Error().Err(err).Msg("failed to add/update pair prices cache")
-				}
-			}
 		}
 	}
 	return pairs, nil
@@ -109,6 +102,13 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 	sessionID := wc.GetSessionLockHeader()
 	if wc.GetSessionLockHeader() != "" {
 		bnst = fmt.Sprintf("%s-%s", bnst, sessionID)
+	} else {
+		if redisCache.Client != nil {
+			err := redisCache.AddV2PairToNextLookupSet(ctx, p.PairContractAddr, bn)
+			if err != nil {
+				log.Error().Err(err).Msg("failed to add pair to next lookup set")
+			}
+		}
 	}
 	tag := strings.Join([]string{fmt.Sprintf("%s", p.PairContractAddr), bnst}, "-")
 	if cached, found := Cache.Get(tag); found {

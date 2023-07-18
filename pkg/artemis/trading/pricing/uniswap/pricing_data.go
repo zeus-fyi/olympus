@@ -147,13 +147,45 @@ func (m *PricingCache) AddV2PairToNextLookupSet(ctx context.Context, v2pairAddr 
 		return errors.New("AddV2PairToNextLookupSet: redis client is nil")
 	}
 	m.Client = artemis_trading_cache.WriteRedis.Client
-	statusCmd := m.Client.SAdd(ctx, GetPairBnCacheKey(bn), v2pairAddr)
+	// next block number: bn+1
+	nextBlock := bn + 1
+	statusCmd := m.Client.SAdd(ctx, GetPairBnCacheKey(nextBlock), v2pairAddr)
 	if statusCmd.Err() != nil {
 		log.Ctx(ctx).Err(statusCmd.Err()).Msgf("AddV2PairToNextLookupSet: %s", v2pairAddr)
 		return statusCmd.Err()
 	}
 	// Also set an expiration time for the set if needed
 	m.Client.Expire(ctx, GetPairBnCacheKey(bn), time.Hour*12)
+	return nil
+}
+
+func FetchV2PairsToMulticall(ctx context.Context, wc web3_actions.Web3Actions, bn uint64) error {
+	if artemis_trading_cache.ReadRedis.Client == nil {
+		return errors.New("FetchV2PairsToMulticall: redis client is nil")
+	}
+	redisCache.Client = artemis_trading_cache.ReadRedis.Client
+	addresses, err := redisCache.GetV2PairsToMulticall(ctx, bn)
+	if err != nil {
+		return err
+	}
+	var tmp []string
+	for _, addr := range addresses {
+		tmp = append(tmp, addr)
+		if len(tmp) >= 25 {
+			_, err = GetBatchPairContractPricesViaMulticall3(ctx, wc, tmp...)
+			if err != nil {
+				return err
+			}
+			tmp = []string{}
+		}
+	}
+	if len(tmp) > 0 {
+		_, err = GetBatchPairContractPricesViaMulticall3(ctx, wc, tmp...)
+		if err != nil {
+			return err
+		}
+	}
+	log.Info().Int("pairCount", len(addresses)).Any("addresses", addresses).Msg("Fetched V2 pairs to multicall")
 	return nil
 }
 
@@ -167,5 +199,6 @@ func (m *PricingCache) GetV2PairsToMulticall(ctx context.Context, bn uint64) ([]
 		log.Ctx(ctx).Err(err).Msgf("GetV2PairsToMulticall: %s", GetPairBnCacheKey(bn))
 		return nil, err
 	}
+
 	return pairAddresses, nil
 }

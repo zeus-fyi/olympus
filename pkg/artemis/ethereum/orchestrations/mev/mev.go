@@ -15,9 +15,10 @@ import (
 )
 
 const (
-	irisSvc     = "https://iris.zeus.fyi/v1/internal/"
-	irisBetaSvc = "https://iris.zeus.fyi/v1beta/internal/"
-	hardhatSvc  = "https://hardhat.zeus.fyi/"
+	irisSvc        = "https://iris.zeus.fyi/v1/internal/"
+	irisBetaSvc    = "https://iris.zeus.fyi/v1beta/internal/"
+	hardhatSvc     = "https://hardhat.zeus.fyi/"
+	irisSvcBeacons = "http://iris.iris.svc.cluster.local/v1beta/internal/router/group?routeGroup=quiknode-mainnet"
 )
 
 var (
@@ -34,7 +35,7 @@ func InitNewUniHardhat(ctx context.Context) *web3_client.UniswapClient {
 	if err != nil {
 		panic(err)
 	}
-	wc := web3_client.NewWeb3Client(irisBetaSvc, acc)
+	wc := web3_client.NewWeb3Client(irisSvcBeacons, acc)
 	m := map[string]string{
 		"Authorization": "Bearer " + AuthHeader,
 	}

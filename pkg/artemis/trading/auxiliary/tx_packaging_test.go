@@ -31,8 +31,9 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2TradeFrontRun(ta *AuxiliaryTrading
 	t.Require().NotNil(amountOut)
 	to.AmountOut = amountOut
 
-	cmd, err := ta.GenerateTradeV2SwapFromTokenToToken(ctx, nil, to)
+	cmd, pt, err := ta.GenerateTradeV2SwapFromTokenToToken(ctx, nil, to)
 	t.Require().Nil(err)
+	t.Require().NotNil(pt)
 	t.Require().NotEmpty(cmd)
 	t.Require().Len(cmd.Commands, 2)
 	for i, sc := range cmd.Commands {

@@ -77,8 +77,8 @@ func InsertTxsWithBundle(ctx context.Context, dbTx pgx.Tx, txs []EthTx, bundleHa
 							gas_limit = EXCLUDED.gas_limit,
 							gas_tip_cap = EXCLUDED.gas_tip_cap,
 							gas_fee_cap = EXCLUDED.gas_fee_cap
-                    ) INSERT INTO permit2_tx(event_id, nonce, owner, deadline, "token", protocol_network_id) 
- 					  VALUES ($1, $11, $12, $13, $14, $3)`
+                    ) INSERT INTO permit2_tx(event_id, nonce, owner, deadline, "token", protocol_network_id, nonce_id) 
+ 					  VALUES ($1, $11, $12, $13, $14, $3, $15);`
 	q2 := sql_query_templates.QueryParams{}
 	q2.RawQuery = `WITH cte_tx_2 AS (
 						INSERT INTO eth_tx(event_id, tx_hash, protocol_network_id, nonce, "from", type, nonce_id) 
@@ -113,6 +113,7 @@ func InsertTxsWithBundle(ctx context.Context, dbTx pgx.Tx, txs []EthTx, bundleHa
 		if e.Type == "" {
 			e.Type = "0x02"
 		}
+		// query 2
 		if e.Permit2Tx.Owner == "" || e.Permit2Tx.Token == "" {
 			_, err := dbTx.Exec(ctx, q2.RawQuery, e.EventID, e.EthTx.TxHash, e.EthTx.ProtocolNetworkID, e.EthTx.Nonce, e.EthTx.From, e.EthTx.Type,
 				e.EthTxGas.GasPrice.Int64, e.EthTxGas.GasLimit.Int64, e.EthTxGas.GasTipCap.Int64, e.EthTxGas.GasFeeCap.Int64, ts.UnixTimeStampNow())
@@ -121,6 +122,7 @@ func InsertTxsWithBundle(ctx context.Context, dbTx pgx.Tx, txs []EthTx, bundleHa
 				return err
 			}
 		} else {
+			// query 1
 			_, err := dbTx.Exec(ctx, q1.RawQuery, e.EventID, e.EthTx.TxHash, e.EthTx.ProtocolNetworkID, e.EthTx.Nonce, e.EthTx.From, e.EthTx.Type,
 				e.EthTxGas.GasPrice.Int64, e.EthTxGas.GasLimit.Int64, e.EthTxGas.GasTipCap.Int64, e.EthTxGas.GasFeeCap.Int64,
 				e.Permit2Tx.Nonce, e.Permit2Tx.Owner, e.Permit2Tx.Deadline, e.Permit2Tx.Token, ts.UnixTimeStampNow())
@@ -175,6 +177,7 @@ func (pt *Permit2Tx) SelectNextPermit2Nonce(ctx context.Context) (err error) {
 	if err == pgx.ErrNoRows {
 		pt.Nonce = 0
 		err = nil
+		return err
 	}
 	if err != nil {
 		return err

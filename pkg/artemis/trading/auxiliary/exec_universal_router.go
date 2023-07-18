@@ -3,6 +3,7 @@ package artemis_trading_auxiliary
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -36,11 +37,26 @@ func (a *AuxiliaryTradingUtils) universalRouterExecuteTx(ctx context.Context, si
 	return signedTx, err
 }
 
+func (a *AuxiliaryTradingUtils) debugPrintBalances(ctx context.Context) error {
+	bal, err := a.checkEthBalance(ctx)
+	if err != nil {
+		return err
+	}
+	fmt.Println("ETH Balance: ", bal.String())
+	bal, err = a.checkAuxWETHBalance(ctx)
+	if err != nil {
+		return err
+	}
+	fmt.Println("WETH Balance: ", bal.String())
+	return nil
+}
+
 // takes a universal router command and returns a signed tx
 func (a *AuxiliaryTradingUtils) universalRouterCmdToTxBuilder(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, error) {
 	ur.Deadline = a.GetDeadline()
 	data, err := ur.EncodeCommands(ctx)
 	if err != nil {
+		log.Err(err).Msg("error encoding commands")
 		return nil, err
 	}
 	scInfo, err := a.GetUniswapUniversalRouterAbiPayload(ctx, data)
@@ -55,11 +71,7 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdToTxBuilder(ctx context.Contex
 	}
 	err = a.universalRouterCmdVerifier(ctx, ur, &scInfo)
 	if err != nil {
-		return nil, err
-	}
-	mevTx, err := a.AddTxToBundleGroup(ctx, signedTx)
-	if err != nil {
-		log.Info().Interface("mevTx", mevTx).Msg("error adding tx to bundle group")
+		log.Err(err).Msg("error verifying universal router command")
 		return nil, err
 	}
 	return signedTx, nil
@@ -67,7 +79,6 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdToTxBuilder(ctx context.Contex
 
 func (a *AuxiliaryTradingUtils) GetUniswapUniversalRouterAbiPayload(ctx context.Context, payload *web3_client.UniversalRouterExecParams) (web3_actions.SendContractTxPayload, error) {
 	if payload == nil {
-		payload = &web3_client.UniversalRouterExecParams{}
 		return web3_actions.SendContractTxPayload{}, errors.New("payload is nil")
 	}
 	payable := payload.Payable

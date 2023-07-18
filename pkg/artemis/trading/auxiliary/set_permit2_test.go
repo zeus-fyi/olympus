@@ -4,13 +4,6 @@ import (
 	"fmt"
 )
 
-func (t *ArtemisAuxillaryTestSuite) TestGeneratePermit2Nonce() {
-	//for i := 0; i < 10; i++ {
-	//	val := ts.GeneratePermit2Nonce()
-	//	fmt.Println(val)
-	//}
-}
-
 func (t *ArtemisAuxillaryTestSuite) TestSetPermit2Goerli() {
 	t.Require().Equal(t.goerliNode, t.at2.nodeURL())
 	t.testSetPermit2()

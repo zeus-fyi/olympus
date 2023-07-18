@@ -131,7 +131,7 @@ func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_clien
 			if tf.FrontRunTrade.AmountOut.String() == "0" {
 				return errors.New("amount out was set to zero")
 			}
-			ur, err := a.GetSimAuxClient().GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.FrontRunTrade)
+			ur, _, err := a.GetSimAuxClient().GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.FrontRunTrade)
 			if err != nil {
 				fmt.Println("failed to generate trade", ur.Commands)
 				log.Err(err).Msg("SimToPackageTxBundle: failed to generate trade")
@@ -178,7 +178,7 @@ func (a *ActiveTrading) SimToPackageTxBundle(ctx context.Context, tf *web3_clien
 			return err
 		}
 		tf.SandwichTrade.AmountOut = tf.SandwichTrade.SimulatedAmountOut
-		ur, serr := a.GetSimAuxClient().GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.SandwichTrade)
+		ur, _, serr := a.GetSimAuxClient().GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.SandwichTrade)
 		if serr != nil {
 			fmt.Println("SimToPackageTxBundle: failed to generate trade", ur.Commands)
 			log.Err(serr).Msg("failed to generate trade")

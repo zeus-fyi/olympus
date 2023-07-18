@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
@@ -77,19 +76,12 @@ func (a *AuxiliaryTradingUtils) CreateUserTradeCtx(ctx context.Context) context.
 	return ctx
 }
 
-func (a *AuxiliaryTradingUtils) AddTxMetaData(tx *types.Transaction) TxWithMetadata {
-	return TxWithMetadata{
-		Tx: tx,
-	}
-}
-
 func (a *AuxiliaryTradingUtils) packageTxForBundle(ctx context.Context, txWithMetadata TxWithMetadata) (artemis_eth_txs.EthTx, error) {
 	mevTx, err := a.getEthTxByPackageType(ctx, txWithMetadata)
 	if err != nil {
 		log.Err(err).Msg("error getting eth tx by package type")
 		return artemis_eth_txs.EthTx{}, err
 	}
-	a.MevTxGroup.OrderedTxs = append(a.MevTxGroup.OrderedTxs, txWithMetadata)
 	return mevTx, nil
 }
 

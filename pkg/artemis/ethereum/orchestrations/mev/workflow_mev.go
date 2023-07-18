@@ -20,8 +20,9 @@ func (t *ArtemisMevWorkflow) ArtemisHistoricalSimTxWorkflow(ctx workflow.Context
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Second * 300,
 		RetryPolicy: &temporal.RetryPolicy{
-			MaximumAttempts: 10,
-			InitialInterval: time.Second * 5,
+			MaximumAttempts:    10,
+			InitialInterval:    time.Second * 5,
+			BackoffCoefficient: 2,
 		},
 	}
 	srr := workflow.Sleep(ctx, trades.StartTimeDelay)

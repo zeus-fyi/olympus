@@ -29,6 +29,7 @@ func (d *ArtemisMevActivities) HistoricalSimulateAndValidateTx(ctx context.Conte
 	err := td.Replay(ctx, trade.TxHash, true)
 	if err != nil {
 		log.Err(err).Str("network", d.Network).Msg("Replay failed")
+		return err
 	}
 	return err
 }

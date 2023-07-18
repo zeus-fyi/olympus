@@ -24,7 +24,7 @@ func (t *TradeDebugger) FindSlippage(ctx context.Context, to *artemis_trading_ty
 	start := to.AmountOut
 	num := 0
 	denom := 1000
-	for i := 1; i < 7; i++ {
+	for i := 0; i < 8; i++ {
 		switch i {
 		case 0:
 			num = 1
@@ -43,6 +43,9 @@ func (t *TradeDebugger) FindSlippage(ctx context.Context, to *artemis_trading_ty
 			denom = 1000
 		case 5:
 			num = 210
+			denom = 1000
+		case 6:
+			num = 300
 			denom = 1000
 		default:
 			return errors.New("failed to find a valid transfer tax")

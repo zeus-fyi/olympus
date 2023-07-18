@@ -64,7 +64,7 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 		total1 := v.Count + v.FailedCount
 		if v.Count < 2 || (float64(v.FailedCount) > float64(total1)*0.1) {
 			// v.FailedCount is more than 10% of the total
-			log.Info().Str("token", v.AmountOutToken.Name()).Str("address", v.AmountOutToken.Address.String()).Msg("failed count is more than 10% of the total")
+			log.Info().Str("token", v.AmountOutToken.Name()).Str("address", v.AmountOutToken.Address.String()).Int("successCount", v.Count).Int("failureCount", v.FailedCount).Msg("failed count is more than 10% of the total")
 			continue
 		}
 

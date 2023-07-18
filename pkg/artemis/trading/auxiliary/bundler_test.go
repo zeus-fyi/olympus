@@ -10,7 +10,7 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-func (t *ArtemisAuxillaryTestSuite) TestCreateFbBundle() *AuxiliaryTradingUtils {
+func (t *ArtemisAuxillaryTestSuite) TestCreateFbBundle() (*AuxiliaryTradingUtils, MevTxGroup) {
 	ta := t.at2
 	t.Require().Equal(t.goerliNode, ta.nodeURL())
 	t.Require().NotEmpty(ta)
@@ -22,25 +22,32 @@ func (t *ArtemisAuxillaryTestSuite) TestCreateFbBundle() *AuxiliaryTradingUtils 
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 	t.Require().Equal(toExchAmount, tx.Value())
-	t.Require().Equal(1, len(ta.MevTxGroup.OrderedTxs))
-	err = ta.CreateOrAddToFlashbotsBundle(cmd, "latest")
+	txStart := TxWithMetadata{
+		Tx: tx,
+	}
+	bundle, err := ta.AddTxToBundleGroup(ctx, txStart, nil)
 	t.Require().Nil(err)
-	t.Require().NotEmpty(ta.Bundle.Txs)
-	t.Require().Equal(1, len(ta.Bundle.Txs))
-	t.Require().Equal(0, len(ta.MevTxGroup.OrderedTxs))
+	t.Require().NotEmpty(bundle.MevTxs)
+	t.Require().Equal(1, len(bundle.MevTxs))
+	t.Require().Equal(1, len(bundle.OrderedTxs))
 
 	// part 2 of bundle
 	ctx = context.WithValue(ctx, web3_actions.NonceOffset, 1)
-	cmd = t.testExecV2Trade(&ta, hestia_req_types.Goerli)
+	cmd, permit2Val := t.testExecV2Trade(&ta, hestia_req_types.Goerli)
 	tx, err = ta.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().NotEmpty(tx)
-	t.Require().Equal(1, len(ta.MevTxGroup.OrderedTxs))
-	err = ta.CreateOrAddToFlashbotsBundle(cmd, "latest")
+	txMeta := TxWithMetadata{
+		Tx: tx,
+	}
+	if permit2Val != nil {
+		txMeta.Permit2Tx = permit2Val.Permit2Tx
+	}
+	bundle, err = ta.AddTxToBundleGroup(ctx, txMeta, bundle)
 	t.Require().Nil(err)
-	t.Require().NotEmpty(ta.Bundle.Txs)
-	t.Require().Equal(2, len(ta.Bundle.Txs))
-	t.Require().Equal(0, len(ta.MevTxGroup.OrderedTxs))
-	return &ta
+	t.Require().Equal(2, len(bundle.OrderedTxs))
+	t.Require().Equal(2, len(bundle.MevTxs))
+	t.Require().NotNil(bundle)
+	return &ta, *bundle
 }
 
 func (t *ArtemisAuxillaryTestSuite) testExecV2TradeFromUser2(ta *AuxiliaryTradingUtils) *web3_client.UniversalRouterExecCmd {
@@ -61,9 +68,9 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2TradeFromUser2(ta *AuxiliaryTradin
 }
 
 func (t *ArtemisAuxillaryTestSuite) TestCallBundle() {
-	ta := t.TestCreateFbBundle()
+	ta, bundle := t.TestCreateFbBundle()
 	t.Require().NotEmpty(ta)
-	resp, err := ta.CallFlashbotsBundle(ctx)
+	resp, err := ta.CallFlashbotsBundle(ctx, &bundle)
 	t.Require().Nil(err)
 	t.Require().NotNil(resp)
 
@@ -79,10 +86,10 @@ func (t *ArtemisAuxillaryTestSuite) TestCallBundle() {
 }
 
 func (t *ArtemisAuxillaryTestSuite) TestCallAndSendBundle() {
-	ta := t.TestCreateFbBundle()
+	ta, bundle := t.TestCreateFbBundle()
 	t.Require().NotEmpty(ta)
-	//resp, err := ta.CallAndSendFlashbotsBundle(ctx)
-	//t.Require().Nil(err)
-	//t.Require().NotNil(resp)
-	//fmt.Println("bundleHash", resp.BundleHash)
+	resp, err := ta.CallAndSendFlashbotsBundle(ctx, bundle)
+	t.Require().Nil(err)
+	t.Require().NotNil(resp)
+	fmt.Println("bundleHash", resp.BundleHash)
 }

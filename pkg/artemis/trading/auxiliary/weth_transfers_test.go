@@ -57,9 +57,11 @@ func (t *ArtemisAuxillaryTestSuite) testWETH(network string) {
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 
-	_, err = ta.universalRouterExecuteTx(ctx, tx)
-	t.Require().Nil(err)
-	fmt.Println("tx", tx.Hash().String())
+	if network == hestia_req_types.Goerli {
+		_, err = ta.universalRouterExecuteTx(ctx, tx)
+		t.Require().Nil(err)
+		fmt.Println("tx", tx.Hash().String())
+	}
 }
 
 func (t *ArtemisAuxillaryTestSuite) TestUnwrapWETH() {

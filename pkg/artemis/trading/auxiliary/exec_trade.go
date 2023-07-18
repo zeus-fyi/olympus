@@ -5,22 +5,23 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *AuxiliaryTradingUtils) GenerateTradeV2SwapFromTokenToToken(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, to *artemis_trading_types.TradeOutcome) (*web3_client.UniversalRouterExecCmd, error) {
+func (a *AuxiliaryTradingUtils) GenerateTradeV2SwapFromTokenToToken(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, to *artemis_trading_types.TradeOutcome) (*web3_client.UniversalRouterExecCmd, *artemis_eth_txs.Permit2Tx, error) {
 	ur = a.checkIfCmdEmpty(ur)
 	sc1 := web3_client.UniversalRouterExecSubCmd{
 		Command:   artemis_trading_constants.Permit2Permit,
 		CanRevert: false,
 		Inputs:    nil,
 	}
-	psp, err := a.generatePermit2Approval(ctx, to)
+	psp, pt, err := a.generatePermit2Approval(ctx, to)
 	if err != nil {
 		log.Err(err).Msg("failed to generate permit2 approval")
-		return nil, err
+		return nil, nil, err
 	}
 	sc1.DecodedInputs = psp
 	ur.Commands = append(ur.Commands, sc1)
@@ -37,5 +38,5 @@ func (a *AuxiliaryTradingUtils) GenerateTradeV2SwapFromTokenToToken(ctx context.
 		},
 	}
 	ur.Commands = append(ur.Commands, sc2)
-	return ur, err
+	return ur, pt, err
 }

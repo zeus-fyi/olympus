@@ -9,8 +9,8 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() *AuxiliaryTradingUtils {
-	toExchAmount := artemis_eth_units.GweiMultiple(1000)
+func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() (*AuxiliaryTradingUtils, MevTxGroup) {
+	toExchAmount := artemis_eth_units.GweiMultiple(10000)
 	//toExchAmount := artemis_eth_units.GweiMultiple(1000)
 	ta := t.at2
 	cmd := t.testEthToWETH(&ta, toExchAmount)
@@ -20,12 +20,13 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() *AuxiliaryTradingUt
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 	t.Require().Equal(toExchAmount, tx.Value())
-	t.Require().Equal(1, len(ta.MevTxGroup.OrderedTxs))
-	err = ta.CreateOrAddToFlashbotsBundle(cmd, "latest")
+	txWithMetadata := TxWithMetadata{
+		Tx: tx,
+	}
+	bundle, err := ta.AddTxToBundleGroup(ctx, txWithMetadata, nil)
 	t.Require().Nil(err)
-	t.Require().NotEmpty(ta.Bundle.Txs)
-	t.Require().Equal(1, len(ta.Bundle.Txs))
-	t.Require().Equal(0, len(ta.MevTxGroup.OrderedTxs))
+	t.Require().Equal(1, len(bundle.MevTxs))
+	t.Require().Equal(1, len(bundle.OrderedTxs))
 	ctx = context.Background()
 	fmt.Println("frontRun: txGasLimit", tx.Gas())
 	fmt.Println("frontRun: txGasFeeCap", tx.GasFeeCap().String())
@@ -33,6 +34,7 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() *AuxiliaryTradingUt
 	// middle of bundle
 
 	user := t.at1
+	fmt.Println("userTrader", user.tradersAccount().PublicKey())
 	cmd = t.testEthToWETH(&user, toExchAmount)
 	ctx = user.CreateUserTradeCtx(ctx)
 	tx, err = user.universalRouterCmdToTxBuilder(ctx, cmd)
@@ -40,7 +42,10 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() *AuxiliaryTradingUt
 	fmt.Println("userTrade: txGasLimit", tx.Gas())
 	fmt.Println("userTrade: txGasFeeCap", tx.GasFeeCap().String())
 	fmt.Println("userTrade: txGasTipCap", tx.GasTipCap().String())
-	err = ta.AddTxToBundleGroup(ctx, tx)
+	txWithMetadata = TxWithMetadata{
+		Tx: tx,
+	}
+	bundle, err = ta.AddTxToBundleGroup(ctx, txWithMetadata, bundle)
 	t.Require().Nil(err)
 	signer := types.LatestSignerForChainID(artemis_eth_units.NewBigInt(hestia_req_types.EthereumGoerliProtocolNetworkID))
 	sender, err := signer.Sender(tx)
@@ -48,9 +53,10 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() *AuxiliaryTradingUt
 	t.Require().Equal(user.w3a().Address().String(), sender.String())
 	t.Require().Equal(user.w3c().Address().String(), sender.String())
 
+	t.Require().NotEqual(t.at1.tradersAccount().PublicKey(), t.at2.tradersAccount().PublicKey())
 	ctx = context.Background()
 	// part 3 of bundle
-	cmd = t.testExecV2Trade(&ta, hestia_req_types.Goerli)
+	cmd, pt := t.testExecV2Trade(&ta, hestia_req_types.Goerli)
 	ctx = ta.CreateBackRunCtx(ctx)
 	fmt.Println("mainTraderAddr", ta.w3a().Address().String())
 	tx, err = ta.universalRouterCmdToTxBuilder(ctx, cmd)
@@ -59,20 +65,23 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() *AuxiliaryTradingUt
 	fmt.Println("backRun: txGasLimit", tx.Gas())
 	fmt.Println("backRun: txGasFeeCap", tx.GasFeeCap().String())
 	fmt.Println("backRun: txGasTipCap", tx.GasTipCap().String())
-	t.Require().Equal(2, len(ta.MevTxGroup.OrderedTxs))
+	t.Require().Equal(2, len(bundle.OrderedTxs))
 
-	err = ta.CreateOrAddToFlashbotsBundle(cmd, "latest")
+	txWithMetadata = TxWithMetadata{
+		Tx:        tx,
+		Permit2Tx: pt.Permit2Tx,
+	}
+	bundle, err = ta.AddTxToBundleGroup(ctx, txWithMetadata, bundle)
 	t.Require().Nil(err)
-	t.Require().NotEmpty(ta.Bundle.Txs)
-	t.Require().Equal(3, len(ta.Bundle.Txs))
-	t.Require().Equal(0, len(ta.MevTxGroup.OrderedTxs))
-
-	return &ta
+	t.Require().Equal(3, len(bundle.MevTxs))
+	t.Require().Equal(3, len(bundle.OrderedTxs))
+	t.Require().NotNil(bundle)
+	return &ta, *bundle
 }
 func (t *ArtemisAuxillaryTestSuite) TestSandwichCallBundle() {
-	ta := t.testMockSandwichBundle()
+	ta, bundle := t.testMockSandwichBundle()
 	t.Require().NotEmpty(ta)
-	resp, err := ta.CallFlashbotsBundle(ctx)
+	resp, err := ta.CallFlashbotsBundle(ctx, &bundle)
 	t.Require().Nil(err)
 	t.Require().NotNil(resp)
 
@@ -88,9 +97,9 @@ func (t *ArtemisAuxillaryTestSuite) TestSandwichCallBundle() {
 }
 
 func (t *ArtemisAuxillaryTestSuite) TestSandwichCallAndSendBundle() {
-	ta := t.testMockSandwichBundle()
+	ta, bundle := t.testMockSandwichBundle()
 	t.Require().NotEmpty(ta)
-	resp, err := ta.CallAndSendFlashbotsBundle(ctx)
+	resp, err := ta.CallAndSendFlashbotsBundle(ctx, bundle)
 	t.Require().Nil(err)
 	t.Require().NotNil(resp)
 }

@@ -3,29 +3,33 @@ package artemis_trading_auxiliary
 import (
 	"context"
 
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
 )
 
-/*
-type TxWithMetadata struct {
-	TradeType string
-	SignedTx        *types.Transaction
-}
-*/
-
 // AddTxToBundleGroup adjusts tx for bundle specific gas and adds to bundle group
-func (a *AuxiliaryTradingUtils) AddTxToBundleGroup(ctx context.Context, tx *types.Transaction) (artemis_eth_txs.EthTx, error) {
-	if a.MevTxGroup.OrderedTxs == nil {
-		a.MevTxGroup.OrderedTxs = []TxWithMetadata{}
+func (a *AuxiliaryTradingUtils) AddTxToBundleGroup(ctx context.Context, txWithMetadata TxWithMetadata, bundle *MevTxGroup) (*MevTxGroup, error) {
+	if bundle == nil {
+		bundle = &MevTxGroup{
+			OrderedTxs: []TxWithMetadata{},
+			MevTxs:     []artemis_eth_txs.EthTx{},
+		}
 	}
-	txWithMetadata := a.AddTxMetaData(tx)
+	if bundle.OrderedTxs == nil {
+		bundle.OrderedTxs = []TxWithMetadata{}
+	}
+	if bundle.MevTxs == nil {
+		bundle.MevTxs = []artemis_eth_txs.EthTx{}
+	}
 	mevTx, err := a.packageTxForBundle(ctx, txWithMetadata)
 	if err != nil {
 		log.Err(err).Msg("error packaging regular tx")
-		return artemis_eth_txs.EthTx{}, err
+		return nil, err
 	}
-	a.MevTxGroup.MevTxs = append(a.MevTxGroup.MevTxs, mevTx)
-	return mevTx, err
+	if txWithMetadata.Permit2Tx.Owner != "" {
+		mevTx.Permit2Tx.Permit2Tx = txWithMetadata.Permit2Tx
+	}
+	bundle.MevTxs = append(bundle.MevTxs, mevTx)
+	bundle.OrderedTxs = append(bundle.OrderedTxs, txWithMetadata)
+	return bundle, nil
 }

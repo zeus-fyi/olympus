@@ -6,6 +6,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	artemis_uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
@@ -15,9 +16,9 @@ import (
 )
 
 func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeCall() (*web3_client.UniversalRouterExecCmd, *types.Transaction) {
-	ta := t.at2
-	t.Require().Equal(t.goerliNode, t.at2.nodeURL())
-	cmd := t.testExecV2Trade(&ta, hestia_req_types.Goerli)
+	ta := t.at1
+	t.Require().Equal(t.goerliNode, ta.nodeURL())
+	cmd, _ := t.testExecV2Trade(&ta, hestia_req_types.Goerli)
 	tx, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
@@ -29,7 +30,7 @@ func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeCallMainnetSim() (*web3_clien
 	ta := t.simMainnetTrader
 	err := ta.setupCleanSimEnvironment(ctx, 0)
 	t.Require().Nil(err)
-	cmd := t.testExecV2Trade(&ta, hestia_req_types.Mainnet)
+	cmd, _ := t.testExecV2Trade(&ta, hestia_req_types.Mainnet)
 	tx, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
@@ -37,16 +38,16 @@ func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeCallMainnetSim() (*web3_clien
 	return cmd, tx
 }
 
-func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeCallMainnetSimPepe() (*web3_client.UniversalRouterExecCmd, *types.Transaction) {
+func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeCallMainnetSimPepe() (*web3_client.UniversalRouterExecCmd, *artemis_eth_txs.Permit2Tx, *types.Transaction) {
 	ta := t.simMainnetTrader
 	err := ta.setupCleanSimEnvironment(ctx, 0)
 	t.Require().Nil(err)
-	cmd := t.testExecV2TradePepe(&ta)
+	cmd, pt := t.testExecV2TradePepe(&ta)
 	tx, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 	t.Require().NotNil(cmd.Deadline)
-	return cmd, tx
+	return cmd, pt, tx
 }
 func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeCallMainnetSimPepeToWeth() (*web3_client.UniversalRouterExecCmd, *types.Transaction) {
 	ta := t.simMainnetTrader
@@ -68,7 +69,7 @@ func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeCallMainnetSimPepeToWeth() (*
 	_, err = ta.SetPermit2ApprovalForToken(ctx, bullshitCoin)
 	t.Require().Nil(err)
 
-	cmd := t.testExecV2TradeFromPepeToWeth(&ta, bullshitCoin, bullshitAmount)
+	cmd, _ := t.testExecV2TradeFromPepeToWeth(&ta, bullshitCoin, bullshitAmount)
 	tx, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
@@ -76,7 +77,7 @@ func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeCallMainnetSimPepeToWeth() (*
 	return cmd, tx
 }
 
-func (t *ArtemisAuxillaryTestSuite) testExecV2TradeFromPepeToWeth(ta *AuxiliaryTradingUtils, dumbCoin string, toExchAmount *big.Int) *web3_client.UniversalRouterExecCmd {
+func (t *ArtemisAuxillaryTestSuite) testExecV2TradeFromPepeToWeth(ta *AuxiliaryTradingUtils, dumbCoin string, toExchAmount *big.Int) (*web3_client.UniversalRouterExecCmd, *artemis_eth_txs.Permit2Tx) {
 	t.Require().NotEmpty(ta)
 	wethAddr := ta.getChainSpecificWETH()
 
@@ -100,8 +101,9 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2TradeFromPepeToWeth(ta *AuxiliaryT
 	fmt.Println("testExecV2Trade: amountOut", amountOut.String())
 	to.AmountOut = artemis_eth_units.NewBigIntFromStr("0")
 
-	cmd, err := ta.GenerateTradeV2SwapFromTokenToToken(ctx, nil, to)
+	cmd, pt, err := ta.GenerateTradeV2SwapFromTokenToToken(ctx, nil, to)
 	t.Require().Nil(err)
+	t.Require().NotEmpty(pt)
 	t.Require().NotEmpty(cmd)
 	t.Require().Len(cmd.Commands, 2)
 	for i, sc := range cmd.Commands {
@@ -125,12 +127,14 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2TradeFromPepeToWeth(ta *AuxiliaryT
 			t.Require().Equal(artemis_trading_constants.UniversalRouterSenderAddress, sc.DecodedInputs.(web3_client.V2SwapExactInParams).To.String())
 		}
 	}
-	return cmd
+	return cmd, pt
 }
 
-// todo add permit2 nonce getter from db method
-func (t *ArtemisAuxillaryTestSuite) testExecV2Trade(ta *AuxiliaryTradingUtils, network string) *web3_client.UniversalRouterExecCmd {
+func (t *ArtemisAuxillaryTestSuite) testExecV2Trade(ta *AuxiliaryTradingUtils, network string) (*web3_client.UniversalRouterExecCmd, *artemis_eth_txs.Permit2Tx) {
 	t.Require().NotEmpty(ta)
+	// owner account for permit2
+	t.Require().Equal(ta.tradersAccount().Address().String(), ta.w3c().Address().String())
+	t.Require().Equal(ta.tradersAccount().Address().String(), ta.w3a().Address().String())
 	toExchAmount := artemis_eth_units.GweiMultiple(10000)
 	wethAddr := ta.getChainSpecificWETH()
 	daiAddr := artemis_trading_constants.DaiContractAddressAccount
@@ -164,8 +168,10 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2Trade(ta *AuxiliaryTradingUtils, n
 	fmt.Println("testExecV2Trade: amountOut", amountOut.String())
 	to.AmountOut = amountOut
 
-	cmd, err := ta.GenerateTradeV2SwapFromTokenToToken(ctx, nil, to)
+	cmd, pt, err := ta.GenerateTradeV2SwapFromTokenToToken(ctx, nil, to)
 	t.Require().Nil(err)
+	t.Require().NotNil(pt)
+	t.Require().Equal(ta.tradersAccount().PublicKey(), pt.Owner)
 	t.Require().NotEmpty(cmd)
 	t.Require().Len(cmd.Commands, 2)
 	for i, sc := range cmd.Commands {
@@ -189,11 +195,11 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2Trade(ta *AuxiliaryTradingUtils, n
 			t.Require().Equal(artemis_trading_constants.UniversalRouterSenderAddress, sc.DecodedInputs.(web3_client.V2SwapExactInParams).To.String())
 		}
 	}
-	return cmd
+	return cmd, pt
 }
 
 // todo add permit2 nonce getter from db method
-func (t *ArtemisAuxillaryTestSuite) testExecV2TradePepe(ta *AuxiliaryTradingUtils) *web3_client.UniversalRouterExecCmd {
+func (t *ArtemisAuxillaryTestSuite) testExecV2TradePepe(ta *AuxiliaryTradingUtils) (*web3_client.UniversalRouterExecCmd, *artemis_eth_txs.Permit2Tx) {
 	t.Require().NotEmpty(ta)
 	toExchAmount := artemis_eth_units.GweiMultiple(10000)
 	wethAddr := ta.getChainSpecificWETH()
@@ -219,10 +225,11 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2TradePepe(ta *AuxiliaryTradingUtil
 	fmt.Println("testExecV2Trade: amountOut", amountOut.String())
 	to.AmountOut = amountOut
 
-	cmd, err := ta.GenerateTradeV2SwapFromTokenToToken(ctx, nil, to)
+	cmd, pt, err := ta.GenerateTradeV2SwapFromTokenToToken(ctx, nil, to)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(cmd)
 	t.Require().Len(cmd.Commands, 2)
+	t.Require().NotNil(pt)
 	for i, sc := range cmd.Commands {
 		if i == 0 && sc.Command != artemis_trading_constants.Permit2Permit {
 			t.Fail("expected Permit2Permit")
@@ -244,7 +251,7 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2TradePepe(ta *AuxiliaryTradingUtil
 			t.Require().Equal(artemis_trading_constants.UniversalRouterSenderAddress, sc.DecodedInputs.(web3_client.V2SwapExactInParams).To.String())
 		}
 	}
-	return cmd
+	return cmd, pt
 }
 
 //func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeExec() {

@@ -37,7 +37,7 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 
 	adjAmountOut := artemis_eth_units.ApplyTransferTax(amountOutStartFrontRun, n, d)
 	tf.FrontRunTrade.AmountOut = adjAmountOut
-	ur, err := ac.GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.FrontRunTrade)
+	ur, _, err := ac.GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.FrontRunTrade)
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 	tf.SandwichTrade.AmountIn = tf.FrontRunTrade.AmountOut
 	adjAmountOut = artemis_eth_units.ApplyTransferTax(amountOutStartSandwich, n+30, d)
 	tf.SandwichTrade.AmountOut = adjAmountOut
-	ur, err = ac.GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.SandwichTrade)
+	ur, _, err = ac.GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.SandwichTrade)
 	if err != nil || ur == nil {
 		if err == nil {
 			err = fmt.Errorf("ur is nil")

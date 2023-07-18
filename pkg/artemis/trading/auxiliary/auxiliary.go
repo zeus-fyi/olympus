@@ -20,10 +20,8 @@ import (
 )
 
 type AuxiliaryTradingUtils struct {
-	f          artemis_flashbots.FlashbotsClient
-	U          *web3_client.UniswapClient
-	Bundle     artemis_flashbots.MevTxBundle
-	MevTxGroup MevTxGroup
+	f artemis_flashbots.FlashbotsClient
+	U *web3_client.UniswapClient
 }
 
 type MevTxGroup struct {
@@ -47,12 +45,12 @@ func (m *MevTxGroup) GetRawOrderedTxs() []*types.Transaction {
 	return txSlice
 }
 
-func (m *MevTxGroup) GetHexEncodedTxs() []*types.Transaction {
-	txSlice := make([]*types.Transaction, len(m.OrderedTxs))
-	for i, tx := range m.OrderedTxs {
-		txSlice[i] = tx.Tx
+func (m *MevTxGroup) GetHexEncodedTxStrSlice() ([]string, error) {
+	txSlice, err := artemis_flashbots.GetHexEncodedTxStrSlice(m.GetRawOrderedTxs()...)
+	if err != nil {
+		return nil, err
 	}
-	return txSlice
+	return txSlice, nil
 }
 
 func InitAuxiliaryTradingUtilsFromUni(ctx context.Context, uni *web3_client.UniswapClient) AuxiliaryTradingUtils {

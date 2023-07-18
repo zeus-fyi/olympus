@@ -5,11 +5,39 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/go-redis/redis/v9"
+	rdb "github.com/zeus-fyi/olympus/datastores/redis/apps"
+	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_multicall "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/multicall"
 	artemis_utils "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/utils"
 	artemis_test_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/test_suite/test_cache"
 )
+
+func (s *UniswapPricingTestSuite) TestRedisCache() {
+	s.InitLocalConfigs()
+	artemis_test_cache.InitLiveTestNetwork(s.Tc.QuikNodeURLS.TestRoute)
+	wc := artemis_test_cache.LiveTestNetwork
+	wc.Dial()
+	defer wc.Close()
+	redisOpts := redis.Options{
+		Network: "",
+		Addr:    "localhost:6379",
+	}
+	redisCache.Client = rdb.InitRedis(ctx, redisOpts)
+	artemis_trading_cache.ReadRedis.Client = rdb.InitRedis(ctx, redisOpts)
+	artemis_trading_cache.WriteRedis.Client = rdb.InitRedis(ctx, redisOpts)
+	err := redisCache.AddV2PairToNextLookupSet(ctx, "0x6C0207FB939596eCC63b4549ce22dFFF4c928216", 1)
+	s.Require().Nil(err)
+
+	err = redisCache.AddV2PairToNextLookupSet(ctx, "0xDE2FCae812b9EDda8d658bBBAa60ABB972B4D468", 1)
+	s.Require().Nil(err)
+
+	addresses, err := redisCache.GetV2PairsToMulticall(ctx, 1)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(addresses)
+	s.Require().Equal(2, len(addresses))
+}
 
 func (s *UniswapPricingTestSuite) TestMulticall3UniswapV2Batch() {
 	s.InitLocalConfigs()

@@ -133,3 +133,39 @@ func (m *PricingCache) GetPairPricesFromCacheIfExists(ctx context.Context, tag s
 	}
 	return cachedPd, nil
 }
+
+const (
+	V2PairNextLookupSet = "V2PairNextLookupSet"
+)
+
+func GetPairBnCacheKey(bn uint64) string {
+	return fmt.Sprintf("%s-%d", V2PairNextLookupSet, bn)
+}
+
+func (m *PricingCache) AddV2PairToNextLookupSet(ctx context.Context, v2pairAddr string, bn uint64) error {
+	if artemis_trading_cache.WriteRedis.Client == nil {
+		return errors.New("AddV2PairToNextLookupSet: redis client is nil")
+	}
+	m.Client = artemis_trading_cache.WriteRedis.Client
+	statusCmd := m.Client.SAdd(ctx, GetPairBnCacheKey(bn), v2pairAddr)
+	if statusCmd.Err() != nil {
+		log.Ctx(ctx).Err(statusCmd.Err()).Msgf("AddV2PairToNextLookupSet: %s", v2pairAddr)
+		return statusCmd.Err()
+	}
+	// Also set an expiration time for the set if needed
+	m.Client.Expire(ctx, GetPairBnCacheKey(bn), time.Hour*12)
+	return nil
+}
+
+func (m *PricingCache) GetV2PairsToMulticall(ctx context.Context, bn uint64) ([]string, error) {
+	if artemis_trading_cache.ReadRedis.Client == nil {
+		return nil, errors.New("GetV2PairsToMulticall: redis client is nil")
+	}
+	m.Client = artemis_trading_cache.ReadRedis.Client
+	pairAddresses, err := m.Client.SMembers(ctx, GetPairBnCacheKey(bn)).Result()
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msgf("GetV2PairsToMulticall: %s", GetPairBnCacheKey(bn))
+		return nil, err
+	}
+	return pairAddresses, nil
+}

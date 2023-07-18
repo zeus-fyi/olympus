@@ -54,6 +54,7 @@ func (e *EthTx) InsertTx(ctx context.Context, pt Permit2Tx) (err error) {
 		e.EthTxGas.GasPrice.Int64, e.EthTxGas.GasLimit.Int64, e.EthTxGas.GasTipCap.Int64, e.EthTxGas.GasFeeCap.Int64,
 		pt.Nonce, pt.Owner, pt.Deadline, pt.Token)
 	if err != nil {
+		log.Err(err).Msg("InsertTx")
 		return err
 	}
 	return misc.ReturnIfErr(err, q.LogHeader(ArtemisScheduledDelivery))
@@ -102,6 +103,7 @@ func InsertTxsWithBundle(ctx context.Context, dbTx pgx.Tx, txs []EthTx, bundleHa
 		if i == 0 {
 			_, err := dbTx.Exec(ctx, q0.RawQuery, e.EventID)
 			if err != nil {
+				log.Err(err).Msg("InsertTxsWithBundle")
 				return err
 			}
 		}
@@ -115,6 +117,7 @@ func InsertTxsWithBundle(ctx context.Context, dbTx pgx.Tx, txs []EthTx, bundleHa
 			_, err := dbTx.Exec(ctx, q2.RawQuery, e.EventID, e.EthTx.TxHash, e.EthTx.ProtocolNetworkID, e.EthTx.Nonce, e.EthTx.From, e.EthTx.Type,
 				e.EthTxGas.GasPrice.Int64, e.EthTxGas.GasLimit.Int64, e.EthTxGas.GasTipCap.Int64, e.EthTxGas.GasFeeCap.Int64, ts.UnixTimeStampNow())
 			if err != nil {
+				log.Err(err).Msg("InsertTxsWithBundle")
 				return err
 			}
 		} else {
@@ -122,12 +125,14 @@ func InsertTxsWithBundle(ctx context.Context, dbTx pgx.Tx, txs []EthTx, bundleHa
 				e.EthTxGas.GasPrice.Int64, e.EthTxGas.GasLimit.Int64, e.EthTxGas.GasTipCap.Int64, e.EthTxGas.GasFeeCap.Int64,
 				e.Permit2Tx.Nonce, e.Permit2Tx.Owner, e.Permit2Tx.Deadline, e.Permit2Tx.Token, ts.UnixTimeStampNow())
 			if err != nil {
+				log.Err(err).Msg("InsertTxsWithBundle")
 				return err
 			}
 		}
 		if i == len(txs)-1 {
 			_, err := dbTx.Exec(ctx, q3.RawQuery, e.EventID, bundleHash, e.EthTx.ProtocolNetworkID)
 			if err != nil {
+				log.Err(err).Msg("InsertTxsWithBundle")
 				return err
 			}
 		}

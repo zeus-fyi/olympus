@@ -93,6 +93,10 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 	expProfit := artemis_eth_units.SubBigInt(endBal, startBal)
 	fmt.Println("expProfitAmountOutBalanceChange", expProfit)
 
+	if artemis_eth_units.IsXLessThanY(tf.SandwichTrade.AmountOut, expProfit) {
+		expProfit = tf.SandwichTrade.AmountOut
+	}
+	log.Info().Str("txHash", txHash).Str("expProfitWorstCase", expProfit.String()).Msg("expected profit")
 	err = tf.GetAggregateGasUsage(ctx, ac.U.Web3Client)
 	if err != nil {
 		log.Err(err).Str("txHash", txHash).Msg("error getting gas usage")

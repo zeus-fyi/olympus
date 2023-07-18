@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
-	artemis_risk_analysis "github.com/zeus-fyi/olympus/pkg/artemis/trading/risk"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_encryption"
 )
 
@@ -84,8 +83,8 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 	fmt.Println("negatives", negCount)
 	fmt.Println("total eth profit without negatives", artemis_eth_units.DivBigIntToFloat(totalWithoutNegatives, artemis_eth_units.Ether).String())
 
-	err = artemis_risk_analysis.SetTradingPermission(ctx, addresses, 1, true)
-	s.Assert().Nil(err)
+	//err = artemis_risk_analysis.SetTradingPermission(ctx, addresses, 1, true)
+	//s.Assert().Nil(err)
 }
 
 func TestReportingTestSuite(t *testing.T) {

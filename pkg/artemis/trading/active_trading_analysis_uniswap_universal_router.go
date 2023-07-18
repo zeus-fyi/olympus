@@ -110,7 +110,6 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 				m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V3SwapExactOut, pd.V3Pair.PoolAddress, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 			}
 			tfSlice = append(tfSlice, tf)
-
 			log.Info().Msg("saving mempool tx")
 			err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 			if err != nil {

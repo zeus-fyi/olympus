@@ -19,6 +19,14 @@ func TestPercentDiff(t *testing.T) {
 
 	meets := PercentDiffFloatComparison(valOne, valTwo, 0.0001)
 	fmt.Println("meets", meets)
+
+	f := NewPercentFromInts(0, 0)
+	fmt.Println("f", f.Numerator)
+
+	startVal := NewBigIntFromStr("0")
+	fmt.Println("startVal", startVal.String())
+	endVal := ApplyTransferTax(startVal, 1, 1)
+	fmt.Println("val", endVal.String())
 }
 
 func TestPercentDiffk(t *testing.T) {

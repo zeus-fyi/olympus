@@ -20,7 +20,7 @@ var (
 )
 
 func (a *AuxiliaryTradingUtils) UniversalRouterCmdExecutor(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, error) {
-	signedTx, err := a.universalRouterCmdToTxBuilder(ctx, ur)
+	signedTx, _, err := a.universalRouterCmdToTxBuilder(ctx, ur)
 	if err != nil {
 		log.Err(err).Msg("error building signed tx")
 		return nil, err
@@ -52,29 +52,29 @@ func (a *AuxiliaryTradingUtils) debugPrintBalances(ctx context.Context) error {
 }
 
 // takes a universal router command and returns a signed tx
-func (a *AuxiliaryTradingUtils) universalRouterCmdToTxBuilder(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, error) {
+func (a *AuxiliaryTradingUtils) universalRouterCmdToTxBuilder(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, *web3_actions.SendContractTxPayload, error) {
 	ur.Deadline = a.GetDeadline()
 	data, err := ur.EncodeCommands(ctx)
 	if err != nil {
 		log.Err(err).Msg("error encoding commands")
-		return nil, err
+		return nil, nil, err
 	}
 	scInfo, err := a.GetUniswapUniversalRouterAbiPayload(ctx, data)
 	if err != nil {
 		log.Err(err).Msg("error getting uniswap universal router abi payload")
-		return nil, err
+		return nil, nil, err
 	}
 	signedTx, err := a.w3c().GetSignedTxToCallFunctionWithData(ctx, &scInfo, scInfo.Data)
 	if err != nil {
 		log.Err(err).Msg("error getting signed tx to call function with data")
-		return nil, err
+		return nil, nil, err
 	}
 	err = a.universalRouterCmdVerifier(ctx, ur, &scInfo)
 	if err != nil {
 		log.Err(err).Msg("error verifying universal router command")
-		return nil, err
+		return nil, nil, err
 	}
-	return signedTx, nil
+	return signedTx, &scInfo, nil
 }
 
 func (a *AuxiliaryTradingUtils) GetUniswapUniversalRouterAbiPayload(ctx context.Context, payload *web3_client.UniversalRouterExecParams) (web3_actions.SendContractTxPayload, error) {

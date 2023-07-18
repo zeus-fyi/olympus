@@ -25,9 +25,10 @@ type AuxiliaryTradingUtils struct {
 }
 
 type MevTxGroup struct {
-	EventID    int
-	OrderedTxs []TxWithMetadata
-	MevTxs     []artemis_eth_txs.EthTx
+	EventID      int
+	OrderedTxs   []TxWithMetadata
+	MevTxs       []artemis_eth_txs.EthTx
+	TotalGasCost *big.Int
 }
 
 type TxWithMetadata struct {

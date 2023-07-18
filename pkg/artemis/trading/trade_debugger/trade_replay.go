@@ -108,9 +108,26 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 	if profitToken == artemis_trading_constants.WETH9ContractAddress {
 		expProfit = artemis_eth_units.SubUint64FBigInt(expProfit, totalGasCost)
 	}
-	err = artemis_mev_models.UpdateEthMevTxAnalysis(ctx, txHash, expProfit.String(), fmt.Sprintf("%d", totalGasCost), "success")
-	if err != nil {
-		return err
+
+	if t.insertNewTxs {
+		txHistory := mevTx.HistoricalAnalysis.EthMevTxAnalysis
+		txHistory.EndReason = "success"
+		txHistory.ExpectedProfitAmountOut = expProfit.String()
+		txHistory.GasUsedWei = fmt.Sprintf("%d", totalGasCost)
+		rx, rerr := t.getRxFromHash(ctx, txHash)
+		if rerr != nil {
+			return rerr
+		}
+		txHistory.RxBlockNumber = int(rx.BlockNumber.Int64())
+		err = artemis_mev_models.InsertEthMevTxAnalysis(ctx, txHistory)
+		if err != nil {
+			return err
+		}
+	} else {
+		err = artemis_mev_models.UpdateEthMevTxAnalysis(ctx, txHash, expProfit.String(), fmt.Sprintf("%d", totalGasCost), "success")
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

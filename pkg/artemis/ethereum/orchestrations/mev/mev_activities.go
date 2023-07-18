@@ -25,7 +25,7 @@ import (
 func (d *ArtemisMevActivities) HistoricalSimulateAndValidateTx(ctx context.Context, trade artemis_autogen_bases.EthMempoolMevTx) error {
 	uni := InitNewUniHardhat(ctx)
 	at := artemis_realtime_trading.NewActiveTradingDebugger(uni)
-	td := artemis_trade_debugger.NewTradeDebugger(at, uni.Web3Client)
+	td := artemis_trade_debugger.NewTradeDebuggerWorkflowAnalysis(at, uni.Web3Client)
 	err := td.Replay(ctx, trade.TxHash, true)
 	if err != nil {
 		log.Err(err).Str("network", d.Network).Msg("Replay failed")

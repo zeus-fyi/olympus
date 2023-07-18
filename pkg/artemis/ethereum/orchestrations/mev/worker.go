@@ -9,7 +9,7 @@ import (
 	"go.temporal.io/sdk/client"
 )
 
-func (t *ArtemisMevWorker) ExecuteArtemisMevWorkflow(ctx context.Context, blockNum int) error {
+func (t *ArtemisMevWorker) ExecuteArtemisMevWorkflow(ctx context.Context, bn int) error {
 	tc := t.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
@@ -17,7 +17,7 @@ func (t *ArtemisMevWorker) ExecuteArtemisMevWorkflow(ctx context.Context, blockN
 	}
 	txWf := NewArtemisMevWorkflow()
 	wf := txWf.ArtemisMevWorkflow
-	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, blockNum)
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, bn)
 	if err != nil {
 		log.Err(err).Msg("ExecuteArtemisMevWorkflow")
 		return err
@@ -25,6 +25,21 @@ func (t *ArtemisMevWorker) ExecuteArtemisMevWorkflow(ctx context.Context, blockN
 	return err
 }
 
+func (t *ArtemisMevWorker) ExecuteArtemisGetLookaheadPricesWorkflow(ctx context.Context, bn uint64) error {
+	tc := t.ConnectTemporalClient()
+	defer tc.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: "lookahead-prices",
+	}
+	txWf := NewArtemisMevWorkflow()
+	wf := txWf.ArtemisGetLookaheadPricesWorkflow
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, bn)
+	if err != nil {
+		log.Err(err).Msg("ArtemisGetLookaheadPricesWorkflow")
+		return err
+	}
+	return err
+}
 func (t *ArtemisMevWorker) ExecuteArtemisBlacklistTxWorkflow(ctx context.Context) error {
 	tc := t.ConnectTemporalClient()
 	defer tc.Close()

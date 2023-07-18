@@ -9,12 +9,14 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	dynamodb_mev "github.com/zeus-fyi/olympus/datastores/dynamodb/mev"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	artemis_uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -28,19 +30,6 @@ func (d *ArtemisMevActivities) HistoricalSimulateAndValidateTx(ctx context.Conte
 	uni.PrintResults()
 	return nil
 }
-
-/*
-	at := artemis_trade_executor.ActiveTrader
-	tfPrediction, err := web3_client.UnmarshalTradeExecutionFlow(trade.TxFlowPrediction)
-	if err != nil {
-		return err
-	}
-	werr := at.SimStage(ctx, []web3_client.TradeExecutionFlowJSON{tfPrediction})
-	if werr.Err != nil {
-		log.Err(err).Msg("RunHistoricalTradeAnalysis failed")
-		return err
-	}
-*/
 
 func (d *ArtemisMevActivities) SimulateAndValidateBundle(ctx context.Context) error {
 	return nil
@@ -66,6 +55,16 @@ func (d *ArtemisMevActivities) BlacklistMinedTxs(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func (d *ArtemisMevActivities) GetLookaheadPrices(ctx context.Context, bn uint64) error {
+	wc := web3_actions.NewWeb3ActionsClient(artemis_trading_cache.Wc.NodeURL)
+	wc.AddBearerToken(artemis_orchestration_auth.Bearer)
+	err := artemis_uniswap_pricing.FetchV2PairsToMulticall(ctx, wc, bn)
+	if err != nil {
+		return err
 	}
 	return nil
 }

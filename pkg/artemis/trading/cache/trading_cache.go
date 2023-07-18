@@ -15,7 +15,6 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/apollo/ethereum/client_apis/beacon_api"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
-	artemis_uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 )
 
 const (
@@ -134,13 +133,12 @@ func SetActiveTradingBlockCache(ctx context.Context) {
 			}
 			Wc.Close()
 			Cache.Set(redis_mev.LatestBlockNumberCacheKey, bn, 6*time.Second)
+			if ReadRedis.Client != nil {
+
+			}
 			log.Info().Msg(fmt.Sprintf("Received new timestamp: %s", t))
 			if WriteRedis.Client != nil {
-				err := artemis_uniswap_pricing.FetchV2PairsToMulticall(ctx, Wc, bn)
-				if err != nil {
-					log.Err(err).Msg("SetActiveTradingBlockCache: failed to fetch v2 pairs to multicall")
-				}
-				err = WriteRedis.AddOrUpdateLatestBlockCache(ctx, bn, 12*time.Second)
+				err := WriteRedis.AddOrUpdateLatestBlockCache(ctx, bn, 12*time.Second)
 				if err != nil {
 					log.Err(err).Str("client", WriteRedis.Client.String()).Msg("SetActiveTradingBlockCache: failed to set block number in redis")
 				}

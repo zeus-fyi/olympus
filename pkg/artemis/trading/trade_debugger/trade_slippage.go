@@ -17,7 +17,7 @@ import (
 func (t *TradeDebugger) FindSlippage(ctx context.Context, to *artemis_trading_types.TradeOutcome) error {
 	ac := t.dat.GetSimAuxClient()
 	//tf.FrontRunTrade.AmountOut = tf.FrontRunTrade.SimulatedAmountOut //  new(big.Int).SetInt64(0)
-	ur, err := ac.GenerateTradeV2SwapFromTokenToToken(ctx, nil, to)
+	ur, _, err := ac.GenerateTradeV2SwapFromTokenToToken(ctx, nil, to)
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (t *TradeDebugger) FindSlippage(ctx context.Context, to *artemis_trading_ty
 		}
 		to.AmountOut = artemis_eth_units.ApplyTransferTax(start, num, denom)
 		fmt.Println("amount out", to.AmountOut.String())
-		ur, err = ac.GenerateTradeV2SwapFromTokenToToken(ctx, nil, to)
+		ur, _, err = ac.GenerateTradeV2SwapFromTokenToToken(ctx, nil, to)
 		if err != nil {
 			return err
 		}

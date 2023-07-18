@@ -47,7 +47,6 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 		if err != nil {
 			return err
 		}
-		return err
 	}
 	_, err = t.dat.GetSimUniswapClient().ExecTradeByMethod(&tf)
 	if err != nil {

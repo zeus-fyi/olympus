@@ -24,10 +24,10 @@ func (t *TradeDebugger) FindSlippage(ctx context.Context, to *artemis_trading_ty
 	start := to.AmountOut
 	num := 0
 	denom := 1000
-	for i := 0; i < 10; i++ {
+	for i := 1; i < 10; i++ {
 		switch i {
 		case 0:
-			num = 1
+			num = 0
 			denom = 1
 		case 1:
 			num = 10

@@ -107,7 +107,7 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 func GetMaxTransferTax(tf web3_client.TradeExecutionFlow) (int, int) {
 	tokenOne := tf.UserTrade.AmountInAddr.String()
 	tokenTwo := tf.UserTrade.AmountOutAddr.String()
-	maxNum, maxDen := 1, 1
+	maxNum, maxDen := 0, 1
 	if info, ok := artemis_trading_cache.TokenMap[tokenOne]; ok {
 		den := info.TransferTaxDenominator
 		num := info.TransferTaxNumerator

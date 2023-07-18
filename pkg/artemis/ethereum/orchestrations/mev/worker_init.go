@@ -21,7 +21,6 @@ var (
 )
 
 const (
-	EthereumMainnetTaskQueue                = "EthereumMainnetTaskQueue"
 	EthereumMainnetMevHistoricalTxTaskQueue = "EthereumMainnetMevHistoricalTxTaskQueue"
 	ActiveMainnetMEVTaskQueue               = "ActiveMainnetMEVTaskQueue"
 )
@@ -33,10 +32,10 @@ func InitMainnetEthereumMevWorker(ctx context.Context, temporalAuthCfg temporal_
 		log.Err(err).Msg("InitMainnetEthereumMevWorker: NewTemporalClient failed")
 		misc.DelayedPanic(err)
 	}
-	taskQueueName := EthereumMainnetTaskQueue
+	taskQueueName := ActiveMainnetMEVTaskQueue
 	w := temporal_base.NewWorker(taskQueueName)
 	activityDef := NewArtemisMevActivities(ArtemisMevClientMainnet)
-	activityDef.Network = "mainnet"
+	activityDef.Network = hestia_req_types.Mainnet
 	wf := NewArtemisMevWorkflow()
 
 	w.AddWorkflows(wf.GetWorkflows())

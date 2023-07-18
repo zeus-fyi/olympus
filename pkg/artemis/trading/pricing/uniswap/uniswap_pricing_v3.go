@@ -122,11 +122,7 @@ func (p *UniswapV3Pair) PricingData(ctx context.Context, path artemis_trading_ty
 			return err
 		}
 		p.PoolAddress = pa.String()
-		err = p.GetSlot0(ctx)
-		if err != nil {
-			return err
-		}
-		err = p.GetLiquidity(ctx)
+		err = p.GetLiquidityAndSlot0FromMulticall3(ctx)
 		if err != nil {
 			return err
 		}
@@ -148,17 +144,9 @@ func (p *UniswapV3Pair) PricingData(ctx context.Context, path artemis_trading_ty
 		}
 		p.Pool = v3Pool
 	} else {
-		decimals, err := wc.GetContractDecimals(ctx, path.TokenIn.Hex())
-		if err != nil {
-			return err
-		}
 		// todo, store decimals in db
-		tokenA := uniswap_core_entities.NewToken(1, accounts.HexToAddress(path.TokenIn.Hex()), uint(decimals), "", "")
-		decimals, err = wc.GetContractDecimals(ctx, path.GetEndToken().Hex())
-		if err != nil {
-			return err
-		}
-		tokenB := uniswap_core_entities.NewToken(1, accounts.HexToAddress(path.GetEndToken().Hex()), uint(decimals), "", "")
+		tokenA := uniswap_core_entities.NewToken(1, accounts.HexToAddress(path.TokenIn.Hex()), 0, "", "")
+		tokenB := uniswap_core_entities.NewToken(1, accounts.HexToAddress(path.GetEndToken().Hex()), 0, "", "")
 		// todo not sure if this factoryAddress covers all cases
 		factoryAddress := accounts.HexToAddress(UniswapV3FactoryAddress)
 		pa, err := utils.ComputePoolAddress(factoryAddress, tokenA, tokenB, p.Fee, "")
@@ -166,11 +154,7 @@ func (p *UniswapV3Pair) PricingData(ctx context.Context, path artemis_trading_ty
 			return err
 		}
 		p.PoolAddress = pa.String()
-		err = p.GetSlot0(ctx)
-		if err != nil {
-			return err
-		}
-		err = p.GetLiquidity(ctx)
+		err = p.GetLiquidityAndSlot0FromMulticall3(ctx)
 		if err != nil {
 			return err
 		}
@@ -196,9 +180,11 @@ func (p *UniswapV3Pair) PricingData(ctx context.Context, path artemis_trading_ty
 		pricingData := UniswapPricingData{
 			V3Pair: *p,
 		}
-		err := redisCache.AddOrUpdatePairPricesCache(ctx, hs, pricingData, time.Minute*60)
-		if err != nil {
-			log.Err(err).Msgf("Error adding v3 pair prices to cache for %s", hs)
+		if redisCache.Client != nil {
+			err := redisCache.AddOrUpdatePairPricesCache(ctx, hs, pricingData, time.Minute*60)
+			if err != nil {
+				log.Err(err).Msgf("Error adding v3 pair prices to cache for %s", hs)
+			}
 		}
 		Cache.Set(hs, p, time.Minute*5)
 	}

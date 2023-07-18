@@ -91,13 +91,12 @@ func ProcessMempoolTxs(ctx context.Context) {
 				log.Err(err).Msg("ExecuteArtemisBlacklistTxWorkflow failed")
 			}
 			log.Info().Msg("ExecuteArtemisMevWorkflow")
-			time.Sleep(t.Add(4 * time.Second).Sub(time.Now()))
+			time.Sleep(t.Add(8 * time.Second).Sub(time.Now()))
 			err = ArtemisMevWorkerMainnet.ExecuteArtemisMevWorkflow(ctx, int(bn))
 			if err != nil {
 				log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
 			}
-			time.Sleep(t.Add(4 * time.Second).Sub(time.Now()))
-			err = ArtemisMevWorkerMainnet.ExecuteArtemisMevWorkflow(ctx, int(bn))
+			err = ArtemisMevWorkerMainnet.ExecuteArtemisGetLookaheadPricesWorkflow(ctx, bn)
 			if err != nil {
 				log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
 			}

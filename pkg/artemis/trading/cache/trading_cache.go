@@ -133,6 +133,9 @@ func SetActiveTradingBlockCache(ctx context.Context) {
 			}
 			Wc.Close()
 			Cache.Set(redis_mev.LatestBlockNumberCacheKey, bn, 6*time.Second)
+			if ReadRedis.Client != nil {
+
+			}
 			log.Info().Msg(fmt.Sprintf("Received new timestamp: %s", t))
 			if WriteRedis.Client != nil {
 				err := WriteRedis.AddOrUpdateLatestBlockCache(ctx, bn, 12*time.Second)

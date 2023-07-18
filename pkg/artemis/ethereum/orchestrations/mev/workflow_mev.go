@@ -40,6 +40,23 @@ func (t *ArtemisMevWorkflow) ArtemisHistoricalSimTxWorkflow(ctx workflow.Context
 	return nil
 }
 
+func (t *ArtemisMevWorkflow) ArtemisGetLookaheadPricesWorkflow(ctx workflow.Context, bn uint64) error {
+	log := workflow.GetLogger(ctx)
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: time.Second * 3,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 2,
+		},
+	}
+	lookupCacheCtx := workflow.WithActivityOptions(ctx, ao)
+	err := workflow.ExecuteActivity(lookupCacheCtx, t.GetLookaheadPrices, bn).Get(lookupCacheCtx, nil)
+	if err != nil {
+		log.Error("Failed to set pricing cache", "Error", err)
+		return err
+	}
+	return nil
+}
+
 func (t *ArtemisMevWorkflow) ArtemisTxBlacklistWorkflow(ctx workflow.Context) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{

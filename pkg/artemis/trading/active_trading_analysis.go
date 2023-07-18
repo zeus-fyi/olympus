@@ -136,6 +136,9 @@ func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64)
 func ApplyMaxTransferTax(tf *web3_client.TradeExecutionFlowJSON) error {
 	tokenOne := tf.UserTrade.AmountInAddr.String()
 	tokenTwo := tf.UserTrade.AmountOutAddr.String()
+	if tokenOne == artemis_trading_constants.ZeroAddress && tokenTwo == artemis_trading_constants.ZeroAddress {
+		return errors.New("dat: ApplyMaxTransferTax, tokenOne and tokenTwo are zero address")
+	}
 	maxNum, maxDen := 0, 1
 	if info, ok := artemis_trading_cache.TokenMap[tokenOne]; ok {
 		if info.TransferTaxNumerator == nil || info.TransferTaxDenominator == nil {

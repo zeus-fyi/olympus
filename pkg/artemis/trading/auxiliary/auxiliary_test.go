@@ -22,6 +22,7 @@ type ArtemisAuxillaryTestSuite struct {
 	simMainnetTrader AuxiliaryTradingUtils
 	at1              AuxiliaryTradingUtils
 	at2              AuxiliaryTradingUtils
+	atMainnet        AuxiliaryTradingUtils
 	acc              accounts.Account
 	acc2             accounts.Account
 	acc3             accounts.Account

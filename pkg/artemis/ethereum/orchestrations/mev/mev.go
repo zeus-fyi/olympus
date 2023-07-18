@@ -76,6 +76,8 @@ func ProcessMempoolTxs(ctx context.Context) {
 	for {
 		select {
 		case t := <-timestampChan:
+			// todo: margin needed for now, but should remove via refactor
+			time.Sleep(25 * time.Millisecond)
 			wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
 			wc.Dial()
 			bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(ctx, wc)
@@ -84,19 +86,19 @@ func ProcessMempoolTxs(ctx context.Context) {
 				return
 			}
 			wc.Close()
+			err := ArtemisMevWorkerMainnet.ExecuteArtemisGetLookaheadPricesWorkflow(ctx, bn)
+			if err != nil {
+				log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
+			}
 			log.Info().Msg(fmt.Sprintf("Received new timestamp: %s", t))
 			log.Info().Msg("ExecuteArtemisMevWorkflow: ExecuteArtemisBlacklistTxWorkflow")
-			err := ArtemisMevWorkerMainnet.ExecuteArtemisBlacklistTxWorkflow(ctx)
+			err = ArtemisMevWorkerMainnet.ExecuteArtemisBlacklistTxWorkflow(ctx)
 			if err != nil {
 				log.Err(err).Msg("ExecuteArtemisBlacklistTxWorkflow failed")
 			}
 			log.Info().Msg("ExecuteArtemisMevWorkflow")
 			time.Sleep(t.Add(8 * time.Second).Sub(time.Now()))
 			err = ArtemisMevWorkerMainnet.ExecuteArtemisMevWorkflow(ctx, int(bn))
-			if err != nil {
-				log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
-			}
-			err = ArtemisMevWorkerMainnet.ExecuteArtemisGetLookaheadPricesWorkflow(ctx, bn)
 			if err != nil {
 				log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
 			}

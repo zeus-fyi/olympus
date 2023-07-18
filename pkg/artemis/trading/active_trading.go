@@ -130,7 +130,7 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 		log.Err(err).Msg("failed to pass process txs")
 		return ErrWrapper{Err: err, Stage: "ProcessTxs"}
 	}
-	err = a.ProcessBundleStage(ctx, tfSlice)
+	err = a.ProcessBundleStage(ctx, tfSlice, a.GetMetricsClient())
 	if err != nil {
 		return ErrWrapper{
 			Err: err, Stage: "ProcessBundleStage",

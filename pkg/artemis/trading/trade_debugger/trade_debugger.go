@@ -11,6 +11,7 @@ import (
 )
 
 type TradeDebugger struct {
+	insertNewTxs      bool
 	onlyWETH          bool
 	dat               artemis_realtime_trading.ActiveTrading
 	ContractAnalysis  async_analysis.ContractAnalysis
@@ -22,6 +23,15 @@ func NewTradeDebugger(a artemis_realtime_trading.ActiveTrading, lnc web3_client.
 		dat:               a,
 		LiveNetworkClient: lnc,
 	}
+}
+
+func NewTradeDebuggerWorkflowAnalysis(a artemis_realtime_trading.ActiveTrading, lnc web3_client.Web3Client) TradeDebugger {
+	td := TradeDebugger{
+		dat:               a,
+		LiveNetworkClient: lnc,
+	}
+	td.insertNewTxs = true
+	return td
 }
 
 type HistoricalAnalysisDebug struct {

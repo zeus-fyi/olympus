@@ -134,6 +134,12 @@ func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64)
 }
 
 func ApplyMaxTransferTax(tf *web3_client.TradeExecutionFlowJSON) error {
+	bn, berr := artemis_trading_cache.GetLatestBlock(context.Background())
+	if berr != nil {
+		log.Err(berr).Msg("failed to get latest block")
+		return errors.New("ailed to get latest block")
+	}
+	tf.CurrentBlockNumber = artemis_eth_units.NewBigIntFromUint(bn)
 	tokenOne := tf.UserTrade.AmountInAddr.String()
 	tokenTwo := tf.UserTrade.AmountOutAddr.String()
 	if tokenOne == artemis_trading_constants.ZeroAddress && tokenTwo == artemis_trading_constants.ZeroAddress {
@@ -186,6 +192,6 @@ func ApplyMaxTransferTax(tf *web3_client.TradeExecutionFlowJSON) error {
 	if artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.SandwichTrade.AmountOut) || artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.SandwichPrediction.ExpectedProfit) {
 		return errors.New("expectedProfit == 0 or 1")
 	}
-	log.Info().Interface("profitTokenAddress", tf.SandwichTrade.AmountOutAddr.String()).Interface("sellAmount", tf.SandwichPrediction.SellAmount).Interface("tf.SandwichPrediction.ExpectedProfit", tf.SandwichPrediction.ExpectedProfit).Str("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut).Msg("ApplyMaxTransferTax")
+	log.Info().Str("txHash", tf.Tx.Hash).Uint64("bn", tf.CurrentBlockNumber.Uint64()).Interface("profitTokenAddress", tf.SandwichTrade.AmountOutAddr.String()).Interface("sellAmount", tf.SandwichPrediction.SellAmount).Interface("tf.SandwichPrediction.ExpectedProfit", tf.SandwichPrediction.ExpectedProfit).Str("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut).Msg("ApplyMaxTransferTax")
 	return nil
 }

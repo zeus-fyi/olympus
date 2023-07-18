@@ -15,9 +15,10 @@ import (
 )
 
 const (
-	irisSvc     = "https://iris.zeus.fyi/v1/internal/"
-	irisBetaSvc = "https://iris.zeus.fyi/v1beta/internal/"
-	hardhatSvc  = "https://hardhat.zeus.fyi/"
+	irisSvc        = "https://iris.zeus.fyi/v1/internal/"
+	irisBetaSvc    = "https://iris.zeus.fyi/v1beta/internal/"
+	hardhatSvc     = "https://hardhat.zeus.fyi/"
+	irisSvcBeacons = "http://iris.iris.svc.cluster.local/v1beta/internal/router/group?routeGroup=quiknode-mainnet"
 )
 
 var (
@@ -34,7 +35,7 @@ func InitNewUniHardhat(ctx context.Context) *web3_client.UniswapClient {
 	if err != nil {
 		panic(err)
 	}
-	wc := web3_client.NewWeb3Client(irisBetaSvc, acc)
+	wc := web3_client.NewWeb3Client(irisSvcBeacons, acc)
 	m := map[string]string{
 		"Authorization": "Bearer " + AuthHeader,
 	}
@@ -86,19 +87,19 @@ func ProcessMempoolTxs(ctx context.Context) {
 				return
 			}
 			wc.Close()
-			err := ArtemisMevWorkerMainnet.ExecuteArtemisGetLookaheadPricesWorkflow(ctx, bn)
+			err := ArtemisActiveMevWorkerMainnet.ExecuteArtemisGetLookaheadPricesWorkflow(ctx, bn)
 			if err != nil {
 				log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
 			}
 			log.Info().Msg(fmt.Sprintf("Received new timestamp: %s", t))
 			log.Info().Msg("ExecuteArtemisMevWorkflow: ExecuteArtemisBlacklistTxWorkflow")
-			err = ArtemisMevWorkerMainnet.ExecuteArtemisBlacklistTxWorkflow(ctx)
+			err = ArtemisActiveMevWorkerMainnet.ExecuteArtemisBlacklistTxWorkflow(ctx)
 			if err != nil {
 				log.Err(err).Msg("ExecuteArtemisBlacklistTxWorkflow failed")
 			}
 			log.Info().Msg("ExecuteArtemisMevWorkflow")
 			time.Sleep(t.Add(8 * time.Second).Sub(time.Now()))
-			err = ArtemisMevWorkerMainnet.ExecuteArtemisMevWorkflow(ctx, int(bn))
+			err = ArtemisMevWorkerMainnetHistoricalTxs.ExecuteArtemisMevWorkflow(ctx, int(bn))
 			if err != nil {
 				log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
 			}

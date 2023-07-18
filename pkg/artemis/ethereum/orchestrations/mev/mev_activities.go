@@ -24,11 +24,13 @@ import (
 
 func (d *ArtemisMevActivities) HistoricalSimulateAndValidateTx(ctx context.Context, trade artemis_autogen_bases.EthMempoolMevTx) error {
 	uni := InitNewUniHardhat(ctx)
+	uni.Web3Client.AddSessionLockHeader(trade.TxHash)
 	at := artemis_realtime_trading.NewActiveTradingDebugger(uni)
 	td := artemis_trade_debugger.NewTradeDebuggerWorkflowAnalysis(at, uni.Web3Client)
 	err := td.Replay(ctx, trade.TxHash, true)
 	if err != nil {
 		log.Err(err).Str("network", d.Network).Msg("Replay failed")
+		return err
 	}
 	return err
 }
@@ -55,6 +57,7 @@ func (d *ArtemisMevActivities) BlacklistMinedTxs(ctx context.Context) error {
 		c.Set(tx.Hash().String(), tx, cache.DefaultExpiration)
 		err := artemis_trading_cache.WriteRedis.AddTxHashCache(ctx, tx.Hash().String(), time.Hour*24)
 		if err != nil {
+			log.Err(err).Str("network", d.Network).Msg("AddTxHashCache failed")
 			return err
 		}
 	}

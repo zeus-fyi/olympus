@@ -7,6 +7,7 @@ import (
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
 type ArtemisMevWorker struct {
@@ -15,12 +16,13 @@ type ArtemisMevWorker struct {
 
 var (
 	ArtemisMevWorkerMainnet              ArtemisMevWorker
+	ArtemisActiveMevWorkerMainnet        ArtemisMevWorker
 	ArtemisMevWorkerMainnetHistoricalTxs ArtemisMevWorker
 )
 
 const (
-	EthereumMainnetTaskQueue                = "EthereumMainnetTaskQueue"
 	EthereumMainnetMevHistoricalTxTaskQueue = "EthereumMainnetMevHistoricalTxTaskQueue"
+	ActiveMainnetMEVTaskQueue               = "ActiveMainnetMEVTaskQueue"
 )
 
 func InitMainnetEthereumMevWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
@@ -30,16 +32,36 @@ func InitMainnetEthereumMevWorker(ctx context.Context, temporalAuthCfg temporal_
 		log.Err(err).Msg("InitMainnetEthereumMevWorker: NewTemporalClient failed")
 		misc.DelayedPanic(err)
 	}
-	taskQueueName := EthereumMainnetTaskQueue
+	taskQueueName := ActiveMainnetMEVTaskQueue
 	w := temporal_base.NewWorker(taskQueueName)
 	activityDef := NewArtemisMevActivities(ArtemisMevClientMainnet)
-	activityDef.Network = "mainnet"
+	activityDef.Network = hestia_req_types.Mainnet
 	wf := NewArtemisMevWorkflow()
 
 	w.AddWorkflows(wf.GetWorkflows())
 	w.AddActivities(activityDef.GetActivities())
 	ArtemisMevWorkerMainnet.Worker = w
 	ArtemisMevWorkerMainnet.TemporalClient = tc
+	return
+}
+
+func InitMainnetEthereumActiveMEVWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
+	log.Ctx(ctx).Info().Msg("Artemis: InitMainnetEthereumActiveMEVWorker")
+	tc, err := temporal_base.NewTemporalClient(temporalAuthCfg)
+	if err != nil {
+		log.Err(err).Msg("InitMainnetEthereumActiveMEVWorker: NewTemporalClient failed")
+		misc.DelayedPanic(err)
+	}
+	taskQueueName := ActiveMainnetMEVTaskQueue
+	w := temporal_base.NewWorker(taskQueueName)
+	activityDef := NewArtemisMevActivities(ArtemisMevClientMainnet)
+	activityDef.Network = hestia_req_types.Mainnet
+	wf := NewArtemisMevWorkflow()
+
+	w.AddWorkflows(wf.GetWorkflows())
+	w.AddActivities(activityDef.GetActivities())
+	ArtemisActiveMevWorkerMainnet.Worker = w
+	ArtemisActiveMevWorkerMainnet.TemporalClient = tc
 	return
 }
 
@@ -94,6 +116,8 @@ func InitMevWorkers(ctx context.Context, temporalAuthCfg temporal_auth.TemporalA
 	InitMainnetEthereumMevWorker(ctx, temporalAuthCfg)
 	log.Ctx(ctx).Info().Msg("Artemis: InitMevWorkers: InitMainnetEthereumMevHistoricalTxsWorker")
 	InitMainnetEthereumMevHistoricalTxsWorker(ctx, temporalAuthCfg)
+	log.Ctx(ctx).Info().Msg("Artemis: InitMevWorkers: InitMainnetEthereumActiveMEVWorker")
+	InitMainnetEthereumActiveMEVWorker(ctx, temporalAuthCfg)
 	log.Ctx(ctx).Info().Msg("Artemis: InitMevWorkers: InitGoerliEthereumMevWorker")
 	InitGoerliEthereumMevWorker(ctx, temporalAuthCfg)
 	log.Ctx(ctx).Info().Msg("Artemis: InitMevWorkers succeeded")

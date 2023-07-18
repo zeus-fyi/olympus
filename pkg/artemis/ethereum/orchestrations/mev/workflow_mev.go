@@ -18,20 +18,21 @@ type HistoricalTxAnalysis struct {
 func (t *ArtemisMevWorkflow) ArtemisHistoricalSimTxWorkflow(ctx workflow.Context, trades HistoricalTxAnalysis) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Second * 300,
+		StartToCloseTimeout: time.Second * 300 * 5,
 		RetryPolicy: &temporal.RetryPolicy{
-			MaximumAttempts:    10,
+			MaximumAttempts:    3,
 			InitialInterval:    time.Second * 5,
 			BackoffCoefficient: 2,
 		},
+		TaskQueue: EthereumMainnetMevHistoricalTxTaskQueue,
 	}
 	srr := workflow.Sleep(ctx, trades.StartTimeDelay)
 	if srr != nil {
 		log.Error("Failed to sleep before tx analysis", "Error", srr)
 		return srr
 	}
-	histSimTxCtx := workflow.WithActivityOptions(ctx, ao)
 	for _, trade := range trades.Trades {
+		histSimTxCtx := workflow.WithActivityOptions(ctx, ao)
 		err := workflow.ExecuteActivity(histSimTxCtx, t.HistoricalSimulateAndValidateTx, trade).Get(histSimTxCtx, nil)
 		if err != nil {
 			log.Error("Failed to sim historical mempool tx", "Error", err)
@@ -44,10 +45,11 @@ func (t *ArtemisMevWorkflow) ArtemisHistoricalSimTxWorkflow(ctx workflow.Context
 func (t *ArtemisMevWorkflow) ArtemisGetLookaheadPricesWorkflow(ctx workflow.Context, bn uint64) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Second * 3,
+		StartToCloseTimeout: time.Second * 4,
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 2,
 		},
+		TaskQueue: ActiveMainnetMEVTaskQueue,
 	}
 	lookupCacheCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(lookupCacheCtx, t.GetLookaheadPrices, bn).Get(lookupCacheCtx, nil)
@@ -65,6 +67,7 @@ func (t *ArtemisMevWorkflow) ArtemisTxBlacklistWorkflow(ctx workflow.Context) er
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 3,
 		},
+		TaskQueue: ActiveMainnetMEVTaskQueue,
 	}
 	blacklistTxsCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(blacklistTxsCtx, t.BlacklistMinedTxs).Get(blacklistTxsCtx, nil)
@@ -82,6 +85,7 @@ func (t *ArtemisMevWorkflow) ArtemisRemoveProcessedTxsWorkflow(ctx workflow.Cont
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 3,
 		},
+		TaskQueue: ActiveMainnetMEVTaskQueue,
 	}
 	removeMempoolTxsCtx := workflow.WithActivityOptions(ctx, ao)
 	for _, tx := range mempoolTxs {
@@ -118,6 +122,7 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context, blockNumbe
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 3,
 		},
+		TaskQueue: ActiveMainnetMEVTaskQueue,
 	}
 	getMempoolTxsCtx := workflow.WithActivityOptions(ctx, ao)
 	var mempoolTxs artemis_autogen_bases.EthMempoolMevTxSlice
@@ -132,6 +137,7 @@ func (t *ArtemisMevWorkflow) ArtemisMevWorkflow(ctx workflow.Context, blockNumbe
 		return nil
 	}
 	childWorkflowOptions := workflow.ChildWorkflowOptions{
+		TaskQueue:         ActiveMainnetMEVTaskQueue,
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
 	}
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)

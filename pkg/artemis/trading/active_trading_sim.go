@@ -48,7 +48,7 @@ func (a *ActiveTrading) SimStage(ctx context.Context, tfSlice []web3_client.Trad
 	}
 	log.Info().Msg("preparing bundles for submission")
 	a.GetMetricsClient().StageProgressionMetrics.CountPostActiveTradingFilter(float64(len(tfSlice)))
-	err = a.ProcessBundleStage(ctx, tfSlice)
+	err = a.ProcessBundleStage(ctx, tfSlice, a.GetMetricsClient())
 	if err != nil {
 		log.Err(err).Msg("failed to process bundles")
 		return ErrWrapper{Err: err, Stage: "ProcessBundleStage", Code: 200}

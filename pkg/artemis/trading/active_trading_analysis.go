@@ -127,7 +127,7 @@ func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64)
 	return nil
 }
 
-func ApplyMaxTransferTax(tf *web3_client.TradeExecutionFlowJSON) {
+func ApplyMaxTransferTax(tf *web3_client.TradeExecutionFlowJSON) error {
 	tokenOne := tf.UserTrade.AmountInAddr.String()
 	tokenTwo := tf.UserTrade.AmountOutAddr.String()
 	maxNum, maxDen := 1, 1
@@ -169,4 +169,9 @@ func ApplyMaxTransferTax(tf *web3_client.TradeExecutionFlowJSON) {
 	tf.SandwichTrade.AmountOut = adjAmountOutSandwich.String()
 	tf.SandwichPrediction.ExpectedProfit = adjAmountOutSandwich.String()
 	fmt.Println("maxNum: ", maxNum, "maxDen: ", maxDen)
+
+	if artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.SandwichPrediction.ExpectedProfit) {
+		return errors.New("expectedProfit == 0 or 1")
+	}
+	return nil
 }

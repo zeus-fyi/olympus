@@ -87,10 +87,11 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 	}
 	fmt.Println("DONE ANALYZING tx: ", tf.Tx.Hash().String(), "at block: ", mevTx.GetBlockNumber())
 	profitToken := tf.SandwichTrade.AmountOutAddr.String()
-	fmt.Println("profitToken", tf.SandwichTrade.AmountOutAddr.String())
-	fmt.Println("expectedProfit", tf.SandwichTrade.AmountOut.String())
+	fmt.Println("profitToken", profitToken)
+	fmt.Println("sandwichTfAmountOut", tf.SandwichTrade.AmountOut.String())
+
 	expProfit := artemis_eth_units.SubBigInt(endBal, startBal)
-	fmt.Println("expProfit", expProfit)
+	fmt.Println("expProfitAmountOutBalanceChange", expProfit)
 
 	err = tf.GetAggregateGasUsage(ctx, ac.U.Web3Client)
 	if err != nil {

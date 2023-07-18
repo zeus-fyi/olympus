@@ -92,9 +92,9 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 			return nil, errors.New("pd is nil")
 		}
 		tf := inputs.BinarySearch(pd)
-		ApplyMaxTransferTax(&tf)
-		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" || tf.SandwichPrediction.ExpectedProfit == "" {
-			return nil, errors.New("expectedProfit == 0 or 1")
+		err = ApplyMaxTransferTax(&tf)
+		if err != nil {
+			return nil, err
 		}
 		tf.Trade.TradeMethod = exactInput
 		newTx := artemis_trading_types.JSONTx{}
@@ -138,10 +138,9 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 			return nil, errors.New("pd is nil")
 		}
 		tf := inputs.BinarySearch(pd)
-		ApplyMaxTransferTax(&tf)
-
-		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" || tf.SandwichPrediction.ExpectedProfit == "" {
-			return nil, errors.New("expectedProfit == 0 or 1")
+		err = ApplyMaxTransferTax(&tf)
+		if err != nil {
+			return nil, err
 		}
 		tf.Trade.TradeMethod = exactOutput
 		newTx := artemis_trading_types.JSONTx{}
@@ -186,10 +185,9 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 			return nil, errors.New("pd is nil")
 		}
 		tf := inputs.BinarySearch(pd)
-		ApplyMaxTransferTax(&tf)
-
-		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" || tf.SandwichPrediction.ExpectedProfit == "" {
-			return nil, errors.New("expectedProfit == 0 or 1")
+		err = ApplyMaxTransferTax(&tf)
+		if err != nil {
+			return nil, err
 		}
 		tf.Trade.TradeMethod = swapExactInputSingle
 		newTx := artemis_trading_types.JSONTx{}
@@ -233,7 +231,10 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 			return nil, errors.New("pd is nil")
 		}
 		tf := inputs.BinarySearch(pd)
-		ApplyMaxTransferTax(&tf)
+		err = ApplyMaxTransferTax(&tf)
+		if err != nil {
+			return nil, err
+		}
 
 		newTx := artemis_trading_types.JSONTx{}
 		err = newTx.UnmarshalTx(tx.Tx)
@@ -280,10 +281,9 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 			return nil, errors.New("pd is nil")
 		}
 		tf := inputs.BinarySearch(pd.V2Pair)
-		ApplyMaxTransferTax(&tf)
-
-		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" || tf.SandwichPrediction.ExpectedProfit == "" {
-			return nil, errors.New("expectedProfit == 0 or 1")
+		err = ApplyMaxTransferTax(&tf)
+		if err != nil {
+			return nil, err
 		}
 		newTx := artemis_trading_types.JSONTx{}
 		err = newTx.UnmarshalTx(tx.Tx)

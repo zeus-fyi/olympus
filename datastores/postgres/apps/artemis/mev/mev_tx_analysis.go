@@ -183,3 +183,15 @@ func SelectEthMevMempoolTxByTxHash(ctx context.Context, txHash string) ([]Histor
 	}
 	return txAnalysisSlice, misc.ReturnIfErr(err, q.LogHeader("SelectEthMevTxAnalysis"))
 }
+
+func UpdateEthMevTxAnalysis(ctx context.Context, txHash, expectedProfit, gasCost, endReason string) error {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `UPDATE eth_mev_tx_analysis
+				  SET expected_profit_amount_out = $2, end_reason = $3, gas_used_wei = $4
+				  WHERE tx_hash = $1;`
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, txHash, expectedProfit, endReason, gasCost)
+	if err == pgx.ErrNoRows {
+		return err
+	}
+	return misc.ReturnIfErr(err, q.LogHeader("UpdateEthMevTxAnalysis"))
+}

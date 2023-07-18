@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
@@ -77,9 +79,27 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 	if err != nil {
 		return err
 	}
+
+	profitToken := tf.SandwichTrade.AmountOutAddr.String()
 	fmt.Println("profitToken", tf.SandwichTrade.AmountOutAddr.String())
 	fmt.Println("expectedProfit", tf.SandwichTrade.AmountOut.String())
-	fmt.Println("actualProfit", artemis_eth_units.SubBigInt(endBal, startBal))
+	expProfit := artemis_eth_units.SubBigInt(endBal, startBal)
+	fmt.Println("expProfit", expProfit)
+
+	err = tf.GetAggregateGasUsage(ctx, ac.U.Web3Client)
+	if err != nil {
+		return err
+	}
+	totalGasCost := tf.SandwichTrade.TotalGasCost + tf.FrontRunTrade.TotalGasCost
+	fmt.Println("totalGasCost", totalGasCost)
+
+	if profitToken == artemis_trading_constants.WETH9ContractAddress {
+		expProfit = artemis_eth_units.SubUint64FBigInt(expProfit, totalGasCost)
+	}
+	err = artemis_mev_models.UpdateEthMevTxAnalysis(ctx, txHash, expProfit.String(), fmt.Sprintf("%d", totalGasCost), "success")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

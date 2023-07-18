@@ -2,9 +2,11 @@ package artemis_reporting
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"math/big"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
@@ -69,31 +71,37 @@ func GetRewardsHistory(ctx context.Context, rhf RewardHistoryFilter) (*RewardsGr
 	defer rows.Close()
 	for rows.Next() {
 		rh := RewardsHistory{}
-		addrOut := ""
-		profit := ""
-		var name *string
-		var symbol *string
-		var decimals *int
-		transferTaxNumerator := 0
-		transferTaxDenominator := 0
+		var addrOut sql.NullString
+		var profit sql.NullString
+		var name sql.NullString
+		var symbol sql.NullString
+		var decimals sql.NullInt64
+		var transferTaxNumerator sql.NullInt64
+		var transferTaxDenominator sql.NullInt64
+
 		rowErr := rows.Scan(&addrOut, &profit, &name, &symbol, &decimals, &transferTaxNumerator, &transferTaxDenominator, &rh.FailedCount)
 		if rowErr != nil {
+			log.Err(rowErr).Msg("GetRewardsHistory")
 			return nil, rowErr
 		}
-		tt := uniswap_core_entities.NewFraction(artemis_eth_units.NewBigInt(transferTaxNumerator), artemis_eth_units.NewBigInt(transferTaxDenominator))
-		if name == nil || symbol == nil || decimals == nil {
-			fmt.Println("name, symbol, decimals are nil", addrOut)
-			continue
-		}
-		rh.AmountOutToken = uniswap_core_entities.NewTokenWithTransferTax(1, accounts.HexToAddress(addrOut), uint(*decimals), *symbol, *name, tt)
-		rh.ExpectedProfitAmountOut = artemis_eth_units.NewBigIntFromStr(profit)
-		if v, ok := rw.Map[addrOut]; ok {
-			v.Count += 1
-			v.ExpectedProfitAmountOut = artemis_eth_units.AddBigInt(v.ExpectedProfitAmountOut, rh.ExpectedProfitAmountOut)
-			rw.Map[addrOut] = v
-		} else {
-			rh.Count = 1
-			rw.Map[addrOut] = rh
+
+		if transferTaxNumerator.Valid && transferTaxDenominator.Valid {
+			tt := uniswap_core_entities.NewFraction(artemis_eth_units.NewBigInt(int(transferTaxNumerator.Int64)), artemis_eth_units.NewBigInt(int(transferTaxDenominator.Int64)))
+
+			if name.Valid == false || symbol.Valid == false || decimals.Valid == false || profit.Valid == false || addrOut.Valid == false {
+				fmt.Println("name, symbol, decimals are nil", addrOut)
+				continue
+			}
+			rh.AmountOutToken = uniswap_core_entities.NewTokenWithTransferTax(1, accounts.HexToAddress(addrOut.String), uint(decimals.Int64), symbol.String, name.String, tt)
+			rh.ExpectedProfitAmountOut = artemis_eth_units.NewBigIntFromStr(profit.String)
+			if v, ok := rw.Map[addrOut.String]; ok {
+				v.Count += 1
+				v.ExpectedProfitAmountOut = artemis_eth_units.AddBigInt(v.ExpectedProfitAmountOut, rh.ExpectedProfitAmountOut)
+				rw.Map[addrOut.String] = v
+			} else {
+				rh.Count = 1
+				rw.Map[addrOut.String] = rh
+			}
 		}
 	}
 	return rw, nil

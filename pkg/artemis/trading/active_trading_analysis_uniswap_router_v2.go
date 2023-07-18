@@ -88,6 +88,7 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			return nil, errors.New("pd is nil")
 		}
 		tf := st.BinarySearch(pd.V2Pair)
+		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(&tf)
 		if err != nil {
 			return nil, err
@@ -130,6 +131,7 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			return nil, errors.New("pd is nil")
 		}
 		tf := st.BinarySearch(pd.V2Pair)
+		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(&tf)
 		if err != nil {
 			return nil, err
@@ -176,6 +178,7 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			return nil, errors.New("pd is nil")
 		}
 		tf := st.BinarySearch(pd.V2Pair)
+		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(&tf)
 		if err != nil {
 			return nil, err
@@ -217,6 +220,7 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			return nil, errors.New("pd is nil")
 		}
 		tf := st.BinarySearch(pd.V2Pair)
+		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(&tf)
 		if err != nil {
 			return nil, err
@@ -258,6 +262,7 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			return nil, errors.New("pd is nil")
 		}
 		tf := st.BinarySearch(pd.V2Pair)
+		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(&tf)
 		if err != nil {
 			return nil, err
@@ -303,6 +308,7 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			return nil, errors.New("pd is nil")
 		}
 		tf := st.BinarySearch(pd.V2Pair)
+		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(&tf)
 		if err != nil {
 			return nil, err
@@ -358,6 +364,7 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			return nil, errors.New("pd is nil")
 		}
 		tf := st.BinarySearch(pd.V2Pair)
+		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(&tf)
 		if err != nil {
 			return nil, err
@@ -403,6 +410,7 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			return nil, errors.New("pd is nil")
 		}
 		tf := st.BinarySearch(pd.V2Pair)
+		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(&tf)
 		if err != nil {
 			return nil, err
@@ -446,6 +454,7 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			return nil, errors.New("pd is nil")
 		}
 		tf := st.BinarySearch(pd.V2Pair)
+		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(&tf)
 		if err != nil {
 			return nil, err

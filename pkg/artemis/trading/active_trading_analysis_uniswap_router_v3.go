@@ -92,6 +92,7 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 			return nil, errors.New("pd is nil")
 		}
 		tf := inputs.BinarySearch(pd)
+		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(&tf)
 		if err != nil {
 			return nil, err
@@ -138,6 +139,7 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 			return nil, errors.New("pd is nil")
 		}
 		tf := inputs.BinarySearch(pd)
+		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(&tf)
 		if err != nil {
 			return nil, err
@@ -185,6 +187,7 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 			return nil, errors.New("pd is nil")
 		}
 		tf := inputs.BinarySearch(pd)
+		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(&tf)
 		if err != nil {
 			return nil, err
@@ -231,6 +234,7 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 			return nil, errors.New("pd is nil")
 		}
 		tf := inputs.BinarySearch(pd)
+		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(&tf)
 		if err != nil {
 			return nil, err
@@ -243,9 +247,7 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 			return nil, err
 		}
 		tf.Tx = newTx
-		if tf.SandwichPrediction.ExpectedProfit == "0" || tf.SandwichPrediction.ExpectedProfit == "1" || tf.SandwichPrediction.ExpectedProfit == "" {
-			return nil, errors.New("expectedProfit == 0 or 1")
-		}
+
 		tf.Trade.TradeMethod = swapExactOutputSingle
 		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 		if m != nil {
@@ -284,6 +286,7 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 		if err != nil {
 			return nil, err
 		}
+		tf.Tx.Hash = tx.Tx.Hash().String()
 		newTx := artemis_trading_types.JSONTx{}
 		err = newTx.UnmarshalTx(tx.Tx)
 		if err != nil {

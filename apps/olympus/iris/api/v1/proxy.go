@@ -69,7 +69,7 @@ func (p *ProxyRequest) Process(c echo.Context, isInternal bool) error {
 		Url:        urlVal.String(),
 		Payload:    p.Body,
 		IsInternal: isInternal,
-		Timeout:    15 * time.Minute,
+		Timeout:    1 * time.Minute,
 	}
 	ctx := context.Background()
 	resp, err := artemis_api_requests.ArtemisProxyWorker.ExecuteArtemisApiProxyWorkflow(ctx, apiPr)

@@ -138,6 +138,7 @@ func ApplyTransferTax(amountOut *big.Int, num, den int) *big.Int {
 
 func FractionalAmount(amount *big.Int, perc *core_entities.Percent) *big.Int {
 	if amount == nil || perc == nil {
+		return NewBigInt(0)
 	}
 	amountOut := MulBigInt(amount, perc.Numerator)
 	amountOut = DivBigInt(amountOut, perc.Denominator)

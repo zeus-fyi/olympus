@@ -13,7 +13,7 @@ func (t *ArtemisMevWorker) ExecuteArtemisMevWorkflow(ctx context.Context, bn int
 	tc := t.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
-		TaskQueue: "mev-analysis",
+		TaskQueue: EthereumMainnetMevHistoricalTxTaskQueue,
 	}
 	txWf := NewArtemisMevWorkflow()
 	wf := txWf.ArtemisMevWorkflow
@@ -29,7 +29,7 @@ func (t *ArtemisMevWorker) ExecuteArtemisGetLookaheadPricesWorkflow(ctx context.
 	tc := t.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
-		TaskQueue: "lookahead-prices",
+		TaskQueue: ActiveMainnetMEVTaskQueue,
 	}
 	txWf := NewArtemisMevWorkflow()
 	wf := txWf.ArtemisGetLookaheadPricesWorkflow
@@ -44,7 +44,7 @@ func (t *ArtemisMevWorker) ExecuteArtemisBlacklistTxWorkflow(ctx context.Context
 	tc := t.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
-		TaskQueue: "tx-blacklist",
+		TaskQueue: ActiveMainnetMEVTaskQueue,
 	}
 	txWf := NewArtemisMevWorkflow()
 	wf := txWf.ArtemisTxBlacklistWorkflow

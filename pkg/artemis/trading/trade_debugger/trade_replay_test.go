@@ -39,7 +39,6 @@ func (t *ArtemisTradeDebuggerTestSuite) TestReplayerBulk() {
 		err = t.td.Replay(ctx, txHash, true)
 		t.NoError(err)
 	}
-	t.NoError(err)
 }
 
 // artemis_mev_models

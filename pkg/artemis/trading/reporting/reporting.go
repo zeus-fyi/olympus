@@ -89,7 +89,7 @@ func GetRewardsHistory(ctx context.Context, rhf RewardHistoryFilter) (*RewardsGr
 			tt := uniswap_core_entities.NewFraction(artemis_eth_units.NewBigInt(int(transferTaxNumerator.Int64)), artemis_eth_units.NewBigInt(int(transferTaxDenominator.Int64)))
 
 			if name.Valid == false || symbol.Valid == false || decimals.Valid == false || profit.Valid == false || addrOut.Valid == false {
-				fmt.Println("name, symbol, decimals are nil", addrOut)
+				//fmt.Println("name, symbol, decimals are nil", addrOut)
 				continue
 			}
 			rh.AmountOutToken = uniswap_core_entities.NewTokenWithTransferTax(1, accounts.HexToAddress(addrOut.String), uint(decimals.Int64), symbol.String, name.String, tt)

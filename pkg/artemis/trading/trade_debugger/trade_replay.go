@@ -111,6 +111,11 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 
 	if t.insertNewTxs {
 		txHistory := mevTx.HistoricalAnalysis.EthMevTxAnalysis
+		txHistory.AmountIn = tf.FrontRunTrade.AmountIn.String()
+		txHistory.AmountInAddr = tf.FrontRunTrade.AmountInAddr.String()
+		txHistory.AmountOutAddr = tf.FrontRunTrade.AmountOutAddr.String()
+		txHistory.TradeMethod = tf.Trade.TradeMethod
+		txHistory.TxHash = txHash
 		txHistory.EndReason = "success"
 		txHistory.ExpectedProfitAmountOut = expProfit.String()
 		txHistory.GasUsedWei = fmt.Sprintf("%d", totalGasCost)

@@ -30,8 +30,8 @@ func (t *ArtemisMevWorkflow) ArtemisHistoricalSimTxWorkflow(ctx workflow.Context
 		log.Error("Failed to sleep before tx analysis", "Error", srr)
 		return srr
 	}
-	histSimTxCtx := workflow.WithActivityOptions(ctx, ao)
 	for _, trade := range trades.Trades {
+		histSimTxCtx := workflow.WithActivityOptions(ctx, ao)
 		err := workflow.ExecuteActivity(histSimTxCtx, t.HistoricalSimulateAndValidateTx, trade).Get(histSimTxCtx, nil)
 		if err != nil {
 			log.Error("Failed to sim historical mempool tx", "Error", err)

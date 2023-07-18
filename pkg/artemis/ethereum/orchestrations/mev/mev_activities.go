@@ -57,6 +57,7 @@ func (d *ArtemisMevActivities) BlacklistMinedTxs(ctx context.Context) error {
 		c.Set(tx.Hash().String(), tx, cache.DefaultExpiration)
 		err := artemis_trading_cache.WriteRedis.AddTxHashCache(ctx, tx.Hash().String(), time.Hour*24)
 		if err != nil {
+			log.Err(err).Str("network", d.Network).Msg("AddTxHashCache failed")
 			return err
 		}
 	}

@@ -24,10 +24,18 @@ type TradeExecutionFlow struct {
 // 0x80ae3cc1748c10f42e591783001817b8a56b188eb1867282e396a8d99d583d00
 
 func (t *ArtemisTradeDebuggerTestSuite) TestReplayer() {
+	// 0x925dd1373fea0f4537e9670dc984a5c0640da81142269e8eff6840d8caaea6f4
 	txHash := "0x4a9c05ef46a2a0f4d36577bd38e37502245448a1b52da9c73ca59af37059f89e"
 	err := t.td.Replay(ctx, txHash, true)
 	t.NoError(err)
 }
+
+/*
+0x925dd1373fea0f4537e9670dc984a5c0640da81142269e8eff6840d8caaea6f4
+profitToken 0x511686014F39F487E5CDd5C37B4b37606B795ae3
+expectedProfit 6635478652156427361470498
+actualProfit 6788708842908401012256112
+*/
 
 // 0x58282b7b489ae24a75e7b49b68f1360d95374e00a4dbc58c3aaea3329c4e8aca
 func (t *ArtemisTradeDebuggerTestSuite) TestReadRx() {

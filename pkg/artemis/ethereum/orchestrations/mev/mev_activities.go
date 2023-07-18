@@ -24,6 +24,7 @@ import (
 
 func (d *ArtemisMevActivities) HistoricalSimulateAndValidateTx(ctx context.Context, trade artemis_autogen_bases.EthMempoolMevTx) error {
 	uni := InitNewUniHardhat(ctx)
+	uni.Web3Client.AddSessionLockHeader(trade.TxHash)
 	at := artemis_realtime_trading.NewActiveTradingDebugger(uni)
 	td := artemis_trade_debugger.NewTradeDebuggerWorkflowAnalysis(at, uni.Web3Client)
 	err := td.Replay(ctx, trade.TxHash, true)

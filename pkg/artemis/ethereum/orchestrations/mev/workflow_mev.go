@@ -20,7 +20,7 @@ func (t *ArtemisMevWorkflow) ArtemisHistoricalSimTxWorkflow(ctx workflow.Context
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Second * 300 * 5,
 		RetryPolicy: &temporal.RetryPolicy{
-			MaximumAttempts:    10,
+			MaximumAttempts:    3,
 			InitialInterval:    time.Second * 5,
 			BackoffCoefficient: 2,
 		},
@@ -45,7 +45,7 @@ func (t *ArtemisMevWorkflow) ArtemisHistoricalSimTxWorkflow(ctx workflow.Context
 func (t *ArtemisMevWorkflow) ArtemisGetLookaheadPricesWorkflow(ctx workflow.Context, bn uint64) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Second * 3,
+		StartToCloseTimeout: time.Second * 4,
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 2,
 		},

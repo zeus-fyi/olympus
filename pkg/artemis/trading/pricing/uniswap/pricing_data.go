@@ -185,7 +185,7 @@ func FetchV2PairsToMulticall(ctx context.Context, wc web3_actions.Web3Actions, b
 			return err
 		}
 	}
-	log.Info().Int("pairCount", len(addresses)).Any("addresses", addresses).Msg("Fetched V2 pairs to multicall")
+	log.Info().Int("pairCount", len(addresses)).Msg("Fetched V2 pairs to multicall")
 	return nil
 }
 

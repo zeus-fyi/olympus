@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
 func (t *TradeDebugger) getMevTx(ctx context.Context, txHash string, fromMempoolTx bool) (HistoricalAnalysisDebug, error) {
@@ -25,16 +27,24 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 	}
 	fmt.Println("ANALYZING tx: ", tf.Tx.Hash().String(), "at block: ", mevTx.GetBlockNumber())
 	ac := t.dat.GetSimAuxClient()
+	n, d := t.GetMaxTransferTax(tf)
+	amountOutStartFrontRun := tf.FrontRunTrade.AmountOut
+	amountOutStartSandwich := tf.SandwichTrade.AmountOut
+
+	adjAmountOut := artemis_eth_units.ApplyTransferTax(amountOutStartFrontRun, n, d)
+	tf.FrontRunTrade.AmountOut = adjAmountOut
 	ur, err := ac.GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.FrontRunTrade)
 	if err != nil {
 		return err
 	}
 	err = t.dat.GetSimUniswapClient().InjectExecTradeV2SwapFromTokenToToken(ctx, ur, &tf.FrontRunTrade)
 	if err != nil {
+		tf.FrontRunTrade.AmountOut = amountOutStartFrontRun
 		err = t.FindSlippage(ctx, &tf.FrontRunTrade)
 		if err != nil {
 			return err
 		}
+		return err
 	}
 	_, err = t.dat.GetSimUniswapClient().ExecTradeByMethod(&tf)
 	if err != nil {
@@ -45,6 +55,8 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 		return err
 	}
 	tf.SandwichTrade.AmountIn = tf.FrontRunTrade.AmountOut
+	adjAmountOut = artemis_eth_units.ApplyTransferTax(amountOutStartSandwich, n+30, d)
+	tf.SandwichTrade.AmountOut = adjAmountOut
 	ur, err = ac.GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.SandwichTrade)
 	if err != nil {
 		return err
@@ -54,10 +66,12 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 	}
 	err = t.dat.GetSimUniswapClient().InjectExecTradeV2SwapFromTokenToToken(ctx, ur, &tf.SandwichTrade)
 	if err != nil {
+		tf.SandwichTrade.AmountOut = amountOutStartSandwich
 		err = t.FindSlippage(ctx, &tf.SandwichTrade)
 		if err != nil {
 			return err
 		}
+		return err
 	}
 	endBal, err := ac.CheckAuxERC20BalanceFromAddr(ctx, tf.SandwichTrade.AmountOutAddr.String())
 	if err != nil {
@@ -69,29 +83,37 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 	return nil
 }
 
-/*
-	frontRunTokenInAddr := tf.FrontRunTrade.AmountInAddr.String()
-	if info, ok := artemis_trading_cache.TokenMap[frontRunTokenInAddr]; ok {
+func (t *TradeDebugger) GetMaxTransferTax(tf web3_client.TradeExecutionFlow) (int, int) {
+	tokenOne := tf.UserTrade.AmountInAddr.String()
+	tokenTwo := tf.UserTrade.AmountOutAddr.String()
+	maxNum, maxDen := 1, 1
+	if info, ok := artemis_trading_cache.TokenMap[tokenOne]; ok {
 		den := info.TransferTaxDenominator
 		num := info.TransferTaxNumerator
 		if den != nil && num != nil {
-			fmt.Println("token: ", frontRunTokenInAddr, "tradingTax: num: ", *num, "den: ", *den)
-		} else {
-			fmt.Println("token not found in cache")
-		}
-		tf.FrontRunTrade.AmountOut = artemis_eth_units.ApplyTransferTax(tf.FrontRunTrade.AmountOut, *num, *den)
-	}
-	frontRunTokenOutAddr := tf.FrontRunTrade.AmountOutAddr.String()
-	if info, ok := artemis_trading_cache.TokenMap[frontRunTokenOutAddr]; ok {
-		den := info.TransferTaxDenominator
-		num := info.TransferTaxNumerator
-		if den != nil && num != nil {
-			fmt.Println("token: ", frontRunTokenOutAddr, "tradingTax: num: ", *num, "den: ", *den)
-		} else {
-			fmt.Println("token not found in cache")
-		}
-		tf.FrontRunTrade.AmountOut = artemis_eth_units.ApplyTransferTax(tf.FrontRunTrade.AmountOut, *num, *den)
-	}
-	tf.SandwichTrade.AmountIn = tf.FrontRunTrade.AmountOut
+			fmt.Println("token: ", tokenOne, "transferTax: num: ", *num, "den: ", *den)
 
-*/
+			if *num > maxNum {
+				maxNum = *num
+				maxDen = *den
+			}
+		} else {
+			fmt.Println("token not found in cache")
+		}
+	}
+	if info, ok := artemis_trading_cache.TokenMap[tokenTwo]; ok {
+		den := info.TransferTaxDenominator
+		num := info.TransferTaxNumerator
+		if den != nil && num != nil {
+			fmt.Println("token: ", tokenTwo, "tradingTax: num: ", *num, "den: ", *den)
+			if *num > maxNum {
+				maxNum = *num
+				maxDen = *den
+			}
+		} else {
+			fmt.Println("token not found in cache")
+		}
+	}
+	fmt.Println("maxNum: ", maxNum, "maxDen: ", maxDen)
+	return maxNum, maxDen
+}

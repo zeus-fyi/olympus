@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/google/uuid"
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
@@ -23,13 +24,12 @@ import (
 )
 
 func (d *ArtemisMevActivities) HistoricalSimulateAndValidateTx(ctx context.Context, trade artemis_autogen_bases.EthMempoolMevTx) error {
-	uni := InitNewUniHardhat(ctx)
-	uni.Web3Client.AddSessionLockHeader(trade.TxHash)
+	uni := InitNewUniHardhat(ctx, uuid.New().String())
 	at := artemis_realtime_trading.NewActiveTradingDebugger(uni)
 	td := artemis_trade_debugger.NewTradeDebuggerWorkflowAnalysis(at, uni.Web3Client)
 	err := td.Replay(ctx, trade.TxHash, true)
 	if err != nil {
-		log.Err(err).Str("network", d.Network).Msg("Replay failed")
+		log.Err(err).Str("sessionID", uni.Web3Client.GetSessionLockHeader()).Str("network", d.Network).Msg("Replay failed")
 		return err
 	}
 	return err

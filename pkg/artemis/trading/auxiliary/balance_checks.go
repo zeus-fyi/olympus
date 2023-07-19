@@ -87,6 +87,15 @@ func (a *AuxiliaryTradingUtils) checkEthBalanceGreaterThan(ctx context.Context, 
 	return artemis_eth_units.IsXGreaterThanY(bal, amount), err
 }
 
+func CheckEthBalanceGreaterThan(ctx context.Context, w3c web3_client.Web3Client, amount *big.Int) (bool, error) {
+	bal, err := w3c.GetCurrentBalance(ctx)
+	if err != nil {
+		return false, err
+	}
+	log.Info().Msgf("ETH balance: %s", bal.String())
+	return artemis_eth_units.IsXGreaterThanY(bal, amount), err
+}
+
 func (a *AuxiliaryTradingUtils) CheckAuxWETHBalance(ctx context.Context) (*big.Int, error) {
 	wethAddr := a.getChainSpecificWETH()
 	chainID, err := a.getChainID(ctx)
@@ -109,6 +118,15 @@ func (a *AuxiliaryTradingUtils) CheckAuxWETHBalanceGreaterThan(ctx context.Conte
 	return artemis_eth_units.IsXGreaterThanY(bal, amount), err
 }
 
+func CheckMainnetAuxWETHBalanceGreaterThan(ctx context.Context, w3c web3_client.Web3Client, amount *big.Int) (bool, error) {
+	token := core_entities.NewToken(uint(1), artemis_trading_constants.WETH9ContractAddressAccount, 18, "WETH", "Wrapped Ether")
+	bal, err := w3c.ReadERC20TokenBalance(ctx, token.Address.String(), w3c.Account.Address().String())
+	if err != nil {
+		log.Warn().Err(err).Msg("error getting WETH balance")
+		return false, err
+	}
+	return artemis_eth_units.IsXGreaterThanY(bal, amount), err
+}
 func (a *AuxiliaryTradingUtils) getChainID(ctx context.Context) (int, error) {
 	chainID := hestia_req_types.EthereumMainnetProtocolNetworkID
 	switch a.w3c().Network {

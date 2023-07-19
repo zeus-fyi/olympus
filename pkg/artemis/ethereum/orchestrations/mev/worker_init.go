@@ -15,8 +15,8 @@ type ArtemisMevWorker struct {
 }
 
 var (
+	ArtemisMevWorkerMainnet2             ArtemisMevWorker
 	ArtemisMevWorkerMainnet              ArtemisMevWorker
-	ArtemisActiveMevWorkerMainnet        ArtemisMevWorker
 	ArtemisMevWorkerMainnetHistoricalTxs ArtemisMevWorker
 )
 
@@ -60,8 +60,8 @@ func InitMainnetEthereumActiveMEVWorker(ctx context.Context, temporalAuthCfg tem
 
 	w.AddWorkflows(wf.GetWorkflows())
 	w.AddActivities(activityDef.GetActivities())
-	ArtemisActiveMevWorkerMainnet.Worker = w
-	ArtemisActiveMevWorkerMainnet.TemporalClient = tc
+	ArtemisMevWorkerMainnet2.Worker = w
+	ArtemisMevWorkerMainnet2.TemporalClient = tc
 	return
 }
 

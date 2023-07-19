@@ -31,16 +31,14 @@ func InitUniswap(ctx context.Context, authHeader string) {
 	go ProcessMempoolTxs(ctx)
 }
 
-func InitNewUniHardhat(ctx context.Context) *web3_client.UniswapClient {
+func InitNewUniHardhat(ctx context.Context, sessionID string) *web3_client.UniswapClient {
 	acc, err := accounts.CreateAccount()
 	if err != nil {
 		panic(err)
 	}
 	wc := web3_client.NewWeb3Client(irisBetaSvcInternal, acc)
-	m := map[string]string{
-		"Authorization": "Bearer " + AuthHeader,
-	}
-	wc.Headers = m
+	wc.AddBearerToken(AuthHeader)
+	wc.AddSessionLockHeader(sessionID)
 	uni := web3_client.InitUniswapClient(ctx, wc)
 	uni.PrintOn = true
 	uni.PrintLocal = false
@@ -88,13 +86,13 @@ func ProcessMempoolTxs(ctx context.Context) {
 				return
 			}
 			wc.Close()
-			err := ArtemisActiveMevWorkerMainnet.ExecuteArtemisGetLookaheadPricesWorkflow(ctx, bn)
+			err := ArtemisMevWorkerMainnet2.ExecuteArtemisGetLookaheadPricesWorkflow(ctx, bn)
 			if err != nil {
 				log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
 			}
 			log.Info().Msg(fmt.Sprintf("Received new timestamp: %s", t))
 			log.Info().Msg("ExecuteArtemisMevWorkflow: ExecuteArtemisBlacklistTxWorkflow")
-			err = ArtemisActiveMevWorkerMainnet.ExecuteArtemisBlacklistTxWorkflow(ctx)
+			err = ArtemisMevWorkerMainnet.ExecuteArtemisBlacklistTxWorkflow(ctx)
 			if err != nil {
 				log.Err(err).Msg("ExecuteArtemisBlacklistTxWorkflow failed")
 			}

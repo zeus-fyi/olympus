@@ -23,7 +23,7 @@ func (a *ActiveTrading) GetSimAuxClient() *artemis_trading_auxiliary.AuxiliaryTr
 	return a.us.a
 }
 
-func (a *ActiveTrading) SimStage(ctx context.Context, tfSlice []web3_client.TradeExecutionFlowJSON) ErrWrapper {
+func (a *ActiveTrading) SimStage(ctx context.Context, w3c web3_client.Web3Client, tfSlice []web3_client.TradeExecutionFlowJSON) ErrWrapper {
 	err := a.SimTxFilter(ctx, tfSlice)
 	if err != nil {
 		log.Err(err).Msg("failed to pass sim tx filter")
@@ -41,14 +41,14 @@ func (a *ActiveTrading) SimStage(ctx context.Context, tfSlice []web3_client.Trad
 	}
 	log.Info().Msg("simulation stage complete: starting active trading filter")
 	a.GetMetricsClient().StageProgressionMetrics.CountPostSimStage(float64(len(tfSlice)))
-	err = a.ActiveTradingFilterSlice(ctx, tfSlice)
+	err = ActiveTradingFilterSlice(ctx, w3c, tfSlice)
 	if err != nil {
 		log.Err(err).Msg("failed to pass active trading filter")
 		return ErrWrapper{Err: err, Stage: "ActiveTradingFilterSlice", Code: 200}
 	}
 	log.Info().Msg("preparing bundles for submission")
 	a.GetMetricsClient().StageProgressionMetrics.CountPostActiveTradingFilter(float64(len(tfSlice)))
-	err = a.ProcessBundleStage(ctx, tfSlice, a.GetMetricsClient())
+	err = a.ProcessBundleStage(ctx, w3c, tfSlice, a.GetMetricsClient())
 	if err != nil {
 		log.Err(err).Msg("failed to process bundles")
 		return ErrWrapper{Err: err, Stage: "ProcessBundleStage", Code: 200}

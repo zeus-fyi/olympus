@@ -59,6 +59,7 @@ func Artemis() {
 		misc.DelayedPanic(err)
 	}
 	log.Info().Msg("Artemis: ArtemisEthereumMainnetTxBroadcastWorker Started")
+
 	log.Info().Msg("Artemis: Starting ArtemisMevWorkerMainnet")
 	artemis_mev_tx_fetcher.ArtemisMevWorkerMainnet.Worker.RegisterWorker(c)
 	err = artemis_mev_tx_fetcher.ArtemisMevWorkerMainnet.Worker.Start()
@@ -68,14 +69,14 @@ func Artemis() {
 	}
 	log.Info().Msg("Artemis: ArtemisMevWorkerMainnet Started")
 
-	log.Info().Msg("Artemis: Starting ArtemisActiveMevWorkerMainnet")
-	artemis_mev_tx_fetcher.ArtemisActiveMevWorkerMainnet.Worker.RegisterWorker(c)
-	err = artemis_mev_tx_fetcher.ArtemisActiveMevWorkerMainnet.Worker.Start()
+	log.Info().Msg("Artemis: Starting ArtemisMevWorkerMainnet2")
+	artemis_mev_tx_fetcher.ArtemisMevWorkerMainnet2.Worker.RegisterWorker(c)
+	err = artemis_mev_tx_fetcher.ArtemisMevWorkerMainnet2.Worker.Start()
 	if err != nil {
-		log.Fatal().Err(err).Msgf("Artemis: %s ArtemisActiveMevWorkerMainnet Worker.Start failed", env)
+		log.Fatal().Err(err).Msgf("Artemis: %s ArtemisMevWorkerMainnet1 Worker.Start failed", env)
 		misc.DelayedPanic(err)
 	}
-	log.Info().Msg("Artemis: ArtemisActiveMevWorkerMainnet Started")
+	log.Info().Msg("Artemis: ArtemisMevWorkerMainnet2 Started")
 
 	log.Info().Msg("Artemis: Starting ArtemisMevWorkerMainnetHistoricalTxs")
 	artemis_mev_tx_fetcher.ArtemisMevWorkerMainnetHistoricalTxs.Worker.RegisterWorker(c)

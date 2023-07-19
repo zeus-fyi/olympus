@@ -8,11 +8,12 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *ActiveTrading) ProcessBundleStage(ctx context.Context, tfSlice []web3_client.TradeExecutionFlowJSON, m *metrics_trading.TradingMetrics) error {
+func (a *ActiveTrading) ProcessBundleStage(ctx context.Context, w3c web3_client.Web3Client, tfSlice []web3_client.TradeExecutionFlowJSON, m *metrics_trading.TradingMetrics) error {
 	for _, tradeFlow := range tfSlice {
 		tf := tradeFlow.ConvertToBigIntType()
-		err := a.ActiveTradingFilter(ctx, tf)
+		err := ActiveTradingFilter(ctx, w3c, tf)
 		if err != nil {
+			log.Err(err).Msg("failed to pass active filter trade")
 			return err
 		}
 		m.StageProgressionMetrics.CountPostActiveTradingFilter(1)

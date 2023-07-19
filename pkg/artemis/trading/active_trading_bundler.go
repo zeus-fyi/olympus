@@ -14,6 +14,7 @@ func (a *ActiveTrading) ProcessBundleStage(ctx context.Context, w3c web3_client.
 		err := ActiveTradingFilter(ctx, w3c, tf)
 		if err != nil {
 			log.Err(err).Msg("ProcessBundleStage: failed to pass active filter trade")
+			err = nil
 			continue
 		}
 		log.Info().Msgf("ProcessBundleStage: passed active filter trade: %s", tf.Tx.Hash().String())
@@ -21,6 +22,7 @@ func (a *ActiveTrading) ProcessBundleStage(ctx context.Context, w3c web3_client.
 		resp, err := a.GetAuxClient().StagingPackageSandwichAndCall(ctx, &tf)
 		if err != nil {
 			log.Err(err).Msg("ProcessBundleStage: failed to package sandwich")
+			err = nil
 			continue
 		}
 		log.Info().Msgf("ProcessBundleStage: StagingPackageSandwichAndCall passed bundle hash: %s", resp.BundleHash)

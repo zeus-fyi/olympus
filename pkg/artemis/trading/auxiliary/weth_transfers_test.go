@@ -95,7 +95,7 @@ func (t *ArtemisAuxillaryTestSuite) TestUnwrapWETH() {
 			t.Require().Equal(artemis_trading_constants.UniversalRouterSender, sc.DecodedInputs.(web3_client.UnwrapWETHParams).Recipient.String())
 		}
 	}
-	ok, err := ta.CheckAuxWETHBalanceGreaterThan(ctx, toExchAmount)
+	ok, err := CheckAuxWETHBalanceGreaterThan(ctx, *ta.w3c(), toExchAmount)
 	t.Require().Nil(err)
 	t.Require().True(ok)
 

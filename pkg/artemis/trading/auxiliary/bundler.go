@@ -102,7 +102,7 @@ func (a *AuxiliaryTradingUtils) CallFlashbotsBundle(ctx context.Context, bundle 
 	fbCallBundle := flashbotsrpc.FlashbotsCallBundleParam{
 		Txs:         txHexEncodedStrSlice,
 		BlockNumber: bnStr,
-		Timestamp:   a.GetDeadline().Int64(),
+		Timestamp:   GetDeadline().Int64(),
 	}
 	ctx = a.setBlockNumberCtx(ctx, bnStr)
 	resp, err := a.f.CallBundle(ctx, fbCallBundle)
@@ -121,7 +121,7 @@ func (a *AuxiliaryTradingUtils) sendFlashbotsBundle(ctx context.Context, bundle 
 	if err != nil {
 		return flashbotsrpc.FlashbotsSendBundleResponse{}, err
 	}
-	mt := a.GetDeadline().Uint64()
+	mt := GetDeadline().Uint64()
 	fbSendBundle := flashbotsrpc.FlashbotsSendBundleRequest{
 		Txs:          txHexEncodedStrSlice,
 		BlockNumber:  a.getBlockNumberCtx(ctx),

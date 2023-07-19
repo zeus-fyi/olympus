@@ -79,7 +79,7 @@ func (t *ArtemisAuxillaryTestSuite) TestExecV2TradeCallMainnetSimPepeToWeth() (*
 
 func (t *ArtemisAuxillaryTestSuite) testExecV2TradeFromPepeToWeth(ta *AuxiliaryTradingUtils, dumbCoin string, toExchAmount *big.Int) (*web3_client.UniversalRouterExecCmd, *artemis_eth_txs.Permit2Tx) {
 	t.Require().NotEmpty(ta)
-	wethAddr := ta.getChainSpecificWETH()
+	wethAddr := getChainSpecificWETH(*ta.w3c())
 
 	t.Require().Equal(ta.network(), hestia_req_types.Mainnet)
 	t.Require().Equal(wethAddr, artemis_trading_constants.WETH9ContractAddressAccount)
@@ -101,7 +101,7 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2TradeFromPepeToWeth(ta *AuxiliaryT
 	fmt.Println("testExecV2Trade: amountOut", amountOut.String())
 	to.AmountOut = artemis_eth_units.NewBigIntFromStr("0")
 
-	cmd, pt, err := ta.GenerateTradeV2SwapFromTokenToToken(ctx, nil, to)
+	cmd, pt, err := ta.GenerateTradeV2SwapFromTokenToToken(ctx, *ta.w3c(), nil, to)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(pt)
 	t.Require().NotEmpty(cmd)
@@ -136,7 +136,7 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2Trade(ta *AuxiliaryTradingUtils, n
 	t.Require().Equal(ta.tradersAccount().Address().String(), ta.w3c().Address().String())
 	t.Require().Equal(ta.tradersAccount().Address().String(), ta.w3a().Address().String())
 	toExchAmount := artemis_eth_units.GweiMultiple(10000)
-	wethAddr := ta.getChainSpecificWETH()
+	wethAddr := getChainSpecificWETH(*ta.w3c())
 	daiAddr := artemis_trading_constants.DaiContractAddressAccount
 	if ta.network() == hestia_req_types.Goerli {
 		daiAddr = artemis_trading_constants.GoerliDaiContractAddressAccount
@@ -168,7 +168,7 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2Trade(ta *AuxiliaryTradingUtils, n
 	fmt.Println("testExecV2Trade: amountOut", amountOut.String())
 	to.AmountOut = amountOut
 
-	cmd, pt, err := ta.GenerateTradeV2SwapFromTokenToToken(ctx, nil, to)
+	cmd, pt, err := ta.GenerateTradeV2SwapFromTokenToToken(ctx, *ta.w3c(), nil, to)
 	t.Require().Nil(err)
 	t.Require().NotNil(pt)
 	t.Require().Equal(ta.tradersAccount().PublicKey(), pt.Owner)
@@ -202,7 +202,7 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2Trade(ta *AuxiliaryTradingUtils, n
 func (t *ArtemisAuxillaryTestSuite) testExecV2TradePepe(ta *AuxiliaryTradingUtils) (*web3_client.UniversalRouterExecCmd, *artemis_eth_txs.Permit2Tx) {
 	t.Require().NotEmpty(ta)
 	toExchAmount := artemis_eth_units.GweiMultiple(10000)
-	wethAddr := ta.getChainSpecificWETH()
+	wethAddr := getChainSpecificWETH(*ta.w3c())
 	pepeAddr := artemis_trading_constants.PepeContractAddrAccount
 
 	t.Require().Equal(ta.network(), hestia_req_types.Mainnet)
@@ -225,7 +225,7 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2TradePepe(ta *AuxiliaryTradingUtil
 	fmt.Println("testExecV2Trade: amountOut", amountOut.String())
 	to.AmountOut = amountOut
 
-	cmd, pt, err := ta.GenerateTradeV2SwapFromTokenToToken(ctx, nil, to)
+	cmd, pt, err := ta.GenerateTradeV2SwapFromTokenToToken(ctx, *ta.w3c(), nil, to)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(cmd)
 	t.Require().Len(cmd.Commands, 2)

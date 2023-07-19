@@ -15,7 +15,7 @@ import (
 )
 
 func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeETHtoWETH(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, amountIn *big.Int, user *accounts.Address) (*web3_client.UniversalRouterExecCmd, error) {
-	ur = a.checkIfCmdEmpty(ur)
+	ur = checkIfCmdEmpty(ur)
 	if a.tradersAccount() == nil && user == nil {
 		return nil, errors.New("no account or user address provided")
 	}
@@ -53,7 +53,7 @@ func (a *AuxiliaryTradingUtils) GenerateCmdToExchangeETHtoWETH(ctx context.Conte
 
 // generateCmdToExchangeWETHtoETH is not production ready
 func (a *AuxiliaryTradingUtils) generateCmdToExchangeWETHtoETH(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, amountIn *big.Int, user *accounts.Address) (*web3_client.UniversalRouterExecCmd, error) {
-	ur = a.checkIfCmdEmpty(ur)
+	ur = checkIfCmdEmpty(ur)
 	if a.tradersAccount() == nil && user == nil {
 		return nil, errors.New("no account or user address provided")
 	}
@@ -69,7 +69,7 @@ func (a *AuxiliaryTradingUtils) generateCmdToExchangeWETHtoETH(ctx context.Conte
 		AmountIn:     amountIn,
 		AmountInAddr: wethAddr,
 	}
-	permit, _, err := a.generatePermit2Approval(ctx, to)
+	permit, _, err := a.generatePermit2Approval(ctx, *a.w3c(), to)
 	if err != nil {
 		return nil, err
 	}

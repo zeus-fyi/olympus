@@ -142,7 +142,7 @@ const (
 	TradeDeadline = "TradeDeadline"
 )
 
-func (a *AuxiliaryTradingUtils) GetDeadline() *big.Int {
+func GetDeadline() *big.Int {
 	deadline := int(time.Now().Add(60 * time.Second).Unix())
 	sigDeadline := artemis_eth_units.NewBigInt(deadline)
 	return sigDeadline
@@ -157,7 +157,7 @@ func (a *AuxiliaryTradingUtils) getNewTradeDeadlineCtx(ctx context.Context) *big
 }
 
 func (a *AuxiliaryTradingUtils) setNewTradeDeadlineCtx(ctx context.Context) context.Context {
-	deadline := a.GetDeadline()
+	deadline := GetDeadline()
 	ctx = context.WithValue(ctx, TradeDeadline, deadline)
 	return ctx
 }

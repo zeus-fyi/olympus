@@ -16,7 +16,7 @@ func (t *ArtemisAuxillaryTestSuite) TestBalanceCheck() {
 
 	fmt.Println("bal", bal.String())
 
-	bal, err = ta.CheckAuxWETHBalance(ctx)
+	bal, err = CheckAuxWETHBalance(ctx, *ta.w3c())
 	t.Require().Nil(err)
 	t.Require().NotNil(bal)
 	fmt.Println("weth bal", bal.String())
@@ -35,7 +35,7 @@ func (t *ArtemisAuxillaryTestSuite) TestBalanceCheck() {
 	bal, err = ta.checkEthBalance(ctx)
 	fmt.Println("bal", bal.String())
 
-	bal, err = ta.CheckAuxWETHBalance(ctx)
+	bal, err = CheckAuxWETHBalance(ctx, *ta.w3c())
 	t.Require().Nil(err)
 	t.Require().NotNil(bal)
 	fmt.Println("weth bal", bal.String())

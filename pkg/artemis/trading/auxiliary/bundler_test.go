@@ -57,7 +57,7 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2TradeFromUser2(ta *AuxiliaryTradin
 	uni := web3_client.InitUniswapClient(ctx, t.goerliWeb3User)
 	cmd := web3_client.UniversalRouterExecCmd{
 		Commands: []web3_client.UniversalRouterExecSubCmd{},
-		Deadline: ta.GetDeadline(),
+		Deadline: GetDeadline(),
 		Payable:  nil,
 	}
 	ur, err := cmd.EncodeCommands(ctx)

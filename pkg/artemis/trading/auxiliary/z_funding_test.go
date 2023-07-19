@@ -15,7 +15,7 @@ func (t *ArtemisAuxillaryTestSuite) TestMainnetBal() {
 	w3aMainnet := web3_client.NewWeb3Client(t.mainnetNode, &t.acc3)
 	w3aMainnet.AddBearerToken(t.Tc.ProductionLocalTemporalBearerToken)
 	atMainnet := InitAuxiliaryTradingUtils(ctx, w3aMainnet)
-	token := atMainnet.getChainSpecificWETH().String()
+	token := getChainSpecificWETH(*atMainnet.w3c()).String()
 	fmt.Println("token", token)
 	t.Require().NotEmpty(w3aMainnet.Headers)
 
@@ -29,7 +29,7 @@ func (t *ArtemisAuxillaryTestSuite) TestMainnetBal() {
 
 	fmt.Println("bal", bal.String())
 
-	bal, err = atMainnet.CheckAuxWETHBalance(ctx)
+	bal, err = CheckAuxWETHBalance(ctx, *atMainnet.w3c())
 	t.Require().Nil(err)
 	t.Require().NotNil(bal)
 	fmt.Println("weth bal", bal.String())
@@ -41,7 +41,7 @@ func (t *ArtemisAuxillaryTestSuite) TestSetPermit2Mainnet() {
 	w3aMainnet := web3_client.NewWeb3Client(t.mainnetNode, &t.acc3)
 	w3aMainnet.AddBearerToken(t.Tc.ProductionLocalTemporalBearerToken)
 	atMainnet := InitAuxiliaryTradingUtils(ctx, w3aMainnet)
-	token := atMainnet.getChainSpecificWETH().String()
+	token := getChainSpecificWETH(*atMainnet.w3c()).String()
 	fmt.Println("token", token)
 	t.Require().NotEmpty(w3aMainnet.Headers)
 
@@ -61,7 +61,7 @@ func (t *ArtemisAuxillaryTestSuite) TestFundAccount() {
 	w3aMainnet := web3_client.NewWeb3Client(t.mainnetNode, &t.acc3)
 	w3aMainnet.AddBearerToken(t.Tc.ProductionLocalTemporalBearerToken)
 	atMainnet := InitAuxiliaryTradingUtils(ctx, w3aMainnet)
-	token := atMainnet.getChainSpecificWETH().String()
+	token := getChainSpecificWETH(*atMainnet.w3c()).String()
 	fmt.Println("token", token)
 	t.Require().NotEmpty(w3aMainnet.Headers)
 
@@ -75,7 +75,7 @@ func (t *ArtemisAuxillaryTestSuite) TestFundAccount() {
 
 	fmt.Println("bal", bal.String())
 
-	bal, err = atMainnet.CheckAuxWETHBalance(ctx)
+	bal, err = CheckAuxWETHBalance(ctx, *atMainnet.w3c())
 	t.Require().Nil(err)
 	t.Require().NotNil(bal)
 	fmt.Println("weth bal", bal.String())

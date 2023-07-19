@@ -37,13 +37,13 @@ func (a *AuxiliaryTradingUtils) universalRouterExecuteTx(ctx context.Context, si
 	return signedTx, err
 }
 
-func (a *AuxiliaryTradingUtils) debugPrintBalances(ctx context.Context) error {
+func (a *AuxiliaryTradingUtils) debugPrintBalances(ctx context.Context, w3c web3_client.Web3Client) error {
 	bal, err := a.checkEthBalance(ctx)
 	if err != nil {
 		return err
 	}
 	fmt.Println("ETH Balance: ", bal.String())
-	bal, err = a.CheckAuxWETHBalance(ctx)
+	bal, err = CheckAuxWETHBalance(ctx, w3c)
 	if err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func (a *AuxiliaryTradingUtils) debugPrintBalances(ctx context.Context) error {
 
 // takes a universal router command and returns a signed tx
 func (a *AuxiliaryTradingUtils) universalRouterCmdToTxBuilder(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, *web3_actions.SendContractTxPayload, error) {
-	ur.Deadline = a.GetDeadline()
+	ur.Deadline = GetDeadline()
 	data, err := ur.EncodeCommands(ctx)
 	if err != nil {
 		log.Err(err).Msg("error encoding commands")
@@ -117,7 +117,7 @@ func (a *AuxiliaryTradingUtils) GetUniswapUniversalRouterAbiPayload(ctx context.
 	return params, nil
 }
 
-func (a *AuxiliaryTradingUtils) checkIfCmdEmpty(ur *web3_client.UniversalRouterExecCmd) *web3_client.UniversalRouterExecCmd {
+func checkIfCmdEmpty(ur *web3_client.UniversalRouterExecCmd) *web3_client.UniversalRouterExecCmd {
 	if ur == nil {
 		ur = &web3_client.UniversalRouterExecCmd{
 			Commands: []web3_client.UniversalRouterExecSubCmd{},

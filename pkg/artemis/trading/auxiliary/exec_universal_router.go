@@ -53,6 +53,9 @@ func debugPrintBalances(ctx context.Context, w3c web3_client.Web3Client) error {
 
 // takes a universal router command and returns a signed tx
 func universalRouterCmdToTxBuilder(ctx context.Context, w3c web3_client.Web3Client, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, *web3_actions.SendContractTxPayload, error) {
+	if ur == nil {
+		return nil, nil, errors.New("universal router command is nil")
+	}
 	ur.Deadline = GetDeadline()
 	data, err := ur.EncodeCommands(ctx)
 	if err != nil {

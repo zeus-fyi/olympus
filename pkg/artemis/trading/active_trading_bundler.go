@@ -14,13 +14,13 @@ func (a *ActiveTrading) ProcessBundleStage(ctx context.Context, w3c web3_client.
 		err := ActiveTradingFilter(ctx, w3c, tf)
 		if err != nil {
 			log.Err(err).Msg("failed to pass active filter trade")
-			return err
+			continue
 		}
 		m.StageProgressionMetrics.CountPostActiveTradingFilter(1)
 		resp, err := a.GetAuxClient().StagingPackageSandwichAndCall(ctx, &tf)
 		if err != nil {
 			log.Err(err).Msg("failed to package sandwich")
-			return err
+			continue
 		}
 		if resp != nil {
 			log.Info().Interface("fbCallResp", resp).Msg("sent sandwich")

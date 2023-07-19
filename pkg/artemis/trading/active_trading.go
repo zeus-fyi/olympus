@@ -135,7 +135,6 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction, m *
 		return ErrWrapper{Err: merr, Stage: "DecodeTx"}
 	}
 	m.StageProgressionMetrics.CountPostDecodeTx()
-
 	w3c := web3_client.NewWeb3Client(irisSvcBeacons, TraderClient.Account)
 	w3c.AddBearerToken(artemis_orchestration_auth.Bearer)
 	tfSlice, err := ProcessTxs(ctx, &mevTxs, m, w3c.Web3Actions)

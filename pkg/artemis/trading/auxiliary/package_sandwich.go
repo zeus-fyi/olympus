@@ -22,6 +22,7 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 		MevTxs:       []artemis_eth_txs.EthTx{},
 		TotalGasCost: artemis_eth_units.NewBigInt(0),
 	}
+	log.Info().Msg("PackageSandwich: FRONT_RUN start")
 	startCtx := ctx
 	// front run
 	frontRunCtx := CreateFrontRunCtx(startCtx)
@@ -46,6 +47,8 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 	if fpt != nil {
 		frTx.Permit2Tx = fpt.Permit2Tx
 	}
+	log.Info().Msg("PackageSandwich: FRONT_RUN done")
+	log.Info().Msg("PackageSandwich: USER_TRADE start")
 	bundle, err = AddTxToBundleGroup(frontRunCtx, frTx, bundle)
 	if err != nil {
 		log.Info().Interface("mevTx", bundle.MevTxs).Msg("FRONT_RUN: error adding tx to bundle group")
@@ -61,7 +64,9 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 		log.Err(err).Interface("mevTx", bundle.MevTxs).Msg("USER_TRADE: failed to add tx to bundle group")
 		return nil, err
 	}
+	log.Info().Msg("PackageSandwich: USER_TRADE done")
 	// sandwich trade
+	log.Info().Msg("PackageSandwich: SANDWICH_TRADE start")
 	backRunCtx := CreateBackRunCtx(startCtx, w3c)
 	ur, spt, err := GenerateTradeV2SwapFromTokenToToken(backRunCtx, w3c, ur, &tf.SandwichTrade)
 	if err != nil {
@@ -92,7 +97,7 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 		log.Warn().Int("bundleTxCount", len(bundle.MevTxs)).Msg("SANDWICH_TRADE: sandwich bundle not 3 txs")
 		return nil, errors.New("sandwich bundle not 3 txs")
 	}
-	log.Info().Msg("PackageSandwich: end")
+	log.Info().Msg("PackageSandwich: SANDWICH_TRADE done")
 	return bundle, err
 }
 

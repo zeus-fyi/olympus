@@ -22,7 +22,7 @@ import (
 	  - adds sourcing of new blocks
 */
 
-func (a *ActiveTrading) EntryTxFilter(ctx context.Context, tx *types.Transaction) error {
+func EntryTxFilter(ctx context.Context, tx *types.Transaction) error {
 	if tx.To() == nil {
 		return errors.New("dat: EntryTxFilter, tx.To() is nil")
 	}

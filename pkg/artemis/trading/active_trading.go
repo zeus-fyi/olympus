@@ -118,7 +118,7 @@ var txCache = cache.New(time.Hour*24, time.Hour*24)
 
 func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction, m *metrics_trading.TradingMetrics) ErrWrapper {
 	m.StageProgressionMetrics.CountPreEntryFilterTx()
-	err := a.EntryTxFilter(ctx, tx)
+	err := EntryTxFilter(ctx, tx)
 	if err != nil {
 		return ErrWrapper{Err: err, Stage: "EntryTxFilter"}
 	}

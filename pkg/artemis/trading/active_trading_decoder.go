@@ -102,7 +102,6 @@ func DecodeTx(ctx context.Context, tx *types.Transaction, m *metrics_trading.Tra
 			Tx:         tx,
 		}
 		mevTxs = append(mevTxs, singleTx)
-
 		if m != nil {
 			m.TxFetcherMetrics.TransactionGroup(web3_client.UniswapV3Router02Address, methodName)
 		}

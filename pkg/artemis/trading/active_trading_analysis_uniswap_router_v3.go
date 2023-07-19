@@ -68,7 +68,7 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 	bn, berr := artemis_trading_cache.GetLatestBlock(ctx)
 	if berr != nil {
 		log.Err(berr).Msg("failed to get latest block")
-		return nil, errors.New("ailed to get latest block")
+		return nil, errors.New("failed to get latest block")
 	}
 	var tfSlice []web3_client.TradeExecutionFlowJSON
 	toAddr := tx.Tx.To().String()
@@ -93,7 +93,7 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 		}
 		tf := inputs.BinarySearch(pd)
 		tf.Tx.Hash = tx.Tx.Hash().String()
-		err = ApplyMaxTransferTax(&tf)
+		err = ApplyMaxTransferTax(ctx, &tf)
 		if err != nil {
 			return nil, err
 		}
@@ -140,7 +140,7 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 		}
 		tf := inputs.BinarySearch(pd)
 		tf.Tx.Hash = tx.Tx.Hash().String()
-		err = ApplyMaxTransferTax(&tf)
+		err = ApplyMaxTransferTax(ctx, &tf)
 		if err != nil {
 			return nil, err
 		}
@@ -188,7 +188,7 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 		}
 		tf := inputs.BinarySearch(pd)
 		tf.Tx.Hash = tx.Tx.Hash().String()
-		err = ApplyMaxTransferTax(&tf)
+		err = ApplyMaxTransferTax(ctx, &tf)
 		if err != nil {
 			return nil, err
 		}
@@ -235,7 +235,7 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 		}
 		tf := inputs.BinarySearch(pd)
 		tf.Tx.Hash = tx.Tx.Hash().String()
-		err = ApplyMaxTransferTax(&tf)
+		err = ApplyMaxTransferTax(ctx, &tf)
 		if err != nil {
 			return nil, err
 		}
@@ -282,7 +282,7 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 			return nil, errors.New("pd is nil")
 		}
 		tf := inputs.BinarySearch(pd.V2Pair)
-		err = ApplyMaxTransferTax(&tf)
+		err = ApplyMaxTransferTax(ctx, &tf)
 		if err != nil {
 			return nil, err
 		}

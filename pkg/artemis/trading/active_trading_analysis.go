@@ -14,6 +14,7 @@ import (
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
 func ProcessTxs(ctx context.Context, mevTxs *[]web3_client.MevTx, m *metrics_trading.TradingMetrics, w3a web3_actions.Web3Actions) ([]web3_client.TradeExecutionFlowJSON, error) {
@@ -88,7 +89,7 @@ func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64)
 	return nil
 }
 
-func ApplyMaxTransferTax(tf *web3_client.TradeExecutionFlowJSON) error {
+func ApplyMaxTransferTax(ctx context.Context, tf *web3_client.TradeExecutionFlowJSON) error {
 	bn, berr := artemis_trading_cache.GetLatestBlock(context.Background())
 	if berr != nil {
 		log.Err(berr).Msg("failed to get latest block")
@@ -101,6 +102,17 @@ func ApplyMaxTransferTax(tf *web3_client.TradeExecutionFlowJSON) error {
 		log.Warn().Str("tradeMethod", tf.Trade.TradeMethod).Str("toAddr", tf.Tx.To).Msg("dat: ApplyMaxTransferTax, tokenOne and tokenTwo are zero address")
 		return errors.New("dat: ApplyMaxTransferTax, tokenOne and tokenTwo are zero address")
 	}
+	go func(ctx context.Context, tokenA, tokenB string) {
+		err := CheckTokenRegistry(ctx, tokenA, hestia_req_types.EthereumMainnetProtocolNetworkID)
+		if err != nil {
+			log.Err(err).Msg("failed to check token registry")
+		}
+		err = CheckTokenRegistry(ctx, tokenB, hestia_req_types.EthereumMainnetProtocolNetworkID)
+		if err != nil {
+			log.Err(err).Msg("failed to check token registry")
+		}
+	}(ctx, tokenOne, tokenTwo)
+
 	maxNum, maxDen := 0, 1
 	if info, ok := artemis_trading_cache.TokenMap[tokenOne]; ok {
 		if info.TransferTaxNumerator == nil || info.TransferTaxDenominator == nil {

@@ -41,8 +41,9 @@ func (t *TradeDebugger) resetNetwork(ctx context.Context, tf web3_client.TradeEx
 	if tf.CurrentBlockNumber == nil {
 		return fmt.Errorf("current block number is nil")
 	}
-
-	t.dat.GetSimUniswapClient().Web3Client.AddSessionLockHeader(ZeusTestSessionLockHeaderValue)
+	if t.dat.GetSimUniswapClient().Web3Client.GetSessionLockHeader() == "" {
+		t.dat.GetSimUniswapClient().Web3Client.AddSessionLockHeader(ZeusTestSessionLockHeaderValue)
+	}
 	bn, err := t.dat.GetSimUniswapClient().CheckBlockRxAndNetworkReset(ctx, &tf)
 	if err != nil {
 		log.Err(err).Interface("blockNum", bn).Msg("error checking block and network reset")
@@ -75,7 +76,9 @@ func (t *TradeDebugger) setupCleanEnvironment(ctx context.Context, tf web3_clien
 	if tf.Tx == nil {
 		return fmt.Errorf("tx is nil")
 	}
-	t.dat.SimW3c().AddSessionLockHeader(ZeusTestSessionLockHeaderValue)
+	if t.dat.GetSimUniswapClient().Web3Client.GetSessionLockHeader() == "" {
+		t.dat.SimW3c().AddSessionLockHeader(ZeusTestSessionLockHeaderValue)
+	}
 	t.dat.SimW3c().Account = acc
 	t.dat.SimW3c().Dial()
 	defer t.dat.SimW3c().Close()

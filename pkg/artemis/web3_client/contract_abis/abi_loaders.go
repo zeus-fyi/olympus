@@ -19,6 +19,7 @@ var (
 	ctx        = context.Background()
 	MultiCall3 = MustLoadMulticall3Abi()
 	Erc20      = MustLoadERC20Abi()
+	Permit2    = MustLoadPermit2Abi()
 )
 
 func MustLoadMulticall3Abi() *abi.ABI {

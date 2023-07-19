@@ -15,15 +15,15 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() (*AuxiliaryTradingU
 	ta := t.at2
 	cmd := t.testEthToWETH(&ta, toExchAmount)
 	// part 1 of bundle
-	ctx = ta.CreateFrontRunCtx(ctx)
-	tx, _, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
+	ctx = CreateFrontRunCtx(ctx)
+	tx, _, err := universalRouterCmdToTxBuilder(ctx, *ta.w3c(), cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 	t.Require().Equal(toExchAmount, tx.Value())
 	txWithMetadata := TxWithMetadata{
 		Tx: tx,
 	}
-	bundle, err := ta.AddTxToBundleGroup(ctx, txWithMetadata, nil)
+	bundle, err := AddTxToBundleGroup(ctx, txWithMetadata, nil)
 	t.Require().Nil(err)
 	t.Require().Equal(1, len(bundle.MevTxs))
 	t.Require().Equal(1, len(bundle.OrderedTxs))
@@ -36,8 +36,8 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() (*AuxiliaryTradingU
 	user := t.at1
 	fmt.Println("userTrader", user.tradersAccount().PublicKey())
 	cmd = t.testEthToWETH(&user, toExchAmount)
-	ctx = user.CreateUserTradeCtx(ctx)
-	tx, _, err = user.universalRouterCmdToTxBuilder(ctx, cmd)
+	ctx = CreateUserTradeCtx(ctx)
+	tx, _, err = universalRouterCmdToTxBuilder(ctx, *user.w3c(), cmd)
 	t.Require().NotEmpty(tx)
 	fmt.Println("userTrade: txGasLimit", tx.Gas())
 	fmt.Println("userTrade: txGasFeeCap", tx.GasFeeCap().String())
@@ -45,7 +45,7 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() (*AuxiliaryTradingU
 	txWithMetadata = TxWithMetadata{
 		Tx: tx,
 	}
-	bundle, err = ta.AddTxToBundleGroup(ctx, txWithMetadata, bundle)
+	bundle, err = AddTxToBundleGroup(ctx, txWithMetadata, bundle)
 	t.Require().Nil(err)
 	signer := types.LatestSignerForChainID(artemis_eth_units.NewBigInt(hestia_req_types.EthereumGoerliProtocolNetworkID))
 	sender, err := signer.Sender(tx)
@@ -57,9 +57,9 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() (*AuxiliaryTradingU
 	ctx = context.Background()
 	// part 3 of bundle
 	cmd, pt := t.testExecV2Trade(&ta, hestia_req_types.Goerli)
-	ctx = ta.CreateBackRunCtx(ctx)
+	ctx = CreateBackRunCtx(ctx, *ta.w3c())
 	fmt.Println("mainTraderAddr", ta.w3a().Address().String())
-	tx, _, err = ta.universalRouterCmdToTxBuilder(ctx, cmd)
+	tx, _, err = universalRouterCmdToTxBuilder(ctx, *ta.w3c(), cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 	fmt.Println("backRun: txGasLimit", tx.Gas())
@@ -71,7 +71,7 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() (*AuxiliaryTradingU
 		Tx:        tx,
 		Permit2Tx: pt.Permit2Tx,
 	}
-	bundle, err = ta.AddTxToBundleGroup(ctx, txWithMetadata, bundle)
+	bundle, err = AddTxToBundleGroup(ctx, txWithMetadata, bundle)
 	t.Require().Nil(err)
 	t.Require().Equal(3, len(bundle.MevTxs))
 	t.Require().Equal(3, len(bundle.OrderedTxs))
@@ -81,7 +81,7 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() (*AuxiliaryTradingU
 func (t *ArtemisAuxillaryTestSuite) TestSandwichCallBundle() {
 	ta, bundle := t.testMockSandwichBundle()
 	t.Require().NotEmpty(ta)
-	resp, err := ta.CallFlashbotsBundle(ctx, &bundle)
+	resp, err := CallFlashbotsBundle(ctx, *ta.w3c(), &bundle)
 	t.Require().Nil(err)
 	t.Require().NotNil(resp)
 

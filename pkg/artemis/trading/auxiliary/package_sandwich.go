@@ -11,7 +11,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_client.TradeExecutionFlow) (*MevTxGroup, error) {
+func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (*MevTxGroup, error) {
 	log.Info().Msg("PackageSandwich: start")
 	if tf == nil || tf.Tx == nil {
 		return nil, errors.New("tf is nil")
@@ -24,13 +24,13 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_cl
 	}
 	startCtx := ctx
 	// front run
-	frontRunCtx := a.CreateFrontRunCtx(startCtx)
-	ur, fpt, err := a.GenerateTradeV2SwapFromTokenToToken(frontRunCtx, nil, &tf.FrontRunTrade)
+	frontRunCtx := CreateFrontRunCtx(startCtx)
+	ur, fpt, err := GenerateTradeV2SwapFromTokenToToken(frontRunCtx, w3c, nil, &tf.FrontRunTrade)
 	if err != nil {
 		log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed to generate front run tx")
 		return nil, err
 	}
-	frontRunTx, scInfoFrontRun, err := a.universalRouterCmdToTxBuilder(frontRunCtx, ur)
+	frontRunTx, scInfoFrontRun, err := universalRouterCmdToTxBuilder(frontRunCtx, w3c, ur)
 	if err != nil {
 		log.Err(err).Interface("txHash", frontRunTx.Hash().String()).Msg("FRONT_RUN: failed to add tx to bundle group")
 		return nil, err
@@ -46,30 +46,30 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_cl
 	if fpt != nil {
 		frTx.Permit2Tx = fpt.Permit2Tx
 	}
-	bundle, err = a.AddTxToBundleGroup(frontRunCtx, frTx, bundle)
+	bundle, err = AddTxToBundleGroup(frontRunCtx, frTx, bundle)
 	if err != nil {
 		log.Info().Interface("mevTx", bundle.MevTxs).Msg("FRONT_RUN: error adding tx to bundle group")
 		return nil, err
 	}
 	// user trade
-	userCtx := a.CreateUserTradeCtx(startCtx)
+	userCtx := CreateUserTradeCtx(startCtx)
 	userTx := TxWithMetadata{
 		Tx: tf.Tx,
 	}
-	bundle, err = a.AddTxToBundleGroup(userCtx, userTx, bundle)
+	bundle, err = AddTxToBundleGroup(userCtx, userTx, bundle)
 	if err != nil {
 		log.Err(err).Interface("mevTx", bundle.MevTxs).Msg("USER_TRADE: failed to add tx to bundle group")
 		return nil, err
 	}
 	// sandwich trade
-	backRunCtx := a.CreateBackRunCtx(startCtx)
-	ur, spt, err := a.GenerateTradeV2SwapFromTokenToToken(backRunCtx, ur, &tf.SandwichTrade)
+	backRunCtx := CreateBackRunCtx(startCtx, w3c)
+	ur, spt, err := GenerateTradeV2SwapFromTokenToToken(backRunCtx, w3c, ur, &tf.SandwichTrade)
 	if err != nil {
 		log.Err(err).Msg("SANDWICH_TRADE: failed to generate sandwich tx")
 		return nil, err
 	}
 
-	txSand, scInfoSand, err := a.universalRouterCmdToTxBuilder(backRunCtx, ur)
+	txSand, scInfoSand, err := universalRouterCmdToTxBuilder(backRunCtx, w3c, ur)
 	if err != nil {
 		log.Err(err).Interface("txSand", txSand.Hash().String()).Msg("SANDWICH_TRADE: failed to add tx to bundle group")
 		return nil, err
@@ -83,7 +83,7 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_cl
 	sandwichGasCost := artemis_eth_units.MulBigInt(artemis_eth_units.AddBigInt(scInfoSand.GasFeeCap, scInfoSand.GasTipCap), artemis_eth_units.NewBigIntFromUint(scInfoSand.GasLimit))
 	tf.SandwichTrade.TotalGasCost = sandwichGasCost.Uint64()
 	bundle.TotalGasCost = artemis_eth_units.AddBigInt(bundle.TotalGasCost, sandwichGasCost)
-	bundle, err = a.AddTxToBundleGroup(backRunCtx, sandwichTx, bundle)
+	bundle, err = AddTxToBundleGroup(backRunCtx, sandwichTx, bundle)
 	if err != nil {
 		log.Err(err).Interface("mevTx", bundle.MevTxs).Msg("SANDWICH_TRADE: failed to add tx to bundle group")
 		return nil, err
@@ -96,9 +96,12 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_cl
 	return bundle, err
 }
 
-func (a *AuxiliaryTradingUtils) StagingPackageSandwichAndCall(ctx context.Context, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsCallBundleResponse, *MevTxGroup, error) {
+func StagingPackageSandwichAndCall(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsCallBundleResponse, *MevTxGroup, error) {
 	log.Info().Msg("StagingPackageSandwichAndCall: start")
-	bundle, err := a.PackageSandwich(ctx, tf)
+	if tf == nil {
+		return nil, nil, errors.New("tf is nil")
+	}
+	bundle, err := PackageSandwich(ctx, w3c, tf)
 	if err != nil {
 		log.Err(err).Msg("StagingPackageSandwichAndCall: failed to package sandwich")
 		return nil, nil, err
@@ -112,7 +115,7 @@ func (a *AuxiliaryTradingUtils) StagingPackageSandwichAndCall(ctx context.Contex
 	//	log.Err(err).Bool("ok", ok).Msg("StagingPackageSandwichAndCall: isBundleProfitHigherThanGasFee: failed to check if profit is higher than gas fee")
 	//	return nil, nil, err
 	//}
-	resp, err := a.CallFlashbotsBundleStaging(ctx, *bundle)
+	resp, err := CallFlashbotsBundleStaging(ctx, w3c, *bundle)
 	if err != nil {
 		log.Err(err).Interface("fbCallResp", resp).Msg("failed to send sandwich")
 		return nil, nil, err
@@ -121,8 +124,8 @@ func (a *AuxiliaryTradingUtils) StagingPackageSandwichAndCall(ctx context.Contex
 	return &resp, bundle, err
 }
 
-func (a *AuxiliaryTradingUtils) PackageSandwichAndSend(ctx context.Context, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsSendBundleResponse, error) {
-	bundle, err := a.PackageSandwich(ctx, tf)
+func PackageSandwichAndSend(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsSendBundleResponse, error) {
+	bundle, err := PackageSandwich(ctx, w3c, tf)
 	if err != nil {
 		log.Err(err).Msg("failed to package sandwich")
 		return nil, err
@@ -130,7 +133,7 @@ func (a *AuxiliaryTradingUtils) PackageSandwichAndSend(ctx context.Context, tf *
 	if bundle == nil {
 		return nil, errors.New("bundle is nil")
 	}
-	_, err = a.CallAndSendFlashbotsBundle(ctx, *bundle)
+	_, err = CallAndSendFlashbotsBundle(ctx, w3c, *bundle)
 	if err != nil {
 		log.Err(err).Msg("failed to send sandwich")
 		return nil, err

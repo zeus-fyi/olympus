@@ -6,6 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
+	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
@@ -37,14 +38,15 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 
 	adjAmountOut := artemis_eth_units.ApplyTransferTax(amountOutStartFrontRun, n, d)
 	tf.FrontRunTrade.AmountOut = adjAmountOut
-	ur, _, err := ac.GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.FrontRunTrade)
+	w3c := ac.U.Web3Client
+	ur, _, err := artemis_trading_auxiliary.GenerateTradeV2SwapFromTokenToToken(ctx, w3c, nil, &tf.FrontRunTrade)
 	if err != nil {
 		return err
 	}
 	err = t.dat.GetSimUniswapClient().InjectExecTradeV2SwapFromTokenToToken(ctx, ur, &tf.FrontRunTrade)
 	if err != nil {
 		tf.FrontRunTrade.AmountOut = amountOutStartFrontRun
-		err = t.FindSlippage(ctx, &tf.FrontRunTrade)
+		err = t.FindSlippage(ctx, w3c, &tf.FrontRunTrade)
 		if err != nil {
 			log.Err(err).Str("txHash", txHash).Msg("FRONT_RUN: error finding slippage")
 			return err
@@ -63,7 +65,7 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 	tf.SandwichTrade.AmountIn = tf.FrontRunTrade.AmountOut
 	adjAmountOut = artemis_eth_units.ApplyTransferTax(amountOutStartSandwich, n+30, d)
 	tf.SandwichTrade.AmountOut = adjAmountOut
-	ur, _, err = ac.GenerateTradeV2SwapFromTokenToToken(ctx, nil, &tf.SandwichTrade)
+	ur, _, err = artemis_trading_auxiliary.GenerateTradeV2SwapFromTokenToToken(ctx, w3c, nil, &tf.SandwichTrade)
 	if err != nil || ur == nil {
 		if err == nil {
 			err = fmt.Errorf("ur is nil")
@@ -74,7 +76,7 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 	err = t.dat.GetSimUniswapClient().InjectExecTradeV2SwapFromTokenToToken(ctx, ur, &tf.SandwichTrade)
 	if err != nil {
 		tf.SandwichTrade.AmountOut = amountOutStartSandwich
-		err = t.FindSlippage(ctx, &tf.SandwichTrade)
+		err = t.FindSlippage(ctx, w3c, &tf.SandwichTrade)
 		if err != nil {
 			log.Err(err).Str("txHash", txHash).Msg("SANDWICH_TRADE: error finding slippage")
 			return err

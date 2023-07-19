@@ -49,11 +49,11 @@ func (t *ArtemisAuxillaryTestSuite) testWETH(network string) {
 		}
 	}
 	t.Require().True(found)
-	ok, err := ta.checkEthBalanceGreaterThan(ctx, toExchAmount)
+	ok, err := checkEthBalanceGreaterThan(ctx, *ta.w3c(), toExchAmount)
 	t.Require().Nil(err)
 	t.Require().True(ok)
 
-	tx, _, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
+	tx, _, err := universalRouterCmdToTxBuilder(ctx, *ta.w3c(), cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 
@@ -95,11 +95,11 @@ func (t *ArtemisAuxillaryTestSuite) TestUnwrapWETH() {
 			t.Require().Equal(artemis_trading_constants.UniversalRouterSender, sc.DecodedInputs.(web3_client.UnwrapWETHParams).Recipient.String())
 		}
 	}
-	ok, err := ta.CheckAuxWETHBalanceGreaterThan(ctx, toExchAmount)
+	ok, err := CheckAuxWETHBalanceGreaterThan(ctx, *ta.w3c(), toExchAmount)
 	t.Require().Nil(err)
 	t.Require().True(ok)
 
-	tx, _, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
+	tx, _, err := universalRouterCmdToTxBuilder(ctx, *ta.w3c(), cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 

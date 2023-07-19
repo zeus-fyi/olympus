@@ -18,14 +18,15 @@ func (t *ArtemisAuxillaryTestSuite) TestCreateFbBundle() (*AuxiliaryTradingUtils
 	cmd := t.testEthToWETH(&ta, toExchAmount)
 	// part 1 of bundle
 
-	tx, _, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
+	tx, _, err := universalRouterCmdToTxBuilder(ctx, *ta.w3c(), cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 	t.Require().Equal(toExchAmount, tx.Value())
 	txStart := TxWithMetadata{
 		Tx: tx,
 	}
-	bundle, err := ta.AddTxToBundleGroup(ctx, txStart, nil)
+
+	bundle, err := AddTxToBundleGroup(ctx, txStart, nil)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(bundle.MevTxs)
 	t.Require().Equal(1, len(bundle.MevTxs))
@@ -34,7 +35,7 @@ func (t *ArtemisAuxillaryTestSuite) TestCreateFbBundle() (*AuxiliaryTradingUtils
 	// part 2 of bundle
 	ctx = context.WithValue(ctx, web3_actions.NonceOffset, 1)
 	cmd, permit2Val := t.testExecV2Trade(&ta, hestia_req_types.Goerli)
-	tx, _, err = ta.universalRouterCmdToTxBuilder(ctx, cmd)
+	tx, _, err = universalRouterCmdToTxBuilder(ctx, *ta.w3c(), cmd)
 	t.Require().NotEmpty(tx)
 	txMeta := TxWithMetadata{
 		Tx: tx,
@@ -42,7 +43,7 @@ func (t *ArtemisAuxillaryTestSuite) TestCreateFbBundle() (*AuxiliaryTradingUtils
 	if permit2Val != nil {
 		txMeta.Permit2Tx = permit2Val.Permit2Tx
 	}
-	bundle, err = ta.AddTxToBundleGroup(ctx, txMeta, bundle)
+	bundle, err = AddTxToBundleGroup(ctx, txMeta, bundle)
 	t.Require().Nil(err)
 	t.Require().Equal(2, len(bundle.OrderedTxs))
 	t.Require().Equal(2, len(bundle.MevTxs))
@@ -56,7 +57,7 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2TradeFromUser2(ta *AuxiliaryTradin
 	uni := web3_client.InitUniswapClient(ctx, t.goerliWeb3User)
 	cmd := web3_client.UniversalRouterExecCmd{
 		Commands: []web3_client.UniversalRouterExecSubCmd{},
-		Deadline: ta.GetDeadline(),
+		Deadline: GetDeadline(),
 		Payable:  nil,
 	}
 	ur, err := cmd.EncodeCommands(ctx)
@@ -70,7 +71,7 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2TradeFromUser2(ta *AuxiliaryTradin
 func (t *ArtemisAuxillaryTestSuite) TestCallBundle() {
 	ta, bundle := t.TestCreateFbBundle()
 	t.Require().NotEmpty(ta)
-	resp, err := ta.CallFlashbotsBundle(ctx, &bundle)
+	resp, err := CallFlashbotsBundle(ctx, *ta.w3c(), &bundle)
 	t.Require().Nil(err)
 	t.Require().NotNil(resp)
 
@@ -88,7 +89,7 @@ func (t *ArtemisAuxillaryTestSuite) TestCallBundle() {
 func (t *ArtemisAuxillaryTestSuite) TestCallAndSendBundle() {
 	ta, bundle := t.TestCreateFbBundle()
 	t.Require().NotEmpty(ta)
-	resp, err := ta.CallAndSendFlashbotsBundle(ctx, bundle)
+	resp, err := CallAndSendFlashbotsBundle(ctx, *ta.w3c(), bundle)
 	t.Require().Nil(err)
 	t.Require().NotNil(resp)
 	fmt.Println("bundleHash", resp.BundleHash)

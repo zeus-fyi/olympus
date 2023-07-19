@@ -31,17 +31,17 @@ func (a *AuxiliaryTradingUtils) SetPermit2ApprovalForToken(ctx context.Context, 
 	return tx, nil
 }
 
-func (a *AuxiliaryTradingUtils) generatePermit2Approval(ctx context.Context, to *artemis_trading_types.TradeOutcome) (web3_client.Permit2PermitParams, *artemis_eth_txs.Permit2Tx, error) {
-	deadline := a.GetDeadline()
-	chainID, err := a.getChainID(ctx)
+func generatePermit2Approval(ctx context.Context, w3c web3_client.Web3Client, to *artemis_trading_types.TradeOutcome) (web3_client.Permit2PermitParams, *artemis_eth_txs.Permit2Tx, error) {
+	deadline := GetDeadline()
+	chainID, err := getChainID(ctx, w3c)
 	if err != nil {
 		log.Warn().Err(err).Msg("error getting chainID")
 		return web3_client.Permit2PermitParams{}, nil, err
 	}
-	owner := a.tradersAccount().Address()
+	owner := w3c.Address()
 	token := to.AmountInAddr
 	spender := artemis_trading_constants.UniswapUniversalRouterNewAddressAccount
-	ptNonce, err := a.GetNextPermit2NonceFromContract(ctx, owner, token, spender)
+	ptNonce, err := GetNextPermit2NonceFromContract(ctx, w3c, owner, token, spender)
 	if err != nil {
 		return web3_client.Permit2PermitParams{}, nil, err
 	}
@@ -67,7 +67,7 @@ func (a *AuxiliaryTradingUtils) generatePermit2Approval(ctx context.Context, to 
 			SigDeadline: deadline,
 		},
 	}
-	err = psp.SignPermit2(a.tradersAccount(), chainID)
+	err = psp.SignPermit2(w3c.Account, chainID)
 	if err != nil {
 		log.Warn().Err(err).Msg("error signing permit")
 		return web3_client.Permit2PermitParams{}, nil, err
@@ -124,7 +124,7 @@ func (a *AuxiliaryTradingUtils) generatePermit2Transfer(ctx context.Context, to 
 	ur.Commands = append(ur.Commands, permitCmd)
 */
 
-func (a *AuxiliaryTradingUtils) GetNextPermit2NonceFromContract(ctx context.Context, owner, token, spender accounts.Address) (*big.Int, error) {
+func GetNextPermit2NonceFromContract(ctx context.Context, w3c web3_client.Web3Client, owner, token, spender accounts.Address) (*big.Int, error) {
 	nonceCheck := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: artemis_trading_constants.Permit2SmartContractAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
@@ -132,7 +132,7 @@ func (a *AuxiliaryTradingUtils) GetNextPermit2NonceFromContract(ctx context.Cont
 		MethodName:        "allowance",
 		Params:            []interface{}{owner, token, spender},
 	}
-	resp, err := a.w3a().CallConstantFunction(ctx, nonceCheck)
+	resp, err := w3c.CallConstantFunction(ctx, nonceCheck)
 	if err != nil {
 		log.Err(err).Msg("error getting nonce")
 		return nil, err

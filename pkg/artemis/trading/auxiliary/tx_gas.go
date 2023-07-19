@@ -32,8 +32,8 @@ tx.GasPrice() 36180761500
 tx.Gas() 142255
 */
 
-func (a *AuxiliaryTradingUtils) txGasAdjuster(ctx context.Context, scInfo *web3_actions.SendContractTxPayload) error {
-	tt := a.getTradeTypeFromCtx(ctx)
+func txGasAdjuster(ctx context.Context, scInfo *web3_actions.SendContractTxPayload) error {
+	tt := getTradeTypeFromCtx(ctx)
 	switch tt {
 	case FrontRun:
 		scInfo.GasTipCap = artemis_eth_units.NewBigInt(1)

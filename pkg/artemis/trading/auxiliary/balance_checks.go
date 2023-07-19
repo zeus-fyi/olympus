@@ -16,7 +16,7 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-func (a *AuxiliaryTradingUtils) universalRouterCmdVerifier(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, scInfo *web3_actions.SendContractTxPayload) error {
+func universalRouterCmdVerifier(ctx context.Context, w3c web3_client.Web3Client, ur *web3_client.UniversalRouterExecCmd, scInfo *web3_actions.SendContractTxPayload) error {
 	ethRequirements := artemis_eth_units.NewBigInt(0)
 	for _, sc := range ur.Commands {
 		switch sc.Command {
@@ -31,7 +31,7 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdVerifier(ctx context.Context, 
 	}
 	gasCost := artemis_eth_units.MulBigInt(scInfo.GasFeeCap, artemis_eth_units.NewBigInt(int(scInfo.GasLimit)))
 	ethRequirements = artemis_eth_units.AddBigInt(ethRequirements, gasCost)
-	hasEnough, err := a.checkEthBalanceGreaterThan(ctx, ethRequirements)
+	hasEnough, err := checkEthBalanceGreaterThan(ctx, w3c, ethRequirements)
 	if err != nil {
 		return err
 	}
@@ -42,8 +42,8 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdVerifier(ctx context.Context, 
 	return nil
 }
 
-func (a *AuxiliaryTradingUtils) checkEthBalance(ctx context.Context) (*big.Int, error) {
-	bal, err := a.w3c().GetCurrentBalance(ctx)
+func checkEthBalance(ctx context.Context, w3c web3_client.Web3Client) (*big.Int, error) {
+	bal, err := w3c.GetCurrentBalance(ctx)
 	if err != nil {
 		return bal, err
 	}
@@ -78,8 +78,8 @@ func (a *AuxiliaryTradingUtils) checkAuxERC20BalanceGreaterThan(ctx context.Cont
 	return artemis_eth_units.IsXGreaterThanY(bal, amount), err
 }
 
-func (a *AuxiliaryTradingUtils) checkEthBalanceGreaterThan(ctx context.Context, amount *big.Int) (bool, error) {
-	bal, err := a.w3c().GetCurrentBalance(ctx)
+func checkEthBalanceGreaterThan(ctx context.Context, w3c web3_client.Web3Client, amount *big.Int) (bool, error) {
+	bal, err := w3c.GetCurrentBalance(ctx)
 	if err != nil {
 		return false, err
 	}
@@ -96,22 +96,22 @@ func CheckEthBalanceGreaterThan(ctx context.Context, w3c web3_client.Web3Client,
 	return artemis_eth_units.IsXGreaterThanY(bal, amount), err
 }
 
-func (a *AuxiliaryTradingUtils) CheckAuxWETHBalance(ctx context.Context) (*big.Int, error) {
-	wethAddr := a.getChainSpecificWETH()
-	chainID, err := a.getChainID(ctx)
+func CheckAuxWETHBalance(ctx context.Context, w3c web3_client.Web3Client) (*big.Int, error) {
+	wethAddr := getChainSpecificWETH(w3c)
+	chainID, err := getChainID(ctx, w3c)
 	if err != nil {
 		return nil, err
 	}
 	token := core_entities.NewToken(uint(chainID), wethAddr, 18, "WETH", "Wrapped Ether")
-	bal, err := a.w3c().ReadERC20TokenBalance(ctx, token.Address.String(), a.getAccountAddressString())
+	bal, err := w3c.ReadERC20TokenBalance(ctx, token.Address.String(), w3c.Account.PublicKey())
 	if err != nil {
 		return bal, err
 	}
 	return bal, err
 }
 
-func (a *AuxiliaryTradingUtils) CheckAuxWETHBalanceGreaterThan(ctx context.Context, amount *big.Int) (bool, error) {
-	bal, err := a.CheckAuxWETHBalance(ctx)
+func CheckAuxWETHBalanceGreaterThan(ctx context.Context, w3c web3_client.Web3Client, amount *big.Int) (bool, error) {
+	bal, err := CheckAuxWETHBalance(ctx, w3c)
 	if err != nil {
 		return false, err
 	}
@@ -127,9 +127,9 @@ func CheckMainnetAuxWETHBalanceGreaterThan(ctx context.Context, w3c web3_client.
 	}
 	return artemis_eth_units.IsXGreaterThanY(bal, amount), err
 }
-func (a *AuxiliaryTradingUtils) getChainID(ctx context.Context) (int, error) {
+func getChainID(ctx context.Context, w3c web3_client.Web3Client) (int, error) {
 	chainID := hestia_req_types.EthereumMainnetProtocolNetworkID
-	switch a.w3c().Network {
+	switch w3c.Network {
 	case hestia_req_types.Mainnet:
 		chainID = hestia_req_types.EthereumMainnetProtocolNetworkID
 	case hestia_req_types.Goerli:
@@ -137,21 +137,22 @@ func (a *AuxiliaryTradingUtils) getChainID(ctx context.Context) (int, error) {
 	case hestia_req_types.Ephemery:
 		chainID = hestia_req_types.EthereumEphemeryProtocolNetworkID
 	default:
-		a.w3c().Dial()
-		chain, err := a.w3c().C.ChainID(ctx)
+		w3c.Dial()
+		defer w3c.Close()
+		chain, err := w3c.C.ChainID(ctx)
 		if err != nil {
 			log.Warn().Err(err).Msg("error getting chainID")
-			return 0, err
+			return -1, err
 		}
 		chainID = int(chain.Int64())
-		a.w3c().Close()
+		return chainID, nil
 	}
 	return chainID, nil
 }
 
-func (a *AuxiliaryTradingUtils) getChainSpecificWETH() accounts.Address {
+func getChainSpecificWETH(w3c web3_client.Web3Client) accounts.Address {
 	wethAddr := artemis_trading_constants.WETH9ContractAddressAccount
-	switch a.w3c().Network {
+	switch w3c.Network {
 	case hestia_req_types.Mainnet:
 		wethAddr = artemis_trading_constants.WETH9ContractAddressAccount
 	case hestia_req_types.Goerli:

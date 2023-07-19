@@ -13,7 +13,7 @@ import (
 func (t *ArtemisAuxillaryTestSuite) testExecV2TradeFrontRun(ta *AuxiliaryTradingUtils) *web3_client.UniversalRouterExecCmd {
 	t.Require().NotEmpty(ta)
 	toExchAmount := artemis_eth_units.GweiMultiple(100)
-	wethAddr := ta.getChainSpecificWETH()
+	wethAddr := getChainSpecificWETH(*ta.w3c())
 	daiAddr := artemis_trading_constants.DaiContractAddressAccount
 	if ta.network() == hestia_req_types.Goerli {
 		daiAddr = artemis_trading_constants.GoerliDaiContractAddressAccount
@@ -31,7 +31,7 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2TradeFrontRun(ta *AuxiliaryTrading
 	t.Require().NotNil(amountOut)
 	to.AmountOut = amountOut
 
-	cmd, pt, err := ta.GenerateTradeV2SwapFromTokenToToken(ctx, nil, to)
+	cmd, pt, err := GenerateTradeV2SwapFromTokenToToken(ctx, *ta.w3c(), nil, to)
 	t.Require().Nil(err)
 	t.Require().NotNil(pt)
 	t.Require().NotEmpty(cmd)

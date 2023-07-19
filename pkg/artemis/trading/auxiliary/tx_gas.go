@@ -3,6 +3,7 @@ package artemis_trading_auxiliary
 import (
 	"context"
 
+	"github.com/rs/zerolog/log"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 )
@@ -36,11 +37,14 @@ func txGasAdjuster(ctx context.Context, scInfo *web3_actions.SendContractTxPaylo
 	tt := getTradeTypeFromCtx(ctx)
 	switch tt {
 	case FrontRun:
+		log.Info().Msg("txGasAdjuster: FrontRun gas adjustment")
 		scInfo.GasTipCap = artemis_eth_units.NewBigInt(1)
 	case UserTrade:
+		log.Info().Msg("txGasAdjuster: UserTrade gas adjustment")
 		scInfo.GasTipCap = artemis_eth_units.NewBigInt(1)
 		scInfo.GasLimit *= 2
 	case BackRun:
+		log.Info().Msg("txGasAdjuster: BackRun gas adjustment")
 		scInfo.GasFeeCap = artemis_eth_units.MulBigIntFromInt(scInfo.GasFeeCap, 2)
 		scInfo.GasTipCap = artemis_eth_units.MulBigIntFromInt(scInfo.GasTipCap, 2)
 	default:

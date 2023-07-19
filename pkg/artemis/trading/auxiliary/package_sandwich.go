@@ -25,12 +25,13 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 		MevTxs:       []artemis_eth_txs.EthTx{},
 		TotalGasCost: artemis_eth_units.NewBigInt(0),
 	}
-	log.Info().Msg("PackageSandwich: FRONT_RUN start")
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: FRONT_RUN start")
 	startCtx := ctx
 	// front run
 	frontRunCtx := CreateFrontRunCtx(startCtx)
 	ur, fpt, err := GenerateTradeV2SwapFromTokenToToken(frontRunCtx, w3c, nil, &tf.FrontRunTrade)
 	if err != nil {
+		log.Warn().Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed to generate front run tx")
 		log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed to generate front run tx")
 		return nil, err
 	}
@@ -51,8 +52,8 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 	if fpt != nil {
 		frTx.Permit2Tx = fpt.Permit2Tx
 	}
-	log.Info().Msg("PackageSandwich: FRONT_RUN done")
-	log.Info().Msg("PackageSandwich: USER_TRADE start")
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: FRONT_RUN done")
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: USER_TRADE start")
 	bundle, err = AddTxToBundleGroup(frontRunCtx, frTx, bundle)
 	if err != nil {
 		log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: FRONT_RUN: error adding tx to bundle group")
@@ -65,22 +66,22 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 	}
 	bundle, err = AddTxToBundleGroup(userCtx, userTx, bundle)
 	if err != nil {
-		log.Err(err).Interface("mevTx", bundle.MevTxs).Msg("PackageSandwich: USER_TRADE: failed to add tx to bundle group")
+		log.Err(err).Str("txHash", tf.Tx.Hash().String()).Interface("mevTx", bundle.MevTxs).Msg("PackageSandwich: USER_TRADE: failed to add tx to bundle group")
 		return nil, err
 	}
-	log.Info().Msg("PackageSandwich: USER_TRADE done")
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: USER_TRADE done")
 	// sandwich trade
-	log.Info().Msg("PackageSandwich: SANDWICH_TRADE start")
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE start")
 	backRunCtx := CreateBackRunCtx(startCtx, w3c)
 	ur, spt, err := GenerateTradeV2SwapFromTokenToToken(backRunCtx, w3c, ur, &tf.SandwichTrade)
 	if err != nil {
-		log.Err(err).Msg("PackageSandwich: SANDWICH_TRADE: failed to generate sandwich tx")
+		log.Err(err).Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to generate sandwich tx")
 		return nil, err
 	}
 
 	txSand, scInfoSand, err := universalRouterCmdToTxBuilder(backRunCtx, w3c, ur)
 	if err != nil {
-		log.Err(err).Msg("PackageSandwich: SANDWICH_TRADE: failed to add tx to bundle group")
+		log.Err(err).Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to add tx to bundle group")
 		return nil, err
 	}
 	sandwichTx := TxWithMetadata{
@@ -96,14 +97,14 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 	bundle.TotalGasCost = artemis_eth_units.AddBigInt(bundle.TotalGasCost, sandwichGasCost)
 	bundle, err = AddTxToBundleGroup(backRunCtx, sandwichTx, bundle)
 	if err != nil {
-		log.Err(err).Interface("mevTx", bundle.MevTxs).Msg("PackageSandwich: SANDWICH_TRADE: failed to add tx to bundle group")
+		log.Err(err).Str("txHash", tf.Tx.Hash().String()).Interface("mevTx", bundle.MevTxs).Msg("PackageSandwich: SANDWICH_TRADE: failed to add tx to bundle group")
 		return nil, err
 	}
 	if len(bundle.MevTxs) != 3 {
-		log.Warn().Int("bundleTxCount", len(bundle.MevTxs)).Msg("PackageSandwich: SANDWICH_TRADE: sandwich bundle not 3 txs")
+		log.Warn().Str("txHash", tf.Tx.Hash().String()).Int("bundleTxCount", len(bundle.MevTxs)).Msg("PackageSandwich: SANDWICH_TRADE: sandwich bundle not 3 txs")
 		return nil, errors.New("PackageSandwich: sandwich bundle not 3 txs")
 	}
-	log.Info().Msg("PackageSandwich: SANDWICH_TRADE done")
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE done")
 	return bundle, err
 }
 

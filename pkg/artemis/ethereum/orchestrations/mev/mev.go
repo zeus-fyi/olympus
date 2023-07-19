@@ -88,13 +88,13 @@ func ProcessMempoolTxs(ctx context.Context) {
 				return
 			}
 			wc.Close()
-			err := ArtemisActiveMevWorkerMainnet.ExecuteArtemisGetLookaheadPricesWorkflow(ctx, bn)
+			err := ArtemisMevWorkerMainnet2.ExecuteArtemisGetLookaheadPricesWorkflow(ctx, bn)
 			if err != nil {
 				log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
 			}
 			log.Info().Msg(fmt.Sprintf("Received new timestamp: %s", t))
 			log.Info().Msg("ExecuteArtemisMevWorkflow: ExecuteArtemisBlacklistTxWorkflow")
-			err = ArtemisActiveMevWorkerMainnet.ExecuteArtemisBlacklistTxWorkflow(ctx)
+			err = ArtemisMevWorkerMainnet.ExecuteArtemisBlacklistTxWorkflow(ctx)
 			if err != nil {
 				log.Err(err).Msg("ExecuteArtemisBlacklistTxWorkflow failed")
 			}

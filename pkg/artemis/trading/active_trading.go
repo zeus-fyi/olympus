@@ -9,7 +9,6 @@ import (
 	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
-	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -104,7 +103,6 @@ func NewActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, 
 	}
 	TraderClient.AddBearerToken(artemis_orchestration_auth.Bearer)
 	log.Info().Msgf("trader account: %s", traderAcc.Address().String())
-	go artemis_trading_cache.SetActiveTradingBlockCache(context.Background())
 	return at
 }
 

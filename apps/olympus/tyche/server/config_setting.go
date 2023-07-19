@@ -9,6 +9,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
+	artemis_mev_tx_fetcher "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/mev"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_trade_executor "github.com/zeus-fyi/olympus/pkg/artemis/trading/executor"
@@ -90,4 +91,8 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	artemis_trade_executor.InitMainnetAuxiliaryTradingUtils(ctx, age)
 	artemis_trade_executor.InitGoerliAuxiliaryTradingUtils(ctx, age)
 	log.Info().Msg("Tyche: InitFlashbots succeeded")
+
+	artemis_mev_tx_fetcher.InitArtemisUniswap(ctx, artemis_orchestration_auth.Bearer)
+	log.Info().Msg("Tyche: InitArtemisUniswap succeeded")
+
 }

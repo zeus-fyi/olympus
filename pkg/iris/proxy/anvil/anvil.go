@@ -90,7 +90,6 @@ func (a *AnvilProxy) GetSessionLockedRoute(ctx context.Context, sessionID string
 		if !ok {
 			return "", ErrNoRoutesAvailable
 		}
-
 		if iris_redis.IrisRedis.Reader != nil && iris_redis.IrisRedis.Writer != nil {
 			exists, err := iris_redis.IrisRedis.DoesSessionIDExist(ctx, sessionID)
 			if err != nil {

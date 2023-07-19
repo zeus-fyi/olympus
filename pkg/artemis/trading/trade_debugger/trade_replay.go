@@ -110,21 +110,43 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 	}
 
 	if t.insertNewTxs {
-		txHistory := mevTx.HistoricalAnalysis.EthMevTxAnalysis
-		txHistory.AmountIn = tf.FrontRunTrade.AmountIn.String()
-		txHistory.AmountInAddr = tf.FrontRunTrade.AmountInAddr.String()
-		txHistory.AmountOutAddr = tf.FrontRunTrade.AmountOutAddr.String()
-		txHistory.TradeMethod = tf.Trade.TradeMethod
-		txHistory.TxHash = txHash
-		txHistory.EndReason = "success"
-		txHistory.ExpectedProfitAmountOut = expProfit.String()
-		txHistory.GasUsedWei = fmt.Sprintf("%d", totalGasCost)
 		rx, rerr := t.getRxFromHash(ctx, txHash)
 		if rerr != nil {
 			return rerr
 		}
-		txHistory.RxBlockNumber = int(rx.BlockNumber.Int64())
-		err = artemis_mev_models.InsertEthMevTxAnalysis(ctx, txHistory)
+		pair := ""
+		if tf.InitialPair.PairContractAddr != "" {
+			pair = tf.InitialPair.PairContractAddr
+		} else {
+			if tf.InitialPairV3.PoolAddress != "" {
+				pair = tf.InitialPairV3.PoolAddress
+			}
+		}
+		tradeAnalysis := web3_client.TradeAnalysisReport{
+			TxHash:             txHash,
+			TradeMethod:        tf.Trade.TradeMethod,
+			ArtemisBlockNumber: int(tf.CurrentBlockNumber.Int64()),
+			RxBlockNumber:      int(rx.BlockNumber.Int64()),
+			PairAddress:        pair,
+			GasReport: web3_client.GasReport{
+				TotalGasUsed:         fmt.Sprintf("%d", totalGasCost),
+				FrontRunGasUsed:      fmt.Sprintf("%d", tf.FrontRunTrade.TotalGasCost),
+				SandwichTradeGasUsed: fmt.Sprintf("%d", tf.SandwichTrade.TotalGasCost),
+			},
+			TradeFailureReport: web3_client.TradeFailureReport{
+				EndReason: "success",
+				EndStage:  "",
+			},
+			SimulationResults: web3_client.SimulationResults{
+				AmountInAddr:            tf.FrontRunTrade.AmountInAddr.String(),
+				AmountIn:                tf.FrontRunTrade.AmountIn.String(),
+				AmountOutAddr:           tf.SandwichTrade.AmountOutAddr.String(),
+				AmountOut:               tf.SandwichTrade.AmountOut.String(),
+				ExpectedProfitAmountOut: expProfit.String(),
+			},
+		}
+		tradeAnalysis.PrintResults()
+		err = tradeAnalysis.SaveResultsInDb(ctx)
 		if err != nil {
 			return err
 		}

@@ -97,17 +97,19 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_cl
 }
 
 func (a *AuxiliaryTradingUtils) StagingPackageSandwichAndCall(ctx context.Context, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsCallBundleResponse, *MevTxGroup, error) {
+	log.Info().Msg("StagingPackageSandwichAndCall: start")
 	bundle, err := a.PackageSandwich(ctx, tf)
 	if err != nil {
-		log.Err(err).Msg("failed to package sandwich")
+		log.Err(err).Msg("StagingPackageSandwichAndCall: failed to package sandwich")
 		return nil, nil, err
 	}
 	if bundle == nil {
 		return nil, nil, errors.New("bundle is nil")
 	}
+	log.Info().Interface("bundle", bundle).Msg("isBundleProfitHigherThanGasFee: bundle")
 	ok, err := isBundleProfitHigherThanGasFee(bundle, tf)
 	if err != nil {
-		log.Err(err).Bool("ok", ok).Msg("failed to check if profit is higher than gas fee")
+		log.Err(err).Bool("ok", ok).Msg("StagingPackageSandwichAndCall: isBundleProfitHigherThanGasFee: failed to check if profit is higher than gas fee")
 		return nil, nil, err
 	}
 	resp, err := a.CallFlashbotsBundleStaging(ctx, *bundle)

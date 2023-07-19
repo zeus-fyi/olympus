@@ -36,7 +36,7 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 	}
 	frontRunTx, scInfoFrontRun, err := universalRouterCmdToTxBuilder(frontRunCtx, w3c, ur)
 	if err != nil {
-		log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: error bulding ur tx")
+		log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: error building ur tx")
 		return nil, err
 	}
 

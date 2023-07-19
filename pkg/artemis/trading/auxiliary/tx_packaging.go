@@ -3,10 +3,12 @@ package artemis_trading_auxiliary
 import (
 	"context"
 	"database/sql"
+	"math/big"
 
 	"github.com/rs/zerolog/log"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -96,42 +98,19 @@ func getEthTxByPackageType(ctx context.Context, from string, signedTxWithMetadat
 }
 
 func packagePermit2Tx(ctx context.Context, from string, signedTxWithMetadata TxWithMetadata) (artemis_eth_txs.EthTx, error) {
-	signedTx := signedTxWithMetadata.Tx
 	permit2 := signedTxWithMetadata.Permit2Tx
-	mevTx := artemis_eth_txs.EthTx{
-		EthTx: artemis_autogen_bases.EthTx{
+	mevTx, err := packageRegularTx(ctx, from, signedTxWithMetadata)
+	if err != nil {
+		log.Err(err).Msg("packagePermit2Tx: error packaging regular tx")
+		return artemis_eth_txs.EthTx{}, err
+	}
+	mevTx.Permit2Tx = artemis_eth_txs.Permit2Tx{
+		Permit2Tx: artemis_autogen_bases.Permit2Tx{
+			Nonce:             permit2.Nonce,
+			Owner:             permit2.Owner,
+			Deadline:          permit2.Deadline,
+			Token:             permit2.Token,
 			ProtocolNetworkID: permit2.ProtocolNetworkID,
-			TxHash:            signedTx.Hash().String(),
-			Nonce:             int(signedTx.Nonce()),
-			From:              from,
-			Type:              "0x02",
-		},
-		EthTxGas: artemis_autogen_bases.EthTxGas{
-			TxHash: signedTx.Hash().String(),
-			GasPrice: sql.NullInt64{
-				Valid: false,
-			},
-			GasLimit: sql.NullInt64{
-				Int64: int64(signedTx.Gas()),
-				Valid: true,
-			},
-			GasTipCap: sql.NullInt64{
-				Int64: signedTx.GasTipCap().Int64(),
-				Valid: true,
-			},
-			GasFeeCap: sql.NullInt64{
-				Int64: signedTx.GasFeeCap().Int64(),
-				Valid: true,
-			},
-		},
-		Permit2Tx: artemis_eth_txs.Permit2Tx{
-			Permit2Tx: artemis_autogen_bases.Permit2Tx{
-				Nonce:             permit2.Nonce,
-				Owner:             permit2.Owner,
-				Deadline:          permit2.Deadline,
-				Token:             permit2.Token,
-				ProtocolNetworkID: permit2.ProtocolNetworkID,
-			},
 		},
 	}
 	return mevTx, nil
@@ -140,21 +119,35 @@ func packagePermit2Tx(ctx context.Context, from string, signedTxWithMetadata TxW
 func packageRegularTx(ctx context.Context, from string, signedTxWithMetadata TxWithMetadata) (artemis_eth_txs.EthTx, error) {
 	signedTx := signedTxWithMetadata.Tx
 	pi := signedTx.ChainId()
+	if pi == nil {
+		log.Warn().Msg("packageRegularTx: chain id is nil, setting to 1")
+		pi = big.NewInt(1)
+	}
+	gasFeeCap := signedTx.GasFeeCap()
+	gasTipCap := signedTx.GasTipCap()
+	gasLimit := signedTx.Gas()
+	tt := getTradeTypeFromCtx(ctx)
+	switch tt {
+	case UserTrade:
+		log.Info().Msg("txGasAdjuster: UserTrade gas adjustment")
+		gasTipCap = artemis_eth_units.OneTenthGwei
+		gasLimit = gasLimit * 2
+	}
 	ethGas := artemis_autogen_bases.EthTxGas{
 		TxHash: signedTx.Hash().String(),
 		GasPrice: sql.NullInt64{
 			Valid: false,
 		},
 		GasLimit: sql.NullInt64{
-			Int64: int64(signedTx.Gas()),
+			Int64: int64(gasLimit),
 			Valid: true,
 		},
 		GasTipCap: sql.NullInt64{
-			Int64: signedTx.GasTipCap().Int64(),
+			Int64: gasTipCap.Int64(),
 			Valid: true,
 		},
 		GasFeeCap: sql.NullInt64{
-			Int64: signedTx.GasFeeCap().Int64(),
+			Int64: gasFeeCap.Int64(),
 			Valid: true,
 		},
 	}
@@ -166,12 +159,16 @@ func packageRegularTx(ctx context.Context, from string, signedTxWithMetadata TxW
 			Int64: signedTx.GasPrice().Int64(),
 			Valid: true,
 		}
+		ethGas.GasLimit = sql.NullInt64{
+			Int64: int64(gasLimit),
+			Valid: true,
+		}
 		ethGas.GasFeeCap = sql.NullInt64{
-			Int64: 0,
+			Int64: gasFeeCap.Int64(),
 			Valid: false,
 		}
 		ethGas.GasTipCap = sql.NullInt64{
-			Int64: 0,
+			Int64: gasTipCap.Int64(),
 			Valid: false,
 		}
 	}
@@ -183,24 +180,7 @@ func packageRegularTx(ctx context.Context, from string, signedTxWithMetadata TxW
 			From:              from,
 			Type:              typeEnum,
 		},
-		EthTxGas: artemis_autogen_bases.EthTxGas{
-			TxHash: signedTx.Hash().String(),
-			GasPrice: sql.NullInt64{
-				Valid: false,
-			},
-			GasLimit: sql.NullInt64{
-				Int64: int64(signedTx.Gas()),
-				Valid: true,
-			},
-			GasTipCap: sql.NullInt64{
-				Int64: signedTx.GasTipCap().Int64(),
-				Valid: true,
-			},
-			GasFeeCap: sql.NullInt64{
-				Int64: signedTx.GasFeeCap().Int64(),
-				Valid: true,
-			},
-		},
+		EthTxGas: ethGas,
 	}
 	return mevTx, nil
 }

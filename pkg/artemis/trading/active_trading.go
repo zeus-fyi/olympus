@@ -137,14 +137,16 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction, m *
 	m.StageProgressionMetrics.CountPostDecodeTx()
 
 	w3c := web3_client.NewWeb3Client(irisSvcBeacons, TraderClient.Account)
+	w3c.AddBearerToken(artemis_orchestration_auth.Bearer)
 	tfSlice, err := ProcessTxs(ctx, &mevTxs, m, w3c.Web3Actions)
 	if err != nil {
 		log.Err(err).Msg("failed to pass process txs")
 		return ErrWrapper{Err: err, Stage: "ProcessTxs"}
 	}
 
-	w3a := web3_client.NewWeb3Client(irisSvcBeacons, TraderClient.Account)
-	err = a.ProcessBundleStage(ctx, w3a, tfSlice, m)
+	w3c2 := web3_client.NewWeb3Client(irisSvcBeacons, TraderClient.Account)
+	w3c2.AddBearerToken(artemis_orchestration_auth.Bearer)
+	err = a.ProcessBundleStage(ctx, w3c, tfSlice, m)
 	if err != nil {
 		return ErrWrapper{
 			Err: err, Stage: "ProcessBundleStage",

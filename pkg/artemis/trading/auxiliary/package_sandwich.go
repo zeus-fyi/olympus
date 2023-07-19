@@ -37,6 +37,7 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 	}
 	frontRunTx, scInfoFrontRun, err := universalRouterCmdToTxBuilder(frontRunCtx, w3c, ur)
 	if err != nil {
+		log.Warn().Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed building ur tx")
 		log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: error building ur tx")
 		return nil, err
 	}
@@ -109,16 +110,20 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 }
 
 func StagingPackageSandwichAndCall(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsCallBundleResponse, *MevTxGroup, error) {
-	log.Info().Msg("StagingPackageSandwichAndCall: start")
-	if tf == nil {
-		return nil, nil, errors.New("tf is nil")
+	if tf == nil || tf.Tx == nil {
+		return nil, nil, errors.New("PackageSandwich: tf is nil")
 	}
+	if tf.FrontRunTrade.AmountIn == nil || tf.SandwichTrade.AmountOut == nil {
+		return nil, nil, errors.New("PackageSandwich: tf.FrontRunTrade.AmountIn or tf.SandwichTrade.AmountOut is nil")
+	}
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("StagingPackageSandwichAndCall: start")
 	bundle, err := PackageSandwich(ctx, w3c, tf)
 	if err != nil {
 		log.Err(err).Msg("StagingPackageSandwichAndCall: failed to package sandwich")
 		return nil, nil, err
 	}
 	if bundle == nil {
+		log.Warn().Str("txHash", tf.Tx.Hash().String()).Msg("StagingPackageSandwichAndCall: bundle is nil")
 		return nil, nil, errors.New("bundle is nil")
 	}
 	//log.Info().Interface("bundle", bundle).Msg("isBundleProfitHigherThanGasFee: bundle")
@@ -127,12 +132,14 @@ func StagingPackageSandwichAndCall(ctx context.Context, w3c web3_client.Web3Clie
 	//	log.Err(err).Bool("ok", ok).Msg("StagingPackageSandwichAndCall: isBundleProfitHigherThanGasFee: failed to check if profit is higher than gas fee")
 	//	return nil, nil, err
 	//}
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("CallFlashbotsBundleStaging: start")
 	resp, err := CallFlashbotsBundleStaging(ctx, w3c, *bundle)
 	if err != nil {
 		log.Err(err).Interface("fbCallResp", resp).Msg("failed to send sandwich")
 		return nil, nil, err
 	}
-	log.Info().Interface("fbCallResp", resp).Msg("sent sandwich")
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("CallFlashbotsBundleStaging: done")
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Interface("fbCallResp", resp).Msg("sent sandwich")
 	return &resp, bundle, err
 }
 

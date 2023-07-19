@@ -26,11 +26,21 @@ var (
 	AuthHeader string
 )
 
-func InitUniswap(ctx context.Context, authHeader string) {
+func InitArtemisUniswap(ctx context.Context, authHeader string) {
 	AuthHeader = authHeader
-	go ProcessMempoolTxs(ctx)
+	timestampChan := make(chan time.Time)
+	go ProcessMempoolTxs(ctx, timestampChan)
+	go artemis_trading_cache.SetActiveTradingBlockCache(ctx, timestampChan)
+	go beacon_api.TriggerWorkflowOnNewBlockHeaderEvent(ctx, artemis_network_cfgs.ArtemisQuicknodeStreamWebsocket, timestampChan)
+
 }
 
+func InitTycheUniswap(ctx context.Context, authHeader string) {
+	AuthHeader = authHeader
+	timestampChan := make(chan time.Time)
+	go artemis_trading_cache.SetActiveTradingBlockCache(ctx, timestampChan)
+	go beacon_api.TriggerWorkflowOnNewBlockHeaderEvent(ctx, artemis_network_cfgs.ArtemisQuicknodeStreamWebsocket, timestampChan)
+}
 func InitNewUniHardhat(ctx context.Context, sessionID string) *web3_client.UniswapClient {
 	acc, err := accounts.CreateAccount()
 	if err != nil {
@@ -47,19 +57,6 @@ func InitNewUniHardhat(ctx context.Context, sessionID string) *web3_client.Unisw
 	return &uni
 }
 
-func InitNewUniswap(ctx context.Context) *web3_client.UniswapClient {
-	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnet.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
-
-	m := map[string]string{
-		"Authorization": "Bearer " + AuthHeader,
-	}
-	wc.Headers = m
-	uni := web3_client.InitUniswapClient(ctx, wc)
-	uni.PrintOn = true
-	uni.PrintLocal = false
-	return &uni
-}
-
 func InitNewUniswapQuiknode(ctx context.Context) *web3_client.UniswapClient {
 	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnetQuiknode.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
 	uni := web3_client.InitUniswapClient(ctx, wc)
@@ -68,10 +65,7 @@ func InitNewUniswapQuiknode(ctx context.Context) *web3_client.UniswapClient {
 	return &uni
 }
 
-func ProcessMempoolTxs(ctx context.Context) {
-	timestampChan := make(chan time.Time)
-	go artemis_trading_cache.SetActiveTradingBlockCache(ctx)
-	go beacon_api.TriggerWorkflowOnNewBlockHeaderEvent(ctx, artemis_network_cfgs.ArtemisQuicknodeStreamWebsocket, timestampChan)
+func ProcessMempoolTxs(ctx context.Context, timestampChan chan time.Time) {
 
 	for {
 		select {

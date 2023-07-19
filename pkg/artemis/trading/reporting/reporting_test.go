@@ -62,13 +62,14 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 	var addresses []string
 	for _, v := range historySlice {
 		total1 := v.Count + v.FailedCount
-		if v.Count < 2 || (float64(v.FailedCount) > float64(total1)*0.1) {
+		if v.Count < 2 || (float64(v.FailedCount) > float64(total1)*0.2) {
 			// v.FailedCount is more than 10% of the total
-			log.Info().Str("token", v.AmountOutToken.Name()).Str("address", v.AmountOutToken.Address.String()).Int("successCount", v.Count).Int("failureCount", v.FailedCount).Msg("failed count is more than 10% of the total")
+			log.Info().Str("token", v.AmountOutToken.Name()).Str("address", v.AmountOutToken.Address.String()).Int("successCount", v.Count).Int("failureCount", v.FailedCount).Msg("failed count is more than 20% of the total")
 			continue
 		}
 
 		if artemis_eth_units.IsXGreaterThanY(artemis_eth_units.NewBigInt(0), rw.Map[v.AmountOutToken.Address.String()].ExpectedProfitAmountOut) {
+			log.Warn().Str("token", v.AmountOutToken.Name()).Str("address", v.AmountOutToken.Address.String()).Int("successCount", v.Count).Int("failureCount", v.FailedCount).Msg("expected profit is negative")
 			negCount++
 			continue
 		}
@@ -82,7 +83,7 @@ func (s *ReportingTestSuite) TestCalculateProfits() {
 	fmt.Println("total eth profit", artemis_eth_units.DivBigIntToFloat(total, artemis_eth_units.Ether).String())
 	fmt.Println("negatives", negCount)
 	fmt.Println("total eth profit without negatives", artemis_eth_units.DivBigIntToFloat(totalWithoutNegatives, artemis_eth_units.Ether).String())
-
+	//
 	//err = artemis_risk_analysis.SetTradingPermission(ctx, addresses, 1, true)
 	//s.Assert().Nil(err)
 }

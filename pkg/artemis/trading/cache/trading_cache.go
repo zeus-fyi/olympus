@@ -12,8 +12,6 @@ import (
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	redis_mev "github.com/zeus-fyi/olympus/datastores/redis/apps/mev"
-	"github.com/zeus-fyi/olympus/pkg/apollo/ethereum/client_apis/beacon_api"
-	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 )
 
@@ -115,12 +113,10 @@ func GetLatestBlock(ctx context.Context) (uint64, error) {
 	return bn, nil
 }
 
-func SetActiveTradingBlockCache(ctx context.Context) {
-	timestampChan := make(chan time.Time)
+func SetActiveTradingBlockCache(ctx context.Context, timestampChan chan time.Time) {
 	if len(artemis_orchestration_auth.Bearer) == 0 {
 		panic(fmt.Errorf("bearer token is empty"))
 	}
-	go beacon_api.TriggerWorkflowOnNewBlockHeaderEvent(ctx, artemis_network_cfgs.ArtemisQuicknodeStreamWebsocket, timestampChan)
 
 	for {
 		select {
@@ -136,10 +132,7 @@ func SetActiveTradingBlockCache(ctx context.Context) {
 			}
 			Wc.Close()
 			Cache.Set(redis_mev.LatestBlockNumberCacheKey, bn, 6*time.Second)
-			if ReadRedis.Client != nil {
-
-			}
-			log.Info().Msg(fmt.Sprintf("Received new timestamp: %s", t))
+			log.Info().Msg(fmt.Sprintf("SetActiveTradingBlockCache: Received new timestamp: %s", t))
 			if WriteRedis.Client != nil {
 				err := WriteRedis.AddOrUpdateLatestBlockCache(ctx, bn, 12*time.Second)
 				if err != nil {

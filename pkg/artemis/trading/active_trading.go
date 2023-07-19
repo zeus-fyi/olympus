@@ -2,16 +2,13 @@ package artemis_realtime_trading
 
 import (
 	"context"
-	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
-	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -106,7 +103,6 @@ func NewActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, 
 	}
 	TraderClient.AddBearerToken(artemis_orchestration_auth.Bearer)
 	log.Info().Msgf("trader account: %s", traderAcc.Address().String())
-	go artemis_trading_cache.SetActiveTradingBlockCache(context.Background())
 	return at
 }
 
@@ -115,8 +111,6 @@ type ErrWrapper struct {
 	Stage string
 	Code  int
 }
-
-var txCache = cache.New(time.Hour*24, time.Hour*24)
 
 func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction, m *metrics_trading.TradingMetrics) ErrWrapper {
 	m.StageProgressionMetrics.CountPreEntryFilterTx()

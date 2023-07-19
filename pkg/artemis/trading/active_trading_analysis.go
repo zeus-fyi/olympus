@@ -74,7 +74,7 @@ func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64)
 	tmTradingEnabled := artemis_trading_cache.TokenMap[tokenAddress].TradingEnabled
 	if tmTradingEnabled == nil {
 		tradeEnabled := false
-		log.Info().Msgf("dat: EntryTxFilter, erc20 at address %s not registered", tokenAddress)
+		log.Info().Msgf("CheckTokenRegistry, erc20 at address %s not registered", tokenAddress)
 		err := artemis_mev_models.InsertERC20TokenInfo(ctx, artemis_autogen_bases.Erc20TokenInfo{
 			Address:           tokenAddress,
 			ProtocolNetworkID: int(chainID),
@@ -82,8 +82,8 @@ func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64)
 			TradingEnabled:    &tradeEnabled,
 		})
 		if err != nil {
-			log.Err(err).Msg("dat: EntryTxFilter, InsertERC20TokenInfo")
-			return errors.New("dat: EntryTxFilter, erc20 at address %s not registered")
+			log.Err(err).Msg("CheckTokenRegistry: InsertERC20TokenInfo")
+			return errors.New("CheckTokenRegistry: erc20 at address %s not registered")
 		}
 	}
 	return nil
@@ -105,11 +105,11 @@ func ApplyMaxTransferTax(ctx context.Context, tf *web3_client.TradeExecutionFlow
 	go func(ctx context.Context, tokenA, tokenB string) {
 		err := CheckTokenRegistry(ctx, tokenA, hestia_req_types.EthereumMainnetProtocolNetworkID)
 		if err != nil {
-			log.Err(err).Msg("failed to check token registry")
+			log.Err(err).Msg("CheckTokenRegistry: failed to check token registry")
 		}
 		err = CheckTokenRegistry(ctx, tokenB, hestia_req_types.EthereumMainnetProtocolNetworkID)
 		if err != nil {
-			log.Err(err).Msg("failed to check token registry")
+			log.Err(err).Msg("CheckTokenRegistry: failed to check token registry")
 		}
 	}(ctx, tokenOne, tokenTwo)
 

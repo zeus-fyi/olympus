@@ -12,6 +12,7 @@ import (
 )
 
 func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_client.TradeExecutionFlow) (*MevTxGroup, error) {
+	log.Info().Msg("PackageSandwich: start")
 	if tf == nil || tf.Tx == nil {
 		return nil, errors.New("tf is nil")
 	}
@@ -91,25 +92,33 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_cl
 		log.Warn().Int("bundleTxCount", len(bundle.MevTxs)).Msg("SANDWICH_TRADE: sandwich bundle not 3 txs")
 		return nil, errors.New("sandwich bundle not 3 txs")
 	}
+	log.Info().Msg("PackageSandwich: end")
 	return bundle, err
 }
 
-func (a *AuxiliaryTradingUtils) StagingPackageSandwichAndCall(ctx context.Context, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsCallBundleResponse, error) {
+func (a *AuxiliaryTradingUtils) StagingPackageSandwichAndCall(ctx context.Context, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsCallBundleResponse, *MevTxGroup, error) {
+	log.Info().Msg("StagingPackageSandwichAndCall: start")
 	bundle, err := a.PackageSandwich(ctx, tf)
 	if err != nil {
-		log.Err(err).Msg("failed to package sandwich")
-		return nil, err
+		log.Err(err).Msg("StagingPackageSandwichAndCall: failed to package sandwich")
+		return nil, nil, err
 	}
 	if bundle == nil {
-		return nil, errors.New("bundle is nil")
+		return nil, nil, errors.New("bundle is nil")
 	}
+	//log.Info().Interface("bundle", bundle).Msg("isBundleProfitHigherThanGasFee: bundle")
+	//ok, err := isBundleProfitHigherThanGasFee(bundle, tf)
+	//if err != nil {
+	//	log.Err(err).Bool("ok", ok).Msg("StagingPackageSandwichAndCall: isBundleProfitHigherThanGasFee: failed to check if profit is higher than gas fee")
+	//	return nil, nil, err
+	//}
 	resp, err := a.CallFlashbotsBundleStaging(ctx, *bundle)
 	if err != nil {
 		log.Err(err).Interface("fbCallResp", resp).Msg("failed to send sandwich")
-		return nil, err
+		return nil, nil, err
 	}
 	log.Info().Interface("fbCallResp", resp).Msg("sent sandwich")
-	return &resp, err
+	return &resp, bundle, err
 }
 
 func (a *AuxiliaryTradingUtils) PackageSandwichAndSend(ctx context.Context, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsSendBundleResponse, error) {

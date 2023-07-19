@@ -13,16 +13,17 @@ import (
 )
 
 const (
-	FrontRun  = "frontRun"
-	UserTrade = "userTrade"
-	BackRun   = "backRun"
-	TradeType = "tradeType"
+	FrontRun      = "frontRun"
+	UserTrade     = "userTrade"
+	UserTradeTest = "userTradeTest"
+	BackRun       = "backRun"
+	TradeType     = "tradeType"
 
 	TradeCfg = "tradeCfg"
 	Permit2  = "permit2"
 )
 
-func (a *AuxiliaryTradingUtils) getAdditionalTxConfig(ctx context.Context) string {
+func getAdditionalTxConfig(ctx context.Context) string {
 	tt := ctx.Value(TradeCfg)
 	if tt == nil {
 		return ""
@@ -89,7 +90,7 @@ func packageTxForBundle(ctx context.Context, from string, txWithMetadata TxWithM
 }
 
 func getEthTxByPackageType(ctx context.Context, from string, signedTxWithMetadata TxWithMetadata) (artemis_eth_txs.EthTx, error) {
-	tt := getTradeTypeFromCtx(ctx)
+	tt := getAdditionalTxConfig(ctx)
 	switch tt {
 	case Permit2:
 		return packagePermit2Tx(ctx, from, signedTxWithMetadata)
@@ -126,8 +127,11 @@ func packageRegularTx(ctx context.Context, from string, signedTxWithMetadata TxW
 	gasFeeCap := signedTx.GasFeeCap()
 	gasTipCap := signedTx.GasTipCap()
 	gasLimit := signedTx.Gas()
-	tt := getTradeTypeFromCtx(ctx)
-	switch tt {
+	switch signedTxWithMetadata.TradeType {
+	case UserTradeTest:
+		log.Info().Msg("txGasAdjuster: UserTradeTest gas adjustment")
+		gasTipCap = artemis_eth_units.NewBigInt(10)
+		gasLimit = gasLimit * 2
 	case UserTrade:
 		log.Info().Msg("txGasAdjuster: UserTrade gas adjustment")
 		gasTipCap = artemis_eth_units.OneTenthGwei

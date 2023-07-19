@@ -31,30 +31,30 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() (*AuxiliaryTradingU
 	fmt.Println("frontRun: txGasLimit", frontRunTx.Gas())
 	fmt.Println("frontRun: txGasFeeCap", frontRunTx.GasFeeCap().String())
 	fmt.Println("frontRun: txGasTipCap", frontRunTx.GasTipCap().String())
+	t.Require().Equal("0", frontRunTx.GasTipCap().String())
 
-	txWithMetadata := TxWithMetadata{
-		Tx: frontRunTx,
+	frontRunTxWithMetadata := TxWithMetadata{
+		TradeType: FrontRun,
+		Tx:        frontRunTx,
+		ScPayload: scInfoFrontRun,
 	}
-	bundle, err := AddTxToBundleGroup(ctx, txWithMetadata, nil)
+	ctx = context.Background()
+	bundle, err := AddTxToBundleGroup(ctx, frontRunTxWithMetadata, nil)
 	t.Require().Nil(err)
 	t.Require().Equal(1, len(bundle.MevTxs))
 	t.Require().Equal(1, len(bundle.OrderedTxs))
 
-	ctx = context.Background()
-
 	// middle of bundle
-
 	user := t.at1
 	fmt.Println("userTrader", user.tradersAccount().PublicKey())
 	cmd = t.testEthToWETH(&user, toExchAmount)
-	ctx = CreateUserTradeCtx(ctx)
 	tx, _, err := universalRouterCmdToTxBuilder(ctx, *user.w3c(), cmd)
 	t.Require().NotEmpty(tx)
-
-	txWithMetadata = TxWithMetadata{
-		Tx: tx,
+	userTxWithMetadata := TxWithMetadata{
+		TradeType: UserTradeTest,
+		Tx:        tx,
 	}
-	bundle, err = AddTxToBundleGroup(ctx, txWithMetadata, bundle)
+	bundle, err = AddTxToBundleGroup(ctx, userTxWithMetadata, bundle)
 	t.Require().Nil(err)
 	t.Require().Equal(2, len(bundle.MevTxs))
 	t.Require().Equal(2, len(bundle.OrderedTxs))
@@ -62,6 +62,7 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() (*AuxiliaryTradingU
 	fmt.Println("userTrade: txGasLimit", adjustedTx.GasLimit.Int64)
 	fmt.Println("userTrade: txGasFeeCap", adjustedTx.GasFeeCap.Int64)
 	fmt.Println("userTrade: txGasTipCap", adjustedTx.GasTipCap.Int64)
+	t.Require().Equal(artemis_eth_units.NewBigInt(10).Int64(), adjustedTx.GasTipCap.Int64)
 
 	signer := types.LatestSignerForChainID(artemis_eth_units.NewBigInt(hestia_req_types.EthereumGoerliProtocolNetworkID))
 	sender, err := signer.Sender(tx)
@@ -73,25 +74,31 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() (*AuxiliaryTradingU
 	ctx = context.Background()
 	// part 3 of bundle
 	cmd, pt := t.testExecV2Trade(&ta, hestia_req_types.Goerli)
+
+	scInfoSand, err := universalRouterCmdToUnsignedTxPayload(ctx, *ta.w3c(), cmd)
+	t.Require().Nil(err)
+
+	fmt.Println("frontRunGas", frontRunTxWithMetadata.ScPayload.GasLimit)
+	backRunGasLimit := frontRunTxWithMetadata.ScPayload.GasLimit * 2
+	scInfoSand.GasLimit = backRunGasLimit
+	fmt.Println("backRunGas", scInfoSand.GasLimit)
+	scInfoSand.GasTipCap = artemis_eth_units.MulBigIntFromInt(frontRunTxWithMetadata.ScPayload.GasTipCap, 2)
+	scInfoSand.GasFeeCap = artemis_eth_units.MulBigIntFromInt(frontRunTxWithMetadata.ScPayload.GasFeeCap, 2)
 	ctx = CreateBackRunCtx(ctx, *ta.w3c())
 	fmt.Println("mainTraderAddr", ta.w3a().Address().String())
 
-	scInfo, err := universalRouterCmdToUnsignedTxPayload(ctx, *ta.w3c(), cmd)
+	sandwichSignedTx, err := ta.w3a().GetSignedTxToCallFunctionWithData(ctx, scInfoSand, scInfoSand.Data)
 	t.Require().Nil(err)
-	signedTx, err := ta.w3a().GetSignedTxToCallFunctionWithData(ctx, scInfo, scInfo.Data)
-	t.Require().Nil(err)
-	t.Require().NotNil(signedTx)
+	t.Require().NotNil(sandwichSignedTx)
 
-	tx, _, err = universalRouterCmdToTxBuilder(ctx, *ta.w3c(), cmd)
-	t.Require().Nil(err)
-	t.Require().NotEmpty(tx)
-	fmt.Println("backRun: txGasLimit", tx.Gas())
-	fmt.Println("backRun: txGasFeeCap", tx.GasFeeCap().String())
-	fmt.Println("backRun: txGasTipCap", tx.GasTipCap().String())
+	t.Require().Equal(backRunGasLimit, sandwichSignedTx.Gas())
+	fmt.Println("backRun: txGasFeeCap", sandwichSignedTx.GasFeeCap().String())
+	fmt.Println("backRun: txGasTipCap", sandwichSignedTx.GasTipCap().String())
 	t.Require().Equal(2, len(bundle.OrderedTxs))
 
-	txWithMetadata = TxWithMetadata{
-		Tx:        tx,
+	txWithMetadata := TxWithMetadata{
+		TradeType: BackRun,
+		Tx:        sandwichSignedTx,
 		Permit2Tx: pt.Permit2Tx,
 	}
 	bundle, err = AddTxToBundleGroup(ctx, txWithMetadata, bundle)

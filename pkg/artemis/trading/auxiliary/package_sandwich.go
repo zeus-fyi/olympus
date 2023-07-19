@@ -46,6 +46,7 @@ func packageFrontRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: FRONT_RUN start")
 
 	frTx := TxWithMetadata{
+		TradeType: FrontRun,
 		ScPayload: scInfoFrontRun,
 		Tx:        frontRunTx,
 	}
@@ -56,6 +57,9 @@ func packageFrontRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 }
 
 func packageBackRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow, frScInfo *web3_actions.SendContractTxPayload) (*TxWithMetadata, error) {
+	if frScInfo == nil {
+		return nil, errors.New("PackageSandwich: BACK_RUN: frScInfo is nil")
+	}
 	backRunCtx := CreateBackRunCtx(context.Background(), w3c)
 	ur, spt, err := GenerateTradeV2SwapFromTokenToToken(backRunCtx, w3c, nil, &tf.SandwichTrade)
 	if err != nil {
@@ -72,7 +76,6 @@ func packageBackRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_cl
 	scInfoSand.GasLimit = frScInfo.GasLimit * 2
 	scInfoSand.GasTipCap = artemis_eth_units.MulBigIntFromInt(frScInfo.GasFeeCap, 2)
 	scInfoSand.GasFeeCap = artemis_eth_units.MulBigIntFromInt(frScInfo.GasFeeCap, 2)
-
 	signedSandwichTx, err := w3c.GetSignedTxToCallFunctionWithData(ctx, scInfoSand, scInfoSand.Data)
 	if err != nil {
 		log.Warn().Msg("PackageSandwich: SANDWICH_TRADE: w3c.GetSignedTxToCallFunctionWithData: error getting signed tx to call function with data")
@@ -80,7 +83,8 @@ func packageBackRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_cl
 		return nil, err
 	}
 	sandwichTx := TxWithMetadata{
-		Tx: signedSandwichTx,
+		TradeType: BackRun,
+		Tx:        signedSandwichTx,
 	}
 	if spt != nil {
 		sandwichTx.Permit2Tx = spt.Permit2Tx
@@ -126,7 +130,8 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 	// user trade
 	userCtx := CreateUserTradeCtx(context.Background())
 	userTx := TxWithMetadata{
-		Tx: tf.Tx,
+		TradeType: UserTrade,
+		Tx:        tf.Tx,
 	}
 	bundle, err = AddTxToBundleGroup(userCtx, userTx, bundle)
 	if err != nil {

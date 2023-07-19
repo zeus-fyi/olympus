@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	"github.com/zeus-fyi/olympus/pkg/apollo/ethereum/client_apis/beacon_api"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
@@ -25,9 +26,13 @@ var (
 	AuthHeader string
 )
 
-func InitUniswap(ctx context.Context, authHeader string) {
+func InitArtemisUniswap(ctx context.Context, authHeader string) {
 	AuthHeader = authHeader
-	go ProcessMempoolTxs(ctx)
+	timestampChan := make(chan time.Time)
+	go ProcessMempoolTxs(ctx, timestampChan)
+	go artemis_trading_cache.SetActiveTradingBlockCache(ctx, timestampChan)
+	go beacon_api.TriggerWorkflowOnNewBlockHeaderEvent(ctx, artemis_network_cfgs.ArtemisQuicknodeStreamWebsocket, timestampChan)
+
 }
 
 func InitNewUniHardhat(ctx context.Context, sessionID string) *web3_client.UniswapClient {
@@ -67,9 +72,7 @@ func InitNewUniswapQuiknode(ctx context.Context) *web3_client.UniswapClient {
 	return &uni
 }
 
-func ProcessMempoolTxs(ctx context.Context) {
-	timestampChan := make(chan time.Time)
-	go artemis_trading_cache.SetActiveTradingBlockCache(ctx)
+func ProcessMempoolTxs(ctx context.Context, timestampChan chan time.Time) {
 
 	for {
 		select {

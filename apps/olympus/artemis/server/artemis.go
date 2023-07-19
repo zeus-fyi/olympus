@@ -114,7 +114,7 @@ func Artemis() {
 		}))
 	}
 
-	artemis_mev_tx_fetcher.InitUniswap(ctx, artemis_orchestration_auth.Bearer)
+	artemis_mev_tx_fetcher.InitArtemisUniswap(ctx, artemis_orchestration_auth.Bearer)
 	srv.E = artemis_api_router.Routes(srv.E)
 	srv.Start()
 }

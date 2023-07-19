@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
 const (
@@ -49,29 +50,29 @@ func (a *AuxiliaryTradingUtils) getTradeTypeFromCtx(ctx context.Context) string 
 	return ""
 }
 
-func (a *AuxiliaryTradingUtils) CreateFrontRunCtx(ctx context.Context) context.Context {
+func CreateFrontRunCtx(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, TradeType, FrontRun)
 	return ctx
 }
-func (a *AuxiliaryTradingUtils) CreateFrontRunCtxWithPermit2(ctx context.Context) context.Context {
-	ctx = a.CreateFrontRunCtx(ctx)
+func CreateFrontRunCtxWithPermit2(ctx context.Context) context.Context {
+	ctx = CreateFrontRunCtx(ctx)
 	ctx = context.WithValue(ctx, TradeCfg, Permit2)
 	return ctx
 }
 
-func (a *AuxiliaryTradingUtils) CreateBackRunCtx(ctx context.Context) context.Context {
+func CreateBackRunCtx(ctx context.Context, w3c web3_client.Web3Client) context.Context {
 	ctx = context.WithValue(ctx, TradeType, BackRun)
-	ctx = a.w3a().SetNonceOffset(ctx, 1)
+	ctx = w3c.SetNonceOffset(ctx, 1)
 	return ctx
 }
 
-func (a *AuxiliaryTradingUtils) CreateBackRunCtxWithPermit2(ctx context.Context) context.Context {
-	ctx = a.CreateBackRunCtx(ctx)
+func CreateBackRunCtxWithPermit2(ctx context.Context, w3c web3_client.Web3Client) context.Context {
+	ctx = CreateBackRunCtx(ctx, w3c)
 	ctx = context.WithValue(ctx, TradeCfg, Permit2)
 	return ctx
 }
 
-func (a *AuxiliaryTradingUtils) CreateUserTradeCtx(ctx context.Context) context.Context {
+func CreateUserTradeCtx(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, TradeType, UserTrade)
 	return ctx
 }

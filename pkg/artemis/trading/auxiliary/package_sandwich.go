@@ -11,7 +11,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_client.TradeExecutionFlow) (*MevTxGroup, error) {
+func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (*MevTxGroup, error) {
 	log.Info().Msg("PackageSandwich: start")
 	if tf == nil || tf.Tx == nil {
 		return nil, errors.New("tf is nil")
@@ -24,7 +24,7 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_cl
 	}
 	startCtx := ctx
 	// front run
-	frontRunCtx := a.CreateFrontRunCtx(startCtx)
+	frontRunCtx := CreateFrontRunCtx(startCtx)
 	ur, fpt, err := a.GenerateTradeV2SwapFromTokenToToken(frontRunCtx, nil, &tf.FrontRunTrade)
 	if err != nil {
 		log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed to generate front run tx")
@@ -52,7 +52,7 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_cl
 		return nil, err
 	}
 	// user trade
-	userCtx := a.CreateUserTradeCtx(startCtx)
+	userCtx := CreateUserTradeCtx(startCtx)
 	userTx := TxWithMetadata{
 		Tx: tf.Tx,
 	}
@@ -62,7 +62,7 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_cl
 		return nil, err
 	}
 	// sandwich trade
-	backRunCtx := a.CreateBackRunCtx(startCtx)
+	backRunCtx := CreateBackRunCtx(startCtx, w3c)
 	ur, spt, err := a.GenerateTradeV2SwapFromTokenToToken(backRunCtx, ur, &tf.SandwichTrade)
 	if err != nil {
 		log.Err(err).Msg("SANDWICH_TRADE: failed to generate sandwich tx")
@@ -96,9 +96,9 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_cl
 	return bundle, err
 }
 
-func (a *AuxiliaryTradingUtils) StagingPackageSandwichAndCall(ctx context.Context, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsCallBundleResponse, *MevTxGroup, error) {
+func (a *AuxiliaryTradingUtils) StagingPackageSandwichAndCall(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsCallBundleResponse, *MevTxGroup, error) {
 	log.Info().Msg("StagingPackageSandwichAndCall: start")
-	bundle, err := a.PackageSandwich(ctx, tf)
+	bundle, err := a.PackageSandwich(ctx, w3c, tf)
 	if err != nil {
 		log.Err(err).Msg("StagingPackageSandwichAndCall: failed to package sandwich")
 		return nil, nil, err
@@ -121,8 +121,8 @@ func (a *AuxiliaryTradingUtils) StagingPackageSandwichAndCall(ctx context.Contex
 	return &resp, bundle, err
 }
 
-func (a *AuxiliaryTradingUtils) PackageSandwichAndSend(ctx context.Context, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsSendBundleResponse, error) {
-	bundle, err := a.PackageSandwich(ctx, tf)
+func (a *AuxiliaryTradingUtils) PackageSandwichAndSend(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsSendBundleResponse, error) {
+	bundle, err := a.PackageSandwich(ctx, w3c, tf)
 	if err != nil {
 		log.Err(err).Msg("failed to package sandwich")
 		return nil, err

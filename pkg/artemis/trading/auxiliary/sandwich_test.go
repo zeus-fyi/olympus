@@ -23,7 +23,7 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() (*AuxiliaryTradingU
 	txWithMetadata := TxWithMetadata{
 		Tx: tx,
 	}
-	bundle, err := ta.AddTxToBundleGroup(ctx, txWithMetadata, nil)
+	bundle, err := AddTxToBundleGroup(ctx, txWithMetadata, nil)
 	t.Require().Nil(err)
 	t.Require().Equal(1, len(bundle.MevTxs))
 	t.Require().Equal(1, len(bundle.OrderedTxs))
@@ -45,7 +45,7 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() (*AuxiliaryTradingU
 	txWithMetadata = TxWithMetadata{
 		Tx: tx,
 	}
-	bundle, err = ta.AddTxToBundleGroup(ctx, txWithMetadata, bundle)
+	bundle, err = AddTxToBundleGroup(ctx, txWithMetadata, bundle)
 	t.Require().Nil(err)
 	signer := types.LatestSignerForChainID(artemis_eth_units.NewBigInt(hestia_req_types.EthereumGoerliProtocolNetworkID))
 	sender, err := signer.Sender(tx)
@@ -71,7 +71,7 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() (*AuxiliaryTradingU
 		Tx:        tx,
 		Permit2Tx: pt.Permit2Tx,
 	}
-	bundle, err = ta.AddTxToBundleGroup(ctx, txWithMetadata, bundle)
+	bundle, err = AddTxToBundleGroup(ctx, txWithMetadata, bundle)
 	t.Require().Nil(err)
 	t.Require().Equal(3, len(bundle.MevTxs))
 	t.Require().Equal(3, len(bundle.OrderedTxs))

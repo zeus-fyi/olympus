@@ -33,7 +33,7 @@ func (a *AuxiliaryTradingUtils) getAdditionalTxConfig(ctx context.Context) strin
 	return ""
 }
 
-func (a *AuxiliaryTradingUtils) getTradeTypeFromCtx(ctx context.Context) string {
+func getTradeTypeFromCtx(ctx context.Context) string {
 	tt := ctx.Value(TradeType)
 	if tt == nil {
 		return ""
@@ -77,8 +77,8 @@ func CreateUserTradeCtx(ctx context.Context) context.Context {
 	return ctx
 }
 
-func (a *AuxiliaryTradingUtils) packageTxForBundle(ctx context.Context, txWithMetadata TxWithMetadata) (artemis_eth_txs.EthTx, error) {
-	mevTx, err := a.getEthTxByPackageType(ctx, txWithMetadata)
+func packageTxForBundle(ctx context.Context, from string, txWithMetadata TxWithMetadata) (artemis_eth_txs.EthTx, error) {
+	mevTx, err := getEthTxByPackageType(ctx, from, txWithMetadata)
 	if err != nil {
 		log.Err(err).Msg("error getting eth tx by package type")
 		return artemis_eth_txs.EthTx{}, err
@@ -86,16 +86,16 @@ func (a *AuxiliaryTradingUtils) packageTxForBundle(ctx context.Context, txWithMe
 	return mevTx, nil
 }
 
-func (a *AuxiliaryTradingUtils) getEthTxByPackageType(ctx context.Context, signedTxWithMetadata TxWithMetadata) (artemis_eth_txs.EthTx, error) {
-	tt := a.getTradeTypeFromCtx(ctx)
+func getEthTxByPackageType(ctx context.Context, from string, signedTxWithMetadata TxWithMetadata) (artemis_eth_txs.EthTx, error) {
+	tt := getTradeTypeFromCtx(ctx)
 	switch tt {
 	case Permit2:
-		return a.packagePermit2Tx(ctx, signedTxWithMetadata)
+		return packagePermit2Tx(ctx, from, signedTxWithMetadata)
 	}
-	return a.packageRegularTx(ctx, signedTxWithMetadata)
+	return packageRegularTx(ctx, from, signedTxWithMetadata)
 }
 
-func (a *AuxiliaryTradingUtils) packagePermit2Tx(ctx context.Context, signedTxWithMetadata TxWithMetadata) (artemis_eth_txs.EthTx, error) {
+func packagePermit2Tx(ctx context.Context, from string, signedTxWithMetadata TxWithMetadata) (artemis_eth_txs.EthTx, error) {
 	signedTx := signedTxWithMetadata.Tx
 	permit2 := signedTxWithMetadata.Permit2Tx
 	mevTx := artemis_eth_txs.EthTx{
@@ -103,7 +103,7 @@ func (a *AuxiliaryTradingUtils) packagePermit2Tx(ctx context.Context, signedTxWi
 			ProtocolNetworkID: permit2.ProtocolNetworkID,
 			TxHash:            signedTx.Hash().String(),
 			Nonce:             int(signedTx.Nonce()),
-			From:              a.U.Web3Client.Address().String(),
+			From:              from,
 			Type:              "0x02",
 		},
 		EthTxGas: artemis_autogen_bases.EthTxGas{
@@ -137,7 +137,7 @@ func (a *AuxiliaryTradingUtils) packagePermit2Tx(ctx context.Context, signedTxWi
 	return mevTx, nil
 }
 
-func (a *AuxiliaryTradingUtils) packageRegularTx(ctx context.Context, signedTxWithMetadata TxWithMetadata) (artemis_eth_txs.EthTx, error) {
+func packageRegularTx(ctx context.Context, from string, signedTxWithMetadata TxWithMetadata) (artemis_eth_txs.EthTx, error) {
 	signedTx := signedTxWithMetadata.Tx
 	pi := signedTx.ChainId()
 	ethGas := artemis_autogen_bases.EthTxGas{
@@ -180,7 +180,7 @@ func (a *AuxiliaryTradingUtils) packageRegularTx(ctx context.Context, signedTxWi
 			ProtocolNetworkID: int(pi.Int64()),
 			TxHash:            signedTx.Hash().String(),
 			Nonce:             int(signedTx.Nonce()),
-			From:              a.U.Web3Client.Address().String(),
+			From:              from,
 			Type:              typeEnum,
 		},
 		EthTxGas: artemis_autogen_bases.EthTxGas{

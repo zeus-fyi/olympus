@@ -25,7 +25,8 @@ func (t *ArtemisAuxillaryTestSuite) TestCreateFbBundle() (*AuxiliaryTradingUtils
 	txStart := TxWithMetadata{
 		Tx: tx,
 	}
-	bundle, err := ta.AddTxToBundleGroup(ctx, txStart, nil)
+
+	bundle, err := AddTxToBundleGroup(ctx, txStart, nil)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(bundle.MevTxs)
 	t.Require().Equal(1, len(bundle.MevTxs))
@@ -42,7 +43,7 @@ func (t *ArtemisAuxillaryTestSuite) TestCreateFbBundle() (*AuxiliaryTradingUtils
 	if permit2Val != nil {
 		txMeta.Permit2Tx = permit2Val.Permit2Tx
 	}
-	bundle, err = ta.AddTxToBundleGroup(ctx, txMeta, bundle)
+	bundle, err = AddTxToBundleGroup(ctx, txMeta, bundle)
 	t.Require().Nil(err)
 	t.Require().Equal(2, len(bundle.OrderedTxs))
 	t.Require().Equal(2, len(bundle.MevTxs))

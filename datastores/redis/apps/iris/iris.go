@@ -7,6 +7,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+var IrisRedis IrisCache
+
 type IrisCache struct {
 	Writer *redis.Client
 	Reader *redis.Client
@@ -16,4 +18,17 @@ func NewIrisCache(ctx context.Context, w, r *redis.Client) IrisCache {
 	log.Ctx(ctx).Info().Msg("IrisCache")
 	log.Info().Interface("redis", r)
 	return IrisCache{w, r}
+}
+
+func InitProductionRedisIrisCache(ctx context.Context) {
+	writeRedisOpts := redis.Options{
+		Addr: "redis-master.redis.svc.cluster.local:6379",
+	}
+	writer := redis.NewClient(&writeRedisOpts)
+	readRedisOpts := redis.Options{
+		Addr: "redis-replicas.redis.svc.cluster.local:6379",
+	}
+	reader := redis.NewClient(&readRedisOpts)
+
+	IrisRedis = NewIrisCache(ctx, writer, reader)
 }

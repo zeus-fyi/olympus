@@ -59,21 +59,25 @@ func universalRouterCmdToTxBuilder(ctx context.Context, w3c web3_client.Web3Clie
 	ur.Deadline = GetDeadline()
 	data, err := ur.EncodeCommands(ctx)
 	if err != nil {
+		log.Warn().Msg("universalRouterCmdToTxBuilder: error encoding commands")
 		log.Err(err).Msg("error encoding commands")
 		return nil, nil, err
 	}
 	scInfo, err := GetUniswapUniversalRouterAbiPayload(ctx, w3c, data)
 	if err != nil {
+		log.Warn().Msg("universalRouterCmdToTxBuilder: error getting uniswap universal router abi payload")
 		log.Err(err).Msg("error getting uniswap universal router abi payload")
 		return nil, nil, err
 	}
 	signedTx, err := w3c.GetSignedTxToCallFunctionWithData(ctx, &scInfo, scInfo.Data)
 	if err != nil {
+		log.Warn().Msg("w3c.GetSignedTxToCallFunctionWithData: error getting signed tx to call function with data")
 		log.Err(err).Msg("error getting signed tx to call function with data")
 		return nil, nil, err
 	}
 	err = universalRouterCmdVerifier(ctx, w3c, ur, &scInfo)
 	if err != nil {
+		log.Warn().Msg("universalRouterCmdVerifier: error verifying universal router command")
 		log.Err(err).Msg("error verifying universal router command")
 		return nil, nil, err
 	}

@@ -50,14 +50,14 @@ func (d *ArtemisMevActivities) BlacklistMinedTxs(ctx context.Context) error {
 	wc.AddBearerToken(artemis_orchestration_auth.Bearer)
 	txs, terr := wc.GetBlockTxs(ctx)
 	if terr != nil {
-		log.Err(terr).Str("network", d.Network).Msg("GetDynamoDBMempoolTxs failed")
+		log.Err(terr).Str("network", d.Network).Msg("BlacklistMinedTxs GetBlockTxs failed")
 		return terr
 	}
 	for _, tx := range txs {
 		c.Set(tx.Hash().String(), tx, cache.DefaultExpiration)
 		err := artemis_trading_cache.WriteRedis.AddTxHashCache(ctx, tx.Hash().String(), time.Hour*24)
 		if err != nil {
-			log.Err(err).Str("network", d.Network).Msg("AddTxHashCache failed")
+			log.Err(err).Str("network", d.Network).Msg("BlacklistMinedTxs: AddTxHashCache failed")
 			return err
 		}
 	}

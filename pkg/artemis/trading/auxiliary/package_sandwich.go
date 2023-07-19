@@ -96,7 +96,7 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 	return bundle, err
 }
 
-func (a *AuxiliaryTradingUtils) StagingPackageSandwichAndCall(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsCallBundleResponse, *MevTxGroup, error) {
+func StagingPackageSandwichAndCall(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsCallBundleResponse, *MevTxGroup, error) {
 	log.Info().Msg("StagingPackageSandwichAndCall: start")
 	if tf == nil {
 		return nil, nil, errors.New("tf is nil")
@@ -115,7 +115,7 @@ func (a *AuxiliaryTradingUtils) StagingPackageSandwichAndCall(ctx context.Contex
 	//	log.Err(err).Bool("ok", ok).Msg("StagingPackageSandwichAndCall: isBundleProfitHigherThanGasFee: failed to check if profit is higher than gas fee")
 	//	return nil, nil, err
 	//}
-	resp, err := a.CallFlashbotsBundleStaging(ctx, w3c, *bundle)
+	resp, err := CallFlashbotsBundleStaging(ctx, w3c, *bundle)
 	if err != nil {
 		log.Err(err).Interface("fbCallResp", resp).Msg("failed to send sandwich")
 		return nil, nil, err
@@ -124,7 +124,7 @@ func (a *AuxiliaryTradingUtils) StagingPackageSandwichAndCall(ctx context.Contex
 	return &resp, bundle, err
 }
 
-func (a *AuxiliaryTradingUtils) PackageSandwichAndSend(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsSendBundleResponse, error) {
+func PackageSandwichAndSend(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsSendBundleResponse, error) {
 	bundle, err := PackageSandwich(ctx, w3c, tf)
 	if err != nil {
 		log.Err(err).Msg("failed to package sandwich")
@@ -133,7 +133,7 @@ func (a *AuxiliaryTradingUtils) PackageSandwichAndSend(ctx context.Context, w3c 
 	if bundle == nil {
 		return nil, errors.New("bundle is nil")
 	}
-	_, err = a.CallAndSendFlashbotsBundle(ctx, w3c, *bundle)
+	_, err = CallAndSendFlashbotsBundle(ctx, w3c, *bundle)
 	if err != nil {
 		log.Err(err).Msg("failed to send sandwich")
 		return nil, err

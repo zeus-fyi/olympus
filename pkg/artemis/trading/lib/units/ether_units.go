@@ -49,6 +49,15 @@ func GweiFraction(multiple int, divisor int) *big.Int {
 }
 
 func AddBigInt(val, plus *big.Int) *big.Int {
+	if val == nil && plus == nil {
+		return NewBigInt(0)
+	}
+	if val == nil {
+		return plus
+	}
+	if plus == nil {
+		return val
+	}
 	return new(big.Int).Add(val, plus)
 }
 

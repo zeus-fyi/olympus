@@ -24,6 +24,7 @@ func universalRouterCmdVerifier(ctx context.Context, w3c web3_client.Web3Client,
 			wp := sc.DecodedInputs.(web3_client.WrapETHParams)
 			ethRequirements = artemis_eth_units.AddBigInt(ethRequirements, wp.AmountMin)
 			if ur.Payable == nil {
+				log.Warn().Msgf("universalRouterCmdVerifier: payable is nil")
 				return errors.New("payable is nil")
 			}
 		case artemis_trading_constants.UnwrapWETH:
@@ -33,9 +34,11 @@ func universalRouterCmdVerifier(ctx context.Context, w3c web3_client.Web3Client,
 	ethRequirements = artemis_eth_units.AddBigInt(ethRequirements, gasCost)
 	hasEnough, err := checkEthBalanceGreaterThan(ctx, w3c, ethRequirements)
 	if err != nil {
+		log.Err(err).Str("ethRequirements", ethRequirements.String()).Msgf("universalRouterCmdVerifier: checkEthBalanceGreaterThan checking ETH balance")
 		return err
 	}
 	if !hasEnough {
+		log.Warn().Msgf("universalRouterCmdVerifier: user does not have enough ETH to execute the command")
 		return errors.New("user does not have enough ETH to exchange to WETH")
 	}
 

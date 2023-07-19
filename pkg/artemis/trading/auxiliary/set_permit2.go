@@ -38,11 +38,17 @@ func generatePermit2Approval(ctx context.Context, w3c web3_client.Web3Client, to
 		log.Warn().Err(err).Msg("error getting chainID")
 		return web3_client.Permit2PermitParams{}, nil, err
 	}
-	owner := w3c.Address()
+	ownerAcc := w3c.Account
+	if ownerAcc == nil {
+		log.Warn().Msg("generatePermit2Approval: owner is nil")
+		return web3_client.Permit2PermitParams{}, nil, errors.New("owner is nil")
+	}
+	owner := ownerAcc.Address()
 	token := to.AmountInAddr
 	spender := artemis_trading_constants.UniswapUniversalRouterNewAddressAccount
 	ptNonce, err := GetNextPermit2NonceFromContract(ctx, w3c, owner, token, spender)
 	if err != nil {
+		log.Warn().Str("permit2Owner", w3c.Account.PublicKey()).Msg("generatePermit2Approval failed")
 		return web3_client.Permit2PermitParams{}, nil, err
 	}
 	pt := &artemis_eth_txs.Permit2Tx{

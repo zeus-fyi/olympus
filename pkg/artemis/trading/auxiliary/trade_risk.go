@@ -18,7 +18,7 @@ func (a *AuxiliaryTradingUtils) maxTradeSize() *big.Int {
 	return artemis_eth_units.GweiMultiple(gweiInEther / 3)
 }
 
-func (a *AuxiliaryTradingUtils) isProfitHigherThanGasFee(tf *web3_client.TradeExecutionFlow) (bool, error) {
+func isProfitHigherThanGasFee(tf *web3_client.TradeExecutionFlow) (bool, error) {
 	if tf.FrontRunTrade.TotalGasCost == 0 {
 		return false, errors.New("front run gas cost is 0")
 	}
@@ -32,7 +32,7 @@ func (a *AuxiliaryTradingUtils) isProfitHigherThanGasFee(tf *web3_client.TradeEx
 	return true, nil
 }
 
-func (a *AuxiliaryTradingUtils) IsTradingEnabledOnToken(tk string) (bool, error) {
+func IsTradingEnabledOnToken(tk string) (bool, error) {
 	tan := artemis_trading_cache.TokenMap[tk].TradingEnabled
 	if tan == nil {
 		return false, errors.New("token not found in cache")
@@ -50,12 +50,12 @@ func (a *AuxiliaryTradingUtils) IsProfitTokenAcceptable(ctx context.Context, tf 
 	if tf.FrontRunTrade.AmountInAddr.String() != wethAddr.String() {
 		return false, errors.New("profit token is not WETH")
 	}
-	ok, err := a.IsTradingEnabledOnToken(tf.FrontRunTrade.AmountOutAddr.String())
+	ok, err := IsTradingEnabledOnToken(tf.FrontRunTrade.AmountOutAddr.String())
 	if err != nil {
 		log.Info().Interface("tf.FrontRunTrade.AmountOutAddr", tf.FrontRunTrade.AmountOutAddr.String()).Msg("trading is disabled for token")
 		return false, err
 	}
-	ok, err = a.isProfitHigherThanGasFee(tf)
+	ok, err = isProfitHigherThanGasFee(tf)
 	if err != nil {
 		return false, err
 	}

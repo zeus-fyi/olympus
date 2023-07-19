@@ -86,6 +86,7 @@ func universalRouterCmdToTxBuilder(ctx context.Context, w3c web3_client.Web3Clie
 
 func GetUniswapUniversalRouterAbiPayload(ctx context.Context, w3c web3_client.Web3Client, payload *web3_client.UniversalRouterExecParams) (web3_actions.SendContractTxPayload, error) {
 	if payload == nil {
+		log.Warn().Msg("GetUniswapUniversalRouterAbiPayload: payload is nil")
 		return web3_actions.SendContractTxPayload{}, errors.New("payload is nil")
 	}
 	payable := payload.Payable
@@ -113,15 +114,20 @@ func GetUniswapUniversalRouterAbiPayload(ctx context.Context, w3c web3_client.We
 	}
 	err := params.GenerateBinDataFromParamsAbi(ctx)
 	if err != nil {
+		log.Warn().Msg("GetUniswapUniversalRouterAbiPayload: error generating bin data from params abi")
 		log.Err(err).Msg("error generating bin data from params abi")
 		return web3_actions.SendContractTxPayload{}, err
 	}
 	err = w3c.SuggestAndSetGasPriceAndLimitForTx(ctx, &params, common.HexToAddress(params.SmartContractAddr))
 	if err != nil {
+		log.Warn().Msg("GetUniswapUniversalRouterAbiPayload: error generating bin data from params abi")
+		log.Err(err).Msg("error generating bin data from params abi")
 		return web3_actions.SendContractTxPayload{}, err
 	}
 	err = txGasAdjuster(ctx, &params)
 	if err != nil {
+		log.Warn().Msg("GetUniswapUniversalRouterAbiPayload: error adjusting tx gas")
+		log.Err(err).Msg("error adjusting tx gas")
 		return web3_actions.SendContractTxPayload{}, err
 	}
 	return params, nil

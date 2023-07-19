@@ -93,12 +93,14 @@ func (a *AnvilProxy) GetSessionLockedRoute(ctx context.Context, sessionID string
 		if iris_redis.IrisRedis.Reader != nil && iris_redis.IrisRedis.Writer != nil {
 			exists, err := iris_redis.IrisRedis.DoesSessionIDExist(ctx, sessionID)
 			if err != nil {
+				a.PriorityQueue.Push(route, ttl)
 				log.Err(err).Msg("error checking if session exists")
 				return "", err
 			}
 			if !exists {
 				err = iris_redis.IrisRedis.AddSessionWithTTL(ctx, sessionID, route, a.LockDefaultTime)
 				if err != nil {
+					a.PriorityQueue.Push(route, ttl)
 					log.Err(err).Msg("error adding session to cache")
 					return "", err
 				}

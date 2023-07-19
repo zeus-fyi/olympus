@@ -92,7 +92,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	artemis_trade_executor.InitGoerliAuxiliaryTradingUtils(ctx, age)
 	log.Info().Msg("Tyche: InitFlashbots succeeded")
 
-	artemis_mev_tx_fetcher.InitArtemisUniswap(ctx, artemis_orchestration_auth.Bearer)
+	artemis_mev_tx_fetcher.InitTycheUniswap(ctx, artemis_orchestration_auth.Bearer)
 	log.Info().Msg("Tyche: InitArtemisUniswap succeeded")
 
 }

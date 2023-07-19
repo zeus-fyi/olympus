@@ -8,16 +8,17 @@ import (
 	"github.com/rs/zerolog/log"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
+	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-func (t *TradeDebugger) FindSlippage(ctx context.Context, to *artemis_trading_types.TradeOutcome) error {
-	ac := t.dat.GetSimAuxClient()
+func (t *TradeDebugger) FindSlippage(ctx context.Context, w3c web3_client.Web3Client, to *artemis_trading_types.TradeOutcome) error {
 	//tf.FrontRunTrade.AmountOut = tf.FrontRunTrade.SimulatedAmountOut //  new(big.Int).SetInt64(0)
-	ur, _, err := ac.GenerateTradeV2SwapFromTokenToToken(ctx, nil, to)
+	ur, _, err := artemis_trading_auxiliary.GenerateTradeV2SwapFromTokenToToken(ctx, w3c, nil, to)
 	if err != nil {
 		return err
 	}
@@ -58,7 +59,7 @@ func (t *TradeDebugger) FindSlippage(ctx context.Context, to *artemis_trading_ty
 		}
 		to.AmountOut = artemis_eth_units.ApplyTransferTax(start, num, denom)
 		fmt.Println("amount out", to.AmountOut.String())
-		ur, _, err = ac.GenerateTradeV2SwapFromTokenToToken(ctx, nil, to)
+		ur, _, err = artemis_trading_auxiliary.GenerateTradeV2SwapFromTokenToToken(ctx, w3c, nil, to)
 		if err != nil {
 			return err
 		}

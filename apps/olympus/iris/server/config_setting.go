@@ -7,6 +7,7 @@ import (
 	"github.com/zeus-fyi/olympus/configs"
 	dynamodb_client "github.com/zeus-fyi/olympus/datastores/dynamodb"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_api_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/api_requests"
@@ -37,6 +38,7 @@ func SetConfigByEnv(ctx context.Context, env string) {
 		dynamoDBCreds.AccessKey = sw.AccessKeyHydraDynamoDB
 		dynamoDBCreds.AccessSecret = sw.SecretKeyHydraDynamoDB
 		auth_startup.InitArtemisEthereum(ctx, inMemSecrets, sw)
+		iris_redis.InitProductionRedisIrisCache(ctx)
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn

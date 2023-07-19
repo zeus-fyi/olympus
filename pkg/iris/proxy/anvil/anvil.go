@@ -5,23 +5,17 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"strconv"
 	"time"
 
-	"github.com/go-redis/redis/v9"
 	"github.com/oleiade/lane/v2"
 	"github.com/puzpuzpuz/xsync/v2"
 	"github.com/rs/zerolog/log"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
-	redis_mev "github.com/zeus-fyi/olympus/datastores/redis/apps/mev"
 	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
 
 var (
-	LockedSessionTTL             = xsync.NewMapOf[string]()
-	LockedSessionToRouteCacheMap = xsync.NewMapOf[string]()
-	LockedRouteToSessionCacheMap = xsync.NewMapOf[string]()
-	Routes                       = []string{
+	Routes = []string{
 		"http://anvil.191aada9-055d-4dba-a906-7dfbc4e632c6.svc.cluster.local:8545",
 		"http://anvil.427c5536-4fc0-4257-90b5-1789d290058c.svc.cluster.local:8545",
 		"http://anvil.5cf3a2c0-1d65-48cb-8b85-dc777ad956a0.svc.cluster.local:8545",
@@ -33,18 +27,6 @@ var (
 	ts                   = chronos.Chronos{}
 	SessionLocker        = AnvilProxy{}
 	ErrNoRoutesAvailable = errors.New("no routes available")
-	writeRedisOpts       = redis.Options{
-		Addr: "redis-master.redis.svc.cluster.local:6379",
-	}
-	ctx           = context.Background()
-	writer        = redis.NewClient(&writeRedisOpts)
-	WriteRedis    = redis_mev.NewMevCache(ctx, writer)
-	readRedisOpts = redis.Options{
-		Addr: "redis-replicas.redis.svc.cluster.local:6379",
-	}
-	reader    = redis.NewClient(&readRedisOpts)
-	ReadRedis = redis_mev.NewMevCache(ctx, reader)
-	IrisCache = iris_redis.NewIrisCache(ctx, writer, reader)
 )
 
 type AnvilProxy struct {
@@ -60,10 +42,19 @@ func InitAnvilProxy() {
 	}
 }
 
-func (a *AnvilProxy) RemoveSessionLockedRoute(sessionID string) {
+var (
+	LockedSessionTTL             = xsync.NewMapOf[string]()
+	LockedSessionToRouteCacheMap = xsync.NewMapOf[string]()
+	LockedRouteToSessionCacheMap = xsync.NewMapOf[string]()
+)
+
+func (a *AnvilProxy) RemoveSessionLockedRoute(ctx context.Context, sessionID string) {
 	if _, ok := LockedSessionToRouteCacheMap.Load(sessionID); ok {
 		LockedSessionTTL.Store(sessionID, fmt.Sprintf("%d", 0))
-		return
+	}
+	if iris_redis.IrisRedis.Writer != nil {
+		_, _ = iris_redis.IrisRedis.DeleteSessionCacheIfExists(ctx, sessionID)
+		_, _ = iris_redis.IrisRedis.DeleteSessionRouteCacheIfExists(ctx, sessionID)
 	}
 	return
 }
@@ -74,14 +65,21 @@ func (a *AnvilProxy) GetSessionLockedRoute(ctx context.Context, sessionID string
 	}
 
 	if route, ok := LockedSessionToRouteCacheMap.Load(sessionID); ok {
-		// TODO IrisCache here
-		//err := IrisCache.AddOrUpdateLatestSessionCache(ctx, sessionID, a.LockDefaultTime.Abs())
-		//if //err != nil {
-		//	return "", //err
-		//}
 		ttl := ts.UnixTimeStampNowSec() + int(a.LockDefaultTime.Seconds())
 		LockedSessionTTL.Store(sessionID, fmt.Sprintf("%d", ttl))
+		if iris_redis.IrisRedis.Writer != nil {
+			_, _ = iris_redis.IrisRedis.GetAndUpdateLatestSessionCacheTTLIfExists(ctx, sessionID, a.LockDefaultTime)
+		}
 		return route, nil
+	}
+
+	if iris_redis.IrisRedis.Writer != nil {
+		val, err := iris_redis.IrisRedis.GetAndUpdateLatestSessionCacheTTLIfExists(ctx, sessionID, a.LockDefaultTime)
+		if err == nil && len(val) > 0 {
+			ttl := ts.UnixTimeStampNowSec() + int(a.LockDefaultTime.Seconds())
+			LockedSessionTTL.Store(sessionID, fmt.Sprintf("%d", ttl))
+			return val, nil
+		}
 	}
 
 	i := 0
@@ -92,34 +90,27 @@ func (a *AnvilProxy) GetSessionLockedRoute(ctx context.Context, sessionID string
 		if !ok {
 			return "", ErrNoRoutesAvailable
 		}
-		// TODO IrisCache here
-		oldSession, exists := LockedRouteToSessionCacheMap.Load(route)
-		if exists {
-			mapTTL, mapTTLExists := LockedSessionTTL.Load(oldSession)
-			if mapTTLExists {
-				ttlLatest, err := strconv.Atoi(mapTTL)
+
+		if iris_redis.IrisRedis.Reader != nil && iris_redis.IrisRedis.Writer != nil {
+			exists, err := iris_redis.IrisRedis.DoesSessionIDExist(ctx, sessionID)
+			if err != nil {
+				log.Err(err).Msg("error checking if session exists")
+				return "", err
+			}
+			if !exists {
+				err = iris_redis.IrisRedis.AddSessionWithTTL(ctx, sessionID, route, a.LockDefaultTime)
 				if err != nil {
-					log.Err(err).Msg("error converting ttl to int")
+					log.Err(err).Msg("error adding session to cache")
 					return "", err
 				}
-				ttl = ttlLatest
+				LockedSessionToRouteCacheMap.Store(sessionID, route)
+				LockedRouteToSessionCacheMap.Store(route, sessionID)
+				ttl = ts.UnixTimeStampNowSec() + int(a.LockDefaultTime.Seconds())
+				newTTL := fmt.Sprintf("%d", ttl)
+				LockedSessionTTL.Store(sessionID, newTTL)
+				a.PriorityQueue.Push(route, ttl)
+				return route, nil
 			}
-		}
-		if ttl < ts.UnixTimeStampNowSec() {
-			if exists {
-				// TODO IrisCache here
-				LockedSessionToRouteCacheMap.Delete(oldSession)
-				LockedRouteToSessionCacheMap.Delete(route)
-				LockedSessionTTL.Delete(oldSession)
-			}
-			// TODO IrisCache here
-			LockedSessionToRouteCacheMap.Store(sessionID, route)
-			LockedRouteToSessionCacheMap.Store(route, sessionID)
-			ttl = ts.UnixTimeStampNowSec() + int(a.LockDefaultTime.Seconds())
-			newTTL := fmt.Sprintf("%d", ttl)
-			LockedSessionTTL.Store(sessionID, newTTL)
-			a.PriorityQueue.Push(route, ttl)
-			return route, nil
 		}
 		a.PriorityQueue.Push(route, ttl)
 		if i >= int(pqSize) {

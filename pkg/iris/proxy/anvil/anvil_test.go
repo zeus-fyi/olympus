@@ -46,7 +46,9 @@ func (t *AnvilTestSuite) TestSessionLocker() {
 		if i == 0 {
 			fmt.Println("locked", nr)
 		}
-		SessionLocker.GetSessionLockedRoute(ctx, fmt.Sprintf("%d", 0))
+		route, err := SessionLocker.GetSessionLockedRoute(ctx, fmt.Sprintf("%d", 0))
+		t.Assert().Nil(err)
+		t.Assert().NotNil(route)
 	}
 	fmt.Println("locking one", time.Since(now))
 
@@ -64,7 +66,7 @@ func (t *AnvilTestSuite) TestSessionLocker() {
 		nr, err := SessionLocker.GetSessionLockedRoute(ctx, fmt.Sprintf("%d", i))
 		t.Assert().Nil(err)
 		t.Assert().NotNil(nr)
-		SessionLocker.RemoveSessionLockedRoute(fmt.Sprintf("%d", i))
+		SessionLocker.RemoveSessionLockedRoute(ctx, fmt.Sprintf("%d", i))
 	}
 	fmt.Println("with removals", time.Since(now))
 	/*

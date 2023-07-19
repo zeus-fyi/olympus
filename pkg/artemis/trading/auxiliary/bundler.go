@@ -9,18 +9,19 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *AuxiliaryTradingUtils) CallAndSendFlashbotsBundle(ctx context.Context, bundle MevTxGroup) (flashbotsrpc.FlashbotsSendBundleResponse, error) {
+func (a *AuxiliaryTradingUtils) CallAndSendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle MevTxGroup) (flashbotsrpc.FlashbotsSendBundleResponse, error) {
 	sr := flashbotsrpc.FlashbotsSendBundleResponse{}
-	eventID, err := a.getBlockNumber(ctx)
+	eventID, err := getBlockNumber(ctx, w3c)
 	if err != nil {
 		log.Err(err).Msg("error getting event id")
 		return flashbotsrpc.FlashbotsSendBundleResponse{}, err
 	}
 	bnStr := hexutil.EncodeUint64(uint64(eventID + 1))
-	ctx = a.setBlockNumberCtx(ctx, bnStr)
-	_, err = a.CallFlashbotsBundle(ctx, &bundle)
+	ctx = setBlockNumberCtx(ctx, bnStr)
+	_, err = a.CallFlashbotsBundle(ctx, w3c, &bundle)
 	if err != nil {
 		log.Err(err).Msg("error calling flashbots bundle")
 		return sr, err
@@ -31,7 +32,7 @@ func (a *AuxiliaryTradingUtils) CallAndSendFlashbotsBundle(ctx context.Context, 
 		return sr, err
 	}
 	defer dbTx.Rollback(ctx)
-	sr, err = a.sendFlashbotsBundle(ctx, &bundle)
+	sr, err = a.sendFlashbotsBundle(ctx, w3c, &bundle)
 	if err != nil {
 		log.Err(err).Msg("error sending flashbots bundle")
 		return sr, err
@@ -53,16 +54,16 @@ func (a *AuxiliaryTradingUtils) CallAndSendFlashbotsBundle(ctx context.Context, 
 	return sr, nil
 }
 
-func (a *AuxiliaryTradingUtils) CallFlashbotsBundleStaging(ctx context.Context, bundle MevTxGroup) (flashbotsrpc.FlashbotsCallBundleResponse, error) {
+func (a *AuxiliaryTradingUtils) CallFlashbotsBundleStaging(ctx context.Context, w3c web3_client.Web3Client, bundle MevTxGroup) (flashbotsrpc.FlashbotsCallBundleResponse, error) {
 	sr := flashbotsrpc.FlashbotsCallBundleResponse{}
-	eventID, err := a.getBlockNumber(ctx)
+	eventID, err := getBlockNumber(ctx, w3c)
 	if err != nil {
 		log.Err(err).Msg("error getting event id")
 		return flashbotsrpc.FlashbotsCallBundleResponse{}, err
 	}
 	bnStr := hexutil.EncodeUint64(uint64(eventID + 1))
-	ctx = a.setBlockNumberCtx(ctx, bnStr)
-	resp, err := a.CallFlashbotsBundle(ctx, &bundle)
+	ctx = setBlockNumberCtx(ctx, bnStr)
+	resp, err := a.CallFlashbotsBundle(ctx, w3c, &bundle)
 	if err != nil {
 		log.Err(err).Msg("error calling flashbots bundle")
 		return sr, err
@@ -90,11 +91,11 @@ func (a *AuxiliaryTradingUtils) CallFlashbotsBundleStaging(ctx context.Context, 
 	return resp, nil
 }
 
-func (a *AuxiliaryTradingUtils) CallFlashbotsBundle(ctx context.Context, bundle *MevTxGroup) (flashbotsrpc.FlashbotsCallBundleResponse, error) {
+func (a *AuxiliaryTradingUtils) CallFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle *MevTxGroup) (flashbotsrpc.FlashbotsCallBundleResponse, error) {
 	if bundle == nil || len(bundle.MevTxs) == 0 {
 		return flashbotsrpc.FlashbotsCallBundleResponse{}, errors.New("no txs to send or bundle is nil")
 	}
-	bnStr := a.getBlockNumberCtx(ctx)
+	bnStr := getBlockNumberCtx(ctx, w3c)
 	txHexEncodedStrSlice, err := bundle.GetHexEncodedTxStrSlice()
 	if err != nil {
 		return flashbotsrpc.FlashbotsCallBundleResponse{}, err
@@ -104,7 +105,7 @@ func (a *AuxiliaryTradingUtils) CallFlashbotsBundle(ctx context.Context, bundle 
 		BlockNumber: bnStr,
 		Timestamp:   GetDeadline().Int64(),
 	}
-	ctx = a.setBlockNumberCtx(ctx, bnStr)
+	ctx = setBlockNumberCtx(ctx, bnStr)
 	resp, err := a.f.CallBundle(ctx, fbCallBundle)
 	if err != nil {
 		log.Err(err).Msg("error calling flashbots bundle")
@@ -113,7 +114,7 @@ func (a *AuxiliaryTradingUtils) CallFlashbotsBundle(ctx context.Context, bundle 
 	return resp, nil
 }
 
-func (a *AuxiliaryTradingUtils) sendFlashbotsBundle(ctx context.Context, bundle *MevTxGroup) (flashbotsrpc.FlashbotsSendBundleResponse, error) {
+func (a *AuxiliaryTradingUtils) sendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle *MevTxGroup) (flashbotsrpc.FlashbotsSendBundleResponse, error) {
 	if bundle == nil || len(bundle.MevTxs) == 0 {
 		return flashbotsrpc.FlashbotsSendBundleResponse{}, errors.New("no txs to send or bundle is nil")
 	}
@@ -124,7 +125,7 @@ func (a *AuxiliaryTradingUtils) sendFlashbotsBundle(ctx context.Context, bundle 
 	mt := GetDeadline().Uint64()
 	fbSendBundle := flashbotsrpc.FlashbotsSendBundleRequest{
 		Txs:          txHexEncodedStrSlice,
-		BlockNumber:  a.getBlockNumberCtx(ctx),
+		BlockNumber:  getBlockNumberCtx(ctx, w3c),
 		MaxTimestamp: &mt,
 	}
 	resp, err := a.f.SendBundle(ctx, fbSendBundle)

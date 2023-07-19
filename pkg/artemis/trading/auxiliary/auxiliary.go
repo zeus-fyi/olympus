@@ -2,7 +2,6 @@ package artemis_trading_auxiliary
 
 import (
 	"context"
-	"errors"
 	"math/big"
 	"time"
 
@@ -103,34 +102,29 @@ func (a *AuxiliaryTradingUtils) C() *ethclient.Client {
 	return a.w3a().C
 }
 
-func (a *AuxiliaryTradingUtils) getBlockNumber(ctx context.Context) (int, error) {
-	a.dial()
-	defer a.close()
-	if a.w3a() != nil {
-		bn, err := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(ctx, *a.w3a())
-		if err != nil {
-			return 0, err
-		}
-		return int(bn), nil
+func getBlockNumber(ctx context.Context, w3c web3_client.Web3Client) (int, error) {
+	bn, err := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(ctx, w3c.Web3Actions)
+	if err != nil {
+		return 0, err
 	}
-	return 0, errors.New("web3 actions is nil")
+	return int(bn), nil
 }
 
 const (
 	BlockNumber = "BlockNumber"
 )
 
-func (a *AuxiliaryTradingUtils) setBlockNumberCtx(ctx context.Context, bn string) context.Context {
+func setBlockNumberCtx(ctx context.Context, bn string) context.Context {
 	ctx = context.WithValue(ctx, BlockNumber, bn)
 	return ctx
 }
 
-func (a *AuxiliaryTradingUtils) getBlockNumberCtx(ctx context.Context) string {
+func getBlockNumberCtx(ctx context.Context, w3c web3_client.Web3Client) string {
 	td := ctx.Value(BlockNumber)
 	if td != nil {
 		return td.(string)
 	}
-	bn, err := a.getBlockNumber(ctx)
+	bn, err := getBlockNumber(ctx, w3c)
 	if err != nil {
 		return ""
 	}

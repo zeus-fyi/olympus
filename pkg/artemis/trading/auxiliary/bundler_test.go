@@ -71,7 +71,7 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2TradeFromUser2(ta *AuxiliaryTradin
 func (t *ArtemisAuxillaryTestSuite) TestCallBundle() {
 	ta, bundle := t.TestCreateFbBundle()
 	t.Require().NotEmpty(ta)
-	resp, err := ta.CallFlashbotsBundle(ctx, &bundle)
+	resp, err := ta.CallFlashbotsBundle(ctx, *ta.w3c(), &bundle)
 	t.Require().Nil(err)
 	t.Require().NotNil(resp)
 
@@ -89,7 +89,7 @@ func (t *ArtemisAuxillaryTestSuite) TestCallBundle() {
 func (t *ArtemisAuxillaryTestSuite) TestCallAndSendBundle() {
 	ta, bundle := t.TestCreateFbBundle()
 	t.Require().NotEmpty(ta)
-	resp, err := ta.CallAndSendFlashbotsBundle(ctx, bundle)
+	resp, err := ta.CallAndSendFlashbotsBundle(ctx, *ta.w3c(), bundle)
 	t.Require().Nil(err)
 	t.Require().NotNil(resp)
 	fmt.Println("bundleHash", resp.BundleHash)

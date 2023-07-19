@@ -11,7 +11,7 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (*MevTxGroup, error) {
+func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (*MevTxGroup, error) {
 	log.Info().Msg("PackageSandwich: start")
 	if tf == nil || tf.Tx == nil {
 		return nil, errors.New("tf is nil")
@@ -98,7 +98,10 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, w3c web3_cl
 
 func (a *AuxiliaryTradingUtils) StagingPackageSandwichAndCall(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsCallBundleResponse, *MevTxGroup, error) {
 	log.Info().Msg("StagingPackageSandwichAndCall: start")
-	bundle, err := a.PackageSandwich(ctx, w3c, tf)
+	if tf == nil {
+		return nil, nil, errors.New("tf is nil")
+	}
+	bundle, err := PackageSandwich(ctx, w3c, tf)
 	if err != nil {
 		log.Err(err).Msg("StagingPackageSandwichAndCall: failed to package sandwich")
 		return nil, nil, err
@@ -112,7 +115,7 @@ func (a *AuxiliaryTradingUtils) StagingPackageSandwichAndCall(ctx context.Contex
 	//	log.Err(err).Bool("ok", ok).Msg("StagingPackageSandwichAndCall: isBundleProfitHigherThanGasFee: failed to check if profit is higher than gas fee")
 	//	return nil, nil, err
 	//}
-	resp, err := a.CallFlashbotsBundleStaging(ctx, *bundle)
+	resp, err := a.CallFlashbotsBundleStaging(ctx, w3c, *bundle)
 	if err != nil {
 		log.Err(err).Interface("fbCallResp", resp).Msg("failed to send sandwich")
 		return nil, nil, err
@@ -122,7 +125,7 @@ func (a *AuxiliaryTradingUtils) StagingPackageSandwichAndCall(ctx context.Contex
 }
 
 func (a *AuxiliaryTradingUtils) PackageSandwichAndSend(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsSendBundleResponse, error) {
-	bundle, err := a.PackageSandwich(ctx, w3c, tf)
+	bundle, err := PackageSandwich(ctx, w3c, tf)
 	if err != nil {
 		log.Err(err).Msg("failed to package sandwich")
 		return nil, err
@@ -130,7 +133,7 @@ func (a *AuxiliaryTradingUtils) PackageSandwichAndSend(ctx context.Context, w3c 
 	if bundle == nil {
 		return nil, errors.New("bundle is nil")
 	}
-	_, err = a.CallAndSendFlashbotsBundle(ctx, *bundle)
+	_, err = a.CallAndSendFlashbotsBundle(ctx, w3c, *bundle)
 	if err != nil {
 		log.Err(err).Msg("failed to send sandwich")
 		return nil, err

@@ -31,16 +31,14 @@ func InitUniswap(ctx context.Context, authHeader string) {
 	go ProcessMempoolTxs(ctx)
 }
 
-func InitNewUniHardhat(ctx context.Context) *web3_client.UniswapClient {
+func InitNewUniHardhat(ctx context.Context, sessionID string) *web3_client.UniswapClient {
 	acc, err := accounts.CreateAccount()
 	if err != nil {
 		panic(err)
 	}
 	wc := web3_client.NewWeb3Client(irisBetaSvcInternal, acc)
-	m := map[string]string{
-		"Authorization": "Bearer " + AuthHeader,
-	}
-	wc.Headers = m
+	wc.AddBearerToken(AuthHeader)
+	wc.AddSessionLockHeader(sessionID)
 	uni := web3_client.InitUniswapClient(ctx, wc)
 	uni.PrintOn = true
 	uni.PrintLocal = false

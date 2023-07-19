@@ -17,7 +17,7 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-func ProcessTxs(ctx context.Context, mevTxs *[]web3_client.MevTx, m *metrics_trading.TradingMetrics, w3a web3_actions.Web3Actions) ([]web3_client.TradeExecutionFlowJSON, error) {
+func ProcessTxs(ctx context.Context, mevTxs *[]web3_client.MevTx, m *metrics_trading.TradingMetrics, w3a web3_actions.Web3Actions) []web3_client.TradeExecutionFlowJSON {
 	var tfSlice []web3_client.TradeExecutionFlowJSON
 
 	for _, mevTx := range *mevTxs {
@@ -67,7 +67,7 @@ func ProcessTxs(ctx context.Context, mevTxs *[]web3_client.MevTx, m *metrics_tra
 		}
 	}
 
-	return tfSlice, nil
+	return tfSlice
 }
 
 func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64) error {

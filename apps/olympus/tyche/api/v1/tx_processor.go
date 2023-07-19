@@ -7,9 +7,8 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	artemis_trade_executor "github.com/zeus-fyi/olympus/pkg/artemis/trading/executor"
+	artemis_realtime_trading "github.com/zeus-fyi/olympus/pkg/artemis/trading"
 	tyche_metrics "github.com/zeus-fyi/olympus/tyche/metrics"
-	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
 const (
@@ -32,19 +31,8 @@ func TxProcessingRequestHandler(c echo.Context) error {
 
 func (t *TxProcessingRequest) ProcessTx(c echo.Context) error {
 	ctx := c.Request().Context()
-	at := artemis_trade_executor.ActiveTrader
 	for _, tx := range t.Txs {
-		switch int(tx.ChainId().Int64()) {
-		case hestia_req_types.EthereumGoerliProtocolNetworkID:
-			at = artemis_trade_executor.ActiveGoerliTrader
-		case hestia_req_types.EthereumMainnetProtocolNetworkID:
-			at = artemis_trade_executor.ActiveTrader
-		case hestia_req_types.EthereumEphemeryProtocolNetworkID:
-			log.Info().Msgf("tx chain id %s not supported or not supplied, defaulting to mainnet", tx.ChainId().String())
-		default:
-			log.Info().Msgf("tx chain id %s not supported or not supplied, defaulting to mainnet", tx.ChainId().String())
-		}
-		werr := at.IngestTx(ctx, tx, &tyche_metrics.TradeMetrics)
+		werr := artemis_realtime_trading.IngestTx(ctx, tx, &tyche_metrics.TradeMetrics)
 		if werr.Err != nil && werr.Code != 200 {
 			//log.Err(werr.Err).Msg("error processing tx")
 			return c.JSON(http.StatusPreconditionFailed, werr.Err)

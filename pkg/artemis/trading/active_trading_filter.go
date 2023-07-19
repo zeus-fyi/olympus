@@ -26,6 +26,9 @@ func EntryTxFilter(ctx context.Context, tx *types.Transaction) error {
 	if tx.To() == nil {
 		return errors.New("dat: EntryTxFilter, tx.To() is nil")
 	}
+	if len(tx.Hash().String()) <= 0 {
+		return errors.New("dat: EntryTxFilter, tx.Hash().String() is nil")
+	}
 	//_, ok := txCache.Get(tx.Hash().String())
 	//if ok {
 	//	return errors.New("dat: EntryTxFilter, tx already processed")

@@ -128,7 +128,7 @@ func GetNextPermit2NonceFromContract(ctx context.Context, w3c web3_client.Web3Cl
 	nonceCheck := &web3_actions.SendContractTxPayload{
 		SmartContractAddr: artemis_trading_constants.Permit2SmartContractAddress,
 		SendEtherPayload:  web3_actions.SendEtherPayload{},
-		ContractABI:       artemis_oly_contract_abis.MustLoadPermit2Abi(),
+		ContractABI:       artemis_oly_contract_abis.Permit2,
 		MethodName:        "allowance",
 		Params:            []interface{}{owner, token, spender},
 	}

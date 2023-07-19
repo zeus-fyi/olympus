@@ -106,12 +106,12 @@ func (a *AuxiliaryTradingUtils) StagingPackageSandwichAndCall(ctx context.Contex
 	if bundle == nil {
 		return nil, nil, errors.New("bundle is nil")
 	}
-	log.Info().Interface("bundle", bundle).Msg("isBundleProfitHigherThanGasFee: bundle")
-	ok, err := isBundleProfitHigherThanGasFee(bundle, tf)
-	if err != nil {
-		log.Err(err).Bool("ok", ok).Msg("StagingPackageSandwichAndCall: isBundleProfitHigherThanGasFee: failed to check if profit is higher than gas fee")
-		return nil, nil, err
-	}
+	//log.Info().Interface("bundle", bundle).Msg("isBundleProfitHigherThanGasFee: bundle")
+	//ok, err := isBundleProfitHigherThanGasFee(bundle, tf)
+	//if err != nil {
+	//	log.Err(err).Bool("ok", ok).Msg("StagingPackageSandwichAndCall: isBundleProfitHigherThanGasFee: failed to check if profit is higher than gas fee")
+	//	return nil, nil, err
+	//}
 	resp, err := a.CallFlashbotsBundleStaging(ctx, *bundle)
 	if err != nil {
 		log.Err(err).Interface("fbCallResp", resp).Msg("failed to send sandwich")

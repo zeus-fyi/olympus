@@ -7,7 +7,6 @@ import (
 
 	"github.com/rs/zerolog/log"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
-	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
@@ -70,11 +69,11 @@ func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf
 		log.Warn().Str("txHash", tf.Tx.Hash().String()).Interface("tf.FrontRunTrade.AmountInAddr.String() ", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountOutAddr.String()", tf.FrontRunTrade.AmountOutAddr.String()).Msg("profit token is not WETH or ETH")
 		return false, errors.New("tokenIn and tokenOut are the same")
 	}
-	wethAddr := artemis_trading_constants.WETH9ContractAddress
-	if tf.FrontRunTrade.AmountInAddr.String() != wethAddr && tf.FrontRunTrade.AmountInAddr.String() != artemis_trading_constants.ZeroAddress {
-		log.Warn().Str("txHash", tf.Tx.Hash().String()).Interface("tf.FrontRunTrade.AmountInAddr.String() ", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountOutAddr.String()", tf.FrontRunTrade.AmountOutAddr.String()).Msg("profit token is not WETH or ETH")
-		return false, errors.New("profit token is not WETH or ETH")
-	}
+	//wethAddr := artemis_trading_constants.WETH9ContractAddress
+	//if tf.FrontRunTrade.AmountInAddr.String() != wethAddr && tf.FrontRunTrade.AmountInAddr.String() != artemis_trading_constants.ZeroAddress {
+	//	log.Warn().Str("txHash", tf.Tx.Hash().String()).Interface("tf.FrontRunTrade.AmountInAddr.String() ", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountOutAddr.String()", tf.FrontRunTrade.AmountOutAddr.String()).Msg("profit token is not WETH or ETH")
+	//	return false, errors.New("profit token is not WETH or ETH")
+	//}
 
 	ok, err := IsTradingEnabledOnToken(tf.FrontRunTrade.AmountOutAddr.String())
 	if err != nil {

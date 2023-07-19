@@ -57,19 +57,6 @@ func InitNewUniHardhat(ctx context.Context, sessionID string) *web3_client.Unisw
 	return &uni
 }
 
-func InitNewUniswap(ctx context.Context) *web3_client.UniswapClient {
-	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnet.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
-
-	m := map[string]string{
-		"Authorization": "Bearer " + AuthHeader,
-	}
-	wc.Headers = m
-	uni := web3_client.InitUniswapClient(ctx, wc)
-	uni.PrintOn = true
-	uni.PrintLocal = false
-	return &uni
-}
-
 func InitNewUniswapQuiknode(ctx context.Context) *web3_client.UniswapClient {
 	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnetQuiknode.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
 	uni := web3_client.InitUniswapClient(ctx, wc)

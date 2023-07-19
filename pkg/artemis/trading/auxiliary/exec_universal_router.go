@@ -20,7 +20,7 @@ var (
 )
 
 func (a *AuxiliaryTradingUtils) UniversalRouterCmdExecutor(ctx context.Context, w3c web3_client.Web3Client, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, error) {
-	signedTx, _, err := a.universalRouterCmdToTxBuilder(ctx, w3c, ur)
+	signedTx, _, err := universalRouterCmdToTxBuilder(ctx, w3c, ur)
 	if err != nil {
 		log.Err(err).Msg("error building signed tx")
 		return nil, err
@@ -37,8 +37,8 @@ func (a *AuxiliaryTradingUtils) universalRouterExecuteTx(ctx context.Context, si
 	return signedTx, err
 }
 
-func (a *AuxiliaryTradingUtils) debugPrintBalances(ctx context.Context, w3c web3_client.Web3Client) error {
-	bal, err := a.checkEthBalance(ctx)
+func debugPrintBalances(ctx context.Context, w3c web3_client.Web3Client) error {
+	bal, err := checkEthBalance(ctx, w3c)
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func (a *AuxiliaryTradingUtils) debugPrintBalances(ctx context.Context, w3c web3
 }
 
 // takes a universal router command and returns a signed tx
-func (a *AuxiliaryTradingUtils) universalRouterCmdToTxBuilder(ctx context.Context, w3c web3_client.Web3Client, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, *web3_actions.SendContractTxPayload, error) {
+func universalRouterCmdToTxBuilder(ctx context.Context, w3c web3_client.Web3Client, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, *web3_actions.SendContractTxPayload, error) {
 	ur.Deadline = GetDeadline()
 	data, err := ur.EncodeCommands(ctx)
 	if err != nil {
@@ -69,7 +69,7 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdToTxBuilder(ctx context.Contex
 		log.Err(err).Msg("error getting signed tx to call function with data")
 		return nil, nil, err
 	}
-	err = a.universalRouterCmdVerifier(ctx, ur, &scInfo)
+	err = universalRouterCmdVerifier(ctx, w3c, ur, &scInfo)
 	if err != nil {
 		log.Err(err).Msg("error verifying universal router command")
 		return nil, nil, err

@@ -23,7 +23,7 @@ func (t *ArtemisAuxillaryTestSuite) TestMainnetBal() {
 	t.Require().Equal(t.mainnetNode, atMainnet.nodeURL())
 	t.Require().Equal(token, artemis_trading_constants.WETH9ContractAddress)
 
-	bal, err := atMainnet.checkEthBalance(ctx)
+	bal, err := checkEthBalance(ctx, *atMainnet.w3c())
 	t.Require().Nil(err)
 	t.Require().NotNil(bal)
 
@@ -69,7 +69,7 @@ func (t *ArtemisAuxillaryTestSuite) TestFundAccount() {
 	t.Require().Equal(t.mainnetNode, atMainnet.nodeURL())
 	t.Require().Equal(token, artemis_trading_constants.WETH9ContractAddress)
 
-	bal, err := atMainnet.checkEthBalance(ctx)
+	bal, err := checkEthBalance(ctx, *atMainnet.w3c())
 	t.Require().Nil(err)
 	t.Require().NotNil(bal)
 
@@ -96,11 +96,11 @@ func (t *ArtemisAuxillaryTestSuite) TestFundAccount() {
 		}
 	}
 	t.Require().True(found)
-	ok, err := atMainnet.checkEthBalanceGreaterThan(ctx, toExchAmount)
+	ok, err := checkEthBalanceGreaterThan(ctx, *atMainnet.w3c(), toExchAmount)
 	t.Require().Nil(err)
 	t.Require().True(ok)
 
-	tx, _, err := atMainnet.universalRouterCmdToTxBuilder(ctx, *atMainnet.w3c(), cmd)
+	tx, _, err := universalRouterCmdToTxBuilder(ctx, *atMainnet.w3c(), cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 

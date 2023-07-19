@@ -18,7 +18,7 @@ func (t *ArtemisAuxillaryTestSuite) TestCreateFbBundle() (*AuxiliaryTradingUtils
 	cmd := t.testEthToWETH(&ta, toExchAmount)
 	// part 1 of bundle
 
-	tx, _, err := ta.universalRouterCmdToTxBuilder(ctx, *ta.w3c(), cmd)
+	tx, _, err := universalRouterCmdToTxBuilder(ctx, *ta.w3c(), cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 	t.Require().Equal(toExchAmount, tx.Value())
@@ -35,7 +35,7 @@ func (t *ArtemisAuxillaryTestSuite) TestCreateFbBundle() (*AuxiliaryTradingUtils
 	// part 2 of bundle
 	ctx = context.WithValue(ctx, web3_actions.NonceOffset, 1)
 	cmd, permit2Val := t.testExecV2Trade(&ta, hestia_req_types.Goerli)
-	tx, _, err = ta.universalRouterCmdToTxBuilder(ctx, *ta.w3c(), cmd)
+	tx, _, err = universalRouterCmdToTxBuilder(ctx, *ta.w3c(), cmd)
 	t.Require().NotEmpty(tx)
 	txMeta := TxWithMetadata{
 		Tx: tx,

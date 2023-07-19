@@ -16,7 +16,7 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-func (a *AuxiliaryTradingUtils) universalRouterCmdVerifier(ctx context.Context, ur *web3_client.UniversalRouterExecCmd, scInfo *web3_actions.SendContractTxPayload) error {
+func universalRouterCmdVerifier(ctx context.Context, w3c web3_client.Web3Client, ur *web3_client.UniversalRouterExecCmd, scInfo *web3_actions.SendContractTxPayload) error {
 	ethRequirements := artemis_eth_units.NewBigInt(0)
 	for _, sc := range ur.Commands {
 		switch sc.Command {
@@ -31,7 +31,7 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdVerifier(ctx context.Context, 
 	}
 	gasCost := artemis_eth_units.MulBigInt(scInfo.GasFeeCap, artemis_eth_units.NewBigInt(int(scInfo.GasLimit)))
 	ethRequirements = artemis_eth_units.AddBigInt(ethRequirements, gasCost)
-	hasEnough, err := a.checkEthBalanceGreaterThan(ctx, ethRequirements)
+	hasEnough, err := checkEthBalanceGreaterThan(ctx, w3c, ethRequirements)
 	if err != nil {
 		return err
 	}
@@ -42,8 +42,8 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdVerifier(ctx context.Context, 
 	return nil
 }
 
-func (a *AuxiliaryTradingUtils) checkEthBalance(ctx context.Context) (*big.Int, error) {
-	bal, err := a.w3c().GetCurrentBalance(ctx)
+func checkEthBalance(ctx context.Context, w3c web3_client.Web3Client) (*big.Int, error) {
+	bal, err := w3c.GetCurrentBalance(ctx)
 	if err != nil {
 		return bal, err
 	}
@@ -78,8 +78,8 @@ func (a *AuxiliaryTradingUtils) checkAuxERC20BalanceGreaterThan(ctx context.Cont
 	return artemis_eth_units.IsXGreaterThanY(bal, amount), err
 }
 
-func (a *AuxiliaryTradingUtils) checkEthBalanceGreaterThan(ctx context.Context, amount *big.Int) (bool, error) {
-	bal, err := a.w3c().GetCurrentBalance(ctx)
+func checkEthBalanceGreaterThan(ctx context.Context, w3c web3_client.Web3Client, amount *big.Int) (bool, error) {
+	bal, err := w3c.GetCurrentBalance(ctx)
 	if err != nil {
 		return false, err
 	}

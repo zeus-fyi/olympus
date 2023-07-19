@@ -12,6 +12,7 @@ import (
 )
 
 func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_client.TradeExecutionFlow) (*MevTxGroup, error) {
+	log.Info().Msg("PackageSandwich: start")
 	if tf == nil || tf.Tx == nil {
 		return nil, errors.New("tf is nil")
 	}
@@ -91,6 +92,7 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_cl
 		log.Warn().Int("bundleTxCount", len(bundle.MevTxs)).Msg("SANDWICH_TRADE: sandwich bundle not 3 txs")
 		return nil, errors.New("sandwich bundle not 3 txs")
 	}
+	log.Info().Msg("PackageSandwich: end")
 	return bundle, err
 }
 

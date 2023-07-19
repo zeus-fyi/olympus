@@ -31,7 +31,7 @@ func (a *AuxiliaryTradingUtils) SetPermit2ApprovalForToken(ctx context.Context, 
 	return tx, nil
 }
 
-func (a *AuxiliaryTradingUtils) generatePermit2Approval(ctx context.Context, w3c web3_client.Web3Client, to *artemis_trading_types.TradeOutcome) (web3_client.Permit2PermitParams, *artemis_eth_txs.Permit2Tx, error) {
+func generatePermit2Approval(ctx context.Context, w3c web3_client.Web3Client, to *artemis_trading_types.TradeOutcome) (web3_client.Permit2PermitParams, *artemis_eth_txs.Permit2Tx, error) {
 	deadline := GetDeadline()
 	chainID, err := getChainID(ctx, w3c)
 	if err != nil {

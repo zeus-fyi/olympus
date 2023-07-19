@@ -25,7 +25,7 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, w3c web3_cl
 	startCtx := ctx
 	// front run
 	frontRunCtx := CreateFrontRunCtx(startCtx)
-	ur, fpt, err := a.GenerateTradeV2SwapFromTokenToToken(frontRunCtx, w3c, nil, &tf.FrontRunTrade)
+	ur, fpt, err := GenerateTradeV2SwapFromTokenToToken(frontRunCtx, w3c, nil, &tf.FrontRunTrade)
 	if err != nil {
 		log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed to generate front run tx")
 		return nil, err
@@ -63,7 +63,7 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, w3c web3_cl
 	}
 	// sandwich trade
 	backRunCtx := CreateBackRunCtx(startCtx, w3c)
-	ur, spt, err := a.GenerateTradeV2SwapFromTokenToToken(backRunCtx, w3c, ur, &tf.SandwichTrade)
+	ur, spt, err := GenerateTradeV2SwapFromTokenToToken(backRunCtx, w3c, ur, &tf.SandwichTrade)
 	if err != nil {
 		log.Err(err).Msg("SANDWICH_TRADE: failed to generate sandwich tx")
 		return nil, err

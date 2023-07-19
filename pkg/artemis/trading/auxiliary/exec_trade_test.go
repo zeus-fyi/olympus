@@ -101,7 +101,7 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2TradeFromPepeToWeth(ta *AuxiliaryT
 	fmt.Println("testExecV2Trade: amountOut", amountOut.String())
 	to.AmountOut = artemis_eth_units.NewBigIntFromStr("0")
 
-	cmd, pt, err := ta.GenerateTradeV2SwapFromTokenToToken(ctx, *ta.w3c(), nil, to)
+	cmd, pt, err := GenerateTradeV2SwapFromTokenToToken(ctx, *ta.w3c(), nil, to)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(pt)
 	t.Require().NotEmpty(cmd)
@@ -168,7 +168,7 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2Trade(ta *AuxiliaryTradingUtils, n
 	fmt.Println("testExecV2Trade: amountOut", amountOut.String())
 	to.AmountOut = amountOut
 
-	cmd, pt, err := ta.GenerateTradeV2SwapFromTokenToToken(ctx, *ta.w3c(), nil, to)
+	cmd, pt, err := GenerateTradeV2SwapFromTokenToToken(ctx, *ta.w3c(), nil, to)
 	t.Require().Nil(err)
 	t.Require().NotNil(pt)
 	t.Require().Equal(ta.tradersAccount().PublicKey(), pt.Owner)
@@ -225,7 +225,7 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2TradePepe(ta *AuxiliaryTradingUtil
 	fmt.Println("testExecV2Trade: amountOut", amountOut.String())
 	to.AmountOut = amountOut
 
-	cmd, pt, err := ta.GenerateTradeV2SwapFromTokenToToken(ctx, *ta.w3c(), nil, to)
+	cmd, pt, err := GenerateTradeV2SwapFromTokenToToken(ctx, *ta.w3c(), nil, to)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(cmd)
 	t.Require().Len(cmd.Commands, 2)

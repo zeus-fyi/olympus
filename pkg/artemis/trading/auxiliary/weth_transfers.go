@@ -69,7 +69,7 @@ func (a *AuxiliaryTradingUtils) generateCmdToExchangeWETHtoETH(ctx context.Conte
 		AmountIn:     amountIn,
 		AmountInAddr: wethAddr,
 	}
-	permit, _, err := a.generatePermit2Approval(ctx, *a.w3c(), to)
+	permit, _, err := generatePermit2Approval(ctx, *a.w3c(), to)
 	if err != nil {
 		return nil, err
 	}

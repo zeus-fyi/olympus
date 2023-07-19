@@ -7,13 +7,14 @@ import (
 
 	"github.com/rs/zerolog/log"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
 // 0.333 WETH at the moment
 // minWethAmountGwei := 330000000
-func (a *AuxiliaryTradingUtils) maxTradeSize() *big.Int {
+func maxTradeSize() *big.Int {
 	gweiInEther := artemis_eth_units.GweiPerEth
 	return artemis_eth_units.GweiMultiple(gweiInEther / 3)
 }
@@ -45,10 +46,14 @@ func IsTradingEnabledOnToken(tk string) (bool, error) {
 }
 
 // IsProfitTokenAcceptable in sandwich trade the tokenIn on the first trade is the profit currency
-func (a *AuxiliaryTradingUtils) IsProfitTokenAcceptable(ctx context.Context, tf *web3_client.TradeExecutionFlow) (bool, error) {
-	wethAddr := a.getChainSpecificWETH()
-	if tf.FrontRunTrade.AmountInAddr.String() != wethAddr.String() {
-		return false, errors.New("profit token is not WETH")
+func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (bool, error) {
+	// just assumes mainnet for now
+	if tf.FrontRunTrade.AmountInAddr.String() == tf.FrontRunTrade.AmountOutAddr.String() {
+		return false, errors.New("tokenIn and tokenOut are the same")
+	}
+	wethAddr := artemis_trading_constants.WETH9ContractAddress
+	if tf.FrontRunTrade.AmountInAddr.String() != wethAddr && tf.FrontRunTrade.AmountInAddr.String() != artemis_trading_constants.ZeroAddress {
+		return false, errors.New("profit token is not WETH or ETH")
 	}
 	ok, err := IsTradingEnabledOnToken(tf.FrontRunTrade.AmountOutAddr.String())
 	if err != nil {
@@ -63,13 +68,13 @@ func (a *AuxiliaryTradingUtils) IsProfitTokenAcceptable(ctx context.Context, tf 
 		log.Info().Interface("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut).Msg("profit is not higher than gas fee")
 		return false, errors.New("profit is not higher than gas fee")
 	}
-	if artemis_eth_units.IsXGreaterThanY(tf.FrontRunTrade.AmountIn, a.maxTradeSize()) {
-		log.Info().Interface("tf.FrontRunTrade.AmountIn", tf.FrontRunTrade.AmountIn).Interface("maxTradeSize", a.maxTradeSize()).Msg("trade size is higher than max trade size")
+	if artemis_eth_units.IsXGreaterThanY(tf.FrontRunTrade.AmountIn, maxTradeSize()) {
+		log.Info().Interface("tf.FrontRunTrade.AmountIn", tf.FrontRunTrade.AmountIn).Interface("maxTradeSize", maxTradeSize()).Msg("trade size is higher than max trade size")
 		return false, errors.New("trade size is higher than max trade size")
 	}
 	// 0.05 ETH at the moment, ~$100
 	minEthAmountGwei := 100000000 / 2
-	ok, err = a.checkEthBalanceGreaterThan(ctx, artemis_eth_units.GweiMultiple(minEthAmountGwei))
+	ok, err = CheckEthBalanceGreaterThan(ctx, w3c, artemis_eth_units.GweiMultiple(minEthAmountGwei))
 	if err != nil {
 		log.Err(err).Msg("could not check eth balance")
 		return false, err
@@ -77,7 +82,7 @@ func (a *AuxiliaryTradingUtils) IsProfitTokenAcceptable(ctx context.Context, tf 
 	if !ok {
 		return false, errors.New("ETH balance is not enough")
 	}
-	ok, err = a.CheckAuxWETHBalanceGreaterThan(ctx, a.maxTradeSize())
+	ok, err = CheckMainnetAuxWETHBalanceGreaterThan(ctx, w3c, maxTradeSize())
 	if err != nil {
 		log.Err(err).Msg("could not check aux weth balance")
 		return false, err

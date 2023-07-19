@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
@@ -62,10 +63,10 @@ func (a *ActiveTrading) SimTxFilter(ctx context.Context, tfSlice []web3_client.T
 	return nil
 }
 
-func (a *ActiveTrading) ActiveTradingFilterSlice(ctx context.Context, tf []web3_client.TradeExecutionFlowJSON) error {
+func ActiveTradingFilterSlice(ctx context.Context, w3c web3_client.Web3Client, tf []web3_client.TradeExecutionFlowJSON) error {
 	for _, tradeFlow := range tf {
 		tfInt := tradeFlow.ConvertToBigIntType()
-		err := a.ActiveTradingFilter(ctx, tfInt)
+		err := ActiveTradingFilter(ctx, w3c, tfInt)
 		if err != nil {
 			return err
 		}
@@ -73,7 +74,7 @@ func (a *ActiveTrading) ActiveTradingFilterSlice(ctx context.Context, tf []web3_
 	return nil
 }
 
-func (a *ActiveTrading) ActiveTradingFilter(ctx context.Context, tf web3_client.TradeExecutionFlow) error {
+func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web3_client.TradeExecutionFlow) error {
 	switch tf.Trade.TradeMethod {
 	case artemis_trading_constants.SwapExactETHForTokens:
 	case artemis_trading_constants.SwapTokensForExactETH:
@@ -88,7 +89,7 @@ func (a *ActiveTrading) ActiveTradingFilter(ctx context.Context, tf web3_client.
 	default:
 		return fmt.Errorf("dat: ActiveTradingFilter: %s method not supported for now", tf.Trade.TradeMethod)
 	}
-	_, err := a.GetAuxClient().IsProfitTokenAcceptable(ctx, &tf)
+	_, err := artemis_trading_auxiliary.IsProfitTokenAcceptable(ctx, w3c, &tf)
 	if err != nil {
 		log.Err(err).Msg("ActiveTradingFilter: profit token not acceptable")
 		return err

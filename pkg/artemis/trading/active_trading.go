@@ -7,6 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/gochain/web3/accounts"
 	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
@@ -21,7 +22,8 @@ const (
 )
 
 var (
-	CacheBeacon = web3_client.NewWeb3ClientFakeSigner(irisSvcBeacons)
+	CacheBeacon  = web3_client.NewWeb3ClientFakeSigner(irisSvcBeacons)
+	TraderClient web3_client.Web3Client
 )
 
 type ActiveTrading struct {
@@ -93,8 +95,15 @@ func newActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, 
 
 	return at
 }
+
 func NewActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, tm *metrics_trading.TradingMetrics) ActiveTrading {
 	at := newActiveTradingModule(a, tm)
+	traderAcc, err := accounts.CreateAccountFromPkey(a.U.Web3Client.Account.EcdsaPrivateKey())
+	if err != nil || traderAcc == nil {
+		panic(err)
+	}
+	TraderClient = web3_client.NewWeb3Client(irisSvcBeacons, traderAcc)
+	log.Info().Msgf("trader account: %s", traderAcc.Address().String())
 	go artemis_trading_cache.SetActiveTradingBlockCache(context.Background())
 	return at
 }
@@ -124,13 +133,16 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 		return ErrWrapper{Err: merr, Stage: "DecodeTx"}
 	}
 	a.GetMetricsClient().StageProgressionMetrics.CountPostDecodeTx()
-	w3a := artemis_trading_cache.Wc
-	tfSlice, err := ProcessTxs(ctx, &mevTxs, a.GetMetricsClient(), w3a)
+
+	w3c := web3_client.NewWeb3Client(irisSvcBeacons, TraderClient.Account)
+	tfSlice, err := ProcessTxs(ctx, &mevTxs, a.GetMetricsClient(), w3c.Web3Actions)
 	if err != nil {
 		log.Err(err).Msg("failed to pass process txs")
 		return ErrWrapper{Err: err, Stage: "ProcessTxs"}
 	}
-	err = a.ProcessBundleStage(ctx, tfSlice, a.GetMetricsClient())
+
+	w3a := web3_client.NewWeb3Client(irisSvcBeacons, TraderClient.Account)
+	err = a.ProcessBundleStage(ctx, w3a, tfSlice, a.GetMetricsClient())
 	if err != nil {
 		return ErrWrapper{
 			Err: err, Stage: "ProcessBundleStage",

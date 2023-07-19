@@ -53,11 +53,12 @@ func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf
 	}
 	wethAddr := artemis_trading_constants.WETH9ContractAddress
 	if tf.FrontRunTrade.AmountInAddr.String() != wethAddr && tf.FrontRunTrade.AmountInAddr.String() != artemis_trading_constants.ZeroAddress {
+		log.Warn().Str("txHash", tf.Tx.Hash().String()).Interface("tf.FrontRunTrade.AmountInAddr.String() ", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountInAddr.String()", tf.FrontRunTrade.AmountInAddr.String()).Msg("profit token is not WETH or ETH")
 		return false, errors.New("profit token is not WETH or ETH")
 	}
 	ok, err := IsTradingEnabledOnToken(tf.FrontRunTrade.AmountOutAddr.String())
 	if err != nil {
-		log.Info().Interface("tf.FrontRunTrade.AmountOutAddr", tf.FrontRunTrade.AmountOutAddr.String()).Msg("trading is disabled for token")
+		log.Info().Interface("tf.FrontRunTrade.AmountInAddr.String()", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountOutAddr", tf.FrontRunTrade.AmountOutAddr.String()).Msg("trading is disabled for token")
 		return false, err
 	}
 	ok, err = isProfitHigherThanGasFee(tf)

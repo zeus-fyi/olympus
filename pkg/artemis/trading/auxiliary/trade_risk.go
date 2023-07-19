@@ -36,12 +36,12 @@ func isProfitHigherThanGasFee(tf *web3_client.TradeExecutionFlow) (bool, error) 
 func IsTradingEnabledOnToken(tk string) (bool, error) {
 	tan := artemis_trading_cache.TokenMap[tk].TradingEnabled
 	if tan == nil {
-		return false, errors.New("token not found in cache")
+		return false, errors.New("IsTradingEnabledOnToken: token not found in cache")
 	}
 	if *tan {
 		return *tan, nil
 	} else {
-		return false, errors.New("trading is disabled")
+		return false, errors.New("IsTradingEnabledOnToken: trading is disabled")
 	}
 }
 

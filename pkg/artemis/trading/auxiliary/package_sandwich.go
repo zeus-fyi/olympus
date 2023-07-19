@@ -32,7 +32,7 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 	}
 	frontRunTx, scInfoFrontRun, err := universalRouterCmdToTxBuilder(frontRunCtx, w3c, ur)
 	if err != nil {
-		log.Err(err).Interface("txHash", frontRunTx.Hash().String()).Msg("FRONT_RUN: failed to add tx to bundle group")
+		log.Err(err).Msg("FRONT_RUN: failed to add tx to bundle group")
 		return nil, err
 	}
 
@@ -71,7 +71,7 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 
 	txSand, scInfoSand, err := universalRouterCmdToTxBuilder(backRunCtx, w3c, ur)
 	if err != nil {
-		log.Err(err).Interface("txSand", txSand.Hash().String()).Msg("SANDWICH_TRADE: failed to add tx to bundle group")
+		log.Err(err).Msg("SANDWICH_TRADE: failed to add tx to bundle group")
 		return nil, err
 	}
 	sandwichTx := TxWithMetadata{

@@ -3,7 +3,6 @@ package artemis_realtime_trading
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -15,6 +14,7 @@ import (
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
 func ProcessTxs(ctx context.Context, mevTxs *[]web3_client.MevTx, m *metrics_trading.TradingMetrics, w3a web3_actions.Web3Actions) ([]web3_client.TradeExecutionFlowJSON, error) {
@@ -67,51 +67,7 @@ func ProcessTxs(ctx context.Context, mevTxs *[]web3_client.MevTx, m *metrics_tra
 		}
 	}
 
-	var postFilter []web3_client.TradeExecutionFlowJSON
-	for _, tf := range tfSlice {
-		key := fmt.Sprintf("%s-tf", tf.Tx.Hash)
-		_, ok := txCache.Get(key)
-		if ok {
-			log.Info().Msgf("dat: EntryTxFilter, tx already in cache, hash: %s", tf.Tx.Hash)
-			continue
-		}
-		if artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.SandwichPrediction.ExpectedProfit) {
-			err := errors.New("error processing txs, expected profit is less than or equal to zero or one")
-			log.Err(err).Msgf("dat: EntryTxFilter, expected profit is less than or equal to zero or one, hash: %s", tf.Tx.Hash)
-			continue
-		}
-		if artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.SandwichTrade.AmountOut) {
-			err := errors.New("error processing txs, expected profit is less than or equal to zero or one")
-			log.Err(err).Msgf("dat: EntryTxFilter, expected profit is less than or equal to zero or one, hash: %s", tf.Tx.Hash)
-			continue
-		}
-		baseTx, err := tf.Tx.ConvertToTx()
-		if err != nil {
-			log.Err(err).Msg("dat: EntryTxFilter, ConvertToTx")
-			continue
-		}
-		chainID := baseTx.ChainId().Int64()
-		if tf.UserTrade.AmountInAddr.String() == artemis_trading_constants.WETH9ContractAddressAccount.String() {
-			if tf.SandwichPrediction.ExpectedProfit != "0" {
-				log.Info().Msgf("dat: EntryTxFilter, WETH9ContractAddressAccount, expected profit: %s, amountOutAddr %s", tf.SandwichPrediction.ExpectedProfit, tf.FrontRunTrade.AmountOutAddr.String())
-			}
-		}
-		log.Info().Interface("userTrade", tf.UserTrade)
-		log.Info().Interface("sandwichPrediction", tf.SandwichPrediction)
-		err = CheckTokenRegistry(ctx, tf.UserTrade.AmountInAddr.String(), chainID)
-		if err != nil {
-			log.Err(err).Msg("dat: EntryTxFilter, CheckTokenRegistry")
-			return nil, err
-		}
-		err = CheckTokenRegistry(ctx, tf.UserTrade.AmountOutAddr.String(), chainID)
-		if err != nil {
-			log.Err(err).Msg("dat: EntryTxFilter, CheckTokenRegistry")
-			return nil, err
-		}
-		txCache.Set(key, tf, time.Hour*24)
-		postFilter = append(postFilter, tf)
-	}
-	return postFilter, nil
+	return tfSlice, nil
 }
 
 func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64) error {
@@ -133,7 +89,7 @@ func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64)
 	return nil
 }
 
-func ApplyMaxTransferTax(tf *web3_client.TradeExecutionFlowJSON) error {
+func ApplyMaxTransferTax(ctx context.Context, tf *web3_client.TradeExecutionFlowJSON) error {
 	bn, berr := artemis_trading_cache.GetLatestBlock(context.Background())
 	if berr != nil {
 		log.Err(berr).Msg("failed to get latest block")
@@ -146,6 +102,17 @@ func ApplyMaxTransferTax(tf *web3_client.TradeExecutionFlowJSON) error {
 		log.Warn().Str("tradeMethod", tf.Trade.TradeMethod).Str("toAddr", tf.Tx.To).Msg("dat: ApplyMaxTransferTax, tokenOne and tokenTwo are zero address")
 		return errors.New("dat: ApplyMaxTransferTax, tokenOne and tokenTwo are zero address")
 	}
+	go func(ctx context.Context, tokenA, tokenB string) {
+		err := CheckTokenRegistry(ctx, tokenA, hestia_req_types.EthereumMainnetProtocolNetworkID)
+		if err != nil {
+			log.Err(err).Msg("failed to check token registry")
+		}
+		err = CheckTokenRegistry(ctx, tokenB, hestia_req_types.EthereumMainnetProtocolNetworkID)
+		if err != nil {
+			log.Err(err).Msg("failed to check token registry")
+		}
+	}(ctx, tokenOne, tokenTwo)
+
 	maxNum, maxDen := 0, 1
 	if info, ok := artemis_trading_cache.TokenMap[tokenOne]; ok {
 		if info.TransferTaxNumerator == nil || info.TransferTaxDenominator == nil {

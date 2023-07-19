@@ -13,13 +13,13 @@ func (a *ActiveTrading) ProcessBundleStage(ctx context.Context, w3c web3_client.
 		tf := tradeFlow.ConvertToBigIntType()
 		err := ActiveTradingFilter(ctx, w3c, tf)
 		if err != nil {
-			log.Err(err).Msg("failed to pass active filter trade")
+			log.Err(err).Msg("ProcessBundleStage: failed to pass active filter trade")
 			continue
 		}
 		m.StageProgressionMetrics.CountPostActiveTradingFilter(1)
 		resp, err := a.GetAuxClient().StagingPackageSandwichAndCall(ctx, &tf)
 		if err != nil {
-			log.Err(err).Msg("failed to package sandwich")
+			log.Err(err).Msg("ProcessBundleStage: failed to package sandwich")
 			continue
 		}
 		if resp != nil {

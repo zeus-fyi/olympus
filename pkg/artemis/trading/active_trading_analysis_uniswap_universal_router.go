@@ -8,7 +8,6 @@ import (
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
-	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
@@ -47,7 +46,7 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 			}
 			tf := inputs.BinarySearch(pd)
 			tf.Tx.Hash = tx.Tx.Hash().String()
-			err = ApplyMaxTransferTax(&tf)
+			err = ApplyMaxTransferTax(ctx, &tf)
 			if err != nil {
 				return nil, err
 			}
@@ -55,9 +54,6 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 			err = newJsonTx.UnmarshalTx(tx.Tx)
 			if err != nil {
 				return nil, err
-			}
-			if artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.SandwichPrediction.ExpectedProfit) || artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.SandwichTrade.AmountOut) {
-				return nil, errors.New("expectedProfit == 0 or 1")
 			}
 			tf.Tx = newJsonTx
 			tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
@@ -69,7 +65,6 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 				m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path.TokenIn.String(), inputs.Path.GetEndToken().String())
 				m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V3SwapExactIn, pd.V3Pair.PoolAddress, inputs.Path.TokenIn.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 			}
-
 			tfSlice = append(tfSlice, tf)
 			log.Info().Msg("saving mempool tx")
 			err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
@@ -93,7 +88,7 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 			}
 			tf := inputs.BinarySearch(pd)
 			tf.Tx.Hash = tx.Tx.Hash().String()
-			err = ApplyMaxTransferTax(&tf)
+			err = ApplyMaxTransferTax(ctx, &tf)
 			if err != nil {
 				return nil, err
 			}
@@ -134,7 +129,7 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 			}
 			tf := inputs.BinarySearch(pd.V2Pair)
 			tf.Tx.Hash = tx.Tx.Hash().String()
-			err = ApplyMaxTransferTax(&tf)
+			err = ApplyMaxTransferTax(ctx, &tf)
 			if err != nil {
 				return nil, err
 			}
@@ -177,7 +172,7 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 			}
 			tf := inputs.BinarySearch(pd.V2Pair)
 			tf.Tx.Hash = tx.Tx.Hash().String()
-			err = ApplyMaxTransferTax(&tf)
+			err = ApplyMaxTransferTax(ctx, &tf)
 			if err != nil {
 				return nil, err
 			}

@@ -81,8 +81,8 @@ func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf
 		return false, err
 	}
 	if !ok {
-		log.Info().Interface("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut).Msg("profit is not higher than gas fee")
-		return false, errors.New("profit is not higher than gas fee")
+		log.Info().Msg("trading not enabled on token")
+		return false, errors.New("trading not enabled on token")
 	}
 	if artemis_eth_units.IsXGreaterThanY(tf.FrontRunTrade.AmountIn, maxTradeSize()) {
 		log.Info().Interface("tf.FrontRunTrade.AmountIn", tf.FrontRunTrade.AmountIn).Interface("maxTradeSize", maxTradeSize()).Msg("trade size is higher than max trade size")

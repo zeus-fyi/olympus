@@ -37,6 +37,17 @@ func isProfitHigherThanGasFee(tf *web3_client.TradeExecutionFlow) (bool, error) 
 	return true, nil
 }
 
+func isBundleProfitHigherThanGasFee(bundle *MevTxGroup, tf *web3_client.TradeExecutionFlow) (bool, error) {
+	totalGasCost := bundle.TotalGasCost
+	log.Info().Msgf("isProfitHigherThanGasFee: expectedProfit: %d", tf.SandwichPrediction.ExpectedProfit)
+	log.Info().Msgf("isProfitHigherThanGasFee: totalGasCost: %d", totalGasCost)
+
+	if artemis_eth_units.IsXGreaterThanY(tf.SandwichPrediction.ExpectedProfit, totalGasCost) {
+		return false, errors.New("profit is not higher than gas fee")
+	}
+	return true, nil
+}
+
 func IsTradingEnabledOnToken(tk string) (bool, error) {
 	tan := artemis_trading_cache.TokenMap[tk].TradingEnabled
 	if tan == nil {
@@ -68,10 +79,6 @@ func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf
 	ok, err := IsTradingEnabledOnToken(tf.FrontRunTrade.AmountOutAddr.String())
 	if err != nil {
 		log.Info().Interface("tf.FrontRunTrade.AmountInAddr.String()", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountOutAddr", tf.FrontRunTrade.AmountOutAddr.String()).Msg("trading is disabled for token")
-		return false, err
-	}
-	ok, err = isProfitHigherThanGasFee(tf)
-	if err != nil {
 		return false, err
 	}
 	if !ok {

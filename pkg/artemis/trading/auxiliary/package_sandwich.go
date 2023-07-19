@@ -94,22 +94,27 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, tf *web3_cl
 	return bundle, err
 }
 
-func (a *AuxiliaryTradingUtils) StagingPackageSandwichAndCall(ctx context.Context, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsCallBundleResponse, error) {
+func (a *AuxiliaryTradingUtils) StagingPackageSandwichAndCall(ctx context.Context, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsCallBundleResponse, *MevTxGroup, error) {
 	bundle, err := a.PackageSandwich(ctx, tf)
 	if err != nil {
 		log.Err(err).Msg("failed to package sandwich")
-		return nil, err
+		return nil, nil, err
 	}
 	if bundle == nil {
-		return nil, errors.New("bundle is nil")
+		return nil, nil, errors.New("bundle is nil")
+	}
+	ok, err := isBundleProfitHigherThanGasFee(bundle, tf)
+	if err != nil {
+		log.Err(err).Bool("ok", ok).Msg("failed to check if profit is higher than gas fee")
+		return nil, nil, err
 	}
 	resp, err := a.CallFlashbotsBundleStaging(ctx, *bundle)
 	if err != nil {
 		log.Err(err).Interface("fbCallResp", resp).Msg("failed to send sandwich")
-		return nil, err
+		return nil, nil, err
 	}
 	log.Info().Interface("fbCallResp", resp).Msg("sent sandwich")
-	return &resp, err
+	return &resp, bundle, err
 }
 
 func (a *AuxiliaryTradingUtils) PackageSandwichAndSend(ctx context.Context, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsSendBundleResponse, error) {

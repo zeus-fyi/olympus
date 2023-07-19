@@ -32,7 +32,7 @@ tx.GasPrice() 36180761500
 tx.Gas() 142255
 */
 
-func (a *AuxiliaryTradingUtils) txGasAdjuster(ctx context.Context, scInfo *web3_actions.SendContractTxPayload) error {
+func txGasAdjuster(ctx context.Context, scInfo *web3_actions.SendContractTxPayload) error {
 	tt := getTradeTypeFromCtx(ctx)
 	switch tt {
 	case FrontRun:

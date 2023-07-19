@@ -100,7 +100,7 @@ func (t *ArtemisAuxillaryTestSuite) TestFundAccount() {
 	t.Require().Nil(err)
 	t.Require().True(ok)
 
-	tx, _, err := atMainnet.universalRouterCmdToTxBuilder(ctx, cmd)
+	tx, _, err := atMainnet.universalRouterCmdToTxBuilder(ctx, *atMainnet.w3c(), cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 

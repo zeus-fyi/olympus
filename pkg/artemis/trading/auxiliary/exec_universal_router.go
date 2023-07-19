@@ -19,8 +19,8 @@ var (
 	urAbi = artemis_oly_contract_abis.MustLoadNewUniversalRouterAbi()
 )
 
-func (a *AuxiliaryTradingUtils) UniversalRouterCmdExecutor(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, error) {
-	signedTx, _, err := a.universalRouterCmdToTxBuilder(ctx, ur)
+func (a *AuxiliaryTradingUtils) UniversalRouterCmdExecutor(ctx context.Context, w3c web3_client.Web3Client, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, error) {
+	signedTx, _, err := a.universalRouterCmdToTxBuilder(ctx, w3c, ur)
 	if err != nil {
 		log.Err(err).Msg("error building signed tx")
 		return nil, err
@@ -52,19 +52,19 @@ func (a *AuxiliaryTradingUtils) debugPrintBalances(ctx context.Context, w3c web3
 }
 
 // takes a universal router command and returns a signed tx
-func (a *AuxiliaryTradingUtils) universalRouterCmdToTxBuilder(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, *web3_actions.SendContractTxPayload, error) {
+func (a *AuxiliaryTradingUtils) universalRouterCmdToTxBuilder(ctx context.Context, w3c web3_client.Web3Client, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, *web3_actions.SendContractTxPayload, error) {
 	ur.Deadline = GetDeadline()
 	data, err := ur.EncodeCommands(ctx)
 	if err != nil {
 		log.Err(err).Msg("error encoding commands")
 		return nil, nil, err
 	}
-	scInfo, err := a.GetUniswapUniversalRouterAbiPayload(ctx, data)
+	scInfo, err := GetUniswapUniversalRouterAbiPayload(ctx, w3c, data)
 	if err != nil {
 		log.Err(err).Msg("error getting uniswap universal router abi payload")
 		return nil, nil, err
 	}
-	signedTx, err := a.w3c().GetSignedTxToCallFunctionWithData(ctx, &scInfo, scInfo.Data)
+	signedTx, err := w3c.GetSignedTxToCallFunctionWithData(ctx, &scInfo, scInfo.Data)
 	if err != nil {
 		log.Err(err).Msg("error getting signed tx to call function with data")
 		return nil, nil, err
@@ -77,7 +77,7 @@ func (a *AuxiliaryTradingUtils) universalRouterCmdToTxBuilder(ctx context.Contex
 	return signedTx, &scInfo, nil
 }
 
-func (a *AuxiliaryTradingUtils) GetUniswapUniversalRouterAbiPayload(ctx context.Context, payload *web3_client.UniversalRouterExecParams) (web3_actions.SendContractTxPayload, error) {
+func GetUniswapUniversalRouterAbiPayload(ctx context.Context, w3c web3_client.Web3Client, payload *web3_client.UniversalRouterExecParams) (web3_actions.SendContractTxPayload, error) {
 	if payload == nil {
 		return web3_actions.SendContractTxPayload{}, errors.New("payload is nil")
 	}
@@ -106,11 +106,11 @@ func (a *AuxiliaryTradingUtils) GetUniswapUniversalRouterAbiPayload(ctx context.
 		log.Err(err).Msg("error generating bin data from params abi")
 		return web3_actions.SendContractTxPayload{}, err
 	}
-	err = a.w3a().SuggestAndSetGasPriceAndLimitForTx(ctx, &params, common.HexToAddress(params.SmartContractAddr))
+	err = w3c.SuggestAndSetGasPriceAndLimitForTx(ctx, &params, common.HexToAddress(params.SmartContractAddr))
 	if err != nil {
 		return web3_actions.SendContractTxPayload{}, err
 	}
-	err = a.txGasAdjuster(ctx, &params)
+	err = txGasAdjuster(ctx, &params)
 	if err != nil {
 		return web3_actions.SendContractTxPayload{}, err
 	}

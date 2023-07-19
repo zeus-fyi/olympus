@@ -30,7 +30,7 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, w3c web3_cl
 		log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed to generate front run tx")
 		return nil, err
 	}
-	frontRunTx, scInfoFrontRun, err := a.universalRouterCmdToTxBuilder(frontRunCtx, ur)
+	frontRunTx, scInfoFrontRun, err := a.universalRouterCmdToTxBuilder(frontRunCtx, w3c, ur)
 	if err != nil {
 		log.Err(err).Interface("txHash", frontRunTx.Hash().String()).Msg("FRONT_RUN: failed to add tx to bundle group")
 		return nil, err
@@ -69,7 +69,7 @@ func (a *AuxiliaryTradingUtils) PackageSandwich(ctx context.Context, w3c web3_cl
 		return nil, err
 	}
 
-	txSand, scInfoSand, err := a.universalRouterCmdToTxBuilder(backRunCtx, ur)
+	txSand, scInfoSand, err := a.universalRouterCmdToTxBuilder(backRunCtx, w3c, ur)
 	if err != nil {
 		log.Err(err).Interface("txSand", txSand.Hash().String()).Msg("SANDWICH_TRADE: failed to add tx to bundle group")
 		return nil, err

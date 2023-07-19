@@ -53,7 +53,7 @@ func (t *ArtemisAuxillaryTestSuite) testWETH(network string) {
 	t.Require().Nil(err)
 	t.Require().True(ok)
 
-	tx, _, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
+	tx, _, err := ta.universalRouterCmdToTxBuilder(ctx, *ta.w3c(), cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 
@@ -99,7 +99,7 @@ func (t *ArtemisAuxillaryTestSuite) TestUnwrapWETH() {
 	t.Require().Nil(err)
 	t.Require().True(ok)
 
-	tx, _, err := ta.universalRouterCmdToTxBuilder(ctx, cmd)
+	tx, _, err := ta.universalRouterCmdToTxBuilder(ctx, *ta.w3c(), cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
 

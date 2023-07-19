@@ -20,13 +20,17 @@ func maxTradeSize() *big.Int {
 }
 
 func isProfitHigherThanGasFee(tf *web3_client.TradeExecutionFlow) (bool, error) {
+	log.Info().Msgf("isProfitHigherThanGasFee: front run gas cost: %d", tf.FrontRunTrade.TotalGasCost)
 	if tf.FrontRunTrade.TotalGasCost == 0 {
 		return false, errors.New("front run gas cost is 0")
 	}
+	log.Info().Msgf("isProfitHigherThanGasFee: sandwich run gas cost: %d", tf.SandwichTrade.TotalGasCost)
 	if tf.SandwichTrade.TotalGasCost == 0 {
 		return false, errors.New("sandwich gas cost is 0")
 	}
 	totalGasCost := tf.FrontRunTrade.TotalGasCost + tf.SandwichTrade.TotalGasCost
+	log.Info().Msgf("isProfitHigherThanGasFee: totalGasCost: %d", totalGasCost)
+	log.Info().Msgf("tf.SandwichTrade.AmountOut: %s", tf.SandwichTrade.AmountOut.String())
 	if !artemis_eth_units.IsXGreaterThanY(tf.SandwichTrade.AmountOut, artemis_eth_units.NewBigIntFromUint(totalGasCost)) {
 		return false, errors.New("profit is not higher than gas fee")
 	}
@@ -36,11 +40,13 @@ func isProfitHigherThanGasFee(tf *web3_client.TradeExecutionFlow) (bool, error) 
 func IsTradingEnabledOnToken(tk string) (bool, error) {
 	tan := artemis_trading_cache.TokenMap[tk].TradingEnabled
 	if tan == nil {
+		log.Warn().Str("token", tk).Msg("IsTradingEnabledOnToken: token not found in cache")
 		return false, errors.New("IsTradingEnabledOnToken: token not found in cache")
 	}
 	if *tan {
 		return *tan, nil
 	} else {
+		log.Warn().Str("token", tk).Msg("IsTradingEnabledOnToken: token trading is disabled")
 		return false, errors.New("IsTradingEnabledOnToken: trading is disabled")
 	}
 }

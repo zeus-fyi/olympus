@@ -116,14 +116,14 @@ type ErrWrapper struct {
 
 var txCache = cache.New(time.Hour*24, time.Hour*24)
 
-func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) ErrWrapper {
-	a.GetMetricsClient().StageProgressionMetrics.CountPreEntryFilterTx()
+func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction, m *metrics_trading.TradingMetrics) ErrWrapper {
+	m.StageProgressionMetrics.CountPreEntryFilterTx()
 	err := a.EntryTxFilter(ctx, tx)
 	if err != nil {
 		return ErrWrapper{Err: err, Stage: "EntryTxFilter"}
 	}
-	a.GetMetricsClient().StageProgressionMetrics.CountPostEntryFilterTx()
-	mevTxs, merr := DecodeTx(ctx, tx, a.GetMetricsClient())
+	m.StageProgressionMetrics.CountPostEntryFilterTx()
+	mevTxs, merr := DecodeTx(ctx, tx, m)
 	if merr != nil {
 		log.Err(merr).Msg("decoding txs err")
 		return ErrWrapper{Err: merr, Stage: "DecodeTx"}
@@ -132,17 +132,17 @@ func (a *ActiveTrading) IngestTx(ctx context.Context, tx *types.Transaction) Err
 		log.Err(merr).Msg("no mev txs found")
 		return ErrWrapper{Err: merr, Stage: "DecodeTx"}
 	}
-	a.GetMetricsClient().StageProgressionMetrics.CountPostDecodeTx()
+	m.StageProgressionMetrics.CountPostDecodeTx()
 
 	w3c := web3_client.NewWeb3Client(irisSvcBeacons, TraderClient.Account)
-	tfSlice, err := ProcessTxs(ctx, &mevTxs, a.GetMetricsClient(), w3c.Web3Actions)
+	tfSlice, err := ProcessTxs(ctx, &mevTxs, m, w3c.Web3Actions)
 	if err != nil {
 		log.Err(err).Msg("failed to pass process txs")
 		return ErrWrapper{Err: err, Stage: "ProcessTxs"}
 	}
 
 	w3a := web3_client.NewWeb3Client(irisSvcBeacons, TraderClient.Account)
-	err = a.ProcessBundleStage(ctx, w3a, tfSlice, a.GetMetricsClient())
+	err = a.ProcessBundleStage(ctx, w3a, tfSlice, m)
 	if err != nil {
 		return ErrWrapper{
 			Err: err, Stage: "ProcessBundleStage",

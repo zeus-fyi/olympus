@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	artemis_trade_executor "github.com/zeus-fyi/olympus/pkg/artemis/trading/executor"
+	tyche_metrics "github.com/zeus-fyi/olympus/tyche/metrics"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
@@ -43,7 +44,7 @@ func (t *TxProcessingRequest) ProcessTx(c echo.Context) error {
 		default:
 			log.Info().Msgf("tx chain id %s not supported or not supplied, defaulting to mainnet", tx.ChainId().String())
 		}
-		werr := at.IngestTx(ctx, tx)
+		werr := at.IngestTx(ctx, tx, &tyche_metrics.TradeMetrics)
 		if werr.Err != nil && werr.Code != 200 {
 			//log.Err(werr.Err).Msg("error processing tx")
 			return c.JSON(http.StatusPreconditionFailed, werr.Err)

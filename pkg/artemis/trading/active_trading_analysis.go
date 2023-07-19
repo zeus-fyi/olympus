@@ -3,7 +3,6 @@ package artemis_realtime_trading
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -67,51 +66,7 @@ func ProcessTxs(ctx context.Context, mevTxs *[]web3_client.MevTx, m *metrics_tra
 		}
 	}
 
-	var postFilter []web3_client.TradeExecutionFlowJSON
-	for _, tf := range tfSlice {
-		key := fmt.Sprintf("%s-tf", tf.Tx.Hash)
-		_, ok := txCache.Get(key)
-		if ok {
-			log.Info().Msgf("dat: EntryTxFilter, tx already in cache, hash: %s", tf.Tx.Hash)
-			continue
-		}
-		if artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.SandwichPrediction.ExpectedProfit) {
-			err := errors.New("error processing txs, expected profit is less than or equal to zero or one")
-			log.Err(err).Msgf("dat: EntryTxFilter, expected profit is less than or equal to zero or one, hash: %s", tf.Tx.Hash)
-			continue
-		}
-		if artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.SandwichTrade.AmountOut) {
-			err := errors.New("error processing txs, expected profit is less than or equal to zero or one")
-			log.Err(err).Msgf("dat: EntryTxFilter, expected profit is less than or equal to zero or one, hash: %s", tf.Tx.Hash)
-			continue
-		}
-		baseTx, err := tf.Tx.ConvertToTx()
-		if err != nil {
-			log.Err(err).Msg("dat: EntryTxFilter, ConvertToTx")
-			continue
-		}
-		chainID := baseTx.ChainId().Int64()
-		if tf.UserTrade.AmountInAddr.String() == artemis_trading_constants.WETH9ContractAddressAccount.String() {
-			if tf.SandwichPrediction.ExpectedProfit != "0" {
-				log.Info().Msgf("dat: EntryTxFilter, WETH9ContractAddressAccount, expected profit: %s, amountOutAddr %s", tf.SandwichPrediction.ExpectedProfit, tf.FrontRunTrade.AmountOutAddr.String())
-			}
-		}
-		log.Info().Interface("userTrade", tf.UserTrade)
-		log.Info().Interface("sandwichPrediction", tf.SandwichPrediction)
-		err = CheckTokenRegistry(ctx, tf.UserTrade.AmountInAddr.String(), chainID)
-		if err != nil {
-			log.Err(err).Msg("dat: EntryTxFilter, CheckTokenRegistry")
-			return nil, err
-		}
-		err = CheckTokenRegistry(ctx, tf.UserTrade.AmountOutAddr.String(), chainID)
-		if err != nil {
-			log.Err(err).Msg("dat: EntryTxFilter, CheckTokenRegistry")
-			return nil, err
-		}
-		txCache.Set(key, tf, time.Hour*24)
-		postFilter = append(postFilter, tf)
-	}
-	return postFilter, nil
+	return tfSlice, nil
 }
 
 func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64) error {

@@ -22,7 +22,6 @@ const (
 )
 
 var (
-	CacheBeacon  = web3_client.NewWeb3ClientFakeSigner(irisSvcBeacons)
 	TraderClient web3_client.Web3Client
 )
 
@@ -49,7 +48,6 @@ var simClient = createSimClient()
 func createSimClient() web3_client.Web3Client {
 	sw3c := web3_client.NewWeb3ClientFakeSigner(irisBetaSvc)
 	sw3c.AddBearerToken(artemis_orchestration_auth.Bearer)
-	CacheBeacon.AddBearerToken(artemis_orchestration_auth.Bearer)
 	return sw3c
 }
 
@@ -103,6 +101,10 @@ func NewActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, 
 		panic(err)
 	}
 	TraderClient = web3_client.NewWeb3Client(irisSvcBeacons, traderAcc)
+	if len(artemis_orchestration_auth.Bearer) == 0 {
+		panic("no bearer token")
+	}
+	TraderClient.AddBearerToken(artemis_orchestration_auth.Bearer)
 	log.Info().Msgf("trader account: %s", traderAcc.Address().String())
 	go artemis_trading_cache.SetActiveTradingBlockCache(context.Background())
 	return at

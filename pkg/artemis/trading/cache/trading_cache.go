@@ -117,6 +117,9 @@ func GetLatestBlock(ctx context.Context) (uint64, error) {
 
 func SetActiveTradingBlockCache(ctx context.Context) {
 	timestampChan := make(chan time.Time)
+	if len(artemis_orchestration_auth.Bearer) == 0 {
+		panic(fmt.Errorf("bearer token is empty"))
+	}
 	go beacon_api.TriggerWorkflowOnNewBlockHeaderEvent(ctx, artemis_network_cfgs.ArtemisQuicknodeStreamWebsocket, timestampChan)
 
 	for {

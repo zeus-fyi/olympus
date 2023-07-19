@@ -88,6 +88,9 @@ func GetUniswapUniversalRouterAbiPayload(ctx context.Context, w3c web3_client.We
 			GasPriceLimits: web3_actions.GasPriceLimits{},
 		}
 	}
+	if payload.Deadline == nil {
+		payload.Deadline = GetDeadline()
+	}
 	fnParams := []interface{}{payload.Commands, payload.Inputs}
 	methodName := artemis_trading_constants.Execute
 	if payload.Deadline != nil {

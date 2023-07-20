@@ -72,7 +72,7 @@ func CallFlashbotsBundleStaging(ctx context.Context, w3c web3_client.Web3Client,
 		log.Err(err).Msg("error calling flashbots bundle")
 		return sr, err
 	}
-	log.Info().Msg("CallFlashbotsBundleStaging: bundle sent successfully")
+	log.Info().Int("bn", eventID).Str("bundleHash", resp.BundleHash).Msg("CallFlashbotsBundleStaging: bundle sent successfully")
 	dbTx, err := apps.Pg.Begin(ctx)
 	if err != nil {
 		log.Err(err).Msg("error beginning db transaction")

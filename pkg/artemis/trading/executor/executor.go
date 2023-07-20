@@ -22,6 +22,7 @@ var (
 	TradeExecutorMainnet = artemis_trading_auxiliary.AuxiliaryTradingUtils{}
 	ActiveGoerliTrader   artemis_realtime_trading.ActiveTrading
 	TradeExecutorGoerli  = artemis_trading_auxiliary.AuxiliaryTradingUtils{}
+	ActiveTraderW3c      web3_client.Web3Client
 )
 
 const irisSvcBeacons = "http://iris.iris.svc.cluster.local/v1beta/internal/router/group?routeGroup=quiknode-mainnet"
@@ -35,6 +36,7 @@ func InitMainnetAuxiliaryTradingUtils(ctx context.Context, age encryption.Age) a
 		panic("bearer token not set")
 	}
 	wc.Network = hestia_req_types.Mainnet
+	ActiveTraderW3c = wc
 	TradeExecutorMainnet = artemis_trading_auxiliary.InitAuxiliaryTradingUtils(ctx, wc)
 	if tm == nil {
 		ActiveTrader = artemis_realtime_trading.NewActiveTradingModuleWithoutMetrics(&TradeExecutorMainnet)

@@ -99,10 +99,14 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 	if tf == nil || tf.Tx == nil {
 		return nil, errors.New("PackageSandwich: tf is nil")
 	}
+	if w3c.Account == nil {
+		return nil, errors.New("PackageSandwich: w3c.Account is nil")
+	}
 	if tf.FrontRunTrade.AmountIn == nil || tf.SandwichTrade.AmountOut == nil {
 		return nil, errors.New("PackageSandwich: tf.FrontRunTrade.AmountIn or tf.SandwichTrade.AmountOut is nil")
 	}
-	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: start")
+
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Str("traderAccount", w3c.Account.PublicKey()).Msg("PackageSandwich: start")
 	bundle := &MevTxGroup{
 		EventID:      0,
 		OrderedTxs:   []TxWithMetadata{},
@@ -194,13 +198,13 @@ func StagingPackageSandwichAndCall(ctx context.Context, w3c web3_client.Web3Clie
 	//	log.Err(err).Bool("ok", ok).Msg("StagingPackageSandwichAndCall: isBundleProfitHigherThanGasFee: failed to check if profit is higher than gas fee")
 	//	return nil, nil, err
 	//}
-	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("CallFlashbotsBundleStaging: start")
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("StagingPackageSandwichAndCall: CallFlashbotsBundleStaging: start")
 	resp, err := CallFlashbotsBundleStaging(ctx, w3c, *bundle)
 	if err != nil {
-		log.Err(err).Interface("fbCallResp", resp).Msg("failed to send sandwich")
+		log.Err(err).Interface("fbCallResp", resp).Msg("StagingPackageSandwichAndCall: failed to send sandwich")
 		return nil, nil, err
 	}
-	log.Info().Str("txHash", tf.Tx.Hash().String()).Interface("fbCallResp", resp).Msg("CallFlashbotsBundleStaging: done")
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Interface("fbCallResp", resp).Msg("StagingPackageSandwichAndCall: CallFlashbotsBundleStaging: done")
 	return &resp, bundle, err
 }
 

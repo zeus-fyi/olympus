@@ -112,7 +112,7 @@ type ErrWrapper struct {
 	Code  int
 }
 
-func IngestTx(ctx context.Context, tx *types.Transaction, m *metrics_trading.TradingMetrics) ErrWrapper {
+func IngestTx(ctx context.Context, w3c web3_client.Web3Client, tx *types.Transaction, m *metrics_trading.TradingMetrics) ErrWrapper {
 	m.StageProgressionMetrics.CountPreEntryFilterTx()
 	err := EntryTxFilter(ctx, tx)
 	if err != nil {
@@ -129,9 +129,6 @@ func IngestTx(ctx context.Context, tx *types.Transaction, m *metrics_trading.Tra
 		return ErrWrapper{Err: merr, Stage: "DecodeTx"}
 	}
 	m.StageProgressionMetrics.CountPostDecodeTx()
-
-	w3c := web3_client.NewWeb3Client(irisSvcBeacons, TraderClient.Account)
-	w3c.AddBearerToken(artemis_orchestration_auth.Bearer)
 
 	log.Info().Msgf("ProcessTxsStage: txs: %d", len(mevTxs))
 	tfSlice := ProcessTxs(ctx, &mevTxs, m, w3c.Web3Actions)

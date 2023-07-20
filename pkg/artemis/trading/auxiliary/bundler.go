@@ -59,6 +59,7 @@ func CallFlashbotsBundleStaging(ctx context.Context, w3c web3_client.Web3Client,
 	sr := flashbotsrpc.FlashbotsCallBundleResponse{}
 	eventID, err := getBlockNumber(ctx, w3c)
 	if err != nil {
+		log.Warn().Msg("CallFlashbotsBundleStaging: error getting event id")
 		log.Err(err).Msg("error getting event id")
 		return flashbotsrpc.FlashbotsCallBundleResponse{}, err
 	}
@@ -67,6 +68,7 @@ func CallFlashbotsBundleStaging(ctx context.Context, w3c web3_client.Web3Client,
 
 	resp, err := CallFlashbotsBundle(ctx, w3c, &bundle)
 	if err != nil {
+		log.Warn().Msg("CallFlashbotsBundleStaging: error calling flashbots bundle")
 		log.Err(err).Msg("error calling flashbots bundle")
 		return sr, err
 	}

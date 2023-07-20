@@ -202,6 +202,7 @@ func StagingPackageSandwichAndCall(ctx context.Context, w3c web3_client.Web3Clie
 	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("StagingPackageSandwichAndCall: CallFlashbotsBundleStaging: start")
 	resp, err := CallFlashbotsBundleStaging(ctx, w3c, *bundle)
 	if err != nil {
+		log.Warn().Str("txHash", tf.Tx.Hash().String()).Interface("fbCallResp", resp).Msg("StagingPackageSandwichAndCall: failed to send sandwich")
 		log.Err(err).Interface("fbCallResp", resp).Msg("StagingPackageSandwichAndCall: failed to send sandwich")
 		return nil, nil, err
 	}

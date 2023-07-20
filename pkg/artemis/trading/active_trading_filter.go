@@ -105,6 +105,10 @@ func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web
 	//if !ok {
 	//	return fmt.Errorf("dat: ActiveTradingFilter: trading not enabled for token")
 	//}
+	log.Info().Interface("tf.FrontRunTrade", tf.FrontRunTrade).Msg("ActiveTradingFilter: passed")
+	log.Info().Interface("tf.UserTrade", tf.UserTrade).Msg("ActiveTradingFilter: passed")
+	log.Info().Interface("tf.SandwichTrade", tf.SandwichTrade).Msg("ActiveTradingFilter: passed")
+	log.Info().Interface("tf.Tx.Hash", tf.Tx.Hash()).Msg("ActiveTradingFilter: passed")
 
 	return nil
 }

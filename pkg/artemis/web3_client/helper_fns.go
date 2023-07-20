@@ -106,6 +106,8 @@ func ConvertToAddressSlice(i interface{}) ([]accounts.Address, error) {
 		for ind, addr := range i.([]string) {
 			m[ind] = accounts.HexToAddress(addr)
 		}
+	case nil:
+		return []accounts.Address{}, nil
 	default:
 		log.Warn().Msgf("ConvertToAddressSlice: unknown type %T", v)
 		return nil, fmt.Errorf("input is not a []common.Address")
@@ -120,6 +122,8 @@ func ConvertToAddress(i interface{}) (accounts.Address, error) {
 	case accounts.Address:
 		addr := i.(common.Address)
 		return accounts.HexToAddress(addr.Hex()), nil
+	case nil:
+		return accounts.Address{}, nil
 	default:
 		log.Warn().Msgf("ConvertToAddress: unknown type %T", v)
 		return accounts.Address{}, fmt.Errorf("input is not a  common.Address")

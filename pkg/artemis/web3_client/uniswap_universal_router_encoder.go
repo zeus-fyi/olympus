@@ -58,7 +58,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context, abiFile 
 	case V2SwapExactIn:
 		//log.Info().Msg("EncodeCommand V2_SWAP_EXACT_IN")
 		params := ur.DecodedInputs.(V2SwapExactInParams)
-		inputs, err := params.Encode(ctx)
+		inputs, err := params.Encode(ctx, abiFile)
 		if err != nil {
 			return cmdByte, nil, err
 		}

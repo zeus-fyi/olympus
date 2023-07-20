@@ -118,7 +118,11 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx,
 				return perr
 			}
 			pair := pd.V2Pair
-			tf := inputs.BinarySearch(pair)
+			tf, err := inputs.BinarySearch(pair)
+			if err != nil {
+				log.Err(err).Msg("V2SwapExactOut: error getting binary search")
+				return err
+			}
 			tf.InitialPair = pair.ConvertToJSONType()
 
 			fmt.Println("\nsandwich: ==================================V2SwapExactOut==================================")

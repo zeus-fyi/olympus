@@ -3,6 +3,7 @@ package web3_client
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -32,12 +33,22 @@ type JSONV2SwapExactInParams struct {
 	PayerIsSender bool               `json:"payerIsSender"`
 }
 
-func (s *V2SwapExactInParams) Encode(ctx context.Context) ([]byte, error) {
-	inputs, err := UniversalRouterDecoderAbi.Methods[V2SwapExactIn].Inputs.Pack(s.To, s.AmountIn, s.AmountOutMin, s.Path, s.PayerIsSender)
-	if err != nil {
-		return nil, err
+func (s *V2SwapExactInParams) Encode(ctx context.Context, abiFile *abi.ABI) ([]byte, error) {
+	if abiFile == nil {
+		inputs, err := UniversalRouterDecoderAbi.Methods[V2SwapExactIn].Inputs.Pack(s.To, s.AmountIn, s.AmountOutMin, s.Path, s.PayerIsSender)
+		if err != nil {
+			log.Err(err).Msg("V2SwapExactInParams: UniversalRouterDecoderAbi failed to encode")
+			return nil, err
+		}
+		return inputs, nil
+	} else {
+		inputs, err := abiFile.Methods[V2SwapExactIn].Inputs.Pack(s.To, s.AmountIn, s.AmountOutMin, s.Path, s.PayerIsSender)
+		if err != nil {
+			log.Err(err).Msg("V2SwapExactInParams: abiFile failed to encode")
+			return nil, err
+		}
+		return inputs, nil
 	}
-	return inputs, nil
 }
 
 func (s *V2SwapExactInParams) Decode(ctx context.Context, data []byte, abiFile *abi.ABI) error {
@@ -45,31 +56,47 @@ func (s *V2SwapExactInParams) Decode(ctx context.Context, data []byte, abiFile *
 	if abiFile == nil {
 		err := UniversalRouterDecoderAbi.Methods[V2SwapExactIn].Inputs.UnpackIntoMap(args, data)
 		if err != nil {
+			log.Warn().Msg("V2SwapExactInParams: UniversalRouterDecoderAbi failed to decode")
+			log.Err(err).Msg("V2SwapExactInParams: UniversalRouterDecoderAbi failed to decode")
 			return err
 		}
 	} else {
 		err := abiFile.Methods[V2SwapExactIn].Inputs.UnpackIntoMap(args, data)
 		if err != nil {
+			log.Warn().Msg("V2SwapExactInParams: abiFile failed to decode")
+			log.Err(err).Msg("V2SwapExactInParams: abiFile failed to decode")
 			return err
 		}
 	}
 	amountIn, err := ParseBigInt(args["amountIn"])
 	if err != nil {
+		log.Warn().Msg("V2SwapExactInParams: failed to parse amountIn")
+		log.Err(err).Msg("V2SwapExactInParams: failed to parse amountIn")
 		return err
 	}
 	amountOutMin, err := ParseBigInt(args["amountOutMin"])
 	if err != nil {
+		log.Warn().Msg("V2SwapExactInParams: failed to parse amountOutMin")
+		log.Err(err).Msg("V2SwapExactInParams: failed to parse amountOutMin")
 		return err
 	}
 	path, err := ConvertToAddressSlice(args["path"])
 	if err != nil {
+		log.Warn().Msg("V2SwapExactInParams: failed to parse path")
+		log.Err(err).Msg("V2SwapExactInParams: failed to parse path")
 		return err
 	}
 	to, err := ConvertToAddress(args["recipient"])
 	if err != nil {
+		log.Warn().Msg("V2SwapExactInParams: failed to parse recipient")
+		log.Err(err).Msg("V2SwapExactInParams: failed to parse recipient")
 		return err
 	}
-	payerIsSender := args["payerIsSender"].(bool)
+	payerIsSender, ok := args["payerIsSender"].(bool)
+	if !ok {
+		log.Warn().Msg("V2SwapExactInParams: payerIsSender is not a bool")
+		return fmt.Errorf("V2SwapExactInParams: payerIsSender is not a bool")
+	}
 	s.AmountIn = amountIn
 	s.AmountOutMin = amountOutMin
 	s.Path = path
@@ -78,18 +105,20 @@ func (s *V2SwapExactInParams) Decode(ctx context.Context, data []byte, abiFile *
 	return nil
 }
 
-func (u *UniswapClient) V2SwapExactIn(tx MevTx, args map[string]interface{}) {}
-
-func (s *JSONV2SwapExactInParams) ConvertToBigIntType() *V2SwapExactInParams {
-	amountIn, _ := new(big.Int).SetString(s.AmountIn, 10)
-	amountOutMin, _ := new(big.Int).SetString(s.AmountOutMin, 10)
+func (s *JSONV2SwapExactInParams) ConvertToBigIntType() (*V2SwapExactInParams, error) {
+	amountIn, ok1 := new(big.Int).SetString(s.AmountIn, 10)
+	amountOutMin, ok2 := new(big.Int).SetString(s.AmountOutMin, 10)
+	if !ok1 || !ok2 {
+		log.Warn().Msg("JSONV2SwapExactInParams: failed to parse amountIn or amountOutMin")
+		return nil, errors.New("JSONV2SwapExactInParams: failed to parse amountIn or amountOutMin")
+	}
 	return &V2SwapExactInParams{
 		AmountIn:      amountIn,
 		AmountOutMin:  amountOutMin,
 		Path:          s.Path,
 		To:            s.To,
 		PayerIsSender: s.PayerIsSender,
-	}
+	}, nil
 }
 
 func (s *V2SwapExactInParams) ConvertToJSONType() *JSONV2SwapExactInParams {
@@ -141,31 +170,41 @@ func (s *V2SwapExactOutParams) Decode(ctx context.Context, data []byte, abiFile 
 	if abiFile == nil {
 		err := UniversalRouterDecoderAbi.Methods[V2SwapExactOut].Inputs.UnpackIntoMap(args, data)
 		if err != nil {
+			log.Warn().Msg("V2SwapExactOutParams: UniversalRouterDecoderAbi failed to unpack")
 			return err
 		}
 	} else {
 		err := abiFile.Methods[V2SwapExactOut].Inputs.UnpackIntoMap(args, data)
 		if err != nil {
+			log.Warn().Msg("V2SwapExactOutParams: abiFile failed to unpack")
 			return err
 		}
 	}
 	amountInMax, err := ParseBigInt(args["amountInMax"])
 	if err != nil {
+		log.Err(err).Msg("V2SwapExactOutParams: failed to parse amountInMax")
 		return err
 	}
 	amountOut, err := ParseBigInt(args["amountOut"])
 	if err != nil {
+		log.Err(err).Msg("V2SwapExactOutParams: failed to parse amountOut")
 		return err
 	}
 	path, err := ConvertToAddressSlice(args["path"])
 	if err != nil {
+		log.Err(err).Msg("V2SwapExactOutParams: failed to parse path")
 		return err
 	}
 	to, err := ConvertToAddress(args["recipient"])
 	if err != nil {
+		log.Err(err).Msg("V2SwapExactOutParams: failed to parse recipient")
 		return err
 	}
-	payerIsSender := args["payerIsSender"].(bool)
+	payerIsSender, ok := args["payerIsSender"].(bool)
+	if !ok {
+		log.Err(fmt.Errorf("V2SwapExactInParams: payerIsSender is not a bool")).Msg("Failed to assert type for payerIsSender")
+		return fmt.Errorf("V2SwapExactInParams: payerIsSender is not a bool")
+	}
 	s.AmountInMax = amountInMax
 	s.AmountOut = amountOut
 	s.Path = path
@@ -173,7 +212,6 @@ func (s *V2SwapExactOutParams) Decode(ctx context.Context, data []byte, abiFile 
 	s.PayerIsSender = payerIsSender
 	return nil
 }
-func (u *UniswapClient) V2SwapExactOut(tx MevTx, args map[string]interface{}) {}
 
 func (s *JSONV2SwapExactOutParams) ConvertToBigIntType() (*V2SwapExactOutParams, error) {
 	amountInMax, ok := new(big.Int).SetString(s.AmountInMax, 10)
@@ -203,7 +241,7 @@ func (s *V2SwapExactOutParams) ConvertToJSONType() *JSONV2SwapExactOutParams {
 	}
 }
 
-func (s *V2SwapExactOutParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) TradeExecutionFlowJSON {
+func (s *V2SwapExactOutParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) (TradeExecutionFlowJSON, error) {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountInMax)
 	var mid *big.Int
@@ -223,13 +261,13 @@ func (s *V2SwapExactOutParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) 
 		toFrontRun, err := mockPairResp.PriceImpact(s.Path[0], mid)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
-			return tf
+			return tf, err
 		}
 		// User trade
 		to, err := mockPairResp.PriceImpact(s.Path[0], s.AmountInMax)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
-			return tf
+			return tf, err
 		}
 		difference := new(big.Int).Sub(to.AmountOut, s.AmountOut)
 		// if diff <= 0 then it searches left
@@ -242,7 +280,7 @@ func (s *V2SwapExactOutParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) 
 		toSandwich, err := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
-			return tf
+			return tf, err
 		}
 		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
@@ -265,7 +303,7 @@ func (s *V2SwapExactOutParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) 
 		ExpectedProfit: maxProfit,
 	}
 	tf.SandwichPrediction = sp.ConvertToJSONType()
-	return tf
+	return tf, nil
 }
 
 func (s *V2SwapExactInParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) (TradeExecutionFlowJSON, error) {

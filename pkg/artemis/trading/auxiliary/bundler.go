@@ -38,6 +38,7 @@ func CallAndSendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client,
 		log.Err(err).Msg("error sending flashbots bundle")
 		return flashbotsrpc.FlashbotsSendBundleResponse{}, err
 	}
+	log.Info().Int("bn", eventID).Str("bundleHash", sr.BundleHash).Msg("CallFlashbotsBundleStaging: bundle sent successfully")
 	err = artemis_eth_txs.InsertTxsWithBundle(ctx, dbTx, bundle.MevTxs, sr.BundleHash)
 	if err != nil {
 		log.Err(err).Msg("error inserting txs with bundle")

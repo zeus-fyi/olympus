@@ -256,6 +256,12 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		}
 		tf.Tx = newTx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
+		log.Info().Msg("saving mempool tx")
+		err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
+		if err != nil {
+			log.Err(err).Msg("failed to save mempool tx")
+			return nil, errors.New("failed to save mempool tx")
+		}
 		if m != nil {
 			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
 			m.TxFetcherMetrics.TransactionGroup(toAddr, swapTokensForExactETH)
@@ -263,12 +269,6 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapTokensForExactETH, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		}
 		tfSlice = append(tfSlice, tf)
-		log.Info().Msg("saving mempool tx")
-		err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
-		if err != nil {
-			log.Err(err).Msg("failed to save mempool tx")
-			return nil, errors.New("failed to save mempool tx")
-		}
 	case swapExactTokensForETH:
 		st := web3_client.SwapExactTokensForETHParams{}
 		err := st.Decode(tx.Args)
@@ -304,6 +304,12 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		}
 		tf.Tx = newTx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
+		log.Info().Msg("saving mempool tx")
+		err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
+		if err != nil {
+			log.Err(err).Msg("failed to save mempool tx")
+			return nil, errors.New("failed to save mempool tx")
+		}
 		if m != nil {
 			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
 			m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForETH)
@@ -311,12 +317,6 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForETH, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		}
 		tfSlice = append(tfSlice, tf)
-		log.Info().Msg("saving mempool tx")
-		err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
-		if err != nil {
-			log.Err(err).Msg("failed to save mempool tx")
-			return nil, errors.New("failed to save mempool tx")
-		}
 	case swapETHForExactTokens:
 		// payable
 		if tx.Tx.Value() == nil {
@@ -356,6 +356,13 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		}
 		tf.Tx = newTx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
+
+		log.Info().Msg("saving mempool tx")
+		err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
+		if err != nil {
+			log.Err(err).Msg("failed to save mempool tx")
+			return nil, errors.New("failed to save mempool tx")
+		}
 		if m != nil {
 			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
 			m.TxFetcherMetrics.TransactionGroup(toAddr, swapETHForExactTokens)
@@ -363,12 +370,6 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapETHForExactTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		}
 		tfSlice = append(tfSlice, tf)
-		log.Info().Msg("saving mempool tx")
-		err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
-		if err != nil {
-			log.Err(err).Msg("failed to save mempool tx")
-			return nil, errors.New("failed to save mempool tx")
-		}
 	}
 
 	if tx.Tx.To().String() != accounts.HexToAddress(web3_client.UniswapV2Router02Address).String() {
@@ -418,6 +419,12 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		}
 		tf.Tx = newTx
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
+		log.Info().Msg("saving mempool tx")
+		err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
+		if err != nil {
+			log.Err(err).Msg("failed to save mempool tx")
+			return nil, errors.New("failed to save mempool tx")
+		}
 		if m != nil {
 			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
 			m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForETHSupportingFeeOnTransferTokens)
@@ -425,12 +432,6 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForETHSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		}
 		tfSlice = append(tfSlice, tf)
-		log.Info().Msg("saving mempool tx")
-		err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
-		if err != nil {
-			log.Err(err).Msg("failed to save mempool tx")
-			return nil, errors.New("failed to save mempool tx")
-		}
 	case swapExactETHForTokensSupportingFeeOnTransferTokens:
 		// payable
 		if tx.Tx.Value() == nil {
@@ -471,13 +472,6 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		tf.Tx = newTx
 		tf.Trade.TradeMethod = swapExactETHForTokensSupportingFeeOnTransferTokens
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
-		if m != nil {
-			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
-			m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactETHForTokensSupportingFeeOnTransferTokens)
-			m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
-			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactETHForTokensSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
-		}
-		tfSlice = append(tfSlice, tf)
 
 		log.Info().Msg("saving mempool tx")
 		err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
@@ -485,6 +479,13 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
 		}
+		if m != nil {
+			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
+			m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactETHForTokensSupportingFeeOnTransferTokens)
+			m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
+			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactETHForTokensSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+		}
+		tfSlice = append(tfSlice, tf)
 	case swapExactTokensForTokensSupportingFeeOnTransferTokens:
 		st := web3_client.SwapExactTokensForTokensSupportingFeeOnTransferTokensParams{}
 		err := st.Decode(tx.Args)
@@ -520,6 +521,12 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		tf.Tx = newTx
 		tf.Trade.TradeMethod = swapExactTokensForTokensSupportingFeeOnTransferTokens
 		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
+		log.Info().Msg("saving mempool tx")
+		err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
+		if err != nil {
+			log.Err(err).Msg("failed to save mempool tx")
+			return nil, errors.New("failed to save mempool tx")
+		}
 		if m != nil {
 			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
 			m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokensSupportingFeeOnTransferTokens)
@@ -527,12 +534,6 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForTokensSupportingFeeOnTransferTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		}
 		tfSlice = append(tfSlice, tf)
-		log.Info().Msg("saving mempool tx")
-		err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
-		if err != nil {
-			log.Err(err).Msg("failed to save mempool tx")
-			return nil, errors.New("failed to save mempool tx")
-		}
 	}
 	return tfSlice, nil
 }

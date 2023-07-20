@@ -116,13 +116,13 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 
 			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
 		}
-		tfSlice = append(tfSlice, tf)
 		log.Info().Msg("saving mempool tx")
 		err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
 		}
+		tfSlice = append(tfSlice, tf)
 	case exactOutput:
 		inputs := &web3_client.ExactOutputParams{}
 		err := inputs.Decode(ctx, tx.Args)
@@ -166,13 +166,13 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 			m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, exactOutput, pd.V3Pair.PoolAddress, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		}
-		tfSlice = append(tfSlice, tf)
 		log.Info().Msg("saving mempool tx")
 		err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
 		}
+		tfSlice = append(tfSlice, tf)
 	case swapExactInputSingle:
 		inputs := &web3_client.SwapExactInputSingleArgs{}
 		err := inputs.Decode(ctx, tx.Args)
@@ -217,13 +217,13 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 			m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactInputSingle, pd.V3Pair.PoolAddress, inputs.TokenFeePath.TokenIn.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		}
-		tfSlice = append(tfSlice, tf)
 		log.Info().Msg("saving mempool tx")
 		err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
 		}
+		tfSlice = append(tfSlice, tf)
 	case swapExactOutputSingle:
 		inputs := &web3_client.SwapExactOutputSingleArgs{}
 		err := inputs.Decode(ctx, tx.Args)
@@ -268,13 +268,13 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 			m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.TokenFeePath.TokenIn.String(), inputs.TokenFeePath.GetEndToken().String())
 			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactOutputSingle, pd.V3Pair.PoolAddress, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		}
-		tfSlice = append(tfSlice, tf)
 		log.Info().Msg("saving mempool tx")
 		err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
 		}
+		tfSlice = append(tfSlice, tf)
 	case swapExactTokensForTokens:
 		inputs := &web3_client.SwapExactTokensForTokensParamsV3{}
 		err := inputs.Decode(ctx, tx.Args)
@@ -318,13 +318,13 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 			m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, inputs.Path[0].String(), inputs.Path[pend].String())
 			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForTokens, pd.V2Pair.PairContractAddr, inputs.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
 		}
-		tfSlice = append(tfSlice, tf)
 		log.Info().Msg("saving mempool tx")
 		err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
 		}
+		tfSlice = append(tfSlice, tf)
 	case swapExactInputMultihop:
 		if m != nil {
 			m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactInputMultihop)

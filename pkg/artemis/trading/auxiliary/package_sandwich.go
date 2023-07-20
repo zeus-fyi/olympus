@@ -82,6 +82,7 @@ func packageBackRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_cl
 		log.Err(err).Msg("PackageSandwich: SANDWICH_TRADE: error getting signed tx to call function with data")
 		return nil, err
 	}
+
 	sandwichTx := TxWithMetadata{
 		TradeType: BackRun,
 		Tx:        signedSandwichTx,

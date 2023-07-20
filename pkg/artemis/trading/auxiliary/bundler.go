@@ -27,6 +27,7 @@ func CallAndSendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client,
 		log.Err(err).Msg("error calling flashbots bundle")
 		return sr, err
 	}
+	log.Info().Msg("CallFlashbotsBundleStaging: bundle sent successfully")
 	dbTx, err := apps.Pg.Begin(ctx)
 	if err != nil {
 		log.Err(err).Msg("error beginning db transaction")
@@ -65,13 +66,13 @@ func CallFlashbotsBundleStaging(ctx context.Context, w3c web3_client.Web3Client,
 	}
 	bnStr := hexutil.EncodeUint64(uint64(eventID + 1))
 	ctx = setBlockNumberCtx(ctx, bnStr)
-
 	resp, err := CallFlashbotsBundle(ctx, w3c, &bundle)
 	if err != nil {
 		log.Warn().Msg("CallFlashbotsBundleStaging: error calling flashbots bundle")
 		log.Err(err).Msg("error calling flashbots bundle")
 		return sr, err
 	}
+	log.Info().Msg("CallFlashbotsBundleStaging: bundle sent successfully")
 	dbTx, err := apps.Pg.Begin(ctx)
 	if err != nil {
 		log.Err(err).Msg("error beginning db transaction")
@@ -80,6 +81,7 @@ func CallFlashbotsBundleStaging(ctx context.Context, w3c web3_client.Web3Client,
 	defer dbTx.Rollback(ctx)
 	err = artemis_eth_txs.InsertTxsWithBundle(ctx, dbTx, bundle.MevTxs, sr.BundleHash)
 	if err != nil {
+		log.Info().Str("bundleHash", sr.BundleHash).Interface("bundle.MevTxs", bundle.MevTxs).Msg("CallFlashbotsBundleStaging: error inserting txs with bundle")
 		log.Err(err).Msg("error inserting txs with bundle")
 		terr := dbTx.Rollback(ctx)
 		if terr != nil {
@@ -102,6 +104,7 @@ func CallFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle
 	bnStr := getBlockNumberCtx(ctx, w3c)
 	txHexEncodedStrSlice, err := bundle.GetHexEncodedTxStrSlice()
 	if err != nil {
+		log.Warn().Msg("CallFlashbotsBundle: error getting hex encoded tx str slice")
 		return flashbotsrpc.FlashbotsCallBundleResponse{}, err
 	}
 	fbCallBundle := flashbotsrpc.FlashbotsCallBundleParam{
@@ -113,6 +116,7 @@ func CallFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle
 	f := artemis_flashbots.InitFlashbotsClient(ctx, &w3c.Web3Actions)
 	resp, err := f.CallBundle(ctx, fbCallBundle)
 	if err != nil {
+		log.Warn().Msg("CallFlashbotsBundle: error calling flashbots bundle")
 		log.Err(err).Msg("error calling flashbots bundle")
 		return resp, err
 	}

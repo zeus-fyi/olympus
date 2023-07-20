@@ -79,9 +79,9 @@ func CallFlashbotsBundleStaging(ctx context.Context, w3c web3_client.Web3Client,
 		return sr, err
 	}
 	defer dbTx.Rollback(ctx)
-	err = artemis_eth_txs.InsertTxsWithBundle(ctx, dbTx, bundle.MevTxs, sr.BundleHash)
+	err = artemis_eth_txs.InsertTxsWithBundle(ctx, dbTx, bundle.MevTxs, resp.BundleHash)
 	if err != nil {
-		log.Info().Str("bundleHash", sr.BundleHash).Interface("bundle.MevTxs", bundle.MevTxs).Msg("CallFlashbotsBundleStaging: error inserting txs with bundle")
+		log.Info().Str("bundleHash", resp.BundleHash).Interface("bundle.MevTxs", bundle.MevTxs).Msg("CallFlashbotsBundleStaging: error inserting txs with bundle")
 		log.Err(err).Msg("error inserting txs with bundle")
 		terr := dbTx.Rollback(ctx)
 		if terr != nil {

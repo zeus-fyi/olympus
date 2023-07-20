@@ -26,7 +26,7 @@ func ProcessBundleStage(ctx context.Context, w3c web3_client.Web3Client, tfSlice
 			err = nil
 			continue
 		}
-		log.Info().Msgf("ProcessBundleStage: StagingPackageSandwichAndCall passed bundle hash: %s", resp.BundleHash)
+		log.Info().Msgf("ProcessBundleStage: PackageSandwichAndSend passed bundle hash: %s", resp.BundleHash)
 		if resp != nil {
 			log.Info().Interface("fbCallResp", resp).Msg("sent sandwich")
 			m.StageProgressionMetrics.CountSentFlashbotsBundleSubmission(1)

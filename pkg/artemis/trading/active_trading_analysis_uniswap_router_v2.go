@@ -10,6 +10,7 @@ import (
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
@@ -45,6 +46,7 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		return nil, errors.New("ailed to get latest block")
 	}
 	toAddr := tx.Tx.To().String()
+	var tfSlice2 []web3_client.TradeExecutionFlow
 	var tfSlice []web3_client.TradeExecutionFlowJSON
 	switch tx.MethodName {
 	case addLiquidity:
@@ -74,7 +76,6 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		if m != nil {
 			m.TxFetcherMetrics.TransactionGroup(toAddr, removeLiquidityETHWithPermit)
 		}
-
 	case swapExactTokensForTokens:
 		st := web3_client.SwapExactTokensForTokensParams{}
 		err := st.Decode(ctx, tx.Args)
@@ -95,34 +96,27 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		if err != nil {
 			return nil, err
 		}
-		tf.Tx.Hash = tx.Tx.Hash().String()
-		err = ApplyMaxTransferTax(ctx, &tf)
+		tf.CurrentBlockNumber = artemis_eth_units.NewBigIntFromUint(bn)
+		tf.Trade.TradeMethod = web3_client.V3SwapExactIn
+		tf.Tx = tx.Tx
+		err = ApplyMaxTransferTax2(ctx, &tf)
 		if err != nil {
 			return nil, err
 		}
-		newTx := artemis_trading_types.JSONTx{}
-		err = newTx.UnmarshalTx(tx.Tx)
-		if err != nil {
-			log.Err(err).Msg("failed to unmarshal tx")
-			return nil, err
-		}
-		tf.Tx = newTx
-		tf.Trade.TradeMethod = swapExactTokensForTokens
-		tf.InitialPair = pd.V2Pair.ConvertToJSONType()
 		pend := len(st.Path) - 1
 		if m != nil {
 			m.StageProgressionMetrics.CountPostProcessTx(float64(1))
 			m.TxFetcherMetrics.TransactionGroup(toAddr, swapExactTokensForTokens)
 			m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
-			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount, tf.SandwichPrediction.ExpectedProfit)
+			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount.String(), tf.SandwichPrediction.ExpectedProfit.String())
 		}
-		tfSlice = append(tfSlice, tf)
 		log.Info().Msg("saving mempool tx")
-		err = SaveMempoolTx(ctx, bn, []web3_client.TradeExecutionFlowJSON{tf}, m)
+		err = SaveMempoolTxV2(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
 		}
+		tfSlice2 = append(tfSlice2, tf)
 	case swapTokensForExactTokens:
 		st := web3_client.SwapTokensForExactTokensParams{}
 		err := st.Decode(tx.Args)

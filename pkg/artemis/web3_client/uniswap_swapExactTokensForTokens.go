@@ -36,13 +36,13 @@ func (s *SwapExactTokensForTokensParams) ConvertToJSONType() *JSONSwapExactToken
 	}
 }
 
-func (s *SwapExactTokensForTokensParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) (TradeExecutionFlowJSON, error) {
+func (s *SwapExactTokensForTokensParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) (TradeExecutionFlow, error) {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountIn)
 	var mid *big.Int
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
-	tf := TradeExecutionFlowJSON{
+	tf := TradeExecutionFlow{
 		Trade: Trade{
 			TradeMethod:                        swapExactTokensForTokens,
 			JSONSwapExactTokensForTokensParams: s.ConvertToJSONType(),
@@ -80,9 +80,9 @@ func (s *SwapExactTokensForTokensParams) BinarySearch(pair uniswap_pricing.Unisw
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = toFrontRun.ConvertToJSONType()
-			tf.UserTrade = to.ConvertToJSONType()
-			tf.SandwichTrade = toSandwich.ConvertToJSONType()
+			tf.FrontRunTrade = toFrontRun
+			tf.UserTrade = to
+			tf.SandwichTrade = toSandwich
 		}
 		// If profit is negative, reduce the high boundary
 		if profit.Cmp(big.NewInt(0)) < 0 {
@@ -96,7 +96,7 @@ func (s *SwapExactTokensForTokensParams) BinarySearch(pair uniswap_pricing.Unisw
 		SellAmount:     tokenSellAmountAtMaxProfit,
 		ExpectedProfit: maxProfit,
 	}
-	tf.SandwichPrediction = sp.ConvertToJSONType()
+	tf.SandwichPrediction = sp
 	return tf, nil
 }
 
@@ -147,13 +147,17 @@ func (u *UniswapClient) SwapExactTokensForTokens(tx MevTx, args map[string]inter
 	path := st.Path
 	initialPair := pd.V2Pair
 	tf, err := st.BinarySearch(pd.V2Pair)
-	tf.InitialPair = initialPair.ConvertToJSONType()
+	tf.InitialPair = &initialPair
 	if u.PrintOn {
 		fmt.Println("\nsandwich: ==================================SwapExactTokensForTokens==================================")
+		tfJ, terr := tf.ConvertToJSONType()
+		if terr != nil {
+			return terr
+		}
 		ts := &TradeSummary{
 			Tx:            tx,
 			Pd:            pd,
-			Tf:            tf,
+			Tf:            tfJ,
 			TokenAddr:     path[0].String(),
 			BuyWithAmount: st.AmountIn,
 			MinimumAmount: st.AmountOutMin,

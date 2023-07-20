@@ -6,6 +6,7 @@ import (
 	"math/big"
 
 	"github.com/rs/zerolog/log"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
@@ -65,7 +66,7 @@ func CreateFrontRunCtxWithPermit2(ctx context.Context) context.Context {
 
 func CreateBackRunCtx(ctx context.Context, w3c web3_client.Web3Client) context.Context {
 	ctx = context.WithValue(ctx, TradeType, BackRun)
-	ctx = w3c.SetNonceOffset(ctx, 1)
+	ctx = web3_actions.SetNonceOffset(ctx, 1)
 	return ctx
 }
 

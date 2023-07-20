@@ -64,14 +64,14 @@ func CreateFrontRunCtxWithPermit2(ctx context.Context) context.Context {
 	return ctx
 }
 
-func CreateBackRunCtx(ctx context.Context, w3c web3_client.Web3Client) context.Context {
+func CreateBackRunCtx(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, TradeType, BackRun)
 	ctx = web3_actions.SetNonceOffset(ctx, 1)
 	return ctx
 }
 
 func CreateBackRunCtxWithPermit2(ctx context.Context, w3c web3_client.Web3Client) context.Context {
-	ctx = CreateBackRunCtx(ctx, w3c)
+	ctx = CreateBackRunCtx(ctx)
 	ctx = context.WithValue(ctx, TradeCfg, Permit2)
 	return ctx
 }

@@ -84,7 +84,7 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() (*AuxiliaryTradingU
 	fmt.Println("backRunGas", scInfoSand.GasLimit)
 	scInfoSand.GasTipCap = artemis_eth_units.MulBigIntFromInt(frontRunTxWithMetadata.ScPayload.GasTipCap, 2)
 	scInfoSand.GasFeeCap = artemis_eth_units.MulBigIntFromInt(frontRunTxWithMetadata.ScPayload.GasFeeCap, 2)
-	ctx = CreateBackRunCtx(ctx, *ta.w3c())
+	ctx = CreateBackRunCtx(ctx)
 	fmt.Println("mainTraderAddr", ta.w3a().Address().String())
 
 	sandwichSignedTx, err := ta.w3a().GetSignedTxToCallFunctionWithData(ctx, scInfoSand, scInfoSand.Data)

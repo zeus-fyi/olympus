@@ -60,7 +60,7 @@ func packageBackRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_cl
 	if frScInfo == nil {
 		return nil, errors.New("PackageSandwich: BACK_RUN: frScInfo is nil")
 	}
-	backRunCtx := CreateBackRunCtx(context.Background(), w3c)
+	backRunCtx := CreateBackRunCtx(context.Background())
 	ur, spt, err := GenerateTradeV2SwapFromTokenToToken(backRunCtx, w3c, nil, &tf.SandwichTrade)
 	if err != nil {
 		log.Warn().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to generate sandwich tx")

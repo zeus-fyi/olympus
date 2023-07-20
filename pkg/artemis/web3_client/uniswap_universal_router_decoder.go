@@ -32,7 +32,7 @@ func NewDecodedUniversalRouterExecCmdFromMap(m map[string]interface{}, abiFile *
 		subCmd.Inputs = inputsVal[i]
 		err := subCmd.DecodeCommand(byteSize, inputsVal[i], abiFile)
 		if err != nil {
-			log.Err(err).Msg("NewDecodedUniversalRouterExecCmdFromMap: could not decode command")
+			log.Err(err).Str("command", subCmd.Command).Msg("NewDecodedUniversalRouterExecCmdFromMap: could not decode command")
 			return cmds, err
 		}
 		subCmds[i] = subCmd
@@ -59,6 +59,7 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte, ab
 	ur.Inputs = args
 	flag, cmd, err := ur.DecodeCmdByte(command)
 	if err != nil {
+		log.Err(err).Msg("DecodeCommand: could not decode command byte"
 		return err
 	}
 	switch cmd {

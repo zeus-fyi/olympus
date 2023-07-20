@@ -14,6 +14,7 @@ import (
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
+	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
@@ -23,7 +24,7 @@ func ProcessTxs(ctx context.Context, mevTxs *[]web3_client.MevTx, m *metrics_tra
 	for _, mevTx := range *mevTxs {
 		switch mevTx.Tx.To().String() {
 		case artemis_trading_constants.UniswapUniversalRouterAddressOld:
-			tf, err := RealTimeProcessUniversalRouterTx(ctx, mevTx, m, w3a)
+			tf, err := RealTimeProcessUniversalRouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniversalRouterOld)
 			if err != nil {
 				log.Err(err).Msg("error processing universal router tx")
 				err = nil
@@ -31,7 +32,7 @@ func ProcessTxs(ctx context.Context, mevTxs *[]web3_client.MevTx, m *metrics_tra
 			}
 			tfSlice = append(tfSlice, tf...)
 		case artemis_trading_constants.UniswapUniversalRouterAddressNew:
-			tf, err := RealTimeProcessUniversalRouterTx(ctx, mevTx, m, w3a)
+			tf, err := RealTimeProcessUniversalRouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniversalRouterNew)
 			if err != nil {
 				log.Err(err).Msg("error processing universal router tx")
 				err = nil
@@ -39,7 +40,7 @@ func ProcessTxs(ctx context.Context, mevTxs *[]web3_client.MevTx, m *metrics_tra
 			}
 			tfSlice = append(tfSlice, tf...)
 		case artemis_trading_constants.UniswapV2Router01Address:
-			tf, err := RealTimeProcessUniswapV2RouterTx(ctx, mevTx, m, w3a)
+			tf, err := RealTimeProcessUniswapV2RouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniswapV2Router01)
 			if err != nil {
 				log.Err(err).Msg("error processing v2_01 router tx")
 				err = nil
@@ -47,7 +48,7 @@ func ProcessTxs(ctx context.Context, mevTxs *[]web3_client.MevTx, m *metrics_tra
 			}
 			tfSlice = append(tfSlice, tf...)
 		case artemis_trading_constants.UniswapV2Router02Address:
-			tf, err := RealTimeProcessUniswapV2RouterTx(ctx, mevTx, m, w3a)
+			tf, err := RealTimeProcessUniswapV2RouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniswapV2Router02)
 			if err != nil {
 				log.Err(err).Msg("error processing v2_02 router tx")
 				err = nil
@@ -68,8 +69,9 @@ func ProcessTxs(ctx context.Context, mevTxs *[]web3_client.MevTx, m *metrics_tra
 				log.Err(err).Msg("error processing v3_02 router tx")
 				err = nil
 				continue
+			} else {
+				tfSlice = append(tfSlice, tf...)
 			}
-			tfSlice = append(tfSlice, tf...)
 		}
 	}
 

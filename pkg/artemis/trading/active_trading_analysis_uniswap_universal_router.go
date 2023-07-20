@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/rs/zerolog/log"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
@@ -13,11 +14,11 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx, m *metrics_trading.TradingMetrics, w3a web3_actions.Web3Actions) ([]web3_client.TradeExecutionFlowJSON, error) {
+func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx, m *metrics_trading.TradingMetrics, w3a web3_actions.Web3Actions, abiFile *abi.ABI) ([]web3_client.TradeExecutionFlowJSON, error) {
 	if tx.Tx == nil || tx.Args == nil {
 		return nil, errors.New("tx is nil")
 	}
-	subcmd, err := web3_client.NewDecodedUniversalRouterExecCmdFromMap(tx.Args, nil)
+	subcmd, err := web3_client.NewDecodedUniversalRouterExecCmdFromMap(tx.Args, abiFile)
 	if err != nil {
 		return nil, err
 	}

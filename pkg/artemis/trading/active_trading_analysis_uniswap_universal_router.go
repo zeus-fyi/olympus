@@ -17,7 +17,7 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 	if tx.Tx == nil || tx.Args == nil {
 		return nil, errors.New("tx is nil")
 	}
-	subcmd, err := web3_client.NewDecodedUniversalRouterExecCmdFromMap(tx.Args)
+	subcmd, err := web3_client.NewDecodedUniversalRouterExecCmdFromMap(tx.Args, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,10 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 			if pd == nil {
 				return nil, errors.New("pd is nil")
 			}
-			tf := inputs.BinarySearch(pd)
+			tf, terr := inputs.BinarySearch(pd)
+			if terr != nil {
+				return nil, terr
+			}
 			tf.Tx.Hash = tx.Tx.Hash().String()
 			err = ApplyMaxTransferTax(ctx, &tf)
 			if err != nil {
@@ -86,7 +89,10 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 			if pd == nil {
 				return nil, errors.New("pd is nil")
 			}
-			tf := inputs.BinarySearch(pd)
+			tf, terr := inputs.BinarySearch(pd)
+			if terr != nil {
+				return nil, terr
+			}
 			tf.Tx.Hash = tx.Tx.Hash().String()
 			err = ApplyMaxTransferTax(ctx, &tf)
 			if err != nil {
@@ -127,7 +133,10 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 			if pd == nil {
 				return nil, errors.New("pd is nil")
 			}
-			tf := inputs.BinarySearch(pd.V2Pair)
+			tf, terr := inputs.BinarySearch(pd.V2Pair)
+			if terr != nil {
+				return nil, terr
+			}
 			tf.Tx.Hash = tx.Tx.Hash().String()
 			err = ApplyMaxTransferTax(ctx, &tf)
 			if err != nil {

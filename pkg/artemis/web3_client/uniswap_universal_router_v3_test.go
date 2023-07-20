@@ -42,7 +42,7 @@ func (s *Web3ClientTestSuite) TestUniversalRouterV3ExactIn() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(mn)
 	s.Require().NotEmpty(args)
-	subCmds, err := NewDecodedUniversalRouterExecCmdFromMap(args)
+	subCmds, err := NewDecodedUniversalRouterExecCmdFromMap(args, nil)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(subCmds)
 
@@ -89,7 +89,7 @@ func (s *Web3ClientTestSuite) TestUniversalRouterV3ExactOut() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(mn)
 	s.Require().NotEmpty(args)
-	subCmds, err := NewDecodedUniversalRouterExecCmdFromMap(args)
+	subCmds, err := NewDecodedUniversalRouterExecCmdFromMap(args, nil)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(subCmds)
 

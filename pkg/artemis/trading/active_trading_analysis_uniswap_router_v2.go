@@ -76,7 +76,10 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 
 	case swapExactTokensForTokens:
 		st := web3_client.SwapExactTokensForTokensParams{}
-		st.Decode(ctx, tx.Args)
+		err := st.Decode(ctx, tx.Args)
+		if err != nil {
+			return nil, err
+		}
 		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
 			if pd != nil && m != nil {
@@ -87,7 +90,10 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		if pd == nil {
 			return nil, errors.New("pd is nil")
 		}
-		tf := st.BinarySearch(pd.V2Pair)
+		tf, err := st.BinarySearch(pd.V2Pair)
+		if err != nil {
+			return nil, err
+		}
 		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(ctx, &tf)
 		if err != nil {
@@ -118,7 +124,10 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		}
 	case swapTokensForExactTokens:
 		st := web3_client.SwapTokensForExactTokensParams{}
-		st.Decode(tx.Args)
+		err := st.Decode(tx.Args)
+		if err != nil {
+			return nil, err
+		}
 		pend := len(st.Path) - 1
 		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
@@ -130,7 +139,10 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		if pd == nil {
 			return nil, errors.New("pd is nil")
 		}
-		tf := st.BinarySearch(pd.V2Pair)
+		tf, err := st.BinarySearch(pd.V2Pair)
+		if err != nil {
+			return nil, err
+		}
 		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(ctx, &tf)
 		if err != nil {
@@ -165,7 +177,10 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			return nil, errors.New("swapExactETHForTokens tx has no value")
 		}
 		st := web3_client.SwapExactETHForTokensParams{}
-		st.Decode(tx.Args, tx.Tx.Value())
+		err := st.Decode(tx.Args, tx.Tx.Value())
+		if err != nil {
+			return nil, err
+		}
 		pend := len(st.Path) - 1
 		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
@@ -177,7 +192,10 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		if pd == nil {
 			return nil, errors.New("pd is nil")
 		}
-		tf := st.BinarySearch(pd.V2Pair)
+		tf, err := st.BinarySearch(pd.V2Pair)
+		if err != nil {
+			return nil, err
+		}
 		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(ctx, &tf)
 		if err != nil {
@@ -219,7 +237,10 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		if pd == nil {
 			return nil, errors.New("pd is nil")
 		}
-		tf := st.BinarySearch(pd.V2Pair)
+		tf, err := st.BinarySearch(pd.V2Pair)
+		if err != nil {
+			return nil, err
+		}
 		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(ctx, &tf)
 		if err != nil {
@@ -249,7 +270,10 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		}
 	case swapExactTokensForETH:
 		st := web3_client.SwapExactTokensForETHParams{}
-		st.Decode(tx.Args)
+		err := st.Decode(tx.Args)
+		if err != nil {
+			return nil, err
+		}
 		pend := len(st.Path) - 1
 		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
@@ -261,7 +285,10 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		if pd == nil {
 			return nil, errors.New("pd is nil")
 		}
-		tf := st.BinarySearch(pd.V2Pair)
+		tf, err := st.BinarySearch(pd.V2Pair)
+		if err != nil {
+			return nil, err
+		}
 		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(ctx, &tf)
 		if err != nil {
@@ -295,7 +322,10 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			return nil, errors.New("swapETHForExactTokens tx has no value")
 		}
 		st := web3_client.SwapETHForExactTokensParams{}
-		st.Decode(tx.Args, tx.Tx.Value())
+		err := st.Decode(tx.Args, tx.Tx.Value())
+		if err != nil {
+			return nil, err
+		}
 		pend := len(st.Path) - 1
 		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
@@ -307,7 +337,10 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		if pd == nil {
 			return nil, errors.New("pd is nil")
 		}
-		tf := st.BinarySearch(pd.V2Pair)
+		tf, err := st.BinarySearch(pd.V2Pair)
+		if err != nil {
+			return nil, err
+		}
 		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(ctx, &tf)
 		if err != nil {
@@ -351,7 +384,10 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		}
 	case swapExactTokensForETHSupportingFeeOnTransferTokens:
 		st := web3_client.SwapExactTokensForETHSupportingFeeOnTransferTokensParams{}
-		st.Decode(tx.Args)
+		err := st.Decode(tx.Args)
+		if err != nil {
+			return nil, err
+		}
 		pend := len(st.Path) - 1
 		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
@@ -363,7 +399,10 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		if pd == nil {
 			return nil, errors.New("pd is nil")
 		}
-		tf := st.BinarySearch(pd.V2Pair)
+		tf, err := st.BinarySearch(pd.V2Pair)
+		if err != nil {
+			return nil, err
+		}
 		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(ctx, &tf)
 		if err != nil {
@@ -397,7 +436,10 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			return nil, errors.New("swapExactETHForTokensSupportingFeeOnTransferTokens tx has no value")
 		}
 		st := web3_client.SwapExactETHForTokensSupportingFeeOnTransferTokensParams{}
-		st.Decode(tx.Args, tx.Tx.Value())
+		err := st.Decode(tx.Args, tx.Tx.Value())
+		if err != nil {
+			return nil, err
+		}
 		pend := len(st.Path) - 1
 		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
@@ -409,7 +451,10 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		if pd == nil {
 			return nil, errors.New("pd is nil")
 		}
-		tf := st.BinarySearch(pd.V2Pair)
+		tf, err := st.BinarySearch(pd.V2Pair)
+		if err != nil {
+			return nil, err
+		}
 		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(ctx, &tf)
 		if err != nil {
@@ -441,7 +486,10 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		}
 	case swapExactTokensForTokensSupportingFeeOnTransferTokens:
 		st := web3_client.SwapExactTokensForTokensSupportingFeeOnTransferTokensParams{}
-		st.Decode(tx.Args)
+		err := st.Decode(tx.Args)
+		if err != nil {
+			return nil, err
+		}
 		pend := len(st.Path) - 1
 		pd, err := uniswap_pricing.GetV2PricingData(ctx, w3a, st.Path)
 		if err != nil {
@@ -453,7 +501,10 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 		if pd == nil {
 			return nil, errors.New("pd is nil")
 		}
-		tf := st.BinarySearch(pd.V2Pair)
+		tf, err := st.BinarySearch(pd.V2Pair)
+		if err != nil {
+			return nil, err
+		}
 		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(ctx, &tf)
 		if err != nil {

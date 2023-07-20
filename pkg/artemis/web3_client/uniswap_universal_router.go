@@ -60,7 +60,7 @@ func GetUniswapUniversalRouterAbiPayload(payload *UniversalRouterExecParams) web
 }
 
 func (u *UniswapClient) ExecUniswapUniversalRouterCmd(payload UniversalRouterExecCmd) (*types.Transaction, error) {
-	data, err := payload.EncodeCommands(ctx)
+	data, err := payload.EncodeCommands(ctx, nil)
 	if err != nil {
 		log.Err(err).Msg("ExecUniswapUniversalRouterCmd: failed to encode commands")
 		return nil, err

@@ -45,7 +45,7 @@ func GetRawdawgUniversalRouterPayload(payload *UniversalRouterExecParams) web3_a
 }
 
 func (u *UniswapClient) ExecRawdawgUniversalRouterCmd(payload UniversalRouterExecCmd, to *artemis_trading_types.TradeOutcome) (*types.Transaction, error) {
-	data, err := payload.EncodeCommands(ctx)
+	data, err := payload.EncodeCommands(ctx, nil)
 	if err != nil {
 		log.Err(err).Msg("ExecRawdawgUniversalRouterCmd: failed to encode commands")
 		return nil, err

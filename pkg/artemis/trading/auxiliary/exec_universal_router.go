@@ -92,7 +92,7 @@ func universalRouterCmdToUnsignedTxPayload(ctx context.Context, w3c web3_client.
 		return nil, errors.New("universal router command is nil")
 	}
 	ur.Deadline = GetDeadline()
-	data, err := ur.EncodeCommands(ctx)
+	data, err := ur.EncodeCommands(ctx, nil)
 	if err != nil {
 		log.Warn().Msg("universalRouterCmdToTxBuilder: error encoding commands")
 		log.Err(err).Msg("error encoding commands")

@@ -121,7 +121,7 @@ func (s *Web3ClientTestSuite) TestSandwichAttackBinSearch() {
 		Reserve1: reserve1,
 	}
 
-	st := mockTrade.BinarySearch(mockPairResp)
+	st, _ := mockTrade.BinarySearch(mockPairResp)
 	fmt.Println("Max profit:", st.SandwichPrediction.ExpectedProfit)
 	fmt.Println("Token sell amount for max profit:", st.SandwichPrediction.SellAmount)
 }
@@ -154,7 +154,7 @@ func (s *Web3ClientTestSuite) TestSandwichAttackBinSearchV2() {
 		Reserve0: reserve0,
 		Reserve1: reserve1,
 	}
-	st := mockTrade.BinarySearch(mockPairResp)
+	st, _ := mockTrade.BinarySearch(mockPairResp)
 	fmt.Println("Max profit:", st.SandwichPrediction.ExpectedProfit)
 	fmt.Println("Token sell amount for max profit:", st.SandwichPrediction.SellAmount)
 }
@@ -182,7 +182,7 @@ func (s *Web3ClientTestSuite) TestSandwichAttackBinSearchV3() {
 		Reserve0: reserve0,
 		Reserve1: reserve1,
 	}
-	st := mockTrade.BinarySearch(mockPairResp)
+	st, _ := mockTrade.BinarySearch(mockPairResp)
 	fmt.Println("Max profit:", st.SandwichPrediction.ExpectedProfit)
 	fmt.Println("Token sell amount for max profit:", st.SandwichPrediction.SellAmount)
 }

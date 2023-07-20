@@ -91,7 +91,10 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 		if pd == nil {
 			return nil, errors.New("pd is nil")
 		}
-		tf := inputs.BinarySearch(pd)
+		tf, err := inputs.BinarySearch(pd)
+		if err != nil {
+			return nil, err
+		}
 		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(ctx, &tf)
 		if err != nil {
@@ -138,7 +141,10 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 		if pd == nil {
 			return nil, errors.New("pd is nil")
 		}
-		tf := inputs.BinarySearch(pd)
+		tf, err := inputs.BinarySearch(pd)
+		if err != nil {
+			return nil, err
+		}
 		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(ctx, &tf)
 		if err != nil {
@@ -186,7 +192,10 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 		if pd == nil {
 			return nil, errors.New("pd is nil")
 		}
-		tf := inputs.BinarySearch(pd)
+		tf, err := inputs.BinarySearch(pd)
+		if err != nil {
+			return nil, err
+		}
 		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(ctx, &tf)
 		if err != nil {
@@ -233,7 +242,10 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 		if pd == nil {
 			return nil, errors.New("pd is nil")
 		}
-		tf := inputs.BinarySearch(pd)
+		tf, err := inputs.BinarySearch(pd)
+		if err != nil {
+			return nil, err
+		}
 		tf.Tx.Hash = tx.Tx.Hash().String()
 		err = ApplyMaxTransferTax(ctx, &tf)
 		if err != nil {
@@ -281,7 +293,10 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 		if pd == nil {
 			return nil, errors.New("pd is nil")
 		}
-		tf := inputs.BinarySearch(pd.V2Pair)
+		tf, err := inputs.BinarySearch(pd.V2Pair)
+		if err != nil {
+			return nil, err
+		}
 		err = ApplyMaxTransferTax(ctx, &tf)
 		if err != nil {
 			return nil, err

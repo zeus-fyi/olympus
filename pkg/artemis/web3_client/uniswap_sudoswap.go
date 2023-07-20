@@ -3,6 +3,8 @@ package web3_client
 import (
 	"context"
 	"math/big"
+
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -26,10 +28,12 @@ func (s *SudoSwapParams) Decode(ctx context.Context, data []byte) error {
 	args := make(map[string]interface{})
 	err := UniversalRouterDecoderAbi.Methods[SudoSwap].Inputs.UnpackIntoMap(args, data)
 	if err != nil {
+		log.Warn().Msg("Failed to unpack into map")
 		return err
 	}
 	value, err := ParseBigInt(args["value"])
 	if err != nil {
+		log.Warn().Msg("Failed to parse value")
 		return err
 	}
 	s.Value = value

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/rs/zerolog/log"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
@@ -28,46 +29,72 @@ UniswapV3 — Router: can perform ERC-20 swaps of any kind, limited to UniswapV3
 UniswapV3 — Router2: can perform ERC-20 swaps of any kind through both UniswapV2 and UniswapV3 pools
 */
 
-func (u *UniswapClient) ProcessUniswapV3RouterTxs(ctx context.Context, tx MevTx) {
+func (u *UniswapClient) ProcessUniswapV3RouterTxs(ctx context.Context, tx MevTx, abiFile *abi.ABI) error {
 	if strings.HasPrefix(tx.MethodName, multicall) {
 		inputs := &Multicall{}
 		err := inputs.Decode(ctx, tx.Args)
 		if err != nil {
 			log.Err(err).Msg("failed to decode multicall args")
-			return
+			return err
 		}
 		for _, data := range inputs.Data {
-			mn, args, derr := DecodeTxData(ctx, data, u.MevSmartContractTxMapV3SwapRouterV2.Abi, u.MevSmartContractTxMapV3SwapRouterV2.Filter)
-			if derr != nil {
-				log.Err(derr).Msg("failed to decode tx data")
-				continue
+			if abiFile == nil {
+				mn, args, derr := DecodeTxData(ctx, data, u.MevSmartContractTxMapV3SwapRouterV2.Abi, u.MevSmartContractTxMapV3SwapRouterV2.Filter)
+				if derr != nil {
+					log.Err(derr).Msg("failed to decode tx data")
+					continue
+				}
+				newTx := tx
+				newTx.MethodName = mn
+				newTx.Args = args
+				err = u.processUniswapV3Txs(ctx, newTx)
+				if err != nil {
+					log.Err(err).Msg("failed to process uniswap v3 txs")
+					continue
+				}
+			} else {
+				mn, args, derr := DecodeTxData(ctx, data, abiFile, nil)
+				if derr != nil {
+					log.Err(derr).Msg("failed to decode tx data")
+					continue
+				}
+				newTx := tx
+				newTx.MethodName = mn
+				newTx.Args = args
+				err = u.processUniswapV3Txs(ctx, newTx)
+				if err != nil {
+					log.Err(err).Msg("failed to process uniswap v3 txs")
+					continue
+				}
 			}
-			newTx := tx
-			newTx.MethodName = mn
-			newTx.Args = args
-			u.processUniswapV3Txs(ctx, newTx)
 		}
 	} else {
-		u.processUniswapV3Txs(ctx, tx)
+		err := u.processUniswapV3Txs(ctx, tx)
+		if err != nil {
+			log.Err(err).Msg("failed to process uniswap v3 txs")
+		}
 	}
-	return
+	return nil
 }
 
-func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) {
+func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) error {
 	switch tx.MethodName {
 	case exactInput:
 		inputs := &ExactInputParams{}
 		err := inputs.Decode(ctx, tx.Args)
 		if err != nil {
 			log.Err(err).Msg("failed to decode exact input args")
-			return
+			return err
 		}
 		pd, perr := u.GetV3PricingData(ctx, inputs.TokenFeePath)
 		if perr != nil {
 			log.Err(perr).Msg("ExactInput: error getting pricing data")
-			return
+			return perr
 		}
-		tf := inputs.BinarySearch(pd)
+		tf, err := inputs.BinarySearch(pd)
+		if err != nil {
+			return err
+		}
 		tf.Trade.TradeMethod = exactInput
 		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 		fmt.Println("\nsandwich: ==================================ExactInput==================================")
@@ -88,14 +115,17 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) {
 		err := inputs.Decode(ctx, tx.Args)
 		if err != nil {
 			log.Err(err).Msg("failed to decode exact output args")
-			return
+			return err
 		}
 		pd, perr := u.GetV3PricingData(ctx, inputs.TokenFeePath)
 		if perr != nil {
 			log.Err(perr).Msg("V3SwapExactOut: error getting pricing data")
-			return
+			return err
 		}
-		tf := inputs.BinarySearch(pd)
+		tf, err := inputs.BinarySearch(pd)
+		if err != nil {
+			return err
+		}
 		tf.Trade.TradeMethod = exactOutput
 		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 		fmt.Println("\nsandwich: ==================================ExactOut==================================")
@@ -116,7 +146,7 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) {
 		err := inputs.Decode(ctx, tx.Args)
 		if err != nil {
 			log.Err(err).Msg("failed to decode swap exact input single args")
-			return
+			return err
 		}
 		tfp := artemis_trading_types.TokenFeePath{
 			TokenIn: inputs.TokenIn,
@@ -129,9 +159,12 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) {
 		pd, perr := u.GetV3PricingData(ctx, tfp)
 		if perr != nil {
 			log.Err(perr).Msg("SwapExactInputSingle: error getting pricing data")
-			return
+			return err
 		}
-		tf := inputs.BinarySearch(pd)
+		tf, err := inputs.BinarySearch(pd)
+		if err != nil {
+			return err
+		}
 		tf.Trade.TradeMethod = swapExactInputSingle
 		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 		fmt.Println("\nsandwich: ==================================SwapExactInputSingle==================================")
@@ -152,7 +185,7 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) {
 		err := inputs.Decode(ctx, tx.Args)
 		if err != nil {
 			log.Err(err).Msg("failed to decode swap exact output single args")
-			return
+			return err
 		}
 		tfp := artemis_trading_types.TokenFeePath{
 			TokenIn: inputs.TokenIn,
@@ -165,9 +198,12 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) {
 		pd, perr := u.GetV3PricingData(ctx, tfp)
 		if perr != nil {
 			log.Err(perr).Msg("SwapExactOutputSingle: error getting pricing data")
-			return
+			return err
 		}
-		tf := inputs.BinarySearch(pd)
+		tf, err := inputs.BinarySearch(pd)
+		if err != nil {
+			return err
+		}
 		tf.Trade.TradeMethod = swapExactOutputSingle
 		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
 		fmt.Println("\nsandwich: ==================================SwapExactOutputSingle==================================")
@@ -188,15 +224,18 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) {
 		err := inputs.Decode(ctx, tx.Args)
 		if err != nil {
 			log.Err(err).Msg("swapExactTokensForTokens: failed to decode swap exact tokens for tokens args")
-			return
+			return err
 		}
 		pd, err := u.GetV2PricingData(ctx, inputs.Path)
 		if err != nil {
-			return
+			return err
 		}
 		path := inputs.Path
 		initialPair := pd.V2Pair
-		tf := inputs.BinarySearch(pd.V2Pair)
+		tf, err := inputs.BinarySearch(pd.V2Pair)
+		if err != nil {
+			return err
+		}
 		tf.Trade.TradeMethod = swapExactTokensForTokens
 		tf.InitialPair = initialPair.ConvertToJSONType()
 		fmt.Println("\nsandwich: ==================================SwapExactTokensForTokens==================================")
@@ -215,4 +254,5 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) {
 	case swapExactInputMultihop:
 	case swapExactOutputMultihop:
 	}
+	return nil
 }

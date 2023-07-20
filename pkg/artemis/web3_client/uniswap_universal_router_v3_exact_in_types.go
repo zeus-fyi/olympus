@@ -2,8 +2,11 @@ package web3_client
 
 import (
 	"context"
+	"errors"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
@@ -28,26 +31,43 @@ type JSONV3SwapExactInParams struct {
 	PayerIsUser  bool                               `json:"payerIsUser"`
 }
 
-func (s *V3SwapExactInParams) Encode(ctx context.Context) ([]byte, error) {
-	inputs, err := UniversalRouterDecoderAbi.Methods[V3SwapExactIn].Inputs.Pack(s.To, s.AmountIn, s.AmountOutMin, s.Path.Encode(), s.PayerIsUser)
-	if err != nil {
-		return nil, err
+func (s *V3SwapExactInParams) Encode(ctx context.Context, abiFile *abi.ABI) ([]byte, error) {
+	if abiFile == nil {
+		inputs, err := UniversalRouterDecoderAbi.Methods[V3SwapExactIn].Inputs.Pack(s.To, s.AmountIn, s.AmountOutMin, s.Path.Encode(), s.PayerIsUser)
+		if err != nil {
+			return nil, err
+		}
+		return inputs, nil
+	} else {
+		inputs, err := abiFile.Methods[V3SwapExactIn].Inputs.Pack(s.To, s.AmountIn, s.AmountOutMin, s.Path.Encode(), s.PayerIsUser)
+		if err != nil {
+			return nil, err
+		}
+		return inputs, nil
 	}
-	return inputs, nil
 }
 
-func (s *V3SwapExactInParams) Decode(ctx context.Context, data []byte) error {
+func (s *V3SwapExactInParams) Decode(ctx context.Context, data []byte, abiFile *abi.ABI) error {
 	args := make(map[string]interface{})
-	err := UniversalRouterDecoderAbi.Methods[V3SwapExactIn].Inputs.UnpackIntoMap(args, data)
-	if err != nil {
-		return err
+	if abiFile == nil {
+		err := UniversalRouterDecoderAbi.Methods[V3SwapExactIn].Inputs.UnpackIntoMap(args, data)
+		if err != nil {
+			return err
+		}
+	} else {
+		err := abiFile.Methods[V3SwapExactIn].Inputs.UnpackIntoMap(args, data)
+		if err != nil {
+			return err
+		}
 	}
 	amountIn, err := ParseBigInt(args["amountIn"])
 	if err != nil {
+		log.Warn().Msg("V3SwapExactInParams: Decode failed to parse amountIn")
 		return err
 	}
 	amountOutMin, err := ParseBigInt(args["amountOutMin"])
 	if err != nil {
+		log.Warn().Msg("V3SwapExactInParams: Decode failed to parse amountOutMin")
 		return err
 	}
 	pathBytes := args["path"].([]byte)
@@ -57,7 +77,11 @@ func (s *V3SwapExactInParams) Decode(ctx context.Context, data []byte) error {
 	}
 	var pathList []artemis_trading_types.TokenFee
 	for i := 0; i < len(hexStr[40:]); i += 46 {
-		fee, _ := new(big.Int).SetString(hexStr[40:][i:i+6], 16)
+		fee, ok := new(big.Int).SetString(hexStr[40:][i:i+6], 16)
+		if !ok {
+			log.Warn().Msg("V3SwapExactInParams: Decode failed to parse fee")
+			return errors.New("V3SwapExactInParams: Decode failed to parse fee")
+		}
 		token := accounts.HexToAddress(hexStr[40:][i+6 : i+46])
 		tf := artemis_trading_types.TokenFee{
 			Token: token,

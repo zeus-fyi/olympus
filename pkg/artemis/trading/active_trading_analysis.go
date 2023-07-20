@@ -26,6 +26,7 @@ func ProcessTxs(ctx context.Context, mevTxs *[]web3_client.MevTx, m *metrics_tra
 			tf, err := RealTimeProcessUniversalRouterTx(ctx, mevTx, m, w3a)
 			if err != nil {
 				log.Err(err).Msg("error processing universal router tx")
+				err = nil
 				continue
 			}
 			tfSlice = append(tfSlice, tf...)
@@ -33,6 +34,7 @@ func ProcessTxs(ctx context.Context, mevTxs *[]web3_client.MevTx, m *metrics_tra
 			tf, err := RealTimeProcessUniversalRouterTx(ctx, mevTx, m, w3a)
 			if err != nil {
 				log.Err(err).Msg("error processing universal router tx")
+				err = nil
 				continue
 			}
 			tfSlice = append(tfSlice, tf...)
@@ -40,6 +42,7 @@ func ProcessTxs(ctx context.Context, mevTxs *[]web3_client.MevTx, m *metrics_tra
 			tf, err := RealTimeProcessUniswapV2RouterTx(ctx, mevTx, m, w3a)
 			if err != nil {
 				log.Err(err).Msg("error processing v2_01 router tx")
+				err = nil
 				continue
 			}
 			tfSlice = append(tfSlice, tf...)
@@ -47,6 +50,7 @@ func ProcessTxs(ctx context.Context, mevTxs *[]web3_client.MevTx, m *metrics_tra
 			tf, err := RealTimeProcessUniswapV2RouterTx(ctx, mevTx, m, w3a)
 			if err != nil {
 				log.Err(err).Msg("error processing v2_02 router tx")
+				err = nil
 				continue
 			}
 			tfSlice = append(tfSlice, tf...)
@@ -54,6 +58,7 @@ func ProcessTxs(ctx context.Context, mevTxs *[]web3_client.MevTx, m *metrics_tra
 			tf, err := RealTimeProcessUniswapV3RouterTx(ctx, mevTx, UniswapV3Router01Abi, nil, m, w3a)
 			if err != nil {
 				log.Err(err).Msg("error processing v3_01 router tx")
+				err = nil
 				continue
 			}
 			tfSlice = append(tfSlice, tf...)
@@ -61,6 +66,7 @@ func ProcessTxs(ctx context.Context, mevTxs *[]web3_client.MevTx, m *metrics_tra
 			tf, err := RealTimeProcessUniswapV3RouterTx(ctx, mevTx, UniswapV3Router02Abi, nil, m, w3a)
 			if err != nil {
 				log.Err(err).Msg("error processing v3_02 router tx")
+				err = nil
 				continue
 			}
 			tfSlice = append(tfSlice, tf...)

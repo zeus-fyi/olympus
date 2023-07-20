@@ -3,6 +3,7 @@ package web3_client
 import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
+	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
@@ -29,7 +30,7 @@ func (s *Web3ClientTestSuite) TestUniswapUniversalRouterDecoding() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(mn)
 	s.Require().NotEmpty(args)
-	subCmds, err := NewDecodedUniversalRouterExecCmdFromMap(args)
+	subCmds, err := NewDecodedUniversalRouterExecCmdFromMap(args, artemis_oly_contract_abis.MustLoadNewUniversalRouterAbi())
 	s.Require().Nil(err)
 	s.Require().NotEmpty(subCmds)
 }

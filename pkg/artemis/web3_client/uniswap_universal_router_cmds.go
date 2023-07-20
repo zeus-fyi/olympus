@@ -4,6 +4,7 @@ import (
 	"context"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
@@ -56,12 +57,20 @@ type UnwrapWETHParams struct {
 	AmountMin *big.Int         `json:"amountMin"`
 }
 
-func (u *UnwrapWETHParams) Decode(ctx context.Context, data []byte) error {
+func (u *UnwrapWETHParams) Decode(ctx context.Context, data []byte, abiFile *abi.ABI) error {
 	args := make(map[string]interface{})
-	err := UniversalRouterDecoderAbi.Methods[UnwrapWETH].Inputs.UnpackIntoMap(args, data)
-	if err != nil {
-		return err
+	if abiFile == nil {
+		err := UniversalRouterDecoderAbi.Methods[UnwrapWETH].Inputs.UnpackIntoMap(args, data)
+		if err != nil {
+			return err
+		}
+	} else {
+		err := abiFile.Methods[UnwrapWETH].Inputs.UnpackIntoMap(args, data)
+		if err != nil {
+			return err
+		}
 	}
+
 	amountMin, err := ParseBigInt(args["amountMin"])
 	if err != nil {
 		return err
@@ -75,12 +84,20 @@ func (u *UnwrapWETHParams) Decode(ctx context.Context, data []byte) error {
 	return nil
 }
 
-func (u *UnwrapWETHParams) Encode(ctx context.Context) ([]byte, error) {
-	inputs, err := UniversalRouterDecoderAbi.Methods[UnwrapWETH].Inputs.Pack(u.Recipient, u.AmountMin)
-	if err != nil {
-		return nil, err
+func (u *UnwrapWETHParams) Encode(ctx context.Context, abiFile *abi.ABI) ([]byte, error) {
+	if abiFile == nil {
+		inputs, err := UniversalRouterDecoderAbi.Methods[UnwrapWETH].Inputs.Pack(u.Recipient, u.AmountMin)
+		if err != nil {
+			return nil, err
+		}
+		return inputs, nil
+	} else {
+		inputs, err := abiFile.Methods[UnwrapWETH].Inputs.Pack(u.Recipient, u.AmountMin)
+		if err != nil {
+			return nil, err
+		}
+		return inputs, nil
 	}
-	return inputs, nil
 }
 
 type WrapETHParams struct {

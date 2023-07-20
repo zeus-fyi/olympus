@@ -55,7 +55,7 @@ func (s *Web3ClientTestSuite) TestWrapETHFuncs() {
 		Deadline: deadline,
 		Payable:  payable,
 	}
-	encCmd, err := ur.EncodeCommands(ctx)
+	encCmd, err := ur.EncodeCommands(ctx, nil)
 	s.Require().NoError(err)
 	s.Require().NotNil(encCmd)
 
@@ -113,7 +113,7 @@ func (s *Web3ClientTestSuite) TestWrapETHFuncs() {
 		Deadline: deadline,
 		Payable:  nil,
 	}
-	encCmd, err = ur.EncodeCommands(ctx)
+	encCmd, err = ur.EncodeCommands(ctx, nil)
 	s.Require().NoError(err)
 	s.Require().NotNil(encCmd)
 	tx, err = uni.ExecUniswapUniversalRouterCmd(ur)
@@ -192,7 +192,7 @@ func (s *Web3ClientTestSuite) TestExecV2TradeMethodUR() {
 		},
 		Deadline: deadline,
 	}
-	encCmd, err := ur.EncodeCommands(ctx)
+	encCmd, err := ur.EncodeCommands(ctx, nil)
 	s.Require().NoError(err)
 	s.Require().NotNil(encCmd)
 

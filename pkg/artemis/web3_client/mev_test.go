@@ -46,7 +46,7 @@ func (s *Web3ClientTestSuite) TestRawMempoolTxFilter() {
 	err = uni.ProcessMempoolTxs(ctx, mempool)
 	s.Require().Nil(err)
 
-	uni.ProcessTxs(ctx)
+	uni.ProcessTxs(ctx, nil)
 	count := len(uni.SwapExactTokensForTokensParamsSlice)
 	fmt.Println("Total SwapExactTokensForTokensParamsSlice found", len(uni.SwapExactTokensForTokensParamsSlice))
 	count += len(uni.SwapTokensForExactTokensParamsSlice)

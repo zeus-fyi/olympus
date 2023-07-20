@@ -127,13 +127,13 @@ func (s *Web3ClientTestSuite) TestPermit2PermitBatchEncode() {
 			},
 		},
 	}
-	encCmd, err := ur.EncodeCommands(ctx)
+	encCmd, err := ur.EncodeCommands(ctx, nil)
 	s.Require().NoError(err)
 	s.Require().NotNil(encCmd)
 	s.Require().NotNil(encCmd.Commands)
 	subCmd := UniversalRouterExecSubCmd{}
 	for i, byteVal := range encCmd.Commands {
-		err = subCmd.DecodeCommand(byteVal, encCmd.Inputs[i])
+		err = subCmd.DecodeCommand(byteVal, encCmd.Inputs[i], nil)
 		s.Require().NoError(err)
 		s.Assert().Equal(true, subCmd.CanRevert)
 		s.Assert().Equal(Permit2PermitBatch, subCmd.Command)
@@ -166,13 +166,13 @@ func (s *Web3ClientTestSuite) TestPermit2PermitBatchEncode2() {
 			},
 		},
 	}
-	encCmd, err := ur.EncodeCommands(ctx)
+	encCmd, err := ur.EncodeCommands(ctx, nil)
 	s.Require().NoError(err)
 	s.Require().NotNil(encCmd)
 	s.Require().NotNil(encCmd.Commands)
 	subCmd := UniversalRouterExecSubCmd{}
 	for i, byteVal := range encCmd.Commands {
-		err = subCmd.DecodeCommand(byteVal, encCmd.Inputs[i])
+		err = subCmd.DecodeCommand(byteVal, encCmd.Inputs[i], nil)
 		s.Require().NoError(err)
 		s.Assert().Equal(true, subCmd.CanRevert)
 		s.Assert().Equal(Permit2TransferFromBatch, subCmd.Command)

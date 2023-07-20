@@ -34,7 +34,7 @@ func (s *SwapExactTokensForETHParams) ConvertToJSONType() *JSONSwapExactTokensFo
 		Deadline:     s.Deadline.String(),
 	}
 }
-func (s *SwapExactTokensForETHParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) TradeExecutionFlowJSON {
+func (s *SwapExactTokensForETHParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) (TradeExecutionFlowJSON, error) {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountIn)
 	var mid *big.Int
@@ -54,13 +54,13 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair uniswap_pricing.UniswapV
 		toFrontRun, err := mockPairResp.PriceImpact(s.Path[0], mid)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
-			return tf
+			return tf, err
 		}
 		// User trade
 		to, err := mockPairResp.PriceImpact(s.Path[0], s.AmountIn)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
-			return tf
+			return tf, err
 		}
 		difference := new(big.Int).Sub(to.AmountOut, s.AmountOutMin)
 		if difference.Cmp(big.NewInt(0)) < 0 {
@@ -72,7 +72,7 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair uniswap_pricing.UniswapV
 		toSandwich, err := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
-			return tf
+			return tf, err
 		}
 		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
@@ -95,47 +95,59 @@ func (s *SwapExactTokensForETHParams) BinarySearch(pair uniswap_pricing.UniswapV
 		ExpectedProfit: maxProfit,
 	}
 	tf.SandwichPrediction = sp.ConvertToJSONType()
-	return tf
+	return tf, nil
 }
 
-func (s *SwapExactTokensForETHParams) Decode(args map[string]interface{}) {
+func (s *SwapExactTokensForETHParams) Decode(args map[string]interface{}) error {
 	amountIn, err := ParseBigInt(args["amountIn"])
 	if err != nil {
-		return
+		log.Warn().Msg("SwapExactTokensForETHParams: error parsing amountIn")
+		return err
 	}
 	amountOutMin, err := ParseBigInt(args["amountOutMin"])
 	if err != nil {
-		return
+		log.Warn().Msg("SwapExactTokensForETHParams: error parsing amountOutMin")
+		return err
 	}
 	path, err := ConvertToAddressSlice(args["path"])
 	if err != nil {
-		return
+		log.Warn().Msg("SwapExactTokensForETHParams: error parsing path")
+		return err
 	}
 	to, err := ConvertToAddress(args["to"])
 	if err != nil {
-		return
+		log.Warn().Msg("SwapExactTokensForETHParams: error parsing to")
+		return err
 	}
 	deadline, err := ParseBigInt(args["deadline"])
 	if err != nil {
-		return
+		log.Warn().Msg("SwapExactTokensForETHParams: error parsing deadline")
+		return err
 	}
 	s.AmountIn = amountIn
 	s.AmountOutMin = amountOutMin
 	s.Path = path
 	s.To = to
 	s.Deadline = deadline
+	return err
 }
 
-func (u *UniswapClient) SwapExactTokensForETH(tx MevTx, args map[string]interface{}) {
+func (u *UniswapClient) SwapExactTokensForETH(tx MevTx, args map[string]interface{}) error {
 	st := SwapExactTokensForETHParams{}
-	st.Decode(args)
+	err := st.Decode(args)
+	if err != nil {
+		return err
+	}
 	path := st.Path
 	pd, err := u.GetV2PricingData(ctx, path)
 	if err != nil {
-		return
+		return err
 	}
 	initialPair := pd.V2Pair
-	tf := st.BinarySearch(pd.V2Pair)
+	tf, err := st.BinarySearch(pd.V2Pair)
+	if err != nil {
+		return err
+	}
 	tf.InitialPair = initialPair.ConvertToJSONType()
 	if u.PrintOn {
 		fmt.Println("\nsandwich: ==================================SwapExactTokensForETH==================================")
@@ -154,4 +166,5 @@ func (u *UniswapClient) SwapExactTokensForETH(tx MevTx, args map[string]interfac
 		fmt.Println("sandwich: ====================================SwapExactTokensForETH==================================")
 	}
 	u.SwapExactTokensForETHParamsSlice = append(u.SwapExactTokensForETHParamsSlice, st)
+	return nil
 }

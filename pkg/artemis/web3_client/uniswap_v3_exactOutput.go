@@ -30,7 +30,7 @@ type JSONExactOutputParams struct {
 	TokenFeePath artemis_trading_types.TokenFeePath `json:"tokenFeePath,omitempty"`
 }
 
-func (o *ExactOutputParams) BinarySearch(pd *uniswap_pricing.UniswapPricingData) TradeExecutionFlowJSON {
+func (o *ExactOutputParams) BinarySearch(pd *uniswap_pricing.UniswapPricingData) (TradeExecutionFlowJSON, error) {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(o.AmountInMaximum)
 	var mid *big.Int
@@ -57,13 +57,13 @@ func (o *ExactOutputParams) BinarySearch(pd *uniswap_pricing.UniswapPricingData)
 		toFrontRun, _, err := mockPairResp.PriceImpact(ctx, frontRunTokenIn, amountInFrontRun)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
-			return tf
+			return tf, err
 		}
 		// User trade
 		userTrade, _, err := mockPairResp.PriceImpact(ctx, frontRunTokenIn, o.AmountInMaximum)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
-			return tf
+			return tf, err
 		}
 		difference := new(big.Int).Sub(userTrade.Quotient(), o.AmountOut)
 		// if diff <= 0 then it searches left
@@ -75,7 +75,7 @@ func (o *ExactOutputParams) BinarySearch(pd *uniswap_pricing.UniswapPricingData)
 		toSandwich, _, err := mockPairResp.PriceImpact(ctx, sandwichTokenIn, toFrontRun.Quotient())
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
-			return tf
+			return tf, err
 		}
 		profit := new(big.Int).Sub(toSandwich.Quotient(), toFrontRun.Quotient())
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
@@ -113,7 +113,7 @@ func (o *ExactOutputParams) BinarySearch(pd *uniswap_pricing.UniswapPricingData)
 		ExpectedProfit: maxProfit,
 	}
 	tf.SandwichPrediction = sp.ConvertToJSONType()
-	return tf
+	return tf, nil
 }
 
 func (o *ExactOutputParams) Decode(ctx context.Context, args map[string]interface{}) error {
@@ -132,7 +132,11 @@ func (o *ExactOutputParams) Decode(ctx context.Context, args map[string]interfac
 	}
 	var pathList []artemis_trading_types.TokenFee
 	for i := 0; i < len(hexStr[40:]); i += 46 {
-		fee, _ := new(big.Int).SetString(hexStr[40:][i:i+6], 16)
+		fee, fok := new(big.Int).SetString(hexStr[40:][i:i+6], 16)
+		if !fok {
+			log.Warn().Msg("ExactOutputParams: invalid fee")
+			return errors.New("invalid fee")
+		}
 		token := accounts.HexToAddress(hexStr[40:][i+6 : i+46])
 		tf := artemis_trading_types.TokenFee{
 			Token: token,
@@ -149,16 +153,22 @@ func (o *ExactOutputParams) Decode(ctx context.Context, args map[string]interfac
 	return nil
 }
 
-func (o *JSONExactOutputParams) ConvertToBigIntType() *ExactOutputParams {
-	amountInMax, _ := new(big.Int).SetString(o.AmountInMaximum, 10)
-	amountOut, _ := new(big.Int).SetString(o.AmountOut, 10)
+func (o *JSONExactOutputParams) ConvertToBigIntType() (*ExactOutputParams, error) {
+	amountInMax, ok := new(big.Int).SetString(o.AmountInMaximum, 10)
+	if !ok {
+		return nil, errors.New("JSONExactOutputParams: invalid amount in maximum")
+	}
+	amountOut, ok := new(big.Int).SetString(o.AmountOut, 10)
+	if !ok {
+		return nil, errors.New("JSONExactOutputParams: invalid amount out")
+	}
 	return &ExactOutputParams{
 		AmountInMaximum: amountInMax,
 		AmountOut:       amountOut,
 		Path:            o.Path,
 		Recipient:       o.Recipient,
 		TokenFeePath:    o.TokenFeePath,
-	}
+	}, nil
 }
 
 func (o *ExactOutputParams) ConvertToJSONType() *JSONExactOutputParams {

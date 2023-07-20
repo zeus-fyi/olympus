@@ -23,7 +23,7 @@ type JSONSwapExactTokensForTokensParamsV3 struct {
 	To           accounts.Address   `json:"to"`
 }
 
-func (s *SwapExactTokensForTokensParamsV3) BinarySearch(pair uniswap_pricing.UniswapV2Pair) TradeExecutionFlowJSON {
+func (s *SwapExactTokensForTokensParamsV3) BinarySearch(pair uniswap_pricing.UniswapV2Pair) (TradeExecutionFlowJSON, error) {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountIn)
 	var mid *big.Int
@@ -43,13 +43,13 @@ func (s *SwapExactTokensForTokensParamsV3) BinarySearch(pair uniswap_pricing.Uni
 		toFrontRun, err := mockPairResp.PriceImpact(s.Path[0], mid)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
-			return tf
+			return tf, err
 		}
 		// User trade
 		to, err := mockPairResp.PriceImpact(s.Path[0], s.AmountIn)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
-			return tf
+			return tf, err
 		}
 		difference := new(big.Int).Sub(to.AmountOut, s.AmountOutMin)
 		if difference.Cmp(big.NewInt(0)) < 0 {
@@ -61,7 +61,7 @@ func (s *SwapExactTokensForTokensParamsV3) BinarySearch(pair uniswap_pricing.Uni
 		toSandwich, err := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
-			return tf
+			return tf, err
 		}
 		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
@@ -84,7 +84,7 @@ func (s *SwapExactTokensForTokensParamsV3) BinarySearch(pair uniswap_pricing.Uni
 		ExpectedProfit: maxProfit,
 	}
 	tf.SandwichPrediction = sp.ConvertToJSONType()
-	return tf
+	return tf, nil
 }
 
 func (s *SwapExactTokensForTokensParamsV3) Decode(ctx context.Context, args map[string]interface{}) error {

@@ -16,10 +16,11 @@ import (
 )
 
 var (
-	ctx        = context.Background()
-	MultiCall3 = MustLoadMulticall3Abi()
-	Erc20      = MustLoadERC20Abi()
-	Permit2    = MustLoadPermit2Abi()
+	ctx                = context.Background()
+	MultiCall3         = MustLoadMulticall3Abi()
+	Erc20              = MustLoadERC20Abi()
+	Permit2            = MustLoadPermit2Abi()
+	UniversalRouterNew = MustLoadNewUniversalRouterAbi()
 )
 
 func MustLoadMulticall3Abi() *abi.ABI {

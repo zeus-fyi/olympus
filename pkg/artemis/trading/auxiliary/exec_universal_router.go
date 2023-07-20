@@ -51,37 +51,65 @@ func debugPrintBalances(ctx context.Context, w3c web3_client.Web3Client) error {
 	return nil
 }
 
-// takes a universal router command and returns a signed tx
+// universalRouterCmdToTxBuilder: takes a universal router command and returns a signed tx
 func universalRouterCmdToTxBuilder(ctx context.Context, w3c web3_client.Web3Client, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, *web3_actions.SendContractTxPayload, error) {
+	scInfo, err := universalRouterCmdToUnsignedTxPayload(ctx, w3c, ur)
+	if err != nil {
+		log.Warn().Msg("universalRouterCmdToTxBuilder: error getting unsigned tx payload")
+		log.Err(err).Msg("error getting unsigned tx payload")
+		return nil, nil, err
+	}
+	err = scInfo.GenerateBinDataFromParamsAbi(ctx)
+	if err != nil {
+		log.Warn().Msg("GetUniswapUniversalRouterAbiPayload: error generating bin data from params abi")
+		log.Err(err).Msg("error generating bin data from params abi")
+		return nil, nil, err
+	}
+	err = w3c.SuggestAndSetGasPriceAndLimitForTx(ctx, scInfo, common.HexToAddress(scInfo.SmartContractAddr))
+	if err != nil {
+		log.Warn().Msg("GetUniswapUniversalRouterAbiPayload: error generating bin data from params abi")
+		log.Err(err).Msg("error generating bin data from params abi")
+		return nil, nil, err
+	}
+	signedTx, err := w3c.GetSignedTxToCallFunctionWithData(ctx, scInfo, scInfo.Data)
+	if err != nil {
+		log.Warn().Msg("w3c.GetSignedTxToCallFunctionWithData: error getting signed tx to call function with data")
+		log.Err(err).Msg("error getting signed tx to call function with data")
+		return nil, nil, err
+	}
+	err = universalRouterCmdVerifier(ctx, w3c, ur, scInfo)
+	if err != nil {
+		log.Warn().Msg("universalRouterCmdVerifier: error verifying universal router command")
+		log.Err(err).Msg("error verifying universal router command")
+		return nil, nil, err
+	}
+	return signedTx, scInfo, nil
+}
+
+// takes a universal router command and returns the unsigned payload
+func universalRouterCmdToUnsignedTxPayload(ctx context.Context, w3c web3_client.Web3Client, ur *web3_client.UniversalRouterExecCmd) (*web3_actions.SendContractTxPayload, error) {
 	if ur == nil {
-		return nil, nil, errors.New("universal router command is nil")
+		return nil, errors.New("universal router command is nil")
 	}
 	ur.Deadline = GetDeadline()
 	data, err := ur.EncodeCommands(ctx)
 	if err != nil {
+		log.Warn().Msg("universalRouterCmdToTxBuilder: error encoding commands")
 		log.Err(err).Msg("error encoding commands")
-		return nil, nil, err
+		return nil, err
 	}
 	scInfo, err := GetUniswapUniversalRouterAbiPayload(ctx, w3c, data)
 	if err != nil {
+		log.Warn().Msg("universalRouterCmdToTxBuilder: error getting uniswap universal router abi payload")
 		log.Err(err).Msg("error getting uniswap universal router abi payload")
-		return nil, nil, err
+		return nil, err
 	}
-	signedTx, err := w3c.GetSignedTxToCallFunctionWithData(ctx, &scInfo, scInfo.Data)
-	if err != nil {
-		log.Err(err).Msg("error getting signed tx to call function with data")
-		return nil, nil, err
-	}
-	err = universalRouterCmdVerifier(ctx, w3c, ur, &scInfo)
-	if err != nil {
-		log.Err(err).Msg("error verifying universal router command")
-		return nil, nil, err
-	}
-	return signedTx, &scInfo, nil
+	return &scInfo, nil
 }
 
 func GetUniswapUniversalRouterAbiPayload(ctx context.Context, w3c web3_client.Web3Client, payload *web3_client.UniversalRouterExecParams) (web3_actions.SendContractTxPayload, error) {
 	if payload == nil {
+		log.Warn().Msg("GetUniswapUniversalRouterAbiPayload: payload is nil")
 		return web3_actions.SendContractTxPayload{}, errors.New("payload is nil")
 	}
 	payable := payload.Payable
@@ -106,19 +134,6 @@ func GetUniswapUniversalRouterAbiPayload(ctx context.Context, w3c web3_client.We
 		ContractABI:       urAbi,
 		MethodName:        methodName,
 		Params:            fnParams,
-	}
-	err := params.GenerateBinDataFromParamsAbi(ctx)
-	if err != nil {
-		log.Err(err).Msg("error generating bin data from params abi")
-		return web3_actions.SendContractTxPayload{}, err
-	}
-	err = w3c.SuggestAndSetGasPriceAndLimitForTx(ctx, &params, common.HexToAddress(params.SmartContractAddr))
-	if err != nil {
-		return web3_actions.SendContractTxPayload{}, err
-	}
-	err = txGasAdjuster(ctx, &params)
-	if err != nil {
-		return web3_actions.SendContractTxPayload{}, err
 	}
 	return params, nil
 }

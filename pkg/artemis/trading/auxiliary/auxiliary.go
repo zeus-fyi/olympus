@@ -33,6 +33,7 @@ type MevTxGroup struct {
 type TxWithMetadata struct {
 	TradeType       string
 	UserOffsetNonce int
+	ScPayload       *web3_actions.SendContractTxPayload
 	Permit2Tx       artemis_autogen_bases.Permit2Tx
 	Tx              *types.Transaction
 }

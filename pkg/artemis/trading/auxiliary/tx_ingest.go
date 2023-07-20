@@ -22,7 +22,6 @@ func AddTxToBundleGroup(ctx context.Context, txWithMetadata TxWithMetadata, bund
 	if bundle.MevTxs == nil {
 		bundle.MevTxs = []artemis_eth_txs.EthTx{}
 	}
-
 	from, err := web3_actions.GetSender(txWithMetadata.Tx)
 	if err != nil {
 		log.Err(err).Msg("error getting sender")

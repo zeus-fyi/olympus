@@ -12,6 +12,7 @@ import (
 func (f *FlashbotsClient) SendBundle(ctx context.Context, bundle flashbotsrpc.FlashbotsSendBundleRequest) (flashbotsrpc.FlashbotsSendBundleResponse, error) {
 	resp, err := f.FlashbotsRPC.FlashbotsSendBundle(f.getPrivateKey(), bundle)
 	if err != nil {
+		log.Warn().Msg("FlashbotsClient: FlashbotsSendBundle")
 		log.Ctx(ctx).Error().Err(err).Msg("FlashbotsClient: FlashbotsSendBundle")
 		return flashbotsrpc.FlashbotsSendBundleResponse{}, err
 	}

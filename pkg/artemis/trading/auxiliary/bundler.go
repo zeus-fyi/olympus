@@ -141,6 +141,7 @@ func sendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle
 	f := artemis_flashbots.InitFlashbotsClient(ctx, &w3c.Web3Actions)
 	resp, err := f.SendBundle(ctx, fbSendBundle)
 	if err != nil {
+		log.Warn().Msg("sendFlashbotsBundle: error calling flashbots bundle")
 		log.Err(err).Msg("sendFlashbotsBundle: error calling flashbots bundle")
 		return resp, err
 	}

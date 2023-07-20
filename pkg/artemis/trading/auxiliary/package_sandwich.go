@@ -212,7 +212,7 @@ func PackageSandwichAndSend(ctx context.Context, w3c web3_client.Web3Client, tf 
 	if tf == nil || tf.Tx == nil {
 		return nil, errors.New("PackageSandwich: tf is nil")
 	}
-	if tf.FrontRunTrade.AmountIn == nil || tf.SandwichTrade.AmountOut == nil {
+	if tf.FrontRunTrade.AmountIn == nil || tf.SandwichTrade.AmountOut == nil || tf.SandwichPrediction.ExpectedProfit == nil {
 		return nil, errors.New("PackageSandwich: tf.FrontRunTrade.AmountIn or tf.SandwichTrade.AmountOut is nil")
 	}
 	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwichAndSend: start")

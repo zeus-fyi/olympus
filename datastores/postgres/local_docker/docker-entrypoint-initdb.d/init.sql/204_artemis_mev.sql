@@ -98,6 +98,7 @@ CREATE TABLE "public"."permit2_tx"
     "protocol_network_id" int8 NOT NULL REFERENCES protocol_networks (protocol_network_id) DEFAULT 1,
     "token"               text NOT NULL REFERENCES erc20_token_info (address),
     "nonce"               int8 NOT NULL,
+    "nonce_id"            int8 NOT NULL DEFAULT next_id(),
     "owner"               text NOT NULL,
     "deadline"            int8 NOT NULL
 );

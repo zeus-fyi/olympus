@@ -57,7 +57,6 @@ func CallAndSendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client,
 }
 
 func CallFlashbotsBundleStaging(ctx context.Context, w3c web3_client.Web3Client, bundle MevTxGroup) (flashbotsrpc.FlashbotsCallBundleResponse, error) {
-	sr := flashbotsrpc.FlashbotsCallBundleResponse{}
 	eventID, err := getBlockNumber(ctx, w3c)
 	if err != nil {
 		log.Warn().Msg("CallFlashbotsBundleStaging: error getting event id")
@@ -70,13 +69,13 @@ func CallFlashbotsBundleStaging(ctx context.Context, w3c web3_client.Web3Client,
 	if err != nil {
 		log.Warn().Msg("CallFlashbotsBundleStaging: error calling flashbots bundle")
 		log.Err(err).Msg("error calling flashbots bundle")
-		return sr, err
+		return resp, err
 	}
 	log.Info().Int("bn", eventID).Str("bundleHash", resp.BundleHash).Msg("CallFlashbotsBundleStaging: bundle sent successfully")
 	dbTx, err := apps.Pg.Begin(ctx)
 	if err != nil {
 		log.Err(err).Msg("error beginning db transaction")
-		return sr, err
+		return resp, err
 	}
 	defer dbTx.Rollback(ctx)
 	err = artemis_eth_txs.InsertTxsWithBundle(ctx, dbTx, bundle.MevTxs, resp.BundleHash)
@@ -87,12 +86,12 @@ func CallFlashbotsBundleStaging(ctx context.Context, w3c web3_client.Web3Client,
 		if terr != nil {
 			log.Err(terr).Msg("error rolling back db transaction")
 		}
-		return sr, err
+		return resp, err
 	}
 	err = dbTx.Commit(ctx)
 	if err != nil {
 		log.Err(err).Msg("error committing db transaction")
-		return sr, err
+		return resp, err
 	}
 	return resp, nil
 }

@@ -52,11 +52,13 @@ func (s *V3SwapExactInParams) Decode(ctx context.Context, data []byte, abiFile *
 	if abiFile == nil {
 		err := UniversalRouterDecoderAbi.Methods[V3SwapExactIn].Inputs.UnpackIntoMap(args, data)
 		if err != nil {
+			log.Err(err).Msg("V3SwapExactInParams: UniversalRouterDecoderAbi Decode failed to unpack")
 			return err
 		}
 	} else {
 		err := abiFile.Methods[V3SwapExactIn].Inputs.UnpackIntoMap(args, data)
 		if err != nil {
+			log.Err(err).Msg("V3SwapExactInParams: abiFile Decode failed to unpack")
 			return err
 		}
 	}

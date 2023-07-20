@@ -32,7 +32,7 @@ func NewDecodedUniversalRouterExecCmdFromMap(m map[string]interface{}, abiFile *
 		subCmd.Inputs = inputsVal[i]
 		err := subCmd.DecodeCommand(byteSize, inputsVal[i], abiFile)
 		if err != nil {
-			log.Err(err).Msg("could not decode command")
+			log.Err(err).Msg("NewDecodedUniversalRouterExecCmdFromMap: could not decode command")
 			return cmds, err
 		}
 		subCmds[i] = subCmd
@@ -46,6 +46,7 @@ func (ur *UniversalRouterExecSubCmd) DecodeCmdByte(command byte) (bool, uint8, e
 	var data uint8
 	err := binary.Read(buf, binary.BigEndian, &data)
 	if err != nil {
+		log.Err(err).Msg("DecodeCmdByte: could not read command byte")
 		return false, 0, err
 	}
 	flag := (data & 0x80) >> 7 // extract bit 7
@@ -67,6 +68,7 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte, ab
 		params := V3SwapExactInParams{}
 		err = params.Decode(ctx, ur.Inputs, abiFile)
 		if err != nil {
+			log.Err(err).Msg("DecodeCommand V3_SWAP_EXACT_IN: could not decode params")
 			return err
 		}
 		ur.DecodedInputs = params
@@ -75,6 +77,7 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte, ab
 		params := V3SwapExactOutParams{}
 		err = params.Decode(ctx, ur.Inputs, abiFile)
 		if err != nil {
+			log.Err(err).Msg("DecodeCommand V3_SWAP_EXACT_OUT: could not decode params")
 			return err
 		}
 		ur.DecodedInputs = params
@@ -84,6 +87,7 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte, ab
 		params := V2SwapExactInParams{}
 		err = params.Decode(ctx, ur.Inputs, abiFile)
 		if err != nil {
+			log.Err(err).Msg("DecodeCommand V2_SWAP_EXACT_IN: could not decode params")
 			return err
 		}
 		ur.DecodedInputs = params
@@ -93,55 +97,57 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte, ab
 		params := V2SwapExactOutParams{}
 		err = params.Decode(ctx, ur.Inputs, abiFile)
 		if err != nil {
+			log.Err(err).Msg("DecodeCommand V2_SWAP_EXACT_OUT: could not decode params")
 			return err
 		}
 		ur.DecodedInputs = params
 		ur.Command = V2SwapExactOut
 	case PERMIT2_TRANSFER_FROM_BATCH:
-		//log.Info().Msg("DecodeCommand PERMIT2_TRANSFER_FROM_BATCH")
-		params := Permit2PermitTransferFromBatchParams{}
-		err = params.Decode(ctx, ur.Inputs)
-		if err != nil {
-			return err
-		}
-		ur.DecodedInputs = params
-		ur.Command = Permit2TransferFromBatch
+		////log.Info().Msg("DecodeCommand PERMIT2_TRANSFER_FROM_BATCH")
+		//params := Permit2PermitTransferFromBatchParams{}
+		//err = params.Decode(ctx, ur.Inputs)
+		//if err != nil {
+		//	return err
+		//}
+		//ur.DecodedInputs = params
+		//ur.Command = Permit2TransferFromBatch
 	case PERMIT2_TRANSFER_FROM:
-		//log.Info().Msg("DecodeCommand PERMIT2_TRANSFER_FROM")
-		params := Permit2TransferFromParams{}
-		err = params.Decode(ctx, ur.Inputs)
-		if err != nil {
-			return err
-		}
-		ur.DecodedInputs = params
-		ur.Command = Permit2TransferFrom
+		////log.Info().Msg("DecodeCommand PERMIT2_TRANSFER_FROM")
+		//params := Permit2TransferFromParams{}
+		//err = params.Decode(ctx, ur.Inputs)
+		//if err != nil {
+		//	return err
+		//}
+		//ur.DecodedInputs = params
+		//ur.Command = Permit2TransferFrom
 	case PERMIT2_PERMIT_BATCH:
 		//	log.Info().Msg("DecodeCommand PERMIT2_PERMIT_BATCH")
-		params := Permit2PermitBatchParams{}
-		err = params.Decode(ctx, ur.Inputs)
-		if err != nil {
-			return err
-		}
-		ur.DecodedInputs = params
-		ur.Command = Permit2PermitBatch
+		//params := Permit2PermitBatchParams{}
+		//err = params.Decode(ctx, ur.Inputs)
+		//if err != nil {
+		//	return err
+		//}
+		//ur.DecodedInputs = params
+		//ur.Command = Permit2PermitBatch
 	case PERMIT2_PERMIT:
 		//log.Info().Msg("DecodeCommand PERMIT2_PERMIT")
 		params := Permit2PermitParams{}
 		err = params.Decode(ctx, ur.Inputs)
 		if err != nil {
+			log.Err(err).Msg("DecodeCommand PERMIT2_PERMIT: could not decode params")
 			return err
 		}
 		ur.DecodedInputs = params
 		ur.Command = Permit2Permit
 	case SUDOSWAP:
 		//log.Info().Msg("DecodeCommand SUDOSWAP")
-		params := SudoSwapParams{}
-		err = params.Decode(ctx, ur.Inputs)
-		if err != nil {
-			return err
-		}
-		ur.DecodedInputs = params
-		ur.Command = SudoSwap
+		//params := SudoSwapParams{}
+		//err = params.Decode(ctx, ur.Inputs)
+		//if err != nil {
+		//	return err
+		//}
+		//ur.DecodedInputs = params
+		//ur.Command = SudoSwap
 	case PAY_PORTION:
 		// todo need to verify with test case
 		//log.Info().Msg("DecodeCommand PAY_PORTION")
@@ -154,27 +160,22 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte, ab
 		ur.Command = PayPortion
 	case SWEEP:
 		//log.Info().Msg("DecodeCommand SWEEP")
-		if err != nil {
-			return err
-		}
 		ur.Command = Sweep
 	case TRANSFER:
 		//log.Info().Msg("DecodeCommand TRANSFER")
-		if err != nil {
-			return err
-		}
-		params := TransferParams{}
-		err = params.Decode(ctx, ur.Inputs)
-		if err != nil {
-			return err
-		}
-		ur.DecodedInputs = params
-		ur.Command = Transfer
+		//params := TransferParams{}
+		//err = params.Decode(ctx, ur.Inputs)
+		//if err != nil {
+		//	return err
+		//}
+		//ur.DecodedInputs = params
+		//ur.Command = Transfer
 	case UNWRAP_WETH:
 		//log.Info().Msg("DecodeCommand UNWRAP_WETH")
 		params := UnwrapWETHParams{}
 		err = params.Decode(ctx, ur.Inputs, abiFile)
 		if err != nil {
+			log.Err(err).Msg("DecodeCommand UNWRAP_WETH")
 			return err
 		}
 		ur.DecodedInputs = params
@@ -184,6 +185,7 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte, ab
 		params := WrapETHParams{}
 		err = params.Decode(ctx, ur.Inputs)
 		if err != nil {
+			log.Err(err).Msg("DecodeCommand WRAP_ETH")
 			return err
 		}
 		ur.DecodedInputs = params

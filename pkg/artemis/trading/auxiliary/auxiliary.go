@@ -143,7 +143,7 @@ func GetDeadline() *big.Int {
 	return sigDeadline
 }
 
-func (a *AuxiliaryTradingUtils) getNewTradeDeadlineCtx(ctx context.Context) *big.Int {
+func getNewTradeDeadlineCtx(ctx context.Context) *big.Int {
 	td := ctx.Value(TradeDeadline)
 	if td != nil {
 		return td.(*big.Int)
@@ -151,7 +151,7 @@ func (a *AuxiliaryTradingUtils) getNewTradeDeadlineCtx(ctx context.Context) *big
 	return nil
 }
 
-func (a *AuxiliaryTradingUtils) setNewTradeDeadlineCtx(ctx context.Context) context.Context {
+func setNewTradeDeadlineCtx(ctx context.Context) context.Context {
 	deadline := GetDeadline()
 	ctx = context.WithValue(ctx, TradeDeadline, deadline)
 	return ctx

@@ -14,7 +14,6 @@ import (
 )
 
 func CallAndSendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle MevTxGroup) (flashbotsrpc.FlashbotsSendBundleResponse, error) {
-	sr := flashbotsrpc.FlashbotsSendBundleResponse{}
 	eventID, err := getBlockNumber(ctx, w3c)
 	if err != nil {
 		log.Err(err).Msg("error getting event id")
@@ -22,22 +21,22 @@ func CallAndSendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client,
 	}
 	bnStr := hexutil.EncodeUint64(uint64(eventID + 1))
 	ctx = setBlockNumberCtx(ctx, bnStr)
-	_, err = CallFlashbotsBundle(ctx, w3c, &bundle)
+	resp, err := CallFlashbotsBundle(ctx, w3c, &bundle)
 	if err != nil {
 		log.Err(err).Msg("error calling flashbots bundle")
-		return sr, err
+		return flashbotsrpc.FlashbotsSendBundleResponse{}, err
 	}
-	log.Info().Msg("CallFlashbotsBundleStaging: bundle sent successfully")
+	log.Info().Int("bn", eventID).Str("bundleHash", resp.BundleHash).Msg("CallFlashbotsBundleStaging: bundle sent successfully")
 	dbTx, err := apps.Pg.Begin(ctx)
 	if err != nil {
 		log.Err(err).Msg("error beginning db transaction")
-		return sr, err
+		return flashbotsrpc.FlashbotsSendBundleResponse{}, err
 	}
 	defer dbTx.Rollback(ctx)
-	sr, err = sendFlashbotsBundle(ctx, w3c, &bundle)
+	sr, err := sendFlashbotsBundle(ctx, w3c, &bundle)
 	if err != nil {
 		log.Err(err).Msg("error sending flashbots bundle")
-		return sr, err
+		return flashbotsrpc.FlashbotsSendBundleResponse{}, err
 	}
 	err = artemis_eth_txs.InsertTxsWithBundle(ctx, dbTx, bundle.MevTxs, sr.BundleHash)
 	if err != nil {
@@ -128,6 +127,7 @@ func sendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle
 	}
 	txHexEncodedStrSlice, err := bundle.GetHexEncodedTxStrSlice()
 	if err != nil {
+		log.Err(err).Msg("sendFlashbotsBundle: error getting hex encoded tx str slice")
 		return flashbotsrpc.FlashbotsSendBundleResponse{}, err
 	}
 	mt := GetDeadline().Uint64()
@@ -139,8 +139,9 @@ func sendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle
 	f := artemis_flashbots.InitFlashbotsClient(ctx, &w3c.Web3Actions)
 	resp, err := f.SendBundle(ctx, fbSendBundle)
 	if err != nil {
-		log.Err(err).Msg("error calling flashbots bundle")
+		log.Err(err).Msg("sendFlashbotsBundle: error calling flashbots bundle")
 		return resp, err
 	}
+	log.Info().Str("bundleHash", resp.BundleHash).Msg("sendFlashbotsBundle: bundle sent successfully")
 	return resp, nil
 }

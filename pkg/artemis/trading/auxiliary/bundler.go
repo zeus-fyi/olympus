@@ -16,41 +16,42 @@ import (
 func CallAndSendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle MevTxGroup) (flashbotsrpc.FlashbotsSendBundleResponse, error) {
 	eventID, err := getBlockNumber(ctx, w3c)
 	if err != nil {
-		log.Err(err).Msg("error getting event id")
+		log.Err(err).Msg("CallAndSendFlashbotsBundle: error getting event id")
 		return flashbotsrpc.FlashbotsSendBundleResponse{}, err
 	}
 	bnStr := hexutil.EncodeUint64(uint64(eventID + 1))
 	ctx = setBlockNumberCtx(ctx, bnStr)
 	resp, err := CallFlashbotsBundle(ctx, w3c, &bundle)
 	if err != nil {
-		log.Err(err).Msg("error calling flashbots bundle")
+		log.Err(err).Msg("CallAndSendFlashbotsBundle: error calling flashbots bundle")
 		return flashbotsrpc.FlashbotsSendBundleResponse{}, err
 	}
-	log.Info().Int("bn", eventID).Str("bundleHash", resp.BundleHash).Msg("CallFlashbotsBundleStaging: bundle sent successfully")
+	log.Info().Int("bn", eventID).Str("bundleHash", resp.BundleHash).Msg("CallAndSendFlashbotsBundle: bundle sent successfully")
 	dbTx, err := apps.Pg.Begin(ctx)
 	if err != nil {
-		log.Err(err).Msg("error beginning db transaction")
+		log.Err(err).Msg("CallAndSendFlashbotsBundle: error beginning db transaction")
 		return flashbotsrpc.FlashbotsSendBundleResponse{}, err
 	}
 	defer dbTx.Rollback(ctx)
 	sr, err := sendFlashbotsBundle(ctx, w3c, &bundle)
 	if err != nil {
-		log.Err(err).Msg("error sending flashbots bundle")
+		log.Warn().Msg("CallAndSendFlashbotsBundle: error sending flashbots bundle")
+		log.Err(err).Msg("CallAndSendFlashbotsBundle: error sending flashbots bundle")
 		return flashbotsrpc.FlashbotsSendBundleResponse{}, err
 	}
-	log.Info().Int("bn", eventID).Str("bundleHash", sr.BundleHash).Msg("CallFlashbotsBundleStaging: bundle sent successfully")
+	log.Info().Int("bn", eventID).Str("bundleHash", sr.BundleHash).Msg("CallAndSendFlashbotsBundle: bundle sent successfully")
 	err = artemis_eth_txs.InsertTxsWithBundle(ctx, dbTx, bundle.MevTxs, sr.BundleHash)
 	if err != nil {
-		log.Err(err).Msg("error inserting txs with bundle")
+		log.Err(err).Msg("CallAndSendFlashbotsBundle: error inserting txs with bundle")
 		terr := dbTx.Rollback(ctx)
 		if terr != nil {
-			log.Err(terr).Msg("error rolling back db transaction")
+			log.Err(terr).Msg("CallAndSendFlashbotsBundle: error rolling back db transaction")
 		}
 		return sr, err
 	}
 	err = dbTx.Commit(ctx)
 	if err != nil {
-		log.Err(err).Msg("error committing db transaction")
+		log.Err(err).Msg("CallAndSendFlashbotsBundle: error committing db transaction")
 		return sr, err
 	}
 	return sr, nil

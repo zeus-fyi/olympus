@@ -7,6 +7,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
@@ -70,11 +71,30 @@ func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf
 		return false, errors.New("tokenIn and tokenOut are the same")
 	}
 	//wethAddr := artemis_trading_constants.WETH9ContractAddress
-	//if tf.FrontRunTrade.AmountInAddr.String() != wethAddr && tf.FrontRunTrade.AmountInAddr.String() != artemis_trading_constants.ZeroAddress {
-	//	log.Warn().Str("txHash", tf.Tx.Hash().String()).Interface("tf.FrontRunTrade.AmountInAddr.String() ", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountOutAddr.String()", tf.FrontRunTrade.AmountOutAddr.String()).Msg("profit token is not WETH or ETH")
-	//	return false, errors.New("profit token is not WETH or ETH")
-	//}
+	if tf.FrontRunTrade.AmountInAddr.String() == artemis_trading_constants.ZeroAddress && tf.FrontRunTrade.AmountOutAddr.String() == artemis_trading_constants.ZeroAddress {
+		log.Warn().Str("txHash", tf.Tx.Hash().String()).Interface("tf.FrontRunTrade.AmountInAddr.String() ", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountOutAddr.String()", tf.FrontRunTrade.AmountOutAddr.String()).Msg("IsProfitTokenAcceptable: empty token addresses")
+		return false, errors.New("profit token addresses are empty")
+	}
+	if tf.SandwichTrade.AmountInAddr.String() == artemis_trading_constants.ZeroAddress && tf.SandwichTrade.AmountOutAddr.String() == artemis_trading_constants.ZeroAddress {
+		log.Warn().Str("txHash", tf.Tx.Hash().String()).Interface("tf.SandwichTrade.AmountInAddr.String() ", tf.SandwichTrade.AmountInAddr.String()).Interface("tf.SandwichTrade.AmountOutAddr.String()", tf.SandwichTrade.AmountOutAddr.String()).Msg("IsProfitTokenAcceptable: empty token addresses")
+		return false, errors.New("profit token addresses are empty")
+	}
+	if tf.SandwichTrade.AmountOutAddr.String() != artemis_trading_constants.WETH9ContractAddress {
+		log.Warn().Str("txHash", tf.Tx.Hash().String()).Interface("tf.SandwichTrade.AmountOutAddr.String()", tf.SandwichTrade.AmountOutAddr.String()).Interface("tf.FrontRunTrade.AmountInAddr.String() ", tf.FrontRunTrade.AmountInAddr.String()).Msg("IsProfitTokenAcceptable: profit token is not the same")
+		return false, errors.New("profit token is not WETH")
+	}
 
+	ok1 := artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.FrontRunTrade.AmountIn.String())
+	ok2 := artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.FrontRunTrade.AmountOut.String())
+	ok3 := artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.UserTrade.AmountIn.String())
+	ok4 := artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.UserTrade.AmountOut.String())
+	ok5 := artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.SandwichTrade.AmountIn.String())
+	ok6 := artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.SandwichTrade.AmountOut.String())
+	ok7 := artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.SandwichPrediction.ExpectedProfit.String())
+	if !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 {
+		log.Warn().Msg("IsProfitTokenAcceptable: one of the trade amountsIn or amountsOut is zero")
+		return false, errors.New("one of the trade amountsIn or amountsOut is zero")
+	}
 	ok, err := IsTradingEnabledOnToken(tf.FrontRunTrade.AmountOutAddr.String())
 	if err != nil {
 		log.Info().Interface("tf.FrontRunTrade.AmountInAddr.String()", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountOutAddr", tf.FrontRunTrade.AmountOutAddr.String()).Msg("IsProfitTokenAcceptable: trading is disabled for token")
@@ -92,20 +112,25 @@ func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf
 	minEthAmountGwei := 100000000 / 2
 	ok, err = CheckEthBalanceGreaterThan(ctx, w3c, artemis_eth_units.GweiMultiple(minEthAmountGwei))
 	if err != nil {
-		log.Err(err).Msg("could not check eth balance")
+		log.Warn().Err(err).Msg("IsProfitTokenAcceptable: could not check eth balance")
+		log.Err(err).Msg("IsProfitTokenAcceptable: could not check eth balance")
 		return false, err
 	}
 	if !ok {
+		log.Warn().Msg("IsProfitTokenAcceptable: ETH balance is not enough")
 		return false, errors.New("ETH balance is not enough")
 	}
 	ok, err = CheckMainnetAuxWETHBalanceGreaterThan(ctx, w3c, maxTradeSize())
 	if err != nil {
+		log.Warn().Err(err).Msg("IsProfitTokenAcceptable: could not check aux weth balance")
 		log.Err(err).Msg("could not check aux weth balance")
 		return false, err
 	}
 	if !ok {
 		return false, errors.New("ETH balance is not enough")
 	}
-	log.Info().Msg("IsProfitTokenAcceptable: profit token is acceptable")
+	log.Info().Interface("tf.FrontRunTrade", tf.FrontRunTrade).Msg("IsProfitTokenAcceptable: profit token is acceptable")
+	log.Info().Interface("tf.UserTrade", tf.UserTrade).Msg("IsProfitTokenAcceptable: profit token is acceptable")
+	log.Info().Interface("tf.SandwichTrade", tf.SandwichTrade).Msg("IsProfitTokenAcceptable: profit token is acceptable")
 	return true, nil
 }

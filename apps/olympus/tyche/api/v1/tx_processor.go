@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	artemis_realtime_trading "github.com/zeus-fyi/olympus/pkg/artemis/trading"
+	artemis_trade_executor "github.com/zeus-fyi/olympus/pkg/artemis/trading/executor"
 	tyche_metrics "github.com/zeus-fyi/olympus/tyche/metrics"
 )
 
@@ -31,8 +32,9 @@ func TxProcessingRequestHandler(c echo.Context) error {
 
 func (t *TxProcessingRequest) ProcessTx(c echo.Context) error {
 	ctx := c.Request().Context()
+	w3c := artemis_trade_executor.ActiveTraderW3c
 	for _, tx := range t.Txs {
-		werr := artemis_realtime_trading.IngestTx(ctx, tx, &tyche_metrics.TradeMetrics)
+		werr := artemis_realtime_trading.IngestTx(ctx, w3c, tx, &tyche_metrics.TradeMetrics)
 		if werr.Err != nil && werr.Code != 200 {
 			//log.Err(werr.Err).Msg("error processing tx")
 			return c.JSON(http.StatusPreconditionFailed, werr.Err)

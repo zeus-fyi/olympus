@@ -51,7 +51,7 @@ func (e *EthTx) InsertTx(ctx context.Context, pt Permit2Tx) (err error) {
 	}
 	e.EventID = ts.UnixTimeStampNow()
 	_, err = apps.Pg.Exec(ctx, q.RawQuery, e.EventID, e.EthTx.TxHash, e.EthTx.ProtocolNetworkID, e.EthTx.Nonce, e.EthTx.From, e.EthTx.Type,
-		e.EthTxGas.GasPrice.Int64, e.EthTxGas.GasLimit.Int64, e.EthTxGas.GasTipCap.Int64, e.EthTxGas.GasFeeCap.Int64,
+		e.EthTxGas.GasPrice, e.EthTxGas.GasLimit, e.EthTxGas.GasTipCap, e.EthTxGas.GasFeeCap,
 		pt.Nonce, pt.Owner, pt.Deadline, pt.Token)
 	if err != nil {
 		log.Err(err).Msg("InsertTx")
@@ -116,17 +116,19 @@ func InsertTxsWithBundle(ctx context.Context, dbTx pgx.Tx, txs []EthTx, bundleHa
 		// query 2
 		if e.Permit2Tx.Owner == "" || e.Permit2Tx.Token == "" {
 			_, err := dbTx.Exec(ctx, q2.RawQuery, e.EventID, e.EthTx.TxHash, e.EthTx.ProtocolNetworkID, e.EthTx.Nonce, e.EthTx.From, e.EthTx.Type,
-				e.EthTxGas.GasPrice.Int64, e.EthTxGas.GasLimit.Int64, e.EthTxGas.GasTipCap.Int64, e.EthTxGas.GasFeeCap.Int64, ts.UnixTimeStampNow())
+				e.EthTxGas.GasPrice, e.EthTxGas.GasLimit, e.EthTxGas.GasTipCap, e.EthTxGas.GasFeeCap, ts.UnixTimeStampNow())
 			if err != nil {
-				log.Err(err).Msg("InsertTxsWithBundle")
+				log.Warn().Interface("tx", e).Msg("InsertTxsWithBundle: Query2")
+				log.Err(err).Msg("InsertTxsWithBundle: Query2")
 				return err
 			}
 		} else {
 			// query 1
 			_, err := dbTx.Exec(ctx, q1.RawQuery, e.EventID, e.EthTx.TxHash, e.EthTx.ProtocolNetworkID, e.EthTx.Nonce, e.EthTx.From, e.EthTx.Type,
-				e.EthTxGas.GasPrice.Int64, e.EthTxGas.GasLimit.Int64, e.EthTxGas.GasTipCap.Int64, e.EthTxGas.GasFeeCap.Int64,
+				e.EthTxGas.GasPrice, e.EthTxGas.GasLimit, e.EthTxGas.GasTipCap, e.EthTxGas.GasFeeCap,
 				e.Permit2Tx.Nonce, e.Permit2Tx.Owner, e.Permit2Tx.Deadline, e.Permit2Tx.Token, ts.UnixTimeStampNow())
 			if err != nil {
+				log.Warn().Interface("tx", e).Msg("InsertTxsWithBundle: Query1")
 				log.Err(err).Msg("InsertTxsWithBundle")
 				return err
 			}

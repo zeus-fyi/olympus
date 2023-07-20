@@ -140,7 +140,8 @@ func GetNextPermit2NonceFromContract(ctx context.Context, w3c web3_client.Web3Cl
 	}
 	resp, err := w3c.CallConstantFunction(ctx, nonceCheck)
 	if err != nil {
-		log.Err(err).Msg("error getting nonce")
+		log.Warn().Err(err).Msg("GetNextPermit2NonceFromContract: error getting nonce")
+		log.Err(err).Msg("GetNextPermit2NonceFromContract: error getting nonce")
 		return nil, err
 	}
 	if len(resp) != 3 {

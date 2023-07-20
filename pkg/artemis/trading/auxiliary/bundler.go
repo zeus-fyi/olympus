@@ -14,7 +14,6 @@ import (
 )
 
 func CallAndSendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle MevTxGroup) (flashbotsrpc.FlashbotsSendBundleResponse, error) {
-	sr := flashbotsrpc.FlashbotsSendBundleResponse{}
 	eventID, err := getBlockNumber(ctx, w3c)
 	if err != nil {
 		log.Err(err).Msg("error getting event id")
@@ -22,22 +21,24 @@ func CallAndSendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client,
 	}
 	bnStr := hexutil.EncodeUint64(uint64(eventID + 1))
 	ctx = setBlockNumberCtx(ctx, bnStr)
-	_, err = CallFlashbotsBundle(ctx, w3c, &bundle)
+	resp, err := CallFlashbotsBundle(ctx, w3c, &bundle)
 	if err != nil {
 		log.Err(err).Msg("error calling flashbots bundle")
-		return sr, err
+		return flashbotsrpc.FlashbotsSendBundleResponse{}, err
 	}
+	log.Info().Int("bn", eventID).Str("bundleHash", resp.BundleHash).Msg("CallFlashbotsBundleStaging: bundle sent successfully")
 	dbTx, err := apps.Pg.Begin(ctx)
 	if err != nil {
 		log.Err(err).Msg("error beginning db transaction")
-		return sr, err
+		return flashbotsrpc.FlashbotsSendBundleResponse{}, err
 	}
 	defer dbTx.Rollback(ctx)
-	sr, err = sendFlashbotsBundle(ctx, w3c, &bundle)
+	sr, err := sendFlashbotsBundle(ctx, w3c, &bundle)
 	if err != nil {
 		log.Err(err).Msg("error sending flashbots bundle")
-		return sr, err
+		return flashbotsrpc.FlashbotsSendBundleResponse{}, err
 	}
+	log.Info().Int("bn", eventID).Str("bundleHash", sr.BundleHash).Msg("CallFlashbotsBundleStaging: bundle sent successfully")
 	err = artemis_eth_txs.InsertTxsWithBundle(ctx, dbTx, bundle.MevTxs, sr.BundleHash)
 	if err != nil {
 		log.Err(err).Msg("error inserting txs with bundle")
@@ -56,39 +57,41 @@ func CallAndSendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client,
 }
 
 func CallFlashbotsBundleStaging(ctx context.Context, w3c web3_client.Web3Client, bundle MevTxGroup) (flashbotsrpc.FlashbotsCallBundleResponse, error) {
-	sr := flashbotsrpc.FlashbotsCallBundleResponse{}
 	eventID, err := getBlockNumber(ctx, w3c)
 	if err != nil {
+		log.Warn().Msg("CallFlashbotsBundleStaging: error getting event id")
 		log.Err(err).Msg("error getting event id")
 		return flashbotsrpc.FlashbotsCallBundleResponse{}, err
 	}
 	bnStr := hexutil.EncodeUint64(uint64(eventID + 1))
 	ctx = setBlockNumberCtx(ctx, bnStr)
-
 	resp, err := CallFlashbotsBundle(ctx, w3c, &bundle)
 	if err != nil {
+		log.Warn().Msg("CallFlashbotsBundleStaging: error calling flashbots bundle")
 		log.Err(err).Msg("error calling flashbots bundle")
-		return sr, err
+		return resp, err
 	}
+	log.Info().Int("bn", eventID).Str("bundleHash", resp.BundleHash).Msg("CallFlashbotsBundleStaging: bundle sent successfully")
 	dbTx, err := apps.Pg.Begin(ctx)
 	if err != nil {
 		log.Err(err).Msg("error beginning db transaction")
-		return sr, err
+		return resp, err
 	}
 	defer dbTx.Rollback(ctx)
-	err = artemis_eth_txs.InsertTxsWithBundle(ctx, dbTx, bundle.MevTxs, sr.BundleHash)
+	err = artemis_eth_txs.InsertTxsWithBundle(ctx, dbTx, bundle.MevTxs, resp.BundleHash)
 	if err != nil {
+		log.Info().Str("bundleHash", resp.BundleHash).Interface("bundle.MevTxs", bundle.MevTxs).Msg("CallFlashbotsBundleStaging: error inserting txs with bundle")
 		log.Err(err).Msg("error inserting txs with bundle")
 		terr := dbTx.Rollback(ctx)
 		if terr != nil {
 			log.Err(terr).Msg("error rolling back db transaction")
 		}
-		return sr, err
+		return resp, err
 	}
 	err = dbTx.Commit(ctx)
 	if err != nil {
 		log.Err(err).Msg("error committing db transaction")
-		return sr, err
+		return resp, err
 	}
 	return resp, nil
 }
@@ -100,6 +103,7 @@ func CallFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle
 	bnStr := getBlockNumberCtx(ctx, w3c)
 	txHexEncodedStrSlice, err := bundle.GetHexEncodedTxStrSlice()
 	if err != nil {
+		log.Warn().Msg("CallFlashbotsBundle: error getting hex encoded tx str slice")
 		return flashbotsrpc.FlashbotsCallBundleResponse{}, err
 	}
 	fbCallBundle := flashbotsrpc.FlashbotsCallBundleParam{
@@ -111,6 +115,7 @@ func CallFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle
 	f := artemis_flashbots.InitFlashbotsClient(ctx, &w3c.Web3Actions)
 	resp, err := f.CallBundle(ctx, fbCallBundle)
 	if err != nil {
+		log.Warn().Msg("CallFlashbotsBundle: error calling flashbots bundle")
 		log.Err(err).Msg("error calling flashbots bundle")
 		return resp, err
 	}
@@ -123,6 +128,7 @@ func sendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle
 	}
 	txHexEncodedStrSlice, err := bundle.GetHexEncodedTxStrSlice()
 	if err != nil {
+		log.Err(err).Msg("sendFlashbotsBundle: error getting hex encoded tx str slice")
 		return flashbotsrpc.FlashbotsSendBundleResponse{}, err
 	}
 	mt := GetDeadline().Uint64()
@@ -134,8 +140,9 @@ func sendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle
 	f := artemis_flashbots.InitFlashbotsClient(ctx, &w3c.Web3Actions)
 	resp, err := f.SendBundle(ctx, fbSendBundle)
 	if err != nil {
-		log.Err(err).Msg("error calling flashbots bundle")
+		log.Err(err).Msg("sendFlashbotsBundle: error calling flashbots bundle")
 		return resp, err
 	}
+	log.Info().Str("bundleHash", resp.BundleHash).Msg("sendFlashbotsBundle: bundle sent successfully")
 	return resp, nil
 }

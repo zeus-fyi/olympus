@@ -60,14 +60,13 @@ func packageBackRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_cl
 	if frScInfo == nil {
 		return nil, errors.New("PackageSandwich: BACK_RUN: frScInfo is nil")
 	}
-	backRunCtx := CreateBackRunCtx(context.Background(), w3c)
-	ur, spt, err := GenerateTradeV2SwapFromTokenToToken(backRunCtx, w3c, nil, &tf.SandwichTrade)
+	ur, spt, err := GenerateTradeV2SwapFromTokenToToken(ctx, w3c, nil, &tf.SandwichTrade)
 	if err != nil {
 		log.Warn().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to generate sandwich tx")
 		log.Err(err).Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to generate sandwich tx")
 		return nil, err
 	}
-	scInfoSand, err := universalRouterCmdToUnsignedTxPayload(backRunCtx, w3c, ur)
+	scInfoSand, err := universalRouterCmdToUnsignedTxPayload(ctx, w3c, ur)
 	if err != nil {
 		log.Warn().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed building ur tx")
 		log.Err(err).Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to add tx to bundle group")
@@ -76,12 +75,14 @@ func packageBackRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_cl
 	scInfoSand.GasLimit = frScInfo.GasLimit * 2
 	scInfoSand.GasTipCap = artemis_eth_units.MulBigIntFromInt(frScInfo.GasFeeCap, 2)
 	scInfoSand.GasFeeCap = artemis_eth_units.MulBigIntFromInt(frScInfo.GasFeeCap, 2)
+	backRunCtx := CreateBackRunCtx(context.Background())
 	signedSandwichTx, err := w3c.GetSignedTxToCallFunctionWithData(backRunCtx, scInfoSand, scInfoSand.Data)
 	if err != nil {
 		log.Warn().Msg("PackageSandwich: SANDWICH_TRADE: w3c.GetSignedTxToCallFunctionWithData: error getting signed tx to call function with data")
 		log.Err(err).Msg("PackageSandwich: SANDWICH_TRADE: error getting signed tx to call function with data")
 		return nil, err
 	}
+
 	sandwichTx := TxWithMetadata{
 		TradeType: BackRun,
 		Tx:        signedSandwichTx,
@@ -99,10 +100,14 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 	if tf == nil || tf.Tx == nil {
 		return nil, errors.New("PackageSandwich: tf is nil")
 	}
+	if w3c.Account == nil {
+		return nil, errors.New("PackageSandwich: w3c.Account is nil")
+	}
 	if tf.FrontRunTrade.AmountIn == nil || tf.SandwichTrade.AmountOut == nil {
 		return nil, errors.New("PackageSandwich: tf.FrontRunTrade.AmountIn or tf.SandwichTrade.AmountOut is nil")
 	}
-	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: start")
+
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Str("traderAccount", w3c.Account.PublicKey()).Msg("PackageSandwich: start")
 	bundle := &MevTxGroup{
 		EventID:      0,
 		OrderedTxs:   []TxWithMetadata{},
@@ -119,6 +124,7 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 		log.Warn().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: FRONT_RUN: front run tx is nil")
 		return nil, errors.New("PackageSandwich: FRONT_RUN: front run tx is nil")
 	}
+	log.Info().Uint64("PackageSandwich: FRONT_RUN: tradersNonceFrontRun", frTx.Tx.Nonce())
 	bundle, err = AddTxToBundleGroup(ctx, *frTx, bundle)
 	if err != nil {
 		log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: FRONT_RUN: error adding tx to bundle group")
@@ -139,12 +145,12 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 		return nil, err
 	}
 	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: USER_TRADE done")
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE start")
 	// sandwich trade
 	if frTx.ScPayload == nil {
 		log.Warn().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: frTx.ScPayload is nil")
 		return nil, err
 	}
-	backRunCtx := CreateBackRunCtx(context.Background(), w3c)
 	sandwichTx, err := packageBackRun(ctx, w3c, tf, frTx.ScPayload)
 	if err != nil {
 		log.Warn().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to package back run")
@@ -155,9 +161,9 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 		log.Warn().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: sandwich tx is nil")
 		return nil, errors.New("PackageSandwich: SANDWICH_TRADE: sandwich tx is nil")
 	}
-	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE start")
+	log.Info().Uint64("PackageSandwich: SANDWICH_TRADE: tradersNonceBackRun", sandwichTx.Tx.Nonce())
 	bundle.TotalGasCost = artemis_eth_units.AddBigInt(bundle.TotalGasCost, artemis_eth_units.NewBigIntFromUint(tf.SandwichTrade.TotalGasCost))
-	bundle, err = AddTxToBundleGroup(backRunCtx, *sandwichTx, bundle)
+	bundle, err = AddTxToBundleGroup(ctx, *sandwichTx, bundle)
 	if err != nil {
 		log.Warn().Str("txHash", tf.Tx.Hash().String()).Interface("mevTx", bundle.MevTxs).Msg("PackageSandwich: SANDWICH_TRADE: failed to add tx to bundle group")
 		log.Err(err).Str("txHash", tf.Tx.Hash().String()).Interface("mevTx", bundle.MevTxs).Msg("PackageSandwich: SANDWICH_TRADE: failed to add tx to bundle group")
@@ -194,17 +200,25 @@ func StagingPackageSandwichAndCall(ctx context.Context, w3c web3_client.Web3Clie
 	//	log.Err(err).Bool("ok", ok).Msg("StagingPackageSandwichAndCall: isBundleProfitHigherThanGasFee: failed to check if profit is higher than gas fee")
 	//	return nil, nil, err
 	//}
-	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("CallFlashbotsBundleStaging: start")
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("StagingPackageSandwichAndCall: CallFlashbotsBundleStaging: start")
 	resp, err := CallFlashbotsBundleStaging(ctx, w3c, *bundle)
 	if err != nil {
-		log.Err(err).Interface("fbCallResp", resp).Msg("failed to send sandwich")
+		log.Warn().Str("txHash", tf.Tx.Hash().String()).Interface("fbCallResp", resp).Msg("StagingPackageSandwichAndCall: failed to send sandwich")
+		log.Err(err).Interface("fbCallResp", resp).Msg("StagingPackageSandwichAndCall: failed to send sandwich")
 		return nil, nil, err
 	}
-	log.Info().Str("txHash", tf.Tx.Hash().String()).Interface("fbCallResp", resp).Msg("CallFlashbotsBundleStaging: done")
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Interface("fbCallResp", resp).Msg("StagingPackageSandwichAndCall: CallFlashbotsBundleStaging: done")
 	return &resp, bundle, err
 }
 
 func PackageSandwichAndSend(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsSendBundleResponse, error) {
+	if tf == nil || tf.Tx == nil {
+		return nil, errors.New("PackageSandwich: tf is nil")
+	}
+	if tf.FrontRunTrade.AmountIn == nil || tf.SandwichTrade.AmountOut == nil || tf.SandwichPrediction.ExpectedProfit == nil {
+		return nil, errors.New("PackageSandwich: tf.FrontRunTrade.AmountIn or tf.SandwichTrade.AmountOut is nil")
+	}
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwichAndSend: start")
 	bundle, err := PackageSandwich(ctx, w3c, tf)
 	if err != nil {
 		log.Err(err).Msg("failed to package sandwich")
@@ -213,10 +227,11 @@ func PackageSandwichAndSend(ctx context.Context, w3c web3_client.Web3Client, tf 
 	if bundle == nil {
 		return nil, errors.New("bundle is nil")
 	}
-	_, err = CallAndSendFlashbotsBundle(ctx, w3c, *bundle)
+	resp, err := CallAndSendFlashbotsBundle(ctx, w3c, *bundle)
 	if err != nil {
 		log.Err(err).Msg("failed to send sandwich")
 		return nil, err
 	}
-	return nil, err
+	log.Info().Str("bundleHash", resp.BundleHash).Msg("PackageSandwichAndSend: done")
+	return &resp, err
 }

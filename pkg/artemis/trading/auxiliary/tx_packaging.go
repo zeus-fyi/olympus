@@ -6,6 +6,7 @@ import (
 	"math/big"
 
 	"github.com/rs/zerolog/log"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
@@ -63,14 +64,14 @@ func CreateFrontRunCtxWithPermit2(ctx context.Context) context.Context {
 	return ctx
 }
 
-func CreateBackRunCtx(ctx context.Context, w3c web3_client.Web3Client) context.Context {
+func CreateBackRunCtx(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, TradeType, BackRun)
-	ctx = w3c.SetNonceOffset(ctx, 1)
+	ctx = web3_actions.SetNonceOffset(ctx, 1)
 	return ctx
 }
 
 func CreateBackRunCtxWithPermit2(ctx context.Context, w3c web3_client.Web3Client) context.Context {
-	ctx = CreateBackRunCtx(ctx, w3c)
+	ctx = CreateBackRunCtx(ctx)
 	ctx = context.WithValue(ctx, TradeCfg, Permit2)
 	return ctx
 }
@@ -168,11 +169,9 @@ func packageRegularTx(ctx context.Context, from string, signedTxWithMetadata TxW
 			Valid: true,
 		}
 		ethGas.GasFeeCap = sql.NullInt64{
-			Int64: gasFeeCap.Int64(),
 			Valid: false,
 		}
 		ethGas.GasTipCap = sql.NullInt64{
-			Int64: gasTipCap.Int64(),
 			Valid: false,
 		}
 	}

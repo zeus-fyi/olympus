@@ -169,11 +169,9 @@ func packageRegularTx(ctx context.Context, from string, signedTxWithMetadata TxW
 			Valid: true,
 		}
 		ethGas.GasFeeCap = sql.NullInt64{
-			Int64: gasFeeCap.Int64(),
 			Valid: false,
 		}
 		ethGas.GasTipCap = sql.NullInt64{
-			Int64: gasTipCap.Int64(),
 			Valid: false,
 		}
 	}

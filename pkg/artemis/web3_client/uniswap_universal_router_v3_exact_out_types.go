@@ -2,6 +2,7 @@ package web3_client
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -70,15 +71,26 @@ func (s *V3SwapExactOutParams) Decode(ctx context.Context, data []byte, abiFile 
 		log.Warn().Err(err).Msg("V3SwapExactOutParams: failed to parse amountOut")
 		return err
 	}
-	pathBytes := args["path"].([]byte)
+	pathInterface, pok := args["path"]
+	if !pok || pathInterface == nil {
+		// Handle the situation when args["path"] doesn't exist or is nil
+		log.Warn().Msg("V3SwapExactInParams: 'path' does not exist or is nil")
+		return fmt.Errorf("path does not exist or is nil")
+	}
+	pathBytes, ok := pathInterface.([]byte)
+	if !ok {
+		// Handle the situation when the conversion fails
+		log.Warn().Msg("V3SwapExactInParams: failed to convert 'path' to []byte")
+		return fmt.Errorf("failed to convert path to []byte")
+	}
 	hexStr := accounts.Bytes2Hex(pathBytes)
 	tfp := artemis_trading_types.TokenFeePath{
 		TokenIn: accounts.HexToAddress(hexStr[:40]),
 	}
 	var pathList []artemis_trading_types.TokenFee
 	for i := 0; i < len(hexStr[40:]); i += 46 {
-		fee, ok := new(big.Int).SetString(hexStr[40:][i:i+6], 16)
-		if !ok {
+		fee, fok := new(big.Int).SetString(hexStr[40:][i:i+6], 16)
+		if !fok {
 			log.Warn().Err(err).Msg("V3SwapExactOutParams: failed to parse fee")
 			return err
 		}

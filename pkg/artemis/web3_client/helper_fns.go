@@ -87,7 +87,7 @@ func ParseBigInt(i interface{}) (*big.Int, error) {
 		return big.NewInt(0), nil
 	default:
 		log.Warn().Msgf("ParseBigInt: unknown type %T", v)
-		return nil, fmt.Errorf("input is not a string or int64")
+		return big.NewInt(0), nil
 	}
 }
 

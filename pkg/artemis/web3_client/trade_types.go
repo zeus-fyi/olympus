@@ -3,6 +3,7 @@ package web3_client
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/core/types"
@@ -49,7 +50,7 @@ type TradeExecutionFlowJSON struct {
 	SandwichPrediction JSONSandwichTradePrediction            `json:"sandwichPrediction"`
 }
 
-func (t *TradeExecutionFlowJSON) ConvertToBigIntTypeWithoutTx() TradeExecutionFlow {
+func (t *TradeExecutionFlowJSON) ConvertToBigIntTypeWithoutTx() (TradeExecutionFlow, error) {
 	var p2Pair *uniswap_pricing.UniswapV2Pair
 	if t.InitialPair != nil {
 		p2Pair = t.InitialPair.ConvertToBigIntType()
@@ -58,7 +59,15 @@ func (t *TradeExecutionFlowJSON) ConvertToBigIntTypeWithoutTx() TradeExecutionFl
 	if t.InitialPairV3 != nil {
 		p3Pair = t.InitialPairV3.ConvertToBigIntType()
 	}
-
+	if p2Pair == nil && p3Pair == nil {
+		log.Error().Msg("TradeExecutionFlowJSON: failed to convert pair")
+		return TradeExecutionFlow{}, errors.New("both pricing pairs are nil")
+	}
+	sp, err := t.SandwichPrediction.ConvertToBigIntType()
+	if err != nil {
+		log.Error().Msg("TradeExecutionFlowJSON: failed to convert sandwich prediction")
+		return TradeExecutionFlow{}, err
+	}
 	return TradeExecutionFlow{
 		CurrentBlockNumber: t.CurrentBlockNumber,
 		Trade:              t.Trade,
@@ -67,11 +76,11 @@ func (t *TradeExecutionFlowJSON) ConvertToBigIntTypeWithoutTx() TradeExecutionFl
 		FrontRunTrade:      t.FrontRunTrade.ConvertToBigIntType(),
 		UserTrade:          t.UserTrade.ConvertToBigIntType(),
 		SandwichTrade:      t.SandwichTrade.ConvertToBigIntType(),
-		SandwichPrediction: t.SandwichPrediction.ConvertToBigIntType(),
-	}
+		SandwichPrediction: sp,
+	}, err
 }
 
-func (t *TradeExecutionFlowJSON) ConvertToBigIntType() TradeExecutionFlow {
+func (t *TradeExecutionFlowJSON) ConvertToBigIntType() (TradeExecutionFlow, error) {
 	var p2Pair *uniswap_pricing.UniswapV2Pair
 	if t.InitialPair != nil {
 		p2Pair = t.InitialPair.ConvertToBigIntType()
@@ -80,10 +89,19 @@ func (t *TradeExecutionFlowJSON) ConvertToBigIntType() TradeExecutionFlow {
 	if t.InitialPairV3 != nil {
 		p3Pair = t.InitialPairV3.ConvertToBigIntType()
 	}
-
+	if p2Pair == nil && p3Pair == nil {
+		log.Error().Msg("TradeExecutionFlowJSON: failed to convert pair")
+		return TradeExecutionFlow{}, errors.New("both pricing pairs are nil")
+	}
 	txConv, err := t.Tx.ConvertToTx()
 	if err != nil {
-		panic(err)
+		log.Error().Msg("TradeExecutionFlowJSON: failed to convert tx")
+		return TradeExecutionFlow{}, err
+	}
+	sp, err := t.SandwichPrediction.ConvertToBigIntType()
+	if err != nil {
+		log.Error().Msg("TradeExecutionFlowJSON: failed to convert sandwich prediction")
+		return TradeExecutionFlow{}, err
 	}
 	return TradeExecutionFlow{
 		CurrentBlockNumber: t.CurrentBlockNumber,
@@ -94,8 +112,39 @@ func (t *TradeExecutionFlowJSON) ConvertToBigIntType() TradeExecutionFlow {
 		FrontRunTrade:      t.FrontRunTrade.ConvertToBigIntType(),
 		UserTrade:          t.UserTrade.ConvertToBigIntType(),
 		SandwichTrade:      t.SandwichTrade.ConvertToBigIntType(),
-		SandwichPrediction: t.SandwichPrediction.ConvertToBigIntType(),
+		SandwichPrediction: sp,
+	}, nil
+}
+
+func (t *TradeExecutionFlow) ConvertToJSONType() (TradeExecutionFlowJSON, error) {
+	newJsonTx := artemis_trading_types.JSONTx{}
+	err := newJsonTx.UnmarshalTx(t.Tx)
+	if err != nil {
+		return TradeExecutionFlowJSON{}, err
 	}
+	var v3Pair *uniswap_pricing.JSONUniswapPoolV3
+	if t.InitialPairV3 != nil {
+		v3Pair = t.InitialPairV3.ConvertToJSONType()
+	}
+	var v2Pair *uniswap_pricing.JSONUniswapV2Pair
+	if t.InitialPair != nil {
+		v2Pair = t.InitialPair.ConvertToJSONType()
+	}
+	if v2Pair == nil && v3Pair == nil {
+		log.Error().Msg("TradeExecutionFlowJSON: failed to convert pair")
+		return TradeExecutionFlowJSON{}, errors.New("both pricing pairs are nil")
+	}
+	return TradeExecutionFlowJSON{
+		CurrentBlockNumber: t.CurrentBlockNumber,
+		Tx:                 newJsonTx,
+		Trade:              t.Trade,
+		InitialPairV3:      v3Pair,
+		InitialPair:        v2Pair,
+		FrontRunTrade:      t.FrontRunTrade.ConvertToJSONType(),
+		UserTrade:          t.UserTrade.ConvertToJSONType(),
+		SandwichTrade:      t.SandwichTrade.ConvertToJSONType(),
+		SandwichPrediction: t.SandwichPrediction.ConvertToJSONType(),
+	}, nil
 }
 
 type TradeExecutionFlow struct {
@@ -109,6 +158,38 @@ type TradeExecutionFlow struct {
 	SandwichTrade      artemis_trading_types.TradeOutcome `json:"sandwichTrade"`
 	SandwichPrediction SandwichTradePrediction            `json:"sandwichPrediction"`
 	Bundle             *artemis_flashbots.MevTxBundle     `json:"bundle,omitempty"`
+}
+
+func (t *TradeExecutionFlow) AreAllTradesValid() bool {
+	if t.CurrentBlockNumber == nil {
+		log.Warn().Msg("TradeExecutionFlow: current block number is nil")
+		return false
+	}
+	if t.Tx == nil {
+		log.Warn().Msg("TradeExecutionFlow: tx is nil")
+		return false
+	}
+	if t.Tx.To() == nil {
+		log.Warn().Msg("TradeExecutionFlow: tx to is nil")
+		return false
+	}
+	if !t.FrontRunTrade.AreTradeParamsValid() {
+		log.Warn().Msg("TradeExecutionFlow: front run trade is not valid")
+		return false
+	}
+	if !t.UserTrade.AreTradeParamsValid() {
+		log.Warn().Msg("TradeExecutionFlow: user trade is not valid")
+		return false
+	}
+	if !t.SandwichTrade.AreTradeParamsValid() {
+		log.Warn().Msg("TradeExecutionFlow: sandwich trade is not valid")
+		return false
+	}
+	if !t.SandwichPrediction.CheckForValidityAndProfit() {
+		log.Warn().Msg("TradeExecutionFlow: sandwich prediction is not valid")
+		return false
+	}
+	return true
 }
 
 func (t *TradeExecutionFlow) GetAggregateGasUsage(ctx context.Context, w Web3Client) error {
@@ -135,6 +216,7 @@ func UnmarshalTradeExecutionFlow(tfStr string) (TradeExecutionFlowJSON, error) {
 	by := []byte(tfStr)
 	berr := json.Unmarshal(by, &tf)
 	if berr != nil {
+		log.Err(berr).Msg("error unmarshalling trade execution flow")
 		return tf, berr
 	}
 	return tf, nil

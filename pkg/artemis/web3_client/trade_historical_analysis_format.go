@@ -47,7 +47,10 @@ func (u *UniswapClient) RunHistoricalTradeAnalysis(ctx context.Context, tfStr st
 	if err != nil {
 		return u.MarkEndOfSimDueToErr(err)
 	}
-	tf := tfJSON.ConvertToBigIntType()
+	tf, err := tfJSON.ConvertToBigIntType()
+	if err != nil {
+		return u.MarkEndOfSimDueToErr(err)
+	}
 	_, err = u.CheckBlockRxAndNetworkReset(ctx, &tf)
 	if err != nil {
 		return u.MarkEndOfSimDueToErr(err)

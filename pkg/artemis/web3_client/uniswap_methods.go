@@ -1,8 +1,10 @@
 package web3_client
 
 import (
+	"errors"
 	"math/big"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 )
 
@@ -16,13 +18,21 @@ type JSONSandwichTradePrediction struct {
 	ExpectedProfit string `json:"expectedProfit"`
 }
 
-func (s *JSONSandwichTradePrediction) ConvertToBigIntType() SandwichTradePrediction {
-	sellAmount, _ := new(big.Int).SetString(s.SellAmount, 10)
-	expectedProfit, _ := new(big.Int).SetString(s.ExpectedProfit, 10)
+func (s *JSONSandwichTradePrediction) ConvertToBigIntType() (SandwichTradePrediction, error) {
+	sellAmount, ok1 := new(big.Int).SetString(s.SellAmount, 10)
+	expectedProfit, ok2 := new(big.Int).SetString(s.ExpectedProfit, 10)
+	if !ok1 || !ok2 {
+		log.Err(errors.New("error converting to big int")).Msg("JSONSandwichTradePrediction: error converting to big int")
+		return SandwichTradePrediction{}, errors.New("error converting to big int")
+	}
 	return SandwichTradePrediction{
 		SellAmount:     sellAmount,
 		ExpectedProfit: expectedProfit,
-	}
+	}, nil
+}
+
+func (s *SandwichTradePrediction) CheckForValidityAndProfit() bool {
+	return s.ExpectedProfit.Cmp(big.NewInt(0)) > 0 && s.SellAmount.Cmp(big.NewInt(0)) > 0
 }
 
 func (s *SandwichTradePrediction) ConvertToJSONType() JSONSandwichTradePrediction {

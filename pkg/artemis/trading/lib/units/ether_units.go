@@ -103,6 +103,25 @@ func IsStrXLessThanEqZeroOrOne(x string) bool {
 	return false
 }
 
+func IsXLessThanEqZeroOrOne(x *big.Int) bool {
+	if x == nil {
+		return true
+	}
+	if IsXLessThanY(x, NewBigInt(0)) || x.String() == "0" || x.String() == "1" {
+		return true
+	}
+	return false
+}
+
+func AreAnyValuesLessThanEqZeroOrOne(x ...*big.Int) bool {
+	for _, val := range x {
+		if IsXLessThanEqZeroOrOne(val) {
+			return true
+		}
+	}
+	return false
+}
+
 func IsStrXLessThanEqZero(x string) bool {
 	if IsXLessThanY(NewBigIntFromStr(x), NewBigInt(0)) || x == "0" {
 		return true

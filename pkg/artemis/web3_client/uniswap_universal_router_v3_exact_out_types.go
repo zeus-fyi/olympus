@@ -50,11 +50,13 @@ func (s *V3SwapExactOutParams) Decode(ctx context.Context, data []byte, abiFile 
 	if abiFile == nil {
 		err := UniversalRouterDecoderAbi.Methods[V3SwapExactOut].Inputs.UnpackIntoMap(args, data)
 		if err != nil {
+			log.Warn().Err(err).Msg("V3SwapExactOutParams: UniversalRouterDecoderAbi failed to unpack data")
 			return err
 		}
 	} else {
 		err := abiFile.Methods[V3SwapExactOut].Inputs.UnpackIntoMap(args, data)
 		if err != nil {
+			log.Warn().Err(err).Msg("V3SwapExactOutParams: abiFile failed to unpack data")
 			return err
 		}
 	}
@@ -90,6 +92,7 @@ func (s *V3SwapExactOutParams) Decode(ctx context.Context, data []byte, abiFile 
 	tfp.Path = pathList
 	to, err := ConvertToAddress(args["recipient"])
 	if err != nil {
+		log.Warn().Err(err).Msg("V3SwapExactOutParams: failed to parse recipient")
 		return err
 	}
 	payerIsUser := args["payerIsUser"].(bool)

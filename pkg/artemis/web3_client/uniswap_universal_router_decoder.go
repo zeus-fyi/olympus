@@ -59,7 +59,7 @@ func (ur *UniversalRouterExecSubCmd) DecodeCommand(command byte, args []byte, ab
 	ur.Inputs = args
 	flag, cmd, err := ur.DecodeCmdByte(command)
 	if err != nil {
-		log.Err(err).Msg("DecodeCommand: could not decode command byte"
+		log.Err(err).Msg("DecodeCommand: could not decode command byte")
 		return err
 	}
 	switch cmd {

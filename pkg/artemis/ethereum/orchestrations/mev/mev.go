@@ -80,7 +80,7 @@ func ProcessMempoolTxs(ctx context.Context, timestampChan chan time.Time) {
 			bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(ctx, wc)
 			if berr != nil {
 				log.Err(berr).Msg("failed to get block number")
-				return
+				wc.Close()
 			}
 			wc.Close()
 			err := ArtemisMevWorkerMainnet2.ExecuteArtemisGetLookaheadPricesWorkflow(ctx, bn)

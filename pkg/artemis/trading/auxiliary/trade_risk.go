@@ -64,6 +64,9 @@ func IsTradingEnabledOnToken(tk string) (bool, error) {
 
 // IsProfitTokenAcceptable in sandwich trade the tokenIn on the first trade is the profit currency
 func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (bool, error) {
+	if tf.Tx == nil {
+		log.Warn().Msg("IsProfitTokenAcceptable: tx is nil")
+	}
 	log.Info().Str("txHash", tf.Tx.Hash().String()).Interface("tf.FrontRunTrade.AmountInAddr.String() ", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountOutAddr.String()", tf.FrontRunTrade.AmountOutAddr.String()).Msg("IsProfitTokenAcceptable: is profit token acceptable")
 	// just assumes mainnet for now
 	if tf.FrontRunTrade.AmountInAddr.String() == tf.FrontRunTrade.AmountOutAddr.String() {
@@ -82,9 +85,6 @@ func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf
 	if tf.SandwichTrade.AmountOutAddr.String() != artemis_trading_constants.WETH9ContractAddress {
 		log.Warn().Str("txHash", tf.Tx.Hash().String()).Interface("tf.SandwichTrade.AmountOutAddr.String()", tf.SandwichTrade.AmountOutAddr.String()).Interface("tf.FrontRunTrade.AmountInAddr.String() ", tf.FrontRunTrade.AmountInAddr.String()).Msg("IsProfitTokenAcceptable: profit token is not the same")
 		return false, errors.New("IsProfitTokenAcceptable: profit token is not WETH")
-	}
-	if tf.Tx == nil {
-		log.Warn().Msg("IsProfitTokenAcceptable: tx is nil")
 	}
 
 	ok1 := artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.FrontRunTrade.AmountIn.String())

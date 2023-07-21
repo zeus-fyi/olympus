@@ -21,13 +21,14 @@ type SwapExactTokensForTokensSupportingFeeOnTransferTokensParams struct {
 	Deadline     *big.Int           `json:"deadline"`
 }
 
-func (s *SwapExactTokensForTokensSupportingFeeOnTransferTokensParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) (TradeExecutionFlowJSON, error) {
+func (s *SwapExactTokensForTokensSupportingFeeOnTransferTokensParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) (TradeExecutionFlow, error) {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountIn)
 	var mid *big.Int
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
-	tf := TradeExecutionFlowJSON{
+	tf := TradeExecutionFlow{
+		InitialPair: &pair,
 		Trade: Trade{
 			TradeMethod: swapExactTokensForTokensSupportingFeeOnTransferTokens,
 			JSONSwapExactTokensForTokensSupportingFeeOnTransferTokensParams: s.ConvertToJSONType(),
@@ -65,9 +66,9 @@ func (s *SwapExactTokensForTokensSupportingFeeOnTransferTokensParams) BinarySear
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = toFrontRun.ConvertToJSONType()
-			tf.UserTrade = to.ConvertToJSONType()
-			tf.SandwichTrade = toSandwich.ConvertToJSONType()
+			tf.FrontRunTrade = toFrontRun
+			tf.UserTrade = to
+			tf.SandwichTrade = toSandwich
 		}
 		// If profit is negative, reduce the high boundary
 		if profit.Cmp(big.NewInt(0)) < 0 {
@@ -81,9 +82,10 @@ func (s *SwapExactTokensForTokensSupportingFeeOnTransferTokensParams) BinarySear
 		SellAmount:     tokenSellAmountAtMaxProfit,
 		ExpectedProfit: maxProfit,
 	}
-	tf.SandwichPrediction = sp.ConvertToJSONType()
+	tf.SandwichPrediction = sp
 	return tf, nil
 }
+
 func (s *SwapExactTokensForTokensSupportingFeeOnTransferTokensParams) Decode(args map[string]interface{}) error {
 	amountIn, err := ParseBigInt(args["amountIn"])
 	if err != nil {
@@ -129,18 +131,20 @@ func (u *UniswapClient) SwapExactTokensForTokensSupportingFeeOnTransferTokens(tx
 		return err
 	}
 	path := st.Path
-	initialPair := pd.V2Pair
 	tf, err := st.BinarySearch(pd.V2Pair)
 	if err != nil {
 		return err
 	}
-	tf.InitialPair = initialPair.ConvertToJSONType()
+	tfJSON, err := tf.ConvertToJSONType()
+	if err != nil {
+		return err
+	}
 	if u.PrintOn {
 		fmt.Println("\nsandwich: ==================================SwapExactTokensForTokensSupportingFeeOnTransferTokens==================================")
 		ts := &TradeSummary{
 			Tx:            tx,
 			Pd:            pd,
-			Tf:            tf,
+			Tf:            tfJSON,
 			TokenAddr:     path[0].String(),
 			BuyWithAmount: st.AmountIn,
 			MinimumAmount: st.AmountOutMin,

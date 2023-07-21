@@ -28,7 +28,8 @@ func (s *Web3ClientTestSuite) TestTradeExec() {
 		_, err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlockBeforeTxMined(ctx, s.Tc.HardhatNode, s.LocalHardhatMainnetUser, s.MainnetWeb3User, common.HexToHash(tf.Tx.Hash))
 		s.Require().Nil(err)
 
-		tfRegular := tf.ConvertToBigIntType()
+		tfRegular, err := tf.ConvertToBigIntType()
+		s.Require().Nil(err)
 		err = s.LocalHardhatMainnetUser.MatchFrontRunTradeValues(&tfRegular)
 		s.Require().Nil(err)
 

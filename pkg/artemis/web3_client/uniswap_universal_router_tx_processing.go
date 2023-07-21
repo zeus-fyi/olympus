@@ -34,12 +34,16 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx,
 				log.Err(err).Msg("V3SwapExactIn: error getting binary search")
 				return err
 			}
-			tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
+			tfJSON, err := tf.ConvertToJSONType()
+			if err != nil {
+				log.Err(err).Msg("V3SwapExactIn: error converting to json type")
+				return err
+			}
 			fmt.Println("\nsandwich: ==================================V3SwapExactIn==================================")
 			ts := TradeSummary{
 				Tx:            tx,
 				Pd:            pd,
-				Tf:            tf,
+				Tf:            tfJSON,
 				TokenAddr:     inputs.Path.TokenIn.String(),
 				BuyWithAmount: inputs.AmountIn,
 				MinimumAmount: inputs.AmountOutMin,
@@ -63,12 +67,16 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx,
 				log.Err(err).Msg("V3SwapExactOut: error getting binary search")
 				return err
 			}
-			tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
+			tfJSON, err := tf.ConvertToJSONType()
+			if err != nil {
+				log.Err(err).Msg("error converting to json type")
+				return err
+			}
 			fmt.Println("\nsandwich: ==================================V3SwapExactOut==================================")
 			ts := TradeSummary{
 				Tx:            tx,
 				Pd:            pd,
-				Tf:            tf,
+				Tf:            tfJSON,
 				TokenAddr:     inputs.Path.TokenIn.String(),
 				BuyWithAmount: inputs.AmountInMax,
 				MinimumAmount: inputs.AmountOut,
@@ -93,12 +101,16 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx,
 				log.Err(err).Msg("V2SwapExactIn: error getting binary search")
 				return err
 			}
-			tf.InitialPair = pair.ConvertToJSONType()
+			tfJSON, err := tf.ConvertToJSONType()
+			if err != nil {
+				log.Err(err).Msg("error converting to json type")
+				return err
+			}
 			fmt.Println("\nsandwich: ==================================V2SwapExactIn==================================")
 			ts := TradeSummary{
 				Tx:            tx,
 				Pd:            pd,
-				Tf:            tf,
+				Tf:            tfJSON,
 				TokenAddr:     inputs.Path[0].String(),
 				BuyWithAmount: inputs.AmountIn,
 				MinimumAmount: inputs.AmountOutMin,
@@ -123,13 +135,17 @@ func (u *UniswapClient) ProcessUniversalRouterTxs(ctx context.Context, tx MevTx,
 				log.Err(err).Msg("V2SwapExactOut: error getting binary search")
 				return err
 			}
-			tf.InitialPair = pair.ConvertToJSONType()
+			tfJSON, err := tf.ConvertToJSONType()
+			if err != nil {
+				log.Err(err).Msg("error converting to json type")
+				return err
+			}
 
 			fmt.Println("\nsandwich: ==================================V2SwapExactOut==================================")
 			ts := TradeSummary{
 				Tx:            tx,
 				Pd:            pd,
-				Tf:            tf,
+				Tf:            tfJSON,
 				TokenAddr:     inputs.Path[0].String(),
 				BuyWithAmount: inputs.AmountInMax,
 				MinimumAmount: inputs.AmountOut,

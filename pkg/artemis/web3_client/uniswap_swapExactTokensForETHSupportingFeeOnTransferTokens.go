@@ -58,19 +58,18 @@ func (u *UniswapClient) SwapExactTokensForETHSupportingFeeOnTransferTokens(tx Me
 	if err != nil {
 		return err
 	}
-	initialPair := pd.V2Pair
 	tf, err := st.BinarySearch(pd.V2Pair)
 	if err != nil {
 		log.Error().Err(err).Msg("error in binary search")
 		return err
 	}
-	tf.InitialPair = initialPair.ConvertToJSONType()
+	tfJSON, err := tf.ConvertToJSONType()
 	if u.PrintOn {
 		fmt.Println("\nsandwich: ==================================SwapExactTokensForETHSupportingFeeOnTransferTokens==================================")
 		ts := &TradeSummary{
 			Tx:            tx,
 			Pd:            pd,
-			Tf:            tf,
+			Tf:            tfJSON,
 			TokenAddr:     path[0].String(),
 			BuyWithAmount: st.AmountIn,
 			MinimumAmount: st.AmountOutMin,
@@ -123,13 +122,14 @@ const (
 	swapExactTokensForETHSupportingFeeOnTransferTokensMoniker = "swapExactTokensForETHSupportingFeeOnTransferTokens"
 )
 
-func (s *SwapExactTokensForETHSupportingFeeOnTransferTokensParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) (TradeExecutionFlowJSON, error) {
+func (s *SwapExactTokensForETHSupportingFeeOnTransferTokensParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) (TradeExecutionFlow, error) {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountIn)
 	var mid *big.Int
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
-	tf := TradeExecutionFlowJSON{
+	tf := TradeExecutionFlow{
+		InitialPair: &pair,
 		Trade: Trade{
 			TradeMethod: swapExactTokensForETHSupportingFeeOnTransferTokensMoniker,
 			JSONSwapExactTokensForETHSupportingFeeOnTransferTokensParams: s.ConvertToJSONType(),
@@ -167,9 +167,9 @@ func (s *SwapExactTokensForETHSupportingFeeOnTransferTokensParams) BinarySearch(
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = toFrontRun.ConvertToJSONType()
-			tf.UserTrade = to.ConvertToJSONType()
-			tf.SandwichTrade = toSandwich.ConvertToJSONType()
+			tf.FrontRunTrade = toFrontRun
+			tf.UserTrade = to
+			tf.SandwichTrade = toSandwich
 		}
 		// If profit is negative, reduce the high boundary
 		if profit.Cmp(big.NewInt(0)) < 0 {
@@ -183,6 +183,6 @@ func (s *SwapExactTokensForETHSupportingFeeOnTransferTokensParams) BinarySearch(
 		SellAmount:     tokenSellAmountAtMaxProfit,
 		ExpectedProfit: maxProfit,
 	}
-	tf.SandwichPrediction = sp.ConvertToJSONType()
+	tf.SandwichPrediction = sp
 	return tf, nil
 }

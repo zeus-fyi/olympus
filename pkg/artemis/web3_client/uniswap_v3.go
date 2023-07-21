@@ -95,13 +95,16 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) error
 		if err != nil {
 			return err
 		}
-		tf.Trade.TradeMethod = exactInput
-		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
+		tfJSON, err := tf.ConvertToJSONType()
+		if err != nil {
+			log.Err(err).Msg("error converting to json type")
+			return err
+		}
 		fmt.Println("\nsandwich: ==================================ExactInput==================================")
 		ts := TradeSummary{
 			Tx:            tx,
 			Pd:            pd,
-			Tf:            tf,
+			Tf:            tfJSON,
 			TokenAddr:     inputs.TokenFeePath.TokenIn.String(),
 			BuyWithAmount: inputs.AmountIn,
 			MinimumAmount: inputs.AmountOutMinimum,
@@ -126,13 +129,15 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) error
 		if err != nil {
 			return err
 		}
-		tf.Trade.TradeMethod = exactOutput
-		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
+		tfJSON, err := tf.ConvertToJSONType()
+		if err != nil {
+			return err
+		}
 		fmt.Println("\nsandwich: ==================================ExactOut==================================")
 		ts := TradeSummary{
 			Tx:            tx,
 			Pd:            pd,
-			Tf:            tf,
+			Tf:            tfJSON,
 			TokenAddr:     inputs.TokenFeePath.TokenIn.String(),
 			BuyWithAmount: inputs.AmountInMaximum,
 			MinimumAmount: inputs.AmountOut,
@@ -165,13 +170,15 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) error
 		if err != nil {
 			return err
 		}
-		tf.Trade.TradeMethod = swapExactInputSingle
-		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
+		tfJSON, err := tf.ConvertToJSONType()
+		if err != nil {
+			return err
+		}
 		fmt.Println("\nsandwich: ==================================SwapExactInputSingle==================================")
 		ts := TradeSummary{
 			Tx:            tx,
 			Pd:            pd,
-			Tf:            tf,
+			Tf:            tfJSON,
 			TokenAddr:     inputs.TokenFeePath.TokenIn.String(),
 			BuyWithAmount: inputs.AmountIn,
 			MinimumAmount: inputs.AmountOutMinimum,
@@ -204,13 +211,15 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) error
 		if err != nil {
 			return err
 		}
-		tf.Trade.TradeMethod = swapExactOutputSingle
-		tf.InitialPairV3 = pd.V3Pair.ConvertToJSONType()
+		tfJSON, err := tf.ConvertToJSONType()
+		if err != nil {
+			return err
+		}
 		fmt.Println("\nsandwich: ==================================SwapExactOutputSingle==================================")
 		ts := TradeSummary{
 			Tx:            tx,
 			Pd:            pd,
-			Tf:            tf,
+			Tf:            tfJSON,
 			TokenAddr:     inputs.TokenFeePath.TokenIn.String(),
 			BuyWithAmount: inputs.AmountInMaximum,
 			MinimumAmount: inputs.AmountOut,
@@ -231,18 +240,19 @@ func (u *UniswapClient) processUniswapV3Txs(ctx context.Context, tx MevTx) error
 			return err
 		}
 		path := inputs.Path
-		initialPair := pd.V2Pair
 		tf, err := inputs.BinarySearch(pd.V2Pair)
 		if err != nil {
 			return err
 		}
-		tf.Trade.TradeMethod = swapExactTokensForTokens
-		tf.InitialPair = initialPair.ConvertToJSONType()
+		tfJSON, err := tf.ConvertToJSONType()
+		if err != nil {
+			return err
+		}
 		fmt.Println("\nsandwich: ==================================SwapExactTokensForTokens==================================")
 		ts := &TradeSummary{
 			Tx:            tx,
 			Pd:            pd,
-			Tf:            tf,
+			Tf:            tfJSON,
 			TokenAddr:     path[0].String(),
 			BuyWithAmount: inputs.AmountIn,
 			MinimumAmount: inputs.AmountOutMin,

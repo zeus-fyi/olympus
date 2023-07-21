@@ -248,6 +248,7 @@ func (s *V2SwapExactOutParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) 
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlow{
+		InitialPair: &pair,
 		Trade: Trade{
 			TradeMethod:              V2SwapExactOut,
 			JSONV2SwapExactOutParams: s.ConvertToJSONType(),
@@ -313,6 +314,7 @@ func (s *V2SwapExactInParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) (
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlow{
+		InitialPair: &pair,
 		Trade: Trade{
 			TradeMethod:             V2SwapExactIn,
 			JSONV2SwapExactInParams: s.ConvertToJSONType(),

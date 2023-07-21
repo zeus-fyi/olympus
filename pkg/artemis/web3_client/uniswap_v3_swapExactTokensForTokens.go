@@ -23,13 +23,14 @@ type JSONSwapExactTokensForTokensParamsV3 struct {
 	To           accounts.Address   `json:"to"`
 }
 
-func (s *SwapExactTokensForTokensParamsV3) BinarySearch(pair uniswap_pricing.UniswapV2Pair) (TradeExecutionFlowJSON, error) {
+func (s *SwapExactTokensForTokensParamsV3) BinarySearch(pair uniswap_pricing.UniswapV2Pair) (TradeExecutionFlow, error) {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountIn)
 	var mid *big.Int
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
-	tf := TradeExecutionFlowJSON{
+	tf := TradeExecutionFlow{
+		InitialPair: &pair,
 		Trade: Trade{
 			TradeMethod:                          swapExactTokensForTokens,
 			JSONSwapExactTokensForTokensParamsV3: s.ConvertToJSONType(),
@@ -67,9 +68,9 @@ func (s *SwapExactTokensForTokensParamsV3) BinarySearch(pair uniswap_pricing.Uni
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = toFrontRun.ConvertToJSONType()
-			tf.UserTrade = to.ConvertToJSONType()
-			tf.SandwichTrade = toSandwich.ConvertToJSONType()
+			tf.FrontRunTrade = toFrontRun
+			tf.UserTrade = to
+			tf.SandwichTrade = toSandwich
 		}
 		// If profit is negative, reduce the high boundary
 		if profit.Cmp(big.NewInt(0)) < 0 {
@@ -83,25 +84,29 @@ func (s *SwapExactTokensForTokensParamsV3) BinarySearch(pair uniswap_pricing.Uni
 		SellAmount:     tokenSellAmountAtMaxProfit,
 		ExpectedProfit: maxProfit,
 	}
-	tf.SandwichPrediction = sp.ConvertToJSONType()
+	tf.SandwichPrediction = sp
 	return tf, nil
 }
 
 func (s *SwapExactTokensForTokensParamsV3) Decode(ctx context.Context, args map[string]interface{}) error {
 	amountIn, err := ParseBigInt(args["amountIn"])
 	if err != nil {
+		log.Warn().Msg("SwapExactTokensForTokensParamsV3: error parsing amountIn")
 		return err
 	}
 	amountOutMin, err := ParseBigInt(args["amountOutMin"])
 	if err != nil {
+		log.Warn().Msg("SwapExactTokensForTokensParamsV3: error parsing amountOutMin")
 		return err
 	}
 	path, err := ConvertToAddressSlice(args["path"])
 	if err != nil {
+		log.Warn().Msg("SwapExactTokensForTokensParamsV3: error parsing path")
 		return err
 	}
 	to, err := ConvertToAddress(args["to"])
 	if err != nil {
+		log.Warn().Msg("SwapExactTokensForTokensParamsV3: error parsing to")
 		return err
 	}
 	s.AmountIn = amountIn

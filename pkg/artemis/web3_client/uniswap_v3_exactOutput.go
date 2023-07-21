@@ -30,13 +30,14 @@ type JSONExactOutputParams struct {
 	TokenFeePath artemis_trading_types.TokenFeePath `json:"tokenFeePath,omitempty"`
 }
 
-func (o *ExactOutputParams) BinarySearch(pd *uniswap_pricing.UniswapPricingData) (TradeExecutionFlowJSON, error) {
+func (o *ExactOutputParams) BinarySearch(pd *uniswap_pricing.UniswapPricingData) (TradeExecutionFlow, error) {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(o.AmountInMaximum)
 	var mid *big.Int
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
-	tf := TradeExecutionFlowJSON{
+	tf := TradeExecutionFlow{
+		InitialPairV3: &pd.V3Pair,
 		Trade: Trade{
 			TradeMethod:           exactOutput,
 			JSONExactOutputParams: o.ConvertToJSONType(),
@@ -81,22 +82,22 @@ func (o *ExactOutputParams) BinarySearch(pd *uniswap_pricing.UniswapPricingData)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = artemis_trading_types.JSONTradeOutcome{
-				AmountIn:      amountInFrontRun.String(),
+			tf.FrontRunTrade = artemis_trading_types.TradeOutcome{
+				AmountIn:      amountInFrontRun,
 				AmountInAddr:  frontRunTokenIn.Address,
-				AmountOut:     toFrontRun.Quotient().String(),
+				AmountOut:     toFrontRun.Quotient(),
 				AmountOutAddr: sandwichTokenIn.Address,
 			}
-			tf.UserTrade = artemis_trading_types.JSONTradeOutcome{
-				AmountIn:      o.AmountInMaximum.String(),
+			tf.UserTrade = artemis_trading_types.TradeOutcome{
+				AmountIn:      o.AmountInMaximum,
 				AmountInAddr:  frontRunTokenIn.Address,
-				AmountOut:     userTrade.Quotient().String(),
+				AmountOut:     userTrade.Quotient(),
 				AmountOutAddr: sandwichTokenIn.Address,
 			}
-			tf.SandwichTrade = artemis_trading_types.JSONTradeOutcome{
-				AmountIn:      toFrontRun.Quotient().String(),
+			tf.SandwichTrade = artemis_trading_types.TradeOutcome{
+				AmountIn:      toFrontRun.Quotient(),
 				AmountInAddr:  sandwichTokenIn.Address,
-				AmountOut:     toSandwich.Quotient().String(),
+				AmountOut:     toSandwich.Quotient(),
 				AmountOutAddr: frontRunTokenIn.Address,
 			}
 		}
@@ -112,7 +113,7 @@ func (o *ExactOutputParams) BinarySearch(pd *uniswap_pricing.UniswapPricingData)
 		SellAmount:     tokenSellAmountAtMaxProfit,
 		ExpectedProfit: maxProfit,
 	}
-	tf.SandwichPrediction = sp.ConvertToJSONType()
+	tf.SandwichPrediction = sp
 	return tf, nil
 }
 

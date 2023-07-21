@@ -15,6 +15,7 @@ func (s *V3SwapExactInParams) BinarySearch(pd *uniswap_pricing.UniswapPricingDat
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlow{
+		InitialPairV3: &pd.V3Pair,
 		Trade: Trade{
 			TradeMethod:             V3SwapExactIn,
 			JSONV3SwapExactInParams: s.ConvertToJSONType(),

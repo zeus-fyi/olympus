@@ -43,6 +43,7 @@ func (s *SwapExactTokensForTokensParams) BinarySearch(pair uniswap_pricing.Unisw
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
 	tf := TradeExecutionFlow{
+		InitialPair: &pair,
 		Trade: Trade{
 			TradeMethod:                        swapExactTokensForTokens,
 			JSONSwapExactTokensForTokensParams: s.ConvertToJSONType(),

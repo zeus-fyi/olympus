@@ -73,7 +73,8 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSimAny() {
 		rxBlockNum, err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlockBeforeTxMined(ctx, s.Tc.HardhatNode, s.LocalHardhatMainnetUser, s.MainnetWeb3User, common.HexToHash(tf.Tx.Hash))
 		s.Assert().Nil(err)
 		blockBeforeRx := rxBlockNum - 1
-		tfRegular := tf.ConvertToBigIntType()
+		tfRegular, err := tf.ConvertToBigIntType()
+		s.Assert().Nil(err)
 		uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
 		uni.DebugPrint = true
 

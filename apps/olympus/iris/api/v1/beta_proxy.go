@@ -52,7 +52,7 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 	rw := artemis_api_requests.NewArtemisApiRequestsActivities()
 	resp, err := rw.InternalSvcRelayRequest(c.Request().Context(), req)
 	if err != nil {
-		log.Err(err).Msg("rw.InternalSvcRelayRequest")
+		log.Err(err).Str("route", routeInfo).Msg("rw.InternalSvcRelayRequest")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusOK, resp.Response)
@@ -73,7 +73,9 @@ func (p *BetaProxyRequest) Process(c echo.Context, r *artemis_api_requests.ApiPr
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	if resp == nil {
-		log.Warn().Msg("resp == nil")
+		if r != nil {
+			log.Warn().Str("route", r.Url).Msg("rw.InternalSvcRelayRequest")
+		}
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, resp.Response)

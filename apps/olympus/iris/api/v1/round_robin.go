@@ -37,7 +37,7 @@ func (p *BetaProxyRequest) ProcessRoundRobin(c echo.Context, isInternal bool) er
 	}
 	resp, err := rw.InternalSvcRelayRequest(c.Request().Context(), req)
 	if err != nil {
-		log.Err(err).Msg("rw.InternalSvcRelayRequest")
+		log.Err(err).Str("route", routeInfo).Msg("rw.InternalSvcRelayRequest")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusOK, resp.Response)

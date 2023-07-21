@@ -104,7 +104,7 @@ func ApplyMaxTransferTax(ctx context.Context, tf *web3_client.TradeExecutionFlow
 	tokenOne := tf.UserTrade.AmountInAddr.String()
 	tokenTwo := tf.UserTrade.AmountOutAddr.String()
 	if tokenOne == artemis_trading_constants.ZeroAddress && tokenTwo == artemis_trading_constants.ZeroAddress {
-		log.Warn().Str("txHash", tf.Tx.Hash().String()).Str("tradeMethod", tf.Trade.TradeMethod).Str("toAddr", tf.Tx.To().String()).Msg("dat: ApplyMaxTransferTax, tokenOne and tokenTwo are zero address")
+		log.Warn().Str("txHash", tf.Tx.Hash().String()).Str("tradeMethod", tf.Trade.TradeMethod).Interface("tf.UserTrade", tf.UserTrade).Str("toAddr", tf.Tx.To().String()).Msg("dat: ApplyMaxTransferTax, tokenOne and tokenTwo are zero address")
 		return errors.New("dat: ApplyMaxTransferTax, tokenOne and tokenTwo are zero address")
 	}
 	go func(ctx context.Context, tokenA, tokenB string) {

@@ -106,6 +106,9 @@ func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf
 	ok6 := artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.SandwichTrade.AmountOut.String())
 	ok7 := artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.SandwichPrediction.ExpectedProfit.String())
 	if !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 {
+		log.Warn().Str("tf.Tx.Hash", tf.Tx.Hash().String()).Interface("tf.FrontRunTrade", tf.FrontRunTrade).Msg("ActiveTradingFilter: one of the trade amountsIn or amountsOut is zero")
+		log.Warn().Str("tf.Tx.Hash", tf.Tx.Hash().String()).Interface("tf.UserTrade", tf.UserTrade).Msg("ActiveTradingFilter: one of the trade amountsIn or amountsOut is zero")
+		log.Warn().Str("tf.Tx.Hash", tf.Tx.Hash().String()).Interface("tf.SandwichTrade", tf.SandwichTrade).Msg("ActiveTradingFilter: one of the trade amountsIn or amountsOut is zero")
 		log.Warn().Msg("IsProfitTokenAcceptable: one of the trade amountsIn or amountsOut is zero")
 		return false, errors.New("one of the trade amountsIn or amountsOut is zero")
 	}

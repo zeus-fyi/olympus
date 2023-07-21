@@ -16,16 +16,17 @@ import (
 )
 
 var (
-	ctx                = context.Background()
-	MultiCall3         = MustLoadMulticall3Abi()
-	Erc20              = MustLoadERC20Abi()
-	Permit2            = MustLoadPermit2Abi()
-	UniversalRouterNew = MustLoadNewUniversalRouterAbi()
-	UniversalRouterOld = MustLoadNewUniversalRouterAbi()
-	UniswapV2Router01  = MustLoadUniswapV2Router01ABI()
-	UniswapV2Router02  = MustLoadUniswapV2Router02ABI()
-	UniswapV3Router01  = MustLoadUniswapV3Swap1RouterAbi()
-	UniswapV3Router02  = MustLoadUniswapV3Swap2RouterAbi()
+	ctx                    = context.Background()
+	MultiCall3             = MustLoadMulticall3Abi()
+	Erc20                  = MustLoadERC20Abi()
+	Permit2                = MustLoadPermit2Abi()
+	UniversalRouterDecoder = MustLoadUniversalRouterDecodingAbi()
+	UniversalRouterNew     = MustLoadNewUniversalRouterAbi()
+	UniversalRouterOld     = MustLoadNewUniversalRouterAbi()
+	UniswapV2Router01      = MustLoadUniswapV2Router01ABI()
+	UniswapV2Router02      = MustLoadUniswapV2Router02ABI()
+	UniswapV3Router01      = MustLoadUniswapV3Swap1RouterAbi()
+	UniswapV3Router02      = MustLoadUniswapV3Swap2RouterAbi()
 )
 
 func MustLoadMulticall3Abi() *abi.ABI {

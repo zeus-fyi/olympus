@@ -21,14 +21,14 @@ import (
 func ProcessTxs(ctx context.Context, mevTx web3_client.MevTx, m *metrics_trading.TradingMetrics, w3a web3_actions.Web3Actions) ([]web3_client.TradeExecutionFlow, error) {
 	switch mevTx.Tx.To().String() {
 	case artemis_trading_constants.UniswapUniversalRouterAddressOld:
-		tf, err := RealTimeProcessUniversalRouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniversalRouterOld)
+		tf, err := RealTimeProcessUniversalRouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniversalRouterDecoder)
 		if err != nil {
 			log.Err(err).Msg("UniswapUniversalRouterAddressOld: error processing universal router tx")
 			return nil, err
 		}
 		return tf, nil
 	case artemis_trading_constants.UniswapUniversalRouterAddressNew:
-		tf, err := RealTimeProcessUniversalRouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniversalRouterNew)
+		tf, err := RealTimeProcessUniversalRouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniversalRouterDecoder)
 		if err != nil {
 			log.Err(err).Msg("UniswapUniversalRouterAddressNew: error processing universal router tx")
 			return nil, err

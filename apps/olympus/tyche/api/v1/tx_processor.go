@@ -34,11 +34,12 @@ func (t *TxProcessingRequest) ProcessTx(c echo.Context) error {
 	ctx := c.Request().Context()
 	w3c := artemis_trade_executor.ActiveTraderW3c
 	for _, tx := range t.Txs {
-		werr := artemis_realtime_trading.IngestTx(ctx, w3c, tx, &tyche_metrics.TradeMetrics)
-		if werr.Err != nil && werr.Code != 200 {
-			//log.Err(werr.Err).Msg("error processing tx")
-			return c.JSON(http.StatusPreconditionFailed, werr.Err)
-		}
+		go func(tx *types.Transaction) {
+			werr := artemis_realtime_trading.IngestTx(ctx, w3c, tx, &tyche_metrics.TradeMetrics)
+			if werr.Err != nil && werr.Code != 200 {
+				log.Err(werr.Err).Msg("error processing tx")
+			}
+		}(tx)
 	}
 	return c.JSON(http.StatusOK, "ok")
 }

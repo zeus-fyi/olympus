@@ -112,7 +112,7 @@ func IsXLessThanEqZeroOrOne(x *big.Int) bool {
 	if x == nil {
 		return true
 	}
-	if IsXLessThanY(x, NewBigInt(0)) || x.String() == "0" || x.String() == "1" {
+	if IsXLessThanY(x, NewBigInt(2)) {
 		return true
 	}
 	return false

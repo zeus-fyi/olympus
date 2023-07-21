@@ -30,6 +30,13 @@ func TestPercentDiff(t *testing.T) {
 
 	resp := MulBigInt(NewBigInt(0), NewBigInt(0))
 	fmt.Println("resp", resp.String())
+
+	bo0 := IsXLessThanEqZeroOrOne(NewBigInt(0))
+	fmt.Println("bo", bo0)
+	bo1 := IsXLessThanEqZeroOrOne(NewBigInt(1))
+	fmt.Println("bo", bo1)
+	bo2 := IsXLessThanEqZeroOrOne(NewBigInt(2))
+	fmt.Println("bo", bo2)
 }
 
 func TestPercentDiffk(t *testing.T) {

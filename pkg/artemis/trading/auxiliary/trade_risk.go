@@ -94,19 +94,19 @@ func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf
 	log.Info().Str("txHash", tf.Tx.Hash().String()).Interface("tf.FrontRunTrade.AmountInAddr.String() ", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountOutAddr.String()", tf.FrontRunTrade.AmountOutAddr.String()).Msg("IsProfitTokenAcceptable: profit token is acceptable")
 	ok1 := artemis_eth_units.IsXLessThanEqZeroOrOne(tf.FrontRunTrade.AmountIn)
 	ok2 := artemis_eth_units.IsXLessThanEqZeroOrOne(tf.FrontRunTrade.AmountOut)
-	if !ok1 || !ok2 {
+	if ok1 || ok2 {
 		log.Warn().Str("tf.Tx.Hash", tf.Tx.Hash().String()).Interface("tf.FrontRunTrade", tf.FrontRunTrade).Msg("ActiveTradingFilter: FrontRunTrade one of the trade amountsIn or amountsOut is zero")
 		return false, errors.New("FrontRunTrade one of the trade amountsIn or amountsOut is zero")
 	}
 	ok3 := artemis_eth_units.IsXLessThanEqZeroOrOne(tf.UserTrade.AmountIn)
 	ok4 := artemis_eth_units.IsXLessThanEqZeroOrOne(tf.UserTrade.AmountOut)
-	if !ok3 || !ok4 {
+	if ok3 || ok4 {
 		log.Warn().Str("tf.Tx.Hash", tf.Tx.Hash().String()).Interface("tf.UserTrade", tf.UserTrade).Msg("ActiveTradingFilter: UserTrade one of the trade amountsIn or amountsOut is zero")
 		return false, errors.New("UserTrade one of the trade amountsIn or amountsOut is zero")
 	}
 	ok5 := artemis_eth_units.IsXLessThanEqZeroOrOne(tf.SandwichTrade.AmountIn)
 	ok6 := artemis_eth_units.IsXLessThanEqZeroOrOne(tf.SandwichTrade.AmountOut)
-	if !ok5 || !ok6 {
+	if ok5 || ok6 {
 		log.Warn().Str("tf.Tx.Hash", tf.Tx.Hash().String()).Interface("tf.SandwichTrade", tf.SandwichTrade).Msg("ActiveTradingFilter: SandwichTrade one of the trade amountsIn or amountsOut is zero")
 		return false, errors.New("one of the trade amountsIn or amountsOut is zero")
 	}

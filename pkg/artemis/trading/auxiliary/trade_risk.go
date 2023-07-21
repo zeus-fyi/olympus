@@ -68,6 +68,7 @@ func IsTradingEnabledOnToken(tk string) (bool, error) {
 func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow, m *metrics_trading.TradingMetrics) (bool, error) {
 	if tf.Tx == nil {
 		log.Warn().Msg("IsProfitTokenAcceptable: tx is nil")
+		return false, errors.New("IsProfitTokenAcceptable: tx is nil")
 	}
 	log.Info().Str("txHash", tf.Tx.Hash().String()).Interface("tf.FrontRunTrade.AmountInAddr.String() ", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountOutAddr.String()", tf.FrontRunTrade.AmountOutAddr.String()).Msg("IsProfitTokenAcceptable: is profit token acceptable")
 	// just assumes mainnet for now

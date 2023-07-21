@@ -3,7 +3,6 @@ package web3_client
 import (
 	"context"
 	"errors"
-	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -94,8 +93,8 @@ func (s *V2SwapExactInParams) Decode(ctx context.Context, data []byte, abiFile *
 	}
 	payerIsSender, ok := args["payerIsSender"].(bool)
 	if !ok {
-		log.Warn().Msg("V2SwapExactInParams: payerIsSender is not a bool")
-		return fmt.Errorf("V2SwapExactInParams: payerIsSender is not a bool")
+		log.Warn().Msg("V2SwapExactInParams: payerIsSender is not a bool, defaulting to false")
+		payerIsSender = false
 	}
 	s.AmountIn = amountIn
 	s.AmountOutMin = amountOutMin
@@ -202,8 +201,8 @@ func (s *V2SwapExactOutParams) Decode(ctx context.Context, data []byte, abiFile 
 	}
 	payerIsSender, ok := args["payerIsSender"].(bool)
 	if !ok {
-		log.Err(fmt.Errorf("V2SwapExactInParams: payerIsSender is not a bool")).Msg("Failed to assert type for payerIsSender")
-		return fmt.Errorf("V2SwapExactInParams: payerIsSender is not a bool")
+		log.Warn().Msg("V2SwapExactOutParams: payerIsSender is not a bool, defaulting to false")
+		payerIsSender = false
 	}
 	s.AmountInMax = amountInMax
 	s.AmountOut = amountOut

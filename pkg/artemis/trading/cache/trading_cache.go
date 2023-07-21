@@ -80,11 +80,11 @@ func GetLatestBlockFromCacheOrProvidedSource(ctx context.Context, w3 web3_action
 }
 
 func GetLatestBlock(ctx context.Context) (uint64, error) {
-	val, ok := Cache.Get(redis_mev.LatestBlockNumberCacheKey)
-	if ok && val != nil {
-		//log.Info().Uint64("val", val.(uint64)).Msg("got block number from cache")
-		return val.(uint64), nil
-	}
+	//val, ok := Cache.Get(redis_mev.LatestBlockNumberCacheKey)
+	//if ok && val != nil {
+	//	//log.Info().Uint64("val", val.(uint64)).Msg("got block number from cache")
+	//	return val.(uint64), nil
+	//}
 	if ReadRedis.Client != nil {
 		bn, err := ReadRedis.GetLatestBlockNumber(ctx)
 		if err == nil {
@@ -109,7 +109,7 @@ func GetLatestBlock(ctx context.Context) (uint64, error) {
 		}
 	}
 	//log.Info().Interface("bn", bn).Msg("set block number in cache")
-	Cache.Set(redis_mev.LatestBlockNumberCacheKey, bn, 6*time.Second)
+	//Cache.Set(redis_mev.LatestBlockNumberCacheKey, bn, 6*time.Second)
 	return bn, nil
 }
 

@@ -80,7 +80,7 @@ func GetLatestBlockFromCacheOrProvidedSource(ctx context.Context, w3 web3_action
 		log.Err(berr).Str("w3_sessionID", w3SessionHeader).Str("wc_sessionID", wcSessionHeader).Msg("GetLatestBlockFromCacheOrProvidedSource: failed to get block number")
 		return 0, berr
 	}
-	return bn, berr
+	return bn, nil
 }
 
 func GetLatestBlock(ctx context.Context) (uint64, error) {

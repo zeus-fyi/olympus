@@ -112,7 +112,7 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 	tag := strings.Join([]string{fmt.Sprintf("%s", p.PairContractAddr), bnst}, "-")
 	if cached, found := Cache.Get(tag); found {
 		if cached == nil && redisCache.Client != nil {
-			pd, err := redisCache.GetPairPricesFromCacheIfExists(ctx, tag)
+			pd, err := redisCache.GetPairPricesFromCacheIfExists(context.Background(), tag)
 			if err != nil {
 				log.Err(err).Msgf("Error getting pair prices from cache for %s", tag)
 			} else {

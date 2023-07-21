@@ -104,7 +104,7 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 		bnst = fmt.Sprintf("%s-%s", bnst, sessionID)
 	} else {
 		if redisCache.Client != nil {
-			err := redisCache.AddV2PairToNextLookupSet(ctx, p.PairContractAddr, bn)
+			err := redisCache.AddV2PairToNextLookupSet(ctx, bn, p.PairContractAddr, sessionID)
 			if err != nil {
 				log.Error().Err(err).Msg("failed to add pair to next lookup set")
 			}

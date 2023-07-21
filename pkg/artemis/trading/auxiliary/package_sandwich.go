@@ -225,7 +225,7 @@ func PackageSandwichAndSend(ctx context.Context, w3c web3_client.Web3Client, tf 
 	}
 	bundle, err := PackageSandwich(ctx, w3c, tf)
 	if err != nil {
-		log.Err(err).Msg("failed to package sandwich")
+		log.Err(err).Msg("PackageSandwichAndSend: PackageSandwich failed to package sandwich")
 		return nil, err
 	}
 	if bundle == nil {
@@ -236,7 +236,7 @@ func PackageSandwichAndSend(ctx context.Context, w3c web3_client.Web3Client, tf 
 	}
 	resp, err := CallAndSendFlashbotsBundle(ctx, w3c, *bundle)
 	if err != nil {
-		log.Err(err).Msg("failed to send sandwich")
+		log.Err(err).Msg("PackageSandwichAndSend: CallAndSendFlashbotsBundle failed to send sandwich")
 		return nil, err
 	}
 	log.Info().Str("bundleHash", resp.BundleHash).Msg("PackageSandwichAndSend: done")

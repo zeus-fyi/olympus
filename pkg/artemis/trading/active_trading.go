@@ -137,8 +137,6 @@ func IngestTx(ctx context.Context, w3c web3_client.Web3Client, tx *types.Transac
 	}
 	if m != nil {
 		m.StageProgressionMetrics.CountPostDecodeTx()
-		m.StageProgressionMetrics.CountCheckpointOneMarker()
-
 	}
 	err = ActiveTradeMethodFilter(ctx, mevTx.MethodName, m)
 	if err != nil {

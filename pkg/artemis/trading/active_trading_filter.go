@@ -86,9 +86,6 @@ func ActiveTradeMethodFilter(ctx context.Context, tm string, m *metrics_trading.
 		log.Warn().Str("tf.Trade.TradeMethod", tm).Msg("dat: ActiveTradingFilter: method not supported for now")
 		return fmt.Errorf("dat: ActiveTradingFilter: %s method not supported for now", tm)
 	}
-	if m != nil {
-		m.StageProgressionMetrics.CountCheckpointTwoMarker()
-	}
 	return nil
 }
 func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web3_client.TradeExecutionFlow, m *metrics_trading.TradingMetrics) error {
@@ -96,11 +93,13 @@ func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web
 	if err != nil {
 		return err
 	}
-	_, err = artemis_trading_auxiliary.IsProfitTokenAcceptable(ctx, w3c, &tf)
+
+	_, err = artemis_trading_auxiliary.IsProfitTokenAcceptable(ctx, w3c, &tf, m)
 	if err != nil {
 		log.Err(err).Msg("ActiveTradingFilter: profit token not acceptable")
 		return err
 	}
+
 	//ok, err := a.GetAuxClient().IsTradingEnabledOnToken(tf.UserTrade.AmountOutAddr.String())
 	//if err != nil {
 	//	log.Err(err).Msg("dat: ActiveTradingFilter: trading not enabled for token")

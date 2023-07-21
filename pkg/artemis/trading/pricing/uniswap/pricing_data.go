@@ -207,6 +207,7 @@ func (m *PricingCache) AddV2PairToNextLookupSet(ctx context.Context, bn uint64, 
 	}
 	tag := GetPairBnCacheKey(bn)
 	if _, found := localCache.Get(tag); found {
+		log.Info().Msgf("AddV2PairToNextLookupSet: %s already in local cache", v2pairAddr)
 		return nil
 	}
 	localCache.Set(tag, true, cache.DefaultExpiration)

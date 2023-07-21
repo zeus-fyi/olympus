@@ -106,15 +106,15 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 	} else {
 		err := redisCache.AddV2PairToNextLookupSet(context.Background(), bn, p.PairContractAddr, sessionID)
 		if err != nil {
-			log.Error().Err(err).Msg("failed to add pair to next lookup set")
+			log.Error().Err(err).Msg("AddV2PairToNextLookupSet: failed to add pair to next lookup set")
 		}
 	}
 	tag := strings.Join([]string{fmt.Sprintf("%s", p.PairContractAddr), bnst}, "-")
 	if cached, found := Cache.Get(tag); found {
-		if cached == nil && redisCache.Client != nil {
+		if cached == nil {
 			pd, err := redisCache.GetPairPricesFromCacheIfExists(context.Background(), tag)
 			if err != nil {
-				log.Err(err).Msgf("Error getting pair prices from cache for %s", tag)
+				log.Err(err).Msgf("AddV2PairToNextLookupSet: error getting pair prices from cache for %s", tag)
 			} else {
 				cachedV2 := pd.V2Pair
 				p = &cachedV2
@@ -124,6 +124,10 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 		if cached == nil {
 			resp, err := wc.CallConstantFunction(ctx, scInfo)
 			if err != nil {
+				return err
+			}
+			if len(resp) <= 2 {
+				log.Warn().Msgf("GetPairContractPrices: len(resp) <= 2 for %s", tag)
 				return err
 			}
 			reserve0, err := artemis_utils.ParseBigInt(resp[0])
@@ -142,9 +146,6 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 			}
 			p.BlockTimestampLast = blockTimestampLast
 			Cache.Set(tag, *p, cache.NoExpiration)
-			if len(resp) <= 2 {
-				return err
-			}
 			return nil
 		}
 		if sessionID != "" {
@@ -158,7 +159,7 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 	}
 	pd, err := redisCache.GetPairPricesFromCacheIfExists(context.Background(), tag)
 	if err != nil {
-		log.Err(err).Msgf("Error getting pair prices from cache for %s", tag)
+		log.Err(err).Msgf("GetPairContractPrices: GetPairPricesFromCacheIfExists: error getting pair prices from cache for %s", tag)
 	} else {
 		cachedV2 := pd.V2Pair
 		p = &cachedV2

@@ -155,6 +155,10 @@ func GetUniswapUniversalRouterAbiPayload(ctx context.Context, payload *web3_clie
 		log.Warn().Msg("GetUniswapUniversalRouterAbiPayload: error generating bin data from params abi")
 		return web3_actions.SendContractTxPayload{}, err
 	}
+	if params.Data == nil {
+		log.Warn().Msg("GetUniswapUniversalRouterAbiPayload: params.Data is nil")
+		return web3_actions.SendContractTxPayload{}, errors.New("params.Data is nil")
+	}
 	return params, nil
 }
 

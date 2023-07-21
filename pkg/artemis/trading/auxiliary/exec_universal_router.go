@@ -122,6 +122,14 @@ func GetUniswapUniversalRouterAbiPayload(ctx context.Context, w3c web3_client.We
 	if payload.Deadline == nil {
 		payload.Deadline = GetDeadline()
 	}
+	if len(payload.Commands) == 0 {
+		log.Warn().Msg("GetUniswapUniversalRouterAbiPayload: commands are empty")
+		return web3_actions.SendContractTxPayload{}, errors.New("GetUniswapUniversalRouterAbiPayload: commands are empty")
+	}
+	if len(payload.Inputs) == 0 {
+		log.Warn().Msg("GetUniswapUniversalRouterAbiPayload: inputs are empty")
+		return web3_actions.SendContractTxPayload{}, errors.New("GetUniswapUniversalRouterAbiPayload: inputs are empty")
+	}
 	fnParams := []interface{}{payload.Commands, payload.Inputs}
 	methodName := artemis_trading_constants.Execute
 	if payload.Deadline != nil {

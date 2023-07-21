@@ -96,6 +96,7 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 	scInfo.MethodName = getReserves
 	bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(ctx, wc)
 	if berr != nil {
+		log.Err(berr).Msg("GetPairContractPrices: failed to get latest block from cache or provided source")
 		return berr
 	}
 	bnst := fmt.Sprintf("%d", bn)
@@ -103,11 +104,9 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 	if wc.GetSessionLockHeader() != "" {
 		bnst = fmt.Sprintf("%s-%s", bnst, sessionID)
 	} else {
-		if redisCache.Client != nil {
-			err := redisCache.AddV2PairToNextLookupSet(ctx, bn, p.PairContractAddr, sessionID)
-			if err != nil {
-				log.Error().Err(err).Msg("failed to add pair to next lookup set")
-			}
+		err := redisCache.AddV2PairToNextLookupSet(ctx, bn, p.PairContractAddr, sessionID)
+		if err != nil {
+			log.Error().Err(err).Msg("failed to add pair to next lookup set")
 		}
 	}
 	tag := strings.Join([]string{fmt.Sprintf("%s", p.PairContractAddr), bnst}, "-")

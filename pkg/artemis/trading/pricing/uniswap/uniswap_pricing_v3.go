@@ -87,105 +87,50 @@ func (p *UniswapV3Pair) PricingData(ctx context.Context, path artemis_trading_ty
 		p.Pool = assertedVal.Pool
 		return nil
 	}
-	tm := artemis_trading_cache.TokenMap
-	if tm != nil && tm[path.TokenIn.String()].TransferTaxDenominator != nil && tm[path.GetEndToken().String()].TransferTaxDenominator != nil {
-		decimals := 0
-		tokenA := tm[path.TokenIn.String()]
-		if tokenA.Decimals != nil {
-			decimals = *tokenA.Decimals
-		}
-		sym := ""
-		if tokenA.Symbol != nil {
-			sym = *tokenA.Symbol
-		}
-		name := ""
-		if tokenA.Name != nil {
-			name = *tokenA.Name
-		}
-		tokenCurrencyA := uniswap_core_entities.NewToken(1, accounts.HexToAddress(tokenA.Address), uint(decimals), sym, name)
-		tokenB := tm[path.GetEndToken().String()]
-		if tokenB.Decimals != nil {
-			decimals = *tokenB.Decimals
-		}
-		sym = ""
-		if tokenB.Symbol != nil {
-			sym = *tokenB.Symbol
-		}
-		name = ""
-		if tokenB.Name != nil {
-			name = *tokenB.Name
-		}
-		tokenCurrencyB := uniswap_core_entities.NewToken(1, accounts.HexToAddress(path.GetEndToken().Hex()), uint(decimals), sym, name)
-		factoryAddress := accounts.HexToAddress(UniswapV3FactoryAddress)
-		pa, err := utils.ComputePoolAddress(factoryAddress, tokenCurrencyA, tokenCurrencyB, p.Fee, "")
-		if err != nil {
-			return err
-		}
-		p.PoolAddress = pa.String()
-		err = p.GetLiquidityAndSlot0FromMulticall3(ctx)
-		if err != nil {
-			return err
-		}
-		ts, err := p.GetPopulatedTicksMap()
-		if err != nil {
-			return err
-		}
-		if len(ts) <= 0 {
-			return errors.New("no populated ticks")
-		}
-		tdp, err := entities.NewTickListDataProvider(ts, constants.TickSpacings[p.Fee])
-		if err != nil {
-			return err
-		}
-		p.TickListDataProvider = tdp
-		v3Pool, err := entities.NewPool(tokenCurrencyA, tokenCurrencyB, p.Fee, p.Slot0.SqrtPriceX96, p.Liquidity, p.Slot0.Tick, p.TickListDataProvider)
-		if err != nil {
-			return err
-		}
-		p.Pool = v3Pool
-	} else {
-		// todo, store decimals in db
-		tokenA := uniswap_core_entities.NewToken(1, accounts.HexToAddress(path.TokenIn.Hex()), 0, "", "")
-		tokenB := uniswap_core_entities.NewToken(1, accounts.HexToAddress(path.GetEndToken().Hex()), 0, "", "")
-		// todo not sure if this factoryAddress covers all cases
-		factoryAddress := accounts.HexToAddress(UniswapV3FactoryAddress)
-		pa, err := utils.ComputePoolAddress(factoryAddress, tokenA, tokenB, p.Fee, "")
-		if err != nil {
-			return err
-		}
-		p.PoolAddress = pa.String()
-		err = p.GetLiquidityAndSlot0FromMulticall3(ctx)
-		if err != nil {
-			return err
-		}
-		ts, err := p.GetPopulatedTicksMap()
-		if err != nil {
-			return err
-		}
-		if len(ts) <= 0 {
-			return errors.New("no populated ticks")
-		}
-		tdp, err := entities.NewTickListDataProvider(ts, constants.TickSpacings[p.Fee])
-		if err != nil {
-			return err
-		}
-		p.TickListDataProvider = tdp
-		v3Pool, err := entities.NewPool(tokenA, tokenB, p.Fee, p.Slot0.SqrtPriceX96, p.Liquidity, p.Slot0.Tick, p.TickListDataProvider)
-		if err != nil {
-			return err
-		}
-		p.Pool = v3Pool
+
+	// todo, store decimals in db
+	tokenA := uniswap_core_entities.NewToken(1, accounts.HexToAddress(path.TokenIn.Hex()), 0, "", "")
+	tokenB := uniswap_core_entities.NewToken(1, accounts.HexToAddress(path.GetEndToken().Hex()), 0, "", "")
+	// todo not sure if this factoryAddress covers all cases
+	factoryAddress := accounts.HexToAddress(UniswapV3FactoryAddress)
+	pa, err := utils.ComputePoolAddress(factoryAddress, tokenA, tokenB, p.Fee, "")
+	if err != nil {
+		return err
 	}
-	if p != nil {
+	p.PoolAddress = pa.String()
+	err = p.GetLiquidityAndSlot0FromMulticall3(ctx)
+	if err != nil {
+		log.Err(err).Msg("PricingData: error getting liquidity and slot0 from multicall3")
+		return err
+	}
+	ts, err := p.GetPopulatedTicksMap()
+	if err != nil {
+		log.Err(err).Msg("PricingData: error getting populated ticks map")
+		return err
+	}
+	if len(ts) <= 0 {
+		return errors.New("PricingData: no populated ticks")
+	}
+	tdp, err := entities.NewTickListDataProvider(ts, constants.TickSpacings[p.Fee])
+	if err != nil {
+		return err
+	}
+	p.TickListDataProvider = tdp
+	v3Pool, err := entities.NewPool(tokenA, tokenB, p.Fee, p.Slot0.SqrtPriceX96, p.Liquidity, p.Slot0.Tick, p.TickListDataProvider)
+	if err != nil {
+		return err
+	}
+	p.Pool = v3Pool
+	if p != nil && p.Liquidity != nil {
 		pricingData := UniswapPricingData{
 			V3Pair: *p,
 		}
-		err := redisCache.AddOrUpdatePairPricesCache(ctx, hs, pricingData, time.Minute*60)
+		err = redisCache.AddOrUpdatePairPricesCache(ctx, hs, pricingData, time.Minute*60)
 		if err != nil {
 			log.Err(err).Msgf("Error adding v3 pair prices to cache for %s", hs)
+		} else {
+			Cache.Set(hs, p, time.Minute*5)
 		}
-
-		Cache.Set(hs, p, time.Minute*5)
 	}
 	return nil
 }

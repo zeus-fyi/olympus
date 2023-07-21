@@ -63,6 +63,15 @@ func AddBigInt(val, plus *big.Int) *big.Int {
 }
 
 func SubBigInt(val, minus *big.Int) *big.Int {
+	if val == nil && minus == nil {
+		return NewBigInt(0)
+	}
+	if val == nil {
+		return new(big.Int).Neg(minus)
+	}
+	if minus == nil {
+		return val
+	}
 	return new(big.Int).Sub(val, minus)
 }
 

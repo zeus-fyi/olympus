@@ -27,10 +27,10 @@ func (s *UniswapPricingTestSuite) TestRedisCache() {
 	redisCache.Client = rdb.InitRedis(ctx, redisOpts)
 	artemis_trading_cache.ReadRedis.Client = rdb.InitRedis(ctx, redisOpts)
 	artemis_trading_cache.WriteRedis.Client = rdb.InitRedis(ctx, redisOpts)
-	err := redisCache.AddV2PairToNextLookupSet(ctx, "0x6C0207FB939596eCC63b4549ce22dFFF4c928216", 1)
+	err := redisCache.AddV2PairToNextLookupSet(ctx, 0, "0x6C0207FB939596eCC63b4549ce22dFFF4c928216", "")
 	s.Require().Nil(err)
 
-	err = redisCache.AddV2PairToNextLookupSet(ctx, "0xDE2FCae812b9EDda8d658bBBAa60ABB972B4D468", 1)
+	err = redisCache.AddV2PairToNextLookupSet(ctx, 0, "0xDE2FCae812b9EDda8d658bBBAa60ABB972B4D468", "")
 	s.Require().Nil(err)
 
 	addresses, err := redisCache.GetV2PairsToMulticall(ctx, 1)

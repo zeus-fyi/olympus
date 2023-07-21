@@ -88,6 +88,7 @@ func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf
 		return false, fmt.Errorf("IsProfitTokenAcceptable: profit token is not WETH %s", tf.SandwichTrade.AmountOutAddr.String())
 	}
 
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Interface("tf.FrontRunTrade.AmountInAddr.String() ", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountOutAddr.String()", tf.FrontRunTrade.AmountOutAddr.String()).Msg("IsProfitTokenAcceptable: profit token is acceptable")
 	ok1 := artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.FrontRunTrade.AmountIn.String())
 	ok2 := artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.FrontRunTrade.AmountOut.String())
 	ok3 := artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.UserTrade.AmountIn.String())
@@ -99,6 +100,8 @@ func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf
 		log.Warn().Msg("IsProfitTokenAcceptable: one of the trade amountsIn or amountsOut is zero")
 		return false, errors.New("one of the trade amountsIn or amountsOut is zero")
 	}
+
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Interface("tf.FrontRunTrade.AmountInAddr.String() ", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountOutAddr.String()", tf.FrontRunTrade.AmountOutAddr.String()).Msg("IsProfitTokenAcceptable: profit amount is not zero")
 	ok, err := IsTradingEnabledOnToken(tf.FrontRunTrade.AmountOutAddr.String())
 	if err != nil {
 		log.Info().Interface("tf.FrontRunTrade.AmountInAddr.String()", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountOutAddr", tf.FrontRunTrade.AmountOutAddr.String()).Msg("IsProfitTokenAcceptable: trading is disabled for token")
@@ -108,6 +111,8 @@ func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf
 		log.Info().Msg("IsProfitTokenAcceptable: trading not enabled on token")
 		return false, errors.New("IsProfitTokenAcceptable: trading not enabled on token")
 	}
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Interface("tf.FrontRunTrade.AmountInAddr.String() ", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountOutAddr.String()", tf.FrontRunTrade.AmountOutAddr.String()).Msg("IsProfitTokenAcceptable: trading token is enabled")
+
 	if artemis_eth_units.IsXGreaterThanY(tf.FrontRunTrade.AmountIn, maxTradeSize()) {
 		log.Info().Str("tf.FrontRunTrade.AmountInAddr", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountIn", tf.FrontRunTrade.AmountIn).Interface("maxTradeSize", maxTradeSize()).Msg("IsProfitTokenAcceptable: trade size is higher than max trade size")
 		return false, errors.New("IsProfitTokenAcceptable: trade size is higher than max trade size")

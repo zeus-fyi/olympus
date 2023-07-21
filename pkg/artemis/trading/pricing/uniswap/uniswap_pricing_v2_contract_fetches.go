@@ -156,7 +156,7 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 		p.BlockTimestampLast = pair.BlockTimestampLast
 		return nil
 	}
-	pd, err := redisCache.GetPairPricesFromCacheIfExists(ctx, tag)
+	pd, err := redisCache.GetPairPricesFromCacheIfExists(context.Background(), tag)
 	if err != nil {
 		log.Err(err).Msgf("Error getting pair prices from cache for %s", tag)
 	} else {

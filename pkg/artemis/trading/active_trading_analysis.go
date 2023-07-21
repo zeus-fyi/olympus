@@ -158,6 +158,6 @@ func ApplyMaxTransferTax(ctx context.Context, tf *web3_client.TradeExecutionFlow
 		return errors.New("ApplyMaxTransferTax: trades are not valid")
 	}
 
-	log.Info().Str("txHash", tf.Tx.Hash().String()).Uint64("bn", tf.CurrentBlockNumber.Uint64()).Interface("profitTokenAddress", tf.SandwichTrade.AmountOutAddr.String()).Interface("sellAmount", tf.SandwichPrediction.SellAmount).Interface("tf.SandwichPrediction.ExpectedProfit", tf.SandwichPrediction.ExpectedProfit).Str("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut.String()).Msg("ApplyMaxTransferTax")
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Uint64("bn", tf.CurrentBlockNumber.Uint64()).Interface("profitTokenAddress", tf.SandwichTrade.AmountOutAddr.String()).Interface("sellAmount", tf.SandwichPrediction.SellAmount).Interface("tf.SandwichPrediction.ExpectedProfit", tf.SandwichPrediction.ExpectedProfit).Str("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut.String()).Msg("ApplyMaxTransferTax: acceptable after tax")
 	return nil
 }

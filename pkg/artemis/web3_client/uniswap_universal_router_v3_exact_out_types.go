@@ -32,35 +32,21 @@ type JSONV3SwapExactOutParams struct {
 }
 
 func (s *V3SwapExactOutParams) Encode(ctx context.Context, abiFile *abi.ABI) ([]byte, error) {
-	if abiFile == nil {
-		inputs, err := UniversalRouterDecoderAbi.Methods[V3SwapExactOut].Inputs.Pack(s.To, s.AmountOut, s.AmountInMax, s.Path.Encode(), s.PayerIsUser)
-		if err != nil {
-			return nil, err
-		}
-		return inputs, nil
-	}
-	inputs, err := abiFile.Methods[V3SwapExactOut].Inputs.Pack(s.To, s.AmountOut, s.AmountInMax, s.Path.Encode(), s.PayerIsUser)
+	inputs, err := UniversalRouterDecoderAbi.Methods[V3SwapExactOut].Inputs.Pack(s.To, s.AmountOut, s.AmountInMax, s.Path.Encode(), s.PayerIsUser)
 	if err != nil {
 		return nil, err
 	}
-	return inputs, err
+	return inputs, nil
 }
 
 func (s *V3SwapExactOutParams) Decode(ctx context.Context, data []byte, abiFile *abi.ABI) error {
 	args := make(map[string]interface{})
-	if abiFile == nil {
-		err := UniversalRouterDecoderAbi.Methods[V3SwapExactOut].Inputs.UnpackIntoMap(args, data)
-		if err != nil {
-			log.Warn().Err(err).Msg("V3SwapExactOutParams: UniversalRouterDecoderAbi failed to unpack data")
-			return err
-		}
-	} else {
-		err := abiFile.Methods[V3SwapExactOut].Inputs.UnpackIntoMap(args, data)
-		if err != nil {
-			log.Warn().Err(err).Msg("V3SwapExactOutParams: abiFile failed to unpack data")
-			return err
-		}
+	err := UniversalRouterDecoderAbi.Methods[V3SwapExactOut].Inputs.UnpackIntoMap(args, data)
+	if err != nil {
+		log.Warn().Err(err).Msg("V3SwapExactOutParams: UniversalRouterDecoderAbi failed to unpack data")
+		return err
 	}
+
 	amountInMax, err := ParseBigInt(args["amountInMax"])
 	if err != nil {
 		log.Warn().Err(err).Msg("V3SwapExactOutParams: failed to parse amountInMax")

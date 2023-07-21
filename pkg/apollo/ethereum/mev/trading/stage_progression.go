@@ -95,6 +95,8 @@ func NewStageProgressionMetrics(reg prometheus.Registerer) StageProgressionMetri
 		tx.PostSimStageCount,
 		tx.PostActiveTradingSimFilterTxCount,
 		tx.SentFlashbotsBundleSubmissionCount,
+		tx.CheckpointOneMarker,
+		tx.CheckpointTwoMarker,
 	)
 	return tx
 }

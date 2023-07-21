@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
 	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
@@ -60,7 +61,7 @@ func ActiveTradingFilterSlice(ctx context.Context, w3c web3_client.Web3Client, t
 		if err != nil {
 			return err
 		}
-		err = ActiveTradingFilter(ctx, w3c, tfInt)
+		err = ActiveTradingFilter(ctx, w3c, tfInt, nil)
 		if err != nil {
 			return err
 		}
@@ -68,7 +69,7 @@ func ActiveTradingFilterSlice(ctx context.Context, w3c web3_client.Web3Client, t
 	return nil
 }
 
-func ActiveTradeMethodFilter(ctx context.Context, tm string) error {
+func ActiveTradeMethodFilter(ctx context.Context, tm string, m *metrics_trading.TradingMetrics) error {
 	switch tm {
 	case artemis_trading_constants.SwapExactETHForTokens:
 	case artemis_trading_constants.SwapTokensForExactETH:
@@ -85,10 +86,11 @@ func ActiveTradeMethodFilter(ctx context.Context, tm string) error {
 		log.Warn().Str("tf.Trade.TradeMethod", tm).Msg("dat: ActiveTradingFilter: method not supported for now")
 		return fmt.Errorf("dat: ActiveTradingFilter: %s method not supported for now", tm)
 	}
+	m.StageProgressionMetrics.CountCheckpointTwoMarker()
 	return nil
 }
-func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web3_client.TradeExecutionFlow) error {
-	err := ActiveTradeMethodFilter(ctx, tf.Trade.TradeMethod)
+func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web3_client.TradeExecutionFlow, m *metrics_trading.TradingMetrics) error {
+	err := ActiveTradeMethodFilter(ctx, tf.Trade.TradeMethod, m)
 	if err != nil {
 		return err
 	}

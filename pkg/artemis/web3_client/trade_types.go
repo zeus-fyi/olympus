@@ -192,6 +192,7 @@ func (t *TradeExecutionFlow) AreAllTradesValid() bool {
 		log.Warn().Str("t.SandwichPrediction.ExpectedProfit.String()", t.SandwichPrediction.ExpectedProfit.String()).Str("t.SandwichPrediction.SellAmount.String()", t.SandwichPrediction.SellAmount.String()).Msg("TradeExecutionFlow: sandwich prediction is not valid")
 		return false
 	}
+	log.Info().Msg("TradeExecutionFlow: all trades are valid")
 	return true
 }
 

@@ -41,6 +41,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context, abiFile 
 		params := ur.DecodedInputs.(V3SwapExactInParams)
 		inputs, err := params.Encode(ctx, abiFile)
 		if err != nil {
+			log.Err(err).Msg("EncodeCommand V3_SWAP_EXACT_IN")
 			return cmdByte, nil, err
 		}
 		cmdByte = ur.EncodeCommandByte(ur.CanRevert, V3_SWAP_EXACT_IN)
@@ -50,6 +51,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context, abiFile 
 		params := ur.DecodedInputs.(V3SwapExactOutParams)
 		inputs, err := params.Encode(ctx, abiFile)
 		if err != nil {
+			log.Err(err).Msg("EncodeCommand V3_SWAP_EXACT_OUT")
 			return cmdByte, nil, err
 		}
 		ur.Inputs = inputs
@@ -60,6 +62,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context, abiFile 
 		params := ur.DecodedInputs.(V2SwapExactInParams)
 		inputs, err := params.Encode(ctx, abiFile)
 		if err != nil {
+			log.Err(err).Msg("EncodeCommand V2_SWAP_EXACT_IN")
 			return cmdByte, nil, err
 		}
 		ur.Inputs = inputs
@@ -70,6 +73,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context, abiFile 
 		params := ur.DecodedInputs.(V2SwapExactOutParams)
 		inputs, err := params.Encode(ctx, abiFile)
 		if err != nil {
+			log.Err(err).Msg("EncodeCommand V2_SWAP_EXACT_OUT")
 			return cmdByte, nil, err
 		}
 		ur.Inputs = inputs
@@ -77,44 +81,45 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context, abiFile 
 		return cmdByte, inputs, nil
 	case Permit2TransferFromBatch:
 		//	log.Info().Msg("EncodeCommand PERMIT2_TRANSFER_FROM_BATCH")
-		params := ur.DecodedInputs.(Permit2PermitTransferFromBatchParams)
-		inputs, err := params.Encode(ctx)
-		if err != nil {
-			return cmdByte, nil, err
-		}
-		ur.Inputs = inputs
-		cmdByte = ur.EncodeCommandByte(ur.CanRevert, PERMIT2_TRANSFER_FROM_BATCH)
-		ur.Command = Permit2TransferFromBatch
-		return cmdByte, inputs, nil
+		//params := ur.DecodedInputs.(Permit2PermitTransferFromBatchParams)
+		//inputs, err := params.Encode(ctx)
+		//if err != nil {
+		//	log.Err(err).Msg("EncodeCommand PERMIT2_TRANSFER_FROM_BATCH")
+		//	return cmdByte, nil, err
+		//}
+		//ur.Inputs = inputs
+		//cmdByte = ur.EncodeCommandByte(ur.CanRevert, PERMIT2_TRANSFER_FROM_BATCH)
+		//ur.Command = Permit2TransferFromBatch
+		//return cmdByte, inputs, nil
 	case Transfer:
-		params := ur.DecodedInputs.(TransferParams)
-		inputs, err := params.Encode(ctx)
-		if err != nil {
-			return cmdByte, nil, err
-		}
-		ur.Inputs = inputs
-		cmdByte = ur.EncodeCommandByte(ur.CanRevert, TRANSFER)
-		return cmdByte, nil, nil
+		//params := ur.DecodedInputs.(TransferParams)
+		//inputs, err := params.Encode(ctx)
+		//if err != nil {
+		//	return cmdByte, nil, err
+		//}
+		//ur.Inputs = inputs
+		//cmdByte = ur.EncodeCommandByte(ur.CanRevert, TRANSFER)
+		//return cmdByte, nil, nil
 	case Permit2TransferFrom:
 		//log.Info().Msg("EncodeCommand PERMIT2_TRANSFER_FROM")
-		params := ur.DecodedInputs.(Permit2TransferFromParams)
-		inputs, err := params.Encode(ctx)
-		if err != nil {
-			return cmdByte, nil, err
-		}
-		ur.Inputs = inputs
-		cmdByte = ur.EncodeCommandByte(ur.CanRevert, PERMIT2_TRANSFER_FROM)
-		return cmdByte, inputs, nil
+		//params := ur.DecodedInputs.(Permit2TransferFromParams)
+		//inputs, err := params.Encode(ctx)
+		//if err != nil {
+		//	return cmdByte, nil, err
+		//}
+		//ur.Inputs = inputs
+		//cmdByte = ur.EncodeCommandByte(ur.CanRevert, PERMIT2_TRANSFER_FROM)
+		//return cmdByte, inputs, nil
 	case Permit2PermitBatch:
 		//log.Info().Msg("EncodeCommand PERMIT2_PERMIT_BATCH")
-		params := ur.DecodedInputs.(Permit2PermitBatchParams)
-		inputs, err := params.Encode(ctx)
-		if err != nil {
-			return cmdByte, nil, err
-		}
-		ur.Inputs = inputs
-		cmdByte = ur.EncodeCommandByte(ur.CanRevert, PERMIT2_PERMIT_BATCH)
-		return cmdByte, inputs, nil
+		//params := ur.DecodedInputs.(Permit2PermitBatchParams)
+		//inputs, err := params.Encode(ctx)
+		//if err != nil {
+		//	return cmdByte, nil, err
+		//}
+		//ur.Inputs = inputs
+		//cmdByte = ur.EncodeCommandByte(ur.CanRevert, PERMIT2_PERMIT_BATCH)
+		//return cmdByte, inputs, nil
 	case Permit2Permit:
 		//log.Info().Msg("EncodeCommand PERMIT2_PERMIT")
 		params := ur.DecodedInputs.(Permit2PermitParams)

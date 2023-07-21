@@ -2,6 +2,7 @@ package web3_client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/big"
 
@@ -113,16 +114,20 @@ func (s *V3SwapExactOutParams) Decode(ctx context.Context, data []byte, abiFile 
 	return nil
 }
 
-func (s *JSONV3SwapExactOutParams) ConvertToBigIntType() *V3SwapExactOutParams {
-	amountInMax, _ := new(big.Int).SetString(s.AmountInMax, 10)
-	amountOut, _ := new(big.Int).SetString(s.AmountOut, 10)
+func (s *JSONV3SwapExactOutParams) ConvertToBigIntType() (*V3SwapExactOutParams, error) {
+	amountInMax, ok := new(big.Int).SetString(s.AmountInMax, 10)
+	amountOut, ok1 := new(big.Int).SetString(s.AmountOut, 10)
+	if !ok || !ok1 {
+		log.Warn().Msg("V3SwapExactOutParams: failed to convert string to big.Int")
+		return nil, errors.New("failed to convert string to big.Int")
+	}
 	return &V3SwapExactOutParams{
 		AmountInMax: amountInMax,
 		AmountOut:   amountOut,
 		Path:        s.Path,
 		To:          s.To,
 		PayerIsUser: s.PayerIsUser,
-	}
+	}, nil
 }
 
 func (s *V3SwapExactOutParams) ConvertToJSONType() *JSONV3SwapExactOutParams {

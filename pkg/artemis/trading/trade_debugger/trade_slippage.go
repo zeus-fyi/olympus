@@ -49,9 +49,12 @@ func (t *TradeDebugger) FindSlippage(ctx context.Context, w3c web3_client.Web3Cl
 			num = 300
 			denom = 1000
 		case 7:
-			num = 500
+			num = 400
 			denom = 1000
 		case 8:
+			num = 500
+			denom = 1000
+		case 9:
 			num = 1000
 			denom = 1000
 		default:

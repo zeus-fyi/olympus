@@ -104,7 +104,7 @@ func (a *AuxiliaryTradingUtils) C() *ethclient.Client {
 }
 
 func getBlockNumber(ctx context.Context, w3c web3_client.Web3Client) (int, error) {
-	bn, err := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(ctx, w3c.Web3Actions)
+	bn, err := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(context.Background(), w3c.Web3Actions)
 	if err != nil {
 		return 0, err
 	}

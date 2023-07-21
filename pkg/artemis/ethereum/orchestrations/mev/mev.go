@@ -74,7 +74,7 @@ func ProcessMempoolTxs(ctx context.Context, timestampChan chan time.Time) {
 			wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
 			wc.Network = hestia_req_types.Mainnet
 			wc.Dial()
-			bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(ctx, wc)
+			bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(context.Background(), wc)
 			if berr != nil {
 				log.Err(berr).Msg("failed to get block number")
 				wc.Close()

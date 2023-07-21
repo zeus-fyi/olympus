@@ -49,7 +49,7 @@ func (p *UniswapV3Pair) PricingData(ctx context.Context, path artemis_trading_ty
 	// todo, need to handle multi-hops, not sure if this is sufficient for that
 	p.Fee = constants.FeeAmount(path.GetFirstFee().Int64())
 	wc := p.Web3Actions
-	bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(ctx, wc)
+	bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(context.Background(), wc)
 	if berr != nil {
 		return berr
 	}

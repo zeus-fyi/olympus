@@ -108,7 +108,7 @@ func ApplyMaxTransferTax(ctx context.Context, tf *web3_client.TradeExecutionFlow
 		if err != nil {
 			log.Err(err).Msg("CheckTokenRegistry: failed to check token registry")
 		}
-	}(ctx, tokenOne, tokenTwo)
+	}(context.Background(), tokenOne, tokenTwo)
 
 	maxNum, maxDen := 0, 1
 	if info, ok := artemis_trading_cache.TokenMap[tokenOne]; ok {

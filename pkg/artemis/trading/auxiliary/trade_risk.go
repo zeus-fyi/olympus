@@ -3,6 +3,7 @@ package artemis_trading_auxiliary
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/big"
 
 	"github.com/rs/zerolog/log"
@@ -84,7 +85,7 @@ func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf
 	}
 	if tf.SandwichTrade.AmountOutAddr.String() != artemis_trading_constants.WETH9ContractAddress {
 		log.Warn().Str("txHash", tf.Tx.Hash().String()).Interface("tf.SandwichTrade.AmountOutAddr.String()", tf.SandwichTrade.AmountOutAddr.String()).Interface("tf.FrontRunTrade.AmountInAddr.String() ", tf.FrontRunTrade.AmountInAddr.String()).Msg("IsProfitTokenAcceptable: profit token is not the same")
-		return false, errors.New("IsProfitTokenAcceptable: profit token is not WETH")
+		return false, fmt.Errorf("IsProfitTokenAcceptable: profit token is not WETH %s", tf.SandwichTrade.AmountOutAddr.String())
 	}
 
 	ok1 := artemis_eth_units.IsStrXLessThanEqZeroOrOne(tf.FrontRunTrade.AmountIn.String())

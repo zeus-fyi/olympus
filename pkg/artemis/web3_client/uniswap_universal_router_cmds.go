@@ -59,18 +59,10 @@ type UnwrapWETHParams struct {
 
 func (u *UnwrapWETHParams) Decode(ctx context.Context, data []byte, abiFile *abi.ABI) error {
 	args := make(map[string]interface{})
-	if abiFile == nil {
-		err := UniversalRouterDecoderAbi.Methods[UnwrapWETH].Inputs.UnpackIntoMap(args, data)
-		if err != nil {
-			return err
-		}
-	} else {
-		err := abiFile.Methods[UnwrapWETH].Inputs.UnpackIntoMap(args, data)
-		if err != nil {
-			return err
-		}
+	err := UniversalRouterDecoderAbi.Methods[UnwrapWETH].Inputs.UnpackIntoMap(args, data)
+	if err != nil {
+		return err
 	}
-
 	amountMin, err := ParseBigInt(args["amountMin"])
 	if err != nil {
 		return err
@@ -85,19 +77,11 @@ func (u *UnwrapWETHParams) Decode(ctx context.Context, data []byte, abiFile *abi
 }
 
 func (u *UnwrapWETHParams) Encode(ctx context.Context, abiFile *abi.ABI) ([]byte, error) {
-	if abiFile == nil {
-		inputs, err := UniversalRouterDecoderAbi.Methods[UnwrapWETH].Inputs.Pack(u.Recipient, u.AmountMin)
-		if err != nil {
-			return nil, err
-		}
-		return inputs, nil
-	} else {
-		inputs, err := abiFile.Methods[UnwrapWETH].Inputs.Pack(u.Recipient, u.AmountMin)
-		if err != nil {
-			return nil, err
-		}
-		return inputs, nil
+	inputs, err := UniversalRouterDecoderAbi.Methods[UnwrapWETH].Inputs.Pack(u.Recipient, u.AmountMin)
+	if err != nil {
+		return nil, err
 	}
+	return inputs, nil
 }
 
 type WrapETHParams struct {

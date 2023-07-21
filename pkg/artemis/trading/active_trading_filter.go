@@ -79,6 +79,7 @@ func ActiveTradeMethodFilter(ctx context.Context, tm string) error {
 	case artemis_trading_constants.SwapExactTokensForETHSupportingFeeOnTransferTokens:
 	case artemis_trading_constants.SwapExactETHForTokensSupportingFeeOnTransferTokens:
 	case artemis_trading_constants.SwapExactTokensForTokensSupportingFeeOnTransferTokens:
+	case artemis_trading_constants.Multicall, artemis_trading_constants.Execute0, artemis_trading_constants.Execute:
 	case artemis_trading_constants.V2SwapExactIn, artemis_trading_constants.V2SwapExactOut:
 	default:
 		log.Warn().Str("tf.Trade.TradeMethod", tm).Msg("dat: ActiveTradingFilter: method not supported for now")

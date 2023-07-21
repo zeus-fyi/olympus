@@ -55,7 +55,7 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 			if err != nil {
 				return nil, err
 			}
-			log.Info().Msg("saving mempool tx")
+			log.Info().Msg("V3SwapExactIn: saving mempool tx")
 			err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 			if err != nil {
 				log.Err(err).Msg("failed to save mempool tx")

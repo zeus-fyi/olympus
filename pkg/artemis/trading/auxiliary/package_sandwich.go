@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
+	metrics_trading "github.com/zeus-fyi/olympus/pkg/apollo/ethereum/mev/trading"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
@@ -211,7 +212,7 @@ func StagingPackageSandwichAndCall(ctx context.Context, w3c web3_client.Web3Clie
 	return &resp, bundle, err
 }
 
-func PackageSandwichAndSend(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsSendBundleResponse, error) {
+func PackageSandwichAndSend(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow, m *metrics_trading.TradingMetrics) (*flashbotsrpc.FlashbotsSendBundleResponse, error) {
 	if tf == nil || tf.Tx == nil {
 		return nil, errors.New("PackageSandwich: tf is nil")
 	}
@@ -219,6 +220,10 @@ func PackageSandwichAndSend(ctx context.Context, w3c web3_client.Web3Client, tf 
 		return nil, errors.New("PackageSandwich: tf.FrontRunTrade.AmountIn or tf.SandwichTrade.AmountOut is nil")
 	}
 	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwichAndSend: start")
+
+	if m != nil {
+		m.StageProgressionMetrics.CountCheckpointOneMarker()
+	}
 	bundle, err := PackageSandwich(ctx, w3c, tf)
 	if err != nil {
 		log.Err(err).Msg("failed to package sandwich")
@@ -226,6 +231,9 @@ func PackageSandwichAndSend(ctx context.Context, w3c web3_client.Web3Client, tf 
 	}
 	if bundle == nil {
 		return nil, errors.New("bundle is nil")
+	}
+	if m != nil {
+		m.StageProgressionMetrics.CountCheckpointTwoMarker()
 	}
 	resp, err := CallAndSendFlashbotsBundle(ctx, w3c, *bundle)
 	if err != nil {

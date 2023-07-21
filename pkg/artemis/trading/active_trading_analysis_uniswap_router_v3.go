@@ -28,13 +28,18 @@ const (
 
 func RealTimeProcessUniswapV3RouterTx(ctx context.Context, tx web3_client.MevTx, abiFile *abi.ABI, filter *strings_filter.FilterOpts, m *metrics_trading.TradingMetrics, w3a web3_actions.Web3Actions) ([]web3_client.TradeExecutionFlow, error) {
 	toAddr := tx.Tx.To().String()
+	bn, berr := artemis_trading_cache.GetLatestBlock(context.Background())
+	if berr != nil {
+		log.Err(berr).Msg("RealTimeProcessUniswapV3RouterTx: failed to get latest block")
+		return nil, errors.New("failed to get latest block")
+	}
 	var tfSlice []web3_client.TradeExecutionFlow
 	if strings.HasPrefix(tx.MethodName, multicall) {
 		m.TxFetcherMetrics.TransactionGroup(toAddr, multicall)
 		inputs := &web3_client.Multicall{}
 		err := inputs.Decode(ctx, tx.Args)
 		if err != nil {
-			log.Err(err).Msg("failed to decode multicall args")
+			log.Err(err).Msg("RealTimeProcessUniswapV3RouterTx: failed to decode multicall args")
 			return nil, err
 		}
 		for _, data := range inputs.Data {
@@ -46,7 +51,7 @@ func RealTimeProcessUniswapV3RouterTx(ctx context.Context, tx web3_client.MevTx,
 			newTx := tx
 			newTx.MethodName = mn
 			newTx.Args = args
-			tf, terr := processUniswapV3Txs(ctx, newTx, m, w3a)
+			tf, terr := processUniswapV3Txs(ctx, bn, newTx, m, w3a)
 			if terr != nil {
 				log.Err(terr).Msg("failed to process uniswap v3 tx")
 				continue
@@ -54,22 +59,20 @@ func RealTimeProcessUniswapV3RouterTx(ctx context.Context, tx web3_client.MevTx,
 			tfSlice = append(tfSlice, tf...)
 		}
 	} else {
-		tf, err := processUniswapV3Txs(ctx, tx, m, w3a)
+		tf, err := processUniswapV3Txs(ctx, bn, tx, m, w3a)
 		if err != nil {
 			log.Err(err).Msg("failed to process uniswap v3 tx")
 			return nil, err
 		}
 		tfSlice = append(tfSlice, tf...)
 	}
+	if len(tfSlice) == 0 {
+		return nil, errors.New("RealTimeProcessUniswapV3RouterTx: tfSlice is empty")
+	}
 	return tfSlice, nil
 }
 
-func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_trading.TradingMetrics, w3a web3_actions.Web3Actions) ([]web3_client.TradeExecutionFlow, error) {
-	bn, berr := artemis_trading_cache.GetLatestBlock(ctx)
-	if berr != nil {
-		log.Err(berr).Msg("failed to get latest block")
-		return nil, errors.New("failed to get latest block")
-	}
+func processUniswapV3Txs(ctx context.Context, bn uint64, tx web3_client.MevTx, m *metrics_trading.TradingMetrics, w3a web3_actions.Web3Actions) ([]web3_client.TradeExecutionFlow, error) {
 	var tfSlice []web3_client.TradeExecutionFlow
 	toAddr := tx.Tx.To().String()
 	switch tx.MethodName {

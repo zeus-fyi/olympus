@@ -8,7 +8,7 @@ import (
 
 func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	if err := tyche_server.Cmd.Execute(); err != nil {
 		log.Err(err)
 	}

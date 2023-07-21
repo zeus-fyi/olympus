@@ -20,12 +20,13 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 	}
 	subcmd, err := web3_client.NewDecodedUniversalRouterExecCmdFromMap(tx.Args, abiFile)
 	if err != nil {
+		log.Err(err).Msg("RealTimeProcessUniversalRouterTx: failed to decode universal router exec cmd")
 		return nil, err
 	}
-	bn, err := artemis_trading_cache.GetLatestBlock(ctx)
+	bn, err := artemis_trading_cache.GetLatestBlock(context.Background())
 	if err != nil {
-		log.Err(err).Msg("failed to get latest block")
-		return nil, errors.New("ailed to get latest block")
+		log.Err(err).Msg("RealTimeProcessUniversalRouterTx: failed to get latest block")
+		return nil, errors.New("failed to get latest block")
 	}
 	var tfSlice []web3_client.TradeExecutionFlow
 	toAddr := tx.Tx.To().String()
@@ -40,26 +41,26 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 					m.ErrTrackingMetrics.RecordError(web3_client.V3SwapExactIn, pd.V3Pair.PoolAddress)
 				}
 				//log.Err(perr).Msg("V3SwapExactIn: error getting pricing data")
-				return nil, perr
+				continue
 			}
 			if pd == nil {
-				return nil, errors.New("pd is nil")
+				continue
 			}
 			tf, terr := inputs.BinarySearch(pd)
 			if terr != nil {
-				return nil, terr
+				continue
 			}
 			tf.CurrentBlockNumber = artemis_eth_units.NewBigIntFromUint(bn)
 			tf.Tx = tx.Tx
 			err = ApplyMaxTransferTax(ctx, &tf)
 			if err != nil {
-				return nil, err
+				continue
 			}
 			log.Info().Msg("V3SwapExactIn: saving mempool tx")
 			err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 			if err != nil {
 				log.Err(err).Msg("failed to save mempool tx")
-				return nil, errors.New("failed to save mempool tx")
+				continue
 			}
 			if m != nil {
 				m.StageProgressionMetrics.CountPostProcessTx(float64(1))
@@ -76,27 +77,27 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 				if pd != nil && m != nil {
 					m.ErrTrackingMetrics.RecordError(web3_client.V3SwapExactOut, pd.V3Pair.PoolAddress)
 				}
-				//log.Err(perr).Msg("V3SwapExactIn: error getting pricing data")
-				return nil, perr
+				log.Err(perr).Msg("V3SwapExactIn: error getting pricing data")
+				continue
 			}
 			if pd == nil {
-				return nil, errors.New("pd is nil")
+				continue
 			}
 			tf, terr := inputs.BinarySearch(pd)
 			if terr != nil {
-				return nil, terr
+				continue
 			}
 			tf.CurrentBlockNumber = artemis_eth_units.NewBigIntFromUint(bn)
 			tf.Tx = tx.Tx
 			err = ApplyMaxTransferTax(ctx, &tf)
 			if err != nil {
-				return nil, err
+				continue
 			}
 			log.Info().Msg("V3SwapExactOut: saving mempool tx")
 			err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 			if err != nil {
 				log.Err(err).Msg("failed to save mempool tx")
-				return nil, errors.New("failed to save mempool tx")
+				continue
 			}
 			if m != nil {
 				m.StageProgressionMetrics.CountPostProcessTx(float64(1))
@@ -113,21 +114,21 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 				if pd != nil && m != nil {
 					m.ErrTrackingMetrics.RecordError(web3_client.V2SwapExactIn, pd.V2Pair.PairContractAddr)
 				}
-				//log.Err(perr).Msg("V2SwapExactIn: error getting pricing data")
-				return nil, perr
+				log.Err(perr).Msg("V2SwapExactIn: error getting pricing data")
+				continue
 			}
 			if pd == nil {
-				return nil, errors.New("pd is nil")
+				continue
 			}
 			tf, terr := inputs.BinarySearch(pd.V2Pair)
 			if terr != nil {
-				return nil, terr
+				continue
 			}
 			tf.CurrentBlockNumber = artemis_eth_units.NewBigIntFromUint(bn)
 			tf.Tx = tx.Tx
 			err = ApplyMaxTransferTax(ctx, &tf)
 			if err != nil {
-				return nil, err
+				continue
 			}
 			if m != nil {
 				m.StageProgressionMetrics.CountPostProcessTx(float64(1))
@@ -139,8 +140,7 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 			log.Info().Msg("V2SwapExactIn: saving mempool tx")
 			err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 			if err != nil {
-				log.Err(err).Msg("failed to save mempool tx")
-				return nil, errors.New("failed to save mempool tx")
+				continue
 			}
 			tfSlice = append(tfSlice, tf)
 		case web3_client.V2SwapExactOut:
@@ -152,20 +152,20 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 					m.ErrTrackingMetrics.RecordError(web3_client.V2SwapExactOut, pd.V2Pair.PairContractAddr)
 				}
 				//log.Err(perr).Msg("V2SwapExactOut: error getting pricing data")
-				return nil, perr
+				continue
 			}
 			if pd == nil {
-				return nil, errors.New("pd is nil")
+				continue
 			}
 			tf, terr := inputs.BinarySearch(pd.V2Pair)
 			if terr != nil {
-				return nil, terr
+				continue
 			}
 			tf.CurrentBlockNumber = artemis_eth_units.NewBigIntFromUint(bn)
 			tf.Tx = tx.Tx
 			err = ApplyMaxTransferTax(ctx, &tf)
 			if err != nil {
-				return nil, err
+				continue
 			}
 			pend := len(inputs.Path) - 1
 			if m != nil {
@@ -177,12 +177,14 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 			log.Info().Msg("V2SwapExactOut: saving mempool tx")
 			err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 			if err != nil {
-				log.Err(err).Msg("failed to save mempool tx")
-				return nil, errors.New("failed to save mempool tx")
+				continue
 			}
 			tfSlice = append(tfSlice, tf)
 		default:
 		}
+	}
+	if len(tfSlice) == 0 {
+		return nil, errors.New("RealTimeProcessUniversalRouterTx: no txs to process")
 	}
 	return tfSlice, nil
 }

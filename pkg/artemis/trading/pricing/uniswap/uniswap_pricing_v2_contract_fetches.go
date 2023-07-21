@@ -26,7 +26,7 @@ var (
 )
 
 func GetBatchPairContractPricesViaMulticall3(ctx context.Context, wc web3_actions.Web3Actions, pairAddresses ...string) ([]*UniswapV2Pair, error) {
-	bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(ctx, wc)
+	bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(context.Background(), wc)
 	if berr != nil {
 		return nil, berr
 	}
@@ -94,8 +94,9 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 		ContractABI:       v2ABI,
 	}
 	scInfo.MethodName = getReserves
-	bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(ctx, wc)
+	bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(context.Background(), wc)
 	if berr != nil {
+		log.Err(berr).Msg("GetPairContractPrices: failed to get latest block from cache or provided source")
 		return berr
 	}
 	bnst := fmt.Sprintf("%d", bn)
@@ -103,19 +104,19 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 	if wc.GetSessionLockHeader() != "" {
 		bnst = fmt.Sprintf("%s-%s", bnst, sessionID)
 	} else {
-		if redisCache.Client != nil {
-			err := redisCache.AddV2PairToNextLookupSet(ctx, p.PairContractAddr, bn)
-			if err != nil {
-				log.Error().Err(err).Msg("failed to add pair to next lookup set")
-			}
+		err := redisCache.AddV2PairToNextLookupSet(context.Background(), bn, p.PairContractAddr, sessionID)
+		if err != nil {
+			log.Error().Err(err).Msg("AddV2PairToNextLookupSet: failed to add pair to next lookup set")
+			err = nil
 		}
 	}
 	tag := strings.Join([]string{fmt.Sprintf("%s", p.PairContractAddr), bnst}, "-")
 	if cached, found := Cache.Get(tag); found {
-		if cached == nil && redisCache.Client != nil {
-			pd, err := redisCache.GetPairPricesFromCacheIfExists(ctx, tag)
+		if cached == nil {
+			pd, err := redisCache.GetPairPricesFromCacheIfExists(context.Background(), tag)
 			if err != nil {
-				log.Err(err).Msgf("Error getting pair prices from cache for %s", tag)
+				log.Err(err).Msgf("AddV2PairToNextLookupSet: error getting pair prices from cache for %s", tag)
+				err = nil
 			} else {
 				cachedV2 := pd.V2Pair
 				p = &cachedV2
@@ -125,6 +126,10 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 		if cached == nil {
 			resp, err := wc.CallConstantFunction(ctx, scInfo)
 			if err != nil {
+				return err
+			}
+			if len(resp) <= 2 {
+				log.Warn().Msgf("GetPairContractPrices: len(resp) <= 2 for %s", tag)
 				return err
 			}
 			reserve0, err := artemis_utils.ParseBigInt(resp[0])
@@ -143,9 +148,6 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 			}
 			p.BlockTimestampLast = blockTimestampLast
 			Cache.Set(tag, *p, cache.NoExpiration)
-			if len(resp) <= 2 {
-				return err
-			}
 			return nil
 		}
 		if sessionID != "" {
@@ -157,9 +159,10 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 		p.BlockTimestampLast = pair.BlockTimestampLast
 		return nil
 	}
-	pd, err := redisCache.GetPairPricesFromCacheIfExists(ctx, tag)
+	pd, err := redisCache.GetPairPricesFromCacheIfExists(context.Background(), tag)
 	if err != nil {
-		log.Err(err).Msgf("Error getting pair prices from cache for %s", tag)
+		log.Err(err).Msgf("GetPairContractPrices: GetPairPricesFromCacheIfExists: error getting pair prices from cache for %s", tag)
+		err = nil
 	} else {
 		cachedV2 := pd.V2Pair
 		p = &cachedV2

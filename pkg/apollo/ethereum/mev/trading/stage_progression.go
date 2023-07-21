@@ -8,14 +8,29 @@ type StageProgressionMetrics struct {
 	PostDecodeTxCount                  prometheus.Counter
 	PostProcessFilterTxCount           prometheus.Counter
 	PostSimFilterTxCount               prometheus.Counter
-	PostActiveTradingSimFilterTxCount  prometheus.Counter
+	PostActiveTradingFilterTxCount     prometheus.Counter
 	PostSimStageCount                  prometheus.Counter
 	SentFlashbotsBundleSubmissionCount prometheus.Counter
 	SavedMempoolTxCount                prometheus.Counter
+
+	CheckpointOneMarker prometheus.Counter
+	CheckpointTwoMarker prometheus.Counter
 }
 
 func NewStageProgressionMetrics(reg prometheus.Registerer) StageProgressionMetrics {
 	tx := StageProgressionMetrics{}
+	tx.CheckpointOneMarker = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "eth_mev_checkpoint_one_marker",
+			Help: "Checkpoint marker for debugging",
+		},
+	)
+	tx.CheckpointTwoMarker = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "eth_mev_checkpoint_two_marker",
+			Help: "Checkpoint marker for debugging",
+		},
+	)
 	tx.PreEntryFilterTxCount = prometheus.NewCounter(
 		prometheus.CounterOpts{
 			Name: "eth_mev_pre_entry_filter_stage_count",
@@ -52,10 +67,10 @@ func NewStageProgressionMetrics(reg prometheus.Registerer) StageProgressionMetri
 			Help: "Tx count of mempool tx meeting criteria",
 		},
 	)
-	tx.PostActiveTradingSimFilterTxCount = prometheus.NewCounter(
+	tx.PostActiveTradingFilterTxCount = prometheus.NewCounter(
 		prometheus.CounterOpts{
-			Name: "eth_mev_post_active_trading_sim_tx_filter_stage",
-			Help: "Tx count before active simulation stage",
+			Name: "eth_mev_post_active_trading_filter_stage",
+			Help: "Tx count passing active filter",
 		},
 	)
 	tx.SentFlashbotsBundleSubmissionCount = prometheus.NewCounter(
@@ -78,14 +93,24 @@ func NewStageProgressionMetrics(reg prometheus.Registerer) StageProgressionMetri
 		tx.PreEntryFilterTxCount,
 		tx.SavedMempoolTxCount,
 		tx.PostSimStageCount,
-		tx.PostActiveTradingSimFilterTxCount,
+		tx.PostActiveTradingFilterTxCount,
 		tx.SentFlashbotsBundleSubmissionCount,
+		tx.CheckpointOneMarker,
+		tx.CheckpointTwoMarker,
 	)
 	return tx
 }
 
 func (t *StageProgressionMetrics) CountPostDecodeTx() {
 	t.PostDecodeTxCount.Add(1)
+}
+
+func (t *StageProgressionMetrics) CountCheckpointOneMarker() {
+	t.CheckpointOneMarker.Add(1)
+}
+
+func (t *StageProgressionMetrics) CountCheckpointTwoMarker() {
+	t.CheckpointTwoMarker.Add(1)
 }
 
 func (t *StageProgressionMetrics) CountPreEntryFilterTx() {
@@ -97,7 +122,7 @@ func (t *StageProgressionMetrics) CountPostEntryFilterTx() {
 }
 
 func (t *StageProgressionMetrics) CountPostActiveTradingFilter(count float64) {
-	t.PostActiveTradingSimFilterTxCount.Add(count)
+	t.PostActiveTradingFilterTxCount.Add(count)
 }
 
 func (t *StageProgressionMetrics) CountSentFlashbotsBundleSubmission(count float64) {

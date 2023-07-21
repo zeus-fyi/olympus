@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v9"
+	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
@@ -77,6 +78,16 @@ func GetV3PricingData(ctx context.Context, wc web3_actions.Web3Actions, path art
 		log.Err(err).Interface("path", path).Msg("error getting v3 pricing data")
 		return nil, err
 	}
+	bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(context.Background(), wc)
+	if berr != nil {
+		return nil, berr
+	}
+	sessionID := wc.GetSessionLockHeader()
+	err = redisCache.AddV3PairToNextLookupSet(ctx, pairV3.PoolAddress, bn, sessionID)
+	if err != nil {
+		log.Err(err).Interface("path", path).Msg("GetV3PricingData: error adding v3 pair to next lookup set")
+		err = nil
+	}
 	return &UniswapPricingData{
 		V3Pair: pairV3,
 	}, nil
@@ -95,7 +106,7 @@ func (m *PricingCache) AddOrUpdatePairPricesCache(ctx context.Context, tag strin
 	if err != nil {
 		return err
 	}
-	statusCmd := m.Set(ctx, tag, bin, ttl)
+	statusCmd := m.Set(context.Background(), tag, bin, ttl)
 	if statusCmd.Err() != nil {
 		log.Ctx(ctx).Err(statusCmd.Err()).Msgf("AddOrUpdateLatestBlockCache: %s", tag)
 		return statusCmd.Err()
@@ -120,7 +131,7 @@ func (m *PricingCache) GetPairPricesFromCacheIfExists(ctx context.Context, tag s
 	m.Client = artemis_trading_cache.ReadRedis.Client
 	pd := UniswapPricingData{}
 	var bytes []byte
-	err := m.Get(ctx, tag).Scan(&bytes)
+	err := m.Get(context.Background(), tag).Scan(&bytes)
 	switch {
 	case err == redis.Nil:
 		return pd, fmt.Errorf("GetPairPricesFromCacheIfExists: %s", tag)
@@ -136,26 +147,86 @@ func (m *PricingCache) GetPairPricesFromCacheIfExists(ctx context.Context, tag s
 
 const (
 	V2PairNextLookupSet = "V2PairNextLookupSet"
+	V3PairNextLookupSet = "V3PairNextLookupSet"
 )
 
 func GetPairBnCacheKey(bn uint64) string {
 	return fmt.Sprintf("%s-%d", V2PairNextLookupSet, bn)
 }
 
-func (m *PricingCache) AddV2PairToNextLookupSet(ctx context.Context, v2pairAddr string, bn uint64) error {
+func GetV2PairBnCacheKeyTag(bn uint64, v2Address, sessionID string) string {
+	return fmt.Sprintf("%s-%d-%s-%s", V2PairNextLookupSet, bn, v2Address, sessionID)
+}
+
+func GetV3PairBnCacheKey(bn uint64) string {
+	return fmt.Sprintf("%s-%d", V3PairNextLookupSet, bn)
+}
+func GetV3PairBnCacheKeyTag(bn uint64, v3PairAddress, sessionID string) string {
+	return fmt.Sprintf("%s-%d-%s-%s", V3PairNextLookupSet, bn, v3PairAddress, sessionID)
+}
+
+var localCache = cache.New(2*time.Minute, 2*time.Minute)
+
+func (m *PricingCache) AddV3PairToNextLookupSet(ctx context.Context, v3pairAddr string, bn uint64, sessionID string) error {
+	if artemis_trading_cache.WriteRedis.Client == nil {
+		return errors.New("V3PairNextLookupSet: redis client is nil")
+	}
+	if sessionID != "" {
+		return nil
+	}
+	tag := GetV3PairBnCacheKey(bn)
+	if _, found := localCache.Get(tag); found {
+		return nil
+	}
+	localCache.Set(tag, true, cache.DefaultExpiration)
+	m.Client = artemis_trading_cache.WriteRedis.Client
+	j := 0 // used to bypass error if it's been seen once
+	times := 11
+	for i := 1; i < times; i++ {
+		nextBlock := bn + uint64(i)
+		statusCmd := m.Client.SAdd(context.Background(), GetV3PairBnCacheKey(nextBlock), v3pairAddr)
+		if statusCmd.Err() != nil && j == 0 {
+			log.Ctx(ctx).Err(statusCmd.Err()).Msgf("V3PairNextLookupSet: %s", v3pairAddr)
+			return statusCmd.Err()
+		}
+		m.Client.Expire(context.Background(), GetV3PairBnCacheKey(nextBlock), time.Hour*3)
+		localCache.Set(GetV3PairBnCacheKey(nextBlock), true, cache.DefaultExpiration)
+		j++
+	}
+
+	// Also set an expiration time for the set if needed
+	return nil
+}
+
+func (m *PricingCache) AddV2PairToNextLookupSet(ctx context.Context, bn uint64, v2pairAddr, sessionID string) error {
 	if artemis_trading_cache.WriteRedis.Client == nil {
 		return errors.New("AddV2PairToNextLookupSet: redis client is nil")
 	}
-	m.Client = artemis_trading_cache.WriteRedis.Client
-	// next block number: bn+1
-	nextBlock := bn + 1
-	statusCmd := m.Client.SAdd(ctx, GetPairBnCacheKey(nextBlock), v2pairAddr)
-	if statusCmd.Err() != nil {
-		log.Ctx(ctx).Err(statusCmd.Err()).Msgf("AddV2PairToNextLookupSet: %s", v2pairAddr)
-		return statusCmd.Err()
+	if sessionID != "" {
+		return nil
 	}
+	tag := GetPairBnCacheKey(bn)
+	if _, found := localCache.Get(tag); found {
+		log.Info().Msgf("AddV2PairToNextLookupSet: %s already in local cache", v2pairAddr)
+		return nil
+	}
+	localCache.Set(tag, true, cache.DefaultExpiration)
+	m.Client = artemis_trading_cache.WriteRedis.Client
+
+	j := 0 // used to bypass error if it's been seen once
+	for i := 1; i < 10; i++ {
+		nextBlock := bn + 1
+		statusCmd := m.Client.SAdd(context.Background(), GetPairBnCacheKey(nextBlock), v2pairAddr)
+		if statusCmd.Err() != nil && j == 0 {
+			log.Ctx(ctx).Err(statusCmd.Err()).Msgf("AddV2PairToNextLookupSet: %s", v2pairAddr)
+			return statusCmd.Err()
+		}
+		m.Client.Expire(ctx, GetPairBnCacheKey(nextBlock), time.Hour*12)
+		localCache.Set(GetPairBnCacheKey(nextBlock), true, cache.DefaultExpiration)
+		j++
+	}
+	m.Client.Expire(ctx, tag, time.Hour*12)
 	// Also set an expiration time for the set if needed
-	m.Client.Expire(ctx, GetPairBnCacheKey(bn), time.Hour*12)
 	return nil
 }
 
@@ -164,7 +235,7 @@ func FetchV2PairsToMulticall(ctx context.Context, wc web3_actions.Web3Actions, b
 		return errors.New("FetchV2PairsToMulticall: redis client is nil")
 	}
 	redisCache.Client = artemis_trading_cache.ReadRedis.Client
-	addresses, err := redisCache.GetV2PairsToMulticall(ctx, bn)
+	addresses, err := redisCache.GetV2PairsToMulticall(context.Background(), bn)
 	if err != nil {
 		return err
 	}
@@ -172,7 +243,7 @@ func FetchV2PairsToMulticall(ctx context.Context, wc web3_actions.Web3Actions, b
 	for _, addr := range addresses {
 		tmp = append(tmp, addr)
 		if len(tmp) >= 25 {
-			_, err = GetBatchPairContractPricesViaMulticall3(ctx, wc, tmp...)
+			_, err = GetBatchPairContractPricesViaMulticall3(context.Background(), wc, tmp...)
 			if err != nil {
 				return err
 			}
@@ -180,7 +251,7 @@ func FetchV2PairsToMulticall(ctx context.Context, wc web3_actions.Web3Actions, b
 		}
 	}
 	if len(tmp) > 0 {
-		_, err = GetBatchPairContractPricesViaMulticall3(ctx, wc, tmp...)
+		_, err = GetBatchPairContractPricesViaMulticall3(context.Background(), wc, tmp...)
 		if err != nil {
 			return err
 		}
@@ -194,7 +265,7 @@ func (m *PricingCache) GetV2PairsToMulticall(ctx context.Context, bn uint64) ([]
 		return nil, errors.New("GetV2PairsToMulticall: redis client is nil")
 	}
 	m.Client = artemis_trading_cache.ReadRedis.Client
-	pairAddresses, err := m.Client.SMembers(ctx, GetPairBnCacheKey(bn)).Result()
+	pairAddresses, err := m.Client.SMembers(context.Background(), GetPairBnCacheKey(bn)).Result()
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msgf("GetV2PairsToMulticall: %s", GetPairBnCacheKey(bn))
 		return nil, err

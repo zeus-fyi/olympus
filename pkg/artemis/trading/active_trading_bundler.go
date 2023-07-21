@@ -11,7 +11,7 @@ import (
 
 func ProcessBundleStage(ctx context.Context, w3c web3_client.Web3Client, tfSlice []web3_client.TradeExecutionFlow, m *metrics_trading.TradingMetrics) {
 	for _, tf := range tfSlice {
-		err := ActiveTradingFilter(ctx, w3c, tf)
+		err := ActiveTradingFilter(ctx, w3c, tf, m)
 		if err != nil {
 			log.Err(err).Msg("ProcessBundleStage: failed to pass active filter trade")
 			err = nil
@@ -19,7 +19,7 @@ func ProcessBundleStage(ctx context.Context, w3c web3_client.Web3Client, tfSlice
 		}
 		log.Info().Msgf("ProcessBundleStage: passed active filter trade: %s", tf.Tx.Hash().String())
 		m.StageProgressionMetrics.CountPostActiveTradingFilter(1)
-		resp, err := artemis_trading_auxiliary.PackageSandwichAndSend(ctx, w3c, &tf)
+		resp, err := artemis_trading_auxiliary.PackageSandwichAndSend(ctx, w3c, &tf, m)
 		if err != nil {
 			log.Err(err).Msg("ProcessBundleStage: failed to package sandwich")
 			err = nil
@@ -27,7 +27,7 @@ func ProcessBundleStage(ctx context.Context, w3c web3_client.Web3Client, tfSlice
 		}
 		log.Info().Msgf("ProcessBundleStage: PackageSandwichAndSend passed bundle hash: %s", resp.BundleHash)
 		if resp != nil {
-			log.Info().Interface("fbCallResp", resp).Msg("sent sandwich")
+			log.Info().Interface("fbCallResp", resp).Msg("ProcessBundleStage: sent sandwich")
 			m.StageProgressionMetrics.CountSentFlashbotsBundleSubmission(1)
 		}
 	}

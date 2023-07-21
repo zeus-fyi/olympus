@@ -1,6 +1,7 @@
 package v1_tyche
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -32,11 +33,10 @@ func TxProcessingRequestHandler(c echo.Context) error {
 }
 
 func (t *TxProcessingRequest) ProcessTx(c echo.Context) error {
-	ctx := c.Request().Context()
 	w3cTrader := artemis_trade_executor.ActiveTraderW3c
 	for _, tx := range t.Txs {
 		go func(tx *types.Transaction, w3c web3_client.Web3Client) {
-			werr := artemis_realtime_trading.IngestTx(ctx, w3c, tx, &tyche_metrics.TradeMetrics)
+			werr := artemis_realtime_trading.IngestTx(context.Background(), w3c, tx, &tyche_metrics.TradeMetrics)
 			if werr.Err != nil && werr.Code != 200 {
 				log.Err(werr.Err).Msg("error processing tx")
 			}

@@ -174,21 +174,25 @@ func (t *TradeExecutionFlow) AreAllTradesValid() bool {
 		return false
 	}
 	if !t.FrontRunTrade.AreTradeParamsValid() {
+		log.Warn().Str("txHash", t.Tx.Hash().String()).Str("amountIn", t.FrontRunTrade.AmountIn.String()).Str("amountOut", t.FrontRunTrade.AmountOut.String()).Msg("TradeExecutionFlow: front trade is not valid")
 		log.Warn().Msg("TradeExecutionFlow: front run trade is not valid")
 		return false
 	}
 	if !t.UserTrade.AreTradeParamsValid() {
+		log.Warn().Str("txHash", t.Tx.Hash().String()).Str("amountIn", t.UserTrade.AmountIn.String()).Str("amountOut", t.UserTrade.AmountOut.String()).Msg("TradeExecutionFlow: user trade is not valid")
 		log.Warn().Msg("TradeExecutionFlow: user trade is not valid")
 		return false
 	}
 	if !t.SandwichTrade.AreTradeParamsValid() {
+		log.Warn().Str("txHash", t.Tx.Hash().String()).Str("amountIn", t.SandwichTrade.AmountIn.String()).Str("amountOut", t.SandwichTrade.AmountOut.String()).Msg("TradeExecutionFlow: sandwich trade is not valid")
 		log.Warn().Msg("TradeExecutionFlow: sandwich trade is not valid")
 		return false
 	}
 	if !t.SandwichPrediction.CheckForValidityAndProfit() {
-		log.Warn().Msg("TradeExecutionFlow: sandwich prediction is not valid")
+		log.Warn().Str("txHash", t.Tx.Hash().String()).Str("t.SandwichPrediction.ExpectedProfit.String()", t.SandwichPrediction.ExpectedProfit.String()).Str("t.SandwichPrediction.SellAmount.String()", t.SandwichPrediction.SellAmount.String()).Msg("TradeExecutionFlow: sandwich prediction is not valid")
 		return false
 	}
+	log.Info().Msg("TradeExecutionFlow: all trades are valid")
 	return true
 }
 

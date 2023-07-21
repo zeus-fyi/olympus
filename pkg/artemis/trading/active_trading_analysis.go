@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
@@ -18,67 +19,63 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-func ProcessTxs(ctx context.Context, mevTxs *[]web3_client.MevTx, m *metrics_trading.TradingMetrics, w3a web3_actions.Web3Actions) []web3_client.TradeExecutionFlow {
-	var tfSlice []web3_client.TradeExecutionFlow
-
-	for _, mevTx := range *mevTxs {
-		switch mevTx.Tx.To().String() {
-		case artemis_trading_constants.UniswapUniversalRouterAddressOld:
-			tf, err := RealTimeProcessUniversalRouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniversalRouterOld)
-			if err != nil {
-				log.Err(err).Msg("UniswapUniversalRouterAddressOld: error processing universal router tx")
-				err = nil
-				continue
-			}
-			tfSlice = append(tfSlice, tf...)
-		case artemis_trading_constants.UniswapUniversalRouterAddressNew:
-			tf, err := RealTimeProcessUniversalRouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniversalRouterNew)
-			if err != nil {
-				log.Err(err).Msg("UniswapUniversalRouterAddressNew: error processing universal router tx")
-				err = nil
-				continue
-			}
-			tfSlice = append(tfSlice, tf...)
-		case artemis_trading_constants.UniswapV2Router01Address:
-			tf, err := RealTimeProcessUniswapV2RouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniswapV2Router01)
-			if err != nil {
-				log.Err(err).Msg("UniswapV2Router01Address: error processing v2_01 router tx")
-				err = nil
-				continue
-			}
-			tfSlice = append(tfSlice, tf...)
-		case artemis_trading_constants.UniswapV2Router02Address:
-			tf, err := RealTimeProcessUniswapV2RouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniswapV2Router02)
-			if err != nil {
-				log.Err(err).Msg("UniswapV2Router02Address: error processing v2_02 router tx")
-				err = nil
-				continue
-			}
-			tfSlice = append(tfSlice, tf...)
-		case artemis_trading_constants.UniswapV3Router01Address:
-			tf, err := RealTimeProcessUniswapV3RouterTx(ctx, mevTx, UniswapV3Router01Abi, nil, m, w3a)
-			if err != nil {
-				log.Err(err).Msg("UniswapV3Router01Address: error processing v3_01 router tx")
-				err = nil
-				continue
-			}
-			tfSlice = append(tfSlice, tf...)
-		case artemis_trading_constants.UniswapV3Router02Address:
-			tf, err := RealTimeProcessUniswapV3RouterTx(ctx, mevTx, UniswapV3Router02Abi, nil, m, w3a)
-			if err != nil {
-				log.Err(err).Msg("UniswapV3Router02Address: error processing v3_02 router tx")
-				err = nil
-				continue
-			} else {
-				tfSlice = append(tfSlice, tf...)
-			}
+func ProcessTxs(ctx context.Context, mevTx web3_client.MevTx, m *metrics_trading.TradingMetrics, w3a web3_actions.Web3Actions) ([]web3_client.TradeExecutionFlow, error) {
+	switch mevTx.Tx.To().String() {
+	case artemis_trading_constants.UniswapUniversalRouterAddressOld:
+		tf, err := RealTimeProcessUniversalRouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniversalRouterDecoder)
+		if err != nil {
+			log.Err(err).Msg("UniswapUniversalRouterAddressOld: error processing universal router tx")
+			return nil, err
 		}
+		return tf, nil
+	case artemis_trading_constants.UniswapUniversalRouterAddressNew:
+		tf, err := RealTimeProcessUniversalRouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniversalRouterDecoder)
+		if err != nil {
+			log.Err(err).Msg("UniswapUniversalRouterAddressNew: error processing universal router tx")
+			return nil, err
+		}
+		return tf, nil
+	case artemis_trading_constants.UniswapV2Router01Address:
+		tf, err := RealTimeProcessUniswapV2RouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniswapV2Router01)
+		if err != nil {
+			log.Err(err).Msg("UniswapV2Router01Address: error processing v2_01 router tx")
+			return nil, err
+		}
+		return tf, nil
+	case artemis_trading_constants.UniswapV2Router02Address:
+		tf, err := RealTimeProcessUniswapV2RouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniswapV2Router02)
+		if err != nil {
+			log.Err(err).Msg("UniswapV2Router02Address: error processing v2_02 router tx")
+			return nil, err
+		}
+		return tf, nil
+	case artemis_trading_constants.UniswapV3Router01Address:
+		tf, err := RealTimeProcessUniswapV3RouterTx(ctx, mevTx, UniswapV3Router01Abi, nil, m, w3a)
+		if err != nil {
+			log.Err(err).Msg("UniswapV3Router01Address: error processing v3_01 router tx")
+			return nil, err
+		}
+		return tf, nil
+	case artemis_trading_constants.UniswapV3Router02Address:
+		tf, err := RealTimeProcessUniswapV3RouterTx(ctx, mevTx, UniswapV3Router02Abi, nil, m, w3a)
+		if err != nil {
+			log.Err(err).Msg("UniswapV3Router02Address: error processing v3_02 router tx")
+			return nil, err
+		}
+		return tf, nil
 	}
-	return tfSlice
+	log.Warn().Msgf("ProcessTxs: tx.To() not recognized: %s", mevTx.Tx.To().String())
+	return nil, errors.New("ProcessTxs: tx.To() not recognized")
 }
+
+var localCache = cache.New(cache.NoExpiration, cache.NoExpiration)
 
 func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64) error {
 	tmTradingEnabled := artemis_trading_cache.TokenMap[tokenAddress].TradingEnabled
+	val, ok := localCache.Get(tokenAddress)
+	if ok && val == true {
+		return nil
+	}
 	if tmTradingEnabled == nil {
 		tradeEnabled := false
 		log.Info().Msgf("CheckTokenRegistry, erc20 at address %s not registered", tokenAddress)
@@ -92,6 +89,7 @@ func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64)
 			log.Err(err).Msg("CheckTokenRegistry: InsertERC20TokenInfo")
 			return errors.New("CheckTokenRegistry: erc20 at address %s not registered")
 		}
+		localCache.Set(tokenAddress, true, cache.NoExpiration)
 	}
 	return nil
 }
@@ -106,19 +104,23 @@ func ApplyMaxTransferTax(ctx context.Context, tf *web3_client.TradeExecutionFlow
 	tokenOne := tf.UserTrade.AmountInAddr.String()
 	tokenTwo := tf.UserTrade.AmountOutAddr.String()
 	if tokenOne == artemis_trading_constants.ZeroAddress && tokenTwo == artemis_trading_constants.ZeroAddress {
-		log.Warn().Str("tradeMethod", tf.Trade.TradeMethod).Str("toAddr", tf.Tx.To().String()).Msg("dat: ApplyMaxTransferTax, tokenOne and tokenTwo are zero address")
+		log.Warn().Str("txHash", tf.Tx.Hash().String()).Str("tradeMethod", tf.Trade.TradeMethod).Interface("tf.UserTrade", tf.UserTrade).Str("toAddr", tf.Tx.To().String()).Msg("dat: ApplyMaxTransferTax, tokenOne and tokenTwo are zero address")
 		return errors.New("dat: ApplyMaxTransferTax, tokenOne and tokenTwo are zero address")
 	}
 	go func(ctx context.Context, tokenA, tokenB string) {
-		err := CheckTokenRegistry(ctx, tokenA, hestia_req_types.EthereumMainnetProtocolNetworkID)
-		if err != nil {
-			log.Err(err).Msg("CheckTokenRegistry: failed to check token registry")
+		if tokenA != artemis_trading_constants.ZeroAddress && tokenA != artemis_trading_constants.WETH9ContractAddress {
+			err := CheckTokenRegistry(ctx, tokenA, hestia_req_types.EthereumMainnetProtocolNetworkID)
+			if err != nil {
+				log.Err(err).Msg("CheckTokenRegistry: failed to check token registry")
+			}
 		}
-		err = CheckTokenRegistry(ctx, tokenB, hestia_req_types.EthereumMainnetProtocolNetworkID)
-		if err != nil {
-			log.Err(err).Msg("CheckTokenRegistry: failed to check token registry")
+		if tokenB != artemis_trading_constants.ZeroAddress && tokenB != artemis_trading_constants.WETH9ContractAddress {
+			err := CheckTokenRegistry(ctx, tokenB, hestia_req_types.EthereumMainnetProtocolNetworkID)
+			if err != nil {
+				log.Err(err).Msg("CheckTokenRegistry: failed to check token registry")
+			}
 		}
-	}(ctx, tokenOne, tokenTwo)
+	}(context.Background(), tokenOne, tokenTwo)
 
 	maxNum, maxDen := 0, 1
 	if info, ok := artemis_trading_cache.TokenMap[tokenOne]; ok {
@@ -168,6 +170,6 @@ func ApplyMaxTransferTax(ctx context.Context, tf *web3_client.TradeExecutionFlow
 		return errors.New("ApplyMaxTransferTax: trades are not valid")
 	}
 
-	log.Info().Str("txHash", tf.Tx.Hash().String()).Uint64("bn", tf.CurrentBlockNumber.Uint64()).Interface("profitTokenAddress", tf.SandwichTrade.AmountOutAddr.String()).Interface("sellAmount", tf.SandwichPrediction.SellAmount).Interface("tf.SandwichPrediction.ExpectedProfit", tf.SandwichPrediction.ExpectedProfit).Str("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut.String()).Msg("ApplyMaxTransferTax")
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Uint64("bn", tf.CurrentBlockNumber.Uint64()).Interface("profitTokenAddress", tf.SandwichTrade.AmountOutAddr.String()).Interface("sellAmount", tf.SandwichPrediction.SellAmount).Interface("tf.SandwichPrediction.ExpectedProfit", tf.SandwichPrediction.ExpectedProfit).Str("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut.String()).Msg("ApplyMaxTransferTax: acceptable after tax")
 	return nil
 }

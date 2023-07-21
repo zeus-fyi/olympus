@@ -63,6 +63,15 @@ func AddBigInt(val, plus *big.Int) *big.Int {
 }
 
 func SubBigInt(val, minus *big.Int) *big.Int {
+	if val == nil && minus == nil {
+		return NewBigInt(0)
+	}
+	if val == nil {
+		return new(big.Int).Neg(minus)
+	}
+	if minus == nil {
+		return val
+	}
 	return new(big.Int).Sub(val, minus)
 }
 
@@ -71,6 +80,9 @@ func SubUint64FBigInt(val *big.Int, uintVal uint64) *big.Int {
 }
 
 func MulBigInt(x, y *big.Int) *big.Int {
+	if x == nil || y == nil {
+		return NewBigInt(0)
+	}
 	return new(big.Int).Mul(x, y)
 }
 
@@ -96,18 +108,11 @@ func IsXGreaterThanY(x, y *big.Int) bool {
 	return x.Cmp(y) > 0
 }
 
-func IsStrXLessThanEqZeroOrOne(x string) bool {
-	if IsXLessThanY(NewBigIntFromStr(x), NewBigInt(0)) || x == "0" || x == "1" {
-		return true
-	}
-	return false
-}
-
 func IsXLessThanEqZeroOrOne(x *big.Int) bool {
 	if x == nil {
 		return true
 	}
-	if IsXLessThanY(x, NewBigInt(0)) || x.String() == "0" || x.String() == "1" {
+	if IsXLessThanY(x, NewBigInt(2)) {
 		return true
 	}
 	return false
@@ -120,17 +125,6 @@ func AreAnyValuesLessThanEqZeroOrOne(x ...*big.Int) bool {
 		}
 	}
 	return false
-}
-
-func IsStrXLessThanEqZero(x string) bool {
-	if IsXLessThanY(NewBigIntFromStr(x), NewBigInt(0)) || x == "0" {
-		return true
-	}
-	return false
-}
-
-func IsStrXGreaterThanZero(x string) bool {
-	return IsXGreaterThanZero(NewBigIntFromStr(x))
 }
 
 func IsXGreaterThanZero(x *big.Int) bool {

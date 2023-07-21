@@ -6,6 +6,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 )
 
@@ -76,7 +77,7 @@ func (s *SwapTokensForExactETHParams) BinarySearch(pair uniswap_pricing.UniswapV
 			log.Err(err).Msg("error in price impact")
 			return tf, err
 		}
-		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
+		profit := artemis_eth_units.SubBigInt(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid

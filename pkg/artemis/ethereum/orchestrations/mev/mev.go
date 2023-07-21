@@ -36,10 +36,7 @@ func InitArtemisUniswap(ctx context.Context, authHeader string) {
 }
 
 func InitTycheUniswap(ctx context.Context, authHeader string) {
-	AuthHeader = authHeader
-	timestampChan := make(chan time.Time)
-	go artemis_trading_cache.SetActiveTradingBlockCache(ctx, timestampChan)
-	go beacon_api.TriggerWorkflowOnNewBlockHeaderEvent(ctx, artemis_network_cfgs.ArtemisQuicknodeStreamWebsocket, timestampChan)
+
 }
 func InitNewUniHardhat(ctx context.Context, sessionID string) *web3_client.UniswapClient {
 	acc, err := accounts.CreateAccount()
@@ -77,10 +74,10 @@ func ProcessMempoolTxs(ctx context.Context, timestampChan chan time.Time) {
 			wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
 			wc.Network = hestia_req_types.Mainnet
 			wc.Dial()
-			bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(ctx, wc)
+			bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(context.Background(), wc)
 			if berr != nil {
 				log.Err(berr).Msg("failed to get block number")
-				return
+				wc.Close()
 			}
 			wc.Close()
 			err := ArtemisMevWorkerMainnet2.ExecuteArtemisGetLookaheadPricesWorkflow(ctx, bn)

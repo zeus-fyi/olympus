@@ -46,7 +46,7 @@ func (d *ArtemisMevActivities) SubmitFlashbotsBundle(ctx context.Context) error 
 var c = cache.New(5*time.Hour, 10*time.Hour)
 
 func (d *ArtemisMevActivities) BlacklistMinedTxs(ctx context.Context) error {
-	wc := web3_client.NewWeb3Client(artemis_trading_cache.Wc.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
+	wc := web3_client.NewWeb3Client(irisSvcBeaconsInternal, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
 	wc.AddBearerToken(artemis_orchestration_auth.Bearer)
 	txs, terr := wc.GetBlockTxs(ctx)
 	if terr != nil {
@@ -55,7 +55,7 @@ func (d *ArtemisMevActivities) BlacklistMinedTxs(ctx context.Context) error {
 	}
 	for _, tx := range txs {
 		c.Set(tx.Hash().String(), tx, cache.DefaultExpiration)
-		err := artemis_trading_cache.WriteRedis.AddTxHashCache(ctx, tx.Hash().String(), time.Hour*24)
+		err := artemis_trading_cache.WriteRedis.AddTxHashCache(context.Background(), tx.Hash().String(), time.Hour*24)
 		if err != nil {
 			log.Err(err).Str("network", d.Network).Msg("BlacklistMinedTxs: AddTxHashCache failed")
 			return err
@@ -65,7 +65,7 @@ func (d *ArtemisMevActivities) BlacklistMinedTxs(ctx context.Context) error {
 }
 
 func (d *ArtemisMevActivities) GetLookaheadPrices(ctx context.Context, bn uint64) error {
-	wc := web3_actions.NewWeb3ActionsClient(artemis_trading_cache.Wc.NodeURL)
+	wc := web3_actions.NewWeb3ActionsClient(irisSvcBeaconsInternal)
 	wc.AddBearerToken(artemis_orchestration_auth.Bearer)
 	err := artemis_uniswap_pricing.FetchV2PairsToMulticall(ctx, wc, bn)
 	if err != nil {
@@ -77,7 +77,7 @@ func (d *ArtemisMevActivities) GetLookaheadPrices(ctx context.Context, bn uint64
 func (d *ArtemisMevActivities) BlacklistProcessedTxs(ctx context.Context, txSlice artemis_autogen_bases.EthMempoolMevTxSlice) error {
 	for _, tx := range txSlice {
 		c.Set(tx.TxHash, tx, cache.DefaultExpiration)
-		err := artemis_trading_cache.WriteRedis.AddTxHashCache(ctx, tx.TxHash, time.Hour*24)
+		err := artemis_trading_cache.WriteRedis.AddTxHashCache(context.Background(), tx.TxHash, time.Hour*24)
 		if err != nil {
 			return err
 		}

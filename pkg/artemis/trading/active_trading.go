@@ -117,24 +117,37 @@ type ErrWrapper struct {
 }
 
 func IngestTx(ctx context.Context, w3c web3_client.Web3Client, tx *types.Transaction, m *metrics_trading.TradingMetrics) ErrWrapper {
-	m.StageProgressionMetrics.CountPreEntryFilterTx()
+	if m != nil {
+		m.StageProgressionMetrics.CountPreEntryFilterTx()
+	}
 	err := EntryTxFilter(ctx, tx)
 	if err != nil {
-		return ErrWrapper{Err: err, Stage: "EntryTxFilter"}
+		return ErrWrapper{Err: err, Stage: "IngestTx: EntryTxFilter"}
 	}
-	m.StageProgressionMetrics.CountPostEntryFilterTx()
-	mevTxs, merr := DecodeTx(ctx, tx, m)
+	if m != nil {
+		m.StageProgressionMetrics.CountPostEntryFilterTx()
+	}
+	mevTx, merr := DecodeTx(ctx, tx, m)
 	if merr != nil {
-		log.Err(merr).Msg("decoding txs err")
+		log.Err(merr).Msg("DecodeTx: decoding txs err")
 		return ErrWrapper{Err: merr, Stage: "DecodeTx"}
 	}
-	if len(mevTxs) <= 0 {
-		log.Err(merr).Msg("no mev txs found")
+	if mevTx == nil {
 		return ErrWrapper{Err: merr, Stage: "DecodeTx"}
 	}
-	m.StageProgressionMetrics.CountPostDecodeTx()
-	log.Info().Msgf("ProcessTxsStage: txs: %d", len(mevTxs))
-	tfSlice := ProcessTxs(ctx, &mevTxs, m, w3c.Web3Actions)
+	if m != nil {
+		m.StageProgressionMetrics.CountPostDecodeTx()
+	}
+	err = ActiveTradeMethodFilter(ctx, mevTx.MethodName, m)
+	if err != nil {
+		return ErrWrapper{Err: err, Stage: "ActiveTradeMethodFilter"}
+	}
+	log.Info().Msgf("ProcessTxs: txs: %d", 1)
+	tfSlice, err := ProcessTxs(ctx, *mevTx, m, w3c.Web3Actions)
+	if err != nil {
+		log.Err(err).Msg("ProcessTxs: error processing txs")
+		return ErrWrapper{Err: err, Stage: "ProcessTxs"}
+	}
 
 	log.Info().Msgf("ProcessBundleStage: txs: %d", len(tfSlice))
 	ProcessBundleStage(ctx, w3c, tfSlice, m)

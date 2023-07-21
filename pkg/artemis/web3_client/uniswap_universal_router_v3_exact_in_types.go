@@ -33,37 +33,20 @@ type JSONV3SwapExactInParams struct {
 }
 
 func (s *V3SwapExactInParams) Encode(ctx context.Context, abiFile *abi.ABI) ([]byte, error) {
-	if abiFile == nil {
-		inputs, err := UniversalRouterDecoderAbi.Methods[V3SwapExactIn].Inputs.Pack(s.To, s.AmountIn, s.AmountOutMin, s.Path.Encode(), s.PayerIsUser)
-		if err != nil {
-			log.Warn().Err(err).Msg("V3SwapExactInParams: UniversalRouterDecoderAbi Encode failed to pack")
-			return nil, err
-		}
-		return inputs, nil
-	} else {
-		inputs, err := abiFile.Methods[V3SwapExactIn].Inputs.Pack(s.To, s.AmountIn, s.AmountOutMin, s.Path.Encode(), s.PayerIsUser)
-		if err != nil {
-			log.Warn().Err(err).Msg("V3SwapExactInParams: abiFile Encode failed to pack")
-			return nil, err
-		}
-		return inputs, nil
+	inputs, err := UniversalRouterDecoderAbi.Methods[V3SwapExactIn].Inputs.Pack(s.To, s.AmountIn, s.AmountOutMin, s.Path.Encode(), s.PayerIsUser)
+	if err != nil {
+		log.Warn().Err(err).Msg("V3SwapExactInParams: UniversalRouterDecoderAbi Encode failed to pack")
+		return nil, err
 	}
+	return inputs, nil
 }
 
 func (s *V3SwapExactInParams) Decode(ctx context.Context, data []byte, abiFile *abi.ABI) error {
 	args := make(map[string]interface{})
-	if abiFile == nil {
-		err := UniversalRouterDecoderAbi.Methods[V3SwapExactIn].Inputs.UnpackIntoMap(args, data)
-		if err != nil {
-			log.Err(err).Msg("V3SwapExactInParams: UniversalRouterDecoderAbi Decode failed to unpack")
-			return err
-		}
-	} else {
-		err := abiFile.Methods[V3SwapExactIn].Inputs.UnpackIntoMap(args, data)
-		if err != nil {
-			log.Err(err).Msg("V3SwapExactInParams: abiFile Decode failed to unpack")
-			return err
-		}
+	err := UniversalRouterDecoderAbi.Methods[V3SwapExactIn].Inputs.UnpackIntoMap(args, data)
+	if err != nil {
+		log.Err(err).Msg("V3SwapExactInParams: UniversalRouterDecoderAbi Decode failed to unpack")
+		return err
 	}
 	amountIn, err := ParseBigInt(args["amountIn"])
 	if err != nil {
@@ -115,20 +98,22 @@ func (s *V3SwapExactInParams) Decode(ctx context.Context, data []byte, abiFile *
 	payerIsUserInterface, pok := args["payerIsUser"]
 	if !pok || payerIsUserInterface == nil {
 		// Handle the situation when args["path"] doesn't exist or is nil
-		log.Warn().Msg("V3SwapExactInParams: 'payerIsUser' does not exist or is nil")
-		return fmt.Errorf("payerIsUser does not exist or is nil")
+		log.Warn().Msg("V3SwapExactInParams: 'payerIsUser' does not exist or is nil defaulting to false")
+		s.PayerIsUser = false
+	} else {
+		payerIsUserBool, ok1 := payerIsUserInterface.(bool)
+		if !ok1 {
+			// Handle the situation when the conversion fails
+			log.Warn().Msg("V3SwapExactInParams: failed to convert 'payerIsUser' to bool")
+			log.Warn().Msg("V3SwapExactInParams: 'payerIsUser' does not exist or is nil defaulting to false")
+		}
+		s.PayerIsUser = payerIsUserBool
 	}
-	payerIsUserBool, ok := payerIsUserInterface.(bool)
-	if !ok {
-		// Handle the situation when the conversion fails
-		log.Warn().Msg("V3SwapExactInParams: failed to convert 'payerIsUser' to bool")
-		return fmt.Errorf("failed to convert payerIsUser to bool")
-	}
+
 	s.AmountIn = amountIn
 	s.AmountOutMin = amountOutMin
 	s.Path = tfp
 	s.To = to
-	s.PayerIsUser = payerIsUserBool
 	return err
 }
 

@@ -233,12 +233,6 @@ func SelectERC20Tokens(ctx context.Context) ([]artemis_autogen_bases.Erc20TokenI
 			&token.BalanceOfSlotNum,
 			&token.TradingEnabled,
 		)
-		if token.TransferTaxNumerator != nil && token.TransferTaxDenominator != nil && token.BalanceOfSlotNum >= 0 {
-			if *token.TransferTaxNumerator == 1 && *token.TransferTaxDenominator == 1 {
-				tnEnabled := true
-				token.TradingEnabled = &tnEnabled
-			}
-		}
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader("SelectERC20Tokens"))
 			return nil, m, rowErr

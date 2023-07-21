@@ -136,6 +136,7 @@ func IngestTx(ctx context.Context, w3c web3_client.Web3Client, tx *types.Transac
 		return ErrWrapper{Err: merr, Stage: "DecodeTx"}
 	}
 	if m != nil {
+		m.StageProgressionMetrics.CountPostDecodeTx()
 		m.StageProgressionMetrics.CountCheckpointOneMarker()
 	}
 	err = ActiveTradeMethodFilter(ctx, mevTx.MethodName)
@@ -144,7 +145,6 @@ func IngestTx(ctx context.Context, w3c web3_client.Web3Client, tx *types.Transac
 	}
 	log.Info().Msgf("ProcessTxs: txs: %d", 1)
 	if m != nil {
-		m.StageProgressionMetrics.CountPostDecodeTx()
 		m.StageProgressionMetrics.CountCheckpointTwoMarker()
 	}
 	tfSlice, err := ProcessTxs(ctx, *mevTx, m, w3c.Web3Actions)

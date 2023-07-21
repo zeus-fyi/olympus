@@ -11,7 +11,7 @@ import (
 
 func ProcessBundleStage(ctx context.Context, w3c web3_client.Web3Client, tfSlice []web3_client.TradeExecutionFlow, m *metrics_trading.TradingMetrics) {
 	for _, tf := range tfSlice {
-		err := ActiveTradingFilter(ctx, w3c, tf, nil)
+		err := ActiveTradingFilter(ctx, w3c, tf, m)
 		if err != nil {
 			log.Err(err).Msg("ProcessBundleStage: failed to pass active filter trade")
 			err = nil

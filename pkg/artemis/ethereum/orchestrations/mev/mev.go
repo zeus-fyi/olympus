@@ -12,6 +12,7 @@ import (
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
 const (
@@ -32,7 +33,6 @@ func InitArtemisUniswap(ctx context.Context, authHeader string) {
 	go ProcessMempoolTxs(ctx, timestampChan)
 	go artemis_trading_cache.SetActiveTradingBlockCache(ctx, timestampChan)
 	go beacon_api.TriggerWorkflowOnNewBlockHeaderEvent(ctx, artemis_network_cfgs.ArtemisQuicknodeStreamWebsocket, timestampChan)
-
 }
 
 func InitTycheUniswap(ctx context.Context, authHeader string) {
@@ -47,6 +47,7 @@ func InitNewUniHardhat(ctx context.Context, sessionID string) *web3_client.Unisw
 		panic(err)
 	}
 	wc := web3_client.NewWeb3Client(irisBetaSvcInternal, acc)
+	wc.Network = hestia_req_types.Mainnet
 	wc.AddBearerToken(AuthHeader)
 	wc.AddSessionLockHeader(sessionID)
 	uni := web3_client.InitUniswapClient(ctx, wc)
@@ -59,6 +60,7 @@ func InitNewUniHardhat(ctx context.Context, sessionID string) *web3_client.Unisw
 
 func InitNewUniswapQuiknode(ctx context.Context) *web3_client.UniswapClient {
 	wc := web3_client.NewWeb3Client(artemis_network_cfgs.ArtemisEthereumMainnetQuiknode.NodeURL, artemis_network_cfgs.ArtemisEthereumMainnet.Account)
+	wc.Network = hestia_req_types.Mainnet
 	uni := web3_client.InitUniswapClient(ctx, wc)
 	uni.PrintOn = true
 	uni.PrintLocal = false
@@ -73,6 +75,7 @@ func ProcessMempoolTxs(ctx context.Context, timestampChan chan time.Time) {
 			// todo: margin needed for now, but should remove via refactor
 			time.Sleep(25 * time.Millisecond)
 			wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
+			wc.Network = hestia_req_types.Mainnet
 			wc.Dial()
 			bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(ctx, wc)
 			if berr != nil {

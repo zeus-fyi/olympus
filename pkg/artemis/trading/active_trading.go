@@ -10,6 +10,7 @@ import (
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
+	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
 const (
@@ -69,6 +70,7 @@ func NewActiveTradingModuleWithoutMetrics(a *artemis_trading_auxiliary.Auxiliary
 	us := web3_client.InitUniswapClient(ctx, simClient)
 	us.Web3Client.IsAnvilNode = true
 	us.Web3Client.DurableExecution = true
+	us.Web3Client.Network = hestia_req_types.Mainnet
 	auxSim := artemis_trading_auxiliary.InitAuxiliaryTradingUtils(ctx, us.Web3Client)
 	auxSimTrader := ActiveTrading{
 		a: &auxSim,
@@ -82,6 +84,7 @@ func newActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, 
 	us := web3_client.InitUniswapClient(ctx, simClient)
 	us.Web3Client.IsAnvilNode = true
 	us.Web3Client.DurableExecution = true
+	us.Web3Client.Network = hestia_req_types.Mainnet
 	auxSim := artemis_trading_auxiliary.InitAuxiliaryTradingUtils(ctx, us.Web3Client)
 	auxSimTrader := ActiveTrading{
 		a: &auxSim,
@@ -101,6 +104,7 @@ func NewActiveTradingModule(a *artemis_trading_auxiliary.AuxiliaryTradingUtils, 
 	if len(artemis_orchestration_auth.Bearer) == 0 {
 		panic("no bearer token")
 	}
+	TraderClient.Network = hestia_req_types.Mainnet
 	TraderClient.AddBearerToken(artemis_orchestration_auth.Bearer)
 	log.Info().Msgf("trader account: %s", traderAcc.Address().String())
 	return at

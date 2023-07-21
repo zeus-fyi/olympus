@@ -12,10 +12,25 @@ type StageProgressionMetrics struct {
 	PostSimStageCount                  prometheus.Counter
 	SentFlashbotsBundleSubmissionCount prometheus.Counter
 	SavedMempoolTxCount                prometheus.Counter
+
+	CheckpointOneMarker prometheus.Counter
+	CheckpointTwoMarker prometheus.Counter
 }
 
 func NewStageProgressionMetrics(reg prometheus.Registerer) StageProgressionMetrics {
 	tx := StageProgressionMetrics{}
+	tx.CheckpointOneMarker = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "eth_mev_checkpoint_one_marker",
+			Help: "Checkpoint marker for debugging",
+		},
+	)
+	tx.CheckpointTwoMarker = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "eth_mev_checkpoint_two_marker",
+			Help: "Checkpoint marker for debugging",
+		},
+	)
 	tx.PreEntryFilterTxCount = prometheus.NewCounter(
 		prometheus.CounterOpts{
 			Name: "eth_mev_pre_entry_filter_stage_count",
@@ -86,6 +101,14 @@ func NewStageProgressionMetrics(reg prometheus.Registerer) StageProgressionMetri
 
 func (t *StageProgressionMetrics) CountPostDecodeTx() {
 	t.PostDecodeTxCount.Add(1)
+}
+
+func (t *StageProgressionMetrics) CountCheckpointOneMarker() {
+	t.CheckpointOneMarker.Add(1)
+}
+
+func (t *StageProgressionMetrics) CountCheckpointTwoMarker() {
+	t.CheckpointTwoMarker.Add(1)
 }
 
 func (t *StageProgressionMetrics) CountPreEntryFilterTx() {

@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	irisSvcBeacons = "http://iris.iris.svc.cluster.local/v1beta/internal/router/group?routeGroup=quiknode-mainnet"
+	irisSvcBeacons = "iris.iris.svc.cluster.local/v1beta/internal/router/group?routeGroup=quiknode-mainnet"
 )
 
 var (
@@ -88,7 +88,7 @@ func GetLatestBlock(ctx context.Context) (uint64, error) {
 	if ReadRedis.Client != nil {
 		bn, err := ReadRedis.GetLatestBlockNumber(ctx)
 		if err == nil {
-			//log.Info().Uint64("bn", bn).Msg("got block number from redis")
+			log.Info().Uint64("bn", bn).Msg("got block number from redis")
 			Cache.Set(redis_mev.LatestBlockNumberCacheKey, bn, 6*time.Second)
 			return bn, nil
 		} else {
@@ -106,6 +106,8 @@ func GetLatestBlock(ctx context.Context) (uint64, error) {
 		err := WriteRedis.AddOrUpdateLatestBlockCache(ctx, bn, 12*time.Second)
 		if err != nil {
 			log.Err(err).Uint64("bn", bn).Msg("GetLatestBlock: failed to set block number in redis")
+		} else {
+			log.Info().Uint64("bn", bn).Msg("GetLatestBlock: set block number in redis")
 		}
 	}
 	//log.Info().Interface("bn", bn).Msg("set block number in cache")

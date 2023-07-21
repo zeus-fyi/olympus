@@ -41,7 +41,7 @@ const (
 func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx, m *metrics_trading.TradingMetrics, w3a web3_actions.Web3Actions, abiFile *abi.ABI) ([]web3_client.TradeExecutionFlow, error) {
 	bn, berr := artemis_trading_cache.GetLatestBlock(ctx)
 	if berr != nil {
-		log.Err(berr).Msg("failed to get latest block")
+		log.Err(berr).Msg("RealTimeProcessUniswapV2RouterTx: failed to get latest block")
 		return nil, errors.New("ailed to get latest block")
 	}
 	toAddr := tx.Tx.To().String()

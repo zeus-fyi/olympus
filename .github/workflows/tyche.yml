@@ -73,4 +73,3 @@ jobs:
           --platform=${{ env.GOOS }}/${{ env.GOARCH }} \
           -f docker/tyche/Dockerfile . --push
 
-

@@ -53,7 +53,7 @@ func debugPrintBalances(ctx context.Context, w3c web3_client.Web3Client) error {
 
 // universalRouterCmdToTxBuilder: takes a universal router command and returns a signed tx
 func universalRouterCmdToTxBuilder(ctx context.Context, w3c web3_client.Web3Client, ur *web3_client.UniversalRouterExecCmd) (*types.Transaction, *web3_actions.SendContractTxPayload, error) {
-	scInfo, err := universalRouterCmdToUnsignedTxPayload(ctx, w3c, ur)
+	scInfo, err := universalRouterCmdToUnsignedTxPayload(ctx, ur)
 	if err != nil {
 		log.Warn().Msg("universalRouterCmdToTxBuilder: error getting unsigned tx payload")
 		log.Err(err).Msg("error getting unsigned tx payload")
@@ -87,7 +87,7 @@ func universalRouterCmdToTxBuilder(ctx context.Context, w3c web3_client.Web3Clie
 }
 
 // takes a universal router command and returns the unsigned payload
-func universalRouterCmdToUnsignedTxPayload(ctx context.Context, w3c web3_client.Web3Client, ur *web3_client.UniversalRouterExecCmd) (*web3_actions.SendContractTxPayload, error) {
+func universalRouterCmdToUnsignedTxPayload(ctx context.Context, ur *web3_client.UniversalRouterExecCmd) (*web3_actions.SendContractTxPayload, error) {
 	if ur == nil {
 		return nil, errors.New("universal router command is nil")
 	}
@@ -98,16 +98,23 @@ func universalRouterCmdToUnsignedTxPayload(ctx context.Context, w3c web3_client.
 		log.Err(err).Msg("error encoding commands")
 		return nil, err
 	}
-	scInfo, err := GetUniswapUniversalRouterAbiPayload(ctx, w3c, data)
+	if data == nil {
+		log.Warn().Msg("universalRouterCmdToTxBuilder: data is nil")
+		return nil, errors.New("data is nil")
+	}
+	scInfo, err := GetUniswapUniversalRouterAbiPayload(ctx, data)
 	if err != nil {
 		log.Warn().Msg("universalRouterCmdToTxBuilder: error getting uniswap universal router abi payload")
 		log.Err(err).Msg("error getting uniswap universal router abi payload")
 		return nil, err
 	}
+	if scInfo.Data == nil {
+		return nil, errors.New("universalRouterCmdToTxBuilder: scInfo.Data is nil")
+	}
 	return &scInfo, nil
 }
 
-func GetUniswapUniversalRouterAbiPayload(ctx context.Context, w3c web3_client.Web3Client, payload *web3_client.UniversalRouterExecParams) (web3_actions.SendContractTxPayload, error) {
+func GetUniswapUniversalRouterAbiPayload(ctx context.Context, payload *web3_client.UniversalRouterExecParams) (web3_actions.SendContractTxPayload, error) {
 	if payload == nil {
 		log.Warn().Msg("GetUniswapUniversalRouterAbiPayload: payload is nil")
 		return web3_actions.SendContractTxPayload{}, errors.New("payload is nil")
@@ -142,6 +149,15 @@ func GetUniswapUniversalRouterAbiPayload(ctx context.Context, w3c web3_client.We
 		ContractABI:       urAbi,
 		MethodName:        methodName,
 		Params:            fnParams,
+	}
+	err := params.GenerateBinDataFromParamsAbi(ctx)
+	if err != nil {
+		log.Warn().Msg("GetUniswapUniversalRouterAbiPayload: error generating bin data from params abi")
+		return web3_actions.SendContractTxPayload{}, err
+	}
+	if params.Data == nil {
+		log.Warn().Msg("GetUniswapUniversalRouterAbiPayload: params.Data is nil")
+		return web3_actions.SendContractTxPayload{}, errors.New("params.Data is nil")
 	}
 	return params, nil
 }

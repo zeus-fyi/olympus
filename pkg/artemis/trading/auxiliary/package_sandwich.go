@@ -22,7 +22,7 @@ func packageFrontRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 		log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed to generate front run tx")
 		return nil, err
 	}
-	scInfoFrontRun, err := universalRouterCmdToUnsignedTxPayload(frontRunCtx, w3c, ur)
+	scInfoFrontRun, err := universalRouterCmdToUnsignedTxPayload(frontRunCtx, ur)
 	if err != nil {
 		log.Warn().Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed building ur tx")
 		log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: error building ur tx")
@@ -67,7 +67,7 @@ func packageBackRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_cl
 		log.Err(err).Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to generate sandwich tx")
 		return nil, err
 	}
-	scInfoSand, err := universalRouterCmdToUnsignedTxPayload(ctx, w3c, ur)
+	scInfoSand, err := universalRouterCmdToUnsignedTxPayload(ctx, ur)
 	if err != nil {
 		log.Warn().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed building ur tx")
 		log.Err(err).Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to add tx to bundle group")

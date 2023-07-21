@@ -131,7 +131,7 @@ func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf
 	}
 	// 0.05 ETH at the moment, ~$100
 	minEthAmountGwei := 100000000 / 2
-	ok, err = CheckEthBalanceGreaterThan(ctx, w3c, artemis_eth_units.GweiMultiple(minEthAmountGwei))
+	ok, err = CheckEthBalanceGreaterThan(context.Background(), w3c, artemis_eth_units.GweiMultiple(minEthAmountGwei))
 	if err != nil {
 		log.Warn().Err(err).Msg("IsProfitTokenAcceptable: could not check eth balance")
 		log.Err(err).Msg("IsProfitTokenAcceptable: could not check eth balance")
@@ -141,7 +141,7 @@ func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf
 		log.Warn().Msg("IsProfitTokenAcceptable: ETH balance is not enough")
 		return false, errors.New("IsProfitTokenAcceptable: ETH balance is not enough")
 	}
-	ok, err = CheckMainnetAuxWETHBalanceGreaterThan(ctx, w3c, maxTradeSize())
+	ok, err = CheckMainnetAuxWETHBalanceGreaterThan(context.Background(), w3c, maxTradeSize())
 	if err != nil {
 		log.Warn().Err(err).Msg("IsProfitTokenAcceptable: could not check aux weth balance")
 		log.Err(err).Msg("IsProfitTokenAcceptable: could not check aux weth balance")

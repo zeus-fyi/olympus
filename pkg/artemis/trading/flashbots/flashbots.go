@@ -12,9 +12,13 @@ import (
 )
 
 const (
-	MainnetRelay = "https://relay.flashbots.net"
-	GoerliRelay  = "https://relay-goerli.flashbots.net"
-	SepoliaRelay = "https://relay-sepolia.flashbots.net"
+	MainnetRelay     = "https://relay.flashbots.net"
+	BlocknativeRelay = "https://api.blocknative.com/v1/auction"
+	BeaverRelay      = "https://rpc.beaverbuild.org/"
+	Builder69        = "https://builder0x69.io"
+	RsyncBuilder     = "https://rsync-builder.xyz/"
+	GoerliRelay      = "https://relay-goerli.flashbots.net"
+	SepoliaRelay     = "https://relay-sepolia.flashbots.net"
 
 	BlocksAPI = "https://blocks.flashbots.net/v1/blocks"
 	TxsAPI    = "https://blocks.flashbots.net/v1/transactions"
@@ -22,11 +26,26 @@ const (
 	FlashbotXHeader = "X-Flashbots-Signature"
 )
 
+var Builders = []string{
+	Builder69,
+	RsyncBuilder,
+	BlocknativeRelay,
+	BeaverRelay,
+}
+
 type FlashbotsClient struct {
 	resty_base.Resty
 	W *web3_actions.Web3Actions
 	flashbotsrpc.EthereumAPI
 	*flashbotsrpc.FlashbotsRPC
+}
+
+func InitFlashbotsClientForAdditionalBuilder(ctx context.Context, w *web3_actions.Web3Actions, builderRpc string) FlashbotsClient {
+	rpc := flashbotsrpc.NewFlashbotsRPC(builderRpc)
+	return FlashbotsClient{
+		W:            w,
+		FlashbotsRPC: rpc,
+	}
 }
 
 func InitFlashbotsClient(ctx context.Context, w *web3_actions.Web3Actions) FlashbotsClient {

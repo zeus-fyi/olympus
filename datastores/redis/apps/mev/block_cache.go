@@ -22,20 +22,6 @@ func (m *MevCache) AddOrUpdateLatestBlockCache(ctx context.Context, blockNumber 
 	return nil
 }
 
-func (m *MevCache) DoesLatestBlockExist(ctx context.Context, txHash string) (bool, error) {
-	log.Info().Msgf("DoesLatestBlockExist: %s", txHash)
-	err := m.Get(ctx, txHash).Err()
-	switch {
-	case err == redis.Nil:
-		log.Info().Msgf("DoesLatestBlockExist: ")
-		return false, nil
-	case err != nil:
-		log.Err(err).Msgf("DoesLatestBlockExist: %s", txHash)
-		return false, err
-	}
-	return true, err
-}
-
 func (m *MevCache) GetLatestBlockNumber(ctx context.Context) (uint64, error) {
 	val, err := m.Get(ctx, LatestBlockNumberCacheKey).Uint64()
 	switch {

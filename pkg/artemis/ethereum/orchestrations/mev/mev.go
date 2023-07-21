@@ -36,10 +36,7 @@ func InitArtemisUniswap(ctx context.Context, authHeader string) {
 }
 
 func InitTycheUniswap(ctx context.Context, authHeader string) {
-	AuthHeader = authHeader
-	timestampChan := make(chan time.Time)
-	go artemis_trading_cache.SetActiveTradingBlockCache(ctx, timestampChan)
-	go beacon_api.TriggerWorkflowOnNewBlockHeaderEvent(ctx, artemis_network_cfgs.ArtemisQuicknodeStreamWebsocket, timestampChan)
+
 }
 func InitNewUniHardhat(ctx context.Context, sessionID string) *web3_client.UniswapClient {
 	acc, err := accounts.CreateAccount()

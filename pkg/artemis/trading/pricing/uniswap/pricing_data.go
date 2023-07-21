@@ -148,12 +148,18 @@ func (m *PricingCache) AddV2PairToNextLookupSet(ctx context.Context, v2pairAddr 
 	}
 	m.Client = artemis_trading_cache.WriteRedis.Client
 	// next block number: bn+1
-	nextBlock := bn + 1
-	statusCmd := m.Client.SAdd(ctx, GetPairBnCacheKey(nextBlock), v2pairAddr)
-	if statusCmd.Err() != nil {
-		log.Ctx(ctx).Err(statusCmd.Err()).Msgf("AddV2PairToNextLookupSet: %s", v2pairAddr)
-		return statusCmd.Err()
+
+	j := 0 // used to bypass error if it's been seen once
+	for i := 1; i < 10; i++ {
+		nextBlock := bn + 1
+		statusCmd := m.Client.SAdd(ctx, GetPairBnCacheKey(nextBlock), v2pairAddr)
+		if statusCmd.Err() != nil && j == 0 {
+			log.Ctx(ctx).Err(statusCmd.Err()).Msgf("AddV2PairToNextLookupSet: %s", v2pairAddr)
+			return statusCmd.Err()
+		}
+		j++
 	}
+
 	// Also set an expiration time for the set if needed
 	m.Client.Expire(ctx, GetPairBnCacheKey(bn), time.Hour*12)
 	return nil

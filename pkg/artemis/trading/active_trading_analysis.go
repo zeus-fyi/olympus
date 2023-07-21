@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
@@ -67,8 +68,14 @@ func ProcessTxs(ctx context.Context, mevTx web3_client.MevTx, m *metrics_trading
 	return nil, errors.New("ProcessTxs: tx.To() not recognized")
 }
 
+var localCache = cache.New(cache.NoExpiration, cache.NoExpiration)
+
 func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64) error {
 	tmTradingEnabled := artemis_trading_cache.TokenMap[tokenAddress].TradingEnabled
+	val, ok := localCache.Get(tokenAddress)
+	if ok && val == true {
+		return nil
+	}
 	if tmTradingEnabled == nil {
 		tradeEnabled := false
 		log.Info().Msgf("CheckTokenRegistry, erc20 at address %s not registered", tokenAddress)
@@ -82,6 +89,7 @@ func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64)
 			log.Err(err).Msg("CheckTokenRegistry: InsertERC20TokenInfo")
 			return errors.New("CheckTokenRegistry: erc20 at address %s not registered")
 		}
+		localCache.Set(tokenAddress, true, cache.NoExpiration)
 	}
 	return nil
 }

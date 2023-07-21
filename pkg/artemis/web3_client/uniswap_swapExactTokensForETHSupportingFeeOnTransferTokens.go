@@ -163,7 +163,7 @@ func (s *SwapExactTokensForETHSupportingFeeOnTransferTokensParams) BinarySearch(
 			log.Err(err).Msg("error in price impact")
 			return tf, err
 		}
-		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
+		profit := artemis_eth_units.SubBigInt(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid

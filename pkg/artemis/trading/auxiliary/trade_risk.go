@@ -108,11 +108,12 @@ func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf
 	ok6 := artemis_eth_units.IsXLessThanEqZeroOrOne(tf.SandwichTrade.AmountOut)
 	if ok5 || ok6 {
 		log.Warn().Str("tf.Tx.Hash", tf.Tx.Hash().String()).Interface("tf.SandwichTrade", tf.SandwichTrade).Msg("ActiveTradingFilter: SandwichTrade one of the trade amountsIn or amountsOut is zero")
-		return false, errors.New("one of the trade amountsIn or amountsOut is zero")
+		return false, errors.New("tf.SandwichTrade one of the trade amountsIn or amountsOut is zero")
 	}
 	ok7 := artemis_eth_units.IsXLessThanEqZeroOrOne(tf.SandwichPrediction.ExpectedProfit)
-	if !ok7 {
+	if ok7 {
 		log.Warn().Str("tf.Tx.Hash", tf.Tx.Hash().String()).Interface("tf.SandwichPrediction", tf.SandwichPrediction).Msg("ActiveTradingFilter: SandwichPrediction one of the trade amountsIn or amountsOut is zero")
+		return false, errors.New("tf.SandwichPrediction: one of the trade amountsIn or amountsOut is zero")
 	}
 
 	log.Info().Str("txHash", tf.Tx.Hash().String()).Interface("tf.FrontRunTrade.AmountInAddr.String() ", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountOutAddr.String()", tf.FrontRunTrade.AmountOutAddr.String()).Msg("IsProfitTokenAcceptable: profit amount is not zero")

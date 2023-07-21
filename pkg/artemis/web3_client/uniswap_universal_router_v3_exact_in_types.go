@@ -112,12 +112,23 @@ func (s *V3SwapExactInParams) Decode(ctx context.Context, data []byte, abiFile *
 		log.Err(err).Msg("V3SwapExactInParams: Decode failed to parse recipient")
 		return err
 	}
-	payerIsSender := args["payerIsUser"].(bool)
+	payerIsUserInterface, pok := args["payerIsUser"]
+	if !pok || payerIsUserInterface == nil {
+		// Handle the situation when args["path"] doesn't exist or is nil
+		log.Warn().Msg("V3SwapExactInParams: 'payerIsUser' does not exist or is nil")
+		return fmt.Errorf("payerIsUser does not exist or is nil")
+	}
+	payerIsUserBool, ok := payerIsUserInterface.(bool)
+	if !ok {
+		// Handle the situation when the conversion fails
+		log.Warn().Msg("V3SwapExactInParams: failed to convert 'payerIsUser' to bool")
+		return fmt.Errorf("failed to convert payerIsUser to bool")
+	}
 	s.AmountIn = amountIn
 	s.AmountOutMin = amountOutMin
 	s.Path = tfp
 	s.To = to
-	s.PayerIsUser = payerIsSender
+	s.PayerIsUser = payerIsUserBool
 	return err
 }
 

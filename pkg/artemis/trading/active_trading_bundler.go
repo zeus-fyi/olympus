@@ -19,7 +19,7 @@ func ProcessBundleStage(ctx context.Context, w3c web3_client.Web3Client, tfSlice
 		}
 		log.Info().Msgf("ProcessBundleStage: passed active filter trade: %s", tf.Tx.Hash().String())
 		m.StageProgressionMetrics.CountPostActiveTradingFilter(1)
-		resp, err := artemis_trading_auxiliary.PackageSandwichAndSend(ctx, w3c, &tf)
+		resp, err := artemis_trading_auxiliary.PackageSandwichAndSend(ctx, w3c, &tf, m)
 		if err != nil {
 			log.Err(err).Msg("ProcessBundleStage: failed to package sandwich")
 			err = nil

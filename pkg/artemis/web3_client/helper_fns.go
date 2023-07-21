@@ -73,12 +73,21 @@ func ParseBigInt(i interface{}) (*big.Int, error) {
 			return nil, fmt.Errorf("failed to parse string '%s' into big.Int", v)
 		}
 		return result, nil
+	case int:
+		return big.NewInt(int64(v)), nil
+	case uint64:
+		return new(big.Int).SetUint64(v), nil
 	case uint32:
 		return big.NewInt(int64(v)), nil
 	case int64:
 		return big.NewInt(v), nil
+	case []byte:
+		return new(big.Int).SetBytes(v), nil
+	case nil:
+		return big.NewInt(0), nil
 	default:
-		return nil, fmt.Errorf("input is not a string or int64")
+		log.Warn().Msgf("ParseBigInt: unknown type %T", v)
+		return big.NewInt(0), nil
 	}
 }
 
@@ -92,10 +101,18 @@ func ConvertToAddressSlice(i interface{}) ([]accounts.Address, error) {
 			m[ind] = accounts.HexToAddress(addr.Hex())
 		}
 		return m, nil
+	case []string:
+		m := make([]accounts.Address, len(i.([]string)))
+		for ind, addr := range i.([]string) {
+			m[ind] = accounts.HexToAddress(addr)
+		}
+	case nil:
+		return []accounts.Address{}, nil
 	default:
-		fmt.Println(v)
+		log.Warn().Msgf("ConvertToAddressSlice: unknown type %T", v)
 		return nil, fmt.Errorf("input is not a []common.Address")
 	}
+	return nil, fmt.Errorf("input is not a []common.Address")
 }
 
 func ConvertToAddress(i interface{}) (accounts.Address, error) {
@@ -105,8 +122,10 @@ func ConvertToAddress(i interface{}) (accounts.Address, error) {
 	case accounts.Address:
 		addr := i.(common.Address)
 		return accounts.HexToAddress(addr.Hex()), nil
+	case nil:
+		return accounts.Address{}, nil
 	default:
-		fmt.Println(v)
+		log.Warn().Msgf("ConvertToAddress: unknown type %T", v)
 		return accounts.Address{}, fmt.Errorf("input is not a  common.Address")
 	}
 }

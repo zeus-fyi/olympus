@@ -71,73 +71,101 @@ func (h *HistoricalAnalysisDebug) BinarySearch() (web3_client.TradeExecutionFlow
 		if h.TradePrediction.InitialPair == nil {
 			return tf, errors.New("initial pair is nil")
 		}
-		search := params.BinarySearch(*h.TradePrediction.InitialPair)
-		return search.ConvertToBigIntTypeWithoutTx(), nil
+		search, err := params.BinarySearch(*h.TradePrediction.InitialPair)
+		if err != nil {
+			return tf, fmt.Errorf("error in binary search: %w", err)
+		}
+		return search, nil
 	case *web3_client.SwapExactTokensForTokensSupportingFeeOnTransferTokensParams:
 		params := v.(*web3_client.SwapExactTokensForTokensSupportingFeeOnTransferTokensParams)
 		if h.TradePrediction.InitialPair == nil {
 			return tf, errors.New("initial pair is nil")
 		}
-		search := params.BinarySearch(*h.TradePrediction.InitialPair)
-		return search.ConvertToBigIntTypeWithoutTx(), nil
+		search, err := params.BinarySearch(*h.TradePrediction.InitialPair)
+		if err != nil {
+			return tf, fmt.Errorf("error in binary search: %w", err)
+		}
+		return search, nil
 	case *web3_client.SwapExactETHForTokensSupportingFeeOnTransferTokensParams:
 		params := v.(*web3_client.SwapExactETHForTokensSupportingFeeOnTransferTokensParams)
 		if h.TradePrediction.InitialPair == nil {
 			return tf, errors.New("initial pair is nil")
 		}
-		search := params.BinarySearch(*h.TradePrediction.InitialPair)
-		return search.ConvertToBigIntTypeWithoutTx(), nil
+		search, err := params.BinarySearch(*h.TradePrediction.InitialPair)
+		if err != nil {
+			return tf, fmt.Errorf("error in binary search: %w", err)
+		}
+		return search, nil
 	case *web3_client.SwapExactTokensForETHSupportingFeeOnTransferTokensParams:
 		params := v.(*web3_client.SwapExactTokensForETHSupportingFeeOnTransferTokensParams)
 		if h.TradePrediction.InitialPair == nil {
 			return tf, errors.New("initial pair is nil")
 		}
-		search := params.BinarySearch(*h.TradePrediction.InitialPair)
-		return search.ConvertToBigIntTypeWithoutTx(), nil
+		search, err := params.BinarySearch(*h.TradePrediction.InitialPair)
+		if err != nil {
+			return tf, fmt.Errorf("error in binary search: %w", err)
+		}
+		return search, nil
 	case *web3_client.SwapExactTokensForTokensParams:
 		params := v.(*web3_client.SwapExactTokensForTokensParams)
 		if h.TradePrediction.InitialPair == nil {
 			return tf, errors.New("initial pair is nil")
 		}
-		search := params.BinarySearch(*h.TradePrediction.InitialPair)
-		return search.ConvertToBigIntTypeWithoutTx(), nil
+		search, err := params.BinarySearch(*h.TradePrediction.InitialPair)
+		if err != nil {
+			return tf, fmt.Errorf("error in binary search: %w", err)
+		}
+		return search, nil
 	case *web3_client.SwapExactETHForTokensParams:
 		params := v.(*web3_client.SwapExactETHForTokensParams)
 		if h.TradePrediction.InitialPair == nil {
 			return tf, errors.New("initial pair is nil")
-
 		}
-		search := params.BinarySearch(*h.TradePrediction.InitialPair)
-		return search.ConvertToBigIntTypeWithoutTx(), nil
+		search, err := params.BinarySearch(*h.TradePrediction.InitialPair)
+		if err != nil {
+			return tf, fmt.Errorf("error in binary search: %w", err)
+		}
+		return search, nil
 	case *web3_client.SwapExactTokensForETHParams:
 		params := v.(*web3_client.SwapExactTokensForETHParams)
 		if h.TradePrediction.InitialPair == nil {
 			return tf, errors.New("initial pair is nil")
-
 		}
-		search := params.BinarySearch(*h.TradePrediction.InitialPair)
-		return search.ConvertToBigIntTypeWithoutTx(), nil
+		search, err := params.BinarySearch(*h.TradePrediction.InitialPair)
+		if err != nil {
+			return tf, fmt.Errorf("error in binary search: %w", err)
+		}
+		return search, nil
 	case *web3_client.SwapTokensForExactTokensParams:
 		params := v.(*web3_client.SwapTokensForExactTokensParams)
 		if h.TradePrediction.InitialPair == nil {
 			return tf, errors.New("initial pair is nil")
 		}
-		search := params.BinarySearch(*h.TradePrediction.InitialPair)
-		return search.ConvertToBigIntTypeWithoutTx(), nil
+		search, err := params.BinarySearch(*h.TradePrediction.InitialPair)
+		if err != nil {
+			return tf, fmt.Errorf("error in binary search: %w", err)
+		}
+		return search, nil
 	case *web3_client.SwapTokensForExactETHParams:
 		params := v.(*web3_client.SwapTokensForExactETHParams)
 		if h.TradePrediction.InitialPair == nil {
 			return tf, errors.New("initial pair is nil")
 		}
-		search := params.BinarySearch(*h.TradePrediction.InitialPair)
-		return search.ConvertToBigIntTypeWithoutTx(), nil
+		search, err := params.BinarySearch(*h.TradePrediction.InitialPair)
+		if err != nil {
+			return tf, fmt.Errorf("error in binary search: %w", err)
+		}
+		return search, nil
 	case *web3_client.SwapETHForExactTokensParams:
 		params := v.(*web3_client.SwapETHForExactTokensParams)
 		if h.TradePrediction.InitialPair == nil {
 			return tf, errors.New("initial pair is nil")
 		}
-		search := params.BinarySearch(*h.TradePrediction.InitialPair)
-		return search.ConvertToBigIntTypeWithoutTx(), nil
+		search, err := params.BinarySearch(*h.TradePrediction.InitialPair)
+		if err != nil {
+			return tf, fmt.Errorf("error in binary search: %w", err)
+		}
+		return search, nil
 	default:
 		fmt.Println(v)
 	}

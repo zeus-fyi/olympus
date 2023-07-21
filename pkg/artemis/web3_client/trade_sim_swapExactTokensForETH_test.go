@@ -45,7 +45,8 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSim_SwapExactTokensForETH() {
 		blockNum, err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlockBeforeTxMined(ctx, s.Tc.HardhatNode, s.LocalHardhatMainnetUser, s.MainnetWeb3User, common.HexToHash(tf.Tx.Hash))
 		fmt.Println("blockNumSet to -1 before tx included", blockNum-1)
 		s.Require().Nil(err)
-		tfRegular := tf.ConvertToBigIntType()
+		tfRegular, err := tf.ConvertToBigIntType()
+		s.Require().Nil(err)
 		uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
 		//pairAddr := tfRegular.InitialPair.PairContractAddr
 		//simPair, err := uni.GetPairContractPrices(ctx, pairAddr)
@@ -65,7 +66,8 @@ func (s *Web3ClientTestSuite) TestFullSandwichTradeSim_SwapExactTokensForETH() {
 		err = s.LocalHardhatMainnetUser.HardHatResetNetwork(ctx, currentBlockNum)
 		s.Require().Nil(err)
 
-		tfRegular = tf.ConvertToBigIntType()
+		tfRegular, err = tf.ConvertToBigIntType()
+		s.Require().Nil(err)
 		uni = InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
 		uni.PrintDetails = true
 		uni.TestMode = true

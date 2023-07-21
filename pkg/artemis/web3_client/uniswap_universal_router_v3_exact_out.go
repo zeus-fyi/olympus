@@ -8,13 +8,14 @@ import (
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
 
-func (s *V3SwapExactOutParams) BinarySearch(pd *uniswap_pricing.UniswapPricingData) TradeExecutionFlowJSON {
+func (s *V3SwapExactOutParams) BinarySearch(pd *uniswap_pricing.UniswapPricingData) (TradeExecutionFlow, error) {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountInMax)
 	var mid *big.Int
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
-	tf := TradeExecutionFlowJSON{
+	tf := TradeExecutionFlow{
+		InitialPairV3: &pd.V3Pair,
 		Trade: Trade{
 			TradeMethod:              V3SwapExactOut,
 			JSONV3SwapExactOutParams: s.ConvertToJSONType(),
@@ -35,13 +36,13 @@ func (s *V3SwapExactOutParams) BinarySearch(pd *uniswap_pricing.UniswapPricingDa
 		toFrontRun, _, err := mockPairResp.PriceImpact(ctx, frontRunTokenIn, amountInFrontRun)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
-			return tf
+			return tf, err
 		}
 		// User trade
 		userTrade, _, err := mockPairResp.PriceImpact(ctx, frontRunTokenIn, s.AmountInMax)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
-			return tf
+			return tf, err
 		}
 		difference := new(big.Int).Sub(userTrade.Quotient(), s.AmountOut)
 		// if diff <= 0 then it searches left
@@ -53,28 +54,28 @@ func (s *V3SwapExactOutParams) BinarySearch(pd *uniswap_pricing.UniswapPricingDa
 		toSandwich, _, err := mockPairResp.PriceImpact(ctx, sandwichTokenIn, toFrontRun.Quotient())
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
-			return tf
+			return tf, err
 		}
 		profit := new(big.Int).Sub(toSandwich.Quotient(), toFrontRun.Quotient())
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = artemis_trading_types.JSONTradeOutcome{
-				AmountIn:      amountInFrontRun.String(),
+			tf.FrontRunTrade = artemis_trading_types.TradeOutcome{
+				AmountIn:      amountInFrontRun,
 				AmountInAddr:  frontRunTokenIn.Address,
-				AmountOut:     toFrontRun.Quotient().String(),
+				AmountOut:     toFrontRun.Quotient(),
 				AmountOutAddr: sandwichTokenIn.Address,
 			}
-			tf.UserTrade = artemis_trading_types.JSONTradeOutcome{
-				AmountIn:      s.AmountInMax.String(),
+			tf.UserTrade = artemis_trading_types.TradeOutcome{
+				AmountIn:      s.AmountInMax,
 				AmountInAddr:  frontRunTokenIn.Address,
-				AmountOut:     userTrade.Quotient().String(),
+				AmountOut:     userTrade.Quotient(),
 				AmountOutAddr: sandwichTokenIn.Address,
 			}
-			tf.SandwichTrade = artemis_trading_types.JSONTradeOutcome{
-				AmountIn:      toFrontRun.Quotient().String(),
+			tf.SandwichTrade = artemis_trading_types.TradeOutcome{
+				AmountIn:      toFrontRun.Quotient(),
 				AmountInAddr:  sandwichTokenIn.Address,
-				AmountOut:     toSandwich.Quotient().String(),
+				AmountOut:     toSandwich.Quotient(),
 				AmountOutAddr: frontRunTokenIn.Address,
 			}
 		}
@@ -90,6 +91,6 @@ func (s *V3SwapExactOutParams) BinarySearch(pd *uniswap_pricing.UniswapPricingDa
 		SellAmount:     tokenSellAmountAtMaxProfit,
 		ExpectedProfit: maxProfit,
 	}
-	tf.SandwichPrediction = sp.ConvertToJSONType()
-	return tf
+	tf.SandwichPrediction = sp
+	return tf, nil
 }

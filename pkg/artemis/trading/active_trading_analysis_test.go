@@ -20,14 +20,18 @@ func (s *ArtemisRealTimeTradingTestSuite) TestCalculateTradeValues() {
 	j, err := web3_client.UnmarshalTradeExecutionFlow(tx.TxFlowPrediction)
 	s.Require().NoError(err)
 
-	tmp := j.ConvertToBigIntType()
+	tmp, err := j.ConvertToBigIntType()
+	s.Require().NoError(err)
 	s.Require().NotEmpty(tmp)
 	fmt.Println(j.ConvertToBigIntType())
 
-	tp := j.Trade.JSONV2SwapExactInParams.ConvertToBigIntType()
+	tp, err := j.Trade.JSONV2SwapExactInParams.ConvertToBigIntType()
+	s.Require().NoError(err)
 	s.Require().NotEmpty(tp)
 
-	to := tp.BinarySearch(*tmp.InitialPair)
+	to, err := tp.BinarySearch(*tmp.InitialPair)
+	s.Require().NoError(err)
+
 	s.Require().NotEmpty(to)
 	// 13802675169811703
 	fmt.Println("orig", tmp.SandwichPrediction.ExpectedProfit)

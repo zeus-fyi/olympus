@@ -25,9 +25,13 @@ func (t *TradeDebugger) lookupMevMempoolTx(ctx context.Context, txHash string) (
 		if terr != nil {
 			return HistoricalAnalysisDebug{}, terr
 		}
+		tp, terr := tfPrediction.ConvertToBigIntType()
+		if terr != nil {
+			return HistoricalAnalysisDebug{}, terr
+		}
 		dbgTx := HistoricalAnalysisDebug{
 			HistoricalAnalysis: mevTx,
-			TradePrediction:    tfPrediction.ConvertToBigIntType(),
+			TradePrediction:    tp,
 		}
 		return dbgTx, err
 		//historicalAnalysisDebugs[i] = dbgTx
@@ -51,14 +55,21 @@ func (t *TradeDebugger) lookupMevTx(ctx context.Context, txHash string) (Histori
 		if err != nil {
 			return HistoricalAnalysisDebug{}, err
 		}
+		tp, err := tfPrediction.ConvertToBigIntType()
+		if err != nil {
+			return HistoricalAnalysisDebug{}, err
+		}
 		wrapper := HistoricalAnalysisDebug{
 			HistoricalAnalysis: mevTx,
-			TradePrediction:    tfPrediction.ConvertToBigIntType(),
+			TradePrediction:    tp,
 		}
 		historicalAnalysisDebugs[i] = wrapper
 		switch mevTx.TradeMethod {
 		case artemis_trading_constants.V2SwapExactIn:
-			trade := historicalAnalysisDebugs[i].TradePrediction.Trade.JSONV2SwapExactInParams.ConvertToBigIntType()
+			trade, terr := historicalAnalysisDebugs[i].TradePrediction.Trade.JSONV2SwapExactInParams.ConvertToBigIntType()
+			if terr != nil {
+				return HistoricalAnalysisDebug{}, terr
+			}
 			historicalAnalysisDebugs[i].TradeParams = trade
 		}
 		if tfPrediction.Tx.Hash == txHash {

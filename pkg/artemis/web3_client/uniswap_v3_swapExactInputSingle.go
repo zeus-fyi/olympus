@@ -2,6 +2,7 @@ package web3_client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/big"
 
@@ -35,13 +36,14 @@ type JSONSwapExactInputSingleArgs struct {
 	TokenFeePath      artemis_trading_types.TokenFeePath `json:"tokenFeePath,omitempty"`
 }
 
-func (s *SwapExactInputSingleArgs) BinarySearch(pd *uniswap_pricing.UniswapPricingData) TradeExecutionFlowJSON {
+func (s *SwapExactInputSingleArgs) BinarySearch(pd *uniswap_pricing.UniswapPricingData) (TradeExecutionFlow, error) {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountIn)
 	var mid *big.Int
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
-	tf := TradeExecutionFlowJSON{
+	tf := TradeExecutionFlow{
+		InitialPairV3: &pd.V3Pair,
 		Trade: Trade{
 			TradeMethod:                  swapExactInputSingle,
 			JSONSwapExactInputSingleArgs: s.ConvertToJSONType(),
@@ -63,13 +65,13 @@ func (s *SwapExactInputSingleArgs) BinarySearch(pd *uniswap_pricing.UniswapPrici
 		toFrontRun, _, err := mockPairResp.PriceImpact(ctx, frontRunTokenIn, amountInFrontRun)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
-			return tf
+			return tf, err
 		}
 		// User trade
 		userTrade, _, err := mockPairResp.PriceImpact(ctx, frontRunTokenIn, s.AmountIn)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
-			return tf
+			return tf, err
 		}
 		difference := new(big.Int).Sub(userTrade.Quotient(), s.AmountOutMinimum)
 		if difference.Cmp(big.NewInt(0)) < 0 {
@@ -80,28 +82,28 @@ func (s *SwapExactInputSingleArgs) BinarySearch(pd *uniswap_pricing.UniswapPrici
 		toSandwich, _, err := mockPairResp.PriceImpact(ctx, sandwichTokenIn, toFrontRun.Quotient())
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
-			return tf
+			return tf, err
 		}
 		profit := new(big.Int).Sub(toSandwich.Quotient(), toFrontRun.Quotient())
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = artemis_trading_types.JSONTradeOutcome{
-				AmountIn:      amountInFrontRun.String(),
+			tf.FrontRunTrade = artemis_trading_types.TradeOutcome{
+				AmountIn:      amountInFrontRun,
 				AmountInAddr:  frontRunTokenIn.Address,
-				AmountOut:     toFrontRun.Quotient().String(),
+				AmountOut:     toFrontRun.Quotient(),
 				AmountOutAddr: sandwichTokenIn.Address,
 			}
-			tf.UserTrade = artemis_trading_types.JSONTradeOutcome{
-				AmountIn:      s.AmountIn.String(),
+			tf.UserTrade = artemis_trading_types.TradeOutcome{
+				AmountIn:      s.AmountIn,
 				AmountInAddr:  frontRunTokenIn.Address,
-				AmountOut:     userTrade.Quotient().String(),
+				AmountOut:     userTrade.Quotient(),
 				AmountOutAddr: sandwichTokenIn.Address,
 			}
-			tf.SandwichTrade = artemis_trading_types.JSONTradeOutcome{
-				AmountIn:      toFrontRun.Quotient().String(),
+			tf.SandwichTrade = artemis_trading_types.TradeOutcome{
+				AmountIn:      toFrontRun.Quotient(),
 				AmountInAddr:  sandwichTokenIn.Address,
-				AmountOut:     toSandwich.Quotient().String(),
+				AmountOut:     toSandwich.Quotient(),
 				AmountOutAddr: frontRunTokenIn.Address,
 			}
 		}
@@ -117,16 +119,19 @@ func (s *SwapExactInputSingleArgs) BinarySearch(pd *uniswap_pricing.UniswapPrici
 		SellAmount:     tokenSellAmountAtMaxProfit,
 		ExpectedProfit: maxProfit,
 	}
-	tf.SandwichPrediction = sp.ConvertToJSONType()
-	return tf
+	tf.SandwichPrediction = sp
+	return tf, nil
 }
 
-func (s *JSONSwapExactInputSingleArgs) ConvertToBigIntType() SwapExactInputSingleArgs {
-	amountIn, _ := new(big.Int).SetString(s.AmountIn, 10)
-	amountOutMinimum, _ := new(big.Int).SetString(s.AmountOutMinimum, 10)
-	fee, _ := new(big.Int).SetString(s.Fee, 10)
-	sqrtPriceLimitX96, _ := new(big.Int).SetString(s.SqrtPriceLimitX96, 10)
-
+func (s *JSONSwapExactInputSingleArgs) ConvertToBigIntType() (SwapExactInputSingleArgs, error) {
+	amountIn, ok1 := new(big.Int).SetString(s.AmountIn, 10)
+	amountOutMinimum, ok2 := new(big.Int).SetString(s.AmountOutMinimum, 10)
+	fee, ok3 := new(big.Int).SetString(s.Fee, 10)
+	sqrtPriceLimitX96, ok4 := new(big.Int).SetString(s.SqrtPriceLimitX96, 10)
+	if !ok1 || !ok2 || !ok3 || !ok4 {
+		log.Error().Msg("error converting to big int type")
+		return SwapExactInputSingleArgs{}, errors.New("error converting to big int type")
+	}
 	return SwapExactInputSingleArgs{
 		TokenIn:           s.TokenIn,
 		AmountIn:          amountIn,
@@ -136,7 +141,7 @@ func (s *JSONSwapExactInputSingleArgs) ConvertToBigIntType() SwapExactInputSingl
 		Recipient:         s.Recipient,
 		SqrtPriceLimitX96: sqrtPriceLimitX96,
 		TokenFeePath:      s.TokenFeePath,
-	}
+	}, nil
 }
 
 func (s *SwapExactInputSingleArgs) ConvertToJSONType() *JSONSwapExactInputSingleArgs {
@@ -163,6 +168,7 @@ func (s *SwapExactInputSingleArgs) Decode(ctx context.Context, args map[string]i
 		SqrtPriceLimitX96 *big.Int       "json:\"sqrtPriceLimitX96\""
 	})
 	if !ok {
+		log.Warn().Msg("SwapExactInputSingleArgs: Decode params is not of the expected type")
 		return fmt.Errorf("params is not of the expected type")
 	}
 	s.TokenIn = accounts.Address(params.TokenIn)

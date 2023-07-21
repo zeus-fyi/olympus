@@ -25,12 +25,18 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 		return err
 	}
 	tf := mevTx.TradePrediction
+	fmt.Println("FRONT_RUN AmountIn:", tf.FrontRunTrade.AmountIn.String(), "AmountInAddr", tf.FrontRunTrade.AmountInAddr.String())
+	fmt.Println("BACK_RUN AmountOut", tf.SandwichTrade.AmountOut.String(), "AmountOutAddr", tf.SandwichTrade.AmountOutAddr.String())
+	fmt.Println("TRADE_METHOD:", tf.Trade.TradeMethod, "TradeMethod")
+
+	fmt.Println("EXPECTED_PROFIT", tf.SandwichPrediction.ExpectedProfit, "AmountOutAddr", tf.SandwichTrade.AmountOutAddr.String())
+
 	err = t.ResetAndSetupPreconditions(ctx, tf)
 	if err != nil {
 		return err
 	}
 	fmt.Println("ANALYZING tx: ", tf.Tx.Hash().String(), "at block: ", mevTx.GetBlockNumber())
-	fmt.Println("FRONT RUN TRADE: ", tf.FrontRunTrade.AmountInAddr.String(), " -> ", tf.FrontRunTrade.AmountOutAddr.String())
+	fmt.Println("FRONT_RUN TRADE: ", tf.FrontRunTrade.AmountInAddr.String(), " -> ", tf.FrontRunTrade.AmountOutAddr.String())
 	ac := t.dat.GetSimAuxClient()
 	n, d := GetMaxTransferTax(tf)
 	amountOutStartFrontRun := tf.FrontRunTrade.AmountOut

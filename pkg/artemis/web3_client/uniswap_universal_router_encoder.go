@@ -4,14 +4,15 @@ import (
 	"context"
 	"errors"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/rs/zerolog/log"
 )
 
-func (ur *UniversalRouterExecCmd) EncodeCommands(ctx context.Context) (*UniversalRouterExecParams, error) {
+func (ur *UniversalRouterExecCmd) EncodeCommands(ctx context.Context, abiFile *abi.ABI) (*UniversalRouterExecParams, error) {
 	//log.Info().Msg("UniversalRouterExecCmd: EncodeCommands")
 	encodedCmd := &UniversalRouterExecParams{}
 	for _, cmd := range ur.Commands {
-		cmdByteStr, inputs, err := cmd.EncodeCommand(ctx)
+		cmdByteStr, inputs, err := cmd.EncodeCommand(ctx, abiFile)
 		if err != nil {
 			log.Err(err).Msg("could not encode command")
 			return nil, err
@@ -32,13 +33,13 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommandByte(flag bool, command int) b
 	return byte(data)
 }
 
-func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, []byte, error) {
+func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context, abiFile *abi.ABI) (byte, []byte, error) {
 	var cmdByte byte
 	switch ur.Command {
 	case V3SwapExactIn:
 		//log.Info().Msg("EncodeCommand V3_SWAP_EXACT_IN")
 		params := ur.DecodedInputs.(V3SwapExactInParams)
-		inputs, err := params.Encode(ctx)
+		inputs, err := params.Encode(ctx, abiFile)
 		if err != nil {
 			return cmdByte, nil, err
 		}
@@ -47,7 +48,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 	case V3SwapExactOut:
 		//log.Info().Msg("EncodeCommand V3_SWAP_EXACT_OUT")
 		params := ur.DecodedInputs.(V3SwapExactOutParams)
-		inputs, err := params.Encode(ctx)
+		inputs, err := params.Encode(ctx, abiFile)
 		if err != nil {
 			return cmdByte, nil, err
 		}
@@ -57,7 +58,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 	case V2SwapExactIn:
 		//log.Info().Msg("EncodeCommand V2_SWAP_EXACT_IN")
 		params := ur.DecodedInputs.(V2SwapExactInParams)
-		inputs, err := params.Encode(ctx)
+		inputs, err := params.Encode(ctx, abiFile)
 		if err != nil {
 			return cmdByte, nil, err
 		}
@@ -67,7 +68,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 	case V2SwapExactOut:
 		//log.Info().Msg("EncodeCommand V2_SWAP_EXACT_OUT")
 		params := ur.DecodedInputs.(V2SwapExactOutParams)
-		inputs, err := params.Encode(ctx)
+		inputs, err := params.Encode(ctx, abiFile)
 		if err != nil {
 			return cmdByte, nil, err
 		}
@@ -147,7 +148,7 @@ func (ur *UniversalRouterExecSubCmd) EncodeCommand(ctx context.Context) (byte, [
 	case UnwrapWETH:
 		//log.Info().Msg("EncodeCommand UNWRAP_WETH")
 		params := ur.DecodedInputs.(UnwrapWETHParams)
-		inputs, err := params.Encode(ctx)
+		inputs, err := params.Encode(ctx, abiFile)
 		if err != nil {
 			return cmdByte, inputs, err
 		}

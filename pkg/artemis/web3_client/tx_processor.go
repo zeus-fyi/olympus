@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/rs/zerolog/log"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_network_cfgs "github.com/zeus-fyi/olympus/pkg/artemis/configs"
 )
 
-func (u *UniswapClient) ProcessTxs(ctx context.Context) {
+func (u *UniswapClient) ProcessTxs(ctx context.Context, abiFile *abi.ABI) {
 	wc := web3_actions.NewWeb3ActionsClient(artemis_network_cfgs.ArtemisEthereumMainnetQuiknodeLive.NodeURL)
 	wc.Dial()
 	bn, berr := wc.C.BlockNumber(ctx)
@@ -22,16 +23,16 @@ func (u *UniswapClient) ProcessTxs(ctx context.Context) {
 	u.BlockNumber = new(big.Int).SetUint64(bn)
 	count := 0
 	for _, tx := range u.MevSmartContractTxMapUniversalRouterOld.Txs {
-		u.ProcessUniversalRouterTxs(ctx, tx)
+		u.ProcessUniversalRouterTxs(ctx, tx, abiFile)
 	}
 	for _, tx := range u.MevSmartContractTxMapUniversalRouterNew.Txs {
-		u.ProcessUniversalRouterTxs(ctx, tx)
+		u.ProcessUniversalRouterTxs(ctx, tx, abiFile)
 	}
 	for _, tx := range u.MevSmartContractTxMapV3SwapRouterV1.Txs {
-		u.ProcessUniswapV3RouterTxs(ctx, tx)
+		u.ProcessUniswapV3RouterTxs(ctx, tx, abiFile)
 	}
 	for _, tx := range u.MevSmartContractTxMapV3SwapRouterV2.Txs {
-		u.ProcessUniswapV3RouterTxs(ctx, tx)
+		u.ProcessUniswapV3RouterTxs(ctx, tx, abiFile)
 	}
 	u.ProcessV2Router01Txs()
 	u.ProcessV2Router02Txs()

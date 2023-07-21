@@ -29,18 +29,6 @@ func EntryTxFilter(ctx context.Context, tx *types.Transaction) error {
 	if len(tx.Hash().String()) <= 0 {
 		return errors.New("dat: EntryTxFilter, tx.Hash().String() is nil")
 	}
-	//_, ok := txCache.Get(tx.Hash().String())
-	//if ok {
-	//	return errors.New("dat: EntryTxFilter, tx already processed")
-	//}
-	//exists, err := artemis_trading_cache.ReadRedis.DoesTxExist(ctx, tx.Hash().String())
-	//if err != nil {
-	//	return nil
-	//}
-	//if exists {
-	//	return errors.New("dat: EntryTxFilter, tx already processed")
-	//}
-	//txCache.Set(tx.Hash().String(), tx, cache.DefaultExpiration)
 	return nil
 }
 
@@ -68,8 +56,11 @@ func (a *ActiveTrading) SimTxFilter(ctx context.Context, tfSlice []web3_client.T
 
 func ActiveTradingFilterSlice(ctx context.Context, w3c web3_client.Web3Client, tf []web3_client.TradeExecutionFlowJSON) error {
 	for _, tradeFlow := range tf {
-		tfInt := tradeFlow.ConvertToBigIntType()
-		err := ActiveTradingFilter(ctx, w3c, tfInt)
+		tfInt, err := tradeFlow.ConvertToBigIntType()
+		if err != nil {
+			return err
+		}
+		err = ActiveTradingFilter(ctx, w3c, tfInt)
 		if err != nil {
 			return err
 		}
@@ -105,6 +96,10 @@ func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web
 	//if !ok {
 	//	return fmt.Errorf("dat: ActiveTradingFilter: trading not enabled for token")
 	//}
+	log.Info().Interface("tf.FrontRunTrade", tf.FrontRunTrade).Msg("ActiveTradingFilter: passed")
+	log.Info().Interface("tf.UserTrade", tf.UserTrade).Msg("ActiveTradingFilter: passed")
+	log.Info().Interface("tf.SandwichTrade", tf.SandwichTrade).Msg("ActiveTradingFilter: passed")
+	log.Info().Interface("tf.Tx.Hash", tf.Tx.Hash()).Msg("ActiveTradingFilter: passed")
 
 	return nil
 }

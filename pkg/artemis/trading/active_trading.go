@@ -129,7 +129,6 @@ func IngestTx(ctx context.Context, w3c web3_client.Web3Client, tx *types.Transac
 		return ErrWrapper{Err: merr, Stage: "DecodeTx"}
 	}
 	m.StageProgressionMetrics.CountPostDecodeTx()
-
 	log.Info().Msgf("ProcessTxsStage: txs: %d", len(mevTxs))
 	tfSlice := ProcessTxs(ctx, &mevTxs, m, w3c.Web3Actions)
 

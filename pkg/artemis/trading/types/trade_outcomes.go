@@ -10,6 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 )
 
 type TradeOutcome struct {
@@ -35,6 +36,13 @@ type TradeOutcome struct {
 	OrderedTxs          []accounts.Hash      `json:"orderedTxs,omitempty"`
 	BundleTxs           []*types.Transaction `json:"bundleTxs,omitempty"`
 	TotalGasCost        uint64               `json:"totalGasCost,omitempty"`
+}
+
+func (t *TradeOutcome) AreTradeParamsValid() bool {
+	if artemis_eth_units.AreAnyValuesLessThanEqZeroOrOne(t.AmountIn, t.AmountOut) {
+		return false
+	}
+	return true
 }
 
 type TxLifecycleStats struct {

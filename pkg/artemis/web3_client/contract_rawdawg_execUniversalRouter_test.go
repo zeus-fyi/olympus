@@ -68,7 +68,7 @@ func (s *Web3ClientTestSuite) TestRawdawgExecUniversalRouterWETHSwap() {
 		Deadline: deadline,
 		Payable:  payable,
 	}
-	encCmd, err := ur.EncodeCommands(ctx)
+	encCmd, err := ur.EncodeCommands(ctx, nil)
 	s.Require().NoError(err)
 	s.Require().NotNil(encCmd)
 

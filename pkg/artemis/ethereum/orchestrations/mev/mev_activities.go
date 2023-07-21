@@ -154,6 +154,6 @@ func (d *ArtemisMevActivities) ProcessMempoolTxs(ctx context.Context, mempoolTxs
 		log.Err(err).Msg("ProcessMempoolTxs failed")
 		return nil, err
 	}
-	uni.ProcessTxs(ctx)
+	uni.ProcessTxs(ctx, nil)
 	return uni.Trades, nil
 }

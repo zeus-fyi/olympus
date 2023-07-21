@@ -21,13 +21,14 @@ type SwapExactTokensForTokensSupportingFeeOnTransferTokensParams struct {
 	Deadline     *big.Int           `json:"deadline"`
 }
 
-func (s *SwapExactTokensForTokensSupportingFeeOnTransferTokensParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) TradeExecutionFlowJSON {
+func (s *SwapExactTokensForTokensSupportingFeeOnTransferTokensParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) (TradeExecutionFlow, error) {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.AmountIn)
 	var mid *big.Int
 	var maxProfit *big.Int
 	var tokenSellAmountAtMaxProfit *big.Int
-	tf := TradeExecutionFlowJSON{
+	tf := TradeExecutionFlow{
+		InitialPair: &pair,
 		Trade: Trade{
 			TradeMethod: swapExactTokensForTokensSupportingFeeOnTransferTokens,
 			JSONSwapExactTokensForTokensSupportingFeeOnTransferTokensParams: s.ConvertToJSONType(),
@@ -41,13 +42,13 @@ func (s *SwapExactTokensForTokensSupportingFeeOnTransferTokensParams) BinarySear
 		toFrontRun, err := mockPairResp.PriceImpact(s.Path[0], mid)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
-			return tf
+			return tf, err
 		}
 		// User trade
 		to, err := mockPairResp.PriceImpact(s.Path[0], s.AmountIn)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
-			return tf
+			return tf, err
 		}
 		difference := new(big.Int).Sub(to.AmountOut, s.AmountOutMin)
 		if difference.Cmp(big.NewInt(0)) < 0 {
@@ -59,15 +60,15 @@ func (s *SwapExactTokensForTokensSupportingFeeOnTransferTokensParams) BinarySear
 		toSandwich, err := mockPairResp.PriceImpact(s.Path[1], sandwichDump)
 		if err != nil {
 			log.Err(err).Msg("error in price impact")
-			return tf
+			return tf, err
 		}
 		profit := new(big.Int).Sub(toSandwich.AmountOut, toFrontRun.AmountIn)
 		if maxProfit == nil || profit.Cmp(maxProfit) > 0 {
 			maxProfit = profit
 			tokenSellAmountAtMaxProfit = mid
-			tf.FrontRunTrade = toFrontRun.ConvertToJSONType()
-			tf.UserTrade = to.ConvertToJSONType()
-			tf.SandwichTrade = toSandwich.ConvertToJSONType()
+			tf.FrontRunTrade = toFrontRun
+			tf.UserTrade = to
+			tf.SandwichTrade = toSandwich
 		}
 		// If profit is negative, reduce the high boundary
 		if profit.Cmp(big.NewInt(0)) < 0 {
@@ -81,54 +82,69 @@ func (s *SwapExactTokensForTokensSupportingFeeOnTransferTokensParams) BinarySear
 		SellAmount:     tokenSellAmountAtMaxProfit,
 		ExpectedProfit: maxProfit,
 	}
-	tf.SandwichPrediction = sp.ConvertToJSONType()
-	return tf
+	tf.SandwichPrediction = sp
+	return tf, nil
 }
-func (s *SwapExactTokensForTokensSupportingFeeOnTransferTokensParams) Decode(args map[string]interface{}) {
+
+func (s *SwapExactTokensForTokensSupportingFeeOnTransferTokensParams) Decode(args map[string]interface{}) error {
 	amountIn, err := ParseBigInt(args["amountIn"])
 	if err != nil {
-		return
+		log.Warn().Msg("SwapExactTokensForTokensSupportingFeeOnTransferTokensParams: error parsing amountIn")
+		return err
 	}
 	amountOutMin, err := ParseBigInt(args["amountOutMin"])
 	if err != nil {
-		return
+		log.Warn().Msg("SwapExactTokensForTokensSupportingFeeOnTransferTokensParams: error parsing amountOutMin")
+		return err
 	}
 	path, err := ConvertToAddressSlice(args["path"])
 	if err != nil {
-		return
+		log.Warn().Msg("SwapExactTokensForTokensSupportingFeeOnTransferTokensParams: error parsing path")
+		return err
 	}
 	to, err := ConvertToAddress(args["to"])
 	if err != nil {
-		return
+		log.Warn().Msg("SwapExactTokensForTokensSupportingFeeOnTransferTokensParams: error parsing to")
+		return err
 	}
 	deadline, err := ParseBigInt(args["deadline"])
 	if err != nil {
-		return
+		log.Warn().Msg("SwapExactTokensForTokensSupportingFeeOnTransferTokensParams: error parsing deadline")
+		return err
 	}
 	s.AmountIn = amountIn
 	s.AmountOutMin = amountOutMin
 	s.Path = path
 	s.To = to
 	s.Deadline = deadline
+	return nil
 }
 
-func (u *UniswapClient) SwapExactTokensForTokensSupportingFeeOnTransferTokens(tx MevTx, args map[string]interface{}) {
+func (u *UniswapClient) SwapExactTokensForTokensSupportingFeeOnTransferTokens(tx MevTx, args map[string]interface{}) error {
 	st := SwapExactTokensForTokensSupportingFeeOnTransferTokensParams{}
-	st.Decode(args)
+	err := st.Decode(args)
+	if err != nil {
+		return err
+	}
 	pd, err := u.GetV2PricingData(ctx, st.Path)
 	if err != nil {
-		return
+		return err
 	}
 	path := st.Path
-	initialPair := pd.V2Pair
-	tf := st.BinarySearch(pd.V2Pair)
-	tf.InitialPair = initialPair.ConvertToJSONType()
+	tf, err := st.BinarySearch(pd.V2Pair)
+	if err != nil {
+		return err
+	}
+	tfJSON, err := tf.ConvertToJSONType()
+	if err != nil {
+		return err
+	}
 	if u.PrintOn {
 		fmt.Println("\nsandwich: ==================================SwapExactTokensForTokensSupportingFeeOnTransferTokens==================================")
 		ts := &TradeSummary{
 			Tx:            tx,
 			Pd:            pd,
-			Tf:            tf,
+			Tf:            tfJSON,
 			TokenAddr:     path[0].String(),
 			BuyWithAmount: st.AmountIn,
 			MinimumAmount: st.AmountOutMin,
@@ -139,6 +155,7 @@ func (u *UniswapClient) SwapExactTokensForTokensSupportingFeeOnTransferTokens(tx
 		fmt.Println("sandwich: ====================================SwapExactTokensForTokensSupportingFeeOnTransferTokens==================================")
 	}
 	u.SwapExactTokensForTokensSupportingFeeOnTransferTokensSlice = append(u.SwapExactTokensForTokensSupportingFeeOnTransferTokensSlice, st)
+	return nil
 }
 
 type JSONSwapExactTokensForTokensSupportingFeeOnTransferTokensParams struct {

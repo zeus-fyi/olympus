@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
+	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
 func (s *Web3ClientTestSuite) TestUniversalRouterV2() {
@@ -28,7 +29,7 @@ func (s *Web3ClientTestSuite) TestUniversalRouterV2() {
 	s.Require().Nil(err)
 	s.Require().NotEmpty(mn)
 	s.Require().NotEmpty(args)
-	subCmds, err := NewDecodedUniversalRouterExecCmdFromMap(args)
+	subCmds, err := NewDecodedUniversalRouterExecCmdFromMap(args, artemis_oly_contract_abis.UniversalRouterNew)
 	s.Require().Nil(err)
 	s.Require().NotEmpty(subCmds)
 
@@ -151,7 +152,7 @@ func (s *Web3ClientTestSuite) TestV2EthToUsdcSwapWithPermit() {
 		Payable:  nil,
 	}
 
-	data, err := ep.EncodeCommands(ctx)
+	data, err := ep.EncodeCommands(ctx, nil)
 	s.Require().Nil(err)
 	s.Require().NotNil(data)
 

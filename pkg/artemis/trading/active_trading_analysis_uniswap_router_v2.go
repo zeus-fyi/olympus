@@ -148,7 +148,7 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			m.TxFetcherMetrics.TransactionCurrencyInOut(toAddr, st.Path[0].String(), st.Path[pend].String())
 			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapTokensForExactTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount.String(), tf.SandwichPrediction.ExpectedProfit.String())
 		}
-		log.Info().Msg("saving mempool tx")
+		log.Info().Msg("swapTokensForExactTokens: saving mempool tx")
 		err = SaveMempoolTxV2(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")

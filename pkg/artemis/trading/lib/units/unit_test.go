@@ -27,6 +27,9 @@ func TestPercentDiff(t *testing.T) {
 	fmt.Println("startVal", startVal.String())
 	endVal := ApplyTransferTax(startVal, 1, 1)
 	fmt.Println("val", endVal.String())
+
+	resp := MulBigInt(NewBigInt(0), NewBigInt(0))
+	fmt.Println("resp", resp.String())
 }
 
 func TestPercentDiffk(t *testing.T) {

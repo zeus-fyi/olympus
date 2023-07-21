@@ -113,7 +113,9 @@ func (p *UniswapV2Pair) PriceImpactToken1BuyToken0(tokenOneBuyAmount *big.Int) (
 		StartReservesToken0: p.Reserve0,
 		StartReservesToken1: p.Reserve1,
 	}
-
+	if tokenOneBuyAmount == nil {
+		tokenOneBuyAmount = big.NewInt(0)
+	}
 	amountInWithFee := new(big.Int).Mul(tokenOneBuyAmount, big.NewInt(997))
 	//fmt.Println("amountInWithFee", amountInWithFee.String())
 	numerator := new(big.Int).Mul(amountInWithFee, p.Reserve0)
@@ -150,6 +152,9 @@ func (p *UniswapV2Pair) PriceImpactToken0BuyToken1(tokenZeroBuyAmount *big.Int) 
 		AmountInAddr:        p.Token0,
 		StartReservesToken0: p.Reserve0,
 		StartReservesToken1: p.Reserve1,
+	}
+	if tokenZeroBuyAmount == nil {
+		tokenZeroBuyAmount = big.NewInt(0)
 	}
 	amountInWithFee := new(big.Int).Mul(tokenZeroBuyAmount, big.NewInt(997))
 	numerator := new(big.Int).Mul(amountInWithFee, p.Reserve1)

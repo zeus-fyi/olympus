@@ -80,6 +80,9 @@ func SubUint64FBigInt(val *big.Int, uintVal uint64) *big.Int {
 }
 
 func MulBigInt(x, y *big.Int) *big.Int {
+	if x == nil || y == nil {
+		return NewBigInt(0)
+	}
 	return new(big.Int).Mul(x, y)
 }
 

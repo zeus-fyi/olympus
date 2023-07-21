@@ -97,6 +97,7 @@ func GetLatestBlock(ctx context.Context) (uint64, error) {
 			return bn, nil
 		} else {
 			log.Err(err).Msg("GetLatestBlock: failed to get block number from redis")
+			err = nil
 		}
 	}
 	Wc.Dial()
@@ -110,6 +111,7 @@ func GetLatestBlock(ctx context.Context) (uint64, error) {
 		err := WriteRedis.AddOrUpdateLatestBlockCache(context.Background(), bn, 12*time.Second)
 		if err != nil {
 			log.Err(err).Uint64("bn", bn).Msg("GetLatestBlock: failed to set block number in redis")
+			err = nil
 		} else {
 			log.Info().Uint64("bn", bn).Msg("GetLatestBlock: set block number in redis")
 		}

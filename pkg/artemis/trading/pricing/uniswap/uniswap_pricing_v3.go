@@ -77,6 +77,7 @@ func (p *UniswapV3Pair) PricingData(ctx context.Context, path artemis_trading_ty
 	pd, er := redisCache.GetPairPricesFromCacheIfExists(ctx, hs)
 	if er != nil {
 		log.Err(er).Msgf("Error getting v3 pair prices from cache for %s", hs)
+		er = nil
 	} else {
 		assertedVal := pd.V3Pair
 		p.PoolAddress = assertedVal.PoolAddress
@@ -128,6 +129,7 @@ func (p *UniswapV3Pair) PricingData(ctx context.Context, path artemis_trading_ty
 		err = redisCache.AddOrUpdatePairPricesCache(ctx, hs, pricingData, time.Minute*60)
 		if err != nil {
 			log.Err(err).Msgf("Error adding v3 pair prices to cache for %s", hs)
+			err = nil
 		} else {
 			Cache.Set(hs, p, time.Minute*5)
 		}

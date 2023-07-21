@@ -107,6 +107,7 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 		err := redisCache.AddV2PairToNextLookupSet(context.Background(), bn, p.PairContractAddr, sessionID)
 		if err != nil {
 			log.Error().Err(err).Msg("AddV2PairToNextLookupSet: failed to add pair to next lookup set")
+			err = nil
 		}
 	}
 	tag := strings.Join([]string{fmt.Sprintf("%s", p.PairContractAddr), bnst}, "-")
@@ -115,6 +116,7 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 			pd, err := redisCache.GetPairPricesFromCacheIfExists(context.Background(), tag)
 			if err != nil {
 				log.Err(err).Msgf("AddV2PairToNextLookupSet: error getting pair prices from cache for %s", tag)
+				err = nil
 			} else {
 				cachedV2 := pd.V2Pair
 				p = &cachedV2
@@ -160,6 +162,7 @@ func GetPairContractPrices(ctx context.Context, wc web3_actions.Web3Actions, p *
 	pd, err := redisCache.GetPairPricesFromCacheIfExists(context.Background(), tag)
 	if err != nil {
 		log.Err(err).Msgf("GetPairContractPrices: GetPairPricesFromCacheIfExists: error getting pair prices from cache for %s", tag)
+		err = nil
 	} else {
 		cachedV2 := pd.V2Pair
 		p = &cachedV2

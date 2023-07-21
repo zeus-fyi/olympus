@@ -23,7 +23,7 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 		log.Err(err).Msg("RealTimeProcessUniversalRouterTx: failed to decode universal router exec cmd")
 		return nil, err
 	}
-	bn, err := artemis_trading_cache.GetLatestBlock(ctx)
+	bn, err := artemis_trading_cache.GetLatestBlock(context.Background())
 	if err != nil {
 		log.Err(err).Msg("RealTimeProcessUniversalRouterTx: failed to get latest block")
 		return nil, errors.New("failed to get latest block")

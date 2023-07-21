@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	irisSvcBeacons = "iris.iris.svc.cluster.local/v1beta/internal/router/group?routeGroup=quiknode-mainnet"
+	irisSvcBeacons = "http://iris.iris.svc.cluster.local/v1beta/internal/router/group?routeGroup=quiknode-mainnet"
 )
 
 var (

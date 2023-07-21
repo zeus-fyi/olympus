@@ -88,7 +88,7 @@ func GetLatestBlock(ctx context.Context) (uint64, error) {
 	if ReadRedis.Client != nil {
 		bn, err := ReadRedis.GetLatestBlockNumber(context.Background())
 		if err == nil {
-			log.Info().Uint64("bn", bn).Msg("got block number from redis")
+			log.Debug().Uint64("bn", bn).Msg("got block number from redis")
 			Cache.Set(redis_mev.LatestBlockNumberCacheKey, bn, 6*time.Second)
 			return bn, nil
 		} else {

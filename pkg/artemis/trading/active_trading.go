@@ -120,12 +120,12 @@ func IngestTx(ctx context.Context, w3c web3_client.Web3Client, tx *types.Transac
 	m.StageProgressionMetrics.CountPreEntryFilterTx()
 	err := EntryTxFilter(ctx, tx)
 	if err != nil {
-		return ErrWrapper{Err: err, Stage: "EntryTxFilter"}
+		return ErrWrapper{Err: err, Stage: "IngestTx: EntryTxFilter"}
 	}
 	m.StageProgressionMetrics.CountPostEntryFilterTx()
 	mevTx, merr := DecodeTx(ctx, tx, m)
 	if merr != nil {
-		log.Err(merr).Msg("decoding txs err")
+		log.Err(merr).Msg("DecodeTx: decoding txs err")
 		return ErrWrapper{Err: merr, Stage: "DecodeTx"}
 	}
 	if mevTx == nil {
@@ -137,12 +137,12 @@ func IngestTx(ctx context.Context, w3c web3_client.Web3Client, tx *types.Transac
 		return ErrWrapper{Err: err, Stage: "ActiveTradeMethodFilter"}
 	}
 	m.StageProgressionMetrics.CountCheckpointTwoMarker()
-	log.Info().Msgf("ProcessTxsStage: txs: %d", 1)
+	log.Info().Msgf("ProcessTxs: txs: %d", 1)
 	m.StageProgressionMetrics.CountPostDecodeTx()
 
 	tfSlice, err := ProcessTxs(ctx, *mevTx, m, w3c.Web3Actions)
 	if err != nil {
-		log.Err(err).Msg("ProcessTxsStage: error processing txs")
+		log.Err(err).Msg("ProcessTxs: error processing txs")
 		return ErrWrapper{Err: err, Stage: "ProcessTxs"}
 	}
 

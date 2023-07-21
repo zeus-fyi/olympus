@@ -55,7 +55,7 @@ func (d *ArtemisMevActivities) BlacklistMinedTxs(ctx context.Context) error {
 	}
 	for _, tx := range txs {
 		c.Set(tx.Hash().String(), tx, cache.DefaultExpiration)
-		err := artemis_trading_cache.WriteRedis.AddTxHashCache(ctx, tx.Hash().String(), time.Hour*24)
+		err := artemis_trading_cache.WriteRedis.AddTxHashCache(context.Background(), tx.Hash().String(), time.Hour*24)
 		if err != nil {
 			log.Err(err).Str("network", d.Network).Msg("BlacklistMinedTxs: AddTxHashCache failed")
 			return err
@@ -77,7 +77,7 @@ func (d *ArtemisMevActivities) GetLookaheadPrices(ctx context.Context, bn uint64
 func (d *ArtemisMevActivities) BlacklistProcessedTxs(ctx context.Context, txSlice artemis_autogen_bases.EthMempoolMevTxSlice) error {
 	for _, tx := range txSlice {
 		c.Set(tx.TxHash, tx, cache.DefaultExpiration)
-		err := artemis_trading_cache.WriteRedis.AddTxHashCache(ctx, tx.TxHash, time.Hour*24)
+		err := artemis_trading_cache.WriteRedis.AddTxHashCache(context.Background(), tx.TxHash, time.Hour*24)
 		if err != nil {
 			return err
 		}

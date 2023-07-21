@@ -78,7 +78,7 @@ func GetV3PricingData(ctx context.Context, wc web3_actions.Web3Actions, path art
 		log.Err(err).Interface("path", path).Msg("error getting v3 pricing data")
 		return nil, err
 	}
-	bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(ctx, wc)
+	bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(context.Background(), wc)
 	if berr != nil {
 		return nil, berr
 	}
@@ -106,7 +106,7 @@ func (m *PricingCache) AddOrUpdatePairPricesCache(ctx context.Context, tag strin
 	if err != nil {
 		return err
 	}
-	statusCmd := m.Set(ctx, tag, bin, ttl)
+	statusCmd := m.Set(context.Background(), tag, bin, ttl)
 	if statusCmd.Err() != nil {
 		log.Ctx(ctx).Err(statusCmd.Err()).Msgf("AddOrUpdateLatestBlockCache: %s", tag)
 		return statusCmd.Err()
@@ -131,7 +131,7 @@ func (m *PricingCache) GetPairPricesFromCacheIfExists(ctx context.Context, tag s
 	m.Client = artemis_trading_cache.ReadRedis.Client
 	pd := UniswapPricingData{}
 	var bytes []byte
-	err := m.Get(ctx, tag).Scan(&bytes)
+	err := m.Get(context.Background(), tag).Scan(&bytes)
 	switch {
 	case err == redis.Nil:
 		return pd, fmt.Errorf("GetPairPricesFromCacheIfExists: %s", tag)
@@ -184,12 +184,12 @@ func (m *PricingCache) AddV3PairToNextLookupSet(ctx context.Context, v3pairAddr 
 	times := 11
 	for i := 1; i < times; i++ {
 		nextBlock := bn + uint64(i)
-		statusCmd := m.Client.SAdd(ctx, GetV3PairBnCacheKey(nextBlock), v3pairAddr)
+		statusCmd := m.Client.SAdd(context.Background(), GetV3PairBnCacheKey(nextBlock), v3pairAddr)
 		if statusCmd.Err() != nil && j == 0 {
 			log.Ctx(ctx).Err(statusCmd.Err()).Msgf("V3PairNextLookupSet: %s", v3pairAddr)
 			return statusCmd.Err()
 		}
-		m.Client.Expire(ctx, GetV3PairBnCacheKey(nextBlock), time.Hour*3)
+		m.Client.Expire(context.Background(), GetV3PairBnCacheKey(nextBlock), time.Hour*3)
 		localCache.Set(GetV3PairBnCacheKey(nextBlock), true, cache.DefaultExpiration)
 		j++
 	}
@@ -215,7 +215,7 @@ func (m *PricingCache) AddV2PairToNextLookupSet(ctx context.Context, bn uint64, 
 	j := 0 // used to bypass error if it's been seen once
 	for i := 1; i < 10; i++ {
 		nextBlock := bn + 1
-		statusCmd := m.Client.SAdd(ctx, GetPairBnCacheKey(nextBlock), v2pairAddr)
+		statusCmd := m.Client.SAdd(context.Background(), GetPairBnCacheKey(nextBlock), v2pairAddr)
 		if statusCmd.Err() != nil && j == 0 {
 			log.Ctx(ctx).Err(statusCmd.Err()).Msgf("AddV2PairToNextLookupSet: %s", v2pairAddr)
 			return statusCmd.Err()
@@ -234,7 +234,7 @@ func FetchV2PairsToMulticall(ctx context.Context, wc web3_actions.Web3Actions, b
 		return errors.New("FetchV2PairsToMulticall: redis client is nil")
 	}
 	redisCache.Client = artemis_trading_cache.ReadRedis.Client
-	addresses, err := redisCache.GetV2PairsToMulticall(ctx, bn)
+	addresses, err := redisCache.GetV2PairsToMulticall(context.Background(), bn)
 	if err != nil {
 		return err
 	}
@@ -242,7 +242,7 @@ func FetchV2PairsToMulticall(ctx context.Context, wc web3_actions.Web3Actions, b
 	for _, addr := range addresses {
 		tmp = append(tmp, addr)
 		if len(tmp) >= 25 {
-			_, err = GetBatchPairContractPricesViaMulticall3(ctx, wc, tmp...)
+			_, err = GetBatchPairContractPricesViaMulticall3(context.Background(), wc, tmp...)
 			if err != nil {
 				return err
 			}
@@ -250,7 +250,7 @@ func FetchV2PairsToMulticall(ctx context.Context, wc web3_actions.Web3Actions, b
 		}
 	}
 	if len(tmp) > 0 {
-		_, err = GetBatchPairContractPricesViaMulticall3(ctx, wc, tmp...)
+		_, err = GetBatchPairContractPricesViaMulticall3(context.Background(), wc, tmp...)
 		if err != nil {
 			return err
 		}
@@ -264,7 +264,7 @@ func (m *PricingCache) GetV2PairsToMulticall(ctx context.Context, bn uint64) ([]
 		return nil, errors.New("GetV2PairsToMulticall: redis client is nil")
 	}
 	m.Client = artemis_trading_cache.ReadRedis.Client
-	pairAddresses, err := m.Client.SMembers(ctx, GetPairBnCacheKey(bn)).Result()
+	pairAddresses, err := m.Client.SMembers(context.Background(), GetPairBnCacheKey(bn)).Result()
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msgf("GetV2PairsToMulticall: %s", GetPairBnCacheKey(bn))
 		return nil, err

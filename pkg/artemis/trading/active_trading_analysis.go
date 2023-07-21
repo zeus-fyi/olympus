@@ -108,13 +108,17 @@ func ApplyMaxTransferTax(ctx context.Context, tf *web3_client.TradeExecutionFlow
 		return errors.New("dat: ApplyMaxTransferTax, tokenOne and tokenTwo are zero address")
 	}
 	go func(ctx context.Context, tokenA, tokenB string) {
-		err := CheckTokenRegistry(ctx, tokenA, hestia_req_types.EthereumMainnetProtocolNetworkID)
-		if err != nil {
-			log.Err(err).Msg("CheckTokenRegistry: failed to check token registry")
+		if tokenA != artemis_trading_constants.ZeroAddress && tokenA != artemis_trading_constants.WETH9ContractAddress {
+			err := CheckTokenRegistry(ctx, tokenA, hestia_req_types.EthereumMainnetProtocolNetworkID)
+			if err != nil {
+				log.Err(err).Msg("CheckTokenRegistry: failed to check token registry")
+			}
 		}
-		err = CheckTokenRegistry(ctx, tokenB, hestia_req_types.EthereumMainnetProtocolNetworkID)
-		if err != nil {
-			log.Err(err).Msg("CheckTokenRegistry: failed to check token registry")
+		if tokenB != artemis_trading_constants.ZeroAddress && tokenB != artemis_trading_constants.WETH9ContractAddress {
+			err := CheckTokenRegistry(ctx, tokenB, hestia_req_types.EthereumMainnetProtocolNetworkID)
+			if err != nil {
+				log.Err(err).Msg("CheckTokenRegistry: failed to check token registry")
+			}
 		}
 	}(context.Background(), tokenOne, tokenTwo)
 

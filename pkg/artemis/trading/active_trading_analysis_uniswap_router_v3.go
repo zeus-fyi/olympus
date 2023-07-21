@@ -102,7 +102,7 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 			return nil, err
 		}
 		log.Info().Msg("exactInput: saving mempool tx")
-		err = SaveMempoolTxV2(ctx, []web3_client.TradeExecutionFlow{tf}, m)
+		err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -143,7 +143,7 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 			return nil, err
 		}
 		log.Info().Msg("exactOutput: saving mempool tx")
-		err = SaveMempoolTxV2(ctx, []web3_client.TradeExecutionFlow{tf}, m)
+		err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -184,7 +184,7 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 			return nil, err
 		}
 		log.Info().Msg("saving mempool tx")
-		err = SaveMempoolTxV2(ctx, []web3_client.TradeExecutionFlow{tf}, m)
+		err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -225,7 +225,7 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 			return nil, err
 		}
 		log.Info().Msg("saving mempool tx")
-		err = SaveMempoolTxV2(ctx, []web3_client.TradeExecutionFlow{tf}, m)
+		err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -266,7 +266,7 @@ func processUniswapV3Txs(ctx context.Context, tx web3_client.MevTx, m *metrics_t
 			return nil, err
 		}
 		log.Info().Msg("saving mempool tx")
-		err = SaveMempoolTxV2(ctx, []web3_client.TradeExecutionFlow{tf}, m)
+		err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")

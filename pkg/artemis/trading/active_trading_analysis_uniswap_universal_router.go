@@ -56,7 +56,7 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 				return nil, err
 			}
 			log.Info().Msg("saving mempool tx")
-			err = SaveMempoolTxV2(ctx, []web3_client.TradeExecutionFlow{tf}, m)
+			err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 			if err != nil {
 				log.Err(err).Msg("failed to save mempool tx")
 				return nil, errors.New("failed to save mempool tx")
@@ -93,7 +93,7 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 				return nil, err
 			}
 			log.Info().Msg("V3SwapExactOut: saving mempool tx")
-			err = SaveMempoolTxV2(ctx, []web3_client.TradeExecutionFlow{tf}, m)
+			err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 			if err != nil {
 				log.Err(err).Msg("failed to save mempool tx")
 				return nil, errors.New("failed to save mempool tx")
@@ -137,7 +137,7 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 				m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V2SwapExactIn, pd.V2Pair.PairContractAddr, inputs.Path[0].String(), tf.SandwichPrediction.SellAmount.String(), tf.SandwichPrediction.ExpectedProfit.String())
 			}
 			log.Info().Msg("V2SwapExactIn: saving mempool tx")
-			err = SaveMempoolTxV2(ctx, []web3_client.TradeExecutionFlow{tf}, m)
+			err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 			if err != nil {
 				log.Err(err).Msg("failed to save mempool tx")
 				return nil, errors.New("failed to save mempool tx")
@@ -175,7 +175,7 @@ func RealTimeProcessUniversalRouterTx(ctx context.Context, tx web3_client.MevTx,
 				m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, web3_client.V2SwapExactOut, pd.V2Pair.PairContractAddr, tf.FrontRunTrade.AmountInAddr.String(), tf.SandwichPrediction.SellAmount.String(), tf.SandwichPrediction.ExpectedProfit.String())
 			}
 			log.Info().Msg("V2SwapExactOut: saving mempool tx")
-			err = SaveMempoolTxV2(ctx, []web3_client.TradeExecutionFlow{tf}, m)
+			err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 			if err != nil {
 				log.Err(err).Msg("failed to save mempool tx")
 				return nil, errors.New("failed to save mempool tx")

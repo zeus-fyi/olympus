@@ -108,7 +108,7 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactTokensForTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount.String(), tf.SandwichPrediction.ExpectedProfit.String())
 		}
 		log.Info().Msg("swapExactTokensForTokens: saving mempool tx")
-		err = SaveMempoolTxV2(ctx, []web3_client.TradeExecutionFlow{tf}, m)
+		err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -149,7 +149,7 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapTokensForExactTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount.String(), tf.SandwichPrediction.ExpectedProfit.String())
 		}
 		log.Info().Msg("swapTokensForExactTokens: saving mempool tx")
-		err = SaveMempoolTxV2(ctx, []web3_client.TradeExecutionFlow{tf}, m)
+		err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -193,7 +193,7 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			m.TradeAnalysisMetrics.CalculatedSandwichWithPriceLookup(ctx, swapExactETHForTokens, pd.V2Pair.PairContractAddr, st.Path[0].String(), tf.SandwichPrediction.SellAmount.String(), tf.SandwichPrediction.ExpectedProfit.String())
 		}
 		log.Info().Msg("swapExactETHForTokens: saving mempool tx")
-		err = SaveMempoolTxV2(ctx, []web3_client.TradeExecutionFlow{tf}, m)
+		err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -227,7 +227,7 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			return nil, err
 		}
 		log.Info().Msg("swapTokensForExactETH: saving mempool tx")
-		err = SaveMempoolTxV2(ctx, []web3_client.TradeExecutionFlow{tf}, m)
+		err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -267,7 +267,7 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			return nil, err
 		}
 		log.Info().Msg("swapExactTokensForETH: saving mempool tx")
-		err = SaveMempoolTxV2(ctx, []web3_client.TradeExecutionFlow{tf}, m)
+		err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -311,7 +311,7 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			return nil, err
 		}
 		log.Info().Msg("swapETHForExactTokens: saving mempool tx")
-		err = SaveMempoolTxV2(ctx, []web3_client.TradeExecutionFlow{tf}, m)
+		err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -365,7 +365,7 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			return nil, err
 		}
 		log.Info().Msg("swapExactTokensForETHSupportingFeeOnTransferTokens: saving mempool tx")
-		err = SaveMempoolTxV2(ctx, []web3_client.TradeExecutionFlow{tf}, m)
+		err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -409,7 +409,7 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			return nil, err
 		}
 		log.Info().Msg("swapExactETHForTokensSupportingFeeOnTransferTokens: saving mempool tx")
-		err = SaveMempoolTxV2(ctx, []web3_client.TradeExecutionFlow{tf}, m)
+		err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")
@@ -449,7 +449,7 @@ func RealTimeProcessUniswapV2RouterTx(ctx context.Context, tx web3_client.MevTx,
 			return nil, err
 		}
 		log.Info().Msg("swapExactTokensForTokensSupportingFeeOnTransferTokens: saving mempool tx")
-		err = SaveMempoolTxV2(ctx, []web3_client.TradeExecutionFlow{tf}, m)
+		err = SaveMempoolTx(ctx, []web3_client.TradeExecutionFlow{tf}, m)
 		if err != nil {
 			log.Err(err).Msg("failed to save mempool tx")
 			return nil, errors.New("failed to save mempool tx")

@@ -123,18 +123,22 @@ func IngestTx(ctx context.Context, w3c web3_client.Web3Client, tx *types.Transac
 		return ErrWrapper{Err: err, Stage: "EntryTxFilter"}
 	}
 	m.StageProgressionMetrics.CountPostEntryFilterTx()
-	mevTxs, merr := DecodeTx(ctx, tx, m)
+	mevTx, merr := DecodeTx(ctx, tx, m)
 	if merr != nil {
 		log.Err(merr).Msg("decoding txs err")
 		return ErrWrapper{Err: merr, Stage: "DecodeTx"}
 	}
-	if len(mevTxs) <= 0 {
-		log.Err(merr).Msg("no mev txs found")
+	if mevTx == nil {
 		return ErrWrapper{Err: merr, Stage: "DecodeTx"}
 	}
+	log.Info().Msgf("ProcessTxsStage: txs: %d", 1)
 	m.StageProgressionMetrics.CountPostDecodeTx()
-	log.Info().Msgf("ProcessTxsStage: txs: %d", len(mevTxs))
-	tfSlice := ProcessTxs(ctx, &mevTxs, m, w3c.Web3Actions)
+
+	tfSlice, err := ProcessTxs(ctx, *mevTx, m, w3c.Web3Actions)
+	if err != nil {
+		log.Err(err).Msg("ProcessTxsStage: error processing txs")
+		return ErrWrapper{Err: err, Stage: "ProcessTxs"}
+	}
 
 	log.Info().Msgf("ProcessBundleStage: txs: %d", len(tfSlice))
 	ProcessBundleStage(ctx, w3c, tfSlice, m)

@@ -18,63 +18,53 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
-func ProcessTxs(ctx context.Context, mevTxs *[]web3_client.MevTx, m *metrics_trading.TradingMetrics, w3a web3_actions.Web3Actions) []web3_client.TradeExecutionFlow {
-	var tfSlice []web3_client.TradeExecutionFlow
-
-	for _, mevTx := range *mevTxs {
-		switch mevTx.Tx.To().String() {
-		case artemis_trading_constants.UniswapUniversalRouterAddressOld:
-			tf, err := RealTimeProcessUniversalRouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniversalRouterOld)
-			if err != nil {
-				log.Err(err).Msg("UniswapUniversalRouterAddressOld: error processing universal router tx")
-				err = nil
-				continue
-			}
-			tfSlice = append(tfSlice, tf...)
-		case artemis_trading_constants.UniswapUniversalRouterAddressNew:
-			tf, err := RealTimeProcessUniversalRouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniversalRouterNew)
-			if err != nil {
-				log.Err(err).Msg("UniswapUniversalRouterAddressNew: error processing universal router tx")
-				err = nil
-				continue
-			}
-			tfSlice = append(tfSlice, tf...)
-		case artemis_trading_constants.UniswapV2Router01Address:
-			tf, err := RealTimeProcessUniswapV2RouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniswapV2Router01)
-			if err != nil {
-				log.Err(err).Msg("UniswapV2Router01Address: error processing v2_01 router tx")
-				err = nil
-				continue
-			}
-			tfSlice = append(tfSlice, tf...)
-		case artemis_trading_constants.UniswapV2Router02Address:
-			tf, err := RealTimeProcessUniswapV2RouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniswapV2Router02)
-			if err != nil {
-				log.Err(err).Msg("UniswapV2Router02Address: error processing v2_02 router tx")
-				err = nil
-				continue
-			}
-			tfSlice = append(tfSlice, tf...)
-		case artemis_trading_constants.UniswapV3Router01Address:
-			tf, err := RealTimeProcessUniswapV3RouterTx(ctx, mevTx, UniswapV3Router01Abi, nil, m, w3a)
-			if err != nil {
-				log.Err(err).Msg("UniswapV3Router01Address: error processing v3_01 router tx")
-				err = nil
-				continue
-			}
-			tfSlice = append(tfSlice, tf...)
-		case artemis_trading_constants.UniswapV3Router02Address:
-			tf, err := RealTimeProcessUniswapV3RouterTx(ctx, mevTx, UniswapV3Router02Abi, nil, m, w3a)
-			if err != nil {
-				log.Err(err).Msg("UniswapV3Router02Address: error processing v3_02 router tx")
-				err = nil
-				continue
-			} else {
-				tfSlice = append(tfSlice, tf...)
-			}
+func ProcessTxs(ctx context.Context, mevTx web3_client.MevTx, m *metrics_trading.TradingMetrics, w3a web3_actions.Web3Actions) ([]web3_client.TradeExecutionFlow, error) {
+	switch mevTx.Tx.To().String() {
+	case artemis_trading_constants.UniswapUniversalRouterAddressOld:
+		tf, err := RealTimeProcessUniversalRouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniversalRouterOld)
+		if err != nil {
+			log.Err(err).Msg("UniswapUniversalRouterAddressOld: error processing universal router tx")
+			return nil, err
 		}
+		return tf, nil
+	case artemis_trading_constants.UniswapUniversalRouterAddressNew:
+		tf, err := RealTimeProcessUniversalRouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniversalRouterNew)
+		if err != nil {
+			log.Err(err).Msg("UniswapUniversalRouterAddressNew: error processing universal router tx")
+			return nil, err
+		}
+		return tf, nil
+	case artemis_trading_constants.UniswapV2Router01Address:
+		tf, err := RealTimeProcessUniswapV2RouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniswapV2Router01)
+		if err != nil {
+			log.Err(err).Msg("UniswapV2Router01Address: error processing v2_01 router tx")
+			return nil, err
+		}
+		return tf, nil
+	case artemis_trading_constants.UniswapV2Router02Address:
+		tf, err := RealTimeProcessUniswapV2RouterTx(ctx, mevTx, m, w3a, artemis_oly_contract_abis.UniswapV2Router02)
+		if err != nil {
+			log.Err(err).Msg("UniswapV2Router02Address: error processing v2_02 router tx")
+			return nil, err
+		}
+		return tf, nil
+	case artemis_trading_constants.UniswapV3Router01Address:
+		tf, err := RealTimeProcessUniswapV3RouterTx(ctx, mevTx, UniswapV3Router01Abi, nil, m, w3a)
+		if err != nil {
+			log.Err(err).Msg("UniswapV3Router01Address: error processing v3_01 router tx")
+			return nil, err
+		}
+		return tf, nil
+	case artemis_trading_constants.UniswapV3Router02Address:
+		tf, err := RealTimeProcessUniswapV3RouterTx(ctx, mevTx, UniswapV3Router02Abi, nil, m, w3a)
+		if err != nil {
+			log.Err(err).Msg("UniswapV3Router02Address: error processing v3_02 router tx")
+			return nil, err
+		}
+		return tf, nil
 	}
-	return tfSlice
+	log.Warn().Msgf("ProcessTxs: tx.To() not recognized: %s", mevTx.Tx.To().String())
+	return nil, errors.New("ProcessTxs: tx.To() not recognized")
 }
 
 func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64) error {

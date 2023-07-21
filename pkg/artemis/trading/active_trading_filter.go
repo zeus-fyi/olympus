@@ -68,8 +68,8 @@ func ActiveTradingFilterSlice(ctx context.Context, w3c web3_client.Web3Client, t
 	return nil
 }
 
-func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web3_client.TradeExecutionFlow) error {
-	switch tf.Trade.TradeMethod {
+func ActiveTradeMethodFilter(ctx context.Context, tm string) error {
+	switch tm {
 	case artemis_trading_constants.SwapExactETHForTokens:
 	case artemis_trading_constants.SwapTokensForExactETH:
 	case artemis_trading_constants.SwapTokensForExactTokens:
@@ -81,9 +81,17 @@ func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web
 	case artemis_trading_constants.SwapExactTokensForTokensSupportingFeeOnTransferTokens:
 	case artemis_trading_constants.V2SwapExactIn, artemis_trading_constants.V2SwapExactOut:
 	default:
-		return fmt.Errorf("dat: ActiveTradingFilter: %s method not supported for now", tf.Trade.TradeMethod)
+		log.Warn().Str("tf.Trade.TradeMethod", tm).Msg("dat: ActiveTradingFilter: method not supported for now")
+		return fmt.Errorf("dat: ActiveTradingFilter: %s method not supported for now", tm)
 	}
-	_, err := artemis_trading_auxiliary.IsProfitTokenAcceptable(ctx, w3c, &tf)
+	return nil
+}
+func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web3_client.TradeExecutionFlow) error {
+	err := ActiveTradeMethodFilter(ctx, tf.Trade.TradeMethod)
+	if err != nil {
+		return err
+	}
+	_, err = artemis_trading_auxiliary.IsProfitTokenAcceptable(ctx, w3c, &tf)
 	if err != nil {
 		log.Err(err).Msg("ActiveTradingFilter: profit token not acceptable")
 		return err

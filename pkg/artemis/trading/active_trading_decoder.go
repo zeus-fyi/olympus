@@ -19,8 +19,8 @@ var (
 	UniswapV3Router02Abi  = artemis_oly_contract_abis.MustLoadUniswapV3Swap2RouterAbi()
 )
 
-func DecodeTx(ctx context.Context, tx *types.Transaction, m *metrics_trading.TradingMetrics) ([]web3_client.MevTx, error) {
-	var mevTxs []web3_client.MevTx
+func DecodeTx(ctx context.Context, tx *types.Transaction, m *metrics_trading.TradingMetrics) (*web3_client.MevTx, error) {
+	var mevTx web3_client.MevTx
 	switch tx.To().String() {
 	case web3_client.UniswapUniversalRouterAddressOld:
 		methodName, args, err := web3_client.DecodeTxArgDataFromAbi(ctx, tx, OldUniversalRouterAbi)
@@ -33,7 +33,7 @@ func DecodeTx(ctx context.Context, tx *types.Transaction, m *metrics_trading.Tra
 			Args:       args,
 			Tx:         tx,
 		}
-		mevTxs = append(mevTxs, singleTx)
+		mevTx = singleTx
 		if m != nil {
 			m.TxFetcherMetrics.TransactionGroup(web3_client.UniswapUniversalRouterAddressOld, methodName)
 		}
@@ -48,7 +48,7 @@ func DecodeTx(ctx context.Context, tx *types.Transaction, m *metrics_trading.Tra
 			Args:       args,
 			Tx:         tx,
 		}
-		mevTxs = append(mevTxs, singleTx)
+		mevTx = singleTx
 		if m != nil {
 			m.TxFetcherMetrics.TransactionGroup(web3_client.UniswapUniversalRouterAddressNew, methodName)
 		}
@@ -63,7 +63,7 @@ func DecodeTx(ctx context.Context, tx *types.Transaction, m *metrics_trading.Tra
 			Args:       args,
 			Tx:         tx,
 		}
-		mevTxs = append(mevTxs, singleTx)
+		mevTx = singleTx
 		if m != nil {
 			m.TxFetcherMetrics.TransactionGroup(web3_client.UniswapV2Router02Address, methodName)
 		}
@@ -78,7 +78,7 @@ func DecodeTx(ctx context.Context, tx *types.Transaction, m *metrics_trading.Tra
 			Args:       args,
 			Tx:         tx,
 		}
-		mevTxs = append(mevTxs, singleTx)
+		mevTx = singleTx
 		if m != nil {
 			m.TxFetcherMetrics.TransactionGroup(web3_client.UniswapV2Router01Address, methodName)
 		}
@@ -92,7 +92,7 @@ func DecodeTx(ctx context.Context, tx *types.Transaction, m *metrics_trading.Tra
 			Args:       args,
 			Tx:         tx,
 		}
-		mevTxs = append(mevTxs, singleTx)
+		mevTx = singleTx
 		if m != nil {
 			m.TxFetcherMetrics.TransactionGroup(web3_client.UniswapV3Router01Address, methodName)
 		}
@@ -107,10 +107,11 @@ func DecodeTx(ctx context.Context, tx *types.Transaction, m *metrics_trading.Tra
 			Args:       args,
 			Tx:         tx,
 		}
-		mevTxs = append(mevTxs, singleTx)
+		mevTx = singleTx
 		if m != nil {
 			m.TxFetcherMetrics.TransactionGroup(web3_client.UniswapV3Router02Address, methodName)
 		}
 	}
-	return mevTxs, nil
+
+	return &mevTx, nil
 }

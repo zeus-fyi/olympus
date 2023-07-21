@@ -116,11 +116,11 @@ func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf
 	log.Info().Str("txHash", tf.Tx.Hash().String()).Interface("tf.FrontRunTrade.AmountInAddr.String() ", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountOutAddr.String()", tf.FrontRunTrade.AmountOutAddr.String()).Msg("IsProfitTokenAcceptable: profit amount is not zero")
 	ok, err := IsTradingEnabledOnToken(tf.FrontRunTrade.AmountOutAddr.String())
 	if err != nil {
-		log.Info().Interface("tf.FrontRunTrade.AmountInAddr.String()", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountOutAddr", tf.FrontRunTrade.AmountOutAddr.String()).Msg("IsProfitTokenAcceptable: trading is disabled for token")
+		log.Info().Str("tf.Tx.Hash", tf.Tx.Hash().String()).Interface("tf.FrontRunTrade.AmountInAddr.String()", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountOutAddr", tf.FrontRunTrade.AmountOutAddr.String()).Msg("IsProfitTokenAcceptable: trading is disabled for token")
 		return false, err
 	}
 	if !ok {
-		log.Info().Msg("IsProfitTokenAcceptable: trading not enabled on token")
+		log.Info().Str("tf.Tx.Hash", tf.Tx.Hash().String()).Msg("IsProfitTokenAcceptable: trading not enabled on token")
 		return false, errors.New("IsProfitTokenAcceptable: trading not enabled on token")
 	}
 	log.Info().Str("txHash", tf.Tx.Hash().String()).Interface("tf.FrontRunTrade.AmountInAddr.String() ", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountOutAddr.String()", tf.FrontRunTrade.AmountOutAddr.String()).Msg("IsProfitTokenAcceptable: trading token is enabled")
@@ -150,10 +150,9 @@ func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf
 	if !ok {
 		return false, errors.New("ETH balance is not enough")
 	}
-	log.Info().Str("txHash", tf.Tx.Hash().String()).Str("tradeMethod", tf.Trade.TradeMethod)
-	log.Info().Interface("tf.FrontRunTrade.AmountInAddr.String()", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountIn", tf.FrontRunTrade.AmountIn.String()).Interface("tf.FrontRunTrade.AmountOutAddr", tf.FrontRunTrade.AmountOutAddr.String()).Msg("IsProfitTokenAcceptable: profit token is acceptable")
-	log.Info().Interface("tf.FrontRunTrade", tf.FrontRunTrade).Msg("IsProfitTokenAcceptable: profit token is acceptable")
-	log.Info().Interface("tf.UserTrade", tf.UserTrade).Msg("IsProfitTokenAcceptable: profit token is acceptable")
-	log.Info().Interface("tf.SandwichTrade", tf.SandwichTrade).Msg("IsProfitTokenAcceptable: profit token is acceptable")
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Str("tradeMethod", tf.Trade.TradeMethod).Interface("tf.FrontRunTrade.AmountInAddr.String()", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountIn", tf.FrontRunTrade.AmountIn.String()).Interface("tf.FrontRunTrade.AmountOutAddr", tf.FrontRunTrade.AmountOutAddr.String()).Msg("IsProfitTokenAcceptable: profit token is acceptable")
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Str("tradeMethod", tf.Trade.TradeMethod).Interface("tf.FrontRunTrade", tf.FrontRunTrade).Msg("IsProfitTokenAcceptable: profit token is acceptable")
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Str("tradeMethod", tf.Trade.TradeMethod).Interface("tf.UserTrade", tf.UserTrade).Msg("IsProfitTokenAcceptable: profit token is acceptable")
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Str("tradeMethod", tf.Trade.TradeMethod).Interface("tf.SandwichTrade", tf.SandwichTrade).Msg("IsProfitTokenAcceptable: profit token is acceptable")
 	return true, nil
 }

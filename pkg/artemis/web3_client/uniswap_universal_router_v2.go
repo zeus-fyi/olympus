@@ -33,40 +33,23 @@ type JSONV2SwapExactInParams struct {
 }
 
 func (s *V2SwapExactInParams) Encode(ctx context.Context, abiFile *abi.ABI) ([]byte, error) {
-	if abiFile == nil {
-		inputs, err := UniversalRouterDecoderAbi.Methods[V2SwapExactIn].Inputs.Pack(s.To, s.AmountIn, s.AmountOutMin, s.Path, s.PayerIsSender)
-		if err != nil {
-			log.Err(err).Msg("V2SwapExactInParams: UniversalRouterDecoderAbi failed to encode")
-			return nil, err
-		}
-		return inputs, nil
-	} else {
-		inputs, err := abiFile.Methods[V2SwapExactIn].Inputs.Pack(s.To, s.AmountIn, s.AmountOutMin, s.Path, s.PayerIsSender)
-		if err != nil {
-			log.Err(err).Msg("V2SwapExactInParams: abiFile failed to encode")
-			return nil, err
-		}
-		return inputs, nil
+	inputs, err := UniversalRouterDecoderAbi.Methods[V2SwapExactIn].Inputs.Pack(s.To, s.AmountIn, s.AmountOutMin, s.Path, s.PayerIsSender)
+	if err != nil {
+		log.Err(err).Msg("V2SwapExactInParams: UniversalRouterDecoderAbi failed to encode")
+		return nil, err
 	}
+	return inputs, nil
 }
 
 func (s *V2SwapExactInParams) Decode(ctx context.Context, data []byte, abiFile *abi.ABI) error {
 	args := make(map[string]interface{})
-	if abiFile == nil {
-		err := UniversalRouterDecoderAbi.Methods[V2SwapExactIn].Inputs.UnpackIntoMap(args, data)
-		if err != nil {
-			log.Warn().Msg("V2SwapExactInParams: UniversalRouterDecoderAbi failed to decode")
-			log.Err(err).Msg("V2SwapExactInParams: UniversalRouterDecoderAbi failed to decode")
-			return err
-		}
-	} else {
-		err := abiFile.Methods[V2SwapExactIn].Inputs.UnpackIntoMap(args, data)
-		if err != nil {
-			log.Warn().Msg("V2SwapExactInParams: abiFile failed to decode")
-			log.Err(err).Msg("V2SwapExactInParams: abiFile failed to decode")
-			return err
-		}
+	err := UniversalRouterDecoderAbi.Methods[V2SwapExactIn].Inputs.UnpackIntoMap(args, data)
+	if err != nil {
+		log.Warn().Msg("V2SwapExactInParams: UniversalRouterDecoderAbi failed to decode")
+		log.Err(err).Msg("V2SwapExactInParams: UniversalRouterDecoderAbi failed to decode")
+		return err
 	}
+
 	amountIn, err := ParseBigInt(args["amountIn"])
 	if err != nil {
 		log.Warn().Msg("V2SwapExactInParams: failed to parse amountIn")

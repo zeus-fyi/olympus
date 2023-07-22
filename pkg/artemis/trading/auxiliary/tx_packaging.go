@@ -165,7 +165,7 @@ func packageRegularTx(ctx context.Context, from string, signedTxWithMetadata TxW
 	if signerType == 1 {
 		typeEnum = "0x01"
 		ethGas.GasPrice = sql.NullInt64{
-			Int64: signedTx.GasPrice().Int64(),
+			Int64: gasPrice.Int64(),
 			Valid: true,
 		}
 		ethGas.GasLimit = sql.NullInt64{

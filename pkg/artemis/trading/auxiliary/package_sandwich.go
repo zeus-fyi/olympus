@@ -16,12 +16,22 @@ import (
 
 func packageFrontRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (*TxWithMetadata, error) {
 	frontRunCtx := CreateFrontRunCtx(context.Background())
+
 	ur, fpt, err := GenerateTradeV2SwapFromTokenToToken(frontRunCtx, w3c, nil, &tf.FrontRunTrade)
 	if err != nil {
 		log.Warn().Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed to generate front run tx")
 		log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed to generate front run tx")
 		return nil, err
 	}
+	if tf.InitialPairV3.PoolAddress != "" && tf.FrontRunTrade.AmountFees != nil {
+		ur, fpt, err = GenerateTradeV3SwapFromTokenToToken(frontRunCtx, w3c, nil, &tf.FrontRunTrade)
+		if err != nil {
+			log.Warn().Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed to generate front run tx")
+			log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed to generate front run tx")
+			return nil, err
+		}
+	}
+
 	scInfoFrontRun, err := universalRouterCmdToUnsignedTxPayload(frontRunCtx, ur)
 	if err != nil {
 		log.Warn().Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed building ur tx")
@@ -61,12 +71,23 @@ func packageBackRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_cl
 	if frScInfo == nil {
 		return nil, errors.New("PackageSandwich: BACK_RUN: frScInfo is nil")
 	}
+
 	ur, spt, err := GenerateTradeV2SwapFromTokenToToken(ctx, w3c, nil, &tf.SandwichTrade)
 	if err != nil {
 		log.Warn().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to generate sandwich tx")
 		log.Err(err).Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to generate sandwich tx")
 		return nil, err
 	}
+
+	if tf.InitialPairV3.PoolAddress != "" && tf.SandwichTrade.AmountFees != nil {
+		ur, spt, err = GenerateTradeV3SwapFromTokenToToken(ctx, w3c, nil, &tf.SandwichTrade)
+		if err != nil {
+			log.Warn().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to generate sandwich tx")
+			log.Err(err).Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to generate sandwich tx")
+			return nil, err
+		}
+	}
+
 	scInfoSand, err := universalRouterCmdToUnsignedTxPayload(ctx, ur)
 	if err != nil {
 		log.Warn().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed building ur tx")

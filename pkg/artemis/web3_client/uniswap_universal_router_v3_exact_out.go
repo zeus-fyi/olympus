@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/rs/zerolog/log"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
@@ -65,18 +66,21 @@ func (s *V3SwapExactOutParams) BinarySearch(pd *uniswap_pricing.UniswapPricingDa
 				AmountInAddr:  frontRunTokenIn.Address,
 				AmountOut:     toFrontRun.Quotient(),
 				AmountOutAddr: sandwichTokenIn.Address,
+				AmountFees:    artemis_eth_units.NewBigInt(int(pd.V3Pair.Fee)),
 			}
 			tf.UserTrade = artemis_trading_types.TradeOutcome{
 				AmountIn:      s.AmountInMax,
 				AmountInAddr:  frontRunTokenIn.Address,
 				AmountOut:     userTrade.Quotient(),
 				AmountOutAddr: sandwichTokenIn.Address,
+				AmountFees:    artemis_eth_units.NewBigInt(int(pd.V3Pair.Fee)),
 			}
 			tf.SandwichTrade = artemis_trading_types.TradeOutcome{
 				AmountIn:      toFrontRun.Quotient(),
 				AmountInAddr:  sandwichTokenIn.Address,
 				AmountOut:     toSandwich.Quotient(),
 				AmountOutAddr: frontRunTokenIn.Address,
+				AmountFees:    artemis_eth_units.NewBigInt(int(pd.V3Pair.Fee)),
 			}
 		}
 		// If profit is negative, reduce the high boundary

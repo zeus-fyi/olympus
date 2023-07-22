@@ -45,3 +45,45 @@ func GenerateTradeV2SwapFromTokenToToken(ctx context.Context, w3c web3_client.We
 	ur.Commands = append(ur.Commands, sc2)
 	return ur, pt, err
 }
+
+func GenerateTradeV3SwapFromTokenToToken(ctx context.Context, w3c web3_client.Web3Client, ur *web3_client.UniversalRouterExecCmd, to *artemis_trading_types.TradeOutcome) (*web3_client.UniversalRouterExecCmd, *artemis_eth_txs.Permit2Tx, error) {
+	ur = checkIfCmdEmpty(ur)
+	if w3c.Account == nil {
+		return nil, nil, errors.New("GenerateTradeV2SwapFromTokenToToken: account is nil")
+	}
+	sc1 := web3_client.UniversalRouterExecSubCmd{
+		Command:   artemis_trading_constants.Permit2Permit,
+		CanRevert: false,
+		Inputs:    nil,
+	}
+	psp, pt, err := generatePermit2Approval(ctx, w3c, to)
+	if err != nil {
+		log.Warn().Str("permit2Owner", w3c.Account.PublicKey()).Msg("GenerateTradeV2SwapFromTokenToToken: generatePermit2Approval failed")
+		log.Err(err).Msg("failed to generate permit2 approval")
+		return nil, nil, err
+	}
+	sc1.DecodedInputs = psp
+	ur.Commands = append(ur.Commands, sc1)
+	sc2 := web3_client.UniversalRouterExecSubCmd{
+		Command:   artemis_trading_constants.V3SwapExactIn,
+		CanRevert: false,
+		Inputs:    nil,
+		DecodedInputs: web3_client.V3SwapExactInParams{
+			AmountIn:     to.AmountIn,
+			AmountOutMin: to.AmountOut,
+			Path: artemis_trading_types.TokenFeePath{
+				TokenIn: to.AmountInAddr,
+				Path: []artemis_trading_types.TokenFee{
+					{
+						Token: to.AmountOutAddr,
+						Fee:   to.AmountFees,
+					},
+				},
+			},
+			To:          artemis_trading_constants.UniversalRouterSenderAddress,
+			PayerIsUser: true,
+		},
+	}
+	ur.Commands = append(ur.Commands, sc2)
+	return ur, pt, err
+}

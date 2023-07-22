@@ -60,7 +60,7 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2TradeFromUser2(ta *AuxiliaryTradin
 		Deadline: GetDeadline(),
 		Payable:  nil,
 	}
-	ur, err := cmd.EncodeCommands(ctx)
+	ur, err := cmd.EncodeCommands(ctx, nil)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(ur)
 

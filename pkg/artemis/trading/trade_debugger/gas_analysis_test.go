@@ -29,8 +29,11 @@ func (t *ArtemisTradeDebuggerTestSuite) TestGasAnalysis() {
 	*/
 
 	fmt.Println("====================================================================")
-
-	txHash := "0xf2545a49a3e3e3e8fa0ec699943b1f454adda02888a16c39a64774bbdab248eb"
+	//txHash := "0xf2545a49a3e3e3e8fa0ec699943b1f454adda02888a16c39a64774bbdab248eb"
+	//err = GasAnalysis(ctx, txHash)
+	//t.NoError(err)
+	// 0x0102d8ba5d8e031eabc28b17f1b94a8440d36baad3c6381fa21907854d487fe5
+	txHash := "0x0102d8ba5d8e031eabc28b17f1b94a8440d36baad3c6381fa21907854d487fe5"
 	err = GasAnalysis(ctx, txHash)
 	t.NoError(err)
 

@@ -30,7 +30,6 @@ func packageFrontRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 			log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: error building ur tx")
 			return nil, err
 		}
-
 		if scInfoFrontRun.Data == nil || len(scInfoFrontRun.Data) <= 0 {
 			log.Warn().Msg("FRONT_RUN: scInfoFrontRun.Data is nil")
 			return nil, errors.New("FRONT_RUN: scInfoFrontRun.Data is nil")
@@ -43,7 +42,6 @@ func packageFrontRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 			log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed getting base fee")
 			return nil, err
 		}
-
 		scInfoFrontRun.GasTipCap = artemis_eth_units.NewBigInt(0)
 		scInfoFrontRun.GasFeeCap = artemis_eth_units.AddBigIntUsingInt(baseFee, 69)
 		scInfoFrontRun.GasPrice = scInfoFrontRun.GasFeeCap
@@ -70,7 +68,7 @@ func packageFrontRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 			log.Err(err).Msg("FRONT_RUN: error getting signed tx to call function with data")
 			return nil, err
 		}
-		log.Info().Str("baseFee", baseFee.String()).Str("gasFeeGap", scInfoFrontRun.GasFeeCap.String()).Str("gasTipCap", scInfoFrontRun.GasTipCap.String()).Uint64("gasLimit", gasLimit).Msg("PackageSandwich: FRONT_RUN gas limit")
+		log.Info().Str("txHash", tf.Tx.Hash().String()).Str("baseFee", baseFee.String()).Str("gasFeeGap", scInfoFrontRun.GasFeeCap.String()).Str("gasTipCap", scInfoFrontRun.GasTipCap.String()).Uint64("gasLimit", gasLimit).Msg("PackageSandwich: FRONT_RUN gas")
 		frTx := TxWithMetadata{
 			TradeType: FrontRun,
 			ScPayload: scInfoFrontRun,
@@ -133,8 +131,7 @@ func packageFrontRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 			log.Err(err).Msg("FRONT_RUN: error getting signed tx to call function with data")
 			return nil, err
 		}
-		log.Info().Str("baseFee", baseFee.String()).Str("gasFeeGap", scInfoFrontRun.GasFeeCap.String()).Str("gasTipCap", scInfoFrontRun.GasTipCap.String()).Uint64("gasLimit", gasLimit).Msg("PackageSandwich: FRONT_RUN gas limit")
-
+		log.Info().Str("txHash", tf.Tx.Hash().String()).Str("baseFee", baseFee.String()).Str("gasFeeGap", scInfoFrontRun.GasFeeCap.String()).Str("gasTipCap", scInfoFrontRun.GasTipCap.String()).Uint64("gasLimit", gasLimit).Msg("PackageSandwich: FRONT_RUN gas ")
 		frTx := TxWithMetadata{
 			TradeType: FrontRun,
 			ScPayload: scInfoFrontRun,
@@ -185,9 +182,6 @@ func packageBackRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_cl
 			sandwichTx.Permit2Tx = spt.Permit2Tx
 		}
 		log.Info().Str("baseFee", frScInfo.GasPrice.String()).Str("gasFeeGap", scInfoSand.GasFeeCap.String()).Str("gasTipCap", scInfoSand.GasTipCap.String()).Uint64("gasLimit", scInfoSand.GasLimit).Msg("PackageSandwich: SANDWICH_TRADE gas")
-		sandwichGasCost := artemis_eth_units.MulBigInt(artemis_eth_units.AddBigInt(scInfoSand.GasFeeCap, scInfoSand.GasTipCap), artemis_eth_units.NewBigIntFromUint(scInfoSand.GasLimit))
-		tf.SandwichTrade.TotalGasCost = sandwichGasCost.Uint64()
-		log.Info().Uint64("sandwichGasCost", sandwichGasCost.Uint64()).Str("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut.String()).Msg("PackageSandwich: SANDWICH_TRADE gas cost")
 		return &sandwichTx, nil
 	}
 
@@ -198,7 +192,6 @@ func packageBackRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_cl
 			log.Err(err).Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to generate sandwich tx")
 			return nil, err
 		}
-
 		scInfoSand, err := universalRouterCmdToUnsignedTxPayload(ctx, ur)
 		if err != nil {
 			log.Warn().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed building ur tx")
@@ -224,13 +217,10 @@ func packageBackRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_cl
 		if spt != nil {
 			sandwichTx.Permit2Tx = spt.Permit2Tx
 		}
-		log.Info().Str("baseFee", frScInfo.GasPrice.String()).Str("gasFeeGap", scInfoSand.GasFeeCap.String()).Str("gasTipCap", scInfoSand.GasTipCap.String()).Uint64("gasLimit", scInfoSand.GasLimit).Msg("PackageSandwich: SANDWICH_TRADE gas")
-		sandwichGasCost := artemis_eth_units.MulBigInt(artemis_eth_units.AddBigInt(scInfoSand.GasFeeCap, scInfoSand.GasTipCap), artemis_eth_units.NewBigIntFromUint(scInfoSand.GasLimit))
-		tf.SandwichTrade.TotalGasCost = sandwichGasCost.Uint64()
-		log.Info().Uint64("sandwichGasCost", sandwichGasCost.Uint64()).Str("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut.String()).Msg("PackageSandwich: SANDWICH_TRADE gas cost")
+		log.Info().Str("txHash", tf.Tx.Hash().String()).Str("baseFee", frScInfo.GasPrice.String()).Str("gasFeeGap", scInfoSand.GasFeeCap.String()).Str("gasTipCap", scInfoSand.GasTipCap.String()).Uint64("gasLimit", scInfoSand.GasLimit).Msg("PackageSandwich: SANDWICH_TRADE gas")
 		return &sandwichTx, nil
 	}
-	return nil, errors.New("PackageSandwich: BACK_RUN: tf.InitialPair and tf.InitialPairV3 are nil")
+	return nil, errors.New("PackageSandwich: SANDWICH_TRADE: tf.InitialPair and tf.InitialPairV3 are nil")
 }
 
 func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (*MevTxGroup, error) {
@@ -245,12 +235,6 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 	}
 
 	log.Info().Str("txHash", tf.Tx.Hash().String()).Str("traderAccount", w3c.Account.PublicKey()).Msg("PackageSandwich: start")
-	bundle := &MevTxGroup{
-		EventID:      0,
-		OrderedTxs:   []TxWithMetadata{},
-		MevTxs:       []artemis_eth_txs.EthTx{},
-		TotalGasCost: artemis_eth_units.NewBigInt(0),
-	}
 	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: FRONT_RUN start")
 	frTx, err := packageFrontRun(ctx, w3c, tf)
 	if err != nil {
@@ -262,6 +246,13 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 		return nil, errors.New("PackageSandwich: FRONT_RUN: front run tx is nil")
 	}
 	log.Info().Uint64("PackageSandwich: FRONT_RUN: tradersNonceFrontRun", frTx.Tx.Nonce())
+	bundle := &MevTxGroup{
+		EventID:      0,
+		OrderedTxs:   []TxWithMetadata{},
+		MevTxs:       []artemis_eth_txs.EthTx{},
+		TotalGasCost: artemis_eth_units.NewBigInt(0),
+		BaseFee:      frTx.ScPayload.GasFeeCap,
+	}
 	bundle, err = AddTxToBundleGroup(ctx, *frTx, bundle)
 	if err != nil {
 		log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: FRONT_RUN: error adding tx to bundle group")
@@ -275,6 +266,7 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 	userTx := TxWithMetadata{
 		TradeType: UserTrade,
 		Tx:        tf.Tx,
+		BaseFee:   bundle.BaseFee,
 	}
 	bundle, err = AddTxToBundleGroup(userCtx, userTx, bundle)
 	if err != nil {

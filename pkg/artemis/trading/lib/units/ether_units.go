@@ -11,6 +11,7 @@ const (
 )
 
 var (
+	TwoTenthGwei     = big.NewInt(2e8)
 	OneTenthGwei     = big.NewInt(1e8)
 	Gwei             = big.NewInt(1e9)
 	Finney           = big.NewInt(1e15)

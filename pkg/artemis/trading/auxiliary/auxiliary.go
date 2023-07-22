@@ -28,6 +28,7 @@ type MevTxGroup struct {
 	OrderedTxs   []TxWithMetadata
 	MevTxs       []artemis_eth_txs.EthTx
 	TotalGasCost *big.Int
+	BaseFee      *big.Int
 }
 
 type TxWithMetadata struct {
@@ -36,6 +37,7 @@ type TxWithMetadata struct {
 	ScPayload       *web3_actions.SendContractTxPayload
 	Permit2Tx       artemis_autogen_bases.Permit2Tx
 	Tx              *types.Transaction
+	BaseFee         *big.Int
 }
 
 func (m *MevTxGroup) GetRawOrderedTxs() []*types.Transaction {

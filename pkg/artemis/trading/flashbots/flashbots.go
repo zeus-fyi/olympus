@@ -17,6 +17,7 @@ const (
 	BeaverRelay      = "https://rpc.beaverbuild.org/"
 	Builder69        = "https://builder0x69.io"
 	RsyncBuilder     = "https://rsync-builder.xyz/"
+	TitanBuilder     = "https://rpc.titanbuilder.xyz"
 	GoerliRelay      = "https://relay-goerli.flashbots.net"
 	SepoliaRelay     = "https://relay-sepolia.flashbots.net"
 
@@ -31,6 +32,7 @@ var Builders = []string{
 	RsyncBuilder,
 	BlocknativeRelay,
 	BeaverRelay,
+	TitanBuilder,
 }
 
 type FlashbotsClient struct {

@@ -42,6 +42,7 @@ const (
 	Permit2Permit                                         = "PERMIT2_PERMIT"
 	Permit2TransferFromBatch                              = "PERMIT2_TRANSFER_FROM_BATCH"
 
+	Exes      = "gg"
 	Multicall = "multicall"
 	Execute0  = "execute0"
 	Execute1  = "execute1"

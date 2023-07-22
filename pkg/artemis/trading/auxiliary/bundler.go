@@ -113,6 +113,7 @@ func CallFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle
 		Timestamp:   GetDeadline().Int64(),
 	}
 	ctx = setBlockNumberCtx(ctx, bnStr)
+	sendAdditionalCallBundles(ctx, w3c, fbCallBundle)
 	f := artemis_flashbots.InitFlashbotsClient(ctx, &w3c.Web3Actions)
 	resp, err := f.CallBundle(ctx, fbCallBundle)
 	if err != nil {
@@ -160,6 +161,22 @@ func sendAdditionalBundles(ctx context.Context, w3c web3_client.Web3Client, fbSe
 			if err != nil {
 				log.Warn().Str("builder", builder).Msg("sendAdditionalBundles: error calling sending bundle")
 				log.Err(err).Str("builder", builder).Msg("sendAdditionalBundles: error calling sending bundle")
+			}
+			log.Info().Str("builder", builder).Str("bundleHash", resp.BundleHash).Msg("sendAdditionalBundles: bundle sent successfully")
+		}(builder, f)
+	}
+}
+
+func sendAdditionalCallBundles(ctx context.Context, w3c web3_client.Web3Client, callBundle flashbotsrpc.FlashbotsCallBundleParam) {
+	builders := artemis_flashbots.Builders
+	for _, builder := range builders {
+		f := artemis_flashbots.InitFlashbotsClientForAdditionalBuilder(ctx, &w3c.Web3Actions, builder)
+		go func(builder string, f artemis_flashbots.FlashbotsClient) {
+			log.Info().Str("builder", builder).Msg("sendAdditionalCallBundles: sending bundle")
+			resp, err := f.CallBundle(ctx, callBundle)
+			if err != nil {
+				log.Warn().Str("builder", builder).Msg("sendAdditionalCallBundles: error calling sending bundle")
+				log.Err(err).Str("builder", builder).Msg("sendAdditionalCallBundles: error calling sending bundle")
 			}
 			log.Info().Str("builder", builder).Str("bundleHash", resp.BundleHash).Msg("sendAdditionalBundles: bundle sent successfully")
 		}(builder, f)

@@ -4,19 +4,33 @@ import (
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
-	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
 	artemis_test_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/test_suite/test_cache"
 )
 
 func (t *ArtemisTradeDebuggerTestSuite) TestGasAnalysis() {
+	var err error
+	jaredFrontRunTx := "0x1686c5cbaebde990d638dcd681f9a5a4814ed5025129c5dc1d6c2b94a4177388"
+	err = GasAnalysis(ctx, jaredFrontRunTx)
+	t.NoError(err)
+	fmt.Println("====================================================================")
 	txHash := "0xf2545a49a3e3e3e8fa0ec699943b1f454adda02888a16c39a64774bbdab248eb"
-	err := GasAnalysis(ctx, txHash)
+	err = GasAnalysis(ctx, txHash)
 	t.NoError(err)
 
+	/*
+		tx.Type() 2
+		tx.GasFeeCap()) 24171496584
+		tx.GasTipCap() 3000000000
+		tx.GasPrice() 24171496584
+		tx.Gas() 313047
+		gasUsed 183535
+		rx.CumulativeGasUsed 2921725
+	*/
+
 	//tx, _, err := artemis_test_cache.LiveTestNetwork.C.TransactionByHash(ctx, common.HexToHash(frontrun))
-	artemis_trading_auxiliary.ApplyFrontRunGasAdjustment(nil)
-	artemis_trading_auxiliary.ApplyBackrunGasAdjustment(nil)
-	artemis_trading_auxiliary.ApplyTxType2UserGasAdjustment(nil)
+	//artemis_trading_auxiliary.ApplyFrontRunGasAdjustment(nil)
+	//artemis_trading_auxiliary.ApplyBackrunGasAdjustment(nil)
+	//artemis_trading_auxiliary.ApplyTxType2UserGasAdjustment(nil)
 }
 
 func (t *ArtemisTradeDebuggerTestSuite) TestReadTx() {

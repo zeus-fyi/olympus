@@ -86,8 +86,12 @@ func MulBigInt(x, y *big.Int) *big.Int {
 	return new(big.Int).Mul(x, y)
 }
 
-func MulBigIntFromInt(x *big.Int, y int) *big.Int {
+func MulBigIntWithInt(x *big.Int, y int) *big.Int {
 	return new(big.Int).Mul(x, new(big.Int).SetInt64(int64(y)))
+}
+
+func MulBigIntWithUint64(x *big.Int, y uint64) *big.Int {
+	return new(big.Int).Mul(x, new(big.Int).SetUint64(y))
 }
 
 func DivBigInt(x, y *big.Int) *big.Int {

@@ -33,8 +33,8 @@ tx.Gas() 142255
 
 /*
 	scInfoSand.GasLimit = frScInfo.GasLimit * 2
-	scInfoSand.GasTipCap = artemis_eth_units.MulBigIntFromInt(frScInfo.GasFeeCap, 4)
-	scInfoSand.GasFeeCap = artemis_eth_units.MulBigIntFromInt(frScInfo.GasFeeCap, 4)
+	scInfoSand.GasTipCap = artemis_eth_units.MulBigIntWithInt(frScInfo.GasFeeCap, 4)
+	scInfoSand.GasFeeCap = artemis_eth_units.MulBigIntWithInt(frScInfo.GasFeeCap, 4)
 */
 
 func ApplyFrontRunGasAdjustment(signedFrontRunTx *types.Transaction) (web3_actions.GasPriceLimits, web3_actions.GasPriceLimits) {
@@ -50,7 +50,7 @@ func ApplyFrontRunGasAdjustment(signedFrontRunTx *types.Transaction) (web3_actio
 		GasTipCap: gasTipCap,
 		GasFeeCap: gasFeeCap,
 	}
-	newGasTipCap := artemis_eth_units.MulBigIntFromInt(gasFeeCap, 0)
+	newGasTipCap := artemis_eth_units.MulBigIntWithInt(gasFeeCap, 0)
 	adjustedGp := web3_actions.GasPriceLimits{
 		GasPrice:  nil,
 		GasLimit:  gasLimit,
@@ -73,8 +73,8 @@ func ApplyBackrunGasAdjustment(signedFrontRunTx *types.Transaction) (web3_action
 		GasTipCap: gasTipCap,
 		GasFeeCap: gasFeeCap,
 	}
-	newGasTipCap := artemis_eth_units.MulBigIntFromInt(gasFeeCap, 4)
-	newGasFeeCap := artemis_eth_units.MulBigIntFromInt(gasFeeCap, 4)
+	newGasTipCap := artemis_eth_units.MulBigIntWithInt(gasFeeCap, 4)
+	newGasFeeCap := artemis_eth_units.MulBigIntWithInt(gasFeeCap, 4)
 	newGasLimit := gasLimit * 2
 	adjustedGp := web3_actions.GasPriceLimits{
 		GasPrice:  nil,

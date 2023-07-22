@@ -5,12 +5,18 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
 )
 
 func (u *UniswapClient) GetV2PricingData(ctx context.Context, path []accounts.Address) (*uniswap_pricing.UniswapPricingData, error) {
-	pair, err := u.V2PairToPrices(ctx, path)
+	bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(context.Background(), u.Web3Client.Web3Actions)
+	if berr != nil {
+		log.Err(berr).Msg("GetPairContractPrices: failed to get latest block from cache or provided source")
+		return nil, berr
+	}
+	pair, err := u.V2PairToPrices(ctx, bn, path)
 	if err != nil {
 		log.Err(err).Interface("path", path).Msg("error getting v2 pricing data")
 		return nil, err

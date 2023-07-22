@@ -12,7 +12,8 @@ import (
 
 func (s *Web3ClientTestSuite) TestRawDawgInjection() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
-	err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlock(ctx, 17408822)
+	bn := uint64(17408822)
+	err := s.LocalHardhatMainnetUser.HardhatResetNetworkToBlock(ctx, int(bn))
 	rawDawgPayload, bc := artemis_oly_contract_abis.MustLoadRawdawgContractDeployPayload()
 	rawDawgPayload.GasLimit = 2000000
 	rawDawgPayload.Params = []interface{}{}
@@ -60,7 +61,7 @@ func (s *Web3ClientTestSuite) TestRawDawgInjection() {
 	// DAI-WETH pair contract
 	daiWETHPairContractAddr := "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11"
 	uni := InitUniswapClient(ctx, s.LocalHardhatMainnetUser)
-	pair, err := uni.V2PairToPrices(ctx, []accounts.Address{accounts.HexToAddress(daiAddr), accounts.HexToAddress(WETH9ContractAddress)})
+	pair, err := uni.V2PairToPrices(ctx, bn, []accounts.Address{accounts.HexToAddress(daiAddr), accounts.HexToAddress(WETH9ContractAddress)})
 	s.Require().Nil(err)
 	s.Require().NotEmpty(pair)
 	s.Require().Equal(pair.PairContractAddr, daiWETHPairContractAddr)

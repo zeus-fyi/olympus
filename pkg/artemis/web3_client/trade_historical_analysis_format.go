@@ -226,7 +226,7 @@ func (u *UniswapClient) CheckExpectedReserves(tf *TradeExecutionFlow) error {
 	}
 	// todo, do v3 pairs
 	simPair := tf.InitialPair
-	err := uniswap_pricing.GetPairContractPrices(ctx, u.Web3Client.Web3Actions, simPair)
+	err := uniswap_pricing.GetPairContractPrices(ctx, tf.CurrentBlockNumber.Uint64(), u.Web3Client.Web3Actions, simPair)
 	if err != nil {
 		log.Err(err).Msg("error getting pair contract prices")
 		return err

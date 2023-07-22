@@ -23,7 +23,7 @@ type UniswapPricingData struct {
 	V3Pair UniswapV3Pair
 }
 
-func V2PairToPrices(ctx context.Context, wc web3_actions.Web3Actions, pairAddr []accounts.Address) (*UniswapV2Pair, error) {
+func V2PairToPrices(ctx context.Context, bn uint64, wc web3_actions.Web3Actions, pairAddr []accounts.Address) (*UniswapV2Pair, error) {
 	p := &UniswapV2Pair{}
 	if len(pairAddr) == 2 {
 		err := p.PairForV2(pairAddr[0].String(), pairAddr[1].String())
@@ -31,7 +31,7 @@ func V2PairToPrices(ctx context.Context, wc web3_actions.Web3Actions, pairAddr [
 			log.Err(err).Msg("V2PairToPrices: PairForV2")
 			return nil, err
 		}
-		err = GetPairContractPrices(ctx, wc, p)
+		err = GetPairContractPrices(ctx, bn, wc, p)
 		if err != nil {
 			log.Err(err).Msg("V2PairToPrices: GetPairContractPrices")
 			return nil, err
@@ -48,18 +48,24 @@ func V2PairToPrices(ctx context.Context, wc web3_actions.Web3Actions, pairAddr [
 
 func GetV2PricingData(ctx context.Context, wc web3_actions.Web3Actions, pairAddr []accounts.Address) (*UniswapPricingData, error) {
 	p := UniswapV2Pair{}
+	bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(context.Background(), wc)
+	if berr != nil {
+		log.Err(berr).Msg("GetPairContractPrices: failed to get latest block from cache or provided source")
+		return nil, berr
+	}
 	if len(pairAddr) == 2 {
 		err := p.PairForV2(pairAddr[0].String(), pairAddr[1].String())
 		if err != nil {
 			log.Err(err).Msg("V2PairToPrices: PairForV2")
 			return nil, err
 		}
-		err = GetPairContractPrices(ctx, wc, &p)
+		err = GetPairContractPrices(ctx, bn, wc, &p)
 		if err != nil {
 			log.Err(err).Msg("V2PairToPrices: GetPairContractPrices")
 			return nil, err
 		}
-		return &UniswapPricingData{V2Pair: p}, err
+		pd := &UniswapPricingData{V2Pair: p}
+		return pd, err
 	}
 	return nil, errors.New("pair address length is not 2, multi-hops not implemented yet")
 }

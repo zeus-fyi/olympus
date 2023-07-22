@@ -10,6 +10,24 @@ import (
 	hestia_req_types "github.com/zeus-fyi/zeus/pkg/hestia/client/req_types"
 )
 
+func (t *ArtemisAuxillaryTestSuite) TestSandwichCallBundle() {
+	ta, bundle := t.testMockSandwichBundle()
+	t.Require().NotEmpty(ta)
+	resp, err := CallFlashbotsBundle(ctx, *ta.w3c(), &bundle)
+	t.Require().Nil(err)
+	t.Require().NotNil(resp)
+
+	fmt.Println("stateBlockNum", resp.StateBlockNumber)
+	fmt.Println("bundleHash", resp.BundleHash)
+	fmt.Println("gasFees", resp.GasFees)
+	fmt.Println("totalGasUsed", resp.TotalGasUsed)
+	t.Require().Equal(3, len(resp.Results))
+
+	for _, sr := range resp.Results {
+		t.Require().Emptyf(sr.Error, "error in result: %s", sr.Error)
+	}
+}
+
 func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() (*AuxiliaryTradingUtils, MevTxGroup) {
 	toExchAmount := artemis_eth_units.GweiMultiple(10000)
 	//toExchAmount := artemis_eth_units.GweiMultiple(1000)
@@ -19,7 +37,7 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() (*AuxiliaryTradingU
 	w3c := *ta.w3c()
 	// part 1 of bundle
 	frontRunCtx := CreateFrontRunCtx(context.Background())
-	scInfoFrontRun, err := universalRouterCmdToUnsignedTxPayload(frontRunCtx, w3c, cmd)
+	scInfoFrontRun, err := universalRouterCmdToUnsignedTxPayload(frontRunCtx, cmd)
 	t.Require().Nil(err)
 	err = w3c.SuggestAndSetGasPriceAndLimitForTx(ctx, scInfoFrontRun, common.HexToAddress(scInfoFrontRun.SmartContractAddr))
 	t.Require().Nil(err)
@@ -75,14 +93,14 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() (*AuxiliaryTradingU
 	// part 3 of bundle
 	cmd, pt := t.testExecV2Trade(&ta, hestia_req_types.Goerli)
 
-	scInfoSand, err := universalRouterCmdToUnsignedTxPayload(ctx, *ta.w3c(), cmd)
+	scInfoSand, err := universalRouterCmdToUnsignedTxPayload(ctx, cmd)
 	t.Require().Nil(err)
 
 	fmt.Println("frontRunGas", frontRunTxWithMetadata.ScPayload.GasLimit)
 	backRunGasLimit := frontRunTxWithMetadata.ScPayload.GasLimit * 2
 	scInfoSand.GasLimit = backRunGasLimit
 	fmt.Println("backRunGas", scInfoSand.GasLimit)
-	scInfoSand.GasTipCap = artemis_eth_units.MulBigIntFromInt(frontRunTxWithMetadata.ScPayload.GasTipCap, 2)
+	scInfoSand.GasTipCap = artemis_eth_units.MulBigIntFromInt(frontRunTxWithMetadata.ScPayload.GasFeeCap, 2)
 	scInfoSand.GasFeeCap = artemis_eth_units.MulBigIntFromInt(frontRunTxWithMetadata.ScPayload.GasFeeCap, 2)
 	ctx = CreateBackRunCtx(ctx)
 	fmt.Println("mainTraderAddr", ta.w3a().Address().String())
@@ -107,23 +125,6 @@ func (t *ArtemisAuxillaryTestSuite) testMockSandwichBundle() (*AuxiliaryTradingU
 	t.Require().Equal(3, len(bundle.OrderedTxs))
 	t.Require().NotNil(bundle)
 	return &ta, *bundle
-}
-func (t *ArtemisAuxillaryTestSuite) TestSandwichCallBundle() {
-	ta, bundle := t.testMockSandwichBundle()
-	t.Require().NotEmpty(ta)
-	resp, err := CallFlashbotsBundle(ctx, *ta.w3c(), &bundle)
-	t.Require().Nil(err)
-	t.Require().NotNil(resp)
-
-	fmt.Println("stateBlockNum", resp.StateBlockNumber)
-	fmt.Println("bundleHash", resp.BundleHash)
-	fmt.Println("gasFees", resp.GasFees)
-	fmt.Println("totalGasUsed", resp.TotalGasUsed)
-	t.Require().Equal(3, len(resp.Results))
-
-	for _, sr := range resp.Results {
-		t.Require().Emptyf(sr.Error, "error in result: %s", sr.Error)
-	}
 }
 
 //func (t *ArtemisAuxillaryTestSuite) TestSandwichCallAndSendBundle() {

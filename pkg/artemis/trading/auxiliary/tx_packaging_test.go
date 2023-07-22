@@ -1,7 +1,10 @@
 package artemis_trading_auxiliary
 
 import (
+	"context"
+
 	"github.com/zeus-fyi/gochain/web3/accounts"
+	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	artemis_uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
@@ -24,7 +27,10 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2TradeFrontRun(ta *AuxiliaryTrading
 		AmountOutAddr: daiAddr,
 	}
 	path := []accounts.Address{to.AmountInAddr, to.AmountOutAddr}
-	prices, err := artemis_uniswap_pricing.V2PairToPrices(ctx, ta.U.Web3Client.Web3Actions, path)
+
+	bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(context.Background(), ta.U.Web3Client.Web3Actions)
+	t.Require().Nil(berr)
+	prices, err := artemis_uniswap_pricing.V2PairToPrices(ctx, bn, ta.U.Web3Client.Web3Actions, path)
 	t.Require().Nil(err)
 	amountOut, err := prices.GetQuoteUsingTokenAddr(to.AmountInAddr.String(), to.AmountIn)
 	t.Require().Nil(err)

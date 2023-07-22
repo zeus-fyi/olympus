@@ -1,12 +1,14 @@
 package artemis_trading_auxiliary
 
 import (
+	"context"
 	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
+	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	artemis_uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
@@ -91,7 +93,9 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2TradeFromPepeToWeth(ta *AuxiliaryT
 		AmountOutAddr: wethAddr,
 	}
 	path := []accounts.Address{to.AmountInAddr, to.AmountOutAddr}
-	prices, err := artemis_uniswap_pricing.V2PairToPrices(ctx, *ta.w3a(), path)
+	bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(context.Background(), ta.U.Web3Client.Web3Actions)
+	t.Require().Nil(berr)
+	prices, err := artemis_uniswap_pricing.V2PairToPrices(ctx, bn, ta.U.Web3Client.Web3Actions, path)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(prices)
 	fmt.Println("testExecV2Trade: prices", prices.Reserve0.String(), prices.Reserve1.String())
@@ -158,7 +162,9 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2Trade(ta *AuxiliaryTradingUtils, n
 		AmountOutAddr: daiAddr,
 	}
 	path := []accounts.Address{to.AmountInAddr, to.AmountOutAddr}
-	prices, err := artemis_uniswap_pricing.V2PairToPrices(ctx, *ta.w3a(), path)
+	bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(context.Background(), ta.U.Web3Client.Web3Actions)
+	t.Require().Nil(berr)
+	prices, err := artemis_uniswap_pricing.V2PairToPrices(ctx, bn, ta.U.Web3Client.Web3Actions, path)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(prices)
 	fmt.Println("testExecV2Trade: prices", prices.Reserve0.String(), prices.Reserve1.String())
@@ -215,7 +221,9 @@ func (t *ArtemisAuxillaryTestSuite) testExecV2TradePepe(ta *AuxiliaryTradingUtil
 		AmountOutAddr: pepeAddr,
 	}
 	path := []accounts.Address{to.AmountInAddr, to.AmountOutAddr}
-	prices, err := artemis_uniswap_pricing.V2PairToPrices(ctx, *ta.w3a(), path)
+	bn, berr := artemis_trading_cache.GetLatestBlockFromCacheOrProvidedSource(context.Background(), ta.U.Web3Client.Web3Actions)
+	t.Require().Nil(berr)
+	prices, err := artemis_uniswap_pricing.V2PairToPrices(ctx, bn, ta.U.Web3Client.Web3Actions, path)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(prices)
 	fmt.Println("testExecV2Trade: prices", prices.Reserve0.String(), prices.Reserve1.String())

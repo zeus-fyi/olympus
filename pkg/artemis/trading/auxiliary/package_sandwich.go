@@ -265,40 +265,6 @@ func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 	return bundle, err
 }
 
-func StagingPackageSandwichAndCall(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (*flashbotsrpc.FlashbotsCallBundleResponse, *MevTxGroup, error) {
-	if tf == nil || tf.Tx == nil {
-		return nil, nil, errors.New("PackageSandwich: tf is nil")
-	}
-	if tf.FrontRunTrade.AmountIn == nil || tf.SandwichTrade.AmountOut == nil {
-		return nil, nil, errors.New("PackageSandwich: tf.FrontRunTrade.AmountIn or tf.SandwichTrade.AmountOut is nil")
-	}
-	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("StagingPackageSandwichAndCall: start")
-	bundle, err := PackageSandwich(ctx, w3c, tf)
-	if err != nil {
-		log.Err(err).Msg("StagingPackageSandwichAndCall: failed to package sandwich")
-		return nil, nil, err
-	}
-	if bundle == nil {
-		log.Warn().Str("txHash", tf.Tx.Hash().String()).Msg("StagingPackageSandwichAndCall: bundle is nil")
-		return nil, nil, errors.New("bundle is nil")
-	}
-	//log.Info().Interface("bundle", bundle).Msg("isBundleProfitHigherThanGasFee: bundle")
-	//ok, err := isBundleProfitHigherThanGasFee(bundle, tf)
-	//if err != nil {
-	//	log.Err(err).Bool("ok", ok).Msg("StagingPackageSandwichAndCall: isBundleProfitHigherThanGasFee: failed to check if profit is higher than gas fee")
-	//	return nil, nil, err
-	//}
-	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("StagingPackageSandwichAndCall: CallFlashbotsBundleStaging: start")
-	resp, err := CallFlashbotsBundleStaging(ctx, w3c, *bundle)
-	if err != nil {
-		log.Warn().Str("txHash", tf.Tx.Hash().String()).Interface("fbCallResp", resp).Msg("StagingPackageSandwichAndCall: failed to send sandwich")
-		log.Err(err).Interface("fbCallResp", resp).Msg("StagingPackageSandwichAndCall: failed to send sandwich")
-		return nil, nil, err
-	}
-	log.Info().Str("txHash", tf.Tx.Hash().String()).Interface("fbCallResp", resp).Msg("StagingPackageSandwichAndCall: CallFlashbotsBundleStaging: done")
-	return &resp, bundle, err
-}
-
 func PackageSandwichAndSend(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow, m *metrics_trading.TradingMetrics) (*flashbotsrpc.FlashbotsSendBundleResponse, error) {
 	if tf == nil || tf.Tx == nil {
 		return nil, errors.New("PackageSandwichAndSend: tf is nil")

@@ -154,12 +154,14 @@ func sendAdditionalBundles(ctx context.Context, w3c web3_client.Web3Client, fbSe
 	builders := artemis_flashbots.Builders
 	for _, builder := range builders {
 		f := artemis_flashbots.InitFlashbotsClientForAdditionalBuilder(ctx, &w3c.Web3Actions, builder)
-		log.Info().Str("builder", builder).Msg("sendAdditionalBundles: sending bundle")
-		resp, err := f.SendBundle(ctx, fbSendBundle)
-		if err != nil {
-			log.Warn().Str("builder", builder).Msg("sendAdditionalBundles: error calling sending bundle")
-			log.Err(err).Str("builder", builder).Msg("sendAdditionalBundles: error calling sending bundle")
-		}
-		log.Info().Str("builder", builder).Str("bundleHash", resp.BundleHash).Msg("sendAdditionalBundles: bundle sent successfully")
+		go func(builder string, f artemis_flashbots.FlashbotsClient) {
+			log.Info().Str("builder", builder).Msg("sendAdditionalBundles: sending bundle")
+			resp, err := f.SendBundle(ctx, fbSendBundle)
+			if err != nil {
+				log.Warn().Str("builder", builder).Msg("sendAdditionalBundles: error calling sending bundle")
+				log.Err(err).Str("builder", builder).Msg("sendAdditionalBundles: error calling sending bundle")
+			}
+			log.Info().Str("builder", builder).Str("bundleHash", resp.BundleHash).Msg("sendAdditionalBundles: bundle sent successfully")
+		}(builder, f)
 	}
 }

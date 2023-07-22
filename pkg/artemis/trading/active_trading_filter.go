@@ -78,7 +78,7 @@ func ActiveTradeMethodFilter(ctx context.Context, tm string, m *metrics_trading.
 	case artemis_trading_constants.SwapExactTokensForTokens:
 	case artemis_trading_constants.SwapETHForExactTokens:
 	case swapExactInputSingle, swapExactOutputSingle:
-	case exactInput, exactOutput:
+	case exactInput, exactOutput: //"exactInputSingle", "exactOutputSingle":
 	case artemis_trading_constants.SwapExactTokensForETHSupportingFeeOnTransferTokens:
 	case artemis_trading_constants.SwapExactETHForTokensSupportingFeeOnTransferTokens:
 	case artemis_trading_constants.SwapExactTokensForTokensSupportingFeeOnTransferTokens:

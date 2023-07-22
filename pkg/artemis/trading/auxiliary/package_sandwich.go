@@ -93,7 +93,7 @@ func packageBackRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_cl
 	}
 	sandwichGasCost := artemis_eth_units.MulBigInt(artemis_eth_units.AddBigInt(scInfoSand.GasFeeCap, scInfoSand.GasTipCap), artemis_eth_units.NewBigIntFromUint(scInfoSand.GasLimit))
 	tf.SandwichTrade.TotalGasCost = sandwichGasCost.Uint64()
-	log.Info().Uint64("sandwichGasCost", sandwichGasCost.Uint64()).Msg("PackageSandwich: SANDWICH_TRADE gas cost")
+	log.Info().Uint64("sandwichGasCost", sandwichGasCost.Uint64()).Str("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut.String()).Msg("PackageSandwich: SANDWICH_TRADE gas cost")
 	return &sandwichTx, nil
 }
 

@@ -176,6 +176,9 @@ func sendAdditionalCallBundles(ctx context.Context, w3c web3_client.Web3Client, 
 		if builder == artemis_flashbots.BeaverRelay {
 			continue
 		}
+		if builder == artemis_flashbots.PayloadBuilder {
+			continue
+		}
 		if builder == artemis_flashbots.TitanBuilder {
 			continue
 		}

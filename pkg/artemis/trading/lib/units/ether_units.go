@@ -62,6 +62,14 @@ func AddBigInt(val, plus *big.Int) *big.Int {
 	return new(big.Int).Add(val, plus)
 }
 
+func AddBigIntUsingInt(val *big.Int, y int) *big.Int {
+	yb := NewBigInt(y)
+	if val == nil {
+		return yb
+	}
+	return new(big.Int).Add(val, yb)
+}
+
 func SubBigInt(val, minus *big.Int) *big.Int {
 	if val == nil && minus == nil {
 		return NewBigInt(0)
@@ -92,6 +100,14 @@ func MulBigIntWithInt(x *big.Int, y int) *big.Int {
 
 func MulBigIntWithUint64(x *big.Int, y uint64) *big.Int {
 	return new(big.Int).Mul(x, new(big.Int).SetUint64(y))
+}
+
+func MulBigIntWithFloat(x *big.Int, y float64) *big.Int {
+	xf := new(big.Float).SetInt(x)
+	val := new(big.Float).Mul(xf, new(big.Float).SetFloat64(y))
+
+	biReturn, _ := val.Int(nil)
+	return biReturn
 }
 
 func DivBigInt(x, y *big.Int) *big.Int {

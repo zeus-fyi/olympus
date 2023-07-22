@@ -9,22 +9,48 @@ import (
 
 func (t *ArtemisTradeDebuggerTestSuite) TestGasAnalysis() {
 	var err error
-	jaredFrontRunTx := "0x1686c5cbaebde990d638dcd681f9a5a4814ed5025129c5dc1d6c2b94a4177388"
+	jaredFrontRunTx := "0xb50378511787f9d867f10f1bef1bad9216d01883ac2c2fec804a42781061ef7f"
 	err = GasAnalysis(ctx, jaredFrontRunTx)
 	t.NoError(err)
+
+	//block.BaseFee 13848216283
+	//block.GasLimit 30000000
+	/*
+		zeus
+			gas tip cap 0
+			gas fee cap 27746432566
+			gas limit 231372
+		vs
+
+		jared
+			gas tip cap 13848216283
+			gas fee cap 13848216283
+			gas limit 555787
+	*/
+
 	fmt.Println("====================================================================")
+
 	txHash := "0xf2545a49a3e3e3e8fa0ec699943b1f454adda02888a16c39a64774bbdab248eb"
 	err = GasAnalysis(ctx, txHash)
 	t.NoError(err)
 
+	fmt.Println("====================================================================")
+	backRun := "0x1686c5cbaebde990d638dcd681f9a5a4814ed5025129c5dc1d6c2b94a4177388"
+
+	err = GasAnalysis(ctx, backRun)
+	t.NoError(err)
+
 	/*
-		tx.Type() 2
-		tx.GasFeeCap()) 24171496584
-		tx.GasTipCap() 3000000000
-		tx.GasPrice() 24171496584
-		tx.Gas() 313047
-		gasUsed 183535
-		rx.CumulativeGasUsed 2921725
+		zeus
+			gas tip cap 110985730264
+			gas fee cap 110985730264
+			gas limit 462744
+		vs
+
+		jared
+			gas tip cap 13848216283
+			gas fee cap 13848216283
+			gas limit 555787
 	*/
 
 	//tx, _, err := artemis_test_cache.LiveTestNetwork.C.TransactionByHash(ctx, common.HexToHash(frontrun))

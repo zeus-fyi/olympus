@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/dynamic_secrets"
+	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	"github.com/zeus-fyi/olympus/pkg/athena"
 	athena_workloads "github.com/zeus-fyi/olympus/pkg/athena/workloads"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
@@ -22,6 +24,8 @@ const bootnodes = "enode://d860a01f9722d78051619d1e2351aba3f43f943f6f00718d1b9ba
 
 func WorkloadStartup(ctx context.Context, w athena_workloads.WorkloadInfo) {
 	log.Info().Interface("w", w).Msg("starting workload")
+
+	artemis_trading_cache.InitProductionRedis(ctx)
 	switch w.WorkloadType {
 	case "p2pCrawler":
 		selectedNodes, serr := artemis_mev_models.SelectP2PNodes(ctx, 0)
@@ -70,6 +74,7 @@ func WorkloadStartup(ctx context.Context, w athena_workloads.WorkloadInfo) {
 					FnOut:  "mainnet-nodes.json",
 				}
 				b = p.ReadFileInPath()
+
 				err = artemis_mev_models.InsertP2PNodes(ctx, artemis_autogen_bases.EthP2PNodes{
 					ID:                0,
 					ProtocolNetworkID: 0,
@@ -110,6 +115,13 @@ func WorkloadStartup(ctx context.Context, w athena_workloads.WorkloadInfo) {
 					log.Fatal().Msg("failed to Unmarshal p2pCrawler nodes")
 					misc.DelayedPanic(err)
 				}
+
+				err = artemis_trading_cache.WriteRedis.AddOrUpdateNodeCache(ctx, nodes, time.Hour*24)
+				if err != nil {
+					log.Fatal().Msg("failed to insert p2pCrawler nodes")
+					misc.DelayedPanic(err)
+				}
+
 				log.Info().Int("nodeLen", len(nodes)).Msg("p2pCrawler nodes")
 				err = artemis_mev_models.InsertP2PNodes(ctx, artemis_autogen_bases.EthP2PNodes{
 					ID:                hestia_req_types.EthereumMainnetProtocolNetworkID,

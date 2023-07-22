@@ -26,6 +26,8 @@ const (
 const (
 	V2SwapExactIn                                         = "V2_SWAP_EXACT_IN"
 	V2SwapExactOut                                        = "V2_SWAP_EXACT_OUT"
+	V3SwapExactIn                                         = "V3_SWAP_EXACT_IN"
+	V3SwapExactOut                                        = "V3_SWAP_EXACT_OUT"
 	SwapExactTokensForETH                                 = "swapExactTokensForETH"
 	SwapETHForExactTokens                                 = "swapETHForExactTokens"
 	SwapTokensForExactETH                                 = "swapTokensForExactETH"

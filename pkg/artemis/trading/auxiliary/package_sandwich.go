@@ -23,7 +23,7 @@ func packageFrontRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 		log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed to generate front run tx")
 		return nil, err
 	}
-	if tf.InitialPairV3.PoolAddress != "" && tf.FrontRunTrade.AmountFees != nil {
+	if tf.InitialPairV3 != nil && tf.FrontRunTrade.AmountFees != nil {
 		ur, fpt, err = GenerateTradeV3SwapFromTokenToToken(frontRunCtx, w3c, nil, &tf.FrontRunTrade)
 		if err != nil {
 			log.Warn().Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed to generate front run tx")
@@ -79,7 +79,7 @@ func packageBackRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_cl
 		return nil, err
 	}
 
-	if tf.InitialPairV3.PoolAddress != "" && tf.SandwichTrade.AmountFees != nil {
+	if tf.InitialPairV3 != nil && tf.SandwichTrade.AmountFees != nil {
 		ur, spt, err = GenerateTradeV3SwapFromTokenToToken(ctx, w3c, nil, &tf.SandwichTrade)
 		if err != nil {
 			log.Warn().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to generate sandwich tx")

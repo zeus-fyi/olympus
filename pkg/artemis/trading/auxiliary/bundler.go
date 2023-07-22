@@ -140,13 +140,13 @@ func sendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle
 		MaxTimestamp: &mt,
 	}
 	f := artemis_flashbots.InitFlashbotsClient(ctx, &w3c.Web3Actions)
+	sendAdditionalBundles(ctx, w3c, fbSendBundle)
 	resp, err := f.SendBundle(ctx, fbSendBundle)
 	if err != nil {
 		log.Warn().Msg("sendFlashbotsBundle: error sending flashbots bundle")
 		log.Err(err).Msg("sendFlashbotsBundle: error sending flashbots bundle")
 		return resp, err
 	}
-	sendAdditionalBundles(ctx, w3c, fbSendBundle)
 	log.Info().Str("bundleHash", resp.BundleHash).Msg("sendFlashbotsBundle: bundle sent successfully")
 	return resp, nil
 }

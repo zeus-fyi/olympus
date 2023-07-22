@@ -74,8 +74,8 @@ func packageBackRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_cl
 		return nil, err
 	}
 	scInfoSand.GasLimit = frScInfo.GasLimit * 2
-	scInfoSand.GasTipCap = artemis_eth_units.MulBigIntFromInt(frScInfo.GasFeeCap, 2)
-	scInfoSand.GasFeeCap = artemis_eth_units.MulBigIntFromInt(frScInfo.GasFeeCap, 3)
+	scInfoSand.GasTipCap = artemis_eth_units.MulBigIntFromInt(frScInfo.GasFeeCap, 4)
+	scInfoSand.GasFeeCap = artemis_eth_units.MulBigIntFromInt(frScInfo.GasFeeCap, 4)
 	backRunCtx := CreateBackRunCtx(context.Background())
 	signedSandwichTx, err := w3c.GetSignedTxToCallFunctionWithData(backRunCtx, scInfoSand, scInfoSand.Data)
 	if err != nil {

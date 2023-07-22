@@ -188,6 +188,9 @@ func sendAdditionalCallBundles(ctx context.Context, w3c web3_client.Web3Client, 
 		if builder == artemis_flashbots.BuildAIBuilder {
 			continue
 		}
+		if builder == artemis_flashbots.EthBuilder {
+			continue
+		}
 		f := artemis_flashbots.InitFlashbotsClientForAdditionalBuilder(ctx, &w3c.Web3Actions, builder)
 		go func(builder string, f artemis_flashbots.FlashbotsClient) {
 			log.Info().Str("builder", builder).Msg("sendAdditionalCallBundles: sending bundle")

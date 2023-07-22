@@ -124,7 +124,7 @@ func packageFrontRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 			log.Ctx(ctx).Err(err).Msg("FRONT_RUN: SuggestAndSetGasPriceAndLimitForTx: EstimateGas")
 			return nil, err
 		}
-		scInfoFrontRun.GasLimit = gasLimit
+		scInfoFrontRun.GasLimit = uint64(float64(gasLimit) * 1.1)
 		frontRunTx, err := w3c.GetSignedTxToCallFunctionWithData(ctx, scInfoFrontRun, scInfoFrontRun.Data)
 		if err != nil {
 			log.Warn().Msg("FRONT_RUN: w3c.GetSignedTxToCallFunctionWithData: error getting signed tx to call function with data")

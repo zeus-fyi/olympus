@@ -16,106 +16,172 @@ import (
 
 func packageFrontRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (*TxWithMetadata, error) {
 	frontRunCtx := CreateFrontRunCtx(context.Background())
-
-	ur, fpt, err := GenerateTradeV2SwapFromTokenToToken(frontRunCtx, w3c, nil, &tf.FrontRunTrade)
-	if err != nil {
-		log.Warn().Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed to generate front run tx")
-		log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed to generate front run tx")
-		return nil, err
-	}
-	if tf.InitialPairV3 != nil && tf.FrontRunTrade.AmountFees != nil {
-		ur, fpt, err = GenerateTradeV3SwapFromTokenToToken(frontRunCtx, w3c, nil, &tf.FrontRunTrade)
+	if tf.InitialPair != nil {
+		ur, fpt, err := GenerateTradeV2SwapFromTokenToToken(frontRunCtx, w3c, nil, &tf.FrontRunTrade)
 		if err != nil {
 			log.Warn().Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed to generate front run tx")
 			log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed to generate front run tx")
 			return nil, err
 		}
+		scInfoFrontRun, err := universalRouterCmdToUnsignedTxPayload(frontRunCtx, ur)
+		if err != nil {
+			log.Warn().Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed building ur tx")
+			log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: error building ur tx")
+			return nil, err
+		}
+		err = w3c.SuggestAndSetGasPriceAndLimitForTx(ctx, scInfoFrontRun, common.HexToAddress(scInfoFrontRun.SmartContractAddr))
+		if err != nil {
+			log.Warn().Err(err).Msg("Send: SuggestAndSetGasPriceAndLimitForTx")
+			log.Ctx(ctx).Err(err).Msg("Send: SuggestAndSetGasPriceAndLimitForTx")
+			return nil, err
+		}
+		scInfoFrontRun.GasTipCap = artemis_eth_units.NewBigInt(0)
+		frontRunTx, err := w3c.GetSignedTxToCallFunctionWithData(ctx, scInfoFrontRun, scInfoFrontRun.Data)
+		if err != nil {
+			log.Warn().Msg("FRONT_RUN: w3c.GetSignedTxToCallFunctionWithData: error getting signed tx to call function with data")
+			log.Err(err).Msg("FRONT_RUN: error getting signed tx to call function with data")
+			return nil, err
+		}
+		frontRunGasCost := artemis_eth_units.MulBigInt(artemis_eth_units.AddBigInt(scInfoFrontRun.GasFeeCap, scInfoFrontRun.GasTipCap), artemis_eth_units.NewBigIntFromUint(scInfoFrontRun.GasLimit))
+		tf.FrontRunTrade.TotalGasCost = frontRunGasCost.Uint64()
+		log.Info().Uint64("frontRunGasCost", frontRunGasCost.Uint64()).Msg("PackageSandwich: FRONT_RUN gas cost")
+		log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: FRONT_RUN start")
+
+		frTx := TxWithMetadata{
+			TradeType: FrontRun,
+			ScPayload: scInfoFrontRun,
+			Tx:        frontRunTx,
+		}
+		if fpt != nil {
+			frTx.Permit2Tx = fpt.Permit2Tx
+		}
+		return &frTx, nil
 	}
 
-	scInfoFrontRun, err := universalRouterCmdToUnsignedTxPayload(frontRunCtx, ur)
-	if err != nil {
-		log.Warn().Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed building ur tx")
-		log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: error building ur tx")
-		return nil, err
-	}
-	err = w3c.SuggestAndSetGasPriceAndLimitForTx(ctx, scInfoFrontRun, common.HexToAddress(scInfoFrontRun.SmartContractAddr))
-	if err != nil {
-		log.Warn().Err(err).Msg("Send: SuggestAndSetGasPriceAndLimitForTx")
-		log.Ctx(ctx).Err(err).Msg("Send: SuggestAndSetGasPriceAndLimitForTx")
-		return nil, err
-	}
-	scInfoFrontRun.GasTipCap = artemis_eth_units.NewBigInt(0)
-	frontRunTx, err := w3c.GetSignedTxToCallFunctionWithData(ctx, scInfoFrontRun, scInfoFrontRun.Data)
-	if err != nil {
-		log.Warn().Msg("FRONT_RUN: w3c.GetSignedTxToCallFunctionWithData: error getting signed tx to call function with data")
-		log.Err(err).Msg("FRONT_RUN: error getting signed tx to call function with data")
-		return nil, err
-	}
-	frontRunGasCost := artemis_eth_units.MulBigInt(artemis_eth_units.AddBigInt(scInfoFrontRun.GasFeeCap, scInfoFrontRun.GasTipCap), artemis_eth_units.NewBigIntFromUint(scInfoFrontRun.GasLimit))
-	tf.FrontRunTrade.TotalGasCost = frontRunGasCost.Uint64()
-	log.Info().Uint64("frontRunGasCost", frontRunGasCost.Uint64()).Msg("PackageSandwich: FRONT_RUN gas cost")
-	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: FRONT_RUN start")
+	if tf.InitialPairV3 != nil && tf.FrontRunTrade.AmountFees != nil {
+		ur, fpt, err := GenerateTradeV3SwapFromTokenToToken(frontRunCtx, w3c, nil, &tf.FrontRunTrade)
+		if err != nil {
+			log.Warn().Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed to generate front run tx")
+			log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed to generate front run tx")
+			return nil, err
+		}
+		scInfoFrontRun, err := universalRouterCmdToUnsignedTxPayload(frontRunCtx, ur)
+		if err != nil {
+			log.Warn().Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: failed building ur tx")
+			log.Err(err).Interface("txHash", tf.Tx.Hash().String()).Msg("FRONT_RUN: error building ur tx")
+			return nil, err
+		}
+		err = w3c.SuggestAndSetGasPriceAndLimitForTx(ctx, scInfoFrontRun, common.HexToAddress(scInfoFrontRun.SmartContractAddr))
+		if err != nil {
+			log.Warn().Err(err).Msg("Send: SuggestAndSetGasPriceAndLimitForTx")
+			log.Ctx(ctx).Err(err).Msg("Send: SuggestAndSetGasPriceAndLimitForTx")
+			return nil, err
+		}
+		scInfoFrontRun.GasTipCap = artemis_eth_units.NewBigInt(0)
+		frontRunTx, err := w3c.GetSignedTxToCallFunctionWithData(ctx, scInfoFrontRun, scInfoFrontRun.Data)
+		if err != nil {
+			log.Warn().Msg("FRONT_RUN: w3c.GetSignedTxToCallFunctionWithData: error getting signed tx to call function with data")
+			log.Err(err).Msg("FRONT_RUN: error getting signed tx to call function with data")
+			return nil, err
+		}
+		frontRunGasCost := artemis_eth_units.MulBigInt(artemis_eth_units.AddBigInt(scInfoFrontRun.GasFeeCap, scInfoFrontRun.GasTipCap), artemis_eth_units.NewBigIntFromUint(scInfoFrontRun.GasLimit))
+		tf.FrontRunTrade.TotalGasCost = frontRunGasCost.Uint64()
+		log.Info().Uint64("frontRunGasCost", frontRunGasCost.Uint64()).Msg("PackageSandwich: FRONT_RUN gas cost")
+		log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: FRONT_RUN start")
 
-	frTx := TxWithMetadata{
-		TradeType: FrontRun,
-		ScPayload: scInfoFrontRun,
-		Tx:        frontRunTx,
+		frTx := TxWithMetadata{
+			TradeType: FrontRun,
+			ScPayload: scInfoFrontRun,
+			Tx:        frontRunTx,
+		}
+		if fpt != nil {
+			frTx.Permit2Tx = fpt.Permit2Tx
+		}
+		return &frTx, nil
 	}
-	if fpt != nil {
-		frTx.Permit2Tx = fpt.Permit2Tx
-	}
-	return &frTx, nil
+	return nil, errors.New("PackageSandwich: FRONT_RUN: tf.InitialPair and tf.InitialPairV3 are nil")
+
 }
 
 func packageBackRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow, frScInfo *web3_actions.SendContractTxPayload) (*TxWithMetadata, error) {
 	if frScInfo == nil {
 		return nil, errors.New("PackageSandwich: BACK_RUN: frScInfo is nil")
 	}
-
-	ur, spt, err := GenerateTradeV2SwapFromTokenToToken(ctx, w3c, nil, &tf.SandwichTrade)
-	if err != nil {
-		log.Warn().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to generate sandwich tx")
-		log.Err(err).Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to generate sandwich tx")
-		return nil, err
-	}
-
-	if tf.InitialPairV3 != nil && tf.SandwichTrade.AmountFees != nil {
-		ur, spt, err = GenerateTradeV3SwapFromTokenToToken(ctx, w3c, nil, &tf.SandwichTrade)
+	if tf.InitialPair != nil {
+		ur, spt, err := GenerateTradeV2SwapFromTokenToToken(ctx, w3c, nil, &tf.SandwichTrade)
 		if err != nil {
 			log.Warn().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to generate sandwich tx")
 			log.Err(err).Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to generate sandwich tx")
 			return nil, err
 		}
-	}
 
-	scInfoSand, err := universalRouterCmdToUnsignedTxPayload(ctx, ur)
-	if err != nil {
-		log.Warn().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed building ur tx")
-		log.Err(err).Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to add tx to bundle group")
-		return nil, err
-	}
-	scInfoSand.GasLimit = frScInfo.GasLimit * 2
-	scInfoSand.GasTipCap = artemis_eth_units.MulBigIntFromInt(frScInfo.GasFeeCap, 4)
-	scInfoSand.GasFeeCap = artemis_eth_units.MulBigIntFromInt(frScInfo.GasFeeCap, 4)
-	backRunCtx := CreateBackRunCtx(context.Background())
-	signedSandwichTx, err := w3c.GetSignedTxToCallFunctionWithData(backRunCtx, scInfoSand, scInfoSand.Data)
-	if err != nil {
-		log.Warn().Msg("PackageSandwich: SANDWICH_TRADE: w3c.GetSignedTxToCallFunctionWithData: error getting signed tx to call function with data")
-		log.Err(err).Msg("PackageSandwich: SANDWICH_TRADE: error getting signed tx to call function with data")
-		return nil, err
-	}
+		scInfoSand, err := universalRouterCmdToUnsignedTxPayload(ctx, ur)
+		if err != nil {
+			log.Warn().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed building ur tx")
+			log.Err(err).Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to add tx to bundle group")
+			return nil, err
+		}
+		scInfoSand.GasLimit = frScInfo.GasLimit * 2
+		scInfoSand.GasTipCap = artemis_eth_units.MulBigIntFromInt(frScInfo.GasFeeCap, 4)
+		scInfoSand.GasFeeCap = artemis_eth_units.MulBigIntFromInt(frScInfo.GasFeeCap, 4)
+		backRunCtx := CreateBackRunCtx(context.Background())
+		signedSandwichTx, err := w3c.GetSignedTxToCallFunctionWithData(backRunCtx, scInfoSand, scInfoSand.Data)
+		if err != nil {
+			log.Warn().Msg("PackageSandwich: SANDWICH_TRADE: w3c.GetSignedTxToCallFunctionWithData: error getting signed tx to call function with data")
+			log.Err(err).Msg("PackageSandwich: SANDWICH_TRADE: error getting signed tx to call function with data")
+			return nil, err
+		}
 
-	sandwichTx := TxWithMetadata{
-		TradeType: BackRun,
-		Tx:        signedSandwichTx,
+		sandwichTx := TxWithMetadata{
+			TradeType: BackRun,
+			Tx:        signedSandwichTx,
+		}
+		if spt != nil {
+			sandwichTx.Permit2Tx = spt.Permit2Tx
+		}
+		sandwichGasCost := artemis_eth_units.MulBigInt(artemis_eth_units.AddBigInt(scInfoSand.GasFeeCap, scInfoSand.GasTipCap), artemis_eth_units.NewBigIntFromUint(scInfoSand.GasLimit))
+		tf.SandwichTrade.TotalGasCost = sandwichGasCost.Uint64()
+		log.Info().Uint64("sandwichGasCost", sandwichGasCost.Uint64()).Str("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut.String()).Msg("PackageSandwich: SANDWICH_TRADE gas cost")
+		return &sandwichTx, nil
 	}
-	if spt != nil {
-		sandwichTx.Permit2Tx = spt.Permit2Tx
+	if tf.InitialPairV3 != nil && tf.SandwichTrade.AmountFees != nil {
+		ur, spt, err := GenerateTradeV3SwapFromTokenToToken(ctx, w3c, nil, &tf.SandwichTrade)
+		if err != nil {
+			log.Warn().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to generate sandwich tx")
+			log.Err(err).Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to generate sandwich tx")
+			return nil, err
+		}
+
+		scInfoSand, err := universalRouterCmdToUnsignedTxPayload(ctx, ur)
+		if err != nil {
+			log.Warn().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed building ur tx")
+			log.Err(err).Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to add tx to bundle group")
+			return nil, err
+		}
+		scInfoSand.GasLimit = frScInfo.GasLimit * 2
+		scInfoSand.GasTipCap = artemis_eth_units.MulBigIntFromInt(frScInfo.GasFeeCap, 4)
+		scInfoSand.GasFeeCap = artemis_eth_units.MulBigIntFromInt(frScInfo.GasFeeCap, 4)
+		backRunCtx := CreateBackRunCtx(context.Background())
+		signedSandwichTx, err := w3c.GetSignedTxToCallFunctionWithData(backRunCtx, scInfoSand, scInfoSand.Data)
+		if err != nil {
+			log.Warn().Msg("PackageSandwich: SANDWICH_TRADE: w3c.GetSignedTxToCallFunctionWithData: error getting signed tx to call function with data")
+			log.Err(err).Msg("PackageSandwich: SANDWICH_TRADE: error getting signed tx to call function with data")
+			return nil, err
+		}
+
+		sandwichTx := TxWithMetadata{
+			TradeType: BackRun,
+			Tx:        signedSandwichTx,
+		}
+		if spt != nil {
+			sandwichTx.Permit2Tx = spt.Permit2Tx
+		}
+		sandwichGasCost := artemis_eth_units.MulBigInt(artemis_eth_units.AddBigInt(scInfoSand.GasFeeCap, scInfoSand.GasTipCap), artemis_eth_units.NewBigIntFromUint(scInfoSand.GasLimit))
+		tf.SandwichTrade.TotalGasCost = sandwichGasCost.Uint64()
+		log.Info().Uint64("sandwichGasCost", sandwichGasCost.Uint64()).Str("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut.String()).Msg("PackageSandwich: SANDWICH_TRADE gas cost")
+		return &sandwichTx, nil
 	}
-	sandwichGasCost := artemis_eth_units.MulBigInt(artemis_eth_units.AddBigInt(scInfoSand.GasFeeCap, scInfoSand.GasTipCap), artemis_eth_units.NewBigIntFromUint(scInfoSand.GasLimit))
-	tf.SandwichTrade.TotalGasCost = sandwichGasCost.Uint64()
-	log.Info().Uint64("sandwichGasCost", sandwichGasCost.Uint64()).Str("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut.String()).Msg("PackageSandwich: SANDWICH_TRADE gas cost")
-	return &sandwichTx, nil
+	return nil, errors.New("PackageSandwich: BACK_RUN: tf.InitialPair and tf.InitialPairV3 are nil")
 }
 
 func PackageSandwich(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) (*MevTxGroup, error) {

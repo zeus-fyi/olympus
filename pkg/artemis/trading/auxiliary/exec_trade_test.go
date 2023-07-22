@@ -276,5 +276,5 @@ func (t *ArtemisAuxillaryTestSuite) TestMaxTradeSize() {
 	mts := maxTradeSize()
 	fmt.Println("oneEther     :", artemis_eth_units.Ether.String())
 	fmt.Println("maxTradeSize :", mts.String())
-	t.Assert().Equal(artemis_eth_units.Ether, artemis_eth_units.MulBigIntFromInt(mts, 4))
+	t.Assert().Equal(artemis_eth_units.Ether, artemis_eth_units.MulBigIntWithInt(mts, 4))
 }

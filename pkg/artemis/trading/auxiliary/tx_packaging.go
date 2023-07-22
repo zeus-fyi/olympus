@@ -125,6 +125,7 @@ func packageRegularTx(ctx context.Context, from string, signedTxWithMetadata TxW
 		log.Warn().Msg("packageRegularTx: chain id is nil, setting to 1")
 		pi = big.NewInt(1)
 	}
+	gasPrice := signedTx.GasPrice()
 	gasFeeCap := signedTx.GasFeeCap()
 	gasTipCap := signedTx.GasTipCap()
 	gasLimit := signedTx.Gas()
@@ -135,13 +136,16 @@ func packageRegularTx(ctx context.Context, from string, signedTxWithMetadata TxW
 		gasLimit = gasLimit * 2
 	case UserTrade:
 		log.Info().Msg("txGasAdjuster: UserTrade gas adjustment")
-		gasTipCap = artemis_eth_units.OneTenthGwei
-		gasLimit = gasLimit * 2
+		gasFeeCap = artemis_eth_units.MulBigIntWithFloat(signedTxWithMetadata.BaseFee, 1.3)
+		gasPrice = gasFeeCap
+		gasTipCap = artemis_eth_units.TwoTenthGwei
+		gasLimit = uint64(float64(gasLimit) * 1.5)
 	}
 	ethGas := artemis_autogen_bases.EthTxGas{
 		TxHash: signedTx.Hash().String(),
 		GasPrice: sql.NullInt64{
-			Valid: false,
+			Valid: true,
+			Int64: gasPrice.Int64(),
 		},
 		GasLimit: sql.NullInt64{
 			Int64: int64(gasLimit),
@@ -161,7 +165,7 @@ func packageRegularTx(ctx context.Context, from string, signedTxWithMetadata TxW
 	if signerType == 1 {
 		typeEnum = "0x01"
 		ethGas.GasPrice = sql.NullInt64{
-			Int64: signedTx.GasPrice().Int64(),
+			Int64: gasPrice.Int64(),
 			Valid: true,
 		}
 		ethGas.GasLimit = sql.NullInt64{

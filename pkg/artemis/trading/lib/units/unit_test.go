@@ -7,7 +7,6 @@ import (
 )
 
 func TestPercentDiff(t *testing.T) {
-
 	valOne := NewBigIntFromStr("29999643121717752")
 	valTwo := NewBigIntFromStr("29996643157405581")
 
@@ -37,6 +36,12 @@ func TestPercentDiff(t *testing.T) {
 	fmt.Println("bo", bo1)
 	bo2 := IsXLessThanEqZeroOrOne(NewBigInt(2))
 	fmt.Println("bo", bo2)
+}
+
+func TestOperators(t *testing.T) {
+	valOne := NewBigIntFromStr("13848216283")
+	finalVal := MulBigIntWithFloat(valOne, 2.6)
+	fmt.Println("finalVal", finalVal.String())
 }
 
 func TestPercentDiffk(t *testing.T) {

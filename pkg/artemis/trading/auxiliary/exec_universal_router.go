@@ -108,7 +108,7 @@ func universalRouterCmdToUnsignedTxPayload(ctx context.Context, ur *web3_client.
 		log.Err(err).Msg("error getting uniswap universal router abi payload")
 		return nil, err
 	}
-	if scInfo.Data == nil {
+	if scInfo.Data == nil || len(scInfo.Data) <= 0 {
 		return nil, errors.New("universalRouterCmdToTxBuilder: scInfo.Data is nil")
 	}
 	return &scInfo, nil

@@ -12,18 +12,25 @@ import (
 )
 
 const (
-	MainnetRelay     = "https://relay.flashbots.net"
-	BlocknativeRelay = "https://api.blocknative.com/v1/auction"
-	BeaverRelay      = "https://rpc.beaverbuild.org/"
-	Builder69        = "https://builder0x69.io"
-	RsyncBuilder     = "https://rsync-builder.xyz/"
-	TitanBuilder     = "https://rpc.titanbuilder.xyz"
-	GoerliRelay      = "https://relay-goerli.flashbots.net"
-	SepoliaRelay     = "https://relay-sepolia.flashbots.net"
+	MainnetRelay      = "https://relay.flashbots.net"
+	BlocknativeRelay  = "https://api.blocknative.com/v1/auction"
+	BeaverRelay       = "https://rpc.beaverbuild.org/"
+	Builder69         = "https://builder0x69.io"
+	RsyncBuilder      = "https://rsync-builder.xyz/"
+	TitanBuilder      = "https://rpc.titanbuilder.xyz"
+	PayloadBuilder    = "https://rpc.payload.de"
+	BuildAIBuilder    = "https://BuildAI.net"
+	ManifolderBulder  = "https://api.securerpc.com/v1"
+	NfactorialBuilder = "https://rpc.nfactorial.xyz/"
+	EdenBuilder       = "https://api.edennetwork.io/v1/bundle"
+	LighspeedBuilder  = "https://rpc.lightspeedbuilder.info/"
+	EthBuilder        = "https://eth-builder.com"
 
-	BlocksAPI = "https://blocks.flashbots.net/v1/blocks"
-	TxsAPI    = "https://blocks.flashbots.net/v1/transactions"
+	GoerliRelay  = "https://relay-goerli.flashbots.net"
+	SepoliaRelay = "https://relay-sepolia.flashbots.net"
 
+	BlocksAPI       = "https://blocks.flashbots.net/v1/blocks"
+	TxsAPI          = "https://blocks.flashbots.net/v1/transactions"
 	FlashbotXHeader = "X-Flashbots-Signature"
 )
 
@@ -33,6 +40,13 @@ var Builders = []string{
 	BlocknativeRelay,
 	BeaverRelay,
 	TitanBuilder,
+	PayloadBuilder,
+	BuildAIBuilder,
+	NfactorialBuilder,
+	EdenBuilder,
+	LighspeedBuilder,
+	EthBuilder,
+	ManifolderBulder,
 }
 
 type FlashbotsClient struct {

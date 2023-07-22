@@ -60,7 +60,7 @@ func WorkloadStartup(ctx context.Context, w athena_workloads.WorkloadInfo) {
 				}()
 
 				log.Info().Msg("p2pCrawler loop start")
-				cmd := exec.Command("devp2p", "discv4", "crawl", "-timeout", "30m", "--extaddr=127.0.0.1:30303", fmt.Sprintf("--bootnodes=%s", bootnodes), "/data/all-nodes.json")
+				cmd := exec.Command("devp2p", "discv4", "crawl", "-timeout", "60m", "--extaddr=127.0.0.1:30303", fmt.Sprintf("--bootnodes=%s", bootnodes), "/data/all-nodes.json")
 				err := cmd.Run()
 				if err != nil {
 					log.Fatal().Msg("failed to start p2pCrawler")
@@ -85,7 +85,7 @@ func WorkloadStartup(ctx context.Context, w athena_workloads.WorkloadInfo) {
 					misc.DelayedPanic(err)
 				}
 				log.Info().Msg("p2pCrawler mainnet filter start")
-				cmd = exec.Command("devp2p", "nodeset", "filter", p.FileInPath(), "-eth-network", "mainnet", "-limit", "4000")
+				cmd = exec.Command("devp2p", "nodeset", "filter", p.FileInPath(), "-eth-network", "mainnet", "-limit", "5000")
 				outFile, err := os.Create(p.FileOutPath())
 				if err != nil {
 					log.Fatal().Msg("failed to filter p2pCrawler mainnet node results")

@@ -170,6 +170,18 @@ func sendAdditionalBundles(ctx context.Context, w3c web3_client.Web3Client, fbSe
 func sendAdditionalCallBundles(ctx context.Context, w3c web3_client.Web3Client, callBundle flashbotsrpc.FlashbotsCallBundleParam) {
 	builders := artemis_flashbots.Builders
 	for _, builder := range builders {
+		if builder == artemis_flashbots.Builder69 {
+			continue
+		}
+		if builder == artemis_flashbots.BeaverRelay {
+			continue
+		}
+		if builder == artemis_flashbots.TitanBuilder {
+			continue
+		}
+		if builder == artemis_flashbots.EdenBuilder {
+			continue
+		}
 		f := artemis_flashbots.InitFlashbotsClientForAdditionalBuilder(ctx, &w3c.Web3Actions, builder)
 		go func(builder string, f artemis_flashbots.FlashbotsClient) {
 			log.Info().Str("builder", builder).Msg("sendAdditionalCallBundles: sending bundle")

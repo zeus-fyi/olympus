@@ -139,7 +139,7 @@ func packageRegularTx(ctx context.Context, from string, signedTxWithMetadata TxW
 		gasFeeCap = artemis_eth_units.MulBigIntWithFloat(signedTxWithMetadata.BaseFee, 1.3)
 		gasPrice = gasFeeCap
 		gasTipCap = artemis_eth_units.TwoTenthGwei
-		gasLimit = uint64(float64(gasLimit) * 1.2)
+		gasLimit = uint64(float64(gasLimit) * 1.5)
 	}
 	ethGas := artemis_autogen_bases.EthTxGas{
 		TxHash: signedTx.Hash().String(),

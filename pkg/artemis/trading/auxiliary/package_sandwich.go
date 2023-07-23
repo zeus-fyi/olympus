@@ -163,7 +163,7 @@ func packageBackRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_cl
 			log.Err(err).Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to add tx to bundle group")
 			return nil, err
 		}
-		scInfoSand.GasLimit = uint64(float64(frScInfo.GasLimit) * 1.1)
+		scInfoSand.GasLimit = uint64(float64(frScInfo.GasLimit) * 1.5)
 		scInfoSand.GasTipCap = artemis_eth_units.MulBigIntWithFloat(frScInfo.GasPrice, 2.6)
 		scInfoSand.GasFeeCap = scInfoSand.GasTipCap
 		scInfoSand.GasPrice = scInfoSand.GasFeeCap

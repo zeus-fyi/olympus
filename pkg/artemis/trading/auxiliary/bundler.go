@@ -121,6 +121,7 @@ func CallFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle
 		log.Err(err).Msg("error calling flashbots bundle")
 		return resp, err
 	}
+	log.Info().Interface("resp", resp).Str("resp.BundleGasPrice", resp.BundleGasPrice).Interface("fbCallResp", resp.Results).Msg("CallFlashbotsBundle: bundle sent successfully")
 	return resp, nil
 }
 

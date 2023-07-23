@@ -40,6 +40,28 @@ func (w *Web3Client) ERC20ApproveSpender(ctx context.Context, scAddr, spenderAdd
 	return signedTx, err
 }
 
+func (w *Web3Client) ERC20ApproveSpenderSignedTx(ctx context.Context, scAddr, spenderAddr string, amount *big.Int) (*types.Transaction, error) {
+	w.Dial()
+	defer w.Close()
+
+	payload := web3_actions.SendContractTxPayload{
+		SmartContractAddr: scAddr,
+		MethodName:        "approve",
+		SendEtherPayload: web3_actions.SendEtherPayload{
+			TransferArgs:   web3_actions.TransferArgs{},
+			GasPriceLimits: web3_actions.GasPriceLimits{},
+		},
+		ContractABI: Erc20Abi,
+		Params:      []interface{}{accounts.HexToAddress(spenderAddr), amount},
+	}
+	signedTx, err := w.GetSignedTxToCallFunctionWithArgs(ctx, &payload)
+	if err != nil {
+		log.Ctx(ctx).Err(err).Msg("ERC20ApproveSpenderSignedTx: GetSignedTxToCallFunctionWithArgs")
+		return nil, err
+	}
+	return signedTx, err
+}
+
 func (w *Web3Client) FindSlotFromUserWithBalance(ctx context.Context, scAddr, userAddr string) (int, string, error) {
 	b, rerr := w.ReadERC20TokenBalance(ctx, scAddr, userAddr)
 	if rerr != nil {

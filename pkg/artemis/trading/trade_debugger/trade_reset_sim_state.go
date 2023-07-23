@@ -102,15 +102,15 @@ func (t *TradeDebugger) setupCleanEnvironment(ctx context.Context, tf web3_clien
 		log.Warn().Interface("approveTx", approveTx).Err(err).Msg("error approving permit2")
 		return err
 	}
-	approveTx, err = t.dat.GetSimUniswapClient().ApproveSpender(ctx, tf.UserTrade.AmountInAddr.String(), artemis_trading_constants.Permit2SmartContractAddress, artemis_eth_units.MaxUINT)
-	if err != nil {
-		log.Warn().Interface("approveTx", approveTx).Err(err).Msg("error approving permit2")
-		return err
-	}
-	approveTx, err = t.dat.GetSimUniswapClient().ApproveSpender(ctx, tf.UserTrade.AmountOutAddr.String(), artemis_trading_constants.Permit2SmartContractAddress, artemis_eth_units.MaxUINT)
-	if err != nil {
-		log.Warn().Interface("approveTx", approveTx).Err(err).Msg("error approving permit2")
-		return err
-	}
+	//approveTx, err = t.dat.GetSimUniswapClient().ApproveSpender(ctx, tf.UserTrade.AmountInAddr.String(), artemis_trading_constants.Permit2SmartContractAddress, artemis_eth_units.MaxUINT)
+	//if err != nil {
+	//	log.Warn().Interface("approveTx", approveTx).Err(err).Msg("error approving permit2")
+	//	return err
+	//}
+	//approveTx, err = t.dat.GetSimUniswapClient().ApproveSpender(ctx, tf.UserTrade.AmountOutAddr.String(), artemis_trading_constants.Permit2SmartContractAddress, artemis_eth_units.MaxUINT)
+	//if err != nil {
+	//	log.Warn().Interface("approveTx", approveTx).Err(err).Msg("error approving permit2")
+	//	return err
+	//}
 	return err
 }

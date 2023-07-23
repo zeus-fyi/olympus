@@ -43,7 +43,7 @@ func packageFrontRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 			return nil, err
 		}
 		scInfoFrontRun.GasTipCap = artemis_eth_units.NewBigInt(0)
-		scInfoFrontRun.GasFeeCap = artemis_eth_units.MulBigIntWithFloat(baseFee, 1.1)
+		scInfoFrontRun.GasFeeCap = artemis_eth_units.MulBigIntWithFloat(baseFee, 1.2)
 		scInfoFrontRun.GasPrice = scInfoFrontRun.GasFeeCap
 		toAddr := common.HexToAddress(scInfoFrontRun.ToAddress.Hex())
 		msg := ethereum.CallMsg{
@@ -61,7 +61,7 @@ func packageFrontRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 			return nil, err
 		}
 		scInfoFrontRun.GasPrice = scInfoFrontRun.GasFeeCap
-		scInfoFrontRun.GasLimit = gasLimit
+		scInfoFrontRun.GasLimit = uint64(float64(gasLimit) * 1.2)
 		frontRunTx, err := w3c.GetSignedTxToCallFunctionWithData(ctx, scInfoFrontRun, scInfoFrontRun.Data)
 		if err != nil {
 			log.Warn().Msg("FRONT_RUN: w3c.GetSignedTxToCallFunctionWithData: error getting signed tx to call function with data")
@@ -106,7 +106,7 @@ func packageFrontRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 			return nil, err
 		}
 		scInfoFrontRun.GasTipCap = artemis_eth_units.NewBigInt(0)
-		scInfoFrontRun.GasFeeCap = artemis_eth_units.MulBigIntWithFloat(baseFee, 1.1)
+		scInfoFrontRun.GasFeeCap = artemis_eth_units.MulBigIntWithFloat(baseFee, 1.2)
 		scInfoFrontRun.GasPrice = scInfoFrontRun.GasFeeCap
 		toAddr := common.HexToAddress(scInfoFrontRun.ToAddress.Hex())
 		msg := ethereum.CallMsg{
@@ -124,7 +124,7 @@ func packageFrontRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 			return nil, err
 		}
 		scInfoFrontRun.GasPrice = scInfoFrontRun.GasFeeCap
-		scInfoFrontRun.GasLimit = uint64(float64(gasLimit) * 1.1)
+		scInfoFrontRun.GasLimit = uint64(float64(gasLimit) * 1.2)
 		frontRunTx, err := w3c.GetSignedTxToCallFunctionWithData(ctx, scInfoFrontRun, scInfoFrontRun.Data)
 		if err != nil {
 			log.Warn().Msg("FRONT_RUN: w3c.GetSignedTxToCallFunctionWithData: error getting signed tx to call function with data")

@@ -30,7 +30,7 @@ type TradeExecutionFlow struct {
 
 func (t *ArtemisTradeDebuggerTestSuite) TestReplayer() {
 	// 0x925dd1373fea0f4537e9670dc984a5c0640da81142269e8eff6840d8caaea6f4
-	txHash := "0x1c4be4a6ac8c20105e89521125f55aeb2df512eddacf324d95129fa2ab350870"
+	txHash := "0x1b6a4dc1426d7f29691aecbc63e6ee4ab620dc2cd77deaaaaa1c53f8dbc2363b"
 	t.td.dat.GetSimUniswapClient().Web3Client.AddSessionLockHeader(ZeusTestSessionLockHeaderValue)
 	err := t.td.Replay(ctx, txHash, true)
 	t.NoError(err)

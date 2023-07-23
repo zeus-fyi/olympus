@@ -69,7 +69,11 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 		return err
 	}
 	tf.SandwichTrade.AmountIn = tf.FrontRunTrade.AmountOut
-	adjAmountOut = artemis_eth_units.ApplyTransferTax(amountOutStartSandwich, n+30, d)
+
+	if d == 1000 {
+		n += 30
+	}
+	adjAmountOut = artemis_eth_units.ApplyTransferTax(amountOutStartSandwich, n, d)
 	tf.SandwichTrade.AmountOut = adjAmountOut
 	ur, _, err = artemis_trading_auxiliary.GenerateTradeV2SwapFromTokenToToken(ctx, w3c, nil, &tf.SandwichTrade)
 	if err != nil || ur == nil {

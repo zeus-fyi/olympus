@@ -144,8 +144,9 @@ func packageBackRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_cl
 			log.Err(err).Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to add tx to bundle group")
 			return nil, err
 		}
-		scInfoSand.GasLimit = uint64(float64(frScInfo.GasLimit) * 1.5)
-		scInfoSand.GasTipCap = artemis_eth_units.MulBigIntWithFloat(frScInfo.GasPrice, 2.6)
+
+		scInfoSand.GasLimit = uint64(float64(frScInfo.GasLimit) * 1.1)
+		scInfoSand.GasTipCap = artemis_eth_units.MulBigIntWithFloat(frScInfo.GasFeeCap, 2.6)
 		scInfoSand.GasFeeCap = scInfoSand.GasTipCap
 		scInfoSand.GasPrice = scInfoSand.GasFeeCap
 		backRunCtx := CreateBackRunCtx(context.Background())
@@ -309,7 +310,7 @@ func PackageSandwichAndSend(ctx context.Context, w3c web3_client.Web3Client, tf 
 	if m != nil {
 		m.StageProgressionMetrics.CountCheckpointTwoMarker()
 	}
-	resp, err := CallAndSendFlashbotsBundle(ctx, w3c, *bundle)
+	resp, err := CallAndSendFlashbotsBundle(ctx, w3c, *bundle, tf)
 	if err != nil {
 		log.Err(err).Msg("PackageSandwichAndSend: CallAndSendFlashbotsBundle failed to send sandwich")
 		return nil, err

@@ -30,7 +30,7 @@ func CallAndSendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client,
 	log.Info().Int("bn", eventID).Str("bundleHash", resp.BundleHash).Msg("CallAndSendFlashbotsBundle: call bundle simulated successfully")
 	gasFees := artemis_eth_units.NewBigIntFromStr(resp.GasFees)
 	if artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, gasFees) {
-		log.Warn().Msg("CallAndSendFlashbotsBundle: gas fees are greater than expected profit")
+		log.Warn().Interface("resp", resp).Str("gasFees", resp.GasFees).Str("resp.BundleGasPrice", resp.BundleGasPrice).Int64("resp.TotalGasUsed", resp.TotalGasUsed).Msg("CallAndSendFlashbotsBundle: gas fees are greater than expected profit")
 		return flashbotsrpc.FlashbotsSendBundleResponse{}, errors.New("CallAndSendFlashbotsBundle: gas fees are greater than expected profit")
 	}
 	dbTx, err := apps.Pg.Begin(ctx)

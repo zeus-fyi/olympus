@@ -132,8 +132,8 @@ func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf
 		log.Info().Str("tf.FrontRunTrade.AmountInAddr", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountIn", tf.FrontRunTrade.AmountIn).Interface("maxTradeSize", maxTradeSize()).Msg("IsProfitTokenAcceptable: trade size is higher than max trade size")
 		return false, errors.New("IsProfitTokenAcceptable: trade size is higher than max trade size")
 	}
-	// 0.05 ETH at the moment, ~$100
-	minEthAmountGwei := 100000000 / 2
+	// 0.025 ETH at the moment, ~$50
+	minEthAmountGwei := 50000000 / 2
 	ok, err = CheckEthBalanceGreaterThan(context.Background(), w3c, artemis_eth_units.GweiMultiple(minEthAmountGwei))
 	if err != nil {
 		log.Warn().Err(err).Msg("IsProfitTokenAcceptable: could not check eth balance")

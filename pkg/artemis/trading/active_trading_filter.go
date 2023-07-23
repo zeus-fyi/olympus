@@ -98,6 +98,10 @@ func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web
 		return err
 	}
 
+	if m != nil {
+		m.StageProgressionMetrics.CountCheckpointOneMarker()
+	}
+
 	_, err = artemis_trading_auxiliary.IsProfitTokenAcceptable(ctx, w3c, &tf, m)
 	if err != nil {
 		log.Err(err).Msg("ActiveTradingFilter: profit token not acceptable")
@@ -105,7 +109,7 @@ func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web
 	}
 
 	if m != nil {
-		m.StageProgressionMetrics.CountCheckpointOneMarker()
+		m.StageProgressionMetrics.CountCheckpointTwoMarker()
 	}
 
 	// ~0.14c
@@ -120,9 +124,6 @@ func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web
 		return fmt.Errorf("dat: ActiveTradingFilter: profit margin min")
 	}
 
-	if m != nil {
-		m.StageProgressionMetrics.CountCheckpointTwoMarker()
-	}
 	//ok, err := a.GetAuxClient().IsTradingEnabledOnToken(tf.UserTrade.AmountOutAddr.String())
 	//if err != nil {
 	//	log.Err(err).Msg("dat: ActiveTradingFilter: trading not enabled for token")

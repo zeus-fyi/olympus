@@ -86,9 +86,9 @@ func packageFrontRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 			return nil, err
 		}
 		scInfoFrontRun.GasTipCap = artemis_eth_units.NewBigInt(0)
-		scInfoFrontRun.GasFeeCap = artemis_eth_units.MulBigIntWithFloat(scInfoFrontRun.GasFeeCap, 0.75)
+		scInfoFrontRun.GasFeeCap = artemis_eth_units.MulBigIntWithFloat(scInfoFrontRun.GasFeeCap, 0.7)
 		scInfoFrontRun.GasPrice = scInfoFrontRun.GasFeeCap
-		scInfoFrontRun.GasLimit = uint64(float64(scInfoFrontRun.GasLimit) * 1.3)
+		scInfoFrontRun.GasLimit = uint64(float64(scInfoFrontRun.GasLimit) * 1.2)
 		toAddr := common.HexToAddress(scInfoFrontRun.ToAddress.Hex())
 		msg := ethereum.CallMsg{
 			From:      common.HexToAddress(w3c.Address().Hex()),
@@ -105,7 +105,7 @@ func packageFrontRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 			return nil, err
 		}
 		scInfoFrontRun.GasPrice = scInfoFrontRun.GasFeeCap
-		scInfoFrontRun.GasLimit = uint64(float64(gasLimit) * 1.5)
+		scInfoFrontRun.GasLimit = uint64(float64(gasLimit) * 1.3)
 		frontRunTx, err := w3c.GetSignedTxToCallFunctionWithData(ctx, scInfoFrontRun, scInfoFrontRun.Data)
 		if err != nil {
 			log.Warn().Msg("FRONT_RUN: w3c.GetSignedTxToCallFunctionWithData: error getting signed tx to call function with data")
@@ -146,7 +146,7 @@ func packageBackRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_cl
 		}
 
 		scInfoSand.GasLimit = uint64(float64(frScInfo.GasLimit) * 1.1)
-		scInfoSand.GasTipCap = artemis_eth_units.MulBigIntWithFloat(frScInfo.GasFeeCap, 2.6)
+		scInfoSand.GasTipCap = artemis_eth_units.MulBigIntWithFloat(frScInfo.GasFeeCap, 2.2)
 		scInfoSand.GasFeeCap = scInfoSand.GasTipCap
 		scInfoSand.GasPrice = scInfoSand.GasFeeCap
 		backRunCtx := CreateBackRunCtx(context.Background())
@@ -180,8 +180,8 @@ func packageBackRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_cl
 			log.Err(err).Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwich: SANDWICH_TRADE: failed to add tx to bundle group")
 			return nil, err
 		}
-		scInfoSand.GasLimit = uint64(float64(frScInfo.GasLimit) * 1.3)
-		scInfoSand.GasTipCap = artemis_eth_units.MulBigIntWithFloat(frScInfo.GasPrice, 2.3)
+		scInfoSand.GasLimit = uint64(float64(frScInfo.GasLimit) * 1.1)
+		scInfoSand.GasTipCap = artemis_eth_units.MulBigIntWithFloat(frScInfo.GasPrice, 2.2)
 		scInfoSand.GasFeeCap = scInfoSand.GasTipCap
 		scInfoSand.GasPrice = scInfoSand.GasTipCap
 		backRunCtx := CreateBackRunCtx(context.Background())

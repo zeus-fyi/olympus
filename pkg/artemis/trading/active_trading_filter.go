@@ -107,10 +107,11 @@ func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web
 	if m != nil {
 		m.StageProgressionMetrics.CountCheckpointOneMarker()
 	}
-	profitMarginMin := artemis_eth_units.AddBigInt(tf.SandwichPrediction.ExpectedProfit, artemis_eth_units.GweiMultiple(5000000))
-	artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, profitMarginMin)
-	if artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, profitMarginMin) {
-		log.Warn().Interface("tf.SandwichPrediction.ExpectedProfit", tf.SandwichPrediction.ExpectedProfit).Interface("profitMarginMin", profitMarginMin).Msg("ActiveTradingFilter: profit margin min")
+
+	// ~0.14c
+	profitMin := artemis_eth_units.GweiMultiple(100000)
+	if artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, artemis_eth_units.GweiMultiple(100000)) {
+		log.Warn().Interface("tf.SandwichPrediction.ExpectedProfit", tf.SandwichPrediction.ExpectedProfit).Interface("profitMarginMin", profitMin).Msg("ActiveTradingFilter: profit margin min")
 		return fmt.Errorf("dat: ActiveTradingFilter: profit margin min")
 	}
 

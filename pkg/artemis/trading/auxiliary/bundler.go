@@ -121,6 +121,7 @@ func CallFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle
 		log.Err(err).Msg("error calling flashbots bundle")
 		return resp, err
 	}
+	log.Info().Interface("resp", resp).Str("resp.BundleGasPrice", resp.BundleGasPrice).Interface("fbCallResp", resp.Results).Msg("CallFlashbotsBundle: bundle sent successfully")
 	return resp, nil
 }
 
@@ -176,10 +177,22 @@ func sendAdditionalCallBundles(ctx context.Context, w3c web3_client.Web3Client, 
 		if builder == artemis_flashbots.BeaverRelay {
 			continue
 		}
+		if builder == artemis_flashbots.PayloadBuilder {
+			continue
+		}
 		if builder == artemis_flashbots.TitanBuilder {
 			continue
 		}
 		if builder == artemis_flashbots.EdenBuilder {
+			continue
+		}
+		if builder == artemis_flashbots.RsyncBuilder {
+			continue
+		}
+		if builder == artemis_flashbots.BuildAIBuilder {
+			continue
+		}
+		if builder == artemis_flashbots.EthBuilder {
 			continue
 		}
 		f := artemis_flashbots.InitFlashbotsClientForAdditionalBuilder(ctx, &w3c.Web3Actions, builder)

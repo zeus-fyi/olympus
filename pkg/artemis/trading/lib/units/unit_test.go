@@ -38,6 +38,12 @@ func TestPercentDiff(t *testing.T) {
 	fmt.Println("bo", bo2)
 }
 
+func TestTax(t *testing.T) {
+	valOne := NewBigIntFromStr("29999643121717752")
+	endVal := ApplyTransferTax(valOne, 10, 1000)
+	fmt.Println("val", endVal.String())
+}
+
 func TestOperators(t *testing.T) {
 	valOne := NewBigIntFromStr("13848216283")
 	finalVal := MulBigIntWithFloat(valOne, 2.6)

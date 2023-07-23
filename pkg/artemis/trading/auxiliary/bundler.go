@@ -10,10 +10,11 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_eth_txs "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/txs/eth_txs"
 	artemis_flashbots "github.com/zeus-fyi/olympus/pkg/artemis/trading/flashbots"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-func CallAndSendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle MevTxGroup) (flashbotsrpc.FlashbotsSendBundleResponse, error) {
+func CallAndSendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client, bundle MevTxGroup, tf *web3_client.TradeExecutionFlow) (flashbotsrpc.FlashbotsSendBundleResponse, error) {
 	eventID, err := getBlockNumber(ctx, w3c)
 	if err != nil {
 		log.Err(err).Msg("CallAndSendFlashbotsBundle: error getting event id")
@@ -26,7 +27,12 @@ func CallAndSendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client,
 		log.Err(err).Msg("CallAndSendFlashbotsBundle: error calling flashbots bundle")
 		return flashbotsrpc.FlashbotsSendBundleResponse{}, err
 	}
-	log.Info().Int("bn", eventID).Str("bundleHash", resp.BundleHash).Msg("CallAndSendFlashbotsBundle: bundle sent successfully")
+	log.Info().Int("bn", eventID).Str("bundleHash", resp.BundleHash).Msg("CallAndSendFlashbotsBundle: call bundle simulated successfully")
+	gasFees := artemis_eth_units.NewBigIntFromStr(resp.GasFees)
+	if artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, gasFees) {
+		log.Warn().Msg("CallAndSendFlashbotsBundle: gas fees are greater than expected profit")
+		return flashbotsrpc.FlashbotsSendBundleResponse{}, errors.New("CallAndSendFlashbotsBundle: gas fees are greater than expected profit")
+	}
 	dbTx, err := apps.Pg.Begin(ctx)
 	if err != nil {
 		log.Err(err).Msg("CallAndSendFlashbotsBundle: error beginning db transaction")

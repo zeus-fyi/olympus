@@ -112,12 +112,12 @@ func ApplyMaxTransferTax(ctx context.Context, tf *web3_client.TradeExecutionFlow
 		amountOutStartFrontRun := tf.FrontRunTrade.AmountOut
 		amountOutStartSandwich := tf.SandwichTrade.AmountOut
 
-		adjAmountOutFrontRun := artemis_eth_units.ApplyTransferTax(amountOutStartFrontRun, 5, 1000)
+		adjAmountOutFrontRun := artemis_eth_units.ApplyTransferTax(amountOutStartFrontRun, 1, 1000)
 		tf.FrontRunTrade.AmountOut = adjAmountOutFrontRun
 
 		tf.SandwichTrade.AmountIn = tf.FrontRunTrade.AmountOut
 
-		adjAmountOutSandwich := artemis_eth_units.ApplyTransferTax(amountOutStartSandwich, 30, 1000)
+		adjAmountOutSandwich := artemis_eth_units.ApplyTransferTax(amountOutStartSandwich, 2, 1000)
 		tf.SandwichTrade.AmountOut = adjAmountOutSandwich
 		tf.SandwichPrediction.ExpectedProfit = adjAmountOutSandwich
 		if !tf.AreAllTradesValid() {
@@ -136,9 +136,9 @@ func ApplyMaxTransferTax(ctx context.Context, tf *web3_client.TradeExecutionFlow
 	tf.SandwichTrade.AmountIn = tf.FrontRunTrade.AmountOut
 	if maxDen == 1000 {
 		if maxNum > 100 {
-			maxNum += 75
-		} else {
 			maxNum += 30
+		} else {
+			maxNum += 10
 		}
 	}
 

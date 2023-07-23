@@ -101,6 +101,17 @@ func ApplyMaxTransferTax(ctx context.Context, tf *web3_client.TradeExecutionFlow
 			}
 		}
 	}
+
+	if !tf.AreAllTradesValid() {
+		log.Warn().Msg("ApplyMaxTransferTax: trades are not valid")
+		return errors.New("ApplyMaxTransferTax: trades are not valid")
+	}
+	fmt.Println("maxNum: ", maxNum, "maxDen: ", maxDen)
+
+	if maxNum == 0 {
+		log.Info().Str("txHash", tf.Tx.Hash().String()).Uint64("bn", tf.CurrentBlockNumber.Uint64()).Str("profitTokenAddress", tf.SandwichTrade.AmountOutAddr.String()).Interface("sellAmount", tf.SandwichPrediction.SellAmount).Interface("tf.SandwichPrediction.ExpectedProfit", tf.SandwichPrediction.ExpectedProfit).Str("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut.String()).Msg("ApplyMaxTransferTax: acceptable after tax")
+		return nil
+	}
 	amountOutStartFrontRun := tf.FrontRunTrade.AmountOut
 	amountOutStartSandwich := tf.SandwichTrade.AmountOut
 
@@ -111,13 +122,11 @@ func ApplyMaxTransferTax(ctx context.Context, tf *web3_client.TradeExecutionFlow
 	adjAmountOutSandwich := artemis_eth_units.ApplyTransferTax(amountOutStartSandwich, maxNum+5, maxDen)
 	tf.SandwichTrade.AmountOut = adjAmountOutSandwich
 	tf.SandwichPrediction.ExpectedProfit = adjAmountOutSandwich
-	fmt.Println("maxNum: ", maxNum, "maxDen: ", maxDen)
-	log.Info().Str("txHash", tf.Tx.Hash().String()).Uint64("bn", tf.CurrentBlockNumber.Uint64()).Str("profitTokenAddress", tf.SandwichTrade.AmountOutAddr.String()).Str("startingSandwichOut", amountOutStartSandwich.String()).Interface("sellAmount", tf.SandwichPrediction.SellAmount).Interface("tf.SandwichPrediction.ExpectedProfit", tf.SandwichPrediction.ExpectedProfit).Str("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut.String()).Msg("ApplyMaxTransferTax: acceptable after tax")
 
 	if !tf.AreAllTradesValid() {
-		log.Warn().Msg("ApplyMaxTransferTax: trades are not valid")
+		log.Info().Str("txHash", tf.Tx.Hash().String()).Uint64("bn", tf.CurrentBlockNumber.Uint64()).Str("profitTokenAddress", tf.SandwichTrade.AmountOutAddr.String()).Str("startingSandwichOut", amountOutStartSandwich.String()).Interface("sellAmount", tf.SandwichPrediction.SellAmount).Interface("tf.SandwichPrediction.ExpectedProfit", tf.SandwichPrediction.ExpectedProfit).Str("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut.String()).Msg("ApplyMaxTransferTax: trade not acceptable after tax")
 		return errors.New("ApplyMaxTransferTax: trades are not valid")
 	}
-
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Uint64("bn", tf.CurrentBlockNumber.Uint64()).Str("profitTokenAddress", tf.SandwichTrade.AmountOutAddr.String()).Str("startingSandwichOut", amountOutStartSandwich.String()).Interface("sellAmount", tf.SandwichPrediction.SellAmount).Interface("tf.SandwichPrediction.ExpectedProfit", tf.SandwichPrediction.ExpectedProfit).Str("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut.String()).Msg("ApplyMaxTransferTax: acceptable after tax")
 	return nil
 }

@@ -49,7 +49,6 @@ func packageFrontRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 		msg := ethereum.CallMsg{
 			From:      common.HexToAddress(w3c.Address().Hex()),
 			To:        &toAddr,
-			GasPrice:  scInfoFrontRun.GasPrice,
 			GasFeeCap: scInfoFrontRun.GasFeeCap,
 			GasTipCap: scInfoFrontRun.GasTipCap,
 			Data:      scInfoFrontRun.Data,
@@ -61,6 +60,7 @@ func packageFrontRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 			log.Ctx(ctx).Err(err).Msg("SuggestAndSetGasPriceAndLimitForTx: EstimateGas")
 			return nil, err
 		}
+		scInfoFrontRun.GasPrice = scInfoFrontRun.GasFeeCap
 		scInfoFrontRun.GasLimit = gasLimit
 		frontRunTx, err := w3c.GetSignedTxToCallFunctionWithData(ctx, scInfoFrontRun, scInfoFrontRun.Data)
 		if err != nil {
@@ -112,7 +112,6 @@ func packageFrontRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 		msg := ethereum.CallMsg{
 			From:      common.HexToAddress(w3c.Address().Hex()),
 			To:        &toAddr,
-			GasPrice:  scInfoFrontRun.GasPrice,
 			GasFeeCap: scInfoFrontRun.GasFeeCap,
 			GasTipCap: scInfoFrontRun.GasTipCap,
 			Data:      scInfoFrontRun.Data,
@@ -124,6 +123,7 @@ func packageFrontRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_c
 			log.Ctx(ctx).Err(err).Msg("FRONT_RUN: SuggestAndSetGasPriceAndLimitForTx: EstimateGas")
 			return nil, err
 		}
+		scInfoFrontRun.GasPrice = scInfoFrontRun.GasFeeCap
 		scInfoFrontRun.GasLimit = uint64(float64(gasLimit) * 1.1)
 		frontRunTx, err := w3c.GetSignedTxToCallFunctionWithData(ctx, scInfoFrontRun, scInfoFrontRun.Data)
 		if err != nil {

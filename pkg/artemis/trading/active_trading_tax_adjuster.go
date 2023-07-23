@@ -109,6 +109,17 @@ func ApplyMaxTransferTax(ctx context.Context, tf *web3_client.TradeExecutionFlow
 	fmt.Println("maxNum: ", maxNum, "maxDen: ", maxDen)
 
 	if maxNum == 0 {
+		amountOutStartFrontRun := tf.FrontRunTrade.AmountOut
+		amountOutStartSandwich := tf.SandwichTrade.AmountOut
+
+		adjAmountOutFrontRun := artemis_eth_units.ApplyTransferTax(amountOutStartFrontRun, 5, 1000)
+		tf.FrontRunTrade.AmountOut = adjAmountOutFrontRun
+
+		tf.SandwichTrade.AmountIn = tf.FrontRunTrade.AmountOut
+
+		adjAmountOutSandwich := artemis_eth_units.ApplyTransferTax(amountOutStartSandwich, 10, 1000)
+		tf.SandwichTrade.AmountOut = adjAmountOutSandwich
+		tf.SandwichPrediction.ExpectedProfit = adjAmountOutSandwich
 		log.Info().Str("txHash", tf.Tx.Hash().String()).Uint64("bn", tf.CurrentBlockNumber.Uint64()).Str("profitTokenAddress", tf.SandwichTrade.AmountOutAddr.String()).Interface("sellAmount", tf.SandwichPrediction.SellAmount).Interface("tf.SandwichPrediction.ExpectedProfit", tf.SandwichPrediction.ExpectedProfit).Str("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut.String()).Msg("ApplyMaxTransferTax: acceptable after tax")
 		return nil
 	}

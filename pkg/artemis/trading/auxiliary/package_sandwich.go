@@ -296,9 +296,7 @@ func PackageSandwichAndSend(ctx context.Context, w3c web3_client.Web3Client, tf 
 		return nil, errors.New("PackageSandwichAndSend: tf.FrontRunTrade.AmountIn or tf.SandwichTrade.AmountOut is nil")
 	}
 	log.Info().Str("txHash", tf.Tx.Hash().String()).Msg("PackageSandwichAndSend: start")
-	if m != nil {
-		m.StageProgressionMetrics.CountCheckpointOneMarker()
-	}
+
 	bundle, err := PackageSandwich(ctx, w3c, tf)
 	if err != nil {
 		log.Err(err).Msg("PackageSandwichAndSend: PackageSandwich failed to package sandwich")
@@ -306,9 +304,6 @@ func PackageSandwichAndSend(ctx context.Context, w3c web3_client.Web3Client, tf 
 	}
 	if bundle == nil {
 		return nil, errors.New("bundle is nil")
-	}
-	if m != nil {
-		m.StageProgressionMetrics.CountCheckpointTwoMarker()
 	}
 	resp, err := CallAndSendFlashbotsBundle(ctx, w3c, *bundle, tf)
 	if err != nil {

@@ -103,6 +103,10 @@ func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web
 		log.Err(err).Msg("ActiveTradingFilter: profit token not acceptable")
 		return err
 	}
+
+	if m != nil {
+		m.StageProgressionMetrics.CountCheckpointOneMarker()
+	}
 	profitMarginMin := artemis_eth_units.AddBigInt(tf.SandwichPrediction.ExpectedProfit, artemis_eth_units.GweiMultiple(5000000))
 	artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, profitMarginMin)
 	if artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, profitMarginMin) {
@@ -113,6 +117,10 @@ func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web
 	if artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, tf.FrontRunTrade.AmountIn) {
 		log.Warn().Interface("tf.SandwichPrediction.ExpectedProfit", tf.SandwichPrediction.ExpectedProfit).Interface(" tf.FrontRunTrade.AmountIn", tf.FrontRunTrade.AmountIn).Msg("ActiveTradingFilter: profit less than trade amount in")
 		return fmt.Errorf("dat: ActiveTradingFilter: profit margin min")
+	}
+
+	if m != nil {
+		m.StageProgressionMetrics.CountCheckpointTwoMarker()
 	}
 	//ok, err := a.GetAuxClient().IsTradingEnabledOnToken(tf.UserTrade.AmountOutAddr.String())
 	//if err != nil {

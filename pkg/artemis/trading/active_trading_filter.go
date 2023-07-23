@@ -12,6 +12,7 @@ import (
 	artemis_trading_auxiliary "github.com/zeus-fyi/olympus/pkg/artemis/trading/auxiliary"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -102,7 +103,17 @@ func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web
 		log.Err(err).Msg("ActiveTradingFilter: profit token not acceptable")
 		return err
 	}
+	profitMarginMin := artemis_eth_units.AddBigInt(tf.SandwichPrediction.ExpectedProfit, artemis_eth_units.GweiMultiple(5000000))
+	artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, profitMarginMin)
+	if artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, profitMarginMin) {
+		log.Warn().Interface("tf.SandwichPrediction.ExpectedProfit", tf.SandwichPrediction.ExpectedProfit).Interface("profitMarginMin", profitMarginMin).Msg("ActiveTradingFilter: profit margin min")
+		return fmt.Errorf("dat: ActiveTradingFilter: profit margin min")
+	}
 
+	if artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, tf.FrontRunTrade.AmountIn) {
+		log.Warn().Interface("tf.SandwichPrediction.ExpectedProfit", tf.SandwichPrediction.ExpectedProfit).Interface(" tf.FrontRunTrade.AmountIn", tf.FrontRunTrade.AmountIn).Msg("ActiveTradingFilter: profit less than trade amount in")
+		return fmt.Errorf("dat: ActiveTradingFilter: profit margin min")
+	}
 	//ok, err := a.GetAuxClient().IsTradingEnabledOnToken(tf.UserTrade.AmountOutAddr.String())
 	//if err != nil {
 	//	log.Err(err).Msg("dat: ActiveTradingFilter: trading not enabled for token")

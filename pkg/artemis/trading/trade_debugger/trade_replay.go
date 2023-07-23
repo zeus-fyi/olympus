@@ -69,6 +69,10 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 		return err
 	}
 	tf.SandwichTrade.AmountIn = tf.FrontRunTrade.AmountOut
+
+	if d == 1000 {
+		n += 30
+	}
 	adjAmountOut = artemis_eth_units.ApplyTransferTax(amountOutStartSandwich, n, d)
 	tf.SandwichTrade.AmountOut = adjAmountOut
 	ur, _, err = artemis_trading_auxiliary.GenerateTradeV2SwapFromTokenToToken(ctx, w3c, nil, &tf.SandwichTrade)
@@ -81,12 +85,12 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 	}
 	err = t.dat.GetSimUniswapClient().InjectExecTradeV2SwapFromTokenToToken(ctx, ur, &tf.SandwichTrade)
 	if err != nil {
-		//tf.SandwichTrade.AmountOut = amountOutStartSandwich
-		//err = t.FindSlippage(ctx, w3c, &tf.SandwichTrade)
-		//if err != nil {
-		//	log.Err(err).Str("txHash", txHash).Msg("SANDWICH_TRADE: error finding slippage")
-		//	return err
-		//}
+		tf.SandwichTrade.AmountOut = amountOutStartSandwich
+		err = t.FindSlippage(ctx, w3c, &tf.SandwichTrade)
+		if err != nil {
+			log.Err(err).Str("txHash", txHash).Msg("SANDWICH_TRADE: error finding slippage")
+			return err
+		}
 	}
 	endBal, err := ac.CheckAuxERC20BalanceFromAddr(ctx, tf.SandwichTrade.AmountOutAddr.String())
 	if err != nil {

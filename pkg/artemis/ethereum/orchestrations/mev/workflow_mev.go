@@ -18,7 +18,7 @@ type HistoricalTxAnalysis struct {
 func (t *ArtemisMevWorkflow) ArtemisHistoricalSimTxWorkflow(ctx workflow.Context, trades HistoricalTxAnalysis) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Second * 300,
+		StartToCloseTimeout: time.Second * 180,
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts:    2,
 			InitialInterval:    time.Second * 10,

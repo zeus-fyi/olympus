@@ -89,7 +89,7 @@ func (t *ArtemisAuxillaryTestSuite) TestCallBundle() {
 func (t *ArtemisAuxillaryTestSuite) TestCallAndSendBundle() {
 	ta, bundle := t.TestCreateFbBundle()
 	t.Require().NotEmpty(ta)
-	resp, err := CallAndSendFlashbotsBundle(ctx, *ta.w3c(), bundle)
+	resp, err := CallAndSendFlashbotsBundle(ctx, *ta.w3c(), bundle, nil)
 	t.Require().Nil(err)
 	t.Require().NotNil(resp)
 	fmt.Println("bundleHash", resp.BundleHash)

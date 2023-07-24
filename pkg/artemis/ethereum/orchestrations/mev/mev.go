@@ -30,9 +30,9 @@ var (
 func InitArtemisUniswap(ctx context.Context, authHeader string) {
 	AuthHeader = authHeader
 	timestampChan := make(chan time.Time)
-	go ProcessMempoolTxs(ctx, timestampChan)
-	go artemis_trading_cache.SetActiveTradingBlockCache(ctx, timestampChan)
-	go beacon_api.TriggerWorkflowOnNewBlockHeaderEvent(ctx, artemis_network_cfgs.ArtemisQuicknodeStreamWebsocket, timestampChan)
+	go ProcessMempoolTxs(context.Background(), timestampChan)
+	go artemis_trading_cache.SetActiveTradingBlockCache(context.Background(), timestampChan)
+	go beacon_api.TriggerWorkflowOnNewBlockHeaderEvent(context.Background(), artemis_network_cfgs.ArtemisQuicknodeStreamWebsocket, timestampChan)
 }
 
 func InitTycheUniswap(ctx context.Context, authHeader string) {
@@ -80,19 +80,19 @@ func ProcessMempoolTxs(ctx context.Context, timestampChan chan time.Time) {
 				wc.Close()
 			}
 			wc.Close()
-			err := ArtemisMevWorkerMainnet2.ExecuteArtemisGetLookaheadPricesWorkflow(ctx, bn)
+			err := ArtemisMevWorkerMainnet2.ExecuteArtemisGetLookaheadPricesWorkflow(context.Background(), bn)
 			if err != nil {
 				log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
 			}
 			log.Info().Msg(fmt.Sprintf("Received new timestamp: %s", t))
 			log.Info().Msg("ExecuteArtemisMevWorkflow: ExecuteArtemisBlacklistTxWorkflow")
-			err = ArtemisMevWorkerMainnet.ExecuteArtemisBlacklistTxWorkflow(ctx)
+			err = ArtemisMevWorkerMainnet.ExecuteArtemisBlacklistTxWorkflow(context.Background())
 			if err != nil {
 				log.Err(err).Msg("ExecuteArtemisBlacklistTxWorkflow failed")
 			}
 			log.Info().Msg("ExecuteArtemisMevWorkflow")
 			time.Sleep(t.Add(8 * time.Second).Sub(time.Now()))
-			err = ArtemisMevWorkerMainnetHistoricalTxs.ExecuteArtemisMevWorkflow(ctx, int(bn))
+			err = ArtemisMevWorkerMainnetHistoricalTxs.ExecuteArtemisMevWorkflow(context.Background(), int(bn))
 			if err != nil {
 				log.Err(err).Msg("ExecuteArtemisMevWorkflow failed")
 			}

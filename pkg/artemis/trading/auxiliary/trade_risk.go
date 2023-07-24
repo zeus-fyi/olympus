@@ -116,8 +116,8 @@ func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf
 		return false, errors.New("tf.SandwichPrediction: one of the trade amountsIn or amountsOut is zero")
 	}
 
-	// 0.008 eth
-	okProfitAmount := artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, artemis_eth_units.GweiMultiple(8000000))
+	// 0.012 eth ~$22
+	okProfitAmount := artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, artemis_eth_units.GweiMultiple(12000000))
 	if okProfitAmount {
 		log.Warn().Str("tf.Tx.Hash", tf.Tx.Hash().String()).Interface("tf.SandwichPrediction", tf.SandwichPrediction).Msg("ActiveTradingFilter: SandwichPrediction profit amount not sufficient")
 		return false, errors.New("tf.SandwichPrediction: one of the trade amountsIn or amountsOut is zero")

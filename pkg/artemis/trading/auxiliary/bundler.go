@@ -29,7 +29,7 @@ func CallAndSendFlashbotsBundle(ctx context.Context, w3c web3_client.Web3Client,
 	}
 	log.Info().Int("bn", eventID).Str("bundleHash", resp.BundleHash).Msg("CallAndSendFlashbotsBundle: call bundle simulated successfully")
 	gasFees := artemis_eth_units.NewBigIntFromStr(resp.GasFees)
-	profitMin := artemis_eth_units.GweiMultiple(8000000)
+	profitMin := artemis_eth_units.GweiMultiple(10000000)
 	profitMarginMin := artemis_eth_units.AddBigInt(gasFees, profitMin)
 	log.Info().Interface("resp", resp).Str("tf.SandwichPrediction.ExpectedProfit.String()", tf.SandwichPrediction.ExpectedProfit.String()).
 		Str("profitMarginMin", profitMarginMin.String()).Str("gasFees", resp.GasFees).

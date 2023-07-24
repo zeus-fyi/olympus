@@ -1,10 +1,12 @@
 package artemis_trading_auxiliary
 
 import (
+	"context"
 	"fmt"
 	"sort"
 
 	"github.com/rs/zerolog/log"
+	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	artemis_reporting "github.com/zeus-fyi/olympus/pkg/artemis/trading/reporting"
@@ -72,21 +74,24 @@ func (t *ArtemisAuxillaryTestSuite) TestMainnetGetNextPermit2NonceFromContract()
 		addresses = append(addresses, v.AmountOutToken.Address.String())
 	}
 
-	//offset := uint64(0)
-	//atMainnet := InitAuxiliaryTradingUtils(ctx, w3aMainnet)
-	//for _, addr := range addresses {
-	//	allowance, aerr := w3aMainnet.ReadERC20Allowance(ctx, "0x285DB79fa7e0e89E822786F48A7c98C6c1dC1c7d", t.acc3.Address().String(), artemis_trading_constants.Permit2SmartContractAddress)
-	//	t.Require().Nil(aerr)
-	//	fmt.Println("allowance", allowance.String())
+	offset := uint64(0)
+	atMainnet := InitAuxiliaryTradingUtils(ctx, w3aMainnet)
+	for _, addr := range addresses {
+		allowance, aerr := w3aMainnet.ReadERC20Allowance(ctx, addr, t.acc3.Address().String(), artemis_trading_constants.Permit2SmartContractAddress)
+		t.Require().Nil(aerr)
+		fmt.Println("allowance", allowance.String())
+
+		if artemis_eth_units.IsXLessThanEqZeroOrOne(allowance) {
+			ctx = web3_actions.SetNonceOffset(context.Background(), offset)
+			res, er := atMainnet.SetPermit2ApprovalForToken(ctx, addr)
+			t.Require().Nil(er)
+			t.Require().NotNil(res)
+			offset += 1
+		}
+	}
 	//
-	//	if artemis_eth_units.IsXLessThanEqZeroOrOne(allowance) {
-	//		ctx = web3_actions.SetNonceOffset(context.Background(), offset)
-	//		res, er := atMainnet.SetPermit2ApprovalForToken(ctx, addr)
-	//		t.Require().Nil(er)
-	//		t.Require().NotNil(res)
-	//		offset += 1
-	//	}
-	//}
+	//err = artemis_risk_analysis.SetTradingPermission(ctx, addresses, 1, true)
+	//t.Assert().Nil(err)
 }
 func (t *ArtemisAuxillaryTestSuite) TestMainnetPermitAllowance() {
 	age := encryption.NewAge(t.Tc.LocalAgePkey, t.Tc.LocalAgePubkey)

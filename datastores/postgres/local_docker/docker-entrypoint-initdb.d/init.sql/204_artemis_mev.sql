@@ -66,6 +66,7 @@ ALTER TABLE "public"."eth_tx" ADD CONSTRAINT "eth_tx_type_uniq" UNIQUE ("tx_hash
 CREATE INDEX eth_tx_ordering ON "public"."eth_tx" ("event_id", "nonce_id", "from" DESC);
 ALTER TABLE "public"."eth_tx" ADD CONSTRAINT "eth_tx_ind" UNIQUE ("from", "nonce_id");
 CREATE INDEX ON eth_tx ("from", nonce DESC);
+CREATE INDEX eth_tx_protocol ON "public"."eth_tx" ("protocol_network_id");
 
 CREATE TABLE "public"."eth_tx_gas"
 (

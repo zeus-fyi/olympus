@@ -39,3 +39,4 @@ CREATE TABLE "public"."eth_mev_bundle" (
     "protocol_network_id" int8 NOT NULL REFERENCES protocol_networks(protocol_network_id) DEFAULT 1
 );
 ALTER TABLE "public"."eth_mev_bundle" ADD CONSTRAINT "eth_mev_bundle_pk" PRIMARY KEY ("bundle_hash");
+CREATE INDEX eth_mev_bundle_protocol_id ON "public"."eth_mev_bundle" ("protocol_network_id");

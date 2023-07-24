@@ -14,11 +14,11 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-// 0.333 WETH at the moment
+// 0.8 WETH at the moment
 // minWethAmountGwei := 330000000
 func maxTradeSize() *big.Int {
-	gweiInEther := artemis_eth_units.GweiPerEth
-	return artemis_eth_units.GweiMultiple(gweiInEther / 3)
+	//gweiInEther := artemis_eth_units.GweiPerEth
+	return artemis_eth_units.GweiMultiple(800000000)
 }
 
 func isProfitHigherThanGasFee(tf *web3_client.TradeExecutionFlow) (bool, error) {
@@ -116,8 +116,8 @@ func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf
 		return false, errors.New("tf.SandwichPrediction: one of the trade amountsIn or amountsOut is zero")
 	}
 
-	// 0.008 eth
-	okProfitAmount := artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, artemis_eth_units.GweiMultiple(8000000))
+	// 0.012 eth ~$22
+	okProfitAmount := artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, artemis_eth_units.GweiMultiple(12000000))
 	if okProfitAmount {
 		log.Warn().Str("tf.Tx.Hash", tf.Tx.Hash().String()).Interface("tf.SandwichPrediction", tf.SandwichPrediction).Msg("ActiveTradingFilter: SandwichPrediction profit amount not sufficient")
 		return false, errors.New("tf.SandwichPrediction: one of the trade amountsIn or amountsOut is zero")
@@ -136,6 +136,9 @@ func IsProfitTokenAcceptable(ctx context.Context, w3c web3_client.Web3Client, tf
 	log.Info().Str("txHash", tf.Tx.Hash().String()).Interface("tf.FrontRunTrade.AmountInAddr.String() ", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountOutAddr.String()", tf.FrontRunTrade.AmountOutAddr.String()).Msg("IsProfitTokenAcceptable: trading token is enabled")
 
 	if artemis_eth_units.IsXGreaterThanY(tf.FrontRunTrade.AmountIn, maxTradeSize()) {
+		if m != nil {
+			m.ErrTrackingMetrics.CountTradeSizeErr()
+		}
 		log.Info().Str("tf.FrontRunTrade.AmountInAddr", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountIn", tf.FrontRunTrade.AmountIn).Interface("maxTradeSize", maxTradeSize()).Msg("IsProfitTokenAcceptable: trade size is higher than max trade size")
 		return false, errors.New("IsProfitTokenAcceptable: trade size is higher than max trade size")
 	}

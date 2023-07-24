@@ -77,7 +77,7 @@ func (t *ArtemisAuxillaryTestSuite) TestMainnetGetNextPermit2NonceFromContract()
 	offset := uint64(0)
 	atMainnet := InitAuxiliaryTradingUtils(ctx, w3aMainnet)
 	for _, addr := range addresses {
-		allowance, aerr := w3aMainnet.ReadERC20Allowance(ctx, "0x285DB79fa7e0e89E822786F48A7c98C6c1dC1c7d", t.acc3.Address().String(), artemis_trading_constants.Permit2SmartContractAddress)
+		allowance, aerr := w3aMainnet.ReadERC20Allowance(ctx, addr, t.acc3.Address().String(), artemis_trading_constants.Permit2SmartContractAddress)
 		t.Require().Nil(aerr)
 		fmt.Println("allowance", allowance.String())
 
@@ -89,7 +89,9 @@ func (t *ArtemisAuxillaryTestSuite) TestMainnetGetNextPermit2NonceFromContract()
 			offset += 1
 		}
 	}
-
+	//
+	//err = artemis_risk_analysis.SetTradingPermission(ctx, addresses, 1, true)
+	//t.Assert().Nil(err)
 }
 func (t *ArtemisAuxillaryTestSuite) TestMainnetPermitAllowance() {
 	age := encryption.NewAge(t.Tc.LocalAgePkey, t.Tc.LocalAgePubkey)
@@ -181,8 +183,8 @@ func (t *ArtemisAuxillaryTestSuite) TestFundAccount() {
 	t.Require().NotNil(bal)
 	fmt.Println("weth bal", bal.String())
 
-	// 0.4 eth
-	toExchAmount := artemis_eth_units.GweiMultiple(400000000)
+	// 0.42 eth
+	toExchAmount := artemis_eth_units.GweiMultiple(420000000)
 
 	cmd := t.testEthToWETH(&atMainnet, toExchAmount)
 	found := false

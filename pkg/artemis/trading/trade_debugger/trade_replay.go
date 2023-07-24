@@ -31,7 +31,7 @@ func (t *TradeDebugger) Replay(ctx context.Context, txHash string, fromMempoolTx
 
 	fmt.Println("EXPECTED_PROFIT", tf.SandwichPrediction.ExpectedProfit, "AmountOutAddr", tf.SandwichTrade.AmountOutAddr.String())
 
-	err = t.ResetAndSetupPreconditions(ctx, tf)
+	err = t.ResetAndSetupPreconditions(context.Background(), tf)
 	if err != nil {
 		return err
 	}

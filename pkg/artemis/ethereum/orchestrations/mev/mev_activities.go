@@ -27,7 +27,7 @@ func (d *ArtemisMevActivities) HistoricalSimulateAndValidateTx(ctx context.Conte
 	uni := InitNewUniHardhat(ctx, uuid.New().String())
 	at := artemis_realtime_trading.NewActiveTradingDebugger(uni)
 	td := artemis_trade_debugger.NewTradeDebuggerWorkflowAnalysis(at, uni.Web3Client)
-	err := td.Replay(ctx, trade.TxHash, true)
+	err := td.Replay(context.Background(), trade.TxHash, true)
 	if err != nil {
 		log.Err(err).Str("sessionID", uni.Web3Client.GetSessionLockHeader()).Str("network", d.Network).Msg("Replay failed")
 		return err

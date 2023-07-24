@@ -16,7 +16,25 @@ import (
 const AccountAddr = "0x000000641e80A183c8B736141cbE313E136bc8c6"
 
 // effective_gas_price = priority_fee_per_gas + block.base_fee_per_gas
-func (s *ReportingTestSuite) TestCalculateGasCosts() {
+
+func (s *ReportingTestSuite) TestCalculateGasFees() {
+	bg, err := GetBundleSubmissionHistory(ctx, 0, 1)
+	s.Assert().Nil(err)
+	s.Assert().NotNil(bg)
+
+	for eid, b := range bg.Map {
+		fees := 0
+		for _, bundleTx := range b {
+			if bundleTx.From == AccountAddr {
+				fmt.Println("bundleTx.EthTx.TxHash", bundleTx.EthTx.TxHash, "EthTxReceipts.EffectiveGasPrice", bundleTx.EffectiveGasPrice, "bundleTx.EthTxGas.GasTipCap", bundleTx.EthTxGas.GasTipCap, "bundleTx.EthTxGas.GasFeeCap", bundleTx.EthTxGas.GasFeeCap, "bundleTx.EthTxGas.GasLimit", bundleTx.EthTxGas.GasLimit)
+				fees += bundleTx.EthTxReceipts.GasUsed * bundleTx.EthTxReceipts.EffectiveGasPrice
+			}
+		}
+		fmt.Println("eventID", eid, "fees", fees)
+	}
+}
+
+func (s *ReportingTestSuite) TestInsertRxsForEthTxs() {
 	bg, err := GetBundleSubmissionHistory(ctx, 0, 1)
 	s.Assert().Nil(err)
 	s.Assert().NotNil(bg)

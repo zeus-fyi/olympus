@@ -54,10 +54,6 @@ func (b *Bundle) PrintBundleInfo() {
 	fmt.Println("bundleTx.EthTxGas.GasTipCap", b.EthTxGas.GasTipCap)
 	fmt.Println("bundleTx.EthTxGas.GasFeeCap", b.EthTxGas.GasFeeCap)
 	fmt.Println("bundleTx.EthTxGas.GasLimit", b.EthTxGas.GasLimit)
-	fmt.Println("bundleTx.EthMevBundleProfit.RevenuePrediction", b.RevenuePrediction)
-	fmt.Println("bundleTx.EthMevBundleProfit.RevenuePredictionSkew", b.RevenuePredictionSkew)
-	fmt.Println("bundleTx.EthMevBundleProfit.Costs", b.Costs)
-	fmt.Println("bundleTx.EthMevBundleProfit.Profit", b.Profit)
 
 	if b.TradeExecutionFlow != nil {
 		fmt.Println("bundleTx.TradeExecutionFlow.Trade.TradeMethod", b.TradeExecutionFlow.Trade.TradeMethod)
@@ -67,6 +63,11 @@ func (b *Bundle) PrintBundleInfo() {
 		fmt.Println("bundleTx.TradeExecutionFlow.SandwichPrediction.ExpectedProfit", b.TradeExecutionFlow.SandwichPrediction.ExpectedProfit)
 		fmt.Println("bundleTx.TradeExecutionFlow.SandwichTrade.AmountOut", b.TradeExecutionFlow.SandwichTrade.AmountOut.String())
 	}
+	fmt.Println("bundleTx.EthMevBundleProfit.Revenue", b.Revenue)
+	fmt.Println("bundleTx.EthMevBundleProfit.RevenuePrediction", b.RevenuePrediction)
+	fmt.Println("bundleTx.EthMevBundleProfit.RevenuePredictionSkew", b.RevenuePredictionSkew)
+	fmt.Println("bundleTx.EthMevBundleProfit.Costs", b.Costs)
+	fmt.Println("bundleTx.EthMevBundleProfit.Profit", b.Profit)
 	fmt.Println("===============================================================================================================")
 	fmt.Println("===============================================================================================================")
 }

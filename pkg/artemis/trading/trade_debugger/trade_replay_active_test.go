@@ -7,5 +7,7 @@ func (t *ArtemisTradeDebuggerTestSuite) TestActiveReplay() {
 	t.Assert().Nil(err)
 	t.Assert().NotNil(bg)
 
-	// TODO
+	// TODO, get raw tx
+	// reset block state
+	// re-calc binary search
 }

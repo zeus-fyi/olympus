@@ -3,7 +3,8 @@ package metrics_trading
 import "github.com/prometheus/client_golang/prometheus"
 
 type ErrTrackingMetrics struct {
-	PricingData *prometheus.GaugeVec
+	HigherThanMaxTradeSizeErrCount prometheus.Counter
+	PricingData                    *prometheus.GaugeVec
 }
 
 func NewErrTrackingMetrics(reg prometheus.Registerer) ErrTrackingMetrics {
@@ -15,8 +16,18 @@ func NewErrTrackingMetrics(reg prometheus.Registerer) ErrTrackingMetrics {
 		},
 		[]string{"pair", "method"},
 	)
-	reg.MustRegister(tx.PricingData)
+	tx.HigherThanMaxTradeSizeErrCount = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "eth_mev_trade_size_too_high_count",
+			Help: "Counts the number of times a trade size is higher than max trade size setting",
+		},
+	)
+	reg.MustRegister(tx.PricingData, tx.HigherThanMaxTradeSizeErrCount)
 	return tx
+}
+
+func (t *ErrTrackingMetrics) CountTradeSizeErr() {
+	t.HigherThanMaxTradeSizeErrCount.Add(1)
 }
 
 func (t *ErrTrackingMetrics) RecordError(method, pair string) {

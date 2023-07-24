@@ -11,10 +11,6 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-// TODO:
-// 3. needs to compare total gas costs to the profit of the bundle
-// 4. needs to save bundle call responses to the db eg. add schema for bundle call responses
-// 5. needs to setup fb eth_bundle rpc stat lookup
 const (
 	AccountAddr                    = "0x000000641e80A183c8B736141cbE313E136bc8c6"
 	ZeusTestSessionLockHeaderValue = "Zeus-Test"

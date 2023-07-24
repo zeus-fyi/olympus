@@ -15,17 +15,15 @@ func getBundleProfitQ() string {
         INSERT INTO eth_mev_bundle_profit (
             bundle_hash, 
             revenue, 
-            costs, 
-            profit
+            costs 
         ) 
         VALUES (
-            $1, $2, $3, $4
+            $1, $2, $3
         )
         ON CONFLICT (bundle_hash) 
         DO UPDATE SET 
             revenue = EXCLUDED.revenue,
-            costs = EXCLUDED.costs,
-            profit = EXCLUDED.profit,
+            costs = EXCLUDED.costs
         `
 	return que
 }
@@ -33,7 +31,7 @@ func getBundleProfitQ() string {
 func InsertBundleProfit(ctx context.Context, bundleProfit artemis_autogen_bases.EthMevBundleProfit) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = getBundleProfitQ()
-	_, err := apps.Pg.Exec(ctx, q.RawQuery, bundleProfit.BundleHash, bundleProfit.Revenue, bundleProfit.Costs, bundleProfit.Profit)
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, bundleProfit.BundleHash, bundleProfit.Revenue, bundleProfit.Costs)
 	if err == pgx.ErrNoRows {
 		err = nil
 	}

@@ -21,7 +21,7 @@ func (s *ReportingTestSuite) TestCalculateGasFees() {
 	s.Assert().Nil(err)
 	s.Assert().NotNil(bg)
 	// 18422122804364250 vs 0.01254829 + 0.00587382
-	for eid, b := range bg.Map {
+	for bundleHash, b := range bg.Map {
 		fees := 0
 		for _, bundleTx := range b {
 			if bundleTx.From == AccountAddr {
@@ -30,8 +30,14 @@ func (s *ReportingTestSuite) TestCalculateGasFees() {
 					"bundleTx.EthTxGas.GasLimit", bundleTx.EthTxGas.GasLimit)
 				fees += bundleTx.EthTxReceipts.GasUsed * bundleTx.EthTxReceipts.EffectiveGasPrice
 			}
+			err = InsertBundleProfit(ctx, artemis_autogen_bases.EthMevBundleProfit{
+				BundleHash: bundleHash,
+				Revenue:    0,
+				Costs:      fees,
+				Profit:     0,
+			})
+			s.Assert().Nil(err)
 		}
-		fmt.Println("eventID", eid, "fees", fees)
 	}
 }
 

@@ -33,6 +33,7 @@ type BundlesGroup struct {
 }
 
 type Bundle struct {
+	artemis_autogen_bases.EthMevBundleProfit
 	artemis_autogen_bases.EthTx
 	artemis_autogen_bases.EthTxGas
 	artemis_autogen_bases.EthTxReceipts

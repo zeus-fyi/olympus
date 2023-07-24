@@ -17,7 +17,8 @@ import (
 var ctx = context.Background()
 
 type ReportingTestSuite struct {
-	w3c web3_client.Web3Client
+	w3c        web3_client.Web3Client
+	w3cArchive web3_client.Web3Client
 	test_suites_encryption.EncryptionTestSuite
 }
 
@@ -25,6 +26,7 @@ func (s *ReportingTestSuite) SetupTest() {
 	s.InitLocalConfigs()
 	s.w3c = web3_client.NewWeb3ClientFakeSigner("https://eth.zeus.fyi")
 	s.w3c.AddBearerToken(s.Tc.ProductionLocalBearerToken)
+	s.w3cArchive = web3_client.NewWeb3ClientFakeSigner("https://eth-mainnet.g.alchemy.com/v2/cdVqiD1oZGvBiNEU8rDYt5kb6Q24nBMB")
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 }
 

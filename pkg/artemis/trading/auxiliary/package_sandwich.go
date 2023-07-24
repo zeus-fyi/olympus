@@ -181,7 +181,7 @@ func packageBackRun(ctx context.Context, w3c web3_client.Web3Client, tf *web3_cl
 			return nil, err
 		}
 		scInfoSand.GasLimit = uint64(float64(frScInfo.GasLimit) * 1.1)
-		scInfoSand.GasTipCap = artemis_eth_units.MulBigIntWithFloat(frScInfo.GasPrice, 2)
+		scInfoSand.GasTipCap = artemis_eth_units.MulBigIntWithFloat(frScInfo.GasFeeCap, 1.8)
 		scInfoSand.GasFeeCap = scInfoSand.GasTipCap
 		scInfoSand.GasPrice = scInfoSand.GasTipCap
 		backRunCtx := CreateBackRunCtx(context.Background())

@@ -14,11 +14,11 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
-// 0.333 WETH at the moment
+// 0.8 WETH at the moment
 // minWethAmountGwei := 330000000
 func maxTradeSize() *big.Int {
-	gweiInEther := artemis_eth_units.GweiPerEth
-	return artemis_eth_units.GweiMultiple(gweiInEther / 3)
+	//gweiInEther := artemis_eth_units.GweiPerEth
+	return artemis_eth_units.GweiMultiple(800000000)
 }
 
 func isProfitHigherThanGasFee(tf *web3_client.TradeExecutionFlow) (bool, error) {

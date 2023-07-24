@@ -12,7 +12,6 @@ import (
 )
 
 const (
-	AccountAddr                    = "0x000000641e80A183c8B736141cbE313E136bc8c6"
 	ZeusTestSessionLockHeaderValue = "Zeus-Test"
 )
 
@@ -28,7 +27,7 @@ func (s *ReportingTestSuite) TestCalculateGasFees() {
 		rxBlockNumber := 0
 		predictedRevenue := 0
 		for _, bundleTx := range b {
-			if bundleTx.From == AccountAddr {
+			if bundleTx.EthTx.From == AccountAddr {
 				fmt.Println("bundleTx.EthTx.TxHash", bundleTx.EthTx.TxHash, "EthTxReceipts.EffectiveGasPrice", bundleTx.EffectiveGasPrice,
 					"bundleTx.EthTxGas.GasTipCap", bundleTx.EthTxGas.GasTipCap, "bundleTx.EthTxGas.GasFeeCap", bundleTx.EthTxGas.GasFeeCap,
 					"bundleTx.EthTxGas.GasLimit", bundleTx.EthTxGas.GasLimit)
@@ -71,7 +70,7 @@ func (s *ReportingTestSuite) TestInsertRxsForEthTxs() {
 	for eid, b := range bg.Map {
 		fmt.Println("eventID", eid)
 		for _, bundleTx := range b {
-			if bundleTx.From == AccountAddr {
+			if bundleTx.EthTx.From == AccountAddr {
 				fmt.Println("bundleTx.EthTx.TxHash", bundleTx.EthTx.TxHash, "bundle", bundleTx.EthTxGas.GasTipCap, "bundle", bundleTx.EthTxGas.GasFeeCap, "bundleTx.EthTxGas.GasPrice", bundleTx.EthTxGas.GasPrice, "bundleTx.EthTxGas.GasLimit", bundleTx.EthTxGas.GasLimit)
 			}
 			rx, found, rerr := s.w3c.GetTxReceipt(ctx, common.HexToHash(bundleTx.EthTx.TxHash))

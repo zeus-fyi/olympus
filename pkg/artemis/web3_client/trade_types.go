@@ -225,3 +225,19 @@ func UnmarshalTradeExecutionFlow(tfStr string) (TradeExecutionFlowJSON, error) {
 	}
 	return tf, nil
 }
+
+func UnmarshalTradeExecutionFlowToInt(tfStr string) (*TradeExecutionFlow, error) {
+	tf := TradeExecutionFlowJSON{}
+	by := []byte(tfStr)
+	berr := json.Unmarshal(by, &tf)
+	if berr != nil {
+		log.Err(berr).Msg("error unmarshalling trade execution flow")
+		return nil, berr
+	}
+	tfInt, err := tf.ConvertToBigIntType()
+	if err != nil {
+		log.Err(err).Msg("error converting trade execution flow to big int type")
+		return nil, err
+	}
+	return &tfInt, nil
+}

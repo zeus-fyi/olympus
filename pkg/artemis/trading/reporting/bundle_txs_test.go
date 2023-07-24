@@ -9,7 +9,6 @@ import (
 )
 
 // TODO:
-// 2. needs to calculate gas costs for each tx in the bundle
 // 3. needs to compare total gas costs to the profit of the bundle
 // 4. needs to save bundle call responses to the db eg. add schema for bundle call responses
 // 5. needs to setup fb eth_bundle rpc stat lookup
@@ -21,12 +20,14 @@ func (s *ReportingTestSuite) TestCalculateGasFees() {
 	bg, err := GetBundleSubmissionHistory(ctx, 0, 1)
 	s.Assert().Nil(err)
 	s.Assert().NotNil(bg)
-
+	// 18422122804364250 vs 0.01254829 + 0.00587382
 	for eid, b := range bg.Map {
 		fees := 0
 		for _, bundleTx := range b {
 			if bundleTx.From == AccountAddr {
-				fmt.Println("bundleTx.EthTx.TxHash", bundleTx.EthTx.TxHash, "EthTxReceipts.EffectiveGasPrice", bundleTx.EffectiveGasPrice, "bundleTx.EthTxGas.GasTipCap", bundleTx.EthTxGas.GasTipCap, "bundleTx.EthTxGas.GasFeeCap", bundleTx.EthTxGas.GasFeeCap, "bundleTx.EthTxGas.GasLimit", bundleTx.EthTxGas.GasLimit)
+				fmt.Println("bundleTx.EthTx.TxHash", bundleTx.EthTx.TxHash, "EthTxReceipts.EffectiveGasPrice", bundleTx.EffectiveGasPrice,
+					"bundleTx.EthTxGas.GasTipCap", bundleTx.EthTxGas.GasTipCap, "bundleTx.EthTxGas.GasFeeCap", bundleTx.EthTxGas.GasFeeCap,
+					"bundleTx.EthTxGas.GasLimit", bundleTx.EthTxGas.GasLimit)
 				fees += bundleTx.EthTxReceipts.GasUsed * bundleTx.EthTxReceipts.EffectiveGasPrice
 			}
 		}

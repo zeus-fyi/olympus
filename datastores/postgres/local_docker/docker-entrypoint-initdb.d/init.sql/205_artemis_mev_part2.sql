@@ -55,3 +55,11 @@ CREATE TABLE eth_tx_receipts (
 ALTER TABLE "public"."eth_tx_receipts" ADD CONSTRAINT "eth_tx_receipts_pk" PRIMARY KEY ("tx_hash");
 CREATE INDEX eth_rx_block_number ON "public"."eth_tx_receipts" ("block_number" DESC);
 CREATE INDEX eth_rx_status ON "public"."eth_tx_receipts" ("status");
+
+CREATE TABLE "public"."eth_mev_bundle_profit" (
+    "bundle_hash" text  NOT NULL REFERENCES eth_mev_bundle(bundle_hash),
+    "revenue" int8 NOT NULL,
+    "costs" int8 NOT NULL,
+    "profit" int8 NOT NULL GENERATED ALWAYS AS (revenue - costs) STORED
+);
+ALTER TABLE "public"."eth_mev_bundle_profit" ADD CONSTRAINT "eth_mev_bundle_profit_pk" PRIMARY KEY ("bundle_hash");

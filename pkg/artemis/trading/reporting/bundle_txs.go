@@ -2,6 +2,7 @@ package artemis_reporting
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -40,6 +41,34 @@ type Bundle struct {
 	artemis_autogen_bases.EthTxReceipts
 	artemis_autogen_bases.EthMempoolMevTx
 	TradeExecutionFlow *web3_client.TradeExecutionFlow
+}
+
+func (b *Bundle) PrintBundleInfo() {
+	fmt.Println("===============================================================================================================")
+	fmt.Println("===============================================================================================================")
+	fmt.Println("bundleTx.EthTx.EventID", b.EthTx.EventID)
+	fmt.Println("bundleTx.BundleHash", b.BundleHash)
+	fmt.Println("===============================================================================================================")
+	fmt.Println("bundleTx.EthTx.TxHash", b.EthTx.TxHash)
+	fmt.Println("bundleTx.EthTxReceipts.EffectiveGasPrice", b.EffectiveGasPrice)
+	fmt.Println("bundleTx.EthTxGas.GasTipCap", b.EthTxGas.GasTipCap)
+	fmt.Println("bundleTx.EthTxGas.GasFeeCap", b.EthTxGas.GasFeeCap)
+	fmt.Println("bundleTx.EthTxGas.GasLimit", b.EthTxGas.GasLimit)
+	fmt.Println("bundleTx.EthMevBundleProfit.RevenuePrediction", b.RevenuePrediction)
+	fmt.Println("bundleTx.EthMevBundleProfit.RevenuePredictionSkew", b.RevenuePredictionSkew)
+	fmt.Println("bundleTx.EthMevBundleProfit.Costs", b.Costs)
+	fmt.Println("bundleTx.EthMevBundleProfit.Profit", b.Profit)
+
+	if b.TradeExecutionFlow != nil {
+		fmt.Println("bundleTx.TradeExecutionFlow.Trade.TradeMethod", b.TradeExecutionFlow.Trade.TradeMethod)
+		fmt.Println("bundleTx.TradeExecutionFlow.CurrentBlockNumber", b.TradeExecutionFlow.CurrentBlockNumber)
+		fmt.Println("bundleTx.TradeExecutionFlow.FrontRunTrade.AmountIn", b.TradeExecutionFlow.FrontRunTrade.AmountIn.String())
+		fmt.Println("bundleTx.TradeExecutionFlow.SandwichPrediction.SellAmount", b.TradeExecutionFlow.SandwichPrediction.SellAmount)
+		fmt.Println("bundleTx.TradeExecutionFlow.SandwichPrediction.ExpectedProfit", b.TradeExecutionFlow.SandwichPrediction.ExpectedProfit)
+		fmt.Println("bundleTx.TradeExecutionFlow.SandwichTrade.AmountOut", b.TradeExecutionFlow.SandwichTrade.AmountOut.String())
+	}
+	fmt.Println("===============================================================================================================")
+	fmt.Println("===============================================================================================================")
 }
 
 func GetBundleSubmissionHistory(ctx context.Context, eventID, protocolNetworkID int) (BundlesGroup, error) {
@@ -118,7 +147,7 @@ func GetBundlesProfitHistory(ctx context.Context, eventID, protocolNetworkID int
 			&bundle.EthTxGas.GasFeeCap, &bundle.EthTxGas.GasLimit, &bundle.EthTxGas.GasTipCap, &bundle.EthTxGas.GasPrice,
 			&bundle.EthTxReceipts.GasUsed, &bundle.EthTxReceipts.EffectiveGasPrice, &bundle.EthTxReceipts.CumulativeGasUsed,
 			&bundle.EthTxReceipts.BlockHash, &bundle.EthTxReceipts.TransactionIndex, &bundle.EthTxReceipts.BlockNumber, &bundle.EthTxReceipts.Status,
-			&bundle.Revenue, &bundle.RevenuePrediction, &bundle.RevenuePrediction, &bundle.Costs, &bundle.Profit,
+			&bundle.EthMevBundleProfit.Revenue, &bundle.EthMevBundleProfit.RevenuePrediction, &bundle.EthMevBundleProfit.RevenuePredictionSkew, &bundle.Costs, &bundle.Profit,
 			&bundle.EthMempoolMevTx.TxFlowPrediction, &bundle.EthMempoolMevTx.BlockNumber,
 		)
 		if rowErr != nil {

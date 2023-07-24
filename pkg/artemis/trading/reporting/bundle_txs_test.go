@@ -2,6 +2,11 @@ package artemis_reporting
 
 import "fmt"
 
+// TODO:
+// 1. needs to get tx receipts and calculate gas costs for each tx in the bundle
+// 2. needs to add schema & save rx receipts to the db
+// 3. needs to compare total gas costs to the profit of the bundle
+
 func (s *ReportingTestSuite) TestCalculateGasCosts() {
 	bg, err := GetBundleSubmissionHistory(ctx, 0, 1)
 	s.Assert().Nil(err)

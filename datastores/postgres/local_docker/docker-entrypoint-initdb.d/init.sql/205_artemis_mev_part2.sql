@@ -59,6 +59,8 @@ CREATE INDEX eth_rx_status ON "public"."eth_tx_receipts" ("status");
 CREATE TABLE "public"."eth_mev_bundle_profit" (
     "bundle_hash" text  NOT NULL REFERENCES eth_mev_bundle(bundle_hash),
     "revenue" int8 NOT NULL,
+    "revenue_prediction" int8 NOT NULL DEFAULT 0,
+    "revenue_prediction_skew" int8 NOT NULL GENERATED ALWAYS AS (revenue - revenue_prediction) STORED,
     "costs" int8 NOT NULL,
     "profit" int8 NOT NULL GENERATED ALWAYS AS (revenue - costs) STORED
 );

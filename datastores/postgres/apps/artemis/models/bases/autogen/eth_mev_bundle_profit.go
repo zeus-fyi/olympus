@@ -3,10 +3,11 @@ package artemis_autogen_bases
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 type EthMevBundleProfit struct {
-	BundleHash string `db:"bundle_hash" json:"bundleHash"`
-	Revenue    int    `db:"revenue" json:"revenue"`
-	Costs      int    `db:"costs" json:"costs"`
-	Profit     int    `db:"profit" json:"profit"`
+	BundleHash        string `db:"bundle_hash" json:"bundleHash"`
+	Revenue           int    `db:"revenue" json:"revenue"`
+	RevenuePrediction int    `db:"revenue_prediction" json:"revenuePrediction"`
+	Costs             int    `db:"costs" json:"costs"`
+	Profit            int    `db:"profit" json:"profit"`
 }
 type EthMevBundleProfitSlice []EthMevBundleProfit
 

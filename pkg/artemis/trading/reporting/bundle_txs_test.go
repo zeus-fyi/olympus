@@ -5,14 +5,20 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
 // TODO:
 // 3. needs to compare total gas costs to the profit of the bundle
 // 4. needs to save bundle call responses to the db eg. add schema for bundle call responses
 // 5. needs to setup fb eth_bundle rpc stat lookup
-const AccountAddr = "0x000000641e80A183c8B736141cbE313E136bc8c6"
+const (
+	AccountAddr                    = "0x000000641e80A183c8B736141cbE313E136bc8c6"
+	ZeusTestSessionLockHeaderValue = "Zeus-Test"
+)
 
 // effective_gas_price = priority_fee_per_gas + block.base_fee_per_gas
 
@@ -23,21 +29,41 @@ func (s *ReportingTestSuite) TestCalculateGasFees() {
 	// 18422122804364250 vs 0.01254829 + 0.00587382
 	for bundleHash, b := range bg.Map {
 		fees := 0
+		rxBlockNumber := 0
+		predictedRevenue := 0
 		for _, bundleTx := range b {
 			if bundleTx.From == AccountAddr {
 				fmt.Println("bundleTx.EthTx.TxHash", bundleTx.EthTx.TxHash, "EthTxReceipts.EffectiveGasPrice", bundleTx.EffectiveGasPrice,
 					"bundleTx.EthTxGas.GasTipCap", bundleTx.EthTxGas.GasTipCap, "bundleTx.EthTxGas.GasFeeCap", bundleTx.EthTxGas.GasFeeCap,
 					"bundleTx.EthTxGas.GasLimit", bundleTx.EthTxGas.GasLimit)
 				fees += bundleTx.EthTxReceipts.GasUsed * bundleTx.EthTxReceipts.EffectiveGasPrice
+			} else {
+				mevMempoolTx, merr := artemis_mev_models.SelectEthMevMempoolTxByTxHash(ctx, bundleTx.EthTx.TxHash)
+				s.Require().NoError(merr)
+				s.Require().Len(mevMempoolTx, 1)
+				tx := mevMempoolTx[0]
+				j, merr := web3_client.UnmarshalTradeExecutionFlow(tx.TxFlowPrediction)
+				s.Require().NoError(merr)
+				fmt.Println(j.SandwichTrade.AmountOut)
+				predictedRevenue = int(artemis_eth_units.NewBigIntFromStr(j.SandwichPrediction.ExpectedProfit).Int64())
 			}
-			err = InsertBundleProfit(ctx, artemis_autogen_bases.EthMevBundleProfit{
-				BundleHash: bundleHash,
-				Revenue:    0,
-				Costs:      fees,
-				Profit:     0,
-			})
-			s.Assert().Nil(err)
+			rxBlockNumber = bundleTx.EthTxReceipts.BlockNumber
 		}
+		if fees == 0 {
+			continue
+		}
+		fmt.Println("rxBlockNumber", rxBlockNumber)
+		//0.117129433
+		wethBalChange, werr := s.w3c.GetMainnetBalanceDiffWETH(AccountAddr, rxBlockNumber)
+		s.Assert().Nil(werr)
+		fmt.Println("wethBalChange", wethBalChange)
+		err = InsertBundleProfit(ctx, artemis_autogen_bases.EthMevBundleProfit{
+			BundleHash:        bundleHash,
+			Revenue:           int(wethBalChange.Int64()),
+			RevenuePrediction: predictedRevenue,
+			Costs:             fees,
+		})
+		s.Assert().Nil(err)
 	}
 }
 

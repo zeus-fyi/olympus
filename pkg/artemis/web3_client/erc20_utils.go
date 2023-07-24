@@ -14,6 +14,8 @@ import (
 	web3_actions "github.com/zeus-fyi/gochain/web3/client"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/bases/autogen"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
+	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
@@ -178,6 +180,50 @@ func (w *Web3Client) MatchFrontRunTradeValues(tf *TradeExecutionFlow) error {
 		return errors.New("amount in not set correctly")
 	}
 	return nil
+}
+
+func (w *Web3Client) GetMainnetBalanceWETH(address string) (*big.Int, error) {
+	b, err := w.ReadERC20TokenBalance(ctx, artemis_trading_constants.WETH9ContractAddress, address)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+const (
+	ZeusTestSessionLockHeaderValue = "Zeus-Test"
+	IrisAnvil                      = "https://iris.zeus.fyi/v1beta/internal/"
+)
+
+func (w *Web3Client) GetMainnetBalanceDiffWETH(address string, blockNumber int) (*big.Int, error) {
+	w.IsAnvilNode = true
+	w.NodeURL = IrisAnvil
+
+	if w.GetSessionLockHeader() == "" {
+		w.AddSessionLockHeader(ZeusTestSessionLockHeaderValue)
+	}
+	if w.Headers == nil || w.Headers["Authorization"] == "" {
+		return nil, errors.New("no bearer token")
+	}
+	w.Dial()
+	defer w.Close()
+	err := w.HardHatResetNetwork(ctx, blockNumber-1)
+	if err != nil {
+		return nil, err
+	}
+	startBal, err := w.ReadERC20TokenBalance(context.Background(), artemis_trading_constants.WETH9ContractAddress, address)
+	if err != nil {
+		return nil, err
+	}
+	err = w.HardHatResetNetwork(ctx, blockNumber)
+	if err != nil {
+		return nil, err
+	}
+	endBal, err := w.ReadERC20TokenBalance(context.Background(), artemis_trading_constants.WETH9ContractAddress, address)
+	if err != nil {
+		return nil, err
+	}
+	return artemis_eth_units.SubBigInt(endBal, startBal), nil
 }
 
 //func (w *Web3Client) MatchFrontRunTradeValues(tf *TradeExecutionFlow) error {

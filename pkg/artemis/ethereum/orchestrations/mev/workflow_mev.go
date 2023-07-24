@@ -21,7 +21,7 @@ func (t *ArtemisMevWorkflow) ArtemisHistoricalSimTxWorkflow(ctx workflow.Context
 		StartToCloseTimeout: time.Second * 300 * 5,
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts:    3,
-			InitialInterval:    time.Second * 5,
+			InitialInterval:    time.Second * 300,
 			BackoffCoefficient: 2,
 		},
 		TaskQueue: EthereumMainnetMevHistoricalTxTaskQueue,

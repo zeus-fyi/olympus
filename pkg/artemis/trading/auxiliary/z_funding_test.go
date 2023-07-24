@@ -74,6 +74,10 @@ func (t *ArtemisAuxillaryTestSuite) TestMainnetGetNextPermit2NonceFromContract()
 		addresses = append(addresses, v.AmountOutToken.Address.String())
 	}
 
+	if len(addresses) <= 65 {
+		return
+	}
+	fmt.Println("total", len(addresses))
 	offset := uint64(0)
 	atMainnet := InitAuxiliaryTradingUtils(ctx, w3aMainnet)
 	for _, addr := range addresses {

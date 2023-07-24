@@ -113,7 +113,7 @@ func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web
 	}
 
 	// ~$25
-	profitMin := artemis_eth_units.GweiMultiple(13000000)
+	profitMin := artemis_eth_units.GweiMultiple(20000000)
 	if artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, profitMin) {
 		log.Warn().Interface("tf.SandwichPrediction.ExpectedProfit", tf.SandwichPrediction.ExpectedProfit).Interface("profitMarginMin", profitMin).Msg("ActiveTradingFilter: profit margin min")
 		return fmt.Errorf("dat: ActiveTradingFilter: profit margin min")

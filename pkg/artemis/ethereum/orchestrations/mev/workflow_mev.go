@@ -18,10 +18,10 @@ type HistoricalTxAnalysis struct {
 func (t *ArtemisMevWorkflow) ArtemisHistoricalSimTxWorkflow(ctx workflow.Context, trades HistoricalTxAnalysis) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Second * 300 * 5,
+		StartToCloseTimeout: time.Second * 300,
 		RetryPolicy: &temporal.RetryPolicy{
-			MaximumAttempts:    3,
-			InitialInterval:    time.Second * 300,
+			MaximumAttempts:    2,
+			InitialInterval:    time.Second * 10,
 			BackoffCoefficient: 2,
 		},
 		TaskQueue: EthereumMainnetMevHistoricalTxTaskQueue,

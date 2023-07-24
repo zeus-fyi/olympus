@@ -107,13 +107,6 @@ ALTER TABLE "public"."permit2_tx" ADD CONSTRAINT "permit2_tx_pk" PRIMARY KEY ("e
 CREATE INDEX permit2_tx_nonce ON "public"."permit2_tx" ("event_id", "nonce", "deadline");
 ALTER TABLE "public"."permit2_tx" ADD CONSTRAINT "permit2_nonce_uniq" UNIQUE ("owner", "nonce", "token");
 
-CREATE TABLE "public"."eth_rx"
-(
-    "event_id"            int8 NOT NULL REFERENCES events (event_id),
-    "protocol_network_id" int8 NOT NULL REFERENCES protocol_networks (protocol_network_id) DEFAULT 1,
-    "rx_hash"             text NOT NULL
-);
-ALTER TABLE "public"."eth_rx" ADD CONSTRAINT "eth_rx_pk" PRIMARY KEY ("rx_hash");
 
 CREATE TABLE "public"."eth_mempool_mev_tx" (
     "tx_id" int8 NOT NULL DEFAULT next_id(),

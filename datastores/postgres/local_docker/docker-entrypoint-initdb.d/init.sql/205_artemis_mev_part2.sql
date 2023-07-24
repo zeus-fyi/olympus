@@ -40,3 +40,18 @@ CREATE TABLE "public"."eth_mev_bundle" (
 );
 ALTER TABLE "public"."eth_mev_bundle" ADD CONSTRAINT "eth_mev_bundle_pk" PRIMARY KEY ("bundle_hash");
 CREATE INDEX eth_mev_bundle_protocol_id ON "public"."eth_mev_bundle" ("protocol_network_id");
+
+CREATE TABLE eth_tx_receipts (
+    tx_hash             text NOT NULL REFERENCES eth_tx (tx_hash),
+    event_id            int8 NOT NULL REFERENCES events (event_id),
+    status text NOT NULL,
+    gas_used int8 NOT NULL,
+    effective_gas_price int8 NOT NULL,
+    cumulative_gas_used int8 NOT NULL,
+    block_hash text NOT NULL,
+    block_number int8 NOT NULL,
+    transaction_index int8 NOT NULL
+);
+ALTER TABLE "public"."eth_tx_receipts" ADD CONSTRAINT "eth_tx_receipts_pk" PRIMARY KEY ("tx_hash");
+CREATE INDEX eth_rx_block_number ON "public"."eth_tx_receipts" ("block_number" DESC);
+CREATE INDEX eth_rx_status ON "public"."eth_tx_receipts" ("status");

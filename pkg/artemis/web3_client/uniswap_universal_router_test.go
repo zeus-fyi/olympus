@@ -149,7 +149,7 @@ func (s *Web3ClientTestSuite) TestExecV2TradeMethodUR() {
 		FnOut:       "",
 		Env:         "",
 	}
-	pair, err := uni.V2PairToPrices(ctx, []accounts.Address{accounts.HexToAddress(LinkTokenAddr), accounts.HexToAddress(WETH9ContractAddress)})
+	pair, err := uni.V2PairToPrices(ctx, 0, []accounts.Address{accounts.HexToAddress(LinkTokenAddr), accounts.HexToAddress(WETH9ContractAddress)})
 	s.Require().Nil(err)
 	s.Require().NotEmpty(pair)
 	amountOut, err := pair.GetQuoteUsingTokenAddr(WETH9ContractAddress, amountIn)

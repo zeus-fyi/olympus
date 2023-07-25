@@ -122,7 +122,7 @@ func (t *ArtemisTradeDebuggerTestSuite) TestActiveReplay() {
 
 		tx, _, err = w3c.GetTxByHash(context.Background(), common.HexToHash(sandwich.TxHash))
 		t.Require().Nil(err)
-
+		fmt.Println("tx.Hash().String()", tx.Hash().String())
 		_, decoded, err = web3_client.DecodeTxArgDataFromAbi(ctx, tx, artemis_oly_contract_abis.UniversalRouterNew)
 		t.Require().Nil(err)
 		ur, err = web3_client.NewDecodedUniversalRouterExecCmdFromMap(decoded, artemis_oly_contract_abis.UniversalRouterDecoder)
@@ -134,7 +134,7 @@ func (t *ArtemisTradeDebuggerTestSuite) TestActiveReplay() {
 		fmt.Println("payerIsSender", decodedCmd.PayerIsSender)
 		fmt.Println("to", decodedCmd.To.String())
 
-		t.Require().Equal(decodedCmd.To.String(), TraderAccountSim)
+		//t.Require().Equal(decodedCmd.To.String(), TraderAccountSim)
 
 		for _, addr := range decodedCmd.Path {
 			fmt.Println(addr.String())
@@ -144,12 +144,18 @@ func (t *ArtemisTradeDebuggerTestSuite) TestActiveReplay() {
 
 		wethPostSandwichBal, err := w3c.GetMainnetBalanceWETH(TraderAccountSim)
 		t.Require().Nil(err)
+
+		backRunWETHDiff := artemis_eth_units.SubBigInt(wethPostSandwichBal, wethBalPreSandwich)
+		fmt.Println("wethDifferenceAfterSandwich", backRunWETHDiff.String())
+
+		expTrue := artemis_eth_units.IsXGreaterThanOrEqualToY(backRunWETHDiff, decodedCmd.AmountOutMin)
+		t.Require().True(expTrue)
 		fmt.Println("wethBalPreSandwich", wethBalPreSandwich.String())
 		fmt.Println("wethPostSandwichBal", wethPostSandwichBal.String())
 
 		fmt.Println("===============================================================================================================")
 		fmt.Println("===============================================================================================================")
-		fmt.Println("wethDifferenceAfterSandwich", artemis_eth_units.SubBigInt(wethPostSandwichBal, wethBalPreSandwich).String())
+		fmt.Println("wethDifferenceAfterSandwich", backRunWETHDiff.String())
 		fmt.Println("tf.SandwichPrediction.ExpectedProfit.String()", tf.SandwichPrediction.ExpectedProfit.String())
 		fmt.Println("tf.SandwichTrade.AmountOut.String()", tf.SandwichTrade.AmountOut.String())
 

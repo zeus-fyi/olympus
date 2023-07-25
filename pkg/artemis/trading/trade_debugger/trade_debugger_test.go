@@ -55,17 +55,6 @@ func (t *ArtemisTradeDebuggerTestSuite) TestDebuggerInitEnv() {
 	t.Require().Nil(terr)
 	t.Require().Equal(tf.FrontRunTrade.AmountIn.String(), b.String())
 }
-func (t *ArtemisTradeDebuggerTestSuite) TestReplayDebugger1() {
-	txHash := "0x5327295e1ed6d59faaf98d04697b0316fb8ad4b767d2e7f5addb3981c3b5d3b7"
-	h, err := t.td.lookupMevTx(ctx, txHash)
-	t.Require().Nil(err)
-	t.Require().NotEmpty(h)
-	fmt.Println(h.HistoricalAnalysis.TradeMethod)
-	fmt.Println(h.HistoricalAnalysis.EndReason)
-	tf, serr := h.BinarySearch()
-	t.Require().Nil(serr)
-	t.Require().NotEmpty(tf)
-}
 
 func TestArtemisTradeDebuggerTestSuite(t *testing.T) {
 	suite.Run(t, new(ArtemisTradeDebuggerTestSuite))

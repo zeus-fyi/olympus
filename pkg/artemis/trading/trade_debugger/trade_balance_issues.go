@@ -6,15 +6,45 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	"github.com/zeus-fyi/olympus/pkg/artemis/trading/async_analysis"
 	artemis_trading_cache "github.com/zeus-fyi/olympus/pkg/artemis/trading/cache"
 	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
+	uniswap_pricing "github.com/zeus-fyi/olympus/pkg/artemis/trading/pricing/uniswap"
 	artemis_trading_types "github.com/zeus-fyi/olympus/pkg/artemis/trading/types"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
+
+func CheckExpectedReserves(ctx context.Context, w3c web3_client.Web3Client, tf *web3_client.TradeExecutionFlow) error {
+	if tf.InitialPair == nil {
+		return nil
+	}
+	// todo, do v3 pairs
+	simPair := tf.InitialPair
+	err := uniswap_pricing.GetPairContractPrices(ctx, tf.CurrentBlockNumber.Uint64(), w3c.Web3Actions, simPair)
+	if err != nil {
+		log.Err(err).Msg("error getting pair contract prices")
+		return err
+	}
+	if tf.InitialPair.Reserve1.String() != simPair.Reserve1.String() && tf.InitialPair.Reserve0.String() != simPair.Reserve0.String() {
+		fmt.Println("tf.InitialPair.Reserve0", tf.InitialPair.Reserve0.String(), simPair.Reserve0.String(), "simPair.Reserve0")
+		fmt.Println("tf.InitialPair.Reserve1", tf.InitialPair.Reserve1.String(), simPair.Reserve1.String(), "simPair.Reserve1")
+		return fmt.Errorf("reserve mismatch")
+	}
+	if tf.InitialPair.Reserve0.String() != simPair.Reserve0.String() {
+		fmt.Println("tf.InitialPair.Reserve0", tf.InitialPair.Reserve0.String(), simPair.Reserve0.String(), "simPair.Reserve0")
+		return fmt.Errorf("reserve0 mismatch")
+	}
+	if tf.InitialPair.Reserve1.String() != simPair.Reserve1.String() {
+		fmt.Println("tf.InitialPair.Reserve1", tf.InitialPair.Reserve1.String(), simPair.Reserve1.String(), "simPair.Reserve1")
+		return fmt.Errorf("reserve1 mismatch")
+	}
+	return nil
+}
 
 func (t *TradeDebugger) analyzeToken(ctx context.Context, address accounts.Address, amountTraded *big.Int) error {
 	if address == artemis_trading_constants.WETH9ContractAddressAccount {

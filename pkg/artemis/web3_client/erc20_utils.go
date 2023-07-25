@@ -226,6 +226,25 @@ func (w *Web3Client) GetMainnetBalanceDiffWETH(address string, blockNumber int) 
 	return artemis_eth_units.SubBigInt(endBal, startBal), nil
 }
 
+// only for debugging, not for usage that's not done manually
+
+func (w *Web3Client) ResetNetworkLocalToExtIrisTest(blockNumber int) error {
+	w.IsAnvilNode = true
+	w.NodeURL = IrisAnvil
+	w.AddSessionLockHeader(ZeusTestSessionLockHeaderValue)
+
+	if w.Headers == nil || w.Headers["Authorization"] == "" {
+		return errors.New("no bearer token")
+	}
+	w.Dial()
+	defer w.Close()
+	err := w.HardHatResetNetwork(ctx, blockNumber)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 //func (w *Web3Client) MatchFrontRunTradeValues(tf *TradeExecutionFlow) error {
 //	pubkey := w.PublicKey()
 //	slotHex, err := GetSlot(pubkey, new(big.Int).SetUint64(uint64(0)))

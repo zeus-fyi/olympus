@@ -7,6 +7,7 @@ import (
 	artemis_mev_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/mev"
 	artemis_realtime_trading "github.com/zeus-fyi/olympus/pkg/artemis/trading"
 	"github.com/zeus-fyi/olympus/pkg/artemis/trading/async_analysis"
+	artemis_trading_constants "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/constants"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 )
 
@@ -62,139 +63,128 @@ func (h *HistoricalAnalysisDebug) GetBlockNumber() int {
 	return h.HistoricalAnalysis.BlockNumber
 }
 
-func (h *HistoricalAnalysisDebug) BinarySearch() (web3_client.TradeExecutionFlow, error) {
-	tf := web3_client.TradeExecutionFlow{}
-	v := h.TradeParams
-	switch v.(type) {
-	case *web3_client.V2SwapExactInParams:
-		params := v.(*web3_client.V2SwapExactInParams)
-		if h.TradePrediction.InitialPair == nil {
+func BinarySearch(tf web3_client.TradeExecutionFlow) (web3_client.TradeExecutionFlow, error) {
+	v := tf.Trade.TradeMethod
+	switch tf.Trade.TradeMethod {
+	case artemis_trading_constants.V2SwapExactIn:
+		params := tf.Trade.JSONV2SwapExactInParams
+		vals, err := params.ConvertToBigIntType()
+		if err != nil {
+			return tf, fmt.Errorf("error in binary search: %w", err)
+		}
+		if tf.InitialPair == nil {
 			return tf, errors.New("initial pair is nil")
 		}
-		search, err := params.BinarySearch(*h.TradePrediction.InitialPair)
+		search, err := vals.BinarySearch(*tf.InitialPair)
 		if err != nil {
 			return tf, fmt.Errorf("error in binary search: %w", err)
 		}
 		return search, nil
-	case *web3_client.SwapExactTokensForTokensSupportingFeeOnTransferTokensParams:
-		params := v.(*web3_client.SwapExactTokensForTokensSupportingFeeOnTransferTokensParams)
-		if h.TradePrediction.InitialPair == nil {
-			return tf, errors.New("initial pair is nil")
-		}
-		search, err := params.BinarySearch(*h.TradePrediction.InitialPair)
-		if err != nil {
-			return tf, fmt.Errorf("error in binary search: %w", err)
-		}
-		return search, nil
-	case *web3_client.SwapExactETHForTokensSupportingFeeOnTransferTokensParams:
-		params := v.(*web3_client.SwapExactETHForTokensSupportingFeeOnTransferTokensParams)
-		if h.TradePrediction.InitialPair == nil {
-			return tf, errors.New("initial pair is nil")
-		}
-		search, err := params.BinarySearch(*h.TradePrediction.InitialPair)
-		if err != nil {
-			return tf, fmt.Errorf("error in binary search: %w", err)
-		}
-		return search, nil
-	case *web3_client.SwapExactTokensForETHSupportingFeeOnTransferTokensParams:
-		params := v.(*web3_client.SwapExactTokensForETHSupportingFeeOnTransferTokensParams)
-		if h.TradePrediction.InitialPair == nil {
-			return tf, errors.New("initial pair is nil")
-		}
-		search, err := params.BinarySearch(*h.TradePrediction.InitialPair)
-		if err != nil {
-			return tf, fmt.Errorf("error in binary search: %w", err)
-		}
-		return search, nil
-	case *web3_client.SwapExactTokensForTokensParams:
-		params := v.(*web3_client.SwapExactTokensForTokensParams)
-		if h.TradePrediction.InitialPair == nil {
-			return tf, errors.New("initial pair is nil")
-		}
-		search, err := params.BinarySearch(*h.TradePrediction.InitialPair)
-		if err != nil {
-			return tf, fmt.Errorf("error in binary search: %w", err)
-		}
-		return search, nil
-	case *web3_client.SwapExactETHForTokensParams:
-		params := v.(*web3_client.SwapExactETHForTokensParams)
-		if h.TradePrediction.InitialPair == nil {
-			return tf, errors.New("initial pair is nil")
-		}
-		search, err := params.BinarySearch(*h.TradePrediction.InitialPair)
-		if err != nil {
-			return tf, fmt.Errorf("error in binary search: %w", err)
-		}
-		return search, nil
-	case *web3_client.SwapExactTokensForETHParams:
-		params := v.(*web3_client.SwapExactTokensForETHParams)
-		if h.TradePrediction.InitialPair == nil {
-			return tf, errors.New("initial pair is nil")
-		}
-		search, err := params.BinarySearch(*h.TradePrediction.InitialPair)
-		if err != nil {
-			return tf, fmt.Errorf("error in binary search: %w", err)
-		}
-		return search, nil
-	case *web3_client.SwapTokensForExactTokensParams:
-		params := v.(*web3_client.SwapTokensForExactTokensParams)
-		if h.TradePrediction.InitialPair == nil {
-			return tf, errors.New("initial pair is nil")
-		}
-		search, err := params.BinarySearch(*h.TradePrediction.InitialPair)
-		if err != nil {
-			return tf, fmt.Errorf("error in binary search: %w", err)
-		}
-		return search, nil
-	case *web3_client.SwapTokensForExactETHParams:
-		params := v.(*web3_client.SwapTokensForExactETHParams)
-		if h.TradePrediction.InitialPair == nil {
-			return tf, errors.New("initial pair is nil")
-		}
-		search, err := params.BinarySearch(*h.TradePrediction.InitialPair)
-		if err != nil {
-			return tf, fmt.Errorf("error in binary search: %w", err)
-		}
-		return search, nil
-	case *web3_client.SwapETHForExactTokensParams:
-		params := v.(*web3_client.SwapETHForExactTokensParams)
-		if h.TradePrediction.InitialPair == nil {
-			return tf, errors.New("initial pair is nil")
-		}
-		search, err := params.BinarySearch(*h.TradePrediction.InitialPair)
-		if err != nil {
-			return tf, fmt.Errorf("error in binary search: %w", err)
-		}
-		return search, nil
+	case artemis_trading_constants.SwapExactTokensForTokensSupportingFeeOnTransferTokens:
+		//params := tf.Trade.JSONSwapExactTokensForTokensSupportingFeeOnTransferTokensParams
+		//vals, err := params.ConvertToBigIntType()
+		//if err != nil {
+		//	return tf, fmt.Errorf("error in binary search: %w", err)
+		//}
+		//if tf.InitialPair == nil {
+		//	return tf, errors.New("initial pair is nil")
+		//}
+		//search, err := vals.BinarySearch(*tf.InitialPair)
+		//if err != nil {
+		//	return tf, fmt.Errorf("error in binary search: %w", err)
+		//}
+		//return search, nil
+	case artemis_trading_constants.SwapExactETHForTokensSupportingFeeOnTransferTokens:
+		//params := tf.Trade.JSONSwapExactETHForTokensSupportingFeeOnTransferTokensParams
+		//if tf.InitialPair == nil {
+		//	return tf, errors.New("initial pair is nil")
+		//}
+		//if tf.InitialPair == nil {
+		//	return tf, errors.New("initial pair is nil")
+		//}
+		//search, err := params.BinarySearch(*tf.InitialPair)
+		//if err != nil {
+		//	return tf, fmt.Errorf("error in binary search: %w", err)
+		//}
+		//return search, nil
+	case artemis_trading_constants.SwapExactTokensForETHSupportingFeeOnTransferTokens:
+		//params := tf.Trade.JSONSwapExactTokensForETHSupportingFeeOnTransferTokensParams
+		//if tf.InitialPair == nil {
+		//	return tf, errors.New("initial pair is nil")
+		//}
+		//if tf.InitialPair == nil {
+		//	return tf, errors.New("initial pair is nil")
+		//}
+		//search, err := params.BinarySearch(*tf.InitialPair)
+		//if err != nil {
+		//	return tf, fmt.Errorf("error in binary search: %w", err)
+		//}
+		//return search, nil
+	case artemis_trading_constants.SwapExactTokensForTokens:
+		//params := tf.Trade.JSONSwapExactTokensForTokensParams
+		//if tf.InitialPair == nil {
+		//	return tf, errors.New("initial pair is nil")
+		//}
+		//if tf.InitialPair == nil {
+		//	return tf, errors.New("initial pair is nil")
+		//}
+		//search, err := params.BinarySearch(*tf.InitialPair)
+		//if err != nil {
+		//	return tf, fmt.Errorf("error in binary search: %w", err)
+		//}
+		//return search, nil
+	case artemis_trading_constants.SwapExactETHForTokens:
+		//params := tf.Trade.JSONSwapExactETHForTokensParams
+		//if tf.InitialPair == nil {
+		//	return tf, errors.New("initial pair is nil")
+		//}
+		//search, err := params.BinarySearch(*tf.InitialPair)
+		//if err != nil {
+		//	return tf, fmt.Errorf("error in binary search: %w", err)
+		//}
+		//return search, nil
+	case artemis_trading_constants.SwapExactTokensForETH:
+		//params := tf.Trade.JSONSwapExactTokensForETHParams
+		//if tf.InitialPair == nil {
+		//	return tf, errors.New("initial pair is nil")
+		//}
+		//search, err := params.BinarySearch(*tf.InitialPair)
+		//if err != nil {
+		//	return tf, fmt.Errorf("error in binary search: %w", err)
+		//}
+		//return search, nil
+	case artemis_trading_constants.SwapTokensForExactTokens:
+		//params := tf.Trade.JSONSwapTokensForExactTokensParams
+		//if tf.InitialPair == nil {
+		//	return tf, errors.New("initial pair is nil")
+		//}
+		//search, err := params.BinarySearch(*tf.InitialPair)
+		//if err != nil {
+		//	return tf, fmt.Errorf("error in binary search: %w", err)
+		//}
+		//return search, nil
+	case artemis_trading_constants.SwapTokensForExactETH:
+		//params := tf.Trade.JSONSwapTokensForExactETHParams
+		//if tf.InitialPair == nil {
+		//	return tf, errors.New("initial pair is nil")
+		//}
+		//search, err := params.BinarySearch(*tf.InitialPair)
+		//if err != nil {
+		//	return tf, fmt.Errorf("error in binary search: %w", err)
+		//}
+		//return search, nil
+	case artemis_trading_constants.SwapETHForExactTokens:
+		//params := tf.Trade.JSONSwapETHForExactTokensParams
+		//if tf.InitialPair == nil {
+		//	return tf, errors.New("initial pair is nil")
+		//}
+		//search, err := params.BinarySearch(*tf.InitialPair)
+		//if err != nil {
+		//	return tf, fmt.Errorf("error in binary search: %w", err)
+		//}
+		//return search, nil
 	default:
 		fmt.Println(v)
 	}
 	return web3_client.TradeExecutionFlow{}, errors.New("no trade params found")
 }
-
-/*
-type Trade struct {
-	TradeMethod                         string `json:"tradeMethod"`
-	*JSONSwapETHForExactTokensParams    `json:"swapETHForExactTokensParams,omitempty"`
-	*JSONSwapTokensForExactTokensParams `json:"swapTokensForExactTokensParams,omitempty"`
-	*JSONSwapExactTokensForTokensParams `json:"swapExactTokensForTokensParams,omitempty"`
-	*JSONSwapExactETHForTokensParams    `json:"swapExactETHForTokensParams,omitempty"`
-	*JSONSwapExactTokensForETHParams    `json:"swapExactTokensForETHParams,omitempty"`
-	*JSONSwapTokensForExactETHParams    `json:"swapTokensForExactETHParams,omitempty"`
-
-	// universal router
-	*JSONV2SwapExactInParams  `json:"v2SwapExactInParams,omitempty"`
-	*JSONV2SwapExactOutParams `json:"v2SwapExactOutParams,omitempty"`
-
-	*JSONSwapExactTokensForTokensSupportingFeeOnTransferTokensParams `json:"swapExactTokensForTokensSupportingFeeOnTransferTokensParams,omitempty"`
-	*JSONSwapExactETHForTokensSupportingFeeOnTransferTokensParams    `json:"swapExactETHForTokensSupportingFeeOnTransferTokensParams,omitempty"`
-	*JSONSwapExactTokensForETHSupportingFeeOnTransferTokensParams    `json:"swapExactTokensForETHSupportingFeeOnTransferTokensParams,omitempty"`
-	*JSONExactInputParams                                            `json:"exactInputParams,omitempty"`
-	*JSONExactOutputParams                                           `json:"exactOutputParams,omitempty"`
-	*JSONSwapExactInputSingleArgs                                    `json:"swapExactInputSingleArgs,omitempty"`
-	*JSONSwapExactOutputSingleArgs                                   `json:"swapExactOutputSingleArgs,omitempty"`
-	*JSONV3SwapExactInParams                                         `json:"v3SwapExactInParams,omitempty"`
-	*JSONV3SwapExactOutParams                                        `json:"v3SwapExactOutParams,omitempty"`
-	*JSONSwapExactTokensForTokensParamsV3                            `json:"swapExactTokensForTokensParamsV3,omitempty"`
-}
-*/

@@ -50,7 +50,7 @@ func (c *ContractAnalysis) SimEthTransferFeeTaxTrade(ctx context.Context, amount
 
 	time.Sleep(3 * time.Second)
 	txHash := trade.OrderedTxs[0]
-	rx, err := c.UserA.GetTxReceipt(ctx, common.Hash(txHash))
+	rx, _, err := c.UserA.GetTxReceipt(ctx, common.Hash(txHash))
 	if err != nil {
 		return nil, err
 	}

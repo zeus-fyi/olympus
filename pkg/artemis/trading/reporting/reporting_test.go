@@ -10,17 +10,23 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
+	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_encryption"
 )
 
 var ctx = context.Background()
 
 type ReportingTestSuite struct {
+	w3c        web3_client.Web3Client
+	w3cArchive web3_client.Web3Client
 	test_suites_encryption.EncryptionTestSuite
 }
 
 func (s *ReportingTestSuite) SetupTest() {
 	s.InitLocalConfigs()
+	s.w3c = web3_client.NewWeb3ClientFakeSigner("https://eth.zeus.fyi")
+	s.w3c.AddBearerToken(s.Tc.ProductionLocalBearerToken)
+	s.w3cArchive = web3_client.NewWeb3ClientFakeSigner("https://eth-mainnet.g.alchemy.com/v2/cdVqiD1oZGvBiNEU8rDYt5kb6Q24nBMB")
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 }
 

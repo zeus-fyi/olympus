@@ -42,34 +42,9 @@ func CheckTokenRegistry(ctx context.Context, tokenAddress string, chainID int64)
 	return nil
 }
 
-func ApplyMaxTransferTax(ctx context.Context, tf *web3_client.TradeExecutionFlow) error {
-	bn, berr := artemis_trading_cache.GetLatestBlock(context.Background())
-	if berr != nil {
-		log.Err(berr).Msg("failed to get latest block")
-		return errors.New("ailed to get latest block")
-	}
-	tf.CurrentBlockNumber = artemis_eth_units.NewBigIntFromUint(bn)
+func ApplyMaxTransferTaxCore(ctx context.Context, tf *web3_client.TradeExecutionFlow) error {
 	tokenOne := tf.UserTrade.AmountInAddr.String()
 	tokenTwo := tf.UserTrade.AmountOutAddr.String()
-	if tokenOne == artemis_trading_constants.ZeroAddress && tokenTwo == artemis_trading_constants.ZeroAddress {
-		log.Warn().Str("txHash", tf.Tx.Hash().String()).Str("tradeMethod", tf.Trade.TradeMethod).Interface("tf.UserTrade", tf.UserTrade).Str("toAddr", tf.Tx.To().String()).Msg("dat: ApplyMaxTransferTax, tokenOne and tokenTwo are zero address")
-		return errors.New("dat: ApplyMaxTransferTax, tokenOne and tokenTwo are zero address")
-	}
-	go func(ctx context.Context, tokenA, tokenB string) {
-		if tokenA != artemis_trading_constants.ZeroAddress && tokenA != artemis_trading_constants.WETH9ContractAddress {
-			err := CheckTokenRegistry(ctx, tokenA, hestia_req_types.EthereumMainnetProtocolNetworkID)
-			if err != nil {
-				log.Err(err).Msg("CheckTokenRegistry: failed to check token registry")
-			}
-		}
-		if tokenB != artemis_trading_constants.ZeroAddress && tokenB != artemis_trading_constants.WETH9ContractAddress {
-			err := CheckTokenRegistry(ctx, tokenB, hestia_req_types.EthereumMainnetProtocolNetworkID)
-			if err != nil {
-				log.Err(err).Msg("CheckTokenRegistry: failed to check token registry")
-			}
-		}
-	}(context.Background(), tokenOne, tokenTwo)
-
 	maxNum, maxDen := 0, 1
 	if info, ok := artemis_trading_cache.TokenMap[tokenOne]; ok {
 		if info.TransferTaxNumerator == nil || info.TransferTaxDenominator == nil {
@@ -111,7 +86,7 @@ func ApplyMaxTransferTax(ctx context.Context, tf *web3_client.TradeExecutionFlow
 	if maxNum == 0 {
 		amountOutStartFrontRun := tf.FrontRunTrade.AmountOut
 		amountOutStartSandwich := tf.SandwichTrade.AmountOut
-
+		fmt.Println("amountOutStartFrontRun: ", amountOutStartFrontRun, "amountOutStartSandwich: ", amountOutStartSandwich)
 		adjAmountOutFrontRun := artemis_eth_units.ApplyTransferTax(amountOutStartFrontRun, 1, 1000)
 		tf.FrontRunTrade.AmountOut = adjAmountOutFrontRun
 
@@ -119,7 +94,12 @@ func ApplyMaxTransferTax(ctx context.Context, tf *web3_client.TradeExecutionFlow
 
 		adjAmountOutSandwich := artemis_eth_units.ApplyTransferTax(amountOutStartSandwich, 2, 1000)
 		tf.SandwichTrade.AmountOut = adjAmountOutSandwich
-		tf.SandwichPrediction.ExpectedProfit = adjAmountOutSandwich
+		prevExpProfit := tf.SandwichPrediction.ExpectedProfit
+		tf.SandwichPrediction.ExpectedProfit = artemis_eth_units.SubBigInt(adjAmountOutSandwich, tf.FrontRunTrade.AmountIn)
+		if artemis_eth_units.IsXGreaterThanY(tf.SandwichPrediction.ExpectedProfit, prevExpProfit) {
+			return errors.New("ApplyMaxTransferTax: expected profit cannot be higher after paying a tax wtf dude")
+		}
+		fmt.Println("adjAmountOutFrontRun: ", adjAmountOutFrontRun, "adjAmountOutSandwich: ", adjAmountOutSandwich)
 		if !tf.AreAllTradesValid() {
 			log.Warn().Msg("ApplyMaxTransferTax: trades are not valid")
 			return errors.New("ApplyMaxTransferTax: trades are not valid")
@@ -144,12 +124,46 @@ func ApplyMaxTransferTax(ctx context.Context, tf *web3_client.TradeExecutionFlow
 
 	adjAmountOutSandwich := artemis_eth_units.ApplyTransferTax(amountOutStartSandwich, maxNum, maxDen)
 	tf.SandwichTrade.AmountOut = adjAmountOutSandwich
-	tf.SandwichPrediction.ExpectedProfit = adjAmountOutSandwich
-
+	prevExpProfit := tf.SandwichPrediction.ExpectedProfit
+	tf.SandwichPrediction.ExpectedProfit = artemis_eth_units.SubBigInt(adjAmountOutSandwich, tf.FrontRunTrade.AmountIn)
+	if artemis_eth_units.IsXGreaterThanY(tf.SandwichPrediction.ExpectedProfit, prevExpProfit) {
+		return errors.New("ApplyMaxTransferTax: expected profit cannot be higher after paying a tax wtf dude")
+	}
 	if !tf.AreAllTradesValid() {
 		log.Info().Str("txHash", tf.Tx.Hash().String()).Uint64("bn", tf.CurrentBlockNumber.Uint64()).Str("profitTokenAddress", tf.SandwichTrade.AmountOutAddr.String()).Str("startingSandwichOut", amountOutStartSandwich.String()).Interface("sellAmount", tf.SandwichPrediction.SellAmount).Interface("tf.SandwichPrediction.ExpectedProfit", tf.SandwichPrediction.ExpectedProfit).Str("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut.String()).Msg("ApplyMaxTransferTax: trade not acceptable after tax")
 		return errors.New("ApplyMaxTransferTax: trades are not valid")
 	}
 	log.Info().Str("txHash", tf.Tx.Hash().String()).Uint64("bn", tf.CurrentBlockNumber.Uint64()).Str("profitTokenAddress", tf.SandwichTrade.AmountOutAddr.String()).Str("startingSandwichOut", amountOutStartSandwich.String()).Interface("sellAmount", tf.SandwichPrediction.SellAmount).Interface("tf.SandwichPrediction.ExpectedProfit", tf.SandwichPrediction.ExpectedProfit).Str("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut.String()).Msg("ApplyMaxTransferTax: acceptable after tax")
 	return nil
+}
+
+func ApplyMaxTransferTax(ctx context.Context, tf *web3_client.TradeExecutionFlow) error {
+	bn, berr := artemis_trading_cache.GetLatestBlock(context.Background())
+	if berr != nil {
+		log.Err(berr).Msg("failed to get latest block")
+		return errors.New("ailed to get latest block")
+	}
+	tf.CurrentBlockNumber = artemis_eth_units.NewBigIntFromUint(bn)
+	tokenOne := tf.UserTrade.AmountInAddr.String()
+	tokenTwo := tf.UserTrade.AmountOutAddr.String()
+	if tokenOne == artemis_trading_constants.ZeroAddress && tokenTwo == artemis_trading_constants.ZeroAddress {
+		log.Warn().Str("txHash", tf.Tx.Hash().String()).Str("tradeMethod", tf.Trade.TradeMethod).Interface("tf.UserTrade", tf.UserTrade).Str("toAddr", tf.Tx.To().String()).Msg("dat: ApplyMaxTransferTax, tokenOne and tokenTwo are zero address")
+		return errors.New("dat: ApplyMaxTransferTax, tokenOne and tokenTwo are zero address")
+	}
+	go func(ctx context.Context, tokenA, tokenB string) {
+		if tokenA != artemis_trading_constants.ZeroAddress && tokenA != artemis_trading_constants.WETH9ContractAddress {
+			err := CheckTokenRegistry(ctx, tokenA, hestia_req_types.EthereumMainnetProtocolNetworkID)
+			if err != nil {
+				log.Err(err).Msg("CheckTokenRegistry: failed to check token registry")
+			}
+		}
+		if tokenB != artemis_trading_constants.ZeroAddress && tokenB != artemis_trading_constants.WETH9ContractAddress {
+			err := CheckTokenRegistry(ctx, tokenB, hestia_req_types.EthereumMainnetProtocolNetworkID)
+			if err != nil {
+				log.Err(err).Msg("CheckTokenRegistry: failed to check token registry")
+			}
+		}
+	}(context.Background(), tokenOne, tokenTwo)
+
+	return ApplyMaxTransferTaxCore(ctx, tf)
 }

@@ -64,7 +64,7 @@ func (c *ContractAnalysis) CalculateTransferFeeTax(ctx context.Context, amount *
 	}
 	time.Sleep(3 * time.Second)
 	fmt.Println("tx hash", tx.Hash().String())
-	rx, err := c.UserA.GetTxReceipt(ctx, tx.Hash())
+	rx, _, err := c.UserA.GetTxReceipt(ctx, tx.Hash())
 	if err != nil {
 		panic(err)
 	}

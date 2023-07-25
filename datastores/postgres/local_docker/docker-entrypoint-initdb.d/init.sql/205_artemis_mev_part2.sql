@@ -39,3 +39,29 @@ CREATE TABLE "public"."eth_mev_bundle" (
     "protocol_network_id" int8 NOT NULL REFERENCES protocol_networks(protocol_network_id) DEFAULT 1
 );
 ALTER TABLE "public"."eth_mev_bundle" ADD CONSTRAINT "eth_mev_bundle_pk" PRIMARY KEY ("bundle_hash");
+CREATE INDEX eth_mev_bundle_protocol_id ON "public"."eth_mev_bundle" ("protocol_network_id");
+
+CREATE TABLE eth_tx_receipts (
+    tx_hash             text NOT NULL REFERENCES eth_tx (tx_hash),
+    event_id            int8 NOT NULL REFERENCES events (event_id),
+    status text NOT NULL,
+    gas_used int8 NOT NULL,
+    effective_gas_price int8 NOT NULL,
+    cumulative_gas_used int8 NOT NULL,
+    block_hash text NOT NULL,
+    block_number int8 NOT NULL,
+    transaction_index int8 NOT NULL
+);
+ALTER TABLE "public"."eth_tx_receipts" ADD CONSTRAINT "eth_tx_receipts_pk" PRIMARY KEY ("tx_hash");
+CREATE INDEX eth_rx_block_number ON "public"."eth_tx_receipts" ("block_number" DESC);
+CREATE INDEX eth_rx_status ON "public"."eth_tx_receipts" ("status");
+
+CREATE TABLE "public"."eth_mev_bundle_profit" (
+    "bundle_hash" text  NOT NULL REFERENCES eth_mev_bundle(bundle_hash),
+    "revenue" int8 NOT NULL,
+    "revenue_prediction" int8 NOT NULL DEFAULT 0,
+    "revenue_prediction_skew" int8 NOT NULL GENERATED ALWAYS AS (revenue - revenue_prediction) STORED,
+    "costs" int8 NOT NULL,
+    "profit" int8 NOT NULL GENERATED ALWAYS AS (revenue - costs) STORED
+);
+ALTER TABLE "public"."eth_mev_bundle_profit" ADD CONSTRAINT "eth_mev_bundle_profit_pk" PRIMARY KEY ("bundle_hash");

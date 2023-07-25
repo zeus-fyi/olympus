@@ -90,7 +90,7 @@ func (t *TradeDebugger) getTxFromHash(ctx context.Context, txHash string) (*type
 
 func (t *TradeDebugger) getRxFromHash(ctx context.Context, txHash string) (*types.Receipt, error) {
 	hash := common.HexToHash(txHash)
-	rx, err := t.dat.SimW3c().GetTxReceipt(ctx, hash)
+	rx, _, err := t.dat.SimW3c().GetTxReceipt(ctx, hash)
 	if err != nil {
 		return nil, err
 	}

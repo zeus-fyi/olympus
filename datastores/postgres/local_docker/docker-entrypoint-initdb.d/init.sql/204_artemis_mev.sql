@@ -66,6 +66,7 @@ ALTER TABLE "public"."eth_tx" ADD CONSTRAINT "eth_tx_type_uniq" UNIQUE ("tx_hash
 CREATE INDEX eth_tx_ordering ON "public"."eth_tx" ("event_id", "nonce_id", "from" DESC);
 ALTER TABLE "public"."eth_tx" ADD CONSTRAINT "eth_tx_ind" UNIQUE ("from", "nonce_id");
 CREATE INDEX ON eth_tx ("from", nonce DESC);
+CREATE INDEX eth_tx_protocol ON "public"."eth_tx" ("protocol_network_id");
 
 CREATE TABLE "public"."eth_tx_gas"
 (
@@ -106,13 +107,6 @@ ALTER TABLE "public"."permit2_tx" ADD CONSTRAINT "permit2_tx_pk" PRIMARY KEY ("e
 CREATE INDEX permit2_tx_nonce ON "public"."permit2_tx" ("event_id", "nonce", "deadline");
 ALTER TABLE "public"."permit2_tx" ADD CONSTRAINT "permit2_nonce_uniq" UNIQUE ("owner", "nonce", "token");
 
-CREATE TABLE "public"."eth_rx"
-(
-    "event_id"            int8 NOT NULL REFERENCES events (event_id),
-    "protocol_network_id" int8 NOT NULL REFERENCES protocol_networks (protocol_network_id) DEFAULT 1,
-    "rx_hash"             text NOT NULL
-);
-ALTER TABLE "public"."eth_rx" ADD CONSTRAINT "eth_rx_pk" PRIMARY KEY ("rx_hash");
 
 CREATE TABLE "public"."eth_mempool_mev_tx" (
     "tx_id" int8 NOT NULL DEFAULT next_id(),

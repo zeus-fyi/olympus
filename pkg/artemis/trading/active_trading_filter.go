@@ -102,16 +102,55 @@ func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web
 		m.StageProgressionMetrics.CountCheckpointOneMarker()
 	}
 
-	_, err = artemis_trading_auxiliary.IsProfitTokenAcceptable(ctx, w3c, &tf, m)
+	_, err = artemis_trading_auxiliary.IsProfitTokenAcceptable(&tf, m)
 	if err != nil {
 		log.Err(err).Msg("ActiveTradingFilter: profit token not acceptable")
 		return err
+	}
+
+	// 0.012 eth ~$22
+	okProfitAmount := artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, artemis_eth_units.GweiMultiple(12000000))
+	if okProfitAmount {
+		log.Warn().Str("tf.Tx.Hash", tf.Tx.Hash().String()).Interface("tf.SandwichPrediction", tf.SandwichPrediction).Msg("ActiveTradingFilter: SandwichPrediction profit amount not sufficient")
+		return errors.New("tf.SandwichPrediction: one of the trade amountsIn or amountsOut is zero")
 	}
 
 	if m != nil {
 		m.StageProgressionMetrics.CountCheckpointTwoMarker()
 	}
 
+	if artemis_eth_units.IsXGreaterThanY(tf.FrontRunTrade.AmountIn, artemis_trading_auxiliary.MaxTradeSize()) {
+		if m != nil {
+			m.ErrTrackingMetrics.CountTradeSizeErr()
+		}
+		log.Info().Str("tf.FrontRunTrade.AmountInAddr", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountIn", tf.FrontRunTrade.AmountIn).Interface("maxTradeSize", artemis_trading_auxiliary.MaxTradeSize()).Msg("IsProfitTokenAcceptable: trade size is higher than max trade size")
+		return errors.New("IsProfitTokenAcceptable: trade size is higher than max trade size")
+	}
+	// 0.025 ETH at the moment, ~$50
+	minEthAmountGwei := 50000000 / 2
+	ok, err := artemis_trading_auxiliary.CheckEthBalanceGreaterThan(context.Background(), w3c, artemis_eth_units.GweiMultiple(minEthAmountGwei))
+	if err != nil {
+		log.Warn().Err(err).Msg("IsProfitTokenAcceptable: could not check eth balance")
+		log.Err(err).Msg("IsProfitTokenAcceptable: could not check eth balance")
+		return err
+	}
+	if !ok {
+		log.Warn().Msg("IsProfitTokenAcceptable: ETH balance is not enough")
+		return errors.New("IsProfitTokenAcceptable: ETH balance is not enough")
+	}
+	ok, err = artemis_trading_auxiliary.CheckMainnetAuxWETHBalanceGreaterThan(context.Background(), w3c, artemis_trading_auxiliary.MaxTradeSize())
+	if err != nil {
+		log.Warn().Err(err).Msg("IsProfitTokenAcceptable: could not check aux weth balance")
+		log.Err(err).Msg("IsProfitTokenAcceptable: could not check aux weth balance")
+		return err
+	}
+	if !ok {
+		return errors.New("ETH balance is not enough")
+	}
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Str("tradeMethod", tf.Trade.TradeMethod).Interface("tf.FrontRunTrade.AmountInAddr.String()", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountIn", tf.FrontRunTrade.AmountIn.String()).Interface("tf.FrontRunTrade.AmountOutAddr", tf.FrontRunTrade.AmountOutAddr.String()).Msg("IsProfitTokenAcceptable: profit token is acceptable")
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Str("tradeMethod", tf.Trade.TradeMethod).Interface("tf.FrontRunTrade", tf.FrontRunTrade).Msg("IsProfitTokenAcceptable: profit token is acceptable")
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Str("tradeMethod", tf.Trade.TradeMethod).Interface("tf.UserTrade", tf.UserTrade).Msg("IsProfitTokenAcceptable: profit token is acceptable")
+	log.Info().Str("txHash", tf.Tx.Hash().String()).Str("tradeMethod", tf.Trade.TradeMethod).Interface("tf.SandwichTrade", tf.SandwichTrade).Msg("IsProfitTokenAcceptable: profit token is acceptable")
 	// ~$25
 	profitMin := artemis_eth_units.GweiMultiple(20000000)
 	if artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, profitMin) {

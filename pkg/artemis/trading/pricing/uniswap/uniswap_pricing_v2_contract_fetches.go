@@ -100,7 +100,7 @@ func GetPairContractPrices(ctx context.Context, bn uint64, wc web3_actions.Web3A
 	scInfo.MethodName = getReserves
 	sessionID := wc.GetSessionLockHeader()
 	tag := GetV2PairBnCacheKeyTag(bn, p.PairContractAddr, sessionID)
-	if wc.GetSessionLockHeader() != "" {
+	if wc.GetSessionLockHeader() == "" {
 		err := redisCache.AddV2PairToNextLookupSet(context.Background(), bn, p.PairContractAddr, sessionID)
 		if err != nil {
 			log.Error().Err(err).Msg("AddV2PairToNextLookupSet: failed to add pair to next lookup set")

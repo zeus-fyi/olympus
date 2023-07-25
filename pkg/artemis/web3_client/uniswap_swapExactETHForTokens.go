@@ -36,6 +36,16 @@ func (s *SwapExactETHForTokensParams) ConvertToJSONType() *JSONSwapExactETHForTo
 	}
 }
 
+func (s *JSONSwapExactETHForTokensParams) ConvertToBigIntType() *SwapExactETHForTokensParams {
+	return &SwapExactETHForTokensParams{
+		AmountOutMin: artemis_eth_units.NewBigIntFromStr(s.AmountOutMin),
+		Path:         s.Path,
+		To:           s.To,
+		Value:        artemis_eth_units.NewBigIntFromStr(s.Value),
+		Deadline:     artemis_eth_units.NewBigIntFromStr(s.Deadline),
+	}
+}
+
 func (s *SwapExactETHForTokensParams) BinarySearch(pair uniswap_pricing.UniswapV2Pair) (TradeExecutionFlow, error) {
 	low := big.NewInt(0)
 	high := new(big.Int).Set(s.Value)

@@ -22,7 +22,7 @@ func getBundlesQ() string {
 				INNER JOIN eth_tx_gas eg ON eg.tx_hash = et.tx_hash
 				INNER JOIN eth_tx_receipts er ON er.tx_hash = et.tx_hash
 				WHERE eb.event_id > $1 AND eb.protocol_network_id = $2 
-				ORDER BY eb.event_id DESC, et.nonce ASC
+				ORDER BY eb.event_id DESC, et."from", et.nonce ASC
 			) 
 			SELECT *
  			FROM cte_bundles

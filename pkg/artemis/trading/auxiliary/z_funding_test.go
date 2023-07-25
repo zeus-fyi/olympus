@@ -119,7 +119,7 @@ func (t *ArtemisAuxillaryTestSuite) TestMainnetPermitAllowance() {
 func (t *ArtemisAuxillaryTestSuite) TestMainnetBal() {
 	age := encryption.NewAge(t.Tc.LocalAgePkey, t.Tc.LocalAgePubkey)
 	t.acc3 = initTradingAccount2(ctx, age)
-	w3aMainnet := web3_client.NewWeb3Client(t.mainnetNode, &t.acc3)
+	w3aMainnet := web3_client.NewWeb3Client("https://eth.zeus.fyi", &t.acc3)
 	w3aMainnet.AddBearerToken(t.Tc.ProductionLocalTemporalBearerToken)
 	atMainnet := InitAuxiliaryTradingUtils(ctx, w3aMainnet)
 	token := getChainSpecificWETH(*atMainnet.w3c()).String()
@@ -127,7 +127,7 @@ func (t *ArtemisAuxillaryTestSuite) TestMainnetBal() {
 	t.Require().NotEmpty(w3aMainnet.Headers)
 
 	t.Require().Equal("Bearer "+t.Tc.ProductionLocalTemporalBearerToken, w3aMainnet.Headers["Authorization"])
-	t.Require().Equal(t.mainnetNode, atMainnet.nodeURL())
+	t.Require().Equal("https://eth.zeus.fyi", atMainnet.nodeURL())
 	t.Require().Equal(token, artemis_trading_constants.WETH9ContractAddress)
 
 	bal, err := checkEthBalance(ctx, *atMainnet.w3c())
@@ -140,6 +140,10 @@ func (t *ArtemisAuxillaryTestSuite) TestMainnetBal() {
 	t.Require().Nil(err)
 	t.Require().NotNil(bal)
 	fmt.Println("weth bal", bal.String())
+
+	ok, err := CheckAuxWETHBalanceGreaterThan(ctx, *atMainnet.w3c(), MaxTradeSize())
+	t.Require().Nil(err)
+	t.Require().True(ok)
 }
 
 func (t *ArtemisAuxillaryTestSuite) TestSetPermit2Mainnet() {
@@ -165,7 +169,7 @@ func (t *ArtemisAuxillaryTestSuite) TestSetPermit2Mainnet() {
 func (t *ArtemisAuxillaryTestSuite) TestFundAccount() {
 	age := encryption.NewAge(t.Tc.LocalAgePkey, t.Tc.LocalAgePubkey)
 	t.acc3 = initTradingAccount2(ctx, age)
-	w3aMainnet := web3_client.NewWeb3Client(t.mainnetNode, &t.acc3)
+	w3aMainnet := web3_client.NewWeb3Client("https://eth.zeus.fyi", &t.acc3)
 	w3aMainnet.AddBearerToken(t.Tc.ProductionLocalTemporalBearerToken)
 	atMainnet := InitAuxiliaryTradingUtils(ctx, w3aMainnet)
 	token := getChainSpecificWETH(*atMainnet.w3c()).String()
@@ -187,8 +191,8 @@ func (t *ArtemisAuxillaryTestSuite) TestFundAccount() {
 	t.Require().NotNil(bal)
 	fmt.Println("weth bal", bal.String())
 
-	// 0.42 eth
-	toExchAmount := artemis_eth_units.GweiMultiple(420000000)
+	// 0.45 eth
+	toExchAmount := artemis_eth_units.GweiMultiple(450000000)
 
 	cmd := t.testEthToWETH(&atMainnet, toExchAmount)
 	found := false
@@ -210,7 +214,7 @@ func (t *ArtemisAuxillaryTestSuite) TestFundAccount() {
 	tx, _, err := universalRouterCmdToTxBuilder(ctx, *atMainnet.w3c(), cmd)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(tx)
-
+	// 122
 	//executedTx, err := atMainnet.universalRouterExecuteTx(ctx, tx)
 	//t.Require().Nil(err)
 	//fmt.Println("executedTx", executedTx.Hash().String())

@@ -91,11 +91,11 @@ func (t *ArtemisTradeDebuggerTestSuite) TestActiveReplay() {
 		tx, _, err = w3c.GetTxByHash(context.Background(), common.HexToHash(user.TxHash))
 		t.Require().Nil(err)
 
-		baseFee, err := w3c.GetBaseFee(context.Background())
-		t.Require().Nil(err)
-		fmt.Println("baseFee", baseFee.String())
-
-		fmt.Println("tx.GasFeeCap().String())", tx.GasFeeCap().String())
+		//baseFee, err := w3c.GetBaseFee(context.Background())
+		//t.Require().Nil(err)
+		//fmt.Println("baseFee", baseFee.String())
+		//
+		//fmt.Println("tx.GasFeeCap().String())", tx.GasFeeCap().String())
 		err = w3c.SendSignedTransaction(ctx, tx)
 		t.Require().Nil(err)
 

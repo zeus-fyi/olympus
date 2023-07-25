@@ -86,7 +86,7 @@ func ApplyMaxTransferTaxCore(ctx context.Context, tf *web3_client.TradeExecution
 	if maxNum == 0 {
 		amountOutStartFrontRun := tf.FrontRunTrade.AmountOut
 		amountOutStartSandwich := tf.SandwichTrade.AmountOut
-
+		fmt.Println("amountOutStartFrontRun: ", amountOutStartFrontRun, "amountOutStartSandwich: ", amountOutStartSandwich)
 		adjAmountOutFrontRun := artemis_eth_units.ApplyTransferTax(amountOutStartFrontRun, 1, 1000)
 		tf.FrontRunTrade.AmountOut = adjAmountOutFrontRun
 
@@ -94,7 +94,12 @@ func ApplyMaxTransferTaxCore(ctx context.Context, tf *web3_client.TradeExecution
 
 		adjAmountOutSandwich := artemis_eth_units.ApplyTransferTax(amountOutStartSandwich, 2, 1000)
 		tf.SandwichTrade.AmountOut = adjAmountOutSandwich
-		tf.SandwichPrediction.ExpectedProfit = adjAmountOutSandwich
+		prevExpProfit := tf.SandwichPrediction.ExpectedProfit
+		tf.SandwichPrediction.ExpectedProfit = artemis_eth_units.SubBigInt(adjAmountOutSandwich, tf.FrontRunTrade.AmountIn)
+		if artemis_eth_units.IsXGreaterThanY(tf.SandwichPrediction.ExpectedProfit, prevExpProfit) {
+			return errors.New("ApplyMaxTransferTax: expected profit cannot be higher after paying a tax wtf dude")
+		}
+		fmt.Println("adjAmountOutFrontRun: ", adjAmountOutFrontRun, "adjAmountOutSandwich: ", adjAmountOutSandwich)
 		if !tf.AreAllTradesValid() {
 			log.Warn().Msg("ApplyMaxTransferTax: trades are not valid")
 			return errors.New("ApplyMaxTransferTax: trades are not valid")
@@ -119,8 +124,11 @@ func ApplyMaxTransferTaxCore(ctx context.Context, tf *web3_client.TradeExecution
 
 	adjAmountOutSandwich := artemis_eth_units.ApplyTransferTax(amountOutStartSandwich, maxNum, maxDen)
 	tf.SandwichTrade.AmountOut = adjAmountOutSandwich
-	tf.SandwichPrediction.ExpectedProfit = adjAmountOutSandwich
-
+	prevExpProfit := tf.SandwichPrediction.ExpectedProfit
+	tf.SandwichPrediction.ExpectedProfit = artemis_eth_units.SubBigInt(adjAmountOutSandwich, tf.FrontRunTrade.AmountIn)
+	if artemis_eth_units.IsXGreaterThanY(tf.SandwichPrediction.ExpectedProfit, prevExpProfit) {
+		return errors.New("ApplyMaxTransferTax: expected profit cannot be higher after paying a tax wtf dude")
+	}
 	if !tf.AreAllTradesValid() {
 		log.Info().Str("txHash", tf.Tx.Hash().String()).Uint64("bn", tf.CurrentBlockNumber.Uint64()).Str("profitTokenAddress", tf.SandwichTrade.AmountOutAddr.String()).Str("startingSandwichOut", amountOutStartSandwich.String()).Interface("sellAmount", tf.SandwichPrediction.SellAmount).Interface("tf.SandwichPrediction.ExpectedProfit", tf.SandwichPrediction.ExpectedProfit).Str("tf.SandwichTrade.AmountOut", tf.SandwichTrade.AmountOut.String()).Msg("ApplyMaxTransferTax: trade not acceptable after tax")
 		return errors.New("ApplyMaxTransferTax: trades are not valid")

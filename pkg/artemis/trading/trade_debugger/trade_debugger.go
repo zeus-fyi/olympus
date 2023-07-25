@@ -62,13 +62,13 @@ type EthMempoolMevTx struct {
 func (h *HistoricalAnalysisDebug) GetBlockNumber() int {
 	return h.HistoricalAnalysis.BlockNumber
 }
-func BinarySearch(tf web3_client.TradeExecutionFlow) (web3_client.TradeExecutionFlow, error) {
+func BinarySearch(tf *web3_client.TradeExecutionFlow) (*web3_client.TradeExecutionFlow, error) {
 	switch tf.Trade.TradeMethod {
 	case artemis_trading_constants.V2SwapExactIn:
 		params := tf.Trade.JSONV2SwapExactInParams
 		paramsBigInt, err := params.ConvertToBigIntType()
 		if err != nil {
-			return tf, fmt.Errorf("error in binary search: %w", err)
+			return nil, fmt.Errorf("error in binary search: %w", err)
 		}
 		if tf.InitialPair == nil {
 			return tf, errors.New("initial pair is nil")
@@ -77,7 +77,7 @@ func BinarySearch(tf web3_client.TradeExecutionFlow) (web3_client.TradeExecution
 		if err != nil {
 			return tf, fmt.Errorf("error in binary search: %w", err)
 		}
-		return search, nil
+		return &search, nil
 	case artemis_trading_constants.V2SwapExactOut:
 		params := tf.Trade.JSONV2SwapExactOutParams
 		paramsBigInt, err := params.ConvertToBigIntType()
@@ -91,7 +91,7 @@ func BinarySearch(tf web3_client.TradeExecutionFlow) (web3_client.TradeExecution
 		if err != nil {
 			return tf, fmt.Errorf("error in binary search: %w", err)
 		}
-		return search, nil
+		return &search, nil
 	case artemis_trading_constants.SwapExactTokensForTokensSupportingFeeOnTransferTokens:
 		//params := tf.Trade.JSONSwapExactTokensForTokensSupportingFeeOnTransferTokensParams
 		//vals, err := params.ConvertToBigIntType()
@@ -155,7 +155,7 @@ func BinarySearch(tf web3_client.TradeExecutionFlow) (web3_client.TradeExecution
 		if err != nil {
 			return tf, fmt.Errorf("error in binary search: %w", err)
 		}
-		return search, nil
+		return &search, nil
 	case artemis_trading_constants.SwapExactTokensForETH:
 		//params := tf.Trade.JSONSwapExactTokensForETHParams
 		//if tf.InitialPair == nil {
@@ -196,9 +196,9 @@ func BinarySearch(tf web3_client.TradeExecutionFlow) (web3_client.TradeExecution
 		if err != nil {
 			return tf, fmt.Errorf("error in binary search: %w", err)
 		}
-		return search, nil
+		return &search, nil
 	default:
 		fmt.Println(tf.Trade.TradeMethod, "tradeMethod not supported for binary search historical analysis")
 	}
-	return web3_client.TradeExecutionFlow{}, errors.New("no trade params found")
+	return &web3_client.TradeExecutionFlow{}, errors.New("no trade params found")
 }

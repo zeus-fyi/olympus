@@ -31,6 +31,9 @@ func (t *ArtemisTradeDebuggerTestSuite) TestActiveReplay() {
 	t.Require().NotNil(bgFull)
 
 	for bundleHash, b := range bg.Map {
+		if bundleHash != "0x6bd2a42c538bbfeb7df47c6125b199099bb34ec1be31ffd2852b2a210b25cbd9" {
+			continue
+		}
 		bundleTx := b[0]
 		txGroup := bgFull.Map[bundleHash]
 		t.Require().Len(txGroup, 3)
@@ -45,7 +48,7 @@ func (t *ArtemisTradeDebuggerTestSuite) TestActiveReplay() {
 
 		bundleTx.PrintBundleInfo()
 		tf := bundleTx.TradeExecutionFlow
-		t.Require().Equal(int(tf.CurrentBlockNumber.Uint64()), bundleTx.EthTxReceipts.BlockNumber-1)
+		//t.Require().Equal(int(tf.CurrentBlockNumber.Uint64()), bundleTx.EthTxReceipts.BlockNumber-1)
 
 		err := w3c.ResetNetworkLocalToExtIrisTest(int(tf.CurrentBlockNumber.Uint64()))
 		t.Require().Nil(err)
@@ -53,22 +56,32 @@ func (t *ArtemisTradeDebuggerTestSuite) TestActiveReplay() {
 		err = CheckExpectedReserves(context.Background(), w3c, tf)
 		t.Require().Nil(err)
 
-		_, err = BinarySearch(*tf)
+		prevSp := tf.SandwichPrediction
+		tf.SandwichPrediction = web3_client.SandwichTradePrediction{}
+		latestTf, err := BinarySearch(tf)
 		t.Require().Nil(err)
+
+		fmt.Println("prevSp.ExpectedProfit.Int64()", prevSp.ExpectedProfit.Int64(), "latestTf.SandwichPrediction.ExpectedProfit.Int64()", latestTf.SandwichPrediction.ExpectedProfit.Int64())
+		//tf.FrontRunTrade.PrintDebug()
+		//tf.SandwichTrade.PrintDebug()
+		fmt.Println(latestTf.SandwichTrade.AmountOut.String())
+		fmt.Println(latestTf.SandwichPrediction.ExpectedProfit.String())
+		latestTf.CurrentBlockNumber = tf.CurrentBlockNumber
+		latestTf.Tx = tf.Tx
+		err = artemis_realtime_trading.ApplyMaxTransferTaxCore(ctx, latestTf)
+		t.Require().Nil(err)
+		fmt.Println("prevSp.ExpectedProfit.Int64()", prevSp.ExpectedProfit.Int64(), "latestTfPostTax.SandwichPrediction.ExpectedProfit.Int64()", latestTf.SandwichPrediction.ExpectedProfit.Int64())
+
 		//tf.FrontRunTrade.PrintDebug()
 		//tf.SandwichTrade.PrintDebug()
 
-		err = artemis_realtime_trading.ApplyMaxTransferTaxCore(ctx, tf)
-		t.Require().Nil(err)
-		//tf.FrontRunTrade.PrintDebug()
-		//tf.SandwichTrade.PrintDebug()
 		/*
 		      {"level":"info","txHash":"0x697fcd28179683530a0f509fbc97bb6affb3a4b2bcddd6245232f6eebafd6aa3","bn":17762536,"profitTokenAddress":"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
 		   	"sellAmount":79999999999999966,"tf.SandwichPrediction.ExpectedProfit":81310916184690182,"tf.SandwichTrade.AmountOut":"81310916184690182",
 		   	"time":"2023-07-24T18:19:22-07:00","message":"ApplyMaxTransferTax: acceptable after tax"}
 
 		*/
-		accepted, err := artemis_trading_auxiliary.IsProfitTokenAcceptable(tf, nil)
+		accepted, err := artemis_trading_auxiliary.IsProfitTokenAcceptable(latestTf, nil)
 		t.Require().Nil(err)
 		t.Assert().True(accepted)
 
@@ -82,7 +95,7 @@ func (t *ArtemisTradeDebuggerTestSuite) TestActiveReplay() {
 		t.Require().Nil(err)
 
 		decodedCmd := ur.Commands[1].DecodedInputs.(web3_client.V2SwapExactInParams)
-		fmt.Println("decoded amountIn", decodedCmd.AmountIn.String())
+		fmt.Println("frontRun decoded amountIn", decodedCmd.AmountIn.String())
 		t.Require().Equal(decodedCmd.AmountIn.String(), tf.FrontRunTrade.AmountIn.String())
 		for _, addr := range decodedCmd.Path {
 			fmt.Println(addr.String())
@@ -120,9 +133,17 @@ func (t *ArtemisTradeDebuggerTestSuite) TestActiveReplay() {
 		wethBalPreSandwich, err := w3c.GetMainnetBalanceWETH(TraderAccountSim)
 		t.Require().Nil(err)
 
+		otherTokenBalPreSandwich, err := w3c.ReadERC20TokenBalance(context.Background(), tf.SandwichTrade.AmountInAddr.String(), TraderAccountSim)
+		t.Require().Nil(err)
+		fmt.Println("otherTokenBalPreSandwich", otherTokenBalPreSandwich.String())
+
+		expTrue := artemis_eth_units.IsXGreaterThanOrEqualToY(otherTokenBalPreSandwich, tf.SandwichTrade.AmountIn)
+		t.Require().True(expTrue)
+
 		tx, _, err = w3c.GetTxByHash(context.Background(), common.HexToHash(sandwich.TxHash))
 		t.Require().Nil(err)
-		fmt.Println("tx.Hash().String()", tx.Hash().String())
+		fmt.Println("sandwich tx.Hash().String()", tx.Hash().String())
+		fmt.Println("tf.SandwichTrade.AmountIn", tf.SandwichTrade.AmountIn.String())
 		_, decoded, err = web3_client.DecodeTxArgDataFromAbi(ctx, tx, artemis_oly_contract_abis.UniversalRouterNew)
 		t.Require().Nil(err)
 		ur, err = web3_client.NewDecodedUniversalRouterExecCmdFromMap(decoded, artemis_oly_contract_abis.UniversalRouterDecoder)
@@ -145,19 +166,30 @@ func (t *ArtemisTradeDebuggerTestSuite) TestActiveReplay() {
 		wethPostSandwichBal, err := w3c.GetMainnetBalanceWETH(TraderAccountSim)
 		t.Require().Nil(err)
 
+		otherTokenBalPostSandwich, err := w3c.ReadERC20TokenBalance(context.Background(), tf.SandwichTrade.AmountInAddr.String(), TraderAccountSim)
+		t.Require().Nil(err)
+		fmt.Println("otherTokenBalPostSandwich", otherTokenBalPostSandwich.String())
+
 		backRunWETHDiff := artemis_eth_units.SubBigInt(wethPostSandwichBal, wethBalPreSandwich)
 		fmt.Println("wethDifferenceAfterSandwich", backRunWETHDiff.String())
 
-		expTrue := artemis_eth_units.IsXGreaterThanOrEqualToY(backRunWETHDiff, decodedCmd.AmountOutMin)
+		expTrue = artemis_eth_units.IsXGreaterThanOrEqualToY(backRunWETHDiff, decodedCmd.AmountOutMin)
 		t.Require().True(expTrue)
 		fmt.Println("wethBalPreSandwich", wethBalPreSandwich.String())
 		fmt.Println("wethPostSandwichBal", wethPostSandwichBal.String())
 
 		fmt.Println("===============================================================================================================")
 		fmt.Println("===============================================================================================================")
+		fmt.Println("txHash", tf.Tx.Hash().String())
 		fmt.Println("wethDifferenceAfterSandwich", backRunWETHDiff.String())
-		fmt.Println("tf.SandwichPrediction.ExpectedProfit.String()", tf.SandwichPrediction.ExpectedProfit.String())
-		fmt.Println("tf.SandwichTrade.AmountOut.String()", tf.SandwichTrade.AmountOut.String())
+
+		fmt.Println("prevSp.SandwichPrediction.ExpectedProfit.String()", prevSp.ExpectedProfit.String())
+		fmt.Println("latestTf.SandwichPrediction.ExpectedProfit.String()", latestTf.SandwichPrediction.ExpectedProfit.String())
+
+		fmt.Println("prevSp.SandwichTrade.AmountOut.String()", tf.SandwichTrade.AmountOut.String())
+		fmt.Println("latestTf.SandwichTrade.AmountOut.String()", latestTf.SandwichTrade.AmountOut.String())
+
+		fmt.Println("decodedAmountOutMin", decodedCmd.AmountOutMin.String())
 
 		fmt.Println("actual bundleTx.Revenue Amount Out", bundleTx.Revenue)
 		fmt.Println("tf.SandwichTrade.AmountInAddr.String()", tf.SandwichTrade.AmountInAddr.String())

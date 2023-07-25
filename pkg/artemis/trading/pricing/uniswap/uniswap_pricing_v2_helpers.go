@@ -36,21 +36,12 @@ func (p *UniswapV2Pair) GetOppositeToken(addr string) accounts.Address {
 }
 
 func (p *UniswapV2Pair) GetTokenNumber(addr accounts.Address) int {
-	if addr.String() == "0x0000000000000000000000000000000000000000" {
-		if p.Token0.String() == WETH.String() {
-			return 0
-		}
-		if p.Token1.String() == WETH.String() {
-			return 1
-		}
-	}
 	if p.Token0 == addr {
 		return 0
 	}
 	if p.Token1 == addr {
 		return 1
 	}
-	log.Warn().Msgf("GetTokenNumber: token not found: %s", addr)
 	return -1
 }
 

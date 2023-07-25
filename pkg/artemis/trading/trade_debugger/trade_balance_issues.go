@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/gochain/web3/accounts"
@@ -29,6 +30,10 @@ func CheckExpectedReserves(ctx context.Context, w3c web3_client.Web3Client, tf *
 	if err != nil {
 		log.Err(err).Msg("error getting pair contract prices")
 		return err
+	}
+	if strings.ToLower(tf.InitialPair.Token1.Hex()) < strings.ToLower(tf.InitialPair.Token0.Hex()) {
+		log.Err(err).Msg("token0 is not less than token1")
+		return errors.New("token0 is not less than token1")
 	}
 	if tf.InitialPair.Reserve1.String() != simPair.Reserve1.String() && tf.InitialPair.Reserve0.String() != simPair.Reserve0.String() {
 		fmt.Println("tf.InitialPair.Reserve0", tf.InitialPair.Reserve0.String(), simPair.Reserve0.String(), "simPair.Reserve0")

@@ -151,12 +151,6 @@ func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web
 	log.Info().Str("txHash", tf.Tx.Hash().String()).Str("tradeMethod", tf.Trade.TradeMethod).Interface("tf.FrontRunTrade", tf.FrontRunTrade).Msg("IsProfitTokenAcceptable: profit token is acceptable")
 	log.Info().Str("txHash", tf.Tx.Hash().String()).Str("tradeMethod", tf.Trade.TradeMethod).Interface("tf.UserTrade", tf.UserTrade).Msg("IsProfitTokenAcceptable: profit token is acceptable")
 	log.Info().Str("txHash", tf.Tx.Hash().String()).Str("tradeMethod", tf.Trade.TradeMethod).Interface("tf.SandwichTrade", tf.SandwichTrade).Msg("IsProfitTokenAcceptable: profit token is acceptable")
-	// ~$25
-	profitMin := artemis_eth_units.GweiMultiple(20000000)
-	if artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, profitMin) {
-		log.Warn().Interface("tf.SandwichPrediction.ExpectedProfit", tf.SandwichPrediction.ExpectedProfit).Interface("profitMarginMin", profitMin).Msg("ActiveTradingFilter: profit margin min")
-		return fmt.Errorf("dat: ActiveTradingFilter: profit margin min")
-	}
 
 	if artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, tf.FrontRunTrade.AmountIn) {
 		log.Warn().Interface("tf.SandwichPrediction.ExpectedProfit", tf.SandwichPrediction.ExpectedProfit).Interface(" tf.FrontRunTrade.AmountIn", tf.FrontRunTrade.AmountIn).Msg("ActiveTradingFilter: profit less than trade amount in")

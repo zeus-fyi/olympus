@@ -147,7 +147,11 @@ func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web
 		return err
 	}
 	if !ok {
+		log.Warn().Msg("IsProfitTokenAcceptable: ETH balance is not enough")
 		return errors.New("ETH balance is not enough")
+	}
+	if m != nil {
+		m.StageProgressionMetrics.CountCheckpointTwoMarker()
 	}
 	log.Info().Str("txHash", tf.Tx.Hash().String()).Str("tradeMethod", tf.Trade.TradeMethod).Interface("tf.FrontRunTrade.AmountInAddr.String()", tf.FrontRunTrade.AmountInAddr.String()).Interface("tf.FrontRunTrade.AmountIn", tf.FrontRunTrade.AmountIn.String()).Interface("tf.FrontRunTrade.AmountOutAddr", tf.FrontRunTrade.AmountOutAddr.String()).Msg("IsProfitTokenAcceptable: profit token is acceptable")
 	log.Info().Str("txHash", tf.Tx.Hash().String()).Str("tradeMethod", tf.Trade.TradeMethod).Interface("tf.FrontRunTrade", tf.FrontRunTrade).Msg("IsProfitTokenAcceptable: profit token is acceptable")

@@ -20,7 +20,7 @@ type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
 func (a *ArtemisApiRequestsActivities) GetActivities() ActivitiesSlice {
-	return []interface{}{a.RelayRequest, a.InternalSvcRelayRequest}
+	return []interface{}{a.RelayRequest, a.InternalSvcRelayRequest, a.ExtLoadBalancerRequest}
 }
 
 func (a *ArtemisApiRequestsActivities) RelayRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
@@ -54,6 +54,21 @@ func (a *ArtemisApiRequestsActivities) InternalSvcRelayRequest(ctx context.Conte
 	}
 	if resp.StatusCode() >= 400 {
 		log.Err(err).Interface("statusCode", resp.StatusCode()).Msg("Failed to relay api request")
+		return nil, fmt.Errorf("failed to relay api request: status code %d", resp.StatusCode())
+	}
+	return pr, err
+}
+
+func (a *ArtemisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
+	r := resty.New()
+	r.SetBaseURL(pr.Url)
+	resp, err := r.R().SetBody(&pr.Payload).SetResult(&pr.Response).Post(pr.Url)
+	if err != nil {
+		log.Err(err).Msg("Failed to relay api request")
+		return nil, err
+	}
+	if resp.StatusCode() >= 400 {
+		log.Err(err).Msg("Failed to relay api request")
 		return nil, fmt.Errorf("failed to relay api request: status code %d", resp.StatusCode())
 	}
 	return pr, err

@@ -26,6 +26,16 @@ type JSONSwapETHForExactTokensParams struct {
 	Value     string             `json:"value"`
 }
 
+func (s *JSONSwapETHForExactTokensParams) ConvertToBigIntType() *SwapETHForExactTokensParams {
+	return &SwapETHForExactTokensParams{
+		AmountOut: artemis_eth_units.NewBigIntFromStr(s.AmountOut),
+		Path:      s.Path,
+		To:        s.To,
+		Deadline:  artemis_eth_units.NewBigIntFromStr(s.Deadline),
+		Value:     artemis_eth_units.NewBigIntFromStr(s.Value),
+	}
+}
+
 func (s *SwapETHForExactTokensParams) ConvertToJSONType() *JSONSwapETHForExactTokensParams {
 	return &JSONSwapETHForExactTokensParams{
 		AmountOut: s.AmountOut.String(),

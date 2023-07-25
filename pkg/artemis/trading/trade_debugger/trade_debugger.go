@@ -62,20 +62,18 @@ type EthMempoolMevTx struct {
 func (h *HistoricalAnalysisDebug) GetBlockNumber() int {
 	return h.HistoricalAnalysis.BlockNumber
 }
-
 func BinarySearch(tf web3_client.TradeExecutionFlow) (web3_client.TradeExecutionFlow, error) {
-	v := tf.Trade.TradeMethod
 	switch tf.Trade.TradeMethod {
 	case artemis_trading_constants.V2SwapExactIn:
 		params := tf.Trade.JSONV2SwapExactInParams
-		vals, err := params.ConvertToBigIntType()
+		paramsBigInt, err := params.ConvertToBigIntType()
 		if err != nil {
 			return tf, fmt.Errorf("error in binary search: %w", err)
 		}
 		if tf.InitialPair == nil {
 			return tf, errors.New("initial pair is nil")
 		}
-		search, err := vals.BinarySearch(*tf.InitialPair)
+		search, err := paramsBigInt.BinarySearch(*tf.InitialPair)
 		if err != nil {
 			return tf, fmt.Errorf("error in binary search: %w", err)
 		}
@@ -174,17 +172,18 @@ func BinarySearch(tf web3_client.TradeExecutionFlow) (web3_client.TradeExecution
 		//}
 		//return search, nil
 	case artemis_trading_constants.SwapETHForExactTokens:
-		//params := tf.Trade.JSONSwapETHForExactTokensParams
-		//if tf.InitialPair == nil {
-		//	return tf, errors.New("initial pair is nil")
-		//}
-		//search, err := params.BinarySearch(*tf.InitialPair)
-		//if err != nil {
-		//	return tf, fmt.Errorf("error in binary search: %w", err)
-		//}
-		//return search, nil
+		params := tf.Trade.JSONSwapETHForExactTokensParams
+		if tf.InitialPair == nil {
+			return tf, errors.New("initial pair is nil")
+		}
+		paramsBigInt := params.ConvertToBigIntType()
+		search, err := paramsBigInt.BinarySearch(*tf.InitialPair)
+		if err != nil {
+			return tf, fmt.Errorf("error in binary search: %w", err)
+		}
+		return search, nil
 	default:
-		fmt.Println(v)
+		fmt.Println(tf.Trade.TradeMethod, "tradeMethod not supported for binary search historical analysis")
 	}
 	return web3_client.TradeExecutionFlow{}, errors.New("no trade params found")
 }

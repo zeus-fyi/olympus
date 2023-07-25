@@ -78,6 +78,20 @@ func BinarySearch(tf web3_client.TradeExecutionFlow) (web3_client.TradeExecution
 			return tf, fmt.Errorf("error in binary search: %w", err)
 		}
 		return search, nil
+	case artemis_trading_constants.V2SwapExactOut:
+		params := tf.Trade.JSONV2SwapExactOutParams
+		paramsBigInt, err := params.ConvertToBigIntType()
+		if err != nil {
+			return tf, fmt.Errorf("error in binary search: %w", err)
+		}
+		if tf.InitialPair == nil {
+			return tf, errors.New("initial pair is nil")
+		}
+		search, err := paramsBigInt.BinarySearch(*tf.InitialPair)
+		if err != nil {
+			return tf, fmt.Errorf("error in binary search: %w", err)
+		}
+		return search, nil
 	case artemis_trading_constants.SwapExactTokensForTokensSupportingFeeOnTransferTokens:
 		//params := tf.Trade.JSONSwapExactTokensForTokensSupportingFeeOnTransferTokensParams
 		//vals, err := params.ConvertToBigIntType()

@@ -50,14 +50,15 @@ func (b *Bundle) PrintBundleInfo() {
 	fmt.Println("bundleTx.BundleHash", b.BundleHash)
 	fmt.Println("===============================================================================================================")
 	fmt.Println("bundleTx.EthTx.TxHash", b.EthTx.TxHash)
-	fmt.Println("bundleTx.EthTxReceipts.EffectiveGasPrice", b.EffectiveGasPrice)
 	fmt.Println("bundleTx.EthTxGas.GasTipCap", b.EthTxGas.GasTipCap)
 	fmt.Println("bundleTx.EthTxGas.GasFeeCap", b.EthTxGas.GasFeeCap)
 	fmt.Println("bundleTx.EthTxGas.GasLimit", b.EthTxGas.GasLimit)
+	fmt.Println("bundleTx.EthTxReceipts.EffectiveGasPrice", b.EffectiveGasPrice)
+	fmt.Println("bundleTx.EthTxReceipts.BlockNumberRx", b.EthTxReceipts.BlockNumber)
 
 	if b.TradeExecutionFlow != nil {
-		fmt.Println("bundleTx.TradeExecutionFlow.Trade.TradeMethod", b.TradeExecutionFlow.Trade.TradeMethod)
 		fmt.Println("bundleTx.TradeExecutionFlow.CurrentBlockNumber", b.TradeExecutionFlow.CurrentBlockNumber)
+		fmt.Println("bundleTx.TradeExecutionFlow.Trade.TradeMethod", b.TradeExecutionFlow.Trade.TradeMethod)
 		fmt.Println("bundleTx.TradeExecutionFlow.FrontRunTrade.AmountIn", b.TradeExecutionFlow.FrontRunTrade.AmountIn.String())
 		fmt.Println("bundleTx.TradeExecutionFlow.SandwichPrediction.SellAmount", b.TradeExecutionFlow.SandwichPrediction.SellAmount)
 		fmt.Println("bundleTx.TradeExecutionFlow.SandwichPrediction.ExpectedProfit", b.TradeExecutionFlow.SandwichPrediction.ExpectedProfit)

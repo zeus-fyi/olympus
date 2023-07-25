@@ -10,6 +10,7 @@ import (
 	artemis_eth_units "github.com/zeus-fyi/olympus/pkg/artemis/trading/lib/units"
 	artemis_reporting "github.com/zeus-fyi/olympus/pkg/artemis/trading/reporting"
 	"github.com/zeus-fyi/olympus/pkg/artemis/web3_client"
+	artemis_oly_contract_abis "github.com/zeus-fyi/olympus/pkg/artemis/web3_client/contract_abis"
 )
 
 const (
@@ -44,6 +45,8 @@ func (t *ArtemisTradeDebuggerTestSuite) TestActiveReplay() {
 
 		bundleTx.PrintBundleInfo()
 		tf := bundleTx.TradeExecutionFlow
+		t.Require().Equal(int(tf.CurrentBlockNumber.Uint64()), bundleTx.EthTxReceipts.BlockNumber-1)
+
 		err := w3c.ResetNetworkLocalToExtIrisTest(int(tf.CurrentBlockNumber.Uint64()))
 		t.Require().Nil(err)
 		t.Require().NotNil(tf)
@@ -73,6 +76,19 @@ func (t *ArtemisTradeDebuggerTestSuite) TestActiveReplay() {
 		fmt.Println("===============================================================================================================")
 		tx, _, err := w3c.GetTxByHash(context.Background(), common.HexToHash(fr.TxHash))
 		t.Require().Nil(err)
+		_, decoded, err := web3_client.DecodeTxArgDataFromAbi(ctx, tx, artemis_oly_contract_abis.UniversalRouterNew)
+		t.Require().Nil(err)
+		ur, err := web3_client.NewDecodedUniversalRouterExecCmdFromMap(decoded, artemis_oly_contract_abis.UniversalRouterDecoder)
+		t.Require().Nil(err)
+
+		decodedCmd := ur.Commands[1].DecodedInputs.(web3_client.V2SwapExactInParams)
+		fmt.Println("decoded amountIn", decodedCmd.AmountIn.String())
+		t.Require().Equal(decodedCmd.AmountIn.String(), tf.FrontRunTrade.AmountIn.String())
+		for _, addr := range decodedCmd.Path {
+			fmt.Println(addr.String())
+		}
+		fmt.Println("payerIsSender", decodedCmd.PayerIsSender)
+		fmt.Println("to", decodedCmd.To.String())
 
 		wethBalStart, err := w3c.GetMainnetBalanceWETH(TraderAccountSim)
 		t.Require().Nil(err)
@@ -107,6 +123,22 @@ func (t *ArtemisTradeDebuggerTestSuite) TestActiveReplay() {
 		tx, _, err = w3c.GetTxByHash(context.Background(), common.HexToHash(sandwich.TxHash))
 		t.Require().Nil(err)
 
+		_, decoded, err = web3_client.DecodeTxArgDataFromAbi(ctx, tx, artemis_oly_contract_abis.UniversalRouterNew)
+		t.Require().Nil(err)
+		ur, err = web3_client.NewDecodedUniversalRouterExecCmdFromMap(decoded, artemis_oly_contract_abis.UniversalRouterDecoder)
+		t.Require().Nil(err)
+		t.Require().NotNil(ur)
+		decodedCmd = ur.Commands[1].DecodedInputs.(web3_client.V2SwapExactInParams)
+		fmt.Println("decodedBackRunAmountIn", decodedCmd.AmountIn.String())
+		fmt.Println("decodedAmountOutMin", decodedCmd.AmountOutMin.String())
+		fmt.Println("payerIsSender", decodedCmd.PayerIsSender)
+		fmt.Println("to", decodedCmd.To.String())
+
+		t.Require().Equal(decodedCmd.To.String(), TraderAccountSim)
+
+		for _, addr := range decodedCmd.Path {
+			fmt.Println(addr.String())
+		}
 		err = w3c.SendSignedTransaction(ctx, tx)
 		t.Require().Nil(err)
 

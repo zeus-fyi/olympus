@@ -137,9 +137,7 @@ func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web
 		log.Warn().Msg("IsProfitTokenAcceptable: ETH balance is not enough")
 		return errors.New("IsProfitTokenAcceptable: ETH balance is not enough")
 	}
-	if m != nil {
-		m.StageProgressionMetrics.CountCheckpointTwoMarker()
-	}
+
 	ok, err = artemis_trading_auxiliary.CheckMainnetAuxWETHBalanceGreaterThan(context.Background(), w3c, artemis_trading_auxiliary.MaxTradeSize())
 	if err != nil {
 		log.Warn().Err(err).Msg("IsProfitTokenAcceptable: could not check aux weth balance")
@@ -147,8 +145,8 @@ func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web
 		return err
 	}
 	if !ok {
-		log.Warn().Msg("IsProfitTokenAcceptable: ETH balance is not enough")
-		return errors.New("ETH balance is not enough")
+		log.Warn().Msg("IsProfitTokenAcceptable: WETH balance is not enough")
+		return errors.New("IsProfitTokenAcceptable: WETH balance is not enough")
 	}
 	if m != nil {
 		m.StageProgressionMetrics.CountCheckpointTwoMarker()

@@ -103,9 +103,9 @@ func (t *ArtemisAuxillaryTestSuite) TestMainnetPermitAllowance() {
 	w3aMainnet := web3_client.NewWeb3Client(t.mainnetNode, &t.acc3)
 	atMainnet := InitAuxiliaryTradingUtils(ctx, w3aMainnet)
 
-	addr := "0x285DB79fa7e0e89E822786F48A7c98C6c1dC1c7d"
+	addr := "0xaaeE1A9723aaDB7afA2810263653A34bA2C21C7a"
 
-	allowance, aerr := w3aMainnet.ReadERC20Allowance(ctx, "0x285DB79fa7e0e89E822786F48A7c98C6c1dC1c7d", t.acc3.Address().String(), artemis_trading_constants.Permit2SmartContractAddress)
+	allowance, aerr := w3aMainnet.ReadERC20Allowance(ctx, addr, t.acc3.Address().String(), artemis_trading_constants.Permit2SmartContractAddress)
 	t.Require().Nil(aerr)
 	fmt.Println("allowance", allowance.String())
 

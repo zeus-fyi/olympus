@@ -104,14 +104,15 @@ func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web
 		return err
 	}
 	if !acceptable {
+		log.Warn().Str("tf.Tx.Hash", tf.Tx.Hash().String()).Interface("tf.SandwichPrediction", tf.SandwichPrediction).Msg("ActiveTradingFilter: profit token not acceptable")
 		return errors.New("ActiveTradingFilter: profit token not acceptable")
 	}
 
-	// 0.012 eth ~$22
-	okProfitAmount := artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, artemis_eth_units.GweiMultiple(12000000))
+	// 0.010 eth ~$22
+	okProfitAmount := artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, artemis_eth_units.GweiMultiple(5000000))
 	if okProfitAmount {
 		log.Warn().Str("tf.Tx.Hash", tf.Tx.Hash().String()).Interface("tf.SandwichPrediction", tf.SandwichPrediction).Msg("ActiveTradingFilter: SandwichPrediction profit amount not sufficient")
-		return errors.New("tf.SandwichPrediction: one of the trade amountsIn or amountsOut is zero")
+		return errors.New("ActiveTradingFilter: SandwichPrediction profit amount not sufficient")
 	}
 
 	if artemis_eth_units.IsXGreaterThanY(tf.FrontRunTrade.AmountIn, artemis_trading_auxiliary.MaxTradeSize()) {
@@ -164,10 +165,6 @@ func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web
 	//if !ok {
 	//	return fmt.Errorf("dat: ActiveTradingFilter: trading not enabled for token")
 	//}
-	log.Info().Interface("tf.FrontRunTrade", tf.FrontRunTrade).Msg("ActiveTradingFilter: passed")
-	log.Info().Interface("tf.UserTrade", tf.UserTrade).Msg("ActiveTradingFilter: passed")
-	log.Info().Interface("tf.SandwichTrade", tf.SandwichTrade).Msg("ActiveTradingFilter: passed")
-	log.Info().Interface("tf.Tx.Hash", tf.Tx.Hash()).Msg("ActiveTradingFilter: passed")
 
 	return nil
 }

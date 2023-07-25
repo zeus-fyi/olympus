@@ -109,7 +109,7 @@ func ActiveTradingFilter(ctx context.Context, w3c web3_client.Web3Client, tf web
 	}
 
 	// 0.010 eth ~$22
-	okProfitAmount := artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, artemis_eth_units.GweiMultiple(10000000))
+	okProfitAmount := artemis_eth_units.IsXLessThanY(tf.SandwichPrediction.ExpectedProfit, artemis_eth_units.GweiMultiple(5000000))
 	if okProfitAmount {
 		log.Warn().Str("tf.Tx.Hash", tf.Tx.Hash().String()).Interface("tf.SandwichPrediction", tf.SandwichPrediction).Msg("ActiveTradingFilter: SandwichPrediction profit amount not sufficient")
 		return errors.New("ActiveTradingFilter: SandwichPrediction profit amount not sufficient")

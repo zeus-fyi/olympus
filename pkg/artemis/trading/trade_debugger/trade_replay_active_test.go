@@ -17,8 +17,6 @@ const (
 	TraderAccountSim = "0x000000641e80A183c8B736141cbE313E136bc8c6"
 )
 
-//w3cArchive := web3_client.NewWeb3ClientFakeSigner("https://eth-mainnet.g.alchemy.com/v2/cdVqiD1oZGvBiNEU8rDYt5kb6Q24nBMB")
-
 func (t *ArtemisTradeDebuggerTestSuite) TestActiveReplay() {
 	bg, berr := artemis_reporting.GetBundlesProfitHistory(ctx, 0, 1)
 	t.Require().Nil(berr)

@@ -13,7 +13,7 @@ If responding with error, please be sure to use a non-200 HTTP status code.
 */
 
 type ProvisionRequest struct {
-	QuicknodeID       string        `json:"quicknode-id"`
+	QuickNodeID       string        `json:"quicknode-id"`
 	EndpointID        string        `json:"endpoint-id"`
 	WssUrl            string        `json:"wss-url"`
 	HttpUrl           string        `json:"http-url"`
@@ -35,7 +35,7 @@ type UpdateResponse struct {
 }
 
 type DeactivateRequest struct {
-	QuicknodeID  string `json:"quicknode-id"`
+	QuickNodeID  string `json:"quicknode-id"`
 	EndpointID   string `json:"endpoint-id"`
 	DeactivateAt int64  `json:"deactivate-at"`
 	Chain        string `json:"chain"`
@@ -43,7 +43,7 @@ type DeactivateRequest struct {
 }
 
 type DeprovisionRequest struct {
-	QuicknodeID   string `json:"quicknode-id"`
+	QuickNodeID   string `json:"quicknode-id"`
 	EndpointID    string `json:"endpoint-id"`
 	DeprovisionAt int64  `json:"deprovision-at"`
 }

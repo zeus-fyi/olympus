@@ -44,11 +44,18 @@ func (s *QuickNodeProvisioningTestSuite) TestInsertProvisionedService() {
 	}
 
 	ps := QuickNodeService{
-		ProvisionedQuickNodeServices:                       psBase,
-		ProvisionedQuicknodeServicesContractAddressesSlice: nil,
-		ProvisionedQuicknodeServicesReferersSlice:          nil,
+		ProvisionedQuickNodeServices: psBase,
 	}
 	err := InsertProvisionedQuickNodeService(ctx, ps)
+	s.Require().Nil(err)
+
+	// UPDATES now with referrers
+	ps.ProvisionedQuicknodeServicesReferers = hestia_autogen_bases.ProvisionedQuicknodeServicesReferersSlice{
+		{
+			Referer: "https://google.com",
+		},
+	}
+	err = InsertProvisionedQuickNodeService(ctx, ps)
 	s.Require().Nil(err)
 }
 

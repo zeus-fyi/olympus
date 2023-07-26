@@ -14,8 +14,8 @@ import (
 
 type QuickNodeService struct {
 	hestia_autogen_bases.ProvisionedQuickNodeServices
-	hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddressesSlice
-	hestia_autogen_bases.ProvisionedQuicknodeServicesReferersSlice
+	ProvisionedQuicknodeServicesContractAddresses []hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddresses
+	ProvisionedQuicknodeServicesReferers          []hestia_autogen_bases.ProvisionedQuicknodeServicesReferers
 }
 
 /*
@@ -78,29 +78,38 @@ func InsertProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 					  org_id = EXCLUDED.org_id,
 					  wss_url = EXCLUDED.wss_url,
 					  chain = EXCLUDED.chain
-					  RETURNING quicknode_id
+					  RETURNING quicknode_id, endpoint_id
 				  ), cte_unnest_ca AS (
 					  SELECT column1 AS contract_address
  					  FROM UNNEST($10::text[]) AS column1
 				  ), cte_insert_contract_addresses AS (
-					  INSERT INTO provisioned_quicknode_services_contract_addresses(quicknode_id, contract_address)
-					  SELECT cte_insert_service.quicknode_id, cte_unnest_ca.contract_address
+					  INSERT INTO provisioned_quicknode_services_contract_addresses(quicknode_id, endpoint_id, contract_address)
+					  SELECT cte_insert_service.quicknode_id, cte_insert_service.endpoint_id, cte_unnest_ca.contract_address
 					  FROM cte_insert_service, cte_unnest_ca
 				  ), cte_unnest_ref AS (
 					  SELECT column1 AS referer
  					  FROM UNNEST($11::text[]) AS column1
 				  ), cte_insert_referers AS (
-					  INSERT INTO provisioned_quicknode_services_referers(quicknode_id, referer)
-					  SELECT cte_insert_service.quicknode_id, cte_unnest_ref.referer
+					  INSERT INTO provisioned_quicknode_services_referers(quicknode_id, endpoint_id, referer)
+					  SELECT cte_insert_service.quicknode_id, cte_insert_service.endpoint_id, cte_unnest_ref.referer
 					  FROM cte_insert_service, cte_unnest_ref
 				  ) SELECT quicknode_id FROM cte_insert_service;`
+
+	cas := make([]string, len(ps.ProvisionedQuicknodeServicesContractAddresses))
+	for _, ca := range ps.ProvisionedQuicknodeServicesContractAddresses {
+		cas = append(cas, ca.ContractAddress)
+	}
+	refs := make([]string, len(ps.ProvisionedQuicknodeServicesReferers))
+	for _, ref := range ps.ProvisionedQuicknodeServicesReferers {
+		refs = append(refs, ref.Referer)
+	}
 	result, err := apps.Pg.Exec(ctx, q.RawQuery, ps.QuickNodeID, ps.EndpointID, ps.HttpURL, ps.Network, ps.Plan, ps.Active, ps.OrgID, ps.WssURL, ps.Chain,
-		pq.Array(ps.ProvisionedQuicknodeServicesContractAddressesSlice), pq.Array(ps.ProvisionedQuicknodeServicesReferersSlice))
+		pq.Array(cas), pq.Array(refs))
 	if err != nil {
 		// Log the error here using ZeroLog
 		log.Error().Err(err).Msg("failed to execute query")
 	} else {
-		log.Info().Msg("Query executed successfully.")
+		log.Info().Msg("query executed successfully.")
 		// You can inspect result here
 		rowsAffected := result.RowsAffected()
 		log.Info().Int("rows_affected", int(rowsAffected)).Msg("number of rows affected")

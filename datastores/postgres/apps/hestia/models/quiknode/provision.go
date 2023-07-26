@@ -79,6 +79,9 @@ func InsertProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 					  wss_url = EXCLUDED.wss_url,
 					  chain = EXCLUDED.chain
 					  RETURNING quicknode_id, endpoint_id
+				  ), cte_delete_ca AS (
+					  DELETE FROM provisioned_quicknode_services_contract_addresses
+					  WHERE quicknode_id = (SELECT quicknode_id FROM cte_insert_service)
 				  ), cte_unnest_ca AS (
 					  SELECT column1 AS contract_address
  					  FROM UNNEST($10::text[]) AS column1
@@ -86,6 +89,10 @@ func InsertProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 					  INSERT INTO provisioned_quicknode_services_contract_addresses(quicknode_id, endpoint_id, contract_address)
 					  SELECT cte_insert_service.quicknode_id, cte_insert_service.endpoint_id, cte_unnest_ca.contract_address
 					  FROM cte_insert_service, cte_unnest_ca
+					  WHERE cte_unnest_ca.contract_address IS NOT NULL AND cte_unnest_ca.contract_address != ''
+				  ), cte_delete_ref AS (
+					  DELETE FROM provisioned_quicknode_services_referers
+					  WHERE quicknode_id = (SELECT quicknode_id FROM cte_insert_service)
 				  ), cte_unnest_ref AS (
 					  SELECT column1 AS referer
  					  FROM UNNEST($11::text[]) AS column1
@@ -93,8 +100,8 @@ func InsertProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 					  INSERT INTO provisioned_quicknode_services_referers(quicknode_id, endpoint_id, referer)
 					  SELECT cte_insert_service.quicknode_id, cte_insert_service.endpoint_id, cte_unnest_ref.referer
 					  FROM cte_insert_service, cte_unnest_ref
+					  WHERE cte_unnest_ref.referer IS NOT NULL AND cte_unnest_ref.referer != ''
 				  ) SELECT quicknode_id FROM cte_insert_service;`
-
 	cas := make([]string, len(ps.ProvisionedQuicknodeServicesContractAddresses))
 	for _, ca := range ps.ProvisionedQuicknodeServicesContractAddresses {
 		cas = append(cas, ca.ContractAddress)
@@ -117,15 +124,47 @@ func InsertProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 	return misc.ReturnIfErr(err, q.LogHeader("InsertProvisionedQuickNodeService"))
 }
 
-func UpdateProvisionedQuickNodeService(ctx context.Context, ps hestia_autogen_bases.ProvisionedQuickNodeServices) error {
+func UpdateProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService) error {
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `UPDATE provisioned_quicknode_services
-    			  SET endpoint_id = $1, http_url = $2, network = $3, plan = $4, wss_url = $5, chain = $6
-				  WHERE org_id = $1 AND quicknode_id = $2
-			      RETURNING quicknode_id;
-				  `
+	q.RawQuery = `WITH cte_insert_service AS (
+					  UPDATE provisioned_quicknode_services
+					  SET http_url = $4, wss_url = $5, plan = $6
+					  WHERE org_id = $1 AND quicknode_id = $2 AND endpoint_id = $3
+					  RETURNING quicknode_id, endpoint_id
+				  ), cte_delete_ca AS (
+					  DELETE FROM provisioned_quicknode_services_contract_addresses
+					  WHERE quicknode_id = (SELECT quicknode_id FROM cte_insert_service)
+				  ), cte_unnest_ca AS (
+					  SELECT column1 AS contract_address
+ 					  FROM UNNEST($7::text[]) AS column1
+				  ), cte_insert_contract_addresses AS (
+					  INSERT INTO provisioned_quicknode_services_contract_addresses(quicknode_id, endpoint_id, contract_address)
+					  SELECT cte_insert_service.quicknode_id, cte_insert_service.endpoint_id, cte_unnest_ca.contract_address
+					  FROM cte_insert_service, cte_unnest_ca
+					  WHERE cte_unnest_ca.contract_address IS NOT NULL AND cte_unnest_ca.contract_address != ''
+				  ), cte_delete_ref AS (
+					  DELETE FROM provisioned_quicknode_services_referers
+					  WHERE quicknode_id = (SELECT quicknode_id FROM cte_insert_service)
+				  ), cte_unnest_ref AS (
+					  SELECT column1 AS referer
+ 					  FROM UNNEST($8::text[]) AS column1
+				  ), cte_insert_referers AS (
+					  INSERT INTO provisioned_quicknode_services_referers(quicknode_id, endpoint_id, referer)
+					  SELECT cte_insert_service.quicknode_id, cte_insert_service.endpoint_id, cte_unnest_ref.referer
+					  FROM cte_insert_service, cte_unnest_ref
+					  WHERE cte_unnest_ref.referer IS NOT NULL AND cte_unnest_ref.referer != ''
+				  ) SELECT quicknode_id FROM cte_insert_service;`
+	cas := make([]string, len(ps.ProvisionedQuicknodeServicesContractAddresses))
+	for _, ca := range ps.ProvisionedQuicknodeServicesContractAddresses {
+		cas = append(cas, ca.ContractAddress)
+	}
+	refs := make([]string, len(ps.ProvisionedQuicknodeServicesReferers))
+	for _, ref := range ps.ProvisionedQuicknodeServicesReferers {
+		refs = append(refs, ref.Referer)
+	}
 	qnID := ""
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ps.OrgID, ps.EndpointID, ps.HttpURL, ps.Network, ps.Plan, ps.WssURL, ps.Chain).Scan(&qnID)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ps.OrgID, ps.QuickNodeID, ps.EndpointID, ps.HttpURL, ps.WssURL, ps.Plan,
+		pq.Array(cas), pq.Array(refs)).Scan(&qnID)
 	if err != nil {
 		return err
 	}

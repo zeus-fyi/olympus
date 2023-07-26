@@ -28,7 +28,7 @@ func (h *HestiaQuicknodeActivities) GetActivities() ActivitiesSlice {
 }
 
 func (h *HestiaQuicknodeActivities) Provision(ctx context.Context, pr hestia_quicknode.ProvisionRequest, ou org_users.OrgUser) error {
-	ps := hestia_autogen_bases.ProvisionedQuicknodeServices{
+	ps := hestia_autogen_bases.ProvisionedQuickNodeServices{
 		QuickNodeID: pr.QuickNodeID,
 		EndpointID:  pr.EndpointID,
 		HttpURL: sql.NullString{
@@ -57,7 +57,7 @@ func (h *HestiaQuicknodeActivities) Provision(ctx context.Context, pr hestia_qui
 }
 
 func (h *HestiaQuicknodeActivities) UpdateProvision(ctx context.Context, pr hestia_quicknode.ProvisionRequest, ou org_users.OrgUser) error {
-	ps := hestia_autogen_bases.ProvisionedQuicknodeServices{
+	ps := hestia_autogen_bases.ProvisionedQuickNodeServices{
 		QuickNodeID: pr.QuickNodeID,
 		EndpointID:  pr.EndpointID,
 		HttpURL: sql.NullString{

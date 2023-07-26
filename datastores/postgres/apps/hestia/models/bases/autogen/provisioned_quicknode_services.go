@@ -7,7 +7,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 )
 
-type ProvisionedQuicknodeServices struct {
+type ProvisionedQuickNodeServices struct {
 	CreatedAt   time.Time      `db:"created_at" json:"createdAt"`
 	UpdatedAt   time.Time      `db:"updated_at" json:"updatedAt"`
 	QuickNodeID string         `db:"quicknode_id" json:"quicknodeID"`
@@ -20,9 +20,9 @@ type ProvisionedQuicknodeServices struct {
 	WssURL      sql.NullString `db:"wss_url" json:"wssUrl"`
 	Chain       sql.NullString `db:"chain" json:"chain"`
 }
-type ProvisionedQuicknodeServicesSlice []ProvisionedQuicknodeServices
+type ProvisionedQuicknodeServicesSlice []ProvisionedQuickNodeServices
 
-func (p *ProvisionedQuicknodeServices) GetRowValues(queryName string) apps.RowValues {
+func (p *ProvisionedQuickNodeServices) GetRowValues(queryName string) apps.RowValues {
 	pgValues := apps.RowValues{}
 	switch queryName {
 	default:
@@ -30,11 +30,11 @@ func (p *ProvisionedQuicknodeServices) GetRowValues(queryName string) apps.RowVa
 	}
 	return pgValues
 }
-func (p *ProvisionedQuicknodeServices) GetTableColumns() (columnValues []string) {
+func (p *ProvisionedQuickNodeServices) GetTableColumns() (columnValues []string) {
 	columnValues = []string{"created_at", "updated_at", "quicknode_id", "endpoint_id", "http_url", "network", "plan", "active", "org_id", "wss_url", "chain"}
 	return columnValues
 }
-func (p *ProvisionedQuicknodeServices) GetTableName() (tableName string) {
+func (p *ProvisionedQuickNodeServices) GetTableName() (tableName string) {
 	tableName = "provisioned_quicknode_services"
 	return tableName
 }

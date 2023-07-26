@@ -53,7 +53,8 @@ func InitV1RoutesServices(e *echo.Echo) {
 	}))
 
 	eg.POST("/provision", ProvisionRequestHandler)
+	// Deprovisioning is assumed to be POST
 	eg.POST("/deprovision", DeprovisionRequestHandler)
-	eg.POST("/deactivate", DeactivateRequestHandler)
-	eg.POST("/update", ProvisionRequestHandler)
+	eg.DELETE("/deactivate", DeactivateRequestHandler)
+	eg.PUT("/update", ProvisionRequestHandler)
 }

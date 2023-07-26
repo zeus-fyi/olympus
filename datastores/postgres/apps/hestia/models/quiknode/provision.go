@@ -27,7 +27,7 @@ func InsertProvisionedQuickNodeService(ctx context.Context, ps hestia_autogen_ba
 				  wss_url = EXCLUDED.wss_url,
 				  chain = EXCLUDED.chain;`
 
-	_, err := apps.Pg.Exec(ctx, q.RawQuery, ps.QuicknodeID, ps.EndpointID, ps.HttpURL, ps.Network, ps.Plan, ps.Active, ps.OrgID, ps.WssURL, ps.Chain)
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, ps.QuickNodeID, ps.EndpointID, ps.HttpURL, ps.Network, ps.Plan, ps.Active, ps.OrgID, ps.WssURL, ps.Chain)
 	if err == pgx.ErrNoRows {
 		return err
 	}

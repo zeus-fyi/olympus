@@ -10,7 +10,7 @@ import (
 type ProvisionedQuicknodeServices struct {
 	CreatedAt   time.Time      `db:"created_at" json:"createdAt"`
 	UpdatedAt   time.Time      `db:"updated_at" json:"updatedAt"`
-	QuicknodeID string         `db:"quicknode_id" json:"quicknodeID"`
+	QuickNodeID string         `db:"quicknode_id" json:"quicknodeID"`
 	EndpointID  string         `db:"endpoint_id" json:"endpointID"`
 	HttpURL     sql.NullString `db:"http_url" json:"httpUrl"`
 	Network     sql.NullString `db:"network" json:"network"`
@@ -26,7 +26,7 @@ func (p *ProvisionedQuicknodeServices) GetRowValues(queryName string) apps.RowVa
 	pgValues := apps.RowValues{}
 	switch queryName {
 	default:
-		pgValues = apps.RowValues{p.CreatedAt, p.UpdatedAt, p.QuicknodeID, p.EndpointID, p.HttpURL, p.Network, p.Plan, p.Active, p.OrgID, p.WssURL, p.Chain}
+		pgValues = apps.RowValues{p.CreatedAt, p.UpdatedAt, p.QuickNodeID, p.EndpointID, p.HttpURL, p.Network, p.Plan, p.Active, p.OrgID, p.WssURL, p.Chain}
 	}
 	return pgValues
 }

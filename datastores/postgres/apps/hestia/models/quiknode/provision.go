@@ -7,7 +7,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
@@ -18,59 +17,13 @@ type QuickNodeService struct {
 	ProvisionedQuicknodeServicesReferers          []hestia_autogen_bases.ProvisionedQuicknodeServicesReferers
 }
 
-/*
-	func FilterKeysThatExistAlready(ctx context.Context, pubkeys hestia_req_types.ValidatorServiceOrgGroupSlice) (hestia_req_types.ValidatorServiceOrgGroupSlice, error) {
-		q := sql_query_templates.QueryParams{}
-		q.RawQuery = `
-					  WITH cte_check_keys AS (
-						  SELECT column1 AS pubkey
-						  FROM UNNEST($1::text[]) AS column1
-					  ) SELECT pubkey FROM cte_check_keys
-						WHERE NOT EXISTS (
-							  SELECT pubkey
-							  FROM validators_service_org_groups
-							  WHERE pubkey = cte_check_keys.pubkey
-						)
-					  `
-		log.Debug().Interface("FilterKeysThatExistAlready", q.LogHeader(ModelName))
-		var pkSlice []interface{}
-		for _, keyPair := range pubkeys {
-			pkSlice = append(pkSlice, keyPair.Pubkey)
-		}
-		pubkeys = hestia_req_types.ValidatorServiceOrgGroupSlice{}
-		rows, err := apps.Pg.Query(ctx, q.RawQuery, pq.Array(pkSlice))
-		if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
-			return pubkeys, err
-		}
-		defer rows.Close()
-		for rows.Next() {
-			var dbPubKey string
-			err = rows.Scan(&dbPubKey)
-			if returnErr := misc.ReturnIfErr(err, q.LogHeader(ModelName)); returnErr != nil {
-				return pubkeys, err
-			}
-			pubkey := hestia_req_types.ValidatorServiceOrgGroup{Pubkey: dbPubKey}
-			pubkeys = append(pubkeys, pubkey)
-		}
-		return pubkeys, nil
-	}
-*/
-
-/*
- WITH cte_check_keys AS (
-  SELECT column1 AS pubkey
-  FROM UNNEST($1::text[]) AS column1
-*/
-
 func InsertProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `WITH cte_insert_service AS (
 					  INSERT INTO provisioned_quicknode_services(quicknode_id, endpoint_id, http_url, network, plan, active, org_id, wss_url, chain)
 					  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-					  ON CONFLICT (quicknode_id) 
+					  ON CONFLICT (quicknode_id, endpoint_id) 
 					  DO UPDATE SET 
-					  updated_at = EXCLUDED.updated_at,
-					  endpoint_id = EXCLUDED.endpoint_id,
 					  http_url = EXCLUDED.http_url,
 					  network = EXCLUDED.network,
 					  plan = EXCLUDED.plan,
@@ -81,7 +34,7 @@ func InsertProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 					  RETURNING quicknode_id, endpoint_id
 				  ), cte_delete_ca AS (
 					  DELETE FROM provisioned_quicknode_services_contract_addresses
-					  WHERE quicknode_id = (SELECT quicknode_id FROM cte_insert_service)
+					  WHERE quicknode_id = (SELECT quicknode_id FROM cte_insert_service) AND endpoint_id = (SELECT endpoint_id FROM cte_insert_service)
 				  ), cte_unnest_ca AS (
 					  SELECT column1 AS contract_address
  					  FROM UNNEST($10::text[]) AS column1
@@ -89,10 +42,10 @@ func InsertProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 					  INSERT INTO provisioned_quicknode_services_contract_addresses(quicknode_id, endpoint_id, contract_address)
 					  SELECT cte_insert_service.quicknode_id, cte_insert_service.endpoint_id, cte_unnest_ca.contract_address
 					  FROM cte_insert_service, cte_unnest_ca
-					  WHERE cte_unnest_ca.contract_address IS NOT NULL AND cte_unnest_ca.contract_address != ''
+					  WHERE cte_unnest_ca.contract_address IS NOT NULL AND cte_unnest_ca.contract_address != '' 
 				  ), cte_delete_ref AS (
 					  DELETE FROM provisioned_quicknode_services_referers
-					  WHERE quicknode_id = (SELECT quicknode_id FROM cte_insert_service)
+					  WHERE quicknode_id = (SELECT quicknode_id FROM cte_insert_service) AND endpoint_id = (SELECT endpoint_id FROM cte_insert_service)
 				  ), cte_unnest_ref AS (
 					  SELECT column1 AS referer
  					  FROM UNNEST($11::text[]) AS column1
@@ -133,7 +86,7 @@ func UpdateProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 					  RETURNING quicknode_id, endpoint_id
 				  ), cte_delete_ca AS (
 					  DELETE FROM provisioned_quicknode_services_contract_addresses
-					  WHERE quicknode_id = (SELECT quicknode_id FROM cte_insert_service)
+					  WHERE quicknode_id = (SELECT quicknode_id FROM cte_insert_service) AND endpoint_id = (SELECT endpoint_id FROM cte_insert_service)
 				  ), cte_unnest_ca AS (
 					  SELECT column1 AS contract_address
  					  FROM UNNEST($7::text[]) AS column1
@@ -144,7 +97,7 @@ func UpdateProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 					  WHERE cte_unnest_ca.contract_address IS NOT NULL AND cte_unnest_ca.contract_address != ''
 				  ), cte_delete_ref AS (
 					  DELETE FROM provisioned_quicknode_services_referers
-					  WHERE quicknode_id = (SELECT quicknode_id FROM cte_insert_service)
+					  WHERE quicknode_id = (SELECT quicknode_id FROM cte_insert_service) AND endpoint_id = (SELECT endpoint_id FROM cte_insert_service)
 				  ), cte_unnest_ref AS (
 					  SELECT column1 AS referer
  					  FROM UNNEST($8::text[]) AS column1
@@ -166,12 +119,28 @@ func UpdateProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ps.OrgID, ps.QuickNodeID, ps.EndpointID, ps.HttpURL, ps.WssURL, ps.Plan,
 		pq.Array(cas), pq.Array(refs)).Scan(&qnID)
 	if err != nil {
+		log.Error().Err(err).Msg("UpdateProvisionedQuickNodeService: failed to execute query")
 		return err
 	}
 	return misc.ReturnIfErr(err, q.LogHeader("UpdateProvisionedQuickNodeService"))
 }
 
-func DeactivateProvisionedQuickNodeService(ctx context.Context, quickNodeID, endpointID string, ou org_users.OrgUser) error {
+func DeactivateProvisionedQuickNodeServiceEndpoint(ctx context.Context, orgID int, quickNodeID, endpointID string) error {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `UPDATE provisioned_quicknode_services
+    			  SET active = false
+				  WHERE org_id = $1 AND quicknode_id = $2 AND endpoint_id = $3
+			      RETURNING quicknode_id;
+				  `
+	qnID := ""
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, orgID, quickNodeID, endpointID).Scan(&qnID)
+	if err != nil {
+		return err
+	}
+	return misc.ReturnIfErr(err, q.LogHeader("DeactivateProvisionedQuickNodeServiceEndpoint"))
+}
+
+func DeprovisionQuickNodeServices(ctx context.Context, orgID int, quickNodeID string) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `UPDATE provisioned_quicknode_services
     			  SET active = false
@@ -179,9 +148,9 @@ func DeactivateProvisionedQuickNodeService(ctx context.Context, quickNodeID, end
 			      RETURNING quicknode_id;
 				  `
 	qnID := ""
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, quickNodeID, endpointID).Scan(&qnID)
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, orgID, quickNodeID).Scan(&qnID)
 	if err != nil {
 		return err
 	}
-	return misc.ReturnIfErr(err, q.LogHeader("DeactivateProvisionedQuickNodeService"))
+	return misc.ReturnIfErr(err, q.LogHeader("DeactivateProvisionedQuickNodeServiceEndpoint"))
 }

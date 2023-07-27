@@ -22,6 +22,19 @@ func InsertOrgRoute(ctx context.Context, route iris_autogen_bases.OrgRoutes) err
 	return misc.ReturnIfErr(err, q.LogHeader("InsertOrgRoute"))
 }
 
+func InsertOrgRoutes(ctx context.Context, routes []iris_autogen_bases.OrgRoutes) error {
+	//q := sql_query_templates.QueryParams{}
+	//q.RawQuery = `INSERT INTO org_routes(route_id, org_id, route_path)
+	//			  VALUES ($1, $2, $3)`
+	//
+	//_, err := apps.Pg.Exec(ctx, q.RawQuery, route.RouteID, route.OrgID, route.RoutePath)
+	//if err != nil {
+	//	return err
+	//}
+	//return misc.ReturnIfErr(err, q.LogHeader("InsertOrgRoutes"))
+	return nil
+}
+
 func InsertOrgRouteGroup(ctx context.Context, ogr iris_autogen_bases.OrgRouteGroups) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `INSERT INTO org_route_groups(route_group_id, org_id, route_group_name)

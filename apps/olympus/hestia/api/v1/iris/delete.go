@@ -16,3 +16,18 @@ type DeleteOrgRoutesRequest struct {
 func (r *DeleteOrgRoutesRequest) Delete(c echo.Context) error {
 	return nil
 }
+
+func DeleteOrgGroupRoutesRequestHandler(c echo.Context) error {
+	request := new(DeleteOrgRoutesRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.Delete(c)
+}
+
+type DeleteOrgGroupRoutesRequest struct {
+}
+
+func (r *DeleteOrgGroupRoutesRequest) Delete(c echo.Context) error {
+	return nil
+}

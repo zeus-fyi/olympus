@@ -11,6 +11,7 @@ import (
 	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	"github.com/zeus-fyi/olympus/hestia/api/v1/ethereum/aws"
+	hestia_iris_v1_routes "github.com/zeus-fyi/olympus/hestia/api/v1/iris"
 	hestia_quiknode_v1_routes "github.com/zeus-fyi/olympus/hestia/api/v1/quiknode"
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 	age_encryption "github.com/zeus-fyi/zeus/pkg/aegis/crypto/age"
@@ -27,6 +28,18 @@ func Routes(e *echo.Echo) *echo.Echo {
 	InitV1InternalRoutes(e)
 	return e
 }
+
+const (
+	IrisCreateRoutesPath = "/iris/routes/create"
+	IrisReadRoutesPath   = "/iris/routes/read"
+	IrisUpdateRoutesPath = "/iris/routes/update"
+	IrisDeleteRoutesPath = "/iris/routes/delete"
+
+	IrisCreateGroupRoutesPath = "/iris/routes/groups/create"
+	IrisReadGroupRoutesPath   = "/iris/routes/groups/read"
+	IrisUpdateGroupRoutesPath = "/iris/routes/groups/update"
+	IrisDeleteGroupRoutesPath = "/iris/routes/groups/delete"
+)
 
 func InitV1Routes(e *echo.Echo) {
 	eg := e.Group("/v1")
@@ -50,6 +63,16 @@ func InitV1Routes(e *echo.Echo) {
 			return key.PublicKeyVerified, err
 		},
 	}))
+
+	eg.POST(IrisCreateRoutesPath, hestia_iris_v1_routes.CreateOrgRoutesRequestHandler)
+	eg.GET(IrisReadRoutesPath, hestia_iris_v1_routes.ReadOrgRoutesRequestHandler)
+	eg.POST(IrisUpdateRoutesPath, hestia_iris_v1_routes.UpdateOrgRoutesRequestHandler)
+	eg.DELETE(IrisDeleteRoutesPath, hestia_iris_v1_routes.DeleteOrgRoutesRequestHandler)
+
+	eg.POST(IrisCreateGroupRoutesPath, hestia_iris_v1_routes.CreateOrgGroupRoutesRequestHandler)
+	eg.GET(IrisReadGroupRoutesPath, hestia_iris_v1_routes.ReadOrgGroupRoutesRequestHandler)
+	eg.POST(IrisUpdateGroupRoutesPath, hestia_iris_v1_routes.UpdateOrgGroupRoutesRequestHandler)
+	eg.DELETE(IrisDeleteGroupRoutesPath, hestia_iris_v1_routes.DeleteOrgGroupRoutesRequestHandler)
 
 	eg.GET("/age/generate", GenerateRandomAgeEncryptionKey) // if no js client, generate age keypair
 

@@ -3,6 +3,7 @@ package hestia_quicknode_models
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
@@ -76,8 +77,9 @@ func (s *QuickNodeProvisioningTestSuite) TestInsertProvisionedService() {
 
 func (s *QuickNodeProvisioningTestSuite) TestUpdateProvisionedService() {
 	s.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	qnID := uuid.New().String()
 	psBase := hestia_autogen_bases.ProvisionedQuickNodeServices{
-		QuickNodeID: uuid.New().String(),
+		QuickNodeID: qnID,
 		EndpointID:  uuid.New().String(),
 		HttpURL: sql.NullString{
 			String: "https://" + uuid.NewString() + ".quiknode.pro/" + uuid.NewString(),
@@ -89,7 +91,6 @@ func (s *QuickNodeProvisioningTestSuite) TestUpdateProvisionedService() {
 		},
 		Plan:   "lite",
 		Active: true,
-		OrgID:  s.Tc.ProductionLocalTemporalOrgID,
 		WssURL: sql.NullString{
 			String: "ws://" + uuid.NewString() + ".quiknode.pro/" + uuid.NewString(),
 			Valid:  true,
@@ -106,6 +107,7 @@ func (s *QuickNodeProvisioningTestSuite) TestUpdateProvisionedService() {
 	err := InsertProvisionedQuickNodeService(ctx, ps)
 	s.Require().Nil(err)
 
+	fmt.Println("psBase.QuickNodeID", psBase.QuickNodeID)
 	ps.Plan = "standard"
 	ps.ProvisionedQuicknodeServicesContractAddresses = hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddressesSlice{
 		{
@@ -162,7 +164,7 @@ func (s *QuickNodeProvisioningTestSuite) TestDeprovisionedService() {
 	err := InsertProvisionedQuickNodeService(ctx, ps)
 	s.Require().Nil(err)
 
-	err = DeactivateProvisionedQuickNodeServiceEndpoint(ctx, psBase.OrgID, psBase.QuickNodeID, psBase.EndpointID)
+	err = DeactivateProvisionedQuickNodeServiceEndpoint(ctx, psBase.QuickNodeID, psBase.EndpointID)
 	s.Require().Nil(err)
 }
 
@@ -223,7 +225,6 @@ func (s *QuickNodeProvisioningTestSuite) TestDeactivateService() {
 		},
 		Plan:   "standard",
 		Active: true,
-		OrgID:  s.Tc.ProductionLocalTemporalOrgID,
 		WssURL: sql.NullString{
 			String: "ws://" + uuid.NewString() + ".quiknode.pro/" + uuid.NewString(),
 			Valid:  true,
@@ -245,7 +246,7 @@ func (s *QuickNodeProvisioningTestSuite) TestDeactivateService() {
 	err = InsertProvisionedQuickNodeService(ctx, ps2)
 	s.Require().Nil(err)
 
-	err = DeprovisionQuickNodeServices(ctx, psBase.OrgID, psBase.QuickNodeID)
+	err = DeprovisionQuickNodeServices(ctx, psBase.QuickNodeID)
 	s.Require().Nil(err)
 }
 

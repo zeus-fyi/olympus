@@ -3,7 +3,6 @@ package hestia_quicknode_models
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
@@ -130,36 +129,18 @@ func (s *QuickNodeProvisioningTestSuite) TestInsertProvisionedService() {
 func (s *QuickNodeProvisioningTestSuite) TestUpdateProvisionedService() {
 	s.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
 	qnID := uuid.New().String()
-	psBase := hestia_autogen_bases.ProvisionedQuickNodeServices{
-		QuickNodeID: qnID,
-		EndpointID:  uuid.New().String(),
-		HttpURL: sql.NullString{
-			String: "https://" + uuid.NewString() + ".quiknode.pro/" + uuid.NewString(),
-			Valid:  true,
-		},
-		Network: sql.NullString{
-			String: "mainnet",
-			Valid:  true,
-		},
-		Plan:   "lite",
-		Active: true,
-		WssURL: sql.NullString{
-			String: "ws://" + uuid.NewString() + ".quiknode.pro/" + uuid.NewString(),
-			Valid:  true,
-		},
-		Chain: sql.NullString{
-			String: "ethereum",
-			Valid:  true,
-		},
-	}
-
-	ps := QuickNodeService{
-		ProvisionedQuickNodeServices: psBase,
-	}
+	eId := uuid.New().String()
+	ps := createQnService(qnID, eId, "standard")
 	err := InsertProvisionedQuickNodeService(ctx, ps)
 	s.Require().Nil(err)
+	qnsLookup, err := SelectQuickNodeServicesByQid(ctx, ps.QuickNodeID)
+	s.Require().Nil(err)
+	s.Require().Equal("standard", qnsLookup.Plan)
+	s.Require().NotEmpty(qnsLookup)
+	s.Require().NotEmpty(qnsLookup.EndpointMap)
+	s.Require().Len(qnsLookup.EndpointMap, 1)
+	s.Require().Equal(eId, qnsLookup.EndpointMap[eId].EndpointID)
 
-	fmt.Println("psBase.QuickNodeID", psBase.QuickNodeID)
 	ps.Plan = "standard"
 	ps.ProvisionedQuicknodeServicesContractAddresses = hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddressesSlice{
 		{
@@ -168,6 +149,15 @@ func (s *QuickNodeProvisioningTestSuite) TestUpdateProvisionedService() {
 	}
 	err = UpdateProvisionedQuickNodeService(ctx, ps)
 	s.Require().Nil(err)
+	qnsLookup, err = SelectQuickNodeServicesByQid(ctx, ps.QuickNodeID)
+	s.Require().Nil(err)
+	s.Require().Equal("standard", qnsLookup.Plan)
+	s.Require().NotEmpty(qnsLookup)
+	s.Require().NotEmpty(qnsLookup.EndpointMap)
+	s.Require().Len(qnsLookup.EndpointMap, 1)
+	s.Require().Equal(eId, qnsLookup.EndpointMap[eId].EndpointID)
+	s.Require().Len(qnsLookup.EndpointMap[eId].ProvisionedQuicknodeServicesContractAddresses, 1)
+	s.Require().Equal("0x01", qnsLookup.EndpointMap[eId].ProvisionedQuicknodeServicesContractAddresses[0].ContractAddress)
 
 	ps.Plan = "performance"
 	ps.ProvisionedQuicknodeServicesContractAddresses = hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddressesSlice{
@@ -182,6 +172,17 @@ func (s *QuickNodeProvisioningTestSuite) TestUpdateProvisionedService() {
 	}
 	err = UpdateProvisionedQuickNodeService(ctx, ps)
 	s.Require().Nil(err)
+	qnsLookup, err = SelectQuickNodeServicesByQid(ctx, ps.QuickNodeID)
+	s.Require().Nil(err)
+	s.Require().Equal("performance", qnsLookup.Plan)
+	s.Require().NotEmpty(qnsLookup)
+	s.Require().NotEmpty(qnsLookup.EndpointMap)
+	s.Require().Len(qnsLookup.EndpointMap, 1)
+	s.Require().Equal(eId, qnsLookup.EndpointMap[eId].EndpointID)
+	s.Require().Len(qnsLookup.EndpointMap[eId].ProvisionedQuicknodeServicesContractAddresses, 1)
+	s.Require().Equal("0x02", qnsLookup.EndpointMap[eId].ProvisionedQuicknodeServicesContractAddresses[0].ContractAddress)
+	s.Require().Len(qnsLookup.EndpointMap[eId].ProvisionedQuicknodeServicesReferers, 1)
+	s.Require().Equal("https://zeus.fyi", qnsLookup.EndpointMap[eId].ProvisionedQuicknodeServicesReferers[0].Referer)
 }
 
 func (s *QuickNodeProvisioningTestSuite) TestDeprovisionedService() {

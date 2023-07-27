@@ -69,19 +69,20 @@ func (m *IrisCache) AddOrUpdateOrgRoutingGroup(ctx context.Context, orgID int, r
 	return nil
 }
 
-func (m *IrisCache) InitRoutingTables(ctx context.Context) {
+func (m *IrisCache) InitRoutingTables(ctx context.Context) error {
 	ot, err := iris_models.SelectAllOrgRoutes(ctx)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	for orgID, og := range ot.Map {
 		for rgName, routes := range og {
 			err = m.AddOrUpdateOrgRoutingGroup(context.Background(), orgID, rgName, routes)
 			if err != nil {
-				panic(err)
+				return err
 			}
 		}
 	}
+	return nil
 }
 
 func (m *IrisCache) InitRoutingTablesForOrg(ctx context.Context, orgID int) error {

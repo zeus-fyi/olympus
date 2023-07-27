@@ -1,4 +1,4 @@
-package artemis_api_requests
+package iris_api_requests
 
 import (
 	"context"
@@ -9,21 +9,22 @@ import (
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 )
 
-type ArtemisApiRequestsActivities struct {
+type IrisApiRequestsActivities struct {
 }
 
-func NewArtemisApiRequestsActivities() ArtemisApiRequestsActivities {
-	return ArtemisApiRequestsActivities{}
+func NewArtemisApiRequestsActivities() IrisApiRequestsActivities {
+	return IrisApiRequestsActivities{}
 }
 
 type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
-func (a *ArtemisApiRequestsActivities) GetActivities() ActivitiesSlice {
-	return []interface{}{a.RelayRequest, a.InternalSvcRelayRequest, a.ExtLoadBalancerRequest}
+func (i *IrisApiRequestsActivities) GetActivities() ActivitiesSlice {
+	return []interface{}{i.RelayRequest, i.InternalSvcRelayRequest, i.ExtLoadBalancerRequest,
+		i.RefreshAllOrgRoutingTables, i.UpdateOrgRoutingTables}
 }
 
-func (a *ArtemisApiRequestsActivities) RelayRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
+func (i *IrisApiRequestsActivities) RelayRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
 	r := resty.New()
 	r.SetBaseURL(pr.Url)
 	if pr.IsInternal {
@@ -41,7 +42,7 @@ func (a *ArtemisApiRequestsActivities) RelayRequest(ctx context.Context, pr *Api
 	return pr, err
 }
 
-func (a *ArtemisApiRequestsActivities) InternalSvcRelayRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
+func (i *IrisApiRequestsActivities) InternalSvcRelayRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
 	r := resty.New()
 	r.SetBaseURL(pr.Url)
 	if pr.IsInternal {
@@ -59,7 +60,7 @@ func (a *ArtemisApiRequestsActivities) InternalSvcRelayRequest(ctx context.Conte
 	return pr, err
 }
 
-func (a *ArtemisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
+func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
 	r := resty.New()
 	r.SetBaseURL(pr.Url)
 	resp, err := r.R().SetBody(&pr.Payload).SetResult(&pr.Response).Post(pr.Url)

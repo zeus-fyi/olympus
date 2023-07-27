@@ -1,4 +1,4 @@
-package v1_iris
+package v1Beta_iris
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	artemis_api_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/api_requests"
+	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 )
 
 type ProxyRequest struct {
@@ -65,14 +65,14 @@ func (p *ProxyRequest) Process(c echo.Context, isInternal bool) error {
 	if err != nil {
 		return c.JSON(http.StatusNotAcceptable, err)
 	}
-	apiPr := &artemis_api_requests.ApiProxyRequest{
+	apiPr := &iris_api_requests.ApiProxyRequest{
 		Url:        urlVal.String(),
 		Payload:    p.Body,
 		IsInternal: isInternal,
 		Timeout:    1 * time.Minute,
 	}
 	ctx := context.Background()
-	resp, err := artemis_api_requests.ArtemisProxyWorker.ExecuteArtemisApiProxyWorkflow(ctx, apiPr)
+	resp, err := iris_api_requests.IrisProxyWorker.ExecuteIrisProxyWorkflow(ctx, apiPr)
 	if err != nil {
 		log.Err(err)
 		return err

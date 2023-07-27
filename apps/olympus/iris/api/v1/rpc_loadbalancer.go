@@ -9,7 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
-	artemis_api_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/api_requests"
+	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 )
 
 const (
@@ -19,6 +19,14 @@ const (
 	QuickNodeChain      = "x-qn-chain"
 	QuickNodeNetwork    = "x-qn-network"
 )
+
+type ProxyRequest struct {
+	Body echo.Map
+}
+
+type Response struct {
+	Message string `json:"message"`
+}
 
 func RpcLoadBalancerRequestHandler(c echo.Context) error {
 	request := new(ProxyRequest)
@@ -42,13 +50,13 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context) error {
 		errResp := Response{Message: "routeGroup not found"}
 		return c.JSON(http.StatusBadRequest, errResp)
 	}
-	req := &artemis_api_requests.ApiProxyRequest{
+	req := &iris_api_requests.ApiProxyRequest{
 		Url:        routeInfo,
 		Payload:    p.Body,
 		IsInternal: false,
 		Timeout:    1 * time.Minute,
 	}
-	rw := artemis_api_requests.NewArtemisApiRequestsActivities()
+	rw := iris_api_requests.NewArtemisApiRequestsActivities()
 	resp, err := rw.ExtLoadBalancerRequest(c.Request().Context(), req)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Str("route", routeInfo).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")

@@ -1,4 +1,4 @@
-package v1_iris
+package v1Beta_iris
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
-	iris_base_test "github.com/zeus-fyi/olympus/iris/api/v1/test"
+	iris_base_test "github.com/zeus-fyi/olympus/iris/api/test"
 	iris_round_robin "github.com/zeus-fyi/olympus/pkg/iris/proxy/round_robin"
 )
 

@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	v1_iris "github.com/zeus-fyi/olympus/iris/api/v1"
 	v1Beta_iris "github.com/zeus-fyi/olympus/iris/api/v1beta"
+	v1internal_iris "github.com/zeus-fyi/olympus/iris/api/v1internal"
 )
 
 func Routes(e *echo.Echo) *echo.Echo {
@@ -15,7 +16,7 @@ func Routes(e *echo.Echo) *echo.Echo {
 	e.GET("/health", Health)
 
 	v1_iris.InitV1Routes(e)
-	v1Beta_iris.InitV1InternalRoutes(e)
+	v1internal_iris.InitV1InternalRoutes(e)
 	v1Beta_iris.InitV1BetaInternalRoutes(e)
 	return e
 }

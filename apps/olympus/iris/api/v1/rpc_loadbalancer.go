@@ -1,14 +1,15 @@
 package v1_iris
 
 import (
+	"context"
 	"net/http"
 	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	artemis_api_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/api_requests"
-	iris_round_robin "github.com/zeus-fyi/olympus/pkg/iris/proxy/round_robin"
 )
 
 const (
@@ -35,7 +36,7 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, Response{Message: "routeGroup is required"})
 	}
 	ou := c.Get("orgUser").(org_users.OrgUser)
-	routeInfo, err := iris_round_robin.GetNextRoute(ou.OrgID, routeGroup)
+	routeInfo, err := iris_redis.IrisRedis.GetNextRoute(context.Background(), ou.OrgID, routeGroup)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Str("routeGroup", routeGroup).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.GetNextRoute")
 		errResp := Response{Message: "routeGroup not found"}
@@ -45,7 +46,7 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context) error {
 		Url:        routeInfo,
 		Payload:    p.Body,
 		IsInternal: false,
-		Timeout:    2 * time.Minute,
+		Timeout:    1 * time.Minute,
 	}
 	rw := artemis_api_requests.NewArtemisApiRequestsActivities()
 	resp, err := rw.ExtLoadBalancerRequest(c.Request().Context(), req)

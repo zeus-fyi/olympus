@@ -13,15 +13,15 @@ If responding with error, please be sure to use a non-200 HTTP status code.
 */
 
 type ProvisionRequest struct {
-	QuickNodeID       string        `json:"quicknode-id"`
-	EndpointID        string        `json:"endpoint-id"`
-	WssUrl            string        `json:"wss-url"`
-	HttpUrl           string        `json:"http-url"`
-	Referers          []string      `json:"referers,omitempty"`
-	ContractAddresses []interface{} `json:"contract_addresses,omitempty"`
-	Chain             string        `json:"chain"`
-	Network           string        `json:"network"`
-	Plan              string        `json:"plan"`
+	QuickNodeID       string   `json:"quicknode-id"`
+	EndpointID        string   `json:"endpoint-id"`
+	WssUrl            string   `json:"wss-url"`
+	HttpUrl           string   `json:"http-url"`
+	Referers          []string `json:"referers,omitempty"`
+	ContractAddresses []string `json:"contract_addresses,omitempty"`
+	Chain             string   `json:"chain"`
+	Network           string   `json:"network"`
+	Plan              string   `json:"plan"`
 }
 
 type CreateResponse struct {

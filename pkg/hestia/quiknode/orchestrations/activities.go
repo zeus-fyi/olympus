@@ -38,7 +38,6 @@ func (h *HestiaQuicknodeActivities) Provision(ctx context.Context, pr hestia_qui
 		Network: sql.NullString{},
 		Plan:    pr.Plan,
 		Active:  true,
-		OrgID:   ou.OrgID,
 		WssURL: sql.NullString{
 			String: pr.WssUrl,
 			Valid:  len(pr.WssUrl) > 0,
@@ -48,7 +47,26 @@ func (h *HestiaQuicknodeActivities) Provision(ctx context.Context, pr hestia_qui
 			Valid:  len(pr.Chain) > 0,
 		},
 	}
-	err := hestia_quicknode_models.InsertProvisionedQuickNodeService(ctx, ps)
+
+	cas := make([]hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddresses, len(pr.ContractAddresses))
+	for i, ca := range pr.ContractAddresses {
+		cas[i] = hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddresses{
+			ContractAddress: ca,
+		}
+	}
+	car := make([]hestia_autogen_bases.ProvisionedQuicknodeServicesReferers, len(pr.ContractAddresses))
+	for i, re := range pr.Referers {
+		car[i] = hestia_autogen_bases.ProvisionedQuicknodeServicesReferers{
+			Referer: re,
+		}
+	}
+	qs := hestia_quicknode_models.QuickNodeService{
+		ProvisionedQuickNodeServices:                  ps,
+		ProvisionedQuicknodeServicesContractAddresses: cas,
+		ProvisionedQuicknodeServicesReferers:          car,
+	}
+
+	err := hestia_quicknode_models.InsertProvisionedQuickNodeService(ctx, qs)
 	if err != nil {
 		log.Warn().Interface("ou", ou).Err(err).Msg("Provision: InsertProvisionedQuickNodeService")
 		return err
@@ -77,20 +95,48 @@ func (h *HestiaQuicknodeActivities) UpdateProvision(ctx context.Context, pr hest
 			Valid:  len(pr.Chain) > 0,
 		},
 	}
-	err := hestia_quicknode_models.UpdateProvisionedQuickNodeService(ctx, ps)
+	cas := make([]hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddresses, len(pr.ContractAddresses))
+	for i, ca := range pr.ContractAddresses {
+		cas[i] = hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddresses{
+			ContractAddress: ca,
+		}
+	}
+	car := make([]hestia_autogen_bases.ProvisionedQuicknodeServicesReferers, len(pr.ContractAddresses))
+	for i, re := range pr.Referers {
+		car[i] = hestia_autogen_bases.ProvisionedQuicknodeServicesReferers{
+			Referer: re,
+		}
+	}
+	qs := hestia_quicknode_models.QuickNodeService{
+		ProvisionedQuickNodeServices:                  ps,
+		ProvisionedQuicknodeServicesContractAddresses: cas,
+		ProvisionedQuicknodeServicesReferers:          car,
+	}
+	err := hestia_quicknode_models.UpdateProvisionedQuickNodeService(ctx, qs)
 	if err != nil {
-		log.Warn().Interface("ou", ou).Err(err).Msg("Provision: InsertProvisionedQuickNodeService")
+		log.Warn().Interface("ou", ou).Err(err).Msg("Provision: UpdateProvision")
 		return err
 	}
 	return nil
 }
 
-func (h *HestiaQuicknodeActivities) Deprovision(dp hestia_quicknode.DeprovisionRequest, ou org_users.OrgUser) error {
-
+func (h *HestiaQuicknodeActivities) Deprovision(ctx context.Context, dp hestia_quicknode.DeprovisionRequest, ou org_users.OrgUser) error {
+	// todo wait until time is up
+	err := hestia_quicknode_models.DeprovisionQuickNodeServices(ctx, dp.QuickNodeID)
+	if err != nil {
+		log.Warn().Interface("ou", ou).Err(err).Msg("Provision: Deprovision")
+		return err
+	}
 	return nil
 }
 
-func (h *HestiaQuicknodeActivities) Deactivate(da hestia_quicknode.DeactivateRequest, ou org_users.OrgUser) error {
+func (h *HestiaQuicknodeActivities) Deactivate(ctx context.Context, da hestia_quicknode.DeactivateRequest, ou org_users.OrgUser) error {
 
+	// todo wait until time is up
+	err := hestia_quicknode_models.DeactivateProvisionedQuickNodeServiceEndpoint(ctx, da.QuickNodeID, da.EndpointID)
+	if err != nil {
+		log.Warn().Interface("ou", ou).Err(err).Msg("Provision: Deactivate")
+		return err
+	}
 	return nil
 }

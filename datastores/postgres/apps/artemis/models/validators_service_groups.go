@@ -126,6 +126,7 @@ func FilterKeysThatExistAlready(ctx context.Context, pubkeys hestia_req_types.Va
 	}
 	return pubkeys, nil
 }
+
 func InsertVerifiedValidatorsToService(ctx context.Context, validatorServiceInfo OrgValidatorService, pubkeys hestia_req_types.ValidatorServiceOrgGroupSlice) error {
 	checkedKeys, err := FilterKeysThatExistAlready(ctx, pubkeys)
 	if err != nil {

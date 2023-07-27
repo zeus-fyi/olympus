@@ -11,6 +11,7 @@ import (
 var (
 	RoundRobinCache      = cache.New(cache.NoExpiration, cache.NoExpiration)
 	RoundRobinRouteTable = cache.New(cache.NoExpiration, cache.NoExpiration)
+	NotFound             = fmt.Errorf("routing group not found")
 )
 
 func orgRouteTag(orgID int, rgName string) string {

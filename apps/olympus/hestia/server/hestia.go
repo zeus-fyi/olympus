@@ -22,6 +22,7 @@ import (
 	artemis_validator_signature_service_routing "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/signature_routing"
 	eth_validators_service_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validators_service_requests"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
+	quicknode_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/quiknode/orchestrations"
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
@@ -155,7 +156,16 @@ func Hestia() {
 		misc.DelayedPanic(err)
 	}
 	log.Info().Msg("Hestia: InitArtemisEthereumMainnetValidatorsRequestsWorker Done")
-	log.Info().Msg("Hestia: InitArtemisEthereumMainnetValidatorsRequestsWorker Starting Server")
+
+	log.Info().Msg("Hestia: InitHestiaQuicknodeWorker starting")
+	quicknode_orchestrations.InitHestiaQuicknodeWorker(ctx, temporalAuthConfig)
+	quicknode_orchestrations.HestiaQnWorker.Worker.RegisterWorker(c)
+	err = quicknode_orchestrations.HestiaQnWorker.Worker.Start()
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Hestia: %s HestiaQnWorker.Worker.Start failed", env)
+		misc.DelayedPanic(err)
+	}
+	log.Info().Msg("Hestia: InitHestiaQuicknodeWorker done")
 
 	if env == "local" || env == "production-local" {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{

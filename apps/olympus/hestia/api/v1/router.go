@@ -11,16 +11,9 @@ import (
 	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 	"github.com/zeus-fyi/olympus/hestia/api/v1/ethereum/aws"
+	hestia_quiknode_v1_routes "github.com/zeus-fyi/olympus/hestia/api/v1/quiknode"
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
 	age_encryption "github.com/zeus-fyi/zeus/pkg/aegis/crypto/age"
-)
-
-const (
-	QuickNodeTestHeader = "X-QN-TESTING"
-	QuickNodeIDHeader   = "x-quicknode-id"
-	QuickNodeEndpointID = "x-instance-id"
-	QuickNodeChain      = "x-qn-chain"
-	QuickNodeNetwork    = "x-qn-network"
 )
 
 func Routes(e *echo.Echo) *echo.Echo {
@@ -29,49 +22,10 @@ func Routes(e *echo.Echo) *echo.Echo {
 	e.GET("/healthcheck", Health)
 	e.GET("/health", Health)
 
-	InitV1RoutesServices(e)
+	hestia_quiknode_v1_routes.InitV1RoutesServices(e)
 	InitV1Routes(e)
 	InitV1InternalRoutes(e)
 	return e
-}
-
-func InitV1RoutesServices(e *echo.Echo) {
-	eg := e.Group("/v1/api")
-	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
-		AuthScheme: "Bearer",
-		Validator: func(token string, c echo.Context) (bool, error) {
-			ctx := context.Background()
-			key, err := auth.VerifyBearerToken(ctx, token)
-			if err != nil {
-				log.Err(err).Msg("InitV1Routes")
-				return false, c.JSON(http.StatusInternalServerError, nil)
-			}
-			// Get headers
-			qnTestHeader := c.Request().Header.Get(QuickNodeTestHeader)
-			qnIDHeader := c.Request().Header.Get(QuickNodeIDHeader)
-			qnEndpointID := c.Request().Header.Get(QuickNodeEndpointID)
-			qnChain := c.Request().Header.Get(QuickNodeChain)
-			qnNetwork := c.Request().Header.Get(QuickNodeNetwork)
-
-			// Set headers to echo context
-			c.Set(QuickNodeTestHeader, qnTestHeader)
-			c.Set(QuickNodeIDHeader, qnIDHeader)
-			c.Set(QuickNodeEndpointID, qnEndpointID)
-			c.Set(QuickNodeChain, qnChain)
-			c.Set(QuickNodeNetwork, qnNetwork)
-
-			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
-			c.Set("orgUser", ou)
-			c.Set("bearer", key.PublicKey)
-
-			return key.PublicKeyVerified, err
-		},
-	}))
-
-	eg.POST("/provision", Health)
-	eg.POST("/deprovision", Health)
-	eg.POST("/deactivate", Health)
-	eg.POST("/update", Health)
 }
 
 func InitV1Routes(e *echo.Echo) {

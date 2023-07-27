@@ -65,6 +65,17 @@ func (h *HestiaQuicknodeWorkflow) DeprovisionWorkflow(ctx workflow.Context, dp h
 		StartToCloseTimeout: defaultTimeout,
 	}
 	pCtx := workflow.WithActivityOptions(ctx, ao)
+	currentTime := time.Now().Unix()  // get current Unix timestamp
+	deprovisionAt := dp.DeprovisionAt // get provisionedAt Unix timestamp
+
+	if currentTime < deprovisionAt {
+		sleepDuration := time.Duration(deprovisionAt-currentTime) * time.Second
+		err := workflow.Sleep(pCtx, sleepDuration)
+		if err != nil {
+			return err
+		}
+	}
+
 	err := workflow.ExecuteActivity(pCtx, h.Deprovision, dp, ou).Get(pCtx, nil)
 	if err != nil {
 		log.Warn("params", dp)
@@ -81,6 +92,17 @@ func (h *HestiaQuicknodeWorkflow) DeactivateWorkflow(ctx workflow.Context, da he
 		StartToCloseTimeout: defaultTimeout,
 	}
 	pCtx := workflow.WithActivityOptions(ctx, ao)
+	currentTime := time.Now().Unix() // get current Unix timestamp
+	deactivateAt := da.DeactivateAt  // get provisionedAt Unix timestamp
+
+	if currentTime < deactivateAt {
+		sleepDuration := time.Duration(deactivateAt-currentTime) * time.Second
+		err := workflow.Sleep(pCtx, sleepDuration)
+		if err != nil {
+			return err
+		}
+	}
+
 	err := workflow.ExecuteActivity(pCtx, h.Deactivate, da, ou).Get(pCtx, nil)
 	if err != nil {
 		log.Warn("params", da)

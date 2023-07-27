@@ -18,11 +18,10 @@ type QuickNodeProvisioningTestSuite struct {
 	hestia_test.BaseHestiaTestSuite
 }
 
-func (s *QuickNodeProvisioningTestSuite) TestInsertProvisionedService() {
-	s.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+func createQnService(qnId, eId, plan string) QuickNodeService {
 	psBase := hestia_autogen_bases.ProvisionedQuickNodeServices{
-		QuickNodeID: uuid.New().String(),
-		EndpointID:  uuid.New().String(),
+		QuickNodeID: qnId,
+		EndpointID:  eId,
 		HttpURL: sql.NullString{
 			String: "https://" + uuid.NewString() + ".quiknode.pro/" + uuid.NewString(),
 			Valid:  true,
@@ -31,9 +30,8 @@ func (s *QuickNodeProvisioningTestSuite) TestInsertProvisionedService() {
 			String: "mainnet",
 			Valid:  true,
 		},
-		Plan:   "lite",
+		Plan:   plan,
 		Active: true,
-		OrgID:  s.Tc.ProductionLocalTemporalOrgID,
 		WssURL: sql.NullString{
 			String: "ws://" + uuid.NewString() + ".quiknode.pro/" + uuid.NewString(),
 			Valid:  true,
@@ -47,22 +45,66 @@ func (s *QuickNodeProvisioningTestSuite) TestInsertProvisionedService() {
 	ps := QuickNodeService{
 		ProvisionedQuickNodeServices: psBase,
 	}
+	return ps
+}
+
+func createQnServiceContractAddr(qs *QuickNodeService, ca string) *QuickNodeService {
+	if qs.ProvisionedQuicknodeServicesContractAddresses == nil {
+		qs.ProvisionedQuicknodeServicesContractAddresses = hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddressesSlice{}
+	}
+	qs.ProvisionedQuicknodeServicesContractAddresses = append(qs.ProvisionedQuicknodeServicesContractAddresses,
+		hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddresses{
+			ContractAddress: ca,
+		},
+	)
+	return qs
+}
+
+func createQnServiceReferer(qs *QuickNodeService, re string) *QuickNodeService {
+	if qs.ProvisionedQuicknodeServicesReferers == nil {
+		qs.ProvisionedQuicknodeServicesReferers = hestia_autogen_bases.ProvisionedQuicknodeServicesReferersSlice{}
+	}
+	qs.ProvisionedQuicknodeServicesReferers = append(qs.ProvisionedQuicknodeServicesReferers,
+		hestia_autogen_bases.ProvisionedQuicknodeServicesReferers{
+			Referer: re,
+		},
+	)
+	return qs
+}
+
+func (s *QuickNodeProvisioningTestSuite) TestInsertProvisionedService() {
+	s.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+
+	ps := createQnService(uuid.New().String(), uuid.New().String(), "lite")
 	err := InsertProvisionedQuickNodeService(ctx, ps)
 	s.Require().Nil(err)
 
+	qnsLookup, err := SelectQuickNodeServicesByQid(ctx, ps.QuickNodeID)
+	s.Require().Nil(err)
+	s.Require().Equal("lite", qnsLookup.Plan)
+	s.Require().NotEmpty(qnsLookup)
+	s.Require().NotEmpty(qnsLookup.EndpointMap)
+	s.Require().Len(qnsLookup.EndpointMap, 1)
+
+	qns := qnsLookup.EndpointMap[ps.EndpointID]
+	s.Require().Len(qns.ProvisionedQuicknodeServicesContractAddresses, 0)
+	s.Require().Len(qns.ProvisionedQuicknodeServicesReferers, 0)
 	// UPDATES now with referrers
-	ps.ProvisionedQuicknodeServicesReferers = hestia_autogen_bases.ProvisionedQuicknodeServicesReferersSlice{
-		{
-			Referer: "https://google.com",
-		},
-	}
-	ps.ProvisionedQuicknodeServicesContractAddresses = hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddressesSlice{
-		{
-			ContractAddress: "0x01",
-		},
-	}
+	createQnServiceReferer(&ps, "https://google1.com")
+	createQnServiceContractAddr(&ps, "0x01")
+
 	err = InsertProvisionedQuickNodeService(ctx, ps)
 	s.Require().Nil(err)
+	qnsLookup, err = SelectQuickNodeServicesByQid(ctx, ps.QuickNodeID)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(qnsLookup)
+	s.Require().NotEmpty(qnsLookup.EndpointMap)
+	s.Require().Len(qnsLookup.EndpointMap, 1)
+	qns = qnsLookup.EndpointMap[ps.EndpointID]
+	s.Require().Len(qns.ProvisionedQuicknodeServicesContractAddresses, 1)
+	s.Require().Len(qns.ProvisionedQuicknodeServicesReferers, 1)
+	s.Require().Equal("https://google1.com", qns.ProvisionedQuicknodeServicesReferers[0].Referer)
+	s.Require().Equal("0x01", qns.ProvisionedQuicknodeServicesContractAddresses[0].ContractAddress)
 
 	ps.ProvisionedQuicknodeServicesReferers = hestia_autogen_bases.ProvisionedQuicknodeServicesReferersSlice{
 		{
@@ -73,6 +115,16 @@ func (s *QuickNodeProvisioningTestSuite) TestInsertProvisionedService() {
 
 	err = InsertProvisionedQuickNodeService(ctx, ps)
 	s.Require().Nil(err)
+
+	qnsLookup, err = SelectQuickNodeServicesByQid(ctx, ps.QuickNodeID)
+	s.Require().Nil(err)
+	s.Require().NotEmpty(qnsLookup)
+	s.Require().NotEmpty(qnsLookup.EndpointMap)
+	s.Require().Len(qnsLookup.EndpointMap, 1)
+	qns = qnsLookup.EndpointMap[ps.EndpointID]
+	s.Require().Len(qns.ProvisionedQuicknodeServicesContractAddresses, 0)
+	s.Require().Len(qns.ProvisionedQuicknodeServicesReferers, 1)
+	s.Require().Equal("https://google2.com", qns.ProvisionedQuicknodeServicesReferers[0].Referer)
 }
 
 func (s *QuickNodeProvisioningTestSuite) TestUpdateProvisionedService() {

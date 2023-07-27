@@ -53,6 +53,8 @@ type SecretsWrapper struct {
 	SendGridAPIKey         string
 	GcpAuthJsonBytes       []byte
 
+	QuickNodeBearer string
+	QuickNodeJWT    string
 	StripePubKey    string
 	StripeSecretKey string
 	ZeroXApiKey     string

@@ -19,17 +19,15 @@ const (
 	QuickNodeNetwork    = "x-qn-network"
 )
 
+var QuickNodeToken = ""
+
 func InitV1RoutesServices(e *echo.Echo) {
 	eg := e.Group("/v1/api")
 	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()
-			key, err := auth.VerifyBearerToken(ctx, token)
-			if err != nil {
-				log.Err(err).Msg("InitV1Routes")
-				return false, c.JSON(http.StatusInternalServerError, nil)
-			}
+
 			// Get headers
 			qnTestHeader := c.Request().Header.Get(QuickNodeTestHeader)
 			qnIDHeader := c.Request().Header.Get(QuickNodeIDHeader)
@@ -37,6 +35,16 @@ func InitV1RoutesServices(e *echo.Echo) {
 			qnChain := c.Request().Header.Get(QuickNodeChain)
 			qnNetwork := c.Request().Header.Get(QuickNodeNetwork)
 
+			if QuickNodeToken != "" {
+				if token == QuickNodeToken {
+					return true, nil
+				}
+			}
+			key, err := auth.VerifyBearerToken(ctx, token)
+			if err != nil {
+				log.Err(err).Msg("InitV1Routes")
+				return false, c.JSON(http.StatusInternalServerError, nil)
+			}
 			// Set headers to echo context
 			c.Set(QuickNodeTestHeader, qnTestHeader)
 			c.Set(QuickNodeIDHeader, qnIDHeader)

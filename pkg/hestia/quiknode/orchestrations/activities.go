@@ -3,7 +3,6 @@ package quicknode_orchestrations
 import (
 	"context"
 	"database/sql"
-	"time"
 
 	"github.com/rs/zerolog/log"
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
@@ -122,12 +121,6 @@ func (h *HestiaQuicknodeActivities) UpdateProvision(ctx context.Context, pr hest
 }
 
 func (h *HestiaQuicknodeActivities) Deprovision(ctx context.Context, dp hestia_quicknode.DeprovisionRequest, ou org_users.OrgUser) error {
-	// todo wait until time is up
-	currentTime := time.Now().Unix() // get current Unix timestamp
-
-	if currentTime < dp.DeprovisionAt {
-
-	}
 	err := hestia_quicknode_models.DeprovisionQuickNodeServices(ctx, dp.QuickNodeID)
 	if err != nil {
 		log.Warn().Interface("ou", ou).Err(err).Msg("Provision: Deprovision")
@@ -137,8 +130,6 @@ func (h *HestiaQuicknodeActivities) Deprovision(ctx context.Context, dp hestia_q
 }
 
 func (h *HestiaQuicknodeActivities) Deactivate(ctx context.Context, da hestia_quicknode.DeactivateRequest, ou org_users.OrgUser) error {
-
-	// todo wait until time is up
 	err := hestia_quicknode_models.DeactivateProvisionedQuickNodeServiceEndpoint(ctx, da.QuickNodeID, da.EndpointID)
 	if err != nil {
 		log.Warn().Interface("ou", ou).Err(err).Msg("Provision: Deactivate")

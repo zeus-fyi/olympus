@@ -43,11 +43,12 @@ func CreateOrgGroupRoutesRequestHandler(c echo.Context) error {
 	return request.Create(c)
 }
 
-type CreateOrgGroupRoutesRequest struct {
-	Routes []string `json:"routes"`
+type CreateOrUpdateOrgGroupRoutesRequest struct {
+	GroupName string   `json:"groupName"`
+	Routes    []string `json:"routes"`
 }
 
-func (r *CreateOrgGroupRoutesRequest) Create(c echo.Context) error {
+func (r *CreateOrUpdateOrgGroupRoutesRequest) Create(c echo.Context) error {
 	or := make([]iris_autogen_bases.OrgRoutes, len(r.Routes))
 	for i, route := range r.Routes {
 		or[i] = iris_autogen_bases.OrgRoutes{

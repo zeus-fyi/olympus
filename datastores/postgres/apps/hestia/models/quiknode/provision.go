@@ -204,6 +204,7 @@ func SelectQuickNodeServicesByQid(ctx context.Context, qId string) (QuickNodeSer
 		qns := QuickNodeService{
 			ProvisionedQuickNodeServices: hestia_autogen_bases.ProvisionedQuickNodeServices{
 				QuickNodeID: qId,
+				Active:      true,
 			},
 			ProvisionedQuicknodeServicesContractAddresses: []hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddresses{},
 			ProvisionedQuicknodeServicesReferers:          []hestia_autogen_bases.ProvisionedQuicknodeServicesReferers{},

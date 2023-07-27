@@ -8,7 +8,7 @@ import (
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_quicknode_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/quiknode"
-	hestia_quicknode "github.com/zeus-fyi/olympus/pkg/hestia/quiknode"
+	hestia_quicknode "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode"
 )
 
 type HestiaQuicknodeActivities struct {

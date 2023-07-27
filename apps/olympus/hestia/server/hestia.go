@@ -23,9 +23,9 @@ import (
 	artemis_validator_signature_service_routing "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/signature_routing"
 	eth_validators_service_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validators_service_requests"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
-	quicknode_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/quiknode/orchestrations"
+	platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/iris/orchestrations"
+	quicknode_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode/orchestrations"
 	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
-	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	aegis_aws_auth "github.com/zeus-fyi/zeus/pkg/aegis/aws/auth"
@@ -41,12 +41,6 @@ var (
 		ClientPEMKeyPath: "/etc/ssl/certs/ca.key",
 		Namespace:        "production-artemis.ngb72",
 		HostPort:         "production-artemis.ngb72.tmprl.cloud:7233",
-	}
-	irisTemporalProdAuthConfig = temporal_auth.TemporalAuth{
-		ClientCertPath:   "/etc/ssl/certs/ca.pem",
-		ClientPEMKeyPath: "/etc/ssl/certs/ca.key",
-		Namespace:        "production-iris.ngb72",
-		HostPort:         "production-iris.ngb72.tmprl.cloud:7233",
 	}
 	awsRegion  = "us-west-1"
 	awsAuthCfg = aegis_aws_auth.AuthAWS{
@@ -175,19 +169,14 @@ func Hestia() {
 		misc.DelayedPanic(err)
 	}
 	log.Info().Msg("Hestia: InitHestiaQuicknodeWorker done")
-
-	log.Info().Msgf("Iris InitIrisCacheWorker: %s temporal auth and init procedure starting", env)
-	iris_api_requests.InitIrisCacheWorker(ctx, irisTemporalProdAuthConfig)
-	irisC := iris_api_requests.IrisProxyWorker.ConnectTemporalClient()
-	defer irisC.Close()
-	iris_api_requests.IrisCacheWorker.Worker.RegisterWorker(irisC)
-	err = iris_api_requests.IrisCacheWorker.Worker.Start()
+	platform_service_orchestrations.InitHestiaIrisPlatformServicesWorker(ctx, temporalAuthConfig)
+	platform_service_orchestrations.HestiaPlatformServiceWorker.Worker.RegisterWorker(c)
+	err = platform_service_orchestrations.HestiaPlatformServiceWorker.Worker.Start()
 	if err != nil {
-		log.Fatal().Err(err).Msgf("Iris: %s IrisCacheWorker.Worker.Start failed", env)
+		log.Fatal().Err(err).Msgf("Hestia: %s HestiaPlatformServiceWorker.Worker.Start failed", env)
 		misc.DelayedPanic(err)
 	}
-	log.Info().Msgf("Iris InitIrisCacheWorker: %s temporal auth and init procedure succeeded", env)
-
+	log.Info().Msg("Hestia: InitHestiaIrisPlatformServicesWorker done")
 	if env == "local" || env == "production-local" {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins:     []string{"http://localhost:3000"},

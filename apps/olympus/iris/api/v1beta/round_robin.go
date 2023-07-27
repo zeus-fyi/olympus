@@ -1,4 +1,4 @@
-package v1_iris
+package v1Beta_iris
 
 import (
 	"net/http"
@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	artemis_api_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/api_requests"
+	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	iris_round_robin "github.com/zeus-fyi/olympus/pkg/iris/proxy/round_robin"
 )
 
@@ -21,7 +21,7 @@ func InternalRoundRobinRequestHandler(c echo.Context) error {
 	return request.ProcessRoundRobin(c, true)
 }
 func (p *BetaProxyRequest) ProcessRoundRobin(c echo.Context, isInternal bool) error {
-	rw := artemis_api_requests.NewArtemisApiRequestsActivities()
+	rw := iris_api_requests.NewArtemisApiRequestsActivities()
 	routeGroup := c.QueryParam("routeGroup")
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	routeInfo, err := iris_round_robin.GetNextRoute(ou.OrgID, routeGroup)
@@ -29,7 +29,7 @@ func (p *BetaProxyRequest) ProcessRoundRobin(c echo.Context, isInternal bool) er
 		log.Err(err).Msg("iris_round_robin.GetNextRoute")
 		return c.JSON(http.StatusBadRequest, err)
 	}
-	req := &artemis_api_requests.ApiProxyRequest{
+	req := &iris_api_requests.ApiProxyRequest{
 		Url:        routeInfo,
 		Payload:    p.Body,
 		IsInternal: isInternal,

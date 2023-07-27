@@ -6,9 +6,9 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	v1_iris "github.com/zeus-fyi/olympus/iris/api/v1"
+	iris_api "github.com/zeus-fyi/olympus/iris/api"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup/auth_keys_config"
-	artemis_api_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/api_requests"
+	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 )
@@ -27,15 +27,23 @@ func Iris() {
 	SetConfigByEnv(ctx, env)
 
 	srv := NewIrisServer(cfg)
-	srv.E = v1_iris.Routes(srv.E)
+	srv.E = iris_api.Routes(srv.E)
 	// Start server
 	log.Info().Msg("Iris: Starting ArtemisProxyWorker")
-	c := artemis_api_requests.ArtemisProxyWorker.ConnectTemporalClient()
+	c := iris_api_requests.IrisProxyWorker.ConnectTemporalClient()
 	defer c.Close()
-	artemis_api_requests.ArtemisProxyWorker.Worker.RegisterWorker(c)
-	err := artemis_api_requests.ArtemisProxyWorker.Worker.Start()
+	iris_api_requests.IrisProxyWorker.Worker.RegisterWorker(c)
+	err := iris_api_requests.IrisProxyWorker.Worker.Start()
 	if err != nil {
-		log.Fatal().Err(err).Msgf("Iris: %s ArtemisProxyWorker.Worker.Start failed", env)
+		log.Fatal().Err(err).Msgf("Iris: %s IrisProxyWorker.Worker.Start failed", env)
+		misc.DelayedPanic(err)
+	}
+	c = iris_api_requests.IrisCacheWorker.ConnectTemporalClient()
+	defer c.Close()
+	iris_api_requests.IrisCacheWorker.Worker.RegisterWorker(c)
+	err = iris_api_requests.IrisCacheWorker.Worker.Start()
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Iris: %s IrisCacheWorker.Worker.Start failed", env)
 		misc.DelayedPanic(err)
 	}
 	log.Info().Msg("Iris: ArtemisProxyWorker Started")

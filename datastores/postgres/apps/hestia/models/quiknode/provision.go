@@ -2,6 +2,7 @@ package hestia_quicknode_models
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
@@ -172,4 +173,77 @@ func DeprovisionQuickNodeServices(ctx context.Context, quickNodeID string) error
 		return err
 	}
 	return misc.ReturnIfErr(err, q.LogHeader("DeactivateProvisionedQuickNodeServiceEndpoint"))
+}
+
+type QuickNodeServicedEndpoints struct {
+	Plan        string
+	EndpointMap map[string]QuickNodeService
+}
+
+func SelectQuickNodeServicesByQid(ctx context.Context, qId string) (QuickNodeServicedEndpoints, error) {
+	q := `  SELECT qps.endpoint_id, qps.http_url, qps.network, qps.wss_url, qps.chain, 
+         		(SELECT plan FROM public.quicknode_marketplace_customer qmc WHERE qmc.quicknode_id = $1) AS plan,
+         		ca.contract_address, ref.referer
+			FROM provisioned_quicknode_services qps
+			LEFT JOIN provisioned_quicknode_services_contract_addresses ca ON ca.endpoint_id = qps.endpoint_id
+			LEFT JOIN provisioned_quicknode_services_referers ref ON ref.endpoint_id = qps.endpoint_id
+			WHERE quicknode_id = $1 AND active = true`
+
+	args := []interface{}{
+		qId,
+	}
+	var qnse QuickNodeServicedEndpoints
+	qs := make(map[string]QuickNodeService)
+	// Execute the SQL query
+	rows, err := apps.Pg.Query(ctx, q, args...)
+	if err != nil {
+		return qnse, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		qns := QuickNodeService{
+			ProvisionedQuickNodeServices: hestia_autogen_bases.ProvisionedQuickNodeServices{
+				QuickNodeID: qId,
+				Active:      true,
+			},
+			ProvisionedQuicknodeServicesContractAddresses: []hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddresses{},
+			ProvisionedQuicknodeServicesReferers:          []hestia_autogen_bases.ProvisionedQuicknodeServicesReferers{},
+		}
+		var cadr, refa sql.NullString
+		err = rows.Scan(
+			&qns.EndpointID,
+			&qns.HttpURL,
+			&qns.Network,
+			&qns.WssURL,
+			&qns.Chain,
+			&qnse.Plan,
+			&cadr,
+			&refa,
+		)
+		if err != nil {
+			return qnse, err
+		}
+		if cadr.Valid {
+			qns.ProvisionedQuicknodeServicesContractAddresses = append(qns.ProvisionedQuicknodeServicesContractAddresses, hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddresses{
+				ContractAddress: cadr.String,
+			})
+		}
+		if refa.Valid {
+			qns.ProvisionedQuicknodeServicesReferers = append(qns.ProvisionedQuicknodeServicesReferers, hestia_autogen_bases.ProvisionedQuicknodeServicesReferers{
+				Referer: refa.String,
+			})
+		}
+		if val, ok := qs[qns.EndpointID]; ok {
+			val.ProvisionedQuicknodeServicesContractAddresses = append(val.ProvisionedQuicknodeServicesContractAddresses, qns.ProvisionedQuicknodeServicesContractAddresses...)
+			val.ProvisionedQuicknodeServicesReferers = append(val.ProvisionedQuicknodeServicesReferers, qns.ProvisionedQuicknodeServicesReferers...)
+			qs[qns.EndpointID] = val
+		} else {
+			qs[qns.EndpointID] = qns
+		}
+	}
+	if err = rows.Err(); err != nil {
+		return qnse, err
+	}
+	qnse.EndpointMap = qs
+	return qnse, nil
 }

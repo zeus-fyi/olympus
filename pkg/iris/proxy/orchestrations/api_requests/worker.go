@@ -1,4 +1,4 @@
-package artemis_api_requests
+package iris_api_requests
 
 import (
 	"context"
@@ -8,55 +8,57 @@ import (
 	"go.temporal.io/sdk/client"
 )
 
-type ArtemisApiRequestsWorker struct {
+type IrisApiRequestsWorker struct {
 	temporal_base.Worker
 }
 
 var (
-	ArtemisProxyWorker ArtemisApiRequestsWorker
+	IrisProxyWorker IrisApiRequestsWorker
+	IrisCacheWorker IrisApiRequestsWorker
 )
 
 const (
-	ApiRequestsTaskQueue = "ApiRequestsTaskQueue"
+	ApiRequestsTaskQueue         = "ApiRequestsTaskQueue"
+	CacheUpdateRequestsTaskQueue = "CacheUpdateRequestsTaskQueue"
 )
 
-func (t *ArtemisApiRequestsWorker) ExecuteArtemisApiProxyWorkflow(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
+func (t *IrisApiRequestsWorker) ExecuteIrisProxyWorkflow(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
 	tc := t.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: t.TaskQueueName,
 	}
-	txWf := NewArtemisApiRequestsWorkflow()
+	txWf := NewIrisApiRequestsWorkflow()
 	wf := txWf.ProxyRequest
 	workflowRun, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, pr)
 	if err != nil {
-		log.Err(err).Msg("ExecuteArtemisApiProxyWorkflow")
+		log.Err(err).Msg("ExecuteIrisProxyWorkflow")
 		return pr, err
 	}
 	err = workflowRun.Get(ctx, &pr)
 	if err != nil {
-		log.Err(err).Msg("Get ExecuteArtemisApiProxyWorkflow")
+		log.Err(err).Msg("Get ExecuteIrisProxyWorkflow")
 		return pr, err
 	}
 	return pr, err
 }
 
-func (t *ArtemisApiRequestsWorker) ExecuteArtemisInternalSvcApiProxyWorkflow(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
+func (t *IrisApiRequestsWorker) ExecuteIrisInternalSvcApiProxyWorkflow(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
 	tc := t.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: t.TaskQueueName,
 	}
-	txWf := NewArtemisApiRequestsWorkflow()
+	txWf := NewIrisApiRequestsWorkflow()
 	wf := txWf.ProxyInternalRequest
 	workflowRun, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, pr)
 	if err != nil {
-		log.Err(err).Msg("ExecuteArtemisApiProxyWorkflow")
+		log.Err(err).Msg("ExecuteIrisProxyWorkflow")
 		return pr, err
 	}
 	err = workflowRun.Get(ctx, &pr)
 	if err != nil {
-		log.Err(err).Msg("Get ExecuteArtemisApiProxyWorkflow")
+		log.Err(err).Msg("Get ExecuteIrisProxyWorkflow")
 		return pr, err
 	}
 	return pr, err

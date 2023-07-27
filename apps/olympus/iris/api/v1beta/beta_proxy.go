@@ -1,4 +1,4 @@
-package v1_iris
+package v1Beta_iris
 
 import (
 	"errors"
@@ -7,8 +7,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
-	artemis_api_requests "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/api_requests"
 	proxy_anvil "github.com/zeus-fyi/olympus/pkg/iris/proxy/anvil"
+	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
 )
 
 type BetaProxyRequest struct {
@@ -40,7 +40,7 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 		log.Err(err).Msg("proxy_anvil.SessionLocker.GetSessionLockedRoute")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	req := &artemis_api_requests.ApiProxyRequest{
+	req := &iris_api_requests.ApiProxyRequest{
 		Url:        routeInfo,
 		Payload:    p.Body,
 		IsInternal: isInternal,
@@ -49,7 +49,7 @@ func (p *BetaProxyRequest) ProcessInternalHardhat(c echo.Context, isInternal boo
 	if wfExecutor != "" {
 		return p.Process(c, req)
 	}
-	rw := artemis_api_requests.NewArtemisApiRequestsActivities()
+	rw := iris_api_requests.NewArtemisApiRequestsActivities()
 	resp, err := rw.InternalSvcRelayRequest(c.Request().Context(), req)
 	if err != nil {
 		log.Err(err).Str("route", routeInfo).Msg("rw.InternalSvcRelayRequest")
@@ -63,11 +63,11 @@ func (p *BetaProxyRequest) ProcessEndSessionLock(c echo.Context, sessionID strin
 	return c.JSON(http.StatusOK, nil)
 }
 
-func (p *BetaProxyRequest) Process(c echo.Context, r *artemis_api_requests.ApiProxyRequest) error {
+func (p *BetaProxyRequest) Process(c echo.Context, r *iris_api_requests.ApiProxyRequest) error {
 	if r == nil {
 		return c.JSON(http.StatusBadRequest, errors.New("request is nil"))
 	}
-	resp, err := artemis_api_requests.ArtemisProxyWorker.ExecuteArtemisInternalSvcApiProxyWorkflow(c.Request().Context(), r)
+	resp, err := iris_api_requests.IrisProxyWorker.ExecuteIrisProxyWorkflow(c.Request().Context(), r)
 	if err != nil {
 		log.Err(err)
 		return c.JSON(http.StatusInternalServerError, err)

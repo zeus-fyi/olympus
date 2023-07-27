@@ -1,4 +1,4 @@
-package artemis_api_requests
+package iris_api_requests
 
 import (
 	"time"
@@ -9,23 +9,24 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-type ArtemisApiRequestsWorkflow struct {
+type IrisApiRequestsWorkflow struct {
 	temporal_base.Workflow
-	ArtemisApiRequestsActivities
+	IrisApiRequestsActivities
 }
 
 const defaultTimeout = 6 * time.Second
 
-func NewArtemisApiRequestsWorkflow() ArtemisApiRequestsWorkflow {
-	deployWf := ArtemisApiRequestsWorkflow{
-		Workflow:                     temporal_base.Workflow{},
-		ArtemisApiRequestsActivities: ArtemisApiRequestsActivities{},
+func NewIrisApiRequestsWorkflow() IrisApiRequestsWorkflow {
+	deployWf := IrisApiRequestsWorkflow{
+		Workflow:                  temporal_base.Workflow{},
+		IrisApiRequestsActivities: IrisApiRequestsActivities{},
 	}
 	return deployWf
 }
 
-func (a *ArtemisApiRequestsWorkflow) GetWorkflows() []interface{} {
-	return []interface{}{a.ProxyRequest, a.ProxyInternalRequest}
+func (i *IrisApiRequestsWorkflow) GetWorkflows() []interface{} {
+	return []interface{}{i.ProxyRequest, i.ProxyInternalRequest,
+		i.CacheUpdateOrAddOrgRoutingTablesWorkflow, i.CacheRefreshAllOrgRoutingTablesWorkflow}
 }
 
 type ApiProxyRequest struct {
@@ -36,7 +37,7 @@ type ApiProxyRequest struct {
 	Timeout    time.Duration
 }
 
-func (a *ArtemisApiRequestsWorkflow) ProxyRequest(ctx workflow.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
+func (i *IrisApiRequestsWorkflow) ProxyRequest(ctx workflow.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: pr.Timeout,
@@ -47,15 +48,15 @@ func (a *ArtemisApiRequestsWorkflow) ProxyRequest(ctx workflow.Context, pr *ApiP
 		},
 	}
 	sendCtx := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(sendCtx, a.RelayRequest, pr).Get(sendCtx, &pr)
+	err := workflow.ExecuteActivity(sendCtx, i.RelayRequest, pr).Get(sendCtx, &pr)
 	if err != nil {
-		log.Error("Failed to relay api request", "Error", err)
+		log.Error("failed to relay api request", "Error", err)
 		return pr, err
 	}
 	return pr, err
 }
 
-func (a *ArtemisApiRequestsWorkflow) ProxyInternalRequest(ctx workflow.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
+func (i *IrisApiRequestsWorkflow) ProxyInternalRequest(ctx workflow.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: pr.Timeout,
@@ -66,9 +67,9 @@ func (a *ArtemisApiRequestsWorkflow) ProxyInternalRequest(ctx workflow.Context, 
 		},
 	}
 	sendCtx := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(sendCtx, a.InternalSvcRelayRequest, pr).Get(sendCtx, &pr)
+	err := workflow.ExecuteActivity(sendCtx, i.InternalSvcRelayRequest, pr).Get(sendCtx, &pr)
 	if err != nil {
-		log.Error("Failed to relay api request", "Error", err)
+		log.Error("failed to relay api request", "Error", err)
 		return pr, err
 	}
 	return pr, err

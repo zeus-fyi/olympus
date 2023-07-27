@@ -13,6 +13,7 @@ import (
 	artemis_validator_service_groups_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models"
 	v1hestia "github.com/zeus-fyi/olympus/hestia/api/v1"
 	v1_ethereum_aws "github.com/zeus-fyi/olympus/hestia/api/v1/ethereum/aws"
+	hestia_quiknode_v1_routes "github.com/zeus-fyi/olympus/hestia/api/v1/quiknode"
 	hestia_web_router "github.com/zeus-fyi/olympus/hestia/web"
 	hestia_login "github.com/zeus-fyi/olympus/hestia/web/login"
 	"github.com/zeus-fyi/olympus/pkg/aegis/auth_startup"
@@ -66,6 +67,7 @@ func Hestia() {
 		awsAuthCfg = sw.SecretsManagerAuthAWS
 		awsAuthCfg.Region = awsRegion
 		sw.SESAuthAWS.Region = awsRegion
+		hestia_quiknode_v1_routes.QuickNodeToken = sw.QuickNodeBearer
 		artemis_validator_service_groups_models.ArtemisClient = artemis_client.NewDefaultArtemisClient(sw.BearerToken)
 		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesSESEmailNotifications(ctx, sw.SESAuthAWS)
 		hermes_email_notifications.InitHermesSendGridClient(ctx, sw.SendGridAPIKey)

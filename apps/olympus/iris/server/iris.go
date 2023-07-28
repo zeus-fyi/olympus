@@ -29,7 +29,7 @@ func Iris() {
 	srv := NewIrisServer(cfg)
 	srv.E = iris_api.Routes(srv.E)
 	// Start server
-	log.Info().Msg("Iris: Starting ArtemisProxyWorker")
+	log.Info().Msg("Iris: Starting IrisProxyWorker")
 	c := iris_api_requests.IrisProxyWorker.ConnectTemporalClient()
 	defer c.Close()
 	iris_api_requests.IrisProxyWorker.Worker.RegisterWorker(c)
@@ -38,6 +38,8 @@ func Iris() {
 		log.Fatal().Err(err).Msgf("Iris: %s IrisProxyWorker.Worker.Start failed", env)
 		misc.DelayedPanic(err)
 	}
+	log.Info().Msg("Iris: Started IrisProxyWorker")
+	log.Info().Msg("Iris: Starting IrisCacheWorker")
 	c = iris_api_requests.IrisCacheWorker.ConnectTemporalClient()
 	defer c.Close()
 	iris_api_requests.IrisCacheWorker.Worker.RegisterWorker(c)
@@ -46,7 +48,7 @@ func Iris() {
 		log.Fatal().Err(err).Msgf("Iris: %s IrisCacheWorker.Worker.Start failed", env)
 		misc.DelayedPanic(err)
 	}
-	log.Info().Msg("Iris: ArtemisProxyWorker Started")
+	log.Info().Msg("Iris: IrisCacheWorker Started")
 	srv.Start()
 }
 

@@ -20,13 +20,13 @@ func CreateOrgRoutesRequestHandler(c echo.Context) error {
 }
 
 func (r *OrgGroupRoutesRequest) Create(c echo.Context) error {
+	ou := c.Get("orgUser").(org_users.OrgUser)
 	or := make([]iris_autogen_bases.OrgRoutes, len(r.Routes))
 	for i, route := range r.Routes {
 		or[i] = iris_autogen_bases.OrgRoutes{
 			RoutePath: route,
 		}
 	}
-	ou := c.Get("orgUser").(org_users.OrgUser)
 	ipr := platform_service_orchestrations.IrisPlatformServiceRequest{
 		Ou:     ou,
 		Routes: r.Routes,
@@ -54,13 +54,13 @@ type OrgGroupRoutesRequest struct {
 }
 
 func (r *OrgGroupRoutesRequest) CreateGroupRoute(c echo.Context) error {
+	ou := c.Get("orgUser").(org_users.OrgUser)
 	or := make([]iris_autogen_bases.OrgRoutes, len(r.Routes))
 	for i, route := range r.Routes {
 		or[i] = iris_autogen_bases.OrgRoutes{
 			RoutePath: route,
 		}
 	}
-	ou := c.Get("orgUser").(org_users.OrgUser)
 	ipr := platform_service_orchestrations.IrisPlatformServiceRequest{
 		Ou:           ou,
 		OrgGroupName: r.GroupName,

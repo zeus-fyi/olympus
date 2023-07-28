@@ -15,7 +15,7 @@ func UpdateOrgGroupRoutesRequestHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	return request.Update(c)
+	return request.UpdateOrgGroup(c)
 }
 
 type UpdateOrgGroupRoutesRequest struct {
@@ -23,8 +23,11 @@ type UpdateOrgGroupRoutesRequest struct {
 	Routes    []string `json:"routes"`
 }
 
-func (r *UpdateOrgGroupRoutesRequest) Update(c echo.Context) error {
+func (r *UpdateOrgGroupRoutesRequest) UpdateOrgGroup(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
+	if len(r.GroupName) == 0 {
+		return c.JSON(http.StatusBadRequest, "GroupName is required")
+	}
 	ipr := platform_service_orchestrations.IrisPlatformServiceRequest{
 		Ou:           ou,
 		Routes:       r.Routes,

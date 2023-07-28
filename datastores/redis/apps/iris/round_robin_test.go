@@ -10,6 +10,32 @@ func (r *IrisRedisTestSuite) TestInitOrgTables() {
 	routes := []string{"https://zeus.fyi", "https://artemis.zeus.fyi"}
 	err := IrisRedis.AddOrUpdateOrgRoutingGroup(context.Background(), 1, rgName, routes)
 	r.NoError(err)
+
+	additionalRoute := "https://artemis2.zeus.fyi"
+	routes = []string{"https://zeus.fyi", "https://artemis.zeus.fyi", additionalRoute}
+
+	err = IrisRedis.AddOrUpdateOrgRoutingGroup(context.Background(), 1, rgName, routes)
+	r.NoError(err)
+	m := make(map[string]int)
+	for i := 0; i < 10; i++ {
+		routeEndpoint, rerr := IrisRedis.GetNextRoute(context.Background(), 1, rgName)
+		r.NoError(rerr)
+		r.NotEmpty(routeEndpoint)
+		fmt.Println(routeEndpoint)
+		m[routeEndpoint]++
+	}
+
+	routes = []string{"https://zeus.fyi", "https://artemis.zeus.fyi"}
+	err = IrisRedis.AddOrUpdateOrgRoutingGroup(context.Background(), 1, rgName, routes)
+	for i := 0; i < 10; i++ {
+		routeEndpoint, rerr := IrisRedis.GetNextRoute(context.Background(), 1, rgName)
+		r.NoError(rerr)
+		r.NotEmpty(routeEndpoint)
+		fmt.Println(routeEndpoint)
+		if routeEndpoint == additionalRoute {
+			r.FailNow("route found in map")
+		}
+	}
 }
 
 func (r *IrisRedisTestSuite) TestRoundRobin() {

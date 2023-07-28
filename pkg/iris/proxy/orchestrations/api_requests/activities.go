@@ -20,8 +20,9 @@ type ActivityDefinition interface{}
 type ActivitiesSlice []interface{}
 
 func (i *IrisApiRequestsActivities) GetActivities() ActivitiesSlice {
-	return []interface{}{i.RelayRequest, i.InternalSvcRelayRequest, i.ExtLoadBalancerRequest,
-		i.RefreshAllOrgRoutingTables, i.UpdateOrgRoutingTables}
+	return []interface{}{i.RelayRequest, i.InternalSvcRelayRequest, i.ExtLoadBalancerRequest, i.UpdateOrgRoutingTable,
+		i.SelectAllOrgGroupsRoutingTables, i.SelectOrgGroupRoutingTable, i.SelectAllRoutingTables,
+	}
 }
 
 func (i *IrisApiRequestsActivities) RelayRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {

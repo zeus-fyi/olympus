@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/rs/zerolog/log"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 )
 
@@ -69,7 +70,7 @@ func (m *IrisCache) AddOrUpdateOrgRoutingGroup(ctx context.Context, orgID int, r
 	return nil
 }
 
-func (m *IrisCache) InitRoutingTables(ctx context.Context) error {
+func (m *IrisCache) initRoutingTables(ctx context.Context) error {
 	ot, err := iris_models.SelectAllOrgRoutes(ctx)
 	if err != nil {
 		return err
@@ -78,6 +79,7 @@ func (m *IrisCache) InitRoutingTables(ctx context.Context) error {
 		for rgName, routes := range og {
 			err = m.AddOrUpdateOrgRoutingGroup(context.Background(), orgID, rgName, routes)
 			if err != nil {
+				log.Err(err).Msg("InitRoutingTables")
 				return err
 			}
 		}
@@ -85,7 +87,7 @@ func (m *IrisCache) InitRoutingTables(ctx context.Context) error {
 	return nil
 }
 
-func (m *IrisCache) InitRoutingTablesForOrg(ctx context.Context, orgID int) error {
+func (m *IrisCache) initRoutingTablesForOrg(ctx context.Context, orgID int) error {
 	ot, err := iris_models.SelectAllOrgRoutesByOrg(ctx, orgID)
 	if err != nil {
 		return err
@@ -94,6 +96,24 @@ func (m *IrisCache) InitRoutingTablesForOrg(ctx context.Context, orgID int) erro
 		for rgName, routes := range og {
 			err = m.AddOrUpdateOrgRoutingGroup(context.Background(), orgID, rgName, routes)
 			if err != nil {
+				log.Err(err).Msg("InitRoutingTablesForOrg")
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (m *IrisCache) refreshRoutingTablesForOrgGroup(ctx context.Context, orgID int, groupName string) error {
+	ot, err := iris_models.SelectOrgRoutesByOrgAndGroupName(ctx, orgID, groupName)
+	if err != nil {
+		return err
+	}
+	for _, og := range ot.Map {
+		for rgName, routes := range og {
+			err = m.AddOrUpdateOrgRoutingGroup(context.Background(), orgID, rgName, routes)
+			if err != nil {
+				log.Err(err).Msg("InitRoutingTablesForOrgGroup")
 				return err
 			}
 		}

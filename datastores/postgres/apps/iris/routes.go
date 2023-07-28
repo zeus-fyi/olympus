@@ -3,6 +3,7 @@ package iris_models
 import (
 	"context"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
@@ -51,18 +52,43 @@ func InsertOrgRoutes(ctx context.Context, orgID int, routes []iris_autogen_bases
 		FROM new_routes nr
 		WHERE NOT EXISTS (SELECT 1 FROM existing_routes er WHERE er.route_path = nr.route_path)
     `
-
 	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, pq.Array(routeIDs), pq.Array(routePaths))
+	if err == pgx.ErrNoRows {
+		log.Warn().Msg("No new routes to insert")
+		return nil
+	}
 	return misc.ReturnIfErr(err, q.LogHeader("InsertOrgRoutes"))
 }
 
-func InsertOrgRouteGroup(ctx context.Context, ogr iris_autogen_bases.OrgRouteGroups) error {
+func InsertOrgRouteGroup(ctx context.Context, ogr iris_autogen_bases.OrgRouteGroups, routes []iris_autogen_bases.OrgRoutes) error {
+	// Convert the routes slice into a format that can be used in the SQL query
+	routePaths := make([]string, len(routes))
+	for i, route := range routes {
+		routePaths[i] = route.RoutePath
+	}
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `INSERT INTO org_route_groups(route_group_id, org_id, route_group_name)
-				  VALUES ($1, $2, $3)`
-	_, err := apps.Pg.Exec(ctx, q.RawQuery, ogr.RouteGroupID, ogr.OrgID, ogr.RouteGroupName)
-	if err != nil {
-		return err
+	q.RawQuery = `
+        WITH new_route_group AS (
+            INSERT INTO org_route_groups(route_group_id, org_id, route_group_name)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (org_id, route_group_name) DO NOTHING
+            RETURNING route_group_id
+        ), existing_routes AS (
+            SELECT route_id FROM org_routes 
+            WHERE org_id = $2 AND route_path = ANY($4::text[])
+        ), remove_old_routes AS (
+			DELETE FROM org_routes_groups
+			WHERE route_group_id = (SELECT route_group_id FROM new_route_group LIMIT 1)
+		)
+        INSERT INTO org_routes_groups(route_group_id, route_id)
+        SELECT new_route_group.route_group_id, existing_routes.route_id 
+        FROM new_route_group, existing_routes
+    `
+	ogr.RouteGroupID = ts.UnixTimeStampNow()
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, ogr.RouteGroupID, ogr.OrgID, ogr.RouteGroupName, pq.Array(routePaths))
+	if err == pgx.ErrNoRows {
+		log.Warn().Msg("No new routes to insert")
+		return nil
 	}
 	return misc.ReturnIfErr(err, q.LogHeader("InsertOrgRouteGroup"))
 }
@@ -159,7 +185,47 @@ func SelectAllOrgRoutesByOrg(ctx context.Context, orgID int) (OrgRoutesGroup, er
 				  WHERE o.org_id = $1
 				  `
 
-	rows, err := apps.Pg.Query(ctx, q.RawQuery)
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SelectOrgRoutes")); returnErr != nil {
+		return og, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var route iris_autogen_bases.OrgRoutes
+		gn := ""
+		rowErr := rows.Scan(
+			&gn, &route.OrgID, &route.RoutePath,
+		)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader("SelectOrgRoutes"))
+			return og, rowErr
+		}
+		if _, ok := og.Map[route.OrgID]; !ok {
+			og.Map[route.OrgID] = make(map[string][]string)
+		}
+		if _, ok := og.Map[route.OrgID][gn]; !ok {
+			og.Map[route.OrgID][gn] = []string{}
+		}
+		tmp := og.Map[route.OrgID][gn]
+		tmp = append(tmp, route.RoutePath)
+		og.Map[route.OrgID][gn] = tmp
+	}
+	return og, misc.ReturnIfErr(err, q.LogHeader("SelectOrgRoutes"))
+}
+
+func SelectOrgRoutesByOrgAndGroupName(ctx context.Context, orgID int, groupName string) (OrgRoutesGroup, error) {
+	og := OrgRoutesGroup{
+		Map: make(map[int]map[string][]string),
+	}
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT o.route_group_name, o.org_id, org.route_path
+				  FROM org_route_groups o 
+				  INNER JOIN org_routes_groups orgrs ON orgrs.route_group_id = o.route_group_id
+				  LEFT JOIN org_routes org ON org.route_id = orgrs.route_id
+				  WHERE o.org_id = $1 AND o.route_group_name = $2
+				  `
+
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, groupName)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SelectOrgRoutes")); returnErr != nil {
 		return og, err
 	}

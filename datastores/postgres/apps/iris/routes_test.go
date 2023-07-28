@@ -51,18 +51,32 @@ func (s *IrisTestSuite) TestInsertOrgRoutes() {
 		}
 	}
 	s.Require().Equal(11, count)
+	ogr := iris_autogen_bases.OrgRouteGroups{
+		OrgID:          s.Tc.ProductionLocalTemporalOrgID,
+		RouteGroupName: "testGroup",
+	}
+	err = InsertOrgRouteGroup(ctx, ogr, routes)
+	s.Require().Nil(err)
+
+	groupedRoutes, err := SelectOrgRoutesByOrgAndGroupName(ctx, s.Tc.ProductionLocalTemporalOrgID, ogr.RouteGroupName)
+	s.Require().Nil(err)
+	s.Require().NotNil(groupedRoutes)
+	count = 0
+	for _, rts := range groupedRoutes.Map {
+		for _, rt := range rts {
+			for _, rn := range rt {
+				if rn == r1 {
+					count += 1
+				}
+				if rn == r2 {
+					count += 10
+				}
+			}
+		}
+	}
+	s.Require().Equal(11, count)
 }
 
-func (s *IrisTestSuite) TestInsertOrgRouteGroup() {
-	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
-	ogr := iris_autogen_bases.OrgRouteGroups{
-		RouteGroupID:   100,
-		OrgID:          s.Tc.ProductionLocalTemporalOrgID,
-		RouteGroupName: "quiknode-mainnet",
-	}
-	err := InsertOrgRouteGroup(ctx, ogr)
-	s.Require().Nil(err)
-}
 func (s *IrisTestSuite) TestInsertOrgRouteQuiknode() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 

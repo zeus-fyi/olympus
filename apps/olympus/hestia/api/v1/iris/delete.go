@@ -42,11 +42,12 @@ func DeleteOrgGroupRoutesRequestHandler(c echo.Context) error {
 }
 
 func (r *OrgGroupRoutesRequest) DeleteOrgRoutingGroup(c echo.Context) error {
+	ou := c.Get("orgUser").(org_users.OrgUser)
 	if len(r.GroupName) == 0 {
 		return c.JSON(http.StatusBadRequest, "GroupName is required")
 	}
 	ipr := platform_service_orchestrations.IrisPlatformServiceRequest{
-		Ou:           org_users.OrgUser{},
+		Ou:           ou,
 		OrgGroupName: r.GroupName,
 	}
 	err := platform_service_orchestrations.HestiaPlatformServiceWorker.ExecuteIrisDeleteOrgGroupRoutingTableWorkflow(context.Background(), ipr)

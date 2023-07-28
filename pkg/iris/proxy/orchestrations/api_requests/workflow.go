@@ -26,7 +26,8 @@ func NewIrisApiRequestsWorkflow() IrisApiRequestsWorkflow {
 
 func (i *IrisApiRequestsWorkflow) GetWorkflows() []interface{} {
 	return []interface{}{i.ProxyRequest, i.ProxyInternalRequest,
-		i.CacheUpdateOrAddOrgRoutingTablesWorkflow, i.CacheRefreshAllOrgRoutingTablesWorkflow}
+		i.CacheRefreshAllOrgRoutingTablesWorkflow, i.CacheRefreshOrgRoutingTablesWorkflow, i.CacheRefreshOrgGroupTableWorkflow,
+	}
 }
 
 type ApiProxyRequest struct {

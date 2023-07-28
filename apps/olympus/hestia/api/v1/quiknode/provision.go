@@ -27,9 +27,14 @@ func (r *ProvisionRequest) Provision(c echo.Context) error {
 	pr := r.ProvisionRequest
 	err := quicknode_orchestrations.HestiaQnWorker.ExecuteQnProvisionWorkflow(context.Background(), pr, ou)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError,
+			QuickNodeResponse{
+				Status: "error",
+			})
 	}
-	return c.JSON(http.StatusOK, "success")
+	return c.JSON(http.StatusOK, QuickNodeResponse{
+		Status: "success",
+	})
 }
 
 func UpdateProvisionRequestHandler(c echo.Context) error {
@@ -45,7 +50,12 @@ func (r *ProvisionRequest) UpdateProvision(c echo.Context) error {
 	pr := r.ProvisionRequest
 	err := quicknode_orchestrations.HestiaQnWorker.ExecuteQnUpdateProvisionWorkflow(context.Background(), pr, ou)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError,
+			QuickNodeResponse{
+				Status: "error",
+			})
 	}
-	return c.JSON(http.StatusOK, "success")
+	return c.JSON(http.StatusOK, QuickNodeResponse{
+		Status: "success",
+	})
 }

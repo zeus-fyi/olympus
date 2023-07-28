@@ -20,13 +20,13 @@ func CreateOrgRoutesRequestHandler(c echo.Context) error {
 }
 
 func (r *OrgGroupRoutesRequest) Create(c echo.Context) error {
+	ou := c.Get("orgUser").(org_users.OrgUser)
 	or := make([]iris_autogen_bases.OrgRoutes, len(r.Routes))
 	for i, route := range r.Routes {
 		or[i] = iris_autogen_bases.OrgRoutes{
 			RoutePath: route,
 		}
 	}
-	ou := c.Get("orgUser").(org_users.OrgUser)
 	ipr := platform_service_orchestrations.IrisPlatformServiceRequest{
 		Ou:     ou,
 		Routes: r.Routes,
@@ -45,7 +45,7 @@ func CreateOrgGroupRoutesRequestHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	return request.Create(c)
+	return request.CreateGroupRoute(c)
 }
 
 type OrgGroupRoutesRequest struct {
@@ -54,13 +54,13 @@ type OrgGroupRoutesRequest struct {
 }
 
 func (r *OrgGroupRoutesRequest) CreateGroupRoute(c echo.Context) error {
+	ou := c.Get("orgUser").(org_users.OrgUser)
 	or := make([]iris_autogen_bases.OrgRoutes, len(r.Routes))
 	for i, route := range r.Routes {
 		or[i] = iris_autogen_bases.OrgRoutes{
 			RoutePath: route,
 		}
 	}
-	ou := c.Get("orgUser").(org_users.OrgUser)
 	ipr := platform_service_orchestrations.IrisPlatformServiceRequest{
 		Ou:           ou,
 		OrgGroupName: r.GroupName,
@@ -69,8 +69,8 @@ func (r *OrgGroupRoutesRequest) CreateGroupRoute(c echo.Context) error {
 	ctx := context.Background()
 	err := platform_service_orchestrations.HestiaPlatformServiceWorker.ExecuteIrisPlatformSetupRequestWorkflow(ctx, ipr)
 	if err != nil {
-		log.Err(err).Msg("CreateOrgGroupRoutesRequest")
-		return err
+		log.Err(err).Interface("ou", ou).Msg("ExecuteIrisPlatformSetupRequestWorkflow")
+		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, nil)
 }

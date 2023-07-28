@@ -86,6 +86,19 @@ func (s *IrisTestSuite) TestInsertOrgRoutes() {
 			s.Fail("route not deleted")
 		}
 	}
+
+	ogr = iris_autogen_bases.OrgRouteGroups{
+		OrgID:          s.Tc.ProductionLocalTemporalOrgID,
+		RouteGroupName: "testGroup2",
+	}
+	err = InsertOrgRoutes(ctx, s.Tc.ProductionLocalTemporalOrgID, routes)
+	s.Require().Nil(err)
+
+	err = InsertOrgRouteGroup(ctx, ogr, routes)
+	s.Require().Nil(err)
+
+	err = DeleteOrgGroupAndRoutes(ctx, s.Tc.ProductionLocalTemporalOrgID, ogr.RouteGroupName)
+	s.Require().Nil(err)
 }
 
 func (s *IrisTestSuite) TestInsertOrgRouteQuiknode() {

@@ -12,18 +12,14 @@ import (
 )
 
 func CreateOrgRoutesRequestHandler(c echo.Context) error {
-	request := new(CreateOrgRoutesRequest)
+	request := new(OrgGroupRoutesRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
 	return request.Create(c)
 }
 
-type CreateOrgRoutesRequest struct {
-	Routes []string `json:"routes"`
-}
-
-func (r *CreateOrgRoutesRequest) Create(c echo.Context) error {
+func (r *OrgGroupRoutesRequest) Create(c echo.Context) error {
 	or := make([]iris_autogen_bases.OrgRoutes, len(r.Routes))
 	for i, route := range r.Routes {
 		or[i] = iris_autogen_bases.OrgRoutes{
@@ -45,19 +41,19 @@ func (r *CreateOrgRoutesRequest) Create(c echo.Context) error {
 }
 
 func CreateOrgGroupRoutesRequestHandler(c echo.Context) error {
-	request := new(CreateOrgRoutesRequest)
+	request := new(OrgGroupRoutesRequest)
 	if err := c.Bind(request); err != nil {
 		return err
 	}
 	return request.Create(c)
 }
 
-type CreateOrUpdateOrgGroupRoutesRequest struct {
-	GroupName string   `json:"groupName"`
+type OrgGroupRoutesRequest struct {
+	GroupName string   `json:"groupName,omitempty"`
 	Routes    []string `json:"routes"`
 }
 
-func (r *CreateOrUpdateOrgGroupRoutesRequest) Create(c echo.Context) error {
+func (r *OrgGroupRoutesRequest) CreateGroupRoute(c echo.Context) error {
 	or := make([]iris_autogen_bases.OrgRoutes, len(r.Routes))
 	for i, route := range r.Routes {
 		or[i] = iris_autogen_bases.OrgRoutes{

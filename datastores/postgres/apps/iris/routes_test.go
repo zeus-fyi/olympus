@@ -5,12 +5,7 @@ import (
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	iris_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
-
-// todo add routes to db for beacon node lb
-
-var ts chronos.Chronos
 
 func (s *IrisTestSuite) TestInsertOrgRoute() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
@@ -23,6 +18,39 @@ func (s *IrisTestSuite) TestInsertOrgRoute() {
 		err := InsertOrgRoute(ctx, or)
 		s.Require().Nil(err)
 	}
+}
+
+func (s *IrisTestSuite) TestInsertOrgRoutes() {
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	r1 := "https://test.com/v1"
+	r2 := "https://test.com/v2"
+	routes := []iris_autogen_bases.OrgRoutes{
+		{
+			RouteID:   ts.UnixTimeStampNow(),
+			RoutePath: r1,
+		},
+		{
+			RouteID:   ts.UnixTimeStampNow(),
+			RoutePath: r2,
+		},
+	}
+	err := InsertOrgRoutes(ctx, s.Tc.ProductionLocalTemporalOrgID, routes)
+	s.Require().Nil(err)
+
+	selectRoutes, err := SelectOrgRoutes(ctx, s.Tc.ProductionLocalTemporalOrgID)
+	s.Require().Nil(err)
+	s.Require().NotNil(routes)
+
+	count := 0
+	for _, r := range selectRoutes {
+		if r.RoutePath == r1 {
+			count += 1
+		}
+		if r.RoutePath == r2 {
+			count += 10
+		}
+	}
+	s.Require().Equal(11, count)
 }
 
 func (s *IrisTestSuite) TestInsertOrgRouteGroup() {

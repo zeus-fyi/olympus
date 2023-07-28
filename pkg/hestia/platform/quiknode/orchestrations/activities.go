@@ -23,7 +23,7 @@ type ActivitiesSlice []interface{}
 
 func (h *HestiaQuicknodeActivities) GetActivities() ActivitiesSlice {
 	return []interface{}{
-		h.Provision, h.UpdateProvision, h.Deprovision, h.Deprovision,
+		h.Provision, h.UpdateProvision, h.Deprovision, h.Deactivate,
 	}
 }
 

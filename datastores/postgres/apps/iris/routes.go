@@ -3,9 +3,11 @@ package iris_models
 import (
 	"context"
 
+	"github.com/lib/pq"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	iris_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris/models/bases/autogen"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils/sql_query_templates"
 )
@@ -22,17 +24,36 @@ func InsertOrgRoute(ctx context.Context, route iris_autogen_bases.OrgRoutes) err
 	return misc.ReturnIfErr(err, q.LogHeader("InsertOrgRoute"))
 }
 
-func InsertOrgRoutes(ctx context.Context, routes []iris_autogen_bases.OrgRoutes) error {
-	//q := sql_query_templates.QueryParams{}
-	//q.RawQuery = `INSERT INTO org_routes(route_id, org_id, route_path)
-	//			  VALUES ($1, $2, $3)`
-	//
-	//_, err := apps.Pg.Exec(ctx, q.RawQuery, route.RouteID, route.OrgID, route.RoutePath)
-	//if err != nil {
-	//	return err
-	//}
-	//return misc.ReturnIfErr(err, q.LogHeader("InsertOrgRoutes"))
-	return nil
+var ts chronos.Chronos
+
+func InsertOrgRoutes(ctx context.Context, orgID int, routes []iris_autogen_bases.OrgRoutes) error {
+	// Generate a slice of IDs for the new routes
+	routeIDs := make([]int, len(routes))
+	for i := range routeIDs {
+		routeIDs[i] = ts.UnixTimeStampNow()
+	}
+
+	// Convert the routes slice into a format that can be used in the SQL query
+	routePaths := make([]string, len(routes))
+	for i, route := range routes {
+		routePaths[i] = route.RoutePath
+	}
+
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `
+        WITH new_routes (route_id, route_path) AS (
+            SELECT * FROM UNNEST ($2::int8[], $3::text[])
+        ), existing_routes AS (
+            SELECT route_path FROM org_routes WHERE org_id = $1
+        )
+        INSERT INTO org_routes (route_id, org_id, route_path)
+		SELECT nr.route_id, $1, nr.route_path
+		FROM new_routes nr
+		WHERE NOT EXISTS (SELECT 1 FROM existing_routes er WHERE er.route_path = nr.route_path)
+    `
+
+	_, err := apps.Pg.Exec(ctx, q.RawQuery, orgID, pq.Array(routeIDs), pq.Array(routePaths))
+	return misc.ReturnIfErr(err, q.LogHeader("InsertOrgRoutes"))
 }
 
 func InsertOrgRouteGroup(ctx context.Context, ogr iris_autogen_bases.OrgRouteGroups) error {

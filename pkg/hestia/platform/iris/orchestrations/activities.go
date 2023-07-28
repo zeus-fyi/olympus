@@ -2,6 +2,10 @@ package platform_service_orchestrations
 
 import (
 	"context"
+
+	"github.com/rs/zerolog/log"
+	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
+	iris_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris/models/bases/autogen"
 )
 
 type HestiaPlatformActivities struct {
@@ -21,11 +25,16 @@ func (h *HestiaPlatformActivities) GetActivities() ActivitiesSlice {
 }
 
 func (h *HestiaPlatformActivities) UpdateDatabaseOrgRoutingTables(ctx context.Context, pr IrisPlatformServiceRequest) error {
-	//err := iris_models.InsertOrgRoutes(context.Background(), pr.Routes)
-	//if err != nil {
-	//}
-	if pr.OrgGroupName != "" {
-		// then do group routes
+	routes := make([]iris_autogen_bases.OrgRoutes, len(pr.Routes))
+	for i, route := range pr.Routes {
+		routes[i] = iris_autogen_bases.OrgRoutes{
+			RoutePath: route,
+		}
+	}
+	err := iris_models.InsertOrgRoutes(context.Background(), pr.Ou.OrgID, routes)
+	if err != nil {
+		log.Err(err).Msg("UpdateDatabaseOrgRoutingTables")
+		return err
 	}
 	return nil
 }

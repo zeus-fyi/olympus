@@ -40,7 +40,7 @@ func InitV1RoutesServices(e *echo.Echo) {
 					return true, nil
 				}
 			}
-			key, err := auth.VerifyBearerToken(ctx, token)
+			key, err := auth.VerifyBearerToken(ctx, qnEndpointID)
 			if err != nil {
 				log.Err(err).Msg("InitV1Routes")
 				return false, c.JSON(http.StatusNotFound, QuickNodeResponse{

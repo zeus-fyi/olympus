@@ -2,10 +2,13 @@ package platform_service_orchestrations
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/rs/zerolog/log"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	iris_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris/models/bases/autogen"
+	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
+	"github.com/zeus-fyi/olympus/pkg/iris/resty_base"
 )
 
 type HestiaPlatformActivities struct {
@@ -73,8 +76,21 @@ func (h *HestiaPlatformActivities) DeleteOrgRoutes(ctx context.Context, pr IrisP
 	return nil
 }
 
-func (h *HestiaPlatformActivities) IrisPlatformSetupCacheUpdateRequest(ctx context.Context, pr IrisPlatformServiceRequest) error {
-	// call iris via api & cache refresh
+const (
+	IrisApiUrl = "https://iris.zeus.fyi"
+)
 
+func (h *HestiaPlatformActivities) IrisPlatformSetupCacheUpdateRequest(ctx context.Context, pr IrisPlatformServiceRequest) error {
+	rc := resty_base.GetBaseRestyClient(IrisApiUrl, artemis_orchestration_auth.Bearer)
+	refreshEndpoint := fmt.Sprintf("/v1/internal/router/refresh/%d", pr.Ou.OrgID)
+	resp, err := rc.R().Get(refreshEndpoint)
+	if err != nil {
+		log.Err(err).Msg("IrisPlatformSetupCacheUpdateRequest")
+		return err
+	}
+	if resp.StatusCode() >= 400 {
+		log.Err(err).Interface("orgUser", pr.Ou).Msg("IrisPlatformSetupCacheUpdateRequest")
+		return err
+	}
 	return nil
 }

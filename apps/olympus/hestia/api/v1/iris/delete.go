@@ -14,6 +14,7 @@ type DeleteOrgRoutesRequest struct {
 }
 
 func (r *DeleteOrgRoutesRequest) Delete(c echo.Context) error {
+
 	return nil
 }
 

@@ -75,6 +75,17 @@ func (s *IrisTestSuite) TestInsertOrgRoutes() {
 		}
 	}
 	s.Require().Equal(11, count)
+
+	err = DeleteOrgRoutes(ctx, s.Tc.ProductionLocalTemporalOrgID, []string{r1, r2})
+	s.Require().Nil(err)
+
+	latestRoutes, err := SelectOrgRoutes(ctx, s.Tc.ProductionLocalTemporalOrgID)
+	s.Require().Nil(err)
+	for _, lr := range latestRoutes {
+		if lr.RoutePath == r1 || lr.RoutePath == r2 {
+			s.Fail("route not deleted")
+		}
+	}
 }
 
 func (s *IrisTestSuite) TestInsertOrgRouteQuiknode() {

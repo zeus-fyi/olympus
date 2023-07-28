@@ -14,6 +14,7 @@ import (
 	hestia_access_keygen "github.com/zeus-fyi/olympus/hestia/web/access"
 	hestia_billing "github.com/zeus-fyi/olympus/hestia/web/billing"
 	hestia_login "github.com/zeus-fyi/olympus/hestia/web/login"
+	hestia_quicknode_dashboard "github.com/zeus-fyi/olympus/hestia/web/quicknode"
 	hestia_resources "github.com/zeus-fyi/olympus/hestia/web/resources"
 	hestia_signup "github.com/zeus-fyi/olympus/hestia/web/signup"
 	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
@@ -26,6 +27,7 @@ func WebRoutes(e *echo.Echo) *echo.Echo {
 	e.GET("/v1/users/services", hestia_login.UsersServicesRequestHandler)
 
 	e.GET("/verify/email/:token", hestia_signup.VerifyEmailHandler)
+	hestia_quicknode_dashboard.InitQuickNodeDashboardRoutes(e)
 	InitV1Routes(e)
 	return e
 }

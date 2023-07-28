@@ -76,7 +76,30 @@ func (t *AuthStartupTestSuite) TestAuthStartup() {
 	//t.Assert().Equal(t.Tc.ProdDbPgconn, sw.PostgresAuth)
 
 }
+func (t *AuthStartupTestSuite) TestHestiaAuthStartup() {
+	keysCfg := auth_keys_config.AuthKeysCfg{
+		AgePrivKey:    t.Tc.LocalAgePkey,
+		AgePubKey:     t.Tc.LocalAgePubkey,
+		SpacesKey:     t.Tc.LocalS3SpacesKey,
+		SpacesPrivKey: t.Tc.LocalS3SpacesSecret,
+	}
+	authCfg := NewDefaultAuthClient(ctx, keysCfg)
+	inMemFs := ReadEncryptedSecretsData(ctx, authCfg)
 
+	t.Require().NotEmpty(inMemFs)
+
+	fs, sw := RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx, authCfg)
+	b, err := fs.ReadFile("secrets/artemis.ethereum.goerli.beacon.txt")
+	t.Require().NotEmpty(b)
+	t.Require().Nil(err)
+
+	InitArtemisEthereum(ctx, fs, sw)
+	//token := string(b)
+	//cmd := exec.Command("doctl", "auth", "init", "-t", token)
+	//err = cmd.Run()
+
+	t.Assert().Equal(t.Tc.ProdDbPgconn, sw.PostgresAuth)
+}
 func (t *AuthStartupTestSuite) TestArtemisAuthStartup() {
 	keysCfg := auth_keys_config.AuthKeysCfg{
 		AgePrivKey:    t.Tc.LocalAgePkey,
@@ -100,7 +123,6 @@ func (t *AuthStartupTestSuite) TestArtemisAuthStartup() {
 	//err = cmd.Run()
 
 	t.Assert().Equal(t.Tc.ProdDbPgconn, sw.PostgresAuth)
-
 }
 
 func TestAuthStartupTestSuite(t *testing.T) {

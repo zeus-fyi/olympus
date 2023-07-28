@@ -19,8 +19,8 @@ const (
 	stripePublishableKey = "secrets/stripe.api.access.key.txt"
 	stripeSecretKey      = "secrets/stripe.api.secret.key.txt"
 
-	quicknodeBearer = "quicknode.http.bearer.txt"
-	quicknodeJWT    = "quicknode.jwt.txt"
+	quicknodeBearer = "secrets/quicknode.http.bearer.txt"
+	quicknodeJWT    = "secrets/quicknode.jwt.txt"
 )
 
 func RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {

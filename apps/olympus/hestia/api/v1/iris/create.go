@@ -45,7 +45,7 @@ func CreateOrgGroupRoutesRequestHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return err
 	}
-	return request.Create(c)
+	return request.CreateGroupRoute(c)
 }
 
 type OrgGroupRoutesRequest struct {
@@ -69,8 +69,8 @@ func (r *OrgGroupRoutesRequest) CreateGroupRoute(c echo.Context) error {
 	ctx := context.Background()
 	err := platform_service_orchestrations.HestiaPlatformServiceWorker.ExecuteIrisPlatformSetupRequestWorkflow(ctx, ipr)
 	if err != nil {
-		log.Err(err).Msg("CreateOrgGroupRoutesRequest")
-		return err
+		log.Err(err).Interface("ou", ou).Msg("ExecuteIrisPlatformSetupRequestWorkflow")
+		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, nil)
 }

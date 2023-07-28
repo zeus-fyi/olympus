@@ -70,6 +70,14 @@ func (r *ReadOrgGroupRoutesRequest) ReadGroup(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
+func ReadOrgGroupsRoutesRequestHandler(c echo.Context) error {
+	request := new(ReadOrgRoutingGroupsRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.ReadGroups(c)
+}
+
 type ReadOrgRoutingGroupsRequest struct {
 }
 
@@ -77,7 +85,7 @@ type OrgGroupsRoutesResponse struct {
 	Map map[string][]string `json:"orgGroupsRoutes"`
 }
 
-func (r *ReadOrgGroupRoutesRequest) ReadGroups(c echo.Context) error {
+func (r *ReadOrgRoutingGroupsRequest) ReadGroups(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	groupedRoutes, err := iris_models.SelectAllOrgRoutesByOrg(context.Background(), ou.OrgID)
 	if err != nil {

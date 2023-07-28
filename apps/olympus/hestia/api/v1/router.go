@@ -34,8 +34,10 @@ const (
 	IrisReadRoutesPath   = "/iris/routes/read"
 	IrisDeleteRoutesPath = "/iris/routes/delete"
 
+	IrisReadGroupRoutesPath = "/iris/routes/group/:groupName/read"
+
 	IrisCreateGroupRoutesPath = "/iris/routes/groups/create"
-	IrisReadGroupRoutesPath   = "/iris/routes/groups/read"
+	IrisReadGroupsRoutesPath  = "/iris/routes/groups/read"
 	IrisUpdateGroupRoutesPath = "/iris/routes/groups/update"
 	IrisDeleteGroupRoutesPath = "/iris/routes/groups/delete"
 )
@@ -67,8 +69,9 @@ func InitV1Routes(e *echo.Echo) {
 	eg.GET(IrisReadRoutesPath, hestia_iris_v1_routes.ReadOrgRoutesRequestHandler)
 	eg.DELETE(IrisDeleteRoutesPath, hestia_iris_v1_routes.DeleteOrgRoutesRequestHandler)
 
-	eg.POST(IrisCreateGroupRoutesPath, hestia_iris_v1_routes.CreateOrgGroupRoutesRequestHandler)
 	eg.GET(IrisReadGroupRoutesPath, hestia_iris_v1_routes.ReadOrgGroupRoutesRequestHandler)
+	eg.GET(IrisReadGroupsRoutesPath, hestia_iris_v1_routes.ReadOrgGroupsRoutesRequestHandler)
+	eg.POST(IrisCreateGroupRoutesPath, hestia_iris_v1_routes.CreateOrgGroupRoutesRequestHandler)
 	eg.POST(IrisUpdateGroupRoutesPath, hestia_iris_v1_routes.UpdateOrgGroupRoutesRequestHandler)
 	eg.DELETE(IrisDeleteGroupRoutesPath, hestia_iris_v1_routes.DeleteOrgGroupRoutesRequestHandler)
 

@@ -44,13 +44,23 @@ func (h *HestiaPlatformActivities) UpdateDatabaseOrgRoutingTables(ctx context.Co
 }
 
 func (h *HestiaPlatformActivities) CreateOrgGroupRoutingTable(ctx context.Context, pr IrisPlatformServiceRequest) error {
+	if len(pr.Routes) == 0 {
+		return nil
+	}
 	routes := make([]iris_autogen_bases.OrgRoutes, len(pr.Routes))
 	for i, route := range pr.Routes {
 		routes[i] = iris_autogen_bases.OrgRoutes{
 			RoutePath: route,
 		}
 	}
-	err := iris_models.InsertOrgRoutes(context.Background(), pr.Ou.OrgID, routes)
+	if pr.OrgGroupName == "" {
+		return nil
+	}
+	ogr := iris_autogen_bases.OrgRouteGroups{
+		OrgID:          pr.Ou.OrgID,
+		RouteGroupName: pr.OrgGroupName,
+	}
+	err := iris_models.InsertOrgRouteGroup(context.Background(), ogr, routes)
 	if err != nil {
 		log.Err(err).Msg("UpdateDatabaseOrgRoutingTables")
 		return err
@@ -59,6 +69,9 @@ func (h *HestiaPlatformActivities) CreateOrgGroupRoutingTable(ctx context.Contex
 }
 
 func (h *HestiaPlatformActivities) DeleteOrgGroupRoutingTable(ctx context.Context, pr IrisPlatformServiceRequest) error {
+	if pr.OrgGroupName == "" {
+		return nil
+	}
 	err := iris_models.DeleteOrgGroupAndRoutes(context.Background(), pr.Ou.OrgID, pr.OrgGroupName)
 	if err != nil {
 		log.Err(err).Msg("DeleteOrgGroupRoutingTable")
@@ -68,6 +81,9 @@ func (h *HestiaPlatformActivities) DeleteOrgGroupRoutingTable(ctx context.Contex
 }
 
 func (h *HestiaPlatformActivities) DeleteOrgRoutes(ctx context.Context, pr IrisPlatformServiceRequest) error {
+	if len(pr.Routes) == 0 {
+		return nil
+	}
 	err := iris_models.DeleteOrgRoutes(context.Background(), pr.Ou.OrgID, pr.Routes)
 	if err != nil {
 		log.Err(err).Msg("DeleteOrgGroupRoutingTable")

@@ -71,21 +71,24 @@ func InsertOrgRouteGroup(ctx context.Context, ogr iris_autogen_bases.OrgRouteGro
 		WITH new_route_group AS (
 			INSERT INTO org_route_groups(route_group_id, org_id, route_group_name)
 			VALUES ($1, $2, $3)
-			ON CONFLICT (org_id, route_group_name) DO NOTHING
+			ON CONFLICT (org_id, route_group_name) DO UPDATE SET route_group_id = $1
 			RETURNING route_group_id
 		), cte_entry AS (
 			SELECT route_id
 	 		FROM org_routes
 			WHERE org_id = $2 AND route_path = ANY($4::text[])
  		), cte_rg_id AS (
-			SELECT route_group_id 
+			SELECT COALESCE(route_group_id, $1) as route_group_id
 			FROM org_route_groups
 			WHERE org_id = $2 AND route_group_name = $3
 		), cte_del AS (
 			DELETE FROM org_routes_groups
 			WHERE route_id NOT IN (SELECT route_id FROM cte_entry)
+		), cte_ins AS (
+			SELECT COALESCE(route_group_id, $1) as route_group_id
+			FROM new_route_group
 		) INSERT INTO org_routes_groups(route_id, route_group_id)
-		  SELECT route_id, (SELECT route_group_id FROM cte_rg_id) as route_group_id
+		  SELECT route_id, (SELECT COALESCE(route_group_id, $1) FROM cte_ins) as route_group_id
 		  FROM cte_entry
 		  ON CONFLICT (route_id, route_group_id) DO NOTHING
 	`

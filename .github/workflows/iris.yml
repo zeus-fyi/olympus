@@ -5,6 +5,7 @@ on:
     paths:
       - apps/olympus/iris/**
       - pkg/iris/**
+      - datastores/redis/apps/iris/**
       - .github/workflows/iris.yml
     branches:
       - main

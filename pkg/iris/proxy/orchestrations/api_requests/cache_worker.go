@@ -2,6 +2,7 @@ package iris_api_requests
 
 import (
 	"context"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	"go.temporal.io/sdk/client"
@@ -11,7 +12,8 @@ func (t *IrisApiRequestsWorker) ExecuteIrisCacheRefreshAllOrgRoutingTablesWorkfl
 	tc := t.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
-		TaskQueue: t.TaskQueueName,
+		TaskQueue:          t.TaskQueueName,
+		WorkflowRunTimeout: time.Hour,
 	}
 	txWf := NewIrisApiRequestsWorkflow()
 	wf := txWf.CacheRefreshAllOrgRoutingTablesWorkflow

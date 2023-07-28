@@ -12,7 +12,7 @@ func (i *IrisApiRequestsWorkflow) CacheRefreshAllOrgRoutingTablesWorkflow(ctx wo
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		RetryPolicy: &temporal.RetryPolicy{
-			InitialInterval:    100 * time.Millisecond,
+			InitialInterval:    15 * time.Minute,
 			BackoffCoefficient: 2,
 			MaximumAttempts:    20,
 		},
@@ -42,9 +42,8 @@ func (i *IrisApiRequestsWorkflow) CacheRefreshOrgRoutingTablesWorkflow(ctx workf
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		RetryPolicy: &temporal.RetryPolicy{
-			InitialInterval:    100 * time.Millisecond,
+			InitialInterval:    5 * time.Minute,
 			BackoffCoefficient: 2,
-			MaximumAttempts:    20,
 		},
 	}
 	getRoutingTablesCtx := workflow.WithActivityOptions(ctx, ao)
@@ -71,9 +70,8 @@ func (i *IrisApiRequestsWorkflow) CacheRefreshOrgGroupTableWorkflow(ctx workflow
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		RetryPolicy: &temporal.RetryPolicy{
-			InitialInterval:    100 * time.Millisecond,
+			InitialInterval:    3 * time.Minute,
 			BackoffCoefficient: 2,
-			MaximumAttempts:    20,
 		},
 	}
 	getRoutingTablesCtx := workflow.WithActivityOptions(ctx, ao)

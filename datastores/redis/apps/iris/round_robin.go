@@ -19,6 +19,8 @@ var LocalRateLimiterCache = cache.New(1*time.Second, 2*time.Second)
 func (m *IrisCache) GetNextRoute(ctx context.Context, orgID int, rgName string) (string, error) {
 	// Generate the rate limiter key with the Unix timestamp
 	rateLimiterKey := fmt.Sprintf("%d:%d", orgID, time.Now().Unix())
+	orgRequests := fmt.Sprintf("%d-total-req-count", orgID)
+
 	_, found := LocalRateLimiterCache.Get(rateLimiterKey)
 	if found {
 		err := LocalRateLimiterCache.Increment(rateLimiterKey, 1)
@@ -32,8 +34,10 @@ func (m *IrisCache) GetNextRoute(ctx context.Context, orgID int, rgName string) 
 	// Use Redis transaction (pipeline) to perform all operations atomically
 	pipe := m.Writer.TxPipeline()
 
+	_ = pipe.Incr(ctx, orgRequests)
+
 	// Increment the rate limiter key
-	rateCmd := pipe.Incr(ctx, rateLimiterKey)
+	_ = pipe.Incr(ctx, rateLimiterKey)
 
 	// Set the key to expire after 3 seconds
 	pipe.Expire(ctx, rateLimiterKey, 3*time.Second)
@@ -53,11 +57,6 @@ func (m *IrisCache) GetNextRoute(ctx context.Context, orgID int, rgName string) 
 		// If there's an error, log it and return it
 		fmt.Printf("error during pipeline execution: %s\n", err.Error())
 		return "", err
-	}
-
-	// Check if rate limit has been exceeded
-	if rateCmd.Val() > 20 {
-		return "", fmt.Errorf("rate limit exceeded for orgID: %d", orgID)
 	}
 
 	// Check whether the key exists

@@ -32,7 +32,6 @@ func Routes(e *echo.Echo) *echo.Echo {
 const (
 	IrisCreateRoutesPath = "/iris/routes/create"
 	IrisReadRoutesPath   = "/iris/routes/read"
-	IrisUpdateRoutesPath = "/iris/routes/update"
 	IrisDeleteRoutesPath = "/iris/routes/delete"
 
 	IrisCreateGroupRoutesPath = "/iris/routes/groups/create"
@@ -66,7 +65,6 @@ func InitV1Routes(e *echo.Echo) {
 
 	eg.POST(IrisCreateRoutesPath, hestia_iris_v1_routes.CreateOrgRoutesRequestHandler)
 	eg.GET(IrisReadRoutesPath, hestia_iris_v1_routes.ReadOrgRoutesRequestHandler)
-	eg.POST(IrisUpdateRoutesPath, hestia_iris_v1_routes.UpdateOrgRoutesRequestHandler)
 	eg.DELETE(IrisDeleteRoutesPath, hestia_iris_v1_routes.DeleteOrgRoutesRequestHandler)
 
 	eg.POST(IrisCreateGroupRoutesPath, hestia_iris_v1_routes.CreateOrgGroupRoutesRequestHandler)

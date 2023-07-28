@@ -141,5 +141,4 @@ func (s *IrisTestSuite) TestSelectAllOrgRoutes() {
 			fmt.Println(k, v)
 		}
 	}
-
 }

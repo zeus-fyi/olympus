@@ -111,9 +111,9 @@ func Hestia() {
 		log.Ctx(ctx).Err(inMemFsErr).Msg("Hydra: InitRouteMapInMemFS failed")
 		panic(inMemFsErr)
 	}
-	go func() {
-		artemis_validator_signature_service_routing.InitAsyncServiceAuthRoutePollingHeartbeatAll(ctx)
-	}()
+	//go func() {
+	//	artemis_validator_signature_service_routing.InitAsyncServiceAuthRoutePollingHeartbeatAll(ctx)
+	//}()
 
 	log.Info().Msgf("Hestia %s artemis orchestration retrieving auth token", env)
 	artemis_orchestration_auth.Bearer = auth_startup.FetchTemporalAuthBearer(ctx)
@@ -169,6 +169,8 @@ func Hestia() {
 		misc.DelayedPanic(err)
 	}
 	log.Info().Msg("Hestia: InitHestiaQuicknodeWorker done")
+
+	log.Info().Msg("Hestia: InitHestiaIrisPlatformServicesWorker start")
 	platform_service_orchestrations.InitHestiaIrisPlatformServicesWorker(ctx, temporalAuthConfig)
 	platform_service_orchestrations.HestiaPlatformServiceWorker.Worker.RegisterWorker(c)
 	err = platform_service_orchestrations.HestiaPlatformServiceWorker.Worker.Start()
@@ -177,6 +179,7 @@ func Hestia() {
 		misc.DelayedPanic(err)
 	}
 	log.Info().Msg("Hestia: InitHestiaIrisPlatformServicesWorker done")
+
 	if env == "local" || env == "production-local" {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins:     []string{"http://localhost:3000"},
@@ -188,7 +191,7 @@ func Hestia() {
 		v1_ethereum_aws.LambdaBaseDirIn = "/"
 	} else {
 		srv.E.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-			AllowOrigins:     []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi"},
+			AllowOrigins:     []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi", "https://iris.zeus.fyi"},
 			AllowMethods:     []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
 			AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization, echo.HeaderAccessControlAllowHeaders, "X-CSRF-Token", "Accept-Encoding"},
 			AllowCredentials: true,

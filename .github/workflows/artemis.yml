@@ -5,6 +5,7 @@ on:
       - apps/olympus/artemis/**
       - pkg/aegis/auth_startup/**
       - pkg/artemis/**
+      - datastores/redis/apps/mev/**
       - docker/artemis/Dockerfile
       - .github/workflows/artemis.yml
     branches:

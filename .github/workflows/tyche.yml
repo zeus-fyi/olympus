@@ -6,6 +6,7 @@ on:
       - pkg/aegis/auth_startup/**
       - pkg/artemis/trading/**
       - pkg/tyche/**
+      - datastores/redis/apps/mev/**
       - docker/tyche/Dockerfile
       - .github/workflows/tyche.yml
     branches:

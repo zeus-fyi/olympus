@@ -3,7 +3,9 @@ package iris_redis
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 )
@@ -12,30 +14,56 @@ func orgRouteTag(orgID int, rgName string) string {
 	return fmt.Sprintf("%d-%s", orgID, rgName)
 }
 
-func (m *IrisCache) GetNextRoute(ctx context.Context, orgID int, rgName string) (string, error) {
-	// Generate the key
-	tag := orgRouteTag(orgID, rgName)
+var LocalRateLimiterCache = cache.New(1*time.Second, 2*time.Second)
 
-	// Use Redis transaction (pipeline) to perform check existence and get operation atomically
+func (m *IrisCache) GetNextRoute(ctx context.Context, orgID int, rgName string) (string, error) {
+	// Generate the rate limiter key with the Unix timestamp
+	rateLimiterKey := fmt.Sprintf("%d:%d", orgID, time.Now().Unix())
+	_, found := LocalRateLimiterCache.Get(rateLimiterKey)
+	if found {
+		err := LocalRateLimiterCache.Increment(rateLimiterKey, 1)
+		if err != nil {
+			log.Err(err).Msg("LocalRateLimiterCache: GetNextRoute")
+		}
+	} else {
+		LocalRateLimiterCache.Set(rateLimiterKey, 1, 1*time.Second)
+	}
+
+	// Use Redis transaction (pipeline) to perform all operations atomically
 	pipe := m.Writer.TxPipeline()
 
-	// Check if the key exists
-	existsCmd := pipe.Exists(ctx, tag)
+	// Increment the rate limiter key
+	rateCmd := pipe.Incr(ctx, rateLimiterKey)
 
-	// func (Cmdable) LMove(ctx context.Context, source string, destination string, srcpos string, destpos string) *StringCmd
-	endpointCmd := pipe.LMove(ctx, tag, tag, "LEFT", "RIGHT")
+	// Set the key to expire after 3 seconds
+	pipe.Expire(ctx, rateLimiterKey, 3*time.Second)
+
+	// Generate the route key
+	routeKey := orgRouteTag(orgID, rgName)
+
+	// Check if the key exists
+	existsCmd := pipe.Exists(ctx, routeKey)
+
+	// Pop the endpoint from the head of the list and push it back to the tail, ensuring round-robin rotation
+	endpointCmd := pipe.LMove(ctx, routeKey, routeKey, "LEFT", "RIGHT")
 
 	// Execute pipeline
 	_, err := pipe.Exec(ctx)
 	if err != nil {
 		// If there's an error, log it and return it
-		fmt.Printf("error during pipeline execution for key: %s\n", tag)
+		fmt.Printf("error during pipeline execution: %s\n", err.Error())
 		return "", err
+	}
+
+	// Check if rate limit has been exceeded
+	if rateCmd.Val() > 20 {
+		return "", fmt.Errorf("rate limit exceeded for orgID: %d", orgID)
 	}
 
 	// Check whether the key exists
 	if existsCmd.Val() <= 0 {
-		return "", fmt.Errorf("key doesn't exist: %s", tag)
+		log.Err(err).Msgf("key doesn't exist: %s", routeKey)
+		return "", fmt.Errorf("key doesn't exist: %s", routeKey)
 	}
 
 	// Return the endpoint
@@ -60,7 +88,7 @@ func (m *IrisCache) AddOrUpdateOrgRoutingGroup(ctx context.Context, orgID int, r
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)
 	if err != nil {
-		fmt.Printf("error updating routing group: %s\n", tag)
+		log.Err(err).Msgf("AddOrUpdateOrgRoutingGroup: %s", tag)
 		return err
 	}
 	return nil
@@ -79,7 +107,7 @@ func (m *IrisCache) DeleteOrgRoutingGroup(ctx context.Context, orgID int, rgName
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)
 	if err != nil {
-		fmt.Printf("error updating routing group: %s\n", tag)
+		log.Err(err).Msgf("DeleteOrgRoutingGroup: %s", tag)
 		return err
 	}
 	return nil

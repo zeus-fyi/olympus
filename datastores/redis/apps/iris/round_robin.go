@@ -17,16 +17,13 @@ func (m *IrisCache) GetNextRoute(ctx context.Context, orgID int, rgName string) 
 	tag := orgRouteTag(orgID, rgName)
 
 	// Use Redis transaction (pipeline) to perform check existence and get operation atomically
-	pipe := m.Reader.TxPipeline()
+	pipe := m.Writer.TxPipeline()
 
 	// Check if the key exists
 	existsCmd := pipe.Exists(ctx, tag)
 
-	// Pop the endpoint from the head of the list
-	endpointCmd := pipe.LPop(ctx, tag)
-
-	// Push the popped endpoint back to the tail, ensuring round-robin rotation
-	pipe.RPush(ctx, tag, endpointCmd.Val())
+	// func (Cmdable) LMove(ctx context.Context, source string, destination string, srcpos string, destpos string) *StringCmd
+	endpointCmd := pipe.LMove(ctx, tag, tag, "LEFT", "RIGHT")
 
 	// Execute pipeline
 	_, err := pipe.Exec(ctx)
@@ -66,7 +63,25 @@ func (m *IrisCache) AddOrUpdateOrgRoutingGroup(ctx context.Context, orgID int, r
 		fmt.Printf("error updating routing group: %s\n", tag)
 		return err
 	}
+	return nil
+}
 
+func (m *IrisCache) DeleteOrgRoutingGroup(ctx context.Context, orgID int, rgName string) error {
+	// Generate the key
+	tag := orgRouteTag(orgID, rgName)
+
+	// Start a new transaction
+	pipe := m.Writer.TxPipeline()
+
+	// Remove the old key if it exists
+	pipe.Del(ctx, tag)
+
+	// Execute the transaction
+	_, err := pipe.Exec(ctx)
+	if err != nil {
+		fmt.Printf("error updating routing group: %s\n", tag)
+		return err
+	}
 	return nil
 }
 

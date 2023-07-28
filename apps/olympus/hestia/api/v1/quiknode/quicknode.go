@@ -43,7 +43,9 @@ func InitV1RoutesServices(e *echo.Echo) {
 			key, err := auth.VerifyBearerToken(ctx, token)
 			if err != nil {
 				log.Err(err).Msg("InitV1Routes")
-				return false, c.JSON(http.StatusInternalServerError, nil)
+				return false, c.JSON(http.StatusNotFound, QuickNodeResponse{
+					Error: "error: could not find registered account",
+				})
 			}
 			// Set headers to echo context
 			c.Set(QuickNodeTestHeader, qnTestHeader)
@@ -64,4 +66,9 @@ func InitV1RoutesServices(e *echo.Echo) {
 	eg.PUT("/update", UpdateProvisionRequestHandler)
 	eg.DELETE("/deprovision", DeprovisionRequestHandler)
 	eg.DELETE("/deactivate", DeactivateRequestHandler)
+}
+
+type QuickNodeResponse struct {
+	Status string `json:"status,omitempty"`
+	Error  string `json:"error,omitempty"`
 }

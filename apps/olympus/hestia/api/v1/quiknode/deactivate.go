@@ -27,7 +27,12 @@ func (r *DeactivateRequest) Deactivate(c echo.Context) error {
 	da := r.DeactivateRequest
 	err := quicknode_orchestrations.HestiaQnWorker.ExecuteQnDeactivateWorkflow(context.Background(), da, ou)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError,
+			QuickNodeResponse{
+				Status: "error",
+			})
 	}
-	return c.JSON(http.StatusOK, "success")
+	return c.JSON(http.StatusOK, QuickNodeResponse{
+		Status: "success",
+	})
 }

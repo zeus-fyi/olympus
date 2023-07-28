@@ -6,8 +6,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	hestia_quicknode "github.com/zeus-fyi/olympus/pkg/hestia/quiknode"
-	quicknode_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/quiknode/orchestrations"
+	hestia_quicknode "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode"
+	quicknode_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode/orchestrations"
 )
 
 func ProvisionRequestHandler(c echo.Context) error {

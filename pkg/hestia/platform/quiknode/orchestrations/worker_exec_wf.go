@@ -5,7 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	hestia_quicknode "github.com/zeus-fyi/olympus/pkg/hestia/quiknode"
+	hestia_quicknode "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode"
 	"go.temporal.io/sdk/client"
 )
 

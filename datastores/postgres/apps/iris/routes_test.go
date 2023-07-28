@@ -5,12 +5,7 @@ import (
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	iris_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris/models/bases/autogen"
-	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 )
-
-// todo add routes to db for beacon node lb
-
-var ts chronos.Chronos
 
 func (s *IrisTestSuite) TestInsertOrgRoute() {
 	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
@@ -25,16 +20,87 @@ func (s *IrisTestSuite) TestInsertOrgRoute() {
 	}
 }
 
-func (s *IrisTestSuite) TestInsertOrgRouteGroup() {
-	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
-	ogr := iris_autogen_bases.OrgRouteGroups{
-		RouteGroupID:   100,
-		OrgID:          s.Tc.ProductionLocalTemporalOrgID,
-		RouteGroupName: "quiknode-mainnet",
+func (s *IrisTestSuite) TestInsertOrgRoutes() {
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	r1 := "https://test.com/v1"
+	r2 := "https://test.com/v2"
+	routes := []iris_autogen_bases.OrgRoutes{
+		{
+			RouteID:   ts.UnixTimeStampNow(),
+			RoutePath: r1,
+		},
+		{
+			RouteID:   ts.UnixTimeStampNow(),
+			RoutePath: r2,
+		},
 	}
-	err := InsertOrgRouteGroup(ctx, ogr)
+	err := InsertOrgRoutes(ctx, s.Tc.ProductionLocalTemporalOrgID, routes)
+	s.Require().Nil(err)
+
+	selectRoutes, err := SelectOrgRoutes(ctx, s.Tc.ProductionLocalTemporalOrgID)
+	s.Require().Nil(err)
+	s.Require().NotNil(routes)
+
+	count := 0
+	for _, r := range selectRoutes {
+		if r.RoutePath == r1 {
+			count += 1
+		}
+		if r.RoutePath == r2 {
+			count += 10
+		}
+	}
+	s.Require().Equal(11, count)
+	ogr := iris_autogen_bases.OrgRouteGroups{
+		OrgID:          s.Tc.ProductionLocalTemporalOrgID,
+		RouteGroupName: "testGroup",
+	}
+	err = InsertOrgRouteGroup(ctx, ogr, routes)
+	s.Require().Nil(err)
+
+	groupedRoutes, err := SelectOrgRoutesByOrgAndGroupName(ctx, s.Tc.ProductionLocalTemporalOrgID, ogr.RouteGroupName)
+	s.Require().Nil(err)
+	s.Require().NotNil(groupedRoutes)
+	count = 0
+	for _, rts := range groupedRoutes.Map {
+		for _, rt := range rts {
+			for _, rn := range rt {
+				if rn == r1 {
+					count += 1
+				}
+				if rn == r2 {
+					count += 10
+				}
+			}
+		}
+	}
+	s.Require().Equal(11, count)
+
+	err = DeleteOrgRoutes(ctx, s.Tc.ProductionLocalTemporalOrgID, []string{r1, r2})
+	s.Require().Nil(err)
+
+	latestRoutes, err := SelectOrgRoutes(ctx, s.Tc.ProductionLocalTemporalOrgID)
+	s.Require().Nil(err)
+	for _, lr := range latestRoutes {
+		if lr.RoutePath == r1 || lr.RoutePath == r2 {
+			s.Fail("route not deleted")
+		}
+	}
+
+	ogr = iris_autogen_bases.OrgRouteGroups{
+		OrgID:          s.Tc.ProductionLocalTemporalOrgID,
+		RouteGroupName: "testGroup2",
+	}
+	err = InsertOrgRoutes(ctx, s.Tc.ProductionLocalTemporalOrgID, routes)
+	s.Require().Nil(err)
+
+	err = InsertOrgRouteGroup(ctx, ogr, routes)
+	s.Require().Nil(err)
+
+	err = DeleteOrgGroupAndRoutes(ctx, s.Tc.ProductionLocalTemporalOrgID, ogr.RouteGroupName)
 	s.Require().Nil(err)
 }
+
 func (s *IrisTestSuite) TestInsertOrgRouteQuiknode() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 
@@ -99,5 +165,4 @@ func (s *IrisTestSuite) TestSelectAllOrgRoutes() {
 			fmt.Println(k, v)
 		}
 	}
-
 }

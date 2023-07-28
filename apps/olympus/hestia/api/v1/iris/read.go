@@ -20,13 +20,23 @@ func ReadOrgRoutesRequestHandler(c echo.Context) error {
 type ReadOrgRoutesRequest struct {
 }
 
+type OrgRoutesResponse struct {
+	Routes []string `json:"routes"`
+}
+
 func (r *ReadOrgRoutesRequest) Read(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
-	_, err := iris_models.SelectOrgRoutes(context.Background(), ou.OrgID)
+	routes, err := iris_models.SelectOrgRoutes(context.Background(), ou.OrgID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return c.JSON(http.StatusOK, nil)
+	resp := OrgRoutesResponse{
+		Routes: make([]string, len(routes)),
+	}
+	for i, route := range routes {
+		resp.Routes[i] = route.RoutePath
+	}
+	return c.JSON(http.StatusOK, resp)
 }
 
 func ReadOrgGroupRoutesRequestHandler(c echo.Context) error {
@@ -40,7 +50,42 @@ func ReadOrgGroupRoutesRequestHandler(c echo.Context) error {
 type ReadOrgGroupRoutesRequest struct {
 }
 
-func (r *ReadOrgGroupRoutesRequest) Read(c echo.Context) error {
-	//ou := c.Get("orgUser").(org_users.OrgUser)
-	return c.JSON(http.StatusOK, nil)
+type OrgGroupRoutesResponse struct {
+	GroupName string   `json:"groupName"`
+	Routes    []string `json:"routes"`
+}
+
+func (r *ReadOrgGroupRoutesRequest) ReadGroup(c echo.Context) error {
+	ou := c.Get("orgUser").(org_users.OrgUser)
+	groupName := c.Param("groupName")
+	groupedRoutes, err := iris_models.SelectOrgRoutesByOrgAndGroupName(context.Background(), ou.OrgID, groupName)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	routes := groupedRoutes.Map[ou.OrgID][groupName]
+	resp := OrgGroupRoutesResponse{
+		GroupName: groupName,
+		Routes:    routes,
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
+type ReadOrgRoutingGroupsRequest struct {
+}
+
+type OrgGroupsRoutesResponse struct {
+	Map map[string][]string `json:"orgGroupsRoutes"`
+}
+
+func (r *ReadOrgGroupRoutesRequest) ReadGroups(c echo.Context) error {
+	ou := c.Get("orgUser").(org_users.OrgUser)
+	groupedRoutes, err := iris_models.SelectAllOrgRoutesByOrg(context.Background(), ou.OrgID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	routeGroups := groupedRoutes.Map[ou.OrgID]
+	resp := OrgGroupsRoutesResponse{
+		Map: routeGroups,
+	}
+	return c.JSON(http.StatusOK, resp)
 }

@@ -1,21 +1,14 @@
 package hestia_iris_v1_routes
 
-import "github.com/labstack/echo/v4"
+import (
+	"context"
+	"net/http"
 
-func UpdateOrgRoutesRequestHandler(c echo.Context) error {
-	request := new(UpdateOrgRoutesRequest)
-	if err := c.Bind(request); err != nil {
-		return err
-	}
-	return request.Update(c)
-}
-
-type UpdateOrgRoutesRequest struct {
-}
-
-func (r *UpdateOrgRoutesRequest) Update(c echo.Context) error {
-	return nil
-}
+	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/iris/orchestrations"
+)
 
 func UpdateOrgGroupRoutesRequestHandler(c echo.Context) error {
 	request := new(UpdateOrgGroupRoutesRequest)
@@ -26,8 +19,21 @@ func UpdateOrgGroupRoutesRequestHandler(c echo.Context) error {
 }
 
 type UpdateOrgGroupRoutesRequest struct {
+	GroupName string   `json:"groupName,omitempty"`
+	Routes    []string `json:"routes"`
 }
 
 func (r *UpdateOrgGroupRoutesRequest) Update(c echo.Context) error {
-	return nil
+	ou := c.Get("orgUser").(org_users.OrgUser)
+	ipr := platform_service_orchestrations.IrisPlatformServiceRequest{
+		Ou:           ou,
+		Routes:       r.Routes,
+		OrgGroupName: r.GroupName,
+	}
+	err := platform_service_orchestrations.HestiaPlatformServiceWorker.ExecuteIrisPlatformSetupRequestWorkflow(context.Background(), ipr)
+	if err != nil {
+		log.Err(err).Msg("UpdateOrgGroupRoutesRequest")
+		return err
+	}
+	return c.JSON(http.StatusOK, nil)
 }

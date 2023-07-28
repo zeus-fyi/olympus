@@ -11,7 +11,7 @@ import (
 	test_base "github.com/zeus-fyi/olympus/test"
 	api_configs "github.com/zeus-fyi/olympus/test/configs"
 	beacon_actions "github.com/zeus-fyi/zeus/cookbooks/ethereum/beacons/actions"
-	"github.com/zeus-fyi/zeus/pkg/zeus/client/zeus_req_types"
+	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_req_types"
 )
 
 var ctx = context.Background()

@@ -1,14 +1,9 @@
 package hestia_quiknode_v1_routes
 
 import (
-	"context"
-	"net/http"
-
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 )
 
 const (
@@ -19,47 +14,45 @@ const (
 	QuickNodeNetwork    = "x-qn-network"
 )
 
-var QuickNodeToken = ""
+var (
+	QuickNodeUsername  = ""
+	QuickNodePassword  = ""
+	QuickNodeToken     = ""
+	QuickNodeOrgID     = 10
+	QuickNodeTestOrgID = 9
+)
 
 func InitV1RoutesServices(e *echo.Echo) {
 	eg := e.Group("/v1/api")
-	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
-		AuthScheme: "Bearer",
-		Validator: func(token string, c echo.Context) (bool, error) {
-			ctx := context.Background()
+	eg.Use(middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
+		// Get headers
+		qnTestHeader := c.Request().Header.Get(QuickNodeTestHeader)
+		qnIDHeader := c.Request().Header.Get(QuickNodeIDHeader)
+		qnEndpointID := c.Request().Header.Get(QuickNodeEndpointID)
+		qnChain := c.Request().Header.Get(QuickNodeChain)
+		qnNetwork := c.Request().Header.Get(QuickNodeNetwork)
+		// Set headers to echo context
+		c.Set(QuickNodeTestHeader, qnTestHeader)
+		c.Set(QuickNodeIDHeader, qnIDHeader)
+		c.Set(QuickNodeEndpointID, qnEndpointID)
+		c.Set(QuickNodeChain, qnChain)
+		c.Set(QuickNodeNetwork, qnNetwork)
+		if len(QuickNodePassword) <= 0 {
+			return false, nil
+		}
 
-			// Get headers
-			qnTestHeader := c.Request().Header.Get(QuickNodeTestHeader)
-			qnIDHeader := c.Request().Header.Get(QuickNodeIDHeader)
-			qnEndpointID := c.Request().Header.Get(QuickNodeEndpointID)
-			qnChain := c.Request().Header.Get(QuickNodeChain)
-			qnNetwork := c.Request().Header.Get(QuickNodeNetwork)
-
-			if QuickNodeToken != "" {
-				if token == QuickNodeToken {
-					return true, nil
-				}
+		if password == QuickNodePassword {
+			if qnTestHeader == QuickNodeTestHeader {
+				c.Set("orgUser", org_users.NewOrgUserWithID(QuickNodeTestOrgID, QuickNodeTestOrgID))
+				c.Set("bearer", QuickNodeToken)
+				return true, nil
+			} else {
+				c.Set("orgUser", org_users.NewOrgUserWithID(10, 10))
+				c.Set("bearer", QuickNodeToken)
+				return true, nil
 			}
-			key, err := auth.VerifyBearerToken(ctx, qnEndpointID)
-			if err != nil {
-				log.Err(err).Msg("InitV1Routes")
-				return false, c.JSON(http.StatusNotFound, QuickNodeResponse{
-					Error: "error: could not find registered account",
-				})
-			}
-			// Set headers to echo context
-			c.Set(QuickNodeTestHeader, qnTestHeader)
-			c.Set(QuickNodeIDHeader, qnIDHeader)
-			c.Set(QuickNodeEndpointID, qnEndpointID)
-			c.Set(QuickNodeChain, qnChain)
-			c.Set(QuickNodeNetwork, qnNetwork)
-
-			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
-			c.Set("orgUser", ou)
-			c.Set("bearer", key.PublicKey)
-
-			return key.PublicKeyVerified, err
-		},
+		}
+		return false, nil
 	}))
 
 	eg.POST("/provision", ProvisionRequestHandler)

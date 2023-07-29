@@ -19,8 +19,9 @@ const (
 	stripePublishableKey = "secrets/stripe.api.access.key.txt"
 	stripeSecretKey      = "secrets/stripe.api.secret.key.txt"
 
-	quicknodeBearer = "secrets/quicknode.http.bearer.txt"
-	quicknodeJWT    = "secrets/quicknode.jwt.txt"
+	quicknodePassword = "secrets/quicknode.http.basic.password.txt"
+	quicknodeBearer   = "secrets/quicknode.http.bearer.txt"
+	quicknodeJWT      = "secrets/quicknode.jwt.txt"
 )
 
 func RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authCfg AuthConfig) (memfs.MemFS, SecretsWrapper) {
@@ -40,6 +41,7 @@ func RunHestiaDigitalOceanS3BucketObjSecretsProcedure(ctx context.Context, authC
 	sw.StripeSecretKey = sw.MustReadSecret(ctx, inMemSecrets, stripeSecretKey)
 	sw.QuickNodeBearer = sw.MustReadSecret(ctx, inMemSecrets, quicknodeBearer)
 	sw.QuickNodeJWT = sw.MustReadSecret(ctx, inMemSecrets, quicknodeJWT)
+	sw.QuickNodePassword = sw.MustReadSecret(ctx, inMemSecrets, quicknodePassword)
 	log.Info().Msg("Hestia: RunDigitalOceanS3BucketObjSecretsProcedure succeeded")
 	return inMemSecrets, sw
 }

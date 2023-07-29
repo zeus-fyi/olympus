@@ -29,8 +29,8 @@ export const App = () => {
                             <Route path="/" element={<HomeLayout />} />
                             <Route path="/login" element={<Login />} />
                             <Route path="/signup" element={<SignUp />} />
-                        <Route path="/v1/quicknode/dashboard" element={<VerifyQuickNodeLoginJWT />} />
-                        <Route path="/v1/quicknode/access" element={<VerifyQuickNodeLoginJWT />} />
+                        <Route path="/quicknode/dashboard" element={<VerifyQuickNodeLoginJWT />} />
+                        <Route path="/quicknode/access" element={<VerifyQuickNodeLoginJWT />} />
                         <Route path="/verify/email/:id" element={<VerifyEmail />} />
                         <Route>
                             <Route path="/dashboard" element={<ProtectedLayout children={<Dashboard />}/>}/>

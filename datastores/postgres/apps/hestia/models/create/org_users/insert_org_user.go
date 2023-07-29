@@ -96,6 +96,43 @@ func (o *OrgUser) InsertOrgUserWithNewKeyForService(ctx context.Context, metadat
 	return userKey, misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
 
+/*
+quickNodeMarketPlace
+*/
+
+func (o *OrgUser) InsertOrgUserWithNewQuickNodeKeyForService(ctx context.Context, quickNodeCustomerID string) error {
+	q := sql_query_templates.NewQueryParam("NewDemoOrgUser", "org_users", "where", 1000, []string{})
+	q.RawQuery = `WITH new_user_id AS (
+					INSERT INTO users(metadata)
+					VALUES ('{}')
+					RETURNING user_id
+				), cte_org_users AS (
+					INSERT INTO org_users(org_id, user_id)
+					VALUES((SELECT org_id FROM orgs WHERE name = $3), (SELECT user_id FROM new_user_id))
+				), cte_quicknode_service AS (
+					INSERT INTO users_keys(user_id, public_key_name, public_key_verified, public_key_type_id, public_key)
+					VALUES((SELECT user_id FROM new_user_id), $1, true, $2, $3)
+					ON CONFLICT (public_key) DO NOTHING
+				), cte_qn_service AS (
+					INSERT INTO users_key_services(public_key, service_id)
+					VALUES($3, $4)
+					ON CONFLICT (public_key, service_id) DO NOTHING
+				), final_insert AS (
+					INSERT INTO users_key_services(public_key, service_id)
+					VALUES($3, 1677096782693758000)
+					ON CONFLICT (public_key, service_id) DO NOTHING
+				)
+				SELECT 1`
+	log.Debug().Interface("InsertQuery:", q.LogHeader(Sn))
+	var userID int64
+	// o.OrgID
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, "quickNodeMarketplaceCustomer", keys.QuickNodeCustomerID, quickNodeCustomerID, 11).Scan(&userID)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
+		return err
+	}
+	o.UserID = int(userID)
+	return misc.ReturnIfErr(err, q.LogHeader(Sn))
+}
 func (o *OrgUser) InsertDemoOrgUserWithNewKey(ctx context.Context, metadata []byte, keyname string, serviceID int) (string, error) {
 	q := sql_query_templates.NewQueryParam("NewDemoOrgUser", "org_users", "where", 1000, []string{})
 	q.RawQuery = `WITH new_user_id AS (

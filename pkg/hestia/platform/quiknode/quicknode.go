@@ -12,6 +12,10 @@ to log the customer into your service with SSO. We have a guide on SSO [here]().
 If responding with error, please be sure to use a non-200 HTTP status code.
 */
 
+type IsQuickNodeUser struct {
+	Verified bool `json:"verified"`
+}
+
 type ProvisionRequest struct {
 	QuickNodeID       string   `json:"quicknode-id"`
 	EndpointID        string   `json:"endpoint-id"`

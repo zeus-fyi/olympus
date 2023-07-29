@@ -40,7 +40,7 @@ const Login = () => {
         case 'error':
             buttonLabel = 'Retry';
             buttonDisabled = false;
-            statusMessage = 'An error occurred while logging in, please try again. If you continue having issues please email alex@zeus.fyi';
+            statusMessage = 'An error occurred while logging in, please try again. If you continue having issues please email support@zeus.fyi';
             break;
         default:
             buttonLabel = 'Login';

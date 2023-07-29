@@ -27,13 +27,13 @@ func (h *HestiaQuicknodeWorkflow) GetWorkflows() []interface{} {
 	return []interface{}{h.ProvisionWorkflow, h.UpdateProvisionWorkflow, h.DeprovisionWorkflow, h.DeactivateWorkflow}
 }
 
-func (h *HestiaQuicknodeWorkflow) ProvisionWorkflow(ctx workflow.Context, pr hestia_quicknode.ProvisionRequest, ou org_users.OrgUser) error {
+func (h *HestiaQuicknodeWorkflow) ProvisionWorkflow(ctx workflow.Context, pr hestia_quicknode.ProvisionRequest, ou org_users.OrgUser, isUserVerified bool) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
 	}
 	pCtx := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(pCtx, h.Provision, pr, ou).Get(pCtx, nil)
+	err := workflow.ExecuteActivity(pCtx, h.Provision, pr, ou, isUserVerified).Get(pCtx, nil)
 	if err != nil {
 		log.Warn("params", pr)
 		log.Warn("ou", ou)

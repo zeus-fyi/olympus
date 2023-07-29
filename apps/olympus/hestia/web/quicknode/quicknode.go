@@ -11,10 +11,8 @@ import (
 
 var JWTAuthSecret = ""
 
-// dashboardUrl := fmt.Sprintf("%s?jwt=%s", dashboardURL, jwtToken)
-
 func InitQuickNodeDashboardRoutes(e *echo.Echo) {
-	e.GET("/v1/quicknode/access", func(c echo.Context) error {
+	e.GET("/quicknode/access", func(c echo.Context) error {
 		resp := Response{
 			Status: "",
 		}
@@ -25,7 +23,6 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 			}
 			return []byte(JWTAuthSecret), nil
 		})
-
 		if err != nil {
 			resp.Status = "error: failed to parse jwt token"
 			return c.JSON(http.StatusBadRequest, resp)
@@ -61,7 +58,7 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 		return c.JSON(http.StatusOK, ui)
 	})
 
-	e.GET("/v1/quicknode/dashboard", func(c echo.Context) error {
+	e.GET("/quicknode/dashboard", func(c echo.Context) error {
 		resp := Response{
 			Status: "",
 		}

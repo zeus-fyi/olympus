@@ -20,21 +20,41 @@ func ProvisionRequestHandler(c echo.Context) error {
 
 type ProvisionRequest struct {
 	hestia_quicknode.ProvisionRequest
+	Verified bool `json:"verified"`
 }
+
+const (
+	TrialPlan       = "trial"
+	LitePlan        = "lite"
+	Standard        = "standard"
+	PerformancePlan = "performance"
+)
 
 func (r *ProvisionRequest) Provision(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	pr := r.ProvisionRequest
-	err := quicknode_orchestrations.HestiaQnWorker.ExecuteQnProvisionWorkflow(context.Background(), pr, ou)
+	r.Verified = false
+	val, ok := c.Get("verified").(bool)
+	if ok {
+		r.Verified = val
+	}
+	switch pr.Plan {
+	case LitePlan, Standard, PerformancePlan:
+	default:
+		return c.JSON(http.StatusBadRequest, QuickNodeResponse{
+			Error: "error: plan not supported",
+		})
+	}
+	err := quicknode_orchestrations.HestiaQnWorker.ExecuteQnProvisionWorkflow(context.Background(), pr, ou, r.Verified)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
 			QuickNodeResponse{
-				Status: "error",
+				Error: "error: internal error: failed to provision quicknode service",
 			})
 	}
 	return c.JSON(http.StatusOK, ProvisionResponse{
-		AccessURL:    "https://cloud.zeus.fyi/v1/quicknode/access",
-		DashboardURL: "https://cloud.zeus.fyi/v1/quicknode/dashboard",
+		AccessURL:    "https://cloud.zeus.fyi/quicknode/access",
+		DashboardURL: "https://cloud.zeus.fyi/quicknode/dashboard",
 		Status:       "success",
 	})
 }
@@ -49,7 +69,8 @@ func TestProvisionRequestHandler(c echo.Context) error {
 
 func (r *ProvisionRequest) ProvisionTest(c echo.Context) error {
 	return c.JSON(http.StatusOK, ProvisionResponse{
-		DashboardURL: "http://localhost:9002/v1/quicknode/dashboard",
+		AccessURL:    "http://localhost:9002/quicknode/access",
+		DashboardURL: "http://localhost:9002/quicknode/dashboard",
 		Status:       "success",
 	})
 }

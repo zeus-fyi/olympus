@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	hestia_quicknode_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/quiknode"
 	platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/iris/orchestrations"
 	hestia_quicknode "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode"
@@ -28,7 +29,62 @@ func (h *HestiaQuicknodeActivities) GetActivities() ActivitiesSlice {
 	}
 }
 
-func (h *HestiaQuicknodeActivities) Provision(ctx context.Context, pr hestia_quicknode.ProvisionRequest, ou org_users.OrgUser) error {
+func (h *HestiaQuicknodeActivities) Provision(ctx context.Context, pr hestia_quicknode.ProvisionRequest, ou org_users.OrgUser, isVerified bool) error {
+	ps := hestia_autogen_bases.ProvisionedQuickNodeServices{
+		QuickNodeID: pr.QuickNodeID,
+		EndpointID:  pr.EndpointID,
+		HttpURL: sql.NullString{
+			String: pr.HttpUrl,
+			Valid:  len(pr.HttpUrl) > 0,
+		},
+		Network: sql.NullString{},
+		Plan:    pr.Plan,
+		Active:  true,
+		WssURL: sql.NullString{
+			String: pr.WssUrl,
+			Valid:  len(pr.WssUrl) > 0,
+		},
+		Chain: sql.NullString{
+			String: pr.Chain,
+			Valid:  len(pr.Chain) > 0,
+		},
+	}
+
+	cas := make([]hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddresses, len(pr.ContractAddresses))
+	for i, ca := range pr.ContractAddresses {
+		cas[i] = hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddresses{
+			ContractAddress: ca,
+		}
+	}
+	car := make([]hestia_autogen_bases.ProvisionedQuicknodeServicesReferers, len(pr.ContractAddresses))
+	for i, re := range pr.Referers {
+		car[i] = hestia_autogen_bases.ProvisionedQuicknodeServicesReferers{
+			Referer: re,
+		}
+	}
+	qs := hestia_quicknode_models.QuickNodeService{
+		ProvisionedQuickNodeServices:                  ps,
+		ProvisionedQuicknodeServicesContractAddresses: cas,
+		ProvisionedQuicknodeServicesReferers:          car,
+	}
+
+	err := hestia_quicknode_models.InsertProvisionedQuickNodeService(ctx, qs)
+	if err != nil {
+		log.Warn().Interface("ou", ou).Err(err).Msg("Provision: InsertProvisionedQuickNodeService")
+		return err
+	}
+	if !isVerified {
+		co := create_org_users.NewCreateOrgUser()
+		err = co.InsertOrgUserWithNewQuickNodeKeyForService(ctx, qs.QuickNodeID)
+		if err != nil {
+			log.Warn().Interface("ou", ou).Err(err).Msg("Provision: InsertOrgUserWithNewQuickNodeKeyForService")
+			return err
+		}
+	}
+	return nil
+}
+
+func (h *HestiaQuicknodeActivities) InsertNewOrgUser(ctx context.Context, pr hestia_quicknode.ProvisionRequest, ou org_users.OrgUser) error {
 	ps := hestia_autogen_bases.ProvisionedQuickNodeServices{
 		QuickNodeID: pr.QuickNodeID,
 		EndpointID:  pr.EndpointID,

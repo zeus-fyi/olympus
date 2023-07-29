@@ -15,6 +15,7 @@ const (
 	VerifyEmailTokenTypeID   = 9
 	PasswordResetTokenTypeID = 10
 	StripeCustomerID         = 11
+	QuickNodeCustomerID      = 12
 )
 
 type KeyType struct {
@@ -25,5 +26,12 @@ func NewBearerKeyType() KeyType {
 	return KeyType{autogen_bases.KeyTypes{
 		KeyTypeID:   BearerKeyTypeID,
 		KeyTypeName: "",
+	}}
+}
+
+func NewQuickNodeKeyType(quickNodeID string) KeyType {
+	return KeyType{autogen_bases.KeyTypes{
+		KeyTypeID:   QuickNodeCustomerID,
+		KeyTypeName: quickNodeID,
 	}}
 }

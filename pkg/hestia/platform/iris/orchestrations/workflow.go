@@ -1,6 +1,7 @@
 package platform_service_orchestrations
 
 import (
+	"errors"
 	"time"
 
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
@@ -59,6 +60,9 @@ func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgGroupRoutingTableWorkflow(
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
 	}
+	if pr.OrgGroupName == "" {
+		return errors.New("HestiaPlatformServiceWorkflows: IrisDeleteOrgGroupRoutingTableWorkflow: org group name is empty")
+	}
 	pCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(pCtx, h.DeleteOrgGroupRoutingTable, pr).Get(pCtx, nil)
 	if err != nil {
@@ -66,10 +70,10 @@ func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgGroupRoutingTableWorkflow(
 		log.Error("failed to DeleteOrgGroupRoutingTable", "Error", err)
 		return err
 	}
-	err = workflow.ExecuteActivity(pCtx, h.IrisPlatformSetupCacheUpdateRequest, pr).Get(pCtx, nil)
+	err = workflow.ExecuteActivity(pCtx, h.IrisPlatformDeleteGroupTableCacheRequest, pr).Get(pCtx, nil)
 	if err != nil {
 		log.Warn("params", pr)
-		log.Error("failed to complete IrisPlatformSetupCacheUpdateRequest", "Error", err)
+		log.Error("failed to complete IrisPlatformDeleteGroupTableCacheRequest", "Error", err)
 		return err
 	}
 	return nil
@@ -79,6 +83,9 @@ func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgRoutesWorkflow(ctx workflo
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: defaultTimeout,
+	}
+	if len(pr.Routes) == 0 {
+		return errors.New("HestiaPlatformServiceWorkflows: IrisDeleteOrgRoutesWorkflow: no routes provided for deletion")
 	}
 	pCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(pCtx, h.DeleteOrgRoutes, pr).Get(pCtx, nil)
@@ -91,6 +98,21 @@ func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgRoutesWorkflow(ctx workflo
 	if err != nil {
 		log.Warn("params", pr)
 		log.Error("failed to complete IrisPlatformSetupCacheUpdateRequest", "Error", err)
+		return err
+	}
+	return nil
+}
+
+func (h *HestiaPlatformServiceWorkflows) IrisRemoveAllOrgRoutesFromCacheWorkflow(ctx workflow.Context, pr IrisPlatformServiceRequest) error {
+	log := workflow.GetLogger(ctx)
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: defaultTimeout,
+	}
+	pCtx := workflow.WithActivityOptions(ctx, ao)
+	err := workflow.ExecuteActivity(pCtx, h.IrisPlatformDeleteOrgGroupTablesCacheRequest, pr).Get(pCtx, nil)
+	if err != nil {
+		log.Warn("params", pr)
+		log.Error("failed to complete IrisPlatformDeleteOrgGroupTablesCacheRequest", "Error", err)
 		return err
 	}
 	return nil

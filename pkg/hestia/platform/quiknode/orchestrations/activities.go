@@ -8,6 +8,7 @@ import (
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hestia_quicknode_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/quiknode"
+	platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/iris/orchestrations"
 	hestia_quicknode "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode"
 )
 
@@ -23,7 +24,7 @@ type ActivitiesSlice []interface{}
 
 func (h *HestiaQuicknodeActivities) GetActivities() ActivitiesSlice {
 	return []interface{}{
-		h.Provision, h.UpdateProvision, h.Deprovision, h.Deactivate,
+		h.Provision, h.UpdateProvision, h.Deprovision, h.Deactivate, h.DeprovisionCache,
 	}
 }
 
@@ -124,6 +125,18 @@ func (h *HestiaQuicknodeActivities) Deprovision(ctx context.Context, dp hestia_q
 	err := hestia_quicknode_models.DeprovisionQuickNodeServices(ctx, dp.QuickNodeID)
 	if err != nil {
 		log.Warn().Interface("ou", ou).Err(err).Msg("Provision: Deprovision")
+		return err
+	}
+	return nil
+}
+
+func (h *HestiaQuicknodeActivities) DeprovisionCache(ctx context.Context, ou org_users.OrgUser) error {
+	pr := platform_service_orchestrations.IrisPlatformServiceRequest{
+		Ou: ou,
+	}
+	err := platform_service_orchestrations.HestiaPlatformServiceWorker.ExecuteIrisRemoveAllOrgRoutesFromCacheWorkflow(ctx, pr)
+	if err != nil {
+		log.Warn().Interface("ou", ou).Err(err).Msg("Provision: DeprovisionCache")
 		return err
 	}
 	return nil

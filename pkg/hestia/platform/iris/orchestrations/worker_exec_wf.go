@@ -2,6 +2,7 @@ package platform_service_orchestrations
 
 import (
 	"context"
+	"errors"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
@@ -31,6 +32,12 @@ func (h *HestiaPlatformServicesWorker) ExecuteIrisPlatformSetupRequestWorkflow(c
 }
 
 func (h *HestiaPlatformServicesWorker) ExecuteIrisDeleteOrgGroupRoutingTableWorkflow(ctx context.Context, pr IrisPlatformServiceRequest) error {
+	if pr.OrgGroupName == "" {
+		return errors.New("org group name is empty")
+	}
+	if pr.Ou.OrgID == 0 {
+		return errors.New("org id is empty")
+	}
 	tc := h.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
@@ -47,6 +54,9 @@ func (h *HestiaPlatformServicesWorker) ExecuteIrisDeleteOrgGroupRoutingTableWork
 }
 
 func (h *HestiaPlatformServicesWorker) ExecuteIrisDeleteOrgRoutesWorkflow(ctx context.Context, pr IrisPlatformServiceRequest) error {
+	if pr.Ou.OrgID == 0 {
+		return errors.New("org id is empty")
+	}
 	tc := h.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
@@ -54,6 +64,25 @@ func (h *HestiaPlatformServicesWorker) ExecuteIrisDeleteOrgRoutesWorkflow(ctx co
 	}
 	txWf := NewHestiaPlatformServiceWorkflows()
 	wf := txWf.IrisDeleteOrgRoutesWorkflow
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, pr)
+	if err != nil {
+		log.Err(err).Msg("ExecuteIrisDeleteOrgRoutesWorkflow")
+		return err
+	}
+	return err
+}
+
+func (h *HestiaPlatformServicesWorker) ExecuteIrisRemoveAllOrgRoutesFromCacheWorkflow(ctx context.Context, pr IrisPlatformServiceRequest) error {
+	if pr.Ou.OrgID == 0 {
+		return errors.New("org id is empty")
+	}
+	tc := h.ConnectTemporalClient()
+	defer tc.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: h.TaskQueueName,
+	}
+	txWf := NewHestiaPlatformServiceWorkflows()
+	wf := txWf.IrisRemoveAllOrgRoutesFromCacheWorkflow
 	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, pr)
 	if err != nil {
 		log.Err(err).Msg("ExecuteIrisDeleteOrgRoutesWorkflow")

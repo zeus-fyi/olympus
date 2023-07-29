@@ -109,10 +109,11 @@ func (h *HestiaPlatformServiceWorkflows) IrisRemoveAllOrgRoutesFromCacheWorkflow
 		StartToCloseTimeout: defaultTimeout,
 	}
 	pCtx := workflow.WithActivityOptions(ctx, ao)
+	// this deletes all the routing tables from cache for this org
 	err := workflow.ExecuteActivity(pCtx, h.IrisPlatformDeleteOrgGroupTablesCacheRequest, pr).Get(pCtx, nil)
 	if err != nil {
 		log.Warn("params", pr)
-		log.Error("failed to complete IrisPlatformDeleteOrgGroupTablesCacheRequest", "Error", err)
+		log.Error("HestiaPlatformServiceWorkflows: failed to complete IrisPlatformDeleteOrgGroupTablesCacheRequest", "Error", err)
 		return err
 	}
 	return nil

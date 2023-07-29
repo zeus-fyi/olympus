@@ -83,7 +83,7 @@ func (t *IrisApiRequestsWorker) ExecuteIrisCacheDeleteOrgRoutingGroupTablesWorkf
 	wf := txWf.DeleteAllOrgRoutingGroupsWorkflow
 	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, orgID)
 	if err != nil {
-		log.Err(err).Msg("ExecuteIrisCacheDeleteAllOrRoutingGroupTablesWorkflow")
+		log.Err(err).Msg("ExecuteIrisCacheDeleteAllOrgRoutingGroupTablesWorkflow")
 		return err
 	}
 	return err

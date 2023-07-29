@@ -79,7 +79,7 @@ func (h *HestiaQuicknodeWorkflow) DeprovisionWorkflow(ctx workflow.Context, dp h
 	if err != nil {
 		log.Warn("params", dp)
 		log.Warn("ou", ou)
-		log.Error("failed to deprovision QuickNode services", "Error", err)
+		log.Error("HestiaQuicknodeWorkflow: failed to deprovision QuickNode services", "Error", err)
 		return err
 	}
 
@@ -87,7 +87,7 @@ func (h *HestiaQuicknodeWorkflow) DeprovisionWorkflow(ctx workflow.Context, dp h
 	if err != nil {
 		log.Warn("params", dp)
 		log.Warn("ou", ou)
-		log.Error("failed to DeprovisionCache", "Error", err)
+		log.Error("HestiaQuicknodeWorkflow: failed to DeprovisionCache", "Error", err)
 		return err
 	}
 	return nil
@@ -114,7 +114,7 @@ func (h *HestiaQuicknodeWorkflow) DeactivateWorkflow(ctx workflow.Context, da he
 	if err != nil {
 		log.Warn("params", da)
 		log.Warn("ou", ou)
-		log.Error("failed to deactivate QuickNode services", "Error", err)
+		log.Error("HestiaQuicknodeWorkflow: failed to deactivate QuickNode services", "Error", err)
 		return err
 	}
 	return nil

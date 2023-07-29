@@ -16,39 +16,45 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 	eg.Use(echojwt.JWT(middleware.JWTConfig{
 		SigningKey: []byte(JWTAuthSecret),
 	}))
-
 	e.GET("/dashboard", func(c echo.Context) error {
-		resp := QuickNodeResponse{
-			Status:       "",
-			DashboardURL: "",
-			AccessURL:    "",
+		resp := Response{
+			Status: "",
 		}
-		token, ok := c.Get("user").(*jwt.Token) // by default token is stored under `user` key
+		token, ok := c.Get("jwt").(*jwt.Token)
 		if !ok {
 			resp.Status = "error: JWT token missing or invalid"
 			return c.JSON(http.StatusBadRequest, resp)
 		}
-		// claims
-		_, ok = token.Claims.(jwt.MapClaims) // by default claims is of type `jwt.MapClaims`
+
+		claims, ok := token.Claims.(jwt.MapClaims) // by default claims is of type `jwt.MapClaims`
 		if !ok {
 			resp.Status = "error: failed to cast claims as jwt.MapClaims"
 			return c.JSON(http.StatusBadRequest, resp)
 		}
-		/*
-			c.JSON(200, gin.H{
-				"status":        "success",
-				"dashboard-url": scheme + c.Request.Host + "/dashboard",
-				"access-url":    scheme + c.Request.Host + "/api", // Note: should be protected by API key
-			})
-		*/
+		user := claims["name"].(string)
+		organization := claims["organization_name"].(string)
+		email := claims["email"].(string)
+		ui := UserInfo{
+			User:         user,
+			Organization: organization,
+			Email:        email,
+		}
 		resp.Status = "success"
-		return c.JSON(http.StatusOK, resp)
+		return c.JSON(http.StatusOK, ui)
 	})
-
 }
 
-type QuickNodeResponse struct {
-	Status       string `json:"status"`
+type UserInfo struct {
+	User         string `json:"name"`
+	Organization string `json:"organization"`
+	Email        string `json:"email"`
+}
+
+type Response struct {
+	Status string `json:"status"`
+}
+
+/*
 	DashboardURL string `json:"dashboard-url"`
 	AccessURL    string `json:"access-url"`
-}
+*/

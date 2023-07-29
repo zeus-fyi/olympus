@@ -92,6 +92,11 @@ func Hestia() {
 		temporalAuthConfig = tc.ProdLocalTemporalAuthArtemis
 		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
 		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
+
+		hestia_quicknode_dashboard.JWTAuthSecret = tc.QuickNodeMarketplace.JWTToken
+		hestia_quiknode_v1_routes.QuickNodePassword = tc.QuickNodeMarketplace.Password
+		hestia_quiknode_v1_routes.QuickNodeToken = tc.QuickNodeMarketplace.AuthToken
+
 		artemis_validator_service_groups_models.ArtemisClient = artemis_client.NewDefaultArtemisClient(tc.ProductionLocalTemporalBearerToken)
 		awsSESAuthCfg.AccessKey = tc.AwsAccessKeySES
 		awsSESAuthCfg.SecretKey = tc.AwsSecretKeySES
@@ -104,6 +109,9 @@ func Hestia() {
 		temporalAuthConfig = tc.ProdLocalTemporalAuthArtemis
 		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
 		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
+		hestia_quicknode_dashboard.JWTAuthSecret = tc.QuickNodeMarketplace.JWTToken
+		hestia_quiknode_v1_routes.QuickNodePassword = tc.QuickNodeMarketplace.Password
+		hestia_quiknode_v1_routes.QuickNodeToken = tc.QuickNodeMarketplace.AuthToken
 		artemis_validator_service_groups_models.ArtemisClient = artemis_client.NewDefaultArtemisClient(tc.ProductionLocalTemporalBearerToken)
 		awsSESAuthCfg.AccessKey = tc.AwsAccessKeySES
 		awsSESAuthCfg.SecretKey = tc.AwsSecretKeySES

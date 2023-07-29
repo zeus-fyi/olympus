@@ -2,6 +2,7 @@ package hestia_server
 
 import (
 	"context"
+	"errors"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -69,8 +70,17 @@ func Hestia() {
 		awsAuthCfg = sw.SecretsManagerAuthAWS
 		awsAuthCfg.Region = awsRegion
 		sw.SESAuthAWS.Region = awsRegion
-		hestia_quiknode_v1_routes.QuickNodeToken = sw.QuickNodeBearer
 		hestia_quicknode_dashboard.JWTAuthSecret = sw.QuickNodeJWT
+		hestia_quiknode_v1_routes.QuickNodeToken = sw.QuickNodeBearer
+		hestia_quiknode_v1_routes.QuickNodePassword = sw.QuickNodePassword
+		if len(hestia_quiknode_v1_routes.QuickNodePassword) <= 0 {
+			log.Fatal().Msg("Hestia: QuickNodePassword is empty")
+			misc.DelayedPanic(errors.New("hestia: QuickNodePassword is empty"))
+		}
+		if len(hestia_quicknode_dashboard.JWTAuthSecret) <= 0 {
+			log.Fatal().Msg("Hestia: JWTAuthSecret is empty")
+			misc.DelayedPanic(errors.New("hestia: QuickNodePassword is empty"))
+		}
 		artemis_validator_service_groups_models.ArtemisClient = artemis_client.NewDefaultArtemisClient(sw.BearerToken)
 		artemis_orchestration_auth.Bearer = sw.BearerToken
 		hermes_email_notifications.Hermes = hermes_email_notifications.InitHermesSESEmailNotifications(ctx, sw.SESAuthAWS)
@@ -112,7 +122,7 @@ func Hestia() {
 	inMemFsErr := artemis_validator_signature_service_routing.InitRouteMapInMemFS(ctx)
 	if inMemFsErr != nil {
 		log.Ctx(ctx).Err(inMemFsErr).Msg("Hydra: InitRouteMapInMemFS failed")
-		panic(inMemFsErr)
+		misc.DelayedPanic(inMemFsErr)
 	}
 	//go func() {
 	//	artemis_validator_signature_service_routing.InitAsyncServiceAuthRoutePollingHeartbeatAll(ctx)

@@ -32,9 +32,32 @@ func (r *ProvisionRequest) Provision(c echo.Context) error {
 				Status: "error",
 			})
 	}
-	return c.JSON(http.StatusOK, QuickNodeResponse{
-		Status: "success",
+	return c.JSON(http.StatusOK, ProvisionResponse{
+		AccessURL:    "https://cloud.zeus.fyi/v1/quicknode/access",
+		DashboardURL: "https://cloud.zeus.fyi/v1/quicknode/dashboard",
+		Status:       "success",
 	})
+}
+
+func TestProvisionRequestHandler(c echo.Context) error {
+	request := new(ProvisionRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.ProvisionTest(c)
+}
+
+func (r *ProvisionRequest) ProvisionTest(c echo.Context) error {
+	return c.JSON(http.StatusOK, ProvisionResponse{
+		DashboardURL: "http://localhost:9002/v1/quicknode/dashboard",
+		Status:       "success",
+	})
+}
+
+type ProvisionResponse struct {
+	Status       string `json:"status"`
+	DashboardURL string `json:"dashboard-url"`
+	AccessURL    string `json:"access-url"`
 }
 
 func UpdateProvisionRequestHandler(c echo.Context) error {

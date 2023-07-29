@@ -19,6 +19,7 @@ import Billing from "../components/billing/Billing";
 import Access from "../components/access/Access";
 import {ChatGPTPage} from "../components/chatgpt/ChatGPTWrapper";
 import Dashboard from "../components/dashboard/Dashboard";
+import {VerifyQuickNodeLoginJWT} from "../components/login/VerifyLoginJWT";
 
 export const App = () => {
     return (
@@ -28,7 +29,9 @@ export const App = () => {
                             <Route path="/" element={<HomeLayout />} />
                             <Route path="/login" element={<Login />} />
                             <Route path="/signup" element={<SignUp />} />
-                            <Route path="/verify/email/:id" element={<VerifyEmail />} />
+                        <Route path="/v1/quicknode/dashboard" element={<VerifyQuickNodeLoginJWT />} />
+                        <Route path="/v1/quicknode/access" element={<VerifyQuickNodeLoginJWT />} />
+                        <Route path="/verify/email/:id" element={<VerifyEmail />} />
                         <Route>
                             <Route path="/dashboard" element={<ProtectedLayout children={<Dashboard />}/>}/>
                             <Route>
@@ -42,6 +45,7 @@ export const App = () => {
                                 <Route path="apps/eth" element={<ProtectedLayout children={<AppPageWrapper app={"ethereumEphemeralBeacons"} />}/>} />
                             </Route>
                             <Route>
+                                <Route path="services/quicknode/dashboard" element={<Dashboard />} />
                                 <Route path="services/chatgpt" element={<ProtectedLayout children={<ChatGPTPage />}/>}/>
                                 <Route path="services/ethereum/validators" element={<ProtectedLayout children={<ValidatorsServices />}/>}/>
                                 <Route path="services/ethereum/aws" element={<ProtectedLayout children={<AwsWizard />}/>}/>

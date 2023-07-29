@@ -30,6 +30,16 @@ class SignUpApiGateway {
             return
         }
     }
+    async verifyJWT(token: string): Promise<any>  {
+        const url = `/v1/quicknode/access/dashboard?jwt=${token}`;
+        try {
+            return await hestiaApi.get(url, config)
+        } catch (exc) {
+            console.error('error verifying email request');
+            console.error(exc);
+            return
+        }
+    }
 }
 export const signUpApiGateway = new SignUpApiGateway();
 

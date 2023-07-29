@@ -55,6 +55,7 @@ func InitV1RoutesServices(e *echo.Echo) {
 		return false, nil
 	}))
 
+	eg.POST("/test/provision", TestProvisionRequestHandler)
 	eg.POST("/provision", ProvisionRequestHandler)
 	eg.PUT("/update", UpdateProvisionRequestHandler)
 	eg.DELETE("/deprovision", DeprovisionRequestHandler)

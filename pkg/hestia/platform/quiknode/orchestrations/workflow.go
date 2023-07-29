@@ -72,6 +72,7 @@ func (h *HestiaQuicknodeWorkflow) DeprovisionWorkflow(ctx workflow.Context, dp h
 		sleepDuration := time.Duration(deprovisionAt-currentTime) * time.Second
 		err := workflow.Sleep(pCtx, sleepDuration)
 		if err != nil {
+			log.Error("HestiaQuicknodeWorkflow: failed to sleep", "Error", err)
 			return err
 		}
 	}
@@ -106,6 +107,7 @@ func (h *HestiaQuicknodeWorkflow) DeactivateWorkflow(ctx workflow.Context, da he
 		sleepDuration := time.Duration(deactivateAt-currentTime) * time.Second
 		err := workflow.Sleep(pCtx, sleepDuration)
 		if err != nil {
+			log.Error("HestiaQuicknodeWorkflow: failed to sleep", "Error", err)
 			return err
 		}
 	}

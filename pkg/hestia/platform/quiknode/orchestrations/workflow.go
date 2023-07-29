@@ -75,12 +75,19 @@ func (h *HestiaQuicknodeWorkflow) DeprovisionWorkflow(ctx workflow.Context, dp h
 			return err
 		}
 	}
-
 	err := workflow.ExecuteActivity(pCtx, h.Deprovision, dp, ou).Get(pCtx, nil)
 	if err != nil {
 		log.Warn("params", dp)
 		log.Warn("ou", ou)
 		log.Error("failed to deprovision QuickNode services", "Error", err)
+		return err
+	}
+
+	err = workflow.ExecuteActivity(pCtx, h.DeprovisionCache, ou).Get(pCtx, nil)
+	if err != nil {
+		log.Warn("params", dp)
+		log.Warn("ou", ou)
+		log.Error("failed to DeprovisionCache", "Error", err)
 		return err
 	}
 	return nil

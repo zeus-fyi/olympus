@@ -17,6 +17,15 @@ func (i *IrisApiRequestsActivities) UpdateOrgRoutingTable(ctx context.Context, o
 	return nil
 }
 
+func (i *IrisApiRequestsActivities) DeleteOrgRoutingTable(ctx context.Context, orgID int, rgName string) error {
+	err := iris_redis.IrisRedis.DeleteOrgRoutingGroup(context.Background(), orgID, rgName)
+	if err != nil {
+		log.Error().Int("orgID", orgID).Str("routeGroup", rgName).Err(err).Msg("UpdateOrgRoutingTable: Failed to update routing tables for org")
+		return err
+	}
+	return nil
+}
+
 func (i *IrisApiRequestsActivities) SelectOrgGroupRoutingTable(ctx context.Context, orgID int, groupName string) (iris_models.OrgRoutesGroup, error) {
 	ot, err := iris_models.SelectOrgRoutesByOrgAndGroupName(ctx, orgID, groupName)
 	if err != nil {

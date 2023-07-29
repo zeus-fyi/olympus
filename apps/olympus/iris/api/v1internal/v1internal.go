@@ -13,6 +13,9 @@ import (
 
 const (
 	RefreshOrgRoutingTable = "/router/refresh/:orgID"
+
+	DeleteOrgRoutingTables     = "/router/delete/:orgID"
+	DeleteOrgRoutingGroupTable = "/router/delete/:orgID/:groupName"
 )
 
 func InitV1InternalRoutes(e *echo.Echo) {
@@ -33,4 +36,7 @@ func InitV1InternalRoutes(e *echo.Echo) {
 		},
 	}))
 	eg.GET(RefreshOrgRoutingTable, InternalRefreshOrgRoutingTableHandler)
+	eg.DELETE(DeleteOrgRoutingTables, InternalDeleteOrgRoutingTableRequestHandler)
+	eg.DELETE(DeleteOrgRoutingGroupTable, InternalDeleteOrgRoutingTableRequestHandler)
+
 }

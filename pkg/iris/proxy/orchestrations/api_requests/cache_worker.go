@@ -56,3 +56,35 @@ func (t *IrisApiRequestsWorker) ExecuteIrisCacheUpdateOrAddOrgGroupRoutingTableW
 	}
 	return err
 }
+
+func (t *IrisApiRequestsWorker) ExecuteIrisCacheDeleteOrgGroupRoutingTableWorkflow(ctx context.Context, orgID int, groupName string) error {
+	tc := t.ConnectTemporalClient()
+	defer tc.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: t.TaskQueueName,
+	}
+	txWf := NewIrisApiRequestsWorkflow()
+	wf := txWf.DeleteRoutingGroupWorkflow
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, orgID, groupName)
+	if err != nil {
+		log.Err(err).Msg("ExecuteIrisCacheDeleteOrgGroupRoutingTableWorkflow")
+		return err
+	}
+	return err
+}
+
+func (t *IrisApiRequestsWorker) ExecuteIrisCacheDeleteOrgRoutingGroupTablesWorkflow(ctx context.Context, orgID int) error {
+	tc := t.ConnectTemporalClient()
+	defer tc.Close()
+	workflowOptions := client.StartWorkflowOptions{
+		TaskQueue: t.TaskQueueName,
+	}
+	txWf := NewIrisApiRequestsWorkflow()
+	wf := txWf.DeleteAllOrgRoutingGroupsWorkflow
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, orgID)
+	if err != nil {
+		log.Err(err).Msg("ExecuteIrisCacheDeleteAllOrRoutingGroupTablesWorkflow")
+		return err
+	}
+	return err
+}

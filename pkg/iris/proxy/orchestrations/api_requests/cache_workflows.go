@@ -93,3 +93,55 @@ func (i *IrisApiRequestsWorkflow) CacheRefreshOrgGroupTableWorkflow(ctx workflow
 	}
 	return nil
 }
+
+func (i *IrisApiRequestsWorkflow) DeleteRoutingGroupWorkflow(ctx workflow.Context, orgID int, groupName string) error {
+	log := workflow.GetLogger(ctx)
+	ao := workflow.ActivityOptions{
+		RetryPolicy: &temporal.RetryPolicy{
+			InitialInterval:    3 * time.Minute,
+			BackoffCoefficient: 2,
+		},
+	}
+	getRoutingTablesCtx := workflow.WithActivityOptions(ctx, ao)
+	var ogr iris_models.OrgRoutesGroup
+	err := workflow.ExecuteActivity(getRoutingTablesCtx, i.SelectOrgGroupRoutingTable, orgID, groupName).Get(getRoutingTablesCtx, &ogr)
+	if err != nil {
+		log.Error("DeleteRoutingGroup: Failed to SelectOrgGroupRoutingTable", "Error", err)
+		return err
+	}
+	delRoutingTablesCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(delRoutingTablesCtx, i.DeleteOrgRoutingTable, orgID, groupName).Get(delRoutingTablesCtx, nil)
+	if err != nil {
+		log.Error("DeleteRoutingGroup: Failed to DeleteOrgRoutingTable", "Error", err)
+		return err
+	}
+	return nil
+}
+
+func (i *IrisApiRequestsWorkflow) DeleteAllOrgRoutingGroupsWorkflow(ctx workflow.Context, orgID int) error {
+	log := workflow.GetLogger(ctx)
+	ao := workflow.ActivityOptions{
+		RetryPolicy: &temporal.RetryPolicy{
+			InitialInterval:    3 * time.Minute,
+			BackoffCoefficient: 2,
+		},
+	}
+	getRoutingTablesCtx := workflow.WithActivityOptions(ctx, ao)
+	var ogr iris_models.OrgRoutesGroup
+	err := workflow.ExecuteActivity(getRoutingTablesCtx, i.SelectAllOrgGroupsRoutingTables, orgID).Get(getRoutingTablesCtx, &ogr)
+	if err != nil {
+		log.Error("DeleteAllOrgRoutingGroupsWorkflow: Failed to SelectOrgGroupRoutingTable", "Error", err)
+		return err
+	}
+	for _, og := range ogr.Map {
+		for rgName, _ := range og {
+			delRoutingTableCtx := workflow.WithActivityOptions(ctx, ao)
+			err = workflow.ExecuteActivity(delRoutingTableCtx, i.DeleteOrgRoutingTable, orgID, rgName).Get(delRoutingTableCtx, nil)
+			if err != nil {
+				log.Error("DeleteAllOrgRoutingGroupsWorkflow: DeleteRoutingGroup: Failed to DeleteOrgRoutingTable", "Error", err)
+				return err
+			}
+		}
+	}
+	return nil
+}

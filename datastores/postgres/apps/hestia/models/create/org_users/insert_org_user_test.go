@@ -17,6 +17,24 @@ type CreateOrgUserTestSuite struct {
 	hestia_test.BaseHestiaTestSuite
 }
 
+func (s *CreateOrgUserTestSuite) TestInsertDemoOrgUserWithQuickNodeSignUp() {
+	ctx := context.Background()
+	s.InitLocalConfigs()
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	ou := OrgUser{}
+	us := UserSignup{
+		FirstName:    "bob",
+		LastName:     "g",
+		EmailAddress: rand.String(10) + "@quicknode.com",
+		Password:     "password",
+	}
+	doesExist := DoesUserExist(ctx, us.EmailAddress)
+	s.Assert().False(doesExist)
+	err := ou.InsertOrgUserWithNewQuickNodeKeyForService(ctx, "0x01")
+	s.Require().Nil(err)
+
+}
+
 func (s *CreateOrgUserTestSuite) TestInsertDemoOrgUserWithSignUp() {
 	ctx := context.Background()
 	s.InitLocalConfigs()

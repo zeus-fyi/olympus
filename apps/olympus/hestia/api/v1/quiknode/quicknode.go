@@ -1,9 +1,14 @@
 package hestia_quiknode_v1_routes
 
 import (
+	"context"
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 )
 
 const (
@@ -40,7 +45,14 @@ func InitV1RoutesServices(e *echo.Echo) {
 		if len(QuickNodePassword) <= 0 {
 			return false, nil
 		}
-
+		key, err := auth.VerifyQuickNodeToken(context.Background(), qnEndpointID)
+		if err != nil {
+			log.Err(err).Msg("InitV1Routes QuickNode")
+			return false, c.JSON(http.StatusInternalServerError, nil)
+		}
+		ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
+		c.Set("orgUser", ou)
+		c.Set("verified", key.IsVerified())
 		if password == QuickNodePassword {
 			if qnTestHeader == QuickNodeTestHeader {
 				c.Set("orgUser", org_users.NewOrgUserWithID(QuickNodeTestOrgID, QuickNodeTestOrgID))
@@ -55,6 +67,7 @@ func InitV1RoutesServices(e *echo.Echo) {
 		return false, nil
 	}))
 
+	eg.POST("/test/provision", TestProvisionRequestHandler)
 	eg.POST("/provision", ProvisionRequestHandler)
 	eg.PUT("/update", UpdateProvisionRequestHandler)
 	eg.DELETE("/deprovision", DeprovisionRequestHandler)

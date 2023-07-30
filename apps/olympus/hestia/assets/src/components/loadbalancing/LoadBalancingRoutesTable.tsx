@@ -1,6 +1,4 @@
-import {useParams} from "react-router-dom";
 import * as React from "react";
-import {useEffect, useState} from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
@@ -10,56 +8,9 @@ import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
-import {loadBalancingApiGateway} from "../../gateway/loadbalancing";
-import {useDispatch, useSelector} from "react-redux";
-import {setEndpoints, setGroupEndpoints} from "../../redux/loadbalancing/loadbalancing.reducer";
-import {RootState} from "../../redux/store";
 
-export function LoadBalancingRoutesTable() {
-    const params = useParams();
-    const dispatch = useDispatch();
-    const [loading, setLoading] = useState(true);
-    const [selected, setSelected] = useState<string[]>([]);
-    const endpoints = useSelector((state: RootState) => state.loadBalancing.routes);
-    const groups = useSelector((state: RootState) => state.loadBalancing.groups);
-
-    useEffect(() => {
-        const fetchData = async (params: any) => {
-            try {
-                const response = await loadBalancingApiGateway.getEndpoints();
-                dispatch(setEndpoints(response.data.routes));
-                dispatch(setGroupEndpoints(response.data.orgGroupsRoutes));
-                console.log(response.data);
-            } catch (error) {
-                console.log("error", error);
-            } finally {
-                setLoading(false); // Set loading to false regardless of success or failure.
-            }
-        }
-        fetchData(params);
-    }, []);
-
-    const handleClick = (name: string) => {
-        const currentIndex = selected.indexOf(name);
-        const newSelected = [...selected];
-
-        if (currentIndex === -1) {
-            newSelected.push(name);
-        } else {
-            newSelected.splice(currentIndex, 1);
-        }
-
-        setSelected(newSelected);
-    };
-
-    const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.checked) {
-            const newSelecteds = endpoints.map((endpoint) => endpoint);
-            setSelected(newSelecteds);
-            return;
-        }
-        setSelected([]);
-    };
+export function LoadBalancingRoutesTable(props: any) {
+    const { loading,selected, endpoints, handleSelectAllClick, handleClick } = props
 
     if (loading) {
         return <div>Loading...</div> // Display loading message while data is fetching
@@ -68,7 +19,6 @@ export function LoadBalancingRoutesTable() {
     if (endpoints === null || endpoints === undefined) {
         return (<div></div>)
     }
-
     return (
         <div>
             <Box sx={{ mt: 4, mb: 4 }}>

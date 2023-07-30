@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useEffect, useState} from 'react';
 import {createTheme, styled, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import MuiDrawer from '@mui/material/Drawer';
@@ -13,13 +14,16 @@ import Container from '@mui/material/Container';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
-import {useNavigate} from "react-router-dom";
-import {useDispatch} from "react-redux";
+import {useNavigate, useParams} from "react-router-dom";
+import {useDispatch, useSelector} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
 import {Card, CardContent} from "@mui/material";
 import {ZeusCopyright} from "../copyright/ZeusCopyright";
 import MainListItems from "../dashboard/listItems";
 import {LoadBalancingRoutesTable} from "./LoadBalancingRoutesTable";
+import {RootState} from "../../redux/store";
+import {loadBalancingApiGateway} from "../../gateway/loadbalancing";
+import {setEndpoints, setGroupEndpoints} from "../../redux/loadbalancing/loadbalancing.reducer";
 
 const drawerWidth: number = 240;
 
@@ -74,6 +78,7 @@ export const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 
 const mdTheme = createTheme();
 
 function LoadBalancingDashboardContent() {
+    const params = useParams();
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
@@ -87,6 +92,49 @@ function LoadBalancingDashboardContent() {
         dispatch({type: 'LOGOUT_SUCCESS'})
         navigate('/login');
     }
+    const endpoints = useSelector((state: RootState) => state.loadBalancing.routes);
+    const groups = useSelector((state: RootState) => state.loadBalancing.groups);
+    const [loading, setLoading] = useState(true);
+    const [selected, setSelected] = useState<string[]>([]);
+
+    useEffect(() => {
+        const fetchData = async (params: any) => {
+            try {
+                const response = await loadBalancingApiGateway.getEndpoints();
+                dispatch(setEndpoints(response.data.routes));
+                dispatch(setGroupEndpoints(response.data.orgGroupsRoutes));
+                console.log(response.data);
+            } catch (error) {
+                console.log("error", error);
+            } finally {
+                setLoading(false); // Set loading to false regardless of success or failure.
+            }
+        }
+        fetchData(params);
+    }, []);
+
+
+    const handleClick = (name: string) => {
+        const currentIndex = selected.indexOf(name);
+        const newSelected = [...selected];
+
+        if (currentIndex === -1) {
+            newSelected.push(name);
+        } else {
+            newSelected.splice(currentIndex, 1);
+        }
+
+        setSelected(newSelected);
+    };
+
+    const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.checked) {
+            const newSelected = endpoints.map((endpoint) => endpoint);
+            setSelected(newSelected);
+            return;
+        }
+        setSelected([]);
+    };
 
     return (
         <ThemeProvider theme={mdTheme}>
@@ -171,7 +219,14 @@ function LoadBalancingDashboardContent() {
                         </Card>
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        <LoadBalancingRoutesTable />
+                        <LoadBalancingRoutesTable
+                            loading={loading}
+                            endpoints={endpoints}
+                            groups={groups}
+                            selected={selected}
+                            handleSelectAllClick={handleSelectAllClick}
+                            handleClick={handleClick}
+                        />
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />
                 </Box>

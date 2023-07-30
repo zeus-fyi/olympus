@@ -2,6 +2,7 @@ import {useParams} from "react-router-dom";
 import * as React from "react";
 import {useEffect, useState} from "react";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
 import {TableContainer, TableRow} from "@mui/material";
 import Paper from "@mui/material/Paper";
@@ -69,6 +70,14 @@ export function LoadBalancingRoutesTable() {
     return (
         <div>
             <Box sx={{ mt: 4, mb: 4 }}>
+                {selected.length > 0 && (
+                    <Box sx={{ mb: 2 }}>
+                        <span>({selected.length} selected endpoints)</span>
+                        <Button variant="outlined" color="secondary" style={{marginLeft: '10px'}}>
+                            Delete
+                        </Button>
+                    </Box>
+                )}
                 <TableContainer component={Paper}>
                     <Table sx={{ minWidth: 650 }} aria-label="simple table">
                         <TableHead>

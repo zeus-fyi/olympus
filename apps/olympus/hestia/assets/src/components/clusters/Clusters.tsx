@@ -185,7 +185,7 @@ function ClustersTable(clusters: any) {
     const handleClick = async (event: any, cluster: any) => {
         const tableRow = event.currentTarget;
         const tableCells = tableRow.children;
-        if (event.target === tableCells[tableCells.length - 1]) {
+        if (event.target === tableCells[tableCells.length - 1] || event.target === tableCells[4] || event.target === tableCells[5]) {
             return;
         }
         event.preventDefault();

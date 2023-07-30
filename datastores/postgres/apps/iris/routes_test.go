@@ -165,4 +165,15 @@ func (s *IrisTestSuite) TestSelectAllOrgRoutes() {
 			fmt.Println(k, v)
 		}
 	}
+
+	ogr, err := SelectAllEndpointsAndOrgGroupRoutesByOrg(ctx, s.Tc.ProductionLocalTemporalOrgID)
+	s.Require().Nil(err)
+	s.Require().NotNil(ogr)
+
+	for _, r := range ogr.Map {
+		fmt.Println(r)
+	}
+	for _, r := range ogr.Routes {
+		fmt.Println(r)
+	}
 }

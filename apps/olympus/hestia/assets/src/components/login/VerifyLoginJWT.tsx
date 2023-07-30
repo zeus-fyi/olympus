@@ -22,7 +22,7 @@ export function VerifyQuickNodeLoginJWT() {
                 const response = await signUpApiGateway.verifyJWT(jwtToken);
                 const statusCode = response.status;
                 if (statusCode === 200 || statusCode === 204) {
-                    navigate('/services/quicknode/dashboard');
+                    navigate('/loadbalancing/dashboard');
                 } else {
                     navigate('/signup');
                 }

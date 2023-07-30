@@ -1,9 +1,10 @@
 import {hestiaApi} from './axios/axios';
 import inMemoryJWT from "../auth/InMemoryJWT";
+import {Groups} from "../redux/loadbalancing/loadbalancing.types";
 
 class LoadBalancingApiGateway {
     async getEndpoints(): Promise<any>  {
-        const url = `/v1/iris/routes/read`;
+        const url = `/v1/iris/routes/read/all`;
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {
@@ -72,3 +73,7 @@ class LoadBalancingApiGateway {
     }
 }
 export const loadBalancingApiGateway = new LoadBalancingApiGateway();
+
+export interface OrgGroupsRoutesResponse {
+    orgGroupsRoutes: Groups;
+}

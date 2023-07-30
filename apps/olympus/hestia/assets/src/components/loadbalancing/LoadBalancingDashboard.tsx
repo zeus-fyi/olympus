@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useEffect, useState} from 'react';
 import {createTheme, styled, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import MuiDrawer from '@mui/material/Drawer';
@@ -13,13 +14,16 @@ import Container from '@mui/material/Container';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import Button from "@mui/material/Button";
-import {useNavigate} from "react-router-dom";
-import {useDispatch} from "react-redux";
+import {useNavigate, useParams} from "react-router-dom";
+import {useDispatch, useSelector} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
-import {Card, CardContent} from "@mui/material";
+import {Card, CardContent, FormControl, InputLabel, MenuItem, Select, Stack} from "@mui/material";
 import {ZeusCopyright} from "../copyright/ZeusCopyright";
 import MainListItems from "../dashboard/listItems";
 import {LoadBalancingRoutesTable} from "./LoadBalancingRoutesTable";
+import {RootState} from "../../redux/store";
+import {loadBalancingApiGateway} from "../../gateway/loadbalancing";
+import {setEndpoints, setGroupEndpoints} from "../../redux/loadbalancing/loadbalancing.reducer";
 
 const drawerWidth: number = 240;
 
@@ -74,6 +78,7 @@ export const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 
 const mdTheme = createTheme();
 
 function LoadBalancingDashboardContent() {
+    const params = useParams();
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
@@ -87,6 +92,75 @@ function LoadBalancingDashboardContent() {
         dispatch({type: 'LOGOUT_SUCCESS'})
         navigate('/login');
     }
+    const endpoints = useSelector((state: RootState) => state.loadBalancing.routes);
+    const groups = useSelector((state: RootState) => state.loadBalancing.groups);
+    const [loading, setLoading] = useState(true);
+    const [selected, setSelected] = useState<string[]>([]);
+    const [groupName, setGroupName] = useState<string>("");
+    const [tableRoutes, setTableRoutes] = useState<string[]>([]);
+    const [rowsPerPage, setRowsPerPage] = React.useState(25);
+    const [page, setPage] = React.useState(0);
+    const [isAdding, setIsAdding] = useState<boolean>(false);
+    const [newEndpoint, setNewEndpoint] = useState<string>("");
+
+    useEffect(() => {
+        const fetchData = async (params: any) => {
+            try {
+                const response = await loadBalancingApiGateway.getEndpoints();
+                dispatch(setEndpoints(response.data.routes));
+                dispatch(setGroupEndpoints(response.data.orgGroupsRoutes));
+                setTableRoutes(response.data.routes);
+                console.log(response.data);
+            } catch (error) {
+                console.log("error", error);
+            } finally {
+                setLoading(false); // Set loading to false regardless of success or failure.
+            }
+        }
+        fetchData(params);
+    }, []);
+
+    const handleClick = (name: string) => {
+        const currentIndex = selected.indexOf(name);
+        const newSelected = [...selected];
+
+        if (currentIndex === -1) {
+            newSelected.push(name);
+        } else {
+            newSelected.splice(currentIndex, 1);
+        }
+
+        setSelected(newSelected);
+    };
+
+    const handleChangeGroup = (name: string) => {
+        setPage(0);
+        setSelected([]);
+        setGroupName(name);
+        setTableRoutes(name === "-all" ? endpoints : groups[name]);
+    };
+
+    const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.checked) {
+            const newSelected = tableRoutes.map((endpoint) => endpoint);
+            setSelected(newSelected);
+            return;
+        }
+        setSelected([]);
+    };
+
+    const handleChangeRowsPerPage = (
+        event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    ) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+    const handleChangePage = (
+        event: React.MouseEvent<HTMLButtonElement> | null,
+        newPage: number,
+    ) => {
+        setPage(newPage);
+    };
 
     return (
         <ThemeProvider theme={mdTheme}>
@@ -168,10 +242,48 @@ function LoadBalancingDashboardContent() {
                                     Summary of your routing groups & endpoints.
                                 </Typography>
                             </CardContent>
+                        <Box mr={2} ml={2} mt={2} mb={4}>
+                            <Stack direction={"row"} spacing={2} alignItems={"center"}>
+                                <FormControl sx={{  }} fullWidth variant="outlined">
+                                    <InputLabel key={`groupNameLabel`} id={`groupName`}>
+                                        Routing Group
+                                    </InputLabel>
+                                    <Select
+                                        labelId={`groupNameLabel`}
+                                        id={`groupName`}
+                                        name="groupName"
+                                        value={groupName}
+                                        onChange={(event) => handleChangeGroup(event.target.value)}
+                                        label="Routing Group"
+                                    >
+                                        <MenuItem key={'all'} value={'-all'}>{"all"}</MenuItem>
+                                        {Object.keys(groups).map((name) => <MenuItem key={name} value={name}>{name}</MenuItem>)}
+                                    </Select>
+                                </FormControl>
+                            </Stack>
+                        </Box>
+                            <Box mr={2} ml={2} mt={2} mb={4}>
+                                <Button variant="contained" onClick={() => setIsAdding(true)}>Add Endpoints</Button>
+                            </Box>
                         </Card>
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        <LoadBalancingRoutesTable />
+                        <LoadBalancingRoutesTable
+                            page={page}
+                            rowsPerPage={rowsPerPage}
+                            loading={loading}
+                            endpoints={tableRoutes}
+                            groups={groups}
+                            selected={selected}
+                            handleSelectAllClick={handleSelectAllClick}
+                            handleClick={handleClick}
+                            handleChangeRowsPerPage={handleChangeRowsPerPage}
+                            handleChangePage={handleChangePage}
+                            isAdding={isAdding}
+                            setIsAdding={setIsAdding}
+                            newEndpoint={newEndpoint}
+                            setNewEndpoint={setNewEndpoint}
+                        />
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />
                 </Box>

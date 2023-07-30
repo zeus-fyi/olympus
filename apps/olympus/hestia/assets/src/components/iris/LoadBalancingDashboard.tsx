@@ -12,14 +12,14 @@ import IconButton from '@mui/material/IconButton';
 import Container from '@mui/material/Container';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import MainListItems from './listItems';
 import Button from "@mui/material/Button";
 import {useNavigate} from "react-router-dom";
 import {useDispatch} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
 import {Card, CardContent} from "@mui/material";
 import {ZeusCopyright} from "../copyright/ZeusCopyright";
-import {OrgNodesResourcesTable} from "./org_resources/OrgResourceNodesTable";
+import MainListItems from "../dashboard/listItems";
+import {LoadBalancingRoutesTable} from "./LoadBalancingRoutesTable";
 
 const drawerWidth: number = 240;
 
@@ -73,7 +73,7 @@ export const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 
 
 const mdTheme = createTheme();
 
-function DashboardContent() {
+function LoadBalancingDashboardContent() {
     const [open, setOpen] = React.useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
@@ -162,17 +162,16 @@ function DashboardContent() {
                         <Card sx={{ maxWidth: 700 }}>
                             <CardContent>
                                 <Typography gutterBottom variant="h5" component="div">
-                                    Cluster & Resource Management
+                                    Load Balancing Management
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
-                                    Summary of your active cloud resources.
-                                    Free trial nodes cannot be deleted on demand, you'll need to wait for the trial to expire to deploy new nodes.
+                                    Summary of your routing groups & endpoints.
                                 </Typography>
                             </CardContent>
                         </Card>
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        <OrgNodesResourcesTable/>
+                        <LoadBalancingRoutesTable />
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />
                 </Box>
@@ -181,6 +180,6 @@ function DashboardContent() {
     );
 }
 
-export default function Dashboard() {
-    return <DashboardContent />;
+export default function LoadBalancingDashboard() {
+    return <LoadBalancingDashboardContent />;
 }

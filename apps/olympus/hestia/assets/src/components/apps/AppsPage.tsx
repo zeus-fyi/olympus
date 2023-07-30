@@ -114,7 +114,7 @@ function AppsPageContent() {
                                     <Card>
                                         <CardContent>
                                             <Typography gutterBottom variant="h5" component="div">
-                                                Public Registered Apps
+                                                Open Source Apps Directory
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary">
                                                 The table below contains apps template workloads that you can copy, edit, and deploy.
@@ -135,7 +135,7 @@ function AppsPageContent() {
                                     <Card>
                                         <CardContent>
                                             <Typography gutterBottom variant="h5" component="div">
-                                                Private Registered Apps
+                                                Private Apps Directory
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary">
                                                 The table below contains apps that are registered workloads that you can deploy, edit, or upgrade.

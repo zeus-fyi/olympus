@@ -2,7 +2,6 @@ import * as React from 'react';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import DashboardIcon from '@mui/icons-material/Dashboard';
 import {Link} from "react-router-dom";
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import CloudIcon from '@mui/icons-material/Cloud';
@@ -15,17 +14,20 @@ import AppsIcon from '@mui/icons-material/Apps';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import SecurityIcon from '@mui/icons-material/Security';
 import ChatIcon from '@mui/icons-material/Chat';
+import DnsIcon from "@mui/icons-material/Dns";
+import SwapCallsIcon from '@mui/icons-material/SwapCalls';
 
 export default function MainListItems() {
-    const [open, setOpen] = React.useState(true);
+    const [openServices, setOpenServices] = React.useState(true);
     const [openClusters, setOpenClusters] = React.useState(true);
+    const [openApps, setOpenApps] = React.useState(true);
 
-    const handleClick = () => {
-        setOpen(!open);
+    const handleClickServices = () => {
+        setOpenServices(!openServices);
     };
 
-    const handleClickClusters = () => {
-        setOpenClusters(!openClusters);
+    const handleClickApps = () => {
+        setOpenApps(!openApps);
     };
     return (
         <List
@@ -38,28 +40,16 @@ export default function MainListItems() {
                 </ListSubheader>
             }
         >
-            <ListItemButton component={Link} to="/dashboard">
+            <ListItemButton onClick={handleClickApps}  component={Link} to="/apps">
                 <ListItemIcon>
-                    <DashboardIcon />
+                    <AppsIcon />
                 </ListItemIcon>
-                <ListItemText primary="Dashboard" />
+                <ListItemText primary="Apps" />
+                {openApps ? <ExpandLess /> : <ExpandMore />}
             </ListItemButton>
-            <ListItemButton onClick={handleClickClusters}  component={Link} to="/clusters">
-                <ListItemIcon>
-                    <CloudIcon />
-                </ListItemIcon>
-                <ListItemText primary="Clusters"/>
-                {openClusters ? <ExpandLess /> : <ExpandMore />}
-            </ListItemButton>
-            <Collapse in={openClusters} timeout="auto" unmountOnExit>
+            <Collapse in={openApps} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
-                    <ListItemButton sx={{ pl: 4 }} component={Link} to="/clusters/apps">
-                        <ListItemIcon>
-                            <AppsIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="Apps" />
-                    </ListItemButton>
-                    <ListItemButton sx={{ pl: 4 }} component={Link} to="/clusters/builder">
+                    <ListItemButton sx={{ pl: 4 }} component={Link} to="/apps/builder">
                         <ListItemIcon>
                             <ConstructionIcon />
                         </ListItemIcon>
@@ -67,14 +57,32 @@ export default function MainListItems() {
                     </ListItemButton>
                 </List>
             </Collapse>
-            <ListItemButton onClick={handleClick}>
+            <ListItemButton component={Link} to="/compute">
+                <ListItemIcon>
+                    <DnsIcon />
+                </ListItemIcon>
+                <ListItemText primary="Compute" />
+            </ListItemButton>
+            <ListItemButton  component={Link} to="/clusters">
+                <ListItemIcon>
+                    <CloudIcon />
+                </ListItemIcon>
+                <ListItemText primary="Clusters"/>
+            </ListItemButton>
+            <ListItemButton component={Link} to="/loadbalancing/dashboard">
+                <ListItemIcon>
+                    <SwapCallsIcon />
+                </ListItemIcon>
+                <ListItemText primary="Load Balancing" />
+            </ListItemButton>
+            <ListItemButton onClick={handleClickServices}>
                 <ListItemIcon>
                     <ViewListIcon />
                 </ListItemIcon>
                 <ListItemText primary="Services" />
-                {open ? <ExpandLess /> : <ExpandMore />}
+                {openServices ? <ExpandLess /> : <ExpandMore />}
             </ListItemButton>
-            <Collapse in={open} timeout="auto" unmountOnExit>
+            <Collapse in={openServices} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
                     <ListItemButton sx={{ pl: 4 }} component={Link} to="/services/chatgpt">
                         <ListItemIcon>

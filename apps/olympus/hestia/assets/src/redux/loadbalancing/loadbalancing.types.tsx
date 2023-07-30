@@ -1,10 +1,9 @@
 
 export interface LoadBalancingState {
     routes: string[];
+    groups: Groups;
 }
 
-
-/*
-    GroupName string   `json:"groupName,omitempty"`
-    Routes    []string `json:"routes"
- */
+export interface Groups {
+    [key: string]: string[];
+}

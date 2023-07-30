@@ -82,7 +82,8 @@ type ReadOrgRoutingGroupsRequest struct {
 }
 
 type OrgGroupsRoutesResponse struct {
-	Map map[string][]string `json:"orgGroupsRoutes"`
+	Map    map[string][]string `json:"orgGroupsRoutes"`
+	Routes []string            `json:"routes,omitempty"`
 }
 
 func (r *ReadOrgRoutingGroupsRequest) ReadGroups(c echo.Context) error {
@@ -94,6 +95,27 @@ func (r *ReadOrgRoutingGroupsRequest) ReadGroups(c echo.Context) error {
 	routeGroups := groupedRoutes.Map[ou.OrgID]
 	resp := OrgGroupsRoutesResponse{
 		Map: routeGroups,
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
+func ReadAllOrgGroupsAndEndpointsRequestHandler(c echo.Context) error {
+	request := new(ReadOrgRoutingGroupsRequest)
+	if err := c.Bind(request); err != nil {
+		return err
+	}
+	return request.ReadAllOrgGroupsAndEndpoints(c)
+}
+
+func (r *ReadOrgRoutingGroupsRequest) ReadAllOrgGroupsAndEndpoints(c echo.Context) error {
+	ou := c.Get("orgUser").(org_users.OrgUser)
+	groupedRoutes, err := iris_models.SelectAllEndpointsAndOrgGroupRoutesByOrg(context.Background(), ou.OrgID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+	resp := OrgGroupsRoutesResponse{
+		Map:    groupedRoutes.Map,
+		Routes: groupedRoutes.Routes,
 	}
 	return c.JSON(http.StatusOK, resp)
 }

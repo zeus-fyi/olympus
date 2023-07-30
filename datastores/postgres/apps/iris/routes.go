@@ -221,6 +221,56 @@ func SelectAllOrgRoutesByOrg(ctx context.Context, orgID int) (OrgRoutesGroup, er
 	return og, misc.ReturnIfErr(err, q.LogHeader("SelectOrgRoutes"))
 }
 
+type OrgRoutesGroupsAndEndpoints struct {
+	Map    map[string][]string `json:"orgGroupRoutes"`
+	Routes []string            `json:"routes"`
+}
+
+func SelectAllEndpointsAndOrgGroupRoutesByOrg(ctx context.Context, orgID int) (OrgRoutesGroupsAndEndpoints, error) {
+	og := OrgRoutesGroupsAndEndpoints{
+		Map:    make(map[string][]string),
+		Routes: []string{},
+	}
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `SELECT COALESCE(org.route_group_name, 'unused'), o.org_id, o.route_path
+				  FROM org_routes o 
+				  LEFT JOIN org_routes_groups orgrs ON orgrs.route_id = o.route_id
+				  LEFT JOIN org_route_groups org ON org.route_group_id = orgrs.route_group_id
+				  WHERE o.org_id = $1
+				  `
+
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SelectAllEndpointsAndOrgGroupRoutesByOrg")); returnErr != nil {
+		return og, err
+	}
+	seenMap := make(map[string]bool)
+
+	defer rows.Close()
+	for rows.Next() {
+		var route iris_autogen_bases.OrgRoutes
+		gn := ""
+		rowErr := rows.Scan(
+			&gn, &route.OrgID, &route.RoutePath,
+		)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader("SelectAllEndpointsAndOrgGroupRoutesByOrg"))
+			return og, rowErr
+		}
+		if _, ok := og.Map[gn]; !ok {
+			og.Map[gn] = []string{route.RoutePath}
+		} else {
+			tmp := og.Map[gn]
+			tmp = append(tmp, route.RoutePath)
+			og.Map[gn] = tmp
+		}
+		if seenMap[route.RoutePath] != true {
+			og.Routes = append(og.Routes, route.RoutePath)
+			seenMap[route.RoutePath] = true
+		}
+	}
+	return og, misc.ReturnIfErr(err, q.LogHeader("SelectAllEndpointsAndOrgGroupRoutesByOrg"))
+}
+
 func SelectOrgRoutesByOrgAndGroupName(ctx context.Context, orgID int, groupName string) (OrgRoutesGroup, error) {
 	og := OrgRoutesGroup{
 		Map: make(map[int]map[string][]string),

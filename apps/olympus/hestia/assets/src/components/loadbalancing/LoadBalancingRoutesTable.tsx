@@ -12,7 +12,7 @@ import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import {loadBalancingApiGateway} from "../../gateway/loadbalancing";
 import {useDispatch, useSelector} from "react-redux";
-import {setEndpoints} from "../../redux/loadbalancing/loadbalancing.reducer";
+import {setEndpoints, setGroupEndpoints} from "../../redux/loadbalancing/loadbalancing.reducer";
 import {RootState} from "../../redux/store";
 
 export function LoadBalancingRoutesTable() {
@@ -21,13 +21,15 @@ export function LoadBalancingRoutesTable() {
     const [loading, setLoading] = useState(true);
     const [selected, setSelected] = useState<string[]>([]);
     const endpoints = useSelector((state: RootState) => state.loadBalancing.routes);
+    const groups = useSelector((state: RootState) => state.loadBalancing.groups);
 
     useEffect(() => {
         const fetchData = async (params: any) => {
             try {
                 const response = await loadBalancingApiGateway.getEndpoints();
-                const endpoints = response.data;
-                dispatch(setEndpoints(endpoints.routes));
+                dispatch(setEndpoints(response.data.routes));
+                dispatch(setGroupEndpoints(response.data.orgGroupsRoutes));
+                console.log(response.data);
             } catch (error) {
                 console.log("error", error);
             } finally {
@@ -94,7 +96,7 @@ export function LoadBalancingRoutesTable() {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {endpoints.map((row: any, i: number) => (
+                            {endpoints.map((row: string, i: number) => (
                                 <TableRow
                                     key={i}
                                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}

@@ -20,7 +20,7 @@ import Access from "../components/access/Access";
 import {ChatGPTPage} from "../components/chatgpt/ChatGPTWrapper";
 import Dashboard from "../components/dashboard/Dashboard";
 import {VerifyQuickNodeLoginJWT} from "../components/login/VerifyLoginJWT";
-import LoadBalancingDashboard from "../components/iris/LoadBalancingDashboard";
+import LoadBalancingDashboard from "../components/loadbalancing/LoadBalancingDashboard";
 
 export const App = () => {
     return (

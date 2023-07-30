@@ -100,6 +100,8 @@ function LoadBalancingDashboardContent() {
     const [tableRoutes, setTableRoutes] = useState<string[]>([]);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [page, setPage] = React.useState(0);
+    const [isAdding, setIsAdding] = useState<boolean>(false);
+    const [newEndpoint, setNewEndpoint] = useState<string>("");
 
     useEffect(() => {
         const fetchData = async (params: any) => {
@@ -260,6 +262,9 @@ function LoadBalancingDashboardContent() {
                                 </FormControl>
                             </Stack>
                         </Box>
+                            <Box mr={2} ml={2} mt={2} mb={4}>
+                                <Button variant="contained" onClick={() => setIsAdding(true)}>Add Endpoints</Button>
+                            </Box>
                         </Card>
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
@@ -274,6 +279,10 @@ function LoadBalancingDashboardContent() {
                             handleClick={handleClick}
                             handleChangeRowsPerPage={handleChangeRowsPerPage}
                             handleChangePage={handleChangePage}
+                            isAdding={isAdding}
+                            setIsAdding={setIsAdding}
+                            newEndpoint={newEndpoint}
+                            setNewEndpoint={setNewEndpoint}
                         />
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />

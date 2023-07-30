@@ -9,10 +9,14 @@ import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
 import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
+import TextField from "@mui/material/TextField";
 
 export function LoadBalancingRoutesTable(props: any) {
     const { loading,rowsPerPage, page,selected, endpoints, handleSelectAllClick, handleClick,
-        handleChangeRowsPerPage,handleChangePage } = props
+        handleChangeRowsPerPage,handleChangePage,
+        isAdding, setIsAdding, newEndpoint, setNewEndpoint
+    } = props
+
     if (loading) {
         return <div>Loading...</div> // Display loading message while data is fetching
     }
@@ -50,6 +54,31 @@ export function LoadBalancingRoutesTable(props: any) {
                             </TableRow>
                         </TableHead>
                         <TableBody>
+                            {isAdding && (
+                                <TableRow>
+                                    <TableCell padding="checkbox"></TableCell>
+                                    <TableCell component="th" scope="row">
+                                        <Box display="flex" alignItems="center" gap={2}>
+                                            <TextField
+                                                value={newEndpoint}
+                                                onChange={event => setNewEndpoint(event.target.value)}
+                                                sx={{ height: '53px', flex: 1 }} // adjust height here
+                                            />
+                                            <Button
+                                                variant="contained"
+                                                color="primary"
+                                                onClick={() => {
+                                                    // Add your logic here to add the new endpoint to your state and make any necessary API calls
+                                                    setIsAdding(false);
+                                                    setNewEndpoint("");
+                                                }}
+                                            >
+                                                Submit
+                                            </Button>
+                                        </Box>
+                                    </TableCell>
+                                </TableRow>
+                            )}
                             {endpoints.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row: string, i: number) => (
                                 <TableRow
                                     key={i}

@@ -60,7 +60,7 @@ const Login = () => {
                 setRequestStatus('success');
                 dispatch(setSessionAuth(true))
                 dispatch({type: 'LOGIN_SUCCESS', payload: res.data})
-                navigate('/dashboard');
+                navigate('/apps');
             } else {
                 dispatch(setSessionAuth(false))
                 dispatch({type: 'LOGIN_FAIL', payload: res.data})

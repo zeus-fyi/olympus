@@ -29,6 +29,7 @@ func (r *OrgGroupRoutesRequest) DeleteOrgRoutes(c echo.Context) error {
 	}
 	err := platform_service_orchestrations.HestiaPlatformServiceWorker.ExecuteIrisDeleteOrgRoutesWorkflow(context.Background(), ipr)
 	if err != nil {
+		log.Err(err).Msg("DeleteOrgRoutes")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return nil

@@ -20,6 +20,7 @@ import Access from "../components/access/Access";
 import {ChatGPTPage} from "../components/chatgpt/ChatGPTWrapper";
 import Dashboard from "../components/dashboard/Dashboard";
 import {VerifyQuickNodeLoginJWT} from "../components/login/VerifyLoginJWT";
+import LoadBalancingDashboard from "../components/iris/LoadBalancingDashboard";
 
 export const App = () => {
     return (
@@ -33,19 +34,19 @@ export const App = () => {
                         <Route path="/quicknode/access" element={<VerifyQuickNodeLoginJWT />} />
                         <Route path="/verify/email/:id" element={<VerifyEmail />} />
                         <Route>
-                            <Route path="/dashboard" element={<ProtectedLayout children={<Dashboard />}/>}/>
+                            <Route path="apps/microservice" element={<ProtectedLayout children={<AppPageWrapper app={"microservice"} />}/>}/>
+                            <Route path="apps/avax" element={<ProtectedLayout children={<AppPageWrapper app={"avax"} />}/>} />
+                            <Route path="apps/eth" element={<ProtectedLayout children={<AppPageWrapper app={"ethereumEphemeralBeacons"} />}/>} />
+                            <Route path="apps" element={<ProtectedLayout children={<AppsPage />}/>}/>
+                            <Route path="apps/builder" element={<ProtectedLayout children={<ClusterBuilderPage />}/>}/>
+                            <Route path="app/:id" element={<ProtectedLayout children={<AppPageWrapper />}/>}/>
+                            <Route path="compute"  element={<ProtectedLayout children={<Dashboard />}/>}/>
                             <Route>
                                 <Route path="clusters"  element={<ProtectedLayout children={<Clusters />}/>}/>
-                                <Route path="clusters/apps" element={<ProtectedLayout children={<AppsPage />}/>}/>
-                                <Route path="clusters/app/:id" element={<ProtectedLayout children={<AppPageWrapper />}/>}/>
-                                <Route path="clusters/builder" element={<ProtectedLayout children={<ClusterBuilderPage />}/>}/>
                                 <Route path="clusters/:id" element={<ProtectedLayout children={<ClustersPage />}/>}/>
-                                <Route path="apps/microservice" element={<ProtectedLayout children={<AppPageWrapper app={"microservice"} />}/>}/>
-                                <Route path="apps/avax" element={<ProtectedLayout children={<AppPageWrapper app={"avax"} />}/>} />
-                                <Route path="apps/eth" element={<ProtectedLayout children={<AppPageWrapper app={"ethereumEphemeralBeacons"} />}/>} />
                             </Route>
+                            <Route path="loadbalancing/dashboard" element={<LoadBalancingDashboard />} />
                             <Route>
-                                <Route path="services/quicknode/dashboard" element={<Dashboard />} />
                                 <Route path="services/chatgpt" element={<ProtectedLayout children={<ChatGPTPage />}/>}/>
                                 <Route path="services/ethereum/validators" element={<ProtectedLayout children={<ValidatorsServices />}/>}/>
                                 <Route path="services/ethereum/aws" element={<ProtectedLayout children={<AwsWizard />}/>}/>

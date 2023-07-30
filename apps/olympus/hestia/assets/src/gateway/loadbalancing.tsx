@@ -3,7 +3,7 @@ import inMemoryJWT from "../auth/InMemoryJWT";
 
 class LoadBalancingApiGateway {
     async getEndpoints(): Promise<any>  {
-        const url = `/iris/routes/read`;
+        const url = `/v1/iris/routes/read`;
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {
@@ -20,7 +20,7 @@ class LoadBalancingApiGateway {
         }
     }
     async createEndpoints(): Promise<any>  {
-        const url = `/iris/routes/create`;
+        const url = `/v1/iris/routes/create`;
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {
@@ -54,7 +54,7 @@ class LoadBalancingApiGateway {
         }
     }
     async deleteRoutingGroupEndpoints(groupName: string): Promise<any>  {
-        const url = `/iris/routes/delete`;
+        const url = `/v1/iris/routes/delete`;
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {

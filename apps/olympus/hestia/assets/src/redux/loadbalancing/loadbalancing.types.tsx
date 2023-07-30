@@ -1,7 +1,8 @@
 
-export interface LoadBalancingRoutesState {
-    endpoints: any[];
+export interface LoadBalancingState {
+    routes: string[];
 }
+
 
 /*
     GroupName string   `json:"groupName,omitempty"`

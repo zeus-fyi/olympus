@@ -18,12 +18,12 @@ import DnsIcon from "@mui/icons-material/Dns";
 import SwapCallsIcon from '@mui/icons-material/SwapCalls';
 
 export default function MainListItems() {
-    const [open, setOpen] = React.useState(true);
+    const [openServices, setOpenServices] = React.useState(true);
     const [openClusters, setOpenClusters] = React.useState(true);
     const [openApps, setOpenApps] = React.useState(true);
 
-    const handleClick = () => {
-        setOpen(!open);
+    const handleClickServices = () => {
+        setOpenServices(!openServices);
     };
 
     const handleClickApps = () => {
@@ -75,14 +75,14 @@ export default function MainListItems() {
                 </ListItemIcon>
                 <ListItemText primary="Load Balancing" />
             </ListItemButton>
-            <ListItemButton onClick={handleClick}>
+            <ListItemButton onClick={handleClickServices}>
                 <ListItemIcon>
                     <ViewListIcon />
                 </ListItemIcon>
                 <ListItemText primary="Services" />
-                {open ? <ExpandLess /> : <ExpandMore />}
+                {openServices ? <ExpandLess /> : <ExpandMore />}
             </ListItemButton>
-            <Collapse in={open} timeout="auto" unmountOnExit>
+            <Collapse in={openServices} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
                     <ListItemButton sx={{ pl: 4 }} component={Link} to="/services/chatgpt">
                         <ListItemIcon>

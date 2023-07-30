@@ -19,6 +19,7 @@ import authProvider from "../../redux/auth/auth.actions";
 import {Card, CardContent} from "@mui/material";
 import {ZeusCopyright} from "../copyright/ZeusCopyright";
 import MainListItems from "../dashboard/listItems";
+import {LoadBalancingRoutesTable} from "./LoadBalancingRoutesTable";
 
 const drawerWidth: number = 240;
 
@@ -157,7 +158,7 @@ function LoadBalancingDashboardContent() {
                     }}
                 >
                     <Toolbar />
-                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Card sx={{ maxWidth: 700 }}>
                             <CardContent>
                                 <Typography gutterBottom variant="h5" component="div">
@@ -169,7 +170,8 @@ function LoadBalancingDashboardContent() {
                             </CardContent>
                         </Card>
                     </Container>
-                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        <LoadBalancingRoutesTable />
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />
                 </Box>

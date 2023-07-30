@@ -110,7 +110,7 @@ function BillingContent() {
                     }}
                 >
                     <Toolbar/>
-                    <Container maxWidth="lg" sx={{mt: 4, mb: 4}}>
+                    <Container maxWidth="xl" sx={{mt: 4, mb: 4}}>
                         <CheckoutPage/>
                     </Container>
                 </Box>
@@ -148,7 +148,7 @@ function CheckoutPage() {
                         To use cluster deployments & other premium features, you must enter your billing information.
                     </Typography>
                 </CardContent>
-                <Container maxWidth="lg">
+                <Container maxWidth="xl">
                     <Box sx={{mt: 4, mb: 4}}>
                         <Elements stripe={stripe} options={options}>
                             <CheckoutForm/>

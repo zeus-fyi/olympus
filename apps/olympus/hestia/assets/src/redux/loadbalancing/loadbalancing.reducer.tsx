@@ -1,16 +1,16 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {LoadBalancingRoutesState} from "./loadbalancing.types";
+import {LoadBalancingState} from "./loadbalancing.types";
 
-const initialState: LoadBalancingRoutesState = {
-    endpoints: [],
+const initialState: LoadBalancingState = {
+    routes: [],
 }
 
 const loadBalancingSlice = createSlice({
     name: 'loadBalancing',
     initialState,
     reducers: {
-        setEndpoints: (state, action: PayloadAction<[any]>) => {
-            state.endpoints = action.payload;
+        setEndpoints: (state, action: PayloadAction<any[]>) => {
+            state.routes = action.payload;
         },
 
     }

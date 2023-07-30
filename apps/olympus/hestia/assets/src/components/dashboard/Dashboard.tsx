@@ -158,7 +158,7 @@ function DashboardContent() {
                     }}
                 >
                     <Toolbar />
-                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <Card sx={{ maxWidth: 700 }}>
                             <CardContent>
                                 <Typography gutterBottom variant="h5" component="div">
@@ -171,7 +171,7 @@ function DashboardContent() {
                             </CardContent>
                         </Card>
                     </Container>
-                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <OrgNodesResourcesTable/>
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />

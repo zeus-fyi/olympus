@@ -6,10 +6,12 @@ import appsReducer from "./apps/apps.reducer";
 import billingReducer from "./billing/billing.reducer";
 import resourcesReducer from "./resources/resources.reducer";
 import sessionReducer from "./auth/session.reducer";
+import loadbalancingReducer from "./loadbalancing/loadbalancing.reducer";
 
 const rootReducer = combineReducers({
     sessionState: sessionReducer,
     apps: appsReducer,
+    loadBalancing: loadbalancingReducer,
     resources: resourcesReducer,
     clusterBuilder: clusterBuilderReducer,
     awsCredentials: awsCredentialsReducer,

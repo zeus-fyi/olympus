@@ -17,7 +17,7 @@ import Button from "@mui/material/Button";
 import {useNavigate, useParams} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
 import authProvider from "../../redux/auth/auth.actions";
-import {Card, CardContent} from "@mui/material";
+import {Card, CardContent, FormControl, InputLabel, MenuItem, Select, Stack} from "@mui/material";
 import {ZeusCopyright} from "../copyright/ZeusCopyright";
 import MainListItems from "../dashboard/listItems";
 import {LoadBalancingRoutesTable} from "./LoadBalancingRoutesTable";
@@ -96,6 +96,8 @@ function LoadBalancingDashboardContent() {
     const groups = useSelector((state: RootState) => state.loadBalancing.groups);
     const [loading, setLoading] = useState(true);
     const [selected, setSelected] = useState<string[]>([]);
+    const [groupName, setGroupName] = useState<string>("");
+    const [tableRoutes, setTableRoutes] = useState<string[]>([]);
 
     useEffect(() => {
         const fetchData = async (params: any) => {
@@ -103,6 +105,7 @@ function LoadBalancingDashboardContent() {
                 const response = await loadBalancingApiGateway.getEndpoints();
                 dispatch(setEndpoints(response.data.routes));
                 dispatch(setGroupEndpoints(response.data.orgGroupsRoutes));
+                setTableRoutes(response.data.routes);
                 console.log(response.data);
             } catch (error) {
                 console.log("error", error);
@@ -112,7 +115,6 @@ function LoadBalancingDashboardContent() {
         }
         fetchData(params);
     }, []);
-
 
     const handleClick = (name: string) => {
         const currentIndex = selected.indexOf(name);
@@ -127,9 +129,15 @@ function LoadBalancingDashboardContent() {
         setSelected(newSelected);
     };
 
+    const handleChangeGroup = (name: string) => {
+        setSelected([]);
+        setGroupName(name);
+        setTableRoutes(name === "-all" ? endpoints : groups[name]);
+    };
+
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.checked) {
-            const newSelected = endpoints.map((endpoint) => endpoint);
+            const newSelected = tableRoutes.map((endpoint) => endpoint);
             setSelected(newSelected);
             return;
         }
@@ -216,12 +224,32 @@ function LoadBalancingDashboardContent() {
                                     Summary of your routing groups & endpoints.
                                 </Typography>
                             </CardContent>
+                        <Box mr={2} ml={2} mt={2} mb={4}>
+                            <Stack direction={"row"} spacing={2} alignItems={"center"}>
+                                <FormControl sx={{  }} fullWidth variant="outlined">
+                                    <InputLabel key={`groupNameLabel`} id={`groupName`}>
+                                        Routing Group
+                                    </InputLabel>
+                                    <Select
+                                        labelId={`groupNameLabel`}
+                                        id={`groupName`}
+                                        name="groupName"
+                                        value={groupName}
+                                        onChange={(event) => handleChangeGroup(event.target.value)}
+                                        label="Routing Group"
+                                    >
+                                        <MenuItem key={'all'} value={'-all'}>{"all"}</MenuItem>
+                                        {Object.keys(groups).map((name) => <MenuItem key={name} value={name}>{name}</MenuItem>)}
+                                    </Select>
+                                </FormControl>
+                            </Stack>
+                        </Box>
                         </Card>
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <LoadBalancingRoutesTable
                             loading={loading}
-                            endpoints={endpoints}
+                            endpoints={tableRoutes}
                             groups={groups}
                             selected={selected}
                             handleSelectAllClick={handleSelectAllClick}

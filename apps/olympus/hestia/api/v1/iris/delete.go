@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/iris/orchestrations"
 )
@@ -52,6 +53,7 @@ func (r *OrgGroupRoutesRequest) DeleteOrgRoutingGroup(c echo.Context) error {
 	}
 	err := platform_service_orchestrations.HestiaPlatformServiceWorker.ExecuteIrisDeleteOrgGroupRoutingTableWorkflow(context.Background(), ipr)
 	if err != nil {
+		log.Err(err).Msg("DeleteOrgRoutingGroup")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, nil)

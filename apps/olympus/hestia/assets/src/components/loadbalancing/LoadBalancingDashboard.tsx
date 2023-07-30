@@ -98,6 +98,8 @@ function LoadBalancingDashboardContent() {
     const [selected, setSelected] = useState<string[]>([]);
     const [groupName, setGroupName] = useState<string>("");
     const [tableRoutes, setTableRoutes] = useState<string[]>([]);
+    const [rowsPerPage, setRowsPerPage] = React.useState(25);
+    const [page, setPage] = React.useState(0);
 
     useEffect(() => {
         const fetchData = async (params: any) => {
@@ -130,6 +132,7 @@ function LoadBalancingDashboardContent() {
     };
 
     const handleChangeGroup = (name: string) => {
+        setPage(0);
         setSelected([]);
         setGroupName(name);
         setTableRoutes(name === "-all" ? endpoints : groups[name]);
@@ -142,6 +145,19 @@ function LoadBalancingDashboardContent() {
             return;
         }
         setSelected([]);
+    };
+
+    const handleChangeRowsPerPage = (
+        event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    ) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+    const handleChangePage = (
+        event: React.MouseEvent<HTMLButtonElement> | null,
+        newPage: number,
+    ) => {
+        setPage(newPage);
     };
 
     return (
@@ -248,12 +264,16 @@ function LoadBalancingDashboardContent() {
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                         <LoadBalancingRoutesTable
+                            page={page}
+                            rowsPerPage={rowsPerPage}
                             loading={loading}
                             endpoints={tableRoutes}
                             groups={groups}
                             selected={selected}
                             handleSelectAllClick={handleSelectAllClick}
                             handleClick={handleClick}
+                            handleChangeRowsPerPage={handleChangeRowsPerPage}
+                            handleChangePage={handleChangePage}
                         />
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />

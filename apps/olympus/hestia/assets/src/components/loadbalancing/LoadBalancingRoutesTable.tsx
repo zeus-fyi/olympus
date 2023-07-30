@@ -2,16 +2,17 @@ import * as React from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
-import {TableContainer, TableRow} from "@mui/material";
+import {TableContainer, TableFooter, TablePagination, TableRow} from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableHead from "@mui/material/TableHead";
 import TableCell from "@mui/material/TableCell";
 import TableBody from "@mui/material/TableBody";
+import TablePaginationActions from "@mui/material/TablePagination/TablePaginationActions";
 
 export function LoadBalancingRoutesTable(props: any) {
-    const { loading,selected, endpoints, handleSelectAllClick, handleClick } = props
-
+    const { loading,rowsPerPage, page,selected, endpoints, handleSelectAllClick, handleClick,
+        handleChangeRowsPerPage,handleChangePage } = props
     if (loading) {
         return <div>Loading...</div> // Display loading message while data is fetching
     }
@@ -19,6 +20,9 @@ export function LoadBalancingRoutesTable(props: any) {
     if (endpoints === null || endpoints === undefined) {
         return (<div></div>)
     }
+    const emptyRows =
+        page > 0 ? Math.max(0, (1 + page) * rowsPerPage - endpoints.length) : 0;
+
     return (
         <div>
             <Box sx={{ mt: 4, mb: 4 }}>
@@ -46,7 +50,7 @@ export function LoadBalancingRoutesTable(props: any) {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {endpoints.map((row: string, i: number) => (
+                            {endpoints.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row: string, i: number) => (
                                 <TableRow
                                     key={i}
                                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
@@ -63,7 +67,32 @@ export function LoadBalancingRoutesTable(props: any) {
                                     </TableCell>
                                 </TableRow>
                             ))}
+                            {emptyRows > 0 && (
+                                <TableRow style={{ height: 53 * emptyRows }}>
+                                    <TableCell colSpan={4} />
+                                </TableRow>
+                            )}
                         </TableBody>
+                        <TableFooter>
+                            <TableRow>
+                                <TablePagination
+                                    rowsPerPageOptions={[10, 25, 100, { label: 'All', value: -1 }]}
+                                    colSpan={4}
+                                    count={endpoints.length}
+                                    rowsPerPage={rowsPerPage}
+                                    page={page}
+                                    SelectProps={{
+                                        inputProps: {
+                                            'aria-label': 'rows per page',
+                                        },
+                                        native: true,
+                                    }}
+                                    onPageChange={handleChangePage}
+                                    onRowsPerPageChange={handleChangeRowsPerPage}
+                                    ActionsComponent={TablePaginationActions}
+                                />
+                            </TableRow>
+                        </TableFooter>
                     </Table>
                 </TableContainer>
             </Box>

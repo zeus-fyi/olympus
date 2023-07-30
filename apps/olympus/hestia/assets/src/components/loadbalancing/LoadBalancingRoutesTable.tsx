@@ -46,7 +46,7 @@ export function LoadBalancingRoutesTable(props: any) {
                                         onChange={handleSelectAllClick}
                                     />
                                 </TableCell>
-                                <TableCell style={{ color: 'white'}} align="left">Endpoints</TableCell>
+                                <TableCell style={{ color: 'white'}} align="left">Endpoint</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>

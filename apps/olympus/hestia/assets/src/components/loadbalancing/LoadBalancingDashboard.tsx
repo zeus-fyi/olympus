@@ -96,7 +96,7 @@ function LoadBalancingDashboardContent() {
     const groups = useSelector((state: RootState) => state.loadBalancing.groups);
     const [loading, setLoading] = useState(true);
     const [selected, setSelected] = useState<string[]>([]);
-    const [groupName, setGroupName] = useState<string>("");
+    const [groupName, setGroupName] = useState<string>("-all");
     const [tableRoutes, setTableRoutes] = useState<string[]>([]);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [page, setPage] = React.useState(0);
@@ -132,6 +132,14 @@ function LoadBalancingDashboardContent() {
 
         setSelected(newSelected);
     };
+
+    const handleSubmitNewEndpointSubmission = () => {
+
+        // newEndpoint
+        setIsAdding(false);
+        setNewEndpoint("");
+    };
+
 
     const handleChangeGroup = (name: string) => {
         setPage(0);
@@ -263,7 +271,7 @@ function LoadBalancingDashboardContent() {
                             </Stack>
                         </Box>
                             <Box mr={2} ml={2} mt={2} mb={4}>
-                                <Button variant="contained" onClick={() => setIsAdding(true)}>Add Endpoints</Button>
+                                <Button variant="contained" onClick={() => setIsAdding(!isAdding)}>Add Endpoints</Button>
                             </Box>
                         </Card>
                     </Container>
@@ -283,6 +291,7 @@ function LoadBalancingDashboardContent() {
                             setIsAdding={setIsAdding}
                             newEndpoint={newEndpoint}
                             setNewEndpoint={setNewEndpoint}
+                            handleSubmitNewEndpointSubmission={handleSubmitNewEndpointSubmission}
                         />
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />

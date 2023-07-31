@@ -352,7 +352,7 @@ function LoadBalancingDashboardContent() {
                                     Load Balancing Management
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
-                                    Summary of your routing groups & endpoints.
+                                    Summary of your routing groups & endpoints. Refresh the page if making updates to see the latest.
                                 </Typography>
                             </CardContent>
                         <Box mr={2} ml={2} mt={2} mb={4}>

@@ -195,6 +195,7 @@ function LoadBalancingDashboardContent() {
                 routes: [newEndpoint]
             };
             try {
+                console.log(payload)
                 const response = await loadBalancingApiGateway.createEndpoints(payload);
                 console.log(response.status)
                 // handle the response accordingly

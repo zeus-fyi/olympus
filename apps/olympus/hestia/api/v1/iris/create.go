@@ -16,6 +16,9 @@ func CreateOrgRoutesRequestHandler(c echo.Context) error {
 	if err := c.Bind(request); err != nil {
 		return err
 	}
+	if request.GroupName != "" {
+		return request.CreateGroupRoute(c)
+	}
 	return request.Create(c)
 }
 

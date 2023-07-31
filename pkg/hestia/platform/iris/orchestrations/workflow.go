@@ -58,7 +58,7 @@ func (h *HestiaPlatformServiceWorkflows) IrisRoutingServiceRequestWorkflow(ctx w
 func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgGroupRoutingTableWorkflow(ctx workflow.Context, pr IrisPlatformServiceRequest) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 0,
+		StartToCloseTimeout: time.Minute * 15,
 	}
 	if pr.OrgGroupName == "" {
 		return errors.New("HestiaPlatformServiceWorkflows: IrisDeleteOrgGroupRoutingTableWorkflow: org group name is empty")
@@ -82,7 +82,7 @@ func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgGroupRoutingTableWorkflow(
 func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgRoutesWorkflow(ctx workflow.Context, pr IrisPlatformServiceRequest) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 0,
+		StartToCloseTimeout: time.Minute * 15,
 	}
 	if len(pr.Routes) == 0 {
 		return errors.New("HestiaPlatformServiceWorkflows: IrisDeleteOrgRoutesWorkflow: no routes provided for deletion")
@@ -106,7 +106,7 @@ func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgRoutesWorkflow(ctx workflo
 func (h *HestiaPlatformServiceWorkflows) IrisRemoveAllOrgRoutesFromCacheWorkflow(ctx workflow.Context, pr IrisPlatformServiceRequest) error {
 	log := workflow.GetLogger(ctx)
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 0,
+		StartToCloseTimeout: time.Minute * 15,
 	}
 	pCtx := workflow.WithActivityOptions(ctx, ao)
 	// this deletes all the routing tables from cache for this org

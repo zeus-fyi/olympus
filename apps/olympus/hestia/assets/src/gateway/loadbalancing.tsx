@@ -67,7 +67,7 @@ class LoadBalancingApiGateway {
             }
             return await hestiaApi.put(url, payload, config)
         } catch (exc) {
-            console.error('error sending get customer endpoints request');
+            console.error('error sending put customer endpoints request');
             console.error(exc);
             return
         }

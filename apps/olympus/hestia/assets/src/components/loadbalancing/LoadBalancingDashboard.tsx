@@ -115,7 +115,6 @@ function LoadBalancingDashboardContent() {
                 dispatch(setEndpoints(response.data.routes));
                 dispatch(setGroupEndpoints(response.data.orgGroupsRoutes));
                 setTableRoutes(response.data.routes);
-                console.log(response.data);
             } catch (error) {
                 console.log("error", error);
             } finally {
@@ -155,7 +154,9 @@ function LoadBalancingDashboardContent() {
                     groupName: groupName,
                     routes: tableRoutes.filter(route => !selectedSet.has(route)) // Filter tableRoutes
                 };
-                const response = await loadBalancingApiGateway.updateGroupRoutingTable(payload);
+                console.log('payload', payload)
+                console.log('selected', selected)
+                const response = await loadBalancingApiGateway.deleteEndpoints(payload);
             }
         } catch (error) {
             console.log("error", error);
@@ -188,14 +189,13 @@ function LoadBalancingDashboardContent() {
     };
 
     const handleSubmitNewGroupSubmission = async () => {
-        if (newEndpoint) {
+        if (selected.length > 0) {
             setLoading(true); // Set loading to false regardless of success or failure.
             const payload: IrisOrgGroupRoutesRequest = {
                 groupName: createGroupName,
-                routes: [newEndpoint]
+                routes: selected
             };
             try {
-                console.log(payload)
                 const response = await loadBalancingApiGateway.createEndpoints(payload);
                 console.log(response.status)
                 // handle the response accordingly
@@ -206,8 +206,9 @@ function LoadBalancingDashboardContent() {
                 setReload(!reload); // Trigger reload by flipping the state
             }
         }
-        setIsAdding(false);
-        setNewEndpoint("");
+        setIsUpdatingGroup(false)
+        setIsAddingGroup(false);
+        setGroupName("-all");
     };
 
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -419,7 +420,7 @@ function LoadBalancingDashboardContent() {
                                         />
                                     </Box>
                                     <Box>
-                                        <Button variant="contained" color="primary"  onClick={() => handleSubmitNewGroupSubmission}>
+                                        <Button variant="contained" color="primary"  onClick={() => handleSubmitNewGroupSubmission()}>
                                             Submit
                                         </Button>
                                     </Box>

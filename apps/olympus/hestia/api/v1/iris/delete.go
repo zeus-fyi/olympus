@@ -19,10 +19,14 @@ func DeleteOrgRoutesRequestHandler(c echo.Context) error {
 }
 
 func (r *OrgGroupRoutesRequest) DeleteOrgRoutes(c echo.Context) error {
-	ou := c.Get("orgUser").(org_users.OrgUser)
-	if len(r.Routes) == 0 {
+
+	if len(r.Routes) == 0 && r.GroupName == "" {
 		return c.JSON(http.StatusBadRequest, "no routes provided for deletion")
 	}
+	if len(r.Routes) == 0 && len(r.GroupName) > 0 {
+		return r.DeleteOrgRoutingGroup(c)
+	}
+	ou := c.Get("orgUser").(org_users.OrgUser)
 	ipr := platform_service_orchestrations.IrisPlatformServiceRequest{
 		Ou:     ou,
 		Routes: r.Routes,

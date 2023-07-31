@@ -44,7 +44,7 @@ func (h *HestiaPlatformServicesWorker) ExecuteIrisDeleteOrgGroupRoutingTableWork
 		TaskQueue: h.TaskQueueName,
 	}
 	txWf := NewHestiaPlatformServiceWorkflows()
-	wf := txWf.DeleteOrgGroupRoutingTable
+	wf := txWf.IrisDeleteOrgGroupRoutingTableWorkflow
 	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, pr)
 	if err != nil {
 		log.Err(err).Msg("ExecuteIrisDeleteOrgGroupRoutingTableWorkflow")

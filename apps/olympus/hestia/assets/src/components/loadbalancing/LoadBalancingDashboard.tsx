@@ -145,18 +145,17 @@ function LoadBalancingDashboardContent() {
         try {
             setLoading(true); // Set loading to false regardless of success or failure.
             const selectedSet = new Set(selected); // Create a Set for O(1) lookup
-            if (groupName !== "-all"  && groupName !== "unused") {
+            if (groupName === "-all"  || groupName === "unused") {
                 const payload = {
-                    groupName: groupName,
                     routes: tableRoutes.filter(route => !selectedSet.has(route)) // Filter tableRoutes
                 };
-                const response = await loadBalancingApiGateway.updateGroupRoutingTable(payload);
+                const response = await loadBalancingApiGateway.deleteEndpoints(payload);
             } else {
                 const payload: IrisOrgGroupRoutesRequest = {
                     groupName: groupName,
                     routes: tableRoutes.filter(route => !selectedSet.has(route)) // Filter tableRoutes
                 };
-                const response = await loadBalancingApiGateway.deleteEndpoints(payload);
+                const response = await loadBalancingApiGateway.updateGroupRoutingTable(payload);
             }
         } catch (error) {
             console.log("error", error);

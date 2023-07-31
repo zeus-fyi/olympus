@@ -154,9 +154,11 @@ function LoadBalancingDashboardContent() {
                     groupName: groupName,
                     routes: tableRoutes.filter(route => !selectedSet.has(route)) // Filter tableRoutes
                 };
-                console.log('payload', payload)
-                console.log('selected', selected)
-                const response = await loadBalancingApiGateway.deleteEndpoints(payload);
+                if (payload.routes.length === 0) {
+                    const response = await loadBalancingApiGateway.deleteEndpoints(payload);
+                } else {
+                    const response = await loadBalancingApiGateway.updateGroupRoutingTable(payload);
+                }
             }
         } catch (error) {
             console.log("error", error);
@@ -245,7 +247,6 @@ function LoadBalancingDashboardContent() {
     const handleUpdateGroupTableEndpointsSubmission = async () => {
         const newSelected = selected.map((endpoint) => endpoint);
         const payload = {groupName: groupName, routes: newSelected.concat(groups[groupName])};
-        console.log('selected',payload.routes);
 
         try {
             setLoading(true); // Set loading to false regardless of success or failure.

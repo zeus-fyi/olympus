@@ -16,7 +16,7 @@ func orgRouteTag(orgID int, rgName string) string {
 
 var LocalRateLimiterCache = cache.New(1*time.Second, 2*time.Second)
 
-func (m *IrisCache) GetNextRoute(ctx context.Context, orgID int, rgName string) (string, error) {
+func (m *IrisCache) GetNextRoute(ctx context.Context, orgID int, rgName string) (iris_models.RouteInfo, error) {
 	// Generate the rate limiter key with the Unix timestamp
 	rateLimiterKey := fmt.Sprintf("%d:%d", orgID, time.Now().Unix())
 	orgRequests := fmt.Sprintf("%d-total-req-count", orgID)
@@ -56,38 +56,70 @@ func (m *IrisCache) GetNextRoute(ctx context.Context, orgID int, rgName string) 
 	if err != nil {
 		// If there's an error, log it and return it
 		fmt.Printf("error during pipeline execution: %s\n", err.Error())
-		return "", err
+		return iris_models.RouteInfo{}, err
 	}
 
 	// Check whether the key exists
 	if existsCmd.Val() <= 0 {
 		log.Err(err).Msgf("key doesn't exist: %s", routeKey)
-		return "", fmt.Errorf("key doesn't exist: %s", routeKey)
+		return iris_models.RouteInfo{}, fmt.Errorf("key doesn't exist: %s", routeKey)
 	}
 
-	// Return the endpoint
-	return endpointCmd.Val(), nil
+	// Get referers from Redis
+	refererKey := orgRouteTag(orgID, endpointCmd.Val()) + ":referers"
+	referers, err := m.Reader.SMembers(ctx, refererKey).Result()
+	if err != nil {
+		log.Err(err).Msgf("error getting referers for route: %s", refererKey)
+		return iris_models.RouteInfo{}, fmt.Errorf("error getting referers for route: %s", refererKey)
+	}
+
+	// Return the RouteInfo
+	return iris_models.RouteInfo{
+		RoutePath: endpointCmd.Val(),
+		Referers:  referers,
+	}, nil
 }
 
-func (m *IrisCache) AddOrUpdateOrgRoutingGroup(ctx context.Context, orgID int, rgName string, routes []string) error {
-	// Generate the key
-	tag := orgRouteTag(orgID, rgName)
-
+func (m *IrisCache) AddOrUpdateOrgRoutingGroup(ctx context.Context, orgID int, rgName string, routes []iris_models.RouteInfo) error {
 	// Start a new transaction
 	pipe := m.Writer.TxPipeline()
 
-	// Remove the old key if it exists
-	pipe.Del(ctx, tag)
+	// Define the route group tag
+	rgTag := orgRouteTag(orgID, rgName)
+
+	// Remove the old route group key if it exists
+	pipe.Del(ctx, rgTag)
 
 	// Add each route to the list
-	for _, route := range routes {
-		pipe.RPush(ctx, tag, route)
+	for _, routeInfo := range routes {
+		// Define unique tags for route and referers
+		routeTag := orgRouteTag(orgID, routeInfo.RoutePath)
+		refererTag := routeTag + ":referers"
+
+		// Remove the old keys if they exist
+		pipe.Del(ctx, routeTag, refererTag)
+
+		// Add the route
+		pipe.RPush(ctx, routeTag, routeInfo.RoutePath)
+
+		// Add the referers to a set
+		if len(routeInfo.Referers) > 0 {
+			// Convert []string to []interface{}
+			referersInterface := make([]interface{}, len(routeInfo.Referers))
+			for i, v := range routeInfo.Referers {
+				referersInterface[i] = v
+			}
+			pipe.SAdd(ctx, refererTag, referersInterface...)
+		}
+
+		// Add the route tag to the routing group set
+		pipe.SAdd(ctx, rgTag, routeTag)
 	}
 
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)
 	if err != nil {
-		log.Err(err).Msgf("AddOrUpdateOrgRoutingGroup: %s", tag)
+		log.Err(err).Msgf("AddOrUpdateOrgRoutingGroup: %s", rgTag)
 		return err
 	}
 	return nil

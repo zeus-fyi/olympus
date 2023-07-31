@@ -21,6 +21,7 @@ CREATE TABLE "public"."provisioned_quicknode_services" (
 );
 ALTER TABLE "public"."provisioned_quicknode_services" ADD CONSTRAINT "org_qid_uniq" UNIQUE ("quicknode_id", "endpoint_id");
 CREATE UNIQUE INDEX qn_endpoint_ind ON provisioned_quicknode_services ("endpoint_id");
+CREATE INDEX provisioned_quicknode_services_http_ind ON provisioned_quicknode_services ("http_url");
 
 CREATE TABLE "public"."provisioned_quicknode_services_referers" (
     endpoint_id text NOT NULL,

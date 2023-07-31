@@ -33,6 +33,7 @@ func (i *IrisApiRequestsWorkflow) GetWorkflows() []interface{} {
 
 type ApiProxyRequest struct {
 	Url        string
+	Referrers  []string
 	Payload    echo.Map
 	Response   echo.Map
 	IsInternal bool

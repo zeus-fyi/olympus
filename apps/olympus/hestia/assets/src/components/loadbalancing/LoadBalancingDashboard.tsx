@@ -22,7 +22,7 @@ import {ZeusCopyright} from "../copyright/ZeusCopyright";
 import MainListItems from "../dashboard/listItems";
 import {LoadBalancingRoutesTable} from "./LoadBalancingRoutesTable";
 import {RootState} from "../../redux/store";
-import {loadBalancingApiGateway} from "../../gateway/loadbalancing";
+import {IrisOrgGroupRoutesRequest, loadBalancingApiGateway} from "../../gateway/loadbalancing";
 import {setEndpoints, setGroupEndpoints} from "../../redux/loadbalancing/loadbalancing.reducer";
 
 const drawerWidth: number = 240;
@@ -102,6 +102,7 @@ function LoadBalancingDashboardContent() {
     const [page, setPage] = React.useState(0);
     const [isAdding, setIsAdding] = useState<boolean>(false);
     const [newEndpoint, setNewEndpoint] = useState<string>("");
+    const [reload, setReload] = useState(false); // State to trigger reload
 
     useEffect(() => {
         const fetchData = async (params: any) => {
@@ -118,7 +119,7 @@ function LoadBalancingDashboardContent() {
             }
         }
         fetchData(params);
-    }, []);
+    }, [reload]);
 
     const handleClick = (name: string) => {
         const currentIndex = selected.indexOf(name);
@@ -133,13 +134,26 @@ function LoadBalancingDashboardContent() {
         setSelected(newSelected);
     };
 
-    const handleSubmitNewEndpointSubmission = () => {
-
-        // newEndpoint
+    const handleSubmitNewEndpointSubmission = async () => {
+        if (newEndpoint) {
+            setLoading(true); // Set loading to false regardless of success or failure.
+            const payload: IrisOrgGroupRoutesRequest = {
+                routes: [newEndpoint]
+            };
+            try {
+                const response = await loadBalancingApiGateway.createEndpoints(payload);
+                console.log(response.status)
+                // handle the response accordingly
+            } catch (error) {
+                console.log("error", error);
+            } finally {
+                setLoading(false); // Set loading to false regardless of success or failure.
+                setReload(!reload); // Trigger reload by flipping the state
+            }
+        }
         setIsAdding(false);
         setNewEndpoint("");
     };
-
 
     const handleChangeGroup = (name: string) => {
         setPage(0);

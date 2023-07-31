@@ -1,6 +1,5 @@
 import {hestiaApi} from './axios/axios';
 import inMemoryJWT from "../auth/InMemoryJWT";
-import {Groups} from "../redux/loadbalancing/loadbalancing.types";
 
 class LoadBalancingApiGateway {
     async getEndpoints(): Promise<any>  {
@@ -20,7 +19,7 @@ class LoadBalancingApiGateway {
             return
         }
     }
-    async createEndpoints(): Promise<any>  {
+    async createEndpoints(payload: IrisOrgGroupRoutesRequest): Promise<any>  {
         const url = `/v1/iris/routes/create`;
         try {
             const sessionID = inMemoryJWT.getToken();
@@ -30,13 +29,14 @@ class LoadBalancingApiGateway {
                 },
                 withCredentials: true,
             }
-            return await hestiaApi.post(url, config)
+            return await hestiaApi.post(url, payload, config)
         } catch (exc) {
             console.error('error sending get customer endpoints request');
             console.error(exc);
             return
         }
     }
+
     async deleteEndpoints(): Promise<any>  {
         const url = `/iris/routes/delete`;
         try {
@@ -74,6 +74,7 @@ class LoadBalancingApiGateway {
 }
 export const loadBalancingApiGateway = new LoadBalancingApiGateway();
 
-export interface OrgGroupsRoutesResponse {
-    orgGroupsRoutes: Groups;
-}
+export type IrisOrgGroupRoutesRequest = {
+    groupName?: string; // The '?' makes this property optional.
+    routes: string[];
+};

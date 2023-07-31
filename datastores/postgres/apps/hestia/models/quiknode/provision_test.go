@@ -277,6 +277,7 @@ func createQnService(qnId, eId, plan string) QuickNodeService {
 	}
 
 	ps := QuickNodeService{
+		IsTest:                       true,
 		ProvisionedQuickNodeServices: psBase,
 	}
 	return ps

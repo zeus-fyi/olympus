@@ -13,6 +13,7 @@ import (
 )
 
 type QuickNodeService struct {
+	IsTest bool
 	hestia_autogen_bases.ProvisionedQuickNodeServices
 	ProvisionedQuicknodeServicesContractAddresses []hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddresses
 	ProvisionedQuicknodeServicesReferers          []hestia_autogen_bases.ProvisionedQuicknodeServicesReferers
@@ -30,8 +31,8 @@ func InsertProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 						)
 					   RETURNING org_id, name AS quicknode_id
 					), cte_marketplace_customer AS (
-						  INSERT INTO quicknode_marketplace_customer (quicknode_id, plan)
-						  SELECT $1, $2
+						  INSERT INTO quicknode_marketplace_customer (quicknode_id, plan, is_test)
+						  SELECT $1, $2, $11
 						  FROM cte_insert_org
 						  ON CONFLICT (quicknode_id) 
 						  DO UPDATE SET 
@@ -79,7 +80,7 @@ func InsertProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 		refs = append(refs, ref.Referer)
 	}
 	result, err := apps.Pg.Exec(ctx, q.RawQuery, ps.QuickNodeID, ps.Plan, ps.EndpointID, ps.HttpURL, ps.Network, ps.Active, ps.WssURL, ps.Chain,
-		pq.Array(cas), pq.Array(refs))
+		pq.Array(cas), pq.Array(refs), ps.IsTest)
 	if err != nil {
 		// Log the error here using ZeroLog
 		log.Error().Err(err).Msg("failed to execute query")

@@ -134,6 +134,24 @@ function LoadBalancingDashboardContent() {
         setSelected(newSelected);
     };
 
+    const handleDeleteEndpointsSubmission = async () => {
+        // Pass selected as routes in the payload
+        if (selected.length <= 0) {
+            return;
+        }
+        try {
+            setLoading(true); // Set loading to false regardless of success or failure.
+            const payload: IrisOrgGroupRoutesRequest = {routes: selected};
+            const response = await loadBalancingApiGateway.deleteEndpoints(payload);
+        } catch (error) {
+            console.log("error", error);
+        } finally {
+            setLoading(false); // Set loading to false regardless of success or failure.
+            setReload(!reload); // Trigger reload by flipping the state
+        }
+        setSelected([]);
+    }
+
     const handleSubmitNewEndpointSubmission = async () => {
         if (newEndpoint) {
             setLoading(true); // Set loading to false regardless of success or failure.
@@ -306,6 +324,7 @@ function LoadBalancingDashboardContent() {
                             newEndpoint={newEndpoint}
                             setNewEndpoint={setNewEndpoint}
                             handleSubmitNewEndpointSubmission={handleSubmitNewEndpointSubmission}
+                            handleDeleteEndpointsSubmission={handleDeleteEndpointsSubmission}
                         />
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />

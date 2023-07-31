@@ -44,6 +44,12 @@ var (
 		Namespace:        "production-artemis.ngb72",
 		HostPort:         "production-artemis.ngb72.tmprl.cloud:7233",
 	}
+	temporalAuthConfigHestia = temporal_auth.TemporalAuth{
+		ClientCertPath:   "/etc/ssl/certs/ca.pem",
+		ClientPEMKeyPath: "/etc/ssl/certs/ca.key",
+		Namespace:        "production-hestia.ngb72",
+		HostPort:         "production-hestia.ngb72.tmprl.cloud:7233",
+	}
 	awsRegion  = "us-west-1"
 	awsAuthCfg = aegis_aws_auth.AuthAWS{
 		Region:    awsRegion,
@@ -90,6 +96,7 @@ func Hestia() {
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
 		temporalAuthConfig = tc.ProdLocalTemporalAuthArtemis
+		temporalAuthConfigHestia = tc.ProdLocalTemporalAuthHestia
 		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
 		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
 
@@ -107,6 +114,7 @@ func Hestia() {
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
 		temporalAuthConfig = tc.ProdLocalTemporalAuthArtemis
+		temporalAuthConfigHestia = tc.ProdLocalTemporalAuthHestia
 		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
 		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
 		hestia_quicknode_dashboard.JWTAuthSecret = tc.QuickNodeMarketplace.JWTToken
@@ -182,8 +190,10 @@ func Hestia() {
 	log.Info().Msg("Hestia: InitArtemisEthereumMainnetValidatorsRequestsWorker Done")
 
 	log.Info().Msg("Hestia: InitHestiaQuicknodeWorker starting")
-	quicknode_orchestrations.InitHestiaQuicknodeWorker(ctx, temporalAuthConfig)
-	quicknode_orchestrations.HestiaQnWorker.Worker.RegisterWorker(c)
+	quicknode_orchestrations.InitHestiaQuicknodeWorker(context.Background(), temporalAuthConfigHestia)
+	cHestia := quicknode_orchestrations.HestiaQnWorker.Worker.ConnectTemporalClient()
+	defer cHestia.Close()
+	quicknode_orchestrations.HestiaQnWorker.Worker.RegisterWorker(cHestia)
 	err = quicknode_orchestrations.HestiaQnWorker.Worker.Start()
 	if err != nil {
 		log.Fatal().Err(err).Msgf("Hestia: %s HestiaQnWorker.Worker.Start failed", env)
@@ -192,8 +202,8 @@ func Hestia() {
 	log.Info().Msg("Hestia: InitHestiaQuicknodeWorker done")
 
 	log.Info().Msg("Hestia: InitHestiaIrisPlatformServicesWorker start")
-	platform_service_orchestrations.InitHestiaIrisPlatformServicesWorker(ctx, temporalAuthConfig)
-	platform_service_orchestrations.HestiaPlatformServiceWorker.Worker.RegisterWorker(c)
+	platform_service_orchestrations.InitHestiaIrisPlatformServicesWorker(context.Background(), temporalAuthConfigHestia)
+	platform_service_orchestrations.HestiaPlatformServiceWorker.Worker.RegisterWorker(cHestia)
 	err = platform_service_orchestrations.HestiaPlatformServiceWorker.Worker.Start()
 	if err != nil {
 		log.Fatal().Err(err).Msgf("Hestia: %s HestiaPlatformServiceWorker.Worker.Start failed", env)

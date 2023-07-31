@@ -14,7 +14,8 @@ import TextField from "@mui/material/TextField";
 export function LoadBalancingRoutesTable(props: any) {
     const { loading,rowsPerPage, page,selected, endpoints, handleSelectAllClick, handleClick,
         handleChangeRowsPerPage,handleChangePage,
-        isAdding, setIsAdding, newEndpoint, setNewEndpoint, handleSubmitNewEndpointSubmission
+        isAdding, setIsAdding, newEndpoint, setNewEndpoint,
+        handleSubmitNewEndpointSubmission, handleDeleteEndpointsSubmission
     } = props
 
     if (loading) {

@@ -37,7 +37,7 @@ class LoadBalancingApiGateway {
         }
     }
 
-    async deleteEndpoints(): Promise<any>  {
+    async deleteEndpoints(payload: IrisOrgGroupRoutesRequest): Promise<any>  {
         const url = `/iris/routes/delete`;
         try {
             const sessionID = inMemoryJWT.getToken();
@@ -46,8 +46,9 @@ class LoadBalancingApiGateway {
                     'Authorization': `Bearer ${sessionID}`
                 },
                 withCredentials: true,
+                data: payload
             }
-            return await hestiaApi.post(url, config)
+            return await hestiaApi.delete(url, config)
         } catch (exc) {
             console.error('error sending get customer endpoints request');
             console.error(exc);

@@ -96,6 +96,7 @@ type TestContainer struct {
 
 	ProdLocalTemporalAuthArtemis  temporal_client.TemporalAuth
 	ProdLocalTemporalAuthPoseidon temporal_client.TemporalAuth
+	ProdLocalTemporalAuthHestia   temporal_client.TemporalAuth
 
 	TestURLs
 
@@ -304,7 +305,13 @@ func InitLocalTestConfigs() TestContainer {
 	testCont.ProdLocalTemporalAuthArtemis.HostPort = viper.GetString("PROD_LOCAL_ARTEMIS_TEMPORAL_HOST_PORT")
 	testCont.ProdLocalTemporalAuthArtemis.ClientPEMKeyPath = "./zeus.fyi/ca.key"
 	testCont.ProdLocalTemporalAuthArtemis.ClientCertPath = "./zeus.fyi/ca.pem"
+	// temporal hestia
+	testCont.ProdLocalTemporalAuthHestia.Namespace = viper.GetString("PROD_LOCAL_HESTIA_TEMPORAL_NS")
+	testCont.ProdLocalTemporalAuthHestia.HostPort = viper.GetString("PROD_LOCAL_HESTIA_TEMPORAL_HOST_PORT")
+	testCont.ProdLocalTemporalAuthHestia.ClientPEMKeyPath = "./zeus.fyi/ca.key"
+	testCont.ProdLocalTemporalAuthHestia.ClientCertPath = "./zeus.fyi/ca.pem"
 
+	// temporal poseidon
 	testCont.ProdLocalTemporalAuthPoseidon = testCont.DevTemporalAuth
 	testCont.ProdLocalTemporalAuthPoseidon.Namespace = viper.GetString("PROD_LOCAL_POSEIDON_TEMPORAL_NS")
 	testCont.ProdLocalTemporalAuthPoseidon.HostPort = viper.GetString("PROD_LOCAL_POSEIDON_TEMPORAL_HOST_PORT")

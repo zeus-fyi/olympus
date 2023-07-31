@@ -156,7 +156,6 @@ function LoadBalancingDashboardContent() {
                     groupName: groupName,
                     routes: tableRoutes.filter(route => !selectedSet.has(route)) // Filter tableRoutes
                 };
-                console.log('sdgagsadsag', payload.routes)
                 const response = await loadBalancingApiGateway.deleteEndpoints(payload);
             }
         } catch (error) {

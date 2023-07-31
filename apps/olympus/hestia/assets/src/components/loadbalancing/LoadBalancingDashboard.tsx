@@ -202,13 +202,6 @@ function LoadBalancingDashboardContent() {
         setNewEndpoint("");
     };
 
-    const handleChangeGroup = (name: string) => {
-        setPage(0);
-        setSelected([]);
-        setGroupName(name);
-        setTableRoutes(name === "-all" ? endpoints : groups[name]);
-    };
-
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.checked) {
             const newSelected = tableRoutes.map((endpoint) => endpoint);
@@ -229,6 +222,35 @@ function LoadBalancingDashboardContent() {
         newPage: number,
     ) => {
         setPage(newPage);
+    };
+
+
+    const handleChangeGroup = (name: string) => {
+        setPage(0);
+        setSelected([]);
+        setGroupName(name);
+        setTableRoutes(name === "-all" ? endpoints : groups[name]);
+    };
+
+    const handleUpdateGroupTableEndpointsSubmission = async () => {
+        console.log('selected', selected);
+    }
+
+    const handleClickAddGroupEndpoints = () => {
+        setIsUpdatingGroup(true);
+        setSelected([]);
+        const filteredRoutes = endpoints.filter(
+            endpoint => !groups[groupName].includes(endpoint)
+        );
+
+        setTableRoutes(filteredRoutes);
+        return;
+    };
+
+    const handleClickViewGroupEndpoints = () => {
+        setIsUpdatingGroup(false);
+        setSelected([]);
+        setTableRoutes(groups[groupName])
     };
 
     return (
@@ -341,14 +363,14 @@ function LoadBalancingDashboardContent() {
                             }
                             {groupName !== "-all" && !isUpdatingGroup &&
                                 <Box mr={2}>
-                                    <Button variant="contained" onClick={() => setIsUpdatingGroup(true)}>
+                                    <Button variant="contained" onClick={() => handleClickAddGroupEndpoints()}>
                                         Add Group Endpoints
                                     </Button>
                                 </Box>
                             }
                             {groupName !== "-all" && isUpdatingGroup &&
                                 <Box mr={2}>
-                                    <Button variant="contained" onClick={() => setIsUpdatingGroup(false)}>
+                                    <Button variant="contained" onClick={() => handleClickViewGroupEndpoints()}>
                                         View Group Endpoints
                                     </Button>
                                 </Box>
@@ -397,9 +419,11 @@ function LoadBalancingDashboardContent() {
                             isAdding={isAdding}
                             setIsAdding={setIsAdding}
                             newEndpoint={newEndpoint}
+                            isUpdatingGroup={isUpdatingGroup}
                             setNewEndpoint={setNewEndpoint}
                             handleSubmitNewEndpointSubmission={handleSubmitNewEndpointSubmission}
                             handleDeleteEndpointsSubmission={handleDeleteEndpointsSubmission}
+                            handleUpdateGroupTableEndpointsSubmission={handleUpdateGroupTableEndpointsSubmission}
                         />
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />

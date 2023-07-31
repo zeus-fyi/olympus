@@ -34,7 +34,7 @@ export function LoadBalancingRoutesTable(props: any) {
                 {selected.length > 0 && (
                     <Box sx={{ mb: 2 }}>
                         <span>({selected.length} selected endpoints)</span>
-                        <Button variant="outlined" color="secondary" style={{marginLeft: '10px'}}>
+                        <Button variant="outlined" color="secondary" onClick={handleDeleteEndpointsSubmission} style={{marginLeft: '10px'}}>
                             Delete
                         </Button>
                     </Box>

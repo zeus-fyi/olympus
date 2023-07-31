@@ -38,7 +38,7 @@ class LoadBalancingApiGateway {
     }
 
     async deleteEndpoints(payload: IrisOrgGroupRoutesRequest): Promise<any>  {
-        const url = `/iris/routes/delete`;
+        const url = `/v1/iris/routes/delete`;
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {
@@ -55,8 +55,8 @@ class LoadBalancingApiGateway {
             return
         }
     }
-    async deleteRoutingGroupEndpoints(groupName: string): Promise<any>  {
-        const url = `/v1/iris/routes/delete`;
+    async updateGroupRoutingTable(payload: IrisOrgGroupRoutesRequest): Promise<any>  {
+        const url = `/v1/iris/routes/group/${payload.groupName}/update`;
         try {
             const sessionID = inMemoryJWT.getToken();
             let config = {
@@ -65,7 +65,7 @@ class LoadBalancingApiGateway {
                 },
                 withCredentials: true,
             }
-            return await hestiaApi.post(url, config)
+            return await hestiaApi.put(url, payload, config)
         } catch (exc) {
             console.error('error sending get customer endpoints request');
             console.error(exc);

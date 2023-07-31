@@ -100,7 +100,7 @@ func (m *IrisCache) AddOrUpdateOrgRoutingGroup(ctx context.Context, orgID int, r
 		pipe.Del(ctx, routeTag, refererTag)
 
 		// Add the route
-		pipe.RPush(ctx, routeTag, routeInfo.RoutePath)
+		pipe.RPush(ctx, rgTag, routeInfo.RoutePath)
 
 		// Add the referers to a set
 		if len(routeInfo.Referers) > 0 {
@@ -112,8 +112,6 @@ func (m *IrisCache) AddOrUpdateOrgRoutingGroup(ctx context.Context, orgID int, r
 			pipe.SAdd(ctx, refererTag, referersInterface...)
 		}
 
-		// Add the route tag to the routing group set
-		pipe.SAdd(ctx, rgTag, routeTag)
 	}
 
 	// Execute the transaction

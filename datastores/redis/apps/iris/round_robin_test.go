@@ -12,7 +12,7 @@ func (r *IrisRedisTestSuite) TestInitOrgTables() {
 	routes := []iris_models.RouteInfo{
 		{
 			RoutePath: "https://zeus.fyi",
-			Referers:  nil,
+			Referers:  []string{"https://google.com", "https://yahoo.com"},
 		},
 		{
 			RoutePath: "https://artemis.zeus.fyi",
@@ -75,18 +75,21 @@ func (r *IrisRedisTestSuite) TestRoundRobin() {
 	routes := []iris_models.RouteInfo{
 		{
 			RoutePath: "https://zeus.fyi",
-			Referers:  nil,
+			Referers:  []string{"https://google.com", "https://yahoo.com"},
 		},
 		{
 			RoutePath: "https://artemis.zeus.fyi",
 			Referers:  nil,
 		},
 	}
+	err := IrisRedis.AddOrUpdateOrgRoutingGroup(context.Background(), 1, rgName, routes)
+	r.NoError(err)
+
 	m := make(map[string]int)
 	for i := 0; i < 10; i++ {
 		routeEndpoint, rerr := IrisRedis.GetNextRoute(context.Background(), 1, rgName)
 		r.NoError(rerr)
-		r.NotEmpty(routeEndpoint)
+		r.NotEmpty(routeEndpoint.RoutePath)
 		fmt.Println(routeEndpoint)
 		m[routeEndpoint.RoutePath]++
 	}
@@ -99,7 +102,7 @@ func (r *IrisRedisTestSuite) TestRoundRobin() {
 		}
 	}
 
-	err := IrisRedis.DeleteOrgRoutingGroup(context.Background(), 1, rgName)
+	err = IrisRedis.DeleteOrgRoutingGroup(context.Background(), 1, rgName)
 	r.NoError(err)
 
 	_, rerr := IrisRedis.GetNextRoute(context.Background(), 1, rgName)

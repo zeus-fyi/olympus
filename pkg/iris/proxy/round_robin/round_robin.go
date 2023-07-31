@@ -1,11 +1,9 @@
 package iris_round_robin
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/patrickmn/go-cache"
-	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 )
 
 var (
@@ -35,22 +33,22 @@ func GetNextRoute(orgID int, rgName string) (string, error) {
 	return nextRoute, nil
 }
 
-func SetRouteTable(orgID int, rgName string, routeTable []string) {
-	// TODO IrisCache here
-	tag := orgRouteTag(orgID, rgName)
-	RoundRobinCache.Set(rgName, 0, cache.DefaultExpiration)
-	RoundRobinRouteTable.Set(tag, routeTable, cache.NoExpiration)
-}
-
-func InitRoutingTables(ctx context.Context) {
-	// TODO IrisCache here
-	ot, err := iris_models.SelectAllOrgRoutes(ctx)
-	if err != nil {
-		panic(err)
-	}
-	for orgID, og := range ot.Map {
-		for rgName, routeTable := range og {
-			SetRouteTable(orgID, rgName, routeTable)
-		}
-	}
-}
+//func SetRouteTable(orgID int, rgName string, routeTable []string) {
+//	// TODO IrisCache here
+//	tag := orgRouteTag(orgID, rgName)
+//	RoundRobinCache.Set(rgName, 0, cache.DefaultExpiration)
+//	RoundRobinRouteTable.Set(tag, routeTable, cache.NoExpiration)
+//}
+//
+//func InitRoutingTables(ctx context.Context) {
+//	// TODO IrisCache here
+//	ot, err := iris_models.SelectAllOrgRoutes(ctx)
+//	if err != nil {
+//		panic(err)
+//	}
+//	for orgID, og := range ot.Map {
+//		for rgName, routeTable := range og {
+//			SetRouteTable(orgID, rgName, routeTable)
+//		}
+//	}
+//}

@@ -8,7 +8,7 @@ import (
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 )
 
-func (i *IrisApiRequestsActivities) UpdateOrgRoutingTable(ctx context.Context, orgID int, rgName string, routes []string) error {
+func (i *IrisApiRequestsActivities) UpdateOrgRoutingTable(ctx context.Context, orgID int, rgName string, routes []iris_models.RouteInfo) error {
 	err := iris_redis.IrisRedis.AddOrUpdateOrgRoutingGroup(context.Background(), orgID, rgName, routes)
 	if err != nil {
 		log.Error().Int("orgID", orgID).Str("routeGroup", rgName).Err(err).Msg("UpdateOrgRoutingTable: Failed to update routing tables for org")

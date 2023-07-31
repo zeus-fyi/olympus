@@ -13,7 +13,6 @@ import (
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	proxy_anvil "github.com/zeus-fyi/olympus/pkg/iris/proxy/anvil"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
-	iris_round_robin "github.com/zeus-fyi/olympus/pkg/iris/proxy/round_robin"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 )
 
@@ -79,5 +78,4 @@ func SetConfigByEnv(ctx context.Context, env string) {
 	log.Info().Msgf("Iris InitIrisCacheWorker: %s temporal auth and init procedure succeeded", env)
 
 	proxy_anvil.InitAnvilProxy()
-	iris_round_robin.InitRoutingTables(ctx)
 }

@@ -71,3 +71,4 @@ jobs:
           --build-arg CA_KEY="${{ secrets.CA_KEY }}" \
           --platform=${{ env.GOOS }}/${{ env.GOARCH }} \
           -f docker/iris/Dockerfile . --push
+

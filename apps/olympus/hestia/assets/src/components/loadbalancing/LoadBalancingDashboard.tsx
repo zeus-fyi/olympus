@@ -22,7 +22,7 @@ import {ZeusCopyright} from "../copyright/ZeusCopyright";
 import MainListItems from "../dashboard/listItems";
 import {LoadBalancingRoutesTable} from "./LoadBalancingRoutesTable";
 import {RootState} from "../../redux/store";
-import {loadBalancingApiGateway} from "../../gateway/loadbalancing";
+import {IrisOrgGroupRoutesRequest, loadBalancingApiGateway} from "../../gateway/loadbalancing";
 import {setEndpoints, setGroupEndpoints} from "../../redux/loadbalancing/loadbalancing.reducer";
 
 const drawerWidth: number = 240;
@@ -96,12 +96,13 @@ function LoadBalancingDashboardContent() {
     const groups = useSelector((state: RootState) => state.loadBalancing.groups);
     const [loading, setLoading] = useState(true);
     const [selected, setSelected] = useState<string[]>([]);
-    const [groupName, setGroupName] = useState<string>("");
+    const [groupName, setGroupName] = useState<string>("-all");
     const [tableRoutes, setTableRoutes] = useState<string[]>([]);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [page, setPage] = React.useState(0);
     const [isAdding, setIsAdding] = useState<boolean>(false);
     const [newEndpoint, setNewEndpoint] = useState<string>("");
+    const [reload, setReload] = useState(false); // State to trigger reload
 
     useEffect(() => {
         const fetchData = async (params: any) => {
@@ -118,7 +119,7 @@ function LoadBalancingDashboardContent() {
             }
         }
         fetchData(params);
-    }, []);
+    }, [reload]);
 
     const handleClick = (name: string) => {
         const currentIndex = selected.indexOf(name);
@@ -131,6 +132,49 @@ function LoadBalancingDashboardContent() {
         }
 
         setSelected(newSelected);
+    };
+
+    const handleDeleteEndpointsSubmission = async () => {
+        if (selected.length <= 0) {
+            return;
+        }
+        try {
+            setLoading(true); // Set loading to false regardless of success or failure.
+            if (groupName !== "-all"  && groupName !== "unused") {
+                const payload = {groupName: groupName, routes: selected};
+                const response = await loadBalancingApiGateway.updateGroupRoutingTable(payload);
+            } else {
+                const payload: IrisOrgGroupRoutesRequest = {routes: selected};
+                const response = await loadBalancingApiGateway.deleteEndpoints(payload);
+            }
+        } catch (error) {
+            console.log("error", error);
+        } finally {
+            setLoading(false); // Set loading to false regardless of success or failure.
+            setReload(!reload); // Trigger reload by flipping the state
+        }
+        setSelected([]);
+    }
+
+    const handleSubmitNewEndpointSubmission = async () => {
+        if (newEndpoint) {
+            setLoading(true); // Set loading to false regardless of success or failure.
+            const payload: IrisOrgGroupRoutesRequest = {
+                routes: [newEndpoint]
+            };
+            try {
+                const response = await loadBalancingApiGateway.createEndpoints(payload);
+                console.log(response.status)
+                // handle the response accordingly
+            } catch (error) {
+                console.log("error", error);
+            } finally {
+                setLoading(false); // Set loading to false regardless of success or failure.
+                setReload(!reload); // Trigger reload by flipping the state
+            }
+        }
+        setIsAdding(false);
+        setNewEndpoint("");
     };
 
     const handleChangeGroup = (name: string) => {
@@ -263,7 +307,7 @@ function LoadBalancingDashboardContent() {
                             </Stack>
                         </Box>
                             <Box mr={2} ml={2} mt={2} mb={4}>
-                                <Button variant="contained" onClick={() => setIsAdding(true)}>Add Endpoints</Button>
+                                <Button variant="contained" onClick={() => setIsAdding(!isAdding)}>Add Endpoints</Button>
                             </Box>
                         </Card>
                     </Container>
@@ -283,6 +327,8 @@ function LoadBalancingDashboardContent() {
                             setIsAdding={setIsAdding}
                             newEndpoint={newEndpoint}
                             setNewEndpoint={setNewEndpoint}
+                            handleSubmitNewEndpointSubmission={handleSubmitNewEndpointSubmission}
+                            handleDeleteEndpointsSubmission={handleDeleteEndpointsSubmission}
                         />
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />

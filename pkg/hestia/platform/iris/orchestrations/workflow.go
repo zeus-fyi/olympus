@@ -43,12 +43,12 @@ func (h *HestiaPlatformServiceWorkflows) IrisRoutingServiceRequestWorkflow(ctx w
 			log.Error("HestiaPlatformServiceWorkflows: failed to CreateOrgGroupRoutingTable", "Error", err)
 			return err
 		}
-	}
-	err = workflow.ExecuteActivity(pCtx, h.IrisPlatformSetupCacheUpdateRequest, pr).Get(pCtx, nil)
-	if err != nil {
-		log.Warn("params", pr)
-		log.Error("HestiaPlatformServiceWorkflows: failed to complete IrisPlatformSetupCacheUpdateRequest", "Error", err)
-		return err
+		err = workflow.ExecuteActivity(pCtx, h.IrisPlatformSetupCacheUpdateRequest, pr).Get(pCtx, nil)
+		if err != nil {
+			log.Warn("params", pr)
+			log.Error("HestiaPlatformServiceWorkflows: failed to complete IrisPlatformSetupCacheUpdateRequest", "Error", err)
+			return err
+		}
 	}
 	return nil
 }

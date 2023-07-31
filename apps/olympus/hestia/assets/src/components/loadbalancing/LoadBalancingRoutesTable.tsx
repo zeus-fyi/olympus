@@ -14,7 +14,8 @@ import TextField from "@mui/material/TextField";
 export function LoadBalancingRoutesTable(props: any) {
     const { loading,rowsPerPage, page,selected, endpoints, handleSelectAllClick, handleClick,
         handleChangeRowsPerPage,handleChangePage,
-        isAdding, setIsAdding, newEndpoint, setNewEndpoint
+        isAdding, setIsAdding, newEndpoint, setNewEndpoint,
+        handleSubmitNewEndpointSubmission, handleDeleteEndpointsSubmission
     } = props
 
     if (loading) {
@@ -33,7 +34,7 @@ export function LoadBalancingRoutesTable(props: any) {
                 {selected.length > 0 && (
                     <Box sx={{ mb: 2 }}>
                         <span>({selected.length} selected endpoints)</span>
-                        <Button variant="outlined" color="secondary" style={{marginLeft: '10px'}}>
+                        <Button variant="outlined" color="secondary" onClick={handleDeleteEndpointsSubmission} style={{marginLeft: '10px'}}>
                             Delete
                         </Button>
                     </Box>
@@ -67,11 +68,7 @@ export function LoadBalancingRoutesTable(props: any) {
                                             <Button
                                                 variant="contained"
                                                 color="primary"
-                                                onClick={() => {
-                                                    // Add your logic here to add the new endpoint to your state and make any necessary API calls
-                                                    setIsAdding(false);
-                                                    setNewEndpoint("");
-                                                }}
+                                                onClick={handleSubmitNewEndpointSubmission}
                                             >
                                                 Submit
                                             </Button>

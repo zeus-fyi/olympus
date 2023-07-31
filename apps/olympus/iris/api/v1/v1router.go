@@ -2,15 +2,20 @@ package v1_iris
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
 )
+
+var authCache = cache.New(time.Minute*5, time.Minute*10)
 
 func InitV1Routes(e *echo.Echo) {
 	eg := e.Group("/v1")
@@ -18,10 +23,24 @@ func InitV1Routes(e *echo.Echo) {
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()
-			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.EthereumEphemeryService)
+			val, ok := authCache.Get(token)
+			if ok {
+				orgUser, ok1 := val.(org_users.OrgUser)
+				if ok1 {
+					c.Set("orgUser", orgUser)
+					c.Set("bearer", val)
+					return true, nil
+				}
+			}
+			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.IrisQuickNodeService)
 			if err != nil {
 				log.Err(err).Msg("InitV1Routes")
 				return false, c.JSON(http.StatusUnauthorized, nil)
+			}
+			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
+			if key.PublicKeyVerified {
+				authCache.SetDefault(token, key)
+				authCache.SetDefault(fmt.Sprintf("%d", key.OrgID), ou)
 			}
 			// Get headers
 			qnTestHeader := c.Request().Header.Get(QuickNodeTestHeader)
@@ -36,7 +55,6 @@ func InitV1Routes(e *echo.Echo) {
 			c.Set(QuickNodeEndpointID, qnEndpointID)
 			c.Set(QuickNodeChain, qnChain)
 			c.Set(QuickNodeNetwork, qnNetwork)
-			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
 			c.Set("orgUser", ou)
 			c.Set("bearer", key.PublicKey)
 			return key.PublicKeyVerified, err

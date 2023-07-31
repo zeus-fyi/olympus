@@ -111,7 +111,6 @@ func (m *IrisCache) AddOrUpdateOrgRoutingGroup(ctx context.Context, orgID int, r
 			}
 			pipe.SAdd(ctx, refererTag, referersInterface...)
 		}
-
 	}
 
 	// Execute the transaction

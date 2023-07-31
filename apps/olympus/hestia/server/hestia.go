@@ -95,8 +95,9 @@ func Hestia() {
 	case "production-local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.ProdLocalDbPgconn
-		temporalAuthConfig = tc.ProdLocalTemporalAuthArtemis
-		temporalAuthConfigHestia = tc.ProdLocalTemporalAuthHestia
+		temporalAuthConfig = tc.DevTemporalAuth
+		temporalAuthConfigHestia = tc.DevTemporalAuth
+
 		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
 		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
 
@@ -113,8 +114,8 @@ func Hestia() {
 	case "local":
 		tc := configs.InitLocalTestConfigs()
 		cfg.PGConnStr = tc.LocalDbPgconn
-		temporalAuthConfig = tc.ProdLocalTemporalAuthArtemis
-		temporalAuthConfigHestia = tc.ProdLocalTemporalAuthHestia
+		temporalAuthConfig = tc.DevTemporalAuth
+		temporalAuthConfigHestia = tc.DevTemporalAuth
 		awsAuthCfg.AccessKey = tc.AwsAccessKeySecretManager
 		awsAuthCfg.SecretKey = tc.AwsSecretKeySecretManager
 		hestia_quicknode_dashboard.JWTAuthSecret = tc.QuickNodeMarketplace.JWTToken

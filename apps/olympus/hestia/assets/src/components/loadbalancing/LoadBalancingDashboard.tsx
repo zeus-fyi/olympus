@@ -144,11 +144,18 @@ function LoadBalancingDashboardContent() {
         }
         try {
             setLoading(true); // Set loading to false regardless of success or failure.
+            const selectedSet = new Set(selected); // Create a Set for O(1) lookup
             if (groupName !== "-all"  && groupName !== "unused") {
-                const payload = {groupName: groupName, routes: selected};
+                const payload = {
+                    groupName: groupName,
+                    routes: tableRoutes.filter(route => !selectedSet.has(route)) // Filter tableRoutes
+                };
                 const response = await loadBalancingApiGateway.updateGroupRoutingTable(payload);
             } else {
-                const payload: IrisOrgGroupRoutesRequest = {routes: selected};
+                const payload: IrisOrgGroupRoutesRequest = {
+                    groupName: groupName,
+                    routes: tableRoutes.filter(route => !selectedSet.has(route)) // Filter tableRoutes
+                };
                 const response = await loadBalancingApiGateway.deleteEndpoints(payload);
             }
         } catch (error) {
@@ -234,10 +241,9 @@ function LoadBalancingDashboardContent() {
     };
 
     const handleUpdateGroupTableEndpointsSubmission = async () => {
-        console.log('selected', selected);
-
-        const newSelected = tableRoutes.map((endpoint) => endpoint);
-        const payload = {groupName: groupName, routes: newSelected.concat(selected)};
+        const newSelected = selected.map((endpoint) => endpoint);
+        const payload = {groupName: groupName, routes: newSelected.concat(groups[groupName])};
+        console.log('selected',payload.routes);
 
         try {
             setLoading(true); // Set loading to false regardless of success or failure.

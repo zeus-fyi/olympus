@@ -28,7 +28,9 @@ func (h *HestiaPlatformServiceWorkflows) GetWorkflows() []interface{} {
 
 func (h *HestiaPlatformServiceWorkflows) IrisRoutingServiceRequestWorkflow(ctx workflow.Context, pr IrisPlatformServiceRequest) error {
 	log := workflow.GetLogger(ctx)
-	ao := workflow.ActivityOptions{}
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: time.Minute * 10, // Setting a valid non-zero timeout
+	}
 	pCtx := workflow.WithActivityOptions(ctx, ao)
 	err := workflow.ExecuteActivity(pCtx, h.UpdateDatabaseOrgRoutingTables, pr).Get(pCtx, nil)
 	if err != nil {
@@ -55,7 +57,9 @@ func (h *HestiaPlatformServiceWorkflows) IrisRoutingServiceRequestWorkflow(ctx w
 
 func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgGroupRoutingTableWorkflow(ctx workflow.Context, pr IrisPlatformServiceRequest) error {
 	log := workflow.GetLogger(ctx)
-	ao := workflow.ActivityOptions{}
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 0,
+	}
 	if pr.OrgGroupName == "" {
 		return errors.New("HestiaPlatformServiceWorkflows: IrisDeleteOrgGroupRoutingTableWorkflow: org group name is empty")
 	}
@@ -77,7 +81,9 @@ func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgGroupRoutingTableWorkflow(
 
 func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgRoutesWorkflow(ctx workflow.Context, pr IrisPlatformServiceRequest) error {
 	log := workflow.GetLogger(ctx)
-	ao := workflow.ActivityOptions{}
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 0,
+	}
 	if len(pr.Routes) == 0 {
 		return errors.New("HestiaPlatformServiceWorkflows: IrisDeleteOrgRoutesWorkflow: no routes provided for deletion")
 	}
@@ -99,7 +105,9 @@ func (h *HestiaPlatformServiceWorkflows) IrisDeleteOrgRoutesWorkflow(ctx workflo
 
 func (h *HestiaPlatformServiceWorkflows) IrisRemoveAllOrgRoutesFromCacheWorkflow(ctx workflow.Context, pr IrisPlatformServiceRequest) error {
 	log := workflow.GetLogger(ctx)
-	ao := workflow.ActivityOptions{}
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 0,
+	}
 	pCtx := workflow.WithActivityOptions(ctx, ao)
 	// this deletes all the routing tables from cache for this org
 	err := workflow.ExecuteActivity(pCtx, h.IrisPlatformDeleteOrgGroupTablesCacheRequest, pr).Get(pCtx, nil)

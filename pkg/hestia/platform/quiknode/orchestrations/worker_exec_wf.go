@@ -9,7 +9,7 @@ import (
 	"go.temporal.io/sdk/client"
 )
 
-func (h *HestiaQuicknodeWorker) ExecuteQnProvisionWorkflow(ctx context.Context, pr hestia_quicknode.ProvisionRequest, ou org_users.OrgUser, isVerified bool) error {
+func (h *HestiaQuicknodeWorker) ExecuteQnProvisionWorkflow(ctx context.Context, pr hestia_quicknode.ProvisionRequest, ou org_users.OrgUser, user hestia_quicknode.QuickNodeUserInfo) error {
 	tc := h.ConnectTemporalClient()
 	defer tc.Close()
 	workflowOptions := client.StartWorkflowOptions{
@@ -17,7 +17,7 @@ func (h *HestiaQuicknodeWorker) ExecuteQnProvisionWorkflow(ctx context.Context, 
 	}
 	txWf := NewHestiaQuicknodeWorkflow()
 	wf := txWf.ProvisionWorkflow
-	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, pr, ou, isVerified)
+	_, err := tc.ExecuteWorkflow(ctx, workflowOptions, wf, pr, ou, user)
 	if err != nil {
 		log.Err(err).Msg("ExecuteQnProvisionWorkflow")
 		return err

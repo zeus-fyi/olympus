@@ -20,7 +20,7 @@ func ProvisionRequestHandler(c echo.Context) error {
 
 type ProvisionRequest struct {
 	hestia_quicknode.ProvisionRequest
-	Verified bool `json:"verified"`
+	hestia_quicknode.QuickNodeUserInfo `json:"verified"`
 }
 
 const (
@@ -38,6 +38,12 @@ func (r *ProvisionRequest) Provision(c echo.Context) error {
 	if ok {
 		r.Verified = val
 	}
+	isTestReq, ok := c.Get("isTest").(bool)
+	if ok {
+		r.IsTest = isTestReq
+	} else {
+		r.IsTest = false
+	}
 	switch pr.Plan {
 	case LitePlan, Standard, PerformancePlan:
 	default:
@@ -45,6 +51,7 @@ func (r *ProvisionRequest) Provision(c echo.Context) error {
 			Error: "error: plan not supported",
 		})
 	}
+
 	err := quicknode_orchestrations.HestiaQnWorker.ExecuteQnProvisionWorkflow(context.Background(), pr, ou, r.Verified)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
@@ -53,7 +60,7 @@ func (r *ProvisionRequest) Provision(c echo.Context) error {
 			})
 	}
 	return c.JSON(http.StatusOK, ProvisionResponse{
-		AccessURL:    "https://cloud.zeus.fyi/quicknode/access",
+		AccessURL:    "https://iris.zeus.fyi/v1/",
 		DashboardURL: "https://cloud.zeus.fyi/quicknode/dashboard",
 		Status:       "success",
 	})

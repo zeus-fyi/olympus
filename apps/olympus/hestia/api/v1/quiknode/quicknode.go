@@ -57,6 +57,7 @@ func InitV1RoutesServices(e *echo.Echo) {
 			if qnTestHeader == QuickNodeTestHeader {
 				c.Set("orgUser", org_users.NewOrgUserWithID(QuickNodeTestOrgID, QuickNodeTestOrgID))
 				c.Set("bearer", QuickNodeToken)
+				c.Set("isTest", true)
 				return true, nil
 			} else {
 				c.Set("orgUser", org_users.NewOrgUserWithID(10, 10))

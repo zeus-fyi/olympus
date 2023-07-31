@@ -50,16 +50,24 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context) error {
 		errResp := Response{Message: "routeGroup not found"}
 		return c.JSON(http.StatusBadRequest, errResp)
 	}
+
+	plan := ""
+	sp, ok := c.Get("servicePlan").(string)
+	if ok {
+		plan = sp
+	}
 	req := &iris_api_requests.ApiProxyRequest{
-		Url:        routeInfo,
-		Payload:    p.Body,
-		IsInternal: false,
-		Timeout:    1 * time.Minute,
+		Url:         routeInfo.RoutePath,
+		ServicePlan: plan,
+		Referrers:   routeInfo.Referers,
+		Payload:     p.Body,
+		IsInternal:  false,
+		Timeout:     1 * time.Minute,
 	}
 	rw := iris_api_requests.NewArtemisApiRequestsActivities()
 	resp, err := rw.ExtLoadBalancerRequest(c.Request().Context(), req)
 	if err != nil {
-		log.Err(err).Interface("ou", ou).Str("route", routeInfo).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
+		log.Err(err).Interface("ou", ou).Str("route", routeInfo.RoutePath).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusOK, resp.Response)

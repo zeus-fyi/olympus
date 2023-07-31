@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 )
@@ -63,9 +64,14 @@ func (r *ReadOrgGroupRoutesRequest) ReadGroup(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	routes := groupedRoutes.Map[ou.OrgID][groupName]
+
+	rs := make([]string, len(routes))
+	for i, route := range routes {
+		rs[i] = route.RoutePath
+	}
 	resp := OrgGroupRoutesResponse{
 		GroupName: groupName,
-		Routes:    routes,
+		Routes:    rs,
 	}
 	return c.JSON(http.StatusOK, resp)
 }
@@ -90,11 +96,20 @@ func (r *ReadOrgRoutingGroupsRequest) ReadGroups(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	groupedRoutes, err := iris_models.SelectAllOrgRoutesByOrg(context.Background(), ou.OrgID)
 	if err != nil {
+		log.Err(err).Msg("ReadOrgRoutingGroupsRequest: SelectAllOrgRoutesByOrg")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	routeGroups := groupedRoutes.Map[ou.OrgID]
+	m := make(map[string][]string, len(routeGroups))
+	for k, v := range routeGroups {
+		m[k] = make([]string, len(v))
+		for i, route := range v {
+			m[k][i] = route.RoutePath
+		}
+	}
+
 	resp := OrgGroupsRoutesResponse{
-		Map: routeGroups,
+		Map: m,
 	}
 	return c.JSON(http.StatusOK, resp)
 }

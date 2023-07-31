@@ -65,10 +65,10 @@ func (s *IrisTestSuite) TestInsertOrgRoutes() {
 	for _, rts := range groupedRoutes.Map {
 		for _, rt := range rts {
 			for _, rn := range rt {
-				if rn == r1 {
+				if rn.RoutePath == r1 {
 					count += 1
 				}
-				if rn == r2 {
+				if rn.RoutePath == r2 {
 					count += 10
 				}
 			}

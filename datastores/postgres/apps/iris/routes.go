@@ -135,18 +135,33 @@ func SelectOrgRoutes(ctx context.Context, orgID int) (iris_autogen_bases.OrgRout
 }
 
 type OrgRoutesGroup struct {
-	Map map[int]map[string][]string
+	Map map[int]map[string][]RouteInfo
 }
 
 func SelectAllOrgRoutes(ctx context.Context) (OrgRoutesGroup, error) {
 	og := OrgRoutesGroup{
-		Map: make(map[int]map[string][]string),
+		Map: make(map[int]map[string][]RouteInfo),
 	}
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `SELECT o.route_group_name, o.org_id, org.route_path
-				  FROM org_route_groups o 
-				  INNER JOIN org_routes_groups orgrs ON orgrs.route_group_id = o.route_group_id
-				  LEFT JOIN org_routes org ON org.route_id = orgrs.route_id
+	q.RawQuery = `SELECT 
+					COALESCE(orgg.route_group_name, 'unused') as route_group_name,
+					org.route_path,
+					org.org_id,
+					NULLIF(array_remove(array_agg(r.referer), NULL)::text[], ARRAY[]::text[]) as referers
+				FROM 
+					org_routes org
+				LEFT JOIN
+					org_routes_groups orgrs ON org.route_id = orgrs.route_id
+				LEFT JOIN
+					org_route_groups orgg ON orgg.route_group_id = orgrs.route_group_id
+				LEFT JOIN 
+					provisioned_quicknode_services pqs ON org.route_path = pqs.http_url
+				LEFT JOIN 
+					provisioned_quicknode_services_referers r ON pqs.endpoint_id = r.endpoint_id
+				GROUP BY 
+					org.org_id,
+					orgg.route_group_name,
+					org.route_path;
 				  `
 
 	rows, err := apps.Pg.Query(ctx, q.RawQuery)
@@ -155,66 +170,89 @@ func SelectAllOrgRoutes(ctx context.Context) (OrgRoutesGroup, error) {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var route iris_autogen_bases.OrgRoutes
-		gn := ""
-		rowErr := rows.Scan(
-			&gn, &route.OrgID, &route.RoutePath,
-		)
+		var orgID int
+		var routeGroupName string
+		var routePath string
+		var referers []string
+
+		rowErr := rows.Scan(&routeGroupName, &routePath, &orgID, pq.Array(&referers))
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader("SelectAllOrgRoutes"))
 			return og, rowErr
 		}
-		if _, ok := og.Map[route.OrgID]; !ok {
-			og.Map[route.OrgID] = make(map[string][]string)
+
+		if _, ok := og.Map[orgID]; !ok {
+			og.Map[orgID] = make(map[string][]RouteInfo)
 		}
-		if _, ok := og.Map[route.OrgID][gn]; !ok {
-			og.Map[route.OrgID][gn] = []string{}
-		}
-		tmp := og.Map[route.OrgID][gn]
-		tmp = append(tmp, route.RoutePath)
-		og.Map[route.OrgID][gn] = tmp
+
+		og.Map[orgID][routeGroupName] = append(og.Map[orgID][routeGroupName], RouteInfo{
+			RoutePath: routePath,
+			Referers:  referers,
+		})
 	}
 	return og, misc.ReturnIfErr(err, q.LogHeader("SelectAllOrgRoutes"))
 }
 
+type RouteInfo struct {
+	RoutePath string
+	Referers  []string
+}
+
 func SelectAllOrgRoutesByOrg(ctx context.Context, orgID int) (OrgRoutesGroup, error) {
 	og := OrgRoutesGroup{
-		Map: make(map[int]map[string][]string),
+		Map: make(map[int]map[string][]RouteInfo),
 	}
+
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `SELECT o.route_group_name, o.org_id, org.route_path
-				  FROM org_route_groups o 
-				  INNER JOIN org_routes_groups orgrs ON orgrs.route_group_id = o.route_group_id
-				  LEFT JOIN org_routes org ON org.route_id = orgrs.route_id
-				  WHERE o.org_id = $1
-				  `
+	q.RawQuery = `SELECT 
+					COALESCE(orgg.route_group_name, 'unused') as route_group_name,
+					org.route_path,
+					NULLIF(array_remove(array_agg(r.referer), NULL)::text[], ARRAY[]::text[]) as referers
+					FROM 
+						org_routes org
+					LEFT JOIN
+						org_routes_groups orgrs ON org.route_id = orgrs.route_id
+					LEFT JOIN
+						org_route_groups orgg ON orgg.route_group_id = orgrs.route_group_id
+					LEFT JOIN 
+						provisioned_quicknode_services pqs ON org.route_path = pqs.http_url
+					LEFT JOIN 
+						provisioned_quicknode_services_referers r ON pqs.endpoint_id = r.endpoint_id
+					WHERE org.org_id = $1
+					GROUP BY 
+						orgg.route_group_name,
+						org.route_path;
+      `
 
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID)
-	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SelectOrgRoutes")); returnErr != nil {
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SelectAllOrgRoutesByOrg")); returnErr != nil {
 		return og, err
 	}
+
 	defer rows.Close()
+
 	for rows.Next() {
-		var route iris_autogen_bases.OrgRoutes
-		gn := ""
-		rowErr := rows.Scan(
-			&gn, &route.OrgID, &route.RoutePath,
-		)
+		var routeGroupName string
+		var routePath string
+		var referers []string
+
+		rowErr := rows.Scan(&routeGroupName, &routePath, pq.Array(&referers))
 		if rowErr != nil {
-			log.Err(rowErr).Msg(q.LogHeader("SelectOrgRoutes"))
+			log.Err(rowErr).Msg(q.LogHeader("SelectAllOrgRoutesByOrg"))
 			return og, rowErr
 		}
-		if _, ok := og.Map[route.OrgID]; !ok {
-			og.Map[route.OrgID] = make(map[string][]string)
+
+		if _, ok := og.Map[orgID]; !ok {
+			og.Map[orgID] = make(map[string][]RouteInfo)
 		}
-		if _, ok := og.Map[route.OrgID][gn]; !ok {
-			og.Map[route.OrgID][gn] = []string{}
-		}
-		tmp := og.Map[route.OrgID][gn]
-		tmp = append(tmp, route.RoutePath)
-		og.Map[route.OrgID][gn] = tmp
+
+		og.Map[orgID][routeGroupName] = append(og.Map[orgID][routeGroupName], RouteInfo{
+			RoutePath: routePath,
+			Referers:  referers,
+		})
 	}
-	return og, misc.ReturnIfErr(err, q.LogHeader("SelectOrgRoutes"))
+
+	return og, misc.ReturnIfErr(err, q.LogHeader("SelectAllOrgRoutesByOrg"))
 }
 
 type OrgRoutesGroupsAndEndpoints struct {
@@ -269,14 +307,26 @@ func SelectAllEndpointsAndOrgGroupRoutesByOrg(ctx context.Context, orgID int) (O
 
 func SelectOrgRoutesByOrgAndGroupName(ctx context.Context, orgID int, groupName string) (OrgRoutesGroup, error) {
 	og := OrgRoutesGroup{
-		Map: make(map[int]map[string][]string),
+		Map: make(map[int]map[string][]RouteInfo),
 	}
 	q := sql_query_templates.QueryParams{}
-	q.RawQuery = `SELECT o.route_group_name, o.org_id, org.route_path
+	q.RawQuery = `SELECT 
+					o.route_group_name, 
+					o.org_id, 
+					org.route_path, 
+					NULLIF(array_remove(array_agg(r.referer), NULL)::text[], ARRAY[]::text[]) as referers
 				  FROM org_route_groups o 
 				  INNER JOIN org_routes_groups orgrs ON orgrs.route_group_id = o.route_group_id
 				  LEFT JOIN org_routes org ON org.route_id = orgrs.route_id
+				  LEFT JOIN 
+					provisioned_quicknode_services pqs ON org.route_path = pqs.http_url
+				  LEFT JOIN 
+					provisioned_quicknode_services_referers r ON pqs.endpoint_id = r.endpoint_id
 				  WHERE o.org_id = $1 AND o.route_group_name = $2
+				  GROUP BY 
+						o.route_group_name,
+						o.org_id,
+						org.route_path;
 				  `
 
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID, groupName)
@@ -285,24 +335,23 @@ func SelectOrgRoutesByOrgAndGroupName(ctx context.Context, orgID int, groupName 
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var route iris_autogen_bases.OrgRoutes
-		gn := ""
+		var routeGroupName string
+		var routePath string
+		var referers []string
 		rowErr := rows.Scan(
-			&gn, &route.OrgID, &route.RoutePath,
+			&routeGroupName, &orgID, &routePath, pq.Array(&referers),
 		)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader("SelectOrgRoutes"))
 			return og, rowErr
 		}
-		if _, ok := og.Map[route.OrgID]; !ok {
-			og.Map[route.OrgID] = make(map[string][]string)
+		if _, ok := og.Map[orgID]; !ok {
+			og.Map[orgID] = make(map[string][]RouteInfo)
 		}
-		if _, ok := og.Map[route.OrgID][gn]; !ok {
-			og.Map[route.OrgID][gn] = []string{}
-		}
-		tmp := og.Map[route.OrgID][gn]
-		tmp = append(tmp, route.RoutePath)
-		og.Map[route.OrgID][gn] = tmp
+		og.Map[orgID][routeGroupName] = append(og.Map[orgID][routeGroupName], RouteInfo{
+			RoutePath: routePath,
+			Referers:  referers,
+		})
 	}
 	return og, misc.ReturnIfErr(err, q.LogHeader("SelectOrgRoutes"))
 }

@@ -56,11 +56,14 @@ const (
 	UserDemoOrgID = 1677096191839528000
 
 	EthereumEphemeryServiceID = 1677096782693758000
-	EthereumEphemeryService   = "ethereumEphemeryValidators"
-	EthereumMainnetServiceID  = 1677096791420465000
-	EthereumMainnetService    = "ethereumMainnetValidators"
-	EthereumGoerliService     = "ethereumGoerliValidators"
-	EthereumGoerliServiceID   = 5
+	IrisQuickNodeService      = "quickNodeMarketPlace"
+	IrisService               = "iris"
+
+	EthereumEphemeryService  = "ethereumEphemeryValidators"
+	EthereumMainnetServiceID = 1677096791420465000
+	EthereumMainnetService   = "ethereumMainnetValidators"
+	EthereumGoerliService    = "ethereumGoerliValidators"
+	EthereumGoerliServiceID  = 5
 
 	ZeusServiceID         = 1677100016195486976
 	ZeusService           = "zeus"
@@ -95,10 +98,6 @@ func (o *OrgUser) InsertOrgUserWithNewKeyForService(ctx context.Context, metadat
 	o.UserID = int(userID)
 	return userKey, misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
-
-/*
-quickNodeMarketPlace
-*/
 
 func (o *OrgUser) InsertOrgUserWithNewQuickNodeKeyForService(ctx context.Context, quickNodeCustomerID string) error {
 	q := sql_query_templates.NewQueryParam("NewDemoOrgUser", "org_users", "where", 1000, []string{})

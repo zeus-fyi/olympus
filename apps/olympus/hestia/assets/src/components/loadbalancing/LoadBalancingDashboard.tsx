@@ -24,6 +24,7 @@ import {LoadBalancingRoutesTable} from "./LoadBalancingRoutesTable";
 import {RootState} from "../../redux/store";
 import {IrisOrgGroupRoutesRequest, loadBalancingApiGateway} from "../../gateway/loadbalancing";
 import {setEndpoints, setGroupEndpoints} from "../../redux/loadbalancing/loadbalancing.reducer";
+import TextField from "@mui/material/TextField";
 
 const drawerWidth: number = 240;
 
@@ -101,8 +102,11 @@ function LoadBalancingDashboardContent() {
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [page, setPage] = React.useState(0);
     const [isAdding, setIsAdding] = useState<boolean>(false);
+    const [isAddingGroup, setIsAddingGroup] = useState<boolean>(false);
+    const [isUpdatingGroup, setIsUpdatingGroup] = useState<boolean>(false);
     const [newEndpoint, setNewEndpoint] = useState<string>("");
     const [reload, setReload] = useState(false); // State to trigger reload
+    const [createGroupName, setCreateGroupName] = React.useState("");
 
     useEffect(() => {
         const fetchData = async (params: any) => {
@@ -177,11 +181,25 @@ function LoadBalancingDashboardContent() {
         setNewEndpoint("");
     };
 
-    const handleChangeGroup = (name: string) => {
-        setPage(0);
-        setSelected([]);
-        setGroupName(name);
-        setTableRoutes(name === "-all" ? endpoints : groups[name]);
+    const handleSubmitNewGroupSubmission = async () => {
+        if (newEndpoint) {
+            setLoading(true); // Set loading to false regardless of success or failure.
+            const payload: IrisOrgGroupRoutesRequest = {
+                routes: [newEndpoint]
+            };
+            try {
+                const response = await loadBalancingApiGateway.createEndpoints(payload);
+                console.log(response.status)
+                // handle the response accordingly
+            } catch (error) {
+                console.log("error", error);
+            } finally {
+                setLoading(false); // Set loading to false regardless of success or failure.
+                setReload(!reload); // Trigger reload by flipping the state
+            }
+        }
+        setIsAdding(false);
+        setNewEndpoint("");
     };
 
     const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -204,6 +222,51 @@ function LoadBalancingDashboardContent() {
         newPage: number,
     ) => {
         setPage(newPage);
+    };
+
+
+    const handleChangeGroup = (name: string) => {
+        setPage(0);
+        setSelected([]);
+        setGroupName(name);
+        setIsUpdatingGroup(false);
+        setTableRoutes(name === "-all" ? endpoints : groups[name]);
+    };
+
+    const handleUpdateGroupTableEndpointsSubmission = async () => {
+        console.log('selected', selected);
+
+        const newSelected = tableRoutes.map((endpoint) => endpoint);
+        const payload = {groupName: groupName, routes: newSelected.concat(selected)};
+
+        try {
+            setLoading(true); // Set loading to false regardless of success or failure.
+            const response = await loadBalancingApiGateway.updateGroupRoutingTable(payload);
+            console.log(response.status)
+            // handle the response accordingly
+        } catch (error) {
+            console.log("error", error);
+        } finally {
+            setLoading(false); // Set loading to false regardless of success or failure.
+            setReload(!reload); // Trigger reload by flipping the state
+        }
+    }
+
+    const handleClickAddGroupEndpoints = () => {
+        setIsUpdatingGroup(true);
+        setSelected([]);
+        const filteredRoutes = endpoints.filter(
+            endpoint => !groups[groupName].includes(endpoint)
+        );
+
+        setTableRoutes(filteredRoutes);
+        return;
+    };
+
+    const handleClickViewGroupEndpoints = () => {
+        setIsUpdatingGroup(false);
+        setSelected([]);
+        setTableRoutes(groups[groupName])
     };
 
     return (
@@ -306,9 +369,55 @@ function LoadBalancingDashboardContent() {
                                 </FormControl>
                             </Stack>
                         </Box>
-                            <Box mr={2} ml={2} mt={2} mb={4}>
-                                <Button variant="contained" onClick={() => setIsAdding(!isAdding)}>Add Endpoints</Button>
-                            </Box>
+                        <Box display="flex" m={2} mb={4}>
+                            {groupName === "-all" &&
+                                <Box mr={2}>
+                                    <Button variant="contained" onClick={() => setIsAdding(!isAdding)}>
+                                        Add Endpoints
+                                    </Button>
+                                </Box>
+                            }
+                            {groupName !== "-all" && groupName !== "unused" && !isUpdatingGroup &&
+                                <Box mr={2}>
+                                    <Button variant="contained" onClick={() => handleClickAddGroupEndpoints()}>
+                                        Add Group Endpoints
+                                    </Button>
+                                </Box>
+                            }
+                            {groupName !== "-all" && groupName !== "unused" && isUpdatingGroup &&
+                                <Box mr={2}>
+                                    <Button variant="contained" onClick={() => handleClickViewGroupEndpoints()}>
+                                        View Group Endpoints
+                                    </Button>
+                                </Box>
+                            }
+                            {groupName === "-all" &&
+                                <Box>
+                                    <Button variant="contained" onClick={() => setIsAddingGroup(!isAddingGroup)}>
+                                        Add Groups
+                                    </Button>
+                                </Box>
+                            }
+                        </Box>
+                            {isAddingGroup && groupName === "-all" && (
+                                <Box m={2} mb={4} display="flex" alignItems="center">
+                                    <Box flexGrow={1} mr={2}>
+                                        <TextField
+                                            fullWidth
+                                            id="group-input"
+                                            label="Group Name"
+                                            variant="outlined"
+                                            value={createGroupName}
+                                            onChange={(e) => setCreateGroupName(e.target.value)}
+                                        />
+                                    </Box>
+                                    <Box>
+                                        <Button variant="contained" color="primary"  onClick={() => handleSubmitNewGroupSubmission}>
+                                            Submit
+                                        </Button>
+                                    </Box>
+                                </Box>
+                            )}
                         </Card>
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
@@ -318,6 +427,7 @@ function LoadBalancingDashboardContent() {
                             loading={loading}
                             endpoints={tableRoutes}
                             groups={groups}
+                            groupName={groupName}
                             selected={selected}
                             handleSelectAllClick={handleSelectAllClick}
                             handleClick={handleClick}
@@ -326,9 +436,11 @@ function LoadBalancingDashboardContent() {
                             isAdding={isAdding}
                             setIsAdding={setIsAdding}
                             newEndpoint={newEndpoint}
+                            isUpdatingGroup={isUpdatingGroup}
                             setNewEndpoint={setNewEndpoint}
                             handleSubmitNewEndpointSubmission={handleSubmitNewEndpointSubmission}
                             handleDeleteEndpointsSubmission={handleDeleteEndpointsSubmission}
+                            handleUpdateGroupTableEndpointsSubmission={handleUpdateGroupTableEndpointsSubmission}
                         />
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />

@@ -229,11 +229,27 @@ function LoadBalancingDashboardContent() {
         setPage(0);
         setSelected([]);
         setGroupName(name);
+        setIsUpdatingGroup(false);
         setTableRoutes(name === "-all" ? endpoints : groups[name]);
     };
 
     const handleUpdateGroupTableEndpointsSubmission = async () => {
         console.log('selected', selected);
+
+        const newSelected = tableRoutes.map((endpoint) => endpoint);
+        const payload = {groupName: groupName, routes: newSelected.concat(selected)};
+
+        try {
+            setLoading(true); // Set loading to false regardless of success or failure.
+            const response = await loadBalancingApiGateway.updateGroupRoutingTable(payload);
+            console.log(response.status)
+            // handle the response accordingly
+        } catch (error) {
+            console.log("error", error);
+        } finally {
+            setLoading(false); // Set loading to false regardless of success or failure.
+            setReload(!reload); // Trigger reload by flipping the state
+        }
     }
 
     const handleClickAddGroupEndpoints = () => {
@@ -361,14 +377,14 @@ function LoadBalancingDashboardContent() {
                                     </Button>
                                 </Box>
                             }
-                            {groupName !== "-all" && !isUpdatingGroup &&
+                            {groupName !== "-all" && groupName !== "unused" && !isUpdatingGroup &&
                                 <Box mr={2}>
                                     <Button variant="contained" onClick={() => handleClickAddGroupEndpoints()}>
                                         Add Group Endpoints
                                     </Button>
                                 </Box>
                             }
-                            {groupName !== "-all" && isUpdatingGroup &&
+                            {groupName !== "-all" && groupName !== "unused" && isUpdatingGroup &&
                                 <Box mr={2}>
                                     <Button variant="contained" onClick={() => handleClickViewGroupEndpoints()}>
                                         View Group Endpoints
@@ -411,6 +427,7 @@ function LoadBalancingDashboardContent() {
                             loading={loading}
                             endpoints={tableRoutes}
                             groups={groups}
+                            groupName={groupName}
                             selected={selected}
                             handleSelectAllClick={handleSelectAllClick}
                             handleClick={handleClick}

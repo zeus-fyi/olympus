@@ -24,6 +24,7 @@ import {LoadBalancingRoutesTable} from "./LoadBalancingRoutesTable";
 import {RootState} from "../../redux/store";
 import {IrisOrgGroupRoutesRequest, loadBalancingApiGateway} from "../../gateway/loadbalancing";
 import {setEndpoints, setGroupEndpoints} from "../../redux/loadbalancing/loadbalancing.reducer";
+import TextField from "@mui/material/TextField";
 
 const drawerWidth: number = 240;
 
@@ -101,8 +102,11 @@ function LoadBalancingDashboardContent() {
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [page, setPage] = React.useState(0);
     const [isAdding, setIsAdding] = useState<boolean>(false);
+    const [isAddingGroup, setIsAddingGroup] = useState<boolean>(false);
+    const [isUpdatingGroup, setIsUpdatingGroup] = useState<boolean>(false);
     const [newEndpoint, setNewEndpoint] = useState<string>("");
     const [reload, setReload] = useState(false); // State to trigger reload
+    const [createGroupName, setCreateGroupName] = React.useState("");
 
     useEffect(() => {
         const fetchData = async (params: any) => {
@@ -157,6 +161,27 @@ function LoadBalancingDashboardContent() {
     }
 
     const handleSubmitNewEndpointSubmission = async () => {
+        if (newEndpoint) {
+            setLoading(true); // Set loading to false regardless of success or failure.
+            const payload: IrisOrgGroupRoutesRequest = {
+                routes: [newEndpoint]
+            };
+            try {
+                const response = await loadBalancingApiGateway.createEndpoints(payload);
+                console.log(response.status)
+                // handle the response accordingly
+            } catch (error) {
+                console.log("error", error);
+            } finally {
+                setLoading(false); // Set loading to false regardless of success or failure.
+                setReload(!reload); // Trigger reload by flipping the state
+            }
+        }
+        setIsAdding(false);
+        setNewEndpoint("");
+    };
+
+    const handleSubmitNewGroupSubmission = async () => {
         if (newEndpoint) {
             setLoading(true); // Set loading to false regardless of success or failure.
             const payload: IrisOrgGroupRoutesRequest = {
@@ -306,9 +331,55 @@ function LoadBalancingDashboardContent() {
                                 </FormControl>
                             </Stack>
                         </Box>
-                            <Box mr={2} ml={2} mt={2} mb={4}>
-                                <Button variant="contained" onClick={() => setIsAdding(!isAdding)}>Add Endpoints</Button>
-                            </Box>
+                        <Box display="flex" m={2} mb={4}>
+                            {groupName === "-all" &&
+                                <Box mr={2}>
+                                    <Button variant="contained" onClick={() => setIsAdding(!isAdding)}>
+                                        Add Endpoints
+                                    </Button>
+                                </Box>
+                            }
+                            {groupName !== "-all" && !isUpdatingGroup &&
+                                <Box mr={2}>
+                                    <Button variant="contained" onClick={() => setIsUpdatingGroup(true)}>
+                                        Add Group Endpoints
+                                    </Button>
+                                </Box>
+                            }
+                            {groupName !== "-all" && isUpdatingGroup &&
+                                <Box mr={2}>
+                                    <Button variant="contained" onClick={() => setIsUpdatingGroup(false)}>
+                                        View Group Endpoints
+                                    </Button>
+                                </Box>
+                            }
+                            {groupName === "-all" &&
+                                <Box>
+                                    <Button variant="contained" onClick={() => setIsAddingGroup(!isAddingGroup)}>
+                                        Add Groups
+                                    </Button>
+                                </Box>
+                            }
+                        </Box>
+                            {isAddingGroup && groupName === "-all" && (
+                                <Box m={2} mb={4} display="flex" alignItems="center">
+                                    <Box flexGrow={1} mr={2}>
+                                        <TextField
+                                            fullWidth
+                                            id="group-input"
+                                            label="Group Name"
+                                            variant="outlined"
+                                            value={createGroupName}
+                                            onChange={(e) => setCreateGroupName(e.target.value)}
+                                        />
+                                    </Box>
+                                    <Box>
+                                        <Button variant="contained" color="primary"  onClick={() => handleSubmitNewGroupSubmission}>
+                                            Submit
+                                        </Button>
+                                    </Box>
+                                </Box>
+                            )}
                         </Card>
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>

@@ -147,7 +147,7 @@ function LoadBalancingDashboardContent() {
             const selectedSet = new Set(selected); // Create a Set for O(1) lookup
             if (groupName === "-all"  || groupName === "unused") {
                 const payload = {
-                    routes: tableRoutes.filter(route => !selectedSet.has(route)) // Filter tableRoutes
+                    routes: selected // Filter tableRoutes
                 };
                 const response = await loadBalancingApiGateway.deleteEndpoints(payload);
             } else {

@@ -191,6 +191,7 @@ function LoadBalancingDashboardContent() {
         if (newEndpoint) {
             setLoading(true); // Set loading to false regardless of success or failure.
             const payload: IrisOrgGroupRoutesRequest = {
+                groupName: createGroupName,
                 routes: [newEndpoint]
             };
             try {

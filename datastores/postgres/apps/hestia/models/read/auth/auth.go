@@ -80,3 +80,26 @@ func VerifyBearerTokenService(ctx context.Context, token, serviceName string) (r
 	}
 	return key, err
 }
+
+func VerifyBearerTokenServiceWithQuickNodePlan(ctx context.Context, token, serviceName string) (read_keys.OrgUserKey, error) {
+	key := read_keys.OrgUserKey{
+		Key: keys.Key{
+			UsersKeys: autogen_bases.UsersKeys{
+				UserID:            0,
+				PublicKeyName:     "",
+				PublicKeyVerified: false,
+				CreatedAt:         time.Time{},
+				PublicKey:         token,
+			},
+			KeyType: keys.NewBearerKeyType(),
+		},
+	}
+	err := key.VerifyUserTokenServiceWithQuickNodePlan(ctx, serviceName)
+	if err != nil {
+		return read_keys.OrgUserKey{}, err
+	}
+	if key.PublicKeyVerified == false {
+		return read_keys.OrgUserKey{}, errors.New("unauthorized key")
+	}
+	return key, err
+}

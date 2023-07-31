@@ -135,8 +135,9 @@ func (k *OrgUserKey) QueryVerifyUserTokenServiceWithQuickNodePlan() sql_query_te
 		FROM users_keys usk
 		WHERE usk.public_key = $1
 	) 
-	SELECT usk.public_key_verified, ou.org_id, ou.user_id
+	SELECT usk.public_key_verified, ou.org_id, ou.user_id, usk.public_key, qmc.plan
 	FROM users_keys usk
+	INNER JOIN quicknode_marketplace_customer qmc ON qmc.quicknode_id = usk.public_key
 	INNER JOIN key_types kt ON kt.key_type_id = usk.public_key_type_id
 	INNER JOIN users_key_services uksvc ON uksvc.public_key = usk.public_key
 	INNER JOIN services svcs ON svcs.service_id = uksvc.service_id
@@ -147,12 +148,12 @@ func (k *OrgUserKey) QueryVerifyUserTokenServiceWithQuickNodePlan() sql_query_te
 	return q
 }
 
-func (k *OrgUserKey) VerifyUserTokenServiceWithPlan(ctx context.Context, serviceName string) error {
+func (k *OrgUserKey) VerifyUserTokenServiceWithQuickNodePlan(ctx context.Context, serviceName string) error {
 	q := k.QueryVerifyUserTokenServiceWithQuickNodePlan()
-	log.Debug().Interface("QueryVerifyUserTokenService:", q.LogHeader(Sn))
-	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey, serviceName).Scan(&k.PublicKeyVerified, &k.OrgID, &k.UserID)
+	log.Debug().Interface("QueryVerifyUserTokenServiceWithQuickNodePlan:", q.LogHeader(Sn))
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, k.PublicKey, serviceName).Scan(&k.PublicKeyVerified, &k.OrgID, &k.UserID, &k.PublicKeyName)
 	if err != nil {
-		log.Ctx(ctx).Err(err).Msg("VerifyUserTokenService error")
+		log.Ctx(ctx).Err(err).Msg("VerifyUserTokenServiceWithQuickNodePlan error")
 		k.PublicKeyVerified = false
 	}
 	if k.PublicKeyVerified == false {

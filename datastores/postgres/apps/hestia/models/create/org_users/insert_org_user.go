@@ -99,10 +99,6 @@ func (o *OrgUser) InsertOrgUserWithNewKeyForService(ctx context.Context, metadat
 	return userKey, misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
 
-/*
-quickNodeMarketPlace
-*/
-
 func (o *OrgUser) InsertOrgUserWithNewQuickNodeKeyForService(ctx context.Context, quickNodeCustomerID string) error {
 	q := sql_query_templates.NewQueryParam("NewDemoOrgUser", "org_users", "where", 1000, []string{})
 	q.RawQuery = `WITH new_user_id AS (

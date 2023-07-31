@@ -23,25 +23,6 @@ func InitV1Routes(e *echo.Echo) {
 		AuthScheme: "Bearer",
 		Validator: func(token string, c echo.Context) (bool, error) {
 			ctx := context.Background()
-			val, ok := authCache.Get(token)
-			if ok {
-				orgUser, ok1 := val.(org_users.OrgUser)
-				if ok1 {
-					c.Set("orgUser", orgUser)
-					c.Set("bearer", val)
-					return true, nil
-				}
-			}
-			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.IrisQuickNodeService)
-			if err != nil {
-				log.Err(err).Msg("InitV1Routes")
-				return false, c.JSON(http.StatusUnauthorized, nil)
-			}
-			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
-			if key.PublicKeyVerified {
-				authCache.SetDefault(token, key)
-				authCache.SetDefault(fmt.Sprintf("%d", key.OrgID), ou)
-			}
 			// Get headers
 			qnTestHeader := c.Request().Header.Get(QuickNodeTestHeader)
 			qnIDHeader := c.Request().Header.Get(QuickNodeIDHeader)
@@ -55,6 +36,34 @@ func InitV1Routes(e *echo.Echo) {
 			c.Set(QuickNodeEndpointID, qnEndpointID)
 			c.Set(QuickNodeChain, qnChain)
 			c.Set(QuickNodeNetwork, qnNetwork)
+			val, ok := authCache.Get(token)
+			if ok {
+				orgUser, ok1 := val.(org_users.OrgUser)
+				if ok1 {
+					servicePlan, ok2 := authCache.Get(fmt.Sprintf("%d-servicePlan", orgUser.OrgID))
+					if ok2 && len(servicePlan.(string)) > 0 {
+						c.Set("servicePlan", servicePlan)
+						c.Set("orgUser", orgUser)
+						c.Set("bearer", val)
+						return true, nil
+					}
+				}
+			}
+			key, err := auth.VerifyBearerTokenServiceWithQuickNodePlan(ctx, token, create_org_users.IrisQuickNodeService)
+			if err != nil {
+				log.Err(err).Msg("InitV1Routes")
+				return false, c.JSON(http.StatusUnauthorized, nil)
+			}
+			if len(key.PublicKeyName) <= 0 {
+				return false, c.JSON(http.StatusUnauthorized, Response{Message: "no service plan found"})
+			}
+			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
+			if key.PublicKeyVerified {
+				authCache.SetDefault(fmt.Sprintf("%d-servicePlan", key.OrgID), key.PublicKeyName)
+				authCache.SetDefault(token, key)
+				authCache.SetDefault(fmt.Sprintf("%d", key.OrgID), ou)
+			}
+			c.Set("servicePlan", key.PublicKeyName)
 			c.Set("orgUser", ou)
 			c.Set("bearer", key.PublicKey)
 			return key.PublicKeyVerified, err

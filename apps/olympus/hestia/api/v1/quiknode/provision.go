@@ -52,7 +52,7 @@ func (r *ProvisionRequest) Provision(c echo.Context) error {
 		})
 	}
 
-	err := quicknode_orchestrations.HestiaQnWorker.ExecuteQnProvisionWorkflow(context.Background(), pr, ou, r.Verified)
+	err := quicknode_orchestrations.HestiaQnWorker.ExecuteQnProvisionWorkflow(context.Background(), pr, ou, r.QuickNodeUserInfo)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
 			QuickNodeResponse{
@@ -60,7 +60,7 @@ func (r *ProvisionRequest) Provision(c echo.Context) error {
 			})
 	}
 	return c.JSON(http.StatusOK, ProvisionResponse{
-		AccessURL:    "https://iris.zeus.fyi/v1/",
+		AccessURL:    "https://iris.zeus.fyi/v1/router",
 		DashboardURL: "https://cloud.zeus.fyi/quicknode/dashboard",
 		Status:       "success",
 	})

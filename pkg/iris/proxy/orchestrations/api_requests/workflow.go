@@ -32,12 +32,13 @@ func (i *IrisApiRequestsWorkflow) GetWorkflows() []interface{} {
 }
 
 type ApiProxyRequest struct {
-	Url        string
-	Referrers  []string
-	Payload    echo.Map
-	Response   echo.Map
-	IsInternal bool
-	Timeout    time.Duration
+	Url         string
+	ServicePlan string
+	Referrers   []string
+	Payload     echo.Map
+	Response    echo.Map
+	IsInternal  bool
+	Timeout     time.Duration
 }
 
 func (i *IrisApiRequestsWorkflow) ProxyRequest(ctx workflow.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {

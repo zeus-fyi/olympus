@@ -2,10 +2,11 @@ package eth_validator_signature_requests
 
 import (
 	"context"
+
 	"github.com/rs/zerolog/log"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
+	bls_signer "github.com/zeus-fyi/zeus/pkg/aegis/crypto/bls"
 	aegis_inmemdbs "github.com/zeus-fyi/zeus/pkg/aegis/inmemdbs"
-	bls_signer "github.com/zeus-fyi/zeus/pkg/crypto/bls"
 	"go.temporal.io/sdk/client"
 )
 

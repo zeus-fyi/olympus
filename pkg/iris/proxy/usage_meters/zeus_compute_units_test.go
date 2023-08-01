@@ -46,17 +46,17 @@ func (s *IrisZeusComputeUnitsTestSuite) TestZeusComputeUnitsConsumed() {
 	// Payload less than 1KB
 	psm := &PayloadSizeMeter{}
 	psm.Add(500) // less than 1KB
-	s.Equal(ZeusUnitsPerRequest+1, psm.ZeusComputeUnitsConsumed())
+	s.Equal(ZeusUnitsPerRequest+1, psm.ZeusRequestComputeUnitsConsumed())
 
 	// Payload exactly 1KB
 	psm = &PayloadSizeMeter{}
 	psm.Add(1024) // exactly 1KB
-	s.Equal(ZeusUnitsPerRequest+1, psm.ZeusComputeUnitsConsumed())
+	s.Equal(ZeusUnitsPerRequest+1, psm.ZeusRequestComputeUnitsConsumed())
 
 	// Payload more than 1KB
 	psm = &PayloadSizeMeter{}
 	psm.Add(2048) // more than 1KB
-	s.Equal(ZeusUnitsPerRequest+2, psm.ZeusComputeUnitsConsumed())
+	s.Equal(ZeusUnitsPerRequest+2, psm.ZeusRequestComputeUnitsConsumed())
 }
 
 func TestIrisZeusComputeUnitsTestSuite(t *testing.T) {

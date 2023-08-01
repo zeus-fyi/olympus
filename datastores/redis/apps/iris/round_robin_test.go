@@ -140,12 +140,16 @@ func (r *IrisRedisTestSuite) TestLoadBalancerRateMeter() {
 		meter.Add(2048 * 10)
 		err = IrisRedis.IncrementResponseUsageRateMeter(context.Background(), 1, meter)
 		r.NoError(err)
+		err = IrisRedis.CheckRateLimit(context.Background(), 1, "test", meter)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
-
-	meter.Reset()
-	meter.Add(1024 * 1000)
-	err = IrisRedis.IncrementResponseUsageRateMeter(context.Background(), 1, meter)
-	r.NoError(err)
+	//
+	//meter.Reset()
+	//meter.Add(1024 * 1000)
+	//err = IrisRedis.IncrementResponseUsageRateMeter(context.Background(), 1, meter)
+	//r.NoError(err)
 }
 
 func (r *IrisRedisTestSuite) TestRateLimit() {

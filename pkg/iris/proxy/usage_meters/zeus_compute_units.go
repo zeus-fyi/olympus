@@ -1,8 +1,10 @@
 package iris_usage_meters
 
 import (
+	"bytes"
 	"io"
 	"sync/atomic"
+	"time"
 )
 
 const (
@@ -12,8 +14,18 @@ const (
 )
 
 type PayloadSizeMeter struct {
-	R    io.Reader
-	Size int64
+	R     io.Reader
+	Size  int64
+	Plan  string
+	Month string
+}
+
+func NewPayloadSizeMeter(bodyBytes []byte) *PayloadSizeMeter {
+	month := time.Now().UTC().Month()
+	return &PayloadSizeMeter{
+		R:     bytes.NewReader(bodyBytes),
+		Month: month.String(),
+	}
 }
 
 func (cr *PayloadSizeMeter) Read(p []byte) (n int, err error) {
@@ -37,7 +49,7 @@ func (cr *PayloadSizeMeter) SizeInKB() float64 {
 	return float64(sizeInBytes) / BytesPerKB
 }
 
-func (cr *PayloadSizeMeter) ZeusComputeUnitsConsumed() float64 {
+func (cr *PayloadSizeMeter) ZeusRequestComputeUnitsConsumed() float64 {
 	sizeInKB := cr.SizeInKB()
 
 	// Add base compute units for the request
@@ -53,4 +65,19 @@ func (cr *PayloadSizeMeter) ZeusComputeUnitsConsumed() float64 {
 	}
 
 	return computeUnits
+}
+
+func (cr *PayloadSizeMeter) ZeusResponseComputeUnitsConsumed() float64 {
+	sizeInKB := cr.SizeInKB()
+	computeUnits := ZeusUnitsPerKB
+	// If the payload size is greater than 1KB, add compute units based on the payload size
+	if sizeInKB > 1 {
+		// If the payload size is less than or equal to 1KB, add 1 Zeus compute unit
+		computeUnits += sizeInKB
+	}
+	return computeUnits
+}
+
+func (cr *PayloadSizeMeter) Reset() {
+	atomic.StoreInt64(&cr.Size, 0)
 }

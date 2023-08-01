@@ -1,7 +1,6 @@
 package v1_iris
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"io"
@@ -38,14 +37,14 @@ func RpcLoadBalancerRequestHandler(c echo.Context) error {
 		log.Err(err)
 		return err
 	}
-	cr := &iris_usage_meters.PayloadSizeMeter{R: bytes.NewReader(bodyBytes)}
+	payloadSizingMeter := iris_usage_meters.NewPayloadSizeMeter(bodyBytes)
 	request := new(ProxyRequest)
 	request.Body = echo.Map{}
-	if err = json.NewDecoder(cr).Decode(&request.Body); err != nil {
+	if err = json.NewDecoder(payloadSizingMeter).Decode(&request.Body); err != nil {
 		log.Err(err)
 		return err
 	}
-	return request.ProcessRpcLoadBalancerRequest(c, cr)
+	return request.ProcessRpcLoadBalancerRequest(c, payloadSizingMeter)
 }
 
 func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter) error {
@@ -59,13 +58,14 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	if ok {
 		plan = sp
 	}
-	routeInfo, err := iris_redis.IrisRedis.GetNextRoute(context.Background(), ou.OrgID, routeGroup)
+	payloadSizingMeter.Plan = plan
+	routeInfo, err := iris_redis.IrisRedis.GetNextRoute(context.Background(), ou.OrgID, routeGroup, payloadSizingMeter)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Str("routeGroup", routeGroup).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.GetNextRoute")
 		errResp := Response{Message: "routeGroup not found"}
 		return c.JSON(http.StatusBadRequest, errResp)
 	}
-
+	payloadSizingMeter.Reset()
 	req := &iris_api_requests.ApiProxyRequest{
 		Url:              routeInfo.RoutePath,
 		ServicePlan:      plan,
@@ -82,5 +82,11 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 		log.Err(err).Interface("ou", ou).Str("route", routeInfo.RoutePath).Msg("ProcessRpcLoadBalancerRequest: rw.ExtLoadBalancerRequest")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
+	go func(orgID int, ps *iris_usage_meters.PayloadSizeMeter) {
+		err = iris_redis.IrisRedis.IncrementResponseUsageRateMeter(context.Background(), ou.OrgID, ps)
+		if err != nil {
+			log.Err(err).Interface("ou", ou).Str("route", routeInfo.RoutePath).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.IncrementResponseUsageRateMeter")
+		}
+	}(ou.OrgID, payloadSizingMeter)
 	return c.JSON(http.StatusOK, resp.Response)
 }

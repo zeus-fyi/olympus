@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
+	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
 
 func (r *IrisRedisTestSuite) TestInitOrgTables() {
@@ -41,7 +42,7 @@ func (r *IrisRedisTestSuite) TestInitOrgTables() {
 	r.NoError(err)
 	m := make(map[string]int)
 	for i := 0; i < 10; i++ {
-		routeEndpoint, rerr := IrisRedis.GetNextRoute(context.Background(), 1, rgName)
+		routeEndpoint, rerr := IrisRedis.GetNextRoute(context.Background(), 1, rgName, nil)
 		r.NoError(rerr)
 		r.NotEmpty(routeEndpoint)
 		fmt.Println(routeEndpoint)
@@ -60,7 +61,7 @@ func (r *IrisRedisTestSuite) TestInitOrgTables() {
 	}
 	err = IrisRedis.AddOrUpdateOrgRoutingGroup(context.Background(), 1, rgName, routes)
 	for i := 0; i < 10; i++ {
-		routeEndpoint, rerr := IrisRedis.GetNextRoute(context.Background(), 1, rgName)
+		routeEndpoint, rerr := IrisRedis.GetNextRoute(context.Background(), 1, rgName, nil)
 		r.NoError(rerr)
 		r.NotEmpty(routeEndpoint)
 		fmt.Println(routeEndpoint)
@@ -87,7 +88,7 @@ func (r *IrisRedisTestSuite) TestRoundRobin() {
 
 	m := make(map[string]int)
 	for i := 0; i < 10; i++ {
-		routeEndpoint, rerr := IrisRedis.GetNextRoute(context.Background(), 1, rgName)
+		routeEndpoint, rerr := IrisRedis.GetNextRoute(context.Background(), 1, rgName, nil)
 		r.NoError(rerr)
 		r.NotEmpty(routeEndpoint.RoutePath)
 		fmt.Println(routeEndpoint)
@@ -105,6 +106,44 @@ func (r *IrisRedisTestSuite) TestRoundRobin() {
 	err = IrisRedis.DeleteOrgRoutingGroup(context.Background(), 1, rgName)
 	r.NoError(err)
 
-	_, rerr := IrisRedis.GetNextRoute(context.Background(), 1, rgName)
+	_, rerr := IrisRedis.GetNextRoute(context.Background(), 1, rgName, nil)
 	r.Error(rerr)
+}
+
+func (r *IrisRedisTestSuite) TestLoadBalancerRateMeter() {
+	rgName := "testGroupZ"
+	routes := []iris_models.RouteInfo{
+		{
+			RoutePath: "https://zeus.fyi",
+			Referers:  []string{"https://google.com", "https://yahoo.com"},
+		},
+		{
+			RoutePath: "https://artemis.zeus.fyi",
+			Referers:  nil,
+		},
+	}
+	err := IrisRedis.AddOrUpdateOrgRoutingGroup(context.Background(), 1, rgName, routes)
+	r.NoError(err)
+
+	meter := iris_usage_meters.NewPayloadSizeMeter(nil)
+
+	//m := make(map[string]int)
+	//for i := 0; i < 10; i++ {
+	//	meter.Add(2048)
+	//	routeEndpoint, rerr := IrisRedis.GetNextRoute(context.Background(), 1, rgName, meter)
+	//	r.NoError(rerr)
+	//	r.NotEmpty(routeEndpoint.RoutePath)
+	//	fmt.Println(routeEndpoint)
+	//	m[routeEndpoint.RoutePath]++
+	//
+	//	meter.Reset()
+	//	meter.Add(2048 * 10)
+	//	err = IrisRedis.IncrementResponseUsageRateMeter(context.Background(), 1, meter)
+	//	r.NoError(err)
+	//}
+
+	meter.Reset()
+	meter.Add(1024 * 1000)
+	err = IrisRedis.IncrementResponseUsageRateMeter(context.Background(), 1, meter)
+	r.NoError(err)
 }

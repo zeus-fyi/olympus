@@ -14,10 +14,13 @@ func orgRouteTag(orgID int, rgName string) string {
 	return fmt.Sprintf("%d-%s", orgID, rgName)
 }
 
+func orgRateLimitTag(orgID int) string {
+	return fmt.Sprintf("%d:%d", orgID, time.Now().Unix())
+}
+
 func (m *IrisCache) GetNextRoute(ctx context.Context, orgID int, rgName string, meter *iris_usage_meters.PayloadSizeMeter) (iris_models.RouteInfo, error) {
 	// Generate the rate limiter key with the Unix timestamp
-	rateLimiterKey := fmt.Sprintf("%d:%d", orgID, time.Now().Unix())
-
+	rateLimiterKey := orgRateLimitTag(orgID)
 	orgRequests := fmt.Sprintf("%d-total-zu-count", orgID)
 	if meter != nil {
 		orgRequests = fmt.Sprintf("%d-%s-total-zu-size", orgID, meter.Month)
@@ -38,7 +41,7 @@ func (m *IrisCache) GetNextRoute(ctx context.Context, orgID int, rgName string, 
 	}
 
 	// Set the key to expire after 2 seconds
-	pipe.Expire(ctx, rateLimiterKey, 2*time.Second)
+	pipe.Expire(ctx, rateLimiterKey, 10*time.Second)
 
 	// Generate the route key
 	routeKey := orgRouteTag(orgID, rgName)
@@ -80,7 +83,7 @@ func (m *IrisCache) GetNextRoute(ctx context.Context, orgID int, rgName string, 
 
 func (m *IrisCache) IncrementResponseUsageRateMeter(ctx context.Context, orgID int, meter *iris_usage_meters.PayloadSizeMeter) error {
 	// Generate the rate limiter key with the Unix timestamp
-	rateLimiterKey := fmt.Sprintf("%d:%d", orgID, time.Now().Unix())
+	rateLimiterKey := orgRateLimitTag(orgID)
 	orgRequests := fmt.Sprintf("%d-total-zu-count", orgID)
 	if meter != nil {
 		orgRequests = fmt.Sprintf("%d-%s-total-zu-size", orgID, meter.Month)

@@ -69,11 +69,13 @@ func (cr *PayloadSizeMeter) ZeusRequestComputeUnitsConsumed() float64 {
 
 func (cr *PayloadSizeMeter) ZeusResponseComputeUnitsConsumed() float64 {
 	sizeInKB := cr.SizeInKB()
-	computeUnits := ZeusUnitsPerKB
 	// If the payload size is greater than 1KB, add compute units based on the payload size
+	computeUnits := 0.0
 	if sizeInKB > 1 {
 		// If the payload size is less than or equal to 1KB, add 1 Zeus compute unit
 		computeUnits += sizeInKB
+	} else {
+		computeUnits = ZeusUnitsPerKB
 	}
 	return computeUnits
 }

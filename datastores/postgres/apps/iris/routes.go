@@ -381,7 +381,7 @@ func DeleteOrgGroupAndRoutes(ctx context.Context, orgID int, routeGroupName stri
 		    WHERE route_group_id IN ( SELECT ortg.route_group_id
 			  						  FROM org_routes_groups ortg
 			  						  INNER JOIN org_route_groups org ON org.route_group_id = ortg.route_group_id		
-									  WHERE org.org_id = $1 AND ortg.route_group_name = $2)
+									  WHERE org.org_id = $1 AND org.route_group_name = $2)
 		) 
 		DELETE FROM org_route_groups
 		WHERE org_id = $1 AND route_group_name = $2

@@ -275,7 +275,7 @@ func (m *IrisCache) CheckRateLimit(ctx context.Context, orgID int, plan string, 
 	case "test":
 		// check 1k ZU/s
 		// check max 50M ZU/month
-		rateLimited, monthlyLimited = um.IsRateLimited(100, 10000)
+		rateLimited, monthlyLimited = um.IsRateLimited(100, 1000)
 	default:
 	}
 	if rateLimited {
@@ -305,17 +305,8 @@ func (m *IrisCache) GetUsageRates(ctx context.Context, orgID int, meter *iris_us
 	// Execute the pipeline
 	_, err := pipe.Exec(ctx)
 	if err == redis.Nil {
-		return iris_usage_meters.UsageMeter{
-			RateLimit:    0.0,
-			MonthlyUsage: 0.0,
-		}, nil
+		err = nil
 	}
-	if err != nil {
-		// If there's an error, log it and return it
-		fmt.Printf("error during pipeline execution: %s\n", err.Error())
-		return iris_usage_meters.UsageMeter{}, err
-	}
-
 	// Get the values from the commands
 	rateLimit, err := rateLimitCmd.Result()
 	rateLimitVal := 0.0

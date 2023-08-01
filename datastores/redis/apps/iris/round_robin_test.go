@@ -127,20 +127,20 @@ func (r *IrisRedisTestSuite) TestLoadBalancerRateMeter() {
 
 	meter := iris_usage_meters.NewPayloadSizeMeter(nil)
 
-	//m := make(map[string]int)
-	//for i := 0; i < 10; i++ {
-	//	meter.Add(2048)
-	//	routeEndpoint, rerr := IrisRedis.GetNextRoute(context.Background(), 1, rgName, meter)
-	//	r.NoError(rerr)
-	//	r.NotEmpty(routeEndpoint.RoutePath)
-	//	fmt.Println(routeEndpoint)
-	//	m[routeEndpoint.RoutePath]++
-	//
-	//	meter.Reset()
-	//	meter.Add(2048 * 10)
-	//	err = IrisRedis.IncrementResponseUsageRateMeter(context.Background(), 1, meter)
-	//	r.NoError(err)
-	//}
+	m := make(map[string]int)
+	for i := 0; i < 10; i++ {
+		meter.Add(2048)
+		routeEndpoint, rerr := IrisRedis.GetNextRoute(context.Background(), 1, rgName, meter)
+		r.NoError(rerr)
+		r.NotEmpty(routeEndpoint.RoutePath)
+		fmt.Println(routeEndpoint)
+		m[routeEndpoint.RoutePath]++
+
+		meter.Reset()
+		meter.Add(2048 * 10)
+		err = IrisRedis.IncrementResponseUsageRateMeter(context.Background(), 1, meter)
+		r.NoError(err)
+	}
 
 	meter.Reset()
 	meter.Add(1024 * 1000)
@@ -156,6 +156,7 @@ func (r *IrisRedisTestSuite) TestRateLimit() {
 	r.NotNil(um)
 	fmt.Println(um)
 
+	// should exceed monthly limit of 1k ZU
 	err = IrisRedis.CheckRateLimit(context.Background(), 1, "test", meter)
-	r.NoError(err)
+	r.Error(err)
 }

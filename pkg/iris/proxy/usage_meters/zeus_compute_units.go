@@ -20,6 +20,15 @@ type PayloadSizeMeter struct {
 	Month string
 }
 
+type UsageMeter struct {
+	RateLimit    float64
+	MonthlyUsage float64
+}
+
+func (u *UsageMeter) IsRateLimited(rateLimit, monthlyLimit float64) (bool, bool) {
+	return u.RateLimit > rateLimit, u.MonthlyUsage > monthlyLimit
+}
+
 func NewPayloadSizeMeter(bodyBytes []byte) *PayloadSizeMeter {
 	month := time.Now().UTC().Month()
 	return &PayloadSizeMeter{

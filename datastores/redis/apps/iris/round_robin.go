@@ -81,7 +81,6 @@ func (m *IrisCache) GetNextRoute(ctx context.Context, orgID int, rgName string, 
 func (m *IrisCache) IncrementResponseUsageRateMeter(ctx context.Context, orgID int, meter *iris_usage_meters.PayloadSizeMeter) error {
 	// Generate the rate limiter key with the Unix timestamp
 	rateLimiterKey := fmt.Sprintf("%d:%d", orgID, time.Now().Unix())
-
 	orgRequests := fmt.Sprintf("%d-total-zu-count", orgID)
 	if meter != nil {
 		orgRequests = fmt.Sprintf("%d-%s-total-zu-size", orgID, meter.Month)
@@ -94,6 +93,10 @@ func (m *IrisCache) IncrementResponseUsageRateMeter(ctx context.Context, orgID i
 		_ = pipe.IncrByFloat(ctx, orgRequests, meter.ZeusResponseComputeUnitsConsumed())
 		// Increment the rate limiter key
 		_ = pipe.IncrByFloat(ctx, rateLimiterKey, meter.ZeusResponseComputeUnitsConsumed())
+	} else {
+		_ = pipe.Incr(ctx, orgRequests)
+		// Increment the rate limiter key
+		_ = pipe.Incr(ctx, rateLimiterKey)
 	}
 	// Execute the transaction
 	_, err := pipe.Exec(ctx)

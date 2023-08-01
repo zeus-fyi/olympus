@@ -81,6 +81,15 @@ func (p *DeleteOrgRoutingTableRequest) DeleteOrgRoutingTables(c echo.Context) er
 	return c.JSON(http.StatusOK, nil)
 }
 
+func InternalDeleteOrgGroupRoutingTableRequestHandler(c echo.Context) error {
+	request := new(DeleteOrgRoutingTableRequest)
+	if err := c.Bind(&request); err != nil {
+		log.Err(err)
+		return err
+	}
+	return request.DeleteOrgGroupRoutingTable(c)
+}
+
 func (p *DeleteOrgRoutingTableRequest) DeleteOrgGroupRoutingTable(c echo.Context) error {
 	orgID := c.Param("orgID")
 	if len(orgID) == 0 {

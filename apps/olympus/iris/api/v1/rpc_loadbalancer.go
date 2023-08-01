@@ -58,6 +58,9 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	if ok {
 		plan = sp
 	}
+	if plan == "" {
+		return c.JSON(http.StatusBadRequest, Response{Message: "no service plan found"})
+	}
 	// todo refactor to fetch auth & plan from redis
 	err := iris_redis.IrisRedis.CheckRateLimit(context.Background(), ou.OrgID, plan, payloadSizingMeter)
 	if err != nil {

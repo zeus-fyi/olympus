@@ -402,16 +402,18 @@ type TableUsage struct {
 func OrgEndpointsAndGroupTablesCount(ctx context.Context, orgID int) (*TableUsage, error) {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `
-		SELECT COUNT(*) as table_count, (SELECT COUNT(*) FROM org_routes WHERE org_id = $1) as endpoint_count
-		FROM org_route_groups
-		WHERE org_id = $1 
-		AND EXISTS (SELECT 1 FROM org_routes_groups WHERE org_routes_groups.route_group_id = org_route_groups.route_group_id);
+		SELECT COALESCE(COUNT(*), 0) as endpoint_count, 
+       		COALESCE((SELECT COUNT(*) FROM org_route_groups
+		WHERE org_id = $1
+		AND EXISTS (SELECT 1 FROM org_routes_groups WHERE org_routes_groups.route_group_id = org_route_groups.route_group_id)),0) as table_count
+		FROM org_routes 
+		WHERE org_id = $1
 	`
 
 	endpointCount, groupTablesCount := 0, 0
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, orgID).Scan(&endpointCount, &groupTablesCount)
 	if err == pgx.ErrNoRows {
-		log.Warn().Msg("No routes to delete")
+		log.Warn().Msg("OrgEndpointsAndGroupTablesCount has no entries")
 		return &TableUsage{0, 0}, nil
 	}
 	if err != nil {

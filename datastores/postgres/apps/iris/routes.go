@@ -393,3 +393,29 @@ func DeleteOrgGroupAndRoutes(ctx context.Context, orgID int, routeGroupName stri
 	}
 	return misc.ReturnIfErr(err, q.LogHeader("DeleteOrgGroupAndRoutes"))
 }
+
+type TableUsage struct {
+	EndpointCount int `json:"endpointCount"`
+	TableCount    int `json:"tableCount"`
+}
+
+func OrgEndpointsAndGroupTablesCount(ctx context.Context, orgID int) (*TableUsage, error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `
+		SELECT COUNT(*) as table_count, (SELECT COUNT(*) FROM org_routes WHERE org_id = $1) as endpoint_count
+		FROM org_route_groups
+		WHERE org_id = $1 
+		AND EXISTS (SELECT 1 FROM org_routes_groups WHERE org_routes_groups.route_group_id = org_route_groups.route_group_id);
+	`
+
+	endpointCount, groupTablesCount := 0, 0
+	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, orgID).Scan(&endpointCount, &groupTablesCount)
+	if err == pgx.ErrNoRows {
+		log.Warn().Msg("No routes to delete")
+		return &TableUsage{0, 0}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &TableUsage{endpointCount, groupTablesCount}, misc.ReturnIfErr(err, q.LogHeader("OrgEndpointsAndGroupTablesCount"))
+}

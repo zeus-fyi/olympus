@@ -101,6 +101,18 @@ func (s *IrisTestSuite) TestInsertOrgRoutes() {
 	s.Require().Nil(err)
 }
 
+func (s *IrisTestSuite) TestSelectOrgEndpointsAndGroupTablesCount() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+
+	resp, err := OrgEndpointsAndGroupTablesCount(ctx, s.Tc.ProductionLocalTemporalOrgID)
+	s.Require().Nil(err)
+	s.Require().NotNil(resp)
+
+	fmt.Println(resp)
+	s.Require().NotZero(resp.TableCount)
+	s.Require().NotZero(resp.EndpointCount)
+}
+
 func (s *IrisTestSuite) TestInsertOrgRouteQuiknode() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 

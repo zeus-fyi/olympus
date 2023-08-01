@@ -58,6 +58,13 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizi
 	if ok {
 		plan = sp
 	}
+	// todo refactor to fetch auth & plan from redis
+	err := iris_redis.IrisRedis.CheckRateLimit(context.Background(), ou.OrgID, plan, payloadSizingMeter)
+	if err != nil {
+		log.Err(err).Interface("ou", ou).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.CheckRateLimit")
+		return c.JSON(http.StatusTooManyRequests, Response{Message: err.Error()})
+	}
+
 	payloadSizingMeter.Plan = plan
 	routeInfo, err := iris_redis.IrisRedis.GetNextRoute(context.Background(), ou.OrgID, routeGroup, payloadSizingMeter)
 	if err != nil {

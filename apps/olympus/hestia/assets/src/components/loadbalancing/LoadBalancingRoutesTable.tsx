@@ -14,7 +14,7 @@ import TextField from "@mui/material/TextField";
 export function LoadBalancingRoutesTable(props: any) {
     const { loading,rowsPerPage, page,selected, endpoints, handleSelectAllClick, handleClick,
         handleChangeRowsPerPage,handleChangePage, groupName,
-        isAdding, setIsAdding, newEndpoint, setNewEndpoint, isUpdatingGroup,
+        isAdding, setIsAdding, newEndpoint, setNewEndpoint, isUpdatingGroup, handleAddGroupTableEndpointsSubmission,
         handleSubmitNewEndpointSubmission, handleDeleteEndpointsSubmission, handleUpdateGroupTableEndpointsSubmission
     } = props
 
@@ -42,7 +42,7 @@ export function LoadBalancingRoutesTable(props: any) {
                 {selected.length > 0 && isUpdatingGroup && (
                     <Box sx={{ mb: 2 }}>
                         <span>({selected.length} selected endpoints)</span>
-                        <Button variant="outlined" color="secondary" onClick={handleUpdateGroupTableEndpointsSubmission} style={{marginLeft: '10px'}}>
+                        <Button variant="outlined" color="secondary" onClick={handleAddGroupTableEndpointsSubmission} style={{marginLeft: '10px'}}>
                             Add
                         </Button>
                     </Box>

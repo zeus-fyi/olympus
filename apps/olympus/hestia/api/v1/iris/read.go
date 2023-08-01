@@ -29,6 +29,7 @@ func (r *ReadOrgRoutesRequest) Read(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	routes, err := iris_models.SelectOrgRoutes(context.Background(), ou.OrgID)
 	if err != nil {
+		log.Err(err).Msg("ReadOrgRoutesRequest: SelectOrgRoutes")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	resp := OrgRoutesResponse{
@@ -126,6 +127,7 @@ func (r *ReadOrgRoutingGroupsRequest) ReadAllOrgGroupsAndEndpoints(c echo.Contex
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	groupedRoutes, err := iris_models.SelectAllEndpointsAndOrgGroupRoutesByOrg(context.Background(), ou.OrgID)
 	if err != nil {
+		log.Err(err).Msg("ReadAllOrgGroupsAndEndpointsRequest: SelectAllEndpointsAndOrgGroupRoutesByOrg")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	resp := OrgGroupsRoutesResponse{

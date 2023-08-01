@@ -27,6 +27,9 @@ func (i *IrisApiRequestsWorkflow) CacheRefreshAllOrgRoutingTablesWorkflow(ctx wo
 
 	for orgID, og := range ogr.Map {
 		for rgName, routes := range og {
+			if rgName == "unused" {
+				continue
+			}
 			addOrUpdateOrgRoutingTableCtx := workflow.WithActivityOptions(ctx, ao)
 			err = workflow.ExecuteActivity(addOrUpdateOrgRoutingTableCtx, i.UpdateOrgRoutingTable, orgID, rgName, routes).Get(addOrUpdateOrgRoutingTableCtx, nil)
 			if err != nil {
@@ -56,6 +59,9 @@ func (i *IrisApiRequestsWorkflow) CacheRefreshOrgRoutingTablesWorkflow(ctx workf
 	}
 	for _, og := range ogr.Map {
 		for rgName, routes := range og {
+			if rgName == "unused" {
+				continue
+			}
 			addOrUpdateOrgRoutingTableCtx := workflow.WithActivityOptions(ctx, ao)
 			err = workflow.ExecuteActivity(addOrUpdateOrgRoutingTableCtx, i.UpdateOrgRoutingTable, orgID, rgName, routes).Get(addOrUpdateOrgRoutingTableCtx, nil)
 			if err != nil {
@@ -85,6 +91,9 @@ func (i *IrisApiRequestsWorkflow) CacheRefreshOrgGroupTableWorkflow(ctx workflow
 	}
 	for _, og := range ogr.Map {
 		for rgName, routes := range og {
+			if rgName == "unused" {
+				continue
+			}
 			addOrUpdateOrgRoutingTableCtx := workflow.WithActivityOptions(ctx, ao)
 			err = workflow.ExecuteActivity(addOrUpdateOrgRoutingTableCtx, i.UpdateOrgRoutingTable, orgID, rgName, routes).Get(addOrUpdateOrgRoutingTableCtx, nil)
 			if err != nil {

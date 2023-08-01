@@ -19,7 +19,6 @@ func DeleteOrgRoutesRequestHandler(c echo.Context) error {
 }
 
 func (r *OrgGroupRoutesRequest) DeleteOrgRoutes(c echo.Context) error {
-
 	if len(r.Routes) == 0 && r.GroupName == "" {
 		return c.JSON(http.StatusBadRequest, "no routes provided for deletion")
 	}

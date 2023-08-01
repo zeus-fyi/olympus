@@ -53,7 +53,7 @@ func CreateOrgGroupRoutesRequestHandler(c echo.Context) error {
 
 type OrgGroupRoutesRequest struct {
 	GroupName string   `json:"groupName,omitempty"`
-	Routes    []string `json:"routes"`
+	Routes    []string `json:"routes,omitempty"`
 }
 
 func (r *OrgGroupRoutesRequest) CreateGroupRoute(c echo.Context) error {

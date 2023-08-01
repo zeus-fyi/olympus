@@ -245,14 +245,33 @@ function LoadBalancingDashboardContent() {
     };
 
     const handleUpdateGroupTableEndpointsSubmission = async () => {
-        const newSelected = selected.map((endpoint) => endpoint);
-        const payload = {groupName: groupName, routes: newSelected.concat(groups[groupName])};
-
         try {
             setLoading(true); // Set loading to false regardless of success or failure.
+            const selectedSet = new Set(selected); // Create a Set for O(1) lookup
+            const payload: IrisOrgGroupRoutesRequest = {
+                groupName: groupName,
+                routes: tableRoutes.filter(route => selectedSet.has(route)) // Filter tableRoutes
+            };
             const response = await loadBalancingApiGateway.updateGroupRoutingTable(payload);
-            console.log(response.status)
-            // handle the response accordingly
+        } catch (error) {
+            console.log("error", error);
+        } finally {
+            setLoading(false); // Set loading to false regardless of success or failure.
+            setReload(!reload); // Trigger reload by flipping the state
+        }
+    }
+
+    const handleAddGroupTableEndpointsSubmission = async () => {
+        try {
+            setLoading(true); // Set loading to true
+            const selectedSet = new Set(selected); // Create a Set for O(1) lookup
+            groups[groupName].forEach(route => selectedSet.add(route)); // Add each route from tableRoutes to selectedSet
+
+            const payload: IrisOrgGroupRoutesRequest = {
+                groupName: groupName,
+                routes: Array.from(selectedSet) // Convert the Set back to an array
+            };
+            const response = await loadBalancingApiGateway.updateGroupRoutingTable(payload);
         } catch (error) {
             console.log("error", error);
         } finally {
@@ -450,6 +469,7 @@ function LoadBalancingDashboardContent() {
                             handleSubmitNewEndpointSubmission={handleSubmitNewEndpointSubmission}
                             handleDeleteEndpointsSubmission={handleDeleteEndpointsSubmission}
                             handleUpdateGroupTableEndpointsSubmission={handleUpdateGroupTableEndpointsSubmission}
+                            handleAddGroupTableEndpointsSubmission={handleAddGroupTableEndpointsSubmission}
                         />
                     </Container>
                     <ZeusCopyright sx={{ pt: 4 }} />

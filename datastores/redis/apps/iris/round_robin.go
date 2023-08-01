@@ -5,42 +5,40 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog/log"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
+	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
 
 func orgRouteTag(orgID int, rgName string) string {
 	return fmt.Sprintf("%d-%s", orgID, rgName)
 }
 
-var LocalRateLimiterCache = cache.New(1*time.Second, 2*time.Second)
-
-func (m *IrisCache) GetNextRoute(ctx context.Context, orgID int, rgName string) (iris_models.RouteInfo, error) {
+func (m *IrisCache) GetNextRoute(ctx context.Context, orgID int, rgName string, meter *iris_usage_meters.PayloadSizeMeter) (iris_models.RouteInfo, error) {
 	// Generate the rate limiter key with the Unix timestamp
 	rateLimiterKey := fmt.Sprintf("%d:%d", orgID, time.Now().Unix())
-	orgRequests := fmt.Sprintf("%d-total-req-count", orgID)
 
-	_, found := LocalRateLimiterCache.Get(rateLimiterKey)
-	if found {
-		err := LocalRateLimiterCache.Increment(rateLimiterKey, 1)
-		if err != nil {
-			log.Err(err).Msg("LocalRateLimiterCache: GetNextRoute")
-		}
-	} else {
-		LocalRateLimiterCache.Set(rateLimiterKey, 1, 1*time.Second)
+	orgRequests := fmt.Sprintf("%d-total-zu-count", orgID)
+	if meter != nil {
+		orgRequests = fmt.Sprintf("%d-%s-total-zu-size", orgID, meter.Month)
 	}
 
 	// Use Redis transaction (pipeline) to perform all operations atomically
 	pipe := m.Writer.TxPipeline()
 
-	_ = pipe.Incr(ctx, orgRequests)
+	if meter != nil {
+		// Increment the payload size meter
+		_ = pipe.IncrByFloat(ctx, orgRequests, meter.ZeusRequestComputeUnitsConsumed())
+		// Increment the rate limiter key
+		_ = pipe.IncrByFloat(ctx, rateLimiterKey, meter.ZeusRequestComputeUnitsConsumed())
+	} else {
+		_ = pipe.Incr(ctx, orgRequests)
+		// Increment the rate limiter key
+		_ = pipe.Incr(ctx, rateLimiterKey)
+	}
 
-	// Increment the rate limiter key
-	_ = pipe.Incr(ctx, rateLimiterKey)
-
-	// Set the key to expire after 3 seconds
-	pipe.Expire(ctx, rateLimiterKey, 3*time.Second)
+	// Set the key to expire after 2 seconds
+	pipe.Expire(ctx, rateLimiterKey, 2*time.Second)
 
 	// Generate the route key
 	routeKey := orgRouteTag(orgID, rgName)
@@ -78,6 +76,35 @@ func (m *IrisCache) GetNextRoute(ctx context.Context, orgID int, rgName string) 
 		RoutePath: endpointCmd.Val(),
 		Referers:  referers,
 	}, nil
+}
+
+func (m *IrisCache) IncrementResponseUsageRateMeter(ctx context.Context, orgID int, meter *iris_usage_meters.PayloadSizeMeter) error {
+	// Generate the rate limiter key with the Unix timestamp
+	rateLimiterKey := fmt.Sprintf("%d:%d", orgID, time.Now().Unix())
+	orgRequests := fmt.Sprintf("%d-total-zu-count", orgID)
+	if meter != nil {
+		orgRequests = fmt.Sprintf("%d-%s-total-zu-size", orgID, meter.Month)
+	}
+
+	// Use Redis transaction (pipeline) to perform all operations atomically
+	pipe := m.Writer.TxPipeline()
+	if meter != nil {
+		// Increment the payload size meter
+		_ = pipe.IncrByFloat(ctx, orgRequests, meter.ZeusResponseComputeUnitsConsumed())
+		// Increment the rate limiter key
+		_ = pipe.IncrByFloat(ctx, rateLimiterKey, meter.ZeusResponseComputeUnitsConsumed())
+	} else {
+		_ = pipe.Incr(ctx, orgRequests)
+		// Increment the rate limiter key
+		_ = pipe.Incr(ctx, rateLimiterKey)
+	}
+	// Execute the transaction
+	_, err := pipe.Exec(ctx)
+	if err != nil {
+		log.Err(err).Msgf("AddOrUpdateOrgRoutingGroup")
+		return err
+	}
+	return nil
 }
 
 func (m *IrisCache) AddOrUpdateOrgRoutingGroup(ctx context.Context, orgID int, rgName string, routes []iris_models.RouteInfo) error {
@@ -191,3 +218,16 @@ func (m *IrisCache) refreshRoutingTablesForOrgGroup(ctx context.Context, orgID i
 	}
 	return nil
 }
+
+/*
+var LocalRateLimiterCache = cache.New(1*time.Second, 2*time.Second)
+_, found := LocalRateLimiterCache.Get(rateLimiterKey)
+if found {
+	err := LocalRateLimiterCache.Increment(rateLimiterKey, 1)
+	if err != nil {
+		log.Err(err).Msg("LocalRateLimiterCache: GetNextRoute")
+	}
+} else {
+	LocalRateLimiterCache.Set(rateLimiterKey, 1, 1*time.Second)
+}
+*/

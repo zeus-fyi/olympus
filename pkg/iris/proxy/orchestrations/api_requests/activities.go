@@ -7,6 +7,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
+	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
 
 type IrisApiRequestsActivities struct {
@@ -76,6 +77,10 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 		log.Err(err).Msg("Failed to relay api request")
 		return nil, err
 	}
+	if pr.PayloadSizeMeter == nil {
+		pr.PayloadSizeMeter = &iris_usage_meters.PayloadSizeMeter{}
+	}
+	pr.PayloadSizeMeter.Add(resp.Size())
 	if resp.StatusCode() >= 400 {
 		log.Err(err).Msg("Failed to relay api request")
 		return nil, fmt.Errorf("failed to relay api request: status code %d", resp.StatusCode())

@@ -1,7 +1,10 @@
 package v1_iris
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"io"
 	"net/http"
 	"time"
 
@@ -10,6 +13,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	iris_redis "github.com/zeus-fyi/olympus/datastores/redis/apps/iris"
 	iris_api_requests "github.com/zeus-fyi/olympus/pkg/iris/proxy/orchestrations/api_requests"
+	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
 )
 
 const (
@@ -29,21 +33,32 @@ type Response struct {
 }
 
 func RpcLoadBalancerRequestHandler(c echo.Context) error {
-	request := new(ProxyRequest)
-	request.Body = echo.Map{}
-	if err := c.Bind(&request.Body); err != nil {
+	bodyBytes, err := io.ReadAll(c.Request().Body)
+	if err != nil {
 		log.Err(err)
 		return err
 	}
-	return request.ProcessRpcLoadBalancerRequest(c)
+	cr := &iris_usage_meters.PayloadSizeMeter{R: bytes.NewReader(bodyBytes)}
+	request := new(ProxyRequest)
+	request.Body = echo.Map{}
+	if err = json.NewDecoder(cr).Decode(&request.Body); err != nil {
+		log.Err(err)
+		return err
+	}
+	return request.ProcessRpcLoadBalancerRequest(c, cr)
 }
 
-func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context) error {
+func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context, payloadSizingMeter *iris_usage_meters.PayloadSizeMeter) error {
 	routeGroup := c.QueryParam("routeGroup")
 	if routeGroup == "" {
 		return c.JSON(http.StatusBadRequest, Response{Message: "routeGroup is required"})
 	}
 	ou := c.Get("orgUser").(org_users.OrgUser)
+	plan := ""
+	sp, ok := c.Get("servicePlan").(string)
+	if ok {
+		plan = sp
+	}
 	routeInfo, err := iris_redis.IrisRedis.GetNextRoute(context.Background(), ou.OrgID, routeGroup)
 	if err != nil {
 		log.Err(err).Interface("ou", ou).Str("routeGroup", routeGroup).Msg("ProcessRpcLoadBalancerRequest: iris_round_robin.GetNextRoute")
@@ -51,18 +66,15 @@ func (p *ProxyRequest) ProcessRpcLoadBalancerRequest(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, errResp)
 	}
 
-	plan := ""
-	sp, ok := c.Get("servicePlan").(string)
-	if ok {
-		plan = sp
-	}
 	req := &iris_api_requests.ApiProxyRequest{
-		Url:         routeInfo.RoutePath,
-		ServicePlan: plan,
-		Referrers:   routeInfo.Referers,
-		Payload:     p.Body,
-		IsInternal:  false,
-		Timeout:     1 * time.Minute,
+		Url:              routeInfo.RoutePath,
+		ServicePlan:      plan,
+		Referrers:        routeInfo.Referers,
+		Payload:          p.Body,
+		Response:         nil,
+		IsInternal:       false,
+		Timeout:          1 * time.Minute,
+		PayloadSizeMeter: payloadSizingMeter,
 	}
 	rw := iris_api_requests.NewArtemisApiRequestsActivities()
 	resp, err := rw.ExtLoadBalancerRequest(c.Request().Context(), req)

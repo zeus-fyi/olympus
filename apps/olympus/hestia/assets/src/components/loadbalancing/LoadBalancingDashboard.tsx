@@ -245,14 +245,14 @@ function LoadBalancingDashboardContent() {
     };
 
     const handleUpdateGroupTableEndpointsSubmission = async () => {
-        const newSelected = selected.map((endpoint) => endpoint);
-        const payload = {groupName: groupName, routes: newSelected.concat(groups[groupName])};
-
         try {
             setLoading(true); // Set loading to false regardless of success or failure.
+            const selectedSet = new Set(selected); // Create a Set for O(1) lookup
+            const payload: IrisOrgGroupRoutesRequest = {
+                groupName: groupName,
+                routes: tableRoutes.filter(route => !selectedSet.has(route)) // Filter tableRoutes
+            };
             const response = await loadBalancingApiGateway.updateGroupRoutingTable(payload);
-            console.log(response.status)
-            // handle the response accordingly
         } catch (error) {
             console.log("error", error);
         } finally {

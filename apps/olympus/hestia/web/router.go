@@ -8,9 +8,8 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	hestia_delete "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/delete"
-	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
+	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
 	hestia_access_keygen "github.com/zeus-fyi/olympus/hestia/web/access"
 	hestia_billing "github.com/zeus-fyi/olympus/hestia/web/billing"
 	hestia_login "github.com/zeus-fyi/olympus/hestia/web/login"
@@ -32,6 +31,8 @@ func WebRoutes(e *echo.Echo) *echo.Echo {
 	return e
 }
 
+const QuickNodeMarketPlace = "quickNodeMarketPlace"
+
 func InitV1Routes(e *echo.Echo) {
 	eg := e.Group("/v1")
 	eg.Use(middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
@@ -43,44 +44,18 @@ func InitV1Routes(e *echo.Echo) {
 				log.Info().Msg("InitV1ActionsRoutes: Cookie found")
 				token = cookie.Value
 
-				key, rerr := auth.VerifyBearerToken(ctx, token)
-				if rerr != nil {
-					log.Err(rerr).Msg("InitV1Routes")
-					return false, c.JSON(http.StatusInternalServerError, nil)
-				}
-				if key.PublicKeyVerified {
-					ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
-					c.Set("orgUser", ou)
-					c.Set("bearer", key.PublicKey)
-					return key.PublicKeyVerified, nil
-				}
 			}
-			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.IrisQuickNodeService)
+			key := read_keys.NewKeyReader()
+			services, err := key.QueryUserAuthedServices(ctx, token)
 			if err != nil {
-				log.Warn().Err(err).Msg("InitV1Routes: Not IrisQuickNodeService")
-				err = nil
+				log.Err(err).Msg("InitV1Routes: QueryUserAuthedServices error")
+				return false, err
 			}
-
-			key, err = auth.VerifyBearerTokenService(ctx, token, create_org_users.IrisQuickNodeService)
-			if err != nil {
-				log.Warn().Err(err).Msg("InitV1Routes: Not IrisQuickNodeService")
-				err = nil
-			}
-			if key.PublicKeyVerified {
-				ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
-				c.Set("orgUser", ou)
-				c.Set("bearer", key.PublicKey)
-				return key.PublicKeyVerified, nil
-			}
-			key, err = auth.VerifyBearerTokenService(ctx, token, create_org_users.EthereumEphemeryService)
-			if err != nil {
-				log.Err(err).Msg("InitV1Routes")
-				return false, c.JSON(http.StatusUnauthorized, nil)
-			}
+			c.Set("servicePlans", key.Services)
 			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
 			c.Set("orgUser", ou)
 			c.Set("bearer", key.PublicKey)
-			return key.PublicKeyVerified, nil
+			return len(services) > 0, nil
 		},
 	}))
 	eg.GET("/auth/status", hestia_access_keygen.AccessRequestHandler)

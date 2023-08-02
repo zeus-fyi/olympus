@@ -2,7 +2,6 @@ package hestia_quiknode_v1_routes
 
 import (
 	"context"
-	"errors"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -47,9 +46,6 @@ func InitV1RoutesServices(e *echo.Echo) {
 		}
 		if QuickNodePassword != password {
 			return false, nil
-		}
-		if len(qnEndpointID) <= 0 {
-			return false, errors.New("missing x-quicknode-id header")
 		}
 		key, err := auth.VerifyQuickNodeToken(context.Background(), qnEndpointID)
 		if err != nil {

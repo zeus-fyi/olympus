@@ -139,6 +139,7 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 			Domain:   hestia_login.Domain,
 			SameSite: http.SameSiteNoneMode,
 			Expires:  time.Now().Add(24 * time.Hour),
+			Path:     "/",
 		}
 		c.SetCookie(cookie)
 		li := hestia_login.LoginResponse{

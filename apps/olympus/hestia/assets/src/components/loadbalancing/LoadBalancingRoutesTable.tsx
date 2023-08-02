@@ -18,15 +18,12 @@ export function LoadBalancingRoutesTable(props: any) {
         handleSubmitNewEndpointSubmission, handleDeleteEndpointsSubmission, handleUpdateGroupTableEndpointsSubmission
     } = props
 
-    if (loading) {
+    if (loading == true) {
         return <div>Loading...</div> // Display loading message while data is fetching
     }
-
-    if (endpoints === null || endpoints === undefined) {
-        return (<div></div>)
-    }
+    let safeEndpoints = endpoints ?? [];
     const emptyRows =
-        page > 0 ? Math.max(0, (1 + page) * rowsPerPage - endpoints.length) : 0;
+        page > 0 ? Math.max(0, (1 + page) * rowsPerPage - safeEndpoints.length) : 0;
 
     return (
         <div>
@@ -54,8 +51,8 @@ export function LoadBalancingRoutesTable(props: any) {
                                 <TableCell padding="checkbox">
                                     <Checkbox
                                         color="primary"
-                                        indeterminate={selected.length > 0 && selected.length < endpoints.length}
-                                        checked={endpoints.length > 0 && selected.length === endpoints.length}
+                                        indeterminate={safeEndpoints.length > 0 && selected.length < safeEndpoints.length}
+                                        checked={safeEndpoints.length > 0 && selected.length === safeEndpoints.length}
                                         onChange={handleSelectAllClick}
                                     />
                                 </TableCell>
@@ -84,7 +81,7 @@ export function LoadBalancingRoutesTable(props: any) {
                                     </TableCell>
                                 </TableRow>
                             )}
-                            {endpoints.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row: string, i: number) => (
+                            {safeEndpoints.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row: string, i: number) => (
                                 <TableRow
                                     key={i}
                                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
@@ -112,7 +109,7 @@ export function LoadBalancingRoutesTable(props: any) {
                                 <TablePagination
                                     rowsPerPageOptions={[10, 25, 100, { label: 'All', value: -1 }]}
                                     colSpan={4}
-                                    count={endpoints.length}
+                                    count={safeEndpoints.length}
                                     rowsPerPage={rowsPerPage}
                                     page={page}
                                     SelectProps={{

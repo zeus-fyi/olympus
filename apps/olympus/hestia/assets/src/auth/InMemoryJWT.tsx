@@ -1,4 +1,5 @@
 import {configService} from "../config/config";
+import axios from "axios";
 
 interface JWTManager {
     ereaseToken: () => boolean;
@@ -51,34 +52,38 @@ const inMemoryJWTManager = (): JWTManager => {
 
     // The method make a call to the refresh-token endpoint
     // If there is a valid cookie, the endpoint will set a fresh jwt in memory.
-    const getRefreshedToken = () => {
+    const getRefreshedToken = async (): Promise<boolean> => {
         const sessionID = getToken();
-        const request = new Request(refreshEndpoint, {
-            method: 'GET',
-            headers: new Headers({ 'Content-Type': 'application/json'}),
-            credentials: 'include',
-        });
-        if (sessionID) {
-            request.headers.append('Authorization', `Bearer ${sessionID}`)
-        }
-        return fetch(request)
-            .then((response) => {
-                if (response.status !== 200) {
-                    ereaseToken();
-                    global.console.log(
-                        'Failed to renew the jwt from the refresh token.'
-                    );
-                    return { token: null };
-                }
-                return response.json();
-            })
-            .then(({ token, tokenExpiry }) => {
-                if (token) {
-                    setToken(token, tokenExpiry);
-                    return true;
-                }
-                return false;
+        const headers = {
+            'Content-Type': 'application/json',
+            ...(sessionID ? { Authorization: `Bearer ${sessionID}` } : {})
+        };
+
+        try {
+            const response = await axios.get(refreshEndpoint, {
+                headers: headers,
+                withCredentials: true
             });
+
+            if (response.status !== 200) {
+                ereaseToken();
+                console.log('Failed to renew the jwt from the refresh token.');
+                return false; // this line changed
+            }
+
+            const { token, tokenExpiry } = response.data;
+
+            if (token) {
+                setToken(token, tokenExpiry);
+                return true;
+            }
+
+            return false;
+
+        } catch (error) {
+            console.error('Failed to renew the jwt from the refresh token.', error);
+            return false; // this line changed
+        }
     };
 
     const getToken = (): string | null => inMemoryJWT;

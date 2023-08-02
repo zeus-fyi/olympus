@@ -52,15 +52,15 @@ func (l *TokenRefreshRequest) RefreshToken(c echo.Context) error {
 		SessionID: sessionID,
 		TTL:       3600,
 	}
-	//cookie := &http.Cookie{
-	//	Name:     "cookieName",
-	//	Value:    sessionID,
-	//	Path:     "/",
-	//	HttpOnly: true,
-	//	Secure:   true,
-	//	SameSite: http.SameSiteNoneMode,
-	//}
-	//c.SetCookie(cookie)
+	cookie := &http.Cookie{
+		Name:     "cookieName",
+		Value:    sessionID,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+	}
+	c.SetCookie(cookie)
 	return c.JSON(http.StatusOK, resp)
 }
 

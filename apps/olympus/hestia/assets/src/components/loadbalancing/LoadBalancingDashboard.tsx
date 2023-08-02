@@ -95,7 +95,7 @@ function LoadBalancingDashboardContent() {
     }
     const endpoints = useSelector((state: RootState) => state.loadBalancing.routes);
     const groups = useSelector((state: RootState) => state.loadBalancing.groups);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [selected, setSelected] = useState<string[]>([]);
     const [groupName, setGroupName] = useState<string>("-all");
     const [tableRoutes, setTableRoutes] = useState<string[]>([]);
@@ -111,6 +111,7 @@ function LoadBalancingDashboardContent() {
     useEffect(() => {
         const fetchData = async (params: any) => {
             try {
+                setLoading(true); // Set loading to true
                 const response = await loadBalancingApiGateway.getEndpoints();
                 dispatch(setEndpoints(response.data.routes));
                 dispatch(setGroupEndpoints(response.data.orgGroupsRoutes));

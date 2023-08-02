@@ -43,9 +43,9 @@ func InitV1Routes(e *echo.Echo) {
 				log.Info().Msg("InitV1ActionsRoutes: Cookie found")
 				token = cookie.Value
 
-				key, err := auth.VerifyBearerToken(ctx, token)
-				if err != nil {
-					log.Err(err).Msg("InitV1Routes")
+				key, rerr := auth.VerifyBearerToken(ctx, token)
+				if rerr != nil {
+					log.Err(rerr).Msg("InitV1Routes")
 					return false, c.JSON(http.StatusInternalServerError, nil)
 				}
 				if key.PublicKeyVerified {

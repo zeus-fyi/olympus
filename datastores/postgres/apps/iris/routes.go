@@ -199,7 +199,7 @@ type RouteInfo struct {
 	Referers  []string
 }
 
-func SelectAllOrgRoutesByOrg(ctx context.Context, orgID int) (OrgRoutesGroup, error) {
+func SelectAllOrgRoutesByOrg(ctx context.Context, orgID int) (map[string][]RouteInfo, error) {
 	og := OrgRoutesGroup{
 		Map: make(map[int]map[string][]RouteInfo),
 	}
@@ -227,7 +227,7 @@ func SelectAllOrgRoutesByOrg(ctx context.Context, orgID int) (OrgRoutesGroup, er
 
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("SelectAllOrgRoutesByOrg")); returnErr != nil {
-		return og, err
+		return nil, err
 	}
 
 	defer rows.Close()
@@ -240,7 +240,7 @@ func SelectAllOrgRoutesByOrg(ctx context.Context, orgID int) (OrgRoutesGroup, er
 		rowErr := rows.Scan(&routeGroupName, &routePath, pq.Array(&referers))
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader("SelectAllOrgRoutesByOrg"))
-			return og, rowErr
+			return nil, rowErr
 		}
 
 		if _, ok := og.Map[orgID]; !ok {
@@ -253,7 +253,7 @@ func SelectAllOrgRoutesByOrg(ctx context.Context, orgID int) (OrgRoutesGroup, er
 		})
 	}
 
-	return og, misc.ReturnIfErr(err, q.LogHeader("SelectAllOrgRoutesByOrg"))
+	return og.Map[orgID], misc.ReturnIfErr(err, q.LogHeader("SelectAllOrgRoutesByOrg"))
 }
 
 type OrgRoutesGroupsAndEndpoints struct {

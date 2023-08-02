@@ -148,6 +148,9 @@ func (i *IrisApiRequestsWorkflow) DeleteAllOrgRoutingGroupsWorkflow(ctx workflow
 	}
 	for _, og := range ogr.Map {
 		for rgName, _ := range og {
+			if len(rgName) <= 0 {
+				continue
+			}
 			delRoutingTableCtx := workflow.WithActivityOptions(ctx, ao)
 			err = workflow.ExecuteActivity(delRoutingTableCtx, i.DeleteOrgRoutingTable, orgID, rgName).Get(delRoutingTableCtx, nil)
 			if err != nil {

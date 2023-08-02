@@ -100,15 +100,13 @@ func (r *ReadOrgRoutingGroupsRequest) ReadGroups(c echo.Context) error {
 		log.Err(err).Msg("ReadOrgRoutingGroupsRequest: SelectAllOrgRoutesByOrg")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	routeGroups := groupedRoutes.Map[ou.OrgID]
-	m := make(map[string][]string, len(routeGroups))
-	for k, v := range routeGroups {
+	m := make(map[string][]string, len(groupedRoutes))
+	for k, v := range groupedRoutes {
 		m[k] = make([]string, len(v))
 		for i, route := range v {
 			m[k][i] = route.RoutePath
 		}
 	}
-
 	resp := OrgGroupsRoutesResponse{
 		Map: m,
 	}

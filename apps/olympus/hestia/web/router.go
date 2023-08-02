@@ -42,8 +42,26 @@ func InitV1Routes(e *echo.Echo) {
 			if err == nil && cookie != nil {
 				log.Info().Msg("InitV1ActionsRoutes: Cookie found")
 				token = cookie.Value
+
+				key, err := auth.VerifyBearerToken(ctx, token)
+				if err != nil {
+					log.Err(err).Msg("InitV1Routes")
+					return false, c.JSON(http.StatusInternalServerError, nil)
+				}
+				if key.PublicKeyVerified {
+					ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
+					c.Set("orgUser", ou)
+					c.Set("bearer", key.PublicKey)
+					return key.PublicKeyVerified, nil
+				}
 			}
 			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.IrisQuickNodeService)
+			if err != nil {
+				log.Warn().Err(err).Msg("InitV1Routes: Not IrisQuickNodeService")
+				err = nil
+			}
+
+			key, err = auth.VerifyBearerTokenService(ctx, token, create_org_users.IrisQuickNodeService)
 			if err != nil {
 				log.Warn().Err(err).Msg("InitV1Routes: Not IrisQuickNodeService")
 				err = nil
@@ -52,7 +70,7 @@ func InitV1Routes(e *echo.Echo) {
 				ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
 				c.Set("orgUser", ou)
 				c.Set("bearer", key.PublicKey)
-				return key.PublicKeyVerified, err
+				return key.PublicKeyVerified, nil
 			}
 			key, err = auth.VerifyBearerTokenService(ctx, token, create_org_users.EthereumEphemeryService)
 			if err != nil {
@@ -62,7 +80,7 @@ func InitV1Routes(e *echo.Echo) {
 			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
 			c.Set("orgUser", ou)
 			c.Set("bearer", key.PublicKey)
-			return key.PublicKeyVerified, err
+			return key.PublicKeyVerified, nil
 		},
 	}))
 	eg.GET("/auth/status", hestia_access_keygen.AccessRequestHandler)

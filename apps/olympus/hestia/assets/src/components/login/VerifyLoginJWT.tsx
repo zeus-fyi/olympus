@@ -5,7 +5,7 @@ import {signUpApiGateway} from "../../gateway/signup";
 export function VerifyQuickNodeLoginJWT() {
     let navigate = useNavigate();
     let location = useLocation(); // Missing in your code
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const parseJwtFromSearch = () => {
         const searchParams = new URLSearchParams(location.search);
         return searchParams.get('jwt');
@@ -14,16 +14,16 @@ export function VerifyQuickNodeLoginJWT() {
     if (!jwtToken) {
         throw new Error('JWT token is missing in the query parameters');
     }
-
     useEffect(() => {
         const fetchData = async (params: any) => {
             try {
-
+                setLoading(true)
                 const response = await signUpApiGateway.verifyJWT(jwtToken);
                 const statusCode = response.status;
                 if (statusCode === 200 || statusCode === 204) {
                     navigate('/loadbalancing/dashboard');
                 } else {
+                   console.log("error", response)
                     navigate('/signup');
                 }
             } catch (error) {

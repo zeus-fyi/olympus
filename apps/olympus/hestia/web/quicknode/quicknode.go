@@ -1,12 +1,20 @@
 package hestia_quicknode_dashboard
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/keys"
+	create_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/keys"
+	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
+	hestia_login "github.com/zeus-fyi/olympus/hestia/web/login"
+	aegis_sessions "github.com/zeus-fyi/olympus/pkg/aegis/sessions"
+	"k8s.io/apimachinery/pkg/util/rand"
 )
 
 var JWTAuthSecret = ""
@@ -69,7 +77,6 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 			}
 			return []byte(JWTAuthSecret), nil
 		})
-
 		if err != nil {
 			resp.Status = "error: failed to parse jwt token"
 			return c.JSON(http.StatusBadRequest, resp)
@@ -102,6 +109,36 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 			QuickNodeID:      quickNodeID,
 		}
 		resp.Status = "success"
+		key := read_keys.NewKeyReader()
+		key.PublicKey = quickNodeID
+		ctx := context.Background()
+		err = key.VerifyUserTokenServiceWithQuickNodePlan(ctx, quickNodeID)
+		if err != nil {
+			log.Err(err).Str("quickNodeID", quickNodeID).Msg("VerifyUserTokenServiceWithQuickNodePlan error")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		if key.PublicKeyVerified == false {
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		sessionID := rand.String(64)
+		sessionKey := create_keys.NewCreateKey(key.UserID, sessionID)
+		sessionKey.PublicKeyVerified = true
+		sessionKey.PublicKeyTypeID = keys.SessionIDKeyTypeID
+		sessionKey.PublicKeyName = "sessionID"
+		err = sessionKey.InsertUserSessionKey(ctx)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		cookie := &http.Cookie{
+			Name:     aegis_sessions.SessionIDNickname,
+			Value:    sessionID,
+			HttpOnly: true,
+			Secure:   true,
+			Domain:   hestia_login.Domain,
+			SameSite: http.SameSiteNoneMode,
+			Expires:  time.Now().Add(24 * time.Hour),
+		}
+		c.SetCookie(cookie)
 		return c.JSON(http.StatusOK, ui)
 	})
 }

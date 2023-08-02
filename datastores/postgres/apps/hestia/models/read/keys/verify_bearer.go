@@ -25,7 +25,7 @@ func (k *OrgUserKey) QueryVerifyUserBearerToken() sql_query_templates.QueryParam
 	FROM users_keys usk
 	INNER JOIN key_types kt ON kt.key_type_id = usk.public_key_type_id
 	INNER JOIN org_users ou ON ou.user_id = usk.user_id
-	WHERE public_key = $1
+	WHERE public_key = $1 AND usk.public_key_verified = true
 	`)
 	q.RawQuery = query
 	return q

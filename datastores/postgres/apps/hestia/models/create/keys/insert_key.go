@@ -70,7 +70,7 @@ func (k *Key) InsertUserSessionKey(ctx context.Context) error {
 				  INSERT INTO users_keys(public_key, user_id, public_key_name, public_key_verified, public_key_type_id)
 				  VALUES ($1, $2, $3, $4, $5)
 				  `
-	r, err := apps.Pg.Exec(ctx, q.RawQuery, k.PublicKey, k.UserID, k.PublicKeyName, k.PublicKeyVerified, keys.SessionIDKeyTypeID)
+	r, err := apps.Pg.Exec(ctx, q.RawQuery, k.PublicKey, k.UserID, k.PublicKeyName, true, keys.SessionIDKeyTypeID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Sn)); returnErr != nil {
 		return err
 	}

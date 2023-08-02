@@ -125,7 +125,6 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 		}
 		sessionID := rand.String(64)
 		sessionKey := create_keys.NewCreateKey(key.UserID, sessionID)
-		sessionKey.PublicKeyVerified = true
 		sessionKey.PublicKeyTypeID = keys.SessionIDKeyTypeID
 		sessionKey.PublicKeyName = "sessionID"
 		err = sessionKey.InsertUserSessionKey(ctx)

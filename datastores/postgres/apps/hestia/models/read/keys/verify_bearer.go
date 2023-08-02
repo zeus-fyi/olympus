@@ -35,11 +35,10 @@ func (k *OrgUserKey) QueryVerifyUserPassword() sql_query_templates.QueryParams {
 	var q sql_query_templates.QueryParams
 	query := fmt.Sprintf(`
 	SELECT usk.public_key_verified, ou.org_id, ou.user_id
-	FROM users_keys usk
-	INNER JOIN key_types kt ON kt.key_type_id = usk.public_key_type_id
-	INNER JOIN org_users ou ON ou.user_id = usk.user_id
-	INNER JOIN users u ON u.user_id = ou.user_id
-	WHERE public_key = crypt($1, public_key) AND u.email = $2 AND usk.public_key_type_id = $3
+	FROM users u
+	INNER JOIN org_users ou ON ou.user_id = u.user_id
+	INNER JOIN users_keys usk ON usk.user_id = ou.user_id
+	WHERE public_key = crypt($1, public_key) AND u.email = $2
 	`)
 	q.RawQuery = query
 	return q

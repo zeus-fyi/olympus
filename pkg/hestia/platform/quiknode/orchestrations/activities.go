@@ -126,7 +126,7 @@ func (h *HestiaQuicknodeActivities) Provision(ctx context.Context, ou org_users.
 	return nil
 }
 
-func (h *HestiaQuicknodeActivities) UpdateProvision(ctx context.Context, ou org_users.OrgUser, pr hestia_quicknode.ProvisionRequest) error {
+func (h *HestiaQuicknodeActivities) UpdateProvision(ctx context.Context, pr hestia_quicknode.ProvisionRequest) error {
 	ps := hestia_autogen_bases.ProvisionedQuickNodeServices{
 		QuickNodeID: pr.QuickNodeID,
 		EndpointID:  pr.EndpointID,
@@ -137,7 +137,6 @@ func (h *HestiaQuicknodeActivities) UpdateProvision(ctx context.Context, ou org_
 		Network: sql.NullString{},
 		Plan:    pr.Plan,
 		Active:  true,
-		OrgID:   ou.OrgID,
 		WssURL: sql.NullString{
 			String: pr.WssUrl,
 			Valid:  len(pr.WssUrl) > 0,
@@ -173,7 +172,7 @@ func (h *HestiaQuicknodeActivities) UpdateProvision(ctx context.Context, ou org_
 
 	err := hestia_quicknode_models.UpdateProvisionedQuickNodeService(ctx, qs)
 	if err != nil {
-		log.Warn().Interface("ou", ou).Err(err).Msg("Provision: UpdateProvision")
+		log.Warn().Err(err).Msg("Provision: UpdateProvision")
 		return err
 	}
 	return nil
@@ -209,8 +208,11 @@ func (h *HestiaQuicknodeActivities) Deactivate(ctx context.Context, ou org_users
 	return nil
 }
 
-func (h *HestiaQuicknodeActivities) CheckPlanOverages(ctx context.Context, ou org_users.OrgUser, pr hestia_quicknode.ProvisionRequest) ([]string, error) {
-	tc, err := iris_models.OrgGroupTablesToRemove(context.Background(), ou.OrgID, pr.Plan)
+func (h *HestiaQuicknodeActivities) CheckPlanOverages(ctx context.Context, pr hestia_quicknode.ProvisionRequest) ([]string, error) {
+	if pr.QuickNodeID == "" {
+		return nil, nil
+	}
+	tc, err := iris_models.OrgGroupTablesToRemove(context.Background(), pr.QuickNodeID, pr.Plan)
 	if err != nil {
 		return nil, err
 	}

@@ -60,7 +60,7 @@ func (h *HestiaQuickNodeWorkflow) UpdateProvisionWorkflow(ctx workflow.Context, 
 		StartToCloseTimeout: defaultTimeout,
 	}
 	pCtx := workflow.WithActivityOptions(ctx, ao)
-	err := workflow.ExecuteActivity(pCtx, h.UpdateProvision, ou, pr).Get(pCtx, nil)
+	err := workflow.ExecuteActivity(pCtx, h.UpdateProvision, pr).Get(pCtx, nil)
 	if err != nil {
 		logger.Warn("params", pr)
 		logger.Warn("ou", ou)
@@ -69,7 +69,7 @@ func (h *HestiaQuickNodeWorkflow) UpdateProvisionWorkflow(ctx workflow.Context, 
 	}
 	var excessGroups []string
 	oCtx := workflow.WithActivityOptions(ctx, ao)
-	err = workflow.ExecuteActivity(oCtx, h.CheckPlanOverages, ou, pr).Get(oCtx, &excessGroups)
+	err = workflow.ExecuteActivity(oCtx, h.CheckPlanOverages, pr).Get(oCtx, &excessGroups)
 	if err != nil {
 		logger.Warn("params", pr)
 		logger.Warn("ou", ou)

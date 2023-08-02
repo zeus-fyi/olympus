@@ -426,12 +426,15 @@ func OrgEndpointsAndGroupTablesCount(ctx context.Context, orgID int) (*TableUsag
 	return &TableUsage{endpointCount, groupTablesCount}, misc.ReturnIfErr(err, q.LogHeader("OrgEndpointsAndGroupTablesCount"))
 }
 
-func OrgGroupTablesToRemove(ctx context.Context, orgID int, plan string) ([]string, error) {
+func OrgGroupTablesToRemove(ctx context.Context, quickNodeID string, plan string) ([]string, error) {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `
 		SELECT route_group_id, route_group_name
 		FROM org_route_groups
-		WHERE org_id = $1
+		WHERE org_id = (SELECT org_id FROM users_keys usk
+						JOIN org_users ou ON ou.user_id = usk.user_id
+						WHERE public_key = $1
+						LIMIT 1)
 		AND EXISTS (SELECT 1 FROM org_routes_groups WHERE org_routes_groups.route_group_id = org_route_groups.route_group_id)
 		ORDER BY route_group_id
 	`
@@ -446,7 +449,7 @@ func OrgGroupTablesToRemove(ctx context.Context, orgID int, plan string) ([]stri
 		maxCount = FreeGroupTables
 	}
 
-	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID)
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, quickNodeID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("OrgGroupTablesToRemove")); returnErr != nil {
 		return nil, err
 	}

@@ -76,6 +76,8 @@ func InitV1RoutesServices(e *echo.Echo) {
 	eg.PUT("/update", UpdateProvisionRequestHandler)
 	eg.DELETE("/deprovision", DeprovisionRequestHandler)
 	eg.DELETE("/deactivate_endpoint", DeactivateRequestHandler)
+	eg.DELETE("/deactivate", DeactivateRequestHandler)
+
 }
 
 type QuickNodeResponse struct {

@@ -77,10 +77,6 @@ func (h *HestiaQuickNodeWorkflow) UpdateProvisionWorkflow(ctx workflow.Context, 
 		return err
 	}
 
-	if len(excessGroups) == 0 {
-		return nil
-	}
-
 	for _, groupName := range excessGroups {
 		dCtx := workflow.WithActivityOptions(ctx, ao)
 		err = workflow.ExecuteActivity(pCtx, h.DeleteOrgGroupRoutingTable, ou, groupName).Get(dCtx, nil)

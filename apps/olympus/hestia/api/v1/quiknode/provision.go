@@ -88,7 +88,7 @@ func (r *ProvisionRequest) ProvisionTest(c echo.Context) error {
 	} else {
 		r.IsTest = false
 	}
-	r.Plan = "free"
+	pr.Plan = "free"
 	err := quicknode_orchestrations.HestiaQnWorker.ExecuteQnProvisionWorkflow(context.Background(), ou, pr, r.QuickNodeUserInfo)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
@@ -99,7 +99,7 @@ func (r *ProvisionRequest) ProvisionTest(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, ProvisionResponse{
 		AccessURL:    "https://iris.zeus.fyi/v1/router",
-		DashboardURL: "http://localhost:9002/quicknode/dashboard",
+		DashboardURL: "http://localhost:3000/quicknode/dashboard",
 		Status:       "success",
 	})
 }

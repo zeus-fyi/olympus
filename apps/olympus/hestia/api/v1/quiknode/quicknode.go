@@ -50,6 +50,7 @@ func InitV1RoutesServices(e *echo.Echo) {
 		key, err := auth.VerifyQuickNodeToken(context.Background(), qnEndpointID)
 		if err != nil {
 			log.Err(err).Msg("InitV1Routes QuickNode user not found: creating new org")
+			err = nil
 		}
 		ou := org_users.NewOrgUserWithID(key.OrgID, 0)
 		c.Set("orgUser", ou)

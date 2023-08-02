@@ -71,18 +71,22 @@ func (r *OrgGroupRoutesRequest) CreateGroupRoute(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
 	sp, ok := c.Get("servicePlans").(map[string]string)
 	if !ok {
+		log.Warn().Interface("servicePlans", sp).Msg("CreateGroupRoute: marketplace not found")
 		return c.JSON(http.StatusUnprocessableEntity, nil)
 	}
 	plan, ok := sp[QuickNodeMarketPlace]
 	if !ok {
+		log.Warn().Str("marketplace", QuickNodeMarketPlace).Msg("CreateGroupRoute: marketplace not found")
 		return c.JSON(http.StatusUnprocessableEntity, nil)
 	}
 	tc, err := iris_models.OrgEndpointsAndGroupTablesCount(context.Background(), ou.OrgID)
 	if err != nil {
+		log.Err(err).Msg("CreateGroupRoute: OrgEndpointsAndGroupTablesCount")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	err = tc.CheckPlanLimits(plan)
 	if err != nil {
+		log.Err(err).Interface("plan", plan).Msg("CreateGroupRoute: CheckPlanLimits")
 		return c.JSON(http.StatusUnprocessableEntity, err)
 	}
 	or := make([]iris_autogen_bases.OrgRoutes, len(r.Routes))

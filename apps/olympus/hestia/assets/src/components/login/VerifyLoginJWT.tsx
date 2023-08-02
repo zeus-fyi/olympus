@@ -14,7 +14,7 @@ const userIDParse = pipe(getAxiosResponse, prop('userID'));
 export function VerifyQuickNodeLoginJWT() {
     let navigate = useNavigate();
     let location = useLocation(); // Missing in your code
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const dispatch = useDispatch();
 
     const parseJwtFromSearch = () => {

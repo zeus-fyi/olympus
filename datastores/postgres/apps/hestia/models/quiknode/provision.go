@@ -70,6 +70,7 @@ func InsertProvisionedQuickNodeService(ctx context.Context, ps QuickNodeService)
 					  SELECT cte_insert_service.endpoint_id, cte_unnest_ref.referer
 					  FROM cte_insert_service, cte_unnest_ref
 					  WHERE cte_unnest_ref.referer IS NOT NULL AND cte_unnest_ref.referer != ''
+					  ON CONFLICT (endpoint_id) DO UPDATE SET referer = EXCLUDED.referer
 				  ) SELECT quicknode_id FROM cte_insert_service;`
 	cas := make([]string, len(ps.ProvisionedQuicknodeServicesContractAddresses))
 	for _, ca := range ps.ProvisionedQuicknodeServicesContractAddresses {

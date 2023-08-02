@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	ZeusUnitsPerRequest  = 5.0
-	ZeusUnitsPerResponse = 5.0
+	ZeusUnitsPerRequest  = 4.0
+	ZeusUnitsPerResponse = 4.0
 	ZeusUnitsPerKB       = 1.0
 	BytesPerKB           = 1024.0
 )
@@ -66,7 +66,7 @@ func (cr *PayloadSizeMeter) ZeusRequestComputeUnitsConsumed() float64 {
 	computeUnits := ZeusUnitsPerRequest
 
 	// If the payload size is greater than 1KB, add compute units based on the payload size
-	if sizeInKB < 1 {
+	if sizeInKB <= 1 {
 		// Subtract 1 because the first KB is already included in the base compute units
 		computeUnits += ZeusUnitsPerKB
 	} else {
@@ -79,12 +79,19 @@ func (cr *PayloadSizeMeter) ZeusRequestComputeUnitsConsumed() float64 {
 
 func (cr *PayloadSizeMeter) ZeusResponseComputeUnitsConsumed() float64 {
 	sizeInKB := cr.SizeInKB()
-	// If the payload size is greater than 1KB, add compute units based on the payload size
+
+	// Add base compute units for the request
 	computeUnits := ZeusUnitsPerResponse
-	if sizeInKB > 1 {
-		// If the payload size is greater than 1KB, add 1 Zeus compute unit per KB
+
+	// If the payload size is greater than 1KB, add compute units based on the payload size
+	if sizeInKB <= 1 {
+		// Subtract 1 because the first KB is already included in the base compute units
+		computeUnits += ZeusUnitsPerKB
+	} else {
+		// If the payload size is less than or equal to 1KB, add 1 Zeus compute unit
 		computeUnits += sizeInKB
 	}
+
 	return computeUnits
 }
 

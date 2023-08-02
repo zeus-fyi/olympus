@@ -59,6 +59,12 @@ func (r *ProvisionRequest) Provision(c echo.Context) error {
 		})
 	}
 
+	if pr.QuickNodeID == "" {
+		return c.JSON(http.StatusBadRequest, QuickNodeResponse{
+			Error: "error: quicknode id not provided",
+		})
+	}
+
 	err := quicknode_orchestrations.HestiaQnWorker.ExecuteQnProvisionWorkflow(context.Background(), ou, pr, r.QuickNodeUserInfo)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
@@ -127,7 +133,38 @@ func UpdateProvisionRequestHandler(c echo.Context) error {
 
 func (r *ProvisionRequest) UpdateProvision(c echo.Context) error {
 	ou := c.Get("orgUser").(org_users.OrgUser)
+	r.Verified = false
+	val, ok := c.Get("verified").(bool)
+	if ok {
+		r.Verified = val
+	}
+	isTestReq, ok := c.Get("isTest").(bool)
+	if ok {
+		r.IsTest = isTestReq
+	} else {
+		r.IsTest = false
+	}
 	pr := r.ProvisionRequest
+	switch pr.Plan {
+	case FreePlan, Standard, PerformancePlan:
+	case TestPlan:
+		if !r.IsTest {
+			return c.JSON(http.StatusBadRequest, QuickNodeResponse{
+				Error: "error: plan not supported",
+			})
+		}
+	default:
+		return c.JSON(http.StatusBadRequest, QuickNodeResponse{
+			Error: "error: plan not supported",
+		})
+	}
+
+	if pr.QuickNodeID == "" {
+		return c.JSON(http.StatusBadRequest, QuickNodeResponse{
+			Error: "error: quicknode id not provided",
+		})
+	}
+
 	err := quicknode_orchestrations.HestiaQnWorker.ExecuteQnUpdateProvisionWorkflow(context.Background(), ou, pr)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError,

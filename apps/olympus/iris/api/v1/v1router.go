@@ -63,7 +63,8 @@ func InitV1Routes(e *echo.Echo) {
 			c.Set("bearer", token)
 			if err == nil && key.PublicKeyVerified && orgID > 0 && plan != "" {
 				go func(oID int, token, plan string) {
-					err = iris_redis.IrisRedis.SetAuthCache(context.Background(), oID, token, key.PublicKeyName)
+					log.Info().Int("orgID", oID).Str("plan", plan).Msg("InitV1Routes: SetAuthCache")
+					err = iris_redis.IrisRedis.SetAuthCache(context.Background(), oID, token, plan)
 					if err != nil {
 						log.Err(err).Msg("InitV1Routes: SetAuthCache")
 					}

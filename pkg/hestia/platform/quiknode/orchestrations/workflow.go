@@ -68,7 +68,8 @@ func (h *HestiaQuickNodeWorkflow) UpdateProvisionWorkflow(ctx workflow.Context, 
 		return err
 	}
 	var excessGroups []string
-	err = workflow.ExecuteActivity(pCtx, h.CheckPlanOverages, ou, pr).Get(pCtx, &excessGroups)
+	oCtx := workflow.WithActivityOptions(ctx, ao)
+	err = workflow.ExecuteActivity(oCtx, h.CheckPlanOverages, ou, pr).Get(oCtx, &excessGroups)
 	if err != nil {
 		logger.Warn("params", pr)
 		logger.Warn("ou", ou)
@@ -76,15 +77,21 @@ func (h *HestiaQuickNodeWorkflow) UpdateProvisionWorkflow(ctx workflow.Context, 
 		return err
 	}
 
+	if len(excessGroups) == 0 {
+		return nil
+	}
+
 	for _, groupName := range excessGroups {
-		err = workflow.ExecuteActivity(pCtx, h.DeleteOrgGroupRoutingTable, ou, groupName).Get(pCtx, &excessGroups)
+		dCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(pCtx, h.DeleteOrgGroupRoutingTable, ou, groupName).Get(dCtx, &excessGroups)
 		if err != nil {
 			logger.Warn("params", pr)
 			logger.Warn("ou", ou)
 			logger.Error("failed to adjust services", "Error", err)
 			return err
 		}
-		err = workflow.ExecuteActivity(pCtx, h.IrisPlatformDeleteGroupTableCacheRequest, ou, groupName).Get(pCtx, &excessGroups)
+		cdCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(cdCtx, h.IrisPlatformDeleteGroupTableCacheRequest, ou, groupName).Get(cdCtx, &excessGroups)
 		if err != nil {
 			logger.Warn("params", pr)
 			logger.Warn("ou", ou)

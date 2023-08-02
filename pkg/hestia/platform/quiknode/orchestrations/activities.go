@@ -142,6 +142,12 @@ func (h *HestiaQuicknodeActivities) UpdateProvision(ctx context.Context, ou org_
 			Valid:  len(pr.Chain) > 0,
 		},
 	}
+	if pr.Referers == nil {
+		pr.Referers = []string{}
+	}
+	if pr.ContractAddresses == nil {
+		pr.ContractAddresses = []string{}
+	}
 	cas := make([]hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddresses, len(pr.ContractAddresses))
 	for i, ca := range pr.ContractAddresses {
 		cas[i] = hestia_autogen_bases.ProvisionedQuicknodeServicesContractAddresses{

@@ -57,7 +57,6 @@ func InitV1Routes(e *echo.Echo) {
 				log.Warn().Str("marketplace", QuickNodeMarketPlace).Msg("InitV1Routes: marketplace not found")
 				return false, errors.New("marketplace plan not found")
 			}
-
 			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
 			c.Set("servicePlan", plan)
 			c.Set("orgUser", ou)

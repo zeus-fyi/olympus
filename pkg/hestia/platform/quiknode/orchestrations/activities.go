@@ -3,14 +3,22 @@ package quicknode_orchestrations
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/rs/zerolog/log"
 	hestia_autogen_bases "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/autogen"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	hestia_quicknode_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/quiknode"
+	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
+	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/hestia/platform/iris/orchestrations"
 	hestia_quicknode "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode"
+	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
+)
+
+const (
+	IrisApiUrl = "https://iris.zeus.fyi"
 )
 
 type HestiaQuicknodeActivities struct {
@@ -25,8 +33,24 @@ type ActivitiesSlice []interface{}
 
 func (h *HestiaQuicknodeActivities) GetActivities() ActivitiesSlice {
 	return []interface{}{
-		h.Provision, h.UpdateProvision, h.Deprovision, h.Deactivate, h.DeprovisionCache,
+		h.Provision, h.UpdateProvision, h.Deprovision, h.Deactivate, h.DeprovisionCache, h.CheckPlanOverages,
+		h.IrisPlatformDeleteGroupTableCacheRequest,
 	}
+}
+
+func (h *HestiaQuicknodeActivities) IrisPlatformDeleteGroupTableCacheRequest(ctx context.Context, ou org_users.OrgUser, groupName string) error {
+	rc := resty_base.GetBaseRestyClient(IrisApiUrl, artemis_orchestration_auth.Bearer)
+	refreshEndpoint := fmt.Sprintf("/v1/internal/router/delete/%d/%s", ou.OrgID, groupName)
+	resp, err := rc.R().Get(refreshEndpoint)
+	if err != nil {
+		log.Err(err).Msg("HestiaQuicknodeActivities: IrisPlatformDeleteGroupTableCacheRequest")
+		return err
+	}
+	if resp.StatusCode() >= 400 {
+		log.Err(err).Interface("orgUser", ou).Msg("HestiaQuicknodeActivities: IrisPlatformDeleteGroupTableCacheRequest")
+		return err
+	}
+	return nil
 }
 
 func (h *HestiaQuicknodeActivities) Provision(ctx context.Context, pr hestia_quicknode.ProvisionRequest, ou org_users.OrgUser, user hestia_quicknode.QuickNodeUserInfo) error {
@@ -123,6 +147,7 @@ func (h *HestiaQuicknodeActivities) UpdateProvision(ctx context.Context, pr hest
 		ProvisionedQuicknodeServicesContractAddresses: cas,
 		ProvisionedQuicknodeServicesReferers:          car,
 	}
+
 	err := hestia_quicknode_models.UpdateProvisionedQuickNodeService(ctx, qs)
 	if err != nil {
 		log.Warn().Interface("ou", ou).Err(err).Msg("Provision: UpdateProvision")
@@ -159,4 +184,12 @@ func (h *HestiaQuicknodeActivities) Deactivate(ctx context.Context, da hestia_qu
 		return err
 	}
 	return nil
+}
+
+func (h *HestiaQuicknodeActivities) CheckPlanOverages(ctx context.Context, pr hestia_quicknode.ProvisionRequest, ou org_users.OrgUser) ([]string, error) {
+	tc, err := iris_models.OrgGroupTablesToRemove(context.Background(), ou.OrgID, pr.Plan)
+	if err != nil {
+		return nil, err
+	}
+	return tc, nil
 }

@@ -426,6 +426,61 @@ func OrgEndpointsAndGroupTablesCount(ctx context.Context, orgID int) (*TableUsag
 	return &TableUsage{endpointCount, groupTablesCount}, misc.ReturnIfErr(err, q.LogHeader("OrgEndpointsAndGroupTablesCount"))
 }
 
+func OrgGroupTablesToRemove(ctx context.Context, orgID int, plan string) ([]string, error) {
+	q := sql_query_templates.QueryParams{}
+	q.RawQuery = `
+		SELECT route_group_id, route_group_name
+		FROM org_route_groups
+		WHERE org_id = $1
+		AND EXISTS (SELECT 1 FROM org_routes_groups WHERE org_routes_groups.route_group_id = org_route_groups.route_group_id)
+		ORDER BY route_group_id
+	`
+
+	maxCount := 1
+	switch plan {
+	case "performance":
+		maxCount = PerformanceGroupTables
+	case "standard":
+		maxCount = StandardGroupTables
+	case "free":
+		maxCount = FreeGroupTables
+	}
+
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, orgID)
+	if returnErr := misc.ReturnIfErr(err, q.LogHeader("OrgGroupTablesToRemove")); returnErr != nil {
+		return nil, err
+	}
+
+	var ogToDelete []string
+	count := 0
+	defer rows.Close()
+	for rows.Next() {
+		var routeGroupName string
+		var routeGroupID int
+
+		rowErr := rows.Scan(
+			&routeGroupID, &routeGroupName,
+		)
+		if rowErr != nil {
+			log.Err(rowErr).Msg(q.LogHeader("OrgGroupTablesToRemove"))
+			return nil, rowErr
+		}
+		if count >= maxCount {
+			ogToDelete = append(ogToDelete, routeGroupName)
+		}
+		count += 1
+	}
+	return ogToDelete, misc.ReturnIfErr(err, q.LogHeader("OrgGroupTablesToRemove"))
+
+}
+
+/*
+SELECT route_group_id, route_group_name
+FROM org_route_groups
+WHERE org_id = 7138983863666903883
+AND EXISTS (SELECT 1 FROM org_routes_groups WHERE org_routes_groups.route_group_id = org_route_groups.route_group_id)
+ORDER BY route_group_id
+*/
 const (
 	FreeGroupTables        = 1
 	StandardGroupTables    = 50

@@ -232,7 +232,7 @@ func (k *OrgUserKey) QueryUserAuthedServices(ctx context.Context, token string) 
 	for rows.Next() {
 		var serviceName string
 		var plan string
-		rowErr := rows.Scan(&serviceName, &k.OrgID, &k.UserID, &plan)
+		rowErr := rows.Scan(&k.PublicKey, &serviceName, &k.OrgID, &k.UserID, &plan)
 		if rowErr != nil {
 			log.Err(rowErr).Interface("QueryUserAuthedServices: Query: ", q.RawQuery)
 			return services, rowErr

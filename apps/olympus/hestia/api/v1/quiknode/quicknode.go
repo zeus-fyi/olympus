@@ -55,7 +55,7 @@ func InitV1RoutesServices(e *echo.Echo) {
 		c.Set("orgUser", ou)
 		c.Set("verified", key.IsVerified())
 		if password == QuickNodePassword {
-			if qnTestHeader == QuickNodeTestHeader {
+			if len(qnTestHeader) > 0 && qnTestHeader == "true" {
 				c.Set("orgUser", org_users.NewOrgUserWithID(QuickNodeTestOrgID, QuickNodeTestOrgID))
 				c.Set("bearer", QuickNodeToken)
 				c.Set("isTest", true)
@@ -63,6 +63,7 @@ func InitV1RoutesServices(e *echo.Echo) {
 			} else {
 				c.Set("orgUser", org_users.NewOrgUserWithID(10, 10))
 				c.Set("bearer", QuickNodeToken)
+				c.Set("isTest", false)
 				return true, nil
 			}
 		}

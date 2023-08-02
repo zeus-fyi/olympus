@@ -1,11 +1,15 @@
 import {useLocation, useNavigate} from "react-router-dom";
 import React, {useEffect, useState} from "react";
 import {signUpApiGateway} from "../../gateway/signup";
+import {setSessionAuth} from "../../redux/auth/session.reducer";
+import {useDispatch} from "react-redux";
 
 export function VerifyQuickNodeLoginJWT() {
     let navigate = useNavigate();
     let location = useLocation(); // Missing in your code
     const [loading, setLoading] = useState(false);
+    const dispatch = useDispatch();
+
     const parseJwtFromSearch = () => {
         const searchParams = new URLSearchParams(location.search);
         return searchParams.get('jwt');
@@ -21,9 +25,12 @@ export function VerifyQuickNodeLoginJWT() {
                 const response = await signUpApiGateway.verifyJWT(jwtToken);
                 const statusCode = response.status;
                 if (statusCode === 200 || statusCode === 204) {
+                    dispatch(setSessionAuth(true))
+                    dispatch({type: 'LOGIN_SUCCESS', payload: response.data})
                     navigate('/loadbalancing/dashboard');
                 } else {
-                   console.log("error", response)
+                    dispatch(setSessionAuth(false))
+                    dispatch({type: 'LOGIN_FAIL', payload: response.data})
                     navigate('/signup');
                 }
             } catch (error) {

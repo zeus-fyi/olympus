@@ -88,26 +88,29 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 		}
 		user, ok1 := claims["name"].(string)
 		if !ok1 {
+			log.Warn().Interface("user", user).Msg("failed to cast claims[\"user\"] as string")
 			log.Warn().Msg("failed to cast claims[\"name\"] as string")
 		}
 		organization, ok2 := claims["organization_name"].(string)
 		if !ok2 {
+			log.Warn().Interface("organization", organization).Msg("failed to cast claims[\"organization_name\"] as string")
 			log.Warn().Msg("failed to cast claims[\"organization_name\"] as string")
 		}
 		email, ok3 := claims["email"].(string)
 		if !ok3 {
+			log.Warn().Interface("email", email).Msg("failed to cast claims[\"email\"] as string")
 			log.Warn().Msg("failed to cast claims[\"email\"] as string")
 		}
 		quickNodeID, ok4 := claims["quicknode_id"].(string)
 		if !ok4 {
 			log.Warn().Msg("failed to cast claims[\"quicknode_id\"] as string")
 		}
-		ui := User{
-			Name:             user,
-			OrganizationName: organization,
-			Email:            email,
-			QuickNodeID:      quickNodeID,
-		}
+		//ui := User{
+		//	Name:             user,
+		//	OrganizationName: organization,
+		//	Email:            email,
+		//	QuickNodeID:      quickNodeID,
+		//}
 		resp.Status = "success"
 		key := read_keys.NewKeyReader()
 		key.PublicKey = quickNodeID
@@ -139,7 +142,12 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 			Expires:  time.Now().Add(24 * time.Hour),
 		}
 		c.SetCookie(cookie)
-		return c.JSON(http.StatusOK, ui)
+		li := hestia_login.LoginResponse{
+			UserID:    key.UserID,
+			SessionID: sessionID,
+			TTL:       3600,
+		}
+		return c.JSON(http.StatusOK, li)
 	})
 }
 

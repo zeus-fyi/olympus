@@ -10,6 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	create_org_users "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/create/org_users"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/auth"
+	read_keys "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/read/keys"
 	"github.com/zeus-fyi/olympus/hestia/api/v1/ethereum/aws"
 	hestia_iris_v1_routes "github.com/zeus-fyi/olympus/hestia/api/v1/iris"
 	hestia_quiknode_v1_routes "github.com/zeus-fyi/olympus/hestia/api/v1/quiknode"
@@ -55,15 +56,17 @@ func InitV1Routes(e *echo.Echo) {
 				token = cookie.Value
 			}
 			ctx := context.Background()
-			key, err := auth.VerifyBearerToken(ctx, token)
+			k := read_keys.NewKeyReader()
+			services, err := k.QueryUserAuthedServices(ctx, token)
 			if err != nil {
-				log.Err(err).Msg("InitV1Routes")
-				return false, c.JSON(http.StatusInternalServerError, nil)
+				log.Err(err).Msg("InitV1Routes: QueryUserAuthedServices error")
+				return false, err
 			}
-			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
+			c.Set("servicePlans", k.Services)
+			ou := org_users.NewOrgUserWithID(k.OrgID, k.GetUserID())
 			c.Set("orgUser", ou)
-			c.Set("bearer", key.PublicKey)
-			return key.PublicKeyVerified, err
+			c.Set("bearer", k.PublicKey)
+			return len(services) > 0, err
 		},
 	}))
 

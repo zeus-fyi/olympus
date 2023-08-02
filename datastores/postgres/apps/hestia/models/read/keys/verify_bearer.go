@@ -203,14 +203,15 @@ func (k *OrgUserKey) GetUserAuthedServices() sql_query_templates.QueryParams {
 		FROM users_keys usk
 		WHERE usk.public_key = $1
 	) 
-	SELECT svcs.service_name, ou.org_id, ou.user_id
+	SELECT usk.public_key, svcs.service_name, ou.org_id, ou.user_id, COALESCE(qms.plan, 'generic') as plan
 	FROM users_keys usk
 	INNER JOIN key_types kt ON kt.key_type_id = usk.public_key_type_id
 	INNER JOIN users_key_services uksvc ON uksvc.public_key = usk.public_key
 	INNER JOIN services svcs ON svcs.service_id = uksvc.service_id
 	INNER JOIN org_users ou ON ou.user_id = usk.user_id
+	LEFT JOIN quicknode_marketplace_customer qms ON qms.quicknode_id = usk.public_key
 	WHERE usk.user_id = (SELECT user_id FROM cte_get_user_key) AND usk.public_key_verified = true
-	GROUP BY svcs.service_name, ou.org_id, ou.user_id
+	GROUP BY usk.public_key, svcs.service_name, qms.plan, ou.org_id, ou.user_id
 	`)
 	q.RawQuery = query
 	return q
@@ -220,6 +221,7 @@ func (k *OrgUserKey) QueryUserAuthedServices(ctx context.Context, token string) 
 	q := k.GetUserAuthedServices()
 	log.Debug().Interface("QueryUserAuthedServices:", q.LogHeader(Sn))
 
+	m := make(map[string]string)
 	var services []string
 	rows, err := apps.Pg.Query(ctx, q.RawQuery, token)
 	log.Err(err).Interface("QueryUserAuthedServices: Query: ", q.RawQuery)
@@ -229,13 +231,16 @@ func (k *OrgUserKey) QueryUserAuthedServices(ctx context.Context, token string) 
 	defer rows.Close()
 	for rows.Next() {
 		var serviceName string
-		rowErr := rows.Scan(&serviceName, &k.OrgID, &k.UserID)
+		var plan string
+		rowErr := rows.Scan(&serviceName, &k.OrgID, &k.UserID, &plan)
 		if rowErr != nil {
 			log.Err(rowErr).Interface("QueryUserAuthedServices: Query: ", q.RawQuery)
 			return services, rowErr
 		}
 		services = append(services, serviceName)
+		m[serviceName] = plan
 	}
+	k.Services = m
 	return services, misc.ReturnIfErr(err, q.LogHeader(Sn))
 }
 

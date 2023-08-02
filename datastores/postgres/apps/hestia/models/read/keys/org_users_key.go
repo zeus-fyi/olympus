@@ -5,7 +5,8 @@ import (
 )
 
 type OrgUserKey struct {
-	OrgID int
+	OrgID    int
+	Services map[string]string
 	keys.Key
 }
 

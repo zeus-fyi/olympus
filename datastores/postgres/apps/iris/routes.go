@@ -2,6 +2,7 @@ package iris_models
 
 import (
 	"context"
+	"errors"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/lib/pq"
@@ -421,5 +422,52 @@ func OrgEndpointsAndGroupTablesCount(ctx context.Context, orgID int) (*TableUsag
 	if err != nil {
 		return nil, err
 	}
+
 	return &TableUsage{endpointCount, groupTablesCount}, misc.ReturnIfErr(err, q.LogHeader("OrgEndpointsAndGroupTablesCount"))
+}
+
+const (
+	FreeGroupTables        = 1
+	StandardGroupTables    = 50
+	PerformanceGroupTables = 250
+)
+
+func (t *TableUsage) CheckEndpointLimits() error {
+	if t.EndpointCount > 1000 {
+		return errors.New("exceeds plan endpoints")
+	}
+	return nil
+}
+
+func (t *TableUsage) CheckPlanLimits(plan string) error {
+	err := t.CheckEndpointLimits()
+	if err != nil {
+		return err
+	}
+	switch plan {
+	case "performance":
+		// check 50k ZU/s
+		// check max 3B ZU/month
+		if t.TableCount > PerformanceGroupTables {
+			return errors.New("exceeds plan group tables")
+		}
+		return nil
+	case "standard":
+		// check 25k ZU/s
+		// check max 1B ZU/month
+		if t.TableCount > StandardGroupTables {
+			return errors.New("exceeds plan group tables")
+		}
+		return nil
+	case "free":
+		// check 1k ZU/s
+		// check max 50M ZU/month
+		if t.TableCount > FreeGroupTables {
+			return errors.New("exceeds plan group tables")
+		}
+		return nil
+	case "test":
+	default:
+	}
+	return nil
 }

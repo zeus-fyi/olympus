@@ -48,6 +48,9 @@ func VerifyQuickNodeToken(ctx context.Context, token string) (read_keys.OrgUserK
 			KeyType: keys.NewQuickNodeKeyType(token),
 		},
 	}
+	if len(token) == 0 {
+		return key, nil
+	}
 	err := key.VerifyQuickNodeToken(ctx)
 	if err != nil {
 		return read_keys.OrgUserKey{}, err

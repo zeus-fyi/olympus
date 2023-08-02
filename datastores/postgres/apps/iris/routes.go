@@ -445,6 +445,8 @@ func OrgGroupTablesToRemove(ctx context.Context, quickNodeID string, plan string
 		maxCount = PerformanceGroupTables
 	case "standard":
 		maxCount = StandardGroupTables
+	case "test":
+		maxCount = FreeGroupTables
 	case "free":
 		maxCount = FreeGroupTables
 	}

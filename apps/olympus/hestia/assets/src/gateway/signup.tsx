@@ -31,7 +31,7 @@ class SignUpApiGateway {
         }
     }
     async verifyJWT(token: string): Promise<any>  {
-        const url = `/v1/quicknode/access/dashboard?jwt=${token}`;
+        const url = `/quicknode/dashboard?jwt=${token}`;
         try {
             return await hestiaApi.get(url, config)
         } catch (exc) {

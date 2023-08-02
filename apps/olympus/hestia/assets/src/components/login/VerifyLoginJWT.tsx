@@ -6,6 +6,7 @@ export function VerifyQuickNodeLoginJWT() {
     let navigate = useNavigate();
     let location = useLocation(); // Missing in your code
     const [loading, setLoading] = useState(true);
+    console.log('VerifyQuickNodeLoginJWT')
     const parseJwtFromSearch = () => {
         const searchParams = new URLSearchParams(location.search);
         return searchParams.get('jwt');

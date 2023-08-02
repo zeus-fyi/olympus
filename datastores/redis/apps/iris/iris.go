@@ -33,7 +33,7 @@ func InitProductionRedisIrisCache(ctx context.Context) {
 	IrisRedis = NewIrisCache(ctx, writer, reader)
 }
 
-func initLocalTestProductionRedisIrisCache(ctx context.Context) {
+func InitLocalTestProductionRedisIrisCache(ctx context.Context) {
 	writeRedisOpts := redis.Options{
 		Addr: "localhost:6379",
 	}

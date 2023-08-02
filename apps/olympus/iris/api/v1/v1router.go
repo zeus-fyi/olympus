@@ -2,6 +2,7 @@ package v1_iris
 
 import (
 	"context"
+	"errors"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -52,7 +53,15 @@ func InitV1Routes(e *echo.Echo) {
 			c.Set("servicePlans", key.Services)
 			if val, ok := key.Services[QuickNodeMarketPlace]; ok {
 				plan = val
+			} else {
+				log.Warn().Str("marketplace", QuickNodeMarketPlace).Msg("InitV1Routes: marketplace not found")
+				return false, errors.New("marketplace plan not found")
 			}
+
+			ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
+			c.Set("servicePlan", plan)
+			c.Set("orgUser", ou)
+			c.Set("bearer", token)
 			if err == nil && key.PublicKeyVerified && orgID > 0 && plan != "" {
 				go func(oID int, token, plan string) {
 					err = iris_redis.IrisRedis.SetAuthCache(context.Background(), oID, token, key.PublicKeyName)
@@ -60,10 +69,7 @@ func InitV1Routes(e *echo.Echo) {
 						log.Err(err).Msg("InitV1Routes: SetAuthCache")
 					}
 				}(int(orgID), token, key.PublicKeyName)
-				ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
-				c.Set("servicePlan", plan)
-				c.Set("orgUser", ou)
-				c.Set("bearer", token)
+
 			}
 			return len(services) > 0, err
 		},

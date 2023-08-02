@@ -106,7 +106,7 @@ func (r *ProvisionRequest) ProvisionTest(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, ProvisionResponse{
 		AccessURL:    "https://iris.zeus.fyi/v1/router",
-		DashboardURL: "http://localhost:3000/quicknode/dashboard",
+		DashboardURL: "https://cloud.zeus.fyi/quicknode/dashboard",
 		Status:       "success",
 	})
 }

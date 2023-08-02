@@ -43,7 +43,18 @@ func InitV1Routes(e *echo.Echo) {
 				log.Info().Msg("InitV1ActionsRoutes: Cookie found")
 				token = cookie.Value
 			}
-			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.EthereumEphemeryService)
+			key, err := auth.VerifyBearerTokenService(ctx, token, create_org_users.IrisQuickNodeService)
+			if err != nil {
+				log.Warn().Err(err).Msg("InitV1Routes: Not IrisQuickNodeService")
+				err = nil
+			}
+			if key.PublicKeyVerified {
+				ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
+				c.Set("orgUser", ou)
+				c.Set("bearer", key.PublicKey)
+				return key.PublicKeyVerified, err
+			}
+			key, err = auth.VerifyBearerTokenService(ctx, token, create_org_users.EthereumEphemeryService)
 			if err != nil {
 				log.Err(err).Msg("InitV1Routes")
 				return false, c.JSON(http.StatusUnauthorized, nil)

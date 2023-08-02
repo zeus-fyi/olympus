@@ -3,6 +3,13 @@ import React, {useEffect, useState} from "react";
 import {signUpApiGateway} from "../../gateway/signup";
 import {setSessionAuth} from "../../redux/auth/session.reducer";
 import {useDispatch} from "react-redux";
+import inMemoryJWT from "../../auth/InMemoryJWT";
+import {pipe, prop} from "ramda";
+import {getAxiosResponse} from "../../helpers/get-axios-response";
+
+const sessionIDParse = pipe(getAxiosResponse,prop('sessionID'));
+const ttlSeconds = pipe(getAxiosResponse, prop('ttl'));
+const userIDParse = pipe(getAxiosResponse, prop('userID'));
 
 export function VerifyQuickNodeLoginJWT() {
     let navigate = useNavigate();
@@ -25,6 +32,11 @@ export function VerifyQuickNodeLoginJWT() {
                 const response = await signUpApiGateway.verifyJWT(jwtToken);
                 const statusCode = response.status;
                 if (statusCode === 200 || statusCode === 204) {
+                    const sessionID = sessionIDParse(response);
+                    const tokenExpiry = ttlSeconds(response);
+                    const userID = userIDParse(response);
+                    inMemoryJWT.setToken(sessionID, tokenExpiry);
+                    localStorage.setItem("userID", userID);
                     dispatch(setSessionAuth(true))
                     dispatch({type: 'LOGIN_SUCCESS', payload: response.data})
                     navigate('/loadbalancing/dashboard');

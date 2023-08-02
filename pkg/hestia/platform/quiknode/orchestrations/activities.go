@@ -158,7 +158,7 @@ func (h *HestiaQuicknodeActivities) UpdateProvision(ctx context.Context, pr hest
 			ContractAddress: ca,
 		}
 	}
-	car := make([]hestia_autogen_bases.ProvisionedQuicknodeServicesReferers, len(pr.ContractAddresses))
+	car := make([]hestia_autogen_bases.ProvisionedQuicknodeServicesReferers, len(pr.Referers))
 	for i, re := range pr.Referers {
 		car[i] = hestia_autogen_bases.ProvisionedQuicknodeServicesReferers{
 			Referer: re,

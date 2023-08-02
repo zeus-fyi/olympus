@@ -22,7 +22,7 @@ const (
 )
 
 func InitHestiaIrisPlatformServicesWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
-	log.Ctx(ctx).Info().Msg("Hestia: InitHestiaIrisPlatformServicesWorker")
+	log.Info().Msg("Hestia: InitHestiaIrisPlatformServicesWorker")
 	tc, err := temporal_base.NewTemporalClient(temporalAuthCfg)
 	if err != nil {
 		log.Err(err).Msg("InitHestiaIrisPlatformServicesWorker: NewTemporalClient failed")

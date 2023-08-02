@@ -35,8 +35,17 @@ type ActivitiesSlice []interface{}
 func (h *HestiaQuicknodeActivities) GetActivities() ActivitiesSlice {
 	return []interface{}{
 		h.Provision, h.UpdateProvision, h.Deprovision, h.Deactivate, h.DeprovisionCache, h.CheckPlanOverages,
-		h.IrisPlatformDeleteGroupTableCacheRequest, h.DeactivateApiKey,
+		h.IrisPlatformDeleteGroupTableCacheRequest, h.DeactivateApiKey, h.DeleteOrgGroupRoutingTable,
 	}
+}
+
+func (h *HestiaQuicknodeActivities) DeleteOrgGroupRoutingTable(ctx context.Context, ou org_users.OrgUser, groupName string) error {
+	err := iris_models.DeleteOrgGroupAndRoutes(context.Background(), ou.OrgID, groupName)
+	if err != nil {
+		log.Err(err).Msg("DeleteOrgGroupRoutingTable: DeleteOrgGroupRoutingTable")
+		return err
+	}
+	return nil
 }
 
 func (h *HestiaQuicknodeActivities) IrisPlatformDeleteGroupTableCacheRequest(ctx context.Context, ou org_users.OrgUser, groupName string) error {

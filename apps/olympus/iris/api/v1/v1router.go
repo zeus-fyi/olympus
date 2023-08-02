@@ -34,7 +34,7 @@ func InitV1Routes(e *echo.Echo) {
 			c.Set(QuickNodeChain, qnChain)
 			c.Set(QuickNodeNetwork, qnNetwork)
 			orgID, plan, err := iris_redis.IrisRedis.GetAuthCacheIfExists(ctx, token)
-			if err != nil && orgID > 0 && plan != "" {
+			if err == nil && orgID > 0 && plan != "" {
 				c.Set("servicePlan", plan)
 				c.Set("orgUser", org_users.NewOrgUserWithID(int(orgID), 0))
 				c.Set("bearer", token)

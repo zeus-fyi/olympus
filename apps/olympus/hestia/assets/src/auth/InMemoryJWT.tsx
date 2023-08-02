@@ -52,11 +52,15 @@ const inMemoryJWTManager = (): JWTManager => {
     // The method make a call to the refresh-token endpoint
     // If there is a valid cookie, the endpoint will set a fresh jwt in memory.
     const getRefreshedToken = () => {
+        const sessionID = getToken();
         const request = new Request(refreshEndpoint, {
             method: 'GET',
-            headers: new Headers({ 'Content-Type': 'application/json' }),
+            headers: new Headers({ 'Content-Type': 'application/json'}),
             credentials: 'include',
         });
+        if (sessionID) {
+            request.headers.append('Authorization', `Bearer ${sessionID}`)
+        }
         return fetch(request)
             .then((response) => {
                 if (response.status !== 200) {

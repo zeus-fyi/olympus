@@ -500,6 +500,7 @@ func (t *TableUsage) CheckEndpointLimits() error {
 func (t *TableUsage) CheckPlanLimits(plan string) error {
 	err := t.CheckEndpointLimits()
 	if err != nil {
+		log.Err(err).Msg("CheckPlanLimits")
 		return err
 	}
 	switch plan {

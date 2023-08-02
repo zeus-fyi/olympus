@@ -83,7 +83,7 @@ func (h *HestiaQuickNodeWorkflow) UpdateProvisionWorkflow(ctx workflow.Context, 
 
 	for _, groupName := range excessGroups {
 		dCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(pCtx, h.DeleteOrgGroupRoutingTable, ou, groupName).Get(dCtx, &excessGroups)
+		err = workflow.ExecuteActivity(pCtx, h.DeleteOrgGroupRoutingTable, ou, groupName).Get(dCtx, nil)
 		if err != nil {
 			logger.Warn("params", pr)
 			logger.Warn("ou", ou)
@@ -91,7 +91,7 @@ func (h *HestiaQuickNodeWorkflow) UpdateProvisionWorkflow(ctx workflow.Context, 
 			return err
 		}
 		cdCtx := workflow.WithActivityOptions(ctx, ao)
-		err = workflow.ExecuteActivity(cdCtx, h.IrisPlatformDeleteGroupTableCacheRequest, ou, groupName).Get(cdCtx, &excessGroups)
+		err = workflow.ExecuteActivity(cdCtx, h.IrisPlatformDeleteGroupTableCacheRequest, ou, groupName).Get(cdCtx, nil)
 		if err != nil {
 			logger.Warn("params", pr)
 			logger.Warn("ou", ou)

@@ -22,7 +22,7 @@ const (
 )
 
 func InitHestiaQuicknodeWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
-	log.Ctx(ctx).Info().Msg("Hestia: InitHestiaQuicknodeWorker")
+	log.Info().Msg("Hestia: InitHestiaQuicknodeWorker")
 	tc, err := temporal_base.NewTemporalClient(temporalAuthCfg)
 	if err != nil {
 		log.Err(err).Msg("InitHestiaQuicknodeWorker: NewTemporalClient failed")

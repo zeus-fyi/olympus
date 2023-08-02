@@ -1,12 +1,9 @@
 package quicknode_orchestrations
 
 import (
-	"context"
 	"time"
 
-	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	hestia_quicknode "github.com/zeus-fyi/olympus/pkg/hestia/platform/quiknode"
 	temporal_base "github.com/zeus-fyi/olympus/pkg/iris/temporal/base"
 	"go.temporal.io/sdk/workflow"
@@ -27,17 +24,7 @@ func NewHestiaQuickNodeWorkflow() HestiaQuickNodeWorkflow {
 }
 
 func (h *HestiaQuickNodeWorkflow) GetWorkflows() []interface{} {
-	return []interface{}{h.ProvisionWorkflow, h.UpdateProvisionWorkflow, h.DeprovisionWorkflow, h.DeactivateWorkflow,
-		h.DeleteOrgGroupRoutingTable}
-}
-
-func (h *HestiaQuickNodeWorkflow) DeleteOrgGroupRoutingTable(ctx context.Context, ou org_users.OrgUser, groupName string) error {
-	err := iris_models.DeleteOrgGroupAndRoutes(context.Background(), ou.OrgID, groupName)
-	if err != nil {
-		log.Err(err).Msg("DeleteOrgGroupRoutingTable: DeleteOrgGroupRoutingTable")
-		return err
-	}
-	return nil
+	return []interface{}{h.ProvisionWorkflow, h.UpdateProvisionWorkflow, h.DeprovisionWorkflow, h.DeactivateWorkflow}
 }
 
 func (h *HestiaQuickNodeWorkflow) ProvisionWorkflow(ctx workflow.Context, ou org_users.OrgUser, pr hestia_quicknode.ProvisionRequest, user hestia_quicknode.QuickNodeUserInfo) error {

@@ -66,7 +66,7 @@ func (k *OrgUserKey) VerifyQuickNodeToken(ctx context.Context) error {
 	FROM users_keys usk
 	INNER JOIN key_types kt ON kt.key_type_id = usk.public_key_type_id
 	INNER JOIN org_users ou ON ou.user_id = usk.user_id
-	WHERE public_key = $1 AAND usk.public_key_type_id = $2
+	WHERE public_key = $1 AND usk.public_key_type_id = $2
 	`)
 	q.RawQuery = query
 	log.Debug().Interface("VerifyQuickNodeToken:", q.LogHeader(Sn))
@@ -120,6 +120,10 @@ func (k *OrgUserKey) VerifyUserTokenService(ctx context.Context, serviceName str
 	if err != nil {
 		log.Ctx(ctx).Err(err).Msg("VerifyUserTokenService error")
 		k.PublicKeyVerified = false
+		err = k.VerifyQuickNodeToken(ctx)
+		if err != nil {
+			return err
+		}
 	}
 	if k.PublicKeyVerified == false {
 		return errors.New("unauthorized key")

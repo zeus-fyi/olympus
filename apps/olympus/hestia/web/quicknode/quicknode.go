@@ -42,28 +42,66 @@ func InitQuickNodeDashboardRoutes(e *echo.Echo) {
 		}
 		user, ok1 := claims["name"].(string)
 		if !ok1 {
+			log.Warn().Interface("user", user).Msg("failed to cast claims[\"user\"] as string")
 			log.Warn().Msg("failed to cast claims[\"name\"] as string")
 		}
 		organization, ok2 := claims["organization_name"].(string)
 		if !ok2 {
+			log.Warn().Interface("organization", organization).Msg("failed to cast claims[\"organization_name\"] as string")
 			log.Warn().Msg("failed to cast claims[\"organization_name\"] as string")
 		}
 		email, ok3 := claims["email"].(string)
 		if !ok3 {
+			log.Warn().Interface("email", email).Msg("failed to cast claims[\"email\"] as string")
 			log.Warn().Msg("failed to cast claims[\"email\"] as string")
 		}
 		quickNodeID, ok4 := claims["quicknode_id"].(string)
 		if !ok4 {
 			log.Warn().Msg("failed to cast claims[\"quicknode_id\"] as string")
 		}
-		ui := User{
-			Name:             user,
-			OrganizationName: organization,
-			Email:            email,
-			QuickNodeID:      quickNodeID,
-		}
+		//ui := User{
+		//	Name:             user,
+		//	OrganizationName: organization,
+		//	Email:            email,
+		//	QuickNodeID:      quickNodeID,
+		//}
 		resp.Status = "success"
-		return c.JSON(http.StatusOK, ui)
+		key := read_keys.NewKeyReader()
+		key.PublicKey = quickNodeID
+		ctx := context.Background()
+		err = key.VerifyUserTokenServiceWithQuickNodePlan(ctx, quickNodeID)
+		if err != nil {
+			log.Err(err).Str("quickNodeID", quickNodeID).Msg("VerifyUserTokenServiceWithQuickNodePlan error")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		if key.PublicKeyVerified == false {
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		sessionID := rand.String(64)
+		sessionKey := create_keys.NewCreateKey(key.UserID, sessionID)
+		sessionKey.PublicKeyTypeID = keys.SessionIDKeyTypeID
+		sessionKey.PublicKeyName = "sessionID"
+		err = sessionKey.InsertUserSessionKey(ctx)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		cookie := &http.Cookie{
+			Name:     aegis_sessions.SessionIDNickname,
+			Value:    sessionID,
+			HttpOnly: true,
+			Secure:   true,
+			Domain:   hestia_login.Domain,
+			SameSite: http.SameSiteNoneMode,
+			Expires:  time.Now().Add(24 * time.Hour),
+			Path:     "/",
+		}
+		c.SetCookie(cookie)
+		li := hestia_login.LoginResponse{
+			UserID:    key.UserID,
+			SessionID: sessionID,
+			TTL:       3600,
+		}
+		return c.JSON(http.StatusOK, li)
 	})
 
 	e.GET("/quicknode/dashboard", func(c echo.Context) error {

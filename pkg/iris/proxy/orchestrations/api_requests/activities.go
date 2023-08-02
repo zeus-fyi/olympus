@@ -22,7 +22,7 @@ type ActivitiesSlice []interface{}
 
 func (i *IrisApiRequestsActivities) GetActivities() ActivitiesSlice {
 	return []interface{}{i.RelayRequest, i.InternalSvcRelayRequest, i.ExtLoadBalancerRequest, i.UpdateOrgRoutingTable,
-		i.SelectAllOrgGroupsRoutingTables, i.SelectOrgGroupRoutingTable, i.SelectAllRoutingTables,
+		i.SelectSingleOrgGroupsRoutingTables, i.SelectOrgGroupRoutingTable, i.SelectAllRoutingTables,
 		i.DeleteOrgRoutingTable,
 	}
 }

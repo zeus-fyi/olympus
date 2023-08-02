@@ -51,23 +51,21 @@ func (i *IrisApiRequestsWorkflow) CacheRefreshOrgRoutingTablesWorkflow(ctx workf
 		},
 	}
 	getRoutingTablesCtx := workflow.WithActivityOptions(ctx, ao)
-	var ogr iris_models.OrgRoutesGroup
-	err := workflow.ExecuteActivity(getRoutingTablesCtx, i.SelectAllOrgGroupsRoutingTables, orgID).Get(getRoutingTablesCtx, &ogr)
+	var ogr map[string][]iris_models.RouteInfo
+	err := workflow.ExecuteActivity(getRoutingTablesCtx, i.SelectSingleOrgGroupsRoutingTables, orgID).Get(getRoutingTablesCtx, &ogr)
 	if err != nil {
 		log.Error("CacheRefreshOrgRoutingTablesWorkflow: Failed to SelectAllOrgGroupsRoutingTables", "Error", err)
 		return err
 	}
-	for _, og := range ogr.Map {
-		for rgName, routes := range og {
-			if rgName == "unused" {
-				continue
-			}
-			addOrUpdateOrgRoutingTableCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(addOrUpdateOrgRoutingTableCtx, i.UpdateOrgRoutingTable, orgID, rgName, routes).Get(addOrUpdateOrgRoutingTableCtx, nil)
-			if err != nil {
-				log.Error("CacheRefreshOrgRoutingTablesWorkflow: Failed to UpdateOrgRoutingTable", "Error", err)
-				return err
-			}
+	for rgName, routes := range ogr {
+		if rgName == "unused" {
+			continue
+		}
+		addOrUpdateOrgRoutingTableCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(addOrUpdateOrgRoutingTableCtx, i.UpdateOrgRoutingTable, orgID, rgName, routes).Get(addOrUpdateOrgRoutingTableCtx, nil)
+		if err != nil {
+			log.Error("CacheRefreshOrgRoutingTablesWorkflow: Failed to UpdateOrgRoutingTable", "Error", err)
+			return err
 		}
 	}
 	return nil
@@ -140,24 +138,26 @@ func (i *IrisApiRequestsWorkflow) DeleteAllOrgRoutingGroupsWorkflow(ctx workflow
 		},
 	}
 	getRoutingTablesCtx := workflow.WithActivityOptions(ctx, ao)
-	var ogr iris_models.OrgRoutesGroup
-	err := workflow.ExecuteActivity(getRoutingTablesCtx, i.SelectAllOrgGroupsRoutingTables, orgID).Get(getRoutingTablesCtx, &ogr)
+	var ogr map[string][]iris_models.RouteInfo
+	err := workflow.ExecuteActivity(getRoutingTablesCtx, i.SelectSingleOrgGroupsRoutingTables, orgID).Get(getRoutingTablesCtx, &ogr)
 	if err != nil {
 		log.Error("DeleteAllOrgRoutingGroupsWorkflow: Failed to SelectOrgGroupRoutingTable", "Error", err)
 		return err
 	}
-	for _, og := range ogr.Map {
-		for rgName, _ := range og {
-			if len(rgName) <= 0 {
-				continue
-			}
-			delRoutingTableCtx := workflow.WithActivityOptions(ctx, ao)
-			err = workflow.ExecuteActivity(delRoutingTableCtx, i.DeleteOrgRoutingTable, orgID, rgName).Get(delRoutingTableCtx, nil)
-			if err != nil {
-				log.Error("DeleteAllOrgRoutingGroupsWorkflow: DeleteRoutingGroup: Failed to DeleteOrgRoutingTable", "Error", err)
-				return err
-			}
+	for rgName, _ := range ogr {
+		if len(rgName) <= 0 {
+			continue
 		}
+		if rgName == "unused" {
+			continue
+		}
+		delRoutingTableCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(delRoutingTableCtx, i.DeleteOrgRoutingTable, orgID, rgName).Get(delRoutingTableCtx, nil)
+		if err != nil {
+			log.Error("DeleteAllOrgRoutingGroupsWorkflow: DeleteRoutingGroup: Failed to DeleteOrgRoutingTable", "Error", err)
+			return err
+		}
+
 	}
 	return nil
 }

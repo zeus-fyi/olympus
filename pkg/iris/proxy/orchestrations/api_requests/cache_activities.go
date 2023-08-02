@@ -34,12 +34,12 @@ func (i *IrisApiRequestsActivities) SelectOrgGroupRoutingTable(ctx context.Conte
 	return ot, nil
 }
 
-func (i *IrisApiRequestsActivities) SelectAllOrgGroupsRoutingTables(ctx context.Context, orgID int) (iris_models.OrgRoutesGroup, error) {
+func (i *IrisApiRequestsActivities) SelectSingleOrgGroupsRoutingTables(ctx context.Context, orgID int) (map[string][]iris_models.RouteInfo, error) {
 	ot, err := iris_models.SelectAllOrgRoutesByOrg(ctx, orgID)
 	if err != nil {
-		return ot, err
+		return nil, err
 	}
-	return ot, nil
+	return ot, err
 }
 
 func (i *IrisApiRequestsActivities) SelectAllRoutingTables(ctx context.Context) (iris_models.OrgRoutesGroup, error) {

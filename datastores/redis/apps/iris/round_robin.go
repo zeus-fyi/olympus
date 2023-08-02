@@ -197,13 +197,11 @@ func (m *IrisCache) initRoutingTablesForOrg(ctx context.Context, orgID int) erro
 	if err != nil {
 		return err
 	}
-	for _, og := range ot.Map {
-		for rgName, routes := range og {
-			err = m.AddOrUpdateOrgRoutingGroup(context.Background(), orgID, rgName, routes)
-			if err != nil {
-				log.Err(err).Msg("InitRoutingTablesForOrg")
-				return err
-			}
+	for rgName, routes := range ot {
+		err = m.AddOrUpdateOrgRoutingGroup(context.Background(), orgID, rgName, routes)
+		if err != nil {
+			log.Err(err).Msg("InitRoutingTablesForOrg")
+			return err
 		}
 	}
 	return nil

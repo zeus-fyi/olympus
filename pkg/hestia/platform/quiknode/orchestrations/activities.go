@@ -35,7 +35,7 @@ type ActivitiesSlice []interface{}
 func (h *HestiaQuicknodeActivities) GetActivities() ActivitiesSlice {
 	return []interface{}{
 		h.Provision, h.UpdateProvision, h.Deprovision, h.Deactivate, h.DeprovisionCache, h.CheckPlanOverages,
-		h.IrisPlatformDeleteGroupTableCacheRequest, h.DeactivateApiKey, h.DeleteOrgGroupRoutingTable,
+		h.IrisPlatformDeleteGroupTableCacheRequest, h.DeactivateApiKey, h.DeleteOrgGroupRoutingTable, h.InsertQuickNodeApiKey,
 	}
 }
 
@@ -43,6 +43,16 @@ func (h *HestiaQuicknodeActivities) DeleteOrgGroupRoutingTable(ctx context.Conte
 	err := iris_models.DeleteOrgGroupAndRoutes(context.Background(), ou.OrgID, groupName)
 	if err != nil {
 		log.Err(err).Msg("DeleteOrgGroupRoutingTable: DeleteOrgGroupRoutingTable")
+		return err
+	}
+	return nil
+}
+
+func (h *HestiaQuicknodeActivities) InsertQuickNodeApiKey(ctx context.Context, pr hestia_quicknode.ProvisionRequest) error {
+	co := create_org_users.NewCreateOrgUser()
+	err := co.InsertOrgUserWithNewQuickNodeKeyForService(ctx, pr.QuickNodeID)
+	if err != nil {
+		log.Warn().Str("pr.QuickNodeID", pr.QuickNodeID).Err(err).Msg("Provision: InsertQuickNodeApiKey")
 		return err
 	}
 	return nil
@@ -107,14 +117,6 @@ func (h *HestiaQuicknodeActivities) Provision(ctx context.Context, ou org_users.
 	if err != nil {
 		log.Warn().Interface("ou", ou).Err(err).Msg("Provision: InsertProvisionedQuickNodeService")
 		return err
-	}
-	if !user.Verified {
-		co := create_org_users.NewCreateOrgUser()
-		err = co.InsertOrgUserWithNewQuickNodeKeyForService(ctx, qs.QuickNodeID)
-		if err != nil {
-			log.Warn().Interface("ou", ou).Err(err).Msg("Provision: InsertOrgUserWithNewQuickNodeKeyForService")
-			return err
-		}
 	}
 	return nil
 }

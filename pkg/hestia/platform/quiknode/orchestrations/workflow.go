@@ -40,6 +40,17 @@ func (h *HestiaQuickNodeWorkflow) ProvisionWorkflow(ctx workflow.Context, ou org
 		logger.Error("failed to provision QuickNode services", "Error", err)
 		return err
 	}
+
+	if !user.Verified {
+		apiTokenCtx := workflow.WithActivityOptions(ctx, ao)
+		err = workflow.ExecuteActivity(apiTokenCtx, h.InsertQuickNodeApiKey, pr).Get(apiTokenCtx, nil)
+		if err != nil {
+			logger.Warn("params", pr)
+			logger.Warn("ou", ou)
+			logger.Error("failed to provision QuickNode api for user", "Error", err)
+			return err
+		}
+	}
 	return nil
 }
 

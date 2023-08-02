@@ -2,7 +2,6 @@ package hestia_quiknode_v1_routes
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -45,16 +44,19 @@ func InitV1RoutesServices(e *echo.Echo) {
 		if len(QuickNodePassword) <= 0 {
 			return false, nil
 		}
+		if QuickNodePassword != password {
+			return false, nil
+		}
 		key, err := auth.VerifyQuickNodeToken(context.Background(), qnEndpointID)
 		if err != nil {
-			log.Err(err).Msg("InitV1Routes QuickNode")
-			return false, c.JSON(http.StatusInternalServerError, nil)
+			log.Err(err).Msg("InitV1Routes QuickNode user not found: creating new org")
+			err = nil
 		}
-		ou := org_users.NewOrgUserWithID(key.OrgID, key.GetUserID())
+		ou := org_users.NewOrgUserWithID(key.OrgID, 0)
 		c.Set("orgUser", ou)
 		c.Set("verified", key.IsVerified())
 		if password == QuickNodePassword {
-			if qnTestHeader == QuickNodeTestHeader {
+			if len(qnTestHeader) > 0 && qnTestHeader == "true" {
 				c.Set("orgUser", org_users.NewOrgUserWithID(QuickNodeTestOrgID, QuickNodeTestOrgID))
 				c.Set("bearer", QuickNodeToken)
 				c.Set("isTest", true)
@@ -62,6 +64,7 @@ func InitV1RoutesServices(e *echo.Echo) {
 			} else {
 				c.Set("orgUser", org_users.NewOrgUserWithID(10, 10))
 				c.Set("bearer", QuickNodeToken)
+				c.Set("isTest", false)
 				return true, nil
 			}
 		}

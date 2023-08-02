@@ -214,6 +214,7 @@ func (h *HestiaQuicknodeActivities) CheckPlanOverages(ctx context.Context, pr he
 	}
 	tc, err := iris_models.OrgGroupTablesToRemove(context.Background(), pr.QuickNodeID, pr.Plan)
 	if err != nil {
+		log.Warn().Err(err).Msg("Provision: CheckPlanOverages")
 		return nil, err
 	}
 	return tc, nil
@@ -222,6 +223,7 @@ func (h *HestiaQuicknodeActivities) CheckPlanOverages(ctx context.Context, pr he
 func (h *HestiaQuicknodeActivities) DeactivateApiKey(ctx context.Context, ou org_users.OrgUser, pr hestia_quicknode.DeprovisionRequest) error {
 	err := read_keys.DeactivateQuickNodeApiKey(context.Background(), pr.QuickNodeID)
 	if err != nil {
+		log.Warn().Msg("Provision: DeactivateApiKey")
 		return err
 	}
 	return nil
